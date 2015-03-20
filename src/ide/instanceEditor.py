@@ -408,6 +408,21 @@ class SelectTool(Tool):
           panel.Refresh()
         
       elif event.ButtonDClick(wx.MOUSE_BTN_LEFT):
+        # Check if double click at "duplicate" button
+        addButton = panel.findAddButtonAt(pos)
+        if addButton:
+          if self.selected:
+            (newEnt,addtl) = self.panel.model.duplicate([next(iter(self.selected))], recursive=True)
+
+            # Put all childs instances into hyperlisttree
+            if share.instanceDetailsPanel:
+              for ent in newEnt:
+                share.instanceDetailsPanel.createTreeItemEntity(ent.data["name"], ent)
+
+            self.panel.layout()
+            self.panel.Refresh()
+          return False
+
         entities = panel.findEntitiesAt(pos)
         if not entities: return False
         self.showEntity(entities)
@@ -444,9 +459,23 @@ class SelectTool(Tool):
           self.panel.Refresh()
           ret=True # I consumed this event
         elif event.ControlDown() and character ==  'V':
-          print "Copy selected instances"
-          (self.selected,addtl) = self.panel.model.duplicate(self.selected,recursive=True)
+          if self.selectMultiple:
+            # TODO: take all entities?
+            print "Copy selected instances: %s" % ", ".join([ e.data["name"] for e in self.selected])
+            (self.selected,addtl) = self.panel.model.duplicate(self.selected,recursive=True)
+          else:
+            # Duplicate SG, NODE, SU and SI
+            ents = sorted(self.filterOut(self.selected, self.entOrder[0:2]), key=lambda ent: self.entOrder.index(ent.et.name))
+            # Duplicate first order entity except component and csi
+            (newEnt,addtl) = self.panel.model.duplicate([ents[0]], recursive=True)
 
+            # Put all childs instances into hyperlisttree
+            if share.instanceDetailsPanel:
+              for ent in newEnt:
+                share.instanceDetailsPanel.createTreeItemEntity(ent.data["name"], ent)
+
+          self.panel.layout()
+          self.panel.Refresh()
           ret=True
       else:
         return False # Give this key to someone else
@@ -479,6 +508,9 @@ class SelectTool(Tool):
         # Delete first entity
         ent = ents[0]
       self.panel.deleteEntities([ent])
+
+  def filterOut(self, ents, filterRules = []):
+    return filter(lambda ent: not ent.et.name in filterRules, ents)
 
 class ZoomTool(Tool):
   def __init__(self, panel):
@@ -818,7 +850,7 @@ class Panel(scrolled.ScrolledPanel):
       scrolled.ScrolledPanel.__init__(self, parent, style = wx.TAB_TRAVERSAL|wx.SUNKEN_BORDER)
       share.instancePanel = self
 
-      self.addBmp = svg.SvgFile("add.svg").instantiate((32,32), {})
+      self.addBmp = svg.SvgFile("add.svg").instantiate((24,24), {})
 
       # self.displayGraph = networkx.Graph()
       # These variables define what types can be instantiated in the outer row/columns of the edit tool
@@ -856,6 +888,7 @@ class Panel(scrolled.ScrolledPanel):
 
       self.intersects = []
 
+      self.addButtons = []
 
       # Ignore render entities since size(0,0) is invalid
       self.ignoreEntities = ["Component", "ComponentServiceInstance"]
@@ -1193,17 +1226,20 @@ class Panel(scrolled.ScrolledPanel):
         for e in filter(lambda entInt: entInt.et.name in (self.columnTypes + self.rowTypes), self.model.instances.values()):
           svg.blit(ctx,e.bmp,e.pos,e.scale,e.rotate)
 
+        self.addButtons = []
+
         # Draw the other instances on top
         for e in filter(lambda entInt: not entInt.et.name in (self.columnTypes + self.rowTypes ), self.model.instances.values()):
           if e.size != (0,0):  # indicate that the object is hidden
             svg.blit(ctx,e.bmp,e.pos,e.scale,e.rotate)
 
+            # Show "component/csi" children of "SUs/SIs" inside the graphical box which is the SU/SI
             if e.et.name in ("ServiceInstance", "ServiceUnit",):
               childs = []
               for a in e.containmentArrows:
                 childs.append(a.contained)
 
-              bound = e.pos + (e.pos[0]+e.size[0]-30, e.pos[1]+e.size[1]-30)
+              bound = e.pos + (e.pos[0]+e.size[0], e.pos[1]+e.size[1]-30)
               for ch,place in zip(childs,partition(len(childs), bound)):
                 ch.pos = (place[0]- 5,place[1] - (bound[3] - bound[1])/5) #
                 tmp = ((place[2]-place[0])+10, (place[3]-place[1])+(bound[3] - bound[1])/5+5) # (min(cell.bound[2]-30,64),min(cell.bound[3]-30,64))
@@ -1211,6 +1247,10 @@ class Panel(scrolled.ScrolledPanel):
                   ch.size = tmp
                   ch.recreateBitmap()
                 svg.blit(ctx,ch.bmp,ch.pos,ch.scale,ch.rotate)
+
+              # Render copy button (duplicate, similar: selected entity and type ctrl+'v')
+              svg.blit(ctx,self.addBmp,(e.pos[0]+e.size[0]-24, e.pos[1]+e.size[1]-24),e.scale,e.rotate)
+              self.addButtons.append((e.pos[0]+e.size[0]-24, e.pos[1]+e.size[1]-24, e.pos[0]+e.size[0], e.pos[1]+e.size[1]))
 
         # Now draw the containment arrows on top
 #        pdb.set_trace()
@@ -1222,24 +1262,6 @@ class Panel(scrolled.ScrolledPanel):
             if self.renderArrow.get((a.container,a.contained),True):  # Check to see if there's an directive whether to render this arrow or not.  If there is not one, render it by default
               # pdb.set_trace()
               drawCurvyArrow(ctx, (st[0] + a.beginOffset[0],st[1] + a.beginOffset[1]),(end[0] + a.endOffset[0],end[1] + a.endOffset[1]),a.midpoints, linkNormalLook)
-
-        #panelSize = self.GetVirtualSize()
-        #print panelSize
-
-            # Add SU button
-            #pos_v = (0,(max(i,1)*(ROW_WIDTH)))
-            #svg.blit(ctx,self.addBmp, pos_v,(self.scale,self.scale),self.rotate)
-            #for j in range(0, len(self.columns)):
-            #  pos_h = ((j+1)*COL_WIDTH, 0)
-            #  svg.blit(ctx,self.addBmp, pos_h,(self.scale,self.scale),self.rotate)
-        for i in range(1, len(self.grid.rows)):
-          cell = self.grid.idx(i,0)
-          svg.blit(ctx,self.addBmp,(cell.bound[0],cell.bound[1]),(self.scale,self.scale),self.rotate)
-
-        for j in range(1, len(self.grid.columns)):
-            cell = self.grid.idx(0,j)
-            svg.blit(ctx,self.addBmp,(cell.bound[0],cell.bound[1]),(self.scale,self.scale),self.rotate)
-
 
         ctx.restore()
 
@@ -1287,6 +1309,13 @@ class Panel(scrolled.ScrolledPanel):
         if rectOverlaps(rect,(e.pos[0],e.pos[1],furthest[0],furthest[1])):  # mouse is in the box formed by the entity
           ret.add(e)
       return ret
+
+    def findAddButtonAt(self, pos):
+      pos = convertToRealPos(pos, self.scale)
+      for addBtn in self.addButtons:
+        if inBox(pos, addBtn):
+          return addBtn
+      return None
 
     def notifyNameValueChange(self, ent, newValue):
       self.notifyValueChange(ent, 'name', newValue)

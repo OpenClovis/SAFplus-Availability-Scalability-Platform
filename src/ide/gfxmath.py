@@ -71,12 +71,17 @@ def partition(numitems, bound):
     yield (bound[0]+margin, bound[1]+topMargin,bound[0]+(size[0]/2)-innermargin, bound[3]-margin)
     yield (bound[0]+(size[0]/2)+innermargin, bound[1]+topMargin,bound[2]-margin, bound[3]-margin)
   elif numitems==3:
-    yield (bound[0]+margin, bound[1]+topMargin,bound[0]+(size[0]/3)-innermargin, bound[3]-margin)
-    yield (bound[0]+(size[0]/3)+innermargin, bound[1]+topMargin,bound[0]+(2*size[0]/3)-innermargin, bound[3]-margin)
-    yield (bound[0]+(2*size[0]/3)+innermargin, bound[1]+topMargin,bound[2]-margin, bound[3]-margin)
+    yield (bound[0]+margin,bound[1]+topMargin,bound[0]+(size[0]/3)-innermargin,bound[3]-margin)
+    yield (bound[0]+(size[0]/3)+innermargin,bound[1]+topMargin,bound[0]+(2*size[0]/3)-innermargin,bound[3]-margin)
+    yield (bound[0]+(2*size[0]/3)+innermargin,bound[1]+topMargin,bound[2]-margin, bound[3]-margin)
   else:
-    print numitems
-    pdb.set_trace()
+    yield (bound[0]+margin, bound[1]+topMargin,bound[0]+(size[0]/numitems)-innermargin, bound[3]-margin)
+    i = 1
+    while i < (numitems-1):
+      yield (bound[0]+(i*size[0]/numitems)+innermargin, bound[1]+topMargin,bound[0]+((i+1)*size[0]/numitems)-innermargin, bound[3]-margin)
+      i+=1
+    yield (bound[0]+((numitems-1)*size[0]/numitems)+innermargin,bound[1]+topMargin,  bound[2]-margin, bound[3]-margin)
+    #pdb.set_trace()
 
 def inBox(point, bound):
   """is a point inside a box?  The box bound must be specified (x,y,x1,y1) where x<=x1 y<=y1"""
