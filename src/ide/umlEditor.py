@@ -682,12 +682,12 @@ class SaveTool(Tool):
 class DeleteTool(Tool):
   def __init__(self, panel):
     self.panel = panel
-    self.selected = set()  # This is everything that is currently selected... using shift or ctrl click may mean the more is selected then currently touching
     self.touching = set()  # This is everything that the cursor is currently touching
     self.rect = None       # Will be something if a rectangle selection is being used
-    #self.downPos = None   # Where the left mouse button was pressed
     self.boxSel = BoxGesture()
-  
+    self.entOrder = ["Component", "ComponentServiceInstance", "ServiceUnit", "ServiceInstance", "Node", "ServiceGroup"] # Select layer entity by order: Component->csi->su->si->node->sg
+    self.selectMultiple = False
+
   def OnSelect(self, panel,event):
     return False
 
@@ -695,39 +695,53 @@ class DeleteTool(Tool):
     pos = panel.CalcUnscrolledPosition(event.GetPositionTuple())
     if isinstance(event, wx.MouseEvent):
       if event.ButtonDown(wx.MOUSE_BTN_LEFT):  # Select
+        self.selectMultiple = False
         entities = panel.findEntitiesAt(pos)
         self.dragPos = pos
-        self.touching = set()
-        self.boxSel.start(panel,pos)
+        if not entities:
+          self.touching = set()
+          self.boxSel.start(panel,pos)
+          return False
 
         # If you touch something else, your touching set changes.  But if you touch something in your current touch group then nothing changes
         # This enables behavior like selecting a group of entities and then dragging them (without using the ctrl key)
         if not entities.issubset(self.touching) or (len(self.touching) != len(entities)):
           self.touching = set(entities)
-          self.selected = self.touching.copy()
-  
+
       if event.Dragging():
-        # if you are touching anything, then drag everything
-        if self.touching and self.dragPos:
-          delta = (pos[0]-self.dragPos[0], pos[1] - self.dragPos[1])
-          # TODO deal with scaling and rotation in delta
-          if delta[0] != 0 and delta[1] != 0:
-            for e in self.selected:
-              e.pos = (e.pos[0] + delta[0], e.pos[1] + delta[1])  # move all the touching objects by the amount the mouse moved
-          self.dragPos = pos
-          panel.Refresh()
-        else:  # touching nothing, this is a selection rectangle
+          # Touching nothing, this is a selection rectangle
           self.boxSel.change(panel,event)
   
       if event.ButtonUp(wx.MOUSE_BTN_LEFT):
         # Or find everything inside a selection box
         if self.boxSel.active:
+          rect = self.boxSel.rect
+          delta = (rect[0]-rect[2], rect[1] - rect[3])
+          if delta[0] != 0 or delta[1] != 0:
+            # Multi select to delete
+            self.selectMultiple = True
+
           self.touching = panel.findEntitiesTouching(self.boxSel.finish(panel,pos))
-          self.selected = self.touching
-          if len(self.selected) > 0:
-            self.panel.deleteEntities(self.selected)
-            self.selected = set()
-          panel.Refresh()
+
+        if self.touching:
+          print "Delete(s): %s" % ", ".join([ e.data["name"] for e in self.touching])
+          self.deleteEntities(self.touching)
+          self.touching.clear()
+        panel.Refresh()
+
+  def deleteEntities(self, ents):
+    if self.selectMultiple:
+      self.panel.deleteEntities(ents)
+    else:
+      ent = None
+      # Delete an entity
+      if len(ents) == 1:
+        ent = (next(iter(ents)))
+      else:
+        ents = sorted(ents, key=lambda ent: self.entOrder.index(ent.et.name))
+        # Delete first entity
+        ent = ents[0]
+      self.panel.deleteEntities([ent])
 
 # Global of this panel for debug purposes only.  DO NOT USE IN CODE
 dbgUep = None
@@ -954,10 +968,8 @@ class Panel(scrolled.ScrolledPanel):
       self.Refresh()
 
     def deleteEntities(self, ents):
-
-      if share.instancePanel:
-        share.instancePanel.deleteEntities(insts)
-
+      if share.detailsPanel:
+        share.detailsPanel.deleteTreeItemEntities(ents)
       self.model.delete(ents)
       self.Refresh()
 

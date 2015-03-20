@@ -112,7 +112,7 @@ class Panel(scrolled.ScrolledPanel):
         self.isDetailInstance = isDetailInstance
         self.entityTreeTypes = ["ServiceGroup", "Node", "ServiceUnit", "ServiceInstance"]
 
-        self.eventDictTree = {wx.EVT_TREE_ITEM_EXPANDED:self.OnTreeSelChanged, wx.EVT_TREE_SEL_CHANGING: self.OnTreeSelChanged, wx.EVT_TREE_SEL_CHANGED: self.OnTreeSelChanged}
+        self.eventDictTree = {wx.EVT_TREE_ITEM_EXPANDED:self.OnTreeSelExpanded, wx.EVT_TREE_SEL_CHANGING: self.OnTreeSelChanged, wx.EVT_TREE_SEL_CHANGED: self.OnTreeSelChanged}
         self._createTreeEntities()
 
         if (self.isDetailInstance):
@@ -306,13 +306,25 @@ class Panel(scrolled.ScrolledPanel):
       if self.entity == ent: return  # Its already being shown
       self.entity = ent
 
+      # Collapse all tree items
+      self.CollapseAll()
       treeItem = self.createTreeItemEntity(ent.data["name"], ent)
       self.tree.Expand(treeItem)
       self.tree.SelectItem(treeItem)
 
+    def OnTreeSelExpanded(self, event):
+      self.treeItemSelected = event.GetItem()
+      event.Skip()
+
     def OnTreeSelChanged(self, event):
       self.treeItemSelected = event.GetItem()
       event.Skip()
+
+    def CollapseAll(self):
+      self.tree.SelectAll()
+      for item in filter(lambda item: item != self.treeRoot, self.tree.GetSelections()):
+        self.tree.Collapse(item)
+      self.tree.UnselectAll()
 
     # Create controls for all entities
     def _createTreeEntities(self):
@@ -324,7 +336,7 @@ class Panel(scrolled.ScrolledPanel):
       else:
         self.sizer = wx.BoxSizer(wx.VERTICAL)
 
-      self.tree = HTL.HyperTreeList(self, id=wx.ID_ANY, pos=wx.DefaultPosition, style=wx.BORDER_NONE, size=(5,5), agwStyle=HTL.TR_NO_HEADER | wx.TR_HAS_BUTTONS | wx.TR_HAS_VARIABLE_ROW_HEIGHT | HTL.TR_HIDE_ROOT)
+      self.tree = HTL.HyperTreeList(self, id=wx.ID_ANY, pos=wx.DefaultPosition, style=wx.BORDER_NONE, size=(5,5), agwStyle=HTL.TR_NO_HEADER | wx.TR_HAS_BUTTONS | wx.TR_HAS_VARIABLE_ROW_HEIGHT | HTL.TR_HIDE_ROOT | wx.TR_MULTIPLE)
       self.tree.AddColumn("Main column")
       self.tree.AddColumn("Col 1")
       self.tree.AddColumn("Col 2")
@@ -361,10 +373,12 @@ class Panel(scrolled.ScrolledPanel):
 
       for ent in ents:
           treeItem = self.findEntityRecursive(ent)
+
           if treeItem:
-            if ent.et.name in self.entityTreeTypes:
-              for a in ent.containmentArrows:
-                  self.deleteTreeItemEntities(set([a.contained]), tmpList)
+            if 0: # TODO: recursive deleting???
+              if ent.et.name in self.entityTreeTypes:
+                for a in ent.containmentArrows:
+                    self.deleteTreeItemEntities(set([a.contained]), tmpList)
 
             # Cascade delete csi/component entity instance
             if not ent in tmpList:

@@ -301,6 +301,8 @@ class SelectTool(Tool):
     #self.downPos = None    # Where the left mouse button was pressed
     self.boxSel = BoxGesture()
     self.rectBmp = svg.SvgFile("rect.svg").instantiate((24,24), {})
+    self.entOrder = ["Component", "ComponentServiceInstance", "ServiceUnit", "ServiceInstance", "Node", "ServiceGroup"] # Select layer entity by order: Component->csi->su->si->node->sg
+    self.selectMultiple = False
 
   def OnSelect(self, panel,event):
     panel.statusBar.SetStatusText(self.defaultStatusText,0);
@@ -324,6 +326,7 @@ class SelectTool(Tool):
     pos = panel.CalcUnscrolledPosition(event.GetPositionTuple())
     if isinstance(event,wx.MouseEvent):
       if event.ButtonDown(wx.MOUSE_BTN_LEFT):  # Select
+        self.selectMultiple = False
         entities = panel.findEntitiesAt(pos)
         self.dragPos = pos
         if not entities:
@@ -359,8 +362,7 @@ class SelectTool(Tool):
         if event.ControlDown():
           self.selected = self.selected.union(self.touching)
         else: self.selected = self.touching.copy()
-        self.updateSelected()
-        return True
+
       if event.Dragging():
         # if you are touching anything, then drag everything
         if self.touching and self.dragPos:
@@ -377,8 +379,8 @@ class SelectTool(Tool):
       if event.ButtonUp(wx.MOUSE_BTN_LEFT):
         # TODO: Move the data in this entity to the configuration editing sidebar, and expand it if its minimized.
         if self.touching and self.dragPos:
-          # print "drop!"
-          for e in self.selected:
+          # Ignore moving component and csi
+          for e in filter(lambda e: not e.et.name in (self.panel.ignoreEntities), self.selected):
              if e.et.name in panel.rowTypes:
                panel.repositionRow(e,pos)
              if e.et.name in panel.columnTypes:
@@ -392,6 +394,11 @@ class SelectTool(Tool):
         # Or find everything inside a selection box
         if self.boxSel.active:
           #panel.drawers.discard(self)
+          rect = self.boxSel.rect
+          delta = (rect[0]-rect[2], rect[1] - rect[3])
+          if delta[0] != 0 or delta[1] != 0:
+            self.selectMultiple = True
+
           self.touching = panel.findEntitiesTouching(self.boxSel.finish(panel,pos))
 
           if event.ControlDown():
@@ -403,6 +410,7 @@ class SelectTool(Tool):
       elif event.ButtonDClick(wx.MOUSE_BTN_LEFT):
         entities = panel.findEntitiesAt(pos)
         if not entities: return False
+        self.showEntity(entities)
 
       elif event.ButtonDown(wx.MOUSE_BTN_RIGHT):
         entities = panel.findEntitiesAt(pos)
@@ -411,15 +419,14 @@ class SelectTool(Tool):
         self.touching = set()
         self.selected = set()
         # Show popup child comps list
-        for e in entities:
-          if e.et.name in ("ServiceInstance", "ServiceUnit",):
-            childEnties = []
-            for a in e.containmentArrows:
-              childEnties.append(a.contained)
-            win = ChildEntities(panel, childEnties, wx.SIMPLE_BORDER, size=(COL_WIDTH, ROW_WIDTH))
-            win.SetPosition(wx.GetMousePosition())
-            win.Popup()
-
+        #for e in entities:
+        #  if e.et.name in ("ServiceInstance", "ServiceUnit",):
+        #    childEnties = []
+        #    for a in e.containmentArrows:
+        #      childEnties.append(a.contained)
+        #    win = ChildEntities(panel, childEnties, wx.SIMPLE_BORDER, size=(COL_WIDTH, ROW_WIDTH))
+        #    win.SetPosition(wx.GetMousePosition())
+        #    win.Popup()
     if isinstance(event,wx.KeyEvent):
       if event.GetEventType() == wx.EVT_KEY_DOWN.typeId:
         try:
@@ -429,10 +436,10 @@ class SelectTool(Tool):
         print "key code: ", character
         if event.GetKeyCode() ==  wx.WXK_DELETE or event.GetKeyCode() ==  wx.WXK_NUMPAD_DELETE:
           if self.touching:
-            self.panel.deleteEntities(self.touching)
+            self.deleteEntities(self.touching)
             self.touching.clear()
           elif self.selected:
-            self.panel.deleteEntities(self.selected)
+            self.deleteEntities(self.selected)
             self.selected.clear()
           self.panel.Refresh()
           ret=True # I consumed this event
@@ -444,13 +451,34 @@ class SelectTool(Tool):
       else:
         return False # Give this key to someone else
 
-    self.updateSelected()
     return ret
   
-  def updateSelected(self):
-    if len(self.selected) == 1:
-      if share.instanceDetailsPanel:
-        share.instanceDetailsPanel.showEntity(next(iter(self.selected)))
+  def showEntity(self, ents):
+    ent = None
+    # Show detail entity
+    if len(ents) == 1:
+      ent = (next(iter(ents)))
+    else:
+      ents = sorted(ents, key=lambda ent: self.entOrder.index(ent.et.name))
+      # Show first entity
+      ent = ents[0]
+
+    if share.instanceDetailsPanel:
+      share.instanceDetailsPanel.showEntity(ent)
+
+  def deleteEntities(self, ents):
+    if self.selectMultiple:
+      self.panel.deleteEntities(ents)
+    else:
+      ent = None
+      # Delete an entity
+      if len(ents) == 1:
+        ent = (next(iter(ents)))
+      else:
+        ents = sorted(ents, key=lambda ent: self.entOrder.index(ent.et.name))
+        # Delete first entity
+        ent = ents[0]
+      self.panel.deleteEntities([ent])
 
 class ZoomTool(Tool):
   def __init__(self, panel):
@@ -769,6 +797,7 @@ class GridEntityLayout:
             if tmp != ent.size:
               ent.size = tmp
               ent.recreateBitmap()
+
     for ent in self.nogrid.entities:
       ent.size=(0,0)
 
@@ -788,6 +817,9 @@ class Panel(scrolled.ScrolledPanel):
       dbgPanel = self
       scrolled.ScrolledPanel.__init__(self, parent, style = wx.TAB_TRAVERSAL|wx.SUNKEN_BORDER)
       share.instancePanel = self
+
+      self.addBmp = svg.SvgFile("add.svg").instantiate((32,32), {})
+
       # self.displayGraph = networkx.Graph()
       # These variables define what types can be instantiated in the outer row/columns of the edit tool
       self.rowTypes = ["ServiceGroup","Application"]
@@ -823,6 +855,7 @@ class Panel(scrolled.ScrolledPanel):
       self.rows = []
 
       self.intersects = []
+
 
       # Ignore render entities since size(0,0) is invalid
       self.ignoreEntities = ["Component", "ComponentServiceInstance"]
@@ -1060,6 +1093,7 @@ class Panel(scrolled.ScrolledPanel):
         rowSet = set(self.rows)
         columnSet = set(self.columns)
         self.renderArrow = {}  # We will recalculate which arrows need rendering
+
         colCount = len(self.columns)
         panelSize = self.GetVirtualSize()
         x = COL_MARGIN
@@ -1160,9 +1194,23 @@ class Panel(scrolled.ScrolledPanel):
           svg.blit(ctx,e.bmp,e.pos,e.scale,e.rotate)
 
         # Draw the other instances on top
-        for e in filter(lambda entInt: not entInt.et.name in (self.columnTypes + self.rowTypes + self.ignoreEntities), self.model.instances.values()):
+        for e in filter(lambda entInt: not entInt.et.name in (self.columnTypes + self.rowTypes ), self.model.instances.values()):
           if e.size != (0,0):  # indicate that the object is hidden
             svg.blit(ctx,e.bmp,e.pos,e.scale,e.rotate)
+
+            if e.et.name in ("ServiceInstance", "ServiceUnit",):
+              childs = []
+              for a in e.containmentArrows:
+                childs.append(a.contained)
+
+              bound = e.pos + (e.pos[0]+e.size[0]-30, e.pos[1]+e.size[1]-30)
+              for ch,place in zip(childs,partition(len(childs), bound)):
+                ch.pos = (place[0]- 5,place[1] - (bound[3] - bound[1])/5) #
+                tmp = ((place[2]-place[0])+10, (place[3]-place[1])+(bound[3] - bound[1])/5+5) # (min(cell.bound[2]-30,64),min(cell.bound[3]-30,64))
+                if tmp != ch.size:
+                  ch.size = tmp
+                  ch.recreateBitmap()
+                svg.blit(ctx,ch.bmp,ch.pos,ch.scale,ch.rotate)
 
         # Now draw the containment arrows on top
 #        pdb.set_trace()
@@ -1174,6 +1222,24 @@ class Panel(scrolled.ScrolledPanel):
             if self.renderArrow.get((a.container,a.contained),True):  # Check to see if there's an directive whether to render this arrow or not.  If there is not one, render it by default
               # pdb.set_trace()
               drawCurvyArrow(ctx, (st[0] + a.beginOffset[0],st[1] + a.beginOffset[1]),(end[0] + a.endOffset[0],end[1] + a.endOffset[1]),a.midpoints, linkNormalLook)
+
+        #panelSize = self.GetVirtualSize()
+        #print panelSize
+
+            # Add SU button
+            #pos_v = (0,(max(i,1)*(ROW_WIDTH)))
+            #svg.blit(ctx,self.addBmp, pos_v,(self.scale,self.scale),self.rotate)
+            #for j in range(0, len(self.columns)):
+            #  pos_h = ((j+1)*COL_WIDTH, 0)
+            #  svg.blit(ctx,self.addBmp, pos_h,(self.scale,self.scale),self.rotate)
+        for i in range(1, len(self.grid.rows)):
+          cell = self.grid.idx(i,0)
+          svg.blit(ctx,self.addBmp,(cell.bound[0],cell.bound[1]),(self.scale,self.scale),self.rotate)
+
+        for j in range(1, len(self.grid.columns)):
+            cell = self.grid.idx(0,j)
+            svg.blit(ctx,self.addBmp,(cell.bound[0],cell.bound[1]),(self.scale,self.scale),self.rotate)
+
 
         ctx.restore()
 
@@ -1187,14 +1253,14 @@ class Panel(scrolled.ScrolledPanel):
         for rect in self.intersects:
           drawIntersectRect(ctx, rect)
 
-    def findEntitiesAt(self,pos):
+    def findEntitiesAt(self,pos, filterOut = []):
       """Returns the entity located at the passed position """
       # TODO handle the viewscope's translation, rotation, scaling
       # Real pos
       pos = convertToRealPos(pos, self.scale)
       ret = set()
       for (name, e) in self.model.instances.items():
-        if e.et.name in self.ignoreEntities:
+        if e.et.name in filterOut:
           continue
 
         furthest= (e.pos[0] + e.size[0]*e.scale[0],e.pos[1] + e.size[1]*e.scale[1])
@@ -1203,10 +1269,10 @@ class Panel(scrolled.ScrolledPanel):
           ret.add(e)
       return ret
 
-    def findObjectsAt(self,pos):
+    def findObjectsAt(self,pos, filter = []):
       return self.findInstancesAt(pos).union(self.findEntitiesAt(pos))
 
-    def findEntitiesTouching(self,rect):
+    def findEntitiesTouching(self,rect, filterOut = []):
       """Returns all entities touching the passed rectangle """
       # TODO handle the viewscope's translation, rotation, scaling
       # Real rectangle
@@ -1214,7 +1280,7 @@ class Panel(scrolled.ScrolledPanel):
       ret = set()
       # hoang for (name, e) in self.model.instances.items():
       for (name, e) in self.model.instances.items():
-        if e.et.name in self.ignoreEntities:
+        if e.et.name in filterOut:
           continue
 
         furthest= (e.pos[0] + e.size[0]*e.scale[0],e.pos[1] + e.size[1]*e.scale[1])
