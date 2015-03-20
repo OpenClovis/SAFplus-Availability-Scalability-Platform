@@ -72,7 +72,7 @@ namespace SAFplus
             /**
              * Wait on condition
              */
-            while (strlen(msgReply.buffer) < 2)
+            while (msgReply.len < 2)
             {
                 if (!msgSendConditionMutex.timed_wait(msgSendReplyMutex, 4000)) return &msgReply;
             }

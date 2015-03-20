@@ -36,6 +36,7 @@ namespace SAFplus
     struct MsgReply
     {
         char buffer[MSGSIZE];
+        ClWordT len;
     };
 
     class SafplusMsgServer : public SAFplus::MsgServer

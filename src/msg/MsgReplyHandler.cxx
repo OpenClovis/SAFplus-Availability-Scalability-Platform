@@ -43,7 +43,9 @@ namespace SAFplus
          */
         if (cookie)
         {
-            memcpy(cookie, msg, msglen);
+            MsgReply *msgReply = reinterpret_cast<MsgReply *>(cookie);
+            memcpy(msgReply->buffer, msg, msglen);
+            msgReply->len = msglen;
         }
 
         SAFplus::SafplusMsgServer *safplusMsgServer = reinterpret_cast<SAFplus::SafplusMsgServer*>(svr);
