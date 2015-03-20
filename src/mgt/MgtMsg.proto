@@ -53,6 +53,10 @@ message MsgMgt
     CL_MGT_MSG_BIND_RPC = 5;
     CL_MGT_MSG_NOTIF = 6;
     CL_MGT_MSG_BIND_REQUEST = 7;
+    CL_MGT_MSG_XGET = 8;
+    CL_MGT_MSG_XSET = 9;
+    CL_MGT_MSG_CREATE = 10;
+    CL_MGT_MSG_DELETE = 11;
   }
   required MgtMsgType type = 1; //internal using
   required bytes bind = 2;

@@ -207,14 +207,16 @@ void protobuf_AddDesc_MgtMsg_2eproto() {
     " \001(\t\"V\n\nMgtRpcType\022\027\n\023CL_MGT_RPC_VALIDAT"
     "E\020\001\022\025\n\021CL_MGT_RPC_INVOKE\020\002\022\030\n\024CL_MGT_RPC"
     "_POSTREPLY\020\003\"\031\n\tMsgSetGet\022\014\n\004data\030\002 \001(\t\""
-    "\032\n\nMsgGeneral\022\014\n\004data\030\001 \003(\014\"\221\002\n\006MsgMgt\022("
+    "\032\n\nMsgGeneral\022\014\n\004data\030\001 \003(\014\"\351\002\n\006MsgMgt\022("
     "\n\004type\030\001 \002(\0162\032.Mgt.Msg.MsgMgt.MgtMsgType"
-    "\022\014\n\004bind\030\002 \002(\014\022\014\n\004data\030\003 \003(\014\"\300\001\n\nMgtMsgT"
+    "\022\014\n\004bind\030\002 \002(\014\022\014\n\004data\030\003 \003(\014\"\230\002\n\nMgtMsgT"
     "ype\022\025\n\021CL_MGT_MSG_UNUSED\020\000\022\023\n\017CL_MGT_MSG"
     "_BIND\020\001\022\022\n\016CL_MGT_MSG_GET\020\002\022\022\n\016CL_MGT_MS"
     "G_SET\020\003\022\022\n\016CL_MGT_MSG_RPC\020\004\022\027\n\023CL_MGT_MS"
     "G_BIND_RPC\020\005\022\024\n\020CL_MGT_MSG_NOTIF\020\006\022\033\n\027CL"
-    "_MGT_MSG_BIND_REQUEST\020\007", 623);
+    "_MGT_MSG_BIND_REQUEST\020\007\022\023\n\017CL_MGT_MSG_XG"
+    "ET\020\010\022\023\n\017CL_MGT_MSG_XSET\020\t\022\025\n\021CL_MGT_MSG_"
+    "CREATE\020\n\022\025\n\021CL_MGT_MSG_DELETE\020\013", 711);
   ::google::protobuf::MessageFactory::InternalRegisterGeneratedFile(
     "MgtMsg.proto", &protobuf_RegisterTypes);
   Handle::default_instance_ = new Handle();
@@ -1552,6 +1554,10 @@ bool MsgMgt_MgtMsgType_IsValid(int value) {
     case 5:
     case 6:
     case 7:
+    case 8:
+    case 9:
+    case 10:
+    case 11:
       return true;
     default:
       return false;
@@ -1567,6 +1573,10 @@ const MsgMgt_MgtMsgType MsgMgt::CL_MGT_MSG_RPC;
 const MsgMgt_MgtMsgType MsgMgt::CL_MGT_MSG_BIND_RPC;
 const MsgMgt_MgtMsgType MsgMgt::CL_MGT_MSG_NOTIF;
 const MsgMgt_MgtMsgType MsgMgt::CL_MGT_MSG_BIND_REQUEST;
+const MsgMgt_MgtMsgType MsgMgt::CL_MGT_MSG_XGET;
+const MsgMgt_MgtMsgType MsgMgt::CL_MGT_MSG_XSET;
+const MsgMgt_MgtMsgType MsgMgt::CL_MGT_MSG_CREATE;
+const MsgMgt_MgtMsgType MsgMgt::CL_MGT_MSG_DELETE;
 const MsgMgt_MgtMsgType MsgMgt::MgtMsgType_MIN;
 const MsgMgt_MgtMsgType MsgMgt::MgtMsgType_MAX;
 const int MsgMgt::MgtMsgType_ARRAYSIZE;

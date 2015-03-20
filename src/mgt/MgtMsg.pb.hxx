@@ -70,11 +70,15 @@ enum MsgMgt_MgtMsgType {
   MsgMgt_MgtMsgType_CL_MGT_MSG_RPC = 4,
   MsgMgt_MgtMsgType_CL_MGT_MSG_BIND_RPC = 5,
   MsgMgt_MgtMsgType_CL_MGT_MSG_NOTIF = 6,
-  MsgMgt_MgtMsgType_CL_MGT_MSG_BIND_REQUEST = 7
+  MsgMgt_MgtMsgType_CL_MGT_MSG_BIND_REQUEST = 7,
+  MsgMgt_MgtMsgType_CL_MGT_MSG_XGET = 8,
+  MsgMgt_MgtMsgType_CL_MGT_MSG_XSET = 9,
+  MsgMgt_MgtMsgType_CL_MGT_MSG_CREATE = 10,
+  MsgMgt_MgtMsgType_CL_MGT_MSG_DELETE = 11
 };
 bool MsgMgt_MgtMsgType_IsValid(int value);
 const MsgMgt_MgtMsgType MsgMgt_MgtMsgType_MgtMsgType_MIN = MsgMgt_MgtMsgType_CL_MGT_MSG_UNUSED;
-const MsgMgt_MgtMsgType MsgMgt_MgtMsgType_MgtMsgType_MAX = MsgMgt_MgtMsgType_CL_MGT_MSG_BIND_REQUEST;
+const MsgMgt_MgtMsgType MsgMgt_MgtMsgType_MgtMsgType_MAX = MsgMgt_MgtMsgType_CL_MGT_MSG_DELETE;
 const int MsgMgt_MgtMsgType_MgtMsgType_ARRAYSIZE = MsgMgt_MgtMsgType_MgtMsgType_MAX + 1;
 
 const ::google::protobuf::EnumDescriptor* MsgMgt_MgtMsgType_descriptor();
@@ -654,6 +658,10 @@ class MsgMgt : public ::google::protobuf::Message {
   static const MgtMsgType CL_MGT_MSG_BIND_RPC = MsgMgt_MgtMsgType_CL_MGT_MSG_BIND_RPC;
   static const MgtMsgType CL_MGT_MSG_NOTIF = MsgMgt_MgtMsgType_CL_MGT_MSG_NOTIF;
   static const MgtMsgType CL_MGT_MSG_BIND_REQUEST = MsgMgt_MgtMsgType_CL_MGT_MSG_BIND_REQUEST;
+  static const MgtMsgType CL_MGT_MSG_XGET = MsgMgt_MgtMsgType_CL_MGT_MSG_XGET;
+  static const MgtMsgType CL_MGT_MSG_XSET = MsgMgt_MgtMsgType_CL_MGT_MSG_XSET;
+  static const MgtMsgType CL_MGT_MSG_CREATE = MsgMgt_MgtMsgType_CL_MGT_MSG_CREATE;
+  static const MgtMsgType CL_MGT_MSG_DELETE = MsgMgt_MgtMsgType_CL_MGT_MSG_DELETE;
   static inline bool MgtMsgType_IsValid(int value) {
     return MsgMgt_MgtMsgType_IsValid(value);
   }

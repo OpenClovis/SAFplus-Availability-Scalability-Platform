@@ -11,6 +11,8 @@ CLIENT_H := $(wildcard ../include/*.hxx)
 CLIENT_SRC := $(wildcard *.cxx) $(wildcard *.cc)
 CLIENT_OBJ := $(addprefix $(MWOBJ_DIR)/,$(subst .cc,.o, $(subst .cxx,.o,$(CLIENT_SRC))))
 
+SAFplusRpcGen := $(SAFPLUS_TARGET)/bin/protoc-gen-rpc
+
 Release all: $(LIB_DIR)/libclMgt.so
 
 $(LIB_DIR)/libclMgt.so: $(CLIENT_OBJ)
@@ -21,6 +23,10 @@ $(MWOBJ_DIR)/%.o: %.cxx Makefile $(CLIENT_H)
 
 $(MWOBJ_DIR)/%.o: %.cc Makefile $(CLIENT_H)
 	$(COMPILE_CPP) $@ $<
+
+gen:
+	protoc -I../3rdparty -I. --cpp_out=./ MgtMsg.proto
+	$(SAFplusRpcGen) -I../3rdparty -I. --rpc_out=./ --rename=true MgtMsg.proto
 
 clean:
 	rm -f $(LIB_DIR)/libclMgt.so $(CLIENT_OBJ)
