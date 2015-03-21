@@ -1,6 +1,6 @@
 #include <boost/thread.hpp>
 #include <boost/program_options.hpp>
-#include <clMsgTransportPlugin.hxx>
+#include <clMsgApi.hxx>
 #include <clTestApi.hxx>
 
 uint_t reflectorPort = 10;

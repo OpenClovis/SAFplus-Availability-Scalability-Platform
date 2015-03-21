@@ -7,8 +7,7 @@
 #include <clCommon.hxx>
 #include "clLogApi.hxx"
 #include "clMsgHandler.hxx"
-#include <clMsgServer.hxx>
-#include <clMsgTransportPlugin.hxx>
+#include <clMsgApi.hxx>
 
 namespace SAFplus
 {

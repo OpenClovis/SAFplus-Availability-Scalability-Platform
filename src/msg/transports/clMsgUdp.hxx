@@ -1,6 +1,6 @@
 //#define _GNU_SOURCE // needed so that sendmmsg is available
 
-#include <clMsgTransportPlugin.hxx>
+#include <clMsgApi.hxx>
 #include <sys/socket.h>
 //#include <sys/types.h>
 //#include <netinet/ip.h>
@@ -31,6 +31,7 @@ namespace SAFplus
     virtual void flush();
     protected:
     int sock;    
+    
     };
   static Udp api;
 };

@@ -1,4 +1,4 @@
-#include <clMsgTransportPlugin.hxx>
+#include <clMsgApi.hxx>
 
 
 namespace SAFplus

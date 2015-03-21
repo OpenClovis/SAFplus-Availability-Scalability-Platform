@@ -44,7 +44,6 @@ namespace SAFplusI
 
 namespace SAFplus
   {
-  class MsgServer;
 
   class MsgHandler : public SAFplusI::MsgHandlerI
     {

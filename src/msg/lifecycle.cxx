@@ -1,5 +1,5 @@
 #include <clCommon.hxx>
-#include <clMsgTransportPlugin.hxx>
+#include <clMsgApi.hxx>
 
 namespace SAFplusI
 {

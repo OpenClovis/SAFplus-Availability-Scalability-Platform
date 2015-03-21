@@ -8,9 +8,13 @@
 #include <clDbg.hxx>
 #include <saAis.h>
 
+//? Wrapper for malloc() that does some validation, tracking, and memory limits enforcement
 #define SAFplusHeapAlloc(x) ::SAFplus::heapAlloc(x,0,__FILE__,__LINE__)
+//? Wrapper for calloc() that does some validation, tracking, and memory limits enforcement
 #define SAFplusHeapCalloc(x,y) ::SAFplus::heapCalloc(x,y,0,__FILE__,__LINE__)
+//? Wrapper for realloc() that does some validation, tracking, and memory limits enforcement
 #define SAFplusHeapRealloc(x,y) ::SAFplus::heapRealloc(x,y,0,__FILE__,__LINE__)
+//? Wrapper for free() that does some validation, tracking, and memory limits enforcement
 #define SAFplusHeapFree(x) ::SAFplus::heapFree(x,__FILE__,__LINE__)
 
 
@@ -19,24 +23,26 @@ namespace SAFplus
 
 enum
   {
-    VersionMajor = 7,
-    VersionMinor = 0,
-    VersionBugfix = 0,
+    VersionMajor = 7,  //? SAFplus major version number.
+    VersionMinor = 0,  //? SAFplus minor version number.   Bugfix revs do not change protocols in an backwards-incompatible manner.
+    VersionBugfix = 0, //? SAFplus bugfix version number.  Bugfix revs do not change public APIs or protocols so are 100% interoperable with older versions.
   };
 
-/** printf but for std::string */
-std::string strprintf(const std::string fmt_str, ...);
+  //? printf but for std::string
+std::string strprintf(const std::string& fmt_str, ...);
 
-/*? calculate 32 bit CRC */
+  //? calculate 32 bit CRC
 uint32_t computeCrc32(uint8_t *buf, register int32_t nr);
 
 // All statements that begin with "dbg" are NO OPERATION in production code.
 #ifdef CL_DEBUG
+  //? cause a core dump if x is not true and the CL_DEBUG macro is defined..  This function (and all others that begin with "dbg") will NOT core dump in production code.  However, unlike the traditional assert(), the parameter will be executed regardless of the CL_DEBUG macro.
   inline void dbgAssert(bool x) { assert(x); }
 #else
   inline void dbgAssert(bool x) {}
 #endif
 
+  // Call the SAFplusXXX macros instead of these so you don't have to manually provide the file and line
 void* heapAlloc(uint_t amt, uint_t category, const char* file, uint_t line);
 
 void* heapCalloc(uint_t size, uint_t amt, uint_t category, const char* file, uint_t line);

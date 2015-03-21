@@ -2,7 +2,7 @@
 #include <boost/timer.hpp>
 #include <boost/program_options.hpp>
 #include <iostream>
-#include <clMsgTransportPlugin.hxx>
+#include <clMsgApi.hxx>
 #include <clTestApi.hxx>
 
 uint_t reflectorPort = 10;

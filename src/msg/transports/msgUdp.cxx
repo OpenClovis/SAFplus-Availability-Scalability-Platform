@@ -223,10 +223,13 @@ if(setsockopt(socket, SOL_SOCKET, SO_RCVTIMEO, &tv, sizeof(tv)) < 0)
       memset(msgs,0,sizeof(msgs));
       for (int i = 0; i < 1; i++)
         {
+#if 0
         // In an inline fragment the message buffer is located right after the MsgFragment object and shares some bytes with the buffer "pointer" (its not used as a pointer)
         if (frag->flags & SAFplus::MsgFragment::InlineFragment) iovecs[i].iov_base         = (void*) &frag->buffer;
         // If the fragment is not inline then the buffer variable works as a normal pointer.
         else iovecs[i].iov_base         = frag->buffer;
+#endif
+        iovecs[i].iov_base = frag->data(0);
 
         iovecs[i].iov_len          = frag->allocatedLen;
         msgs[i].msg_hdr.msg_iov    = &iovecs[i];

@@ -9,7 +9,7 @@
 #define KERNEL_NET_BUF_SIZE 10485760
 
 #include <boost/thread.hpp>
-#include <clMsgTransportPlugin.hxx>
+#include <clMsgApi.hxx>
 #include <clTestApi.hxx>
 #include <boost/program_options.hpp>
 
