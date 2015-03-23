@@ -409,18 +409,10 @@ class SelectTool(Tool):
         
       elif event.ButtonDClick(wx.MOUSE_BTN_LEFT):
         # Check if double click at "duplicate" button
-        addButton = panel.findAddButtonAt(pos)
-        if addButton:
-          if self.selected:
-            (newEnt,addtl) = self.panel.model.duplicate([next(iter(self.selected))], recursive=True)
-
-            # Put all childs instances into hyperlisttree
-            if share.instanceDetailsPanel:
-              for ent in newEnt:
-                share.instanceDetailsPanel.createTreeItemEntity(ent.data["name"], ent)
-
-            self.panel.layout()
-            self.panel.Refresh()
+        e = panel.findAddButtonAt(pos)
+        if e:
+          self.cloneInstances([e])
+          self.panel.Refresh()
           return False
 
         entities = panel.findEntitiesAt(pos)
@@ -459,22 +451,7 @@ class SelectTool(Tool):
           self.panel.Refresh()
           ret=True # I consumed this event
         elif event.ControlDown() and character ==  'V':
-          if self.selectMultiple:
-            # TODO: take all entities?
-            print "Copy selected instances: %s" % ", ".join([ e.data["name"] for e in self.selected])
-            (self.selected,addtl) = self.panel.model.duplicate(self.selected,recursive=True)
-          else:
-            # Duplicate SG, NODE, SU and SI
-            ents = sorted(self.filterOut(self.selected, self.entOrder[0:2]), key=lambda ent: self.entOrder.index(ent.et.name))
-            # Duplicate first order entity except component and csi
-            (newEnt,addtl) = self.panel.model.duplicate([ents[0]], recursive=True)
-
-            # Put all childs instances into hyperlisttree
-            if share.instanceDetailsPanel:
-              for ent in newEnt:
-                share.instanceDetailsPanel.createTreeItemEntity(ent.data["name"], ent)
-
-          self.panel.layout()
+          self.cloneInstances(self.selected)
           self.panel.Refresh()
           ret=True
       else:
@@ -511,6 +488,32 @@ class SelectTool(Tool):
 
   def filterOut(self, ents, filterRules = []):
     return filter(lambda ent: not ent.et.name in filterRules, ents)
+
+  def cloneInstances(self, ents):
+    # Duplicate SG, NODE, SU, SI, COMP and CSI
+    ents = sorted(ents, key=lambda ent: self.entOrder.index(ent.et.name))
+
+    newEnts = []
+    if self.selectMultiple:
+      # TODO: take all entities?
+      print "Copy selected instances: %s" % ", ".join([ e.data["name"] for e in ents])
+      (newEnts,addtl) = self.panel.model.duplicate(ents,recursive=True)
+    else:
+      # Duplicate first order entity
+      (newEnts,addtl) = self.panel.model.duplicate([ents[0]], recursive=True)
+  
+    # Create ca for new intance component/csi
+    if ents[0].et.name in self.entOrder[0:2]:
+      for i in ents[0].childOf:
+        for newEnt in newEnts:
+          i.createContainmentArrowTo(newEnt)
+
+    # Put all childs instances into hyperlisttree
+    if share.instanceDetailsPanel:
+      share.instanceDetailsPanel._createTreeEntities()
+
+    self.panel.layout()
+
 
 class ZoomTool(Tool):
   def __init__(self, panel):
@@ -790,6 +793,11 @@ class GridEntityLayout:
     for row in self.grid:
       for cell in row:
         # print cell.bound
+
+        # Not allow put at cell (0,0)
+        if isinstance(cell.row, Margin) and isinstance(cell.col, Margin):
+          continue
+
         if inBox(pos,cell.bound):
           # Remove the containment arrows (if they exist)
           for i in instance.childOf:  
@@ -888,7 +896,7 @@ class Panel(scrolled.ScrolledPanel):
 
       self.intersects = []
 
-      self.addButtons = []
+      self.addButtons = {}
 
       # Ignore render entities since size(0,0) is invalid
       self.ignoreEntities = ["Component", "ComponentServiceInstance"]
@@ -1226,12 +1234,13 @@ class Panel(scrolled.ScrolledPanel):
         for e in filter(lambda entInt: entInt.et.name in (self.columnTypes + self.rowTypes), self.model.instances.values()):
           svg.blit(ctx,e.bmp,e.pos,e.scale,e.rotate)
 
-        self.addButtons = []
+        self.addButtons = {}
 
         # Draw the other instances on top
         for e in filter(lambda entInt: not entInt.et.name in (self.columnTypes + self.rowTypes ), self.model.instances.values()):
           if e.size != (0,0):  # indicate that the object is hidden
             svg.blit(ctx,e.bmp,e.pos,e.scale,e.rotate)
+            self.addButtons[(e.pos[0]+e.size[0]-self.addBmp.get_width(), e.pos[1]+e.size[1]-self.addBmp.get_height(), e.pos[0]+e.size[0], e.pos[1]+e.size[1])] = e
 
             # Show "component/csi" children of "SUs/SIs" inside the graphical box which is the SU/SI
             if e.et.name in ("ServiceInstance", "ServiceUnit",):
@@ -1248,9 +1257,13 @@ class Panel(scrolled.ScrolledPanel):
                   ch.recreateBitmap()
                 svg.blit(ctx,ch.bmp,ch.pos,ch.scale,ch.rotate)
 
-              # Render copy button (duplicate, similar: selected entity and type ctrl+'v')
-              svg.blit(ctx,self.addBmp,(e.pos[0]+e.size[0]-24, e.pos[1]+e.size[1]-24),e.scale,e.rotate)
-              self.addButtons.append((e.pos[0]+e.size[0]-24, e.pos[1]+e.size[1]-24, e.pos[0]+e.size[0], e.pos[1]+e.size[1]))
+                # Render copy button (duplicate, similar: selected entity and type ctrl+'v')
+                self.addButtons[(ch.pos[0]+ch.size[0]-self.addBmp.get_width(), ch.pos[1]+ch.size[1]-self.addBmp.get_height(), ch.pos[0]+ch.size[0], ch.pos[1]+ch.size[1])] = ch
+
+        # Draw "add" icon on top of entity
+        # Render copy button (duplicate, similar: selected entity and type ctrl+'v')
+        for (rect,e) in self.addButtons.items():
+          svg.blit(ctx,self.addBmp,(rect[0],rect[1]),e.scale,e.rotate)
 
         # Now draw the containment arrows on top
 #        pdb.set_trace()
@@ -1312,9 +1325,9 @@ class Panel(scrolled.ScrolledPanel):
 
     def findAddButtonAt(self, pos):
       pos = convertToRealPos(pos, self.scale)
-      for addBtn in self.addButtons:
-        if inBox(pos, addBtn):
-          return addBtn
+      for (rect,e) in self.addButtons.items():
+        if inBox(pos, rect):
+          return e
       return None
 
     def notifyNameValueChange(self, ent, newValue):
