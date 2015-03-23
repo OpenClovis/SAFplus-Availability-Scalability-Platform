@@ -85,7 +85,9 @@
 #include "backtrace_arch.h"
 
 char logBuffer[LOG_BUFFER_SIZE];
+#ifdef CL_OSAL_SIGNAL_HANDLER
 struct sigaction oldact[_NSIG];
+#endif
 osalFunction_t gOsalFunction = {0};
 CosTaskControl_t gTaskControl;
 cosCompCfgInit_t sCosConfig={CL_OSAL_MIN_STACK_SIZE};
@@ -681,6 +683,7 @@ static ClBoolT osalShmExistsForComp(const ClCharT *compName)
 }
 #endif
 
+#if 0
 #ifdef __i386__
 static const char *registerMap[NGREG] = { "gs", "fs", "es", "ds", "edi", "esi", "ebp", "esp",
                                           "ebx", "edx", "ecx", "eax", "trap", "err", "eip", "cs",
@@ -712,7 +715,9 @@ static const char *registerMap[3+NGREG] = {"trap_no", "error_code", "oldmask",
 static const char *registerMap[NGREG] = { NULL, };
 
 #endif
+#endif
 
+#if 0
 static void registerDump(ucontext_t *ucontext, ClCharT *exceptionSegment, ClUint32T maxBytes)
 {
     register int i;
@@ -729,20 +734,21 @@ static void registerDump(ucontext_t *ucontext, ClCharT *exceptionSegment, ClUint
     }
     bytes += snprintf(exceptionSegment + bytes, maxBytes - bytes, "\n");
 }
+#endif
 
+#ifdef CL_OSAL_SIGNAL_HANDLER
 static void clOsalSigHandler(int signum, siginfo_t *info, void *param)
 {
     char sigName[16];
     int logfd = -1;
     ClFdT fd = 0;
-    void *buffer[STACK_DEPTH] = {NULL};
     void *trace[STACK_DEPTH];
     int trace_size = 0;
     ClRcT rc = CL_OK;
     ClUint32T segmentSize = getpagesize();
     ClCharT *exceptionSegment = NULL;
     ucontext_t *uc = (ucontext_t *)param;
-    ClInt32T bytes = 0;
+
     switch(signum)
     {
     case SIGHUP:
@@ -814,7 +820,7 @@ static void clOsalSigHandler(int signum, siginfo_t *info, void *param)
             {
                 snprintf(logBuffer, sizeof(logBuffer), "Opening shared segment [%s] returned [%#x]\n", 
                          shmName, rc);
-                bytes = write(logfd, logBuffer, strlen(logBuffer));
+                write(logfd, logBuffer, strlen(logBuffer));
             }
             goto out;
         }
@@ -825,7 +831,7 @@ static void clOsalSigHandler(int signum, siginfo_t *info, void *param)
             {
                 snprintf(logBuffer, sizeof(logBuffer), "Ftruncate on shared segment [%s] returned [%#x]\n",
                          shmName, rc);
-                bytes = write(logfd, logBuffer, strlen(logBuffer));
+                write(logfd, logBuffer, strlen(logBuffer));
             }
             goto out;
         }
@@ -836,16 +842,22 @@ static void clOsalSigHandler(int signum, siginfo_t *info, void *param)
             {
                 snprintf(logBuffer, sizeof(logBuffer), "Mmap on shared segment [%s] returned [%#x]\n",
                          shmName, rc);
-                bytes = write(logfd, logBuffer, strlen(logBuffer));
+                write(logfd, logBuffer, strlen(logBuffer));
             }
             goto out;
         }
     }
 
+    /* backtrace_symbols uses malloc and so it can block */
+#if 0    
     {
+    void *buffer[STACK_DEPTH] = {NULL};
+    ClInt32T bytes = 0;
+        
         int         count = 0;
         char        **message = (char **)NULL;
         bytes = 0;
+        
         message = backtrace_symbols(trace, trace_size);
         if(exceptionSegment != NULL)
         {
@@ -870,15 +882,24 @@ static void clOsalSigHandler(int signum, siginfo_t *info, void *param)
             clOsalMunmap(exceptionSegment, segmentSize);
         }
     }
+#else
+    if (logfd > 0)
+      backtrace_symbols_fd(trace, trace_size,logfd);
+#endif    
 
     out:
     if(logfd >= 0) close(logfd);
+    logfd = 0;
     if(fd >= 0) close(fd);
+    fd = 0;
     raise(signum);
 }
+#endif
 
 void clOsalSigHandlerInitialize()
 {
+/* To enable signal handler feature uncomment the definition of CL_OSAL_SIGNAL_HANDLER in clOsalApi.h */
+#ifdef CL_OSAL_SIGNAL_HANDLER
     struct sigaction act;
     
     act.sa_sigaction = &clOsalSigHandler;
@@ -906,6 +927,7 @@ void clOsalSigHandlerInitialize()
     {
         CL_DEBUG_PRINT (CL_DEBUG_ERROR,("\nSIGACTION FUNCTION FAILED. Signal handling will not be available."));
     }
+#endif
 }
 
 /**************************************************************************/

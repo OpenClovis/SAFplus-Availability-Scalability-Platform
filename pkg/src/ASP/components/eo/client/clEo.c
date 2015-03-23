@@ -615,11 +615,13 @@ ClRcT clEoSetup(void)
               "Failed to initialize all basic libraries, error [0x%x]", rc);
         return rc;
     }
-
+/* Uncomment CL_OSAL_SIGNAL_HANDLER definition in clOsalApi.h to enable sinal handler functionality */
+#ifdef CL_OSAL_SIGNAL_HANDLER
     /*
      * Initialize the signal Handler here 
      */
     clOsalSigHandlerInitialize();
+#endif
 
     if (compName == NULL)
     {
