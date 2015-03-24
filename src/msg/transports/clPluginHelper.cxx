@@ -14,7 +14,9 @@
 #include <clCommonErrors6.h>
 #include <clLogApi.hxx>
 #include <clGlobals.hxx>
-
+#include <boost/lexical_cast.hpp>
+#include <bitset>
+#include <string>
 #include <clPluginHelper.hxx>
 
 #define CL_LOG_PLUGIN_HELPER_AREA "PLUGIN_HELPER"
@@ -591,6 +593,49 @@ out:
 }
 #endif
 
+void clAddRemVirtualAddress(const char *cmd,const ClPluginHelperVirtualIpAddressT* vip)
+{
+    int up = 0;
+    if (cmd[0] == 'u') up = 1;
+        
+    ClPluginHelperVirtualIpAddressT* vipCopy = (ClPluginHelperVirtualIpAddressT*) malloc(sizeof(ClPluginHelperVirtualIpAddressT));
+    memcpy(vipCopy,vip,sizeof(ClPluginHelperVirtualIpAddressT));
+    
+    if (vipCopy->ip && vipCopy->dev && vipCopy->netmask)
+    {
+        char execLine[301];
+        snprintf(execLine,300,"/sbin/ifconfig %s %s netmask %s %s",vipCopy->dev,vipCopy->ip,vipCopy->netmask,cmd);
+        logInfo(LOG_CTX, CL_LOG_PLUGIN_HELPER_AREA, "Executing %s", execLine);
+        int ret = system(execLine);
+        logInfo(LOG_CTX, CL_LOG_PLUGIN_HELPER_AREA,"Result from executing system() %d", ret);
+      
+        if (up)  /* If we are coming up, do a gratuitous arp */
+        {
+            logInfo(LOG_CTX, CL_LOG_PLUGIN_HELPER_AREA, "Sending gratuitous arps: IP address: %s, device: %s", vipCopy->ip, vipCopy->dev);
+            _clPluginHelperSendArp(vipCopy->ip, vipCopy->dev);
+            pthread_t tid;
+            pthread_create(&tid, NULL, (void* (*) (void*)) _clPluginHelperPummelArps, vipCopy);
+            pthread_detach(tid);
+            pthread_join(tid, NULL);
+            vipCopy = NULL; /* freed by the arp thread*/
+        }
+        else
+        {
+            /* If we are going down, delay a bit so that the machine that takes over will not do so too soon.
+               (the assumption being that the machine taking over will not do so until this remove returns)
+             */
+            logInfo(LOG_CTX, CL_LOG_PLUGIN_HELPER_AREA, "Removing IP; not sending gratuitous arps");			
+            /* sleep(1); */
+        }        
+    }
+    else
+    {
+        logNotice(LOG_CTX, CL_LOG_PLUGIN_HELPER_AREA, "Virtual IP work assignment values incorrect: got IP address: %s, device: %s, mask: %s, net prefix: %s", 
+                    vipCopy->ip, vipCopy->dev, vipCopy->netmask, vipCopy->subnetPrefix);
+    }    
+    
+}
+
 /* ip route configure */
 void clPluginHelperAddRouteAddress(const ClCharT *ipAddress, const ClCharT *ifDevName)
 {
@@ -675,5 +720,114 @@ ClRcT clPluginHelperGetVirtualAddressInfo(const ClCharT *xportType, ClPluginHelp
 }
 #endif
 
+/*
+This function converts the network prefix len to subnet mask
+Parameters:
+  prefixLen: [in] the prefix len 
+Returns:
+  string: netmask in dot format (e.g 255.255.255.0)  
+*/
+std::string prefixLenToSubnetMask(unsigned int prefixLen)
+{  
+  bool stop = false;
+  std::string subnetMask;
+  if (prefixLen > 32 || !prefixLen) // invalid prefix length, return empty
+  {
+    return subnetMask;
+  }
+  int bitSets;
+  int numOctets = 0;
+  while (true)
+  {    
+    std::bitset<8> octet;
+    int temp = prefixLen-8;    
+    if (temp>0)
+    {
+      bitSets = 8;
+      prefixLen = temp;
+    }
+    else
+    {
+      bitSets = prefixLen;
+      stop = true;
+    }
+    for(int i=1;i<=bitSets;i++)
+    {
+      octet.set(8-i);
+    }
+    numOctets++;
+    if (!stop)
+    {
+      subnetMask.append(boost::lexical_cast<std::string>(octet.to_ulong())+".");      
+    }
+    else
+    {
+      subnetMask.append(boost::lexical_cast<std::string>(octet.to_ulong()));
+      break;
+    }
+  }
+  while (4-numOctets>0) 
+  { 
+    subnetMask.append(".0"); 
+    numOctets++;
+  }
+  return subnetMask;  
+}
+
+/*
+This function constructs the network address of a node defined by environment variables
+Also, returns the ip address assigned to the interface
+Parameters:
+  None.
+Returns:
+  in_addr: ip address assigned to the interface
+*/
+in_addr setNodeNetworkAddr()
+{  
+  const char* interface = getenv("SAFPLUS_BACKPLANE_INTERFACE");
+  const char* ip = getenv("SAFPLUS_BACKPLANE_NETWORK");
+  const char* nodeID = getenv("SAFPLUS_NODE_ID");
+  if (!interface)
+  {
+    assert(!"Required env variable [SAFPLUS_BACKPLANE_INTERFACE] not defined");
+  }
+  if (ip != NULL && nodeID != NULL)
+  {
+    // construct the network addr based on 2 values
+    // First, parse the ip to get network addr and prefix len. ip will be in format: xxx.xxx.xxx/y
+    const char* slash = strrchr(ip, '/');
+    if (!slash) 
+    {
+      assert(!"Invalid value of env SAFPLUS_BACKPLANE_NETWORK");
+    }
+    char addr[16];
+    strncpy(addr, ip, slash-ip);
+    strcat(addr, ".");
+    strcat(addr, nodeID);
+    char prefixLen[3];
+    strcpy(prefixLen, slash+1);
+    ClPluginHelperVirtualIpAddressT vip;
+    strcpy(vip.ip, addr);
+    strcpy(vip.dev, interface);
+    std::string netmask = prefixLenToSubnetMask(boost::lexical_cast<unsigned int>(prefixLen));
+    strcpy(vip.netmask, netmask.c_str());
+    // assign the network address to the network interface
+    clAddRemVirtualAddress("up", &vip);
+    // Set ASP_NODEADDR
+    SAFplus::ASP_NODEADDR = boost::lexical_cast<int>(nodeID);    
+    struct in_addr inp;
+    inet_aton(addr, &inp);
+    return inp;
+  }
+  else
+  {
+    // In this case, there is an ip address already assigned to the interface, so we get it from the interface
+    struct in_addr inp = devToIpAddress(interface);    
+    int nodeMask = 0xff;
+    // Set ASP_NODEADDR based on the last 8 bits of assigned network address
+    SAFplus::ASP_NODEADDR = ntohl(inp.s_addr)&nodeMask;
+    return inp;
+  }
+}
 
 };

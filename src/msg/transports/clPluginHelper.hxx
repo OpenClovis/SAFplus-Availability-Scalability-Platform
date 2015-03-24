@@ -43,6 +43,7 @@ ClUint32T clPluginHelperBitFillRShift(ClUint32T numBits);
 ClRcT clPluginHelperConvertHostToInternetAddress(ClUint32T addr, ClCharT *internetAddress);
 ClRcT clPluginHelperConvertInternetToHostAddress(ClUint32T *addr, const ClCharT *internetAddress);
 void devToIpAddress(const char *dev, char *addrStr);
+in_addr setNodeNetworkAddr();
 struct in_addr devToIpAddress(const char *dev);
 
 void clPluginHelperAddRouteAddress(const ClCharT *ipAddress, const ClCharT *ifDevName);

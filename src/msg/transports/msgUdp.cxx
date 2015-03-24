@@ -22,7 +22,7 @@ using namespace SAFplus;
     config.maxPort      = SAFplusI::UdpTransportNumPorts;
     config.maxMsgAtOnce = SAFplusI::UdpTransportMaxMsg;
     config.capabilities = SAFplus::MsgTransportConfig::Capabilities::NONE;  // not reliable, can't tell if anything joins or leaves...
-
+#if 0
     char* interface = getenv("SAFPLUS_BACKPLANE_INTERFACE");
     char* ip = getenv("SAFPLUS_BACKPLANE_NETWORK");
     if (!interface)
@@ -41,7 +41,12 @@ using namespace SAFplus;
       config.nodeId = ntohl(bip.s_addr)&nodeMask;
       netAddr = ntohl(bip.s_addr)&(~nodeMask);
       }
-
+#endif
+     struct in_addr bip = SAFplusI::setNodeNetworkAddr();      
+     int nodeMask = 0xff;  // TODO: get this from ~SAFplusI::devNetMask(interface)
+     config.nodeId = SAFplus::ASP_NODEADDR;
+     netAddr = ntohl(bip.s_addr)&(~nodeMask);
+     
     return config;
     }
 
