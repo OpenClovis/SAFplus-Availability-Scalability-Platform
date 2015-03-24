@@ -81,6 +81,55 @@ class SliderCustom(wx.PyControl):
   def GetName(self):
     return "slidercustom"
 
+class TextObjectValidator(wx.PyValidator):
+    """ This validator is used to ensure that the user has entered something
+        into the text object editor dialog's text field.
+    """
+    def __init__(self):
+        """ Standard constructor.
+        """
+        wx.PyValidator.__init__(self)
+
+    def Clone(self):
+        """ Standard cloner.
+            Note that every validator must implement the Clone() method.
+        """
+        return TextObjectValidator()
+
+
+    def Validate(self):
+        """ Validate the contents of the given text control.
+        """
+        textCtrl = self.GetWindow()
+        text = textCtrl.GetValue()
+
+        if len(text) == 0:
+            textCtrl.SetBackgroundColour("pink")
+            textCtrl.SetFocus()
+            textCtrl.Refresh()
+            return False
+        else:
+            textCtrl.SetBackgroundColour(wx.SystemSettings_GetColour(wx.SYS_COLOUR_WINDOW))
+            textCtrl.Refresh()
+            return True
+
+
+    def TransferToWindow(self):
+        """ Transfer data from validator to window.
+            The default implementation returns False, indicating that an error
+            occurred.  We simply return True, as we don't do any data transfer.
+        """
+        return True # Prevent wxDialog from complaining.
+
+
+    def TransferFromWindow(self):
+        """ Transfer data from window to validator.
+            The default implementation returns False, indicating that an error
+            occurred.  We simply return True, as we don't do any data transfer.
+        """
+        return True # Prevent wxDialog from complaining.
+
+
 class Panel(scrolled.ScrolledPanel):
     def __init__(self, parent,menubar,toolbar,statusbar,model, isDetailInstance = False):
         global thePanel
@@ -129,12 +178,12 @@ class Panel(scrolled.ScrolledPanel):
     def partialDataValidate(self, proposedPartialValue, fieldData):
       """Return True if the passed data could be part of a valid entry for this field -- that is, user might enter more text"""
       # TODO: fieldData contains information about the expected type of this field.
-      return True
+      return fieldData.GetValidator().Validate()
 
     def dataValidate(self, proposedValue, fieldData):
       """Return True if the passed data is a valid entry for this field"""
       # TODO: fieldData contains information about the expected type of this field.
-      return True
+      return fieldData.GetValidator().Validate()
 
     def EvtText(self,event):
       id = event.GetId()
@@ -147,9 +196,9 @@ class Panel(scrolled.ScrolledPanel):
         if not isinstance(query, wx._core._wxPyDeadObject):
           proposedValue = query.GetValue()
           # print "evt text ", obj
-          if not self.partialDataValidate(proposedValue, obj[0]):
+          if not self.partialDataValidate(proposedValue, query):
             # TODO: Print a big red warning in the error area
-            pass
+            return
   
           # TODO: handle only dirty (actually value changed) entity
           self.ChangedValue(proposedValue, obj[0])
@@ -187,9 +236,10 @@ class Panel(scrolled.ScrolledPanel):
 
         if not isinstance(query, wx._core._wxPyDeadObject):
           proposedValue = query.GetValue()
-          if not self.dataValidate(proposedValue, obj[0]):
+          if not self.dataValidate(proposedValue, query):
             # TODO: Print a big red warning in the error area
-            pass
+            return
+
           # TODO: model consistency check -- test the validity of the whole model given this change
           else:
             # TODO: handle only dirty (actually value changed) entity
@@ -281,6 +331,9 @@ class Panel(scrolled.ScrolledPanel):
         
         # Bind to handle event on change
         self.BuildChangeEvent(query)
+
+        # TODO: getcustom validator from yang
+        query.SetValidator(TextObjectValidator())
         
       else:
         # TODO do any of these need to be displayed?
@@ -411,7 +464,10 @@ class Panel(scrolled.ScrolledPanel):
       
       # Binding name wx control
       self.BuildChangeEvent(query)
-      
+
+      # TODO: getcustom validator from yang
+      query.SetValidator(TextObjectValidator())
+
       b = wx.BitmapButton(self.tree.GetMainWindow(), self.row + LOCK_BUTTON_ID, self.unlockedBmp,style = wx.NO_BORDER )
       b.SetToolTipString("If unlocked, instances can change this field")
 
