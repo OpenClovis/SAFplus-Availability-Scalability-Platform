@@ -124,7 +124,7 @@ void MsgServer::MakeMePrimary()
 
         if (m) 
           {
-          logInfo("IOC", "MSG","Rcvd Msg");
+            //logInfo("IOC", "MSG","Rcvd Msg");
           MsgTracker* rm = CreateMsgTracker(m,q);
           m = 0;  // wipe it so I know to create another
           q->jq.run(rm);

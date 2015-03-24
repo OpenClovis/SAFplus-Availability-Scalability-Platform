@@ -552,10 +552,17 @@ namespace SAFplus
               CompStatus status = amfOps->getCompState(comp);
               if (status == CompStatus::Uninstantiated)  // database shows should be running but actually no process is there.  I should update DB.
                 {
-                  Handle compHdl = ::name.getHandle(comp->name);
-                  assert(compHdl != INVALID_HDL);  // AMF MUST register this component before it does anything else with it so the name must exist.
-                  fault->notify(compHdl,FaultEventData(AlarmState::ALARM_STATE_ASSERT,AlarmCategory::ALARM_CATEGORY_PROCESSING_ERROR,AlarmSeverity::ALARM_SEVERITY_MAJOR, AlarmProbableCause::ALARM_PROB_CAUSE_SOFTWARE_ERROR));
-                  // TODO: it may be better to have the AMF react to fault manager's notification instead of doing it preemptively here
+                  try
+                    {
+                    Handle compHdl = ::name.getHandle(comp->name);
+                    // Actually it throws NameException: assert(compHdl != INVALID_HDL);  // AMF MUST register this component before it does anything else with it so the name must exist.
+                    fault->notify(compHdl,FaultEventData(AlarmState::ALARM_STATE_ASSERT,AlarmCategory::ALARM_CATEGORY_PROCESSING_ERROR,AlarmSeverity::ALARM_SEVERITY_MAJOR, AlarmProbableCause::ALARM_PROB_CAUSE_SOFTWARE_ERROR));
+                    // TODO: it may be better to have the AMF react to fault manager's notification instead of doing it preemptively here
+                    }
+                  catch(NameException& ne)
+                    {
+                    logWarning("N+M","AUDIT","Component [%s] is marked as running with uninstantiated state and no name registration (no handle).  It may have died at startup.", comp->name.value.c_str());
+                    }
                 updateStateDueToProcessDeath(comp);
                 }
               else if (comp->presence == PresenceState::instantiating)  // If the component is in the instantiating state, look for it to register with the AMF

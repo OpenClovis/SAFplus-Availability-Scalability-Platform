@@ -8,18 +8,22 @@ using namespace SAFplus;
 
 namespace SAFplus
 {
-    class AmfFaultPolicy:public FaultPolicyPlugin
+    class AmfFaultPolicy:public FaultPolicyPlugin_1
     {
       public:
+      FaultServer* faultServer;
         AmfFaultPolicy();
         ~AmfFaultPolicy();
-        virtual FaultAction processFaultEvent(SAFplus::FaultEventData fault,SAFplus::Handle faultReporter,SAFplus::Handle faultEntity,int countFaultEvent);
+
+      virtual void initialize(FaultServer* faultServer);
+
+      virtual bool processFaultEvent(SAFplus::FaultEventData fault,SAFplus::Handle faultReporter,SAFplus::Handle faultEntity,int countFaultEvent);
 //        virtual FaultAction processIocNotification(ClIocNotificationIdT eventId, ClIocNodeAddressT nodeAddress, ClIocPortT portId);
 
     };
     AmfFaultPolicy::AmfFaultPolicy()
     {
-
+      policyId = FaultPolicy::AMF;
     }
 
     AmfFaultPolicy::~AmfFaultPolicy()
@@ -27,23 +31,43 @@ namespace SAFplus
 
     }
 
-    FaultAction AmfFaultPolicy::processFaultEvent(SAFplus::FaultEventData fault,SAFplus::Handle faultReporter,SAFplus::Handle faultEntity,int countFaultEvent)
+  void AmfFaultPolicy::initialize(FaultServer* fs)
+  {
+    faultServer = fs;
+  }
+
+    bool AmfFaultPolicy::processFaultEvent(SAFplus::FaultEventData fault,SAFplus::Handle faultReporter,SAFplus::Handle faultEntity,int countFaultEvent)
     {
-      logInfo("POL","AMF","Received fault from [%" PRIx64 ":%" PRIx64 "]:  Entity [%" PRIx64 ":%" PRIx64 "] (on node [%d], port [%d]).  Current fault count is [%d] ", faultReporter.id[0], faultReporter.id[1], faultEntity.id[0], faultEntity.id[1], faultEntity.getNode(), faultEntity.getProcess(), countFaultEvent);
+      logInfo("POL","AMF","Received fault report from [%" PRIx64 ":%" PRIx64 "]:  Entity [%" PRIx64 ":%" PRIx64 "] (on node [%d], port [%d]).  Current fault count is [%d] ", faultReporter.id[0], faultReporter.id[1], faultEntity.id[0], faultEntity.id[1], faultEntity.getNode(), faultEntity.getProcess(), countFaultEvent);
 
         // If this fault comes from an AMF and its telling me that there was a crash the trust it because the local AMF monitors its local processes.
       if ((faultReporter.getPort() == SAFplusI::AMF_IOC_PORT)&&(fault.cause == SAFplus::AlarmProbableCause::ALARM_PROB_CAUSE_SOFTWARE_ERROR))
           {
-            if ((fault.alarmState == SAFplus::AlarmState::ALARM_STATE_ASSERT)&&(fault.severity >= SAFplus::AlarmSeverity::ALARM_SEVERITY_MAJOR))
-              return FaultAction::ACTION_STOP;
+            if (fault.alarmState == SAFplus::AlarmState::ALARM_STATE_ASSERT)
+              {
+                assert(faultServer);
+                faultServer->setFaultState(faultEntity,FaultState::STATE_DOWN);
+                logWarning("FLT","POL","Entity DOWN [%" PRIx64 ":%" PRIx64 "] (on node [%d], port [%d]).", faultEntity.id[0], faultEntity.id[1], faultEntity.getNode(), faultEntity.getProcess());
+              return true;
+              }
+            
+            if (fault.alarmState == SAFplus::AlarmState::ALARM_STATE_CLEAR)
+              {  // Probably never going to happen.  Program will die and AMF will start a new one, reregistering the handle
+              logInfo("FLT","POL","Entity UP [%" PRIx64 ":%" PRIx64 "] (on node [%d], port [%d]).", faultEntity.id[0], faultEntity.id[1], faultEntity.getNode(), faultEntity.getProcess());
+              faultServer->setFaultState(faultEntity,FaultState::STATE_UP);
+              return true;
+              }
           }
 
+#if 0
         // If I get multiple reports from other entities, then start believing them
         if (countFaultEvent>=2)
         {
-            return FaultAction::ACTION_STOP;
+          // TODO
         }
-        return FaultAction::ACTION_IGNORE;
+#endif
+
+        return false;
     }
 
 #if 0

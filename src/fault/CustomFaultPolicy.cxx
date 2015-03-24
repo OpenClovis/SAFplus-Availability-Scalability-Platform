@@ -8,12 +8,14 @@ using namespace SAFplus;
 
 namespace SAFplus
 {
-    class CustomFaultPolicy:public FaultPolicyPlugin
+    class CustomFaultPolicy:public FaultPolicyPlugin_1
     {
       public:
+        FaultServer* faultServer;
         CustomFaultPolicy();
         ~CustomFaultPolicy();
-        virtual FaultAction processFaultEvent(SAFplus::FaultEventData fault,SAFplus::Handle faultReporter,SAFplus::Handle faultEntity,int countFaultEvent);
+        void initialize(FaultServer* fs);
+        virtual bool processFaultEvent(SAFplus::FaultEventData fault,SAFplus::Handle faultReporter,SAFplus::Handle faultEntity,int countFaultEvent);
         // virtual FaultAction processIocNotification(ClIocNotificationIdT eventId, ClIocNodeAddressT nodeAddress, ClIocPortT portId);
     };
 
@@ -23,16 +25,25 @@ namespace SAFplus
     CustomFaultPolicy::~CustomFaultPolicy()
     {
     }
-    FaultAction CustomFaultPolicy::processFaultEvent(SAFplus::FaultEventData fault,SAFplus::Handle faultReporter,SAFplus::Handle faultEntity,int countFaultEvent)
+
+  void CustomFaultPolicy::initialize(FaultServer* fs)
+  {
+    faultServer = fs;
+  }
+
+    bool CustomFaultPolicy::processFaultEvent(SAFplus::FaultEventData fault,SAFplus::Handle faultReporter,SAFplus::Handle faultEntity,int countFaultEvent)
     {
     	logInfo("POL","CUS","Received fault event : Process Id [%d], Node Id [%d], Fault count [%d] ", faultEntity.getProcess(),faultEntity.getNode(),countFaultEvent);
         logInfo("POL","CUS","Process fault event : Custom");
+#if 0
         if (countFaultEvent>=2)
         {
-        	return FaultAction::ACTION_STOP;
+        	return true;
         }
-        return FaultAction::ACTION_IGNORE;
+#endif
+        return false;
     }
+
 #if 0
     FaultAction CustomFaultPolicy::processIocNotification(ClIocNotificationIdT eventId, ClIocNodeAddressT nodeAddress, ClIocPortT portId)
     {

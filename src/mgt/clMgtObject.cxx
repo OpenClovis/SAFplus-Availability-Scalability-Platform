@@ -156,14 +156,13 @@ namespace SAFplus
   /* persistent db to database */
   ClRcT MgtObject::write(MgtDatabase* db, std::string xpt)
     {
-    clDbgCodeError(CL_ERR_BAD_OPERATION,"This function didn't support");
-    return CL_OK;
+    clDbgCodeError(CL_ERR_BAD_OPERATION,"Write operation not supported on element [%s], path [%s]",getFullXpath(true).c_str(),xpt.c_str());    return CL_OK;
     }
 
   /* unmashall db to object */
   ClRcT MgtObject::read(MgtDatabase *db, std::string xpt)
     {
-    clDbgCodeError(CL_ERR_BAD_OPERATION,"This function didn't support");
+      clDbgCodeError(CL_ERR_BAD_OPERATION,"Read operation not supported on element [%s], path [%s]",getFullXpath(true).c_str(),xpt.c_str());
     return CL_OK;
     }
 

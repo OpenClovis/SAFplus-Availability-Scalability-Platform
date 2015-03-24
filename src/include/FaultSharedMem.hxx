@@ -469,28 +469,13 @@ Specific problems (if given). (@ref ITU X.733)
       ALARM_CATEGORY_ENVIRONMENTAL        = 5,
       };
 
-  enum
-    {
-    FAULT_POLICY_PLUGIN_ID = 0x53843923,
-    FAULT_POLICY_PLUGIN_VER = 1
-    };
-
   //fault policy plugin
   enum class FaultPolicy
     {
-    Undefined = 0,
+      Undefined = 0,
       Custom = 1,
       AMF = 2,
-      };
-
-  enum class FaultAction
-    {
-    ACTION_STOP = 0,
-      ACTION_RESTART = 1,
-      ACTION_IGNORE = 2,
-      };
-
-
+    };
 
   // fault event information include state , severity, category, cause
   class FaultEventData
@@ -657,7 +642,7 @@ Specific problems (if given). (@ref ITU X.733)
     void dispatcher(void);
     bool createFault(FaultShmEntry* frp,SAFplus::Handle fault);
     bool updateFaultHandle(FaultShmEntry* frp,SAFplus::Handle fault);
-    bool updateFaultHandleState(SAFplus::FaultState state,SAFplus::Handle fault);
+      bool updateFaultHandleState(SAFplus::Handle fault, SAFplus::FaultState state);
     //? copy all data (up to size bufSize) into buf. Returns the number of records copied.
     uint_t getAllFaultClient(char* buf,ClWordT bufSize);
     void applyFaultSync(char* buf,ClWordT bufSize);

@@ -290,7 +290,7 @@ namespace SAFplus
     }
 #endif
 
-    void loadFaultPlugins()
+    void FaultServer::loadFaultPlugins()
     {
         // pick the SAFplus directory or the current directory if it is not defined.
         const char * soPath = (SAFplus::ASP_APP_BINDIR[0] == 0) ? "../plugin":SAFplus::ASP_APP_BINDIR;
@@ -310,9 +310,10 @@ namespace SAFplus
                         ClPluginHandle* plug = clLoadPlugin(FAULT_POLICY_PLUGIN_ID,FAULT_POLICY_PLUGIN_VER,s);
                         if (plug)
                         {
-                            FaultPolicyPlugin* pp = dynamic_cast<FaultPolicyPlugin*> (plug->pluginApi);
+                            FaultPolicyPlugin_1* pp = dynamic_cast<FaultPolicyPlugin_1*> (plug->pluginApi);
                             if (pp)
                             {
+                                pp->initialize(this);
                                 faultPolicies[pp->policyId] = plug;
                                 logDebug(FAULT,"POL","AMF Policy [%d] plugin load succeeded.", int(pp->pluginId));
                             }
@@ -471,7 +472,7 @@ namespace SAFplus
             case SAFplus::FaultMessageType::MSG_ENTITY_FAULT:
                 if(1)
                 {
-                    logDebug(FAULT,"MSG","Process fault event message");
+                  //logDebug(FAULT,"MSG","Process fault event message");
                     processFaultEvent(pluginId,eventData,faultEntity,reporterHandle);
                     logDebug("POL","AMF","Fault event data severity [%s] , cause [%s] , catagory [%s] , state [%d] ", SAFplus::strFaultSeverity[int(eventData.severity)],SAFplus::strFaultProbableCause[int(eventData.cause)],SAFplus::strFaultCategory[int(eventData.category)],eventData.alarmState);
                     FaultHistoryEntity faultHistoryEntry;
@@ -711,35 +712,10 @@ namespace SAFplus
               if(it->first==pluginId || pluginId==FaultPolicy::Undefined)
               {
                   //call Fault plugin to proces fault event
-                  FaultPolicyPlugin* pp = dynamic_cast<FaultPolicyPlugin*>(it->second->pluginApi);
+                  FaultPolicyPlugin_1* pp = dynamic_cast<FaultPolicyPlugin_1*>(it->second->pluginApi);
                   int count = countFaultEvent(faultReporter,faultEntity,5);
-                  FaultAction result = pp->processFaultEvent(fault,faultReporter,faultEntity,count);
-                  switch (result)
-                  {
-                      case FaultAction::ACTION_STOP:
-                      {
-                          logDebug(FAULT,FAULT_SERVER,"Process fault event return ACTION_STOP.");
-                          logDebug(FAULT,FAULT_SERVER,"Try to stop process.");
-                          //TODO stop fault process
-                          break;
-                      }
-                      case FaultAction::ACTION_RESTART:
-                      {
-                          logDebug(FAULT,FAULT_SERVER,"Process fault event return ACTION_RESTART.");
-                          logDebug(FAULT,FAULT_SERVER,"Try to restart process.");
-                          //TODO stop fault process
-                          break;
-                      }
-                      case FaultAction::ACTION_IGNORE:
-                      {
-                          logDebug(FAULT,FAULT_SERVER,"Process fault event return ACTION_IGNORE");
-                          logDebug(FAULT,FAULT_SERVER,"Ignore this fault event.");
-                          break;
-                      }
-                      default:
-                          logDebug(FAULT,"MSG","Un-define return value. Exit");
-                          break;
-                  }
+                  bool result = pp->processFaultEvent(fault,faultReporter,faultEntity,count);
+                  if (result) break;
               }
         }
     }
@@ -836,6 +812,14 @@ namespace SAFplus
     	logError(FAULT,FAULT_SERVER,"Fault Entity [%" PRIx64 ":%" PRIx64 "] State  [%d]",faultHandle.id[0],faultHandle.id[1],fse->state);
         return fse->state;
     }
+
+  void FaultServer::setFaultState(SAFplus::Handle handle,SAFplus::FaultState state)
+    {
+      fsmServer.updateFaultHandleState(handle, state);
+      // TODO: broadcast this state update to all other fault node representatives
+      // TODO: update fault checkpoint
+    }
+
     void faultInitialize(void)
       {
     	SAFplus::fsm.init(INVALID_HDL);

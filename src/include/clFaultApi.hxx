@@ -83,30 +83,36 @@ extern const char* strFaultMsgType[];
 
 class FaultServer:public SAFplus::MsgHandler,public SAFplus::Wakeable
 {
-public:
-    FaultServer();
-    //shared memory
+protected:
+    //? shared memory
     FaultSharedMem fsmServer;
-    //fault server group
+    //? fault server group
     SAFplus::Group group;
-    //fault server group reporter
+    //? fault server group reporter
     SAFplus::Handle grpHandle;
-    //fault server reporter
+    //? fault server reporter
     SAFplus::Handle faultServerHandle;
-    //fault server msg server
+    //? fault server msg server
     SAFplus::SafplusMsgServer   *faultMsgServer;
     FaultGroupData faultInfo;
-    // fault event logging
+    //? fault event logging
     SAFplus::FaultStatistic faultHistory;
-    //fault communication port (should be remove)
+    //? fault communication port (should be remove)
     int faultCommunicationPort;
-    //group change
+    //? group change
     int changeCount;
-    //init fault server
+
     SAFplus::Fault faultClient;
-    SAFplus::Mutex  faultServerMutex;
+    //? Protect the fault server from simultaneous access
+    SAFplus::Mutex      faultServerMutex;
+    //? Synchronize fault data across servers
     SAFplus::Checkpoint faultCheckpoint;
+
+public:
+    FaultServer();
     void init();
+    //  Search for any fault plugins and load them up
+    void loadFaultPlugins();
     // reporter fault event message
     virtual void msgHandler(SAFplus::Handle from, SAFplus::MsgServer* svr, ClPtrT msg, ClWordT msglen, ClPtrT cookie);
     //register a fault client entity, write fault entiti information into shared memory
@@ -138,8 +144,11 @@ public:
     void sendFaultSyncRequest(SAFplus::Handle activeAddress);
     void sendFaultSyncReply(SAFplus::Handle address);
     void writeToSharedMemoryAllEntity();
-    //get status of one fault Entity
+
+    //? Get status of one fault Entity: for use by Fault plugins
     SAFplus::FaultState getFaultState(SAFplus::Handle faultHandle);
+    //? Set status of one fault Entity: for use by Fault plugins
+  void setFaultState(SAFplus::Handle handle,SAFplus::FaultState state);
 
 };
 };

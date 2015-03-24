@@ -93,7 +93,7 @@ bool FaultSharedMem::updateFaultHandle(FaultShmEntry* frp,SAFplus::Handle fault)
     return true;
 }
 
-bool FaultSharedMem::updateFaultHandleState(SAFplus::FaultState state,SAFplus::Handle fault)
+  bool FaultSharedMem::updateFaultHandleState(SAFplus::Handle fault, SAFplus::FaultState state)
 {
 	ScopedLock<Mutex> lock(faultMutex);
     SAFplus::FaultShmHashMap::iterator entryPtr;
