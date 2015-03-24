@@ -26,6 +26,7 @@ from umlEditor import DeleteTool
 
 from gfxmath import *
 from gfxtoolkit import *
+from entity import Entity
 
 import share
  
@@ -501,12 +502,11 @@ class SelectTool(Tool):
     else:
       # Duplicate first order entity
       (newEnts,addtl) = self.panel.model.duplicate([ents[0]], recursive=True)
-  
+
     # Create ca for new intance component/csi
-    if ents[0].et.name in self.entOrder[0:2]:
-      for i in ents[0].childOf:
-        for newEnt in newEnts:
-          i.createContainmentArrowTo(newEnt)
+    for i in filter(lambda ent: isinstance(ent, Entity),  ents[0].childOf):
+      for newEnt in newEnts:
+        i.createContainmentArrowTo(newEnt)
 
     # Put all childs instances into hyperlisttree
     if share.instanceDetailsPanel:

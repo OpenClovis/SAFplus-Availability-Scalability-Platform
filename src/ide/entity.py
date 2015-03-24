@@ -75,6 +75,10 @@ class Entity:
     self.bmp  = self.et.iconSvg.instantiate(self.size,self.data)
     self.containmentArrows = []
 
+    # Put this entity name into namely dict
+    if name:
+      NameCreator(entityType.name)
+
   def duplicate(self,name=None, dupContainmentArrows=False):
     newEnt = copy.copy(self)
     newEnt.data = copy.deepcopy(self.data)
@@ -198,3 +202,7 @@ class Instance(Entity):
     self.bmp  = self.entity.et.iconSvg.instantiate(self.size,self.data)
     self.relativePos = (5,5)  # For layout this is set if the position should be relative to the parent's position
     self.childOf = set()
+
+    # Put this entity name into namely dict
+    if name:
+      NameCreator(entity.data["name"])

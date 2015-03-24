@@ -8,6 +8,7 @@ import common
 from module import Module
 import svg
 import entity
+from entity import Entity
 
 VERSION = "7.0"
 
@@ -240,7 +241,7 @@ instantiated  <instances>     instances                         instances     (e
     """
     # First, update the model to make sure that it is internally consistent
     for (name,i) in self.instances.items():
-      for parent in i.childOf:  # If the object has parent pointers, update them.  This is pretty specific to SAFplus data types...
+      for parent in filter(lambda ent: isinstance(ent, Entity), i.childOf):  # If the object has parent pointers, update them.  This is pretty specific to SAFplus data types...
         fieldName = parent.et.name[0].lower() + parent.et.name[1:]  # uncapitalize the first letter to make it use SAFplus bumpycase
         if i.data.has_key(fieldName):
           i.data[fieldName] = parent.data["name"]
@@ -439,7 +440,7 @@ instantiated  <instances>     instances                         instances     (e
         
     return (ret,addtl)
 
-  def recursiveInstantiation(self,ent,instances=None):
+  def recursiveInstantiation(self,ent,instances=None, depth=1):
     if not instances: instances = self.instances
     children = []
     if 1:
@@ -448,17 +449,21 @@ instantiated  <instances>     instances                         instances     (e
       if not ei:
         ei = entity.Instance(ent, None,pos=None,size=None,name=name)
         instances[name] = ei
-      for ca in ent.containmentArrows:
-        (ch, xtra) = self.recursiveInstantiation(ca.contained,instances)
-        ch.childOf.add(ei)
-        cai = copy.copy(ca)
-        cai.container = ei
-        cai.contained = ch
-        ei.containmentArrows.append(cai)
-        children.append(ch)
+      depth = depth + 1
+      # 2 ways recursive:
+      #   1. SG -> SI -> CSI
+      #   2. Node -> SU -> Component
+      if depth<=3:
+        for ca in ent.containmentArrows:
+          (ch, xtra) = self.recursiveInstantiation(ca.contained,instances, depth)
+          ch.childOf.add(ei)
+          cai = copy.copy(ca)
+          cai.container = ei
+          cai.contained = ch
+          ei.containmentArrows.append(cai)
+          children.append(ch)
       return (ei, instances)
-      
-# >>>>>>> Stashed changes
+
 
   def xmlify(self):
     """Returns an XML string that defines the IDE Model, for saving to disk"""
