@@ -378,6 +378,10 @@ template <class T>
 ClRcT MgtProvList<T>::getDb(std::string pxp,MgtDatabase *db)
 {
     ClRcT rc = CL_OK;
+
+    if (!loadDb)
+      return rc;
+
     std::string key;
     if(pxp.size() > 0)
     {

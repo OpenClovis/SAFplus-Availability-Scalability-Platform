@@ -76,11 +76,11 @@ namespace SAFplus
      */
     virtual ClBoolT set(void *pBuffer, ClUint64T buffLen, SAFplus::Transaction& t);
 
-    ClRcT read(MgtDatabase* db)
+    virtual ClRcT write(MgtDatabase* db, std::string xpt = "")
     {
       return CL_OK;
     }
-    ClRcT read(std::string xpt,MgtDatabase *db)
+    virtual ClRcT read(MgtDatabase *db, std::string xpt = "")
     {
       return CL_OK;
     }

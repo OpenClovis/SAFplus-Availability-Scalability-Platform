@@ -378,6 +378,9 @@ ClRcT MgtProv<T>::setDb(std::string pxp,MgtDatabase *db)
 template <class T>
 ClRcT MgtProv<T>::getDb(std::string pxp,MgtDatabase *db)
 {
+    if (!loadDb)
+      return CL_OK;
+
     std::string key = getFullXpath();
     if(pxp.size() > 0)
     {
