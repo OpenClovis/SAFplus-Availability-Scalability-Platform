@@ -81,53 +81,98 @@ class SliderCustom(wx.PyControl):
   def GetName(self):
     return "slidercustom"
 
-class TextObjectValidator(wx.PyValidator):
+class GenericObjectValidator(wx.PyValidator):
     """ This validator is used to ensure that the user has entered something
         into the text object editor dialog's text field.
     """
     def __init__(self):
-        """ Standard constructor.
-        """
-        wx.PyValidator.__init__(self)
+      """ Standard constructor.
+      """
+      wx.PyValidator.__init__(self)
+
+    def Clone(self):
+      """ Standard cloner.
+          Note that every validator must implement the Clone() method.
+      """
+      return GenericObjectValidator()
+
+
+    def Validate(self):
+      """ Validate the contents of the given text control.
+      """
+      return True
+
+    def setError(self, error):
+      textCtrl = self.GetWindow()
+      if error:
+        textCtrl.SetBackgroundColour("pink")
+        textCtrl.SetFocus()
+        textCtrl.Refresh()
+      else:
+        textCtrl.SetBackgroundColour(wx.SystemSettings_GetColour(wx.SYS_COLOUR_WINDOW))
+        textCtrl.Refresh()
+
+      return not error
+
+class NameObjectValidator(GenericObjectValidator):
+    def __init__(self, dictItems):
+      """ Standard constructor.
+      """
+      GenericObjectValidator.__init__(self)
+      self.dictItems = dictItems
+
 
     def Clone(self):
         """ Standard cloner.
             Note that every validator must implement the Clone() method.
         """
-        return TextObjectValidator()
+        return NameObjectValidator(self.dictItems)
+
+    def Validate(self):
+      textCtrl = self.GetWindow()
+      value = textCtrl.GetValue()
+
+      if len(value) == 0 or len(value) > 255:
+        return self.setError(True)
+
+      if value in self.dictItems.keys():
+        return self.setError(True)
+
+      return self.setError(False)
+
+
+class NumberObjectValidator(GenericObjectValidator):
+    def __init__(self, rang=None, mask=None):
+        """ Standard constructor.
+        """
+        GenericObjectValidator.__init__(self)
+        self.rang=rang
+        self.mask=mask
+
+    def Clone(self):
+        """ Standard cloner.
+            Note that every validator must implement the Clone() method.
+        """
+        return NumberObjectValidator(self.rang)
 
 
     def Validate(self):
         """ Validate the contents of the given text control.
         """
         textCtrl = self.GetWindow()
-        text = textCtrl.GetValue()
+        value = textCtrl.GetValue()
+        num = 0
+        try:
+          num = int(value)
+        except:
+          return self.setError(True)
 
-        if len(text) == 0:
-            textCtrl.SetBackgroundColour("pink")
-            textCtrl.SetFocus()
-            textCtrl.Refresh()
-            return False
-        else:
-            textCtrl.SetBackgroundColour(wx.SystemSettings_GetColour(wx.SYS_COLOUR_WINDOW))
-            textCtrl.Refresh()
-            return True
+        # TODO: check in mask
+        if self.rang:
+          if num>self.rang[1] or num<self.rang[0]:
+            return self.setError(True)
 
-
-    def TransferToWindow(self):
-        """ Transfer data from validator to window.
-            The default implementation returns False, indicating that an error
-            occurred.  We simply return True, as we don't do any data transfer.
-        """
-        return True # Prevent wxDialog from complaining.
-
-
-    def TransferFromWindow(self):
-        """ Transfer data from window to validator.
-            The default implementation returns False, indicating that an error
-            occurred.  We simply return True, as we don't do any data transfer.
-        """
-        return True # Prevent wxDialog from complaining.
+        return self.setError(False)
 
 
 class Panel(scrolled.ScrolledPanel):
@@ -309,6 +354,10 @@ class Panel(scrolled.ScrolledPanel):
             if rang[0] == "min": rang[0] = MinValFor[typeData["type"]]
             if rang[1] == "max": rang[1] = MaxValFor[typeData["type"]]
           query = SliderCustom(self.tree.GetMainWindow(),id, v, rang)
+
+          # TODO: getcustom validator from yang
+          query.SetValidator(NumberObjectValidator(rang))
+
           # TODO create a control that contains both a slider and a small text box
           # TODO size the slider properly using min an max hints 
         elif self.model.dataTypes.has_key(typeData["type"]):
@@ -332,9 +381,6 @@ class Panel(scrolled.ScrolledPanel):
         # Bind to handle event on change
         self.BuildChangeEvent(query)
 
-        # TODO: getcustom validator from yang
-        query.SetValidator(TextObjectValidator())
-        
       else:
         # TODO do any of these need to be displayed?
         query = None
@@ -466,7 +512,7 @@ class Panel(scrolled.ScrolledPanel):
       self.BuildChangeEvent(query)
 
       # TODO: getcustom validator from yang
-      query.SetValidator(TextObjectValidator())
+      query.SetValidator(NameObjectValidator(self.model.instances if self.isDetailInstance else self.model.entities))
 
       b = wx.BitmapButton(self.tree.GetMainWindow(), self.row + LOCK_BUTTON_ID, self.unlockedBmp,style = wx.NO_BORDER )
       b.SetToolTipString("If unlocked, instances can change this field")
