@@ -24,7 +24,7 @@ int main(int argc, char* argv[])
     logInfo("FLT","CLT","Initial fault server");
     fs.init();
     sleep(2);
-    fs.fsmServer.removeAll();
+    fs.RemoveAllEntity();
     while(1) { sleep(10000); }
     return 0;
 }

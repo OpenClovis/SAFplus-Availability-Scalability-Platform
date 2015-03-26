@@ -28,9 +28,11 @@ namespace SAFplus
     MSG_ENTITY_JOIN = 1,     // the entity joins
     MSG_ENTITY_LEAVE,       // the entity leave
     MSG_ENTITY_FAULT,       // the fault event
+    MSG_ENTITY_STATE_CHANGE,       // the fault event
     MSG_ENTITY_JOIN_BROADCAST,  // broadcast entity join
     MSG_ENTITY_LEAVE_BROADCAST,  // broadcast entity leave
     MSG_ENTITY_FAULT_BROADCAST,   // broadcast fault event
+    MSG_ENTITY_STATE_CHANGE_BROADCAST,
     MSG_UNDEFINED
     };
 

@@ -69,10 +69,10 @@ void testAllFeature()
     logInfo("FLT","CLT","Get current fault state after updated in shared memory [%s]", strFaultEntityState[int(state)]);
     sleep(10);
     FaultEventData faultData;
-    faultData.alarmState=SAFplusI::AlarmStateT::ALARM_STATE_INVALID;
-    faultData.category=SAFplusI::AlarmCategoryTypeT::ALARM_CATEGORY_COMMUNICATIONS;
-    faultData.cause=SAFplusI::AlarmProbableCauseT::ALARM_PROB_CAUSE_PROCESSOR_PROBLEM;
-    faultData.severity=SAFplusI::AlarmSeverityTypeT::ALARM_SEVERITY_MINOR;
+    faultData.alarmState=SAFplus::AlarmState::ALARM_STATE_INVALID;
+    faultData.category=SAFplus::AlarmCategory::ALARM_CATEGORY_COMMUNICATIONS;
+    faultData.cause=SAFplus::AlarmProbableCause::ALARM_PROB_CAUSE_PROCESSOR_PROBLEM;
+    faultData.severity=SAFplus::AlarmSeverity::ALARM_SEVERITY_MINOR;
     state = fc.getFaultState(me);
     logInfo("FLT","CLT","Get current fault state in shared memory [%s]", strFaultEntityState[int(state)]);
     logInfo("FLT","CLT","Send fault event to local fault server");
@@ -93,10 +93,10 @@ void tressTest(int eventNum)
     for (int i = 0; i < eventNum; i ++)
     {
         FaultEventData faultData;
-        faultData.alarmState=SAFplusI::AlarmStateT::ALARM_STATE_INVALID;
-        faultData.category=SAFplusI::AlarmCategoryTypeT::ALARM_CATEGORY_COMMUNICATIONS;
-        faultData.cause=SAFplusI::AlarmProbableCauseT::ALARM_PROB_CAUSE_PROCESSOR_PROBLEM;
-        faultData.severity=SAFplusI::AlarmSeverityTypeT::ALARM_SEVERITY_MINOR;
+        faultData.alarmState=SAFplus::AlarmState::ALARM_STATE_INVALID;
+        faultData.category=SAFplus::AlarmCategory::ALARM_CATEGORY_COMMUNICATIONS;
+        faultData.cause=SAFplus::AlarmProbableCause::ALARM_PROB_CAUSE_PROCESSOR_PROBLEM;
+        faultData.severity=SAFplus::AlarmSeverity::ALARM_SEVERITY_MINOR;
         fc.notify(faultData,FaultPolicy::AMF);
         sleep(1);
     }
