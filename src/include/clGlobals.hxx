@@ -245,7 +245,7 @@ extern "C" {
       faultInitialize();
       }
 
-    if (svc&LibSet::MSG&& msgServerInitialize)
+    if ((svc&LibSet::MSG)&& msgServerInitialize)
       {
       msgServerInitialize(sic->iocPort,sic->msgQueueLen,sic->msgThreads);
       }
