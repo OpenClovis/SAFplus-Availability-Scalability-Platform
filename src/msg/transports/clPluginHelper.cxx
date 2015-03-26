@@ -433,6 +433,35 @@ struct in_addr devToIpAddress(const char *dev)
     return *in4_addr;
 }
 
+unsigned int devNetmask(const char *dev)
+{
+    int sd;
+    struct ifreq req;
+
+    /* Get a socket handle. */
+    sd = socket(PF_INET, SOCK_DGRAM, 0);
+    if (sd < 0)
+    {
+        logError(LOG_CTX, CL_LOG_PLUGIN_HELPER_AREA, "open socket failed with error [%s]", strerror(errno));
+        assert(0); // Something is REALLY wrong if I can't create a socket
+    }
+
+    memset(&req, 0, sizeof(struct ifreq));
+    strcpy(req.ifr_name, dev);
+    req.ifr_addr.sa_family = PF_UNSPEC;
+
+    if (ioctl(sd, SIOCGIFNETMASK, &req) == -1)
+    {
+        logNotice(LOG_CTX, CL_LOG_PLUGIN_HELPER_AREA, "Operation command failed: [%s]", strerror(errno));
+        close(sd);
+        assert(0);  // TODO: Any "normal" errors?  If so I should throw
+    }
+
+    struct in_addr *in4_addr = &((struct sockaddr_in*) &((struct ifreq *) &req)->ifr_netmask)->sin_addr;
+    close(sd); 
+    return in4_addr->s_addr;
+}
+
 /*
  * Before calling ifconfig, we want to check if interface and ip existing,
  * if so, just ignore the calling command
@@ -776,13 +805,13 @@ std::string prefixLenToSubnetMask(unsigned int prefixLen)
 
 /*
 This function constructs the network address of a node defined by environment variables
-Also, returns the ip address assigned to the interface
+Also, returns the nodeMask and ip address assigned to the interface
 Parameters:
-  None.
+  pNodeMask: [out] nodemask for the specified network is returned
 Returns:
   in_addr: ip address assigned to the interface
 */
-in_addr setNodeNetworkAddr()
+in_addr setNodeNetworkAddr(unsigned int* pNodeMask)
 {  
   const char* interface = getenv("SAFPLUS_BACKPLANE_INTERFACE");
   const char* ip = getenv("SAFPLUS_BACKPLANE_NETWORK");
@@ -815,6 +844,12 @@ in_addr setNodeNetworkAddr()
     clAddRemVirtualAddress("up", &vip);
     // Set ASP_NODEADDR
     SAFplus::ASP_NODEADDR = boost::lexical_cast<int>(nodeID);    
+    if (pNodeMask != NULL)
+    {
+      struct in_addr nm;      
+      inet_aton(netmask.c_str(), &nm);
+      *pNodeMask = ~ntohl(nm.s_addr);
+    }
     struct in_addr inp;
     inet_aton(addr, &inp);
     return inp;
@@ -823,9 +858,13 @@ in_addr setNodeNetworkAddr()
   {
     // In this case, there is an ip address already assigned to the interface, so we get it from the interface
     struct in_addr inp = devToIpAddress(interface);    
-    int nodeMask = 0xff;
+    int nodeMask = ~ntohl(devNetmask(interface));
     // Set ASP_NODEADDR based on the last 8 bits of assigned network address
     SAFplus::ASP_NODEADDR = ntohl(inp.s_addr)&nodeMask;
+    if (pNodeMask != NULL)
+    {
+      *pNodeMask = nodeMask;
+    }
     return inp;
   }
 }

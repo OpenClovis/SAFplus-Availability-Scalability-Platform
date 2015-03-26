@@ -42,8 +42,8 @@ using namespace SAFplus;
       netAddr = ntohl(bip.s_addr)&(~nodeMask);
       }
 #endif
-     struct in_addr bip = SAFplusI::setNodeNetworkAddr();      
-     int nodeMask = 0xff;  // TODO: get this from ~SAFplusI::devNetMask(interface)
+     unsigned int nodeMask;
+     struct in_addr bip = SAFplusI::setNodeNetworkAddr(&nodeMask);           
      config.nodeId = SAFplus::ASP_NODEADDR;
      netAddr = ntohl(bip.s_addr)&(~nodeMask);
      
