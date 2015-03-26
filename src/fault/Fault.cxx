@@ -590,8 +590,6 @@ namespace SAFplus
                      else
                      {
                          logDebug(FAULT,"MSG","Fault entity state change message broadcast from external.");
-                         fe->state=faultState;
-                         tmpShrEntity->state=faultState;
                          fsmServer.updateFaultHandleState(faultEntity, faultState);
                      }
                  }
