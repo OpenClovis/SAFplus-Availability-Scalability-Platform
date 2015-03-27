@@ -68,6 +68,7 @@ protected:
      * Store the list of MGT module
      */
     std::map<std::string, MgtModule*> mMgtModules;
+
 public:
     virtual ~MgtRoot();
 
@@ -128,6 +129,10 @@ public:
      */
     void clMgtMsgEditHandle(SAFplus::Handle srcAddr, Mgt::Msg::MsgMgt mgtMsgReq);
     void clMgtMsgGetHandle(SAFplus::Handle srcAddr, Mgt::Msg::MsgMgt mgtMsgReq);
+    void clMgtMsgXGetHandle(SAFplus::Handle srcAddr, Mgt::Msg::MsgMgt mgtMsgReq);
+    void clMgtMsgXSetHandle(SAFplus::Handle srcAddr, Mgt::Msg::MsgMgt mgtMsgReq);
+    void clMgtMsgCreateHandle(SAFplus::Handle srcAddr, Mgt::Msg::MsgMgt mgtMsgReq);
+    void clMgtMsgDeleteHandle(SAFplus::Handle srcAddr, Mgt::Msg::MsgMgt mgtMsgReq);
     class MgtMessageHandler:public SAFplus::MsgHandler
     {
       public:
@@ -142,6 +147,7 @@ public:
 //    static ClRcT sendMsg(SAFplus::Handle dest, void* payload, uint payloadlen, MgtMsgType msgtype,void* reply = NULL);
     static ClRcT sendReplyMsg(SAFplus::Handle dest, void* payload, uint payloadlen);
 
+    MgtObject *findMgtObject(const std::string &xpath);
 };
 };
 #endif /* CLMGTROOT_H_ */

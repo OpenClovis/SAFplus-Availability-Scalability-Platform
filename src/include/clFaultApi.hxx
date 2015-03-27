@@ -66,6 +66,7 @@ public :
     SAFplus::Handle getActiveServerAddress();
     // register a fault entity to fault server
     void sendFaultAnnounceMessage(SAFplus::Handle other, SAFplus::FaultState state);
+    void changeFaultState(SAFplus::Handle other, SAFplus::FaultState state);
 
 };
 
@@ -137,6 +138,8 @@ public:
     void sendFaultNotificationToGroup(void* data, int dataLength);
     //broadcast fault entity join event to all other fault server in group
     void broadcastEntityAnnounceMessage(SAFplus::Handle handle,SAFplus::FaultState state=SAFplus::FaultState::STATE_UP);
+    //broadcast fault entity state change event to all other fault server in group
+    void broadcastEntityStateChangeMessage(SAFplus::Handle handle, SAFplus::FaultState state);
     //broadcast fault entity leave event to all other fault server in group
     void sendFaultLeaveMessage(SAFplus::Handle handle);
 
@@ -148,7 +151,9 @@ public:
     //? Get status of one fault Entity: for use by Fault plugins
     SAFplus::FaultState getFaultState(SAFplus::Handle faultHandle);
     //? Set status of one fault Entity: for use by Fault plugins
-  void setFaultState(SAFplus::Handle handle,SAFplus::FaultState state);
+    void setFaultState(SAFplus::Handle handle,SAFplus::FaultState state);\
+    void RemoveAllEntity();
+
 
 };
 };

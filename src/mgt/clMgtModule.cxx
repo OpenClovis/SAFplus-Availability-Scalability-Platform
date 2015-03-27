@@ -57,7 +57,7 @@ namespace SAFplus
   {
     ClRcT rc = CL_OK;
 
-    if (mgtObject == NULL)
+    if (mgtObject == nullptr)
       {
         return CL_ERR_NULL_POINTER;
       }
@@ -101,14 +101,43 @@ namespace SAFplus
       {
         return static_cast<MgtObject *>((*mapIndex).second);
       }
-    return NULL;
+    return nullptr;
+  }
+
+  MgtObject *MgtModule::findMgtObject(const std::string& xpath)
+  {
+    for (map<string, MgtObject*>::iterator it = mMgtObjects.begin(); it != mMgtObjects.end(); ++it)
+      {
+        MgtObject *object = static_cast<MgtObject *>((*it).second);
+        std::string objXpath = object->getFullXpath();
+
+        if (xpath.find(objXpath) == 0)
+          {
+            if (xpath.length() == objXpath.length())
+              {
+                return object;
+              }
+            else
+              {
+                if (xpath[objXpath.length()] != '/')
+                  continue;
+
+                MgtObject *findObj = object->findMgtObject(xpath, objXpath.length());
+
+                if (findObj)
+                  return findObj;
+
+              }
+          }
+      }
+    return nullptr;
   }
 
   ClRcT MgtModule::addMgtNotify(MgtNotify *mgtNotify)
   {
     ClRcT rc = CL_OK;
 
-    if (mgtNotify == NULL)
+    if (mgtNotify == nullptr)
       {
         return CL_ERR_NULL_POINTER;
       }
@@ -154,14 +183,14 @@ namespace SAFplus
       {
         return static_cast<MgtNotify *>((*mapIndex).second);
       }
-    return NULL;
+    return nullptr;
   }
 
   ClRcT MgtModule::addMgtRpc(MgtRpc *mgtRpc)
   {
     ClRcT rc = CL_OK;
 
-    if (mgtRpc == NULL)
+    if (mgtRpc == nullptr)
       {
         return CL_ERR_NULL_POINTER;
       }
@@ -206,6 +235,6 @@ namespace SAFplus
       {
         return static_cast<MgtRpc *>((*mapIndex).second);
       }
-    return NULL;
+    return nullptr;
   }
 }

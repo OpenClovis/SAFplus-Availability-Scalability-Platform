@@ -105,6 +105,7 @@ namespace SAFplus
      * \return	If the function fails, the return value is NULL
      */
     MgtObject *getMgtObject(const std::string& route);
+    MgtObject *findMgtObject(const std::string& xpath);
 
     /**
      * \brief	Function to add a MGT MGT notification into the database

@@ -57,12 +57,12 @@ namespace SAFplus
      */
     SAFplus::SafplusMsgServer* mgtIocInstance = &safplusMsgServer;
     mgtMessageHandler.init(this);
-    mgtIocInstance->RegisterHandler(SAFplusI::CL_MGT_MSG_TYPE, &mgtMessageHandler, NULL);
+    mgtIocInstance->RegisterHandler(SAFplusI::CL_MGT_MSG_TYPE, &mgtMessageHandler, nullptr);
   }
 
   ClRcT MgtRoot::loadMgtModule(MgtModule *module, std::string moduleName)
   {
-    if (module == NULL)
+    if (module == nullptr)
     {
       return CL_ERR_NULL_POINTER;
     }
@@ -104,21 +104,21 @@ namespace SAFplus
     {
       return static_cast<MgtModule *>((*mapIndex).second);
     }
-    return NULL;
+    return nullptr;
   }
 
   ClRcT MgtRoot::bindMgtObject(Handle handle, MgtObject *object,const std::string module, const std::string route)
   {
     ClRcT rc = CL_OK;
 
-    if (object == NULL)
+    if (object == nullptr)
     {
       return CL_ERR_NULL_POINTER;
     }
 
     /* Check if MGT module already exists in the database */
     MgtModule *mgtModule = getMgtModule(module);
-    if (mgtModule == NULL)
+    if (mgtModule == nullptr)
     {
       logDebug("MGT", "BIND", "Module [%s] does not exist!",module.c_str());
       return CL_ERR_NOT_EXIST;
@@ -341,6 +341,111 @@ namespace SAFplus
     MgtRoot::sendReplyMsg(srcAddr,(void *)strRplMesg.c_str(),strRplMesg.size());
   }
 
+  MgtObject *MgtRoot::findMgtObject(const std::string &xpath)
+  {
+    int idx;
+
+    if (xpath[0] != '/')
+      {
+        // Invalid xpath
+        return nullptr;
+      }
+
+    idx = xpath.find("/", 1);
+
+    if (idx == std::string::npos)
+      {
+        // Invalid xpath
+        return nullptr;
+      }
+
+    std::string moduleName = xpath.substr(1, idx -1);
+
+    MgtModule * module = getMgtModule(moduleName);
+
+    if (!module)
+      {
+        // Module not found
+        return nullptr;
+      }
+
+    return module->findMgtObject(xpath);
+  }
+
+  void MgtRoot::clMgtMsgXGetHandle(SAFplus::Handle srcAddr, Mgt::Msg::MsgMgt reqMsg)
+  {
+    MgtObject *object = findMgtObject(reqMsg.bind());
+
+    if (object != nullptr)
+      {
+        MsgGeneral rplMesg;
+        std::string outBuff, strRplMesg;
+        ClUint64T outMsgSize = 0;
+
+        object->get(&outBuff, &outMsgSize);
+        rplMesg.add_data("");
+        rplMesg.add_data(outBuff.c_str(),outMsgSize);
+        rplMesg.SerializeToString(&strRplMesg);
+        logDebug("MGT","XGET","Replying with msg of size [%d]",strRplMesg.size());
+        MgtRoot::sendReplyMsg(srcAddr,(void *)strRplMesg.c_str(),strRplMesg.size());
+      }
+  }
+
+  void MgtRoot::clMgtMsgXSetHandle(SAFplus::Handle srcAddr, Mgt::Msg::MsgMgt reqMsg)
+  {
+    MgtObject *object = findMgtObject(reqMsg.bind());
+    if (object != nullptr)
+      {
+        std::string value = reqMsg.data(0);
+        ClRcT rc = object->setObj(value);
+        MgtRoot::sendReplyMsg(srcAddr,(void *)&rc,sizeof(ClRcT));
+      }
+  }
+
+  void MgtRoot::clMgtMsgCreateHandle(SAFplus::Handle srcAddr, Mgt::Msg::MsgMgt reqMsg)
+  {
+    int idx = reqMsg.bind().find_last_of("/");
+
+    if (idx == std::string::npos)
+      {
+        // Invalid xpath
+        return;
+      }
+
+    std::string xpath = reqMsg.bind().substr(0, idx);
+    std::string value = reqMsg.bind().substr(idx + 1);
+
+    MgtObject *object = findMgtObject(xpath);
+
+    if (object != nullptr)
+      {
+        ClRcT rc = object->createObj(value);
+        MgtRoot::sendReplyMsg(srcAddr,(void *)&rc,sizeof(ClRcT));
+      }
+  }
+
+  void MgtRoot::clMgtMsgDeleteHandle(SAFplus::Handle srcAddr, Mgt::Msg::MsgMgt reqMsg)
+  {
+    int idx = reqMsg.bind().find_last_of("/");
+
+    if (idx == std::string::npos)
+      {
+        // Invalid xpath
+        return;
+      }
+
+    std::string xpath = reqMsg.bind().substr(0, idx);
+    std::string value = reqMsg.bind().substr(idx + 1);
+
+    MgtObject *object = findMgtObject(xpath);
+
+    if (object != nullptr)
+      {
+        ClRcT rc = object->deleteObj(value);
+        MgtRoot::sendReplyMsg(srcAddr,(void *)&rc,sizeof(ClRcT));
+      }
+  }
+
   MgtRoot::MgtMessageHandler::MgtMessageHandler()
   {
 
@@ -360,6 +465,18 @@ namespace SAFplus
         break;
       case Mgt::Msg::MsgMgt::CL_MGT_MSG_GET:
         mRoot->clMgtMsgGetHandle(from,mgtMsgReq);
+        break;
+      case Mgt::Msg::MsgMgt::CL_MGT_MSG_XGET:
+        mRoot->clMgtMsgXGetHandle(from,mgtMsgReq);
+        break;
+      case Mgt::Msg::MsgMgt::CL_MGT_MSG_XSET:
+        mRoot->clMgtMsgXSetHandle(from,mgtMsgReq);
+        break;
+      case Mgt::Msg::MsgMgt::CL_MGT_MSG_CREATE:
+        mRoot->clMgtMsgCreateHandle(from,mgtMsgReq);
+        break;
+      case Mgt::Msg::MsgMgt::CL_MGT_MSG_DELETE:
+        mRoot->clMgtMsgDeleteHandle(from,mgtMsgReq);
         break;
       default:
         break;

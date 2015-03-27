@@ -21,8 +21,10 @@ import wx.lib.scrolledpanel as scrolled
 
 try:
     from agw import hypertreelist as HTL
+    from agw import infobar as IB
 except ImportError: # if it's not there locally, try the wxPython lib.
     import wx.lib.agw.hypertreelist as HTL
+    import wx.lib.agw.infobar as IB
 
 LOCK_BUTTON_ID = 3482
 HELP_BUTTON_ID = 4523
@@ -64,70 +66,165 @@ class SliderCustom(wx.PyControl):
   def sliderHandler(self, evt):
     value = evt.GetInt()
     self.sliderText.SetValue(str(value))
-    evt.Skip(False)
+    evt.Skip()
 
   def sliderTextHandler(self, evt):
     try:
       value = int(self.sliderText.GetValue())
       self.slider.SetValue(value)
+      self.sliderText.GetValidator().clearError()
     except:
       value = 0
 
-    evt.Skip(True)
+    evt.Skip()
 
-  def GetValue(self, ):
+  def GetValue(self):
     return self.sliderText.GetValue()
-  
+
   def GetName(self):
     return "slidercustom"
+  
+  def SetValidator(self, validator):
+    self.sliderText.SetValidator(validator)
 
-class TextObjectValidator(wx.PyValidator):
+  def GetValidator(self):
+    return self.sliderText.GetValidator()
+
+class GenericObjectValidator(wx.PyValidator):
     """ This validator is used to ensure that the user has entered something
         into the text object editor dialog's text field.
     """
     def __init__(self):
-        """ Standard constructor.
-        """
-        wx.PyValidator.__init__(self)
+      """ Standard constructor.
+      """
+      wx.PyValidator.__init__(self)
+      self.Bind(wx.EVT_CHAR, self.OnChar)
+
+      # Error msg, this can get from yang leaf
+      self.errorStr = ''
+
+      # Mark the field if error
+      self.isError  = False
+      self.currentValue = None
+
+    def Clone(self):
+      """ Standard cloner.
+          Note that every validator must implement the Clone() method.
+      """
+      return GenericObjectValidator()
+
+
+    def Validate(self):
+      """ Validate the contents of the given text control.
+      """
+      self.isError = False
+      return True
+
+    def setError(self, errorStr = ''):
+      textCtrl = self.GetWindow()
+      textCtrl.SetBackgroundColour("red")
+      textCtrl.Refresh()
+
+      self.isError = True
+      self.errorStr = errorStr
+
+    def clearError(self):
+      textCtrl = self.GetWindow()
+      textCtrl.SetBackgroundColour(wx.SystemSettings_GetColour(wx.SYS_COLOUR_WINDOW))
+      textCtrl.Refresh()
+
+      self.isError = False
+      self.errorStr = ''
+
+    def getModified(self, modify):
+      textCtrl = self.GetWindow()
+      return (self.currentValue != textCtrl.GetValue())
+
+    def TransferToWindow(self):
+      return True
+
+    def TransferFromWindow(self):
+      textCtrl = self.GetWindow()
+      self.currentValue = textCtrl.GetValue()
+      return True
+
+    def OnChar(self, evt):
+      evt.Skip()
+      
+    def GetErrorMsg(self):
+      return self.errorStr
+    
+
+class NameObjectValidator(GenericObjectValidator):
+    def __init__(self, dictItems, currentValue):
+      """ Standard constructor.
+      """
+      GenericObjectValidator.__init__(self)
+      self.dictItems = dictItems
+      self.length = (1,255)
+      self.currentValue = currentValue
+
 
     def Clone(self):
         """ Standard cloner.
             Note that every validator must implement the Clone() method.
         """
-        return TextObjectValidator()
+        return NameObjectValidator(self.dictItems, self.currentValue)
+
+    def Validate(self):
+      textCtrl = self.GetWindow()
+      value = textCtrl.GetValue()
+
+      if len(value) < self.length[0] or len(value) > self.length[1]:
+        self.setError("Length value should be [%d..%d]" %(self.length[0], self.length[1]))
+
+      if (value != self.currentValue) and (value in self.dictItems.keys()):
+        self.setError("Name value of entity should be unique")
+
+      return (not self.isError)
+
+    def OnChar(self, evt):
+      self.clearError()
+      evt.Skip()
+
+
+class NumberObjectValidator(GenericObjectValidator):
+    def __init__(self, rang=None, mask=None):
+        """ Standard constructor.
+        """
+        GenericObjectValidator.__init__(self)
+        self.rang=rang
+        self.mask=mask
+
+    def Clone(self):
+        """ Standard cloner.
+            Note that every validator must implement the Clone() method.
+        """
+        return NumberObjectValidator(self.rang, self.mask)
 
 
     def Validate(self):
         """ Validate the contents of the given text control.
         """
         textCtrl = self.GetWindow()
-        text = textCtrl.GetValue()
+        value = textCtrl.GetValue()
+        num = 0
+        try:
+          num = int(value)
+        except:
+          self.setError("Invalid number [0-9]")
+          return (not self.isError)
 
-        if len(text) == 0:
-            textCtrl.SetBackgroundColour("pink")
-            textCtrl.SetFocus()
-            textCtrl.Refresh()
-            return False
-        else:
-            textCtrl.SetBackgroundColour(wx.SystemSettings_GetColour(wx.SYS_COLOUR_WINDOW))
-            textCtrl.Refresh()
-            return True
+        # TODO: check in mask
+        if self.rang:
+          if num>self.rang[1] or num<self.rang[0]:
+            self.setError("Value should be in range [%d..%d]" %(self.rang[0],self.rang[1]))
 
+        return (not self.isError)
 
-    def TransferToWindow(self):
-        """ Transfer data from validator to window.
-            The default implementation returns False, indicating that an error
-            occurred.  We simply return True, as we don't do any data transfer.
-        """
-        return True # Prevent wxDialog from complaining.
-
-
-    def TransferFromWindow(self):
-        """ Transfer data from window to validator.
-            The default implementation returns False, indicating that an error
-            occurred.  We simply return True, as we don't do any data transfer.
-        """
-        return True # Prevent wxDialog from complaining.
+    def OnChar(self, evt):
+      self.clearError()
+      evt.Skip()
 
 
 class Panel(scrolled.ScrolledPanel):
@@ -145,7 +242,7 @@ class Panel(scrolled.ScrolledPanel):
         self.unlockedBmp = self.unlockedSvg.bmp((24,24))
         self.helpBmp = self.helpSvg.bmp((12,12))
         self.entity=None
-        self.sizer =None
+        self.sizer = wx.BoxSizer(wx.VERTICAL)
         self.lookup = {}  # find the object from its windowing ID
         self.numElements = 0
         self.row = 0
@@ -161,6 +258,11 @@ class Panel(scrolled.ScrolledPanel):
         self.isDetailInstance = isDetailInstance
         self.entityTreeTypes = ["ServiceGroup", "Node", "ServiceUnit", "ServiceInstance"]
 
+        # Create the InfoBar to show error message
+        self.info = IB.InfoBar(self)
+        self.sizer.Add(self.info, 0, wx.EXPAND)
+
+        # Create hyperlisttree 
         self.eventDictTree = {wx.EVT_TREE_ITEM_EXPANDED:self.OnTreeSelExpanded, wx.EVT_TREE_SEL_CHANGING: self.OnTreeSelChanged, wx.EVT_TREE_SEL_CHANGED: self.OnTreeSelChanged}
         self._createTreeEntities()
 
@@ -178,14 +280,42 @@ class Panel(scrolled.ScrolledPanel):
     def partialDataValidate(self, proposedPartialValue, fieldData):
       """Return True if the passed data could be part of a valid entry for this field -- that is, user might enter more text"""
       # TODO: fieldData contains information about the expected type of this field.
-      return fieldData.GetValidator().Validate()
+      validator = fieldData.GetValidator()
+      isValid = True
+      if validator:
+        isValid = validator.Validate()
+
+      # Print a big red warning in the error area
+      if not isValid:
+        self.info.ShowMessage(validator.GetErrorMsg(), wx.ICON_ERROR)
+        fieldData.SetFocus()
+      else:
+        # Go through ctrl to validate
+        for obj in self.lookup.values():
+          query = obj[1]
+          validator = query.GetValidator()
+          if validator:
+            isValid &= validator.Validate()
+            msg = ''
+            if not isValid:
+              if obj[0]:
+                # Error in one of field
+                msg = "%s - %s: %s" %(self.tree.GetItemText(obj[4].GetParent()), self.tree.GetItemText(obj[4]), validator.GetErrorMsg())
+              else:
+                # Error in name field
+                msg = "%s - Name: %s" %(self.tree.GetItemText(obj[4]), validator.GetErrorMsg())
+              self.info.ShowMessage(msg, wx.ICON_ERROR)
+              break
+
+      return isValid
 
     def dataValidate(self, proposedValue, fieldData):
       """Return True if the passed data is a valid entry for this field"""
       # TODO: fieldData contains information about the expected type of this field.
-      return fieldData.GetValidator().Validate()
+      return self.partialDataValidate(proposedValue, fieldData)
 
     def EvtText(self,event):
+      self.info.Dismiss()
       id = event.GetId()
       if id>=TEXT_ENTRY_ID and id < TEXT_ENTRY_ID+self.numElements:
         idx = id - TEXT_ENTRY_ID
@@ -197,13 +327,14 @@ class Panel(scrolled.ScrolledPanel):
           proposedValue = query.GetValue()
           # print "evt text ", obj
           if not self.partialDataValidate(proposedValue, query):
-            # TODO: Print a big red warning in the error area
+            # TODO: Disable "SAVE_BUTTON"
             return
-  
-          # TODO: handle only dirty (actually value changed) entity
+
+          # TODO: Enable "SAVE_BUTTON" if mark dirty and handle only dirty (actually value changed) entity
           self.ChangedValue(proposedValue, obj[0])
       else:
         # Notify name change to umlEditor to validate and render
+        # TODO: Enable "SAVE_BUTTON"
         self.ChangedValue(event.GetEventObject().GetValue())
 
     def ChangedValue(self, proposedValue, obj = None):
@@ -237,16 +368,16 @@ class Panel(scrolled.ScrolledPanel):
         if not isinstance(query, wx._core._wxPyDeadObject):
           proposedValue = query.GetValue()
           if not self.dataValidate(proposedValue, query):
-            # TODO: Print a big red warning in the error area
+            # TODO: Disable "SAVE_BUTTON"
             return
 
           # TODO: model consistency check -- test the validity of the whole model given this change
-          else:
-            # TODO: handle only dirty (actually value changed) entity
-            self.ChangedValue(proposedValue, obj[0])
-
+          # TODO: handle only dirty (actually value changed) entity
+          # TODO: Enable "SAVE_BUTTON" button if mark dirty
+          self.ChangedValue(proposedValue, obj[0])
       else:
         # Notify name change to umlEditor to validate and render
+        # TODO: Enable "SAVE_BUTTON" button if mark dirty
         self.ChangedValue(event.GetEventObject().GetValue())
 
     def OnFocus(self,event):
@@ -308,7 +439,16 @@ class Panel(scrolled.ScrolledPanel):
             rang=[rang[0][0], rang[-1][-1]]  # get the first and last element of this list of lists.  We are ignoring any gaps (i.e. [[1,3],[5,10]] because the slider can't handle them anyway. It might be better to just fall back to a text entry box if range is funky.
             if rang[0] == "min": rang[0] = MinValFor[typeData["type"]]
             if rang[1] == "max": rang[1] = MaxValFor[typeData["type"]]
-          query = SliderCustom(self.tree.GetMainWindow(),id, v, rang)
+
+          # TODO: default 'v' > range ???
+          if v > rang[1]:
+            query  = wx.TextCtrl(self.tree.GetMainWindow(),id,str(v),style = wx.BORDER_SIMPLE)
+            query.SetValidator(NumberObjectValidator())
+          else:
+            query = SliderCustom(self.tree.GetMainWindow(),id, v, rang)
+            # TODO: getcustom validator from yang
+            query.SetValidator(NumberObjectValidator(rang))
+
           # TODO create a control that contains both a slider and a small text box
           # TODO size the slider properly using min an max hints 
         elif self.model.dataTypes.has_key(typeData["type"]):
@@ -332,9 +472,6 @@ class Panel(scrolled.ScrolledPanel):
         # Bind to handle event on change
         self.BuildChangeEvent(query)
 
-        # TODO: getcustom validator from yang
-        query.SetValidator(TextObjectValidator())
-        
       else:
         # TODO do any of these need to be displayed?
         query = None
@@ -386,8 +523,6 @@ class Panel(scrolled.ScrolledPanel):
           self.sizer.Detach(self.tree)
           self.tree.Destroy()
           del self.tree
-      else:
-        self.sizer = wx.BoxSizer(wx.VERTICAL)
 
       self.tree = HTL.HyperTreeList(self, id=wx.ID_ANY, pos=wx.DefaultPosition, style=wx.BORDER_NONE, size=(5,5), agwStyle=HTL.TR_NO_HEADER | wx.TR_HAS_BUTTONS | wx.TR_HAS_VARIABLE_ROW_HEIGHT | HTL.TR_HIDE_ROOT | wx.TR_MULTIPLE)
       self.tree.AddColumn("Main column")
@@ -466,7 +601,7 @@ class Panel(scrolled.ScrolledPanel):
       self.BuildChangeEvent(query)
 
       # TODO: getcustom validator from yang
-      query.SetValidator(TextObjectValidator())
+      query.SetValidator(NameObjectValidator(self.model.instances if self.isDetailInstance else self.model.entities, ent.data["name"]))
 
       b = wx.BitmapButton(self.tree.GetMainWindow(), self.row + LOCK_BUTTON_ID, self.unlockedBmp,style = wx.NO_BORDER )
       b.SetToolTipString("If unlocked, instances can change this field")
@@ -549,7 +684,7 @@ class Panel(scrolled.ScrolledPanel):
             if h:
               self.tree.SetItemWindow(child, h, 1)
             
-            self.lookup[self.row] = [item,query,b,h,treeItem]
+            self.lookup[self.row] = [item,query,b,h,child]
             self.row+=1
 
     def OnPaint(self, evt):

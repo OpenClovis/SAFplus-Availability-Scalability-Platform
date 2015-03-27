@@ -95,7 +95,7 @@ namespace SAFplus
   template <class T>
   MgtIdentifier<T>::MgtIdentifier(const char* name) : MgtObject(name)
   {
-    value = NULL;
+    value = nullptr;
   }
 
   template <class T>
@@ -111,7 +111,7 @@ namespace SAFplus
   template <class T>
   void MgtIdentifier<T>::toString(std::stringstream& xmlString)
   {
-      if (value == NULL)
+      if (value == nullptr)
           return;
 
       xmlString << "<";
@@ -127,7 +127,7 @@ namespace SAFplus
   {
       std::stringstream ss;
 
-      if (value == NULL)
+      if (value == nullptr)
           return ss.str();
 
       MgtObject *obj = dynamic_cast<MgtObject *>(value);

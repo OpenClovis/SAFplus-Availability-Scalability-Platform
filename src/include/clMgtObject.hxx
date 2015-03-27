@@ -172,7 +172,7 @@ extern MgtIteratorBase mgtIterEnd;
      * \return	CL_ERR_ALREADY_EXIST	Module already exists
      * \return	CL_ERR_NULL_POINTER		Input parameter is a NULL pointer
      */
-    virtual ClRcT addChildObject(MgtObject *mgtObject, std::string const& objectName=*((std::string*)nullptr));
+    virtual ClRcT addChildObject(MgtObject *mgtObject, const std::string& objectName=*((std::string*)nullptr));
     virtual ClRcT addChildObject(MgtObject *mgtObject, const char* objectName);
 
     /**
@@ -272,12 +272,12 @@ extern MgtIteratorBase mgtIterEnd;
      *  \param db The database to access. by default it uses the
      *  globally defined database. 
      */
-    virtual ClRcT write(MgtDatabase *db=NULL, std::string parentXPath = "");
+    virtual ClRcT write(MgtDatabase *db=nullptr, std::string parentXPath = "");
     /** \brief Load object from database. 
      *  \param db The database to access. by default it uses the
      *  globally defined database. 
      */
-    virtual ClRcT read(MgtDatabase *db=NULL, std::string parentXPath = "");
+    virtual ClRcT read(MgtDatabase *db=nullptr, std::string parentXPath = "");
 
     /* iterator db key and bind to object */
     // not implemented virtual ClRcT iterator();
@@ -286,6 +286,11 @@ extern MgtIteratorBase mgtIterEnd;
 
     std::string getFullXpath(bool includeParent = true);
 
+    virtual MgtObject *findMgtObject(const std::string &xpath, int idx);
+    virtual ClRcT setObj(const std::string &value);
+    virtual ClRcT createObj(const std::string &value);
+    virtual ClRcT deleteObj(const std::string &value);
+    virtual ClRcT setChildObj(const std::string &childName, const std::string &value);
 
     // Debugging API only:
     void dbgDumpChildren();

@@ -31,199 +31,287 @@ extern "C"
 #include <libxml/xmlstring.h>
 } /* end extern 'C' */
 
-
-
 using namespace std;
 
 namespace SAFplus
-  {
+{
   MgtObject::MgtObject(const char* name)
-    {
+  {
     assert(name);
     tag.assign(name);
     listTag.assign(name);
     dataXPath.assign("");
     loadDb = false;
     config = true;
-    parent = NULL;
+    parent = nullptr;
     headRev = 1;
-    }
+  }
 
   MgtObject::~MgtObject()
-    {
-    }
+  {
+  }
 
   MgtObject* MgtObject::root(void)
-    {
+  {
     MgtObject* ret = this;
-    while(ret->parent) ret = ret->parent;
+    while (ret->parent)
+      ret = ret->parent;
     return ret;
-    }
-
-
+  }
 
   ClRcT MgtObject::bind(Handle handle, const std::string module, const std::string route)
-    {
+  {
     return MgtRoot::getInstance()->bindMgtObject(handle, this, module, route);
-    }
+  }
 
-  bool MgtObject::match( const std::string &name, const std::string &spec)
-    {
-    return (name == spec);  // TODO, add wildcard matching (* and ?)
-    }
+  bool MgtObject::match(const std::string &name, const std::string &spec)
+  {
+    return (name == spec); // TODO, add wildcard matching (* and ?)
+  }
 
-  MgtObject::Iterator MgtObject::begin(void) { return MgtObject::Iterator(); }
-  MgtObject::Iterator MgtObject::end(void) { return MgtObject::Iterator(); }
-  MgtObject::Iterator MgtObject::multiFind(const std::string &nameSpec) { return MgtObject::Iterator(); }
-  MgtObject::Iterator MgtObject::multiMatch(const std::string &nameSpec) { return MgtObject::Iterator(); }
+  MgtObject::Iterator MgtObject::begin(void)
+  {
+    return MgtObject::Iterator();
+  }
 
-  MgtObject::Iterator::Iterator(const Iterator& i):b(i.b) 
-    { 
-    i.b->refs++;  
-    }  // b must ALWAYS be valid
+  MgtObject::Iterator MgtObject::end(void)
+  {
+    return MgtObject::Iterator();
+  }
+
+  MgtObject::Iterator MgtObject::multiFind(const std::string &nameSpec)
+  {
+    return MgtObject::Iterator();
+  }
+
+  MgtObject::Iterator MgtObject::multiMatch(const std::string &nameSpec)
+  {
+    return MgtObject::Iterator();
+  }
+
+  MgtObject::Iterator::Iterator(const Iterator& i) : b(i.b)
+  {
+    i.b->refs++;
+  } // b must ALWAYS be valid
 
   MgtObject::Iterator& MgtObject::Iterator::operator=(const Iterator& i)
-    { 
+  {
     b = i.b;
-    b->refs++;  
-    }  // b must ALWAYS be valid
+    b->refs++;
+  } // b must ALWAYS be valid
 
-  bool MgtIteratorBase::next() { clDbgCodeError(1, "base implementation should never be called");  }
-  void MgtIteratorBase::del()  { if (this != &mgtIterEnd) clDbgCodeError(1, "base implementation should never be called"); }
+  bool MgtIteratorBase::next()
+  {
+    clDbgCodeError(1, "base implementation should never be called");
+  }
+
+  void MgtIteratorBase::del()
+  {
+    if (this != &mgtIterEnd)
+      clDbgCodeError(1, "base implementation should never be called");
+  }
 
   MgtIteratorBase mgtIterEnd;
 
-  MgtObject* MgtObject::find(const std::string &name) { return nullptr; }
-  MgtObject* MgtObject::deepFind(const std::string &name) { return nullptr; }
-  MgtObject* MgtObject::deepMatch(const std::string &name) { return nullptr; }
+  MgtObject* MgtObject::find(const std::string &name)
+  {
+    return nullptr;
+  }
+
+  MgtObject* MgtObject::deepFind(const std::string &name)
+  {
+    return nullptr;
+  }
+
+  MgtObject* MgtObject::deepMatch(const std::string &name)
+  {
+    return nullptr;
+  }
 
   bool MgtObject::Iterator::operator !=(const MgtObject::Iterator& e) const
-    {
+  {
     MgtIteratorBase* me = b;
     MgtIteratorBase* him = e.b;
 
     // in the case of end() e.value will be nullptr, triggering
     // this quick compare
-    if (me->current.second != him->current.second) return true;  
+    if (me->current.second != him->current.second)
+      return true;
     if (him->current.second == nullptr)
       {
-      if (me->current.second == nullptr) return false;
-      else return true; // one is null other is not; must be !=
+        if (me->current.second == nullptr)
+          return false;
+        else
+          return true; // one is null other is not; must be !=
       }
-    else if (me->current.second == nullptr) return true;  // one is null other is not; must be !=
-        
+    else if (me->current.second == nullptr)
+      return true; // one is null other is not; must be !=
+
     // ok if this is "real" comparison of two iterators, check the
     // names also
-    if (me->current.first != him->current.first) return true;
+    if (me->current.first != him->current.first)
+      return true;
 
     // The iterators are pointing at the same object so we'll
     // define that as =, even tho the iterators themselves may not
     // be equivalent.
     return false;
-    }
+  }
 
   ClRcT MgtObject::removeChildObject(const std::string& objectName)
-    {
-    clDbgCodeError(CL_ERR_BAD_OPERATION,"This node does not support children");
+  {
+    clDbgCodeError(CL_ERR_BAD_OPERATION, "This node does not support children");
     return CL_ERR_NOT_EXIST;
-    }
+  }
 
-  ClRcT MgtObject::addChildObject(MgtObject *mgtObject, std::string const& objectName)
-    {
-    clDbgCodeError(CL_ERR_BAD_OPERATION,"This node does not support children");
+  ClRcT MgtObject::addChildObject(MgtObject *mgtObject, const std::string& objectName)
+  {
+    clDbgCodeError(CL_ERR_BAD_OPERATION, "This node does not support children");
     return CL_ERR_BAD_OPERATION;
-    }
+  }
 
   ClRcT MgtObject::addChildObject(MgtObject *mgtObject, const char* objectName)
-    {
-    clDbgCodeError(CL_ERR_BAD_OPERATION,"This node does not support children");
+  {
+    clDbgCodeError(CL_ERR_BAD_OPERATION, "This node does not support children");
     return CL_ERR_BAD_OPERATION;
-    }
+  }
 
-  void MgtObject::removeAllChildren() {}  // Nothing to do, base class has no children
+  void MgtObject::removeAllChildren()
+  {
+  } // Nothing to do, base class has no children
 
   void MgtObject::get(std::string *data, ClUint64T *datalen)
-    {
+  {
     std::stringstream xmlString;
-    if(data == NULL)
+    if (data == nullptr)
       return;
     toString(xmlString);
     //logDebug("---","---","String: %s",xmlString.str().c_str());
-    *datalen =  xmlString.str().length() + 1;
+    *datalen = xmlString.str().length() + 1;
     data->assign(xmlString.str().c_str());
-    }
+  }
 
   /* persistent db to database */
   ClRcT MgtObject::write(MgtDatabase* db, std::string xpt)
-    {
-    clDbgCodeError(CL_ERR_BAD_OPERATION,"Write operation not supported on element [%s], path [%s]",getFullXpath(true).c_str(),xpt.c_str());    return CL_OK;
-    }
+  {
+    clDbgCodeError(CL_ERR_BAD_OPERATION, "Write operation not supported on element [%s], path [%s]", getFullXpath(true).c_str(), xpt.c_str());
+    return CL_OK;
+  }
 
   /* unmashall db to object */
   ClRcT MgtObject::read(MgtDatabase *db, std::string xpt)
-    {
-      clDbgCodeError(CL_ERR_BAD_OPERATION,"Read operation not supported on element [%s], path [%s]",getFullXpath(true).c_str(),xpt.c_str());
+  {
+    clDbgCodeError(CL_ERR_BAD_OPERATION, "Read operation not supported on element [%s], path [%s]", getFullXpath(true).c_str(), xpt.c_str());
     return CL_OK;
-    }
+  }
 
   /*
    * Dump Xpath structure
    */
   void MgtObject::dumpXpath()
-    {
+  {
 
-    }
+  }
 
   std::string MgtObject::getFullXpath(bool includeParent)
   {
     std::string xpath = "";
-    if (parent != NULL && includeParent)
-    {
-      std::string parentXpath = parent->getFullXpath();
-      if (parentXpath.length() > 0)
+    if (parent != nullptr && includeParent)
       {
-        xpath.append(parentXpath);
+        std::string parentXpath = parent->getFullXpath();
+        if (parentXpath.length() > 0)
+          {
+            xpath.append(parentXpath);
+          }
       }
-    }
     xpath.append("/").append(this->tag);
     return xpath;
   }
 
+  MgtObject * MgtObject::findMgtObject(const std::string &xpath, int idx)
+  {
+    idx = xpath.find("/", idx + 1);
+
+    if (idx == std::string::npos)
+      {
+        return this;
+      }
+
+    return nullptr;
+  }
+
   void MgtObject::dbgDump()
-    {
+  {
     std::stringstream dumpStrStream;
     toString(dumpStrStream);
-    printf("%s\n",dumpStrStream.str().c_str());
-    logDebug("MGT","DUMP", "%s", dumpStrStream.str().c_str());
-    }
+    printf("%s\n", dumpStrStream.str().c_str());
+    logDebug("MGT", "DUMP", "%s", dumpStrStream.str().c_str());
+  }
 
   void MgtObject::dbgDumpChildren()
-    {
-      std::stringstream dumpStrStream;
-      MgtObject::Iterator iter;
-      MgtObject::Iterator endd = end();
-      for (iter = begin(); iter != endd; iter++)
-        {
-          const std::string& name = iter->first;
-          MgtObject* obj = iter->second;
-          obj->toString(dumpStrStream);
-        }
-      printf("%s\n",dumpStrStream.str().c_str());
-      logDebug("MGT","DUMP", "%s", dumpStrStream.str().c_str());
-    }
-
-  void deXMLize(const std::string& obj,MgtObject* context, bool& result)
-    {
-    if ((obj[0] == 't') || (obj[0] == 'T') || (obj[0] == '1')) { result=1; return; }
-    if ((obj[0] == 'f') || (obj[0] == 'F') || (obj[0] == '0') || (obj[0] == 'n') || (obj[0] == 'N')) { result=0; return; }
-    throw SerializationError("cannot deXMLize into a boolean");
-    }
-
-  void deXMLize(const std::string& obj,MgtObject* context, ClBoolT& result)
-    {
-    if ((obj[0] == 't') || (obj[0] == 'T') || (obj[0] == '1')) { result=1; return; }
-    if ((obj[0] == 'f') || (obj[0] == 'F') || (obj[0] == '0') || (obj[0] == 'n') || (obj[0] == 'N')) { result=0; return; }
-    throw SerializationError("cannot deXMLize into a boolean");
-    }
-
+  {
+    std::stringstream dumpStrStream;
+    MgtObject::Iterator iter;
+    MgtObject::Iterator endd = end();
+    for (iter = begin(); iter != endd; iter++)
+      {
+        const std::string& name = iter->first;
+        MgtObject* obj = iter->second;
+        obj->toString(dumpStrStream);
+      }
+    printf("%s\n", dumpStrStream.str().c_str());
+    logDebug("MGT", "DUMP", "%s", dumpStrStream.str().c_str());
   }
+
+  void deXMLize(const std::string& obj, MgtObject* context, bool& result)
+  {
+    if ((obj[0] == 't') || (obj[0] == 'T') || (obj[0] == '1'))
+      {
+        result = 1;
+        return;
+      }
+    if ((obj[0] == 'f') || (obj[0] == 'F') || (obj[0] == '0') || (obj[0] == 'n')
+        || (obj[0] == 'N'))
+      {
+        result = 0;
+        return;
+      }
+    throw SerializationError("cannot deXMLize into a boolean");
+  }
+
+  void deXMLize(const std::string& obj, MgtObject* context, ClBoolT& result)
+  {
+    if ((obj[0] == 't') || (obj[0] == 'T') || (obj[0] == '1'))
+      {
+        result = 1;
+        return;
+      }
+    if ((obj[0] == 'f') || (obj[0] == 'F') || (obj[0] == '0') || (obj[0] == 'n')
+        || (obj[0] == 'N'))
+      {
+        result = 0;
+        return;
+      }
+    throw SerializationError("cannot deXMLize into a boolean");
+  }
+
+  ClRcT MgtObject::setObj(const std::string &value)
+  {
+    return CL_ERR_BAD_OPERATION;
+  }
+
+  ClRcT MgtObject::createObj(const std::string &value)
+  {
+    return CL_ERR_BAD_OPERATION;
+  }
+
+  ClRcT MgtObject::deleteObj(const std::string &value)
+  {
+    return CL_ERR_BAD_OPERATION;
+  }
+
+  ClRcT MgtObject::setChildObj(const std::string &childName, const std::string &value)
+  {
+    return CL_ERR_BAD_OPERATION;
+  }
+}

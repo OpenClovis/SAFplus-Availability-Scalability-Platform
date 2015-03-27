@@ -42,30 +42,15 @@ namespace SAFplus
   MsgTransportConfig& Sctp::initialize(MsgPool& msgPoolp)
   {
     msgPool = &msgPoolp;
-
-    config.nodeId = 0; // TODO
+    
     config.maxMsgSize = SAFplusI::SctpTransportMaxMsgSize;
     config.maxPort    = SAFplusI::SctpTransportNumPorts;
     config.maxMsgAtOnce = SAFplusI::SctpTransportMaxMsg;
 
-    char* interface = getenv("SAFPLUS_BACKPLANE_INTERFACE");
-    char* ip = getenv("SAFPLUS_BACKPLANE_IP");
-    if (!interface)
-    {
-      interface = "eth1";  // GAS REMOVE ME
-      // temp comment out assert(!"Required env variable not defined");
-    }
-    if (ip)
-    {
-      // TODO: assign this IP to the interface and set the SAFPLUS_NODEADDR appropriately
-    }
-    else
-    {
-      struct in_addr bip = SAFplusI::devToIpAddress(interface);
-      int nodeMask = 0xff;  // TODO: get this from ~SAFplusI::devNetMask(interface)
-      config.nodeId = ntohl(bip.s_addr)&nodeMask;
-      netAddr = ntohl(bip.s_addr)&(~nodeMask);
-    }
+    uint32_t nodeMask;
+    struct in_addr bip = SAFplusI::setNodeNetworkAddr(&nodeMask);      
+    config.nodeId = SAFplus::ASP_NODEADDR;
+    netAddr = ntohl(bip.s_addr)&(~nodeMask);
 
     return config;
   }
@@ -128,7 +113,7 @@ namespace SAFplus
     struct sockaddr_in myaddr;
     memset((char *)&myaddr, 0, sizeof(myaddr));
     myaddr.sin_family = AF_INET;
-    myaddr.sin_addr.s_addr = htonl(INADDR_ANY);  // TODO: bind to the interface specified in env var
+    myaddr.sin_addr.s_addr = htonl(INADDR_ANY);
     if (port == 0) // any port
     {
       myaddr.sin_port = htons(0);
@@ -153,7 +138,7 @@ namespace SAFplus
   int SctpSocket::openClientSocket(uint_t nodeID, uint_t port)
   {
     int sock,ret;    
-    char address[16];    
+    //char address[16];    
     struct sockaddr_in addr;
     struct sctp_initmsg initmsg;
     struct sctp_event_subscribe events;
@@ -164,12 +149,11 @@ namespace SAFplus
     memset(&addr,       0,   sizeof(struct sockaddr_in));
     memset(&events,     1,   sizeof(struct sctp_event_subscribe));
     memset(&heartbeat,  0,   sizeof(struct sctp_paddrparams));
-    memset(&rtoinfo,    0, sizeof(struct sctp_rtoinfo));
+    memset(&rtoinfo,    0,   sizeof(struct sctp_rtoinfo));
 
-    //TODO: transform the nodeID to IP address and set it to variable address
-
-    addr.sin_family = AF_INET;
-    inet_aton(address, &(addr.sin_addr));
+    addr.sin_family = AF_INET;    
+    //inet_aton(address, &(addr.sin_addr));
+    addr.sin_addr.s_addr = htonl(((Sctp*)transport)->netAddr | nodeID);
     addr.sin_port = htons(port);
 
     initmsg.sinit_num_ostreams = SAFplusI::SctpMaxStream;
@@ -249,16 +233,13 @@ namespace SAFplus
     mmsghdr* curvec = &msgvec[0];
     int msgCount = 0;
     int fragCount= 0;  // frags in this message
-    int totalFragCount = 0; // total number of fragments    
+    int totalFragCount = 0; // total number of fragments
     Message* msg;
     Message* next = origMsg;
     MsgFragment* nextFrag;
     MsgFragment* frag;
-      //in_addr inetAddr;
-      //inet_aton("127.0.0.1",&inetAddr);  // TODO create the real address
-      //inetAddr.s_addr = htonl(((Udp*)transport)->netAddr | 
     do 
-    {
+    { 
       msg = next;
       next = msg->nextMsg;  // Save the next message so we use it next
 
@@ -270,24 +251,23 @@ namespace SAFplus
       {
         frag = nextFrag;
         nextFrag = frag->nextFragment;
+
         // Fill the iovector with messages
         curIov->iov_base = frag->data();     //((char*)frag->buffer)+frag->start;
-        assert((frag->len > 0) && "The UDP protocol allows sending zero length messages but I think you forgot to set the fragment len field.");
+        assert((frag->len > 0) && "The Sctp protocol allows sending zero length messages but I think you forgot to set the fragment len field.");
         curIov->iov_len = frag->len;
 
         fragCount++;
         totalFragCount++;
         curIov++;
-       }
-       while(nextFrag);
-      assert(msgCount < SAFplusI::SctpTransportMaxMsg);  // or stack buffer will be exceeded      
+      } while(nextFrag);
+      assert(msgCount < SAFplusI::SctpTransportMaxMsg);  // or stack buffer will be exceeded
       curvec->msg_hdr.msg_controllen = 0;
       curvec->msg_hdr.msg_control = NULL;
       curvec->msg_hdr.msg_flags = 0;
       curvec->msg_hdr.msg_namelen = sizeof (struct sockaddr_in);
       curvec->msg_hdr.msg_iov = msg_iov;
       curvec->msg_hdr.msg_iovlen = fragCount;
-
       curvec++;
       msgCount++;
     } while (next != NULL);
@@ -347,7 +327,6 @@ namespace SAFplus
 
   Message* SctpSocket::receive(uint_t maxMsgs, int maxDelay)
   {
-
       // TODO receive multiple messages
       Message* ret = msgPool->allocMsg();
       MsgFragment* frag = ret->append(SAFplusI::SctpTransportMaxMsgSize);
@@ -378,11 +357,13 @@ namespace SAFplus
       memset(msgs,0,sizeof(msgs));
       for (int i = 0; i < 1; i++)
         {
+#if 0
         // In an inline fragment the message buffer is located right after the MsgFragment object and shares some bytes with the buffer "pointer" (its not used as a pointer)
         if (frag->flags & SAFplus::MsgFragment::InlineFragment) iovecs[i].iov_base         = (void*) &frag->buffer;
         // If the fragment is not inline then the buffer variable works as a normal pointer.
         else iovecs[i].iov_base         = frag->buffer;
-
+#endif
+        iovecs[i].iov_base = frag->data(0);
         iovecs[i].iov_len          = frag->allocatedLen;
         msgs[i].msg_hdr.msg_iov    = &iovecs[i];
         msgs[i].msg_hdr.msg_iovlen = 1;

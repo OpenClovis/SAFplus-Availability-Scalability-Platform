@@ -27,10 +27,7 @@ SAFPLUS_LINK_LIBS := -L$(LIB_DIR) $(addprefix -l,$(SAFPLUS_LIBS))
 LINK_STD_LIBS := -L$(SAFPLUS_TARGET)/lib -L$(MGT_SRC_DIR)/3rdparty/build/lib -lxml2 -lezxml $(LINK_STD_LIBS)
 # -lstdc++ -lm
 
-all: $(TEST_DIR)/safplus_fault $(TEST_DIR)/fault_client $(TEST_DIR)/fault_server
-
-$(TEST_DIR)/safplus_fault: $(OBJ_DIR)/safplus_fault.o $(SAFPLUS_DEP_LIBS)
-	$(LINK_EXE) $@ $+ $(LINK_LIBS) $(SAFPLUS_LINK_LIBS) $(LINK_STD_LIBS) 
+all: $(TEST_DIR)/fault_client $(TEST_DIR)/fault_server
 
 $(TEST_DIR)/fault_client: $(OBJ_DIR)/fault_client.o $(SAFPLUS_DEP_LIBS)
 	$(LINK_EXE) $@ $+ $(LINK_LIBS) $(SAFPLUS_LINK_LIBS) $(LINK_STD_LIBS) 

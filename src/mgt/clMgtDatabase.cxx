@@ -225,9 +225,9 @@ std::vector<std::string> MgtDatabase::iterate(const std::string &xpath)
     ClUint32T   keySize         = 0;
     ClUint32T   dataSize        = 0;
     ClUint32T   nextKeySize     = 0;
-    ClUint32T   *recKey           = NULL;
-    ClUint32T   *nextKey        = NULL;
-    ClCharT     *recData          = NULL;
+    ClUint32T   *recKey           = nullptr;
+    ClUint32T   *nextKey        = nullptr;
+    ClCharT     *recData          = nullptr;
     ClRcT rc = CL_OK;
 
     std::vector<std::string> iter;
