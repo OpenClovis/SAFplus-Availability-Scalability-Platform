@@ -17,9 +17,9 @@
  * material.
  */
 
-#include <clIocPortList.hxx>
-#include "clSafplusMsgServer.hxx"
-#include "MsgReplyHandler.hxx"
+#include <clMsgPortsAndTypes.hxx>
+#include <clSafplusMsgServer.hxx>
+#include <MsgReplyHandler.hxx>
 
 
 namespace SAFplus

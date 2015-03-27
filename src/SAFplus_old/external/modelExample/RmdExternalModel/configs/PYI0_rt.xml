@@ -1,8 +1,0 @@
-<?xml version="1.0" encoding="UTF-8" standalone="no"?>
-<openClovisAsp>
-  <version v0="4.0.0">
-    <compInstances xmlns="cpmconfig.ecore">
-      <compInst compName="PYComponentI0"/>
-    </compInstances>
-  </version>
-</openClovisAsp>

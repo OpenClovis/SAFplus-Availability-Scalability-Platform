@@ -3,7 +3,7 @@
 /* SAFplus headers */
 
 #include <clCommon.hxx>
-#include <clIocPortList.hxx>
+#include <clMsgPortsAndTypes.hxx>
 #include <FaultSharedMem.hxx>
 #include <clHandleApi.hxx>
 #include <boost/functional/hash.hpp>
@@ -23,7 +23,7 @@
 #include <clCommon.hxx>
 #include <clCustomization.hxx>
 #include <clNameApi.hxx>
-#include <clIocPortList.hxx>
+#include <clMsgPortsAndTypes.hxx>
 #include <clHandleApi.hxx>
 #include <clFaultPolicyPlugin.hxx>
 #include <FaultStatistic.hxx>

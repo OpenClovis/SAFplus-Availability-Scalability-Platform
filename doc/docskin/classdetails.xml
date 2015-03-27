@@ -1,0 +1,192 @@
+<?xml version='1.0' encoding='utf-8'?>
+
+  <html xmlns="http://www.w3.org/1999/xhtml" xmlns:py="http://purl.org/kid/ns#">
+    <h1 id="className">Class: ${className}</h1>
+    <table style="text-align: left;" border="0" cellpadding="2" cellspacing="2" width="100%">
+      <col width="15%"/>
+      <tbody>
+        <tr id="classFile">
+          <td>File</td>
+          <td>${XML(ClassFile)}</td>
+        </tr>
+        <tr id="classSection">
+          <td>Section:</td>
+          <td>${XML(section)}</td>
+        </tr>
+      </tbody>
+    </table>
+    <br/>
+    <div id="classDescription">
+    ${XML(R(desc))}
+    </div>
+    <div id="subsection" py:for="sec in subSection">
+      <!-- h3>Subsection: ${sec.name}</h3 -->
+      <div py:if="sec.constructors">
+      <h3>Constructors</h3>
+      <table style="text-align: left; width: 100%;" border="0" cellpadding="2" cellspacing="2">
+        <col width="5%"/>
+        <tbody>
+          <tr class="header methodHeaderRow">
+            <td></td>
+            <th>Declaration</th>
+            <th>Description</th>
+          </tr>
+          <div py:for="me in sec.constructors">
+          <tr class="rowA methodRowA">
+            <td width="3%" onclick="swapAttr(this.parentNode.nextSibling.nextSibling,'class','oclass');"><a name="${obj2anchor(me)}">+</a></td>
+            <td>${XML(R(me.decl.escapedContents()))}</td>
+            <td>${XML(R(me.brief))}</td>
+          </tr>
+          <tr class="hidden" oclass="classesTableDescRow">
+                  <td></td>
+                  <td COLSPAN="3">
+                    <div class="desc classMethodDesc" style="margin-left: 4.0em">
+                    <br/><center class="descHeader">Declaration</center>
+                    ${XML(R(me.decl.escapedContents()))}
+                    <div py:if="me.childrenWithAttr('tag_','arg')">
+                      <br/><center class="descHeader">Parameters</center>
+                      <table class="argTable" style="width: 100%;">
+                        <tr class="header argHeader">
+                          <th>Name</th>
+                          <th>Description</th>
+                        </tr>
+                        <tr class="rowA argRow" py:for="arg in me.childrenWithAttr('tag_','arg')">
+                          <td>${arg.name}</td>
+                          <td>${XML(R(arg))}</td>
+                        </tr>
+                      </table>
+                    </div>
+                    <br/><center class="descHeader">Description</center>
+                    ${XML(R(me.desc))}
+                    </div>
+                  </td>
+          </tr>
+          </div>
+
+        </tbody>
+      </table>
+      </div>
+      <div py:if="sec.variables">
+      <h3>Member Variables</h3>
+      <table style="text-align: left; width: 100%;" border="0" cellpadding="2" cellspacing="2">
+        <tbody>
+          <tr class="header memberVarHeaderRow">
+            <td width="1em"></td>
+            <th>Type</th>
+            <th>Name</th>
+            <th>Brief Description</th>
+          </tr>
+          <div py:for="var in sec.variables">
+          <tr class="rowA memberVarRowA">
+            <td width="1em" onclick="swapAttr(this.parentNode.nextSibling.nextSibling,'class','oclass');"><a name="${obj2anchor(var)}">+</a></td>
+            <td width="15%">${var.type}</td>
+            <td width="10%">${var.name}</td>
+            <td>${XML(R(var.brief))}</td>
+          </tr>
+          <tr class="hidden" oclass="classesTableDescRow">
+            <td width="1em"></td>
+            <td COLSPAN="3">${XML(R(var.desc))}</td>
+          </tr>
+          </div>
+        </tbody>
+      </table>
+      </div>
+      <div py:if="sec.methods">
+      <h3>Methods</h3>
+      <table style="text-align: left; width: 100%;" border="0" cellpadding="2" cellspacing="2">
+        <col width="5%"/>
+        <tbody>
+          <tr class="header methodHeaderRow">
+            <td></td>
+            <th>Type</th>
+            <th>Declaration</th>
+            <th>Brief</th>
+          </tr>
+          <div py:for="me in sec.methods">
+          <tr class="rowA methodRowA">
+            <td width="3%" onclick="swapAttr(this.parentNode.nextSibling.nextSibling,'class','oclass');"><a name="${obj2anchor(me)}">+</a></td>
+            <td width="15%">${me.type}</td>
+            <td width="10%">${me.name}</td>
+            <td>${XML(R(me.brief))}</td>
+          </tr>
+          <tr class="hidden" oclass="classesTableDescRow">
+                  <td></td>
+                  <td COLSPAN="3">
+                    <div class="desc classMethodDesc" style="margin-left: 4.0em">
+                    <br/><center class="descHeader">Declaration</center>
+                    ${XML(R(me.decl.escapedContents()))}
+                    <div py:if="me.childrenWithAttr('tag_','arg')">
+                      <br/><center class="descHeader">Parameters</center>
+                      <table class="argTable" style="width: 100%;">
+                        <tr class="header argHeader">
+                          <th>Type</th>
+                          <th>Name</th>
+                          <th>Description</th>
+                        </tr>
+                        <tr class="rowA argRow" py:for="arg in me.childrenWithAttr('tag_','arg')">
+                          <td>${arg.type}</td>
+                          <td>${arg.name}</td>
+                          <td>${XML(R(arg))}</td>
+                        </tr>
+                      </table>
+                    </div>
+                    <br/><center class="descHeader">Description</center>
+                    ${XML(R(me.desc))}
+                    </div>
+                  </td>
+          </tr>
+          </div>
+
+        </tbody>
+      </table>
+      </div>
+      <div py:if='sec.constants'>
+      <h3>Constants</h3>
+      <table style="text-align: left; width: 100%;" border="0" cellpadding="2" cellspacing="2">
+        <tbody>
+          <tr class="header constantsHeaderRow">
+            <td width="1em"></td>
+            <th>Name</th>
+            <th>Value</th>
+            <th>Description</th>
+          </tr>
+          <div py:for="var in sec.constants">
+          <tr class="rowA constantsRowA">
+            <td width="1em" onclick="swapAttr(this.parentNode.nextSibling.nextSibling,'class','oclass');"><a name="${obj2anchor(var)}">+</a></td>
+            <td width="15%">${var.name}</td>
+            <td width="10%">${var.value if hasattr(var,'value') else ""}</td>
+            <td>${XML(R(var.brief))}</td>
+          </tr>
+          <tr class="hidden" oclass="classesTableDescRow">
+            <td width="1em"></td>
+            <td COLSPAN="3">${XML(R(var.desc))}</td>
+          </tr>
+          </div>
+        </tbody>
+      </table>
+      </div>
+      <div py:if='sec.classes'>
+      <h3>Child Classes</h3>
+      <table style="text-align: left; width: 100%;" border="0" cellpadding="2" cellspacing="2">
+        <tbody>
+          <tr class="header constantsHeaderRow">
+            <td width="1em"></td>
+            <th>Name</th>
+            <th>Description</th>
+          </tr>
+          <div py:for="var in sec.classes">
+          <tr class="rowA constantsRowA">
+            <td width="1em" onclick="swapAttr(this.parentNode.nextSibling.nextSibling,'class','oclass');"><a name="${obj2anchor(var)}">+</a></td>
+            <td width="15%">${XML(classlink(var))}</td>
+            <td>${XML(R(var.brief))}</td>
+          </tr>
+          <tr class="hidden" oclass="classesTableDescRow">
+            <td width="1em"></td>
+            <td COLSPAN="3">${XML(R(var.desc))}</td>
+          </tr>
+          </div>
+        </tbody>
+      </table>
+      </div>
+    </div>
+  </html>

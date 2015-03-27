@@ -19,7 +19,7 @@
 
 #include "clMgtRoot.hxx"
 #include <clMgtObject.hxx>
-#include <clIocPortList.hxx>
+#include <clMsgPortsAndTypes.hxx>
 #include <clSafplusMsgServer.hxx>
 #include <clCommon.hxx>
 #include <inttypes.h>

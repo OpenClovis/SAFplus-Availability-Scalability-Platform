@@ -1,3 +1,5 @@
+//? <section name="Debugging">
+
 #pragma once
 #ifndef CL_DBG_HXX
 #define CL_DBG_HXX
@@ -7,91 +9,45 @@
 
 namespace SAFplus
 {
-/* See clDbg.c for documentation on these global variables */
-extern int clDbgPauseOn;
-extern int clDbgPauseOnCodeError;
-extern int clDbgNoKillComponents;
-extern int clDbgCompTimeoutOverride;
-extern int clDbgLogLevel;
-extern SAFplus::LogSeverity clDbgResourceLogLevel;
-extern int clDbgReverseTiming;
+
+  extern int clDbgPauseOn; //? Default is 0.  Set to 1 to make the clDbgPause() function block the current thread.  This will allow an engineer to attach the the process via a debugger and then resume the thread.
+  extern int clDbgPauseOnCodeError;  //? Default is 0. Set to 1 to execute clDbgPause in the clDbgCodeError() macro.
+  extern int clDbgNoKillComponents;  // [TODO] Default is 0. Set to 1 to stop components from being killed (set this to 1 inside the AMF for example to stop the AMF from killing processes).
+  extern int clDbgCompTimeoutOverride;  // [TODO] Detault is 0.   Set to > 0 to cause all component timeouts to be this many seconds.  This is very useful because it allows an engineer to debug components without the AMF thinking that the component is unresponsive/dead.
+  extern int clDbgLogLevel; //? Default is 0 (off). The severity to use when these debugging functions issue any logs.
+  extern SAFplus::LogSeverity clDbgResourceLogLevel;  //? Default is LOG_SEV_TRACE. The level to use when logging resource allocation debugging information
+  extern int clDbgReverseTiming; //? Set to > 0 to cause the ASP to introduce different timing into certain library calls (delays by that many ms).  This will help you find thread race conditions by changing race timings.
 
 
-/**
- ************************************
- *  \page clDbgPause
- *
- *  \par Synopsis:
- *  Stop the thread so the user can attach to it via a debugger.
- *
- *  \par Header File:
- *  clDbg.h
- *
- *  \par Syntax:
- *  \code 	 void clDebugPause();                          
- *  \endcode
- *
- *  \par Description:
- *  Call this function to pause this thread.  Then attach via a debugger 
- *  and execute clDebugResume (in gdb "call clDebugResume()") to start the
- *  thread up again.  Useful when you don't have a chance to set a breakpoint.
- *
- *  \par Library File:
- *   libClDebugClient.a
- *
- *  \par Related Function(s):
- *   \ref "clDebugResume"
- */
+  //? Stop the thread so the user can attach to it via a debugger.  Call this function to pause this thread.  Then attach via a debugger and execute clDebugResume() (in gdb "call clDebugResume()") to start the thread up again.  Useful when you don't have a chance to set a breakpoint.
 #define clDbgPause() ::SAFplus::clDbgPauseFn(__FILE__,__LINE__)
 void clDbgPauseFn(const char* file, int line);
 
-/**
- ************************************
- *  \page clDbgCodeError
- *
- *  \par Synopsis:
- *  Call when a logic or otherwise unhandleable error is detected in the code
- *
- *  \par Header File:
- *  clDbg.h
- *
- *  \par Syntax:
- *  \code 	 clDbgCodeError(clovis_error, ("printf style string %s", and_args) )                          
- *  \endcode
- *
- *  \par Description:
- *  Call this function when there a logic or otherwise unhandleable error is detected in the code.
- *  For example, if a passed parameter is invalid or if a function call is called before its 'library' is initialized.
- *
- *  The first parameter is the clovis error of type ClRcT.  Pass CL_OK if the code can gracefully handle the problem.  
- *  For example, calling an "initialize" function twice could be handled gracefully -- the second call will just be skipped.
- *
- *  The second parameter is a printf style parameter list to tell the user what's going on, and WHY the problem occurred.  
- *
- *  \par Library File:
- *   libClUtils.a
- *
- *  \par Related Function(s):
- *
- */
 #define CL_DEBUG_CODE_ERROR clDbgCodeError
 
-#undef clDbgRootCodeError
+  //? Call when a coding error (bug) is detected.  These errors will never be handled by the code so it does not make sense to return an error code, especially for a critical operation.  For example, if a passed parameter is invalid or if a function call is called before its 'library' is initialized.  
+  // <arg name="clErr">The error code (if one exists).  Pass 0 (CL_OK) if the code can gracefully handle the problem.  For example, calling an "initialize" function twice could be handled gracefully -- the second call will just be skipped.</arg>
+  // <arg name="...">The second parameter is a printf style parameter list to tell the user/developer what is going on, and WHY the problem occurred.</arg>
 #define clDbgCodeError(clErr, ...) do { (void)clErr;  logCritical("---","---", __VA_ARGS__); if (::SAFplus::clDbgPauseOnCodeError) clDbgPause(); } while(0)
 
-  /* A clDbgCodeError is also a root cause error, so you don't have to call both functions */
+  /* [DEPRECATED] A clDbgCodeError is also a root cause error, so you don't have to call both functions */
 #undef clDbgRootCauseError
 #define clDbgRootCauseError(clErr, ...) do { (void)clErr;  logCritical("---","---", __VA_ARGS__); if (::SAFplus::clDbgPauseOnCodeError) clDbgPause(); } while(0)
 
 #ifdef clDbgNotImplemented
 #undef clDbgNotImplemented
 #endif
+  //? Call when functionality has not been implemented.  A critical log will be issued, regardless of the value of <ref type="variable">clDbgLogLevel</ref>.  And the thread will be paused if <ref type="variable">clDbgPauseOnCodeError</ref> is set.  Also, this makes a convenient search string to look for unimplemented sections of code before release!
 #define clDbgNotImplemented(...) do { logCritical("---","---", "Not Implemented:" __VA_ARGS__); if (::SAFplus::clDbgPauseOnCodeError) clDbgPause(); } while(0)
 
 #ifdef clDbgCheck  // resolve warning with including SAFplus6 clDbg.h
 #undef clDbgCheck
 #endif
-#define clDbgCheck(predicate, todo, ...) do { int result = predicate; if (!result) { logCritical("---","---", __VA_ARGS__); if (::SAFplus::clDbgPauseOnCodeError) clDbgPause(); } if (!result) { todo; } } while(0)
+
+  //? Like assert, call to verify that some condition is true.  If it is not true, a log will be issued, and the thread will be paused if <ref type="variable">clDbgPauseOnCodeError</ref> is set.  Next, the statements specified in the todo argument will be executed.
+  // <arg name="predicate">The condition clause that should evaluate to true</arg>
+  // <arg name="todo">Statements to be executed if the condition evaluates to false, e.g. "throw VeryBadError()"</arg>
+#define clDbgCheck(predicate, todo, ...) do { int result = predicate; if (!result) { logWrite(::SAFplus::clDbgLogLevel,"---","---", __VA_ARGS__); if (::SAFplus::clDbgPauseOnCodeError) clDbgPause(); } if (!result) { todo; } } while(0)
     
 /**
  ************************************
@@ -155,32 +111,9 @@ do { \
 };
 
 
-/**
- ************************************
- *  \page clDbgResume
- *
- *  \par Synopsis:
- *  DEBUGGING: Continue a paused thread -- do not call in code!
- *
- *  \par Header File:
- *  clDbg.h
- *
- *  \par Syntax:
- *  \code 	 void clDebugPause();                          
- *  \endcode
- *
- *  \par Description:
- *  Call this function from the debugger to resume a paused thread this thread. 
- *  Useful when you don't have a chance to set a breakpoint.
- *  This function is outside that SAFplus namespace for convenience in gdb.
- *
- *  \par Library File:
- *   libClDebugClient.a
- *
- *  \par Related Function(s):
- *   \ref "clDebugResume"
- */
+//? DEBUGGER ONLY: Continue a paused thread from the debugger -- do not call in code!  Call this function from the debugger to resume a paused thread this thread.  Useful when you don't have a chance to set a breakpoint.  This function is outside of the SAFplus namespace for convenience in gdb.  In gdb run "call clDbgResume()" to resume all paused threads.
 extern "C" void clDbgResume();
 
-
 #endif
+
+//? </section>

@@ -1,5 +1,5 @@
 #include <clObjectMessager.hxx>
-#include <clIocPortList.hxx>
+#include <clMsgPortsAndTypes.hxx>
 
 namespace SAFplus
   {

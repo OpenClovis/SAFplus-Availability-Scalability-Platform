@@ -1,3 +1,0 @@
-export ASP_COMPNAME=EventUnitTest
-export ASP_NODEADDR=1
-export CL_IOC_MASTER_ADDRESS=1

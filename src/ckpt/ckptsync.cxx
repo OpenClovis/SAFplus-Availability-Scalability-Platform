@@ -8,7 +8,7 @@
 #include <boost/unordered_map.hpp>
 
 #include <clCommon.hxx>
-#include <clIocPortList.hxx>
+#include <clMsgPortsAndTypes.hxx>
 
 #include <clCkptIpi.hxx>
 #include <clCkptApi.hxx>

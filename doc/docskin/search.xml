@@ -1,0 +1,16 @@
+<?xml version='1.0' encoding='utf-8'?>
+  <html xmlns="http://www.w3.org/1999/xhtml" xmlns:py="http://purl.org/kid/ns#">
+    <h1 id="title">Search</h1>
+    <form id="searchForm" onsubmit="return false">
+    Enter search terms:
+    <input id="searchTerms" type="text" name="searchTerms" /><input type="submit" value="Submit" onclick="doSearch('searchTerms',this);" />
+    <br/>
+    </form>
+    <table width="100%" border="0%" cellspace="0%"><thead><tr class="header indexHeaderRow"><td>symbol</td><td>class</td><td>section</td><td>file</td></tr></thead>
+    <tbody id="srchResults">
+    </tbody>
+    </table>
+    <div class="hidden">
+      ${XML(me.indexEntities)}
+    </div>
+  </html>

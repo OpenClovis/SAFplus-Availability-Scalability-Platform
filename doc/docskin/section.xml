@@ -1,0 +1,11 @@
+<?xml version='1.0' encoding='utf-8'?>
+  <html xmlns="http://www.w3.org/1999/xhtml" xmlns:py="http://purl.org/kid/ns#">
+    <div py:def="displaySection(sec,depth)">
+      <h2>${XML(R(sec.name))}</h2>
+      ${XML(R(sec.desc))}
+      <div id="subsection" py:for="subsec in sec.childrenWithAttr('tag_','section')" py:content="displaySection(subsec,depth+1)" />
+    </div>
+
+    <div py:for = "sec in me.sections" py:content="displaySection(sec,0)">      
+    </div>
+  </html>

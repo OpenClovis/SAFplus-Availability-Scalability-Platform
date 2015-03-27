@@ -21,7 +21,7 @@
 #include <clMgtApi.hxx>
 #include <clNameApi.hxx>
 #include <clFaultApi.hxx>
-#include <clIocPortList.hxx>
+#include <clMsgPortsAndTypes.hxx>
 
 #include <clAmfPolicyPlugin.hxx>
 #include <SAFplusAmf.hxx>

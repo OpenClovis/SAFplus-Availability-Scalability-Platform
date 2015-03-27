@@ -42,9 +42,12 @@ namespace SAFplusI
     };
   }
 
+//? <section name="Messaging">
+
 namespace SAFplus
   {
 
+    //? <class> Interface class to describe how to receive messages.  Derive your class from this class and override the msgHandler function so that your class can receive messages via callback.
   class MsgHandler : public SAFplusI::MsgHandlerI
     {
   public:
@@ -52,8 +55,16 @@ namespace SAFplus
     virtual
     ~MsgHandler();
   public:
+      //? Override this function to handle received messages
+      // <arg name="from"> Who sent this message.  This handle will only resolve as deeply as the message transport layer can see.  Typically this means it resolves to the sending node and port/process</arg>
+      // <arg name="svr"> The object that received this message.  You can use this object to send a reply or disambiguate received messages if your object is subscribed to receive messages from multiple sources</arg>
+      // <arg name="msg"> The message </arg>
+      // <arg name="msglen"> The length of the message </arg>
+      // <arg name="cookie"> You passed this data to the MsgServer when you registered to receive messages.  It gives the data back. Used for context tracking</arg>
     virtual void msgHandler(Handle from, MsgServer* svr, ClPtrT msg, ClWordT msglen, ClPtrT cookie);
-    };
+  };  //? </class>
   } /* namespace SAFplus */
+
+//? </section>
 
 #endif /* CLMSGHANDLER_HXX_ */

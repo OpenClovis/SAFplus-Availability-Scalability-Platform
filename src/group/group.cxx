@@ -5,7 +5,7 @@
 #include <clCommon.hxx>
 #include <clGroup.hxx>
 #include <clNameApi.hxx>
-#include <clIocPortList.hxx>
+#include <clMsgPortsAndTypes.hxx>
 #include <clGroupIpi.hxx>
 #include <clHandleApi.hxx>
 #include <clLogApi.hxx>

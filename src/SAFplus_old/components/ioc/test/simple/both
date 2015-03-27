@@ -1,2 +1,0 @@
-make -f server.mk 
-make -f client.mk 

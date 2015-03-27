@@ -1,6 +1,6 @@
 #include <clFaultApi.hxx>
 #include <clGlobals.hxx>
-#include <clIocPortList.hxx>
+#include <clMsgPortsAndTypes.hxx>
 #include <clSafplusMsgServer.hxx>
 #include <string>
 

@@ -1,0 +1,151 @@
+<?xml version='1.0' encoding='utf-8'?>
+<html xmlns="http://www.w3.org/1999/xhtml" xmlns:py="http://purl.org/kid/ns#">
+  <div id="fileDetails">
+    <h2 py:if="this.getItem('brief')">${XML(R(this.brief))}</h2>
+    <table id="fileInfoTable">
+      <tr>
+        <td><h3 id="fileName">File: ${this.name}</h3></td>
+        <td id="fileLanguage" style="align:right">Language: ${this.language}</td>
+        <td py:if="this.getItem('license',False)" onclick="swapAttr(this.parentNode.nextSibling.nextSibling,'class','oclass');">License: ${this.license.getItem('name','...more...')}</td>
+      </tr>
+      <tr py:if="this.getItem('license',False)" class="hidden" oclass="fileLicense">
+      <td COLSPAN="3"><pre>${XML(R(this.license))}</pre></td>
+      </tr>
+      <tr>
+        <td COLSPAN="3" id="fileDesc">${XML(R(this.desc))}</td>
+      </tr>
+    </table>
+    <div py:def="displaySection(sec,depth)">
+      <h2 class="sectionHeader" id="sectionHeader${sec.name}" py:if="depth>0">${sec.name}</h2>
+      <div id="sectionContents${sec.name}" style="margin-left:${(depth-1)*2}.0em">
+
+        <div py:if="sec.childrenWithAttr('tag_','const')">
+          <h2 class="constantsHeader">Constants</h2>
+          <table style="text-align: left; width: 100%;" border="0" cellpadding="2" cellspacing="2">
+            <col width="5%"/>
+            <tbody>
+              <tr class="header constantsTableHeaderRow">    
+                <td></td>
+                <th>Name</th>
+                <th>Type</th>
+                <th>Brief</th>
+              </tr>
+              <div py:for="var in sec.childrenWithAttr('tag_','const')">
+                <tr class="rowA constantsTableRow">
+                  <td onclick="swapAttr(this.parentNode.nextSibling.nextSibling,'class','oclass');">+</td>
+                  <td class="constantsTableName">${var.name}</td>
+                  <td class="constantsTableType">${var.attributes_.get("type","")}</td>
+                  <td class="constantsTableBrief">${XML(R(var.brief))}</td>
+                </tr>
+                <tr class="hidden" oclass="constantsTableDescRow">
+                  <td COLSPAN="4">
+                    ${R(var.desc)}
+                  </td>
+                </tr>
+              </div>
+            </tbody>
+          </table>
+        </div>
+
+        <div py:if="sec.childrenWithAttr('tag_','var')">
+          <h2 class="varsHeader">Global Variables</h2>
+          <table style="text-align: left; width: 100%;" border="0" cellpadding="2" cellspacing="2">
+            <col width="5%"/>
+            <tbody>
+              <tr class="header varsTableHeaderRow">
+                <td></td>
+                <th class="varsTableHeaderRowName">Name</th>
+                <th class="varsTableHeaderRowType">Type</th>
+                <th class="varsTableHeaderRowBrief">Brief</th>
+              </tr>
+              <div py:for="var in sec.childrenWithAttr('tag_','var')">
+                <tr class="rowA varsTableRow">
+                  <td onclick="swapAttr(this.parentNode.nextSibling.nextSibling,'class','oclass');">+</td>
+                  <td class="varsTableRowName">${var.name}</td>
+                  <td class="varsTableRowType">${var.type}</td>
+                  <td class="varsTableRowBrief">${XML(R(var.brief))}</td>
+                </tr>
+                <tr class="hidden" oclass="varsTableDescRow">
+                  <td COLSPAN="4">${XML(R(var.desc))}</td>
+                </tr>
+              </div>
+            </tbody>
+          </table>
+        </div>
+        <div py:if="sec.childrenWithAttr('tag_','fn')">
+          <h2 class="fnsHeader">Global Functions</h2>
+          <table style="text-align: left; width: 100%;" border="0" cellpadding="2" cellspacing="2">
+            <col width="5%"/>
+            <tbody>
+              <tr class="header fnsTableHeaderRow">
+                <td></td>
+                <th>Type</th>
+                <th>Declaration</th>
+                <th>Brief</th>
+              </tr>
+              <div py:for="me in sec.childrenWithAttr('tag_','fn')">
+                <tr class="rowA fnsTableRow">
+                  <td onclick="swapAttr(this.parentNode.nextSibling.nextSibling,'class','oclass');">+</td>
+                  <td>${me.type}</td>
+                  <td>${XML(R(me.decl.escapedContents()))}</td>
+                  <td>${XML(R(me.brief))}</td>
+                </tr>
+                <tr class="hidden" oclass="varsTableDescRow">
+                  <td COLSPAN="4">
+                    <div class="desc classMethodDesc" style="margin-left: 4.0em">
+                    <br/><center class="descHeader">Declaration</center>
+                    ${XML(R(me.decl.escapedContents()))}
+                    <div py:if="me.childrenWithAttr('tag_','arg')">
+                      <br/><center class="descHeader">Parameters</center>
+                      <table class="argTable" style="width: 100%;">
+                        <tr class="header argHeader">
+                          <th>Type</th>
+                          <th>Name</th>
+                          <th>Description</th>
+                        </tr>
+                        <tr class="rowA argRow" py:for="arg in me.childrenWithAttr('tag_','arg')">
+                          <td>${arg.type}</td>
+                          <td>${arg.name}</td>
+                          <td>${XML(R(arg))}</td>
+                        </tr>
+                      </table>
+                    </div>
+                    <br/><center class="descHeader">Description</center>
+                    ${XML(R(me.desc))}
+                    </div>
+                  </td>
+                </tr>
+              </div>
+            </tbody>
+          </table>
+        </div>
+        <div py:if="sec.childrenWithAttr('tag_','class')">
+          <h2 class="header classesHeader">Classes</h2>
+          <table style="text-align: left; width: 100%;" border="0" cellpadding="2" cellspacing="2">
+            <col width="5%"/>
+            <tbody>
+              <tr class="header classesTableHeaderRow">
+                <td></td>
+                <th>Name</th>
+                <th>Brief</th>
+              </tr>
+              <div py:for="me in sec.childrenWithAttr('tag_','class')">
+                <tr class="rowA classesTableRow">
+                  <td onclick="swapAttr(this.parentNode.nextSibling.nextSibling,'class','oclass');">+</td>
+                  <td>${XML(g["obj2tlink"](me,replace,XESC(me.name)))}</td>
+                  <td>${XML(R(me.brief))}</td>
+                </tr>
+                <tr class="hidden" oclass="classesTableDescRow">
+                  <td COLSPAN="3">${XML(R(me.desc))}</td>
+                </tr>
+              </div>
+            </tbody>
+          </table>
+        </div>
+        <div id="subsection" py:for="subsec in sec.childrenWithAttr('tag_','section')" py:content="displaySection(subsec,depth+1)">
+        </div>
+      </div>
+    </div>
+    ${displaySection(this,0)}
+  </div>
+</html>

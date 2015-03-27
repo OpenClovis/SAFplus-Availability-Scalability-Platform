@@ -8,7 +8,7 @@ using namespace std;
 #include <clSafplusMsgServer.hxx>
 #include <clMsgHandler.hxx>
 #include <clLogIpi.hxx>
-#include <clIocPortList.hxx>
+#include <clMsgPortsAndTypes.hxx>
 #include <boost/date_time/posix_time/posix_time.hpp>
 #include <boost/filesystem.hpp>
 #include <boost/container/map.hpp>

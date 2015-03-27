@@ -1,0 +1,78 @@
+/* All pages */
+tr.header { background-color:  #FFCC9A; color: darkblue;}
+tr.rowA { background-color: #D9EABE; color: black;}
+tr.rowB { background-color: #E0EAE1; color: black;}
+textarea { background-color: cornsilk; color: cornflowerblue; }
+.desc { border-style:ridge; border-width:2px; border-color: #009070; margin: 0px; border-top-style: none }
+.descHeader { font-size:100%; font-style: italic; }
+.code { font-size:100%; }
+/* Top page */
+body{  background-color: #ffF8ec; color: cornflowerblue; } 
+p { color: blue; } 
+h3{ color: #5077BE; font-size:120%;}
+h2{ color: #324A76; font-size:130%; }
+h1{ color: #1E2D47; font-size:150%; }
+#projectName { font-size:150%; color: cornflowerblue; }
+#projectVersion { color: SaddleBrown; }
+#projectReleaseDate {  color: Sienna; }
+
+.quicktable { color: red; }
+/* To modify individual tables 
+#qtFiles { }
+*/
+
+/* Class details page */
+#className { color: #4668A6; font-size:125%;}
+#classDescription { color: #263866; }
+/*
+.classMethodDesc
+*/
+
+/* File Details page*/
+#fileDetails { color: CadetBlue; }  /* Set your file details page defaults here */
+#fileName { color: CadetBlue;}
+#fileDesc { color: CadetBlue;}
+#fileLanguage { color: CadetBlue;}
+.fileLicense { background-color: #ffc0c0; color: black; font-size: 120%; }
+
+#fileInfoTable { width: 100%; }
+
+.sectionHeader { color: blue;}
+/* Also you can specify
+#sectionHeader<sectionName>
+*/
+.constantsHeader { color: darkblue;}
+.constantsTableHeaderRow { color: tan; }
+tr.constantsTableRow { background-color: #E0EAE1; color: black; }
+td.constantsTableType { color: black; }
+td.constantsTableName { color: black; }
+td.constantsTableBrief { color: black; }
+tr.constantsTableDescRow { color: black; }
+
+.varsHeader { color: darkblue; }
+tr.varsTableHeaderRow { background-color:  #FFCC9A; color: darkblue; } 
+tr.varsTableRow {  background-color: #E0EAE1; color: black; } 
+tr.varsTableDescRow { color: black; font-size: 110%;}
+
+.fnsHeader {  color: darkblue; }
+tr.fnsTableHeaderRow {background-color:  #FFCC9A; color: darkblue; }
+tr.fnsTableRow { background-color: #E0EAE1; color: black;  } 
+tr.fnsTableDescRow { color: black; font-size: 110%; }
+
+.classesHeader { color: darkblue;}
+tr.classesTableHeaderRow { background-color:  #FFCC9A; color: darkblue; } 
+tr.classesTableRow { background-color: #E0EAE1; color: black; }  
+tr.classesTableDescRow { color: #1E2D47; font-size: 110%; }
+
+/* Class index */
+
+.classIndexHeaderRow { background-color:  #a0dfb0; color: darkblue;}
+/*
+.classIndexRowA { background-color: ;}
+.classIndexRowB { background-color: #e2c49C;}
+*/
+
+
+/* DO NOT CHANGE these classes! */
+
+.hidden { visibility:hidden; display:none; }

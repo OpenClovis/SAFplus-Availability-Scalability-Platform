@@ -1,3 +1,4 @@
+//? <section name="Messaging">
 #pragma once
 #include <clDbg.hxx>
 #include <clMsgHandler.hxx>
@@ -5,12 +6,14 @@
 
 namespace SAFplus
   {
+    //? <class> A message fragment is a buffer that contains part or all of a message.
   class MsgFragment
     {
     public:
       enum Flags
         {
-          PointerFragment = 1,           //? Fragment contains a pointer to a buffer
+          //? <_> Fragment contains a pointer to a buffer </_>
+          PointerFragment = 1,           
           InlineFragment  = 2,           //? Fragment's buffer starts at &buffer and extends beyond the end of this object
           DoNotFree       = 0x10,        //? Do not free this MsgFragment, the application will reuse it
           SAFplusFree     = 0x20,        //? This fragment was allocated outside of the message pool. Free it using the @SAFplusHeapFree API
@@ -22,17 +25,17 @@ namespace SAFplus
           DataCustomFree      = 0x800,   //? Use an application supplied free function (TODO)
         };
 
-      Flags flags;          //? Describes metadata about this fragment
+      Flags flags;          //? Describes metadata about this fragment, bit meanings are defined as constants
       uint_t allocatedLen;  //? How much data is allocated in this fragment.  This will be 0 if the fragment was not allocated (it could be a const char* buffer, or the application does not want the messaging layer to free this memory).
       uint_t start;         //? Where does the message actually start in the allocated data (offset).
       uint_t len;           //? length of message.  So start+len must be < allocatedLen, if this is an allocated fragment.
-      //? protected: 
+
       MsgFragment* nextFragment;  //? A pointer to the next fragment in the message.  Should only be used by MsgSocket implementations.
     protected:
       void*        buffer;  //? This must be the LAST object in the class so that the InlineFragment logic works correctly.  It is either a pointer to the memory buffer or is ITSELF the first bytes of the inline memory buffer.  Due to application bugs caused by this optimization, use the @data and @read functions to access the buffer instead of using this directly.
     public:
       void set(const char* buf);  //? Set this fragment to a null-terminated string buffer (you keep ownership)
-      void set(void* buf, uint_t length);  //? Set this fragment to buffer (you keep ownership)
+      void set(void* buf, uint_t length);  //? <_> Set this fragment to the provided buffer (you keep ownership) <arg name='buf'>The data in this buffer will be copied into the fragment</arg><arg name='length'>length of the passed buffer</arg> </_>
       void* data(int offset=0);  //? Get a pointer to the data in this fragment at the provided offset.
       const void* read(int offset=0);  //? Get a read-only pointer to the data in this fragment at the provided offset
 
@@ -58,11 +61,11 @@ namespace SAFplus
         }
 
       friend class MsgPool;
-    };
+  };  //? </class>
 
   class MsgPool;
 
-  //? Defines a linked list of iovector message buffers
+  //? <class> Defines a linked list of iovector message buffers
   class Message
     {
     public:
@@ -85,9 +88,9 @@ namespace SAFplus
       // protected:  Should only be used by message transport implementations
     MsgFragment* firstFragment;  //? The first fragment in this message.  Typically only used by the lower layers; upper layers should "hang on" to the MsgFragments returned by the prepend and append functions.
     MsgFragment* lastFragment;  //?  The last fragment in this message.  Typically only used by the lower layers; upper layers should "hang on" to the MsgFragments returned by the prepend and append functions.
-    };
+    };   //? </class>
 
-  //? A pool of message buffers so we don't have to keep freeing/allocating.
+  //? <class> A pool of message buffers so we don't have to keep freeing/allocating.
   class MsgPool
     {
       public:
@@ -106,11 +109,10 @@ namespace SAFplus
       //? Allocate a new message
       virtual Message* allocMsg();
       //? Free an entire chain of messages and message fragments.
-      virtual void free(Message*);
-    };
+      virtual void free(Message* msg);
+    }; //? </class>
 
-
-  //? A interface defining a portal to send and receive messages.  The application can create or delete a MsgSocket by calling the MsgTransportPlugin_1::createSocket() and MsgTransportPlugin_1::deleteSocket() functions, or by using the @ScopedMsgSocket convenience class for stack-scoped sockets.  Classes derived from MsgSocket can also be layered on top of transport MsgSockets to create additional functionality such as traffic shaping, large message capability, etc.  For more information see [[Messaging#Message_Transport_Layer]]
+  //? <class> A interface defining a portal to send and receive messages.  The application can create or delete a MsgSocket by calling the MsgTransportPlugin_1::createSocket() and MsgTransportPlugin_1::deleteSocket() functions, or by using the @ScopedMsgSocket convenience class for stack-scoped sockets.  Classes derived from MsgSocket can also be layered on top of transport MsgSockets to create additional functionality such as traffic shaping, large message capability, etc.  For more information see [[Messaging#Message_Transport_Layer]]
   class MsgSocket
     {
       public:
@@ -133,18 +135,20 @@ namespace SAFplus
     protected:
       MsgTransportPlugin* transport;
       friend class ScopedMsgSocket;
-    };
+  }; //? </class>
 
-  //? A portal to send and receive messages
+  //? <class> A message socket whose lifetime rules follow lexical scoping
   class ScopedMsgSocket
     {
     public:
-    MsgSocket* sock;
+      //? <ctor> Pass the message transport plugin and port to create your message socket </ctor>
     ScopedMsgSocket(MsgTransportPlugin* xp, uint_t port) { sock=xp->createSocket(port); }
     ~ScopedMsgSocket() { sock->transport->deleteSocket(sock); }
-
+      //? Access the MsgSocket object directly
+    MsgSocket* sock;
+      //? A convenience function that makes the ScopedMsgSocket object behave like a MsgSocket* object.
     MsgSocket* operator->() {return sock;}
-    };
+  }; //? </class>
 
 
 };
@@ -153,3 +157,4 @@ namespace SAFplus
 
 #include <clSafplusMsgServer.hxx>
 
+//? </section>

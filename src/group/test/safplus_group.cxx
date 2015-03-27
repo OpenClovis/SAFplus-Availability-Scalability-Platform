@@ -1,6 +1,6 @@
 #include <clGroupIpi.hxx>
 #include <clGlobals.hxx>
-#include <clIocPortList.hxx>
+#include <clMsgPortsAndTypes.hxx>
 #include <clSafplusMsgServer.hxx>
 
 static unsigned int MAX_MSGS=25;
