@@ -39,7 +39,7 @@ MgtObject* MgtFactory::create(const std::string& xpath)
     }
     else
     {
-        return (MgtObject*) NULL;
+        return (MgtObject*) nullptr;
     }
 }
 

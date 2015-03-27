@@ -36,6 +36,7 @@
 
 #include "clMgtObject.hxx"
 #include "clMgtMsg.hxx"
+#include "MgtFactory.hxx"
 
 #include <boost/container/map.hpp>
 
@@ -144,12 +145,12 @@ namespace SAFplus
       /**
        * API to add new entry into the list
        */
-      virtual ClRcT addChildObject(MgtObject *mgtObject, KEYTYPE &objectKey = *(KEYTYPE *)NULL)
+      virtual ClRcT addChildObject(MgtObject *mgtObject, KEYTYPE &objectKey = *(KEYTYPE *)nullptr)
       {
         ClRcT rc = CL_OK;
         assert(mgtObject);
         KEYTYPE *key = &objectKey;
-        if(key == NULL)
+        if(key == nullptr)
         {
 #ifndef SAFplus7
           logError("MGT", "LIST", "Key for child object is not defined");
@@ -160,7 +161,7 @@ namespace SAFplus
 #ifndef SAFplus7
         logDebug("MGT", "LIST", "Adding child object was successfully");
 #endif
-        if(mgtObject->parent == NULL)
+        if(mgtObject->parent == nullptr)
           mgtObject->parent = this;
         return CL_OK;
       }
@@ -172,7 +173,7 @@ namespace SAFplus
         MgtObject *mgtObject = children[objectKey];
         if(mgtObject && mgtObject->parent == this)
         {
-          mgtObject->parent = NULL;
+          mgtObject->parent = nullptr;
         }
         children.erase(objectKey);
       }
@@ -272,7 +273,7 @@ namespace SAFplus
         std::string lastnamestr;
 
         /* Read XML from the buffer */
-        xmlTextReaderPtr reader = xmlReaderForMemory((const char*) pBuffer, buffLen, NULL, NULL, 0);
+        xmlTextReaderPtr reader = xmlReaderForMemory((const char*) pBuffer, buffLen, nullptr, nullptr, 0);
         if (!reader)
         {
 #ifndef SAFplus7
@@ -322,7 +323,7 @@ namespace SAFplus
                 /* keyList should be assign when key was found */
                 entryKey.build(keyList);
                 MgtObject *entry = children[entryKey];
-                if(entry != NULL)
+                if(entry != nullptr)
                 {
                   if(entry->set(strChildData.c_str(),strChildData.size(),t) == CL_FALSE)
                   {
@@ -385,7 +386,7 @@ namespace SAFplus
         std::string keypart = key.toXpath();
 
         /* Parent X-Path will be add into the full xpath */
-        if (parent != NULL && includeParent) // this is the list parent
+        if (parent != nullptr && includeParent) // this is the list parent
         {
           parentXpath = parent->getFullXpath();
           if (parentXpath.length() > 0)
@@ -412,7 +413,7 @@ namespace SAFplus
       /**
        * Function to read from database
        */
-      virtual ClRcT read(MgtDatabase *db=NULL, std::string xpath = "")
+      virtual ClRcT read(MgtDatabase *db=nullptr, std::string xpath = "")
       {
         ClRcT rc = CL_OK;
 
@@ -429,14 +430,14 @@ namespace SAFplus
         return rc;
       }
 
-      ClRcT read(KEYTYPE key, MgtDatabase *db=NULL, std::string xpath = "")
+      ClRcT read(KEYTYPE key, MgtDatabase *db=nullptr, std::string xpath = "")
       {
         ClRcT rc = CL_OK;
 
         if (!config) return rc;
 
         MgtObject *obj = children[key];
-        if(obj == NULL)
+        if(obj == nullptr)
         {
 #ifndef SAFplus7
           logDebug("MGT","READ","Can't find children");
@@ -450,7 +451,7 @@ namespace SAFplus
       /**
        * Function to write to database
        */
-      virtual ClRcT write(MgtDatabase *db=NULL, std::string xpath = "")
+      virtual ClRcT write(MgtDatabase *db=nullptr, std::string xpath = "")
       {
         ClRcT rc = CL_OK;
 
@@ -467,14 +468,14 @@ namespace SAFplus
         return rc;
       }
 
-      ClRcT write(KEYTYPE key, MgtDatabase *db=NULL, std::string xpath = "")
+      ClRcT write(KEYTYPE key, MgtDatabase *db=nullptr, std::string xpath = "")
       {
         ClRcT rc = CL_OK;
 
         if (!config) return rc;
 
         MgtObject *obj = children[key];
-        if(obj == NULL)
+        if(obj == nullptr)
         {
 #ifndef SAFplus7
           logDebug("MGT","READ","Can't find children");
@@ -533,6 +534,7 @@ namespace SAFplus
        * Store the key name
        */
       std::string keyList;
+      std::string childXpath;
       /**
        * API to specify key names for the list
        */
@@ -570,12 +572,12 @@ namespace SAFplus
       /**
        * API to add new entry into the list
        */
-      virtual ClRcT addChildObject(MgtObject *mgtObject, std::string &objectKey = *(std::string *)NULL)
+      virtual ClRcT addChildObject(MgtObject *mgtObject, const std::string &objectKey = *(std::string *)nullptr)
       {
         ClRcT rc = CL_OK;
         assert(mgtObject);
-        std::string *key = &objectKey;
-        if(key == NULL)
+        const std::string *key = &objectKey;
+        if(key == nullptr)
         {
           key = &mgtObject->tag;
         }
@@ -587,7 +589,7 @@ namespace SAFplus
         mgtObject->listTag.assign(this->tag);
         mgtObject->tag.assign(*key);
 
-        if(mgtObject->parent == NULL)
+        if(mgtObject->parent == nullptr)
           mgtObject->parent = this;
         return CL_OK;
       }
@@ -687,7 +689,7 @@ namespace SAFplus
         logDebug("MGT","LIST","Set data for list [%s]",(char *)pBuffer);
 #endif
         /* Read XML from the buffer */
-        xmlTextReaderPtr reader = xmlReaderForMemory((const char*) pBuffer, buffLen, NULL, NULL, 0);
+        xmlTextReaderPtr reader = xmlReaderForMemory((const char*) pBuffer, buffLen, nullptr, nullptr, 0);
         if (!reader)
         {
 #ifndef SAFplus7
@@ -743,7 +745,7 @@ namespace SAFplus
                  return CL_FALSE;
                }
                MgtObject *entry = children[keyValue];
-               if(entry != NULL)
+               if(entry != nullptr)
                {
                  if(entry->set(strChildData.c_str(),strChildData.size(),t) == CL_FALSE)
                  {
@@ -800,7 +802,7 @@ namespace SAFplus
         std::stringstream keypart;
         keypart << "[" << keyList << "=" << key << "]";
         /* Parent X-Path will be add into the full xpath */
-        if (parent != NULL && includeParent) // this is the list parent
+        if (parent != nullptr && includeParent) // this is the list parent
         {
           parentXpath = parent->getFullXpath();
           if (parentXpath.length() > 0)
@@ -813,7 +815,7 @@ namespace SAFplus
         return xpath;
       }
 
-      virtual ClRcT read(MgtDatabase *db=NULL, std::string xpath = "")
+      virtual ClRcT read(MgtDatabase *db=nullptr, std::string xpath = "")
       {
         ClRcT rc = CL_OK;
 
@@ -830,7 +832,7 @@ namespace SAFplus
         return rc;
       }
 
-      virtual ClRcT write(MgtDatabase *db=NULL, std::string xpath = "")
+      virtual ClRcT write(MgtDatabase *db=nullptr, std::string xpath = "")
       {
           ClRcT rc = CL_OK;
 
@@ -845,6 +847,70 @@ namespace SAFplus
               return rc;
           }
           return rc;
+      }
+
+      virtual MgtObject *findMgtObject(const std::string &xpath, int idx)
+      {
+        MgtObject *obj = nullptr;
+        int nextIdx = xpath.find("/", idx + 1);
+
+        if (nextIdx == std::string::npos)
+          {
+            std::string childName = xpath.substr(idx + 1, xpath.length() - idx -1);
+
+            typename Map::iterator it = children.find(childName);
+            if (it != children.end())
+              obj = it->second;
+          }
+        else
+          {
+            std::string childName = xpath.substr(idx + 1, nextIdx - idx -1);
+
+            typename Map::iterator it = children.find(childName);
+            if (it != children.end())
+              {
+                MgtObject *child = it->second;
+                obj = child->findMgtObject(xpath, nextIdx);
+              }
+          }
+
+        return obj;
+      }
+
+      virtual ClRcT createObj(const std::string &value)
+      {
+        ClRcT ret = CL_OK;
+
+        typename Map::iterator it = children.find(value);
+        if (it != children.end())
+          {
+            ret = CL_ERR_ALREADY_EXIST;
+            return ret;
+          }
+
+        MgtObject* object = MgtFactory::getInstance()->create(childXpath);
+        addChildObject(object, value);
+        object->setChildObj(keyList, value);
+
+        return ret;
+      }
+
+      virtual ClRcT deleteObj(const std::string &value)
+      {
+        ClRcT ret = CL_OK;
+
+        typename Map::iterator it = children.find(value);
+        if (it == children.end())
+          {
+            ret = CL_ERR_DOESNT_EXIST;
+            return ret;
+          }
+
+        MgtObject *child = it->second;
+        children.erase(value);
+        delete child;
+
+        return ret;
       }
   };
 

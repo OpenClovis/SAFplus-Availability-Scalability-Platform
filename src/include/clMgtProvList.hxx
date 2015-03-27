@@ -95,23 +95,23 @@ public:
     /**
      * \brief   Function to set data to database
      */
-    ClRcT setDb(std::string pxp = "",MgtDatabase *db=NULL);
+    ClRcT setDb(std::string pxp = "",MgtDatabase *db=nullptr);
 
     /**
      * \brief   Function to get data from database
      */
-    ClRcT getDb(std::string pxp = "",MgtDatabase *db=NULL);
+    ClRcT getDb(std::string pxp = "",MgtDatabase *db=nullptr);
     /**
      *
      */
-    virtual ClRcT write(MgtDatabase *db=NULL, std::string xpath = "")
+    virtual ClRcT write(MgtDatabase *db=nullptr, std::string xpath = "")
     {
       return setDb(xpath,db);
     }
     /**
      *
      */
-    virtual ClRcT read(MgtDatabase *db=NULL, std::string xpath = "")
+    virtual ClRcT read(MgtDatabase *db=nullptr, std::string xpath = "")
     {
       return getDb(xpath,db);
     }
@@ -128,7 +128,7 @@ protected:
 public:
     ProvListOperation()
     {
-        mOwner = NULL;
+        mOwner = nullptr;
     }
     void setOwner(MgtProvList<T> *owner);
     void addData(void *data, ClUint64T buffLen);
@@ -178,7 +178,7 @@ void ProvListOperation<T>::commit()
     }
 
     mOwner->setDb();
-    mOwner->mOpt = NULL;
+    mOwner->mOpt = nullptr;
     mData.clear();
 }
 
@@ -193,7 +193,7 @@ void ProvListOperation<T>::abort()
         free(mData[i]);
     }
 
-    mOwner->mOpt = NULL;
+    mOwner->mOpt = nullptr;
     mData.clear();
 }
 
@@ -201,7 +201,7 @@ template<class T>
 MgtProvList<T>::MgtProvList(const char* name) :
   MgtObject(name)
 {
-    mOpt = NULL;
+    mOpt = nullptr;
 }
 
 template<class T>
@@ -238,10 +238,9 @@ ClBoolT MgtProvList<T>::set(const void *pBuffer, ClUint64T buffLen,
     int ret;
     bool addOpt = false;
 
-    xmlTextReaderPtr reader = xmlReaderForMemory((const char*) pBuffer, buffLen,
-            NULL, NULL, 0);
+    xmlTextReaderPtr reader = xmlReaderForMemory((const char*) pBuffer, buffLen, nullptr, nullptr, 0);
 
-    if (reader != NULL)
+    if (reader != nullptr)
     {
         ret = xmlTextReaderRead(reader);
         while (ret)
@@ -297,7 +296,7 @@ void MgtProvList<T>::pushBackValue(const std::string& strVal)
 template <class T>
 std::vector<std::string> *MgtProvList<T>::getChildNames()
 {
-    return NULL;
+    return nullptr;
 }
 #endif
 
@@ -306,6 +305,8 @@ ClRcT MgtProvList<T>::setDb(std::string pxp,MgtDatabase *db)
 {
     ClRcT rc = CL_OK;
 
+    //TODO: Temporary not support because of bug
+#if 0
     if (!loadDb)
       return rc;
 
@@ -323,7 +324,7 @@ ClRcT MgtProvList<T>::setDb(std::string pxp,MgtDatabase *db)
     else
       key.assign(getFullXpath(true));
 
-    if(db == NULL)
+    if(db == nullptr)
     {
       db = MgtDatabase::getInstance();
     }
@@ -370,7 +371,7 @@ ClRcT MgtProvList<T>::setDb(std::string pxp,MgtDatabase *db)
             db->deleteRecord(itemkey);
         }
     }
-
+#endif
     return rc;
 }
 
@@ -391,7 +392,7 @@ ClRcT MgtProvList<T>::getDb(std::string pxp,MgtDatabase *db)
     else
       key.assign(getFullXpath(true));
 
-    if(db == NULL)
+    if(db == nullptr)
     {
       db = MgtDatabase::getInstance();
     }

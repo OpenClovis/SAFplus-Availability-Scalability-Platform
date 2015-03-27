@@ -73,9 +73,10 @@ class MgtContainer:public MgtObject
     virtual MgtObject::Iterator begin(void);
     // Override not needed, end is the same: virtual MgtObject::Iterator end(void);
 
-    virtual ClRcT addChildObject(MgtObject *mgtObject, std::string const& objectName=*((std::string*)nullptr));
+    virtual ClRcT addChildObject(MgtObject *mgtObject, const std::string& objectName=*((std::string*)nullptr));
     virtual ClRcT addChildObject(MgtObject *mgtObject, const char* objectName);
     virtual ClRcT removeChildObject(const std::string& objectName);
+    virtual ClRcT setChildObj(const std::string &childName, const std::string &value);
 
     virtual MgtObject* find(const std::string &name);
     virtual MgtObject* deepFind(const std::string &name);
@@ -84,6 +85,7 @@ class MgtContainer:public MgtObject
     virtual MgtObject::Iterator multiFind(const std::string &nameSpec);
     virtual MgtObject::Iterator multiMatch(const std::string &nameSpec);
 
+    virtual void get(std::string *data,ClUint64T *datalen);
     virtual void toString(std::stringstream& xmlString);
     virtual std::string strValue() {return "";}
 
@@ -91,8 +93,10 @@ class MgtContainer:public MgtObject
     virtual ClBoolT set(const void *pBuffer, ClUint64T buffLen, SAFplus::Transaction& t);
 
     //virtual void get(void **ppBuffer, ClUint64T *pBuffLen);
-    virtual ClRcT write(MgtDatabase *db=NULL, std::string parentXPath = "");
-    virtual ClRcT read(MgtDatabase *db=NULL, std::string parentXPath = "");
+    virtual ClRcT write(MgtDatabase *db = nullptr, std::string parentXPath = "");
+    virtual ClRcT read(MgtDatabase *db = nullptr, std::string parentXPath = "");
+
+    virtual MgtObject *findMgtObject(const std::string &xpath, int idx);
   
   };
 

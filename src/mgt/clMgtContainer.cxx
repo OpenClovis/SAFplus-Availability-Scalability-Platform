@@ -104,7 +104,7 @@ namespace SAFplus
       MgtObject* obj = (MgtObject*) it->second;
       return obj;
       }
-    return NULL;
+    return nullptr;
     }
 
   MgtObject::Iterator MgtContainer::multiFind(const std::string &nameSpec)
@@ -167,10 +167,31 @@ namespace SAFplus
         MgtObject *child = it->second;
         child->toString(xmlString);
       }
-      if (!parent || !strstr(typeid(*parent).name(), "SAFplus7MgtList" ))
-        {
-          xmlString << "</" << tag << '>';
-        }
+    if (!parent || !strstr(typeid(*parent).name(), "SAFplus7MgtList" ))
+      {
+        xmlString << "</" << tag << '>';
+      }
+    }
+
+  void MgtContainer::get(std::string *data, ClUint64T *datalen)
+    {
+    std::stringstream xmlString;
+    if(data == nullptr)
+      return;
+
+    MgtObjectMap::iterator it;
+    map<string, vector<MgtObject*>* >::iterator mapIndex;
+
+    xmlString << '<' << tag << '>';
+    for (it = children.begin(); it != children.end(); ++it)
+      {
+        MgtObject *child = it->second;
+        child->toString(xmlString);
+      }
+    xmlString << "</" << tag << '>';
+
+    *datalen =  xmlString.str().length() + 1;
+    data->assign(xmlString.str().c_str());
     }
 
   ClRcT MgtContainer::read(MgtDatabase *db, std::string parentXPath)
@@ -253,7 +274,7 @@ namespace SAFplus
     char strTemp[CL_MAX_NAME_LENGTH] = { 0 };
     string strChildData;
 
-    xmlTextReaderPtr reader = xmlReaderForMemory((const char*) pBuffer, buffLen, NULL, NULL, 0);
+    xmlTextReaderPtr reader = xmlReaderForMemory((const char*) pBuffer, buffLen, nullptr, nullptr, 0);
     if (!reader)
     {
       logError("MGT", "CONT", "Reader return null");
@@ -339,5 +360,49 @@ namespace SAFplus
     return true;
   }
 
+  MgtObject *MgtContainer::findMgtObject(const std::string &xpath, int idx)
+  {
+    MgtObject *obj = nullptr;
+    int nextIdx = xpath.find("/", idx + 1);
+
+    if (nextIdx == std::string::npos)
+      {
+        std::string childName = xpath.substr(idx + 1, xpath.length() - idx -1);
+
+        typename Map::iterator it = children.find(childName);
+        if (it != children.end())
+          obj = it->second;
+      }
+    else
+      {
+        std::string childName = xpath.substr(idx + 1, nextIdx - idx -1);
+
+        typename Map::iterator it = children.find(childName);
+        if (it != children.end())
+          {
+            MgtObject *child = it->second;
+            obj = child->findMgtObject(xpath, nextIdx);
+          }
+      }
+
+    return obj;
+  }
+
+  ClRcT MgtContainer::setChildObj(const std::string &childName, const std::string &value)
+  {
+    ClRcT ret = CL_OK;
+
+    typename Map::iterator it = children.find(childName);
+    if (it == children.end())
+      {
+        ret = CL_ERR_DOESNT_EXIST;
+        return ret;
+      }
+
+    MgtObject *child = it->second;
+    child->setObj(value);
+
+    return ret;
+  }
 
   }
