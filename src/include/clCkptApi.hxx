@@ -1,3 +1,4 @@
+//? <section name="Checkpointing">
 #ifndef clCkptApi_hxx
 #define clCkptApi_hxx
 // Standard includes
@@ -23,7 +24,8 @@
 namespace SAFplus
 {
 
-  class Buffer
+  //? <class> This class defines the checkpoint key and data storage unit.  This class defines a buffer whose data directly follows the entities defined in this class.  This allows the buffer contents to be accessed without following any pointers which is important for shared memory (since it can be mapped into different locations in process memory).  Therefore you should not use the traditional new and delete functions to allocate a buffer.  Instead use placement new operators.  See the checkpoint examples for details.
+  class Buffer // TODO: rename to CkptBuffer, or integrate with messaging MsgFragment
   {
     // TODO: This is very inefficient for small buffers. The first 2 bits need to select the buffer data format and different formats removes features like the ChangeId, and provides greater or lesser numbers of length bits.
     uint32_t refAndLen; // 8 bits (highest) reference count, 2 bits to indicate whether the key and value are null terminated (strings), and 22 bits length combined into one.
@@ -37,42 +39,59 @@ namespace SAFplus
         RefShift = 24
       };
 
+    //? <ctor> Default constructor, constructs a zero length buffer</ctor>
     Buffer() { refAndLen=0;}
+    //? <ctor> Default constructor, constructs a buffer that reports its length as _len.  But you must 'place' this object on enough memory.</ctor>
     Buffer(uint_t _len) { refAndLen = (1UL<<RefShift) | (_len&LenMask); }
+    //? Return the length of the buffer
     uint_t len() const { return refAndLen&LenMask; }
+    //? Return the length of this object and the following buffer combined.
     uint_t objectSize() const { return len() + sizeof(Buffer) - 1; }
-
+    //? Set the flag that indicates that this buffer is null terminated
     void setNullT(uint_t val) { refAndLen = refAndLen & (~NullTMask) | (val<<NullTShift); }
+    //? Return whether this buffer is null terminated or not.
     bool isNullT() const; // { printf("isnullt %lx %lx\n",refAndLen, refAndLen&NullTMask); return (refAndLen&NullTMask)>0; } // (((refAndLen >> NullTShift)&1) == 1);
+    //? set the length of this buffer
     void setLen(uint_t len) { refAndLen = (refAndLen&0xff000000) | len&LenMask; }
+    //? return the number of entities using this buffer (reference count)
     uint_t ref() const { return refAndLen >> RefShift; }
+    //? Add to the number of entities using this buffer (reference count)
     void addRef(uint_t amt = 1) { refAndLen += (amt<<RefShift); }
+    //? Reduce the number of entities using this buffer (reference count)
     void decRef(uint_t amt = 1) { if (ref() < amt) refAndLen &= ~RefMask; else refAndLen -= (amt<<RefShift); }
+    //? Get the buffer's change number.  The change number is set every time this buffer changes and so can be used to discover whether the buffer has changed, and in what order.
+    //  the current change number is per-table and incremented every time the checkpoint table changes, and is used to synchronize this checkpoint with replicas.
     uint32_t changeNum() const { return change; }
+    //? Set the buffer's change number. 
     void setChangeNum(uint32_t num) { change = num; } 
     /** The buffer */
     char data[1];  // Not really length 1, this structure will be malloced and placed on a much larger buffer so data is actually len() long
 
+    //? Clear the buffer to the passed character
     Buffer& operator = (char c)
     {
       memset(data,c,len());
     }
 
+    //? Set the buffer to the passed null terminated string
     Buffer& operator = (const char* s)
     {
       strncpy(data,s,len());
     }
 
+    //? Get the buffer's data
     char* get()
     {
       return data;
     }
  
+    //? Get the buffer's data
     operator char* ()
     {
       return data;
     }
     
+    //? Compare the contents of 2 buffers.  Return true if contents are the same.  If the buffers are of different lengths then they are not the same.
     bool operator == (Buffer const& c) const
     {
       uint_t l = len();
@@ -81,9 +100,10 @@ namespace SAFplus
       return (memcmp(data, c.data,l)==0);
     }
 
-    Buffer& operator=(Buffer const& c)  // Cannot be copied due to size issues, unless lengths are the same
+    //? Copy the contents of the passed buffer to this one.  Buffers must be the same length.  Flags and change count is also set, but not reference counts.
+    Buffer& operator=(Buffer const& c)  
     {
-      assert(len() == c.len());
+      assert(len() == c.len()); // Cannot be copied due to size issues, unless lengths are the same
       setNullT(c.isNullT());
       //printf("nullt? %d %d\n", c.isNullT(),isNullT());
       memcpy(data,c.data,len());
@@ -91,9 +111,9 @@ namespace SAFplus
     }
 
   private:
+  }; //? </class>
 
-  };
-
+  //? Buffers can be the key for hash tables
   inline std::size_t hash_value(Buffer const& b)
     {
         boost::hash<int> hasher;
@@ -106,54 +126,53 @@ namespace SAFplus
 	return seed;
     }    
 
+  //? <class> This class represents a replicated, distributed hash table
   class Checkpoint
   {
   public:
     enum
       {
-	REPLICATED = 1,  // Replicated efficiently to multiple nodes
-	NESTED = 2,      // Checkpoint values can be unique identifiers that resolve to another Checkpoint
-	PERSISTENT = 4,  // Checkpoint stores itself to disk
-	NOTIFIABLE = 8,  // You can subscribe to get notified of any changes to items in the checkpoint
-	SHARED = 0x10,   // A single instance is shared between all processes in this node
-	RETAINED = 0x20, // If all instances are closed, this checkpoint is not automatically removed
-	LOCAL =    0x40, // This checkpoint exists only on this blade.
-        VARIABLE_SIZE = 0x80,  // Pass this into maxSize to dynamically re-allocate when needed
-        CHANGE_ANNOTATION = 0x100,  // DEFAULT: Change ids are incorporated into each record.
-        CHANGE_LOG        = 0x200,  // Changes are tracked in a separate log
-        EXISTING = 0x1000, // This checkpoint must be already in existence.  In this case, no other flags need to be passed since the existing checkpoint's flags will be used. 
+	REPLICATED = 1,  //? Replicated efficiently to multiple nodes
+	NESTED = 2,      //? Checkpoint values can be unique identifiers that resolve to another Checkpoint
+	PERSISTENT = 4,  //? Checkpoint stores itself to disk
+	NOTIFIABLE = 8,  //? You can subscribe to get notified of any changes to items in the checkpoint
+	SHARED = 0x10,   //? A single instance is shared between all processes in this node
+	RETAINED = 0x20, //? If all instances are closed, this checkpoint is not automatically removed
+	LOCAL =    0x40, //? This checkpoint exists only on this blade.
+        VARIABLE_SIZE = 0x80,  //? Pass this into maxSize to dynamically re-allocate when needed
+        CHANGE_ANNOTATION = 0x100,  //? DEFAULT: Change ids are incorporated into each record.
+        CHANGE_LOG        = 0x200,  //? Changes are tracked in a separate log
+        EXISTING = 0x1000, //? This checkpoint must be already in existence.  In this case, no other flags need to be passed since the existing checkpoint's flags will be used. 
       };
 
-    Checkpoint(const Handle& handle, uint_t flags,uint_t size=0, uint_t rows=0)  // Create a new checkpoint or open an existing one.  If no handle is passed, a new checkpoint will be created and a new handle assigned
+    //? <ctor>Create a new checkpoint or open an existing one.  If no handle is passed, a new checkpoint will be created and a new handle assigned</ctor>
+    Checkpoint(const Handle& handle, uint_t flags,uint_t size=0, uint_t rows=0)  
     { 
     init(handle,flags,size,rows);
     }
-    
-    Checkpoint(uint_t flags,uint_t size=0, uint_t rows=0)   // Create a new checkpoint or open an existing one.  If no handle is passed, a new checkpoint will be created.
+
+    //? <ctor>Create a new checkpoint or open an existing one.  If no handle is passed, a new checkpoint will be created.</ctor>
+    Checkpoint(uint_t flags,uint_t size=0, uint_t rows=0)
     { 
     Handle hdl = SAFplus::Handle::create();
     init(hdl,flags,size,rows);
     }
 
-    Checkpoint():hdr(NULL),flags(0),sync(NULL) {}  // 2 step initialization
+    //? <ctor>2 step initialization.  You must call init() before using this object</ctor>
+    Checkpoint():hdr(NULL),flags(0),sync(NULL) {}  
     ~Checkpoint();
+
+    //? Create a new checkpoint or open an existing one.  If no handle is passed, a new checkpoint will be created.  This function only needs to be called if the default constructor was used to create the object
     void init(const Handle& handle, uint_t flags,uint_t size=0, uint_t rows=0,SAFplus::Wakeable& execSemantics = BLOCK);
 
     // TBD when name service is ready; just resolve name to a handle, or create a name->new handle->new checkpoint object mapping if the name does not exist.
     //Checkpoint(const char* name,uint_t flags);
     //Checkpoint(std::string& name,uint_t flags);
 
-  /**
-   \brief Read a section of the checkpoint table  
-   \param key The section to read
-   \param value The read data is put here
-   \par Exceptions
-      clAsp::Error is raised if there is an underlying SAF read error
-      that cannot be automatically handled
-      It is best not to hold onto Buffer references for very long; if
-   the record is written and you are holding the Buffer reference, a new
-   buffer will be allocated.  But if you are not holding it, it will
-   be overwritten.
+  /*? Read a section of the checkpoint table.  It is best not to hold onto Buffer references for very long; if the record is written and you are holding the Buffer reference, a new buffer will be allocated.  But if you are not holding it, it will be overwritten (which is more efficient). 
+   <arg name="key">The section to read [TODO: what are the release semantics of this buffer]</arg>
+   <exception name="SAFplus::Error">Raised if there is an underlying SAF read error that cannot be automatically handled</exception>
+   <returns>The data that is read [TODO: what are the release semantics of the returned buffer]</returns>
    */
     const Buffer&  read (const Buffer& key); //const;
     const Buffer&  read (const uint64_t key); //const;
@@ -247,7 +266,8 @@ namespace SAFplus
     SAFplus::ProcGate              gate;
     bool isSyncReplica;
     SAFplusI::CkptSynchronization* sync;  // This is a separate object (and pointer) to break the synchronization requirements (messaging and groups) from the core checkpoint
-  };
+  }; //? </class>
 }
 
 #endif
+//? </section>
