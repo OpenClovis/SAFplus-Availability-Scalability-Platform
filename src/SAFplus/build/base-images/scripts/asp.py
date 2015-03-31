@@ -24,6 +24,7 @@ import re
 import xml.dom.minidom
 import glob
 import commands
+import errno
 #import pdb
 
 AmfName = "safplus_amf"
@@ -288,9 +289,10 @@ def set_up_asp_config():
         else:
             try:
                 os.mkdir(p)
-                return p
             except OSError, e:
-                fail_and_exit('Failed to create directory, [%s]' % e)
+                if e.errno != errno.EEXIST:
+                    fail_and_exit('Failed to create directory, [%s]' % e)
+            return p
                 
     d = {}
 
@@ -1034,7 +1036,7 @@ def save_asp_runtime_files():
             return (True, '')
 
     def rm_runtime_files():
-        p = re.compile(r'core.\d+$')
+        p = re.compile(r'(core.\d+$)|(tmp.\w+$)')
         l = glob.glob('%s/*' % get_asp_run_dir())
         l = [e for e in l if not p.search(e)]
         for e in l:
@@ -1051,11 +1053,11 @@ def save_asp_runtime_files():
             execute_shell_cmd('rm -f %s/*', run_dir)
         else:
             cur_time = get_current_time()
+            p = re.compile(r'tmp.\w+$')
             for e in glob.glob('%s/*' % run_dir):
-                core_file_name = os.path.split(e)[1]
-                execute_shell_cmd('mv -f %s %s/%s_%s' %\
-                                  (e, cores_dir, core_file_name, cur_time),
-                                  'Failed to move core file [%s]' % e)
+                if not p.search(e):
+                    core_file_name = os.path.split(e)[1]
+                    execute_shell_cmd('mv -f %s %s/%s_%s' %(e, cores_dir, core_file_name, cur_time), 'Failed to move core file [%s]' % e)
 
     if save_previous_logs():
         for d in ['log', 'run']:
