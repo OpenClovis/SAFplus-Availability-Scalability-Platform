@@ -1,12 +1,42 @@
 //#define _GNU_SOURCE // needed so that sendmmsg is available
 
-#include <clMsgUdp.hxx>
+#include <clMsgApi.hxx>
+#include <sys/socket.h>
 #include <sys/types.h>
 #include <netinet/ip.h>
 #include "clPluginHelper.hxx"
 #include <clCommon.hxx>  // For exceptions
 
-using namespace SAFplus;
+namespace SAFplus
+{
+  class Udp:public MsgTransportPlugin_1
+    {
+  public:
+    in_addr_t netAddr;
+    uint32_t nodeMask;
+    Udp(); 
+
+    virtual MsgTransportConfig& initialize(MsgPool& msgPool);
+
+    virtual MsgSocket* createSocket(uint_t port);
+    virtual void deleteSocket(MsgSocket* sock);
+    };
+
+  class UdpSocket:public MsgSocket
+    {
+    public:
+    UdpSocket(){}
+    UdpSocket(uint_t port,MsgPool* pool,MsgTransportPlugin_1* transport);
+    virtual ~UdpSocket();
+    virtual void send(Message* msg);
+    virtual Message* receive(uint_t maxMsgs,int maxDelay=-1);
+    virtual void flush();
+    protected:
+    int sock;    
+    
+    };
+  static Udp api;
+
   
   Udp::Udp()
     {
@@ -36,13 +66,13 @@ using namespace SAFplus;
       }
     else
       {
-      struct in_addr bip = SAFplusI::devToIpAddress(interface);
+      //struct in_addr bip = SAFplusI::devToIpAddress(interface);
+      
       int nodeMask = 0xff;  // TODO: get this from ~SAFplusI::devNetMask(interface)
       config.nodeId = ntohl(bip.s_addr)&nodeMask;
       netAddr = ntohl(bip.s_addr)&(~nodeMask);
       }
-#endif
-     unsigned int nodeMask;
+#endif     
      struct in_addr bip = SAFplusI::setNodeNetworkAddr(&nodeMask);           
      config.nodeId = SAFplus::ASP_NODEADDR;
      netAddr = ntohl(bip.s_addr)&(~nodeMask);
@@ -53,7 +83,7 @@ using namespace SAFplus;
   MsgSocket* Udp::createSocket(uint_t port)
     {
     if (port >= SAFplusI::UdpTransportNumPorts) return NULL;
-    return new UdpSocket(port, msgPool,this);
+    return new UdpSocket(port, msgPool,this);    
     }
 
   void Udp::deleteSocket(MsgSocket* sock)
@@ -271,7 +301,7 @@ if(setsockopt(socket, SOL_SOCKET, SO_RCVTIMEO, &tv, sizeof(tv)) < 0)
           assert(srcAddr);
           
           cur->port = ntohs(srcAddr->sin_port) - SAFplusI::UdpTransportStartPort;
-          cur->node = ntohl(srcAddr->sin_addr.s_addr) & 255;
+          cur->node = ntohl(srcAddr->sin_addr.s_addr) & (((Udp*)transport)->nodeMask);
           MsgFragment* curFrag = cur->firstFragment;
           for (int fragIdx = 0; (fragIdx < msgs[msgIdx].msg_hdr.msg_iovlen) && msgLen; fragIdx++,curFrag=curFrag->nextFragment)
             {
@@ -292,8 +322,8 @@ if(setsockopt(socket, SOL_SOCKET, SO_RCVTIMEO, &tv, sizeof(tv)) < 0)
 
       return ret;
       }
+};
 
-  
 extern "C" SAFplus::ClPlugin* clPluginInitialize(uint_t preferredPluginVersion)
   {
   // We can only provide a single version, so don't bother with the 'preferredPluginVersion' variable.
@@ -306,3 +336,4 @@ extern "C" SAFplus::ClPlugin* clPluginInitialize(uint_t preferredPluginVersion)
   // return it
   return (SAFplus::ClPlugin*) &SAFplus::api;
   }
+

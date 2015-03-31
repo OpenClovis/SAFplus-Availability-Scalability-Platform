@@ -165,7 +165,8 @@ bool testSendRecvSize(MsgTransportPlugin_1* xp)
     frag->len = size;
     a->send(m);
     m = b->receive(1,0);
-    if (!m)
+    int tries = 0;
+    while (tries<10 && !m)
       {
       boost::this_thread::sleep(boost::posix_time::milliseconds(50));
       m = b->receive(1,0);

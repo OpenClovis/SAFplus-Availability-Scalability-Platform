@@ -1,6 +1,7 @@
 //#define _GNU_SOURCE // needed so that sendmmsg is available
 
-#include <clMsgUdp.hxx>
+#include <clMsgApi.hxx>
+#include <sys/socket.h>
 #include <sys/types.h>
 #include <netinet/ip.h>
 #include <netinet/sctp.h>
@@ -13,31 +14,41 @@ typedef boost::unordered_map<uint_t, int> NodeIDSocketMap;
 
 namespace SAFplus
 { 
-  class Sctp: public Udp
-  {
-  public:
-    Sctp()
+  class Sctp: public MsgTransportPlugin_1
     {
-    }
-    virtual MsgTransportConfig& initialize(MsgPool& msgPool);
-    virtual MsgSocket* createSocket(uint_t port);
-  };
-
-  class SctpSocket: public UdpSocket
-  {
   public:
+    in_addr_t netAddr;
+    uint32_t nodeMask;
+    Sctp(); 
+
+    virtual MsgTransportConfig& initialize(MsgPool& msgPool);
+
+    virtual MsgSocket* createSocket(uint_t port);
+    virtual void deleteSocket(MsgSocket* sock);
+    };
+
+  class SctpSocket: public MsgSocket
+  {
+  public:    
     SctpSocket(uint_t port,MsgPool* pool,MsgTransportPlugin_1* transport);    
     virtual void send(Message* msg);
     virtual Message* receive(uint_t maxMsgs,int maxDelay=-1);
     virtual void flush();
     virtual ~SctpSocket();
   protected:
+    int sock; 
     NodeIDSocketMap clientSockMap; //TODO in case node failure: if a node got failure, this must be notified so that
     // the item associated with it in the map must be deleted too, if not, the associated socket may be invalid because of its server failure
     int getClientSocket(uint_t nodeID, uint_t port);
     int openClientSocket(uint_t nodeID, uint_t port);    
+    
   };
+  static Sctp api;
 
+  Sctp::Sctp()
+  {
+    msgPool = NULL;
+  }
 
   MsgTransportConfig& Sctp::initialize(MsgPool& msgPoolp)
   {
@@ -46,8 +57,7 @@ namespace SAFplus
     config.maxMsgSize = SAFplusI::SctpTransportMaxMsgSize;
     config.maxPort    = SAFplusI::SctpTransportNumPorts;
     config.maxMsgAtOnce = SAFplusI::SctpTransportMaxMsg;
-
-    uint32_t nodeMask;
+    
     struct in_addr bip = SAFplusI::setNodeNetworkAddr(&nodeMask);      
     config.nodeId = SAFplus::ASP_NODEADDR;
     netAddr = ntohl(bip.s_addr)&(~nodeMask);
@@ -59,6 +69,11 @@ namespace SAFplus
   {
     if (port >= SAFplusI::SctpTransportNumPorts) return NULL;
     return new SctpSocket(port, msgPool,this); // open a listen socket
+  }
+
+  void Sctp::deleteSocket(MsgSocket* sock)
+  {
+    delete sock;
   }
 
   SctpSocket::SctpSocket(uint_t pt,MsgPool*  pool,MsgTransportPlugin_1* xp)
@@ -97,11 +112,11 @@ namespace SAFplus
       throw Error(Error::SYSTEM_ERROR,errno, strerror(errno),__FILE__,__LINE__);       
     }
 
-    if(setsockopt(sock, IPPROTO_SCTP, SCTP_EVENTS, &event, sizeof(struct sctp_event_subscribe)) < 0)
+    /*if(setsockopt(sock, IPPROTO_SCTP, SCTP_EVENTS, &event, sizeof(struct sctp_event_subscribe)) < 0)
     {
       int err = errno;
       throw Error(Error::SYSTEM_ERROR,errno, strerror(errno),__FILE__,__LINE__);       
-    }
+    }*/
 
     /* set the reuse of address*/
     if(setsockopt(sock, SOL_SOCKET, SO_REUSEADDR, &reuse, sizeof(int))< 0)
@@ -193,11 +208,11 @@ namespace SAFplus
     }
 
     /*Enable SCTP Events*/
-    if((ret = setsockopt(sock, SOL_SCTP, SCTP_EVENTS, (void *)&events, sizeof(events))) != 0)
+    /*if((ret = setsockopt(sock, SOL_SCTP, SCTP_EVENTS, (void *)&events, sizeof(events))) != 0)
     {
       int err = errno;
       throw Error(Error::SYSTEM_ERROR,errno, strerror(errno),__FILE__,__LINE__);
-    }
+    }*/
 
     /*Get And Print Heartbeat Interval*/
     /*i = (sizeof heartbeat);
@@ -229,6 +244,7 @@ namespace SAFplus
   void SctpSocket::send(Message* origMsg)
   {
     mmsghdr msgvec[SAFplusI::SctpTransportMaxMsg];  // We are doing this for perf so we certainly don't want to new or malloc it!
+    bzero(msgvec,sizeof(msgvec));
     struct iovec iovecBuffer[SAFplusI::SctpTransportMaxFragments];
     mmsghdr* curvec = &msgvec[0];
     int msgCount = 0;
@@ -265,7 +281,6 @@ namespace SAFplus
       curvec->msg_hdr.msg_controllen = 0;
       curvec->msg_hdr.msg_control = NULL;
       curvec->msg_hdr.msg_flags = 0;
-      curvec->msg_hdr.msg_namelen = sizeof (struct sockaddr_in);
       curvec->msg_hdr.msg_iov = msg_iov;
       curvec->msg_hdr.msg_iovlen = fragCount;
       curvec++;
@@ -285,7 +300,7 @@ namespace SAFplus
       }*/
       //TODO: get node list
       uint_t nodeList[CL_IOC_MAX_NODES]={0}; // If get node list API returns the dynamic list, we don't need to use the static array like this
-      uint_t port = htons(origMsg->port + SAFplusI::SctpTransportStartPort);
+      uint_t port = origMsg->port + SAFplusI::SctpTransportStartPort;
       for (int i=0;i<CL_IOC_MAX_NODES;i++)
       {
         if (nodeList[i])
@@ -306,7 +321,7 @@ namespace SAFplus
     }
     else
     {
-      clientSock = getClientSocket(origMsg->node, origMsg->port);
+      clientSock = getClientSocket(origMsg->node, origMsg->port+SAFplusI::SctpTransportStartPort);
       int retval = sendmmsg(clientSock, &msgvec[0], msgCount, 0);  // TODO flags
       if (retval == -1)
       {
@@ -399,7 +414,7 @@ namespace SAFplus
           assert(srcAddr);
           
           cur->port = ntohs(srcAddr->sin_port) - SAFplusI::SctpTransportStartPort;
-          cur->node = ntohl(srcAddr->sin_addr.s_addr) & 255;
+          cur->node = ntohl(srcAddr->sin_addr.s_addr) & (((Sctp*)transport)->nodeMask);
           MsgFragment* curFrag = cur->firstFragment;
           for (int fragIdx = 0; (fragIdx < msgs[msgIdx].msg_hdr.msg_iovlen) && msgLen; fragIdx++,curFrag=curFrag->nextFragment)
             {
@@ -420,6 +435,9 @@ namespace SAFplus
 
       return ret;
    }
+ 
+   void SctpSocket::flush() {}
+
    SctpSocket::~SctpSocket()
    {
      // Close all the sockets: both server socket itself and client sockets in the map
@@ -432,3 +450,16 @@ namespace SAFplus
      }
    }
 };
+
+extern "C" SAFplus::ClPlugin* clPluginInitialize(uint_t preferredPluginVersion)
+{
+  // We can only provide a single version, so don't bother with the 'preferredPluginVersion' variable.
+
+  // Initialize the pluginData structure
+  SAFplus::api.pluginId         = SAFplus::CL_MSG_TRANSPORT_PLUGIN_ID;
+  SAFplus::api.pluginVersion    = SAFplus::CL_MSG_TRANSPORT_PLUGIN_VER;
+  SAFplus::api.type = "UDP";
+
+  // return it
+  return (SAFplus::ClPlugin*) &SAFplus::api;
+}
