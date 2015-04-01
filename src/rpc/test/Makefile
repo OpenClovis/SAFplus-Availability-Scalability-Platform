@@ -54,6 +54,9 @@ gen:
 	$(call SAFPLUS_RPC_GEN,rpcTest,stubs)
 	mkdir -p ./reflector
 	$(call SAFPLUS_RPC_GEN,msgReflector,reflector)
+	-mkdir -p reflection
+	$(call SAFPLUS_YANG_RPC_GEN, msgReflection, reflection)
+
 
 cleangen:
 	rm -rf stubs

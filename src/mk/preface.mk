@@ -97,7 +97,9 @@ endif
 
 #Function to do codegen RPC from .yang
 define SAFPLUS_YANG_RPC_GEN
-	@PYTHONPATH=$$PYTHONPATH:$(MGT_SRC_DIR)/3rdparty/pyang:/usr/local/lib PYANG_PLUGINPATH=$$PYANG_PLUGINPATH:$(MGT_SRC_DIR)/pyplugin $(MGT_SRC_DIR)/3rdparty/pyang/bin/pyang --path=$(SAFPLUS_SRC_DIR)/SAFplus/yang -f y2cpp $1.yang --y2cpp-output $2 --y2cpp-mgt $(MGT_SRC_DIR) --y2cpp-rpc
+	PYTHONPATH=$$PYTHONPATH:$(MGT_SRC_DIR)/3rdparty/pyang:/usr/local/lib PYANG_PLUGINPATH=$$PYANG_PLUGINPATH:$(MGT_SRC_DIR)/pyplugin $(MGT_SRC_DIR)/3rdparty/pyang/bin/pyang --path=$(SAFPLUS_SRC_DIR)/yang -f y2cpp $(strip $1).yang --y2cpp-output $(strip $2) --y2cpp-mgt $(MGT_SRC_DIR) --y2cpp-rpc
+	LD_LIBRARY_PATH=/usr/local/lib:/usr/lib protoc -I$(SAFPLUS_3RDPARTY_DIR) -I$(dir $1.proto) -I$(SAFPLUS_SRC_DIR)/rpc --cpp_out=. $(strip $2)/$(strip $1).proto
+	LD_LIBRARY_PATH=/usr/local/lib:/usr/lib $(SAFPLUS_TARGET)/bin/protoc-gen-rpc -I$(SAFPLUS_3RDPARTY_DIR) -I$(dir $1.proto) -I$(SAFPLUS_SRC_DIR)/rpc --rpc_out=. --rename=$3 $(strip $2)/$(strip $1).proto
 endef
 
 #1. Google protoc generated

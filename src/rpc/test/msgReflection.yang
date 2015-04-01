@@ -1,0 +1,40 @@
+module msgReflection
+{
+
+  namespace "http://www.openclovis.org/ns/msgReflection";
+  prefix "msgReflection";
+
+  organization
+    "OpenClovis Solutions, Inc";
+
+  contact
+    "Andrew Stone <stone@openclovis.com>";
+
+  description
+    "reflect incoming messages for performance testing";
+
+  revision 2015-04-01 
+  {
+    description "Initial description";
+  }
+
+  rpc call
+  {
+    input
+    {
+      leaf data
+      {
+        type string;
+      }
+    }
+    
+    output
+    {
+      leaf data
+      {
+	//description "how long to until issuing another heartbeat query (in milliseconds).";
+	type string;
+      }
+    }
+  }
+}
