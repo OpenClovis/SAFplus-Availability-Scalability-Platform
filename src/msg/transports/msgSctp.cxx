@@ -207,6 +207,13 @@ namespace SAFplus
       throw Error(Error::SYSTEM_ERROR,errno, strerror(errno),__FILE__,__LINE__);
     }
 
+    int nodelay=1;  
+    if((ret = setsockopt(sock, SOL_SCTP, SCTP_NODELAY, &nodelay, sizeof(nodelay))) != 0)
+    {
+      int err = errno;
+      throw Error(Error::SYSTEM_ERROR,errno, strerror(errno),__FILE__,__LINE__);
+    }
+
     /*Enable SCTP Events*/
     /*if((ret = setsockopt(sock, SOL_SCTP, SCTP_EVENTS, (void *)&events, sizeof(events))) != 0)
     {

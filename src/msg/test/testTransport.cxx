@@ -71,6 +71,7 @@ bool testSendRecv(MsgTransportPlugin_1* xp)
   clTest(("message release"), (a->msgPool->allocated == 0), ("Allocated msgs is [%" PRIu64 "]. Expected 0", a->msgPool->allocated));
   clTest(("Frag release"), (a->msgPool->fragAllocated == 0), ("Allocated frags is [%" PRIu64 "]. Expected 0", a->msgPool->fragAllocated));
   m = b->receive(1);
+
   if (m)
     {
 
@@ -141,6 +142,8 @@ bool testSendRecvSize(MsgTransportPlugin_1* xp)
   ScopedMsgSocket a(xp,1);
   ScopedMsgSocket b(xp,2);
 
+  int maxTry = 1;
+
   Message* m;
 
   unsigned long seed = 0;
@@ -166,7 +169,7 @@ bool testSendRecvSize(MsgTransportPlugin_1* xp)
     a->send(m);
     m = b->receive(1,0);
     int tries = 0;
-    while (tries<4 && !m)
+    while (tries<maxTry && !m)
       {
       boost::this_thread::sleep(boost::posix_time::milliseconds(50));
       m = b->receive(1,0);
