@@ -26,6 +26,7 @@ namespace SAFplus
           NOTIFY_NODE_LEAVE = 4,
           NOTIFY_PORT_JOIN  = 8,
           NOTIFY_PORT_LEAVE = 0x10,
+          NAGLE_AVAILABLE   = 0x20,
         };
 
       Capabilities capabilities; //? What features does this message transport support?

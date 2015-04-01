@@ -132,6 +132,9 @@ namespace SAFplus
       //? Receive up to maxMsgs messages.  Wait for no more than maxDelay milliseconds.  If no messages have been received within that time return NULL.  If maxDelay is -1 (default) then wait forever.  If maxDelay is 0 do not wait.
       virtual Message* receive(uint_t maxMsgs,int maxDelay=-1)=0;
 
+      //? Enable Nagle's algorithm (delay and batch sending small messages), if the underlying transport supports it.  You should check the transport's capabilities before calling this function.  If the transport does not support NAGLE's algorithm, this function will be a no-op but issue a log.  See <a href="http://en.wikipedia.org/wiki/Nagle%27s_algorithm">Nagle's Algorithm</a> for more details.
+      virtual void useNagle(bool value);
+
     protected:
       MsgTransportPlugin* transport;
       friend class ScopedMsgSocket;

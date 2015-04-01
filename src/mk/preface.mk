@@ -96,7 +96,7 @@ LINK_FLAGS += -pg
 endif
 
 #Function to do codegen RPC from .yang
-define SAFPLUS_MGT_RPC_GEN
+define SAFPLUS_YANG_RPC_GEN
 	@PYTHONPATH=$$PYTHONPATH:$(MGT_SRC_DIR)/3rdparty/pyang:/usr/local/lib PYANG_PLUGINPATH=$$PYANG_PLUGINPATH:$(MGT_SRC_DIR)/pyplugin $(MGT_SRC_DIR)/3rdparty/pyang/bin/pyang --path=$(SAFPLUS_SRC_DIR)/SAFplus/yang -f y2cpp $1.yang --y2cpp-output $2 --y2cpp-mgt $(MGT_SRC_DIR) --y2cpp-rpc
 endef
 

@@ -18,7 +18,6 @@
  */
 #include <clLogApi.hxx>
 #include <clGlobals.hxx>
-//#include <clIocProtocols.h>
 #include "clSafplusMsgServer.hxx"
 #include "clRpcApi.hxx"
 #include "rpcTest.hxx"

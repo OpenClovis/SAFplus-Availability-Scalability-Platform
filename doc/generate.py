@@ -30,7 +30,7 @@ def main(dirs):
 def Test():
   
   main(["../src"])
-  # main(["test"])
+  #main(["test"])
 
 if __name__ == "__main__":
   main(["../src"])

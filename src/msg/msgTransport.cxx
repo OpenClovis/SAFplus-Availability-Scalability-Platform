@@ -1,5 +1,5 @@
 #include <clMsgApi.hxx>
-
+#include <clLogApi.hxx>
 
 namespace SAFplus
   {
@@ -169,6 +169,10 @@ namespace SAFplus
   MsgSocket::~MsgSocket()
   {}
 
+  void MsgSocket::useNagle(bool value)
+    {
+      if (value) logDebug("MSG","SCK","Nagle algorithm turned on but not supported by socket.");
+    }
 
   void MsgTransportPlugin_1::registerWatcher(Wakeable* watcher)
     {

@@ -16,9 +16,14 @@ ifeq ($(strip $(CHECK_INOTIFY)), )
 	CPP_FLAGS += -DHAVE_INOTIFY
 endif
 
-CHECK_SCTP := $(shell ../check_sctp.sh $(COMPILE_CPP))
-ifeq ($(strip $(CHECK_SCTP)), )
+CHECK_SCTP := $(strip $(shell ../check_sctp.sh $(COMPILE_CPP)))
+
+ifeq ($(CHECK_SCTP), )
 	CPP_FLAGS += -DHAVE_SCTP
+        SCTP_TARGET := $(PLUGIN_DIR)/clMsgSctp.so
+else
+$(info Operating system does not have SCTP support.  SCTP message transport plugin will not be compiled)
+ SCTP_TARGET :=
 endif
 
 # Specify the required libraries
@@ -29,7 +34,7 @@ SAFPLUS_LINK_LIBS := -L$(LIB_DIR) $(addprefix -l,$(SAFPLUS_LIBS))
 
 LINK_SO_LIBS += -lboost_thread
 
-Release all: $(PLUGIN_DIR)/clMsgUdp.so $(PLUGIN_DIR)/clMsgSctp.so
+Release all: $(PLUGIN_DIR)/clMsgUdp.so $(SCTP_TARGET)
 
 $(PLUGIN_DIR)/clMsgUdp.so: $(OBJ_DIR)/msgUdp.o $(OBJ_DIR)/clPluginHelper.o
 	$(LINK_SO) $@ $^ $(LINK_SO_LIBS)

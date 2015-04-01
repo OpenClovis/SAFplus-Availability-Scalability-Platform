@@ -1,0 +1,20 @@
+/* 
+ * Copyright (C) 2002-2014 OpenClovis Solutions Inc.  All Rights Reserved.
+ */
+package SAFplus.Rpc.reflector;
+import "SAFplusPBExt.proto";
+
+option cc_generic_services = false;
+option py_generic_services = true;
+option java_generic_services = false;
+
+message reflectorMsg 
+  {
+  required string msg = 1;
+  extensions 1000 to max;
+  };
+
+service reflector 
+  {
+  rpc call(reflectorMsg) returns(reflectorMsg);
+  };

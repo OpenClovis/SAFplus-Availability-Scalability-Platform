@@ -532,13 +532,13 @@ Specific problems (if given). (@ref ITU X.733)
 
     };
 
-  //status of fault entity
+  //? state of entity -- up down or unknown
   enum class FaultState
     {
-    STATE_UNDEFINED = 0,
-      STATE_UP = 1,
-      STATE_DOWN
-      };
+      STATE_UNDEFINED = 0,  //? Unknown state
+        STATE_UP = 1,  //? Entity is working
+        STATE_DOWN  //? Entity has failed
+    };
 
   enum
     {
