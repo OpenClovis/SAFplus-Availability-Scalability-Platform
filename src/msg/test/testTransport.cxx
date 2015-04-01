@@ -166,10 +166,11 @@ bool testSendRecvSize(MsgTransportPlugin_1* xp)
     a->send(m);
     m = b->receive(1,0);
     int tries = 0;
-    while (tries<10 && !m)
+    while (tries<4 && !m)
       {
       boost::this_thread::sleep(boost::posix_time::milliseconds(50));
       m = b->receive(1,0);
+      tries++;
       }
     assert(m);
     frag = m->firstFragment;
