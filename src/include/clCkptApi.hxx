@@ -152,6 +152,9 @@ namespace SAFplus
     }
 
     //? <ctor>Create a new checkpoint or open an existing one.  If no handle is passed, a new checkpoint will be created.</ctor>
+    // <arg name="flags">The flavor of checkpoint to open.  See the constants for the options.  All entities opening the checkpoint must use the same flags.</arg>
+    // <arg name="size">This is the amount of shared memory that will be allocated to hold this checkpoint.  If the checkpoint already exists, this value will be ignored.</arg>
+    // <arg name="rows">The maximum number of items to be stored in the checkpoint table</arg>
     Checkpoint(uint_t flags,uint_t size=0, uint_t rows=0)
     { 
     Handle hdl = SAFplus::Handle::create();
@@ -163,56 +166,114 @@ namespace SAFplus
     ~Checkpoint();
 
     //? Create a new checkpoint or open an existing one.  If no handle is passed, a new checkpoint will be created.  This function only needs to be called if the default constructor was used to create the object
+    // <arg name="flags">The flavor of checkpoint to open.  See the constants for the options.  All entities opening the checkpoint must use the same flags.</arg>
+    // <arg name="size">This is the amount of shared memory that will be allocated to hold this checkpoint.  If the checkpoint already exists, this value will be ignored.</arg>
+    // <arg name="rows">The maximum number of items to be stored in the checkpoint table</arg>
+    // <arg name="execSemantics" default="BLOCK">[OPTIONAL] specify blocking or nonblocking execution semantics for this function</arg>
     void init(const Handle& handle, uint_t flags,uint_t size=0, uint_t rows=0,SAFplus::Wakeable& execSemantics = BLOCK);
 
     // TBD when name service is ready; just resolve name to a handle, or create a name->new handle->new checkpoint object mapping if the name does not exist.
     //Checkpoint(const char* name,uint_t flags);
     //Checkpoint(std::string& name,uint_t flags);
 
-  /*? Read a section of the checkpoint table.  It is best not to hold onto Buffer references for very long; if the record is written and you are holding the Buffer reference, a new buffer will be allocated.  But if you are not holding it, it will be overwritten (which is more efficient). 
+  /*? Read a section of the checkpoint table.  It is best not to hold onto Buffer references for very long; if the record is written and you are holding the Buffer reference, a new buffer will be allocated to avoid modifying your reference.  But if you are not holding it, it will be overwritten (which is more efficient). 
    <arg name="key">The section to read [TODO: what are the release semantics of this buffer]</arg>
    <exception name="SAFplus::Error">Raised if there is an underlying SAF read error that cannot be automatically handled</exception>
    <returns>The data that is read [TODO: what are the release semantics of the returned buffer]</returns>
    */
     const Buffer&  read (const Buffer& key); //const;
+
+   /*? Read a section of the checkpoint table, using an integer key.  It is best not to hold onto Buffer references for very long; if the record is written and you are holding the Buffer reference, a new buffer will be allocated  to avoid modifying your reference.  But if you are not holding it, it will be overwritten (which is more efficient). 
+   <arg name="key">The section to read</arg>
+   <exception name="SAFplus::Error">Raised if there is an underlying SAF read error that cannot be automatically handled</exception>
+   <returns>The data that is read [TODO: what are the release semantics of the returned buffer]</returns>
+   */
     const Buffer&  read (const uint64_t key); //const;
+
+   /*? Read a section of the checkpoint table, using a null-terminated string key.  It is best not to hold onto Buffer references for very long; if the record is written and you are holding the Buffer reference, a new buffer will be allocated to avoid modifying your reference.  But if you are not holding it, it will be overwritten (which is more efficient). 
+   <arg name="key">The section to read</arg>
+   <exception name="SAFplus::Error">Raised if there is an underlying SAF read error that cannot be automatically handled</exception>
+   <returns>The data that is read [TODO: what are the release semantics of the returned buffer]</returns>
+   */
     const Buffer&  read (const char* key); //const;
+
+   /*? Read a section of the checkpoint table, using a string key.  It is best not to hold onto Buffer references for very long; if the record is written and you are holding the Buffer reference, a new buffer will be allocated to avoid modifying your reference.  But if you are not holding it, it will be overwritten (which is more efficient). 
+   <arg name="key">The section to read</arg>
+   <exception name="SAFplus::Error">Raised if there is an underlying SAF read error that cannot be automatically handled</exception>
+   <returns>The data that is read [TODO: what are the release semantics of the returned buffer]</returns>
+   */
     const Buffer&  read (const std::string& key); // const;
 
-    /* temporarily disallow/allow synchronization */
-    void syncLock() { gate.lock(); }
-    void syncUnlock() { gate.unlock(); }
 
-  /**
-   \brief Write a section of the checkpoint table 
-   \param key The section to write
-   \param value The data to write
-   \par Exceptions
-      clAsp::Error is raised if there is an underlying SAF write error
-      that cannot be automatically handled
-   */    
+  /*? Write a section of the checkpoint table 
+   <arg name="key">The section to write</arg>
+   <arg name="value">The data to write</arg>
+   <arg name="t" default="NO_TXN">[OPTIONAL, NOT IMPLEMENTED] Write this record as part of a transaction commit, rather than immediately</arg>
+   <exception name="SAFplus::Error">Raised if there is an underlying SAF read error that cannot be automatically handled</exception>
+   */ 
     void write(const Buffer& key, const Buffer& value,Transaction& t=SAFplus::NO_TXN);
+ 
+ /*? Write a section of the checkpoint table 
+   <arg name="key">The section to write</arg>
+   <arg name="value">The data to write</arg>
+   <arg name="t" default="NO_TXN">[OPTIONAL, NOT IMPLEMENTED] Write this record as part of a transaction commit, rather than immediately</arg>
+   <exception name="SAFplus::Error">Raised if there is an underlying SAF read error that cannot be automatically handled</exception>
+   */ 
     void write(const uintcw_t key, const Buffer& value,Transaction& t=SAFplus::NO_TXN);
+
+ /*? Write a section of the checkpoint table 
+   <arg name="key">The section to write</arg>
+   <arg name="value">The data to write</arg>
+   <arg name="t" default="NO_TXN">[OPTIONAL, NOT IMPLEMENTED] Write this record as part of a transaction commit, rather than immediately</arg>
+   <exception name="SAFplus::Error">Raised if there is an underlying SAF read error that cannot be automatically handled</exception>
+   */ 
     void write(const char* key, const Buffer& value,Transaction& t=SAFplus::NO_TXN);
+
+ /*? Write a section of the checkpoint table 
+   <arg name="key">The section to write</arg>
+   <arg name="value">The data to write</arg>
+   <arg name="t" default="NO_TXN">[OPTIONAL, NOT IMPLEMENTED] Write this record as part of a transaction commit, rather than immediately</arg>
+   <exception name="SAFplus::Error">Raised if there is an underlying SAF read error that cannot be automatically handled</exception>
+   */ 
     void write(const std::string& key, const Buffer& value,Transaction& t=SAFplus::NO_TXN);
+
+ /*? Write a section of the checkpoint table 
+   <arg name="key">The section to write</arg>
+   <arg name="value">The data to write</arg>
+   <arg name="t" default="NO_TXN">[OPTIONAL, NOT IMPLEMENTED] Write this record as part of a transaction commit, rather than immediately</arg>
+   <exception name="SAFplus::Error">Raised if there is an underlying SAF read error that cannot be automatically handled</exception>
+   */ 
     void write(const std::string& key, const std::string& value,Transaction& t=SAFplus::NO_TXN);
 
+ /*? Delete a section from the checkpoint table 
+   <arg name="key">The section to delete</arg>
+   <arg name="t" default="NO_TXN">[OPTIONAL, NOT IMPLEMENTED] Write this record as part of a transaction commit, rather than immediately</arg>
+   */ 
     void remove(const Buffer& key,Transaction& t=SAFplus::NO_TXN);
+
+ /*? Delete a section from the checkpoint table 
+   <arg name="key">The section to delete</arg>
+   <arg name="t" default="NO_TXN">[OPTIONAL, NOT IMPLEMENTED] Write this record as part of a transaction commit, rather than immediately</arg>
+   */ 
     void remove(const uintcw_t key,Transaction& t=SAFplus::NO_TXN);
 #if 0    
     void remove(const SAFplusI::BufferPtr& bufPtr, bool isKey=false, Transaction& t=SAFplus::NO_TXN);
     void remove(Buffer* buf, bool isKey=false, Transaction& t=SAFplus::NO_TXN);
 #endif    
 
-    /** During replication, changes are received from the remote
-    checkpoint.  This API applies these changes */
+    /* During replication, changes are received from the remote checkpoint.  This API applies these changes */
     void applySync(const Buffer& key, const Buffer& value,Transaction& t=SAFplus::NO_TXN);
+
+    /* temporarily disallow/allow synchronization */
+    void syncLock() { gate.lock(); }
+    void syncUnlock() { gate.unlock(); }
 
 
     typedef SAFplusI::CkptMapPair KeyValuePair;
 
     //void registerChangeNotification(Callback &c, void* cookie);
  
+    //? <class> Iterate through all sections in a checkpoint table.  Like STL iterators, this object acts like a pointer where the obj->first gets the key, and obj->second get the value of the section the iterator is visiting.
     class Iterator
     {
     protected:
@@ -223,15 +284,17 @@ namespace SAFplus
 
       //Iterator(Buffer *pData, Buffer *pKey);
 
-      // comparison
+      //? comparison
       bool operator !=(const Iterator& otherValue) const;
 
-      // increment the pointer to the next value
+      //? go to the next section (row) in the checkpoint table
       Iterator& operator++();
       Iterator& operator++(int);
 
+      //? Get the key and value of the currently visited section with (*it).first and (*it).second respectively
       KeyValuePair& operator*() { return *curval; }
       const KeyValuePair& operator*() const { return *curval; }
+      //? Get the key and value of the currently visited section with it->first and it->second respectively
       KeyValuePair* operator->() { return curval; }
       const KeyValuePair* operator->() const { return curval; }
 
@@ -242,17 +305,21 @@ namespace SAFplus
       friend class Checkpoint;
       protected:
       SAFplusI::CkptHashMap::iterator iter;
-    };
+    }; //? </class>
 
-    // the begin and end of the iterator look up
+    //? Similar to the Standard Template Library (STL), this function starts iteration through the members of this group.
     Iterator begin();
+    //? Similar to the Standard Template Library (STL), this returns the termination sentinel -- that is, an invalid object that can be compared to an iterator to determine that it is at the end of the list of members.
     Iterator end();
 
+    //? Return the universal identifier for this checkpoint.
     const SAFplus::Handle& handle() { return hdr->handle; } // its read only
+    //? Get the name of the checkpoint
     std::string                    name;
 
-    // debugging
+    //? [DEBUGGING ONLY]: print out the keys and values in this checkpoint.
     void dump();
+    //? [DEBUGGING ONLY]: Unilaterally delete this checkpoint out of shared memory... behavior is undefined if other processes have the checkpoint open.
     static void dbgRemove(char* name);
     void stats();
   protected:

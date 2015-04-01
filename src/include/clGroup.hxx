@@ -285,7 +285,7 @@ namespace SAFplus
 
       //? Similar to STL, starts iteration through the members of this group.
       Iterator begin() { return Iterator(this); }
-      //? Similar to STL, this returns an invalid object that can be compared to an iterator to determine that it is at the end of the list of members.
+      //? Similar to STL, this returns the termination sentinel -- that is, an invalid object that can be compared to an iterator to determine that it is at the end of the list of members.
       Iterator& end() { return Iterator::END; }
 
       //?  Returns a string describing the passed capabilities in English, pass in a 100 byte string as the fill buffer
