@@ -465,7 +465,7 @@ extern "C" SAFplus::ClPlugin* clPluginInitialize(uint_t preferredPluginVersion)
   // Initialize the pluginData structure
   SAFplus::api.pluginId         = SAFplus::CL_MSG_TRANSPORT_PLUGIN_ID;
   SAFplus::api.pluginVersion    = SAFplus::CL_MSG_TRANSPORT_PLUGIN_VER;
-  SAFplus::api.type = "UDP";
+  SAFplus::api.type = "SCTP";
 
   // return it
   return (SAFplus::ClPlugin*) &SAFplus::api;
