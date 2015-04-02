@@ -218,4 +218,73 @@ namespace SAFplus
       }
     }
 
+  //Advanced socket : MsgSocketReliable
+
+  MsgSocketReliable::MsgSocketReliable(uint_t port,MsgTransportPlugin_1* transport)
+  {
+    sock=transport->createSocket(port);
+  }
+  MsgSocketReliable::~MsgSocketReliable()
+  {
+	  //TODO
+  }
+
+  void MsgSocketReliable::send(Message* msg,uint_t length)
+  {
+    //Apply reliable algorithm
+    sock->send(msg);
+  }
+  Message* MsgSocketReliable::receive(uint_t maxMsgs,int maxDelay)
+  {
+    return sock->receive(maxMsgs,maxDelay);
+  }
+
+
+
+  //Advanced socket : MsgSocketSegmentaion
+
+  MsgSocketSegmentaion::MsgSocketSegmentaion(uint_t port,MsgTransportPlugin_1* transport)
+  {
+    sock = transport->createSocket(port);
+  }
+  MsgSocketSegmentaion::~MsgSocketSegmentaion()
+  {
+    //TODO
+  }
+
+  void MsgSocketSegmentaion::send(Message* msg,uint_t length)
+  {
+    //Apply segmentation algorithm
+    sock->send(msg);
+  }
+  Message* MsgSocketSegmentaion::receive(uint_t maxMsgs,int maxDelay)
+  {
+    return sock->receive(maxMsgs,maxDelay);
+  }
+
+  //Advanced socket : MsgSocketShaping
+  MsgSocketShaping::MsgSocketShaping(uint_t port,MsgTransportPlugin_1* transport,uint_t volume, uint_t leakSize, uint_t leakInterval)
+  {
+    bucket.leakyBucketCreate(volume,leakSize,leakInterval);
+    sock=transport->createSocket(port);
+  };
+  MsgSocketShaping::~MsgSocketShaping()
+  {
+     //TODO
+  }
+  //? Send a bunch of messages.  You give up ownership of msg.
+  void MsgSocketShaping::applyShaping(uint_t length)
+  {
+      bucket.leakyBucketFill(length);
+  }
+  void MsgSocketShaping::send(Message* msg,uint_t length)
+  {
+    applyShaping(length);
+    sock->send(msg);
+  }
+  Message* MsgSocketShaping::receive(uint_t maxMsgs,int maxDelay)
+  {
+    return sock->receive(maxMsgs,maxDelay);
+  }
+
   };

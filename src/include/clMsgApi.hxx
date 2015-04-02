@@ -2,6 +2,7 @@
 #pragma once
 #include <clDbg.hxx>
 #include <clMsgHandler.hxx>
+#include <leakyBucket.hxx>
 #include <clMsgTransportPlugin.hxx>
 
 namespace SAFplus
@@ -139,6 +140,56 @@ namespace SAFplus
       MsgTransportPlugin* transport;
       friend class ScopedMsgSocket;
   }; //? </class>
+
+  class MsgSocketAdvance
+  {
+    public:
+    virtual ~MsgSocketAdvance()
+    {
+      //sock->transport->deleteSocket(sock);
+    }
+    MsgSocket *sock;
+    //? Send a bunch of messages.  You give up ownership of msg.
+    virtual void send(Message* msg,uint_t length)=0;
+    virtual Message* receive(uint_t maxMsgs,int maxDelay=-1)=0;
+    MsgSocket* operator->() {return sock;}
+  };
+
+  class MsgSocketShaping : public MsgSocketAdvance
+  {
+    private:
+      SAFplus::leakyBucket bucket;
+    public:
+    MsgSocketShaping(uint_t port,MsgTransportPlugin_1* transport,uint_t volume, uint_t leakSize, uint_t leakInterval);
+    virtual ~MsgSocketShaping();
+    //? Send a bunch of messages.  You give up ownership of msg.
+    void applyShaping(uint_t length);
+    virtual void send(Message* msg,uint_t length);
+    virtual Message* receive(uint_t maxMsgs,int maxDelay=-1);
+  };
+
+  class MsgSocketReliable : public MsgSocketAdvance
+  {
+    private:
+
+    public:
+    MsgSocketReliable(uint_t port,MsgTransportPlugin_1* transport);
+    virtual ~MsgSocketReliable();
+    //? Send a bunch of messages.  You give up ownership of msg.
+    virtual void send(Message* msg,uint_t length);
+    virtual Message* receive(uint_t maxMsgs,int maxDelay=-1);
+  };
+
+  class MsgSocketSegmentaion : public MsgSocketAdvance
+  {
+    private:
+    public:
+    MsgSocketSegmentaion(uint_t port,MsgTransportPlugin_1* transport);
+    virtual ~MsgSocketSegmentaion();
+    //? Send a bunch of messages.  You give up ownership of msg.
+    virtual void send(Message* msg,uint_t length);
+    virtual Message* receive(uint_t maxMsgs,int maxDelay=-1);
+  };
 
   //? <class> A message socket whose lifetime rules follow lexical scoping
   class ScopedMsgSocket
