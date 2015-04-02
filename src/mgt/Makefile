@@ -26,7 +26,7 @@ $(MWOBJ_DIR)/%.o: %.cc Makefile $(CLIENT_H)
 
 gen:
 	protoc -I../3rdparty -I. --cpp_out=./ MgtMsg.proto
-	$(SAFplusRpcGen) -I../3rdparty -I. --rpc_out=./ --rename=true MgtMsg.proto
+	$(SAFplusRpcGen) -I../3rdparty -I. --rpc_out=./ --rpc_opts=rename=true MgtMsg.proto
 
 clean:
 	rm -f $(LIB_DIR)/libclMgt.so $(CLIENT_OBJ)

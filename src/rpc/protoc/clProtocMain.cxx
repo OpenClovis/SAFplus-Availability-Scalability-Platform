@@ -26,7 +26,6 @@ int main(int argc, char *argv[])
   {
     google::protobuf::compiler::CommandLineInterface cli;
     string path;
-    bool renameFile = false;
     for (int i = 0; i < argc; i++)
       {
         if (!strncmp(argv[i], "--rpc_out", 9))
@@ -36,13 +35,8 @@ int main(int argc, char *argv[])
             if (dir)
               path.assign(dir + 1);
           }
-
-        if (!strncmp(argv[i], "--rename", 8))
-          {
-            renameFile = true;
-          }
       }
-    SAFplus::Rpc::RpcGenerator rpc_generator(path, renameFile);
-    cli.RegisterGenerator("--rpc_out", "--rename", &rpc_generator, "Generate C++ Service file.");
+    SAFplus::Rpc::RpcGenerator rpc_generator(path);
+    cli.RegisterGenerator("--rpc_out", "--rpc_opts", &rpc_generator, "Generate C++ Service file.");
     return cli.Run(argc, argv);
   }

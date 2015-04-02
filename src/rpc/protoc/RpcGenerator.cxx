@@ -36,7 +36,7 @@ namespace SAFplus
 
     namespace Rpc
       {
-        RpcGenerator::RpcGenerator(const std::string &dir, bool renameFile)
+        RpcGenerator::RpcGenerator(const std::string &dir)
           {
             if( dir.c_str()[0] != '/' )
               {
@@ -50,7 +50,6 @@ namespace SAFplus
               {
                 this->dir.assign(dir);
               }
-            this->renameFile = renameFile;
           }
 
         RpcGenerator::~RpcGenerator()
@@ -60,12 +59,25 @@ namespace SAFplus
         bool RpcGenerator::Generate(const google::protobuf::FileDescriptor* file, const std::string& parameter,
             google::protobuf::compiler::GeneratorContext* generator_context, std::string* error) const
           {
+            bool renameFileOnly = false;
+
+            /* Get extra params */
+            vector<pair<string, string> > options;
+            ParseGeneratorParameter(parameter, &options);
+            for (int i = 0; i < options.size(); i++) {
+                if ((options[i].first == "rename") && (options[i].second == "true" || options[i].second == "True" || options[i].second == "1"))
+                  {
+                    renameFileOnly = true;
+                  }
+                // TODO: other options
+            }
+
             std::string basename = google::protobuf::StripSuffixString(file->name(), ".proto");
 
             /* Rename pb.cc => pb.cxx, pb.h => pb.hxx */
             RenamePbFile renamePbFile(dir, basename);
 
-            if (renameFile)
+            if (renameFileOnly)
               {
                 //Only rename file
                 return true;

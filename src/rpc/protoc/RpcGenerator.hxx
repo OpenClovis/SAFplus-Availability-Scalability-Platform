@@ -35,13 +35,12 @@ namespace SAFplus
         class RpcGenerator : public google::protobuf::compiler::CodeGenerator
           {
           public:
-            RpcGenerator(const std::string &dir, bool renameFile);
+            RpcGenerator(const std::string &dir);
             ~RpcGenerator();
             bool Generate(const google::protobuf::FileDescriptor* file, const std::string& parameter,
                 google::protobuf::compiler::GeneratorContext* generator_context, std::string* error) const;
           private:
            std::string dir;
-           bool renameFile;
           };
       } /* namespace Rpc */
   } /* namespace SAFplus */
