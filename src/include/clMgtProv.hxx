@@ -419,7 +419,12 @@ namespace SAFplus
   template<class T>
     ClRcT MgtProv<T>::setObj(const std::string &value)
     {
+      if (!config)
+        return CL_ERR_BAD_OPERATION;
+
       deXMLize(value.c_str(), this, this->value);
+
+      return CL_OK;
     }
 
 }

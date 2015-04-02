@@ -366,6 +366,19 @@ namespace SAFplus
     if (!module)
       {
         // Module not found
+        for(map<string, MgtModule*>::iterator iter = mMgtModules.begin(); iter != mMgtModules.end(); iter++)
+          {
+            module = static_cast<MgtModule *>((*iter).second);
+            std::string modXpath;
+            modXpath.assign("/");
+            modXpath.append((*iter).first);
+            modXpath.append(xpath);
+
+            MgtObject *object = module->findMgtObject(modXpath);
+            if (object)
+              return object;
+          }
+
         return nullptr;
       }
 
@@ -383,7 +396,6 @@ namespace SAFplus
         ClUint64T outMsgSize = 0;
 
         object->get(&outBuff, &outMsgSize);
-        rplMesg.add_data("");
         rplMesg.add_data(outBuff.c_str(),outMsgSize);
         rplMesg.SerializeToString(&strRplMesg);
         logDebug("MGT","XGET","Replying with msg of size [%d]",strRplMesg.size());
