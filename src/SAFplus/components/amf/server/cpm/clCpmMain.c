@@ -154,6 +154,8 @@ ClCharT gAspInstallInfo[128]; /*install key info. for ARD*/
 ClBoolT gClAmsSwitchoverInline;
 ClBoolT gClAmsPayloadResetDisable;
 
+extern ClBoolT gCpmShuttingDown;
+
 /**
  * Static variables.
  */
@@ -2906,7 +2908,14 @@ ClRcT cpmStandby2Active(ClGmsNodeIdT prevMasterNodeId,
     {
         return rc;
     }
-
+    
+    /* we got this active assignment while shutting down, so we can't become active */
+    if ((gpClCpm->polling == CL_FALSE) || gCpmShuttingDown)
+    {
+        clLogNotice(CPM_LOG_AREA_CPM, CPM_LOG_CTX_CPM_GMS, "Rejected request to become active -- this node is shutting down.");
+        return CL_CPM_RC(CL_ERR_FAILED_OPERATION);
+    }
+    
     clOsalMutexLock(&gpClCpm->cpmMutex);
     pCpmLocalInfo = gpClCpm->pCpmLocalInfo;
     clOsalMutexUnlock(&gpClCpm->cpmMutex);

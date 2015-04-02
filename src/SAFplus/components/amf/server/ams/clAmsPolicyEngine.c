@@ -13842,6 +13842,7 @@ clAmsPeCompTerminateError(
 
     /* comp should always have a SU but its not necessary at this level so why require it? */
     /* AMS_CHECK_SU ( su = (ClAmsSUT*)comp->config.parentSU.ptr ); */
+    su = (ClAmsSUT*)comp->config.parentSU.ptr;    
 
     AMS_ENTITY_LOG(comp, CL_AMS_MGMT_SUB_AREA_MSG, CL_DEBUG_ERROR,("Component [%s] terminate error [0x%x]. Will cleanup\n",comp->config.entity.name.value,error));
 
