@@ -160,7 +160,12 @@ namespace SAFplus
             google::protobuf::Message* request_pb = NULL;
             google::protobuf::Message* response_pb = NULL;
             bool isRequestWithNoResponse = false;
-
+            if (!service)
+              {
+                clDbgCodeError(0, "Entity [%" PRIx64 ":%" PRIx64 "] from node.port [%d.%d] made a RPC call to a client-only entity", iocReq.id[0], iocReq.id[1], iocReq.getNode(), iocReq.getPort());
+              delete request_pb;
+              return;
+              }
             const google::protobuf::MethodDescriptor* method = service->GetDescriptor()->FindMethodByName(rpcMsgReq->name());
             request_pb  = service->GetRequestPrototype(method).New();
 

@@ -16,14 +16,21 @@ namespace SAFplus
 
   class Poolable: public Wakeable, public boost::intrusive::list_base_hook<>
   {
-  protected:    
-    struct timespec startTime;
+  protected:
+     struct timespec startTime;
     struct timespec endTime;
     uint32_t executionTimeLimit;        
-    bool deleteWhenComplete;
     UserCallbackT fn;
 
-  public:    
+  public:
+    bool deleteWhenComplete;
+    uint_t structId;
+    
+    enum 
+      {
+        STRUCT_ID = 0x12345678,
+      };
+
     void* arg;
     typedef boost::intrusive::list<Poolable> PoolableList;
     static PoolableList poolableList;    
@@ -33,6 +40,7 @@ namespace SAFplus
     void calculateStartTime();
     void calculateEndTime();
     void calculateExecTime();
+    virtual void complete(void);  // derived class free function
     virtual ~Poolable();
   };
 
@@ -40,6 +48,7 @@ namespace SAFplus
   {
   public:
     Wakeable* wk;
+    WakeableHelper* next;
     WakeableHelper(Wakeable* _wk, void* _arg): Poolable(NULL,_arg)
     {
       wk=_wk;
@@ -68,7 +77,7 @@ namespace SAFplus
  
   typedef std::pair<const pthread_t,ThreadState> ThreadMapPair; 
   typedef boost::unordered_map <pthread_t, ThreadState> ThreadHashMap;
-  typedef std::list<WakeableHelper*> WHList;
+  //typedef std::list<WakeableHelper*> WHList;
 
   class ThreadPool
   {
@@ -79,7 +88,7 @@ namespace SAFplus
     ThreadHashMap threadMap;
     int numCurrentThreads;
     int numIdleThreads;
-    WHList whList;
+    //WHList whList;
   
     Poolable* dequeue();
     void enqueue(Poolable* p);
@@ -87,7 +96,10 @@ namespace SAFplus
     static void runTask(void* arg);
     /** Starts the thread pool running */
     void start();
-    WakeableHelper* getUnusedWHElement();
+
+    WakeableHelper* unusedWakeableHelperList;
+    WakeableHelper* allocWakeableHelper(Wakeable* wk, void* arg);
+    void deleteWakeableHelper(WakeableHelper* wh);
     //int getNumIdleThreads();
     void checkAndReleaseThread();
     static void* timerThreadFunc(void* arg);
@@ -110,7 +122,13 @@ namespace SAFplus
     void* m_onDeckCookie;        
     uint32_t m_pendingJobs;
 #endif
-    ThreadPool(short _minThreads, short _maxThreads); /* Initialize pool*/    
+    //? <ctor>  This 2 phase constructor requires that you call Init() to actually use the created object </ctor>
+    ThreadPool();
+    //? <ctor> Initializes and starts this thread pool </ctor>
+    ThreadPool(short _minThreads, short _maxThreads); 
+
+    //? 2nd phase of the 2 phase constructor.  Initializes and starts the thread pool
+    void init(uint_t _minThreads, uint_t _maxThreads); /* Initialize pool*/    
 
     /** Stops the thread pool.  All currently running threads complete their job and then exit */
     void stop();

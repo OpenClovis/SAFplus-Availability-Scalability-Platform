@@ -57,7 +57,7 @@ extern "C"
     amfInitCount++;
     AmfSession* ret = new AmfSession;
     
-    set(ret->callbacks, *amfCallbacks);
+    ::set(ret->callbacks, *amfCallbacks);
 
     if (tmp==0)
       {

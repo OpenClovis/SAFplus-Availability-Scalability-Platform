@@ -16,5 +16,7 @@ include ./mk/safplus_targets.mk
 
 all: $(ThirdPartySOs) $(SAFplusTools) $(SAFplusSOs) $(SAFplusPlugins) $(SAFplusServices) $(SAFplusTests) $(LIB_DIR)/libmw.so
 
+tools: $(SAFplusTools)
+
 $(LIB_DIR)/libmw.so: $(SAFplusSOs)
 	$(LINK_SO) $@  $(MWOBJ_DIR)/*.o $(LINK_STD_LIBS)

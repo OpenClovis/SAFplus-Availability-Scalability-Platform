@@ -8,6 +8,7 @@ Poolable::PoolableList Poolable::poolableList;
 
 Poolable::Poolable(UserCallbackT _fn, void* _arg, uint32_t timeLimit, bool _deleteWhenComplete): fn(_fn), arg(_arg), executionTimeLimit(timeLimit), deleteWhenComplete(_deleteWhenComplete)
 {
+  structId = Poolable::STRUCT_ID;
 }
 
 void Poolable::calculateStartTime()
@@ -30,12 +31,25 @@ bool Poolable::isDeleteWhenComplete()
 {
   return deleteWhenComplete;
 }
+
 Poolable::~Poolable()
+{
+    structId = 0xdeadbeef;
+}
+
+ThreadPool::ThreadPool(): minThreads(0), maxThreads(0), numCurrentThreads(0), numIdleThreads(0), isStopped(false)
 {
 }
 
 ThreadPool::ThreadPool(short _minThreads, short _maxThreads): minThreads(_minThreads), maxThreads(_maxThreads), numCurrentThreads(0), numIdleThreads(0), isStopped(false)
 {
+  start();
+}
+
+void ThreadPool::init(uint_t _minThreads, uint_t _maxThreads)
+{
+  minThreads = _minThreads; 
+  maxThreads = _maxThreads;
   start();
 }
 
@@ -73,32 +87,26 @@ void ThreadPool::run(Poolable* p)
 void ThreadPool::run(Wakeable* wk, void* arg)
 {
   logTrace("THRPOOL","RUN", "ThreadPool::run enter");
-  WakeableHelper* pwh = getUnusedWHElement();
-  if (pwh)
-  {
-    pwh->wk=wk;
-    pwh->arg=arg;
-  }
-  else
-  {
-    pwh = new WakeableHelper(wk, arg);
-    whList.push_back(pwh);
-  }
+  WakeableHelper* pwh = allocWakeableHelper(wk,arg);
   enqueue(pwh);
 }
 
 void ThreadPool::enqueue(Poolable* p)
 {
   logTrace("THRPOOL","ENQ", "ThreadPool::enqueue enter");
-  if (numIdleThreads == 0 && numCurrentThreads < maxThreads)
+  if ((numIdleThreads == 0) && (numCurrentThreads <= maxThreads))
   {
-    logDebug("THRPOOL","ENQ", "Creating a new thread to execute job because all current threads are busy");
+    logDebug("THRPOOL","ENQ", "Creating a new thread to execute job because all current threads are busy.  Current num threads [%d], max allowed [%d]", numCurrentThreads, maxThreads);
     startThread();
   }
   mutex.lock();
   Poolable::poolableList.push_back(*p);
   cond.notify_one();
   mutex.unlock();
+}
+
+void Poolable::complete()
+{
 }
 
 Poolable* ThreadPool::dequeue()
@@ -132,6 +140,7 @@ void ThreadPool::runTask(void* arg)
   assert(contents != tp->threadMap.end());
   tp->mutex.unlock();
   ThreadState& ts = contents->second;
+
   while (!tp->isStopped)
   {
     if (ts.quitAllowed)
@@ -139,9 +148,10 @@ void ThreadPool::runTask(void* arg)
       logInfo("THRPOOL","RUNTSK", "Thread [%lu] has to quit immediately", thid);
       break;
     }
-    Poolable* p = tp->dequeue();
+    Poolable* p = tp->dequeue();  // blocking
     if (!p)
       continue;
+
     ts.working = true;
     tp->mutex.lock();
     tp->numIdleThreads--;
@@ -150,11 +160,12 @@ void ThreadPool::runTask(void* arg)
     if (!wh) // it's Poolable object
     {
       logTrace("THRPOOL","RUNTSK", "Execute user-defined func of Poolable object");
+      assert(p->structId == Poolable::STRUCT_ID);
       p->calculateStartTime();
       p->wake(0, p->arg);
       p->calculateEndTime();
       p->calculateExecTime(); 
-
+      p->complete();
       if (p->isDeleteWhenComplete())
       {
         logTrace("THRPOOL","RUNTSK", "Delete the poolable object");
@@ -166,7 +177,7 @@ void ThreadPool::runTask(void* arg)
       logTrace("THRPOOL","RUNTSK", "Execute user-defined func of Wakeable object");
       wh->wk->wake(0, wh->arg);
       wh->wk=NULL;
-      //delete wh;
+      
     }
     ts.working = false;
     int ret = clock_gettime(CLOCK_MONOTONIC, &ts.idleTimestamp);
@@ -201,8 +212,23 @@ void ThreadPool::startThread()
   mutex.unlock();
 }
 
-WakeableHelper* ThreadPool::getUnusedWHElement()
+WakeableHelper* ThreadPool::allocWakeableHelper(Wakeable* wk, void* arg)
 {
+  if (unusedWakeableHelperList == nullptr)
+    {
+    WakeableHelper* pwh = new WakeableHelper(wk, arg);
+    return pwh;
+    }
+  else 
+    {
+      WakeableHelper* pwh = unusedWakeableHelperList;
+      unusedWakeableHelperList = pwh->next;
+      pwh->next = nullptr;
+      pwh->wk = wk;
+      pwh->arg = arg;
+    }  
+
+#if 0
   for (WHList::iterator it=whList.begin(); it != whList.end(); ++it)
   {
     if ((*it)->wk==NULL)
@@ -211,7 +237,24 @@ WakeableHelper* ThreadPool::getUnusedWHElement()
     }
   }
   return NULL;
+#endif
+
 }
+
+void ThreadPool::deleteWakeableHelper(WakeableHelper* wh)
+  {
+    if (unusedWakeableHelperList == nullptr)
+    {
+      unusedWakeableHelperList = wh;
+      wh->next = nullptr;
+    }
+    else
+      {
+        wh->next = unusedWakeableHelperList;
+        unusedWakeableHelperList = wh;
+      }
+    //delete wh;
+  }
 
 void* ThreadPool::timerThreadFunc(void* arg)
 {
@@ -269,9 +312,11 @@ void ThreadPool::checkAndReleaseThread()
 ThreadPool::~ThreadPool()
 {
   stop();
-  logTrace("THRPOOL","DES","Deallocate mem for helper object list. size[%d]", (int)whList.size());
-  for (WHList::iterator it=whList.begin(); it != whList.end(); ++it)
-  {
-    delete (*it);
-  }
+  WakeableHelper* iter = unusedWakeableHelperList;
+  while(iter)
+    {
+      WakeableHelper* tmp = iter;
+      iter = iter->next;
+      delete tmp;
+    }
 }

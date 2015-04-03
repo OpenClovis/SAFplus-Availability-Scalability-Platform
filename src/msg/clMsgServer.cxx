@@ -17,6 +17,8 @@ namespace SAFplus
     Message*   msg;
     MsgServer* q;
     virtual void wake(int amt, void* cookie);
+    virtual void complete(void);  // derived class free function
+    virtual ~MsgTracker();
   };
 
 
@@ -24,12 +26,25 @@ namespace SAFplus
   void ReleaseMsgTracker(MsgTracker* rm);
   void MsgTrackerHandler(MsgTracker* rm);
 
-  MsgServer::MsgServer():jq(1,10)
+  MsgTracker::~MsgTracker()
+  {
+    msg = NULL;
+    q = NULL;
+    structId = 0xdeadbee1;
+  }
+
+  void MsgTracker::complete()
+  {
+    assert(deleteWhenComplete == false);
+    ReleaseMsgTracker(this);
+  }
+
+  MsgServer::MsgServer():jq()
   {
     Wipe();
   }
 
-  MsgServer::MsgServer(uint_t port, uint_t maxPending, uint_t maxThreads, Options flags):jq(1,maxThreads+1)
+  MsgServer::MsgServer(uint_t port, uint_t maxPending, uint_t maxThreads, Options flags):jq()
   {
     /* Created 1 extra thread since it will be used to listen to the IOC port */
 
@@ -56,7 +71,7 @@ namespace SAFplus
     SaNameT myName;
     assert(_port != 0);  // TODO if port==0, use a shared memory bitmap to allocate a port number
     Wipe();
-
+    jq.init(1,maxThreads);
     port   = _port;
 
     // Create the message port
@@ -140,6 +155,7 @@ void MsgServer::MakeMePrimary()
     MsgTracker* ret = new MsgTracker();
     ret->q      = q;
     ret->msg    = recv_msg;
+    assert(ret->deleteWhenComplete == false);
     return ret;
   }
 
@@ -168,7 +184,7 @@ void MsgServer::MakeMePrimary()
         msgHandler->msgHandler(srcAddr, q, (char*)frag->read(0), frag->len,q->cookies[msgType]);
       }
 
-    ReleaseMsgTracker(this);
+    // this message tracker must be released by the Poolable class after we return
   }
  
   

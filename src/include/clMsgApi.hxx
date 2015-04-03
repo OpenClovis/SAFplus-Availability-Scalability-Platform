@@ -162,8 +162,9 @@ namespace SAFplus
     public:
     MsgSocketShaping(uint_t port,MsgTransportPlugin_1* transport,uint_t volume, uint_t leakSize, uint_t leakInterval);
     virtual ~MsgSocketShaping();
-    //? Send a bunch of messages.  You give up ownership of msg.
+    //? Tell the traffic shaper that a message of the supplied length was sent.  This function is automatically called by send so the application typically never needs to use it.
     void applyShaping(uint_t length);
+    //? Send a bunch of messages.  You give up ownership of msg.
     virtual void send(Message* msg,uint_t length);
     virtual Message* receive(uint_t maxMsgs,int maxDelay=-1);
   };

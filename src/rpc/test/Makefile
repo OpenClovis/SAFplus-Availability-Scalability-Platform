@@ -15,14 +15,23 @@ SERVER_OBJ := $(addprefix $(OBJ_DIR)/test/rpc/,$(subst .cxx,.o,$(SERVER_SRC)))
 COMBINE_SRC := TestCombine.cxx RpcWakeable.cxx $(notdir $(wildcard stubs/*.cxx)) $(notdir $(wildcard stubs/server/*.cxx))
 COMBINE_OBJ := $(addprefix $(OBJ_DIR)/test/rpc/,$(subst .cxx,.o,$(COMBINE_SRC)))
 
+REFLECTOR_SRC := rpcReflector.cxx $(notdir $(wildcard reflection/*.cxx))
+REFLECTOR_OBJ := $(addprefix $(OBJ_DIR)/test/rpc/,$(subst .cxx,.o,$(REFLECTOR_SRC)))
+
+PERF_SRC := testRpcPerf.cxx $(notdir $(wildcard reflection/*.cxx))
+PERF_OBJ := $(addprefix $(OBJ_DIR)/test/rpc/,$(subst .cxx,.o,$(PERF_SRC)))
+
 # Specify the required libraries
 SAFPLUS_LIBS := clOsal clUtils clLog clMsg clRpc
 
 # Then use these in the make rule
 SAFPLUS_DEP_LIBS     := $(addsuffix .so,$(addprefix $(LIB_DIR)/lib,$(SAFPLUS_LIBS)))
+
 SAFPLUS_LINK_LIBS := -L$(LIB_DIR) $(addprefix -l,$(SAFPLUS_LIBS))
 
-Release all: $(TEST_DIR)/TestRpcClient $(TEST_DIR)/TestRpcServer $(TEST_DIR)/TestRpcCombined
+Release all: $(TEST_DIR)/rpcReflector $(TEST_DIR)/testRpcPerf 
+
+# $(TEST_DIR)/TestRpcClient $(TEST_DIR)/TestRpcServer $(TEST_DIR)/TestRpcCombined
 
 $(TEST_DIR)/TestRpcClient: $(CLIENT_OBJ) $(SAFPLUS_DEP_LIBS)
 	$(LINK_EXE) $@ $(CLIENT_OBJ) $(SAFPLUS_LINK_LIBS) $(LINK_SO_LIBS) 
@@ -33,8 +42,11 @@ $(TEST_DIR)/TestRpcServer: $(SERVER_OBJ) $(SAFPLUS_DEP_LIBS) Makefile
 $(TEST_DIR)/TestRpcCombined: $(COMBINE_OBJ) $(SAFPLUS_DEP_LIBS) Makefile
 	$(LINK_EXE) $@ $(COMBINE_OBJ) $(SAFPLUS_LINK_LIBS) $(LINK_SO_LIBS)
 
-$(TEST_DIR)/rpcReflector: $(CLIENT_OBJ) $(SAFPLUS_DEP_LIBS)
-	$(LINK_EXE) $@ $(CLIENT_OBJ) $(SAFPLUS_LINK_LIBS) $(LINK_SO_LIBS) 
+$(TEST_DIR)/rpcReflector: $(LIB_DIR)/libclOsal.so $(REFLECTOR_OBJ) $(SAFPLUS_DEP_LIBS)
+	$(LINK_EXE) $@ $(REFLECTOR_OBJ) $(SAFPLUS_LINK_LIBS) $(LINK_SO_LIBS) 
+
+$(TEST_DIR)/testRpcPerf: $(PERF_OBJ) $(SAFPLUS_DEP_LIBS)
+	$(LINK_EXE) $@ $(PERF_OBJ) $(SAFPLUS_LINK_LIBS) $(LINK_SO_LIBS) 
 
 
 $(OBJ_DIR)/test/rpc/%.o: %.cxx Makefile $(STUBS_H)
@@ -42,6 +54,10 @@ $(OBJ_DIR)/test/rpc/%.o: %.cxx Makefile $(STUBS_H)
 	$(COMPILE_CPP) $@ $<
 
 $(OBJ_DIR)/test/rpc/%.o: stubs/%.cxx Makefile $(STUBS_H)
+	-mkdir -p $(OBJ_DIR)/test/rpc
+	$(COMPILE_CPP) $@ $<
+
+$(OBJ_DIR)/test/rpc/%.o: reflection/%.cxx Makefile $(STUBS_H)
 	-mkdir -p $(OBJ_DIR)/test/rpc
 	$(COMPILE_CPP) $@ $<
 
@@ -63,3 +79,6 @@ cleangen:
 
 clean:
 	rm -rf $(OBJ_DIR)/test/rpc $(TEST_DIR)/TestClient $(TEST_DIR)/TestServer $(TEST_DIR)/TestCombine
+
+include $(SAFPLUS_MAKE_DIR)/safplus_targets.mk
+

@@ -272,11 +272,13 @@ namespace SAFplus
   {
      //TODO
   }
-  //? Send a bunch of messages.  You give up ownership of msg.
+
   void MsgSocketShaping::applyShaping(uint_t length)
   {
       bucket.leakyBucketFill(length);
   }
+
+  //? Send a bunch of messages.  You give up ownership of msg.
   void MsgSocketShaping::send(Message* msg,uint_t length)
   {
     applyShaping(length);

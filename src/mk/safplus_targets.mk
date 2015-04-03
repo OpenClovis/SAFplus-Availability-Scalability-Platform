@@ -10,7 +10,7 @@ $(LIB_DIR)/libclLogRep.so:
 endif
 
 ifndef SAFPLUS_UTILS_LIB
-$(LIB_DIR)/libclUtils.so:
+$(LIB_DIR)/libclUtils.so: $(wildcard $(SAFPLUS_SRC_DIR)/utils/*.cxx) $(wildcard $(SAFPLUS_SRC_DIR)/include/*.hxx)
 	make -C $(SAFPLUS_SRC_DIR)/utils
 endif
 
@@ -23,15 +23,15 @@ $(INSTALL_DIR)/lib/libxml2.so:
 #endif
 
 ifndef SAFPLUS_RPC_LIB
-$(SAFPLUS_TARGET)/bin/protoc-gen-rpc:
+$(SAFPLUS_TARGET)/bin/protoc-gen-rpc: $(wildcard $(SAFPLUS_SRC_DIR)/rpc/protoc/*.cxx) $(wildcard $(SAFPLUS_SRC_DIR)/rpc/protoc/*.hxx)
 	make -C $(SAFPLUS_SRC_DIR)/rpc/protoc
 
-$(LIB_DIR)/libclRpc.so:
+$(LIB_DIR)/libclRpc.so: $(wildcard $(SAFPLUS_SRC_DIR)/rpc/*.cxx) $(wildcard $(SAFPLUS_SRC_DIR)/include/*.hxx) $(wildcard $(SAFPLUS_SRC_DIR)/rpc/protoc/*.cxx) $(wildcard $(SAFPLUS_SRC_DIR)/rpc/protoc/*.hxx)
 	make -C $(SAFPLUS_SRC_DIR)/rpc
 endif
 
 ifndef SAFPLUS_OSAL_LIB
-$(LIB_DIR)/libclOsal.so:
+$(LIB_DIR)/libclOsal.so: $(wildcard $(SAFPLUS_SRC_DIR)/osal/*.cxx) $(wildcard $(SAFPLUS_SRC_DIR)/include/*.hxx)
 	make -C $(SAFPLUS_SRC_DIR)/osal
 endif
 
@@ -86,7 +86,7 @@ endif
 
 ifndef SAFPLUS_MSG_LIB
 
-$(LIB_DIR)/libclMsg.so: $(wildcard $(SAFPLUS_SRC_DIR)/msg/*.cxx)
+$(LIB_DIR)/libclMsg.so: $(wildcard $(SAFPLUS_SRC_DIR)/msg/*.cxx) $(wildcard $(SAFPLUS_SRC_DIR)/include/*.hxx)
 	make -C $(SAFPLUS_SRC_DIR)/msg
 endif
 
