@@ -351,7 +351,13 @@ static void *clAmsClusterStateVerifier(void *cookie)
                             notification.nodeAddress.iocPhyAddress.nodeAddress = htonl(i);
                             notification.nodeAddress.iocPhyAddress.portId = htonl(myCapability);
                             notification.protoVersion = htonl(CL_IOC_NOTIFICATION_VERSION);  // htonl(1);
-                            rc = clIocNotificationPacketSend(gpClCpm->cpmEoObj->commObj, &notification, &allNodeReps, CL_FALSE, NULL);
+                            /* Sending notification to other node amfs */
+                            clIocNotificationPacketSend(gpClCpm->cpmEoObj->commObj, &notification, &allNodeReps, CL_FALSE, NULL);
+
+                            /* Kicked that node out of the cluster - work around in case broadcast link congestion */
+                            ClIocAddressT peerNodeAddr = { .iocPhyAddress = {i, CL_IOC_XPORT_PORT} };
+                            clIocNotificationPacketSend(gpClCpm->cpmEoObj->commObj, &notification, &peerNodeAddr, CL_FALSE, NULL);
+
                             checkFailed[i] = 0;
                             continue;
                         }
