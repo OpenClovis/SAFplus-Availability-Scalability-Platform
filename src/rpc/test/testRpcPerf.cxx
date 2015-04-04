@@ -50,13 +50,14 @@ bool testLatency(Handle dest, int msgLen, int atOnce, int numLoops,const char* t
     std::string msg(msgLen,'A');
 
     timer t;
+    SAFplus::Rpc::msgReflection::CallResponse* resp = new SAFplus::Rpc::msgReflection::CallResponse[atOnce];
     for(int loop=0;loop<numLoops;loop++)
       {
         ThreadSem wakeable(0);
 
         //DATA request
         SAFplus::Rpc::msgReflection::CallRequest req;
-        SAFplus::Rpc::msgReflection::CallResponse* resp = new SAFplus::Rpc::msgReflection::CallResponse[atOnce];
+        //SAFplus::Rpc::msgReflection::CallResponse* resp = new SAFplus::Rpc::msgReflection::CallResponse[atOnce];
         req.set_data(msg);
 
         for (int simul=0; simul<atOnce; simul++)
@@ -66,7 +67,9 @@ bool testLatency(Handle dest, int msgLen, int atOnce, int numLoops,const char* t
           totalMsgs++;
           }
         wakeable.lock(atOnce);  // Bring it back to 0 for the next loop.
+        //delete[] resp;
       }
+    delete[] resp;
     double elapsed = t.elapsed();
 
     // Bandwidth measurements are doubled because the program sends AND receives each message
@@ -84,24 +87,24 @@ int main(void)
   clMsgInitialize();
 
   //Msg server listening
-  safplusMsgServer.init(MY_MSG_PORT, 1000, 1);
+  safplusMsgServer.init(MY_MSG_PORT, 1000, 30);
 
   // sending to a different port on this node
   Handle msgDest = Handle::create(SERVER_MSG_PORT);
  
   safplusMsgServer.Start();
 
-  //testLatency(msgDest, 100, 1, 10000,"100 bytes by 1");
-  //testLatency(msgDest, 1000, 1, 10000,"1000 bytes by 1");
-  //testLatency(msgDest, 10000, 1, 10000,"10000 bytes by 1");
+  testLatency(msgDest, 100, 1, 10000,"100 bytes by 1");
+  testLatency(msgDest, 1000, 1, 10000,"1000 bytes by 1");
+  testLatency(msgDest, 10000, 1, 10000,"10000 bytes by 1");
 
-  //testLatency(msgDest, 100, 10, 1000,"100 bytes by 10");
-  //testLatency(msgDest, 1000, 10, 1000,"1000 bytes by 10");
-  //testLatency(msgDest, 10000, 10, 1000,"10000 bytes by 10");
+  testLatency(msgDest, 100, 10, 1000,"100 bytes by 10");
+  testLatency(msgDest, 1000, 10, 1000,"1000 bytes by 10");
+  testLatency(msgDest, 10000, 10, 1000,"10000 bytes by 10");
 
-  testLatency(msgDest, 100, 100, 100000,"100 bytes by 10");
+  testLatency(msgDest, 100, 100, 1000,"100 bytes by 10");
   testLatency(msgDest, 1000, 100, 100000,"1000 bytes by 10");
-  testLatency(msgDest, 10000, 100, 100000,"10000 bytes by 10");
+  testLatency(msgDest, 10000, 100, 1000000,"10000 bytes by 10");
 
 
 #if 0

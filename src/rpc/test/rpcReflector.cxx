@@ -35,7 +35,7 @@ int main(void)
     clMsgInitialize();
 
     //Msg server listening
-    SAFplus::SafplusMsgServer safplusMsgServer(SERVER_MSG_PORT, 1000, 1);
+    SAFplus::SafplusMsgServer safplusMsgServer(SERVER_MSG_PORT, 1000, 30);
 
     // Handle RPC
     SAFplus::Rpc::RpcChannel *channel = new SAFplus::Rpc::RpcChannel(&safplusMsgServer, new SAFplus::Rpc::msgReflection::msgReflectionImpl());

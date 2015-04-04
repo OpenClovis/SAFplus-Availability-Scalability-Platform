@@ -13,8 +13,9 @@ namespace SAFplus
   */
 
   typedef uint32_t (*UserCallbackT) (void* invocation);
+ 
 
-  class Poolable: public Wakeable, public boost::intrusive::list_base_hook<>
+  class Poolable: public Wakeable // , public boost::intrusive::list_base_hook<>
   {
   protected:
      struct timespec startTime;
@@ -22,7 +23,9 @@ namespace SAFplus
     uint32_t executionTimeLimit;        
     UserCallbackT fn;
 
+
   public:
+    boost::intrusive::list_member_hook<> listHook;  
     bool deleteWhenComplete;
     uint_t structId;
     
@@ -32,8 +35,6 @@ namespace SAFplus
       };
 
     void* arg;
-    typedef boost::intrusive::list<Poolable> PoolableList;
-    static PoolableList poolableList;    
 
     Poolable(UserCallbackT _fn=NULL, void* _arg=NULL, uint32_t timeLimit=30000, bool _deleteWhenComplete=false);
     bool isDeleteWhenComplete();
@@ -43,6 +44,9 @@ namespace SAFplus
     virtual void complete(void);  // derived class free function
     virtual ~Poolable();
   };
+
+  typedef boost::intrusive::member_hook<Poolable,boost::intrusive::list_member_hook<>,&Poolable::listHook> PoolableMemberHookOption;
+  typedef boost::intrusive::list<Poolable,PoolableMemberHookOption> PoolableList;
 
   class WakeableHelper: public Poolable
   {
@@ -89,6 +93,7 @@ namespace SAFplus
     int numCurrentThreads;
     int numIdleThreads;
     //WHList whList;
+    PoolableList poolableList;    
   
     Poolable* dequeue();
     void enqueue(Poolable* p);
@@ -147,7 +152,12 @@ namespace SAFplus
     void run(Wakeable* wk, void* arg);
 
     ~ThreadPool(); /* Finalize pool */
-    
+ 
+    //? [Internal] Runs the passed object within the context of the calling thread
+    void immediatelyRun(Poolable*p);
+   
+    //? [GDB only] verify that all items in the queue are Poolable objects
+    bool dbgValidateQueue();
   };
 #if 0
   inline std::size_t hash_value(pthread_t id)

@@ -235,21 +235,30 @@ namespace SAFplus
          */
         void RpcChannel::HandleResponse(SAFplus::Rpc::RpcMessage *rpcMsgRes)
           {
+            mutex.lock();
             std::map<uint64_t,MsgRpcEntry*>::iterator it = msgRPCs.find(rpcMsgRes->id());
             if (it != msgRPCs.end())
               {
-                MsgRpcEntry *rpcReqEntry = it->second;
+                MsgRpcEntry* rpcReqEntry = it->second;
+                msgRPCs.erase(it);
+                mutex.unlock();
+
                 rpcReqEntry->response->ParseFromString(rpcMsgRes->buffer());
 
                 if (rpcReqEntry->callback != NULL)
                   {
                     rpcReqEntry->callback->wake(1, (void*) rpcReqEntry->response);
                   }
-                // Lock
-                ScopedLock<Mutex> lock(mutex);
-                msgRPCs.erase(rpcMsgRes->id());
-                // Unlock is done automatically when lock drops out of scope.
-                
+                else
+                  {
+                    logWarning("RPC", "RSP","RPC has no callback");
+                  }
+                delete rpcReqEntry;
+              }
+            else
+              {
+                mutex.unlock();
+                logWarning("RPC", "RSP","RPC response [%d] has no request tracker", rpcMsgRes->id());
               }
 
           }

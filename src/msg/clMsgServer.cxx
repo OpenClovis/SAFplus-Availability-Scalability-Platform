@@ -143,12 +143,14 @@ void MsgServer::MakeMePrimary()
           MsgTracker* rm = CreateMsgTracker(m,q);
           m = 0;  // wipe it so I know to create another
           q->jq.run(rm);
-          //clJobQueuePush(&q->jq, (ClCallbackT) MsgTrackerHandler, rm);
+
           }
         //boost::this_thread::sleep(boost::posix_time::milliseconds(1000));  // Just sleep until this function is implemented
 
       }
   }
+
+  int outstandingMsgTrackers=0;
 
   MsgTracker* CreateMsgTracker(Message* recv_msg,MsgServer* q)
   {
@@ -156,14 +158,21 @@ void MsgServer::MakeMePrimary()
     ret->q      = q;
     ret->msg    = recv_msg;
     assert(ret->deleteWhenComplete == false);
+    outstandingMsgTrackers++;
     return ret;
   }
 
   void ReleaseMsgTracker(MsgTracker* rm)
   {
-    rm->msg->msgPool->free(rm->msg);
+    if (rm->msg)
+      {
+        assert(0);
+        //rm->msg->msgPool->free(rm->msg);
+      }
     rm->q = 0;
     delete rm;
+    outstandingMsgTrackers--;
+
   }
   
   void MsgTracker::wake(int amt, void* cookie)
@@ -182,8 +191,15 @@ void MsgServer::MakeMePrimary()
         //rc = clBufferFlatten(msg,&buf);
         Handle srcAddr = getProcessHandle(msg->port,msg->node);
         msgHandler->msgHandler(srcAddr, q, (char*)frag->read(0), frag->len,q->cookies[msgType]);
+        msg->msgPool->free(msg);  // ownership will be given to the msgHandler for now we free
+        msg=nullptr;  // ownership is given to the msgHandler
       }
-
+    else
+      {
+      logWarning("MSG", "SVR", "Received message of unregistered type [%d]", (int )msgType);
+      msg->msgPool->free(msg);
+      msg=nullptr;
+      }
     // this message tracker must be released by the Poolable class after we return
   }
  

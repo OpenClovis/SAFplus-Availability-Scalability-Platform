@@ -4,8 +4,6 @@
 
 using namespace SAFplus;
 
-Poolable::PoolableList Poolable::poolableList;
-
 Poolable::Poolable(UserCallbackT _fn, void* _arg, uint32_t timeLimit, bool _deleteWhenComplete): fn(_fn), arg(_arg), executionTimeLimit(timeLimit), deleteWhenComplete(_deleteWhenComplete)
 {
   structId = Poolable::STRUCT_ID;
@@ -80,8 +78,26 @@ void ThreadPool::start()
 
 void ThreadPool::run(Poolable* p)
 {
-  logTrace("THRPOOL","RUN", "ThreadPool::run enter");
+  //logTrace("THRPOOL","RUN", "ThreadPool::run enter");
+  //immediatelyRun(p);
   enqueue(p);
+}
+
+
+    //? [GDB only] verify that all items in the queue are Poolable objects
+bool ThreadPool::dbgValidateQueue()
+{
+  mutex.lock();
+  for (PoolableList::iterator it = poolableList.begin(); it != poolableList.end(); it++)
+    {
+      Poolable& p = *it;
+      assert(&p);
+      assert(p.structId == Poolable::STRUCT_ID);
+      assert(p.deleteWhenComplete == false);  // temporary
+    }
+
+  mutex.unlock();
+  return true;
 }
 
 void ThreadPool::run(Wakeable* wk, void* arg)
@@ -100,7 +116,7 @@ void ThreadPool::enqueue(Poolable* p)
     startThread();
   }
   mutex.lock();
-  Poolable::poolableList.push_back(*p);
+  poolableList.push_back(*p);
   cond.notify_one();
   mutex.unlock();
 }
@@ -113,20 +129,50 @@ Poolable* ThreadPool::dequeue()
 {
   logTrace("THRPOOL","DEQ", "ThreadPool::dequeue enter");
   mutex.lock();
-  if (Poolable::poolableList.size() == 0)
+  if (poolableList.empty())
   {
     logTrace("THRPOOL","DEQ", "No task in queue. Wait...");
     cond.wait(mutex);
   }
-  if (Poolable::poolableList.size() == 0) // in case of stopping the threadpool, the queue might not contain any item
+  if (poolableList.empty()) // in case of stopping the threadpool, the queue might not contain any item
   {
     mutex.unlock();
     return NULL;
   }
-  Poolable* p = &Poolable::poolableList.front();
-  Poolable::poolableList.pop_front();
+  Poolable* p = &poolableList.front();
+  poolableList.pop_front();
   mutex.unlock();
   return p;
+}
+
+void ThreadPool::immediatelyRun(Poolable*p)
+{
+    WakeableHelper* wh = dynamic_cast<WakeableHelper*>(p);
+    if (!wh) // it's Poolable object
+    {
+      logTrace("THRPOOL","RUNTSK", "Execute user-defined func of Poolable object");
+      assert(p->structId == Poolable::STRUCT_ID);
+      p->calculateStartTime();
+      p->wake(0, p->arg);
+      p->calculateEndTime();
+      p->calculateExecTime(); 
+      bool tmp = p->isDeleteWhenComplete(); 
+      p->complete();   // Its possible that complete() will release p so I can't use it after this line
+      if (tmp)  // Unless delete is requested, the I will delete it.
+      {
+        assert(0);  // this feature is not used
+        logTrace("THRPOOL","RUNTSK", "Delete the poolable object");
+        delete p;
+      }
+    }
+    else // Wakeable object
+    {
+      assert(0); // temporary
+      logTrace("THRPOOL","RUNTSK", "Execute user-defined func of Wakeable object");
+      wh->wk->wake(0, wh->arg);
+      wh->wk=NULL;
+      deleteWakeableHelper(wh);
+    }
 }
 
 void ThreadPool::runTask(void* arg)
@@ -135,7 +181,6 @@ void ThreadPool::runTask(void* arg)
   ThreadPool* tp = (ThreadPool*)arg;
   pthread_t thid = pthread_self();
   tp->mutex.lock();
-  tp->cond.wait(tp->mutex);
   ThreadHashMap::iterator contents = tp->threadMap.find(thid);
   assert(contents != tp->threadMap.end());
   tp->mutex.unlock();
@@ -152,33 +197,12 @@ void ThreadPool::runTask(void* arg)
     if (!p)
       continue;
 
-    ts.working = true;
     tp->mutex.lock();
     tp->numIdleThreads--;
     tp->mutex.unlock();
-    WakeableHelper* wh = dynamic_cast<WakeableHelper*>(p);
-    if (!wh) // it's Poolable object
-    {
-      logTrace("THRPOOL","RUNTSK", "Execute user-defined func of Poolable object");
-      assert(p->structId == Poolable::STRUCT_ID);
-      p->calculateStartTime();
-      p->wake(0, p->arg);
-      p->calculateEndTime();
-      p->calculateExecTime(); 
-      p->complete();
-      if (p->isDeleteWhenComplete())
-      {
-        logTrace("THRPOOL","RUNTSK", "Delete the poolable object");
-        delete p;
-      }
-    }
-    else // Wakeable object
-    {
-      logTrace("THRPOOL","RUNTSK", "Execute user-defined func of Wakeable object");
-      wh->wk->wake(0, wh->arg);
-      wh->wk=NULL;
-      
-    }
+
+    ts.working = true;
+    tp->immediatelyRun(p);
     ts.working = false;
     int ret = clock_gettime(CLOCK_MONOTONIC, &ts.idleTimestamp);
     assert(ret==0);
@@ -196,20 +220,19 @@ void ThreadPool::runTask(void* arg)
 
 void ThreadPool::startThread()
 {
-  logTrace("THRPOOL","STARTTHR", "startThread enter");
-  numIdleThreads++;
+  mutex.lock();
+  logTrace("THR","POOL", "startThread enter");
   pthread_t thid;
   pthread_create(&thid, NULL, (void* (*) (void*)) runTask, this);
   pthread_detach(thid);
+  numIdleThreads++;
   numCurrentThreads++;
-  mutex.lock();
   ThreadState ts(false,false);
   int ret = clock_gettime(CLOCK_MONOTONIC, &ts.idleTimestamp);
   assert(ret==0);
   ThreadMapPair mp(thid, ts);
   threadMap.insert(mp);
-  cond.notify_one();
-  mutex.unlock();
+  mutex.unlock();  // Don't unlock before the insert or the new thread might run before we put its details in the map
 }
 
 WakeableHelper* ThreadPool::allocWakeableHelper(Wakeable* wk, void* arg)

@@ -18,6 +18,9 @@
 # This file is included at the top of all other makefiles
 # It discovers the environment and sets standard variables.
 
+# Link with Google's performance toolkit http://code.google.com/p/gperftools
+# GPERFTOOLS := 1
+
 #ifdef S7  # SAFplus v7
 $(info SAFplus7)
 
@@ -80,8 +83,14 @@ BOOST_INC_DIR ?= $(INSTALL_DIR)/include
 # $(shell (cd $(SAFPLUS_SRC_DIR)/../../boost; pwd))
 BOOST_LIB_DIR ?= $(INSTALL_DIR)/lib
 
-LINK_STD_LIBS += $(PROTOBUF_LINK) -L$(BOOST_LIB_DIR) -lboost_thread -lboost_system -lboost_filesystem -lpthread -lrt -ldl
-LINK_SO_LIBS += $(PROTOBUF_LINK) -L$(BOOST_LIB_DIR) -lboost_thread -lboost_system -lboost_filesystem -lpthread -lrt -ldl
+ifdef GPERFTOOLS
+GPERFTOOLS_LINK := -ltcmalloc
+else
+GPERFTOOLS_LINK :=
+endif
+
+LINK_STD_LIBS += $(PROTOBUF_LINK) -L$(BOOST_LIB_DIR) -lboost_thread -lboost_system -lboost_filesystem -lpthread -lrt -ldl $(GPERFTOOLS_LINK)
+LINK_SO_LIBS += $(PROTOBUF_LINK) -L$(BOOST_LIB_DIR) -lboost_thread -lboost_system -lboost_filesystem -lpthread -lrt -ldl $(GPERFTOOLS_LINK)
 
 # Determine protobuf location
 PROTOBUF_LINK ?= $(shell PKG_CONFIG_PATH=$(PKG_CONFIG_PATH) pkg-config --libs protobuf) -lprotoc
