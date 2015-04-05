@@ -52,6 +52,8 @@ extern "C" {
 
 extern const ClVersionT  gCkptVersion;
 extern const ClVersionT  gLogVersion;
+extern ClUint32T     gLogMaxStreams;
+extern ClUint32T     gLogMaxComponents;
      
 typedef struct
 {
@@ -135,6 +137,8 @@ clLogFileOwnerStreamCreateEvent(ClNameT              *pStreamName,
                                 ClUint16T            streamId,
                                 ClLogStreamAttrIDLT  *pStreamAttr,
                                 ClBoolT              doHandlerRegister);
+#define CL_LOG_MAX_STREAMS  512
+#define CL_LOG_MAX_COMPONENTS 512
 
 #ifdef __cplusplus
 }

@@ -324,7 +324,7 @@ clLogSvrCompHashFn(ClCntKeyHandleT    userKey)
 
     CL_LOG_DEBUG_TRACE(("Enter: %u", pKey->componentId));
 
-    return (pKey->hash);
+    return (pKey->componentId % gLogMaxComponents); 
 }
 
 void

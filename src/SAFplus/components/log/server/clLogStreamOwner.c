@@ -63,7 +63,7 @@ clLogStreamOwnerEntryDelete(ClLogSOEoDataT     *pSoEoEntry,
 static ClUint32T
 clLogCompTblHashFn(ClCntKeyHandleT key)
 {
-    return ((ClLogCompKeyT *) key)->hash;
+    return (((ClLogCompKeyT *) key)->nodeAddr) % (gLogMaxComponents);
 }    
 
 static ClInt32T

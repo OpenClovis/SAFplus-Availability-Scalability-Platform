@@ -34,6 +34,8 @@
 
 const ClVersionT  gCkptVersion = {'B', 0x1, 0x1};
 const ClVersionT  gLogVersion  = {'B', 0x1, 0x1};
+ClUint32T     gLogMaxStreams;
+ClUint32T     gLogMaxComponents;
 
 ClRcT
 clLogSvrCommonDataInit(void)
@@ -76,6 +78,22 @@ clLogSvrCommonDataInit(void)
         return rc;
     }
     pSvrCommonEoEntry->maxMsgs       = CL_LOG_MAX_MSGS;
+    if(pSvrCommonEoEntry->maxStreams)
+    {
+        gLogMaxStreams = pSvrCommonEoEntry->maxStreams;
+    }
+    else
+    {
+        gLogMaxStreams = CL_LOG_MAX_STREAMS;
+    }
+    if(pSvrCommonEoEntry->maxComponents)
+    {
+        gLogMaxComponents = pSvrCommonEoEntry->maxComponents;
+    }
+    else
+    {
+        gLogMaxComponents = CL_LOG_MAX_COMPONENTS;
+    }
 
     do
     {

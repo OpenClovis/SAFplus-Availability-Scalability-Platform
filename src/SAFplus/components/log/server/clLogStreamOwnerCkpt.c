@@ -434,6 +434,12 @@ clLogCompEntryUnpackNAdd(ClBufferHandleT        msg,
         CL_LOG_DEBUG_ERROR(("VDECL_VER(clXdrUnmarshallClLogCompKeyT, 4, 0, 0)(): rc[0x %x]", rc));
         return rc;
     }
+    if((compKey.nodeAddr < CL_IOC_MIN_NODE_ADDRESS) || (compKey.nodeAddr > CL_IOC_MAX_NODE_ADDRESS))
+    {
+        CL_LOG_DEBUG_WARN(("Error : Invalid Address [Node 0x%x : CompID 0x%x] passed.\n", compKey.nodeAddr, compKey.compId));
+        return CL_LOG_RC(CL_ERR_NOT_EXIST);
+    }
+
     rc = VDECL_VER(clXdrUnmarshallClLogSOCompDataT, 4, 0, 0)(msg, &compData);
     if( CL_OK != rc )
     {
@@ -448,6 +454,7 @@ clLogCompEntryUnpackNAdd(ClBufferHandleT        msg,
         return CL_LOG_RC(CL_ERR_NO_MEMORY);
     }    
     *pCompKey = compKey;
+    pCompKey->hash = (pCompKey->nodeAddr)%(gLogMaxComponents);
     CL_LOG_DEBUG_VERBOSE(("compKey.nodeAddress: %u", compKey.nodeAddr));
     CL_LOG_DEBUG_VERBOSE(("compKey.compId     : %u", compKey.compId));
 
@@ -616,7 +623,7 @@ clLogSOStreamEntryUnpackNAdd(ClLogSvrCommonEoDataT  *pCommonEoData,
         rc = clLogCompEntryUnpackNAdd(msg, pStreamOwnerData);
         if( CL_OK != rc )
         {
-            if(CL_GET_ERROR_CODE(rc) == CL_ERR_DUPLICATE)
+            if((CL_GET_ERROR_CODE(rc) == CL_ERR_DUPLICATE) || (CL_GET_ERROR_CODE(rc) == CL_ERR_NOT_EXIST))
             {
                 rc = CL_OK;
             }
