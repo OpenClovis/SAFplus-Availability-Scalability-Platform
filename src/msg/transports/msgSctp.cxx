@@ -465,18 +465,18 @@ namespace SAFplus
    void SctpSocket::switchNagle()
    {
      int nodelay, ret, socket;
+     if (nagleEnabled)
+     {
+       nodelay = 0;
+     }
+     else
+     {
+       nodelay = 1;
+     }
      for(NodeIDSocketMap::iterator iter = clientSockMap.begin(); iter != clientSockMap.end(); iter++)
      {
        NodeIDSocketMap::value_type vt = *iter;
        socket = vt.second;       
-       if (nagleEnabled)
-       {
-         nodelay = 0;
-       }
-       else
-       {
-         nodelay = 1;
-       }
        if((ret = setsockopt(socket, SOL_SCTP, SCTP_NODELAY, &nodelay, sizeof(nodelay))) != 0)
        {         
          logWarning("SCTP", "SWTNGL", "switching nagle algorithm for socket [%d] failed. Errno [%d], errmsg [%s]", socket, errno, strerror(errno));
