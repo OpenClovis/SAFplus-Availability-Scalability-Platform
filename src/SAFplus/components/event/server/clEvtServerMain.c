@@ -2023,7 +2023,7 @@ ClRcT clEvtSubscribeWalkForPublish(ClCntKeyHandleT userKey,
          * NOT_REACHABLE), server should continue to publish to other
          * subscribers. Merely issuing a warning...
          */
-        clLogWarning(CL_EVENT_LOG_AREA_SRV, "PUB", 
+        clLogDebug(CL_EVENT_LOG_AREA_SRV, "PUB",
                 "Event delivery failed to "
                 "subscriber {node[%#x]:port[%#x]:evtHandle[%#llX]}"
                 "error code [%#x]. continuing...", 
@@ -3106,17 +3106,17 @@ ClRcT VDECL(clEvtEventUnsubscribeAllLocal)(ClEoDataT cData,
             rc = clHandleWalk(gEvtHandleDatabaseHdl, clEventCpmCleanupWalk,(void *)&evtUnsubsReq);
             if(CL_OK != rc)
             {
-                clLogError(CL_EVENT_LOG_AREA_SRV, "CLN",
+                clLogDebug(CL_EVENT_LOG_AREA_SRV, "CLN",
                         "clHandleWalk failed, rc[%#X]", rc);
             } 
         }
         else
-        {	
+        {
             rc = clHandleDestroy( gEvtHandleDatabaseHdl, (ClHandleT)evtUnsubsReq.userId.evtHandle);
             if(CL_OK != rc)
             {
-                clLogError(CL_EVENT_LOG_AREA_SRV, "CLN",
-                        "clHandleDestroy failed, rc[%#X]", rc);
+                clLogDebug(CL_EVENT_LOG_AREA_SRV, "CLN", "clHandleDestroy EO{port[%#x], evtHandle[%#llx]} failed, rc[%#X]",
+                    (ClUint32T)evtUnsubsReq.userId.eoIocPort, (ClHandleT)evtUnsubsReq.userId.evtHandle, rc);
                 goto inDataAllocated;
             }
         }
@@ -3146,7 +3146,8 @@ inDataAllocated:  // NTC also more info in the log
 
 failure:
     rc = CL_EVENTS_RC(rc);
-    clLogError(CL_EVENT_LOG_AREA_SRV, "CLN", "Unbsubscribe All failed, rc[%#X]", rc); // NTC
+    clLogDebug(CL_EVENT_LOG_AREA_SRV, "CLN", "Unbsubscribe All EO{port[%#x], evtHandle[%#llx]} failed, rc[%#X]",
+        (ClUint32T)evtUnsubsReq.userId.eoIocPort, (ClHandleT )evtUnsubsReq.userId.evtHandle, rc); // NTC
 
     CL_FUNC_EXIT();
     return rc;

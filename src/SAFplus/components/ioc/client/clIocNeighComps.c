@@ -60,6 +60,221 @@ static ClFdT gClIocNeighCompsFd;
 static ClUint32T gClIocNeighCompsInitialize;
 static ClOsalSemIdT gClIocNeighborSem;
 
+#ifdef COMPAT_5
+#define CL_IOC_NODE_BACKWARD_CACHE_SEGMENT "/CL_IOC_NODE_BACKWARD_CACHE"
+#define CL_IOC_NODE_BACKWARD_CACHE_SIZE  CL_IOC_ALIGN((ClUint32T)(CL_IOC_MAX_NODES*sizeof(ClUint8T)), 8)
+
+static ClUint8T *gpClNodeBackwardCache;
+static ClCharT gClNodeBackwardSegment[CL_MAX_NAME_LENGTH+1];
+static ClOsalSemIdT gClNodeBackwardCacheSem;
+
+ClRcT clIocNodeBackwardSegmentCreate(void)
+  {
+    ClRcT rc = CL_OK;
+    ClFdT fd;
+
+    clOsalShmUnlink(gClNodeBackwardSegment);
+    rc = clOsalShmOpen(gClNodeBackwardSegment, O_RDWR | O_CREAT | O_EXCL, 0666, &fd);
+    if (rc != CL_OK)
+    {
+        clLogError("IOC", "CACHE", "Error in shm open of segment [%s] returned [%#x]", gClNodeBackwardSegment, rc);
+        return rc;
+    }
+
+    rc = clOsalFtruncate(fd, CL_IOC_NODE_BACKWARD_CACHE_SIZE);
+    if (rc != CL_OK)
+    {
+        clLogError("IOC", "CACHE", "UDP addresses cache truncate of size [%d] returned [%#x]", (ClUint32T) CL_IOC_NODE_BACKWARD_CACHE_SIZE,
+                rc);
+        clOsalShmUnlink(gClNodeBackwardSegment);
+        close((ClInt32T) fd);
+        return rc;
+    }
+
+    rc = clOsalMmap(0, CL_IOC_NODE_BACKWARD_CACHE_SIZE, PROT_READ | PROT_WRITE, MAP_SHARED, fd, 0, (ClPtrT*) &gpClNodeBackwardCache);
+    if (rc != CL_OK)
+    {
+        clLogError("IOC", "CACHE", "UDP addresses cache segment mmap returned [%#x]", rc);
+        clOsalShmUnlink(gClNodeBackwardSegment);
+        close((ClInt32T) fd);
+        return rc;
+    }
+
+    rc = clOsalSemCreate((ClUint8T*) gClNodeBackwardSegment, 1, &gClNodeBackwardCacheSem);
+
+    if (rc != CL_OK)
+    {
+        /* Delete existing one and try again */
+        ClOsalSemIdT semId = 0;
+
+        if (clOsalSemIdGet((ClUint8T*) gClNodeBackwardSegment, &semId) != CL_OK)
+        {
+            clLogError("IOC", "CACHE", "Error getting semid.");
+            clOsalShmUnlink(gClNodeBackwardSegment);
+            close((ClInt32T) fd);
+            return rc;
+        }
+
+        if (clOsalSemDelete(semId) != CL_OK)
+        {
+            clLogError("IOC", "CACHE", "Segment sem creation error while deleting old semid");
+            clOsalShmUnlink(gClNodeBackwardSegment);
+            close((ClInt32T) fd);
+            return rc;
+        }
+
+        rc = clOsalSemCreate((ClUint8T*) gClNodeBackwardSegment, 1, &gClNodeBackwardCacheSem);
+    }
+
+    return rc;
+  }
+
+ClRcT clIocNodeBackwardSegmentOpen(void )
+  {
+    ClRcT rc = CL_OK;
+    ClFdT fd;
+
+    rc = clOsalShmOpen(gClNodeBackwardSegment, O_RDWR, 0666, &fd);
+    if (rc != CL_OK)
+      {
+        clLogError("IOC", "CACHE", "Error in osal shm open segment [%s]. Rc = [%#x]", gClNodeBackwardSegment, rc);
+        return rc;
+      }
+
+    rc = clOsalMmap(0, CL_IOC_NODE_BACKWARD_CACHE_SIZE, PROT_READ | PROT_WRITE, MAP_SHARED, fd, 0, (ClPtrT*) &gpClNodeBackwardCache);
+
+    if (rc != CL_OK)
+      {
+        clLogError("IOC", "CACHE", "Error in osal mmap. Rc = [%#x]", rc);
+        close((ClInt32T) fd);
+        return rc;
+      }
+
+    rc = clOsalSemIdGet((ClUint8T*) gClNodeBackwardSegment, &gClNodeBackwardCacheSem);
+
+    if (rc != CL_OK)
+      {
+        clLogError("IOC", "CACHE", "Error getting semid. Rc = [%#x]", rc);
+        close((ClInt32T) fd);
+      }
+
+    return rc;
+  }
+
+ClRcT clNodeBackwardCacheInitialize(ClBoolT createFlag)
+{
+    ClRcT rc = CL_OK;
+
+    if(gpClNodeBackwardCache)
+        return rc;
+
+    sprintf(gClNodeBackwardSegment,"%s_%d", CL_IOC_NODE_BACKWARD_CACHE_SEGMENT, gIocLocalBladeAddress);
+
+    if (createFlag == CL_TRUE)
+    {
+        rc = clIocNodeBackwardSegmentCreate();
+    }
+    else
+    {
+        rc = clIocNodeBackwardSegmentOpen();
+    }
+
+    if (rc != CL_OK)
+    {
+        clLogError("IOC", "CACHE", "Segment initialize error. Rc = [%#x]", rc);
+    }
+
+    CL_ASSERT(gpClNodeBackwardCache != NULL);
+
+    clIocSetNodeCompat(gIocLocalBladeAddress, 0x1);
+
+    if (createFlag == CL_TRUE)
+    {
+        rc = clOsalMsync(gpClNodeBackwardCache, CL_IOC_NODE_BACKWARD_CACHE_SIZE, MS_ASYNC);
+        if (rc != CL_OK)
+        {
+            clLogError("IOC", "CACHE", "Msync error. Rc = [%#x]", rc);
+        }
+    }
+
+    return rc;
+}
+
+ClRcT clNodeBackwardCacheFinalize(ClBoolT createFlag)
+{
+    ClRcT rc = CL_ERR_NOT_INITIALIZED;
+
+    if (gpClNodeBackwardCache)
+    {
+        clOsalSemLock(gClNodeBackwardCacheSem);
+
+        if (createFlag)
+        {
+            clOsalMsync(gpClNodeBackwardCache, CL_IOC_NODE_BACKWARD_CACHE_SIZE, MS_SYNC);
+        }
+
+        clOsalMunmap(gpClNodeBackwardCache, CL_IOC_NODE_BACKWARD_CACHE_SIZE);
+        gpClNodeBackwardCache = NULL;
+
+        clOsalSemUnlock(gClNodeBackwardCacheSem);
+
+        if (createFlag)
+        {
+            clOsalShmUnlink(gClNodeBackwardSegment);
+            clOsalSemDelete(gClNodeBackwardCacheSem);
+        }
+    }
+    return rc;
+}
+
+ClRcT clIocSetNodeCompat(ClIocNodeAddressT nodeAddr, ClUint8T compat)
+{
+    ClRcT rc = CL_OK;
+
+    rc = clOsalSemLock(gClNodeBackwardCacheSem);
+    if (rc != CL_OK)
+        return rc;
+
+    if (!gpClNodeBackwardCache)
+    {
+        clOsalSemUnlock(gClNodeBackwardCacheSem);
+        return CL_ERR_NOT_INITIALIZED;
+    }
+
+    gpClNodeBackwardCache[nodeAddr] = compat;
+
+    clOsalSemUnlock(gClNodeBackwardCacheSem);
+
+    return rc;
+}
+
+ClUint8T clIocGetNodeCompat(ClIocNodeAddressT nodeAddr)
+{
+    ClRcT rc = CL_OK;
+    ClUint8T compat;
+
+    if (nodeAddr < 0 || nodeAddr > CL_IOC_MAX_NODE_ADDRESS)
+      {
+        return 0;
+      }
+
+    rc = clOsalSemLock(gClNodeBackwardCacheSem);
+    if (rc != CL_OK)
+        return rc;
+
+    if (!gpClNodeBackwardCache)
+    {
+        clOsalSemUnlock(gClNodeBackwardCacheSem);
+        return CL_ERR_NOT_INITIALIZED;
+    }
+
+    compat = gpClNodeBackwardCache[nodeAddr];
+    clOsalSemUnlock(gClNodeBackwardCacheSem);
+
+    return compat;
+}
+#endif
+
 ClRcT clIocNeighCompsSegmentCreate(void)
 {
     ClRcT rc = CL_OK;

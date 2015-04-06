@@ -779,8 +779,7 @@ static ClRcT compSetConfig(ClAmsCompConfigT *compConfig, ClUint64T mask)
         goto out;
     }
 
-    clLogNotice("COMP", "CONFIG", "Updating component config at node [%d]",
-                nodeAddress.iocPhyAddress.nodeAddress);
+    clLogDebug("COMP", "CONFIG", "Updating component config at node [%d]", nodeAddress.iocPhyAddress.nodeAddress);
     rc = clCpmCompConfigSet(nodeAddress.iocPhyAddress.nodeAddress,
                             compConfig->entity.name.value,
                             compConfig->instantiateCommand,

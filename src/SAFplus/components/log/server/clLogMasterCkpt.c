@@ -121,25 +121,31 @@ clLogMasterCkptGet(void)
     ckptAttr.maxSectionSize    = pMasterEoEntry->sectionSize;
     ckptAttr.maxSectionIdSize  = pMasterEoEntry->sectionIdSize;
 
-    //   openFlags = CL_CKPT_CHECKPOINT_WRITE | CL_CKPT_CHECKPOINT_READ;
-    //rc = clCkptCheckpointOpen(pCommonEoEntry->hSvrCkpt, &gLogMasterCkptName, 
-    //                          NULL, openFlags, 0,  &pMasterEoEntry->hCkpt);
-    //    if( CL_ERR_NOT_EXIST == CL_GET_ERROR_CODE(rc) )
-    //  {
+    if (pCommonEoEntry->masterAddr != localAddr)
+      {
+        openFlags = CL_CKPT_CHECKPOINT_WRITE | CL_CKPT_CHECKPOINT_READ;
+        rc = clCkptCheckpointOpen(pCommonEoEntry->hSvrCkpt, &gLogMasterCkptName, NULL, openFlags, 0, &pMasterEoEntry->hCkpt);
+
+        if ( CL_OK == CL_GET_ERROR_CODE(rc))
+          {
+            return rc;
+          }
+      }
+
     openFlags = CL_CKPT_CHECKPOINT_CREATE | CL_CKPT_CHECKPOINT_WRITE | CL_CKPT_CHECKPOINT_READ;
 
     reopen:
     rc = clCkptCheckpointOpen(pCommonEoEntry->hSvrCkpt, &gLogMasterCkptName,
                               &ckptAttr,openFlags, timeout,
                               &pMasterEoEntry->hCkpt);
-    if( (CL_OK != rc) && (CL_ERR_ALREADY_EXIST != rc) )
+    if (CL_OK != rc)
     {
         /*
          * No replica found and we are the only master.
          * Delete and try re-opening the checkpoint
          */
-        if(CL_GET_ERROR_CODE(rc) == CL_ERR_NO_RESOURCE &&
-           pCommonEoEntry->masterAddr == localAddr)
+        if (((CL_GET_ERROR_CODE(rc) == CL_ERR_ALREADY_EXIST) || (CL_GET_ERROR_CODE(rc) == CL_ERR_NO_RESOURCE))
+            && pCommonEoEntry->masterAddr == localAddr)
         {
             if(tries++ < 1)
             {
@@ -151,14 +157,12 @@ clLogMasterCkptGet(void)
                 goto reopen;
             }
         }
-        CL_LOG_DEBUG_ERROR(("clCkptCheckpointOpen(): rc[0x%x]", rc));
-        return rc;
+        if( CL_ERR_ALREADY_EXIST != CL_GET_ERROR_CODE(rc))
+          {
+            CL_LOG_DEBUG_ERROR(("clCkptCheckpointOpen(): rc[0x%x]", rc));
+            return rc;
+          }
     }
-    //     if( CL_ERR_ALREADY_EXIST != CL_GET_ERROR_CODE(rc))
-    {/* Create default section */
-    }
-    //    return rc;
-    //    }
 
     if(pCommonEoEntry->masterAddr == localAddr)
     {

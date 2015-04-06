@@ -2403,8 +2403,11 @@ ClRcT clEoWalkWithVersion(ClEoExecutionObjT *pThis, ClUint32T func,
             retries++;
             rc = clRadixTreeLookup(client->funTable, index, (ClPtrT*)&fun);
             if (rc == CL_OK) break;
-            sleep(1);            
-            clLogInfo(CL_LOG_EO_AREA, CL_LOG_EO_CONTEXT_RECV, "Retry RMD function [%d.%d] lookup due to error %x.", clientID, funcID, rc);            
+            sleep(1);
+            if (!(retries % 2))
+              {
+                clLogTrace(CL_LOG_EO_AREA, CL_LOG_EO_CONTEXT_RECV, "Retry RMD function [%d.%d] lookup due to error %x.", clientID, funcID, rc);
+              }
         }
     } 
     
@@ -2423,12 +2426,13 @@ ClRcT clEoWalkWithVersion(ClEoExecutionObjT *pThis, ClUint32T func,
         rc2 = clEoClientGetFuncVersion(pThis->eoPort, func, &maxSupportedVersion);
         if(rc2 != CL_OK || !maxSupportedVersion.releaseCode)
         {
-            clLogError(CL_LOG_EO_AREA, CL_LOG_EO_CONTEXT_RECV,
+            clLogDebug(CL_LOG_EO_AREA, CL_LOG_EO_CONTEXT_RECV,
                        "function id [%d] not registered in the client table for version [%#x]",
                        funcID, versionCode);
             return CL_EO_RC(CL_ERR_DOESNT_EXIST);
         }
-        clLogError(CL_LOG_EO_AREA, CL_LOG_EO_CONTEXT_RECV,
+        /* Retries with mismatch version RMD */
+        clLogDebug(CL_LOG_EO_AREA, CL_LOG_EO_CONTEXT_RECV,
                    "RMD function lookup error %x. Max version of function id [%d], client id [%d], supported is [%d.%d.%d]. Requested version [%d.%d.%d]",
                    rc, funcID, clientID, maxSupportedVersion.releaseCode, maxSupportedVersion.majorVersion,
                    maxSupportedVersion.minorVersion, version->releaseCode, version->majorVersion,
@@ -4104,7 +4108,7 @@ ClRcT clEoEnqueueJob(ClBufferHandleT recvMsg, ClIocRecvParamT *pRecvParam)
         /*
          * The EO is being stopped/terminated. Back out
          */
-        CL_DEBUG_PRINT(CL_DEBUG_ERROR, ("Invalid state."));
+        CL_DEBUG_PRINT(CL_DEBUG_TRACE, ("Invalid state."));
         clOsalMutexUnlock(&gClEoJobMutex);
         goto out_free;
     }

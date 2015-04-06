@@ -662,23 +662,78 @@ ClRcT clIocNotificationPacketRecv(ClIocCommPortHandleT commPort, ClUint8T *recvB
     ClIocNotificationT notification = {0};
     ClIocNotificationIdT id = 0;
     ClRcT rc = CL_OK;
+    ClUint8T protocolType;
+    ClUint8T version;
+    ClUint32T sizeHeader = 0;
+#ifdef COMPAT_5
+    ClTipcHeaderT userTipcHeader = {0};
+    ClBoolT isBackward = CL_FALSE;
 
-    if(recvLen <= (ClUint32T)sizeof(userHeader))
-        return CL_IOC_RC(CL_ERR_NO_SPACE);
-
-    memcpy((ClPtrT)&userHeader, pRecvBase, sizeof(userHeader));
-
-    if(userHeader.version != CL_IOC_HEADER_VERSION)
+    if ((recvLen <= (ClUint32T)sizeof(userHeader)) && (recvLen <= (ClUint32T)sizeof(userTipcHeader)))
     {
-        CL_DEBUG_PRINT(CL_DEBUG_ERROR, ("Got version [%d] tipc packet. Supported [%d] version\n",
-                                        userHeader.version, CL_IOC_HEADER_VERSION));
+        return CL_IOC_RC(CL_ERR_NO_SPACE);
+    }
+
+    sizeHeader = (ClUint32T)sizeof(userTipcHeader);
+    memcpy((ClPtrT)&userTipcHeader, pRecvBase, sizeHeader);
+
+    /*
+     * Issue: 1 SC running with 5.0 and another running 6.0, then IOC header have a different.
+     * As result, 2 above SCs can not communication
+     * Work-around to mark new version (since 6.0) by marked .reserved field to 0x2 because
+     * old version (5.0) .reserved field = 0x0, 0x1 => CL_IOC_COMPRESSION
+     * But it is not right if old one (5.0) defined CL_IOC_COMPRESSION, then it should be patched
+     * for 5.0 as well since if defined compression flag, this solution may not work
+     */
+    isBackward = (!(ntohl(userTipcHeader.reserved) & 0x2));
+
+    if (isBackward)
+      {
+        protocolType = userTipcHeader.protocolType;
+        version = userTipcHeader.version;
+
+        srcAddr.nodeAddress = ntohl(userTipcHeader.srcAddress.iocPhyAddress.nodeAddress);
+        srcAddr.portId = ntohl(userTipcHeader.srcAddress.iocPhyAddress.portId);
+        // Backward compatible
+        if (srcAddr.nodeAddress == gIocLocalBladeAddress)
+          {
+            goto out;
+          }
+        else
+          {
+            //0x2 mean this is release 5.0 (userHeader.reserved = 0)
+            clIocSetNodeCompat(srcAddr.nodeAddress, 0x2);
+          }
+      }
+    else
+      {
+#else
+        if (recvLen <= (ClUint32T)sizeof(userHeader))
+        {
+            return CL_IOC_RC(CL_ERR_NO_SPACE);
+        }
+#endif
+        sizeHeader = (ClUint32T)sizeof(userHeader);
+        memcpy((ClPtrT)&userHeader, pRecvBase, sizeHeader);
+        protocolType = userHeader.protocolType;
+        version = userHeader.version;
+
+        srcAddr.nodeAddress = ntohl(userHeader.srcAddress.iocPhyAddress.nodeAddress);
+        srcAddr.portId = ntohl(userHeader.srcAddress.iocPhyAddress.portId);
+#ifdef COMPAT_5
+        if (srcAddr.nodeAddress != gIocLocalBladeAddress)
+          clIocSetNodeCompat(srcAddr.nodeAddress, 0x1); //0x1 mean this is release 6.0 (userHeader.reserved = 0x2)
+      }
+#endif
+
+    if (version != CL_IOC_HEADER_VERSION)
+    {
+        CL_DEBUG_PRINT(CL_DEBUG_ERROR,
+            ("Got version [%d] tipc packet. Supported [%d] version\n", version, CL_IOC_HEADER_VERSION));
         return CL_IOC_RC(CL_ERR_VERSION_MISMATCH);
     }
 
-    srcAddr.nodeAddress = ntohl(userHeader.srcAddress.iocPhyAddress.nodeAddress);
-    srcAddr.portId = ntohl(userHeader.srcAddress.iocPhyAddress.portId);
-
-    if(userHeader.protocolType == CL_IOC_PROTO_ARP)
+    if(protocolType == CL_IOC_PROTO_ARP)
     {
         /*
          * Ignore self notification.
@@ -687,7 +742,7 @@ ClRcT clIocNotificationPacketRecv(ClIocCommPortHandleT commPort, ClUint8T *recvB
         {
             return CL_OK;
         }
-        recvLen -= sizeof(userHeader);
+        recvLen -= sizeHeader;
         if(recvLen < sizeof(ClIocNotificationT))
         {
             clLogError("PROXY", "RECV", "Invalid proxy notification packet received "
@@ -695,7 +750,7 @@ ClRcT clIocNotificationPacketRecv(ClIocCommPortHandleT commPort, ClUint8T *recvB
                        recvLen, (ClUint32T)sizeof(ClIocNotificationT));
             return CL_ERR_NO_SPACE;
         }
-        return clIocNotificationProxyRecv(commPort, pRecvBase + sizeof(userHeader),
+        return clIocNotificationProxyRecv(commPort, pRecvBase + sizeHeader,
                                           allLocalComps, allNodeReps, xportType);
     }
 
@@ -707,13 +762,13 @@ ClRcT clIocNotificationPacketRecv(ClIocCommPortHandleT commPort, ClUint8T *recvB
     /*
      * Got heartbeat reply from other nodes/local components
      */
-    if (userHeader.protocolType == CL_IOC_PROTO_ICMP)
+    if (protocolType == CL_IOC_PROTO_ICMP)
     {
         /*
          * Expecting "EXIT" or "HELLO" heartbeat message
          */
         ClCharT message[6] = {0};
-        memcpy(message, pRecvBase + sizeof(userHeader), 6);
+        memcpy(message, pRecvBase + sizeHeader, 6);
         clIocHearBeatHealthCheckUpdate(srcAddr.nodeAddress, srcAddr.portId, message);
         return CL_OK;
     }
@@ -721,7 +776,7 @@ ClRcT clIocNotificationPacketRecv(ClIocCommPortHandleT commPort, ClUint8T *recvB
     /*
      * Got heartbeat request from a node
      */
-    if (userHeader.protocolType == CL_IOC_PROTO_HB) {
+    if (protocolType == CL_IOC_PROTO_HB) {
         /*
          * Reply HeartBeat message
          */
@@ -737,14 +792,13 @@ ClRcT clIocNotificationPacketRecv(ClIocCommPortHandleT commPort, ClUint8T *recvB
         return CL_OK;
     }
 
-    if(userHeader.protocolType == CL_IOC_PROTO_CTL) 
+    if(protocolType == CL_IOC_PROTO_CTL)
     {
-        clIocNodeCompsSet(srcAddr.nodeAddress,
-                          pRecvBase + sizeof(userHeader));
+        clIocNodeCompsSet(srcAddr.nodeAddress, pRecvBase + sizeHeader);
         return CL_OK;
     }
 
-    memcpy(&notification, pRecvBase + sizeof(userHeader), sizeof(notification));
+    memcpy(&notification, pRecvBase + sizeHeader, sizeof(notification));
     if(ntohl(notification.protoVersion) != CL_IOC_NOTIFICATION_VERSION)
     {
         CL_DEBUG_PRINT(CL_DEBUG_ERROR, 
@@ -772,8 +826,8 @@ ClRcT clIocNotificationPacketRecv(ClIocCommPortHandleT commPort, ClUint8T *recvB
         if(srcAddr.nodeAddress == gIocLocalBladeAddress)
             goto out;
         
-        rc = clIocNotificationDiscoveryUnpack(pRecvBase + sizeof(userHeader),
-                                              recvLen - sizeof(userHeader), &srcAddr,
+        rc = clIocNotificationDiscoveryUnpack(pRecvBase + sizeHeader,
+                                              recvLen - sizeHeader, &srcAddr,
                                               &notification, commPort, xportType);
 
         if(id == CL_IOC_NODE_LINK_UP_NOTIFICATION
@@ -796,17 +850,17 @@ ClRcT clIocNotificationPacketRecv(ClIocCommPortHandleT commPort, ClUint8T *recvB
         event = CL_IOC_NODE_DOWN;
         clIocMasterSegmentUpdate(compAddr);
     }
-            
+
     clIocCompStatusSet(compAddr, event);
 
     clLogInfo ("IOC", "NOTIF", "Got [%s] notification [0x%x] for node [%d] commport [0x%x]",
-               event == CL_IOC_NODE_UP ? "arrival": "death", id, compAddr.nodeAddress, compAddr.portId);    
-    
+               event == CL_IOC_NODE_UP ? "arrival": "death", id, compAddr.nodeAddress, compAddr.portId);
+
 #ifdef CL_IOC_COMP_ARRIVAL_NOTIFICATION_DISABLE
     if(event == CL_IOC_NODE_UP)
         goto out;
 #endif
-                
+
     /* Need to send the above notification to all the components on this node */
     out_notify:
     rc = clIocNotificationPacketSend(commPort, &notification, allLocalComps, CL_FALSE, xportType);
@@ -821,9 +875,9 @@ ClRcT clIocNotificationPacketRecv(ClIocCommPortHandleT commPort, ClUint8T *recvB
         ClTimerTimeOutT delay = {.tsSec = 1, .tsMilliSec = 0 };
         clLogCritical ("IOC", "NOT", "Controller has kicked this node out of the cluster -- quitting in 1 second.");
         clOsalTaskDelay(delay);
-        exit(0);        
+        exit(0);
     }
-    
+
     out:
     return rc;
 }

@@ -2911,8 +2911,8 @@ static ClRcT compCleanupInvoke(ClCpmComponentT *comp)
     if(comp->compConfig->cleanupCMD[0])
     {
         ClCharT cleanupCmdBuf[CL_MAX_NAME_LENGTH];
-        snprintf(cleanupCmdBuf, sizeof(cleanupCmdBuf), "ASP_COMPNAME=%s %s",
-                 comp->compConfig->compName, comp->compConfig->cleanupCMD);
+        snprintf(cleanupCmdBuf, sizeof(cleanupCmdBuf), "ASP_COMPNAME=%s EFLAG=%d %s",
+                 comp->compConfig->compName, !comp->hbFailureDetected, comp->compConfig->cleanupCMD);
         clLogNotice(CPM_LOG_AREA_CPM, CPM_LOG_CTX_CPM_LCM, 
                    "Invoking cleanup command [%s] for Component [%s]",
                    cleanupCmdBuf, comp->compConfig->compName);
@@ -5146,7 +5146,42 @@ failure:
     return rc;
 }
 
-ClRcT cpmCompHealthcheckStop(ClNameT *pCompName)
+ClRcT cpmCompNodeHealthcheckStop(ClNameT *pCompName, ClNameT *pNodeName)
+  {
+    ClRcT rc = CL_OK;
+    rc = cpmCompHealthcheckStop(pCompName, CL_TRUE);
+
+    // Checking to send the request to remote node
+    if (CL_GET_ERROR_CODE(rc) == CL_ERR_NOT_EXIST && pNodeName != NULL)
+      {
+        ClCpmCompHealthcheckT cpmCompHealthcheck = { { 0 } };
+        ClIocAddressT nodeAddress = { { 0 } };
+        clNameCopy(&cpmCompHealthcheck.compName, pCompName);
+
+        // Set timeout error on component
+        cpmCompHealthcheck.healthcheckResult = CL_ERR_TIMEOUT;
+
+        rc = _cpmIocAddressForNodeGet(pNodeName, &nodeAddress);
+        if (rc == CL_OK)
+          {
+            rc = clCpmClientRMDAsyncNew(nodeAddress.iocPhyAddress.nodeAddress,
+                                    CPM_COMPONENT_HEALTHCHECK_STOP,
+                                    (ClUint8T *) &cpmCompHealthcheck,
+                                    sizeof(ClCpmCompHealthcheckT),
+                                    NULL,
+                                    NULL, 0, 0, 0, 0, MARSHALL_FN(ClCpmCompHealthcheckT, 4, 0, 0));
+          }
+
+        if (rc != CL_OK)
+          {
+            clLogWarning(CL_LOG_AREA_UNSPECIFIED, CL_LOG_CONTEXT_UNSPECIFIED,
+                "Could not request stopping healthCheck to comp [%s] on node [%s], error [%#x]", pCompName->value, pNodeName->value, rc);
+          }
+      }
+    return CL_OK;
+  }
+
+ClRcT cpmCompHealthcheckStop(ClNameT *pCompName, ClBoolT timeout)
 {
     ClRcT rc = CL_OK;
     ClCharT compName[CL_MAX_NAME_LENGTH];
@@ -5180,6 +5215,7 @@ ClRcT cpmCompHealthcheckStop(ClNameT *pCompName)
         clTimerDeleteAsync(&comp->cpmHealthcheckTimerHandle);
         comp->cpmHealthcheckTimerHandle = CL_HANDLE_INVALID_VALUE;
     }
+    comp->hbFailureDetected = timeout;
     clOsalMutexUnlock(comp->compMutex);
     
     if(stopped)
@@ -5210,7 +5246,13 @@ ClRcT VDECL(cpmComponentHealthcheckStop)(ClEoDataT data,
         goto failure;
     }
 
-    rc = cpmCompHealthcheckStop(&cpmCompHealthcheck.compName);
+    // Checking external request
+    ClBoolT timeout = CL_FALSE;
+    if (cpmCompHealthcheck.healthcheckResult == CL_ERR_TIMEOUT)
+      {
+        timeout = CL_TRUE;
+      }
+    rc = cpmCompHealthcheckStop(&cpmCompHealthcheck.compName, timeout);
 
     failure:
     return rc;

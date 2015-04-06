@@ -14783,7 +14783,7 @@ clAmsPeCompReassignWork(
                     {
                         *activeSU = cSU;
                         standby = NULL;
-                        clLogNotice("COMP", "REASSIGN", "Component [%s] part of SU [%s] "
+                        clLogDebug("COMP", "REASSIGN", "Component [%s] part of SU [%s] "
                                     "is already assigned active. Skipping reassignment "
                                     "for SU [%s]", c->config.entity.name.value,
                                     cSU->config.entity.name.value,
@@ -15252,14 +15252,14 @@ clAmsPeCompAssignCSIExtended(
                 if ( cRef->haState == CL_AMS_HA_STATE_ACTIVE )
                 {
                     activeComp = (ClAmsCompT *) entityRef->ptr;
-                    AMS_ENTITY_LOG (comp, CL_AMS_MGMT_SUB_AREA_MSG, CL_LOG_SEV_WARNING, ("active comp found [%.*s].\n",activeComp->config.entity.name.length,activeComp->config.entity.name.value));
+                    AMS_ENTITY_LOG (comp, CL_AMS_MGMT_SUB_AREA_MSG, CL_LOG_SEV_DEBUG, ("active comp found [%.*s].\n",activeComp->config.entity.name.length,activeComp->config.entity.name.value));
                     
                 }
 
                 if ( cRef->haState == CL_AMS_HA_STATE_STANDBY )
                 {
                     standbyComp = (ClAmsCompT*)entityRef->ptr;
-                    AMS_ENTITY_LOG (comp, CL_AMS_MGMT_SUB_AREA_MSG, CL_LOG_SEV_WARNING, ("standby comp found [%.*s].\n",standbyComp->config.entity.name.length,standbyComp->config.entity.name.value));
+                    AMS_ENTITY_LOG (comp, CL_AMS_MGMT_SUB_AREA_MSG, CL_LOG_SEV_DEBUG, ("standby comp found [%.*s].\n",standbyComp->config.entity.name.length,standbyComp->config.entity.name.value));
                     
                     standbyRank++;
                 }
@@ -15267,7 +15267,7 @@ clAmsPeCompAssignCSIExtended(
             
             if ( !activeComp )
             {
-                AMS_ENTITY_LOG (comp, CL_AMS_MGMT_SUB_AREA_MSG, CL_LOG_SEV_WARNING,
+                AMS_ENTITY_LOG (comp, CL_AMS_MGMT_SUB_AREA_MSG, CL_LOG_SEV_DEBUG,
                                 ("Warning: Assigning CSI [%s] with HA state [Standby] to Component [%s] but no active assignment found.\n",
                                  csi->config.entity.name.value,
                                  comp->config.entity.name.value));
@@ -16463,9 +16463,13 @@ clAmsPeCompAssignCSITimeout(
         CL_IN ClAmsEntityTimerT  *timer) 
 {
     ClAmsCompT *comp;
+    ClAmsSUT *su = NULL;
+    ClAmsNodeT *node = NULL;
 
     AMS_CHECKPTR ( !timer );
     AMS_CHECK_COMP ( comp = (ClAmsCompT *) timer->entity );
+    AMS_CHECK_SU( su = (ClAmsSUT*) comp->config.parentSU.ptr);
+    AMS_CHECK_NODE ( node = (ClAmsNodeT*) su->config.parentNode.ptr);
 
 #ifdef AMS_EMULATE_RMD_CALLS
 
@@ -16488,7 +16492,7 @@ clAmsPeCompAssignCSITimeout(
      * Stop the pending healthchecks if any for the component on timeout as the 
      * component is presumably locked up in the dispatcher.
      */
-    cpmCompHealthcheckStop(&comp->config.entity.name);
+    cpmCompNodeHealthcheckStop(&comp->config.entity.name, &node->config.entity.name);
 
     return clAmsPeCompAssignCSIError(comp, CL_AMS_RC(CL_ERR_TIMEOUT));
 }
@@ -17900,9 +17904,13 @@ clAmsPeCompQuiescingCompleteTimeout(
         CL_IN ClAmsEntityTimerT  *timer) 
 {
     ClAmsCompT *comp;
+    ClAmsSUT *su = NULL;
+    ClAmsNodeT *node = NULL;
 
     AMS_CHECKPTR ( !timer );
     AMS_CHECK_COMP ( comp = (ClAmsCompT *) timer->entity );
+    AMS_CHECK_SU( su = (ClAmsSUT*) comp->config.parentSU.ptr);
+    AMS_CHECK_NODE ( node = (ClAmsNodeT*) su->config.parentNode.ptr);
 
 #ifdef AMS_EMULATE_RMD_CALLS
 
@@ -17925,7 +17933,7 @@ clAmsPeCompQuiescingCompleteTimeout(
      * Stop the pending healthchecks if any for the component on timeout as the 
      * component is presumably locked up in the dispatcher.
      */
-    cpmCompHealthcheckStop(&comp->config.entity.name);
+    cpmCompNodeHealthcheckStop(&comp->config.entity.name, &node->config.entity.name);
 
     return clAmsPeCompQuiesceCSIGracefullyError(comp, CL_AMS_RC(CL_ERR_TIMEOUT));
 }
@@ -18871,9 +18879,13 @@ clAmsPeCompRemoveCSITimeout(
         CL_IN ClAmsEntityTimerT  *timer) 
 {
     ClAmsCompT *comp;
+    ClAmsSUT *su = NULL;
+    ClAmsNodeT *node = NULL;
 
     AMS_CHECKPTR ( !timer );
     AMS_CHECK_COMP ( comp = (ClAmsCompT *) timer->entity );
+    AMS_CHECK_SU( su = (ClAmsSUT*) comp->config.parentSU.ptr);
+    AMS_CHECK_NODE ( node = (ClAmsNodeT*) su->config.parentNode.ptr);
 
 #ifdef AMS_EMULATE_RMD_CALLS
 
@@ -18896,7 +18908,7 @@ clAmsPeCompRemoveCSITimeout(
      * Stop the healthchecks if any for the component on timeout as the 
      * component is presumably locked up in the dispatcher.
      */
-    cpmCompHealthcheckStop(&comp->config.entity.name);
+    cpmCompNodeHealthcheckStop(&comp->config.entity.name, &node->config.entity.name);
 
     return clAmsPeCompRemoveCSIError(comp, CL_AMS_RC(CL_ERR_TIMEOUT));
 }

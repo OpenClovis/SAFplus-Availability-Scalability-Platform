@@ -483,11 +483,11 @@ ClRcT cpmCpmLStandbyCheckpointInitialize(void)
     {   
         rc = clCkptCheckpointOpen(gpClCpm->ckptHandle,&gpClCpm->ckptCpmLName,pCkptCreationAttributes,flags,time,&handle);
 	    tries++;
-        clLogNotice("CKP", "OPEN", "Try [%d] of [3] to open checkpoint service, result [%x]", tries, rc);
+        clLogDebug("CKP", "OPEN", "Try [%d] of [3] to open checkpoint service, result [%x]", tries, rc);
         /* If the open gets an already exists error, then turn off the create flag */
         if (CL_ERR_ALREADY_EXIST == CL_GET_ERROR_CODE(rc))
         {
-            clLogNotice("CKP", "OPEN", "Checkpoint already exists, no need to create it");
+            clLogDebug("CKP", "OPEN", "Checkpoint already exists, no need to create it");
             flags = (flags & (~CL_CKPT_CHECKPOINT_CREATE)) | CL_CKPT_CHECKPOINT_WRITE;
             pCkptCreationAttributes = NULL;
         }

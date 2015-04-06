@@ -1551,7 +1551,7 @@ ClRcT clAmsEntityTriggerInitialize(void)
     rc = clAmsEntityTriggerParse(&head);
     if(rc != CL_OK)
     {
-        clLogWarning("TRIGGER", "INI", "Trigger XML parse error. "  \
+        clLogDebug("TRIGGER", "INI", "Trigger XML parse error. "  \
                      "Running with defaults");
     }
 

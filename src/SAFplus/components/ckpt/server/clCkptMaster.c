@@ -562,7 +562,7 @@ ClRcT VDECL_VER(clCkptMasterCkptOpen, 4, 0, 0)(ClVersionT       *pVersion,
                 clHandleCheckin(gCkptSvr->masterInfo.masterDBHdl, 
                                 storedDBHdl);
                 rc = CL_CKPT_ERR_ALREADY_EXIST;
-                CKPT_ERR_CHECK(CL_CKPT_SVR,CL_DEBUG_ERROR,
+                CKPT_ERR_CHECK(CL_CKPT_SVR,CL_LOG_SEV_DEBUG,
                                ("Master DB creation failed: "
                                 "Ckpt already exists, rc[0x %x]\n",rc),
                                rc);
@@ -1914,7 +1914,7 @@ ClRcT _clCkptMasterCloseNoLock(ClHandleT         clientHdl,
     rc = clHandleCheckout(gCkptSvr->masterInfo.clientDBHdl,
                           clientHdl,
                           (void **)&pClientEntry);
-    CKPT_ERR_CHECK_BEFORE_HDL_CHK(CL_CKPT_SVR,CL_DEBUG_ERROR,
+    CKPT_ERR_CHECK_BEFORE_HDL_CHK(CL_CKPT_SVR,CL_LOG_DEBUG,
                                   (" MasterCheckpointClose failed rc[0x %x]\n",rc),
                                   rc);
 

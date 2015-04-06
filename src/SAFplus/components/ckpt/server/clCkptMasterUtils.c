@@ -227,9 +227,12 @@ _ckptClientHdlInfoFill(ClHandleT   masterHdl,
                             gCkptSvr->masterInfo.clientDBHdl, 
                             sizeof(CkptMasterDBClientInfoT),
                             clientHdl);
-        if( (CL_OK != rc))/* && (CL_GET_ERROR_CODE(rc) != CL_ERR_ALREADY_EXIST) )*/
+        if ( (CL_OK != rc))
         {
-            clLogCritical("CKP","MUT","Specific client handle [%llx] create error: rc [0x%x]\n",clientHdl,rc);
+            if ((CL_GET_ERROR_CODE(rc) != CL_ERR_ALREADY_EXIST) )
+              {
+                clLogCritical("CKP","MUT","Specific client handle [%llx] create error: rc [0x%x]\n",clientHdl,rc);
+              }
             return rc;
         }
         clLogDebug("CKP","MUT","Created specific ckpt client handle [%llx]", clientHdl);
