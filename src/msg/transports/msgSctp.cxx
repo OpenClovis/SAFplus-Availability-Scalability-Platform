@@ -34,14 +34,16 @@ namespace SAFplus
     virtual void send(Message* msg);
     virtual Message* receive(uint_t maxMsgs,int maxDelay=-1);
     virtual void flush();
+    virtual void useNagle(bool value);    
     virtual ~SctpSocket();
   protected:
-    int sock; 
+    int sock;
+    bool nagleEnabled; 
     NodeIDSocketMap clientSockMap; //TODO in case node failure: if a node got failure, this must be notified so that
     // the item associated with it in the map must be deleted too, if not, the associated socket may be invalid because of its server failure
     int getClientSocket(uint_t nodeID, uint_t port);
     int openClientSocket(uint_t nodeID, uint_t port);    
-    
+    virtual void switchNagle();
   };
   static Sctp api;
 
@@ -57,6 +59,7 @@ namespace SAFplus
     config.maxMsgSize = SAFplusI::SctpTransportMaxMsgSize;
     config.maxPort    = SAFplusI::SctpTransportNumPorts;
     config.maxMsgAtOnce = SAFplusI::SctpTransportMaxMsg;
+    config.capabilities = SAFplus::MsgTransportConfig::Capabilities::NAGLE_AVAILABLE;
     
     struct in_addr bip = SAFplusI::setNodeNetworkAddr(&nodeMask);      
     config.nodeId = SAFplus::ASP_NODEADDR;
@@ -82,6 +85,7 @@ namespace SAFplus
     msgPool = pool;
     transport = xp;
     node = xp->config.nodeId;
+    nagleEnabled = false; // Nagle algorithm is disabled by default
 
     if ((sock = socket(AF_INET, SOCK_SEQPACKET, IPPROTO_SCTP)) < 0) 
     {
@@ -207,13 +211,15 @@ namespace SAFplus
       throw Error(Error::SYSTEM_ERROR,errno, strerror(errno),__FILE__,__LINE__);
     }
 
-    int nodelay=1;  
-    if((ret = setsockopt(sock, SOL_SCTP, SCTP_NODELAY, &nodelay, sizeof(nodelay))) != 0)
+    if (!nagleEnabled)
     {
-      int err = errno;
-      throw Error(Error::SYSTEM_ERROR,errno, strerror(errno),__FILE__,__LINE__);
+      int nodelay=1;  
+      if((ret = setsockopt(sock, SOL_SCTP, SCTP_NODELAY, &nodelay, sizeof(nodelay))) != 0)
+      {
+        int err = errno;
+        throw Error(Error::SYSTEM_ERROR,errno, strerror(errno),__FILE__,__LINE__);
+      }
     }
-
     /*Enable SCTP Events*/
     /*if((ret = setsockopt(sock, SOL_SCTP, SCTP_EVENTS, (void *)&events, sizeof(events))) != 0)
     {
@@ -444,6 +450,43 @@ namespace SAFplus
    }
  
    void SctpSocket::flush() {}
+
+   void SctpSocket::useNagle(bool value)
+   {
+     if (value == nagleEnabled) 
+     {       
+       logNotice("SCTP", "USENGL", "No-op for using Nagle");
+       return; // No-op
+     }    
+     nagleEnabled = value;
+     switchNagle();     
+   }
+
+   void SctpSocket::switchNagle()
+   {
+     int nodelay, ret, socket;
+     for(NodeIDSocketMap::iterator iter = clientSockMap.begin(); iter != clientSockMap.end(); iter++)
+     {
+       NodeIDSocketMap::value_type vt = *iter;
+       socket = vt.second;       
+       if (nagleEnabled)
+       {
+         nodelay = 0;
+       }
+       else
+       {
+         nodelay = 1;
+       }
+       if((ret = setsockopt(socket, SOL_SCTP, SCTP_NODELAY, &nodelay, sizeof(nodelay))) != 0)
+       {         
+         logWarning("SCTP", "SWTNGL", "switching nagle algorithm for socket [%d] failed. Errno [%d], errmsg [%s]", socket, errno, strerror(errno));
+       }
+       else
+       {
+         logInfo("SCTP", "SWTNGL", "switch nagle algorithm for socket successfully");
+       }
+     }
+   }   
 
    SctpSocket::~SctpSocket()
    {
