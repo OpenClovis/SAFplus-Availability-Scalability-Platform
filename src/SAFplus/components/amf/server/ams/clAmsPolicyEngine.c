@@ -13801,9 +13801,14 @@ clAmsPeCompTerminateTimeout(
         CL_IN ClAmsEntityTimerT  *timer) 
 {
     ClAmsCompT *comp;
+    ClAmsSUT *su = NULL;
+    ClAmsNodeT *node = NULL;
 
     AMS_CHECKPTR ( !timer );
     AMS_CHECK_COMP ( comp = (ClAmsCompT *) timer->entity );
+
+    AMS_CHECK_SU( su = (ClAmsSUT*) comp->config.parentSU.ptr);
+    AMS_CHECK_NODE ( node = (ClAmsNodeT*) su->config.parentNode.ptr);
 
 #ifdef AMS_EMULATE_RMD_CALLS
     return clAmsPeCompTerminateCallback(comp, CL_OK);
@@ -13820,6 +13825,11 @@ clAmsPeCompTerminateTimeout(
 
         return CL_OK;
     }
+
+    /*
+     * Stop healthcheck and invoke cleanup command
+     */
+    cpmCompNodeHealthcheckStop(&comp->config.entity.name, &node->config.entity.name);
 
     return clAmsPeCompTerminateError(comp, CL_AMS_RC(CL_ERR_TIMEOUT) );
 }
