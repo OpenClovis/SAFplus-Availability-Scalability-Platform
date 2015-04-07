@@ -1,0 +1,61 @@
+////////////////////////////////////////////////////////////////////////////////
+//
+// SAFplus project wizard
+//
+////////////////////////////////////////////////////////////////////////////////
+// globals
+
+SAFplusPathDefault <- _T("$(#safplus_dir)");
+SAFplusPath <- _T("");
+
+function BeginWizard()
+{
+
+    local intro_msg = _T("Welcome to the new SAFplus model applications and physical chassis.\n\n" +
+                   "There are two phases to the modelling process. Type modelling and \n" +
+                   "instance modelling. In the type modelling phase, physical (hardware) and \n" +
+                   "software (application) types are created using a UML-like design tool.\n" +
+                   "In the instance modelling phase, these types are \"instantiated\" into a \n" +
+                   "specific cluster configuration. Instance modelling is done via a \n" +
+                   "graphical abstraction of a physical cluster.\n\n" +
+                   "Type and instance modelling are inter-related. For example, \n" +
+                   "the instantiations on a particular node can be abstracted into a particular\n" +
+                   "node \"type\". A new copy of that node can then be instantiated in \n" +
+                   "one click during instance modelling or via an API call at runtime.");
+
+    local safplus_path_msg = _T("Please select the location of SAFplus SDK on your computer.\n");
+
+    Wizard.AddInfoPage(_T("SAFplusProjectIntro"), intro_msg);
+    Wizard.AddProjectPathPage();
+    Wizard.AddGenericSelectPathPage(_T("SAFplusDir"), safplus_path_msg, _T("SAFplus's location:"), SAFplusPathDefault);
+    Wizard.AddCompilerPage(_T(""), _T("*"), true, true);
+}
+
+function OnLeave_SAFplusDir(fwd)
+{
+    if (fwd)
+    {
+        local dir = Wizard.GetTextControlValue(_T("txtFolder")); // txtFolder is the text control in GenericSelectPathPage
+        //TODO: check dir to find yang folder if exists
+
+        SAFplusPath = dir;
+    }
+    
+    return true;
+}
+
+// return the files this project contains
+function GetFilesDir()
+{
+    return _T("SAFplusIDE/files");
+}
+
+// setup the already created project
+function SetupProject(project)
+{
+
+    // enable compiler warnings (project-wide)
+    WarningsOn(project, Wizard.GetCompilerID());
+    // TODO: Add extra target to cross compiler
+    return true;
+}
