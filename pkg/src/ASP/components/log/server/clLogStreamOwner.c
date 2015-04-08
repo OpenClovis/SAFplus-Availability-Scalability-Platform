@@ -2783,9 +2783,13 @@ VDECL_VER(clLogStreamOwnerFilterGet, 4, 0, 0)(
                             (ClCntDataHandleT *) &pStreamOwnerData);
     if( CL_OK != rc )
     {
+        clLogStreamKeyDestroy(pStreamKey);
         CL_LOG_CLEANUP(clLogSOUnlock(pSoEoEntry, streamScope), CL_OK);
         return rc;
-    }    
+    }
+
+    clLogStreamKeyDestroy(pStreamKey);
+
     rc = clOsalMutexLock_L(&pStreamOwnerData->nodeLock);
     if( CL_OK != rc )
     {
