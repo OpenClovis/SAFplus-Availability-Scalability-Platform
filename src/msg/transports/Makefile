@@ -22,6 +22,7 @@ ifeq ($(CHECK_SCTP), )
 	CPP_FLAGS += -DHAVE_SCTP
         SCTP_TARGET := $(PLUGIN_DIR)/clMsgSctp.so
 else
+# on Ubuntu: sudo apt-get install libsctp-dev lksctp-tools
 $(info Operating system does not have SCTP support.  SCTP message transport plugin will not be compiled)
  SCTP_TARGET :=
 endif

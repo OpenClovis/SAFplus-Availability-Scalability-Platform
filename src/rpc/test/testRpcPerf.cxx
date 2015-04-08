@@ -18,10 +18,10 @@
 
 To avoid losing messages and causing this test to hang:
 
-sysctl -w net.core.wmem_max=10485760
-sysctl -w net.core.rmem_max=10485760
-sysctl -w net.core.rmem_default=10485760
-sysctl -w net.core.wmem_default=10485760
+sysctl -w net.core.wmem_max=20485760
+sysctl -w net.core.rmem_max=20485760
+sysctl -w net.core.rmem_default=20485760
+sysctl -w net.core.wmem_default=20485760
  */
 #include <clLogApi.hxx>
 #include <clGlobals.hxx>
@@ -103,8 +103,11 @@ int main(void)
   testLatency(msgDest, 10000, 10, 1000,"10000 bytes by 10");
 
   testLatency(msgDest, 100, 100, 1000,"100 bytes by 10");
-  testLatency(msgDest, 1000, 100, 100000,"1000 bytes by 10");
-  testLatency(msgDest, 10000, 100, 1000000,"10000 bytes by 10");
+  testLatency(msgDest, 1000, 100, 1000,"1000 bytes by 10");
+  testLatency(msgDest, 10000, 100, 1000,"10000 bytes by 10");
+  //testLatency(msgDest, 10000, 100, 10000000,"10000 bytes by 10");
+  //testLatency(msgDest, 10000, 100, 10000000,"10000 bytes by 10");
+  //testLatency(msgDest, 10000, 100, 900000000,"10000 bytes by 10");
 
 
 #if 0
