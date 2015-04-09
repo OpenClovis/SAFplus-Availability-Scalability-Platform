@@ -393,7 +393,12 @@ static void *clAmsClusterStateVerifier(void *cookie)
         {   
             ClEoExecutionObjT *cpmEoObj = gpClCpm->cpmEoObj;
             if (!cpmEoObj) return NULL; // should never happen... but if it does do not assert b/c we are shutting down just quit thread.
-        
+
+            if ((localAddress == masterAddress) && (gpClCpm->haState == CL_AMS_HA_STATE_STANDBY) && gCpmShuttingDown)
+              {
+                cpmShutdownHeartbeat();
+              }
+
             if (( cpmEoObj->state == CL_EO_STATE_FAILED) || (cpmEoObj->state == CL_EO_STATE_KILL) || (cpmEoObj->state == CL_EO_STATE_STOP) || !gpClCpm->polling)
             {
                 clEoRefDec(cpmEoObj);
