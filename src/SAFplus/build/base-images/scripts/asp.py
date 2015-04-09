@@ -241,7 +241,7 @@ def log_asp_env():
 def gen_asp_run_env_file(run_file, d):
     """ Generates a run-time env file that carries all needed environment vars """
     if os.path.isfile(run_file):
-        log.info("Will not recreate %s" % run_file)
+        log.debug("Will not recreate %s" % run_file)
         return
 
     try:
