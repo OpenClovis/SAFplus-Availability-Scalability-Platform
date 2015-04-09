@@ -118,9 +118,7 @@ namespace SAFplus
      */
     void wait(SAFplus::Mutex &mutex);
 
-    /**
-     * Wait duration to wake up
-     */
+    //? Wait for the condition to notify, but no longer than duration milliseconds.
     bool timed_wait(SAFplus::Mutex &mutex, int duration);
 
   protected:

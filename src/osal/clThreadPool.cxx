@@ -35,12 +35,14 @@ Poolable::~Poolable()
     structId = 0xdeadbeef;
 }
 
-ThreadPool::ThreadPool(): minThreads(0), maxThreads(0), numCurrentThreads(0), numIdleThreads(0), isStopped(false)
+ThreadPool::ThreadPool(): minThreads(0), maxThreads(0), numCurrentThreads(0), numIdleThreads(0), isStopped(false), unusedWakeableHelperList(nullptr)
 {
+checker = 0; // TODO
 }
 
-ThreadPool::ThreadPool(short _minThreads, short _maxThreads): minThreads(_minThreads), maxThreads(_maxThreads), numCurrentThreads(0), numIdleThreads(0), isStopped(false)
+ThreadPool::ThreadPool(short _minThreads, short _maxThreads): minThreads(_minThreads), maxThreads(_maxThreads), numCurrentThreads(0), numIdleThreads(0), isStopped(false), unusedWakeableHelperList(nullptr)
 {
+  checker = 0; // TODO
   start();
 }
 
@@ -59,9 +61,20 @@ void ThreadPool::stop()
   // Notify all threads to stop waiting if any and then exit
   logInfo("THRPOOL","STOP", "Notify all threads to stop running");
   cond.notify_all();
+  checkerCond.notify_all();
   mutex.unlock();
-  // TODO: join the threads here instead of sleeping
-  sleep(5);
+
+  pthread_join(checker,NULL);  // wait for the checker thread to finish
+
+  // join the threads to make sure they have all completed
+  // I can't hold mutex during the join because the threads grab it when quitting, but they do not modify threadMap.
+  for(ThreadHashMap::iterator iter=threadMap.begin(); iter!=threadMap.end(); iter++)
+  {
+    pthread_t threadId = iter->first;
+    pthread_join(threadId,NULL); // TODO: after a while we should give up and kill it
+  }
+  threadMap.clear();
+
 }
 
 void ThreadPool::start()
@@ -71,9 +84,8 @@ void ThreadPool::start()
   {
     startThread();
   }
-  pthread_t thid;
-  pthread_create(&thid, NULL, timerThreadFunc, this);
-  pthread_detach(thid);
+  pthread_create(&checker, NULL, timerThreadFunc, this);
+  //pthread_detach(thid);
 }
 
 void ThreadPool::run(Poolable* p)
@@ -211,8 +223,10 @@ void ThreadPool::runTask(void* arg)
     tp->mutex.unlock();
   }
   tp->mutex.lock();
-  tp->threadMap.erase(contents); // Remove this thread element from the map and exit
+  // We can't remove this thread from the map from inside the thread, or join() won't be called and the thread will zombie
+  //tp->threadMap.erase(contents); // Remove this thread element from the map and exit
   tp->numCurrentThreads--;
+  ts.zombie = true;
   tp->mutex.unlock();
   logTrace("THRPOOL","RUNTSK", "exit runTask");
   return;
@@ -224,7 +238,7 @@ void ThreadPool::startThread()
   logTrace("THR","POOL", "startThread enter");
   pthread_t thid;
   pthread_create(&thid, NULL, (void* (*) (void*)) runTask, this);
-  pthread_detach(thid);
+  // If we detach, we can't join to make sure it is cleaned up: pthread_detach(thid);
   numIdleThreads++;
   numCurrentThreads++;
   ThreadState ts(false,false);
@@ -237,10 +251,11 @@ void ThreadPool::startThread()
 
 WakeableHelper* ThreadPool::allocWakeableHelper(Wakeable* wk, void* arg)
 {
+  WakeableHelper* pwh = nullptr;
+  mutex.lock();
   if (unusedWakeableHelperList == nullptr)
     {
-    WakeableHelper* pwh = new WakeableHelper(wk, arg);
-    return pwh;
+    pwh = new WakeableHelper(wk, arg);
     }
   else 
     {
@@ -250,6 +265,8 @@ WakeableHelper* ThreadPool::allocWakeableHelper(Wakeable* wk, void* arg)
       pwh->wk = wk;
       pwh->arg = arg;
     }  
+  mutex.unlock();
+  return pwh;
 
 #if 0
   for (WHList::iterator it=whList.begin(); it != whList.end(); ++it)
@@ -266,10 +283,12 @@ WakeableHelper* ThreadPool::allocWakeableHelper(Wakeable* wk, void* arg)
 
 void ThreadPool::deleteWakeableHelper(WakeableHelper* wh)
   {
+  mutex.lock();
     if (unusedWakeableHelperList == nullptr)
     {
-      unusedWakeableHelperList = wh;
       wh->next = nullptr;
+      unusedWakeableHelperList = wh;
+      
     }
     else
       {
@@ -277,17 +296,20 @@ void ThreadPool::deleteWakeableHelper(WakeableHelper* wh)
         unusedWakeableHelperList = wh;
       }
     //delete wh;
+    mutex.unlock();
   }
 
 void* ThreadPool::timerThreadFunc(void* arg)
 {
   logTrace("THRPOOL","TIMERFUNC", "timerThreadFunc enter");
   ThreadPool* tp = (ThreadPool*) arg;
+  tp->mutex.lock();
   while(!tp->isStopped)
   {
-    sleep(SAFplusI::ThreadPoolTimerInterval);
+    tp->checkerCond.timed_wait(tp->mutex,SAFplusI::ThreadPoolTimerInterval * 1000);
     tp->checkAndReleaseThread();
   }
+  tp->mutex.unlock();
   return NULL;
 }
 
@@ -295,11 +317,19 @@ void ThreadPool::checkAndReleaseThread()
 {
   logTrace("THRPOOL","RLS", "checkAndReleaseThread enter: numCurrentThreads [%d]", numCurrentThreads);
   int nRunningThreads = numCurrentThreads;
+  ThreadHashMap::iterator eraseMe = threadMap.end();
   for(ThreadHashMap::iterator iter=threadMap.begin(); iter!=threadMap.end()&&nRunningThreads>minThreads; iter++)
   {
+    // I can't erase the element the iterator is visiting, so if I need to erase I'll set this variable and wait for the iter to advance, executing the erase at the top of the next loop.
+    if (eraseMe != threadMap.end()) { threadMap.erase(eraseMe); eraseMe = threadMap.end(); }
     pthread_t threadId = iter->first;
     //printf("checkAndReleaseThread(): threadId [%lu]\n", threadId);
     ThreadState& ts = iter->second;
+    if (ts.zombie)
+      {
+        pthread_join(threadId,NULL);  // clean up thread tracker in OS (stop zombie threads)
+        eraseMe = iter;        
+      }
     if (!ts.working)
     {
       struct timespec now;
@@ -319,7 +349,7 @@ void ThreadPool::checkAndReleaseThread()
         }
         else
         {
-          printf("WARNING. terminating thread\n");
+          logWarning("THRPOOL","RLS","WARNING. terminating thread [%lu]", threadId);
         }
         #endif
         ts.quitAllowed = true;

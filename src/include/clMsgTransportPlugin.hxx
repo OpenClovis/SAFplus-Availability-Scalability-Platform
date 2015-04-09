@@ -1,3 +1,4 @@
+#pragma once
 #include <clPluginApi.hxx>
 
 namespace SAFplus

@@ -78,6 +78,29 @@ bool testSendRecv()
   receiver2.lock();
   clTest(("msgType demultiplex 2"), *((uint_t*) receiver2.data) == 2, ("data is [%d]",*((uint_t*) receiver2.data) ));
 
+  val = 2;
+  MsgPool& pool = a.getMsgPool();
+  Message* msg = pool.allocMsg();
+  MsgFragment* frag = msg->append(sizeof(val));
+  memcpy(frag->data(),&val,sizeof(val));
+  frag->len+=sizeof(val);
+  msg->setAddress(b.handle);
+  a.SendMsg(msg,2);
+
+  val = 1;
+  msg = pool.allocMsg();
+  frag = msg->append(sizeof(val));
+  memcpy(frag->data(),&val,sizeof(val));
+  frag->len+=sizeof(val);
+  msg->setAddress(b.handle);
+  a.SendMsg(msg,1);
+
+  receiver.lock();
+  clTest(("msgType demultiplex 1"), *((uint_t*) receiver.data) == 1, ("data is [%d]",*((uint_t*) receiver.data) ));
+  receiver2.lock();
+  clTest(("msgType demultiplex 2"), *((uint_t*) receiver2.data) == 2, ("data is [%d]",*((uint_t*) receiver2.data) ));
+
+
   // Test broadcast
   a.SendMsg(b.broadcastAddr(),(void*) strMsg,strlen(strMsg),1);
   receiver.lock();

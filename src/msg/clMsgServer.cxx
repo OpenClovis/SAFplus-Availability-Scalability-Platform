@@ -112,6 +112,19 @@ void MsgServer::MakeMePrimary()
 
   }
 
+  void  MsgServer::SendMsg(Message* msg,uint_t msgtype)
+  {
+    Message* cur;
+    for (cur = msg; cur != nullptr; cur=cur->nextMsg)
+      {
+        MsgFragment* pfx = msg->prepend(1);
+        * ((unsigned char*)pfx->data()) = msgtype;
+        pfx->len = 1; 
+      }
+
+    sock->send(msg);
+  }
+
   void MsgServer::SendMsg(SAFplus::Handle destination, void* buffer, uint_t length,uint_t msgtype)
   {
     // Note msgtype is ignored at this level.  It is used at the SAFplusMsgServer level.

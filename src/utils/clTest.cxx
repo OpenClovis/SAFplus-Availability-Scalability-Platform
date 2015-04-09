@@ -73,8 +73,7 @@ int clTestGroupFinalizeImpl()
 {
   clTestPrint(("Test completed.  Cases:  [%d] passed, [%d] failed, [%d] malfunction.\n", clCurTc.passed, clCurTc.failed, clCurTc.malfunction));
   //clOsalMutexDestroy(&testLogMutex);
-  clTestPrintAt(__FILE__, __LINE__, __FUNCTION__, ("%d",5));
- 
+  //clTestPrintAt(__FILE__, __LINE__, __FUNCTION__, ("%d",5)); 
   return (clCurTc.failed);
 }
 
@@ -107,6 +106,9 @@ static int pid = 0;
 
 void clTestPrintImpl(const char* file, int line, const char* fn, const char* str)
 {
+  // This is not pretty, but the compiler prints warnings if the string passed to the test macros is empty.  So instead of empty, we use " " to denote nothing meaningful in the string.
+  if (str[0] == ' ' && str[1] == 0) return;
+
   if (pid==0) pid = getpid();
   testLogMutex.lock(); /* Lock clTestFp because it is closed and reopened each time a log is written (in case the file is deleted or moved) */
   if (!clTestFp)
@@ -115,20 +117,21 @@ void clTestPrintImpl(const char* file, int line, const char* fn, const char* str
       /* fprintf(clTestFp, "\n\n"); */
     }
 
-  if (clTestFp)
-    {
       char todStr[128]="";
       time_t now = time(0);
       struct tm tmStruct;
       localtime_r(&now, &tmStruct);
       strftime(todStr, 128, "[%b %e %T]", &tmStruct);
 
+  if (clTestFp)
+    {
       fprintf(clTestFp, "%s: %s (%d), at %s:%d (%s): %s\n",todStr, ASP_COMPNAME, pid, file, line, fn, str);
       fflush(clTestFp);
-
       fclose(clTestFp); /* Close and reopen each time in case testresults is deleted */
       clTestFp = 0;
     }
+
+  logMsgWrite(SAFplus::APP_LOG, testLogLevel,0,"TST", "---",file, line, "(%s): %s",fn, str);
   testLogMutex.unlock();
    
 }

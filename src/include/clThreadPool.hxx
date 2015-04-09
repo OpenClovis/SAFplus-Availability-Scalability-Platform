@@ -75,8 +75,9 @@ namespace SAFplus
   {    
     bool working;
     bool quitAllowed;
+    bool zombie; // thread has quit and is waiting for join()
     struct timespec idleTimestamp;
-    ThreadState(bool wk, bool qa): working(wk), quitAllowed(qa){}
+    ThreadState(bool wk, bool qa): working(wk), quitAllowed(qa), zombie(false) {}
   };
  
   typedef std::pair<const pthread_t,ThreadState> ThreadMapPair; 
@@ -86,8 +87,10 @@ namespace SAFplus
   class ThreadPool
   {
   protected:
+    pthread_t checker;  // handle to the deadlock checker thread
     bool isStopped;
     Mutex mutex;
+    ThreadCondition checkerCond;
     ThreadCondition cond;
     ThreadHashMap threadMap;
     int numCurrentThreads;

@@ -6,7 +6,7 @@
 #include <clAppEvent.hxx>
 #include <clHandleApi.hxx>
 #include <clMsgServerIpi.hxx>
-
+#include <clMsgBase.hxx>
 #include <boost/thread/thread.hpp>
 
 namespace SAFplus
@@ -86,6 +86,16 @@ namespace SAFplus
     */
     void SendMsg(SAFplus::Handle destination, void* buffer, uint_t length,uint_t msgtype=0);
 
+    /*? Send a message
+        <arg name='destination'> Address of the destination node/process</arg>
+        <arg name='buffer'> Your data</arg>
+        <arg name='length'> Your data length</arg>
+        <arg name='msgtype'> The destination message handler's type (that it passed when calling RegisterHandler()).  This will be prepended to every message passed in the msg list.</arg>
+
+        Raises the "Error" Exception if something goes wrong.
+    */
+    void SendMsg(Message* msg,uint_t msgtype=0);
+
     /*? Start the server listening on the port */
     void Start();
 
@@ -108,6 +118,8 @@ namespace SAFplus
       {
       return getProcessHandle(port,Handle::AllNodes);
       }
+
+    MsgPool& getMsgPool() { return *sock->msgPool; }
 
   protected:
     void Shutdown();
