@@ -41,9 +41,5 @@ SUBDIRS          = client
 #server: client
 
 
-EXTRA_CLEAN	=
-EXTRA_CFLAGS	=
-EXTRA_CPPFLAGS	=
-EXTRA_LDFLAGS   =
 
 include $(CLOVIS_ROOT)/ASP/mk/make-subdir.mk
