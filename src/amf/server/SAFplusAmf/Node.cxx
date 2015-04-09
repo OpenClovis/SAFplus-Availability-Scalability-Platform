@@ -49,6 +49,8 @@ namespace SAFplusAmf
         this->addChildObject(&failFastOnCleanupFailure, "failFastOnCleanupFailure");
         this->addChildObject(&serviceUnits, "serviceUnits");
         this->addChildObject(&capacityList, "capacity");
+        capacityList.childXpath="/SAFplusAmf/Node/capacity";
+        capacityList.setListKey("resource");
         this->tag.assign("Node");
     };
 

@@ -57,6 +57,10 @@ namespace SAFplusAmf
         this->addChildObject(&serviceGroup, "serviceGroup");
         this->addChildObject(&activeWeightList, "activeWeight");
         this->addChildObject(&standbyWeightList, "standbyWeight");
+        activeWeightList.childXpath="/SAFplusAmf/ServiceInstance/activeWeight";
+        activeWeightList.setListKey("resource");
+        standbyWeightList.childXpath="/SAFplusAmf/ServiceInstance/standbyWeight";
+        standbyWeightList.setListKey("resource");
         this->tag.assign("ServiceInstance");
     };
 
