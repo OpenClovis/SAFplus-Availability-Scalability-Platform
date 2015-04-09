@@ -108,6 +108,7 @@ namespace SAFplus
        */
       typedef std::map<std::string,std::string> keyMap;
       keyMap keyList;
+      std::string childXpath;
       /**
        * API to specify key names for the list
        */

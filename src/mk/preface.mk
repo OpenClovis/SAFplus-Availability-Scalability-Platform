@@ -104,6 +104,11 @@ CPP_FLAGS += -pg
 LINK_FLAGS += -pg
 endif
 
+PYANG_PLUGINPATH_EXT ?= $(PYANG_PLUGINPATH)
+ifeq ($(PYANG_PLUGINPATH_EXT),)
+export PYANG_PLUGINPATH:=$(shell pwd)
+endif
+
 #Function to do codegen RPC from .yang
 define SAFPLUS_YANG_RPC_GEN
 	PYTHONPATH=$$PYTHONPATH:$(MGT_SRC_DIR)/3rdparty/pyang:/usr/local/lib PYANG_PLUGINPATH=$$PYANG_PLUGINPATH:$(MGT_SRC_DIR)/pyplugin $(MGT_SRC_DIR)/3rdparty/pyang/bin/pyang --path=$(SAFPLUS_SRC_DIR)/yang -f y2cpp $(strip $1).yang --y2cpp-output=`pwd` --y2cpp-mgt $(MGT_SRC_DIR) --y2cpp-rpc

@@ -21,6 +21,7 @@ namespace SAFplusLog
     StreamConfig::StreamConfig(): SAFplus::MgtContainer("StreamConfig"), streamList("stream")
     {
         this->addChildObject(&streamList, "stream");
+        streamList.childXpath="/SAFplusLog/StreamConfig/stream";
         streamList.setListKey("name");
     };
 

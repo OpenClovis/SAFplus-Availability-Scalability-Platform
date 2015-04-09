@@ -47,6 +47,8 @@ namespace SAFplusAmf
         this->addChildObject(&standbyComponents, "standbyComponents");
         this->addChildObject(&activeComponents, "activeComponents");
         this->addChildObject(&dataList, "data");
+        dataList.childXpath="/SAFplusAmf/ComponentServiceInstance/data";
+        dataList.setListKey("name");
         this->tag.assign("ComponentServiceInstance");
     };
 
