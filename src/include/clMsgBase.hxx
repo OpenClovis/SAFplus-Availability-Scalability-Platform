@@ -1,7 +1,6 @@
 //? <section name="Messaging">
 #pragma once
 #include <clDbg.hxx>
-#include <clMsgHandler.hxx>
 #include <leakyBucket.hxx>
 #include <clMsgTransportPlugin.hxx>
 
@@ -75,6 +74,8 @@ namespace SAFplus
     uint_t node; //? source or destination node, depending on whether this message is being sent or was received.
     uint_t port; //? source or destination port, depending on whether this message is being sent or was received.
 
+      //? Get the source or destination handle (depending on whether this message is being sent or was received) of this message.  This is just a convenience function that constructs a handle from the node and port fields of this object
+    Handle getAddress() { getProcessHandle(port,node); }
     //? Change the address of this message.
     void setAddress(uint_t nodep, uint_t portp) { node=nodep; port=portp; }
     //? Change the address of this message to that of the node and port of the provided handle.

@@ -33,9 +33,24 @@ namespace SAFplus
         // TODO Auto-generated destructor stub
     }
 
+    void MsgHandler::msgHandler(MsgServer* svr, Message* msgHead, ClPtrT cookie)
+    {
+      // 
+    Message* msg = msgHead;
+    while(msg)
+      {
+        assert(msg->firstFragment == msg->lastFragment);  // TODO: This code is only written to handle one fragment.
+        MsgFragment* frag = msg->firstFragment;
+        msgHandler(msg->getAddress(),svr,(ClPtrT)frag->read(0),frag->len,cookie);
+        msg = msg->nextMsg;
+      }
+    msgHead->msgPool->free(msgHead);
+    }
+
     void
     MsgHandler::msgHandler(SAFplus::Handle from, MsgServer* svr, ClPtrT msg, ClWordT msglen, ClPtrT cookie)
     {
+      clDbgCodeError(0,"Application should have implemented this virtual function"); 
     }
 
 } /* namespace SAFplus */

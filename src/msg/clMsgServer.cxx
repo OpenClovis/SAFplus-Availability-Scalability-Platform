@@ -200,12 +200,16 @@ void MsgServer::MakeMePrimary()
     MsgHandler *msgHandler = q->handlers[msgType];
     if (msgHandler != NULL)
       {
+      msgHandler->msgHandler(q, msg,q->cookies[msgType]);
+      msg=nullptr;  // ownership is given to the msgHandler
+#if 0
         ClRcT rc;
         //rc = clBufferFlatten(msg,&buf);
         Handle srcAddr = getProcessHandle(msg->port,msg->node);
         msgHandler->msgHandler(srcAddr, q, (char*)frag->read(0), frag->len,q->cookies[msgType]);
         msg->msgPool->free(msg);  // ownership will be given to the msgHandler for now we free
-        msg=nullptr;  // ownership is given to the msgHandler
+        
+#endif
       }
     else
       {
