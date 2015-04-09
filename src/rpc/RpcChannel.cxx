@@ -258,7 +258,7 @@ namespace SAFplus
             else
               {
                 mutex.unlock();
-                logWarning("RPC", "RSP","RPC response [%d] has no request tracker", rpcMsgRes->id());
+                logWarning("RPC", "RSP","RPC response [%d] has no request tracker", (unsigned int) rpcMsgRes->id());
               }
 
           }
@@ -266,6 +266,41 @@ namespace SAFplus
         /*
          * Message handle for communication
          */
+        void RpcChannel::msgHandler(MsgServer* svr, Message* msgHead, ClPtrT cookie)
+        {
+          Message* msg = msgHead;
+          while(msg)
+            {
+              assert(msg->firstFragment == msg->lastFragment);  // TODO: This code is only written to handle one fragment.
+              MsgFragment* frag = msg->firstFragment;
+              SAFplus::Rpc::RpcMessage rpcMsgReqRes;
+              rpcMsgReqRes.ParseFromArray(frag->read(0),frag->len);
+
+              ClWordT msgType = rpcMsgReqRes.type();
+
+              // transport layer handle only provides process and node.  RPC response handle needs to be the requesting object
+              SAFplus::Handle from;
+              from.id[0] = rpcMsgReqRes.handle().id0();
+              from.id[1] = rpcMsgReqRes.handle().id1();
+
+              if (msgType == msgSendType)
+                {
+                  HandleRequest(&rpcMsgReqRes, from);
+                }
+              else if (msgType == msgReplyType)
+                {
+                  HandleResponse(&rpcMsgReqRes);
+                }
+              else
+                {
+                  SAFplus::Handle srcAddr = msg->getAddress();
+                  logError("RPC", "HDL", "Received invalid message type [%lu] from [%" PRIx64 ":%" PRIx64 "]", msgType, srcAddr.id[0], srcAddr.id[1]);
+                }
+              msg = msg->nextMsg;
+            }
+          msgHead->msgPool->free(msgHead);
+        }
+#if 0
         void RpcChannel::msgHandler(SAFplus::Handle srcAddr, MsgServer* svr, ClPtrT msg, ClWordT msglen, ClPtrT cookie)
           {
             SAFplus::Rpc::RpcMessage rpcMsgReqRes;
@@ -292,6 +327,7 @@ namespace SAFplus
               }
 
           }
+#endif
 
       } /* namespace Rpc */
   } /* namespace SAFplus */

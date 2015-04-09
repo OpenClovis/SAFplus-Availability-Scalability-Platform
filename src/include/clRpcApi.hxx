@@ -79,7 +79,7 @@ namespace SAFplus
                 const google::protobuf::Message* request, google::protobuf::Message* response, SAFplus::Wakeable &wakeable);
 
             // Register with msg server to handle RPC protocol
-            void msgHandler(SAFplus::Handle from, MsgServer* svr, ClPtrT msg, ClWordT msglen, ClPtrT cookie);
+            void msgHandler(MsgServer* svr, Message* msgHead, ClPtrT cookie);
 
             void HandleRequest(SAFplus::Rpc::RpcMessage *msg, SAFplus::Handle from);
             void HandleResponse(SAFplus::Rpc::RpcMessage *msg);
