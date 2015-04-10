@@ -43,7 +43,7 @@ namespace SAFplus
   protected:
     int sock;
     bool nagleEnabled; 
-    NodeIDSocketMap clientSockMap; //TODO in case node failure: if a node got failure, this must be notified so that
+    //NodeIDSocketMap clientSockMap; //TODO in case node failure: if a node got failure, this must be notified so that
     // the item associated with it in the map must be deleted too, if not, the associated socket may be invalid because of its server failure
     //int getClientSocket(uint_t nodeID, uint_t port);
     //int openClientSocket(uint_t nodeID, uint_t port);    
@@ -133,6 +133,16 @@ namespace SAFplus
       throw Error(Error::SYSTEM_ERROR,errno, strerror(errno),__FILE__,__LINE__);       
     }
 #endif
+
+    if (!nagleEnabled)
+    {
+      int nodelay=1;  
+      if(setsockopt(sock, SOL_SCTP, SCTP_NODELAY, &nodelay, sizeof(nodelay)) != 0)
+      {
+        int err = errno;
+        throw Error(Error::SYSTEM_ERROR,errno, strerror(errno),__FILE__,__LINE__);
+      }
+    }
 
     /* set the reuse of address*/
     int reuse = 1;
@@ -525,7 +535,7 @@ namespace SAFplus
 
    void SctpSocket::switchNagle()
    {
-     int nodelay, ret, socket;
+     int nodelay,ret;
      if (nagleEnabled)
      {
        nodelay = 0;
@@ -534,6 +544,17 @@ namespace SAFplus
      {
        nodelay = 1;
      }
+
+     if((ret = setsockopt(sock, SOL_SCTP, SCTP_NODELAY, &nodelay, sizeof(nodelay))) != 0)
+       {         
+         logWarning("SCTP", "SWTNGL", "Switching nagle algorithm for socket [%d] failed. Errno [%d], errmsg [%s]", sock, errno, strerror(errno));
+       }
+       else
+       {
+         logDebug("SCTP", "SWTNGL", "Switched nagle algorithm for socket successfully.");
+       }
+     
+#if 0
      for(NodeIDSocketMap::iterator iter = clientSockMap.begin(); iter != clientSockMap.end(); iter++)
      {
        NodeIDSocketMap::value_type vt = *iter;
@@ -547,18 +568,21 @@ namespace SAFplus
          logInfo("SCTP", "SWTNGL", "switch nagle algorithm for socket successfully");
        }
      }
+#endif
    }   
 
    SctpSocket::~SctpSocket()
    {
      // Close all the sockets: both server socket itself and client sockets in the map
      close(sock);
+#if 0
      for(NodeIDSocketMap::iterator iter = clientSockMap.begin(); iter != clientSockMap.end(); iter++)
      {
        NodeIDSocketMap::value_type vt = *iter;
        int socket = vt.second;
        close(socket);
      }
+#endif
    }
 };
 
