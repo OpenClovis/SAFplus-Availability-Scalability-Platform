@@ -25,6 +25,7 @@
 #include "clMsgServer.hxx"
 #include "clMsgApi.hxx"
 #include <inttypes.h>
+#include <boost/iostreams/stream.hpp>
 
 using namespace std;
 
@@ -128,10 +129,19 @@ namespace SAFplus
 
             try
               {
-                string output;
-                rpcMsgReq.SerializeToString(&output);
-                int size = output.size();
-                svr->SendMsg(overDest, (void *) output.c_str(), size, msgSendType);
+                //string output;
+                //rpcMsgReq.SerializeToString(&output);
+                //int size = output.size();
+                //svr->SendMsg(overDest, (void *) output.c_str(), size, msgSendType);
+                MsgPool& pool = svr->getMsgPool();
+                Message* msg = pool.allocMsg();
+                msg->setAddress(overDest);
+                if (1)
+                  {
+                  boost::iostreams::stream<MessageOStream>  mos(msg);
+                  rpcMsgReq.SerializeToOstream(&mos);
+                  }
+                svr->SendMsg(msg, msgSendType);
               }
             catch (Error &e)
               {

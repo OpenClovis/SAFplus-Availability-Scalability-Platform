@@ -94,18 +94,18 @@ int main(void)
  
   safplusMsgServer.Start();
 
-  testLatency(msgDest, 100, 1, 10000,"100 bytes by 1");
-  testLatency(msgDest, 1000, 1, 10000,"1000 bytes by 1");
+  //testLatency(msgDest, 100, 1, 10000,"100 bytes by 1");
+  //testLatency(msgDest, 1000, 1, 10000,"1000 bytes by 1");
   testLatency(msgDest, 10000, 1, 10000,"10000 bytes by 1");
 
   testLatency(msgDest, 100, 10, 1000,"100 bytes by 10");
   testLatency(msgDest, 1000, 10, 1000,"1000 bytes by 10");
   testLatency(msgDest, 10000, 10, 1000,"10000 bytes by 10");
 
-  testLatency(msgDest, 100, 100, 1000,"100 bytes by 10");
-  testLatency(msgDest, 1000, 100, 1000,"1000 bytes by 10");
-  testLatency(msgDest, 10000, 100, 1000,"10000 bytes by 10");
-  testLatency(msgDest, 10000, 100, 900000000,"10000 bytes by 10");
+  testLatency(msgDest, 100, 100, 1000,"100 bytes by 100");
+  testLatency(msgDest, 1000, 100, 1000,"1000 bytes by 100");
+  testLatency(msgDest, 10000, 100, 1000,"10000 bytes by 100");
+  testLatency(msgDest, 10000, 100, 900000000,"10000 bytes by 100");
   //testLatency(msgDest, 10000, 100, 10000000,"10000 bytes by 10");
   //testLatency(msgDest, 10000, 100, 900000000,"10000 bytes by 10");
 

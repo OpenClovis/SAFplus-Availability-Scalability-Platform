@@ -1,6 +1,7 @@
 #include <clMsgServer.hxx>
 #include <clMsgHandler.hxx>
 #include <clTestApi.hxx>
+#include <boost/iostreams/stream.hpp>
 
 using namespace SAFplus;
 
@@ -66,6 +67,7 @@ bool testSendRecv()
   printf("Message was: %s\n",receiver.data);
   clTest(("send/recv message ok"), 0 == strncmp((const char*) receiver.data,strMsg,sizeof(strMsg)),("message contents miscompare") );
 
+  // Test buffer interface
   RecvHandler receiver2;
   b.RegisterHandler(2,&receiver2,NULL);
   uint_t val = 2;
@@ -78,6 +80,7 @@ bool testSendRecv()
   receiver2.lock();
   clTest(("msgType demultiplex 2"), *((uint_t*) receiver2.data) == 2, ("data is [%d]",*((uint_t*) receiver2.data) ));
 
+  // Test Message interface
   val = 2;
   MsgPool& pool = a.getMsgPool();
   Message* msg = pool.allocMsg();
@@ -100,7 +103,21 @@ bool testSendRecv()
   receiver2.lock();
   clTest(("msgType demultiplex 2"), *((uint_t*) receiver2.data) == 2, ("data is [%d]",*((uint_t*) receiver2.data) ));
 
+  // Test message stream interface
+  msg = pool.allocMsg();
+  if (1)
+    {
+    boost::iostreams::stream<MessageOStream>  mos(msg);
+    mos <<  9 <<  8;
+    mos.flush();
+    }
+  msg->setAddress(b.handle);
+  a.SendMsg(msg,1);
 
+  receiver.lock();
+  clTest(("msg ostream serialization"), *((char*) receiver.data) == '9', ("data is [%d]",(int) *((char*) receiver.data) ));
+  clTest(("msg ostream serialization"), *((char*) receiver.data+1) == '8', ("data is [%d]",(int) *((char*) receiver.data+1) ));
+ 
   // Test broadcast
   a.SendMsg(b.broadcastAddr(),(void*) strMsg,strlen(strMsg),1);
   receiver.lock();

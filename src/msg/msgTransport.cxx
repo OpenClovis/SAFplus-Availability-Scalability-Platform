@@ -105,8 +105,22 @@ namespace SAFplus
       }
     }
 
+    int MsgFragment::append(const char* s, int n)
+    {
+      //assert(size+offset+start < allocatedLen);
+      int availableSpace = allocatedLen - (start+len);
+      if (availableSpace==0) return 0;
+      int writeAmt = std::min(n,availableSpace);
+      char* d = (char*) data(len);  // I'm adding to the end so I want the pointer offset by len
+      memcpy(d,s,writeAmt);
+      len += writeAmt;
+      return writeAmt;
+    }
+
+
   const void* MsgFragment::read(int offset)
     {
+    if (offset == len) return NULL; // especially needed for 0 length fragments
     assert(offset < len);  // not offset+start because the len does not include start
     if (flags & PointerFragment)
       {
@@ -288,5 +302,32 @@ namespace SAFplus
   {
     return sock->receive(maxMsgs,maxDelay);
   }
+
+
+    std::streamsize MessageOStream::write(const char* s, std::streamsize n)
+    {
+      // Write up to n characters to the underlying 
+      // data sink from the buffer s, returning the 
+      // number of characters written
+      int leftover = n;
+      MsgFragment* frag = msg->lastFragment;
+
+      while(leftover)
+        {
+          if (frag)
+            {
+              int written = frag->append(s,leftover);
+              s += written;
+              leftover -= written;
+            }
+          if (leftover)
+            {
+              int newFragSize = std::max(leftover,fragSize);
+              frag = msg->append(newFragSize);
+            }
+        }
+      return n;    
+    }
+
 
   };

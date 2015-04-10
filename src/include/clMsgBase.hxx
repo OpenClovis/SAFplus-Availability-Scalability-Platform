@@ -4,6 +4,11 @@
 #include <leakyBucket.hxx>
 #include <clMsgTransportPlugin.hxx>
 
+#include <algorithm>
+#include <iosfwd>                          // streamsize
+#include <boost/iostreams/categories.hpp>  // sink_tag
+#include <boost/iostreams/concepts.hpp>  // sink
+
 namespace SAFplus
   {
     //? <class> A message fragment is a buffer that contains part or all of a message.
@@ -34,8 +39,9 @@ namespace SAFplus
     protected:
       void*        buffer;  //? This must be the LAST object in the class so that the InlineFragment logic works correctly.  It is either a pointer to the memory buffer or is ITSELF the first bytes of the inline memory buffer.  Due to application bugs caused by this optimization, use the @data and @read functions to access the buffer instead of using this directly.
     public:
-      void set(const char* buf);  //? Set this fragment to a null-terminated string buffer (you keep ownership)
-      void set(void* buf, uint_t length);  //? <_> Set this fragment to the provided buffer (you keep ownership) <arg name='buf'>The data in this buffer will be copied into the fragment</arg><arg name='length'>length of the passed buffer</arg> </_>
+      void set(const char* buf);  //? Set this fragment's buffer to this null-terminated string (you keep ownership and must free at the appropriate time).  String is NOT copied.
+      void set(void* buf, uint_t length);  //? <_> Use the provided buffer as this fragment's data.  You must still clean up the buffer at the appropriate time (after flush() or other technique to ensure the message is actually sent. <arg name='buf'>The fragment will point to this buffer</arg><arg name='length'>length of the buffer</arg> </_>
+      int append(const char* s, int n); //? Copy these bytes to the end of the buffer allocated for this fragment.  You keep ownership of s and can free at any time after this function returns.
       void* data(int offset=0);  //? Get a pointer to the data in this fragment at the provided offset.
       const void* read(int offset=0);  //? Get a read-only pointer to the data in this fragment at the provided offset
 
@@ -206,6 +212,48 @@ namespace SAFplus
     MsgSocket* operator->() {return sock;}
   }; //? </class>
 
+    //? <class> This class allows you to write data to a Msg using the c++ ostream interface.  Typically no APIs in this class are accessed directly.  Please see the Msg stream example code for a tutorial on use.
+class MessageOStream:public boost::iostreams::sink
+  {
+  public:
+    Message* msg;
+    int fragSize;
+    std::streamsize write(const char* s, std::streamsize n);
+
+    MessageOStream(Message* _msg, unsigned int _sizeHint=4096)
+    {
+      msg = _msg;
+      fragSize = _sizeHint;
+    }
+
+#if 0
+    std::streamsize write(const char* s, std::streamsize n)
+    {
+        // Write up to n characters to the underlying 
+        // data sink from the buffer s, returning the 
+        // number of characters written
+      int leftover = n;
+      MsgFragment* frag = msg->lastFragment;
+
+      while(leftover)
+        {
+          if (frag)
+            {
+            int written = frag->append(s,leftover);
+            s += written;
+            leftover -= written;
+            }
+          if (leftover)
+            {
+              int newFragSize = std::max(leftover,fragSize);
+              frag = msg->append(newFragSize);
+            }
+        }      
+    }
+#endif
+
+    /* Other members */
+}; //? </class>
 
 };
 
