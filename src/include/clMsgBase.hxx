@@ -80,6 +80,8 @@ namespace SAFplus
     void setAddress(uint_t nodep, uint_t portp) { node=nodep; port=portp; }
     //? Change the address of this message to that of the node and port of the provided handle.
     void setAddress(const Handle& h);
+    void deleteLastFragment();
+    u_int getLength();
 
     MsgFragment* prepend(uint_t size); //? Create a message fragment at the beginning of this message and return it
     MsgFragment* append(uint_t size);  //? Create a message fragment at the end of this message and return it
@@ -112,6 +114,7 @@ namespace SAFplus
       virtual Message* allocMsg();
       //? Free an entire chain of messages and message fragments.
       virtual void free(Message* msg);
+      void freeFragment(MsgFragment* frag);
     }; //? </class>
 
   //? <class> A interface defining a portal to send and receive messages.  The application can create or delete a MsgSocket by calling the MsgTransportPlugin_1::createSocket() and MsgTransportPlugin_1::deleteSocket() functions, or by using the @ScopedMsgSocket convenience class for stack-scoped sockets.  Classes derived from MsgSocket can also be layered on top of transport MsgSockets to create additional functionality such as traffic shaping, large message capability, etc.  For more information see [[Messaging#Message_Transport_Layer]]
@@ -142,10 +145,10 @@ namespace SAFplus
       friend class ScopedMsgSocket;
   }; //? </class>
 
-  class MsgSocketAdvance
+  class MsgSocketAdvanced : public MsgSocket
   {
     public:
-    virtual ~MsgSocketAdvance()
+    virtual ~MsgSocketAdvanced()
     {
       //sock->transport->deleteSocket(sock);
     }
@@ -153,44 +156,54 @@ namespace SAFplus
     //? Send a bunch of messages.  You give up ownership of msg.
     virtual void send(Message* msg,uint_t length)=0;
     virtual Message* receive(uint_t maxMsgs,int maxDelay=-1)=0;
+    virtual void send(SAFplus::Handle destination, void* buffer, uint_t length,uint_t msgtype)=0;
     MsgSocket* operator->() {return sock;}
   };
 
-  class MsgSocketShaping : public MsgSocketAdvance
+  class MsgSocketShaping : public MsgSocketAdvanced
   {
     private:
       SAFplus::leakyBucket bucket;
     public:
     MsgSocketShaping(uint_t port,MsgTransportPlugin_1* transport,uint_t volume, uint_t leakSize, uint_t leakInterval);
+    MsgSocketShaping(MsgSocket* socket,uint_t volume, uint_t leakSize, uint_t leakInterval);
     virtual ~MsgSocketShaping();
     //? Tell the traffic shaper that a message of the supplied length was sent.  This function is automatically called by send so the application typically never needs to use it.
     void applyShaping(uint_t length);
     //? Send a bunch of messages.  You give up ownership of msg.
-    virtual void send(Message* msg,uint_t length);
+    virtual void send(Message* msg);
+    virtual void send(SAFplus::Handle destination, void* buffer, uint_t length,uint_t msgtype);
     virtual Message* receive(uint_t maxMsgs,int maxDelay=-1);
   };
 
-  class MsgSocketReliable : public MsgSocketAdvance
+  class MsgSocketReliable : public MsgSocketAdvanced
   {
     private:
 
     public:
     MsgSocketReliable(uint_t port,MsgTransportPlugin_1* transport);
+    MsgSocketReliable(MsgSocket* socket);
     virtual ~MsgSocketReliable();
     //? Send a bunch of messages.  You give up ownership of msg.
     virtual void send(Message* msg,uint_t length);
+    virtual void send(SAFplus::Handle destination, void* buffer, uint_t length,uint_t msgtype);
     virtual Message* receive(uint_t maxMsgs,int maxDelay=-1);
   };
 
-  class MsgSocketSegmentaion : public MsgSocketAdvance
+  class MsgSocketSegmentaion : public MsgSocketAdvanced
   {
     private:
     public:
     MsgSocketSegmentaion(uint_t port,MsgTransportPlugin_1* transport);
+    MsgSocketSegmentaion(MsgSocket* socket);
     virtual ~MsgSocketSegmentaion();
     //? Send a bunch of messages.  You give up ownership of msg.
-    virtual void send(Message* msg,uint_t length);
+    virtual void send(Message* msg);
+    virtual void send(SAFplus::Handle destination, void* buffer, uint_t length,uint_t msgtype);
     virtual Message* receive(uint_t maxMsgs,int maxDelay=-1);
+    void applySegmentaion(Message* m ,SAFplus::Handle destination, void* buffer, uint_t length,uint_t msgtype);
+    void applySegmentaion(Message* m);
+
   };
 
   //? <class> A message socket whose lifetime rules follow lexical scoping
