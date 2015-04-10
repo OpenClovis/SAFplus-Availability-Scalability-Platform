@@ -19,7 +19,6 @@ namespace SAFplusAmf
 
     ActiveAssignments::ActiveAssignments()
     {
-        this->config = false;
         this->tag.assign("activeAssignments");
     };
 

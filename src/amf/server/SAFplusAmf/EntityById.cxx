@@ -32,8 +32,11 @@ namespace SAFplusAmf
     EntityById::EntityById(unsigned short int idValue): SAFplus::MgtContainer("EntityById"), id("id"), entity("entity")
     {
         this->id.value =  idValue;
+        this->config = false;
         this->addChildObject(&id, "id");
+        id.config = false;
         this->addChildObject(&entity, "entity");
+        entity.config = false;
     };
 
     std::vector<std::string> EntityById::getKeys()

@@ -8,6 +8,7 @@
 #include "RestartCount.hxx"
 #include "clMgtIdentifier.hxx"
 #include "clTransaction.hxx"
+#include "HighAvailabilityReadinessState.hxx"
 #include "Timeouts.hxx"
 #include "StandbyAssignments.hxx"
 #include "Instantiate.hxx"
@@ -21,20 +22,19 @@
 #include <string>
 #include "ReadinessState.hxx"
 #include "Timeouts.hxx"
-#include "Terminate.hxx"
 #include "Instantiate.hxx"
 #include "clMgtProv.hxx"
 #include "StandbyAssignments.hxx"
 #include "Recovery.hxx"
-#include "HighAvailabilityReadinessState.hxx"
+#include "Terminate.hxx"
 #include <vector>
 #include "ActiveAssignments.hxx"
 #include "HighAvailabilityState.hxx"
 #include "PresenceState.hxx"
 #include "Date.hxx"
 #include "EntityId.hxx"
-#include "ServiceUnit.hxx"
 #include "clMgtProvList.hxx"
+#include "ServiceUnit.hxx"
 #include "Component.hxx"
 
 using namespace SAFplusTypes;
@@ -84,6 +84,16 @@ namespace SAFplusAmf
         processId.config = false;
         this->addChildObject(&lastError, "lastError");
         lastError.config = false;
+        this->addChildObject(&activeAssignments, "activeAssignments");
+        activeAssignments.config = false;
+        this->addChildObject(&standbyAssignments, "standbyAssignments");
+        standbyAssignments.config = false;
+        this->addChildObject(&instantiate, "instantiate");
+        this->addChildObject(&terminate, "terminate");
+        this->addChildObject(&cleanup, "cleanup");
+        this->addChildObject(&timeouts, "timeouts");
+        this->addChildObject(&restartCount, "restartCount");
+        restartCount.config = false;
         this->tag.assign("Component");
     };
 
@@ -91,23 +101,32 @@ namespace SAFplusAmf
     {
         this->name.value =  nameValue;
         this->addChildObject(&presence, "presence");
+        presence.config = false;
         this->addChildObject(&capabilityModel, "capabilityModel");
         this->addChildObject(&maxActiveAssignments, "maxActiveAssignments");
         this->addChildObject(&maxStandbyAssignments, "maxStandbyAssignments");
         this->addChildObject(&assignedWork, "assignedWork");
+        assignedWork.config = false;
         this->addChildObject(&operState, "operState");
+        operState.config = false;
         this->addChildObject(&readinessState, "readinessState");
+        readinessState.config = false;
         this->addChildObject(&haReadinessState, "haReadinessState");
+        haReadinessState.config = false;
         this->addChildObject(&haState, "haState");
+        haState.config = false;
         this->addChildObject(&safVersion, "safVersion");
         this->addChildObject(&compCategory, "compCategory");
         this->addChildObject(&swBundle, "swBundle");
+        swBundle.config = false;
         this->addChildObject(&commandEnvironment, "commandEnvironment");
         this->addChildObject(&maxInstantInstantiations, "maxInstantInstantiations");
         this->addChildObject(&maxDelayedInstantiations, "maxDelayedInstantiations");
         this->addChildObject(&numInstantiationAttempts, "numInstantiationAttempts");
+        numInstantiationAttempts.config = false;
         this->addChildObject(&instantiationSuccessDuration, "instantiationSuccessDuration");
         this->addChildObject(&lastInstantiation, "lastInstantiation");
+        lastInstantiation.config = false;
         this->addChildObject(&delayBetweenInstantiation, "delayBetweenInstantiation");
         this->addChildObject(&serviceUnit, "serviceUnit");
         this->addChildObject(&recovery, "recovery");
@@ -115,7 +134,19 @@ namespace SAFplusAmf
         this->addChildObject(&proxy, "proxy");
         this->addChildObject(&proxied, "proxied");
         this->addChildObject(&processId, "processId");
+        processId.config = false;
         this->addChildObject(&lastError, "lastError");
+        lastError.config = false;
+        this->addChildObject(&activeAssignments, "activeAssignments");
+        activeAssignments.config = false;
+        this->addChildObject(&standbyAssignments, "standbyAssignments");
+        standbyAssignments.config = false;
+        this->addChildObject(&instantiate, "instantiate");
+        this->addChildObject(&terminate, "terminate");
+        this->addChildObject(&cleanup, "cleanup");
+        this->addChildObject(&timeouts, "timeouts");
+        this->addChildObject(&restartCount, "restartCount");
+        restartCount.config = false;
         this->tag.assign("Component");
     };
 

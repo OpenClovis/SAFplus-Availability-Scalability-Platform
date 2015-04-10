@@ -17,10 +17,11 @@ namespace SAFplusLog
   {
 
     /* Apply MGT object factory */
-    MGT_REGISTER_IMPL(StreamStatistics, /SAFplusLog/StreamConfig/stream/StreamStatistics)
+    MGT_REGISTER_IMPL(StreamStatistics, /SAFplusLog/streamConfig/stream/streamStatistics)
 
-    StreamStatistics::StreamStatistics(): SAFplus::MgtContainer("StreamStatistics")
+    StreamStatistics::StreamStatistics(): SAFplus::MgtContainer("streamStatistics")
     {
+        this->addChildObject(&numLogs, "numLogs");
     };
 
     std::vector<std::string>* StreamStatistics::getChildNames()
@@ -30,7 +31,7 @@ namespace SAFplusLog
     };
 
     /*
-     * XPATH: /SAFplusLog/StreamConfig/stream/StreamStatistics/numLogs
+     * XPATH: /SAFplusLog/streamConfig/stream/streamStatistics/numLogs
      */
     SAFplusLog::NumLogs* StreamStatistics::getNumLogs()
     {
@@ -38,7 +39,7 @@ namespace SAFplusLog
     };
 
     /*
-     * XPATH: /SAFplusLog/StreamConfig/stream/StreamStatistics/numLogs
+     * XPATH: /SAFplusLog/streamConfig/stream/streamStatistics/numLogs
      */
     void StreamStatistics::addNumLogs(SAFplusLog::NumLogs *numLogsValue)
     {

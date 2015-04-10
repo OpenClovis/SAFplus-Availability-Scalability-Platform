@@ -21,6 +21,9 @@ namespace SAFplusTypes
 
     ProcessStats::ProcessStats(): SAFplus::MgtContainer("processStats")
     {
+        this->addChildObject(&failures, "failures");
+        this->addChildObject(&cpuUtilization, "cpuUtilization");
+        this->addChildObject(&memUtilization, "memUtilization");
     };
 
     std::vector<std::string>* ProcessStats::getChildNames()

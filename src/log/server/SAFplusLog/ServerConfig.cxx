@@ -17,9 +17,9 @@ namespace SAFplusLog
   {
 
     /* Apply MGT object factory */
-    MGT_REGISTER_IMPL(ServerConfig, /SAFplusLog/ServerConfig)
+    MGT_REGISTER_IMPL(ServerConfig, /SAFplusLog/serverConfig)
 
-    ServerConfig::ServerConfig(): SAFplus::MgtContainer("ServerConfig"), maximumStreams("maximumStreams"), maximumComponents("maximumComponents"), maximumSharedMemoryPages("maximumSharedMemoryPages"), maximumRecordsInPacket("maximumRecordsInPacket"), processingInterval("processingInterval")
+    ServerConfig::ServerConfig(): SAFplus::MgtContainer("serverConfig"), maximumStreams("maximumStreams"), maximumComponents("maximumComponents"), maximumSharedMemoryPages("maximumSharedMemoryPages"), maximumRecordsInPacket("maximumRecordsInPacket"), processingInterval("processingInterval")
     {
         this->addChildObject(&maximumStreams, "maximumStreams");
         this->addChildObject(&maximumComponents, "maximumComponents");
@@ -35,7 +35,7 @@ namespace SAFplusLog
     };
 
     /*
-     * XPATH: /SAFplusLog/ServerConfig/maximumStreams
+     * XPATH: /SAFplusLog/serverConfig/maximumStreams
      */
     unsigned int ServerConfig::getMaximumStreams()
     {
@@ -43,7 +43,7 @@ namespace SAFplusLog
     };
 
     /*
-     * XPATH: /SAFplusLog/ServerConfig/maximumStreams
+     * XPATH: /SAFplusLog/serverConfig/maximumStreams
      */
     void ServerConfig::setMaximumStreams(unsigned int maximumStreamsValue, SAFplus::Transaction &txn)
     {
@@ -51,7 +51,7 @@ namespace SAFplusLog
     };
 
     /*
-     * XPATH: /SAFplusLog/ServerConfig/maximumComponents
+     * XPATH: /SAFplusLog/serverConfig/maximumComponents
      */
     unsigned int ServerConfig::getMaximumComponents()
     {
@@ -59,7 +59,7 @@ namespace SAFplusLog
     };
 
     /*
-     * XPATH: /SAFplusLog/ServerConfig/maximumComponents
+     * XPATH: /SAFplusLog/serverConfig/maximumComponents
      */
     void ServerConfig::setMaximumComponents(unsigned int maximumComponentsValue, SAFplus::Transaction &txn)
     {
@@ -67,7 +67,7 @@ namespace SAFplusLog
     };
 
     /*
-     * XPATH: /SAFplusLog/ServerConfig/maximumSharedMemoryPages
+     * XPATH: /SAFplusLog/serverConfig/maximumSharedMemoryPages
      */
     unsigned int ServerConfig::getMaximumSharedMemoryPages()
     {
@@ -75,7 +75,7 @@ namespace SAFplusLog
     };
 
     /*
-     * XPATH: /SAFplusLog/ServerConfig/maximumSharedMemoryPages
+     * XPATH: /SAFplusLog/serverConfig/maximumSharedMemoryPages
      */
     void ServerConfig::setMaximumSharedMemoryPages(unsigned int maximumSharedMemoryPagesValue, SAFplus::Transaction &txn)
     {
@@ -83,7 +83,7 @@ namespace SAFplusLog
     };
 
     /*
-     * XPATH: /SAFplusLog/ServerConfig/maximumRecordsInPacket
+     * XPATH: /SAFplusLog/serverConfig/maximumRecordsInPacket
      */
     unsigned int ServerConfig::getMaximumRecordsInPacket()
     {
@@ -91,7 +91,7 @@ namespace SAFplusLog
     };
 
     /*
-     * XPATH: /SAFplusLog/ServerConfig/maximumRecordsInPacket
+     * XPATH: /SAFplusLog/serverConfig/maximumRecordsInPacket
      */
     void ServerConfig::setMaximumRecordsInPacket(unsigned int maximumRecordsInPacketValue, SAFplus::Transaction &txn)
     {
@@ -99,7 +99,7 @@ namespace SAFplusLog
     };
 
     /*
-     * XPATH: /SAFplusLog/ServerConfig/processingInterval
+     * XPATH: /SAFplusLog/serverConfig/processingInterval
      */
     unsigned long int ServerConfig::getProcessingInterval()
     {
@@ -107,7 +107,7 @@ namespace SAFplusLog
     };
 
     /*
-     * XPATH: /SAFplusLog/ServerConfig/processingInterval
+     * XPATH: /SAFplusLog/serverConfig/processingInterval
      */
     void ServerConfig::setProcessingInterval(unsigned long int processingIntervalValue, SAFplus::Transaction &txn)
     {

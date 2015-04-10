@@ -19,7 +19,6 @@ namespace SAFplusAmf
 
     NumServiceGroups::NumServiceGroups()
     {
-        this->config = false;
         this->tag.assign("numServiceGroups");
     };
 

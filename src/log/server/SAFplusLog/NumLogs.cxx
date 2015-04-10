@@ -15,7 +15,7 @@ namespace SAFplusLog
   {
 
     /* Apply MGT object factory */
-    MGT_REGISTER_IMPL(NumLogs, /SAFplusLog/StreamConfig/stream/StreamStatistics/numLogs)
+    MGT_REGISTER_IMPL(NumLogs, /SAFplusLog/streamConfig/stream/streamStatistics/numLogs)
 
     NumLogs::NumLogs()
     {

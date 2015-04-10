@@ -30,6 +30,8 @@ namespace SAFplusAmf
         this->addChildObject(&adminState, "adminState");
         this->addChildObject(&serviceGroups, "serviceGroups");
         this->addChildObject(&keepTogether, "keepTogether");
+        this->addChildObject(&numServiceGroups, "numServiceGroups");
+        numServiceGroups.config = false;
         this->tag.assign("Application");
     };
 
@@ -39,6 +41,8 @@ namespace SAFplusAmf
         this->addChildObject(&adminState, "adminState");
         this->addChildObject(&serviceGroups, "serviceGroups");
         this->addChildObject(&keepTogether, "keepTogether");
+        this->addChildObject(&numServiceGroups, "numServiceGroups");
+        numServiceGroups.config = false;
         this->tag.assign("Application");
     };
 

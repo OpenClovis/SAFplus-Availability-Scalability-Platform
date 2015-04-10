@@ -19,7 +19,6 @@ namespace SAFplusAmf
 
     NumAssignedServiceUnits::NumAssignedServiceUnits()
     {
-        this->config = false;
         this->tag.assign("numAssignedServiceUnits");
     };
 

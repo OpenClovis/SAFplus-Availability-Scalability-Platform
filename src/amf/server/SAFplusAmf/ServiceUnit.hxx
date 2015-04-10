@@ -11,7 +11,7 @@
 
 #include "RestartCount.hxx"
 #include "Node.hxx"
-#include <string>
+#include "clMgtIdentifier.hxx"
 #include "clTransaction.hxx"
 #include "NumActiveServiceInstances.hxx"
 #include "RestartCount.hxx"
@@ -19,7 +19,7 @@
 #include "MgtFactory.hxx"
 #include "AdministrativeState.hxx"
 #include "NumStandbyServiceInstances.hxx"
-#include "clMgtIdentifier.hxx"
+#include <string>
 #include "ReadinessState.hxx"
 #include "NumActiveServiceInstances.hxx"
 #include "clMgtProv.hxx"
@@ -89,6 +89,9 @@ namespace SAFplusAmf
          * Once this Service Unit is instantiated, how long should I wait before assigning it?
          */
         SAFplus::MgtProv<unsigned int> probationTime;
+        SAFplusAmf::NumActiveServiceInstances numActiveServiceInstances;
+        SAFplusAmf::NumStandbyServiceInstances numStandbyServiceInstances;
+        SAFplusAmf::RestartCount restartCount;
 
     public:
         ServiceUnit();

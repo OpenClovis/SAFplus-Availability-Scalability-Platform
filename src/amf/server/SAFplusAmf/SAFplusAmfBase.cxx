@@ -424,7 +424,6 @@ namespace SAFplusAmf
         cluster->id = getAmfId();
 
         std::string dataXPath = (*it).substr(0, found);
-
         cluster->dataXPath = dataXPath;
 
         self->clusterList.addChildObject(cluster,keyValue);
@@ -459,11 +458,7 @@ namespace SAFplusAmf
         node->id = getAmfId();
         node->operState.value = true;  // created ready to run...
 
-        ServiceUnitFailureEscalationPolicy *serviceUnitFailureEscalationPolicy = new ServiceUnitFailureEscalationPolicy();
-        node->addServiceUnitFailureEscalationPolicy(serviceUnitFailureEscalationPolicy);
-
         std::string dataXPath = (*it).substr(0, found);
-
         node->dataXPath = dataXPath;
 
         self->nodeList.addChildObject(node,keyValue);
@@ -497,19 +492,7 @@ namespace SAFplusAmf
         ServiceGroup* sg = new ServiceGroup(keyValue);
         sg->id  = getAmfId();
 
-        ComponentRestart *componentRestart = new ComponentRestart();
-        sg->addComponentRestart(componentRestart);
-        ServiceUnitRestart *serviceUnitRestart = new ServiceUnitRestart();
-        sg->addServiceUnitRestart(serviceUnitRestart);
-        NumAssignedServiceUnits *numAssignedServiceUnits = new NumAssignedServiceUnits();
-        sg->addNumAssignedServiceUnits(numAssignedServiceUnits);
-        NumIdleServiceUnits *numIdleServiceUnits = new NumIdleServiceUnits();
-        sg->addNumIdleServiceUnits(numIdleServiceUnits);
-        NumSpareServiceUnits *numSpareServiceUnits = new NumSpareServiceUnits();
-        sg->addNumSpareServiceUnits(numSpareServiceUnits);
-
         std::string dataXPath = (*it).substr(0, found);
-
         sg->dataXPath = dataXPath;
 
         self->serviceGroupList.addChildObject(sg,keyValue);
@@ -549,15 +532,7 @@ namespace SAFplusAmf
         su->readinessState    = ReadinessState::outOfService;
         su->operState         = true; // created ready to run...
 
-        NumActiveServiceInstances *numActiveServiceInstances = new NumActiveServiceInstances();
-        su->addNumActiveServiceInstances(numActiveServiceInstances);
-        NumStandbyServiceInstances *numStandbyServiceInstances = new NumStandbyServiceInstances();
-        su->addNumStandbyServiceInstances(numStandbyServiceInstances);
-        RestartCount *restartCount = new RestartCount();
-        su->addRestartCount(restartCount);
-
         std::string dataXPath = (*it).substr(0, found);
-
         su->dataXPath = dataXPath;
 
         self->serviceUnitList.addChildObject(su,keyValue);
@@ -590,18 +565,10 @@ namespace SAFplusAmf
 
         ServiceInstance* si = new ServiceInstance(keyValue);
         si->id  = getAmfId();
-        si->addStandbyAssignments(new StandbyAssignments());
-        si->addActiveAssignments(new ActiveAssignments());
         si->preferredActiveAssignments      = 1;
         si->preferredStandbyAssignments      = 1;
 
-        ActiveAssignments *activeAssignments = new ActiveAssignments();
-        si->addActiveAssignments(activeAssignments);
-        StandbyAssignments *standbyAssignments = new StandbyAssignments();
-        si->addStandbyAssignments(standbyAssignments);
-
         std::string dataXPath = (*it).substr(0, found);
-
         si->dataXPath = dataXPath;
 
         self->serviceInstanceList.addChildObject(si,keyValue);
@@ -639,23 +606,7 @@ namespace SAFplusAmf
         comp->lastInstantiation.value.value = 0;
         comp->presence.value = PresenceState::uninstantiated;
 
-        ActiveAssignments *activeAssignments = new ActiveAssignments();
-        comp->addActiveAssignments(activeAssignments);
-        StandbyAssignments *standbyAssignments = new StandbyAssignments();
-        comp->addStandbyAssignments(standbyAssignments);
-        Instantiate *instantiate = new Instantiate();
-        comp->addInstantiate(instantiate);
-        Terminate *terminate = new Terminate();
-        comp->addTerminate(terminate);
-        Cleanup *cleanup = new Cleanup();
-        comp->addCleanup(cleanup);
-        Timeouts *timeouts = new Timeouts();
-        comp->addTimeouts(timeouts);
-        RestartCount *restartCount = new RestartCount();
-        comp->addRestartCount(restartCount);
-
         std::string dataXPath = (*it).substr(0, found);
-
         comp->dataXPath = dataXPath;
 
         self->componentList.addChildObject(comp,keyValue);
@@ -690,7 +641,6 @@ namespace SAFplusAmf
         csi->id  = getAmfId();
 
         std::string dataXPath = (*it).substr(0, found);
-
         csi->dataXPath = dataXPath;
 
         self->componentServiceInstanceList.addChildObject(csi,keyValue);

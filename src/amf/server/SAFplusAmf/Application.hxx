@@ -45,6 +45,7 @@ namespace SAFplusAmf
          * SAFplus Extension: To the greatest extent possible, all Service Groups in this application will be Active (or standby) on the same node.  This will only be not true if service groups are not configured to run on the same nodes.
          */
         SAFplus::MgtProv<bool> keepTogether;
+        SAFplusAmf::NumServiceGroups numServiceGroups;
 
     public:
         Application();

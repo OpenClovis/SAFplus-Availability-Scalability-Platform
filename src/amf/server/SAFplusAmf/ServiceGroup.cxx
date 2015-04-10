@@ -5,20 +5,20 @@
  */ 
 #include "SAFplusAmfCommon.hxx"
 
-#include <string>
+#include "clMgtIdentifier.hxx"
 #include "clTransaction.hxx"
-#include "ComponentRestart.hxx"
+#include "clMgtIdentifierList.hxx"
 #include "MgtFactory.hxx"
 #include "NumSpareServiceUnits.hxx"
 #include "ServiceUnitRestart.hxx"
 #include "AdministrativeState.hxx"
-#include "clMgtIdentifier.hxx"
+#include <string>
 #include "ComponentRestart.hxx"
 #include "NumIdleServiceUnits.hxx"
 #include "clMgtProv.hxx"
 #include "Application.hxx"
 #include "ServiceInstance.hxx"
-#include "clMgtIdentifierList.hxx"
+#include "ComponentRestart.hxx"
 #include "NumIdleServiceUnits.hxx"
 #include "ServiceUnitRestart.hxx"
 #include <vector>
@@ -50,6 +50,14 @@ namespace SAFplusAmf
         this->addChildObject(&serviceUnits, "serviceUnits");
         this->addChildObject(&serviceInstances, "serviceInstances");
         this->addChildObject(&application, "application");
+        this->addChildObject(&componentRestart, "componentRestart");
+        this->addChildObject(&serviceUnitRestart, "serviceUnitRestart");
+        this->addChildObject(&numAssignedServiceUnits, "numAssignedServiceUnits");
+        numAssignedServiceUnits.config = false;
+        this->addChildObject(&numIdleServiceUnits, "numIdleServiceUnits");
+        numIdleServiceUnits.config = false;
+        this->addChildObject(&numSpareServiceUnits, "numSpareServiceUnits");
+        numSpareServiceUnits.config = false;
         this->tag.assign("ServiceGroup");
     };
 
@@ -68,6 +76,14 @@ namespace SAFplusAmf
         this->addChildObject(&serviceUnits, "serviceUnits");
         this->addChildObject(&serviceInstances, "serviceInstances");
         this->addChildObject(&application, "application");
+        this->addChildObject(&componentRestart, "componentRestart");
+        this->addChildObject(&serviceUnitRestart, "serviceUnitRestart");
+        this->addChildObject(&numAssignedServiceUnits, "numAssignedServiceUnits");
+        numAssignedServiceUnits.config = false;
+        this->addChildObject(&numIdleServiceUnits, "numIdleServiceUnits");
+        numIdleServiceUnits.config = false;
+        this->addChildObject(&numSpareServiceUnits, "numSpareServiceUnits");
+        numSpareServiceUnits.config = false;
         this->tag.assign("ServiceGroup");
     };
 

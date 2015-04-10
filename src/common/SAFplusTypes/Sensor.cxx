@@ -8,9 +8,9 @@
 #include "Val.hxx"
 #include <vector>
 #include <string>
-#include "clMgtContainer.hxx"
-#include "clMgtProv.hxx"
 #include "Val.hxx"
+#include "clMgtProv.hxx"
+#include "clMgtContainer.hxx"
 #include "clTransaction.hxx"
 #include "Sensor.hxx"
 
@@ -22,6 +22,7 @@ namespace SAFplusTypes
     {
         this->addChildObject(&name, "name");
         this->addChildObject(&desc, "desc");
+        this->addChildObject(&val, "val");
     };
 
     std::vector<std::string>* Sensor::getChildNames()

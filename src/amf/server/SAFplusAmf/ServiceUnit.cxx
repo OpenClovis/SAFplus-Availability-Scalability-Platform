@@ -7,7 +7,7 @@
 
 #include "RestartCount.hxx"
 #include "Node.hxx"
-#include <string>
+#include "clMgtIdentifier.hxx"
 #include "clTransaction.hxx"
 #include "NumActiveServiceInstances.hxx"
 #include "RestartCount.hxx"
@@ -15,7 +15,7 @@
 #include "MgtFactory.hxx"
 #include "AdministrativeState.hxx"
 #include "NumStandbyServiceInstances.hxx"
-#include "clMgtIdentifier.hxx"
+#include <string>
 #include "ReadinessState.hxx"
 #include "NumActiveServiceInstances.hxx"
 #include "clMgtProv.hxx"
@@ -61,6 +61,12 @@ namespace SAFplusAmf
         this->addChildObject(&node, "node");
         this->addChildObject(&serviceGroup, "serviceGroup");
         this->addChildObject(&probationTime, "probationTime");
+        this->addChildObject(&numActiveServiceInstances, "numActiveServiceInstances");
+        numActiveServiceInstances.config = false;
+        this->addChildObject(&numStandbyServiceInstances, "numStandbyServiceInstances");
+        numStandbyServiceInstances.config = false;
+        this->addChildObject(&restartCount, "restartCount");
+        restartCount.config = false;
         this->tag.assign("ServiceUnit");
     };
 
@@ -71,17 +77,30 @@ namespace SAFplusAmf
         this->addChildObject(&rank, "rank");
         this->addChildObject(&failover, "failover");
         this->addChildObject(&preinstantiable, "preinstantiable");
+        preinstantiable.config = false;
         this->addChildObject(&saAmfSUHostNodeOrNodeGroup, "saAmfSUHostNodeOrNodeGroup");
         this->addChildObject(&presenceState, "presenceState");
+        presenceState.config = false;
         this->addChildObject(&readinessState, "readinessState");
+        readinessState.config = false;
         this->addChildObject(&haReadinessState, "haReadinessState");
+        haReadinessState.config = false;
         this->addChildObject(&haState, "haState");
+        haState.config = false;
         this->addChildObject(&operState, "operState");
+        operState.config = false;
         this->addChildObject(&assignedServiceInstances, "assignedServiceInstances");
+        assignedServiceInstances.config = false;
         this->addChildObject(&components, "components");
         this->addChildObject(&node, "node");
         this->addChildObject(&serviceGroup, "serviceGroup");
         this->addChildObject(&probationTime, "probationTime");
+        this->addChildObject(&numActiveServiceInstances, "numActiveServiceInstances");
+        numActiveServiceInstances.config = false;
+        this->addChildObject(&numStandbyServiceInstances, "numStandbyServiceInstances");
+        numStandbyServiceInstances.config = false;
+        this->addChildObject(&restartCount, "restartCount");
+        restartCount.config = false;
         this->tag.assign("ServiceUnit");
     };
 

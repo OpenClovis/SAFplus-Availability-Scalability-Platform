@@ -19,7 +19,6 @@ namespace SAFplusAmf
 
     NumIdleServiceUnits::NumIdleServiceUnits()
     {
-        this->config = false;
         this->tag.assign("numIdleServiceUnits");
     };
 
