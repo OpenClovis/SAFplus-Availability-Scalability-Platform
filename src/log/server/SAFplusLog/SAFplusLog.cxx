@@ -5,9 +5,11 @@
  */ 
 #include "SAFplusLogCommon.hxx"
 
+#include "StreamConfig.hxx"
+#include "Stream.hxx"
+#include "ServerConfig.hxx"
 #include <vector>
 #include "MgtFactory.hxx"
-#include "Stream.hxx"
 #include "clMgtContainer.hxx"
 #include "SAFplusLog.hxx"
 
@@ -20,11 +22,13 @@ namespace SAFplusLog
 
     SAFplusLogRoot::SAFplusLogRoot(): SAFplus::MgtContainer("SAFplusLog")
     {
+        this->addChildObject(&serverConfig, "serverConfig");
+        this->addChildObject(&streamConfig, "streamConfig");
     };
 
     std::vector<std::string>* SAFplusLogRoot::getChildNames()
     {
-        std::string childNames[] = { "ServerConfig", "StreamConfig" };
+        std::string childNames[] = { "serverConfig", "streamConfig" };
         return new std::vector<std::string> (childNames, childNames + sizeof(childNames) / sizeof(childNames[0]));
     };
 

@@ -55,52 +55,52 @@ namespace SAFplusLog
         std::vector<std::string>* getChildNames();
 
         /*
-         * XPATH: /SAFplusLog/ServerConfig/maximumStreams
+         * XPATH: /SAFplusLog/serverConfig/maximumStreams
          */
         unsigned int getMaximumStreams();
 
         /*
-         * XPATH: /SAFplusLog/ServerConfig/maximumStreams
+         * XPATH: /SAFplusLog/serverConfig/maximumStreams
          */
         void setMaximumStreams(unsigned int maximumStreamsValue, SAFplus::Transaction &txn=SAFplus::NO_TXN);
 
         /*
-         * XPATH: /SAFplusLog/ServerConfig/maximumComponents
+         * XPATH: /SAFplusLog/serverConfig/maximumComponents
          */
         unsigned int getMaximumComponents();
 
         /*
-         * XPATH: /SAFplusLog/ServerConfig/maximumComponents
+         * XPATH: /SAFplusLog/serverConfig/maximumComponents
          */
         void setMaximumComponents(unsigned int maximumComponentsValue, SAFplus::Transaction &txn=SAFplus::NO_TXN);
 
         /*
-         * XPATH: /SAFplusLog/ServerConfig/maximumSharedMemoryPages
+         * XPATH: /SAFplusLog/serverConfig/maximumSharedMemoryPages
          */
         unsigned int getMaximumSharedMemoryPages();
 
         /*
-         * XPATH: /SAFplusLog/ServerConfig/maximumSharedMemoryPages
+         * XPATH: /SAFplusLog/serverConfig/maximumSharedMemoryPages
          */
         void setMaximumSharedMemoryPages(unsigned int maximumSharedMemoryPagesValue, SAFplus::Transaction &txn=SAFplus::NO_TXN);
 
         /*
-         * XPATH: /SAFplusLog/ServerConfig/maximumRecordsInPacket
+         * XPATH: /SAFplusLog/serverConfig/maximumRecordsInPacket
          */
         unsigned int getMaximumRecordsInPacket();
 
         /*
-         * XPATH: /SAFplusLog/ServerConfig/maximumRecordsInPacket
+         * XPATH: /SAFplusLog/serverConfig/maximumRecordsInPacket
          */
         void setMaximumRecordsInPacket(unsigned int maximumRecordsInPacketValue, SAFplus::Transaction &txn=SAFplus::NO_TXN);
 
         /*
-         * XPATH: /SAFplusLog/ServerConfig/processingInterval
+         * XPATH: /SAFplusLog/serverConfig/processingInterval
          */
         unsigned long int getProcessingInterval();
 
         /*
-         * XPATH: /SAFplusLog/ServerConfig/processingInterval
+         * XPATH: /SAFplusLog/serverConfig/processingInterval
          */
         void setProcessingInterval(unsigned long int processingIntervalValue, SAFplus::Transaction &txn=SAFplus::NO_TXN);
         ~ServerConfig();

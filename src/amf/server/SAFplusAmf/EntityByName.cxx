@@ -32,8 +32,11 @@ namespace SAFplusAmf
     EntityByName::EntityByName(std::string nameValue): SAFplus::MgtContainer("EntityByName"), name("name"), entity("entity")
     {
         this->name.value =  nameValue;
+        this->config = false;
         this->addChildObject(&name, "name");
+        name.config = false;
         this->addChildObject(&entity, "entity");
+        entity.config = false;
     };
 
     std::vector<std::string> EntityByName::getKeys()

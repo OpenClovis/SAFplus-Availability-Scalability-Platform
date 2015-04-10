@@ -9,9 +9,11 @@
 #define SAFPLUSLOGROOT_HXX_
 #include "SAFplusLogCommon.hxx"
 
+#include "StreamConfig.hxx"
+#include "Stream.hxx"
+#include "ServerConfig.hxx"
 #include <vector>
 #include "MgtFactory.hxx"
-#include "Stream.hxx"
 #include "clMgtContainer.hxx"
 
 namespace SAFplusLog
@@ -21,6 +23,10 @@ namespace SAFplusLog
 
         /* Apply MGT object factory */
         MGT_REGISTER(SAFplusLogRoot);
+
+    public:
+        SAFplusLog::ServerConfig serverConfig;
+        SAFplusLog::StreamConfig streamConfig;
 
     public:
         SAFplusLogRoot();

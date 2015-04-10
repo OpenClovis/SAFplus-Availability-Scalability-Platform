@@ -111,7 +111,7 @@ module SAFplusLog {
         
     }
 
-    container ServerConfig
+    container serverConfig
     {
         leaf maximumStreams {
             type uint32;
@@ -138,12 +138,12 @@ module SAFplusLog {
         description "Logging server configuration data";
     }
 
-    container StreamConfig
+    container streamConfig
     {
         list stream {
             key "name";
             uses StreamAttributes;
-            container StreamStatistics {
+            container streamStatistics {
                 description "Statistics relating to the log stream";
         
                 container numLogs {

@@ -24,16 +24,19 @@ namespace SAFplusLog
         MGT_REGISTER(StreamStatistics);
 
     public:
+        SAFplusLog::NumLogs numLogs;
+
+    public:
         StreamStatistics();
         std::vector<std::string>* getChildNames();
 
         /*
-         * XPATH: /SAFplusLog/StreamConfig/stream/StreamStatistics/numLogs
+         * XPATH: /SAFplusLog/streamConfig/stream/streamStatistics/numLogs
          */
         SAFplusLog::NumLogs* getNumLogs();
 
         /*
-         * XPATH: /SAFplusLog/StreamConfig/stream/StreamStatistics/numLogs
+         * XPATH: /SAFplusLog/streamConfig/stream/streamStatistics/numLogs
          */
         void addNumLogs(SAFplusLog::NumLogs *numLogsValue);
         ~StreamStatistics();

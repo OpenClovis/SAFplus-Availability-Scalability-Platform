@@ -35,6 +35,7 @@ namespace SAFplusAmf
         this->addChildObject(&failFastOnInstantiationFailure, "failFastOnInstantiationFailure");
         this->addChildObject(&failFastOnCleanupFailure, "failFastOnCleanupFailure");
         this->addChildObject(&serviceUnits, "serviceUnits");
+        this->addChildObject(&serviceUnitFailureEscalationPolicy, "serviceUnitFailureEscalationPolicy");
         this->addChildObject(&capacityList, "capacity");
         this->tag.assign("Node");
     };
@@ -44,10 +45,12 @@ namespace SAFplusAmf
         this->name.value =  nameValue;
         this->addChildObject(&adminState, "adminState");
         this->addChildObject(&operState, "operState");
+        operState.config = false;
         this->addChildObject(&autoRepair, "autoRepair");
         this->addChildObject(&failFastOnInstantiationFailure, "failFastOnInstantiationFailure");
         this->addChildObject(&failFastOnCleanupFailure, "failFastOnCleanupFailure");
         this->addChildObject(&serviceUnits, "serviceUnits");
+        this->addChildObject(&serviceUnitFailureEscalationPolicy, "serviceUnitFailureEscalationPolicy");
         this->addChildObject(&capacityList, "capacity");
         capacityList.childXpath="/SAFplusAmf/Node/capacity";
         capacityList.setListKey("resource");

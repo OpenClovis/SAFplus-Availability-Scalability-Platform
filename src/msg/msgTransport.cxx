@@ -1,5 +1,6 @@
 #include <clMsgApi.hxx>
 #include <clLogApi.hxx>
+#include <clMsgBase.hxx>
 
 namespace SAFplus
   {
@@ -31,6 +32,38 @@ namespace SAFplus
         lastFragment = f;
         }
       return f;
+    }
+   void Message::deleteLastFragment()
+    {
+      MsgFragment* cur = firstFragment;
+      assert(cur);
+      MsgFragment* next= cur->nextFragment;
+      assert(next);
+      while (next->nextFragment != NULL);
+      {
+         cur = next;
+         next = cur->nextFragment;
+      }
+      cur->nextFragment=NULL;
+      lastFragment=cur;
+      // First clean up the buffer if needed
+      msgPool->freeFragment(next);
+    }
+  u_int Message::getLength()
+    {
+	  u_int len=0;
+      MsgFragment* nextFrag;
+      MsgFragment* frag;
+      nextFrag = firstFragment;
+      do
+      {
+        frag = nextFrag;
+        nextFrag = frag->nextFragment;
+        len+=frag->len;
+      }while(nextFrag);
+      // msg type
+      len = len -1;
+      return len;
     }
 
   MsgFragment* MsgPool::allocMsgFragment(uint_t size)
@@ -179,6 +212,22 @@ namespace SAFplus
        } while (next != NULL);
     }
 
+  void MsgPool::freeFragment(MsgFragment* frag)
+  {
+    // First clean up the buffer if needed
+    if (frag->flags & MsgFragment::Flags::DataSAFplusFree) SAFplusHeapFree(frag->buffer);
+    else if (frag->flags & MsgFragment::Flags::DataMsgPoolFree) SAFplusHeapFree(frag->buffer);  // TODO: hold the fragments in lists in the message pool
+    else if (frag->flags & MsgFragment::Flags::DataCustomFree) { clDbgNotImplemented("custom free logic"); }  // Should the custom free function be per fragment or per message?
+
+    if (frag->flags & MsgFragment::Flags::InlineFragment) fragAllocatedBytes -= frag->allocatedLen;
+
+    // Next clean up the fragment itself
+    if (frag->flags & MsgFragment::Flags::SAFplusFree) SAFplusHeapFree(frag);
+    else if (frag->flags & MsgFragment::Flags::MsgPoolFree) SAFplusHeapFree(frag);  // TODO: hold the fragments in lists in the message pool
+    else if (frag->flags & MsgFragment::Flags::CustomFree) { clDbgNotImplemented("custom fragment free logic"); }
+    fragAllocated--;
+  }
+
 
   MsgSocket::~MsgSocket()
   {}
@@ -232,11 +281,15 @@ namespace SAFplus
       }
     }
 
-  //Advanced socket : MsgSocketReliable
+  //*****************Advanced socket : MsgSocketReliable***************
 
   MsgSocketReliable::MsgSocketReliable(uint_t port,MsgTransportPlugin_1* transport)
   {
     sock=transport->createSocket(port);
+  }
+  MsgSocketReliable::MsgSocketReliable(MsgSocket* socket)
+  {
+    sock=socket;
   }
   MsgSocketReliable::~MsgSocketReliable()
   {
@@ -248,6 +301,12 @@ namespace SAFplus
     //Apply reliable algorithm
     sock->send(msg);
   }
+
+  void MsgSocketReliable::send(SAFplus::Handle destination, void* buffer, uint_t length,uint_t msgtype)
+  {
+  // TODO
+  }
+
   Message* MsgSocketReliable::receive(uint_t maxMsgs,int maxDelay)
   {
     return sock->receive(maxMsgs,maxDelay);
@@ -255,48 +314,133 @@ namespace SAFplus
 
 
 
-  //Advanced socket : MsgSocketSegmentaion
+  //************Advanced socket : MsgSocketSegmentaion************
 
   MsgSocketSegmentaion::MsgSocketSegmentaion(uint_t port,MsgTransportPlugin_1* transport)
   {
     sock = transport->createSocket(port);
   }
+  MsgSocketSegmentaion::MsgSocketSegmentaion(MsgSocket* socket)
+  {
+    sock = socket;
+  }
   MsgSocketSegmentaion::~MsgSocketSegmentaion()
   {
     //TODO
   }
-
-  void MsgSocketSegmentaion::send(Message* msg,uint_t length)
+  void MsgSocketSegmentaion::applySegmentaion(Message* m, SAFplus::Handle destination, void* buffer, uint_t length,uint_t msgtype)
   {
-    //Apply segmentation algorithm
+    u_int maxPayload=64000;
+    u_int totalFragRequired;
+    assert(m);
+    m->setAddress(destination);
+    MsgFragment* pfx  = m->append(1);
+    * ((unsigned char*)pfx->data()) = msgtype;
+    pfx->len = 1;
+    if(length > maxPayload)
+    {
+      u_int start =0;
+      totalFragRequired = length / maxPayload;
+      while (totalFragRequired > 1)
+      {
+        MsgFragment* frag = m->append(0);
+        if(length-start>=maxPayload)
+        {
+          frag->set((u_int8_t*)buffer+start,maxPayload);
+        }
+        else
+        {
+          frag->set((u_int8_t*)buffer+start,maxPayload-start);
+        }
+        start+=maxPayload;
+      }
+    }
+  }
+  void MsgSocketSegmentaion::applySegmentaion(Message* m)
+  {
+    u_int maxPayload=64000;
+    u_int totalFragRequired;
+    u_int16_t length = m->lastFragment->len;
+    void* bufferData = SAFplusHeapAlloc(length);
+    memcpy(bufferData,m->lastFragment->data(),length);
+    assert(bufferData);
+    if(length > maxPayload)
+    {
+      m->deleteLastFragment();
+      u_int start =0;
+      totalFragRequired = length / maxPayload;
+      while (totalFragRequired > 1)
+      {
+        MsgFragment* frag = m->append(0);
+        if(length-start>=maxPayload)
+        {
+          frag->set((u_int8_t*)bufferData+start,maxPayload);
+        }
+        else
+        {
+          frag->set((u_int8_t*)bufferData+start,maxPayload-start);
+        }
+        start+=maxPayload;
+      }
+    }
+    SAFplusHeapFree(bufferData);
+  }
+
+  void MsgSocketSegmentaion::send(Message* msg)
+  {
+    applySegmentaion(msg);
     sock->send(msg);
+  }
+  void MsgSocketSegmentaion::send(SAFplus::Handle destination, void* buffer, uint_t length,uint_t msgtype)
+  {
+    Message* m;
+    m = sock->msgPool->allocMsg();
+    applySegmentaion(m,destination,buffer,length,msgtype);
+    sock->send(m);
   }
   Message* MsgSocketSegmentaion::receive(uint_t maxMsgs,int maxDelay)
   {
     return sock->receive(maxMsgs,maxDelay);
   }
 
-  //Advanced socket : MsgSocketShaping
+  //*****************Advanced socket : MsgSocketShaping********************
   MsgSocketShaping::MsgSocketShaping(uint_t port,MsgTransportPlugin_1* transport,uint_t volume, uint_t leakSize, uint_t leakInterval)
   {
     bucket.leakyBucketCreate(volume,leakSize,leakInterval);
     sock=transport->createSocket(port);
   };
+  MsgSocketShaping::MsgSocketShaping(MsgSocket* socket,uint_t volume, uint_t leakSize, uint_t leakInterval)
+  {
+    bucket.leakyBucketCreate(volume,leakSize,leakInterval);
+    sock=socket;
+  };
   MsgSocketShaping::~MsgSocketShaping()
   {
      //TODO
   }
-
   void MsgSocketShaping::applyShaping(uint_t length)
   {
       bucket.leakyBucketFill(length);
   }
-
   //? Send a bunch of messages.  You give up ownership of msg.
-  void MsgSocketShaping::send(Message* msg,uint_t length)
+  void MsgSocketShaping::send(Message* msg)
   {
-    applyShaping(length);
+    applyShaping(msg->getLength());
     sock->send(msg);
+  }
+  void MsgSocketShaping::send(SAFplus::Handle destination, void* buffer, uint_t length,uint_t msgtype)
+  {
+    assert(sock);
+    Message* m = sock->msgPool->allocMsg();
+    assert(m);
+    m->setAddress(destination);
+    MsgFragment* pfx  = m->append(1);
+    * ((unsigned char*)pfx->data()) = msgtype;
+    pfx->len = 1;
+    MsgFragment* frag = m->append(0);
+    frag->set(buffer,length);
+    applyShaping(m->getLength());
+    sock->send(m);
   }
   Message* MsgSocketShaping::receive(uint_t maxMsgs,int maxDelay)
   {

@@ -9,20 +9,20 @@
 #define SERVICEGROUP_HXX_
 #include "SAFplusAmfCommon.hxx"
 
-#include <string>
+#include "clMgtIdentifier.hxx"
 #include "clTransaction.hxx"
-#include "ComponentRestart.hxx"
+#include "clMgtIdentifierList.hxx"
 #include "MgtFactory.hxx"
 #include "NumSpareServiceUnits.hxx"
 #include "ServiceUnitRestart.hxx"
 #include "AdministrativeState.hxx"
-#include "clMgtIdentifier.hxx"
+#include <string>
 #include "ComponentRestart.hxx"
 #include "NumIdleServiceUnits.hxx"
 #include "clMgtProv.hxx"
 #include "Application.hxx"
 #include "ServiceInstance.hxx"
-#include "clMgtIdentifierList.hxx"
+#include "ComponentRestart.hxx"
 #include "NumIdleServiceUnits.hxx"
 #include "ServiceUnitRestart.hxx"
 #include <vector>
@@ -97,6 +97,11 @@ namespace SAFplusAmf
          */
         SAFplus::MgtIdentifierList<SAFplusAmf::ServiceInstance*> serviceInstances;
         SAFplus::MgtIdentifier<SAFplusAmf::Application*> application;
+        SAFplusAmf::ComponentRestart componentRestart;
+        SAFplusAmf::ServiceUnitRestart serviceUnitRestart;
+        SAFplusAmf::NumAssignedServiceUnits numAssignedServiceUnits;
+        SAFplusAmf::NumIdleServiceUnits numIdleServiceUnits;
+        SAFplusAmf::NumSpareServiceUnits numSpareServiceUnits;
 
     public:
         ServiceGroup();

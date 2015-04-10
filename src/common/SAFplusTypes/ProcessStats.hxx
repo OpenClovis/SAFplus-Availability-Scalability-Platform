@@ -23,6 +23,11 @@ namespace SAFplusTypes
 
     class ProcessStats : public SAFplus::MgtContainer {
     public:
+        SAFplusTypes::Failures failures;
+        SAFplusTypes::CpuUtilization cpuUtilization;
+        SAFplusTypes::MemUtilization memUtilization;
+
+    public:
         ProcessStats();
         std::vector<std::string>* getChildNames();
 

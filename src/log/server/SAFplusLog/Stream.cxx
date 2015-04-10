@@ -18,11 +18,12 @@ namespace SAFplusLog
   {
 
     /* Apply MGT object factory */
-    MGT_REGISTER_IMPL(Stream, /SAFplusLog/StreamConfig/stream)
+    MGT_REGISTER_IMPL(Stream, /SAFplusLog/streamConfig/stream)
 
     Stream::Stream()
         :fileBuffer(SAFplusI::LogDefaultFileBufferSize),msgBuffer(SAFplusI::LogDefaultMessageBufferSize),fp(NULL)  // additions
     {
+        this->addChildObject(&streamStatistics, "streamStatistics");
         this->tag.assign("stream");
     };
 
@@ -30,6 +31,7 @@ namespace SAFplusLog
         :fileBuffer(SAFplusI::LogDefaultFileBufferSize),msgBuffer(SAFplusI::LogDefaultMessageBufferSize),fp(NULL)  // additions
     {
         this->name.value =  nameValue;
+        this->addChildObject(&streamStatistics, "streamStatistics");
         this->tag.assign("stream");
     };
 
@@ -41,24 +43,24 @@ namespace SAFplusLog
 
     std::vector<std::string>* Stream::getChildNames()
     {
-        std::string childNames[] = { "name", "fileName", "replicate", "fileLocation", "fileUnitSize", "recordSize", "fileFullAction", "maximumFilesRotated", "flushFreq", "flushInterval", "syslog", "streamScope", "StreamStatistics" };
+        std::string childNames[] = { "name", "fileName", "replicate", "fileLocation", "fileUnitSize", "recordSize", "fileFullAction", "maximumFilesRotated", "flushFreq", "flushInterval", "syslog", "streamScope", "streamStatistics" };
         return new std::vector<std::string> (childNames, childNames + sizeof(childNames) / sizeof(childNames[0]));
     };
 
     /*
-     * XPATH: /SAFplusLog/StreamConfig/stream/StreamStatistics
+     * XPATH: /SAFplusLog/streamConfig/stream/streamStatistics
      */
     SAFplusLog::StreamStatistics* Stream::getStreamStatistics()
     {
-        return dynamic_cast<StreamStatistics*>(this->getChildObject("StreamStatistics"));
+        return dynamic_cast<StreamStatistics*>(this->getChildObject("streamStatistics"));
     };
 
     /*
-     * XPATH: /SAFplusLog/StreamConfig/stream/StreamStatistics
+     * XPATH: /SAFplusLog/streamConfig/stream/streamStatistics
      */
-    void Stream::addStreamStatistics(SAFplusLog::StreamStatistics *StreamStatisticsValue)
+    void Stream::addStreamStatistics(SAFplusLog::StreamStatistics *streamStatisticsValue)
     {
-        this->addChildObject(StreamStatisticsValue, "StreamStatistics");
+        this->addChildObject(streamStatisticsValue, "streamStatistics");
     };
 
     Stream::~Stream()

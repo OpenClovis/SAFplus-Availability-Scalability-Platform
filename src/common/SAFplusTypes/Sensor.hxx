@@ -12,9 +12,9 @@
 #include "Val.hxx"
 #include <vector>
 #include <string>
-#include "clMgtContainer.hxx"
-#include "clMgtProv.hxx"
 #include "Val.hxx"
+#include "clMgtProv.hxx"
+#include "clMgtContainer.hxx"
 #include "clTransaction.hxx"
 
 namespace SAFplusTypes
@@ -24,6 +24,7 @@ namespace SAFplusTypes
     public:
         SAFplus::MgtProv<std::string> name;
         SAFplus::MgtProv<std::string> desc;
+        SAFplusTypes::Val val;
 
     public:
         Sensor();
