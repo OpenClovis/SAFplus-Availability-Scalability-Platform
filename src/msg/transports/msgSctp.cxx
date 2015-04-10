@@ -10,6 +10,10 @@
 #include "clPluginHelper.hxx"
 #include <boost/unordered_map.hpp>
 
+int sctp_sendmsg(int s, const void *msg, size_t len, struct sockaddr *to,
+	     socklen_t tolen, uint32_t ppid, uint32_t flags,
+                 uint16_t stream_no, uint32_t timetolive, uint32_t context);
+
 typedef boost::unordered_map<uint_t, int> NodeIDSocketMap;
 
 namespace SAFplus
@@ -41,8 +45,8 @@ namespace SAFplus
     bool nagleEnabled; 
     NodeIDSocketMap clientSockMap; //TODO in case node failure: if a node got failure, this must be notified so that
     // the item associated with it in the map must be deleted too, if not, the associated socket may be invalid because of its server failure
-    int getClientSocket(uint_t nodeID, uint_t port);
-    int openClientSocket(uint_t nodeID, uint_t port);    
+    //int getClientSocket(uint_t nodeID, uint_t port);
+    //int openClientSocket(uint_t nodeID, uint_t port);    
     virtual void switchNagle();
   };
   static Sctp api;
@@ -93,17 +97,19 @@ namespace SAFplus
       throw Error(Error::SYSTEM_ERROR,errno, strerror(errno),__FILE__,__LINE__);
     }
 
+
     struct sctp_event_subscribe event;  
     struct sctp_paddrparams heartbeat;    
     struct sctp_rtoinfo rtoinfo;
-    memset(&event,      1, sizeof(struct sctp_event_subscribe));
+    memset(&event,      0, sizeof(struct sctp_event_subscribe));
     memset(&heartbeat,  0, sizeof(struct sctp_paddrparams));
     memset(&rtoinfo,    0, sizeof(struct sctp_rtoinfo));
+
+
     heartbeat.spp_flags = SPP_HB_ENABLE; // set heartbeat so that the multi-homing enabled
     heartbeat.spp_hbinterval = 5000;
     heartbeat.spp_pathmaxrxt = 1;
     rtoinfo.srto_max = 2000;
-    int reuse = 1;
     if(setsockopt(sock, SOL_SCTP, SCTP_PEER_ADDR_PARAMS , &heartbeat, sizeof(heartbeat)) != 0)
     {
       int err = errno;
@@ -116,13 +122,20 @@ namespace SAFplus
       throw Error(Error::SYSTEM_ERROR,errno, strerror(errno),__FILE__,__LINE__);       
     }
 
-    /*if(setsockopt(sock, IPPROTO_SCTP, SCTP_EVENTS, &event, sizeof(struct sctp_event_subscribe)) < 0)
+#if 0 // Note, if you enable events, you must make sure that the received event is NOT passed up to the application layer as an empty message
+    event.sctp_data_io_event = 1;
+    event.sctp_association_event = 1;
+    event.sctp_send_failure_event = 1;
+
+    if(setsockopt(sock, IPPROTO_SCTP, SCTP_EVENTS, &event, sizeof(struct sctp_event_subscribe)) < 0)
     {
       int err = errno;
       throw Error(Error::SYSTEM_ERROR,errno, strerror(errno),__FILE__,__LINE__);       
-    }*/
+    }
+#endif
 
     /* set the reuse of address*/
+    int reuse = 1;
     if(setsockopt(sock, SOL_SOCKET, SO_REUSEADDR, &reuse, sizeof(int))< 0)
     {
       int err = errno;
@@ -147,6 +160,7 @@ namespace SAFplus
       int err = errno;
       throw Error(Error::SYSTEM_ERROR,errno, strerror(errno),__FILE__,__LINE__);
     } 
+
     if(listen(sock, CL_IOC_MAX_NODES) < 0)
     {
       int err = errno;
@@ -154,6 +168,7 @@ namespace SAFplus
     }
   }
 
+#if 0
   int SctpSocket::openClientSocket(uint_t nodeID, uint_t port)
   {
     int sock,ret;    
@@ -241,7 +256,9 @@ namespace SAFplus
     }
     return sock;
   }
+#endif
 
+#if 0
   int SctpSocket::getClientSocket(uint_t nodeID, uint_t port)
   {
     NodeIDSocketMap::iterator contents = clientSockMap.find(nodeID);
@@ -253,12 +270,15 @@ namespace SAFplus
     clientSockMap[nodeID] = newSock;
     return newSock;
   }
-  
+#endif  
+
   void SctpSocket::send(Message* origMsg)
   {
     mmsghdr msgvec[SAFplusI::SctpTransportMaxMsg];  // We are doing this for perf so we certainly don't want to new or malloc it!
+    struct sockaddr_in to[SAFplusI::SctpTransportMaxMsg];
     bzero(msgvec,sizeof(msgvec));
     struct iovec iovecBuffer[SAFplusI::SctpTransportMaxFragments];
+    char ctrldata[CMSG_SPACE(sizeof(struct sctp_sndrcvinfo))];
     mmsghdr* curvec = &msgvec[0];
     int msgCount = 0;
     int fragCount= 0;  // frags in this message
@@ -267,6 +287,27 @@ namespace SAFplus
     Message* next = origMsg;
     MsgFragment* nextFrag;
     MsgFragment* frag;
+
+
+    // set up the first one so that CMSG_XXX macros will work
+    curvec->msg_hdr.msg_controllen = sizeof(ctrldata);
+    curvec->msg_hdr.msg_control = ctrldata;
+
+    // TODO is the same control data per message OK?
+    struct cmsghdr *cmsg = CMSG_FIRSTHDR(&curvec->msg_hdr);
+    cmsg->cmsg_level = IPPROTO_SCTP;
+    cmsg->cmsg_type = SCTP_SNDRCV;
+    cmsg->cmsg_len = CMSG_LEN(sizeof(struct sctp_sndrcvinfo));
+
+    curvec->msg_hdr.msg_controllen = cmsg->cmsg_len;
+    struct sctp_sndrcvinfo *sinfo = (struct sctp_sndrcvinfo *)CMSG_DATA(cmsg);
+    memset(sinfo, 0, sizeof(struct sctp_sndrcvinfo));
+    sinfo->sinfo_ppid = 1; // ppid;
+    sinfo->sinfo_flags = 0; // SCTP_ADDR_OVER; // flags;
+    sinfo->sinfo_stream = 1; // stream_no;
+    sinfo->sinfo_timetolive = 0; // timetolive;
+    sinfo->sinfo_context = 0; // context;
+    
     do 
     { 
       msg = next;
@@ -291,8 +332,19 @@ namespace SAFplus
         curIov++;
       } while(nextFrag);
       assert(msgCount < SAFplusI::SctpTransportMaxMsg);  // or stack buffer will be exceeded
-      curvec->msg_hdr.msg_controllen = 0;
-      curvec->msg_hdr.msg_control = NULL;
+
+      bzero(&to[msgCount],sizeof(struct sockaddr_in));
+      to[msgCount].sin_family = AF_INET;
+      if (msg->node == Handle::AllNodes)
+          to[msgCount].sin_addr.s_addr= 0;  // TODO: this will broadcast simply by messaging all known nodes.  I need to fix this down in the AllNodes handler
+      else
+          to[msgCount].sin_addr.s_addr = htonl(((Sctp*)transport)->netAddr | msg->node);
+      to[msgCount].sin_port=htons(msg->port + SAFplusI::SctpTransportStartPort);
+
+      curvec->msg_hdr.msg_controllen = cmsg->cmsg_len;
+      curvec->msg_hdr.msg_control = ctrldata;
+      curvec->msg_hdr.msg_name = &to[msgCount];
+      curvec->msg_hdr.msg_namelen = sizeof (struct sockaddr_in);
       curvec->msg_hdr.msg_flags = 0;
       curvec->msg_hdr.msg_iov = msg_iov;
       curvec->msg_hdr.msg_iovlen = fragCount;
@@ -316,6 +368,8 @@ namespace SAFplus
       uint_t port = origMsg->port + SAFplusI::SctpTransportStartPort;
       for (int i=0;i<CL_IOC_MAX_NODES;i++)
       {
+        assert(0);
+#if 0
         if (nodeList[i])
         {
           clientSock = getClientSocket(nodeList[i], port);
@@ -330,22 +384,29 @@ namespace SAFplus
             assert(retval == msgCount);  // TODO, retry if all messages not sent
           }    
         }
+#endif
       }
     }
     else
     {
+#if 0
       clientSock = getClientSocket(origMsg->node, origMsg->port+SAFplusI::SctpTransportStartPort);
       int retval = sendmmsg(clientSock, &msgvec[0], msgCount, 0);  // TODO flags
+#endif
+      int retval = sendmmsg(sock, &msgvec[0], msgCount, 0);  // TODO flags
+
       if (retval == -1)
       {
         int err = errno;
-        throw Error(Error::SYSTEM_ERROR,errno, strerror(errno),__FILE__,__LINE__);
+        char* errstr = strerror(errno);
+        throw Error(Error::SYSTEM_ERROR,errno,errstr,__FILE__,__LINE__);
       }
       else
       {
         assert(retval == msgCount);  // TODO, retry if all messages not sent
         //printf("%d messages sent\n", retval);
       }
+
     }
     
     // Your send routine releases the message whenever you are ready to do so
@@ -360,7 +421,7 @@ namespace SAFplus
       MsgFragment* frag = ret->append(SAFplusI::SctpTransportMaxMsgSize);
 
       mmsghdr msgs[SAFplusI::SctpTransportMaxMsg];  // We are doing this for perf so we certainly don't want to new or malloc it!
-      struct sockaddr_in from[SAFplusI::SctpTransportMaxMsg];
+      struct sockaddr_in from[SAFplusI::SctpTransportMaxMsg] = {0};
       struct iovec iovecs[SAFplusI::SctpTransportMaxFragments];
       struct timespec timeoutMem;
       struct timespec* timeout;

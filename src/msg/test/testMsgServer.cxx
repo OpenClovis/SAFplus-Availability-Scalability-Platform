@@ -53,8 +53,8 @@ void RecvHandler::msgHandler(Handle from, MsgServer* svr, ClPtrT msg, ClWordT ms
 
 bool testSendRecv()
   {
-  MsgServer a(1,10,2);
-  MsgServer b(2,10,2);
+  MsgServer a(2,10,2);
+  MsgServer b(1,10,2);
 
   const char* strMsg = "This is a test of message sending";
 
@@ -118,6 +118,16 @@ bool testSendRecv()
   clTest(("msg ostream serialization"), *((char*) receiver.data) == '9', ("data is [%d]",(int) *((char*) receiver.data) ));
   clTest(("msg ostream serialization"), *((char*) receiver.data+1) == '8', ("data is [%d]",(int) *((char*) receiver.data+1) ));
  
+  // Verify that sockets are bidirectional
+  RecvHandler a_receiver;
+  a.RegisterHandler(1,&a_receiver,NULL);
+  a.Start();
+
+  b.SendMsg(a.handle,(void*) strMsg,strlen(strMsg),1);
+  a_receiver.lock();
+  printf("Message was: %s\n",a_receiver.data);
+  clTest(("bidirectional send/recv message ok"), 0 == strncmp((const char*) a_receiver.data,strMsg,sizeof(strMsg)),("message contents miscompare") );
+
   // Test broadcast
   a.SendMsg(b.broadcastAddr(),(void*) strMsg,strlen(strMsg),1);
   receiver.lock();
@@ -132,7 +142,8 @@ int main(int argc, char* argv[])
   //logEchoToFd = 1; // stdout
   clTestGroupInitialize(("Test Message Server"));
 
-  SAFplusI::defaultMsgTransport = "../lib/clMsgUdp.so";
+  //SAFplusI::defaultMsgTransport = "../lib/clMsgUdp.so";
+  SAFplusI::defaultMsgTransport = "clMsgSctp.so";
 
   clMsgInitialize();
 
