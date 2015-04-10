@@ -154,8 +154,6 @@ ClCharT gAspInstallInfo[128]; /*install key info. for ARD*/
 ClBoolT gClAmsSwitchoverInline;
 ClBoolT gClAmsPayloadResetDisable;
 
-extern ClBoolT gCpmShuttingDown;
-
 /**
  * Static variables.
  */
@@ -2908,14 +2906,7 @@ ClRcT cpmStandby2Active(ClGmsNodeIdT prevMasterNodeId,
     {
         return rc;
     }
-    
-    /* we got this active assignment while shutting down, so we can't become active */
-    if ((gpClCpm->polling == CL_FALSE) || gCpmShuttingDown)
-    {
-        clLogNotice(CPM_LOG_AREA_CPM, CPM_LOG_CTX_CPM_GMS, "Rejected request to become active -- this node is shutting down.");
-        return CL_CPM_RC(CL_ERR_FAILED_OPERATION);
-    }
-    
+
     clOsalMutexLock(&gpClCpm->cpmMutex);
     pCpmLocalInfo = gpClCpm->pCpmLocalInfo;
     clOsalMutexUnlock(&gpClCpm->cpmMutex);
@@ -3806,7 +3797,12 @@ ClRcT compMgrPollThread(void)
     ClUint32T outLen = (ClUint32T) sizeof(ClCpmSchedFeedBackT);
     ClRcT rc = CL_OK;
     ClTimerTimeOutT timeOut;
-    ClTimerTimeOutT heartbeatWait = {.tsSec=0,.tsMilliSec=0};
+
+    /* 
+     * Re-check every 2s to enable/disable heartbeat
+     * This task is less important since heartbeat disable by default
+     */
+    ClTimerTimeOutT heartbeatWait = {.tsSec=2,.tsMilliSec=0};
     ClUint32T freq = gpClCpm->pCpmConfig->defaultFreq, cpmCount;
     ClIocNodeAddressT myOMAddress = { 0 };
     ClCntNodeHandleT hNode = 0;
