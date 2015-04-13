@@ -128,9 +128,13 @@ pthread_cond_t condMain = PTHREAD_COND_INITIALIZER;
 #define CL_CPM_PIPE_MSG_SIZE (512)
 #define CPM_VALGRIND_DEFAULT_DELAY (0x5)
 
+extern ClBoolT gCpmShuttingDown;
+
 /**
  * Global variables.
  */
+int gotSIG = 0;
+
 ClUint32T clEoWithOutCpm;
 int gCompHealthCheckFailSendSignal = SIGKILL;
 /**
@@ -661,8 +665,22 @@ static ClRcT cpmAllocate(void)
 
 static void cpmSigintHandler(ClInt32T signum)
 {
+    gotSIG = signum;
+    //gCpmShuttingDown = CL_TRUE;
+    if (gClCpm.cpmEoObj)  /* This sighandler could be called at any time, so we better make sure we are not in the middle of cleanup */
+    {        
+        //gClCpm.polling = CL_FALSE;
+    clOsalCondSignal(&gClCpm.heartbeatCond);
+    //clOsalCondSignal(&gClCpm.cpmEoObj->eoCond);
+    }
+    
+    
+#if 0
+    /*    a sigint handler can be executed within any thread context at any time
+          so it can't be doing ANY mutex take/give because it could be called in the context of a thread that ALREADY has that mutex = deadlock so sig handlers must be incrediably simple functions... */
     clLogCritical(CPM_LOG_AREA_CPM, CPM_LOG_CTX_CPM_BOOT, "Caught signal [%d]. Should be SIGINT or SIGTERM signal, shutting down the node...",signum);
     clCpmNodeShutDown(clIocLocalAddressGet());
+#endif    
 }
 
 static void cpmSigchldHandler(ClInt32T signum)
@@ -2906,7 +2924,9 @@ ClRcT cpmStandby2Active(ClGmsNodeIdT prevMasterNodeId,
     {
         return rc;
     }
-
+    
+    /* we got this active assignment while shutting down, so we can't become active */
+    
     clOsalMutexLock(&gpClCpm->cpmMutex);
     pCpmLocalInfo = gpClCpm->pCpmLocalInfo;
     clOsalMutexUnlock(&gpClCpm->cpmMutex);
@@ -4031,8 +4051,26 @@ ClRcT compMgrPollThread(void)
         goto out_unlock;
     }
     clOsalCondWait(&gpClCpm->heartbeatCond, &gpClCpm->heartbeatMutex,heartbeatWait);
-    goto restart_heartbeat;
+    if (gotSIG)  // This is a very useful log because it indicates that this was a user-initiated shutdown.
+    {
+        if (gotSIG==SIGINT || gotSIG==SIGTERM)
+        {
+            clLogCritical(CPM_LOG_AREA_CPM, CPM_LOG_CTX_CPM_BOOT, "Caught signal [%d] (SIGINT or SIGTERM).  Shutting down the node... (operator initiated)",gotSIG);
+        }
+        else  
+            clLogCritical(CPM_LOG_AREA_CPM, CPM_LOG_CTX_CPM_BOOT, "Caught signal [%d].  Shutting down the node...",gotSIG);
 
+
+        // This is inside gotSIG because presumably in other shutdown cases it has already been called
+        clOsalMutexUnlock(&gpClCpm->heartbeatMutex);
+        cpmProcessOrderlyShutdown(clIocLocalAddressGet());
+        clOsalMutexLock(&gpClCpm->heartbeatMutex);
+        //cpmSelfShutDown();
+        //clCpmNodeShutDown(clIocLocalAddressGet());        
+    }
+    if (gpClCpm->polling) goto restart_heartbeat;
+    
+    
     out_unlock:
     clOsalMutexUnlock(&gpClCpm->heartbeatMutex);
 

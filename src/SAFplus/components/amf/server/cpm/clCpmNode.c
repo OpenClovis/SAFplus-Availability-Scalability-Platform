@@ -904,6 +904,7 @@ out:
  */
 static ClRcT cpmNodeShutdownTimeout(void *unused)
 {
+#if 0    
     ClCharT cmdbuf[0xff+1];
     const ClCharT *aspDir = getenv("ASP_DIR");
     if(!aspDir) aspDir = "/root/asp";
@@ -913,6 +914,10 @@ static ClRcT cpmNodeShutdownTimeout(void *unused)
     {
         clLogWarning("SHUTDOWN", "TIMER", "Shutdown cmd returned with error [%s]", strerror(errno));
     }
+    return CL_OK;
+#endif
+    
+    clLogNotice("SHUTDOWN", "TIMER", "Node shutdown timer fired -- NOOP");
     return CL_OK;
 }
 static void startShutdownTimer(ClIocNodeAddressT nodeAddress)
@@ -941,19 +946,26 @@ ClRcT VDECL(cpmProcNodeShutDownReq)(ClEoDataT data,
                                     ClBufferHandleT outMsgHandle)
 {
     ClIocNodeAddressT iocAddress;
-    ClIocNodeAddressT masterAddress;
     ClRcT   rc = CL_OK;
+   
+    rc = clXdrUnmarshallClUint32T(inMsgHandle, &iocAddress);
+    if(rc != CL_OK) return rc;        
+    rc = cpmProcessOrderlyShutdown(iocAddress);
+    return rc;
+}
+
+ClRcT cpmProcessOrderlyShutdown(ClIocNodeAddressT iocAddress)
+{
+    ClIocNodeAddressT masterAddress;
     ClCpmLT *cpmL = NULL;
     ClNameT nodeName;
+    ClRcT   rc = CL_OK;
+  
     
-    rc = clXdrUnmarshallClUint32T(inMsgHandle, &iocAddress);
-    if(rc != CL_OK)
-        goto failure;
-
     clLogWrite(CL_LOG_HANDLE_APP, CL_LOG_ALERT, NULL,
                CL_CPM_LOG_1_SERVER_CPM_NODE_SHUTDOWN_INFO, iocAddress);
 
-    CL_DEBUG_PRINT(CL_DEBUG_INFO, ("Processing Shut down request for Node [%d]\n", iocAddress));
+    //CL_DEBUG_PRINT(CL_DEBUG_INFO, ("Processing Shut down request for Node [%d]\n", iocAddress));
     
     /* If boot level has not reached default then Do not ask AMS
      * for node leave as AMS does not consider node as part of 
@@ -989,7 +1001,7 @@ ClRcT VDECL(cpmProcNodeShutDownReq)(ClEoDataT data,
      * Send shutdown request to master
      */
     if(iocAddress == clIocLocalAddressGet() && 
-            (CL_CPM_IS_STANDBY() || CL_CPM_IS_WB()))
+       ((!CL_CPM_IS_ACTIVE()) || CL_CPM_IS_WB()))
     {
         rc = clCpmMasterAddressGet(&masterAddress);
         

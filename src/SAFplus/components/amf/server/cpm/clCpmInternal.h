@@ -735,6 +735,11 @@ extern ClRcT cpmCompParseArgs(ClCpmCompConfigT *compConfig, ClCharT *cmd, ClUint
 
 extern ClRcT cpmEventPublishQueueInit();
 
+
+    // Same as clCpmNodeShutDown() but does not use an RMD call
+    extern ClRcT cpmProcessOrderlyShutdown(ClIocNodeAddressT iocAddress);
+    
+   
 #ifdef __cplusplus
 }
 #endif
