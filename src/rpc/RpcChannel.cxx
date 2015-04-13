@@ -226,10 +226,19 @@ namespace SAFplus
                 //Sending reply to remote
                 try
                   {
-                    string output;
-                    rpcMsgRes.SerializeToString(&output);
-                    int size = output.size();
-                    svr->SendMsg(iocReq, (void *) output.c_str(), size, msgReplyType);
+                    //string output;
+                    //rpcMsgRes.SerializeToString(&output);
+                    //int size = output.size();
+                    //svr->SendMsg(iocReq, (void *) output.c_str(), size, msgReplyType);
+                    MsgPool& pool = svr->getMsgPool();
+                    Message* msg = pool.allocMsg();
+                    msg->setAddress(iocReq);
+                    if (1)
+                      {
+                        boost::iostreams::stream<MessageOStream>  mos(msg);
+                        rpcMsgRes.SerializeToOstream(&mos);
+                      }
+                    svr->SendMsg(msg, msgReplyType);
                   }
                 catch (Error &e)
                   {
