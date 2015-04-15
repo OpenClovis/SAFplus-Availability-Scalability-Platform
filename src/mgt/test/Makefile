@@ -20,7 +20,7 @@ SAFPLUS_LINK_LIBS := -L$(LIB_DIR) $(addprefix -l,$(SAFPLUS_LIBS))
 CPP_FLAGS += $(SAFPLUS_MGT_INC_FLAGS)
 
 MGT_TEST_H := $(wildcard *.hpp) $(wildcard *.h) $(wildcard *.hxx)  $(wildcard $(SAFPLUS_INC_DIR)/*.hxx) 
-MGT_TEST_SRC := $(wildcard *.cxx)
+MGT_TEST_SRC := $(wildcard testapi.cxx)
 MGT_TEST_OBJ := $(subst .cpp,.o, $(subst .cxx,.o,$(MGT_TEST_SRC)))
 MGT_TEST_OBJ := $(addprefix $(OBJ_DIR)/test/mgt/,$(MGT_TEST_OBJ))
 
