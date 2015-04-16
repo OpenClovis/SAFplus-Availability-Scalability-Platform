@@ -12,6 +12,7 @@
 #include <clMsgApi.hxx>
 #include <clTestApi.hxx>
 #include <boost/program_options.hpp>
+#include <boost/iostreams/stream.hpp>
 
 using namespace SAFplus;
 
@@ -295,8 +296,140 @@ void msgPoolTests(MsgPool& msgPool)
   clTest(("Frag allocated"), (msgPool.fragAllocated == 0), ("Allocated frags is [%" PRIu64 "]. Expected 0", msgPool.fragAllocated));
   clTest(("Frag allocated bytes"), (msgPool.fragAllocatedBytes == 0), ("Allocated frag bytes is [%" PRIu64 "]. Expected 0", msgPool.fragAllocatedBytes));
   clTest(("Frag cumulative"), (msgPool.fragCumulativeBytes== 0), ("fragCumulativeAllocated [%" PRIu64 "]. Expected 0", msgPool.fragCumulativeBytes));
+}
+
+class TestStructure
+{
+public:
+  int8_t  i8;
+  int16_t i16;
+  int32_t i32;
+  int64_t i64;
+
+  uint8_t  u8;
+  uint16_t u16;
+  uint32_t u32;
+  uint64_t u64;
+  TestStructure() {}
+  TestStructure(int8_t _i8,int16_t _i16,int32_t _i32,int64_t _i64,uint8_t _u8,uint16_t _u16,uint32_t _u32,uint64_t _u64)
+  {
+  i8 = _i8;
+  i16 = _i16;
+  i32 = _i32;
+  i64 = _i64;
+
+  u8 = _u8;
+  u16 = _u16;
+  u32 = _u32;
+  u64 = _u64;   
+  }
+
+  bool operator == (const TestStructure& ts) const
+  {
+    if (i8 != ts.i8) return false;
+    if (i16 != ts.i16) return false;
+    if (i32 != ts.i32) return false;
+    if (i64 != ts.i64) return false;
+    if (u8 != ts.u8) return false;
+    if (u16 != ts.u16) return false;
+    if (u32 != ts.u32) return false;
+    if (u64 != ts.u64) return false;
+    return true;
+    //int ret = ::memcmp((void*) this,(void*) &ts,sizeof(TestStructure));
+    //return ret==0;
+  }
+};
+
+MessageOStream& operator << (MessageOStream& mos, TestStructure& val)
+{
+  mos << val.i8 << val.i16 << val.i32 << val.i64 << val.u8 << val.u16 << val.u32 << val.u64;
+  return mos;
+}
+
+MessageIStream& operator >> (MessageIStream& mos, TestStructure& val)
+{
+  mos >> val.i8 >> val.i16 >> val.i32 >> val.i64 >> val.u8 >> val.u16 >> val.u32 >> val.u64;
+  return mos;
+}
+
+
+void messageTests(MsgPool& msgPool)
+{
+  Message*  m = msgPool.allocMsg();
+  MsgFragment* frag = m->append(4);
+  MsgFragment* frag2 = m->append(7);
+  const char* testdata = "0123456789";
+
+  if (1)
+    {
+    boost::iostreams::stream<MessageOStream>  mos(m);
+    mos << testdata;
+    }
+
+  if (1)
+    {
+    boost::iostreams::stream<MessageIStream>  mis(m);
+    char test[11];
+    mis.read(test,10);
+    //clTest(("read"), 10 == mis.read(test,10),("read length incorrect"));
+    clTest(("read results"), strcmp(testdata,test)==0, ("data miscompare"));
+    }
+
+  msgPool.free(m);
+
+  m = msgPool.allocMsg();
+  frag = m->append(4);
+  frag2 = m->append(7);
+  m->append(10);
+
+  uint64_t num = 0x123456789abcdef0ULL;
+  uint64_t num2 = 0x123456789abcdef0ULL + 0xa5a5a5a5a5a5a5aULL;
+  if (1)
+    {
+    MessageOStream  mos(m);
+    mos.write((char*)&num, sizeof(num));
+    mos.write((char*)&num2, sizeof(num2));
+    }
+
+  if (1)
+    {
+    MessageIStream mis(m);
+    uint64_t a,b;
+    mis.read((char*)&a,sizeof(a));
+    mis.read((char*)&b,sizeof(b));
+    clTest(("read binary data"), b == num2,("data miscompare"));
+    clTest(("read binary data"), a == num, ("data miscompare"));
+    }
+  
+  msgPool.free(m);
+
+  m = msgPool.allocMsg();
+  frag = m->append(4);
+  frag2 = m->append(7);
+  m->append(10);
+  m->append(20);
+
+  TestStructure numberData(-1,-2,-3,-4,5,6,7,8);
+  if (1)
+    {
+    MessageOStream  mos(m);
+    mos << numberData;    
+    }
+
+  if (1)
+    {
+    MessageIStream mis(m);
+    TestStructure tmp;
+    mis >> tmp;
+
+    clTest(("read/write binary structure data"), numberData == tmp,("data miscompare"));
+    int i = 1;
+    }
+
   
 }
+
+
 
 int main(int argc, char* argv[])
 {
@@ -329,7 +462,7 @@ int main(int argc, char* argv[])
   MsgPool msgPool;
 
   msgPoolTests(msgPool);
-
+  messageTests(msgPool);
 
   ClPlugin* api = NULL;
   if (1)

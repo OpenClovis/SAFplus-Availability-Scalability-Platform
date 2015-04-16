@@ -33,7 +33,7 @@ namespace SAFplus
       Flags flags;          //? Describes metadata about this fragment, bit meanings are defined as constants
       uint_t allocatedLen;  //? How much data is allocated in this fragment.  This will be 0 if the fragment was not allocated (it could be a const char* buffer, or the application does not want the messaging layer to free this memory).
       uint_t start;         //? Where does the message actually start in the allocated data (offset).
-      uint_t len;           //? length of message.  So start+len must be < allocatedLen, if this is an allocated fragment.
+      uint_t len;           //? length of message from start to the end.  So start+len must be < allocatedLen, if this is an allocated fragment.
 
       MsgFragment* nextFragment;  //? A pointer to the next fragment in the message.  Should only be used by MsgSocket implementations.
     protected:
@@ -231,16 +231,71 @@ class MessageOStream:public boost::iostreams::sink
   public:
     Message* msg;
     int fragSize;
+    bool eswap;
     std::streamsize write(const char* s, std::streamsize n);
 
-    MessageOStream(Message* _msg, unsigned int _sizeHint=4096)
+    MessageOStream(Message* _msg, unsigned int _sizeHint=4096, bool endianSwapNeeded=false)
     {
+      eswap = endianSwapNeeded;
       msg = _msg;
       fragSize = _sizeHint;
     }
 
-    /* Other members */
+    //? Binary, endian swap serialization operators
+    MessageOStream& operator << (uint64_t val) { if (eswap) val = __builtin_bswap64(val); write((char*) &val, sizeof(val)); return *this; }
+    //? Binary, endian swap serialization operators
+    MessageOStream& operator << (int64_t val) { if (eswap) val = __builtin_bswap64(val); write((char*) &val, sizeof(val)); return *this; }
+    //? Binary, endian swap serialization operators
+    MessageOStream& operator << (uint32_t val) { if (eswap) val = __builtin_bswap32(val); write((char*) &val, sizeof(val)); return *this; }
+    //? Binary, endian swap serialization operators
+    MessageOStream& operator << (int32_t val) { if (eswap) val = __builtin_bswap32(val); write((char*) &val, sizeof(val)); return *this; }
+    //? Binary, endian swap serialization operators
+    MessageOStream& operator << (uint16_t val) { if (eswap) val = __builtin_bswap16(val); write((char*) &val, sizeof(val)); return *this; }
+    //? Binary, endian swap serialization operators
+    MessageOStream& operator << (int16_t val) { if (eswap) val = __builtin_bswap16(val); write((char*) &val, sizeof(val)); return *this; }
+    //? Binary, endian swap serialization operators
+    MessageOStream& operator << (uint8_t val) { write((char*) &val, sizeof(val)); return *this; }
+    //? Binary, endian swap serialization operators
+    MessageOStream& operator << (int8_t val) { write((char*) &val, sizeof(val)); return *this; }
 }; //? </class>
+
+    //? <class> This class allows you to write data to a Msg using the c++ ostream interface.  Typically no APIs in this class are accessed directly.  Please see the Msg stream example code for a tutorial on use.  It is essential that this object be destroyed before the backing Message object is sent because iostreams use buffering.  So the stream may not actually write to the Message object until it is destroyed.
+class MessageIStream:public boost::iostreams::source
+  {
+  public:
+    Message* msg;
+    MsgFragment* curFrag;
+    int curOffset;
+    bool eswap;
+    std::streamsize read(char* s, std::streamsize n);
+
+    MessageIStream(Message* _msg,bool endianSwapNeeded=false)
+    {
+      eswap = endianSwapNeeded;
+      msg = _msg;
+      curFrag = msg->firstFragment;
+      curOffset=0;
+    }
+
+    //? Binary, endian swap serialization operators
+    MessageIStream& operator >> (uint64_t& val) { if (eswap) val = __builtin_bswap64(val); read((char*) &val, sizeof(val)); return *this; }
+    //? Binary, endian swap serialization operators
+    MessageIStream& operator >> (int64_t& val) { if (eswap) val = __builtin_bswap64(val); read((char*) &val, sizeof(val)); return *this; }
+    //? Binary, endian swap serialization operators
+    MessageIStream& operator >> (uint32_t& val) { if (eswap) val = __builtin_bswap32(val); read((char*) &val, sizeof(val)); return *this; }
+    //? Binary, endian swap serialization operators
+    MessageIStream& operator >> (int32_t& val) { if (eswap) val = __builtin_bswap32(val); read((char*) &val, sizeof(val)); return *this; }
+    //? Binary, endian swap serialization operators
+    MessageIStream& operator >> (uint16_t& val) { if (eswap) val = __builtin_bswap16(val); read((char*) &val, sizeof(val)); return *this; }
+    //? Binary, endian swap serialization operators
+    MessageIStream& operator >> (int16_t& val) { if (eswap) val = __builtin_bswap16(val); read((char*) &val, sizeof(val)); return *this; }
+    //? Binary, endian swap serialization operators
+    MessageIStream& operator >> (uint8_t& val) { read((char*) &val, sizeof(val)); return *this; }
+    //? Binary, endian swap serialization operators
+    MessageIStream& operator >> (int8_t& val) { read((char*) &val, sizeof(val)); return *this; }
+
+}; //? </class>
+
 
 };
 

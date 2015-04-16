@@ -474,4 +474,35 @@ namespace SAFplus
     }
 
 
+    std::streamsize MessageIStream::read(char* s, std::streamsize n)
+    {
+      // Read up to n characters from the underlying data source
+      // into the buffer s, returning the number of characters
+      // read; return -1 to indicate EOF
+      int leftover = n;
+
+      if (!curFrag) return -1;  // at the end.
+
+      while(curFrag && leftover)
+        {
+          int readable = curFrag->len - curOffset;
+          int amt2Read = std::min(readable, leftover);
+          if (amt2Read > 0)
+            {
+              memcpy(s,curFrag->read(curOffset),amt2Read);
+              s += amt2Read;
+              leftover -= amt2Read;
+              curOffset += amt2Read;
+            }
+          if (leftover)
+            {
+              curFrag = curFrag->nextFragment;
+              curOffset = 0;
+            }
+        }
+       
+      return n-leftover;    
+    }
+
+
   };
