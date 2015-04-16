@@ -630,11 +630,18 @@ clLogFileOwnerStateRecreate(ClCntKeyHandleT   key,
     
     rc = clCntWalk(pFileData->hStreamTable, clLogFileOwnerStreamEntryReopen,
                    &streamAttr, sizeof(streamAttr));
-    if( CL_OK != rc )
+
+    if (streamAttr.fileName.pValue != NULL)
     {
-        clHeapFree(streamAttr.fileLocation.pValue);
         clHeapFree(streamAttr.fileName.pValue);
+        streamAttr.fileName.pValue = NULL;
     }
+
+    if (streamAttr.fileLocation.pValue != NULL)
+      {
+        clHeapFree(streamAttr.fileLocation.pValue);
+        streamAttr.fileLocation.pValue = NULL;
+      }
 
     CL_LOG_DEBUG_TRACE(("Exit"));
     return rc;

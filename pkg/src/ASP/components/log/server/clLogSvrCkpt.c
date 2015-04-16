@@ -715,14 +715,14 @@ clLogSvrStreamEntryUnpackNAdd(ClLogSvrEoDataT        *pSvrEoEntry,
     if(CL_OK != rc)
     {
         CL_LOG_DEBUG_ERROR(("clXdrUnmarshallClStringT(): rc[%#x]\n", rc));
-        return rc;
+        goto out_free;
     }
 
     rc = clXdrUnmarshallClUint32T(msg, &compTableSize);
     if( CL_OK != rc )
     {
         CL_LOG_DEBUG_ERROR(("clXdrUnmarshallClUint32T(): rc[0x %x]\n", rc));
-        return rc;
+        goto out_free;
     }
     CL_LOG_DEBUG_VERBOSE(("compSize : %u", compTableSize));
     
@@ -730,12 +730,13 @@ clLogSvrStreamEntryUnpackNAdd(ClLogSvrEoDataT        *pSvrEoEntry,
                               pSvrCommonEoEntry->maxStreams, &pStreamKey);
     if( CL_OK != rc )
     {
-        return rc;
+        goto out_free;
     }
     rc = clLogShmNameCreate(&streamName,&streamScopeNode,&shmName);
     if( CL_OK != rc )
     {
-        return rc;
+        clLogStreamKeyDestroy(pStreamKey);
+        goto out_free;
     }
     rc = clLogSvrStreamEntryAdd(pSvrEoEntry, pSvrCommonEoEntry,
                                 pStreamKey, &shmName, &hSvrStreamNode);
@@ -743,7 +744,7 @@ clLogSvrStreamEntryUnpackNAdd(ClLogSvrEoDataT        *pSvrEoEntry,
     if( CL_OK != rc )
     {
         clLogStreamKeyDestroy(pStreamKey);
-        return rc;
+        goto out_free;
     }
 
     rc = clLogSvrCompEntryRecreate(pSvrCommonEoEntry, pSvrEoEntry,  
@@ -752,7 +753,7 @@ clLogSvrStreamEntryUnpackNAdd(ClLogSvrEoDataT        *pSvrEoEntry,
     {
         CL_LOG_CLEANUP(clCntNodeDelete(pSvrEoEntry->hSvrStreamTable, 
                                        hSvrStreamNode), CL_OK);
-        return rc;
+        goto out_free;
     }
 
     rc = clLogSvrShmOpenNFlusherCreate(pSvrEoEntry, &streamName, 
@@ -765,6 +766,11 @@ clLogSvrStreamEntryUnpackNAdd(ClLogSvrEoDataT        *pSvrEoEntry,
                        hSvrStreamNode), CL_OK);
     }
 
+out_free:
+    if (fileLocation.pValue)
+      clHeapFree(fileLocation.pValue);
+    if (fileName.pValue)
+      clHeapFree(fileName.pValue);
     CL_LOG_DEBUG_TRACE(("Exit"));
     return rc;
 }
@@ -813,8 +819,19 @@ clLogSvrShmOpenNFlusherCreate(ClLogSvrEoDataT   *pSvrEoEntry,
     else
         pSvrStreamData->fileOwnerAddr = CL_IOC_RESERVED_ADDRESS;
 
-    memcpy(&pSvrStreamData->fileName, pFileName, sizeof(pSvrStreamData->fileName));
-    memcpy(&pSvrStreamData->fileLocation, pFileLocation, sizeof(pSvrStreamData->fileLocation));
+    if (pFileName->pValue)
+    {
+        pSvrStreamData->fileName.length = pFileName->length;
+        pSvrStreamData->fileName.pValue = clHeapCalloc(pFileName->length, sizeof(ClCharT));
+        memcpy(&pSvrStreamData->fileName.pValue, pFileName->pValue, pFileName->length);
+    }
+
+    if (pFileLocation->pValue)
+    {
+        pSvrStreamData->fileLocation.length = pFileLocation->length;
+        pSvrStreamData->fileLocation.pValue = clHeapCalloc(pFileLocation->length, sizeof(ClCharT));
+        memcpy(&pSvrStreamData->fileLocation.pValue, pFileLocation->pValue, pFileLocation->length);
+    }
 
     rc = clLogShmNameCreate(pStreamName, pStreamNodeName,
                                &(pSvrStreamData->shmName));

@@ -735,11 +735,9 @@ ClRcT clCkptLibraryCkptDataSetVersionCreate (ClCkptSvcHdlT   ckptHdl,
     }
     memset (pDataInfo, 0, sizeof (CkptDataSetT));
     pDataInfo->dsId         =  dsId;
-    pDataInfo->pDataSetCallbackTable = clHeapCalloc(numTableEntries,
-                                                    sizeof(*pDataInfo->pDataSetCallbackTable));
+    pDataInfo->pDataSetCallbackTable = clHeapCalloc(numTableEntries, sizeof(*pDataInfo->pDataSetCallbackTable));
     CL_ASSERT(pDataInfo->pDataSetCallbackTable != NULL);
-    memcpy(pDataInfo->pDataSetCallbackTable, pTable, 
-           numTableEntries * sizeof(*pDataInfo->pDataSetCallbackTable));
+    memcpy(pDataInfo->pDataSetCallbackTable, pTable, numTableEntries * sizeof(*pDataInfo->pDataSetCallbackTable));
     pDataInfo->numDataSetTableEntries = numTableEntries;
     pDataInfo->pElementCallbackTable = NULL;
     pDataInfo->numElementTableEntries = 0;
@@ -750,6 +748,12 @@ ClRcT clCkptLibraryCkptDataSetVersionCreate (ClCkptSvcHdlT   ckptHdl,
     
     rc = clCntNodeAdd (pCkpt->dataSetList,  (ClCntKeyHandleT)(ClWordT)pDataInfo->dsId,
                        (ClCntDataHandleT)pDataInfo, NULL);
+    if (rc != CL_OK)
+    {
+        clHeapFree(pDataInfo->pDataSetCallbackTable);
+        pDataInfo->pDataSetCallbackTable = NULL;
+        clHeapFree(pDataInfo);
+    }
     CKPT_ERR_CHECK(CL_CKPT_LIB,CL_DEBUG_ERROR,
             ("Ckpt: Error during adding dataset rc[0x %x]\n",rc), rc);
         
