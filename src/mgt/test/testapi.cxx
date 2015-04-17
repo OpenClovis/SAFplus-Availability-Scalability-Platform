@@ -1,10 +1,16 @@
 #include <clGlobals.hxx>
 #include <clMsgPortsAndTypes.hxx>
 #include <clMgtApi.hxx>
+#include <clGroupIpi.hxx>
 
 using namespace SAFplus;
 
 #define MGT_API_TEST_PORT (SAFplusI::END_IOC_PORT + 1)
+
+namespace SAFplusI
+  {
+  extern GroupSharedMem gsm;
+  };
 
 void initSafLibraries()
 {
@@ -16,6 +22,7 @@ void initSafLibraries()
   sic.msgThreads  = 1;
 
   safplusInitialize( SAFplus::LibDep::LOG | SAFplus::LibDep::MSG, sic);
+  SAFplusI::gsm.init();
 }
 
 /*

@@ -23,12 +23,20 @@
 
 #include <string>
 #include <clHandleApi.hxx>
+#include <clGroup.hxx>
 
 namespace SAFplus
 {
   class MgtFunction
   {
   public:
+    static Group *mgtGroup;
+
+    static Group *getGroup();
+
+    static void registerEntity(Handle handle);
+    static void deregisterEntity(Handle handle);
+
     static std::string mgtGet(const std::string& pathSpec);
     static std::string mgtGet(SAFplus::Handle src, const std::string& pathSpec);
 

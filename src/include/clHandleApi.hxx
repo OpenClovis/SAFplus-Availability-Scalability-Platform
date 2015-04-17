@@ -197,6 +197,7 @@ namespace SAFplus
   const WellKnownHandle CLUSTER_GROUP(8,0,0);    //? This group represents all nodes (AMF instances) running in the cluster
   const WellKnownHandle FAULT_GROUP(9,0,0);      //? This group represents the fault managers
   const WellKnownHandle FAULT_CKPT(10,0,0);      //? This checkpoint is how fault synchronizes data
+  const WellKnownHandle MGT_GROUP(11,0,0);       //? This group represents all mgt clients (object implementers)
 
   enum
     {

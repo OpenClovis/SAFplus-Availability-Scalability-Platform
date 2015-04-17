@@ -10,7 +10,7 @@ SAFPLUS_SDK_TARGET ?= $(shell (cd $(SAFPLUS_SDK_DIR)/prebuild/target/$(TARGET_PL
 CPP_FLAGS += -I$(BOOST_DIR)  -I. -I.. 
 
 # Specify the required libraries
-SAFPLUS_LIBS := clMgt clUtils clLog clMsg clOsal clDbal
+SAFPLUS_LIBS := clMgt clUtils clLog clGroup clMsg clOsal clDbal
 # Then use these in the make rule
 SAFPLUS_DEP_LIBS     := $(addsuffix .so,$(addprefix $(LIB_DIR)/lib,$(SAFPLUS_LIBS)))
 SAFPLUS_LINK_LIBS := -L$(LIB_DIR) $(addprefix -l,$(SAFPLUS_LIBS))

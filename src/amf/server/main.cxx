@@ -68,6 +68,23 @@ enum
   STARTUP_ELECTION_DELAY_MS = 2000  // Wait for 5 seconds during startup if nobody is active so that other nodes can arrive, making the initial election not dependent on small timing issues. 
   };
 
+void bind()
+  {
+    SAFplus::Handle hdl = SAFplus::Handle::create(SAFplusI::AMF_IOC_PORT);
+    cfg.clusterList.bind(hdl, "SAFplusAmf", "/Cluster");
+    cfg.nodeList.bind(hdl, "SAFplusAmf", "/Node");
+    cfg.serviceGroupList.bind(hdl, "SAFplusAmf", "/ServiceGroup");
+    cfg.componentList.bind(hdl, "SAFplusAmf", "/Component");
+    cfg.componentServiceInstanceList.bind(hdl, "SAFplusAmf", "/ComponentServiceInstance");
+    cfg.serviceInstanceList.bind(hdl, "SAFplusAmf", "/ServiceInstance");
+    cfg.serviceUnitList.bind(hdl, "SAFplusAmf", "/ServiceUnit");
+    cfg.applicationList.bind(hdl, "SAFplusAmf", "/Application");
+    cfg.entityByNameList.bind(hdl, "SAFplusAmf", "/EntityByName");
+    cfg.entityByIdList.bind(hdl, "SAFplusAmf", "/EntityById");
+    cfg.healthCheckPeriod.bind(hdl, "SAFplusAmf", "/healthCheckPeriod");
+    cfg.healthCheckMaxSilence.bind(hdl, "SAFplusAmf", "/healthCheckMaxSilence");
+  }
+
 class MgtMsgHandler : public SAFplus::MsgHandler
 {
   public:
@@ -77,19 +94,7 @@ class MgtMsgHandler : public SAFplus::MsgHandler
       mgtMsgReq.ParseFromArray(msg, msglen);
       if (mgtMsgReq.type() == Mgt::Msg::MsgMgt::CL_MGT_MSG_BIND_REQUEST)
       {
-        SAFplus::Handle hdl = SAFplus::Handle::create(SAFplusI::AMF_IOC_PORT);
-        cfg.clusterList.bind(hdl, "SAFplusAmf", "/Cluster");
-        cfg.nodeList.bind(hdl, "SAFplusAmf", "/Node");
-        cfg.serviceGroupList.bind(hdl, "SAFplusAmf", "/ServiceGroup");
-        cfg.componentList.bind(hdl, "SAFplusAmf", "/Component");
-        cfg.componentServiceInstanceList.bind(hdl, "SAFplusAmf", "/ComponentServiceInstance");
-        cfg.serviceInstanceList.bind(hdl, "SAFplusAmf", "/ServiceInstance");
-        cfg.serviceUnitList.bind(hdl, "SAFplusAmf", "/ServiceUnit");
-        cfg.applicationList.bind(hdl, "SAFplusAmf", "/Application");
-        cfg.entityByNameList.bind(hdl, "SAFplusAmf", "/EntityByName");
-        cfg.entityByIdList.bind(hdl, "SAFplusAmf", "/EntityById");
-        cfg.healthCheckPeriod.bind(hdl, "SAFplusAmf", "/healthCheckPeriod");
-        cfg.healthCheckMaxSilence.bind(hdl, "SAFplusAmf", "/healthCheckMaxSilence");
+          bind();
       }
       else
       {
@@ -532,6 +537,9 @@ int main(int argc, char* argv[])
 
   // TEMPORARY testing initialization
   loadAmfConfig(&cfg);
+  dataModule.loadModule();
+  dataModule.initialize();
+  bind();
 
   logServer = boost::thread(LogServer());
 
@@ -582,6 +590,7 @@ int main(int argc, char* argv[])
   strncpy(clusterGroupData.nodeName,SAFplus::ASP_NODENAME,NODENAME_LEN);
   // TODO: clusterGroupData.backplaneIp = 
   clusterGroup.registerEntity(myHandle, credential, (void*) &clusterGroupData, sizeof(ClusterGroupData),capabilities);
+  MgtFunction::registerEntity(myHandle);
 #endif
   logInfo("AMF","HDL", "I AM [%" PRIx64 ":%" PRIx64 "]", myHandle.id[0],myHandle.id[1]);
 
@@ -608,9 +617,6 @@ int main(int argc, char* argv[])
 #endif
     }
 #endif
-
-  dataModule.loadModule();
-  dataModule.initialize();
 
   MgtMsgHandler msghandle;
   SAFplus::SafplusMsgServer* mgtIocInstance = &safplusMsgServer;

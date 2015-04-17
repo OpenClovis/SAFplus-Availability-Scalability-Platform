@@ -31,6 +31,30 @@ using namespace Mgt::Msg;
 
 namespace SAFplus
 {
+  Group *MgtFunction::mgtGroup = 0;
+
+  Group *MgtFunction::getGroup()
+  {
+    if (!mgtGroup)
+      {
+        mgtGroup = new Group();
+        mgtGroup->init(MGT_GROUP);
+      }
+
+    return mgtGroup;
+  }
+
+  void MgtFunction::registerEntity(Handle handle)
+  {
+    Group *group = MgtFunction::getGroup();
+    group->registerEntity(handle, 0, NULL, 0, 0);
+  }
+
+  void MgtFunction::deregisterEntity(Handle handle)
+  {
+    Group *group = MgtFunction::getGroup();
+    group->deregister(handle);
+  }
 
   std::string MgtFunction::mgtGet(SAFplus::Handle src, const std::string& pathSpec)
   {
@@ -87,10 +111,12 @@ namespace SAFplus
       }
     else  // Object Implementer not found. Broadcast message to get data
       {
-        /*TODO: Support AllPorts = 0xffff, A handle with this in the node field refers to all SAFplus ports (messages will be sent to every process, for example). */
-        for (int i = SAFplusI::START_IOC_PORT; i <= SAFplusI::END_IOC_PORT; i++)
+        Group *group = MgtFunction::getGroup();
+
+        for (Group::Iterator it = group->begin();it != group->end(); it++)
           {
-            output = mgtGet(SAFplus::getProcessHandle(i,SAFplus::Handle::AllNodes), pathSpec);
+            Handle hdl = it->first;
+            output = mgtGet(hdl, pathSpec);
             if (output.length() != 0)
               return output;
           }
@@ -142,10 +168,12 @@ namespace SAFplus
       }
     else  // Object Implementer not found. Broadcast message to get data
       {
-        /*TODO: Support AllPorts = 0xffff, A handle with this in the node field refers to all SAFplus ports (messages will be sent to every process, for example). */
-        for (int i = SAFplusI::START_IOC_PORT; i <= SAFplusI::END_IOC_PORT; i++)
+        Group *group = MgtFunction::getGroup();
+
+        for (Group::Iterator it = group->begin();it != group->end(); it++)
           {
-            ret = mgtSet(SAFplus::getProcessHandle(i,SAFplus::Handle::AllNodes), pathSpec, value);
+            Handle hdl = it->first;
+            ret = mgtSet(hdl, pathSpec, value);
             if ((ret == CL_OK) || (ret != CL_ERR_IGNORE_REQUEST))
               return ret;
           }
@@ -209,10 +237,12 @@ namespace SAFplus
       }
     else  // Object Implementer not found. Broadcast message to get data
       {
-        /*TODO: Support AllPorts = 0xffff, A handle with this in the node field refers to all SAFplus ports (messages will be sent to every process, for example). */
-        for (int i = SAFplusI::START_IOC_PORT; i <= SAFplusI::END_IOC_PORT; i++)
+        Group *group = MgtFunction::getGroup();
+
+        for (Group::Iterator it = group->begin();it != group->end(); it++)
           {
-            ret = mgtCreate(SAFplus::getProcessHandle(i,SAFplus::Handle::AllNodes), pathSpec);
+            Handle hdl = it->first;
+            ret = mgtCreate(hdl, pathSpec);
             if ((ret == CL_OK) || (ret != CL_ERR_IGNORE_REQUEST))
               return ret;
           }
@@ -276,10 +306,12 @@ namespace SAFplus
       }
     else  // Object Implementer not found. Broadcast message to get data
       {
-        /*TODO: Support AllPorts = 0xffff, A handle with this in the node field refers to all SAFplus ports (messages will be sent to every process, for example). */
-        for (int i = SAFplusI::START_IOC_PORT; i <= SAFplusI::END_IOC_PORT; i++)
+        Group *group = MgtFunction::getGroup();
+
+        for (Group::Iterator it = group->begin();it != group->end(); it++)
           {
-            ret = mgtDelete(SAFplus::getProcessHandle(i,SAFplus::Handle::AllNodes), pathSpec);
+            Handle hdl = it->first;
+            ret = mgtDelete(hdl, pathSpec);
             if ((ret == CL_OK) || (ret != CL_ERR_IGNORE_REQUEST))
               return ret;
           }
