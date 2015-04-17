@@ -514,6 +514,7 @@ clLogSvrSOSOResponse(CL_OUT     ClIdlHandleT            hLogIdl,
         }
         else
         {
+            clHeapFree(shmName.pValue);
             shmName.length = 0;
             shmName.pValue = NULL;
             rc = VDECL_VER(clLogSvrStreamOpenResponseSend, 4, 0, 0)(pCookie->hDeferIdl, rc, 
@@ -1502,6 +1503,7 @@ VDECL_VER(clLogSvrStreamOpen, 4, 0, 0)(
         CL_LOG_CLEANUP(clOsalMutexUnlock_L(&pSvrEoEntry->svrStreamTableLock), CL_OK);
         if( CL_LOG_DEFAULT_COMPID != compId )
         {
+            clHeapFree(pShmName->pValue);
             pShmName->length = 0;
             pShmName->pValue = NULL;
             CL_LOG_CLEANUP(VDECL_VER(clLogSvrStreamOpenResponseSend, 4, 0, 0)(hIdlDefer, rc,

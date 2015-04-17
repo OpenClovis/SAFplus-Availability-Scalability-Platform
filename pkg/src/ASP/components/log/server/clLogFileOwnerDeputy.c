@@ -695,6 +695,7 @@ clLogFileOwnerMasterStateRecover(void)
     if( CL_GET_ERROR_CODE(rc) == CL_ERR_NOT_EXIST )
     {
         /*its temporay fix..clean solution is needed.FIXME */
+        CL_LOG_CLEANUP(clIdlHandleFinalize(hLogIdl), CL_OK);
         CL_LOG_DEBUG_ERROR(("No components availbale at Master"));
         return CL_OK;
     }

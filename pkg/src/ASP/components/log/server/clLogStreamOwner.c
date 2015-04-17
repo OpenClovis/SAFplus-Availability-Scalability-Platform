@@ -1239,7 +1239,9 @@ clLogStreamOwnerMAVGResponse(ClIdlHandleT            hLogIdl,
         pStreamAttr->fileName.pValue     = NULL;
         clHeapFree(pStreamAttr->fileLocation.pValue);
         pStreamAttr->fileLocation.pValue = NULL;
+        clHeapFree(filter.pMsgIdSet);
         filter.pMsgIdSet = NULL;
+        clHeapFree(filter.pCompIdSet);
         filter.pCompIdSet= NULL;
         VDECL_VER(clLogStreamOwnerStreamOpenResponseSend, 4, 0, 0)(pCookie->hDeferIdl, retCode,
                                                pCookie->compId, *pStreamAttr, *pStreamMcastAddr,
