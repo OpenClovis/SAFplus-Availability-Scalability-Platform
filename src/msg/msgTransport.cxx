@@ -281,39 +281,6 @@ namespace SAFplus
       }
     }
 
-  //*****************Advanced socket : MsgSocketReliable***************
-
-  MsgSocketReliable::MsgSocketReliable(uint_t port,MsgTransportPlugin_1* transport)
-  {
-    sock=transport->createSocket(port);
-  }
-  MsgSocketReliable::MsgSocketReliable(MsgSocket* socket)
-  {
-    sock=socket;
-  }
-  MsgSocketReliable::~MsgSocketReliable()
-  {
-	  //TODO
-  }
-
-  void MsgSocketReliable::send(Message* msg,uint_t length)
-  {
-    //Apply reliable algorithm
-    sock->send(msg);
-  }
-
-  void MsgSocketReliable::send(SAFplus::Handle destination, void* buffer, uint_t length,uint_t msgtype)
-  {
-  // TODO
-  }
-
-  Message* MsgSocketReliable::receive(uint_t maxMsgs,int maxDelay)
-  {
-    return sock->receive(maxMsgs,maxDelay);
-  }
-
-
-
   //************Advanced socket : MsgSocketSegmentaion************
 
   MsgSocketSegmentaion::MsgSocketSegmentaion(uint_t port,MsgTransportPlugin_1* transport)

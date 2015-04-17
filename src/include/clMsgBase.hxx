@@ -182,20 +182,6 @@ namespace SAFplus
     virtual Message* receive(uint_t maxMsgs,int maxDelay=-1);
   };
 
-  class MsgSocketReliable : public MsgSocketAdvanced
-  {
-    private:
-
-    public:
-    MsgSocketReliable(uint_t port,MsgTransportPlugin_1* transport);
-    MsgSocketReliable(MsgSocket* socket);
-    virtual ~MsgSocketReliable();
-    //? Send a bunch of messages.  You give up ownership of msg.
-    virtual void send(Message* msg,uint_t length);
-    virtual void send(SAFplus::Handle destination, void* buffer, uint_t length,uint_t msgtype);
-    virtual Message* receive(uint_t maxMsgs,int maxDelay=-1);
-  };
-
   class MsgSocketSegmentaion : public MsgSocketAdvanced
   {
     private:
