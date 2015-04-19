@@ -199,6 +199,14 @@ namespace SAFplus
   const WellKnownHandle FAULT_CKPT(10,0,0);      //? This checkpoint is how fault synchronizes data
   const WellKnownHandle MGT_GROUP(11,0,0);       //? This group represents all mgt clients (object implementers)
 
+  const WellKnownHandle CLOUD_DISCOVERY_GROUP(12,0,0); //? This group represents all nodes in the cloud
+ 
+  //? Return a new handle that uses a "well known" id but is qualified by a specific node and port.  By convention, this handle will be used for the entity that implements a well known service on a particular node
+  inline Handle wellKnownEntity(const WellKnownHandle& h, int port, int node,uint_t clusterId=0)
+  {
+    Handle ret(SAFplus::PersistentHandle,h.getIndex(),port,node,0);
+  }
+
   enum
     {
      AppWellKnownIdStart = 1024,  //? Application programmers can start creating well-known handles from this value

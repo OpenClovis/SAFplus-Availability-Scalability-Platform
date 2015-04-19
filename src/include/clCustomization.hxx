@@ -29,6 +29,11 @@ namespace SAFplus
     MsgAppQueueLen   = 25   //? Default maximum queue size for message processing
     };
 
+  /* Messaging */
+  enum
+    {
+      MsgTransportAddressMaxLen = 64, //? The maximum number of bytes allowed for any message transport's physical address (i.e. IP address, TIPC address, etc).  This is needed to store node addresses in shared memory when using cloud mode clustering.
+    };
   };
 
 
@@ -87,6 +92,7 @@ namespace SAFplusI
     };
 
 
+
   /* UDP message transport */
   enum
     {
@@ -97,6 +103,7 @@ namespace SAFplusI
     UdpTransportMaxFragments = 1024,
     };
 
+  /* SCTP message transport */
   enum
     {
     SctpTransportMaxMsgSize = 65503,  // 65,535 - 12 bytes SCTP header - 20 bytes IP header. This is defined here so you can artifically limit the packet size.

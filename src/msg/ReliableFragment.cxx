@@ -1,7 +1,19 @@
 #include "ReliableFragment.hxx"
 namespace SAFplus
 {
-    ReliableFragment::ReliableFragment()
+
+  ReliableFragment::~ReliableFragment()
+  {
+    // TODO
+  }
+
+  fragmentType ReliableFragment::getType()
+  {
+    // TODO
+    return FRAG_DATA;
+  }
+
+  ReliableFragment::ReliableFragment()
     {
     // To do
        int a=0;
