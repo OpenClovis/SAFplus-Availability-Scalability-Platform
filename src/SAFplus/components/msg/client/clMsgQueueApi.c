@@ -501,6 +501,11 @@ retry:
 
     if ((qExists == CL_FALSE) && !(openFlags & SA_MSG_QUEUE_CREATE))
     {
+        if ((++tries < 5) && (clOsalTaskDelay(delay) == CL_OK))
+        {
+            goto retry;
+        }
+
         rc = CL_MSG_RC(CL_ERR_DOESNT_EXIST);
         clLogError("QUE", "OPEN", "Queue [%.*s] does not exist. Open needs [SA_MSG_QUEUE_CREATE] flag passed. error code [0x%x].",
                 pQueueName->length, pQueueName->value, rc);
