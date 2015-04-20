@@ -25,10 +25,14 @@ namespace SAFplus
     uint32_t nodeMask;
     Sctp(); 
 
-    virtual MsgTransportConfig& initialize(MsgPool& msgPool);
+    virtual MsgTransportConfig& initialize(MsgPool& msgPool,ClusterNodes* cn);
 
     virtual MsgSocket* createSocket(uint_t port);
     virtual void deleteSocket(MsgSocket* sock);
+
+    //? This needs to be available before initialize()
+      virtual MsgTransportConfig::Capabilities getCapabilities();
+
     };
 
   class SctpSocket: public MsgSocket
@@ -54,10 +58,18 @@ namespace SAFplus
   Sctp::Sctp()
   {
     msgPool = NULL;
+    clusterNodes = NULL;
   }
 
-  MsgTransportConfig& Sctp::initialize(MsgPool& msgPoolp)
+  MsgTransportConfig::Capabilities Sctp::getCapabilities()
   {
+  return SAFplus::MsgTransportConfig::Capabilities::NAGLE_AVAILABLE;
+  }
+
+
+  MsgTransportConfig& Sctp::initialize(MsgPool& msgPoolp,ClusterNodes* cn)
+  {
+    clusterNodes = cn;
     msgPool = &msgPoolp;
     
     config.maxMsgSize = SAFplusI::SctpTransportMaxMsgSize;
@@ -65,7 +77,7 @@ namespace SAFplus
     config.maxMsgAtOnce = SAFplusI::SctpTransportMaxMsg;
     config.capabilities = SAFplus::MsgTransportConfig::Capabilities::NAGLE_AVAILABLE;
     
-    struct in_addr bip = SAFplusI::setNodeNetworkAddr(&nodeMask);      
+    struct in_addr bip = SAFplusI::setNodeNetworkAddr(&nodeMask,clusterNodes);      
     config.nodeId = SAFplus::ASP_NODEADDR;
     netAddr = ntohl(bip.s_addr)&(~nodeMask);
 
@@ -178,109 +190,6 @@ namespace SAFplus
     }
   }
 
-#if 0
-  int SctpSocket::openClientSocket(uint_t nodeID, uint_t port)
-  {
-    int sock,ret;    
-    //char address[16];    
-    struct sockaddr_in addr;
-    struct sctp_initmsg initmsg;
-    struct sctp_event_subscribe events;
-    struct sctp_paddrparams heartbeat;
-    struct sctp_rtoinfo rtoinfo;
-
-    memset(&initmsg,    0,   sizeof(struct sctp_initmsg));
-    memset(&addr,       0,   sizeof(struct sockaddr_in));
-    memset(&events,     1,   sizeof(struct sctp_event_subscribe));
-    memset(&heartbeat,  0,   sizeof(struct sctp_paddrparams));
-    memset(&rtoinfo,    0,   sizeof(struct sctp_rtoinfo));
-
-    addr.sin_family = AF_INET;    
-    //inet_aton(address, &(addr.sin_addr));
-    addr.sin_addr.s_addr = htonl(((Sctp*)transport)->netAddr | nodeID);
-    addr.sin_port = htons(port);
-
-    initmsg.sinit_num_ostreams = SAFplusI::SctpMaxStream;
-    initmsg.sinit_max_instreams = SAFplusI::SctpMaxStream;
-    initmsg.sinit_max_attempts = SAFplusI::SctpMaxStream;
-
-    heartbeat.spp_flags = SPP_HB_ENABLE;
-    heartbeat.spp_hbinterval = 5000;
-    heartbeat.spp_pathmaxrxt = 1;
-
-    rtoinfo.srto_max = 2000;
-
-    if((ret = (sock = socket(AF_INET, SOCK_STREAM, IPPROTO_SCTP))) < 0)    
-    {
-      int err = errno;
-      throw Error(Error::SYSTEM_ERROR,errno, strerror(errno),__FILE__,__LINE__);
-    }
-    /*Configure Heartbeats*/
-    if((ret = setsockopt(sock, SOL_SCTP, SCTP_PEER_ADDR_PARAMS , &heartbeat, sizeof(heartbeat))) != 0)
-    {
-      int err = errno;
-      throw Error(Error::SYSTEM_ERROR,errno, strerror(errno),__FILE__,__LINE__);
-    }
-
-    /*Set rto_max*/
-    if((ret = setsockopt(sock, SOL_SCTP, SCTP_RTOINFO , &rtoinfo, sizeof(rtoinfo))) != 0)
-    {
-      int err = errno;
-      throw Error(Error::SYSTEM_ERROR,errno, strerror(errno),__FILE__,__LINE__);
-    }
-
-    /*Set SCTP Init Message*/
-    if((ret = setsockopt(sock, SOL_SCTP, SCTP_INITMSG, &initmsg, sizeof(initmsg))) != 0)
-    {
-      int err = errno;
-      throw Error(Error::SYSTEM_ERROR,errno, strerror(errno),__FILE__,__LINE__);
-    }
-
-    if (!nagleEnabled)
-    {
-      int nodelay=1;  
-      if((ret = setsockopt(sock, SOL_SCTP, SCTP_NODELAY, &nodelay, sizeof(nodelay))) != 0)
-      {
-        int err = errno;
-        throw Error(Error::SYSTEM_ERROR,errno, strerror(errno),__FILE__,__LINE__);
-      }
-    }
-    /*Enable SCTP Events*/
-    /*if((ret = setsockopt(sock, SOL_SCTP, SCTP_EVENTS, (void *)&events, sizeof(events))) != 0)
-    {
-      int err = errno;
-      throw Error(Error::SYSTEM_ERROR,errno, strerror(errno),__FILE__,__LINE__);
-    }*/
-
-    /*Get And Print Heartbeat Interval*/
-    /*i = (sizeof heartbeat);
-    getsockopt(sock, SOL_SCTP, SCTP_PEER_ADDR_PARAMS, &heartbeat, (socklen_t*)&i);
-
-    printf("Heartbeat interval %d\n", heartbeat.spp_hbinterval);*/
-
-    /*Connect to server*/
-    if(((ret = connect(sock, (struct sockaddr*)&addr, sizeof(struct sockaddr)))) < 0)
-    {
-      int err = errno;
-      throw Error(Error::SYSTEM_ERROR,errno, strerror(errno),__FILE__,__LINE__);
-    }
-    return sock;
-  }
-#endif
-
-#if 0
-  int SctpSocket::getClientSocket(uint_t nodeID, uint_t port)
-  {
-    NodeIDSocketMap::iterator contents = clientSockMap.find(nodeID);
-    if (contents != clientSockMap.end()) // Socket connected to this NodeID has been opened
-    {
-      return contents->second;
-    }
-    int newSock = openClientSocket(nodeID, port);
-    clientSockMap[nodeID] = newSock;
-    return newSock;
-  }
-#endif  
 
   void SctpSocket::send(Message* origMsg)
   {
@@ -345,10 +254,20 @@ namespace SAFplus
 
       bzero(&to[msgCount],sizeof(struct sockaddr_in));
       to[msgCount].sin_family = AF_INET;
+      // right now, can't mix broadcast and single destination messages. TODO: split broadcast messages out so they are mixable.
       if (msg->node == Handle::AllNodes)
           to[msgCount].sin_addr.s_addr= 0;  // TODO: this will broadcast simply by messaging all known nodes.  I need to fix this down in the AllNodes handler
       else
-          to[msgCount].sin_addr.s_addr = htonl(((Sctp*)transport)->netAddr | msg->node);
+        {
+          if (transport->clusterNodes)
+            {
+              to[msgCount].sin_addr.s_addr = htonl(*((uint32_t*)transport->clusterNodes->transportAddress(msg->node)));
+            }
+          else
+            {
+            to[msgCount].sin_addr.s_addr = htonl(((Sctp*)transport)->netAddr | msg->node);
+            }
+        }
       to[msgCount].sin_port=htons(msg->port + SAFplusI::SctpTransportStartPort);
 
       curvec->msg_hdr.msg_controllen = cmsg->cmsg_len;
@@ -374,35 +293,35 @@ namespace SAFplus
         clientSock = vt.second;
       }*/
       //TODO: get node list
-      uint_t nodeList[CL_IOC_MAX_NODES]={0}; // If get node list API returns the dynamic list, we don't need to use the static array like this
-      uint_t port = origMsg->port + SAFplusI::SctpTransportStartPort;
-      for (int i=0;i<CL_IOC_MAX_NODES;i++)
-      {
-        assert(0);
-#if 0
-        if (nodeList[i])
+      //uint_t nodeList[CL_IOC_MAX_NODES]={0}; // If get node list API returns the dynamic list, we don't need to use the static array like this
+      if (transport->clusterNodes)
         {
-          clientSock = getClientSocket(nodeList[i], port);
-          int retval = sendmmsg(clientSock, &msgvec[0], msgCount, 0);  // TODO flags
-          if (retval == -1)
-          {
-            int err = errno;
-            throw Error(Error::SYSTEM_ERROR,errno, strerror(errno),__FILE__,__LINE__);
-          }
-          else
-          {
-            assert(retval == msgCount);  // TODO, retry if all messages not sent
-          }    
+          uint_t port = origMsg->port + SAFplusI::SctpTransportStartPort;
+          for (ClusterNodes::Iterator it=transport->clusterNodes->begin();it != transport->clusterNodes->endSentinel;it++)
+            {
+              for (int i=0;i<msgCount;i++)  // Fix up the destination addresses
+                {
+                  //assert(to[i].sin_addr.s_addr== 0);
+                  in_addr_t* t = (in_addr_t*) it.transportAddress();
+                  to[i].sin_addr.s_addr = htonl(*t);
+                }
+
+              int retval = sendmmsg(sock, &msgvec[0], msgCount, 0);  // TODO flags
+              if (retval == -1)
+                {
+                  int err = errno;
+                  throw Error(Error::SYSTEM_ERROR,errno, strerror(errno),__FILE__,__LINE__);
+                }
+              else
+                {
+                  assert(retval == msgCount);  // TODO, retry if all messages not sent
+                }    
+                
+            }
         }
-#endif
-      }
     }
     else
     {
-#if 0
-      clientSock = getClientSocket(origMsg->node, origMsg->port+SAFplusI::SctpTransportStartPort);
-      int retval = sendmmsg(clientSock, &msgvec[0], msgCount, 0);  // TODO flags
-#endif
       int retval = sendmmsg(sock, &msgvec[0], msgCount, 0);  // TODO flags
 
       if (retval == -1)
@@ -456,12 +375,6 @@ namespace SAFplus
       memset(msgs,0,sizeof(msgs));
       for (int i = 0; i < 1; i++)
         {
-#if 0
-        // In an inline fragment the message buffer is located right after the MsgFragment object and shares some bytes with the buffer "pointer" (its not used as a pointer)
-        if (frag->flags & SAFplus::MsgFragment::InlineFragment) iovecs[i].iov_base         = (void*) &frag->buffer;
-        // If the fragment is not inline then the buffer variable works as a normal pointer.
-        else iovecs[i].iov_base         = frag->buffer;
-#endif
         iovecs[i].iov_base = frag->data(0);
         iovecs[i].iov_len          = frag->allocatedLen;
         msgs[i].msg_hdr.msg_iov    = &iovecs[i];
@@ -498,7 +411,16 @@ namespace SAFplus
           assert(srcAddr);
           
           cur->port = ntohs(srcAddr->sin_port) - SAFplusI::SctpTransportStartPort;
-          cur->node = ntohl(srcAddr->sin_addr.s_addr) & (((Sctp*)transport)->nodeMask);
+          if (transport->clusterNodes)  // Cloud mode
+            {
+              int tmp = ntohl(srcAddr->sin_addr.s_addr);
+              cur->node = transport->clusterNodes->idOf((void*) &tmp,sizeof(uint32_t));
+            }
+          else  // LAN mode
+            {
+            cur->node = ntohl(srcAddr->sin_addr.s_addr) & (((Sctp*)transport)->nodeMask);
+            }
+
           MsgFragment* curFrag = cur->firstFragment;
           for (int fragIdx = 0; (fragIdx < msgs[msgIdx].msg_hdr.msg_iovlen) && msgLen; fragIdx++,curFrag=curFrag->nextFragment)
             {
@@ -554,35 +476,12 @@ namespace SAFplus
          logDebug("SCTP", "SWTNGL", "Switched nagle algorithm for socket successfully.");
        }
      
-#if 0
-     for(NodeIDSocketMap::iterator iter = clientSockMap.begin(); iter != clientSockMap.end(); iter++)
-     {
-       NodeIDSocketMap::value_type vt = *iter;
-       socket = vt.second;       
-       if((ret = setsockopt(socket, SOL_SCTP, SCTP_NODELAY, &nodelay, sizeof(nodelay))) != 0)
-       {         
-         logWarning("SCTP", "SWTNGL", "switching nagle algorithm for socket [%d] failed. Errno [%d], errmsg [%s]", socket, errno, strerror(errno));
-       }
-       else
-       {
-         logInfo("SCTP", "SWTNGL", "switch nagle algorithm for socket successfully");
-       }
-     }
-#endif
    }   
 
    SctpSocket::~SctpSocket()
    {
      // Close all the sockets: both server socket itself and client sockets in the map
      close(sock);
-#if 0
-     for(NodeIDSocketMap::iterator iter = clientSockMap.begin(); iter != clientSockMap.end(); iter++)
-     {
-       NodeIDSocketMap::value_type vt = *iter;
-       int socket = vt.second;
-       close(socket);
-     }
-#endif
    }
 };
 

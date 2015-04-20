@@ -16,7 +16,10 @@ namespace SAFplus
     uint32_t nodeMask;
     Udp(); 
 
-    virtual MsgTransportConfig& initialize(MsgPool& msgPool);
+   //? This needs to be available before initialize()
+      virtual MsgTransportConfig::Capabilities getCapabilities();
+
+      virtual MsgTransportConfig& initialize(MsgPool& msgPool,ClusterNodes* cn);
 
     virtual MsgSocket* createSocket(uint_t port);
     virtual void deleteSocket(MsgSocket* sock);
@@ -37,21 +40,28 @@ namespace SAFplus
     };
   static Udp api;
 
-  
+  MsgTransportConfig::Capabilities Udp::getCapabilities()
+  {
+  return SAFplus::MsgTransportConfig::Capabilities::BROADCAST;
+  }
+ 
   Udp::Udp()
     {
     msgPool = NULL;
+    clusterNodes = NULL;
     }
 
-  MsgTransportConfig& Udp::initialize(MsgPool& msgPoolp)
+  MsgTransportConfig& Udp::initialize(MsgPool& msgPoolp,ClusterNodes* cn)
     {
+      clusterNodes = cn;
     msgPool = &msgPoolp;
 
     config.nodeId       = 0;
     config.maxMsgSize   = SAFplusI::UdpTransportMaxMsgSize;
     config.maxPort      = SAFplusI::UdpTransportNumPorts;
     config.maxMsgAtOnce = SAFplusI::UdpTransportMaxMsg;
-    config.capabilities = SAFplus::MsgTransportConfig::Capabilities::NONE;  // not reliable, can't tell if anything joins or leaves...
+    // TODO: first determine if we are in cloud mode or LAN mode...
+    config.capabilities = SAFplus::MsgTransportConfig::Capabilities::BROADCAST;  // not reliable, can't tell if anything joins or leaves...
 #if 0
     char* interface = getenv("SAFPLUS_BACKPLANE_INTERFACE");
     char* ip = getenv("SAFPLUS_BACKPLANE_NETWORK");

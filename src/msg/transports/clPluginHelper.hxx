@@ -1,5 +1,6 @@
 #ifndef _CL_PLUGIN_HELPER_H_
 #define _CL_PLUGIN_HELPER_H_
+#include <clClusterNodes.hxx>
 
 #define clBitSet(bitNum) ((bitNum) |= 0x80000000)
 #define ASP_PLUGIN_SUBNET_PREFIX_DEFAULT "24"
@@ -43,7 +44,7 @@ ClUint32T clPluginHelperBitFillRShift(ClUint32T numBits);
 ClRcT clPluginHelperConvertHostToInternetAddress(ClUint32T addr, ClCharT *internetAddress);
 ClRcT clPluginHelperConvertInternetToHostAddress(ClUint32T *addr, const ClCharT *internetAddress);
 void devToIpAddress(const char *dev, char *addrStr);
-in_addr setNodeNetworkAddr(unsigned int* pNodeMask = NULL);
+  in_addr setNodeNetworkAddr(unsigned int* pNodeMask = NULL,SAFplus::ClusterNodes* cn = NULL);
 unsigned int devNetmask(const char *dev);
 struct in_addr devToIpAddress(const char *dev);
 

@@ -1,6 +1,7 @@
 #include <clMsgApi.hxx>
 #include <clLogApi.hxx>
 #include <clMsgBase.hxx>
+#include <boost/tokenizer.hpp>
 
 namespace SAFplus
   {
@@ -281,6 +282,87 @@ namespace SAFplus
       }
     }
 
+  std::string MsgTransportPlugin_1::transportAddress2String(const void* transportAddr)
+    {
+      if (transportAddr == NULL) return std::string();
+
+      std::ostringstream s;
+      uint32_t val1, val2, val3, val4;
+      uint32_t addr = *((uint32_t*) transportAddr);
+
+      val1 = addr & 0xff000000;
+      val1 = val1 >> 24;
+      val2 = addr & 0x00ff0000;
+      val2 = val2 >> 16;
+      val3 = addr & 0x0000ff00;
+      val3 = val3 >> 8;
+      val4 = addr & 0x000000ff;
+
+      s << val1 << '.' << val2 << '.' << val3 << '.' << val4;
+
+      return s.str();    
+    }
+
+#if 0
+  void MsgTransportPlugin_1::setClusterTracker(ClusterNodes* cn)
+  {
+    clusterNodes = cn;
+    if (clusterNodes)
+      {
+        config.capabilities = (MsgTransportConfig::Capabilities) (config.capabilities | MsgTransportConfig::BROADCAST);  // Your plugin should be able to simulate a broadcast now...
+      }
+    else
+      {
+        config.capabilities = (MsgTransportConfig::Capabilities) (config.capabilities & ~MsgTransportConfig::BROADCAST);
+      }
+  }
+#endif
+
+  void MsgTransportPlugin_1::string2TransportAddress(const std::string& str, void* transportAddr, int* transportAddrLen)
+    {
+      assert(*transportAddrLen >= sizeof(uint32_t));
+      boost::tokenizer<> tok(str);
+      uint32_t addr=0;
+      for(boost::tokenizer<>::iterator it=tok.begin(); it!=tok.end();it++)
+        {
+          addr <<= 8;
+          addr |= std::stoi(*it);
+        }
+      *transportAddrLen=sizeof(uint32_t);
+      memcpy(transportAddr,&addr,sizeof(uint32_t));
+    }
+
+#if 0
+    ClUint32T val[4] = { 0 };
+    const char *token = NULL;
+    const char *nextToken = NULL;
+    ClInt32T n = 0;
+
+    assert(*transportAddrLen >= 4);
+
+    const char* ipAddress = str.c_str();
+
+    token = strtok_r(ipAddress, ".", &nextToken);
+    while (token && (n<4)) {
+        val[n++] = atoi(token);
+        token = strtok_r(NULL, ".", &nextToken);
+    }
+
+
+    uint32_t* addr=(uint32_t*) transportAddr;
+    *addr |= val[3];
+    val[2] <<= 8;
+    *addr |= val[2];
+    val[1] <<= 16;
+    *addr |= val[1];
+    val[0] <<= 24;
+    *addr |= val[0];
+
+    *transportAddrLen=4;
+    //return true;   
+    }
+#endif
+
   //************Advanced socket : MsgSocketSegmentaion************
 
   MsgSocketSegmentaion::MsgSocketSegmentaion(uint_t port,MsgTransportPlugin_1* transport)
@@ -409,13 +491,14 @@ namespace SAFplus
     applyShaping(m->getLength());
     sock->send(m);
   }
+
   Message* MsgSocketShaping::receive(uint_t maxMsgs,int maxDelay)
   {
     return sock->receive(maxMsgs,maxDelay);
   }
 
 
-    std::streamsize MessageOStream::write(const char* s, std::streamsize n)
+  std::streamsize MessageOStream::write(const char* s, std::streamsize n)
     {
       // Write up to n characters to the underlying 
       // data sink from the buffer s, returning the 

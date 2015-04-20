@@ -18,6 +18,7 @@
 #include <bitset>
 #include <string>
 #include <clPluginHelper.hxx>
+#include <clClusterNodes.hxx>
 
 #define CL_LOG_PLUGIN_HELPER_AREA "PLUGIN_HELPER"
 #define LOG_CTX "MSG"
@@ -811,7 +812,7 @@ Parameters:
 Returns:
   in_addr: ip address assigned to the interface
 */
-in_addr setNodeNetworkAddr(unsigned int* pNodeMask)
+  in_addr setNodeNetworkAddr(unsigned int* pNodeMask,SAFplus::ClusterNodes* cn)
 {
   //? <cfg name="SAFPLUS_BACKPLANE_INTERFACE">Specifies the network interface to use for backplane communications</cfg>  
   const char* interface = getenv("SAFPLUS_BACKPLANE_INTERFACE");
@@ -863,7 +864,13 @@ in_addr setNodeNetworkAddr(unsigned int* pNodeMask)
     struct in_addr inp = devToIpAddress(interface);    
     int nodeMask = ~ntohl(devNetmask(interface));
     // Set ASP_NODEADDR based on the last 8 bits of assigned network address
-    SAFplus::ASP_NODEADDR = ntohl(inp.s_addr)&nodeMask;
+    if (cn)
+      {
+      uint32_t tmp = ntohl(inp.s_addr);
+      SAFplus::ASP_NODEADDR = cn->idOf(&tmp,sizeof(tmp));
+      }
+    else
+      SAFplus::ASP_NODEADDR = ntohl(inp.s_addr)&nodeMask;
     if (pNodeMask != NULL)
     {
       *pNodeMask = nodeMask;

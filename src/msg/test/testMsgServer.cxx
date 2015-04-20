@@ -132,7 +132,7 @@ bool testSendRecv()
   a.SendMsg(b.broadcastAddr(),(void*) strMsg,strlen(strMsg),1);
   receiver.lock();
   printf("Message was: %s\n",receiver.data);
-  clTest(("send/recv message ok"), 0 == strncmp((const char*) receiver.data,strMsg,sizeof(strMsg)),("message contents miscompare") );
+  clTest(("broadcast send/recv message ok"), 0 == strncmp((const char*) receiver.data,strMsg,sizeof(strMsg)),("message contents miscompare") );
   }
 
 

@@ -37,8 +37,17 @@ void clMsgInitialize(void)
     MsgTransportPlugin_1* xp = dynamic_cast<MsgTransportPlugin_1*> (api);
     if (xp) 
       {
-      xp->initialize(msgPool);
+      MsgTransportConfig::Capabilities cap = xp->getCapabilities();
+
+      if (!(cap & MsgTransportConfig::BROADCAST)) // can't do broadcast so we need to use a cluster nodes tracker
+        {
+        if (!SAFplus::defaultClusterNodes)  SAFplus::defaultClusterNodes = new ClusterNodes(false);
+        }       
+
+      MsgTransportConfig cfg = xp->initialize(msgPool,SAFplus::defaultClusterNodes);
       SAFplusI::defaultMsgPlugin = xp;
+     
+
       if (SAFplus::ASP_NODEADDR == ~((ClWordT) 0))  // not initialized
         SAFplus::ASP_NODEADDR = xp->config.nodeId;
       else

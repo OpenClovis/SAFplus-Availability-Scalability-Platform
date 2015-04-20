@@ -481,7 +481,9 @@ int main(int argc, char* argv[])
       clTest(("plugin casts"), xp != NULL,(" "));
       if (xp) 
         {
+        ClusterNodes clusterNodes;
         MsgTransportConfig xCfg = xp->initialize(msgPool);
+        xp->clusterNodes = &clusterNodes;
         logInfo("TST","MSG","Msg Transport [%s], node [%u] maxPort [%u] maxMsgSize [%u]", xp->type, xCfg.nodeId, xCfg.maxPort, xCfg.maxMsgSize);
         clTestCase(("simple send/recv test"),testSendRecv(xp));
         clTestCase(("send/recv messages of every allowed length"),testSendRecvSize(xp));

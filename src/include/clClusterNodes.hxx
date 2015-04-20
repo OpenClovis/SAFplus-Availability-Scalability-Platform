@@ -9,14 +9,14 @@ namespace SAFplus
   //? Simple status variable indicating whether this node is reachable
   enum class NodeStatus
     {
-    NonExistent = 0,
+      NonExistent = 0,
       Dead        = 1,
       Unknown     = 2,
       Alive       = 3
-      };
+    };
 
   //? Convert the node status to a printable string
-  const char* nodeStatus2CString(NodeStatus s)
+  inline const char* nodeStatus2CString(NodeStatus s)
   {
     if (s == NodeStatus::NonExistent) return "non-existent";
     if (s == NodeStatus::Dead) return "dead";
@@ -33,14 +33,18 @@ namespace SAFplus
 
     // returns the node's generation...
     //uint32_t numNodes();
-    uint32_t    maxNodeId();
+    uint32_t    maxNodeId() const;
 
     //? Return the node's status
-    NodeStatus  status(int nodeId);
+    NodeStatus  status(int nodeId) const;
     //? Return the node's generation
-    uint64_t    generation(int nodeId);
+    uint64_t    generation(int nodeId) const;
 
-    const char* transportAddress(int nodeId);
+    //? Return the transport address binary data 
+    const char* transportAddress(int nodeId) const;
+
+    //? Given the transport address as binary data, return the node ID.  Returns 0 if the transport address is unknown
+    int         idOf(const void* transportAddress,int addrSize) const;
 
     // There should be only one writer of this shared memory in the node.
 
@@ -74,14 +78,16 @@ namespace SAFplus
       ClusterNodes* clusterNodes;
       int curIdx;
     public:
+      Iterator() { clusterNodes = NULL; curIdx = 0; }
       Iterator(ClusterNodes* cn,int start=1)
       {
         clusterNodes = cn;
         curIdx = start;
       }
-      int nodeId() { return curIdx; }
-      SAFplus::NodeStatus status() { return clusterNodes->status(curIdx); }
-      const char* transportAddress() { return clusterNodes->transportAddress(curIdx); }
+      int nodeId() const { return curIdx; }
+      SAFplus::NodeStatus status() const { return clusterNodes->status(curIdx); }
+      const void* transportAddress() const { return clusterNodes->transportAddress(curIdx); }
+      std::string transportAddressString() const;
 
       //? Go to the next member in this group
       Iterator& operator++();
@@ -96,4 +102,6 @@ namespace SAFplus
 
     static Iterator endSentinel;
   };
+
+  extern ClusterNodes* defaultClusterNodes;  //? This instance is used by the messaging transport layer.  If the application does not set this, a read-only version is created during safplusInitialize()
 }

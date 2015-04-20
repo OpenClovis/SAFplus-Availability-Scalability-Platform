@@ -3,6 +3,7 @@
 #include <boost/interprocess/shared_memory_object.hpp>
 #include <boost/foreach.hpp>
 #include <boost/tokenizer.hpp>
+#include <clMsgBase.hxx>
 
 using namespace boost::interprocess;
 using namespace boost;
@@ -21,7 +22,8 @@ namespace SAFplus
       uint64_t since;  //? When status or generation last changed.  Not really needed, may be useful for statistics.
       uint64_t generation;  //? The generation field differentiates reboots of a node.
       SAFplus::NodeStatus  status;
-      char     address[SAFplus::MsgTransportAddressMaxLen];  //? The underlying (IP, TIPC) address of the node.
+      char     transport;  //? an ID describing the message transport used to contact this node. 0 = default transport.  This transport is used to decode the address
+      char     address[SAFplus::MsgTransportAddressMaxLen];  //? The underlying (IP, TIPC) address of the node.  Format is defined by the transport
     };
 
     enum 
@@ -92,7 +94,7 @@ namespace SAFplus
 
   }
 
-  NodeStatus ClusterNodes::status(int nodeId)
+  NodeStatus ClusterNodes::status(int nodeId) const
   {
     assert(data);
     assert(nodeId < SAFplus::MaxNodes);
@@ -100,15 +102,15 @@ namespace SAFplus
     return data->nodes[nodeId].status;
   }
 
-  const char* ClusterNodes::transportAddress(int nodeId)
+  const char* ClusterNodes::transportAddress(int nodeId) const
   {
     assert(data);
     assert(nodeId < SAFplus::MaxNodes);
-    if (nodeId > data->maxNodeId) return "";
+    if (nodeId > data->maxNodeId) return NULL;
     return data->nodes[nodeId].address;
   }
 
-  uint64_t ClusterNodes::generation(int nodeId)
+  uint64_t ClusterNodes::generation(int nodeId) const
   {
     assert(data);
     assert(nodeId < SAFplus::MaxNodes);
@@ -138,7 +140,9 @@ namespace SAFplus
     // Ok, now fill in the slot with the new node's data
 
     //data->nodes[preferredNodeId].status = NodeStatus::Dead;  // Briefly mark as dead because I'm changing stuff.  Note: commenting out b/c only thing changing is generation.
-    strncpy(data->nodes[preferredNodeId].address,address.c_str(),MsgTransportAddressMaxLen);
+    //strncpy(data->nodes[preferredNodeId].address,address.c_str(),MsgTransportAddressMaxLen);
+    int len = MsgTransportAddressMaxLen;
+    SAFplusI::defaultMsgPlugin->string2TransportAddress(address,(void*) data->nodes[preferredNodeId].address,&len);
     if (generation == ClusterNodeArray::UnknownGeneration)
       {
         if (data->nodes[preferredNodeId].generation == ClusterNodeArray::UnknownGeneration) data->nodes[preferredNodeId].generation = 1;
@@ -161,7 +165,9 @@ namespace SAFplus
 
     //if ((data->nodes[nodeId].status != NodeStatus::Alive)&&(status == NodeStatus::Alive)) numLiveNodes++;
 
-    strncpy(data->nodes[nodeId].address,address.c_str(),MsgTransportAddressMaxLen);
+    //strncpy(data->nodes[nodeId].address,address.c_str(),MsgTransportAddressMaxLen);
+    int len = MsgTransportAddressMaxLen;
+    SAFplusI::defaultMsgPlugin->string2TransportAddress(address,data->nodes[nodeId].address,&len);
     if (generation == ClusterNodeArray::UnknownGeneration)
       {
         if (data->nodes[nodeId].generation == ClusterNodeArray::UnknownGeneration) data->nodes[nodeId].generation = 1;
@@ -188,6 +194,14 @@ namespace SAFplus
       }
   }
 
+
+  std::string ClusterNodes::Iterator::transportAddressString() const
+  {
+    const void* tmp = clusterNodes->transportAddress(curIdx);
+    if (!tmp) return std::string();
+    return SAFplusI::defaultMsgPlugin->transportAddress2String(tmp);
+  }
+
   ClusterNodes::Iterator& ClusterNodes::Iterator::operator++()
   {
   do
@@ -195,7 +209,7 @@ namespace SAFplus
     curIdx++;    
     } while((clusterNodes->status(curIdx) == SAFplus::NodeStatus::NonExistent)&&(curIdx <= clusterNodes->data->maxNodeId));
 
-  if (curIdx >= clusterNodes->data->maxNodeId) curIdx = 0;
+  if (curIdx > clusterNodes->data->maxNodeId) { clusterNodes = NULL;  curIdx = 0; }
   return *this;
   }
 
@@ -206,7 +220,7 @@ namespace SAFplus
     curIdx++;    
     } while((clusterNodes->status(curIdx) == SAFplus::NodeStatus::NonExistent)&&(curIdx <= clusterNodes->data->maxNodeId));
 
-  if (curIdx >= clusterNodes->data->maxNodeId) { clusterNodes = NULL; curIdx = 0; }
+  if (curIdx > clusterNodes->data->maxNodeId) { clusterNodes = NULL; curIdx = 0; }
   return *this;
   }
 
@@ -214,9 +228,25 @@ namespace SAFplus
 
   ClusterNodes::Iterator ClusterNodes::endSentinel(NULL,0);
 
+  ClusterNodes* defaultClusterNodes = NULL;
+
   void ClusterNodes::deleteSharedMemory()
   {
   shared_memory_object::remove(ClusterNodesSharedMemoryName);
+  }
+
+  int ClusterNodes::idOf(const void* transportAddress,int addrSize) const // TODO: use a hash table to do the reverse lookup.
+  {
+    assert(addrSize <= SAFplus::MsgTransportAddressMaxLen);
+    for(int curIdx=1;curIdx<=data->maxNodeId;curIdx++)
+      {
+        ClusterNodeArray::Entry* entry = &data->nodes[curIdx];
+        if ((entry->status != SAFplus::NodeStatus::NonExistent)&&(entry->status != SAFplus::NodeStatus::Dead))
+          {
+            if (memcmp(transportAddress,entry->address,addrSize)==0) return curIdx;
+          }
+      }
+    return 0;
   }
 
 };
