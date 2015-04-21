@@ -442,6 +442,7 @@ int main(int argc, char* argv[])
     ("help", "this help message")
     ("xport", boost::program_options::value<std::string>(), "transport plugin filename")
     ("loglevel", boost::program_options::value<std::string>(), "logging cutoff level")
+    ("mode", boost::program_options::value<std::string>()->default_value("LAN"), "specify LAN or cloud to set the messaging transport address resolution mode")
     ;
 
   boost::program_options::variables_map vm;        
@@ -481,9 +482,12 @@ int main(int argc, char* argv[])
       clTest(("plugin casts"), xp != NULL,(" "));
       if (xp) 
         {
-        ClusterNodes clusterNodes;
-        MsgTransportConfig xCfg = xp->initialize(msgPool);
-        xp->clusterNodes = &clusterNodes;
+          ClusterNodes* clusterNodes = NULL;
+          if (vm["mode"].as<std::string>() == "cloud")
+            {
+              clusterNodes = new ClusterNodes();
+            }
+        MsgTransportConfig xCfg = xp->initialize(msgPool,clusterNodes);
         logInfo("TST","MSG","Msg Transport [%s], node [%u] maxPort [%u] maxMsgSize [%u]", xp->type, xCfg.nodeId, xCfg.maxPort, xCfg.maxMsgSize);
         clTestCase(("simple send/recv test"),testSendRecv(xp));
         clTestCase(("send/recv messages of every allowed length"),testSendRecvSize(xp));
