@@ -34,6 +34,7 @@ int main(int argc, char* argv[])
 
   MsgPool msgPool;
   ClPlugin* api = NULL;
+#if 0
   if (1)
     {
 #ifdef DIRECTLY_LINKED
@@ -50,23 +51,31 @@ int main(int argc, char* argv[])
       if (xp) 
         {
         MsgTransportConfig xCfg = xp->initialize(msgPool);
-        logNotice("MSG","RFL","Message Reflector: Transport [%s], node [%u] maxPort [%u] maxMsgSize [%u]", xp->type, xCfg.nodeId, xCfg.maxPort, xCfg.maxMsgSize);
-        if (1)
-          {
-          Message* m;
-          ScopedMsgSocket sock(xp,reflectorPort);
-
-          while(1)
-            {
-              m = sock->receive(1,0);
-              if (m) 
-                { 
-                  // for max speed we don't even call the log: logDebug("MSG","RFL", "rcv port [%d] node [%d]\n", m->port, m->node);
-                  sock->send(m);
-                }
-            }
-          }
         }
       }
+
+#endif
+
+  SAFplusI::defaultMsgTransport = xport.c_str();
+  clMsgInitialize();
+  MsgTransportPlugin_1* xp = SAFplusI::defaultMsgPlugin;
+  MsgTransportConfig& xCfg = xp->config;
+  logNotice("MSG","RFL","Message Reflector: Transport [%s] [%s] mode, node [%u] maxPort [%u] maxMsgSize [%u]", xp->type, xp->clusterNodes ? "Cloud":"LAN",xCfg.nodeId, xCfg.maxPort, xCfg.maxMsgSize);
+  if (xp)
+    {
+      Message* m;
+      ScopedMsgSocket sock(xp,reflectorPort);
+
+      while(1)
+        {
+          m = sock->receive(1,0);
+          if (m) 
+            { 
+              // for max speed we don't even call the log: logDebug("MSG","RFL", "rcv port [%d] node [%d]\n", m->port, m->node);
+              sock->send(m);
+            }
+        }
+    }
+
 
 }

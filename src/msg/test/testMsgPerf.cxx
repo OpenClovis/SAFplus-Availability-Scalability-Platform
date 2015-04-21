@@ -325,6 +325,7 @@ int main(int argc, char* argv[])
 
   MsgPool msgPool;
   ClPlugin* api = NULL;
+#if 0
   if (1)
     {
 #ifdef DIRECTLY_LINKED
@@ -341,31 +342,36 @@ int main(int argc, char* argv[])
       if (xp) 
         {
           MsgTransportConfig xCfg = xp->initialize(msgPool);
-          logInfo("TST","MSG","Msg Transport [%s], node [%u] maxPort [%u] maxMsgSize [%u] reflector node [%d] reflector port [%d]", xp->type, xCfg.nodeId, xCfg.maxPort, xCfg.maxMsgSize, reflectorNode, reflectorPort);
-          if (1)
-            {
-              logInfo("TST","MSG","Loopback to same process");
-              ScopedMsgSocket a(xp,1);
-              testGroup(a.sock,a.sock,a->handle(),"same process");
-            }
-
-          if (1)
-            {
-              logInfo("TST","MSG","Different process, same node: run the msgReflector program on this node");
-
-              ScopedMsgSocket a(xp,1);
-              testGroup(a.sock,a.sock,getProcessHandle(reflectorPort,a->node),"inter-process");
-            }
-
-          if (1)
-            {
-              logInfo("TST","MSG","Different process, different node: run the msgReflector program on node %d", reflectorNode);
-              ScopedMsgSocket a(xp,1);
-              testGroup(a.sock,a.sock,getProcessHandle(reflectorPort,reflectorNode),"inter-node");
-            }
-
         }
+    }
+#endif
 
+  SAFplusI::defaultMsgTransport = xport.c_str();
+  clMsgInitialize();
+  MsgTransportPlugin_1* xp = SAFplusI::defaultMsgPlugin;
+  MsgTransportConfig& xCfg = xp->config;
+
+  logInfo("TST","MSG","Msg Transport [%s], node [%u] maxPort [%u] maxMsgSize [%u] reflector node [%d] reflector port [%d]", xp->type, xCfg.nodeId, xCfg.maxPort, xCfg.maxMsgSize, reflectorNode, reflectorPort);
+  if (1)
+    {
+      logInfo("TST","MSG","Loopback to same process");
+      ScopedMsgSocket a(xp,1);
+      testGroup(a.sock,a.sock,a->handle(),"same process");
+    }
+
+  if (1)
+    {
+      logInfo("TST","MSG","Different process, same node: run the msgReflector program on this node");
+
+      ScopedMsgSocket a(xp,1);
+      testGroup(a.sock,a.sock,getProcessHandle(reflectorPort,a->node),"inter-process");
+    }
+
+  if (1)
+    {
+      logInfo("TST","MSG","Different process, different node: run the msgReflector program on node %d", reflectorNode);
+      ScopedMsgSocket a(xp,1);
+      testGroup(a.sock,a.sock,getProcessHandle(reflectorPort,reflectorNode),"inter-node");
     }
 
   std::cout << "\n<metrics>\n" << performanceReport.str() << "\n</metrics>\n";

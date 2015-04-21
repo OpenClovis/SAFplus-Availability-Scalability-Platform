@@ -38,15 +38,19 @@ void clMsgInitialize(void)
     if (xp) 
       {
       MsgTransportConfig::Capabilities cap = xp->getCapabilities();
-
-      if (!(cap & MsgTransportConfig::BROADCAST)) // can't do broadcast so we need to use a cluster nodes tracker
+      char* cnVar = std::getenv("SAFPLUS_CLOUD_NODES");
+      if (cnVar)
+        {
+          logInfo("MSG", "INI", "Using cloud mode node addressing because SAFPLUS_CLOUD_NODES is defined.");
+        }
+      if (cnVar || (!(cap & MsgTransportConfig::BROADCAST))) // can't do broadcast so we need to use a cluster nodes tracker
         {
         if (!SAFplus::defaultClusterNodes)  SAFplus::defaultClusterNodes = new ClusterNodes(false);
         }       
 
       MsgTransportConfig cfg = xp->initialize(msgPool,SAFplus::defaultClusterNodes);
       SAFplusI::defaultMsgPlugin = xp;
-     
+      logInfo("MSG","INI","Message Transport [%s] [%s] mode initialized.  Max Size [%d], Max Chunk [%d].", xp->type, xp->clusterNodes ? "Cloud": "LAN", xp->config.maxMsgSize, xp->config.maxMsgAtOnce);
 
       if (SAFplus::ASP_NODEADDR == ~((ClWordT) 0))  // not initialized
         SAFplus::ASP_NODEADDR = xp->config.nodeId;

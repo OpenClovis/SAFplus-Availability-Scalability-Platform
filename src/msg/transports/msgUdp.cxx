@@ -53,7 +53,7 @@ namespace SAFplus
 
   MsgTransportConfig& Udp::initialize(MsgPool& msgPoolp,ClusterNodes* cn)
     {
-      clusterNodes = cn;
+    clusterNodes = cn;
     msgPool = &msgPoolp;
 
     config.nodeId       = 0;
@@ -62,30 +62,10 @@ namespace SAFplus
     config.maxMsgAtOnce = SAFplusI::UdpTransportMaxMsg;
     // TODO: first determine if we are in cloud mode or LAN mode...
     config.capabilities = SAFplus::MsgTransportConfig::Capabilities::BROADCAST;  // not reliable, can't tell if anything joins or leaves...
-#if 0
-    char* interface = getenv("SAFPLUS_BACKPLANE_INTERFACE");
-    char* ip = getenv("SAFPLUS_BACKPLANE_NETWORK");
-    if (!interface)
-      {
-      interface = "eth1";  // GAS REMOVE ME
-      // temp comment out assert(!"Required env variable not defined");
-      }
-    if (ip)
-      {
-      // TODO: assign this IP to the interface and set the SAFPLUS_NODEADDR appropriately
-      }
-    else
-      {
-      //struct in_addr bip = SAFplusI::devToIpAddress(interface);
-      
-      int nodeMask = 0xff;  // TODO: get this from ~SAFplusI::devNetMask(interface)
-      config.nodeId = ntohl(bip.s_addr)&nodeMask;
-      netAddr = ntohl(bip.s_addr)&(~nodeMask);
-      }
-#endif     
-     struct in_addr bip = SAFplusI::setNodeNetworkAddr(&nodeMask);           
-     config.nodeId = SAFplus::ASP_NODEADDR;
-     netAddr = ntohl(bip.s_addr)&(~nodeMask);
+
+    struct in_addr bip = SAFplusI::setNodeNetworkAddr(&nodeMask,clusterNodes);           
+    config.nodeId = SAFplus::ASP_NODEADDR;
+    netAddr = ntohl(bip.s_addr)&(~nodeMask);
      
     return config;
     }
@@ -148,6 +128,7 @@ namespace SAFplus
 
     void UdpSocket::send(Message* origMsg)
       {
+        bool broadcast = false;
       mmsghdr msgvec[SAFplusI::UdpTransportMaxMsg];  // We are doing this for perf so we certainly don't want to new or malloc it!
       struct iovec iovecBuffer[SAFplusI::UdpTransportMaxFragments];
       mmsghdr* curvec = &msgvec[0];
@@ -188,9 +169,22 @@ namespace SAFplus
         bzero(&to[msgCount],sizeof(struct sockaddr_in));
         to[msgCount].sin_family = AF_INET;
         if (msg->node == Handle::AllNodes)
+          {
           to[msgCount].sin_addr.s_addr= htonl(INADDR_BROADCAST);
+          broadcast=true;  // TODO: if cloud mode, break broadcast messages into a separate queue for separate sending
+          }
         else
-          to[msgCount].sin_addr.s_addr= htonl(((Udp*)transport)->netAddr | msg->node);
+          {
+          if (transport->clusterNodes)
+            {
+              to[msgCount].sin_addr.s_addr = htonl(*((uint32_t*)transport->clusterNodes->transportAddress(msg->node)));
+            }
+          else
+            {          
+            to[msgCount].sin_addr.s_addr= htonl(((Udp*)transport)->netAddr | msg->node);
+            }
+          }
+
         to[msgCount].sin_port=htons(msg->port + SAFplusI::UdpTransportStartPort);
 
         curvec->msg_hdr.msg_controllen = 0;
@@ -205,7 +199,31 @@ namespace SAFplus
         msgCount++;
         } while (next != NULL);
 
-
+      if (broadcast && transport->clusterNodes)  // Cloud mode broadcast is serial unicast
+        {
+          int err = 0;
+          // ok send to each node in turn.
+          for (ClusterNodes::Iterator it=transport->clusterNodes->begin();it != transport->clusterNodes->endSentinel;it++)
+            {
+              for (int i=0;i<msgCount;i++)  // Fix up the destination addresses
+                {
+                  //assert(to[i].sin_addr.s_addr== 0);
+                  in_addr_t* t = (in_addr_t*) it.transportAddress();
+                  to[i].sin_addr.s_addr = htonl(*t);
+                }
+              int retval = sendmmsg(sock, &msgvec[0], msgCount, 0);  // TODO flags
+              if (retval == -1)
+                {
+                  err = errno;  // Try all the nodes before erroring
+                }
+            }
+          if (err)  // ok now throw the error so all nodes had the same shot at it... of course we don't know if some succeeded and some failed.
+            {
+                throw Error(Error::SYSTEM_ERROR,errno, strerror(errno),__FILE__,__LINE__);
+            }
+        }
+      else
+        {
       int retval = sendmmsg(sock, &msgvec[0], msgCount, 0);  // TODO flags
       if (retval == -1)
         {
@@ -216,6 +234,7 @@ namespace SAFplus
         {
         assert(retval == msgCount);  // TODO, retry if all messages not sent
         //printf("%d messages sent\n", retval);
+        }
         }
 
       // Your send routine releases the message whenever you are ready to do so
@@ -311,7 +330,15 @@ if(setsockopt(socket, SOL_SOCKET, SO_RCVTIMEO, &tv, sizeof(tv)) < 0)
           assert(srcAddr);
           
           cur->port = ntohs(srcAddr->sin_port) - SAFplusI::UdpTransportStartPort;
-          cur->node = ntohl(srcAddr->sin_addr.s_addr) & (((Udp*)transport)->nodeMask);
+          if (transport->clusterNodes)  // Cloud mode
+            {
+              int tmp = ntohl(srcAddr->sin_addr.s_addr);
+              cur->node = transport->clusterNodes->idOf((void*) &tmp,sizeof(uint32_t));
+            }
+          else  // LAN mode
+            {
+              cur->node = ntohl(srcAddr->sin_addr.s_addr) & (((Udp*)transport)->nodeMask);
+            }
           MsgFragment* curFrag = cur->firstFragment;
           for (int fragIdx = 0; (fragIdx < msgs[msgIdx].msg_hdr.msg_iovlen) && msgLen; fragIdx++,curFrag=curFrag->nextFragment)
             {

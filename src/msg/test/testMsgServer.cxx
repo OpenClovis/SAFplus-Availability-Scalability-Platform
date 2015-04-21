@@ -141,9 +141,11 @@ int main(int argc, char* argv[])
   SAFplus::logSeverity = SAFplus::LOG_SEV_DEBUG;
   //logEchoToFd = 1; // stdout
   clTestGroupInitialize(("Test Message Server"));
+  // Force cloud mode (you need to have set it up using the "node" command line)
+  SAFplus::defaultClusterNodes = new ClusterNodes(false);
 
-  //SAFplusI::defaultMsgTransport = "../lib/clMsgUdp.so";
-  SAFplusI::defaultMsgTransport = "clMsgSctp.so";
+  SAFplusI::defaultMsgTransport = "clMsgUdp.so";
+  //SAFplusI::defaultMsgTransport = "clMsgSctp.so";
 
   clMsgInitialize();
 
