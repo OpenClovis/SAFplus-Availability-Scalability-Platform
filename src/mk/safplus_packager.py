@@ -10,12 +10,12 @@ import getopt
 import errno
 
 
-def file_list(dir_path, pattern='*'):
+def file_list(dir_name, pattern='*'):
     # Returns a list of file names having same extension present in the directory based on the pattern.
     # Default this function returns a list of files present in the directory.
     file_names_list = None
-    if checkDirExists(dir_path):
-        pattern = "{}/{}".format(dir_path, pattern)
+    if check_dir_exists(dir_name):
+        pattern = "{}/{}".format(dir_name, pattern)
         file_names_list = glob.glob(pattern)
     return file_names_list
 
@@ -25,11 +25,11 @@ def fail_and_exit(errmsg):
     sys.exit(-1)
 
 
-def checkDirExists(dirname):
+def check_dir_exists(dirname):
     return os.path.exists(dirname)
 
 
-def createDir(dir_name):
+def createdir(dir_name):
     try:
         os.mkdir(dir_name, 0o755)
     except OSError, e:
@@ -37,9 +37,9 @@ def createDir(dir_name):
             fail_and_exit(" Failed to create the dir {}".format(dir_name))
 
 
-def checkAndCreateDir(dir_path):
-    if not checkDirExists(dir_path):
-        createDir(dir_path)
+def check_and_createdir(dir_name):
+    if not check_dir_exists(dir_name):
+        createdir(dir_name)
     return True
 
 
@@ -52,7 +52,7 @@ def log_init():
 # make_archive() is available from python 2.7 version onwards
 def create_archive(tar_name, tar_dir, arch_format='gztar'):
 
-    if checkDirExists(tar_dir):
+    if check_dir_exists(tar_dir):
         log.info("Archive name is {}".format(tar_name))
         tar_name = shutil.make_archive(tar_name, arch_format, tar_dir)
         log.info("Archive {} generated successfully".format(tar_name))
@@ -62,7 +62,7 @@ def create_archive(tar_name, tar_dir, arch_format='gztar'):
 
 def copy_dir(src, dst):
     # This function will recursively copy the files and sub-directories from src directory to destination directory
-    if not checkDirExists(dst):
+    if not check_dir_exists(dst):
         # suppose the sub-directory in source directory contains only object and  header( like .h .hxx .hpp .ipp) files
         # below logic skips the creation of sub-directory  in the destination directory
         files_list = file_list(src)
@@ -70,7 +70,7 @@ def copy_dir(src, dst):
         obj_header_files_count = len([e for e in files_list if p.search(e)])
         if len(files_list) == obj_header_files_count:
             return
-        createDir(dst)
+        createdir(dst)
     for item in os.listdir(src):
         s = os.path.join(src, item)
         d = os.path.join(dst, item)
@@ -107,7 +107,7 @@ def get_compression_format(archive_name):
 
 
 def package_dirs(target_dir, tar_dir):
-    if checkDirExists(target_dir):
+    if check_dir_exists(target_dir):
         for dir_name, subdir_list, filename_list in os.walk(target_dir):
             if os.path.basename(dir_name) == 'lib' or os.path.basename(dir_name) == 'plugin':
                 tar_lib_dir = tar_dir+"/lib"
@@ -129,18 +129,18 @@ def package_dirs(target_dir, tar_dir):
 
 def package(base_dir, tar_name, machine=None, kernel_version=None, pre_build_dir=None):
 
-    if base_dir and not checkDirExists(base_dir):
+    if base_dir and not check_dir_exists(base_dir):
         fail_and_exit("Provide the Valid SAFplus Model directory path")
 
     log.info("SAFPlus Model directory is {}".format(base_dir))
 
     image_dir = "{}/target/images".format(base_dir)
-    if checkDirExists(image_dir):
+    if check_and_createdir(image_dir):
         image_backup_dir = "{}/target/images_backup".format(base_dir)
-        if checkDirExists(image_backup_dir):
+        if check_dir_exists(image_backup_dir):
             shutil.rmtree(image_backup_dir)
         shutil.move(image_dir, image_backup_dir)
-    createDir(image_dir)
+    createdir(image_dir)
     if not machine:
         machine = get_target_machine()
 
@@ -157,10 +157,10 @@ def package(base_dir, tar_name, machine=None, kernel_version=None, pre_build_dir
 
     tar_name, compress_format = get_compression_format(tar_name)
     tar_dir = "{}/{}".format(image_dir, tar_name)
-    checkAndCreateDir(tar_dir)
+    check_and_createdir(tar_dir)
     log.info("Packaging the SAFPlus services binaries libraries tests and 3rd party utilities")
     if pre_build_dir:
-        if checkDirExists(pre_build_dir):
+        if check_dir_exists(pre_build_dir):
             pre_build_dir = "{}/target/{}/{}".format(pre_build_dir, machine, kernel_version)
             package_dirs(pre_build_dir, tar_dir)
 
@@ -212,19 +212,19 @@ def parser(args):
             usage()
             sys.exit()
         elif opt in ("-s", "--safplus-model-dir="):
-            model_dir = get_parser_value(arg)
+            model_dir = get_option_value(arg)
             log.info("Model dir is {}".format(model_dir))
         elif opt in ("-t", "--tar-name"):
-            tar_name = get_parser_value(arg)
+            tar_name = get_option_value(arg)
             log.info("Archive Name is {}".format(tar_name))
         elif opt in ("-a", "--target-machine"):
-            target_machine = get_parser_value(arg)
+            target_machine = get_option_value(arg)
             log.info("target-machine is {}".format(target_machine))
         elif opt in ("-r", "--target-kernel"):
-            target_kernel_version = get_parser_value(arg)
+            target_kernel_version = get_option_value(arg)
             log.info("target-os-kernel-version is {}".format(target_kernel_version))
         elif opt in ("-p", "--safplus_prebuild_dir"):
-            pre_build_dir = get_parser_value(arg)
+            pre_build_dir = get_option_value(arg)
             log.info("Pre-build dir {}".format(pre_build_dir))
         else:
             pass
@@ -238,11 +238,10 @@ def parser(args):
     return model_dir, tar_name, target_machine, target_kernel_version, pre_build_dir
 
 
-def get_parser_value(arg_val):
+def get_option_value(arg_val):
 
     if arg_val and arg_val.startswith("="):
-        arg_val = arg_val[1:].strip()
-
+        arg_val = arg_val[1:]
     return arg_val
 
 
