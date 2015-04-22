@@ -118,7 +118,7 @@ namespace SAFplus
      */
     void wait(SAFplus::Mutex &mutex);
 
-    //? Wait for the condition to notify, but no longer than duration milliseconds.
+    //? Wait for the condition to notify, but no longer than duration milliseconds.  Returns false if duration passes without the condition being notified
     bool timed_wait(SAFplus::Mutex &mutex, int duration);
 
   protected:

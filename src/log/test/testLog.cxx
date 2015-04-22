@@ -2,6 +2,7 @@
 #include <clLogApi.hxx>
 #include <clGlobals.hxx>
 #include <clTestApi.hxx>
+#include <clMgtApi.hxx>
 
 using namespace SAFplus;
 

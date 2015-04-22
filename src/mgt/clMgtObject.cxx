@@ -187,6 +187,7 @@ namespace SAFplus
       return;
     toString(xmlString);
     //logDebug("---","---","String: %s",xmlString.str().c_str());
+    // TODO: why these next 2 lines?  Why not: *data=xmlString? or even better put a stream on top of *data.  And why return the length?  the string contains its length
     *datalen = xmlString.str().length() + 1;
     data->assign(xmlString.str().c_str());
   }

@@ -37,8 +37,8 @@ namespace SAFplus
   {
     if (!mgtGroup)
       {
-        mgtGroup = new Group();
-        mgtGroup->init(MGT_GROUP);
+        mgtGroup = new Group(MGT_GROUP, "safplusMgtObjectImplementers");
+        //mgtGroup->init(MGT_GROUP);
       }
 
     return mgtGroup;

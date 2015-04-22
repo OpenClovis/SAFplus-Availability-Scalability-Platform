@@ -74,7 +74,10 @@ namespace SAFplus
              */
             while (msgReply.len < 2)
             {
-                if (!msgSendConditionMutex.timed_wait(msgSendReplyMutex, 4000)) return &msgReply;
+              if (!msgSendConditionMutex.timed_wait(msgSendReplyMutex, 4000)) // TODO: create customizable timeout
+                  {
+                    return NULL;  // TODO: TIMEOUT
+                  }
             }
         }
         else

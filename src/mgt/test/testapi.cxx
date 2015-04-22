@@ -21,8 +21,8 @@ void initSafLibraries()
   sic.msgQueueLen = 25;
   sic.msgThreads  = 1;
 
-  safplusInitialize( SAFplus::LibDep::LOG | SAFplus::LibDep::MSG, sic);
-  SAFplusI::gsm.init();
+  safplusInitialize( SAFplus::LibDep::GRP | SAFplus::LibDep::LOG | SAFplus::LibDep::MSG, sic);
+  //SAFplusI::gsm.init();
 }
 
 /*
