@@ -170,6 +170,11 @@ cl_ams_call_rmd_ver(
     version.majorVersion = CL_VERSION_MAJOR(versionCode);
     version.minorVersion = CL_VERSION_MINOR(versionCode);
 
+    dest_addr.iocPhyAddress.portId = CL_IOC_CPM_PORT;
+    rmd_options.timeout = CL_AMS_RMD_DEFAULT_TIMEOUT;
+    rmd_options.retries = 1;
+    rmd_flags = CL_RMD_CALL_ATMOST_ONCE | CL_RMD_CALL_NEED_REPLY;
+
     /*
      * FIXME: This now uses the physical address, instead of a logical
      * address.
@@ -177,18 +182,15 @@ cl_ams_call_rmd_ver(
     do
     {
         rc = clCpmMasterAddressGetExtended( &dest_addr.iocPhyAddress.nodeAddress, 5, NULL);
-    } while(rc != CL_OK && ++tries < 2 && clOsalTaskDelay(delay) == CL_OK);
+        if (rc == CL_OK)
+          {
+            rc = clRmdWithMsgVer(dest_addr, &version, fn_id, in_buffer, out_buffer, rmd_flags, &rmd_options, NULL);
+          }
+        tries++;
+        delay.tsSec = tries/2;
+    } while(rc != CL_OK && tries < 5 && clOsalTaskDelay(delay) == CL_OK);
 
-    if(rc != CL_OK) return rc;
-
-    dest_addr.iocPhyAddress.portId = CL_IOC_CPM_PORT;
-    rmd_options.timeout = CL_AMS_RMD_DEFAULT_TIMEOUT;
-    rmd_options.retries = CL_AMS_RMD_DEFAULT_RETRIES;
-    rmd_flags = CL_RMD_CALL_ATMOST_ONCE | CL_RMD_CALL_NEED_REPLY;
-
-    AMS_CHECK_RC_ERROR( clRmdWithMsgVer( dest_addr, &version,
-                fn_id, in_buffer, out_buffer, rmd_flags, &rmd_options, NULL) );
-
+    if(rc != CL_OK) goto exitfn;
 #else
 
     AMS_CHECK_RC_ERROR( emulate_rmd_call(versionCode, fn_id, in_buffer, out_buffer) );
