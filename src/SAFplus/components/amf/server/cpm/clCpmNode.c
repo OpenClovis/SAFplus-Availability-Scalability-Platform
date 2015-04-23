@@ -864,7 +864,7 @@ failure:
 
 
 
-static void cpmNodeDepartureEventPublish(ClIocNodeAddressT node, ClBoolT graceful, ClBoolT doSelf)
+void cpmNodeDepartureEventPublish(ClIocNodeAddressT node, ClBoolT graceful, ClBoolT doSelf)
 {
     ClRcT rc;
     ClNameT nodeName;
@@ -1064,15 +1064,16 @@ ClRcT cpmProcessOrderlyShutdown(ClIocNodeAddressT iocAddress)
                     gpClCpm->cpmToAmsCallback->nodeLeave != NULL)
             {
                 CL_DEBUG_PRINT(CL_DEBUG_TRACE, ("Calling AMS node leave..."));
-                rc = gpClCpm->cpmToAmsCallback->nodeLeave(&nodeName, 
-                                                          CL_CPM_NODE_LEAVING, CL_FALSE);
+                rc = gpClCpm->cpmToAmsCallback->nodeLeave(&nodeName, CL_CPM_NODE_LEAVING, CL_FALSE);
                 if(CL_GET_ERROR_CODE(rc) == CL_ERR_NOT_EXIST)
                 {
+#if 0 // Its ok, means shutdown is in progress. The code removed in here will force ungraceful shutdown
                     CL_DEBUG_PRINT(CL_DEBUG_INFO, 
                                    ("Node [%.*s] is not a cluster member. "\
                                     "Calling node departure allowed\n",
                                     nodeName.length, nodeName.value));
                     rc = _cpmNodeDepartureAllowed(&nodeName, CL_CPM_NODE_LEAVING);
+#endif                    
                 }
             }
             /* Handling of Non-AMS case */
@@ -1114,6 +1115,7 @@ ClRcT cpmSelfShutDown(void)
 {
     ClRcT rc = CL_OK;
 
+    clLogWarning(CPM_LOG_AREA_CPM, CL_LOG_CONTEXT_UNSPECIFIED, "SAFplus abrupt shutdown; application callbacks may not be run.");
     CL_DEBUG_PRINT(CL_DEBUG_TRACE, ("Setting polling to zero...\n"));
 
     cpmShutdownHeartbeat();

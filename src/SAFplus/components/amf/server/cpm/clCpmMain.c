@@ -101,6 +101,11 @@
 #include "xdrClCpmClientInfoIDLT.h"
 #include "xdrClEoExecutionObjIDLT.h"
 
+ClBoolT cpmWaitForAppShutdown(int maxTime);
+ClBoolT cpmOrderlyShutdown(int maxTime);
+void cpmNodeDepartureEventPublish(ClIocNodeAddressT node, ClBoolT graceful, ClBoolT doSelf);
+
+
 #ifdef CL_CPM_AMS
 #include <clAms.h>
 extern ClAmsT gAms;
@@ -4051,8 +4056,9 @@ ClRcT compMgrPollThread(void)
         goto out_unlock;
     }
     clOsalCondWait(&gpClCpm->heartbeatCond, &gpClCpm->heartbeatMutex,heartbeatWait);
-    if (gotSIG)  // This is a very useful log because it indicates that this was a user-initiated shutdown.
+    if (gotSIG)
     {
+        // This is a very useful log because it indicates that this was a user-initiated shutdown.
         if (gotSIG==SIGINT || gotSIG==SIGTERM)
         {
             clLogCritical(CPM_LOG_AREA_CPM, CPM_LOG_CTX_CPM_BOOT, "Caught signal [%d] (SIGINT or SIGTERM).  Shutting down the node... (operator initiated)",gotSIG);
@@ -4063,7 +4069,10 @@ ClRcT compMgrPollThread(void)
 
         // This is inside gotSIG because presumably in other shutdown cases it has already been called
         clOsalMutexUnlock(&gpClCpm->heartbeatMutex);
-        cpmProcessOrderlyShutdown(clIocLocalAddressGet());
+        if (!cpmOrderlyShutdown(300))
+        {
+            clLogCritical(CPM_LOG_AREA_CPM, CPM_LOG_CTX_CPM_BOOT, "Applications never shut down.  Quitting AMF now.");
+        }        
         clOsalMutexLock(&gpClCpm->heartbeatMutex);
         //cpmSelfShutDown();
         //clCpmNodeShutDown(clIocLocalAddressGet());        
@@ -4094,6 +4103,91 @@ failure:
                CL_CPM_LOG_0_SERVER_POLL_THREAD_EXIT_INFO);
     return rc;
 }
+
+ClBoolT cpmOrderlyShutdown(int maxTime)
+{
+    ClIocNodeAddressT oldMasterAddress = 0;
+    ClIocNodeAddressT masterAddress;
+    ClBoolT cleanShutdownInitiated = CL_FALSE;
+    int curTime=0;
+    ClRcT rc;
+    
+    do
+    {    
+    rc = clCpmMasterAddressGet(&masterAddress);
+        
+    if((rc == CL_OK)&&(masterAddress != oldMasterAddress))  // first time or failover happened during shutdown.  Send shutdown req to new master
+    {
+        rc = clCpmClientRMDAsyncNew(masterAddress, CPM_PROC_NODE_SHUTDOWN_REQ,
+                                    (ClUint8T *)&(clAspLocalId), 1,
+                                    NULL, NULL, 0, 0, 0, CL_IOC_HIGH_PRIORITY,
+                                    clXdrMarshallClUint32T);
+            
+        //if(CL_GET_ERROR_CODE(rc) == CL_IOC_ERR_COMP_UNREACHABLE || CL_GET_ERROR_CODE(rc) == CL_IOC_ERR_HOST_UNREACHABLE)
+ 
+        if (rc == CL_OK)
+          {
+              cleanShutdownInitiated = CL_TRUE;
+              oldMasterAddress = masterAddress;
+          }        
+    }
+    curTime++;
+    
+    } while((cpmWaitForAppShutdown(1)==CL_FALSE) && (curTime<maxTime));
+    
+    cpmNodeDepartureEventPublish(clAspLocalId, CL_TRUE, CL_TRUE);
+    if (curTime == maxTime) return CL_FALSE;
+    return CL_TRUE;
+}
+
+
+ClBoolT cpmWaitForAppShutdown(int maxTime)
+{
+    ClRcT rc;
+    int curTime=0;
+    ClCntNodeHandleT hNode = 0;
+    ClCpmComponentT *comp = NULL;
+    int keepWaiting = 0;
+    
+    do
+    {
+        keepWaiting = 0;
+        
+        clOsalMutexLock(gpClCpm->compTableMutex);
+        rc = clCntFirstNodeGet(gpClCpm->compTable, &hNode);
+        if (rc != CL_OK)
+        {
+            clOsalMutexUnlock(gpClCpm->compTableMutex);
+            return CL_TRUE;  // no apps?
+        }
+        
+    
+        do 
+        {
+            rc = clCntNodeUserDataGet(gpClCpm->compTable, hNode, (ClCntDataHandleT *) &comp);
+            //clOsalMutexLock(comp->compMutex);
+            if ((comp->compConfig->isAspComp == 0) && (comp->compOperState == CL_AMS_OPER_STATE_ENABLED))
+            {
+                //clOsalMutexUnlock(comp->compMutex);
+                keepWaiting = 1;
+                break;                
+            }
+            rc = clCntNextNodeGet(gpClCpm->compTable, hNode, &hNode);
+        } while(hNode && (rc==CL_OK));
+        
+        clOsalMutexUnlock(gpClCpm->compTableMutex);
+        if (keepWaiting)
+        {
+            if (curTime >= maxTime) return CL_FALSE;
+            curTime++;
+            sleep(1);
+        }    
+    }  while(keepWaiting);
+    
+    return CL_TRUE;   
+}
+
+
 
 void cpmShutdownHeartbeat(void)
 {
