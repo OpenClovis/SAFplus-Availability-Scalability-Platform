@@ -1358,114 +1358,122 @@ clLogConfigDataGet(ClUint32T   *pMaxStreams,
                    ClUint32T   *pMaxRecordsInPacket) 
 {
 
-    ClRcT		  rc        = CL_LOG_RC(CL_ERR_INVALID_PARAMETER);
-    ClParserPtrT  head      = NULL;
-    ClCharT       *aspPath = NULL;
-    ClParserPtrT  fd        = NULL;
-    ClParserPtrT  temp      = NULL;
-    ClOsalSharedMutexFlagsT mutexMode = CL_OSAL_SHARED_SYSV_SEM;
-    ClUint32T maxComps = (CL_LOG_COMPID_CLASS + 7) & ~7;
-    aspPath = getenv("ASP_CONFIG");
-    if( aspPath != NULL ) 
+    static ClUint32T gpMaxStreams = 0, gpMaxComps = 0, gpMaxShmPages = 0, gpMaxRecordsInPacket = 0;
+
+    if (!gpMaxStreams && !gpMaxComps && !gpMaxShmPages && !gpMaxRecordsInPacket)
     {
-        head = clParserOpenFile(aspPath, CL_LOG_DEFAULT_FILECONFIG);	
-        if( head == NULL )
+        ClParserPtrT  head      = NULL;
+        ClCharT       *aspPath = NULL;
+        ClParserPtrT  fd        = NULL;
+        ClParserPtrT  temp      = NULL;
+        ClOsalSharedMutexFlagsT mutexMode = CL_OSAL_SHARED_SYSV_SEM;
+        ClUint32T maxComps = (CL_LOG_COMPID_CLASS + 7) & ~7;
+        aspPath = getenv("ASP_CONFIG");
+        if( aspPath != NULL )
         {
-            clLogWarning("SVR", "INI", 
-                 "Log config file name has been changed from 'log.xml' to 'clLog.xml',"
-                 "Please change the name in your config directory");
-            head = clParserOpenFile(aspPath, "log.xml");
+            head = clParserOpenFile(aspPath, CL_LOG_DEFAULT_FILECONFIG);
             if( head == NULL )
             {
-                clLogError("SVR", "INI", "Config file clLog.xml is missing,"
-                        "please edit that & proceed");
-                return CL_LOG_RC(CL_ERR_NULL_POINTER);
+                clLogWarning("SVR", "INI",
+                     "Log config file name has been changed from 'log.xml' to 'clLog.xml',"
+                     "Please change the name in your config directory");
+                head = clParserOpenFile(aspPath, "log.xml");
+                if( head == NULL )
+                {
+                    clLogError("SVR", "INI", "Config file clLog.xml is missing,"
+                            "please edit that & proceed");
+                    return CL_LOG_RC(CL_ERR_NULL_POINTER);
+                }
             }
         }
-    }
-    else
-    {
-        CL_LOG_DEBUG_ERROR(("ASP_CONFIG path is not set in the environment"));
-        return CL_LOG_RC(CL_ERR_DOESNT_EXIST);
-    }
+        else
+        {
+            CL_LOG_DEBUG_ERROR(("ASP_CONFIG path is not set in the environment"));
+            return CL_LOG_RC(CL_ERR_DOESNT_EXIST);
+        }
 
-    if(NULL == (fd = clParserChild(head, "log")))
-    {
-        CL_LOG_DEBUG_ERROR(("Log Config xml is not proper: tag <log>"));
-        goto ParseError;
-    }
+        if(NULL == (fd = clParserChild(head, "log")))
+        {
+            CL_LOG_DEBUG_ERROR(("Log Config xml is not proper: tag <log>"));
+            goto ParseError;
+        }
 
-    if(NULL == (fd = clParserChild(fd, "logConfigData")))
-    {
-        CL_LOG_DEBUG_ERROR((
-                    "Log Config xml is not proper: tag <logConfigData>"));
-        goto ParseError;
-    }
+        if(NULL == (fd = clParserChild(fd, "logConfigData")))
+        {
+            CL_LOG_DEBUG_ERROR((
+                        "Log Config xml is not proper: tag <logConfigData>"));
+            goto ParseError;
+        }
+
+        if(NULL == (temp = clParserChild(fd, "maximumStreams")))
+        {
+            CL_LOG_DEBUG_ERROR((
+                        "Log Config xml is not proper: tag <maximumStreams>"));
+            goto ParseError;
+        }
+
+        gpMaxStreams = atoi(temp->txt);
+
+        if(NULL == (temp = clParserChild(fd, "maximumComponents")))
+        {
+            CL_LOG_DEBUG_ERROR((
+                        "Log Config xml is not proper: tag <maximumComponents>"));
+            goto ParseError;
+        }
+
+        gpMaxComps = atoi(temp->txt);
+        if (gpMaxComps < maxComps)
+          gpMaxComps = maxComps;
+
+        gpMaxStreams = CL_MAX(gpMaxStreams, gpMaxComps);
     
-    if(NULL == (temp = clParserChild(fd, "maximumStreams")))
-    {
-        CL_LOG_DEBUG_ERROR((
-                    "Log Config xml is not proper: tag <maximumStreams>"));
-        goto ParseError;
-    }
-    if( NULL != pMaxStreams )
-        *pMaxStreams = atoi(temp->txt);
-
-    if(NULL == (temp = clParserChild(fd, "maximumComponents")))
-    {
-        CL_LOG_DEBUG_ERROR((
-                    "Log Config xml is not proper: tag <maximumComponents>"));
-        goto ParseError;
-    }
-    if( NULL != pMaxComps )
-    {
-        *pMaxComps = atoi(temp->txt);
-        if(*pMaxComps < maxComps)
-            *pMaxComps = maxComps;
-        if(pMaxStreams)
-            *pMaxStreams = CL_MAX(*pMaxStreams, *pMaxComps);
-    }
-
-    if(NULL == (temp = clParserChild(fd, "maximumSharedMemoryPages")))
-    {
-        CL_LOG_DEBUG_ERROR((
-        "Log Config xml is not proper: tag <maximumSharedMemoryPages>"));
-        goto ParseError;
-    }
-    if( NULL != pMaxShmPages )
-        *pMaxShmPages = atoi(temp->txt);
-
-    if(NULL == (temp = clParserChild(fd, "maximumRecordsInPacket")))
-    {
-        CL_LOG_DEBUG_ERROR((
-        "Log Config xml is not proper: tag <maximumRecordsInPacket>"));
-        goto ParseError;
-    }
-    if( NULL != pMaxRecordsInPacket )
-        *pMaxRecordsInPacket = atoi(temp->txt);
-
-    if( (temp = clParserChild(fd,"lockMode")) )
-    {
-        if(!strncasecmp(temp->txt,"sysv",4))
+        if(NULL == (temp = clParserChild(fd, "maximumSharedMemoryPages")))
         {
-            mutexMode = CL_OSAL_SHARED_SYSV_SEM;
-        } 
-        else if (!strncasecmp(temp->txt,"posix",5))
-        {
-            mutexMode = CL_OSAL_SHARED_POSIX_SEM;
+            CL_LOG_DEBUG_ERROR((
+            "Log Config xml is not proper: tag <maximumSharedMemoryPages>"));
+            goto ParseError;
         }
-        else if(!strncasecmp(temp->txt,"mutex",5))
-        {
-            mutexMode = CL_OSAL_SHARED_NORMAL;
-        }
-        clLogStreamMutexModeSet(mutexMode);
-    }
-    clParserFree(head);
-    return CL_OK;
 
+        gpMaxShmPages = atoi(temp->txt);
+
+        if(NULL == (temp = clParserChild(fd, "maximumRecordsInPacket")))
+        {
+            CL_LOG_DEBUG_ERROR((
+            "Log Config xml is not proper: tag <maximumRecordsInPacket>"));
+            goto ParseError;
+        }
+
+        gpMaxRecordsInPacket = atoi(temp->txt);
+
+        if( (temp = clParserChild(fd,"lockMode")) )
+        {
+            if(!strncasecmp(temp->txt,"sysv",4))
+            {
+                mutexMode = CL_OSAL_SHARED_SYSV_SEM;
+            }
+            else if (!strncasecmp(temp->txt,"posix",5))
+            {
+                mutexMode = CL_OSAL_SHARED_POSIX_SEM;
+            }
+            else if(!strncasecmp(temp->txt,"mutex",5))
+            {
+                mutexMode = CL_OSAL_SHARED_NORMAL;
+            }
+            clLogStreamMutexModeSet(mutexMode);
+        }
 ParseError:
-    clParserFree(head);
-    return rc;
+        clParserFree(head);
+    }
+
+    if (pMaxStreams)
+      *pMaxStreams = (gpMaxStreams?gpMaxStreams:256);
+    if (pMaxComps)
+      *pMaxComps = (gpMaxComps?gpMaxComps:1024);
+    if (pMaxShmPages)
+      *pMaxShmPages = (gpMaxShmPages?gpMaxShmPages:50);
+    if (pMaxRecordsInPacket)
+      *pMaxRecordsInPacket = (gpMaxRecordsInPacket?gpMaxRecordsInPacket:100);
+    return CL_OK;
 }
 
 ClLogStreamScopeT
