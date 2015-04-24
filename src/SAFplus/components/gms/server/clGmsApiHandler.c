@@ -112,6 +112,8 @@ clGmsClusterTrackHandler(
 
     if ((req == (const void*)NULL) || (res == NULL))
     {
+        assert(0);
+        
         return CL_ERR_NULL_POINTER;
     }
 
@@ -194,6 +196,8 @@ clGmsClusterTrackHandler(
             rc = cl_gms_cluster_track_callback(req->address, &callback_data);
             if (rc != CL_OK)
             {
+                clLogWarning("RMD","TRK", "ClusterTrackHandler failed error [%x]", rc);
+      
                 if (callback_data.buffer.notification != NULL)
                 {
                     clHeapFree((void*)callback_data.buffer.notification);

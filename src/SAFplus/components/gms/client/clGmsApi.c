@@ -1272,11 +1272,13 @@ ClRcT clGmsClusterTrackCallbackHandler(
     rc = clHandleCheckout(handle_database, gmsHandle, (void*)&gms_instance_ptr);
     if (rc != CL_OK)
     {
+        assert(0);
         goto error_free_res;
     }
 
     if (gms_instance_ptr == NULL)
     {
+        assert(0);
         rc = CL_GMS_RC(CL_ERR_NULL_POINTER);
         goto error_free_res;
     }

@@ -40,6 +40,7 @@
 #include <clGmsRmdClient.h>
 #include <clHandleApi.h>
 #include <clGmsApiClient.h>
+#include <clErrorApi.h>
 #include <string.h>
 #include <unistd.h>
 #include <clXdrApi.h>
@@ -2027,11 +2028,13 @@ VDECL (cl_gms_cluster_track_callback_rmd) (
     rc = unmarshalClGmsClusterTrackCallbackData(in_buffer, &res);
     if (rc != CL_OK)
     {
+        clLogWarning("GMS","TRK", "Cluster track callback data unmarshall failed [%s:%x]", clErrorToString(rc), rc);
         return rc;
     }
 
     if (res == NULL)
     {
+        assert(0);  // should have been caught in error handler above
         return CL_ERR_UNSPECIFIED;
     }
 
@@ -2041,6 +2044,7 @@ VDECL (cl_gms_cluster_track_callback_rmd) (
             (void *)&gmsInstance
             );
     if(rc){
+        assert(0);
         return CL_ERR_INVALID_HANDLE;
     }
 
@@ -2053,6 +2057,8 @@ VDECL (cl_gms_cluster_track_callback_rmd) (
     rc = clOsalTaskDataSet(clGmsPrivateDataKey, &gmsHandle);
     if (rc != CL_OK)
     {
+        assert(0);
+        
         CL_DEBUG_PRINT(CL_DEBUG_ERROR,
                 ("clOsalTaskDataSet on handle failed with rc 0x%x\n",rc));
     }
@@ -2071,6 +2077,11 @@ VDECL (cl_gms_cluster_track_callback_rmd) (
     // response contents are already heap allocated by unmarhall function
 
     rc = clJobQueuePush (&gEoJobQueues[CL_IOC_LOW_PRIORITY], (ClCallbackT) clGmsClusterTrackCallbackHandler, res);
+    if (rc != CL_OK)
+    {
+        clLogWarning("GMS","TRK", "Cluster track callback job enqueue failed [%s:%x]", clErrorToString(rc), rc);
+    }
+    
     CL_DEBUG_PRINT(CL_DEBUG_INFO, ("clJobQueuePush rc [0x%x]\n",rc));
 
     return rc;

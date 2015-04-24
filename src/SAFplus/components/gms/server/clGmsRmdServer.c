@@ -222,6 +222,7 @@ VDECL (cl_gms_cluster_track_rmd) (
     rc = clGmsClusterTrackHandler(&req, &res);
     if (rc != CL_OK) /* No additional data was allocated in res by API call */
     {
+        clLogWarning("RMD","TRK", "clGmsClusterTrackHandler failed error [%x]", rc);
         res.rc = rc;
         goto error_return_res;
     }
@@ -1817,12 +1818,14 @@ cl_gms_cluster_track_callback(
     rc = clBufferCreate(&buffer);
     if (rc != CL_OK)
     {
+        assert(0);
         return rc;
     }
     
     rc = marshalClGmsClusterTrackCallbackData(data, buffer);
     if (rc != CL_OK)
     {
+        assert(0);
         goto error_free_buffer;
     }
 
@@ -1837,6 +1840,11 @@ cl_gms_cluster_track_callback(
                       CL_RMD_CALL_ASYNC,
                       &rmd_options,
                       NULL);
+    if (rc != CL_OK)
+    {
+        clLogWarning("RMD","TRK", "Cluster track callback RMD failed error [%x]", rc);
+    }
+    
 
 error_free_buffer:
     clBufferDelete(&buffer);
