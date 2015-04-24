@@ -114,6 +114,16 @@ namespace SAFplusI
     SctpMaxStream = 64,
     }; 
   
+  enum
+    {
+    TcpTransportMaxMsgSize = 65475,  // 65,535 - 40 bytes TCP header - 20 bytes IP header. This is defined here so you can artifically limit the packet size.
+    TcpTransportNumPorts = 2048,  // Limit the ports to a range for no particular reason
+    TcpTransportStartPort = 9000,  // Pick a random spot in the TCP port range so our ports don't overlap common services
+    TcpTransportMaxMsg = 1024,
+    TcpTransportMaxFragments = 1024,
+    TcpMaxStream = 64,
+    }; 
+
   extern const char* defaultMsgTransport;  //? Specifies the default messaging transport plugin filename.  This can be overridden by an environment variable.
 
   };

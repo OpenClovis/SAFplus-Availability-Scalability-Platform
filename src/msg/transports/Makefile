@@ -35,7 +35,7 @@ SAFPLUS_LINK_LIBS := -L$(LIB_DIR) $(addprefix -l,$(SAFPLUS_LIBS))
 
 LINK_SO_LIBS += -lboost_thread
 
-Release all: $(PLUGIN_DIR)/clMsgUdp.so $(SCTP_TARGET)
+Release all: $(PLUGIN_DIR)/clMsgUdp.so $(SCTP_TARGET) $(PLUGIN_DIR)/clMsgTcp.so
 
 $(PLUGIN_DIR)/clMsgUdp.so: $(OBJ_DIR)/msgUdp.o $(OBJ_DIR)/clPluginHelper.o
 	$(LINK_SO) $@ $^ $(LINK_SO_LIBS)
@@ -43,10 +43,13 @@ $(PLUGIN_DIR)/clMsgUdp.so: $(OBJ_DIR)/msgUdp.o $(OBJ_DIR)/clPluginHelper.o
 $(PLUGIN_DIR)/clMsgSctp.so: $(OBJ_DIR)/msgSctp.o $(OBJ_DIR)/clPluginHelper.o
 	$(LINK_SO) $@ $^ $(LINK_SO_LIBS)
 
+$(PLUGIN_DIR)/clMsgTcp.so: $(OBJ_DIR)/msgTcp.o $(OBJ_DIR)/clPluginHelper.o
+	$(LINK_SO) $@ $^ $(LINK_SO_LIBS)
+
 $(OBJ_DIR)/%.o: %.cxx Makefile $(CLIENT_H)
 	$(COMPILE_CPP) $@ $<
 
 clean:
-	rm -f $(PLUGIN_DIR)/clMsgUdp.so $(PLUGIN_DIR)/clMsgSctp.so $(CLIENT_OBJ)
+	rm -f $(PLUGIN_DIR)/clMsgUdp.so $(PLUGIN_DIR)/clMsgSctp.so $(CLIENT_OBJ) $(PLUGIN_DIR)/clMsgTcp.so
 
 include $(SAFPLUS_MAKE_DIR)/safplus_targets.mk
