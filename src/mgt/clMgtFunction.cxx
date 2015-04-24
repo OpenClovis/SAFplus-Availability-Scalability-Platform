@@ -100,14 +100,13 @@ namespace SAFplus
   std::string MgtFunction::mgtGet(const std::string& pathSpec)
   {
     std::string output = "";
-    ClUint64T outMsgSize = 0;
 
     MgtRoot *mgtRoot = MgtRoot::getInstance();
     MgtObject *object = mgtRoot->findMgtObject(pathSpec);
 
     if (object)
       {
-        object->get(&output, &outMsgSize);
+        object->get(&output);
       }
     else  // Object Implementer not found. Broadcast message to get data
       {
@@ -140,6 +139,9 @@ namespace SAFplus
     try
       {
         MsgReply *msgReply = mgtIocInstance->sendReply(src, (void *) request.c_str(), request.size(), SAFplusI::CL_MGT_MSG_TYPE);
+
+        if (!msgReply)
+          return CL_ERR_IGNORE_REQUEST;
 
         if (msgReply->len == 0)
           return CL_ERR_IGNORE_REQUEST;
@@ -197,6 +199,9 @@ namespace SAFplus
     try
       {
         MsgReply *msgReply = mgtIocInstance->sendReply(src, (void *) request.c_str(), request.size(), SAFplusI::CL_MGT_MSG_TYPE);
+
+        if (!msgReply)
+          return CL_ERR_IGNORE_REQUEST;
 
         if (msgReply->len == 0)
           return CL_ERR_IGNORE_REQUEST;
@@ -266,6 +271,9 @@ namespace SAFplus
     try
       {
         MsgReply *msgReply = mgtIocInstance->sendReply(src, (void *) request.c_str(), request.size(), SAFplusI::CL_MGT_MSG_TYPE);
+
+        if (!msgReply)
+          return CL_ERR_IGNORE_REQUEST;
 
         if (msgReply->len == 0)
           return CL_ERR_IGNORE_REQUEST;

@@ -74,9 +74,9 @@ namespace SAFplus
   }
 
 
-  void MgtRpc::getOutParams(std::string *ppBuffer, ClUint64T *pBuffLen)
+  void MgtRpc::getOutParams(std::string *ppBuffer)
   {
-    mOutParams.get(ppBuffer,pBuffLen);
+    mOutParams.get(ppBuffer);
   }
 
   ClRcT MgtRpc::registerRpc(SAFplus::Handle handle)

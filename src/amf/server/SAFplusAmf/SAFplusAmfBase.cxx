@@ -921,42 +921,11 @@ namespace SAFplusAmf
 
   void loadAmfConfig(SAFplusAmfRoot* self)
     {
-    loadClusterConfigs(self);
-    self->clusterList.read();  // Load up all children of clusterList (recursively) from the DB
+    MgtDatabase *db = MgtDatabase::getInstance();
+    if (!db->isInitialized())
+      return;
 
-    loadNodeConfigs(self);
-    self->nodeList.read();  // Load up all children of nodeList (recursively) from the DB
-
-    loadServiceGroupConfigs(self);
-    self->serviceGroupList.read();  // Load up all children of serviceGroupList (recursively) from the DB
-
-    loadServiceUnitConfigs(self);
-    self->serviceUnitList.read();  // Load up all children of serviceUnitList (recursively) from the DB
-
-    loadServiceInstanceConfigs(self);
-    self->serviceInstanceList.read();  // Load up all children of serviceInstanceList (recursively) from the DB
-
-    loadComponentConfigs(self);
-    self->componentList.read();  // Load up all children of componentList (recursively) from the DB
-
-    loadComponentServiceInstanceConfigs(self);
-    self->componentServiceInstanceList.read();  // Load up all children of componentServiceInstanceList (recursively) from the DB
-    loadCSIData(self);
-
-    assignSGToApplication(self);
-
-    assignSUToNode(self);
-
-    assignSUToSG(self);
-
-    assignComponentToSU(self);
-
-    assignSIToSG(self);
-
-    assignCSIToSI(self);
-
-    assignCSIDependency(self);
-
+    self->read(db);
     }
 
   }

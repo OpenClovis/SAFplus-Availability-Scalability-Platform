@@ -37,31 +37,31 @@ extern "C"
 
 namespace SAFplus
 {
-static __inline__ ClUint32T getHashKeyFn(const ClCharT *keyStr)
-{
-    ClUint32T cksum = SAFplus::computeCrc32((ClUint8T*)keyStr, (ClUint32T)strlen(keyStr));
+  static __inline__ ClUint32T getHashKeyFn(const ClCharT *keyStr)
+  {
+    ClUint32T cksum = SAFplus::computeCrc32((ClUint8T*) keyStr, (ClUint32T) strlen(keyStr));
     return cksum & DBAL_DB_KEY_MASK;
-}
+  }
 
-MgtDatabase *MgtDatabase::singletonInstance = 0;
+  MgtDatabase *MgtDatabase::singletonInstance = 0;
 
-MgtDatabase *MgtDatabase::getInstance()
-{
+  MgtDatabase * MgtDatabase::getInstance()
+  {
     return (singletonInstance ? singletonInstance : (singletonInstance = new MgtDatabase()));
-}
+  }
 
-MgtDatabase::~MgtDatabase()
-{
+  MgtDatabase::~MgtDatabase()
+  {
 
-}
+  }
 
-MgtDatabase::MgtDatabase()
-{
+  MgtDatabase::MgtDatabase()
+  {
     mInitialized = CL_FALSE;
-}
+  }
 
-ClRcT MgtDatabase::initializeDB(const std::string &dbName, ClUint32T maxKeySize, ClUint32T maxRecordSize)
-{
+  ClRcT MgtDatabase::initializeDB(const std::string &dbName, ClUint32T maxKeySize, ClUint32T maxRecordSize)
+  {
     ClRcT rc = CL_OK;
     ClDBHandleT dbDataHdl = 0; /* Database handle*/
 
@@ -71,18 +71,18 @@ ClRcT MgtDatabase::initializeDB(const std::string &dbName, ClUint32T maxKeySize,
     /*Initialize dbal if not initialized*/
     rc = clDbalLibInitialize();
     if (CL_OK != rc)
-    {
-        logDebug("MGT","DBAL","Dbal lib initialized failed [%x]",rc);
+      {
+        logDebug("MGT", "DBAL", "Dbal lib initialized failed [%x]", rc);
         return rc;
-    }
+      }
 
     /* Open the data DB */
     dbNameData.append(dbName).append(".db");
     rc = clDbalOpen(dbNameData.c_str(), dbNameData.c_str(), CL_DB_APPEND, maxKeySize, maxRecordSize, &dbDataHdl);
     if (CL_OK != rc)
-    {
+      {
         goto exitOnError1;
-    }
+      }
 
     mDbDataHdl = dbDataHdl;
 
@@ -92,189 +92,204 @@ ClRcT MgtDatabase::initializeDB(const std::string &dbName, ClUint32T maxKeySize,
     dbNameIdx.append(dbName).append(".idx");
     rc = clDbalOpen(dbNameIdx.c_str(), dbNameIdx.c_str(), CL_DB_APPEND, maxKeySize, maxRecordSize, &dbDataHdl);
     if (CL_OK != rc)
-    {
+      {
         goto exitOnError2;
-    }
+      }
 
     mDbIterHdl = dbDataHdl;
 
     mInitialized = CL_TRUE;
     return rc;
 
-exitOnError2:
-    clDbalClose (mDbDataHdl);
+    exitOnError2: clDbalClose(mDbDataHdl);
     mDbDataHdl = 0;
-exitOnError1:
-    clDbalLibFinalize();
+    exitOnError1: clDbalLibFinalize();
     return rc;
-}
+  }
 
-ClRcT MgtDatabase::finalizeDB()
-{
-    if(!mInitialized)
-    {
+  ClRcT MgtDatabase::finalizeDB()
+  {
+    if (!mInitialized)
+      {
         return CL_ERR_NOT_INITIALIZED;
-    }
+      }
 
     /* Close the data DB */
-    clDbalClose (mDbDataHdl);
+    clDbalClose(mDbDataHdl);
     mDbDataHdl = 0;
 
     /* Close the index DB */
-    clDbalClose (mDbIterHdl);
+    clDbalClose(mDbIterHdl);
     mDbIterHdl = 0;
 
     /*Finalize dbal */
     clDbalLibFinalize();
     return CL_OK;
-}
+  }
 
-ClRcT MgtDatabase::setRecord(const std::string &key, const std::string &value)
-{
+  ClRcT MgtDatabase::setRecord(const std::string &key, const std::string &value)
+  {
     ClRcT rc = CL_OK;
 
-    if(!mInitialized)
-    {
+    if (!mInitialized)
+      {
         return CL_ERR_NOT_INITIALIZED;
-    }
+      }
 
     ClUint32T hashKey = getHashKeyFn(key.c_str());
 
-    rc = clDbalRecordReplace(mDbDataHdl, (ClDBKeyT)&hashKey, sizeof(hashKey), (ClDBRecordT) value.c_str(), value.length());
+    rc = clDbalRecordReplace(mDbDataHdl, (ClDBKeyT) &hashKey, sizeof(hashKey), (ClDBRecordT) value.c_str(), value.length());
 
     return rc;
-}
+  }
 
-ClRcT MgtDatabase::getRecord(const std::string &key, std::string &value)
-{
+  ClRcT MgtDatabase::getRecord(const std::string &key, std::string &value)
+  {
     ClRcT rc = CL_OK;
     ClCharT *cvalue;
     ClUint32T dataSize = 0;
 
-    if(!mInitialized)
-    {
+    if (!mInitialized)
+      {
         return CL_ERR_NOT_INITIALIZED;
-    }
+      }
 
     ClUint32T hashKey = getHashKeyFn(key.c_str());
 
-    rc = clDbalRecordGet(mDbDataHdl, (ClDBKeyT)&hashKey, sizeof(hashKey), (ClDBRecordT*)&cvalue, &dataSize);
+    rc = clDbalRecordGet(mDbDataHdl, (ClDBKeyT) &hashKey, sizeof(hashKey), (ClDBRecordT*) &cvalue, &dataSize);
     if (CL_OK != rc)
-    {
+      {
         return rc;
-    }
+      }
 
     value.clear();
     value.append(cvalue, dataSize);
 
     return rc;
-}
+  }
 
-ClRcT MgtDatabase::insertRecord(const std::string &key, const std::string &value)
-{
+  ClRcT MgtDatabase::insertRecord(const std::string &key, const std::string &value)
+  {
     ClRcT rc = CL_OK;
 
-    if(!mInitialized)
-    {
+    if (!mInitialized)
+      {
         return CL_ERR_NOT_INITIALIZED;
-    }
+      }
 
     ClUint32T hashKey = getHashKeyFn(key.c_str());
 
     /*
      * Insert into idx table
      */
-    rc = clDbalRecordInsert(mDbIterHdl, (ClDBKeyT) & hashKey, sizeof(hashKey), (ClDBRecordT) key.c_str(), key.length());
+    rc = clDbalRecordInsert(mDbIterHdl, (ClDBKeyT) &hashKey, sizeof(hashKey), (ClDBRecordT) key.c_str(), key.length());
     if (rc != CL_OK)
-    {
+      {
         return rc;
-    }
+      }
 
     /*
      * Insert into data table
      */
-    rc = clDbalRecordInsert(mDbDataHdl, (ClDBKeyT) & hashKey, sizeof(hashKey), (ClDBRecordT) value.c_str(), value.length());
+    rc = clDbalRecordInsert(mDbDataHdl, (ClDBKeyT) &hashKey, sizeof(hashKey), (ClDBRecordT) value.c_str(), value.length());
     if (rc != CL_OK)
-    {
-        clDbalRecordDelete(mDbIterHdl, (ClDBKeyT) & hashKey, sizeof(hashKey));
-    }
+      {
+        clDbalRecordDelete(mDbIterHdl, (ClDBKeyT) &hashKey, sizeof(hashKey));
+      }
 
     return rc;
-}
+  }
 
-ClRcT MgtDatabase::deleteRecord(const std::string &key)
-{
+  ClRcT MgtDatabase::deleteRecord(const std::string &key)
+  {
     ClRcT rc = CL_OK;
 
-    if(!mInitialized)
-    {
+    if (!mInitialized)
+      {
         return CL_ERR_NOT_INITIALIZED;
-    }
+      }
 
     ClUint32T hashKey = getHashKeyFn(key.c_str());
 
-    rc = clDbalRecordDelete(mDbIterHdl, (ClDBKeyT) & hashKey, sizeof(hashKey));
+    rc = clDbalRecordDelete(mDbIterHdl, (ClDBKeyT) &hashKey, sizeof(hashKey));
 
-    rc = clDbalRecordDelete(mDbDataHdl, (ClDBKeyT) & hashKey, sizeof(hashKey));
+    rc = clDbalRecordDelete(mDbDataHdl, (ClDBKeyT) &hashKey, sizeof(hashKey));
 
     return rc;
-}
+  }
 
-std::vector<std::string> MgtDatabase::iterate(const std::string &xpath)
-{
-    ClUint32T   keySize         = 0;
-    ClUint32T   dataSize        = 0;
-    ClUint32T   nextKeySize     = 0;
-    ClUint32T   *recKey           = nullptr;
-    ClUint32T   *nextKey        = nullptr;
-    ClCharT     *recData          = nullptr;
-    ClRcT rc = CL_OK;
+  std::vector<std::string> MgtDatabase::iterate(const std::string &xpath, bool keyOnly)
+  {
+    if (listXpath.size() == 0)
+      {
+        updateLists();
+      }
 
     std::vector<std::string> iter;
+
+    if (keyOnly)
+      {
+        for (std::vector<std::string>::iterator it = listKey.begin() ; it != listKey.end(); ++it)
+          {
+            if (!(*it).compare(0, xpath.length(), xpath))
+              iter.push_back((*it));
+          }
+      }
+    else
+      {
+        for (std::vector<std::string>::iterator it = listXpath.begin() ; it != listXpath.end(); ++it)
+          {
+            if (!(*it).compare(0, xpath.length(), xpath))
+              iter.push_back((*it));
+          }
+      }
+
+    return iter;
+  }
+
+  void MgtDatabase::updateLists()
+  {
+    ClUint32T keySize = 0;
+    ClUint32T dataSize = 0;
+    ClUint32T nextKeySize = 0;
+    ClUint32T *recKey = nullptr;
+    ClUint32T *nextKey = nullptr;
+    ClCharT *recData = nullptr;
+    ClRcT rc = CL_OK;
 
     /*
      * Iterators key value
      */
-    rc = clDbalFirstRecordGet(mDbIterHdl, (ClDBKeyT*)&recKey, &keySize, (ClDBRecordT*)&recData, &dataSize);
+    rc = clDbalFirstRecordGet(mDbIterHdl, (ClDBKeyT*) &recKey, &keySize, (ClDBRecordT*) &recData, &dataSize);
     if (rc != CL_OK)
-    {
-        return iter;
-    }
-
-    std::string value(recData, dataSize);
-
-    /*
-     * Compare if key match xpath
-     */
-    if (!value.compare(0, xpath.length(), xpath))
-        iter.push_back(value);
+      {
+        return;
+      }
 
     while (1)
-    {
-        if ((rc = clDbalNextRecordGet(mDbIterHdl, (ClDBKeyT)recKey, keySize,
-                        (ClDBKeyT*)&nextKey, &nextKeySize,
-                        (ClDBRecordT*)&recData, &dataSize)) != CL_OK)
-        {
+      {
+        std::string value(recData, dataSize);
+        listXpath.push_back(value);
+
+        std::size_t found = value.find_last_of("@");
+        if ((found != std::string::npos) && (found != 0))
+          if (value[found - 1] == ']')
+            {
+              listKey.push_back(value);
+            }
+
+        if ((rc = clDbalNextRecordGet(mDbIterHdl, (ClDBKeyT) recKey, keySize, (ClDBKeyT*) &nextKey, &nextKeySize, (ClDBRecordT*) &recData, &dataSize)) != CL_OK)
+          {
             rc = CL_OK;
             break;
-        }
+          }
         recKey = nextKey;
         keySize = nextKeySize;
+      }
+  }
 
-        value.clear();
-        value.append(recData, dataSize);
-
-        /*
-         * Compare if key match xpath
-         */
-        if (!value.compare(0, xpath.length(), xpath))
-            iter.push_back(value);
-    }
-    return iter;
-}
-
-ClBoolT MgtDatabase::isInitialized()
-{
+  ClBoolT MgtDatabase::isInitialized()
+  {
     return mInitialized;
-}
+  }
 };

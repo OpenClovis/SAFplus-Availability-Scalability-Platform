@@ -69,7 +69,7 @@ namespace SAFplus
     ClBoolT setInParams(void *pBuffer, ClUint64T buffLen);
 
 
-    void getOutParams(std::string *pBuff, ClUint64T *pBuffLen);
+    void getOutParams(std::string *pBuff);
 
 
     virtual ClBoolT validate() = 0;

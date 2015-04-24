@@ -822,11 +822,40 @@ namespace SAFplus
 
         if (!config) return rc;
 
+        if ((db == nullptr) || (!db->isInitialized()))
+            return rc;
+
+        xpath.append("/");
+        xpath.append(tag);
+
+        std::vector<std::string> iters = db->iterate(xpath, true);
+
+        for (std::vector<std::string>::iterator it = iters.begin() ; it != iters.end(); ++it)
+          {
+            if ((*it).find("/", xpath.length() + 1) != std::string::npos )
+                continue;
+
+            std::string keyValue;
+
+            db->getRecord(*it, keyValue);
+
+            std::size_t found = (*it).find_last_of("@");
+            std::string dataXPath = (*it).substr(0, found);
+
+            MgtObject* object = MgtFactory::getInstance()->create(childXpath);
+            if (object)
+              {
+                addChildObject(object, keyValue);
+                object->setChildObj(keyList, keyValue);
+                object->dataXPath = dataXPath;
+              }
+          }
+
         typename Map::iterator iter;
         for(iter = children.begin(); iter != children.end(); iter++)
         {
           MgtObject *obj = iter->second;
-          rc = obj->read(db, xpath);
+          rc = obj->read(db);
           if(CL_OK != rc)
             return rc;
         }

@@ -244,8 +244,7 @@ extern MgtIteratorBase mgtIterEnd;
     /**
      * \brief	Virtual function called from netconf server to get object data
      */
-    //virtual void get(void **ppBuffer, ClUint64T *pBuffLen);
-    virtual void get(std::string *data,ClUint64T *datalen);
+    virtual void get(std::string *data);
     virtual void toString(std::stringstream& xmlString)=0;
     virtual std::string strValue() {return "";}
 

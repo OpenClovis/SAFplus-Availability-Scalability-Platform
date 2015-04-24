@@ -41,14 +41,40 @@ int main(int argc, char *argv[])
     //Test mgtSet function
     setValue.assign("False");
     printf("Set /SAFplusAmf/ServiceGroup/sg0/autoRepair = %s\n", setValue.c_str());
-    SAFplus::MgtFunction::mgtSet("/SAFplusAmf/ServiceGroup/sg0/autoRepair", setValue);
+    ret = SAFplus::MgtFunction::mgtSet("/SAFplusAmf/ServiceGroup/sg0/autoRepair", setValue);
+    if (ret == CL_OK)
+      {
+        printf("Set /SAFplusAmf/ServiceGroup/sg0/autoRepair successfully!\n");
+      }
+    else if (ret == CL_ERR_DOESNT_EXIST)
+      {
+        printf("/SAFplusAmf/ServiceGroup/sg0/autoRepair does not exist!\n");
+      }
+    else
+      {
+        printf("Failed to set /SAFplusAmf/ServiceGroup/sg0/autoRepair, error [%#x]\n", ret);
+      }
+
     getValue = SAFplus::MgtFunction::mgtGet("/SAFplusAmf/ServiceGroup/sg0/autoRepair");
     printf("Get /SAFplusAmf/ServiceGroup/sg0/autoRepair return: %s\n\n", getValue.c_str());
 
     //Test mgtSet function
     setValue.assign("True");
     printf("Set /SAFplusAmf/ServiceGroup/sg0/autoRepair = %s\n", setValue.c_str());
-    SAFplus::MgtFunction::mgtSet("/SAFplusAmf/ServiceGroup/sg0/autoRepair", setValue);
+    ret = SAFplus::MgtFunction::mgtSet("/SAFplusAmf/ServiceGroup/sg0/autoRepair", setValue);
+    if (ret == CL_OK)
+      {
+        printf("Set /SAFplusAmf/ServiceGroup/sg0/autoRepair successfully!\n");
+      }
+    else if (ret == CL_ERR_DOESNT_EXIST)
+      {
+        printf("/SAFplusAmf/ServiceGroup/sg0/autoRepair does not exist!\n");
+      }
+    else
+      {
+        printf("Failed to set /SAFplusAmf/ServiceGroup/sg0/autoRepair, error [%#x]\n", ret);
+      }
+
     getValue = SAFplus::MgtFunction::mgtGet("/SAFplusAmf/ServiceGroup/sg0/autoRepair");
     printf("Get /SAFplusAmf/ServiceGroup/sg0/autoRepair return: %s\n\n", getValue.c_str());
 

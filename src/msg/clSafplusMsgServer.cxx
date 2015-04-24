@@ -78,6 +78,10 @@ namespace SAFplus
                   {
                     return NULL;  // TODO: TIMEOUT
                   }
+              else
+                  {
+                    return &msgReply;
+                  }
             }
         }
         else

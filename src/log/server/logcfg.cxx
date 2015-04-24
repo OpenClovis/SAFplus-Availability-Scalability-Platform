@@ -328,44 +328,14 @@ void loadStreamConfigs()
   if (!db->isInitialized())
       return;
 
-  std::string xpath = "/SAFplusLog/StreamConfig/streamList/stream[";
-
-  std::vector<std::string> iters = db->iterate(xpath);
-
-  for (std::vector<std::string>::iterator it = iters.begin() ; it != iters.end(); ++it)
-    {
-      if ((*it).find("/", xpath.length() + 1) != std::string::npos )
-          continue;
-
-      std::size_t found = (*it).find("@name", xpath.length() + 1);
-
-      if (found == std::string::npos)
-          continue;
-
-      std::string keyValue;
-
-      db->getRecord(*it, keyValue);
-
-      //Stream* s = createStreamCfg(keyValue.c_str(),keyValue.c_str(),"",0, 0, FileFullAction::ROTATE, 0, 0, 0, false, StreamScope::GLOBAL);
-
-      Stream* s = createStreamCfg(keyValue.c_str(),keyValue.c_str(),"",0, 0, FileFullAction::ROTATE, 0, 0, 0, false, StreamScope::LOCAL);
-
-      std::string dataXPath = (*it).substr(0, found);
-
-      s->dataXPath = dataXPath;
-
-      logcfg.streamConfig.streamList.addChildObject(s,keyValue);
-
-    }
+  logcfg.read(db);
 }
 
 /* Initialization code would load the configuration from the database rather than setting it by hand.
  */
 LogCfg* loadLogCfg()
 {
-  logcfg.serverConfig.read();
   loadStreamConfigs();
-  logcfg.streamConfig.read();  // Load up all children of streamConfig (recursively) from the DB
 
   Stream* s =  dynamic_cast<Stream*>(logcfg.streamConfig.streamList.getChildObject("sys"));
   if (!s)  // The sys log is an Openclovis system log.  So if its config does not exist, or was deleted, recreate the log.

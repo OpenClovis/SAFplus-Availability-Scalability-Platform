@@ -165,7 +165,7 @@ namespace SAFplus
       }
   }
 
-  void MgtContainer::get(std::string *data, ClUint64T *datalen)
+  void MgtContainer::get(std::string *data)
   {
     std::stringstream xmlString;
     if (data == nullptr)
@@ -179,7 +179,6 @@ namespace SAFplus
       }
     xmlString << "</" << tag << '>';
 
-    *datalen = xmlString.str().length() + 1;
     data->assign(xmlString.str().c_str());
   }
 

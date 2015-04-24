@@ -285,7 +285,6 @@ namespace SAFplus
   {
     MsgGeneral rplMesg;
     string outBuff,strRplMesg;
-    ClUint64T outMsgSize = 0;
     Mgt::Msg::MsgBind bindData;
 
     bindData.ParseFromString(reqMsg.bind());
@@ -333,9 +332,9 @@ namespace SAFplus
       // If revision of that route on mgt server is out of date, also send lastest data
     }
     std::string strRev = std::to_string(object->root()->headRev);
-    object->get(&outBuff, &outMsgSize);
+    object->get(&outBuff);
     rplMesg.add_data(strRev);
-    rplMesg.add_data(outBuff.c_str(),outMsgSize);
+    rplMesg.add_data(outBuff.c_str(), outBuff.length() + 1);
     rplMesg.SerializeToString(&strRplMesg);
     logDebug("MGT","GET","Replying with msg of size [%d]",strRplMesg.size());
     MgtRoot::sendReplyMsg(srcAddr,(void *)strRplMesg.c_str(),strRplMesg.size());
@@ -393,10 +392,9 @@ namespace SAFplus
       {
         MsgGeneral rplMesg;
         std::string outBuff, strRplMesg;
-        ClUint64T outMsgSize = 0;
 
-        object->get(&outBuff, &outMsgSize);
-        rplMesg.add_data(outBuff.c_str(),outMsgSize);
+        object->get(&outBuff);
+        rplMesg.add_data(outBuff.c_str(), outBuff.length() + 1);
         rplMesg.SerializeToString(&strRplMesg);
         logDebug("MGT","XGET","Replying with msg of size [%d]",strRplMesg.size());
         MgtRoot::sendReplyMsg(srcAddr,(void *)strRplMesg.c_str(),strRplMesg.size());

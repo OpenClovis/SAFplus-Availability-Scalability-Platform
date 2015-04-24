@@ -85,14 +85,13 @@ class MgtContainer:public MgtObject
     virtual MgtObject::Iterator multiFind(const std::string &nameSpec);
     virtual MgtObject::Iterator multiMatch(const std::string &nameSpec);
 
-    virtual void get(std::string *data,ClUint64T *datalen);
+    virtual void get(std::string *data);
     virtual void toString(std::stringstream& xmlString);
     virtual std::string strValue() {return "";}
 
     // Settings objects
     virtual ClBoolT set(const void *pBuffer, ClUint64T buffLen, SAFplus::Transaction& t);
 
-    //virtual void get(void **ppBuffer, ClUint64T *pBuffLen);
     virtual ClRcT write(MgtDatabase *db = nullptr, std::string parentXPath = "");
     virtual ClRcT read(MgtDatabase *db = nullptr, std::string parentXPath = "");
 

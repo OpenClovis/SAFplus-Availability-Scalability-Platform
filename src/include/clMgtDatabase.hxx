@@ -34,7 +34,8 @@
 #include <string>
 #include <vector>
 
-extern "C" {
+extern "C"
+{
 //#include <clCommon.h>
 #include <clDbalApi.h>
 } /* end extern 'C' */
@@ -55,6 +56,11 @@ namespace SAFplus
     ClBoolT mInitialized;
     ClDBHandleT mDbDataHdl;
     ClDBHandleT mDbIterHdl;
+    std::vector<std::string> listKey;
+    std::vector<std::string> listXpath;
+
+  private:
+    void updateLists();
 
   public:
     virtual ~MgtDatabase();
@@ -62,7 +68,7 @@ namespace SAFplus
     /**
      * \brief	Function to create/get the singleton object of the ClMgtDatabase class
      */
-    static MgtDatabase *getInstance();
+    static MgtDatabase * getInstance();
 
     /**
      * \brief	Function to initialize Database Abstraction Layer and open a mgt database
@@ -102,11 +108,12 @@ namespace SAFplus
     /**
      * \brief   Function to return iterators match with xpath
      */
-    std::vector<std::string> iterate(const std::string &xpath);
+    std::vector<std::string> iterate(const std::string &xpath, bool keyOnly = false);
 
   };
-};
-  
+}
+;
+
 #endif /* CLMGTDATABASE_HXX_ */
 
 /** \} */
