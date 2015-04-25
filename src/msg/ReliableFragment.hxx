@@ -1,5 +1,6 @@
-
+#include <boost/intrusive/list.hpp>
 #include "clCommon.hxx"
+using namespace boost::intrusive;
 
 #define RUDP_VERSION 1
 #define RUDP_HEADER_LEN  6
@@ -33,7 +34,8 @@ namespace SAFplus
 
   enum fragmentType
   {
-    FRAG_DATA=0,
+    FRAG_UDE=0,
+    FRAG_DATA,
     FRAG_ACK,
     FRAG_NAK,
     FRAG_FIN,
@@ -54,11 +56,13 @@ namespace SAFplus
       void init(int _flags, int _seqn, int len);
       virtual void parseBytes(const Byte* buffer, int _off, int _len);
    public:
+      boost::intrusive::list_member_hook<> m_memberHook;
       //virtual String type() = 0;
       int flags();
       int seq();
       int length();
       int getAck();
+      Byte* getACKs(int* length);
       int getRetxCounter();
       void setAck(int _ackn);
       void setRetxCounter(int _retCounter);
@@ -67,10 +71,16 @@ namespace SAFplus
       //virtual void parseBytes(const Byte* buffer, int _off, int _len);
       static ReliableFragment* parse(Byte* bytes, int off, int len);
       static ReliableFragment* parse(Byte* bytes);
-      virtual ~ReliableFragment();
+      virtual ~ReliableFragment()
+      {
+      }
       ReliableFragment();
 	};
-
+   //This option will configure "list" to use the member hook
+   typedef member_hook<ReliableFragment, list_member_hook<>,
+         &ReliableFragment::m_memberHook> MemberHookOption;
+   //This list will use the member hook
+   typedef list<ReliableFragment, MemberHookOption> ReliableFragmentList;
 /*
 *  Data Fragment
 *
@@ -201,6 +211,8 @@ namespace SAFplus
     public:
       ACKFragment();
         ACKFragment(int seqn, int ackn);
+        virtual fragmentType getType();
+
     }; // End ACK Fragment Class
 
 

@@ -1,19 +1,7 @@
 #include "ReliableFragment.hxx"
 namespace SAFplus
 {
-
-  ReliableFragment::~ReliableFragment()
-  {
-    // TODO
-  }
-
-  fragmentType ReliableFragment::getType()
-  {
-    // TODO
-    return FRAG_DATA;
-  }
-
-  ReliableFragment::ReliableFragment()
+    ReliableFragment::ReliableFragment()
     {
     // To do
        int a=0;
@@ -38,6 +26,11 @@ namespace SAFplus
         }
         return -1;
     }
+    Byte* ReliableFragment::getACKs(int* length)
+    {
+        return nullptr;
+    }
+
 
     int ReliableFragment::getRetxCounter()
     {
@@ -55,6 +48,10 @@ namespace SAFplus
         m_nRetCounter = _retCounter;
     }
 
+    fragmentType ReliableFragment::getType()
+    {
+      return FRAG_UDE;
+    }
     Byte* ReliableFragment::getBytes()
     {
         Byte *pBuffer = new Byte[length()];
@@ -103,11 +100,11 @@ namespace SAFplus
        }
        else if ((flags & RST_FLAG) != 0)
        {
-	      fragment = new RSTFragment();
+          fragment = new RSTFragment();
        }
        else if ((flags & FIN_FLAG) != 0)
        {
-	      fragment = new FINFragment();
+          fragment = new FINFragment();
        }
        else if ((flags & ACK_FLAG) != 0)
        {
@@ -208,7 +205,6 @@ namespace SAFplus
         m_nMaxoutseq = maxoutseq;
         m_nMaxautorst = maxautorst;
     }
-
     int SYNFragment::getVersion()
     {
         return m_nVersion;
@@ -326,6 +322,12 @@ namespace SAFplus
        init(ACK_FLAG, seqn, RUDP_HEADER_LEN);
        setAck(ackn);
     }
+    fragmentType ACKFragment::getType()
+    {
+        return FRAG_ACK;
+    }
+
+
 // End ACK Fragment Class
 
     //-------------------------------------------
@@ -333,7 +335,6 @@ namespace SAFplus
     //-------------------------------------------
     NAKFragment::NAKFragment()
     {
-
     }
 
     NAKFragment::NAKFragment(int seqn, int ackn,  int* acks, int size)
