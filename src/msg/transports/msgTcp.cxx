@@ -230,7 +230,7 @@ namespace SAFplus
   {
 /*
     TCP has no concept "message" but byte (stream) of data instead. So, we cannot send a structure of message 
-    over it. We need to send data in bytes subsequently: we send the followings in order: msgCount, fragCount,
+    over it. We need to send data in bytes subsequently: we send the followings in order: fragCount,
     dataLen(1) (length of actual data), data(1), dataLen(2), data(2),...dataLen(n), data(n).
     The receive side must read in the same way, then fills data to mmsghdr struct
 */
@@ -245,10 +245,8 @@ namespace SAFplus
     Message* next = origMsg;
     MsgFragment* nextFrag;
     MsgFragment* frag;
-    int msgSize;
+    int msgSize, retval;
     int intSize = sizeof(int);
-    int totalMsgSize = SAFplusI::TcpTransportMaxMsgSize+msgSizeLen;
-    char buf[totalMsgSize];    
     do 
     { 
       msg = next;
@@ -284,22 +282,14 @@ namespace SAFplus
    
     uint_t port = msg->port + SAFplusI::TcpTransportStartPort;
     int clientSock = getClientSocket(msg->node, port);
-    // Send msgCount first
-    int temp = htonl(msgCount);
-    int retval = ::send(clientSock, &temp, intSize, 0);
-    if (ret == -1)
-    {
-      int err = errno;
-      throw Error(Error::SYSTEM_ERROR,errno, strerror(errno),__FILE__,__LINE__);
-    }
     // Send each fragment including fragCount and iovec buffer
     for (int i=0;i<msgCount;i++)
     {
-      // Send fragCount
-      int msg_iovlen = msgs[i].msg_hdr.msg_iovlen;
-      temp = htonl(msg_iovlen);
+      // First, send fragment count (number of fragment contained in the message)
+      int msg_iovlen = msgvec[i].msg_hdr.msg_iovlen;
+      int temp = htonl(msg_iovlen);
       retval = ::send(clientSock, &temp, intSize, 0);
-      if (ret == -1)
+      if (retval == -1)
       {
         int err = errno;
         throw Error(Error::SYSTEM_ERROR,errno, strerror(errno),__FILE__,__LINE__);
@@ -308,7 +298,7 @@ namespace SAFplus
       {      
         //logDebug("TCP", "SEND", "Sending msg to socket [%d]", clientSock);
         // Send iov len (the length of each iov element)
-        int iovlen = (msgs[i].msg_hdr.msg_iov+j)->iov_len;
+        int iovlen = (msgvec[i].msg_hdr.msg_iov+j)->iov_len;
         temp = htonl(iovlen);
         retval = ::send(clientSock, &temp, intSize, 0);
         if (retval == -1)
@@ -317,7 +307,7 @@ namespace SAFplus
           throw Error(Error::SYSTEM_ERROR,errno, strerror(errno),__FILE__,__LINE__);
         }
         // Send each iovec buffer
-        retval = ::send(clientSock, (msgs[i].msg_hdr.msg_iov+j)->iov_base, iov_len, 0);
+        retval = ::send(clientSock, (msgvec[i].msg_hdr.msg_iov+j)->iov_base, iovlen, 0);
         if (retval == -1)
         {
           int err = errno;
@@ -347,7 +337,7 @@ namespace SAFplus
       uint_t flags = MSG_WAITFORONE;
 
       int intSize = sizeof(int);
-      int msgCount, fragCount, fragLen, temp;
+      int fragCount, fragLen, temp;
 
       if (maxDelay > 0)
       {
@@ -372,7 +362,7 @@ namespace SAFplus
         iovecs[i].iov_len          = frag->allocatedLen;
         msgs[i].msg_hdr.msg_iov    = &iovecs[i];
         msgs[i].msg_hdr.msg_iovlen = 1;
-        msgs[i].msg_hdr.msg_len = 1;
+        msgs[i].msg_len = 1;
         //msgs[i].msg_hdr.msg_name    = &from[i];
         //msgs[i].msg_hdr.msg_namelen = sizeof(struct sockaddr_in);
       }
@@ -398,19 +388,17 @@ namespace SAFplus
         else
         {
           //printf("%d messages received. [%s]\n", retval,(char*) &frag->buffer);
-          //logDebug("TCP", "RECV", "Msg received found on socket [%d]", clientSock);
-          msgCount = ntohl(temp);
-          for (int i=0;i<msgCount;i++)
-          {
-            retval = recv(clientSock, &temp, intSize, flags);
+          //logDebug("TCP", "RECV", "Msg received found on socket [%d]", clientSock);          
+          for (int i=0;i<1;i++)
+          {  
+            fragCount = ntohl(temp);          
+            msgs[i].msg_hdr.msg_iovlen = fragCount;
+            /*retval = recv(clientSock, &temp, intSize, flags);
             if (retval == -1)
             {
-              int err = errno;         
+              int err = errno;
               throw Error(Error::SYSTEM_ERROR,errno, strerror(errno),__FILE__,__LINE__);
-            }
-            fragCount = ntohl(temp);
-            msgs[i].msg_hdr.msg_iovlen = fragCount;
-            
+            }*/           
             for (int j=0;j<fragCount;j++)
             {
               retval = recv(clientSock, &temp, intSize, flags);
@@ -427,8 +415,7 @@ namespace SAFplus
                 throw Error(Error::SYSTEM_ERROR,errno, strerror(errno),__FILE__,__LINE__);
               }
               (msgs[i].msg_hdr.msg_iov+j)->iov_len = fragLen;
-            }
-            break; // Because we only receive one message per time
+            }           
           }
           retval = 1;         
           Message* cur = ret;
