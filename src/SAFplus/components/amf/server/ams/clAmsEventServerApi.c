@@ -84,7 +84,7 @@ clAmsGetFaultReport(
         clLogInfo("COMP", "FAILURE", "Processing fault for component [%s], instantiate Cookie [%lld]", comp->config.entity.name.value, instantiateCookie);
         
         currentInstantiateCookie = comp->status.instantiateCookie;
-        if(instantiateCookie && instantiateCookie != currentInstantiateCookie)
+        if(instantiateCookie && instantiateCookie < currentInstantiateCookie)
         {
             clLogInfo("COMP", "FAILURE", 
                       "Ignoring fault for component [%s], instantiation identifier [%lld] "
