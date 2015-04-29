@@ -621,7 +621,7 @@ ClRcT clIocNotificationNodeStatusSend(ClIocCommPortHandleT commPort,
       {
         clLogError("NTF", "SND", "clIocNotificationPacketSend failed with error [0x%x]", rc);
       }
-    out:
+    //out:
     return rc;
 }
 
