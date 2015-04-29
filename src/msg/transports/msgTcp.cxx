@@ -280,12 +280,20 @@ namespace SAFplus
       msgCount++;
     } while (next != NULL);
    
-    uint_t port = msg->port + SAFplusI::TcpTransportStartPort;
-    int clientSock = getClientSocket(msg->node, port);
+    uint_t pt = msg->port + SAFplusI::TcpTransportStartPort;
+    int clientSock = getClientSocket(msg->node, pt);
     // Send each fragment including fragCount and iovec buffer
     for (int i=0;i<msgCount;i++)
     {
-      // First, send fragment count (number of fragment contained in the message)
+      // First attach the port to stream so that receiver knows where it is from
+      short srcPort = htons(port);
+      retval = ::send(clientSock, &srcPort, sizeof(short), 0);
+      if (retval == -1)
+      {
+        int err = errno;
+        throw Error(Error::SYSTEM_ERROR,errno, strerror(errno),__FILE__,__LINE__);
+      }
+      // Second, send fragment count (number of fragment contained in the message)
       int msg_iovlen = msgvec[i].msg_hdr.msg_iovlen;
       int temp = htonl(msg_iovlen);
       retval = ::send(clientSock, &temp, intSize, 0);
@@ -368,12 +376,13 @@ namespace SAFplus
       }
      
       int retval, clientSock;
+      short srcPort, pt;
       // Receive message from any socket from the map
       for(NodeIDSocketMap::iterator iter = clientSockMap.begin(); iter != clientSockMap.end(); iter++)
       {       
         NodeIDSocketMap::value_type vt = *iter;
         clientSock = vt.second; 
-        retval = recv(clientSock, &temp, intSize, flags);
+        retval = recv(clientSock, &pt, sizeof(short), flags);
         if (retval == -1)
         {
           int err = errno;
@@ -391,7 +400,10 @@ namespace SAFplus
           //logDebug("TCP", "RECV", "Msg received found on socket [%d]", clientSock);          
           for (int i=0;i<1;i++)
           {  
-            fragCount = ntohl(temp);          
+            srcPort = ntohs(pt);
+            // next, read the fragment count  
+            retval = recv(clientSock, &temp, intSize, flags);
+            fragCount = ntohl(temp);  
             msgs[i].msg_hdr.msg_iovlen = fragCount;
             /*retval = recv(clientSock, &temp, intSize, flags);
             if (retval == -1)
@@ -421,14 +433,9 @@ namespace SAFplus
           Message* cur = ret;
           for (int msgIdx = 0; (msgIdx<retval); msgIdx++,cur = cur->nextMsg)          
           {  
-            int msgLen = msgs[msgIdx].msg_len;
-            #if 0
-            struct sockaddr_in* srcAddr = (struct sockaddr_in*) msgs[msgIdx].msg_hdr.msg_name;
-            assert(msgs[msgIdx].msg_hdr.msg_namelen == sizeof(struct sockaddr_in));
-            assert(srcAddr);
-            cur->port = ntohs(srcAddr->sin_port) - SAFplusI::TcpTransportStartPort;
-            cur->node = ntohl(srcAddr->sin_addr.s_addr) & (((Tcp*)transport)->nodeMask);
-            #endif
+            int msgLen = msgs[msgIdx].msg_len;            
+            cur->port = srcPort;
+            cur->node = vt.first;
             MsgFragment* curFrag = cur->firstFragment;
             //cur->port = curFrag->srcPort;        
             //logInfo("TCP", "RECV", "set srcPort [%d] to the received msg", curFrag->srcPort);
