@@ -316,6 +316,7 @@ static ClRcT clIocNotificationDiscoveryUnpack(ClUint8T *recvBuff,
     clLogDebug("IOC", "NTF", "Discovery notification of node [%s] id [%d], capability [0x%x]", nodeName.value, nodeId, theirCapability);
     clNodeCacheUpdate(nodeId, version, theirCapability, &nodeName);
 
+#if 0
     if (1)
       {
         // Make sure GMS knows about this node.
@@ -332,6 +333,7 @@ static ClRcT clIocNotificationDiscoveryUnpack(ClUint8T *recvBuff,
         ClIocLogicalAddressT allLocalComps = CL_IOC_ADDRESS_FORM(CL_IOC_INTRANODE_ADDRESS_TYPE, nodeId, CL_IOC_BROADCAST_ADDRESS);
         clIocNotificationNodeStatusSend(commPort,CL_IOC_NODE_ARRIVAL_NOTIFICATION,nodeId,(ClIocAddressT*) &allLocalComps, (ClIocAddressT*) &allNodeReps, NULL );
       }
+#endif
 
     /*
      * Send back node reply to peer for version notifications. with our info.
@@ -349,6 +351,20 @@ static ClRcT clIocNotificationDiscoveryUnpack(ClUint8T *recvBuff,
         rc = clIocNotificationPacketSend(commPort, notification, &destAddress, compat, xportType);
     }
     
+    if (id == CL_IOC_NODE_VERSION_REPLY_NOTIFICATION)
+    {
+        //ClIocLogicalAddressT allLocalComps = CL_IOC_ADDRESS_FORM(CL_IOC_INTRANODE_ADDRESS_TYPE, nodeId, CL_IOC_BROADCAST_ADDRESS);
+        // Forward to GMS only??
+        destAddress.iocPhyAddress.nodeAddress = gIocLocalBladeAddress;
+        destAddress.iocPhyAddress.portId = CL_IOC_GMS_PORT;
+
+        static ClUint32T nodeVersion = CL_VERSION_CODE(5, 0, 0);
+        notification->id = htonl(CL_IOC_NODE_ARRIVAL_NOTIFICATION);
+        notification->nodeVersion = htonl(nodeVersion);
+        notification->nodeAddress.iocPhyAddress.nodeAddress = htonl(srcAddr->nodeAddress);
+        notification->nodeAddress.iocPhyAddress.portId = htonl(srcAddr->portId);
+        clIocNotificationPacketSend(commPort, notification, &destAddress, CL_FALSE, xportType);
+    }
 
     out:
     return rc;

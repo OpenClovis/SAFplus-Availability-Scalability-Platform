@@ -92,7 +92,8 @@ static ClRcT gmsViewPopulate(ClBoolT *pTrackNotify)
     ClUint32T i;
     pMembers = clHeapCalloc(CL_IOC_MAX_NODES, sizeof(*pMembers));
     CL_ASSERT(pMembers != NULL);
-    rc = clNodeCacheViewGetFastSafe(pMembers, &maxNodes);
+    //rc = clNodeCacheViewGetFastSafe(pMembers, &maxNodes);
+    rc = clNodeCacheViewGet(pMembers, &maxNodes);
     if(rc != CL_OK)
     {
         clLogError("CACHE", "GET", "Node cache view get failed with [%#x]", rc);
