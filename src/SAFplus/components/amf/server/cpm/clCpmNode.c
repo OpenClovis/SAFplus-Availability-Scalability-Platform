@@ -106,7 +106,6 @@ static ClVersionDatabaseT clCpmServerToServerVersionDb =
 };
 
 typedef ClRcT (*funcArray[]) (void);
-extern ClBoolT gCpmShuttingDown;
 
 ClRcT CL_CPM_CALL_RMD_SYNC(ClIocNodeAddressT destAddr,
                            ClIocPortT eoPort,
@@ -1102,23 +1101,6 @@ ClRcT cpmProcessOrderlyShutdown(ClIocNodeAddressT iocAddress)
 
     return CL_OK;
 failure:
-    return rc;
-}
-
-/* 
- * This function will be called to do the actual shut down of the self.
- * The polling thread is set to 0 to bring CPM main thread out of 
- * while loop and start shutting down.
- */
-
-ClRcT cpmSelfShutDown(void)
-{
-    ClRcT rc = CL_OK;
-
-    clLogWarning(CPM_LOG_AREA_CPM, CL_LOG_CONTEXT_UNSPECIFIED, "SAFplus abrupt shutdown; application callbacks may not be run.");
-    CL_DEBUG_PRINT(CL_DEBUG_TRACE, ("Setting polling to zero...\n"));
-
-    cpmShutdownHeartbeat();
     return rc;
 }
 

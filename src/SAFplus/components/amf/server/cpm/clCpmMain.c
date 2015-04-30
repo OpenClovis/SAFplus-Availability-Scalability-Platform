@@ -134,6 +134,7 @@ pthread_cond_t condMain = PTHREAD_COND_INITIALIZER;
 #define CPM_VALGRIND_DEFAULT_DELAY (0x5)
 
 extern ClBoolT gCpmShuttingDown;
+extern ClBoolT gCpmAppShutdown;
 
 /**
  * Global variables.
@@ -671,7 +672,7 @@ static ClRcT cpmAllocate(void)
 static void cpmSigintHandler(ClInt32T signum)
 {
     gotSIG = signum;
-    //gCpmShuttingDown = CL_TRUE;
+    gCpmAppShutdown = CL_TRUE;
     if (gClCpm.cpmEoObj)  /* This sighandler could be called at any time, so we better make sure we are not in the middle of cleanup */
     {        
         //gClCpm.polling = CL_FALSE;
@@ -937,7 +938,7 @@ static ClRcT clCpmFinalize(void)
             {
                 clAmsFinalize(&gAms, CL_AMS_TERMINATE_MODE_GRACEFUL);
             }
-
+            
             clCpmAmsToCpmFree(gpClCpm->amsToCpmCallback);
             /*
              * Bug 4411:
@@ -953,6 +954,7 @@ static ClRcT clCpmFinalize(void)
             gpClCpm->cpmToAmsCallback = NULL;
         }
 #endif
+        clEoProtoUninstall(CL_IOC_PORT_NOTIFICATION_PROTO);  /* Stop receiving notifications so we don't see the standby take over for us and conclude split brain */
         cpmShutdownHeartbeat();
         
         /*
@@ -3760,30 +3762,35 @@ ClRcT clCpmIocNotification(ClEoExecutionObjT *pThis,
                 }
                 else
                 {
-                    clLogAlert("NTF", "LEA", "Split brain. Node [%d] reports leader as [%d]. Inconsistent with this node's leader [%d]",
-                                    notification.nodeAddress.iocPhyAddress.nodeAddress, reportedLeader, currentLeader);
-
-                    /* Only update leaderID if msg come from SC's leader */
-                    if (reportedLeader == notification.nodeAddress.iocPhyAddress.nodeAddress)
+                    if (!gCpmShuttingDown)  // If I'm shutting down there's a point where I stop being master so the other side could take over.  This is not 
                     {
-                        clNodeCacheLeaderUpdate(reportedLeader);
+                        
+                        clLogAlert("NTF", "LEA", "Split brain. Node [%d] reports leader as [%d]. Inconsistent with this node's leader [%d]",
+                                   notification.nodeAddress.iocPhyAddress.nodeAddress, reportedLeader, currentLeader);
 
-                        // Trigger GMS to do elect on this update
-                        clNodeCacheLeaderSendLocal(reportedLeader);
-                    }
-                    // I am the leader
-                    else if (gpClCpm->activeMasterNodeId == gpClCpm->pCpmLocalInfo->nodeId)
-                    {
-                        /* Notify all nodes that I am the leader. It is necessary to do this so that external apps/nodes (with no AMF or GMS)
-                         * receive the new leader notification
-                         */
-                        clNodeCacheLeaderSend(gpClCpm->pCpmLocalInfo->nodeId);
+                        /* Only update leaderID if msg come from SC's leader */
+                        if (reportedLeader == notification.nodeAddress.iocPhyAddress.nodeAddress)
+                        {
+                            clNodeCacheLeaderUpdate(reportedLeader);
 
-                        allNodeReps.iocPhyAddress.nodeAddress = CL_IOC_BROADCAST_ADDRESS;
-                        allNodeReps.iocPhyAddress.portId = CL_IOC_XPORT_PORT;
-                        ClIocLogicalAddressT allLocalComps = CL_IOC_ADDRESS_FORM(CL_IOC_INTRANODE_ADDRESS_TYPE, gpClCpm->pCpmLocalInfo->nodeId, CL_IOC_BROADCAST_ADDRESS);
-                        clIocNotificationNodeStatusSend(pThis->commObj, CL_IOC_NODE_ARRIVAL_NOTIFICATION, gpClCpm->pCpmLocalInfo->nodeId, (ClIocAddressT*) &allLocalComps, (ClIocAddressT*) &notification.nodeAddress.iocPhyAddress, NULL );
+                            // Trigger GMS to do elect on this update
+                            clNodeCacheLeaderSendLocal(reportedLeader);
+                        }
+                        // I am the leader
+                        else if (gpClCpm->activeMasterNodeId == gpClCpm->pCpmLocalInfo->nodeId)
+                        {
+                            /* Notify all nodes that I am the leader. It is necessary to do this so that external apps/nodes (with no AMF or GMS)
+                             * receive the new leader notification
+                             */
+                            clNodeCacheLeaderSend(gpClCpm->pCpmLocalInfo->nodeId);
+
+                            allNodeReps.iocPhyAddress.nodeAddress = CL_IOC_BROADCAST_ADDRESS;
+                            allNodeReps.iocPhyAddress.portId = CL_IOC_XPORT_PORT;
+                            ClIocLogicalAddressT allLocalComps = CL_IOC_ADDRESS_FORM(CL_IOC_INTRANODE_ADDRESS_TYPE, gpClCpm->pCpmLocalInfo->nodeId, CL_IOC_BROADCAST_ADDRESS);
+                            clIocNotificationNodeStatusSend(pThis->commObj, CL_IOC_NODE_ARRIVAL_NOTIFICATION, gpClCpm->pCpmLocalInfo->nodeId, (ClIocAddressT*) &allLocalComps, (ClIocAddressT*) &notification.nodeAddress.iocPhyAddress, NULL );
+                        }
                     }
+                    
                 }
             }
             else
@@ -4056,7 +4063,7 @@ ClRcT compMgrPollThread(void)
         goto out_unlock;
     }
     clOsalCondWait(&gpClCpm->heartbeatCond, &gpClCpm->heartbeatMutex,heartbeatWait);
-    if (gotSIG)
+    if (gotSIG || gCpmAppShutdown || gCpmShuttingDown)
     {
         // This is a very useful log because it indicates that this was a user-initiated shutdown.
         if (gotSIG==SIGINT || gotSIG==SIGTERM)
@@ -4074,8 +4081,7 @@ ClRcT compMgrPollThread(void)
             clLogCritical(CPM_LOG_AREA_CPM, CPM_LOG_CTX_CPM_BOOT, "Applications never shut down.  Quitting AMF now.");
         }        
         clOsalMutexLock(&gpClCpm->heartbeatMutex);
-        //cpmSelfShutDown();
-        //clCpmNodeShutDown(clIocLocalAddressGet());        
+        gpClCpm->polling = CL_FALSE;        
     }
     if (gpClCpm->polling) goto restart_heartbeat;
     
@@ -4101,6 +4107,23 @@ ClRcT compMgrPollThread(void)
 failure:
     clLogWrite(CL_LOG_HANDLE_APP, CL_LOG_INFORMATIONAL, NULL,
                CL_CPM_LOG_0_SERVER_POLL_THREAD_EXIT_INFO);
+    return rc;
+}
+
+/* 
+ * This function will be called to do the actual shut down of the self.
+ * The polling thread is set to 0 to bring CPM main thread out of 
+ * while loop and start shutting down.
+ */
+
+ClRcT cpmSelfShutDown(void)
+{
+    ClRcT rc = CL_OK;
+
+    //clLogWarning(CPM_LOG_AREA_CPM, CL_LOG_CONTEXT_UNSPECIFIED, "SAFplus abrupt shutdown; application callbacks may not be run.");
+    gCpmAppShutdown = CL_TRUE;
+    clOsalCondSignal(&gClCpm.heartbeatCond);
+    //cpmShutdownHeartbeat();
     return rc;
 }
 

@@ -344,6 +344,9 @@ typedef struct {
 extern ClBoolT gClAmsSwitchoverInline;
 extern ClBoolT gClAmsPayloadResetDisable;
 
+extern ClBoolT gCpmShuttingDown;
+extern ClBoolT gCpmAppShutdown;
+
 /**
  * CM.
  */
@@ -362,6 +365,8 @@ extern void *cpmBMResponse(ClCpmLcmResponseT *response);
 /**
  * Misc
  */
+extern ClRcT cpmSelfShutDown(void);
+
 extern ClRcT cpmCompInitialize(ClCpmComponentT **comp);
 extern ClRcT cpmCompConfigure(ClCpmCompConfigT *compCfg,
                               ClCpmComponentT **component);
