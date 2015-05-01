@@ -3750,14 +3750,13 @@ ClRcT clCpmIocNotification(ClEoExecutionObjT *pThis,
                     else if (gpClCpm->activeMasterNodeId == gpClCpm->pCpmLocalInfo->nodeId)
                     {
                         /* Notify all nodes that I am the leader. It is necessary to do this so that external apps/nodes (with no AMF or GMS)
-                         * receive the new leader notification
+                         * receive the new leader notification... but they must be a node rep with a nodecache so it will be updated as a result of this broadcast.
                          */
                         clNodeCacheLeaderSend(gpClCpm->pCpmLocalInfo->nodeId);
 
                         allNodeReps.iocPhyAddress.nodeAddress = CL_IOC_BROADCAST_ADDRESS;
                         allNodeReps.iocPhyAddress.portId = CL_IOC_XPORT_PORT;
-                        ClIocLogicalAddressT allLocalComps = CL_IOC_ADDRESS_FORM(CL_IOC_INTRANODE_ADDRESS_TYPE, gpClCpm->pCpmLocalInfo->nodeId, CL_IOC_BROADCAST_ADDRESS);
-                        clIocNotificationNodeStatusSend(pThis->commObj, CL_IOC_NODE_ARRIVAL_NOTIFICATION, gpClCpm->pCpmLocalInfo->nodeId, (ClIocAddressT*) &allLocalComps, (ClIocAddressT*) &notification.nodeAddress.iocPhyAddress, NULL );
+                        clIocNotificationNodeStatusSend(pThis->commObj, CL_IOC_NODE_ARRIVAL_NOTIFICATION, gpClCpm->pCpmLocalInfo->nodeId, (ClIocAddressT*) &allNodeReps, (ClIocAddressT*) &notification.nodeAddress.iocPhyAddress, NULL );
                     }
                 }
             }
