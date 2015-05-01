@@ -316,25 +316,6 @@ static ClRcT clIocNotificationDiscoveryUnpack(ClUint8T *recvBuff,
     clLogDebug("IOC", "NTF", "Discovery notification of node [%s] id [%d], capability [0x%x]", nodeName.value, nodeId, theirCapability);
     clNodeCacheUpdate(nodeId, version, theirCapability, &nodeName);
 
-#if 0
-    if (1)
-      {
-        // Make sure GMS knows about this node.
-        // there is a potential race condition that loses node enterance into GNS going like this:
-        // 
-        // TIPC->IOC notification missed because GMS is not up
-        // GMS synchronization with the shared memory NodeCache does not contain the node because Discovery message (this message) not yet received.
-        // Node discovery message happens and node is added to Node Cache (just above)
-        // Now we still need to add the node to the GMS, as below:
-
-        ClIocAddressT allNodeReps;
-        allNodeReps.iocPhyAddress.nodeAddress = CL_IOC_BROADCAST_ADDRESS;
-        allNodeReps.iocPhyAddress.portId = CL_IOC_XPORT_PORT;
-        ClIocLogicalAddressT allLocalComps = CL_IOC_ADDRESS_FORM(CL_IOC_INTRANODE_ADDRESS_TYPE, nodeId, CL_IOC_BROADCAST_ADDRESS);
-        clIocNotificationNodeStatusSend(commPort,CL_IOC_NODE_ARRIVAL_NOTIFICATION,nodeId,(ClIocAddressT*) &allLocalComps, (ClIocAddressT*) &allNodeReps, NULL );
-      }
-#endif
-
     /*
      * Send back node reply to peer for version notifications. with our info.
      */
@@ -351,7 +332,7 @@ static ClRcT clIocNotificationDiscoveryUnpack(ClUint8T *recvBuff,
         rc = clIocNotificationPacketSend(commPort, notification, &destAddress, compat, xportType);
     }
     
-    if (id == CL_IOC_NODE_VERSION_REPLY_NOTIFICATION)
+    else if (id == CL_IOC_NODE_VERSION_REPLY_NOTIFICATION)
     {
         //ClIocLogicalAddressT allLocalComps = CL_IOC_ADDRESS_FORM(CL_IOC_INTRANODE_ADDRESS_TYPE, nodeId, CL_IOC_BROADCAST_ADDRESS);
         // Forward to GMS only??
@@ -365,6 +346,24 @@ static ClRcT clIocNotificationDiscoveryUnpack(ClUint8T *recvBuff,
         notification->nodeAddress.iocPhyAddress.portId = htonl(srcAddr->portId);
         clIocNotificationPacketSend(commPort, notification, &destAddress, CL_FALSE, xportType);
     }
+#if 0 // Alternative: notify everybody on this node
+    if (id == CL_IOC_NODE_VERSION_REPLY_NOTIFICATION)
+      {
+        // Make sure GMS knows about this node.
+        // there is a potential race condition that loses node enterance into GNS going like this:
+        // 
+        // TIPC->IOC notification missed because GMS is not up
+        // GMS synchronization with the shared memory NodeCache does not contain the node because Discovery message (this message) not yet received.
+        // Node discovery message happens and node is added to Node Cache (just above)
+        // Now we still need to add the node to the GMS, as below:
+
+        ClIocAddressT allNodeReps;
+        allNodeReps.iocPhyAddress.nodeAddress = CL_IOC_BROADCAST_ADDRESS;
+        allNodeReps.iocPhyAddress.portId = CL_IOC_XPORT_PORT;
+        ClIocLogicalAddressT allLocalComps = CL_IOC_ADDRESS_FORM(CL_IOC_INTRANODE_ADDRESS_TYPE, nodeId, CL_IOC_BROADCAST_ADDRESS);
+        clIocNotificationNodeStatusSend(commPort,CL_IOC_NODE_ARRIVAL_NOTIFICATION,nodeId,(ClIocAddressT*) &allLocalComps, (ClIocAddressT*) &allNodeReps, NULL );
+      }
+#endif
 
     out:
     return rc;
