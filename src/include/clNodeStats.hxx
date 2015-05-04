@@ -17,10 +17,21 @@
  * material.
  */
 
-#ifndef NODESTATS_HXX
-#define NODESTATS_HXX
+#ifndef CL_NODESTATS_HXX
+#define CL_NODESTATS_HXX
 
 #include <clCommon.hxx>
+
+namespace SAFplus
+{
+
+class statAccessErrors: public Error
+{
+    public:
+    statAccessErrors(const char *err):Error(err)
+    {
+    }
+};
 
 class DiskStatistics
 {
@@ -66,7 +77,7 @@ typedef std::list<DiskStatistics *> DiskStatList;
 
 class NodeStatistics
 {
-    private:
+    protected:
 
     void readLoadAvg();
     void readNodeStats();
@@ -125,4 +136,5 @@ class NodeStatistics
     NodeStatistics & operator-(const NodeStatistics& b); 
 };
 
+}; /*namespace SAFplus*/
 #endif

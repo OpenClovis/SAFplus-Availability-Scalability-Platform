@@ -1,4 +1,7 @@
+
+#include <dirent.h>
 #include <fstream>
+#include <string>
 #include <clProcessApi.hxx>
 
 extern char **environ;
@@ -133,4 +136,77 @@ namespace SAFplus
     // In the parent
     return Process(pid);
     }
+
+ProcessList::ProcessList()
+{
+    findProcessList();
+}
+
+ProcessList::~ProcessList()
+{
+    ProcList::iterator it;
+    for (it = pList.begin(); it != pList.end(); ++it)
+    {
+        delete *it;
+    }
+}
+
+bool ProcessList::isDirNamePID(std::string &fileName)
+{
+    if (fileName.empty())
+    {
+        return false;
+    }
+
+    std::string::const_iterator it = fileName.begin();
+    while (it != fileName.end())
+    {
+        if (!(std::isdigit(*it)))
+        {
+            return false;
+        }
+        ++it;
+    }
+
+    return true;
+}
+
+void ProcessList::findProcessList()
+{
+    DIR *dir;
+
+    dir = opendir("/proc");
+    if (!dir)
+    {
+        throw ProcessError(ProcessError::PROCESS_NOT_FOUND);
+    }
+
+    struct dirent *entry;
+    std::string dirName;
+    int32_t pid;
+
+    while (entry = readdir(dir))
+    {
+        dirName.clear();
+        dirName = entry->d_name;
+
+        // /proc directory contains each sub directory for each process
+        // and the sub directory's name will be the process ID of the 
+        // process. /proc file may contain other files too. So we need
+        //  to check whether the fileName is an integer number or not.
+        if (!(isDirNamePID(dirName)))
+        {
+            continue;
+        }
+
+        pid = atoi((const_cast<const char*>(dirName.c_str())));
+        Process *proc = new Process(pid);
+
+        // Lining up the process entry into the vector.
+        // It will be deleted in the destructor
+        pList.push_back(proc);
+    }
+
+    closedir(dir);
+}
   };

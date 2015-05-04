@@ -18,12 +18,18 @@
  */
 
 #include <string>
-#include "nodeStats.hxx"
-#include "proc.hxx"
+#include "clLogApi.hxx"
+#include "clNodeStats.hxx"
+#include "clProcFileSystem.hxx"
+
+using namespace SAFplusI;
+
+namespace SAFplus
+{
 
 NodeStatistics::NodeStatistics()
 {
-	readLoadAvg();
+    readLoadAvg();
     readNodeStats();
     readUpTime();
     readDiskStats();
@@ -31,17 +37,27 @@ NodeStatistics::NodeStatistics()
 
 NodeStatistics::~NodeStatistics()
 {
+    DiskStatList::iterator it;
+    for(it = diskStatList.begin(); it != diskStatList.end(); it++)
+    {
+        delete *it;
+    }
 }
 
 NodeStatistics & operator-(const NodeStatistics& b)
 {
+    //TODO:implement this.
 }
 
 void NodeStatistics::readLoadAvg()
 {
     double avg15;
     ProcFile file("/proc/loadavg"); 
-    std::string fBuf = file.getFileBuf();
+    std::string fBuf = file.loadFileContents();
+    if (fBuf.empty())
+    {
+       throw statAccessErrors("Unable to load file contents");
+    }
     scanProcLoadAvg(fBuf);
     return;
 }
@@ -49,7 +65,11 @@ void NodeStatistics::readLoadAvg()
 void NodeStatistics::readNodeStats()
 {
     ProcFile file("/proc/stat");
-    std::string fBuf = file.getFileBuf();
+    std::string fBuf = file.loadFileContents();
+    if (fBuf.empty())
+    {
+       throw statAccessErrors("Unable to load file contents");
+    }
     scanNodeStats(fBuf);
     return;
 }
@@ -57,7 +77,11 @@ void NodeStatistics::readNodeStats()
 void NodeStatistics::readUpTime()
 {
     ProcFile file("/proc/uptime");
-    std::string fBuf = file.getFileBuf();
+    std::string fBuf = file.loadFileContents();
+    if (fBuf.empty())
+    {
+       throw statAccessErrors("Unable to load file contents");
+    }
     scanUpTimeStats(fBuf);
     return;
 }
@@ -65,8 +89,13 @@ void NodeStatistics::readUpTime()
 void NodeStatistics::readDiskStats()
 {
     ProcFile file("/proc/diskstats");
-    std::string fBuf = file.getFileBuf();
+    std::string fBuf = file.loadFileContents();
+    if (fBuf.empty())
+    {
+       throw statAccessErrors("Unable to load file contents");
+    }
     scanDiskStats(fBuf);
+    return;
 }
 
 void NodeStatistics::scanProcLoadAvg(std::string fileBuf)
@@ -80,10 +109,14 @@ void NodeStatistics::scanProcLoadAvg(std::string fileBuf)
 
     if (sscanf(str, "%lf %lf %lf", &avg1, &avg5, &avg15) < 3)
     {
-        //TODO: throw exception;
+        logDebug("STAT", "SCAN", "Unable to read the CPU load average");
+        throw statAccessErrors("Unable to access Node Statistics");
     }
     
     loadAvg = avg15;
+    logTrace("STAT", "SCAN", "CPU utilization in last 15 "
+             "minutes is %lf", loadAvg);
+
     return;
 }
 
@@ -109,40 +142,63 @@ void NodeStatistics::scanNodeStats(std::string fBuf)
                    &timeServicingInterrupts,
                    &timeServicingSoftIrqs) < 7)
         {
-            //TODO: Throw exception
+            logDebug("STAT", "SCAN", "Unable to read Statistics");
+            throw statAccessErrors("Unable to access Node Statistics");
         }
     }
 
     subStr = strstr(subStr, "ctxt ");
     if (subStr)
     {
-        sscanf(subStr, "ctxt %Lu ", &numCtxtSwitches);
+        if (sscanf(subStr, "ctxt %Lu ", &numCtxtSwitches) < 1)
+        {
+            logDebug("STAT", "SCAN", "Unable to read number of context switches");
+            throw statAccessErrors("Unable to access Node Statistics");
+        }
     }
 
     subStr = strstr(subStr, "btime ");
     if (subStr)
     {
-        sscanf(subStr, "btime %Lu ", &bootTime);
+        if (sscanf(subStr, "btime %Lu ", &bootTime) < 1)
+        {
+            logDebug("STAT", "SCAN", "Unable to read system bootup time");
+            throw statAccessErrors("Unable to access Node Statistics");
+        }
     }
 
 
     subStr = strstr(subStr, "processes ");
     if(subStr)
     {
-        sscanf(subStr, "processes %Lu ", &numProcesses);
+        if (sscanf(subStr, "processes %Lu ", &numProcesses) < 1)
+        {
+            logDebug("STAT", "SCAN", "Unable to read the number "
+                     "of processes forked since boot");
+            throw statAccessErrors("Unable to access Node Statistics");
+        }
     } 
     
     subStr = strstr(subStr, "procs_running ");
     if(subStr)
     {
-        sscanf(subStr, "procs_running %Lu ", &numProcRunning);
+        if (sscanf(subStr, "procs_running %Lu ", &numProcRunning) < 1)
+        {
+            logDebug("STAT", "SCAN", "Unable to read the number of "
+                     "processes currently in running state");
+            throw statAccessErrors("Unable to access Node Statistics");
+        }
     }
 
     subStr = strstr(subStr, "procs_blocked ");
     if(subStr)
     {
-        sscanf(subStr, "procs_blocked %Lu ", &numProcBlocked);
-
+        if (sscanf(subStr, "procs_blocked %Lu ", &numProcBlocked) < 1)
+        {
+            logDebug("STAT", "SCAN", "Unable to read the number of "
+                     "processes blocked for an I/O to complete");
+            throw statAccessErrors("Unable to access Node Statistics");
+        }
     }
 
     return;
@@ -157,7 +213,7 @@ void NodeStatistics::scanUpTimeStats(std::string fBuf)
 
     if (sscanf(str, "%lf ", &sysUpTime) < 1)
     {
-        //Thorw exception
+        throw statAccessErrors("Unable to access Node Statistics");
     }
 
     return;
@@ -178,18 +234,25 @@ void NodeStatistics::scanDiskStats(std::string fBuf)
 
         lineBuf = line.c_str();
         sscanf(lineBuf, "   %*d    %*d %s", device);
-        DiskStatistics dev(device);
-        sscanf(lineBuf,"   %*d    %*d %*s %u %u %llu %*u %u %u %llu %*u %u %*u %*u",
-                &dev.numReadsCompleted,
-                &dev.numReadsMerged,
-                &dev.numSectorsRead,
-                &dev.numWritesCompleted,
-                &dev.numWritesMerged,
-                &dev.numSectorsWritten,
-                &dev.numIoInProgess);
+        DiskStatistics *dev = new DiskStatistics(device);
 
-        //TODO: now add dev into the diskStatList in NOdeStatistics class 
-    
+        if (sscanf(lineBuf,"   %*d    %*d %*s %u %u %llu %*u %u %u %llu %*u %u %*u %*u",
+                &(dev->numReadsCompleted),
+                &(dev->numReadsMerged),
+                &(dev->numSectorsRead),
+                &(dev->numWritesCompleted),
+                &(dev->numWritesMerged),
+                &(dev->numSectorsWritten),
+                &(dev->numIoInProgess)) < 7)
+        {
+            logDebug("STAT", "SCAN", "Unable to read the disk statistics");
+            throw statAccessErrors("Unable to access Node Statistics");
+        }
+
+	    //All the device entries will be put into the list and 
+	    //later will be deleted in the destructor
+	    diskStatList.push_front(dev);
+	 
         line.clear(); 
     }
 
@@ -205,3 +268,5 @@ DiskStatistics::DiskStatistics(const char *devName)
 DiskStatistics::~DiskStatistics()
 {
 }
+
+}/* namespace SAFplus */

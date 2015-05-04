@@ -47,6 +47,27 @@ namespace SAFplus
 
 
   Process executeProgram(const std::string& command, const std::vector<std::string>& env,uint_t flags=0);
+
+
+  class ProcessList
+  {
+    public:
+    typedef std::vector<Process *> ProcList;
+
+    // Vector which gives the list of process
+    ProcList pList;
+
+    ProcessList();
+    ~ProcessList();
+
+    protected:
+    // This funtion is to obtain the list of all currently running 
+    // process by checking the directories present in /proc. 
+    // This function will fill the member 'pList'
+    void findProcessList();
+    bool isDirNamePID(std::string &fileName);
+
   };
 
+  }; /* namespace SAFplus */
 #endif

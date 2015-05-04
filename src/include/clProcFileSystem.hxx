@@ -20,6 +20,9 @@
 #ifndef PROC_HXX
 #define PROC_HXX
 
+namespace SAFplusI
+{
+
 class ProcFile
 {
     private:
@@ -30,7 +33,8 @@ class ProcFile
     public:
     ProcFile(const char *fileName);
     ~ProcFile();
-    std::string getFileBuf();
+    std::string loadFileContents();
 };
+}; /*namespace SAFplusI*/
 
 #endif

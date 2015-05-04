@@ -21,7 +21,11 @@
 #include <string>
 #include <fstream>
 
-#include "proc.hxx"
+#include "clLogApi.hxx"
+#include "clProcFileSystem.hxx"
+
+namespace SAFplusI
+{
 
 ProcFile::ProcFile(const char *fileName)
 {
@@ -32,22 +36,27 @@ ProcFile::~ProcFile()
 {
 }
 
-std::string ProcFile::getFileBuf()
+std::string ProcFile::loadFileContents()
 {
     std::ifstream fStr(name.c_str());
     fStr.open(name.c_str());
     
     if(fStr.is_open())
     {
-        std::string file;
+        std::string contents;
         fStr.seekg(0, std::ios::end);
-        file.resize(fStr.tellg());
+        contents.resize(fStr.tellg());
         fStr.seekg(0, std::ios::beg);
-        fStr.read(&file[0], file.size());
+        fStr.read(&contents[0], contents.size());
         fStr.close();
-        return file;
+        return contents;
     }
-   
-    //printf("Unable to open file\n"); 
-    //TODO: print an error message and throw an exceptipon
+
+    logError("PROC", "LOAD", "Error in loading contents of the file %s", name.c_str());
+    
+    // Returning an empty string for error case. 
+    // The caller should check it
+    return std::string(); 
 }
+
+} /* namespace SAFplus */
