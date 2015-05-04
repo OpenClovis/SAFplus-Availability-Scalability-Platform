@@ -160,7 +160,8 @@ ClRcT clMsgQGroupCkptDataUnmarshal(ClMsgQGroupCkptDataT *qCkptData, const ClCach
     ClUint32T i;
 
     saNameCopy(&qCkptData->qGroupName, &inData->sectionName);
-    qCkptData->qGroupAddress = inData->sectionAddress.iocPhyAddress;
+    memcpy(&qCkptData->qGroupAddress,&inData->sectionAddress.iocPhyAddress,sizeof(ClIocPhysicalAddressT));
+    //qCkptData->qGroupAddress = inData->sectionAddress.iocPhyAddress;
 
     copyData = inData->data;
 
