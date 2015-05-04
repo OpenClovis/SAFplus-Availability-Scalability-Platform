@@ -260,6 +260,7 @@ ClRcT clMsgQueueOpen(SaMsgQueueHandleT qHandle,
 
     pQInfo->openFlags = openFlags;
     pQInfo->state = CL_MSG_QUEUE_OPEN;
+    pQInfo->closeTime = 0;
 
     CL_OSAL_MUTEX_UNLOCK(&pQInfo->qLock);
 
@@ -293,7 +294,7 @@ ClRcT clMsgQueueStatusGet(SaMsgQueueHandleT qHandle,
 
     pQueueStatus->creationFlags = pQInfo->creationFlags;
     pQueueStatus->retentionTime = pQInfo->retentionTime;
-    pQueueStatus->closeTime     = (clOsalStopWatchTimeGet() - pQInfo->closeTime) * 1000 ;
+    pQueueStatus->closeTime     = pQInfo->closeTime * 1000 ;
 
     for(i = 0; i < CL_MSG_QUEUE_PRIORITIES; ++i)
     {
