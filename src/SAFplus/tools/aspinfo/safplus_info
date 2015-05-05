@@ -257,6 +257,9 @@ def load_xml_file(filename, strip_root=None):
     
     return load_xml_string(content, strip_root)
     
+def stripNamespace(x):
+  l = x.split("}")
+  return l[-1]
 
 def load_xml_string(string, strip_root=None):
     """Parse given xml string and turn it into a nested dot object"""
@@ -266,7 +269,7 @@ def load_xml_string(string, strip_root=None):
         d = {}
         if len(node):
             for n in list(node):
-                tag = n.tag
+                tag = stripNamespace(n.tag)
                 text = n.text
                 if tag is et.Comment:
                     continue
@@ -278,6 +281,10 @@ def load_xml_string(string, strip_root=None):
                     if len(n):
                         d[tag][-1] = decode_tree(n)
 
+                    for attr,val in n.attrib.items():
+                      if attr != "value":
+                        d[tag][-1][attr] = val
+
                     if n.attrib.has_key('value'):
                         if d[tag][-1]:
                             d[tag][-1]['value'] = n.attrib.get('value').strip()
@@ -287,12 +294,13 @@ def load_xml_string(string, strip_root=None):
                         if list(n):
                             d2 = d[tag][-1]
                             for n2 in list(n):
-                              if n2.tag is et.Comment:
+                              n2tag = stripNamespace(n2.tag)
+                              if n2tag is et.Comment:
                                   continue
                               if n2.attrib.has_key('value'):
                                   pass
                               else:
-                                  d2[n2.tag][-1] =  decode_tree(n2)
+                                  d2[n2tag][-1] =  decode_tree(n2)
                             d[tag][-1] = d2
                         else:
                             d[tag][-1] = text
@@ -311,29 +319,34 @@ def load_xml_string(string, strip_root=None):
         str = ""
         if len(dom.childNodes) > 0:
             for n in dom.childNodes:
+                tag = stripNamespace(n.tagName)
                 if n.nodeType == minidom.Comment.nodeType: # Skip all comments
                     pass
                 elif n.__dict__.has_key('nodeValue'):
                     str += n.nodeValue.strip()
                 else:
-                    if not d.has_key(n.tagName):
-                        d[n.tagName] = []
-                    d[n.tagName].append({})
+                    if not d.has_key(tag):
+                        d[tag] = []
+                    d[tag].append({})
                     
                     if len(n.childNodes) > 0:
-                        d[n.tagName][-1] = decode_dom(n)
+                        d[tag][-1] = decode_dom(n)
+
+                    for attr,val in n._attrs.items():
+                      if attr != "value":
+                        d[tag][-1][attr] = val
                         
                     if n._attrs.has_key('value'):
-                        if d[n.tagName][-1]:
-                            d[n.tagName][-1]['value'] = n._attrs['value'].nodeValue
+                        if d[tag][-1]:
+                            d[tag][-1]['value'] = n._attrs['value'].nodeValue
                         else:
-                            d[n.tagName][-1] = n._attrs['value'].nodeValue
+                            d[tag][-1] = n._attrs['value'].nodeValue
                         
                     elif len(n._attrs.items())>0:
-                        d2 = d[n.tagName][-1]
+                        d2 = d[tag][-1]
                         for (k, v) in n._attrs.items():
                             d2[k] = v.nodeValue
-                        d[n.tagName][-1] = d2
+                        d[tag][-1] = d2
         else:
             return dom.nodeValue.strip()
 
@@ -349,7 +362,6 @@ def load_xml_string(string, strip_root=None):
     else:
         dom = minidom.parseString(string)
         d = decode_dom(dom)
-
     if strip_root:
         for t in strip_root:
             for tag in t:
@@ -488,6 +500,7 @@ def load_amf_config_xml():
     if not _amf_config_xml:
          _amf_config_xml = load_xml_file(_asp_dir + '/etc/clAmfConfig.xml',
                                          strip_root=(('amfConfig',),
+                                                     ('version', 'amfConfig'),  # its in the XML but parser already chops off root for some reason
                                                      ('openClovisAsp', 'version', 'amfConfig')))
     return _amf_config_xml
         
@@ -739,7 +752,8 @@ def get_node_info_from_cpm():
 
     d.nodename = asp_conf.NODENAME
     cfg = load_amf_config_xml()
-
+    # print asp_conf
+    
     try:
         d.nodeclass = str([i.type for i in cfg.nodeInstances[0].nodeInstance
                            if i.name==d.nodename][0])
@@ -752,7 +766,10 @@ def get_node_info_from_cpm():
             d.nodetype = 'worker'
     except:
         d.nodeclass = ''
-        d.nodetype = 'worker'
+        if asp_conf["SYSTEM_CONTROLLER"] == "1":
+          d.nodetype = 'controller' 
+        else:
+          d.nodetype = 'worker'
 
     d.defnodeaddr = asp_conf.DEFAULT_NODEADDR
 

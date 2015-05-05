@@ -662,7 +662,15 @@ def get_openhpid_pid():
 
 def get_amf_pid():
     while True:
-        valid = commands.getstatusoutput("/bin/pidof %s" % AmfName);
+        if os.path.exists('/bin/pidof'):  # ubuntu
+          cmd = '/bin/pidof'
+        elif os.path.exists('/sbin/pidof'):  # Centos
+          cmd = '/sbin/pidof'
+        else:
+          log.error('Cannot find "pidof" program...')
+          cmd = 'pidof'
+
+        valid = commands.getstatusoutput("%s %s" % (cmd,AmfName))
         if valid[0] == 0:
             if len(valid[1].split())==1:          
                 #log.info("AMF PID is %d" % int(valid[1]))
