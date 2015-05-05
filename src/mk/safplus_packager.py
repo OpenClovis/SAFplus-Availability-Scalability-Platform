@@ -11,8 +11,9 @@ import errno
 
 
 def file_list(dir_name, pattern='*'):
-    """Returns a list of file names having same extension present in the directory based on the pattern.
-       Default this function returns a list of files present in the directory."""
+    """ Returns a list of file names having same extension present in the directory based on the pattern.
+        Default this function returns a list of files present in the directory.
+    """
     file_names_list = []
     if check_dir_exists(dir_name):
         pattern = "{}/{}".format(dir_name, pattern)
@@ -25,12 +26,15 @@ def file_list(dir_name, pattern='*'):
 
 
 def fail_and_exit(errmsg):
-    """ This function log the error message and exit from the program."""
+    """ log the error message and exit from the script.
+    """
     log.info("{}".format(errmsg))
     sys.exit(-1)
 
 
 def check_dir_exists(dir_name):
+    """ Return true if the given dir_name existed in the file system otherwise it will return false
+    """
     return os.path.exists(dir_name)
 
 
@@ -50,8 +54,8 @@ def check_and_createdir(dir_name):
 
 def log_init():
     """ log_init() initializes a log object to standard output with required format
-         and returns a logging object"""
-
+        and returns a logging object
+    """
     logging.basicConfig(filemode='a', format='%(asctime)s %(levelname)s: %(message)s',
                         datefmt='%H:%M:%S', level=logging.DEBUG)
     return logging.getLogger("UPDATE REPO")
@@ -59,7 +63,7 @@ def log_init():
 
 # make_archive() is available from python 2.7 version onwards
 def create_archive(tar_name, tar_dir, arch_format='gztar'):
-    """
+    """ Create an archive with a given archive name and archive format for the provided directory
     """
     if check_dir_exists(tar_dir):
         log.info("Archive name is {}".format(tar_name))
@@ -70,10 +74,11 @@ def create_archive(tar_name, tar_dir, arch_format='gztar'):
 
 
 def copy_dir(src, dst):
-    """This function will recursively copy the files and sub-directories from src directory to destination directory"""
+    """This function will recursively copy the files and sub-directories from src directory to destination directory
+       suppose the sub-directory in source directory contains only object and  header( like .h .hxx .hpp .ipp) files
+       copy_dir() skips the creation of sub-directory in the destination directory
+    """
     if not check_dir_exists(dst):
-        # suppose the sub-directory in source directory contains only object and  header( like .h .hxx .hpp .ipp) files
-        # below logic skips the creation of sub-directory  in the destination directory
         files_list = file_list(src)
         p = re.compile(r'(\w+)\.(h\w+|i\w+|o)')
         obj_header_files_count = len([e for e in files_list if p.search(e)])
@@ -96,14 +101,20 @@ def copy_dir(src, dst):
 
 
 def get_target_os_release():
+    """ Return the build system kernel version. e.g 3.13.0-32-generic
+    """
     return platform.release()
 
 
 def get_target_machine():
+    """ Return the build system machine type e.g i386,x86_64
+    """
     return platform.machine()
 
 
 def get_compression_format(archive_name):
+    """ Returns archive_name without extension and compression method from the archive_name
+    """
     default_compress_format = {'tar': ('.tar', 'tar'), 'gz': ('.tar.gz', 'gztar'),
                                'bz2': ('.tar.bz2', 'bztar'), 'tgz': ('.tgz', 'gztar'),
                                'zip': ('.zip', 'zip')}
@@ -117,7 +128,10 @@ def get_compression_format(archive_name):
 
 
 def package_dirs(target_dir, tar_dir):
-
+    """ package_dirs is a helper function which will copy the directories/files from source location to destination
+        location based on the directories name. This function will identify the directory names like (lib or plugin,\
+        bin or sbin, test and share).
+    """
     if check_dir_exists(target_dir):
         for dir_name, subdir_list, filename_list in os.walk(target_dir):
             if os.path.basename(dir_name) == 'lib' or os.path.basename(dir_name) == 'plugin':
@@ -139,9 +153,15 @@ def package_dirs(target_dir, tar_dir):
 
 
 def get_image_dir_path(tar_name):
+    """ Return the image directory path from the tar_name.
+        Default this function will the current working as a image directory if it failed to extract the path
+        from tar_name.
+    """
     image_dir_path = os.path.split(tar_name)[0]
+
     if not image_dir_path:
-        image_dir_path = os.path.dirname(sys.argv[0])
+        image_dir_path = os.getcwd()
+    image_dir_path = os.path.abspath(image_dir_path)
     log.info("Image directory is {}".format(image_dir_path))
     return image_dir_path
 
@@ -206,10 +226,20 @@ def package(base_dir, tar_name, machine=None, kernel_version=None, pre_build_dir
 
 
 def usage():
+    """ print the usage and supported options of the script.
+    """
     target_platform = platform.system()
     target_machine = get_target_machine()
     target_kernel_version = get_target_os_release()
-    print "Usage is {} -s <pathtosafplusdir> -m <machineType> -t <tar_name> -k <kernel_version>".format(sys.argv[0])
+    print "{0} script will generates an archive for the given project/prebuild  directory to a given machine type and" \
+          " kernel version ".format(os.path.split(sys.argv[0])[1])
+    print "-m and -k flags are helpful in copying  the files from target/<-mflag>/<-kflag> to produce the " \
+          "archive if the project target directory contains multiple cross target platforms "
+    print "Example usage is ./{0} -p {1} -m {2} -k {3} ".\
+        format(os.path.split(sys.argv[0])[1], os.path.abspath(os.path.split(sys.argv[0])[0] +("/..")), target_platform,
+               target_kernel_version)
+    print "Syntax {} -s <pathtosafplusdir> [-m <machineType>]  [-t <tar_name>] [-k <kernel_version>]".\
+        format(sys.argv[0])
     print "Options:"
     print "-h or --help"
     print "-s or --project-dir=<PathtoProject/Applicationdir>"
@@ -222,7 +252,7 @@ def usage():
 
 
 def parser(args):
-    """Read the command line arguments, parse them, supply defaults, and return a N-tuple of all the info"""
+    """Read the command line arguments, parse them, and return a N-tuple of all the info"""
     model_dir = None
     tar_name = None
     target_machine = None
