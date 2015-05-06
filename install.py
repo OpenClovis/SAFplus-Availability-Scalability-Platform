@@ -817,14 +817,14 @@ class ASPInstaller:
             self.print_install_header()
             self.feedback('Error: Cannot find \'%s\' in directory \'%s\'\n' % (thirdPartyPkg, WORKING_ROOT))
             
-            THIRDPARTYPKG_FTPURL = os.path.join('ftp://ftp.openclovis.com/', thirdPartyPkg)        
+            THIRDPARTYPKG_FTPURL = os.path.join('http://ftp.openclovis.com/files/', thirdPartyPkg)
             #THIRDPARTYMD5_FTPURL = os.path.join('ftp://ftp.openclovis.com/pub/release/', THIRDPARTYMD5)        
             #THIRDPARTYPKG_FTPURL = os.path.join("https://github.com/downloads/OpenClovis/SAFplus-Availability-Scalability-Platform/", thirdPartyPkg) 
             # attempt to download the package. Requires wget
             
             cmd = ''
             if syscall('which wget 2>/dev/null'):
-                cmd = 'wget -t 3 --no-check-certificate --no-passive-ftp'
+                cmd = 'wget -t 3'
             elif syscall('which curl 2>/dev/null'):
                 cmd = 'curl -OL '
             
