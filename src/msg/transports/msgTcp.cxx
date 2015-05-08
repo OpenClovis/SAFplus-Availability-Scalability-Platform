@@ -289,8 +289,7 @@ namespace SAFplus
     if (msg->node == Handle::AllNodes) // Send the message to all nodes
     {
       if (transport->clusterNodes)
-      {
-        uint_t port = origMsg->port + SAFplusI::SctpTransportStartPort;
+      {        
         for (ClusterNodes::Iterator it=transport->clusterNodes->begin();it != transport->clusterNodes->endSentinel;it++)
         {
           clientSock = getClientSocket(it.nodeId(), pt);
