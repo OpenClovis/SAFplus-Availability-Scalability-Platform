@@ -40,8 +40,6 @@ namespace SAFplus
     virtual ~TcpSocket();
   protected:
     int sock;
-    //uint_t listenPort;
-    bool quitting;
     bool nagleEnabled; 
     NodeIDSocketMap clientSockMap; //TODO in case node failure: if a node got failure, this must be notified so that
     // the item associated with it in the map must be deleted too, if not, the associated socket may be invalid because of its server failure
@@ -49,9 +47,8 @@ namespace SAFplus
     int openClientSocket(uint_t nodeID, uint_t port);    
     static void* acceptClients(void* arg);
     void addToMap(sockaddr_in& client, int socket);
-    //Message* recvAll(uint_t maxMsgs,int maxDelay=-1);
     virtual void switchNagle();
-    void handleError(int retval);
+    void sendStream(int sd, short srcPort, mmsghdr* msgvec, int msgCount);
   };
   static Tcp api;
 
@@ -68,13 +65,14 @@ namespace SAFplus
   MsgTransportConfig& Tcp::initialize(MsgPool& msgPoolp,ClusterNodes* cn)
   {
     msgPool = &msgPoolp;
+    clusterNodes = cn;
     
     config.maxMsgSize = SAFplusI::TcpTransportMaxMsgSize;
     config.maxPort    = SAFplusI::TcpTransportNumPorts;
     config.maxMsgAtOnce = SAFplusI::TcpTransportMaxMsg;
     config.capabilities = SAFplus::MsgTransportConfig::Capabilities::NAGLE_AVAILABLE;
     
-    struct in_addr bip = SAFplusI::setNodeNetworkAddr(&nodeMask);      
+    struct in_addr bip = SAFplusI::setNodeNetworkAddr(&nodeMask, clusterNodes);      
     config.nodeId = SAFplus::ASP_NODEADDR;
     netAddr = ntohl(bip.s_addr)&(~nodeMask);
 
@@ -99,7 +97,6 @@ namespace SAFplus
     transport = xp;
     node = xp->config.nodeId;
     nagleEnabled = false; // Nagle algorithm is disabled by default
-    quitting = false;
 
     if ((sock = socket(AF_INET, SOCK_STREAM, 0)) < 0) 
     {
@@ -148,7 +145,7 @@ namespace SAFplus
     TcpSocket* tcp = (TcpSocket*)arg;
     struct sockaddr_in clientAddr;
     socklen_t addrlen = sizeof(clientAddr);
-    while (!tcp->quitting)
+    while (true)
     {
       int clientSock = accept(tcp->sock, (struct sockaddr *)&clientAddr, &addrlen);
       if (clientSock > 0)
@@ -157,17 +154,17 @@ namespace SAFplus
       }
       else
       {
-        logError("TCP", "ACPT", "accept error errno [%d], errmsg [%s]", errno, strerror(errno));
+        logNotice("TCP", "ACPT", "accept error errno [%d], errmsg [%s]", errno, strerror(errno));
       }
       boost::this_thread::sleep(boost::posix_time::milliseconds(10));
     }
-    logDebug("TCP", "ACPT", "QUIT the connection accept loop");
+    logTrace("TCP", "ACPT", "QUIT the connection accept loop");
     return NULL;
   }
 
   void TcpSocket::addToMap(sockaddr_in& client, int socket)
   {
-    logDebug("TCP", "ADD", "ADD TO MAP ENTER");
+    logTrace("TCP", "ADD", "Add socket to map");
     uint_t nodeId = ntohl(client.sin_addr.s_addr) & (((Tcp*)transport)->nodeMask);
     NodeIDSocketMap::iterator contents = clientSockMap.find(nodeId);
     if (contents != clientSockMap.end()) // Socket connected to this nodeId has been established, no-op
@@ -175,7 +172,7 @@ namespace SAFplus
       return;
     }
     // else add this client socket to the map with the specified nodeId   
-    logDebug("TCP", "ADD", "ADD CLIENT SOCKET [%d] TO MAP", socket); 
+    logTrace("TCP", "ADD", "Add client socket [%d] to map", socket); 
     clientSockMap[nodeId] = socket;
   }
 
@@ -184,8 +181,15 @@ namespace SAFplus
     int sd,ret;    
     struct sockaddr_in addr;    
     memset(&addr, 0, sizeof(struct sockaddr_in));    
-    addr.sin_family = AF_INET;      
-    addr.sin_addr.s_addr = htonl(((Tcp*)transport)->netAddr | nodeID);
+    addr.sin_family = AF_INET;
+    if (transport->clusterNodes)
+    {
+      addr.sin_addr.s_addr = htonl(*((uint32_t*)transport->clusterNodes->transportAddress(nodeID)));
+    }
+    else
+    {      
+      addr.sin_addr.s_addr = htonl(((Tcp*)transport)->netAddr | nodeID);
+    }
     addr.sin_port = htons(port);
 
     if((ret = (sd = socket(AF_INET, SOCK_STREAM, 0))) < 0)    
@@ -229,8 +233,8 @@ namespace SAFplus
   void TcpSocket::send(Message* origMsg)
   {
 /*
-    TCP has no concept "message" but byte (stream) of data instead. So, we cannot send a structure of message 
-    over it. We need to send data in bytes subsequently: we send the followings in order: fragCount,
+    TCP has no concept "message" but bytes (stream) of data instead. So, we cannot send a structure of message 
+    over it. We need to send data in bytes subsequently: we send the followings in order: port fragCount,
     dataLen(1) (length of actual data), data(1), dataLen(2), data(2),...dataLen(n), data(n).
     The receive side must read in the same way, then fills data to mmsghdr struct
 */
@@ -281,7 +285,25 @@ namespace SAFplus
     } while (next != NULL);
    
     uint_t pt = msg->port + SAFplusI::TcpTransportStartPort;
-    int clientSock = getClientSocket(msg->node, pt);
+    int clientSock;
+    if (msg->node == Handle::AllNodes) // Send the message to all nodes
+    {
+      if (transport->clusterNodes)
+      {
+        uint_t port = origMsg->port + SAFplusI::SctpTransportStartPort;
+        for (ClusterNodes::Iterator it=transport->clusterNodes->begin();it != transport->clusterNodes->endSentinel;it++)
+        {
+          clientSock = getClientSocket(it.nodeId(), pt);
+          sendStream(clientSock, port, &msgvec[0], msgCount);
+        }
+      }
+    }
+    else
+    {
+      clientSock = getClientSocket(msg->node, pt);
+      sendStream(clientSock, port, &msgvec[0], msgCount);
+    }
+#if 0
     // Send each fragment including fragCount and iovec buffer
     for (int i=0;i<msgCount;i++)
     {
@@ -327,8 +349,57 @@ namespace SAFplus
         }
       }
     }
+#endif
     MsgPool* temp = origMsg->msgPool;
     temp->free(origMsg);
+  }
+
+  void TcpSocket::sendStream(int sd, short srcPort, mmsghdr* msgvec, int msgCount)
+  {
+    for (int i=0;i<msgCount;i++)
+    {
+      // First attach the port to stream so that receiver knows where it is from
+      short pt = htons(srcPort);
+      int retval = ::send(sd, &pt, sizeof(pt), 0);
+      if (retval == -1)
+      {
+        int err = errno;
+        throw Error(Error::SYSTEM_ERROR,errno, strerror(errno),__FILE__,__LINE__);
+      }
+      // Second, send fragment count (number of fragment contained in the message)
+      int msg_iovlen = msgvec[i].msg_hdr.msg_iovlen;
+      int temp = htonl(msg_iovlen);
+      retval = ::send(sd, &temp, sizeof(temp), 0);
+      if (retval == -1)
+      {
+        int err = errno;
+        throw Error(Error::SYSTEM_ERROR,errno, strerror(errno),__FILE__,__LINE__);
+      }
+      for (int j=0;j<msg_iovlen;j++)
+      {      
+        //logDebug("TCP", "SEND", "Sending msg to socket [%d]", clientSock);
+        // Send iov len (the length of each iov element)
+        int iovlen = (msgvec[i].msg_hdr.msg_iov+j)->iov_len;
+        temp = htonl(iovlen);
+        retval = ::send(sd, &temp, sizeof(temp), 0);
+        if (retval == -1)
+        {
+          int err = errno;
+          throw Error(Error::SYSTEM_ERROR,errno, strerror(errno),__FILE__,__LINE__);
+        }
+        // Send each iovec buffer
+        retval = ::send(sd, (msgvec[i].msg_hdr.msg_iov+j)->iov_base, iovlen, 0);
+        if (retval == -1)
+        {
+          int err = errno;
+          throw Error(Error::SYSTEM_ERROR,errno, strerror(errno),__FILE__,__LINE__);
+        }
+        else
+        {
+          assert(retval == iovlen); 
+        }
+      }
+    }
   }
 
   Message* TcpSocket::receive(uint_t maxMsgs, int maxDelay)
@@ -342,7 +413,7 @@ namespace SAFplus
       struct iovec iovecs[SAFplusI::TcpTransportMaxFragments];
       struct timespec timeoutMem;
       struct timespec* timeout;
-      uint_t flags = MSG_WAITFORONE;
+      uint_t flags = 0;
 
       int intSize = sizeof(int);
       int fragCount, fragLen, temp;
@@ -389,7 +460,7 @@ namespace SAFplus
           //ret->msgPool->free(ret);  // clean up this unused message.  TODO: save it for the next receive call
           if (errno == EAGAIN) 
           {
-            logWarning("TCP", "RECV", "Msg not found on socket [%d]. Continue other one", clientSock);
+            logNotice("TCP", "RECV", "Msg not found on socket [%d]. Continue other one", clientSock);
             continue;  // its ok just no messages received on this socket.  This is a "normal" error not an exception, so try on another socket
           }
           throw Error(Error::SYSTEM_ERROR,errno, strerror(errno),__FILE__,__LINE__);
@@ -405,12 +476,7 @@ namespace SAFplus
             retval = recv(clientSock, &temp, intSize, flags);
             fragCount = ntohl(temp);  
             msgs[i].msg_hdr.msg_iovlen = fragCount;
-            /*retval = recv(clientSock, &temp, intSize, flags);
-            if (retval == -1)
-            {
-              int err = errno;
-              throw Error(Error::SYSTEM_ERROR,errno, strerror(errno),__FILE__,__LINE__);
-            }*/           
+                     
             for (int j=0;j<fragCount;j++)
             {
               retval = recv(clientSock, &temp, intSize, flags);
@@ -436,9 +502,7 @@ namespace SAFplus
             int msgLen = msgs[msgIdx].msg_len;            
             cur->port = srcPort;
             cur->node = vt.first;
-            MsgFragment* curFrag = cur->firstFragment;
-            //cur->port = curFrag->srcPort;        
-            //logInfo("TCP", "RECV", "set srcPort [%d] to the received msg", curFrag->srcPort);
+            MsgFragment* curFrag = cur->firstFragment;            
             for (int fragIdx = 0; (fragIdx < msgs[msgIdx].msg_hdr.msg_iovlen) && msgLen; fragIdx++,curFrag=curFrag->nextFragment)
             {
               // Apply the received size to this fragment.  If the fragment is bigger then the msg length then the entire msg must be in this buffer
@@ -458,7 +522,7 @@ namespace SAFplus
         }
       }      
       ret->msgPool->free(ret); // clean up this unused message
-      logWarning("TCP", "RECV", "No any msg found on all sockets. Returns NULL");
+      logNotice("TCP", "RECV", "No any msg found on all sockets. Returns NULL");
       return NULL;
    }
  
@@ -496,7 +560,7 @@ namespace SAFplus
        }
        else
        {
-         logInfo("TCP", "SWTNGL", "switch nagle algorithm for socket successfully");
+         logTrace("TCP", "SWTNGL", "switch nagle algorithm for socket successfully");
        }
      }
    }   
@@ -513,43 +577,14 @@ namespace SAFplus
    TcpSocket::~TcpSocket()
    {
      // Close all the sockets: both server socket itself and client sockets in the map
-     quitting = true;
-     int ret = shutdown(sock, SHUT_RDWR);
-     if (ret < 0)
-     {
-       //perror("close server socket");
-       logError("TCP","DES","SHUTDOWN SERVER SOCKET ERROR : errno [%d]; errmsg [%s]",errno,strerror(errno));       
-     }
-     else
-       logDebug("TCP","DES","SHUTDOWN SERVER SOCKET OK");
-     ret = close(sock);
-     if (ret < 0)
-     {
-       //perror("close server socket");
-       logError("TCP","DES","CLOSE SERVER SOCKET ERROR : errno [%d]; errmsg [%s]",errno,strerror(errno));       
-     }
-     else
-       logDebug("TCP","DES","CLOSE SERVER SOCKET OK");
+     shutdown(sock, SHUT_RDWR);     
+     close(sock);
      for(NodeIDSocketMap::iterator iter = clientSockMap.begin(); iter != clientSockMap.end(); iter++)
      {
        NodeIDSocketMap::value_type vt = *iter;
        int socket = vt.second;
-       ret = shutdown(socket, SHUT_RDWR);
-       if (ret < 0)
-       {
-         perror("close client socket");
-         logError("TCP","DES","SHUTDOWN CLIENT SOCKET ERROR : errno [%d]; errmsg [%s]",errno,strerror(errno));       
-       }
-       else
-         logDebug("TCP","DES","SHUTDOWN CLIENT SOCKET OK");
-       ret = close(socket);
-       if (ret < 0)
-       {
-         perror("close client socket");
-         logError("TCP","DES","CLOSE CLIENT SOCKET ERROR : errno [%d]; errmsg [%s]",errno,strerror(errno));       
-       }
-       else
-         logDebug("TCP","DES","CLOSE CLIENT SOCKET OK");
+       shutdown(socket, SHUT_RDWR);
+       close(socket);       
      }
      clientSockMap.clear();
    }
