@@ -1,4 +1,5 @@
 #pragma once
+#include <boost/thread.hpp>
 #include <clMsgBase.hxx>
 #include <ReliableFragment.hxx>
 
@@ -181,6 +182,9 @@ namespace SAFplus
     SAFplus::Mutex unackedSentQueueLock;
     ThreadCondition unackedSentQueueCond;
 
+    SAFplus::Mutex thisMutex;
+    ThreadCondition thisCond;
+
     void handleCloseImpl(void);
 
 
@@ -203,12 +207,15 @@ namespace SAFplus
     void setACK(ReliableFragment *frag);
     void getACK(ReliableFragment *frag);
     static int nextSequenceNumber(int seqn);
+    static void ReliableSocketThread(void * arg);
+    void handleReliableSocketThread(void);
 
     void sendReliableFragment(ReliableFragment *frag);
     void queueAndSendReliableFragment(ReliableFragment* frag);
-    ReliableFragment receiveReliableFragment();
-    void retransmitSegment(ReliableFragment* frag);
+    ReliableFragment* receiveReliableFragment(Handle &);
+    void retransmitFragment(ReliableFragment* frag);
     void setconnection(connectionNotification state);
+    void connectionOpened(void);
 
     public:
     Handle destination;
@@ -225,10 +232,10 @@ namespace SAFplus
     virtual void send(Message* msg,uint_t length);
     virtual void send(SAFplus::Handle destination, void* buffer, uint_t length,uint_t msgtype);
     virtual Message* receive(uint_t maxMsgs,int maxDelay=-1);
-    void connect(int timeout);
+    void connect(Handle destination, int timeout);
     void close(void);
     void closeImpl();
-    void closeImplThread(void* para);
+    static void closeImplThread(void*);
     void connectionFailure();
     void handleRetransmissionTimerFunc(void);
     void handleNullFragmentTimerFunc(void);

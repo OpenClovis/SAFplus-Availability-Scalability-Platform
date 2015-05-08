@@ -84,7 +84,7 @@ namespace SAFplus
            ReliableFragment &frag = *iter;
            try
            {
-              retransmitSegment(&frag);
+              retransmitFragment(&frag);
            }
            catch(...)
            {
@@ -410,7 +410,7 @@ namespace SAFplus
         {
            try
            {
-              retransmitSegment(&s);
+              retransmitFragment(&s);
            }
            catch (...)
            {
@@ -608,11 +608,63 @@ namespace SAFplus
         // Listening data
      }
   }
-  ReliableFragment MsgSocketReliable::receiveReliableFragment()
+  ReliableFragment* MsgSocketReliable::receiveReliableFragment(Handle &handle)
   {
+     ReliableFragment* p_Fragment = nullptr;
+     Message* p_Msg = nullptr;
+     MsgFragment* p_NextFrag = nullptr;
+     void * p_Data = nullptr;
+     int iMaxMsg = 1;
+     int iDelay = 1;
+     int iMsgType = 0;
 
+     p_Msg = this->sock->receive( iMaxMsg, iDelay);
+     if(p_Msg == nullptr)
+     {
+        return nullptr;
+     }
+     handle = p_Msg->getAddress();
+     p_NextFrag = p_Msg->firstFragment;
+     if(p_NextFrag == nullptr)
+     {
+        return nullptr;
+     }
+     p_Data = p_NextFrag->data();
+     if(p_Data)
+     {
+        iMsgType =  *((int*)p_Data);
+     }
+
+     p_NextFrag = p_NextFrag->nextFragment;
+     if(p_NextFrag == nullptr)
+     {
+        return nullptr;
+     }
+     p_Data = p_NextFrag->data();
+     if(p_Data)
+     {
+        p_Fragment = ReliableFragment::parse((Byte*)p_Data, 0, p_NextFrag->len);
+     }
+
+     fragmentType fragType = p_Fragment->getType();
+     if(fragType == fragmentType::FRAG_DATA ||
+           fragType == fragmentType::FRAG_NUL ||
+           fragType == fragmentType::FRAG_RST ||
+           fragType == fragmentType::FRAG_FIN ||
+           fragType == fragmentType::FRAG_SYN)
+     {
+        queueInfo->incCumulativeAckCounter();
+     }
+
+     if(iskeepAlive)
+     {
+        // Reset keepAliveTimer
+        // keepAliveTimer
+     }
+
+     return p_Fragment;
   }
-  void MsgSocketReliable::retransmitSegment(ReliableFragment *frag)
+  void MsgSocketReliable::retransmitFragment(ReliableFragment *frag)
   {
     if (profile->maxRetrans() > 0)
     {
@@ -651,11 +703,11 @@ namespace SAFplus
         {
            case connectionState::CONN_SYN_SENT:
            {
-//             this->lock();
-//              {
-//                 this->notify_one();
-//              }
-//              this->unlock();
+              thisMutex.lock();
+              {
+                 thisCond.notify_one();
+              }
+              thisMutex.unlock();
               break;
            }
            case connectionState::CONN_CLOSE_WAIT :
@@ -683,10 +735,10 @@ namespace SAFplus
      closeMutex.unlock();
   }
 
-  void MsgSocketReliable::closeImplThread(void* para)
+  void MsgSocketReliable::closeImplThread(void* arg)
   {
-     MsgSocketReliable* _THIS = (MsgSocketReliable*) para;
-     _THIS->handleCloseImpl();
+     MsgSocketReliable* p_this = (MsgSocketReliable*) arg;
+     p_this->handleCloseImpl();
   }
 
   void MsgSocketReliable::handleCloseImpl(void)
@@ -715,7 +767,7 @@ namespace SAFplus
      nullFragmentTimer.status=TIMER_PAUSE;
      keepAliveTimer.status=TIMER_PAUSE;
      state = connectionState::CONN_CLOSE_WAIT;
-     //boost::thread clossThread = boost::thread(MsgSocketReliable::closeImplThread, this); ???
+     boost::thread closeThread = boost::thread(MsgSocketReliable::closeImplThread, this);
   }
   void MsgSocketReliable::setconnection(connectionNotification state)
   {
@@ -729,7 +781,10 @@ namespace SAFplus
          break;
       }
       case connectionNotification::OPENED :
-      break;
+      {
+         connectionOpened();
+         break;
+      }
       case connectionNotification::REFUSED :
       break;
       case connectionNotification::RESET :
@@ -737,14 +792,82 @@ namespace SAFplus
     }
   }
 
+  void MsgSocketReliable::connectionOpened(void)
+  {
+     if(isConnected)
+     {
+        nullFragmentTimer.status = TIMER_PAUSE;
+        if(iskeepAlive)
+        {
+           keepAliveTimer.status = TIMER_PAUSE;
+        }
+        resetMutex.lock();
+        {
+           isReset = false;
+           resetCond.notify_one();
+        }
+        resetMutex.unlock();
+     }
+     else
+     {
+        thisMutex.lock();
+        {
+           isConnected = true;
+           state = connectionState::CONN_ESTABLISHED;
+        }
+        thisCond.notify_one();
+        thisMutex.unlock();
+     }
+  }
+
   MsgSocketReliable::MsgSocketReliable(uint_t port,MsgTransportPlugin_1* transport)
   {
-    sock=transport->createSocket(port);
+     sock=transport->createSocket(port);
+     queueInfo = new queueInfomation();
+     boost::thread rcvThread = boost::thread(MsgSocketReliable::ReliableSocketThread, this);
   }
   MsgSocketReliable::MsgSocketReliable(MsgSocket* socket)
   {
-    sock=socket;
+     sock=socket;
+     queueInfo = new queueInfomation();
+     boost::thread rcvThread = boost::thread(MsgSocketReliable::ReliableSocketThread, this);
   }
+
+  void MsgSocketReliable::ReliableSocketThread(void * arg)
+  {
+     MsgSocketReliable* p_this = (MsgSocketReliable*)arg;
+     p_this->handleReliableSocketThread();
+  }
+
+  void MsgSocketReliable::handleReliableSocketThread(void)
+  {
+     ReliableFragment* pFrag = nullptr;
+     fragmentType fragType = fragmentType::FRAG_UDE;
+     Handle handle;
+     while ((pFrag = receiveReliableFragment(handle)) != nullptr)
+     {
+        fragType = pFrag->getType();
+        if (fragType == fragmentType::FRAG_SYN)
+        {
+           this->destination = handle;
+           handleSYNReliableFragment((SYNFragment*)pFrag);
+        }
+        else if (fragType == fragmentType::FRAG_NAK)
+        {
+           handleNAKReliableFragment((NAKFragment*)pFrag);
+        }
+        else if (fragType == fragmentType::FRAG_ACK)
+        {
+           // do nothing.
+        }
+        else
+        {
+           handleReliableFragment(pFrag);
+        }
+        getACK(pFrag);
+     }
+  }
+
   MsgSocketReliable::~MsgSocketReliable()
   {
 	  //TODO
@@ -752,6 +875,45 @@ namespace SAFplus
 
   void MsgSocketReliable::send(Message* msg,uint_t length)
   {
+     MsgFragment* p_Frag = nullptr;
+     if (isClosed)
+     {
+         throw new Error("Socket is closed");
+     }
+
+     if (!isConnected)
+     {
+         throw new Error("Connection reset");
+     }
+
+     int totalBytes = 0;
+     resetMutex.lock();
+     {
+        while (isReset)
+        {
+           try
+           {
+              resetCond.wait(resetMutex);
+           }
+           catch (...)
+           {
+              // Handle Exception
+           }
+        }
+        int off = 0;
+        int writeBytes = 0;
+        p_Frag = msg->firstFragment;
+        while(p_Frag)
+        {
+           MsgFragment *tmp = p_Frag;
+           Byte* bytes = (Byte*)tmp->data();
+           writeBytes = tmp->len;
+           queueAndSendReliableFragment(new DATFragment(queueInfo->nextSequenceNumber(),
+                         queueInfo->getLastInSequence(), bytes, off, writeBytes));
+                   totalBytes += writeBytes;
+           p_Frag = p_Frag->nextFragment;
+        }
+     }
     //Apply reliable algorithm
     sock->send(msg);
   }
@@ -763,7 +925,238 @@ namespace SAFplus
 
   Message* MsgSocketReliable::receive(uint_t maxMsgs,int maxDelay)
   {
-    return sock->receive(maxMsgs,maxDelay);
+     Message* p_Msg = nullptr;
+     MsgFragment* p_Fragment = nullptr;
+     int totalBytes = 0;
+     int maxLen = 1024;
+     recvQueueLock.lock();
+     {
+        while (true)
+        {
+           while (inSeqRecvQueue.empty())
+           {
+              if (isClosed)
+              {
+                 throw Error("Socket is closed");
+              }
+              if (!isConnected)
+              {
+                 throw Error("Connection reset");
+              }
+
+              try
+              {
+                 if (timeout == 0)
+                 {
+                    recvQueueCond.wait(recvQueueLock);
+                 }
+                 else
+                 {
+                    recvQueueCond.timed_wait(recvQueueLock, timeout);
+                 }
+              }
+              catch (...)
+              {
+                 // Handle Exception.
+              }
+           }
+           for (ReliableFragmentList::iterator it = inSeqRecvQueue.begin();
+                 it != inSeqRecvQueue.end();)
+           {
+              ReliableFragment &s = *it;
+              ReliableFragment * p_frag = &s;
+              if (s.getType() == fragmentType::FRAG_RST)
+              {
+                 inSeqRecvQueue.erase_and_dispose(it, delete_disposer());
+                 break;
+              }
+              else if (s.getType() == fragmentType::FRAG_FIN)
+              {
+                 if (totalBytes <= 0)
+                 {
+                    inSeqRecvQueue.erase_and_dispose(it, delete_disposer());
+                    return nullptr; /* EOF */
+                 }
+                 break;
+              }
+              else if (s.getType() == fragmentType::FRAG_DATA)
+              {
+                 if(p_Msg == nullptr)
+                 {
+                    p_Msg = sock->msgPool->allocMsg();
+                 }
+
+                 int length = 0;
+                 Byte* data = ((DATFragment*) &s)->getData();
+                 length = ((DATFragment*) &s)->length() - RUDP_HEADER_LEN ;
+                 if(totalBytes + length > maxLen)
+                 {
+                    break;
+                 }
+                 p_Fragment = p_Msg->append(length);
+                 p_Fragment->set((char*)data, length);
+                 inSeqRecvQueue.erase_and_dispose(it, delete_disposer());
+                 totalBytes += length;
+              }
+              else
+              {
+                 it++;
+              }
+           }
+           if(totalBytes > 0)
+           {
+              recvQueueLock.unlock();
+              return p_Msg;
+           }
+        }
+     }
+     recvQueueLock.unlock();
+     return p_Msg;
+  }
+
+  void MsgSocketReliable::connect(Handle destination, int timeout)
+  {
+     if (timeout < 0)
+     {
+        throw Error("connect: timeout can't be negative");
+     }
+     if (isClosed)
+     {
+        throw Error("Socket is closed");
+     }
+     if (isConnected)
+     {
+        throw new Error("already connected");
+     }
+     this->destination = destination;
+     // Synchronize sequence numbers
+     state = connectionState::CONN_SYN_SENT;
+     ReliableFragment *frag = new SYNFragment(queueInfo->setSequenceNumber(0),
+         profile->maxOutstandingSegs(), profile->maxFragmentSize(),
+         profile->retransmissionTimeout(), profile->cumulativeAckTimeout(),
+         profile->nullFragmentTimeout(), profile->maxRetrans(),
+         profile->maxCumulativeAcks(), profile->maxOutOfSequence(),
+         profile->maxAutoReset());
+     queueAndSendReliableFragment(frag);
+
+     // Wait for connection establishment (or timeout)
+     bool timedout = false;
+     thisMutex.lock();
+     {
+        if (!isConnected)
+        {
+           try
+           {
+              if (timeout == 0)
+              {
+                 thisCond.wait(thisMutex);
+              }
+              else
+              {
+                 ;
+              }
+           }
+           catch (...)
+           {
+              // Hanle Exception
+           }
+        }
+     }
+     thisMutex.unlock();
+     if (state == connectionState::CONN_ESTABLISHED)
+     {
+        return;
+     }
+
+     unackedSentQueueLock.lock();
+     {
+        unackedSentQueue.clear();
+        unackedSentQueueCond.notify_all();
+     }
+     unackedSentQueueLock.unlock();
+
+     queueInfo->reset();
+     retransmissionTimer.status = TIMER_PAUSE;
+     switch (state)
+     {
+        case connectionState::CONN_SYN_SENT:
+        {
+           setconnection(connectionNotification::REFUSED);
+           state = connectionState::CONN_CLOSED;
+           if (timedout)
+           {
+              throw new Error("SocketTimeoutException");
+           }
+           throw new Error("Connection refused");
+
+        }
+        case connectionState::CONN_CLOSED:
+        case connectionState::CONN_CLOSE_WAIT:
+        {
+           state = connectionState::CONN_CLOSED;
+           throw Error("Socket closed");
+        }
+     }
+  }
+
+  void MsgSocketReliable::close()
+  {
+     closeMutex.lock();
+     {
+        if (isClosed)
+        {
+           return;
+        }
+        try
+        {
+           // Runtime.getRuntime().removeShutdownHook(_shutdownHook);
+        }
+        catch (...)
+        {
+           // Handle Exception
+        }
+        switch (state)
+        {
+           case connectionState::CONN_SYN_SENT:
+           {
+              thisMutex.lock();
+              {
+                 thisCond.notify_one();
+              }
+              thisMutex.unlock();
+              break;
+           }
+           case connectionState::CONN_CLOSE_WAIT:
+           case connectionState::CONN_SYN_RCVD:
+           case connectionState::CONN_ESTABLISHED:
+           {
+              sendReliableFragment(new FINFragment(queueInfo->nextSequenceNumber()));
+              closeImpl();
+              break;
+           }
+           case connectionState::CONN_CLOSED:
+           {
+              retransmissionTimer.isStop = true;
+              cumulativeAckTimer.isStop = true;
+              keepAliveTimer.isStop = true;
+              nullFragmentTimer.isStop = true;
+              // Close Message socket.
+              // TO DO
+              //_sock.close();
+              break;
+           }
+        }
+
+        isClosed = true;
+        state = connectionState::CONN_CLOSED;
+
+        unackedSentQueueLock.lock();
+        {
+           unackedSentQueueCond.notify_one();
+        }
+        unackedSentQueueLock.unlock();
+     }
+     closeMutex.unlock();
   }
 
 };
