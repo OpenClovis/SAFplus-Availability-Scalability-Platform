@@ -562,15 +562,20 @@ def start_hpi_subagent():
             for cm_err_msg in cm_err_msg_list:
                 log.warning(cm_err_msg)
         elif cm_is_openhpi_based():
-            if cm_requires_openhpid(): 
-                if not os.path.exists('%s/openhpid' % get_asp_bin_dir()):
-                    fail_and_exit('Need to start openhpid but it cannot '
-                                  'be found in %s' % get_asp_bin_dir())
-                pidfile=''
-                if os.getuid()!=0 :
-                    pidfile='-f %s/openhpi.pid' %get_asp_run_dir()
-                cmd = '%s/openhpid -c $OPENHPI_CONF %s'  %(get_asp_bin_dir(),pidfile)
-                os.system(cmd)
+            if cm_requires_openhpid():
+                monitor_openhpid = True
+                monitor_openhpid_val = os.getenv("SAFPLUS_MONITOR_OPENHPID")
+                if monitor_openhpid_val and (bool(int(monitor_openhpid_val)) == False):
+                    monitor_openhpid = False
+                if monitor_openhpid:
+                    if not os.path.exists('%s/openhpid' % get_asp_bin_dir()):
+                        fail_and_exit('Need to start openhpid but it cannot '
+                                      'be found in %s' % get_asp_bin_dir())
+                    pidfile=''
+                    if os.getuid()!=0 :
+                        pidfile='-f %s/openhpi.pid' %get_asp_run_dir()
+                    cmd = '%s/openhpid -c $OPENHPI_CONF %s'  %(get_asp_bin_dir(),pidfile)
+                    os.system(cmd)
 
         cmd = '(sleep 60; setsid %s/hpiSubagent -s > '\
               '/dev/null 2>&1) &' % get_asp_bin_dir()
@@ -1199,12 +1204,20 @@ def get_openhpid_pid():
         if found, returns pid
         if not found, returns 0 """
 
-    try:
-        l = Popen('ps aux | grep -i openhpid | grep -vF "grep"')
+    if os.path.exists('/bin/pidof'):  # ubuntu
+      cmd = '/bin/pidof'
+    elif os.path.exists('/sbin/pidof'):  # Centos
+      cmd = '/sbin/pidof'
+    else:
+      log.error('Cannot find "pidof" program...')
+      cmd = 'pidof'
 
-        if l:
+    try:
+        #l = Popen('ps aux | grep -i openhpid | grep -vF "grep"')
+        l = commands.getstatusoutput("%s openhpid" %cmd);
+        if l[0] == 0:
             # pid found
-            pid = int(l[0].split()[1])
+            pid = int(l[1].split()[0])
             return pid
 
     except:

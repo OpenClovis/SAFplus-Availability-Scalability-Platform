@@ -70,12 +70,17 @@ def amf_watchdog_loop():
     safe_remove(restart_disable_file)
     seen_openhpid = False
     seen_openhpid_id = 0
+    monitor_openhpid = True
+    monitor_openhpid_val = os.getenv("SAFPLUS_MONITOR_OPENHPID")
+    if monitor_openhpid_val and (bool(int(monitor_openhpid_val)) == False):
+        monitor_openhpid = False
+
     global fileLogger
     while True:
         try:
             pid = asp.get_amf_pid()
             if pid == 0:
-                logging.critical('SAFplus watchdog invoked on %s' % time.strftime('%a %d %b %Y %H:%M:%S'))
+                logging.critical('SAFplus watchdog invoked')
                 is_restart = os.access(restart_file, os.F_OK)
                 is_forced_restart = os.access(watchdog_restart_file, os.F_OK)
                 if is_restart or is_forced_restart:
@@ -140,7 +145,8 @@ def amf_watchdog_loop():
                         asp.proc_lock_file('remove')
                         sys.exit(1)
 
-            else:
+            elif monitor_openhpid:
+
                 # pid is nonzero => amf is up
                 # handle openhpid here
                 openhpid_pid = asp.get_openhpid_pid()
@@ -157,6 +163,7 @@ def amf_watchdog_loop():
                         #time.sleep(1)
                         asp.start_openhpid()
                     else:
+                        
                         if openhpid_pid != seen_openhpid_id:
                             logging.debug('SAFplus watchdog openhpid pid(%d) found as expected, nothing to do.' % openhpid_pid)
                             seen_openhpid_id = openhpid_pid
@@ -170,7 +177,7 @@ def amf_watchdog_loop():
 
             time.sleep(monitor_interval)
         except Exception,e:
-            logging.critical('%s: SAFplus watchdog received exception %s' % (time.strftime('%a %d %b %Y %H:%M:%S'),str(e)))
+            logging.critical('SAFplus watchdog received exception %s' %str(e))
             logging.critical('traceback: %s',traceback.format_exc())
             
 
@@ -206,7 +213,7 @@ def redirect_file():
     os.chdir(CURDIR)
 
 def configWatchdogLog():
-    logging.basicConfig(filename='%s/amf_watchdog.log' % asp.get_asp_log_dir(), format='%(levelname)s %(message)s', level=logging.DEBUG)
+    logging.basicConfig(filename='%s/amf_watchdog.log' % asp.get_asp_log_dir(), format='%(levelname)s %(asctime)s.%(msecs)d %(message)s', level=logging.DEBUG, datefmt='%a %d %b %Y %H:%M:%S')
     global fileLogger
     fileLogger = logging.getLogger()
 
