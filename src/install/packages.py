@@ -274,7 +274,7 @@ class OS:
                 TIPC_CONFIG.pkg_name       = 'tipcutils-2.0.0.tar.gz' #default name, can change
             elif cmp_version(self.kernelVerString, "2.6.16") > 0:
                 TIPC.version        = '1.7.7'
-                TIPC.pkg_name       = 'tipc-1.7.7.tar.gz'
+                TIPC.pkg_name       = 'tipc-1.7.7.oc.tar.gz'
                 TIPC_CONFIG.version        = '1.1.9'
                 TIPC_CONFIG.pkg_name       = 'tipcutils-1.1.9.tar.gz' #default name, can change
             elif cmp_version(self.kernelVerString, "2.6.9") > 0:
