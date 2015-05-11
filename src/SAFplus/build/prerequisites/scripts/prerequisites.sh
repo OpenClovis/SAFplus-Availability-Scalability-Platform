@@ -461,8 +461,8 @@ populate_prereqs() {
             cd - >/dev/null 2>&1
         fi
 
-        # net-snmp
-        if [ $SNMP_BUILD == "1" ]; then
+        # net-snmp removed in SAFplus 6.1; it is part of manageability
+        if [ $SNMP_BUILD == "never execute" ]; then
         echo -n "net-snmp "
         if [ -f $toolchaindir/lib/libnetsnmp.so ]; then
             echo -n "(from  $toolchaindir)"
@@ -813,6 +813,8 @@ do
                 elif [ -d ${sys}/bin -a -d ${sys}/lib ]
                 then
                     source ${sys}/build_label
+                    export PKG_CONFIG_PATH=${SAFPLUS_BTL_DIR}/${BUILD_LABEL}/lib/pkgconfig:$PKG_CONFIG_PATH
+                    # env > theenv.txt
                     populate_prereqs "${BUILD_LABEL}" "${COPY_PREREQUISITES}" "${PROJECT_ROOT}/target/${ASP_MODEL_NAME}" "${ARCH}" "${SYS}"
                     if [ $? -ne 0 ]
                     then
