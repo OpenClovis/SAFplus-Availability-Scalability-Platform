@@ -375,7 +375,7 @@ typedef struct {
  *  \param pCookie (in) Cookie which got from clCkptImmediateConsumptionRegister will be given back to 
  *                      application via this variable.
  *
- *  \retval  CL_OK The Log stream is opened successfully. 
+ *  \retval  CL_OK The function succeeded.
  *
  *  \retval  CL_ERR_TIMEOUT An implementation defined timeout occurred before the call
  *  could complete.

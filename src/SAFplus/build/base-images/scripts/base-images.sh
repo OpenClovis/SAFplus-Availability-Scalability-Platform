@@ -409,7 +409,7 @@ fi
 # Those subdirectories are the "system" directories.  Invoke the
 # populate_image function for each architecture/system directory
 echo ""
-echo "${MODEL_TARGET_ROOT}"
+echo "Model target root is ${MODEL_TARGET_ROOT}"
 for arch in ${MODEL_TARGET_ROOT}/*
 do
     if [ -d "${arch}" ]
@@ -424,8 +424,9 @@ do
                 # Now, it would be really nice if we could do some
                 # extra validation on the SYS and ARCH names.  We'll
                 # settle for looking for directories in the ${sys}
-                # directory
-                if [ -d ${sys}/bin -a -d ${sys}/lib ]
+                # directory -- NO.  That does not work in the case where ALL applications are nonSAF (i.e. model has no binaries)
+                #if [ -d ${sys}/bin -a -d ${sys}/lib ]
+                if [ 1 ]
                 then
                     populate_image ${MODEL_PATH} ${PROJECT_ROOT}/target/${ASP_MODEL_NAME} ${ARCH} ${SYS}
                     if [ $? -ne 0 ]
@@ -433,6 +434,8 @@ do
                         echo "Failure populating image for arch: ${arch} sys: ${SYS}"
                         exit 1
                     fi
+                else
+                echo "skipping because ${sys}/bin or ${sys}/lib does not exist"
                 fi
             fi
         done

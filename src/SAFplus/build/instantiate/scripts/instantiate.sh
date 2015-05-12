@@ -38,21 +38,26 @@ else
     SED_OPTION="--in-place"
 fi
 
+# make the directores if they do not exist
+mkdir -p ${TARGET_DIR}
 #
 # Create node.conf by extracting info from clAmfConfig.xml
-python ${CLOVIS_ROOT}/SAFplus/build/instantiate/scripts/extract_nodeinfo.py \
-    ${MODEL_PATH}/config/clAmfConfig.xml > ${NODE_CONF}
+echo "test test python ${CLOVIS_ROOT}/SAFplus/build/instantiate/scripts/extract_nodeinfo.py ${MODEL_PATH}/config/clAmfConfig.xml > ${NODE_CONF}"
+python ${CLOVIS_ROOT}/SAFplus/build/instantiate/scripts/extract_nodeinfo.py ${MODEL_PATH}/config/clAmfConfig.xml > ${NODE_CONF}
 
 #
 # source the node conf and target conf files to load requisite data
 source ${NODE_CONF}
 source ${TARGET_CONF}
 
+mkdir -p ${TARGET_DIR}/images/${ARCH}/etc
+mkdir -p ${TARGET_DIR}/images/${ARCH}/bin
+mkdir -p ${TARGET_DIR}/images/${ARCH}/lib
+mkdir -p ${TARGET_DIR}/images/${ARCH}/modules
 
 # Create targetconf.xml 
 TARGET_CONF_XML_FILE=${TARGET_DIR}/images/${ARCH}/etc/targetconf.xml
-python ${CLOVIS_ROOT}/SAFplus/build/instantiate/scripts/target_conf_to_xml.py \
-    ${TARGET_CONF} > ${TARGET_CONF_XML_FILE}
+python ${CLOVIS_ROOT}/SAFplus/build/instantiate/scripts/target_conf_to_xml.py ${TARGET_CONF} > ${TARGET_CONF_XML_FILE}
 
 
 #
