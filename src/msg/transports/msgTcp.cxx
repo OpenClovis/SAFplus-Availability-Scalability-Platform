@@ -225,7 +225,7 @@ namespace SAFplus
       return contents->second;
     }
     int newSock = openClientSocket(nodeID, port);
-    logDebug("TCP", "ADD", "ADD CLIENT SOCKET [%d] TO MAP", newSock); 
+    logTrace("TCP", "ADD", "Add client socket [%d] to map", newSock); 
     clientSockMap[nodeID] = newSock;
     return newSock;
   }
@@ -250,7 +250,6 @@ namespace SAFplus
     MsgFragment* nextFrag;
     MsgFragment* frag;
     int msgSize, retval;
-    int intSize = sizeof(int);
     do 
     { 
       msg = next;
@@ -410,28 +409,20 @@ namespace SAFplus
       mmsghdr msgs[SAFplusI::TcpTransportMaxMsg];  // We are doing this for perf so we certainly don't want to new or malloc it!
       //struct sockaddr_in from[SAFplusI::TcpTransportMaxMsg];
       struct iovec iovecs[SAFplusI::TcpTransportMaxFragments];
-      struct timespec timeoutMem;
-      struct timespec* timeout;
-      uint_t flags = 0;
-
-      int intSize = sizeof(int);
-      int fragCount, fragLen, temp;
+      struct timeval timeoutMem;
+      struct timeval* timeout = &timeoutMem;
+      uint_t flags = MSG_DONTWAIT;     
 
       if (maxDelay > 0)
-      {
-        timeout = &timeoutMem;
+      {        
         timeout->tv_sec = maxDelay/1000;
-        timeout->tv_nsec = (maxDelay%1000)*1000L;  // convert milli to nano, multiply by 1 million
+        timeout->tv_usec = (maxDelay%1000)*1000L;  // convert millisec to microsec, multiply by 1 thousand
       }
-      else if (maxDelay == 0)
+      else
       {
-        timeout = NULL;
-        flags = MSG_DONTWAIT;
-      }
-      else 
-      {
-        timeout = NULL;
-      }
+        timeout->tv_sec = 0;
+        timeout->tv_usec = 0;
+      }      
      
       memset(msgs,0,sizeof(msgs));
       for (int i = 0; i < 1; i++)
@@ -443,25 +434,34 @@ namespace SAFplus
         msgs[i].msg_len = 1;
         //msgs[i].msg_hdr.msg_name    = &from[i];
         //msgs[i].msg_hdr.msg_namelen = sizeof(struct sockaddr_in);
-      }
-     
+      }     
+
+      int fragCount, fragLen, temp;
       int retval, clientSock;
       short srcPort, pt;
+      fd_set rfds;      
       // Receive message from any socket from the map
       for(NodeIDSocketMap::iterator iter = clientSockMap.begin(); iter != clientSockMap.end(); iter++)
       {       
         NodeIDSocketMap::value_type vt = *iter;
         clientSock = vt.second; 
+        FD_ZERO(&rfds);
+        FD_SET(clientSock, &rfds);
+        retval = select(clientSock+1, &rfds, NULL, NULL, timeout);
+        if (retval == -1) 
+        {
+          int err = errno;
+          throw Error(Error::SYSTEM_ERROR,errno, strerror(errno),__FILE__,__LINE__);
+        }
+        else if (!retval)
+        {
+          logNotice("TCP", "RECV", "Msg recv timeout on socket [%d]. Continue other one", clientSock);          
+          continue;
+        }
         retval = recv(clientSock, &pt, sizeof(short), flags);
         if (retval == -1)
         {
-          int err = errno;
-          //ret->msgPool->free(ret);  // clean up this unused message.  TODO: save it for the next receive call
-          if (errno == EAGAIN) 
-          {
-            logNotice("TCP", "RECV", "Msg not found on socket [%d]. Continue other one", clientSock);
-            continue;  // its ok just no messages received on this socket.  This is a "normal" error not an exception, so try on another socket
-          }
+          int err = errno;          
           throw Error(Error::SYSTEM_ERROR,errno, strerror(errno),__FILE__,__LINE__);
         }
         else
@@ -472,13 +472,13 @@ namespace SAFplus
           {  
             srcPort = ntohs(pt);
             // next, read the fragment count  
-            retval = recv(clientSock, &temp, intSize, flags);
+            retval = recv(clientSock, &temp, sizeof(temp), flags);
             fragCount = ntohl(temp);  
             msgs[i].msg_hdr.msg_iovlen = fragCount;
                      
             for (int j=0;j<fragCount;j++)
             {
-              retval = recv(clientSock, &temp, intSize, flags);
+              retval = recv(clientSock, &temp, sizeof(temp), flags);
               if (retval == -1)
               {
                 int err = errno;         

@@ -360,7 +360,7 @@ namespace SAFplus
         {
         timeout = &timeoutMem;
         timeout->tv_sec = maxDelay/1000;
-        timeout->tv_nsec = (maxDelay%1000)*1000L;  // convert milli to nano, multiply by 1 million
+        timeout->tv_nsec = (maxDelay%1000)*1000000L;  // convert milli to nano, multiply by 1 million
         }
       else if (maxDelay == 0)
         {
