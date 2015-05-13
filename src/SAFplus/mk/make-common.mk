@@ -824,12 +824,12 @@ ifneq ($(strip $(ALL_OBJ_FILES)),)
 )
 else
 $(foreach lib,$(ALL_STATIC_LIB_NAMES), \
-   $(shell $(ECHO) "$(LIB_DIR)/$(lib).a: $(addprefix $(OBJ_DIR)/,$(subst .cxx,.o,$(notdir $(SRC_FILES_$(lib):.c=.o))))" >> $(INC_DIR)/libs.mk\
+   $(shell $(ECHO) "$(LIB_DIR)/$(lib).a: $(addprefix $(OBJ_DIR)/,$(subst .cpp,.o,$(subst .cxx,.o,$(notdir $(SRC_FILES_$(lib):.c=.o)))))" >> $(INC_DIR)/libs.mk\
    && $(ECHO) -e  '\t$$(call cmd,ar)' >> $(INC_DIR)/libs.mk))
 $(foreach lib,$(ALL_SHARED_LIB_NAMES), \
    $(shell $(ECHO) "$(LIB_DIR)/$(lib).so: $(LIB_DIR)/$(SHARED_DIR)/$(lib).so.$(ASP_VERSION)" >> $(INC_DIR)/libs.mk\
         && $(ECHO) -e '\t$$(call cmd,ln) $(SHARED_DIR)/$(lib).so.$(ASP_VERSION) $(LIB_DIR)/$(lib).so\n' >> $(INC_DIR)/libs.mk\
-        && $(ECHO) "$(LIB_DIR)/$(SHARED_DIR)/$(lib).so.$(ASP_VERSION): $(addprefix $(OBJ_DIR)/,$(subst .cxx,.o,$(notdir $(SRC_FILES_$(lib):.c=.o))))" >> $(INC_DIR)/libs.mk\
+        && $(ECHO) "$(LIB_DIR)/$(SHARED_DIR)/$(lib).so.$(ASP_VERSION): $(addprefix $(OBJ_DIR)/,$(subst .cpp,.o,$(subst .cxx,.o,$(notdir $(SRC_FILES_$(lib):.c=.o)))))" >> $(INC_DIR)/libs.mk\
         && $(ECHO) -e  '\t$$(call cmd,link_shared)' >> $(INC_DIR)/libs.mk\
         ))
 endif
