@@ -73,7 +73,7 @@ def create_archive(tar_name, tar_dir, arch_format='gztar'):
         fail_and_exit("Archive directory {} not exists".format(tar_dir))
 
 
-def copy_dir(src, dst):
+def copy_dir(src, dst, recursion=0):
     """This function will recursively copy the files and sub-directories from src directory to destination directory
        suppose the sub-directory in source directory contains only object and  header( like .h .hxx .hpp .ipp) files
        copy_dir() skips the creation of sub-directory in the destination directory
@@ -85,31 +85,22 @@ def copy_dir(src, dst):
         if len(files_list) != 0 and len(files_list) == obj_header_files_count:
             return
         createdir(dst)
+    log.debug(recursion*" " + src)
     for item in os.listdir(src):
         s = os.path.join(src, item)
         d = os.path.join(dst, item)
         if os.path.isdir(s):
-            copy_dir(s, d)
+            copy_dir(s, d,recursion+3)
         else:
             if not os.path.exists(d) or os.stat(src).st_mtime - os.stat(dst).st_mtime > 1:
                 # Below regular expression skips the copying of object files and header files
                 # into the destination directory
                 if not re.search(r'(\w+)\.(h\w+|i\w+|o)', s):
+                    log.debug((recursion+1)*" " + s + " -> " + d)
                     shutil.copy(s, d)
+                    # mark any python or shell scripts as executable
                     if re.search(r'(\w+).(py|sh)', d):
                         os.chmod(d, 0o755)
-
-
-def get_target_os_release():
-    """ Return the build system kernel version. e.g 3.13.0-32-generic
-    """
-    return platform.release()
-
-
-def get_target_machine():
-    """ Return the build system machine type e.g i386,x86_64
-    """
-    return platform.machine()
 
 
 def get_compression_format(archive_name):
@@ -129,7 +120,7 @@ def get_compression_format(archive_name):
 
 def package_dirs(target_dir, tar_dir):
     """ package_dirs is a helper function which will copy the directories/files from source location to destination
-        location based on the directories name. This function will identify the directory names like (lib or plugin,\
+        location based on the directories name. This function will identify the directory names like (lib or plugin,
         bin or sbin, test and share).
     """
     if check_dir_exists(target_dir):
@@ -149,7 +140,7 @@ def package_dirs(target_dir, tar_dir):
             else:
                 pass
     else:
-        log.info(" {} does not exists".format(target_dir))
+        log.info(" {} does not exist".format(target_dir))
 
 
 def get_image_dir_path(tar_name):
@@ -162,7 +153,7 @@ def get_image_dir_path(tar_name):
     if not image_dir_path:
         image_dir_path = os.getcwd()
     image_dir_path = os.path.abspath(image_dir_path)
-    log.info("Image directory is {}".format(image_dir_path))
+    # redundant with later log: log.info("Image directory is {}/image".format(image_dir_path))
     return image_dir_path
 
 
@@ -170,7 +161,7 @@ def get_image_file_name(tar_name):
     image_file_name = os.path.split(tar_name)[1]
     if not image_file_name:
         image_file_name = tar_name
-    log.info("Image File Name is {}".format(image_file_name))
+    log.debug("Image File Name is {}".format(image_file_name))
     return image_file_name
 
 
@@ -181,46 +172,54 @@ def package(base_dir, tar_name, machine=None, kernel_version=None, pre_build_dir
     if base_dir:
         log.info("SAFPlus Model directory is {}".format(base_dir))
 
+    # Break the output file name into its components so we can ...
     image_dir_path = get_image_dir_path(tar_name)
     image_file_name = get_image_file_name(tar_name)
     image_dir = "{}/images".format(image_dir_path)
+
+    # Blow away the old staging directory if it exists and recreate it
     if check_dir_exists(image_dir):
-        log.info("Back up the already existed image directory")
-        image_backup_dir = "{}/images_backup".format(image_dir_path)
-        if check_dir_exists(image_backup_dir):
-            shutil.rmtree(image_backup_dir)
-        shutil.move(image_dir, image_backup_dir)
+        shutil.rmtree(image_dir)
+        # There's no need to copy it somewhere else... nobody needs it.
+        #log.info("Backing up the already existed image directory")
+        #image_backup_dir = "{}/images_backup".format(image_dir_path)
+        #if check_dir_exists(image_backup_dir):
+        #    shutil.rmtree(image_backup_dir)
+        #shutil.move(image_dir, image_backup_dir)
+
     createdir(image_dir)
+
+    # If the user does not supply the crossbuild into, assume the local machine -- so get the local machine's data
     if not machine:
-        machine = get_target_machine()
+        machine = platform.machine()  # architecture, e.g. x86_64
 
     if not kernel_version:
-        kernel_version = get_target_os_release()
+        kernel_version = platform.release() # e.g 3.13.0-32-generic
 
-    log.info("Target platform Machine Type:{}".format(machine))
-    log.info("Target platform Kernel Version:{}".format(kernel_version))
-    log.info("Target platform Image directory is {}".format(image_dir))
-
+    # Print out what was discovered so user can visually verify.
+    log.info("Target platform machine type:{}".format(machine))
+    log.info("Target platform kernel version:{}".format(kernel_version))
+    log.info("Target platform image directory is {}".format(image_dir))
     tar_name, compress_format = get_compression_format(image_file_name)
     tar_dir = "{}/{}".format(image_dir, tar_name)
     check_and_createdir(tar_dir)
-    log.info("Packaging the SAFPlus services binaries libraries tests and 3rd party utilities")
-    if pre_build_dir:
+    log.info("Packaging files from {0} and {1}".format(pre_build_dir,base_dir));
+
+    if pre_build_dir:  # Create the actual prebuilt dir by combining what the user passed with the arch and kernel.
         target_dir = "{0}/target/{1}/{2}".format(pre_build_dir, machine, kernel_version)
-        log.info("Pre-build target platform related SAFPlus binaries, libraries and third party utilities are"
-                 " present in {}".format(target_dir))
+        log.info("Prebuilt target platform related SAFPlus binaries, libraries, and third party utilities are present in {}".format(target_dir))
         if check_dir_exists(pre_build_dir):
             pre_build_dir = "{}/target/{}/{}".format(pre_build_dir, machine, kernel_version)
             package_dirs(pre_build_dir, tar_dir)
 
     if base_dir:
         target_dir = "{0}/target/{1}/{2}".format(base_dir, machine, kernel_version)
-        log.info("SAFPlus binaries, libraries and third party utilities related to target platform are "
-                 "present in {}".format(target_dir))
+        log.info("SAFPlus binaries, libraries and third party utilities related to target platform are present in {}".format(target_dir))
         package_dirs(target_dir, tar_dir)
+    log.info("Packaging complete")
 
-    log.info("Archive Name is {0} Archive compression format is {1}".format(tar_name, compress_format))
-    tar_name = os.path.join(image_dir, tar_name)
+    log.info("Archive name is {0} Archive compression format is {1}".format(tar_name, compress_format))
+    # put the tarball exactly where the requested on the command line: tar_name = os.path.join(image_dir, tar_name)
     create_archive(tar_name, image_dir, compress_format)
     pass
 
@@ -229,26 +228,46 @@ def usage():
     """ print the usage and supported options of the script.
     """
     target_platform = platform.system()
-    target_machine = get_target_machine()
-    target_kernel_version = get_target_os_release()
-    print "{0} script will generates an archive for the given project/prebuild  directory to a given machine type and" \
-          " kernel version ".format(os.path.split(sys.argv[0])[1])
-    print "-m and -k flags are helpful in copying  the files from target/<-mflag>/<-kflag> to produce the " \
-          "archive if the project target directory contains multiple cross target platforms "
-    print "Example usage is ./{0} -p {1} -m {2} -k {3} ".\
-        format(os.path.split(sys.argv[0])[1], os.path.abspath(os.path.split(sys.argv[0])[0] +("/..")), target_platform,
-               target_kernel_version)
-    print "Syntax {} -s <pathtosafplusdir> [-m <machineType>]  [-t <tar_name>] [-k <kernel_version>]".\
-        format(sys.argv[0])
-    print "Options:"
-    print "-h or --help"
-    print "-s or --project-dir=<PathtoProject/Applicationdir>"
-    print "-m or --target-machine=<target architecture type> Ex: x86_64 x86 Default is {}".format(target_machine)
-    print "-k or --target-os-kernel-version=<target operating system KernelVersion> Default is {}"\
-        .format(target_kernel_version)
-    print "-t or --tar-name=<archive name>"
-    print "  default tar_name is {0}_{1}_{2}".format(target_platform, target_machine, target_kernel_version)
-    print "-p or --safplus-prebuild-dir=<PathtoSafplusPrebuildDir>"
+    target_machine = platform.machine()
+    target_kernel_version = platform.release()
+    progName = os.path.split(sys.argv[0])[1]
+    print """
+The {0} script generates an archive for the given project/prebuild  directory
+to a given machine type and kernel version.""".format(os.path.split(sys.argv[0])[1])
+    print """
+If you are producing a cross build, use the -m and -k flags to copy files from
+the appropriate target/<-m flag>/<-k flag> directory to produce an archive for
+your target architecture."""
+    print """
+Syntax {} [-p <pathToProject>] [-s <pathToSAFplus>] [-m <machineType>] [-k <kernelVersion>] [[-o] <outputFile>]""".format(sys.argv[0])
+    print """
+Options:
+  -h or --help: This help
+  -p or --project-dir=<PathtoProject/Applicationdir>
+  -s or --safplus-dir=<PathtoSafplusLibraryDir>
+  -m or --target-machine=<target architecture type>
+     Ex: x86_64 x86 Default is {tgtMachine}
+  -k or --target-os-kernel-version=<target operating system kernel version>
+     Default is {kernelVersion}
+  -o or --output=<archive name>
+     Output file name. Can also be supplied as the first non-flag argument.  
+     Extension selects the format (.tgz, .tar.gz, or .zip)
+     default output file is {tp}_{tm}_{tk}
+""".format(tgtMachine=target_machine,kernelVersion=target_kernel_version,tp=target_platform, tm=target_machine, tk=target_kernel_version)
+
+    print """Example usage:
+
+Package SAFplus into safplus.zip:
+$ {sp} safplus.zip
+
+Package SAFplus and a project together into myApp.tgz
+$ {sp} [TODO]
+
+Crossbuild packaging:
+
+$ {sp} -s {s} -m {m} -k {k} crossPkg.zip""".\
+        format(s=os.path.abspath(os.path.split(sys.argv[0])[0] +("/..")), m=target_machine,
+               k=target_kernel_version, sp=progName)
 
 
 def parser(args):
@@ -259,14 +278,14 @@ def parser(args):
     target_kernel_version = None
     pre_build_dir = None
     try:
-        opts, args = getopt.getopt(args, "hm:k:s:t:p:", ["help", "project-dir=", "target-machine=",
-                                                         "target-kernel=", "tar-name=", "safplus-pre-build-dir="])
+        opts, args = getopt.getopt(args, "hm:k:s:o:p:", ["help", "project-dir=", "target-machine=",
+                                                         "target-kernel=", "tar-name=", "safplus-dir="])
     except getopt.GetoptError as err:
-        log.info("{}".format(err))
+        log.error("{}".format(err))
         usage()
         sys.exit(0)
-    if not opts:
-        log.info("Unrecognised options to the script")
+    if not opts and not args:
+        log.error("Unrecognised options to the script")
         usage()
         sys.exit(0)
 
@@ -274,23 +293,26 @@ def parser(args):
         if opt in ("-h", "--help"):
             usage()
             sys.exit()
-        elif opt in ("-s", "--project-dir="):
+        elif opt in ("-p", "--project-dir="):
             model_dir = get_option_value(arg)
-            log.info("Model dir is {}".format(model_dir))
-        elif opt in ("-t", "--tar-name"):
+            log.info("Project dir is {}".format(model_dir))
+        elif opt in ("-o", "--output"):
             tar_name = get_option_value(arg)
-            log.info("Archive Name is {}".format(tar_name))
+            log.debug("Archive name is {}".format(tar_name))
         elif opt in ("-a", "--target-machine"):
             target_machine = get_option_value(arg)
             log.info("target-machine is {}".format(target_machine))
         elif opt in ("-r", "--target-kernel"):
             target_kernel_version = get_option_value(arg)
             log.info("target-os-kernel-version is {}".format(target_kernel_version))
-        elif opt in ("-p", "--safplus-prebuild-dir"):
+        elif opt in ("-s", "--safplus-dir"):
             pre_build_dir = get_option_value(arg)
-            log.info("Pre-build dir {}".format(pre_build_dir))
+            log.info("SAFplus dir {}".format(pre_build_dir))
         else:
             pass
+    if len(args) >= 1:
+      tar_name = args[0]
+
 
     if tar_name is None:
         tar_name = "safplus_{}_{}".format(get_target_machine(), get_target_os_release())
@@ -309,8 +331,10 @@ def get_option_value(arg_val):
 
 
 def main():
-    log.info("Command line Arguments are {}".format(sys.argv))
+    log.debug("Command line Arguments are {}".format(sys.argv))
     model_dir, tar_name, target_machine, target_kernel, pre_build_dir = parser(sys.argv[1:])
+    if pre_build_dir is None:
+      pre_build_dir = os.path.abspath(os.path.dirname(__file__) + os.sep + '..')
     package(model_dir, tar_name, target_machine, target_kernel, pre_build_dir)
 
 
