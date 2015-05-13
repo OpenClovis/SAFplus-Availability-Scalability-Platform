@@ -32,39 +32,38 @@ using namespace Mgt::Msg;
 namespace SAFplus
 {
 // Mgt Checkpoint
-  Checkpoint* MgtFunction::m_pMgtCheckpoint = 0;
+  Checkpoint* MgtFunction::mgtCheckpoint = 0;
 
   Checkpoint* MgtFunction::getMgtCheckpoint()
   {
-     if(!m_pMgtCheckpoint)
+     if(!mgtCheckpoint)
      {
-        m_pMgtCheckpoint = new Checkpoint(MGT_CKPT, Checkpoint::SHARED | Checkpoint::REPLICATED ,
+        mgtCheckpoint = new Checkpoint(MGT_CKPT, Checkpoint::SHARED | Checkpoint::REPLICATED ,
               1024*1024,
               SAFplusI::CkptDefaultRows);
-        m_pMgtCheckpoint->name = "safplusMgt";
+        mgtCheckpoint->name = "safplusMgt";
      }
-     return m_pMgtCheckpoint;
+     return mgtCheckpoint;
   }
 
   SAFplus::Handle& MgtFunction::getHandle(const std::string& pathSpec, ClRcT &errCode)
   {
     errCode = CL_OK;
-    int nFind = 0;
-    int nIdx = 0;
-    int nEnd = 0;
+    int find = 0;
+    int idx = 0;
     bool isValid = false;
     int length = pathSpec.length();
-    for(nIdx = 0; nIdx < length; nIdx++)
+    for(idx = 0; idx < length; idx++)
       {
-        if(pathSpec[nIdx] == '/')
+        if(pathSpec[idx] == '/')
           {
-            nFind++;
+            find++;
           }
-        if(nFind == 2)
+        if(find == 2)
           {
             isValid = true;
           }
-        if(nFind == 3)
+        if(find == 3)
           {
             break;
           }
@@ -75,10 +74,9 @@ namespace SAFplus
         errCode = CL_ERR_INVALID_PARAMETER;
         return *((Handle*) NULL);
       }
-    Checkpoint* pCheckPoint = getMgtCheckpoint();
-    std::string xpath = pathSpec.substr(0, nIdx);
-    //printf("MgtFunction::mgtGet-Xpath = %s\n", xpath.c_str());
-    const Buffer& buff = m_pMgtCheckpoint->read(xpath);
+
+    std::string xpath = pathSpec.substr(0, idx);
+    const Buffer& buff = getMgtCheckpoint()->read(xpath);
     if (&buff)
       {
         Handle &hdl = *((Handle*) buff.data);
@@ -86,7 +84,7 @@ namespace SAFplus
       }
     else
       {
-        errCode = CL_ERR_FAILED_OPERATION;
+        errCode = CL_ERR_DOESNT_EXIST;
       }
     return *((Handle*) NULL);
   }

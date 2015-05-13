@@ -30,7 +30,7 @@ namespace SAFplus
   {
   public:
      // Mgt Checkpoin
-    static Checkpoint* m_pMgtCheckpoint;
+    static Checkpoint* mgtCheckpoint;
     static Checkpoint* getMgtCheckpoint();
     static SAFplus::Handle& getHandle(const std::string& pathSpec, ClRcT &errCode);
 

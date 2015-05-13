@@ -72,7 +72,7 @@ protected:
     /*
      * Mgt Checkpoit
      */
-    Checkpoint m_Checkpoint;
+    Checkpoint mgtCheckpoint;
 
 
 public:
