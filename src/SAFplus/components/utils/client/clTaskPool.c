@@ -791,7 +791,7 @@ static ClRcT taskPoolMonitorSet(ClBoolT disable)
     tRef = clTaskPoolDataGet();
     if(tRef == NULL)
     {
-        clLogError("MONITOR", "DISABLE", "Task pool monitor disable failed with [%#x]", rc);
+        //clLogTrace("MONITOR", "SET", "Task pool monitor set failed with [%#x]", rc);
         return rc;
     }
     if(!(tp = tRef->tp))
