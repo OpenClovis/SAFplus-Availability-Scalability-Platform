@@ -26,6 +26,7 @@ EXE_FLAGS = -m 0755
 .PHONY : all clean
 
 all:
+	$(shell mkdir -p $(MODEL_BIN))
 	$(shell install $(PROGS) $(EXE_FLAGS) $(MODEL_BIN))
 
 lib:
