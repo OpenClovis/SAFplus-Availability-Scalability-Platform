@@ -590,7 +590,7 @@ int main(int argc, char* argv[])
   strncpy(clusterGroupData.nodeName,SAFplus::ASP_NODENAME,NODENAME_LEN);
   // TODO: clusterGroupData.backplaneIp = 
   clusterGroup.registerEntity(myHandle, credential, (void*) &clusterGroupData, sizeof(ClusterGroupData),capabilities);
-  MgtFunction::registerEntity(myHandle);
+//  MgtFunction::registerEntity(myHandle);
 #endif
   logInfo("AMF","HDL", "I AM [%" PRIx64 ":%" PRIx64 "]", myHandle.id[0],myHandle.id[1]);
 

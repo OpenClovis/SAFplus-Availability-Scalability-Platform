@@ -31,29 +31,64 @@ using namespace Mgt::Msg;
 
 namespace SAFplus
 {
-  Group *MgtFunction::mgtGroup = 0;
+// Mgt Checkpoint
+  Checkpoint* MgtFunction::m_pMgtCheckpoint = 0;
 
-  Group *MgtFunction::getGroup()
+  Checkpoint* MgtFunction::getMgtCheckpoint()
   {
-    if (!mgtGroup)
+     if(!m_pMgtCheckpoint)
+     {
+        m_pMgtCheckpoint = new Checkpoint(MGT_CKPT, Checkpoint::SHARED | Checkpoint::REPLICATED ,
+              1024*1024,
+              SAFplusI::CkptDefaultRows);
+        m_pMgtCheckpoint->name = "safplusMgt";
+     }
+     return m_pMgtCheckpoint;
+  }
+
+  SAFplus::Handle& MgtFunction::getHandle(const std::string& pathSpec, ClRcT &errCode)
+  {
+    errCode = CL_OK;
+    int nFind = 0;
+    int nIdx = 0;
+    int nEnd = 0;
+    bool isValid = false;
+    int length = pathSpec.length();
+    for(nIdx = 0; nIdx < length; nIdx++)
       {
-        mgtGroup = new Group(MGT_GROUP, "safplusMgtObjectImplementers");
-        //mgtGroup->init(MGT_GROUP);
+        if(pathSpec[nIdx] == '/')
+          {
+            nFind++;
+          }
+        if(nFind == 2)
+          {
+            isValid = true;
+          }
+        if(nFind == 3)
+          {
+            break;
+          }
       }
-
-    return mgtGroup;
-  }
-
-  void MgtFunction::registerEntity(Handle handle)
-  {
-    Group *group = MgtFunction::getGroup();
-    group->registerEntity(handle, 0, NULL, 0, 0);
-  }
-
-  void MgtFunction::deregisterEntity(Handle handle)
-  {
-    Group *group = MgtFunction::getGroup();
-    group->deregister(handle);
+    if (!isValid)
+      {
+        // Invalid xpath
+        errCode = CL_ERR_INVALID_PARAMETER;
+        return *((Handle*) NULL);
+      }
+    Checkpoint* pCheckPoint = getMgtCheckpoint();
+    std::string xpath = pathSpec.substr(0, nIdx);
+    //printf("MgtFunction::mgtGet-Xpath = %s\n", xpath.c_str());
+    const Buffer& buff = m_pMgtCheckpoint->read(xpath);
+    if (&buff)
+      {
+        Handle &hdl = *((Handle*) buff.data);
+        return hdl;
+      }
+    else
+      {
+        errCode = CL_ERR_FAILED_OPERATION;
+      }
+    return *((Handle*) NULL);
   }
 
   std::string MgtFunction::mgtGet(SAFplus::Handle src, const std::string& pathSpec)
@@ -110,15 +145,12 @@ namespace SAFplus
       }
     else  // Object Implementer not found. Broadcast message to get data
       {
-        Group *group = MgtFunction::getGroup();
-
-        for (Group::Iterator it = group->begin();it != group->end(); it++)
-          {
-            Handle hdl = it->first;
-            output = mgtGet(hdl, pathSpec);
-            if (output.length() != 0)
-              return output;
-          }
+        ClRcT errCode;
+        Handle &hdl = getHandle(pathSpec, errCode);
+        if((errCode == CL_OK) && (NULL != &hdl))
+        {
+          output = mgtGet(hdl, pathSpec);
+        }
       }
     return output;
   }
@@ -170,11 +202,9 @@ namespace SAFplus
       }
     else  // Object Implementer not found. Broadcast message to get data
       {
-        Group *group = MgtFunction::getGroup();
-
-        for (Group::Iterator it = group->begin();it != group->end(); it++)
+        Handle &hdl = getHandle(pathSpec, ret);
+        if((ret == CL_OK) && (NULL != &hdl))
           {
-            Handle hdl = it->first;
             ret = mgtSet(hdl, pathSpec, value);
             if ((ret == CL_OK) || (ret != CL_ERR_IGNORE_REQUEST))
               return ret;
@@ -242,11 +272,9 @@ namespace SAFplus
       }
     else  // Object Implementer not found. Broadcast message to get data
       {
-        Group *group = MgtFunction::getGroup();
-
-        for (Group::Iterator it = group->begin();it != group->end(); it++)
+        Handle &hdl = getHandle(pathSpec, ret);
+        if((ret == CL_OK) && (NULL != &hdl))
           {
-            Handle hdl = it->first;
             ret = mgtCreate(hdl, pathSpec);
             if ((ret == CL_OK) || (ret != CL_ERR_IGNORE_REQUEST))
               return ret;
@@ -314,15 +342,11 @@ namespace SAFplus
       }
     else  // Object Implementer not found. Broadcast message to get data
       {
-        Group *group = MgtFunction::getGroup();
-
-        for (Group::Iterator it = group->begin();it != group->end(); it++)
-          {
-            Handle hdl = it->first;
-            ret = mgtDelete(hdl, pathSpec);
-            if ((ret == CL_OK) || (ret != CL_ERR_IGNORE_REQUEST))
-              return ret;
-          }
+        Handle &hdl = getHandle(pathSpec, ret);
+        if((ret == CL_OK) && (NULL != &hdl))
+         {
+           ret = mgtDelete(hdl, pathSpec);
+         }
       }
     return ret;
   }

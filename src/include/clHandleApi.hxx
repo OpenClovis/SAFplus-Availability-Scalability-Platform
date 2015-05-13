@@ -200,6 +200,7 @@ namespace SAFplus
   const WellKnownHandle MGT_GROUP(11,0,0);       //? This group represents all mgt clients (object implementers)
 
   const WellKnownHandle CLOUD_DISCOVERY_GROUP(12,0,0); //? This group represents all nodes in the cloud
+  const WellKnownHandle MGT_CKPT(13,0,0);       //? The checkpoint that matches MGT object to arbitrary data
  
   //? Return a new handle that uses a "well known" id but is qualified by a specific node and port.  By convention, this handle will be used for the entity that implements a well known service on a particular node
   inline Handle wellKnownEntity(const WellKnownHandle& h, int port, int node,uint_t clusterId=0)

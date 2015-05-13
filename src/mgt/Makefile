@@ -13,10 +13,17 @@ CLIENT_OBJ := $(addprefix $(MWOBJ_DIR)/,$(subst .cc,.o, $(subst .cxx,.o,$(CLIENT
 
 SAFplusRpcGen := $(SAFPLUS_TARGET)/bin/protoc-gen-rpc
 
+# Specify the required libraries
+SAFPLUS_LIBS := clCkpt clGroup
+# Then use these in the make rule
+SAFPLUS_DEP_LIBS     := $(addsuffix .so,$(addprefix $(LIB_DIR)/lib,$(SAFPLUS_LIBS)))
+SAFPLUS_LINK_LIBS := -L$(LIB_DIR) $(addprefix -l,$(SAFPLUS_LIBS))  
+
+
 Release all: $(LIB_DIR)/libclMgt.so
 
-$(LIB_DIR)/libclMgt.so: $(CLIENT_OBJ)
-	$(LINK_SO) $@ $+ $(LINK_SO_LIBS) `pkg-config --libs protobuf`
+$(LIB_DIR)/libclMgt.so: $(CLIENT_OBJ) $(SAFPLUS_DEP_LIBS)
+	$(LINK_SO) $@ $+ $(LINK_SO_LIBS) $(SAFPLUS_LINK_LIBS) `pkg-config --libs protobuf`
 
 $(MWOBJ_DIR)/%.o: %.cxx Makefile $(CLIENT_H)
 	$(COMPILE_CPP) $@ $<

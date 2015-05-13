@@ -40,7 +40,7 @@
 #include <clMsgApi.hxx>
 #include <clMgtMsg.hxx>
 #include "clCommon.hxx"
-
+#include <clCkptApi.hxx> // to use checkpoint
 namespace Mgt
   {
     namespace Msg
@@ -68,6 +68,12 @@ protected:
      * Store the list of MGT module
      */
     std::map<std::string, MgtModule*> mMgtModules;
+
+    /*
+     * Mgt Checkpoit
+     */
+    Checkpoint m_Checkpoint;
+
 
 public:
     virtual ~MgtRoot();
