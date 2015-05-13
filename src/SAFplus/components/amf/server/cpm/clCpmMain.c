@@ -208,6 +208,7 @@ extern ClIocNodeAddressT gIocLocalBladeAddress;
 static ClIocAddressT allNodeReps;
 static ClIocLogicalAddressT allLocalComps;
 
+static void cpmPollUserComponents();
 /*
  * bypassed the function into extension plugin
  */
@@ -653,6 +654,9 @@ static void cpmSigchldHandler(ClInt32T signum)
     do {
         pid = waitpid(WAIT_ANY, &w, WNOHANG);
     } while(pid > 0);
+
+    // polling all user components to check its status 
+    cpmPollUserComponents();
 }
 
 /*
@@ -740,6 +744,26 @@ yes:
     return CL_TRUE;
 no:
     return CL_FALSE;
+}
+
+static ClRcT cpmUserComponentFailureCheck(ClCntNodeHandleT key, ClCntDataHandleT data, ClCntArgHandleT arg, ClUint32T size)
+{
+  ClCpmComponentT *comp = (ClCpmComponentT *) data;
+  if (comp->processId && !cpmCompIsChildAlive(comp) && comp->compConfig->compProperty == CL_AMS_COMP_PROPERTY_NON_PROXIED_NON_PREINSTANTIABLE)
+  {
+    SaNameT compName;
+    strcpy((ClCharT *)compName.value, comp->compConfig->compName);
+    compName.length = strlen(comp->compConfig->compName);
+    comp->compPresenceState = CL_AMS_PRESENCE_STATE_UNINSTANTIATED;
+    //TODO: What is recovery actions ???
+    clCpmComponentFailureReport(0, &compName, 0,  CL_AMS_RECOVERY_COMP_FAILOVER, 0);
+  }
+  return CL_OK;
+}
+
+static void cpmPollUserComponents()
+{
+  clCntWalk(gpClCpm->compTable, cpmUserComponentFailureCheck, NULL, 0);
 }
 
 ClRcT cpmStopCompOps(ClCntNodeHandleT key,
