@@ -129,9 +129,14 @@ pthread_cond_t condMain = PTHREAD_COND_INITIALIZER;
 #define CL_CPM_PIPE_MSG_SIZE (512)
 #define CPM_VALGRIND_DEFAULT_DELAY (0x5)
 
+extern ClBoolT gCpmShuttingDown;
+
 /**
  * Global variables.
  */
+int gotSIG = 0;
+int gotSigChild = 0;
+
 ClUint32T clEoWithOutCpm;
 
 /*
@@ -198,6 +203,7 @@ static ClBoolT __cpmIsInfrastructureComponent(const ClCharT *compName);
 #include "clCpmServerFuncTable.h"
 
 static ClRcT compMgrPollThread(void);
+static void cpmPollUserComponents(void);
 
 static ClRcT cpmMain(ClInt32T argc, ClCharT *argv[]);
 
@@ -208,7 +214,6 @@ extern ClIocNodeAddressT gIocLocalBladeAddress;
 static ClIocAddressT allNodeReps;
 static ClIocLogicalAddressT allLocalComps;
 
-static void cpmPollUserComponents();
 /*
  * bypassed the function into extension plugin
  */
@@ -637,10 +642,12 @@ static ClRcT cpmAllocate(void)
 
 static void cpmSigintHandler(ClInt32T signum)
 {
-    clLogCritical(CPM_LOG_AREA_CPM, CPM_LOG_CTX_CPM_BOOT,
-                  "Caught SIGINT or SIGTERM signal, shutting down the node...");
+    gotSIG = signum;
+    if (gClCpm.cpmEoObj)  /* This sighandler could be called at any time, so we better make sure we are not in the middle of cleanup */
+    {
+      clOsalCondSignal(&gClCpm.heartbeatCond);
+    }
     gClSigTermPending = (signum == SIGTERM);
-    clCpmNodeShutDown(clIocLocalAddressGet());
 }
 
 static void cpmSigchldHandler(ClInt32T signum)
@@ -655,8 +662,11 @@ static void cpmSigchldHandler(ClInt32T signum)
         pid = waitpid(WAIT_ANY, &w, WNOHANG);
     } while(pid > 0);
 
-    // polling all user components to check its status 
-    cpmPollUserComponents();
+    gotSigChild = signum;
+    if (gClCpm.cpmEoObj)
+    {
+      clOsalCondSignal(&gClCpm.heartbeatCond);
+    }
 }
 
 /*
@@ -749,19 +759,20 @@ no:
 static ClRcT cpmUserComponentFailureCheck(ClCntNodeHandleT key, ClCntDataHandleT data, ClCntArgHandleT arg, ClUint32T size)
 {
   ClCpmComponentT *comp = (ClCpmComponentT *) data;
-  if (comp->processId && !cpmCompIsChildAlive(comp) && comp->compConfig->compProperty == CL_AMS_COMP_PROPERTY_NON_PROXIED_NON_PREINSTANTIABLE)
+  if (comp->processId && comp->compConfig->compProperty == CL_AMS_COMP_PROPERTY_NON_PROXIED_NON_PREINSTANTIABLE
+          && comp->compPresenceState == CL_AMS_PRESENCE_STATE_INSTANTIATED && !cpmCompIsChildAlive(comp))
   {
     SaNameT compName;
     strcpy((ClCharT *)compName.value, comp->compConfig->compName);
     compName.length = strlen(comp->compConfig->compName);
     comp->compPresenceState = CL_AMS_PRESENCE_STATE_UNINSTANTIATED;
     //TODO: What is recovery actions ???
-    clCpmComponentFailureReport(0, &compName, 0,  CL_AMS_RECOVERY_COMP_FAILOVER, 0);
+    clCpmComponentFailureReport(0, &compName, 0,  CL_AMS_RECOVERY_COMP_RESTART, 0);
   }
   return CL_OK;
 }
 
-static void cpmPollUserComponents()
+static void cpmPollUserComponents(void)
 {
   clCntWalk(gpClCpm->compTable, cpmUserComponentFailureCheck, NULL, 0);
 }
@@ -3991,7 +4002,33 @@ static ClRcT compMgrPollThread(void)
     }
     /* This is woken up when AMF stop occurs */
     clOsalCondWait(&gpClCpm->heartbeatCond, &gpClCpm->heartbeatMutex,heartbeatWait);
-    goto restart_heartbeat;
+    if (gotSIG || gCpmShuttingDown)
+    {
+        // This is a very useful log because it indicates that this was a user-initiated shutdown.
+        if (gotSIG==SIGINT || gotSIG==SIGTERM)
+        {
+            clLogCritical(CPM_LOG_AREA_CPM, CPM_LOG_CTX_CPM_BOOT, "Caught signal [%d] (SIGINT or SIGTERM). Shutting down the node... (operator initiated)",gotSIG);
+        }
+        else  
+            clLogCritical(CPM_LOG_AREA_CPM, CPM_LOG_CTX_CPM_BOOT, "Caught signal [%d].  Shutting down the node...",gotSIG);
+
+        clOsalMutexUnlock(&gpClCpm->heartbeatMutex);
+        clCpmNodeShutDown(clIocLocalAddressGet());
+        clOsalMutexLock(&gpClCpm->heartbeatMutex);
+
+        // This is inside gotSIG because presumably in other shutdown cases it has already been called
+        gpClCpm->polling = CL_FALSE;
+    }
+
+    if (gotSigChild)
+    {
+        // polling all user components to check its status 
+        cpmPollUserComponents();
+        // Reset for restarting heartbeat
+        gotSigChild = 0;
+    }
+
+    if (gpClCpm->polling) goto restart_heartbeat;
 
     out_unlock:
     clOsalMutexUnlock(&gpClCpm->heartbeatMutex);

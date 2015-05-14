@@ -91,7 +91,7 @@ def watchdog_loop():
             time.sleep(5)
 
 def configWatchdogLog():
-    logging.basicConfig(filename='%s/amf_watchdog.log' % safplus.SAFPLUS_LOG_DIR, format='%(levelname)s %(message)s', level=logging.DEBUG)
+    logging.basicConfig(filename='%s/amf_watchdog.log' % safplus.SAFPLUS_LOG_DIR, format='%(levelname)s %(asctime)s.%(msecs)d %(message)s', level=logging.DEBUG, datefmt='%a %d %b %Y %H:%M:%S')
     global fileLogger
     fileLogger = logging.getLogger()
 

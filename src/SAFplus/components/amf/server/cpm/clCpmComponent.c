@@ -2518,23 +2518,20 @@ static ClRcT cpmNonProxiedNonPreinstantiableCompTerminate(ClCpmComponentT *comp,
         }
         else
         {
-            rc = CL_CPM_RC(CL_ERR_NOT_EXIST);
+            //rc = CL_CPM_RC(CL_ERR_NOT_EXIST);
+            rc = CL_OK; // This component can be any types of programming i.e a shell script, ...etc
 
-            clLogError(CPM_LOG_AREA_CPM, CPM_LOG_CTX_CPM_LCM,
-                       "Component [%s]'s PID [%d] is invalid.",
-                       comp->compConfig->compName,
-                       comp->processId);
-            clLogMultiline(CL_LOG_SEV_ERROR, CPM_LOG_AREA_CPM, CPM_LOG_CTX_CPM_LCM,
-                           "Possible reasons for these are : \n"
-                           "1. CPM was not able to start the component.\n"
-                           "2. Component was started, but it "
-                           "exited gracefully.\n"
-                           "3. Component was started and it "
-                           "crashed.");
-            clLogError(CPM_LOG_AREA_CPM, CPM_LOG_CTX_CPM_LCM,
-                       "Please note that for non proxied non preinstantiable "
-                       "components only starting and stopping functionalities "
-                       "are supported.");
+            clLogNotice(CPM_LOG_AREA_CPM, CPM_LOG_CTX_CPM_LCM, "Component [%s]'s PID [%d] is invalid.", comp->compConfig->compName,
+                    comp->processId);
+            clLogMultiline(CL_LOG_SEV_NOTICE, CPM_LOG_AREA_CPM, CPM_LOG_CTX_CPM_LCM, "Possible reasons for these are : \n"
+                    "1. CPM was not able to start the component.\n"
+                    "2. Component was started, but it "
+                    "exited gracefully.\n"
+                    "3. Component was started and it "
+                    "crashed.");
+            clLogNotice(CPM_LOG_AREA_CPM, CPM_LOG_CTX_CPM_LCM, "Please note that for non proxied non preinstantiable "
+                    "components only starting and stopping functionalities "
+                    "are supported.");
             goto out;
         }
     }

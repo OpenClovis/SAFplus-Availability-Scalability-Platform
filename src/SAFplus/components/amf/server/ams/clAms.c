@@ -314,9 +314,11 @@ ClBoolT clAmsHasNodeJoined(ClUint32T slotId)
     return CL_FALSE;
 }
 
+#define CL_AMS_STATE_VERIFIER_RETRIES 3
+
 static void *clAmsClusterStateVerifier(void *cookie)
 {
-    ClRcT rc;
+    ClRcT rc = CL_OK;
     ClUint8T checkFailed[CL_IOC_MAX_NODES] = {0};
     ClTimerTimeOutT delay = {60,0};
     ClIocNodeAddressT localAddress = clIocLocalAddressGet();
@@ -342,7 +344,7 @@ static void *clAmsClusterStateVerifier(void *cookie)
                     if (!clAmsHasNodeJoined(i))
                       {
                         /* It takes some time for a node to come up after TIPC registers, so don't kill the node until it has failed multiple times */
-                        if (checkFailed[i] >= 2)
+                        if (checkFailed[i] >= CL_AMS_STATE_VERIFIER_RETRIES)
                           {
                             clLogAlert("AMS", "INI", "Node [%s] in slot [%d] discovered by messaging layer but has not registered with AMF. Resetting it", ncInfo.name, i);
                             ClIocAddressT allNodeReps;
@@ -360,7 +362,7 @@ static void *clAmsClusterStateVerifier(void *cookie)
                             checkFailed[i] = 0;
                             continue;
                           }
-                        if (checkFailed[i] == 1)
+                        if (checkFailed[i] >= 1)
                           clLogWarning("AMS", "INI", "Node [%s] in slot [%d] discovered by messaging layer but has not registered with AMF", ncInfo.name, i);
                         checkFailed[i]++;
                       }
@@ -375,7 +377,7 @@ static void *clAmsClusterStateVerifier(void *cookie)
 
         // testing the shutting down variable and waiting for the cond need to happen atomically.
         clOsalMutexLock(&gpClCpm->cpmEoObj->eoMutex);
-        if (!gCpmShuttingDown) clOsalCondWait(&gpClCpm->cpmEoObj->eoCond,&gpClCpm->cpmEoObj->eoMutex,delay);
+        if (!gCpmShuttingDown) rc = clOsalCondWait(&gpClCpm->cpmEoObj->eoCond,&gpClCpm->cpmEoObj->eoMutex,delay);
         clOsalMutexUnlock(&gpClCpm->cpmEoObj->eoMutex);
         if (!gpClCpm)  /* Process is down! (should never happen b/c we are holding a reference) */
         {
@@ -386,13 +388,19 @@ static void *clAmsClusterStateVerifier(void *cookie)
             ClEoExecutionObjT *cpmEoObj = gpClCpm->cpmEoObj;
             if (!cpmEoObj) return NULL; // should never happen... but if it does do not assert b/c we are shutting down just quit thread.
 
-            if (( cpmEoObj->state == CL_EO_STATE_FAILED) || (cpmEoObj->state == CL_EO_STATE_KILL) || (cpmEoObj->state == CL_EO_STATE_STOP) || !gpClCpm->polling)
+            if (( cpmEoObj->state == CL_EO_STATE_FAILED) || (cpmEoObj->state == CL_EO_STATE_KILL) || (cpmEoObj->state == CL_EO_STATE_STOP) || !gpClCpm->polling || gCpmShuttingDown)
             {
                 clEoRefDec(cpmEoObj);
                 return NULL;
             }
         }
-        
+
+        // Workaround on interchange leader (master)
+        if (CL_GET_ERROR_CODE(rc) != CL_ERR_TIMEOUT && !gCpmShuttingDown) //reset counter since master changed
+        {
+          memset(&checkFailed, 0, sizeof(checkFailed));
+          clOsalTaskDelay(delay); // Give a delay on verifying
+        }
     }
 
     return NULL;
