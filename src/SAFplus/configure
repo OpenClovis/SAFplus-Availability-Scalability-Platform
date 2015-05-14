@@ -1680,6 +1680,8 @@ echo "Model Name:      " $ASP_MODEL_NAME  "  Model:" $SAFPLUS_MODEL_DIR  " Build
 #fi
 # Fix github bug #132
 CL_BUILDTOOLS=$buildtool_dir
+export BUILD_TOOLS_DIR=$CL_BUILDTOOLS
+export TOOLCHAIN_DIR=$CL_BUILDTOOLS/local # local by default
 CL_THIRDPARTY_BASE=$thirdparty_base_dir
 
 if [ -f $CL_BUILDTOOLS/local/bin/net-snmp-config ]; then
