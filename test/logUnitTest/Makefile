@@ -12,7 +12,7 @@ SAFPLUS_LIBS := clLog clUtils clOsal
 SAFPLUS_DEP_LIBS     := $(addsuffix .so,$(addprefix $(LIB_DIR)/lib,$(SAFPLUS_LIBS)))
 SAFPLUS_LINK_LIBS := -L$(LIB_DIR) $(addprefix -l,$(SAFPLUS_LIBS))
 
-IMAGE_FILE ?= testLog.tgz
+IMAGE_FILE ?= testLog.zip
 
 all: $(TEST_DIR)/testLog
 
@@ -26,6 +26,12 @@ $(OBJ_DIR)/%.o: %.cxx Makefile $(SAFPLUS_MAKE_DIR)/preface.mk $(CLIENT_H)
 image: $(IMAGE_FILE)
 
 $(IMAGE_FILE): $(TEST_DIR)/testLog
+	echo $(SAFPLUS_MAKE_DIR)/safplus_packager.py -x "(cp start.sh {image_dir})" $@
+	cp start.sh $(SAFPLUS_TARGET)
+	$(SAFPLUS_MAKE_DIR)/safplus_packager.py -x "(cp start.sh {image_dir})" $@
+
+
+$(IMAGE_FILE)_old: $(TEST_DIR)/testLog
 	@mkdir -p image
 	@rm -f image/*
 	(cp $(LIB_DIR)/*.so $(PLUGIN_DIR)/*.so image; cp -av $(INSTALL_DIR)/lib/*.so* image; cp $(LIB_DIR)/*.py image; cp $(TEST_DIR)/testLog image; cp start.sh image; cp $(BIN_DIR)/safplus_logd $(BIN_DIR)/dbalpy.py image)

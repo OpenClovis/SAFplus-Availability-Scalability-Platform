@@ -59,6 +59,9 @@
       <logUnitTest>
 	<image_source value="dir://code/git/SAFplus7/test/logUnitTest" />
      </logUnitTest>
+      <msgUnitTest>
+	<image_source value="dir://code/git/SAFplus7/test/msgUnitTest" />
+     </msgUnitTest>
     </models>
 
   </SAFplus-standalone>
