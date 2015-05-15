@@ -1,3 +1,4 @@
+#pragma once
 #include <saAis.h>
 #include <saAmf.h>
 
