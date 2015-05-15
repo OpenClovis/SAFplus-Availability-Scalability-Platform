@@ -1,3 +1,4 @@
+#pragma once
 #include <clIocApi.h>
 
 #include <clJobQueue.h>
