@@ -330,6 +330,9 @@ typedef struct {
 extern ClBoolT gClAmsSwitchoverInline;
 extern ClBoolT gClAmsPayloadResetDisable;
 
+extern ClBoolT gCpmShuttingDown;
+extern ClBoolT gCpmAppShutdown;
+
 /**
  * CM.
  */
@@ -348,6 +351,7 @@ extern void *cpmBMResponse(ClCpmLcmResponseT *response);
 /**
  * Misc
  */
+extern ClRcT cpmSelfShutDown(void);    
 extern ClRcT cpmCompInitialize(ClCpmComponentT **comp);
 extern ClRcT cpmCompConfigure(ClCpmCompConfigT *compCfg,
                               ClCpmComponentT **component);
@@ -717,6 +721,13 @@ extern ClRcT clCpmCompPreCleanupInvoke(ClCpmComponentT *comp);
 
 extern ClRcT cpmCompParseArgs(ClCpmCompConfigT *compConfig, ClCharT *cmd, ClUint32T *pArgIndex);
 
+// Same as clCpmNodeShutDown() but does not use an RMD call
+extern ClRcT cpmProcessOrderlyShutdown(ClIocNodeAddressT iocAddress);
+extern ClBoolT cpmWaitForAppShutdown(int maxTime);
+extern void cpmNodeDepartureEventPublish(ClIocNodeAddressT node, ClBoolT graceful, ClBoolT doSelf);
+    
+
+        
 #ifdef __cplusplus
 }
 #endif

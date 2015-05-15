@@ -77,6 +77,7 @@ ClCpmAmsToCpmCallT *gAmsToCpmCallbackFuncs = NULL;
  * instead of using already existed variable ("gpClCpm->cpmShutDown") in order to prevent reestablished.
  */
 ClBoolT gCpmShuttingDown =  CL_FALSE;
+ClBoolT gCpmAppShutdown =  CL_FALSE;  /* first step in the shutdown is to stop the apps */
 
 /* This function call table is never changes so could be removed and simplified */
 ClCpmCpmToAmsCallT gCpmToAmsCallbackFuncs = {

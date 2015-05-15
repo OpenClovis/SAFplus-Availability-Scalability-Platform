@@ -211,7 +211,7 @@ def unload_tipc_module():
             cmd2 = 'rmmod tipc'
             ret, output2, signal, core = system(cmd2)
             if ret:
-                log.warning('Failed to remove TIPC module: attempted: %s and %s, output was: %s and %s' % cmd, cmd2, output, output2)
+                log.warning('Failed to remove TIPC module: attempted: %s and %s, output was: %s and %s' % (cmd, cmd2, output, output2))
 
 def load_tipc_module():
     if not is_tipc_build():
@@ -225,7 +225,7 @@ def load_tipc_module():
         cmd = 'insmod %s/modules/tipc.ko' % sandbox
         ret, output, signal, core = system(cmd)
         if ret:
-            safplus.fail_and_exit('Failed to load TIPC module: attempted: %s, output was: %s' % cmd, ''.join(output))
+            safplus.fail_and_exit('Failed to load TIPC module: attempted: %s, output was: %s' % (cmd, ''.join(output)))
 
 def is_tipc_loaded():
     cmd = safplus.is_tipc_loaded_cmd()

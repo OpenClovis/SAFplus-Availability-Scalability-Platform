@@ -1443,7 +1443,7 @@ ClRcT VDECL(cpmCBResponse)(ClEoDataT data,
     invocation = responseBuff.invocation;
     CL_CPM_INVOCATION_CB_TYPE_GET(invocation, cbType);
 
-    clLogDebug("CPM", "RESPONSE", "Got response for invocation [%#llx]", invocation);
+    clLogDebug("CPM", "RESPONSE", "Got response for invocation [%#llx] type [%x]", invocation,cbType);
 
     switch (cbType)
     {
@@ -1481,6 +1481,7 @@ ClRcT VDECL(cpmCBResponse)(ClEoDataT data,
                     rc = clCpmMasterAddressGet(&masterIocAddress);
                     if(rc == CL_OK)
                     {
+                        clLogDebug("CPM", "RESPONSE", "Forwarding response to active AMF on node [%d]", masterIocAddress);
                         rc = CL_CPM_CALL_RMD_ASYNC_NEW(masterIocAddress,
                                                        CL_IOC_CPM_PORT,
                                                        CPM_CB_RESPONSE,

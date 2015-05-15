@@ -2403,12 +2403,11 @@ ClBoolT cpmCompIsValidPid(ClCpmComponentT *comp)
     ClBoolT valid = CL_NO;
 
     ClCharT procFileName[CL_MAX_NAME_LENGTH] = {0};
-    ClCharT procCmdLine[CL_MAX_NAME_LENGTH] = {0};
+    //ClCharT procCmdLine[CL_MAX_NAME_LENGTH] = {0};
 
-    ClCharT *compName = comp->compConfig->argv[0];
+    //ClCharT *compName = comp->compConfig->argv[0];
 
-    snprintf(procFileName, CL_MAX_NAME_LENGTH, "%s/%d/%s", 
-             "/proc", comp->processId, "cmdline");
+    snprintf(procFileName, CL_MAX_NAME_LENGTH, "%s/%d/%s", "/proc", comp->processId, "cmdline");
     fp = fopen(procFileName, "r");
     if (!fp)
     {
@@ -2419,6 +2418,10 @@ ClBoolT cpmCompIsValidPid(ClCpmComponentT *comp)
         goto invalid;
     }
 
+    valid = CL_YES;
+    
+#if 0
+    // This code compares the string that was executed with the current PID string.  Unfortunately there are lots of legitimate reasons why these might not match, most obviously if the executed program is a script.  So if the PID exists, we must assume that it is the right one.  We could also check to make sure that we are the parent, but the SIG_CHILD monitoring happening elsewhere in the AMF should ensure that this is the case... and someday we should support externally started components.
     if(!fgets(procCmdLine, CL_MAX_NAME_LENGTH-1, fp)) procCmdLine[0] = 0;
     if (!strncmp(procCmdLine, compName, strlen(compName)))
     {
@@ -2432,7 +2435,8 @@ ClBoolT cpmCompIsValidPid(ClCpmComponentT *comp)
                    procCmdLine, 
                    comp->compConfig->argv[0]);
     }
-
+#endif
+    
     fclose(fp);
 
     return valid;
@@ -2447,14 +2451,11 @@ ClBoolT cpmCompIsValidPid(ClCpmComponentT *comp)
 }
 #endif
 
-static ClRcT cpmNonProxiedNonPreinstantiableCompTerminate(ClCpmComponentT *comp, 
-                                                          ClBoolT cleanup)
+static ClRcT cpmNonProxiedNonPreinstantiableCompTerminate(ClCpmComponentT *comp, ClBoolT cleanup)
 {
     ClRcT rc = CL_CPM_RC(CL_ERR_LIBRARY);
 
-    clLogDebug(CPM_LOG_AREA_CPM, CPM_LOG_CTX_CPM_LCM,
-               "Stopping non proxied non preinstantiable component [%s]...",
-               comp->compConfig->compName);
+    clLogDebug(CPM_LOG_AREA_CPM, CPM_LOG_CTX_CPM_LCM, "Stopping non proxied non preinstantiable component [%s]...", comp->compConfig->compName);
 
     if (comp->processId)
     {

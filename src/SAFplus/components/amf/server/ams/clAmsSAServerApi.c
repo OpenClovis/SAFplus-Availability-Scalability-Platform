@@ -1913,7 +1913,7 @@ _clAmsSAStateChangeStandby2Active(
             return rc;
         }
 
-        clLogNotice("CKPT", "READ", "AMS checkpoint read during failover");
+        clLogDebug("CKPT", "READ", "AMS checkpoint read during failover");
         rc = clAmsCkptRead(&gAms);
         if(rc != CL_OK)
         {
@@ -1957,13 +1957,13 @@ _clAmsSAStateChangeStandby2Active(
     thisNodeRef.entity.type = CL_AMS_ENTITY_TYPE_NODE;
     thisNodeRef.entity.name.length = strlen((const ClCharT*)thisNodeRef.entity.name.value)+1;
     
-    rc = clAmsEntityDbFindEntity(&gAms.db.entityDb[CL_AMS_ENTITY_TYPE_NODE],
-                                 &thisNodeRef);
+    rc = clAmsEntityDbFindEntity(&gAms.db.entityDb[CL_AMS_ENTITY_TYPE_NODE], &thisNodeRef);
+
     if(rc != CL_OK 
        || 
        !(thisNode = (ClAmsNodeT*)thisNodeRef.ptr)
        ||
-       ((nodeStatus = thisNode->status.isClusterMember) != CL_AMS_NODE_IS_CLUSTER_MEMBER))
+       ( (nodeStatus=thisNode->status.isClusterMember) == CL_AMS_NODE_IS_NOT_CLUSTER_MEMBER))  // We need to let a "leaving" node become AMF master so it can continue correct application shutdown.
     {
         clOsalMutexUnlock(gAms.mutex);
         goto shutdown;

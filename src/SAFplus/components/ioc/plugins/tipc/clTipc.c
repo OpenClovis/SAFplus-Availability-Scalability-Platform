@@ -552,7 +552,7 @@ ClRcT xportRecv(ClIocCommPortHandleT commPort, ClIocDispatchOptionT *pRecvOption
                 {
                     if(errno == EINTR)
                         goto recv;
-                    perror("Receive : ");
+                    //perror("Receive : ");
                     clLogDebug("TIPC", "RECV", "recv error. errno = %d\n",errno);
                     goto out;
                 }
@@ -726,6 +726,14 @@ ClRcT xportClose(void)
 {
     if(gTipcInit == CL_FALSE)
         return CL_OK;
+
+    if((pTipcCommPort = (ClTipcCommPortPrivateT*)clTransportPrivateDataGet(gClTipcXportId, port) ) )
+    {
+    fd = pTipcCommPort->fd;
+    close(fd);  // kicks the receiver thread awake    
+    }
+    
+    
     gTipcInit = CL_FALSE;
     return CL_OK;
 }

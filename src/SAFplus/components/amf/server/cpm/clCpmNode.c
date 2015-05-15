@@ -858,7 +858,7 @@ failure:
 
 
 
-static void cpmNodeDepartureEventPublish(ClIocNodeAddressT node, ClBoolT graceful, ClBoolT doSelf)
+void cpmNodeDepartureEventPublish(ClIocNodeAddressT node, ClBoolT graceful, ClBoolT doSelf)
 {
     ClRcT rc;
     SaNameT nodeName;
@@ -900,6 +900,7 @@ out:
  */
 static ClRcT cpmNodeShutdownTimeout(void *unused)
 {
+#if 0    
     ClCharT cmdbuf[0xff+1];
     const ClCharT *aspDir = getenv("ASP_DIR");
     if(!aspDir) aspDir = "/root/asp";
@@ -909,8 +910,11 @@ static ClRcT cpmNodeShutdownTimeout(void *unused)
     {
         clLogWarning("SHUTDOWN", "TIMER", "Shutdown cmd returned with error [%s]", strerror(errno));
     }
+#endif
+    clLogNotice("SHUTDOWN", "TIMER", "Node shutdown timeout timer fired but now handled at the script level.");
     return CL_OK;
 }
+
 static void startShutdownTimer(ClIocNodeAddressT nodeAddress)
 {
 #define ASP_SHUTDOWN_DEFAULT_TIMEOUT (120)
@@ -937,19 +941,24 @@ ClRcT VDECL(cpmProcNodeShutDownReq)(ClEoDataT data,
                                     ClBufferHandleT outMsgHandle)
 {
     ClIocNodeAddressT iocAddress;
-    ClIocNodeAddressT masterAddress;
     ClRcT   rc = CL_OK;
-    ClCpmLT *cpmL = NULL;
-    SaNameT nodeName;
     
     rc = clXdrUnmarshallClUint32T(inMsgHandle, &iocAddress);
-    if(rc != CL_OK)
-        goto failure;
+    if(rc != CL_OK) return rc;
+    rc = cpmProcessOrderlyShutdown(iocAddress);
+    return rc;
+}
 
-    clLogWrite(CL_LOG_HANDLE_APP, CL_LOG_SEV_ALERT, NULL,
-               CL_CPM_LOG_1_SERVER_CPM_NODE_SHUTDOWN_INFO, iocAddress);
+ClRcT cpmProcessOrderlyShutdown(ClIocNodeAddressT iocAddress)
+{
+    ClIocNodeAddressT masterAddress;
+    ClCpmLT *cpmL = NULL;
+    SaNameT nodeName;
+    ClRcT   rc = CL_OK;
 
-    clLogInfo(CPM_LOG_AREA_CPM,CPM_LOG_CTX_NODE_SHUTDOWN,"Processing Shut down request for Node [%d]\n", iocAddress);
+    clLogWrite(CL_LOG_HANDLE_APP, CL_LOG_SEV_ALERT, NULL, CL_CPM_LOG_1_SERVER_CPM_NODE_SHUTDOWN_INFO, iocAddress);
+
+    //clLogInfo(CPM_LOG_AREA_CPM,CPM_LOG_CTX_NODE_SHUTDOWN,"Processing Shut down request for Node [%d]\n", iocAddress);
     
     /* If boot level has not reached default then Do not ask AMS
      * for node leave as AMS does not consider node as part of 
@@ -983,8 +992,8 @@ ClRcT VDECL(cpmProcNodeShutDownReq)(ClEoDataT data,
      * Check if need to ask master for departure, if so
      * Send shutdown request to master
      */
-    if(iocAddress == clIocLocalAddressGet() && 
-            (CL_CPM_IS_STANDBY() || CL_CPM_IS_WB()))
+    if(iocAddress == clIocLocalAddressGet() &&
+       ((!CL_CPM_IS_ACTIVE()) || CL_CPM_IS_WB()))
     {
         rc = clCpmMasterAddressGet(&masterAddress);
         
@@ -1049,15 +1058,16 @@ ClRcT VDECL(cpmProcNodeShutDownReq)(ClEoDataT data,
                     gpClCpm->cpmToAmsCallback->nodeLeave != NULL)
             {
                 clLogTrace(CPM_LOG_AREA_CPM,CPM_LOG_CTX_CPM_AMS,"Calling AMS node leave...");
-                rc = gpClCpm->cpmToAmsCallback->nodeLeave(&nodeName, 
-                                                          CL_CPM_NODE_LEAVING, CL_FALSE);
+                rc = gpClCpm->cpmToAmsCallback->nodeLeave(&nodeName, CL_CPM_NODE_LEAVING, CL_FALSE);
                 if(CL_GET_ERROR_CODE(rc) == CL_ERR_NOT_EXIST)
                 {
+#if 0 // Its ok, means shutdown is in progress. The code removed in here will force ungraceful shutdown
                     clLogInfo(CPM_LOG_AREA_CPM,CL_LOG_CONTEXT_UNSPECIFIED, 
                               "Node [%.*s] is not a cluster member. "\
                               "Calling node departure allowed\n",
                               nodeName.length, nodeName.value);
                     rc = _cpmNodeDepartureAllowed(&nodeName, CL_CPM_NODE_LEAVING);
+#endif                    
                 }
             }
             /* Handling of Non-AMS case */
@@ -1089,6 +1099,7 @@ failure:
     return rc;
 }
 
+#if 0
 /* 
  * This function will be called to do the actual shut down of the self.
  * The polling thread is set to 0 to bring CPM main thread out of 
@@ -1104,6 +1115,7 @@ ClRcT cpmSelfShutDown(void)
     cpmShutdownHeartbeat();
     return rc;
 }
+#endif
 
 void cpmWriteToFile(ClCharT *fname,const  ClCharT *s, ClCharT n)
 {

@@ -769,6 +769,8 @@ ClRcT clEoTearDown(void)
 
     clEoMyEoObjectGet(&pThis);
 
+    // Close IOC so receiver threads quit
+     
     clEoReceiverUnblock(pThis);
 
     clLog(CL_LOG_SEV_DEBUG, CL_LOG_AREA, CL_LOG_CTXT_FIN, "Cleaning up EO layer...");

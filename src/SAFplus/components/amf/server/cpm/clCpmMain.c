@@ -129,6 +129,9 @@ pthread_cond_t condMain = PTHREAD_COND_INITIALIZER;
 #define CL_CPM_PIPE_MSG_SIZE (512)
 #define CPM_VALGRIND_DEFAULT_DELAY (0x5)
 
+ClBoolT cpmOrderlyShutdown(int maxTime);
+
+
 extern ClBoolT gCpmShuttingDown;
 
 /**
@@ -640,14 +643,20 @@ static ClRcT cpmAllocate(void)
     return rc;
 }
 
+
+/*    a sigint handler can be executed within any thread context at any time so it can't be doing ANY mutex take/give because it could be called in the context of a thread that ALREADY has that mutex = deadlock so sig handlers must be incrediably simple functions... */
+
 static void cpmSigintHandler(ClInt32T signum)
 {
     gotSIG = signum;
+    gCpmAppShutdown = CL_TRUE;
+    gClSigTermPending = (signum == SIGTERM);
+
     if (gClCpm.cpmEoObj)  /* This sighandler could be called at any time, so we better make sure we are not in the middle of cleanup */
     {
       clOsalCondSignal(&gClCpm.heartbeatCond);
     }
-    gClSigTermPending = (signum == SIGTERM);
+
 }
 
 static void cpmSigchldHandler(ClInt32T signum)
@@ -939,6 +948,7 @@ static ClRcT clCpmFinalize(void)
             gpClCpm->cpmToAmsCallback = NULL;
         }
 #endif
+        clEoProtoUninstall(CL_IOC_PORT_NOTIFICATION_PROTO);  /* Stop receiving notifications so we don't see the standby take over for us and conclude split brain */
         cpmShutdownHeartbeat();
         
         /*
@@ -3707,8 +3717,10 @@ static ClRcT clCpmIocNotification(ClEoExecutionObjT *pThis,
                 }
                 else
                 {
-                    clLogAlert("NTF", "LEA", "Split brain. Node [%d] reports leader as [%d]. Inconsistent with this node's leader [%d]",
-                                    notification.nodeAddress.iocPhyAddress.nodeAddress, reportedLeader, currentLeader);
+                    if (!gCpmShuttingDown)  // If I'm shutting down there's a point where I stop being master so the other side could take over.  This is not a problem.
+                    {
+                        
+                    clLogAlert("NTF", "LEA", "Split brain. Node [%d] reports leader as [%d]. Inconsistent with this node's leader [%d]", notification.nodeAddress.iocPhyAddress.nodeAddress, reportedLeader, currentLeader);
 
                     /* Only update leaderID if msg come from SC's leader */
                     if (reportedLeader == notification.nodeAddress.iocPhyAddress.nodeAddress)
@@ -3728,9 +3740,14 @@ static ClRcT clCpmIocNotification(ClEoExecutionObjT *pThis,
 
                         allNodeReps.iocPhyAddress.nodeAddress = CL_IOC_BROADCAST_ADDRESS;
                         allNodeReps.iocPhyAddress.portId = CL_IOC_XPORT_PORT;
+                        clIocNotificationNodeStatusSend(pThis->commObj, CL_IOC_NODE_ARRIVAL_NOTIFICATION, gpClCpm->pCpmLocalInfo->nodeId, (ClIocAddressT*) &allNodeReps, (ClIocAddressT*) &notification.nodeAddress.iocPhyAddress, NULL );
+                        
                         ClIocLogicalAddressT allLocalComps = CL_IOC_ADDRESS_FORM(CL_IOC_INTRANODE_ADDRESS_TYPE, gpClCpm->pCpmLocalInfo->nodeId, CL_IOC_BROADCAST_ADDRESS);
                         clIocNotificationNodeStatusSend(pThis->commObj, CL_IOC_NODE_ARRIVAL_NOTIFICATION, gpClCpm->pCpmLocalInfo->nodeId, (ClIocAddressT*) &allLocalComps, (ClIocAddressT*) &notification.nodeAddress.iocPhyAddress, NULL );
+                        
                     }
+                    }
+                    
                 }
             }
             else
@@ -4002,7 +4019,7 @@ static ClRcT compMgrPollThread(void)
     }
     /* This is woken up when AMF stop occurs */
     clOsalCondWait(&gpClCpm->heartbeatCond, &gpClCpm->heartbeatMutex,heartbeatWait);
-    if (gotSIG || gCpmShuttingDown)
+    if (gotSIG || gCpmAppShutdown || gCpmShuttingDown)
     {
         // This is a very useful log because it indicates that this was a user-initiated shutdown.
         if (gotSIG==SIGINT || gotSIG==SIGTERM)
@@ -4012,11 +4029,14 @@ static ClRcT compMgrPollThread(void)
         else  
             clLogCritical(CPM_LOG_AREA_CPM, CPM_LOG_CTX_CPM_BOOT, "Caught signal [%d].  Shutting down the node...",gotSIG);
 
-        clOsalMutexUnlock(&gpClCpm->heartbeatMutex);
-        clCpmNodeShutDown(clIocLocalAddressGet());
-        clOsalMutexLock(&gpClCpm->heartbeatMutex);
-
         // This is inside gotSIG because presumably in other shutdown cases it has already been called
+        clOsalMutexUnlock(&gpClCpm->heartbeatMutex);
+        //clCpmNodeShutDown(clIocLocalAddressGet());
+        if (!cpmOrderlyShutdown(300)) // 300 is # of seconds to wait for shutdown.  But really the timer will be handled at the python script layer.
+        {
+            clLogCritical(CPM_LOG_AREA_CPM, CPM_LOG_CTX_CPM_BOOT, "Applications never shut down.  Quitting AMF now.");
+        }      
+        clOsalMutexLock(&gpClCpm->heartbeatMutex);
         gpClCpm->polling = CL_FALSE;
     }
 
@@ -4052,6 +4072,106 @@ failure:
     clLogWrite(CL_LOG_HANDLE_APP, CL_LOG_SEV_INFO, NULL,
                CL_CPM_LOG_0_SERVER_POLL_THREAD_EXIT_INFO);
     return rc;
+}
+
+/* 
+ * This function will be called to do the actual shut down of the self.
+ * The polling thread is set to 0 to bring CPM main thread out of 
+ * while loop and start shutting down.
+ */
+
+ClRcT cpmSelfShutDown(void)
+{
+    ClRcT rc = CL_OK;
+
+    //clLogWarning(CPM_LOG_AREA_CPM, CL_LOG_CONTEXT_UNSPECIFIED, "SAFplus abrupt shutdown; application callbacks may not be run.");
+    gCpmAppShutdown = CL_TRUE;
+    clOsalCondSignal(&gClCpm.heartbeatCond);
+    //cpmShutdownHeartbeat();
+    return rc;
+}
+
+ClBoolT cpmOrderlyShutdown(int maxTime)
+{
+    ClIocNodeAddressT oldMasterAddress = 0;
+    ClIocNodeAddressT masterAddress;
+    ClBoolT cleanShutdownInitiated = CL_FALSE;
+    int curTime=0;
+    ClRcT rc;
+    
+    do
+    {    
+    rc = clCpmMasterAddressGet(&masterAddress);
+        
+    if((rc == CL_OK)&&(masterAddress != oldMasterAddress))  // first time or failover happened during shutdown.  Send shutdown req to new master
+    {
+        rc = clCpmClientRMDAsyncNew(masterAddress, CPM_PROC_NODE_SHUTDOWN_REQ,
+                                    (ClUint8T *)&(clAspLocalId), 1,
+                                    NULL, NULL, 0, 0, 0, CL_IOC_HIGH_PRIORITY,
+                                    clXdrMarshallClUint32T);
+            
+        //if(CL_GET_ERROR_CODE(rc) == CL_IOC_ERR_COMP_UNREACHABLE || CL_GET_ERROR_CODE(rc) == CL_IOC_ERR_HOST_UNREACHABLE)
+ 
+        if (rc == CL_OK)
+          {
+              cleanShutdownInitiated = CL_TRUE;
+              oldMasterAddress = masterAddress;
+          }        
+    }
+    curTime++;
+    
+    } while((cpmWaitForAppShutdown(1)==CL_FALSE) && (curTime<maxTime));
+    
+    cpmNodeDepartureEventPublish(clAspLocalId, CL_TRUE, CL_TRUE);
+    if (curTime == maxTime) return CL_FALSE;
+    return CL_TRUE;
+}
+
+
+ClBoolT cpmWaitForAppShutdown(int maxTime)
+{
+    ClRcT rc;
+    int curTime=0;
+    ClCntNodeHandleT hNode = 0;
+    ClCpmComponentT *comp = NULL;
+    int keepWaiting = 0;
+    
+    do
+    {
+        keepWaiting = 0;
+        
+        clOsalMutexLock(gpClCpm->compTableMutex);
+        rc = clCntFirstNodeGet(gpClCpm->compTable, &hNode);
+        if (rc != CL_OK)
+        {
+            clOsalMutexUnlock(gpClCpm->compTableMutex);
+            return CL_TRUE;  // no apps?
+        }
+        
+    
+        do 
+        {
+            rc = clCntNodeUserDataGet(gpClCpm->compTable, hNode, (ClCntDataHandleT *) &comp);
+            //clOsalMutexLock(comp->compMutex);
+            if ((comp->compConfig->isAspComp == 0) && (comp->compOperState == CL_AMS_OPER_STATE_ENABLED))
+            {
+                //clOsalMutexUnlock(comp->compMutex);
+                keepWaiting = 1;
+                break;                
+            }
+            rc = clCntNextNodeGet(gpClCpm->compTable, hNode, &hNode);
+        } while(hNode && (rc==CL_OK));
+        
+        clOsalMutexUnlock(gpClCpm->compTableMutex);
+        if (keepWaiting)
+        {
+            if (curTime >= maxTime) return CL_FALSE;
+            curTime++;
+            sleep(1);
+        }    
+    }  while(keepWaiting);
+    
+    return CL_TRUE;   
 }
 
 void cpmShutdownHeartbeat(void)

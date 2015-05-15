@@ -3020,6 +3020,8 @@ ClRcT clIocCommPortReceiverUnblock(ClIocCommPortHandleT portHandle)
         rc = clOsalCondWait(&pIocCommPort->unblockCond,&pIocCommPort->unblockMutex,timeout);
         if(CL_GET_ERROR_CODE(rc)==CL_ERR_TIMEOUT)
         {
+            // hit it again if it won't wakeup
+            clTransportSend(NULL, pIocCommPort->portId, CL_IOC_HIGH_PRIORITY, &destAddress, &exitVector, 1, 0);
             continue;
         }
         break;

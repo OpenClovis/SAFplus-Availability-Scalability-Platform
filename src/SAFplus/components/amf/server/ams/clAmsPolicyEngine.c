@@ -2708,7 +2708,7 @@ clAmsPeNodeIsLeavingCluster(
      * generated for the same node.
      */
 
-    if ( node->status.isClusterMember != CL_AMS_NODE_IS_CLUSTER_MEMBER )
+    if ( node->status.isClusterMember == CL_AMS_NODE_IS_NOT_CLUSTER_MEMBER)
     {
         AMS_ENTITY_LOG (node, CL_AMS_MGMT_SUB_AREA_MSG, CL_LOG_SEV_TRACE,
             ("Node [%s] is not a cluster member. Ignoring 'node is leaving' request..\n",
