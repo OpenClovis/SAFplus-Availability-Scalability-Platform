@@ -517,7 +517,7 @@ populate_prereqs() {
 
         # openhpi
         if [ -n "$OPENHPICFLAGS" ]; then
-        BUILDTOOLS_PATH=$SAFPLUS_BTL_DIR$TOOLCHAIN_DIR
+        BUILDTOOLS_PATH=$TOOLCHAIN_DIR        
         echo -n "openhpi: trying toolchain build at $BUILDTOOLS_PATH/lib/libopenhpi.a "
         if [ -f $BUILDTOOLS_PATH/lib/libopenhpi.a ]; then
             cd $BUILDTOOLS_PATH
