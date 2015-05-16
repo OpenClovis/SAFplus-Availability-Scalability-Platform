@@ -3800,7 +3800,7 @@ static ClRcT clEoIocRecvQueueProcess(ClEoExecutionObjT *pThis)
     clOsalSelfTaskIdGet(&selfTaskId);
     clLogDebug(CL_LOG_EO_AREA, CL_LOG_EO_CONTEXT_RECV, "IOC Receive Thread is running with id [%llx]", selfTaskId);
 
-    while (1)
+    while (pThis->state != CL_EO_STATE_STOP)  // Kick us out of the thread if its time to quit
     {
         rc = clBufferCreate(&eoRecvMsg);
         if (rc != CL_OK)

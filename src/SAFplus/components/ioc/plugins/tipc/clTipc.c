@@ -725,14 +725,7 @@ ClRcT xportSend(ClIocPortT port, ClUint32T tempPriority, ClIocAddressT *pIocAddr
 ClRcT xportClose(void)
 {
     if(gTipcInit == CL_FALSE)
-        return CL_OK;
-
-    if((pTipcCommPort = (ClTipcCommPortPrivateT*)clTransportPrivateDataGet(gClTipcXportId, port) ) )
-    {
-    fd = pTipcCommPort->fd;
-    close(fd);  // kicks the receiver thread awake    
-    }
-    
+        return CL_OK;    
     
     gTipcInit = CL_FALSE;
     return CL_OK;
