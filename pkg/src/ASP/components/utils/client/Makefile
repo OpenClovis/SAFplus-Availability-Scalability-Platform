@@ -1,27 +1,18 @@
-################################################################################
+# Copyright (C) 2002-2012 OpenClovis Solutions Inc.  All Rights Reserved.
+# This file is available  under  a  commercial  license  from  the
+# copyright  holder or the GNU General Public License Version 2.0.
 #
-#   Copyright (C) 2002-2009 by OpenClovis Inc. All Rights  Reserved.
-# 
 # The source code for  this program is not published  or otherwise 
 # divested of  its trade secrets, irrespective  of  what  has been 
 # deposited with the U.S. Copyright office.
-# 
-# This program is  free software; you can redistribute it and / or
-# modify  it under  the  terms  of  the GNU General Public License
-# version 2 as published by the Free Software Foundation.
 # 
 # This program is distributed in the  hope that it will be useful,
 # but WITHOUT ANY WARRANTY; without even the implied  warranty  of 
 # MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU 
 # General Public License for more details.
 # 
-# You  should  have  received  a  copy of  the  GNU General Public
-# License along  with  this program. If  not,  write  to  the 
-# Free Software Foundation, 675 Mass Ave, Cambridge, MA 02139, USA.
-################################################################################
-#
-# Build: 4.2.0
-#
+# For more  information,  see the  file COPYING provided with this
+# material.
 ################################################################################
 # ModuleName  : utils
 # File        : Makefile
@@ -32,7 +23,7 @@
 #
 # This Makefile assumes the following:
 #	- CLOVIS_ROOT environment variable is specified properly
-#	- Entire source tree under $(CLOVIS_ROOT)/ASP is checked out
+#	- Entire source tree under $(CLOVIS_ROOT)/SAFplus is checked out
 #
 #
 ################################################################################
@@ -50,11 +41,10 @@ SRC_FILES	:= clPool.c \
 		   bit.c \
 		   rule.c \
 		   cksm.c \
+           crcbsd.c \
 		   queue.c \
 		   clist.c \
 		   parser.c \
-			clIocParseConfig.c		\
-	           clOampRtParser.c \
                    clHandleApi.c \
                    clVersionApi.c \
 	           xdrGeneric.c \
@@ -70,10 +60,16 @@ SRC_FILES	:= clPool.c \
 	           xdrClInt64T.c \
 	           xdrClUint64T.c \
 		   xdrClStringT.c \
-               xdrClNameTMarshall.c \
-               xdrClNameTUnMarshall.c \
+               xdrSaNameTMarshall.c \
+               xdrSaNameTUnMarshall.c \
                xdrClVersionTMarshall.c \
                xdrClVersionTUnMarshall.c \
+               xdrClMD5TMarshall.c \
+               xdrClMD5TUnMarshall.c \
+               xdrClDataVectorTMarshall.c \
+               xdrClDataVectorTUnMarshall.c \
+               xdrClDifferenceVectorTMarshall.c \
+               xdrClDifferenceVectorTUnMarshall.c \
                clBitmap.c			\
                clDbg.c                         \
                clTest.c                        \
@@ -94,14 +90,23 @@ SRC_FILES	:= clPool.c \
                clTimeServer.c\
                clLeakyBucket.c \
                clMemGroup.c \
-				clErrorTable.c \
+               clPlugin.c \
+	       clErrorTable.c \
+	       md5.c\
+	       clDifferenceVector.c \
+	       stackTrace.c \
+	       clIocParseConfig.c	
+
+#	           clOampRtParser.c
 
 ifeq ($(TARGET_VXWORKS), 1)
 SRC_FILES += clMemTrackerVxWorks.c clMemPart.c
 else
 SRC_FILES += clMemTracker.c
 endif
-# List other ASP components of which client libraries your component
+
+
+# List other SAFplus components of which client libraries your component
 # depends on:
 
 DEP_COMP_LIST	:= osal timer debug buffer eo rmd ioc cnt log amf cor event
@@ -110,7 +115,10 @@ DEP_COMP_LIST	:= osal timer debug buffer eo rmd ioc cnt log amf cor event
 
 LIB_NAMES	= libClUtils
 
-EXTRA_CPPFLAGS += -I $(CLOVIS_ROOT)/ASP/3rdparty/ezxml/stable
+EXTRA_CPPFLAGS += -I $(CLOVIS_ROOT)/SAFplus/3rdparty/ezxml/stable -I/usr/include/c++/4.8 -I/usr/include/x86_64-linux-gnu/c++/4.8
+LDFLAGS += -L/root/libunwind/libunwind-trunk-install/lib 
+CFLAGS  += -I/root/libunwind/libunwind-trunk-install/include -I/usr/include/c++/4.8 -I/usr/include/i386-linux-gnu/c++/4.8
+
 
 ifeq ("$(WIND_VER)","1.2")
     EXTRA_CPPFLAGS += -DWIND_PTHREAD
@@ -136,4 +144,8 @@ endif
 # obtained from the SRC_FILES variable above, so you don't need to create it.
 #
 
-include $(CLOVIS_ROOT)/ASP/mk/make-client.mk
+include $(CLOVIS_ROOT)/SAFplus/mk/make-client.mk
+
+
+
+
