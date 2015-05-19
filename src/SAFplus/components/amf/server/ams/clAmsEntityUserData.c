@@ -282,7 +282,7 @@ ClRcT _clAmsEntityUserDataGetKey(ClNameT *entity,
         userDataStorage = clAmsEntityUserDataFindKey(userData, key);
         if(!userDataStorage)
         {
-            rc = CL_AMS_RC(CL_ERR_NOT_EXIST);
+            rc = CL_AMS_RC(CL_ERR_DOESNT_EXIST);
             goto out_unlock;
         }
         *data = NULL;
@@ -296,7 +296,7 @@ ClRcT _clAmsEntityUserDataGetKey(ClNameT *entity,
     }
     else
     {
-        rc = CL_AMS_RC(CL_ERR_NOT_EXIST);
+        rc = CL_AMS_RC(CL_ERR_DOESNT_EXIST);
     }
 
     out_unlock:

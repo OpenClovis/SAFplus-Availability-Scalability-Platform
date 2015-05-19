@@ -4720,8 +4720,7 @@ VDECL(_clAmsMgmtEntityUserDataGetKey)(ClEoDataT userData,
     if(rc != CL_OK)
     {
         clOsalMutexUnlock(gAms.mutex);
-        clLogError("USERDATA", "GETKEY", "User data get for entity [%.*s] returned [%#x]",
-                   entityRef.entity.name.length-1, entityRef.entity.name.value, rc);
+        clLogError("USERDATA", "GETKEY", "User data get for entity [%.*s] returned [%#x]", entityRef.entity.name.length-1, entityRef.entity.name.value, rc);
         return rc;
     }
     clOsalMutexUnlock(gAms.mutex);

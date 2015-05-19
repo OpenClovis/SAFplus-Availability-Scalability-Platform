@@ -188,7 +188,9 @@ cl_ams_call_rmd_ver(
           }
         tries++;
         delay.tsSec = tries/2;
-    } while(rc != CL_OK && tries < 5 && clOsalTaskDelay(delay) == CL_OK);
+    } while(
+            ((CL_GET_ERROR_CODE(rc) == CL_IOC_ERR_HOST_UNREACHABLE) || (CL_GET_ERROR_CODE(rc) == CL_IOC_ERR_COMP_UNREACHABLE) || CL_GET_ERROR_CODE(rc)==CL_ERR_TIMEOUT)
+            && (tries < 5) && (clOsalTaskDelay(delay) == CL_OK));
 
     if(rc != CL_OK) goto exitfn;
 #else
