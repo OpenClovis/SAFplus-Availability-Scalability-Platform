@@ -450,7 +450,7 @@ class OS:
                           'tar zxf %s' % sqlite.pkg_name,
                           'rm -f %s' % sqlite.pkg_name,
                           'cd sqlite-*',
-                          './configure --prefix=$PREFIX' + log, 
+                          './configure --disable-tcl --prefix=$PREFIX' + log, 
                           'make' + log,
                           'make install' + log]
 
