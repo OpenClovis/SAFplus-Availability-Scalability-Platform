@@ -34,6 +34,7 @@
 #include <fcntl.h>
 #include <errno.h>
 #include <clIocIpi.h>
+#include <sys/wait.h>
 
 /*
  * ASP header files 
@@ -2451,6 +2452,62 @@ ClBoolT cpmCompIsValidPid(ClCpmComponentT *comp)
 }
 #endif
 
+#ifndef POSIX_BUILD
+
+/* Execute the command using this shell program.  */
+#define SHELL "/bin/sh"
+
+int execImageLegacy(const char *command, ClUint32T timeout)
+{
+  int status;
+  pid_t pid;
+
+  pid = fork();
+  if (pid == 0)
+  {
+    /* This is the child process.  Execute the shell command. */
+    execl(SHELL, SHELL, "-c", command, NULL);
+    _exit(EXIT_FAILURE);
+  }
+  else if (pid < 0)
+  {
+    /* The fork failed.  Report failure.  */
+    status = -1;
+  }
+  else
+  {
+    /* This is the parent process.  Wait for the child to complete.  */
+      int waittime = 0;
+      pid_t wpid;
+      do
+      {
+        wpid = waitpid(pid, &status, WNOHANG);
+        if (wpid == 0)
+        {
+          if (waittime < timeout)
+          {
+            sleep(1);
+            waittime++;
+          }
+          else
+          {
+            // Kill if timeout happened
+            kill(pid, SIGKILL);
+            return -1;
+          }
+        }
+      }
+      while (wpid == 0 && waittime <= timeout);
+  }
+  return CL_OK;
+}
+#else
+int execImageLegacy(const char *command, ClUint32T timeout)
+{
+  return system(command);
+}
+#endif
+
 static ClRcT cpmNonProxiedNonPreinstantiableCompTerminate(ClCpmComponentT *comp, ClBoolT cleanup)
 {
     ClRcT rc = CL_CPM_RC(CL_ERR_LIBRARY);
@@ -2459,8 +2516,11 @@ static ClRcT cpmNonProxiedNonPreinstantiableCompTerminate(ClCpmComponentT *comp,
 
     if (comp->processId)
     {
-        if (cpmCompIsValidPid(comp))
+#if 0
+      // Accept shell script, bin etc...
+      if (cpmCompIsValidPid(comp))
         {
+#endif
             ClCharT *command = NULL;
 
             if(cleanup)
@@ -2480,21 +2540,17 @@ static ClRcT cpmNonProxiedNonPreinstantiableCompTerminate(ClCpmComponentT *comp,
                 /*
                  * Just run the system command which is POSIX. 
                  */
-                if(system(command))
-                {
-                    clLogError(CPM_LOG_AREA_CPM, CPM_LOG_CTX_CPM_LCM,
-                               "%s command [%s] error [%s]",
-                               cleanup ? "Cleanup" : "Terminate",
-                               command, strerror(errno));
-                    goto out;
-                }
-                else
-                {
-                    clLogInfo(CPM_LOG_AREA_CPM, CPM_LOG_CTX_CPM_LCM,
-                              "%s command [%s] successful.",
-                              cleanup ? "Cleanup" : "Terminate",
-                              command);
-                }
+              if (execImageLegacy(command,
+                      cleanup ? comp->compConfig->compCleanupTimeout / 1000 : comp->compConfig->compTerminateCallbackTimeOut / 1000))
+              {
+                clLogError(CPM_LOG_AREA_CPM, CPM_LOG_CTX_CPM_LCM, "%s command [%s] error [%s]", cleanup ? "Cleanup" : "Terminate", command,
+                        strerror(errno));
+                goto out;
+              }
+              else
+              {
+                clLogInfo(CPM_LOG_AREA_CPM, CPM_LOG_CTX_CPM_LCM, "%s command [%s] successful.", cleanup ? "Cleanup" : "Terminate", command);
+              }
             }
             else
             {
@@ -2516,8 +2572,9 @@ static ClRcT cpmNonProxiedNonPreinstantiableCompTerminate(ClCpmComponentT *comp,
                     goto out;
                 }
             }
+#if 0
         }
-        else
+      else
         {
             //rc = CL_CPM_RC(CL_ERR_NOT_EXIST);
             rc = CL_OK; // This component can be any types of programming i.e a shell script, ...etc
@@ -2535,6 +2592,7 @@ static ClRcT cpmNonProxiedNonPreinstantiableCompTerminate(ClCpmComponentT *comp,
                     "are supported.");
             goto out;
         }
+#endif
     }
     else
     {
