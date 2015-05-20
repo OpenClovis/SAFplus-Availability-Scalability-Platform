@@ -1,6 +1,10 @@
 #!/bin/bash
+# paramters up/down IPaddress netmask interface
+IFS=':' read -a arr <<< "$4"
+ifbase=${arr[0]}
+echo ${arr[0]}
 echo /sbin/ifconfig $4 $2 netmask $3 $1
 /sbin/ifconfig $4 $2 netmask $3 $1
-echo arping -U -c 2 -I $4 $2
-arping -U -c 2 -I $4 $2
+echo arping -c 5 -U $2 -I $ifbase
+arping -c 2 -U $2 -I $ifbase
 
