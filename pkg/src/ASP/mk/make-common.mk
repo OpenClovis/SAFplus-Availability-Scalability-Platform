@@ -213,7 +213,7 @@ else
     ifeq ($(WIND_VER),0)
         TOP_CFLAGS  = -c -Wall -D_GNU_SOURCE
     else
-        TOP_CFLAGS  = -c -Wall -Werror -D_GNU_SOURCE $(SPECIAL_CFLAGS)
+        TOP_CFLAGS  = -c -Wall -D_GNU_SOURCE $(SPECIAL_CFLAGS)
     endif
 endif
 ifeq ($(BUILD_WARNINGS),1)
@@ -236,7 +236,7 @@ ifeq ($(BUILD_PLUS),0)
          ifeq ($(TARGET_VXWORKS), 1)
             TOP_C99FLAGS :=
          else
-            TOP_C99FLAGS      := -std=c99 -pedantic
+            TOP_C99FLAGS      := -std=c99
          endif
  
         endif
@@ -294,6 +294,43 @@ SHARED_LDFLAGS	+= $(EXTRA_SHARED_LDFLAGS)
 SPLINTCMD	= splint
 SPLINTFLAGS	+= +posixlib -preproc -badflag -warnsysfiles \
                    -nof -weak -line-len 360 -unrecog
+
+# Additional ARCH settings for x86
+ifeq ($(ARCH),x86)
+  ifeq (${IS_64_BIT}, 1)
+    LIBUNWIND_LIBS = -lunwind -lunwind-x86_64
+  else
+    LIBUNWIND_LIBS = -lunwind -lunwind-x86
+  endif
+endif
+
+ifeq ($(ARCH),arm)
+  LIBUNWIND_LIBS = -lunwind -lunwind-arm
+endif
+
+ifeq ($(ARCH),arm64)
+  LIBUNWIND_LIBS = -lunwind -lunwind-aarch64
+endif
+
+LD_LIBS += -lunwind -lunwind-x86_64
+EXTRA_LDLIBS += -lunwind -lunwind-x86_64 
+
+CXXFLAGS := $(filter-out -std=c99,$(LOCAL_CFLAGS)) -Wno-variadic-macros
+# even though variadic macros are not technically supported in c++, g++ and other compilers support them
+# -Werror -- Note compiler complains when c++ is compiled with -std=c99, but precompiler complains when it is NOT defined so warnings can't be errors.
+
+GCC_VERSION_GE_47 := $(shell $(CXX) -dumpversion | gawk '{print $$1>=4.7?"1":"0"}')
+GCC_VERSION_GE_43 := $(shell $(CXX) -dumpversion | gawk '{print $$1>=4.3?"1":"0"}')
+
+ifeq ($(GCC_VERSION_GE_47),1)
+CXXFLAGS += -std=gnu++11
+else
+ifeq ($(GCC_VERSION_GE_43),1)
+CXXFLAGS += -std=gnu++0x
+endif
+endif
+
+LOCAL_CFLAGS += -Werror  # force all warnings to be errors for extra clean compilation
 
 # The compilation/link flags are passed to lower directories as well
 export EXTRA_CFLAGS EXTRA_CPPFLAGS EXTRA_LDFLAGS EXTRA_LDLIBS
