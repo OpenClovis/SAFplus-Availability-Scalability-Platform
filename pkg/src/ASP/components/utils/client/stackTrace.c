@@ -19,9 +19,9 @@ void writeToFile(char* fileName,char* data)
 	fclose(f);
 }
 
-void InitTrace(void)
+void InitThreadDebugBuffer(void)
 {
-    clLog(CL_LOG_SEV_INFO,"DEB","STA"," InitTrace \n");
+    clLog(CL_LOG_SEV_INFO,"DEB","STA"," InitThreadDebugBuffer \n");
     if(isInit==0)
     {
         memset(thread_debug_buffer.buffer, 0, MAX_DEBUG_THREAD*DEBUG_THREAD_SIZE);
@@ -31,7 +31,7 @@ void InitTrace(void)
     }
 }
 
-void addToBuffer(char *item)
+void ThreadDebugBufferWrite(char *item)
 {
     // Write in a single step
     pthread_mutex_lock(&threadDebugLock);
@@ -51,10 +51,10 @@ void addToBuffer(char *item)
     pthread_mutex_unlock(&threadDebugLock);
 }
 
-void getCurrentThreadTrace(char *item)
+void ThreadDebugBufferRead(char *item)
 {
 	pthread_mutex_lock(&threadDebugLock);
-	clLog(CL_LOG_SEV_TRACE,"DEB","STA"," Get current buffer : %d\n",thread_debug_buffer.current);
+	clLog(CL_LOG_SEV_TRACE,"DEB","STA"," Get current item from debug buffer : %d\n",thread_debug_buffer.current);
     if(thread_debug_buffer.current<=0)
     {
         pthread_mutex_unlock(&threadDebugLock);
@@ -65,7 +65,7 @@ void getCurrentThreadTrace(char *item)
     pthread_mutex_unlock(&threadDebugLock);
 }
 
-void getThreadTrace(int num,char *item)
+void ThreadDebugBufferGet(int num,char *item)
 {
     pthread_mutex_lock(&threadDebugLock);
     if(num<=0 || num > MAX_DEBUG_THREAD)
@@ -78,75 +78,17 @@ void getThreadTrace(int num,char *item)
     pthread_mutex_unlock(&threadDebugLock);
 }
 
-void writeAllThreadTraceToFile(char* fileName)
+void writeThreadDebugBufferToFile(char* fileName)
 {
 	for(int i=1;i<=thread_debug_buffer.num_threads;i++)
 	{
 	    char stackInfo[DEBUG_THREAD_SIZE] ;
 	    char *pstackInfo= stackInfo;
-	    getThreadTrace(i,pstackInfo);
+	    ThreadDebugBufferGet(i,pstackInfo);
 	    writeToFile(fileName,pstackInfo);
 	}
 }
 
-//void stack_backtrace(char* trace_buf)
-//{
-//    pid_t pid = getpid();
-//    unsigned int *callstack[MAXFRAME];
-//    const int nMaxFrames = sizeof(callstack) / sizeof(callstack[0]);
-//    int nFrames = backtrace((void**)callstack, nMaxFrames);
-//    if (nFrames == 0)
-//    {
-//        return;
-//    }
-//    char **symbols = backtrace_symbols((void**)callstack, nFrames);
-//    size_t funcnamesize = 150;
-//    char* funcname = (char*)malloc(funcnamesize);
-//    int lenght=0;
-//    for (int i = 2; i < nFrames; i++)
-//    {
-//        printf("%s\n", symbols[i]);
-//        char *begin_name = 0, *begin_offset = 0, *end_offset = 0;
-//        for (char *p = symbols[i]; *p; ++p)
-//        {
-//            if (*p == '(')
-//            begin_name = p;
-//            else if (*p == '+')
-//            begin_offset = p;
-//            else if (*p == ')' && begin_offset)
-//              {
-//                end_offset = p;
-//                break;
-//              }
-//        }
-//        if (begin_name && begin_offset && end_offset && begin_name < begin_offset)
-//        {
-//            *begin_name++ = '\0';
-//            *begin_offset++ = '\0';
-//            *end_offset = '\0';
-//            int status;
-//            char* ret = __cxa_demangle(begin_name,funcname, &funcnamesize, &status);
-//            if (status == 0)
-//            {
-//                funcname = ret; // use possibly realloc()-ed string
-//                lenght += snprintf(trace_buf + lenght,MAX_FRAME_SIZE,"(PID:%d) %s : %s+%s\n",pid, symbols[i], funcname, begin_offset);
-//            }
-//            else
-//            {thread_debug_buffer.buffer
-//                //demangling failed. Output function name as a C function with
-//                // no arguments.
-//                lenght+=snprintf(trace_buf + lenght,MAX_FRAME_SIZE,"(PID:%d) %s : %s()+%s\n",pid, symbols[i], begin_name, begin_offset);
-//            }
-//        }
-//        else
-//        {
-//            // couldn't parse the line? print the whole line.
-//            lenght+=snprintf(trace_buf + lenght,MAX_FRAME_SIZE, "(PID:%d) %s: ??\n", pid, symbols[i]);
-//        }
-//    }
-//    free(funcname);
-//    free(symbols);
-//}
 
 long getBeginMem(pid_t pid, char* libname, char* libPath)
 {
@@ -266,11 +208,11 @@ void get_backtrace (char* trace_buf,char* progname)
     }
 }
 
-void getStackTrace(char* progname)
+void getCurrentThreadStack(char* progname)
 {
     char stackInfo[DEBUG_THREAD_SIZE] ;
     memset(stackInfo,0,DEBUG_THREAD_SIZE);
     char *pstackInfo= stackInfo;
     get_backtrace(pstackInfo,progname);
-    addToBuffer(stackInfo);
+    ThreadDebugBufferWrite(stackInfo);
 }
