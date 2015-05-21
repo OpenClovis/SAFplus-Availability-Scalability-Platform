@@ -181,83 +181,59 @@ long getBeginMem(pid_t pid, char* libname, char* libPath)
 void getFileAndLine (unw_word_t addr, char *file, size_t flen, int *line, char* progname,pid_t pid)
 {
     static char buf[MAX_FUNC_NAME];
-  	sprintf (buf, "/usr/bin/addr2line -C -e %s -f -i %lx", progname, addr);
-    FILE* f = popen (buf, "r");
-    if (f == NULL)
+    char* libname[3];
+    libname[0]=progname;
+    libname[1]="libmw";
+    libname[2]="libpthread";
+    char libPath[MAX_FUNC_NAME];
+    libPath[0] = '\0';
+    char* p =libPath;
+    int i=0;
+
+    for(i=0;i<3;i++)
     {
-        perror(buf);
-        return;
-    }
-    // get function name
-    fgets(buf, MAX_FUNC_NAME, f);
-    // get file and line
-    fgets(buf, MAX_FUNC_NAME, f);
-    if (buf[0] != '?')
-    {
-        char *p = buf;
-        // file name is until ':'
-        while (*p != ':')
-        {
-            p++;
-        }
-        *p++ = 0;
-        // after file name follows line number
-        strcpy (file , buf);
-        sscanf (p,"%d", line);
-    }
-    else
-    {
-     	char* libname[2];
-    	libname[0]="libmw";
-    	libname[1]="libpthread";
-    	char libPath[MAX_FUNC_NAME];
-    	libPath[0] = '\0';
-    	char* p =libPath;
-    	int i=0;
-    	for(i=0;i<2;i++)
+    	long begin=getBeginMem(pid,libname[i],p);
+    	if(begin !=-1)
     	{
-    		long begin=getBeginMem(pid,libname[i],p);
-    		if(begin !=-1)
-    		{
-    			sprintf (buf, "/usr/bin/addr2line -e %s -f -i %lx",libPath,(long)addr - begin);
-    		}
-    		else
-    		{
-    			sprintf (buf, "/usr/bin/addr2line -C -e %s -f -i %lx",libPath,addr);
-            }
-            FILE* f = popen (buf, "r");
-            if (f == NULL)
-            {
-                perror(buf);
-                return;
-    	    }
-    	    // get function name
-            fgets(buf, MAX_FUNC_NAME, f);
-           // get file and line
-           fgets(buf, MAX_FUNC_NAME, f);
-           if (buf[0] != '?')
-           {
-               char *p = buf;
-               // file name is until ':'
-               while (*p != ':')
-               {
-               p++;
-               }
-               *p++ = 0;
-               // after file name follows line number
-               strcpy (file , buf);
-               sscanf (p,"%d", line);
-               pclose(f);
-               return;
-           }
-           else
-           {
-               strcpy (file,"unkown");
-               *line = 0;
-           }
+    	    sprintf (buf, "/usr/bin/addr2line -e %s -f -i %lx",libPath,(long)addr - begin);
     	}
+    	else
+    	{
+    	    sprintf (buf, "/usr/bin/addr2line -C -e %s -f -i %lx",libPath,addr);
+        }
+        FILE* f = popen (buf, "r");
+        if (f == NULL)
+        {
+            perror(buf);
+            return;
+        }
+        // get function name
+        fgets(buf, MAX_FUNC_NAME, f);
+        // get file and line
+        fgets(buf, MAX_FUNC_NAME, f);
+        if (buf[0] != '?')
+        {
+            char *p = buf;
+            // file name is until ':'
+            while (*p != ':')
+            {
+                p++;
+            }
+            *p++ = 0;
+            // after file name follows line number
+            strcpy (file , buf);
+            sscanf (p,"%d", line);
+            pclose(f);
+            return;
+        }
+        else
+        {
+            strcpy (file,"unkown");
+            *line = 0;
+        }    	
+        pclose(f);
     }
-    pclose(f);
+   
 }
 
 
@@ -287,7 +263,7 @@ void get_backtrace (char* trace_buf,char* progname)
             clLog(CL_LOG_SEV_TRACE,"DEB","STA","lenght : %d\n", lenght);
             clLog(CL_LOG_SEV_TRACE,"DEB","STA","stack frame : PID %d, Address: %lx, name %s in file %s:%d\n",pid,ip,name,file,line);
         }
-	}
+    }
 }
 
 void getStackTrace(char* progname)

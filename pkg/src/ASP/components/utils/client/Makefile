@@ -110,10 +110,8 @@ DEP_COMP_LIST	:= osal timer debug buffer eo rmd ioc cnt log amf cor event
 # Library name:
 
 LIB_NAMES	= libClUtils
-EXTRA_CPPFLAGS += -I $(CLOVIS_ROOT)/ASP/3rdparty/ezxml/stable -I/usr/include/c++/4.8 -I/usr/include/x86_64-linux-gnu/c++/4.8
-LDFLAGS += -L/root/libunwind/libunwind-trunk-install/lib 
-CFLAGS  += -I/root/libunwind/libunwind-trunk-install/include -I/usr/include/c++/4.8 -I/usr/include/i386-linux-gnu/c++/4.8
-
+EXTRA_CPPFLAGS += -I $(CLOVIS_ROOT)/ASP/3rdparty/ezxml/stable
+CFLAGS  += -I$(CLOVIS_ROOT)/ASP/3rdparty/libunwind/libunwind-trunk/include/
 
 ifeq ("$(WIND_VER)","1.2")
     EXTRA_CPPFLAGS += -DWIND_PTHREAD
@@ -127,4 +125,4 @@ ifeq ($(CL_HEAP_CHECKER), 1)
 	EXTRA_CFLAGS += -DCL_HEAP_CHECKER
 endif
 
-
+include $(CLOVIS_ROOT)/ASP/mk/make-client.mk
