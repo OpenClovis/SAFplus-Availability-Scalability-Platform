@@ -319,12 +319,12 @@ def load_xml_string(string, strip_root=None):
         str = ""
         if len(dom.childNodes) > 0:
             for n in dom.childNodes:
-                tag = stripNamespace(n.tagName)
                 if n.nodeType == minidom.Comment.nodeType: # Skip all comments
                     pass
                 elif n.__dict__.has_key('nodeValue'):
                     str += n.nodeValue.strip()
                 else:
+                    tag = stripNamespace(n.tagName)
                     if not d.has_key(tag):
                         d[tag] = []
                     d[tag].append({})
