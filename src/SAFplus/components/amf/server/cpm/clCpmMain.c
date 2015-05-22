@@ -669,7 +669,7 @@ static void cpmSigchldHandler(ClInt32T signum)
      */
     do {
         pid = waitpid(WAIT_ANY, &w, WNOHANG);
-    } while(pid > 0);
+    } while((pid != 0)&&(pid != -1));
 
     gotSigChild = signum;
     if (gClCpm.cpmEoObj)
@@ -708,7 +708,7 @@ static void cpmSigHandlerInstall(void)
 
     newAction.sa_handler = cpmSigchldHandler;
     sigemptyset(&newAction.sa_mask);
-    newAction.sa_flags = SA_RESTART;
+    newAction.sa_flags = SA_RESTART | SA_NOCLDSTOP;
 
     if (-1 == sigaction(SIGCHLD, &newAction, NULL))
     {

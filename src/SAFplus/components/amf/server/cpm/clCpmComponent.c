@@ -26,6 +26,7 @@
  * Standard header files 
  */
 #include <sys/types.h>
+#include <sys/wait.h>
 #include <unistd.h>
 #include <string.h>
 #include <stdlib.h>
@@ -2451,6 +2452,35 @@ ClBoolT cpmCompIsValidPid(ClCpmComponentT *comp)
 }
 #endif
 
+static int mySystem(char* command)
+{
+    pid_t p;
+    int status = -1;
+    
+    struct sigaction sa;
+    struct sigaction oldsa;
+
+    // Remove my SIGCHILD handler for the duration of the system call so that handler does not reap my process
+    sa.sa_handler = SIG_DFL;
+    sa.sa_sigaction= 0;
+    sigemptyset(&sa.sa_mask);
+    sa.sa_flags = SA_RESTART | SA_NOCLDSTOP;
+    sigaction(SIGCHLD, &sa, &oldsa);        
+    
+    if ((p=fork())==0)
+    {
+        execl("/bin/sh", "sh", "-c", command, NULL);
+    }
+    else
+    {
+        waitpid(p,&status,0);
+    }
+
+    // OK put the old sighandler back
+    sigaction(SIGCHLD, &oldsa,NULL);   
+    return status;    
+}
+
 static ClRcT cpmNonProxiedNonPreinstantiableCompTerminate(ClCpmComponentT *comp, ClBoolT cleanup)
 {
     ClRcT rc = CL_CPM_RC(CL_ERR_LIBRARY);
@@ -2462,6 +2492,7 @@ static ClRcT cpmNonProxiedNonPreinstantiableCompTerminate(ClCpmComponentT *comp,
         if (cpmCompIsValidPid(comp))
         {
             ClCharT *command = NULL;
+            ClBoolT killit = (cleanup) ? CL_FALSE:CL_TRUE; /* only kill in the terminate step */
 
             if(cleanup)
             {
@@ -2480,41 +2511,46 @@ static ClRcT cpmNonProxiedNonPreinstantiableCompTerminate(ClCpmComponentT *comp,
                 /*
                  * Just run the system command which is POSIX. 
                  */
-                if(system(command))
+                int sysret = mySystem(command);
+                killit = CL_FALSE;                
+                if (sysret == -1) /* system command failed */
                 {
-                    clLogError(CPM_LOG_AREA_CPM, CPM_LOG_CTX_CPM_LCM,
-                               "%s command [%s] error [%s]",
-                               cleanup ? "Cleanup" : "Terminate",
-                               command, strerror(errno));
-                    goto out;
+                    char cwd[250];  
+                    clLogError(CPM_LOG_AREA_CPM, CPM_LOG_CTX_CPM_LCM,"%s command [%s] cwd [%s] failed to execute with error [%d] [%s].", cleanup ? "Cleanup" : "Terminate", command,getcwd(cwd,250),errno, strerror(errno));
+                  if (!cleanup) killit = CL_TRUE;                  
                 }
+                else if (WEXITSTATUS(sysret) == 127) /* system command could not find your script */
+                {
+                    char cwd[250];                    
+                    clLogMultiline(CL_LOG_SEV_ERROR,CPM_LOG_AREA_CPM, CPM_LOG_CTX_CPM_LCM,"%s command [%s] returned [%d]. Current dir is [%s].\nEither your script was not found, was not executable, or returned this error itself.", cleanup ? "Cleanup" : "Terminate", command,127,getcwd(cwd,250));
+                    if (!cleanup) killit = CL_TRUE; 
+                }
+                else if(WEXITSTATUS(sysret)) /* user script failed */
+                {
+                  clLogError(CPM_LOG_AREA_CPM, CPM_LOG_CTX_CPM_LCM,"%s command [%s] returned nonzero value of [%d]", cleanup ? "Cleanup" : "Terminate", command, WEXITSTATUS(sysret));
+                  if (!cleanup) killit = CL_TRUE;    
+                }                  
                 else
                 {
-                    clLogInfo(CPM_LOG_AREA_CPM, CPM_LOG_CTX_CPM_LCM,
-                              "%s command [%s] successful.",
-                              cleanup ? "Cleanup" : "Terminate",
-                              command);
+                    clLogInfo(CPM_LOG_AREA_CPM, CPM_LOG_CTX_CPM_LCM, "%s command [%s] successful.", cleanup ? "Cleanup" : "Terminate", command);
                 }
             }
-            else
-            {
-                /*
-                 * No terminate command defined. So issue a SIGKILL.
-                 */
-                clLogInfo(CPM_LOG_AREA_CPM, CPM_LOG_CTX_CPM_LCM,
-                          "No %s command specified. Sending SIGKILL "
-                          "to component [%s]", 
-                          cleanup ? "cleanup" : "terminate",
-                          comp->compConfig->compName);
 
+            if (killit) /* No terminate command defined, script didn't execute, or script didn't succeed.  So issue a SIGKILL. */
+            {
+                clLogInfo(CPM_LOG_AREA_CPM, CPM_LOG_CTX_CPM_LCM, "No %s command specified, or command failed. Sending SIGKILL to component [%s] pid [%d]", cleanup ? "cleanup" : "terminate", comp->compConfig->compName,comp->processId);
+                kill(comp->processId, SIGKILL);
+                
+#if 0           /* If kill fails, component is already dead so problem solved :-) */     
                 if (-1 == kill(comp->processId, SIGKILL))
                 {
                     clLogError(CPM_LOG_AREA_CPM, CPM_LOG_CTX_CPM_LCM,
                                "Unable to stop component [%s] : [%s]",
                                comp->compConfig->compName,
                                strerror(errno));
-                    goto out;
+                    goto out;                    
                 }
+#endif                
             }
         }
         else
@@ -2833,7 +2869,7 @@ ClRcT clCpmCompPreCleanupInvoke(ClCpmComponentT *comp)
                 "Invoking precleanup command [%s] for Component [%s]",
                 cmdBuf, comp->compConfig->compName);
 
-    status = system(cmdBuf);
+    status = mySystem(cmdBuf);
     (void)status; /*unused*/
 
     out:
@@ -2849,18 +2885,19 @@ static ClRcT compCleanupInvoke(ClCpmComponentT *comp)
     if(comp->compConfig->cleanupCMD[0])
     {
         ClCharT cleanupCmdBuf[CL_MAX_NAME_LENGTH];
-        snprintf(cleanupCmdBuf, sizeof(cleanupCmdBuf), "ASP_COMPNAME=%s %s",
-                 comp->compConfig->compName, comp->compConfig->cleanupCMD);
-        clLogNotice(CPM_LOG_AREA_CPM, CPM_LOG_CTX_CPM_LCM, 
-                   "Invoking cleanup command [%s] for Component [%s]",
-                   cleanupCmdBuf, comp->compConfig->compName);
-        if(system(cleanupCmdBuf))
+        snprintf(cleanupCmdBuf, sizeof(cleanupCmdBuf), "ASP_COMPNAME=%s %s", comp->compConfig->compName, comp->compConfig->cleanupCMD);
+        clLogNotice(CPM_LOG_AREA_CPM, CPM_LOG_CTX_CPM_LCM, "Invoking cleanup command [%s] for Component [%s]", cleanupCmdBuf, comp->compConfig->compName);
+        int sysret = mySystem(cleanupCmdBuf);
+        
+        if(sysret == -1)
         {
-            clLogError(CPM_LOG_AREA_CPM, CPM_LOG_CTX_CPM_LCM, 
-                       "Cleanup command [%s] returned error [%s] for Component [%s]",
-                       cleanupCmdBuf, strerror(errno), comp->compConfig->compName);
+            clLogError(CPM_LOG_AREA_CPM, CPM_LOG_CTX_CPM_LCM, "Cleanup command [%s] returned error [%s] for Component [%s]", cleanupCmdBuf, strerror(errno), comp->compConfig->compName);
             rc = CL_CPM_RC(CL_ERR_LIBRARY);
         }
+        else if (WEXITSTATUS(sysret))
+        {
+            clLogWarning(CPM_LOG_AREA_CPM, CPM_LOG_CTX_CPM_LCM,"Cleanup command [%s] returned nonzero value of [%d]",  cleanupCmdBuf, WEXITSTATUS(sysret));
+        }        
     }
     /*
      * Issue an unconditional sigkill incase cleanup didn't terminate 
