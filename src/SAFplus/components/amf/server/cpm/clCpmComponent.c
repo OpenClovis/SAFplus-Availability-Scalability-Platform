@@ -35,6 +35,7 @@
 #include <fcntl.h>
 #include <errno.h>
 #include <clIocIpi.h>
+#include <sys/wait.h>
 
 /*
  * ASP header files 
@@ -2481,6 +2482,62 @@ static int mySystem(char* command)
     return status;    
 }
 
+#ifndef POSIX_BUILD
+
+/* Execute the command using this shell program.  */
+#define SHELL "/bin/sh"
+
+int execImageLegacy(const char *command, ClUint32T timeout)
+{
+  int status;
+  pid_t pid;
+
+  pid = fork();
+  if (pid == 0)
+  {
+    /* This is the child process.  Execute the shell command. */
+    execl(SHELL, SHELL, "-c", command, NULL);
+    _exit(EXIT_FAILURE);
+  }
+  else if (pid < 0)
+  {
+    /* The fork failed.  Report failure.  */
+    status = -1;
+  }
+  else
+  {
+    /* This is the parent process.  Wait for the child to complete.  */
+      int waittime = 0;
+      pid_t wpid;
+      do
+      {
+        wpid = waitpid(pid, &status, WNOHANG);
+        if (wpid == 0)
+        {
+          if (waittime < timeout)
+          {
+            sleep(1);
+            waittime++;
+          }
+          else
+          {
+            // Kill if timeout happened
+            kill(pid, SIGKILL);
+            return -1;
+          }
+        }
+      }
+      while (wpid == 0 && waittime <= timeout);
+  }
+  return CL_OK;
+}
+#else
+int execImageLegacy(const char *command, ClUint32T timeout)
+{
+  return system(command);
+}
+#endif
+
 static ClRcT cpmNonProxiedNonPreinstantiableCompTerminate(ClCpmComponentT *comp, ClBoolT cleanup)
 {
     ClRcT rc = CL_CPM_RC(CL_ERR_LIBRARY);
@@ -2489,7 +2546,8 @@ static ClRcT cpmNonProxiedNonPreinstantiableCompTerminate(ClCpmComponentT *comp,
 
     if (comp->processId)
     {
-        if (cpmCompIsValidPid(comp))
+      // Accept shell script, bin etc...
+      if (cpmCompIsValidPid(comp))
         {
             ClCharT *command = NULL;
             ClBoolT killit = (cleanup) ? CL_FALSE:CL_TRUE; /* only kill in the terminate step */
@@ -2534,42 +2592,27 @@ static ClRcT cpmNonProxiedNonPreinstantiableCompTerminate(ClCpmComponentT *comp,
                 {
                     clLogInfo(CPM_LOG_AREA_CPM, CPM_LOG_CTX_CPM_LCM, "%s command [%s] successful.", cleanup ? "Cleanup" : "Terminate", command);
                 }
+#if 0
+              if (execImageLegacy(command,
+                      cleanup ? comp->compConfig->compCleanupTimeout / 1000 : comp->compConfig->compTerminateCallbackTimeOut / 1000))
+              {
+                clLogError(CPM_LOG_AREA_CPM, CPM_LOG_CTX_CPM_LCM, "%s command [%s] error [%s]", cleanup ? "Cleanup" : "Terminate", command,
+                        strerror(errno));
+                goto out;
+              }
+              else
+              {
+                clLogInfo(CPM_LOG_AREA_CPM, CPM_LOG_CTX_CPM_LCM, "%s command [%s] successful.", cleanup ? "Cleanup" : "Terminate", command);
+              }
+#endif
             }
+
 
             if (killit) /* No terminate command defined, script didn't execute, or script didn't succeed.  So issue a SIGKILL. */
             {
                 clLogInfo(CPM_LOG_AREA_CPM, CPM_LOG_CTX_CPM_LCM, "No %s command specified, or command failed. Sending SIGKILL to component [%s] pid [%d]", cleanup ? "cleanup" : "terminate", comp->compConfig->compName,comp->processId);
-                kill(comp->processId, SIGKILL);
-                
-#if 0           /* If kill fails, component is already dead so problem solved :-) */     
-                if (-1 == kill(comp->processId, SIGKILL))
-                {
-                    clLogError(CPM_LOG_AREA_CPM, CPM_LOG_CTX_CPM_LCM,
-                               "Unable to stop component [%s] : [%s]",
-                               comp->compConfig->compName,
-                               strerror(errno));
-                    goto out;                    
-                }
-#endif                
+                kill(comp->processId, SIGKILL);           
             }
-        }
-        else
-        {
-            //rc = CL_CPM_RC(CL_ERR_NOT_EXIST);
-            rc = CL_OK; // This component can be any types of programming i.e a shell script, ...etc
-
-            clLogNotice(CPM_LOG_AREA_CPM, CPM_LOG_CTX_CPM_LCM, "Component [%s]'s PID [%d] is invalid.", comp->compConfig->compName,
-                    comp->processId);
-            clLogMultiline(CL_LOG_SEV_NOTICE, CPM_LOG_AREA_CPM, CPM_LOG_CTX_CPM_LCM, "Possible reasons for these are : \n"
-                    "1. CPM was not able to start the component.\n"
-                    "2. Component was started, but it "
-                    "exited gracefully.\n"
-                    "3. Component was started and it "
-                    "crashed.");
-            clLogNotice(CPM_LOG_AREA_CPM, CPM_LOG_CTX_CPM_LCM, "Please note that for non proxied non preinstantiable "
-                    "components only starting and stopping functionalities "
-                    "are supported.");
-            goto out;
         }
     }
     else
@@ -2587,6 +2630,7 @@ static ClRcT cpmNonProxiedNonPreinstantiableCompTerminate(ClCpmComponentT *comp,
     out:
     return rc;
 }
+
 
 ClRcT _cpmComponentTerminate(ClCharT *compName,
                              ClCharT *proxyCompName,
