@@ -112,8 +112,8 @@ long getBeginMem(pid_t pid, char* libname, char* libPath)
 	    if(strstr(libPath, libname) != NULL && strstr(perm, "r-xp") != NULL)
 	    {
 	        clLog(CL_LOG_SEV_TRACE,"DEB","STA","lib begin mem : %lx lib path : %s\n", begin,libPath);
-	        fclose(f);
-	    	return begin;
+            fclose(f);
+            return begin;
 	    }
     }
     fclose(f);
@@ -134,14 +134,14 @@ void getFileAndLine (unw_word_t addr, char *file, size_t flen, int *line, char* 
 
     for(i=0;i<3;i++)
     {
-    	long begin=getBeginMem(pid,libname[i],p);
-    	if(begin !=-1)
-    	{
-    	    sprintf (buf, "/usr/bin/addr2line -e %s -f -i %lx",libPath,(long)addr - begin);
-    	}
-    	else
-    	{
-    	    sprintf (buf, "/usr/bin/addr2line -C -e %s -f -i %lx",libPath,addr);
+        long begin=getBeginMem(pid,libname[i],p);
+        if(begin !=-1 && i!=0)
+        {
+             sprintf (buf, "/usr/bin/addr2line -e %s -f -i %lx",libPath,(long)addr - begin);
+        }
+        else
+        {
+             sprintf (buf, "/usr/bin/addr2line -C -e %s -f -i %lx",libPath,addr);
         }
         FILE* f = popen (buf, "r");
         if (f == NULL)
@@ -172,10 +172,9 @@ void getFileAndLine (unw_word_t addr, char *file, size_t flen, int *line, char* 
         {
             strcpy (file,"unkown");
             *line = 0;
-        }    	
+        }
         pclose(f);
     }
-   
 }
 
 
