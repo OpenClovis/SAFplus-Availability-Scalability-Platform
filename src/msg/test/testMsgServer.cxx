@@ -162,7 +162,7 @@ int main(int argc, char* argv[])
   if (vm.count("xport")) xport = vm["xport"].as<std::string>();
   if (vm.count("loglevel")) SAFplus::logSeverity = logSeverityGet(vm["loglevel"].as<std::string>().c_str());
 
-  clTestGroupInitialize(("Test Message Server"));
+  clTestGroupInitialize(("MSG-SVR-UNT.TG003: Test MsgServer class"));
 
   if (vm["mode"].as<std::string>() == "cloud")
     {
@@ -175,6 +175,6 @@ int main(int argc, char* argv[])
 
   clMsgInitialize();
 
-  clTestCase(("simple send/recv test"),testSendRecv());
+  clTestCase(("MSG-SVR-UNT.TC001: simple send/recv test"),testSendRecv());
   clTestGroupFinalize();
 }
