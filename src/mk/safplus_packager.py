@@ -100,7 +100,7 @@ def copy_dir(src, dst, recursion=0):
                 # Below regular expression skips the copying of object files and header files
                 # into the destination directory
                 if not re.search(r'(\w+)\.(h\w+|i\w+|o)', s):
-                    log.debug((recursion+1)*" " + s + " -> " + d)
+                    #log.debug((recursion+1)*" " + s + " -> " + d)
                     shutil.copy(s, d)
                     # mark any python or shell scripts as executable
                     if re.search(r'(\w+).(py|sh)', d):

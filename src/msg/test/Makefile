@@ -15,6 +15,7 @@ SAFPLUS_LIBS := clMsg clLog clUtils clOsal
 SAFPLUS_DEP_LIBS     := $(addsuffix .so,$(addprefix $(LIB_DIR)/lib,$(SAFPLUS_LIBS)))
 SAFPLUS_LINK_LIBS := -L$(LIB_DIR) $(addprefix -l,$(SAFPLUS_LIBS))
 
+IMAGE_FILE ?= testMsg.zip
 
 all: $(TEST_DIR)/testTransport  $(TEST_DIR)/testMsgServer $(TEST_DIR)/testMsgPerf $(TEST_DIR)/msgReflector
 
@@ -35,6 +36,13 @@ $(TEST_DIR)/%:  $(OBJ_DIR)/%.o $(SAFPLUS_DEP_LIBS)
 $(OBJ_DIR)/%.o: %.cxx Makefile $(SAFPLUS_MAKE_DIR)/preface.mk $(CLIENT_H)
 	$(COMPILE_CPP) $@ $<
 endif
+
+image: $(IMAGE_FILE)
+
+$(IMAGE_FILE): $(TEST_DIR)/testLog
+	cp start.sh $(SAFPLUS_TARGET)
+	$(SAFPLUS_MAKE_DIR)/safplus_packager.py -x "(cp start.sh {image_dir})" $@
+
 
 .PRECIOUS: $(OBJ_DIR)/%.o
 

@@ -293,6 +293,9 @@ void testGroup(MsgSocket* src, MsgSocket* sink,Handle dest,const char* desc)
 
 int main(int argc, char* argv[])
 {
+  bool testProcess = false;
+  bool testNode    = false;
+  bool testCluster = false;
   SAFplus::logSeverity = SAFplus::LOG_SEV_DEBUG;
   std::string xport("clMsgUdp.so");
   SAFplus::logCompName = "TSTPRF";
@@ -305,6 +308,7 @@ int main(int argc, char* argv[])
     ("xport", boost::program_options::value<std::string>(), "transport plugin filename")
     ("loglevel", boost::program_options::value<std::string>(), "logging cutoff level")
     ("repeat", boost::program_options::value<int>(), "repeat factor: bigger number means longer test")
+    ("variant", po::value<std::string>()->default_value("all"), "use 'process','node', or 'cluster' to select the testing scope.")
     ;
 
   po::variables_map vm;        
@@ -320,6 +324,18 @@ int main(int argc, char* argv[])
   if (vm.count("xport")) xport = vm["xport"].as<std::string>();
   if (vm.count("repeat")) repeat = vm["repeat"].as<int>();
   if (vm.count("loglevel")) SAFplus::logSeverity = logSeverityGet(vm["loglevel"].as<std::string>().c_str());
+  if (vm.count("variant")) 
+    {
+    std::string s = vm["variant"].as<std::string>();
+    if (s == "process") testProcess = true;
+    if (s == "node") testNode = true;
+    if (s == "cluster") testCluster = true;
+    if (s == "all") testProcess = testNode = testCluster = true; 
+    }
+  else
+   {
+   testProcess = testNode = true;
+   }
 
   //logEchoToFd = 1; // stdout
 
@@ -352,14 +368,14 @@ int main(int argc, char* argv[])
   MsgTransportConfig& xCfg = xp->config;
 
   logInfo("TST","MSG","Msg Transport [%s], node [%u] maxPort [%u] maxMsgSize [%u] reflector node [%d] reflector port [%d]", xp->type, xCfg.nodeId, xCfg.maxPort, xCfg.maxMsgSize, reflectorNode, reflectorPort);
-  if (1)
+  if (testProcess)
     {
       logInfo("TST","MSG","Loopback to same process");
       ScopedMsgSocket a(xp,1);
       testGroup(a.sock,a.sock,a->handle(),"same process");
     }
 
-  if (1)
+  if (testNode)
     {
       logInfo("TST","MSG","Different process, same node: run the msgReflector program on this node");
 
@@ -367,7 +383,7 @@ int main(int argc, char* argv[])
       testGroup(a.sock,a.sock,getProcessHandle(reflectorPort,a->node),"inter-process");
     }
 
-  if (1)
+  if (testCluster)
     {
       logInfo("TST","MSG","Different process, different node: run the msgReflector program on node %d", reflectorNode);
       ScopedMsgSocket a(xp,1);
