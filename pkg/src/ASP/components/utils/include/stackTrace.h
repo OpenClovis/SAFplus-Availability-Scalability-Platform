@@ -30,16 +30,18 @@ struct ThreadDebugBuffer
 };
 
 // Init  Thread Debug ring buffer
-void InitThreadDebugBuffer(void);
+void InitThreadDebugBuffer(char* progname);
 // Write to thread debug buffer
 void ThreadDebugBufferWrite(char *item);
 // read latest thread in thread debug buffer
 void ThreadDebugBufferRead(char *item);
 // get thread in thread debug buffer
 void ThreadDebugBufferGet(int num,char *item);
-void get_backtrace (char* trace_buf,char* progname);
+void get_backtrace (char* trace_buf);
 // get stack trace of current thread
-void getCurrentThreadStack(char* progname);
+void getCurrentThreadStack();
+// get stack trace of current thread with filename and line
+void getCurrentThreadStackDetail();
 //Write thread debug buffer to file
 void writeThreadDebugBufferToFile(char* fileName);
 
