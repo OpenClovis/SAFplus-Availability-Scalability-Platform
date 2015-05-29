@@ -49,43 +49,26 @@ namespace SAFplus
   SAFplus::Handle& MgtFunction::getHandle(const std::string& pathSpec, ClRcT &errCode)
   {
     errCode = CL_OK;
-    int find = 0;
-    int idx = 0;
-    bool isValid = false;
-    int length = pathSpec.length();
-    for(idx = 0; idx < length; idx++)
+    std::string strPath = "";
+    SAFplus::Checkpoint::Iterator iterMgtChkp = getMgtCheckpoint()->end();
+    for (iterMgtChkp = getMgtCheckpoint()->begin();
+          iterMgtChkp != getMgtCheckpoint()->end();
+          iterMgtChkp++)
       {
-        if(pathSpec[idx] == '/')
+        SAFplus::Checkpoint::KeyValuePair& item = *iterMgtChkp;
+        strPath.assign((char*) (*item.first).data);
+        int find = strPath.find_last_of("/");
+        if (find != std::string::npos)
           {
-            find++;
-          }
-        if(find == 2)
-          {
-            isValid = true;
-          }
-        if(find == 3)
-          {
-            break;
+            std::string route = strPath.substr(find);
+            if (pathSpec.find(route) != std::string::npos)
+              {
+                Handle &Hdl = *((Handle*) (*item.second).data);
+                return Hdl;
+              }
           }
       }
-    if (!isValid)
-      {
-        // Invalid xpath
-        errCode = CL_ERR_INVALID_PARAMETER;
-        return *((Handle*) NULL);
-      }
-
-    std::string xpath = pathSpec.substr(0, idx);
-    const Buffer& buff = getMgtCheckpoint()->read(xpath);
-    if (&buff)
-      {
-        Handle &hdl = *((Handle*) buff.data);
-        return hdl;
-      }
-    else
-      {
-        errCode = CL_ERR_DOESNT_EXIST;
-      }
+    errCode = CL_ERR_INVALID_PARAMETER;
     return *((Handle*) NULL);
   }
 
