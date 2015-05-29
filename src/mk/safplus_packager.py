@@ -8,6 +8,8 @@ import logging
 import re
 import getopt
 import errno
+import subprocess
+import pdb
 
 
 def file_list(dir_name, pattern='*'):
@@ -38,17 +40,19 @@ def check_dir_exists(dir_name):
     return os.path.exists(dir_name)
 
 
-def createdir(dir_name):
+def unusedcreatedir(dir_name):
     try:
         os.mkdir(dir_name, 0o755)
     except OSError, e:
         if e.errno != errno.EEXIST:
+            raise
             fail_and_exit(" Failed to create the dir {}".format(dir_name))
 
 
 def check_and_createdir(dir_name):
     if not check_dir_exists(dir_name):
-        createdir(dir_name)
+        os.makedirs(dir_name)
+        #createdir(dir_name)
     return True
 
 
@@ -84,7 +88,7 @@ def copy_dir(src, dst, recursion=0):
         obj_header_files_count = len([e for e in files_list if p.search(e)])
         if len(files_list) != 0 and len(files_list) == obj_header_files_count:
             return
-        createdir(dst)
+        os.makedirs(dst)
     log.debug(recursion*" " + src)
     for item in os.listdir(src):
         s = os.path.join(src, item)
@@ -96,7 +100,7 @@ def copy_dir(src, dst, recursion=0):
                 # Below regular expression skips the copying of object files and header files
                 # into the destination directory
                 if not re.search(r'(\w+)\.(h\w+|i\w+|o)', s):
-                    log.debug((recursion+1)*" " + s + " -> " + d)
+                    #log.debug((recursion+1)*" " + s + " -> " + d)
                     shutil.copy(s, d)
                     # mark any python or shell scripts as executable
                     if re.search(r'(\w+).(py|sh)', d):
@@ -165,7 +169,7 @@ def get_image_file_name(tar_name):
     return image_file_name
 
 
-def package(base_dir, tar_name, machine=None, kernel_version=None, pre_build_dir=None):
+def package(base_dir, tar_name, machine=None, kernel_version=None, pre_build_dir=None,execute=None):
     """ This function packages the model related binaries, libraries, test examples and 3rd party utilities
        into an archive to the given target platform.
     """
@@ -174,8 +178,8 @@ def package(base_dir, tar_name, machine=None, kernel_version=None, pre_build_dir
 
     # Break the output file name into its components so we can ...
     image_dir_path = get_image_dir_path(tar_name)
-    image_file_name = get_image_file_name(tar_name)
     image_dir = "{}/images".format(image_dir_path)
+    image_stage_dir = image_dir + os.sep + os.path.splitext(get_image_file_name(tar_name))[0]
 
     # Blow away the old staging directory if it exists and recreate it
     if check_dir_exists(image_dir):
@@ -187,7 +191,7 @@ def package(base_dir, tar_name, machine=None, kernel_version=None, pre_build_dir
         #    shutil.rmtree(image_backup_dir)
         #shutil.move(image_dir, image_backup_dir)
 
-    createdir(image_dir)
+    os.makedirs(image_stage_dir)
 
     # If the user does not supply the crossbuild into, assume the local machine -- so get the local machine's data
     if not machine:
@@ -200,9 +204,9 @@ def package(base_dir, tar_name, machine=None, kernel_version=None, pre_build_dir
     log.info("Target platform machine type:{}".format(machine))
     log.info("Target platform kernel version:{}".format(kernel_version))
     log.info("Target platform image directory is {}".format(image_dir))
-    tar_name, compress_format = get_compression_format(image_file_name)
-    tar_dir = "{}/{}".format(image_dir, tar_name)
-    check_and_createdir(tar_dir)
+    tar_name, compress_format = get_compression_format(tar_name)
+    #tar_dir = "{}/{}".format(image_dir, tar_name)
+    #check_and_createdir(tar_dir)
     log.info("Packaging files from {0} and {1}".format(pre_build_dir,base_dir));
 
     if pre_build_dir:  # Create the actual prebuilt dir by combining what the user passed with the arch and kernel.
@@ -210,13 +214,22 @@ def package(base_dir, tar_name, machine=None, kernel_version=None, pre_build_dir
         log.info("Prebuilt target platform related SAFPlus binaries, libraries, and third party utilities are present in {}".format(target_dir))
         if check_dir_exists(pre_build_dir):
             pre_build_dir = "{}/target/{}/{}".format(pre_build_dir, machine, kernel_version)
-            package_dirs(pre_build_dir, tar_dir)
+            package_dirs(pre_build_dir, image_stage_dir)
 
     if base_dir:
         target_dir = "{0}/target/{1}/{2}".format(base_dir, machine, kernel_version)
         log.info("SAFPlus binaries, libraries and third party utilities related to target platform are present in {}".format(target_dir))
-        package_dirs(target_dir, tar_dir)
+        package_dirs(target_dir, image_stage_dir)
     log.info("Packaging complete")
+
+    if execute:
+      tmp = execute.format(image_dir=image_stage_dir)
+      log.info("Executing user supplied script: %s" % tmp)
+      try:
+        ret = subprocess.call(tmp, shell=True)
+      except Exception,e:
+        pdb.set_trace()
+      log.info("script execution complete, returned %d", ret)
 
     log.info("Archive name is {0} Archive compression format is {1}".format(tar_name, compress_format))
     # put the tarball exactly where the requested on the command line: tar_name = os.path.join(image_dir, tar_name)
@@ -249,6 +262,8 @@ Options:
      Ex: x86_64 x86 Default is {tgtMachine}
   -k or --target-os-kernel-version=<target operating system kernel version>
      Default is {kernelVersion}
+  -x or --execute="string"
+     Execute this string on the bash prompt after copying files but before creating the archive
   -o or --output=<archive name>
      Output file name. Can also be supplied as the first non-flag argument.  
      Extension selects the format (.tgz, .tar.gz, or .zip)
@@ -274,12 +289,16 @@ def parser(args):
     """Read the command line arguments, parse them, and return a N-tuple of all the info"""
     model_dir = None
     tar_name = None
-    target_machine = None
-    target_kernel_version = None
+    execute = None
+ 
+    target_platform = platform.system()
+    target_machine = platform.machine()
+    target_kernel_version = platform.release()
     pre_build_dir = None
+
     try:
-        opts, args = getopt.getopt(args, "hm:k:s:o:p:", ["help", "project-dir=", "target-machine=",
-                                                         "target-kernel=", "tar-name=", "safplus-dir="])
+        opts, args = getopt.getopt(args, "hm:k:s:o:p:x:", ["help", "project-dir=", "target-machine=",
+                                                          "target-kernel=", "tar-name=", "safplus-dir=","execute="])
     except getopt.GetoptError as err:
         log.error("{}".format(err))
         usage()
@@ -293,6 +312,8 @@ def parser(args):
         if opt in ("-h", "--help"):
             usage()
             sys.exit()
+        elif opt in ("-x", "--execute="):
+            execute =  get_option_value(arg)
         elif opt in ("-p", "--project-dir="):
             model_dir = get_option_value(arg)
             log.info("Project dir is {}".format(model_dir))
@@ -315,12 +336,12 @@ def parser(args):
 
 
     if tar_name is None:
-        tar_name = "safplus_{}_{}".format(get_target_machine(), get_target_os_release())
+        tar_name = "safplus_{}_{}".format(target_machine, target_kernel_version)
     elif not re.search(r'(\w+).(tar|zip|tgz)', tar_name):
-        tar_name = "{}_{}_{}".format(tar_name, get_target_machine(), get_target_os_release())
+        tar_name = "{}_{}_{}".format(tar_name, target_machine, target_kernel_version)
     else:
         pass
-    return model_dir, tar_name, target_machine, target_kernel_version, pre_build_dir
+    return model_dir, tar_name, target_machine, target_kernel_version, pre_build_dir,execute
 
 
 def get_option_value(arg_val):
@@ -332,10 +353,12 @@ def get_option_value(arg_val):
 
 def main():
     log.debug("Command line Arguments are {}".format(sys.argv))
-    model_dir, tar_name, target_machine, target_kernel, pre_build_dir = parser(sys.argv[1:])
+    model_dir, tar_name, target_machine, target_kernel, pre_build_dir,execute = parser(sys.argv[1:])
     if pre_build_dir is None:
       pre_build_dir = os.path.abspath(os.path.dirname(__file__) + os.sep + '..')
-    package(model_dir, tar_name, target_machine, target_kernel, pre_build_dir)
+
+    # log.info("%s, %s, %s, %s, %s, %s" % (model_dir, tar_name, target_machine, target_kernel, pre_build_dir,execute))
+    package(model_dir, tar_name, target_machine, target_kernel, pre_build_dir,execute)
 
 
 log = log_init()

@@ -9,6 +9,7 @@ using namespace SAFplus;
 
 void TestLog_basic(void)
 {
+  clTestCaseStart(("LOG-BAS-FNC.TC001: issue some logs"));
   logEmergency("LOG","TST","Test Emergency Log");
   logEmergency("LOG","TST","Test Emergency Log2");
   logAlert("LOG","TST","Test Alert Log");
@@ -23,6 +24,8 @@ void TestLog_basic(void)
   logSeverity = LOG_SEV_TRACE;
   logError("LOG","TST","this log should appear");
   logDebug("LOG","TST","this log should appear");
+  clTestSuccess(("logs issued without failure"));
+  clTestCaseEnd((" "));
 }
 
 void TestLog_mgt(void)
@@ -33,11 +36,11 @@ void TestLog_mgt(void)
 int main(int argc, char* argv[])
 {
   SAFplus::logCompName = "testLog";
-  //clTestGroupInitialize(("Osal"));
+  clTestGroupInitialize(("log"));
   logInitialize();
   TestLog_basic();
   TestLog_mgt();
-  //clTestGroupFinalize(); 
+  clTestGroupFinalize(); 
 }
 
 

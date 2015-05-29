@@ -41,6 +41,7 @@ TARGET_OS ?= $(shell uname -r)
 TARGET_PLATFORM ?= $(shell uname -p)
 
 MGT_SRC_DIR ?= $(SAFPLUS_SRC_DIR)/../../mgt
+TAE_DIR ?= $(SAFPLUS_SRC_DIR)/../../tae
 
 NOOP := $(shell mkdir -p $(SAFPLUS_SRC_DIR)/target/$(TARGET_PLATFORM)/$(TARGET_OS))
 SAFPLUS_TARGET ?= $(shell (cd $(SAFPLUS_SRC_DIR)/target/$(TARGET_PLATFORM)/$(TARGET_OS); pwd))

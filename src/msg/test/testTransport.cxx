@@ -457,13 +457,13 @@ int main(int argc, char* argv[])
   if (vm.count("loglevel")) SAFplus::logSeverity = logSeverityGet(vm["loglevel"].as<std::string>().c_str());
 
   //logEchoToFd = 1; // stdout
-  clTestGroupInitialize(("Test Message Transport"));
+  clTestGroupInitialize(("MSG-XPT-UNT.TG002: Test Message Transport"));
 
 
   MsgPool msgPool;
 
-  msgPoolTests(msgPool);
-  messageTests(msgPool);
+  clTestCase(("MSG-XPT-POL.TC001: Message memory pool"),msgPoolTests(msgPool));
+  clTestCase(("MSG-XPT-SRV.TC002: Message send recv functional loopback tests"), messageTests(msgPool));
 
   ClPlugin* api = NULL;
   if (1)
@@ -489,9 +489,9 @@ int main(int argc, char* argv[])
             }
         MsgTransportConfig xCfg = xp->initialize(msgPool,clusterNodes);
         logInfo("TST","MSG","Msg Transport [%s], node [%u] maxPort [%u] maxMsgSize [%u]", xp->type, xCfg.nodeId, xCfg.maxPort, xCfg.maxMsgSize);
-        clTestCase(("simple send/recv test"),testSendRecv(xp));
-        clTestCase(("send/recv messages of every allowed length"),testSendRecvSize(xp));
-        clTestCase(("send/recv messages of every allowed length"),testSendRecvMultiple(xp));
+        clTestCase(("MSG-XPT-SRV.TC003: simple send/recv test"),testSendRecv(xp));
+        clTestCase(("MSG-XPT-SRV.TC004: send/recv messages of every allowed length"),testSendRecvSize(xp));
+        clTestCase(("MSG-XPT-SRV.TC005: send/recv multiple simultaneous messages of every allowed length"),testSendRecvMultiple(xp));
         }
       }
 

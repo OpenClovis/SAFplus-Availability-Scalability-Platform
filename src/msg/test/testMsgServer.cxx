@@ -1,6 +1,7 @@
 #include <clMsgServer.hxx>
 #include <clMsgHandler.hxx>
 #include <clTestApi.hxx>
+#include <boost/program_options.hpp>
 #include <boost/iostreams/stream.hpp>
 
 using namespace SAFplus;
@@ -140,17 +141,40 @@ int main(int argc, char* argv[])
 {
   SAFplus::logSeverity = SAFplus::LOG_SEV_DEBUG;
   //logEchoToFd = 1; // stdout
-  clTestGroupInitialize(("Test Message Server"));
-  // Force cloud mode (you need to have set it up using the "node" command line)
-  SAFplus::defaultClusterNodes = new ClusterNodes(false);
 
-  SAFplusI::defaultMsgTransport = "clMsgUdp.so";
+  std::string xport("clMsgUdp.so");
+  boost::program_options::options_description desc("Allowed options");
+  desc.add_options()
+    ("help", "this help message")
+    ("xport", boost::program_options::value<std::string>(), "transport plugin filename")
+    ("loglevel", boost::program_options::value<std::string>(), "logging cutoff level")
+    ("mode", boost::program_options::value<std::string>()->default_value("LAN"), "specify 'LAN' or 'cloud' to set the messaging transport address resolution mode")
+    ;
+
+  boost::program_options::variables_map vm;
+  boost::program_options::store(boost::program_options::parse_command_line(argc, argv, desc), vm);
+  boost::program_options::notify(vm);
+  if (vm.count("help")) 
+    {
+      std::cout << desc << "\n";
+      return 0;
+    }
+  if (vm.count("xport")) xport = vm["xport"].as<std::string>();
+  if (vm.count("loglevel")) SAFplus::logSeverity = logSeverityGet(vm["loglevel"].as<std::string>().c_str());
+
+  clTestGroupInitialize(("MSG-SVR-UNT.TG003: Test MsgServer class"));
+
+  if (vm["mode"].as<std::string>() == "cloud")
+    {
+    // Force cloud mode (you need to have set it up using the "node" command line)
+    SAFplus::defaultClusterNodes = new ClusterNodes(false);
+    }
+
+  SAFplusI::defaultMsgTransport = xport.c_str();  // only works bc the context of xport is the full main() function
   //SAFplusI::defaultMsgTransport = "clMsgSctp.so";
 
   clMsgInitialize();
 
-  clTestCase(("simple send/recv test"),testSendRecv());
-  
-  
+  clTestCase(("MSG-SVR-UNT.TC001: simple send/recv test"),testSendRecv());
   clTestGroupFinalize();
 }
