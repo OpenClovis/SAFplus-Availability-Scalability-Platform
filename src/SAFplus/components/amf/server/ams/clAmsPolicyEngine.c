@@ -12464,7 +12464,8 @@ clAmsPeCompInstantiate2(
                 return clAmsPeCompInstantiateError(comp, error);
             }
 
-            return clAmsPeCompInstantiateCallback(comp, CL_OK);
+            error = clAmsPeCompInstantiateCallback(comp, CL_OK);
+            return error;
         }
 
         default:
@@ -12630,15 +12631,15 @@ clAmsPeCompInstantiateCallback(
 
         case CL_AMS_COMP_PROPERTY_NON_PROXIED_NON_PREINSTANTIABLE:
         {
-            AMS_CALL ( clAmsEntityTimerStop(
-                            (ClAmsEntityT *) comp,
-                            CL_AMS_COMP_TIMER_INSTANTIATE) );
+            clAmsEntityTimerStop((ClAmsEntityT *) comp,CL_AMS_COMP_TIMER_INSTANTIATE);
 
             if ( error )
             {
                 return clAmsPeCompInstantiateError(comp, error);
             }
-
+            
+            // For non-proxied non-preinstantiable we need to mark this component as recovered successfully as soon as we instantiate it because there is nothing else to do.
+            if (comp->status.recovery) clAmsPeCompFaultCallback(comp,CL_OK);
             break;
         }
 
