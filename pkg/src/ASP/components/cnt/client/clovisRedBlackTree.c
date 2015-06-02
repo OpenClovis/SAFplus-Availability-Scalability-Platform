@@ -1034,7 +1034,7 @@ cclRBTreeContainerNextNodeGet (ClCntHandleT  rbtHandle,
             }
         }
         /* If a node has left child return it */
-        if(pTemp->pRight != pRBTreeHead->pSentinel) 
+        if(pTemp->pRight != pRBTreeHead->pSentinel && pTemp->pRight !=NULL)
         {
             /* SHould return left end node */
             if(pTemp->pRight->pLeft == pRBTreeHead->pSentinel)
