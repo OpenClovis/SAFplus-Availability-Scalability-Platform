@@ -10,7 +10,7 @@ test:
 	$(TAE_DIR)/tae -S safplusTest.xml
 
 testdebug:
-	$(TAE_DIR)/tae -d -S safplusTest.xml
+	$(TAE_DIR)/tae -v -v -v -d -S safplusTest.xml
 
 
 

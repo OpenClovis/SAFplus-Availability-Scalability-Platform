@@ -8,9 +8,9 @@
 	<status   value='200' />
       </timeout> 
     </git>
-    <notify>
+    <!-- notify>
       <email from="c3po-z1@openclovis.com" server="smtp.gmail.com" password="poc3secret" to="eng-all@openclovis.com"/>
-    </notify>
+    </notify -->
     <!--report_url value="scp://root@192.168.0.94//var/www/tg/taereport/import" / -->
   </env_cfg>
 
