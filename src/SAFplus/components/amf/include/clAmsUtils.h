@@ -63,10 +63,11 @@ extern void clAmsLogMsgClient( const ClUint32T level,  char *buffer);
  * Common Error Checking Defines
  *****************************************************************************/
 
-#define AMS_CLIENT_LOG(LEVEL, MSG)              \
-{                                               \
-  clAmsLogMsgClient( LEVEL, clAmsFormatMsg MSG );    \
-}
+#define AMS_STRIP_PARENS(...) __VA_ARGS__ 
+    
+#define AMS_CLIENT_LOG(LEVEL, MSG) do { clLogMsgWrite(CL_LOG_HANDLE_SYS, LEVEL, 0, "AMS", "UTL", __FILE__, __LINE__,  AMS_STRIP_PARENS MSG ); } while(0)
+
+    //clAmsLogMsgClient( LEVEL, clAmsFormatMsg MSG );
 
 #ifndef AMS_SERVER
 #define AMS_LOG(LEVEL, MSG) AMS_CLIENT_LOG(LEVEL,MSG)

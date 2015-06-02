@@ -1768,7 +1768,7 @@ static ClRcT clCpmInitialize(ClUint32T argc, ClCharT *argv[])
      * This should return only when nodeshutdown is called 
      */
     
-    clLog(CL_LOG_SEV_NOTICE, CL_LOG_AREA_UNSPECIFIED, CL_LOG_CONTEXT_UNSPECIFIED, "AMF server fully up");
+    clLog(CL_LOG_SEV_NOTICE, CPM_LOG_AREA_CPM, CPM_LOG_CTX_CPM_BOOT, "AMF server fully up");
     
     compMgrPollThread();
 

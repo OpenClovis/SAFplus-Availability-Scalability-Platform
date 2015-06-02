@@ -246,8 +246,8 @@ clAmsParserTimeoutParser (
     if ( (*data_ptr) == 0 )
     {
         AMS_LOG ( CL_LOG_SEV_WARNING, ("Configuration Timeout Value for "
-                    "entityType [%s] and timer [%s] is Zero, Resetting "
-                    "it to default value \n",entityTypeName,str)); 
+                    "entityType [%s] and timer [%s] is Zero (text was [%s]), Resetting "
+                                       "it to default value \n",entityTypeName,str,data->txt)); 
 
         (*data_ptr) = defaultTimeout;
 
