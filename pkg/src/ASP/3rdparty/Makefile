@@ -25,6 +25,6 @@
 # Subdirectories having Makefiles and need recursive escalation:
 # common should always be before client and server
 
-SUBDIRS          = ezxml utils openais libunwind
+SUBDIRS          = ezxml utils openais
 
 include $(CLOVIS_ROOT)/ASP/mk/make-subdir.mk
