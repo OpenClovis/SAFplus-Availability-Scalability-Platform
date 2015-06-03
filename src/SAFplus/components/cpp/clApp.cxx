@@ -51,6 +51,8 @@ void clCompAppTerminate(SaInvocationT       invocation, const SaNameT       *com
     saAmfResponse(theApp->amfHandle, invocation, SA_AIS_OK);
     clprintf (CL_LOG_SEV_INFO, "Component [%.*s] : PID [%d]. Terminated\n", compName->length, compName->value, theApp->pid);
 
+    return;
+
 errorexit:
     clprintf (CL_LOG_SEV_ERROR, "Component [%.*s] : PID [%d]. Termination error [0x%x]\n",compName->length, compName->value, theApp->pid, rc);
 }
