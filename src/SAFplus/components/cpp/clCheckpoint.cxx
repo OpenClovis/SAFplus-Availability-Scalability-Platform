@@ -446,8 +446,12 @@ namespace clCheckpoint
         getCkptData();
     }
 
-    Table::Iterator::Iterator(Data *pData, Data *pKey) : pData(pData), pKey(pKey)
+    Table::Iterator::Iterator()
     {
+      this->handleIter = 0;
+      this->sectionIteratorHdl = 0;
+      pData = new Data();
+      pKey = new Data();
     }
 
     Table::Iterator::~Iterator()
@@ -460,6 +464,8 @@ namespace clCheckpoint
         {
             clHeapFree(pKey->value);
         }
+        delete pData;
+        delete pKey;
         if (sectionIteratorHdl)
         {
             saCkptSectionIterationFinalize(sectionIteratorHdl);
@@ -491,7 +497,8 @@ namespace clCheckpoint
         rc = saCkptSectionIterationNext(sectionIteratorHdl,
                 &sectionDescriptor);
 
-        if (rc == SA_AIS_OK) {
+        if (rc == SA_AIS_OK)
+        {
             clLogDebug("MGT", "SYNC",
                             "clMgtCkptInitSync() Section '%s' expires %llx size "
                             "%llu state %x update %llx\n",
@@ -513,9 +520,11 @@ namespace clCheckpoint
                 pData = new Data(iov.dataBuffer, iov.readSize);
                 pKey = new Data(sectionDescriptor.sectionId.id, sectionDescriptor.sectionId.idLen);
             }
-        } else {
-            pData = new Data();
-            pKey = new Data();
+        }
+        else
+        {
+          pData = new Data();
+          pKey = new Data();
         }
     }
 
@@ -524,18 +533,20 @@ namespace clCheckpoint
      */
     Table::Iterator& Table::Iterator::operator++(int)
     {
-        // Retrieve ckpt data
-        getCkptData();
+      // Retrieve ckpt data
+      getCkptData();
 
-        return (*this);
+      return (*this);
     }
 
-    Table::Iterator Table::begin() {
-        return (Table::Iterator(&handleTbl));
+    Table::Iterator Table::begin()
+    {
+      return (Table::Iterator(&handleTbl));
     }
 
-    Table::Iterator Table::end() {
-        return (Table::Iterator(new Data(), new Data()));
+    Table::Iterator Table::end()
+    {
+      return (Table::Iterator());
     }
 
 };

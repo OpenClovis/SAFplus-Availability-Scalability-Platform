@@ -241,7 +241,7 @@ namespace clCheckpoint
       Iterator(SaCkptCheckpointHandleT *handle);
       ~Iterator();
 
-      Iterator(Data *pData, Data *pKey);
+      Iterator();
 
       // assignment
       bool operator !=(const Iterator& otherValue);
