@@ -31,10 +31,6 @@
       <build_server ip='localhost' os='ubuntu' user='root' password='clovis' />
       <nodes>
 	<node0 ip='localhost' os='Ubuntu' user="root" password="clovis" />
-	<node1 ip='192.168.56.101' os='Ubuntu' user="root" password="clovis" />
-	<node2 ip='192.168.56.102' os='Ubuntu' user="root" password="clovis" />
-	<node3 ip='192.168.56.103' os='Ubuntu' user="root" password="clovis" />
-	<node4 ip='192.168.56.104' os='Ubuntu' user="root" password="clovis" />
       </nodes>
       <description>
 	greyhound 32 bit virtual machines
@@ -51,16 +47,14 @@
         <middleware value="Standalone" />
         <architecture value="" />
         <cross_build_envscript_absolute_path value="" />
-        <testcase_dir  value="/code/git/SAFplus7/test" />
       </model>
     </default>
    
     <models> 
-      <!-- logUnitTest>
+      <logUnitTest>
 	<image_source value="dir://code/git/SAFplus7/test/logUnitTest" />
-     </logUnitTest -->
+     </logUnitTest>
       <msgUnitTest>
-        <testcase_dir  value="/code/git/SAFplus7/test/msgUnitTest" />
 	<image_source value="dir://code/git/SAFplus7/test/msgUnitTest" />
      </msgUnitTest>
     </models>
@@ -74,12 +68,14 @@
       <mapping>
 	<SysCtrl0   node="node0" role="controller" installDir="~/logUnitTest" />
       </mapping>
+      <testcase_dir  value="/code/git/SAFplus7/test/logUnitTest" />
       <make_options value="" />
       <configure_options value="" />
       <testfilter>
       </testfilter>
     </logUnitTest>
     <msgUnitTest>
+      <testcase_dir  value="/code/git/SAFplus7/test/msgUnitTest" />
       <mapping>
 	<SysCtrl0   node="node0" role="controller" installDir="~/msgUnitTest" />
       </mapping>

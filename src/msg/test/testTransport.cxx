@@ -48,7 +48,8 @@ bool testSendRecv(MsgTransportPlugin_1* xp)
   MsgSocket* b = xp->createSocket(2);
   Handle bHdl = b->handle();
   Message* m;
-
+  uint64_t initialAlloc = a->msgPool->allocated;
+  uint64_t initialFrag = a->msgPool->fragAllocated;
   m = b->receive(1,0);
   clTest(("receiving nothing, no delay"), m == NULL, (" "));
 
@@ -57,10 +58,10 @@ bool testSendRecv(MsgTransportPlugin_1* xp)
 
   m = a->msgPool->allocMsg();
   clTest(("message allocated"), m != NULL,(" "));
-  clTest(("message buffer tracking"), (a->msgPool->allocated == 1), ("Allocated msgs is [%" PRIu64 "]. Expected 1", a->msgPool->allocated));
-  clTest(("Frag allocated"), (a->msgPool->fragAllocated == 0), ("Allocated frags is [%" PRIu64 "]. Expected 0", a->msgPool->fragAllocated));
+  clTest(("message buffer tracking"), ((a->msgPool->allocated - initialAlloc) == 1), ("Allocated msgs is [%" PRIu64 "]. Expected 1", a->msgPool->allocated));
+  clTest(("Frag allocated"), ((a->msgPool->fragAllocated - initialFrag) == 0), ("Allocated frags is [%" PRIu64 "]. Expected 0", a->msgPool->fragAllocated));
   MsgFragment* frag = m->append(0);
-  clTest(("Frag post-allocate"), (a->msgPool->fragAllocated == 1), ("Allocated msgs is [%" PRIu64 "]. Expected 1", a->msgPool->fragAllocated));
+  clTest(("Frag post-allocate"), (a->msgPool->fragAllocated - initialFrag == 1), ("Allocated msgs is [%" PRIu64 "]. Expected 1", a->msgPool->fragAllocated));
 
   frag->set(strMsg);
   m->setAddress(bHdl);
@@ -69,8 +70,8 @@ bool testSendRecv(MsgTransportPlugin_1* xp)
   a->send(m);
   // msgs can be sent and released asynchronously so we don't actually know it is sent until it is received so we can't test a's msgPool until we receive the response.  But a and b have the same msgPool in this test so we must just delay and hope
   boost::this_thread::sleep(boost::posix_time::milliseconds(100));  
-  clTest(("message release"), (a->msgPool->allocated == 0), ("Allocated msgs is [%" PRIu64 "]. Expected 0", a->msgPool->allocated));
-  clTest(("Frag release"), (a->msgPool->fragAllocated == 0), ("Allocated frags is [%" PRIu64 "]. Expected 0", a->msgPool->fragAllocated));
+  clTest(("message release"), (a->msgPool->allocated - initialAlloc == 0), ("Allocated msgs is [%" PRIu64 "]. Expected 0", a->msgPool->allocated));
+  clTest(("Frag release"), (a->msgPool->fragAllocated - initialFrag == 0), ("Allocated frags is [%" PRIu64 "]. Expected 0", a->msgPool->fragAllocated));
   m = b->receive(1);
 
   if (m)
@@ -80,15 +81,15 @@ bool testSendRecv(MsgTransportPlugin_1* xp)
       clTest(("Verify source node in received msg"), (m->node == a->node), ("Source node is [%d]. Expected [%d]", m->node, a->node));
       clTest(("Verify source port in received msg"), (m->port == a->port), ("Source port is [%d]. Expected [%d]", m->port, a->port));
 
-      clTest(("message rcv pool audit"), (b->msgPool->allocated == 1), ("Allocated msgs is [%" PRIu64 "]. Expected 1", b->msgPool->allocated));
-      clTest(("msg rcv frag pool audit"), (a->msgPool->fragAllocated == 1), ("Allocated frags is [%" PRIu64 "]. Expected 1", b->msgPool->fragAllocated)); 
+      clTest(("message rcv pool audit"), (b->msgPool->allocated - initialAlloc == 1), ("Allocated msgs is [%" PRIu64 "]. Expected 1", b->msgPool->allocated));
+      clTest(("msg rcv frag pool audit"), (a->msgPool->fragAllocated - initialFrag == 1), ("Allocated frags is [%" PRIu64 "]. Expected 1", b->msgPool->fragAllocated)); 
 
       clTest(("recv"),m != NULL,(" "));
       printf("%s\n",(const char*) m->firstFragment->read());
       clTest(("send/recv message ok"), 0 == strncmp((const char*) m->firstFragment->read(),strMsg,sizeof(strMsg)),("message contents miscompare: %s -> %s", strMsg,(const char*) m->firstFragment->read()) );
       b->msgPool->free(m);
-      clTest(("message rcv pool audit"), (b->msgPool->allocated == 0), ("Allocated msgs is [%" PRIu64 "]. Expected 0", b->msgPool->allocated));
-      clTest(("msg rcv frag pool audit"), (a->msgPool->fragAllocated == 0), ("Allocated frags is [%" PRIu64 "]. Expected 0", b->msgPool->fragAllocated)); 
+      clTest(("message rcv pool audit"), (b->msgPool->allocated - initialAlloc == 0), ("Allocated msgs is [%" PRIu64 "]. Expected 0", b->msgPool->allocated));
+      clTest(("msg rcv frag pool audit"), (a->msgPool->fragAllocated - initialFrag == 0), ("Allocated frags is [%" PRIu64 "]. Expected 0", b->msgPool->fragAllocated)); 
     }
 
   // Test min msg size
@@ -363,7 +364,7 @@ void messageTests(MsgPool& msgPool)
   if (1)
     {
     boost::iostreams::stream<MessageOStream>  mos(m);
-    mos << testdata;
+    mos << testdata;  // Note this does NOT output /0
     }
 
   if (1)
@@ -372,7 +373,7 @@ void messageTests(MsgPool& msgPool)
     char test[11];
     mis.read(test,10);
     //clTest(("read"), 10 == mis.read(test,10),("read length incorrect"));
-    clTest(("read results"), strcmp(testdata,test)==0, ("data miscompare"));
+    clTest(("read results"), strncmp(testdata,test,10)==0, ("data miscompare"));
     }
 
   msgPool.free(m);
@@ -426,7 +427,7 @@ void messageTests(MsgPool& msgPool)
     int i = 1;
     }
 
-  
+  msgPool.free(m);  
 }
 
 
