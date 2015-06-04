@@ -60,13 +60,15 @@ namespace SAFplus
     config.maxMsgSize   = SAFplusI::UdpTransportMaxMsgSize;
     config.maxPort      = SAFplusI::UdpTransportNumPorts;
     config.maxMsgAtOnce = SAFplusI::UdpTransportMaxMsg;
-    // TODO: first determine if we are in cloud mode or LAN mode...
-    config.capabilities = SAFplus::MsgTransportConfig::Capabilities::BROADCAST;  // not reliable, can't tell if anything joins or leaves...
-
-    struct in_addr bip = SAFplusI::setNodeNetworkAddr(&nodeMask,clusterNodes);           
+    if (clusterNodes == NULL) // LAN mode
+      {
+      config.capabilities = SAFplus::MsgTransportConfig::Capabilities::BROADCAST;  // not reliable, can't tell if anything joins or leaves...
+      }
+    else config.capabilities = SAFplus::MsgTransportConfig::Capabilities::NONE;
+    struct in_addr bip = SAFplusI::setNodeNetworkAddr(&nodeMask,clusterNodes); // This function sets SAFplus::ASP_NODEADDR
     config.nodeId = SAFplus::ASP_NODEADDR;
     netAddr = ntohl(bip.s_addr)&(~nodeMask);
-     
+ 
     return config;
     }
 

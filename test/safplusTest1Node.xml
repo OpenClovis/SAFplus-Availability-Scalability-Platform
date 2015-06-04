@@ -11,7 +11,7 @@
     <!-- notify>
       <email from="c3po-z1@openclovis.com" server="smtp.gmail.com" password="poc3secret" to="eng-all@openclovis.com"/>
     </notify -->
-    <!--report_url value="scp://root@192.168.0.94//var/www/tg/taereport/import" / -->
+    <report_url value="scp://report@192.168.0.94//webdata/import" />
   </env_cfg>
 
   <buildserver>
@@ -33,7 +33,7 @@
 	<node0 ip='localhost' os='Ubuntu' user="root" password="clovis" />
       </nodes>
       <description>
-	greyhound 32 bit virtual machines
+	single node 32 bit
       </description>
     </fixture>
   </default>
@@ -41,7 +41,7 @@
 
  <projects>
 
-  <SAFplus-standalone>
+  <SAFplus7.0>
     <default>
       <model>
         <middleware value="Standalone" />
@@ -59,7 +59,7 @@
      </msgUnitTest>
     </models>
 
-  </SAFplus-standalone>
+  </SAFplus7.0>
 
  </projects>
 

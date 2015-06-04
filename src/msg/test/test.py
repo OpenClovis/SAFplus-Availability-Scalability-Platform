@@ -3,28 +3,76 @@ import pdb
                 
 class test(testcase.TestGroup):
   
-    def test_2(self):
+    def test_udp1(self):
         r"""
-        \testcase   MSG-XPT-PYT.TC002
-        \brief     	Basic messaging functional tests 
+        \testcase   MSG-UDP-LAN.TC001
+        \brief     	UDP LAN Basic messaging functional tests 
         """
         # pdb.set_trace()
         self.progTest(self.model.cfg.mapping.SysCtrl0.installDir + "/test/testTransport --xport=clMsgUdp.so --mode=LAN",160)  # An App Test just starts running its tests when started (there is no addtl trigger required to put the entity "in service", etc.  The parameter is how long to wait before assuming the test hung.
         self.assert_equal(1, 1, 'This test always works')
 
-    def test_3(self):
+    def test_udp2(self):
         r"""
-        \testcase   MSG-XPT-PYT.TC003
-        \brief     	UDP LAN
+        \testcase   MSG-UDP-CLD.TC002
+        \brief     	UDP cloud Basic messaging functional tests 
+        """
+        # pdb.set_trace()
+        self.progTest(self.model.cfg.mapping.SysCtrl0.installDir + "/test/testTransport --xport=clMsgUdp.so --mode=cloud",160)  # An App Test just starts running its tests when started (there is no addtl trigger required to put the entity "in service", etc.  The parameter is how long to wait before assuming the test hung.
+        self.assert_equal(1, 1, 'This test always works')
+
+    def test_udp3(self):
+        r"""
+        \testcase   MSG-UDP-LAN.TC003
+        \brief     	UDP LAN Message software stack test
         """
   
         self.progTest(self.model.cfg.mapping.SysCtrl0.installDir + "/test/testMsgServer --xport=clMsgUdp.so --mode=LAN",120)  # An App Test just starts running its tests when started (there is no addtl trigger required to put the entity "in service", etc.  The parameter is how long to wait before assuming the test hung.
         self.assert_equal(1, 1, 'This test always works')
 
-    def test_4(self):
+    def test_udp4(self):
         r"""
-        \testcase   MSG-XPT-PYT.TC004
-        \brief     	UDP cloud
+        \testcase   MSG-UDP-CLD.TC004
+        \brief     	UDP cloud message software stack test
         """
         self.progTest(self.model.cfg.mapping.SysCtrl0.installDir + "/test/testMsgServer --xport=clMsgUdp.so --mode=cloud",120)
         self.assert_equal(1, 1, 'This test always works')
+
+
+
+    def test_sctp1(self):
+        r"""
+        \testcase   MSG-SCT-LAN.TC001
+        \brief     	SCTP LAN Basic messaging functional tests 
+        """
+        # pdb.set_trace()
+        self.progTest(self.model.cfg.mapping.SysCtrl0.installDir + "/test/testTransport --xport=clMsgSctp.so --mode=LAN",160)  # An App Test just starts running its tests when started (there is no addtl trigger required to put the entity "in service", etc.  The parameter is how long to wait before assuming the test hung.
+        self.assert_equal(1, 1, 'This test always works')
+
+    def test_sctp2(self):
+        r"""
+        \testcase   MSG-SCT-CLD.TC002
+        \brief     	SCTP CLOUD Basic messaging functional tests 
+        """
+        # pdb.set_trace()
+        self.progTest(self.model.cfg.mapping.SysCtrl0.installDir + "/test/testTransport --xport=clMsgSctp.so --mode=cloud",160)  # An App Test just starts running its tests when started (there is no addtl trigger required to put the entity "in service", etc.  The parameter is how long to wait before assuming the test hung.
+        self.assert_equal(1, 1, 'This test always works')
+
+    def test_sctp3(self):
+        r"""
+        \testcase   MSG-SCT-LAN.TC003
+        \brief     	SCTP LAN software stack
+        """
+  
+        self.progTest(self.model.cfg.mapping.SysCtrl0.installDir + "/test/testMsgServer --xport=clMsgSctp.so --mode=LAN",120)  # An App Test just starts running its tests when started (there is no addtl trigger required to put the entity "in service", etc.  The parameter is how long to wait before assuming the test hung.
+        self.assert_equal(1, 1, 'This test always works')
+
+    def test_sctp4(self):
+        r"""
+        \testcase   MSG-SCT-CLD.TC004
+        \brief     	SCTP cloud software stack
+        """
+        self.progTest(self.model.cfg.mapping.SysCtrl0.installDir + "/test/testMsgServer --xport=clMsgSctp.so --mode=cloud",120)
+        self.assert_equal(1, 1, 'This test always works')
+
+

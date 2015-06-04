@@ -7,10 +7,10 @@ all: $(TEST_DIR)/testLog
 	echo Nothing to do
 
 test:
-	$(TAE_DIR)/tae -S safplusTest.xml
+	$(TAE_DIR)/tae -S safplusTest1Node.xml
 
 testdebug:
-	$(TAE_DIR)/tae -v -v -v -d -S safplusTest.xml
+	$(TAE_DIR)/tae -v -v -v -d -S safplusTest1Node.xml
 
 
 

@@ -431,6 +431,8 @@ void messageTests(MsgPool& msgPool)
 }
 
 
+char MsgXportTestPfx[4] = {0};
+const char* ModeStr = 0;
 
 int main(int argc, char* argv[])
 {
@@ -457,14 +459,19 @@ int main(int argc, char* argv[])
   if (vm.count("xport")) xport = vm["xport"].as<std::string>();
   if (vm.count("loglevel")) SAFplus::logSeverity = logSeverityGet(vm["loglevel"].as<std::string>().c_str());
 
+  // Create a unique test prefix based on the transport name
+  strncpy(MsgXportTestPfx,&xport.c_str()[5],3);
+  MsgXportTestPfx[3] = 0;
+  for (int i=0;i<3;i++) MsgXportTestPfx[i] = toupper(MsgXportTestPfx[i]);
+
   //logEchoToFd = 1; // stdout
-  clTestGroupInitialize(("MSG-XPT-UNT.TG002: Test Message Transport"));
+  clTestGroupInitialize(("MXP-XPT-UNT.TG002: Test Message Transport"));
 
 
   MsgPool msgPool;
 
-  clTestCase(("MSG-XPT-POL.TC001: Message memory pool"),msgPoolTests(msgPool));
-  clTestCase(("MSG-XPT-SRV.TC002: Message send recv functional loopback tests"), messageTests(msgPool));
+  clTestCase(("MXP-POL-MEM.TC001: Message memory pool"),msgPoolTests(msgPool));
+  clTestCase(("MXP-SND-FNC.TC002: Message send recv functional loopback tests"), messageTests(msgPool));
 
   ClPlugin* api = NULL;
   if (1)
@@ -487,12 +494,23 @@ int main(int argc, char* argv[])
           if (vm["mode"].as<std::string>() == "cloud")
             {
               clusterNodes = new ClusterNodes();
+              ModeStr = "CLD";
             }
+          else ModeStr = "LAN";
+
+        clTestCaseStart(("MXP-%3s-%3s.TC001: initialization",MsgXportTestPfx,ModeStr));
         MsgTransportConfig xCfg = xp->initialize(msgPool,clusterNodes);
-        logInfo("TST","MSG","Msg Transport [%s], node [%u] maxPort [%u] maxMsgSize [%u]", xp->type, xCfg.nodeId, xCfg.maxPort, xCfg.maxMsgSize);
-        clTestCase(("MSG-XPT-SRV.TC003: simple send/recv test"),testSendRecv(xp));
-        clTestCase(("MSG-XPT-SRV.TC004: send/recv messages of every allowed length"),testSendRecvSize(xp));
-        clTestCase(("MSG-XPT-SRV.TC005: send/recv multiple simultaneous messages of every allowed length"),testSendRecvMultiple(xp));
+        bool abort = false;          
+        clTestCaseMalfunction(("Node address is not set properly"), xCfg.nodeId != 0, abort=true);
+          
+        if (!abort)
+          {
+          logInfo("TST","MSG","Msg Transport [%s], node [%u] maxPort [%u] maxMsgSize [%u]", xp->type, xCfg.nodeId, xCfg.maxPort, xCfg.maxMsgSize);
+          clTestCaseEnd((" "));
+          clTestCase(("MXP-%3s-%3s.TC003: simple send/recv test",MsgXportTestPfx,ModeStr),testSendRecv(xp));
+          clTestCase(("MXP-%3s-%3s.TC004: send/recv messages of every allowed length",MsgXportTestPfx,ModeStr),testSendRecvSize(xp));
+          clTestCase(("MXP-%3s-%3s.TC005: send/recv multiple simultaneous messages of every allowed length",MsgXportTestPfx,ModeStr),testSendRecvMultiple(xp));
+          }
         }
       }
 

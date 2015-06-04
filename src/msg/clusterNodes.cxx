@@ -38,7 +38,19 @@ namespace SAFplus
 
     void clean(void);
     int findEmpty(void); //? returns 0 if nothing is empty
+    int find(const void* address,unsigned int length); //? returns 0 if not found
   };
+
+  int ClusterNodeArray::find(const void* address,unsigned int length)
+  {
+    assert(address); assert(length <= SAFplus::MsgTransportAddressMaxLen);  // Validate arguments
+
+    for (int i=1;i<SAFplus::MaxNodes; i++)
+      {
+        if (memcmp(nodes[i].address, address,length)==0) return i;
+      }
+    return 0;
+  }
 
 
   int ClusterNodeArray::findEmpty(void)
@@ -132,6 +144,17 @@ namespace SAFplus
                 existing = true;
               }
           }
+      }
+    // If his preference did not hold this address, then look to see if this address exists anywhere else and if so make it the preferred slot.
+    if (!existing)  
+      {
+        // get the passed address in binary form for easy comparison
+        char binAddr[SAFplus::MsgTransportAddressMaxLen];
+        int len = MsgTransportAddressMaxLen;
+        SAFplusI::defaultMsgPlugin->string2TransportAddress(address,(void*) binAddr,&len);
+
+        int tmp = data->find(binAddr,len);
+        if (tmp) { preferredNodeId = tmp; existing = true; }
       }
     if (!preferredNodeId) preferredNodeId = data->findEmpty();
 
