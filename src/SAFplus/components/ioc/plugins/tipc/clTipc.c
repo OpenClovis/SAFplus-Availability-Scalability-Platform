@@ -105,10 +105,8 @@
 #define TIPC_LOG_CTX_TIPC_RECV		"RECV"
 #define TIPC_LOG_CTX_TIPC_READY		"RDY"
 
-extern ClUint32T clEoWithOutCpm;
-extern ClUint32T clAspLocalId;
 extern ClIocNodeAddressT gIocLocalBladeAddress;
-#define MAX_MESSAGE_LENGTH 0xffff
+
 ClInt32T gClTipcXportId;
 ClCharT gClTipcXportType[CL_MAX_NAME_LENGTH];
 static ClBoolT tipcPriorityChangePossible = CL_TRUE;  /* Don't attempt to change priority if TIPC does not support, so we don't get tons of error msgs */
@@ -176,11 +174,10 @@ static ClRcT tipcDispatchCallback(ClInt32T fd, ClInt32T events, void *cookie)
 {
     ClRcT rc = CL_OK;
     ClTipcCommPortPrivateT *xportPrivate = (ClTipcCommPortPrivateT*) cookie;
+    ClUint8T buffer[0xffff+1];
     struct msghdr msgHdr;
     struct sockaddr_tipc peerAddress;
     struct iovec ioVector[1];
-    ClUint8T *buffer = NULL;
-    buffer = __iocMessagePoolGet();
     ClInt32T bytes;
 
     if(!xportPrivate)
@@ -196,7 +193,7 @@ static ClRcT tipcDispatchCallback(ClInt32T fd, ClInt32T events, void *cookie)
     msgHdr.msg_name = &peerAddress;
     msgHdr.msg_namelen = sizeof(peerAddress);
     ioVector[0].iov_base = (ClPtrT)buffer;
-    ioVector[0].iov_len = MAX_MESSAGE_LENGTH;
+    ioVector[0].iov_len = sizeof(buffer);
     msgHdr.msg_iov = ioVector;
     msgHdr.msg_iovlen = sizeof(ioVector)/sizeof(ioVector[0]);
     /*
@@ -215,10 +212,7 @@ static ClRcT tipcDispatchCallback(ClInt32T fd, ClInt32T events, void *cookie)
     }
 
     rc = clIocDispatchAsync(gClTipcXportType, xportPrivate->portId, buffer, bytes);
-    if(((ClIocHeaderT*)buffer)->flag == 0)
-    {
-        __iocMessagePoolPut(buffer);
-    }
+
     out:
     return rc;
 }
@@ -495,7 +489,7 @@ ClRcT xportRecv(ClIocCommPortHandleT commPort, ClIocDispatchOptionT *pRecvOption
                 ClBufferHandleT message, ClIocRecvParamT *pRecvParam)
 {
     ClRcT rc = CL_OK;
-    ClUint8T *poolBuffer =NULL;
+    ClUint8T buffer[0xffff+1];
     ClIocCommPortT *pCommPort = (ClIocCommPortT*)commPort;
     ClTipcCommPortPrivateT *pCommPortPrivate = NULL;
     struct msghdr msgHdr;
@@ -517,11 +511,11 @@ ClRcT xportRecv(ClIocCommPortHandleT commPort, ClIocDispatchOptionT *pRecvOption
         rc = CL_ERR_NOT_EXIST;
         goto out;
     }
-    poolBuffer= __iocMessagePoolGet();
-    bufSize = MAX_MESSAGE_LENGTH;
+
     if(!pBuffer)
     {
-        pBuffer= poolBuffer;
+        pBuffer = buffer;
+        bufSize = (ClUint32T)sizeof(buffer);
     }
     
     memset(&pollfd, 0, sizeof(pollfd));
@@ -578,30 +572,20 @@ ClRcT xportRecv(ClIocCommPortHandleT commPort, ClIocDispatchOptionT *pRecvOption
         break;
     }
 
-    rc = clIocDispatch(gClTipcXportType, commPort, pRecvOption, poolBuffer, bytes, message, pRecvParam);
+    rc = clIocDispatch(gClTipcXportType, commPort, pRecvOption, pBuffer, bytes, message, pRecvParam);
 
     if(CL_GET_ERROR_CODE(rc) == CL_ERR_TRY_AGAIN)
-    {
         goto retry;
-    }
 
     if(CL_GET_ERROR_CODE(rc) == IOC_MSG_QUEUED)
     {
         ClUint32T elapsedTm;
         if(timeout == CL_IOC_TIMEOUT_FOREVER)
-        {
-            poolBuffer= __iocMessagePoolGet();
-            ioVector.iov_base = (ClPtrT)poolBuffer;
-            msgHdr.msg_iov = &ioVector;
             goto retry;
-        }
         elapsedTm = (clOsalStopWatchTimeGet() - tm)/1000;
         if(elapsedTm < timeout)
         {
             timeout -= elapsedTm;
-            poolBuffer= __iocMessagePoolGet();
-            ioVector.iov_base = (ClPtrT)poolBuffer;
-            msgHdr.msg_iov = &ioVector;
             goto retry;
         }
         else
@@ -615,10 +599,6 @@ ClRcT xportRecv(ClIocCommPortHandleT commPort, ClIocDispatchOptionT *pRecvOption
     }
 
     out:
-    if(((ClIocHeaderT*)poolBuffer)->flag == 0)
-    {
-        __iocMessagePoolPut(poolBuffer);
-    }
     return rc;
 
 }
@@ -725,8 +705,7 @@ ClRcT xportSend(ClIocPortT port, ClUint32T tempPriority, ClIocAddressT *pIocAddr
 ClRcT xportClose(void)
 {
     if(gTipcInit == CL_FALSE)
-        return CL_OK;    
-    
+        return CL_OK;
     gTipcInit = CL_FALSE;
     return CL_OK;
 }

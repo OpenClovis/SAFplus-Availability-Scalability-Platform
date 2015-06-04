@@ -43,6 +43,7 @@
 #include <clTransport.h>
 #include <clTaskPool.h>
 #include <clCpmApi.h>
+#include <clAmfPluginApi.h>
 
 #define CL_UDP_HANDLER_MAX_SOCKETS            2
 #define UDP_CLUSTER_SYNC_WAIT_TIME 2 /* in seconds*/
@@ -335,6 +336,18 @@ static ClRcT clUdpReceivedPacket(ClUint32T socketType, struct msghdr *pMsgHdr) {
                 /* This is for NODE ARRIVAL/DEPARTURE */
                 if (compAddr.nodeAddress != gIocLocalBladeAddress)
                 {
+                    /*
+                     * Calling AMF plugin to get status if it is defined
+                     */
+                    if (clAmfPlugin && clAmfPlugin->clAmfNodeStatus)
+                    {
+                        if ((id == CL_IOC_NODE_LEAVE_NOTIFICATION)
+                                        && (clAmfPlugin->clAmfNodeStatus(compAddr.nodeAddress) == ClNodeStatusUp))
+                        {
+                            /* DO NOT let the rest of the system see the failure */
+                            return CL_OK;
+                        }
+                    }
                     if (id == CL_IOC_COMP_ARRIVAL_NOTIFICATION || id == CL_IOC_NODE_ARRIVAL_NOTIFICATION)
                     {
                         rc = clIocUdpMapAdd((struct sockaddr*)(ClPtrT)pMsgHdr->msg_name, compAddr.nodeAddress, addStr);

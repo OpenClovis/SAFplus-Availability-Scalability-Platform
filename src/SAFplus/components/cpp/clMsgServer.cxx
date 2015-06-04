@@ -190,6 +190,7 @@ namespace SAFplus
         if ((CL_GET_ERROR_CODE(rc) == CL_IOC_ERR_TRY_AGAIN)||(CL_GET_ERROR_CODE(rc) == CL_ERR_TIMEOUT))
           {
             /* Pass: we just got a timeout and so will retry the recv */
+            clBufferDelete(&recv_msg);
           }
         else if (rc != CL_OK)
           {

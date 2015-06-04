@@ -2849,7 +2849,7 @@ static ClRcT transportRecv(ClTransportLayerT *xport, ClIocCommPortHandleT commPo
             if((err = xport->xportRecv(commPort, pRecvOption, 
                                        buffer, bufSize, message, pRecvParam)) != CL_OK)
             {
-                if(CL_GET_ERROR_CODE(err) != CL_IOC_ERR_RECV_UNBLOCKED)
+                if(CL_GET_ERROR_CODE(err) != CL_IOC_ERR_RECV_UNBLOCKED && CL_GET_ERROR_CODE(rc) != CL_ERR_TIMEOUT)
                 {
                     clLogError("XPORT", "RECV", "Transport [%s] recv. failed with [%#x]", xport->xportType, err);
                 }
