@@ -23,17 +23,17 @@ SAFPLUS_LINK_LIBS := -L$(LIB_DIR) $(addprefix -l,$(SAFPLUS_LIBS))
 LINK_STD_LIBS := -L$(INSTALL_DIR)/lib -lezxml -lxml2 -lstdc++ -lm $(LINK_STD_LIBS)
 
 # $(TEST_DIR)/testGroupServer $(TEST_DIR)/testGroup $(TEST_DIR)/testMultiGroup
-all:  $(TEST_DIR)/testGroup $(TEST_DIR)/dumpGroups $(TEST_DIR)/safplus_group
+all:  $(TEST_DIR)/testGroup
 
 
-$(TEST_DIR)/safplus_group: $(OBJ_DIR)/safplus_group.o $(SAFPLUS_DEP_LIBS) Makefile
-	$(LINK_EXE) $@ $<  $(SAFPLUS_LINK_LIBS) $(LINK_STD_LIBS)
+#$(TEST_DIR)/safplus_group: $(OBJ_DIR)/safplus_group.o $(SAFPLUS_DEP_LIBS) Makefile
+#	$(LINK_EXE) $@ $<  $(SAFPLUS_LINK_LIBS) $(LINK_STD_LIBS)
 
 $(TEST_DIR)/testGroup: $(OBJ_DIR)/testGroup.o $(SAFPLUS_DEP_LIBS)
 	$(LINK_EXE) $@ $< $(LINK_LIBS) $(SAFPLUS_LINK_LIBS) $(LINK_STD_LIBS) 
 
-$(TEST_DIR)/dumpGroups: $(OBJ_DIR)/dumpGroups.o $(SAFPLUS_DEP_LIBS)
-	$(LINK_EXE) $@ $< $(LINK_LIBS) $(SAFPLUS_LINK_LIBS) $(LINK_STD_LIBS) 
+#$(TEST_DIR)/dumpGroups: $(OBJ_DIR)/dumpGroups.o $(SAFPLUS_DEP_LIBS)
+#	$(LINK_EXE) $@ $< $(LINK_LIBS) $(SAFPLUS_LINK_LIBS) $(LINK_STD_LIBS) 
 
 $(TEST_DIR)/testMultiGroup: $(OBJ_DIR)/testMultiGroup.o $(SAFPLUS_DEP_LIBS)
 	$(LINK_EXE) $@ $< $(LINK_LIBS) $(SAFPLUS_LINK_LIBS) $(LINK_STD_LIBS) 

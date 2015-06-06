@@ -93,7 +93,11 @@ char* Group::capStr(uint cap, char* buf)
   void Group::init(Handle groupHandle, int comPort,SAFplus::Wakeable& execSemantics)
     {
     handle = groupHandle;
-    groupCommunicationPort = comPort;
+    if (comPort==0)  // If 0 is passed, that means to use the default port, which is whatever is stored in shared memory
+      {
+        groupCommunicationPort = gsm.groupHdr->repPort;
+      }
+    else groupCommunicationPort = comPort;
 
     if(!groupMsgServer)
       {

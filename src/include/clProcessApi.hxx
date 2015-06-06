@@ -37,6 +37,9 @@ namespace SAFplus
       InheritEnvironment = 4,
       };
 
+    //? Returns true if the process exists
+      bool alive();
+
     //? Returns the command line that was used to start this process
     std::string getCmdline(void);
     };

@@ -90,7 +90,7 @@ void heapFree(void* buffer, const char* file, uint_t line);
 */
   extern bool clVersionVerify (ClVersionDatabaseT *versionDatabase, SaVersionT *version);
 
-  bool clIsProcessAlive(uint32_t pid); 
+  // DEPRECATED bool clIsProcessAlive(uint32_t pid); 
   bool clParseEnvBoolean(const char* envvar);
   inline bool parseEnvBoolean(const char* envvar) { return clParseEnvBoolean(envvar); }
 
@@ -223,7 +223,7 @@ void heapFree(void* buffer, const char* file, uint_t line);
     {
     UNKNOWN=0,
     NOT_IMPLEMENTED=1,
-
+    EXISTS=2,
     // For simplicity put derived class error categories here
     PROCESS_ERRORS = 1000
     };

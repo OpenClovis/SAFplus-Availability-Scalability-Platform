@@ -436,7 +436,7 @@ const char* ModeStr = 0;
 
 int main(int argc, char* argv[])
 {
-  SAFplus::logSeverity = SAFplus::LOG_SEV_DEBUG;
+  //SAFplus::logSeverity = SAFplus::LOG_SEV_DEBUG;
   SAFplus::logCompName = "TSTTRA";
 
   std::string xport("clMsgUdp.so");

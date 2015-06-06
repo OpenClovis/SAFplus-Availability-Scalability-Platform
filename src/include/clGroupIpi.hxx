@@ -62,6 +62,7 @@ namespace SAFplusI
     public:
     uint64_t       structId;
     pid_t          rep;        // This is the node representative
+    uint32_t       repPort;    // Node representative communications port
     };
 
   class GroupData
@@ -242,13 +243,18 @@ namespace SAFplusI
     SAFplusI::GroupShmHashMap* groupMap;
     SAFplusI::GroupShmHeader* groupHdr;
     void init();
-    void clear();
-    void dbgDump(void);
+    void clear(); //? Remove all the groups from shared memory
+    void claim(int pid, int port); //? Claim that the provided pid and port is the node representative.  Overwrites an existing claim
     void dispatcher(void);
     GroupShmEntry* createGroup(SAFplus::Handle grp);
 
     void registerGroupObject(SAFplus::Group* grp);
     void deregisterGroupObject(SAFplus::Group* grp);
+
+    unsigned int dbgCountGroups(void);  //? Counts the number of groups -- intended for unit tests.
+    unsigned int dbgCountEntities(void);  //? Counts the total number of entities in all groups -- intended for unit tests.
+
+    void dbgDump(void);
     };
 
 class GroupServer:public SAFplus::MsgHandler

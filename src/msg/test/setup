@@ -7,6 +7,10 @@ sysctl -w net.core.rmem_max=10485760
 sysctl -w net.core.rmem_default=10485760
 sysctl -w net.core.wmem_default=10485760
 
+# excessive logging can cause expect's input buffer to fill up, hanging the app on stdout
+export CL_LOG_SEVERITY=ERROR
+export CL_LOG_CODE_LOCATION_ENABLE=1
+
 export SAFPLUS_BACKPLANE_INTERFACE=lo
 
 ./bin/node --add 127.0.0.1

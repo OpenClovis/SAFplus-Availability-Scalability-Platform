@@ -1,5 +1,6 @@
 #include <clCustomization.hxx>
 #include <clHandleApi.hxx>
+#include <clProcessApi.hxx>
 #include <clGroupIpi.hxx>
 #include <clMsgPortsAndTypes.hxx>
 #include <chrono>
@@ -92,6 +93,40 @@ void GroupSharedMem::dispatcher()
     }
   }
 
+
+unsigned int GroupSharedMem::dbgCountGroups(void)
+{
+  GroupShmHashMap::iterator i;
+  assert(groupMap);
+  ScopedLock<ProcSem> lock(mutex);
+
+  int ret =0;
+  for (i=groupMap->begin(); i!=groupMap->end();i++)
+    {
+      ret++;
+    }
+  return ret;
+}
+
+unsigned int GroupSharedMem::dbgCountEntities(void)
+{
+  GroupShmHashMap::iterator i;
+  assert(groupMap);
+  ScopedLock<ProcSem> lock(mutex);
+
+  int ret =0;
+  for (i=groupMap->begin(); i!=groupMap->end();i++)
+    {
+    SAFplus::Handle grpHdl = i->first;
+    GroupShmEntry& ge = i->second;
+    const GroupData& gd = ge.read();
+    ret += gd.numMembers; 
+    }
+  return ret;
+}
+
+
+
 void GroupSharedMem::dbgDump(void)
   {
   char buf[100];
@@ -111,6 +146,15 @@ void GroupSharedMem::dbgDump(void)
       printf("    Entity [%" PRIx64 ":%" PRIx64 "] on node [%d] credentials [%ld] capabilities [%d] %s\n", gid.id.id[0],gid.id.id[1],gid.id.getNode(),(unsigned long int) gid.credentials, gid.capabilities, Group::capStr(gid.capabilities,buf));
       }
     }
+  }
+
+  void GroupSharedMem::claim(int pid, int port)
+  {
+  ScopedLock<ProcSem> lock(mutex);
+  groupHdr->rep  = pid;
+  groupHdr->repPort = port;
+  groupHdr->structId=SAFplusI::CL_GROUP_BUFFER_HEADER_STRUCT_ID_7; // Initialize this last.  It indicates that the header is properly initialized (and acts as a structure version number)
+  
   }
 
 void GroupSharedMem::clear()
@@ -141,7 +185,8 @@ void GroupSharedMem::init()
   try
     {
     groupHdr = (SAFplusI::GroupShmHeader*) groupMsm.construct<SAFplusI::GroupShmHeader>("header") ();                                 // Ok it created one so initialize
-    groupHdr->rep  = getpid();
+    groupHdr->rep  = 0;
+    groupHdr->repPort = 0;
     groupHdr->structId=SAFplusI::CL_GROUP_BUFFER_HEADER_STRUCT_ID_7; // Initialize this last.  It indicates that the header is properly initialized (and acts as a structure version number)
     }
   catch (interprocess_exception &e)
@@ -150,11 +195,13 @@ void GroupSharedMem::init()
       {
       groupHdr = groupMsm.find_or_construct<SAFplusI::GroupShmHeader>("header") ();                         //allocator instance
       int retries=0;
+
       while ((groupHdr->structId != CL_GROUP_BUFFER_HEADER_STRUCT_ID_7)&&(retries<2)) { retries++; sleep(1); }  // If another process just barely beat me to the creation, I better wait.
       if (retries>=2)  // Another process is supposedly initializing the header but it did not do so.  Something unknown is wrong.  We will try initializing it.
         {
-        groupHdr->rep  = getpid();
-        groupHdr->structId=SAFplusI::CL_GROUP_BUFFER_HEADER_STRUCT_ID_7; // Initialize this last.  It indicates that the header is properly initialized (and acts as a structure version number)
+          groupHdr->rep      = 0;
+          groupHdr->repPort  = 0;
+          groupHdr->structId = SAFplusI::CL_GROUP_BUFFER_HEADER_STRUCT_ID_7; // Initialize this last.  It indicates that the header is properly initialized (and acts as a structure version number)
         }
       }
     else throw;
@@ -164,22 +211,30 @@ void GroupSharedMem::init()
   groupMap = groupMsm.find_or_construct<GroupShmHashMap>("groups")  (groupMsm.get_allocator<GroupMapPair>());
   // TODO assocData = groupMsm.find_or_construct<CkptHashMap>("data") ...
 
-  //start dispatcher thread
-
+    //start dispatcher thread
     boost::thread(runDispatcher, this);
   }
 
 
 void GroupServer::init()
   {
+    // TODO: use the already inited global GroupSharedMem rather than doing it twice. 
   gsm.init();
-  gsm.clear();  // I am the node representative just starting up, so members may have fallen out while I was gone.  So I must delete everything I knew.
-  //clIocNotificationRegister(groupIocNotificationCallback,this);
+
+      // If the data is valid and the controlling process is alive, this process is in conflict.  There can be only one GroupServer per node.
+  if ((gsm.groupHdr->structId == CL_GROUP_BUFFER_HEADER_STRUCT_ID_7)&&(SAFplus::Process(gsm.groupHdr->rep).alive()))
+        {
+          throw SAFplus::Error(SAFplus::Error::SAFPLUS_ERROR, SAFplus::Error::EXISTS, "Group Node Representative already exists", __FILE__, __LINE__);
+        }
 
   if(!groupMsgServer)
     {
     groupMsgServer = &safplusMsgServer;
     }
+
+  gsm.claim(SAFplus::pid,groupMsgServer->port);  // Make me the node representative
+  gsm.clear();  // I am the node representative just starting up, so members may have fallen out while I was gone.  So I must delete everything I knew.
+  //clIocNotificationRegister(groupIocNotificationCallback,this);
 
   if (1) //groupMsgServer->port == groupCommunicationPort) // If my listening port is the broadcast port then I must be the node representative
     {

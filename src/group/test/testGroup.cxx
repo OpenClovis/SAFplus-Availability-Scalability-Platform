@@ -9,6 +9,7 @@
 #include <clNameApi.hxx>
 #include <clGroupIpi.hxx>  // only for debug -- dumping the group shared memory
 #include <clObjectMessager.hxx>
+#include <clTestApi.hxx>
 
 using namespace SAFplus;
 using namespace std;
@@ -22,7 +23,6 @@ void testChanges(void);
 
 static unsigned int MAX_MSGS=25;
 static unsigned int MAX_HANDLER_THREADS=2;
-//ClBoolT   gIsNodeRepresentative = CL_FALSE;
 
 namespace SAFplusI
   {
@@ -32,7 +32,7 @@ namespace SAFplusI
 int main(int argc, char* argv[])
 {
   logEchoToFd = 1;  // echo logs to stdout for debugging
-  logSeverity = LOG_SEV_MAX;
+  logSeverity = LOG_SEV_DEBUG;
 
   SafplusInitializationConfiguration sic;
   sic.iocPort     = 50;
@@ -42,9 +42,12 @@ int main(int argc, char* argv[])
   //safplusMsgServer.init(50, MAX_MSGS, MAX_HANDLER_THREADS);
   safplusMsgServer.Start();
 
-  //testRegisterAndDeregister(0);
+  clTestGroupInitialize(("group"));
+
+  testRegisterAndDeregister(0);
   //testChanges();
   testSendMessages();
+  clTestGroupFinalize();
   return 0;
 }
 
@@ -169,6 +172,8 @@ int testRegisterAndDeregister(int mode)
   //notifier.setNotification(gch);
 
   sleep(1);
+  int tmp;
+  clTest(("register"), (tmp=SAFplusI::gsm.dbgCountGroups()) == 1, ("Group registration miscompare: expected [1] got [%d]", tmp));
   SAFplusI::gsm.dbgDump();  // should be just the one group.
 
   Handle e1 = Handle::create();

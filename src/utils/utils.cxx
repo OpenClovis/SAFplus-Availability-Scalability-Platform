@@ -472,6 +472,7 @@ void saNameGet(char* str,const SaNameT* name, uint_t maxLen)
       }
     }
 
+#if 0
   bool clIsProcessAlive(uint32_t pid)
   {
       int res = 0;
@@ -492,6 +493,7 @@ void saNameGet(char* str,const SaNameT* name, uint_t maxLen)
       }
     return pid_exists;
   }
+#endif
   
   Handle Handle::create(int msgingPort)
     {

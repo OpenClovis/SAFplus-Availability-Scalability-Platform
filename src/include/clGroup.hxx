@@ -150,7 +150,7 @@ namespace SAFplus
        <arg name="groupHandle">The identity of this group</arg>
        <arg name="comPort" default="SAFplusI::GMS_IOC_PORT">[Optional]  What port the group system is using.  By default, this will use the correct SAFplus group port.</arg>
        </ctor> */
-      Group(SAFplus::Handle groupHandle, int comPort = SAFplusI::GMS_IOC_PORT);
+      Group(SAFplus::Handle groupHandle, int comPort = 0);
       // Named group uses the name service to resolve the name to a handle
       //Group(const std::string& name, int comPort = SAFplusI::GMS_IOC_PORT);
 
@@ -160,7 +160,7 @@ namespace SAFplus
        <arg name="comPort" default="SAFplusI::GMS_IOC_PORT">[Optional]  What port the group system is using.  By default, this will use the correct SAFplus group port.</arg>         
          </ctor>
        */
-      Group(SAFplus::Handle groupHandle,const char* name, int comPort = SAFplusI::GMS_IOC_PORT);
+      Group(SAFplus::Handle groupHandle,const char* name, int comPort = 0);
       ~Group();
 
       /*? <ctor>  Construct a group identified by a particular handle.
@@ -168,7 +168,7 @@ namespace SAFplus
        <arg name="comPort" default="SAFplusI::GMS_IOC_PORT">[Optional]  What port the group system is using.  By default, this will use the correct SAFplus group port.</arg>
        <arg name="execSemantics" default="BLOCK">[Optional]  How to respond when the group is initialized.  By default, this will block but you can also provide a callback or thread semaphore (see <ref type="class">SAFplus::Wakeable</ref> for details).</arg>
        </ctor> */
-      void init(SAFplus::Handle groupHandle, int comPort = SAFplusI::GMS_IOC_PORT,SAFplus::Wakeable& execSemantics = BLOCK);
+      void init(SAFplus::Handle groupHandle, int comPort = 0,SAFplus::Wakeable& execSemantics = BLOCK);
 
       /*? <ctor>This creates a named group.  A "named" group associates the string name with the handle in the Name service and in the Group shared memory.  The handle is the authorative identifier, but the name can be used by other applications to get to this group.
        <arg name="groupHandle">The identity of this group</arg>
@@ -176,7 +176,7 @@ namespace SAFplus
        <arg name="comPort" default="SAFplusI::GMS_IOC_PORT">[Optional]  What port the group system is using.  By default, this will use the correct SAFplus group port.</arg>         
          </ctor>
        */
-      void init(SAFplus::Handle groupHandle, const char* name, int comPort = SAFplusI::GMS_IOC_PORT);
+      void init(SAFplus::Handle groupHandle, const char* name, int comPort = 0);
       //void init(const std::string& name, int comPort = SAFplusI::GMS_IOC_PORT);
 
       //? register a member of the group.  This is separate from the constructor so someone can iterate through members of the group without being a member.  Caller owns data when register returns.
