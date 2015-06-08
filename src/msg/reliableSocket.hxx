@@ -58,62 +58,62 @@ namespace SAFplus
           return lastFrag;
       }
 
-      void incCumulativeAckCounter()
+      void increaseCumulativeAckCounter()
       {
-          _cumAckCounter++;
+          numberOfCumAck++;
       }
 
       int getCumulativeAckCounter()
       {
-          return _cumAckCounter;
+          return numberOfCumAck;
       }
 
       int getAndResetCumulativeAckCounter()
       {
-          int tmp = _cumAckCounter;
-          _cumAckCounter = 0;
+          int tmp = numberOfCumAck;
+          numberOfCumAck = 0;
           return tmp;
       }
 
-      void incOutOfSequenceCounter()
+      void increaseOutOfSequenceCounter()
       {
-          _outOfSeqCounter++;
+          numberOfOutOfSeq++;
       }
 
       int getOutOfSequenceCounter()
       {
-          return _outOfSeqCounter;
+          return numberOfOutOfSeq;
       }
 
       int getAndResetOutOfSequenceCounter()
       {
-          int tmp = _outOfSeqCounter;
-          _outOfSeqCounter = 0;
+          int tmp = numberOfOutOfSeq;
+          numberOfOutOfSeq = 0;
           return tmp;
       }
 
-      void incOutstandingSegsCounter()
+      void incOutstandingFragmentsCounter()
       {
-          nakFragCounter++;
+          numberOfNakFrag++;
       }
 
-      int getOutstandingSegsCounter()
+      int getOutstandingFragmentsCounter()
       {
-          return nakFragCounter;
+          return numberOfNakFrag;
       }
 
-      int getAndResetOutstandingSegsCounter()
+      int getAndResetOutstandingFragmentsCounter()
       {
-          int tmp = nakFragCounter;
-          nakFragCounter = 0;
+          int tmp = numberOfNakFrag;
+          numberOfNakFrag = 0;
           return tmp;
       }
 
       void reset()
       {
-          _outOfSeqCounter = 0;
-          nakFragCounter  = 0;
-          _cumAckCounter   = 0;
+          numberOfOutOfSeq = 0;
+          numberOfNakFrag  = 0;
+          numberOfCumAck   = 0;
       }
       int fragNumber;             /* Fragment sequence number */
       int lastFrag;   /* Last in-Fragment received segment */
@@ -121,20 +121,20 @@ namespace SAFplus
        * The receiver maintains a counter of unacknowledged segments received
        * without an acknowledgment being sent to the transmitter. T
        */
-      int _cumAckCounter; /* Cumulative acknowledge counter */
+      int numberOfCumAck; /* Cumulative acknowledge counter */
 
       /*
        * The receiver maintains a counter of the number of segments that have
        * arrived out-of-sequence.
        */
-      int _outOfSeqCounter; /* Out-of-sequence acknowledgments counter */
+      int numberOfOutOfSeq; /* Out-of-sequence acknowledgments counter */
 
       /*
        * The transmitter maintains a counter of the number of segments that
        * have been sent without getting an acknowledgment. This is used
        * by the receiver as a mean of flow control.
        */
-      int nakFragCounter; /* Outstanding segments counter */
+      int numberOfNakFrag; /* Outstanding segments counter */
   };
   enum TimerStatus
   {
@@ -172,8 +172,9 @@ namespace SAFplus
     bool  shutOut = false;
     queueInfomation *queueInfo;
     ReliableFragmentList unackedSentQueue;
-    ReliableFragmentList outSeqRecvQueue;
-    ReliableFragmentList inSeqRecvQueue;
+    ReliableFragmentList outOfSeqQueue;
+    ReliableFragmentList inSeqQueue;
+    ReliableFragmentList listener;
     SAFplus::Mutex closeMutex;
     SAFplus::Mutex resetMutex;
     ThreadCondition resetCond;
@@ -181,20 +182,10 @@ namespace SAFplus
     ThreadCondition recvQueueCond;
     SAFplus::Mutex unackedSentQueueLock;
     ThreadCondition unackedSentQueueCond;
-
     SAFplus::Mutex thisMutex;
     ThreadCondition thisCond;
 
     void handleCloseImpl(void);
-
-
-
-//    static void* keepAliveTimerFunc(void* arg);
-//    static void* retransmissionTimerFunc(void* arg);
-//    static void* nullFragmentTimerFunc(void* arg);
-//    static void* cumulativeAckTimerFunc(void* arg);
-
-
     void handleReliableFragment(ReliableFragment frag);
     void handleSYNReliableFragment(SYNFragment *frag);
     void handleACKReliableFragment(ReliableFragment *frag);
@@ -209,7 +200,6 @@ namespace SAFplus
     static int nextSequenceNumber(int seqn);
     static void ReliableSocketThread(void * arg);
     void handleReliableSocketThread(void);
-
     void sendReliableFragment(ReliableFragment *frag);
     void queueAndSendReliableFragment(ReliableFragment* frag);
     ReliableFragment* receiveReliableFragment(Handle &);
@@ -229,7 +219,7 @@ namespace SAFplus
     MsgSocketReliable(MsgSocket* socket);
     virtual ~MsgSocketReliable();
     //? Send a bunch of messages.  You give up ownership of msg.
-    virtual void send(Message* msg,uint_t length);
+    virtual void send(Message* msg);
     virtual void send(SAFplus::Handle destination, void* buffer, uint_t length,uint_t msgtype);
     virtual Message* receive(uint_t maxMsgs,int maxDelay=-1);
     void connect(Handle destination, int timeout);
@@ -241,11 +231,13 @@ namespace SAFplus
     void handleNullFragmentTimerFunc(void);
     void handleCumulativeAckTimerFunc(void);
     void handleKeepAliveTimerFunc(void);
-
     void handleReliableFragment(ReliableFragment *frag);
+    virtual void flush();
 
 
   };
+
+
   //The disposer object function
   struct delete_disposer
   {

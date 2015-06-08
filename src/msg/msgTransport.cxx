@@ -452,6 +452,12 @@ namespace SAFplus
     return sock->receive(maxMsgs,maxDelay);
   }
 
+  void MsgSocketSegmentaion::flush()
+  {
+      sock->flush();
+  }
+
+
   //*****************Advanced socket : MsgSocketShaping********************
   MsgSocketShaping::MsgSocketShaping(uint_t port,MsgTransportPlugin_1* transport,uint_t volume, uint_t leakSize, uint_t leakInterval)
   {
@@ -491,12 +497,19 @@ namespace SAFplus
     applyShaping(m->getLength());
     sock->send(m);
   }
-
   Message* MsgSocketShaping::receive(uint_t maxMsgs,int maxDelay)
   {
     return sock->receive(maxMsgs,maxDelay);
   }
 
+  void MsgSocketShaping::flush()
+  {
+    sock->flush();
+  }
+  void MsgSocketAdvanced::flush()
+  {
+    sock->flush();
+  }
 
   std::streamsize MessageOStream::write(const char* s, std::streamsize n)
     {
