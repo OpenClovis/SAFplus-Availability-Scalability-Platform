@@ -45,6 +45,7 @@ test: all
 	cp -f $(TEST_DIR)/testGroupServer .
 	cp -f $(TEST_DIR)/testGroup .
 
+# TAE packaging stuff
 image: $(IMAGE_FILE)
 
 $(IMAGE_FILE): $(TEST_DIR)/testGroup

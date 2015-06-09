@@ -51,7 +51,10 @@
     </default>
    
     <models> 
-      <grpUnitTest>
+      <rpcUnitTest>
+	<image_source value="dir://code/git/SAFplus7/test/rpcUnitTest" />
+     </rpcUnitTest>
+     <grpUnitTest>
 	<image_source value="dir://code/git/SAFplus7/test/grpUnitTest" />
      </grpUnitTest>
       <logUnitTest>
@@ -67,6 +70,16 @@
  </projects>
 
   <models>
+    <rpcUnitTest>
+      <mapping>
+	<SysCtrl0   node="node0" role="controller" installDir="~/rpcUnitTest" />
+      </mapping>
+      <testcase_dir  value="/code/git/SAFplus7/test/rpcUnitTest" />
+      <make_options value="" />
+      <configure_options value="" />
+      <testfilter>
+      </testfilter>
+    </rpcUnitTest>
     <grpUnitTest>
       <mapping>
 	<SysCtrl0   node="node0" role="controller" installDir="~/grpUnitTest" />

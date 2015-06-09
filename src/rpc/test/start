@@ -1,0 +1,4 @@
+#!/bin/bash
+pkill -9 rpcReflector
+test/rpcReflector > rpcReflector.log &
+exit 0

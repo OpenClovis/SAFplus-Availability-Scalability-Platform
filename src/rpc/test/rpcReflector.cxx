@@ -16,6 +16,11 @@
  * For more  information, see  the file  COPYING provided with this
  * material.
  */
+#include <boost/program_options.hpp>
+#include <boost/interprocess/exceptions.hpp>
+#include <boost/foreach.hpp>
+#include <boost/tokenizer.hpp>
+
 #include <clLogApi.hxx>
 #include <clGlobals.hxx>
 #include "clSafplusMsgServer.hxx"
@@ -24,13 +29,40 @@
 
 using namespace SAFplus;
 
-#define SERVER_MSG_PORT 65
+int SERVER_MSG_PORT=65;
 
 unsigned int count=0;
 
-int main(void)
+boost::program_options::variables_map parseOptions(int argc,char *argv[])
 {
-    logSeverity = LOG_SEV_DEBUG;
+  boost::program_options::options_description desc("Allowed options");
+  desc.add_options()
+    ("help", "display help message")
+    ("port", boost::program_options::value<int>()->default_value(SERVER_MSG_PORT), "my port number")
+    ("loglevel", boost::program_options::value<std::string>(), "logging cutoff level")
+    ;
+
+  boost::program_options::variables_map vm;        
+  boost::program_options::store(boost::program_options::parse_command_line(argc, argv, desc), vm);
+  boost::program_options::notify(vm);    
+  
+  if (vm.count("port")) SERVER_MSG_PORT = vm["port"].as<int>();
+  if (vm.count("loglevel")) SAFplus::logSeverity = logSeverityGet(vm["loglevel"].as<std::string>().c_str());
+  if (vm.count("help")) 
+    {
+      std::cout << desc << "\n";
+    }
+  return vm;
+}
+
+
+
+int main(int argc, char* argv[])
+{
+  //logSeverity = LOG_SEV_DEBUG;
+
+    boost::program_options::variables_map vm = parseOptions(argc,argv);
+    if (vm.count("help")) return 0;  // Help already printed by parseOptions
 
     clMsgInitialize();
 
