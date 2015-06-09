@@ -29,9 +29,9 @@ IMAGE_FILE ?= amfTest.zip
 image: $(IMAGE_FILE)
 
 $(IMAGE_FILE): $(TEST_DIR)/exampleSafApp
-	cp setup start $(SAFPLUS_TARGET)  
+	cp setup start cleanup $(SAFPLUS_TARGET)  
 	cp SAFplusAmf.idx SAFplusAmf.db SAFplusAmf.xml $(SAFPLUS_TARGET)/test
-	$(SAFPLUS_MAKE_DIR)/safplus_packager.py -x "(cp setup start {image_dir})" $@
+	$(SAFPLUS_MAKE_DIR)/safplus_packager.py -x "(cp setup start cleanup {image_dir})" $@
 
 
 include $(SAFPLUS_MAKE_DIR)/safplus_targets.mk
