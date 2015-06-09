@@ -243,7 +243,7 @@ namespace SAFplusI
     SAFplusI::GroupShmHashMap* groupMap;
     SAFplusI::GroupShmHeader* groupHdr;
     void init();
-    void clear(); //? Remove all the groups from shared memory
+    void clear(); //? Remove all group's entities from shared memory
     void claim(int pid, int port); //? Claim that the provided pid and port is the node representative.  Overwrites an existing claim
     void dispatcher(void);
     GroupShmEntry* createGroup(SAFplus::Handle grp);
@@ -255,6 +255,9 @@ namespace SAFplusI
     unsigned int dbgCountEntities(void);  //? Counts the total number of entities in all groups -- intended for unit tests.
 
     void dbgDump(void);
+
+    //? typically you'd never call this... it deletes the shared memory segment out of under any running applications which can cause crashes, etc.
+    static void deleteSharedMemory();
     };
 
 class GroupServer:public SAFplus::MsgHandler

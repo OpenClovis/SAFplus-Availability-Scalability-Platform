@@ -6,6 +6,8 @@
 #include <chrono>
 #include <inttypes.h>
 
+#define GroupSharedMemoryName "SAFplusGroups"
+
 using namespace boost::interprocess;
 using namespace SAFplus;
 using namespace SAFplusI;
@@ -26,6 +28,11 @@ GroupServer::GroupServer()
  groupCommunicationPort=GMS_IOC_PORT; 
  groupMsgServer = NULL;
  }
+
+void GroupSharedMem::deleteSharedMemory()
+  {
+  shared_memory_object::remove(GroupSharedMemoryName);
+  }
 
 void GroupSharedMem::registerGroupObject(Group* grp)
   {
@@ -157,6 +164,7 @@ void GroupSharedMem::dbgDump(void)
   
   }
 
+
 void GroupSharedMem::clear()
   {
   ScopedLock<Mutex> lock2(localMutex);
@@ -176,11 +184,12 @@ void GroupSharedMem::clear()
   
   }
 
+
 void GroupSharedMem::init()
   {
   mutex.init("GroupSharedMem",1);
   ScopedLock<ProcSem> lock(mutex);
-  groupMsm = boost::interprocess::managed_shared_memory(open_or_create, "SAFplusGroups", GroupSharedMemSize);
+  groupMsm = boost::interprocess::managed_shared_memory(open_or_create, GroupSharedMemoryName, GroupSharedMemSize);
 
   try
     {

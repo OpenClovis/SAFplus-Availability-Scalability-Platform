@@ -1,5 +1,6 @@
 #ifndef _CL_PLUGIN_HELPER_H_
 #define _CL_PLUGIN_HELPER_H_
+#include <utility>
 #include <clClusterNodes.hxx>
 
 #define clBitSet(bitNum) ((bitNum) |= 0x80000000)
@@ -43,10 +44,19 @@ ClRcT clPluginHelperGetVirtualAddressInfo(const ClCharT *xportType, ClPluginHelp
 ClUint32T clPluginHelperBitFillRShift(ClUint32T numBits);
 ClRcT clPluginHelperConvertHostToInternetAddress(ClUint32T addr, ClCharT *internetAddress);
 ClRcT clPluginHelperConvertInternetToHostAddress(ClUint32T *addr, const ClCharT *internetAddress);
+
 void devToIpAddress(const char *dev, char *addrStr);
-  in_addr setNodeNetworkAddr(unsigned int* pNodeMask = NULL,SAFplus::ClusterNodes* cn = NULL);
+
+  //  in_addr setNodeNetworkAddr(unsigned int* pNodeMask = NULL,SAFplus::ClusterNodes* cn = NULL);
 unsigned int devNetmask(const char *dev);
+
+  std::pair<in_addr,in_addr> setNodeNetworkAddr(unsigned int* pNodeMask = NULL,SAFplus::ClusterNodes* cn = NULL);
+
+
+  //? Get the IP address for a particular device
 struct in_addr devToIpAddress(const char *dev);
+  //? Get the broadcast address for a particular device
+struct in_addr devToBroadcastAddress(const char *dev);
 
 void clPluginHelperAddRouteAddress(const ClCharT *ipAddress, const ClCharT *ifDevName);
 };

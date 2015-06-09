@@ -19,6 +19,7 @@ namespace SAFplus
 
   bool Process::alive()
   {
+    if (pid == 0) return false;  // pid 0 is impossible
     int result = kill(pid,0);  // signal 0 means don't send a signal but get error code back
     if (result == 0) return true;
     if (errno == EPERM) { assert (0); } // permissions problem

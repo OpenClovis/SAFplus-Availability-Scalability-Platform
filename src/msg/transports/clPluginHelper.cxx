@@ -434,6 +434,40 @@ struct in_addr devToIpAddress(const char *dev)
     return *in4_addr;
 }
 
+/*
+ * Returns ip address on a network interface given its name...
+ */
+
+struct in_addr devToBroadcastAddress(const char *dev)
+{
+    int sd;
+    struct ifreq req;
+
+    /* Get a socket handle. */
+    sd = socket(PF_INET, SOCK_DGRAM, 0);
+    if (sd < 0)
+    {
+        logError(LOG_CTX, CL_LOG_PLUGIN_HELPER_AREA, "open socket failed with error [%s]", strerror(errno));
+        assert(0); // Something is REALLY wrong if I can't create a socket
+    }
+
+    memset(&req, 0, sizeof(struct ifreq));
+    strcpy(req.ifr_name, dev);
+    req.ifr_addr.sa_family = PF_UNSPEC;
+
+    if (ioctl(sd, SIOCGIFBRDADDR, &req) == -1)
+    {
+        logNotice(LOG_CTX, CL_LOG_PLUGIN_HELPER_AREA, "Operation command failed: [%s]", strerror(errno));
+        close(sd);
+        assert(0);  // TODO: Any "normal" errors?  If so I should throw
+    }
+
+    struct in_addr *in4_addr = &((struct sockaddr_in*) &((struct ifreq *) &req)->ifr_addr)->sin_addr;
+    close(sd);
+    return *in4_addr;
+}
+
+
 unsigned int devNetmask(const char *dev)
 {
     int sd;
@@ -810,10 +844,11 @@ Also, returns the nodeMask and ip address assigned to the interface
 Parameters:
   pNodeMask: [out] nodemask for the specified network is returned
 Returns:
-  in_addr: ip address assigned to the interface
+  in_addr: ip address assigned to the interface, in_addr: broadcast address assigned to the interface
 */
-  in_addr setNodeNetworkAddr(unsigned int* pNodeMask,SAFplus::ClusterNodes* cn)
+  std::pair<in_addr,in_addr> setNodeNetworkAddr(unsigned int* pNodeMask,SAFplus::ClusterNodes* cn)
 {
+  struct in_addr inp;
   //? <cfg name="SAFPLUS_BACKPLANE_INTERFACE">Specifies the network interface to use for backplane communications</cfg>  
   const char* interface = getenv("SAFPLUS_BACKPLANE_INTERFACE");
   //? <cfg name="SAFPLUS_BACKPLANE_NETWORK">[OPTIONAL] Specifies the network to use for backplane communications.  Use <a href="http://en.wikipedia.org/wiki/Classless_Inter-Domain_Routing#CIDR_notation">CIDR Notation</a>, for example 169.254.100.0/8.  This network and SAFPLUS_NODE_ID will be assigned to an alias address on the selected interface.  If not defined the existing network address will be used and the node mask (logical not of the subnet mask) will be used as the node id.</cfg>  
@@ -854,14 +889,12 @@ Returns:
       inet_aton(netmask.c_str(), &nm);
       *pNodeMask = ~ntohl(nm.s_addr);
     }
-    struct in_addr inp;
     inet_aton(addr, &inp);
-    return inp;
   }
   else
   {
     // In this case, there is an ip address already assigned to the interface, so we get it from the interface
-    struct in_addr inp = devToIpAddress(interface);    
+    inp = devToIpAddress(interface);    
     int nodeMask = ~ntohl(devNetmask(interface));
     // Set ASP_NODEADDR based on the last 8 bits of assigned network address
     if (cn)
@@ -875,8 +908,12 @@ Returns:
     {
       *pNodeMask = nodeMask;
     }
-    return inp;
   }
+
+  std::pair<in_addr,in_addr> p;
+  p.first = inp;
+  p.second = devToBroadcastAddress(interface);    
+  return p;
 }
 
 };

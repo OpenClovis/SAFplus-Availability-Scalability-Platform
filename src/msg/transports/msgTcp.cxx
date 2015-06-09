@@ -84,8 +84,8 @@ namespace SAFplus
     config.maxPort    = SAFplusI::TcpTransportNumPorts;
     config.maxMsgAtOnce = SAFplusI::TcpTransportMaxMsg;
     config.capabilities = SAFplus::MsgTransportConfig::Capabilities::NAGLE_AVAILABLE;
-    
-    struct in_addr bip = SAFplusI::setNodeNetworkAddr(&nodeMask, clusterNodes);      
+    std::pair<in_addr,in_addr> ipAndBcast = SAFplusI::setNodeNetworkAddr(&nodeMask,clusterNodes);   
+    struct in_addr bip = ipAndBcast.first;    
     config.nodeId = SAFplus::ASP_NODEADDR;
     netAddr = ntohl(bip.s_addr)&(~nodeMask);
 
@@ -189,7 +189,7 @@ namespace SAFplus
     logTrace("TCP", "ADD", "Add socket to map");
     uint_t nodeId = ntohl(client.sin_addr.s_addr) & (((Tcp*)transport)->nodeMask);
     mutex.lock();
-    logTrace("TCP", "ADD", "Mutex locked. nodeId [%d]. map size [%ld]", nodeId, clientSockMap.size());
+    logTrace("TCP", "ADD", "Mutex locked. nodeId [%d]. map size [%u]", nodeId, (unsigned int) clientSockMap.size());
     NodeIDSocketMap::iterator contents = clientSockMap.find(nodeId);
     if (contents != clientSockMap.end()) // Socket connected to this nodeId has been established
     {

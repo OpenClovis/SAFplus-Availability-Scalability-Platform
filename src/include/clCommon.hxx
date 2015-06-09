@@ -224,6 +224,7 @@ void heapFree(void* buffer, const char* file, uint_t line);
     UNKNOWN=0,
     NOT_IMPLEMENTED=1,
     EXISTS=2,
+    MISCONFIGURATION=3,
     // For simplicity put derived class error categories here
     PROCESS_ERRORS = 1000
     };

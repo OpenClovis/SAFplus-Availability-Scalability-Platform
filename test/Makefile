@@ -15,6 +15,6 @@ testdebug:
 
 
 clean:
-	rm -rf stamps* *.zip *.pyc log_*/*
+	rm -rf stamps* *.zip *.pyc log_*/* /var/log/testresults.log
 
 include $(SAFPLUS_MAKE_DIR)/safplus_targets.mk

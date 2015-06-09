@@ -185,7 +185,7 @@ do { \
     clTestCaseStart(name); \
     SAFplusI::clCurTc.malfPops = 0; \
     test; \
-    clTestCaseEnd((" ")); \
+    clTestCaseEnd(("\n")); \
 } while (0)
 
 
@@ -271,7 +271,7 @@ do { \
                  "Synopsis:\n", \
                  SAFplusI::clCurTc.name, SAFplusI::clCurTc.passed, \
                  SAFplusI::clCurTc.failed, SAFplusI::clCurTc.malfunction)); \
-    clTestPrint(synopsis); \
+    clTestPrint(synopsis);                          \
     SAFplus::testPrintIndent-=2; \
     int malf=SAFplusI::clCurTc.malfunction; \
     int fail = SAFplusI::clCurTc.failed; \

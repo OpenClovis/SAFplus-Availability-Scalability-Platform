@@ -14,11 +14,11 @@
     <report_url value="scp://report@test.openclovis.com//webdata/import" />
   </env_cfg>
 
-  <buildserver>
+  <!-- buildserver>
     <sdk_root_dir value="/opt/clovis" />
     <asp_dir      value="/home/c3po/git-tests/safplus" />
     <project_dir  value="/home/c3po/git-tests/asptest" />
-  </buildserver>
+  </buildserver -->
 
   <default>
     <model>
@@ -51,6 +51,9 @@
     </default>
    
     <models> 
+      <grpUnitTest>
+	<image_source value="dir://code/git/SAFplus7/test/grpUnitTest" />
+     </grpUnitTest>
       <logUnitTest>
 	<image_source value="dir://code/git/SAFplus7/test/logUnitTest" />
      </logUnitTest>
@@ -64,6 +67,16 @@
  </projects>
 
   <models>
+    <grpUnitTest>
+      <mapping>
+	<SysCtrl0   node="node0" role="controller" installDir="~/grpUnitTest" />
+      </mapping>
+      <testcase_dir  value="/code/git/SAFplus7/test/grpUnitTest" />
+      <make_options value="" />
+      <configure_options value="" />
+      <testfilter>
+      </testfilter>
+    </grpUnitTest>
     <logUnitTest>
       <mapping>
 	<SysCtrl0   node="node0" role="controller" installDir="~/logUnitTest" />

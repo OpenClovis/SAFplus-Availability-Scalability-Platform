@@ -84,14 +84,9 @@ namespace SAFplus
       this->dataLen = datalen;
     }
 
-    //? Change this entity's info if the values are different.  Return whether changes needed to be made.
-    bool override(uint64_t new_credentials,uint new_capabilities)
-    {
-      bool changed = false;
-      if (new_credentials != credentials) {credentials = new_credentials; changed = true; }
-      if (new_capabilities != capabilities) { capabilities = new_capabilities; changed = true; }
-      return changed;
-    }
+    //? Change this entity's info if the configured values are different.  Return whether changes needed to be made.
+    bool override(uint64_t new_credentials,uint new_capabilities);
+   
     void dumpInfo();
 #if 0
     void dumpInfo()
@@ -125,6 +120,8 @@ namespace SAFplus
         IS_ACTIVE      = 4,    //? Group entity capability: Is this Group currently active?
         IS_STANDBY     = 8,    //? Group entity capability: Is this Group currently standby?
         STICKY         = 0x10, //? Group entity capability: Active/standby assignments will stay with this entity even if an entity joins with higher credential, unless that entity is also Active/Standby (split).
+
+        SOURCE_CAPABILITIES = ACCEPT_STANDBY |ACCEPT_ACTIVE|STICKY
       };
       enum
       {

@@ -13,6 +13,7 @@ namespace SAFplus
     {
   public:
     in_addr_t netAddr;
+    in_addr_t broadcastAddr;
     uint32_t nodeMask;
     Udp(); 
 
@@ -65,7 +66,15 @@ namespace SAFplus
       config.capabilities = SAFplus::MsgTransportConfig::Capabilities::BROADCAST;  // not reliable, can't tell if anything joins or leaves...
       }
     else config.capabilities = SAFplus::MsgTransportConfig::Capabilities::NONE;
-    struct in_addr bip = SAFplusI::setNodeNetworkAddr(&nodeMask,clusterNodes); // This function sets SAFplus::ASP_NODEADDR
+    std::pair<in_addr,in_addr> ipAndBcast = SAFplusI::setNodeNetworkAddr(&nodeMask,clusterNodes); // This function sets SAFplus::ASP_NODEADDR
+    struct in_addr bip = ipAndBcast.first;
+    broadcastAddr = ntohl(ipAndBcast.second.s_addr); // devToBroadcastAddress("xxx");
+    if ((broadcastAddr == 0)&&(!cn))
+      {
+        int err = errno;
+        throw Error(Error::SAFPLUS_ERROR,Error::MISCONFIGURATION, "Broadcast is not enabled on the backplane interface, but the node list (cloud mode) is not enabled.",__FILE__,__LINE__);
+      }
+
     config.nodeId = SAFplus::ASP_NODEADDR;
     netAddr = ntohl(bip.s_addr)&(~nodeMask);
  
@@ -172,7 +181,7 @@ namespace SAFplus
         to[msgCount].sin_family = AF_INET;
         if (msg->node == Handle::AllNodes)
           {
-          to[msgCount].sin_addr.s_addr= htonl(INADDR_BROADCAST);
+            to[msgCount].sin_addr.s_addr= htonl(((Udp*)transport)->broadcastAddr);
           broadcast=true;  // TODO: if cloud mode, break broadcast messages into a separate queue for separate sending
           }
         else

@@ -571,7 +571,8 @@ void saNameGet(char* str,const SaNameT* name, uint_t maxLen)
     {
       if (nodeNum==Handle::ThisNode) nodeNum = ASP_NODEADDR;
       if (pid==Handle::ThisProcess) pid = iocPort;
-    return Handle(TransientHandle,0,pid,nodeNum);
+      Handle hdl(TransientHandle,0,pid,nodeNum);
+      return hdl;
     }
 
   Handle getObjectHandle(void* object)

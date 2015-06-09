@@ -45,6 +45,16 @@ test: all
 	cp -f $(TEST_DIR)/testGroupServer .
 	cp -f $(TEST_DIR)/testGroup .
 
+image: $(IMAGE_FILE)
+
+$(IMAGE_FILE): $(TEST_DIR)/testGroup
+	cp setup start $(SAFPLUS_TARGET)
+	$(SAFPLUS_MAKE_DIR)/safplus_packager.py -x "(cp setup start {image_dir})" $@
+
+
+.PRECIOUS: $(OBJ_DIR)/%.o
+
+
 clean:
 	rm -f $(OBJ_DIR)/testGroup.o $(OBJ_DIR)/testGroupServer.o
 
