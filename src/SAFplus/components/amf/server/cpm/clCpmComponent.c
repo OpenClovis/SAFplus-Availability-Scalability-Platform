@@ -30,6 +30,7 @@
 #include <string.h>
 #include <stdlib.h>
 #include <signal.h>
+#include <sys/wait.h>
 #include <time.h>
 #include <fcntl.h>
 #include <errno.h>
@@ -111,6 +112,82 @@ typedef struct ClEventPublishData
 } ClEventPublishDataT;
 
 static ClJobQueueT eventPublishQueue;
+
+#ifndef POSIX_BUILD
+int execCommand(const ClCharT *command, ClCharT * const argv[], ClCharT * const env[], ClUint32T timeout)
+{
+  struct sigaction sa;
+  struct sigaction oldsa;
+  int status;
+  pid_t pid;
+
+  // Remove my SIGCHILD handler for the duration of the system call so that handler does not reap my process
+  sa.sa_handler = SIG_DFL;
+  sa.sa_sigaction = 0;
+  sigemptyset(&sa.sa_mask);
+  sa.sa_flags = SA_RESTART | SA_NOCLDSTOP;
+  sigaction(SIGCHLD, &sa, &oldsa);
+
+  pid = fork();
+  if (pid == 0)
+  {
+    /* This is the child process.  Execute the shell command. */
+    execve(command, argv, env);
+    _exit(EXIT_FAILURE);
+  }
+  else
+  {
+    /* This is the parent process.  Wait for the child to complete.  */
+    ClUint32T waittime = 0;
+    pid_t wpid;
+    do
+    {
+      wpid = waitpid(pid, &status, WNOHANG);
+      if (wpid == 0)
+      {
+        if (waittime < timeout)
+        {
+          sleep(1);
+          waittime++;
+        }
+        else
+        {
+          // Kill if timeout happened
+          kill(pid, SIGKILL);
+        }
+      }
+    }
+    while (wpid == 0 && waittime <= timeout);
+
+    if (status == -1) /* system command failed */
+    {
+      //TODO:
+    }
+    else if (WEXITSTATUS(status) == 127) /* system command could not find your script */
+    {
+      status = -1;
+    }
+    else if (WEXITSTATUS(status)) /* user script failed */
+    {
+      status = -1;
+    }
+    else
+    {
+      // successful
+      status = 0;
+    }
+  }
+
+  // OK put the old sighandler back
+  sigaction(SIGCHLD, &oldsa, NULL);
+  return status;
+}
+#else
+int execCommand(const char *command, ClCharT *const argv[], ClCharT *const env[], ClUint32T timeout)
+{
+  return system(command);
+}
+#endif
 
 /*
  * Forward Declaratiion 
@@ -2867,11 +2944,13 @@ ClRcT VDECL(cpmComponentTerminate)(ClEoDataT data,
 ClRcT clCpmCompPreCleanupInvoke(ClCpmComponentT *comp)
 {
     ClRcT rc = CL_OK;
-    ClCharT cmdBuf[CL_MAX_NAME_LENGTH];
+    ClCharT envBuf[CL_MAX_NAME_LENGTH];
     static ClCharT script[CL_MAX_NAME_LENGTH];
     static ClInt32T cachedState;
     static ClCharT *cachedConfigLoc;
     ClInt32T status;
+    ClCharT *const args[] = {NULL};
+    ClCharT *const envs[] = {envBuf, NULL};
 
     if(!comp || !comp->processId) return CL_OK;
 
@@ -2892,10 +2971,10 @@ ClRcT clCpmCompPreCleanupInvoke(ClCpmComponentT *comp)
 
     if(!cachedState) goto out;
  
-    snprintf(cmdBuf, sizeof(cmdBuf), "ASP_COMPNAME=%s %s", comp->compConfig->compName, script);
-    clLogNotice(CPM_LOG_AREA_CPM, CPM_LOG_CTX_CPM_LCM, "Invoking precleanup command [%s] for Component [%s]", cmdBuf, comp->compConfig->compName);
+    snprintf(envBuf, sizeof(envBuf), "ASP_COMPNAME=%s", comp->compConfig->compName);
+    clLogNotice(CPM_LOG_AREA_CPM, CPM_LOG_CTX_CPM_LCM, "Invoking precleanup command [%s %s] for Component [%s]", envBuf, script, comp->compConfig->compName);
 
-    status = system(cmdBuf);
+    status = execCommand(script, args, envs, comp->compConfig->compCleanupTimeout / 1000);
     (void)status; /*unused*/
 
     out:
@@ -2910,19 +2989,23 @@ static ClRcT compCleanupInvoke(ClCpmComponentT *comp)
 
     if(comp->compConfig->cleanupCMD[0])
     {
-        ClCharT cleanupCmdBuf[CL_MAX_NAME_LENGTH];
-        snprintf(cleanupCmdBuf, sizeof(cleanupCmdBuf), "ASP_COMPNAME=%s EFLAG=%d %s",
-                 comp->compConfig->compName, !comp->hbFailureDetected, comp->compConfig->cleanupCMD);
-        clLogNotice(CPM_LOG_AREA_CPM, CPM_LOG_CTX_CPM_LCM, 
-                   "Invoking cleanup command [%s] for Component [%s]",
-                   cleanupCmdBuf, comp->compConfig->compName);
-        if(system(cleanupCmdBuf))
-        {
-            clLogError(CPM_LOG_AREA_CPM, CPM_LOG_CTX_CPM_LCM, 
-                       "Cleanup command [%s] returned error [%s] for Component [%s]",
-                       cleanupCmdBuf, strerror(errno), comp->compConfig->compName);
-            rc = CL_CPM_RC(CL_ERR_LIBRARY);
-        }
+      ClCharT envBufComp[CL_MAX_NAME_LENGTH];
+      ClCharT envBufFlag[CL_MAX_NAME_LENGTH];
+      ClCharT *const args[] = { NULL };
+      ClCharT *const envs[] = { envBufComp, envBufFlag, NULL };
+
+      snprintf(envBufComp, sizeof(envBufComp), "ASP_COMPNAME=%s", comp->compConfig->compName);
+      snprintf(envBufFlag, sizeof(envBufFlag), "EFLAG=%d", !comp->hbFailureDetected);
+
+      clLogNotice(CPM_LOG_AREA_CPM, CPM_LOG_CTX_CPM_LCM, "Invoking cleanup command [%s %s %s] for Component [%s]", envBufComp, envBufFlag,
+              comp->compConfig->cleanupCMD, comp->compConfig->compName);
+
+      if (execCommand(comp->compConfig->cleanupCMD, args, envs, comp->compConfig->compCleanupTimeout / 1000))
+      {
+        clLogError(CPM_LOG_AREA_CPM, CPM_LOG_CTX_CPM_LCM, "Cleanup command [%s %s %s] returned error [%s] for Component [%s]", envBufComp, envBufFlag,
+                comp->compConfig->cleanupCMD, strerror(errno), comp->compConfig->compName);
+        rc = CL_CPM_RC(CL_ERR_LIBRARY);
+      }
     }
     /*
      * Issue an unconditional sigkill incase cleanup didn't terminate 
