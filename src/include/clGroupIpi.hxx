@@ -281,7 +281,7 @@ class GroupServer:public SAFplus::MsgHandler
   void handleElectionRequest(SAFplus::Handle grpHandle);
   void startElection(SAFplus::Handle grpHandle);
   void sendHelloMessage(SAFplus::Handle grpHandle,const SAFplus::GroupIdentity& entityData);
-  void sendRoleAssignmentMessage(SAFplus::Handle grpHandle,std::pair<SAFplus::Handle,SAFplus::Handle>& results);
+  void sendRoleAssignmentMessage(SAFplus::Handle grpHandle,const std::pair<SAFplus::Handle,SAFplus::Handle>& results);
 
   std::pair<SAFplus::Handle,SAFplus::Handle> _electRoles(const GroupData& gd);
   };

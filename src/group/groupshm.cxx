@@ -736,7 +736,7 @@ void GroupServer::sendHelloMessage(SAFplus::Handle grpHandle,const GroupIdentity
   groupMsgServer->SendMsg(getProcessHandle(groupCommunicationPort,Handle::AllNodes), (void *)msgPayload, sizeof(msgPayload), SAFplusI::GRP_MSG_TYPE);
   }
 
-void GroupServer::sendRoleAssignmentMessage(SAFplus::Handle grpHandle,std::pair<EntityIdentifier,EntityIdentifier>& results)
+void GroupServer::sendRoleAssignmentMessage(SAFplus::Handle grpHandle,const std::pair<EntityIdentifier,EntityIdentifier>& results)
   {
   EntityIdentifier data[2] = { results.first, results.second };  // Is this needed or is pair packed?
 
@@ -784,7 +784,16 @@ void GroupServer::_deregister(GroupShmEntry* grp, unsigned int node, unsigned in
         logInfo("GMS","DER","Deregistering [%" PRIx64 ":%" PRIx64 "].", gi->id.id[0],gi->id.id[1]);
         dirty=true;
         // removing the active/standby
-        if (data->activeIdx == i) { logInfo("GMS","DER","Leaving entity had active role."); data->activeIdx=0xffff; reelect = true; }
+        if (data->activeIdx == i) 
+          { 
+          logInfo("GMS","DER","Leaving entity had active role."); 
+          data->activeIdx=data->standbyIdx;
+          data->standbyIdx=0xffff; 
+          reelect = true; // elect a new standby
+          // set the capability on the new active to active  -- I don't have to remove cap from old active because it is deregistered
+          data->members[data->activeIdx].capabilities = (data->members[data->activeIdx].capabilities & ~SAFplus::Group::IS_STANDBY) | SAFplus::Group::IS_ACTIVE;
+          sendRoleAssignmentMessage(data->hdl,std::pair<EntityIdentifier,EntityIdentifier>(data->members[data->activeIdx].id, INVALID_HDL));
+          }
         if (data->standbyIdx == i) { logInfo("GMS","DER","Leaving entity had standby role."); data->standbyIdx=0xffff; reelect = true; } 
         // TODO: if active fails should I promote the standby to active right here for rapid standby to active handling... what about notification of the change?
 
@@ -830,6 +839,7 @@ void GroupServer::deregisterEntity(GroupShmEntry* grp, EntityIdentifier ent,bool
   {
   SAFplus::Wakeable* w=NULL;
   bool dirty = false;
+  bool reelect = false;
 
   if (1)
     {
@@ -852,8 +862,19 @@ void GroupServer::deregisterEntity(GroupShmEntry* grp, EntityIdentifier ent,bool
       if (gi->id == ent)
         {
         // removing the active/standby
-        if (data->activeIdx == i) { logInfo("GMS","DER","Leaving entity has standby role."); data->activeIdx=0xffff; }
-        if (data->standbyIdx == i) { logInfo("GMS","DER","Leaving entity has active role."); data->standbyIdx=0xffff; } 
+        if (data->activeIdx == i) 
+          { 
+          logInfo("GMS","DER","Leaving entity has active role."); 
+          data->activeIdx=data->standbyIdx;
+          data->standbyIdx=0xffff; 
+          reelect = true; // elect a new standby
+          // set the capability on the new active to active  -- I don't have to remove cap from old active because it is deregistered
+          data->members[data->activeIdx].capabilities = (data->members[data->activeIdx].capabilities & ~SAFplus::Group::IS_STANDBY) | SAFplus::Group::IS_ACTIVE;
+          sendRoleAssignmentMessage(data->hdl,std::pair<EntityIdentifier,EntityIdentifier>(data->members[data->activeIdx].id, INVALID_HDL));
+          reelect = true;
+          }
+
+        if (data->standbyIdx == i) { logInfo("GMS","DER","Leaving entity has standby role."); data->standbyIdx=0xffff; reelect=true; } 
 
         if (data->numMembers > 1)  // If there is more than one member, then copy the last member into this one's slot to keep the array compact.
           {
@@ -876,6 +897,12 @@ void GroupServer::deregisterEntity(GroupShmEntry* grp, EntityIdentifier ent,bool
       }
     }
 
+  const GroupData& gd = grp->read();
+  // TODO: If the election is in progress, is it possible that the deregistered entity will be elected?  Check this...
+  if (reelect&&(gd.flags&GroupData::AUTOMATIC_ELECTION)&&(!(gd.flags&GroupData::ELECTION_IN_PROGRESS)))
+    {
+    startElection(gd.hdl);
+    }
 
   /* We need to other entities about the left node, but only AFTER
    * we have handled it. */

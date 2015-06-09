@@ -44,8 +44,8 @@ int main(int argc, char* argv[])
 
   clTestGroupInitialize(("group"));
 
-  //clTestCase(("GRP-FNC-REG.TC001: register and deregister groups"),testRegisterAndDeregister(0));
-  //clTestCase(("GRP-FNC-REG.TC002: change tracking"),testChanges());
+  clTestCase(("GRP-FNC-REG.TC001: register and deregister groups"),testRegisterAndDeregister(0));
+  clTestCase(("GRP-FNC-REG.TC002: change tracking"),testChanges());
   clTestCase(("GRP-FNC-REG.TC003: group messages"),testSendMessages());
   clTestGroupFinalize();
   return 0;
@@ -98,6 +98,8 @@ void testSendMessages()
   Handle objHandle = Handle::create();
   SAFplus::objectMessager.insert(objHandle,&obj);
 
+  // Register one entity and verify that it receives the proper messages
+
   grp.registerEntity(objHandle,1,Group::ACCEPT_STANDBY | Group::ACCEPT_ACTIVE | Group::STICKY);
 
   if (1)
@@ -129,6 +131,8 @@ void testSendMessages()
     }
 
   obj.msgsRcvd = 0;
+
+  // Register another entity and show that both receive the proper messages
 
   MyMsgHandler obj2(2);
   Handle obj2Handle = Handle::create();
@@ -174,6 +178,40 @@ void testSendMessages()
     clTest(("round-robin"), (tmp=obj2.msgsRcvd) == 3, ("Got [%d]", tmp)); // Only one entity right now so RR should go to me twice
     }
   
+  grp.deregister();  // force a fail over
+  sleep(1);
+  obj.msgsRcvd = 0;
+  obj2.msgsRcvd = 0;
+
+   if (1)
+    {
+    char buf[] = "post deregister send to active";
+    grp.send(buf,sizeof(buf),GroupMessageSendMode::SEND_TO_ACTIVE);
+    sleep(1);
+    clTest(("send to active"), (tmp=obj2.msgsRcvd) == 1, ("Got [%d]", tmp));
+    }
+
+  if (1)
+    {
+    char buf[] = "post deregister message broadcast";
+    grp.send(buf,sizeof(buf),GroupMessageSendMode::SEND_BROADCAST);
+    sleep(1);
+    clTest(("broadcast"), (tmp=obj2.msgsRcvd) == 2, ("Got [%d]", tmp));
+    }
+
+  if (1)
+    {
+    char buf[] = "post deregister round robin";
+    grp.send(buf,sizeof(buf),GroupMessageSendMode::SEND_LOCAL_ROUND_ROBIN);
+    grp.send(buf,sizeof(buf),GroupMessageSendMode::SEND_LOCAL_ROUND_ROBIN);
+    sleep(1);
+    clTest(("round-robin"), (tmp=obj2.msgsRcvd) == 4, ("Got [%d]", tmp)); // Only one entity right now so RR should go to me twice
+    }
+   
+  clTest(("nothing sent to deregistered entity"), (tmp=obj.msgsRcvd) == 0, ("Got [%d]", tmp));
+ 
+  grp2.deregister();
+
 
   SAFplus::objectMessager.remove(objHandle);
   SAFplus::objectMessager.remove(obj2Handle);
