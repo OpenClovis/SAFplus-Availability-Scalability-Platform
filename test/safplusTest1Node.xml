@@ -51,18 +51,21 @@
     </default>
    
     <models> 
-      <rpcUnitTest>
-	<image_source value="dir://code/git/SAFplus7/test/rpcUnitTest" />
-     </rpcUnitTest>
-     <grpUnitTest>
-	<image_source value="dir://code/git/SAFplus7/test/grpUnitTest" />
-     </grpUnitTest>
       <logUnitTest>
 	<image_source value="dir://code/git/SAFplus7/test/logUnitTest" />
      </logUnitTest>
       <msgUnitTest>
 	<image_source value="dir://code/git/SAFplus7/test/msgUnitTest" />
      </msgUnitTest>
+      <rpcUnitTest>
+	<image_source value="dir://code/git/SAFplus7/test/rpcUnitTest" />
+     </rpcUnitTest>
+     <grpUnitTest>
+	<image_source value="dir://code/git/SAFplus7/test/grpUnitTest" />
+     </grpUnitTest>
+      <amfUnitTest>
+	<image_source value="dir://code/git/SAFplus7/test/amfUnitTest" />
+     </amfUnitTest>
     </models>
 
   </SAFplus7.0>
@@ -70,6 +73,16 @@
  </projects>
 
   <models>
+    <amfUnitTest>
+      <mapping>
+	<SysCtrl0   node="node0" role="controller" installDir="~/amfUnitTest" />
+      </mapping>
+      <testcase_dir  value="/code/git/SAFplus7/test/amfUnitTest" />
+      <make_options value="" />
+      <configure_options value="" />
+      <testfilter>
+      </testfilter>
+    </amfUnitTest>
     <rpcUnitTest>
       <mapping>
 	<SysCtrl0   node="node0" role="controller" installDir="~/rpcUnitTest" />

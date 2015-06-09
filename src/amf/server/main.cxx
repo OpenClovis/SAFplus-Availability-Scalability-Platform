@@ -222,7 +222,13 @@ void becomeStandby(void)
 void loadAmfPlugins(AmfOperations& amfOps,Fault& fault)
   {
   // pick the SAFplus directory or the current directory if it is not defined.
-  const char * soPath = (SAFplus::ASP_APP_BINDIR[0] == 0) ? "../plugin":SAFplus::ASP_APP_BINDIR;
+  const char * soPath = ".";
+  if (boost::filesystem::is_directory("../plugin")) soPath = "../plugin";
+  else if ((SAFplus::ASP_APP_BINDIR[0]!=0) && boost::filesystem::is_directory(SAFplus::ASP_APP_BINDIR))
+      {
+        soPath = SAFplus::ASP_APP_BINDIR;
+      }
+  else if (boost::filesystem::is_directory("../lib")) soPath = "../lib";
   
   boost::filesystem::path p(soPath);
   boost::filesystem::directory_iterator it(p),eod;
@@ -494,8 +500,22 @@ int main(int argc, char* argv[])
 
 
 #ifdef SAFPLUS_AMF_GRP_NODE_REPRESENTATIVE
-  SAFplusI::GroupServer gs;
-  gs.init();
+  SAFplusI::GroupServer gs;  // WARN: may not be initialized if safplus_group is running
+  try
+    {
+    gs.init();
+    }
+  catch(SAFplus::Error& e)
+    {
+      if (e.clError == SAFplus::Error::EXISTS)
+        {
+        logAlert(LogArea,"INI", "Group server is not being run from within the AMF because it already exists.");
+        }
+      else
+        {
+          throw;
+        }
+    }
 #endif
 
 #ifdef SAFPLUS_AMF_FAULT_NODE_REPRESENTATIVE

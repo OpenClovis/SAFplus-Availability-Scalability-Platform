@@ -77,12 +77,12 @@ cleangen:
 	rm -rf stubs
 
 clean:
-	rm -rf $(OBJ_DIR)/test/rpc $(TEST_DIR)/TestClient $(TEST_DIR)/TestServer $(TEST_DIR)/TestCombine
+	rm -rf $(OBJ_DIR)/test/rpc $(TEST_DIR)/TestClient $(TEST_DIR)/TestServer $(TEST_DIR)/TestCombine $(TEST_DIR)/TestRpcPerf
 
 # TAE packaging stuff
 image: $(IMAGE_FILE)
 
-$(IMAGE_FILE): $(TEST_DIR)/testGroup
+$(IMAGE_FILE): $(TEST_DIR)/testRpcPerf
 	cp setup start $(SAFPLUS_TARGET)
 	$(SAFPLUS_MAKE_DIR)/safplus_packager.py -x "(cp setup start {image_dir})" $@
 

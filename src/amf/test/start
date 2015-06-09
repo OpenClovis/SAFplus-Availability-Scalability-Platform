@@ -1,0 +1,5 @@
+#!/bin/bash
+pkill -9 safplus_amf
+pkill -9 safplus_group
+bin/safplus_amf > safplus_amf.log &
+exit 0

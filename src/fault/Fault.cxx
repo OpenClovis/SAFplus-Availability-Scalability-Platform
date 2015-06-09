@@ -18,6 +18,7 @@
 #include <boost/date_time/posix_time/posix_time.hpp>
 #include <boost/asio/ip/address.hpp>
 #include <boost/filesystem/operations.hpp>
+#include <boost/filesystem/path.hpp>
 #include <boost/foreach.hpp>
 #include <boost/unordered_map.hpp>
 #include <clCommon.hxx>
@@ -306,9 +307,17 @@ namespace SAFplus
     void FaultServer::loadFaultPlugins()
     {
         // pick the SAFplus directory or the current directory if it is not defined.
-        const char * soPath = (SAFplus::ASP_APP_BINDIR[0] == 0) ? "../plugin":SAFplus::ASP_APP_BINDIR;
+        const char * soPath = ".";
+        if (boost::filesystem::is_directory("../plugin")) soPath = "../plugin";
+        else if ((SAFplus::ASP_APP_BINDIR[0]!=0) && boost::filesystem::is_directory(SAFplus::ASP_APP_BINDIR))
+          {
+            soPath = SAFplus::ASP_APP_BINDIR;
+          }
+        else if (boost::filesystem::is_directory("../lib")) soPath = "../lib";
+
         logDebug(FAULT,"POL","loadFaultPlugins policy: %s", soPath);
         boost::filesystem::path p(soPath);
+
         boost::filesystem::directory_iterator it(p),eod;
         BOOST_FOREACH(boost::filesystem::path const &p, std::make_pair(it, eod))
         {
