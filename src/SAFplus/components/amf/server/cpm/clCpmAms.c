@@ -1470,7 +1470,7 @@ ClRcT VDECL(cpmCBResponse)(ClEoDataT data,
             else            /* Forward it to Active master */
             {
                 ClInt32T tries = 0;
-                ClTimerTimeOutT delay = {.tsMilliSec = 100, .tsSec = 0 };
+                ClTimerTimeOutT delay = {.tsSec = 1, .tsMilliSec = 0};
                 ClUint8T priority = CL_IOC_CPM_PRIORITY(cbType);
                 /*
                  * This is the critical path to forward responses to AMS master.
