@@ -117,7 +117,7 @@ def get_compression_format(archive_name):
     compress_extension = archive_name.split('.')[-1]
     if compress_extension in default_compress_format:
         extension, compress_format = default_compress_format.get(compress_extension)
-        archive_name = archive_name.rstrip(extension)
+        archive_name = archive_name.split('.')[0]
 
     return archive_name, compress_format
 
