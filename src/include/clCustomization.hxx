@@ -120,7 +120,7 @@ namespace SAFplusI
     TcpTransportNumPorts = 2048,  // Limit the ports to a range for no particular reason
     TcpTransportStartPort = 9000,  // Pick a random spot in the TCP port range so our ports don't overlap common services
     TcpTransportMaxMsg = 1024,
-    TcpTransportMaxFragments = 1024,
+    TcpTransportMaxFragments = 2048,
     TcpMaxStream = 64,
     }; 
 
