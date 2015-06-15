@@ -69,7 +69,6 @@ class MgtContainer:public MgtObject
     MgtContainer(const char* name):MgtObject(name) {}
     virtual ~MgtContainer();
 
-
     virtual MgtObject::Iterator begin(void);
     // Override not needed, end is the same: virtual MgtObject::Iterator end(void);
 
@@ -96,7 +95,8 @@ class MgtContainer:public MgtObject
     virtual ClRcT read(MgtDatabase *db = nullptr, std::string parentXPath = "");
 
     virtual MgtObject *findMgtObject(const std::string &xpath, int idx);
-  
+    MgtObject *lookUpMgtObject(const std::string & classType, const std::string &ref);
+
   };
 
 }

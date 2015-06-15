@@ -294,6 +294,9 @@ extern MgtIteratorBase mgtIterEnd;
     // Debugging API only:
     void dbgDumpChildren();
     void dbgDump();
+
+    virtual MgtObject* lookUpMgtObject(const std::string & classType, const std::string &ref);
+    virtual void updateReference(void);
     };
 
 

@@ -509,4 +509,20 @@ namespace SAFplus
         break;
     }
   }
+
+  void MgtRoot::addReference(MgtObject* mgtObject)
+  {
+      this->mgtRefereceList.push_back(mgtObject);
+  }
+  void MgtRoot::UpdateReference(void)
+  {
+    for(std::vector<MgtObject*>::iterator it = this->mgtRefereceList.begin();
+        it != this->mgtRefereceList.end();
+        it++)
+      {
+        MgtObject* mgtObject = *it;
+        mgtObject->updateReference();
+      }
+  }
+
 };
