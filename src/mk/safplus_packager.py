@@ -75,7 +75,7 @@ def create_archive(tar_name, tar_dir, arch_format='gztar'):
         log.info("Archive {} generated successfully".format(tar_name))
     else:
         fail_and_exit("Archive directory {} not exists".format(tar_dir))
-
+    return tar_name
 
 def copy_dir(src, dst, recursion=0):
     """This function will recursively copy the files and sub-directories from src directory to destination directory
@@ -241,8 +241,12 @@ def package(base_dir, tar_name, machine=None, kernel_version=None, pre_build_dir
 
     log.info("Archive name is {0} Archive compression format is {1}".format(tar_name, compress_format))
     # put the tarball exactly where the requested on the command line: tar_name = os.path.join(image_dir, tar_name)
-    create_archive(tar_name, image_dir, compress_format)
-    pass
+    tar_name = create_archive(tar_name, image_dir, compress_format)
+    if yum_package:
+	from package import RPM
+	rpm_gen = RPM()
+        rpm_template_dir = os.path.abspath(os.path.dirname(__file__) + os.sep + "pkg_templates/rpm")
+        rpm_gen.rpm_build(tar_name, rpm_template_dir, "Makefile", "package.spec")
 
 
 def usage():
