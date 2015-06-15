@@ -63,7 +63,7 @@ namespace SAFplus
         len+=frag->len;
       }while(nextFrag);
       // msg type
-      len = len -1;
+      //len = len -1;
       return len;
     }
 

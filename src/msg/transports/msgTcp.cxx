@@ -64,7 +64,9 @@ namespace SAFplus
     static void* acceptClients(void* arg);
     void addToMap(sockaddr_in& client, int socket);
     void addMsgPerSocket(int socket);
-    bool updateBuffer(struct msghdr* msg, int msgLen, int bytes);
+    //bool updateBuffer(struct msghdr* msg, int msgLen, int bytes);
+    //bool updateBuffer(struct msghdr* msg, int curbytes, int bytes);
+    bool updateBuffer(struct msghdr* msg, int bytes);
     int checkDataAvail(int sd, struct timespec* timeout);
     int getMsgLen(struct msghdr* msg);
     virtual void switchNagle();
@@ -93,8 +95,9 @@ namespace SAFplus
     config.maxPort    = SAFplusI::TcpTransportNumPorts;
     config.maxMsgAtOnce = SAFplusI::TcpTransportMaxMsg;
     config.capabilities = SAFplus::MsgTransportConfig::Capabilities::NAGLE_AVAILABLE;
-    std::pair<in_addr,in_addr> ipAndBcast = SAFplusI::setNodeNetworkAddr(&nodeMask,clusterNodes);   
-    struct in_addr bip = ipAndBcast.first;    
+    //std::pair<in_addr,in_addr> ipAndBcast = SAFplusI::setNodeNetworkAddr(&nodeMask,clusterNodes);   
+    //struct in_addr bip = ipAndBcast.first;      
+    struct in_addr bip = SAFplusI::setNodeNetworkAddr(&nodeMask, clusterNodes);
     config.nodeId = SAFplus::ASP_NODEADDR;
     netAddr = ntohl(bip.s_addr)&(~nodeMask);
 
@@ -440,25 +443,64 @@ namespace SAFplus
       do 
       {                
         retval = sendmsg(sd, msgvec+i, 0);  
-        if (retval == -1 && errno != EAGAIN)
+        if (retval == -1)
         {        
-          throw Error(Error::SYSTEM_ERROR,errno, strerror(errno),__FILE__,__LINE__);
+          if (errno != EAGAIN)
+            throw Error(Error::SYSTEM_ERROR,errno, strerror(errno),__FILE__,__LINE__);
         }
-        bytes+=retval;
-      } while (updateBuffer(msgvec+i, msgLen, bytes));
+        else 
+        {
+          bytes+=retval;
+          if (!updateBuffer(msgvec+i, retval)) break;
+        }
+        //logDebug("TCP", "RECV", "msgLen [%u]; retval [%d]; bytes [%d]; iov_len [%d]", msgLen, retval, bytes, (int)iovecs[0].iov_len);
+        logDebug("TCP", "RECV", "msgLen [%u]; retval [%d]; bytes [%d]; iov_len [%d]", msgLen, retval, bytes, (int)(msgvec+i)->msg_iov->iov_len);
+      } while (true);
     }
   }
 
+#if 0
   bool TcpSocket::updateBuffer(struct msghdr* msg, int msgLen, int bytes)
   {
     if (bytes < msgLen) 
     {
-      msg->msg_iov->iov_len = bytes;            
+      msg->msg_iov->iov_len -= bytes;            
       msg->msg_iov->iov_base = (void*)(((char *) msg->msg_iov->iov_base) + bytes);
       return true;
     }    
     return false;
   }
+#endif
+#if 0
+  bool TcpSocket::updateBuffer(struct msghdr* msg, int curbytes, int bytes)
+  {
+    if (msg->msg_iov->iov_len) 
+    {
+      msg->msg_iov->iov_len -= curbytes;            
+      msg->msg_iov->iov_base = (void*)(((char *) msg->msg_iov->iov_base) + bytes);
+      return true;
+    }    
+    return false;
+  }
+#endif
+
+  bool TcpSocket::updateBuffer(struct msghdr* msg, int bytes)
+  {
+    while (msg->msg_iovlen > 0) 
+    {
+      if (bytes < msg->msg_iov->iov_len) 
+      {
+        msg->msg_iov->iov_len -= bytes;
+        msg->msg_iov->iov_base = (void*)(((char *) msg->msg_iov->iov_base) + bytes);
+        return true;
+      }
+      bytes -= msg->msg_iov->iov_len;
+      ++msg->msg_iov;
+      --msg->msg_iovlen;
+    }
+    return false;
+  }
+
 
   int TcpSocket::getMsgLen(struct msghdr* msg)
   {
@@ -545,14 +587,23 @@ namespace SAFplus
           do 
           {                
             retval = recvmsg(clientSock, &msgvec[0], flags);  
-            if (retval == -1 && errno != EAGAIN)
+            if (retval == -1)
             {        
-              throw Error(Error::SYSTEM_ERROR,errno, strerror(errno),__FILE__,__LINE__);
+              if (errno != EAGAIN)
+                throw Error(Error::SYSTEM_ERROR,errno, strerror(errno),__FILE__,__LINE__);
             }
-            bytes+=retval;
-          } while (updateBuffer(&msgvec[0], msgLen, bytes));
+            else 
+            {
+              bytes+=retval;
+              if (!updateBuffer(&msgvec[0], retval)) break;
+            }
+            logDebug("TCP", "RECV", "msgLen [%u]; retval [%d]; bytes [%d]; iov_len [%d]", msgLen, retval, bytes, (int)iovecs[0].iov_len);            
+          } while (true);
 
           assert(bytes==msgLen);
+          iovecs[0].iov_len = msgLen;
+          --msgvec[0].msg_iov;
+
           header=0;
           memcpy(&header, msgvec[0].msg_iov->iov_base, msgvec[0].msg_iov->iov_len);         
           msg = msgPool->allocMsg();
@@ -577,14 +628,25 @@ namespace SAFplus
         do 
         {                
           retval = recvmsg(clientSock, &msgvec[0], flags);  
-          if (retval == -1 && errno != EAGAIN)
+          if (retval == -1)
           {        
-             throw Error(Error::SYSTEM_ERROR,errno, strerror(errno),__FILE__,__LINE__);
+             if (errno != EAGAIN)
+               throw Error(Error::SYSTEM_ERROR,errno, strerror(errno),__FILE__,__LINE__);
           }
-          bytes+=retval;
-        } while (updateBuffer(&msgvec[0], msgLen, bytes));
+          else 
+          {
+            bytes+=retval;
+            if (!updateBuffer(&msgvec[0], retval)) break;
+          }
+          logDebug("TCP", "RECV", "msgLen [%u]; retval [%d]; bytes [%d]; iov_len [%d]", msgLen, retval, bytes, (int)iovecs[0].iov_len);          
+        } while (true);
+
         logDebug("TCP", "RECV", "Finish reading msg body on socket [%d]", clientSock);  
         assert(bytes==msgLen);
+        iovecs[0].iov_len = msgLen;
+        --msgvec[0].msg_iov;
+        msgvec[0].msg_iovlen = 1;
+
         retval = 1;         
         Message* cur = msg;
         for (int msgIdx = 0; (msgIdx<retval); msgIdx++,cur = cur->nextMsg)          
