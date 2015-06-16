@@ -133,7 +133,7 @@ void NodeStatistics::scanNodeStats(std::string fBuf)
     subStr = strstr(str, "cpu ");
     if (subStr)
     {
-        if (sscanf(subStr, "cpu  %Lu %Lu %Lu %Lu %Lu %Lu %Lu ", 
+        if (sscanf(subStr, "cpu  %lu %lu %lu %lu %lu %lu %lu ", 
                    &timeSpentInUserMode,
                    &timeNicedProcUserMode,
                    &timeSpentInSystemMode,
@@ -150,7 +150,7 @@ void NodeStatistics::scanNodeStats(std::string fBuf)
     subStr = strstr(subStr, "ctxt ");
     if (subStr)
     {
-        if (sscanf(subStr, "ctxt %Lu ", &numCtxtSwitches) < 1)
+        if (sscanf(subStr, "ctxt %lu ", &numCtxtSwitches) < 1)
         {
             logDebug("STAT", "SCAN", "Unable to read number of context switches");
             throw statAccessErrors("Unable to access Node Statistics");
@@ -160,7 +160,7 @@ void NodeStatistics::scanNodeStats(std::string fBuf)
     subStr = strstr(subStr, "btime ");
     if (subStr)
     {
-        if (sscanf(subStr, "btime %Lu ", &bootTime) < 1)
+        if (sscanf(subStr, "btime %lu ", &bootTime) < 1)
         {
             logDebug("STAT", "SCAN", "Unable to read system bootup time");
             throw statAccessErrors("Unable to access Node Statistics");
@@ -171,7 +171,7 @@ void NodeStatistics::scanNodeStats(std::string fBuf)
     subStr = strstr(subStr, "processes ");
     if(subStr)
     {
-        if (sscanf(subStr, "processes %Lu ", &numProcesses) < 1)
+        if (sscanf(subStr, "processes %lu ", &numProcesses) < 1)
         {
             logDebug("STAT", "SCAN", "Unable to read the number "
                      "of processes forked since boot");
@@ -182,7 +182,7 @@ void NodeStatistics::scanNodeStats(std::string fBuf)
     subStr = strstr(subStr, "procs_running ");
     if(subStr)
     {
-        if (sscanf(subStr, "procs_running %Lu ", &numProcRunning) < 1)
+        if (sscanf(subStr, "procs_running %lu ", &numProcRunning) < 1)
         {
             logDebug("STAT", "SCAN", "Unable to read the number of "
                      "processes currently in running state");
@@ -193,7 +193,7 @@ void NodeStatistics::scanNodeStats(std::string fBuf)
     subStr = strstr(subStr, "procs_blocked ");
     if(subStr)
     {
-        if (sscanf(subStr, "procs_blocked %Lu ", &numProcBlocked) < 1)
+        if (sscanf(subStr, "procs_blocked %lu ", &numProcBlocked) < 1)
         {
             logDebug("STAT", "SCAN", "Unable to read the number of "
                      "processes blocked for an I/O to complete");

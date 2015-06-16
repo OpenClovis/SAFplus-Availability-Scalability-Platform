@@ -1,12 +1,14 @@
+
 #include <boost/thread.hpp>
 #include <clTestApi.hxx>
 #include <clLogApi.hxx>
 #include <clGlobals.hxx>
 #include <clCommon.hxx>
 #include <clOsalApi.hxx>
+#include "testOsal.hxx"
 
 using namespace SAFplus;
-
+using namespace SAFplusI;
 
 void TestProcSem_oneProcess(void)
 {
@@ -133,6 +135,11 @@ int main(int argc, char* argv[])
   testCondition();
   testThreadSem();
   testProcess();
+
+  TestNodeStats testObj;
+
+  clTestCase(("OSL-TST-NOD.TC001: NodeStats"), testObj.testNodeStats());
+
   clTestGroupFinalize();
 }
 
