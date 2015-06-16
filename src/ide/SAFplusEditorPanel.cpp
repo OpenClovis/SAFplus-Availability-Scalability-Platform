@@ -1,15 +1,14 @@
 
 #ifndef STANDALONE
 #include <logmanager.h>
+#include <cbproject.h>
 #endif
 #include <wx/artprov.h>
 #include <wx/settings.h>
-#include "resources/images/Tool.xpm"
 #include "SAFplusEditorPanel.h"
 #include "SAFplusScrolledWindow.h"
 #include <wx/splitter.h>
 #include <boost/python.hpp>
-#include "cbproject.h"
 #include "utils.h"
 
 int wxIDShowProperties = wxNewId();

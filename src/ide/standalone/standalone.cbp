@@ -63,6 +63,7 @@
 		<Linker>
 			<Add option="`wx-config --toolkit=gtk3 --unicode --version=3.0 --libs --debug`" />
 			<Add option="`pkg-config gtk+-x11-3.0 --libs`" />
+			<Add option="-L ../../boostlibs" />
 			<Add library="wx_gtk3u_aui-3.0" />
 			<Add library="rsvg-2" />
 			<Add library="gio-2.0" />

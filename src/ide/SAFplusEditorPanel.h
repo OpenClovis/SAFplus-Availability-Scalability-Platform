@@ -29,7 +29,7 @@
 class SAFplusEditorPanel : public EditorBase
 {
   public:
-    SAFplusEditorPanel(wxWindow* parent, const wxString &dlgtitle = wxEmptyString, cbProject *prj = nullptr);
+    SAFplusEditorPanel(wxWindow* parent, const wxString &dlgtitle = wxEmptyString, cbProject *prj = NULL);
     virtual ~SAFplusEditorPanel();
 
     /** @brief Set the editor's title.
