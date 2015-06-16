@@ -32,6 +32,7 @@
 #define CLMGTIDENTIFIERLIST_HXX_
 
 #include "clMgtObject.hxx"
+#include "clMgtRoot.hxx"
 
 #include <typeinfo>
 #include <iostream>
@@ -52,6 +53,7 @@ class MgtIdentifierList: public MgtObject
 public:
     typedef std::vector<T> ContainerType;
     std::vector<T> value;
+    std::vector<std::string> refs;
 
 public:
     MgtIdentifierList(const char* name);
@@ -78,7 +80,56 @@ public:
     }
     virtual ClRcT read(MgtDatabase *db, std::string xpt = "")
     {
+      std::string key;
+      if(xpt.size() > 0)
+      {
+        key.assign(xpt);
+        key.append(getFullXpath(false));
+      }
+      else
+        key.assign(getFullXpath(true));
+      if(db == nullptr)
+      {
+        db = MgtDatabase::getInstance();
+      }
+      if(!db->isInitialized())
+      {
+        return CL_ERR_NOT_INITIALIZED;
+      }
+      std::vector<std::string> iter = db->iterate(key);
+
+      refs.clear();
+      for (std::vector<std::string>::iterator it=iter.begin(); it!=iter.end(); it++)
+      {
+        std::string value;
+        if (db->getRecord(*it, value) == CL_OK)
+        {
+          refs.push_back(value);
+        }
+      }
+      MgtRoot *mgtRoot = MgtRoot::getInstance();
+      mgtRoot->addReference(this);
+      dataXPath.assign(key);
+      loadDb = true;
+
       return CL_OK;
+    }
+
+    void updateReference()
+    {
+      MgtObject *objRoot = dynamic_cast<MgtObject *>(this->root());
+      value.clear();
+      for ( std::vector<std::string>::iterator it = refs.begin();
+          it != refs.end();
+          it++)
+        {
+          std::string ref = *it;
+          MgtObject *obj = objRoot->lookUpMgtObject(typeid(T).name(), ref);
+          if (obj)
+          {
+            value.push_back((T)obj);
+          }
+        }
     }
 };
 

@@ -40,8 +40,8 @@ endif
 image: $(IMAGE_FILE)
 
 $(IMAGE_FILE): $(TEST_DIR)/testLog
-	cp start.sh $(SAFPLUS_TARGET)
-	$(SAFPLUS_MAKE_DIR)/safplus_packager.py -x "(cp start.sh {image_dir})" $@
+	cp setup start $(SAFPLUS_TARGET)
+	$(SAFPLUS_MAKE_DIR)/safplus_packager.py -x "(cp setup start {image_dir})" $@
 
 
 .PRECIOUS: $(OBJ_DIR)/%.o

@@ -7,14 +7,20 @@ all: $(TEST_DIR)/testLog
 	echo Nothing to do
 
 test:
-	$(TAE_DIR)/tae -S safplusTest.xml
+	$(TAE_DIR)/tae -S safplusTest1Node.xml
+
+testone:
+	$(TAE_DIR)/tae -S safplusTest1Node.xml -M $(MODEL)
+
+testonedebug:
+	$(TAE_DIR)/tae -v -v -v -d -S safplusTest1Node.xml -M $(MODEL)
 
 testdebug:
-	$(TAE_DIR)/tae -d -S safplusTest.xml
+	$(TAE_DIR)/tae -v -v -v -d -S safplusTest1Node.xml
 
 
 
 clean:
-	rm -rf stamps* *.zip *.pyc log_*/*
+	rm -rf stamps* *.zip *.pyc log_*/* /var/log/testresults.log
 
 include $(SAFPLUS_MAKE_DIR)/safplus_targets.mk

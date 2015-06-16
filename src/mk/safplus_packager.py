@@ -75,7 +75,7 @@ def create_archive(tar_name, tar_dir, arch_format='gztar'):
         log.info("Archive {} generated successfully".format(tar_name))
     else:
         fail_and_exit("Archive directory {} not exists".format(tar_dir))
-
+    return tar_name
 
 def copy_dir(src, dst, recursion=0):
     """This function will recursively copy the files and sub-directories from src directory to destination directory
@@ -117,18 +117,22 @@ def get_compression_format(archive_name):
     compress_extension = archive_name.split('.')[-1]
     if compress_extension in default_compress_format:
         extension, compress_format = default_compress_format.get(compress_extension)
-        archive_name = archive_name.rstrip(extension)
+        archive_name = archive_name.split('.')[0]
 
     return archive_name, compress_format
 
 
-def package_dirs(target_dir, tar_dir):
+def package_dirs(target_dir, tar_dir, yum_package, debian_package):
     """ package_dirs is a helper function which will copy the directories/files from source location to destination
         location based on the directories name. This function will identify the directory names like (lib or plugin,
         bin or sbin, test and share).
     """
     if check_dir_exists(target_dir):
         for dir_name, subdir_list, filename_list in os.walk(target_dir):
+            if yum_package or debian_package:
+                if os.path.relpath(dir_name, target_dir).startswith("install"):
+                    #SKip the copying of 3rdparty utilities into the tarball if the script is invoked with -y or -d flags
+                    continue
             if os.path.basename(dir_name) == 'lib' or os.path.basename(dir_name) == 'plugin':
                 tar_lib_dir = tar_dir+"/lib"
                 copy_dir(dir_name, tar_lib_dir)
@@ -169,7 +173,7 @@ def get_image_file_name(tar_name):
     return image_file_name
 
 
-def package(base_dir, tar_name, machine=None, kernel_version=None, pre_build_dir=None,execute=None):
+def package(base_dir, tar_name, machine=None, kernel_version=None, pre_build_dir=None,execute=None, yum_package = False, debain_package = False):
     """ This function packages the model related binaries, libraries, test examples and 3rd party utilities
        into an archive to the given target platform.
     """
@@ -205,6 +209,10 @@ def package(base_dir, tar_name, machine=None, kernel_version=None, pre_build_dir
     log.info("Target platform kernel version:{}".format(kernel_version))
     log.info("Target platform image directory is {}".format(image_dir))
     tar_name, compress_format = get_compression_format(tar_name)
+    if yum_package:
+        log.info(" Packaging the Model/SAFplus in RPM ")
+    if debain_package:
+        log.info(" Packaging the Model/SAFplus in DEBIAN ")
     #tar_dir = "{}/{}".format(image_dir, tar_name)
     #check_and_createdir(tar_dir)
     log.info("Packaging files from {0} and {1}".format(pre_build_dir,base_dir));
@@ -214,12 +222,12 @@ def package(base_dir, tar_name, machine=None, kernel_version=None, pre_build_dir
         log.info("Prebuilt target platform related SAFPlus binaries, libraries, and third party utilities are present in {}".format(target_dir))
         if check_dir_exists(pre_build_dir):
             pre_build_dir = "{}/target/{}/{}".format(pre_build_dir, machine, kernel_version)
-            package_dirs(pre_build_dir, image_stage_dir)
+            package_dirs(pre_build_dir, image_stage_dir, yum_package, debain_package)
 
     if base_dir:
         target_dir = "{0}/target/{1}/{2}".format(base_dir, machine, kernel_version)
         log.info("SAFPlus binaries, libraries and third party utilities related to target platform are present in {}".format(target_dir))
-        package_dirs(target_dir, image_stage_dir)
+        package_dirs(target_dir, image_stage_dir, yum_package, debain_package)
     log.info("Packaging complete")
 
     if execute:
@@ -233,8 +241,12 @@ def package(base_dir, tar_name, machine=None, kernel_version=None, pre_build_dir
 
     log.info("Archive name is {0} Archive compression format is {1}".format(tar_name, compress_format))
     # put the tarball exactly where the requested on the command line: tar_name = os.path.join(image_dir, tar_name)
-    create_archive(tar_name, image_dir, compress_format)
-    pass
+    tar_name = create_archive(tar_name, image_dir, compress_format)
+    if yum_package:
+	from package import RPM
+	rpm_gen = RPM()
+        rpm_template_dir = os.path.abspath(os.path.dirname(__file__) + os.sep + "pkg_templates/rpm")
+        rpm_gen.rpm_build(tar_name, rpm_template_dir, "Makefile", "package.spec")
 
 
 def usage():
@@ -265,7 +277,7 @@ Options:
   -x or --execute="string"
      Execute this string on the bash prompt after copying files but before creating the archive
   -o or --output=<archive name>
-     Output file name. Can also be supplied as the first non-flag argument.  
+     Output file name. Can also be supplied as the first non-flag argument.
      Extension selects the format (.tgz, .tar.gz, or .zip)
      default output file is {tp}_{tm}_{tk}
 """.format(tgtMachine=target_machine,kernelVersion=target_kernel_version,tp=target_platform, tm=target_machine, tk=target_kernel_version)
@@ -290,15 +302,17 @@ def parser(args):
     model_dir = None
     tar_name = None
     execute = None
- 
+    yum_package = False
+    debian_package = False
+
     target_platform = platform.system()
     target_machine = platform.machine()
     target_kernel_version = platform.release()
     pre_build_dir = None
 
     try:
-        opts, args = getopt.getopt(args, "hm:k:s:o:p:x:", ["help", "project-dir=", "target-machine=",
-                                                          "target-kernel=", "tar-name=", "safplus-dir=","execute="])
+        opts, args = getopt.getopt(args, "hm:k:s:o:p:x:yd", ["help", "project-dir=", "target-machine=",
+                                                          "target-kernel=", "tar-name=", "safplus-dir=","execute=", "yum", "debian"])
     except getopt.GetoptError as err:
         log.error("{}".format(err))
         usage()
@@ -329,6 +343,12 @@ def parser(args):
         elif opt in ("-s", "--safplus-dir"):
             pre_build_dir = get_option_value(arg)
             log.info("SAFplus dir {}".format(pre_build_dir))
+        elif opt in ("-y", "--yum"):
+            yum_package = True
+            log.info(" RPM PACKAGE ")
+        elif opt in ("-d", "--debian"):
+            debian_package = True
+            log.info(" DEBIAN PACKAGE")
         else:
             pass
     if len(args) >= 1:
@@ -341,7 +361,7 @@ def parser(args):
         tar_name = "{}_{}_{}".format(tar_name, target_machine, target_kernel_version)
     else:
         pass
-    return model_dir, tar_name, target_machine, target_kernel_version, pre_build_dir,execute
+    return model_dir, tar_name, target_machine, target_kernel_version, pre_build_dir,execute,yum_package, debian_package
 
 
 def get_option_value(arg_val):
@@ -353,12 +373,12 @@ def get_option_value(arg_val):
 
 def main():
     log.debug("Command line Arguments are {}".format(sys.argv))
-    model_dir, tar_name, target_machine, target_kernel, pre_build_dir,execute = parser(sys.argv[1:])
+    model_dir, tar_name, target_machine, target_kernel, pre_build_dir,execute, yum_package, debian_package = parser(sys.argv[1:])
     if pre_build_dir is None:
       pre_build_dir = os.path.abspath(os.path.dirname(__file__) + os.sep + '..')
 
     # log.info("%s, %s, %s, %s, %s, %s" % (model_dir, tar_name, target_machine, target_kernel, pre_build_dir,execute))
-    package(model_dir, tar_name, target_machine, target_kernel, pre_build_dir,execute)
+    package(model_dir, tar_name, target_machine, target_kernel, pre_build_dir,execute, yum_package, debian_package)
 
 
 log = log_init()

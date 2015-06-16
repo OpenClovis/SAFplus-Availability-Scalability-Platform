@@ -60,7 +60,7 @@ namespace SAFplusI
     GroupSharedMemSize = 4 * 1024*1024,
     GroupMax           = 1024,  // Maximum number of groups
     GroupMaxMembers    = 1024,   // Maximum number of members in a group
-    GroupElectionTimeMs = 5000  // Default Group election time in milliseconds
+    GroupElectionTimeMs = 3000  // Default Group election time in milliseconds
     };
 
   /* CHECKPOINT */
@@ -120,7 +120,7 @@ namespace SAFplusI
     TcpTransportNumPorts = 2048,  // Limit the ports to a range for no particular reason
     TcpTransportStartPort = 9000,  // Pick a random spot in the TCP port range so our ports don't overlap common services
     TcpTransportMaxMsg = 1024,
-    TcpTransportMaxFragments = 1024,
+    TcpTransportMaxFragments = 2048,
     TcpMaxStream = 64,
     }; 
 

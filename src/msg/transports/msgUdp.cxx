@@ -13,6 +13,7 @@ namespace SAFplus
     {
   public:
     in_addr_t netAddr;
+    in_addr_t broadcastAddr;
     uint32_t nodeMask;
     Udp(); 
 
@@ -60,13 +61,23 @@ namespace SAFplus
     config.maxMsgSize   = SAFplusI::UdpTransportMaxMsgSize;
     config.maxPort      = SAFplusI::UdpTransportNumPorts;
     config.maxMsgAtOnce = SAFplusI::UdpTransportMaxMsg;
-    // TODO: first determine if we are in cloud mode or LAN mode...
-    config.capabilities = SAFplus::MsgTransportConfig::Capabilities::BROADCAST;  // not reliable, can't tell if anything joins or leaves...
+    if (clusterNodes == NULL) // LAN mode
+      {
+      config.capabilities = SAFplus::MsgTransportConfig::Capabilities::BROADCAST;  // not reliable, can't tell if anything joins or leaves...
+      }
+    else config.capabilities = SAFplus::MsgTransportConfig::Capabilities::NONE;
+    std::pair<in_addr,in_addr> ipAndBcast = SAFplusI::setNodeNetworkAddr(&nodeMask,clusterNodes); // This function sets SAFplus::ASP_NODEADDR
+    struct in_addr bip = ipAndBcast.first;
+    broadcastAddr = ntohl(ipAndBcast.second.s_addr); // devToBroadcastAddress("xxx");
+    if ((broadcastAddr == 0)&&(!cn))
+      {
+        int err = errno;
+        throw Error(Error::SAFPLUS_ERROR,Error::MISCONFIGURATION, "Broadcast is not enabled on the backplane interface, but the node list (cloud mode) is not enabled.",__FILE__,__LINE__);
+      }
 
-    struct in_addr bip = SAFplusI::setNodeNetworkAddr(&nodeMask,clusterNodes);           
     config.nodeId = SAFplus::ASP_NODEADDR;
     netAddr = ntohl(bip.s_addr)&(~nodeMask);
-     
+ 
     return config;
     }
 
@@ -170,7 +181,7 @@ namespace SAFplus
         to[msgCount].sin_family = AF_INET;
         if (msg->node == Handle::AllNodes)
           {
-          to[msgCount].sin_addr.s_addr= htonl(INADDR_BROADCAST);
+            to[msgCount].sin_addr.s_addr= htonl(((Udp*)transport)->broadcastAddr);
           broadcast=true;  // TODO: if cloud mode, break broadcast messages into a separate queue for separate sending
           }
         else

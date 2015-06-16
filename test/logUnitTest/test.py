@@ -7,5 +7,5 @@ class test(testcase.TestGroup):
         \testcase   LOG-BAS-PYT.TC001
         \brief     	Basic log functional tests 
         """
-        self.appTest(15)  # An App Test just starts running its tests when started (there is no addtl trigger required to put the entity "in service", etc.  The parameter is how long to wait before assuming the test hung.
+        self.progTest(self.model.cfg.mapping.SysCtrl0.installDir + "/test/testLog",20)
         self.assert_equal(1, 1, 'This test always works')

@@ -17,26 +17,26 @@
 
 #include "standaloneApp.h"
 #include "standaloneMain.h"
-#include "../SAFplus7IDE.h"
-#include "../SAFplus7EditorPanel.h"
+#include "../SAFplusIDE.h"
+#include "../SAFplusEditorPanel.h"
 
 
 IMPLEMENT_APP(standaloneApp);
 
-wxString rcfile(_T("SAFplus7IDE.xrc"));
+wxString rcfile(_T("SAFplusIDE.xrc"));
 
 bool standaloneApp::OnInit()
 {
     theApp   = this;
     theManager = new Manager(rcfile);
     theFrame = new standaloneFrame(0L, _("wxWidgets Application Template"));
-    cbPlugin* plugin = new SAFplus7IDE();
+    cbPlugin* plugin = new SAFplusIDE();
     //The callback calling by C::B -- NOT when there is not C::B (standalone)
     wxMenuBar* mb = theFrame->GetMenuBar();
 
     plugin->OnAttach();
     plugin->BuildMenu(mb);
-    new SAFplus7EditorPanel(theFrame, _("title") );
+    new SAFplusEditorPanel(theFrame, _("title") );
     theFrame->Show();
     return true;
 }

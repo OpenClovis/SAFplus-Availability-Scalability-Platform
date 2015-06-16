@@ -9,6 +9,7 @@ using namespace SAFplus;
 
 void TestLog_basic(void)
 {
+  logSeverity = LOG_SEV_DEBUG;
   clTestCaseStart(("LOG-BAS-FNC.TC001: issue some logs"));
   logEmergency("LOG","TST","Test Emergency Log");
   logEmergency("LOG","TST","Test Emergency Log2");

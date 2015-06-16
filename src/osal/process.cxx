@@ -2,6 +2,8 @@
 #include <dirent.h>
 #include <fstream>
 #include <string>
+#include <sys/types.h>  // for kill()
+#include <signal.h>  // for kill()
 #include <clProcessApi.hxx>
 
 extern char **environ;
@@ -14,6 +16,16 @@ namespace SAFplus
   Process::Process(int processId): pid(processId)
     {
     }
+
+  bool Process::alive()
+  {
+    if (pid == 0) return false;  // pid 0 is impossible
+    int result = kill(pid,0);  // signal 0 means don't send a signal but get error code back
+    if (result == 0) return true;
+    if (errno == EPERM) { assert (0); } // permissions problem
+    assert(errno == ESRCH);  // there can be no other error coming from kill
+    return false;
+  }
 
   std::string Process::getCmdline(void)
     {

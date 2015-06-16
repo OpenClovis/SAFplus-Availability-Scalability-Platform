@@ -8,11 +8,11 @@
 #include <cairo.h>
 #include <librsvg/rsvg.h>
 
-class SAFplus7ScrolledWindow : public wxScrolledWindow
+class SAFplusScrolledWindow : public wxScrolledWindow
 {
     public:
-        SAFplus7ScrolledWindow(wxWindow* parent, wxWindowID id);
-        virtual ~SAFplus7ScrolledWindow();
+        SAFplusScrolledWindow(wxWindow* parent, wxWindowID id);
+        virtual ~SAFplusScrolledWindow();
 
         void paintEvent(wxPaintEvent &evt);
         void mouseMoved(wxMouseEvent &event);

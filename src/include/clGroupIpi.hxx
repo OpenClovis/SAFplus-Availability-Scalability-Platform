@@ -62,6 +62,7 @@ namespace SAFplusI
     public:
     uint64_t       structId;
     pid_t          rep;        // This is the node representative
+    uint32_t       repPort;    // Node representative communications port
     };
 
   class GroupData
@@ -242,13 +243,21 @@ namespace SAFplusI
     SAFplusI::GroupShmHashMap* groupMap;
     SAFplusI::GroupShmHeader* groupHdr;
     void init();
-    void clear();
-    void dbgDump(void);
+    void clear(); //? Remove all group's entities from shared memory
+    void claim(int pid, int port); //? Claim that the provided pid and port is the node representative.  Overwrites an existing claim
     void dispatcher(void);
     GroupShmEntry* createGroup(SAFplus::Handle grp);
 
     void registerGroupObject(SAFplus::Group* grp);
     void deregisterGroupObject(SAFplus::Group* grp);
+
+    unsigned int dbgCountGroups(void);  //? Counts the number of groups -- intended for unit tests.
+    unsigned int dbgCountEntities(void);  //? Counts the total number of entities in all groups -- intended for unit tests.
+
+    void dbgDump(void);
+
+    //? typically you'd never call this... it deletes the shared memory segment out of under any running applications which can cause crashes, etc.
+    static void deleteSharedMemory();
     };
 
 class GroupServer:public SAFplus::MsgHandler
@@ -272,7 +281,7 @@ class GroupServer:public SAFplus::MsgHandler
   void handleElectionRequest(SAFplus::Handle grpHandle);
   void startElection(SAFplus::Handle grpHandle);
   void sendHelloMessage(SAFplus::Handle grpHandle,const SAFplus::GroupIdentity& entityData);
-  void sendRoleAssignmentMessage(SAFplus::Handle grpHandle,std::pair<SAFplus::Handle,SAFplus::Handle>& results);
+  void sendRoleAssignmentMessage(SAFplus::Handle grpHandle,const std::pair<SAFplus::Handle,SAFplus::Handle>& results);
 
   std::pair<SAFplus::Handle,SAFplus::Handle> _electRoles(const GroupData& gd);
   };

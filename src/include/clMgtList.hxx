@@ -249,6 +249,27 @@ namespace SAFplus
           }
         }
       }
+
+      MgtObject* lookUpMgtObject(const std::string & classType, const std::string &ref)
+      {
+        std::string type = "P";
+        type.append((typeid(*this).name()));
+        if ( type == classType && this->tag == ref)
+          {
+            return this;
+          }
+
+        typename Map::iterator iter;
+        for(iter = children.begin(); iter != children.end(); iter++)
+          {
+            MgtObject *obj = iter->second;
+            MgtObject *found = obj->lookUpMgtObject(classType, ref);
+            if (found)
+              return found;
+          }
+        return nullptr;
+      }
+
       /**
        * API to get number of entries in the list
        */
@@ -664,6 +685,26 @@ namespace SAFplus
           }
         }
       }
+
+      MgtObject* lookUpMgtObject(const std::string & classType, const std::string &ref)
+      {
+        std::string type = "P";
+        type.append((typeid(*this).name()));
+        if ( type == classType && this->tag == ref)
+          {
+            return this;
+          }
+        typename Map::iterator iter;
+        for(iter = children.begin(); iter != children.end(); iter++)
+          {
+            MgtObject *obj = iter->second;
+            MgtObject *found = obj->lookUpMgtObject(classType, ref);
+            if (found)
+            return found;
+          }
+        return nullptr;
+      }
+
       /**
        * API to get number of entries in the list
        */

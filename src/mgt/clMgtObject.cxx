@@ -313,4 +313,21 @@ namespace SAFplus
   {
     return CL_ERR_BAD_OPERATION;
   }
+
+  MgtObject* MgtObject::lookUpMgtObject(const std::string & classType, const std::string &ref)
+  {
+    std::string type = "P";
+    type.append(typeid(*this).name());
+    if(type == classType && this->tag == ref)
+      {
+        return this;
+      }
+    return nullptr;
+  }
+
+  void MgtObject::updateReference(void)
+  {
+    return ;
+  }
+
 }

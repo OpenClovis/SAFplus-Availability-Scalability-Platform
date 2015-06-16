@@ -23,4 +23,15 @@ $(OBJ_DIR)/%.o: %.cxx Makefile $(SAFPLUS_MAKE_DIR)/preface.mk $(CLIENT_H)
 clean:
 	rm -f $(CLIENT_OBJ) $(TEST_DIR)/example
 
+# TAE packaging stuff
+IMAGE_FILE ?= amfTest.zip
+
+image: $(IMAGE_FILE)
+
+$(IMAGE_FILE): $(TEST_DIR)/exampleSafApp
+	cp setup start cleanup $(SAFPLUS_TARGET)  
+	cp SAFplusAmf.idx SAFplusAmf.db SAFplusAmf.xml $(SAFPLUS_TARGET)/test
+	$(SAFPLUS_MAKE_DIR)/safplus_packager.py -x "(cp setup start cleanup {image_dir})" $@
+
+
 include $(SAFPLUS_MAKE_DIR)/safplus_targets.mk

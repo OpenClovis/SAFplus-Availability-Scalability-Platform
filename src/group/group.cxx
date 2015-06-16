@@ -93,7 +93,11 @@ char* Group::capStr(uint cap, char* buf)
   void Group::init(Handle groupHandle, int comPort,SAFplus::Wakeable& execSemantics)
     {
     handle = groupHandle;
-    groupCommunicationPort = comPort;
+    if (comPort==0)  // If 0 is passed, that means to use the default port, which is whatever is stored in shared memory
+      {
+        groupCommunicationPort = gsm.groupHdr->repPort;
+      }
+    else groupCommunicationPort = comPort;
 
     if(!groupMsgServer)
       {
@@ -498,6 +502,14 @@ void SAFplus::Group::send(void* data, int dataLength, SAFplus::GroupMessageSendM
 
   }
 
+    bool SAFplus::GroupIdentity::override(uint64_t new_credentials,uint new_capabilities)
+    {
+      bool changed = false;
+      if (new_credentials != credentials) {credentials = new_credentials; changed = true; }
+      // I only want to change the configured capabilities, not the role
+      if (new_capabilities & Group::SOURCE_CAPABILITIES != capabilities & Group::SOURCE_CAPABILITIES) { capabilities = new_capabilities; changed = true; }
+      return changed;
+    }
 
   void SAFplus::GroupIdentity::dumpInfo()
   {

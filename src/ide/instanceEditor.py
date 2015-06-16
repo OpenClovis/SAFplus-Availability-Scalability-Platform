@@ -61,7 +61,8 @@ class TemplateMgr:
   def loadPyTemplate(self,fname):
     """Load a template file and return it as a string"""
     if self.cache.has_key(fname): return self.cache[fname]
-    
+
+    fname = common.resolver(fname);
     f = open(fname,"r")
     s = f.read()
     t = Template(s)
@@ -75,8 +76,7 @@ class TemplateMgr:
 templateMgr = TemplateMgr()
 
 #TODO: Get relative directiry with model.xml
-myDir = os.getcwd()
-TemplatePath = myDir + "/codegen/templates/"
+TemplatePath = "codegen/templates/"
 
 def touch(f):
     f = file(f,'a')
@@ -1313,7 +1313,6 @@ class Panel(scrolled.ScrolledPanel):
       # Real rectangle
       rect = convertToRealPos(rect, self.scale)
       ret = set()
-      # hoang for (name, e) in self.model.instances.items():
       for (name, e) in self.model.instances.items():
         if e.et.name in filterOut:
           continue

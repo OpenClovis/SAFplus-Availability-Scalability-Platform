@@ -8,17 +8,17 @@
 	<status   value='200' />
       </timeout> 
     </git>
-    <notify>
+    <!-- notify>
       <email from="c3po-z1@openclovis.com" server="smtp.gmail.com" password="poc3secret" to="eng-all@openclovis.com"/>
-    </notify>
-    <!--report_url value="scp://root@192.168.0.94//var/www/tg/taereport/import" / -->
+    </notify -->
+    <report_url value="scp://report@test.openclovis.com//webdata/import" />
   </env_cfg>
 
-  <buildserver>
+  <!-- buildserver>
     <sdk_root_dir value="/opt/clovis" />
     <asp_dir      value="/home/c3po/git-tests/safplus" />
     <project_dir  value="/home/c3po/git-tests/asptest" />
-  </buildserver>
+  </buildserver -->
 
   <default>
     <model>
@@ -31,13 +31,9 @@
       <build_server ip='localhost' os='ubuntu' user='root' password='clovis' />
       <nodes>
 	<node0 ip='localhost' os='Ubuntu' user="root" password="clovis" />
-	<node1 ip='192.168.56.101' os='Ubuntu' user="root" password="clovis" />
-	<node2 ip='192.168.56.102' os='Ubuntu' user="root" password="clovis" />
-	<node3 ip='192.168.56.103' os='Ubuntu' user="root" password="clovis" />
-	<node4 ip='192.168.56.104' os='Ubuntu' user="root" password="clovis" />
       </nodes>
       <description>
-	greyhound 32 bit virtual machines
+	single node 32 bit
       </description>
     </fixture>
   </default>
@@ -45,41 +41,80 @@
 
  <projects>
 
-  <SAFplus-standalone>
+  <SAFplus7.0>
     <default>
       <model>
         <middleware value="Standalone" />
         <architecture value="" />
         <cross_build_envscript_absolute_path value="" />
-        <testcase_dir  value="/code/git/SAFplus7/test" />
       </model>
     </default>
    
     <models> 
-      <!-- logUnitTest>
+      <logUnitTest>
 	<image_source value="dir://code/git/SAFplus7/test/logUnitTest" />
-     </logUnitTest -->
+     </logUnitTest>
       <msgUnitTest>
-        <testcase_dir  value="/code/git/SAFplus7/test/msgUnitTest" />
 	<image_source value="dir://code/git/SAFplus7/test/msgUnitTest" />
      </msgUnitTest>
+      <rpcUnitTest>
+	<image_source value="dir://code/git/SAFplus7/test/rpcUnitTest" />
+     </rpcUnitTest>
+     <grpUnitTest>
+	<image_source value="dir://code/git/SAFplus7/test/grpUnitTest" />
+     </grpUnitTest>
+      <amfUnitTest>
+	<image_source value="dir://code/git/SAFplus7/test/amfUnitTest" />
+     </amfUnitTest>
     </models>
 
-  </SAFplus-standalone>
+  </SAFplus7.0>
 
  </projects>
 
   <models>
+    <amfUnitTest>
+      <mapping>
+	<SysCtrl0   node="node0" role="controller" installDir="~/amfUnitTest" />
+      </mapping>
+      <testcase_dir  value="/code/git/SAFplus7/test/amfUnitTest" />
+      <make_options value="" />
+      <configure_options value="" />
+      <testfilter>
+      </testfilter>
+    </amfUnitTest>
+    <rpcUnitTest>
+      <mapping>
+	<SysCtrl0   node="node0" role="controller" installDir="~/rpcUnitTest" />
+      </mapping>
+      <testcase_dir  value="/code/git/SAFplus7/test/rpcUnitTest" />
+      <make_options value="" />
+      <configure_options value="" />
+      <testfilter>
+      </testfilter>
+    </rpcUnitTest>
+    <grpUnitTest>
+      <mapping>
+	<SysCtrl0   node="node0" role="controller" installDir="~/grpUnitTest" />
+      </mapping>
+      <testcase_dir  value="/code/git/SAFplus7/test/grpUnitTest" />
+      <make_options value="" />
+      <configure_options value="" />
+      <testfilter>
+      </testfilter>
+    </grpUnitTest>
     <logUnitTest>
       <mapping>
 	<SysCtrl0   node="node0" role="controller" installDir="~/logUnitTest" />
       </mapping>
+      <testcase_dir  value="/code/git/SAFplus7/test/logUnitTest" />
       <make_options value="" />
       <configure_options value="" />
       <testfilter>
       </testfilter>
     </logUnitTest>
     <msgUnitTest>
+      <testcase_dir  value="/code/git/SAFplus7/test/msgUnitTest" />
       <mapping>
 	<SysCtrl0   node="node0" role="controller" installDir="~/msgUnitTest" />
       </mapping>

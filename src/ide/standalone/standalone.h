@@ -57,6 +57,7 @@ class cbPlugin:public wxApp
 class cbProject
   {
       public:
+        wxString GetCommonTopLevelPath() { return ""; }
   };
 
 enum ModuleType

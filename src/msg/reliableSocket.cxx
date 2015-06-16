@@ -3,6 +3,7 @@
 #include <stdio.h>
 namespace SAFplus
 {
+  // Callback function for Null Fragment Timer
   static void * nullFragmentTimerFunc(void* arg)
   {
     MsgSocketReliable* tempMsgSocket = (MsgSocketReliable*)arg;
@@ -19,6 +20,7 @@ namespace SAFplus
     return NULL;
   }
 
+  // Callback function for retransmission Timer
   static void* retransmissionTimerFunc(void* arg)
   {
     MsgSocketReliable* tempMsgSocket = (MsgSocketReliable*)arg;
@@ -36,6 +38,7 @@ namespace SAFplus
     return NULL;
   }
 
+  // Callback function for cumulative Ack Timer
   static void* cumulativeAckTimerFunc(void* arg)
   {
     MsgSocketReliable* tempMsgSocket = (MsgSocketReliable*)arg;
@@ -54,7 +57,7 @@ namespace SAFplus
 
 
 
-
+  // Callback function for Keep alive Timer
   static void* keepAliveTimerFunc(void* arg)
   {
     MsgSocketReliable* tempMsgSocket = (MsgSocketReliable*)arg;
@@ -72,7 +75,7 @@ namespace SAFplus
   }
 
 
-
+  // Handle Retransmission function
   void MsgSocketReliable::handleRetransmissionTimerFunc(void)
   {
      unackedSentQueueLock.lock();
@@ -94,6 +97,7 @@ namespace SAFplus
      }
   }
 
+  // Handle Null Fragment function
   void MsgSocketReliable::handleNullFragmentTimerFunc(void)
   {
      unackedSentQueueLock.lock();
@@ -113,16 +117,19 @@ namespace SAFplus
      unackedSentQueueLock.unlock();
   }
 
+  // Handle Cumulative Ack function
   void MsgSocketReliable::handleCumulativeAckTimerFunc(void)
   {
     this->sendACK();
   }
 
+  // Handle Cumulative keep alive function
   void MsgSocketReliable::handleKeepAliveTimerFunc(void)
   {
      this->setconnection(connectionNotification::FAILURE);
   }
 
+  // Compare two fragment
   int compareFragment(int frag1, int frag2)
   {
     if (frag1 == frag2)
@@ -139,14 +146,11 @@ namespace SAFplus
         return -1;
     }
   }
+
+  // Handle fragment received
   void MsgSocketReliable::handleReliableFragment(ReliableFragment *frag)
   {
      fragmentType fragType = frag->getType();
-     /*
-      * When a RST segment is received, the sender must stop
-      * sending new packets, but most continue to attempt
-      * delivery of packets already accepted from the application.
-      */
      if(fragType == fragmentType::FRAG_RST)
      {
         resetMutex.lock();
@@ -179,6 +183,7 @@ namespace SAFplus
            default:
            {
               state = connectionState::CONN_CLOSE_WAIT;
+              break;
            }
         }
      }
@@ -188,11 +193,11 @@ namespace SAFplus
      {
         /* Drop packet: duplicate. */
      }
-     else if(compareFragment(frag->seq(), nextSequenceNumber(queueInfo->getLastInSequence()) ) <= 0 )
+     else if(compareFragment(frag->seq(), nextSequenceNumber(queueInfo->getLastInSequence()) ) == 0 )
      {
+        //fragment is the next fragment in queue. Add to in-seq queue
         bIsInSequence = true;
-        if (inSeqRecvQueue.size() == 0 ||
-              (inSeqRecvQueue.size() + outSeqRecvQueue.size() < recvQueueSize))
+        if (inSeqQueue.size() == 0 || (inSeqQueue.size() + outOfSeqQueue.size() < recvQueueSize))
         {
            /* Insert in-sequence segment */
            queueInfo->setLastInSequence(frag->seq());
@@ -200,8 +205,10 @@ namespace SAFplus
                  fragType ==  fragmentType::FRAG_RST ||
                  fragType == fragmentType::FRAG_FIN)
            {
-              inSeqRecvQueue.push_back(*frag);
+              inSeqQueue.push_back(*frag);
            }
+           // Checks for in-sequence segments in the out-of-sequence queue
+           // that can be moved to the in-sequence queue
            checkRecvQueues();
         }
         else
@@ -209,12 +216,12 @@ namespace SAFplus
            /* Drop packet: queue is full. */
         }
      }
-     else if(inSeqRecvQueue.size() + outSeqRecvQueue.size() < recvQueueSize)
+     else if(inSeqQueue.size() + outOfSeqQueue.size() < recvQueueSize)
      {
-        /* Insert out-of-sequence segment, in order */
+        //Fragment is not the next fragment in queue. Add it to out of seq queue
         bool added = false;
-        for (ReliableFragmentList::iterator iter = outSeqRecvQueue.begin();
-              iter != outSeqRecvQueue.end() && !added;
+        for (ReliableFragmentList::iterator iter = outOfSeqQueue.begin();
+              iter != outOfSeqQueue.end() && !added;
               iter ++)
         {
             ReliableFragment &s = *iter;
@@ -226,17 +233,21 @@ namespace SAFplus
             }
             else if (cmp < 0)
             {
-                outSeqRecvQueue.insert(iter, *frag);
+                outOfSeqQueue.insert(iter, *frag);
                 added = true;
             }
         }
 
         if (!added)
         {
-            outSeqRecvQueue.push_back(*frag);
+            outOfSeqQueue.push_back(*frag);
         }
+        //inscreate out of sequence fragment
+        queueInfo->increaseOutOfSequenceCounter();
+        if (fragType == fragmentType::FRAG_DATA)
+        {
 
-        queueInfo->incOutOfSequenceCounter();
+        }
      }
 
      if (bIsInSequence &&
@@ -265,7 +276,7 @@ namespace SAFplus
               cumulativeAckTimer.interval=profile->cumulativeAckTimeout();
            }
         }
-        cumulativeAckTimer.timerLock.lock();
+        cumulativeAckTimer.timerLock.unlock();
      }
      recvQueueLock.unlock();
   }
@@ -274,8 +285,8 @@ namespace SAFplus
   {
      recvQueueLock.lock();
      {
-        ReliableFragmentList::iterator it = outSeqRecvQueue.begin();
-        while (it != outSeqRecvQueue.end() )
+        ReliableFragmentList::iterator it = outOfSeqQueue.begin();
+        while (it != outOfSeqQueue.end() )
         {
            ReliableFragment &s = *it;
            if (compareFragment(s.seq(), nextSequenceNumber(queueInfo->getLastInSequence())) == 0)
@@ -285,9 +296,9 @@ namespace SAFplus
                     s.getType() == fragmentType::FRAG_RST ||
                     s.getType() == fragmentType::FRAG_FIN)
               {
-                 inSeqRecvQueue.push_back(s);
+                 inSeqQueue.push_back(s);
               }
-              it = outSeqRecvQueue.erase_and_dispose(it, delete_disposer());
+              it = outOfSeqQueue.erase_and_dispose(it, delete_disposer());
            }
            else
            {
@@ -426,7 +437,7 @@ namespace SAFplus
   void MsgSocketReliable::sendACK()
   {
      recvQueueLock.lock();
-     if (outSeqRecvQueue.empty() )
+     if (outOfSeqQueue.empty() )
      {
         sendNAK();
      }
@@ -439,7 +450,7 @@ namespace SAFplus
   void MsgSocketReliable::sendNAK()
   {
      recvQueueLock.lock();
-     if (outSeqRecvQueue.empty())
+     if (outOfSeqQueue.empty())
      {
         return;
      }
@@ -447,11 +458,11 @@ namespace SAFplus
      queueInfo->getAndResetOutOfSequenceCounter();
 
      /* Compose list of out-of-sequence sequence numbers */
-     int size = outSeqRecvQueue.size();
+     int size = outOfSeqQueue.size();
      int* acks = new int[size];
      int nIdx = 0;
-     for (ReliableFragmentList::iterator it = outSeqRecvQueue.begin();
-           it != outSeqRecvQueue.end();
+     for (ReliableFragmentList::iterator it = outOfSeqQueue.begin();
+           it != outOfSeqQueue.end();
            it++)
      {
        ReliableFragment& s = *it;
@@ -511,7 +522,7 @@ namespace SAFplus
      {
         return;
      }
-     queueInfo->getAndResetOutstandingSegsCounter();
+     queueInfo->getAndResetOutstandingFragmentsCounter();
      if (state == connectionState::CONN_SYN_RCVD)
      {
         state = connectionState::CONN_ESTABLISHED;
@@ -541,7 +552,8 @@ namespace SAFplus
      unackedSentQueueCond.notify_all();
      unackedSentQueueLock.unlock();
   }
-  // reviewed
+
+  //send a reliable fragment
   void MsgSocketReliable::sendReliableFragment(ReliableFragment *frag)
   {
     /* Piggyback any pending acknowledgments */
@@ -567,11 +579,13 @@ namespace SAFplus
     fragment->set((char*)frag,frag->length());
     sock->send(reliableReliableFragment);
   }
+
+  // send fragment and store it in uncheck ack
   void MsgSocketReliable::queueAndSendReliableFragment(ReliableFragment* frag)
   {
      unackedSentQueueLock.lock();
      while ((unackedSentQueue.size() >= sendQueueSize) ||
-           ( queueInfo->getOutstandingSegsCounter() > profile->maxOutstandingSegs()))
+           ( queueInfo->getOutstandingFragmentsCounter() > profile->maxOutstandingSegs()))
      {
         try
         {
@@ -582,7 +596,7 @@ namespace SAFplus
            // Hanlde Exception
         }
      }
-     queueInfo->incOutstandingSegsCounter();
+     queueInfo->incOutstandingFragmentsCounter();
      unackedSentQueue.push_back(*frag);
      unackedSentQueueLock.unlock();
 
@@ -608,6 +622,7 @@ namespace SAFplus
         // Listening data
      }
   }
+
   ReliableFragment* MsgSocketReliable::receiveReliableFragment(Handle &handle)
   {
      ReliableFragment* p_Fragment = nullptr;
@@ -653,7 +668,7 @@ namespace SAFplus
            fragType == fragmentType::FRAG_FIN ||
            fragType == fragmentType::FRAG_SYN)
      {
-        queueInfo->incCumulativeAckCounter();
+        queueInfo->increaseCumulativeAckCounter();
      }
 
      if(iskeepAlive)
@@ -664,6 +679,8 @@ namespace SAFplus
 
      return p_Fragment;
   }
+
+  //Sends a fragment and increments its retransmission counter
   void MsgSocketReliable::retransmitFragment(ReliableFragment *frag)
   {
     if (profile->maxRetrans() > 0)
@@ -691,6 +708,8 @@ namespace SAFplus
     }
   }
 
+  //Puts the connection in a closed state and notifies
+  //all registered state listeners that the connection failed.
   void MsgSocketReliable::connectionFailure()
   {
      closeMutex.lock();
@@ -734,6 +753,7 @@ namespace SAFplus
      }
      closeMutex.unlock();
   }
+
 
   void MsgSocketReliable::closeImplThread(void* arg)
   {
@@ -873,7 +893,7 @@ namespace SAFplus
 	  //TODO
   }
 
-  void MsgSocketReliable::send(Message* msg,uint_t length)
+  void MsgSocketReliable::send(Message* msg)
   {
      MsgFragment* p_Frag = nullptr;
      if (isClosed)
@@ -933,7 +953,7 @@ namespace SAFplus
      {
         while (true)
         {
-           while (inSeqRecvQueue.empty())
+           while (inSeqQueue.empty())
            {
               if (isClosed)
               {
@@ -960,21 +980,21 @@ namespace SAFplus
                  // Handle Exception.
               }
            }
-           for (ReliableFragmentList::iterator it = inSeqRecvQueue.begin();
-                 it != inSeqRecvQueue.end();)
+           for (ReliableFragmentList::iterator it = inSeqQueue.begin();
+                 it != inSeqQueue.end();)
            {
               ReliableFragment &s = *it;
               ReliableFragment * p_frag = &s;
               if (s.getType() == fragmentType::FRAG_RST)
               {
-                 inSeqRecvQueue.erase_and_dispose(it, delete_disposer());
+                 inSeqQueue.erase_and_dispose(it, delete_disposer());
                  break;
               }
               else if (s.getType() == fragmentType::FRAG_FIN)
               {
                  if (totalBytes <= 0)
                  {
-                    inSeqRecvQueue.erase_and_dispose(it, delete_disposer());
+                    inSeqQueue.erase_and_dispose(it, delete_disposer());
                     return nullptr; /* EOF */
                  }
                  break;
@@ -995,7 +1015,7 @@ namespace SAFplus
                  }
                  p_Fragment = p_Msg->append(length);
                  p_Fragment->set((char*)data, length);
-                 inSeqRecvQueue.erase_and_dispose(it, delete_disposer());
+                 inSeqQueue.erase_and_dispose(it, delete_disposer());
                  totalBytes += length;
               }
               else
@@ -1157,6 +1177,10 @@ namespace SAFplus
         unackedSentQueueLock.unlock();
      }
      closeMutex.unlock();
+  }
+  void MsgSocketReliable::flush()
+  {
+      sock->flush();
   }
 
 };

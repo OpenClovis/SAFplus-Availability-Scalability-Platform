@@ -8,7 +8,7 @@ extern "C"
 } /* end extern 'C' */
 
 #include <clMgtContainer.hxx>
-
+#include "clMgtRoot.hxx"
 using namespace std;
 
 namespace SAFplus
@@ -212,6 +212,12 @@ namespace SAFplus
             // TODO: Attempt to initialize the MgtObject to its configured default.  If that cannot happen, remember this error and raise an exception at the end.
           }
       }
+
+    if (!this->parent)
+      {
+        MgtRoot *mgtRoot = MgtRoot::getInstance();
+        mgtRoot->UpdateReference();
+      }
     return rc;
   }
 
@@ -390,6 +396,25 @@ namespace SAFplus
     child->setObj(value);
 
     return ret;
+  }
+
+  MgtObject* MgtContainer::lookUpMgtObject(const std::string & classType, const std::string &ref)
+  {
+    std::string type = "P";
+    type.append((typeid(*this).name()));
+    if ( type == classType && this->tag == ref)
+      {
+        return this;
+      }
+    typename Map::iterator iter;
+    for (MgtObjectMap::iterator it = children.begin(); it != children.end(); it++)
+      {
+        MgtObject* obj = (MgtObject*) it->second;
+        MgtObject*found = obj->lookUpMgtObject(classType, ref);
+        if (found)
+          return found;
+      }
+    return nullptr;
   }
 
 }

@@ -1,3 +1,4 @@
+
 #ifndef STANDALONE
 #include <sdk.h> // Code::Blocks SDK
 //cb header
@@ -18,11 +19,12 @@
 #include <wx/toolbar.h>
 #include <wx/treectrl.h>
 #include <wx/menu.h>
-#include <wx/fs_mem.h>
 #include <wx/fs_arc.h>
+#include <wx/zipstrm.h>
+#include <wx/wfstream.h>
 
-#include "SAFplus7IDE.h"
-#include "SAFplus7EditorPanel.h"
+#include "SAFplusIDE.h"
+#include "SAFplusEditorPanel.h"
 #include <Python.h>
 #include <boost/python.hpp>
 #include <boost/python/dict.hpp>
@@ -45,7 +47,7 @@ namespace bpy = boost::python;
 // We are using an anonymous namespace so we don't litter the global one.
 namespace
 {
-PluginRegistrant<SAFplus7IDE> reg(_T("SAFplus7IDE"));
+PluginRegistrant<SAFplusIDE> reg(_T("SAFplusIDE"));
 }
 #endif
 
@@ -61,48 +63,46 @@ Binding wxWidget resource
 */
 int idModuleYangParse = XRCID("idModuleYangParse");
 // Menu
-int idMenuSAFplus7ClusterDesignGUI = XRCID("idMenuSAFplus7ClusterDesignGUI");
+int idMenuSAFplusClusterDesignGUI = XRCID("idMenuSAFplusClusterDesignGUI");
 int idMenuSAFplusPythonWinTest = XRCID("idMenuSAFplusPythonWinTest");
 int idMenuSAFplusYangTest = XRCID("idMenuSAFplusYangTest");
 // Toolbar
-int idToolbarSAFplus7ClusterDesignGUI = XRCID("idToolbarSAFplus7ClusterDesignGUI");
+int idToolbarSAFplusClusterDesignGUI = XRCID("idToolbarSAFplusClusterDesignGUI");
 
 // events handling
-BEGIN_EVENT_TABLE(SAFplus7IDE, cbPlugin)
+BEGIN_EVENT_TABLE(SAFplusIDE, cbPlugin)
     // add any events you want to handle here
-    EVT_UPDATE_UI(idMenuSAFplus7ClusterDesignGUI, SAFplus7IDE::UpdateUI)
-    EVT_UPDATE_UI(idMenuSAFplusPythonWinTest, SAFplus7IDE::UpdateUI)
-    EVT_UPDATE_UI(idToolbarSAFplus7ClusterDesignGUI, SAFplus7IDE::UpdateUI)
-    EVT_UPDATE_UI(idMenuSAFplusYangTest, SAFplus7IDE::UpdateUI)
+    EVT_UPDATE_UI(idMenuSAFplusClusterDesignGUI, SAFplusIDE::UpdateUI)
+    EVT_UPDATE_UI(idMenuSAFplusPythonWinTest, SAFplusIDE::UpdateUI)
+    EVT_UPDATE_UI(idToolbarSAFplusClusterDesignGUI, SAFplusIDE::UpdateUI)
+    EVT_UPDATE_UI(idMenuSAFplusYangTest, SAFplusIDE::UpdateUI)
 
-    EVT_MENU(idMenuSAFplusPythonWinTest, SAFplus7IDE::PythonWinTest)
-    EVT_MENU(idToolbarSAFplus7ClusterDesignGUI, SAFplus7IDE::Action)
-    EVT_MENU(idMenuSAFplus7ClusterDesignGUI, SAFplus7IDE::Action)
-    EVT_MENU(idModuleYangParse, SAFplus7IDE::Action)
-    EVT_MENU(idMenuSAFplusYangTest, SAFplus7IDE::OnYangParse)
+    EVT_MENU(idMenuSAFplusPythonWinTest, SAFplusIDE::PythonWinTest)
+    EVT_MENU(idToolbarSAFplusClusterDesignGUI, SAFplusIDE::Action)
+    EVT_MENU(idMenuSAFplusClusterDesignGUI, SAFplusIDE::Action)
+    EVT_MENU(idModuleYangParse, SAFplusIDE::Action)
+    EVT_MENU(idMenuSAFplusYangTest, SAFplusIDE::OnYangParse)
 
 END_EVENT_TABLE()
 
 const wxString g_editorTitle = _T("SAFplus Cluster Design GUI");
 
-std::vector<wxString> SAFplus7IDE::extraFiles;
-
 // constructor
-SAFplus7IDE::SAFplus7IDE()
+SAFplusIDE::SAFplusIDE()
 {
 #ifndef STANDALONE
     // Make sure our resources are available.
     // In the generated boilerplate code we have no resources but when
     // we add some, it will be nice that this code is in place already ;)
-    if(!Manager::LoadResource(_T("SAFplus7IDE.zip")))
+    if(!Manager::LoadResource(_T("SAFplusIDE.zip")))
     {
-        NotifyMissingFile(_T("SAFplus7IDE.zip"));
+        NotifyMissingFile(_T("SAFplusIDE.zip"));
     }
 #endif
 }
 
 // destructor
-SAFplus7IDE::~SAFplus7IDE()
+SAFplusIDE::~SAFplusIDE()
 {
 }
 
@@ -115,11 +115,11 @@ boost::python::dict globals()
 #endif
 
 char programName[80] = "SAFplusIDE";
-void SAFplus7IDE::OnAttach()
+void SAFplusIDE::OnAttach()
 {
     m_IsAttached = true;
 
-    std::string pythonPathExt = "";
+    std::string pythonPathExt = Utils::toString(ConfigManager::GetDataFolder(false) + _T("/helpers"));
     char *curPythonPath = getenv("PYTHONPATH");
     if (curPythonPath != NULL)
     {
@@ -134,12 +134,12 @@ void SAFplus7IDE::OnAttach()
       pythonPathExt.append(":").append(cwd).append("/../");
     }
 #else
-    pythonPathExt.append(Utils::toString(ConfigManager::GetDataFolder(false)));
 
     //work-around with python's bug LD_PRELOAD
     dlopen("libpython2.7.so", RTLD_LAZY | RTLD_GLOBAL);
 #endif
     setenv("PYTHONPATH", pythonPathExt.c_str(), 1);
+    wxLogDebug(_T("PYTHONPATH:") + pythonPathExt);
 
     Py_SetProgramName(programName);
     Py_Initialize();
@@ -154,7 +154,7 @@ void SAFplus7IDE::OnAttach()
     // Save the current Python thread state and release the
     // Global Interpreter Lock.
     m_mainTState = wxPyBeginAllowThreads();
-#endif
+
     //PyRun_SimpleString("print 'Embedded Python initialized'\n");
     //PyObject* pyobj = PyRun_String("({'foo':{}},{'bar':{}})",0,globals(),boost::python::dict());
     //boost::python::object o(boost::python::handle<>(pyobj));
@@ -165,113 +165,107 @@ void SAFplus7IDE::OnAttach()
     boost::python::object one = obj[1];
     int val = bpy::extract<int>(zero["foo"]);
     printf("test python %d\n", val);
+#endif
 
     //Extract some images/python script from resources (Extra file in manifest.xml is not enough)
     extractExtraFiles();
 }
 
-void SAFplus7IDE::extractExtraFiles()
+bool SAFplusIDE::extractZipFile(const wxString& zipFile, const wxString& dstDir)
+{
+  bool ret = true;
+  wxFileSystem fsys;
+
+  wxString fnd = fsys.FindFirst(_T("memory:SAFplusIDE.zip#zip:") + zipFile, wxFILE);
+  if (fnd.empty())
+  {
+    wxLogDebug(_T("Can not open file '") + zipFile + _T("'."));
+    return false;
+  }
+
+  wxFSFile* f = fsys.OpenFile(fnd);
+  std::auto_ptr<wxZipEntry> entry(new wxZipEntry());
+
+  wxLogDebug(_T("SAFplusIDE::extractZipFile:") + zipFile + _T(" to ") + dstDir);
+  do
+  {
+    wxZipInputStream zip(f->GetStream());
+    while (entry.reset(zip.GetNextEntry()), entry.get() != NULL)
+    {
+      // access meta-data
+      wxString name = entry->GetName();
+      name = dstDir + wxFileName::GetPathSeparator() + name;
+
+      // read 'zip' to access the entry's data
+      if (entry->IsDir())
+      {
+        int perm = entry->GetMode();
+        wxFileName::Mkdir(name, perm, wxPATH_MKDIR_FULL);
+      }
+      else
+      {
+        zip.OpenEntry(*entry.get());
+        if (!zip.CanRead())
+        {
+          wxLogDebug(_T("Can not read zip entry '") + entry->GetName() + _T("'."));
+          ret = false;
+          break;
+        }
+
+        wxFileName fileName(name);
+
+        // Check and create directory if not exists
+        if (!fileName.DirExists())
+        {
+          wxFileName::Mkdir(fileName.GetPath(), wxS_DIR_DEFAULT, wxPATH_MKDIR_FULL);
+        }
+
+        // Write to file
+        wxFileOutputStream file(name);
+
+        if (!file)
+        {
+          wxLogDebug(_T("Can not create file '") + name + _T("'."));
+          ret = false;
+          break;
+        }
+        zip.Read(file);
+      }
+    }
+  }
+  while (false);
+
+  return ret;
+}
+
+void SAFplusIDE::extractExtraFiles()
 {
 #ifndef STANDALONE
-    wxString resourceFilename = _T("memory:SAFplus7IDE.zip");
-    wxString resourceImagesDir = ConfigManager::GetFolder(sdDataUser) + _T("/images/");
-    wxString pyModuleDir = ConfigManager::GetFolder(sdDataUser) + _T("/");
+  wxString helperDir = ConfigManager::GetFolder(sdDataUser) + _T("/helpers");
+  wxString wizardDir = ConfigManager::GetFolder(sdDataUser) + _T("/templates/wizard/SAFplusIDE");
 
-    wxFileSystem fsys;
-    wxString fnd = fsys.FindFirst(resourceFilename + _T("#zip:images/*.svg"), wxFILE);
-    while (!fnd.empty())
-    {
-      wxFileName fn(fnd);
-      wxString outputFileName = resourceImagesDir + fn.GetFullName();
+  wxFileName::Mkdir(helperDir, wxS_DIR_DEFAULT, wxPATH_MKDIR_FULL);
+  wxFileName::Mkdir(wizardDir, wxS_DIR_DEFAULT, wxPATH_MKDIR_FULL);
 
-      m_log->DebugLog(_T("Extracted:") + outputFileName);
-
-      // check if the destination file already exists
-      if (wxFileExists(outputFileName) && !wxFile::Access(outputFileName, wxFile::write))
-      {
-          continue;
-      }
-
-      // make sure destination dir exists
-      CreateDirRecursively(wxFileName(outputFileName).GetPath(wxPATH_GET_VOLUME | wxPATH_GET_SEPARATOR));
-
-      wxFile output(outputFileName, wxFile::write);
-
-      wxFSFile* f = fsys.OpenFile(fnd);
-      if (f)
-      {
-          // copy file
-          wxInputStream* is = f->GetStream();
-          char tmp[1025] = {};
-          while (!is->Eof() && is->CanRead())
-          {
-              memset(tmp, 0, sizeof(tmp));
-              is->Read(tmp, sizeof(tmp) - 1);
-              output.Write(tmp, is->LastRead());
-          }
-          delete f;
-          extraFiles.push_back(fn.GetFullName());
-      }
-      fnd = fsys.FindNext();
-    }
-    
-    //Extract python module
-    fnd = fsys.FindFirst(resourceFilename + _T("#zip:*.py"), wxFILE);
-    while (!fnd.empty())
-    {
-      wxFileName fn(fnd);
-      int  pos = fn.GetFullName().Find(wxUniChar(':'), true);
-      wxString outputFileName = pyModuleDir + fn.GetFullName().Mid(pos+1);
-    
-      m_log->DebugLog(_T("Extracted:") + outputFileName);
-
-      // check if the destination file already exists
-      if (wxFileExists(outputFileName) && !wxFile::Access(outputFileName, wxFile::write))
-      {
-          continue;
-      }
-
-      // make sure destination dir exists
-      CreateDirRecursively(wxFileName(outputFileName).GetPath(wxPATH_GET_VOLUME | wxPATH_GET_SEPARATOR));
-
-      wxFile output(outputFileName, wxFile::write);
-
-      wxFSFile* f = fsys.OpenFile(fnd);
-      if (f)
-      {
-          // copy file
-          wxInputStream* is = f->GetStream();
-          char tmp[1025] = {};
-          while (!is->Eof() && is->CanRead())
-          {
-              memset(tmp, 0, sizeof(tmp));
-              is->Read(tmp, sizeof(tmp) - 1);
-              output.Write(tmp, is->LastRead());
-          }
-          delete f;
-          extraFiles.push_back(fn.GetFullName());
-      }
-      fnd = fsys.FindNext();
-    }
+  extractZipFile(_T("helpers.zip"), helperDir);
+  extractZipFile(_T("wizard.zip"), wizardDir);
 #endif // STANDALONE
 }
 
-void SAFplus7IDE::cleanExtraFiles()
+void SAFplusIDE::cleanExtraFiles()
 {
 #ifndef STANDALONE
-    wxString resourceImagesDir = ConfigManager::GetFolder(sdDataUser) + _T("/images/");
-    wxString pyModuleDir = ConfigManager::GetFolder(sdDataUser) + _T("/");
-    for (std::vector<wxString>::iterator it = SAFplus7IDE::extraFiles.begin(); it != SAFplus7IDE::extraFiles.end(); ++it)
-    {
-      m_log->DebugLog(_T("Removed:") + resourceImagesDir + *it);
-      wxRemoveFile(resourceImagesDir + *it);
-      m_log->DebugLog(_T("Removed:") + pyModuleDir + *it);
-      wxRemoveFile(pyModuleDir + *it);
-    }
+  wxString helperDir = ConfigManager::GetFolder(sdDataUser) + _T("/helpers");
+  wxString wizardDir = ConfigManager::GetFolder(sdDataUser) + _T("/templates/wizard/SAFplusIDE");
+
+  wxLogDebug(_T("SAFplusIDE::Removed:") + helperDir);
+  wxFileName::Rmdir(helperDir, wxPATH_MKDIR_FULL|wxPATH_RMDIR_RECURSIVE);
+  wxLogDebug(_T("SAFplusIDE::Removed:") + wizardDir);
+  wxFileName::Rmdir(wizardDir, wxPATH_MKDIR_FULL|wxPATH_RMDIR_RECURSIVE);
 #endif
 }
 
-void SAFplus7IDE::OnRelease(bool appShutDown)
+void SAFplusIDE::OnRelease(bool appShutDown)
 {
     // do de-initialization for your plugin
     // if appShutDown is true, the plugin is unloaded because Code::Blocks is being shut down,
@@ -281,14 +275,14 @@ void SAFplus7IDE::OnRelease(bool appShutDown)
     //m_IsAttached = false;
     if (!appShutDown)
     {
-      SAFplus7EditorPanel::closeAllEditors();
+      SAFplusEditorPanel::closeAllEditors();
     }
     //Cleanup extra files (images/python script)
     cleanExtraFiles();
     Py_Finalize();
 }
 
-int SAFplus7IDE::Configure()
+int SAFplusIDE::Configure()
 {
 #ifndef STANDALONE
     //create and display the configuration dialog for your plugin
@@ -304,7 +298,7 @@ int SAFplus7IDE::Configure()
     return -1;
 }
 
-void SAFplus7IDE::BuildMenu(wxMenuBar* menuBar)
+void SAFplusIDE::BuildMenu(wxMenuBar* menuBar)
 {
     if (!IsAttached())
         return;
@@ -330,7 +324,7 @@ void SAFplus7IDE::BuildMenu(wxMenuBar* menuBar)
     }
 }
 
-void SAFplus7IDE::BuildModuleMenu(const ModuleType type, wxMenu* menu, const FileTreeData* data)
+void SAFplusIDE::BuildModuleMenu(const ModuleType type, wxMenu* menu, const FileTreeData* data)
 {
     if (!IsAttached())
         return;
@@ -342,12 +336,12 @@ void SAFplus7IDE::BuildModuleMenu(const ModuleType type, wxMenu* menu, const Fil
 
       /* Attach to cb menu */
       menu->AppendSeparator();
-      menu->Append(wxNewId(), _T("SAFplus7") ,m_menu);
+      menu->Append(wxNewId(), _T("SAFplus") ,m_menu);
     }
 
 }
 
-bool SAFplus7IDE::BuildToolBar(wxToolBar* toolBar)
+bool SAFplusIDE::BuildToolBar(wxToolBar* toolBar)
 {
     if ( !IsAttached() || !toolBar )
         return false;
@@ -365,28 +359,29 @@ bool SAFplus7IDE::BuildToolBar(wxToolBar* toolBar)
     return true;
 }
 
-void SAFplus7IDE::UpdateUI(wxUpdateUIEvent& event)
+void SAFplusIDE::UpdateUI(wxUpdateUIEvent& event)
 {
     cbProject *prjActive = m_manager->GetProjectManager()->GetActiveProject();
     wxMenuBar* mbar = Manager::Get()->GetAppFrame()->GetMenuBar();
     if (mbar)
     {
-      mbar->Enable(idMenuSAFplus7ClusterDesignGUI, prjActive);
+      mbar->Enable(idMenuSAFplusClusterDesignGUI, prjActive);
     }
     wxToolBar* tbar = m_toolbar;
     if (tbar)
     {
-     // tbar->EnableTool(idToolbarSAFplus7ClusterDesignGUI, prjActive);  // GAS freezes: illegal ID? the item is in the menubar not the toolbar
+     // tbar->EnableTool(idToolbarSAFplusClusterDesignGUI, prjActive);  // GAS freezes: illegal ID? the item is in the menubar not the toolbar
     }
 
 }
 
-void SAFplus7IDE::PythonWinTest(wxCommandEvent& event)
+void SAFplusIDE::PythonWinTest(wxCommandEvent& event)
 {
 }
 
-void SAFplus7IDE::OnYangParse(wxCommandEvent &event)
+void SAFplusIDE::OnYangParse(wxCommandEvent &event)
 {
+#ifdef UnitTest
   Manager* mgr = Manager::Get();
   wxFrame* frm = mgr->GetAppFrame();
 
@@ -405,8 +400,6 @@ void SAFplus7IDE::OnYangParse(wxCommandEvent &event)
     std::string resultStr = boost::python::extract<std::string>(yobjects["Cluster"]["startupAssignmentDelay"]["help"]);
 #ifdef wxUSE_STATUSBAR
     frm->SetStatusText(wxString::FromUTF8(resultStr.c_str()));
-#else
-    printf("AA [%s]", resultStr.c_str());
 #endif
   }
   catch(boost::python::error_already_set const &e)
@@ -436,12 +429,15 @@ void SAFplus7IDE::OnYangParse(wxCommandEvent &event)
     string perror_str = parse_python_exception();
     std::cout << "Traceback: "<< std::endl << perror_str << std::endl;
   }
+#endif
+  event.Skip();
 }
 
 
-void SAFplus7IDE::Action(wxCommandEvent& event)
+void SAFplusIDE::Action(wxCommandEvent& event)
 {
-    #if 0 // Please use wxwindows 2.8 APIs or lower.  This is what can be installed automatically from Ubuntu.  If there is a very compelling reason to go higher let's talk about it.
+#ifdef UnitTest
+    // Please use wxwindows 2.8 APIs or lower.  This is what can be installed automatically from Ubuntu.  If there is a very compelling reason to go higher let's talk about it.
     // load SAFplusEntityDef.xml and SAFplusAmf.yang
     wxString entity_contents;
     wxString safplus_amf_contents;
@@ -451,28 +447,53 @@ void SAFplus7IDE::Action(wxCommandEvent& event)
 
     wxFile safplusAmfFile(ConfigManager::GetDataFolder(false) + wxT("/SAFplusAmf.yang"));
     safplusAmfFile.ReadAll(&safplus_amf_contents);
-    #endif
-
-    // Get selection project (singleton editor project)
-    wxString projectName;
+#endif
 
 #ifndef STANDALONE
     wxTreeCtrl* tree = m_manager->GetProjectManager()->GetUI().GetTree();
+
+    if (!tree)
+      return;
+
     wxTreeItemId sel = m_manager->GetProjectManager()->GetUI().GetTreeSelection();
-    FileTreeData* ftd = sel.IsOk() ? (FileTreeData*)tree->GetItemData(sel) : 0;
-    if (ftd)
+
+    if (!sel.IsOk())
+      return;
+
+    const FileTreeData *data = static_cast<FileTreeData*>( tree->GetItemData( sel ) );
+    cbProject *prj;
+    if (data )
     {
-      projectName = ftd->GetProject()->GetTitle();
+      prj = data->GetProject();
     }
     else
     {
-      projectName = m_manager->GetProjectManager()->GetActiveProject()->GetTitle();
+      prj = m_manager->GetProjectManager()->GetActiveProject();
+      if (!prj)
+      {
+        wxLogDebug(_T("There is no active project!"));
+        return;
+      }
     }
-    wxString title(projectName + _T("::") + g_editorTitle);
+    wxString title(prj->GetTitle() + _T("::") + g_editorTitle);
 
     if (!m_manager->GetEditorManager()->IsOpen(title))
     {
-      new SAFplus7EditorPanel((wxWindow*)m_manager->GetEditorManager()->GetNotebook(), title);
+      try
+      {
+        wxFileName modelFile(prj->GetCommonTopLevelPath() + _T("model.xml"));
+        if (!modelFile.FileExists())
+        {
+          wxLogDebug(_T("There is no model.xml file existing at project!"));
+          return;
+        }
+        new SAFplusEditorPanel((wxWindow*)m_manager->GetEditorManager()->GetNotebook(), title, prj);
+      }
+      catch(boost::python::error_already_set const &e)
+      {
+      }
     }
+
+    event.Skip();
 #endif
 }

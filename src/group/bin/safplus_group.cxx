@@ -9,13 +9,16 @@ static unsigned int MAX_HANDLER_THREADS=2;
 int main(int argc,char *argv[])
   {
   SAFplus::logEchoToFd = 1;  // echo logs to stdout for debugging
-  SAFplus::logSeverity = SAFplus::LOG_SEV_MAX;
+  SAFplus::logSeverity = SAFplus::LOG_SEV_DEBUG;
 
-  SAFplus::safplusInitialize(SAFplus::LibDep::GRP | SAFplus::LibDep::IOC | SAFplus::LibDep::CKPT | SAFplus::LibDep::LOG);
-
-  SAFplus::safplusMsgServer.init(SAFplusI::GMS_IOC_PORT, MAX_MSGS, MAX_HANDLER_THREADS);
+  SAFplus::SafplusInitializationConfiguration sic;
+  sic.iocPort     = SAFplusI::GMS_STANDALONE_IOC_PORT;
+  sic.msgQueueLen = MAX_MSGS;
+  sic.msgThreads  = MAX_HANDLER_THREADS;
+  SAFplus::safplusInitialize(SAFplus::LibDep::GRP | SAFplus::LibDep::IOC | SAFplus::LibDep::CKPT | SAFplus::LibDep::LOG,sic);
 
   SAFplusI::GroupServer gs;
+  gs.groupCommunicationPort = sic.iocPort;
   gs.init();
 
   /* Library should start it */

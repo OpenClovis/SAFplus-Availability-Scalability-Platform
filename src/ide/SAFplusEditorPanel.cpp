@@ -1,11 +1,12 @@
+
 #ifndef STANDALONE
 #include <logmanager.h>
+#include <cbproject.h>
 #endif
 #include <wx/artprov.h>
 #include <wx/settings.h>
-#include "resources/images/Tool.xpm"
-#include "SAFplus7EditorPanel.h"
-#include "SAFplus7ScrolledWindow.h"
+#include "SAFplusEditorPanel.h"
+#include "SAFplusScrolledWindow.h"
 #include <wx/splitter.h>
 #include <boost/python.hpp>
 #include "utils.h"
@@ -13,21 +14,23 @@
 int wxIDShowProperties = wxNewId();
 
 //Declare set editors
-std::set<EditorBase *> SAFplus7EditorPanel::m_editors;
+std::set<EditorBase *> SAFplusEditorPanel::m_editors;
 const wxString g_EditorModified = _T("*");
 
-BEGIN_EVENT_TABLE(SAFplus7EditorPanel, EditorBase)
-  EVT_IDLE(SAFplus7EditorPanel::OnIdle)
-  EVT_MENU(wxID_NEW, SAFplus7EditorPanel::OnNew)
-  EVT_MENU(wxIDShowProperties, SAFplus7EditorPanel::ShowProperties)
+BEGIN_EVENT_TABLE(SAFplusEditorPanel, EditorBase)
+  EVT_IDLE(SAFplusEditorPanel::OnIdle)
+  EVT_MENU(wxID_NEW, SAFplusEditorPanel::OnNew)
+  EVT_MENU(wxIDShowProperties, SAFplusEditorPanel::ShowProperties)
 #if 0
-  EVT_SASH_DRAGGED(ID_WINDOW_DETAILS, SAFplus7EditorPanel::OnSashDrag)
+  EVT_SASH_DRAGGED(ID_WINDOW_DETAILS, SAFplusEditorPanel::OnSashDrag)
 #endif
 END_EVENT_TABLE()
 
-SAFplus7EditorPanel::SAFplus7EditorPanel(wxWindow* parent, const wxString &editorTitle) : EditorBase(parent, editorTitle)
+SAFplusEditorPanel::SAFplusEditorPanel(wxWindow* parent, const wxString &editorTitle, cbProject *prj) : EditorBase(parent, editorTitle)
 {
   m_title = editorTitle;
+  this->project = prj;
+
 #ifndef STANDALONE
   SetTitle(editorTitle);
 #endif // STANDALONE
@@ -40,7 +43,8 @@ SAFplus7EditorPanel::SAFplus7EditorPanel(wxWindow* parent, const wxString &edito
   wxFrame* frm = mgr->GetAppFrame();
   wxMenuBar* mb = frm->GetMenuBar();
   wxStatusBar* sb = frm->GetStatusBar();
-  boost::python::object model = loadModel("testModel.xml");
+
+  boost::python::object model = loadModel(project->GetCommonTopLevelPath() + _T("model.xml"));
 
   ntbIdeEditor = new wxNotebook(this, wxID_ANY, wxDefaultPosition, wxSize(-1,-1), wxBK_DEFAULT);
 
@@ -56,7 +60,7 @@ SAFplus7EditorPanel::SAFplus7EditorPanel(wxWindow* parent, const wxString &edito
   Layout();
 }
 
-wxPanel *SAFplus7EditorPanel::createChildPage(wxMenuBar *mb, wxStatusBar *sb, boost::python::object& model, bool isinstance)
+wxPanel *SAFplusEditorPanel::createChildPage(wxMenuBar *mb, wxStatusBar *sb, boost::python::object& model, bool isinstance)
   {
 
     wxPanel *panel = new wxPanel(ntbIdeEditor, wxID_ANY, wxDefaultPosition, wxSize(-1,-1), wxTAB_TRAVERSAL);
@@ -88,13 +92,13 @@ wxPanel *SAFplus7EditorPanel::createChildPage(wxMenuBar *mb, wxStatusBar *sb, bo
     return panel;
   }
 
-SAFplus7EditorPanel::~SAFplus7EditorPanel()
+SAFplusEditorPanel::~SAFplusEditorPanel()
 {
     //dtor
     m_editors.erase(this);
 }
 
-void SAFplus7EditorPanel::SetEditorTitle(const wxString& newTitle)
+void SAFplusEditorPanel::SetEditorTitle(const wxString& newTitle)
 {
     if (m_isModified)
         SetTitle(g_EditorModified + newTitle);
@@ -102,7 +106,7 @@ void SAFplus7EditorPanel::SetEditorTitle(const wxString& newTitle)
         SetTitle(newTitle);
 }
 
-void SAFplus7EditorPanel::closeAllEditors()
+void SAFplusEditorPanel::closeAllEditors()
 {
     for ( std::set<EditorBase*>::iterator i = m_editors.begin(); i != m_editors.end(); ++i )
     {
@@ -113,16 +117,16 @@ void SAFplus7EditorPanel::closeAllEditors()
     }
 }
 
-bool SAFplus7EditorPanel::GetModified() const
+bool SAFplusEditorPanel::GetModified() const
 {
   return m_isModified;
 }
 
-void SAFplus7EditorPanel::OnIdle(wxIdleEvent& event)
+void SAFplusEditorPanel::OnIdle(wxIdleEvent& event)
 {
 }
 
-void SAFplus7EditorPanel::SetModified(bool modified)
+void SAFplusEditorPanel::SetModified(bool modified)
 {
     if (modified != m_isModified)
     {
@@ -133,14 +137,14 @@ void SAFplus7EditorPanel::SetModified(bool modified)
     }
 }
 
-void SAFplus7EditorPanel::OnNew(wxCommandEvent &event)
+void SAFplusEditorPanel::OnNew(wxCommandEvent &event)
 {
-  if(wxMessageBox(wxT("Current change will be lost. Do you want to proceed?"), wxT("SAFplus7 Design"), wxYES_NO | wxICON_QUESTION) == wxYES)
+  if(wxMessageBox(wxT("Current change will be lost. Do you want to proceed?"), wxT("SAFplus Design"), wxYES_NO | wxICON_QUESTION) == wxYES)
   {
     SetModified(false);
   }
 }
 
-void SAFplus7EditorPanel::ShowProperties(wxCommandEvent &event)
+void SAFplusEditorPanel::ShowProperties(wxCommandEvent &event)
 {
 }

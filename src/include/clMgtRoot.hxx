@@ -74,6 +74,11 @@ protected:
      */
     Checkpoint mgtCheckpoint;
 
+    /*
+     * Mgt Checkpoit
+     */
+    std::vector<MgtObject*> mgtRefereceList;
+
 
 public:
     virtual ~MgtRoot();
@@ -154,6 +159,9 @@ public:
     static ClRcT sendReplyMsg(SAFplus::Handle dest, void* payload, uint payloadlen);
 
     MgtObject *findMgtObject(const std::string &xpath);
+
+  void addReference(MgtObject* mgtObject);
+  void UpdateReference(void);
 };
 };
 #endif /* CLMGTROOT_H_ */

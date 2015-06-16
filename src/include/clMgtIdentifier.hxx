@@ -32,7 +32,7 @@
 #define CLMGTIDENTIFIER_HXX_
 
 #include "clMgtProv.hxx"
-
+#include "clMgtRoot.hxx"
 namespace SAFplus
 {
   template <class T>
@@ -43,6 +43,8 @@ namespace SAFplus
        *  Value of the "MgtIdentifier" object
        */
       T value;
+
+      std::string ref;
 
   public:
     MgtIdentifier(const char* name);
@@ -82,7 +84,43 @@ namespace SAFplus
     }
     virtual ClRcT read(MgtDatabase *db, std::string xpt = "")
     {
+      std::string key = getFullXpath();
+      if (xpt.size() > 0)
+        {
+          key = getFullXpath(false);
+          xpt.append(key);
+          key = xpt;
+        }
+
+      if (db == nullptr)
+        {
+          db = MgtDatabase::getInstance();
+        }
+
+      dataXPath.assign(key);
+      loadDb = true;
+
+      std::string val;
+
+      if (CL_OK == db->getRecord(key, val))
+        {
+          ref = val;
+          MgtRoot *mgtRoot = MgtRoot::getInstance();
+          mgtRoot->addReference(this);
+        }
+
       return CL_OK;
+    }
+
+    void updateReference()
+    {
+      MgtObject *root = this->root();
+      if(ref.length() > 0)
+        {
+          MgtObject *obj = root->lookUpMgtObject(typeid(T).name(), ref);
+          if (obj)
+            value = (T)obj;
+        }
     }
 
   };

@@ -1,4 +1,5 @@
 S7 := 1
+SAFPLUS_MGT_LIB := 1
 include ../mk/preface.mk
 
 CPP_FLAGS += -I$(BOOST_DIR) -I. -I.. -I$(SAFPLUS_INC_DIR)
@@ -37,3 +38,5 @@ gen:
 
 clean:
 	rm -f $(LIB_DIR)/libclMgt.so $(CLIENT_OBJ)
+
+include $(SAFPLUS_MAKE_DIR)/safplus_targets.mk

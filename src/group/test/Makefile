@@ -23,17 +23,17 @@ SAFPLUS_LINK_LIBS := -L$(LIB_DIR) $(addprefix -l,$(SAFPLUS_LIBS))
 LINK_STD_LIBS := -L$(INSTALL_DIR)/lib -lezxml -lxml2 -lstdc++ -lm $(LINK_STD_LIBS)
 
 # $(TEST_DIR)/testGroupServer $(TEST_DIR)/testGroup $(TEST_DIR)/testMultiGroup
-all:  $(TEST_DIR)/testGroup $(TEST_DIR)/dumpGroups $(TEST_DIR)/safplus_group
+all:  $(TEST_DIR)/testGroup
 
 
-$(TEST_DIR)/safplus_group: $(OBJ_DIR)/safplus_group.o $(SAFPLUS_DEP_LIBS) Makefile
-	$(LINK_EXE) $@ $<  $(SAFPLUS_LINK_LIBS) $(LINK_STD_LIBS)
+#$(TEST_DIR)/safplus_group: $(OBJ_DIR)/safplus_group.o $(SAFPLUS_DEP_LIBS) Makefile
+#	$(LINK_EXE) $@ $<  $(SAFPLUS_LINK_LIBS) $(LINK_STD_LIBS)
 
 $(TEST_DIR)/testGroup: $(OBJ_DIR)/testGroup.o $(SAFPLUS_DEP_LIBS)
 	$(LINK_EXE) $@ $< $(LINK_LIBS) $(SAFPLUS_LINK_LIBS) $(LINK_STD_LIBS) 
 
-$(TEST_DIR)/dumpGroups: $(OBJ_DIR)/dumpGroups.o $(SAFPLUS_DEP_LIBS)
-	$(LINK_EXE) $@ $< $(LINK_LIBS) $(SAFPLUS_LINK_LIBS) $(LINK_STD_LIBS) 
+#$(TEST_DIR)/dumpGroups: $(OBJ_DIR)/dumpGroups.o $(SAFPLUS_DEP_LIBS)
+#	$(LINK_EXE) $@ $< $(LINK_LIBS) $(SAFPLUS_LINK_LIBS) $(LINK_STD_LIBS) 
 
 $(TEST_DIR)/testMultiGroup: $(OBJ_DIR)/testMultiGroup.o $(SAFPLUS_DEP_LIBS)
 	$(LINK_EXE) $@ $< $(LINK_LIBS) $(SAFPLUS_LINK_LIBS) $(LINK_STD_LIBS) 
@@ -44,6 +44,17 @@ $(OBJ_DIR)/%.o: %.cxx $(CLIENT_H)
 test: all
 	cp -f $(TEST_DIR)/testGroupServer .
 	cp -f $(TEST_DIR)/testGroup .
+
+# TAE packaging stuff
+image: $(IMAGE_FILE)
+
+$(IMAGE_FILE): $(TEST_DIR)/testGroup
+	cp setup start cleanup $(SAFPLUS_TARGET)
+	$(SAFPLUS_MAKE_DIR)/safplus_packager.py -x "(cp setup start cleanup {image_dir})" $@
+
+
+.PRECIOUS: $(OBJ_DIR)/%.o
+
 
 clean:
 	rm -f $(OBJ_DIR)/testGroup.o $(OBJ_DIR)/testGroupServer.o

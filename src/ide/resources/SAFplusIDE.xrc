@@ -1,18 +1,18 @@
 <?xml version="1.0" encoding="UTF-8" standalone="yes" ?>
 <resource xmlns="http://www.wxwidgets.org/wxxrc">
   <object class="wxToolBarAddOn" name="safplus_toolbar">
-    <object class="tool" name="idToolbarSAFplus7ClusterDesignGUI">
-        <tooltip>SAFplus7 Cluster Design GUI</tooltip>
-        <longhelp>SAFplus7 Cluster Design GUI</longhelp>
+    <object class="tool" name="idToolbarSAFplusClusterDesignGUI">
+        <tooltip>SAFplus Cluster Design GUI</tooltip>
+        <longhelp>SAFplus Cluster Design GUI</longhelp>
         <bitmap>images/ClovisLogo_16_16.gif</bitmap>
     </object>
   </object>
   <object class="wxMenu" member="yes" name="safplus_menu">
-    <label>SAFplus7</label>
-      <object class="wxMenuItem" name="idMenuSAFplus7ClusterDesignGUI" member="yes">
-        <tooltip>SAFplus7 Cluster Design GUI</tooltip>
-        <longhelp>SAFplus7 Cluster Design GUI</longhelp>
-        <label>SAFplus7 Cluster Design GUI</label>
+    <label>SAFplus</label>
+      <object class="wxMenuItem" name="idMenuSAFplusClusterDesignGUI" member="yes">
+        <tooltip>SAFplus Cluster Design GUI</tooltip>
+        <longhelp>SAFplus Cluster Design GUI</longhelp>
+        <label>SAFplus Cluster Design GUI</label>
         <bitmap>images/ClovisLogo_16_16.gif</bitmap>
       </object>
       <object class="wxMenuItem" name="idMenuSAFplusPythonWinTest" member="yes">
@@ -29,8 +29,8 @@
       </object>
   </object>
   <object class="wxMenu" member="yes" name="safplus_design">
-    <label>SAFplus7 Design</label>
-      <object class="wxMenuItem" name="idMenuSAFplus7ClusterDesignComponent" member="yes">
+    <label>SAFplus Design</label>
+      <object class="wxMenuItem" name="idMenuSAFplusClusterDesignComponent" member="yes">
         <tooltip>Create SAF Aware Component</tooltip>
         <longhelp>Create SAF Aware Component</longhelp>
         <label>SAF Component</label>

@@ -62,7 +62,7 @@ namespace SAFplus
     void mark(int nodeId,NodeStatus status);
 
 
-    //? typically you'd never call this...
+    //? typically you'd never call this... it deletes the shared memory segment out of under any running applications which can cause crashes, etc.
     static void deleteSharedMemory();
 
   protected:

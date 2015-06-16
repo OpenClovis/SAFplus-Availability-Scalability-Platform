@@ -5,8 +5,6 @@ include ../mk/preface.mk
 NAME_CLIENT_SRC := $(wildcard *.cxx)
 NAME_CLIENT_OBJ := $(addprefix $(MWOBJ_DIR)/,$(subst .cxx,.o,$(NAME_CLIENT_SRC)))
 
-SAFPLUS_SDK_TARGET=$(shell (cd $(SAFPLUS_SDK_DIR)/prebuild/target/$(CL_TARGET_PLATFORM)/$(CL_TARGET_OS); pwd))
-
 # Specify the required libraries
 SAFPLUS_LIBS := clCkpt clUtils clOsal clLog
 # Then use these in the make rule

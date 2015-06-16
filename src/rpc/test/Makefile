@@ -43,10 +43,10 @@ $(TEST_DIR)/TestRpcCombined: $(COMBINE_OBJ) $(SAFPLUS_DEP_LIBS) Makefile
 	$(LINK_EXE) $@ $(COMBINE_OBJ) $(SAFPLUS_LINK_LIBS) $(LINK_SO_LIBS)
 
 $(TEST_DIR)/rpcReflector: $(LIB_DIR)/libclOsal.so $(REFLECTOR_OBJ) $(SAFPLUS_DEP_LIBS)
-	$(LINK_EXE) $@ $(REFLECTOR_OBJ) $(SAFPLUS_LINK_LIBS) $(LINK_SO_LIBS) 
+	$(LINK_EXE) $@ $(REFLECTOR_OBJ) $(SAFPLUS_LINK_LIBS)  -lboost_program_options $(LINK_SO_LIBS) 
 
 $(TEST_DIR)/testRpcPerf: $(PERF_OBJ) $(SAFPLUS_DEP_LIBS)
-	$(LINK_EXE) $@ $(PERF_OBJ) $(SAFPLUS_LINK_LIBS) $(LINK_SO_LIBS) 
+	$(LINK_EXE) $@ $(PERF_OBJ) $(SAFPLUS_LINK_LIBS)  -lboost_program_options $(LINK_SO_LIBS) 
 
 
 $(OBJ_DIR)/test/rpc/%.o: %.cxx Makefile $(STUBS_H)
@@ -73,12 +73,19 @@ gen:
 	-mkdir -p reflection
 	$(call SAFPLUS_YANG_RPC_GEN, msgReflection, reflection)
 
-
 cleangen:
 	rm -rf stubs
 
 clean:
-	rm -rf $(OBJ_DIR)/test/rpc $(TEST_DIR)/TestClient $(TEST_DIR)/TestServer $(TEST_DIR)/TestCombine
+	rm -rf $(OBJ_DIR)/test/rpc $(TEST_DIR)/TestClient $(TEST_DIR)/TestServer $(TEST_DIR)/TestCombine $(TEST_DIR)/TestRpcPerf
+
+# TAE packaging stuff
+image: $(IMAGE_FILE)
+
+$(IMAGE_FILE): $(TEST_DIR)/testRpcPerf
+	cp setup start cleanup $(SAFPLUS_TARGET)
+	$(SAFPLUS_MAKE_DIR)/safplus_packager.py -x "(cp setup start cleanup {image_dir})" $@
+
 
 include $(SAFPLUS_MAKE_DIR)/safplus_targets.mk
 

@@ -24,13 +24,13 @@
 #endif
 #include <wx/hashmap.h>
 
-#include "SAFplus7ScrolledWindow.h"
+#include "SAFplusScrolledWindow.h"
 
-class SAFplus7EditorPanel : public EditorBase
+class SAFplusEditorPanel : public EditorBase
 {
   public:
-    SAFplus7EditorPanel(wxWindow* parent, const wxString &dlgtitle = wxEmptyString);
-    virtual ~SAFplus7EditorPanel();
+    SAFplusEditorPanel(wxWindow* parent, const wxString &dlgtitle = wxEmptyString, cbProject *prj = NULL);
+    virtual ~SAFplusEditorPanel();
 
     /** @brief Set the editor's title.
       *
@@ -58,6 +58,7 @@ class SAFplus7EditorPanel : public EditorBase
     wxNotebook* ntbIdeEditor;
     wxPanel* pageUML;
     wxPanel* pageInstance;
+    cbProject *project;
 
   protected:
 

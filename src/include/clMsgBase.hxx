@@ -139,10 +139,8 @@ namespace SAFplus
       virtual void send(Message* msg)=0;
       //? Force all queued messages to be sent.  After this function returns, you can modify any buffers you gave MsgSocket to via the send call, provided that they were not allocated by the msgPool.  In that case, they have been freed.
       virtual void flush()=0;
-
       //? Receive up to maxMsgs messages.  Wait for no more than maxDelay milliseconds.  If no messages have been received within that time return NULL.  If maxDelay is -1 (default) then wait forever.  If maxDelay is 0 do not wait.
       virtual Message* receive(uint_t maxMsgs,int maxDelay=-1)=0;
-
       //? Enable Nagle's algorithm (delay and batch sending small messages), if the underlying transport supports it.  You should check the transport's capabilities before calling this function.  If the transport does not support NAGLE's algorithm, this function will be a no-op but issue a log.  See <a href="http://en.wikipedia.org/wiki/Nagle%27s_algorithm">Nagle's Algorithm</a> for more details.
       virtual void useNagle(bool value);
 
@@ -160,10 +158,17 @@ namespace SAFplus
     }
     MsgSocket *sock;
     //? Send a bunch of messages.  You give up ownership of msg.
-    virtual void send(Message* msg,uint_t length)=0;
-    virtual Message* receive(uint_t maxMsgs,int maxDelay=-1)=0;
-    virtual void send(SAFplus::Handle destination, void* buffer, uint_t length,uint_t msgtype)=0;
+    virtual void send(Message* msg)
+    {
+    }
+    virtual Message* receive(uint_t maxMsgs,int maxDelay=-1)
+    {
+    }
+    virtual void send(SAFplus::Handle destination, void* buffer, uint_t length,uint_t msgtype)
+    {
+    }
     MsgSocket* operator->() {return sock;}
+    virtual void flush();
   };
 
   class MsgSocketShaping : public MsgSocketAdvanced
@@ -180,6 +185,7 @@ namespace SAFplus
     virtual void send(Message* msg);
     virtual void send(SAFplus::Handle destination, void* buffer, uint_t length,uint_t msgtype);
     virtual Message* receive(uint_t maxMsgs,int maxDelay=-1);
+    virtual void flush();
   };
 
   class MsgSocketSegmentaion : public MsgSocketAdvanced
@@ -195,6 +201,7 @@ namespace SAFplus
     virtual Message* receive(uint_t maxMsgs,int maxDelay=-1);
     void applySegmentaion(Message* m ,SAFplus::Handle destination, void* buffer, uint_t length,uint_t msgtype);
     void applySegmentaion(Message* m);
+    virtual void flush();
 
   };
 

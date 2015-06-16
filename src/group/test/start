@@ -1,0 +1,6 @@
+#!/bin/bash
+# start clean, or tests may fail because groups might already exist that we expect to create
+pkill -9 safplus_group
+rm -f /dev/shm/SAFplusGroups 
+bin/safplus_group > safplus_group.log &
+exit 0
