@@ -1,3 +1,4 @@
+
 #ifndef WX_PRECOMP
     #include <wx/wx.h>
 #endif
@@ -5,7 +6,7 @@
 #include <wx/dcmemory.h>
 #include <wx/defs.h>
 
-#include "SAFplus7ScrolledWindow.h"
+#include "SAFplusScrolledWindow.h"
 
 #include <gdk/gdk.h>
 #include <gtk/gtk.h>
@@ -19,17 +20,17 @@
 
 void cairoTestDraw(cairo_t *cr);
 
-BEGIN_EVENT_TABLE(SAFplus7ScrolledWindow, wxScrolledWindow)
+BEGIN_EVENT_TABLE(SAFplusScrolledWindow, wxScrolledWindow)
 // some useful events
-    EVT_PAINT(SAFplus7ScrolledWindow::paintEvent)
-    EVT_MOTION(SAFplus7ScrolledWindow::mouseMoved)
-    EVT_LEFT_DOWN(SAFplus7ScrolledWindow::mouseDown)
-    EVT_LEFT_UP(SAFplus7ScrolledWindow::mouseReleased)
-    EVT_RIGHT_DOWN(SAFplus7ScrolledWindow::rightClick)
-    EVT_LEAVE_WINDOW(SAFplus7ScrolledWindow::mouseLeftWindow)
-    EVT_KEY_DOWN(SAFplus7ScrolledWindow::keyPressed)
-    EVT_KEY_UP(SAFplus7ScrolledWindow::keyReleased)
-    EVT_MOUSEWHEEL(SAFplus7ScrolledWindow::mouseWheelMoved)
+    EVT_PAINT(SAFplusScrolledWindow::paintEvent)
+    EVT_MOTION(SAFplusScrolledWindow::mouseMoved)
+    EVT_LEFT_DOWN(SAFplusScrolledWindow::mouseDown)
+    EVT_LEFT_UP(SAFplusScrolledWindow::mouseReleased)
+    EVT_RIGHT_DOWN(SAFplusScrolledWindow::rightClick)
+    EVT_LEAVE_WINDOW(SAFplusScrolledWindow::mouseLeftWindow)
+    EVT_KEY_DOWN(SAFplusScrolledWindow::keyPressed)
+    EVT_KEY_UP(SAFplusScrolledWindow::keyReleased)
+    EVT_MOUSEWHEEL(SAFplusScrolledWindow::mouseWheelMoved)
 END_EVENT_TABLE()
 
 
@@ -97,8 +98,8 @@ cairo_surface_t* SvgToCairo(RsvgHandle* im)
     cairo_destroy(cr);
     return bitmap;
   }
-//SAFplus7ScrolledWindow::SAFplus7ScrolledWindow(wxWindow* parent, wxWindowID id) : wxScrolledWindow(parent, id, wxDefaultPosition, wxDefaultSize, wxHSCROLL|wxSUNKEN_BORDER|wxVSCROLL )
-SAFplus7ScrolledWindow::SAFplus7ScrolledWindow(wxWindow* parent, wxWindowID id) : wxScrolledWindow(parent, id, wxDefaultPosition, wxDefaultSize, wxHSCROLL|wxSUNKEN_BORDER|wxVSCROLL, wxString::FromUTF8("SAFplusModeller") )
+//SAFplusScrolledWindow::SAFplusScrolledWindow(wxWindow* parent, wxWindowID id) : wxScrolledWindow(parent, id, wxDefaultPosition, wxDefaultSize, wxHSCROLL|wxSUNKEN_BORDER|wxVSCROLL )
+SAFplusScrolledWindow::SAFplusScrolledWindow(wxWindow* parent, wxWindowID id) : wxScrolledWindow(parent, id, wxDefaultPosition, wxDefaultSize, wxHSCROLL|wxSUNKEN_BORDER|wxVSCROLL, wxString::FromUTF8("SAFplusModeller") )
 {
     m_parent = parent;
     //ctor
@@ -165,13 +166,13 @@ SAFplus7ScrolledWindow::SAFplus7ScrolledWindow(wxWindow* parent, wxWindowID id) 
 
 }
 
-SAFplus7ScrolledWindow::~SAFplus7ScrolledWindow()
+SAFplusScrolledWindow::~SAFplusScrolledWindow()
 {
     //dtor
     m_mgr.UnInit();
 }
 
-void SAFplus7ScrolledWindow::paintEvent(wxPaintEvent & evt)
+void SAFplusScrolledWindow::paintEvent(wxPaintEvent & evt)
 {
     if (m_isDirty)
     {
@@ -185,9 +186,8 @@ void SAFplus7ScrolledWindow::paintEvent(wxPaintEvent & evt)
 
 
 char mouseMovedText[80];
-void SAFplus7ScrolledWindow::mouseMoved(wxMouseEvent &event)
+void SAFplusScrolledWindow::mouseMoved(wxMouseEvent &event)
 {
-// TODO (hoangle#1#):
     wxClientDC dc(this);
     wxPoint pos = event.GetPosition();
     long x = dc.DeviceToLogicalX( pos.x );
@@ -201,10 +201,8 @@ void SAFplus7ScrolledWindow::mouseMoved(wxMouseEvent &event)
 
 double rotateAmt = 0;
 double scaleAmt = .1;
-void SAFplus7ScrolledWindow::mouseDown(wxMouseEvent &event)
+void SAFplusScrolledWindow::mouseDown(wxMouseEvent &event)
 {
-// TODO (hoangle#1#):
-
     wxClientDC dc(this);
     //wxPaintDC dc(this);
     //dc.GetImpl()->GetCairoContext()
@@ -315,33 +313,33 @@ void SAFplus7ScrolledWindow::mouseDown(wxMouseEvent &event)
 
 }
 
-void SAFplus7ScrolledWindow::mouseWheelMoved(wxMouseEvent& event)
+void SAFplusScrolledWindow::mouseWheelMoved(wxMouseEvent& event)
 {
-// TODO (hoangle#1#):
+// TODO:
 }
 
-void SAFplus7ScrolledWindow::mouseReleased(wxMouseEvent& event)
+void SAFplusScrolledWindow::mouseReleased(wxMouseEvent& event)
 {
-// TODO (hoangle#1#):
+// TODO:
 }
 
-void SAFplus7ScrolledWindow::rightClick(wxMouseEvent& event)
+void SAFplusScrolledWindow::rightClick(wxMouseEvent& event)
 {
-// TODO (hoangle#1#):
+// TODO:
 }
 
-void SAFplus7ScrolledWindow::mouseLeftWindow(wxMouseEvent& event)
+void SAFplusScrolledWindow::mouseLeftWindow(wxMouseEvent& event)
 {
-// TODO (hoangle#1#):
+// TODO:
 }
-void SAFplus7ScrolledWindow::keyPressed(wxKeyEvent& event)
+void SAFplusScrolledWindow::keyPressed(wxKeyEvent& event)
 {
-// TODO (hoangle#1#):
+// TODO:
 }
 
-void SAFplus7ScrolledWindow::keyReleased(wxKeyEvent& event)
+void SAFplusScrolledWindow::keyReleased(wxKeyEvent& event)
 {
-// TODO (hoangle#1#):
+// TODO:
 }
 
 void cairoTestDraw(cairo_t *cr)

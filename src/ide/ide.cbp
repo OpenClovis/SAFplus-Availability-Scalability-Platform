@@ -7,7 +7,7 @@
 		<Option compiler="gcc" />
 		<Build>
 			<Target title="default">
-				<Option output="SAFplus7IDE" prefix_auto="0" extension_auto="1" />
+				<Option output="SAFplusIDE" prefix_auto="0" extension_auto="1" />
 				<Option type="3" />
 				<Option compiler="gcc" />
 				<Option host_application="codeblocks" />
@@ -25,15 +25,16 @@
 					<Add option="`wx-config --libs`" />
 				</Linker>
 				<ExtraCommands>
-					<Add after="cd resources &amp;&amp; zip -r ../SAFplus7IDE.zip images manifest.xml *.xrc" />
-					<Add after="zip -jr9 SAFplus7IDE.zip *.py" />
-					<Add after="zip -jr9 SAFplus7IDE.cbplugin SAFplus7IDE.so SAFplus7IDE.zip resources/SAFplusAmf.yang" />
+					<Add after="zip -r helpers.zip codegen resources/images/*.svg resources/images/*.png *.py" />
+					<Add after="cd wizard &amp;&amp; zip -r ../wizard.zip *" />
+					<Add after="cd resources &amp;&amp; zip -r ../SAFplusIDE.zip images/*.gif images/*.png images/*.xpm manifest.xml *.xrc" />
+					<Add after="zip -jr9 SAFplusIDE.zip helpers.zip wizard.zip" />
+					<Add after="zip -jr9 SAFplusIDE.cbplugin SAFplusIDE.so SAFplusIDE.zip" />
 					<Mode after="always" />
 				</ExtraCommands>
 			</Target>
 		</Build>
 		<Compiler>
-			<Add option="`python-config --cflags`" />
 			<Add option="`pkg-config gtk+-x11-3.0 --cflags`" />
 			<Add directory="/usr/include/python2.7" />
 			<Add directory="/usr/include/cairo" />
@@ -65,18 +66,16 @@
 			<Add library="python2.7" />
 			<Add library="boost_python" />
 		</Linker>
-		<Unit filename="SAFplus7EditorPanel.cpp" />
-		<Unit filename="SAFplus7EditorPanel.h" />
-		<Unit filename="SAFplus7IDE.cxx" />
-		<Unit filename="SAFplus7IDE.h" />
-		<Unit filename="SAFplus7ScrolledWindow.cpp" />
-		<Unit filename="SAFplus7ScrolledWindow.h" />
-		<Unit filename="utils.cxx" />
-		<Unit filename="yangParser.cxx" />
-		<Unit filename="pythonWindow.cpp" />
+		<Unit filename="SAFplusEditorPanel.cpp" />
+		<Unit filename="SAFplusEditorPanel.h" />
+		<Unit filename="SAFplusIDE.cxx" />
+		<Unit filename="SAFplusIDE.h" />
+		<Unit filename="SAFplusScrolledWindow.cpp" />
+		<Unit filename="SAFplusScrolledWindow.h" />
 		<Unit filename="handle_error.cpp" />
-		<Unit filename="resources/SAFplus7IDE.xrc" />
+		<Unit filename="pythonWindow.cpp" />
 		<Unit filename="resources/SAFplusAmf.yang" />
+		<Unit filename="resources/SAFplusIDE.xrc" />
 		<Unit filename="resources/images/ClovisLogo_16_16.gif" />
 		<Unit filename="resources/images/ClovisLogo_32_32.gif" />
 		<Unit filename="resources/images/alarm_profile.gif" />
@@ -124,7 +123,9 @@
 		<Unit filename="resources/manifest.xml" />
 		<Unit filename="svgIcon.cxx" />
 		<Unit filename="svgIcon.h" />
+		<Unit filename="utils.cxx" />
 		<Unit filename="utils.h" />
+		<Unit filename="yangParser.cxx" />
 		<Unit filename="yangParser.h" />
 		<Extensions>
 			<code_completion />

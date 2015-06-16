@@ -14,7 +14,9 @@ def fileResolver(filename):
 
   candidate = "resources" + os.sep + filename     # look in resources
   if os.path.exists(candidate): return candidate  
-  candidate = "resources" + os.sep + "images" + os.sep + filename     # look in media
+  candidate = "resources" + os.sep + "images" + os.sep + filename # look in media
+  if os.path.exists(candidate): return candidate
+  candidate = os.path.dirname(__file__) + os.sep + candidate # look in media of this relative path 
   if os.path.exists(candidate): return candidate
   if userWorkspace:
     candidate = userWorkspace + os.sep + filename     # look in the user's directory

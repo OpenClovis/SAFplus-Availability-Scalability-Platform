@@ -62,7 +62,6 @@
 		</Compiler>
 		<Linker>
 			<Add option="`wx-config --toolkit=gtk3 --unicode --version=3.0 --libs --debug`" />
-			<Add option="-L ../boostlibs" />
 			<Add option="`pkg-config gtk+-x11-3.0 --libs`" />
 			<Add library="wx_gtk3u_aui-3.0" />
 			<Add library="rsvg-2" />
@@ -75,12 +74,12 @@
 			<Add library="boost_python" />
 			<Add library="stdc++" />
 		</Linker>
-		<Unit filename="../SAFplus7EditorPanel.cpp" />
-		<Unit filename="../SAFplus7EditorPanel.h" />
-		<Unit filename="../SAFplus7IDE.cxx" />
-		<Unit filename="../SAFplus7IDE.h" />
-		<Unit filename="../SAFplus7ScrolledWindow.cpp" />
-		<Unit filename="../SAFplus7ScrolledWindow.h" />
+		<Unit filename="../SAFplusEditorPanel.cpp" />
+		<Unit filename="../SAFplusEditorPanel.h" />
+		<Unit filename="../SAFplusIDE.cxx" />
+		<Unit filename="../SAFplusIDE.h" />
+		<Unit filename="../SAFplusScrolledWindow.cpp" />
+		<Unit filename="../SAFplusScrolledWindow.h" />
 		<Unit filename="../handle_error.cpp" />
 		<Unit filename="../pythonWindow.cpp" />
 		<Unit filename="../svgIcon.cxx" />

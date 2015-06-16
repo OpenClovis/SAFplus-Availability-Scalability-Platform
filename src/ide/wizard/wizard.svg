@@ -15,10 +15,7 @@
    id="svg3096"
    version="1.1"
    inkscape:version="0.48.4 r9939"
-   sodipodi:docname="wizard.svg"
-   inkscape:export-filename="/home/hoangle/git/SAFplus_7/src/ide/cbplugin/wizard/wizard.png"
-   inkscape:export-xdpi="90"
-   inkscape:export-ydpi="90">
+   sodipodi:docname="wizard.svg">
   <defs
      id="defs3098">
     <linearGradient
@@ -103,10 +100,7 @@
     <g
        id="g5036"
        style="display:inline"
-       transform="matrix(0,-0.56506904,0.56845637,0,-150.401,1130.276)"
-       inkscape:export-filename="/home/hoangle/git/SAFplus_7/src/ide/cbplugin/wizard/logo.png"
-       inkscape:export-xdpi="39.970001"
-       inkscape:export-ydpi="39.970001">
+       transform="matrix(0,-0.56506904,0.56845637,0,-150.401,1130.276)">
       <path
          transform="matrix(0.9120753,0,0,0.8839926,27.573249,50.375781)"
          sodipodi:end="7.0793357"

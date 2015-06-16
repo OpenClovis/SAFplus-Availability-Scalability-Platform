@@ -1,14 +1,5 @@
-/***************************************************************
- * Name:      SAFplus7IDE
- * Purpose:   Code::Blocks plugin
- * Author:    Hoang Le (hoang.le@openclovis.com)
- * Created:   2014-10-28
- * Copyright: Hoang Le
- * License:   GPL
- **************************************************************/
-
-#ifndef SAFPLUS7IDE_H_INCLUDED
-#define SAFPLUS7IDE_H_INCLUDED
+#ifndef SAFPLUSIDE_H_INCLUDED
+#define SAFPLUSIDE_H_INCLUDED
 
 #include <vector>
 // For compilers that support precompilation, includes <wx/wx.h>
@@ -29,13 +20,13 @@
 // Import Python and wxPython headers
 #include <wx/wxPython/wxPython.h>
 
-class SAFplus7IDE : public cbPlugin
+class SAFplusIDE : public cbPlugin
 {
     public:
         /** Constructor. */
-        SAFplus7IDE();
+        SAFplusIDE();
         /** Destructor. */
-        virtual ~SAFplus7IDE();
+        virtual ~SAFplusIDE();
 
         /** Invoke configuration dialog. */
         virtual int Configure();
@@ -134,6 +125,7 @@ class SAFplus7IDE : public cbPlugin
 
         static std::vector<wxString> extraFiles;
     private:
+        bool extractZipFile(const wxString& zipFile, const wxString& dstDir);
         void extractExtraFiles();
         void cleanExtraFiles();
         PyThreadState* m_mainTState;
@@ -142,4 +134,4 @@ class SAFplus7IDE : public cbPlugin
         DECLARE_EVENT_TABLE();
 };
 
-#endif // SAFPLUS7IDE_H_INCLUDED
+#endif // SAFPLUSIDE_H_INCLUDED
