@@ -1801,12 +1801,15 @@ void cpmSaAwareExecImage(void *arg)
         
         if (-1 == execvp(imageName, comp->compConfig->argv))
         {
+#if 0 // logging cannot happen in the forked process because logging takes a mutex.  But this mutex might be already taken if another thread in the original process was logging while this one was being spawned.       
+            
             clLogError(CPM_LOG_AREA_CPM, CPM_LOG_CTX_CPM_LCM,
                        "Unable to launch binary image [%s] "
                        "for component [%s] : [%s]",
                        imageName,
                        comp->compConfig->compName,
                        strerror(errno));
+#endif            
             exit(1);
         }
     }
@@ -2136,12 +2139,14 @@ void cpmNonProxiedNonPreinstantiableExecImage(void *arg)
 
     if (-1 == execvp(comp->compConfig->argv[0], comp->compConfig->argv))
     {
+#if 0 // logging cannot happen in the forked process because logging takes a mutex.  But this mutex might be already taken if another thread in the original process was logging while this one was being spawned.       
         clLogError(CPM_LOG_AREA_CPM, CPM_LOG_CTX_CPM_LCM,
                    "Unable to launch binary image [%s] "
                    "for component [%s] : [%s]",
                    comp->compConfig->argv[0],
                    comp->compConfig->compName,
                    strerror(errno));
+#endif
         exit(1);
     }
 }
@@ -2820,10 +2825,14 @@ ClRcT _cpmComponentTerminate(ClCharT *compName,
                 else if (comp->compConfig->compProperty ==
                          CL_AMS_COMP_PROPERTY_NON_PROXIED_NON_PREINSTANTIABLE)
                 {
-                    if( (rc = cpmNonProxiedNonPreinstantiableCompTerminate(comp, CL_FALSE)) == CL_OK)
+                    rc = cpmNonProxiedNonPreinstantiableCompTerminate(comp, CL_FALSE);
+                    
+                    if( (rc == CL_OK) || (rc == CL_CPM_RC(CL_ERR_NOT_EXIST)))  // If it worked, or if the component process didn't exist then mark the component as uninstantiated.
                     {
                         comp->compPresenceState = CL_AMS_PRESENCE_STATE_UNINSTANTIATED;
+                        rc = CL_OK;  // From the perspective of the caller, if the comp was already killed then the terminate worked...
                     }
+                    
                     cpmCompRespondToCaller(comp, CL_CPM_TERMINATE, rc);
                 }
                 break;

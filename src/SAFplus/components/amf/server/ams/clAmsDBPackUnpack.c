@@ -1836,7 +1836,7 @@ clAmsDBSUDeXMLize(
     configPtr = clParserChild( suPtr,AMS_XML_TAG_CONFIG );
     if ( !configPtr )
     {
-        AMS_LOG (CL_LOG_SEV_ERROR,("SU[%s] does not have config tag \n", name));
+        AMS_LOG (CL_LOG_SEV_ERROR,("SU [%s] does not have config tag", name));
         return CL_AMS_RC (CL_ERR_NULL_POINTER);
     }
 
@@ -1854,7 +1854,7 @@ clAmsDBSUDeXMLize(
 
     if ( !adminState || !rank || !numComponents || !isPreinstantiable || !isRestartable || !isContainerSU )
     {
-        AMS_LOG (CL_LOG_SEV_ERROR,("SU[%s] has a missing config attribute \n"));
+        AMS_LOG (CL_LOG_SEV_ERROR,("SU [%s] has a missing config attribute", name));
         rc = CL_ERR_NULL_POINTER;
         goto exitfn;
     }
@@ -1862,7 +1862,7 @@ clAmsDBSUDeXMLize(
     statusPtr = clParserChild( suPtr,AMS_XML_TAG_STATUS );
     if ( !statusPtr)
     {
-        AMS_LOG (CL_LOG_SEV_ERROR,("SU[%s] does not have status tag \n", name));
+        AMS_LOG (CL_LOG_SEV_ERROR,("SU [%s] does not have status tag", name));
         return CL_AMS_RC (CL_ERR_NULL_POINTER);
     }
 
@@ -1891,7 +1891,7 @@ clAmsDBSUDeXMLize(
     if ( !presenceState || !operState || !readinessState || !numActiveSIs || !numStandbySIs || !compRestartCount || !suRestartCount 
             || !numInstantiatedComp || !numQuiescedSIs || !recovery || !numPIComp )
     {
-        AMS_LOG (CL_LOG_SEV_ERROR,("SU[%s] status has a missing attribute \n", name));
+        AMS_LOG (CL_LOG_SEV_ERROR,("SU[%s] status has a missing attribute", name));
         rc = CL_ERR_NULL_POINTER;
         goto exitfn;
     }

@@ -437,8 +437,7 @@ namespace clCheckpoint
         /*
          * Wrapper checkpoint section iterator
          */
-        rc = saCkptSectionIterationInitialize(*handleIter, SA_CKPT_SECTIONS_ANY, 0,
-                        &sectionIteratorHdl);
+        rc = saCkptSectionIterationInitialize(*handleIter, SA_CKPT_SECTIONS_ANY, 0, &sectionIteratorHdl);
 
         CL_ASSERT(rc == SA_AIS_OK);
 

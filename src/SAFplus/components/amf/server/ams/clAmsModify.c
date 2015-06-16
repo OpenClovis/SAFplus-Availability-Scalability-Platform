@@ -5518,7 +5518,7 @@ clAmsDBMarshallDirty(ClAmsDbT *amsDb, ClBufferHandleT inMsgHdl)
         {
             entity = CL_LIST_ENTRY(iter, ClAmsEntityT, dirtyList);
             entity->flags &= ~(CL_AMS_FLAG_DIRTY | CL_AMS_FLAG_SEEN);
-            clLogDebug("PACK", "DIRTY", "Packing config for entity [%s]", entity->name.value);
+            //clLogDebug("PACK", "DIRTY", "Packing config for entity [%s]", entity->name.value);
             AMS_CALL (clAmsEntityConfigMarshall(entity, &args));
         }
     }
@@ -5535,7 +5535,7 @@ clAmsDBMarshallDirty(ClAmsDbT *amsDb, ClBufferHandleT inMsgHdl)
             ClListHeadT *iter = list->pNext;
             entity = CL_LIST_ENTRY(iter, ClAmsEntityT, dirtyList);
             clListDel(&entity->dirtyList);
-            clLogDebug("PACK", "DIRTY", "Packing status for entity [%s]", entity->name.value);
+            //clLogDebug("PACK", "DIRTY", "Packing status for entity [%s]", entity->name.value);
             AMS_CALL(clAmsEntityStatusMarshall(entity, &args));
         }
     }
@@ -8753,9 +8753,7 @@ static __inline__ void amsEnqueueDirty(ClAmsEntityT *entity, ClUint32T gflags)
            &&
            entity->type <= CL_AMS_ENTITY_TYPE_MAX)
         {
-            clLogDebug("MARK", "DIRTY", 
-                       "Enqueueing entity [%s] with flags [%#x]",
-                       entity->name.value, entity->flags);
+            // clLogDebug("MARK", "DIRTY", "Enqueueing entity [%s] with flags [%#x]", entity->name.value, entity->flags);
             clListAddTail(&entity->dirtyList, &gClAmsDirtyEntityList[(ClInt32T)entity->type]);
         }
     }

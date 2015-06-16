@@ -203,7 +203,9 @@ do {                                                                    \
     clAmsMarkEntityDirty((ClAmsEntityT*)(x));                           \
 } while(0)
 
-#define AMS_ENTITY_LOG(ENTITY, DEBUGFLAG, LEVEL, MSG)                   \
+#define AMS_ENTITY_LOG(ENTITY, DEBUGFLAG, LEVEL, MSG) do { clLogMsgWrite(CL_LOG_HANDLE_SYS, LEVEL, 0, "SVR", "ENT", __FILE__, __LINE__,  AMS_STRIP_PARENS MSG ); } while(0)
+    
+#if 0
 {                                                                       \
     if ( LEVEL == CL_LOG_SEV_ERROR )                                      \
     {                                                                   \
@@ -218,9 +220,11 @@ do {                                                                    \
         }                                                               \
     }                                                                   \
 }
+#endif
 
+#define AMS_SERVER_LOG(LEVEL, MSG)  do { clLogMsgWrite(CL_LOG_HANDLE_SYS, LEVEL, 0, "SVR", "---", __FILE__, __LINE__,  AMS_STRIP_PARENS MSG ); } while(0)
 
-#define AMS_SERVER_LOG(LEVEL, MSG)                                      \
+#if 0
 {                                                                       \
     if ( LEVEL == CL_LOG_SEV_ERROR )                                      \
     {                                                                   \
@@ -233,7 +237,8 @@ do {                                                                    \
             clAmsLogMsgServer ( LEVEL, clAmsFormatMsg MSG,__FILE__,__LINE__);            \
         }                                                               \
     }                                                                   \
-}                                                           
+}
+#endif
 
 #define AMS_CALL_CKPT_WRITE(fn)                                         \
 {                                                                       \

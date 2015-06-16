@@ -1026,7 +1026,7 @@ clAmsPeSGTerminateCallback(
     {
         AMS_ENTITY_LOG(sg, CL_AMS_MGMT_SUB_AREA_MSG, CL_LOG_SEV_TRACE,
             ("SG [%s] is still instantiated. Ignoring SG terminate callback\n",
-             sg->config.entity.name.value))
+             sg->config.entity.name.value));
 
         return CL_OK;
     }
@@ -1117,7 +1117,7 @@ clAmsPeSGEvaluateWork(
     {
         AMS_ENTITY_LOG(sg, CL_AMS_MGMT_SUB_AREA_MSG, CL_LOG_SEV_TRACE,
             ("SG [%s] in initial waiting period. SU instantiation and assignment will proceed after timeout..\n",
-             sg->config.entity.name.value))
+             sg->config.entity.name.value));
 
         return CL_OK;
     }
@@ -4948,6 +4948,26 @@ clAmsPeSURestart(
         AMS_CALL ( clAmsPeSUTerminate(su) );
     }
 
+    // GAS: when npnp components are instantiated, they must be started if they have work assignments.
+    ClAmsEntityRefT *entityRef;
+    for ( entityRef = clAmsEntityListGetFirst(&su->config.compList);
+              entityRef != (ClAmsEntityRefT *) NULL;
+              entityRef = clAmsEntityListGetNext(&su->config.compList, entityRef) )
+        {
+            ClAmsCompT *comp = (ClAmsCompT *) entityRef->ptr;
+            if (comp->config.property == CL_AMS_COMP_PROPERTY_NON_PROXIED_NON_PREINSTANTIABLE)
+            {
+                if (comp->status.csiList.numEntities > 0)
+                {                    
+                CL_AMS_SET_P_STATE(comp, CL_AMS_PRESENCE_STATE_INSTANTIATING);
+                CL_AMS_SET_R_STATE(comp, CL_AMS_READINESS_STATE_INSERVICE);
+                clAmsPeCompInstantiate(comp);
+                }
+                
+            }
+            
+        }
+    
     return CL_OK;
 }
 
@@ -6543,7 +6563,7 @@ ClRcT clAmsPeSUCleanup(CL_IN   ClAmsSUT    *su)
         rc = clAmsPeCompCleanup(sucomp);
         if (rc != CL_OK)
         {
-          AMS_ENTITY_LOG(sucomp, CL_AMS_MGMT_SUB_AREA_MSG,CL_LOG_SEV_WARNING, ("Component [%s] cleanup failed with error code [%d]", sucomp->config.entity.name.value));
+            AMS_ENTITY_LOG(sucomp, CL_AMS_MGMT_SUB_AREA_MSG,CL_LOG_SEV_WARNING, ("Component [%s] cleanup failed with error code [0x%x]", sucomp->config.entity.name.value, rc));
         }
         
         count++;
@@ -11540,12 +11560,52 @@ clAmsPeCompFaultReport(
 
     AMS_CALL ( clAmsPeCompComputeRecoveryAction(comp, recovery, escalation) );
 
+    // GAS: For the npnp component, if it goes out-of-service (no work assignments) we need to uninstantiate it.
+    if (comp->config.property == CL_AMS_COMP_PROPERTY_NON_PROXIED_NON_PREINSTANTIABLE)
+    {
+        clAmsPeCompTerminate(comp);
+        CL_AMS_SET_P_STATE(comp, CL_AMS_PRESENCE_STATE_UNINSTANTIATED);
+        CL_AMS_SET_R_STATE(comp, CL_AMS_READINESS_STATE_OUTOFSERVICE);
+        //clAmsPeSUSwitchoverWork((ClAmsSUT*) comp->config.parentSU.ptr, CL_AMS_ENTITY_SWITCHOVER_IMMEDIATE); // clAmsSGRemoveWork(
+        //clAmsPeSGEvaluateWork(NULL);
+        //assert(comp->status.presenceState==CL_AMS_PRESENCE_STATE_UNINSTANTIATED);        
+    }
+    
     if ( *recovery == CL_AMS_RECOVERY_NONE )
     {
-        clLogDebug(CL_LOG_AREA_AMS, CL_LOG_CONTEXT_AMS_FAULT_COMP, 
-                   "Fault on Component "\
-                   "[%s]: Recommended recovery = [%s], "\
-                   "Computed recovery = [%s]. Ignoring fault",
+#if 0        
+        // GAS: so if I'm not going to recover at this level, rip away any work and then force the SG to figure something out.
+        if (comp->config.property == CL_AMS_COMP_PROPERTY_NON_PROXIED_NON_PREINSTANTIABLE)
+        {
+          if (comp->status.csiList.numEntities > 0)
+          {
+              ClAmsEntityRefT *entityRef;
+              // remove the CSIs and then tell the SU to handle it.
+              entityRef = clAmsEntityListGetFirst(&comp->status.csiList);
+              while ( entityRef != (ClAmsEntityRefT *) NULL )
+                {
+                ClAmsCSIT *csi = (ClAmsCSIT *) entityRef->ptr;
+                entityRef = clAmsEntityListGetNext(&comp->status.csiList, entityRef);
+                clAmsPeCompRemoveCSI(comp,csi,CL_AMS_ENTITY_SWITCHOVER_FAST);
+                }
+
+              //clAmsPeSUFaultReport((ClAmsSUT*) comp->config.parentSU.ptr, comp, recovery, escalation);          
+          }
+          
+        }
+#endif
+        // GAS: so if I'm not going to recover at this level, rip away any work and then force the SG to figure something out.
+        if (comp->config.property == CL_AMS_COMP_PROPERTY_NON_PROXIED_NON_PREINSTANTIABLE)
+        {
+        *escalation = CL_TRUE;
+        *recovery = CL_AMS_RECOVERY_SU_RESTART;  // propose this recovery and let the SU decide if its allowed
+        clLogDebug(CL_LOG_AREA_AMS, CL_LOG_CONTEXT_AMS_FAULT_COMP, "Fault on Component [%s]: Recommended recovery = [%s], Computed recovery = [%s]. Escalating to Service Unit level",
+                   comp->config.entity.name.value,
+                   CL_AMS_STRING_RECOVERY(recommendedRecovery),
+                   CL_AMS_STRING_RECOVERY(*recovery));
+        clAmsPeSUFaultReport((ClAmsSUT*) comp->config.parentSU.ptr, comp, recovery, escalation);
+        }
+        else clLogDebug(CL_LOG_AREA_AMS, CL_LOG_CONTEXT_AMS_FAULT_COMP, "Fault on Component [%s]: Recommended recovery = [%s], Computed recovery = [%s]. Ignoring fault",
                    comp->config.entity.name.value,
                    CL_AMS_STRING_RECOVERY(recommendedRecovery),
                    CL_AMS_STRING_RECOVERY(*recovery));
@@ -11680,10 +11740,9 @@ clAmsPeCompFaultCallback(
                   comp->config.entity.name.value,
                   CL_AMS_STRING_RECOVERY(comp->status.recovery));
 
-        if ( comp->status.recovery == CL_AMS_RECOVERY_COMP_RESTART )
+        if (( comp->status.recovery == CL_AMS_RECOVERY_COMP_RESTART )||( comp->status.recovery == CL_AMS_RECOVERY_SU_RESTART ))
         {
             repairNecessary = CL_FALSE;
-
             comp->status.recovery = CL_AMS_RECOVERY_NONE;
         }
     }
@@ -11919,6 +11978,11 @@ clAmsPeCompComputeRecoveryAction(
             computedRecovery = CL_AMS_RECOVERY_SU_RESTART;
             *escalation = CL_TRUE;
         }
+        if ((computedRecovery == CL_AMS_RECOVERY_SU_RESTART)&&(su->status.suRestartCount > sg->config.suRestartCountMax ))
+        {
+            computedRecovery = CL_AMS_RECOVERY_COMP_FAILOVER;
+        }
+        
     }
 
     if ( computedRecovery == CL_AMS_RECOVERY_SU_RESTART )
@@ -12463,6 +12527,12 @@ clAmsPeCompInstantiate2(
 
                 return clAmsPeCompInstantiateError(comp, error);
             }
+            else // GAS if the instantiation worked, then a npnp component is completely ready
+            {
+              CL_AMS_SET_O_STATE(comp, CL_AMS_OPER_STATE_ENABLED);
+              CL_AMS_SET_R_STATE(comp, CL_AMS_READINESS_STATE_INSERVICE);
+            }
+            
 
             error = clAmsPeCompInstantiateCallback(comp, CL_OK);
             return error;
@@ -13825,7 +13895,7 @@ clAmsPeCompCleanup(
             {
                 AMS_ENTITY_LOG(comp, CL_AMS_MGMT_SUB_AREA_MSG,CL_LOG_SEV_TRACE,
                     ("Component [%s] cleanup returned Error [0x%x]\n",
-                     comp->config.entity.name.value, error) ) 
+                     comp->config.entity.name.value, error) ) ;
 
                 return clAmsPeCompCleanupError(comp, error);
             }
@@ -13860,7 +13930,7 @@ clAmsPeCompCleanup(
             {
                 AMS_ENTITY_LOG(comp, CL_AMS_MGMT_SUB_AREA_MSG,CL_LOG_SEV_TRACE,
                     ("Component [%s] cleanup returned Error [0x%x]\n",
-                     comp->config.entity.name.value, error) ) 
+                     comp->config.entity.name.value, error) );
 
                 return clAmsPeCompCleanupError(comp, error);
             }
@@ -13915,7 +13985,7 @@ clAmsPeCompCleanup(
             {
                 AMS_ENTITY_LOG(comp, CL_AMS_MGMT_SUB_AREA_MSG, CL_LOG_SEV_TRACE,
                     ("Component [%s] cleanup returned Error [0x%x]\n",
-                     comp->config.entity.name.value, error) ) 
+                     comp->config.entity.name.value, error) );
 
                 return clAmsPeCompProxiedCompCleanupError(comp, error);
             }
@@ -15983,8 +16053,8 @@ amsPeCompAssignCSICallback(
     if ( clAmsInvocationGetAndDelete(invocation, &invocationData) )
     {
         AMS_ENTITY_LOG(comp, CL_AMS_MGMT_SUB_AREA_MSG, CL_LOG_SEV_ERROR,
-                ("Error: Response from Component [%s] with Invocation [0x%x] is unknown. Ignoring response..\n",
-                 comp->config.entity.name.value, invocation));
+                ("Error: Response from Component [%s] with Invocation [0x%lx] is unknown. Ignoring response",
+                 comp->config.entity.name.value, (long unsigned int) invocation));
 
         return CL_OK;
     }
@@ -15992,8 +16062,8 @@ amsPeCompAssignCSICallback(
     if ( invocationData.cmd != CL_AMS_CSI_SET_CALLBACK )
     {
         AMS_ENTITY_LOG(comp, CL_AMS_MGMT_SUB_AREA_MSG, CL_LOG_SEV_ERROR,
-                ("Error: Response from Component [%s] with Invocation [0x%x] does not match command. Ignoring response..\n",
-                 comp->config.entity.name.value, invocation));
+                ("Error: Response from Component [%s] with Invocation [0x%lx] does not match command. Ignoring response",
+                 comp->config.entity.name.value, (long unsigned int) invocation));
 
         return CL_OK;
     }
@@ -16292,8 +16362,7 @@ clAmsPeCompProcessPendingSetCSIs(
     if ( clAmsInvocationGetAndDelete(invocation, &invocationData) )
     {
         AMS_ENTITY_LOG(comp, CL_AMS_MGMT_SUB_AREA_MSG, CL_LOG_SEV_ERROR,
-                ("Error: Invocation [0x%x] is unknown. Possible internal error. Ignoring ..\n",
-                 invocation));
+                       ("Error: Invocation [0x%lx] is unknown. Possible internal error. Ignoring ..\n", (long unsigned int) invocation));
 
         return CL_OK;
     }
@@ -16301,8 +16370,8 @@ clAmsPeCompProcessPendingSetCSIs(
     if ( invocationData.cmd != CL_AMS_CSI_SET_CALLBACK )
     {
         AMS_ENTITY_LOG(comp, CL_AMS_MGMT_SUB_AREA_MSG, CL_LOG_SEV_ERROR,
-                ("Error: Invocation [0x%x] does not match command. Possible internal error. Ignoring ..\n",
-                 invocation));
+                ("Error: Invocation [0x%lx] does not match command. Possible internal error. Ignoring ..\n",
+                 (long unsigned int) invocation));
 
         return CL_OK;
     }
@@ -17111,9 +17180,9 @@ clAmsPeCompQuiescingCSICallback(
     if(rc != CL_OK)
     {
         AMS_ENTITY_LOG(comp, CL_AMS_MGMT_SUB_AREA_MSG, CL_LOG_SEV_ERROR,
-                ("Error: Quiescing Response from Component [%s] with Invocation [0x%x] is unknown. "
+                ("Error: Quiescing Response from Component [%s] with Invocation [0x%lx] is unknown. "
                  "Ignoring response..\n",
-                 comp->config.entity.name.value, invocation));
+                 comp->config.entity.name.value, (long unsigned int) invocation));
 
         return CL_OK;
     }
@@ -17121,9 +17190,9 @@ clAmsPeCompQuiescingCSICallback(
     if ( invocationData.cmd != CL_AMS_CSI_QUIESCING_CALLBACK )
     {
         AMS_ENTITY_LOG(comp, CL_AMS_MGMT_SUB_AREA_MSG, CL_LOG_SEV_ERROR,
-                ("Error: Quiescing response from Component [%s] with Invocation [0x%x] does not match command."
+                ("Error: Quiescing response from Component [%s] with Invocation [0x%lx] does not match command."
                  "Ignoring response\n",
-                 comp->config.entity.name.value, invocation));
+                 comp->config.entity.name.value, (long unsigned int) invocation));
 
         return CL_OK;
     }
@@ -17205,8 +17274,8 @@ amsPeCompQuiescingCompleteCallback(
     if ( clAmsInvocationGetAndDelete(invocation, &invocationData) )
     {
         AMS_ENTITY_LOG(comp, CL_AMS_MGMT_SUB_AREA_MSG, CL_LOG_SEV_ERROR,
-                ("Error: Response from Component [%s] with Invocation [0x%x] is unknown. Ignoring response..\n",
-                 comp->config.entity.name.value, invocation));
+                ("Error: Response from Component [%s] with Invocation [0x%lx] is unknown. Ignoring response..\n",
+                 comp->config.entity.name.value, (long unsigned int) invocation));
 
         return CL_OK;
     }
@@ -17214,8 +17283,8 @@ amsPeCompQuiescingCompleteCallback(
     if ( invocationData.cmd != CL_AMS_CSI_QUIESCING_CALLBACK )
     {
         AMS_ENTITY_LOG(comp, CL_AMS_MGMT_SUB_AREA_MSG, CL_LOG_SEV_ERROR,
-                ("Error: Response from Component [%s] with Invocation [0x%x] does not match command. Ignoring response..\n",
-                 comp->config.entity.name.value, invocation));
+                ("Error: Response from Component [%s] with Invocation [0x%lx] does not match command. Ignoring response..\n",
+                 comp->config.entity.name.value, (long unsigned int) invocation));
 
         return CL_OK;
     }
@@ -17448,8 +17517,7 @@ clAmsPeCompProcessPendingQuiescingCSIs(
     if ( clAmsInvocationGetAndDelete(invocation, &invocationData) )
     {
         AMS_ENTITY_LOG(comp, CL_AMS_MGMT_SUB_AREA_MSG, CL_LOG_SEV_ERROR,
-                ("Error: Invocation [0x%x] is unknown. Possible internal error. Ignoring ..\n",
-                 invocation));
+                ("Error: Invocation [0x%lx] is unknown. Possible internal error. Ignoring.", (long unsigned int) invocation));
 
         return CL_OK;
     }
@@ -17457,8 +17525,8 @@ clAmsPeCompProcessPendingQuiescingCSIs(
     if ( invocationData.cmd != CL_AMS_CSI_QUIESCING_CALLBACK )
     {
         AMS_ENTITY_LOG(comp, CL_AMS_MGMT_SUB_AREA_MSG, CL_LOG_SEV_ERROR,
-                ("Error: Invocation [0x%x] does not match command. Possible internal error. Ignoring ..\n",
-                 invocation));
+                ("Error: Invocation [0x%lx] does not match command. Possible internal error. Ignoring ..\n",
+                 (long unsigned int) invocation));
 
         return CL_OK;
     }
@@ -18034,8 +18102,8 @@ amsPeCompRemoveCSICallback(
     if ( clAmsInvocationGetAndDelete(invocation, &invocationData) )
     {
         AMS_ENTITY_LOG(comp, CL_AMS_MGMT_SUB_AREA_MSG, CL_LOG_SEV_ERROR,
-                       ("Error: Response from Component [%s] with Invocation [0x%x] is unknown. Ignoring response..\n",
-                        comp->config.entity.name.value, invocation));
+                       ("Error: Response from Component [%s] with Invocation [0x%lx] is unknown. Ignoring response.",
+                        comp->config.entity.name.value, (long unsigned int) invocation));
 
         return CL_OK;
     }
@@ -18049,8 +18117,8 @@ amsPeCompRemoveCSICallback(
     if ( invocationData.cmd != CL_AMS_CSI_RMV_CALLBACK )
     {
         AMS_ENTITY_LOG(comp, CL_AMS_MGMT_SUB_AREA_MSG, CL_LOG_SEV_ERROR,
-                       ("Error: Response from Component [%s] with Invocation [0x%x] does not match command. Ignoring response..\n",
-                        comp->config.entity.name.value, invocation));
+                       ("Error: Response from Component [%s] with Invocation [0x%lx] does not match command. Ignoring response..\n",
+                        comp->config.entity.name.value, (long unsigned int) invocation));
 
         return CL_OK;
     }
@@ -18548,7 +18616,7 @@ clAmsPeCompRemoveCSIError(
 
     AMS_ENTITY_LOG(comp, CL_AMS_MGMT_SUB_AREA_MSG, CL_LOG_SEV_ERROR,
         ("CSI removal from Component [%s] returned Error [0x%x]\n",
-         comp->config.entity.name.value, error) ) 
+         comp->config.entity.name.value, error) ) ;
 
     AMS_CALL ( clAmsEntityTimerStop(
                     (ClAmsEntityT *) comp,
@@ -18702,13 +18770,15 @@ clAmsPeCompUpdateReadinessState(
         CL_IN       ClAmsCompT *comp)
 {
     ClAmsReadinessStateT rstate;
-
+    ClAmsReadinessStateT oldRstate;
+    
     AMS_CHECK_COMP ( comp );
-
+    oldRstate = comp->status.readinessState;
+    
     AMS_CALL ( clAmsPeCompComputeReadinessState(comp, &rstate) );
 
     CL_AMS_SET_R_STATE(comp, rstate);
-
+    
     return CL_OK;
 }
 

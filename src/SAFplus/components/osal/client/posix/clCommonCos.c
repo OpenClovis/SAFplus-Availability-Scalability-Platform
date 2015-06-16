@@ -948,7 +948,7 @@ cosPosixTaskWrapper(void* pArgument)
     }
     taskSetScheduling(pthread_self(), taskInfo.taskName, taskInfo.schedPolicy, taskInfo.schedPriority);
 
-    clLogDebug(CL_LOG_AREA_UNSPECIFIED, CL_LOG_CONTEXT_UNSPECIFIED,"Creating Task [%s]", taskInfo.taskName);
+    //clLogDebug(CL_LOG_AREA_UNSPECIFIED, CL_LOG_CONTEXT_UNSPECIFIED,"Creating Task [%s]", taskInfo.taskName);
 
     /* Call the function to be executed */
     pTemp = (void*)(*taskInfo.fpTaskFunction) (taskInfo.pArgument);
