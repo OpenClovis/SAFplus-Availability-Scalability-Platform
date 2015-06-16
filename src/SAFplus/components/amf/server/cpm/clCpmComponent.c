@@ -2549,10 +2549,10 @@ static ClRcT cpmNonProxiedNonPreinstantiableCompTerminate(ClCpmComponentT *comp,
 
     clLogDebug(CPM_LOG_AREA_CPM, CPM_LOG_CTX_CPM_LCM, "Stopping non proxied non preinstantiable component [%s]...", comp->compConfig->compName);
 
-    if (comp->processId)
+    if (1)  // when we call cleanup, the component may already be dead (comp->processId)
     {
       // Accept shell script, bin etc...
-      if (cpmCompIsValidPid(comp))
+      if (1)
         {
             ClCharT *command = NULL;
             ClBoolT killit = (cleanup) ? CL_FALSE:CL_TRUE; /* only kill in the terminate step */
@@ -3451,6 +3451,7 @@ ClRcT _cpmComponentCleanup(ClCharT *compName, ClCharT *proxyCompName, ClCharT *n
         switch (comp->compPresenceState)
         {
         case CL_AMS_PRESENCE_STATE_UNINSTANTIATED:
+#if 0  //GAS: No, don't skip this; I probably just already set the state variable (true npnp case)       
             {
                 rc = CL_OK;
                 /*
@@ -3458,6 +3459,7 @@ ClRcT _cpmComponentCleanup(ClCharT *compName, ClCharT *proxyCompName, ClCharT *n
                  */
                 break;
             }
+#endif            
         case CL_AMS_PRESENCE_STATE_INSTANTIATING:
         case CL_AMS_PRESENCE_STATE_INSTANTIATED:
         case CL_AMS_PRESENCE_STATE_TERMINATING:
