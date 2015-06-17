@@ -216,7 +216,7 @@ namespace SAFplus
     if (!this->parent)
       {
         MgtRoot *mgtRoot = MgtRoot::getInstance();
-        mgtRoot->UpdateReference();
+        mgtRoot->updateReference();
       }
     return rc;
   }

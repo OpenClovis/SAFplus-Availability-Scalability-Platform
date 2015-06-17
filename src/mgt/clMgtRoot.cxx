@@ -514,7 +514,7 @@ namespace SAFplus
   {
       this->mgtRefereceList.push_back(mgtObject);
   }
-  void MgtRoot::UpdateReference(void)
+  void MgtRoot::updateReference(void)
   {
     for(std::vector<MgtObject*>::iterator it = this->mgtRefereceList.begin();
         it != this->mgtRefereceList.end();
