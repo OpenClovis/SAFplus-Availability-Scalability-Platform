@@ -120,6 +120,9 @@ class SAFplusIDE : public cbPlugin
 
         void Action(wxCommandEvent& event);
         void UpdateUI(wxUpdateUIEvent& event);
+#ifndef STANDALONE
+        void cbEventNotification(CodeBlocksEvent& event);
+#endif
     private:
         bool extractZipFile(const wxString& zipFile, const wxString& dstDir);
         void extractExtraFiles();

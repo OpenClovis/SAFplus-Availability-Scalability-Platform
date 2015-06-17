@@ -131,6 +131,10 @@ void SAFplusIDE::OnAttach()
 
     //work-around with python's bug LD_PRELOAD
     dlopen("libpython2.7.so", RTLD_LAZY | RTLD_GLOBAL);
+
+    // Register event to add some custom SAFplus files  
+    Manager::Get()->RegisterEventSink(cbEVT_PROJECT_NEW, new cbEventFunctor<SAFplusIDE, CodeBlocksEvent>(this, &SAFplusIDE::cbEventNotification));
+
 #endif
     setenv("PYTHONPATH", pythonPathExt.c_str(), 1);
     wxLogDebug(_T("PYTHONPATH:") + pythonPathExt);
@@ -415,3 +419,19 @@ void SAFplusIDE::Action(wxCommandEvent& event)
     event.Skip();
 #endif
 }
+
+#ifndef STANDALONE
+void SAFplusIDE::cbEventNotification(CodeBlocksEvent& event)
+{
+  /*
+   * This work around to recursive add 'src' into project
+   * TODO: This event should be handled at doing 'codegen'
+   */
+  wxLogDebug(_T("New project:") + event.GetProject()->GetTitle());
+  std::vector<cbProject::Glob> globs;
+  globs.push_back(cbProject::Glob(_T("./src"), _T("*"), true));
+  event.GetProject()->SetGlobs(globs);
+  event.GetProject()->Save();
+  Manager::Get()->GetProjectManager()->GetUI().RebuildTree();
+}
+#endif

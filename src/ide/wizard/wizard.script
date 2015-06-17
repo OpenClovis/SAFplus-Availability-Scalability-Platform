@@ -5,7 +5,7 @@
 ////////////////////////////////////////////////////////////////////////////////
 // globals
 
-SAFplusPathDefault <- _T("$(#safplus_dir)");
+SAFplusPathDefault <- _T("$(SAFPLUS_SRC)");
 SAFplusPath <- _T("");
 
 function BeginWizard()

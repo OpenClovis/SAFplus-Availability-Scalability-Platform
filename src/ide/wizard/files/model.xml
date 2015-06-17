@@ -1,5 +1,5 @@
 <SAFplusModel version='7.0'>
   <modules>
-    <yang>./SAFplusAmf.yang</yang>
+    <yang>SAFplusAmf.yang</yang>
   </modules>
 </SAFplusModel>

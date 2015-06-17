@@ -1,3 +1,4 @@
+import os
 import pdb
 import math
 import time
@@ -62,7 +63,7 @@ class TemplateMgr:
     """Load a template file and return it as a string"""
     if self.cache.has_key(fname): return self.cache[fname]
 
-    fname = common.resolver(fname);
+    fname = common.fileResolver(fname);
     f = open(fname,"r")
     s = f.read()
     t = Template(s)
@@ -618,12 +619,12 @@ class FilesystemOutput(Output):
 
   def writet(self, filename, template):
     if not os.path.exists(os.path.dirname(filename)):
-      os.makedirs(os.path.dirname(filename))			
+      os.makedirs(os.path.dirname(filename))
     template.write(filename, "utf-8",False,"xml")
     
   def writes(self, filename, string):
     if not os.path.exists(os.path.dirname(filename)):
-      os.makedirs(os.path.dirname(filename))			
+      os.makedirs(os.path.dirname(filename))
     f = open(filename,"w")
     f.write(string)
     f.close()
@@ -653,13 +654,17 @@ class GenerateTool(Tool):
       output = FilesystemOutput()
       comps = filter(lambda inst: inst.entity.et.name == 'Component', panel.model.instances.values())
 
-      #TODO: Get relative directiry with model.xml
-      srcDir = "/".join([myDir, "langTest"])
+      #Get relative directiry with model.xml
+      srcDir = os.path.dirname(panel.model.filename);
+      if srcDir is None or len(srcDir) == 0:
+        srcDir = os.getcwd()
+
+      srcDir = os.sep.join([srcDir, "src", "app"])
 
       # Generate makefile for the "app" directory
       mkSubdirTmpl = templateMgr.loadPyTemplate(TemplatePath + "Makefile.subdir.ts")
       s = mkSubdirTmpl.safe_substitute(subdirs=" ".join([c.data["name"] for c in comps]))
-      output.write(srcDir + os.sep + "app" + os.sep + "Makefile", s)
+      output.write(srcDir + os.sep + "Makefile", s)
 
       for c in comps:
         self.dictGenFunc[event.GetId()](output, srcDir, c, c.data)
@@ -672,33 +677,33 @@ class GenerateTool(Tool):
     # Create main
     cpptmpl = templateMgr.loadPyTemplate(TemplatePath + "main.c.ts")
     s = cpptmpl.safe_substitute(addmain=False)
-    output.write(srcDir + os.sep + "app" + os.sep + compName + os.sep + "main.c", s)
+    output.write(srcDir + os.sep + compName + os.sep + "main.c", s)
     # Create cfg  -- not needed anymore
     #tmpl = templateMgr.loadPyTemplate(TemplatePath + "cfg.c.ts")
     #s = tmpl.safe_substitute(**ts_comp)
-    #output.write(srcDir + os.sep + "app" + os.sep + compName + os.sep + "cfg.c", s)
+    #output.write(srcDir + os.sep + compName + os.sep + "cfg.c", s)
   
     # Create Makefile
     tmpl = templateMgr.loadPyTemplate(TemplatePath + "Makefile.c.ts")
     s = tmpl.safe_substitute(**ts_comp)
-    output.write(srcDir + os.sep + "app" + os.sep + compName + os.sep + "Makefile", s)
+    output.write(srcDir + os.sep + compName + os.sep + "Makefile", s)
   
   def generateCpp(self, output, srcDir, comp,ts_comp):
     # Create main
     compName = str(comp.data["name"])
     cpptmpl = templateMgr.loadPyTemplate(TemplatePath + "main.cpp.ts")
     s = cpptmpl.safe_substitute(addmain=False)
-    output.write(srcDir + os.sep + "app" + os.sep + compName + os.sep + "main.cpp", s)
+    output.write(srcDir + os.sep + compName + os.sep + "main.cpp", s)
   
     # Create cfg -- no longer needed
     #tmpl = templateMgr.loadPyTemplate(TemplatePath + "cfg.cpp.ts")
     #s = tmpl.safe_substitute(**ts_comp)
-    #output.write(srcDir + os.sep + "app" + os.sep + compName + os.sep + "cfg.cpp", s)
+    #output.write(srcDir + os.sep + compName + os.sep + "cfg.cpp", s)
   
     # Create Makefile
     tmpl = templateMgr.loadPyTemplate(TemplatePath + "Makefile.cpp.ts")
     s = tmpl.safe_substitute(**ts_comp)
-    output.write(srcDir + os.sep + "app" + os.sep + compName + os.sep + "Makefile", s)
+    output.write(srcDir + os.sep + compName + os.sep + "Makefile", s)
 
 
   def generatePython(self, output, srcDir, comp,ts_comp):
@@ -708,13 +713,13 @@ class GenerateTool(Tool):
     for (inp,outp) in [("main.py.ts",str(comp.data[instantiateCommand]) + ".py"),("pythonexec.sh",str(comp.data[instantiateCommand]))]:
       tmpl = templateMgr.loadPyTemplate(TemplatePath + inp)
       s = tmpl.safe_substitute(**ts_comp)
-      output.write(srcDir + os.sep + "app" + os.sep + compName + os.sep + outp, s)
+      output.write(srcDir + os.sep + compName + os.sep + outp, s)
     
   
     # Create Makefile
     tmpl = templateMgr.loadPyTemplate(TemplatePath + "Makefile.python.ts")
     s = tmpl.safe_substitute(**ts_comp)
-    output.write(srcDir + os.sep + "app" + os.sep + compName + os.sep + "Makefile", s)  
+    output.write(srcDir + os.sep + compName + os.sep + "Makefile", s)  
 
 
   def generateJava(self, output, srcDir, comp,ts_comp):
@@ -722,7 +727,7 @@ class GenerateTool(Tool):
     # Create Makefile
     tmpl = templateMgr.loadPyTemplate(TemplatePath + "Makefile.java.ts")
     s = tmpl.safe_substitute(**ts_comp)
-    output.write(srcDir + os.sep + "app" + os.sep + compName + os.sep + "Makefile", s)  
+    output.write(srcDir + os.sep + compName + os.sep + "Makefile", s)  
 
 # Global of this panel for debug purposes only.  DO NOT USE IN CODE
 dbgPanel = None
