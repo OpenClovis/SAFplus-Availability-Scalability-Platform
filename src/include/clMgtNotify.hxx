@@ -81,7 +81,7 @@ public:
 
     virtual ClBoolT set(const void *pBuffer, uint64_t buffLen, SAFplus::Transaction& t)
     {
-
+      return CL_TRUE;
     }
 
 };

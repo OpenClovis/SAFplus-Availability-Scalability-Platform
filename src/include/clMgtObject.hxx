@@ -79,8 +79,8 @@ namespace SAFplus
   class MgtIteratorBase
     {
   public:
-    int refs;
     std::pair<std::string, MgtObject*> current;
+    int refs;
     MgtIteratorBase(): current("",nullptr),refs(1) {};
     bool operator++()
       {
@@ -162,7 +162,7 @@ extern MgtIteratorBase mgtIterEnd;
      * \return	CL_OK						Everything is OK
      * \return	CL_ERR_ALREADY_EXIST		Key already exists
      */
-    ClRcT addKey(std::string key) {}
+    ClRcT addKey(std::string key) { return  CL_OK; }
 
     /**
      * \brief	Function to add a child object
@@ -238,7 +238,7 @@ extern MgtIteratorBase mgtIterEnd;
      */
     virtual ClBoolT set(const void *pBuffer, ClUint64T buffLen, SAFplus::Transaction& t)
     {
-
+      return CL_TRUE;
     }
 
     /**
@@ -281,11 +281,11 @@ extern MgtIteratorBase mgtIterEnd;
     /* iterator db key and bind to object */
     // not implemented virtual ClRcT iterator();
 
-    void dumpXpath();
+    void dumpXpath(unsigned int depth = 0);
 
     std::string getFullXpath(bool includeParent = true);
 
-    virtual MgtObject *findMgtObject(const std::string &xpath, int idx);
+    virtual MgtObject *findMgtObject(const std::string &xpath, std::size_t idx);
     virtual ClRcT setObj(const std::string &value);
     virtual ClRcT createObj(const std::string &value);
     virtual ClRcT deleteObj(const std::string &value);

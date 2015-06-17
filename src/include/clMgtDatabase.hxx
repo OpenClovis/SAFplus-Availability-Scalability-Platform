@@ -68,7 +68,9 @@ namespace SAFplus
     /**
      * \brief	Function to create/get the singleton object of the ClMgtDatabase class
      */
-    static MgtDatabase * getInstance();
+    static MgtDatabase *getInstance();
+
+    static void DestroyInstance(); // Constructor for singleton
 
     /**
      * \brief	Function to initialize Database Abstraction Layer and open a mgt database

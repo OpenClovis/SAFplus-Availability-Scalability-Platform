@@ -98,11 +98,13 @@ namespace SAFplus
   {
     b = i.b;
     b->refs++;
+    return *this;
   } // b must ALWAYS be valid
 
   bool MgtIteratorBase::next()
   {
     clDbgCodeError(1, "base implementation should never be called");
+    return true;
   }
 
   void MgtIteratorBase::del()
@@ -207,9 +209,20 @@ namespace SAFplus
   /*
    * Dump Xpath structure
    */
-  void MgtObject::dumpXpath()
+  void MgtObject::dumpXpath(unsigned int depth)
   {
+    std::string indent(depth, '-');
+    printf("%s %s\n", indent.c_str(), getFullXpath(true).c_str());
 
+    MgtObject::Iterator iter;
+    MgtObject::Iterator endd = end();
+
+    for (iter = begin(); iter != endd; iter++)
+      {
+        //const std::string& name = iter->first;
+        MgtObject* obj = iter->second;
+        obj->dumpXpath(depth+1);
+      }
   }
 
   std::string MgtObject::getFullXpath(bool includeParent)
@@ -227,11 +240,9 @@ namespace SAFplus
     return xpath;
   }
 
-  MgtObject * MgtObject::findMgtObject(const std::string &xpath, int idx)
+  MgtObject * MgtObject::findMgtObject(const std::string &xpath, std::size_t idx)
   {
-    idx = xpath.find("/", idx + 1);
-
-    if (idx == std::string::npos)
+    if (xpath.find("/", idx + 1) == std::string::npos)
       {
         return this;
       }
@@ -254,7 +265,7 @@ namespace SAFplus
     MgtObject::Iterator endd = end();
     for (iter = begin(); iter != endd; iter++)
       {
-        const std::string& name = iter->first;
+        //const std::string& name = iter->first;
         MgtObject* obj = iter->second;
         obj->toString(dumpStrStream);
       }

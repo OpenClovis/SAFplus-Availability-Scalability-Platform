@@ -165,6 +165,7 @@ namespace SAFplus
     value.clear();
     value.append(cvalue, dataSize);
 
+    SAFplusHeapFree(cvalue);
     return rc;
   }
 
@@ -270,6 +271,9 @@ namespace SAFplus
       {
         std::string value(recData, dataSize);
         listXpath.push_back(value);
+
+        //Free memory
+        SAFplusHeapFree(recData);
 
         std::size_t found = value.find_last_of("@");
         if ((found != std::string::npos) && (found != 0))

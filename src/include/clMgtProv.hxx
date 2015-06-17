@@ -278,6 +278,7 @@ namespace SAFplus
           t.addOperation(opt);
           t.addOperation(opt2);
         }
+      return true;
     }
 
   template<class T>
@@ -287,7 +288,7 @@ namespace SAFplus
       int ret, nodetyp, depth;
       std::stringstream ss;
 #ifndef SAFplus7
-      logDebug("MGT", "OBJ", "Validate [%.*s] ", (int) buffLen, (const char*)pBuffer);
+      logDebug("MGT", "OBJ", "Validate [%.*s]", (int) buffLen, (const char*)pBuffer);
 #endif
       xmlTextReaderPtr reader = xmlReaderForMemory((const char*) pBuffer, buffLen, nullptr, nullptr, 0);
       if (!reader)
