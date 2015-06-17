@@ -49,12 +49,13 @@
 			<Add directory="/usr/include/libpng12" />
 			<Add directory="/usr/include/atk-1.0" />
 			<Add directory="/usr/include/librsvg-2.0" />
+			<Add directory="%INSTALL_DIR%/include" />
 			<Add directory="./" />
 		</Compiler>
 		<Linker>
 			<Add option="`python-config --libs`" />
 			<Add option="`wx-config --toolkit=gtk3 --unicode --version=3.0 --libs --debug`" />
-			<Add option="-L ../boostlibs" />
+			<Add option="-L %INSTALL_DIR%/lib" />
 			<Add option="`pkg-config gtk+-x11-3.0 --libs`" />
 			<Add library="wx_gtk3u_aui-3.0" />
 			<Add library="rsvg-2" />

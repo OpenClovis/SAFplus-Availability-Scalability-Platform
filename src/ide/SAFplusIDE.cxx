@@ -61,11 +61,8 @@ LogManager *m_log = Manager::Get()->GetLogManager();
 /*
 Binding wxWidget resource
 */
-int idModuleYangParse = XRCID("idModuleYangParse");
 // Menu
 int idMenuSAFplusClusterDesignGUI = XRCID("idMenuSAFplusClusterDesignGUI");
-int idMenuSAFplusPythonWinTest = XRCID("idMenuSAFplusPythonWinTest");
-int idMenuSAFplusYangTest = XRCID("idMenuSAFplusYangTest");
 // Toolbar
 int idToolbarSAFplusClusterDesignGUI = XRCID("idToolbarSAFplusClusterDesignGUI");
 
@@ -73,15 +70,9 @@ int idToolbarSAFplusClusterDesignGUI = XRCID("idToolbarSAFplusClusterDesignGUI")
 BEGIN_EVENT_TABLE(SAFplusIDE, cbPlugin)
     // add any events you want to handle here
     EVT_UPDATE_UI(idMenuSAFplusClusterDesignGUI, SAFplusIDE::UpdateUI)
-    EVT_UPDATE_UI(idMenuSAFplusPythonWinTest, SAFplusIDE::UpdateUI)
     EVT_UPDATE_UI(idToolbarSAFplusClusterDesignGUI, SAFplusIDE::UpdateUI)
-    EVT_UPDATE_UI(idMenuSAFplusYangTest, SAFplusIDE::UpdateUI)
-
-    EVT_MENU(idMenuSAFplusPythonWinTest, SAFplusIDE::PythonWinTest)
     EVT_MENU(idToolbarSAFplusClusterDesignGUI, SAFplusIDE::Action)
     EVT_MENU(idMenuSAFplusClusterDesignGUI, SAFplusIDE::Action)
-    EVT_MENU(idModuleYangParse, SAFplusIDE::Action)
-    EVT_MENU(idMenuSAFplusYangTest, SAFplusIDE::OnYangParse)
 
 END_EVENT_TABLE()
 
@@ -320,7 +311,6 @@ void SAFplusIDE::BuildMenu(wxMenuBar* menuBar)
     {
         printf("menu insert error!\n");
         assert(0);
-
     }
 }
 
@@ -375,80 +365,8 @@ void SAFplusIDE::UpdateUI(wxUpdateUIEvent& event)
 
 }
 
-void SAFplusIDE::PythonWinTest(wxCommandEvent& event)
-{
-}
-
-void SAFplusIDE::OnYangParse(wxCommandEvent &event)
-{
-#ifdef UnitTest
-  Manager* mgr = Manager::Get();
-  wxFrame* frm = mgr->GetAppFrame();
-
-  wxString yangFile = wxT("resources/SAFplusAmf.yang");
-  try
-  {
-    std::vector<std::string> yangfiles;
-    yangfiles.push_back(Utils::toString(yangFile));
-
-    YangParser yangParser;
-    bpy::tuple values = bpy::extract<bpy::tuple>(yangParser.parseFile(".", yangfiles));
-
-    boost::python::dict ytypes = bpy::extract<bpy::dict>(values[0]);
-    boost::python::dict yobjects = bpy::extract<bpy::dict>(values[1]);
-
-    std::string resultStr = boost::python::extract<std::string>(yobjects["Cluster"]["startupAssignmentDelay"]["help"]);
-#ifdef wxUSE_STATUSBAR
-    frm->SetStatusText(wxString::FromUTF8(resultStr.c_str()));
-#endif
-  }
-  catch(boost::python::error_already_set const &e)
-  {
-    // Parse and output the exception
-    std::string perror_str = parse_python_exception();
-    std::cout << "Traceback: "<< std::endl << perror_str << std::endl;
-  }
-
-  try
-  {
-    SvgIcon iconGen;
-    RsvgHandle *icon_handle = rsvg_handle_new();
-
-    /* build example entity configuration */
-    bpy::dict compConfig;
-    compConfig["name"] = "myName";
-    compConfig["commandLine"] = "myCommandLine";
-
-    /* Draw entity to screen */
-    //iconGen.genSvgIcon(SVG_ICON_COMP, compConfig, &icon_handle);
-    //m_paintPanel->m_paintArea->drawIcon(icon_handle, NULL);
-  }
-  catch(boost::python::error_already_set const &e)
-  {
-    // Parse and output the exception
-    string perror_str = parse_python_exception();
-    std::cout << "Traceback: "<< std::endl << perror_str << std::endl;
-  }
-#endif
-  event.Skip();
-}
-
-
 void SAFplusIDE::Action(wxCommandEvent& event)
 {
-#ifdef UnitTest
-    // Please use wxwindows 2.8 APIs or lower.  This is what can be installed automatically from Ubuntu.  If there is a very compelling reason to go higher let's talk about it.
-    // load SAFplusEntityDef.xml and SAFplusAmf.yang
-    wxString entity_contents;
-    wxString safplus_amf_contents;
-
-    wxFile entityDefFile(ConfigManager::GetDataFolder(false) + wxT("/SAFplusEntityDef.xml"));
-    entityDefFile.ReadAll(&entity_contents);
-
-    wxFile safplusAmfFile(ConfigManager::GetDataFolder(false) + wxT("/SAFplusAmf.yang"));
-    safplusAmfFile.ReadAll(&safplus_amf_contents);
-#endif
-
 #ifndef STANDALONE
     wxTreeCtrl* tree = m_manager->GetProjectManager()->GetUI().GetTree();
 
