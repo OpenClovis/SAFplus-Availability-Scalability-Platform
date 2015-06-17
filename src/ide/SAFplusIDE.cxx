@@ -110,18 +110,21 @@ void SAFplusIDE::OnAttach()
 {
     m_IsAttached = true;
 
+    //Extract some images/python script from resources (Extra file in manifest.xml is not enough)
+    extractExtraFiles();
+
     std::string pythonPathExt = Utils::toString(ConfigManager::GetDataFolder(false) + _T("/helpers"));
     char *curPythonPath = getenv("PYTHONPATH");
     if (curPythonPath != NULL)
     {
-      pythonPathExt.append(curPythonPath).append(":");
+      pythonPathExt.append(curPythonPath);
     }
 
 #ifdef STANDALONE
     char cwd[512] = {0};
     if (getcwd(cwd, 512) != NULL)
     {
-      pythonPathExt.append(cwd);
+      pythonPathExt.append(":").append(cwd);
       pythonPathExt.append(":").append(cwd).append("/../");
     }
 #else
@@ -157,9 +160,6 @@ void SAFplusIDE::OnAttach()
     int val = bpy::extract<int>(zero["foo"]);
     printf("test python %d\n", val);
 #endif
-
-    //Extract some images/python script from resources (Extra file in manifest.xml is not enough)
-    extractExtraFiles();
 }
 
 bool SAFplusIDE::extractZipFile(const wxString& zipFile, const wxString& dstDir)
