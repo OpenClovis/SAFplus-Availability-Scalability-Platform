@@ -34,7 +34,7 @@ namespace SAFplus
 {
   class Wakeable;
 
-#define MSGSIZE 6096
+#define MSGSIZE (1024*1024)
     struct MsgReply
     {
         char buffer[MSGSIZE];
