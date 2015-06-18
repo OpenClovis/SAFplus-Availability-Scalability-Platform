@@ -86,7 +86,7 @@ namespace SAFplus
 
     virtual ClBoolT set(const void *pBuffer, ClUint64T buffLen, SAFplus::Transaction& t)
     {
-
+      return CL_TRUE;
     }
   };
 };

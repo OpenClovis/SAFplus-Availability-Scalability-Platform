@@ -1,12 +1,12 @@
 S7 := 1
 include ../mk/preface.mk
 
-Release all: ide standalone
+Release all: ide
 
 ide:
-	codeblocks --build ide.cbp
+	INSTALL_DIR=$(INSTALL_DIR) codeblocks --build ide.cbp
 
-standalone:
-	(cd standalone; codeblocks --build standalone.cbp)
+clean:
+	rm -rf .objs *.pyc SAFplusIDE.cbplugin SAFplusIDE.so SAFplusIDE.zip helpers.zip wizard.zip
 
 include $(SAFPLUS_MAKE_DIR)/safplus_targets.mk

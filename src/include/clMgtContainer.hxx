@@ -94,7 +94,7 @@ class MgtContainer:public MgtObject
     virtual ClRcT write(MgtDatabase *db = nullptr, std::string parentXPath = "");
     virtual ClRcT read(MgtDatabase *db = nullptr, std::string parentXPath = "");
 
-    virtual MgtObject *findMgtObject(const std::string &xpath, int idx);
+    virtual MgtObject *findMgtObject(const std::string &xpath, std::size_t idx);
     MgtObject *lookUpMgtObject(const std::string & classType, const std::string &ref);
 
   };

@@ -177,6 +177,7 @@ namespace SAFplus
           mgtObject->parent = nullptr;
         }
         children.erase(objectKey);
+        return CL_OK;
       }
       /**
        * API to remove all entries from the list
@@ -286,9 +287,7 @@ namespace SAFplus
         KEYTYPE entryKey;
         int ret, nodetyp, depth;
 
-        xmlChar *valstr, *namestr, *attrval;
-        xmlNodePtr node;
-        xmlAttr* attr;
+        xmlChar *valstr, *namestr;
 
         char strTemp[CL_MAX_NAME_LENGTH] = { 0 };
         std::string strChildData;
@@ -311,7 +310,6 @@ namespace SAFplus
            nodetyp = xmlTextReaderNodeType(reader);
            namestr = (xmlChar *) xmlTextReaderConstName(reader);
            valstr  = (xmlChar *) xmlTextReaderValue(reader);
-           node    = xmlTextReaderCurrentNode(reader);
            switch (nodetyp)
            {
               /* Opening tag of a node */
@@ -613,7 +611,7 @@ namespace SAFplus
 
         if(mgtObject->parent == nullptr)
           mgtObject->parent = this;
-        return CL_OK;
+        return rc;
       }
       /**
        * API to remove all entries from the list
@@ -719,9 +717,7 @@ namespace SAFplus
       {
         int ret, nodetyp, depth;
 
-        xmlChar *valstr, *namestr, *attrval;
-        xmlNodePtr node;
-        xmlAttr* attr;
+        xmlChar *valstr, *namestr;
 
         char strTemp[CL_MAX_NAME_LENGTH] = { 0 };
         std::string strChildData;
@@ -747,7 +743,6 @@ namespace SAFplus
            nodetyp = xmlTextReaderNodeType(reader);
            namestr = (xmlChar *) xmlTextReaderConstName(reader);
            valstr  = (xmlChar *) xmlTextReaderValue(reader);
-           node    = xmlTextReaderCurrentNode(reader);
            switch (nodetyp)
            {
              /* Opening tag of a node */
@@ -920,10 +915,10 @@ namespace SAFplus
           return rc;
       }
 
-      virtual MgtObject *findMgtObject(const std::string &xpath, int idx)
+      virtual MgtObject *findMgtObject(const std::string &xpath, std::size_t idx)
       {
         MgtObject *obj = nullptr;
-        int nextIdx = xpath.find("/", idx + 1);
+        std::size_t nextIdx = xpath.find("/", idx + 1);
 
         if (nextIdx == std::string::npos)
           {

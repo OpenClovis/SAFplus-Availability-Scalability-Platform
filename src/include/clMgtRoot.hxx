@@ -70,14 +70,14 @@ protected:
     std::map<std::string, MgtModule*> mMgtModules;
 
     /*
-     * Mgt Checkpoit
+     * Mgt Checkpoint
      */
     Checkpoint mgtCheckpoint;
 
     /*
-     * Mgt Checkpoit
+     * Mgt ref list
      */
-    std::vector<MgtObject*> mgtRefereceList;
+    std::vector<MgtObject*> mgtReferenceList;
 
 
 public:
@@ -160,8 +160,8 @@ public:
 
     MgtObject *findMgtObject(const std::string &xpath);
 
-  void addReference(MgtObject* mgtObject);
-  void UpdateReference(void);
+    void addReference(MgtObject* mgtObject);
+    void updateReference(void);
 };
 };
 #endif /* CLMGTROOT_H_ */

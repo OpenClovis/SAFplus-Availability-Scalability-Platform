@@ -353,13 +353,13 @@ namespace SAFplus
     rplMesg.add_data(strRev);
     rplMesg.add_data(outBuff.c_str(), outBuff.length() + 1);
     rplMesg.SerializeToString(&strRplMesg);
-    logDebug("MGT","GET","Replying with msg of size [%d]",strRplMesg.size());
+    logDebug("MGT","GET","Replying with msg of size [%lu]",strRplMesg.size());
     MgtRoot::sendReplyMsg(srcAddr,(void *)strRplMesg.c_str(),strRplMesg.size());
   }
 
   MgtObject *MgtRoot::findMgtObject(const std::string &xpath)
   {
-    int idx;
+    size_t idx;
 
     if (xpath[0] != '/')
       {
@@ -413,7 +413,7 @@ namespace SAFplus
         object->get(&outBuff);
         rplMesg.add_data(outBuff.c_str(), outBuff.length() + 1);
         rplMesg.SerializeToString(&strRplMesg);
-        logDebug("MGT","XGET","Replying with msg of size [%d]",strRplMesg.size());
+        logDebug("MGT","XGET","Replying with msg of size [%lu]",strRplMesg.size());
         MgtRoot::sendReplyMsg(srcAddr,(void *)strRplMesg.c_str(),strRplMesg.size());
       }
   }
@@ -431,7 +431,7 @@ namespace SAFplus
 
   void MgtRoot::clMgtMsgCreateHandle(SAFplus::Handle srcAddr, Mgt::Msg::MsgMgt reqMsg)
   {
-    int idx = reqMsg.bind().find_last_of("/");
+    std::size_t idx = reqMsg.bind().find_last_of("/");
 
     if (idx == std::string::npos)
       {
@@ -453,7 +453,7 @@ namespace SAFplus
 
   void MgtRoot::clMgtMsgDeleteHandle(SAFplus::Handle srcAddr, Mgt::Msg::MsgMgt reqMsg)
   {
-    int idx = reqMsg.bind().find_last_of("/");
+    std::size_t idx = reqMsg.bind().find_last_of("/");
 
     if (idx == std::string::npos)
       {
@@ -512,12 +512,13 @@ namespace SAFplus
 
   void MgtRoot::addReference(MgtObject* mgtObject)
   {
-      this->mgtRefereceList.push_back(mgtObject);
+      this->mgtReferenceList.push_back(mgtObject);
   }
-  void MgtRoot::UpdateReference(void)
+
+  void MgtRoot::updateReference(void)
   {
-    for(std::vector<MgtObject*>::iterator it = this->mgtRefereceList.begin();
-        it != this->mgtRefereceList.end();
+    for(std::vector<MgtObject*>::iterator it = this->mgtReferenceList.begin();
+        it != this->mgtReferenceList.end();
         it++)
       {
         MgtObject* mgtObject = *it;

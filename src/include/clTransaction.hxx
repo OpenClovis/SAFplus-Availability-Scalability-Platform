@@ -60,6 +60,7 @@ namespace SAFplus
   class TransactionOperation
   {
   public:
+      virtual ~TransactionOperation() {};
       virtual bool validate(Transaction& t) = 0;
       virtual void commit() = 0;
       virtual void abort() = 0;
@@ -68,9 +69,10 @@ namespace SAFplus
   template <class T> class SimpleTxnOperation: public TransactionOperation
     {
   public:
+    virtual ~SimpleTxnOperation() {};
     SimpleTxnOperation(T* destination, const T& val):dest(destination),value(val) {}
-    T value;
     T* dest;
+    T value;
     virtual bool validate(Transaction& t) { return true; }
     virtual void commit() { *dest = value; }
     virtual void abort() {};

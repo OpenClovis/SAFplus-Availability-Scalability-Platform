@@ -29,6 +29,7 @@ namespace SAFplus
         if (obj)
           return obj;
       }
+    return nullptr;
   }
 
   MgtObject::Iterator MgtContainer::begin(void)
@@ -88,6 +89,7 @@ namespace SAFplus
         if (ret)
           return ret;
       }
+    return nullptr;
   }
 
   MgtObject* MgtContainer::find(const std::string &s)
@@ -216,7 +218,7 @@ namespace SAFplus
     if (!this->parent)
       {
         MgtRoot *mgtRoot = MgtRoot::getInstance();
-        mgtRoot->UpdateReference();
+        mgtRoot->updateReference();
       }
     return rc;
   }
@@ -247,7 +249,7 @@ namespace SAFplus
         rc = child->write(db, xp);
         if (CL_OK != rc)
           {
-            logDebug("MGT", "SET", "Write data failed [%x] for child %s. Ignored", rc, child->tag.c_str());
+            logDebug("MGT", "SET", "Write data failed [%x] for child [%s]. Ignored", rc, child->tag.c_str());
             return rc;
           }
       }
@@ -256,12 +258,10 @@ namespace SAFplus
 
   ClBoolT MgtContainer::set(const void *pBuffer, ClUint64T buffLen, SAFplus::Transaction& t)
   {
-    logDebug("MGT", "SET", "Set data for Container");
+    logDebug("MGT", "SET", "Set data [%s] for container [%s]", (const char*) pBuffer, getFullXpath(true).c_str());
     SAFplus::MgtObjectMap::iterator iter;
     int ret, nodetyp, depth;
-    xmlChar *valstr, *namestr, *attrval;
-    xmlNodePtr node;
-    xmlAttr* attr;
+    xmlChar *valstr, *namestr;
 
     char strTemp[CL_MAX_NAME_LENGTH] = { 0 };
     string strChildData;
@@ -280,7 +280,6 @@ namespace SAFplus
         nodetyp = xmlTextReaderNodeType(reader);
         namestr = (xmlChar *) xmlTextReaderConstName(reader);
         valstr = (xmlChar *) xmlTextReaderValue(reader);
-        node = xmlTextReaderCurrentNode(reader);
         switch (nodetyp)
           {
         /* Opening tag of a node */
@@ -353,10 +352,10 @@ namespace SAFplus
     return true;
   }
 
-  MgtObject *MgtContainer::findMgtObject(const std::string &xpath, int idx)
+  MgtObject *MgtContainer::findMgtObject(const std::string &xpath, std::size_t idx)
   {
     MgtObject *obj = nullptr;
-    int nextIdx = xpath.find("/", idx + 1);
+    size_t nextIdx = xpath.find("/", idx + 1);
 
     if (nextIdx == std::string::npos)
       {

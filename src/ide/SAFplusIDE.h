@@ -119,11 +119,10 @@ class SAFplusIDE : public cbPlugin
         virtual void OnRelease(bool appShutDown);
 
         void Action(wxCommandEvent& event);
-        void PythonWinTest(wxCommandEvent& event);
         void UpdateUI(wxUpdateUIEvent& event);
-        void OnYangParse(wxCommandEvent &event);
-
-        static std::vector<wxString> extraFiles;
+#ifndef STANDALONE
+        void cbEventNotification(CodeBlocksEvent& event);
+#endif
     private:
         bool extractZipFile(const wxString& zipFile, const wxString& dstDir);
         void extractExtraFiles();

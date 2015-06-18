@@ -1,3 +1,4 @@
+import os
 import pdb
 import copy
 import random
@@ -217,7 +218,11 @@ instantiated  <instances>     instances                         instances     (e
     for (path, obj) in self.data.find("modules"):
       for module in obj.children(microdom.microdomFilter):   
         filename = module.data_.strip()
-        print module.tag_, ": ", filename
+        #print module.tag_, ": ", filename
+
+        if not os.path.dirname(filename) or len(os.path.dirname(filename).strip()) == 0:
+            filename = os.sep.join([os.path.dirname(self.filename), filename])
+
         if not self.modules.has_key(filename):  # really load it since it does not exist
           tmp = self.modules[filename] = Module(filename)
           self.entityTypes.update(tmp.entityTypes)  # make the entity types easily accdef xmlify(self):

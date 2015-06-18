@@ -95,9 +95,8 @@ namespace SAFplus
     config.maxPort    = SAFplusI::TcpTransportNumPorts;
     config.maxMsgAtOnce = SAFplusI::TcpTransportMaxMsg;
     config.capabilities = SAFplus::MsgTransportConfig::Capabilities::NAGLE_AVAILABLE;
-    //std::pair<in_addr,in_addr> ipAndBcast = SAFplusI::setNodeNetworkAddr(&nodeMask,clusterNodes);   
-    //struct in_addr bip = ipAndBcast.first;      
-    struct in_addr bip = SAFplusI::setNodeNetworkAddr(&nodeMask, clusterNodes);
+    std::pair<in_addr,in_addr> ipAndBcast = SAFplusI::setNodeNetworkAddr(&nodeMask,clusterNodes);   
+    struct in_addr bip = ipAndBcast.first;          
     config.nodeId = SAFplus::ASP_NODEADDR;
     netAddr = ntohl(bip.s_addr)&(~nodeMask);
 

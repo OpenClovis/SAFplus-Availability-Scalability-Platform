@@ -234,7 +234,7 @@ namespace SAFplus
 
     MgtRoot *mgtRoot = MgtRoot::getInstance();
 
-    int idx = pathSpec.find_last_of("/");
+    std::size_t idx = pathSpec.find_last_of("/");
 
     if (idx == std::string::npos)
       {
@@ -304,7 +304,7 @@ namespace SAFplus
 
     MgtRoot *mgtRoot = MgtRoot::getInstance();
 
-    int idx = pathSpec.find_last_of("/");
+    std::size_t idx = pathSpec.find_last_of("/");
 
     if (idx == std::string::npos)
       {
