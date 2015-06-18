@@ -27,7 +27,17 @@ using namespace SAFplusI;
 namespace SAFplus
 {
 
-NodeStatistics::NodeStatistics()
+NodeStatistics::NodeStatistics():loadAvg(0), sysUpTime(0),
+                                 timeSpentInUserMode(0),
+                                 timeIoWait(0),
+                                 timeSpentInSystemMode(0),
+                                 timeServicingInterrupts(0),
+                                 timeServicingSoftIrqs(0),
+                                 numCtxtSwitches(0),
+                                 bootTime(0),
+                                 numProcesses(0),
+                                 numProcRunning(0),
+                                 numProcBlocked(0) 
 {
     readLoadAvg();
     readNodeStats();
@@ -113,7 +123,7 @@ void NodeStatistics::scanProcLoadAvg(std::string fileBuf)
         throw statAccessErrors("Unable to access Node Statistics");
     }
     
-    loadAvg = avg15;
+    loadAvg = avg1;
     logTrace("STAT", "SCAN", "CPU utilization in last 15 "
              "minutes is %lf", loadAvg);
 

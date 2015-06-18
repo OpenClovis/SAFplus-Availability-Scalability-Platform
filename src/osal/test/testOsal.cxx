@@ -120,8 +120,6 @@ void testProcSemTaker(void)
   
 }
 
-
-
 int main(int argc, char* argv[])
 {
   logInitialize();
@@ -139,8 +137,11 @@ int main(int argc, char* argv[])
   TestNodeStats testObj;
 
   clTestCase(("OSL-TST-NOD.TC001: NodeStats"), testObj.testNodeStats());
+  clTestCase(("OSL-TST-LOD.TC002: Node's CPU load average"), testObj.testLoadAvg());
+
+  clTestCase(("OSL-TST-TIM.TC003: System up time"), testObj.testReadUpTime());
+
+  clTestCase(("OSL-TST-DSK.TC004: DiskStatistics"), testObj.testDiskStats());
 
   clTestGroupFinalize();
 }
-
-
