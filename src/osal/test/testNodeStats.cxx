@@ -51,6 +51,35 @@ TestNodeStats::~TestNodeStats()
 
 void TestNodeStats::testLoadAvg()
 {
+    
+    NodeStatistics nStat;
+    double ldAvg1;
+    double ldAvg2;
+    int32_t iloop = 0;
+
+    ldAvg1 = nStat.loadAvg;
+    while(1)
+    {
+        iloop++;
+        if( iloop == 99999999)
+        {
+            NodeStatistics nStat2;
+            ldAvg2 = nStat.loadAvg;
+            break;
+        }
+    }
+
+    //TODO: Better way is to have a seperate thread with spin loop,
+    // and the main thread should wait for 1 min and then 
+    // check whenther the load avg is increasing
+
+
+    //ldAvg2 value will be same or graeter. because in the above 
+    // does not consider the CPU utilization during one min interval
+    clTest(("Load average per minute"), (ldAvg2 >= ldAvg1), ("Load average does not look valid"));
+
+    return;
+        
 }
 
 void TestNodeStats::testNodeStats()
@@ -80,7 +109,7 @@ void TestNodeStats::testNodeStats()
     tIoWait = nStat.timeIoWait;
     clTest(("Time waiting for IO to complete"), tIoWait > 0, ("Invalid value %lu for IO waiting time", tIoWait));
 
-    //testing time spect for servicing interrupts
+    //testing time spent for servicing interrupts
     uint64_t tInterrupt = 0;
     tInterrupt = nStat.timeServicingInterrupts;
     clTest(("Time for servicing interrupts"), tInterrupt > 0, ("Invalid value %u for time taken to service interrupts", tInterrupt));
@@ -96,6 +125,15 @@ void TestNodeStats::testNodeStats()
 
 void TestNodeStats::testReadUpTime()
 {
+    NodeStatistics nStat;
+    double upTime = 0;
+
+    upTime = nStat.sysUpTime;
+
+    // The uptime should be definitely more than 0
+    clTest(("Sytem up time"), upTime > 0, ("Invalid value %lf for system uptime", upTime));
+
+    return;
 }
 
 void TestNodeStats::testDiskStats()
@@ -110,8 +148,8 @@ int main()
     utilsInitialize();
 
     clTestGroupInitialize(("NodeStats"));
-    TestNodeStats testObj;
 
+    TestNodeStats testObj;
     testObj.testNodeStats();
 
     clTestGroupFinalize();

@@ -91,7 +91,7 @@ class NodeStatistics
 
     public:
 
-    //The avarage of CPU and IO utilization for last 15miutes.
+    //The avarage of CPU and IO utilization for last 1 minute.
     double loadAvg;
 
     // The uptime of the system in seconds.

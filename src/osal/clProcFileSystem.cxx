@@ -41,40 +41,21 @@ std::string ProcFile::loadFileContents()
 
     std::ifstream fStr(name.c_str());
 
-#if 0
-    fStr.open(name.c_str());
-    
-    if(fStr.is_open())
-    {
-        std::string contents("simply testing. remove me");
-        //fStr.seekg(0, std::ios::end);
-        fStr.seekg(0, fStr.end);
-
-/*****testing***/
-	int testlen =fStr.tellg();
-	logError("PROC", "LOAD", "the filename is  %s", name.c_str());
-	logError("PROC", "LOAD", "the length if the file is %d", testlen);
-/********/
-
-        contents.resize(fStr.tellg());
-        fStr.seekg(0, std::ios::beg);
-        fStr.read(&contents[0], contents.size());
-        fStr.close();
-        return contents;
-    }
-#endif
-
+    // A string with the contents of the file pointed by
+    // fStr stream will be created here
 	std::string content( (std::istreambuf_iterator<char>(fStr)),
                        (std::istreambuf_iterator<char>()    ) );
 
-	//logError("PROC", "LOAD", "the contents of the file is  %s", content.c_str());
-	return content;
+    if (!content.empty())
+    {
+	    return content;
+    }
+    else 
+    {
+        // Returning an empty string for error case. 
+        return std::string();
+    }
 
-    //logError("PROC", "LOAD", "Error in loading contents of the file %s", name.c_str());
-    
-    // Returning an empty string for error case. 
-    // The caller should check it
-    return std::string(); 
 }
 
 } /* namespace SAFplus */
