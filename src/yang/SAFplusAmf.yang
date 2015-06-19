@@ -436,7 +436,7 @@ point.  The operational, administrative, and presence states of a service unit, 
       safplus:ui-button "comp_button.svg";
       safplus:atomic;
       uses EntityId;
-      leaf presence
+      leaf presenceState
       {
 	type PresenceState;
         config false;

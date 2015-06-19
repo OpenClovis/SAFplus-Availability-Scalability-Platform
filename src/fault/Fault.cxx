@@ -125,19 +125,24 @@ namespace SAFplus
     }
     void Fault::notify(SAFplus::Handle faultEntity,SAFplus::AlarmState alarmState,SAFplus::AlarmCategory category,SAFplus::AlarmSeverity severity,SAFplus::AlarmProbableCause cause,SAFplus::FaultPolicy pluginId)
     {
+      assert(faultEntity != INVALID_HDL);
         sendFaultEventMessage(faultEntity,FaultMessageSendMode::SEND_TO_ACTIVE_SERVER,SAFplus::FaultMessageType::MSG_ENTITY_FAULT,alarmState,category,severity,cause,pluginId);
     }
     void Fault::notify(SAFplus::Handle faultEntity,SAFplus::FaultEventData faultData,SAFplus::FaultPolicy pluginId)
     {
+      assert(faultEntity != INVALID_HDL);
         sendFaultEventMessage(faultEntity,FaultMessageSendMode::SEND_TO_ACTIVE_SERVER,SAFplus::FaultMessageType::MSG_ENTITY_FAULT,pluginId,faultData);
     }
     void Fault::notify(SAFplus::FaultEventData faultData,SAFplus::FaultPolicy pluginId)
     {
+      assert(reporter != INVALID_HDL);
         sendFaultEventMessage(reporter,FaultMessageSendMode::SEND_TO_ACTIVE_SERVER,SAFplus::FaultMessageType::MSG_ENTITY_FAULT,pluginId,faultData);
     }
 
     void Fault::notifyNoResponse(SAFplus::Handle faultEntity,SAFplus::AlarmSeverity severity)
     {
+      assert(faultEntity != INVALID_HDL);
+
     sendFaultEventMessage(faultEntity,FaultMessageSendMode::SEND_TO_ACTIVE_SERVER,SAFplus::FaultMessageType::MSG_ENTITY_FAULT,AlarmState::ALARM_STATE_ASSERT,AlarmCategory::ALARM_CATEGORY_COMMUNICATIONS,severity,SAFplus::AlarmProbableCause::ALARM_PROB_CAUSE_RECEIVER_FAILURE,FaultPolicy::Undefined);
     }
 

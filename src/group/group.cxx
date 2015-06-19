@@ -362,7 +362,7 @@ void Group::setNotification(SAFplus::Wakeable& w)
         }
 
       // ok passed all existence checks, so send the deregister message.
-
+      logDebug("GMS", "DER","Deregister entity [%" PRIx64 ":%" PRIx64 "]",me.id[0],me.id[1]);
       fillAndSendMessage((void *)&me,GroupMessageTypeT::MSG_ENTITY_LEAVE,GroupMessageSendMode::SEND_BROADCAST,GroupRoleNotifyTypeT::ROLE_UNDEFINED);
 
       // TODO wait until the node representative actually receives the message and changes shared memory?

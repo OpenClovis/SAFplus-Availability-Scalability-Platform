@@ -66,7 +66,8 @@ namespace SAFplus
      */
     operator T& ()
     {
-        return value;
+      if (value==NULL) updateReference();  // was not loaded the first time, try to reresolve.  TODO: consider the efficiency of this 
+      return value;
     }
     /**
      * \brief   Define basic comparison
@@ -112,6 +113,7 @@ namespace SAFplus
       return CL_OK;
     }
 
+    //? Resolve this reference to a pointer if it is not yet resolved.  This can happen because this object may be loaded from the database before the object it points to is created.
     void updateReference()
     {
       MgtObject *root = this->root();

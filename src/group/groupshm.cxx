@@ -290,7 +290,7 @@ void GroupServer::msgHandler(Handle from, SAFplus::MsgServer* svr, ClPtrT msg, C
     logError("GMS","MSG","Received NULL message. Ignored");
     return;
   }
-  logInfo("GMS","MSG","Received message [%x] from node %d",rxMsg->messageType,fromNode);
+  logInfo("GMS","MSG","Received message [%x] from node [%d]",rxMsg->messageType,fromNode);
 
   switch(rxMsg->messageType)
   {
@@ -310,9 +310,9 @@ void GroupServer::msgHandler(Handle from, SAFplus::MsgServer* svr, ClPtrT msg, C
         } break;
     case SAFplusI::GroupMessageTypeT::MSG_ENTITY_LEAVE:
       {
-      logDebug("GMS","MSG","Entity LEAVE message");
       //mGroup->nodeLeaveHandle(rxMsg);
       EntityIdentifier *eId = (EntityIdentifier *)rxMsg->data;
+      logDebug("GMS","MSG","Entity LEAVE message",*eId);
       deregisterEntity(ge, *eId,false);
       } break;
     case SAFplusI::GroupMessageTypeT::MSG_ROLE_NOTIFY:

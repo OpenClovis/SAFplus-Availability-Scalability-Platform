@@ -47,6 +47,8 @@ using namespace SAFplus::Rpc::amfRpc;
 
 typedef boost::unordered_map<SAFplus::AmfRedundancyPolicy,ClPluginHandle*> RedPolicyMap;
 
+void initializeOperationalValues(SAFplusAmf::SAFplusAmfRoot& cfg);
+
 RedPolicyMap redPolicies;
 
 // IOC related globals
@@ -553,10 +555,10 @@ int main(int argc, char* argv[])
   /* Initialize mgt database  */
   MgtDatabase *db = MgtDatabase::getInstance();
   db->initializeDB("SAFplusAmf");
-  //cfg.read(db);
-
+  cfg.read(db);
+  initializeOperationalValues(cfg);
   // TEMPORARY testing initialization
-  loadAmfConfig(&cfg);
+  //loadAmfConfig(&cfg);
   dataModule.loadModule();
   dataModule.initialize();
   bind();
@@ -649,7 +651,7 @@ int main(int argc, char* argv[])
     {
     ScopedLock<> lock(m);
 
-    if (!firstTime && (somethingChanged.timed_wait(m,20000)==0))
+    if (!firstTime && (somethingChanged.timed_wait(m,5000)==0))
       {  // Timeout
       logDebug("IDL","---","...waiting for something to happen...");
       int pid;
@@ -719,3 +721,51 @@ int main(int argc, char* argv[])
   //fs.notify(nodeHandle,AlarmStateT::ALARM_STATE_ASSERT, AlarmCategoryTypeT::ALARM_CATEGORY_EQUIPMENT,...);
   fault.registerEntity(nodeHandle,FaultState::STATE_DOWN);
   }
+
+
+void initializeOperationalValues(SAFplusAmf::SAFplusAmfRoot& cfg)
+{
+#if 0
+  for (it = cfg->serviceGroupList.begin();it != cfg->serviceGroupList.end(); it++)
+    {
+      startSg=false;
+      ServiceGroup* sg = dynamic_cast<ServiceGroup*> (it->second);
+      const std::string& name = sg->name;
+    }
+#endif
+
+  MgtObject::Iterator itsu;
+  MgtObject::Iterator endsu = cfg.serviceUnitList.end();
+
+  for (itsu = cfg.serviceUnitList.begin(); itsu != endsu; itsu++)
+    {
+      ServiceUnit* su = dynamic_cast<ServiceUnit*>(itsu->second);
+      //const std::string& suName = su->name;
+
+      su->numActiveServiceInstances.current=0;
+      su->numStandbyServiceInstances.current=0;
+      su->restartCount.current=0;
+
+      su->operState = false; // Not faulted: We can try to turn this on.
+      su->readinessState = ReadinessState::outOfService;
+      su->presenceState = PresenceState::uninstantiated;
+      su->haReadinessState = HighAvailabilityReadinessState::notReadyForAssignment;
+      su->haState = HighAvailabilityState::idle;
+    }
+
+  MgtObject::Iterator itcomp;
+  MgtObject::Iterator endcomp = cfg.componentList.end();
+  for (itcomp = cfg.componentList.begin(); itcomp != endcomp; itcomp++)
+    {
+      Component* comp = dynamic_cast<Component*>(itcomp->second);
+      comp->activeAssignments.current = 0; 
+      comp->standbyAssignments.current = 0; 
+
+      comp->operState = true;  // Not faulted: We can try to turn this on.
+      comp->readinessState = ReadinessState::outOfService;
+      comp->presence = PresenceState::uninstantiated;
+      comp->haReadinessState = HighAvailabilityReadinessState::notReadyForAssignment;
+      comp->haState = HighAvailabilityState::idle;
+    }
+
+}

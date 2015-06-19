@@ -154,7 +154,9 @@ namespace SAFplus
      
      char* getName(const SAFplus::Handle& handle) throw(NameException&); // This function gets the name associated with the specified handle
    
+     //? Gets the handle associated with a name.  Throws exception if the name does not exist or the handle is INVALID_HDL
      SAFplus::Handle& getHandle(const char* name) throw(NameException&);
+     //? Gets the handle associated with a name.  Throws exception if the name does not exist or the handle is INVALID_HDL
      SAFplus::Handle& getHandle(const std::string& name) throw(NameException&);
    
        

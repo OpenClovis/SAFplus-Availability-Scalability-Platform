@@ -140,8 +140,9 @@ namespace SAFplus
       SAFplus::logCompName = "SPN"; // change the log name of the child so the source of this log isn't confusing
       logAlert("OS","PRO","Program [%s] execution failed with error [%s (%d)].  Working directory [%s]",charstrs[0], strerror(err),err, getcwd(temp,200));
       // If the error is understood, exit.  Otherwise assert
-      if (err == ENOENT) exit(0); // Expected error; user did not give a valid executable
-      if (err == EACCES) exit(0); // Expected error; permissions are not correct
+      // We need to _exit() so destructors aren't run.  We don't want to run destructors because the original process is still running
+      if (err == ENOENT) _exit(err); // Expected error; user did not give a valid executable
+      if (err == EACCES) _exit(err); // Expected error; permissions are not correct
       assert(0);
       }
 

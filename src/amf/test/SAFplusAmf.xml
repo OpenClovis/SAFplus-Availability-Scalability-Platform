@@ -39,12 +39,16 @@
       <rank>0</rank>
       <failover>true</failover>
       <components>c0</components>
+      <serviceGroup>sg0</serviceGroup>
+      <node>sc0</node>
     </ServiceUnit>
     <ServiceUnit name="su1">
       <adminState>on</adminState>
       <rank>0</rank>
       <failover>true</failover>
       <components>c1</components>
+      <serviceGroup>sg0</serviceGroup>
+      <node>sc1</node>
     </ServiceUnit>
 
     <ServiceInstance name="si">

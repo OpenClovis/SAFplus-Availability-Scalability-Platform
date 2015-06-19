@@ -377,6 +377,7 @@ Handle& NameRegistrar::getHandle(const char* name) throw(NameException&)
          data->handles[idx].id[0] = ENDIAN_SWAP_U64(data->handles[idx].id[0]);
          data->handles[idx].id[1] = ENDIAN_SWAP_U64(data->handles[idx].id[1]);
       }
+      if (data->handles[idx] == INVALID_HDL) throw NameException("name provided has invalid handle");
       return data->handles[idx];
    }
    throw NameException("name provided does not exist");
@@ -384,15 +385,8 @@ Handle& NameRegistrar::getHandle(const char* name) throw(NameException&)
 
 Handle& NameRegistrar::getHandle(const std::string& name) throw(NameException&)
 {
-   try
-   {
-      Handle& handle = getHandle(name.c_str());
-      return handle;
-   }
-   catch (NameException &ne)
-   {
-      throw ne;
-   }
+  Handle& handle = getHandle(name.c_str());
+  return handle;
 }
 
 char* NameRegistrar::getName(const SAFplus::Handle& handle) throw(NameException&)

@@ -106,9 +106,9 @@ extern MgtIteratorBase mgtIterEnd;
     std::string listTag;
     std::string dataXPath;
     bool loadDb;
-    bool config;
+    bool config;  // True if this object is configuration (available in the database).  False if it is statistics or status
     MgtObject *parent;
-    ClUint32T headRev; //Revision to check before sending
+    ClUint32T headRev; // Revision to check before sending
   public:
     MgtObject(const char* name);
     virtual ~MgtObject();

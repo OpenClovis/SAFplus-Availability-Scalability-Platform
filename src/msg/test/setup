@@ -11,6 +11,8 @@ sysctl -w net.core.wmem_default=10485760
 export CL_LOG_SEVERITY=ERROR
 export CL_LOG_CODE_LOCATION_ENABLE=1
 
+# To use UDP broadcasts on the loopback interface I need to enable a broadcast address
+ifconfig lo broadcast 127.255.255.255
 export SAFPLUS_BACKPLANE_INTERFACE=lo
 
 ./bin/node --add 127.0.0.1

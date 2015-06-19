@@ -41,7 +41,7 @@ namespace SAFplus
     tag.assign(name);
     listTag.assign(name);
     dataXPath.assign("");
-    loadDb = false;
+    loadDb = true;
     config = true;
     parent = nullptr;
     headRev = 1;
