@@ -746,10 +746,10 @@ void initializeOperationalValues(SAFplusAmf::SAFplusAmfRoot& cfg)
       su->numStandbyServiceInstances.current=0;
       su->restartCount.current=0;
 
-      su->operState = false; // Not faulted: We can try to turn this on.
+      su->operState = true; // Not faulted: We can try to turn this on.
       su->readinessState = ReadinessState::outOfService;
       su->presenceState = PresenceState::uninstantiated;
-      su->haReadinessState = HighAvailabilityReadinessState::notReadyForAssignment;
+      su->haReadinessState = HighAvailabilityReadinessState::notReadyForAssignment; // This will be modified to reflect the cumulative state of the components
       su->haState = HighAvailabilityState::idle;
     }
 
@@ -764,8 +764,20 @@ void initializeOperationalValues(SAFplusAmf::SAFplusAmfRoot& cfg)
       comp->operState = true;  // Not faulted: We can try to turn this on.
       comp->readinessState = ReadinessState::outOfService;
       comp->presence = PresenceState::uninstantiated;
-      comp->haReadinessState = HighAvailabilityReadinessState::notReadyForAssignment;
+
+      comp->haReadinessState = HighAvailabilityReadinessState::readyForAssignment;
       comp->haState = HighAvailabilityState::idle;
     }
+
+  MgtObject::Iterator itnode;
+  MgtObject::Iterator endnode = cfg.nodeList.end();
+  for (itnode = cfg.nodeList.begin(); itnode != endnode; itnode++)
+    {
+      Node* node = dynamic_cast<Node*>(itnode->second);
+
+      node->operState = true;  // Not faulted: We can try to turn this on.
+    }
+
+
 
 }

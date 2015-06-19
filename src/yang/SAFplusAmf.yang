@@ -110,7 +110,7 @@ point.  The operational, administrative, and presence states of a service unit, 
         enum notReadyForActive;
         enum notReadyForAssignment;
       }
-      default notReadyForAssignment;
+      default readyForAssignment;
     }
 
 
@@ -541,7 +541,7 @@ point.  The operational, administrative, and presence states of a service unit, 
       {
         type HighAvailabilityReadinessState;
         config false; // Application can change this, but not management interface
-	description "This state field covers ALL work assignments...";
+	description "This state field covers ALL work assignments.  If this field is set to notReadyForAssignment then SAFplus will not assign work.  So the application can call saAmfHAReadinessStateSet() upon startup (or any other time) to enable or disable work assignments.";
       }
     
       leaf haState

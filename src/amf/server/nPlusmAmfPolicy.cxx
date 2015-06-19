@@ -490,7 +490,8 @@ namespace SAFplus
         SAFplus::MgtProvList<SAFplusAmf::ServiceUnit*>::ContainerType::iterator endsu = sg->serviceUnits.value.end();
         for (itsu = sg->serviceUnits.value.begin(); itsu != endsu; itsu++)
           {
-          
+          uint readyForAssignment;
+          readyForAssignment = 0;
           //ServiceUnit* su = dynamic_cast<ServiceUnit*>(itsu->second);
           ServiceUnit* su = dynamic_cast<ServiceUnit*>(*itsu);
           Node* suNode = su->node.value;
@@ -606,6 +607,11 @@ namespace SAFplus
                   {
                   comp->numInstantiationAttempts.value = 0; 
                   }
+                
+                if (comp->haReadinessState == HighAvailabilityReadinessState::readyForAssignment)
+                  {
+                    readyForAssignment++;
+                  }
                 }
               }
 
@@ -666,6 +672,18 @@ namespace SAFplus
 
             // TODO: Event?
             }
+
+
+          // Now address SU's haReadinessState.  AMF B04.01 states that the haReadiness state should be per SU/SI combination.  It is the ability of this SU to accept a particular piece of work.  At this point I am going to reject this as unnecessary complexity and have a single haReadinessState per SU.  Having work that cannot be applied to particular SUs is problematic because the AMF has no way (other than guessing) to determine which work can be assigned to which SU.  If work can't be assigned to a SU, it should not be in that SG in the first place (create a separate SG for that work).
+          HighAvailabilityReadinessState hrs; // = su->haReadinessState;
+          if (readyForAssignment == numComps) hrs = HighAvailabilityReadinessState::readyForAssignment;
+          else hrs = HighAvailabilityReadinessState::notReadyForAssignment;
+          if (hrs != su->haReadinessState)
+            {
+            logInfo("N+M","AUDIT","High hvailability readiness state of Service Unit [%s] changed from [%s (%d)] to [%s (%d)]", su->name.value.c_str(),c_str(su->haReadinessState.value),su->haReadinessState.value, c_str(hrs), hrs);
+            su->haReadinessState.value = hrs;
+            }
+
           }
         }
 
