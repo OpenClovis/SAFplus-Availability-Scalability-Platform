@@ -377,7 +377,7 @@ Handle& NameRegistrar::getHandle(const char* name) throw(NameException&)
          data->handles[idx].id[0] = ENDIAN_SWAP_U64(data->handles[idx].id[0]);
          data->handles[idx].id[1] = ENDIAN_SWAP_U64(data->handles[idx].id[1]);
       }
-      if (data->handles[idx] == INVALID_HDL) throw NameException("name provided has invalid handle");
+      if (data->handles[idx] == INVALID_HDL) throw NameException("Provided name has invalid handle");
       return data->handles[idx];
    }
    throw NameException("name provided does not exist");

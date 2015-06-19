@@ -209,24 +209,16 @@ namespace SAFplus
         MgtObject* child = it->second;
         if (child->config)
           {
-            if(child->tag == "haState") // DBG
-              {
-                logWarning("MGT", "READ", "haState");
-              }
             rc = child->read(db, xp);
             if (CL_OK != rc)
               {
                 logWarning("MGT", "READ", "Read data failed error [0x%x] for child [%s] of [%s]. Ignored", rc, child->tag.c_str(), xp.c_str());
-                if (child->tag == "haReadinessState")
-                  {
-                    logWarning("MGT", "READ", "haRedState");
-                  }
                 // TODO: Attempt to initialize the MgtObject to its configured default.  If that cannot happen, remember this error and raise an exception at the end.
               }
           }
         else
           {
-            // TODO: initialize to default
+            // TODO: Initialize the MgtObject to its configured default.           
           }
       }
 
