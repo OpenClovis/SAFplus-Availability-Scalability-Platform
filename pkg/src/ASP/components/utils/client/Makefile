@@ -94,6 +94,7 @@ SRC_FILES	:= clPool.c \
                clTimeServer.c\
                clLeakyBucket.c \
                clMemGroup.c \
+               stackTrace.c \
 				clErrorTable.c \
 
 ifeq ($(TARGET_VXWORKS), 1)
@@ -109,8 +110,8 @@ DEP_COMP_LIST	:= osal timer debug buffer eo rmd ioc cnt log amf cor event
 # Library name:
 
 LIB_NAMES	= libClUtils
-
 EXTRA_CPPFLAGS += -I $(CLOVIS_ROOT)/ASP/3rdparty/ezxml/stable
+CFLAGS  += -I$(CLOVIS_ROOT)/ASP/3rdparty/libunwind/libunwind-trunk/include/
 
 ifeq ("$(WIND_VER)","1.2")
     EXTRA_CPPFLAGS += -DWIND_PTHREAD
@@ -123,17 +124,5 @@ endif
 ifeq ($(CL_HEAP_CHECKER), 1)
 	EXTRA_CFLAGS += -DCL_HEAP_CHECKER
 endif
-
-
-# If there are more than one client libraries to be built here, you
-# need to list the object files that will make up each library:
-#
-# Example:
-#     libClTmpcomp_basic: file1.o file2.o
-#     libClTmpcomp_advanced: file1.o file2.o file3.o file4.o
-#
-# If your component builds one library only, than this list will automatically
-# obtained from the SRC_FILES variable above, so you don't need to create it.
-#
 
 include $(CLOVIS_ROOT)/ASP/mk/make-client.mk

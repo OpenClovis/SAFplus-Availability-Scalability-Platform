@@ -1,0 +1,11 @@
+x86_64/setcontext.lo: x86_64/setcontext.S /usr/include/stdc-predef.h \
+ x86_64/ucontext_i.h /usr/include/x86_64-linux-gnu/asm/unistd.h \
+ /usr/include/x86_64-linux-gnu/asm/unistd_64.h
+
+/usr/include/stdc-predef.h:
+
+x86_64/ucontext_i.h:
+
+/usr/include/x86_64-linux-gnu/asm/unistd.h:
+
+/usr/include/x86_64-linux-gnu/asm/unistd_64.h:
