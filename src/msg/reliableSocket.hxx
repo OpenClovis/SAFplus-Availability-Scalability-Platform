@@ -2,6 +2,7 @@
 #include <boost/thread.hpp>
 #include <clMsgBase.hxx>
 #include <ReliableFragment.hxx>
+#include <boost/unordered_map.hpp>
 
 //TODO
 u_int RELIABLE_MSG_TYPE = 0x50;
@@ -157,6 +158,7 @@ namespace SAFplus
     /*
     * When this timer expires, the connection is considered broken.
     */
+      boost::intrusive::list_member_hook<> m_memberHook;
     int sendQueueSize = 32; /* Maximum number of received segments */
     int recvQueueSize = 32; /* Maximum number of sent segments */
     int sendBufferSize;
@@ -171,6 +173,7 @@ namespace SAFplus
     bool  shutIn  = false;
     bool  shutOut = false;
     queueInfomation *queueInfo;
+    boost::thread rcvThread;
     ReliableFragmentList unackedSentQueue;
     ReliableFragmentList outOfSeqQueue;
     ReliableFragmentList inSeqQueue;
@@ -206,6 +209,7 @@ namespace SAFplus
     void retransmitFragment(ReliableFragment* frag);
     void setconnection(connectionNotification state);
     void connectionOpened(void);
+    void init();
 
     public:
     Handle destination;
@@ -245,6 +249,23 @@ namespace SAFplus
      {
         delete delete_this;
      }
+  };
+
+
+  typedef boost::unordered_map < SAFplus::Handle, MsgSocketReliable*, boost::hash<SAFplus::Handle>, std::equal_to<SAFplus::Handle> > HandleSockMap;
+  class MsgSocketServerReliable : public MsgSocketAdvanced
+  {
+    int timeout;
+    bool isClosed;
+    HandleSockMap clientSockTable;
+    boost::thread ServerRcvThread;
+    void addClientSocket(Handle destAddress, MsgSocketReliable* sockClient);
+    void removeClientSocket(Handle destAddress);
+    void handleRcvThread();
+    static void rcvThread(void * arg);
+    MsgSocketServerReliable(uint_t port,MsgTransportPlugin_1* transport);
+    MsgSocketServerReliable(MsgSocket* socket);
+    void init();
   };
 
 };

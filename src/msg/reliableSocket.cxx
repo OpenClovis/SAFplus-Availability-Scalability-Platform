@@ -844,19 +844,25 @@ namespace SAFplus
   {
      sock=transport->createSocket(port);
      queueInfo = new queueInfomation();
-     boost::thread rcvThread = boost::thread(MsgSocketReliable::ReliableSocketThread, this);
+     rcvThread = boost::thread(MsgSocketReliable::ReliableSocketThread, this);
   }
   MsgSocketReliable::MsgSocketReliable(MsgSocket* socket)
   {
      sock=socket;
      queueInfo = new queueInfomation();
-     boost::thread rcvThread = boost::thread(MsgSocketReliable::ReliableSocketThread, this);
+     rcvThread = boost::thread(MsgSocketReliable::ReliableSocketThread, this);
   }
 
   void MsgSocketReliable::ReliableSocketThread(void * arg)
   {
      MsgSocketReliable* p_this = (MsgSocketReliable*)arg;
      p_this->handleReliableSocketThread();
+  }
+
+  void MsgSocketReliable::init()
+  {
+    //start receiver thread.
+    rcvThread.start_thread();
   }
 
   void MsgSocketReliable::handleReliableSocketThread(void)
@@ -934,8 +940,6 @@ namespace SAFplus
            p_Frag = p_Frag->nextFragment;
         }
      }
-    //Apply reliable algorithm
-    sock->send(msg);
   }
 
   void MsgSocketReliable::send(SAFplus::Handle destination, void* buffer, uint_t length,uint_t msgtype)
@@ -1183,4 +1187,107 @@ namespace SAFplus
       sock->flush();
   }
 
+
+
+
+  void MsgSocketServerReliable::addClientSocket(Handle destAddress, MsgSocketReliable* sockClient)
+  {
+    if (clientSockTable[destAddress] == nullptr)
+    {
+       try
+       {
+         sockClient->sock=sock;
+         clientSockTable[destAddress]=sockClient;
+       }
+       catch (...)
+       {
+          // Handle Exception
+       }
+    }
+  }
+
+
+  void MsgSocketServerReliable::removeClientSocket(Handle destAddress)
+  {
+    clientSockTable.erase(destAddress);
+    if (clientSockTable.empty())
+    {
+        if (isClosed==true) {
+            sock->~MsgSocket();
+        }
+    }
+  }
+  void MsgSocketServerReliable::handleRcvThread()
+  {
+    Message* p_Msg = nullptr;
+    int iMaxMsg = 1;
+    int iDelay = 1;
+    int iMsgType = 0;
+    void * p_Data = nullptr;
+    Handle destinationAddress;
+    MsgFragment* p_NextFrag = nullptr;
+    while (true)
+    {
+      MsgSocketReliable sockClient(sock);
+      try
+      {
+        p_Msg=this->sock->receive(iMaxMsg,iDelay);
+        destinationAddress = p_Msg->getAddress();
+        ReliableFragment* p_Fragment = nullptr;
+        p_NextFrag = p_Msg->firstFragment;
+        if(p_NextFrag == nullptr)
+        {
+           return;
+        }
+        p_Data = p_NextFrag->data();
+        if(p_Data)
+        {
+          iMsgType =  *((int*)p_Data);
+        }
+        p_NextFrag = p_NextFrag->nextFragment;
+        if(p_NextFrag == nullptr)
+        {
+           return;
+        }
+        p_Data = p_NextFrag->data();
+        if(p_Data)
+        {
+          p_Fragment = ReliableFragment::parse((Byte*)p_Data, 0, p_NextFrag->len);
+        }
+        if(!isClosed)
+        {
+          if (p_Fragment->getType()==FRAG_SYN)
+          {
+            if(clientSockTable[destinationAddress]==nullptr)
+            {
+              addClientSocket(destinationAddress,&sockClient);
+            }
+          }
+        }
+      }catch (...)
+      {
+
+      }
+    }
+  }
+  void MsgSocketServerReliable::rcvThread(void * arg)
+  {
+     MsgSocketServerReliable* p_this = (MsgSocketServerReliable*)arg;
+     p_this->handleRcvThread();
+  }
+  MsgSocketServerReliable::MsgSocketServerReliable(uint_t port,MsgTransportPlugin_1* transport)
+  {
+    sock=transport->createSocket(port);
+    ServerRcvThread = boost::thread(rcvThread, this);
+  }
+  MsgSocketServerReliable::MsgSocketServerReliable(MsgSocket* socket)
+  {
+    sock=socket;
+    ServerRcvThread = boost::thread(rcvThread, this);
+  }
+
+  void MsgSocketServerReliable::init()
+  {
+    ServerRcvThread.start_thread();
+  }
 };
