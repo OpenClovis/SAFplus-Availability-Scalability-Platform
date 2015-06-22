@@ -1,12 +1,12 @@
 #include <sys/types.h>
 #include <unistd.h>
-#include <inttypes.h>
 
 #include <boost/date_time/posix_time/posix_time.hpp>
 #include <boost/thread/thread.hpp> 
 
 #include <boost/unordered_map.hpp>
 
+#include <cltypes.h>
 #include <clCommon.hxx>
 #include <clMsgPortsAndTypes.hxx>
 

@@ -1,7 +1,6 @@
 #ifndef clHandleApi_hpp
 #define clHandleApi_hpp
 #include <cltypes.h>
-#include <inttypes.h>
 #include <assert.h>
 #include <stdio.h>
 #include <boost/functional/hash.hpp> 

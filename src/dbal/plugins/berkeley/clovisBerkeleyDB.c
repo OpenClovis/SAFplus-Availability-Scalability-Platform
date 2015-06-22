@@ -29,8 +29,9 @@
 #include <string.h>
 #include <stdlib.h>
 #include <errno.h>
-#include <db.h>
 #include <sys/stat.h>
+#include <cltypes.h>
+#include <db.h>
 #include <clCommon6.h>
 #include <clCommonErrors6.h>
 #include <clDbalApi.h>
