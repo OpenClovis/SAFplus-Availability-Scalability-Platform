@@ -63,6 +63,8 @@ namespace SAFplus
   SAFplusAmf::AdministrativeState effectiveAdminState(SAFplusAmf::Component* comp)
     {
     assert(comp);
+    if (!comp->serviceUnit.value) comp->serviceUnit.updateReference(); // find the pointer if it is not resolved
+
     if ((!comp->serviceUnit.value)||(!comp->serviceUnit.value->node.value)||(!comp->serviceUnit.value->serviceGroup.value))  // This component is not properly hooked up to other entities; is must be off
       {
       logInfo("N+M","AUDIT","Component [%s] entity group is not properly configured",comp->name.value.c_str());

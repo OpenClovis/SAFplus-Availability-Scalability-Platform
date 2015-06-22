@@ -34,6 +34,7 @@
 #include <string>
 #include <vector>
 
+#include "clLogApi.hxx"
 #include "clMgtObject.hxx"
 #include "clMgtMsg.hxx"
 #include "MgtFactory.hxx"
@@ -874,7 +875,7 @@ namespace SAFplus
             std::string keyValue;
 
             db->getRecord(*it, keyValue);
-
+            //logInfo("MGT", "READ", "Read [%s] -> [%s]", it->c_str(),keyValue.c_str());
             std::size_t found = (*it).find_last_of("@");
             std::string dataXPath = (*it).substr(0, found);
 
@@ -893,7 +894,10 @@ namespace SAFplus
           MgtObject *obj = iter->second;
           rc = obj->read(db);
           if(CL_OK != rc)
-            return rc;
+            {
+              // TODO log something
+              //logInfo("MGT", "READ", "Load of some elements of [%s] failed with error [0x%x]", obj->tag.c_str(), rc);
+            }
         }
         return rc;
       }

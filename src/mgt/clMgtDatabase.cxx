@@ -31,9 +31,9 @@ extern "C"
 } /* end extern 'C' */
 #endif
 
-#define DBAL_DB_KEY_BITS (0x16)
-#define DBAL_DB_KEY_SIZE (1 << DBAL_DB_KEY_BITS)
-#define DBAL_DB_KEY_MASK (DBAL_DB_KEY_SIZE - 1)
+#define DBAL_DB_KEY_BITS (32ULL)
+#define DBAL_DB_KEY_SIZE (1ULL << DBAL_DB_KEY_BITS)
+#define DBAL_DB_KEY_MASK (DBAL_DB_KEY_SIZE - 1ULL)
 
 namespace SAFplus
 {
@@ -164,7 +164,7 @@ namespace SAFplus
 
     value.clear();
     value.append(cvalue, dataSize);
-
+    logInfo("MGT", "DBR", "Record [0x%x]: [%s] -> [%s]", hashKey, key.c_str(), value.c_str());
     SAFplusHeapFree(cvalue);
     return rc;
   }
@@ -271,7 +271,7 @@ namespace SAFplus
       {
         std::string value(recData, dataSize);
         listXpath.push_back(value);
-
+        logInfo("MGT", "LST", "Read [%s]", value.c_str());
         //Free memory
         SAFplusHeapFree(recData);
 

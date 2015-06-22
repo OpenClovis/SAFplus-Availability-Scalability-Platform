@@ -122,6 +122,10 @@ namespace SAFplus
           MgtObject *obj = root->lookUpMgtObject(typeid(T).name(), ref);
           if (obj)
             value = (T)obj;
+          else
+            {
+              logWarning("MGT", "READ", "Object [%s] contains unresolved management tree reference [%s]", getFullXpath(true).c_str(), ref.c_str());
+            }
         }
     }
 
