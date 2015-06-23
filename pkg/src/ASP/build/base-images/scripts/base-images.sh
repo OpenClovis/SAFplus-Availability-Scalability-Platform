@@ -166,6 +166,7 @@ populate_image() {
     echo "  Copying libraries..."
     ${INSTALL} $installflags $ASP_LIB/*.so $imagedir/lib
     ${INSTALL} $installflags $PROJECT_ROOT/target/$ARCH/$SYS/lib/*.so $imagedir/lib
+    ${INSTALL} $installflags $PROJECT_ROOT/target/$ARCH/$SYS/lib/*.so.8 $imagedir/lib
     if [ -d $ASP_LIB/pym ]; then
         cp -r $ASP_LIB/pym $imagedir/lib
     fi
@@ -173,6 +174,7 @@ populate_image() {
     if [ $ASP_BUILD = 0 ]; then
         echo "  Copying ASP libraries..."
         ${INSTALL} $installflags $ASP_INSTALLDIR/target/$ARCH/$SYS/lib/*.so $imagedir/lib
+        ${INSTALL} $installflags $ASP_INSTALLDIR/target/$ARCH/$SYS/lib/*.so.8 $imagedir/lib
     fi
 
     ${INSTALL} $installflags $MODEL_LIB/*.so $imagedir/lib
