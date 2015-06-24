@@ -51,11 +51,11 @@ class ProcStats
         Waking, /*(Linux 2.6.33 to 3.13 only)*/
         Parked, /*(Linux 3.9 to 3.13 only)*/
         InvalidState,
-    } ProcState;
+    } ProcessState;
 
     // The enum value showing the process state at the 
     // time when the instance of this class is created.
-   ProcState procState;
+    ProcessState procState;
 
     // The number of minor faults the process has made 
     //which have not required loading a memory page from disk

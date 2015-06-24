@@ -51,6 +51,9 @@
     </default>
    
     <models> 
+      <osalUnitTest>
+	<image_source value="dir://code/git/SAFplus7/test/osalUnitTest" />
+     </osalUnitTest>
       <logUnitTest>
 	<image_source value="dir://code/git/SAFplus7/test/logUnitTest" />
      </logUnitTest>
@@ -113,6 +116,16 @@
       <testfilter>
       </testfilter>
     </logUnitTest>
+    <osalUnitTest>
+      <mapping>
+	<SysCtrl0   node="node0" role="controller" installDir="~/osalUnitTest" />
+      </mapping>
+      <testcase_dir  value="/code/git/SAFplus7/test/osalUnitTest" />
+      <make_options value="" />
+      <configure_options value="" />
+      <testfilter>
+      </testfilter>
+    </osalUnitTest>
     <msgUnitTest>
       <testcase_dir  value="/code/git/SAFplus7/test/msgUnitTest" />
       <mapping>

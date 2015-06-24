@@ -246,7 +246,7 @@ void NodeStatistics::scanDiskStats(std::string fBuf)
         sscanf(lineBuf, "   %*d    %*d %s", device);
         DiskStatistics *dev = new DiskStatistics(device);
 
-        if (sscanf(lineBuf,"   %*d    %*d %*s %u %u %llu %*u %u %u %llu %*u %u %*u %*u",
+        if (sscanf(lineBuf,"   %*d    %*d %*s %" PRIu64 " %" PRIu64 " %" PRIu64 " %*d %" PRIu64 " %" PRIu64 " %" PRIu64 "%*d %" PRIu64 "%*d %*d",
                 &(dev->numReadsCompleted),
                 &(dev->numReadsMerged),
                 &(dev->numSectorsRead),

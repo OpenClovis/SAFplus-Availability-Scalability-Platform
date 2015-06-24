@@ -25,8 +25,8 @@ static ClDBHandleT dbHdl = 0x0;
 static ClDBHandleT dbIterHdl = 0x0;
 
 #define PYDBAL_DB_KEY_BITS (32ULL)
-#define PYDBAL_DB_KEY_SIZE (1 << PYDBAL_DB_KEY_BITS)
-#define PYDBAL_DB_KEY_MASK (PYDBAL_DB_KEY_SIZE - 1)
+#define PYDBAL_DB_KEY_SIZE (1ULL << PYDBAL_DB_KEY_BITS)
+#define PYDBAL_DB_KEY_MASK (PYDBAL_DB_KEY_SIZE - 1ULL)
 
 static __inline__ ClUint32T getHashKeyFn(const ClCharT *keyStr)
 {

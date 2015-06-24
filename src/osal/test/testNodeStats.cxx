@@ -27,19 +27,6 @@
 using namespace SAFplus;
 using namespace SAFplusI;
 
-#if 0
-class TestNodeStats
-{
-    public:
-    TestNodeStats();
-    ~TestNodeStats();
-
-    void testLoadAvg();
-    void testNodeStats();
-    void testReadUpTime();
-    void testDiskStats();
-};
-#endif
 
 TestNodeStats::TestNodeStats()
 {

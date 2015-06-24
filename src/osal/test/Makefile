@@ -17,10 +17,22 @@ Release all: $(TEST_DIR)/testOsal
 $(TEST_DIR)/testOsal: $(CLIENT_OBJ) $(DEP_LIBS)
 	$(LINK_EXE) $@ $+ $(SAFPLUS_LINK_LIBS)  $(LINK_SO_LIBS)
 
+#$(TEST_DIR)/testNodeStats: $(CLIENT_OBJ) $(DEP_LIBS)
+#	$(LINK_EXE) $@ $+ $(SAFPLUS_LINK_LIBS)  $(LINK_SO_LIBS)
+
 $(OBJ_DIR)/%.o: %.cxx Makefile $(CLIENT_H)
 	$(COMPILE_CPP) $@ $<
+
+
+image: $(IMAGE_FILE)
+
+$(IMAGE_FILE): $(TEST_DIR)/testOsal
+	cp setup start $(SAFPLUS_TARGET)
+	$(SAFPLUS_MAKE_DIR)/safplus_packager.py -x "(cp setup start {image_dir})" $@
+
+.PRECIOUS: $(OBJ_DIR)/%.o
 
 clean:
 	rm $(TEST_DIR)/testOsal $(CLIENT_OBJ)
 
-include ../../mk/safplus_targets.mk
+include $(SAFPLUS_MAKE_DIR)/safplus_targets.mk

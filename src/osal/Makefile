@@ -14,4 +14,4 @@ $(MWOBJ_DIR)/%.o: %.cxx Makefile $(CLIENT_H)
 	$(COMPILE_CPP) $@ $<
 
 clean:
-	rm -f $(LIB_DIR)/libclOsal.so $(MWOBJ_DIR)/*.o
+	rm -f $(LIB_DIR)/libclOsal.so $(CLIENT_OBJ)

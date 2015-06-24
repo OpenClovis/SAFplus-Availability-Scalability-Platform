@@ -1,0 +1,7 @@
+#!/bin/bash
+export LD_LIBRARY_PATH=`pwd`/lib:$LD_LIBRARY_PATH
+export PYTHONPATH=`pwd`/lib:`pwd`/bin:`pwd`/test:$PYTHONPATH
+
+# excessive logging can cause expect's input buffer to fill up, hanging the app on stdout
+export CL_LOG_SEVERITY=ERROR
+export CL_LOG_CODE_LOCATION_ENABLE=1

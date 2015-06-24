@@ -112,52 +112,52 @@ void ProcStats::findProcessState(char state)
     {
     
     case 'R':
-        procState = ProcStats::ProcState::Running;
+        procState = ProcStats::ProcessState::Running;
         break;
 
     case 'S':
-        procState = ProcStats::ProcState::Sleeping;
+        procState = ProcStats::ProcessState::Sleeping;
         break;
 
     case 'D':
-        procState = ProcStats::ProcState::WaitingInDiskSleep;
+        procState = ProcStats::ProcessState::WaitingInDiskSleep;
         break;
 
     case 'Z':
-        procState = ProcStats::ProcState::Zombie;
+        procState = ProcStats::ProcessState::Zombie;
         break;
 
     case 'T':
-        procState = ProcStats::ProcState::Stopped;
+        procState = ProcStats::ProcessState::Stopped;
         break;
 
     case 't':
-        procState = ProcStats::ProcState::TracingStop;
+        procState = ProcStats::ProcessState::TracingStop;
         break;
 #if 0
     case 'W':
-        procState = ProcStats::ProcState::Paging;
+        procState = ProcStats::ProcessState::Paging;
         break;
 #endif
 
     case 'x': case 'X' :
-        procState = ProcStats::ProcState::Dead;
+        procState = ProcStats::ProcessState::Dead;
         break;
 
     case 'K':
-        procState = ProcStats::ProcState::Wakekill;
+        procState = ProcStats::ProcessState::Wakekill;
         break;
 
     case 'W':
-        procState = ProcStats::ProcState::Waking;
+        procState = ProcStats::ProcessState::Waking;
         break;
 
     case 'P':
-        procState = ProcStats::ProcState::Parked;
+        procState = ProcStats::ProcessState::Parked;
         break;
 
     default:
-        procState = ProcStats::ProcState::InvalidState;
+        procState = ProcStats::ProcessState::InvalidState;
         break;
     }
 
@@ -176,14 +176,14 @@ void ProcStats::scanProcStats(std::string contents)
     // the fields we are trying to read are
     // 3rd, 10th, 12th, 14th, 15th, 20th and 43rd.
     if (sscanf(str, "%*d %*s %c %*d %*d "
-                "%*d %*d %*d %*u %lu "
-                "%*lu %lu %*lu %lu %lu "
-                "%*ld %*ld %*ld %*ld %*ld "
-                "%*ld %*llu %*lu %*ld %*lu "
-                "%*lu %*lu %*lu %*lu %*lu "
-                "%*lu %*lu %*lu %*lu %*lu "
-                "%*lu %*lu %*d %*d %*u "
-                "%*u %*llu %lu ",
+                "%*d %*d %*d %*u %" PRIu64 " "
+                "%*u %" PRIu64 " %*u %" PRIu64 " %" PRIu64 " "
+                "%*d %*d %*d %*d %" PRIu64 " "
+                "%*d %*u %*u %*d %*u "
+                "%*u %*u %*u %*u %*u "
+                "%*u %*u %*u %*u %*u "
+                "%*u %*u %*d %*d %*u "
+                "%*u %*u %" PRIu64 " ",
                 &state,
                 &numMinorFaults,
                 &numMajorFaults,
@@ -205,7 +205,7 @@ void ProcStats::scanProcMemStats(std::string contents)
     const char *str;
     str = contents.c_str();
 
-    if (sscanf(str, "%lu %lu %lu %*lu %*lu %lu %*lu",
+    if (sscanf(str, "%" PRIu64 " %" PRIu64 " %" PRIu64 " %*u %*u %" PRIu64 " %*u",
                 &virtualMemSize, &residentSetSize,
                 &sharedPages, &stackAndDataSize) < 4)
     {

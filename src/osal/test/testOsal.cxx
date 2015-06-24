@@ -136,12 +136,12 @@ int main(int argc, char* argv[])
 
   TestNodeStats testObj;
 
-  clTestCase(("OSL-TST-NOD.TC001: NodeStats"), testObj.testNodeStats());
-  clTestCase(("OSL-TST-LOD.TC002: Node's CPU load average"), testObj.testLoadAvg());
+  clTestCase(("OSL-NOD-STT.TC001: NodeStats"), testObj.testNodeStats());
+  clTestCase(("OSL-NOD-LOD.TC002: Node's CPU load average"), testObj.testLoadAvg());
 
-  clTestCase(("OSL-TST-TIM.TC003: System up time"), testObj.testReadUpTime());
+  clTestCase(("OSL-NOD-TIM.TC003: System up time"), testObj.testReadUpTime());
 
-  clTestCase(("OSL-TST-DSK.TC004: DiskStatistics"), testObj.testDiskStats());
+  clTestCase(("OSL-NOD-DSK.TC004: DiskStatistics"), testObj.testDiskStats());
 
   clTestGroupFinalize();
 }
