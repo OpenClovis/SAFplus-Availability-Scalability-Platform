@@ -680,7 +680,7 @@ namespace SAFplus
           else hrs = HighAvailabilityReadinessState::notReadyForAssignment;
           if (hrs != su->haReadinessState)
             {
-            logInfo("N+M","AUDIT","High hvailability readiness state of Service Unit [%s] changed from [%s (%d)] to [%s (%d)]", su->name.value.c_str(),c_str(su->haReadinessState.value),su->haReadinessState.value, c_str(hrs), hrs);
+            logInfo("N+M","AUDIT","High availability readiness state of Service Unit [%s] changed from [%s (%d)] to [%s (%d)]", su->name.value.c_str(),c_str(su->haReadinessState.value),su->haReadinessState.value, c_str(hrs), hrs);
             su->haReadinessState.value = hrs;
             }
 

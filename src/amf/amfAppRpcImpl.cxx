@@ -47,7 +47,8 @@ namespace amfAppRpc {
         SaAmfHAStateT haState = (SaAmfHAStateT) request->operation();
         SaAmfCSIDescriptorT csiDescriptor;  // TODO
         csiDescriptor.csiFlags = tgt;
-        csiDescriptor.csiName.length = 0;
+        strcpy((char*)csiDescriptor.csiName.value,"TODO");
+        csiDescriptor.csiName.length = 4;
         if (haState == SA_AMF_HA_ACTIVE)
           {
           csiDescriptor.csiStateDescriptor.activeDescriptor.transitionDescriptor = SA_AMF_CSI_NEW_ASSIGN; // TODO
@@ -55,7 +56,8 @@ namespace amfAppRpc {
           }
         else if (haState == SA_AMF_HA_STANDBY)
           {
-          csiDescriptor.csiStateDescriptor.standbyDescriptor.activeCompName.length = 0;  // TODO
+          strcpy((char*)csiDescriptor.csiStateDescriptor.standbyDescriptor.activeCompName.value,"TODO");
+          csiDescriptor.csiStateDescriptor.standbyDescriptor.activeCompName.length = 4;  // TODO
           csiDescriptor.csiStateDescriptor.standbyDescriptor.standbyRank = 0;  // TODO
           }
 

@@ -778,6 +778,28 @@ void initializeOperationalValues(SAFplusAmf::SAFplusAmfRoot& cfg)
       node->operState = true;  // Not faulted: We can try to turn this on.
     }
 
+  MgtObject::Iterator itsi;
+  MgtObject::Iterator endsi = cfg.serviceInstanceList.end();
+  for (itsi = cfg.serviceInstanceList.begin(); itsi != endsi; itsi++)
+    {
+      ServiceInstance* elem = dynamic_cast<ServiceInstance*>(itsi->second);
+
+      elem->assignmentState = AssignmentState::unassigned;  
+      elem->getActiveAssignments()->current.value = 0;
+      elem->getStandbyAssignments()->current.value = 0;
+    }
+
+  if (1)
+    {
+      MgtObject::Iterator it;
+      MgtObject::Iterator endit = cfg.componentServiceInstanceList.end();
+      for (it = cfg.componentServiceInstanceList.begin(); it != endit; it++)
+        {
+          ComponentServiceInstance* elem = dynamic_cast<ComponentServiceInstance*>(it->second);
+          // Nothing to initialize
+        }
+    }
+
 
 
 }
