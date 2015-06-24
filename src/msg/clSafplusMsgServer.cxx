@@ -28,6 +28,20 @@ namespace SAFplus
 
     void msgServerInitialize(uint_t port, uint_t maxPendingMsgs, uint_t maxHandlerThreads)
       {
+        if (port == 0)
+          {
+          //? <cfg name="SAFPLUS_RECOMMENDED_MSG_PORT">Specifies the network port to use for SAFplus backplane communication to your process (via the safplusMsgServer object.  Typically, this environment variable is set by the SAFplus AMF when it starts your process, but you may need to set it if the AMF is not starting your process.  This is the RECOMMENDED port. Your process may choose to use another port (typically done if you want to use "well-known" ports to identify services) by setting the port field in the SafplusInitializationConfiguration object.</cfg>  
+          char* temp = getenv("SAFPLUS_RECOMMENDED_MSG_PORT");
+          if (temp)
+            {
+              port = atoi(temp);           
+            }
+          
+          }
+        if (port == 0)
+          {
+            throw Error(Error::SAFPLUS_ERROR, Error::MISCONFIGURATION, "Invalid messaging port [0]", __FILE__, __LINE__);
+          }
       safplusMsgServer.init(port,maxPendingMsgs, maxHandlerThreads);
       safplusMsgServer.Start();
       }

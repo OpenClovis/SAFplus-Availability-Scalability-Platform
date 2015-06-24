@@ -8,7 +8,7 @@
 #define clprintf(sev,...) SAFplus::logMsgWrite(SAFplus::APP_LOG, sev, 0, "APP", "MAIN", __FILE__, __LINE__, __VA_ARGS__)
 
 // This is the application name to use if the AMF did not start up this component
-#define DEFAULT_APP_NAME "c0" // "DEFAULT_NAME"
+#define DEFAULT_APP_NAME "c0"
 
 /* Access to the SAF AMF framework occurs through this handle */
 SaAmfHandleT amfHandle;
@@ -60,9 +60,11 @@ int main(int argc, char *argv[])
  
     SAFplus::logEchoToFd = 1;  // echo logs to stdout (fd 1) for debugging
     SAFplus::logSeverity = SAFplus::LOG_SEV_DEBUG;
-    SAFplus::logCompName = DEFAULT_APP_NAME;
+    // You can override the component name that appears in logs like this. Otherwise it gets set to the component name defined in the AMF data.  Typically you'd override it if your component name is inconveniently long.
+    //SAFplus::logCompName = DEFAULT_APP_NAME;
 
-    SAFplus::serviceConfig.iocPort = 50; // TEMP
+    // If you wanted this component to use a "well-known" port you would set it like this
+    // SAFplus::serviceConfig.iocPort = SAFplus::MsgApplicationPortStart + 5;
 
     /* Connect to the SAF cluster */
     initializeAmf();

@@ -23,11 +23,11 @@ namespace SAFplusI
 #endif
 
     END_IOC_PORT = 5,
+
     };
 
   enum
     {
-    // DO NOT USE MSG TYPES 1 and 2, 7, 10 these are IOC internal...
     HEARTBEAT_MSG_TYPE = 3, // must be == CL_IOC_PROTO_HB
     GRP_MSG_TYPE = 4,
     CL_MGT_MSG_TYPE = 5,

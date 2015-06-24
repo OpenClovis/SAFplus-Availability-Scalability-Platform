@@ -1,10 +1,12 @@
 #include "amfRpc.hxx"
+#include "clPortAllocator.hxx"
 #include <clLogApi.hxx>
 #include <clOsalApi.hxx>
 #include <string>
 #include <sstream>
 
 namespace SAFplus {
+
 namespace Rpc {
 namespace amfRpc {
 
@@ -24,9 +26,11 @@ namespace amfRpc {
   std::vector<std::string> env;
 
   std::stringstream ssNodeAddr;
+  std::stringstream ssPort;
   std::string strCompName("ASP_COMPNAME=");
   std::string strNodeName("ASP_NODENAME=");
   std::string strNodeAddr("ASP_NODEADDR=");
+  std::string strPort("SAFPLUS_RECOMMENDED_MSG_PORT=");
 
   strCompName.append(request->name());
   env.push_back(strCompName);
@@ -37,17 +41,23 @@ namespace amfRpc {
   ssNodeAddr<<SAFplus::ASP_NODEADDR;
   env.push_back(strNodeAddr.append(ssNodeAddr.str()));
 
+  int port = SAFplusI::portAllocator.allocPort();
+  ssPort<<port;
+  env.push_back(strPort.append(ssPort.str()));
+  
   try
     {
     char temp[200];
     Process p = executeProgram(request->command().c_str(), env,Process::InheritEnvironment);
-    logInfo("OPS","SRT","Launched Component [%s] as [%s] with process id [%d], working directory [%s]", request->name().c_str(),request->command().c_str(),p.pid,getcwd(temp,200));
+    SAFplusI::portAllocator.assignPort(port, p.pid);
+    logInfo("OPS","SRT","Launched Component [%s] as [%s] with process id [%d] and recommended msg port [%d], working directory [%s]", request->name().c_str(),request->command().c_str(),p.pid,port,getcwd(temp,200));
     response->set_pid(p.pid);
     response->set_err(0);
     }
   catch (ProcessError& e)
     {
     logInfo("OPS","SRT","Failed to launch Component [%s] as [%s] with error [%s:%d]", request->name().c_str(),request->command().c_str(),strerror(e.osError),e.osError);
+    SAFplusI::portAllocator.releasePort(port);
     response->set_pid(0);
     response->set_err(e.osError);
     }
@@ -63,7 +73,12 @@ namespace amfRpc {
   void amfRpcImpl::processInfo(const ::SAFplus::Rpc::amfRpc::ProcessInfoRequest* request,
                                 ::SAFplus::Rpc::amfRpc::ProcessInfoResponse* response)
   {
-  assert(request->has_pid());
+    //DbgAssert(request->has_pid());
+  if (!request->has_pid())  // Improperly formatted RPC call sent -- its asking for processInfo but the process is not specified
+    {
+      response->set_command("");
+      response->set_running(0);
+    }
   Process p(request->pid());
   try
     {
@@ -73,8 +88,9 @@ namespace amfRpc {
     }
   catch(ProcessError& e)
     {
-    response->set_command("");
-    response->set_running(0);
+      SAFplusI::portAllocator.releasePortByPid(request->pid());
+      response->set_command("");
+      response->set_running(0);
     }
   }
 

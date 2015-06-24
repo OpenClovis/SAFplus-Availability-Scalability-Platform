@@ -45,10 +45,14 @@ namespace SAFplus
     };
 
 
-
+  //? Create a new process and execute the passed function.  This is extremely dangerous in a multi-threaded environment because other threads could be holding mutexes which will remain held forever in the new process context.  This will cause the new process to hang if it calls a function that takes the mutex.  Therefore use of this function is discouraged.
   Process forkProcess(Func f, void* arg, uint_t flags=0);
 
-
+    /*? Execute a program.  
+        <arg name='command'>The command-line to run the program.  May contain space-separated arguments</arg>
+        <arg name='env'>Environment variables to set before starting the new program</arg>
+        <arg name='flags'>Flags that control various process creation options: NoFlags, CreateNewSession, CreateNewGroup, InheritEnvironment</arg>
+     */
   Process executeProgram(const std::string& command, const std::vector<std::string>& env,uint_t flags=0);
 
 

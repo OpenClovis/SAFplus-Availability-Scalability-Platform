@@ -5,6 +5,7 @@
 #include "amfRpc/amfRpc.pb.hxx"
 #include "amfRpc/amfRpc.hxx"
 #include "amfAppRpc/amfAppRpc.hxx"
+#include "clPortAllocator.hxx"
 #include <clRpcChannel.hxx>
 
 #include <amfOperations.hxx>
@@ -446,13 +447,19 @@ namespace SAFplus
       std::string strCompName("ASP_COMPNAME=");
       std::string strNodeName("ASP_NODENAME=");
       std::string strNodeAddr("ASP_NODEADDR=");
+      std::string strPort("SAFPLUS_RECOMMENDED_MSG_PORT=");
+
       strCompName.append(comp->name);
       strNodeName.append(SAFplus::ASP_NODENAME);
       strNodeAddr.append(std::to_string(SAFplus::ASP_NODEADDR));
+      int port = portAllocator.allocPort();
+      strPort.append(std::to_string(port));
       newEnv.push_back(strCompName);
       newEnv.push_back(strNodeName);
       newEnv.push_back(strNodeAddr);
+      newEnv.push_back(strPort);
       Process p = executeProgram(inst->command.value, newEnv,Process::InheritEnvironment);
+      portAllocator.assignPort(port, p.pid);
       comp->processId.value = p.pid;
 
       logInfo("OPS","SRT","Launching Component [%s] as [%s] locally with process id [%d]", comp->name.value.c_str(),inst->command.value.c_str(),p.pid);

@@ -33,6 +33,12 @@ namespace SAFplus
   enum
     {
       MsgTransportAddressMaxLen = 64, //? The maximum number of bytes allowed for any message transport's physical address (i.e. IP address, TIPC address, etc).  This is needed to store node addresses in shared memory when using cloud mode clustering.
+
+      MsgSafplusReservedPorts  = 32,  //? The number of ports reserved for use by SAFplus applications.  Ports reserved are: 0 -> SAFplusReservedPorts-1.  DO NOT CHANGE
+      MsgApplicationPortStart  = MsgSafplusReservedPorts,  //? The "well-known" ports reserved for your use.
+      MsgApplicationPortEnd    = MsgApplicationPortStart + 100,  //? The last "well-known" port reserved for your use
+      MsgDynamicPortStart      = MsgApplicationPortEnd+1,  //? The AMF will dynamically allocate ports when it starts up an application from this group.
+      MsgDynamicPortEnd        = MsgDynamicPortStart+512,  //? The AMF will dynamically allocate ports when it starts up an application from this group.  This is the largest port in the dynamic group.
     };
   };
 
