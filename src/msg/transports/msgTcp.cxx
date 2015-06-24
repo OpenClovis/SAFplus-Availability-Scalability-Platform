@@ -61,12 +61,12 @@ namespace SAFplus
     int getClientSocket(uint_t nodeID, uint_t port);
     int openClientSocket(uint_t nodeID, uint_t port);    
     static void* acceptClients(void* arg);
-    void addToMap(sockaddr_in& client, int socket);
+    void addToMap(const sockaddr_in& client, int socket);
 
     //bool updateBuffer(struct msghdr* msg, int msgLen, int bytes);
     //bool updateBuffer(struct msghdr* msg, int curbytes, int bytes);
     bool updateBuffer(struct msghdr* msg, int bytes);
-    int checkDataAvail(int sd, struct timespec* timeout);
+    int checkDataAvail(int sd, const struct timespec* timeout);
     int getMsgLen(struct msghdr* msg);
     virtual void switchNagle();
 
@@ -78,6 +78,7 @@ namespace SAFplus
   Tcp::Tcp()
   {
     msgPool = NULL;
+    clusterNodes = NULL;
   }
 
   MsgTransportConfig::Capabilities Tcp::getCapabilities()
@@ -198,26 +199,35 @@ namespace SAFplus
     return NULL;
   }
 
-  void TcpSocket::addToMap(sockaddr_in& client, int socket)
+  void TcpSocket::addToMap(const sockaddr_in& client, int socket)
   {
     logTrace("TCP", "ADD", "Add socket to map");
-    uint_t nodeId = ntohl(client.sin_addr.s_addr) & (((Tcp*)transport)->nodeMask);
+    uint_t nodeId;
+    if (transport->clusterNodes)
+    {
+      int temp = ntohl(client.sin_addr.s_addr);
+      nodeId = transport->clusterNodes->idOf((void*) &temp,sizeof(uint32_t));
+    }
+    else
+    {
+      nodeId = ntohl(client.sin_addr.s_addr) & (((Tcp*)transport)->nodeMask);
+    }
     mutex.lock();
-    logTrace("TCP", "ADD", "Mutex locked. nodeId [%d]. map size [%u]", nodeId, (unsigned int) clientSockMap.size());
+    logTrace("TCP", "ADD", "Mutex locked; nodeId [%d]; map size [%u]", nodeId, (unsigned int) clientSockMap.size());
     NodeIDSocketMap::iterator contents = clientSockMap.find(nodeId);
     if (contents != clientSockMap.end()) // Socket connected to this nodeId has been established
     {
       SndRecvSock& srsock = contents->second;
       if (srsock.recvSock == 0) // there is no receive socket added to the map
       {
-        logTrace("TCP", "ADD", "Add client socket [%d]; nodeId[%d] to map", socket, nodeId); 
+        logTrace("TCP", "ADD", "Add client socket [%d]; nodeId [%d] to map", socket, nodeId); 
         srsock.recvSock = socket;
       }
       mutex.unlock();
       return;
     }
     // else add this client socket to the map with the specified nodeId   
-    logTrace("TCP", "ADD", "Add client socket [%d]; nodeId[%d] to map ", socket, nodeId); 
+    logTrace("TCP", "ADD", "Add client socket [%d]; nodeId [%d] to map ", socket, nodeId); 
     SndRecvSock srsock(0, socket); 
     SockMapPair smp(nodeId, srsock);
     clientSockMap.insert(smp);    
@@ -413,7 +423,11 @@ namespace SAFplus
           sendMsgs(clientSock, msgvec, msgCount);
         }
       }
-    }
+      else
+      {
+        logWarning("TCP", "SEND", "Broadcast the message to all nodes but the clusterNodes is NULL");
+      }
+    }        
     else
     {
       clientSock = getClientSocket(msg->node, pt);
@@ -568,7 +582,7 @@ namespace SAFplus
             continue;
           }
         }        
-        logDebug("TCP", "RECV", "Data found on socket [%d]", clientSock);        
+        logTrace("TCP", "RECV", "Data found on socket [%d]", clientSock);        
         // Reading the header of the message to know how much msg body length can be read next
         msgLen = 4; // 4 bytes reserved for reading msg header
         Message* temp = msgPool->allocMsg();
@@ -609,11 +623,11 @@ namespace SAFplus
         msg->node = iter->first;
         frag = msg->append(msgLen);
         frag->len = msgLen;
-        logDebug("TCP", "RECV", "msgLen read [%u]", msgLen);
+        logTrace("TCP", "RECV", "msgLen read [%u]", msgLen);
 
         temp->msgPool->free(temp);
         
-        logDebug("TCP", "RECV", "Now read the msg body on socket [%d]", clientSock);  
+        logTrace("TCP", "RECV", "Now read the msg body on socket [%d]", clientSock);  
         // Reading the msg body. If timeout occurs while reading, canceling the read and try to read from the other socket in the map
         bytes = 0;
         msgLen = msg->getLength();
@@ -628,7 +642,7 @@ namespace SAFplus
           if (retval == -1) throw Error(Error::SYSTEM_ERROR,errno, strerror(errno),__FILE__,__LINE__);
           if (!retval)
           {
-            logNotice("TCP", "RECV", "No data found on socket [%d] within [%ld]s/[%ld]ns", clientSock, timeout->tv_sec, timeout->tv_nsec);
+            logWarning("TCP", "RECV", "No data found on socket [%d] within [%ld]s/[%ld]ns", clientSock, timeout->tv_sec, timeout->tv_nsec);
             break;
           }               
           retval = recvmsg(clientSock, &msgvec[0], flags);  
@@ -647,12 +661,12 @@ namespace SAFplus
 
         if (bytes<msgLen)
         {
-          logNotice("TCP", "RECV", "Number of bytes [%d] read from socket [%d] less than msgLen [%u]", bytes, clientSock, msgLen);
+          logWarning("TCP", "RECV", "Number of bytes [%d] read from socket [%d] less than msgLen [%u]", bytes, clientSock, msgLen);
           msg->msgPool->free(msg);
           continue;
         }
 
-        logDebug("TCP", "RECV", "Finish reading msg body on socket [%d]", clientSock);  
+        logTrace("TCP", "RECV", "Finish reading msg body on socket [%d]", clientSock);  
         assert(bytes==msgLen);
         iovecs[0].iov_len = msgLen;
         --msgvec[0].msg_iov;
@@ -681,7 +695,7 @@ namespace SAFplus
             }
           }
         }
-        logDebug("TCP", "RECV", "Return msg to the caller");  
+        logTrace("TCP", "RECV", "Return msg to the caller");  
         return msg;
       }                
      
@@ -719,12 +733,12 @@ namespace SAFplus
      return srsock.recvSock;              
    }
 
-   int TcpSocket::checkDataAvail(int sd, struct timespec* timeout)
+   int TcpSocket::checkDataAvail(int sd, const struct timespec* timeout)
    {
      fd_set rfds;
      FD_ZERO(&rfds);
      FD_SET(sd, &rfds);  
-     logDebug("TCP", "RECV", "Waiting in timeout [%u]s/[%u]ns on socket [%d]", (unsigned int)timeout->tv_sec, (unsigned int)timeout->tv_nsec, sd);  
+     logTrace("TCP", "RECV", "Waiting in timeout [%u]s/[%u]ns on socket [%d]", (unsigned int)timeout->tv_sec, (unsigned int)timeout->tv_nsec, sd);  
      int retval = pselect(sd+1, &rfds, NULL, NULL, timeout, NULL); 
      return retval;
    }

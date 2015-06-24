@@ -57,24 +57,31 @@ void ThreadPool::stop()
 {
   logTrace("THRPOOL","STOP", "ThreadPool::stop enter");
   mutex.lock();
-  isStopped = true;
-  // Notify all threads to stop waiting if any and then exit
-  logInfo("THRPOOL","STOP", "Notify all threads to stop running");
-  cond.notify_all();
-  checkerCond.notify_all();
-  mutex.unlock();
-
-  pthread_join(checker,NULL);  // wait for the checker thread to finish
-
-  // join the threads to make sure they have all completed
-  // I can't hold mutex during the join because the threads grab it when quitting, but they do not modify threadMap.
-  for(ThreadHashMap::iterator iter=threadMap.begin(); iter!=threadMap.end(); iter++)
+  if(!isStopped)
   {
-    pthread_t threadId = iter->first;
-    pthread_join(threadId,NULL); // TODO: after a while we should give up and kill it
-  }
-  threadMap.clear();
+    isStopped = true;
+    // Notify all threads to stop waiting if any and then exit
+    logInfo("THRPOOL","STOP", "Notify all threads to stop running");
+    cond.notify_all();
+    checkerCond.notify_all();
+    mutex.unlock();
 
+    pthread_join(checker,NULL);  // wait for the checker thread to finish
+
+    // join the threads to make sure they have all completed
+    // I can't hold mutex during the join because the threads grab it when quitting, but they do not modify threadMap.
+    for(ThreadHashMap::iterator iter=threadMap.begin(); iter!=threadMap.end(); iter++)
+    {
+      pthread_t threadId = iter->first;
+      pthread_join(threadId,NULL); // TODO: after a while we should give up and kill it
+    }
+    threadMap.clear();
+  }
+  else
+  {
+    mutex.unlock();
+  }
+   
 }
 
 void ThreadPool::start()
