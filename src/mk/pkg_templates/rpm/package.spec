@@ -8,7 +8,7 @@ Source0:
 URL:		http://www.openclovis.com   
 Vendor:		OpenClovis Inc
 Packager:	OpenClovisInc <http://www.openclovis.com/blog>
-Requires:       libboost >= 1.50
+Requires:       boost >= 1.50 gdbm protobuf 
 Prefix: 
 %description
 SAFplus is SA-Forum API compatible middleware that provides High 
@@ -36,7 +36,7 @@ do
   echo $file
   if [ -f $file ]
   then
-       if [ $file != "Makefile" ]
+       if [ $(basename "$file") != "Makefile" ]
        then
            mkdir -p $RPM_BUILD_ROOT/%prefix 
            cp $file $RPM_BUILD_ROOT/%prefix
