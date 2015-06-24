@@ -57,7 +57,6 @@ void ThreadPool::stop()
 {
   logTrace("THRPOOL","STOP", "ThreadPool::stop enter");
   mutex.lock();
-  logInfo("THRPOOL", "STOP", " Before if isStopped value is %d", isStopped);
   if(!isStopped)
   {
     isStopped = true;
