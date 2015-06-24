@@ -12,7 +12,5 @@ export CL_LOG_SEVERITY=ERROR
 export CL_LOG_CODE_LOCATION_ENABLE=1
 
 # To use UDP broadcasts on the loopback interface I need to enable a broadcast address
-ifconfig lo broadcast 127.255.255.255
-export SAFPLUS_BACKPLANE_INTERFACE=lo
+export SAFPLUS_BACKPLANE_INTERFACE=eth0
 
-./bin/node --add 127.0.0.1
