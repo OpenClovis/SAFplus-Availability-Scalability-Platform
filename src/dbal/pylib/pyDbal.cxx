@@ -1,6 +1,4 @@
-#ifndef __STDC_FORMAT_MACROS
-#define __STDC_FORMAT_MACROS
-#endif
+#include <cltypes.h>
 #include <Python.h>
 #include <string>
 
