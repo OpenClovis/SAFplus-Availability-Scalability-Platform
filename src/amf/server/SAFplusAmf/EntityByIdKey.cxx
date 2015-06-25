@@ -32,13 +32,11 @@ namespace SAFplusAmf
     }
   }
 
-  /* key xpath: [key1=value1,key2=value2] */
+  /* key xpath: [@key1="value1" and @key2="value2" and ...] */
   std::string EntityByIdKey::toXpath() const
   {
     std::stringstream ss;
-    ss << "[";
-    ss << "id=" <<id;
-    ss << "]";
+    ss << "[" << "@id=\"" <<id <<"\"" << "]";
     return ss.str();
   }
 

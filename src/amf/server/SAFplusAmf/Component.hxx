@@ -49,7 +49,7 @@ namespace SAFplusAmf
         MGT_REGISTER(Component);
 
     public:
-        SAFplus::MgtProv<SAFplusAmf::PresenceState> presence;
+        SAFplus::MgtProv<SAFplusAmf::PresenceState> presenceState;
 
         /*
          * This is defined by the SA-Forum AMF specificaion but is read-only because it is an emergent property based on values in saAmfCompNumMaxActiveCSIs and saAmfCompNumMaxStandbyCSIs.
@@ -78,7 +78,7 @@ namespace SAFplusAmf
         SAFplus::MgtProv<SAFplusAmf::ReadinessState> readinessState;
 
         /*
-         * This state field covers ALL work assignments...
+         * This state field covers ALL work assignments.  If this field is set to notReadyForAssignment then SAFplus will not assign work.  So the application can call saAmfHAReadinessStateSet() upon startup (or any other time) to enable or disable work assignments.
          */
         SAFplus::MgtProv<SAFplusAmf::HighAvailabilityReadinessState> haReadinessState;
         SAFplus::MgtProv<SAFplusAmf::HighAvailabilityState> haState;
@@ -172,14 +172,14 @@ namespace SAFplusAmf
         std::vector<std::string>* getChildNames();
 
         /*
-         * XPATH: /SAFplusAmf/Component/presence
+         * XPATH: /SAFplusAmf/Component/presenceState
          */
-        SAFplusAmf::PresenceState getPresence();
+        SAFplusAmf::PresenceState getPresenceState();
 
         /*
-         * XPATH: /SAFplusAmf/Component/presence
+         * XPATH: /SAFplusAmf/Component/presenceState
          */
-        void setPresence(SAFplusAmf::PresenceState presenceValue, SAFplus::Transaction &t=SAFplus::NO_TXN);
+        void setPresenceState(SAFplusAmf::PresenceState presenceStateValue, SAFplus::Transaction &t=SAFplus::NO_TXN);
 
         /*
          * XPATH: /SAFplusAmf/Component/capabilityModel

@@ -22,7 +22,7 @@ namespace SAFplusAmf
       /* building an instance from string list */
       void build(std::map<std::string,std::string> keyList);
 
-      /* key xpath: [key1=value1,key2=value2] */
+      /* key xpath: [@key1="value1" and @key2="value2" and ...] */
       std::string toXpath() const;
 
       /* xml string: <interface key1="value1" key2="value2"></interface> */
