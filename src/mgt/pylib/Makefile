@@ -6,10 +6,12 @@ CP=cp -f
 CPP_FLAGS +=-I/usr/include/python2.7
 
 # Specify the required libraries
-SAFPLUS_LIBS := clDbal
+SAFPLUS_LIBS := clMgt clDbal
 # Then use these in the make rule
 SAFPLUS_DEP_LIBS  := $(addsuffix .so,$(addprefix $(LIB_DIR)/lib,$(SAFPLUS_LIBS)))
 SAFPLUS_LINK_LIBS := -L$(LIB_DIR) $(addprefix -l,$(SAFPLUS_LIBS))
+
+CPP_FLAGS +=-lxml2
 
 CLIENT_PYLIB_H   := $(wildcard *.hxx) $(wildcard $(SAFPLUS_INC_DIR)/*.h) $(wildcard $(SAFPLUS_INC_DIR)/*.hxx)
 CLIENT_PYLIB_SRC := $(wildcard *.cxx)
@@ -20,7 +22,7 @@ PYLIB_SRC := $(BIN_DIR)/dbalpy.py $(LIB_DIR)/common.py $(LIB_DIR)/microdom.py $(
 Release all: $(LIB_DIR)/pyDbal.so
 
 $(LIB_DIR)/pyDbal.so: $(CLIENT_PYLIB_OBJ) $(PYLIB_SRC) $(SAFPLUS_DEP_LIBS)
-	$(LINK_SO) $@ $(CLIENT_PYLIB_OBJ) $(SAFPLUS_LINK_LIBS) $(LINK_SO_LIBS)
+	$(LINK_SO) $@ $(CLIENT_PYLIB_OBJ) $(SAFPLUS_LINK_LIBS) -lxml2 $(LINK_SO_LIBS)
 
 $(OBJ_DIR)/%.o: %.cxx Makefile $(CLIENT_PYLIB_H)
 	$(COMPILE_CPP) $@ $(<F)

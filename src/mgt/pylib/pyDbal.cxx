@@ -16,47 +16,29 @@ using namespace std;
 #include <clLogApi.hxx>
 #include <clGlobals.hxx>
 #include <clCommon.hxx>
-#include <clDbalApi.h>
-#include <clDbalErrors.h>
+#include <clMgtDatabase.hxx>
 
 using namespace SAFplus;
-
-static ClDBHandleT dbHdl = 0x0;
-static ClDBHandleT dbIterHdl = 0x0;
-
-#define PYDBAL_DB_KEY_BITS (32ULL)
-#define PYDBAL_DB_KEY_SIZE (1ULL << PYDBAL_DB_KEY_BITS)
-#define PYDBAL_DB_KEY_MASK (PYDBAL_DB_KEY_SIZE - 1ULL)
-
-static __inline__ ClUint32T getHashKeyFn(const ClCharT *keyStr)
-{
-    ClUint32T cksum = SAFplus::computeCrc32((ClUint8T*)keyStr, (ClUint32T)strlen(keyStr));
-    return cksum & PYDBAL_DB_KEY_MASK;
-}
 
 static PyObject* Read(PyObject *self, PyObject *args)
 {
     ClRcT rc = CL_OK;
-    ClCharT *key;
-    ClCharT *value;
-    ClUint32T dataSize        = 0;
+    string key;
+    string value;
 
     if (!PyArg_ParseTuple(args, "s", &key))
     {
         return NULL;
     }
 
-    ClUint32T hashKey = getHashKeyFn(key);
-
-    rc = clDbalRecordGet(dbHdl, (ClDBKeyT)&hashKey, sizeof(hashKey), (ClDBRecordT*)&value, &dataSize);
-
+    rc = MgtDatabase::getInstance()->getRecord(key, value);
     if (rc != CL_OK)
     {
         PyErr_SetObject(PyExc_SystemError, PyInt_FromLong(CL_GET_ERROR_CODE(rc)));
         return NULL;
     }
 
-    PyObject* ret = PyString_FromStringAndSize(value, dataSize);
+    PyObject* ret = PyString_FromString(value.c_str());
     return ret;
 }
 
@@ -70,17 +52,7 @@ static PyObject* Write(PyObject *self, PyObject *args)
         return NULL;
     }
 
-    ClUint32T hashKey = getHashKeyFn(key);
-
-    /*
-     * Insert into idx table
-     */
-    rc = clDbalRecordInsert(dbIterHdl, (ClDBKeyT) & hashKey, sizeof(hashKey), (ClDBRecordT) key, strlen(key));
-
-    /*
-     * Insert into data table
-     */
-    rc = clDbalRecordInsert(dbHdl, (ClDBKeyT) & hashKey, sizeof(hashKey), (ClDBRecordT) value, strlen(value));
+    rc = MgtDatabase::getInstance()->insertRecord(key, value);
 
     if (rc != CL_OK)
     {
@@ -101,13 +73,7 @@ static PyObject* Replace(PyObject *self, PyObject *args)
         return NULL;
     }
 
-    ClUint32T hashKey = getHashKeyFn(key);
-
-    /*
-     * Replace a record with key
-     */
-    rc = clDbalRecordReplace(dbHdl, (ClDBKeyT)&hashKey, sizeof(hashKey), (ClDBRecordT) value, strlen(value));
-
+    rc = MgtDatabase::getInstance()->setRecord(key, value);
     if (rc != CL_OK)
     {
         PyErr_SetObject(PyExc_SystemError, PyInt_FromLong(CL_GET_ERROR_CODE(rc)));
@@ -133,6 +99,7 @@ static PyObject* Iterators(PyObject *self, PyObject *args)
      */
     PyObject* lstKeys = PyList_New(0);
 
+#if 0
     rc = clDbalFirstRecordGet(dbIterHdl, (ClDBKeyT*)&recKey, &keySize, (ClDBRecordT*)&recData, &dataSize);
 
     if (rc != CL_OK)
@@ -159,7 +126,7 @@ static PyObject* Iterators(PyObject *self, PyObject *args)
         PyObject* nextData = PyString_FromStringAndSize(recData, dataSize);
         PyList_Append(lstKeys, nextData);
     }
-
+#endif
     return lstKeys;
 }
 
@@ -169,9 +136,6 @@ static PyObject* initializeDbal(PyObject *self, PyObject *args)
     ClUint32T maxKeySize = 0;
     ClUint32T maxRecordSize = 0;
     ClDBNameT dbName;
-
-    string dbNameIdx = "";
-    string dbNameData = "";
 
     /*
      * Initialize name index and data
@@ -183,24 +147,7 @@ static PyObject* initializeDbal(PyObject *self, PyObject *args)
         return NULL;
     }
 
-    /*
-     * Index DB
-     */
-    dbNameIdx.append(dbName).append(".idx");
-
-    rc = clDbalOpen(dbNameIdx.c_str(), dbNameIdx.c_str(), CL_DB_APPEND, maxKeySize, maxRecordSize, &dbIterHdl);
-
-    if (rc != CL_OK)
-    {
-        PyErr_SetObject(PyExc_SystemError, PyInt_FromLong(CL_GET_ERROR_CODE(rc)));
-        return NULL;
-    }
-
-    /*
-     * Data
-     */
-    dbNameData.append(dbName).append(".db");
-    rc = clDbalOpen(dbNameData.c_str(), dbNameData.c_str(), CL_DB_APPEND, maxKeySize, maxRecordSize, &dbHdl);
+    rc = MgtDatabase::getInstance()->initializeDB(dbName, maxKeySize, maxRecordSize);
 
     if (rc != CL_OK)
     {
@@ -213,7 +160,7 @@ static PyObject* initializeDbal(PyObject *self, PyObject *args)
 
 static PyObject* finalizeDbal(PyObject *self, PyObject *args)
 {
-    clDbalLibFinalize();
+    MgtDatabase::getInstance()->finalizeDB();
     Py_RETURN_NONE;
 }
 
@@ -233,7 +180,7 @@ initpyDbal(void)
     ClRcT rc = CL_OK;
 
     logEchoToFd = 1;  // echo logs to stdout for debugging
-    logSeverity = LOG_SEV_MAX;
+    logSeverity = LOG_SEV_ERROR;
 
     safplusInitialize(SAFplus::LibDep::DBAL | SAFplus::LibDep::LOG | SAFplus::LibDep::OSAL | SAFplus::LibDep::HEAP | SAFplus::LibDep::TIMER | SAFplus::LibDep::BUFFER);
 

@@ -304,7 +304,7 @@ namespace SAFplus
             SAFplusAmf::AdministrativeState eas = effectiveAdminState(comp);
             if (comp->operState == true) // false means that the component needs repair before we will deal with it.
               {
-              if (running(comp->presence.value))
+              if (running(comp->presenceState.value))
                 {
                 if (eas == SAFplusAmf::AdministrativeState::off)
                   {
@@ -317,7 +317,7 @@ namespace SAFplus
                   time_t rawtime = comp->lastInstantiation.value.value / 1000;  // /1000 converts ms to sec.
                   //timeinfo = localtime(&rawtime);
                   strftime(timeString,80,"%c",localtime(&rawtime));
-                  logDebug("N+M","AUDIT","Component [%s] process [%s.%d] is [%s].  Instantiated since [%s].  Instantiation attempts [%d].",comp->name.value.c_str(), su->node.value->name.value.c_str(), comp->processId.value, c_str(comp->presence.value),timeString, comp->numInstantiationAttempts.value);
+                  logDebug("N+M","AUDIT","Component [%s] process [%s.%d] is [%s].  Instantiated since [%s].  Instantiation attempts [%d].",comp->name.value.c_str(), su->node.value->name.value.c_str(), comp->processId.value, c_str(comp->presenceState.value),timeString, comp->numInstantiationAttempts.value);
                   }
                 }
               else
@@ -420,7 +420,7 @@ namespace SAFplus
 
   void updateStateDueToProcessDeath(SAFplusAmf::Component* comp)
     {
-    comp->presence = PresenceState::uninstantiated;
+    comp->presenceState = PresenceState::uninstantiated;
     comp->processId = 0;
     SAFplus::name.set(comp->name,INVALID_HDL,NameRegistrar::MODE_NO_CHANGE);  // remove the handle in the name service because the component is dead
     
@@ -550,7 +550,7 @@ namespace SAFplus
             numComps++;
             Component* comp = dynamic_cast<Component*>(*itcomp);
             logInfo("N+M","AUDIT","Component [%s]: operState [%s]", comp->name.value.c_str(), comp->operState.value ? "enabled" : "faulted");
-            if (running(comp->presence))  // If I think its running, let's check it out.
+            if (running(comp->presenceState))  // If I think its running, let's check it out.
               {
               CompStatus status = amfOps->getCompState(comp);
               if (status == CompStatus::Uninstantiated)  // database shows should be running but actually no process is there.  I should update DB.
@@ -568,7 +568,7 @@ namespace SAFplus
                     }
                 updateStateDueToProcessDeath(comp);
                 }
-              else if (comp->presence == PresenceState::instantiating)  // If the component is in the instantiating state, look for it to register with the AMF
+              else if (comp->presenceState == PresenceState::instantiating)  // If the component is in the instantiating state, look for it to register with the AMF
                 {
                 Handle compHandle=INVALID_HDL;
                 try
@@ -583,7 +583,7 @@ namespace SAFplus
                 
                 if (compHandle != INVALID_HDL) // TODO: what other things do we need to do for registration?
                   {
-                  comp->presence = PresenceState::instantiated;
+                  comp->presenceState = PresenceState::instantiated;
                   fault->registerEntity(compHandle ,FaultState::STATE_UP);
                   }
                 else
@@ -600,7 +600,7 @@ namespace SAFplus
                     }
                   }
                 }
-              else if (comp->presence == PresenceState::instantiated)
+              else if (comp->presenceState == PresenceState::instantiated)
                 {
                 // If the component has been instantiated for long enough, reset the instantiation attempts.
 
@@ -631,8 +631,8 @@ namespace SAFplus
               comp->readinessState = SAFplusAmf::ReadinessState::stopping;
               }
 
-            assert(((int)comp->presence.value <= ((int)PresenceState::terminationFailed))&&((int)comp->presence.value >= ((int)PresenceState::uninstantiated)));
-            presenceCounts[(int)comp->presence.value]++;
+            assert(((int)comp->presenceState.value <= ((int)PresenceState::terminationFailed))&&((int)comp->presenceState.value >= ((int)PresenceState::uninstantiated)));
+            presenceCounts[(int)comp->presenceState.value]++;
             assert(((int)comp->haState.value <= (int)HighAvailabilityState::quiescing)&&((int)comp->haState.value >= (int)HighAvailabilityState::active));
             haCounts[(int)comp->haState.value]++;
             }
