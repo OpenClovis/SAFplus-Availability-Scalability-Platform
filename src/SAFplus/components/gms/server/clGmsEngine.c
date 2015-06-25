@@ -270,11 +270,17 @@ ClRcT clGmsIocNotification(ClEoExecutionObjT *pThis, ClBufferHandleT eoRecvMsg,C
             len = sizeof(ClUint32T);
             clBufferNBytesRead(eoRecvMsg, (ClUint8T*)&reportedLeader, &len);
             reportedLeader = ntohl(reportedLeader);
+            ClUint32T retries = 5;
+            ClTimerTimeOutT delay = {.tsSec = 1, .tsMilliSec = 0};
 
             ClGmsNodeIdT leaderNodeId = CL_GMS_INVALID_NODE_ID;
             ClGmsNodeIdT deputyNodeId = CL_GMS_INVALID_NODE_ID;
 
-            rc = _clGmsEngineLeaderElect(0x0, NULL, CL_GMS_MEMBER_JOINED, &leaderNodeId, &deputyNodeId);
+            do
+            {
+              rc = _clGmsEngineLeaderElect(0x0, NULL, CL_GMS_MEMBER_JOINED, &leaderNodeId, &deputyNodeId);
+            } while (--retries > 0 && leaderNodeId != reportedLeader && clOsalTaskDelay(delay) == CL_OK);
+
             if (leaderNodeId != CL_GMS_INVALID_NODE_ID && leaderNodeId != reportedLeader)
             {
                 clLogDebug("NTF", "LEA", "I am going to leave as leader changed from [0x%x] to [0x%x]", leaderNodeId, reportedLeader);
@@ -286,7 +292,7 @@ ClRcT clGmsIocNotification(ClEoExecutionObjT *pThis, ClBufferHandleT eoRecvMsg,C
 
     if (eoRecvMsg)
         clBufferDelete(&eoRecvMsg);
-    return CL_OK;
+    return rc;
 }
 
 static void gmsNotificationInitialize(void)
