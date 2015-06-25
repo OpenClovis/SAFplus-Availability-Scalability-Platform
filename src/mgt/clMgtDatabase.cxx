@@ -31,10 +31,6 @@ extern "C"
 } /* end extern 'C' */
 #endif
 
-#define DBAL_DB_KEY_BITS (32ULL)
-#define DBAL_DB_KEY_SIZE (1ULL << DBAL_DB_KEY_BITS)
-#define DBAL_DB_KEY_MASK (DBAL_DB_KEY_SIZE - 1ULL)
-
 namespace SAFplus
 {
   static __inline__ ClUint32T getHashKeyFn(const ClCharT *keyStr)

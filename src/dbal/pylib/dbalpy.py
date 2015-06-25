@@ -12,6 +12,7 @@ from common import *
 
 from xml.etree import ElementPath
 from xml.etree import ElementTree as ET
+from xml.dom import minidom
 
 cfgpath = os.environ.get("SAFPLUS_CONFIG",os.environ.get("SAFPLUS_BINDIR","."))
 
@@ -52,6 +53,13 @@ def getErrorString(errCode):
    
     return retStr
 
+def prettify(elem):
+    """Return a pretty-printed XML string for the Element.
+    """
+    rough_string = ET.tostring(elem, 'utf-8')
+    reparsed = minidom.parseString(rough_string)
+    return reparsed.toprettyxml(indent="  ")
+
 class PyDBAL():
     """
     @param fileName: 
@@ -87,39 +95,12 @@ class PyDBAL():
 
         self.xpathDB = {}
         self.xpathParentDB = {}
-        
-        #Mapping to store container has attribute(s)
-        self.xpath2phrase = {}
 
         #Process first phrase to retrieve xpath
         self._load(self.suppliedData)
 
         #Convert list container or list-leaf to array list
         map_change_xpath = {}
-
-        for k in self.xpathParentDB.keys():
-            if self.xpathParentDB[k] == 1:
-                #Search through attributes and build new index
-                try:
-                    tmp_key = map_change_xpath[k]
-                except:
-                    tmp_key = k
-    
-                if tmp_key in self.xpath2phrase.keys():
-                    #Add index by append attributes [name="value" ...]
-                    key_prefix = tmp_key + "[%s]" %self.xpath2phrase.get(tmp_key)
-    
-                    #Modify key from first phrase
-                    for key in self.xpathDB.keys():
-                        if key.rfind(tmp_key) != -1:
-                            key_new = key.replace(tmp_key, key_prefix)
-                            self.xpathDB[key_new] = self.xpathDB.pop(key)
-                            map_change_xpath[key] = key_new
-    
-                    #Also modify key if exiting on phrase 2 considering
-                    for key in filter(lambda key: key.rfind(tmp_key) != -1, self.xpath2phrase.keys()):
-                        key_new = key.replace(tmp_key, key_prefix)
-                        self.xpath2phrase[key_new] = self.xpath2phrase.pop(key)
 
         #Done customize xpath
         #Unit test http://xmltoolbox.appspot.com/xpath_generator.html
@@ -134,6 +115,15 @@ class PyDBAL():
     def _load(self, element, xpath = ''):
         if isInstanceOf(element, microdom.MicroDom):
             xpath = "%s/%s" %(xpath, microdom.keyify(element.tag_))
+
+            if len(element.attributes_) > 1:
+                # Format attribute string with 'and' expression for each attribute
+                attrs = [(microdom.keyify(k),v) for (k,v) in filter(lambda i: i[0] != 'tag_', element.attributes_.items())]
+                xpath = xpath + "[%s]" %" and ".join(["@%s=\"%s\"" %(k,v) for (k,v) in attrs])
+                for el in attrs:
+                    attrKey = "%s/@%s" %(xpath, el[0])
+                    self.xpathDB[attrKey] = el[1]
+                    self.xpathParentDB[attrKey] = 1
 
             #Add index key into list container, also modify old one with index [1]
             if self.xpathParentDB.has_key(xpath):
@@ -150,16 +140,6 @@ class PyDBAL():
             else:
                 self.xpathParentDB[xpath] = 1
 
-            if len(element.attributes_) > 1:
-                # Format attribute string
-                attrs = [(microdom.keyify(k),v) for (k,v) in filter(lambda i: i[0] != 'tag_', element.attributes_.items())]
-                for el in attrs:
-                    self.xpathDB["%s@%s" %(xpath, el[0])] = el[1]
-                    self.xpathParentDB["%s@%s" %(xpath, el[0])] = 1
-
-                #Put this xpath into second phrase considering
-                self.xpath2phrase[xpath] = " ".join(["@%s=\"%s\"" %(k,v) for (k,v) in attrs])
-
             if len(element.children()) > 0:
                 for elchild in element.children():
                     self._load(elchild, xpath)
@@ -174,14 +154,8 @@ class PyDBAL():
         predicate = []
         attributes = {}
 
-        #This is attribute value of a node element
-        #Ex: /a/b/c[1]@name => attribute 'name'
-        if token[0] == "@":
-            token = next()
-            return token[1]
-
         #This is [list] attribute value of a node element
-        #Ex: /a/b/c[@name="foo" @id="bar"] => attributes {name=foo, id=bar}
+        #Ex: /a/b/c[@name="foo" and @id="bar"] => attributes {name=foo, id=bar}
         if token[0] == "[":
             while 1:
                 token = next()
@@ -194,6 +168,9 @@ class PyDBAL():
             #This is array index [1] ... [2] ...(already combine with @attributes)
             if not re.match("\d+$", predicate[0]):
                 while len(predicate)>3:
+                    #Ignore 'and' expression token
+                    if predicate[0] == 'and':
+                        predicate = predicate[2:]
                     key = predicate[1]
                     value = predicate[3]
                     # shift left
@@ -211,6 +188,10 @@ class PyDBAL():
             try:
                 p_parent_xpath = current_xpath[:current_xpath.rfind("/")]
                 token = current_xpath[current_xpath.rfind("/") + 1:]
+
+                # TODO: This token is attributes value
+                if token[0] == '@':
+                    token = token[1:]
 
                 #Get current element with xpath:current_xpath if exists
                 parent_elemment = self.mapparentelem[p_parent_xpath]
@@ -254,21 +235,23 @@ class PyDBAL():
                     token = next()
                     if token[0] == "/":
                         token = next()
-                        index = xpath.rfind(token[1])
-                        if index > 0:
-                            parent_xpath = "%s" %(xpath[:index-1])
+
+                        #Ignore attribue element (xpath=//sg/@name)
+                        if token[0] == "@":
+                            attr_xpath = True
+                            continue
+
+                        index = xpath.rfind("/%s" %token[1])
+                        if index >= 0:
+                            parent_xpath = "%s" %(xpath[:index])
 
                             #Get xpath assume suffix is leaf
-                            index_cur = xpath.rfind("/", len(parent_xpath) + 1)
-                            if index_cur>0:
-                                current_xpath = xpath[0:index_cur]
+                            next_index = xpath.find("/", len(parent_xpath) + 1)
+                            if next_index>0:
+                                current_xpath = xpath[0:next_index]
                             else:
-                                #Get xpath until match '@', assume suffix is attr name  
-                                index_cur = xpath.rfind("@", len(parent_xpath) + 1)
-                                if index_cur>0:
-                                    current_xpath = xpath[0:index_cur]
-                                else:
-                                    current_xpath = xpath
+                                #Last leaf
+                                current_xpath = xpath
 
                             if root is None:
                                 root = ET.Element(key_to_xml(token[1]))
@@ -276,14 +259,9 @@ class PyDBAL():
                                 self.mapparentelem["/%s" %token[1]] = current_elemment
                             else:
                                 current_elemment = self._buildNode(current_xpath)
-                    else:
+                    elif token[0] == "[":
                         attributes = self._transformAttr(next, token)
-                        #attributes type: /a/b/c[1]@name => /a/b/c[name="value"]
-                        if type(attributes) == str:
-                            attr_xpath = True
-                            current_elemment.attrib[attributes] = value
-                        #attributes type: /a/b/c[name="foo" id="bar"]/name => /a/b/c[name="foo" id="bar"]
-                        elif len(attributes) > 0:
+                        if len(attributes) > 0:
                             current_elemment.attrib = attributes
 
                 except StopIteration:
@@ -296,9 +274,9 @@ class PyDBAL():
         if filename is None:
             filename = "%s.xml" %self.dbName
 
-        elmtree = ET.ElementTree(root)
-        elmtree.write(filename)
-
+        file = open(filename, "wb")
+        file.write(prettify(root))
+        file.close()
 
     def Finalize(self):
         pyDbal.finalizeDbal()
@@ -346,12 +324,12 @@ def main(argv):
   # Store into binary database
   if argv[1] == '-x':
     try:
-      print "Reading from "
+      print "Reading from %s" %inFile
       data = PyDBAL(outFile)
       data.StoreDB(inFile);
       data.Finalize()
     except Exception, e:
-      print getErrorString(e)
+      print e
       return
 
   # Export to XML from binary database
@@ -361,7 +339,7 @@ def main(argv):
       data.ExportXML(outFile + ".xml");
       data.Finalize()
     except Exception, e:
-      print getErrorString(e)
+      print e
       return
 
 
