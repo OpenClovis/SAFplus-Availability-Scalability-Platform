@@ -539,7 +539,9 @@ namespace SAFplus
           int numComps = 0;
           // count up the presence state of each component so I can infer the presence state of the SU
           int presenceCounts[((int)PresenceState::terminationFailed)+1];
+          int haCounts[((int)HighAvailabilityState::quiescing)+1];
           for (int j = 0; j<((int)PresenceState::terminationFailed)+1;j++) presenceCounts[j] = 0;
+          for (int j = 0; j<((int)HighAvailabilityState::quiescing)+1;j++) haCounts[j] = 0;
 
           SAFplus::MgtProvList<SAFplusAmf::Component*>::ContainerType::iterator   itcomp;
           SAFplus::MgtProvList<SAFplusAmf::Component*>::ContainerType::iterator   endcomp = su->components.value.end();
@@ -629,10 +631,40 @@ namespace SAFplus
               comp->readinessState = SAFplusAmf::ReadinessState::stopping;
               }
 
-            
+            assert(((int)comp->presence.value <= ((int)PresenceState::terminationFailed))&&((int)comp->presence.value >= ((int)PresenceState::uninstantiated)));
             presenceCounts[(int)comp->presence.value]++;
+            assert(((int)comp->haState.value <= (int)HighAvailabilityState::quiescing)&&((int)comp->haState.value >= (int)HighAvailabilityState::active));
+            haCounts[(int)comp->haState.value]++;
             }
- 
+
+
+          // High Availability state calculation (TODO: validate logic against AMF spec)
+          HighAvailabilityState ha = su->haState; // .value;
+
+          if (haCounts[(int)HighAvailabilityState::quiescing] > 0)  // If any component is quiescing, the Service Unit's HA state is quiescing
+            {
+              ha = HighAvailabilityState::quiescing;
+            }
+          else if (haCounts[(int)HighAvailabilityState::active] == numComps)  // If all components have an active assignment, SU is active
+            {
+              ha = HighAvailabilityState::active;
+            }
+          else if (haCounts[(int)HighAvailabilityState::standby] == numComps)  // If all components have a standby assignment, SU is standby
+            {
+              ha = HighAvailabilityState::standby;
+            }
+          else ha = HighAvailabilityState::idle;
+
+          if (ha != su->haState.value)
+            {
+            // high availability state changed.
+            logInfo("N+M","AUDIT","High Availability state of Service Unit [%s] changed from [%s (%d)] to [%s (%d)]", su->name.value.c_str(),c_str(su->haState.value),su->haState.value, c_str(ha), ha);
+            su->haState = ha;
+
+            // TODO: Event?
+            }
+
+
            // SAI-AIS-AMF-B.04.01.pdf sec 3.2.1.1, presence state calculation
           PresenceState ps = su->presenceState.value;
           if (presenceCounts[(int)PresenceState::uninstantiated] == numComps)  // When all components are uninstantiated, the service unit is uninstantiated.
@@ -686,6 +718,27 @@ namespace SAFplus
 
           }
         }
+
+        SAFplus::MgtProvList<SAFplusAmf::ServiceInstance*>::ContainerType::iterator itsi;
+        SAFplus::MgtProvList<SAFplusAmf::ServiceInstance*>::ContainerType::iterator endsi = sg->serviceInstances.value.end();
+        for (itsi = sg->serviceInstances.value.begin(); itsi != endsi; itsi++)
+          {
+            SAFplusAmf::ServiceInstance* si = dynamic_cast<ServiceInstance*>(*itsi);
+            logInfo("N+M","AUDIT","Auditing service instance [%s]", si->name.value.c_str());
+
+            si->getActiveAssignments()->current.value = 0;  // TODO set this correctly
+            si->getStandbyAssignments()->current.value = 0; // TODO set this correctly
+
+            AssignmentState as = si->assignmentState;
+          //if (wat.si->assignmentState = AssignmentState::fullyAssigned;  // TODO: for now just make the SI happy to see something work
+
+            if (as != si->assignmentState)
+              {
+              logInfo("N+M","AUDIT","Assignment state of service instance [%s] changed from [%s (%d)] to [%s (%d)]", si->name.value.c_str(),c_str(si->assignmentState.value),si->assignmentState.value, c_str(as), as);
+              si->assignmentState = as;
+              }
+          }
+
 
       }
 
