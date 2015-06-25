@@ -123,7 +123,7 @@ namespace SAFplusAmf
     ret->operState.value = true;  // created ready to run...
     ret->numInstantiationAttempts.value = 0;
     ret->lastInstantiation.value.value = 0;
-    ret->presence.value = PresenceState::uninstantiated;
+    ret->presenceState.value = PresenceState::uninstantiated;
 
     return ret;
     }
@@ -604,7 +604,7 @@ namespace SAFplusAmf
         comp->operState.value = true;  // created ready to run...
         comp->numInstantiationAttempts.value = 0;
         comp->lastInstantiation.value.value = 0;
-        comp->presence.value = PresenceState::uninstantiated;
+        comp->presenceState.value = PresenceState::uninstantiated;
 
         std::string dataXPath = (*it).substr(0, found);
         comp->dataXPath = dataXPath;

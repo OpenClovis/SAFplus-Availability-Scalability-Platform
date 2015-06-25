@@ -763,7 +763,7 @@ void initializeOperationalValues(SAFplusAmf::SAFplusAmfRoot& cfg)
 
       comp->operState = true;  // Not faulted: We can try to turn this on.
       comp->readinessState = ReadinessState::outOfService;
-      comp->presence = PresenceState::uninstantiated;
+      comp->presenceState = PresenceState::uninstantiated;
 
       comp->haReadinessState = HighAvailabilityReadinessState::readyForAssignment;
       comp->haState = HighAvailabilityState::idle;
