@@ -151,17 +151,19 @@ namespace SAFplus
 
   void MgtContainer::toString(std::stringstream& xmlString)
   {
+    bool openTagList = false;
     //GAS: TAG already build at MgtList, hardcode to ignore
     if (!parent || !strstr(typeid(*parent).name(), "SAFplus7MgtList"))
       {
         xmlString << '<' << tag << '>';
+        openTagList = true;
       }
     for (MgtObjectMap::iterator it = children.begin(); it != children.end(); ++it)
       {
         MgtObject *child = it->second;
         child->toString(xmlString);
       }
-    if (!parent || !strstr(typeid(*parent).name(), "SAFplus7MgtList"))
+    if (openTagList)
       {
         xmlString << "</" << tag << '>';
       }

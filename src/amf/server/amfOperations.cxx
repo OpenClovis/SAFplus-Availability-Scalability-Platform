@@ -239,12 +239,12 @@ namespace SAFplus
         {
         comp->processId.value = 0;
         comp->lastError.value = strprintf("Process spawn failure [%s:%d]", strerror(response.err()));
-        comp->presence.value  = PresenceState::instantiationFailed;
+        comp->presenceState.value  = PresenceState::instantiationFailed;
         }
       else if (comp)
         {
         comp->processId.value = response.pid();
-        comp->presence.value  = PresenceState::instantiating;
+        comp->presenceState.value  = PresenceState::instantiating;
         }
       if (w) w->wake(1,comp);
       delete this;
@@ -442,7 +442,7 @@ namespace SAFplus
 
     if (nodeHdl == nodeHandle)  // Handle this request locally.  This is an optimization.  The RPC call will also work locally.
       {
-      comp->presence.value  = PresenceState::instantiating;
+      comp->presenceState.value  = PresenceState::instantiating;
       std::vector<std::string> newEnv = comp->commandEnvironment.value;
       std::string strCompName("ASP_COMPNAME=");
       std::string strNodeName("ASP_NODENAME=");

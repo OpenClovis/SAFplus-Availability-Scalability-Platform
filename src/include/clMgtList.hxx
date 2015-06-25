@@ -417,7 +417,7 @@ namespace SAFplus
         }
         xpath.append("/").append(this->tag);
         /* Add key into xpath */
-        /* ex: /ethernet/interfaces[name=eth0,ipAddress=123] */
+        /* ex: /ethernet/interfaces[@name="eth0" and @ipAddress="123"] */
         xpath.append(keypart);
         return xpath;
       }
@@ -838,7 +838,7 @@ namespace SAFplus
           return xpath;
         }
         std::stringstream keypart;
-        keypart << "[" << keyList << "=" << key << "]";
+        keypart << "[@" << keyList << "=\"" << key <<"\"" << "]";
         /* Parent X-Path will be add into the full xpath */
         if (parent != nullptr && includeParent) // this is the list parent
         {
