@@ -47,7 +47,7 @@ endif
 
 ifndef SAFPLUS_DBAL_PYLIB
 $(LIB_DIR)/pyDbal.so:
-	make -C $(SAFPLUS_SRC_DIR)/dbal/pylib
+	make -C $(SAFPLUS_SRC_DIR)/mgt/pylib
 endif
 
 ifndef SAFPLUS_DBAL_PLUGIN
