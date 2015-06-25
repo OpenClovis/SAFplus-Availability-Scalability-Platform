@@ -271,9 +271,10 @@ namespace SAFplus
         //Free memory
         SAFplusHeapFree(recData);
 
-        std::size_t found = value.find_last_of("@");
+        // /a/b[@key"1"]/@key
+        std::size_t found = value.find_last_of("/@");
         if ((found != std::string::npos) && (found != 0))
-          if (value[found - 1] == ']')
+          if (value[found - 2] == ']')
             {
               listKey.push_back(value);
             }

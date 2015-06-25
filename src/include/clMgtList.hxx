@@ -869,15 +869,18 @@ namespace SAFplus
 
         for (std::vector<std::string>::iterator it = iters.begin() ; it != iters.end(); ++it)
           {
-            if ((*it).find("/", xpath.length() + 1) != std::string::npos )
+            // it = '/a/b[@key="1"]/@key'
+            // xpath= '/a/b'
+            if ((*it).find("[", xpath.length() + 1) != std::string::npos )
                 continue;
 
             std::string keyValue;
 
             db->getRecord(*it, keyValue);
             //logInfo("MGT", "READ", "Read [%s] -> [%s]", it->c_str(),keyValue.c_str());
-            std::size_t found = (*it).find_last_of("@");
-            std::string dataXPath = (*it).substr(0, found);
+            std::size_t found = (*it).find_last_of("/@");
+            // dataXPath= '/a/b[@key="1"]
+            std::string dataXPath = (*it).substr(0, found - 1 );
 
             MgtObject* object = MgtFactory::getInstance()->create(childXpath);
             if (object)
