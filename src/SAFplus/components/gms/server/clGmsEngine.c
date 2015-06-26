@@ -244,10 +244,42 @@ static void gmsNotificationCallback(ClIocNotificationIdT eventId, ClPtrT unused,
     }
 }
 
+/* Trigger re-elect if mis-leader */
+ClOsalTaskIdT gGmsLeaderVerifierTask;
+static void *clGmsLeaderVerifierTask(void *cookie)
+{
+  ClUint32T reportedLeader = *(ClUint32T *)cookie;
+  ClUint32T retries = 1;
+  ClTimerTimeOutT delay = {.tsSec = 1, .tsMilliSec = 0};
+  ClGmsNodeIdT leaderNodeId = CL_GMS_INVALID_NODE_ID;
+  ClGmsNodeIdT deputyNodeId = CL_GMS_INVALID_NODE_ID;
+  ClIocNodeAddressT currentLeader;
+
+  do
+  {
+    clLogDebug("NTF", "LEA", "Try [%d] of [%d] to verify reports leader [%d]", retries, 5, reportedLeader);
+    _clGmsEngineLeaderElect(0x0, NULL, CL_GMS_MEMBER_JOINED, &leaderNodeId, &deputyNodeId);
+  } while (retries++ < 5 && (leaderNodeId != reportedLeader) && clOsalTaskDelay(delay) == CL_OK);
+
+  /* New leader changed ? */
+  if ((clNodeCacheLeaderGet(&currentLeader) == CL_OK) && (leaderNodeId == currentLeader))
+  {
+    clLogDebug("NTF", "LEA", "Leader [%d], consistent with this node.", leaderNodeId);
+    return NULL;
+  }
+
+  /* Still split-brain after timeout : reboot to recovery */
+  if (leaderNodeId != CL_GMS_INVALID_NODE_ID && leaderNodeId != reportedLeader)
+  {
+      clLogDebug("NTF", "LEA", "I am going to leave as leader changed from [0x%x] to [0x%x]", leaderNodeId, reportedLeader);
+      clNodeCacheLeaderUpdate(reportedLeader);
+      clIocNotificationNodeLeave(gmsGlobalInfo.gmsEoObject->commObj, clIocLocalAddressGet());
+  }
+  return NULL;
+}
 
 ClRcT clGmsIocNotification(ClEoExecutionObjT *pThis, ClBufferHandleT eoRecvMsg,ClUint8T priority,ClUint8T protoType,ClUint32T length, ClIocPhysicalAddressT srcAddr)
 {
-    ClRcT rc = CL_OK;
     ClIocNotificationT notification = { 0 };
     ClUint32T len = sizeof(notification);
 
@@ -271,16 +303,8 @@ ClRcT clGmsIocNotification(ClEoExecutionObjT *pThis, ClBufferHandleT eoRecvMsg,C
             clBufferNBytesRead(eoRecvMsg, (ClUint8T*)&reportedLeader, &len);
             reportedLeader = ntohl(reportedLeader);
 
-            ClGmsNodeIdT leaderNodeId = CL_GMS_INVALID_NODE_ID;
-            ClGmsNodeIdT deputyNodeId = CL_GMS_INVALID_NODE_ID;
-
-            rc = _clGmsEngineLeaderElect(0x0, NULL, CL_GMS_MEMBER_JOINED, &leaderNodeId, &deputyNodeId);
-            if (leaderNodeId != CL_GMS_INVALID_NODE_ID && leaderNodeId != reportedLeader)
-            {
-                clLogDebug("NTF", "LEA", "I am going to leave as leader changed from [0x%x] to [0x%x]", leaderNodeId, reportedLeader);
-                clNodeCacheLeaderUpdate(reportedLeader);
-                clIocNotificationNodeLeave(pThis->commObj, clIocLocalAddressGet());
-            }
+            /* leader verifier */
+            clOsalTaskCreateAttached("leader verifier", CL_OSAL_SCHED_OTHER, CL_OSAL_THREAD_PRI_NOT_APPLICABLE, 0, clGmsLeaderVerifierTask, (void *)&reportedLeader, &gGmsLeaderVerifierTask);
         }
     }
 
