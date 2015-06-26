@@ -110,15 +110,25 @@ def copy_dir(src, dst, recursion=0):
 def get_compression_format(archive_name):
     """ Returns archive_name without extension and compression method from the archive_name
     """
-    default_compress_format = {'tar': ('.tar', 'tar'), 'gz': ('gz', 'gztar'),
-                               'bz2': ('.tar.bz2', 'bztar'), 'tgz': ('.tgz', 'gztar'),
-                               'zip': ('.zip', 'zip')}
+    default_compress_format = {'tar': 'tar', 'gz': 'gztar', 'bz2': 'bztar', 'tgz': 'gztar', 'zip': 'zip'}
     compress_format = "gztar"
-    compress_extension = archive_name.split('.')[-1]
+    sub_strs  = archive_name.split('.')
+    compress_extension = sub_strs[-1]
+    index = None
     if compress_extension in default_compress_format:
-        extension, compress_format = default_compress_format.get(compress_extension)
-        archive_name = archive_name.split('.')[0]
+        compress_format = default_compress_format.get(compress_extension)
+        if compress_extension != "tar":
+            try:
+                index = sub_strs.index("tar")
+            except ValueError:
+                pass
 
+        if index is None:
+            archive_suffix = "."+ compress_extension
+        else:
+            archive_suffix = ".tar." + compress_extension
+        log.debug("Archive suffix is {}".format(archive_suffix))
+        archive_name = archive_name.split(archive_suffix)[0]
     return archive_name, compress_format
 
 
