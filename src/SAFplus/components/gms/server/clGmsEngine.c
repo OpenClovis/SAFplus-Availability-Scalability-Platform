@@ -249,6 +249,7 @@ ClOsalTaskIdT gGmsLeaderVerifierTask;
 static void *clGmsLeaderVerifierTask(void *cookie)
 {
   ClUint32T reportedLeader = *(ClUint32T *)cookie;
+  free(cookie);
   ClUint32T retries = 1;
   ClTimerTimeOutT delay = {.tsSec = 1, .tsMilliSec = 0};
   ClGmsNodeIdT leaderNodeId = CL_GMS_INVALID_NODE_ID;
@@ -298,13 +299,14 @@ ClRcT clGmsIocNotification(ClEoExecutionObjT *pThis, ClBufferHandleT eoRecvMsg,C
         len = length - sizeof(notification);
         if (len == sizeof(ClUint32T)) /* leader status is appended onto the end of the message */
         {
-            ClUint32T reportedLeader = 0;
+            ClUint32T *reportedLeader = malloc(sizeof(ClUint32T));
             len = sizeof(ClUint32T);
-            clBufferNBytesRead(eoRecvMsg, (ClUint8T*)&reportedLeader, &len);
-            reportedLeader = ntohl(reportedLeader);
+            clBufferNBytesRead(eoRecvMsg, (ClUint8T*)reportedLeader, &len);
+            *reportedLeader = ntohl(*reportedLeader);
 
             /* leader verifier */
-            clOsalTaskCreateAttached("leader verifier", CL_OSAL_SCHED_OTHER, CL_OSAL_THREAD_PRI_NOT_APPLICABLE, 0, clGmsLeaderVerifierTask, (void *)&reportedLeader, &gGmsLeaderVerifierTask);
+            clOsalTaskCreateAttached("leader verifier", CL_OSAL_SCHED_OTHER, CL_OSAL_THREAD_PRI_NOT_APPLICABLE, 0, clGmsLeaderVerifierTask, (void *)reportedLeader, &gGmsLeaderVerifierTask);
+            reportedLeader = NULL;
         }
     }
 
