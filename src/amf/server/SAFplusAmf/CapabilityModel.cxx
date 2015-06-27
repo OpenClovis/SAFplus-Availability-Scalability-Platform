@@ -19,10 +19,6 @@ namespace SAFplusAmf
     const CapabilityModelManager::map_t CapabilityModelManager::en2str_map = {
             pair_t(CapabilityModel::x_active_and_y_standby, "x_active_and_y_standby"),
             pair_t(CapabilityModel::x_active_or_y_standby, "x_active_or_y_standby"),
-            pair_t(CapabilityModel::one_active_or_y_standby, "one_active_or_y_standby"),
-            pair_t(CapabilityModel::one_active_or_one_standby, "one_active_or_one_standby"),
-            pair_t(CapabilityModel::x_active, "x_active"),
-            pair_t(CapabilityModel::one_active, "one_active"),
             pair_t(CapabilityModel::nonPreInstantiable, "nonPreInstantiable")
     }; // uses c++11 initializer lists 
 

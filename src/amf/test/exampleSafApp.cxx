@@ -18,8 +18,8 @@ SaNameT      appName = {0};
 
 /* set when SAFplus tells this process to quit */
 bool quitting = false;
-/* set when SAFplus assigns active work */
-bool running = false;
+/* set when SAFplus assigns active/standby work */
+int running = false;
 
 /* The application should fill these functions */
 void safTerminate(SaInvocationT invocation, const SaNameT *compName);
@@ -175,7 +175,7 @@ void safAssignWork(SaInvocationT       invocation,
                here to do it. */
 
             clprintf(SAFplus::LOG_SEV_INFO,"csa101: Standby state requested");
-            running = 0;
+            running = 2;
 
             /* The AMF times the interval between the assignment and acceptance
                of the work (the time interval is configurable).
@@ -351,7 +351,8 @@ void dispatchLoop(void)
       if (FD_ISSET(amf_dispatch_fd,&read_fds)) saAmfDispatch(amfHandle, SA_DISPATCH_ALL);
       /* if (FD_ISSET(ckpt_dispatch_fd,&read_fds)) saCkptDispatch(ckptLibraryHandle, SA_DISPATCH_ALL); */
  
-      if (running) clprintf(SAFplus::LOG_SEV_INFO,"csa101: Active.  Hello World!"); // show_progress());
+      if (running==1) clprintf(SAFplus::LOG_SEV_INFO,"csa101: Active.  Hello World!"); // show_progress());
+      else if (running==2) clprintf(SAFplus::LOG_SEV_INFO,"csa101: Standby."); // show_progress());
       else 
         {
         clprintf(SAFplus::LOG_SEV_INFO,"csa101: idle");

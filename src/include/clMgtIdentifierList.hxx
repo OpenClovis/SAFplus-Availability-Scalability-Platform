@@ -74,6 +74,46 @@ public:
 
     void pushBackValue(T strVal);
 
+    void push_back(T val) { value.push_back(val); }
+
+    typename ContainerType::iterator find(T item)
+    {
+      typename ContainerType::iterator it;
+      for (it=value.begin(); it!=value.end(); it++)
+      {
+        if (item == *it) return it;
+      }
+      return it;
+    }
+
+    bool contains(T item)
+    {
+      if (find(item) == value.end()) return false;
+      return true;
+    }
+
+    //? Remove all elements
+    void clear() 
+    { 
+      // TODO: should we also clear refs?
+      value.clear(); 
+    }
+
+    /*? Remove the first element that == item */
+    void erase(T item)
+    {
+      typename std::vector<T>::iterator it;
+      for (it=value.begin(); it!=value.end(); it++)
+      {
+        // TODO: should we also remove the equivalent index in refs?
+        if (item == *it) 
+          {
+          value.erase(it);
+          return;
+          }
+      }
+    }
+
     virtual ClRcT write(MgtDatabase* db, std::string xpt = "")
     {
       return CL_OK;

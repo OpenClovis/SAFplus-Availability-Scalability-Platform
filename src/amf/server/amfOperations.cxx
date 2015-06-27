@@ -29,10 +29,12 @@ extern Handle           nodeHandle; //? The handle associated with this node
 namespace SAFplus
   {
 
+    uint64_t nowMs() { return std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::system_clock::now().time_since_epoch()).count(); }
+
     WorkOperationTracker::WorkOperationTracker(SAFplusAmf::Component* c,SAFplusAmf::ComponentServiceInstance* cwork,SAFplusAmf::ServiceInstance* work,uint statep, uint targetp)
     {
     comp = c; csi = cwork; si=work; state = statep; target = targetp;
-    issueTime = std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::system_clock::now().time_since_epoch()).count();
+    issueTime = nowMs();
     }
 
 
@@ -151,8 +153,14 @@ namespace SAFplus
         {
         if (result == SA_AIS_OK)  // TODO: actually, I think I need to call into the redundancy model plugin to correctly process the result.
           {
+          assert(wat.comp->pendingOperation == PendingOperation::workAssignment);  // No one should be issuing another operation until this one is aborted
+
           wat.comp->haState = (SAFplusAmf::HighAvailabilityState) wat.state; // TODO: won't work with multiple assignments of active and standby, for example
           // if (wat.si->assignmentState = AssignmentState::fullyAssigned;  // TODO: for now just make the SI happy to see something work
+
+          // pending operation completed.  Clear it out
+          wat.comp->pendingOperationExpiration.value.value = 0;
+          wat.comp->pendingOperation = PendingOperation::none;
           }
         }
       else // work removal
@@ -283,9 +291,54 @@ namespace SAFplus
 
   void AmfOperations::removeWork(SAFplusAmf::ServiceInstance* si,Wakeable& w)
     {
-    SAFplusAmf::StandbyAssignments* standby = si->getStandbyAssignments();
-    SAFplusAmf::ActiveAssignments* active = si->getActiveAssignments();
+    SAFplusAmf::NumStandbyAssignments* standby = si->getNumStandbyAssignments();
+    SAFplusAmf::NumActiveAssignments* active = si->getNumActiveAssignments();
     
+    
+    }
+
+    void AmfOperations::removeWork(ServiceUnit* su, Wakeable& w)
+    {
+      assert(su);
+
+      SAFplus::MgtProvList<SAFplusAmf::ServiceInstance*>::ContainerType::iterator   it;
+      SAFplus::MgtProvList<SAFplusAmf::ServiceInstance*>::ContainerType::iterator   end = su->assignedServiceInstances.value.end();
+      for (it = su->assignedServiceInstances.value.begin(); it != end; it++)
+        {
+          ServiceInstance* si = dynamic_cast<ServiceInstance*>(*it);
+          assert(si);
+          if (si->activeAssignments.find(su) != si->activeAssignments.value.end())
+            {
+              assert(si->numActiveAssignments.current > 0); // Data is inconsistent
+              si->numActiveAssignments.current -= 1;
+              si->activeAssignments.erase(su);
+            }
+
+          if (si->standbyAssignments.find(su) != si->standbyAssignments.value.end())
+            {
+              assert(si->numStandbyAssignments.current > 0);  // Data is inconsistent
+              si->numStandbyAssignments.current -= 1;
+              si->standbyAssignments.erase(su);
+            }
+          if ((si->numActiveAssignments.current.value == 0)||(si->numStandbyAssignments.current.value == 0)) si->assignmentState = AssignmentState::partiallyAssigned;
+          if ((si->numActiveAssignments.current.value == 0)&&(si->numStandbyAssignments.current.value == 0)) si->assignmentState = AssignmentState::unassigned;
+        }
+
+      su->assignedServiceInstances.clear();
+      su->numActiveServiceInstances.current = 0;
+      su->numStandbyServiceInstances.current = 0;
+
+      SAFplus::MgtProvList<SAFplusAmf::Component*>::ContainerType::iterator   itcomp;
+      SAFplus::MgtProvList<SAFplusAmf::Component*>::ContainerType::iterator   endcomp = su->components.value.end();
+      for (itcomp = su->components.value.begin(); itcomp != endcomp; itcomp++)
+        {
+          Component* comp = dynamic_cast<Component*>(*itcomp);
+          assert(comp);   
+  
+          // TODO: in multi component service units, we need to remove the work from all the other components. 
+          // for now ASSERT if all the components are not already dead
+          assert((comp->presenceState == PresenceState::uninstantiated) || (comp->presenceState == PresenceState::instantiationFailed));  // remove when multi-comp implemented
+        }
     
     }
 
@@ -296,12 +349,21 @@ namespace SAFplus
     Component* comp = nullptr; // TODO: su down to comp
     ComponentServiceInstance* csi = nullptr;
 
+    assert(su->assignedServiceInstances.contains(si) == false);  // We can only assign a particular SI to a particular SU once.
+
+    su->assignedServiceInstances.push_back(si);
+    if (state == HighAvailabilityState::active) su->numActiveServiceInstances.current+=1;
+    if (state == HighAvailabilityState::standby) su->numStandbyServiceInstances.current+=1;
+
     SAFplus::MgtProvList<SAFplusAmf::Component*>::ContainerType::iterator   itcomp;
     SAFplus::MgtProvList<SAFplusAmf::Component*>::ContainerType::iterator   endcomp = su->components.value.end();
     for (itcomp = su->components.value.begin(); itcomp != endcomp; itcomp++)
       {
+
       Component* comp = dynamic_cast<Component*>(*itcomp);
       assert(comp);
+
+      assert(comp->pendingOperation == PendingOperation::none);  // We should not be adding work to a component if something else is happening to it.
 
       Handle hdl;
       try
@@ -312,6 +374,7 @@ namespace SAFplus
           {
           logCritical("OPS","SRT","Component [%s] is not registered in the name service.  Cannot control it.", comp->name.value.c_str());
           comp->lastError.value = "Component's name is not registered in the name service so address cannot be determined.";
+          assert(0);
           break; // TODO: right now go to the next component, however assignment should not occur on ANY components if all components are not accessible. 
           }
 
@@ -333,7 +396,11 @@ namespace SAFplus
 
       if (itcsi != endcsi)  // We found an assignable CSI and it is the variable "csi"
         {
-        logInfo("OPS","SRT","Component [%s] handle [%" PRIx64 ":%" PRIx64 "] is being assigned work", comp->name.value.c_str(),hdl.id[0],hdl.id[1]);
+        logInfo("OPS","SRT","Component [%s] handle [%" PRIx64 ":%" PRIx64 "] is being assigned [%s] work", comp->name.value.c_str(),hdl.id[0],hdl.id[1], c_str(state));
+        // Mark this component with a pending operation.  This will be cleared in the WorkOperationTracker, or by timeout in auditDiscovery
+        comp->pendingOperationExpiration.value.value = nowMs() + comp->timeouts.workAssignment;
+        comp->pendingOperation = PendingOperation::workAssignment;
+
         request.set_componentname(comp->name.value.c_str());
         request.set_componenthandle((const char*) &hdl, sizeof(Handle)); // [libprotobuf ERROR google/protobuf/wire_format.cc:1053] String field contains invalid UTF-8 data when serializing a protocol buffer. Use the 'bytes' type if you intend to send raw bytes.
         request.set_operation((uint32_t)state);

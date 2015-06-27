@@ -9,23 +9,24 @@
 #define SERVICEINSTANCE_HXX_
 #include "SAFplusAmfCommon.hxx"
 
+#include "NumActiveAssignments.hxx"
 #include "AssignmentState.hxx"
-#include <string>
+#include "NumActiveAssignments.hxx"
+#include "clMgtIdentifier.hxx"
 #include "clTransaction.hxx"
-#include "StandbyAssignments.hxx"
 #include "ComponentServiceInstance.hxx"
-#include "clMgtIdentifierList.hxx"
+#include "ServiceGroup.hxx"
 #include "clMgtList.hxx"
 #include "MgtFactory.hxx"
-#include "ActiveAssignments.hxx"
 #include "AdministrativeState.hxx"
-#include "clMgtIdentifier.hxx"
+#include <string>
 #include "clMgtProv.hxx"
-#include "StandbyAssignments.hxx"
-#include "ServiceGroup.hxx"
+#include "clMgtIdentifierList.hxx"
 #include <vector>
-#include "ActiveAssignments.hxx"
 #include "EntityId.hxx"
+#include "NumStandbyAssignments.hxx"
+#include "NumStandbyAssignments.hxx"
+#include "ServiceUnit.hxx"
 
 namespace SAFplusAmf
   {
@@ -48,12 +49,12 @@ namespace SAFplusAmf
         SAFplus::MgtProv<SAFplusAmf::AssignmentState> assignmentState;
 
         /*
-         * What is the optimal number of Service Units that should be given an active assignment for this work?
+         * What is the optimal number of Service Units that should be given an active assignment for this work?  Note that the SA-Forum requires this field to be 1 for 2N, N+M, N-Way, and no redundancy models (see SAI-AIS-AMF-B.04.01@3.2.3.2 table 11).  However SAFplus allows this field to be set to any value for these models.
          */
         SAFplus::MgtProv<unsigned int> preferredActiveAssignments;
 
         /*
-         * What is the optimal number of Service Units that should be given a standby assignment for this work?
+         * What is the optimal number of Service Units that should be given a standby assignment for this work?  Note that the SA-Forum requires this field to be 1 for 2N, and N+M, redundancy models (see SAI-AIS-AMF-B.04.01@3.2.3.2 table 11).  However SAFplus allows this field to be set to any value for these models.  This field must be 0 for N-Way Active and No-redundancy models since these models do not have standby apps.
          */
         SAFplus::MgtProv<unsigned int> preferredStandbyAssignments;
 
@@ -63,12 +64,22 @@ namespace SAFplusAmf
         SAFplus::MgtProv<unsigned int> rank;
 
         /*
+         * This work is assigned active to these service units.  Depending on the redundancy model, it 
+         */
+        SAFplus::MgtIdentifierList<SAFplusAmf::ServiceUnit*> activeAssignments;
+
+        /*
+         * This work is assigned standby to these service units
+         */
+        SAFplus::MgtIdentifierList<SAFplusAmf::ServiceUnit*> standbyAssignments;
+
+        /*
          * Component Service Instances in this Service group
          */
         SAFplus::MgtIdentifierList<SAFplusAmf::ComponentServiceInstance*> componentServiceInstances;
         SAFplus::MgtIdentifier<SAFplusAmf::ServiceGroup*> serviceGroup;
-        SAFplusAmf::ActiveAssignments activeAssignments;
-        SAFplusAmf::StandbyAssignments standbyAssignments;
+        SAFplusAmf::NumActiveAssignments numActiveAssignments;
+        SAFplusAmf::NumStandbyAssignments numStandbyAssignments;
 
         /*
          * An abstract definition of the amount of work this node can handle.  Nodes can be assigned capacities for arbitrarily chosen strings (MEM or CPU, for example).  Service Instances can be assigned 'weights' and the sum of the weights of service instances assigned active or standby on this node cannot exceed these values.
@@ -137,6 +148,26 @@ namespace SAFplusAmf
         void setRank(unsigned int rankValue, SAFplus::Transaction &t=SAFplus::NO_TXN);
 
         /*
+         * XPATH: /SAFplusAmf/ServiceInstance/activeAssignments
+         */
+        std::vector<SAFplusAmf::ServiceUnit*> getActiveAssignments();
+
+        /*
+         * XPATH: /SAFplusAmf/ServiceInstance/activeAssignments
+         */
+        void setActiveAssignments(SAFplusAmf::ServiceUnit* activeAssignmentsValue);
+
+        /*
+         * XPATH: /SAFplusAmf/ServiceInstance/standbyAssignments
+         */
+        std::vector<SAFplusAmf::ServiceUnit*> getStandbyAssignments();
+
+        /*
+         * XPATH: /SAFplusAmf/ServiceInstance/standbyAssignments
+         */
+        void setStandbyAssignments(SAFplusAmf::ServiceUnit* standbyAssignmentsValue);
+
+        /*
          * XPATH: /SAFplusAmf/ServiceInstance/componentServiceInstances
          */
         std::vector<SAFplusAmf::ComponentServiceInstance*> getComponentServiceInstances();
@@ -157,24 +188,24 @@ namespace SAFplusAmf
         void setServiceGroup(SAFplusAmf::ServiceGroup* serviceGroupValue, SAFplus::Transaction &t=SAFplus::NO_TXN);
 
         /*
-         * XPATH: /SAFplusAmf/ServiceInstance/activeAssignments
+         * XPATH: /SAFplusAmf/ServiceInstance/numActiveAssignments
          */
-        SAFplusAmf::ActiveAssignments* getActiveAssignments();
+        SAFplusAmf::NumActiveAssignments* getNumActiveAssignments();
 
         /*
-         * XPATH: /SAFplusAmf/ServiceInstance/activeAssignments
+         * XPATH: /SAFplusAmf/ServiceInstance/numActiveAssignments
          */
-        void addActiveAssignments(SAFplusAmf::ActiveAssignments *activeAssignmentsValue);
+        void addNumActiveAssignments(SAFplusAmf::NumActiveAssignments *numActiveAssignmentsValue);
 
         /*
-         * XPATH: /SAFplusAmf/ServiceInstance/standbyAssignments
+         * XPATH: /SAFplusAmf/ServiceInstance/numStandbyAssignments
          */
-        SAFplusAmf::StandbyAssignments* getStandbyAssignments();
+        SAFplusAmf::NumStandbyAssignments* getNumStandbyAssignments();
 
         /*
-         * XPATH: /SAFplusAmf/ServiceInstance/standbyAssignments
+         * XPATH: /SAFplusAmf/ServiceInstance/numStandbyAssignments
          */
-        void addStandbyAssignments(SAFplusAmf::StandbyAssignments *standbyAssignmentsValue);
+        void addNumStandbyAssignments(SAFplusAmf::NumStandbyAssignments *numStandbyAssignmentsValue);
         ~ServiceInstance();
 
     };

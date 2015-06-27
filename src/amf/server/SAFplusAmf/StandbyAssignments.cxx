@@ -15,7 +15,7 @@ namespace SAFplusAmf
   {
 
     /* Apply MGT object factory */
-    MGT_REGISTER_IMPL(StandbyAssignments, /SAFplusAmf/ServiceInstance/standbyAssignments)
+    MGT_REGISTER_IMPL(StandbyAssignments, /SAFplusAmf/Component/standbyAssignments)
 
     StandbyAssignments::StandbyAssignments()
     {

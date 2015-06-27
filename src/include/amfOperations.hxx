@@ -82,6 +82,7 @@ namespace SAFplus
 
     void assignWork(SAFplusAmf::ServiceUnit* su, SAFplusAmf::ServiceInstance* si, SAFplusAmf::HighAvailabilityState state,Wakeable& w = *((Wakeable*)nullptr));
     void removeWork(SAFplusAmf::ServiceInstance* si,Wakeable& w = *((Wakeable*)nullptr));
+    void removeWork(SAFplusAmf::ServiceUnit* su, Wakeable& w = *((Wakeable*)nullptr));  // TODO: add indicator of how fast to remove work: kill -9, work removal or quiesce
 
     void workOperationResponse(uint64_t invocation, uint32_t result);
     };

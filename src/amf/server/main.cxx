@@ -767,6 +767,8 @@ void initializeOperationalValues(SAFplusAmf::SAFplusAmfRoot& cfg)
 
       comp->haReadinessState = HighAvailabilityReadinessState::readyForAssignment;
       comp->haState = HighAvailabilityState::idle;
+
+      comp->numInstantiationAttempts = 0;
     }
 
   MgtObject::Iterator itnode;
@@ -785,8 +787,8 @@ void initializeOperationalValues(SAFplusAmf::SAFplusAmfRoot& cfg)
       ServiceInstance* elem = dynamic_cast<ServiceInstance*>(itsi->second);
 
       elem->assignmentState = AssignmentState::unassigned;  
-      elem->getActiveAssignments()->current.value = 0;
-      elem->getStandbyAssignments()->current.value = 0;
+      elem->getNumActiveAssignments()->current.value = 0;
+      elem->getNumStandbyAssignments()->current.value = 0;
     }
 
   if (1)

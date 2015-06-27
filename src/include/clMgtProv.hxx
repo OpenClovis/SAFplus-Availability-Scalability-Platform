@@ -225,7 +225,7 @@ namespace SAFplus
    */
 
   template<class T>
-    MgtProv<T>::MgtProv(const char* name) : MgtObject(name)
+  MgtProv<T>::MgtProv(const char* name) : MgtObject(name),value()
     {
       mValIndex = -1;
     }

@@ -101,7 +101,7 @@ namespace SAFplus
         }
       if (comp->numInstantiationAttempts.value >= comp->maxInstantInstantiations + comp->maxDelayedInstantiations)
         {
-        logInfo("N+M","STRT","Faulting [%s]. It has exceeded its startup attempts [%d].",comp->name.value.c_str(),comp->maxInstantInstantiations + comp->maxDelayedInstantiations);
+          logInfo("N+M","STRT","Faulting [%s]. Number of instantiation Attempts [%d] has exceeded its configured maximum [%d].",comp->name.value.c_str(),comp->numInstantiationAttempts.value, comp->maxInstantInstantiations + comp->maxDelayedInstantiations);
         comp->operState = false;
         comp->numInstantiationAttempts = 0;
         continue;
@@ -243,14 +243,27 @@ namespace SAFplus
       assert(su);
       if (su->operState == true)
         {
+          // TODO: add a text field in the SU that describes why it is not assignable... generate a string from the component iterator and fill that field.
+
         SAFplus::MgtProvList<SAFplusAmf::Component*>::ContainerType::iterator   itcomp;
         SAFplus::MgtProvList<SAFplusAmf::Component*>::ContainerType::iterator   endcomp = su->components.value.end();
         for (itcomp = su->components.value.begin(); itcomp != endcomp; itcomp++)
           {
           Component* comp = dynamic_cast<Component*>(*itcomp);
           assert(comp);
-          if ((comp->operState.value == true) && (comp->readinessState.value == ReadinessState::inService) && (comp->haReadinessState == HighAvailabilityReadinessState::readyForAssignment) && (comp->haState != HighAvailabilityState::quiescing))
+          if ((comp->operState.value == true) && (comp->presenceState.value == PresenceState::instantiated) && (comp->readinessState.value == ReadinessState::inService) && (comp->haReadinessState == HighAvailabilityReadinessState::readyForAssignment) && (comp->haState != HighAvailabilityState::quiescing) && (comp->pendingOperation == PendingOperation::none))
             {
+              // Now check the component's capability model
+              if (comp->capabilityModel == CapabilityModel::x_active_or_y_standby)  // Can't take both active and standby assignments
+                {
+                  if ((tgtState == HighAvailabilityState::active) && (comp->haState == HighAvailabilityState::standby)) assignable = false;
+                  if ((tgtState == HighAvailabilityState::standby) && (comp->haState == HighAvailabilityState::active)) assignable = false;
+                }
+
+              // Check # of assignments against the maximum.
+              if ((tgtState == HighAvailabilityState::active) && (comp->activeAssignments.current.value >= comp->maxActiveAssignments)) assignable = false;
+              if ((tgtState == HighAvailabilityState::standby) && (comp->standbyAssignments.current >= comp->maxStandbyAssignments )) assignable = false;
+
             // candidate
             }
           else 
@@ -264,6 +277,46 @@ namespace SAFplus
       }
     return nullptr;
     }
+
+  ServiceUnit* findPromotableServiceUnit(std::vector<SAFplusAmf::ServiceUnit*>& candidates,MgtList<std::string>& weights, HighAvailabilityState tgtState)
+    {
+    std::vector<SAFplusAmf::ServiceUnit*>::iterator i;
+    for (i = candidates.begin(); i != candidates.end(); i++)
+      {
+      bool assignable = true;
+      ServiceUnit* su = *i;
+      assert(su);
+      if (su->operState == true)
+        {
+          // TODO: add a text field in the SU that describes why it is not assignable... generate a string from the component iterator and fill that field.
+
+        SAFplus::MgtProvList<SAFplusAmf::Component*>::ContainerType::iterator   itcomp;
+        SAFplus::MgtProvList<SAFplusAmf::Component*>::ContainerType::iterator   endcomp = su->components.value.end();
+        for (itcomp = su->components.value.begin(); itcomp != endcomp; itcomp++)
+          {
+          Component* comp = dynamic_cast<Component*>(*itcomp);
+          assert(comp);
+          if ((comp->operState.value == true) && (comp->readinessState.value == ReadinessState::inService) && (comp->haReadinessState == HighAvailabilityReadinessState::readyForAssignment) && (comp->haState != HighAvailabilityState::quiescing) && (comp->pendingOperation == PendingOperation::none))
+            {
+              // Check # of assignments against the maximum.
+              if ((tgtState == HighAvailabilityState::active) && (comp->activeAssignments.current.value >= comp->maxActiveAssignments)) assignable = false;
+              if ((tgtState == HighAvailabilityState::standby) && (comp->standbyAssignments.current >= comp->maxStandbyAssignments )) assignable = false;
+
+            // candidate
+            }
+          else 
+            {
+            assignable = false;
+            break;
+            }
+          }
+        if (assignable) return su;
+        }
+      }
+    return nullptr;
+    }
+
+
 
   // Second step in the audit is to do something to heal any discrepencies.
   void NplusMPolicy::auditOperation(SAFplusAmf::SAFplusAmfRoot* root)
@@ -355,18 +408,47 @@ namespace SAFplus
           ServiceInstance* si = dynamic_cast<ServiceInstance*>(*itsi);
           SAFplusAmf::AdministrativeState eas = effectiveAdminState(si);
 
+          if (eas == AdministrativeState::on)
+            {
+            // Handle promotion of standby to active
+              if ((si->numActiveAssignments.current < si->preferredActiveAssignments) && (si->numStandbyAssignments.current > 0))
+                {
+                // Sort the SUs by rank so we promote them in proper order.
+                // TODO: I don't like this constant resorting... we should have a sorted list in the SG.
+                logInfo("N+M","AUDIT","Attempting to promote standby service instance [%s] assignment to active",si->name.value.c_str());
+                std::vector<SAFplusAmf::ServiceUnit*> standbySus(si->standbyAssignments.value.begin(),si->standbyAssignments.value.end());
+                boost::sort(standbySus,suOrder);
+                ServiceUnit* su = findPromotableServiceUnit(standbySus,si->activeWeightList,HighAvailabilityState::active);
+                if (su)
+                  {
+                    si->standbyAssignments.erase(su);
+                    su->assignedServiceInstances.erase(si);
+                    // TODO: remove other SI standby assignments from this SU if the component capability model is OR
+                    si->activeAssignments.value.push_back(su);  // assign the si to the su
+                    si->getNumStandbyAssignments()->current.value--;
+                    si->getNumActiveAssignments()->current.value++;
+                    amfOps->assignWork(su,si,HighAvailabilityState::active);
+                  } 
+                
+
+                }
+            }
+
           // We want to assign but for some reason it is not.
           if ((eas == AdministrativeState::on) && (si->assignmentState != AssignmentState::fullyAssigned))
             {
-            logInfo("N+M","AUDIT","Service Instance [%s] should be fully assigned but is [%s].", si->name.value.c_str(),c_str(si->assignmentState));
+              logInfo("N+M","AUDIT","Service Instance [%s] should be fully assigned but is [%s]. Current active assignments [%ld], targeting [%d]", si->name.value.c_str(),c_str(si->assignmentState),si->getNumActiveAssignments()->current.value, si->preferredActiveAssignments.value);
 
             if (1)
               {
-              for (int cnt = si->getActiveAssignments()->current.value; cnt < si->preferredActiveAssignments; cnt++)
+              for (int cnt = si->getNumActiveAssignments()->current.value; cnt < si->preferredActiveAssignments; cnt++)
                 {
                 ServiceUnit* su = findAssignableServiceUnit(sus,si->activeWeightList,HighAvailabilityState::active);
                 if (su)
                   {
+                    // TODO: assert(si is not already assigned to this su)
+                  si->activeAssignments.value.push_back(su);  // assign the si to the su
+                  si->getNumActiveAssignments()->current.value++;
                   amfOps->assignWork(su,si,HighAvailabilityState::active);
                   boost::sort(sus,suOrder);  // Sort order may have changed based on the assignment.
                   }
@@ -377,13 +459,17 @@ namespace SAFplus
                   }
                 }
               }
-            if (si->getActiveAssignments()->current.value > 0)  // If there is at least 1 active, try to assign the standbys
+            if (si->getNumActiveAssignments()->current.value > 0)  // If there is at least 1 active, try to assign the standbys
               {
-              for (int cnt = si->getStandbyAssignments()->current.value; cnt < si->preferredStandbyAssignments; cnt++)
+              for (int cnt = si->getNumStandbyAssignments()->current.value; cnt < si->preferredStandbyAssignments; cnt++)
                 {
                 ServiceUnit* su = findAssignableServiceUnit(sus,si->standbyWeightList,HighAvailabilityState::standby);
                 if (su)
                   {
+                    // TODO: assert(si is not already assigned to this su)
+                  si->standbyAssignments.value.push_back(su);  // assign the si to the su
+                  si->getNumStandbyAssignments()->current.value++;
+
                   amfOps->assignWork(su,si,HighAvailabilityState::standby);
                   boost::sort(sus,suOrder);  // Sort order may have changed based on the assignment.
                   }
@@ -403,11 +489,87 @@ namespace SAFplus
             }
           else
             {
-            logInfo("N+M","AUDIT","Service Instance [%s]: admin state [%s]. assignment state [%s].  Assignments: active [%ld] standby [%ld]. ", si->name.value.c_str(),c_str(si->adminState.value), c_str(si->assignmentState), si->getActiveAssignments()->current.value,si->getStandbyAssignments()->current.value  );
+            logInfo("N+M","AUDIT","Service Instance [%s]: admin state [%s]. assignment state [%s].  Assignments: active [%ld] standby [%ld]. ", si->name.value.c_str(),c_str(si->adminState.value), c_str(si->assignmentState), si->getNumActiveAssignments()->current.value,si->getNumStandbyAssignments()->current.value  );
             }
 
           }
         }
+
+#if 0
+      // Look for Components that need assignment
+      if (1) 
+        {
+        // Go through in rank order so that the most important SIs are assigned first
+        std::vector<SAFplusAmf::ServiceInstance*> sis(sg->serviceInstances.value.begin(),sg->serviceInstances.value.end());
+        boost::sort(sis,siEarliestRanking);
+
+        std::vector<SAFplusAmf::ServiceInstance*>::iterator itsi;
+        for (itsi = sis.begin(); itsi != sis.end(); itsi++)
+          {
+          ServiceInstance* si = dynamic_cast<ServiceInstance*>(*itsi);
+          SAFplusAmf::AdministrativeState eas = effectiveAdminState(si);
+
+          if (eas == AdministrativeState::on)
+            {
+              //logInfo("N+M","AUDIT","Service Instance [%s] should be fully assigned but is [%s]. Current active assignments [%ld], targeting [%d]", si->name.value.c_str(),c_str(si->assignmentState),si->getNumActiveAssignments()->current.value, si->preferredActiveAssignments.value);
+
+            if (1)
+              {
+              for (int cnt = si->getNumActiveAssignments()->current.value; cnt < si->preferredActiveAssignments; cnt++)
+                {
+                ServiceUnit* su = findAssignableServiceUnit(sus,si->activeWeightList,HighAvailabilityState::active);
+                if (su)
+                  {
+                    // TODO: assert(si is not already assigned to this su)
+                  si->activeAssignments.value.push_back(su);  // assign the si to the su
+                  si->getNumActiveAssignments()->current.value++;
+                  amfOps->assignWork(su,si,HighAvailabilityState::active);
+                  boost::sort(sus,suOrder);  // Sort order may have changed based on the assignment.
+                  }
+                else
+                  {
+                  logInfo("N+M","AUDIT","Service Instance [%s] cannot be assigned %dth active.  No available service units.", si->name.value.c_str(),cnt);
+                  break;
+                  }
+                }
+              }
+            if (si->getNumActiveAssignments()->current.value > 0)  // If there is at least 1 active, try to assign the standbys
+              {
+              for (int cnt = si->getNumStandbyAssignments()->current.value; cnt < si->preferredStandbyAssignments; cnt++)
+                {
+                ServiceUnit* su = findAssignableServiceUnit(sus,si->standbyWeightList,HighAvailabilityState::standby);
+                if (su)
+                  {
+                    // TODO: assert(si is not already assigned to this su)
+                  si->standbyAssignments.value.push_back(su);  // assign the si to the su
+                  si->getNumStandbyAssignments()->current.value++;
+
+                  amfOps->assignWork(su,si,HighAvailabilityState::standby);
+                  boost::sort(sus,suOrder);  // Sort order may have changed based on the assignment.
+                  }
+                else
+                  {
+                  logInfo("N+M","AUDIT","Service Instance [%s] cannot be assigned %dth standby.  No available service units.", si->name.value.c_str(),cnt);
+                  break;
+                  }
+                }
+              }
+            }
+
+          else if ((eas == AdministrativeState::off) && (si->assignmentState != AssignmentState::unassigned))
+            {
+            logInfo("N+M","AUDIT","Service Instance [%s] should be unassigned but is [%s].", si->name.value.c_str(),c_str(si->assignmentState));
+            amfOps->removeWork(si);
+            }
+          else
+            {
+            logInfo("N+M","AUDIT","Service Instance [%s]: admin state [%s]. assignment state [%s].  Assignments: active [%ld] standby [%ld]. ", si->name.value.c_str(),c_str(si->adminState.value), c_str(si->assignmentState), si->getNumActiveAssignments()->current.value,si->getNumStandbyAssignments()->current.value  );
+            }
+
+          }
+        }
+#endif
+
 
       if (startSg)
         {
@@ -420,7 +582,16 @@ namespace SAFplus
 
   void updateStateDueToProcessDeath(SAFplusAmf::Component* comp)
     {
+
+      // Reset component's basic state to dead
     comp->presenceState = PresenceState::uninstantiated;
+    comp->activeAssignments.current = 0;
+    comp->standbyAssignments.current = 0;
+    comp->setAssignedWork("");
+    comp->readinessState = ReadinessState::outOfService;
+    // right now, only the customer changes this; with presence uninstantiated, this comp obviously can't take an assignment: comp->haReadinessState = HighAvailabilityReadinessState::notReadyForAssignment;
+    comp->haState = HighAvailabilityState::idle;
+
     comp->processId = 0;
     SAFplus::name.set(comp->name,INVALID_HDL,NameRegistrar::MODE_NO_CHANGE);  // remove the handle in the name service because the component is dead
     
@@ -714,6 +885,15 @@ namespace SAFplus
             {
             logInfo("N+M","AUDIT","High availability readiness state of Service Unit [%s] changed from [%s (%d)] to [%s (%d)]", su->name.value.c_str(),c_str(su->haReadinessState.value),su->haReadinessState.value, c_str(hrs), hrs);
             su->haReadinessState.value = hrs;
+
+            if (hrs == HighAvailabilityReadinessState::notReadyForAssignment)
+              {
+                if ((su->numActiveServiceInstances.current > 0) || (su->numStandbyServiceInstances.current > 0))
+                  {
+                    amfOps->removeWork(su);
+                  }
+              }
+
             }
 
           }
@@ -726,8 +906,8 @@ namespace SAFplus
             SAFplusAmf::ServiceInstance* si = dynamic_cast<ServiceInstance*>(*itsi);
             logInfo("N+M","AUDIT","Auditing service instance [%s]", si->name.value.c_str());
 
-            si->getActiveAssignments()->current.value = 0;  // TODO set this correctly
-            si->getStandbyAssignments()->current.value = 0; // TODO set this correctly
+            //si->getNumActiveAssignments()->current.value = 0;  // TODO set this correctly
+            //si->getNumStandbyAssignments()->current.value = 0; // TODO set this correctly
 
             AssignmentState as = si->assignmentState;
           //if (wat.si->assignmentState = AssignmentState::fullyAssigned;  // TODO: for now just make the SI happy to see something work

@@ -449,6 +449,7 @@ point.  The operational, administrative, and presence states of a service unit, 
 
       leaf capabilityModel
       {
+	description "This is defined by the SA-Forum AMF B.04.01 specification section 3.5.  Options allowing just 1 assignment are a subset of the x assignment options.  To limit the capability to 1 assignment, change the saAmfCompNumMaxActiveCSIs and saAmfCompNumMaxStandbyCSIs fields.  Options disallowing standby assignments are implemented by setting saAmfCompNumMaxStandbyCSIs.  Choose 'non-pre-instantiable', saAmfCompNumMaxStandbyCSIs=0 for applications that are not SAF-aware";
 	type enumeration
 	{
 	  enum x_active_and_y_standby
@@ -459,6 +460,12 @@ point.  The operational, administrative, and presence states of a service unit, 
 	  {
 	    description "For a certain component service type, the component supports all values of the HA state. It can be assigned either the active HA state for x component service instances or the standby HA state for y component service instances at a time.";
 	  }
+	  enum non-pre-instantiable
+	  {
+	    description "For a certain component service type, the component provides service as soon as it is started.";
+	  }
+
+/* These options are subcases of the above 
 	  enum one_active_or_y_standby
 	  {
 	    description "For a certain component service type, the component supports all values of the HA state. It can be assigned either the active HA state for only one component service instance or the standby HA state for y component service instances at a time.";
@@ -475,13 +482,10 @@ point.  The operational, administrative, and presence states of a service unit, 
 	  {
 	    description "for a certain component service type, the component cannot be assigned the standby HA state for component service instances, but it can be assigned the active HA state for only one component service instance at a time.";
 	  }
-	  enum non-pre-instantiable
-	  {
-	    description "For a certain component service type, the component provides service as soon as it is started.";
-	  }
+*/
+
 	}
         safplus:ui-prompt "Capability:";
-	description "This is defined by the SA-Forum AMF specificaion but is read-only because it is an emergent property based on values in saAmfCompNumMaxActiveCSIs and saAmfCompNumMaxStandbyCSIs.";
       }
 
       leaf maxActiveAssignments
@@ -777,6 +781,46 @@ are switched over to other nodes (component service instances are not abruptly r
 	type string;
 	config false;
       }
+
+    leaf pendingOperation
+      {
+	description "The system is currently attempting the following operation on the component";	
+	config false;
+
+	type enumeration
+	{
+	  enum none { value 0; }
+	  enum instantiation
+	  { 
+	    value 1; 
+	    description "This component is being started";
+	  }
+	  enum shutdown
+	  { 
+	    value 2; 
+	    description "This component is being stopped";
+	  }
+	  enum workAssignment
+	  { 
+	    value 3; 
+	    description "This component is being assigned active or standby work";
+	  }
+	  enum workRemoval
+	  { 
+	    value 4; 
+	    description "Active or standby work is being removed from this component";
+	  }
+        }
+      }
+
+    leaf pendingOperationExpiration
+      {
+	description "When the system will give up on the pending operation";
+	type safplus:date;
+	config false;
+      }
+
+
     }
 
 
@@ -877,14 +921,14 @@ are switched over to other nodes (component service instances are not abruptly r
       {
         type uint32;
 	safplus:ui-prompt "Preferred Active Assignments: ";
-	description "What is the optimal number of Service Units that should be given an active assignment for this work?";
+	description "What is the optimal number of Service Units that should be given an active assignment for this work?  Note that the SA-Forum requires this field to be 1 for 2N, N+M, N-Way, and no redundancy models (see SAI-AIS-AMF-B.04.01@3.2.3.2 table 11).  However SAFplus allows this field to be set to any value for these models.";
       }
 
       leaf preferredStandbyAssignments
       {
         type uint32;
 	safplus:ui-prompt "Preferred Standby Assignments: ";
-	description "What is the optimal number of Service Units that should be given a standby assignment for this work?";
+	description "What is the optimal number of Service Units that should be given a standby assignment for this work?  Note that the SA-Forum requires this field to be 1 for 2N, and N+M, redundancy models (see SAI-AIS-AMF-B.04.01@3.2.3.2 table 11).  However SAFplus allows this field to be set to any value for these models.  This field must be 0 for N-Way Active and No-redundancy models since these models do not have standby apps.";
       }
       
       leaf rank
@@ -911,19 +955,36 @@ are switched over to other nodes (component service instances are not abruptly r
 	description "An abstract definition of the amount of work this node can handle.  Nodes can be assigned capacities for arbitrarily chosen strings (MEM or CPU, for example).  Service Instances can be assigned 'weights' and the sum of the weights of service instances assigned active or standby on this node cannot exceed these values.";
       }
 
+      leaf-list activeAssignments
+      {
+        description "This work is assigned active to these service units.  Depending on the redundancy model, it ";
+        safplus:c-type "SAFplusAmf::ServiceUnit*";
+        type instance-identifier;
+        config false;  // The component handling this work is assigned at run time by the AMF
+      }
+
+      leaf-list standbyAssignments
+      {
+        description "This work is assigned active to these service units";
+        safplus:c-type "SAFplusAmf::ServiceUnit*";
+        type instance-identifier;
+        config false;  // The component handling this work is assigned at run time by the AMF
+      }
+
+
       // SAFplus extensions
-      container activeAssignments
+      container numActiveAssignments
       {
 	safplus:alias saAmfSINumCurrActiveAssignments;
 	uses safplus:intStatistic;
-	description "Number of active assignments";
+	description "Number of active assignments.  Pending assignments are counted.";
         config false;
       }
-      container standbyAssignments
+      container numStandbyAssignments
       {
 	safplus:alias saAmfSINumCurrStandbyAssignments;
 	uses safplus:intStatistic;
-	description "Number of standby assignments";
+	description "Number of standby assignments.  Pending assignments are counted.";
         config false;
       }
 

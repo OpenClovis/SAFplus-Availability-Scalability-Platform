@@ -62,8 +62,8 @@ namespace SAFplusAmf
     ret->id                              = getAmfId();
     ret->adminState.value                = adminState;
     ret->rank                            = rank;
-    ret->addStandbyAssignments(new StandbyAssignments());
-    ret->addActiveAssignments(new ActiveAssignments());
+    ret->addNumStandbyAssignments(new NumStandbyAssignments());
+    ret->addNumActiveAssignments(new NumActiveAssignments());
     ret->preferredActiveAssignments      = actives;
     ret->preferredStandbyAssignments      = standbys;
     return ret;
