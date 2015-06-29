@@ -30,7 +30,7 @@ static struct hashStruct *gIocUdpMap[IOC_UDP_MAP_SIZE];
 static CL_LIST_HEAD_DECLARE(gIocUdpMapList);
 extern ClIocNodeAddressT gIocLocalBladeAddress;
 static ClPluginHelperVirtualIpAddressT gVirtualIp;
-ClBoolT ASP_UDP_USE_EXISTING_IP = CL_FALSE;
+ClBoolT gClUdpUseExistingIp = CL_FALSE;
 static ClBoolT gUdpInit = CL_FALSE;
 ClBoolT gClSimulationMode = CL_FALSE;
 ClBoolT gClNodeRepresentative = CL_FALSE;
@@ -523,7 +523,7 @@ ClRcT xportAddressAssign(void)
     ClRcT rc = CL_OK;
 
     /* Assign IP address for node, but ONLY if we aren't supposed to use the existing address */
-    if (!ASP_UDP_USE_EXISTING_IP)
+    if (!gClUdpUseExistingIp)
     {
         clPluginHelperAddRemVirtualAddress("up", &gVirtualIp);
 
@@ -568,7 +568,7 @@ static ClRcT clUdpGetBackplaneInterface(const ClCharT *xportType, ClCharT *inf)
                 strtok_r(net_addr, ":", &token);
             }
             /* If we are not using the existing IP addr then we need to use a virtual device to make sure we don't overwrite an already-configured address */
-            if (!ASP_UDP_USE_EXISTING_IP)
+            if (!gClUdpUseExistingIp)
               snprintf(inf, CL_MAX_FIELD_LENGTH, "%s:%d", net_addr, gIocLocalBladeAddress + 10);
             /* If we ARE using the existing IP, then whatever interfaces LINK_NAME is set to IS that address */
             else snprintf(inf, CL_MAX_FIELD_LENGTH, "%s", net_addr);            
@@ -630,7 +630,7 @@ static ClRcT clUdpGetNodeIpAddress(const ClCharT *xportType, const ClCharT *devI
         /* Try to get address from devif */
         
         rc = CL_OK+1;  /* start with any error condition, so the if below this one will be taken  */
-        if (ASP_UDP_USE_EXISTING_IP)
+        if (gClUdpUseExistingIp)
         {
             rc = clPluginHelperDevToIpAddress(devIf, hostAddress);
             if (rc == CL_OK) clLogInfo("UDP","INI","Use existing IP address [%s] as this nodes transport address.", hostAddress);
@@ -664,7 +664,7 @@ ClRcT xportInit(const ClCharT *xportType, ClInt32T xportId, ClBoolT nodeRep)
     gClNodeRepresentative = nodeRep;
     gClUdpXportId = xportId;
     gClBindOffset = gIocLocalBladeAddress;
-    ASP_UDP_USE_EXISTING_IP = clParseEnvBoolean("ASP_UDP_USE_EXISTING_IP");
+    gClUdpUseExistingIp = clParseEnvBoolean("ASP_UDP_USE_EXISTING_IP");
     gClSimulationMode = clParseEnvBoolean("ASP_MULTINODE");
     if(gClSimulationMode)
     {
@@ -755,6 +755,11 @@ ClRcT xportInit(const ClCharT *xportType, ClInt32T xportId, ClBoolT nodeRep)
 ClRcT xportFinalize(ClInt32T xportId, ClBoolT nodeRep)
 {
     clUdpAddrCacheFinalize(nodeRep);
+
+    if (nodeRep && !gClUdpUseExistingIp)
+    {
+      clPluginHelperAddRemVirtualAddress("down", &gVirtualIp);
+    }
     return CL_OK;
 }
 

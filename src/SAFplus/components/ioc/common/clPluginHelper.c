@@ -396,14 +396,10 @@ void clPluginHelperAddRemVirtualAddress(const ClCharT *cmd, const ClPluginHelper
     /*
      * Ignore configure if IP and dev are already existing on node
      */
-    if (_clCheckExistingDevIf(vipCopy->ip, vipCopy->dev))
+    if (up && _clCheckExistingDevIf(vipCopy->ip, vipCopy->dev))
     {
-        clLogInfo("IOC",
-                CL_LOG_PLUGIN_HELPER_AREA,
-                "Ignored assignment IP address: %s, for device: %s",
-                vipCopy->ip,
-                vipCopy->dev);
-        goto out;
+      clLogInfo("IOC", CL_LOG_PLUGIN_HELPER_AREA, "Ignored assignment IP address: %s, for device: %s", vipCopy->ip, vipCopy->dev);
+      goto out;
     }
 
     if (vipCopy->ip && vipCopy->dev && vipCopy->netmask) 

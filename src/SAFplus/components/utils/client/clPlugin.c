@@ -17,7 +17,7 @@ ClPluginHandle* clLoadPlugin(ClWordT pluginId, ClWordT version, const char* name
     ph->dlHandle = dlopen(name,RTLD_GLOBAL|RTLD_NOW);
     if (!ph->dlHandle)
     {
-        clLog(CL_LOG_WARNING, UTL, PLG, "Plugin [%s] was not found.", name);
+        clLog(CL_LOG_DEBUG, UTL, PLG, "Plugin [%s] was not found.", name);
         goto errorOut;        
     }
     
