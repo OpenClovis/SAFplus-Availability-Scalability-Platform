@@ -407,6 +407,9 @@ static ClIocUdpMapT *iocUdpMapAdd(ClCharT *addr, ClIocNodeAddressT slot)
         goto out_free;
     }
 
+    int ret = fcntl(map->sendFd, F_SETFD, FD_CLOEXEC);  // close this if I fork/exec a child program
+    CL_ASSERT(ret == 0);    
+
     priority = CL_UDP_DEFAULT_PRIORITY;
     if (udpPriorityChangePossible)
     {
@@ -927,6 +930,9 @@ static ClRcT __xportBind(ClIocPortT port, ClInt32T *pFd)
         clLogError("UDP", "BIND", "setsockopt for SO_REUSEADDR failed with error [%s]", strerror(errno));
         goto out_close;
     }
+
+    int ret = fcntl(fd, F_SETFD, FD_CLOEXEC);  // close this if I fork/exec a child program
+    CL_ASSERT(ret == 0);    
 
     if(bind(fd, addr, sizeof(*addr)) < 0)
     {

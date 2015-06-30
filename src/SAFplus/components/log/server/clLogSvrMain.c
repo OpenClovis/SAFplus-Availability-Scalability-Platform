@@ -110,6 +110,7 @@ ClInt32T main(ClInt32T argc, ClCharT *argv[])
         return rc;
    }
    dispatchLoop();
+   saAmfFinalize(amfHandle);   
    return 0;
 }
 
@@ -370,28 +371,26 @@ void clLogSvrTerminate(SaInvocationT invocation, const SaNameT *compName)
     
     ClRcT            rc           = CL_OK;
     ClLogSvrEoDataT  *pSvrEoEntry = NULL;
-    ClHandleT        hCpm         = CL_HANDLE_INVALID_VALUE;
+    //ClHandleT        hCpm         = CL_HANDLE_INVALID_VALUE;
     CL_LOG_DEBUG_TRACE(("Enter"));
-    clLogInfo("SVR", "MAI", "Unregistering with cpm...... [%.*s]\n", 
-                           compName->length, compName->value);
+    clLogInfo("SVR", "MAI", "Unregistering with cpm...... [%.*s]\n", compName->length, compName->value);
     gClLogSvrExiting = CL_TRUE;
     rc = clLogSvrEoEntryGet(&pSvrEoEntry, NULL);
     if( CL_OK != rc )
     {
         return ;
     }
-    hCpm = pSvrEoEntry->hCpm;
+    //hCpm = pSvrEoEntry->hCpm;
     saAmfComponentUnregister(amfHandle,compName, NULL);
 #if 1
     CL_LOG_CLEANUP(clLogSvrShutdown(), CL_OK);
 #endif    
-    saAmfFinalize(amfHandle);
     saAmfResponse(amfHandle, invocation, SA_AIS_OK);
 
     CL_LOG_DEBUG_TRACE(("Exit"));
 
     unblockNow = CL_TRUE;
-    (void)hCpm;
+    //(void)hCpm;
 
 }
 

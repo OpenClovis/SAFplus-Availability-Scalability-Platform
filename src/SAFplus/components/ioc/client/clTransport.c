@@ -1126,6 +1126,9 @@ static ClRcT transportInitListener(ClXportCtrlT *xportCtrl)
         clLogError("UDP", "INI", "epoll create returned with error [%s]", strerror(errno));
         goto out;
     }
+
+    int ret = fcntl(xportCtrl->eventFd, F_SETFD, FD_CLOEXEC);  // close this FD when a new process is spawned from this one
+    CL_ASSERT(ret == 0);
     
     rc = transportListenerInitialize(xportCtrl);
 

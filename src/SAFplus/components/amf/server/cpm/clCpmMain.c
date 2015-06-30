@@ -107,7 +107,7 @@
 extern ClAmsT gAms;
 #endif
 
-#define CPM_ASP_WELCOME_MSG "Welcome to OpenClovis SAFplus Availability/Scalability Platform! Starting up version"
+#define CPM_ASP_WELCOME_MSG "Welcome to OpenClovis SAFplus Availability/Scalability Platform!  Compiled on " __DATE__ "," __TIME__ ".  Starting up version"
 #define CPM_NODECLEANUP_SCRIPT "node_cleanup.sh"
 #ifndef WIFCONTINUED
 #define WIFCONTINUED(status) (0)

@@ -2547,7 +2547,7 @@ static ClRcT cpmNonProxiedNonPreinstantiableCompTerminate(ClCpmComponentT *comp,
 {
     ClRcT rc = CL_CPM_RC(CL_ERR_LIBRARY);
 
-    clLogDebug(CPM_LOG_AREA_CPM, CPM_LOG_CTX_CPM_LCM, "Stopping non proxied non preinstantiable component [%s]...", comp->compConfig->compName);
+    clLogDebug(CPM_LOG_AREA_CPM, CPM_LOG_CTX_CPM_LCM, "%s non proxied non preinstantiable component [%s] running as process [%d]...", cleanup ? "Cleanup" : "Terminate", comp->compConfig->compName, comp->processId);
 
     if (1)  // when we call cleanup, the component may already be dead (comp->processId)
     {
@@ -2555,7 +2555,7 @@ static ClRcT cpmNonProxiedNonPreinstantiableCompTerminate(ClCpmComponentT *comp,
       if (1)
         {
             ClCharT *command = NULL;
-            ClBoolT killit = (cleanup) ? CL_FALSE:CL_TRUE; /* only kill in the terminate step */
+            ClBoolT killit = CL_TRUE;   // for terminate we definitely want to kill the process.  Cleanup can be called when the process is already dead, AND it can be called to shut down apps in a multi-comp SG
 
             if(cleanup)
             {
@@ -2571,14 +2571,15 @@ static ClRcT cpmNonProxiedNonPreinstantiableCompTerminate(ClCpmComponentT *comp,
              */
             if(command[0])
             {
+                char cwd[250];
                 /*
                  * Just run the system command which is POSIX. 
                  */
+                clLogInfo(CPM_LOG_AREA_CPM, CPM_LOG_CTX_CPM_LCM,"Invoking model defined %s command [%s] from [%s].", cleanup ? "cleanup" : "terminate", command,getcwd(cwd,250));
                 int sysret = mySystem(command);
                 killit = CL_FALSE;                
                 if (sysret == -1) /* system command failed */
                 {
-                    char cwd[250];  
                     clLogError(CPM_LOG_AREA_CPM, CPM_LOG_CTX_CPM_LCM,"%s command [%s] cwd [%s] failed to execute with error [%d] [%s].", cleanup ? "Cleanup" : "Terminate", command,getcwd(cwd,250),errno, strerror(errno));
                   if (!cleanup) killit = CL_TRUE;                  
                 }

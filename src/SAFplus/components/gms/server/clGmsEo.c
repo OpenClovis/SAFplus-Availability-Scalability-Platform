@@ -253,37 +253,26 @@ void clGmsServerTerminate(SaInvocationT invocation, const SaNameT *compName)
         /* Waiting for 10ms before invoking exit() */
         usleep(10000);
     }
-    clLog(CRITICAL,GEN,NA,
-          "GMS server exiting");
+    clLog(CRITICAL,GEN,NA, "GMS server exiting");
 
     rc = clHandleDatabaseDestroy(contextHandleDatabase);
     if (rc != CL_OK)
     {
-        clLog(ERROR,GEN,NA,
-                "contextHandleDatabase destroy failed with Rc = 0x%x",rc);
+        clLog(ERROR,GEN,NA, "contextHandleDatabase destroy failed with Rc = 0x%x",rc);
     }
     rc = saAmfComponentUnregister(amfHandle, compName, NULL);
     
     if(rc != SA_AIS_OK) 
     {
-        clLog(ERROR,GEN,NA,
-              "saAmfComponentUnregister failed with rc = 0x%x", rc);     
+        clLog(ERROR,GEN,NA, "saAmfComponentUnregister failed with rc = 0x%x", rc);     
     }
 
-    rc = saAmfFinalize(amfHandle);
-
-    if (rc != SA_AIS_OK)
-    {
-        clLog(ERROR,GEN,NA,
-              "saAmfFinalize failed with rc = 0x%x", rc);
-    }
     /* Ok tell SAFplus that we handled it properly */
     rc = saAmfResponse(amfHandle, invocation, SA_AIS_OK);
     
     if (rc != SA_AIS_OK)
     {
-        clLog(ERROR,GEN,NA,
-              "clCpmResponse failed with rc = 0x%x", rc);
+        clLog(ERROR,GEN,NA, "clCpmResponse failed with rc = 0x%x", rc);
     }
     unblockNow = CL_TRUE;
 }
