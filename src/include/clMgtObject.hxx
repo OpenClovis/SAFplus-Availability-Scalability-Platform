@@ -290,6 +290,7 @@ extern MgtIteratorBase mgtIterEnd;
     virtual ClRcT createObj(const std::string &value);
     virtual ClRcT deleteObj(const std::string &value);
     virtual ClRcT setChildObj(const std::string &childName, const std::string &value);
+    virtual ClRcT setChildObj(const std::map<std::string,std::string> &keyList);
 
     // Debugging API only:
     void dbgDumpChildren();

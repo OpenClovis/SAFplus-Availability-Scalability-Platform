@@ -438,15 +438,58 @@ namespace SAFplus
       {
         ClRcT rc = CL_OK;
 
-        if (!config) return rc;
+        if (!config)
+          return rc;
 
+        if ((db == nullptr) || (!db->isInitialized()))
+          return rc;
+
+        xpath.append("/");
+        xpath.append(tag);
+
+        std::vector<std::string> iters = db->iterate(xpath, true);
+        typedef std::map<std::string, keyMap> MultiKeyMap;
+        MultiKeyMap multiKeyMap;
+        std::vector<std::string>::iterator it = iters.begin();
+        while( it != iters.end() )
+        {
+          if ((*it).find("[", xpath.length() + 1) != std::string::npos)
+            continue;
+          std::size_t found = (*it).find_last_of("/@");
+          std::string dataXPath = (*it).substr(0, found - 1);
+          std::string key = (*it).substr(found + 1, (*it).length() + 1 );
+          if(keyList.find(key) != keyList.end())
+            {
+              std::string keyValue;
+              db->getRecord(*it, keyValue);
+              multiKeyMap[dataXPath][key] = keyValue;
+            }
+          it++;
+        }
+
+        for( MultiKeyMap::iterator it = multiKeyMap.begin(); it != multiKeyMap.end(); it++)
+        {
+          KEYTYPE *keyType = new KEYTYPE;
+          keyType->build(it->second);
+
+          MgtObject* object = MgtFactory::getInstance()->create(childXpath);
+          if ( object )
+          {
+            addChildObject(object, *keyType);
+            object->setChildObj(it->second);
+            object->dataXPath = it->first;
+          }
+        }
         typename Map::iterator iter;
-        for(iter = children.begin(); iter != children.end(); iter++)
+        for (iter = children.begin(); iter != children.end(); iter++)
         {
           MgtObject *obj = iter->second;
           rc = obj->read(db, xpath);
-          if(CL_OK != rc)
-            return rc;
+          if (CL_OK != rc)
+          {
+            // TODO log something
+            //logInfo("MGT", "READ", "Load of some elements of [%s] failed with error [0x%x]", obj->tag.c_str(), rc);
+          }
         }
         return rc;
       }

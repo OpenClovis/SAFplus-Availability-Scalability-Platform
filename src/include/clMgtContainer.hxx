@@ -76,6 +76,7 @@ class MgtContainer:public MgtObject
     virtual ClRcT addChildObject(MgtObject *mgtObject, const char* objectName);
     virtual ClRcT removeChildObject(const std::string& objectName);
     virtual ClRcT setChildObj(const std::string &childName, const std::string &value);
+    virtual ClRcT setChildObj(const std::map<std::string,std::string> &keyList);
 
     virtual MgtObject* find(const std::string &name);
     virtual MgtObject* deepFind(const std::string &name);

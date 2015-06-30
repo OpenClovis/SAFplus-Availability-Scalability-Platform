@@ -325,6 +325,10 @@ namespace SAFplus
     return CL_ERR_BAD_OPERATION;
   }
 
+  ClRcT MgtObject::setChildObj(const std::map<std::string,std::string> &keyList)
+  {
+    return CL_ERR_BAD_OPERATION;
+  }
   MgtObject* MgtObject::lookUpMgtObject(const std::string & classType, const std::string &ref)
   {
     std::string type = "P";

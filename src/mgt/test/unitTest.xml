@@ -1,0 +1,8 @@
+<unitTest>
+  <Component name="c1" id="1" key= "1" >
+    <data>11</data>
+  </Component>
+  <Component name="c1" id="2" key = "2">
+    <data>12</data>
+  </Component>
+</unitTest>

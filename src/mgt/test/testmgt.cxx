@@ -11,10 +11,14 @@
 #include <clMgtModule.hxx>
 #include <clSafplusMsgServer.hxx>
 #include <clMgtDatabase.hxx>
-
+#include <clMsgPortsAndTypes.hxx>
+#include <clGroupIpi.hxx>
+#include "unitTest/Ut.hxx"
+using namespace unitTest;
 using namespace std;
 using namespace SAFplus;
 
+const char* LogArea = "MAN";
 class multipleKey
 {
     public:
@@ -617,17 +621,60 @@ void testDatabase()
   db->finalizeDB();
 }
 
+void testLoadMultikey()
+{
+    UnitTestRoot root;
+    MgtDatabase *db = MgtDatabase::getInstance();
+    ClRcT rc = db->initializeDB("unitTest");
+    if (CL_OK != rc)
+      {
+        logDebug("MGT", "TEST", "FAIL: Initialize db failed %x", rc);
+        return;
+      }
+    logDebug("MGT", "TEST", "%s: Database initialized? %s",
+        db->isInitialized() ? "PASS" : "FAIL",
+        db->isInitialized() ? "YES" : "NO");
+
+    root.read(db);
+    db->finalizeDB();
+}
 ClBoolT gIsNodeRepresentative = CL_TRUE;
 int main(int argc, char* argv[])
 {
     SAFplus::ASP_NODEADDR = 0x1;
 
-    safplusInitialize(SAFplus::LibDep::LOG | SAFplus::LibDep::UTILS | SAFplus::LibDep::OSAL | SAFplus::LibDep::HEAP | SAFplus::LibDep::TIMER | SAFplus::LibDep::BUFFER | SAFplus::LibDep::IOC);
+    SafplusInitializationConfiguration sic;
+    sic.iocPort     = SAFplusI::MGT_IOC_PORT;
+    sic.msgQueueLen = 25;
+    sic.msgThreads  = 1;
+
+    safplusInitialize(SAFplus::LibDep::LOG | SAFplus::LibDep::UTILS | SAFplus::LibDep::OSAL | SAFplus::LibDep::HEAP | SAFplus::LibDep::TIMER | SAFplus::LibDep::BUFFER | SAFplus::LibDep::IOC| SAFplus::LibDep::CKPT, sic);
+
+#ifdef SAFPLUS_AMF_GRP_NODE_REPRESENTATIVE
+  SAFplusI::GroupServer gs;  // WARN: may not be initialized if safplus_group is running
+  try
+    {
+    gs.init();
+    }
+  catch(SAFplus::Error& e)
+    {
+      if (e.clError == SAFplus::Error::EXISTS)
+        {
+        logAlert(LogArea,"INI", "Group server is not being run because it already exists.");
+        }
+      else
+        {
+          throw;
+        }
+    }
+#endif
 
     logEchoToFd = 1;  // echo logs to stdout for debugging
     logSeverity = LOG_SEV_MAX;
 
     //-- Done initialize
+
+    testLoadMultikey();
 
     testTransaction01();
 

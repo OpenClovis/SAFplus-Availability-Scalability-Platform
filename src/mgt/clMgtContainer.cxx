@@ -407,8 +407,24 @@ namespace SAFplus
 
     MgtObject *child = it->second;
     child->setObj(value);
+    child->loadDb = false;
 
     return ret;
+  }
+
+  ClRcT MgtContainer::setChildObj(const std::map<std::string,std::string> &keyList)
+  {
+    for (std::map<std::string,std::string>::const_iterator it = keyList.begin(); it != keyList.end(); it++)
+      {
+        Map::iterator keyChild = children.find(it->first);
+        if( keyChild != children.end() )
+          {
+            MgtObject *child = keyChild->second;
+            child->setObj(it->second);
+            child->loadDb = false;
+          }
+      }
+    return CL_OK;
   }
 
   MgtObject* MgtContainer::lookUpMgtObject(const std::string & classType, const std::string &ref)
