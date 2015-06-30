@@ -15,13 +15,13 @@ SAFPLUS_LIBS := clMgt clUtils clLog clCkpt clGroup clMsg clOsal clDbal
 SAFPLUS_DEP_LIBS     := $(addsuffix .so,$(addprefix $(LIB_DIR)/lib,$(SAFPLUS_LIBS)))
 SAFPLUS_LINK_LIBS := -L$(LIB_DIR) $(addprefix -l,$(SAFPLUS_LIBS))
 
-POLICY_ENV_SRC := $(wildcard unitTest/*.cxx)
-POLICY_ENV_H := $(wildcard unitTest/*.cxx)
+UNIT_TEST_SRC := $(wildcard unitTest/*.cxx)
+UNIT_TEST_H := $(wildcard unitTest/*.cxx)
 
-POLICY_ENV_OBJ := $(subst .cxx,.o,$(notdir $(POLICY_ENV_SRC)))
-POLICY_ENV_OBJ := $(addprefix $(OBJ_DIR)/test/mgt/unitTest/,$(POLICY_ENV_OBJ))
+UNIT_TEST_OBJ := $(subst .cxx,.o,$(notdir $(UNIT_TEST_SRC)))
+UNIT_TEST_OBJ := $(addprefix $(OBJ_DIR)/test/mgt/unitTest/,$(UNIT_TEST_OBJ))
 
-POLICY_ENV_LIB := $(LIB_DIR)/libTestEnv.so
+UNIT_TEST_LIB := $(LIB_DIR)/libTestEnv.so
 
 # Management includes and libraries
 CPP_FLAGS += $(SAFPLUS_MGT_INC_FLAGS)
@@ -34,20 +34,26 @@ MGT_TEST_OBJ := $(addprefix $(OBJ_DIR)/test/mgt/,$(MGT_TEST_OBJ))
 all: $(TEST_DIR)/testmgt $(TEST_DIR)/testapi
 
 # Shared library providing functions needed by the policy library & SAFplus AMF.
-$(POLICY_ENV_LIB): $(POLICY_ENV_OBJ) $(SAFPLUS_DEP_LIBS)
+$(UNIT_TEST_LIB): $(UNIT_TEST_OBJ) $(SAFPLUS_DEP_LIBS)
 	@echo "build Policy"
-	$(LINK_SO) $@  $(POLICY_ENV_OBJ) $(SAFPLUS_LINK_LIBS) -L$(INSTALL_DIR)/lib -lezxml -lxml2 -lboost_filesystem $(LINK_SO_LIBS)
+	$(LINK_SO) $@  $(UNIT_TEST_OBJ) $(SAFPLUS_LINK_LIBS) -L$(INSTALL_DIR)/lib -lezxml -lxml2 -lboost_filesystem $(LINK_SO_LIBS)
 	
-$(OBJ_DIR)/test/mgt/unitTest/%.o: unitTest/%.cxx $(POLICY_ENV_H)
+$(OBJ_DIR)/test/mgt/unitTest/%.o: unitTest/%.cxx $(UNIT_TEST_H)
 	-mkdir -p $(OBJ_DIR)/test/mgt/unitTest
 	$(COMPILE_CPP) $@ $<
 
-$(TEST_DIR)/%: $(MGT_TEST_OBJ) $(POLICY_ENV_LIB) $(SAFPLUS_DEP_LIBS)
+$(TEST_DIR)/%: $(MGT_TEST_OBJ) $(UNIT_TEST_LIB) $(SAFPLUS_DEP_LIBS)
 	$(LINK_EXE) $@ $(MGT_TEST_OBJ) $(SAFPLUS_LINK_LIBS) -lTestEnv -L$(SAFPLUS_SDK_TARGET)/lib -lezxml -L$(INSTALL_DIR)/lib -lxml2 $(LINK_STD_LIBS)
 
 $(OBJ_DIR)/test/mgt/%.o: %.cxx
 	-mkdir -p $(OBJ_DIR)/test/mgt
 	$(COMPILE_CPP) $@ $<
+
+gen:
+	PYTHONPATH=$(MGT_SRC_DIR)/3rdparty/pyang PYANG_PLUGINPATH=$(MGT_SRC_DIR)/pyplugin $(MGT_SRC_DIR)/3rdparty/pyang/bin/pyang --path=$(SAFPLUS_SRC_DIR)/yang -f y2cpp unitTest.yang --y2cpp-output `pwd`
+
+cleangen:
+	rm -rf unitTest
 
 clean:
 	rm -rf $(OBJ_DIR)/test/mgt $(TEST_DIR)/testmgt $(TEST_DIR)/testapi
