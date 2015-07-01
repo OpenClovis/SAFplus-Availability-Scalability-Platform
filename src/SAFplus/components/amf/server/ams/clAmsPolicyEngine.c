@@ -4949,6 +4949,38 @@ clAmsPeSURestart(
     }
 
     // GAS: when npnp components are instantiated, they must be started if they have work assignments.
+    if (su->status.numActiveSIs)
+    {
+    ClAmsEntityRefT *i;
+    // Iterating thru the SIs then CSIs will instantiate NPNP components in CSI rank order
+    for ( i = clAmsEntityListGetFirst(&su->status.siList); i != (ClAmsEntityRefT *) NULL; i = clAmsEntityListGetNext(&su->status.siList, i) )
+        {
+          ClAmsEntityRefT *j;  
+          ClAmsSIT *si = (ClAmsSIT *) i->ptr;
+          for ( j = clAmsEntityListGetFirst(&si->config.csiList); j != (ClAmsEntityRefT *) NULL; j = clAmsEntityListGetNext(&si->config.csiList, j) )
+            {
+            ClAmsCSIT *csi = (ClAmsCSIT *) j->ptr;
+
+            ClAmsEntityRefT *k;
+
+            for ( k = clAmsEntityListGetFirst(&csi->status.pgList); k != (ClAmsEntityRefT *) NULL; k = clAmsEntityListGetNext(&csi->status.pgList, k) )
+              {
+              ClAmsCSICompRefT    *cref = (ClAmsCSICompRefT *) k;    
+              ClAmsCompT          *c = (ClAmsCompT *) k->ptr;
+              assert((ClAmsSUT *)c->config.parentSU.ptr == su); // This must be the case if the pointers are properly hooked up 
+              
+              if ((cref->haState == CL_AMS_HA_STATE_ACTIVE)&&(c->config.property == CL_AMS_COMP_PROPERTY_NON_PROXIED_NON_PREINSTANTIABLE))
+                {
+                    CL_AMS_SET_P_STATE(c, CL_AMS_PRESENCE_STATE_INSTANTIATING);
+                  CL_AMS_SET_R_STATE(c, CL_AMS_READINESS_STATE_INSERVICE);
+                  clAmsPeCompInstantiate(c); 
+                }
+              }
+            }
+        }
+    
+#if 0 // A simpler way to start up the components, that does not preserve csi rank order            
+              
     ClAmsEntityRefT *entityRef;
     for ( entityRef = clAmsEntityListGetFirst(&su->config.compList);
               entityRef != (ClAmsEntityRefT *) NULL;
@@ -4967,6 +4999,10 @@ clAmsPeSURestart(
             }
             
         }
+#endif
+    
+    }
+    
     
     return CL_OK;
 }
@@ -6540,51 +6576,65 @@ ClRcT clAmsPeSUCleanup(CL_IN   ClAmsSUT    *su)
     }
 
     /*
-     * Cleanup all components that have not already failed instantiation or
-     * termination.
+     * Cleanup all components that have not already failed instantiation or termination.
+     * As soon as the last running component in a SU is cleaned up, the SU might automatically be triggered to reinstantiate.
+     * So dead components that appear at the end of the list will be reinstantiated... and then be cleaned up when this clean up
+     * gets to them.
+
+     * So it is necessary to first identify what components actually need cleanup and THEN issue the cleanup commands
      */
 
     ClUint32T count = 0;
 
-    for ( entityRef = clAmsEntityListGetLast(&su->config.compList);
-          entityRef != (ClAmsEntityRefT *) NULL;
-          entityRef = clAmsEntityListGetPrevious(&su->config.compList, entityRef) )
+    if (su->config.compList.numEntities>0)
     {
-        ClAmsCompT *sucomp = (ClAmsCompT *) entityRef->ptr;
-
-        AMS_CHECK_COMP ( sucomp );
-
-        if ( sucomp->status.presenceState == CL_AMS_PRESENCE_STATE_TERMINATION_FAILED )
-            continue;
-
-        if ( sucomp->status.presenceState == CL_AMS_PRESENCE_STATE_INSTANTIATION_FAILED )
-            continue;
-
-        rc = clAmsPeCompCleanup(sucomp);
-        if (rc != CL_OK)
-        {
-            AMS_ENTITY_LOG(sucomp, CL_AMS_MGMT_SUB_AREA_MSG,CL_LOG_SEV_WARNING, ("Component [%s] cleanup failed with error code [0x%x]", sucomp->config.entity.name.value, rc));
-        }
         
-        count++;
-
-        if ( sucomp->status.presenceState == CL_AMS_PRESENCE_STATE_TERMINATION_FAILED )
+        ClAmsCompT **cleanupArray = (ClAmsCompT **) malloc(sizeof(ClAmsCompT *) * su->config.compList.numEntities);
+    
+        for ( entityRef = clAmsEntityListGetLast(&su->config.compList);entityRef != (ClAmsEntityRefT *) NULL; entityRef = clAmsEntityListGetPrevious(&su->config.compList, entityRef) )
         {
-            /*
-             * If a component cleanup fails, it will result in a fault
-             * report for the component and that will result in further
-             * cleanup and recovery actions. So, this cleanup is aborted.
-             */
-
-            AMS_ENTITY_LOG(sucomp, CL_AMS_MGMT_SUB_AREA_MSG,CL_LOG_SEV_TRACE,
-                ("Component [%s] cleanup failed. Marking SU termination-failed and exiting SU cleanup..\n",
-                sucomp->config.entity.name.value));
-
-            CL_AMS_SET_P_STATE(su, CL_AMS_PRESENCE_STATE_TERMINATION_FAILED);
-
-            return CL_OK;
+            ClAmsCompT *sucomp = (ClAmsCompT *) entityRef->ptr;
+            if ( sucomp->status.presenceState == CL_AMS_PRESENCE_STATE_TERMINATION_FAILED )
+                continue;
+            if ( sucomp->status.presenceState == CL_AMS_PRESENCE_STATE_INSTANTIATION_FAILED )
+                continue;
+            if ( sucomp->status.presenceState == CL_AMS_PRESENCE_STATE_UNINSTANTIATED)
+                continue;
+            cleanupArray[count] = sucomp;
+            count++;    
         }
-    }
+
+    
+        for (int i=0;i<count;i++)
+        {
+            ClAmsCompT *sucomp = cleanupArray[i];
+        
+            AMS_CHECK_COMP ( sucomp );
+            rc = clAmsPeCompCleanup(sucomp);
+            if (rc != CL_OK)
+            {
+                AMS_ENTITY_LOG(sucomp, CL_AMS_MGMT_SUB_AREA_MSG,CL_LOG_SEV_WARNING, ("Component [%s] cleanup failed with error code [0x%x]", sucomp->config.entity.name.value, rc));
+            }
+            
+            if ( sucomp->status.presenceState == CL_AMS_PRESENCE_STATE_TERMINATION_FAILED )
+            {
+                /*
+                 * If a component cleanup fails, it will result in a fault
+                 * report for the component and that will result in further
+                 * cleanup and recovery actions. So, this cleanup is aborted.
+                 */
+
+                AMS_ENTITY_LOG(sucomp, CL_AMS_MGMT_SUB_AREA_MSG,CL_LOG_SEV_TRACE,
+                               ("Component [%s] cleanup failed. Marking SU termination-failed and continuing SU cleanup..\n",
+                                sucomp->config.entity.name.value));
+                CL_AMS_SET_P_STATE(su, CL_AMS_PRESENCE_STATE_TERMINATION_FAILED);
+            }
+        }
+
+        free(cleanupArray);
+        
+        }
+    
 
     /*
      * Be careful of adding code here, it may get executed after su cleanup
@@ -11438,6 +11488,10 @@ clAmsPeCompRestartCallback_Step2(
  * escalation in recovery has taken place.
  */
 
+ClAmsCompT* lastFaulted=0;
+ClTimeT     lastFaultedTime=0;
+const int FAULT_SOAK_USEC = 500000;  // quarter second
+
 ClRcT
 clAmsPeCompFaultReport(
         CL_IN       ClAmsCompT                  *comp,
@@ -11457,6 +11511,22 @@ clAmsPeCompFaultReport(
 
     AMS_FUNC_ENTER ( ("Component [%s]\n", comp->config.entity.name.value) );
 
+    // This code skips a fault that happened to soon after a prior; the AMF is still handling the prior one
+    // This is problematic because what if its a new fault?  But a correct fix would require reworking
+    // the entire system to refer to unique instances of entities rather then reference them by name.
+    clOsalMutexLock(gpClCpm->cpmTableMutex);    
+    ClTimeT temp = clOsalStopWatchTimeGet();
+    if ((lastFaulted == comp)&&(lastFaultedTime > temp - FAULT_SOAK_USEC))  
+    { 
+        clLogWarning("AMF", "FLT-COMP", "Repeat fault on component [%s]. Ignoring", comp->config.entity.name.value);
+        clOsalMutexUnlock(gpClCpm->cpmTableMutex);    
+        return CL_OK;
+    }
+    lastFaulted = comp;
+    lastFaultedTime = temp;
+    clOsalMutexUnlock(gpClCpm->cpmTableMutex);    
+    
+#if 0  // Andrew 6-30-2015: reusing fault queue to shield AMF from multiple handlers of the same fault
     /*
      * Check if there is an entry in the fault queue for this component.
      */
@@ -11465,6 +11535,8 @@ clAmsPeCompFaultReport(
         clLogWarning("AMF", "FLT-COMP", "Fault on component [%s] is not present in the fault queue. Ignoring", comp->config.entity.name.value);
         return CL_OK;
     }
+#endif
+    
     /*
      * If this is an external fault and it coincides with a current operation
      * we call an appropriate operation abort fn and let it deal with the

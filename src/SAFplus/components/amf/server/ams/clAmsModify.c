@@ -3776,7 +3776,7 @@ clAmsAddGetEntityList(
                                                      &targetEntityRef->entity,
                                                      csi->config.rank,
                                                      &entityKey,
-                                                     CL_FALSE) );
+                                                     si->config.csiList.isRankedList) );
 
             if ( clAmsCheckIfRefExist(
                                       sourceEntity,
@@ -4241,7 +4241,7 @@ clAmsDeleteFromEntityList(
                             &targetEntityRef->entity,
                             csi->config.rank,
                             &entityKey,
-                            CL_FALSE) );
+                            si->config.csiList.isRankedList) );
 
                 AMS_CHECK_RC_ERROR( clAmsEntityListDeleteEntityRef(
                             &si->config.csiList,
@@ -4571,8 +4571,7 @@ clAmsCheckIfRefExist(
                 ClAmsSIT  *si  = (ClAmsSIT *) sourceEntityRef.ptr;
                 ClAmsCSIT  *csi = (ClAmsCSIT *)targetEntityRef.ptr;
                
-                clAmsEntityRefGetKey( &targetEntityRef.entity, csi->config.rank
-                        , &entityKey, CL_FALSE );
+                clAmsEntityRefGetKey( &targetEntityRef.entity, csi->config.rank, &entityKey, si->config.csiList.isRankedList);
 
                 entityList = &si->config.csiList;
                 break;

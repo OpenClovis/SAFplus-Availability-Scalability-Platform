@@ -101,6 +101,17 @@ static ClVersionDatabaseT version_database =
     versions_supported
 };
 
+#include <execinfo.h>
+
+void clDbgBacktrace()
+{
+    void* trace[1024];    
+    int len = backtrace(trace,1024);
+    //char** symbols = backtrace_symbols(trace,len);
+    backtrace_symbols_fd(trace,len,1);
+    
+}
+
 /*
  * Forward Declaratiion 
  */
@@ -2543,12 +2554,13 @@ int execImageLegacy(const char *command, ClUint32T timeout)
 }
 #endif
 
+
 static ClRcT cpmNonProxiedNonPreinstantiableCompTerminate(ClCpmComponentT *comp, ClBoolT cleanup)
 {
     ClRcT rc = CL_CPM_RC(CL_ERR_LIBRARY);
 
-    clLogDebug(CPM_LOG_AREA_CPM, CPM_LOG_CTX_CPM_LCM, "%s non proxied non preinstantiable component [%s] running as process [%d]...", cleanup ? "Cleanup" : "Terminate", comp->compConfig->compName, comp->processId);
-
+    clLogDebug(CPM_LOG_AREA_CPM, CPM_LOG_CTX_CPM_LCM, "(thread %lu) %s non proxied non preinstantiable component [%s] running as process [%d]...", (long unsigned int) pthread_self(), cleanup ? "Cleanup" : "Terminate", comp->compConfig->compName, comp->processId);
+    
     if (1)  // when we call cleanup, the component may already be dead (comp->processId)
     {
       // Accept shell script, bin etc...
@@ -4195,9 +4207,7 @@ ClRcT VDECL(cpmComponentFailureReport)(ClEoDataT data,
     CL_CPM_CHECK_0(CL_LOG_SEV_ERROR, CL_LOG_MESSAGE_0_INVALID_BUFFER, rc,
                    CL_LOG_HANDLE_APP);
 
-    clLogInfo("COMP", "FAILURE", "Component failure reported for component [%s], "
-               "instantiate cookie [%lld]", errorReport->compName.value, 
-               errorReport->instantiateCookie);
+    clLogInfo("COMP", "FAILURE", "Component failure reported for component [%s], time [%lld], handle [%x] instantiate cookie [%lld]", errorReport->compName.value, errorReport->time, errorReport->handle, errorReport->instantiateCookie);
 
     /* BUG 3868: COMMENTED compFind()
      *  The error report might be for a component on another node, searching
@@ -4222,8 +4232,19 @@ ClRcT VDECL(cpmComponentFailureReport)(ClEoDataT data,
         ClAmsEntityT entity = {CL_AMS_ENTITY_TYPE_ENTITY};
         errorReport->compName.length += 1;
         memcpy(&entity.name, &errorReport->compName, sizeof(entity.name));
-        clAmsFaultQueueAdd(&entity);
-        clTaskPoolRun(gCpmFaultPool, cpmFailureReportTask, (void*)errorReport);
+        clOsalMutexLock(gpClCpm->cpmTableMutex); // This is just to lock out competing threads. An independent mutex would work fine here       
+        if (clAmsFaultQueueFind(&entity, NULL) != CL_OK)
+        {            
+          clAmsFaultQueueAdd(&entity);
+          clTaskPoolRun(gCpmFaultPool, cpmFailureReportTask, (void*)errorReport);
+          clOsalMutexUnlock(gpClCpm->cpmTableMutex);
+        }
+        else
+        {
+            clOsalMutexUnlock(gpClCpm->cpmTableMutex);
+            clLogWarning("AMF", "FLT-COMP", "Fault on component [%s] already being handled. Ignoring", errorReport->compName.value);
+        }
+        
         errorReport = NULL;
     }
     else

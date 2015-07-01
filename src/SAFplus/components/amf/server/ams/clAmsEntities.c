@@ -647,7 +647,7 @@ clAmsEntityMalloc(
                         &si->config.siDependenciesList,
                         CL_AMS_ENTITY_TYPE_SI) );
 
-            AMS_CHECK_RC_ERROR( clAmsEntityListInstantiate(
+            AMS_CHECK_RC_ERROR( clAmsEntityOrderedListInstantiate(
                         &si->config.csiList,
                         CL_AMS_ENTITY_TYPE_CSI) );
 
@@ -1236,7 +1236,7 @@ clAmsEntityTerminate(
                                                                &si->config.siDependenciesList,
                                                                CL_AMS_ENTITY_TYPE_SI) );
 
-                AMS_CHECK_RC_ERROR( clAmsEntityListInstantiate(
+                AMS_CHECK_RC_ERROR( clAmsEntityOrderedListInstantiate(
                                                                &si->config.csiList,
                                                                CL_AMS_ENTITY_TYPE_CSI) );
 
