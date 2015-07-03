@@ -1,0 +1,20 @@
+set -e 
+. /usr/share/debconf/confmodule
+case "$1" in 
+  purge|remove|failed-upgrade|abort-install|abort-upgrade|disappear)
+    if [ -d "$(dirname $prefix)" ] 
+    then 
+      cd  $(dirname $prefix)
+      rm -rf $(basename $prefix)
+    fi
+  ;;
+  upgrade)
+    echo "Donothing"
+  ;;
+  *)
+    echo "Postrm is called with unknown argument \`$1'" >&2
+    exit 1
+  ;;
+esac
+ 
+    

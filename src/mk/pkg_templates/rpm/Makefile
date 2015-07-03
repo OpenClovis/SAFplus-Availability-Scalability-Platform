@@ -1,4 +1,3 @@
-#include $(TOP_DIR)/preface.mk
 
 $(info PKG_DIRS = $(PKG_DIRS))
 DIRECTORYS = $(dir $(wildcard $(PKG_DIRS)/*/))

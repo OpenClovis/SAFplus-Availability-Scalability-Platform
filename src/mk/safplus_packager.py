@@ -115,6 +115,7 @@ def get_compression_format(archive_name):
     sub_strs  = archive_name.split('.')
     compress_extension = sub_strs[-1]
     index = None
+    archive_suffix = ".tar.gz"
     if compress_extension in default_compress_format:
         compress_format = default_compress_format.get(compress_extension)
         if compress_extension != "tar":
@@ -129,7 +130,7 @@ def get_compression_format(archive_name):
             archive_suffix = ".tar." + compress_extension
         log.debug("Archive suffix is {}".format(archive_suffix))
         archive_name = archive_name.split(archive_suffix)[0]
-    return archive_name, compress_format
+    return archive_name, compress_format, archive_suffix
 
 
 def package_dirs(target_dir, tar_dir, yum_package, debian_package):
@@ -196,8 +197,10 @@ def package(base_dir, tar_name, prefix_dir, machine=None, kernel_version=None, p
     # Break the output file name into its components so we can ...
     image_dir_path = get_image_dir_path(tar_name)
     image_dir = "{}/images".format(image_dir_path)
-    tar_name, compress_format = get_compression_format(tar_name)
-    image_stage_dir = image_dir + os.sep + os.path.splitext(get_image_file_name(tar_name))[0]
+    tar_name = get_image_file_name(tar_name)
+    tar_name, compress_format, archive_suffix = get_compression_format(tar_name)
+    #image_stage_dir = image_dir + os.sep + os.path.splitext(get_image_file_name(tar_name))[0]
+    image_stage_dir = image_dir + os.sep + tar_name
 
     # Blow away the old staging directory if it exists and recreate it
     if check_dir_exists(image_dir):
@@ -260,6 +263,11 @@ def package(base_dir, tar_name, prefix_dir, machine=None, kernel_version=None, p
 	rpm_gen = RPM(prefix_loc=prefix_dir)
         rpm_template_dir = os.path.abspath(os.path.dirname(__file__) + os.sep + "pkg_templates/rpm")
         rpm_gen.rpm_build(tar_name, rpm_template_dir, "Makefile", "package.spec")
+    if debain_package:
+        from package import DEBIAN
+        deb_gen = DEBIAN(prefix_loc=prefix_dir)
+        deb_template_dir = os.path.abspath(os.path.dirname(__file__) + os.sep + "pkg_templates/deb")
+        deb_gen.deb_build(tar_name, deb_template_dir, machine, kernel_version)
 
 
 def usage():

@@ -1,0 +1,14 @@
+export DH_VERBOSE=1
+export DH_OPTIONS=-v
+%:
+	dh $@ 
+override_dh_auto_build:
+	echo "Building is not required for Binary Packages"
+override_dh_auto_configure:
+	echo "Configuration is not required for Binary Packages"
+override_dh_auto_make:
+	echo "make is not required for Binary Packages"
+override_dh_shlibdeps:
+	#dh_shlibdeps -v -l$(THIRDPARTY_DIR)/lib#:$(DESTDIR)/$(PREFIX)/lib
+	dh_shlibdeps -v -l$(THIRDPARTY_DIR)/lib:$(DESTDIR)/$(PREFIX)/lib --dpkg-shlibdeps-params=--ignore-missing-info
+
