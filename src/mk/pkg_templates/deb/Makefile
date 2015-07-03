@@ -16,6 +16,5 @@ uninstall:
 	rm -rf $(DESTDIR)/$(PREFIX)/$$dir; \
 	done
 clean:
-	rm -rf debian/safplus.*debhelper
-	rm -rf debian/safplus.substvars
-	echo $(PACKAGE)
+	rm -rf debian/$(PACKAGENAME).*debhelper
+	rm -rf debian/$(PACKAGENAME).substvars
