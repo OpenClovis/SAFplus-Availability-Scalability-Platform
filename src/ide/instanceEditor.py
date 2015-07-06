@@ -1092,7 +1092,7 @@ class Panel(scrolled.ScrolledPanel):
 
     def GetBoundingBox(self):
       """Calculate the bounding box -- the smallest box that will fit around all the elements in this panel"""
-      virtRct = wx.Rect(0,0, COL_MARGIN + (len(self.columns) +1)*(COL_WIDTH+COL_SPACING)+COL_SPACING, ROW_MARGIN+(len(self.rows)+1)*(ROW_WIDTH+ROW_SPACING))
+      virtRct = wx.Rect(0,0, ((COL_MARGIN + (len(self.columns) +1)*(COL_WIDTH+COL_SPACING) + COL_SPACING) * self.scale), (ROW_MARGIN + (len(self.rows)+1)*(ROW_WIDTH+ROW_SPACING) + ROW_SPACING) * self.scale)
       return virtRct
  
     def UpdateVirtualSize(self):
