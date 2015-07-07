@@ -1,7 +1,23 @@
 #include <clGlobals.hxx>
+
+#include "clTransaction.hxx"
+#include "clMgtProv.hxx"
+#include "clMgtProvList.hxx"
+#include "MgtFactory.hxx"
+#include "clMgtList.hxx"
+#include <stdio.h>
+#include <string>
+#include <clLogApi.hxx>
+#include "clMgtApi.hxx"
+#include "boost/functional/hash.hpp"
+#include <clMgtModule.hxx>
+#include <clSafplusMsgServer.hxx>
+#include <clMgtDatabase.hxx>
 #include <clMsgPortsAndTypes.hxx>
-#include <clMgtApi.hxx>
 #include <clGroupIpi.hxx>
+#include "unitTest/Ut.hxx"
+
+#include <clMgtApi.hxx>
 
 using namespace SAFplus;
 

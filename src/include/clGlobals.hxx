@@ -5,7 +5,7 @@
 #include <clCustomization.hxx>
 
 #ifndef CL_OK
-#define CL_OK 0
+#define CL_OK 0x00
 #endif
 
 namespace SAFplus
