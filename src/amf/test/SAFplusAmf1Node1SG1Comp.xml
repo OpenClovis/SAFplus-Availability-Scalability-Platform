@@ -59,7 +59,7 @@
       <compCategory>1</compCategory>
       <delayBetweenInstantiation>10000</delayBetweenInstantiation>
       <instantiate>
-        <command>./test0 c0</command>
+        <command>../test/exampleSafApp c0</command>
         <timeout>30000</timeout>
       </instantiate>
       <instantiationSuccessDuration>60000</instantiationSuccessDuration>
@@ -81,7 +81,7 @@
       <compCategory>1</compCategory>
       <delayBetweenInstantiation>20000</delayBetweenInstantiation>
       <instantiate>
-        <command>./test0 c1</command>
+        <command>../test/exampleSafApp c1</command>
         <timeout>30000</timeout>
       </instantiate>
       <instantiationSuccessDuration>60000</instantiationSuccessDuration>

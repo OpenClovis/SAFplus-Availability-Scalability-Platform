@@ -252,7 +252,19 @@ namespace SAFplus
       else if (comp)
         {
         comp->processId.value = response.pid();
-        comp->presenceState.value  = PresenceState::instantiating;
+
+       if ( comp->capabilityModel == CapabilityModel::not_preinstantiable)
+          {
+          Handle handle=getProcessHandle(comp->processId.value);
+          name.set(comp->name, handle, NameRegistrar::MODE_NO_CHANGE); // I need to set the handle because the process itself will not do so.
+        
+          comp->presenceState.value  = PresenceState::instantiated;    // There are no transitional states in the not_preinstantiable (not SAF aware) case
+          }
+        else
+          {
+            comp->presenceState.value  = PresenceState::instantiating;   // When the component sets its handle, this will be marked instantiated.
+          }
+
         }
       if (w) w->wake(1,comp);
       delete this;
@@ -366,17 +378,20 @@ namespace SAFplus
       assert(comp->pendingOperation == PendingOperation::none);  // We should not be adding work to a component if something else is happening to it.
 
       Handle hdl;
-      try
-          {
-          hdl = name.getHandle(comp->name);
-          }
-      catch (SAFplus::NameException& n)
-          {
-          logCritical("OPS","SRT","Component [%s] is not registered in the name service.  Cannot control it.", comp->name.value.c_str());
-          comp->lastError.value = "Component's name is not registered in the name service so address cannot be determined.";
-          assert(0);
-          break; // TODO: right now go to the next component, however assignment should not occur on ANY components if all components are not accessible. 
-          }
+      if (comp->capabilityModel != CapabilityModel::not_preinstantiable)  // If the component is preinstantiable, it better be instantiated by now (work would not be assigned if it wasn't)
+        {
+          try
+            {
+              hdl = name.getHandle(comp->name);
+            }
+          catch (SAFplus::NameException& n)
+            {
+              logCritical("OPS","SRT","Component [%s] is not registered in the name service.  Cannot control it.", comp->name.value.c_str());
+              comp->lastError.value = "Component's name is not registered in the name service so address cannot be determined.";
+              assert(0);
+              break; // TODO: right now go to the next component, however assignment should not occur on ANY components if all components are not accessible. 
+            }
+        }
 
       // TODO: let's add an extension to SAF in the SI which basically just says "ignore CSIs" and/or "assign all components to the same CSI".  This makes the model simpler
 
@@ -397,59 +412,67 @@ namespace SAFplus
       if (itcsi != endcsi)  // We found an assignable CSI and it is the variable "csi"
         {
         logInfo("OPS","SRT","Component [%s] handle [%" PRIx64 ":%" PRIx64 "] is being assigned [%s] work", comp->name.value.c_str(),hdl.id[0],hdl.id[1], c_str(state));
-        // Mark this component with a pending operation.  This will be cleared in the WorkOperationTracker, or by timeout in auditDiscovery
-        comp->pendingOperationExpiration.value.value = nowMs() + comp->timeouts.workAssignment;
-        comp->pendingOperation = PendingOperation::workAssignment;
+        if (comp->capabilityModel == CapabilityModel::not_preinstantiable)
+          {
+            if (state == HighAvailabilityState::active)
+             start(comp,w);
+          }
+        else
+          {
+            // Mark this component with a pending operation.  This will be cleared in the WorkOperationTracker, or by timeout in auditDiscovery
+            comp->pendingOperationExpiration.value.value = nowMs() + comp->timeouts.workAssignment;
+            comp->pendingOperation = PendingOperation::workAssignment;
 
-        request.set_componentname(comp->name.value.c_str());
-        request.set_componenthandle((const char*) &hdl, sizeof(Handle)); // [libprotobuf ERROR google/protobuf/wire_format.cc:1053] String field contains invalid UTF-8 data when serializing a protocol buffer. Use the 'bytes' type if you intend to send raw bytes.
-        request.set_operation((uint32_t)state);
-        request.set_target(SA_AMF_CSI_ADD_ONE);
-        if ((invocation & 0xFFFFFFFF) == 0xFFFFFFFF) invocation &= 0xFFFFFFFF00000000ULL;  // Don't let increasing invocation numbers overwrite the node or port... ofc this'll never happen 4 billion invocations? :-)
-        request.set_invocation(invocation++);
+            request.set_componentname(comp->name.value.c_str());
+            request.set_componenthandle((const char*) &hdl, sizeof(Handle)); // [libprotobuf ERROR google/protobuf/wire_format.cc:1053] String field contains invalid UTF-8 data when serializing a protocol buffer. Use the 'bytes' type if you intend to send raw bytes.
+            request.set_operation((uint32_t)state);
+            request.set_target(SA_AMF_CSI_ADD_ONE);
+            if ((invocation & 0xFFFFFFFF) == 0xFFFFFFFF) invocation &= 0xFFFFFFFF00000000ULL;  // Don't let increasing invocation numbers overwrite the node or port... ofc this'll never happen 4 billion invocations? :-)
+            request.set_invocation(invocation++);
 
-        if (state == HighAvailabilityState::active)
-          {
-          csi->activeComponents.value.push_back(comp);  // Mark this CSI assigned to this component
-          }
-        else if (state == HighAvailabilityState::standby)
-          {
-          csi->standbyComponents.value.push_back(comp); // Mark this CSI assigned to this component
-          }
-        else if (state == HighAvailabilityState::idle)
-          {
-          assert(0);  // TODO (will this fn call work for work removal?
-          }
-        else if (state == HighAvailabilityState::quiescing)
-          {
-          assert(0);  // TODO (will this fn call work for work removal?
-          }
+            if (state == HighAvailabilityState::active)
+              {
+                csi->activeComponents.value.push_back(comp);  // Mark this CSI assigned to this component
+              }
+            else if (state == HighAvailabilityState::standby)
+              {
+                csi->standbyComponents.value.push_back(comp); // Mark this CSI assigned to this component
+              }
+            else if (state == HighAvailabilityState::idle)
+              {
+                assert(0);  // TODO (will this fn call work for work removal?
+              }
+            else if (state == HighAvailabilityState::quiescing)
+              {
+                assert(0);  // TODO (will this fn call work for work removal?
+              }
           
 
-        // Now I need to fill up the key/value pairs from the CSI
-        request.clear_keyvaluepairs();
-        SAFplus::MgtList<std::string>::Iterator it;
-        for (it = csi->dataList.begin(); it != csi->dataList.end(); it++)
-          {
-          SAFplus::Rpc::amfAppRpc::KeyValuePairs* kvp = request.add_keyvaluepairs();
-          assert(kvp);
-          std::string val("val");
-          //MgtObject *obj = it->second->getChildObject("val");
-          MgtObject *obj2 = it->second;
-          //MgtProv<std::string>* kv = dynamic_cast<MgtProv<std::string>*>(obj);
-          SAFplusAmf::Data* kv2 =  dynamic_cast<SAFplusAmf::Data*>(obj2); 
-          //kv->dbgDump();
-          //obj2->dbgDump();
-          //assert(kv);
-          //kvp->set_thekey(kv->tag.c_str());  // it->first().c_str()
-          //kvp->set_thevalue(kv->value.c_str());
-          kvp->set_thekey(kv2->name.value.c_str());
-          kvp->set_thevalue(kv2->val.value.c_str());
+            // Now I need to fill up the key/value pairs from the CSI
+            request.clear_keyvaluepairs();
+            SAFplus::MgtList<std::string>::Iterator it;
+            for (it = csi->dataList.begin(); it != csi->dataList.end(); it++)
+              {
+                SAFplus::Rpc::amfAppRpc::KeyValuePairs* kvp = request.add_keyvaluepairs();
+                assert(kvp);
+                std::string val("val");
+                //MgtObject *obj = it->second->getChildObject("val");
+                MgtObject *obj2 = it->second;
+                //MgtProv<std::string>* kv = dynamic_cast<MgtProv<std::string>*>(obj);
+                SAFplusAmf::Data* kv2 =  dynamic_cast<SAFplusAmf::Data*>(obj2); 
+                //kv->dbgDump();
+                //obj2->dbgDump();
+                //assert(kv);
+                //kvp->set_thekey(kv->tag.c_str());  // it->first().c_str()
+                //kvp->set_thevalue(kv->value.c_str());
+                kvp->set_thekey(kv2->name.value.c_str());
+                kvp->set_thevalue(kv2->val.value.c_str());
+              }
+
+            pendingWorkOperations[request.invocation()] = WorkOperationTracker(comp,csi,si,(uint32_t)state,SA_AMF_CSI_ADD_ONE);
+
+            amfAppRpc->workOperation(hdl, &request);
           }
-
-        pendingWorkOperations[request.invocation()] = WorkOperationTracker(comp,csi,si,(uint32_t)state,SA_AMF_CSI_ADD_ONE);
-
-        amfAppRpc->workOperation(hdl, &request);
         }
       else
         {
@@ -509,7 +532,14 @@ namespace SAFplus
 
     if (nodeHdl == nodeHandle)  // Handle this request locally.  This is an optimization.  The RPC call will also work locally.
       {
-      comp->presenceState.value  = PresenceState::instantiating;
+      if ( comp->capabilityModel == CapabilityModel::not_preinstantiable)
+        {
+        comp->presenceState.value  = PresenceState::instantiated;
+        // TODO: add the WORK key/value pairs to the environment variables
+        }
+      else 
+        comp->presenceState.value  = PresenceState::instantiating;
+
       std::vector<std::string> newEnv = comp->commandEnvironment.value;
       std::string strCompName("ASP_COMPNAME=");
       std::string strNodeName("ASP_NODENAME=");
@@ -525,11 +555,22 @@ namespace SAFplus
       newEnv.push_back(strNodeName);
       newEnv.push_back(strNodeAddr);
       newEnv.push_back(strPort);
+
       Process p = executeProgram(inst->command.value, newEnv,Process::InheritEnvironment);
       portAllocator.assignPort(port, p.pid);
       comp->processId.value = p.pid;
 
+      // I need to set the handle because the process itself will not do so.
+      if ( comp->capabilityModel == CapabilityModel::not_preinstantiable)
+        {
+          Handle handle=getProcessHandle(p.pid);
+          name.set(comp->name, handle, NameRegistrar::MODE_NO_CHANGE);        
+          comp->presenceState.value  = PresenceState::instantiated;    // There are no transitional states in the not_preinstantiable (not SAF aware) case
+        }
+
       logInfo("OPS","SRT","Launching Component [%s] as [%s] locally with process id [%d]", comp->name.value.c_str(),inst->command.value.c_str(),p.pid);
+
+
       if (&w) w.wake(1,(void*)comp);
       }
     else  // RPC call

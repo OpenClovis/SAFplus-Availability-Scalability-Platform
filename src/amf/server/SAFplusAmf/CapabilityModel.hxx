@@ -17,7 +17,7 @@ namespace SAFplusAmf
 
     enum class CapabilityModel
       {
-        x_active_and_y_standby, x_active_or_y_standby, nonPreInstantiable
+        x_active_and_y_standby, x_active_or_y_standby, not_preinstantiable
       };
     std::ostream& operator<<(std::ostream& os, const CapabilityModel& e);
     std::istream& operator>>(std::istream& is, CapabilityModel& e);

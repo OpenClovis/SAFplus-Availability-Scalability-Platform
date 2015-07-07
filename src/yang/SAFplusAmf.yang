@@ -460,7 +460,7 @@ point.  The operational, administrative, and presence states of a service unit, 
 	  {
 	    description "For a certain component service type, the component supports all values of the HA state. It can be assigned either the active HA state for x component service instances or the standby HA state for y component service instances at a time.";
 	  }
-	  enum non-pre-instantiable
+	  enum not_preinstantiable
 	  {
 	    description "For a certain component service type, the component provides service as soon as it is started.";
 	  }

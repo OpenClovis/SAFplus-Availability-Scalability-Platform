@@ -69,7 +69,7 @@ namespace SAFplusAmf
         SAFplus::MgtIdentifierList<SAFplusAmf::ServiceUnit*> activeAssignments;
 
         /*
-         * This work is assigned standby to these service units
+         * This work is assigned active to these service units
          */
         SAFplus::MgtIdentifierList<SAFplusAmf::ServiceUnit*> standbyAssignments;
 

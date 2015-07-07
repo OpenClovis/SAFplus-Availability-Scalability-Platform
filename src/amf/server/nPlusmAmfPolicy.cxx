@@ -99,6 +99,12 @@ namespace SAFplus
         logDebug("N+M","STRT","Not starting [%s]. It must be repaired.",comp->name.value.c_str());
         continue;
         }
+      if (comp->capabilityModel == CapabilityModel::not_preinstantiable)
+        {
+        logDebug("N+M","STRT","Not starting [%s]. Its not preinstantiable.",comp->name.value.c_str());
+        continue;
+        }
+
       if (comp->numInstantiationAttempts.value >= comp->maxInstantInstantiations + comp->maxDelayedInstantiations)
         {
           logInfo("N+M","STRT","Faulting [%s]. Number of instantiation Attempts [%d] has exceeded its configured maximum [%d].",comp->name.value.c_str(),comp->numInstantiationAttempts.value, comp->maxInstantInstantiations + comp->maxDelayedInstantiations);
@@ -233,7 +239,7 @@ namespace SAFplus
     auditOperation(root);
     }
 
-  ServiceUnit* findAssignableServiceUnit(std::vector<SAFplusAmf::ServiceUnit*>& candidates,MgtList<std::string>& weights, HighAvailabilityState tgtState)
+  ServiceUnit* findAssignableServiceUnit(std::vector<SAFplusAmf::ServiceUnit*>& candidates,SAFplusAmf::ServiceInstance* si, HighAvailabilityState tgtState)
     {
     std::vector<SAFplusAmf::ServiceUnit*>::iterator i;
     for (i = candidates.begin(); i != candidates.end(); i++)
@@ -241,7 +247,9 @@ namespace SAFplus
       bool assignable = true;
       ServiceUnit* su = *i;
       assert(su);
-      if (su->operState == true)
+
+      // We can only assign a particular SI to a particular SU once, and it can't be in "repair needed" state
+      if ((su->assignedServiceInstances.contains(si) == false) && (su->operState == true))
         {
           // TODO: add a text field in the SU that describes why it is not assignable... generate a string from the component iterator and fill that field.
 
@@ -251,7 +259,11 @@ namespace SAFplus
           {
           Component* comp = dynamic_cast<Component*>(*itcomp);
           assert(comp);
-          if ((comp->operState.value == true) && (comp->presenceState.value == PresenceState::instantiated) && (comp->readinessState.value == ReadinessState::inService) && (comp->haReadinessState == HighAvailabilityReadinessState::readyForAssignment) && (comp->haState != HighAvailabilityState::quiescing) && (comp->pendingOperation == PendingOperation::none))
+          if (comp->operState.value == false) { assignable = false; break; }
+          if (comp->capabilityModel == CapabilityModel::not_preinstantiable)  // If the component is not preinstantiable, there are basically no requirements on it to be assignable -- it doesn't even have to be running.
+            {
+            }
+          else if ((comp->presenceState.value == PresenceState::instantiated) && (comp->readinessState.value == ReadinessState::inService) && (comp->haReadinessState == HighAvailabilityReadinessState::readyForAssignment) && (comp->haState != HighAvailabilityState::quiescing) && (comp->pendingOperation == PendingOperation::none))
             {
               // Now check the component's capability model
               if (comp->capabilityModel == CapabilityModel::x_active_or_y_standby)  // Can't take both active and standby assignments
@@ -375,7 +387,12 @@ namespace SAFplus
                 }
               else
                 {
-                if (eas != SAFplusAmf::AdministrativeState::off)
+                  if (comp->capabilityModel == CapabilityModel::not_preinstantiable)
+                    {
+                      // TODO: in this case I need to look at the work to determine if this component should be instantiated but is not
+                      //startSg=true;
+                    }
+                  else if (eas != SAFplusAmf::AdministrativeState::off)
                   {
                   logError("N+M","AUDIT","Component [%s] could be on but is not instantiated", comp->name.value.c_str());
                   startSg=true;
@@ -443,7 +460,7 @@ namespace SAFplus
               {
               for (int cnt = si->getNumActiveAssignments()->current.value; cnt < si->preferredActiveAssignments; cnt++)
                 {
-                ServiceUnit* su = findAssignableServiceUnit(sus,si->activeWeightList,HighAvailabilityState::active);
+                ServiceUnit* su = findAssignableServiceUnit(sus,si,HighAvailabilityState::active);
                 if (su)
                   {
                     // TODO: assert(si is not already assigned to this su)
@@ -463,7 +480,7 @@ namespace SAFplus
               {
               for (int cnt = si->getNumStandbyAssignments()->current.value; cnt < si->preferredStandbyAssignments; cnt++)
                 {
-                ServiceUnit* su = findAssignableServiceUnit(sus,si->standbyWeightList,HighAvailabilityState::standby);
+                ServiceUnit* su = findAssignableServiceUnit(sus,si,HighAvailabilityState::standby);
                 if (su)
                   {
                     // TODO: assert(si is not already assigned to this su)
@@ -517,7 +534,7 @@ namespace SAFplus
               {
               for (int cnt = si->getNumActiveAssignments()->current.value; cnt < si->preferredActiveAssignments; cnt++)
                 {
-                ServiceUnit* su = findAssignableServiceUnit(sus,si->activeWeightList,HighAvailabilityState::active);
+                ServiceUnit* su = findAssignableServiceUnit(sus,si,HighAvailabilityState::active);
                 if (su)
                   {
                     // TODO: assert(si is not already assigned to this su)
