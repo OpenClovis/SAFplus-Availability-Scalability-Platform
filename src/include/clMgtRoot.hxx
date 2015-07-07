@@ -88,6 +88,8 @@ public:
      */
     static MgtRoot *getInstance();
 
+    static void DestroyInstance(); // Constructor for singleton
+
     /**
      * \brief	Function to load MGT module to the system
      * \param	module					Pointer to MGT module

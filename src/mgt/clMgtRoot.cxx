@@ -47,6 +47,12 @@ namespace SAFplus
     return (singletonInstance ? singletonInstance : (singletonInstance = new MgtRoot()));
   }
 
+  void MgtRoot::DestroyInstance()
+  {
+    delete singletonInstance;
+    singletonInstance = 0;
+  }
+
   MgtRoot::~MgtRoot()
   {
   }

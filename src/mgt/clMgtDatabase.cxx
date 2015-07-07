@@ -46,9 +46,15 @@ namespace SAFplus
     return (singletonInstance ? singletonInstance : (singletonInstance = new MgtDatabase()));
   }
 
+  void MgtDatabase::DestroyInstance()
+  {
+    delete singletonInstance;
+    singletonInstance = 0;
+  }
+
   MgtDatabase::~MgtDatabase()
   {
-
+    finalizeDB();
   }
 
   MgtDatabase::MgtDatabase()
