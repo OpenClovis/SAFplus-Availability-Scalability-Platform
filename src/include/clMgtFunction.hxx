@@ -26,26 +26,21 @@
 #include <clCkptApi.hxx> // to use checkpoint
 namespace SAFplus
 {
-  class MgtFunction
-  {
-  public:
-     // Mgt Checkpoin
-    static Checkpoint* mgtCheckpoint;
-    static Checkpoint* getMgtCheckpoint();
-    static SAFplus::Handle& getHandle(const std::string& pathSpec, ClRcT &errCode);
+     extern Checkpoint* mgtCheckpoint;
+     Checkpoint* getMgtCheckpoint();
+     SAFplus::Handle& getMgtHandle(const std::string& pathSpec, ClRcT &errCode);
 
-    static std::string mgtGet(const std::string& pathSpec);
-    static std::string mgtGet(SAFplus::Handle src, const std::string& pathSpec);
+     std::string mgtGet(const std::string& pathSpec);
+     std::string mgtGet(SAFplus::Handle src, const std::string& pathSpec);
 
-    static ClRcT mgtSet(SAFplus::Handle src, const std::string& pathSpec, const std::string& value);
-    static ClRcT mgtSet(const std::string& pathSpec, const std::string& value);
+     ClRcT mgtSet(SAFplus::Handle src, const std::string& pathSpec, const std::string& value);
+     ClRcT mgtSet(const std::string& pathSpec, const std::string& value);
 
-    static ClRcT mgtCreate(SAFplus::Handle src, const std::string& pathSpec);
-    static ClRcT mgtCreate(const std::string& pathSpec);
+     ClRcT mgtCreate(SAFplus::Handle src, const std::string& pathSpec);
+     ClRcT mgtCreate(const std::string& pathSpec);
 
-    static ClRcT mgtDelete(SAFplus::Handle src, const std::string& pathSpec);
-    static ClRcT mgtDelete(const std::string& pathSpec);
-  };
+     ClRcT mgtDelete(SAFplus::Handle src, const std::string& pathSpec);
+     ClRcT mgtDelete(const std::string& pathSpec);
 
 }
 #endif /* CLMGT_HXX_ */

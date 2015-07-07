@@ -359,7 +359,7 @@ namespace SAFplus
     rplMesg.add_data(strRev);
     rplMesg.add_data(outBuff.c_str(), outBuff.length() + 1);
     rplMesg.SerializeToString(&strRplMesg);
-    logDebug("MGT","GET","Replying with msg of size [%lu]",strRplMesg.size());
+    logDebug("MGT","GET","Replying with msg of size [%lu]",(long unsigned int) strRplMesg.size());
     MgtRoot::sendReplyMsg(srcAddr,(void *)strRplMesg.c_str(),strRplMesg.size());
   }
 
@@ -419,7 +419,7 @@ namespace SAFplus
         object->get(&outBuff);
         rplMesg.add_data(outBuff.c_str(), outBuff.length() + 1);
         rplMesg.SerializeToString(&strRplMesg);
-        logDebug("MGT","XGET","Replying with msg of size [%lu]",strRplMesg.size());
+        logDebug("MGT","XGET","Replying with msg of size [%lu]",(long unsigned int) strRplMesg.size());
         MgtRoot::sendReplyMsg(srcAddr,(void *)strRplMesg.c_str(),strRplMesg.size());
       }
   }

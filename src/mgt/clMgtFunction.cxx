@@ -32,9 +32,9 @@ using namespace Mgt::Msg;
 namespace SAFplus
 {
 // Mgt Checkpoint
-  Checkpoint* MgtFunction::mgtCheckpoint = 0;
+  Checkpoint* mgtCheckpoint = 0;
 
-  Checkpoint* MgtFunction::getMgtCheckpoint()
+  Checkpoint* getMgtCheckpoint()
   {
      if(!mgtCheckpoint)
      {
@@ -46,7 +46,7 @@ namespace SAFplus
      return mgtCheckpoint;
   }
 
-  SAFplus::Handle& MgtFunction::getHandle(const std::string& pathSpec, ClRcT &errCode)
+  SAFplus::Handle& getMgtHandle(const std::string& pathSpec, ClRcT &errCode)
   {
     errCode = CL_OK;
     std::string strPath = "";
@@ -72,7 +72,7 @@ namespace SAFplus
     return *((Handle*) NULL);
   }
 
-  std::string MgtFunction::mgtGet(SAFplus::Handle src, const std::string& pathSpec)
+  std::string mgtGet(SAFplus::Handle src, const std::string& pathSpec)
   {
     std::string output = "";
     MsgMgt mgtMsgReq;
@@ -113,7 +113,7 @@ namespace SAFplus
     return output;
   }
 
-  std::string MgtFunction::mgtGet(const std::string& pathSpec)
+  std::string mgtGet(const std::string& pathSpec)
   {
     std::string output = "";
 
@@ -127,7 +127,7 @@ namespace SAFplus
     else  // Object Implementer not found. Broadcast message to get data
       {
         ClRcT errCode;
-        Handle &hdl = getHandle(pathSpec, errCode);
+        Handle &hdl = getMgtHandle(pathSpec, errCode);
         if((errCode == CL_OK) && (NULL != &hdl))
         {
           output = mgtGet(hdl, pathSpec);
@@ -136,7 +136,7 @@ namespace SAFplus
     return output;
   }
 
-  ClRcT MgtFunction::mgtSet(SAFplus::Handle src, const std::string& pathSpec, const std::string& value)
+  ClRcT mgtSet(SAFplus::Handle src, const std::string& pathSpec, const std::string& value)
   {
     ClRcT ret = CL_OK;
 
@@ -170,7 +170,7 @@ namespace SAFplus
     return ret;
   }
 
-  ClRcT MgtFunction::mgtSet(const std::string& pathSpec, const std::string& value)
+  ClRcT mgtSet(const std::string& pathSpec, const std::string& value)
   {
     ClRcT ret = CL_OK;
 
@@ -183,7 +183,7 @@ namespace SAFplus
       }
     else  // Object Implementer not found. Broadcast message to get data
       {
-        Handle &hdl = getHandle(pathSpec, ret);
+        Handle &hdl = getMgtHandle(pathSpec, ret);
         if((ret == CL_OK) && (NULL != &hdl))
           {
             ret = mgtSet(hdl, pathSpec, value);
@@ -194,7 +194,7 @@ namespace SAFplus
     return ret;
   }
 
-  ClRcT MgtFunction::mgtCreate(SAFplus::Handle src, const std::string& pathSpec)
+  ClRcT mgtCreate(SAFplus::Handle src, const std::string& pathSpec)
   {
     ClRcT ret = CL_OK;
 
@@ -228,7 +228,7 @@ namespace SAFplus
     return ret;
   }
 
-  ClRcT MgtFunction::mgtCreate(const std::string& pathSpec)
+  ClRcT mgtCreate(const std::string& pathSpec)
   {
     ClRcT ret = CL_OK;
 
@@ -253,7 +253,7 @@ namespace SAFplus
       }
     else  // Object Implementer not found. Broadcast message to get data
       {
-        Handle &hdl = getHandle(pathSpec, ret);
+        Handle &hdl = getMgtHandle(pathSpec, ret);
         if((ret == CL_OK) && (NULL != &hdl))
           {
             ret = mgtCreate(hdl, pathSpec);
@@ -264,7 +264,7 @@ namespace SAFplus
     return ret;
   }
 
-  ClRcT MgtFunction::mgtDelete(SAFplus::Handle src, const std::string& pathSpec)
+  ClRcT mgtDelete(SAFplus::Handle src, const std::string& pathSpec)
   {
     ClRcT ret = CL_OK;
 
@@ -298,7 +298,7 @@ namespace SAFplus
     return ret;
   }
 
-  ClRcT MgtFunction::mgtDelete(const std::string& pathSpec)
+  ClRcT mgtDelete(const std::string& pathSpec)
   {
     ClRcT ret = CL_OK;
 
@@ -323,7 +323,7 @@ namespace SAFplus
       }
     else  // Object Implementer not found. Broadcast message to get data
       {
-        Handle &hdl = getHandle(pathSpec, ret);
+        Handle &hdl = getMgtHandle(pathSpec, ret);
         if((ret == CL_OK) && (NULL != &hdl))
          {
            ret = mgtDelete(hdl, pathSpec);

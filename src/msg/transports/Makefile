@@ -28,7 +28,7 @@ $(info Operating system does not have SCTP support.  SCTP message transport plug
 endif
 
 # Specify the required libraries
-SAFPLUS_LIBS := 
+SAFPLUS_LIBS := clMsg
 # Then use these in the make rule
 SAFPLUS_DEP_LIBS  := $(addsuffix .so,$(addprefix $(LIB_DIR)/lib,$(SAFPLUS_LIBS)))
 SAFPLUS_LINK_LIBS := -L$(LIB_DIR) $(addprefix -l,$(SAFPLUS_LIBS))
@@ -38,7 +38,7 @@ LINK_SO_LIBS += -lboost_thread
 Release all: $(PLUGIN_DIR)/clMsgUdp.so $(SCTP_TARGET) $(PLUGIN_DIR)/clMsgTcp.so
 
 $(PLUGIN_DIR)/clMsgUdp.so: $(OBJ_DIR)/msgUdp.o $(OBJ_DIR)/clPluginHelper.o
-	$(LINK_SO) $@ $^ $(LINK_SO_LIBS)
+	$(LINK_SO) $@ $^ $(SAFPLUS_LINK_LIBS) $(LINK_SO_LIBS)
 
 $(PLUGIN_DIR)/clMsgSctp.so: $(OBJ_DIR)/msgSctp.o $(OBJ_DIR)/clPluginHelper.o
 	$(LINK_SO) $@ $^ $(LINK_SO_LIBS)
