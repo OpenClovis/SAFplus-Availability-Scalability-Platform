@@ -140,12 +140,12 @@ public:
     /**
      * Mgt message handlers
      */
-    void clMgtMsgEditHandle(SAFplus::Handle srcAddr, Mgt::Msg::MsgMgt mgtMsgReq);
-    void clMgtMsgGetHandle(SAFplus::Handle srcAddr, Mgt::Msg::MsgMgt mgtMsgReq);
-    void clMgtMsgXGetHandle(SAFplus::Handle srcAddr, Mgt::Msg::MsgMgt mgtMsgReq);
-    void clMgtMsgXSetHandle(SAFplus::Handle srcAddr, Mgt::Msg::MsgMgt mgtMsgReq);
-    void clMgtMsgCreateHandle(SAFplus::Handle srcAddr, Mgt::Msg::MsgMgt mgtMsgReq);
-    void clMgtMsgDeleteHandle(SAFplus::Handle srcAddr, Mgt::Msg::MsgMgt mgtMsgReq);
+    void clMgtMsgEditHandler(SAFplus::Handle srcAddr, Mgt::Msg::MsgMgt& mgtMsgReq);
+    void clMgtMsgGetHandler(SAFplus::Handle srcAddr, Mgt::Msg::MsgMgt& mgtMsgReq);
+    void clMgtMsgXGetHandler(SAFplus::Handle srcAddr, Mgt::Msg::MsgMgt& mgtMsgReq);
+    void clMgtMsgXSetHandler(SAFplus::Handle srcAddr, Mgt::Msg::MsgMgt& mgtMsgReq);
+    void clMgtMsgCreateHandler(SAFplus::Handle srcAddr, Mgt::Msg::MsgMgt& mgtMsgReq);
+    void clMgtMsgDeleteHandler(SAFplus::Handle srcAddr, Mgt::Msg::MsgMgt& mgtMsgReq);
     class MgtMessageHandler:public SAFplus::MsgHandler
     {
       public:

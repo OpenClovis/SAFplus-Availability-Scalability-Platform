@@ -246,7 +246,7 @@ namespace SAFplus
     return rc;
   }
 
-  void MgtRoot::clMgtMsgEditHandle(SAFplus::Handle srcAddr, Mgt::Msg::MsgMgt reqMsg)
+  void MgtRoot::clMgtMsgEditHandler(SAFplus::Handle srcAddr, Mgt::Msg::MsgMgt& reqMsg)
   {
     ClRcT rc = CL_OK;
     ClBoolT rc1 = CL_FALSE;
@@ -304,7 +304,7 @@ namespace SAFplus
     MgtRoot::sendReplyMsg(srcAddr,(void *)&rc,sizeof(ClRcT));
   }
 
-  void MgtRoot::clMgtMsgGetHandle(SAFplus::Handle srcAddr, Mgt::Msg::MsgMgt reqMsg)
+  void MgtRoot::clMgtMsgGetHandler(SAFplus::Handle srcAddr, Mgt::Msg::MsgMgt& reqMsg)
   {
     MsgGeneral rplMesg;
     string outBuff,strRplMesg;
@@ -369,7 +369,7 @@ namespace SAFplus
 
     if (xpath[0] != '/')
       {
-        // Invalid xpath
+        // Invalid xpath; we ARE the root so the xpath must start with /
         return nullptr;
       }
 
@@ -407,7 +407,7 @@ namespace SAFplus
     return module->findMgtObject(xpath);
   }
 
-  void MgtRoot::clMgtMsgXGetHandle(SAFplus::Handle srcAddr, Mgt::Msg::MsgMgt reqMsg)
+  void MgtRoot::clMgtMsgXGetHandler(SAFplus::Handle srcAddr, Mgt::Msg::MsgMgt& reqMsg)
   {
     MgtObject *object = findMgtObject(reqMsg.bind());
 
@@ -424,7 +424,7 @@ namespace SAFplus
       }
   }
 
-  void MgtRoot::clMgtMsgXSetHandle(SAFplus::Handle srcAddr, Mgt::Msg::MsgMgt reqMsg)
+  void MgtRoot::clMgtMsgXSetHandler(SAFplus::Handle srcAddr, Mgt::Msg::MsgMgt& reqMsg)
   {
     MgtObject *object = findMgtObject(reqMsg.bind());
     if (object != nullptr)
@@ -435,7 +435,7 @@ namespace SAFplus
       }
   }
 
-  void MgtRoot::clMgtMsgCreateHandle(SAFplus::Handle srcAddr, Mgt::Msg::MsgMgt reqMsg)
+  void MgtRoot::clMgtMsgCreateHandler(SAFplus::Handle srcAddr, Mgt::Msg::MsgMgt& reqMsg)
   {
     std::size_t idx = reqMsg.bind().find_last_of("/");
 
@@ -457,7 +457,7 @@ namespace SAFplus
       }
   }
 
-  void MgtRoot::clMgtMsgDeleteHandle(SAFplus::Handle srcAddr, Mgt::Msg::MsgMgt reqMsg)
+  void MgtRoot::clMgtMsgDeleteHandler(SAFplus::Handle srcAddr, Mgt::Msg::MsgMgt& reqMsg)
   {
     std::size_t idx = reqMsg.bind().find_last_of("/");
 
@@ -494,22 +494,22 @@ namespace SAFplus
     switch(mgtMsgReq.type())
     {
       case Mgt::Msg::MsgMgt::CL_MGT_MSG_SET:
-        mRoot->clMgtMsgEditHandle(from,mgtMsgReq);
+        mRoot->clMgtMsgEditHandler(from,mgtMsgReq);
         break;
       case Mgt::Msg::MsgMgt::CL_MGT_MSG_GET:
-        mRoot->clMgtMsgGetHandle(from,mgtMsgReq);
+        mRoot->clMgtMsgGetHandler(from,mgtMsgReq);
         break;
       case Mgt::Msg::MsgMgt::CL_MGT_MSG_XGET:
-        mRoot->clMgtMsgXGetHandle(from,mgtMsgReq);
+        mRoot->clMgtMsgXGetHandler(from,mgtMsgReq);
         break;
       case Mgt::Msg::MsgMgt::CL_MGT_MSG_XSET:
-        mRoot->clMgtMsgXSetHandle(from,mgtMsgReq);
+        mRoot->clMgtMsgXSetHandler(from,mgtMsgReq);
         break;
       case Mgt::Msg::MsgMgt::CL_MGT_MSG_CREATE:
-        mRoot->clMgtMsgCreateHandle(from,mgtMsgReq);
+        mRoot->clMgtMsgCreateHandler(from,mgtMsgReq);
         break;
       case Mgt::Msg::MsgMgt::CL_MGT_MSG_DELETE:
-        mRoot->clMgtMsgDeleteHandle(from,mgtMsgReq);
+        mRoot->clMgtMsgDeleteHandler(from,mgtMsgReq);
         break;
       default:
         break;
