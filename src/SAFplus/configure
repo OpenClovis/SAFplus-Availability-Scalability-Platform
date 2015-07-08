@@ -1509,15 +1509,13 @@ if [ "${with_sdk_dir+set}" = set ]; then
     withval="$with_sdk_dir"
     # check passing /opt/clovis
     tmp=$with_sdk_dir/$PACKAGE_VERSION
-    cd $tmp
-    if [ ! -d sdk -o ! -d buildtools ]; then
+    if [ ! -d $tmp/sdk -o ! -d $tmp/buildtools ]; then
       # check passing /opt/clovis/6.1
       tmp=$with_sdk_dir
-      cd $tmp
-      if [ ! -d sdk -o ! -d buildtools ]; then
+      if [ ! -d $tmp/sdk -o ! -d $tmp/buildtools ]; then
         # check passing /opt/clovis/6.1/sdk
         tmp=$with_sdk_dir/..
-        if [ ! -d sdk -o ! -d buildtools ]; then
+        if [ ! -d $tmp/sdk -o ! -d $tmp/buildtools ]; then
           NoSdkDirError;
           exit 1
         fi
