@@ -235,6 +235,10 @@ class MicroDom:
     else:
       return "<%s%s />" % (self.tag_,attrs)
 
+def LoadString(s):
+  dom = xml.dom.minidom.parseString(s)
+  md = LoadMiniDom(dom.childNodes[0])
+  return md
 
 def LoadFile(fil):
   if type(fil) is ListType:

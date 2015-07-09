@@ -313,14 +313,14 @@ namespace SAFplus
           {
               /*
                * Build fully tag with keys attribute
-               * GAS: YumaNetconf parse does not support XML attribute
+               * YumaNetconf parse does not support XML attribute
                * Example: <interface name="eth0" ipAddr="192.168.10.1">...</interface>
                * Just simple return:
                *     <interface>...</interface>
                */
-              //xmlString << "<" << tag << ">";
+              
               entry->toString(xmlString,opts);
-              //xmlString << "</" << tag << '>';
+       
           }
         }
         xmlString << "</" << tag << '>';
@@ -463,9 +463,7 @@ namespace SAFplus
         return CL_TRUE;
       }
 
-      /**
-       * Provide full X-Path of this list *
-       */
+      //? Returns complete (from the root) XML Path of this list 
       std::string getFullXpath(bool includeParent = true)
       {
         std::string xpath;
@@ -854,6 +852,19 @@ namespace SAFplus
       return (*this)[name];
     }
 
+      //? Returns complete (from the root) XML Path of this list 
+    std::string getFullXpath(bool includeParent = true)
+      {
+        std::string xpath;
+        /* Parent X-Path will be add into the full xpath */
+        if (parent != nullptr && includeParent) // this is the list parent
+        {
+          xpath = parent->getFullXpath();
+        }
+        xpath.append("/").append(this->tag);
+        return xpath;
+      }
+
       /**
        * API to get data of the list (called from netconf server)
        */
@@ -861,6 +872,16 @@ namespace SAFplus
       {
         typename Map::iterator iter;
         /* Name of this list */
+        xmlString << '<' << tag;
+        if (opts & MgtObject::SerializeNameAttribute)
+          xmlString << " name=" << "\"" << getFullXpath(false) << "\"";
+        if (opts & MgtObject::SerializePathAttribute)
+          xmlString << " path=" << "\"" << getFullXpath(true) << "\"";
+        xmlString << '>';                
+
+        MgtObject::SerializationOptions newopts = opts;
+        if (opts & MgtObject::SerializeOnePath) newopts = (MgtObject::SerializationOptions) (newopts & ~MgtObject::SerializePathAttribute);
+
         for (iter = children.begin(); iter != children.end(); iter++)
         {
           std::string k = iter->first;
@@ -868,16 +889,16 @@ namespace SAFplus
           if (entry)
           {
              /*
-              * GAS: Yuma parse does not support XML attribute
+              * Yuma parse does not support XML attribute
               * Example: <interface name="eth0" ipAddr="192.168.10.1">...</interface>
               * Just simple return:
               *     <interface>...</interface>
               */
-            xmlString << "<" << tag << ">";
-            entry->toString(xmlString);
-            xmlString << "</" << tag << '>';
+            
+            entry->toString(xmlString,newopts);
           }
         }
+        xmlString << "</" << tag << '>';
       }
 
       MgtObject* lookUpMgtObject(const std::string & classType, const std::string &ref)

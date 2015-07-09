@@ -183,6 +183,7 @@ template<class T>
 MgtIdentifierList<T>::~MgtIdentifierList()
 {
 }
+
 template<class T>
 std::string MgtIdentifierList<T>::toStringItemAt(T x)
 {
@@ -198,15 +199,25 @@ std::string MgtIdentifierList<T>::toStringItemAt(T x)
 template<class T>
 void MgtIdentifierList<T>::toString(std::stringstream& xmlString, SerializationOptions opts)
 {
-    for (unsigned int i = 0; i < value.size(); i++)
+  xmlString << '<' << tag;
+  if (opts & MgtObject::SerializeNameAttribute)
+    xmlString << " name=" << "\"" << getFullXpath(false) << "\"";
+  if (opts & MgtObject::SerializePathAttribute)
+    xmlString << " path=" << "\"" << getFullXpath(true) << "\"";
+  xmlString << '>';                
+
+  int len = value.size();
+  for (unsigned int i = 0; i < len; i++)
     {
-        xmlString << "<" << tag << ">" << toStringItemAt(value.at(i)) << "</" << tag << ">";
+      xmlString << toStringItemAt(value.at(i));
+      if (i+1<len) xmlString << ", ";
     }
+
+  xmlString << "</" << tag << ">";
 }
 
 template<class T>
-ClBoolT MgtIdentifierList<T>::set(const void *pBuffer, ClUint64T buffLen,
-        SAFplus::Transaction& t)
+ClBoolT MgtIdentifierList<T>::set(const void *pBuffer, ClUint64T buffLen, SAFplus::Transaction& t)
 {
     return CL_FALSE;
 }
