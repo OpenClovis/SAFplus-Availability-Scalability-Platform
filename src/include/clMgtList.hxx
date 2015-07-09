@@ -1127,8 +1127,10 @@ namespace SAFplus
        if (strncmp(path,"./",2)==0) { this->resolvePath(path+2, result); return; }  // ./ refers to the current node
        if (strncmp(path,"../",3)==0) { this->parent->resolvePath(path+3, result); return; }  // ../ refers to the parent
        if (strncmp(path,"**/",3)==0) 
-         { 
+         {
+#ifndef SAFplus7
            clDbgNotImplemented("DEEP search for the subsequent match");
+#endif
          return; 
          }  
 

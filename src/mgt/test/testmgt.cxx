@@ -100,7 +100,7 @@ class TestObject : public MgtObject
       {
 
       }
-    void toString(std::stringstream& xmlString) {};
+    void toString(std::stringstream& xmlString, SerializationOptions opts=SerializeNoOptions) {};
   };
 
 class TestListObject: public MgtContainer
