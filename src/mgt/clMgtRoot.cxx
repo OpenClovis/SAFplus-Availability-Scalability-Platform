@@ -116,7 +116,7 @@ namespace SAFplus
     return nullptr;
   }
 
-  ClRcT MgtRoot::bindMgtObject(Handle handle, MgtObject *object,const std::string module, const std::string route)
+  ClRcT MgtRoot::bindMgtObject(Handle handle, MgtObject *object,const std::string& module, const std::string& route)
   {
     ClRcT rc = CL_OK;
 
@@ -363,6 +363,28 @@ namespace SAFplus
     MgtRoot::sendReplyMsg(srcAddr,(void *)strRplMesg.c_str(),strRplMesg.size());
   }
 
+  void MgtRoot::resolvePath(const char* path, std::vector<MgtObject*>* result)
+  {
+    size_t idx;
+    
+    std::string xpath(path);
+    idx = xpath.find("/");
+
+    if (idx == std::string::npos)
+      {
+        // Invalid xpath
+        return;
+      }
+
+    std::string moduleName = xpath.substr(0, idx);
+
+    MgtModule * module = getMgtModule(moduleName);
+    if (module)
+      {
+      module->resolvePath(path+idx+1, result);
+      }
+  }
+
   MgtObject *MgtRoot::findMgtObject(const std::string &xpath)
   {
     size_t idx;
@@ -404,11 +426,40 @@ namespace SAFplus
         return nullptr;
       }
 
-    return module->findMgtObject(xpath);
+    std::string rest = xpath.substr(idx+1);
+    return module->findMgtObject(rest);
   }
 
   void MgtRoot::clMgtMsgXGetHandler(SAFplus::Handle srcAddr, Mgt::Msg::MsgMgt& reqMsg)
   {
+  std::vector<MgtObject*> matches;
+  std::string path = reqMsg.bind();
+  std::string strRplMesg;
+  MsgGeneral rplMesg;
+
+  if (path[0] == '/')  // Only absolute paths are allowed over the RPC API since there is no context
+    {
+      resolvePath(path.c_str()+1, &matches);
+
+      std::stringstream outBuff;
+      for (std::vector<MgtObject*>::iterator i=matches.begin(); i != matches.end(); i++)
+        {
+          MgtObject *object = *i;
+          object->toString(outBuff, (MgtObject::SerializationOptions) (MgtObject::SerializePathAttribute | MgtObject::SerializeOnePath));
+          
+        }
+      const std::string& s = outBuff.str();
+      rplMesg.add_data(s.c_str(), s.length() + 1);
+    }
+
+  rplMesg.SerializeToString(&strRplMesg);
+  logDebug("MGT","XGET","Replying with msg of size [%lu]",(long unsigned int) strRplMesg.size());
+  if (strRplMesg.size()>0)
+    {
+    MgtRoot::sendReplyMsg(srcAddr,(void *)strRplMesg.c_str(),strRplMesg.size());
+    }
+
+#if 0
     MgtObject *object = findMgtObject(reqMsg.bind());
 
     if (object != nullptr)
@@ -422,10 +473,31 @@ namespace SAFplus
         logDebug("MGT","XGET","Replying with msg of size [%lu]",(long unsigned int) strRplMesg.size());
         MgtRoot::sendReplyMsg(srcAddr,(void *)strRplMesg.c_str(),strRplMesg.size());
       }
+#endif
   }
 
   void MgtRoot::clMgtMsgXSetHandler(SAFplus::Handle srcAddr, Mgt::Msg::MsgMgt& reqMsg)
   {
+  std::vector<MgtObject*> matches;
+  std::string path = reqMsg.bind();
+
+  if (path[0] == '/') 
+    {
+      resolvePath(path.c_str()+1, &matches);
+      ClRcT rc = 0;
+      std::string value = reqMsg.data(0);
+      for (std::vector<MgtObject*>::iterator i=matches.begin(); i != matches.end(); i++)
+        {
+          MgtObject *object = *i;
+          ClRcT rc = object->setObj(value);
+          //object->toString(outBuff, (MgtObject::SerializationOptions) (MgtObject::SerializePathAttribute | MgtObject::SerializeOnePath));
+          
+        }
+      MgtRoot::sendReplyMsg(srcAddr,(void *)&rc,sizeof(ClRcT));
+    }
+  
+
+#if 0
     MgtObject *object = findMgtObject(reqMsg.bind());
     if (object != nullptr)
       {
@@ -433,6 +505,7 @@ namespace SAFplus
         ClRcT rc = object->setObj(value);
         MgtRoot::sendReplyMsg(srcAddr,(void *)&rc,sizeof(ClRcT));
       }
+#endif
   }
 
   void MgtRoot::clMgtMsgCreateHandler(SAFplus::Handle srcAddr, Mgt::Msg::MsgMgt& reqMsg)

@@ -118,11 +118,17 @@ namespace SAFplus
     std::string output = "";
 
     MgtRoot *mgtRoot = MgtRoot::getInstance();
-    MgtObject *object = mgtRoot->findMgtObject(pathSpec);
+    std::vector<MgtObject*> matches;
+    mgtRoot->resolvePath(pathSpec.c_str()+1,&matches);
 
-    if (object)
+    if (matches.size())
       {
-        object->get(&output);
+        for(std::vector<MgtObject*>::iterator i = matches.begin(); i != matches.end(); i++)
+          {
+            std::string objxml;
+            (*i)->get(&objxml);
+            output.append(objxml);
+          }
       }
     else  // Object Implementer not found. Broadcast message to get data
       {

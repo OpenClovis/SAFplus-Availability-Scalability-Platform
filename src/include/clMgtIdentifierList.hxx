@@ -60,7 +60,7 @@ public:
 
     virtual ~MgtIdentifierList();
 
-    virtual void toString(std::stringstream& xmlString);
+    virtual void toString(std::stringstream& xmlString, SerializationOptions opts=SerializeNoOptions);
 
     /**
      * \brief   Virtual function to validate object data
@@ -196,7 +196,7 @@ std::string MgtIdentifierList<T>::toStringItemAt(T x)
 }
 
 template<class T>
-void MgtIdentifierList<T>::toString(std::stringstream& xmlString)
+void MgtIdentifierList<T>::toString(std::stringstream& xmlString, SerializationOptions opts)
 {
     for (unsigned int i = 0; i < value.size(); i++)
     {

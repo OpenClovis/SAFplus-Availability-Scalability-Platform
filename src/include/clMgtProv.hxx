@@ -68,7 +68,7 @@ namespace SAFplus
       MgtProv(const char* name);
       virtual ~MgtProv();
 
-      virtual void toString(std::stringstream& xmlString);
+      virtual void toString(std::stringstream& xmlString,SerializationOptions opts=SerializeNoOptions);
       virtual std::string strValue();
 
       /**
@@ -236,10 +236,14 @@ namespace SAFplus
     }
 
   template<class T>
-    void MgtProv<T>::toString(std::stringstream& xmlString)
+    void MgtProv<T>::toString(std::stringstream& xmlString, SerializationOptions opts)
     {
-      xmlString << "<";
-      xmlString << tag << ">";
+      xmlString << "<" << tag;
+      if (opts & MgtObject::SerializeNameAttribute)
+        xmlString << " name=" << "\"" << getFullXpath(false) << "\"";
+      if (opts & MgtObject::SerializePathAttribute)
+        xmlString << " path=" << "\"" << getFullXpath() << "\"";
+      xmlString << ">";
       xmlString << value;
       xmlString << "</" << tag << ">";
     }

@@ -53,7 +53,7 @@ namespace SAFplus
     return MgtRoot::getInstance()->loadMgtModule(this, this->name);
   }
 
-  ClRcT MgtModule::addMgtObject(MgtObject *mgtObject, const std::string route)
+  ClRcT MgtModule::addMgtObject(MgtObject *mgtObject, const std::string& route)
   {
     ClRcT rc = CL_OK;
 
@@ -67,6 +67,12 @@ namespace SAFplus
       {
         logDebug("MGT", "ROUTE", "Route [%s] already exists!", route.c_str());
         return CL_ERR_ALREADY_EXIST;
+      }
+
+    if (route[0] == '/')
+      {
+      logWarning("MGT", "ROUTE", "Route [%s] has a preceding /", route.c_str());
+
       }
 
     /* Insert MGT object into the database */
@@ -104,8 +110,93 @@ namespace SAFplus
     return nullptr;
   }
 
+  void MgtModule::dbgDump()
+  {
+    std::stringstream dumpStrStream;
+    
+    std::map<std::string, MgtObject*>::iterator iter;
+    std::map<std::string, MgtObject*>::iterator endd = mMgtObjects.end();
+    for (iter = mMgtObjects.begin(); iter != endd; iter++)
+      {
+        dumpStrStream << iter->first << " ";
+      }
+
+    printf("%s\n", dumpStrStream.str().c_str());
+    logDebug("MGT", "DUMP", "%s", dumpStrStream.str().c_str());
+  }
+
+  void MgtModule::dbgDumpChildren()
+  {
+    std::stringstream dumpStrStream;
+    std::map<std::string, MgtObject*>::iterator iter;
+    std::map<std::string, MgtObject*>::iterator endd = mMgtObjects.end();
+    for (iter = mMgtObjects.begin(); iter != endd; iter++)
+      {
+        MgtObject* obj = iter->second;
+        obj->toString(dumpStrStream);
+      }
+    printf("%s\n", dumpStrStream.str().c_str());
+    logDebug("MGT", "DUMP", "%s", dumpStrStream.str().c_str());
+  }
+
+  void MgtModule::resolvePath(const char* path, std::vector<MgtObject*>* result)
+  {
+    std::string xpath(path);
+    size_t idx = xpath.find_first_of("/[", 0);
+    std::string child = xpath.substr(0, idx);
+
+    map<string, MgtObject*>::iterator objref = mMgtObjects.find(child);
+    if (objref == mMgtObjects.end()) return;
+    MgtObject *object = static_cast<MgtObject *>((*objref).second);
+    if (idx == string::npos) // this was the end of the string
+      {
+        result->push_back(object);
+        return;
+      }
+ 
+    if (xpath[idx] == '/')
+      {
+        std::string rest = xpath.substr(idx + 1);
+        object->resolvePath(rest.c_str(), result);
+      }
+    else  // Its an array or other complex entity
+      {
+        clDbgNotImplemented("complex access at module level");
+      }
+
+  }
+
   MgtObject *MgtModule::findMgtObject(const std::string& xpath)
   {
+  size_t idx = xpath.find_first_of("/[", 0);
+  std::string child = xpath.substr(0, idx);
+
+  map<string, MgtObject*>::iterator objref = mMgtObjects.find(child);
+  if (objref == mMgtObjects.end()) return nullptr;
+  MgtObject *object = static_cast<MgtObject *>((*objref).second);
+  if (idx == string::npos) // this was the end of the string
+    return object;
+ 
+  if (xpath[idx] == '/')
+    {
+    std::string rest = xpath.substr(idx + 1);
+    std::vector<MgtObject*> matches;
+    object->resolvePath(rest.c_str(), &matches);
+    int temp = matches.size();
+    if (temp == 0) return nullptr;
+    if (temp == 1) return matches[0];
+    else
+      {
+      clDbgNotImplemented("complex access at module level");
+      }
+    }
+  else  // Its an array or other complex entity
+    {
+      clDbgNotImplemented("complex access at module level");
+      return nullptr;
+    }
+
+#if 0
     for (map<string, MgtObject*>::iterator it = mMgtObjects.begin(); it != mMgtObjects.end(); ++it)
       {
         MgtObject *object = static_cast<MgtObject *>((*it).second);
@@ -130,6 +221,7 @@ namespace SAFplus
               }
           }
       }
+#endif
     return nullptr;
   }
 

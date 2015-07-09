@@ -38,7 +38,7 @@
 #include "clMgtObject.hxx"
 #include "clMgtMsg.hxx"
 #include "MgtFactory.hxx"
-
+#include <boost/algorithm/string.hpp>
 #include <boost/container/map.hpp>
 
 extern "C"
@@ -81,6 +81,43 @@ namespace SAFplus
             virtual bool next()
             {
               it++;
+              if (it == end)
+              {
+                current.first = "";
+                current.second = nullptr;
+#ifndef SAFplus7
+                logDebug("MGT", "LIST", "Reached end of the list");
+#endif
+                return false;
+              }
+              else
+              {
+                current.first = keyTypeToString(it->first);
+                current.second = it->second;
+                return true;
+              }
+            }
+            virtual void del()
+            {
+              delete this;
+            }
+        };
+
+        class HiddenFilterIterator:public MgtIteratorBase
+        {
+          public:
+            std::string nameSpec;
+            typename Map::iterator it;
+            typename Map::iterator end;
+
+            virtual bool next()
+            {
+              
+              do
+                {
+                it++;                
+                } while((it != end) && (!it->second->match(nameSpec)));
+
               if (it == end)
               {
                 current.first = "";
@@ -210,6 +247,31 @@ namespace SAFplus
         }
         return ret;
       }
+
+    //? iterate with selection criteria
+    MgtObject::Iterator begin(const std::string& nameSpec)
+      {
+        MgtObject::Iterator ret;
+        typename Map::iterator bgn = children.begin();
+        typename Map::iterator end = children.end();
+        if (bgn == end) // Handle the empty map case
+        {
+          ret.b = &mgtIterEnd;
+        }
+        else
+        {
+          HiddenFilterIterator* h = new HiddenIterator();
+          h->nameSpec = nameSpec;
+          h->it = bgn;
+          h->end = end;
+          h->current.first = keyTypeToString(h->it->first);
+          h->current.second = h->it->second;
+          ret.b  = h;
+        }
+        return ret;
+      }
+
+
       /**
        * Shortcut to find an entry in the list
        */
@@ -228,10 +290,21 @@ namespace SAFplus
       /**
        * API to get data of the list (called from netconf server)
        */
-      virtual void toString(std::stringstream& xmlString)
+    virtual void toString(std::stringstream& xmlString, SerializationOptions opts=SerializeNoOptions)
       {
         typename Map::iterator iter;
         /* Name of this list */
+
+        xmlString << '<' << tag;
+        if (opts & MgtObject::SerializeNameAttribute)
+          xmlString << " name=" << "\"" << getFullXpath(false) << "\"";
+        if (opts & MgtObject::SerializePathAttribute)
+          xmlString << " path=" << "\"" << getFullXpath(true) << "\"";
+        xmlString << '>';                
+
+        MgtObject::SerializationOptions newopts = opts;
+        if (opts & MgtObject::SerializeOnePath) newopts = (MgtObject::SerializationOptions) (newopts & ~MgtObject::SerializePathAttribute);
+
         for (iter = children.begin(); iter != children.end(); iter++)
         {
           const KEYTYPE *k = &(iter->first);
@@ -245,11 +318,12 @@ namespace SAFplus
                * Just simple return:
                *     <interface>...</interface>
                */
-              xmlString << "<" << tag << ">";
-              entry->toString(xmlString);
-              xmlString << "</" << tag << '>';
+              //xmlString << "<" << tag << ">";
+              entry->toString(xmlString,opts);
+              //xmlString << "</" << tag << '>';
           }
         }
+        xmlString << "</" << tag << '>';
       }
 
       MgtObject* lookUpMgtObject(const std::string & classType, const std::string &ref)
@@ -388,6 +462,22 @@ namespace SAFplus
 
         return CL_TRUE;
       }
+
+      /**
+       * Provide full X-Path of this list *
+       */
+      std::string getFullXpath(bool includeParent = true)
+      {
+        std::string xpath;
+        /* Parent X-Path will be add into the full xpath */
+        if (parent != nullptr && includeParent) // this is the list parent
+        {
+          xpath = parent->getFullXpath();
+        }
+        xpath.append("/").append(this->tag);
+        return xpath;
+      }
+
       /**
        * Provide full X-Path of this list *
        */
@@ -593,6 +683,44 @@ namespace SAFplus
             delete this;
           }
       };
+
+      class HiddenFilterIterator:public MgtIteratorBase
+        {
+          public:
+            std::string nameSpec;
+            typename Map::iterator it;
+            typename Map::iterator end;
+
+            virtual bool next()
+            {
+              
+              do
+                {
+                it++;                
+                } while((it != end) && (!it->second->match(nameSpec)));
+
+              if (it == end)
+              {
+                current.first = "";
+                current.second = nullptr;
+#ifndef SAFplus7
+                logDebug("MGT", "LIST", "Reached end of the list");
+#endif
+                return false;
+              }
+              else
+              {
+                current.first = it->first;
+                current.second = it->second;
+                return true;
+              }
+            }
+            virtual void del()
+            {
+              delete this;
+            }
+        };
+
     public:
       /**
        * Store the key name
@@ -687,6 +815,30 @@ namespace SAFplus
         }
         return ret;
       }
+
+    //? iterate with selection criteria
+    MgtObject::Iterator begin(const std::string& nameSpec)
+      {
+        MgtObject::Iterator ret;
+        typename Map::iterator bgn = children.begin();
+        typename Map::iterator end = children.end();
+        if (bgn == end) // Handle the empty map case
+        {
+          ret.b = &mgtIterEnd;
+        }
+        else
+        {
+          HiddenFilterIterator* h = new HiddenFilterIterator();
+          h->nameSpec = nameSpec;
+          h->it = bgn;
+          h->end = end;
+          h->current.first = h->it->first;
+          h->current.second = h->it->second;
+          ret.b  = h;
+        }
+        return ret;
+      }
+
       /**
        * Shortcut to find an entry in the list
        */
@@ -705,7 +857,7 @@ namespace SAFplus
       /**
        * API to get data of the list (called from netconf server)
        */
-      virtual void toString(std::stringstream& xmlString)
+    virtual void toString(std::stringstream& xmlString, SerializationOptions opts=SerializeNoOptions)
       {
         typename Map::iterator iter;
         /* Name of this list */
@@ -964,6 +1116,59 @@ namespace SAFplus
           }
           return rc;
       }
+
+     virtual void resolvePath(const char* path, std::vector<MgtObject*>* result)
+       {
+       if (path[0] == 0) // End of the path, this object is therefore a member
+         {
+          result->push_back(this);
+          return;
+         }
+       if (strncmp(path,"./",2)==0) { this->resolvePath(path+2, result); return; }  // ./ refers to the current node
+       if (strncmp(path,"../",3)==0) { this->parent->resolvePath(path+3, result); return; }  // ../ refers to the parent
+       if (strncmp(path,"**/",3)==0) 
+         { 
+           clDbgNotImplemented("DEEP search for the subsequent match");
+         return; 
+         }  
+
+       std::string p(path);
+       std::size_t idx = p.find("/");
+       std::string childName;
+       if (idx == std::string::npos) childName = p;
+       else childName = p.substr(0,idx);
+       if (childName.find_first_of("|") != std::string::npos)  // This means both, that is //root/foo|bar/child ->  //root/foo/child and //root/bar/child
+         {
+         std::vector<std::string> words;
+         boost::split(words, childName, boost::is_any_of("|"), boost::token_compress_on);
+         for (std::vector<std::string>::iterator i = words.begin(); i != words.end(); i++)
+           {
+             std::string tmp = *i;
+             if (idx != std::string::npos) tmp.append(&path[idx]);
+             resolvePath(tmp.c_str(),result);
+           }
+         }
+       else if (childName.find_first_of("*[(])?") != std::string::npos)
+         {  // Complex pattern lookup
+           for (MgtObject::Iterator i= begin(childName);i!=end();i++)
+             {
+               MgtObject *child = i->second;
+               if (idx == std::string::npos) result->push_back(child);
+               else child->resolvePath(&path[idx+1], result);
+             }
+         }
+       else  
+         {  // Simple name lookup
+           typename Map::iterator it = children.find(childName);
+           if (it != children.end())
+             {
+               MgtObject *child = it->second;
+               if (idx == std::string::npos) result->push_back(child);
+               else child->resolvePath(&path[idx+1], result);
+             }
+         }
+       }
+
 
       virtual MgtObject *findMgtObject(const std::string &xpath, std::size_t idx)
       {

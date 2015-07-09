@@ -56,7 +56,6 @@ namespace SAFplus
     
     };
 
-
   // this management node is not a leaf but you tried to assign it data
   class NoDataError:public Error
     {
@@ -214,6 +213,12 @@ extern MgtIteratorBase mgtIterEnd;
       return find(objectName);
       }
 
+    
+      //? fills result with all management objects that match the provided path.
+      virtual void resolvePath(const char* path, std::vector<MgtObject*>* result);
+      //? returns true if this object matches the passed specification
+      virtual bool match(const std::string& nameSpec);
+
     /**
      * \brief	Find children whos name fits the name specification
      * \param	nameSpec The name specification: use directory-style wildcards. TODO: should it be XPATH style?
@@ -241,11 +246,20 @@ extern MgtIteratorBase mgtIterEnd;
       return CL_TRUE;
     }
 
+    enum SerializationOptions
+      {
+        SerializeNoOptions=0,
+        SerializeNameAttribute=1, // Add name="foo" to tag, for example <tag> becomes <tag name="foo">
+        SerializePathAttribute=2, // Add path="/full/route/to/object/foo" to tag, for example <tag> becomes <tag name="/SAFplusAmf/Component/c0">
+        SerializeFormatted=4,     // Pretty print 
+        SerializeOnePath=8
+      };
+
     /**
      * \brief	Virtual function called from netconf server to get object data
      */
     virtual void get(std::string *data);
-    virtual void toString(std::stringstream& xmlString)=0;
+    virtual void toString(std::stringstream& xmlString, SerializationOptions opts=SerializeNoOptions)=0;
     virtual std::string strValue() {return "";}
 
 
@@ -265,7 +279,7 @@ extern MgtIteratorBase mgtIterEnd;
      * \return	CL_ERR_NOT_EXIST		MGT module does not exist
      * \return	CL_ERR_ALREADY_EXIST	MGT object already exists
      */
-    ClRcT bind(Handle handle, const std::string module, const std::string route);
+    ClRcT bind(Handle handle, const std::string& module, const std::string& route);
 
     /** \brief persist to database. 
      *  \param db The database to access. by default it uses the

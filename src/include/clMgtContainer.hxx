@@ -86,7 +86,7 @@ class MgtContainer:public MgtObject
     virtual MgtObject::Iterator multiMatch(const std::string &nameSpec);
 
     virtual void get(std::string *data);
-    virtual void toString(std::stringstream& xmlString);
+    virtual void toString(std::stringstream& xmlString,MgtObject::SerializationOptions opts=SerializeNoOptions);
     virtual std::string strValue() {return "";}
 
     // Settings objects
@@ -95,7 +95,8 @@ class MgtContainer:public MgtObject
     virtual ClRcT write(MgtDatabase *db = nullptr, std::string parentXPath = "");
     virtual ClRcT read(MgtDatabase *db = nullptr, std::string parentXPath = "");
 
-    virtual MgtObject *findMgtObject(const std::string &xpath, std::size_t idx);
+    void resolvePath(const char* path, std::vector<MgtObject*>* result);
+    virtual MgtObject *findMgtObject(const std::string &xpath, std::size_t idx);  // DEPRECATED
     MgtObject *lookUpMgtObject(const std::string & classType, const std::string &ref);
 
   };

@@ -73,18 +73,18 @@ enum
 void bind()
   {
     SAFplus::Handle hdl = SAFplus::Handle::create(SAFplusI::AMF_IOC_PORT);
-    cfg.clusterList.bind(hdl, "SAFplusAmf", "/Cluster");
-    cfg.nodeList.bind(hdl, "SAFplusAmf", "/Node");
-    cfg.serviceGroupList.bind(hdl, "SAFplusAmf", "/ServiceGroup");
-    cfg.componentList.bind(hdl, "SAFplusAmf", "/Component");
-    cfg.componentServiceInstanceList.bind(hdl, "SAFplusAmf", "/ComponentServiceInstance");
-    cfg.serviceInstanceList.bind(hdl, "SAFplusAmf", "/ServiceInstance");
-    cfg.serviceUnitList.bind(hdl, "SAFplusAmf", "/ServiceUnit");
-    cfg.applicationList.bind(hdl, "SAFplusAmf", "/Application");
-    cfg.entityByNameList.bind(hdl, "SAFplusAmf", "/EntityByName");
-    cfg.entityByIdList.bind(hdl, "SAFplusAmf", "/EntityById");
-    cfg.healthCheckPeriod.bind(hdl, "SAFplusAmf", "/healthCheckPeriod");
-    cfg.healthCheckMaxSilence.bind(hdl, "SAFplusAmf", "/healthCheckMaxSilence");
+    cfg.clusterList.bind(hdl, "SAFplusAmf", "Cluster");
+    cfg.nodeList.bind(hdl, "SAFplusAmf", "Node");
+    cfg.serviceGroupList.bind(hdl, "SAFplusAmf", "ServiceGroup");
+    cfg.componentList.bind(hdl, "SAFplusAmf", "Component");
+    cfg.componentServiceInstanceList.bind(hdl, "SAFplusAmf", "ComponentServiceInstance");
+    cfg.serviceInstanceList.bind(hdl, "SAFplusAmf", "ServiceInstance");
+    cfg.serviceUnitList.bind(hdl, "SAFplusAmf", "ServiceUnit");
+    cfg.applicationList.bind(hdl, "SAFplusAmf", "Application");
+    cfg.entityByNameList.bind(hdl, "SAFplusAmf", "EntityByName");
+    cfg.entityByIdList.bind(hdl, "SAFplusAmf", "EntityById");
+    cfg.healthCheckPeriod.bind(hdl, "SAFplusAmf", "healthCheckPeriod");
+    cfg.healthCheckMaxSilence.bind(hdl, "SAFplusAmf", "healthCheckMaxSilence");
   }
 
 class MgtMsgHandler : public SAFplus::MsgHandler

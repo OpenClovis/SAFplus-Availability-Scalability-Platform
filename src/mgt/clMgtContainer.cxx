@@ -7,6 +7,7 @@ extern "C"
 #include <libxml/xmlstring.h>
 } /* end extern 'C' */
 
+#include <boost/algorithm/string.hpp>
 #include <clMgtContainer.hxx>
 #include "clMgtRoot.hxx"
 using namespace std;
@@ -76,6 +77,63 @@ namespace SAFplus
   {
     delete this;
   }
+
+  void MgtContainer::resolvePath(const char* path, std::vector<MgtObject*>* result)
+  {
+    if (path[0] == 0) // End of the path, this object is therefore a member
+      {
+        result->push_back(this);
+        return;
+      }
+    if (strncmp(path,"./",2)==0) { this->resolvePath(path+2, result); return; }  // ./ refers to the current node
+    if (strncmp(path,"../",3)==0) { this->parent->resolvePath(path+3, result); return; }  // ../ refers to the parent
+    if (strncmp(path,"**/",3)==0) 
+      { 
+        clDbgNotImplemented("DEEP search for the subsequent match");
+        return; 
+      }  
+
+    std::string p(path);
+    std::size_t idx = p.find("/");
+    std::string childName;
+    if (idx == std::string::npos) childName = p;
+    else childName = p.substr(0,idx);
+       
+    if (childName.find_first_of("|") != std::string::npos)  // This means both, that is //root/foo|bar/child ->  //root/foo/child and //root/bar/child
+         {
+         std::vector<std::string> words;
+         boost::split(words, childName, boost::is_any_of("|"), boost::token_compress_on);
+         for (std::vector<std::string>::iterator i = words.begin(); i != words.end(); i++)
+           {
+             std::string tmp = *i;
+             if (idx != std::string::npos) tmp.append(&path[idx]);
+             resolvePath(tmp.c_str(),result);
+           }
+         }
+    else if (childName.find_first_of("*[(])?") != std::string::npos)
+      {  // Complex pattern lookup
+        for (MgtObjectMap::iterator it = children.begin(); it != children.end(); it++)
+        {
+          if (it->second->match(childName))
+            {
+            MgtObject *child = it->second;
+            if (idx == std::string::npos) result->push_back(child);
+            else child->resolvePath(&path[idx+1], result);
+            }
+        }
+      }
+    else  
+      {  // Simple name lookup
+        typename Map::iterator it = children.find(childName);
+        if (it != children.end())
+          {
+            MgtObject *child = it->second;
+            if (idx == std::string::npos) result->push_back(child);
+            else child->resolvePath(&path[idx+1], result);
+          }
+      }
+  }
+
 
   MgtObject* MgtContainer::deepMatch(const std::string &s)
   {
@@ -149,19 +207,26 @@ namespace SAFplus
     return rc;
   }
 
-  void MgtContainer::toString(std::stringstream& xmlString)
+  void MgtContainer::toString(std::stringstream& xmlString,MgtObject::SerializationOptions opts)
   {
     bool openTagList = false;
     //GAS: TAG already build at MgtList, hardcode to ignore
-    if (!parent || !strstr(typeid(*parent).name(), "SAFplus7MgtList"))
+    if (1) // !parent || !strstr(typeid(*parent).name(), "SAFplus7MgtList"))
       {
-        xmlString << '<' << tag << '>';
+        xmlString << '<' << tag;
+        if (opts & MgtObject::SerializeNameAttribute)
+          xmlString << " name=" << "\"" << getFullXpath(false) << "\"";
+        if (opts & MgtObject::SerializePathAttribute)
+          xmlString << " path=" << "\"" << getFullXpath() << "\"";
+        xmlString << '>';
         openTagList = true;
       }
+    MgtObject::SerializationOptions newopts = opts;
+    if (opts & MgtObject::SerializeOnePath) newopts = (MgtObject::SerializationOptions) (newopts & ~MgtObject::SerializePathAttribute);
     for (MgtObjectMap::iterator it = children.begin(); it != children.end(); ++it)
       {
         MgtObject *child = it->second;
-        child->toString(xmlString);
+        child->toString(xmlString,newopts);
       }
     if (openTagList)
       {

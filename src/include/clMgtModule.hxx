@@ -88,7 +88,7 @@ namespace SAFplus
      * \return	CL_ERR_ALREADY_EXIST	Module already exists
      * \return	CL_ERR_NULL_POINTER		Input parameter is a NULL pointer
      */
-    ClRcT addMgtObject(MgtObject *mgtObject, const std::string route);
+    ClRcT addMgtObject(MgtObject *mgtObject, const std::string& route);
 
     /**
      * \brief	Function to remove a MGT object
@@ -105,7 +105,10 @@ namespace SAFplus
      * \return	If the function fails, the return value is NULL
      */
     MgtObject *getMgtObject(const std::string& route);
-    MgtObject *findMgtObject(const std::string& xpath);
+    MgtObject *findMgtObject(const std::string& xpath);  // DEPRECATED
+
+    //? Resolves a string path into an array of management objects
+    void resolvePath(const char* path, std::vector<MgtObject*>* result);
 
     /**
      * \brief	Function to add a MGT MGT notification into the database
@@ -157,6 +160,11 @@ namespace SAFplus
      * \return	If the function fails, the return value is NULL
      */
     MgtRpc *getMgtRpc(const std::string& rpcName);
+
+    // Debugging API only:
+    void dbgDumpChildren();
+    void dbgDump();
+
   };
 
 };

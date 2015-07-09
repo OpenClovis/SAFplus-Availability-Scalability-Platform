@@ -126,7 +126,7 @@ public:
      * \return	CL_ERR_ALREADY_EXIST	MGT object already exists
      * \return	CL_ERR_NULL_POINTER		Input parameter is a NULL pointer
      */
-    ClRcT bindMgtObject(Handle handle, SAFplus::MgtObject *object, const std::string module, const std::string route);
+    ClRcT bindMgtObject(Handle handle, SAFplus::MgtObject *object, const std::string& module, const std::string& route);
 
     /**
      * \brief   Function to bind a MGT object to a specific manageability subtree within a particular module
@@ -160,7 +160,9 @@ public:
 //    static ClRcT sendMsg(SAFplus::Handle dest, void* payload, uint payloadlen, MgtMsgType msgtype,void* reply = NULL);
     static ClRcT sendReplyMsg(SAFplus::Handle dest, void* payload, uint payloadlen);
 
-    MgtObject *findMgtObject(const std::string &xpath);
+
+  MgtObject *findMgtObject(const std::string &xpath);  // DEPRECATED
+  void resolvePath(const char* path, std::vector<MgtObject*>* result);
 
     void addReference(MgtObject* mgtObject);
     void updateReference(void);

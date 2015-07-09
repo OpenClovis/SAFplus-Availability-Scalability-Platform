@@ -50,7 +50,7 @@ namespace SAFplus
     MgtIdentifier(const char* name);
     virtual ~MgtIdentifier();
 
-    virtual void toString(std::stringstream& xmlString);
+    virtual void toString(std::stringstream& xmlString, SerializationOptions opts=SerializeNoOptions);
     virtual std::string strValue();
 
     /**
@@ -153,7 +153,7 @@ namespace SAFplus
   }
 
   template <class T>
-  void MgtIdentifier<T>::toString(std::stringstream& xmlString)
+  void MgtIdentifier<T>::toString(std::stringstream& xmlString, SerializationOptions opts)
   {
       if (value == nullptr)
           return;

@@ -59,7 +59,7 @@ namespace SAFplus
     return ret;
   }
 
-  ClRcT MgtObject::bind(Handle handle, const std::string module, const std::string route)
+  ClRcT MgtObject::bind(Handle handle, const std::string& module, const std::string& route)
   {
     return MgtRoot::getInstance()->bindMgtObject(handle, this, module, route);
   }
@@ -77,6 +77,27 @@ namespace SAFplus
   MgtObject::Iterator MgtObject::end(void)
   {
     return MgtObject::Iterator();
+  }
+
+  void MgtObject::resolvePath(const char* path, std::vector<MgtObject*>* result)
+  {
+    if (path[0] == 0) // End of the path, this object is therefore a member
+      {
+        result->push_back(this);
+      }
+    else
+      {
+        clDbgNotImplemented("overload resolve path for containers");
+      }
+  }
+
+      //? returns true if this object matches the passed specification
+  bool MgtObject::match(const std::string& nameSpec)
+  {
+    if (nameSpec == "*") return true;
+    if (nameSpec == "**") return true;
+    
+    return false;
   }
 
   MgtObject::Iterator MgtObject::multiFind(const std::string &nameSpec)
