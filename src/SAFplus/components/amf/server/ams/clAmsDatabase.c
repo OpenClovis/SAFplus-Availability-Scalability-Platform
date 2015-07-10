@@ -3080,7 +3080,7 @@ clAmsAuditEntityComp(void)
 static ClRcT clAmsAuditNode(ClAmsNodeT *node, ClPtrT arg)
 {
     ClBoolT *dirty = (ClBoolT*)arg;
-    if(node->status.isClusterMember == CL_AMS_NODE_IS_CLUSTER_MEMBER)
+    if(node->status.isClusterMember != CL_AMS_NODE_IS_NOT_CLUSTER_MEMBER) // We should audit the 'leaving' node
     {
         /*
          * We should be already within the global cluster mutex while processing    
