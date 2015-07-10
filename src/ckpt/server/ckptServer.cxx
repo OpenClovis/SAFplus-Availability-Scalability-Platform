@@ -167,7 +167,7 @@ void CkptServerMsgHandler::msgHandler(SAFplus::Handle from, MsgServer* svr, ClPt
 void ckptServerQuit(void)
 {
   quit = true;
-  ckptMsgServer.removeHandler((ClWordT)MsgProtocols::Checkpoint);
+  ckptMsgServer.removeHandler(SAFplusI::CKPT_MSG_TYPE);
   CkptServerMsgHandler* tmp = handler;
   handler = nullptr;
   delete tmp;
