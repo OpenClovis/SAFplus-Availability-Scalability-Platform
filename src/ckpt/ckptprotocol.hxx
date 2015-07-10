@@ -17,6 +17,8 @@ namespace SAFplusI
   CKPT_MSG_TYPE_UPDATE_MSG_1 = 0x200,
 
   CKPT_MSG_TYPE_ERROR_RESPONSE_1 = 0x800,
+  CKPT_MSG_TYPE_CKPT_OPEN_NOTIFICATION = 0x900,
+  CKPT_MSG_TYPE_CKPT_CLOSE_NOTIFICATION = 0x901,
   };
 
   class CkptMsgHdr
@@ -61,5 +63,11 @@ namespace SAFplusI
 
   typedef CkptSyncRequest_1 CkptSyncRequest;
   typedef CkptErrorResponse_1 CkptErrorResponse;
+
+  class CkptUseNotificationHdr: public CkptMsgHdr 
+  {
+  public:
+    uint32_t retentionDuration;    
+  };
 
 }
