@@ -140,6 +140,7 @@ namespace SAFplus
       return rc;
     }
 
+#if 0 // Is this necessary now that we use the checkpoint?
     /* Send bind data to the server */
     //ClIocAddressT allNodeReps;
     string strBind;
@@ -169,11 +170,20 @@ namespace SAFplus
       mgtMsgReq.SerializeToString(&output);
       int size = output.size();
       mgtIocInstance->SendMsg(getProcessHandle(SAFplusI::MGT_IOC_PORT,Handle::AllNodes), (void *)output.c_str(), size, SAFplusI::CL_MGT_MSG_TYPE);
+    }
+    catch (Error &e)
+    {
+      assert(0);
+    }
+#endif
 
+    try
+      {
 // Add to Mgt Checkpoint
       // for key
       std::string strXPath = "/";
       strXPath.append(module);
+      strXPath.append("/");
       strXPath.append(route);
 
       // for data
@@ -316,7 +326,7 @@ namespace SAFplus
       {
         // TODO  MgtRoot::sendReplyMsg(error)
       }
-    const string& route = bindData.route();
+    string route = bindData.route();
     const char* routeStr = route.c_str();
     logDebug("MGT","GET","Received 'get' message for module [%s] and route [%s]",bindData.module().c_str(),routeStr);
     MgtModule * module = MgtRoot::getInstance()->getMgtModule(bindData.module());
@@ -329,6 +339,16 @@ namespace SAFplus
       return;
     }
 
+    // TODO: Temporary code to clean up route -- chop off the module prefix if its there
+    if (route[0] == '/')
+      {
+        if (route.compare(1,module->name.size(),module->name)==0)
+          {
+            route = route.substr(module->name.size()+1);
+          }
+      }
+    if (route[0] == '/') route = route.substr(1);  // Chop off the leading /
+
     MgtObject * object = module->getMgtObject(route);
     if (!object)
     {
@@ -336,7 +356,7 @@ namespace SAFplus
                  "Received 'get' request from [%" PRIx64 ":%" PRIx64 "] for non-existent route [%s] module [%s]",
                  srcAddr.id[0], srcAddr.id[1],
                  routeStr, bindData.module().c_str());
-      // GAS TODO: Shouldn't we reply with an error?
+      // GAS TODO: Shouldn't we reply with an error? -- YES otherwise timeout makes things very slow
       return;
     }
     /* Improvement: Compare revision to limit data sending */

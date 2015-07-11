@@ -1,0 +1,79 @@
+module example 
+{
+  namespace "http://www.openclovis.org/ns/example";
+  prefix "example"; 
+
+  list UncontainedList
+  {
+    key "name";
+    description "";
+
+    leaf name
+    {
+      type string;
+    }
+    leaf data
+    {
+      type int64;
+    }
+  }
+  
+  list MultiKeyList
+  {
+    key "studentName studentCode";
+    description "Students' profile";
+
+    leaf studentName
+    {
+      type string;
+    }
+    leaf studentCode
+    {
+      type uint32;
+    }
+    leaf data
+    {
+      type int64;
+    }
+  }
+  
+  
+
+    typedef AdministrativeState
+    {
+      type enumeration
+      {
+        enum off
+          {
+            description "SA-Forum 'lockedInstantiation': the administrator has prevented the service unit from being instantiated by the Availability Management Framework.";
+        value 0; 
+      }
+        enum idle 
+    { 
+      value 1;
+      description "SA-Forum 'locked': the administrator has prevented the service unit from taking service instance assignments.";
+    }
+        enum on
+    { 
+      value 2;
+      description "SA-Forum 'unlocked': the service unit has not been directly prohibited from taking service instance assignments by the administrator.";
+    }
+      }
+      default "on";  
+    }
+
+  leaf testString
+    {
+      type string;
+    }
+  leaf testInt
+    {
+      type int64;
+    }
+
+  leaf testTypedef
+    {
+      type AdministrativeState;
+    }
+
+}

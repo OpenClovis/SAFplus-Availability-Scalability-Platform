@@ -67,7 +67,9 @@ enum
   {
   NODENAME_LEN = 16*8,              // Make sure it is a multiple of 64 bits
   SC_ELECTION_BIT = 1<<8,           // This bit is set in the credential if the node is a system controller, making SCs preferred 
-  STARTUP_ELECTION_DELAY_MS = 2000  // Wait for 5 seconds during startup if nobody is active so that other nodes can arrive, making the initial election not dependent on small timing issues. 
+  STARTUP_ELECTION_DELAY_MS = 2000,  // Wait for 5 seconds during startup if nobody is active so that other nodes can arrive, making the initial election not dependent on small timing issues. 
+
+  REEVALUATION_DELAY = 20000, //? How long to wait (max) before reevaluating the cluster
   };
 
 void bind()
@@ -651,7 +653,7 @@ int main(int argc, char* argv[])
     {
     ScopedLock<> lock(m);
 
-    if (!firstTime && (somethingChanged.timed_wait(m,5000)==0))
+    if (!firstTime && (somethingChanged.timed_wait(m,REEVALUATION_DELAY)==0))
       {  // Timeout
       logDebug("IDL","---","...waiting for something to happen...");
       int pid;
