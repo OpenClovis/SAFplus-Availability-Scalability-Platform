@@ -4,6 +4,7 @@
 #include <boost/filesystem/operations.hpp>
 #include <boost/foreach.hpp>
 #include <boost/unordered_map.hpp>
+#include <boost/asio.hpp> // for signal handling
 
 #include <sys/types.h>
 #include <sys/wait.h>
@@ -52,9 +53,12 @@ void initializeOperationalValues(SAFplusAmf::SAFplusAmfRoot& cfg);
 RedPolicyMap redPolicies;
 
 // IOC related globals
-//ClUint32T clAspLocalId = 0x1;
 extern ClUint32T chassisId;
-//extern ClBoolT   gIsNodeRepresentative;
+
+// signal this condition to execute a cluster state reevaluation early
+ThreadCondition somethingChanged;
+bool amfChange = false;  //? Set to true if the change was AMF related (process started/died or other AMF state change)
+bool grpChange = false;  //? Set to true if the change was group related
 
 SAFplusAmf::SAFplusAmfRoot cfg;
 MgtModule dataModule("SAFplusAmf");
@@ -72,6 +76,37 @@ enum
   REEVALUATION_DELAY = 20000, //? How long to wait (max) before reevaluating the cluster
   };
 
+static void sigChildHandler(int signum)
+{
+    int pid;
+    int w;
+
+    /* 
+     * Wait for all childs to finish.
+     */
+#if 0    
+do {
+        pid = waitpid(WAIT_ANY, &w, WNOHANG);
+    } while((pid != 0)&&(pid != -1));
+#endif
+    amfChange = true;
+    somethingChanged.notify_all();
+}
+#if 0
+void signalHandler(const boost::system::error_code& error, int signal_number)
+{
+  if (!error)
+  {
+    if (signal_number == SIGCHLD)
+      {
+        somethingChanged.notify_all();
+      }
+  }
+}
+#endif
+
+
+//? Connect local data to the management tree
 void bind()
   {
     SAFplus::Handle hdl = SAFplus::Handle::create(SAFplusI::AMF_IOC_PORT);
@@ -152,8 +187,9 @@ struct LogServer
 
 
 
-void activeAudit()  // Check to make sure DB and the system state are in sync
+bool activeAudit()  // Check to make sure DB and the system state are in sync.  Returns true if I need to rerun the AMF checking loop right away
   {
+    bool rerun=false;
   logDebug("AUD","ACT","Active Audit");
   RedPolicyMap::iterator it;
 
@@ -182,12 +218,13 @@ void activeAudit()  // Check to make sure DB and the system state are in sync
   for (it = redPolicies.begin(); it != redPolicies.end();it++)
     {
     ClAmfPolicyPlugin_1* pp = dynamic_cast<ClAmfPolicyPlugin_1*>(it->second->pluginApi);
-    pp->activeAudit(&cfg);
+    rerun |= pp->activeAudit(&cfg);
     }
 
+  return rerun;
   }
 
-void standbyAudit(void) // Check to make sure DB and the system state are in sync
+bool standbyAudit(void) // Check to make sure DB and the system state are in sync
   {
   logDebug("AUD","SBY","Standby Audit");
 
@@ -210,6 +247,7 @@ void standbyAudit(void) // Check to make sure DB and the system state are in syn
       }
     }
 #endif
+  return false;
   }
 
 void becomeActive(void)
@@ -471,7 +509,6 @@ bool dbgIdle(const char* entity=NULL)
 int main(int argc, char* argv[])
   {
   Mutex m;
-  ThreadCondition somethingChanged;
   bool firstTime=true;
   logEchoToFd = 1;  // echo logs to stdout for debugging
   logSeverity = LOG_SEV_DEBUG;
@@ -649,11 +686,34 @@ int main(int argc, char* argv[])
   fault.init(myHandle);
   fault.registerEntity(nodeHandle,FaultState::STATE_UP);
 
+  struct sigaction newAction;
+  newAction.sa_handler = sigChildHandler;
+  sigemptyset(&newAction.sa_mask);
+  newAction.sa_flags = SA_RESTART | SA_NOCLDSTOP;
+
+  if (-1 == sigaction(SIGCHLD, &newAction, NULL))
+    {
+        perror("sigaction for SIGCHLD failed");
+        logError("MAN","INI", "Unable to install signal handler for SIGCHLD");
+        assert(0);
+    }
+
+
+    //boost::asio::io_service ioSvc;
+  // Construct a signal set registered for process termination.
+  //boost::asio::signal_set signals(ioSvc, SIGCHLD);
+  // Start an asynchronous wait for one of the signals to occur.
+  //signals.async_wait(signalHandler);
+
   while(!quitting)  // Active/Standby transition loop
     {
     ScopedLock<> lock(m);
+    bool changeTriggered = true;
+    if (!firstTime && !amfOps.changed) changeTriggered = somethingChanged.timed_wait(m,REEVALUATION_DELAY);
+    amfChange |= amfOps.changed;
+    amfOps.changed = false;  // reset the amf operations change marker
 
-    if (!firstTime && (somethingChanged.timed_wait(m,REEVALUATION_DELAY)==0))
+    if (amfChange || !changeTriggered)  // Evaluate AMF if timed out or if the triggered change was AMF related
       {  // Timeout
       logDebug("IDL","---","...waiting for something to happen...");
       int pid;
@@ -674,8 +734,9 @@ int main(int argc, char* argv[])
         // TODO: find this pid in the component database and fail it.  This will be faster.  For now, do nothing because the periodic pid checker should catch it.
         // We need to use the periodic pid checker because a component may not be a child of safplus_amf
         } while(pid > 0);
-      if (myRole == Group::IS_ACTIVE) activeAudit();    // Check to make sure DB and the system state are in sync
-      if (myRole == Group::IS_STANDBY) standbyAudit();  // Check to make sure DB and the system state are in sync
+      amfChange = false;
+      if (myRole == Group::IS_ACTIVE) amfChange |= activeAudit();    // Check to make sure DB and the system state are in sync
+      if (myRole == Group::IS_STANDBY) amfChange |= standbyAudit();  // Check to make sure DB and the system state are in sync
 
       // GAS DBG: just to test audit with election not working
       // activeAudit();

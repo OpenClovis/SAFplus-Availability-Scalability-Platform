@@ -62,11 +62,12 @@ namespace SAFplus
 
     Rpc::amfAppRpc::amfAppRpc_Stub* amfAppRpc;
     uint64_t invocation;  // keeps track of the particular request being sent to the app (at the SAF level)
-
+      bool changed;
     PendingWorkOperationMap pendingWorkOperations;
 
     AmfOperations()
     {
+      changed = false;
     amfInternalRpc = nullptr;
     amfAppRpc = nullptr;
     // Make the invocation unique per AMF to ensure that failover or restart does not reuse invocation by accident (although, would reuse really matter?)
@@ -85,5 +86,8 @@ namespace SAFplus
     void removeWork(SAFplusAmf::ServiceUnit* su, Wakeable& w = *((Wakeable*)nullptr));  // TODO: add indicator of how fast to remove work: kill -9, work removal or quiesce
 
     void workOperationResponse(uint64_t invocation, uint32_t result);
+
+      //? Report that AMF state has changed.  This will cause the AMF to rerun its evaluation loop right away.  If you call another amfOperations API, you do not need to call this.
+      void reportChange(void) { changed=true;}
     };
   };

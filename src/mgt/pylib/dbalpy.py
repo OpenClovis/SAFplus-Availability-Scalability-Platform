@@ -80,10 +80,10 @@ class PyDBAL():
         pyDbal.initializeDbal(self.dbName, maxKeySize, maxRecordSize)
 
     """ Load cfg xml and save to binary database """
-    def StoreDB(self, outFile = None):
-        if outFile is None: outFile = self.cfgfile
+    def LoadXML(self, xmlFile = None):
+        if xmlFile is None: xmlFile = self.cfgfile
         try:
-            self.suppliedData = microdom.LoadFile(outFile)
+            self.suppliedData = microdom.LoadFile(xmlFile)
             if self.docRoot:
                 self.suppliedData = self.suppliedData.get(self.docRoot)
 
@@ -292,6 +292,7 @@ class PyDBAL():
             return pyDbal.iterators()
 
     def Write(self, key, data):
+        print "Writing %s -> %s" % (str(key), str(data))
         return pyDbal.write(key, data)
     
     def Read(self, key):
@@ -319,14 +320,16 @@ def main(argv):
   if len(argv) > 3:
     outFile = argv[3]
   else:
-    outFile = os.path.splitext(inFile)[0]
+    outFile = os.path.splitext(os.path.split(inFile)[1])[0]  # remove both the directory and the extension from the input file to form the output file
+
+  print "Writing to: %s" % outFile
 
   # Store into binary database
   if argv[1] == '-x':
     try:
       print "Reading from %s" %inFile
       data = PyDBAL(outFile)
-      data.StoreDB(inFile);
+      data.LoadXML(inFile);
       data.Finalize()
     except Exception, e:
       print e

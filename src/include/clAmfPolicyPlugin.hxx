@@ -24,8 +24,11 @@ namespace SAFplus
     AmfRedundancyPolicy     policyId;
     SAFplus::AmfOperations* amfOps;   // AMF gives the plugin access to this AMF functionality
     SAFplus::Fault*         fault;    // AMF gives the plugin access to the fault manager
-    virtual void activeAudit(SAFplusAmf::SAFplusAmfRoot* root) = 0;
-    virtual void standbyAudit(SAFplusAmf::SAFplusAmfRoot* root) = 0;
+
+      //? Run an AMF data audit as the active system controller.  Return true if the audit needs to be rerun right away (something changed).
+    virtual bool activeAudit(SAFplusAmf::SAFplusAmfRoot* root) = 0;
+      //? Run an AMF data audit as the standby system controller.  Return true if the audit needs to be rerun right away (something changed).
+    virtual bool standbyAudit(SAFplusAmf::SAFplusAmfRoot* root) = 0;
     //? The AMF will call this function after your plugin is loaded
     virtual bool initialize(SAFplus::AmfOperations* amfOperations,SAFplus::Fault* fault);
 

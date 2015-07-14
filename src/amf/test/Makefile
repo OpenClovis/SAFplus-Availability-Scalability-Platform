@@ -12,7 +12,10 @@ SAFPLUS_LIBS := clAmf clRpc clName clCkpt clGroup clMsg clLog clUtils clOsal
 SAFPLUS_DEP_LIBS     := $(addsuffix .so,$(addprefix $(LIB_DIR)/lib,$(SAFPLUS_LIBS)))
 SAFPLUS_LINK_LIBS := -L$(LIB_DIR) $(addprefix -l,$(SAFPLUS_LIBS))
 
-all: $(TEST_DIR)/exampleSafApp $(TEST_DIR)/exampleNonSafApp
+all: $(TEST_DIR)/exampleSafApp $(TEST_DIR)/exampleNonSafApp $(TEST_DIR)/test111.py
+
+$(TEST_DIR)/test111.py: test111.py
+	cp -rf $< $@
 
 $(TEST_DIR)/exampleSafApp:  $(OBJ_DIR)/exampleSafApp.o $(SAFPLUS_DEP_LIBS)
 	$(LINK_EXE) $@ $<  $(SAFPLUS_LINK_LIBS) -lboost_filesystem $(LINK_SO_LIBS) -lprotobuf -lprotoc $(LINK_SO_LIBS)

@@ -18,8 +18,8 @@ namespace SAFplus
   public:
     CustomPolicy();
     ~CustomPolicy();
-    virtual void activeAudit(SAFplusAmf::SAFplusAmfRoot* root);
-    virtual void standbyAudit(SAFplusAmf::SAFplusAmfRoot* root);
+    virtual bool activeAudit(SAFplusAmf::SAFplusAmfRoot* root);
+    virtual bool standbyAudit(SAFplusAmf::SAFplusAmfRoot* root);
     
     };
 
@@ -31,7 +31,7 @@ namespace SAFplus
     {
     }
  
-  void CustomPolicy::activeAudit(SAFplusAmf::SAFplusAmfRoot* root)
+  bool CustomPolicy::activeAudit(SAFplusAmf::SAFplusAmfRoot* root)
     {
     logInfo("POL","CUSTOM","Active audit");
     assert(root);
@@ -47,11 +47,13 @@ namespace SAFplus
       logInfo("CUSTOM","AUDIT","Auditing service group %s", name.c_str());
         
       }
+    return false;
     }
   
-  void CustomPolicy::standbyAudit(SAFplusAmfRoot* root)
+  bool CustomPolicy::standbyAudit(SAFplusAmfRoot* root)
     {
     logInfo("POL","CUSTOM","Standby audit");
+    return false;
     }
   
   static CustomPolicy api;

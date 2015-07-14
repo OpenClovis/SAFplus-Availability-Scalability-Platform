@@ -1,7 +1,29 @@
-import types
+import types, pdb
 
 import SAFplus as sp
 import microdom
+
+AmfPfx = "SAFplusAmf"
+SiPfx = "ServiceInstance"
+
+def csv2List(csvString):
+  """Convert comma separated values to a Python list"""
+  return [x.strip() for x in csvString.split(",")]
+
+def getEntity(ent):
+  """Given an entity string, or list of entity strings, load them from the AMF and convert to Python objects.  If the entity does not exist, return None"""
+  if type(ent) is types.ListType:
+    return [getEntity(x) for x in ent]
+  xml = sp.mgtGet(ent)
+  if xml:
+    return microdom.LoadString(xml)
+  return None
+
+try: # only set this variable once, not every time reload occurs
+  test = SAFplusInitialized  # Will throw an error if this variable does not exist
+except:
+  print "First run"
+  SAFplusInitialized=False
 
 class Error:
   def __init__(self,problemString):
@@ -23,7 +45,7 @@ def getSgEntities(sgName):
   if sgx: sg = microdom.LoadString(sgx)
   else:
     raise Error("no service group [%s], or no access" % sgName)
-  suNames = [x.strip() for x in sg.serviceUnits.data_.split(",")]
+  suNames = csv2List(sg.serviceUnits.data_)
   sg.comp = {} # add a new variable to the sg object
   sg.su = {}  # add a new variable to the sg object that is a dictionary of su objects
   sg.si = {}
@@ -35,7 +57,7 @@ def getSgEntities(sgName):
       sumd = microdom.LoadString(sut)
       sg.su[sumd.name.data_] = sumd # Add this su to the sg's dictionary
       sumd.sg = sg # Set up parent reference
-      compNames = [x.strip() for x in sumd.components.data_.split(",")]
+      compNames = csv2List(sumd.components.data_)
       sumd.comp = {} # add a new variable to the su that is a dictionary of comp objects
       for cn in compNames:
         if not cn: continue
@@ -58,7 +80,7 @@ def getSgEntities(sgName):
       sg.si[sim.name.data_] = sim # Add this su to the sg's dictionary
       sim.csi = {}
       sim.sg = sg  # Set up parent reference
-      csiNames = [x.strip() for x in sim.componentServiceInstances.data_.split(",")]
+      csiNames = csv2List(sim.componentServiceInstances.data_)
       for csin in csiNames:
         if not csin: continue
         csix = sp.mgtGet(sin)
@@ -73,6 +95,15 @@ def getSgEntities(sgName):
 
   return sg
 
+def activeStandby(si):
+  if type(si) in types.StringTypes:
+    six = sp.mgtGet("/" + "/".join ([AmfPfx,SiPfx,si]))
+    if six: si = microdom.LoadString(six)
+    else:
+      raise Error("no service instance [%s], or no access" % si)
+    # print six
+    return (csv2List(si.activeAssignments.data_),csv2List(si.standbyAssignments.data_))
+  
 
 def displaySgStatus(sg):
   if type(sg) in types.StringTypes:
@@ -123,8 +154,16 @@ def displaySgStatus(sg):
 
 
 def Test():
-  svcs = sp.Libraries.MSG | sp.Libraries.GRP
-  sic = sp.SafplusInitializationConfiguration()
-  sic.port = 52
-  sp.Initialize(svcs, sic)
+  pdb.set_trace()
+  global SAFplusInitialized
+  if not SAFplusInitialized:
+    svcs = sp.Libraries.MSG | sp.Libraries.GRP
+    sic = sp.SafplusInitializationConfiguration()
+    sic.port = 55
+    SAFplusInitialized = True
+    sp.Initialize(svcs, sic)
   displaySgStatus("sg0")
+
+  ret = activeStandby("si")
+  print "Active: %s" % str(ret[0])
+  print "Standby: %s" % str(ret[1])

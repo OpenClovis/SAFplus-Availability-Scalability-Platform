@@ -25,8 +25,8 @@ namespace SAFplus
   public:
     NplusMPolicy();
     ~NplusMPolicy();
-    virtual void activeAudit(SAFplusAmf::SAFplusAmfRoot* root);
-    virtual void standbyAudit(SAFplusAmf::SAFplusAmfRoot* root);
+    virtual bool activeAudit(SAFplusAmf::SAFplusAmfRoot* root);
+    virtual bool standbyAudit(SAFplusAmf::SAFplusAmfRoot* root);
 
   protected:
     void auditOperation(SAFplusAmf::SAFplusAmfRoot* root);
@@ -233,10 +233,11 @@ namespace SAFplus
           || (p == SAFplusAmf::PresenceState::terminationFailed));
   }
 
-  void NplusMPolicy::activeAudit(SAFplusAmf::SAFplusAmfRoot* root)
+  bool NplusMPolicy::activeAudit(SAFplusAmf::SAFplusAmfRoot* root)
     {
     auditDiscovery(root);
     auditOperation(root);
+    return false;
     }
 
   ServiceUnit* findAssignableServiceUnit(std::vector<SAFplusAmf::ServiceUnit*>& candidates,SAFplusAmf::ServiceInstance* si, HighAvailabilityState tgtState)
@@ -333,6 +334,7 @@ namespace SAFplus
   // Second step in the audit is to do something to heal any discrepencies.
   void NplusMPolicy::auditOperation(SAFplusAmf::SAFplusAmfRoot* root)
     {
+      bool changed=false;
     bool startSg;
     logInfo("POL","N+M","Active audit: Operation phase");
     assert(root);
@@ -445,6 +447,7 @@ namespace SAFplus
                     si->getNumStandbyAssignments()->current.value--;
                     si->getNumActiveAssignments()->current.value++;
                     amfOps->assignWork(su,si,HighAvailabilityState::active);
+                    changed=true;
                   } 
                 
 
@@ -468,6 +471,7 @@ namespace SAFplus
                   si->getNumActiveAssignments()->current.value++;
                   amfOps->assignWork(su,si,HighAvailabilityState::active);
                   boost::sort(sus,suOrder);  // Sort order may have changed based on the assignment.
+                  changed=true;
                   }
                 else
                   {
@@ -489,6 +493,7 @@ namespace SAFplus
 
                   amfOps->assignWork(su,si,HighAvailabilityState::standby);
                   boost::sort(sus,suOrder);  // Sort order may have changed based on the assignment.
+                  changed=true;
                   }
                 else
                   {
@@ -503,6 +508,7 @@ namespace SAFplus
             {
             logInfo("N+M","AUDIT","Service Instance [%s] should be unassigned but is [%s].", si->name.value.c_str(),c_str(si->assignmentState));
             amfOps->removeWork(si);
+            changed=true;
             }
           else
             {
@@ -594,7 +600,6 @@ namespace SAFplus
         go.start(); // TODO: this will be put in a thread pool...
         }
       }
-
     }
 
   void updateStateDueToProcessDeath(SAFplusAmf::Component* comp)
@@ -720,6 +725,7 @@ namespace SAFplus
             {
             logInfo("N+M","AUDIT","Readiness state of Service Unit [%s] changed from [%s] to [%s]", su->name.value.c_str(),c_str(su->readinessState),c_str(rs));
             su->readinessState.value = rs;
+            amfOps->reportChange();
             // TODO event?
             }
 
@@ -793,9 +799,10 @@ namespace SAFplus
                 // If the component has been instantiated for long enough, reset the instantiation attempts.
 
                 uint64_t curTime = std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::system_clock::now().time_since_epoch()).count();
-                if (curTime - comp->lastInstantiation.value.value >= comp->instantiationSuccessDuration.value)
+                if ((curTime - comp->lastInstantiation.value.value >= comp->instantiationSuccessDuration.value)&&(comp->numInstantiationAttempts.value != 0))
                   {
                   comp->numInstantiationAttempts.value = 0; 
+                  amfOps->reportChange();
                   }
                 
                 if (comp->haReadinessState == HighAvailabilityReadinessState::readyForAssignment)
@@ -823,6 +830,7 @@ namespace SAFplus
             presenceCounts[(int)comp->presenceState.value]++;
             assert(((int)comp->haState.value <= (int)HighAvailabilityState::quiescing)&&((int)comp->haState.value >= (int)HighAvailabilityState::active));
             haCounts[(int)comp->haState.value]++;
+            //amfOps->reportChange();
             }
 
 
@@ -848,6 +856,7 @@ namespace SAFplus
             // high availability state changed.
             logInfo("N+M","AUDIT","High Availability state of Service Unit [%s] changed from [%s (%d)] to [%s (%d)]", su->name.value.c_str(),c_str(su->haState.value),su->haState.value, c_str(ha), ha);
             su->haState = ha;
+            amfOps->reportChange();
 
             // TODO: Event?
             }
@@ -889,6 +898,7 @@ namespace SAFplus
             // Presence state changed.
             logInfo("N+M","AUDIT","Presence state of Service Unit [%s] changed from [%s (%d)] to [%s (%d)]", su->name.value.c_str(),c_str(su->presenceState.value),su->presenceState.value, c_str(ps), ps);
             su->presenceState.value = ps;
+            amfOps->reportChange();
 
             // TODO: Event?
             }
@@ -933,6 +943,7 @@ namespace SAFplus
               {
               logInfo("N+M","AUDIT","Assignment state of service instance [%s] changed from [%s (%d)] to [%s (%d)]", si->name.value.c_str(),c_str(si->assignmentState.value),si->assignmentState.value, c_str(as), as);
               si->assignmentState = as;
+              amfOps->reportChange();
               }
           }
 
@@ -941,7 +952,7 @@ namespace SAFplus
 
     }
 
-  void NplusMPolicy::standbyAudit(SAFplusAmf::SAFplusAmfRoot* root)
+  bool NplusMPolicy::standbyAudit(SAFplusAmf::SAFplusAmfRoot* root)
     {
     logInfo("POL","CUSTOM","Standby audit");
     }
