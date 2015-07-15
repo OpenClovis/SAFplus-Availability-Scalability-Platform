@@ -1,6 +1,6 @@
 import types, pdb
 
-import SAFplus as sp
+import pySAFplus as sp
 import microdom
 
 AmfPfx = "SAFplusAmf"

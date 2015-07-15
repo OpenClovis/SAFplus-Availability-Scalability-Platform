@@ -630,9 +630,12 @@ void SAFplus::Group::send(void* data, int dataLength, SAFplus::GroupMessageSendM
     curval.first = INVALID_HDL;
   }
 
+    int groupInitCount=0;
   void groupInitialize(void)
     {
-    gsm.init();
+      groupInitCount++;
+      if (groupInitCount > 1) return;
+      gsm.init();
     }
 
 

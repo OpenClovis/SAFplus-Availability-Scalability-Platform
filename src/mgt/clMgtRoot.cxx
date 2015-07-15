@@ -461,7 +461,8 @@ namespace SAFplus
     {
       int end = path.find_first_of("}");
       cmds = path.substr(1,end-1);
-      cmds.append(" ");
+      // TODO: parse the non-xml requests (depth, pause thread, break thread, log custom string)
+      cmds.append(" ");  // Right now I just assume everything in there is a custom logging string
       path = path.substr(end+1);
     }
   if (path[0] == '/')  // Only absolute paths are allowed over the RPC API since there is no context

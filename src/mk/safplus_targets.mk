@@ -45,6 +45,12 @@ $(LIB_DIR)/libclDbal.so:
 	make -C $(SAFPLUS_SRC_DIR)/dbal
 endif
 
+ifndef SAFPLUS_PY_LIB
+$(LIB_DIR)/pySAFplus.so $(LIB_DIR)/amfctrl.py $(LIB_DIR)/safplus.py:
+	make -C $(SAFPLUS_SRC_DIR)/python
+endif
+
+
 ifndef SAFPLUS_DBAL_PYLIB
 $(LIB_DIR)/pyDbal.so:
 	make -C $(SAFPLUS_SRC_DIR)/mgt/pylib
@@ -91,13 +97,18 @@ $(LIB_DIR)/libclMsg.so: $(wildcard $(SAFPLUS_SRC_DIR)/msg/*.cxx) $(wildcard $(SA
 endif
 
 ifndef SAFPLUS_FAULT_LIB
-$(LIB_DIR)/libclFault.so $(PLUGIN_DIR)/AmfFaultPolicy.so $(PLUGIN_DIR)/CustomFaultPolicy.so: $(wildcard $(SAFPLUS_SRC_DIR)/fault/*.cxx) $(wildcard $(SAFPLUS_SRC_DIR)/include/*.hxx) 
+$(LIB_DIR)/libclFault.so: $(wildcard $(SAFPLUS_SRC_DIR)/fault/*.cxx) $(wildcard $(SAFPLUS_SRC_DIR)/include/*.hxx) 
 	make -C $(SAFPLUS_SRC_DIR)/fault
+endif
+
+ifndef SAFPLUS_FAULT_SERVER
+$(LIB_DIR)/libclFaultServer.so $(PLUGIN_DIR)/AmfFaultPolicy.so $(PLUGIN_DIR)/CustomFaultPolicy.so: $(wildcard $(SAFPLUS_SRC_DIR)/fault/server/*.cxx) $(wildcard $(SAFPLUS_SRC_DIR)/include/*.hxx) 
+	make -C $(SAFPLUS_SRC_DIR)/fault/server
 endif
 
 
 ifndef SAFPLUS_AMF_LIB
-$(LIB_DIR)/libclAmf.so:
+$(LIB_DIR)/libclAmf.so: $(wildcard $(SAFPLUS_SRC_DIR)/amf/*.cxx)
 	make -C $(SAFPLUS_SRC_DIR)/amf
 endif
 
@@ -186,6 +197,7 @@ SAFplusPlugins := $(PLUGIN_DIR)/libclBerkeleyDB.so $(PLUGIN_DIR)/libclGDBM.so $(
 
 ThirdPartySOs := $(LIB_DIR)/libezxml.so
 
+Languages := $(LIB_DIR)/pySAFplus.so
 
 cleanSAFplus:
 	rm -rf $(SAFplusTests) $(SAFplusSOs) $(SAFplusServices) $(LIB_DIR)/* $(MWOBJ_DIR)/* $(OBJ_DIR)/* $(TEST_DIR)/*

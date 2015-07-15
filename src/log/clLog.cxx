@@ -20,7 +20,7 @@ using namespace SAFplusI;
 uint_t msgIdCnt=0;
 const char* SAFplus::logCompName=NULL;
 bool  logCodeLocationEnable=true;
-
+int logInitCount=0;
 /* Supported Client Version */
 static SaVersionT gLogClntVersionsSupported[] = {CL_LOG_CLIENT_VERSION};
 
@@ -41,9 +41,13 @@ Logger* SAFplus::logInitialize()
         CL_ASSERT(CL_OK != rc);
       }
 #endif
-    logInitializeSharedMem();
+    if (logInitCount==0)
+      {
+        logInitializeSharedMem();
 
-    utilsInitialize();  /* Logging uses globals initialized by utils, but is tolerant of uninitialized vals.  Utils may log so this must be run AFTER logging is inited */
+        utilsInitialize();  /* Logging uses globals initialized by utils, but is tolerant of uninitialized vals.  Utils may log so this must be run AFTER logging is inited */
+      }
+      logInitCount++;
 }
 
 uint_t SAFplusI::formatMsgPrefix(char* msg, LogSeverity  severity, uint_t serviceId, const char *pArea, const char  *pContext, const char *pFileName, uint_t lineNum)

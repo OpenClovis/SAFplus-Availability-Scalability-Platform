@@ -9,9 +9,11 @@ SAFplus::MsgTransportPlugin_1* defaultMsgPlugin = NULL;
 namespace SAFplus
 {
 MsgPool msgPool;
-
+  int msgInitCount=0;
 void clMsgInitialize(void)
   {
+    msgInitCount++;
+    if (msgInitCount > 1) return;
     //? This environment variable specifies which message transport plugin your cluster should use.
   const char* xportFile = getenv("SAFPLUS_MSG_TRANSPORT");
   if (!xportFile)

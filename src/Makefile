@@ -14,7 +14,7 @@ cleanall:
 
 include ./mk/safplus_targets.mk
 
-all: $(ThirdPartySOs) $(SAFplusTools) $(SAFplusSOs) $(SAFplusPlugins) $(SAFplusServices) $(SAFplusTests) $(LIB_DIR)/libmw.so
+all: $(ThirdPartySOs) $(SAFplusTools) $(SAFplusSOs) $(SAFplusPlugins) $(SAFplusServices) $(SAFplusTests) $(LIB_DIR)/libmw.so $(Languages)
 
 tools: $(SAFplusTools)
 

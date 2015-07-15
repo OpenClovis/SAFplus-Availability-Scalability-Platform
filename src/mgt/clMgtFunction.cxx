@@ -152,7 +152,20 @@ namespace SAFplus
 
     MgtRoot *mgtRoot = MgtRoot::getInstance();
     std::vector<MgtObject*> matches;
-    mgtRoot->resolvePath(pathSpec.c_str()+1,&matches);
+
+    // If there are non xpath directives preceding the XPATH then strip and process them
+    // TODO: add directives
+    std::string xpath;
+    if (pathSpec[0] == '{')
+      {
+        xpath = pathSpec.substr(pathSpec.find('}')+1);
+      }
+    else
+      {
+        xpath = pathSpec;
+      }
+
+    mgtRoot->resolvePath(xpath.c_str()+1,&matches);  // +1 to drop the preceding /
 
     if (matches.size())
       {
@@ -166,19 +179,10 @@ namespace SAFplus
     else  // Object Implementer not found. Broadcast message to get data
       {
         ClRcT errCode = CL_OK;
-        std::string xpath;
-        if (pathSpec[0] == '{')
-          {
-            xpath = pathSpec.substr(pathSpec.find('}')+1);
-          }
-        else
-          {
-            xpath = pathSpec;
-          }
-        Handle hdl = getMgtHandle(xpath   , errCode);
+        Handle hdl = getMgtHandle(xpath, errCode);
         if (INVALID_HDL != hdl)
         {
-          output = mgtGet(hdl, pathSpec);
+          output = mgtGet(hdl, pathSpec);  // Pass the {} directives through to the server side
         }
       }
     return output;

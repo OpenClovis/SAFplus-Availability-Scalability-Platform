@@ -466,10 +466,10 @@ void saNameGet(char* str,const SaNameT* name, uint_t maxLen)
     {
     if (utilsInitCount==0)
       {
-      utilsInitCount++;
       pid = getpid();
       loadEnvVars(); 
       }
+    utilsInitCount++;
     }
 
 #if 0

@@ -93,7 +93,8 @@ class LibSet
     MSG=0x800,
     OBJMSG=0x1000,
     NAME=0x2000,
-    FAULT=0x4000
+    FAULT=0x4000,
+    MGT_ACCESS=0x8000,
   };
   };
 
@@ -135,16 +136,18 @@ class LibSet
     OSAL = LibSet::OSAL | LibSet::LOG | LibSet::UTILS,
     UTILS = LibSet::UTILS | LibSet::OSAL,
     IOC = LibSet::IOC | LibSet::LOG |  LibSet::UTILS | LibSet::OSAL | LibSet::HEAP | LibSet::TIMER | LibSet::BUFFER,
-    MSG = LibSet::MSG | LibDep::IOC,
+    FAULT = LibSet::FAULT | LibDep::LOG,
+    MSG = LibSet::MSG | LibDep::FAULT | LibDep::IOC,
     OBJMSG = LibSet::OBJMSG | LibDep::MSG,
     GRP = LibSet::GRP | LibDep::OBJMSG | LibDep::MSG,
     CKPT = LibSet::CKPT | LibDep::GRP | LibDep::MSG | LibDep::UTILS,
-    FAULT = LibSet::FAULT | LibDep::MSG | LibDep::LOG,
     NAME = LibSet::NAME | LibDep::CKPT,
     HEAP = LibSet::HEAP,
     BUFFER = LibSet::BUFFER,
     TIMER = LibSet::TIMER,
-    DBAL = LibSet::DBAL | LibSet::OSAL | LibSet::HEAP | LibSet::TIMER | LibSet::BUFFER
+    DBAL = LibSet::DBAL | LibSet::OSAL | LibSet::HEAP | LibSet::TIMER | LibSet::BUFFER,
+    MGT_ACCESS = LibSet::MGT_ACCESS | LibDep::MSG | LibDep::CKPT,
+
   };
   };
 
@@ -178,6 +181,7 @@ class LibSet
   extern void nameInitialize() __attribute__((weak));
   extern void msgServerInitialize(uint_t port, uint_t maxPendingMsgs, uint_t maxHandlerThreads)  __attribute__((weak));
   extern void clMsgInitialize(void) __attribute__((weak)); 
+  extern void mgtAccessInitialize(void) __attribute__((weak));
 
 #ifdef __cplusplus
 extern "C" {
@@ -260,6 +264,10 @@ extern "C" {
       SAFplus::nameInitialize();
       }
 
+    if ((svc&LibSet::MGT_ACCESS)&&SAFplus::mgtAccessInitialize)
+      {
+        SAFplus::mgtAccessInitialize();
+      }
   }
 
   };

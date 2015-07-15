@@ -312,7 +312,7 @@ void GroupServer::msgHandler(Handle from, SAFplus::MsgServer* svr, ClPtrT msg, C
       {
       //mGroup->nodeLeaveHandle(rxMsg);
       EntityIdentifier *eId = (EntityIdentifier *)rxMsg->data;
-      logDebug("GMS","MSG","Entity LEAVE message",*eId);
+      logDebug("GMS","MSG","Entity LEAVE message");
       deregisterEntity(ge, *eId,false);
       } break;
     case SAFplusI::GroupMessageTypeT::MSG_ROLE_NOTIFY:

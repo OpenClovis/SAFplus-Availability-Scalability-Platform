@@ -4,10 +4,12 @@
 namespace SAFplus
   {
   ObjectMessager objectMessager;
-
+    int objectMessagerInitCount=0;
   void objectMessagerInitialize()
     {
-    safplusMsgServer.registerHandler(SAFplusI::OBJECT_MSG_TYPE,&objectMessager,0);
+      objectMessagerInitCount++;
+      if ( objectMessagerInitCount > 1) return;
+      safplusMsgServer.registerHandler(SAFplusI::OBJECT_MSG_TYPE,&objectMessager,0);
     }
 
   void ObjectMessager::msgHandler(Handle from, MsgServer* svr, ClPtrT msg, ClWordT msglen, ClPtrT cookie)

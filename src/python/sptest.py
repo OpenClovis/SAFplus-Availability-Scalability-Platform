@@ -1,4 +1,4 @@
-import SAFplus as sp
+import pySAFplus as sp
 
 
 

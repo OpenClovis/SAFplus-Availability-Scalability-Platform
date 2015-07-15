@@ -6,7 +6,7 @@ import dbalpy
 if __name__ != '__main__':  # called from inside the source tree
   sys.path.append("../../python")  # Point to the python code, in source control
 
-import SAFplus as sp
+import safplus as sp
 import amfctrl
 
 modelXML = "SAFplusAmf1Node1SG1Comp.xml"
@@ -53,7 +53,7 @@ def startupAmf(tgtDir,outfile=None,infile="/dev/null"):
 def connectToAmf():
   global SAFplusInitialized
   if not SAFplusInitialized:
-    svcs = sp.Libraries.MSG | sp.Libraries.GRP
+    svcs = sp.Libraries.MSG | sp.Libraries.GRP | sp.Libraries.MGT_ACCESS
     sic = sp.SafplusInitializationConfiguration()
     sic.port = 52
     SAFplusInitialized = True

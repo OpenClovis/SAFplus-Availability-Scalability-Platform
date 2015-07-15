@@ -52,7 +52,7 @@ int main(int argc, char *argv[])
     std::string getValue, setValue;
     char buf[200];
     //Test mgtGet function
-    for (int i=0;i<1000000;i++)
+    for (int i=0;i<10;i++)
       {
       snprintf(buf,200,"{%d}/SAFplusAmf/Component/c0",i);
       getValue = SAFplus::mgtGet(buf);

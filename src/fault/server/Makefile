@@ -1,5 +1,5 @@
 S7 := 1
-SAFPLUS_FAULT_LIB := 1
+SAFPLUS_FAULT_SERVER := 1
 include ../../mk/preface.mk
 
 CPP_FLAGS += -I$(BOOST_DIR) -I. $(SAFPLUS_MGT_INC_FLAGS)

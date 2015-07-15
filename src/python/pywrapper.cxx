@@ -36,7 +36,7 @@ static object ckpt_get(Checkpoint& self, char* key)
 
 
 
-BOOST_PYTHON_MODULE(SAFplus)
+BOOST_PYTHON_MODULE(pySAFplus)
 {
   logInitialize();
   utilsInitialize();
@@ -61,14 +61,15 @@ BOOST_PYTHON_MODULE(SAFplus)
     .value("HEAP",LibDep::Bits::HEAP)
     .value("BUFFER",LibDep::Bits::BUFFER)
     .value("TIMER",LibDep::Bits::TIMER)
-    .value("DBAL",LibDep::Bits::DBAL);
+    .value("DBAL",LibDep::Bits::DBAL)
+    .value("MGT_ACCESS",LibDep::Bits::MGT_ACCESS);
   def("Initialize",SAFplus::safplusInitialize);
 
 
   // Basic Logging
 
   def("logMsgWrite",SAFplus::logStrWrite);
-  enum_<LogSeverity>("Severity")
+  enum_<LogSeverity>("LogSeverity")
     .value("EMERGENCY", LOG_SEV_EMERGENCY)
     .value("ALERT", LOG_SEV_ALERT)
     .value("CRITICAL", LOG_SEV_CRITICAL)

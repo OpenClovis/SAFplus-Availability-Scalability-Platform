@@ -10,10 +10,12 @@ using namespace SAFplusI;
 
 
 NameRegistrar SAFplus::name;
-
+int nameInitCount=0;
 void SAFplus::nameInitialize()
   {
-  name.init(NAME_CKPT);
+    nameInitCount++;
+    if (nameInitCount > 1) return;
+    name.init(NAME_CKPT);
   }
 
 void NameRegistrar::init(Handle hdl)

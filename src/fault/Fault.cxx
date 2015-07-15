@@ -43,8 +43,11 @@ namespace SAFplus
 	static unsigned int MAX_MSGS=25;
 	static unsigned int MAX_HANDLER_THREADS=10;
 
+  int faultInitCount=0;
     void faultInitialize(void)
       {
+        faultInitCount++;
+        if (faultInitCount > 1) return;
     	SAFplus::fsm.init(INVALID_HDL);
       }
 
