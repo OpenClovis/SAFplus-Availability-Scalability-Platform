@@ -88,7 +88,7 @@ class PyDBAL():
                 self.suppliedData = self.suppliedData.get(self.docRoot)
 
         except IOError, e: # If the supplied data file does not exist just print a warning
-            raise Exception("Supplied data file %s does not exist.  You may need to export SAFPLUS_CONFIG enviroment variable" % self.cfgfile)
+            raise Exception("Supplied data file %s does not exist.  You may need to export SAFPLUS_CONFIG enviroment variable" % xmlFile)
 
         except Exception, e: # If the supplied data file does not exist just print a warning
             raise Exception("Invalid format XML file!")

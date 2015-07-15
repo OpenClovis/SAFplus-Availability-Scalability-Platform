@@ -6,16 +6,22 @@ CLIENT_H := $(wildcard *.hpp) $(wildcard $(SAFPLUS_INC_DIR)/*.hpp)
 CLIENT_SRC := $(wildcard *.cxx)
 CLIENT_OBJ := $(addprefix $(OBJ_DIR)/,$(subst .cxx,.o,$(CLIENT_SRC)))
 
+MODELS := $(wildcard *.xml)
+MODELS_TGT := $(addprefix $(TEST_DIR)/,$(MODELS))
+
 # Specify the required libraries
 SAFPLUS_LIBS := clAmf clRpc clName clCkpt clGroup clMsg clLog clUtils clOsal
 # Then use these in the make rule
 SAFPLUS_DEP_LIBS     := $(addsuffix .so,$(addprefix $(LIB_DIR)/lib,$(SAFPLUS_LIBS)))
 SAFPLUS_LINK_LIBS := -L$(LIB_DIR) $(addprefix -l,$(SAFPLUS_LIBS))
 
-all: $(TEST_DIR)/exampleSafApp $(TEST_DIR)/exampleNonSafApp $(TEST_DIR)/test111.py
+all: $(TEST_DIR)/exampleSafApp $(TEST_DIR)/exampleNonSafApp $(TEST_DIR)/test111.py $(MODELS_TGT)
+
+$(TEST_DIR)/%.xml: %.xml
+	cp -f $< $@
 
 $(TEST_DIR)/test111.py: test111.py
-	cp -rf $< $@
+	cp -f $< $@
 
 $(TEST_DIR)/exampleSafApp:  $(OBJ_DIR)/exampleSafApp.o $(SAFPLUS_DEP_LIBS)
 	$(LINK_EXE) $@ $<  $(SAFPLUS_LINK_LIBS) -lboost_filesystem $(LINK_SO_LIBS) -lprotobuf -lprotoc $(LINK_SO_LIBS)
