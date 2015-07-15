@@ -20,6 +20,7 @@
 #include <clMsgPortsAndTypes.hxx>
 #include <clSafplusMsgServer.hxx>
 #include <MsgReplyHandler.hxx>
+#include <clFaultApi.hxx>
 
 
 namespace SAFplus
@@ -52,6 +53,8 @@ namespace SAFplus
         MsgHandler *replyHandler = new MsgReplyHandler();
         this->RegisterHandler(SAFplusI::CL_IOC_SAF_MSG_REPLY_PROTO, replyHandler, &msgReply);
         SAFplus::iocPort = port; // Set this global to be used as a unique identifier for this component across the node.  There can be many MsgServers per component but only one SafplusMsgServer.
+        fault = new Fault();
+        fault->init(handle);
       }
 
     void SAFplus::SafplusMsgServer::registerHandler(ClWordT type, MsgHandler *handler, ClPtrT cookie)
@@ -90,7 +93,17 @@ namespace SAFplus
             {
               if (!msgSendConditionMutex.timed_wait(msgSendReplyMutex, 4000)) // TODO: create customizable timeout
                   {
-                    return NULL;  // TODO: TIMEOUT
+                    FaultState fs = fault->getFaultState(destination);
+                    if ((fs==FaultState::STATE_UP)||(fs==FaultState::STATE_UNDEFINED))
+                      {
+                        fault->notifyNoResponse(destination);  // Tell the fault manager that I'm having a problem.
+                        SendMsg(destination, buffer, length, msgtype);  // retry
+                      }
+                    if (fs==FaultState::STATE_DOWN)
+                      {
+                        return NULL;
+                      }
+                    
                   }
               else
                   {

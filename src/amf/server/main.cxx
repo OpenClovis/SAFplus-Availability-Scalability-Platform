@@ -22,6 +22,7 @@
 #include <clMgtApi.hxx>
 #include <clNameApi.hxx>
 #include <clFaultApi.hxx>
+#include <clFaultServerIpi.hxx>
 #include <clMsgPortsAndTypes.hxx>
 
 #include <clAmfPolicyPlugin.hxx>
@@ -218,7 +219,7 @@ bool activeAudit()  // Check to make sure DB and the system state are in sync.  
   for (it = redPolicies.begin(); it != redPolicies.end();it++)
     {
     ClAmfPolicyPlugin_1* pp = dynamic_cast<ClAmfPolicyPlugin_1*>(it->second->pluginApi);
-    rerun |= pp->activeAudit(&cfg);
+    pp->activeAudit(&cfg);
     }
 
   return rerun;

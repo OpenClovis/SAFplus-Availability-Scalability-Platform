@@ -8,6 +8,7 @@ SiPfx = "ServiceInstance"
 
 def csv2List(csvString):
   """Convert comma separated values to a Python list"""
+  if not csvString.strip(): return []  # turn "" into [], otherwise it is ['']
   return [x.strip() for x in csvString.split(",")]
 
 def getEntity(ent):

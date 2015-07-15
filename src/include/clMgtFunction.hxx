@@ -28,7 +28,10 @@ namespace SAFplus
 {
      extern Checkpoint* mgtCheckpoint;
      Checkpoint* getMgtCheckpoint();
-     SAFplus::Handle& getMgtHandle(const std::string& pathSpec, ClRcT &errCode);
+     SAFplus::Handle getMgtHandle(const std::string& pathSpec, ClRcT &errCode);
+
+     //? Call this before any other management APIs (or call safplusInitialize with the MGT flag)
+     void mgtAccessInitialize();
 
      std::string mgtGet(const std::string& pathSpec);
      std::string mgtGet(SAFplus::Handle src, const std::string& pathSpec);

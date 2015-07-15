@@ -10,7 +10,7 @@ MakefileDepend :=
 CPP_FLAGS += -I$(BOOST_DIR)  -I. -I..  -I../rpc -I./amfRpc $(SAFPLUS_MGT_INC_FLAGS)
 
 # Specify the required libraries
-SAFPLUS_LIBS := clRpc clMgt clName clFault clCkpt clGroup clMsg clUtils clLog clDbal clOsal
+SAFPLUS_LIBS := clRpc clMgt clName clFaultServer clFault clCkpt clGroup clMsg clUtils clLog clDbal clOsal
 # Then use these in the make rule
 SAFPLUS_DEP_LIBS     := $(addsuffix .so,$(addprefix $(LIB_DIR)/lib,$(SAFPLUS_LIBS)))
 SAFPLUS_LINK_LIBS := -L$(LIB_DIR) $(addprefix -l,$(SAFPLUS_LIBS))

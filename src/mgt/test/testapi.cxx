@@ -36,8 +36,9 @@ void initSafLibraries()
   sic.iocPort     = MGT_API_TEST_PORT;
   sic.msgQueueLen = 25;
   sic.msgThreads  = 1;
-
-  safplusInitialize( SAFplus::LibDep::GRP | SAFplus::LibDep::LOG | SAFplus::LibDep::MSG, sic);
+  SAFplus::logSeverity = SAFplus::LOG_SEV_DEBUG;
+  safplusInitialize( SAFplus::LibDep::FAULT | SAFplus::LibDep::GRP | SAFplus::LibDep::LOG | SAFplus::LibDep::MSG, sic);
+  mgtAccessInitialize();
   //SAFplusI::gsm.init();
 }
 
@@ -49,11 +50,18 @@ int main(int argc, char *argv[])
     ClRcT ret;
     initSafLibraries();
     std::string getValue, setValue;
-
+    char buf[200];
     //Test mgtGet function
-    getValue = SAFplus::mgtGet("/SAFplusAmf/Component/c0");
-    printf("Get /SAFplusAmf/Component/c0 return: %s\n\n", getValue.c_str());
-
+    for (int i=0;i<1000000;i++)
+      {
+      snprintf(buf,200,"{%d}/SAFplusAmf/Component/c0",i);
+      getValue = SAFplus::mgtGet(buf);
+      printf("Get %d /SAFplusAmf/Component/c0 return: %s\n\n", i, getValue.c_str());
+      if (getValue.size() == 0) 
+        {
+          assert(0);
+        }
+      }
     //Test mgtSet function
     setValue.assign("False");
     printf("Set /SAFplusAmf/ServiceGroup/sg0/autoRepair = %s\n", setValue.c_str());

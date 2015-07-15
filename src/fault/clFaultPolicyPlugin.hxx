@@ -2,6 +2,7 @@
 #include <clPluginApi.hxx>
 #include <clMgtApi.hxx>
 #include <clFaultApi.hxx>
+#include <clFaultServerIpi.hxx>
 
 namespace SAFplus
 {

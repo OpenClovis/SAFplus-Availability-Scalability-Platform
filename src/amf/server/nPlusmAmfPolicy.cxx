@@ -25,8 +25,8 @@ namespace SAFplus
   public:
     NplusMPolicy();
     ~NplusMPolicy();
-    virtual bool activeAudit(SAFplusAmf::SAFplusAmfRoot* root);
-    virtual bool standbyAudit(SAFplusAmf::SAFplusAmfRoot* root);
+    virtual void activeAudit(SAFplusAmf::SAFplusAmfRoot* root);
+    virtual void standbyAudit(SAFplusAmf::SAFplusAmfRoot* root);
 
   protected:
     void auditOperation(SAFplusAmf::SAFplusAmfRoot* root);
@@ -233,11 +233,10 @@ namespace SAFplus
           || (p == SAFplusAmf::PresenceState::terminationFailed));
   }
 
-  bool NplusMPolicy::activeAudit(SAFplusAmf::SAFplusAmfRoot* root)
+  void NplusMPolicy::activeAudit(SAFplusAmf::SAFplusAmfRoot* root)
     {
     auditDiscovery(root);
     auditOperation(root);
-    return false;
     }
 
   ServiceUnit* findAssignableServiceUnit(std::vector<SAFplusAmf::ServiceUnit*>& candidates,SAFplusAmf::ServiceInstance* si, HighAvailabilityState tgtState)
@@ -334,7 +333,6 @@ namespace SAFplus
   // Second step in the audit is to do something to heal any discrepencies.
   void NplusMPolicy::auditOperation(SAFplusAmf::SAFplusAmfRoot* root)
     {
-      bool changed=false;
     bool startSg;
     logInfo("POL","N+M","Active audit: Operation phase");
     assert(root);
@@ -447,7 +445,6 @@ namespace SAFplus
                     si->getNumStandbyAssignments()->current.value--;
                     si->getNumActiveAssignments()->current.value++;
                     amfOps->assignWork(su,si,HighAvailabilityState::active);
-                    changed=true;
                   } 
                 
 
@@ -471,7 +468,6 @@ namespace SAFplus
                   si->getNumActiveAssignments()->current.value++;
                   amfOps->assignWork(su,si,HighAvailabilityState::active);
                   boost::sort(sus,suOrder);  // Sort order may have changed based on the assignment.
-                  changed=true;
                   }
                 else
                   {
@@ -493,7 +489,6 @@ namespace SAFplus
 
                   amfOps->assignWork(su,si,HighAvailabilityState::standby);
                   boost::sort(sus,suOrder);  // Sort order may have changed based on the assignment.
-                  changed=true;
                   }
                 else
                   {
@@ -508,7 +503,6 @@ namespace SAFplus
             {
             logInfo("N+M","AUDIT","Service Instance [%s] should be unassigned but is [%s].", si->name.value.c_str(),c_str(si->assignmentState));
             amfOps->removeWork(si);
-            changed=true;
             }
           else
             {
@@ -952,7 +946,7 @@ namespace SAFplus
 
     }
 
-  bool NplusMPolicy::standbyAudit(SAFplusAmf::SAFplusAmfRoot* root)
+  void NplusMPolicy::standbyAudit(SAFplusAmf::SAFplusAmfRoot* root)
     {
     logInfo("POL","CUSTOM","Standby audit");
     }

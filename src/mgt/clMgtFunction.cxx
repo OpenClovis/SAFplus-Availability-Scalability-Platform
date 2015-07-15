@@ -36,18 +36,49 @@ namespace SAFplus
 
   Checkpoint* getMgtCheckpoint()
   {
-     if(!mgtCheckpoint)
+    assert(mgtCheckpoint);  // You should have called mgtAccessInitialize
+    return mgtCheckpoint;
+  }
+
+  void mgtAccessInitialize(void)
+  {
+   if(!mgtCheckpoint)
      {
         mgtCheckpoint = new Checkpoint(MGT_CKPT, Checkpoint::SHARED | Checkpoint::REPLICATED ,
               1024*1024,
               SAFplusI::CkptDefaultRows);
         mgtCheckpoint->name = "safplusMgt";
      }
-     return mgtCheckpoint;
   }
 
-  SAFplus::Handle& getMgtHandle(const std::string& pathSpec, ClRcT &errCode)
+  SAFplus::Handle getMgtHandle(const std::string& pathSpec, ClRcT &errCode)
   {
+    std::string xpath = pathSpec;  // I need to make a copy so I can modify it
+    size_t lastSlash = std::string::npos;
+    while(1)
+      {
+        try
+          {
+            logDebug("MGT", "LKP", "Trying [%s]", xpath.c_str());
+            const SAFplus::Buffer& b = mgtCheckpoint->read(xpath);
+            if (&b)
+              {
+                assert(b.len() == sizeof(SAFplus::Handle));
+                SAFplus::Handle hdl = *((const SAFplus::Handle*) b.data);
+
+                std::string strRout = pathSpec.substr(lastSlash+1);  // request the "rest" of the string (everything that did not match the binding)
+                return hdl;
+              }
+          }
+        catch (SAFplus::Error& e)
+          {
+          }
+        lastSlash = xpath.rfind("/");
+        if (lastSlash == std::string::npos) break;
+        xpath = xpath.substr(0,lastSlash);
+      }
+    return INVALID_HDL;
+#if 0
     errCode = CL_OK;
     std::string strPath = "";
     SAFplus::Checkpoint::Iterator iterMgtChkp = getMgtCheckpoint()->end();
@@ -70,6 +101,7 @@ namespace SAFplus
       }
     errCode = CL_ERR_INVALID_PARAMETER;
     return *((Handle*) NULL);
+#endif
   }
 
   std::string mgtGet(SAFplus::Handle src, const std::string& pathSpec)
@@ -92,6 +124,7 @@ namespace SAFplus
         MsgGeneral rxMsg;
         if (!msgReply)
           {
+            logError("MGT", "REV", "No REPLY");
             return output;
           }
 
@@ -132,9 +165,18 @@ namespace SAFplus
       }
     else  // Object Implementer not found. Broadcast message to get data
       {
-        ClRcT errCode;
-        Handle &hdl = getMgtHandle(pathSpec, errCode);
-        if((errCode == CL_OK) && (NULL != &hdl))
+        ClRcT errCode = CL_OK;
+        std::string xpath;
+        if (pathSpec[0] == '{')
+          {
+            xpath = pathSpec.substr(pathSpec.find('}')+1);
+          }
+        else
+          {
+            xpath = pathSpec;
+          }
+        Handle hdl = getMgtHandle(xpath   , errCode);
+        if (INVALID_HDL != hdl)
         {
           output = mgtGet(hdl, pathSpec);
         }
@@ -189,7 +231,7 @@ namespace SAFplus
       }
     else  // Object Implementer not found. Broadcast message to get data
       {
-        Handle &hdl = getMgtHandle(pathSpec, ret);
+        Handle hdl = getMgtHandle(pathSpec, ret);
         if((ret == CL_OK) && (NULL != &hdl))
           {
             ret = mgtSet(hdl, pathSpec, value);
@@ -259,7 +301,7 @@ namespace SAFplus
       }
     else  // Object Implementer not found. Broadcast message to get data
       {
-        Handle &hdl = getMgtHandle(pathSpec, ret);
+        Handle hdl = getMgtHandle(pathSpec, ret);
         if((ret == CL_OK) && (NULL != &hdl))
           {
             ret = mgtCreate(hdl, pathSpec);
@@ -329,7 +371,7 @@ namespace SAFplus
       }
     else  // Object Implementer not found. Broadcast message to get data
       {
-        Handle &hdl = getMgtHandle(pathSpec, ret);
+        Handle hdl = getMgtHandle(pathSpec, ret);
         if((ret == CL_OK) && (NULL != &hdl))
          {
            ret = mgtDelete(hdl, pathSpec);

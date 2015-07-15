@@ -166,7 +166,7 @@ namespace SAFplus
       else // work removal
         {
         }
-
+      reportChange();
       }
     // TODO: crashes pendingWorkOperations.erase(invocation);
     
@@ -351,7 +351,7 @@ namespace SAFplus
           // for now ASSERT if all the components are not already dead
           assert((comp->presenceState == PresenceState::uninstantiated) || (comp->presenceState == PresenceState::instantiationFailed));  // remove when multi-comp implemented
         }
-    
+      reportChange();
     }
 
   void AmfOperations::assignWork(ServiceUnit* su, ServiceInstance* si, HighAvailabilityState state,Wakeable& w)
@@ -473,6 +473,8 @@ namespace SAFplus
 
             amfAppRpc->workOperation(hdl, &request);
           }
+
+        reportChange();
         }
       else
         {
@@ -591,6 +593,7 @@ namespace SAFplus
       StartCompResp* resp = new StartCompResp(&w,comp);
       amfInternalRpc->startComponent(nodeHdl,&req, &resp->response,*resp);
       }
+    reportChange();
     }
 
   void AmfOperations::start(SAFplusAmf::ServiceGroup* sg,Wakeable& w)

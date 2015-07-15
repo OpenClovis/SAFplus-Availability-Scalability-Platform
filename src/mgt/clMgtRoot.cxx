@@ -456,7 +456,14 @@ namespace SAFplus
   std::string path = reqMsg.bind();
   std::string strRplMesg;
   MsgGeneral rplMesg;
-
+  std::string cmds;
+  if (path[0] == '{')  // Debugging requests
+    {
+      int end = path.find_first_of("}");
+      cmds = path.substr(1,end-1);
+      cmds.append(" ");
+      path = path.substr(end+1);
+    }
   if (path[0] == '/')  // Only absolute paths are allowed over the RPC API since there is no context
     {
       resolvePath(path.c_str()+1, &matches);
@@ -473,7 +480,7 @@ namespace SAFplus
     }
 
   rplMesg.SerializeToString(&strRplMesg);
-  logDebug("MGT","XGET","Replying with msg of size [%lu]",(long unsigned int) strRplMesg.size());
+  logDebug("MGT","XGET","Replying to request [%s] %sfrom [%" PRIx64 ",%" PRIx64 "] with msg of size [%lu]",path.c_str(),cmds.c_str(),srcAddr.id[0], srcAddr.id[1], (long unsigned int) strRplMesg.size());
   if (strRplMesg.size()>0)
     {
     MgtRoot::sendReplyMsg(srcAddr,(void *)strRplMesg.c_str(),strRplMesg.size());
