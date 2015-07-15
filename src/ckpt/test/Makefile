@@ -7,7 +7,7 @@ CLIENT_SRC := $(wildcard *.cxx)
 CLIENT_OBJ := $(addprefix $(OBJ_DIR)/,$(subst .cxx,.o,$(CLIENT_SRC)))
 
 # Specify the required libraries
-SAFPLUS_LIBS := clCkpt clGroup clName clMsg clLog clUtils clOsal
+SAFPLUS_LIBS := clFault clCkpt clGroup clName clMsg clLog clUtils clOsal
 # Then use these in the make rule
 SAFPLUS_DEP_LIBS     := $(addsuffix .so,$(addprefix $(LIB_DIR)/lib,$(SAFPLUS_LIBS)))
 SAFPLUS_LINK_LIBS := -L$(LIB_DIR) $(addprefix -l,$(SAFPLUS_LIBS))

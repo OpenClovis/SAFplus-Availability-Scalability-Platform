@@ -1,8 +1,21 @@
 <unitTest>
-  <Component name="c1" id="1" key= "1" >
+  <Component name="c1" id="1" key="1">
     <data>11</data>
   </Component>
-  <Component name="c1" id="2" key = "2">
+  <Component name="c1" id="2" key="2">
     <data>12</data>
   </Component>
+
+  <ServiceGroup name="sg0">
+         <data>11</data>
+         <id>1</id>
+         <key>0</key>
+         <name>sg0</name>
+  </ServiceGroup>
+  <ServiceGroup name="sg1">
+         <data>22</data>
+         <id>2</id>
+         <key>0</key>
+         <name>sg1</name>
+   </ServiceGroup>
 </unitTest>

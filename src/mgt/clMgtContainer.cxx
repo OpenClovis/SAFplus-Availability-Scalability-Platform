@@ -211,7 +211,7 @@ namespace SAFplus
   {
     bool openTagList = false;
     //GAS: TAG already build at MgtList, hardcode to ignore
-    if (0) // !parent || !strstr(typeid(*parent).name(), "SAFplus7MgtList"))
+    if (1) // !parent || !strstr(typeid(*parent).name(), "SAFplus7MgtList"))
       {
         xmlString << '<' << tag;
         if (opts & MgtObject::SerializeNameAttribute)
@@ -237,15 +237,18 @@ namespace SAFplus
   void MgtContainer::get(std::string *data)
   {
     std::stringstream xmlString;
+
     if (data == nullptr)
       return;
 
     xmlString << '<' << tag << '>';
+
     for (MgtObjectMap::iterator it = children.begin(); it != children.end(); ++it)
       {
         MgtObject *child = it->second;
         child->toString(xmlString);
       }
+
     xmlString << "</" << tag << '>';
 
     data->assign(xmlString.str().c_str());

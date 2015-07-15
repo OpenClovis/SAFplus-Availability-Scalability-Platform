@@ -19,18 +19,21 @@ namespace unitTest
     /* Apply MGT object factory */
     MGT_REGISTER_IMPL(UnitTestRoot, /unitTest)
 
-    UnitTestRoot::UnitTestRoot(): SAFplus::MgtContainer("unitTest"), componentList("Component")
+    UnitTestRoot::UnitTestRoot(): SAFplus::MgtContainer("unitTest"), componentList("Component"), serviceGroupList("ServiceGroup")
     {
         this->addChildObject(&componentList, "Component");
+        this->addChildObject(&serviceGroupList, "ServiceGroup");
         componentList.childXpath="/unitTest/Component";
         componentList.setListKey("name");
         componentList.setListKey("id");
         componentList.setListKey("key");
+        serviceGroupList.childXpath="/unitTest/ServiceGroup";
+        serviceGroupList.setListKey("name");
     };
 
     std::vector<std::string>* UnitTestRoot::getChildNames()
     {
-        std::string childNames[] = { "Component" };
+        std::string childNames[] = { "Component", "ServiceGroup" };
         return new std::vector<std::string> (childNames, childNames + sizeof(childNames) / sizeof(childNames[0]));
     };
 

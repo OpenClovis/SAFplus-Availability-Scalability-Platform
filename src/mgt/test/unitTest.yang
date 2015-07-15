@@ -22,5 +22,28 @@ module unitTest
     {
       type uint32;
     }
+  }
+  
+  
+  list ServiceGroup
+  {
+    key "name";
+
+    leaf name
+    {
+      type string;
+    }
+    leaf id
+    {
+      type uint32;
+    }
+    leaf data
+    {
+      type int64;
+    }
+    leaf key
+    {
+      type uint32;
+    }
   } 
 }

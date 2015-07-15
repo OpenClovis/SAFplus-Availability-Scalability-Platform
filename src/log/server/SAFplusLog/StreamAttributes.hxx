@@ -116,7 +116,7 @@ namespace SAFplusLog
         /*
          * XPATH: /SAFplusLog/StreamAttributes/replicate
          */
-        void setReplicate(SAFplusLog::Replicate replicateValue, SAFplus::Transaction &txn=SAFplus::NO_TXN);
+        void setReplicate(SAFplusLog::Replicate &replicateValue, SAFplus::Transaction &txn=SAFplus::NO_TXN);
 
         /*
          * XPATH: /SAFplusLog/StreamAttributes/fileLocation
@@ -156,7 +156,7 @@ namespace SAFplusLog
         /*
          * XPATH: /SAFplusLog/StreamAttributes/fileFullAction
          */
-        void setFileFullAction(SAFplusLog::FileFullAction fileFullActionValue, SAFplus::Transaction &txn=SAFplus::NO_TXN);
+        void setFileFullAction(SAFplusLog::FileFullAction &fileFullActionValue, SAFplus::Transaction &txn=SAFplus::NO_TXN);
 
         /*
          * XPATH: /SAFplusLog/StreamAttributes/maximumFilesRotated
@@ -206,7 +206,7 @@ namespace SAFplusLog
         /*
          * XPATH: /SAFplusLog/StreamAttributes/streamScope
          */
-        void setStreamScope(SAFplusLog::StreamScope streamScopeValue, SAFplus::Transaction &txn=SAFplus::NO_TXN);
+        void setStreamScope(SAFplusLog::StreamScope &streamScopeValue, SAFplus::Transaction &txn=SAFplus::NO_TXN);
         ~StreamAttributes();
 
     };

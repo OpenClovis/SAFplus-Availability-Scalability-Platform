@@ -52,7 +52,7 @@ namespace SAFplusAmf
         /*
          * XPATH: /SAFplusAmf/EscalationPolicy/duration
          */
-        void setDuration(SaTimeT durationValue, SAFplus::Transaction &txn=SAFplus::NO_TXN);
+        void setDuration(SaTimeT &durationValue, SAFplus::Transaction &txn=SAFplus::NO_TXN);
         ~EscalationPolicy();
 
     };

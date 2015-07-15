@@ -82,7 +82,7 @@ namespace SAFplusAmf
         /*
          * XPATH: /SAFplusAmf/Node/adminState
          */
-        void setAdminState(SAFplusAmf::AdministrativeState adminStateValue, SAFplus::Transaction &t=SAFplus::NO_TXN);
+        void setAdminState(SAFplusAmf::AdministrativeState &adminStateValue, SAFplus::Transaction &t=SAFplus::NO_TXN);
 
         /*
          * XPATH: /SAFplusAmf/Node/operState

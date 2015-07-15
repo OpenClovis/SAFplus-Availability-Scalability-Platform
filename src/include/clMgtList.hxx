@@ -639,6 +639,7 @@ namespace SAFplus
         return rc;
       }
   };
+
   /**
    * For backward compatible with current version of MgtList which key is std::string
    */
@@ -766,19 +767,43 @@ namespace SAFplus
       {
         ClRcT rc = CL_OK;
         assert(mgtObject);
-        const std::string *key = &objectKey;
-        if(key == nullptr)
+        std::string keyValue;
+
+        if(&objectKey == nullptr)
         {
-          key = &mgtObject->tag;
+          if (keyList.size() > 0)
+          {
+            //TODO: Auto generated key for this list and combine with template keyType
+            MgtObject *childKey = mgtObject->getChildObject(keyList);
+            if (childKey != nullptr)
+              keyValue.assign(childKey->strValue());
+          }
+          if (keyValue.empty())
+          {
+            keyValue = mgtObject->tag;
+          }
         }
-        children[*key] = mgtObject;
+        else
+        {
+          keyValue.assign(objectKey);
+        }
+
+        if (children[keyValue] != nullptr)
+        {
+          std::stringstream errorStr;
+          errorStr<<"Entry is already exists with key ["<<keyValue << "]";
+          throw MgtError(errorStr.str().c_str());
+        }
+
+        children[keyValue] = mgtObject;
 #ifndef SAFplus7
         logDebug("MGT", "LIST", "Adding child object was successfully");
 #endif
+#if 0
         //set tag for list item to display the item xpath with object name
         mgtObject->listTag.assign(this->tag);
-        mgtObject->tag.assign(*key);
-
+        mgtObject->tag.assign(keyValue);
+#endif
         if(mgtObject->parent == nullptr)
           mgtObject->parent = this;
         return rc;

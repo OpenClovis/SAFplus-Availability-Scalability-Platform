@@ -1,4 +1,4 @@
-#include "ComponentKey.hxx"
+#include <ComponentKey.hxx>
 
 using namespace std;
 
@@ -13,7 +13,7 @@ namespace unitTest
   {
   }
 
-  ComponentKey::ComponentKey(std::string &nameValue, unsigned int &idValue, unsigned int &keyValue) 
+  ComponentKey::ComponentKey(std::string nameValue, unsigned int idValue, unsigned int keyValue) 
   {
     name = nameValue;
     id = idValue;
@@ -21,7 +21,7 @@ namespace unitTest
   }
 
   /* building an instance from string list */
-  void ComponentKey::build(std::map<std::string,std::string> keyList)
+  void ComponentKey::build(std::map<std::string,std::string> &keyList)
   {
     std::map<std::string,std::string>::iterator iter;
     
@@ -50,13 +50,11 @@ namespace unitTest
     }
   }
 
-  /* key xpath: [key1=value1,key2=value2] */
+  /* key xpath: [@key1="value1" and @key2="value2" and ...] */
   std::string ComponentKey::toXpath() const
   {
     std::stringstream ss;
-    ss << "[";
-    ss << "name=" <<name<< "," << "id=" <<id<< "," << "key=" <<key;
-    ss << "]";
+    ss << "[" << "@name=\"" <<name <<"\"" << " and " << "@id=\"" <<id <<"\"" << " and " << "@key=\"" <<key <<"\"" << "]";
     return ss.str();
   }
 
