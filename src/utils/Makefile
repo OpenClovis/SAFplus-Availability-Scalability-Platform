@@ -5,7 +5,10 @@ CLIENT_H := $(wildcard *.hxx) $(wildcard $(SAFPLUS_INC_DIR)/*.hpp) $(wildcard $(
 CLIENT_SRC := $(wildcard *.cxx)
 CLIENT_OBJ := $(addprefix $(MWOBJ_DIR)/,$(subst .cxx,.o,$(CLIENT_SRC)))
 
-Release all: $(LIB_DIR)/libclUtils.so
+Release all: $(LIB_DIR)/libclUtils.so $(BIN_DIR)/safplus_cleanup
+
+$(BIN_DIR)/safplus_cleanup: safplus_cleanup
+	cp $< $@
 
 $(LIB_DIR)/libclUtils.so: $(CLIENT_OBJ)
 	$(LINK_SO) $@ $+ $(LINK_SO_LIBS)
@@ -14,4 +17,4 @@ $(MWOBJ_DIR)/%.o: %.cxx Makefile $(CLIENT_H)
 	$(COMPILE_CPP) $@ $<
 
 clean:
-	rm -f $(LIB_DIR)/libclUtils.so $(CLIENT_OBJ)
+	rm -f $(LIB_DIR)/libclUtils.so $(BIN_DIR)/safplus_cleanup $(CLIENT_OBJ)
