@@ -23,7 +23,7 @@ namespace ENTITYSTATETCMIB
         return this->value;
     };
 
-    void EntityAlarmStatus::setValue(std::bitset<7> &value, SAFplus::Transaction &t)
+    void EntityAlarmStatus::setValue(std::bitset<7> value, SAFplus::Transaction &t)
     {
         if(&t == &SAFplus::NO_TXN) this->value = value;
         else

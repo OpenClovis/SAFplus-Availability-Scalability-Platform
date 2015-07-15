@@ -51,7 +51,7 @@ namespace SAFplusAmf
         /*
          * XPATH: /SAFplusAmf/Cluster/adminState
          */
-        void setAdminState(SAFplusAmf::AdministrativeState &adminStateValue, SAFplus::Transaction &t=SAFplus::NO_TXN);
+        void setAdminState(SAFplusAmf::AdministrativeState adminStateValue, SAFplus::Transaction &t=SAFplus::NO_TXN);
 
         /*
          * XPATH: /SAFplusAmf/Cluster/startupAssignmentDelay
@@ -61,7 +61,7 @@ namespace SAFplusAmf
         /*
          * XPATH: /SAFplusAmf/Cluster/startupAssignmentDelay
          */
-        void setStartupAssignmentDelay(SaTimeT &startupAssignmentDelayValue, SAFplus::Transaction &t=SAFplus::NO_TXN);
+        void setStartupAssignmentDelay(SaTimeT startupAssignmentDelayValue, SAFplus::Transaction &t=SAFplus::NO_TXN);
         ~Cluster();
 
     };

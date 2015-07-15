@@ -7,13 +7,13 @@ MGT_SRC_DIR ?= $(SAFPLUS_SRC_DIR)/../../mgt
 CPP_FLAGS += -I$(BOOST_DIR)  -I. -I.. 
 
 # Specify the required libraries
-SAFPLUS_LIBS := clFault clName clMgt clUtils clLog clCkpt clGroup clMsg clOsal clDbal
+SAFPLUS_LIBS := clMgt clUtils clLog clCkpt clGroup clMsg clOsal clDbal
 # Then use these in the make rule
 SAFPLUS_DEP_LIBS     := $(addsuffix .so,$(addprefix $(LIB_DIR)/lib,$(SAFPLUS_LIBS)))
 SAFPLUS_LINK_LIBS := -L$(LIB_DIR) $(addprefix -l,$(SAFPLUS_LIBS))
 
 UNIT_TEST_SRC := $(wildcard unitTest/*.cxx)
-UNIT_TEST_H := $(wildcard unitTest/*.hxx)
+UNIT_TEST_H := $(wildcard unitTest/*.cxx)
 
 UNIT_TEST_OBJ := $(subst .cxx,.o,$(notdir $(UNIT_TEST_SRC)))
 UNIT_TEST_OBJ := $(addprefix $(OBJ_DIR)/test/mgt/unitTest/,$(UNIT_TEST_OBJ))
@@ -21,8 +21,9 @@ UNIT_TEST_OBJ := $(addprefix $(OBJ_DIR)/test/mgt/unitTest/,$(UNIT_TEST_OBJ))
 UNIT_TEST_LIB := $(LIB_DIR)/libMgtTestEnv.so
 
 # Management includes and libraries
-CPP_FLAGS += $(SAFPLUS_MGT_INC_FLAGS) -I./unitTest
+CPP_FLAGS += $(SAFPLUS_MGT_INC_FLAGS)
 
+MGT_TEST_H := $(wildcard *.hpp) $(wildcard *.h) $(wildcard *.hxx)  $(wildcard $(SAFPLUS_INC_DIR)/*.hxx)
 MGT_TEST_SRC := $(wildcard testmgt.cxx)
 MGT_TEST_OBJ := $(subst .cpp,.o, $(subst .cxx,.o, $(notdir $(MGT_TEST_SRC))))
 MGT_TEST_OBJ := $(addprefix $(OBJ_DIR)/test/mgt/,$(MGT_TEST_OBJ))

@@ -107,7 +107,7 @@ namespace SAFplusAmf
         /*
          * XPATH: /SAFplusAmf/ServiceUnit/adminState
          */
-        void setAdminState(SAFplusAmf::AdministrativeState &adminStateValue, SAFplus::Transaction &t=SAFplus::NO_TXN);
+        void setAdminState(SAFplusAmf::AdministrativeState adminStateValue, SAFplus::Transaction &t=SAFplus::NO_TXN);
 
         /*
          * XPATH: /SAFplusAmf/ServiceUnit/rank
@@ -157,7 +157,7 @@ namespace SAFplusAmf
         /*
          * XPATH: /SAFplusAmf/ServiceUnit/presenceState
          */
-        void setPresenceState(SAFplusAmf::PresenceState &presenceStateValue, SAFplus::Transaction &t=SAFplus::NO_TXN);
+        void setPresenceState(SAFplusAmf::PresenceState presenceStateValue, SAFplus::Transaction &t=SAFplus::NO_TXN);
 
         /*
          * XPATH: /SAFplusAmf/ServiceUnit/readinessState
@@ -167,7 +167,7 @@ namespace SAFplusAmf
         /*
          * XPATH: /SAFplusAmf/ServiceUnit/readinessState
          */
-        void setReadinessState(SAFplusAmf::ReadinessState &readinessStateValue, SAFplus::Transaction &t=SAFplus::NO_TXN);
+        void setReadinessState(SAFplusAmf::ReadinessState readinessStateValue, SAFplus::Transaction &t=SAFplus::NO_TXN);
 
         /*
          * XPATH: /SAFplusAmf/ServiceUnit/haReadinessState
@@ -177,7 +177,7 @@ namespace SAFplusAmf
         /*
          * XPATH: /SAFplusAmf/ServiceUnit/haReadinessState
          */
-        void setHaReadinessState(SAFplusAmf::HighAvailabilityReadinessState &haReadinessStateValue, SAFplus::Transaction &t=SAFplus::NO_TXN);
+        void setHaReadinessState(SAFplusAmf::HighAvailabilityReadinessState haReadinessStateValue, SAFplus::Transaction &t=SAFplus::NO_TXN);
 
         /*
          * XPATH: /SAFplusAmf/ServiceUnit/haState
@@ -187,7 +187,7 @@ namespace SAFplusAmf
         /*
          * XPATH: /SAFplusAmf/ServiceUnit/haState
          */
-        void setHaState(SAFplusAmf::HighAvailabilityState &haStateValue, SAFplus::Transaction &t=SAFplus::NO_TXN);
+        void setHaState(SAFplusAmf::HighAvailabilityState haStateValue, SAFplus::Transaction &t=SAFplus::NO_TXN);
 
         /*
          * XPATH: /SAFplusAmf/ServiceUnit/operState

@@ -180,7 +180,7 @@ initpyDbal(void)
     ClRcT rc = CL_OK;
 
     logEchoToFd = 1;  // echo logs to stdout for debugging
-    logSeverity = LOG_SEV_ERROR;
+    //logSeverity = LOG_SEV_ERROR;
 
     safplusInitialize(SAFplus::LibDep::DBAL | SAFplus::LibDep::LOG | SAFplus::LibDep::OSAL | SAFplus::LibDep::HEAP | SAFplus::LibDep::TIMER | SAFplus::LibDep::BUFFER);
 

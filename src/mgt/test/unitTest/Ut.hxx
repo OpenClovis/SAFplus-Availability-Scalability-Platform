@@ -25,7 +25,6 @@ namespace unitTest
 
     public:
         SAFplus::MgtList<unitTest::ComponentKey> componentList;
-        SAFplus::MgtList<std::string> serviceGroupList;
 
     public:
         UnitTestRoot();

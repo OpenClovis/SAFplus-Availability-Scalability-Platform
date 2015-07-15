@@ -9,7 +9,8 @@ extern "C"
 
 #include <boost/algorithm/string.hpp>
 #include <clMgtContainer.hxx>
-#include "clMgtRoot.hxx"
+#include <clMgtRoot.hxx>
+#include <clMgtProv.hxx>
 using namespace std;
 
 namespace SAFplus
@@ -210,7 +211,6 @@ namespace SAFplus
   void MgtContainer::toString(std::stringstream& xmlString,MgtObject::SerializationOptions opts)
   {
     bool openTagList = false;
-    //GAS: TAG already build at MgtList, hardcode to ignore
     if (1) // !parent || !strstr(typeid(*parent).name(), "SAFplus7MgtList"))
       {
         xmlString << '<' << tag;
@@ -237,18 +237,15 @@ namespace SAFplus
   void MgtContainer::get(std::string *data)
   {
     std::stringstream xmlString;
-
     if (data == nullptr)
       return;
 
     xmlString << '<' << tag << '>';
-
     for (MgtObjectMap::iterator it = children.begin(); it != children.end(); ++it)
       {
         MgtObject *child = it->second;
         child->toString(xmlString);
       }
-
     xmlString << "</" << tag << '>';
 
     data->assign(xmlString.str().c_str());
@@ -499,10 +496,24 @@ namespace SAFplus
   {
     std::string type = "P";
     type.append((typeid(*this).name()));
-    if ( type == classType && this->tag == ref)
-      {
-        return this;
+    if ( type == classType)
+      { 
+        if (this->tag == ref)
+          {
+            return this;
+          }
+        typename Map::iterator obj = children.find("name");
+        if (obj != children.end())
+          {
+            SAFplus::MgtProv<std::string>* node = dynamic_cast<SAFplus::MgtProv<std::string>*>(obj->second);
+            if (node && node->value == ref)
+              {
+                return this;
+              }
+          }
       }
+ 
+
     typename Map::iterator iter;
     for (MgtObjectMap::iterator it = children.begin(); it != children.end(); it++)
       {

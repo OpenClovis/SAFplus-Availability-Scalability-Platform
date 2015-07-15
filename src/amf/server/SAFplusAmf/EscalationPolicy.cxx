@@ -54,7 +54,7 @@ namespace SAFplusAmf
     /*
      * XPATH: /SAFplusAmf/EscalationPolicy/duration
      */
-    void EscalationPolicy::setDuration(SaTimeT &durationValue, SAFplus::Transaction &txn)
+    void EscalationPolicy::setDuration(SaTimeT durationValue, SAFplus::Transaction &txn)
     {
         this->duration.set(durationValue,txn);
     };

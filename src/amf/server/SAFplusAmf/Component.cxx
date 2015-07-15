@@ -182,7 +182,7 @@ namespace SAFplusAmf
     /*
      * XPATH: /SAFplusAmf/Component/presenceState
      */
-    void Component::setPresenceState(SAFplusAmf::PresenceState &presenceStateValue, SAFplus::Transaction &t)
+    void Component::setPresenceState(SAFplusAmf::PresenceState presenceStateValue, SAFplus::Transaction &t)
     {
         if(&t == &SAFplus::NO_TXN) this->presenceState.value = presenceStateValue;
         else
@@ -203,7 +203,7 @@ namespace SAFplusAmf
     /*
      * XPATH: /SAFplusAmf/Component/capabilityModel
      */
-    void Component::setCapabilityModel(SAFplusAmf::CapabilityModel &capabilityModelValue, SAFplus::Transaction &t)
+    void Component::setCapabilityModel(SAFplusAmf::CapabilityModel capabilityModelValue, SAFplus::Transaction &t)
     {
         if(&t == &SAFplus::NO_TXN) this->capabilityModel.value = capabilityModelValue;
         else
@@ -303,7 +303,7 @@ namespace SAFplusAmf
     /*
      * XPATH: /SAFplusAmf/Component/readinessState
      */
-    void Component::setReadinessState(SAFplusAmf::ReadinessState &readinessStateValue, SAFplus::Transaction &t)
+    void Component::setReadinessState(SAFplusAmf::ReadinessState readinessStateValue, SAFplus::Transaction &t)
     {
         if(&t == &SAFplus::NO_TXN) this->readinessState.value = readinessStateValue;
         else
@@ -324,7 +324,7 @@ namespace SAFplusAmf
     /*
      * XPATH: /SAFplusAmf/Component/haReadinessState
      */
-    void Component::setHaReadinessState(SAFplusAmf::HighAvailabilityReadinessState &haReadinessStateValue, SAFplus::Transaction &t)
+    void Component::setHaReadinessState(SAFplusAmf::HighAvailabilityReadinessState haReadinessStateValue, SAFplus::Transaction &t)
     {
         if(&t == &SAFplus::NO_TXN) this->haReadinessState.value = haReadinessStateValue;
         else
@@ -345,7 +345,7 @@ namespace SAFplusAmf
     /*
      * XPATH: /SAFplusAmf/Component/haState
      */
-    void Component::setHaState(SAFplusAmf::HighAvailabilityState &haStateValue, SAFplus::Transaction &t)
+    void Component::setHaState(SAFplusAmf::HighAvailabilityState haStateValue, SAFplus::Transaction &t)
     {
         if(&t == &SAFplus::NO_TXN) this->haState.value = haStateValue;
         else
@@ -529,7 +529,7 @@ namespace SAFplusAmf
     /*
      * XPATH: /SAFplusAmf/Component/lastInstantiation
      */
-    void Component::setLastInstantiation(SAFplusTypes::Date &lastInstantiationValue, SAFplus::Transaction &t)
+    void Component::setLastInstantiation(SAFplusTypes::Date lastInstantiationValue, SAFplus::Transaction &t)
     {
         if(&t == &SAFplus::NO_TXN) this->lastInstantiation.value = lastInstantiationValue;
         else
@@ -592,7 +592,7 @@ namespace SAFplusAmf
     /*
      * XPATH: /SAFplusAmf/Component/recovery
      */
-    void Component::setRecovery(SAFplusAmf::Recovery &recoveryValue, SAFplus::Transaction &t)
+    void Component::setRecovery(SAFplusAmf::Recovery recoveryValue, SAFplus::Transaction &t)
     {
         if(&t == &SAFplus::NO_TXN) this->recovery.value = recoveryValue;
         else
@@ -713,7 +713,7 @@ namespace SAFplusAmf
     /*
      * XPATH: /SAFplusAmf/Component/pendingOperation
      */
-    void Component::setPendingOperation(SAFplusAmf::PendingOperation &pendingOperationValue, SAFplus::Transaction &t)
+    void Component::setPendingOperation(SAFplusAmf::PendingOperation pendingOperationValue, SAFplus::Transaction &t)
     {
         if(&t == &SAFplus::NO_TXN) this->pendingOperation.value = pendingOperationValue;
         else
@@ -734,7 +734,7 @@ namespace SAFplusAmf
     /*
      * XPATH: /SAFplusAmf/Component/pendingOperationExpiration
      */
-    void Component::setPendingOperationExpiration(SAFplusTypes::Date &pendingOperationExpirationValue, SAFplus::Transaction &t)
+    void Component::setPendingOperationExpiration(SAFplusTypes::Date pendingOperationExpirationValue, SAFplus::Transaction &t)
     {
         if(&t == &SAFplus::NO_TXN) this->pendingOperationExpiration.value = pendingOperationExpirationValue;
         else

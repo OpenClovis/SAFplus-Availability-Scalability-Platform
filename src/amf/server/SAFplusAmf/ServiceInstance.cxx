@@ -108,7 +108,7 @@ namespace SAFplusAmf
     /*
      * XPATH: /SAFplusAmf/ServiceInstance/adminState
      */
-    void ServiceInstance::setAdminState(SAFplusAmf::AdministrativeState &adminStateValue, SAFplus::Transaction &t)
+    void ServiceInstance::setAdminState(SAFplusAmf::AdministrativeState adminStateValue, SAFplus::Transaction &t)
     {
         if(&t == &SAFplus::NO_TXN) this->adminState.value = adminStateValue;
         else
@@ -129,7 +129,7 @@ namespace SAFplusAmf
     /*
      * XPATH: /SAFplusAmf/ServiceInstance/assignmentState
      */
-    void ServiceInstance::setAssignmentState(SAFplusAmf::AssignmentState &assignmentStateValue, SAFplus::Transaction &t)
+    void ServiceInstance::setAssignmentState(SAFplusAmf::AssignmentState assignmentStateValue, SAFplus::Transaction &t)
     {
         if(&t == &SAFplus::NO_TXN) this->assignmentState.value = assignmentStateValue;
         else

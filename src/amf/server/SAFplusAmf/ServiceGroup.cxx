@@ -110,7 +110,7 @@ namespace SAFplusAmf
     /*
      * XPATH: /SAFplusAmf/ServiceGroup/adminState
      */
-    void ServiceGroup::setAdminState(SAFplusAmf::AdministrativeState &adminStateValue, SAFplus::Transaction &t)
+    void ServiceGroup::setAdminState(SAFplusAmf::AdministrativeState adminStateValue, SAFplus::Transaction &t)
     {
         if(&t == &SAFplus::NO_TXN) this->adminState.value = adminStateValue;
         else
@@ -173,7 +173,7 @@ namespace SAFplusAmf
     /*
      * XPATH: /SAFplusAmf/ServiceGroup/autoAdjustInterval
      */
-    void ServiceGroup::setAutoAdjustInterval(SaTimeT &autoAdjustIntervalValue, SAFplus::Transaction &t)
+    void ServiceGroup::setAutoAdjustInterval(SaTimeT autoAdjustIntervalValue, SAFplus::Transaction &t)
     {
         if(&t == &SAFplus::NO_TXN) this->autoAdjustInterval.value = autoAdjustIntervalValue;
         else

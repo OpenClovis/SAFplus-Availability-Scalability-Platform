@@ -17,10 +17,10 @@ namespace SAFplusAmf
       EntityByIdKey();
       ~EntityByIdKey();
 
-      EntityByIdKey(unsigned short int idValue);
+      EntityByIdKey(unsigned short int &idValue);
 
       /* building an instance from string list */
-      void build(std::map<std::string,std::string> &keyList);
+      void build(std::map<std::string,std::string> keyList);
 
       /* key xpath: [@key1="value1" and @key2="value2" and ...] */
       std::string toXpath() const;

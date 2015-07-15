@@ -43,7 +43,7 @@ namespace SAFplusAmf
     /*
      * XPATH: /SAFplusAmf/Component/timeouts/quiescingComplete
      */
-    void Timeouts::setQuiescingComplete(SaTimeT &quiescingCompleteValue, SAFplus::Transaction &txn)
+    void Timeouts::setQuiescingComplete(SaTimeT quiescingCompleteValue, SAFplus::Transaction &txn)
     {
         this->quiescingComplete.set(quiescingCompleteValue,txn);
     };
@@ -59,7 +59,7 @@ namespace SAFplusAmf
     /*
      * XPATH: /SAFplusAmf/Component/timeouts/workRemoval
      */
-    void Timeouts::setWorkRemoval(SaTimeT &workRemovalValue, SAFplus::Transaction &txn)
+    void Timeouts::setWorkRemoval(SaTimeT workRemovalValue, SAFplus::Transaction &txn)
     {
         this->workRemoval.set(workRemovalValue,txn);
     };
@@ -75,7 +75,7 @@ namespace SAFplusAmf
     /*
      * XPATH: /SAFplusAmf/Component/timeouts/workAssignment
      */
-    void Timeouts::setWorkAssignment(SaTimeT &workAssignmentValue, SAFplus::Transaction &txn)
+    void Timeouts::setWorkAssignment(SaTimeT workAssignmentValue, SAFplus::Transaction &txn)
     {
         this->workAssignment.set(workAssignmentValue,txn);
     };

@@ -22,7 +22,7 @@ PERF_SRC := testRpcPerf.cxx $(notdir $(wildcard reflection/*.cxx))
 PERF_OBJ := $(addprefix $(OBJ_DIR)/test/rpc/,$(subst .cxx,.o,$(PERF_SRC)))
 
 # Specify the required libraries
-SAFPLUS_LIBS := clFault clOsal clUtils clLog clMsg clRpc
+SAFPLUS_LIBS := clOsal clUtils clLog clMsg clRpc
 
 # Then use these in the make rule
 SAFPLUS_DEP_LIBS     := $(addsuffix .so,$(addprefix $(LIB_DIR)/lib,$(SAFPLUS_LIBS)))

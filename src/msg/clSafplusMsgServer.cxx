@@ -95,17 +95,38 @@ namespace SAFplus
             {
               if (!msgSendConditionMutex.timed_wait(msgSendReplyMutex, 4000)) // TODO: create customizable timeout
                   {
-                    FaultState fs = fault->getFaultState(destination);
-                    if ((fs==FaultState::STATE_UP)||(fs==FaultState::STATE_UNDEFINED))
-                      {
-                        fault->notifyNoResponse(destination);  // Tell the fault manager that I'm having a problem.
-                        SendMsg(destination, buffer, length, msgtype);  // retry
-                      }
-                    if (fs==FaultState::STATE_DOWN)
-                      {
-                        return NULL;
-                      }
+                    Handle h = destination;
                     
+                    for (int i=0;i<3;i++)  // Loop around 3 times checking this handle, then node/process, and finally just the node
+                      {
+                        FaultState fs = fault->getFaultState(h);
+                        if (fs==FaultState::STATE_UP)
+                          {
+                            fault->notifyNoResponse(destination);  // Tell the fault manager that I'm having a problem.
+                            SendMsg(destination, buffer, length, msgtype);  // retry
+                          }
+                        else if (fs==FaultState::STATE_UNDEFINED)
+                          {
+                            // Look at fault state of containing entity?
+                            if (i==0) h = getProcessHandle(destination.getProcess(), destination.getNode());                      
+                            if (i==1) h = getNodeHandle(destination.getNode());
+                            if (i==2)  // No information is stored in the fault manager... should never happen
+                              {
+                                //            throw Error(Error::SAFPLUS_ERROR, Error::MISCONFIGURATION, "Invalid messaging port [0]", __FILE__, __LINE__);
+                                logCritical("MSG","SVR", "Fault manager has no information about this destination [%" PRIx64 ":%" PRIx64 "]", destination.id[0],destination.id[1]);
+                                return NULL; 
+                              }
+                          }
+                        else if (fs==FaultState::STATE_DOWN)
+                          {
+                            return NULL;
+                          }
+                        else 
+                          {
+                            assert(!"Impossible fault state");
+                          }
+                      }
+
                   }
               else
                   {

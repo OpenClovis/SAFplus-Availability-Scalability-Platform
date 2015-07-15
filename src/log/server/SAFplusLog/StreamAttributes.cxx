@@ -84,7 +84,7 @@ namespace SAFplusLog
     /*
      * XPATH: /SAFplusLog/StreamAttributes/replicate
      */
-    void StreamAttributes::setReplicate(SAFplusLog::Replicate &replicateValue, SAFplus::Transaction &txn)
+    void StreamAttributes::setReplicate(SAFplusLog::Replicate replicateValue, SAFplus::Transaction &txn)
     {
         this->replicate.set(replicateValue,txn);
     };
@@ -148,7 +148,7 @@ namespace SAFplusLog
     /*
      * XPATH: /SAFplusLog/StreamAttributes/fileFullAction
      */
-    void StreamAttributes::setFileFullAction(SAFplusLog::FileFullAction &fileFullActionValue, SAFplus::Transaction &txn)
+    void StreamAttributes::setFileFullAction(SAFplusLog::FileFullAction fileFullActionValue, SAFplus::Transaction &txn)
     {
         this->fileFullAction.set(fileFullActionValue,txn);
     };
@@ -228,7 +228,7 @@ namespace SAFplusLog
     /*
      * XPATH: /SAFplusLog/StreamAttributes/streamScope
      */
-    void StreamAttributes::setStreamScope(SAFplusLog::StreamScope &streamScopeValue, SAFplus::Transaction &txn)
+    void StreamAttributes::setStreamScope(SAFplusLog::StreamScope streamScopeValue, SAFplus::Transaction &txn)
     {
         this->streamScope.set(streamScopeValue,txn);
     };

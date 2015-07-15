@@ -110,8 +110,10 @@ BOOST_PYTHON_MODULE(pySAFplus)
     .def("commit",&Transaction::commit)
     .def("abort",&Transaction::abort);
 
+  // Expose global variables
   boost::python::scope().attr("SYS_LOG") = SYS_LOG;   
   boost::python::scope().attr("APP_LOG") = APP_LOG;   
+  boost::python::scope().attr("logSeverity") = SAFplus::logSeverity;   
 
   // Checkpoint
 

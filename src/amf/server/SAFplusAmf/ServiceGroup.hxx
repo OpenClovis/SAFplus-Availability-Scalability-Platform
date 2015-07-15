@@ -117,7 +117,7 @@ namespace SAFplusAmf
         /*
          * XPATH: /SAFplusAmf/ServiceGroup/adminState
          */
-        void setAdminState(SAFplusAmf::AdministrativeState &adminStateValue, SAFplus::Transaction &t=SAFplus::NO_TXN);
+        void setAdminState(SAFplusAmf::AdministrativeState adminStateValue, SAFplus::Transaction &t=SAFplus::NO_TXN);
 
         /*
          * XPATH: /SAFplusAmf/ServiceGroup/autoRepair
@@ -147,7 +147,7 @@ namespace SAFplusAmf
         /*
          * XPATH: /SAFplusAmf/ServiceGroup/autoAdjustInterval
          */
-        void setAutoAdjustInterval(SaTimeT &autoAdjustIntervalValue, SAFplus::Transaction &t=SAFplus::NO_TXN);
+        void setAutoAdjustInterval(SaTimeT autoAdjustIntervalValue, SAFplus::Transaction &t=SAFplus::NO_TXN);
 
         /*
          * XPATH: /SAFplusAmf/ServiceGroup/preferredNumActiveServiceUnits

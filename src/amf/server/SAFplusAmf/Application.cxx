@@ -69,7 +69,7 @@ namespace SAFplusAmf
     /*
      * XPATH: /SAFplusAmf/Application/adminState
      */
-    void Application::setAdminState(SAFplusAmf::AdministrativeState &adminStateValue, SAFplus::Transaction &t)
+    void Application::setAdminState(SAFplusAmf::AdministrativeState adminStateValue, SAFplus::Transaction &t)
     {
         if(&t == &SAFplus::NO_TXN) this->adminState.value = adminStateValue;
         else

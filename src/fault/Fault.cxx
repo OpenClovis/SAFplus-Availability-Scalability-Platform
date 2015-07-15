@@ -249,7 +249,7 @@ namespace SAFplus
         entryPtr = fsm.faultMap->find(faultHandle);
         if (entryPtr == fsm.faultMap->end())
         {
-            logError(FAULT,FAULT_ENTITY,"Fault Entity not available in shared memory");
+          logError(FAULT,FAULT_ENTITY,"Fault Entity [%" PRIx64 ":%" PRIx64 "] is not available in shared memory",faultHandle.id[0],faultHandle.id[1]);
             return SAFplus::FaultState::STATE_UNDEFINED;
         }
         FaultShmEntry *fse = &entryPtr->second;

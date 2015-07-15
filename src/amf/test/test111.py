@@ -37,8 +37,10 @@ def startupAmf(tgtDir,outfile=None,infile="/dev/null"):
       os.remove(tgtDir + "/bin/SAFplusAmf.db")
     except OSError, e: pass # ok file does not exist
 
+    cwd = os.path.abspath(tgtDir + "/bin")
+
     # now write the new data
-    db = dbalpy.PyDBAL(tgtDir + "/bin/SAFplusAmf") # Root of Log service start from /log ->  docRoot= "version.log_BootConfig.log"
+    db = dbalpy.PyDBAL(cwd + "/SAFplusAmf") # Root of Log service start from /log ->  docRoot= "version.log_BootConfig.log"
     db.LoadXML(modelXML)
     db.Finalize()
 
@@ -46,9 +48,8 @@ def startupAmf(tgtDir,outfile=None,infile="/dev/null"):
     bufferingSize = 64  # 4096
     cwd = os.path.abspath(tgtDir + "/bin")
     args = (cwd + "/safplus_amf",)
-    cwd = os.path.abspath(tgtDir + "/bin")
     amf = subprocess.Popen(args,bufferingSize,executable=None, stdin=infile, stdout=outfile, stderr=outfile, preexec_fn=None, close_fds=True, shell=False, cwd=cwd, env=None, universal_newlines=False, startupinfo=None, creationflags=0)
-    time.sleep(5)
+    time.sleep(30)  # TODO: without a sleep here, process is hanging waiting for mgt checkpoint gate.  I think that this process is being chosen as active replica (which should be ok) but for some reason is not working
 
 def connectToAmf():
   global SAFplusInitialized
@@ -58,6 +59,7 @@ def connectToAmf():
     sic.port = 52
     SAFplusInitialized = True
     sp.Initialize(svcs, sic)
+    sp.logSeverity = sp.LogSeverity.DEBUG
     
 
 def signalRandomCompInSi(si,role="active",sig=signal.SIGKILL):
@@ -108,10 +110,10 @@ def main(tgtDir):
       startupAmf(tgtDir,"amfOutput.txt")  
 
     connectToAmf()
-
+    print "AMF started"
     amfctrl.displaySgStatus("sg0")
 
-    mgtHammer()
+    # mgtHammer()
 
     # Make sure sg is fully up
     (active, standby) = waitForSiRecovery("si",60)
@@ -119,22 +121,27 @@ def main(tgtDir):
       raise TestFailed(now() + ": No active was chosen")
     if not standby:
       raise TestFailed(now() + ": No standby was chosen")
-
+    count = 0
     for i in range(1,2):
-      print now() +": Killing Active Component"
+      print now() +":" + str(count) + " Killing Active Component"
       for i in range(1,10):
         # grab a random process from the active list and kill it.
         signalRandomCompInSi("si","active")
         # wait for AMF to react
         time.sleep(5)
         waitForSiRecovery("si")
-      print now() + ": Killing Standby Component"
+        time.sleep(5)
+        count += 1
+      print now() + ":" + str(count) + " Killing Standby Component"
       for i in range(1,10):
         # grab a random process from the active list and kill it.
         signalRandomCompInSi("si","standby")
         # wait for AMF to react
         time.sleep(5)
         waitForSiRecovery("si")
+        time.sleep(5)
+        count += 1
+      amfctrl.displaySgStatus("sg0")
 
 
 if __name__ == '__main__':  # called from the target "test" directory

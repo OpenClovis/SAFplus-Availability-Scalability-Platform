@@ -13,13 +13,13 @@ namespace SAFplusAmf
   {
   }
 
-  EntityByIdKey::EntityByIdKey(unsigned short int idValue) 
+  EntityByIdKey::EntityByIdKey(unsigned short int &idValue) 
   {
     id = idValue;
   }
 
   /* building an instance from string list */
-  void EntityByIdKey::build(std::map<std::string,std::string> &keyList)
+  void EntityByIdKey::build(std::map<std::string,std::string> keyList)
   {
     std::map<std::string,std::string>::iterator iter;
     

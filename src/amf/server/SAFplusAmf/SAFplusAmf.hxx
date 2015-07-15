@@ -99,7 +99,7 @@ namespace SAFplusAmf
         /*
          * XPATH: /SAFplusAmf/healthCheckPeriod
          */
-        void setHealthCheckPeriod(SaTimeT &healthCheckPeriodValue, SAFplus::Transaction &txn=SAFplus::NO_TXN);
+        void setHealthCheckPeriod(SaTimeT healthCheckPeriodValue, SAFplus::Transaction &txn=SAFplus::NO_TXN);
 
         /*
          * XPATH: /SAFplusAmf/healthCheckMaxSilence
@@ -109,7 +109,7 @@ namespace SAFplusAmf
         /*
          * XPATH: /SAFplusAmf/healthCheckMaxSilence
          */
-        void setHealthCheckMaxSilence(SaTimeT &healthCheckMaxSilenceValue, SAFplus::Transaction &txn=SAFplus::NO_TXN);
+        void setHealthCheckMaxSilence(SaTimeT healthCheckMaxSilenceValue, SAFplus::Transaction &txn=SAFplus::NO_TXN);
         ~SAFplusAmfRoot();
 
     };
