@@ -3,5 +3,5 @@ def __bootstrap__():
    import sys, pkg_resources, imp
    __file__ = pkg_resources.resource_filename(__name__,'pySAFplus.so')
    __loader__ = None; del __bootstrap__, __loader__
-   imp.load_dynamic(__name__,__file__)
+   imp.load_dynamic("pySAFplus",__file__)
 __bootstrap__()
