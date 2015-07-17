@@ -1234,7 +1234,7 @@ are switched over to other nodes (component service instances are not abruptly r
       description "This attribute indicates the interval at which the corresponding healthcheck should be initiated (in milliseconds).";
       type safplus:SaTimeT;
       safplus:ui-prompt "AMF health check period";
-      //default 0;
+      default 0;
     }
 
     leaf healthCheckMaxSilence
@@ -1242,7 +1242,7 @@ are switched over to other nodes (component service instances are not abruptly r
       description "This attribute indicates the maximum time allowable for components to not reply to the health check (in milliseconds).  After this time passes with no response from the component, it will be faulted";
       type safplus:SaTimeT;
       safplus:ui-prompt "Max health check response time";   
-      //default 0; // disabled
+      default 0; // disabled
     }
 
   }
