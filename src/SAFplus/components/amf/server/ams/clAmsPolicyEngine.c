@@ -13868,7 +13868,7 @@ clAmsPeCompTerminateError(
 
     if(su && (su->status.presenceState == CL_AMS_PRESENCE_STATE_TERMINATING))
     {
-        return clAmsPeCompTerminateCallback(comp, CL_OK);
+        return clAmsPeSUCleanup(su);
     }
     return clAmsPeCompCleanup(comp);
 }
