@@ -13640,13 +13640,19 @@ clAmsPeCompTerminateCallback(
      * timeout happened before this callback and this has already been 
      * treated as an error. So ignore the callback.
      */
-    if (comp->config.property == CL_AMS_COMP_PROPERTY_SA_AWARE
-            && !clAmsEntityTimerIsRunning((ClAmsEntityT *) comp, CL_AMS_COMP_TIMER_TERMINATE))
+
+    /* will not work for proxied np components
+    if ( ! clAmsEntityTimerIsRunning(
+                (ClAmsEntityT *) comp,
+                CL_AMS_COMP_TIMER_TERMINATE) )
     {
-      AMS_ENTITY_LOG(comp, CL_AMS_MGMT_SUB_AREA_MSG, CL_DEBUG_TRACE,
-              ("Component [%s] terminate timer has been cleared. Ignoring callback..\n", comp->config.entity.name.value));
-      return CL_OK;
+        AMS_ENTITY_LOG(comp, CL_AMS_MGMT_SUB_AREA_MSG,CL_DEBUG_TRACE,
+            ("Component [%s] terminate timer has been cleared. Ignoring callback..\n",
+            comp->config.entity.name.value));
+
+        return CL_OK;
     }
+    */
 
     /*
      * Process terminate callback (component unregister) based on presence state
