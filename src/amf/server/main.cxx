@@ -529,7 +529,7 @@ int main(int argc, char* argv[])
 
   //SAFplus::safplusMsgServer.init(SAFplusI::AMF_IOC_PORT, MAX_MSGS, MAX_HANDLER_THREADS);
 
-  myHandle = SAFplus::Handle(TransientHandle,1,SAFplusI::AMF_IOC_PORT,SAFplus::ASP_NODEADDR);
+  myHandle = getProcessHandle(SAFplusI::AMF_IOC_PORT,SAFplus::ASP_NODEADDR);
   // Register a mapping between this node's name and its handle.
   nodeHandle = myHandle; // TODO: No should be different
 

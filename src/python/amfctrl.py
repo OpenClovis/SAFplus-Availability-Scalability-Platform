@@ -155,10 +155,10 @@ def displaySgStatus(sg):
 
 
 def Test():
-  pdb.set_trace()
+  # pdb.set_trace()
   global SAFplusInitialized
   if not SAFplusInitialized:
-    svcs = sp.Libraries.MSG | sp.Libraries.GRP
+    svcs = sp.Libraries.MSG | sp.Libraries.GRP | sp.Libraries.MGT_ACCESS
     sic = sp.SafplusInitializationConfiguration()
     sic.port = 55
     SAFplusInitialized = True
