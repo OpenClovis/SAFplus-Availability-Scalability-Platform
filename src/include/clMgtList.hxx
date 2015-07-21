@@ -830,8 +830,20 @@ namespace SAFplus
           h->nameSpec = nameSpec;
           h->it = bgn;
           h->end = end;
-          h->current.first = h->it->first;
-          h->current.second = h->it->second;
+          while ((h->it != h->end) && (!h->it->second->match(nameSpec)))  // Move forward looking for the first match
+            {
+              h->it++;
+            }
+          if (h->it == h->end)
+            {
+                h->current.first = "";
+                h->current.second = nullptr;
+            }
+          else
+            {
+            h->current.first = h->it->first;
+            h->current.second = h->it->second;
+            }
           ret.b  = h;
         }
         return ret;
@@ -1180,7 +1192,7 @@ namespace SAFplus
              resolvePath(tmp.c_str(),result);
            }
          }
-       else if (childName.find_first_of("*[(])?") != std::string::npos)
+       else if (childName.find_first_of("*[(])?") != std::string::npos)  // Its a complex lookup
          {  // Complex pattern lookup
            for (MgtObject::Iterator i= begin(childName);i!=end();i++)
              {

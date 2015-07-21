@@ -159,6 +159,11 @@ namespace SAFplus
         std::string rest = xpath.substr(idx + 1);
         object->resolvePath(rest.c_str(), result);
       }
+    if (xpath[idx] == '[')
+      {
+        std::string rest = xpath.substr(idx);
+        object->resolvePath(rest.c_str(), result);
+      }
     else  // Its an array or other complex entity
       {
         clDbgNotImplemented("complex access at module level");

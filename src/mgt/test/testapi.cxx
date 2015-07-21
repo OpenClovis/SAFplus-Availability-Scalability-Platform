@@ -52,6 +52,15 @@ int main(int argc, char *argv[])
     std::string getValue, setValue;
     char buf[200];
     //Test mgtGet function
+    snprintf(buf,200,"{%d}/SAFplusAmf/Component[name='c0']",1000);
+    getValue = SAFplus::mgtGet(buf);
+    printf("Get /SAFplusAmf/Component[name='c0'] = %s\n", getValue.c_str());
+
+    snprintf(buf,200,"{%d}/SAFplusAmf/Component[name='c1']",1000);
+    getValue = SAFplus::mgtGet(buf);
+    printf("Get /SAFplusAmf/Component[name='c1'] = %s\n", getValue.c_str());
+
+
     for (int i=0;i<2;i++)
       {
       snprintf(buf,200,"{%d}/SAFplusAmf/Component/c0",i);

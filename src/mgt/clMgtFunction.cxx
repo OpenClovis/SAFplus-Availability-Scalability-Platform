@@ -73,7 +73,7 @@ namespace SAFplus
         catch (SAFplus::Error& e)
           {
           }
-        lastSlash = xpath.rfind("/");
+        lastSlash = xpath.find_last_of("/[");
         if (lastSlash == std::string::npos) break;
         xpath = xpath.substr(0,lastSlash);
       }
@@ -184,6 +184,11 @@ namespace SAFplus
         {
           output = mgtGet(hdl, pathSpec);  // Pass the {} directives through to the server side
         }
+        else
+          {
+            logError("MGT", "REV", "Route [%s] has no implementer", pathSpec.c_str());
+            // TODO: throw exception
+          }
       }
     return output;
   }

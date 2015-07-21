@@ -96,7 +96,36 @@ namespace SAFplus
   {
     if (nameSpec == "*") return true;
     if (nameSpec == "**") return true;
-    
+    if (nameSpec[0] == '[')   // eg: [name='c0'] or [name= "c0"]
+      {
+        std::string val;
+        int pt = nameSpec.find_first_of("=]");        
+        std::string key = nameSpec.substr(1,pt-1);
+        if (pt != string::npos)
+          {
+            int valst = nameSpec.find_first_of("'\"",pt);  // Find the first quote
+            if (valst != string::npos)
+              {
+                char term = nameSpec[valst];  // get what quote char is being used
+                valst+=1;
+                int valend = nameSpec.find(term,valst);
+                if (valend != string::npos)
+                  {
+                    val = nameSpec.substr(valst, valend-valst);
+                  }
+              }
+          }
+        // now return true if there's a child named "name" with value matching "val"
+        if (key == "name")  // Hardcode the special name case
+          {
+            return (val==tag);
+          }
+        MgtObject* child = find(key);
+        if (child)
+          {
+            return(child->strValue() == val);
+          }
+      }
     return false;
   }
 
