@@ -31,111 +31,111 @@ namespace SAFplus
 
   class queueInfomation
   {
-    public:
-	  queueInfomation()
-      {
-      }
+  public:
+    queueInfomation()
+    {
+    }
 
-      int nextSequenceNumber()
-      {
-          fragNumber = fragNumber+1;
-          return fragNumber;
-      }
+    int nextSequenceNumber()
+    {
+      fragNumber = fragNumber+1;
+      return fragNumber;
+    }
 
-      int setSequenceNumber(int n)
-      {
-          fragNumber = n;
-          return fragNumber;
-      }
+    int setSequenceNumber(int n)
+    {
+      fragNumber = n;
+      return fragNumber;
+    }
 
-      int setLastInSequence(int n)
-      {
-          lastFrag = n;
-          return lastFrag;
-      }
+    int setLastInSequence(int n)
+    {
+      lastFrag = n;
+      return lastFrag;
+    }
 
-      int getLastInSequence()
-      {
-          return lastFrag;
-      }
+    int getLastInSequence()
+    {
+      return lastFrag;
+    }
 
-      void increaseCumulativeAckCounter()
-      {
-          numberOfCumAck++;
-      }
+    void increaseCumulativeAckCounter()
+    {
+      numberOfCumAck++;
+    }
 
-      int getCumulativeAckCounter()
-      {
-          return numberOfCumAck;
-      }
+    int getCumulativeAckCounter()
+    {
+      return numberOfCumAck;
+    }
 
-      int getAndResetCumulativeAckCounter()
-      {
-          int tmp = numberOfCumAck;
-          numberOfCumAck = 0;
-          return tmp;
-      }
+    int getAndResetCumulativeAckCounter()
+    {
+      int tmp = numberOfCumAck;
+      numberOfCumAck = 0;
+      return tmp;
+    }
 
-      void increaseOutOfSequenceCounter()
-      {
-          numberOfOutOfSeq++;
-      }
+    void increaseOutOfSequenceCounter()
+    {
+      numberOfOutOfSeq++;
+    }
 
-      int getOutOfSequenceCounter()
-      {
-          return numberOfOutOfSeq;
-      }
+    int getOutOfSequenceCounter()
+    {
+      return numberOfOutOfSeq;
+    }
 
-      int getAndResetOutOfSequenceCounter()
-      {
-          int tmp = numberOfOutOfSeq;
-          numberOfOutOfSeq = 0;
-          return tmp;
-      }
+    int getAndResetOutOfSequenceCounter()
+    {
+      int tmp = numberOfOutOfSeq;
+      numberOfOutOfSeq = 0;
+      return tmp;
+    }
 
-      void incOutstandingFragmentsCounter()
-      {
-          numberOfNakFrag++;
-      }
+    void incOutstandingFragmentsCounter()
+    {
+      numberOfNakFrag++;
+    }
 
-      int getOutstandingFragmentsCounter()
-      {
-          return numberOfNakFrag;
-      }
+    int getOutstandingFragmentsCounter()
+    {
+      return numberOfNakFrag;
+    }
 
-      int getAndResetOutstandingFragmentsCounter()
-      {
-          int tmp = numberOfNakFrag;
-          numberOfNakFrag = 0;
-          return tmp;
-      }
+    int getAndResetOutstandingFragmentsCounter()
+    {
+      int tmp = numberOfNakFrag;
+      numberOfNakFrag = 0;
+      return tmp;
+    }
 
-      void reset()
-      {
-          numberOfOutOfSeq = 0;
-          numberOfNakFrag  = 0;
-          numberOfCumAck   = 0;
-      }
-      int fragNumber;             /* Fragment sequence number */
-      int lastFrag;   /* Last in-Fragment received segment */
-      /*
-       * The receiver maintains a counter of unacknowledged segments received
-       * without an acknowledgment being sent to the transmitter. T
-       */
-      int numberOfCumAck; /* Cumulative acknowledge counter */
+    void reset()
+    {
+      numberOfOutOfSeq = 0;
+      numberOfNakFrag  = 0;
+      numberOfCumAck   = 0;
+    }
+    int fragNumber;             /* Fragment sequence number */
+    int lastFrag;   /* Last in-Fragment received segment */
+    /*
+     * The receiver maintains a counter of unacknowledged segments received
+     * without an acknowledgment being sent to the transmitter. T
+     */
+    int numberOfCumAck; /* Cumulative acknowledge counter */
 
-      /*
-       * The receiver maintains a counter of the number of segments that have
-       * arrived out-of-sequence.
-       */
-      int numberOfOutOfSeq; /* Out-of-sequence acknowledgments counter */
+    /*
+     * The receiver maintains a counter of the number of segments that have
+     * arrived out-of-sequence.
+     */
+    int numberOfOutOfSeq; /* Out-of-sequence acknowledgments counter */
 
-      /*
-       * The transmitter maintains a counter of the number of segments that
-       * have been sent without getting an acknowledgment. This is used
-       * by the receiver as a mean of flow control.
-       */
-      int numberOfNakFrag; /* Outstanding segments counter */
+    /*
+     * The transmitter maintains a counter of the number of segments that
+     * have been sent without getting an acknowledgment. This is used
+     * by the receiver as a mean of flow control.
+     */
+    int numberOfNakFrag; /* Outstanding segments counter */
   };
   enum TimerStatus
   {
@@ -144,7 +144,7 @@ namespace SAFplus
   };
   class SAFplusTimer
   {
-    public:
+  public:
     pthread_t nullFragmentTimer;
     bool isStop;
     TimerStatus status;
@@ -154,11 +154,10 @@ namespace SAFplus
 
   class MsgSocketReliable : public MsgSocketAdvanced //, SAFPlusLockable
   {
-    private:
+  private:
     /*
-    * When this timer expires, the connection is considered broken.
-    */
-      boost::intrusive::list_member_hook<> m_memberHook;
+     * When this timer expires, the connection is considered broken.
+     */
     int sendQueueSize = 32; /* Maximum number of received segments */
     int recvQueueSize = 32; /* Maximum number of sent segments */
     int sendBufferSize;
@@ -205,13 +204,14 @@ namespace SAFplus
     void handleReliableSocketThread(void);
     void sendReliableFragment(ReliableFragment *frag);
     void queueAndSendReliableFragment(ReliableFragment* frag);
-    ReliableFragment* receiveReliableFragment(Handle &);
+    virtual ReliableFragment* receiveReliableFragment(Handle &);
     void retransmitFragment(ReliableFragment* frag);
     void setconnection(connectionNotification state);
     void connectionOpened(void);
     void init();
 
-    public:
+  public:
+    boost::intrusive::list_member_hook<> m_reliableSocketmemberHook;
     Handle destination;
     uint_t messageType;
     ReliableSocketProfile* profile;
@@ -220,11 +220,14 @@ namespace SAFplus
     SAFplusTimer cumulativeAckTimer;
     SAFplusTimer keepAliveTimer;
     MsgSocketReliable(uint_t port,MsgTransportPlugin_1* transport);
+    MsgSocketReliable(uint_t port,MsgTransportPlugin_1* transport,Handle destination);
     MsgSocketReliable(MsgSocket* socket);
     virtual ~MsgSocketReliable();
     //? Send a bunch of messages.  You give up ownership of msg.
     virtual void send(Message* msg);
     virtual void send(SAFplus::Handle destination, void* buffer, uint_t length,uint_t msgtype);
+    int receiveReliable(Byte* buffer, int offset, int len);
+    void sendReliable(Byte* buffer, int offset, int len);
     virtual Message* receive(uint_t maxMsgs,int maxDelay=-1);
     void connect(Handle destination, int timeout);
     void close(void);
@@ -239,33 +242,60 @@ namespace SAFplus
     virtual void flush();
 
 
+
   };
 
 
   //The disposer object function
   struct delete_disposer
   {
-     void operator()(ReliableFragment *delete_this)
-     {
-        delete delete_this;
-     }
+    void operator()(ReliableFragment *delete_this)
+    {
+      delete delete_this;
+    }
   };
+  typedef member_hook<MsgSocketReliable, list_member_hook<>,
+      &MsgSocketReliable::m_reliableSocketmemberHook> ReliableSocketMemberHookOption;
+  typedef list<MsgSocketReliable, ReliableSocketMemberHookOption> ReliableSocketList;
 
 
-  typedef boost::unordered_map < SAFplus::Handle, MsgSocketReliable*, boost::hash<SAFplus::Handle>, std::equal_to<SAFplus::Handle> > HandleSockMap;
+
   class MsgSocketServerReliable : public MsgSocketAdvanced
   {
     int timeout;
     bool isClosed;
-    HandleSockMap clientSockTable;
     boost::thread ServerRcvThread;
-    void addClientSocket(Handle destAddress, MsgSocketReliable* sockClient);
     void removeClientSocket(Handle destAddress);
+    void addClientSocket(Handle destAddress);
     void handleRcvThread();
+    MsgSocketReliable* accept();
     static void rcvThread(void * arg);
     MsgSocketServerReliable(uint_t port,MsgTransportPlugin_1* transport);
     MsgSocketServerReliable(MsgSocket* socket);
     void init();
+  public:
+    ReliableSocketList listenSock;
+    ThreadCondition listenSockCond;
+    SAFplus::Mutex listenSockMutex;
+    ReliableFragmentList fragmentQueue;
+    SAFplus::Mutex fragmentQueueLock;
+    ThreadCondition fragmentQueueCond;
+    //This list will use the member hook
+    class MsgSocketClientReliable : public MsgSocketReliable
+    {
+    private:
+      MsgSocketServerReliable &sockServer;
+    public:
+      MsgSocketClientReliable(MsgSocketServerReliable &sockServerReliable, MsgSocket* sockClient,Handle destination);
+      virtual ReliableFragment* receiveReliableFragment(Handle &);
+      void receiverFragment(ReliableFragment* frag);
+    };
+    typedef boost::unordered_map < SAFplus::Handle, MsgSocketClientReliable*, boost::hash<SAFplus::Handle>, std::equal_to<SAFplus::Handle> > HandleSockMap;
+    HandleSockMap clientSockTable;
+
   };
+
+
+
 
 };
