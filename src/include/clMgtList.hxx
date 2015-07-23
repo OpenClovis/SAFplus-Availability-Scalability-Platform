@@ -908,10 +908,9 @@ namespace SAFplus
               */
             
             entry->toString(xmlString,newopts);
-        xmlString << "</" << tag << '>';
-
           }
         }
+        xmlString << "</" << tag << '>';
       }
 
       MgtObject* lookUpMgtObject(const std::string & classType, const std::string &ref)
