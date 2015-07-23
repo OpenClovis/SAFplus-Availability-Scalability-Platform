@@ -256,6 +256,7 @@ namespace SAFplus
     return rc;
   }
 
+#if 0 // Obsoletely, don't use anymore
   void MgtRoot::clMgtMsgEditHandler(SAFplus::Handle srcAddr, Mgt::Msg::MsgMgt& reqMsg)
   {
     ClRcT rc = CL_OK;
@@ -382,6 +383,7 @@ namespace SAFplus
     logDebug("MGT","GET","Replying with msg of size [%lu]",(long unsigned int) strRplMesg.size());
     MgtRoot::sendReplyMsg(srcAddr,(void *)strRplMesg.c_str(),strRplMesg.size());
   }
+#endif
 
   void MgtRoot::resolvePath(const char* path, std::vector<MgtObject*>* result)
   {
@@ -594,12 +596,14 @@ namespace SAFplus
     mgtMsgReq.ParseFromArray(msg, msglen);
     switch(mgtMsgReq.type())
     {
+#if 0 // Obsoletely, don't use anymore
       case Mgt::Msg::MsgMgt::CL_MGT_MSG_SET:
         mRoot->clMgtMsgEditHandler(from,mgtMsgReq);
         break;
       case Mgt::Msg::MsgMgt::CL_MGT_MSG_GET:
         mRoot->clMgtMsgGetHandler(from,mgtMsgReq);
         break;
+#endif
       case Mgt::Msg::MsgMgt::CL_MGT_MSG_XGET:
         mRoot->clMgtMsgXGetHandler(from,mgtMsgReq);
         break;
