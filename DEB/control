@@ -1,0 +1,20 @@
+Source: safplus
+Section: devel
+Priority: extra
+Maintainer: OpenClovisInc <http://www.openclovis.com/blog>
+Standards-Version: 3.9.4
+Homepage: http://www.openclovis.com
+Vcs-Git: http://github.com/OpenClovis/SAFplus-Availability-Scalability-Platform.git
+Vcs-Browser: https://github.com/OpenClovis/SAFplus-Availability-Scalability-Platform.git
+
+Package: safplus-dev
+Architecture: 
+Section: devel
+Priority: extra
+Depends: libprotoc-dev protobuf-compiler python-protobuf libbz2-dev python-dev g++ libboost1.55-dev libdb-dev libgdbm-dev libsqlite3-dev
+Description: SAFplus is SA-Forum API compatible  middleware 
+ SAFplus is SA-Forum API compatible middleware that provides High 
+ Availability (HA), System Management, and other services, addressing 
+ the infrastructure needs of complex devices found in the telecom, 
+ defense, financial and server cluster appliance (MMORPG gaming, etc)
+ markets
