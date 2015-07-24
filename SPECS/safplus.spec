@@ -1,9 +1,9 @@
 Name:		safplus	        
-Version:        7.0
-Release:        1%{dist}
+Version:	        
+Release:        
 Group:          Development/Libraries
 License:	commercial license or GPL-3.0+
-Source0:	%{name}-%{version}.tgz       
+Source0:	%{name}_%{version}.tgz       
 URL:		http://www.openclovis.com   
 Vendor:		OpenClovis Inc
 Packager:	OpenClovisInc <http://www.openclovis.com/blog>
@@ -18,7 +18,7 @@ defense, financial and server cluster appliance (MMORPG gaming, etc) markets
 This package provides SAFplus source code, header files and libraries for developing 
 the applications 
 %prep
-%setup -n %{name} 
+%setup -cn %{name} 
 %build
 echo "Building RPM PACKAGE"
 cd src
