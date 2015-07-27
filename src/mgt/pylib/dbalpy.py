@@ -214,7 +214,9 @@ class PyDBAL():
 
         #Map to store xpath and ElementXpath
         self.mapparentelem = {}
-        for xpath in self.Iterators():
+
+        ''' Select all rows of db to export '''
+        for xpath in self.Iterators('/'):
             #Is attribute xpath? /a/b/c@name => attr name
             attr_xpath = False 
 
@@ -284,12 +286,12 @@ class PyDBAL():
     def Iterators(self, xpath=None):
         if xpath:
             try:
-                keys = [key for key in pyDbal.iterators(xpath)]
+                keys = pyDbal.iterators(xpath)
                 return keys
             except:
                 return []
         else:
-            return pyDbal.iterators()
+            return pyDbal.iterators('/') #Default select all rows of db
 
     def Write(self, key, data):
         print "Writing %s -> %s" % (str(key), str(data))
