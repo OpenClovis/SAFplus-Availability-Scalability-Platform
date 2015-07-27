@@ -284,7 +284,7 @@ class PyDBAL():
     def Iterators(self, xpath=None):
         if xpath:
             try:
-                keys = [key for key in pyDbal.iterators() if key.startswith(xpath)]
+                keys = [key for key in pyDbal.iterators(xpath)]
                 return keys
             except:
                 return []

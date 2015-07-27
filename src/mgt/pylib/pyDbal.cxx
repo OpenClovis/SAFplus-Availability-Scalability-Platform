@@ -23,13 +23,16 @@ using namespace SAFplus;
 static PyObject* Read(PyObject *self, PyObject *args)
 {
     ClRcT rc = CL_OK;
-    string key;
+    ClCharT *key;
     string value;
 
     if (!PyArg_ParseTuple(args, "s", &key))
     {
+        Py_DECREF(args);
         return NULL;
     }
+
+    Py_DECREF(args);
 
     rc = MgtDatabase::getInstance()->getRecord(key, value);
     if (rc != CL_OK)
@@ -86,47 +89,27 @@ static PyObject* Replace(PyObject *self, PyObject *args)
 static PyObject* Iterators(PyObject *self, PyObject *args)
 {
     ClRcT rc = CL_OK;
+    ClCharT *xpath;
 
-    ClUint32T   keySize         = 0;
-    ClUint32T   dataSize        = 0;
-    ClUint32T   nextKeySize     = 0;
-    ClUint32T   *recKey           = NULL;
-    ClUint32T   *nextKey        = NULL;
-    ClCharT     *recData          = NULL;
+    if (!PyArg_ParseTuple(args, "s", &xpath))
+    {
+        PyErr_SetObject(PyExc_SystemError, PyString_FromString("Xpath filter is NULL"));
+        return NULL;
+    }
 
     /*
      * Iterators key value
      */
     PyObject* lstKeys = PyList_New(0);
-
-#if 0
-    rc = clDbalFirstRecordGet(dbIterHdl, (ClDBKeyT*)&recKey, &keySize, (ClDBRecordT*)&recData, &dataSize);
-
-    if (rc != CL_OK)
+    std::vector<std::string> xpathIterators = MgtDatabase::getInstance()->iterate(xpath);
+    if (xpathIterators.size())
     {
-        PyErr_SetObject(PyExc_SystemError, PyInt_FromLong(CL_GET_ERROR_CODE(rc)));
-        return NULL;
+      for (std::vector<std::string>::iterator iter = xpathIterators.begin(); iter!=xpathIterators.end(); ++iter)
+      {
+        PyObject *item = PyString_FromString((*iter).c_str());
+        PyList_Append(lstKeys, item);
+      }
     }
-
-    PyObject* firstData = PyString_FromStringAndSize(recData, dataSize);
-    PyList_Append(lstKeys, firstData);
-
-    while (1)
-    {
-        if ((rc = clDbalNextRecordGet(dbIterHdl, (ClDBKeyT)recKey, keySize,
-                        (ClDBKeyT*)&nextKey, &nextKeySize,
-                        (ClDBRecordT*)&recData, &dataSize)) != CL_OK)
-        {
-            rc = CL_OK;
-            break;
-        }
-        recKey = nextKey;
-        keySize = nextKeySize;
-
-        PyObject* nextData = PyString_FromStringAndSize(recData, dataSize);
-        PyList_Append(lstKeys, nextData);
-    }
-#endif
     return lstKeys;
 }
 
