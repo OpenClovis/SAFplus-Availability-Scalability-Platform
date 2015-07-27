@@ -4236,8 +4236,8 @@ ClRcT VDECL(cpmComponentFailureReport)(ClEoDataT data,
         if (clAmsFaultQueueFind(&entity, NULL) != CL_OK)
         {            
           clAmsFaultQueueAdd(&entity);
+          clOsalMutexUnlock(gpClCpm->cpmTableMutex);  // Must be above task pool run or deadlock
           clTaskPoolRun(gCpmFaultPool, cpmFailureReportTask, (void*)errorReport);
-          clOsalMutexUnlock(gpClCpm->cpmTableMutex);
         }
         else
         {

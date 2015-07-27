@@ -4040,10 +4040,11 @@ static ClRcT compMgrPollThread(void)
         gpClCpm->polling = CL_FALSE;
     }
 
+    // polling all user components to check its status.  We need to do this periodically to catch a component the fails instantly AND we need to do it whenever we get a sigChild.
+    cpmPollUserComponents();
+    
     if (gotSigChild)
     {
-        // polling all user components to check its status 
-        cpmPollUserComponents();
         // Reset for restarting heartbeat
         gotSigChild = 0;
     }

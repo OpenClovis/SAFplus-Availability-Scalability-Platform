@@ -4691,11 +4691,13 @@ clAmsPeSULockInstantiationCallback(
 
     AMS_CALL ( clAmsPeSUMarkUninstantiable(su) );
 
+#if 0  // Stone:  Why would we force the system into a "needs repair" state if the operator stops the Service Unit during a recovery?  I do not understand the purpose of this code, however, it causes a "bug"; kill a component, then stop SU.  Then start it back up (it will not start).
     if ( su->status.recovery )
     {
         CL_AMS_SET_O_STATE(su, CL_AMS_OPER_STATE_DISABLED);
     }
-
+#endif
+    
     return CL_OK;
 }
 
