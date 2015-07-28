@@ -16,6 +16,9 @@ from xml.dom import minidom
 
 cfgpath = os.environ.get("SAFPLUS_CONFIG",os.environ.get("SAFPLUS_BINDIR","."))
 
+SAFPLUS_VERSION = "7.0.0"
+ROOT_WRAPPER = "SAFplus"
+
 SAFplusError = {
     0x00:"CL_OK",
     0x02:"CL_ERR_INVALID_PARAMETER",
@@ -277,7 +280,13 @@ class PyDBAL():
             filename = "%s.xml" %self.dbName
 
         file = open(filename, "wb")
-        file.write(prettify(root))
+
+        ''' Wrapper into <SAFplus version="..."> ... </SAFplus>'''
+        wrapper_safplus = ET.Element(ROOT_WRAPPER)
+        wrapper_safplus.attrib['version'] = SAFPLUS_VERSION
+
+        wrapper_safplus.append(root)
+        file.write(prettify(wrapper_safplus))
         file.close()
 
     def Finalize(self):
