@@ -295,7 +295,7 @@ ClBoolT clAmsHasNodeJoined(const ClCharT *pNodeName)
     if(rc == CL_OK && entityRef.ptr)
     {
         ClAmsNodeT *node = (ClAmsNodeT*)entityRef.ptr;
-        if(node->status.isClusterMember == CL_AMS_NODE_IS_CLUSTER_MEMBER)
+        if(node->status.isClusterMember == CL_AMS_NODE_IS_CLUSTER_MEMBER || node->status.isClusterMember == CL_AMS_NODE_IS_LEAVING_CLUSTER)
         {
             clOsalMutexUnlock(gAms.mutex);
             return CL_TRUE;
