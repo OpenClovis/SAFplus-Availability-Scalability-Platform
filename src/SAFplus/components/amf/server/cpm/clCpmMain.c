@@ -3852,9 +3852,10 @@ ClRcT compMgrPollThread(void)
     if ((envAppShutdownTimeout = getenv("APP_SHUTDOWN_TIMEOUT")))
     {
       maxAppShutdownTimeout = atoi(envAppShutdownTimeout);
-      if (!maxAppShutdownTimeout)
-        maxAppShutdownTimeout = APP_SHUTDOWN_DEFAULT_TIMEOUT;
     }
+
+    if (!maxAppShutdownTimeout)
+      maxAppShutdownTimeout = APP_SHUTDOWN_DEFAULT_TIMEOUT;
 
     CL_DEBUG_PRINT(CL_DEBUG_TRACE, ("Inside compMgrPollThread \n"));
 
