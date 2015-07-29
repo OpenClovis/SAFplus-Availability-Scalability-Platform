@@ -133,6 +133,11 @@ pthread_cond_t condMain = PTHREAD_COND_INITIALIZER;
 #define CL_CPM_PIPE_MSG_SIZE (512)
 #define CPM_VALGRIND_DEFAULT_DELAY (0x5)
 
+/*
+ * Default maximum waiting time for applications shutdown (seconds)
+ */
+#define APP_SHUTDOWN_DEFAULT_TIMEOUT (300)
+
 extern ClBoolT gCpmShuttingDown;
 extern ClBoolT gCpmAppShutdown;
 
@@ -3841,6 +3846,15 @@ ClRcT compMgrPollThread(void)
     ClCpmComponentT *comp = NULL;
     ClUint32T compCount = 0;
     ClCpmLT *cpmInfo = NULL;
+    ClUint32T maxAppShutdownTimeout = 0;
+    ClCharT *envAppShutdownTimeout = NULL;
+
+    if ((envAppShutdownTimeout = getenv("APP_SHUTDOWN_TIMEOUT")))
+    {
+      maxAppShutdownTimeout = atoi(envAppShutdownTimeout);
+      if (!maxAppShutdownTimeout)
+        maxAppShutdownTimeout = APP_SHUTDOWN_DEFAULT_TIMEOUT;
+    }
 
     CL_DEBUG_PRINT(CL_DEBUG_TRACE, ("Inside compMgrPollThread \n"));
 
@@ -4076,7 +4090,7 @@ ClRcT compMgrPollThread(void)
 
         // This is inside gotSIG because presumably in other shutdown cases it has already been called
         clOsalMutexUnlock(&gpClCpm->heartbeatMutex);
-        if (!cpmOrderlyShutdown(300))
+        if (!cpmOrderlyShutdown(maxAppShutdownTimeout))
         {
             clLogCritical(CPM_LOG_AREA_CPM, CPM_LOG_CTX_CPM_BOOT, "Applications never shut down.  Quitting AMF now.");
         }        
