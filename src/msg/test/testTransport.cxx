@@ -44,8 +44,8 @@ public:
 bool testSendRecv(MsgTransportPlugin_1* xp)
   {
   const char* strMsg = "This is a test of message sending";
-  MsgSocket* a = xp->createSocket(1);
-  MsgSocket* b = xp->createSocket(2);
+  MsgSocket* a = xp->createSocket(3);
+  MsgSocket* b = xp->createSocket(4);
   Handle bHdl = b->handle();
   Message* m;
   uint64_t initialAlloc = a->msgPool->allocated;
@@ -53,7 +53,7 @@ bool testSendRecv(MsgTransportPlugin_1* xp)
   m = b->receive(1,0);
   clTest(("receiving nothing, no delay"), m == NULL, (" "));
 
-  //m = b->receive(1,500);
+  //m = b->receive(1,4);
   //clTest(("receiving nothing, with delay"), m == NULL, (" "));
 
   m = a->msgPool->allocMsg();
@@ -195,11 +195,69 @@ bool testSendRecvSize(MsgTransportPlugin_1* xp)
   return true;
   }
 
+#define LEAKY_BUCKET_DEFAULT_VOL (200*1024)
+#define LEAKY_BUCKET_DEFAULT_LEAK_SIZE (100*1024)
+#define LEAKY_BUCKET_DEFAULT_LEAK_INTERVAL (400)
+bool testSendRecvShaping(MsgTransportPlugin_1* xp)
+{
+  const char* strMsg = "This is a test of message sending in shaping mode";
+  //MsgSocket* a = xp->createSocket(1);
+  //MsgSocket* b = xp->createSocket(2);
+  printf("go here \n");
+  MsgSocketShaping a(3,xp,LEAKY_BUCKET_DEFAULT_VOL,LEAKY_BUCKET_DEFAULT_LEAK_SIZE,LEAKY_BUCKET_DEFAULT_LEAK_INTERVAL);
+  MsgSocketShaping b(4,xp,LEAKY_BUCKET_DEFAULT_VOL,LEAKY_BUCKET_DEFAULT_LEAK_SIZE,LEAKY_BUCKET_DEFAULT_LEAK_INTERVAL);
+  int maxTry = 1;
+  Message* m;
+  unsigned long seed = 0;
+  for (int size = 1; size <= xp->config.maxMsgSize; size+=512)
+  {
+    seed++;
+    printf("%d ", size);
+    fflush(stdout);
+    m = a.sock->msgPool->allocMsg();
+    clTest(("message allocated"), m != NULL,(" "));
+    m->setAddress(b.sock->node,b.sock->port);
+    MsgFragment* frag = m->append(size);
+    clTest(("message frag allocated"), frag != NULL,(" "));
+    xorshf96 rnd(seed);
+    unsigned char* buf = (unsigned char*) frag->data();
+    for (int i = 0; i < size; i++,buf++)
+    {
+      *buf = rnd();
+    }
+    frag->len = size;
+    a.send(m);
+    m = b.receive(1,0);
+    int tries = 0;
+    while (tries<maxTry && !m)
+    {
+      boost::this_thread::sleep(boost::posix_time::milliseconds(50));
+      m = b.receive(1,0);
+      tries++;
+    }
+    assert(m);
+    frag = m->firstFragment;
+    assert(frag);
+    xorshf96 rnd1(seed);
+    const unsigned char* bufr = (const unsigned char*) frag->read();
+    int miscompare=-1;
+    for (int i = 0; (i < size) && !miscompare; i++,bufr++)
+    {
+      if (*bufr != rnd())
+      {
+        miscompare = i;
+      }
+    }
+    clTest(("send/recv message ok"),miscompare==-1,("message size [%d] contents miscompare at position: [%d]",size,miscompare));
+  }
+  printf("he he he he");
+  return true;
+}
 bool testSendRecvMultiple(MsgTransportPlugin_1* xp)
   {
   const char* strMsg = "This is a test of message sending";
-  MsgSocket* a = xp->createSocket(1);
-  MsgSocket* b = xp->createSocket(2);
+  MsgSocket* a = xp->createSocket(3);
+  MsgSocket* b = xp->createSocket(4);
 
   Message* m;
   
@@ -436,7 +494,7 @@ const char* ModeStr = 0;
 
 int main(int argc, char* argv[])
 {
-  //SAFplus::logSeverity = SAFplus::LOG_SEV_DEBUG;
+  SAFplus::logSeverity = SAFplus::LOG_SEV_DEBUG;
   SAFplus::logCompName = "TSTTRA";
 
   std::string xport("clMsgUdp.so");
@@ -472,7 +530,7 @@ int main(int argc, char* argv[])
 
   clTestCase(("MXP-POL-MEM.TC001: Message memory pool"),msgPoolTests(msgPool));
   clTestCase(("MXP-SND-FNC.TC002: Message send recv functional loopback tests"), messageTests(msgPool));
-
+  safplusInitialize(SAFplus::LibDep::LOG);
   ClPlugin* api = NULL;
   if (1)
     {
@@ -509,7 +567,8 @@ int main(int argc, char* argv[])
           clTestCaseEnd((" "));
           clTestCase(("MXP-%3s-%3s.TC003: simple send/recv test",MsgXportTestPfx,ModeStr),testSendRecv(xp));
           clTestCase(("MXP-%3s-%3s.TC004: send/recv messages of every allowed length",MsgXportTestPfx,ModeStr),testSendRecvSize(xp));
-          clTestCase(("MXP-%3s-%3s.TC005: send/recv multiple simultaneous messages of every allowed length",MsgXportTestPfx,ModeStr),testSendRecvMultiple(xp));
+          clTestCase(("MXP-%3s-%3s.TC004: send/recv messages of every allowed length",MsgXportTestPfx,ModeStr),testSendRecvShaping(xp));
+//          clTestCase(("MXP-%3s-%3s.TC005: send/recv multiple simultaneous messages of every allowed length",MsgXportTestPfx,ModeStr),testSendRecvMultiple(xp));
           }
         }
       }

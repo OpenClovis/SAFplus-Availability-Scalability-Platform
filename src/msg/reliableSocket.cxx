@@ -456,6 +456,7 @@ namespace SAFplus
     recvQueueLock.lock();
     if (outOfSeqQueue.empty())
     {
+      recvQueueLock.unlock();
       return;
     }
     queueInfo->getAndResetCumulativeAckCounter();
@@ -718,6 +719,7 @@ namespace SAFplus
     {
       if (isClosed)
       {
+        closeMutex.unlock();
         return;
       }
       switch (state)
@@ -1016,6 +1018,7 @@ namespace SAFplus
             if (totalBytes <= 0)
             {
               inSeqQueue.erase_and_dispose(it, delete_disposer());
+              recvQueueLock.unlock();
               return -1; /* EOF */
             }
             break;
@@ -1141,6 +1144,7 @@ namespace SAFplus
     {
       if (isClosed)
       {
+        closeMutex.unlock();
         return;
       }
       try

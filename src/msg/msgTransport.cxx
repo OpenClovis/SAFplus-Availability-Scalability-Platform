@@ -463,6 +463,10 @@ namespace SAFplus
   {
     bucket.leakyBucketCreate(volume,leakSize,leakInterval);
     sock=transport->createSocket(port);
+    if(sock==NULL)
+    {
+      logDebug("MSG","SCK","cannot create socket shaping.");
+    }
   };
   MsgSocketShaping::MsgSocketShaping(MsgSocket* socket,uint_t volume, uint_t leakSize, uint_t leakInterval)
   {
@@ -480,6 +484,7 @@ namespace SAFplus
   //? Send a bunch of messages.  You give up ownership of msg.
   void MsgSocketShaping::send(Message* msg)
   {
+    logDebug("MSG","SCK","apply leaky bucket with msg lenght %d",msg->getLength());
     applyShaping(msg->getLength());
     sock->send(msg);
   }

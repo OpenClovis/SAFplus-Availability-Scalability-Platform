@@ -18,6 +18,8 @@
  */
 
 #include <leakyBucket.hxx>
+#include <boost/thread.hpp>
+
 
 using namespace SAFplus;
 using namespace SAFplusI;
@@ -45,16 +47,15 @@ static bool leakyBucketIntervalCallback(void *arg)
     return true;
 }
 
-static void* timerLeakThreadFunc(void* arg)
+static void timerLeakThreadFunc(void* arg)
 {
     leakyBucket* tempBucket = (leakyBucket*)arg;
     logTrace("THRPOOL","TIMERFUNC", "timerThreadFunc enter");
     while(!tempBucket->isStopped)
     {
-        sleep(tempBucket->leakInterval);
+        boost::this_thread::sleep(boost::posix_time::milliseconds(tempBucket->leakInterval));
         leakyBucketIntervalCallback(arg);
     }
-    return NULL;
 }
 
 bool leakyBucket::leakyBucketCreateExtended(long long volume, long long leakSize, long leakInterval,leakyBucketWaterMarkT *waterMark)
@@ -68,6 +69,7 @@ bool leakyBucket::leakyBucketCreateExtended(long long volume, long long leakSize
     this->lowWMHit = false;
     this->highWMHit = false;
     this->leakInterval=leakInterval;
+    this->value=0;
     if(waterMark)
     {
         memcpy(&this->waterMark, waterMark, sizeof(this->waterMark));
@@ -88,16 +90,7 @@ bool leakyBucket::leakyBucketCreateExtended(long long volume, long long leakSize
             this->waterMark.highWM = 0;
         }
     }
-//start timer
-//    rc = clTimerCreateAndStart(leakInterval,
-//                               CL_TIMER_REPETITIVE,
-//                               CL_TIMER_TASK_CONTEXT,
-//                               clLeakyBucketIntervalCallback,
-//                               (ClPtrT)this,
-//                               &bucket->timer);
-    pthread_t thid;
-    pthread_create(&thid, NULL, timerLeakThreadFunc,this);
-    pthread_detach(thid);
+    boost::thread(timerLeakThreadFunc,this);
     return true;
 }
 
@@ -137,7 +130,6 @@ bool leakyBucket::__leakyBucketFill(long long amt,bool block)
     long delay = 0;
     mutex.lock();
     amt = MIN(this->volume, amt);  /* If the caller tries to put in more than the bucket will ever hold it would block forever so just reduce the value to fill the bucket fully */
-
     /* Check for soft watermark limits. */
     if(!this->highWMHit && this->waterMark.highWM && (this->value + amt > this->waterMark.highWM))
     {
@@ -147,7 +139,6 @@ bool leakyBucket::__leakyBucketFill(long long amt,bool block)
         boost::this_thread::sleep(boost::posix_time::milliseconds(this->waterMark.highWMDelay));
         mutex.lock();
     }
-
     if(!this->lowWMHit && this->waterMark.lowWM && (this->value + amt > this->waterMark.lowWM))
     {
         this->lowWMHit = true;
@@ -156,7 +147,6 @@ bool leakyBucket::__leakyBucketFill(long long amt,bool block)
         boost::this_thread::sleep(boost::posix_time::milliseconds(this->waterMark.lowWMDelay));
         mutex.lock();
     }
-
     /* Now check for hard limits */
     if(value + amt > volume)
     {
@@ -179,17 +169,14 @@ bool leakyBucket::__leakyBucketFill(long long amt,bool block)
     mutex.unlock();
     return rc;
 }
-
 bool leakyBucket::leakyBucketFill(long long amt)
 {
     return __leakyBucketFill(amt, true);
 }
-
 bool leakyBucket::leakyBucketTryFill(long long amt)
 {
     return __leakyBucketFill(amt,false);
 }
-
 bool leakyBucket::leakyBucketLeak()
 {
     return leakyBucketIntervalCallback(this);

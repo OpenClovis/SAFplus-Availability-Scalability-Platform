@@ -149,7 +149,7 @@ namespace SAFplus
       friend class ScopedMsgSocket;
   }; //? </class>
 
-  class MsgSocketAdvanced : public MsgSocket
+  class MsgSocketAdvanced
   {
     public:
     virtual ~MsgSocketAdvanced()
@@ -167,7 +167,6 @@ namespace SAFplus
     virtual void send(SAFplus::Handle destination, void* buffer, uint_t length,uint_t msgtype)
     {
     }
-    MsgSocket* operator->() {return sock;}
     virtual void flush();
   };
 
