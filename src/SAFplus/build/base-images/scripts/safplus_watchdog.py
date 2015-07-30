@@ -173,13 +173,11 @@ def amf_watchdog_loop():
                         seen_openhpid = True
                         seen_openhpid_id = openhpid_pid
 
-
-
-            time.sleep(monitor_interval)
         except Exception,e:
             logging.critical('SAFplus watchdog received exception %s' %str(e))
             logging.critical('traceback: %s',traceback.format_exc())
-            
+
+        time.sleep(monitor_interval)
 
 def redirect_file():
 
