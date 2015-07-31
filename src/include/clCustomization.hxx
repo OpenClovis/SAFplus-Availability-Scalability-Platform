@@ -132,6 +132,13 @@ namespace SAFplusI
 
   extern const char* defaultMsgTransport;  //? Specifies the default messaging transport plugin filename.  This can be overridden by an environment variable.
 
+  /* ckpt default retention duration */
+  enum 
+  {
+    CkptUseCheckDuration = 60, /* This is the configured duration in second for which the program checks to see if there is any process with a checkpoint open */
+    CkptRetentionDurationDefault = 28800, /* This is the default retention duration in second for the retention timer to decide if a checkpoint data is deleted from memory */
+  };
+
   };
 
 #endif

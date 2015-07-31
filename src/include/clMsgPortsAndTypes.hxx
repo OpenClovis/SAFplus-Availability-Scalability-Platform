@@ -21,8 +21,7 @@ namespace SAFplusI
 #else  // otherwise give it a unique port
     FAULT_IOC_PORT = 5,
 #endif
-    CKPT_USE_NOTIFIER_PORT = 6,
-    END_IOC_PORT = 6,
+    END_IOC_PORT = 5,
 
     };
 

@@ -3,6 +3,7 @@
 #include <cltypes.h>
 #include <assert.h>
 #include <stdio.h>
+#include <string>
 #include <boost/functional/hash.hpp> 
 
 #define CL_ASSERT assert
@@ -58,6 +59,30 @@ namespace SAFplus
     {
       sprintf(buffer,"%" PRIx64 ":%" PRIx64,id[0],id[1]);
       return buffer;
+    }
+
+   //? Convert this string to a handle representation.  The string argument has the format aaaaa:bbbbb
+    // for example if strHdl = "23abf777:6700ccd", this is converted to Handle object in which
+    // {id[0] = 23abf777,id[1] = 6700ccd}
+    // <arg name="strHdl"></arg>Pass
+    // <returns>The handle itself</returns>
+    Handle& fromStr(const char* strHdl)
+    {
+      std::string hdl(strHdl);
+      return fromStr(hdl);
+    }
+
+    Handle& fromStr(const std::string& strHdl)
+    {
+      int pos = strHdl.find(":");
+      if (pos >= 0 && pos < strHdl.length())
+      {      
+        std::string id0 = strHdl.substr(0, pos);
+        std::string id1 = strHdl.substr(pos+1, strHdl.length()-pos);
+        sscanf(id0.c_str(), "%x", &id[0]);         
+        sscanf(id1.c_str(), "%x", &id[1]);        
+      }      
+      return *this;
     }
 
     //? Are handles equal?
