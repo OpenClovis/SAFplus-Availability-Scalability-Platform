@@ -3199,7 +3199,7 @@ clAmsPeNodeFaultCallback_Step2(
                         recovery,
                         repairNecessary)) != CL_OK )
     { 
-        AMS_ENTITY_LOG(node, CL_AMS_MGMT_SUB_AREA_MSG, CL_DEBUG_WARN,
+        AMS_ENTITY_LOG(node, CL_AMS_MGMT_SUB_AREA_MSG, CL_DEBUG_TRACE,
             ("Error: Fault on Node [%s]: Error [0x%x] when reporting fault to FM. Continuing..\n", 
              node->config.entity.name.value,
              rc));
