@@ -5,7 +5,8 @@ import sys
 
 unload_tipc_cmd = 'modprobe -r tipc'
 
-load_tipc_cmd = 'modprobe tipc'
+# load_tipc_cmd = 'modprobe tipc'
+load_tipc_cmd = 'modprobe -f tipc'  # -f forces the module to load regardless of version string.  TEMPORARY
 
 is_tipc_loaded_cmd = 'lsmod | grep tipc'
 

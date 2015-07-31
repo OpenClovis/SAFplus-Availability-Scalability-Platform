@@ -14,7 +14,6 @@
 # 
 # For more  information,  see the  file COPYING provided with this
 # material.
-
 import sys
 import safplus
 import logging
@@ -216,8 +215,8 @@ def unload_tipc_module():
 def load_tipc_module():
     if not is_tipc_build():
         return
-
     cmd = safplus.load_tipc_cmd()
+    log.warning('Executing [%s]' % cmd)
     ret, output, signal, core = system(cmd)        
     if ret:
         sandbox = safplus.sandbox_dir
@@ -239,7 +238,6 @@ def load_config_tipc_module():
     if not is_tipc_build():
         log.debug("skipping tipc: plugin not built")
         return
-        
     logging.info("Loading TIPC")
 
     def is_tipc_netid_defined():
