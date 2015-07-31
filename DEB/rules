@@ -1,5 +1,6 @@
 #!/usr/bin/make -f 
 prefix:
+Destdir:
 export DH_VERBOSE=1
 export DH_OPTIONS=-v
 %:
@@ -8,13 +9,12 @@ override_dh_auto_build:
 	make deb_build
 override_dh_auto_configure:
 	echo "Configuration is not required for Packages"
-override_dh_auto_clean:
+override_dh_auto_clean: 
 	make deb_clean
+override_dh_auto_make:
+	echo "make is not required"
 override_dh_auto_install:
 	make deb_install
-override_dh_auto_uninstall:
-	make deb_uninstall
 override_dh_shlibdeps:
-	#dh_shlibdeps -v -l$(THIRDPARTY_DIR)/lib#:$(DESTDIR)/$(PREFIX)/lib
-	dh_shlibdeps -v -l$(THIRDPARTY_DIR)/lib:$(DESTDIR)/$(PREFIX)/lib --dpkg-shlibdeps-params=--ignore-missing-info
+	dh_shlibdeps -v -l$(LIBRARY_DIR)/lib --dpkg-shlibdeps-params=--ignore-missing-info
 

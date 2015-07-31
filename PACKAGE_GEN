@@ -1,0 +1,63 @@
+Prerequisites:
+
+  install the following the dependencies packages from the corresponding distribution
+  Ubuntu:
+     apt-get install libprotoc-dev protobuf-compiler python-protobuf libbz2-dev python-dev g++ libboost1.55-dev 
+		     libdb-dev libgdbm-dev libsqlite3-dev
+  Centos:
+     yum install gcc bzip2-devel python-devel gcc-c++ boost-devel libdb-devel gdbm-devel sqlite-devel rpm-build
+     For centos7: protobuf related libraries are need to be installed manually 
+	          Download the following rpms from the link http://cbs.centos.org/koji/buildinfo?buildID=128
+                      protobuf-2.5.0-10.el7.centos.x86_64.rpm protobuf-compiler-2.5.0-10.el7.centos.x86_64.rpm 
+                      protobuf-devel-2.5.0-10.el7.centos.x86_64.rpm protobuf-python-2.5.0-10.el7.centos.x86_64.rpm 
+                  Install the downloaded rpms by using the rpm command.
+                  Ex: rpm -ivh protobuf-2.5.0-10.el7.centos.x86_64.rpm
+                      rpm -ivh protobuf-compiler-2.5.0-10.el7.centos.x86_64.rpm
+                      rpm -ivh protobuf-devel-2.5.0-10.el7.centos.x86_64.rpm
+	              rpm -ivh protobuf-python-2.5.0-10.el7.centos.x86_64.rpm
+Package generation:
+
+1) Navigate to the safplus top directory.
+   cd <SAFplus Directory>
+   Ex: cd /home/openclovis/software/SAFplus
+
+2) Export the PKG_VER and PKG_REL environment variables before starting the Package generation
+   Ex: export PKG_VER=8.0
+       export PKG_REL=2
+   The default values for the above environment variable are 7.0 and 1
+
+3) safplus can be packaged in debian and rpm.
+   for debian:
+        make deb
+
+   for rpm:
+        make rpm
+
+4) If the package generation is successful, .rpms or .deb are aviable in build directory present in the safplus.
+   Ex: ls  /home/openclovis/software/SAFplus/build
+       safplus_7-0-1_amd64.deb
+       safplus-7.0-1.el7.centos.x86_64.rpm
+       safplus-debuginfo-7.0-1.el7.centos.x86_64.rpm
+       safplus-7.0-1.el7.centos.src.rpm
+ 
+Package Installation:
+
+ To install the safplus package on the target machine using following command based on the distribution
+    for debian:
+          dpkg -i safplus_7-0-1_amd64.deb
+
+    for rpm:
+          rpm -ivh safplus-7.0-1.el7.centos.x86_64.rpm
+
+ If the package installation is successfull, SAFPlus SDK will be available in /opt/safplus/$(PKG_VER)/sdk
+
+Package Uninstallation:
+
+ To uninstall the safplus package on the target machine using following command based on the distribution
+    for debian:
+         dpkg -r safplus # removes the files from the machine but keep the configuration related files
+            or
+         dpkg -P safplus # removes the both configuration and package related files
+
+    for rpm:
+         rpm -evh safplus

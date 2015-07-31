@@ -3,7 +3,7 @@ Version:
 Release:        
 Group:          Development/Libraries
 License:	commercial license or GPL-3.0+
-Source0:	%{name}_%{version}.tgz       
+Source0:	%{name}_%{version}.tar.gz
 URL:		http://www.openclovis.com   
 Vendor:		OpenClovis Inc
 Packager:	OpenClovisInc <http://www.openclovis.com/blog>

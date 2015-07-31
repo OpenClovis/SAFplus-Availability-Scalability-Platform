@@ -1,6 +1,5 @@
- beta; urgency=medium
+safplus:
 
-  * Initial package version for openclovis SAFplus software. (Closes: #XXXXXX)
+  * Initial package version for openclovis SAFplus software.. (Closes: #XXXXXX)
 
- -- OpenClovis Inc <http://www.openclovis.com/blog/> Tue, 21 Jul 2015 16:53:58 -0300
-  
+ -- OpenClovis Inc <http://www.openclovis.com/blog/>  Fri, 31 Jul 2015 04:40:14 -0700
