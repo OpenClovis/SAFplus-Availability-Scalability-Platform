@@ -211,9 +211,21 @@ namespace SAFplus
   void MgtContainer::toString(std::stringstream& xmlString,MgtObject::SerializationOptions opts)
   {
     bool openTagList = false;
+    std::string closer;
     if (1) // !parent || !strstr(typeid(*parent).name(), "SAFplus7MgtList"))
       {
-        xmlString << '<' << tag;
+        //if (!listTag.empty() )
+        //if (parent && typeid(*parent)==typeid(SAFplus::MgtList))
+        if (parent && strstr(typeid(*parent).name(), "MgtList"))  // If my parent is a list I need to use a different tag format 
+          {
+            xmlString << '<' << parent->tag << " key=\"" << tag << "\"";
+            closer = parent->tag;
+          }
+        else
+          {
+          xmlString << '<' << tag;
+          closer = tag;
+          }
         if (opts & MgtObject::SerializeNameAttribute)
           xmlString << " name=" << "\"" << getFullXpath(false) << "\"";
         if (opts & MgtObject::SerializePathAttribute)
@@ -230,7 +242,7 @@ namespace SAFplus
       }
     if (openTagList)
       {
-        xmlString << "</" << tag << '>';
+        xmlString << "</" << closer << '>';
       }
   }
 

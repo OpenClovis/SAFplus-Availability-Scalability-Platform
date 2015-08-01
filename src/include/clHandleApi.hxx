@@ -79,8 +79,8 @@ namespace SAFplus
       {      
         std::string id0 = strHdl.substr(0, pos);
         std::string id1 = strHdl.substr(pos+1, strHdl.length()-pos);
-        sscanf(id0.c_str(), "%x", &id[0]);         
-        sscanf(id1.c_str(), "%x", &id[1]);        
+        sscanf(id0.c_str(), "%" PRIx64, &id[0]);         
+        sscanf(id1.c_str(), "%" PRIx64, &id[1]);        
       }      
       return *this;
     }
