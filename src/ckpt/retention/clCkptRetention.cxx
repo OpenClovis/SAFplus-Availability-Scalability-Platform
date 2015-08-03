@@ -26,12 +26,13 @@ typedef void (*TimeoutCb) (const boost::system::error_code&, void*, RetentionTim
 /* this class wraps the boost deadline timer so that we can operate boost deadline timer via an object */
 class Timer
 {
-protected:  
-  uint64_t waitDuration;
+protected:    
   boost::asio::io_service& iosvc;
   TimeoutCb fpOnTimeout;
-public:
+
+public:  
   boost::asio::deadline_timer* timer;
+  uint64_t waitDuration;
 
 public:
   Timer(uint64_t wd, boost::asio::io_service& _iosvc, TimeoutCb cb): waitDuration(wd), iosvc(_iosvc), fpOnTimeout(cb)
@@ -84,9 +85,11 @@ public:
   // an entry for starting retention timer
   void startTimer(CkptTimerMap::iterator& iter)
   {    
+    logTrace("CKPRET", "START", "Enter startTimer");
     Timer& timer = iter->second.timer;
     if (!iter->second.isRunning)
     {
+      logTrace("CKPRET", "START", "[startTimer] starting timer of ckpt handle [%" PRIx64 ":%" PRIx64 "]", iter->first.id[0], iter->first.id[1]);
       timer.wait((void*)&iter->first, this);    
       iter->second.isRunning = true;
     }
@@ -98,9 +101,11 @@ public:
   // an entry for stopping retention timer
   void stopTimer(CkptTimerMap::iterator& iter)
   {
+    logTrace("CKPRET", "STOP", "Enter stopTimckpt shared mem fileer");
     Timer& timer = iter->second.timer;
     if (iter->second.isRunning) 
     {
+      logTrace("CKPRET", "STOP", "[stopTimer] canceling timer of ckpt handle [%" PRIx64 ":%" PRIx64 "]", iter->first.id[0], iter->first.id[1]);
       timer.cancel();
       iter->second.isRunning = false;
     }  
@@ -115,10 +120,11 @@ public:
 
 class SharedMemFileTimer: public RetentionTimer
 {
-public:
+public:uint64_t waitDuration;
   virtual void updateRetentionTimerMap(const char* path, boost::asio::io_service& iosvc)
   {
-    /* TODO: using boost library to walk thru the /dev/shm/ to get all the checkpoint shared memory files following the format: cktp_handle.id[0]:handle.id[1]:retentionDuration */
+    /* Using boost library to walk thru the /dev/shm/ to get all the checkpoint shared memory files following the format: cktp_handle.id[0]:handle.id[1]:retentionDuration */
+    logTrace("CKPRET","UDT", "[shm] Enter updateRetentionTimerMap");
     int lastSlashPos, ckptShmPos;
     fs::directory_iterator end_iter;
     for( fs::directory_iterator dir_iter(SharedMemPath) ; dir_iter != end_iter ; ++dir_iter)
@@ -126,6 +132,7 @@ public:
       if (!fs::is_regular_file(dir_iter->status())) continue;  // skip any sym links, etc.
       // Extract just the file name by bracketing it between the preceding / and the file extension
       std::string filePath = dir_iter->path().string();
+      logTrace("CKPRET","UDT", "[shm-updateRetentionTimerMap] parsing file [%s]", filePath.c_str());
       // skip ahead to the last / so a name like /dev/shm/ckpt_ works
       lastSlashPos = filePath.rfind("/");
       ckptShmPos = filePath.find("ckpt_", lastSlashPos);
@@ -133,32 +140,35 @@ public:
       if (ckptShmPos >= 0 && ckptShmPos < flen)
       {
         int hdlStartPos = filePath.find("_", ckptShmPos);
-        hdlStartPos++;   
+        hdlStartPos++;        
         if (hdlStartPos >= 0 && hdlStartPos < flen)
         {
-          int hdlEndPos = filePath.rfind(":");
+          int hdlEndPos = filePath.rfind(":");          
           if (hdlEndPos >= 0 && hdlEndPos < flen)
           {
             std::string strHdl = filePath.substr(hdlStartPos, hdlEndPos-hdlStartPos);
-            std::string strRetentionDuration = filePath.substr(hdlEndPos, flen-hdlEndPos);
+            std::string strRetentionDuration = filePath.substr(hdlEndPos+1, flen-hdlEndPos-1);
+            logTrace("CKPRET","UDT", "[shm-updateRetentionTimerMap] strHdl [%s], strRetentionDuration [%s]", strHdl.c_str(), strRetentionDuration.c_str());
             uint64_t retentionDuration = 0;
             try 
             {
               retentionDuration = boost::lexical_cast<uint64_t>(strRetentionDuration);
             }
-            catch(...)
+            catch (...)
             {
-              logError("CKPRET", "UDT", "retention duration is invalid from the shared memory file");
+              logError("CKPRET", "UDT", "retention duration [%s] is invalid from the shared memory file", strRetentionDuration.c_str());
               continue;
             }
             SAFplus::Handle ckptHdl;
             ckptHdl.fromStr(strHdl);
-            if (ckptHdl == SAFplus::INVALID_HDL) continue; // it's not a valid handle, so bypass it and go to anther
+            if (ckptHdl == SAFplus::INVALID_HDL) continue; // it's not a valid handle, so bypass it and go to another
             //check if this handle exists in the map
+            logTrace("CKPRET","UDT", "[shm-updateRetentionTimerMap] Got {CkptHandle,time}:{%" PRIx64 ":%" PRIx64 "%lu}", ckptHdl.id[0], ckptHdl.id[1], retentionDuration);
             CkptTimerMap::iterator contents = ckptTimerMap.find(ckptHdl);
             if (contents == ckptTimerMap.end()) // not exist
             {     
               // Add new item to map
+              logTrace("CKPRET","UDT", "[shm-updateRetentionTimerMap] insert item {%" PRIx64 ":%" PRIx64 ", %lu} to map", ckptHdl.id[0], ckptHdl.id[1], retentionDuration);
               Timer timer(retentionDuration, iosvc, &onSharedMemRetentionTimeout);
               SAFplus::ProcGate gate(ckptHdl.id[1]);
               RetentionTimerData rt(timer, gate, false);
@@ -168,17 +178,17 @@ public:
           } 
           else
           {
-            logWarning("CKPRET", "UDT", "Malformed ckpt shared mem file for retention duration");
+            logWarning("CKPRET", "UDT", "Malformed ckpt shared mem file [%s] for retention duration", filePath.c_str());
           }
         }
         else
         {
-          logWarning("CKPRET", "UDT", "Malformed ckpt shared mem file for the handle");
+          logWarning("CKPRET", "UDT", "Malformed ckpt shared mem file [%s] for the handle", filePath.c_str());
         }
       }
       else
       {
-        logWarning("CKPRET", "UDT", "Malformed ckpt shared mem file for the ckpt shared mem file itself");
+        logTrace("CKPRET", "UDT", "[%s] is not a ckpt shared mem file", filePath.c_str());
       }
     }   
   }  
@@ -226,7 +236,10 @@ void updateTimer(RetentionTimer* timer, boost::asio::io_service& iosvc);
 void runIoService();
 
 int main()
-{
+{  
+  SAFplus::logSeverity = SAFplus::LOG_SEV_TRACE;
+  SAFplus::logEchoToFd = 1;  // echo logs to stdout for debugging 
+  SAFplus::safplusInitialize(SAFplus::LibDep::CKPT | SAFplus::LibDep::LOG);
   // Add work to io service so that the deadline timer continues working after it restarts
   boost::asio::io_service::work work(io);
   
@@ -234,7 +247,8 @@ int main()
   PersistentFileTimer persistentFilesTimer;  
   // start the ckpt use status checking
   Timer ckptUseStatusCheckTimer(SAFplusI::CkptUseCheckDuration, io, onCkptUseStatusCheckTimeout);
-  TimerArg timerArg(&ckptUseStatusCheckTimer, &sharedMemFilesTimer, &persistentFilesTimer);
+  //TimerArg timerArg(&ckptUseStatusCheckTimer, &sharedMemFilesTimer, &persistentFilesTimer);
+  TimerArg timerArg(&ckptUseStatusCheckTimer, &sharedMemFilesTimer, NULL);
   ckptUseStatusCheckTimer.wait(&timerArg);
   // run the io service
   runIoService();  // The program control blocks here
@@ -242,7 +256,8 @@ int main()
 
 void onCkptUseStatusCheckTimeout(const boost::system::error_code& e, void* arg, RetentionTimer* rt)
 {
-  // get the RetentionTimer objects from arg (both sharedMemfiles and persistent files)
+  logTrace("CKPRET", "STACHK", "Enter onCkptUseStatusCheckTimeout");
+  // get the RetentionTimer objects from arg (both sharedMemfiles and persistent files)  
   TimerArg* tArg = (TimerArg*) arg;
   updateTimer(tArg->shmTimer, io);
   updateTimer(tArg->perstTimer, io);
@@ -253,6 +268,12 @@ void onCkptUseStatusCheckTimeout(const boost::system::error_code& e, void* arg, 
 
 void updateTimer(RetentionTimer* timer, boost::asio::io_service& iosvc)
 {
+  logTrace("CKPRET", "UPTTMR", "Enter updateTimer");
+  if (!timer)
+  {
+    logNotice("CKPRET", "UPTTMR", "[updateTimer] timer argument is NULL. Do not handle it");
+    return;
+  }
   timer->updateRetentionTimerMap(SharedMemPath, iosvc);
   // Loop thru the map for each ckpt: check to see if there is any process opening this checkpoint
   for(CkptTimerMap::iterator iter = timer->ckptTimerMap.begin(); iter != timer->ckptTimerMap.end(); iter++)
@@ -276,19 +297,27 @@ void runIoService()
 
 void onSharedMemRetentionTimeout(const boost::system::error_code& e, void* arg, RetentionTimer* rt)
 {
+  logTrace("CKPRET", "TIMEOUT", "Enter onSharedMemRetentionTimeout");
   if (e != boost::asio::error::operation_aborted)
   {
     // Timer was not cancelled, the timer has expired within retentionDuration, so delete data    
     SAFplus::Handle* ckptHandle = (SAFplus::Handle*)arg;
-    SharedMemFileTimer* timer = (SharedMemFileTimer*)rt;
-    char sharedMemFile[256];
-    // TODO: construct the checkpoint name based on its handle and retention duration   
-    boost::interprocess::shared_memory_object::remove(sharedMemFile);
-    // Remove this item from the map, too
+    SharedMemFileTimer* timer = (SharedMemFileTimer*)rt;        
     CkptTimerMap::iterator contents = timer->ckptTimerMap.find(*ckptHandle);
     if (contents != timer->ckptTimerMap.end())
     { 
-      delete contents->second.timer.timer;    
+      char sharedMemFile[256];
+      Timer& tmr = contents->second.timer;    
+      // TODO: construct the checkpoint name based on its handle and retention duration
+      strcpy(sharedMemFile,"ckpt_");
+      ckptHandle->toStr(&sharedMemFile[5]);
+      std::string strTime = boost::lexical_cast<std::string>(tmr.waitDuration);
+      strcat(sharedMemFile, ":");
+      strcat(sharedMemFile, strTime.c_str());
+      logTrace("CKPRET", "TIMEOUT", "[onSharedMemRetentionTimeout] deleting shared mem file [%s]", sharedMemFile);
+      boost::interprocess::shared_memory_object::remove(sharedMemFile);
+      delete tmr.timer;
+      // Remove this item from the map, too
       timer->ckptTimerMap.erase(contents);
     }
   }
