@@ -259,7 +259,7 @@ extern MgtIteratorBase mgtIterEnd;
      * \brief	Virtual function called from netconf server to get object data
      */
     virtual void get(std::string *data);
-    virtual void toString(std::stringstream& xmlString, SerializationOptions opts=SerializeNoOptions)=0;
+    virtual void toString(std::stringstream& xmlString, int depth=SAFplusI::MgtToStringRecursionDepth,SerializationOptions opts=SerializeNoOptions)=0;
     virtual std::string strValue() {return "";}
 
 

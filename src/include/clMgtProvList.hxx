@@ -64,7 +64,7 @@ public:
 
     virtual ~MgtProvList();
 
-    virtual void toString(std::stringstream& xmlString, SerializationOptions opts=SerializeNoOptions);
+  virtual void toString(std::stringstream& xmlString, int depth=SAFplusI::MgtToStringRecursionDepth, SerializationOptions opts=SerializeNoOptions);
 
     /**
      * \brief   Virtual function to validate object data
@@ -217,7 +217,7 @@ std::string MgtProvList<T>::toStringItemAt(T &x)
 }
 
 template<class T>
-void MgtProvList<T>::toString(std::stringstream& xmlString, SerializationOptions opts)
+void MgtProvList<T>::toString(std::stringstream& xmlString, int depth, SerializationOptions opts)
 {
     for (unsigned int i = 0; i < value.size(); i++)
     {

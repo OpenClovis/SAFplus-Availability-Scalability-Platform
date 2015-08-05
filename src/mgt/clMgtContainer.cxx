@@ -231,7 +231,7 @@ namespace SAFplus
     return rc;
   }
 
-  void MgtContainer::toString(std::stringstream& xmlString,MgtObject::SerializationOptions opts)
+  void MgtContainer::toString(std::stringstream& xmlString,int depth, MgtObject::SerializationOptions opts)
   {
     bool openTagList = false;
     std::string closer;
@@ -258,10 +258,10 @@ namespace SAFplus
       }
     MgtObject::SerializationOptions newopts = opts;
     if (opts & MgtObject::SerializeOnePath) newopts = (MgtObject::SerializationOptions) (newopts & ~MgtObject::SerializePathAttribute);
-    for (MgtObjectMap::iterator it = children.begin(); it != children.end(); ++it)
+    if (depth) for (MgtObjectMap::iterator it = children.begin(); it != children.end(); ++it)
       {
         MgtObject *child = it->second;
-        child->toString(xmlString,newopts);
+        child->toString(xmlString,depth-1, newopts);
       }
     if (openTagList)
       {

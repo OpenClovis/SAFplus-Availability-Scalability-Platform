@@ -86,7 +86,7 @@ class MgtContainer:public MgtObject
     virtual MgtObject::Iterator multiMatch(const std::string &nameSpec);
 
     virtual void get(std::string *data);
-    virtual void toString(std::stringstream& xmlString,MgtObject::SerializationOptions opts=SerializeNoOptions);
+    virtual void toString(std::stringstream& xmlString,int depth=SAFplusI::MgtToStringRecursionDepth, MgtObject::SerializationOptions opts=SerializeNoOptions);
     virtual std::string strValue() {return "";}
 
     // Settings objects

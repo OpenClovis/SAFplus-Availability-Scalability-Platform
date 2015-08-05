@@ -68,7 +68,7 @@ namespace SAFplus
       MgtProv(const char* name);
       virtual ~MgtProv();
 
-      virtual void toString(std::stringstream& xmlString,SerializationOptions opts=SerializeNoOptions);
+      virtual void toString(std::stringstream& xmlString,int depth=SAFplusI::MgtToStringRecursionDepth,SerializationOptions opts=SerializeNoOptions);
       virtual std::string strValue();
 
       /**
@@ -236,7 +236,7 @@ namespace SAFplus
     }
 
   template<class T>
-    void MgtProv<T>::toString(std::stringstream& xmlString, SerializationOptions opts)
+  void MgtProv<T>::toString(std::stringstream& xmlString, int depth,SerializationOptions opts)
     {
       xmlString << "<" << tag;
       if (opts & MgtObject::SerializeNameAttribute)

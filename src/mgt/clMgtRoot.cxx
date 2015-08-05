@@ -24,6 +24,7 @@
 #include <clCommon.hxx>
 #include <inttypes.h>
 #include <csignal>
+#include <boost/algorithm/string.hpp>
 
 #include "MgtMsg.pb.hxx"
 
@@ -483,18 +484,29 @@ namespace SAFplus
   std::string strRplMesg;
   MsgGeneral rplMesg;
   std::string cmds;
+  unsigned int depth=64;  // To stop accidental infinite loops, let's set the default depth to something large but not crazy
   if (path[0] == '{')  // Debugging requests
     {
-      if (path[1] == 'b')
-        {
-          std::raise(SIGINT);
-        }
-      else if (path[1] == 'p')
-        {
-          clDbgPause();
-        }
       int end = path.find_first_of("}");
       cmds = path.substr(1,end-1);
+      vector<string> strs;
+      boost::split(strs,cmds,boost::is_any_of(","));
+      for (auto cmd: strs)
+        {
+          if (cmd[0] == 'b')
+            {
+              std::raise(SIGINT);
+            }
+          else if (cmd[0] == 'p')
+            {
+              clDbgPause();
+            }
+          else if (cmd[0] == 'd')
+            {
+              depth = std::stoi(cmd.substr(2)); // format is "d=#" so get the integer at offset 2
+            }
+
+        }
       // TODO: parse the non-xml requests (depth, pause thread, break thread, log custom string)
       cmds.append(" ");  // Right now I just assume everything in there is a custom logging string
       path = path.substr(end+1);
@@ -507,7 +519,7 @@ namespace SAFplus
       for (std::vector<MgtObject*>::iterator i=matches.begin(); i != matches.end(); i++)
         {
           MgtObject *object = *i;
-          object->toString(outBuff, (MgtObject::SerializationOptions) (MgtObject::SerializePathAttribute | MgtObject::SerializeOnePath));
+          object->toString(outBuff, depth, (MgtObject::SerializationOptions) (MgtObject::SerializePathAttribute | MgtObject::SerializeOnePath));
           
         }
       const std::string& s = outBuff.str();

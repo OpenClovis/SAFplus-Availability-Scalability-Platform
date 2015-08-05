@@ -60,7 +60,7 @@ public:
 
     virtual ~MgtIdentifierList();
 
-    virtual void toString(std::stringstream& xmlString, SerializationOptions opts=SerializeNoOptions);
+  virtual void toString(std::stringstream& xmlString, int depth=SAFplusI::MgtToStringRecursionDepth, SerializationOptions opts=SerializeNoOptions);
 
     /**
      * \brief   Virtual function to validate object data
@@ -197,7 +197,7 @@ std::string MgtIdentifierList<T>::toStringItemAt(T x)
 }
 
 template<class T>
-void MgtIdentifierList<T>::toString(std::stringstream& xmlString, SerializationOptions opts)
+void MgtIdentifierList<T>::toString(std::stringstream& xmlString, int depth, SerializationOptions opts)
 {
   xmlString << '<' << tag;
   if (opts & MgtObject::SerializeNameAttribute)

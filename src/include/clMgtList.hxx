@@ -290,7 +290,7 @@ namespace SAFplus
       /**
        * API to get data of the list (called from netconf server)
        */
-    virtual void toString(std::stringstream& xmlString, SerializationOptions opts=SerializeNoOptions)
+    virtual void toString(std::stringstream& xmlString, int depth=SAFplusI::MgtToStringRecursionDepth, SerializationOptions opts=SerializeNoOptions)
       {
         typename Map::iterator iter;
         /* Name of this list */
@@ -305,7 +305,7 @@ namespace SAFplus
         MgtObject::SerializationOptions newopts = opts;
         if (opts & MgtObject::SerializeOnePath) newopts = (MgtObject::SerializationOptions) (newopts & ~MgtObject::SerializePathAttribute);
 
-        for (iter = children.begin(); iter != children.end(); iter++)
+        if (depth) for (iter = children.begin(); iter != children.end(); iter++)
         {
           const KEYTYPE *k = &(iter->first);
           MgtObject *entry = iter->second;
@@ -319,7 +319,7 @@ namespace SAFplus
                *     <interface>...</interface>
                */
               
-              entry->toString(xmlString,opts);
+            entry->toString(xmlString,depth-1,opts);
        
           }
         }
@@ -880,7 +880,7 @@ namespace SAFplus
       /**
        * API to get data of the list (called from netconf server)
        */
-    virtual void toString(std::stringstream& xmlString, SerializationOptions opts=SerializeNoOptions)
+    virtual void toString(std::stringstream& xmlString, int depth=SAFplusI::MgtToStringRecursionDepth, SerializationOptions opts=SerializeNoOptions)
       {
         typename Map::iterator iter;
         /* Name of this list */
@@ -894,7 +894,7 @@ namespace SAFplus
         MgtObject::SerializationOptions newopts = opts;
         if (opts & MgtObject::SerializeOnePath) newopts = (MgtObject::SerializationOptions) (newopts & ~MgtObject::SerializePathAttribute);
 
-        for (iter = children.begin(); iter != children.end(); iter++)
+        if (depth) for (iter = children.begin(); iter != children.end(); iter++)
         {
           std::string k = iter->first;
           MgtObject *entry = iter->second;
@@ -907,7 +907,7 @@ namespace SAFplus
               *     <interface>...</interface>
               */
             
-            entry->toString(xmlString,newopts);
+            entry->toString(xmlString,depth-1, newopts);
           }
         }
         xmlString << "</" << tag << '>';

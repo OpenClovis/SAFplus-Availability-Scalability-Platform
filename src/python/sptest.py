@@ -1,3 +1,4 @@
+import pdb
 import safplus as sp
 
 
@@ -9,11 +10,17 @@ sp.Initialize(svcs, sic)
 
 sp.logMsgWrite(sp.APP_LOG,sp.LogSeverity.ERROR,1,"LIB","SCN","file",300,"test")
 
-sg0xml = sp.mgtGet("/")
-print "/:\n",sg0xml
+#sg0xml = sp.mgtGet("/")
+#print "/:\n",sg0xml
 
-sg0xml = sp.mgtGet("/SAFplusAmf/ServiceGroup/sg0")
+sg0xml = sp.mgtGet("{d=1}/SAFplusAmf")
 print "SG0:\n",sg0xml
+sg0xml = sp.mgtGet("{d=2}/SAFplusAmf")
+print "SG0:\n",sg0xml
+
+sg0xml = sp.mgtGet("{d=1}/SAFplusAmf/ServiceGroup/sg0")
+print "SG0:\n",sg0xml
+pdb.set_trace()
 print "Getting su0:"
 su0xml = sp.mgtGet("/SAFplusAmf/ServiceUnit[name='su0']")
 print su0xml
