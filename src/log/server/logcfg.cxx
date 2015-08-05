@@ -16,13 +16,16 @@ namespace fs = boost::filesystem;
 
 typedef boost::container::multimap<std::time_t, fs::path> file_result_set_t;
 
+#if 0
 LogCfg::LogCfg():MgtContainer("SAFplusLog")
 {
   this->addChildObject(&serverConfig, "serverConfig");
   this->addChildObject(&streamConfig, "streamConfig");
 }
 
-LogCfg logcfg;
+#endif
+SAFplusLog::SAFplusLogRoot logcfg;
+
 HandleStreamMap hsMap;
 Stream* sysStreamCfg;
 Stream* appStreamCfg;
@@ -102,7 +105,7 @@ void streamRotationInit(Stream* s)
         {
         fs::create_directories(pathToFile);
         }
-      catch (boost::filesystem::filesystem_error ex)
+      catch (boost::filesystem::filesystem_error &ex)
         {
         printf("path [%s] is invalid; ASP_LOGDIR may not be set. System error [%s]\n", pathToFile.c_str(), ex.what());
         s->fp = NULL;
@@ -333,7 +336,7 @@ void loadStreamConfigs()
 
 /* Initialization code would load the configuration from the database rather than setting it by hand.
  */
-LogCfg* loadLogCfg()
+SAFplusLog::SAFplusLogRoot* loadLogCfg()
 {
   loadStreamConfigs();
 
@@ -385,7 +388,7 @@ logRecv parameter indicates that this log is received from other nodes (true).
 if logRecv==true, log must be written to this node AND do not forward it to others, 
 otherwise, write to this node AND forward it to others
 */
-void postRecord(SAFplusI::LogBufferEntry* rec, char* msg,LogCfg* cfg)
+void postRecord(SAFplusI::LogBufferEntry* rec, char* msg, SAFplusLog::SAFplusLogRoot* cfg)
 {
   if (rec->severity > SAFplus::logSeverity) return;  // don't log if the severity cutoff is lower than that of the log.  Note that the client also does this check.
   //printf("%s\n",msg);

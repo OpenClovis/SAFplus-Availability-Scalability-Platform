@@ -31,11 +31,12 @@ namespace fs = boost::filesystem;
 using namespace SAFplusLog;
 
 MgtModule dataModule("SAFplusLog");
-LogCfg* cfg;
+
+SAFplusLog::SAFplusLogRoot* cfg;
 extern Stream* sysStreamCfg;
 extern Stream* appStreamCfg;
 
-extern void postRecord(LogBufferEntry* rec, char* msg,LogCfg* cfg);
+extern void postRecord(LogBufferEntry* rec, char* msg, SAFplusLog::SAFplusLogRoot* cfg);
 extern void initializeStream(Stream* s);
 extern void streamRotationInit(Stream* s);
 
@@ -48,9 +49,10 @@ class MgtMsgHandler : public SAFplus::MsgHandler
       mgtMsgReq.ParseFromArray(msg, msglen);
       if (mgtMsgReq.type() == Mgt::Msg::MsgMgt::CL_MGT_MSG_BIND_REQUEST && cfg)
       {
-        SAFplus::Handle hdl = SAFplus::Handle::create(SAFplusI::LOG_IOC_PORT);
-        cfg->streamConfig.bind(hdl, "SAFplusLog", "/StreamConfig");
-        cfg->serverConfig.bind(hdl, "SAFplusLog", "/ServerConfig");
+        assert(0); // Nobody should call this because of the checkpoint
+//        SAFplus::Handle hdl = SAFplus::Handle::create(SAFplusI::LOG_IOC_PORT);
+//        cfg->streamConfig.bind(hdl, "SAFplusLog", "/StreamConfig");
+//        cfg->serverConfig.bind(hdl, "SAFplusLog", "/ServerConfig");
       }
       else
       {
@@ -109,7 +111,7 @@ void checkAndRotateLog(Stream* s)
   }
 }
 
-void finishLogProcessing(LogCfg* cfg)
+void finishLogProcessing(SAFplusLog::SAFplusLogRoot* cfg)
   {
   MgtObject::Iterator iter;
   MgtObject::Iterator end = cfg->streamConfig.streamList.end();
@@ -144,7 +146,7 @@ void finishLogProcessing(LogCfg* cfg)
   }
 
 
-void initializeLogRotation(LogCfg* cfg)
+void initializeLogRotation(SAFplusLog::SAFplusLogRoot* cfg)
 { 
   MgtObject::Iterator iter; 
   MgtObject::Iterator end = cfg->streamConfig.streamList.end();  
@@ -157,7 +159,7 @@ void initializeLogRotation(LogCfg* cfg)
 
 // Look at the log configuration and initialize temporary variables, open log files, etc based on the values.
 
-void logInitializeStreams(LogCfg* cfg)
+void logInitializeStreams(SAFplusLog::SAFplusLogRoot* cfg)
 {
   // Open FP if needed
   // if rotate
@@ -173,7 +175,7 @@ void logInitializeStreams(LogCfg* cfg)
 }
 
 // Look at the log configuration and initialize temporary variables, open log files, etc based on the values.
-void dumpStreams(LogCfg* cfg)
+void dumpStreams(SAFplusLog::SAFplusLogRoot* cfg)
   {
   // Open FP if needed
   // if rotate
@@ -205,16 +207,13 @@ int main(int argc, char* argv[])
   MgtDatabase *db = MgtDatabase::getInstance();
   db->initializeDB("SAFplusLog");
 
-#if 0 //H. TODO
-  dataModule.loadModule();
-  dataModule.initialize();
-#endif
-
   // Load logging configuration
   cfg = loadLogCfg();
   SAFplus::Handle hdl = SAFplus::Handle::create(SAFplusI::LOG_IOC_PORT);
-  cfg->streamConfig.bind(hdl, "SAFplusLog", "/StreamConfig");
-  cfg->serverConfig.bind(hdl, "SAFplusLog", "/ServerConfig");
+  cfg->bind(hdl);
+
+//  cfg->streamConfig.bind(hdl, "SAFplusLog", "/StreamConfig");
+//  cfg->serverConfig.bind(hdl, "SAFplusLog", "/ServerConfig");
 
   MgtMsgHandler msghandle;
   SAFplus::SafplusMsgServer* mgtIocInstance = &safplusMsgServer;

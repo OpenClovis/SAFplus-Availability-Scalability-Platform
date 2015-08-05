@@ -5,12 +5,12 @@
  */ 
 #include "SAFplusLogCommon.hxx"
 
-#include "StreamConfig.hxx"
+#include "clMgtModule.hxx"
 #include "Stream.hxx"
 #include "ServerConfig.hxx"
 #include <vector>
 #include "MgtFactory.hxx"
-#include "clMgtContainer.hxx"
+#include "StreamConfig.hxx"
 #include "SAFplusLog.hxx"
 
 
@@ -20,7 +20,7 @@ namespace SAFplusLog
     /* Apply MGT object factory */
     MGT_REGISTER_IMPL(SAFplusLogRoot, /SAFplusLog)
 
-    SAFplusLogRoot::SAFplusLogRoot(): SAFplus::MgtContainer("SAFplusLog")
+    SAFplusLogRoot::SAFplusLogRoot(): SAFplus::MgtModule("SAFplusLog")
     {
         this->addChildObject(&serverConfig, "serverConfig");
         this->addChildObject(&streamConfig, "streamConfig");

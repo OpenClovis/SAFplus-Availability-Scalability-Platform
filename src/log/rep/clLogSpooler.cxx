@@ -10,7 +10,7 @@ using namespace SAFplusI;
 using namespace SAFplus;
 
 extern HandleStreamMap hsMap;
-extern void postRecord(LogBufferEntry* rec, char* msg,LogCfg* cfg);
+extern void postRecord(LogBufferEntry* rec, char* msg,SAFplusLog::SAFplusLogRoot* cfg);
 extern SAFplusLog::Stream* loadOrCreateNewStream(const char* streamName, SAFplusLog::Replicate repMode=SAFplusLog::Replicate::NONE, Handle strmHdl=INVALID_HDL);
 
 LogSpooler::LogSpooler()
