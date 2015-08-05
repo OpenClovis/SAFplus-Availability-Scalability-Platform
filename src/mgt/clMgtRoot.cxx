@@ -23,6 +23,7 @@
 #include <clSafplusMsgServer.hxx>
 #include <clCommon.hxx>
 #include <inttypes.h>
+#include <csignal>
 
 #include "MgtMsg.pb.hxx"
 
@@ -183,8 +184,11 @@ namespace SAFplus
       // for key
       std::string strXPath = "/";
       strXPath.append(module);
-      strXPath.append("/");
-      strXPath.append(route);
+      if (!route.empty())
+        {
+        strXPath.append("/");
+        strXPath.append(route);
+        }
 
       // for data
       char handleData[sizeof(Buffer)-1+sizeof(Handle)];
@@ -392,18 +396,18 @@ namespace SAFplus
     std::string xpath(path);
     idx = xpath.find("/");
 
-    if (idx == std::string::npos)
-      {
-        // Invalid xpath
-        return;
-      }
 
     std::string moduleName = xpath.substr(0, idx);
 
     MgtModule * module = getMgtModule(moduleName);
     if (module)
       {
-      module->resolvePath(path+idx+1, result);
+      if (idx == std::string::npos)
+      {
+        module->resolvePath("", result);
+      }
+      else
+        module->resolvePath(path+idx+1, result);
       }
   }
 
@@ -461,6 +465,14 @@ namespace SAFplus
   std::string cmds;
   if (path[0] == '{')  // Debugging requests
     {
+      if (path[1] == 'b')
+        {
+          std::raise(SIGINT);
+        }
+      else if (path[1] == 'p')
+        {
+          clDbgPause();
+        }
       int end = path.find_first_of("}");
       cmds = path.substr(1,end-1);
       // TODO: parse the non-xml requests (depth, pause thread, break thread, log custom string)

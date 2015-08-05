@@ -430,7 +430,7 @@ void postRecord(SAFplusI::LogBufferEntry* rec, char* msg,LogCfg* cfg)
   
   if (strmCfg->syslog)  // output this log to syslog
     {
-      syslog(logLevel2SyslogLevel(rec->severity),msg);
+      syslog(logLevel2SyslogLevel(rec->severity),"%s",msg);
     }
 
   if (strmCfg->fp)  // If the file handle is non zero, write the log to that file

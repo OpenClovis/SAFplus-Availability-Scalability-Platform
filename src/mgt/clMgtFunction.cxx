@@ -51,6 +51,7 @@ namespace SAFplus
      }
   }
 
+
   SAFplus::Handle getMgtHandle(const std::string& pathSpec, ClRcT &errCode)
   {
     std::string xpath = pathSpec;  // I need to make a copy so I can modify it
@@ -110,6 +111,15 @@ namespace SAFplus
     MsgMgt mgtMsgReq;
     std::string request;
     std::string strRev = "";
+    uint retryDuration = SAFplusI::MsgSafplusSendReplyRetryInterval;
+  
+    if (pathSpec[0]=='{')
+      {
+        if ((pathSpec[1] == 'b')||(pathSpec[1] == 'p')) // Commands a break (to gdb) or pause on the server side processing this RPC, so we'll wait forever before retrying
+          {
+            retryDuration = 1000*1000*1000;
+          }
+      }
 
     mgtMsgReq.set_type(Mgt::Msg::MsgMgt::CL_MGT_MSG_XGET);
     mgtMsgReq.set_bind(pathSpec);
@@ -120,7 +130,7 @@ namespace SAFplus
     SAFplus::SafplusMsgServer* mgtIocInstance = &SAFplus::safplusMsgServer;
     try
       {
-        SAFplus::MsgReply *msgReply = mgtIocInstance->sendReply(src, (void *) request.c_str(), request.size(), SAFplusI::CL_MGT_MSG_TYPE);
+        SAFplus::MsgReply *msgReply = mgtIocInstance->sendReply(src, (void *) request.c_str(), request.size(), SAFplusI::CL_MGT_MSG_TYPE,NULL,retryDuration);
         MsgGeneral rxMsg;
         if (!msgReply)
           {

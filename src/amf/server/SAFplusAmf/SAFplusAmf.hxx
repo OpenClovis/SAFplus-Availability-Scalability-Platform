@@ -14,13 +14,13 @@
 #include "clMgtList.hxx"
 #include <vector>
 #include "MgtFactory.hxx"
-#include "clMgtContainer.hxx"
+#include "clMgtModule.hxx"
 #include "EntityByIdKey.hxx"
 
 namespace SAFplusAmf
   {
 
-    class SAFplusAmfRoot : public SAFplus::MgtContainer {
+    class SAFplusAmfRoot : public SAFplus::MgtModule {
 
         /* Apply MGT object factory */
         MGT_REGISTER(SAFplusAmfRoot);

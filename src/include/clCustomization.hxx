@@ -46,6 +46,14 @@ namespace SAFplus
 /* Configuration parameters that are used internally */
 namespace SAFplusI
   {
+
+  /* Messaging */
+  enum
+    {
+    MsgSafplusSendReplyRetryInterval = 4000,   //? Default time to wait before retrying a message that expects a reply (uses sendReply API)
+
+    };
+
   /* THREADS */
   enum
     {

@@ -37,7 +37,8 @@ namespace SAFplus
 {
   MgtModule::MgtModule(const char* nam)
   {
-    name.assign(nam);
+    // name.assign(nam);
+    tag.assign(nam);
   }
 
   MgtModule::~MgtModule()
@@ -48,9 +49,9 @@ namespace SAFplus
   {
   }
 
-  ClRcT MgtModule::loadModule()
+  ClRcT MgtModule::bind()
   {
-    return MgtRoot::getInstance()->loadMgtModule(this, this->name);
+    return MgtRoot::getInstance()->loadMgtModule(this, this->tag);
   }
 
   ClRcT MgtModule::addMgtObject(MgtObject *mgtObject, const std::string& route)
@@ -63,7 +64,7 @@ namespace SAFplus
       }
 
     /* Check if MGT object already exists in the database */
-    if (mMgtObjects.find(route) != mMgtObjects.end())
+    if (children.find(route) != children.end())
       {
         logDebug("MGT", "ROUTE", "Route [%s] already exists!", route.c_str());
         return CL_ERR_ALREADY_EXIST;
@@ -76,7 +77,7 @@ namespace SAFplus
       }
 
     /* Insert MGT object into the database */
-    mMgtObjects.insert(pair<string, MgtObject *> (route.c_str(), mgtObject));
+    children.insert(pair<string, MgtObject *> (route.c_str(), mgtObject));
     logDebug("MGT", "ROUTE", "Route [%s] added successfully!", route.c_str());
 
     return rc;
@@ -87,14 +88,14 @@ namespace SAFplus
     ClRcT rc = CL_OK;
 
     /* Check if MGT module already exists in the database */
-    if (mMgtObjects.find(route) == mMgtObjects.end())
+    if (children.find(route) == children.end())
       {
         logDebug("MGT", "ROUTE", "Routing [%s] does not exist!", route.c_str());
         return CL_ERR_NOT_EXIST;
       }
 
     /* Remove MGT module out off the database */
-    mMgtObjects.erase(route);
+    children.erase(route);
     logDebug("MGT", "ROUTE", "Routing [%s] removed successful!", route.c_str());
 
     return rc;
@@ -102,8 +103,8 @@ namespace SAFplus
 
   MgtObject *MgtModule::getMgtObject(const std::string& route)
   {
-    map<string, MgtObject*>::iterator mapIndex = mMgtObjects.find(route);
-    if (mapIndex != mMgtObjects.end())
+    map<string, MgtObject*>::iterator mapIndex = children.find(route);
+    if (mapIndex != children.end())
       {
         return static_cast<MgtObject *>((*mapIndex).second);
       }
@@ -115,8 +116,8 @@ namespace SAFplus
     std::stringstream dumpStrStream;
     
     std::map<std::string, MgtObject*>::iterator iter;
-    std::map<std::string, MgtObject*>::iterator endd = mMgtObjects.end();
-    for (iter = mMgtObjects.begin(); iter != endd; iter++)
+    std::map<std::string, MgtObject*>::iterator endd = children.end();
+    for (iter = children.begin(); iter != endd; iter++)
       {
         dumpStrStream << iter->first << " ";
       }
@@ -129,8 +130,8 @@ namespace SAFplus
   {
     std::stringstream dumpStrStream;
     std::map<std::string, MgtObject*>::iterator iter;
-    std::map<std::string, MgtObject*>::iterator endd = mMgtObjects.end();
-    for (iter = mMgtObjects.begin(); iter != endd; iter++)
+    std::map<std::string, MgtObject*>::iterator endd = children.end();
+    for (iter = children.begin(); iter != endd; iter++)
       {
         MgtObject* obj = iter->second;
         obj->toString(dumpStrStream);
@@ -139,14 +140,15 @@ namespace SAFplus
     logDebug("MGT", "DUMP", "%s", dumpStrStream.str().c_str());
   }
 
+#if 0
   void MgtModule::resolvePath(const char* path, std::vector<MgtObject*>* result)
   {
     std::string xpath(path);
     size_t idx = xpath.find_first_of("/[", 0);
     std::string child = xpath.substr(0, idx);
 
-    map<string, MgtObject*>::iterator objref = mMgtObjects.find(child);
-    if (objref == mMgtObjects.end()) return;
+    map<string, MgtObject*>::iterator objref = children.find(child);
+    if (objref == children.end()) return;
     MgtObject *object = static_cast<MgtObject *>((*objref).second);
     if (idx == string::npos) // this was the end of the string
       {
@@ -159,7 +161,7 @@ namespace SAFplus
         std::string rest = xpath.substr(idx + 1);
         object->resolvePath(rest.c_str(), result);
       }
-    if (xpath[idx] == '[')
+    else if (xpath[idx] == '[')
       {
         std::string rest = xpath.substr(idx);
         object->resolvePath(rest.c_str(), result);
@@ -170,14 +172,15 @@ namespace SAFplus
       }
 
   }
+#endif
 
   MgtObject *MgtModule::findMgtObject(const std::string& xpath)
   {
   size_t idx = xpath.find_first_of("/[", 0);
   std::string child = xpath.substr(0, idx);
 
-  map<string, MgtObject*>::iterator objref = mMgtObjects.find(child);
-  if (objref == mMgtObjects.end()) return nullptr;
+  map<string, MgtObject*>::iterator objref = children.find(child);
+  if (objref == children.end()) return nullptr;
   MgtObject *object = static_cast<MgtObject *>((*objref).second);
   if (idx == string::npos) // this was the end of the string
     return object;
@@ -202,7 +205,7 @@ namespace SAFplus
     }
 
 #if 0
-    for (map<string, MgtObject*>::iterator it = mMgtObjects.begin(); it != mMgtObjects.end(); ++it)
+    for (map<string, MgtObject*>::iterator it = children.begin(); it != children.end(); ++it)
       {
         MgtObject *object = static_cast<MgtObject *>((*it).second);
         std::string objXpath = object->getFullXpath();
@@ -248,7 +251,7 @@ namespace SAFplus
 
     /* Insert MGT notification into the database */
     mMgtNotifies.insert(pair<string, MgtNotify *> (mgtNotify->tag.c_str(), mgtNotify));
-    mgtNotify->Module.assign(this->name);
+    mgtNotify->Module.assign(this->tag);
 
     logDebug("MGT", "NOT", "Notify [%s] added successful!", mgtNotify->tag.c_str());
 
@@ -301,7 +304,7 @@ namespace SAFplus
 
     /* Insert MGT RPC into the database */
     mMgtRpcs.insert(pair<string, MgtRpc *> (mgtRpc->tag.c_str(), mgtRpc));
-    mgtRpc->Module.assign(this->name);
+    mgtRpc->Module.assign(this->tag);
     logDebug("MGT", "RPC", "RPC [%s] added successful!", mgtRpc->tag.c_str());
 
     return rc;

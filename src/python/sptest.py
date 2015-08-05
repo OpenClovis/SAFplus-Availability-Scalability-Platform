@@ -9,6 +9,9 @@ sp.Initialize(svcs, sic)
 
 sp.logMsgWrite(sp.APP_LOG,sp.LogSeverity.ERROR,1,"LIB","SCN","file",300,"test")
 
+sg0xml = sp.mgtGet("/")
+print "/:\n",sg0xml
+
 sg0xml = sp.mgtGet("/SAFplusAmf/ServiceGroup/sg0")
 print "SG0:\n",sg0xml
 print "Getting su0:"

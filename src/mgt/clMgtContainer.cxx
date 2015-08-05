@@ -96,6 +96,7 @@ namespace SAFplus
 
     std::string p(path);
     std::size_t idx = p.find("/");
+    std::size_t idx2;
     std::string childName;
     if (idx == std::string::npos) childName = p;
     else childName = p.substr(0,idx);
@@ -111,6 +112,28 @@ namespace SAFplus
              resolvePath(tmp.c_str(),result);
            }
          }
+    else if ((idx2 = childName.find("[")) != std::string::npos)
+      {  // First find the list object, then inside the list find the element indexed
+        
+        std::string listName = childName.substr(0,idx2);
+        typename Map::iterator lst = children.find(listName);  // TODO check list name for wildcard
+        if (lst != children.end())
+          {
+            MgtObject *child = lst->second;
+            child->resolvePath(path+idx2, result);
+          }
+#if 0
+            for (MgtObjectMap::iterator it = children.begin(); it != children.end(); it++)
+        {
+          if (it->second->match(childName))
+            {
+            MgtObject *child = it->second;
+            if (idx == std::string::npos) result->push_back(child);
+            else child->resolvePath(&path[idx+1], result);
+            }
+        }
+#endif
+      }
     else if (childName.find_first_of("*[(])?") != std::string::npos)
       {  // Complex pattern lookup
         for (MgtObjectMap::iterator it = children.begin(); it != children.end(); it++)

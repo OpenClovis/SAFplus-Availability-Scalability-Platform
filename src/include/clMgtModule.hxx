@@ -36,6 +36,7 @@
 #include <clCommon.hxx>
 #include "clMgtObject.hxx"
 #include "clMgtNotify.hxx"
+#include "clMgtContainer.hxx"
 #include "clMgtRpc.hxx"
 
 namespace SAFplus
@@ -43,13 +44,13 @@ namespace SAFplus
   /**
    * MgtModule class provides APIs to manage a MGT modules
    */
-  class MgtModule
+  class MgtModule:public MgtContainer
   {
   private:
     /*
      * Store the list of MGT object
      */
-    std::map<std::string, MgtObject*> mMgtObjects;
+    //std::map<std::string, MgtObject*> mMgtObjects; in MgtContainer as children
 
     /*
      * Store the list of MGT notify
@@ -62,7 +63,7 @@ namespace SAFplus
     std::map<std::string, MgtRpc*> mMgtRpcs;
 
   public:
-    std::string name;
+    // REMOVED: use "tag" member of parent: std::string name;
 
   public:
     MgtModule(const char* name);
@@ -73,7 +74,7 @@ namespace SAFplus
      * \return	CL_OK					Everything is OK
      * \return	CL_ERR_ALREADY_EXIST	Module already exists
      */
-    ClRcT loadModule();
+    ClRcT bind();
 
     /**
      * \brief	Virtual function to initialize non-config data structures
@@ -108,7 +109,7 @@ namespace SAFplus
     MgtObject *findMgtObject(const std::string& xpath);  // DEPRECATED
 
     //? Resolves a string path into an array of management objects
-    void resolvePath(const char* path, std::vector<MgtObject*>* result);
+    //void resolvePath(const char* path, std::vector<MgtObject*>* result);
 
     /**
      * \brief	Function to add a MGT MGT notification into the database

@@ -77,7 +77,7 @@ namespace SAFplus
 
         Raises the "Error" Exception if something goes wrong.
     */
-            MsgReply* sendReply(Handle destination, void* buffer, ClWordT length,ClWordT msgtype=0, Wakeable *wakeable = NULL);
+      MsgReply* sendReply(Handle destination, void* buffer, ClWordT length,ClWordT msgtype=0, Wakeable *wakeable = NULL,uint retryDuration=SAFplusI::MsgSafplusSendReplyRetryInterval);
 
         protected:
             MsgHandler *handlers[NUM_MSG_TYPES];

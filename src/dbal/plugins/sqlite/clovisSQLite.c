@@ -158,9 +158,8 @@ static ClRcT cdbSQLiteDBCreate(ClDBNameT dbName, SQLiteDBHandle_t* pSQLiteHandle
     rc = sqlite3_open(dbName, &(pSQLiteHandle->pDatabase));
 
     if(SQLITE_OK != rc) {
-        logError("DBA", "DBO", "Failed to open the SQLite DB.");
-        logError("DBA", "DBO", "SQLite Error : %s. errorCode [%d]", 
-            sqlite3_errmsg(pSQLiteHandle->pDatabase), sqlite3_errcode(pSQLiteHandle->pDatabase));
+      logError("DBA", "DBO", "Failed to open the SQLite DB [%s] SQLite Error [%s] errorCode [%d]", 
+               dbName, sqlite3_errmsg(pSQLiteHandle->pDatabase), sqlite3_errcode(pSQLiteHandle->pDatabase));
         
         return(rc);
     }

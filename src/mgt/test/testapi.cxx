@@ -37,6 +37,8 @@ void initSafLibraries()
   sic.msgQueueLen = 25;
   sic.msgThreads  = 1;
   SAFplus::logSeverity = SAFplus::LOG_SEV_DEBUG;
+  SAFplus::logEchoToFd = 1;  // echo logs to stdout for debugging
+
   safplusInitialize( SAFplus::LibDep::FAULT | SAFplus::LibDep::GRP | SAFplus::LibDep::LOG | SAFplus::LibDep::MSG, sic);
   mgtAccessInitialize();
   //SAFplusI::gsm.init();
@@ -52,6 +54,19 @@ int main(int argc, char *argv[])
     std::string getValue, setValue;
     char buf[200];
     //Test mgtGet function
+
+    //snprintf(buf,200,"{%d}/",1000);
+    //getValue = SAFplus::mgtGet(buf);
+    //printf("Get / = %s\n", getValue.c_str());
+
+    snprintf(buf,200,"{%d}/SAFplusAmf",1000);
+    getValue = SAFplus::mgtGet(buf);
+    printf("Get /SAFplusAmf = %s\n", getValue.c_str());
+
+    snprintf(buf,200,"{%d}/SAFplusAmf/Component",1000);
+    getValue = SAFplus::mgtGet(buf);
+    printf("Get /SAFplusAmf/Component = %s\n", getValue.c_str());
+
     snprintf(buf,200,"{%d}/SAFplusAmf/Component[name='c0']",1000);
     getValue = SAFplus::mgtGet(buf);
     printf("Get /SAFplusAmf/Component[name='c0'] = %s\n", getValue.c_str());

@@ -62,7 +62,7 @@ bool amfChange = false;  //? Set to true if the change was AMF related (process 
 bool grpChange = false;  //? Set to true if the change was group related
 
 SAFplusAmf::SAFplusAmfRoot cfg;
-MgtModule dataModule("SAFplusAmf");
+//MgtModule dataModule("SAFplusAmf");
 
 const char* LogArea = "MAN";
 
@@ -107,6 +107,7 @@ void signalHandler(const boost::system::error_code& error, int signal_number)
 #endif
 
 
+#if 0  // No longer necessary.  We bind at the module level
 //? Connect local data to the management tree
 void bind()
   {
@@ -124,6 +125,7 @@ void bind()
     cfg.healthCheckPeriod.bind(hdl, "SAFplusAmf", "healthCheckPeriod");
     cfg.healthCheckMaxSilence.bind(hdl, "SAFplusAmf", "healthCheckMaxSilence");
   }
+#endif
 
 class MgtMsgHandler : public SAFplus::MsgHandler
 {
@@ -134,7 +136,10 @@ class MgtMsgHandler : public SAFplus::MsgHandler
       mgtMsgReq.ParseFromArray(msg, msglen);
       if (mgtMsgReq.type() == Mgt::Msg::MsgMgt::CL_MGT_MSG_BIND_REQUEST)
       {
+        assert(0);  // Nobody should call this because of the checkpoint
+#if 0
           bind();
+#endif
       }
       else
       {
@@ -599,9 +604,8 @@ int main(int argc, char* argv[])
   initializeOperationalValues(cfg);
   // TEMPORARY testing initialization
   //loadAmfConfig(&cfg);
-  dataModule.loadModule();
-  dataModule.initialize();
-  bind();
+  cfg.bind();
+
 
   logServer = boost::thread(LogServer());
 

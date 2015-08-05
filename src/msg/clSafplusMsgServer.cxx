@@ -69,7 +69,7 @@ namespace SAFplus
         SAFplus::MsgServer::RemoveHandler(type);
     }
 
-    MsgReply *SafplusMsgServer::sendReply(Handle destination, void* buffer, ClWordT length, ClWordT msgtype, Wakeable *wakeable)
+  MsgReply *SafplusMsgServer::sendReply(Handle destination, void* buffer, ClWordT length, ClWordT msgtype, Wakeable *wakeable,uint retryDuration)
     {
         memset(&msgReply, 0, sizeof(MsgReply));
         /*
@@ -93,7 +93,7 @@ namespace SAFplus
              */
             while (msgReply.len < 2)
             {
-              if (!msgSendConditionMutex.timed_wait(msgSendReplyMutex, 4000)) // TODO: create customizable timeout
+              if (!msgSendConditionMutex.timed_wait(msgSendReplyMutex, retryDuration)) // TODO: create customizable timeout
                   {
                     Handle h = destination;
                     
