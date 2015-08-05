@@ -98,7 +98,7 @@ public:
      * \return	CL_ERR_ALREADY_EXIST	MGT module already exists
      * \return	CL_ERR_NULL_POINTER		Input parameter is a NULL pointer
      */
-    ClRcT loadMgtModule(MgtModule *module, const std::string moduleName);
+    ClRcT loadMgtModule(Handle handle, MgtModule *module, const std::string moduleName);
 
     /**
      * \brief	Function to unload MGT module from the system

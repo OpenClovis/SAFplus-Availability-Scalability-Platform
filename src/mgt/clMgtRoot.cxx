@@ -70,7 +70,7 @@ namespace SAFplus
     mgtCheckpoint.init(MGT_CKPT,Checkpoint::SHARED | Checkpoint::REPLICATED , 1024*1024, SAFplusI::CkptDefaultRows);
   }
 
-  ClRcT MgtRoot::loadMgtModule(MgtModule *module, std::string moduleName)
+  ClRcT MgtRoot::loadMgtModule(Handle handle, MgtModule *module, std::string moduleName)
   {
     if (module == nullptr)
     {
@@ -87,6 +87,26 @@ namespace SAFplus
     /* Insert MGT module into the database */
     mMgtModules.insert(pair<string, MgtModule *>(moduleName.c_str(), module));
     logDebug("MGT", "LOAD", "Module [%s] added successfully!", moduleName.c_str());
+
+    // Add to Mgt Checkpoint
+    try
+    {
+      // for key
+      std::string strXPath = "/";
+      strXPath.append(moduleName);
+
+      // for data
+      char handleData[sizeof(Buffer) - 1 + sizeof(Handle)];
+      Buffer* val = new (handleData) Buffer(sizeof(Handle));
+      *((Handle*) val->data) = handle;
+
+      // Add to checkpoint
+      mgtCheckpoint.write(strXPath.c_str(), *val);
+    }
+    catch (Error &e)
+    {
+      assert(0);
+    }
 
     return CL_OK;
   }

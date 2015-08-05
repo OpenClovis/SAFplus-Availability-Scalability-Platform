@@ -546,17 +546,6 @@ void testMgtClassList()
   //logDebug("MGT","TEST","");
 }
 
-void testMgtBind()
-{
-  MgtModule         mockModule("network");
-  TestObject testobject("testObject");
-
-  mockModule.loadModule();
-  SAFplus::Handle handle=SAFplus::Handle::create();
-  testobject.bind(handle, "network", "/ethernet/interfaces[name='eth0']");
-  //testobject.bind(handle, "network", "1.3.6.1.4.1.99840.2.1.1");
-}
-
 void testDatabase()
 {
   MgtDatabase *db = MgtDatabase::getInstance();
@@ -636,6 +625,10 @@ void testLoadMultikey()
         db->isInitialized() ? "YES" : "NO");
 
     root.read(db);
+
+    stringstream ss;
+    root.toString(ss);
+    cout<<"TEST:"<<ss.str()<<std::endl;
     db->finalizeDB();
 }
 ClBoolT gIsNodeRepresentative = CL_TRUE;
@@ -644,7 +637,7 @@ int main(int argc, char* argv[])
     SAFplus::ASP_NODEADDR = 0x1;
 
     SafplusInitializationConfiguration sic;
-    sic.iocPort     = SAFplusI::MGT_IOC_PORT;
+    sic.iocPort     = 111;
     sic.msgQueueLen = 25;
     sic.msgThreads  = 1;
 
@@ -687,8 +680,6 @@ int main(int argc, char* argv[])
     testMgtStringList();
 
     testMgtClassList();
-
-    testMgtBind();
 
     testDatabase();
 

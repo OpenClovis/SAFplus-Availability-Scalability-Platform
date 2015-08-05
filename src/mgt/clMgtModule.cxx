@@ -49,9 +49,9 @@ namespace SAFplus
   {
   }
 
-  ClRcT MgtModule::bind()
+  ClRcT MgtModule::bind(Handle handle)
   {
-    return MgtRoot::getInstance()->loadMgtModule(this, this->tag);
+    return MgtRoot::getInstance()->loadMgtModule(handle, this, this->tag);
   }
 
   ClRcT MgtModule::addMgtObject(MgtObject *mgtObject, const std::string& route)

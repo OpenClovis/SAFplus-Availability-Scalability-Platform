@@ -205,8 +205,10 @@ int main(int argc, char* argv[])
   MgtDatabase *db = MgtDatabase::getInstance();
   db->initializeDB("SAFplusLog");
 
+#if 0 //H. TODO
   dataModule.loadModule();
   dataModule.initialize();
+#endif
 
   // Load logging configuration
   cfg = loadLogCfg();

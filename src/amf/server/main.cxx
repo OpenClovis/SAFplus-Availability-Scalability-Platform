@@ -604,7 +604,7 @@ int main(int argc, char* argv[])
   initializeOperationalValues(cfg);
   // TEMPORARY testing initialization
   //loadAmfConfig(&cfg);
-  cfg.bind();
+  cfg.bind(myHandle);
 
 
   logServer = boost::thread(LogServer());
