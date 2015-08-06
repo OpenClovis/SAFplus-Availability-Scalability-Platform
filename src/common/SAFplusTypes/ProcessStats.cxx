@@ -5,31 +5,60 @@
  */ 
 #include "SAFplusTypesCommon.hxx"
 
-#include "MemUtilization.hxx"
-#include "MemUtilization.hxx"
-#include "Failures.hxx"
-#include <vector>
-#include "CpuUtilization.hxx"
+#include "ResidentMem.hxx"
+#include "PageFaults.hxx"
 #include "clMgtContainer.hxx"
+#include "clTransaction.hxx"
+#include "ResidentMem.hxx"
+#include "NumThreads.hxx"
+#include "PageFaults.hxx"
+#include "MemUtilization.hxx"
 #include "Failures.hxx"
 #include "CpuUtilization.hxx"
+#include "Failures.hxx"
+#include "CpuUtilization.hxx"
+#include "MemUtilization.hxx"
+#include "clMgtProv.hxx"
+#include "NumThreads.hxx"
+#include <vector>
+#include "ProcessState.hxx"
 #include "ProcessStats.hxx"
 
 
 namespace SAFplusTypes
   {
 
-    ProcessStats::ProcessStats(): SAFplus::MgtContainer("processStats")
+    ProcessStats::ProcessStats(): SAFplus::MgtContainer("processStats"), ProcessState("ProcessState")
     {
+        this->addChildObject(&ProcessState, "ProcessState");
         this->addChildObject(&failures, "failures");
         this->addChildObject(&cpuUtilization, "cpuUtilization");
         this->addChildObject(&memUtilization, "memUtilization");
+        this->addChildObject(&pageFaults, "pageFaults");
+        this->addChildObject(&numThreads, "numThreads");
+        this->addChildObject(&residentMem, "residentMem");
     };
 
     std::vector<std::string>* ProcessStats::getChildNames()
     {
-        std::string childNames[] = { "failures", "cpuUtilization", "memUtilization" };
+        std::string childNames[] = { "failures", "cpuUtilization", "memUtilization", "pageFaults", "numThreads", "residentMem", "ProcessState" };
         return new std::vector<std::string> (childNames, childNames + sizeof(childNames) / sizeof(childNames[0]));
+    };
+
+    /*
+     * XPATH: /SAFplusTypes/processStats/ProcessState
+     */
+    SAFplusTypes::ProcessState ProcessStats::getProcessState()
+    {
+        return this->ProcessState.value;
+    };
+
+    /*
+     * XPATH: /SAFplusTypes/processStats/ProcessState
+     */
+    void ProcessStats::setProcessState(SAFplusTypes::ProcessState &ProcessStateValue, SAFplus::Transaction &txn)
+    {
+        this->ProcessState.set(ProcessStateValue,txn);
     };
 
     /*
@@ -78,6 +107,54 @@ namespace SAFplusTypes
     void ProcessStats::addMemUtilization(SAFplusTypes::MemUtilization *memUtilizationValue)
     {
         this->addChildObject(memUtilizationValue, "memUtilization");
+    };
+
+    /*
+     * XPATH: /SAFplusTypes/processStats/pageFaults
+     */
+    SAFplusTypes::PageFaults* ProcessStats::getPageFaults()
+    {
+        return dynamic_cast<PageFaults*>(this->getChildObject("pageFaults"));
+    };
+
+    /*
+     * XPATH: /SAFplusTypes/processStats/pageFaults
+     */
+    void ProcessStats::addPageFaults(SAFplusTypes::PageFaults *pageFaultsValue)
+    {
+        this->addChildObject(pageFaultsValue, "pageFaults");
+    };
+
+    /*
+     * XPATH: /SAFplusTypes/processStats/numThreads
+     */
+    SAFplusTypes::NumThreads* ProcessStats::getNumThreads()
+    {
+        return dynamic_cast<NumThreads*>(this->getChildObject("numThreads"));
+    };
+
+    /*
+     * XPATH: /SAFplusTypes/processStats/numThreads
+     */
+    void ProcessStats::addNumThreads(SAFplusTypes::NumThreads *numThreadsValue)
+    {
+        this->addChildObject(numThreadsValue, "numThreads");
+    };
+
+    /*
+     * XPATH: /SAFplusTypes/processStats/residentMem
+     */
+    SAFplusTypes::ResidentMem* ProcessStats::getResidentMem()
+    {
+        return dynamic_cast<ResidentMem*>(this->getChildObject("residentMem"));
+    };
+
+    /*
+     * XPATH: /SAFplusTypes/processStats/residentMem
+     */
+    void ProcessStats::addResidentMem(SAFplusTypes::ResidentMem *residentMemValue)
+    {
+        this->addChildObject(residentMemValue, "residentMem");
     };
 
     ProcessStats::~ProcessStats()

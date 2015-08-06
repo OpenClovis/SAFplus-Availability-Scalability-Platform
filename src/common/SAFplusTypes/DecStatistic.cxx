@@ -5,12 +5,11 @@
  */ 
 #include "SAFplusTypesCommon.hxx"
 
-#include <vector>
-#include "clTransaction.hxx"
-#include "clMgtContainer.hxx"
-#include "clMgtProv.hxx"
-#include "clMgtProvList.hxx"
 #include <string>
+#include "clTransaction.hxx"
+#include "clMgtProv.hxx"
+#include <vector>
+#include "clMgtContainer.hxx"
 #include "DecStatistic.hxx"
 
 
@@ -71,7 +70,7 @@ namespace SAFplusTypes
     /*
      * XPATH: /SAFplusTypes/decStatistic/history1min
      */
-    std::vector<std::string> DecStatistic::getHistory1min()
+    std::string DecStatistic::getHistory1min()
     {
         return this->history1min.value;
     };
@@ -81,13 +80,13 @@ namespace SAFplusTypes
      */
     void DecStatistic::setHistory1min(std::string history1minValue, SAFplus::Transaction &txn)
     {
-        this->history1min.value.push_back(history1minValue);
+        this->history1min.set(history1minValue,txn);
     };
 
     /*
      * XPATH: /SAFplusTypes/decStatistic/history10min
      */
-    std::vector<std::string> DecStatistic::getHistory10min()
+    std::string DecStatistic::getHistory10min()
     {
         return this->history10min.value;
     };
@@ -97,13 +96,13 @@ namespace SAFplusTypes
      */
     void DecStatistic::setHistory10min(std::string history10minValue, SAFplus::Transaction &txn)
     {
-        this->history10min.value.push_back(history10minValue);
+        this->history10min.set(history10minValue,txn);
     };
 
     /*
      * XPATH: /SAFplusTypes/decStatistic/history1hour
      */
-    std::vector<std::string> DecStatistic::getHistory1hour()
+    std::string DecStatistic::getHistory1hour()
     {
         return this->history1hour.value;
     };
@@ -113,13 +112,13 @@ namespace SAFplusTypes
      */
     void DecStatistic::setHistory1hour(std::string history1hourValue, SAFplus::Transaction &txn)
     {
-        this->history1hour.value.push_back(history1hourValue);
+        this->history1hour.set(history1hourValue,txn);
     };
 
     /*
      * XPATH: /SAFplusTypes/decStatistic/history12hour
      */
-    std::vector<std::string> DecStatistic::getHistory12hour()
+    std::string DecStatistic::getHistory12hour()
     {
         return this->history12hour.value;
     };
@@ -129,13 +128,13 @@ namespace SAFplusTypes
      */
     void DecStatistic::setHistory12hour(std::string history12hourValue, SAFplus::Transaction &txn)
     {
-        this->history12hour.value.push_back(history12hourValue);
+        this->history12hour.set(history12hourValue,txn);
     };
 
     /*
      * XPATH: /SAFplusTypes/decStatistic/history1day
      */
-    std::vector<std::string> DecStatistic::getHistory1day()
+    std::string DecStatistic::getHistory1day()
     {
         return this->history1day.value;
     };
@@ -145,13 +144,13 @@ namespace SAFplusTypes
      */
     void DecStatistic::setHistory1day(std::string history1dayValue, SAFplus::Transaction &txn)
     {
-        this->history1day.value.push_back(history1dayValue);
+        this->history1day.set(history1dayValue,txn);
     };
 
     /*
      * XPATH: /SAFplusTypes/decStatistic/history1week
      */
-    std::vector<std::string> DecStatistic::getHistory1week()
+    std::string DecStatistic::getHistory1week()
     {
         return this->history1week.value;
     };
@@ -161,13 +160,13 @@ namespace SAFplusTypes
      */
     void DecStatistic::setHistory1week(std::string history1weekValue, SAFplus::Transaction &txn)
     {
-        this->history1week.value.push_back(history1weekValue);
+        this->history1week.set(history1weekValue,txn);
     };
 
     /*
      * XPATH: /SAFplusTypes/decStatistic/history1month
      */
-    std::vector<std::string> DecStatistic::getHistory1month()
+    std::string DecStatistic::getHistory1month()
     {
         return this->history1month.value;
     };
@@ -177,7 +176,7 @@ namespace SAFplusTypes
      */
     void DecStatistic::setHistory1month(std::string history1monthValue, SAFplus::Transaction &txn)
     {
-        this->history1month.value.push_back(history1monthValue);
+        this->history1month.set(history1monthValue,txn);
     };
 
     DecStatistic::~DecStatistic()

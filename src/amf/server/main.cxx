@@ -29,6 +29,7 @@
 #include <SAFplusAmf.hxx>
 #include <Component.hxx>
 #include <clSafplusMsgServer.hxx>
+//#include <clTimer7.hxx>
 
 #include "clRpcChannel.hxx"
 #include "amfRpc/amfRpc.pb.hxx"
@@ -178,6 +179,7 @@ static unsigned int MAX_HANDLER_THREADS=10;
 
 // Threads
 boost::thread    logServer;
+boost::thread    compStatsRefresh;
 
 struct LogServer
   {
@@ -187,6 +189,18 @@ struct LogServer
       {
       //printf("log server code here\n");
       sleep(1);
+      }
+    }
+  };
+
+struct CompStatsRefresh
+  {
+  void operator()()
+    {
+    while(!quitting)
+      {
+      sleep(10);
+      logDebug("CMP","STT","Component Statistics Refresh");
       }
     }
   };
@@ -511,6 +525,11 @@ bool dbgIdle(const char* entity=NULL)
   }
 
 
+static ClRcT refreshComponentStats(void *unused)
+{
+    logInfo("STAT","COMP", "refresh component statistics");
+    return CL_OK;
+}
 
 int main(int argc, char* argv[])
   {
@@ -529,6 +548,7 @@ int main(int argc, char* argv[])
   sic.msgQueueLen = MAX_MSGS;
   sic.msgThreads  = MAX_HANDLER_THREADS;
   safplusInitialize( SAFplus::LibDep::FAULT | SAFplus::LibDep::GRP | SAFplus::LibDep::CKPT | SAFplus::LibDep::LOG, sic);
+  //timerInitialize(NULL);
 
   logAlert(LogArea,"INI","Welcome to OpenClovis SAFplus version %d.%d.%d %s %s", SAFplus::VersionMajor, SAFplus::VersionMinor, SAFplus::VersionBugfix, __DATE__, __TIME__);
 
@@ -709,6 +729,12 @@ int main(int argc, char* argv[])
   //boost::asio::signal_set signals(ioSvc, SIGCHLD);
   // Start an asynchronous wait for one of the signals to occur.
   //signals.async_wait(signalHandler);
+
+  //static ClTimerTimeOutT statsTimeout = { .tsSec = 10, .tsMilliSec = 0 };
+  //Timer readStats(statsTimeout, CL_TIMER_REPETITIVE,CL_TIMER_SEPARATE_CONTEXT,refreshComponentStats,NULL);
+  //readStats.timerStart();
+  compStatsRefresh = boost::thread(CompStatsRefresh());
+  
 
   while(!quitting)  // Active/Standby transition loop
     {

@@ -11,13 +11,10 @@
 
 #include "clMgtIdentifier.hxx"
 #include "clTransaction.hxx"
-#include "MemUtilization.hxx"
 #include "Cleanup.hxx"
 #include "CapabilityModel.hxx"
-#include "CpuUtilization.hxx"
 #include "Cleanup.hxx"
 #include "Recovery.hxx"
-#include "ProcessStats.hxx"
 #include "clMgtProv.hxx"
 #include "PendingOperation.hxx"
 #include "HighAvailabilityReadinessState.hxx"
@@ -33,7 +30,8 @@
 #include "Terminate.hxx"
 #include "MgtFactory.hxx"
 #include "ActiveAssignments.hxx"
-#include "Failures.hxx"
+#include "ProcStats.hxx"
+#include "ProcStats.hxx"
 #include "ReadinessState.hxx"
 #include "Timeouts.hxx"
 #include "Instantiate.hxx"
@@ -48,7 +46,7 @@
 namespace SAFplusAmf
   {
 
-    class Component : public EntityId, public SAFplusTypes::ProcessStats {
+    class Component : public EntityId {
 
         /* Apply MGT object factory */
         MGT_REGISTER(Component);
@@ -172,9 +170,7 @@ namespace SAFplusAmf
          * When the system will give up on the pending operation
          */
         SAFplus::MgtProv<SAFplusTypes::Date> pendingOperationExpiration;
-        SAFplusAmf::Failures failures;
-        SAFplusAmf::CpuUtilization cpuUtilization;
-        SAFplusAmf::MemUtilization memUtilization;
+        SAFplusAmf::ProcStats procStats;
         SAFplusAmf::ActiveAssignments activeAssignments;
         SAFplusAmf::StandbyAssignments standbyAssignments;
         SAFplusAmf::Instantiate instantiate;
@@ -468,6 +464,16 @@ namespace SAFplusAmf
          * XPATH: /SAFplusAmf/Component/pendingOperationExpiration
          */
         void setPendingOperationExpiration(SAFplusTypes::Date &pendingOperationExpirationValue, SAFplus::Transaction &t=SAFplus::NO_TXN);
+
+        /*
+         * XPATH: /SAFplusAmf/Component/procStats
+         */
+        SAFplusAmf::ProcStats* getProcStats();
+
+        /*
+         * XPATH: /SAFplusAmf/Component/procStats
+         */
+        void addProcStats(SAFplusAmf::ProcStats *procStatsValue);
 
         /*
          * XPATH: /SAFplusAmf/Component/activeAssignments

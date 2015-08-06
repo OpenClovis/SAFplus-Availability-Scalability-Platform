@@ -7,13 +7,10 @@
 
 #include "clMgtIdentifier.hxx"
 #include "clTransaction.hxx"
-#include "MemUtilization.hxx"
 #include "Cleanup.hxx"
 #include "CapabilityModel.hxx"
-#include "CpuUtilization.hxx"
 #include "Cleanup.hxx"
 #include "Recovery.hxx"
-#include "ProcessStats.hxx"
 #include "clMgtProv.hxx"
 #include "PendingOperation.hxx"
 #include "HighAvailabilityReadinessState.hxx"
@@ -29,7 +26,8 @@
 #include "Terminate.hxx"
 #include "MgtFactory.hxx"
 #include "ActiveAssignments.hxx"
-#include "Failures.hxx"
+#include "ProcStats.hxx"
+#include "ProcStats.hxx"
 #include "ReadinessState.hxx"
 #include "Timeouts.hxx"
 #include "Instantiate.hxx"
@@ -93,9 +91,7 @@ namespace SAFplusAmf
         pendingOperation.config = false;
         this->addChildObject(&pendingOperationExpiration, "pendingOperationExpiration");
         pendingOperationExpiration.config = false;
-        this->addChildObject(&failures, "failures");
-        this->addChildObject(&cpuUtilization, "cpuUtilization");
-        this->addChildObject(&memUtilization, "memUtilization");
+        this->addChildObject(&procStats, "procStats");
         this->addChildObject(&activeAssignments, "activeAssignments");
         activeAssignments.config = false;
         this->addChildObject(&standbyAssignments, "standbyAssignments");
@@ -153,9 +149,7 @@ namespace SAFplusAmf
         pendingOperation.config = false;
         this->addChildObject(&pendingOperationExpiration, "pendingOperationExpiration");
         pendingOperationExpiration.config = false;
-        this->addChildObject(&failures, "failures");
-        this->addChildObject(&cpuUtilization, "cpuUtilization");
-        this->addChildObject(&memUtilization, "memUtilization");
+        this->addChildObject(&procStats, "procStats");
         this->addChildObject(&activeAssignments, "activeAssignments");
         activeAssignments.config = false;
         this->addChildObject(&standbyAssignments, "standbyAssignments");
@@ -177,7 +171,7 @@ namespace SAFplusAmf
 
     std::vector<std::string>* Component::getChildNames()
     {
-        std::string childNames[] = { "name", "id", "failures", "cpuUtilization", "memUtilization", "presenceState", "capabilityModel", "maxActiveAssignments", "maxStandbyAssignments", "activeAssignments", "standbyAssignments", "assignedWork", "operState", "readinessState", "haReadinessState", "haState", "safVersion", "compCategory", "swBundle", "commandEnvironment", "instantiate", "terminate", "cleanup", "maxInstantInstantiations", "maxDelayedInstantiations", "numInstantiationAttempts", "instantiationSuccessDuration", "lastInstantiation", "delayBetweenInstantiation", "timeouts", "serviceUnit", "recovery", "restartable", "restartCount", "proxy", "proxied", "processId", "lastError", "pendingOperation", "pendingOperationExpiration" };
+        std::string childNames[] = { "name", "id", "procStats", "presenceState", "capabilityModel", "maxActiveAssignments", "maxStandbyAssignments", "activeAssignments", "standbyAssignments", "assignedWork", "operState", "readinessState", "haReadinessState", "haState", "safVersion", "compCategory", "swBundle", "commandEnvironment", "instantiate", "terminate", "cleanup", "maxInstantInstantiations", "maxDelayedInstantiations", "numInstantiationAttempts", "instantiationSuccessDuration", "lastInstantiation", "delayBetweenInstantiation", "timeouts", "serviceUnit", "recovery", "restartable", "restartCount", "proxy", "proxied", "processId", "lastError", "pendingOperation", "pendingOperationExpiration" };
         return new std::vector<std::string> (childNames, childNames + sizeof(childNames) / sizeof(childNames[0]));
     };
 
@@ -752,6 +746,22 @@ namespace SAFplusAmf
             SAFplus::SimpleTxnOperation<SAFplusTypes::Date> *opt = new SAFplus::SimpleTxnOperation<SAFplusTypes::Date>(&(pendingOperationExpiration.value),pendingOperationExpirationValue);
             t.addOperation(opt);
         }
+    };
+
+    /*
+     * XPATH: /SAFplusAmf/Component/procStats
+     */
+    SAFplusAmf::ProcStats* Component::getProcStats()
+    {
+        return dynamic_cast<ProcStats*>(this->getChildObject("procStats"));
+    };
+
+    /*
+     * XPATH: /SAFplusAmf/Component/procStats
+     */
+    void Component::addProcStats(SAFplusAmf::ProcStats *procStatsValue)
+    {
+        this->addChildObject(procStatsValue, "procStats");
     };
 
     /*

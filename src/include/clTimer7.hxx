@@ -79,7 +79,7 @@ namespace SAFplus
         ClTimeT startTime;
         ClTimeT startRepTime;
         ClTimeT endTime;
-        ClOsalTaskIdT callbackTaskIds[CL_TIMER_MAX_PARALLEL_TASKS];
+        uint64_t callbackTaskIds[CL_TIMER_MAX_PARALLEL_TASKS];
         ClInt16T freeCallbackTaskIndex;
         ClInt16T freeCallbackTaskIndexPool[CL_TIMER_MAX_PARALLEL_TASKS];
         TimerPoolable *timerPool;
@@ -139,7 +139,7 @@ namespace SAFplus
         ClTimeT now;
         //ClRbTreeRootT timerTree;
         boost::intrusive::rbtree<Timer> timerTree;
-        ClOsalTaskIdT timerId;
+        uint64_t timerId;
         ClUint32T runningTimers;
         ClTimeT frequency;
         ThreadPool pool;

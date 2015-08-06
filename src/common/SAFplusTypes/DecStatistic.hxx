@@ -9,12 +9,11 @@
 #define DECSTATISTIC_HXX_
 #include "SAFplusTypesCommon.hxx"
 
-#include <vector>
-#include "clTransaction.hxx"
-#include "clMgtContainer.hxx"
-#include "clMgtProv.hxx"
-#include "clMgtProvList.hxx"
 #include <string>
+#include "clTransaction.hxx"
+#include "clMgtProv.hxx"
+#include <vector>
+#include "clMgtContainer.hxx"
 
 namespace SAFplusTypes
   {
@@ -23,13 +22,13 @@ namespace SAFplusTypes
     public:
         SAFplus::MgtProv<long> current;
         SAFplus::MgtProv<std::string> history10sec;
-        SAFplus::MgtProvList<std::string> history1min;
-        SAFplus::MgtProvList<std::string> history10min;
-        SAFplus::MgtProvList<std::string> history1hour;
-        SAFplus::MgtProvList<std::string> history12hour;
-        SAFplus::MgtProvList<std::string> history1day;
-        SAFplus::MgtProvList<std::string> history1week;
-        SAFplus::MgtProvList<std::string> history1month;
+        SAFplus::MgtProv<std::string> history1min;
+        SAFplus::MgtProv<std::string> history10min;
+        SAFplus::MgtProv<std::string> history1hour;
+        SAFplus::MgtProv<std::string> history12hour;
+        SAFplus::MgtProv<std::string> history1day;
+        SAFplus::MgtProv<std::string> history1week;
+        SAFplus::MgtProv<std::string> history1month;
 
     public:
         DecStatistic();
@@ -58,7 +57,7 @@ namespace SAFplusTypes
         /*
          * XPATH: /SAFplusTypes/decStatistic/history1min
          */
-        std::vector<std::string> getHistory1min();
+        std::string getHistory1min();
 
         /*
          * XPATH: /SAFplusTypes/decStatistic/history1min
@@ -68,7 +67,7 @@ namespace SAFplusTypes
         /*
          * XPATH: /SAFplusTypes/decStatistic/history10min
          */
-        std::vector<std::string> getHistory10min();
+        std::string getHistory10min();
 
         /*
          * XPATH: /SAFplusTypes/decStatistic/history10min
@@ -78,7 +77,7 @@ namespace SAFplusTypes
         /*
          * XPATH: /SAFplusTypes/decStatistic/history1hour
          */
-        std::vector<std::string> getHistory1hour();
+        std::string getHistory1hour();
 
         /*
          * XPATH: /SAFplusTypes/decStatistic/history1hour
@@ -88,7 +87,7 @@ namespace SAFplusTypes
         /*
          * XPATH: /SAFplusTypes/decStatistic/history12hour
          */
-        std::vector<std::string> getHistory12hour();
+        std::string getHistory12hour();
 
         /*
          * XPATH: /SAFplusTypes/decStatistic/history12hour
@@ -98,7 +97,7 @@ namespace SAFplusTypes
         /*
          * XPATH: /SAFplusTypes/decStatistic/history1day
          */
-        std::vector<std::string> getHistory1day();
+        std::string getHistory1day();
 
         /*
          * XPATH: /SAFplusTypes/decStatistic/history1day
@@ -108,7 +107,7 @@ namespace SAFplusTypes
         /*
          * XPATH: /SAFplusTypes/decStatistic/history1week
          */
-        std::vector<std::string> getHistory1week();
+        std::string getHistory1week();
 
         /*
          * XPATH: /SAFplusTypes/decStatistic/history1week
@@ -118,7 +117,7 @@ namespace SAFplusTypes
         /*
          * XPATH: /SAFplusTypes/decStatistic/history1month
          */
-        std::vector<std::string> getHistory1month();
+        std::string getHistory1month();
 
         /*
          * XPATH: /SAFplusTypes/decStatistic/history1month

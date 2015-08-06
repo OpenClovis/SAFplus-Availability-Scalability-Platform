@@ -9,27 +9,50 @@
 #define PROCESSSTATS_HXX_
 #include "SAFplusTypesCommon.hxx"
 
-#include "MemUtilization.hxx"
-#include "MemUtilization.hxx"
-#include "Failures.hxx"
-#include <vector>
-#include "CpuUtilization.hxx"
+#include "ResidentMem.hxx"
+#include "PageFaults.hxx"
 #include "clMgtContainer.hxx"
+#include "clTransaction.hxx"
+#include "ResidentMem.hxx"
+#include "NumThreads.hxx"
+#include "PageFaults.hxx"
+#include "MemUtilization.hxx"
 #include "Failures.hxx"
 #include "CpuUtilization.hxx"
+#include "Failures.hxx"
+#include "CpuUtilization.hxx"
+#include "MemUtilization.hxx"
+#include "clMgtProv.hxx"
+#include "NumThreads.hxx"
+#include <vector>
+#include "ProcessState.hxx"
 
 namespace SAFplusTypes
   {
 
     class ProcessStats : public SAFplus::MgtContainer {
     public:
+        SAFplus::MgtProv<SAFplusTypes::ProcessState> ProcessState;
         SAFplusTypes::Failures failures;
         SAFplusTypes::CpuUtilization cpuUtilization;
         SAFplusTypes::MemUtilization memUtilization;
+        SAFplusTypes::PageFaults pageFaults;
+        SAFplusTypes::NumThreads numThreads;
+        SAFplusTypes::ResidentMem residentMem;
 
     public:
         ProcessStats();
         std::vector<std::string>* getChildNames();
+
+        /*
+         * XPATH: /SAFplusTypes/processStats/ProcessState
+         */
+        SAFplusTypes::ProcessState getProcessState();
+
+        /*
+         * XPATH: /SAFplusTypes/processStats/ProcessState
+         */
+        void setProcessState(SAFplusTypes::ProcessState &ProcessStateValue, SAFplus::Transaction &txn=SAFplus::NO_TXN);
 
         /*
          * XPATH: /SAFplusTypes/processStats/failures
@@ -60,6 +83,36 @@ namespace SAFplusTypes
          * XPATH: /SAFplusTypes/processStats/memUtilization
          */
         void addMemUtilization(SAFplusTypes::MemUtilization *memUtilizationValue);
+
+        /*
+         * XPATH: /SAFplusTypes/processStats/pageFaults
+         */
+        SAFplusTypes::PageFaults* getPageFaults();
+
+        /*
+         * XPATH: /SAFplusTypes/processStats/pageFaults
+         */
+        void addPageFaults(SAFplusTypes::PageFaults *pageFaultsValue);
+
+        /*
+         * XPATH: /SAFplusTypes/processStats/numThreads
+         */
+        SAFplusTypes::NumThreads* getNumThreads();
+
+        /*
+         * XPATH: /SAFplusTypes/processStats/numThreads
+         */
+        void addNumThreads(SAFplusTypes::NumThreads *numThreadsValue);
+
+        /*
+         * XPATH: /SAFplusTypes/processStats/residentMem
+         */
+        SAFplusTypes::ResidentMem* getResidentMem();
+
+        /*
+         * XPATH: /SAFplusTypes/processStats/residentMem
+         */
+        void addResidentMem(SAFplusTypes::ResidentMem *residentMemValue);
         ~ProcessStats();
 
     };

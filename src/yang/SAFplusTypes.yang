@@ -161,31 +161,31 @@ module SAFplusTypes
       {
         type string; // Comma separated list of float
       }
-      leaf-list history1min
+      leaf history1min
       {
         type string; // Comma separated list of float
       }
-      leaf-list history10min  
+      leaf history10min  
       {
         type string; // Comma separated list of float
       }
-      leaf-list history1hour  
+      leaf history1hour  
       {
         type string; // Comma separated list of float
       }
-      leaf-list history12hour  
+      leaf history12hour  
       {
         type string; // Comma separated list of float
       }
-      leaf-list history1day  
+      leaf history1day  
       {
         type string; // Comma separated list of float
       }
-      leaf-list history1week 
+      leaf history1week 
       {
         type string; // Comma separated list of float
       }
-      leaf-list history1month
+      leaf history1month
       {
         type string; // Comma separated list of float
       }
@@ -197,6 +197,22 @@ module SAFplusTypes
     container failures       { uses intStatistic; }
     container cpuUtilization { uses decStatistic; }
     container memUtilization { uses decStatistic; }
+    container pageFaults { uses intStatistic; }
+    container numThreads { uses intStatistic; }
+    container residentMem { uses intStatistic; }
+
+    leaf ProcessState
+      {  
+      type enumeration
+	{
+	  enum Running { value 0; }
+	  enum Sleeping { value 1; }
+	  enum WaitingForDisk { value 2; }
+	  enum Zombie { value 3; }
+	  enum Stopped { value 4; }
+	  enum TracingStop { value 5; }
+        }
+      }
   }
 
 
