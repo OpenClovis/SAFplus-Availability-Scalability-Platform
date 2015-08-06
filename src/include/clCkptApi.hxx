@@ -18,8 +18,12 @@
 #include <clThreadApi.hxx>
 
 #include <clCkptIpi.hxx>
+#include <clCustomization.hxx>
+
 
 #define	NullTMask 0x800000UL
+
+#define SharedMemPath "/dev/shm/"
 
 namespace SAFplus
 {
@@ -146,19 +150,19 @@ namespace SAFplus
       };
 
     //? <ctor>Create a new checkpoint or open an existing one.  If no handle is passed, a new checkpoint will be created and a new handle assigned</ctor>
-    Checkpoint(const Handle& handle, uint_t flags,uint_t size=0, uint_t rows=0)  
+    Checkpoint(const Handle& handle, uint_t flags, uint64_t retentionDuration=SAFplusI::CkptRetentionDurationDefault, uint_t size=0, uint_t rows=0)  
     { 
-    init(handle,flags,size,rows);
+    init(handle,flags,retentionDuration,size,rows);
     }
 
     //? <ctor>Create a new checkpoint or open an existing one.  If no handle is passed, a new checkpoint will be created.</ctor>
     // <arg name="flags">The flavor of checkpoint to open.  See the constants for the options.  All entities opening the checkpoint must use the same flags.</arg>
     // <arg name="size">This is the amount of shared memory that will be allocated to hold this checkpoint.  If the checkpoint already exists, this value will be ignored.</arg>
     // <arg name="rows">The maximum number of items to be stored in the checkpoint table</arg>
-    Checkpoint(uint_t flags,uint_t size=0, uint_t rows=0)
+    Checkpoint(uint_t flags, uint64_t retentionDuration=SAFplusI::CkptRetentionDurationDefault, uint_t size=0, uint_t rows=0)
     { 
     Handle hdl = SAFplus::Handle::create();
-    init(hdl,flags,size,rows);
+    init(hdl,flags,retentionDuration,size,rows);
     }
 
     //? <ctor>2 step initialization.  You must call init() before using this object</ctor>
@@ -170,7 +174,7 @@ namespace SAFplus
     // <arg name="size">This is the amount of shared memory that will be allocated to hold this checkpoint.  If the checkpoint already exists, this value will be ignored.</arg>
     // <arg name="rows">The maximum number of items to be stored in the checkpoint table</arg>
     // <arg name="execSemantics" default="BLOCK">[OPTIONAL] specify blocking or nonblocking execution semantics for this function</arg>
-    void init(const Handle& handle, uint_t flags,uint_t size=0, uint_t rows=0,SAFplus::Wakeable& execSemantics = BLOCK);
+    void init(const Handle& handle, uint_t flags,uint64_t retentionDuration=SAFplusI::CkptRetentionDurationDefault, uint_t size=0, uint_t rows=0,SAFplus::Wakeable& execSemantics = BLOCK);
 
     // TBD when name service is ready; just resolve name to a handle, or create a name->new handle->new checkpoint object mapping if the name does not exist.
     //Checkpoint(const char* name,uint_t flags);

@@ -1,5 +1,6 @@
 #include <clCustomization.hxx>
 #include <clThreadApi.hxx>
+#include <clCkptApi.hxx>
 #include <boost/asio/deadline_timer.hpp>
 #include <boost/unordered_map.hpp>
 #include <boost/container/map.hpp>
@@ -10,7 +11,6 @@
 #include <boost/lexical_cast.hpp>
 #include <boost/filesystem.hpp>
 #include <string>
-#define SharedMemPath "/dev/shm/"
 
 
 namespace fs = boost::filesystem;
@@ -37,11 +37,12 @@ public:
 public:
   Timer(uint64_t wd, boost::asio::io_service& _iosvc, TimeoutCb cb): waitDuration(wd), iosvc(_iosvc), fpOnTimeout(cb)
   {
-    timer = new boost::asio::deadline_timer(_iosvc, boost::posix_time::seconds(wd));
+    timer = new boost::asio::deadline_timer(_iosvc);
   }
   /* wait on a duration */
   void wait(void* arg, RetentionTimer* rt=NULL)
   {   
+    expire();
     timer->async_wait(boost::bind(fpOnTimeout,boost::asio::placeholders::error, arg, rt));    
   }  
   /* Force the timer to expire immediately */
@@ -62,9 +63,9 @@ struct RetentionTimerData
   Timer timer;
   //uint64_t retentionDuration; // in second (obsolete)
   // And maybe a ProcGate associated with this checkpoint used to check its status
-  SAFplus::ProcGate gate;
+  SAFplus::ProcSem gate;
   bool isRunning; // states that if this timer is running or not 
-  RetentionTimerData(Timer t, SAFplus::ProcGate g, bool running): timer(t), gate(g), isRunning(running)
+  RetentionTimerData(Timer t, SAFplus::ProcSem g, bool running): timer(t), gate(g), isRunning(running)
   {
   }
 };
@@ -101,7 +102,7 @@ public:
   // an entry for stopping retention timer
   void stopTimer(CkptTimerMap::iterator& iter)
   {
-    logTrace("CKPRET", "STOP", "Enter stopTimckpt shared mem fileer");
+    logTrace("CKPRET", "STOP", "Enter stopTimer");
     Timer& timer = iter->second.timer;
     if (iter->second.isRunning) 
     {
@@ -139,10 +140,10 @@ public:uint64_t waitDuration;
       int flen = filePath.length();
       if (ckptShmPos >= 0 && ckptShmPos < flen)
       {
-        int hdlStartPos = filePath.find("_", ckptShmPos);
-        hdlStartPos++;        
+        int hdlStartPos = filePath.find("_", ckptShmPos);                
         if (hdlStartPos >= 0 && hdlStartPos < flen)
         {
+          hdlStartPos++;
           int hdlEndPos = filePath.rfind(":");          
           if (hdlEndPos >= 0 && hdlEndPos < flen)
           {
@@ -163,14 +164,14 @@ public:uint64_t waitDuration;
             ckptHdl.fromStr(strHdl);
             if (ckptHdl == SAFplus::INVALID_HDL) continue; // it's not a valid handle, so bypass it and go to another
             //check if this handle exists in the map
-            logTrace("CKPRET","UDT", "[shm-updateRetentionTimerMap] Got {CkptHandle,time}:{%" PRIx64 ":%" PRIx64 "%lu}", ckptHdl.id[0], ckptHdl.id[1], retentionDuration);
+            logTrace("CKPRET","UDT", "[shm-updateRetentionTimerMap] Got {CkptHandle,time}:{%" PRIx64 ":%" PRIx64 ",%lu}", ckptHdl.id[0], ckptHdl.id[1], retentionDuration);
             CkptTimerMap::iterator contents = ckptTimerMap.find(ckptHdl);
             if (contents == ckptTimerMap.end()) // not exist
             {     
               // Add new item to map
               logTrace("CKPRET","UDT", "[shm-updateRetentionTimerMap] insert item {%" PRIx64 ":%" PRIx64 ", %lu} to map", ckptHdl.id[0], ckptHdl.id[1], retentionDuration);
               Timer timer(retentionDuration, iosvc, &onSharedMemRetentionTimeout);
-              SAFplus::ProcGate gate(ckptHdl.id[1]);
+              SAFplus::ProcSem gate(ckptHdl.id[1]);
               RetentionTimerData rt(timer, gate, false);
               CkptTimerMapPair kv(ckptHdl, rt);
               ckptTimerMap.insert(kv);          
@@ -206,7 +207,7 @@ public:
     uint64_t persistentRetentionDuration;
     Timer timer(persistentRetentionDuration, iosvc, &onPersistentRetentionTimeout);
     SAFplus::Handle ckptHandle;
-    SAFplus::ProcGate gate(ckptHandle.id[1]);
+    SAFplus::ProcSem gate(ckptHandle.id[1]);
     RetentionTimerData rt(timer, gate, false);
     CkptTimerMapPair value(ckptHandle, rt);
     ckptTimerMap.insert(value);
@@ -252,6 +253,7 @@ int main()
   ckptUseStatusCheckTimer.wait(&timerArg);
   // run the io service
   runIoService();  // The program control blocks here
+  return 1;
 }
 
 void onCkptUseStatusCheckTimeout(const boost::system::error_code& e, void* arg, RetentionTimer* rt)
@@ -261,8 +263,7 @@ void onCkptUseStatusCheckTimeout(const boost::system::error_code& e, void* arg, 
   TimerArg* tArg = (TimerArg*) arg;
   updateTimer(tArg->shmTimer, io);
   updateTimer(tArg->perstTimer, io);
-  // start a new status check cycle
-  tArg->hostTimer->expire();
+  // start a new status check cycle  
   tArg->hostTimer->wait(arg);
 }
 
@@ -278,13 +279,14 @@ void updateTimer(RetentionTimer* timer, boost::asio::io_service& iosvc)
   // Loop thru the map for each ckpt: check to see if there is any process opening this checkpoint
   for(CkptTimerMap::iterator iter = timer->ckptTimerMap.begin(); iter != timer->ckptTimerMap.end(); iter++)
   {    
-    SAFplus::ProcGate& gate = iter->second.gate;
+    SAFplus::ProcSem& gate = iter->second.gate;
     if (gate.try_lock()) // there is a process opening this ckpt
-    {
+    {      
+      gate.unlock();
       timer->stopTimer(iter);
     }
     else
-    {
+    {      
       timer->startTimer(iter);
     }
   }

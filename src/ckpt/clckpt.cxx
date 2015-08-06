@@ -3,13 +3,18 @@
 #include <cltypes.h>
 //#include <boost/interprocess/shared_memory_object.hpp>
 //#include <boost/interprocess/mapped_region.hpp>
-
+#include <boost/thread/thread.hpp>
+#include <boost/lexical_cast.hpp>
+#include <boost/filesystem.hpp>
+#include <string>
 #include <clCommon.hxx>
 
 #include <clCkptIpi.hxx>
 #include <clCkptApi.hxx>
 
 #include <clCustomization.hxx>
+
+namespace fs = boost::filesystem;
 
 using namespace boost::interprocess;
 using namespace SAFplus;
@@ -36,10 +41,37 @@ bool SAFplusI::BufferPtrContentsEqual::operator() (const BufferPtr& x, const Buf
 
 SAFplus::Checkpoint::~Checkpoint()
 {
-  if (isSyncReplica) { assert(sync); delete sync; }
+  if (isSyncReplica) { if(sync) delete sync; }
 }
 
-void SAFplus::Checkpoint::init(const Handle& hdl, uint_t _flags,uint_t size, uint_t rows,SAFplus::Wakeable& execSemantics)
+/*
+** This function is getting the existing checkpoint shared memory file for a specified ckpt handle if any.
+** it's useful when user wants to open an existing checkpoint: when opening an existing one, some parameters
+** used for creating checkpoint such as size, row and retentionDuration time are not counted in (not provided
+** and if provided, they'll be ignored).
+** Because a shm file is appended with retention duration at the end when creating checkpoint, so, this function
+** must be called at init to ensure that the existing shm file (if any) is reused to open instead of building a new one
+*/
+std::string getFullShmFile(const char* shmFilename)
+{
+  fs::directory_iterator end_iter;
+  for( fs::directory_iterator dir_iter(SharedMemPath) ; dir_iter != end_iter ; ++dir_iter)
+  {
+    if (!fs::is_regular_file(dir_iter->status())) continue;  // skip any sym links, etc.
+    // Extract just the file name by bracketing it between the preceding / and the file extension
+    std::string filePath = dir_iter->path().string();
+    // skip ahead to the last / so a name like /dev/shm/ckpt_ works
+    int lastSlashPos = filePath.rfind("/");
+    int ckptShmPos = filePath.find(shmFilename, lastSlashPos);
+    if (ckptShmPos >= 0 && ckptShmPos < filePath.length())
+    {
+      return filePath.substr(ckptShmPos);
+    }
+  }  
+  return std::string(); // returns empty shm file name
+}
+
+void SAFplus::Checkpoint::init(const Handle& hdl, uint_t _flags, uint64_t retentionDuration, uint_t size, uint_t rows,SAFplus::Wakeable& execSemantics)
 {
   logInfo("CKP","INI","Opening checkpoint [%" PRIx64 ":%" PRIx64 "]",hdl.id[0],hdl.id[1]);
   // All constructors funnel through this init routine.
@@ -64,6 +96,18 @@ void SAFplus::Checkpoint::init(const Handle& hdl, uint_t _flags,uint_t size, uin
   //sharedMemHandle = NULL;
   strcpy(tempStr,"ckpt_");
   hdl.toStr(&tempStr[5]);
+  // check if this checkpoint has existed or not
+  std::string ckptShmFile = getFullShmFile(tempStr);
+  if (ckptShmFile.length()>0) // there is file matching with the ckpt handle, means ckpt does exist, so use it
+  {
+    strcpy(tempStr, ckptShmFile.c_str());
+  }
+  else // there is no any file matching with the ckpt handle, means ckpt doesn't exist, so creating a new one
+  {
+    std::string strTime = boost::lexical_cast<std::string>(retentionDuration);
+    strcat(tempStr, ":");
+    strcat(tempStr, strTime.c_str());
+  }
   //strcpy(tempStr,"test");  // DEBUGGING always uses one segment
 
   if (flags & SHARED)
@@ -153,6 +197,8 @@ const Buffer& SAFplus::Checkpoint::read (const Buffer& key) //const
           return ret;
         }
     }
+  logInfo("CKPT", "READ", "Simulate the process holding lock in 700s");
+  boost::this_thread::sleep(boost::posix_time::seconds(700));
   gate.unlock();
   return *((Buffer*) NULL);
 }
