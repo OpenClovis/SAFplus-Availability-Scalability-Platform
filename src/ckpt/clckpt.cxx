@@ -3,7 +3,6 @@
 #include <cltypes.h>
 //#include <boost/interprocess/shared_memory_object.hpp>
 //#include <boost/interprocess/mapped_region.hpp>
-#include <boost/thread/thread.hpp>
 #include <boost/lexical_cast.hpp>
 #include <boost/filesystem.hpp>
 #include <string>
@@ -196,9 +195,7 @@ const Buffer& SAFplus::Checkpoint::read (const Buffer& key) //const
           gate.unlock();
           return ret;
         }
-    }
-  logInfo("CKPT", "READ", "Simulate the process holding lock in 700s");
-  boost::this_thread::sleep(boost::posix_time::seconds(700));
+    }  
   gate.unlock();
   return *((Buffer*) NULL);
 }
