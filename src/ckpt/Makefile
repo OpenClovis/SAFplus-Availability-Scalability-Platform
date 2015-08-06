@@ -9,7 +9,7 @@ CKPT_CLIENT_OBJ := $(addprefix $(MWOBJ_DIR)/,$(subst .cxx,.o,$(CKPT_CLIENT_SRC))
 Release all: $(LIB_DIR)/libclCkpt.so
 
 $(SAFPLUS_TARGET)/lib/libclCkpt.so: $(CKPT_CLIENT_OBJ)
-	$(LINK_SO) $@ $+  -lpthread -lrt
+	$(LINK_SO) $@ $+  -L$(BOOST_LIB_DIR) -lboost_filesystem -lpthread -lrt
 
 $(MWOBJ_DIR)/%.o: %.cxx Makefile $(CKPT_CLIENT_H)
 	$(COMPILE_CPP) $@ $<

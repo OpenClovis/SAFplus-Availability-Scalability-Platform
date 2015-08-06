@@ -21,7 +21,7 @@ void SAFplus::nameInitialize()
 void NameRegistrar::init(Handle hdl)
   {
   m_checkpoint.name = "safplusName";
-  m_checkpoint.init(hdl,Checkpoint::SHARED | Checkpoint::REPLICATED, CkptDefaultSize, CkptDefaultRows,IGNORE);
+  m_checkpoint.init(hdl,Checkpoint::SHARED | Checkpoint::REPLICATED, SAFplusI::CkptRetentionDurationDefault, CkptDefaultSize, CkptDefaultRows,IGNORE);
   }
 
 void NameRegistrar::set(const char* name, Handle handle, MappingMode m)
