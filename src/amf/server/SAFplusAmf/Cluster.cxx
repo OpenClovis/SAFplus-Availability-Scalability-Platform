@@ -59,7 +59,7 @@ namespace SAFplusAmf
     /*
      * XPATH: /SAFplusAmf/Cluster/adminState
      */
-    void Cluster::setAdminState(SAFplusAmf::AdministrativeState adminStateValue, SAFplus::Transaction &t)
+    void Cluster::setAdminState(SAFplusAmf::AdministrativeState &adminStateValue, SAFplus::Transaction &t)
     {
         if(&t == &SAFplus::NO_TXN) this->adminState.value = adminStateValue;
         else
@@ -80,7 +80,7 @@ namespace SAFplusAmf
     /*
      * XPATH: /SAFplusAmf/Cluster/startupAssignmentDelay
      */
-    void Cluster::setStartupAssignmentDelay(SaTimeT startupAssignmentDelayValue, SAFplus::Transaction &t)
+    void Cluster::setStartupAssignmentDelay(SaTimeT &startupAssignmentDelayValue, SAFplus::Transaction &t)
     {
         if(&t == &SAFplus::NO_TXN) this->startupAssignmentDelay.value = startupAssignmentDelayValue;
         else

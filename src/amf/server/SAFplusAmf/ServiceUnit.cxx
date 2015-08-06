@@ -127,7 +127,7 @@ namespace SAFplusAmf
     /*
      * XPATH: /SAFplusAmf/ServiceUnit/adminState
      */
-    void ServiceUnit::setAdminState(SAFplusAmf::AdministrativeState adminStateValue, SAFplus::Transaction &t)
+    void ServiceUnit::setAdminState(SAFplusAmf::AdministrativeState &adminStateValue, SAFplus::Transaction &t)
     {
         if(&t == &SAFplus::NO_TXN) this->adminState.value = adminStateValue;
         else
@@ -232,7 +232,7 @@ namespace SAFplusAmf
     /*
      * XPATH: /SAFplusAmf/ServiceUnit/presenceState
      */
-    void ServiceUnit::setPresenceState(SAFplusAmf::PresenceState presenceStateValue, SAFplus::Transaction &t)
+    void ServiceUnit::setPresenceState(SAFplusAmf::PresenceState &presenceStateValue, SAFplus::Transaction &t)
     {
         if(&t == &SAFplus::NO_TXN) this->presenceState.value = presenceStateValue;
         else
@@ -253,7 +253,7 @@ namespace SAFplusAmf
     /*
      * XPATH: /SAFplusAmf/ServiceUnit/readinessState
      */
-    void ServiceUnit::setReadinessState(SAFplusAmf::ReadinessState readinessStateValue, SAFplus::Transaction &t)
+    void ServiceUnit::setReadinessState(SAFplusAmf::ReadinessState &readinessStateValue, SAFplus::Transaction &t)
     {
         if(&t == &SAFplus::NO_TXN) this->readinessState.value = readinessStateValue;
         else
@@ -274,7 +274,7 @@ namespace SAFplusAmf
     /*
      * XPATH: /SAFplusAmf/ServiceUnit/haReadinessState
      */
-    void ServiceUnit::setHaReadinessState(SAFplusAmf::HighAvailabilityReadinessState haReadinessStateValue, SAFplus::Transaction &t)
+    void ServiceUnit::setHaReadinessState(SAFplusAmf::HighAvailabilityReadinessState &haReadinessStateValue, SAFplus::Transaction &t)
     {
         if(&t == &SAFplus::NO_TXN) this->haReadinessState.value = haReadinessStateValue;
         else
@@ -295,7 +295,7 @@ namespace SAFplusAmf
     /*
      * XPATH: /SAFplusAmf/ServiceUnit/haState
      */
-    void ServiceUnit::setHaState(SAFplusAmf::HighAvailabilityState haStateValue, SAFplus::Transaction &t)
+    void ServiceUnit::setHaState(SAFplusAmf::HighAvailabilityState &haStateValue, SAFplus::Transaction &t)
     {
         if(&t == &SAFplus::NO_TXN) this->haState.value = haStateValue;
         else

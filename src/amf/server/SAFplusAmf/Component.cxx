@@ -5,37 +5,41 @@
  */ 
 #include "SAFplusAmfCommon.hxx"
 
-#include "RestartCount.hxx"
 #include "clMgtIdentifier.hxx"
 #include "clTransaction.hxx"
+#include "MemUtilization.hxx"
+#include "Cleanup.hxx"
+#include "CapabilityModel.hxx"
+#include "CpuUtilization.hxx"
+#include "Cleanup.hxx"
+#include "Recovery.hxx"
+#include "ProcessStats.hxx"
+#include "clMgtProv.hxx"
+#include "PendingOperation.hxx"
 #include "HighAvailabilityReadinessState.hxx"
+#include "PresenceState.hxx"
+#include "Date.hxx"
+#include "ServiceUnit.hxx"
+#include "RestartCount.hxx"
+#include <string>
 #include "Timeouts.hxx"
 #include "StandbyAssignments.hxx"
 #include "Instantiate.hxx"
 #include "RestartCount.hxx"
 #include "Terminate.hxx"
-#include "Cleanup.hxx"
 #include "MgtFactory.hxx"
 #include "ActiveAssignments.hxx"
-#include "CapabilityModel.hxx"
-#include "Cleanup.hxx"
-#include <string>
+#include "Failures.hxx"
 #include "ReadinessState.hxx"
 #include "Timeouts.hxx"
 #include "Instantiate.hxx"
-#include "clMgtProv.hxx"
-#include "PendingOperation.hxx"
-#include "Recovery.hxx"
-#include "Terminate.hxx"
 #include "StandbyAssignments.hxx"
+#include "Terminate.hxx"
 #include <vector>
 #include "ActiveAssignments.hxx"
 #include "HighAvailabilityState.hxx"
-#include "PresenceState.hxx"
-#include "Date.hxx"
 #include "EntityId.hxx"
 #include "clMgtProvList.hxx"
-#include "ServiceUnit.hxx"
 #include "Component.hxx"
 
 using namespace SAFplusTypes;
@@ -89,6 +93,9 @@ namespace SAFplusAmf
         pendingOperation.config = false;
         this->addChildObject(&pendingOperationExpiration, "pendingOperationExpiration");
         pendingOperationExpiration.config = false;
+        this->addChildObject(&failures, "failures");
+        this->addChildObject(&cpuUtilization, "cpuUtilization");
+        this->addChildObject(&memUtilization, "memUtilization");
         this->addChildObject(&activeAssignments, "activeAssignments");
         activeAssignments.config = false;
         this->addChildObject(&standbyAssignments, "standbyAssignments");
@@ -146,6 +153,9 @@ namespace SAFplusAmf
         pendingOperation.config = false;
         this->addChildObject(&pendingOperationExpiration, "pendingOperationExpiration");
         pendingOperationExpiration.config = false;
+        this->addChildObject(&failures, "failures");
+        this->addChildObject(&cpuUtilization, "cpuUtilization");
+        this->addChildObject(&memUtilization, "memUtilization");
         this->addChildObject(&activeAssignments, "activeAssignments");
         activeAssignments.config = false;
         this->addChildObject(&standbyAssignments, "standbyAssignments");
@@ -167,7 +177,7 @@ namespace SAFplusAmf
 
     std::vector<std::string>* Component::getChildNames()
     {
-        std::string childNames[] = { "name", "id", "presenceState", "capabilityModel", "maxActiveAssignments", "maxStandbyAssignments", "activeAssignments", "standbyAssignments", "assignedWork", "operState", "readinessState", "haReadinessState", "haState", "safVersion", "compCategory", "swBundle", "commandEnvironment", "instantiate", "terminate", "cleanup", "maxInstantInstantiations", "maxDelayedInstantiations", "numInstantiationAttempts", "instantiationSuccessDuration", "lastInstantiation", "delayBetweenInstantiation", "timeouts", "serviceUnit", "recovery", "restartable", "restartCount", "proxy", "proxied", "processId", "lastError", "pendingOperation", "pendingOperationExpiration" };
+        std::string childNames[] = { "name", "id", "failures", "cpuUtilization", "memUtilization", "presenceState", "capabilityModel", "maxActiveAssignments", "maxStandbyAssignments", "activeAssignments", "standbyAssignments", "assignedWork", "operState", "readinessState", "haReadinessState", "haState", "safVersion", "compCategory", "swBundle", "commandEnvironment", "instantiate", "terminate", "cleanup", "maxInstantInstantiations", "maxDelayedInstantiations", "numInstantiationAttempts", "instantiationSuccessDuration", "lastInstantiation", "delayBetweenInstantiation", "timeouts", "serviceUnit", "recovery", "restartable", "restartCount", "proxy", "proxied", "processId", "lastError", "pendingOperation", "pendingOperationExpiration" };
         return new std::vector<std::string> (childNames, childNames + sizeof(childNames) / sizeof(childNames[0]));
     };
 
@@ -182,7 +192,7 @@ namespace SAFplusAmf
     /*
      * XPATH: /SAFplusAmf/Component/presenceState
      */
-    void Component::setPresenceState(SAFplusAmf::PresenceState presenceStateValue, SAFplus::Transaction &t)
+    void Component::setPresenceState(SAFplusAmf::PresenceState &presenceStateValue, SAFplus::Transaction &t)
     {
         if(&t == &SAFplus::NO_TXN) this->presenceState.value = presenceStateValue;
         else
@@ -203,7 +213,7 @@ namespace SAFplusAmf
     /*
      * XPATH: /SAFplusAmf/Component/capabilityModel
      */
-    void Component::setCapabilityModel(SAFplusAmf::CapabilityModel capabilityModelValue, SAFplus::Transaction &t)
+    void Component::setCapabilityModel(SAFplusAmf::CapabilityModel &capabilityModelValue, SAFplus::Transaction &t)
     {
         if(&t == &SAFplus::NO_TXN) this->capabilityModel.value = capabilityModelValue;
         else
@@ -303,7 +313,7 @@ namespace SAFplusAmf
     /*
      * XPATH: /SAFplusAmf/Component/readinessState
      */
-    void Component::setReadinessState(SAFplusAmf::ReadinessState readinessStateValue, SAFplus::Transaction &t)
+    void Component::setReadinessState(SAFplusAmf::ReadinessState &readinessStateValue, SAFplus::Transaction &t)
     {
         if(&t == &SAFplus::NO_TXN) this->readinessState.value = readinessStateValue;
         else
@@ -324,7 +334,7 @@ namespace SAFplusAmf
     /*
      * XPATH: /SAFplusAmf/Component/haReadinessState
      */
-    void Component::setHaReadinessState(SAFplusAmf::HighAvailabilityReadinessState haReadinessStateValue, SAFplus::Transaction &t)
+    void Component::setHaReadinessState(SAFplusAmf::HighAvailabilityReadinessState &haReadinessStateValue, SAFplus::Transaction &t)
     {
         if(&t == &SAFplus::NO_TXN) this->haReadinessState.value = haReadinessStateValue;
         else
@@ -345,7 +355,7 @@ namespace SAFplusAmf
     /*
      * XPATH: /SAFplusAmf/Component/haState
      */
-    void Component::setHaState(SAFplusAmf::HighAvailabilityState haStateValue, SAFplus::Transaction &t)
+    void Component::setHaState(SAFplusAmf::HighAvailabilityState &haStateValue, SAFplus::Transaction &t)
     {
         if(&t == &SAFplus::NO_TXN) this->haState.value = haStateValue;
         else
@@ -529,7 +539,7 @@ namespace SAFplusAmf
     /*
      * XPATH: /SAFplusAmf/Component/lastInstantiation
      */
-    void Component::setLastInstantiation(SAFplusTypes::Date lastInstantiationValue, SAFplus::Transaction &t)
+    void Component::setLastInstantiation(SAFplusTypes::Date &lastInstantiationValue, SAFplus::Transaction &t)
     {
         if(&t == &SAFplus::NO_TXN) this->lastInstantiation.value = lastInstantiationValue;
         else
@@ -592,7 +602,7 @@ namespace SAFplusAmf
     /*
      * XPATH: /SAFplusAmf/Component/recovery
      */
-    void Component::setRecovery(SAFplusAmf::Recovery recoveryValue, SAFplus::Transaction &t)
+    void Component::setRecovery(SAFplusAmf::Recovery &recoveryValue, SAFplus::Transaction &t)
     {
         if(&t == &SAFplus::NO_TXN) this->recovery.value = recoveryValue;
         else
@@ -713,7 +723,7 @@ namespace SAFplusAmf
     /*
      * XPATH: /SAFplusAmf/Component/pendingOperation
      */
-    void Component::setPendingOperation(SAFplusAmf::PendingOperation pendingOperationValue, SAFplus::Transaction &t)
+    void Component::setPendingOperation(SAFplusAmf::PendingOperation &pendingOperationValue, SAFplus::Transaction &t)
     {
         if(&t == &SAFplus::NO_TXN) this->pendingOperation.value = pendingOperationValue;
         else
@@ -734,7 +744,7 @@ namespace SAFplusAmf
     /*
      * XPATH: /SAFplusAmf/Component/pendingOperationExpiration
      */
-    void Component::setPendingOperationExpiration(SAFplusTypes::Date pendingOperationExpirationValue, SAFplus::Transaction &t)
+    void Component::setPendingOperationExpiration(SAFplusTypes::Date &pendingOperationExpirationValue, SAFplus::Transaction &t)
     {
         if(&t == &SAFplus::NO_TXN) this->pendingOperationExpiration.value = pendingOperationExpirationValue;
         else

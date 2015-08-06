@@ -105,7 +105,7 @@ namespace SAFplusAmf
         /*
          * XPATH: /SAFplusAmf/ServiceInstance/adminState
          */
-        void setAdminState(SAFplusAmf::AdministrativeState adminStateValue, SAFplus::Transaction &t=SAFplus::NO_TXN);
+        void setAdminState(SAFplusAmf::AdministrativeState &adminStateValue, SAFplus::Transaction &t=SAFplus::NO_TXN);
 
         /*
          * XPATH: /SAFplusAmf/ServiceInstance/assignmentState
@@ -115,7 +115,7 @@ namespace SAFplusAmf
         /*
          * XPATH: /SAFplusAmf/ServiceInstance/assignmentState
          */
-        void setAssignmentState(SAFplusAmf::AssignmentState assignmentStateValue, SAFplus::Transaction &t=SAFplus::NO_TXN);
+        void setAssignmentState(SAFplusAmf::AssignmentState &assignmentStateValue, SAFplus::Transaction &t=SAFplus::NO_TXN);
 
         /*
          * XPATH: /SAFplusAmf/ServiceInstance/preferredActiveAssignments

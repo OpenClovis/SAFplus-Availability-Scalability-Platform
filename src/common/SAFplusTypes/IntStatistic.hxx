@@ -9,11 +9,11 @@
 #define INTSTATISTIC_HXX_
 #include "SAFplusTypesCommon.hxx"
 
+#include <string>
 #include "clTransaction.hxx"
 #include "clMgtProv.hxx"
 #include <vector>
 #include "clMgtContainer.hxx"
-#include "clMgtProvList.hxx"
 
 namespace SAFplusTypes
   {
@@ -21,14 +21,14 @@ namespace SAFplusTypes
     class IntStatistic : public SAFplus::MgtContainer {
     public:
         SAFplus::MgtProv<unsigned long int> current;
-        SAFplus::MgtProvList<unsigned long int> history10sec;
-        SAFplus::MgtProvList<unsigned long int> history1min;
-        SAFplus::MgtProvList<unsigned long int> history10min;
-        SAFplus::MgtProvList<unsigned long int> history1hour;
-        SAFplus::MgtProvList<unsigned long int> history12hour;
-        SAFplus::MgtProvList<unsigned long int> history1day;
-        SAFplus::MgtProvList<unsigned long int> history1week;
-        SAFplus::MgtProvList<unsigned long int> history1month;
+        SAFplus::MgtProv<std::string> history10sec;
+        SAFplus::MgtProv<std::string> history1min;
+        SAFplus::MgtProv<std::string> history10min;
+        SAFplus::MgtProv<std::string> history1hour;
+        SAFplus::MgtProv<std::string> history12hour;
+        SAFplus::MgtProv<std::string> history1day;
+        SAFplus::MgtProv<std::string> history1week;
+        SAFplus::MgtProv<std::string> history1month;
 
     public:
         IntStatistic();
@@ -47,82 +47,82 @@ namespace SAFplusTypes
         /*
          * XPATH: /SAFplusTypes/intStatistic/history10sec
          */
-        std::vector<unsigned long int> getHistory10sec();
+        std::string getHistory10sec();
 
         /*
          * XPATH: /SAFplusTypes/intStatistic/history10sec
          */
-        void setHistory10sec(unsigned long int history10secValue, SAFplus::Transaction &txn=SAFplus::NO_TXN);
+        void setHistory10sec(std::string history10secValue, SAFplus::Transaction &txn=SAFplus::NO_TXN);
 
         /*
          * XPATH: /SAFplusTypes/intStatistic/history1min
          */
-        std::vector<unsigned long int> getHistory1min();
+        std::string getHistory1min();
 
         /*
          * XPATH: /SAFplusTypes/intStatistic/history1min
          */
-        void setHistory1min(unsigned long int history1minValue, SAFplus::Transaction &txn=SAFplus::NO_TXN);
+        void setHistory1min(std::string history1minValue, SAFplus::Transaction &txn=SAFplus::NO_TXN);
 
         /*
          * XPATH: /SAFplusTypes/intStatistic/history10min
          */
-        std::vector<unsigned long int> getHistory10min();
+        std::string getHistory10min();
 
         /*
          * XPATH: /SAFplusTypes/intStatistic/history10min
          */
-        void setHistory10min(unsigned long int history10minValue, SAFplus::Transaction &txn=SAFplus::NO_TXN);
+        void setHistory10min(std::string history10minValue, SAFplus::Transaction &txn=SAFplus::NO_TXN);
 
         /*
          * XPATH: /SAFplusTypes/intStatistic/history1hour
          */
-        std::vector<unsigned long int> getHistory1hour();
+        std::string getHistory1hour();
 
         /*
          * XPATH: /SAFplusTypes/intStatistic/history1hour
          */
-        void setHistory1hour(unsigned long int history1hourValue, SAFplus::Transaction &txn=SAFplus::NO_TXN);
+        void setHistory1hour(std::string history1hourValue, SAFplus::Transaction &txn=SAFplus::NO_TXN);
 
         /*
          * XPATH: /SAFplusTypes/intStatistic/history12hour
          */
-        std::vector<unsigned long int> getHistory12hour();
+        std::string getHistory12hour();
 
         /*
          * XPATH: /SAFplusTypes/intStatistic/history12hour
          */
-        void setHistory12hour(unsigned long int history12hourValue, SAFplus::Transaction &txn=SAFplus::NO_TXN);
+        void setHistory12hour(std::string history12hourValue, SAFplus::Transaction &txn=SAFplus::NO_TXN);
 
         /*
          * XPATH: /SAFplusTypes/intStatistic/history1day
          */
-        std::vector<unsigned long int> getHistory1day();
+        std::string getHistory1day();
 
         /*
          * XPATH: /SAFplusTypes/intStatistic/history1day
          */
-        void setHistory1day(unsigned long int history1dayValue, SAFplus::Transaction &txn=SAFplus::NO_TXN);
+        void setHistory1day(std::string history1dayValue, SAFplus::Transaction &txn=SAFplus::NO_TXN);
 
         /*
          * XPATH: /SAFplusTypes/intStatistic/history1week
          */
-        std::vector<unsigned long int> getHistory1week();
+        std::string getHistory1week();
 
         /*
          * XPATH: /SAFplusTypes/intStatistic/history1week
          */
-        void setHistory1week(unsigned long int history1weekValue, SAFplus::Transaction &txn=SAFplus::NO_TXN);
+        void setHistory1week(std::string history1weekValue, SAFplus::Transaction &txn=SAFplus::NO_TXN);
 
         /*
          * XPATH: /SAFplusTypes/intStatistic/history1month
          */
-        std::vector<unsigned long int> getHistory1month();
+        std::string getHistory1month();
 
         /*
          * XPATH: /SAFplusTypes/intStatistic/history1month
          */
-        void setHistory1month(unsigned long int history1monthValue, SAFplus::Transaction &txn=SAFplus::NO_TXN);
+        void setHistory1month(std::string history1monthValue, SAFplus::Transaction &txn=SAFplus::NO_TXN);
         ~IntStatistic();
 
     };

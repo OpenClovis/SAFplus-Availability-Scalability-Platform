@@ -9,42 +9,46 @@
 #define COMPONENT_HXX_
 #include "SAFplusAmfCommon.hxx"
 
-#include "RestartCount.hxx"
 #include "clMgtIdentifier.hxx"
 #include "clTransaction.hxx"
+#include "MemUtilization.hxx"
+#include "Cleanup.hxx"
+#include "CapabilityModel.hxx"
+#include "CpuUtilization.hxx"
+#include "Cleanup.hxx"
+#include "Recovery.hxx"
+#include "ProcessStats.hxx"
+#include "clMgtProv.hxx"
+#include "PendingOperation.hxx"
 #include "HighAvailabilityReadinessState.hxx"
+#include "PresenceState.hxx"
+#include "Date.hxx"
+#include "ServiceUnit.hxx"
+#include "RestartCount.hxx"
+#include <string>
 #include "Timeouts.hxx"
 #include "StandbyAssignments.hxx"
 #include "Instantiate.hxx"
 #include "RestartCount.hxx"
 #include "Terminate.hxx"
-#include "Cleanup.hxx"
 #include "MgtFactory.hxx"
 #include "ActiveAssignments.hxx"
-#include "CapabilityModel.hxx"
-#include "Cleanup.hxx"
-#include <string>
+#include "Failures.hxx"
 #include "ReadinessState.hxx"
 #include "Timeouts.hxx"
 #include "Instantiate.hxx"
-#include "clMgtProv.hxx"
-#include "PendingOperation.hxx"
-#include "Recovery.hxx"
-#include "Terminate.hxx"
 #include "StandbyAssignments.hxx"
+#include "Terminate.hxx"
 #include <vector>
 #include "ActiveAssignments.hxx"
 #include "HighAvailabilityState.hxx"
-#include "PresenceState.hxx"
-#include "Date.hxx"
 #include "EntityId.hxx"
 #include "clMgtProvList.hxx"
-#include "ServiceUnit.hxx"
 
 namespace SAFplusAmf
   {
 
-    class Component : public EntityId {
+    class Component : public EntityId, public SAFplusTypes::ProcessStats {
 
         /* Apply MGT object factory */
         MGT_REGISTER(Component);
@@ -168,6 +172,9 @@ namespace SAFplusAmf
          * When the system will give up on the pending operation
          */
         SAFplus::MgtProv<SAFplusTypes::Date> pendingOperationExpiration;
+        SAFplusAmf::Failures failures;
+        SAFplusAmf::CpuUtilization cpuUtilization;
+        SAFplusAmf::MemUtilization memUtilization;
         SAFplusAmf::ActiveAssignments activeAssignments;
         SAFplusAmf::StandbyAssignments standbyAssignments;
         SAFplusAmf::Instantiate instantiate;
@@ -190,7 +197,7 @@ namespace SAFplusAmf
         /*
          * XPATH: /SAFplusAmf/Component/presenceState
          */
-        void setPresenceState(SAFplusAmf::PresenceState presenceStateValue, SAFplus::Transaction &t=SAFplus::NO_TXN);
+        void setPresenceState(SAFplusAmf::PresenceState &presenceStateValue, SAFplus::Transaction &t=SAFplus::NO_TXN);
 
         /*
          * XPATH: /SAFplusAmf/Component/capabilityModel
@@ -200,7 +207,7 @@ namespace SAFplusAmf
         /*
          * XPATH: /SAFplusAmf/Component/capabilityModel
          */
-        void setCapabilityModel(SAFplusAmf::CapabilityModel capabilityModelValue, SAFplus::Transaction &t=SAFplus::NO_TXN);
+        void setCapabilityModel(SAFplusAmf::CapabilityModel &capabilityModelValue, SAFplus::Transaction &t=SAFplus::NO_TXN);
 
         /*
          * XPATH: /SAFplusAmf/Component/maxActiveAssignments
@@ -250,7 +257,7 @@ namespace SAFplusAmf
         /*
          * XPATH: /SAFplusAmf/Component/readinessState
          */
-        void setReadinessState(SAFplusAmf::ReadinessState readinessStateValue, SAFplus::Transaction &t=SAFplus::NO_TXN);
+        void setReadinessState(SAFplusAmf::ReadinessState &readinessStateValue, SAFplus::Transaction &t=SAFplus::NO_TXN);
 
         /*
          * XPATH: /SAFplusAmf/Component/haReadinessState
@@ -260,7 +267,7 @@ namespace SAFplusAmf
         /*
          * XPATH: /SAFplusAmf/Component/haReadinessState
          */
-        void setHaReadinessState(SAFplusAmf::HighAvailabilityReadinessState haReadinessStateValue, SAFplus::Transaction &t=SAFplus::NO_TXN);
+        void setHaReadinessState(SAFplusAmf::HighAvailabilityReadinessState &haReadinessStateValue, SAFplus::Transaction &t=SAFplus::NO_TXN);
 
         /*
          * XPATH: /SAFplusAmf/Component/haState
@@ -270,7 +277,7 @@ namespace SAFplusAmf
         /*
          * XPATH: /SAFplusAmf/Component/haState
          */
-        void setHaState(SAFplusAmf::HighAvailabilityState haStateValue, SAFplus::Transaction &t=SAFplus::NO_TXN);
+        void setHaState(SAFplusAmf::HighAvailabilityState &haStateValue, SAFplus::Transaction &t=SAFplus::NO_TXN);
 
         /*
          * XPATH: /SAFplusAmf/Component/safVersion
@@ -360,7 +367,7 @@ namespace SAFplusAmf
         /*
          * XPATH: /SAFplusAmf/Component/lastInstantiation
          */
-        void setLastInstantiation(SAFplusTypes::Date lastInstantiationValue, SAFplus::Transaction &t=SAFplus::NO_TXN);
+        void setLastInstantiation(SAFplusTypes::Date &lastInstantiationValue, SAFplus::Transaction &t=SAFplus::NO_TXN);
 
         /*
          * XPATH: /SAFplusAmf/Component/delayBetweenInstantiation
@@ -390,7 +397,7 @@ namespace SAFplusAmf
         /*
          * XPATH: /SAFplusAmf/Component/recovery
          */
-        void setRecovery(SAFplusAmf::Recovery recoveryValue, SAFplus::Transaction &t=SAFplus::NO_TXN);
+        void setRecovery(SAFplusAmf::Recovery &recoveryValue, SAFplus::Transaction &t=SAFplus::NO_TXN);
 
         /*
          * XPATH: /SAFplusAmf/Component/restartable
@@ -450,7 +457,7 @@ namespace SAFplusAmf
         /*
          * XPATH: /SAFplusAmf/Component/pendingOperation
          */
-        void setPendingOperation(SAFplusAmf::PendingOperation pendingOperationValue, SAFplus::Transaction &t=SAFplus::NO_TXN);
+        void setPendingOperation(SAFplusAmf::PendingOperation &pendingOperationValue, SAFplus::Transaction &t=SAFplus::NO_TXN);
 
         /*
          * XPATH: /SAFplusAmf/Component/pendingOperationExpiration
@@ -460,7 +467,7 @@ namespace SAFplusAmf
         /*
          * XPATH: /SAFplusAmf/Component/pendingOperationExpiration
          */
-        void setPendingOperationExpiration(SAFplusTypes::Date pendingOperationExpirationValue, SAFplus::Transaction &t=SAFplus::NO_TXN);
+        void setPendingOperationExpiration(SAFplusTypes::Date &pendingOperationExpirationValue, SAFplus::Transaction &t=SAFplus::NO_TXN);
 
         /*
          * XPATH: /SAFplusAmf/Component/activeAssignments

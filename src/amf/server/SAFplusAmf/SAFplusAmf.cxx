@@ -5,12 +5,12 @@
  */ 
 #include "SAFplusAmfCommon.hxx"
 
+#include "clMgtModule.hxx"
 #include "clTransaction.hxx"
 #include "clMgtProv.hxx"
 #include "clMgtList.hxx"
 #include <vector>
 #include "MgtFactory.hxx"
-#include "clMgtContainer.hxx"
 #include "EntityByIdKey.hxx"
 #include "SAFplusAmf.hxx"
 
@@ -74,7 +74,7 @@ namespace SAFplusAmf
     /*
      * XPATH: /SAFplusAmf/healthCheckPeriod
      */
-    void SAFplusAmfRoot::setHealthCheckPeriod(SaTimeT healthCheckPeriodValue, SAFplus::Transaction &txn)
+    void SAFplusAmfRoot::setHealthCheckPeriod(SaTimeT &healthCheckPeriodValue, SAFplus::Transaction &txn)
     {
         this->healthCheckPeriod.set(healthCheckPeriodValue,txn);
     };
@@ -90,7 +90,7 @@ namespace SAFplusAmf
     /*
      * XPATH: /SAFplusAmf/healthCheckMaxSilence
      */
-    void SAFplusAmfRoot::setHealthCheckMaxSilence(SaTimeT healthCheckMaxSilenceValue, SAFplus::Transaction &txn)
+    void SAFplusAmfRoot::setHealthCheckMaxSilence(SaTimeT &healthCheckMaxSilenceValue, SAFplus::Transaction &txn)
     {
         this->healthCheckMaxSilence.set(healthCheckMaxSilenceValue,txn);
     };

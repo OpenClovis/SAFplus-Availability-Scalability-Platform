@@ -5,11 +5,12 @@
  */ 
 #include "SAFplusTypesCommon.hxx"
 
-#include "clTransaction.hxx"
-#include "clMgtProv.hxx"
 #include <vector>
+#include "clTransaction.hxx"
 #include "clMgtContainer.hxx"
+#include "clMgtProv.hxx"
 #include "clMgtProvList.hxx"
+#include <string>
 #include "DecStatistic.hxx"
 
 
@@ -54,7 +55,7 @@ namespace SAFplusTypes
     /*
      * XPATH: /SAFplusTypes/decStatistic/history10sec
      */
-    std::vector<long> DecStatistic::getHistory10sec()
+    std::string DecStatistic::getHistory10sec()
     {
         return this->history10sec.value;
     };
@@ -62,15 +63,15 @@ namespace SAFplusTypes
     /*
      * XPATH: /SAFplusTypes/decStatistic/history10sec
      */
-    void DecStatistic::setHistory10sec(long history10secValue, SAFplus::Transaction &txn)
+    void DecStatistic::setHistory10sec(std::string history10secValue, SAFplus::Transaction &txn)
     {
-        this->history10sec.value.push_back(history10secValue);
+        this->history10sec.set(history10secValue,txn);
     };
 
     /*
      * XPATH: /SAFplusTypes/decStatistic/history1min
      */
-    std::vector<long> DecStatistic::getHistory1min()
+    std::vector<std::string> DecStatistic::getHistory1min()
     {
         return this->history1min.value;
     };
@@ -78,7 +79,7 @@ namespace SAFplusTypes
     /*
      * XPATH: /SAFplusTypes/decStatistic/history1min
      */
-    void DecStatistic::setHistory1min(long history1minValue, SAFplus::Transaction &txn)
+    void DecStatistic::setHistory1min(std::string history1minValue, SAFplus::Transaction &txn)
     {
         this->history1min.value.push_back(history1minValue);
     };
@@ -86,7 +87,7 @@ namespace SAFplusTypes
     /*
      * XPATH: /SAFplusTypes/decStatistic/history10min
      */
-    std::vector<long> DecStatistic::getHistory10min()
+    std::vector<std::string> DecStatistic::getHistory10min()
     {
         return this->history10min.value;
     };
@@ -94,7 +95,7 @@ namespace SAFplusTypes
     /*
      * XPATH: /SAFplusTypes/decStatistic/history10min
      */
-    void DecStatistic::setHistory10min(long history10minValue, SAFplus::Transaction &txn)
+    void DecStatistic::setHistory10min(std::string history10minValue, SAFplus::Transaction &txn)
     {
         this->history10min.value.push_back(history10minValue);
     };
@@ -102,7 +103,7 @@ namespace SAFplusTypes
     /*
      * XPATH: /SAFplusTypes/decStatistic/history1hour
      */
-    std::vector<long> DecStatistic::getHistory1hour()
+    std::vector<std::string> DecStatistic::getHistory1hour()
     {
         return this->history1hour.value;
     };
@@ -110,7 +111,7 @@ namespace SAFplusTypes
     /*
      * XPATH: /SAFplusTypes/decStatistic/history1hour
      */
-    void DecStatistic::setHistory1hour(long history1hourValue, SAFplus::Transaction &txn)
+    void DecStatistic::setHistory1hour(std::string history1hourValue, SAFplus::Transaction &txn)
     {
         this->history1hour.value.push_back(history1hourValue);
     };
@@ -118,7 +119,7 @@ namespace SAFplusTypes
     /*
      * XPATH: /SAFplusTypes/decStatistic/history12hour
      */
-    std::vector<long> DecStatistic::getHistory12hour()
+    std::vector<std::string> DecStatistic::getHistory12hour()
     {
         return this->history12hour.value;
     };
@@ -126,7 +127,7 @@ namespace SAFplusTypes
     /*
      * XPATH: /SAFplusTypes/decStatistic/history12hour
      */
-    void DecStatistic::setHistory12hour(long history12hourValue, SAFplus::Transaction &txn)
+    void DecStatistic::setHistory12hour(std::string history12hourValue, SAFplus::Transaction &txn)
     {
         this->history12hour.value.push_back(history12hourValue);
     };
@@ -134,7 +135,7 @@ namespace SAFplusTypes
     /*
      * XPATH: /SAFplusTypes/decStatistic/history1day
      */
-    std::vector<long> DecStatistic::getHistory1day()
+    std::vector<std::string> DecStatistic::getHistory1day()
     {
         return this->history1day.value;
     };
@@ -142,7 +143,7 @@ namespace SAFplusTypes
     /*
      * XPATH: /SAFplusTypes/decStatistic/history1day
      */
-    void DecStatistic::setHistory1day(long history1dayValue, SAFplus::Transaction &txn)
+    void DecStatistic::setHistory1day(std::string history1dayValue, SAFplus::Transaction &txn)
     {
         this->history1day.value.push_back(history1dayValue);
     };
@@ -150,7 +151,7 @@ namespace SAFplusTypes
     /*
      * XPATH: /SAFplusTypes/decStatistic/history1week
      */
-    std::vector<long> DecStatistic::getHistory1week()
+    std::vector<std::string> DecStatistic::getHistory1week()
     {
         return this->history1week.value;
     };
@@ -158,7 +159,7 @@ namespace SAFplusTypes
     /*
      * XPATH: /SAFplusTypes/decStatistic/history1week
      */
-    void DecStatistic::setHistory1week(long history1weekValue, SAFplus::Transaction &txn)
+    void DecStatistic::setHistory1week(std::string history1weekValue, SAFplus::Transaction &txn)
     {
         this->history1week.value.push_back(history1weekValue);
     };
@@ -166,7 +167,7 @@ namespace SAFplusTypes
     /*
      * XPATH: /SAFplusTypes/decStatistic/history1month
      */
-    std::vector<long> DecStatistic::getHistory1month()
+    std::vector<std::string> DecStatistic::getHistory1month()
     {
         return this->history1month.value;
     };
@@ -174,7 +175,7 @@ namespace SAFplusTypes
     /*
      * XPATH: /SAFplusTypes/decStatistic/history1month
      */
-    void DecStatistic::setHistory1month(long history1monthValue, SAFplus::Transaction &txn)
+    void DecStatistic::setHistory1month(std::string history1monthValue, SAFplus::Transaction &txn)
     {
         this->history1month.value.push_back(history1monthValue);
     };

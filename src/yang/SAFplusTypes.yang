@@ -108,37 +108,37 @@ module SAFplusTypes
          100 400 300 200 100 <etc>
       */
 
-      leaf-list history10sec  
+      leaf history10sec  
       {
-        type uint64;
+        type string; // comma separated list of uint64;
       }
-      leaf-list history1min  
+      leaf history1min  
       {
-        type uint64;
+        type string; // comma separated list of uint64;
       }
-      leaf-list history10min  
+      leaf history10min  
       {
-        type uint64;
+        type string; // comma separated list of uint64;
       }
-      leaf-list history1hour  
+      leaf history1hour  
       {
-        type uint64;
+        type string; // comma separated list of uint64;
       }
-      leaf-list history12hour  
+      leaf history12hour  
       {
-        type uint64;
+        type string; // comma separated list of uint64;
       }
-      leaf-list history1day  
+      leaf history1day  
       {
-        type uint64;
+        type string; // comma separated list of uint64;
       }
-      leaf-list history1week 
+      leaf history1week 
       {
-        type uint64;
+        type string; // comma separated list of uint64;
       }
-      leaf-list history1month
+      leaf history1month
       {
-        type uint64;
+        type string; // comma separated list of uint64;
       }
     }
   
@@ -157,61 +157,37 @@ module SAFplusTypes
          100 400 300 200 100 <etc>
       */
 
-      leaf-list history10sec  
+      leaf history10sec  
       {
-        type decimal64
-	{
-	  fraction-digits 17;
-	}
+        type string; // Comma separated list of float
       }
       leaf-list history1min
       {
-        type decimal64
-	{
-	  fraction-digits 17;
-	}
+        type string; // Comma separated list of float
       }
       leaf-list history10min  
       {
-        type decimal64
-	{
-	  fraction-digits 17;
-	}
+        type string; // Comma separated list of float
       }
       leaf-list history1hour  
       {
-        type decimal64
-	{
-	  fraction-digits 17;
-	}
+        type string; // Comma separated list of float
       }
       leaf-list history12hour  
       {
-        type decimal64
-	{
-	  fraction-digits 17;
-	}
+        type string; // Comma separated list of float
       }
       leaf-list history1day  
       {
-        type decimal64
-	{
-	  fraction-digits 17;
-	}
+        type string; // Comma separated list of float
       }
       leaf-list history1week 
       {
-        type decimal64
-	{
-	  fraction-digits 17;
-	}
+        type string; // Comma separated list of float
       }
       leaf-list history1month
       {
-        type decimal64
-	{
-	  fraction-digits 17;
-	}
+        type string; // Comma separated list of float
       }
     }
 
