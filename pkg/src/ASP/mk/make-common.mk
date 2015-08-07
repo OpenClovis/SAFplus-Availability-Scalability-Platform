@@ -296,24 +296,23 @@ SPLINTFLAGS	+= +posixlib -preproc -badflag -warnsysfiles \
                    -nof -weak -line-len 360 -unrecog
 
 # Additional ARCH settings for x86
-ifeq ($(ARCH),x86)
-  ifeq (${IS_64_BIT}, 1)
-    LIBUNWIND_LIBS = -lunwind -lunwind-x86_64
-  else
-    LIBUNWIND_LIBS = -lunwind -lunwind-x86
-  endif
-endif
+#ifeq ($(ARCH),x86)
+#  ifeq (${IS_64_BIT}, 1)
+#    LIBUNWIND_LIBS = -lunwind -lunwind-x86_64
+#  else
+#    LIBUNWIND_LIBS = -lunwind -lunwind-x86
+#  endif
+#endif
 
-ifeq ($(ARCH),arm)
-  LIBUNWIND_LIBS = -lunwind -lunwind-arm
-endif
+#ifeq ($(ARCH),arm)
+#  LIBUNWIND_LIBS = -lunwind -lunwind-arm
+#endif
 
-ifeq ($(ARCH),arm64)
-  LIBUNWIND_LIBS = -lunwind -lunwind-aarch64
-endif
+#ifeq ($(ARCH),arm64)
+#  LIBUNWIND_LIBS = -lunwind -lunwind-aarch64
+#endif
 
-LD_LIBS += -lunwind -lunwind-x86_64
-EXTRA_LDLIBS += -lunwind -lunwind-x86_64 
+#THIRD_PARTY_LIBS += -lunwind -lunwind-x86_64 
 
 CXXFLAGS := $(filter-out -std=c99,$(LOCAL_CFLAGS)) -Wno-variadic-macros
 # even though variadic macros are not technically supported in c++, g++ and other compilers support them
@@ -822,11 +821,14 @@ STATIC_LIB_NAMES_WITH_PATH := $(addsuffix .a,$(addprefix $(LIB_DIR)/,$(ALL_STATI
 SHARED_LIB_NAMES_WITH_PATH := $(addsuffix .so,$(addprefix $(LIB_DIR)/,$(ALL_SHARED_LIB_NAMES)))
 SHARED_LIB_NAMES_WITH_PATH_VER := $(addsuffix .$(ASP_VERSION), $(addsuffix .so,$(addprefix $(LIB_DIR)/$(SHARED_DIR)/,$(ALL_SHARED_LIB_NAMES))))
 
+
+
 # If only one library is being built and 'SRC_FILES' is defined, take that as
 # the list of source files for that library.
 ALL_LIB_NAMES:=$(LIB_NAMES)
 ALL_LIB_NAMES+=$(STATIC_LIB_NAMES)
 ALL_LIB_NAMES+=$(SHARED_LIB_NAMES)
+
 ifeq ($(words $(ALL_LIB_NAMES)),1)
  ifneq ($(words $(ALL_STATIC_LIB_NAMES)),0)
   ifeq ($(words $(SRC_FILES_$(ALL_STATIC_LIB_NAMES))),0)

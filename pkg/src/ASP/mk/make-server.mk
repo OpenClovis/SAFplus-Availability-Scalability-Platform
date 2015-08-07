@@ -278,7 +278,7 @@ ifdef THIRDPARTY_LIBS
 	LDLIBS		+= $(THIRDPARTY_LIBS)
     endif
 endif
-LDLIBS += -lezxml
+LDLIBS += -lezxml -lunwind -lunwind-x86_64 
 
 #This is needed for the components using single shared SO libmw.so 
 #for all ASP libs or ground SO of ASP
