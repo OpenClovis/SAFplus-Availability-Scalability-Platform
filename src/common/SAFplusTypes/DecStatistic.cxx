@@ -16,14 +16,13 @@
 namespace SAFplusTypes
   {
 
-    DecStatistic::DecStatistic(): SAFplus::MgtContainer("decStatistic"), current("current"), history10sec("history10sec"), history1min("history1min"), history10min("history10min"), history1hour("history1hour"), history12hour("history12hour"), history1day("history1day"), history1week("history1week"), history1month("history1month")
+    DecStatistic::DecStatistic(): SAFplus::MgtContainer("decStatistic"), current("current"), history10sec("history10sec"), history1min("history1min"), history10min("history10min"), history1hour("history1hour"), history1day("history1day"), history1week("history1week"), history1month("history1month")
     {
         this->addChildObject(&current, "current");
         this->addChildObject(&history10sec, "history10sec");
         this->addChildObject(&history1min, "history1min");
         this->addChildObject(&history10min, "history10min");
         this->addChildObject(&history1hour, "history1hour");
-        this->addChildObject(&history12hour, "history12hour");
         this->addChildObject(&history1day, "history1day");
         this->addChildObject(&history1week, "history1week");
         this->addChildObject(&history1month, "history1month");
@@ -31,7 +30,7 @@ namespace SAFplusTypes
 
     std::vector<std::string>* DecStatistic::getChildNames()
     {
-        std::string childNames[] = { "current", "history10sec", "history1min", "history10min", "history1hour", "history12hour", "history1day", "history1week", "history1month" };
+        std::string childNames[] = { "current", "history10sec", "history1min", "history10min", "history1hour", "history1day", "history1week", "history1month" };
         return new std::vector<std::string> (childNames, childNames + sizeof(childNames) / sizeof(childNames[0]));
     };
 
@@ -113,22 +112,6 @@ namespace SAFplusTypes
     void DecStatistic::setHistory1hour(std::string history1hourValue, SAFplus::Transaction &txn)
     {
         this->history1hour.set(history1hourValue,txn);
-    };
-
-    /*
-     * XPATH: /SAFplusTypes/decStatistic/history12hour
-     */
-    std::string DecStatistic::getHistory12hour()
-    {
-        return this->history12hour.value;
-    };
-
-    /*
-     * XPATH: /SAFplusTypes/decStatistic/history12hour
-     */
-    void DecStatistic::setHistory12hour(std::string history12hourValue, SAFplus::Transaction &txn)
-    {
-        this->history12hour.set(history12hourValue,txn);
     };
 
     /*

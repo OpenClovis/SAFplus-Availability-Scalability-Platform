@@ -5,18 +5,11 @@
  */ 
 #include "SAFplusAmfCommon.hxx"
 
-#include "ResidentMem.hxx"
 #include "ProcessStats.hxx"
-#include "PageFaults.hxx"
-#include "NumThreads.hxx"
-#include "MemUtilization.hxx"
 #include <vector>
 #include "MgtFactory.hxx"
-#include "Failures.hxx"
-#include "CpuUtilization.hxx"
 #include "ProcStats.hxx"
 
-using namespace SAFplusTypes;
 
 namespace SAFplusAmf
   {

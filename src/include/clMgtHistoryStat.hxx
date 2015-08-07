@@ -32,16 +32,9 @@
 #define CLMGTHISTORYSTAT_HXX_
 
 #include <vector>
-#include "clMgtObject.hxx"
-
-
-extern "C"
-{
-#include <clCommon.h>
-#include <clCommonErrors.h>
-#include <clTimerApi.h>
-#include <clDebugApi.h>
-} /* end extern 'C' */
+//#include <boost/circular_buffer.hpp>
+#include <clMgtObject.hxx>
+#include <clCommon.hxx>
 
 
 #define CL_MAX_HISTORY_ARRAY 60
@@ -55,32 +48,43 @@ template <class T>
 class MgtHistoryStat : public MgtObject
 {
 private:
-    ClTimerHandleT   mTimerHandle;
+  // ClTimerHandleT   mTimerHandle;
+#if 1
     T m10SecTrack;
     T m1MinTrack;
     T m10MinTrack;
     T m1HourTrack;
-    T m12HourTrack;
+  //T m12HourTrack;
     T m1DayTrack;
     T m1WeekTrack;
+#endif
 protected:
 
     /*
      * Store the list of historical values
      */
     T mCurrent;
+#if 0
+    boost::circular_buffer<T> mHistory10Sec;
+    boost::circular_buffer<T> mHistory1Min;
+    boost::circular_buffer<T> mHistory10Min;
+    boost::circular_buffer<T> mHistory1Hour;
+    boost::circular_buffer<T> mHistory1Day;
+    boost::circular_buffer<T> mHistory1Week;
+    boost::circular_buffer<T> mHistory1Month;
+#else
     std::vector<T> mHistory10Sec;
     std::vector<T> mHistory1Min;
     std::vector<T> mHistory10Min;
     std::vector<T> mHistory1Hour;
-    std::vector<T> mHistory12Hour;
     std::vector<T> mHistory1Day;
     std::vector<T> mHistory1Week;
     std::vector<T> mHistory1Month;
+#endif
 
 public:
     //static ClRcT clTstTimerCallback(void *pCookie);
-
+    MgtHistoryStat();
     MgtHistoryStat(const char* name);
     virtual ~MgtHistoryStat();
 
@@ -88,6 +92,18 @@ public:
 
     void stopTimer();
 
+#if 0
+    void sample(T value)
+      {
+        mCurrent = value;
+        roll();
+      }
+
+    void roll(void)
+      {
+        mHistory10Sec.append(mCurrent);
+      }
+#endif
     /**
      * \brief	Function to set value of the MgtHistoryStat object
      * \param	value					Value to be set
@@ -95,7 +111,7 @@ public:
      */
     void setValue(T value);
 
-    virtual void toString(std::stringstream& xmlString);
+    virtual void toString(std::stringstream& xmlString, int depth=SAFplusI::MgtToStringRecursionDepth,SerializationOptions opts=SerializeNoOptions);
 
     virtual ClRcT write(MgtDatabase* db, std::string xpt = "")
     {
@@ -135,7 +151,19 @@ MgtHistoryStat<T>::MgtHistoryStat(const char* name) : MgtObject(name)
     m1MinTrack = 0;
     m10MinTrack = 0;
     m1HourTrack = 0;
-    m12HourTrack = 0;
+    //m12HourTrack = 0;
+    m1DayTrack = 0;
+    m1WeekTrack = 0;
+}
+
+template <class T>
+MgtHistoryStat<T>::MgtHistoryStat() : MgtObject("")
+{
+    m10SecTrack = 0;
+    m1MinTrack = 0;
+    m10MinTrack = 0;
+    m1HourTrack = 0;
+    //m12HourTrack = 0;
     m1DayTrack = 0;
     m1WeekTrack = 0;
 }
@@ -143,6 +171,7 @@ MgtHistoryStat<T>::MgtHistoryStat(const char* name) : MgtObject(name)
 template <class T>
 ClRcT MgtHistoryStat<T>::startTimer()
 {
+#if 0
     ClRcT rc = CL_OK;
 
     ClTimerTimeOutT  timeout = {10,0};
@@ -167,16 +196,19 @@ ClRcT MgtHistoryStat<T>::startTimer()
     }
 
     return rc;
+#endif
 }
 
 template <class T>
 void MgtHistoryStat<T>::stopTimer()
 {
+#if 0
     if (mTimerHandle)
     {
         clTimerStop(mTimerHandle);
         clTimerDelete(&mTimerHandle);
     }
+#endif
 }
 
 template <class T>
@@ -192,7 +224,7 @@ ClBoolT MgtHistoryStat<T>::validate( void *pBuffer, ClUint64T buffLen, SAFplus::
 }
 
 template <class T>
-void MgtHistoryStat<T>::toString(std::stringstream& xmlString)
+void MgtHistoryStat<T>::toString(std::stringstream& xmlString, int depth,SerializationOptions opts)
 {
     ClUint32T i;
 
@@ -200,45 +232,89 @@ void MgtHistoryStat<T>::toString(std::stringstream& xmlString)
 
     xmlString << "<current>" << mCurrent << "</current>";
 
-    for(i = 0; i< mHistory10Sec.size(); i++)
-    {
-        xmlString << "<history10sec>" << mHistory10Sec[i] << "</history10sec>";
-    }
+    int tmp = mHistory10Sec.size();
+    if (tmp)
+      {
+        xmlString << "<history10sec>";
+        for(i = 0; i< tmp; i++)
+          {
+            xmlString << mHistory10Sec[i];
+            if (i<tmp-1) xmlString << ",";
+          }
+        xmlString << "</history10sec>";
+      }
 
-    for(i = 0; i< mHistory1Min.size(); i++)
-    {
-        xmlString << "<history1min>" << mHistory1Min[i] << "</history1min>";
-    }
+    tmp = mHistory1Min.size();
+    if (tmp)
+      {
+        xmlString << "<history1min>";
+        for(i = 0; i< tmp; i++)
+          {
+            xmlString << mHistory1Min[i];
+            if (i<tmp-1) xmlString << ",";
+          }
+        xmlString << "</history1min>";
+      }
 
-    for(i = 0; i< mHistory10Min.size(); i++)
-    {
-        xmlString << "<history10min>" << mHistory10Min[i] << "</history10min>";
-    }
+    tmp = mHistory10Min.size();
+    if (tmp)
+      {
+        xmlString << "<history10min>";
+        for(i = 0; i< tmp; i++)
+          {
+            xmlString << mHistory10Min[i];
+            if (i<tmp-1) xmlString << ",";
+          }
+        xmlString << "</history10min>";
+      }
+   
+    tmp = mHistory1Hour.size();
+    if (tmp)
+      {
+        xmlString << "<history1hour>";
+        for(i = 0; i< tmp; i++)
+          {
+            xmlString << mHistory1Hour[i];
+            if (i<tmp-1) xmlString << ",";
+          }
+        xmlString << "</history1hour>";
+      }
 
-    for(i = 0; i< mHistory1Hour.size(); i++)
-    {
-        xmlString << "<history1hour>" << mHistory1Hour[i] << "</history1hour>";
-    }
+    tmp = mHistory1Day.size();
+    if (tmp)
+      {
+        xmlString << "<history1day>";
+        for(i = 0; i< tmp; i++)
+          {
+            xmlString << mHistory1Day[i];
+            if (i<tmp-1) xmlString << ",";
+          }
+        xmlString << "</history1day>";
+      }
 
-    for(i = 0; i< mHistory12Hour.size(); i++)
-    {
-        xmlString << "<history12hour>" << mHistory12Hour[i] << "</history12hour>";
-    }
+    tmp = mHistory1Week.size();
+    if (tmp)
+      {
+        xmlString << "<history1week>";
+        for(i = 0; i< tmp; i++)
+          {
+            xmlString << mHistory1Week[i];
+            if (i<tmp-1) xmlString << ",";
+          }
+        xmlString << "</history1week>";
+      }
 
-    for(i = 0; i< mHistory1Day.size(); i++)
-    {
-        xmlString << "<history1day>" << mHistory1Day[i] << "</history1day>";
-    }
-
-    for(i = 0; i< mHistory1Week.size(); i++)
-    {
-        xmlString << "<history1week>" << mHistory1Week[i] << "</history1week>";
-    }
-
-    for(i = 0; i< mHistory1Month.size(); i++)
-    {
-        xmlString << "<history1month>" << mHistory1Month[i] << "</history1month>";
-    }
+    tmp = mHistory1Month.size();
+    if (tmp)
+      {
+        xmlString << "<history1month>";
+        for(i = 0; i< tmp; i++)
+          {
+            xmlString << mHistory1Month[i];
+            if (i<tmp-1) xmlString << ",";
+          }
+        xmlString << "</history1month>";
+      }
 
     xmlString << "</" << tag << ">";
 }
@@ -328,7 +404,7 @@ void MgtHistoryStat<T>::setValue(T value)
         }
 
         isAccum = CL_FALSE;
-        if (mHistory1Hour.size() - m1HourTrack == 12)
+        if (mHistory1Hour.size() - m1HourTrack == 24)
         {
             isAccum = CL_TRUE;
         }
@@ -343,20 +419,21 @@ void MgtHistoryStat<T>::setValue(T value)
         }
         m1HourTrack = mHistory1Hour.size();
 
-        mHistory12Hour.push_back(sum);
-        if (mHistory12Hour.size() > CL_MAX_HISTORY_ARRAY)
+        mHistory1Day.push_back(sum);
+        if (mHistory1Day.size() > CL_MAX_HISTORY_ARRAY)
         {
-            m12HourTrack--;
-            mHistory12Hour.erase (mHistory12Hour.begin());
+            m1DayTrack--;
+            mHistory1Day.erase (mHistory1Day.begin());
         }
 
         isAccum = CL_FALSE;
-        if (mHistory12Hour.size() - m12HourTrack == 2)
+        if (mHistory1Day.size() - m1DayTrack == 7)
         {
             isAccum = CL_TRUE;
         }
     }
 
+#if 0
     if (isAccum)
     {
         sum = 0;
@@ -379,6 +456,7 @@ void MgtHistoryStat<T>::setValue(T value)
             isAccum = CL_TRUE;
         }
     }
+#endif
 
     if (isAccum)
     {

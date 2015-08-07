@@ -9,15 +9,9 @@
 #define PROCSTATS_HXX_
 #include "SAFplusAmfCommon.hxx"
 
-#include "ResidentMem.hxx"
 #include "ProcessStats.hxx"
-#include "PageFaults.hxx"
-#include "NumThreads.hxx"
-#include "MemUtilization.hxx"
 #include <vector>
 #include "MgtFactory.hxx"
-#include "Failures.hxx"
-#include "CpuUtilization.hxx"
 
 namespace SAFplusAmf
   {
@@ -28,12 +22,14 @@ namespace SAFplusAmf
         MGT_REGISTER(ProcStats);
 
     public:
-        SAFplusTypes::Failures failures;
-        SAFplusTypes::CpuUtilization cpuUtilization;
-        SAFplusTypes::MemUtilization memUtilization;
-        SAFplusTypes::PageFaults pageFaults;
-        SAFplusTypes::NumThreads numThreads;
-        SAFplusTypes::ResidentMem residentMem;
+#if 0
+        SAFplus::MgtHistoryStat<float> failures;
+        SAFplus::MgtHistoryStat<float> cpuUtilization;
+        SAFplus::MgtHistoryStat<float> memUtilization;
+        SAFplus::MgtHistoryStat<int> pageFaults;
+        SAFplus::MgtHistoryStat<int> numThreads;
+        SAFplus::MgtHistoryStat<int> residentMem;
+#endif
 
     public:
         ProcStats();

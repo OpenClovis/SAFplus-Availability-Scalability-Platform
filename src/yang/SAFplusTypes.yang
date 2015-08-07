@@ -1,7 +1,7 @@
 module SAFplusTypes
 {
     namespace "http://www.openclovis.org/ns/types";
-    prefix "safplustypes";
+    prefix "SAFplusTypes";
 
   description "Common types used within the SAFplus management framework.";
 
@@ -86,7 +86,7 @@ module SAFplusTypes
     typedef SaTimeT
     {
       type uint64;
-      safplustypes:c-existing "SaTimeT";
+      SAFplusTypes:c-existing "SaTimeT";
       description "A representation of a time interval, specified in milliseconds";
     }
   
@@ -98,7 +98,8 @@ module SAFplusTypes
 
   grouping intStatistic
     {
-      
+      SAFplusTypes:c-existing "SAFplus::MgtHistoryStat<int>"; 
+
       leaf current
       {
         type uint64;
@@ -121,10 +122,6 @@ module SAFplusTypes
         type string; // comma separated list of uint64;
       }
       leaf history1hour  
-      {
-        type string; // comma separated list of uint64;
-      }
-      leaf history12hour  
       {
         type string; // comma separated list of uint64;
       }
@@ -173,10 +170,6 @@ module SAFplusTypes
       {
         type string; // Comma separated list of float
       }
-      leaf history12hour  
-      {
-        type string; // Comma separated list of float
-      }
       leaf history1day  
       {
         type string; // Comma separated list of float
@@ -194,12 +187,36 @@ module SAFplusTypes
   grouping processStats
   {
     description "Statistics on processes running in the system";
-    container failures       { uses intStatistic; }
-    container cpuUtilization { uses decStatistic; }
-    container memUtilization { uses decStatistic; }
-    container pageFaults { uses intStatistic; }
-    container numThreads { uses intStatistic; }
-    container residentMem { uses intStatistic; }
+    container failures       
+      {
+      SAFplusTypes:c-existing "SAFplus::MgtHistoryStat<float>"; 
+      uses intStatistic; 
+      }
+    container cpuUtilization 
+      { 
+      SAFplusTypes:c-existing "SAFplus::MgtHistoryStat<float>"; 
+      uses decStatistic; 
+      }
+    container memUtilization 
+      { 
+      SAFplusTypes:c-existing "SAFplus::MgtHistoryStat<float>"; 
+      uses decStatistic; 
+      }
+    container pageFaults 
+      { 
+      SAFplusTypes:c-existing "SAFplus::MgtHistoryStat<int>"; 
+      uses intStatistic; 
+      }
+    container numThreads 
+      { 
+      SAFplusTypes:c-existing "SAFplus::MgtHistoryStat<int>"; 
+      uses intStatistic; 
+      }
+    container residentMem 
+      { 
+      SAFplusTypes:c-existing "SAFplus::MgtHistoryStat<int>"; 
+      uses intStatistic; 
+      }
 
     leaf ProcessState
       {  

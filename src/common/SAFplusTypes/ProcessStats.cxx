@@ -5,23 +5,11 @@
  */ 
 #include "SAFplusTypesCommon.hxx"
 
-#include "ResidentMem.hxx"
-#include "PageFaults.hxx"
 #include "clMgtContainer.hxx"
-#include "clTransaction.hxx"
-#include "ResidentMem.hxx"
-#include "NumThreads.hxx"
-#include "PageFaults.hxx"
-#include "MemUtilization.hxx"
-#include "Failures.hxx"
-#include "CpuUtilization.hxx"
-#include "Failures.hxx"
-#include "CpuUtilization.hxx"
-#include "MemUtilization.hxx"
-#include "clMgtProv.hxx"
-#include "NumThreads.hxx"
 #include <vector>
+#include "clTransaction.hxx"
 #include "ProcessState.hxx"
+#include "clMgtProv.hxx"
 #include "ProcessStats.hxx"
 
 
@@ -64,15 +52,15 @@ namespace SAFplusTypes
     /*
      * XPATH: /SAFplusTypes/processStats/failures
      */
-    SAFplusTypes::Failures* ProcessStats::getFailures()
+    SAFplus::MgtHistoryStat<float>* ProcessStats::getFailures()
     {
-        return dynamic_cast<Failures*>(this->getChildObject("failures"));
+        return dynamic_cast<SAFplus::MgtHistoryStat<float>*>(this->getChildObject("failures"));
     };
 
     /*
      * XPATH: /SAFplusTypes/processStats/failures
      */
-    void ProcessStats::addFailures(SAFplusTypes::Failures *failuresValue)
+    void ProcessStats::addFailures(SAFplus::MgtHistoryStat<float> *failuresValue)
     {
         this->addChildObject(failuresValue, "failures");
     };
@@ -80,15 +68,15 @@ namespace SAFplusTypes
     /*
      * XPATH: /SAFplusTypes/processStats/cpuUtilization
      */
-    SAFplusTypes::CpuUtilization* ProcessStats::getCpuUtilization()
+    SAFplus::MgtHistoryStat<float>* ProcessStats::getCpuUtilization()
     {
-        return dynamic_cast<CpuUtilization*>(this->getChildObject("cpuUtilization"));
+        return dynamic_cast<SAFplus::MgtHistoryStat<float>*>(this->getChildObject("cpuUtilization"));
     };
 
     /*
      * XPATH: /SAFplusTypes/processStats/cpuUtilization
      */
-    void ProcessStats::addCpuUtilization(SAFplusTypes::CpuUtilization *cpuUtilizationValue)
+    void ProcessStats::addCpuUtilization(SAFplus::MgtHistoryStat<float> *cpuUtilizationValue)
     {
         this->addChildObject(cpuUtilizationValue, "cpuUtilization");
     };
@@ -96,15 +84,15 @@ namespace SAFplusTypes
     /*
      * XPATH: /SAFplusTypes/processStats/memUtilization
      */
-    SAFplusTypes::MemUtilization* ProcessStats::getMemUtilization()
+    SAFplus::MgtHistoryStat<float>* ProcessStats::getMemUtilization()
     {
-        return dynamic_cast<MemUtilization*>(this->getChildObject("memUtilization"));
+        return dynamic_cast<SAFplus::MgtHistoryStat<float>*>(this->getChildObject("memUtilization"));
     };
 
     /*
      * XPATH: /SAFplusTypes/processStats/memUtilization
      */
-    void ProcessStats::addMemUtilization(SAFplusTypes::MemUtilization *memUtilizationValue)
+    void ProcessStats::addMemUtilization(SAFplus::MgtHistoryStat<float> *memUtilizationValue)
     {
         this->addChildObject(memUtilizationValue, "memUtilization");
     };
@@ -112,15 +100,15 @@ namespace SAFplusTypes
     /*
      * XPATH: /SAFplusTypes/processStats/pageFaults
      */
-    SAFplusTypes::PageFaults* ProcessStats::getPageFaults()
+    SAFplus::MgtHistoryStat<int>* ProcessStats::getPageFaults()
     {
-        return dynamic_cast<PageFaults*>(this->getChildObject("pageFaults"));
+        return dynamic_cast<SAFplus::MgtHistoryStat<int>*>(this->getChildObject("pageFaults"));
     };
 
     /*
      * XPATH: /SAFplusTypes/processStats/pageFaults
      */
-    void ProcessStats::addPageFaults(SAFplusTypes::PageFaults *pageFaultsValue)
+    void ProcessStats::addPageFaults(SAFplus::MgtHistoryStat<int> *pageFaultsValue)
     {
         this->addChildObject(pageFaultsValue, "pageFaults");
     };
@@ -128,15 +116,15 @@ namespace SAFplusTypes
     /*
      * XPATH: /SAFplusTypes/processStats/numThreads
      */
-    SAFplusTypes::NumThreads* ProcessStats::getNumThreads()
+    SAFplus::MgtHistoryStat<int>* ProcessStats::getNumThreads()
     {
-        return dynamic_cast<NumThreads*>(this->getChildObject("numThreads"));
+        return dynamic_cast<SAFplus::MgtHistoryStat<int>*>(this->getChildObject("numThreads"));
     };
 
     /*
      * XPATH: /SAFplusTypes/processStats/numThreads
      */
-    void ProcessStats::addNumThreads(SAFplusTypes::NumThreads *numThreadsValue)
+    void ProcessStats::addNumThreads(SAFplus::MgtHistoryStat<int> *numThreadsValue)
     {
         this->addChildObject(numThreadsValue, "numThreads");
     };
@@ -144,15 +132,15 @@ namespace SAFplusTypes
     /*
      * XPATH: /SAFplusTypes/processStats/residentMem
      */
-    SAFplusTypes::ResidentMem* ProcessStats::getResidentMem()
+    SAFplus::MgtHistoryStat<int>* ProcessStats::getResidentMem()
     {
-        return dynamic_cast<ResidentMem*>(this->getChildObject("residentMem"));
+        return dynamic_cast<SAFplus::MgtHistoryStat<int>*>(this->getChildObject("residentMem"));
     };
 
     /*
      * XPATH: /SAFplusTypes/processStats/residentMem
      */
-    void ProcessStats::addResidentMem(SAFplusTypes::ResidentMem *residentMemValue)
+    void ProcessStats::addResidentMem(SAFplus::MgtHistoryStat<int> *residentMemValue)
     {
         this->addChildObject(residentMemValue, "residentMem");
     };

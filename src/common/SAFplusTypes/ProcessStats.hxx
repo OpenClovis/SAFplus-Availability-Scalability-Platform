@@ -9,23 +9,11 @@
 #define PROCESSSTATS_HXX_
 #include "SAFplusTypesCommon.hxx"
 
-#include "ResidentMem.hxx"
-#include "PageFaults.hxx"
 #include "clMgtContainer.hxx"
-#include "clTransaction.hxx"
-#include "ResidentMem.hxx"
-#include "NumThreads.hxx"
-#include "PageFaults.hxx"
-#include "MemUtilization.hxx"
-#include "Failures.hxx"
-#include "CpuUtilization.hxx"
-#include "Failures.hxx"
-#include "CpuUtilization.hxx"
-#include "MemUtilization.hxx"
-#include "clMgtProv.hxx"
-#include "NumThreads.hxx"
 #include <vector>
+#include "clTransaction.hxx"
 #include "ProcessState.hxx"
+#include "clMgtProv.hxx"
 
 namespace SAFplusTypes
   {
@@ -33,12 +21,12 @@ namespace SAFplusTypes
     class ProcessStats : public SAFplus::MgtContainer {
     public:
         SAFplus::MgtProv<SAFplusTypes::ProcessState> ProcessState;
-        SAFplusTypes::Failures failures;
-        SAFplusTypes::CpuUtilization cpuUtilization;
-        SAFplusTypes::MemUtilization memUtilization;
-        SAFplusTypes::PageFaults pageFaults;
-        SAFplusTypes::NumThreads numThreads;
-        SAFplusTypes::ResidentMem residentMem;
+        SAFplus::MgtHistoryStat<float> failures;
+        SAFplus::MgtHistoryStat<float> cpuUtilization;
+        SAFplus::MgtHistoryStat<float> memUtilization;
+        SAFplus::MgtHistoryStat<int> pageFaults;
+        SAFplus::MgtHistoryStat<int> numThreads;
+        SAFplus::MgtHistoryStat<int> residentMem;
 
     public:
         ProcessStats();
@@ -57,62 +45,62 @@ namespace SAFplusTypes
         /*
          * XPATH: /SAFplusTypes/processStats/failures
          */
-        SAFplusTypes::Failures* getFailures();
+        SAFplus::MgtHistoryStat<float>* getFailures();
 
         /*
          * XPATH: /SAFplusTypes/processStats/failures
          */
-        void addFailures(SAFplusTypes::Failures *failuresValue);
+        void addFailures(SAFplus::MgtHistoryStat<float> *failuresValue);
 
         /*
          * XPATH: /SAFplusTypes/processStats/cpuUtilization
          */
-        SAFplusTypes::CpuUtilization* getCpuUtilization();
+        SAFplus::MgtHistoryStat<float>* getCpuUtilization();
 
         /*
          * XPATH: /SAFplusTypes/processStats/cpuUtilization
          */
-        void addCpuUtilization(SAFplusTypes::CpuUtilization *cpuUtilizationValue);
+        void addCpuUtilization(SAFplus::MgtHistoryStat<float> *cpuUtilizationValue);
 
         /*
          * XPATH: /SAFplusTypes/processStats/memUtilization
          */
-        SAFplusTypes::MemUtilization* getMemUtilization();
+        SAFplus::MgtHistoryStat<float>* getMemUtilization();
 
         /*
          * XPATH: /SAFplusTypes/processStats/memUtilization
          */
-        void addMemUtilization(SAFplusTypes::MemUtilization *memUtilizationValue);
+        void addMemUtilization(SAFplus::MgtHistoryStat<float> *memUtilizationValue);
 
         /*
          * XPATH: /SAFplusTypes/processStats/pageFaults
          */
-        SAFplusTypes::PageFaults* getPageFaults();
+        SAFplus::MgtHistoryStat<int>* getPageFaults();
 
         /*
          * XPATH: /SAFplusTypes/processStats/pageFaults
          */
-        void addPageFaults(SAFplusTypes::PageFaults *pageFaultsValue);
+        void addPageFaults(SAFplus::MgtHistoryStat<int> *pageFaultsValue);
 
         /*
          * XPATH: /SAFplusTypes/processStats/numThreads
          */
-        SAFplusTypes::NumThreads* getNumThreads();
+        SAFplus::MgtHistoryStat<int>* getNumThreads();
 
         /*
          * XPATH: /SAFplusTypes/processStats/numThreads
          */
-        void addNumThreads(SAFplusTypes::NumThreads *numThreadsValue);
+        void addNumThreads(SAFplus::MgtHistoryStat<int> *numThreadsValue);
 
         /*
          * XPATH: /SAFplusTypes/processStats/residentMem
          */
-        SAFplusTypes::ResidentMem* getResidentMem();
+        SAFplus::MgtHistoryStat<int>* getResidentMem();
 
         /*
          * XPATH: /SAFplusTypes/processStats/residentMem
          */
-        void addResidentMem(SAFplusTypes::ResidentMem *residentMemValue);
+        void addResidentMem(SAFplus::MgtHistoryStat<int> *residentMemValue);
         ~ProcessStats();
 
     };

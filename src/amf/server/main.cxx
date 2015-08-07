@@ -24,6 +24,7 @@
 #include <clFaultApi.hxx>
 #include <clFaultServerIpi.hxx>
 #include <clMsgPortsAndTypes.hxx>
+#include <clProcessStats.hxx>
 
 #include <clAmfPolicyPlugin.hxx>
 #include <SAFplusAmf.hxx>
@@ -49,6 +50,8 @@ using namespace SAFplusAmf;
 using namespace SAFplus::Rpc::amfRpc;
 
 typedef boost::unordered_map<SAFplus::AmfRedundancyPolicy,ClPluginHandle*> RedPolicyMap;
+
+// namespace SAFplusAmf { void loadAmfConfig(SAFplusAmfRoot* self); };
 
 void initializeOperationalValues(SAFplusAmf::SAFplusAmfRoot& cfg);
 
@@ -197,13 +200,47 @@ struct CompStatsRefresh
   {
   void operator()()
     {
-    while(!quitting)
-      {
-      sleep(10);
-      logDebug("CMP","STT","Component Statistics Refresh");
-      }
+      while(!quitting)
+        {
+          sleep(10);
+          logDebug("CMP","STT","Component Statistics Refresh");
+
+          MgtObject::Iterator it;
+          for (it = cfg.componentList.begin();it != cfg.componentList.end(); it++)
+            {
+              Component* comp = dynamic_cast<Component*> (it->second);
+              const std::string& cname = comp->name;
+
+              if (comp->operState == true) 
+                {
+                  SAFplusAmf::ServiceUnit* su = comp->serviceUnit;
+                  SAFplusAmf::Node* node = su->node;
+
+                  pid = comp->processId;
+                  if (pid > 1)
+                    {
+                      Handle hdl;
+                      try
+                        {
+                          hdl = name.getHandle(comp->name);
+                        }
+                      catch (SAFplus::NameException& n)
+                        {
+                          continue;
+                        }
+                      if (hdl.getNode() == SAFplus::ASP_NODEADDR) // OK this component is local and on so gather stats on it.
+                        {
+                          SAFplus::ProcStats ps(pid);
+                          comp->procStats.memUtilization.setValue(ps.virtualMemSize);
+                        }
+                    }
+                  //printf("Component [%s] stats.\n",cname.c_str());
+                }
+
+            }
+        }
     }
-  };
+};
 
 
 
@@ -440,8 +477,6 @@ int parseArgs(int argc, char* argv[])
   return 1;
   }
 
-
-namespace SAFplusAmf { void loadAmfConfig(SAFplusAmfRoot* self); };
 
 // Callback RPC client
 void FooDone(StartComponentResponse* response)

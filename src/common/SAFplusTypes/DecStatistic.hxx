@@ -25,7 +25,6 @@ namespace SAFplusTypes
         SAFplus::MgtProv<std::string> history1min;
         SAFplus::MgtProv<std::string> history10min;
         SAFplus::MgtProv<std::string> history1hour;
-        SAFplus::MgtProv<std::string> history12hour;
         SAFplus::MgtProv<std::string> history1day;
         SAFplus::MgtProv<std::string> history1week;
         SAFplus::MgtProv<std::string> history1month;
@@ -83,16 +82,6 @@ namespace SAFplusTypes
          * XPATH: /SAFplusTypes/decStatistic/history1hour
          */
         void setHistory1hour(std::string history1hourValue, SAFplus::Transaction &txn=SAFplus::NO_TXN);
-
-        /*
-         * XPATH: /SAFplusTypes/decStatistic/history12hour
-         */
-        std::string getHistory12hour();
-
-        /*
-         * XPATH: /SAFplusTypes/decStatistic/history12hour
-         */
-        void setHistory12hour(std::string history12hourValue, SAFplus::Transaction &txn=SAFplus::NO_TXN);
 
         /*
          * XPATH: /SAFplusTypes/decStatistic/history1day

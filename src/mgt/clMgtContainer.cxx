@@ -222,6 +222,10 @@ namespace SAFplus
     const std::string* name = &objectName;
     if (name == nullptr)
       name = &mgtObject->tag;
+    if (mgtObject->tag.size() == 0)  // Unnamed: so assign it the passed name
+      {
+        mgtObject->tag = objectName;
+      }
 
     // The first place you hook it in is the "main" one, the rest are sym links.
     if (!mgtObject->parent)
