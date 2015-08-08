@@ -25,6 +25,12 @@ namespace SAFplusTypes
         this->addChildObject(&pageFaults, "pageFaults");
         this->addChildObject(&numThreads, "numThreads");
         this->addChildObject(&residentMem, "residentMem");
+        failures.op = SAFplus::HistoryOperation::SUM;
+        cpuUtilization.op = SAFplus::HistoryOperation::MAX;
+        memUtilization.op = SAFplus::HistoryOperation::MAX;
+        pageFaults.op = SAFplus::HistoryOperation::SUM;
+        numThreads.op = SAFplus::HistoryOperation::MAX;
+        residentMem.op = SAFplus::HistoryOperation::MAX;
     };
 
     std::vector<std::string>* ProcessStats::getChildNames()

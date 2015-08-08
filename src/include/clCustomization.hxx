@@ -102,7 +102,8 @@ namespace SAFplusI
   /* MGT */
   enum
     {
-      MgtToStringRecursionDepth = 64  //? When converting an object with children to XML this the maximum child depth.  By default this is set to a depth that should exceed any reasonable management hierarchy, but not be infinite in case the MGT tree has a cycle.
+      MgtToStringRecursionDepth = 64,  //? When converting an object with children to XML this the maximum child depth.  By default this is set to a depth that should exceed any reasonable management hierarchy, but not be infinite in case the MGT tree has a cycle.
+      MgtHistoryArrayLen = 1000 //? How many samples should be kept for the history of MgtHistoryStat statistic objects
     };
 
 

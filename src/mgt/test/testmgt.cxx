@@ -12,6 +12,7 @@
 #include <clSafplusMsgServer.hxx>
 #include <clMgtDatabase.hxx>
 #include <clMsgPortsAndTypes.hxx>
+#include <clMgtHistoryStat.hxx>
 #include <clGroupIpi.hxx>
 #include "unitTest/Ut.hxx"
 using namespace unitTest;
@@ -666,6 +667,9 @@ int main(int argc, char* argv[])
     logSeverity = LOG_SEV_MAX;
 
     //-- Done initialize
+
+    MgtHistoryStat<int> stati("testi"); 
+    MgtHistoryStat<float> statf("testf"); 
 
     testLoadMultikey();
 

@@ -31,25 +31,89 @@
 #ifndef CLMGTHISTORYSTAT_HXX_
 #define CLMGTHISTORYSTAT_HXX_
 
-#include <vector>
-//#include <boost/circular_buffer.hpp>
-#include <clMgtObject.hxx>
+//#include <vector>
+#include <boost/circular_buffer.hpp>
+#include <clMgtContainer.hxx>
+#include <clMgtStat.hxx>
 #include <clCommon.hxx>
 
 
-#define CL_MAX_HISTORY_ARRAY 60
+//#define CL_MAX_HISTORY_ARRAY 1000
 
 namespace SAFplus
 {
+
+  inline std::string stringify(float f)
+    {
+      char s[64];
+      sprintf(s,"%1.2f",f);
+      return std::string(s);
+    }
+
+  inline std::string stringify(int i)
+    {
+      return std::to_string(i);
+    }
+
+
+  template <class T> class MgtCircularBuffer:public MgtObject
+  {
+  public:
+    boost::circular_buffer<T> value;
+    MgtCircularBuffer():MgtObject(""),value(SAFplusI::MgtHistoryArrayLen)
+    {}
+
+    void push_back(const T& item) { value.push_back(item); }
+    void push_front(const T& item) { value.push_front(item); }
+    void pop_front() { value.pop_front(); }
+    void pop_back() { value.pop_back(); }   
+    
+
+    void initialize(const char* name)
+    {
+      tag = name;
+    }
+
+    MgtCircularBuffer(char* name,int size): MgtObject(name), value(size)
+    {}
+
+    virtual void toString(std::stringstream& xmlString, int depth=SAFplusI::MgtToStringRecursionDepth,SerializationOptions opts=SerializeNoOptions)
+    {
+      xmlString << "<" << tag << ">";
+      auto i = value.begin();
+      if (i!=value.end())
+        {
+        xmlString << std::to_string(*i);
+        i++;
+        for (; i != value.end(); i++)
+          {
+          xmlString << "," << stringify(*i);
+          }
+        }
+      xmlString << "</" << tag << ">";
+
+    }
+  };
+  
+
+  static const char* historyNames[] = { "history10sec", "history1min", "history10min","history1hour", "history1day", "history1week", "history4weeks"};
+  static int historyMultiples[] = { 6,10,60,24,7,28,0 };
+  static const int NumHistoryGroups = sizeof(historyMultiples)/sizeof(int);
+
+    enum class HistoryOperation
+    {
+      SUM, MAX, MIN, AVE
+    };
+
 /**
  *  MgtHistoryStat class provides APIs to manage MGT historical data
  */
 template <class T>
-class MgtHistoryStat : public MgtObject
+class MgtHistoryStat : public MgtContainer
 {
 private:
   // ClTimerHandleT   mTimerHandle;
-#if 1
+#if 0
     T m10SecTrack;
     T m1MinTrack;
     T m10MinTrack;
@@ -63,29 +127,18 @@ protected:
     /*
      * Store the list of historical values
      */
-    T mCurrent;
-#if 0
-    boost::circular_buffer<T> mHistory10Sec;
-    boost::circular_buffer<T> mHistory1Min;
-    boost::circular_buffer<T> mHistory10Min;
-    boost::circular_buffer<T> mHistory1Hour;
-    boost::circular_buffer<T> mHistory1Day;
-    boost::circular_buffer<T> mHistory1Week;
-    boost::circular_buffer<T> mHistory1Month;
-#else
-    std::vector<T> mHistory10Sec;
-    std::vector<T> mHistory1Min;
-    std::vector<T> mHistory10Min;
-    std::vector<T> mHistory1Hour;
-    std::vector<T> mHistory1Day;
-    std::vector<T> mHistory1Week;
-    std::vector<T> mHistory1Month;
-#endif
+    MgtStat<T> mCurrent;
+    MgtCircularBuffer<T> mHistory[7];  //
+    uint mCounts[7];
 
 public:
+    HistoryOperation op;
+
     //static ClRcT clTstTimerCallback(void *pCookie);
     MgtHistoryStat();
     MgtHistoryStat(const char* name);
+    void initialize(void);
+
     virtual ~MgtHistoryStat();
 
     ClRcT startTimer();
@@ -111,7 +164,7 @@ public:
      */
     void setValue(T value);
 
-    virtual void toString(std::stringstream& xmlString, int depth=SAFplusI::MgtToStringRecursionDepth,SerializationOptions opts=SerializeNoOptions);
+  // virtual void toString(std::stringstream& xmlString, int depth=SAFplusI::MgtToStringRecursionDepth,SerializationOptions opts=SerializeNoOptions);
 
     virtual ClRcT write(MgtDatabase* db, std::string xpt = "")
     {
@@ -137,35 +190,36 @@ public:
 template <class T>
 ClRcT clTstTimerCallback(void *pCookie)
 {
-    //MgtHistoryStat<T> *thisObj = (MgtHistoryStat<T> *)pCookie;
-	MgtHistoryStat<T> *thisObj = static_cast<MgtHistoryStat<T> *>(pCookie);
+    MgtHistoryStat<T> *thisObj = static_cast<MgtHistoryStat<T> *>(pCookie);
     T currentVal = thisObj->calculateCurrentValue();
     thisObj->setValue(currentVal);
     return CL_OK;
 }
 
 template <class T>
-MgtHistoryStat<T>::MgtHistoryStat(const char* name) : MgtObject(name)
+void MgtHistoryStat<T>::initialize(void)
 {
-    m10SecTrack = 0;
-    m1MinTrack = 0;
-    m10MinTrack = 0;
-    m1HourTrack = 0;
-    //m12HourTrack = 0;
-    m1DayTrack = 0;
-    m1WeekTrack = 0;
+  op=HistoryOperation::SUM;
+  addChildObject(&mCurrent,mCurrent.tag);
+  for (int i=0;i<NumHistoryGroups;i++)
+    {
+      mHistory[i].initialize(historyNames[i]);
+      mCounts[i] = 0;
+      addChildObject(&mHistory[i],historyNames[i]);
+    }
+
 }
 
 template <class T>
-MgtHistoryStat<T>::MgtHistoryStat() : MgtObject("")
+MgtHistoryStat<T>::MgtHistoryStat(const char* name) : MgtContainer(name),mCurrent("current")
 {
-    m10SecTrack = 0;
-    m1MinTrack = 0;
-    m10MinTrack = 0;
-    m1HourTrack = 0;
-    //m12HourTrack = 0;
-    m1DayTrack = 0;
-    m1WeekTrack = 0;
+  initialize();
+}
+
+template <class T>
+MgtHistoryStat<T>::MgtHistoryStat() : MgtContainer(""),mCurrent("current")
+{
+  initialize();
 }
 
 template <class T>
@@ -223,279 +277,49 @@ ClBoolT MgtHistoryStat<T>::validate( void *pBuffer, ClUint64T buffLen, SAFplus::
     return CL_FALSE;
 }
 
-template <class T>
-void MgtHistoryStat<T>::toString(std::stringstream& xmlString, int depth,SerializationOptions opts)
-{
-    ClUint32T i;
-
-    xmlString << "<" << tag << ">";
-
-    xmlString << "<current>" << mCurrent << "</current>";
-
-    int tmp = mHistory10Sec.size();
-    if (tmp)
-      {
-        xmlString << "<history10sec>";
-        for(i = 0; i< tmp; i++)
-          {
-            xmlString << mHistory10Sec[i];
-            if (i<tmp-1) xmlString << ",";
-          }
-        xmlString << "</history10sec>";
-      }
-
-    tmp = mHistory1Min.size();
-    if (tmp)
-      {
-        xmlString << "<history1min>";
-        for(i = 0; i< tmp; i++)
-          {
-            xmlString << mHistory1Min[i];
-            if (i<tmp-1) xmlString << ",";
-          }
-        xmlString << "</history1min>";
-      }
-
-    tmp = mHistory10Min.size();
-    if (tmp)
-      {
-        xmlString << "<history10min>";
-        for(i = 0; i< tmp; i++)
-          {
-            xmlString << mHistory10Min[i];
-            if (i<tmp-1) xmlString << ",";
-          }
-        xmlString << "</history10min>";
-      }
-   
-    tmp = mHistory1Hour.size();
-    if (tmp)
-      {
-        xmlString << "<history1hour>";
-        for(i = 0; i< tmp; i++)
-          {
-            xmlString << mHistory1Hour[i];
-            if (i<tmp-1) xmlString << ",";
-          }
-        xmlString << "</history1hour>";
-      }
-
-    tmp = mHistory1Day.size();
-    if (tmp)
-      {
-        xmlString << "<history1day>";
-        for(i = 0; i< tmp; i++)
-          {
-            xmlString << mHistory1Day[i];
-            if (i<tmp-1) xmlString << ",";
-          }
-        xmlString << "</history1day>";
-      }
-
-    tmp = mHistory1Week.size();
-    if (tmp)
-      {
-        xmlString << "<history1week>";
-        for(i = 0; i< tmp; i++)
-          {
-            xmlString << mHistory1Week[i];
-            if (i<tmp-1) xmlString << ",";
-          }
-        xmlString << "</history1week>";
-      }
-
-    tmp = mHistory1Month.size();
-    if (tmp)
-      {
-        xmlString << "<history1month>";
-        for(i = 0; i< tmp; i++)
-          {
-            xmlString << mHistory1Month[i];
-            if (i<tmp-1) xmlString << ",";
-          }
-        xmlString << "</history1month>";
-      }
-
-    xmlString << "</" << tag << ">";
-}
 
 template <class T>
 void MgtHistoryStat<T>::setValue(T value)
 {
-    ClBoolT isAccum;
-    ClUint32T i;
     T sum;
 
-    mCurrent = value;
+    mCurrent.value = value;
 
-    mHistory10Sec.push_back(mCurrent);
-    if (mHistory10Sec.size() > CL_MAX_HISTORY_ARRAY)
-    {
-        m10SecTrack--;
-        mHistory10Sec.erase (mHistory10Sec.begin());
-    }
-
-    isAccum = CL_FALSE;
-    if (mHistory10Sec.size() - m10SecTrack == 6)
-    {
-        isAccum = CL_TRUE;
-    }
-
-    if (isAccum)
-    {
-        sum = 0;
-        for (i = m10SecTrack; i < mHistory10Sec.size(); i++)
-        {
-            sum += mHistory10Sec[i];
-        }
-        m10SecTrack = mHistory10Sec.size();
-
-        mHistory1Min.push_back(sum);
-        if (mHistory1Min.size() > CL_MAX_HISTORY_ARRAY)
-        {
-            m1MinTrack--;
-            mHistory1Min.erase (mHistory1Min.begin());
-        }
-
-        isAccum = CL_FALSE;
-        if (mHistory1Min.size() - m1MinTrack == 10)
-        {
-            isAccum = CL_TRUE;
-        }
-    }
-
-    if (isAccum)
-    {
-        sum = 0;
-        for (i = m1MinTrack; i < mHistory1Min.size(); i++)
-        {
-            sum += mHistory1Min[i];
-        }
-        m1MinTrack = mHistory1Min.size();
-
-        mHistory10Min.push_back(sum);
-        if (mHistory10Min.size() > CL_MAX_HISTORY_ARRAY)
-        {
-            m10MinTrack--;
-            mHistory10Min.erase (mHistory10Min.begin());
-        }
-
-        isAccum = CL_FALSE;
-        if (mHistory10Min.size() - m10MinTrack == 6)
-        {
-            isAccum = CL_TRUE;
-        }
-    }
-
-    if (isAccum)
-    {
-        sum = 0;
-        for (i = m10MinTrack; i < mHistory10Min.size(); i++)
-        {
-            sum += mHistory10Min[i];
-        }
-        m10MinTrack = mHistory10Min.size();
-
-        mHistory1Hour.push_back(sum);
-        if (mHistory1Hour.size() > CL_MAX_HISTORY_ARRAY)
-        {
-            m1HourTrack--;
-            mHistory1Hour.erase (mHistory1Hour.begin());
-        }
-
-        isAccum = CL_FALSE;
-        if (mHistory1Hour.size() - m1HourTrack == 24)
-        {
-            isAccum = CL_TRUE;
-        }
-    }
-
-    if (isAccum)
-    {
-        sum = 0;
-        for (i = m1HourTrack; i < mHistory1Hour.size(); i++)
-        {
-            sum += mHistory1Hour[i];
-        }
-        m1HourTrack = mHistory1Hour.size();
-
-        mHistory1Day.push_back(sum);
-        if (mHistory1Day.size() > CL_MAX_HISTORY_ARRAY)
-        {
-            m1DayTrack--;
-            mHistory1Day.erase (mHistory1Day.begin());
-        }
-
-        isAccum = CL_FALSE;
-        if (mHistory1Day.size() - m1DayTrack == 7)
-        {
-            isAccum = CL_TRUE;
-        }
-    }
-
-#if 0
-    if (isAccum)
-    {
-        sum = 0;
-        for (i = m12HourTrack; i < mHistory12Hour.size(); i++)
-        {
-            sum += mHistory12Hour[i];
-        }
-        m12HourTrack = mHistory12Hour.size();
-
-        mHistory1Day.push_back(sum);
-        if (mHistory1Day.size() > CL_MAX_HISTORY_ARRAY)
-        {
-            m1DayTrack--;
-            mHistory1Day.erase (mHistory1Day.begin());
-        }
-
-        isAccum = CL_FALSE;
-        if (mHistory1Day.size() - m1DayTrack == 7)
-        {
-            isAccum = CL_TRUE;
-        }
-    }
-#endif
-
-    if (isAccum)
-    {
-        sum = 0;
-        for (i = m1DayTrack; i < mHistory1Day.size(); i++)
-        {
-            sum += mHistory1Day[i];
-        }
-        m1DayTrack = mHistory1Day.size();
-
-        mHistory1Week.push_back(sum);
-        if (mHistory1Week.size() > CL_MAX_HISTORY_ARRAY)
-        {
-            m1WeekTrack--;
-            mHistory1Week.erase (mHistory1Week.begin());
-        }
-
-        isAccum = CL_FALSE;
-        if (mHistory1Week.size() - m1WeekTrack == 4)
-        {
-            isAccum = CL_TRUE;
-        }
-    }
-
-    if (isAccum)
-    {
-        sum = 0;
-        for (i = m1WeekTrack; i < mHistory1Week.size(); i++)
-        {
-            sum += mHistory1Week[i];
-        }
-        m1WeekTrack = mHistory1Week.size();
-
-        mHistory1Month.push_back(sum);
-        if (mHistory1Month.size() > CL_MAX_HISTORY_ARRAY)
-        {
-            mHistory1Month.erase (mHistory1Month.begin());
-        }
-    }
+    mHistory[0].push_back(mCurrent.value);
+    mCounts[0]++;
+    for (int j=0;j<NumHistoryGroups-1;j++)  // -1 because we never roll the last group
+      {
+        if (mCounts[j] >= historyMultiples[j])
+          {
+            auto i = mHistory[j].value.rbegin();
+            if (i==mHistory[j].value.rend()) break;
+            T sum = *i;
+            i++;
+            for(int amt=1; amt<historyMultiples[j];amt++,i++)
+              {
+                if ((op == HistoryOperation::SUM)||(op== HistoryOperation::AVE))
+                  {
+                    sum += *i;
+                  }
+                else if (op == HistoryOperation::MIN)
+                  {
+                    sum = std::min(sum,*i);
+                  }  
+                else if (op == HistoryOperation::MAX)
+                  {
+                    sum = std::max(sum,*i);
+                  }        
+              }
+            if (op== HistoryOperation::AVE)
+              {
+                sum=sum/historyMultiples[j];
+              }
+            mCounts[j]=0;
+            mHistory[j+1].push_back(sum);
+            mCounts[j+1]++;
+          }
+        else break;  // if this one didn't add to the next one, the next ones can't possibly be ready to roll over so exit out of the for loop
+      }
 }
 
 template <class T>

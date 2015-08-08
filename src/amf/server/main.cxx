@@ -202,8 +202,9 @@ struct CompStatsRefresh
     {
       while(!quitting)
         {
-          sleep(10);
-          logDebug("CMP","STT","Component Statistics Refresh");
+          //sleep(10);
+          boost::this_thread::sleep(boost::posix_time::milliseconds(50));
+          // logDebug("CMP","STT","Component Statistics Refresh");
 
           MgtObject::Iterator it;
           for (it = cfg.componentList.begin();it != cfg.componentList.end(); it++)
@@ -232,6 +233,9 @@ struct CompStatsRefresh
                         {
                           SAFplus::ProcStats ps(pid);
                           comp->procStats.memUtilization.setValue(ps.virtualMemSize);
+                          comp->procStats.numThreads.setValue(ps.numThreads);
+                          comp->procStats.residentMem.setValue(ps.residentSetSize);
+                          comp->procStats.pageFaults.setValue(ps.numMajorFaults);
                         }
                     }
                   //printf("Component [%s] stats.\n",cname.c_str());
