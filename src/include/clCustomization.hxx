@@ -152,7 +152,7 @@ namespace SAFplusI
   enum 
   {
     CkptUseCheckDuration = 60, /* This is the configured duration in second for which the program checks to see if there is any process with a checkpoint open */
-    CkptRetentionDurationDefault = 28800, /* This is the default retention duration in second for the retention timer to decide if a checkpoint data is deleted from memory */
+    CkptRetentionDurationDefault = 28800, /* This is the default retention duration in second (8*60*60) for the retention timer to decide if a checkpoint data is deleted from memory */
   };
 
   };
