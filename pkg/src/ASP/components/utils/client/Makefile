@@ -111,7 +111,6 @@ DEP_COMP_LIST	:= osal timer debug buffer eo rmd ioc cnt log amf cor event
 
 LIB_NAMES	= libClUtils
 EXTRA_CPPFLAGS += -I $(CLOVIS_ROOT)/ASP/3rdparty/ezxml/stable
-CFLAGS  += -I$(CLOVIS_ROOT)/ASP/3rdparty/libunwind/libunwind-trunk/include/
 
 ifeq ("$(WIND_VER)","1.2")
     EXTRA_CPPFLAGS += -DWIND_PTHREAD

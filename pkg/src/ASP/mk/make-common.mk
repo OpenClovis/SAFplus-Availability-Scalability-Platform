@@ -295,25 +295,6 @@ SPLINTCMD	= splint
 SPLINTFLAGS	+= +posixlib -preproc -badflag -warnsysfiles \
                    -nof -weak -line-len 360 -unrecog
 
-# Additional ARCH settings for x86
-#ifeq ($(ARCH),x86)
-#  ifeq (${IS_64_BIT}, 1)
-#    LIBUNWIND_LIBS = -lunwind -lunwind-x86_64
-#  else
-#    LIBUNWIND_LIBS = -lunwind -lunwind-x86
-#  endif
-#endif
-
-#ifeq ($(ARCH),arm)
-#  LIBUNWIND_LIBS = -lunwind -lunwind-arm
-#endif
-
-#ifeq ($(ARCH),arm64)
-#  LIBUNWIND_LIBS = -lunwind -lunwind-aarch64
-#endif
-
-#THIRD_PARTY_LIBS += -lunwind -lunwind-x86_64 
-
 CXXFLAGS := $(filter-out -std=c99,$(LOCAL_CFLAGS)) -Wno-variadic-macros
 # even though variadic macros are not technically supported in c++, g++ and other compilers support them
 # -Werror -- Note compiler complains when c++ is compiled with -std=c99, but precompiler complains when it is NOT defined so warnings can't be errors.
