@@ -11,18 +11,19 @@
 
 #include <iostream>
 #include "clTransaction.hxx"
+#include <cstdint>
 
 namespace ietfYangTypes
   {
 
     class Timeticks {
     public:
-        unsigned int value;
+        ::uint32_t value;
 
     public:
         Timeticks();
-        unsigned int getValue();
-        void setValue(unsigned int value, SAFplus::Transaction &t=SAFplus::NO_TXN);
+        ::uint32_t getValue();
+        void setValue(::uint32_t value, SAFplus::Transaction &t=SAFplus::NO_TXN);
         ietfYangTypes::Timeticks& operator=(const ietfYangTypes::Timeticks &timeticks);
         friend std::ostream& operator<<(std::ostream &os, const ietfYangTypes::Timeticks &timeticks);
         friend std::istream& operator>>(std::istream &is, ietfYangTypes::Timeticks &timeticks);

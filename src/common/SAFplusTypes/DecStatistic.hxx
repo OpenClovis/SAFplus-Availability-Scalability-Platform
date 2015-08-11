@@ -14,13 +14,14 @@
 #include "clMgtProv.hxx"
 #include <vector>
 #include "clMgtContainer.hxx"
+#include <cstdint>
 
 namespace SAFplusTypes
   {
 
     class DecStatistic : public SAFplus::MgtContainer {
     public:
-        SAFplus::MgtProv<long> current;
+        SAFplus::MgtProv<::int64_t> current;
         SAFplus::MgtProv<std::string> history10sec;
         SAFplus::MgtProv<std::string> history1min;
         SAFplus::MgtProv<std::string> history10min;
@@ -36,12 +37,12 @@ namespace SAFplusTypes
         /*
          * XPATH: /SAFplusTypes/decStatistic/current
          */
-        long getCurrent();
+        ::int64_t getCurrent();
 
         /*
          * XPATH: /SAFplusTypes/decStatistic/current
          */
-        void setCurrent(long currentValue, SAFplus::Transaction &txn=SAFplus::NO_TXN);
+        void setCurrent(::int64_t currentValue, SAFplus::Transaction &txn=SAFplus::NO_TXN);
 
         /*
          * XPATH: /SAFplusTypes/decStatistic/history10sec

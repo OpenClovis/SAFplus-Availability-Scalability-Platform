@@ -15,6 +15,7 @@
 #include <vector>
 #include "MgtFactory.hxx"
 #include "clMgtContainer.hxx"
+#include <cstdint>
 
 namespace SAFplusAmf
   {
@@ -26,7 +27,7 @@ namespace SAFplusAmf
 
     public:
         SAFplus::MgtProv<std::string> resource;
-        SAFplus::MgtProv<long int> value;
+        SAFplus::MgtProv<::int64_t> value;
 
     public:
         Capacity();
@@ -47,12 +48,12 @@ namespace SAFplusAmf
         /*
          * XPATH: /SAFplusAmf/Node/capacity/value
          */
-        long int getValue();
+        ::int64_t getValue();
 
         /*
          * XPATH: /SAFplusAmf/Node/capacity/value
          */
-        void setValue(long int valueValue, SAFplus::Transaction &t=SAFplus::NO_TXN);
+        void setValue(::int64_t valueValue, SAFplus::Transaction &t=SAFplus::NO_TXN);
         ~Capacity();
 
     };

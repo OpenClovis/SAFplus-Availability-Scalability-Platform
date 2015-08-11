@@ -10,6 +10,7 @@
 #include "clMgtProv.hxx"
 #include <vector>
 #include "clMgtContainer.hxx"
+#include <cstdint>
 #include "EntityId.hxx"
 
 
@@ -47,7 +48,7 @@ namespace SAFplusAmf
     /*
      * XPATH: /SAFplusAmf/EntityId/id
      */
-    unsigned short int EntityId::getId()
+    ::uint16_t EntityId::getId()
     {
         return this->id.value;
     };
@@ -55,7 +56,7 @@ namespace SAFplusAmf
     /*
      * XPATH: /SAFplusAmf/EntityId/id
      */
-    void EntityId::setId(unsigned short int idValue, SAFplus::Transaction &txn)
+    void EntityId::setId(::uint16_t idValue, SAFplus::Transaction &txn)
     {
         this->id.set(idValue,txn);
     };

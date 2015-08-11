@@ -11,6 +11,7 @@
 #include <vector>
 #include "MgtFactory.hxx"
 #include "clMgtContainer.hxx"
+#include <cstdint>
 #include "Capacity.hxx"
 
 
@@ -69,7 +70,7 @@ namespace SAFplusAmf
     /*
      * XPATH: /SAFplusAmf/Node/capacity/value
      */
-    long int Capacity::getValue()
+    ::int64_t Capacity::getValue()
     {
         return this->value.value;
     };
@@ -77,12 +78,12 @@ namespace SAFplusAmf
     /*
      * XPATH: /SAFplusAmf/Node/capacity/value
      */
-    void Capacity::setValue(long int valueValue, SAFplus::Transaction &t)
+    void Capacity::setValue(::int64_t valueValue, SAFplus::Transaction &t)
     {
         if(&t == &SAFplus::NO_TXN) this->value.value = valueValue;
         else
         {
-            SAFplus::SimpleTxnOperation<long int> *opt = new SAFplus::SimpleTxnOperation<long int>(&(value.value),valueValue);
+            SAFplus::SimpleTxnOperation<::int64_t> *opt = new SAFplus::SimpleTxnOperation<::int64_t>(&(value.value),valueValue);
             t.addOperation(opt);
         }
     };

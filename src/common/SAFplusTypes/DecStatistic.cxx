@@ -10,6 +10,7 @@
 #include "clMgtProv.hxx"
 #include <vector>
 #include "clMgtContainer.hxx"
+#include <cstdint>
 #include "DecStatistic.hxx"
 
 
@@ -37,7 +38,7 @@ namespace SAFplusTypes
     /*
      * XPATH: /SAFplusTypes/decStatistic/current
      */
-    long DecStatistic::getCurrent()
+    ::int64_t DecStatistic::getCurrent()
     {
         return this->current.value;
     };
@@ -45,7 +46,7 @@ namespace SAFplusTypes
     /*
      * XPATH: /SAFplusTypes/decStatistic/current
      */
-    void DecStatistic::setCurrent(long currentValue, SAFplus::Transaction &txn)
+    void DecStatistic::setCurrent(::int64_t currentValue, SAFplus::Transaction &txn)
     {
         this->current.set(currentValue,txn);
     };

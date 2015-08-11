@@ -11,6 +11,7 @@
 #include <vector>
 #include "MgtFactory.hxx"
 #include "clMgtContainer.hxx"
+#include <cstdint>
 #include "EntityById.hxx"
 
 
@@ -29,7 +30,7 @@ namespace SAFplusAmf
         entity.config = false;
     };
 
-    EntityById::EntityById(unsigned short int idValue): SAFplus::MgtContainer("EntityById"), id("id"), entity("entity")
+    EntityById::EntityById(::uint16_t idValue): SAFplus::MgtContainer("EntityById"), id("id"), entity("entity")
     {
         this->id.value =  idValue;
         this->config = false;
@@ -54,7 +55,7 @@ namespace SAFplusAmf
     /*
      * XPATH: /SAFplusAmf/EntityById/id
      */
-    unsigned short int EntityById::getId()
+    ::uint16_t EntityById::getId()
     {
         return this->id.value;
     };
@@ -62,12 +63,12 @@ namespace SAFplusAmf
     /*
      * XPATH: /SAFplusAmf/EntityById/id
      */
-    void EntityById::setId(unsigned short int idValue, SAFplus::Transaction &t)
+    void EntityById::setId(::uint16_t idValue, SAFplus::Transaction &t)
     {
         if(&t == &SAFplus::NO_TXN) this->id.value = idValue;
         else
         {
-            SAFplus::SimpleTxnOperation<unsigned short int> *opt = new SAFplus::SimpleTxnOperation<unsigned short int>(&(id.value),idValue);
+            SAFplus::SimpleTxnOperation<::uint16_t> *opt = new SAFplus::SimpleTxnOperation<::uint16_t>(&(id.value),idValue);
             t.addOperation(opt);
         }
     };

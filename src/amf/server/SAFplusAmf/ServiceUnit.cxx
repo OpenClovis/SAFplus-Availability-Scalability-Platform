@@ -24,6 +24,7 @@
 #include "ServiceGroup.hxx"
 #include <vector>
 #include "clMgtIdentifierList.hxx"
+#include <cstdint>
 #include "PresenceState.hxx"
 #include "EntityId.hxx"
 #include "NumStandbyServiceInstances.hxx"
@@ -140,7 +141,7 @@ namespace SAFplusAmf
     /*
      * XPATH: /SAFplusAmf/ServiceUnit/rank
      */
-    unsigned int ServiceUnit::getRank()
+    ::uint32_t ServiceUnit::getRank()
     {
         return this->rank.value;
     };
@@ -148,12 +149,12 @@ namespace SAFplusAmf
     /*
      * XPATH: /SAFplusAmf/ServiceUnit/rank
      */
-    void ServiceUnit::setRank(unsigned int rankValue, SAFplus::Transaction &t)
+    void ServiceUnit::setRank(::uint32_t rankValue, SAFplus::Transaction &t)
     {
         if(&t == &SAFplus::NO_TXN) this->rank.value = rankValue;
         else
         {
-            SAFplus::SimpleTxnOperation<unsigned int> *opt = new SAFplus::SimpleTxnOperation<unsigned int>(&(rank.value),rankValue);
+            SAFplus::SimpleTxnOperation<::uint32_t> *opt = new SAFplus::SimpleTxnOperation<::uint32_t>(&(rank.value),rankValue);
             t.addOperation(opt);
         }
     };
@@ -403,7 +404,7 @@ namespace SAFplusAmf
     /*
      * XPATH: /SAFplusAmf/ServiceUnit/probationTime
      */
-    unsigned int ServiceUnit::getProbationTime()
+    ::uint32_t ServiceUnit::getProbationTime()
     {
         return this->probationTime.value;
     };
@@ -411,12 +412,12 @@ namespace SAFplusAmf
     /*
      * XPATH: /SAFplusAmf/ServiceUnit/probationTime
      */
-    void ServiceUnit::setProbationTime(unsigned int probationTimeValue, SAFplus::Transaction &t)
+    void ServiceUnit::setProbationTime(::uint32_t probationTimeValue, SAFplus::Transaction &t)
     {
         if(&t == &SAFplus::NO_TXN) this->probationTime.value = probationTimeValue;
         else
         {
-            SAFplus::SimpleTxnOperation<unsigned int> *opt = new SAFplus::SimpleTxnOperation<unsigned int>(&(probationTime.value),probationTimeValue);
+            SAFplus::SimpleTxnOperation<::uint32_t> *opt = new SAFplus::SimpleTxnOperation<::uint32_t>(&(probationTime.value),probationTimeValue);
             t.addOperation(opt);
         }
     };

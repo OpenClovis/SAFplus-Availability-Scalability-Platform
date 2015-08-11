@@ -23,6 +23,7 @@
 #include "clMgtProv.hxx"
 #include "clMgtIdentifierList.hxx"
 #include <vector>
+#include <cstdint>
 #include "EntityId.hxx"
 #include "NumStandbyAssignments.hxx"
 #include "NumStandbyAssignments.hxx"
@@ -51,17 +52,17 @@ namespace SAFplusAmf
         /*
          * What is the optimal number of Service Units that should be given an active assignment for this work?  Note that the SA-Forum requires this field to be 1 for 2N, N+M, N-Way, and no redundancy models (see SAI-AIS-AMF-B.04.01@3.2.3.2 table 11).  However SAFplus allows this field to be set to any value for these models.
          */
-        SAFplus::MgtProv<unsigned int> preferredActiveAssignments;
+        SAFplus::MgtProv<::uint32_t> preferredActiveAssignments;
 
         /*
          * What is the optimal number of Service Units that should be given a standby assignment for this work?  Note that the SA-Forum requires this field to be 1 for 2N, and N+M, redundancy models (see SAI-AIS-AMF-B.04.01@3.2.3.2 table 11).  However SAFplus allows this field to be set to any value for these models.  This field must be 0 for N-Way Active and No-redundancy models since these models do not have standby apps.
          */
-        SAFplus::MgtProv<unsigned int> preferredStandbyAssignments;
+        SAFplus::MgtProv<::uint32_t> preferredStandbyAssignments;
 
         /*
          * Lower rank is instantiated before higher; but rank 0 means 'don't care'.
          */
-        SAFplus::MgtProv<unsigned int> rank;
+        SAFplus::MgtProv<::uint32_t> rank;
 
         /*
          * This work is assigned active to these service units.  Depending on the redundancy model, it 
@@ -120,32 +121,32 @@ namespace SAFplusAmf
         /*
          * XPATH: /SAFplusAmf/ServiceInstance/preferredActiveAssignments
          */
-        unsigned int getPreferredActiveAssignments();
+        ::uint32_t getPreferredActiveAssignments();
 
         /*
          * XPATH: /SAFplusAmf/ServiceInstance/preferredActiveAssignments
          */
-        void setPreferredActiveAssignments(unsigned int preferredActiveAssignmentsValue, SAFplus::Transaction &t=SAFplus::NO_TXN);
+        void setPreferredActiveAssignments(::uint32_t preferredActiveAssignmentsValue, SAFplus::Transaction &t=SAFplus::NO_TXN);
 
         /*
          * XPATH: /SAFplusAmf/ServiceInstance/preferredStandbyAssignments
          */
-        unsigned int getPreferredStandbyAssignments();
+        ::uint32_t getPreferredStandbyAssignments();
 
         /*
          * XPATH: /SAFplusAmf/ServiceInstance/preferredStandbyAssignments
          */
-        void setPreferredStandbyAssignments(unsigned int preferredStandbyAssignmentsValue, SAFplus::Transaction &t=SAFplus::NO_TXN);
+        void setPreferredStandbyAssignments(::uint32_t preferredStandbyAssignmentsValue, SAFplus::Transaction &t=SAFplus::NO_TXN);
 
         /*
          * XPATH: /SAFplusAmf/ServiceInstance/rank
          */
-        unsigned int getRank();
+        ::uint32_t getRank();
 
         /*
          * XPATH: /SAFplusAmf/ServiceInstance/rank
          */
-        void setRank(unsigned int rankValue, SAFplus::Transaction &t=SAFplus::NO_TXN);
+        void setRank(::uint32_t rankValue, SAFplus::Transaction &t=SAFplus::NO_TXN);
 
         /*
          * XPATH: /SAFplusAmf/ServiceInstance/activeAssignments

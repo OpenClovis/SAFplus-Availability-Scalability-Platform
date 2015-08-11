@@ -11,18 +11,19 @@
 
 #include <iostream>
 #include "clTransaction.hxx"
+#include <cstdint>
 
 namespace ietfYangTypes
   {
 
     class ZeroBasedCounter64 {
     public:
-        unsigned long int value;
+        ::uint64_t value;
 
     public:
         ZeroBasedCounter64();
-        unsigned long int getValue();
-        void setValue(unsigned long int value, SAFplus::Transaction &t=SAFplus::NO_TXN);
+        ::uint64_t getValue();
+        void setValue(::uint64_t value, SAFplus::Transaction &t=SAFplus::NO_TXN);
         ietfYangTypes::ZeroBasedCounter64& operator=(const ietfYangTypes::ZeroBasedCounter64 &zeroBasedCounter64);
         friend std::ostream& operator<<(std::ostream &os, const ietfYangTypes::ZeroBasedCounter64 &zeroBasedCounter64);
         friend std::istream& operator>>(std::istream &is, ietfYangTypes::ZeroBasedCounter64 &zeroBasedCounter64);

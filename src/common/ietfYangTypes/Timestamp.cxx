@@ -7,6 +7,7 @@
 
 #include <iostream>
 #include "clTransaction.hxx"
+#include <cstdint>
 #include "Timestamp.hxx"
 
 
@@ -17,17 +18,17 @@ namespace ietfYangTypes
     {
     };
 
-    unsigned int Timestamp::getValue()
+    ::uint32_t Timestamp::getValue()
     {
         return this->value;
     };
 
-    void Timestamp::setValue(unsigned int value, SAFplus::Transaction &t)
+    void Timestamp::setValue(::uint32_t value, SAFplus::Transaction &t)
     {
         if(&t == &SAFplus::NO_TXN) this->value = value;
         else
         {
-            SAFplus::SimpleTxnOperation<unsigned int> *opt = new SAFplus::SimpleTxnOperation<unsigned int>(&this->value,value);
+            SAFplus::SimpleTxnOperation<::uint32_t> *opt = new SAFplus::SimpleTxnOperation<::uint32_t>(&this->value,value);
             t.addOperation(opt);
         }
     };

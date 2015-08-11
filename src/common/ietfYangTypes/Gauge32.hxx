@@ -11,18 +11,19 @@
 
 #include <iostream>
 #include "clTransaction.hxx"
+#include <cstdint>
 
 namespace ietfYangTypes
   {
 
     class Gauge32 {
     public:
-        unsigned int value;
+        ::uint32_t value;
 
     public:
         Gauge32();
-        unsigned int getValue();
-        void setValue(unsigned int value, SAFplus::Transaction &t=SAFplus::NO_TXN);
+        ::uint32_t getValue();
+        void setValue(::uint32_t value, SAFplus::Transaction &t=SAFplus::NO_TXN);
         ietfYangTypes::Gauge32& operator=(const ietfYangTypes::Gauge32 &gauge32);
         friend std::ostream& operator<<(std::ostream &os, const ietfYangTypes::Gauge32 &gauge32);
         friend std::istream& operator>>(std::istream &is, ietfYangTypes::Gauge32 &gauge32);

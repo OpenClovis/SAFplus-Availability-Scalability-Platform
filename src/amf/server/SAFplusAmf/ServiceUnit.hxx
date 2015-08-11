@@ -28,6 +28,7 @@
 #include "ServiceGroup.hxx"
 #include <vector>
 #include "clMgtIdentifierList.hxx"
+#include <cstdint>
 #include "PresenceState.hxx"
 #include "EntityId.hxx"
 #include "NumStandbyServiceInstances.hxx"
@@ -51,7 +52,7 @@ namespace SAFplusAmf
         /*
          * Lower rank is instantiated before higher; but rank 0 means 'don't care'.
          */
-        SAFplus::MgtProv<unsigned int> rank;
+        SAFplus::MgtProv<::uint32_t> rank;
 
         /*
          * TODO
@@ -88,7 +89,7 @@ namespace SAFplusAmf
         /*
          * Once this Service Unit is instantiated, how long should I wait before assigning it?
          */
-        SAFplus::MgtProv<unsigned int> probationTime;
+        SAFplus::MgtProv<::uint32_t> probationTime;
         SAFplusAmf::NumActiveServiceInstances numActiveServiceInstances;
         SAFplusAmf::NumStandbyServiceInstances numStandbyServiceInstances;
         SAFplusAmf::RestartCount restartCount;
@@ -112,12 +113,12 @@ namespace SAFplusAmf
         /*
          * XPATH: /SAFplusAmf/ServiceUnit/rank
          */
-        unsigned int getRank();
+        ::uint32_t getRank();
 
         /*
          * XPATH: /SAFplusAmf/ServiceUnit/rank
          */
-        void setRank(unsigned int rankValue, SAFplus::Transaction &t=SAFplus::NO_TXN);
+        void setRank(::uint32_t rankValue, SAFplus::Transaction &t=SAFplus::NO_TXN);
 
         /*
          * XPATH: /SAFplusAmf/ServiceUnit/failover
@@ -242,12 +243,12 @@ namespace SAFplusAmf
         /*
          * XPATH: /SAFplusAmf/ServiceUnit/probationTime
          */
-        unsigned int getProbationTime();
+        ::uint32_t getProbationTime();
 
         /*
          * XPATH: /SAFplusAmf/ServiceUnit/probationTime
          */
-        void setProbationTime(unsigned int probationTimeValue, SAFplus::Transaction &t=SAFplus::NO_TXN);
+        void setProbationTime(::uint32_t probationTimeValue, SAFplus::Transaction &t=SAFplus::NO_TXN);
 
         /*
          * XPATH: /SAFplusAmf/ServiceUnit/numActiveServiceInstances

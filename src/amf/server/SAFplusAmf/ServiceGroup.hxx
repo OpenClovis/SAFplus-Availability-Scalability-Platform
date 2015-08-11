@@ -27,6 +27,7 @@
 #include "ServiceUnitRestart.hxx"
 #include <vector>
 #include "NumAssignedServiceUnits.hxx"
+#include <cstdint>
 #include "NumSpareServiceUnits.hxx"
 #include "NumAssignedServiceUnits.hxx"
 #include "EntityId.hxx"
@@ -65,27 +66,27 @@ namespace SAFplusAmf
         /*
          * 
          */
-        SAFplus::MgtProv<unsigned int> preferredNumActiveServiceUnits;
+        SAFplus::MgtProv<::uint32_t> preferredNumActiveServiceUnits;
 
         /*
          * 
          */
-        SAFplus::MgtProv<unsigned int> preferredNumStandbyServiceUnits;
+        SAFplus::MgtProv<::uint32_t> preferredNumStandbyServiceUnits;
 
         /*
          * An idle service unit is running but is not assigned active or standby.  This concept is functionally equivalent to the saAmfSGNumPrefInserviceSUs since Active+Standby+Idle = Inservice
          */
-        SAFplus::MgtProv<unsigned int> preferredNumIdleServiceUnits;
+        SAFplus::MgtProv<::uint32_t> preferredNumIdleServiceUnits;
 
         /*
          * The maximum number of active work assignments that can be placed on a single service unit (and therefore component/process) simultaneously.
          */
-        SAFplus::MgtProv<unsigned int> maxActiveWorkAssignments;
+        SAFplus::MgtProv<::uint32_t> maxActiveWorkAssignments;
 
         /*
          * The maximum number of standby work assignments that can be placed on a single service unit (and therefore component/process) simultaneously.
          */
-        SAFplus::MgtProv<unsigned int> maxStandbyWorkAssignments;
+        SAFplus::MgtProv<::uint32_t> maxStandbyWorkAssignments;
 
         /*
          * Service Units in this Service Group
@@ -152,52 +153,52 @@ namespace SAFplusAmf
         /*
          * XPATH: /SAFplusAmf/ServiceGroup/preferredNumActiveServiceUnits
          */
-        unsigned int getPreferredNumActiveServiceUnits();
+        ::uint32_t getPreferredNumActiveServiceUnits();
 
         /*
          * XPATH: /SAFplusAmf/ServiceGroup/preferredNumActiveServiceUnits
          */
-        void setPreferredNumActiveServiceUnits(unsigned int preferredNumActiveServiceUnitsValue, SAFplus::Transaction &t=SAFplus::NO_TXN);
+        void setPreferredNumActiveServiceUnits(::uint32_t preferredNumActiveServiceUnitsValue, SAFplus::Transaction &t=SAFplus::NO_TXN);
 
         /*
          * XPATH: /SAFplusAmf/ServiceGroup/preferredNumStandbyServiceUnits
          */
-        unsigned int getPreferredNumStandbyServiceUnits();
+        ::uint32_t getPreferredNumStandbyServiceUnits();
 
         /*
          * XPATH: /SAFplusAmf/ServiceGroup/preferredNumStandbyServiceUnits
          */
-        void setPreferredNumStandbyServiceUnits(unsigned int preferredNumStandbyServiceUnitsValue, SAFplus::Transaction &t=SAFplus::NO_TXN);
+        void setPreferredNumStandbyServiceUnits(::uint32_t preferredNumStandbyServiceUnitsValue, SAFplus::Transaction &t=SAFplus::NO_TXN);
 
         /*
          * XPATH: /SAFplusAmf/ServiceGroup/preferredNumIdleServiceUnits
          */
-        unsigned int getPreferredNumIdleServiceUnits();
+        ::uint32_t getPreferredNumIdleServiceUnits();
 
         /*
          * XPATH: /SAFplusAmf/ServiceGroup/preferredNumIdleServiceUnits
          */
-        void setPreferredNumIdleServiceUnits(unsigned int preferredNumIdleServiceUnitsValue, SAFplus::Transaction &t=SAFplus::NO_TXN);
+        void setPreferredNumIdleServiceUnits(::uint32_t preferredNumIdleServiceUnitsValue, SAFplus::Transaction &t=SAFplus::NO_TXN);
 
         /*
          * XPATH: /SAFplusAmf/ServiceGroup/maxActiveWorkAssignments
          */
-        unsigned int getMaxActiveWorkAssignments();
+        ::uint32_t getMaxActiveWorkAssignments();
 
         /*
          * XPATH: /SAFplusAmf/ServiceGroup/maxActiveWorkAssignments
          */
-        void setMaxActiveWorkAssignments(unsigned int maxActiveWorkAssignmentsValue, SAFplus::Transaction &t=SAFplus::NO_TXN);
+        void setMaxActiveWorkAssignments(::uint32_t maxActiveWorkAssignmentsValue, SAFplus::Transaction &t=SAFplus::NO_TXN);
 
         /*
          * XPATH: /SAFplusAmf/ServiceGroup/maxStandbyWorkAssignments
          */
-        unsigned int getMaxStandbyWorkAssignments();
+        ::uint32_t getMaxStandbyWorkAssignments();
 
         /*
          * XPATH: /SAFplusAmf/ServiceGroup/maxStandbyWorkAssignments
          */
-        void setMaxStandbyWorkAssignments(unsigned int maxStandbyWorkAssignmentsValue, SAFplus::Transaction &t=SAFplus::NO_TXN);
+        void setMaxStandbyWorkAssignments(::uint32_t maxStandbyWorkAssignmentsValue, SAFplus::Transaction &t=SAFplus::NO_TXN);
 
         /*
          * XPATH: /SAFplusAmf/ServiceGroup/serviceUnits

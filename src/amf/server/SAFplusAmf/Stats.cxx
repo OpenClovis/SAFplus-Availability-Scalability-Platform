@@ -6,12 +6,13 @@
 #include "SAFplusAmfCommon.hxx"
 
 #include "Load.hxx"
+#include "Load.hxx"
+#include "clTransaction.hxx"
+#include "clMgtProv.hxx"
 #include <vector>
 #include "MgtFactory.hxx"
 #include "clMgtContainer.hxx"
-#include "clTransaction.hxx"
-#include "clMgtProv.hxx"
-#include "Load.hxx"
+#include <cstdint>
 #include "Stats.hxx"
 
 
@@ -39,7 +40,7 @@ namespace SAFplusAmf
     /*
      * XPATH: /SAFplusAmf/Node/stats/upTime
      */
-    unsigned long int Stats::getUpTime()
+    ::uint64_t Stats::getUpTime()
     {
         return this->upTime.value;
     };
@@ -47,7 +48,7 @@ namespace SAFplusAmf
     /*
      * XPATH: /SAFplusAmf/Node/stats/upTime
      */
-    void Stats::setUpTime(unsigned long int upTimeValue, SAFplus::Transaction &txn)
+    void Stats::setUpTime(::uint64_t upTimeValue, SAFplus::Transaction &txn)
     {
         this->upTime.set(upTimeValue,txn);
     };
@@ -55,7 +56,7 @@ namespace SAFplusAmf
     /*
      * XPATH: /SAFplusAmf/Node/stats/bootTime
      */
-    unsigned long int Stats::getBootTime()
+    ::uint64_t Stats::getBootTime()
     {
         return this->bootTime.value;
     };
@@ -63,7 +64,7 @@ namespace SAFplusAmf
     /*
      * XPATH: /SAFplusAmf/Node/stats/bootTime
      */
-    void Stats::setBootTime(unsigned long int bootTimeValue, SAFplus::Transaction &txn)
+    void Stats::setBootTime(::uint64_t bootTimeValue, SAFplus::Transaction &txn)
     {
         this->bootTime.set(bootTimeValue,txn);
     };

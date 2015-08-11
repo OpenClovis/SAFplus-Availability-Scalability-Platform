@@ -11,18 +11,19 @@
 
 #include <iostream>
 #include "clTransaction.hxx"
+#include <cstdint>
 
 namespace ietfYangTypes
   {
 
     class Timestamp {
     public:
-        unsigned int value;
+        ::uint32_t value;
 
     public:
         Timestamp();
-        unsigned int getValue();
-        void setValue(unsigned int value, SAFplus::Transaction &t=SAFplus::NO_TXN);
+        ::uint32_t getValue();
+        void setValue(::uint32_t value, SAFplus::Transaction &t=SAFplus::NO_TXN);
         ietfYangTypes::Timestamp& operator=(const ietfYangTypes::Timestamp &timestamp);
         friend std::ostream& operator<<(std::ostream &os, const ietfYangTypes::Timestamp &timestamp);
         friend std::istream& operator>>(std::istream &is, ietfYangTypes::Timestamp &timestamp);

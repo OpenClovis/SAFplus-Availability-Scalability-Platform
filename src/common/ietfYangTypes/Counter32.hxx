@@ -11,18 +11,19 @@
 
 #include <iostream>
 #include "clTransaction.hxx"
+#include <cstdint>
 
 namespace ietfYangTypes
   {
 
     class Counter32 {
     public:
-        unsigned int value;
+        ::uint32_t value;
 
     public:
         Counter32();
-        unsigned int getValue();
-        void setValue(unsigned int value, SAFplus::Transaction &t=SAFplus::NO_TXN);
+        ::uint32_t getValue();
+        void setValue(::uint32_t value, SAFplus::Transaction &t=SAFplus::NO_TXN);
         ietfYangTypes::Counter32& operator=(const ietfYangTypes::Counter32 &counter32);
         friend std::ostream& operator<<(std::ostream &os, const ietfYangTypes::Counter32 &counter32);
         friend std::istream& operator>>(std::istream &is, ietfYangTypes::Counter32 &counter32);

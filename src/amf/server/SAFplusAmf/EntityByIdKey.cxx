@@ -13,7 +13,7 @@ namespace SAFplusAmf
   {
   }
 
-  EntityByIdKey::EntityByIdKey(unsigned short int idValue) 
+  EntityByIdKey::EntityByIdKey(::uint16_t idValue) 
   {
     id = idValue;
   }

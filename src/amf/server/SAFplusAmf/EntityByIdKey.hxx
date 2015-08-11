@@ -11,13 +11,13 @@ namespace SAFplusAmf
   class EntityByIdKey {
 
     public:
-      unsigned short int id;
+      ::uint16_t id;
 
       /* default constructor/destructor */
       EntityByIdKey();
       ~EntityByIdKey();
 
-      EntityByIdKey(unsigned short int idValue);
+      EntityByIdKey(::uint16_t idValue);
 
       /* building an instance from string list */
       void build(std::map<std::string,std::string> &keyList);

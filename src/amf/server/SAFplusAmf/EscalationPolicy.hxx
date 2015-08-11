@@ -9,10 +9,11 @@
 #define ESCALATIONPOLICY_HXX_
 #include "SAFplusAmfCommon.hxx"
 
-#include <vector>
 #include "clTransaction.hxx"
-#include "clMgtContainer.hxx"
 #include "clMgtProv.hxx"
+#include <vector>
+#include "clMgtContainer.hxx"
+#include <cstdint>
 
 namespace SAFplusAmf
   {
@@ -23,7 +24,7 @@ namespace SAFplusAmf
         /*
          * The maximum number of events that can occur within that time period before escalation occurs.  A value of 0 will escalate the event right away.
          */
-        SAFplus::MgtProv<unsigned long int> maximum;
+        SAFplus::MgtProv<::uint64_t> maximum;
 
         /*
          * The time period (in milliseconds) involved.
@@ -37,12 +38,12 @@ namespace SAFplusAmf
         /*
          * XPATH: /SAFplusAmf/EscalationPolicy/maximum
          */
-        unsigned long int getMaximum();
+        ::uint64_t getMaximum();
 
         /*
          * XPATH: /SAFplusAmf/EscalationPolicy/maximum
          */
-        void setMaximum(unsigned long int maximumValue, SAFplus::Transaction &txn=SAFplus::NO_TXN);
+        void setMaximum(::uint64_t maximumValue, SAFplus::Transaction &txn=SAFplus::NO_TXN);
 
         /*
          * XPATH: /SAFplusAmf/EscalationPolicy/duration

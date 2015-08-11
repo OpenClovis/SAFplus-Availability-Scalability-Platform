@@ -10,12 +10,13 @@
 #include "SAFplusAmfCommon.hxx"
 
 #include "Load.hxx"
+#include "Load.hxx"
+#include "clTransaction.hxx"
+#include "clMgtProv.hxx"
 #include <vector>
 #include "MgtFactory.hxx"
 #include "clMgtContainer.hxx"
-#include "clTransaction.hxx"
-#include "clMgtProv.hxx"
-#include "Load.hxx"
+#include <cstdint>
 
 namespace SAFplusAmf
   {
@@ -30,12 +31,12 @@ namespace SAFplusAmf
         /*
          * Number of seconds this node has been running
          */
-        SAFplus::MgtProv<unsigned long int> upTime;
+        SAFplus::MgtProv<::uint64_t> upTime;
 
         /*
          * Date (in seconds since the epoch) this node booted
          */
-        SAFplus::MgtProv<unsigned long int> bootTime;
+        SAFplus::MgtProv<::uint64_t> bootTime;
         SAFplusAmf::Load load;
 
     public:
@@ -45,22 +46,22 @@ namespace SAFplusAmf
         /*
          * XPATH: /SAFplusAmf/Node/stats/upTime
          */
-        unsigned long int getUpTime();
+        ::uint64_t getUpTime();
 
         /*
          * XPATH: /SAFplusAmf/Node/stats/upTime
          */
-        void setUpTime(unsigned long int upTimeValue, SAFplus::Transaction &txn=SAFplus::NO_TXN);
+        void setUpTime(::uint64_t upTimeValue, SAFplus::Transaction &txn=SAFplus::NO_TXN);
 
         /*
          * XPATH: /SAFplusAmf/Node/stats/bootTime
          */
-        unsigned long int getBootTime();
+        ::uint64_t getBootTime();
 
         /*
          * XPATH: /SAFplusAmf/Node/stats/bootTime
          */
-        void setBootTime(unsigned long int bootTimeValue, SAFplus::Transaction &txn=SAFplus::NO_TXN);
+        void setBootTime(::uint64_t bootTimeValue, SAFplus::Transaction &txn=SAFplus::NO_TXN);
 
         /*
          * XPATH: /SAFplusAmf/Node/stats/load

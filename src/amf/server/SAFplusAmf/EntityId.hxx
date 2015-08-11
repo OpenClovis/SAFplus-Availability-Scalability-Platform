@@ -14,6 +14,7 @@
 #include "clMgtProv.hxx"
 #include <vector>
 #include "clMgtContainer.hxx"
+#include <cstdint>
 
 namespace SAFplusAmf
   {
@@ -29,7 +30,7 @@ namespace SAFplusAmf
         /*
          * Each SAFplus AMF entity gets a unique numerical identifier
          */
-        SAFplus::MgtProv<unsigned short int> id;
+        SAFplus::MgtProv<::uint16_t> id;
 
     public:
         EntityId();
@@ -48,12 +49,12 @@ namespace SAFplusAmf
         /*
          * XPATH: /SAFplusAmf/EntityId/id
          */
-        unsigned short int getId();
+        ::uint16_t getId();
 
         /*
          * XPATH: /SAFplusAmf/EntityId/id
          */
-        void setId(unsigned short int idValue, SAFplus::Transaction &txn=SAFplus::NO_TXN);
+        void setId(::uint16_t idValue, SAFplus::Transaction &txn=SAFplus::NO_TXN);
         ~EntityId();
 
     };

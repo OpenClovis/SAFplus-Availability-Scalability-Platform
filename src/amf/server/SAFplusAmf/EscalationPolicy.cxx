@@ -5,10 +5,11 @@
  */ 
 #include "SAFplusAmfCommon.hxx"
 
-#include <vector>
 #include "clTransaction.hxx"
-#include "clMgtContainer.hxx"
 #include "clMgtProv.hxx"
+#include <vector>
+#include "clMgtContainer.hxx"
+#include <cstdint>
 #include "EscalationPolicy.hxx"
 
 
@@ -30,7 +31,7 @@ namespace SAFplusAmf
     /*
      * XPATH: /SAFplusAmf/EscalationPolicy/maximum
      */
-    unsigned long int EscalationPolicy::getMaximum()
+    ::uint64_t EscalationPolicy::getMaximum()
     {
         return this->maximum.value;
     };
@@ -38,7 +39,7 @@ namespace SAFplusAmf
     /*
      * XPATH: /SAFplusAmf/EscalationPolicy/maximum
      */
-    void EscalationPolicy::setMaximum(unsigned long int maximumValue, SAFplus::Transaction &txn)
+    void EscalationPolicy::setMaximum(::uint64_t maximumValue, SAFplus::Transaction &txn)
     {
         this->maximum.set(maximumValue,txn);
     };

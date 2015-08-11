@@ -19,6 +19,7 @@
 #include "clMgtProv.hxx"
 #include "clMgtIdentifierList.hxx"
 #include <vector>
+#include <cstdint>
 #include "EntityId.hxx"
 #include "NumStandbyAssignments.hxx"
 #include "NumStandbyAssignments.hxx"
@@ -142,7 +143,7 @@ namespace SAFplusAmf
     /*
      * XPATH: /SAFplusAmf/ServiceInstance/preferredActiveAssignments
      */
-    unsigned int ServiceInstance::getPreferredActiveAssignments()
+    ::uint32_t ServiceInstance::getPreferredActiveAssignments()
     {
         return this->preferredActiveAssignments.value;
     };
@@ -150,12 +151,12 @@ namespace SAFplusAmf
     /*
      * XPATH: /SAFplusAmf/ServiceInstance/preferredActiveAssignments
      */
-    void ServiceInstance::setPreferredActiveAssignments(unsigned int preferredActiveAssignmentsValue, SAFplus::Transaction &t)
+    void ServiceInstance::setPreferredActiveAssignments(::uint32_t preferredActiveAssignmentsValue, SAFplus::Transaction &t)
     {
         if(&t == &SAFplus::NO_TXN) this->preferredActiveAssignments.value = preferredActiveAssignmentsValue;
         else
         {
-            SAFplus::SimpleTxnOperation<unsigned int> *opt = new SAFplus::SimpleTxnOperation<unsigned int>(&(preferredActiveAssignments.value),preferredActiveAssignmentsValue);
+            SAFplus::SimpleTxnOperation<::uint32_t> *opt = new SAFplus::SimpleTxnOperation<::uint32_t>(&(preferredActiveAssignments.value),preferredActiveAssignmentsValue);
             t.addOperation(opt);
         }
     };
@@ -163,7 +164,7 @@ namespace SAFplusAmf
     /*
      * XPATH: /SAFplusAmf/ServiceInstance/preferredStandbyAssignments
      */
-    unsigned int ServiceInstance::getPreferredStandbyAssignments()
+    ::uint32_t ServiceInstance::getPreferredStandbyAssignments()
     {
         return this->preferredStandbyAssignments.value;
     };
@@ -171,12 +172,12 @@ namespace SAFplusAmf
     /*
      * XPATH: /SAFplusAmf/ServiceInstance/preferredStandbyAssignments
      */
-    void ServiceInstance::setPreferredStandbyAssignments(unsigned int preferredStandbyAssignmentsValue, SAFplus::Transaction &t)
+    void ServiceInstance::setPreferredStandbyAssignments(::uint32_t preferredStandbyAssignmentsValue, SAFplus::Transaction &t)
     {
         if(&t == &SAFplus::NO_TXN) this->preferredStandbyAssignments.value = preferredStandbyAssignmentsValue;
         else
         {
-            SAFplus::SimpleTxnOperation<unsigned int> *opt = new SAFplus::SimpleTxnOperation<unsigned int>(&(preferredStandbyAssignments.value),preferredStandbyAssignmentsValue);
+            SAFplus::SimpleTxnOperation<::uint32_t> *opt = new SAFplus::SimpleTxnOperation<::uint32_t>(&(preferredStandbyAssignments.value),preferredStandbyAssignmentsValue);
             t.addOperation(opt);
         }
     };
@@ -184,7 +185,7 @@ namespace SAFplusAmf
     /*
      * XPATH: /SAFplusAmf/ServiceInstance/rank
      */
-    unsigned int ServiceInstance::getRank()
+    ::uint32_t ServiceInstance::getRank()
     {
         return this->rank.value;
     };
@@ -192,12 +193,12 @@ namespace SAFplusAmf
     /*
      * XPATH: /SAFplusAmf/ServiceInstance/rank
      */
-    void ServiceInstance::setRank(unsigned int rankValue, SAFplus::Transaction &t)
+    void ServiceInstance::setRank(::uint32_t rankValue, SAFplus::Transaction &t)
     {
         if(&t == &SAFplus::NO_TXN) this->rank.value = rankValue;
         else
         {
-            SAFplus::SimpleTxnOperation<unsigned int> *opt = new SAFplus::SimpleTxnOperation<unsigned int>(&(rank.value),rankValue);
+            SAFplus::SimpleTxnOperation<::uint32_t> *opt = new SAFplus::SimpleTxnOperation<::uint32_t>(&(rank.value),rankValue);
             t.addOperation(opt);
         }
     };

@@ -10,6 +10,7 @@
 #include "clMgtProv.hxx"
 #include <vector>
 #include "clMgtContainer.hxx"
+#include <cstdint>
 #include "Execution.hxx"
 
 
@@ -47,7 +48,7 @@ namespace SAFplusAmf
     /*
      * XPATH: /SAFplusAmf/execution/timeout
      */
-    unsigned long int Execution::getTimeout()
+    ::uint64_t Execution::getTimeout()
     {
         return this->timeout.value;
     };
@@ -55,7 +56,7 @@ namespace SAFplusAmf
     /*
      * XPATH: /SAFplusAmf/execution/timeout
      */
-    void Execution::setTimeout(unsigned long int timeoutValue, SAFplus::Transaction &txn)
+    void Execution::setTimeout(::uint64_t timeoutValue, SAFplus::Transaction &txn)
     {
         this->timeout.set(timeoutValue,txn);
     };

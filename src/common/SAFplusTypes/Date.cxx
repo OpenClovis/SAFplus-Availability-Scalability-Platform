@@ -7,6 +7,7 @@
 
 #include <iostream>
 #include "clTransaction.hxx"
+#include <cstdint>
 #include "Date.hxx"
 
 
@@ -17,17 +18,17 @@ namespace SAFplusTypes
     {
     };
 
-    unsigned long int Date::getValue()
+    ::uint64_t Date::getValue()
     {
         return this->value;
     };
 
-    void Date::setValue(unsigned long int value, SAFplus::Transaction &t)
+    void Date::setValue(::uint64_t value, SAFplus::Transaction &t)
     {
         if(&t == &SAFplus::NO_TXN) this->value = value;
         else
         {
-            SAFplus::SimpleTxnOperation<unsigned long int> *opt = new SAFplus::SimpleTxnOperation<unsigned long int>(&this->value,value);
+            SAFplus::SimpleTxnOperation<::uint64_t> *opt = new SAFplus::SimpleTxnOperation<::uint64_t>(&this->value,value);
             t.addOperation(opt);
         }
     };

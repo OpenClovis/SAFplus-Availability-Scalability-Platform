@@ -216,19 +216,23 @@ struct CompStatsRefresh
         }
     }
       
-            node->stats.load.user.op=HistoryOperation::AVE;
-            node->stats.load.lowPriorityUser.op=HistoryOperation::AVE;
-            node->stats.load.ioWait.op=HistoryOperation::AVE;
-            node->stats.load.sysTime.op=HistoryOperation::AVE;
-            node->stats.load.intTime.op=HistoryOperation::AVE;
-            node->stats.load.softIrqs.op=HistoryOperation::AVE;
-            node->stats.load.idle.op=HistoryOperation::AVE;
 
-            node->stats.load.contextSwitches.op=HistoryOperation::SUM;
-            node->stats.load.processCount.op=HistoryOperation::AVE;
-            node->stats.load.processStarts.op=HistoryOperation::SUM;
-            //node->stats.load.runnableProcesses.op=HistoryOperation::AVE;
-            //node->stats.load.blockedProcesses.op=HistoryOperation::AVE;
+    if (node)  // If node is NULL, my own node is not modelled
+      {
+        node->stats.load.user.op=HistoryOperation::AVE;
+        node->stats.load.lowPriorityUser.op=HistoryOperation::AVE;
+        node->stats.load.ioWait.op=HistoryOperation::AVE;
+        node->stats.load.sysTime.op=HistoryOperation::AVE;
+        node->stats.load.intTime.op=HistoryOperation::AVE;
+        node->stats.load.softIrqs.op=HistoryOperation::AVE;
+        node->stats.load.idle.op=HistoryOperation::AVE;
+
+        node->stats.load.contextSwitches.op=HistoryOperation::SUM;
+        node->stats.load.processCount.op=HistoryOperation::AVE;
+        node->stats.load.processStarts.op=HistoryOperation::SUM;
+        //node->stats.load.runnableProcesses.op=HistoryOperation::AVE;
+        //node->stats.load.blockedProcesses.op=HistoryOperation::AVE;
+      }
 
 
       NodeStatistics prior;
@@ -236,8 +240,7 @@ struct CompStatsRefresh
       while(!quitting)
         {
           float PollIntervalInSeconds = 10.0;
-          //sleep(10);
-          boost::this_thread::sleep(boost::posix_time::milliseconds(50));
+          boost::this_thread::sleep(boost::posix_time::milliseconds((int)PollIntervalInSeconds*1000));
           // logDebug("CMP","STT","Component Statistics Refresh");
           if (node)
             {

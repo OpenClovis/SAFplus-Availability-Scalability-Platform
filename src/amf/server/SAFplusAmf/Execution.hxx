@@ -14,6 +14,7 @@
 #include "clMgtProv.hxx"
 #include <vector>
 #include "clMgtContainer.hxx"
+#include <cstdint>
 
 namespace SAFplusAmf
   {
@@ -29,7 +30,7 @@ namespace SAFplusAmf
         /*
          * The maximum time this operation should take before the AMF receives a response or the command completes.  Specified in milliseconds.
          */
-        SAFplus::MgtProv<unsigned long int> timeout;
+        SAFplus::MgtProv<::uint64_t> timeout;
 
     public:
         Execution();
@@ -48,12 +49,12 @@ namespace SAFplusAmf
         /*
          * XPATH: /SAFplusAmf/execution/timeout
          */
-        unsigned long int getTimeout();
+        ::uint64_t getTimeout();
 
         /*
          * XPATH: /SAFplusAmf/execution/timeout
          */
-        void setTimeout(unsigned long int timeoutValue, SAFplus::Transaction &txn=SAFplus::NO_TXN);
+        void setTimeout(::uint64_t timeoutValue, SAFplus::Transaction &txn=SAFplus::NO_TXN);
         ~Execution();
 
     };

@@ -15,6 +15,7 @@
 #include <vector>
 #include "MgtFactory.hxx"
 #include "clMgtContainer.hxx"
+#include <cstdint>
 
 namespace SAFplusAmf
   {
@@ -25,24 +26,24 @@ namespace SAFplusAmf
         MGT_REGISTER(EntityById);
 
     public:
-        SAFplus::MgtProv<unsigned short int> id;
+        SAFplus::MgtProv<::uint16_t> id;
         SAFplus::MgtProv<std::string> entity;
 
     public:
         EntityById();
-        EntityById(unsigned short int idValue);
+        EntityById(::uint16_t idValue);
         std::vector<std::string> getKeys();
         std::vector<std::string>* getChildNames();
 
         /*
          * XPATH: /SAFplusAmf/EntityById/id
          */
-        unsigned short int getId();
+        ::uint16_t getId();
 
         /*
          * XPATH: /SAFplusAmf/EntityById/id
          */
-        void setId(unsigned short int idValue, SAFplus::Transaction &t=SAFplus::NO_TXN);
+        void setId(::uint16_t idValue, SAFplus::Transaction &t=SAFplus::NO_TXN);
 
         /*
          * XPATH: /SAFplusAmf/EntityById/entity
