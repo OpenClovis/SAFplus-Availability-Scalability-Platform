@@ -125,7 +125,7 @@ namespace SAFplus
         }
 
         faultCheckpoint.name = "safplusFault";
-        faultCheckpoint.init(FAULT_CKPT,Checkpoint::SHARED | Checkpoint::REPLICATED , 1024*1024, SAFplusI::CkptDefaultRows);
+        faultCheckpoint.init(FAULT_CKPT,Checkpoint::SHARED | Checkpoint::REPLICATED, SAFplusI::CkptRetentionDurationDefault, 1024*1024, SAFplusI::CkptDefaultRows);
 
         // TODO: I do not think you want to do this on the standby only.  If you are the Active fault server, you still want to populate your data
         // from the checkpoint.  Either the checkpoint will be empty in the case of an initial startup, or it will have good data

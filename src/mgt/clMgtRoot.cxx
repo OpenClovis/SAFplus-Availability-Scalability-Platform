@@ -68,7 +68,7 @@ namespace SAFplus
     mgtIocInstance->RegisterHandler(SAFplusI::CL_MGT_MSG_TYPE, &mgtMessageHandler, nullptr);
     // Init Mgt Checkpoint
     mgtCheckpoint.name = "safplusMgt";
-    mgtCheckpoint.init(MGT_CKPT,Checkpoint::SHARED | Checkpoint::REPLICATED , 1024*1024, SAFplusI::CkptDefaultRows);
+    mgtCheckpoint.init(MGT_CKPT,Checkpoint::SHARED | Checkpoint::REPLICATED, SAFplusI::CkptRetentionDurationDefault, 1024*1024, SAFplusI::CkptDefaultRows);
   }
 
   ClRcT MgtRoot::loadMgtModule(Handle handle, MgtModule *module, std::string moduleName)

@@ -42,13 +42,11 @@ namespace SAFplus
 
   void mgtAccessInitialize(void)
   {
-   if(!mgtCheckpoint)
-     {
-        mgtCheckpoint = new Checkpoint(MGT_CKPT, Checkpoint::SHARED | Checkpoint::REPLICATED ,
-              1024*1024,
-              SAFplusI::CkptDefaultRows);
-        mgtCheckpoint->name = "safplusMgt";
-     }
+    if (!mgtCheckpoint)
+    {
+      mgtCheckpoint = new Checkpoint(MGT_CKPT, Checkpoint::SHARED | Checkpoint::REPLICATED, SAFplusI::CkptRetentionDurationDefault, 1024 * 1024, SAFplusI::CkptDefaultRows);
+      mgtCheckpoint->name = "safplusMgt";
+    }
   }
 
 
