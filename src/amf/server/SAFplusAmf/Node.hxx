@@ -10,10 +10,12 @@
 #include "SAFplusAmfCommon.hxx"
 
 #include <vector>
+#include "Stats.hxx"
 #include <string>
 #include "clTransaction.hxx"
 #include "clMgtProv.hxx"
 #include "clMgtIdentifierList.hxx"
+#include "Stats.hxx"
 #include "clMgtList.hxx"
 #include "ServiceUnitFailureEscalationPolicy.hxx"
 #include "MgtFactory.hxx"
@@ -61,6 +63,7 @@ namespace SAFplusAmf
          * Service Units configured to be instantiated on this node.
          */
         SAFplus::MgtIdentifierList<SAFplusAmf::ServiceUnit*> serviceUnits;
+        SAFplusAmf::Stats stats;
         SAFplusAmf::ServiceUnitFailureEscalationPolicy serviceUnitFailureEscalationPolicy;
 
         /*
@@ -133,6 +136,16 @@ namespace SAFplusAmf
          * XPATH: /SAFplusAmf/Node/serviceUnits
          */
         void setServiceUnits(SAFplusAmf::ServiceUnit* serviceUnitsValue);
+
+        /*
+         * XPATH: /SAFplusAmf/Node/stats
+         */
+        SAFplusAmf::Stats* getStats();
+
+        /*
+         * XPATH: /SAFplusAmf/Node/stats
+         */
+        void addStats(SAFplusAmf::Stats *statsValue);
 
         /*
          * XPATH: /SAFplusAmf/Node/serviceUnitFailureEscalationPolicy

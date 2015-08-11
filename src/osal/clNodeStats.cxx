@@ -21,6 +21,7 @@
 #include "clLogApi.hxx"
 #include "clNodeStats.hxx"
 #include "clProcFileSystem.hxx"
+#include <boost/filesystem.hpp>
 
 using namespace SAFplusI;
 
@@ -29,6 +30,9 @@ namespace SAFplus
 
 NodeStatistics::NodeStatistics():loadAvg(0), sysUpTime(0),
                                  timeSpentInUserMode(0),
+                                 timeLowPriorityUserMode(0),
+                                 timeIdle(0),
+                                 timeTotal(0),
                                  timeIoWait(0),
                                  timeSpentInSystemMode(0),
                                  timeServicingInterrupts(0),
@@ -36,14 +40,41 @@ NodeStatistics::NodeStatistics():loadAvg(0), sysUpTime(0),
                                  numCtxtSwitches(0),
                                  bootTime(0),
                                  numProcesses(0),
+                                 cumulativeProcesses(0),
                                  numProcRunning(0),
                                  numProcBlocked(0) 
 {
+}
+
+
+int NodeStatistics::getProcessCount()
+  {
+    boost::filesystem::directory_iterator end;
+  int count=0;
+  for (boost::filesystem::directory_iterator it("/proc"); it!=end; it++)
+    {
+      boost::filesystem::path p = it->path();
+      std::string name = p.filename().string();
+    //int sz = name.length();
+    int onlyDigits = 1;
+    for (auto c: name)
+      {
+        if (!isdigit(c)) { onlyDigits=0; break; }
+      }
+    count += onlyDigits;
+
+    }
+  return count;
+  }
+
+void NodeStatistics::read()
+  {
+    numProcesses = getProcessCount();
     readLoadAvg();
     readNodeStats();
     readUpTime();
-    readDiskStats();
-}
+    // TODO: SEG faults readDiskStats();
+  }
 
 NodeStatistics::~NodeStatistics()
 {
@@ -54,10 +85,48 @@ NodeStatistics::~NodeStatistics()
     }
 }
 
-NodeStatistics & operator-(const NodeStatistics& b)
+  NodeStatistics NodeStatistics::operator-(const NodeStatistics& b)
 {
-    //TODO:implement this.
+  NodeStatistics ret;
+  ret.loadAvg = loadAvg - b.loadAvg;
+  ret.timeTotal = timeTotal - b.timeTotal;
+  ret.sysUpTime = sysUpTime - b.sysUpTime;
+  
+  ret.timeSpentInUserMode = timeSpentInUserMode - b.timeSpentInUserMode;
+  ret.timeLowPriorityUserMode = timeLowPriorityUserMode - b.timeLowPriorityUserMode;
+  ret.timeIdle = timeIdle - b.timeIdle;
+
+  ret.timeIoWait = timeIoWait - b.timeIoWait;
+  ret.timeSpentInSystemMode = timeSpentInSystemMode - b.timeSpentInSystemMode;
+  ret.timeServicingInterrupts = timeServicingInterrupts - b.timeServicingInterrupts;
+  ret.timeServicingSoftIrqs = timeServicingSoftIrqs - b.timeServicingSoftIrqs;
+
+  ret.numCtxtSwitches = numCtxtSwitches-b.numCtxtSwitches;
+  ret.bootTime = bootTime;  // Does not make sense to subtract a constant value
+  ret.cumulativeProcesses = cumulativeProcesses-b.cumulativeProcesses;  // Now cumulativeProcesses is the number of newly spawned processes
+  ret.numProcRunning = numProcRunning; // -b.numProcRunning;
+  ret.numProcBlocked = numProcBlocked; //-b.numProcBlocked;
+  return ret;
+  // TODO disk stat list
 }
+
+void NodeStatistics::percentify()
+  {  
+  timeSpentInUserMode = timeSpentInUserMode*1000/timeTotal;
+  timeLowPriorityUserMode = timeLowPriorityUserMode*1000/timeTotal;
+  
+  timeIoWait = timeIoWait*1000/timeTotal;
+  timeIdle   = timeIdle*1000/timeTotal;
+
+  timeSpentInSystemMode = timeSpentInSystemMode*1000/timeTotal;
+  timeServicingInterrupts = timeServicingInterrupts*1000/timeTotal;
+  timeServicingSoftIrqs = timeServicingSoftIrqs*1000/timeTotal;
+
+  int curProcs = numProcRunning + numProcBlocked;
+  numProcRunning = numProcRunning*1000/curProcs;
+  numProcBlocked = numProcBlocked*1000/curProcs;
+  
+  }
 
 void NodeStatistics::readLoadAvg()
 {
@@ -135,9 +204,6 @@ void NodeStatistics::scanNodeStats(std::string fBuf)
     const char *str;
     const char *subStr;
 
-    uint64_t timeNicedProcUserMode = 0;
-    uint64_t timeForIdletask = 0;
-
     str = fBuf.c_str();
 
     subStr = strstr(str, "cpu ");
@@ -145,9 +211,9 @@ void NodeStatistics::scanNodeStats(std::string fBuf)
     {
         if (sscanf(subStr, "cpu  %" PRIu64 " %" PRIu64 " %" PRIu64 " %" PRIu64 " %" PRIu64 " %" PRIu64 " %" PRIu64 " ", 
                    &timeSpentInUserMode,
-                   &timeNicedProcUserMode,
+                   &timeLowPriorityUserMode,
                    &timeSpentInSystemMode,
-                   &timeForIdletask,
+                   &timeIdle,
                    &timeIoWait,
                    &timeServicingInterrupts,
                    &timeServicingSoftIrqs) < 7)
@@ -155,6 +221,7 @@ void NodeStatistics::scanNodeStats(std::string fBuf)
             logDebug("STAT", "SCAN", "Unable to read Statistics");
             throw statAccessErrors("Unable to access Node Statistics");
         }
+        timeTotal =  timeSpentInUserMode + timeLowPriorityUserMode + timeSpentInSystemMode + timeIdle + timeIoWait + timeServicingInterrupts + timeServicingSoftIrqs;
     }
 
     subStr = strstr(subStr, "ctxt ");
@@ -181,7 +248,7 @@ void NodeStatistics::scanNodeStats(std::string fBuf)
     subStr = strstr(subStr, "processes ");
     if(subStr)
     {
-      if (sscanf(subStr, "processes %" PRIu64, &numProcesses) < 1)
+      if (sscanf(subStr, "processes %" PRIu64, &cumulativeProcesses) < 1)
         {
             logDebug("STAT", "SCAN", "Unable to read the number "
                      "of processes forked since boot");

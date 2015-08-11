@@ -83,6 +83,7 @@ class NodeStatistics
     void readNodeStats();
     void readUpTime();
     void readDiskStats();
+    int  getProcessCount();
 
     void scanProcLoadAvg(std::string fileBuf);
     void scanNodeStats(std::string fBuf);
@@ -90,50 +91,65 @@ class NodeStatistics
     void scanDiskStats(std::string fBuf);
 
     public:
+    void read();
 
-    //The avarage of CPU and IO utilization for last 1 minute.
+    //? The avarage of CPU and IO utilization for last 1 minute.
     double loadAvg;
 
-    // The uptime of the system in seconds.
+    //? The uptime of the system in seconds.
     double sysUpTime;
 
     // The list of disk I/O statistics for each disk device 
     DiskStatList diskStatList;
 
-    // Time spent in user mode
+    //? Total time: this is the sum of all the other time spent, provided as a convenience to do %age calculations
+    uint64_t timeTotal;
+
+    //? Time spent in user mode
     uint64_t timeSpentInUserMode;
 
-    // Time waiting for IO to complete.
+    //? Time spent in user mode within a low priority "niced" process 
+    uint64_t timeLowPriorityUserMode;
+
+    //? Time waiting for IO to complete.
     uint64_t timeIoWait; 
 
-    // Time spent in System Mode
+    //? Time spent in System Mode
     uint64_t timeSpentInSystemMode;
    
-    // Time spent for servicing Interrupts
+    //? Time spent for servicing Interrupts
     uint64_t timeServicingInterrupts;
 
-    // Time spent for servicing softirqs. 
+    //? Time spent for servicing softirqs. 
     uint64_t timeServicingSoftIrqs;
 
-    // The number of context switches that system underwent
+    //? Time spent for servicing softirqs. 
+    uint64_t timeIdle = 0;
+
+    //? The number of context switches that system underwent
     uint64_t numCtxtSwitches;
 
-    // The time at which the system booted up, in seconds 
-    // since the Epoch.
+    //? The time at which the system booted up, in seconds since the Epoch.
     uint64_t bootTime;
 
-    // Total number of processes forked since boot.
+    //? Total number of processes forked since boot.
+    uint64_t cumulativeProcesses;
+
+    //? Total number of processes running now.
     uint64_t numProcesses;
     
-    // The number of processes currently in runnable state.
+    //? The number of processes currently in runnable state.
     uint64_t numProcRunning;
 
-    // Number of processes blocked waiting for I/O to complete
+    //? Number of processes blocked waiting for I/O to complete
     uint64_t numProcBlocked;
 
     NodeStatistics();
     ~NodeStatistics();
-    NodeStatistics & operator-(const NodeStatistics& b); 
+    NodeStatistics operator-(const NodeStatistics& b); 
+
+    //? Convert the values into percentages * 10 (so 543 = 54.3%) for numbers where doing so makes sense
+    void percentify(void);
 };
 
 }; /*namespace SAFplus*/

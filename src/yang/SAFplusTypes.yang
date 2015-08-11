@@ -184,12 +184,12 @@ module SAFplusTypes
       }
     }
 
-  grouping processStats
+  grouping ProcessStats
   {
     description "Statistics on processes running in the system";
     container failures       
       {
-      SAFplusTypes:c-existing "SAFplus::MgtHistoryStat<float>"; 
+      SAFplusTypes:c-existing "SAFplus::MgtHistoryStat<int>"; 
       uses intStatistic; 
       }
     container cpuUtilization 
@@ -218,7 +218,7 @@ module SAFplusTypes
       uses intStatistic; 
       }
 
-    leaf ProcessState
+    leaf processState
       {  
       type enumeration
 	{

@@ -79,7 +79,13 @@ namespace SAFplus
 
     virtual void toString(std::stringstream& xmlString, int depth=SAFplusI::MgtToStringRecursionDepth,SerializationOptions opts=SerializeNoOptions)
     {
-      xmlString << "<" << tag << ">";
+      xmlString << "<" << tag;
+      if (opts & MgtObject::SerializeNameAttribute)
+        xmlString << " name=" << "\"" << getFullXpath(false) << "\"";
+      if (opts & MgtObject::SerializePathAttribute)
+        xmlString << " path=" << "\"" << getFullXpath() << "\"";
+
+      xmlString << ">";
       auto i = value.begin();
       if (i!=value.end())
         {

@@ -22,14 +22,12 @@ namespace SAFplusAmf
         MGT_REGISTER(ProcStats);
 
     public:
-#if 0
-        SAFplus::MgtHistoryStat<float> failures;
+        SAFplus::MgtHistoryStat<int> failures;
         SAFplus::MgtHistoryStat<float> cpuUtilization;
         SAFplus::MgtHistoryStat<float> memUtilization;
         SAFplus::MgtHistoryStat<int> pageFaults;
         SAFplus::MgtHistoryStat<int> numThreads;
         SAFplus::MgtHistoryStat<int> residentMem;
-#endif
 
     public:
         ProcStats();

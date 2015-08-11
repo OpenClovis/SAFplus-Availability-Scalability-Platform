@@ -30,7 +30,7 @@ namespace SAFplusAmf
 
     std::vector<std::string>* ProcStats::getChildNames()
     {
-        std::string childNames[] = { "failures", "cpuUtilization", "memUtilization", "pageFaults", "numThreads", "residentMem", "ProcessState" };
+        std::string childNames[] = { "failures", "cpuUtilization", "memUtilization", "pageFaults", "numThreads", "residentMem", "processState" };
         return new std::vector<std::string> (childNames, childNames + sizeof(childNames) / sizeof(childNames[0]));
     };
 

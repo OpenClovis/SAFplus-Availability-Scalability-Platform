@@ -1,3 +1,4 @@
+#include <chrono>
 #include <boost/thread.hpp>
 #include <boost/date_time/posix_time/posix_time.hpp>
 #include <boost/asio/ip/address.hpp>
@@ -25,6 +26,7 @@
 #include <clFaultServerIpi.hxx>
 #include <clMsgPortsAndTypes.hxx>
 #include <clProcessStats.hxx>
+#include <clNodeStats.hxx>
 
 #include <clAmfPolicyPlugin.hxx>
 #include <SAFplusAmf.hxx>
@@ -200,11 +202,64 @@ struct CompStatsRefresh
   {
   void operator()()
     {
+
+    Node* node=NULL;
+    MgtObject::Iterator itnode;
+    MgtObject::Iterator endnode = cfg.nodeList.end();
+    for (itnode = cfg.nodeList.begin(); itnode != endnode; itnode++)
+    {
+      Node* tmp = dynamic_cast<Node*>(itnode->second);
+      if (tmp->name == SAFplus::ASP_NODENAME)
+        {
+          node = tmp;
+          break;
+        }
+    }
+      
+            node->stats.load.user.op=HistoryOperation::AVE;
+            node->stats.load.lowPriorityUser.op=HistoryOperation::AVE;
+            node->stats.load.ioWait.op=HistoryOperation::AVE;
+            node->stats.load.sysTime.op=HistoryOperation::AVE;
+            node->stats.load.intTime.op=HistoryOperation::AVE;
+            node->stats.load.softIrqs.op=HistoryOperation::AVE;
+            node->stats.load.idle.op=HistoryOperation::AVE;
+
+            node->stats.load.contextSwitches.op=HistoryOperation::SUM;
+            node->stats.load.processCount.op=HistoryOperation::AVE;
+            node->stats.load.processStarts.op=HistoryOperation::SUM;
+            //node->stats.load.runnableProcesses.op=HistoryOperation::AVE;
+            //node->stats.load.blockedProcesses.op=HistoryOperation::AVE;
+
+
+      NodeStatistics prior;
+      prior.read();
       while(!quitting)
         {
+          float PollIntervalInSeconds = 10.0;
           //sleep(10);
           boost::this_thread::sleep(boost::posix_time::milliseconds(50));
           // logDebug("CMP","STT","Component Statistics Refresh");
+          if (node)
+            {
+            NodeStatistics now;
+            now.read();
+            NodeStatistics difference = now-prior;
+            difference.percentify();
+            node->stats.upTime = now.sysUpTime;
+            node->stats.bootTime = now.bootTime;
+            node->stats.load.user.setValue((float)difference.timeSpentInUserMode/10.0);
+            node->stats.load.lowPriorityUser.setValue((float)difference.timeLowPriorityUserMode/10.0);
+            node->stats.load.ioWait.setValue((float)difference.timeIoWait/10.0);
+            node->stats.load.sysTime.setValue((float)difference.timeSpentInSystemMode/10.0);
+            node->stats.load.intTime.setValue((float)difference.timeServicingInterrupts/10.0);
+            node->stats.load.softIrqs.setValue((float)difference.timeServicingSoftIrqs/10.0);
+            node->stats.load.idle.setValue((float)difference.timeIdle/10.0);
+
+            node->stats.load.contextSwitches.setValue((float)difference.numCtxtSwitches);
+            node->stats.load.processCount.setValue(now.numProcesses);
+            node->stats.load.processStarts.setValue((float)difference.cumulativeProcesses);
+            prior = now;
+            }
 
           MgtObject::Iterator it;
           for (it = cfg.componentList.begin();it != cfg.componentList.end(); it++)
@@ -572,6 +627,10 @@ static ClRcT refreshComponentStats(void *unused)
 
 int main(int argc, char* argv[])
   {
+
+    //uint64_t t1 = std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::system_clock::now().time_since_epoch()).count();
+    //uint64_t t2 = time(NULL);
+
   Mutex m;
   bool firstTime=true;
   logEchoToFd = 1;  // echo logs to stdout for debugging

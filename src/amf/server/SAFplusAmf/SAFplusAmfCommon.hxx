@@ -2,6 +2,7 @@
 #include <string>
 #include <clMgtObject.hxx>
 #include <clMgtList.hxx>
+#include <clMgtHistoryStat.hxx>
 
 namespace SAFplusAmf
   {

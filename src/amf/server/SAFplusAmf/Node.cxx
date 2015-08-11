@@ -6,10 +6,12 @@
 #include "SAFplusAmfCommon.hxx"
 
 #include <vector>
+#include "Stats.hxx"
 #include <string>
 #include "clTransaction.hxx"
 #include "clMgtProv.hxx"
 #include "clMgtIdentifierList.hxx"
+#include "Stats.hxx"
 #include "clMgtList.hxx"
 #include "ServiceUnitFailureEscalationPolicy.hxx"
 #include "MgtFactory.hxx"
@@ -35,6 +37,7 @@ namespace SAFplusAmf
         this->addChildObject(&failFastOnInstantiationFailure, "failFastOnInstantiationFailure");
         this->addChildObject(&failFastOnCleanupFailure, "failFastOnCleanupFailure");
         this->addChildObject(&serviceUnits, "serviceUnits");
+        this->addChildObject(&stats, "stats");
         this->addChildObject(&serviceUnitFailureEscalationPolicy, "serviceUnitFailureEscalationPolicy");
         this->addChildObject(&capacityList, "capacity");
         capacityList.childXpath="/SAFplusAmf/Node/capacity";
@@ -52,6 +55,7 @@ namespace SAFplusAmf
         this->addChildObject(&failFastOnInstantiationFailure, "failFastOnInstantiationFailure");
         this->addChildObject(&failFastOnCleanupFailure, "failFastOnCleanupFailure");
         this->addChildObject(&serviceUnits, "serviceUnits");
+        this->addChildObject(&stats, "stats");
         this->addChildObject(&serviceUnitFailureEscalationPolicy, "serviceUnitFailureEscalationPolicy");
         this->addChildObject(&capacityList, "capacity");
         capacityList.childXpath="/SAFplusAmf/Node/capacity";
@@ -67,7 +71,7 @@ namespace SAFplusAmf
 
     std::vector<std::string>* Node::getChildNames()
     {
-        std::string childNames[] = { "name", "id", "adminState", "operState", "capacity", "serviceUnitFailureEscalationPolicy", "autoRepair", "failFastOnInstantiationFailure", "failFastOnCleanupFailure", "serviceUnits" };
+        std::string childNames[] = { "name", "id", "stats", "adminState", "operState", "capacity", "serviceUnitFailureEscalationPolicy", "autoRepair", "failFastOnInstantiationFailure", "failFastOnCleanupFailure", "serviceUnits" };
         return new std::vector<std::string> (childNames, childNames + sizeof(childNames) / sizeof(childNames[0]));
     };
 
@@ -190,6 +194,22 @@ namespace SAFplusAmf
     void Node::setServiceUnits(SAFplusAmf::ServiceUnit* serviceUnitsValue)
     {
         this->serviceUnits.value.push_back(serviceUnitsValue);
+    };
+
+    /*
+     * XPATH: /SAFplusAmf/Node/stats
+     */
+    SAFplusAmf::Stats* Node::getStats()
+    {
+        return dynamic_cast<Stats*>(this->getChildObject("stats"));
+    };
+
+    /*
+     * XPATH: /SAFplusAmf/Node/stats
+     */
+    void Node::addStats(SAFplusAmf::Stats *statsValue)
+    {
+        this->addChildObject(statsValue, "stats");
     };
 
     /*

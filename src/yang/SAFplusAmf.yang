@@ -6,7 +6,7 @@ module SAFplusAmf
   namespace "http://www.openclovis.org/ns/amf";
   prefix "SAFplusAmf";
   import ietf-yang-types { prefix "iyt"; }
-  import SAFplusTypes { prefix "safplus"; }
+  import SAFplusTypes { prefix "SAFplusTypes"; }
   import ENTITY-STATE-TC-MIB { prefix "entity-state"; }
 
   organization
@@ -47,14 +47,14 @@ module SAFplusAmf
       {
 	type uint64;
 	description "The maximum number of events that can occur within that time period before escalation occurs.  A value of 0 will escalate the event right away.";
-	safplus:ui-prompt "Number of events: ";
+	SAFplusTypes:ui-prompt "Number of events: ";
         default 0;
       }
       leaf duration
       {
-	type safplus:SaTimeT;
+	type SAFplusTypes:SaTimeT;
 	description "The time period (in milliseconds) involved.";
-	safplus:ui-prompt "within time: ";
+	SAFplusTypes:ui-prompt "within time: ";
         default 0;
       }
     }
@@ -149,19 +149,19 @@ point.  The operational, administrative, and presence states of a service unit, 
       {
         enum off
           {
-	    safplus:alias "lockedInstantiation";
+	    SAFplusTypes:alias "lockedInstantiation";
             description "SA-Forum 'lockedInstantiation': the administrator has prevented the service unit from being instantiated by the Availability Management Framework.";
 	    value 0; 
 	  }
         enum idle 
 	{ 
-	  safplus:alias "locked";
+	  SAFplusTypes:alias "locked";
 	  value 1;
 	  description "SA-Forum 'locked': the administrator has prevented the service unit from taking service instance assignments.";
 	}
         enum on
 	{ 
-	  safplus:alias "unlocked";
+	  SAFplusTypes:alias "unlocked";
 	  value 2;
 	  description "SA-Forum 'unlocked': the service unit has not been directly prohibited from taking service instance assignments by the administrator.";
 	}
@@ -176,14 +176,14 @@ point.  The operational, administrative, and presence states of a service unit, 
       {
 	type string;
 	description "Specify both name of the binary here and any args -- as if you were executing on the bash shell";
-	safplus:ui-prompt "Command: ";
+	SAFplusTypes:ui-prompt "Command: ";
 	default "";
       }
       leaf timeout
       {
 	type uint64;
 	description "The maximum time this operation should take before the AMF receives a response or the command completes.  Specified in milliseconds.";
-	safplus:ui-prompt "Maximum Time: ";
+	SAFplusTypes:ui-prompt "Maximum Time: ";
 	default 120000;
       }
     }
@@ -194,18 +194,18 @@ point.  The operational, administrative, and presence states of a service unit, 
       key "name";
       uses EntityId;
       description "";
-      safplus:ui-entity "node.svg"; 
+      SAFplusTypes:ui-entity "node.svg"; 
       // SA-Forum defined fields
       leaf adminState
       {
         type AdministrativeState;
-	safplus:ui-prompt "Initial state: ";
+	SAFplusTypes:ui-prompt "Initial state: ";
 	description "Does the operator want this entity to be off, idle, or in service?";
       }
       leaf startupAssignmentDelay
       {
-	safplus:alias saAmfClusterStartupTimeout; 
-	type safplus:SaTimeT;
+	SAFplusTypes:alias saAmfClusterStartupTimeout; 
+	type SAFplusTypes:SaTimeT;
 	description "When the cluster is first started, no work will be assigned until either ALL configured service units are instantiated or this time duration elapses.  By giving every node a chance to come up fully, this ensures that initial work assignments are as close as possible to preferredwork assignments.";
       }
     }
@@ -216,13 +216,105 @@ point.  The operational, administrative, and presence states of a service unit, 
       description "Represents a node.  A node is generally a physical instance of running software, such as a rack server or a blade in the chassis.  But more formally, it is a separately running instance of SAFplus which communicates to other instances via messaging.";
       key "name";
       uses EntityId;
-      safplus:ui-entity "node.svg";
-      safplus:ui-button "node_button.svg";
+      SAFplusTypes:ui-entity "node.svg";
+      SAFplusTypes:ui-button "node_button.svg";
+
+      container stats
+        {
+        description "Statistics on this node";
+        container load
+          {
+          container user       
+            {
+            description "Percentage of CPU time spent in user mode";
+            SAFplusTypes:c-existing "SAFplus::MgtHistoryStat<float>"; 
+            uses SAFplusTypes:decStatistic; 
+            config false;
+            }
+          container lowPriorityUser      
+            {
+            description "Percentage of CPU time spent in low priority (niced) user mode";
+            SAFplusTypes:c-existing "SAFplus::MgtHistoryStat<float>"; 
+            uses SAFplusTypes:decStatistic; 
+            config false;
+            }
+          container ioWait       
+            {
+            description "Percentage of CPU time spent waiting for IO";
+            SAFplusTypes:c-existing "SAFplus::MgtHistoryStat<float>"; 
+            uses SAFplusTypes:decStatistic; 
+            config false;
+            }
+          container sysTime      
+            {
+            description "Percentage of CPU time spent in system mode";
+            SAFplusTypes:c-existing "SAFplus::MgtHistoryStat<float>"; 
+            uses SAFplusTypes:decStatistic; 
+            config false;
+            }
+          container intTime     
+            {
+            description "Percentage of CPU time spent servicing interrupts";
+            SAFplusTypes:c-existing "SAFplus::MgtHistoryStat<float>"; 
+            uses SAFplusTypes:decStatistic; 
+            config false;
+            }
+          container softIrqs     
+            {
+            description "Percentage of CPU time spent servicing soft interrupt requests";
+            SAFplusTypes:c-existing "SAFplus::MgtHistoryStat<float>"; 
+            uses SAFplusTypes:decStatistic; 
+            config false;
+            }
+          container idle     
+            {
+            description "Percentage of idle CPU time";
+            SAFplusTypes:c-existing "SAFplus::MgtHistoryStat<float>"; 
+            uses SAFplusTypes:decStatistic; 
+            config false;
+            }
+          container contextSwitches     
+            {
+            description "number of context switches";
+            SAFplusTypes:c-existing "SAFplus::MgtHistoryStat<int>"; 
+            uses SAFplusTypes:intStatistic; 
+            config false;
+            }
+          container processCount     
+            {
+            description "Number of processes on this node";
+            SAFplusTypes:c-existing "SAFplus::MgtHistoryStat<int>"; 
+            uses SAFplusTypes:intStatistic; 
+            config false;
+            }
+          container processStarts     
+            {
+            description "Number of process started within this time interval";
+            SAFplusTypes:c-existing "SAFplus::MgtHistoryStat<int>"; 
+            uses SAFplusTypes:intStatistic; 
+            config false;
+            }
+          }
+        leaf upTime
+          {
+          type uint64;
+          description "Number of seconds this node has been running";
+          config false;
+          }
+        leaf bootTime
+          {
+          type uint64;
+          description "Date (in seconds since the epoch) this node booted";
+          config false;
+          }
+        
+        }
+
       // SA-Forum defined fields
       leaf adminState
       {
         type AdministrativeState;
-	safplus:ui-prompt "Initial node state: ";
+	SAFplusTypes:ui-prompt "Initial node state: ";
 	description "Does the operator want this entity to be off, idle, or in service?";
       }
       leaf operState
@@ -250,35 +342,35 @@ point.  The operational, administrative, and presence states of a service unit, 
       {
 	uses EscalationPolicy;
 	description "The maximum Service Unit failure rate allowed before this node is faulted";
-	safplus:ui-prompt "Service Unit Failure Escalation Policy";
+	SAFplusTypes:ui-prompt "Service Unit Failure Escalation Policy";
       }
 
       leaf autoRepair
       {
 	type boolean;
-	safplus:ui-prompt "Auto-repair: ";
+	SAFplusTypes:ui-prompt "Auto-repair: ";
 	description "Automatically attempt to bring this entity back into a healthy state if its operational state becomes disabled.";
       }
       leaf failFastOnInstantiationFailure
       {
 	type boolean;
 	description "If a component fails to instantiate on this node after potentially multiple attempts (as configured in the component) the AMF will reboot this node if this field is true";
-	safplus:ui-prompt "Comp Fault Reboot:";
+	SAFplusTypes:ui-prompt "Comp Fault Reboot:";
       }
       leaf failFastOnCleanupFailure
       {
 	type boolean;
 	description "If a component's cleanup script fails on this node after potentially multiple attempts (as configured in the component) the AMF will reboot this node if this field is true";
-	safplus:ui-prompt "Cleanup Fault Reboot:";
+	SAFplusTypes:ui-prompt "Cleanup Fault Reboot:";
       }
 
     leaf-list serviceUnits
       {
-       safplus:c-type "SAFplusAmf::ServiceUnit*";
+       SAFplusTypes:c-type "SAFplusAmf::ServiceUnit*";
        type instance-identifier;
        description "Service Units configured to be instantiated on this node.";
-       safplus:instance-type "ServiceUnit";
-       safplus:ui-contained 1;
+       SAFplusTypes:instance-type "ServiceUnit";
+       SAFplusTypes:ui-contained 1;
       }
       
     }
@@ -288,16 +380,16 @@ point.  The operational, administrative, and presence states of a service unit, 
     {
       key "name";
       uses EntityId;
-      safplus:ui-entity "sg.svg";
-      safplus:ui-button "sg_button.svg";
+      SAFplusTypes:ui-entity "sg.svg";
+      SAFplusTypes:ui-button "sg_button.svg";
       description "A Service Group is a Service Availability Forum defined concept that corresponds to a group of redundant processes that should fail over as a unit.";
  
       // SA-Forum defined fields
       leaf adminState
       {
         type AdministrativeState;
-	safplus:alias saAmfSGAdminState;
-	safplus:ui-prompt "Initial state: ";
+	SAFplusTypes:alias saAmfSGAdminState;
+	SAFplusTypes:ui-prompt "Initial state: ";
 	description "Does the operator want this entity to be off, idle, or in service?";
       }
 
@@ -307,43 +399,43 @@ point.  The operational, administrative, and presence states of a service unit, 
       leaf autoRepair
       {
 	type boolean;
-	safplus:alias saAmfSGAutoRepair;
-	safplus:ui-prompt "Auto-repair: ";
+	SAFplusTypes:alias saAmfSGAutoRepair;
+	SAFplusTypes:ui-prompt "Auto-repair: ";
 	description "Automatically attempt to bring this entity back into a healthy state if its operational state becomes disabled.  A 'false' value will cause the system to wait for operator intervention (via the repair API) before attempting to restart this entity.";
       }
 
       leaf autoAdjust
       {
 	type boolean;
-	safplus:alias saAmfSGAutoAdjust;
-	safplus:ui-prompt "Auto-adjust: ";
+	SAFplusTypes:alias saAmfSGAutoAdjust;
+	SAFplusTypes:ui-prompt "Auto-adjust: ";
         default false;
         description "Match this service group as closely as possible to the preferred high availability configuration.  For example, if the preferred active comes online, 'fail-back' to it.  Another example is if a new work assignment is provisioned, the system could remove an existing standby assignment so the new active can be provisioned.";
       }
       leaf autoAdjustInterval
       {
-	type safplus:SaTimeT;
-	safplus:alias saAmfSGAutoAdjustProb;
+	type SAFplusTypes:SaTimeT;
+	SAFplusTypes:alias saAmfSGAutoAdjustProb;
 	description "The time between checks to see if adjustment is needed.";
       }
 
       leaf preferredNumActiveServiceUnits
       {
-	safplus:alias saAmfSGNumPrefActiveSUs;
-	safplus:ui-prompt "Active: ";
+	SAFplusTypes:alias saAmfSGNumPrefActiveSUs;
+	SAFplusTypes:ui-prompt "Active: ";
 	type uint32;
 	description "";
       }
       leaf preferredNumStandbyServiceUnits
       {
-	safplus:alias saAmfSGNumPrefStandbySUs;
-	safplus:ui-prompt "Standby: ";
+	SAFplusTypes:alias saAmfSGNumPrefStandbySUs;
+	SAFplusTypes:ui-prompt "Standby: ";
 	type uint32;
 	description "";
       }
       leaf preferredNumIdleServiceUnits
       {
-	safplus:ui-prompt "Idle: ";
+	SAFplusTypes:ui-prompt "Idle: ";
 	type uint32;
 	description "An idle service unit is running but is not assigned active or standby.  This concept is functionally equivalent to the saAmfSGNumPrefInserviceSUs since Active+Standby+Idle = Inservice";
       }
@@ -352,67 +444,67 @@ point.  The operational, administrative, and presence states of a service unit, 
       
       leaf maxActiveWorkAssignments
       {
-	safplus:ui-prompt "Active workload: ";
-	safplus:alias saAmfSGMaxActiveSIsperSU;
+	SAFplusTypes:ui-prompt "Active workload: ";
+	SAFplusTypes:alias saAmfSGMaxActiveSIsperSU;
 	type uint32;
 	description "The maximum number of active work assignments that can be placed on a single service unit (and therefore component/process) simultaneously.";
       }
       leaf maxStandbyWorkAssignments
       {
-	safplus:ui-prompt "Standby workload: ";
-	safplus:alias saAmfSGMaxStandbySIsperSU;
+	SAFplusTypes:ui-prompt "Standby workload: ";
+	SAFplusTypes:alias saAmfSGMaxStandbySIsperSU;
 	type uint32;
 	description "The maximum number of standby work assignments that can be placed on a single service unit (and therefore component/process) simultaneously.";
       }
 
       container componentRestart
       {
-	safplus:ui-group "Component fault escalation policy: ";
+	SAFplusTypes:ui-group "Component fault escalation policy: ";
 	uses EscalationPolicy;
 	description "";
       }
 
       container serviceUnitRestart
       {
-	safplus:ui-group "Service Unit fault escalation policy: ";
+	SAFplusTypes:ui-group "Service Unit fault escalation policy: ";
 	uses EscalationPolicy;
 	description "";
       }
       
       container numAssignedServiceUnits
       {
-	safplus:alias saAmfSGNumCurrAssignedSUs;
-	uses safplus:intStatistic;
+	SAFplusTypes:alias saAmfSGNumCurrAssignedSUs;
+	uses SAFplusTypes:intStatistic;
         config false;
       }
       container numIdleServiceUnits
       {
-	safplus:alias saAmfSGNumCurrInstantiatedSpareSUs;
-	uses safplus:intStatistic;
+	SAFplusTypes:alias saAmfSGNumCurrInstantiatedSpareSUs;
+	uses SAFplusTypes:intStatistic;
         config false;	
       }	
       container numSpareServiceUnits
       {
-	safplus:alias saAmfSGNumCurrNonInstantiatedSpareSUs;
-	uses safplus:intStatistic;
+	SAFplusTypes:alias saAmfSGNumCurrNonInstantiatedSpareSUs;
+	uses SAFplusTypes:intStatistic;
         config false;	
       }	
 
      leaf-list serviceUnits
       {
-       safplus:c-type "SAFplusAmf::ServiceUnit*";
+       SAFplusTypes:c-type "SAFplusAmf::ServiceUnit*";
        type instance-identifier;
        description "Service Units in this Service Group";
-       safplus:ui-contained 1;  // Service unit can only be in one service group
-       safplus:instance-type "ServiceUnit";
+       SAFplusTypes:ui-contained 1;  // Service unit can only be in one service group
+       SAFplusTypes:instance-type "ServiceUnit";
       }
      leaf-list serviceInstances
       {
-       safplus:c-type "SAFplusAmf::ServiceInstance*";
+       SAFplusTypes:c-type "SAFplusAmf::ServiceInstance*";
        type instance-identifier;
        description "Service Instances (work) in this Service group";
-       safplus:ui-contained 1;  // Service instance can only be in one service group
-       safplus:instance-type "ServiceInstances";
+       SAFplusTypes:ui-contained 1;  // Service instance can only be in one service group
+       SAFplusTypes:instance-type "ServiceInstances";
       }
 
      // parent pointers
@@ -420,9 +512,9 @@ point.  The operational, administrative, and presence states of a service unit, 
      leaf application
      {
         type instance-identifier;
-        safplus:c-type "Application*";
-        safplus:ui-container 1;
-        safplus:instance-type "Application";
+        SAFplusTypes:c-type "Application*";
+        SAFplusTypes:ui-container 1;
+        SAFplusTypes:instance-type "Application";
      }
       
      
@@ -432,13 +524,13 @@ point.  The operational, administrative, and presence states of a service unit, 
     {
       key "name";
       description "";
-      safplus:ui-entity "comp.svg";
-      safplus:ui-button "comp_button.svg";
-      safplus:atomic;
+      SAFplusTypes:ui-entity "comp.svg";
+      SAFplusTypes:ui-button "comp_button.svg";
+      SAFplusTypes:atomic;
       uses EntityId;
       container procStats
       {
-        uses safplus:processStats;        
+        uses SAFplusTypes:ProcessStats;        
       }
       leaf presenceState
       {
@@ -489,21 +581,21 @@ point.  The operational, administrative, and presence states of a service unit, 
 */
 
 	}
-        safplus:ui-prompt "Capability:";
+        SAFplusTypes:ui-prompt "Capability:";
       }
 
       leaf maxActiveAssignments
       {
-	safplus:alias saAmfCompNumMaxActiveCSIs;
-	safplus:ui-prompt "Active Work:";
+	SAFplusTypes:alias saAmfCompNumMaxActiveCSIs;
+	SAFplusTypes:ui-prompt "Active Work:";
 	type uint32;
 	default 1;
 	description "Maximum number of active work assignments this component can handle.";
       }
       leaf maxStandbyAssignments
       {
-	safplus:alias saAmfCompNumMaxStandbyCSIs;
-	safplus:ui-prompt "Standby Work:";
+	SAFplusTypes:alias saAmfCompNumMaxStandbyCSIs;
+	SAFplusTypes:ui-prompt "Standby Work:";
 	type uint32;
 	default 1;
 	description "Maximum number of standby work assignments this component can handle.";
@@ -511,21 +603,21 @@ point.  The operational, administrative, and presence states of a service unit, 
 
       container activeAssignments
       {
-	safplus:alias saAmfCompNumCurrActiveCSIs;
-	uses safplus:intStatistic;
+	SAFplusTypes:alias saAmfCompNumCurrActiveCSIs;
+	uses SAFplusTypes:intStatistic;
 	description "Current number of active work assignments this component is handling.";
         config false;
       }
       container standbyAssignments
       {
-	safplus:alias saAmfCompNumCurrStandbyCSIs;
-	uses safplus:intStatistic;
+	SAFplusTypes:alias saAmfCompNumCurrStandbyCSIs;
+	uses SAFplusTypes:intStatistic;
 	description "Current number of standby work assignments this component is handling.";
         config false;
       }
       leaf-list assignedWork
       {
-	safplus:alias saAmfCompAssignedCsi;
+	SAFplusTypes:alias saAmfCompAssignedCsi;
 	type instance-identifier;
 	description "Currently assigned work.";
         config false;
@@ -581,21 +673,21 @@ point.  The operational, administrative, and presence states of a service unit, 
       {
 	type string;
 	description "List of environment variables in the form '<VARIABLE>=<VALUE>\n<VARIABLE2>=<VALUE2>\n' the form the environment in which this component should be started";
-	safplus:ui-prompt "Environment";
+	SAFplusTypes:ui-prompt "Environment";
       }
 
       container instantiate
       {
 	uses execution;
 	description "How to start up this component";
-	safplus:ui-prompt "Execution";
+	SAFplusTypes:ui-prompt "Execution";
       }
 
       container terminate
       {
 	uses execution;
 	description "Optional: This will be run just before the component's process (if it exists) is told to terminate.";
-	safplus:ui-prompt "Termination";
+	SAFplusTypes:ui-prompt "Termination";
       }
 
       container cleanup
@@ -606,20 +698,20 @@ point.  The operational, administrative, and presence states of a service unit, 
 
       leaf maxInstantInstantiations
       {
-	safplus:alias saAmfCompNumMaxInstantiateWithoutDelay;
+	SAFplusTypes:alias saAmfCompNumMaxInstantiateWithoutDelay;
 	type uint32;
 	default 1;
 	description "How many times to attempt to instantiate this entity without delay.  If the number of instantiation attempts exceeds both this and the max delayed instantiations field, the fault will be elevated to the Service Unit level.";
-	safplus:ui-prompt "Instant starts: ";
+	SAFplusTypes:ui-prompt "Instant starts: ";
       }
 
       leaf maxDelayedInstantiations
       {
-	safplus:alias saAmfCompNumMaxInstantiateWithoutDelay;
+	SAFplusTypes:alias saAmfCompNumMaxInstantiateWithoutDelay;
 	type uint32;
 	default 1;
 	description "How many times to attempt to instantiate this entity after an initial delay.  If the number of instantiation attempts exceeds both this and the max instant instantiations field, the fault will be elevated to the Service Unit level.";
-	safplus:ui-prompt "Delayed starts: ";
+	SAFplusTypes:ui-prompt "Delayed starts: ";
       }
 
       leaf numInstantiationAttempts
@@ -634,49 +726,49 @@ point.  The operational, administrative, and presence states of a service unit, 
 	type uint32;
 	config true;
 	description "If this component remains instantiated for this length of time (in milliseconds), the component is deemed to be successfully instantiated and the numInstantiationAttempts field is zeroed.";
-        safplus:ui-prompt "Startup OK: ";
+        SAFplusTypes:ui-prompt "Startup OK: ";
       }
 
       leaf lastInstantiation
 	{
-	  type safplus:date;
+	  type SAFplusTypes:date;
 	  config false;
 	  description "The last time an instantiation attempt occurred";
 	}
 
       leaf delayBetweenInstantiation
       {
-	safplus:alias saAmfCompDelayBetweenInstantiationAttempts;
+	SAFplusTypes:alias saAmfCompDelayBetweenInstantiationAttempts;
 	type uint32;
 	default 10000;
 	description "How long to delay between instantiation attempts";
-	safplus:ui-prompt "Start Delay: ";
+	SAFplusTypes:ui-prompt "Start Delay: ";
       }
 
       container timeouts
       {
 	leaf quiescingComplete
 	{
-	  safplus:alias saAmfCompQuiescingCompleteTimeout;
-	  safplus:ui-prompt "Quiescing complete";
-	  type safplus:SaTimeT;
+	  SAFplusTypes:alias saAmfCompQuiescingCompleteTimeout;
+	  SAFplusTypes:ui-prompt "Quiescing complete";
+	  type SAFplusTypes:SaTimeT;
 	  default 120000; // 2 minutes
 	  description "How much time to give a component to gracefully finish handling its work before faulting it, in milliseconds.";
 	}
 	leaf workRemoval
 	{
-	  safplus:alias saAmfCompCSIRmvCallbackTimeout;
-	  safplus:ui-prompt "Work removal";
-	  type safplus:SaTimeT;
+	  SAFplusTypes:alias saAmfCompCSIRmvCallbackTimeout;
+	  SAFplusTypes:ui-prompt "Work removal";
+	  type SAFplusTypes:SaTimeT;
 	  default 120000; // 2 minutes
 	  description "How much time to give a component to executes its work (component service instance) removal callback before faulting the component.  Specified in milliseconds.";
 	}
 
 	leaf workAssignment
 	{
-	  safplus:alias saAmfCompCSISetCallbackTimeout;
-	  safplus:ui-prompt "Work assignment";
-	  type safplus:SaTimeT;
+	  SAFplusTypes:alias saAmfCompCSISetCallbackTimeout;
+	  SAFplusTypes:ui-prompt "Work assignment";
+	  type SAFplusTypes:SaTimeT;
 	  default 120000; // 2 minutes
 	  description "How much time to give a component to executes its work (component service instance) removal callback before faulting the component.  Specified in milliseconds.";
 	}
@@ -685,9 +777,9 @@ point.  The operational, administrative, and presence states of a service unit, 
      leaf serviceUnit
      {
         type instance-identifier;
-        safplus:c-type "ServiceUnit*";
-        safplus:ui-container 1;
-        safplus:instance-type "ServiceUnit";
+        SAFplusTypes:c-type "ServiceUnit*";
+        SAFplusTypes:ui-container 1;
+        SAFplusTypes:instance-type "ServiceUnit";
      }
 
       leaf recovery
@@ -750,8 +842,8 @@ are switched over to other nodes (component service instances are not abruptly r
 
      container restartCount
       {
-	safplus:alias saAmfCompRestartCount;
-	uses safplus:intStatistic;
+	SAFplusTypes:alias saAmfCompRestartCount;
+	uses SAFplusTypes:intStatistic;
         config false;
       }
 
@@ -759,14 +851,14 @@ are switched over to other nodes (component service instances are not abruptly r
 
      leaf proxy
      {
-       safplus:alias saAmfCompCurrProxyName;
+       SAFplusTypes:alias saAmfCompCurrProxyName;
        type instance-identifier;
        description "The component listed here is this component's proxy.";
      }
 
      leaf-list proxied
      {
-       safplus:alias saAmfCompCurrProxiedNames;
+       SAFplusTypes:alias saAmfCompCurrProxiedNames;
        type instance-identifier;
        description "This component is the proxy for the components listed here.";
      }
@@ -820,7 +912,7 @@ are switched over to other nodes (component service instances are not abruptly r
     leaf pendingOperationExpiration
       {
 	description "When the system will give up on the pending operation";
-	type safplus:date;
+	type SAFplusTypes:date;
 	config false;
       }
 
@@ -833,22 +925,22 @@ are switched over to other nodes (component service instances are not abruptly r
       key "name";
       uses EntityId;
       description "";
-      safplus:ui-entity "csi.svg";
-      safplus:ui-button "csi_button.svg";
+      SAFplusTypes:ui-entity "csi.svg";
+      SAFplusTypes:ui-button "csi_button.svg";
 
       leaf-list protectionGroup
       {
 	description "A protection group for a specific component service instance is the group of components to which the component service instance has been assigned";
         type instance-identifier;
-        safplus:c-decl "Entity* entity";
+        SAFplusTypes:c-decl "Entity* entity";
       }
 
       leaf-list dependencies
       {
-	safplus:alias saAmfCSIDependencies;
+	SAFplusTypes:alias saAmfCSIDependencies;
 	description "";
         type instance-identifier;
-        safplus:c-type "SAFplusAmf::ComponentServiceInstance*";
+        SAFplusTypes:c-type "SAFplusAmf::ComponentServiceInstance*";
       }
 
       list data
@@ -869,23 +961,23 @@ are switched over to other nodes (component service instances are not abruptly r
      leaf serviceInstance
      {
         type instance-identifier;
-        safplus:c-type "ServiceInstance*";
-        safplus:ui-container 1;      
-        safplus:instance-type "ServiceInstance";
+        SAFplusTypes:c-type "ServiceInstance*";
+        SAFplusTypes:ui-container 1;      
+        SAFplusTypes:instance-type "ServiceInstance";
      }
 
      leaf-list standbyComponents
      {
         description "This work is assigned standby to these components";
         type instance-identifier;
-        safplus:c-type "SAFplusAmf::Component*";
+        SAFplusTypes:c-type "SAFplusAmf::Component*";
         config false;  // The component handling this work is assigned at run time by the AMF
      }
 
      leaf-list activeComponents
       {
         description "This work is assigned active to these components";
-        safplus:c-type "SAFplusAmf::Component*";
+        SAFplusTypes:c-type "SAFplusAmf::Component*";
         type instance-identifier;
         config false;  // The component handling this work is assigned at run time by the AMF
       }
@@ -898,13 +990,13 @@ are switched over to other nodes (component service instances are not abruptly r
       key "name";
       uses EntityId;
       description "";
-      safplus:ui-entity "si.svg";
-      safplus:ui-button "si_button.svg";
+      SAFplusTypes:ui-entity "si.svg";
+      SAFplusTypes:ui-button "si_button.svg";
       // SA-Forum defined fields
       leaf adminState
       {
         type AdministrativeState;
-	safplus:ui-prompt "Initial state: ";
+	SAFplusTypes:ui-prompt "Initial state: ";
 	description "Does the operator want this entity to be off, idle, or in service?";
       }
       
@@ -924,28 +1016,28 @@ are switched over to other nodes (component service instances are not abruptly r
       leaf preferredActiveAssignments
       {
         type uint32;
-	safplus:ui-prompt "Preferred Active Assignments: ";
+	SAFplusTypes:ui-prompt "Preferred Active Assignments: ";
 	description "What is the optimal number of Service Units that should be given an active assignment for this work?  Note that the SA-Forum requires this field to be 1 for 2N, N+M, N-Way, and no redundancy models (see SAI-AIS-AMF-B.04.01@3.2.3.2 table 11).  However SAFplus allows this field to be set to any value for these models.";
       }
 
       leaf preferredStandbyAssignments
       {
         type uint32;
-	safplus:ui-prompt "Preferred Standby Assignments: ";
+	SAFplusTypes:ui-prompt "Preferred Standby Assignments: ";
 	description "What is the optimal number of Service Units that should be given a standby assignment for this work?  Note that the SA-Forum requires this field to be 1 for 2N, and N+M, redundancy models (see SAI-AIS-AMF-B.04.01@3.2.3.2 table 11).  However SAFplus allows this field to be set to any value for these models.  This field must be 0 for N-Way Active and No-redundancy models since these models do not have standby apps.";
       }
       
       leaf rank
       {
-	safplus:alias saAmfSIRank;
-	safplus:ui-prompt   "Rank";
+	SAFplusTypes:alias saAmfSIRank;
+	SAFplusTypes:ui-prompt   "Rank";
 	type uint32;
 	description "Lower rank is instantiated before higher; but rank 0 means 'don't care'.";
       }
 
       list activeWeight
       {
-	safplus:alias saAmfSIActiveWeight;
+	SAFplusTypes:alias saAmfSIActiveWeight;
         key "resource";
 	uses Capacity;
 	description "An abstract definition of the amount of work this node can handle.  Nodes can be assigned capacities for arbitrarily chosen strings (MEM or CPU, for example).  Service Instances can be assigned 'weights' and the sum of the weights of service instances assigned active or standby on this node cannot exceed these values.";
@@ -953,7 +1045,7 @@ are switched over to other nodes (component service instances are not abruptly r
 
       list standbyWeight
       {
-	safplus:alias saAmfSIStandbyWeight;
+	SAFplusTypes:alias saAmfSIStandbyWeight;
         key "resource";
 	uses Capacity;
 	description "An abstract definition of the amount of work this node can handle.  Nodes can be assigned capacities for arbitrarily chosen strings (MEM or CPU, for example).  Service Instances can be assigned 'weights' and the sum of the weights of service instances assigned active or standby on this node cannot exceed these values.";
@@ -962,7 +1054,7 @@ are switched over to other nodes (component service instances are not abruptly r
       leaf-list activeAssignments
       {
         description "This work is assigned active to these service units.  Depending on the redundancy model, it ";
-        safplus:c-type "SAFplusAmf::ServiceUnit*";
+        SAFplusTypes:c-type "SAFplusAmf::ServiceUnit*";
         type instance-identifier;
         config false;  // The component handling this work is assigned at run time by the AMF
       }
@@ -970,7 +1062,7 @@ are switched over to other nodes (component service instances are not abruptly r
       leaf-list standbyAssignments
       {
         description "This work is assigned active to these service units";
-        safplus:c-type "SAFplusAmf::ServiceUnit*";
+        SAFplusTypes:c-type "SAFplusAmf::ServiceUnit*";
         type instance-identifier;
         config false;  // The component handling this work is assigned at run time by the AMF
       }
@@ -979,22 +1071,22 @@ are switched over to other nodes (component service instances are not abruptly r
       // SAFplus extensions
       container numActiveAssignments
       {
-	safplus:alias saAmfSINumCurrActiveAssignments;
-	uses safplus:intStatistic;
+	SAFplusTypes:alias saAmfSINumCurrActiveAssignments;
+	uses SAFplusTypes:intStatistic;
 	description "Number of active assignments.  Pending assignments are counted.";
         config false;
       }
       container numStandbyAssignments
       {
-	safplus:alias saAmfSINumCurrStandbyAssignments;
-	uses safplus:intStatistic;
+	SAFplusTypes:alias saAmfSINumCurrStandbyAssignments;
+	uses SAFplusTypes:intStatistic;
 	description "Number of standby assignments.  Pending assignments are counted.";
         config false;
       }
 
      leaf-list componentServiceInstances
       {
-       safplus:c-type "SAFplusAmf::ComponentServiceInstance*";
+       SAFplusTypes:c-type "SAFplusAmf::ComponentServiceInstance*";
        type instance-identifier;
        description "Component Service Instances in this Service group";
       }
@@ -1003,9 +1095,9 @@ are switched over to other nodes (component service instances are not abruptly r
      leaf serviceGroup
      {
         type instance-identifier;
-        safplus:c-type "ServiceGroup*";
-        safplus:ui-container 1;  
-        safplus:instance-type "ServiceGroup";
+        SAFplusTypes:c-type "ServiceGroup*";
+        SAFplusTypes:ui-container 1;  
+        SAFplusTypes:instance-type "ServiceGroup";
      }
 
     }
@@ -1015,20 +1107,20 @@ are switched over to other nodes (component service instances are not abruptly r
     {
       key "name";
       uses EntityId;
-      safplus:ui-entity "su.svg";
-      safplus:ui-button "su_button.svg";
+      SAFplusTypes:ui-entity "su.svg";
+      SAFplusTypes:ui-button "su_button.svg";
       leaf adminState
       {
         type AdministrativeState;
-	safplus:ui-prompt "Initial state: ";
+	SAFplusTypes:ui-prompt "Initial state: ";
 	description "Does the operator want this entity to be off, idle, or in service?";
       }
       // skipped saAmfSUType
 
       leaf rank
       {
-	safplus:alias saAmfSURank;
-	safplus:ui-prompt "Rank";
+	SAFplusTypes:alias saAmfSURank;
+	SAFplusTypes:ui-prompt "Rank";
 	type uint32 {
         range "0..1024";	
 	}
@@ -1038,7 +1130,7 @@ are switched over to other nodes (component service instances are not abruptly r
 
       leaf failover
       {
-	safplus:alias saAmfSUFailover;
+	SAFplusTypes:alias saAmfSUFailover;
 	type boolean;
 	description "TODO";
       }
@@ -1092,7 +1184,7 @@ are switched over to other nodes (component service instances are not abruptly r
      leaf-list assignedServiceInstances
      {
         type instance-identifier;
-        safplus:c-type "ServiceInstance*";
+        SAFplusTypes:c-type "ServiceInstance*";
         config false;    
      }
 
@@ -1101,21 +1193,21 @@ are switched over to other nodes (component service instances are not abruptly r
 
      container numActiveServiceInstances
       {
-	safplus:alias saAmfSUNumCurrActiveSIs;
-	uses safplus:intStatistic;
+	SAFplusTypes:alias saAmfSUNumCurrActiveSIs;
+	uses SAFplusTypes:intStatistic;
         config false;
       }
      container numStandbyServiceInstances
       {
-	safplus:alias saAmfSUNumCurrStandbySIs;
-	uses safplus:intStatistic;
+	SAFplusTypes:alias saAmfSUNumCurrStandbySIs;
+	uses SAFplusTypes:intStatistic;
         config false;
       }
 
      container restartCount
       {
-	safplus:alias saAmfSURestartCount;
-	uses safplus:intStatistic;
+	SAFplusTypes:alias saAmfSURestartCount;
+	uses SAFplusTypes:intStatistic;
         config false;
       }
 
@@ -1123,26 +1215,26 @@ are switched over to other nodes (component service instances are not abruptly r
      leaf-list components
      {
         type instance-identifier;
-        safplus:c-type "Component*";       
-        safplus:ui-contained 1;
-        safplus:instance-type "Component";
+        SAFplusTypes:c-type "Component*";       
+        SAFplusTypes:ui-contained 1;
+        SAFplusTypes:instance-type "Component";
      }
 
      // Parent pointers
      leaf node
      {
         type instance-identifier;
-        safplus:c-type "Node*";
-        safplus:ui-container 1;
-	safplus:instance-type "Node";
+        SAFplusTypes:c-type "Node*";
+        SAFplusTypes:ui-container 1;
+	SAFplusTypes:instance-type "Node";
      }
 
      leaf serviceGroup
      {
         type instance-identifier;
-        safplus:c-type "ServiceGroup*";       
-        safplus:ui-container 1;
-	safplus:instance-type "ServiceGroup";
+        SAFplusTypes:c-type "ServiceGroup*";       
+        SAFplusTypes:ui-container 1;
+	SAFplusTypes:instance-type "ServiceGroup";
      }
 
      leaf probationTime
@@ -1152,7 +1244,7 @@ are switched over to other nodes (component service instances are not abruptly r
 	}
 	default 0;
 	description "Once this Service Unit is instantiated, how long should I wait before assigning it?";
-	safplus:ui-prompt "Start probation: ";
+	SAFplusTypes:ui-prompt "Start probation: ";
       }
 
 
@@ -1165,38 +1257,38 @@ are switched over to other nodes (component service instances are not abruptly r
       key "name";
       uses EntityId;
       description "";
-      safplus:ui-entity "app.svg";
-      safplus:ui-button "app_button.svg";
+      SAFplusTypes:ui-entity "app.svg";
+      SAFplusTypes:ui-button "app_button.svg";
       // SA-Forum defined fields
       leaf adminState
       {
         type AdministrativeState;
-	safplus:alias saAmfApplicationAdminState;
-	safplus:ui-prompt "Initial state: ";
+	SAFplusTypes:alias saAmfApplicationAdminState;
+	SAFplusTypes:ui-prompt "Initial state: ";
 	description "Does the operator want this entity to be off, idle, or in service?";
       }
       // skipping SAF: app type 
       
       container numServiceGroups  // Note, defined but never described in AMF spec
       {
-	safplus:alias saAmfApplicationCurrNumSGs;
-	uses safplus:intStatistic;
+	SAFplusTypes:alias saAmfApplicationCurrNumSGs;
+	uses SAFplusTypes:intStatistic;
         config false;
       }
 
       leaf-list serviceGroups
       {
-       safplus:c-type "SAFplusAmf::ServiceGroup*";
+       SAFplusTypes:c-type "SAFplusAmf::ServiceGroup*";
        type instance-identifier;
        description "Service Groups in this Application";
-       safplus:ui-contained 1;
-       safplus:instance-type "ServiceGroup";
+       SAFplusTypes:ui-contained 1;
+       SAFplusTypes:instance-type "ServiceGroup";
       }
 
       leaf keepTogether
       {
         type boolean;
-	safplus:ui-prompt "Initial state: ";
+	SAFplusTypes:ui-prompt "Initial state: ";
 	description "SAFplus Extension: To the greatest extent possible, all Service Groups in this application will be Active (or standby) on the same node.  This will only be not true if service groups are not configured to run on the same nodes.";
       }
 
@@ -1236,16 +1328,16 @@ are switched over to other nodes (component service instances are not abruptly r
     leaf healthCheckPeriod
     {
       description "This attribute indicates the interval at which the corresponding healthcheck should be initiated (in milliseconds).";
-      type safplus:SaTimeT;
-      safplus:ui-prompt "AMF health check period";
+      type SAFplusTypes:SaTimeT;
+      SAFplusTypes:ui-prompt "AMF health check period";
       default 0;
     }
 
     leaf healthCheckMaxSilence
     {
       description "This attribute indicates the maximum time allowable for components to not reply to the health check (in milliseconds).  After this time passes with no response from the component, it will be faulted";
-      type safplus:SaTimeT;
-      safplus:ui-prompt "Max health check response time";   
+      type SAFplusTypes:SaTimeT;
+      SAFplusTypes:ui-prompt "Max health check response time";   
       default 0; // disabled
     }
 
