@@ -42,6 +42,7 @@ using namespace Mgt::Msg;
 
 namespace SAFplus
 {
+  extern Checkpoint* mgtCheckpoint;
   MgtRoot *MgtRoot::singletonInstance = 0;
 
   MgtRoot *MgtRoot::getInstance()
@@ -67,8 +68,7 @@ namespace SAFplus
     mgtMessageHandler.init(this);
     mgtIocInstance->RegisterHandler(SAFplusI::CL_MGT_MSG_TYPE, &mgtMessageHandler, nullptr);
     // Init Mgt Checkpoint
-    mgtCheckpoint.name = "safplusMgt";
-    mgtCheckpoint.init(MGT_CKPT,Checkpoint::SHARED | Checkpoint::REPLICATED, SAFplusI::CkptRetentionDurationDefault, 1024*1024, SAFplusI::CkptDefaultRows);
+    mgtAccessInitialize();
   }
 
   ClRcT MgtRoot::loadMgtModule(Handle handle, MgtModule *module, std::string moduleName)
@@ -102,7 +102,7 @@ namespace SAFplus
       *((Handle*) val->data) = handle;
 
       // Add to checkpoint
-      mgtCheckpoint.write(strXPath.c_str(), *val);
+      mgtCheckpoint->write(strXPath.c_str(), *val);
     }
     catch (Error &e)
     {
@@ -216,7 +216,7 @@ namespace SAFplus
       Buffer* val = new(handleData) Buffer(sizeof(Handle));
       *((Handle*)val->data) = handle;
       // Add to checkpoint
-      mgtCheckpoint.write(strXPath.c_str(), *val);
+      mgtCheckpoint->write(strXPath.c_str(), *val);
 // end
     }
     catch (Error &e)
@@ -280,135 +280,6 @@ namespace SAFplus
     }
     return rc;
   }
-
-#if 0 // Obsoletely, don't use anymore
-  void MgtRoot::clMgtMsgEditHandler(SAFplus::Handle srcAddr, Mgt::Msg::MsgMgt& reqMsg)
-  {
-    ClRcT rc = CL_OK;
-    ClBoolT rc1 = CL_FALSE;
-    SAFplus::Transaction t;
-
-    Mgt::Msg::MsgBind bindData;
-    Mgt::Msg::MsgSetGet setData;
-    bindData.ParseFromString(reqMsg.bind());
-
-    logDebug("MGT","SET","Received setting message for module %s and route %s",bindData.module().c_str(),bindData.route().c_str());
-    if(reqMsg.data_size() <= 0)
-    {
-      logError("MGT","SET","Received empty set data");
-      rc = CL_ERR_INVALID_PARAMETER;
-      MgtRoot::sendReplyMsg(srcAddr,(void *)&rc,sizeof(ClRcT));
-      return;
-    }
-    setData.ParseFromString(reqMsg.data(0));
-    MgtModule * module = MgtRoot::getInstance()->getMgtModule(bindData.module());
-    if (!module)
-    {
-      logDebug("MGT","SET","Can't found module %s",bindData.module().c_str());
-      rc = CL_ERR_INVALID_PARAMETER;
-      MgtRoot::sendReplyMsg(srcAddr,(void *)&rc,sizeof(ClRcT));
-      return;
-    }
-
-    MgtObject * object = module->getMgtObject(bindData.route().c_str());
-    if (!object)
-    {
-      logDebug("MGT","SET","Can't found object %s",bindData.route().c_str());
-      rc = CL_ERR_INVALID_PARAMETER;
-      MgtRoot::sendReplyMsg(srcAddr,(void *)&rc,sizeof(ClRcT));
-      return;
-    }
-    string strInMsg((ClCharT *)setData.data().c_str());
-    // Add root element, it should be similar to netconf message
-    // OID: <adminStatus>true</adminStatus>
-    // NETCONF: <interfaces><adminStatus>true</adminStatus><ename>eth0</ename></interface>
-    if (setData.data().compare(1, object->tag.length(), object->tag))
-    {
-      setData.set_data("<" + object->tag + ">" + strInMsg + "</" + object->tag  + ">");
-    }
-    rc1 = object->set((void *)setData.data().c_str(),setData.data().size(), t);
-    if (rc1 == CL_TRUE)
-    {
-      t.commit();
-    }
-    else
-    {
-      t.abort();
-      rc = CL_ERR_INVALID_PARAMETER;
-    }
-
-    MgtRoot::sendReplyMsg(srcAddr,(void *)&rc,sizeof(ClRcT));
-  }
-
-  void MgtRoot::clMgtMsgGetHandler(SAFplus::Handle srcAddr, Mgt::Msg::MsgMgt& reqMsg)
-  {
-    MsgGeneral rplMesg;
-    string outBuff,strRplMesg;
-    Mgt::Msg::MsgBind bindData;
-
-    bindData.ParseFromString(reqMsg.bind());
-
-    if (!bindData.has_route())
-      {
-        // TODO  MgtRoot::sendReplyMsg(error)
-      }
-    string route = bindData.route();
-    const char* routeStr = route.c_str();
-    logDebug("MGT","GET","Received 'get' message for module [%s] and route [%s]",bindData.module().c_str(),routeStr);
-    MgtModule * module = MgtRoot::getInstance()->getMgtModule(bindData.module());
-    if (!module)
-    {
-      logError("MGT", "GET",
-                 "Received getting request from [%" PRIx64 ":%" PRIx64 "] for Non-existent module [%s] route [%s]",
-                 srcAddr.id[0],srcAddr.id[1],
-                 bindData.module().c_str(), routeStr);
-      return;
-    }
-
-    // TODO: Temporary code to clean up route -- chop off the module prefix if its there
-    if (route[0] == '/')
-      {
-        if (route.compare(1,module->name.size(),module->name)==0)
-          {
-            route = route.substr(module->name.size()+1);
-          }
-      }
-    if (route[0] == '/') route = route.substr(1);  // Chop off the leading /
-
-    MgtObject * object = module->getMgtObject(route);
-    if (!object)
-    {
-      logError("MGT", "GET",
-                 "Received 'get' request from [%" PRIx64 ":%" PRIx64 "] for non-existent route [%s] module [%s]",
-                 srcAddr.id[0], srcAddr.id[1],
-                 routeStr, bindData.module().c_str());
-      // GAS TODO: Shouldn't we reply with an error? -- YES otherwise timeout makes things very slow
-      return;
-    }
-    /* Improvement: Compare revision to limit data sending */
-    if(reqMsg.data_size() > 0)
-    {
-      std::string strRev = reqMsg.data(0);
-      ClUint32T rxrev = std::stoi(strRev);
-      logDebug("MGT","GET","Checking if data has updated [%x-%x]",rxrev,object->root()->headRev);
-      if(rxrev >= object->root()->headRev && object->root()->headRev !=0 )
-      {
-        rplMesg.add_data(strRev);
-        rplMesg.SerializeToString(&strRplMesg);
-        MgtRoot::sendReplyMsg(srcAddr,(void *)strRplMesg.c_str(),strRplMesg.size());
-        return;
-      }
-      // If revision of that route on mgt server is out of date, also send lastest data
-    }
-    std::string strRev = std::to_string(object->root()->headRev);
-    object->get(&outBuff);
-    rplMesg.add_data(strRev);
-    rplMesg.add_data(outBuff.c_str(), outBuff.length() + 1);
-    rplMesg.SerializeToString(&strRplMesg);
-    logDebug("MGT","GET","Replying with msg of size [%lu]",(long unsigned int) strRplMesg.size());
-    MgtRoot::sendReplyMsg(srcAddr,(void *)strRplMesg.c_str(),strRplMesg.size());
-  }
-#endif
 
   void MgtRoot::resolvePath(const char* path, std::vector<MgtObject*>* result)
   {

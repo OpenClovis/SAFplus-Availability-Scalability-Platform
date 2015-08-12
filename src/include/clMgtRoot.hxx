@@ -70,11 +70,6 @@ protected:
     std::map<std::string, MgtModule*> mMgtModules;
 
     /*
-     * Mgt Checkpoint
-     */
-    Checkpoint mgtCheckpoint;
-
-    /*
      * Mgt ref list
      */
     std::vector<MgtObject*> mgtReferenceList;
