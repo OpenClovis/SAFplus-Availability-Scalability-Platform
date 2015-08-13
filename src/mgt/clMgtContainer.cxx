@@ -245,7 +245,7 @@ namespace SAFplus
         //if (parent && typeid(*parent)==typeid(SAFplus::MgtList))
         if (parent && strstr(typeid(*parent).name(), "MgtList"))  // If my parent is a list I need to use a different tag format 
           {
-            xmlString << '<' << parent->tag << " key=\"" << tag << "\"";
+            xmlString << '<' << parent->tag << " listkey=\"" << tag << "\"";
             closer = parent->tag;
           }
         else
