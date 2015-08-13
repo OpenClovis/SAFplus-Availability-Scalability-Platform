@@ -711,7 +711,9 @@ extern ClRcT cpmLoggerRotateEnable(void);
 
 extern ClRcT cpmProxiedHealthcheckStop(ClNameT *compName);
 
-extern ClRcT cpmCompHealthcheckStop(ClNameT *compName);
+extern ClRcT cpmCompNodeHealthcheckStop(ClNameT *compName, ClNameT *pNodeName);
+
+extern ClRcT cpmCompHealthcheckStop(ClNameT *compName, ClBoolT timeout);
 
 extern void cpmResetNodeElseCommitSuicide(ClUint32T restartFlag);
 

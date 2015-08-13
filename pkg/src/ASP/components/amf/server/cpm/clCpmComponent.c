@@ -363,6 +363,7 @@ static ClRcT cpmHealthCheckTimerCallback(void *arg)
     clLogNotice("HEALTH", "CHECK", "Health check failure detected for component [%.*s], instantiate cookie [%lld]",
                 compName.length, compName.value, comp->instantiateCookie);
 
+    comp->hbFailureDetected = CL_TRUE;
     clCpmCompPreCleanupInvoke(comp);
     clCpmComponentFailureReportWithCookie(0,
                                           &compName,
@@ -633,6 +634,7 @@ ClRcT cpmCompConfigure(ClCpmCompConfigT *compCfg, ClCpmComponentT **component)
 
         tmpComp->cpmProxiedInstTimerHandle = CL_HANDLE_INVALID_VALUE;
         tmpComp->cpmProxiedCleanupTimerHandle = CL_HANDLE_INVALID_VALUE;
+        tmpComp->hbFailureDetected = CL_FALSE;
     }
     else
     {
@@ -645,6 +647,7 @@ ClRcT cpmCompConfigure(ClCpmCompConfigT *compCfg, ClCpmComponentT **component)
 
         tmpComp->hbInvocationPending = CL_NO;
         tmpComp->hcConfirmed = CL_NO;
+        tmpComp->hbFailureDetected = CL_FALSE;
     }
 
     rc = clOsalMutexCreate(&(tmpComp->compMutex));
@@ -1017,6 +1020,7 @@ void cpmResponse(ClRcT retCode,
                 ClNameT compName = {0};
 
                 clNameSet(&compName, comp->compConfig->compName);
+                comp->hbFailureDetected = CL_TRUE;
                 clCpmCompPreCleanupInvoke(comp);
                 clCpmComponentFailureReportWithCookie(0,
                                                       &compName,
@@ -2517,12 +2521,19 @@ static ClRcT cpmNonProxiedNonPreinstantiableCompTerminate(ClCpmComponentT *comp,
                           cleanup ? "cleanup" : "terminate",
                           comp->compConfig->compName);
 
-                if (-1 == kill(comp->processId, SIGKILL))
+                if (comp->hbFailureDetected)
                 {
-                    clLogError(CPM_LOG_AREA_CPM, CPM_LOG_CTX_CPM_LCM,
-                               "Unable to stop component [%s] : [%s]",
-                               comp->compConfig->compName,
-                               strerror(errno));
+                    rc = kill(comp->processId, SIGABRT);
+                    comp->hbFailureDetected = CL_FALSE;
+                }
+                else
+                {
+                    rc = kill(comp->processId, SIGKILL);
+                }
+                if (-1 == rc)
+                {
+                    rc = CL_CPM_RC(CL_ERR_LIBRARY);
+                    clLogError(CPM_LOG_AREA_CPM, CPM_LOG_CTX_CPM_LCM, "Unable to stop component [%s] : [%s]", comp->compConfig->compName, strerror(errno));
                     goto out;
                 }
             }
@@ -2815,7 +2826,7 @@ ClRcT VDECL(cpmComponentTerminate)(ClEoDataT data,
 ClRcT clCpmCompPreCleanupInvoke(ClCpmComponentT *comp)
 {
     ClRcT rc = CL_OK;
-    ClCharT cmdBuf[CL_MAX_NAME_LENGTH];
+    ClCharT cmdBuf[CL_MAX_NAME_LENGTH*2] = {0};
     static ClCharT script[CL_MAX_NAME_LENGTH];
     static ClInt32T cachedState;
     static ClCharT *cachedConfigLoc;
@@ -2828,8 +2839,7 @@ ClRcT clCpmCompPreCleanupInvoke(ClCpmComponentT *comp)
         cachedConfigLoc = getenv("ASP_CONFIG");
         if(!cachedConfigLoc)
             cachedConfigLoc = "/root/asp/etc";
-        snprintf(script, sizeof(script), "%s/asp.d/%s", 
-                 cachedConfigLoc, ASP_PRECLEANUP_SCRIPT);
+        snprintf(script, sizeof(script), "%s/asp.d/%s", cachedConfigLoc, ASP_PRECLEANUP_SCRIPT);
         /*
          * Script exists?
          */
@@ -2841,11 +2851,8 @@ ClRcT clCpmCompPreCleanupInvoke(ClCpmComponentT *comp)
 
     if(!cachedState) goto out;
  
-    snprintf(cmdBuf, sizeof(cmdBuf), "ASP_COMPNAME=%s %s",
-             comp->compConfig->compName, script);
-    clLogNotice(CPM_LOG_AREA_CPM, CPM_LOG_CTX_CPM_LCM, 
-                "Invoking precleanup command [%s] for Component [%s]",
-                cmdBuf, comp->compConfig->compName);
+    snprintf(cmdBuf, sizeof(cmdBuf), "ASP_COMPNAME=%s EFLAG=%d %s", comp->compConfig->compName, !comp->hbFailureDetected, script);
+    clLogNotice(CPM_LOG_AREA_CPM, CPM_LOG_CTX_CPM_LCM, "Invoking precleanup command [%s] for Component [%s]", cmdBuf, comp->compConfig->compName);
 
     status = system(cmdBuf);
     (void)status; /*unused*/
@@ -2862,9 +2869,9 @@ static ClRcT compCleanupInvoke(ClCpmComponentT *comp)
 
     if(comp->compConfig->cleanupCMD[0])
     {
-        ClCharT cleanupCmdBuf[CL_MAX_NAME_LENGTH];
-        snprintf(cleanupCmdBuf, sizeof(cleanupCmdBuf), "ASP_COMPNAME=%s %s",
-                 comp->compConfig->compName, comp->compConfig->cleanupCMD);
+        ClCharT cleanupCmdBuf[CL_MAX_NAME_LENGTH*2] = {0};
+        snprintf(cleanupCmdBuf, sizeof(cleanupCmdBuf), "ASP_COMPNAME=%s EFLAG=%d %s",
+                 comp->compConfig->compName, !comp->hbFailureDetected, comp->compConfig->cleanupCMD);
         clLogNotice(CPM_LOG_AREA_CPM, CPM_LOG_CTX_CPM_LCM, 
                    "Invoking cleanup command [%s] for Component [%s]",
                    cleanupCmdBuf, comp->compConfig->compName);
@@ -2880,7 +2887,16 @@ static ClRcT compCleanupInvoke(ClCpmComponentT *comp)
      * Issue an unconditional sigkill incase cleanup didn't terminate 
      * component.
      */
-    kill(comp->processId, SIGKILL);
+    if (comp->hbFailureDetected)
+    {
+        kill(comp->processId, SIGABRT);
+        comp->hbFailureDetected = CL_FALSE;
+    }
+    else
+    {
+        kill(comp->processId, SIGKILL);
+    }
+
     return rc;
 }
 
@@ -4372,7 +4388,7 @@ static ClRcT compHealthCheckClientInvokedCB(ClPtrT arg)
         ClNameT compName = {0};
 
         clNameSet(&compName, comp->compConfig->compName);
-
+        comp->hbFailureDetected = CL_TRUE;
         clCpmCompPreCleanupInvoke(comp);
         clCpmComponentFailureReportWithCookie(0,
                                               &compName,
@@ -4567,7 +4583,42 @@ failure:
     return rc;
 }
 
-ClRcT cpmCompHealthcheckStop(ClNameT *pCompName)
+ClRcT cpmCompNodeHealthcheckStop(ClNameT *pCompName, ClNameT *pNodeName)
+  {
+    ClRcT rc = CL_OK;
+    rc = cpmCompHealthcheckStop(pCompName, CL_TRUE);
+
+    // Checking to send the request to remote node
+    if (CL_GET_ERROR_CODE(rc) == CL_ERR_NOT_EXIST && pNodeName != NULL)
+      {
+        ClCpmCompHealthcheckT cpmCompHealthcheck = { { 0 } };
+        ClIocAddressT nodeAddress = { { 0 } };
+        clNameCopy(&cpmCompHealthcheck.compName, pCompName);
+
+        // Set timeout error on component
+        cpmCompHealthcheck.healthcheckResult = CL_ERR_TIMEOUT;
+
+        rc = _cpmIocAddressForNodeGet(pNodeName, &nodeAddress);
+        if (rc == CL_OK)
+          {
+            rc = clCpmClientRMDAsyncNew(nodeAddress.iocPhyAddress.nodeAddress,
+                                    CPM_COMPONENT_HEALTHCHECK_STOP,
+                                    (ClUint8T *) &cpmCompHealthcheck,
+                                    sizeof(ClCpmCompHealthcheckT),
+                                    NULL,
+                                    NULL, 0, 0, 0, 0, MARSHALL_FN(ClCpmCompHealthcheckT, 4, 0, 0));
+          }
+
+        if (rc != CL_OK)
+          {
+            clLogWarning(CL_LOG_AREA_UNSPECIFIED, CL_LOG_CONTEXT_UNSPECIFIED,
+                "Could not request stopping healthCheck to comp [%s] on node [%s], error [%#x]", pCompName->value, pNodeName->value, rc);
+          }
+      }
+    return CL_OK;
+  }
+
+ClRcT cpmCompHealthcheckStop(ClNameT *pCompName, ClBoolT timeout)
 {
     ClRcT rc = CL_OK;
     ClCharT compName[CL_MAX_NAME_LENGTH];
@@ -4601,6 +4652,7 @@ ClRcT cpmCompHealthcheckStop(ClNameT *pCompName)
         clTimerDeleteAsync(&comp->cpmHealthcheckTimerHandle);
         comp->cpmHealthcheckTimerHandle = CL_HANDLE_INVALID_VALUE;
     }
+    comp->hbFailureDetected = timeout;
     clOsalMutexUnlock(comp->compMutex);
     
     if(stopped)
@@ -4631,7 +4683,13 @@ ClRcT VDECL(cpmComponentHealthcheckStop)(ClEoDataT data,
         goto failure;
     }
 
-    rc = cpmCompHealthcheckStop(&cpmCompHealthcheck.compName);
+    // Checking external request
+    ClBoolT timeout = CL_FALSE;
+    if (cpmCompHealthcheck.healthcheckResult == CL_ERR_TIMEOUT)
+      {
+        timeout = CL_TRUE;
+      }
+    rc = cpmCompHealthcheckStop(&cpmCompHealthcheck.compName, timeout);
 
     failure:
     return rc;
@@ -4686,6 +4744,9 @@ ClRcT VDECL(cpmComponentHealthcheckConfirm)(ClEoDataT data,
 
     if (cpmCompHealthcheck.healthcheckResult != CL_OK)
     {
+        clOsalMutexLock(comp->compMutex);
+        comp->hbFailureDetected = CL_TRUE;
+        clOsalMutexUnlock(comp->compMutex);
         clCpmCompPreCleanupInvoke(comp);
         clCpmComponentFailureReportWithCookie(0,
                                               &cpmCompHealthcheck.compName,

@@ -714,6 +714,7 @@ struct clCpmComponent
     ClTimerHandleT hbTimerHandle;
     ClBoolT hbInvocationPending;
     ClBoolT hcConfirmed;
+    ClBoolT hbFailureDetected;
     
     /*
      * EO id of the component.
