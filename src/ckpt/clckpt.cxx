@@ -328,8 +328,8 @@ void SAFplus::Checkpoint::write(const Buffer& key, const Buffer& value,Transacti
           else 
             old->decRef();
           if (sync) sync->sendUpdate(&key,v, t);  // Pass curval not the parameter because curval has the proper change number
-          gate.unlock();
           hdr->lastUsed = boost::posix_time::second_clock::universal_time();
+          gate.unlock();          
           return;
         }
     }
