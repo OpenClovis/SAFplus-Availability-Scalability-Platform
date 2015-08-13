@@ -157,6 +157,7 @@ namespace SAFplus
 
     //? <ctor>Create a new checkpoint or open an existing one.  If no handle is passed, a new checkpoint will be created.</ctor>
     // <arg name="flags">The flavor of checkpoint to open.  See the constants for the options.  All entities opening the checkpoint must use the same flags.</arg>
+    // <arg name="retentionDuration">The checkpoint data will not be retained if there isn't any process opening it within this argument. The retention timer will start as soon as the last call to checkpoint close .</arg>
     // <arg name="size">This is the amount of shared memory that will be allocated to hold this checkpoint.  If the checkpoint already exists, this value will be ignored.</arg>
     // <arg name="rows">The maximum number of items to be stored in the checkpoint table</arg>
     Checkpoint(uint_t flags, uint64_t retentionDuration=SAFplusI::CkptRetentionDurationDefault, uint_t size=0, uint_t rows=0)
@@ -171,6 +172,7 @@ namespace SAFplus
 
     //? Create a new checkpoint or open an existing one.  If no handle is passed, a new checkpoint will be created.  This function only needs to be called if the default constructor was used to create the object
     // <arg name="flags">The flavor of checkpoint to open.  See the constants for the options.  All entities opening the checkpoint must use the same flags.</arg>
+    // <arg name="retentionDuration">The checkpoint data will not be retained if there isn't any process opening it within this argument. The retention timer will start as soon as the last call to checkpoint close .</arg>
     // <arg name="size">This is the amount of shared memory that will be allocated to hold this checkpoint.  If the checkpoint already exists, this value will be ignored.</arg>
     // <arg name="rows">The maximum number of items to be stored in the checkpoint table</arg>
     // <arg name="execSemantics" default="BLOCK">[OPTIONAL] specify blocking or nonblocking execution semantics for this function</arg>

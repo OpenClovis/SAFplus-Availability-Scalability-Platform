@@ -51,6 +51,7 @@ SAFplus::Checkpoint::~Checkpoint()
 ** Because a shm file is appended with retention duration at the end when creating checkpoint, so, this function
 ** must be called at init to ensure that the existing shm file (if any) is reused to open instead of building a new one
 */
+#if 0
 std::string getFullShmFile(const char* shmFilename)
 {
   fs::directory_iterator end_iter;
@@ -69,6 +70,7 @@ std::string getFullShmFile(const char* shmFilename)
   }  
   return std::string(); // returns empty shm file name
 }
+#endif
 
 void SAFplus::Checkpoint::init(const Handle& hdl, uint_t _flags, uint64_t retentionDuration, uint_t size, uint_t rows,SAFplus::Wakeable& execSemantics)
 {
@@ -95,6 +97,7 @@ void SAFplus::Checkpoint::init(const Handle& hdl, uint_t _flags, uint64_t retent
   //sharedMemHandle = NULL;
   strcpy(tempStr,"ckpt_");
   hdl.toStr(&tempStr[5]);
+#if 0
   // check if this checkpoint has existed or not
   std::string ckptShmFile = getFullShmFile(tempStr);
   if (ckptShmFile.length()>0) // there is file matching with the ckpt handle, means ckpt does exist, so use it
@@ -107,6 +110,7 @@ void SAFplus::Checkpoint::init(const Handle& hdl, uint_t _flags, uint64_t retent
     strcat(tempStr, ":");
     strcat(tempStr, strTime.c_str());
   }
+#endif
   //strcpy(tempStr,"test");  // DEBUGGING always uses one segment
 
   if (flags & SHARED)
@@ -130,6 +134,8 @@ void SAFplus::Checkpoint::init(const Handle& hdl, uint_t _flags, uint64_t retent
       hdr->generation = 0;
       hdr->changeNum  = 0;
       hdr->structId=SAFplusI::CL_CKPT_BUFFER_HEADER_STRUCT_ID_7; // Initialize this last.  It indicates that the header is properly initialized (and acts as a structure version number)
+      hdr->retentionDuration = retentionDuration;
+      hdr->lastUsed = boost::posix_time::second_clock::universal_time();
       }
     catch (interprocess_exception &e)
       {
@@ -145,7 +151,8 @@ void SAFplus::Checkpoint::init(const Handle& hdl, uint_t _flags, uint64_t retent
           hdr->serverPid  = getpid();
           hdr->generation = 0;
           hdr->changeNum  = 0;
-          hdr->structId   = SAFplusI::CL_CKPT_BUFFER_HEADER_STRUCT_ID_7; // Initialize this last.  It indicates that the header is properly initialized (and acts as a structure version number)
+          hdr->structId   = SAFplusI::CL_CKPT_BUFFER_HEADER_STRUCT_ID_7; // Initialize this last.  It indicates that the header is properly initialized (and acts as a structure version number)          
+          hdr->lastUsed = boost::posix_time::second_clock::universal_time();
           }
           
 	}
@@ -192,10 +199,12 @@ const Buffer& SAFplus::Checkpoint::read (const Buffer& key) //const
       if (curval)
         {
           Buffer& ret = *(curval.get());
+          hdr->lastUsed = boost::posix_time::second_clock::universal_time();
           gate.unlock();
           return ret;
         }
     }  
+  hdr->lastUsed = boost::posix_time::second_clock::universal_time();
   gate.unlock();
   return *((Buffer*) NULL);
 }
@@ -303,6 +312,7 @@ void SAFplus::Checkpoint::write(const Buffer& key, const Buffer& value,Transacti
                 *curval = value;
                 if (flags & CHANGE_ANNOTATION) curval->setChangeNum(change);
                 if (sync) sync->sendUpdate(&key,curval.get(), t);
+                hdr->lastUsed = boost::posix_time::second_clock::universal_time();
                 gate.unlock();
                 return;
               }
@@ -319,6 +329,7 @@ void SAFplus::Checkpoint::write(const Buffer& key, const Buffer& value,Transacti
             old->decRef();
           if (sync) sync->sendUpdate(&key,v, t);  // Pass curval not the parameter because curval has the proper change number
           gate.unlock();
+          hdr->lastUsed = boost::posix_time::second_clock::universal_time();
           return;
         }
     }
@@ -335,6 +346,7 @@ void SAFplus::Checkpoint::write(const Buffer& key, const Buffer& value,Transacti
   SAFplusI::CkptMapPair vt(kb,kv);
   map->insert(vt);
   if (sync) sync->sendUpdate(&key,v, t);
+  hdr->lastUsed = boost::posix_time::second_clock::universal_time();
   gate.unlock();
 }
 

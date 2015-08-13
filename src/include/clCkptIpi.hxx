@@ -5,6 +5,7 @@
 #include <boost/interprocess/managed_shared_memory.hpp>
 #include <boost/interprocess/allocators/allocator.hpp>
 #include <boost/interprocess/errors.hpp>
+#include <boost/date_time/posix_time/posix_time.hpp>
 #include <boost/unordered_map.hpp>     //boost::unordered_map
 #include <functional>                  //std::equal_to
 #include <boost/functional/hash.hpp>   //boost::hash
@@ -89,6 +90,8 @@ namespace SAFplusI
         uint32_t changeNum;     // This monotonically increasing value indicates when changes were made for delta synchronization.
         SAFplus::Handle handle; // The Checkpoint table handle -- identifies this checkpoint
         SAFplus::Handle replicaHandle;  // Identifies this instance of the checkpoint -- only needed if this is the synchronization replica.  Otherwise will be INVALID_HDL
+        uint64_t retentionDuration; // how long (in seconds) a checkpoint data should be retained on disk if there is no call to checkpoint open
+        boost::posix_time::ptime lastUsed; // the last time (in seconds) a checkpoint is used by a process
     };
 
   class BufferPtr:public boost::interprocess::offset_ptr<SAFplus::Buffer>
