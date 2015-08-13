@@ -9,6 +9,7 @@
 #include <iostream>
 #include "PendingOperation.hxx"
 
+using namespace SAFplusAmf;
 
 namespace SAFplusAmf
   {
@@ -43,4 +44,4 @@ namespace SAFplusAmf
     };
 
 }
-/* namespace SAFplusAmf */
+/* namespace ::SAFplusAmf */

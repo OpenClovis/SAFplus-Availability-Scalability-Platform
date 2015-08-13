@@ -59,5 +59,5 @@ namespace SAFplusAmf
 
     };
 }
-/* namespace SAFplusAmf */
+/* namespace ::SAFplusAmf */
 #endif /* EXECUTION_HXX_ */

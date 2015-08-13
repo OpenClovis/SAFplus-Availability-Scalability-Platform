@@ -286,7 +286,10 @@ namespace SAFplus
             xpath.append(parentXpath);
           }
       }
-    xpath.append("/").append(this->tag);
+    if (!this->tag.empty())  // Empty tags (like the module) are invisible, not generating //
+      {               
+      xpath.append("/").append(this->tag);
+      }
     return xpath;
   }
 

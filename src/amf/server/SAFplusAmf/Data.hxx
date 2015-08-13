@@ -35,27 +35,27 @@ namespace SAFplusAmf
         std::vector<std::string>* getChildNames();
 
         /*
-         * XPATH: /SAFplusAmf/ComponentServiceInstance/data/name
+         * XPATH: /SAFplusAmf/safplusAmf/ComponentServiceInstance/data/name
          */
         std::string getName();
 
         /*
-         * XPATH: /SAFplusAmf/ComponentServiceInstance/data/name
+         * XPATH: /SAFplusAmf/safplusAmf/ComponentServiceInstance/data/name
          */
         void setName(std::string nameValue, SAFplus::Transaction &t=SAFplus::NO_TXN);
 
         /*
-         * XPATH: /SAFplusAmf/ComponentServiceInstance/data/val
+         * XPATH: /SAFplusAmf/safplusAmf/ComponentServiceInstance/data/val
          */
         std::string getVal();
 
         /*
-         * XPATH: /SAFplusAmf/ComponentServiceInstance/data/val
+         * XPATH: /SAFplusAmf/safplusAmf/ComponentServiceInstance/data/val
          */
         void setVal(std::string valValue, SAFplus::Transaction &t=SAFplus::NO_TXN);
         ~Data();
 
     };
 }
-/* namespace SAFplusAmf */
+/* namespace ::SAFplusAmf */
 #endif /* DATA_HXX_ */

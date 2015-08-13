@@ -251,8 +251,9 @@ extern MgtIteratorBase mgtIterEnd;
         SerializeNoOptions=0,
         SerializeNameAttribute=1, // Add name="foo" to tag, for example <tag> becomes <tag name="foo">
         SerializePathAttribute=2, // Add path="/full/route/to/object/foo" to tag, for example <tag> becomes <tag name="/SAFplusAmf/Component/c0">
-        SerializeFormatted=4,     // Pretty print 
-        SerializeOnePath=8
+        SerializeListKeyAttribute=4, // Add path="/full/route/to/object/foo" to tag, for example <tag> becomes <tag name="/SAFplusAmf/Component/c0">
+        SerializeFormatted=8,     // Pretty print 
+        SerializeOnePath=16
       };
 
     /**

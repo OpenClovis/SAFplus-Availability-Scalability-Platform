@@ -23,17 +23,17 @@ namespace SAFplusAmf
             pair_t(HighAvailabilityState::quiescing, "quiescing")
     }; // uses c++11 initializer lists 
 
-    const char* c_str(const SAFplusAmf::HighAvailabilityState &highAvailabilityState)
+    const char* c_str(const ::SAFplusAmf::HighAvailabilityState &highAvailabilityState)
     {
         return HighAvailabilityStateManager::c_str(highAvailabilityState);
     };
 
-    std::ostream& operator<<(std::ostream &os, const SAFplusAmf::HighAvailabilityState &highAvailabilityState)
+    std::ostream& operator<<(std::ostream &os, const ::SAFplusAmf::HighAvailabilityState &highAvailabilityState)
     {
         return os << HighAvailabilityStateManager::toString(highAvailabilityState);
     };
 
-    std::istream& operator>>(std::istream &is, SAFplusAmf::HighAvailabilityState &highAvailabilityState)
+    std::istream& operator>>(std::istream &is, ::SAFplusAmf::HighAvailabilityState &highAvailabilityState)
     {
         std::string buf;
         is >> buf;
@@ -42,4 +42,4 @@ namespace SAFplusAmf
     };
 
 }
-/* namespace SAFplusAmf */
+/* namespace ::SAFplusAmf */

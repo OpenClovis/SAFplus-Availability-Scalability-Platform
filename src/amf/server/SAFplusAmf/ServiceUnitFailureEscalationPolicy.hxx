@@ -28,5 +28,5 @@ namespace SAFplusAmf
 
     };
 }
-/* namespace SAFplusAmf */
+/* namespace ::SAFplusAmf */
 #endif /* SERVICEUNITFAILUREESCALATIONPOLICY_HXX_ */

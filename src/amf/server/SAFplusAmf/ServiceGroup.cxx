@@ -7,35 +7,30 @@
 
 #include "clMgtIdentifier.hxx"
 #include "clTransaction.hxx"
-#include "clMgtIdentifierList.hxx"
+#include "ComponentRestart.hxx"
 #include "MgtFactory.hxx"
-#include "NumSpareServiceUnits.hxx"
 #include "ServiceUnitRestart.hxx"
 #include "AdministrativeState.hxx"
 #include <string>
 #include "ComponentRestart.hxx"
-#include "NumIdleServiceUnits.hxx"
 #include "clMgtProv.hxx"
 #include "Application.hxx"
 #include "ServiceInstance.hxx"
-#include "ComponentRestart.hxx"
-#include "NumIdleServiceUnits.hxx"
+#include "clMgtIdentifierList.hxx"
 #include "ServiceUnitRestart.hxx"
 #include <vector>
-#include "NumAssignedServiceUnits.hxx"
 #include <cstdint>
-#include "NumSpareServiceUnits.hxx"
-#include "NumAssignedServiceUnits.hxx"
 #include "EntityId.hxx"
 #include "ServiceUnit.hxx"
 #include "ServiceGroup.hxx"
 
+using namespace SAFplusAmf;
 
 namespace SAFplusAmf
   {
 
     /* Apply MGT object factory */
-    MGT_REGISTER_IMPL(ServiceGroup, /SAFplusAmf/ServiceGroup)
+    MGT_REGISTER_IMPL(ServiceGroup, /SAFplusAmf/safplusAmf/ServiceGroup)
 
     ServiceGroup::ServiceGroup(): adminState("adminState"), autoRepair("autoRepair"), autoAdjust("autoAdjust"), autoAdjustInterval("autoAdjustInterval"), preferredNumActiveServiceUnits("preferredNumActiveServiceUnits"), preferredNumStandbyServiceUnits("preferredNumStandbyServiceUnits"), preferredNumIdleServiceUnits("preferredNumIdleServiceUnits"), maxActiveWorkAssignments("maxActiveWorkAssignments"), maxStandbyWorkAssignments("maxStandbyWorkAssignments"), serviceUnits("serviceUnits"), serviceInstances("serviceInstances"), application("application")
     {
@@ -101,28 +96,28 @@ namespace SAFplusAmf
     };
 
     /*
-     * XPATH: /SAFplusAmf/ServiceGroup/adminState
+     * XPATH: /SAFplusAmf/safplusAmf/ServiceGroup/adminState
      */
-    SAFplusAmf::AdministrativeState ServiceGroup::getAdminState()
+    ::SAFplusAmf::AdministrativeState ServiceGroup::getAdminState()
     {
         return this->adminState.value;
     };
 
     /*
-     * XPATH: /SAFplusAmf/ServiceGroup/adminState
+     * XPATH: /SAFplusAmf/safplusAmf/ServiceGroup/adminState
      */
-    void ServiceGroup::setAdminState(SAFplusAmf::AdministrativeState &adminStateValue, SAFplus::Transaction &t)
+    void ServiceGroup::setAdminState(::SAFplusAmf::AdministrativeState &adminStateValue, SAFplus::Transaction &t)
     {
         if(&t == &SAFplus::NO_TXN) this->adminState.value = adminStateValue;
         else
         {
-            SAFplus::SimpleTxnOperation<SAFplusAmf::AdministrativeState> *opt = new SAFplus::SimpleTxnOperation<SAFplusAmf::AdministrativeState>(&(adminState.value),adminStateValue);
+            SAFplus::SimpleTxnOperation<::SAFplusAmf::AdministrativeState> *opt = new SAFplus::SimpleTxnOperation<::SAFplusAmf::AdministrativeState>(&(adminState.value),adminStateValue);
             t.addOperation(opt);
         }
     };
 
     /*
-     * XPATH: /SAFplusAmf/ServiceGroup/autoRepair
+     * XPATH: /SAFplusAmf/safplusAmf/ServiceGroup/autoRepair
      */
     bool ServiceGroup::getAutoRepair()
     {
@@ -130,7 +125,7 @@ namespace SAFplusAmf
     };
 
     /*
-     * XPATH: /SAFplusAmf/ServiceGroup/autoRepair
+     * XPATH: /SAFplusAmf/safplusAmf/ServiceGroup/autoRepair
      */
     void ServiceGroup::setAutoRepair(bool autoRepairValue, SAFplus::Transaction &t)
     {
@@ -143,7 +138,7 @@ namespace SAFplusAmf
     };
 
     /*
-     * XPATH: /SAFplusAmf/ServiceGroup/autoAdjust
+     * XPATH: /SAFplusAmf/safplusAmf/ServiceGroup/autoAdjust
      */
     bool ServiceGroup::getAutoAdjust()
     {
@@ -151,7 +146,7 @@ namespace SAFplusAmf
     };
 
     /*
-     * XPATH: /SAFplusAmf/ServiceGroup/autoAdjust
+     * XPATH: /SAFplusAmf/safplusAmf/ServiceGroup/autoAdjust
      */
     void ServiceGroup::setAutoAdjust(bool autoAdjustValue, SAFplus::Transaction &t)
     {
@@ -164,7 +159,7 @@ namespace SAFplusAmf
     };
 
     /*
-     * XPATH: /SAFplusAmf/ServiceGroup/autoAdjustInterval
+     * XPATH: /SAFplusAmf/safplusAmf/ServiceGroup/autoAdjustInterval
      */
     SaTimeT ServiceGroup::getAutoAdjustInterval()
     {
@@ -172,7 +167,7 @@ namespace SAFplusAmf
     };
 
     /*
-     * XPATH: /SAFplusAmf/ServiceGroup/autoAdjustInterval
+     * XPATH: /SAFplusAmf/safplusAmf/ServiceGroup/autoAdjustInterval
      */
     void ServiceGroup::setAutoAdjustInterval(SaTimeT &autoAdjustIntervalValue, SAFplus::Transaction &t)
     {
@@ -185,7 +180,7 @@ namespace SAFplusAmf
     };
 
     /*
-     * XPATH: /SAFplusAmf/ServiceGroup/preferredNumActiveServiceUnits
+     * XPATH: /SAFplusAmf/safplusAmf/ServiceGroup/preferredNumActiveServiceUnits
      */
     ::uint32_t ServiceGroup::getPreferredNumActiveServiceUnits()
     {
@@ -193,7 +188,7 @@ namespace SAFplusAmf
     };
 
     /*
-     * XPATH: /SAFplusAmf/ServiceGroup/preferredNumActiveServiceUnits
+     * XPATH: /SAFplusAmf/safplusAmf/ServiceGroup/preferredNumActiveServiceUnits
      */
     void ServiceGroup::setPreferredNumActiveServiceUnits(::uint32_t preferredNumActiveServiceUnitsValue, SAFplus::Transaction &t)
     {
@@ -206,7 +201,7 @@ namespace SAFplusAmf
     };
 
     /*
-     * XPATH: /SAFplusAmf/ServiceGroup/preferredNumStandbyServiceUnits
+     * XPATH: /SAFplusAmf/safplusAmf/ServiceGroup/preferredNumStandbyServiceUnits
      */
     ::uint32_t ServiceGroup::getPreferredNumStandbyServiceUnits()
     {
@@ -214,7 +209,7 @@ namespace SAFplusAmf
     };
 
     /*
-     * XPATH: /SAFplusAmf/ServiceGroup/preferredNumStandbyServiceUnits
+     * XPATH: /SAFplusAmf/safplusAmf/ServiceGroup/preferredNumStandbyServiceUnits
      */
     void ServiceGroup::setPreferredNumStandbyServiceUnits(::uint32_t preferredNumStandbyServiceUnitsValue, SAFplus::Transaction &t)
     {
@@ -227,7 +222,7 @@ namespace SAFplusAmf
     };
 
     /*
-     * XPATH: /SAFplusAmf/ServiceGroup/preferredNumIdleServiceUnits
+     * XPATH: /SAFplusAmf/safplusAmf/ServiceGroup/preferredNumIdleServiceUnits
      */
     ::uint32_t ServiceGroup::getPreferredNumIdleServiceUnits()
     {
@@ -235,7 +230,7 @@ namespace SAFplusAmf
     };
 
     /*
-     * XPATH: /SAFplusAmf/ServiceGroup/preferredNumIdleServiceUnits
+     * XPATH: /SAFplusAmf/safplusAmf/ServiceGroup/preferredNumIdleServiceUnits
      */
     void ServiceGroup::setPreferredNumIdleServiceUnits(::uint32_t preferredNumIdleServiceUnitsValue, SAFplus::Transaction &t)
     {
@@ -248,7 +243,7 @@ namespace SAFplusAmf
     };
 
     /*
-     * XPATH: /SAFplusAmf/ServiceGroup/maxActiveWorkAssignments
+     * XPATH: /SAFplusAmf/safplusAmf/ServiceGroup/maxActiveWorkAssignments
      */
     ::uint32_t ServiceGroup::getMaxActiveWorkAssignments()
     {
@@ -256,7 +251,7 @@ namespace SAFplusAmf
     };
 
     /*
-     * XPATH: /SAFplusAmf/ServiceGroup/maxActiveWorkAssignments
+     * XPATH: /SAFplusAmf/safplusAmf/ServiceGroup/maxActiveWorkAssignments
      */
     void ServiceGroup::setMaxActiveWorkAssignments(::uint32_t maxActiveWorkAssignmentsValue, SAFplus::Transaction &t)
     {
@@ -269,7 +264,7 @@ namespace SAFplusAmf
     };
 
     /*
-     * XPATH: /SAFplusAmf/ServiceGroup/maxStandbyWorkAssignments
+     * XPATH: /SAFplusAmf/safplusAmf/ServiceGroup/maxStandbyWorkAssignments
      */
     ::uint32_t ServiceGroup::getMaxStandbyWorkAssignments()
     {
@@ -277,7 +272,7 @@ namespace SAFplusAmf
     };
 
     /*
-     * XPATH: /SAFplusAmf/ServiceGroup/maxStandbyWorkAssignments
+     * XPATH: /SAFplusAmf/safplusAmf/ServiceGroup/maxStandbyWorkAssignments
      */
     void ServiceGroup::setMaxStandbyWorkAssignments(::uint32_t maxStandbyWorkAssignmentsValue, SAFplus::Transaction &t)
     {
@@ -290,60 +285,60 @@ namespace SAFplusAmf
     };
 
     /*
-     * XPATH: /SAFplusAmf/ServiceGroup/serviceUnits
+     * XPATH: /SAFplusAmf/safplusAmf/ServiceGroup/serviceUnits
      */
-    std::vector<SAFplusAmf::ServiceUnit*> ServiceGroup::getServiceUnits()
+    std::vector<::SAFplusAmf::ServiceUnit*> ServiceGroup::getServiceUnits()
     {
         return this->serviceUnits.value;
     };
 
     /*
-     * XPATH: /SAFplusAmf/ServiceGroup/serviceUnits
+     * XPATH: /SAFplusAmf/safplusAmf/ServiceGroup/serviceUnits
      */
-    void ServiceGroup::setServiceUnits(SAFplusAmf::ServiceUnit* serviceUnitsValue)
+    void ServiceGroup::setServiceUnits(::SAFplusAmf::ServiceUnit* serviceUnitsValue)
     {
         this->serviceUnits.value.push_back(serviceUnitsValue);
     };
 
     /*
-     * XPATH: /SAFplusAmf/ServiceGroup/serviceInstances
+     * XPATH: /SAFplusAmf/safplusAmf/ServiceGroup/serviceInstances
      */
-    std::vector<SAFplusAmf::ServiceInstance*> ServiceGroup::getServiceInstances()
+    std::vector<::SAFplusAmf::ServiceInstance*> ServiceGroup::getServiceInstances()
     {
         return this->serviceInstances.value;
     };
 
     /*
-     * XPATH: /SAFplusAmf/ServiceGroup/serviceInstances
+     * XPATH: /SAFplusAmf/safplusAmf/ServiceGroup/serviceInstances
      */
-    void ServiceGroup::setServiceInstances(SAFplusAmf::ServiceInstance* serviceInstancesValue)
+    void ServiceGroup::setServiceInstances(::SAFplusAmf::ServiceInstance* serviceInstancesValue)
     {
         this->serviceInstances.value.push_back(serviceInstancesValue);
     };
 
     /*
-     * XPATH: /SAFplusAmf/ServiceGroup/application
+     * XPATH: /SAFplusAmf/safplusAmf/ServiceGroup/application
      */
-    SAFplusAmf::Application* ServiceGroup::getApplication()
+    ::SAFplusAmf::Application* ServiceGroup::getApplication()
     {
         return this->application.value;
     };
 
     /*
-     * XPATH: /SAFplusAmf/ServiceGroup/application
+     * XPATH: /SAFplusAmf/safplusAmf/ServiceGroup/application
      */
-    void ServiceGroup::setApplication(SAFplusAmf::Application* applicationValue, SAFplus::Transaction &t)
+    void ServiceGroup::setApplication(::SAFplusAmf::Application* applicationValue, SAFplus::Transaction &t)
     {
         if(&t == &SAFplus::NO_TXN) this->application.value = applicationValue;
         else
         {
-            SAFplus::SimpleTxnOperation<SAFplusAmf::Application*> *opt = new SAFplus::SimpleTxnOperation<SAFplusAmf::Application*>(&(application.value),applicationValue);
+            SAFplus::SimpleTxnOperation<::SAFplusAmf::Application*> *opt = new SAFplus::SimpleTxnOperation<::SAFplusAmf::Application*>(&(application.value),applicationValue);
             t.addOperation(opt);
         }
     };
 
     /*
-     * XPATH: /SAFplusAmf/ServiceGroup/componentRestart
+     * XPATH: /SAFplusAmf/safplusAmf/ServiceGroup/componentRestart
      */
     SAFplusAmf::ComponentRestart* ServiceGroup::getComponentRestart()
     {
@@ -351,7 +346,7 @@ namespace SAFplusAmf
     };
 
     /*
-     * XPATH: /SAFplusAmf/ServiceGroup/componentRestart
+     * XPATH: /SAFplusAmf/safplusAmf/ServiceGroup/componentRestart
      */
     void ServiceGroup::addComponentRestart(SAFplusAmf::ComponentRestart *componentRestartValue)
     {
@@ -359,7 +354,7 @@ namespace SAFplusAmf
     };
 
     /*
-     * XPATH: /SAFplusAmf/ServiceGroup/serviceUnitRestart
+     * XPATH: /SAFplusAmf/safplusAmf/ServiceGroup/serviceUnitRestart
      */
     SAFplusAmf::ServiceUnitRestart* ServiceGroup::getServiceUnitRestart()
     {
@@ -367,7 +362,7 @@ namespace SAFplusAmf
     };
 
     /*
-     * XPATH: /SAFplusAmf/ServiceGroup/serviceUnitRestart
+     * XPATH: /SAFplusAmf/safplusAmf/ServiceGroup/serviceUnitRestart
      */
     void ServiceGroup::addServiceUnitRestart(SAFplusAmf::ServiceUnitRestart *serviceUnitRestartValue)
     {
@@ -375,49 +370,49 @@ namespace SAFplusAmf
     };
 
     /*
-     * XPATH: /SAFplusAmf/ServiceGroup/numAssignedServiceUnits
+     * XPATH: /SAFplusAmf/safplusAmf/ServiceGroup/numAssignedServiceUnits
      */
-    SAFplusAmf::NumAssignedServiceUnits* ServiceGroup::getNumAssignedServiceUnits()
+    SAFplus::MgtHistoryStat<int>* ServiceGroup::getNumAssignedServiceUnits()
     {
-        return dynamic_cast<NumAssignedServiceUnits*>(this->getChildObject("numAssignedServiceUnits"));
+        return dynamic_cast<SAFplus::MgtHistoryStat<int>*>(this->getChildObject("numAssignedServiceUnits"));
     };
 
     /*
-     * XPATH: /SAFplusAmf/ServiceGroup/numAssignedServiceUnits
+     * XPATH: /SAFplusAmf/safplusAmf/ServiceGroup/numAssignedServiceUnits
      */
-    void ServiceGroup::addNumAssignedServiceUnits(SAFplusAmf::NumAssignedServiceUnits *numAssignedServiceUnitsValue)
+    void ServiceGroup::addNumAssignedServiceUnits(SAFplus::MgtHistoryStat<int> *numAssignedServiceUnitsValue)
     {
         this->addChildObject(numAssignedServiceUnitsValue, "numAssignedServiceUnits");
     };
 
     /*
-     * XPATH: /SAFplusAmf/ServiceGroup/numIdleServiceUnits
+     * XPATH: /SAFplusAmf/safplusAmf/ServiceGroup/numIdleServiceUnits
      */
-    SAFplusAmf::NumIdleServiceUnits* ServiceGroup::getNumIdleServiceUnits()
+    SAFplus::MgtHistoryStat<int>* ServiceGroup::getNumIdleServiceUnits()
     {
-        return dynamic_cast<NumIdleServiceUnits*>(this->getChildObject("numIdleServiceUnits"));
+        return dynamic_cast<SAFplus::MgtHistoryStat<int>*>(this->getChildObject("numIdleServiceUnits"));
     };
 
     /*
-     * XPATH: /SAFplusAmf/ServiceGroup/numIdleServiceUnits
+     * XPATH: /SAFplusAmf/safplusAmf/ServiceGroup/numIdleServiceUnits
      */
-    void ServiceGroup::addNumIdleServiceUnits(SAFplusAmf::NumIdleServiceUnits *numIdleServiceUnitsValue)
+    void ServiceGroup::addNumIdleServiceUnits(SAFplus::MgtHistoryStat<int> *numIdleServiceUnitsValue)
     {
         this->addChildObject(numIdleServiceUnitsValue, "numIdleServiceUnits");
     };
 
     /*
-     * XPATH: /SAFplusAmf/ServiceGroup/numSpareServiceUnits
+     * XPATH: /SAFplusAmf/safplusAmf/ServiceGroup/numSpareServiceUnits
      */
-    SAFplusAmf::NumSpareServiceUnits* ServiceGroup::getNumSpareServiceUnits()
+    SAFplus::MgtHistoryStat<int>* ServiceGroup::getNumSpareServiceUnits()
     {
-        return dynamic_cast<NumSpareServiceUnits*>(this->getChildObject("numSpareServiceUnits"));
+        return dynamic_cast<SAFplus::MgtHistoryStat<int>*>(this->getChildObject("numSpareServiceUnits"));
     };
 
     /*
-     * XPATH: /SAFplusAmf/ServiceGroup/numSpareServiceUnits
+     * XPATH: /SAFplusAmf/safplusAmf/ServiceGroup/numSpareServiceUnits
      */
-    void ServiceGroup::addNumSpareServiceUnits(SAFplusAmf::NumSpareServiceUnits *numSpareServiceUnitsValue)
+    void ServiceGroup::addNumSpareServiceUnits(SAFplus::MgtHistoryStat<int> *numSpareServiceUnitsValue)
     {
         this->addChildObject(numSpareServiceUnitsValue, "numSpareServiceUnits");
     };
@@ -427,4 +422,4 @@ namespace SAFplusAmf
     };
 
 }
-/* namespace SAFplusAmf */
+/* namespace ::SAFplusAmf */

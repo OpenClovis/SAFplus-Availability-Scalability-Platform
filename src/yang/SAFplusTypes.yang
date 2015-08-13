@@ -20,7 +20,7 @@ module SAFplusTypes
     extension c-type
     {
       argument "declaration";
-      description "Override the normal type that would be generated with this type";
+      description "Override the normal name that would be generated with this name";
     }
 
     extension c-existing
@@ -238,7 +238,11 @@ module SAFplusTypes
     description "This structure models a physical sensor";
     leaf name { type string; }
     leaf desc { type string; }
-    container val { uses intStatistic; }
+    container val 
+      { 
+      uses intStatistic; 
+      SAFplusTypes:c-existing "SAFplus::MgtHistoryStat<int>";
+      }
   }
 
 

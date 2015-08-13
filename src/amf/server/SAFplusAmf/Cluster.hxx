@@ -14,8 +14,8 @@
 #include "clMgtProv.hxx"
 #include <vector>
 #include "MgtFactory.hxx"
-#include "AdministrativeState.hxx"
 #include "EntityId.hxx"
+#include "AdministrativeState.hxx"
 
 namespace SAFplusAmf
   {
@@ -30,7 +30,7 @@ namespace SAFplusAmf
         /*
          * Does the operator want this entity to be off, idle, or in service?
          */
-        SAFplus::MgtProv<SAFplusAmf::AdministrativeState> adminState;
+        SAFplus::MgtProv<::SAFplusAmf::AdministrativeState> adminState;
 
         /*
          * When the cluster is first started, no work will be assigned until either ALL configured service units are instantiated or this time duration elapses.  By giving every node a chance to come up fully, this ensures that initial work assignments are as close as possible to preferredwork assignments.
@@ -44,27 +44,27 @@ namespace SAFplusAmf
         std::vector<std::string>* getChildNames();
 
         /*
-         * XPATH: /SAFplusAmf/Cluster/adminState
+         * XPATH: /SAFplusAmf/safplusAmf/Cluster/adminState
          */
-        SAFplusAmf::AdministrativeState getAdminState();
+        ::SAFplusAmf::AdministrativeState getAdminState();
 
         /*
-         * XPATH: /SAFplusAmf/Cluster/adminState
+         * XPATH: /SAFplusAmf/safplusAmf/Cluster/adminState
          */
-        void setAdminState(SAFplusAmf::AdministrativeState &adminStateValue, SAFplus::Transaction &t=SAFplus::NO_TXN);
+        void setAdminState(::SAFplusAmf::AdministrativeState &adminStateValue, SAFplus::Transaction &t=SAFplus::NO_TXN);
 
         /*
-         * XPATH: /SAFplusAmf/Cluster/startupAssignmentDelay
+         * XPATH: /SAFplusAmf/safplusAmf/Cluster/startupAssignmentDelay
          */
         SaTimeT getStartupAssignmentDelay();
 
         /*
-         * XPATH: /SAFplusAmf/Cluster/startupAssignmentDelay
+         * XPATH: /SAFplusAmf/safplusAmf/Cluster/startupAssignmentDelay
          */
         void setStartupAssignmentDelay(SaTimeT &startupAssignmentDelayValue, SAFplus::Transaction &t=SAFplus::NO_TXN);
         ~Cluster();
 
     };
 }
-/* namespace SAFplusAmf */
+/* namespace ::SAFplusAmf */
 #endif /* CLUSTER_HXX_ */

@@ -31,5 +31,5 @@ namespace SAFplusAmf
 
     };
 }
-/* namespace SAFplusAmf */
+/* namespace ::SAFplusAmf */
 #endif /* STANDBYWEIGHT_HXX_ */

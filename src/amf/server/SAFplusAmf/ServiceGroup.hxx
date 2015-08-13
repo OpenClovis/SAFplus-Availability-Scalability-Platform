@@ -11,25 +11,19 @@
 
 #include "clMgtIdentifier.hxx"
 #include "clTransaction.hxx"
-#include "clMgtIdentifierList.hxx"
+#include "ComponentRestart.hxx"
 #include "MgtFactory.hxx"
-#include "NumSpareServiceUnits.hxx"
 #include "ServiceUnitRestart.hxx"
 #include "AdministrativeState.hxx"
 #include <string>
 #include "ComponentRestart.hxx"
-#include "NumIdleServiceUnits.hxx"
 #include "clMgtProv.hxx"
 #include "Application.hxx"
 #include "ServiceInstance.hxx"
-#include "ComponentRestart.hxx"
-#include "NumIdleServiceUnits.hxx"
+#include "clMgtIdentifierList.hxx"
 #include "ServiceUnitRestart.hxx"
 #include <vector>
-#include "NumAssignedServiceUnits.hxx"
 #include <cstdint>
-#include "NumSpareServiceUnits.hxx"
-#include "NumAssignedServiceUnits.hxx"
 #include "EntityId.hxx"
 #include "ServiceUnit.hxx"
 
@@ -46,7 +40,7 @@ namespace SAFplusAmf
         /*
          * Does the operator want this entity to be off, idle, or in service?
          */
-        SAFplus::MgtProv<SAFplusAmf::AdministrativeState> adminState;
+        SAFplus::MgtProv<::SAFplusAmf::AdministrativeState> adminState;
 
         /*
          * Automatically attempt to bring this entity back into a healthy state if its operational state becomes disabled.  A 'false' value will cause the system to wait for operator intervention (via the repair API) before attempting to restart this entity.
@@ -91,18 +85,18 @@ namespace SAFplusAmf
         /*
          * Service Units in this Service Group
          */
-        SAFplus::MgtIdentifierList<SAFplusAmf::ServiceUnit*> serviceUnits;
+        SAFplus::MgtIdentifierList<::SAFplusAmf::ServiceUnit*> serviceUnits;
 
         /*
          * Service Instances (work) in this Service group
          */
-        SAFplus::MgtIdentifierList<SAFplusAmf::ServiceInstance*> serviceInstances;
-        SAFplus::MgtIdentifier<SAFplusAmf::Application*> application;
+        SAFplus::MgtIdentifierList<::SAFplusAmf::ServiceInstance*> serviceInstances;
+        SAFplus::MgtIdentifier<::SAFplusAmf::Application*> application;
         SAFplusAmf::ComponentRestart componentRestart;
         SAFplusAmf::ServiceUnitRestart serviceUnitRestart;
-        SAFplusAmf::NumAssignedServiceUnits numAssignedServiceUnits;
-        SAFplusAmf::NumIdleServiceUnits numIdleServiceUnits;
-        SAFplusAmf::NumSpareServiceUnits numSpareServiceUnits;
+        SAFplus::MgtHistoryStat<int> numAssignedServiceUnits;
+        SAFplus::MgtHistoryStat<int> numIdleServiceUnits;
+        SAFplus::MgtHistoryStat<int> numSpareServiceUnits;
 
     public:
         ServiceGroup();
@@ -111,177 +105,177 @@ namespace SAFplusAmf
         std::vector<std::string>* getChildNames();
 
         /*
-         * XPATH: /SAFplusAmf/ServiceGroup/adminState
+         * XPATH: /SAFplusAmf/safplusAmf/ServiceGroup/adminState
          */
-        SAFplusAmf::AdministrativeState getAdminState();
+        ::SAFplusAmf::AdministrativeState getAdminState();
 
         /*
-         * XPATH: /SAFplusAmf/ServiceGroup/adminState
+         * XPATH: /SAFplusAmf/safplusAmf/ServiceGroup/adminState
          */
-        void setAdminState(SAFplusAmf::AdministrativeState &adminStateValue, SAFplus::Transaction &t=SAFplus::NO_TXN);
+        void setAdminState(::SAFplusAmf::AdministrativeState &adminStateValue, SAFplus::Transaction &t=SAFplus::NO_TXN);
 
         /*
-         * XPATH: /SAFplusAmf/ServiceGroup/autoRepair
+         * XPATH: /SAFplusAmf/safplusAmf/ServiceGroup/autoRepair
          */
         bool getAutoRepair();
 
         /*
-         * XPATH: /SAFplusAmf/ServiceGroup/autoRepair
+         * XPATH: /SAFplusAmf/safplusAmf/ServiceGroup/autoRepair
          */
         void setAutoRepair(bool autoRepairValue, SAFplus::Transaction &t=SAFplus::NO_TXN);
 
         /*
-         * XPATH: /SAFplusAmf/ServiceGroup/autoAdjust
+         * XPATH: /SAFplusAmf/safplusAmf/ServiceGroup/autoAdjust
          */
         bool getAutoAdjust();
 
         /*
-         * XPATH: /SAFplusAmf/ServiceGroup/autoAdjust
+         * XPATH: /SAFplusAmf/safplusAmf/ServiceGroup/autoAdjust
          */
         void setAutoAdjust(bool autoAdjustValue, SAFplus::Transaction &t=SAFplus::NO_TXN);
 
         /*
-         * XPATH: /SAFplusAmf/ServiceGroup/autoAdjustInterval
+         * XPATH: /SAFplusAmf/safplusAmf/ServiceGroup/autoAdjustInterval
          */
         SaTimeT getAutoAdjustInterval();
 
         /*
-         * XPATH: /SAFplusAmf/ServiceGroup/autoAdjustInterval
+         * XPATH: /SAFplusAmf/safplusAmf/ServiceGroup/autoAdjustInterval
          */
         void setAutoAdjustInterval(SaTimeT &autoAdjustIntervalValue, SAFplus::Transaction &t=SAFplus::NO_TXN);
 
         /*
-         * XPATH: /SAFplusAmf/ServiceGroup/preferredNumActiveServiceUnits
+         * XPATH: /SAFplusAmf/safplusAmf/ServiceGroup/preferredNumActiveServiceUnits
          */
         ::uint32_t getPreferredNumActiveServiceUnits();
 
         /*
-         * XPATH: /SAFplusAmf/ServiceGroup/preferredNumActiveServiceUnits
+         * XPATH: /SAFplusAmf/safplusAmf/ServiceGroup/preferredNumActiveServiceUnits
          */
         void setPreferredNumActiveServiceUnits(::uint32_t preferredNumActiveServiceUnitsValue, SAFplus::Transaction &t=SAFplus::NO_TXN);
 
         /*
-         * XPATH: /SAFplusAmf/ServiceGroup/preferredNumStandbyServiceUnits
+         * XPATH: /SAFplusAmf/safplusAmf/ServiceGroup/preferredNumStandbyServiceUnits
          */
         ::uint32_t getPreferredNumStandbyServiceUnits();
 
         /*
-         * XPATH: /SAFplusAmf/ServiceGroup/preferredNumStandbyServiceUnits
+         * XPATH: /SAFplusAmf/safplusAmf/ServiceGroup/preferredNumStandbyServiceUnits
          */
         void setPreferredNumStandbyServiceUnits(::uint32_t preferredNumStandbyServiceUnitsValue, SAFplus::Transaction &t=SAFplus::NO_TXN);
 
         /*
-         * XPATH: /SAFplusAmf/ServiceGroup/preferredNumIdleServiceUnits
+         * XPATH: /SAFplusAmf/safplusAmf/ServiceGroup/preferredNumIdleServiceUnits
          */
         ::uint32_t getPreferredNumIdleServiceUnits();
 
         /*
-         * XPATH: /SAFplusAmf/ServiceGroup/preferredNumIdleServiceUnits
+         * XPATH: /SAFplusAmf/safplusAmf/ServiceGroup/preferredNumIdleServiceUnits
          */
         void setPreferredNumIdleServiceUnits(::uint32_t preferredNumIdleServiceUnitsValue, SAFplus::Transaction &t=SAFplus::NO_TXN);
 
         /*
-         * XPATH: /SAFplusAmf/ServiceGroup/maxActiveWorkAssignments
+         * XPATH: /SAFplusAmf/safplusAmf/ServiceGroup/maxActiveWorkAssignments
          */
         ::uint32_t getMaxActiveWorkAssignments();
 
         /*
-         * XPATH: /SAFplusAmf/ServiceGroup/maxActiveWorkAssignments
+         * XPATH: /SAFplusAmf/safplusAmf/ServiceGroup/maxActiveWorkAssignments
          */
         void setMaxActiveWorkAssignments(::uint32_t maxActiveWorkAssignmentsValue, SAFplus::Transaction &t=SAFplus::NO_TXN);
 
         /*
-         * XPATH: /SAFplusAmf/ServiceGroup/maxStandbyWorkAssignments
+         * XPATH: /SAFplusAmf/safplusAmf/ServiceGroup/maxStandbyWorkAssignments
          */
         ::uint32_t getMaxStandbyWorkAssignments();
 
         /*
-         * XPATH: /SAFplusAmf/ServiceGroup/maxStandbyWorkAssignments
+         * XPATH: /SAFplusAmf/safplusAmf/ServiceGroup/maxStandbyWorkAssignments
          */
         void setMaxStandbyWorkAssignments(::uint32_t maxStandbyWorkAssignmentsValue, SAFplus::Transaction &t=SAFplus::NO_TXN);
 
         /*
-         * XPATH: /SAFplusAmf/ServiceGroup/serviceUnits
+         * XPATH: /SAFplusAmf/safplusAmf/ServiceGroup/serviceUnits
          */
-        std::vector<SAFplusAmf::ServiceUnit*> getServiceUnits();
+        std::vector<::SAFplusAmf::ServiceUnit*> getServiceUnits();
 
         /*
-         * XPATH: /SAFplusAmf/ServiceGroup/serviceUnits
+         * XPATH: /SAFplusAmf/safplusAmf/ServiceGroup/serviceUnits
          */
-        void setServiceUnits(SAFplusAmf::ServiceUnit* serviceUnitsValue);
+        void setServiceUnits(::SAFplusAmf::ServiceUnit* serviceUnitsValue);
 
         /*
-         * XPATH: /SAFplusAmf/ServiceGroup/serviceInstances
+         * XPATH: /SAFplusAmf/safplusAmf/ServiceGroup/serviceInstances
          */
-        std::vector<SAFplusAmf::ServiceInstance*> getServiceInstances();
+        std::vector<::SAFplusAmf::ServiceInstance*> getServiceInstances();
 
         /*
-         * XPATH: /SAFplusAmf/ServiceGroup/serviceInstances
+         * XPATH: /SAFplusAmf/safplusAmf/ServiceGroup/serviceInstances
          */
-        void setServiceInstances(SAFplusAmf::ServiceInstance* serviceInstancesValue);
+        void setServiceInstances(::SAFplusAmf::ServiceInstance* serviceInstancesValue);
 
         /*
-         * XPATH: /SAFplusAmf/ServiceGroup/application
+         * XPATH: /SAFplusAmf/safplusAmf/ServiceGroup/application
          */
-        SAFplusAmf::Application* getApplication();
+        ::SAFplusAmf::Application* getApplication();
 
         /*
-         * XPATH: /SAFplusAmf/ServiceGroup/application
+         * XPATH: /SAFplusAmf/safplusAmf/ServiceGroup/application
          */
-        void setApplication(SAFplusAmf::Application* applicationValue, SAFplus::Transaction &t=SAFplus::NO_TXN);
+        void setApplication(::SAFplusAmf::Application* applicationValue, SAFplus::Transaction &t=SAFplus::NO_TXN);
 
         /*
-         * XPATH: /SAFplusAmf/ServiceGroup/componentRestart
+         * XPATH: /SAFplusAmf/safplusAmf/ServiceGroup/componentRestart
          */
         SAFplusAmf::ComponentRestart* getComponentRestart();
 
         /*
-         * XPATH: /SAFplusAmf/ServiceGroup/componentRestart
+         * XPATH: /SAFplusAmf/safplusAmf/ServiceGroup/componentRestart
          */
         void addComponentRestart(SAFplusAmf::ComponentRestart *componentRestartValue);
 
         /*
-         * XPATH: /SAFplusAmf/ServiceGroup/serviceUnitRestart
+         * XPATH: /SAFplusAmf/safplusAmf/ServiceGroup/serviceUnitRestart
          */
         SAFplusAmf::ServiceUnitRestart* getServiceUnitRestart();
 
         /*
-         * XPATH: /SAFplusAmf/ServiceGroup/serviceUnitRestart
+         * XPATH: /SAFplusAmf/safplusAmf/ServiceGroup/serviceUnitRestart
          */
         void addServiceUnitRestart(SAFplusAmf::ServiceUnitRestart *serviceUnitRestartValue);
 
         /*
-         * XPATH: /SAFplusAmf/ServiceGroup/numAssignedServiceUnits
+         * XPATH: /SAFplusAmf/safplusAmf/ServiceGroup/numAssignedServiceUnits
          */
-        SAFplusAmf::NumAssignedServiceUnits* getNumAssignedServiceUnits();
+        SAFplus::MgtHistoryStat<int>* getNumAssignedServiceUnits();
 
         /*
-         * XPATH: /SAFplusAmf/ServiceGroup/numAssignedServiceUnits
+         * XPATH: /SAFplusAmf/safplusAmf/ServiceGroup/numAssignedServiceUnits
          */
-        void addNumAssignedServiceUnits(SAFplusAmf::NumAssignedServiceUnits *numAssignedServiceUnitsValue);
+        void addNumAssignedServiceUnits(SAFplus::MgtHistoryStat<int> *numAssignedServiceUnitsValue);
 
         /*
-         * XPATH: /SAFplusAmf/ServiceGroup/numIdleServiceUnits
+         * XPATH: /SAFplusAmf/safplusAmf/ServiceGroup/numIdleServiceUnits
          */
-        SAFplusAmf::NumIdleServiceUnits* getNumIdleServiceUnits();
+        SAFplus::MgtHistoryStat<int>* getNumIdleServiceUnits();
 
         /*
-         * XPATH: /SAFplusAmf/ServiceGroup/numIdleServiceUnits
+         * XPATH: /SAFplusAmf/safplusAmf/ServiceGroup/numIdleServiceUnits
          */
-        void addNumIdleServiceUnits(SAFplusAmf::NumIdleServiceUnits *numIdleServiceUnitsValue);
+        void addNumIdleServiceUnits(SAFplus::MgtHistoryStat<int> *numIdleServiceUnitsValue);
 
         /*
-         * XPATH: /SAFplusAmf/ServiceGroup/numSpareServiceUnits
+         * XPATH: /SAFplusAmf/safplusAmf/ServiceGroup/numSpareServiceUnits
          */
-        SAFplusAmf::NumSpareServiceUnits* getNumSpareServiceUnits();
+        SAFplus::MgtHistoryStat<int>* getNumSpareServiceUnits();
 
         /*
-         * XPATH: /SAFplusAmf/ServiceGroup/numSpareServiceUnits
+         * XPATH: /SAFplusAmf/safplusAmf/ServiceGroup/numSpareServiceUnits
          */
-        void addNumSpareServiceUnits(SAFplusAmf::NumSpareServiceUnits *numSpareServiceUnitsValue);
+        void addNumSpareServiceUnits(SAFplus::MgtHistoryStat<int> *numSpareServiceUnitsValue);
         ~ServiceGroup();
 
     };
 }
-/* namespace SAFplusAmf */
+/* namespace ::SAFplusAmf */
 #endif /* SERVICEGROUP_HXX_ */

@@ -58,5 +58,5 @@ namespace SAFplusAmf
 
     };
 }
-/* namespace SAFplusAmf */
+/* namespace ::SAFplusAmf */
 #endif /* ESCALATIONPOLICY_HXX_ */

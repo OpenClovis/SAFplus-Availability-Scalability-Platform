@@ -1,6 +1,6 @@
 //  To generate code use: /code/git/mgt/3rdparty/pyang/bin/pyang --path=`pwd` -f y2cpp /code/git/SAFplus7/src/SAFplus/yang/SAFplusAmf.yang --y2cpp-output ~/tmp/ --y2cpp-mgt /code/git/mgt
 
-module SAFplusAmf 
+module SAFplusAmf
   {
 
   namespace "http://www.openclovis.org/ns/amf";
@@ -188,6 +188,8 @@ point.  The operational, administrative, and presence states of a service unit, 
       }
     }
   
+  container safplusAmf
+    {
     // done
     list Cluster
     {
@@ -221,9 +223,11 @@ point.  The operational, administrative, and presence states of a service unit, 
 
       container stats
         {
+        SAFplusTypes:c-type "NodeStats";
         description "Statistics on this node";
         container load
           {
+          SAFplusTypes:c-type "NodeLoad";
           container user       
             {
             description "Percentage of CPU time spent in user mode";
@@ -366,7 +370,7 @@ point.  The operational, administrative, and presence states of a service unit, 
 
     leaf-list serviceUnits
       {
-       SAFplusTypes:c-type "SAFplusAmf::ServiceUnit*";
+       SAFplusTypes:c-type "::SAFplusAmf::ServiceUnit*";
        type instance-identifier;
        description "Service Units configured to be instantiated on this node.";
        SAFplusTypes:instance-type "ServiceUnit";
@@ -473,18 +477,21 @@ point.  The operational, administrative, and presence states of a service unit, 
       
       container numAssignedServiceUnits
       {
+        SAFplusTypes:c-existing "SAFplus::MgtHistoryStat<int>";
 	SAFplusTypes:alias saAmfSGNumCurrAssignedSUs;
 	uses SAFplusTypes:intStatistic;
         config false;
       }
       container numIdleServiceUnits
       {
+        SAFplusTypes:c-existing "SAFplus::MgtHistoryStat<int>";
 	SAFplusTypes:alias saAmfSGNumCurrInstantiatedSpareSUs;
 	uses SAFplusTypes:intStatistic;
         config false;	
       }	
       container numSpareServiceUnits
       {
+        SAFplusTypes:c-existing "SAFplus::MgtHistoryStat<int>";
 	SAFplusTypes:alias saAmfSGNumCurrNonInstantiatedSpareSUs;
 	uses SAFplusTypes:intStatistic;
         config false;	
@@ -492,7 +499,7 @@ point.  The operational, administrative, and presence states of a service unit, 
 
      leaf-list serviceUnits
       {
-       SAFplusTypes:c-type "SAFplusAmf::ServiceUnit*";
+       SAFplusTypes:c-type "::SAFplusAmf::ServiceUnit*";
        type instance-identifier;
        description "Service Units in this Service Group";
        SAFplusTypes:ui-contained 1;  // Service unit can only be in one service group
@@ -500,7 +507,7 @@ point.  The operational, administrative, and presence states of a service unit, 
       }
      leaf-list serviceInstances
       {
-       SAFplusTypes:c-type "SAFplusAmf::ServiceInstance*";
+       SAFplusTypes:c-type "::SAFplusAmf::ServiceInstance*";
        type instance-identifier;
        description "Service Instances (work) in this Service group";
        SAFplusTypes:ui-contained 1;  // Service instance can only be in one service group
@@ -512,7 +519,7 @@ point.  The operational, administrative, and presence states of a service unit, 
      leaf application
      {
         type instance-identifier;
-        SAFplusTypes:c-type "Application*";
+        SAFplusTypes:c-type "::SAFplusAmf::Application*";
         SAFplusTypes:ui-container 1;
         SAFplusTypes:instance-type "Application";
      }
@@ -604,6 +611,7 @@ point.  The operational, administrative, and presence states of a service unit, 
       container activeAssignments
       {
 	SAFplusTypes:alias saAmfCompNumCurrActiveCSIs;
+        SAFplusTypes:c-existing "SAFplus::MgtHistoryStat<int>";
 	uses SAFplusTypes:intStatistic;
 	description "Current number of active work assignments this component is handling.";
         config false;
@@ -611,6 +619,7 @@ point.  The operational, administrative, and presence states of a service unit, 
       container standbyAssignments
       {
 	SAFplusTypes:alias saAmfCompNumCurrStandbyCSIs;
+        SAFplusTypes:c-existing "SAFplus::MgtHistoryStat<int>";
 	uses SAFplusTypes:intStatistic;
 	description "Current number of standby work assignments this component is handling.";
         config false;
@@ -843,6 +852,7 @@ are switched over to other nodes (component service instances are not abruptly r
      container restartCount
       {
 	SAFplusTypes:alias saAmfCompRestartCount;
+        SAFplusTypes:c-existing "SAFplus::MgtHistoryStat<int>";
 	uses SAFplusTypes:intStatistic;
         config false;
       }
@@ -940,7 +950,7 @@ are switched over to other nodes (component service instances are not abruptly r
 	SAFplusTypes:alias saAmfCSIDependencies;
 	description "";
         type instance-identifier;
-        SAFplusTypes:c-type "SAFplusAmf::ComponentServiceInstance*";
+        SAFplusTypes:c-type "::SAFplusAmf::ComponentServiceInstance*";
       }
 
       list data
@@ -970,14 +980,14 @@ are switched over to other nodes (component service instances are not abruptly r
      {
         description "This work is assigned standby to these components";
         type instance-identifier;
-        SAFplusTypes:c-type "SAFplusAmf::Component*";
+        SAFplusTypes:c-type "::SAFplusAmf::Component*";
         config false;  // The component handling this work is assigned at run time by the AMF
      }
 
      leaf-list activeComponents
       {
         description "This work is assigned active to these components";
-        SAFplusTypes:c-type "SAFplusAmf::Component*";
+        SAFplusTypes:c-type "::SAFplusAmf::Component*";
         type instance-identifier;
         config false;  // The component handling this work is assigned at run time by the AMF
       }
@@ -1054,7 +1064,7 @@ are switched over to other nodes (component service instances are not abruptly r
       leaf-list activeAssignments
       {
         description "This work is assigned active to these service units.  Depending on the redundancy model, it ";
-        SAFplusTypes:c-type "SAFplusAmf::ServiceUnit*";
+        SAFplusTypes:c-type "::SAFplusAmf::ServiceUnit*";
         type instance-identifier;
         config false;  // The component handling this work is assigned at run time by the AMF
       }
@@ -1062,7 +1072,7 @@ are switched over to other nodes (component service instances are not abruptly r
       leaf-list standbyAssignments
       {
         description "This work is assigned active to these service units";
-        SAFplusTypes:c-type "SAFplusAmf::ServiceUnit*";
+        SAFplusTypes:c-type "::SAFplusAmf::ServiceUnit*";
         type instance-identifier;
         config false;  // The component handling this work is assigned at run time by the AMF
       }
@@ -1072,6 +1082,7 @@ are switched over to other nodes (component service instances are not abruptly r
       container numActiveAssignments
       {
 	SAFplusTypes:alias saAmfSINumCurrActiveAssignments;
+        SAFplusTypes:c-existing "SAFplus::MgtHistoryStat<int>";
 	uses SAFplusTypes:intStatistic;
 	description "Number of active assignments.  Pending assignments are counted.";
         config false;
@@ -1079,6 +1090,7 @@ are switched over to other nodes (component service instances are not abruptly r
       container numStandbyAssignments
       {
 	SAFplusTypes:alias saAmfSINumCurrStandbyAssignments;
+        SAFplusTypes:c-existing "SAFplus::MgtHistoryStat<int>";
 	uses SAFplusTypes:intStatistic;
 	description "Number of standby assignments.  Pending assignments are counted.";
         config false;
@@ -1086,7 +1098,7 @@ are switched over to other nodes (component service instances are not abruptly r
 
      leaf-list componentServiceInstances
       {
-       SAFplusTypes:c-type "SAFplusAmf::ComponentServiceInstance*";
+       SAFplusTypes:c-type "::SAFplusAmf::ComponentServiceInstance*";
        type instance-identifier;
        description "Component Service Instances in this Service group";
       }
@@ -1194,12 +1206,14 @@ are switched over to other nodes (component service instances are not abruptly r
      container numActiveServiceInstances
       {
 	SAFplusTypes:alias saAmfSUNumCurrActiveSIs;
+        SAFplusTypes:c-existing "SAFplus::MgtHistoryStat<int>";
 	uses SAFplusTypes:intStatistic;
         config false;
       }
      container numStandbyServiceInstances
       {
 	SAFplusTypes:alias saAmfSUNumCurrStandbySIs;
+        SAFplusTypes:c-existing "SAFplus::MgtHistoryStat<int>";
 	uses SAFplusTypes:intStatistic;
         config false;
       }
@@ -1207,6 +1221,7 @@ are switched over to other nodes (component service instances are not abruptly r
      container restartCount
       {
 	SAFplusTypes:alias saAmfSURestartCount;
+        SAFplusTypes:c-existing "SAFplus::MgtHistoryStat<int>";
 	uses SAFplusTypes:intStatistic;
         config false;
       }
@@ -1271,6 +1286,7 @@ are switched over to other nodes (component service instances are not abruptly r
       
       container numServiceGroups  // Note, defined but never described in AMF spec
       {
+        SAFplusTypes:c-existing "SAFplus::MgtHistoryStat<int>";   // TODO: look for c-existing in the "uses" if there is nothing else defined in the container
 	SAFplusTypes:alias saAmfApplicationCurrNumSGs;
 	uses SAFplusTypes:intStatistic;
         config false;
@@ -1278,7 +1294,7 @@ are switched over to other nodes (component service instances are not abruptly r
 
       leaf-list serviceGroups
       {
-       SAFplusTypes:c-type "SAFplusAmf::ServiceGroup*";
+       SAFplusTypes:c-type "::SAFplusAmf::ServiceGroup*";
        type instance-identifier;
        description "Service Groups in this Application";
        SAFplusTypes:ui-contained 1;
@@ -1340,5 +1356,6 @@ are switched over to other nodes (component service instances are not abruptly r
       SAFplusTypes:ui-prompt "Max health check response time";   
       default 0; // disabled
     }
-
   }
+ 
+ }

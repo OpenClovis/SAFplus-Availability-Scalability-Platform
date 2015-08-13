@@ -3,7 +3,7 @@
 #include <clAmfApi.hxx>
 #include <vector>
 
-#include <SAFplusAmf.hxx>
+#include <SAFplusAmfModule.hxx>
 #include <ServiceGroup.hxx>
 
 using namespace std;
@@ -18,8 +18,8 @@ namespace SAFplus
   public:
     CustomPolicy();
     ~CustomPolicy();
-    virtual void activeAudit(SAFplusAmf::SAFplusAmfRoot* root);
-    virtual void standbyAudit(SAFplusAmf::SAFplusAmfRoot* root);
+    virtual void activeAudit(SAFplusAmf::SAFplusAmfModule* root);
+    virtual void standbyAudit(SAFplusAmf::SAFplusAmfModule* root);
     
     };
 
@@ -31,15 +31,15 @@ namespace SAFplus
     {
     }
  
-  void CustomPolicy::activeAudit(SAFplusAmf::SAFplusAmfRoot* root)
+  void CustomPolicy::activeAudit(SAFplusAmf::SAFplusAmfModule* root)
     {
     logInfo("POL","CUSTOM","Active audit");
     assert(root);
-    SAFplusAmfRoot* cfg = (SAFplusAmfRoot*) root;
+    SAFplusAmfModule* cfg = (SAFplusAmfModule*) root;
 
     MgtObject::Iterator it;
 
-    for (it = cfg->serviceGroupList.begin();it !=cfg->serviceGroupList.end(); it++)
+    for (it = cfg->safplusAmf.serviceGroupList.begin();it !=cfg->safplusAmf.serviceGroupList.end(); it++)
       {
       ServiceGroup* sg = dynamic_cast<ServiceGroup*> (it->second);
       const std::string& name = sg->name;
@@ -49,7 +49,7 @@ namespace SAFplus
       }
     }
   
-  void CustomPolicy::standbyAudit(SAFplusAmfRoot* root)
+  void CustomPolicy::standbyAudit(SAFplusAmfModule* root)
     {
     logInfo("POL","CUSTOM","Standby audit");
     }

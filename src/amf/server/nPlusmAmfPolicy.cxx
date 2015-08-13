@@ -8,7 +8,7 @@
 #include <vector>
 #include <boost/range/algorithm.hpp>
 
-#include <SAFplusAmf.hxx>
+#include <SAFplusAmfModule.hxx>
 #include <ServiceGroup.hxx>
 
 using namespace std;
@@ -25,12 +25,12 @@ namespace SAFplus
   public:
     NplusMPolicy();
     ~NplusMPolicy();
-    virtual void activeAudit(SAFplusAmf::SAFplusAmfRoot* root);
-    virtual void standbyAudit(SAFplusAmf::SAFplusAmfRoot* root);
+    virtual void activeAudit(SAFplusAmf::SAFplusAmfModule* root);
+    virtual void standbyAudit(SAFplusAmf::SAFplusAmfModule* root);
 
   protected:
-    void auditOperation(SAFplusAmf::SAFplusAmfRoot* root);
-    void auditDiscovery(SAFplusAmf::SAFplusAmfRoot* root);
+    void auditOperation(SAFplusAmf::SAFplusAmfModule* root);
+    void auditDiscovery(SAFplusAmf::SAFplusAmfModule* root);
     };
 
   class ServiceGroupPolicyExecution: public Poolable
@@ -182,11 +182,11 @@ namespace SAFplus
     }
 
 #if 0 
-  void NplusMPolicy::activeAudit(SAFplusAmf::SAFplusAmfRoot* root)
+  void NplusMPolicy::activeAudit(SAFplusAmf::SAFplusAmfModule* root)
     {
     logInfo("POL","N+M","Active audit");
     assert(root);
-    SAFplusAmfRoot* cfg = (SAFplusAmfRoot*) root;
+    SAFplusAmfModule* cfg = (SAFplusAmfModule*) root;
 
     MgtObject::Iterator it;
 
@@ -233,7 +233,7 @@ namespace SAFplus
           || (p == SAFplusAmf::PresenceState::terminationFailed));
   }
 
-  void NplusMPolicy::activeAudit(SAFplusAmf::SAFplusAmfRoot* root)
+  void NplusMPolicy::activeAudit(SAFplusAmf::SAFplusAmfModule* root)
     {
     auditDiscovery(root);
     auditOperation(root);
@@ -331,15 +331,15 @@ namespace SAFplus
 
 
   // Second step in the audit is to do something to heal any discrepencies.
-  void NplusMPolicy::auditOperation(SAFplusAmf::SAFplusAmfRoot* root)
+  void NplusMPolicy::auditOperation(SAFplusAmf::SAFplusAmfModule* root)
     {
     bool startSg;
     logInfo("POL","N+M","Active audit: Operation phase");
     assert(root);
-    SAFplusAmfRoot* cfg = (SAFplusAmfRoot*) root;
+    SAFplusAmfModule* cfg = (SAFplusAmfModule*) root;
 
     MgtObject::Iterator it;
-    for (it = cfg->serviceGroupList.begin();it != cfg->serviceGroupList.end(); it++)
+    for (it = cfg->safplusAmf.serviceGroupList.begin();it != cfg->safplusAmf.serviceGroupList.end(); it++)
       {
       startSg=false;
       ServiceGroup* sg = dynamic_cast<ServiceGroup*> (it->second);
@@ -454,7 +454,7 @@ namespace SAFplus
           // We want to assign but for some reason it is not.
           if ((eas == AdministrativeState::on) && (si->assignmentState != AssignmentState::fullyAssigned))
             {
-              logInfo("N+M","AUDIT","Service Instance [%s] should be fully assigned but is [%s]. Current active assignments [%ld], targeting [%d]", si->name.value.c_str(),c_str(si->assignmentState),si->getNumActiveAssignments()->current.value, si->preferredActiveAssignments.value);
+              logInfo("N+M","AUDIT","Service Instance [%s] should be fully assigned but is [%s]. Current active assignments [%d], targeting [%d]", si->name.value.c_str(),c_str(si->assignmentState),(int) si->getNumActiveAssignments()->current.value,(int) si->preferredActiveAssignments.value);
 
             if (1)
               {
@@ -506,7 +506,7 @@ namespace SAFplus
             }
           else
             {
-            logInfo("N+M","AUDIT","Service Instance [%s]: admin state [%s]. assignment state [%s].  Assignments: active [%ld] standby [%ld]. ", si->name.value.c_str(),c_str(si->adminState.value), c_str(si->assignmentState), si->getNumActiveAssignments()->current.value,si->getNumStandbyAssignments()->current.value  );
+              logInfo("N+M","AUDIT","Service Instance [%s]: admin state [%s]. assignment state [%s].  Assignments: active [%d] standby [%d]. ", si->name.value.c_str(),c_str(si->adminState.value), c_str(si->assignmentState),(int)si->getNumActiveAssignments()->current.value,(int) si->getNumStandbyAssignments()->current.value  );
             }
 
           }
@@ -601,8 +601,8 @@ namespace SAFplus
 
       // Reset component's basic state to dead
     comp->presenceState = PresenceState::uninstantiated;
-    comp->activeAssignments.current = 0;
-    comp->standbyAssignments.current = 0;
+    comp->activeAssignments = 0;
+    comp->standbyAssignments = 0;
     comp->setAssignedWork("");
     comp->readinessState = ReadinessState::outOfService;
     // right now, only the customer changes this; with presence uninstantiated, this comp obviously can't take an assignment: comp->haReadinessState = HighAvailabilityReadinessState::notReadyForAssignment;
@@ -658,14 +658,14 @@ namespace SAFplus
     }
 
   // First step in the audit is to update the current state of every entity to match the reality.
-  void NplusMPolicy::auditDiscovery(SAFplusAmf::SAFplusAmfRoot* root)
+  void NplusMPolicy::auditDiscovery(SAFplusAmf::SAFplusAmfModule* root)
     {
     logInfo("POL","N+M","Active audit: Discovery phase");
     assert(root);
-    SAFplusAmfRoot* cfg = (SAFplusAmfRoot*) root;
+    SAFplusAmfModule* cfg = (SAFplusAmfModule*) root;
 
     MgtObject::Iterator it;
-    for (it = cfg->serviceGroupList.begin();it != cfg->serviceGroupList.end(); it++)
+    for (it = cfg->safplusAmf.serviceGroupList.begin();it != cfg->safplusAmf.serviceGroupList.end(); it++)
       {
       ServiceGroup* sg = dynamic_cast<ServiceGroup*> (it->second);
       const std::string& name = sg->name;
@@ -946,7 +946,7 @@ namespace SAFplus
 
     }
 
-  void NplusMPolicy::standbyAudit(SAFplusAmf::SAFplusAmfRoot* root)
+  void NplusMPolicy::standbyAudit(SAFplusAmf::SAFplusAmfModule* root)
     {
     logInfo("POL","CUSTOM","Standby audit");
     }

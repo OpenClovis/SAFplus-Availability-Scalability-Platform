@@ -15,7 +15,7 @@ namespace SAFplusAmf
   {
 
     /* Apply MGT object factory */
-    MGT_REGISTER_IMPL(Load, /SAFplusAmf/Node/stats/load)
+    MGT_REGISTER_IMPL(Load, /SAFplusAmf/safplusAmf/Node/stats/load)
 
     Load::Load(): SAFplus::MgtContainer("load")
     {
@@ -48,7 +48,7 @@ namespace SAFplusAmf
     };
 
     /*
-     * XPATH: /SAFplusAmf/Node/stats/load/user
+     * XPATH: /SAFplusAmf/safplusAmf/Node/stats/load/user
      */
     SAFplus::MgtHistoryStat<float>* Load::getUser()
     {
@@ -56,7 +56,7 @@ namespace SAFplusAmf
     };
 
     /*
-     * XPATH: /SAFplusAmf/Node/stats/load/user
+     * XPATH: /SAFplusAmf/safplusAmf/Node/stats/load/user
      */
     void Load::addUser(SAFplus::MgtHistoryStat<float> *userValue)
     {
@@ -64,7 +64,7 @@ namespace SAFplusAmf
     };
 
     /*
-     * XPATH: /SAFplusAmf/Node/stats/load/lowPriorityUser
+     * XPATH: /SAFplusAmf/safplusAmf/Node/stats/load/lowPriorityUser
      */
     SAFplus::MgtHistoryStat<float>* Load::getLowPriorityUser()
     {
@@ -72,7 +72,7 @@ namespace SAFplusAmf
     };
 
     /*
-     * XPATH: /SAFplusAmf/Node/stats/load/lowPriorityUser
+     * XPATH: /SAFplusAmf/safplusAmf/Node/stats/load/lowPriorityUser
      */
     void Load::addLowPriorityUser(SAFplus::MgtHistoryStat<float> *lowPriorityUserValue)
     {
@@ -80,7 +80,7 @@ namespace SAFplusAmf
     };
 
     /*
-     * XPATH: /SAFplusAmf/Node/stats/load/ioWait
+     * XPATH: /SAFplusAmf/safplusAmf/Node/stats/load/ioWait
      */
     SAFplus::MgtHistoryStat<float>* Load::getIoWait()
     {
@@ -88,7 +88,7 @@ namespace SAFplusAmf
     };
 
     /*
-     * XPATH: /SAFplusAmf/Node/stats/load/ioWait
+     * XPATH: /SAFplusAmf/safplusAmf/Node/stats/load/ioWait
      */
     void Load::addIoWait(SAFplus::MgtHistoryStat<float> *ioWaitValue)
     {
@@ -96,7 +96,7 @@ namespace SAFplusAmf
     };
 
     /*
-     * XPATH: /SAFplusAmf/Node/stats/load/sysTime
+     * XPATH: /SAFplusAmf/safplusAmf/Node/stats/load/sysTime
      */
     SAFplus::MgtHistoryStat<float>* Load::getSysTime()
     {
@@ -104,7 +104,7 @@ namespace SAFplusAmf
     };
 
     /*
-     * XPATH: /SAFplusAmf/Node/stats/load/sysTime
+     * XPATH: /SAFplusAmf/safplusAmf/Node/stats/load/sysTime
      */
     void Load::addSysTime(SAFplus::MgtHistoryStat<float> *sysTimeValue)
     {
@@ -112,7 +112,7 @@ namespace SAFplusAmf
     };
 
     /*
-     * XPATH: /SAFplusAmf/Node/stats/load/intTime
+     * XPATH: /SAFplusAmf/safplusAmf/Node/stats/load/intTime
      */
     SAFplus::MgtHistoryStat<float>* Load::getIntTime()
     {
@@ -120,7 +120,7 @@ namespace SAFplusAmf
     };
 
     /*
-     * XPATH: /SAFplusAmf/Node/stats/load/intTime
+     * XPATH: /SAFplusAmf/safplusAmf/Node/stats/load/intTime
      */
     void Load::addIntTime(SAFplus::MgtHistoryStat<float> *intTimeValue)
     {
@@ -128,7 +128,7 @@ namespace SAFplusAmf
     };
 
     /*
-     * XPATH: /SAFplusAmf/Node/stats/load/softIrqs
+     * XPATH: /SAFplusAmf/safplusAmf/Node/stats/load/softIrqs
      */
     SAFplus::MgtHistoryStat<float>* Load::getSoftIrqs()
     {
@@ -136,7 +136,7 @@ namespace SAFplusAmf
     };
 
     /*
-     * XPATH: /SAFplusAmf/Node/stats/load/softIrqs
+     * XPATH: /SAFplusAmf/safplusAmf/Node/stats/load/softIrqs
      */
     void Load::addSoftIrqs(SAFplus::MgtHistoryStat<float> *softIrqsValue)
     {
@@ -144,7 +144,7 @@ namespace SAFplusAmf
     };
 
     /*
-     * XPATH: /SAFplusAmf/Node/stats/load/idle
+     * XPATH: /SAFplusAmf/safplusAmf/Node/stats/load/idle
      */
     SAFplus::MgtHistoryStat<float>* Load::getIdle()
     {
@@ -152,7 +152,7 @@ namespace SAFplusAmf
     };
 
     /*
-     * XPATH: /SAFplusAmf/Node/stats/load/idle
+     * XPATH: /SAFplusAmf/safplusAmf/Node/stats/load/idle
      */
     void Load::addIdle(SAFplus::MgtHistoryStat<float> *idleValue)
     {
@@ -160,7 +160,7 @@ namespace SAFplusAmf
     };
 
     /*
-     * XPATH: /SAFplusAmf/Node/stats/load/contextSwitches
+     * XPATH: /SAFplusAmf/safplusAmf/Node/stats/load/contextSwitches
      */
     SAFplus::MgtHistoryStat<int>* Load::getContextSwitches()
     {
@@ -168,7 +168,7 @@ namespace SAFplusAmf
     };
 
     /*
-     * XPATH: /SAFplusAmf/Node/stats/load/contextSwitches
+     * XPATH: /SAFplusAmf/safplusAmf/Node/stats/load/contextSwitches
      */
     void Load::addContextSwitches(SAFplus::MgtHistoryStat<int> *contextSwitchesValue)
     {
@@ -176,7 +176,7 @@ namespace SAFplusAmf
     };
 
     /*
-     * XPATH: /SAFplusAmf/Node/stats/load/processCount
+     * XPATH: /SAFplusAmf/safplusAmf/Node/stats/load/processCount
      */
     SAFplus::MgtHistoryStat<int>* Load::getProcessCount()
     {
@@ -184,7 +184,7 @@ namespace SAFplusAmf
     };
 
     /*
-     * XPATH: /SAFplusAmf/Node/stats/load/processCount
+     * XPATH: /SAFplusAmf/safplusAmf/Node/stats/load/processCount
      */
     void Load::addProcessCount(SAFplus::MgtHistoryStat<int> *processCountValue)
     {
@@ -192,7 +192,7 @@ namespace SAFplusAmf
     };
 
     /*
-     * XPATH: /SAFplusAmf/Node/stats/load/processStarts
+     * XPATH: /SAFplusAmf/safplusAmf/Node/stats/load/processStarts
      */
     SAFplus::MgtHistoryStat<int>* Load::getProcessStarts()
     {
@@ -200,7 +200,7 @@ namespace SAFplusAmf
     };
 
     /*
-     * XPATH: /SAFplusAmf/Node/stats/load/processStarts
+     * XPATH: /SAFplusAmf/safplusAmf/Node/stats/load/processStarts
      */
     void Load::addProcessStarts(SAFplus::MgtHistoryStat<int> *processStartsValue)
     {
@@ -212,4 +212,4 @@ namespace SAFplusAmf
     };
 
 }
-/* namespace SAFplusAmf */
+/* namespace ::SAFplusAmf */

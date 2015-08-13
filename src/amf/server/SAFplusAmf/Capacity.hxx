@@ -36,27 +36,27 @@ namespace SAFplusAmf
         std::vector<std::string>* getChildNames();
 
         /*
-         * XPATH: /SAFplusAmf/Node/capacity/resource
+         * XPATH: /SAFplusAmf/safplusAmf/Node/capacity/resource
          */
         std::string getResource();
 
         /*
-         * XPATH: /SAFplusAmf/Node/capacity/resource
+         * XPATH: /SAFplusAmf/safplusAmf/Node/capacity/resource
          */
         void setResource(std::string resourceValue, SAFplus::Transaction &t=SAFplus::NO_TXN);
 
         /*
-         * XPATH: /SAFplusAmf/Node/capacity/value
+         * XPATH: /SAFplusAmf/safplusAmf/Node/capacity/value
          */
         ::int64_t getValue();
 
         /*
-         * XPATH: /SAFplusAmf/Node/capacity/value
+         * XPATH: /SAFplusAmf/safplusAmf/Node/capacity/value
          */
         void setValue(::int64_t valueValue, SAFplus::Transaction &t=SAFplus::NO_TXN);
         ~Capacity();
 
     };
 }
-/* namespace SAFplusAmf */
+/* namespace ::SAFplusAmf */
 #endif /* CAPACITY_HXX_ */

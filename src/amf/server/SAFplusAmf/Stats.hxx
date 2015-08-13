@@ -44,37 +44,37 @@ namespace SAFplusAmf
         std::vector<std::string>* getChildNames();
 
         /*
-         * XPATH: /SAFplusAmf/Node/stats/upTime
+         * XPATH: /SAFplusAmf/safplusAmf/Node/stats/upTime
          */
         ::uint64_t getUpTime();
 
         /*
-         * XPATH: /SAFplusAmf/Node/stats/upTime
+         * XPATH: /SAFplusAmf/safplusAmf/Node/stats/upTime
          */
         void setUpTime(::uint64_t upTimeValue, SAFplus::Transaction &txn=SAFplus::NO_TXN);
 
         /*
-         * XPATH: /SAFplusAmf/Node/stats/bootTime
+         * XPATH: /SAFplusAmf/safplusAmf/Node/stats/bootTime
          */
         ::uint64_t getBootTime();
 
         /*
-         * XPATH: /SAFplusAmf/Node/stats/bootTime
+         * XPATH: /SAFplusAmf/safplusAmf/Node/stats/bootTime
          */
         void setBootTime(::uint64_t bootTimeValue, SAFplus::Transaction &txn=SAFplus::NO_TXN);
 
         /*
-         * XPATH: /SAFplusAmf/Node/stats/load
+         * XPATH: /SAFplusAmf/safplusAmf/Node/stats/load
          */
         SAFplusAmf::Load* getLoad();
 
         /*
-         * XPATH: /SAFplusAmf/Node/stats/load
+         * XPATH: /SAFplusAmf/safplusAmf/Node/stats/load
          */
         void addLoad(SAFplusAmf::Load *loadValue);
         ~Stats();
 
     };
 }
-/* namespace SAFplusAmf */
+/* namespace ::SAFplusAmf */
 #endif /* STATS_HXX_ */

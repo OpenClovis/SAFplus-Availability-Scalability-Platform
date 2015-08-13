@@ -29,7 +29,7 @@
 #include <clNodeStats.hxx>
 
 #include <clAmfPolicyPlugin.hxx>
-#include <SAFplusAmf.hxx>
+#include <SAFplusAmfModule.hxx>
 #include <Component.hxx>
 #include <clSafplusMsgServer.hxx>
 //#include <clTimer7.hxx>
@@ -53,9 +53,9 @@ using namespace SAFplus::Rpc::amfRpc;
 
 typedef boost::unordered_map<SAFplus::AmfRedundancyPolicy,ClPluginHandle*> RedPolicyMap;
 
-// namespace SAFplusAmf { void loadAmfConfig(SAFplusAmfRoot* self); };
+// namespace SAFplusAmf { void loadAmfConfig(SAFplusAmfModule* self); };
 
-void initializeOperationalValues(SAFplusAmf::SAFplusAmfRoot& cfg);
+void initializeOperationalValues(SAFplusAmf::SAFplusAmfModule& cfg);
 
 RedPolicyMap redPolicies;
 
@@ -67,7 +67,7 @@ ThreadCondition somethingChanged;
 bool amfChange = false;  //? Set to true if the change was AMF related (process started/died or other AMF state change)
 bool grpChange = false;  //? Set to true if the change was group related
 
-SAFplusAmf::SAFplusAmfRoot cfg;
+SAFplusAmf::SAFplusAmfModule cfg;
 //MgtModule dataModule("SAFplusAmf");
 
 const char* LogArea = "MAN";
@@ -205,8 +205,8 @@ struct CompStatsRefresh
 
     Node* node=NULL;
     MgtObject::Iterator itnode;
-    MgtObject::Iterator endnode = cfg.nodeList.end();
-    for (itnode = cfg.nodeList.begin(); itnode != endnode; itnode++)
+    MgtObject::Iterator endnode = cfg.safplusAmf.nodeList.end();
+    for (itnode = cfg.safplusAmf.nodeList.begin(); itnode != endnode; itnode++)
     {
       Node* tmp = dynamic_cast<Node*>(itnode->second);
       if (tmp->name == SAFplus::ASP_NODENAME)
@@ -265,7 +265,7 @@ struct CompStatsRefresh
             }
 
           MgtObject::Iterator it;
-          for (it = cfg.componentList.begin();it != cfg.componentList.end(); it++)
+          for (it = cfg.safplusAmf.componentList.begin();it != cfg.safplusAmf.componentList.end(); it++)
             {
               Component* comp = dynamic_cast<Component*> (it->second);
               const std::string& cname = comp->name;
@@ -550,9 +550,9 @@ void FooDone(StartComponentResponse* response)
 bool dbgRepair(const char* entity=NULL)
   {
 //  MgtProvList<SAFplusAmf::Component*>::ContainerType::iterator   itcomp;
-//  MgtProvList<SAFplusAmf::Component*>::ContainerType::iterator   endcomp = cfg.componentList.end();
+//  MgtProvList<SAFplusAmf::Component*>::ContainerType::iterator   endcomp = cfg.safplusAmf.componentList.end();
   MgtObject::Iterator it;
-  for (it = cfg.componentList.begin();it != cfg.componentList.end(); it++)
+  for (it = cfg.safplusAmf.componentList.begin();it != cfg.safplusAmf.componentList.end(); it++)
     {
     Component* comp = dynamic_cast<Component*> (it->second);
     const std::string& name = comp->name;
@@ -576,7 +576,7 @@ bool dbgRepair(const char* entity=NULL)
 bool dbgStart(const char* entity=NULL)
   {
   MgtObject::Iterator it;
-  for (it = cfg.serviceGroupList.begin();it != cfg.serviceGroupList.end(); it++)
+  for (it = cfg.safplusAmf.serviceGroupList.begin();it != cfg.safplusAmf.serviceGroupList.end(); it++)
     {
     ServiceGroup* ent = dynamic_cast<ServiceGroup*> (it->second);
     const std::string& name = ent->name;
@@ -592,7 +592,7 @@ bool dbgStart(const char* entity=NULL)
 bool dbgStop(const char* entity=NULL)
   {
   MgtObject::Iterator it;
-  for (it = cfg.serviceGroupList.begin();it != cfg.serviceGroupList.end(); it++)
+  for (it = cfg.safplusAmf.serviceGroupList.begin();it != cfg.safplusAmf.serviceGroupList.end(); it++)
     {
     ServiceGroup* ent = dynamic_cast<ServiceGroup*> (it->second);
     const std::string& name = ent->name;
@@ -608,7 +608,7 @@ bool dbgStop(const char* entity=NULL)
 bool dbgIdle(const char* entity=NULL)
   {
   MgtObject::Iterator it;
-  for (it = cfg.serviceGroupList.begin();it != cfg.serviceGroupList.end(); it++)
+  for (it = cfg.safplusAmf.serviceGroupList.begin();it != cfg.safplusAmf.serviceGroupList.end(); it++)
     {
     ServiceGroup* ent = dynamic_cast<ServiceGroup*> (it->second);
     const std::string& name = ent->name;
@@ -720,12 +720,14 @@ int main(int argc, char* argv[])
 
   /* Initialize mgt database  */
   MgtDatabase *db = MgtDatabase::getInstance();
-  db->initializeDB("SAFplusAmf");
+  db->initializeDB("safplusAmf");
   cfg.read(db);
   initializeOperationalValues(cfg);
   // TEMPORARY testing initialization
   //loadAmfConfig(&cfg);
-  cfg.bind(myHandle);
+  //cfg.safplusAmf.bind(myHandle)
+
+  cfg.bind(myHandle,&cfg.safplusAmf);
 
 
   logServer = boost::thread(LogServer());
@@ -918,7 +920,7 @@ int main(int argc, char* argv[])
   }
 
 
-void initializeOperationalValues(SAFplusAmf::SAFplusAmfRoot& cfg)
+void initializeOperationalValues(SAFplusAmf::SAFplusAmfModule& cfg)
 {
 #if 0
   for (it = cfg->serviceGroupList.begin();it != cfg->serviceGroupList.end(); it++)
@@ -930,16 +932,16 @@ void initializeOperationalValues(SAFplusAmf::SAFplusAmfRoot& cfg)
 #endif
 
   MgtObject::Iterator itsu;
-  MgtObject::Iterator endsu = cfg.serviceUnitList.end();
+  MgtObject::Iterator endsu = cfg.safplusAmf.serviceUnitList.end();
 
-  for (itsu = cfg.serviceUnitList.begin(); itsu != endsu; itsu++)
+  for (itsu = cfg.safplusAmf.serviceUnitList.begin(); itsu != endsu; itsu++)
     {
       ServiceUnit* su = dynamic_cast<ServiceUnit*>(itsu->second);
       //const std::string& suName = su->name;
 
-      su->numActiveServiceInstances.current=0;
-      su->numStandbyServiceInstances.current=0;
-      su->restartCount.current=0;
+      su->numActiveServiceInstances.current.value=0;
+      su->numStandbyServiceInstances.current.value=0;
+      su->restartCount.current.value=0;
 
       su->operState = true; // Not faulted: We can try to turn this on.
       su->readinessState = ReadinessState::outOfService;
@@ -949,12 +951,12 @@ void initializeOperationalValues(SAFplusAmf::SAFplusAmfRoot& cfg)
     }
 
   MgtObject::Iterator itcomp;
-  MgtObject::Iterator endcomp = cfg.componentList.end();
-  for (itcomp = cfg.componentList.begin(); itcomp != endcomp; itcomp++)
+  MgtObject::Iterator endcomp = cfg.safplusAmf.componentList.end();
+  for (itcomp = cfg.safplusAmf.componentList.begin(); itcomp != endcomp; itcomp++)
     {
       Component* comp = dynamic_cast<Component*>(itcomp->second);
-      comp->activeAssignments.current = 0; 
-      comp->standbyAssignments.current = 0; 
+      comp->activeAssignments = 0; 
+      comp->standbyAssignments = 0; 
 
       comp->operState = true;  // Not faulted: We can try to turn this on.
       comp->readinessState = ReadinessState::outOfService;
@@ -967,8 +969,8 @@ void initializeOperationalValues(SAFplusAmf::SAFplusAmfRoot& cfg)
     }
 
   MgtObject::Iterator itnode;
-  MgtObject::Iterator endnode = cfg.nodeList.end();
-  for (itnode = cfg.nodeList.begin(); itnode != endnode; itnode++)
+  MgtObject::Iterator endnode = cfg.safplusAmf.nodeList.end();
+  for (itnode = cfg.safplusAmf.nodeList.begin(); itnode != endnode; itnode++)
     {
       Node* node = dynamic_cast<Node*>(itnode->second);
 
@@ -976,8 +978,8 @@ void initializeOperationalValues(SAFplusAmf::SAFplusAmfRoot& cfg)
     }
 
   MgtObject::Iterator itsi;
-  MgtObject::Iterator endsi = cfg.serviceInstanceList.end();
-  for (itsi = cfg.serviceInstanceList.begin(); itsi != endsi; itsi++)
+  MgtObject::Iterator endsi = cfg.safplusAmf.serviceInstanceList.end();
+  for (itsi = cfg.safplusAmf.serviceInstanceList.begin(); itsi != endsi; itsi++)
     {
       ServiceInstance* elem = dynamic_cast<ServiceInstance*>(itsi->second);
 
@@ -989,8 +991,8 @@ void initializeOperationalValues(SAFplusAmf::SAFplusAmfRoot& cfg)
   if (1)
     {
       MgtObject::Iterator it;
-      MgtObject::Iterator endit = cfg.componentServiceInstanceList.end();
-      for (it = cfg.componentServiceInstanceList.begin(); it != endit; it++)
+      MgtObject::Iterator endit = cfg.safplusAmf.componentServiceInstanceList.end();
+      for (it = cfg.safplusAmf.componentServiceInstanceList.begin(); it != endit; it++)
         {
           ComponentServiceInstance* elem = dynamic_cast<ComponentServiceInstance*>(it->second);
           // Nothing to initialize

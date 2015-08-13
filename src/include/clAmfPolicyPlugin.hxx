@@ -6,7 +6,7 @@
 
 namespace SAFplusAmf
   {
-  class SAFplusAmfRoot;
+  class SAFplusAmfModule;
   }
 
 namespace SAFplus
@@ -26,9 +26,9 @@ namespace SAFplus
     SAFplus::Fault*         fault;    // AMF gives the plugin access to the fault manager
 
       //? Run an AMF data audit as the active system controller.
-    virtual void activeAudit(SAFplusAmf::SAFplusAmfRoot* root) = 0;
+    virtual void activeAudit(SAFplusAmf::SAFplusAmfModule* root) = 0;
       //? Run an AMF data audit as the standby system controller.
-    virtual void standbyAudit(SAFplusAmf::SAFplusAmfRoot* root) = 0;
+    virtual void standbyAudit(SAFplusAmf::SAFplusAmfModule* root) = 0;
     //? The AMF will call this function after your plugin is loaded
     virtual bool initialize(SAFplus::AmfOperations* amfOperations,SAFplus::Fault* fault);
 

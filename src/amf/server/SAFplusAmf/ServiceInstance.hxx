@@ -9,24 +9,20 @@
 #define SERVICEINSTANCE_HXX_
 #include "SAFplusAmfCommon.hxx"
 
-#include "NumActiveAssignments.hxx"
 #include "AssignmentState.hxx"
-#include "NumActiveAssignments.hxx"
 #include "clMgtIdentifier.hxx"
 #include "clTransaction.hxx"
+#include "clMgtProv.hxx"
+#include "clMgtIdentifierList.hxx"
 #include "ComponentServiceInstance.hxx"
 #include "ServiceGroup.hxx"
 #include "clMgtList.hxx"
-#include "MgtFactory.hxx"
-#include "AdministrativeState.hxx"
-#include <string>
-#include "clMgtProv.hxx"
-#include "clMgtIdentifierList.hxx"
 #include <vector>
+#include "MgtFactory.hxx"
 #include <cstdint>
+#include "AdministrativeState.hxx"
 #include "EntityId.hxx"
-#include "NumStandbyAssignments.hxx"
-#include "NumStandbyAssignments.hxx"
+#include <string>
 #include "ServiceUnit.hxx"
 
 namespace SAFplusAmf
@@ -42,12 +38,12 @@ namespace SAFplusAmf
         /*
          * Does the operator want this entity to be off, idle, or in service?
          */
-        SAFplus::MgtProv<SAFplusAmf::AdministrativeState> adminState;
+        SAFplus::MgtProv<::SAFplusAmf::AdministrativeState> adminState;
 
         /*
          * The assignment state of a service instance indicates whether the service represented by this service instance is being provided or not by some service unit.
          */
-        SAFplus::MgtProv<SAFplusAmf::AssignmentState> assignmentState;
+        SAFplus::MgtProv<::SAFplusAmf::AssignmentState> assignmentState;
 
         /*
          * What is the optimal number of Service Units that should be given an active assignment for this work?  Note that the SA-Forum requires this field to be 1 for 2N, N+M, N-Way, and no redundancy models (see SAI-AIS-AMF-B.04.01@3.2.3.2 table 11).  However SAFplus allows this field to be set to any value for these models.
@@ -67,20 +63,20 @@ namespace SAFplusAmf
         /*
          * This work is assigned active to these service units.  Depending on the redundancy model, it 
          */
-        SAFplus::MgtIdentifierList<SAFplusAmf::ServiceUnit*> activeAssignments;
+        SAFplus::MgtIdentifierList<::SAFplusAmf::ServiceUnit*> activeAssignments;
 
         /*
          * This work is assigned active to these service units
          */
-        SAFplus::MgtIdentifierList<SAFplusAmf::ServiceUnit*> standbyAssignments;
+        SAFplus::MgtIdentifierList<::SAFplusAmf::ServiceUnit*> standbyAssignments;
 
         /*
          * Component Service Instances in this Service group
          */
-        SAFplus::MgtIdentifierList<SAFplusAmf::ComponentServiceInstance*> componentServiceInstances;
+        SAFplus::MgtIdentifierList<::SAFplusAmf::ComponentServiceInstance*> componentServiceInstances;
         SAFplus::MgtIdentifier<SAFplusAmf::ServiceGroup*> serviceGroup;
-        SAFplusAmf::NumActiveAssignments numActiveAssignments;
-        SAFplusAmf::NumStandbyAssignments numStandbyAssignments;
+        SAFplus::MgtHistoryStat<int> numActiveAssignments;
+        SAFplus::MgtHistoryStat<int> numStandbyAssignments;
 
         /*
          * An abstract definition of the amount of work this node can handle.  Nodes can be assigned capacities for arbitrarily chosen strings (MEM or CPU, for example).  Service Instances can be assigned 'weights' and the sum of the weights of service instances assigned active or standby on this node cannot exceed these values.
@@ -99,117 +95,117 @@ namespace SAFplusAmf
         std::vector<std::string>* getChildNames();
 
         /*
-         * XPATH: /SAFplusAmf/ServiceInstance/adminState
+         * XPATH: /SAFplusAmf/safplusAmf/ServiceInstance/adminState
          */
-        SAFplusAmf::AdministrativeState getAdminState();
+        ::SAFplusAmf::AdministrativeState getAdminState();
 
         /*
-         * XPATH: /SAFplusAmf/ServiceInstance/adminState
+         * XPATH: /SAFplusAmf/safplusAmf/ServiceInstance/adminState
          */
-        void setAdminState(SAFplusAmf::AdministrativeState &adminStateValue, SAFplus::Transaction &t=SAFplus::NO_TXN);
+        void setAdminState(::SAFplusAmf::AdministrativeState &adminStateValue, SAFplus::Transaction &t=SAFplus::NO_TXN);
 
         /*
-         * XPATH: /SAFplusAmf/ServiceInstance/assignmentState
+         * XPATH: /SAFplusAmf/safplusAmf/ServiceInstance/assignmentState
          */
-        SAFplusAmf::AssignmentState getAssignmentState();
+        ::SAFplusAmf::AssignmentState getAssignmentState();
 
         /*
-         * XPATH: /SAFplusAmf/ServiceInstance/assignmentState
+         * XPATH: /SAFplusAmf/safplusAmf/ServiceInstance/assignmentState
          */
-        void setAssignmentState(SAFplusAmf::AssignmentState &assignmentStateValue, SAFplus::Transaction &t=SAFplus::NO_TXN);
+        void setAssignmentState(::SAFplusAmf::AssignmentState &assignmentStateValue, SAFplus::Transaction &t=SAFplus::NO_TXN);
 
         /*
-         * XPATH: /SAFplusAmf/ServiceInstance/preferredActiveAssignments
+         * XPATH: /SAFplusAmf/safplusAmf/ServiceInstance/preferredActiveAssignments
          */
         ::uint32_t getPreferredActiveAssignments();
 
         /*
-         * XPATH: /SAFplusAmf/ServiceInstance/preferredActiveAssignments
+         * XPATH: /SAFplusAmf/safplusAmf/ServiceInstance/preferredActiveAssignments
          */
         void setPreferredActiveAssignments(::uint32_t preferredActiveAssignmentsValue, SAFplus::Transaction &t=SAFplus::NO_TXN);
 
         /*
-         * XPATH: /SAFplusAmf/ServiceInstance/preferredStandbyAssignments
+         * XPATH: /SAFplusAmf/safplusAmf/ServiceInstance/preferredStandbyAssignments
          */
         ::uint32_t getPreferredStandbyAssignments();
 
         /*
-         * XPATH: /SAFplusAmf/ServiceInstance/preferredStandbyAssignments
+         * XPATH: /SAFplusAmf/safplusAmf/ServiceInstance/preferredStandbyAssignments
          */
         void setPreferredStandbyAssignments(::uint32_t preferredStandbyAssignmentsValue, SAFplus::Transaction &t=SAFplus::NO_TXN);
 
         /*
-         * XPATH: /SAFplusAmf/ServiceInstance/rank
+         * XPATH: /SAFplusAmf/safplusAmf/ServiceInstance/rank
          */
         ::uint32_t getRank();
 
         /*
-         * XPATH: /SAFplusAmf/ServiceInstance/rank
+         * XPATH: /SAFplusAmf/safplusAmf/ServiceInstance/rank
          */
         void setRank(::uint32_t rankValue, SAFplus::Transaction &t=SAFplus::NO_TXN);
 
         /*
-         * XPATH: /SAFplusAmf/ServiceInstance/activeAssignments
+         * XPATH: /SAFplusAmf/safplusAmf/ServiceInstance/activeAssignments
          */
-        std::vector<SAFplusAmf::ServiceUnit*> getActiveAssignments();
+        std::vector<::SAFplusAmf::ServiceUnit*> getActiveAssignments();
 
         /*
-         * XPATH: /SAFplusAmf/ServiceInstance/activeAssignments
+         * XPATH: /SAFplusAmf/safplusAmf/ServiceInstance/activeAssignments
          */
-        void setActiveAssignments(SAFplusAmf::ServiceUnit* activeAssignmentsValue);
+        void setActiveAssignments(::SAFplusAmf::ServiceUnit* activeAssignmentsValue);
 
         /*
-         * XPATH: /SAFplusAmf/ServiceInstance/standbyAssignments
+         * XPATH: /SAFplusAmf/safplusAmf/ServiceInstance/standbyAssignments
          */
-        std::vector<SAFplusAmf::ServiceUnit*> getStandbyAssignments();
+        std::vector<::SAFplusAmf::ServiceUnit*> getStandbyAssignments();
 
         /*
-         * XPATH: /SAFplusAmf/ServiceInstance/standbyAssignments
+         * XPATH: /SAFplusAmf/safplusAmf/ServiceInstance/standbyAssignments
          */
-        void setStandbyAssignments(SAFplusAmf::ServiceUnit* standbyAssignmentsValue);
+        void setStandbyAssignments(::SAFplusAmf::ServiceUnit* standbyAssignmentsValue);
 
         /*
-         * XPATH: /SAFplusAmf/ServiceInstance/componentServiceInstances
+         * XPATH: /SAFplusAmf/safplusAmf/ServiceInstance/componentServiceInstances
          */
-        std::vector<SAFplusAmf::ComponentServiceInstance*> getComponentServiceInstances();
+        std::vector<::SAFplusAmf::ComponentServiceInstance*> getComponentServiceInstances();
 
         /*
-         * XPATH: /SAFplusAmf/ServiceInstance/componentServiceInstances
+         * XPATH: /SAFplusAmf/safplusAmf/ServiceInstance/componentServiceInstances
          */
-        void setComponentServiceInstances(SAFplusAmf::ComponentServiceInstance* componentServiceInstancesValue);
+        void setComponentServiceInstances(::SAFplusAmf::ComponentServiceInstance* componentServiceInstancesValue);
 
         /*
-         * XPATH: /SAFplusAmf/ServiceInstance/serviceGroup
+         * XPATH: /SAFplusAmf/safplusAmf/ServiceInstance/serviceGroup
          */
         SAFplusAmf::ServiceGroup* getServiceGroup();
 
         /*
-         * XPATH: /SAFplusAmf/ServiceInstance/serviceGroup
+         * XPATH: /SAFplusAmf/safplusAmf/ServiceInstance/serviceGroup
          */
         void setServiceGroup(SAFplusAmf::ServiceGroup* serviceGroupValue, SAFplus::Transaction &t=SAFplus::NO_TXN);
 
         /*
-         * XPATH: /SAFplusAmf/ServiceInstance/numActiveAssignments
+         * XPATH: /SAFplusAmf/safplusAmf/ServiceInstance/numActiveAssignments
          */
-        SAFplusAmf::NumActiveAssignments* getNumActiveAssignments();
+        SAFplus::MgtHistoryStat<int>* getNumActiveAssignments();
 
         /*
-         * XPATH: /SAFplusAmf/ServiceInstance/numActiveAssignments
+         * XPATH: /SAFplusAmf/safplusAmf/ServiceInstance/numActiveAssignments
          */
-        void addNumActiveAssignments(SAFplusAmf::NumActiveAssignments *numActiveAssignmentsValue);
+        void addNumActiveAssignments(SAFplus::MgtHistoryStat<int> *numActiveAssignmentsValue);
 
         /*
-         * XPATH: /SAFplusAmf/ServiceInstance/numStandbyAssignments
+         * XPATH: /SAFplusAmf/safplusAmf/ServiceInstance/numStandbyAssignments
          */
-        SAFplusAmf::NumStandbyAssignments* getNumStandbyAssignments();
+        SAFplus::MgtHistoryStat<int>* getNumStandbyAssignments();
 
         /*
-         * XPATH: /SAFplusAmf/ServiceInstance/numStandbyAssignments
+         * XPATH: /SAFplusAmf/safplusAmf/ServiceInstance/numStandbyAssignments
          */
-        void addNumStandbyAssignments(SAFplusAmf::NumStandbyAssignments *numStandbyAssignmentsValue);
+        void addNumStandbyAssignments(SAFplus::MgtHistoryStat<int> *numStandbyAssignmentsValue);
         ~ServiceInstance();
 
     };
 }
-/* namespace SAFplusAmf */
+/* namespace ::SAFplusAmf */
 #endif /* SERVICEINSTANCE_HXX_ */

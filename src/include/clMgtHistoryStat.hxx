@@ -133,11 +133,11 @@ protected:
     /*
      * Store the list of historical values
      */
-    MgtStat<T> mCurrent;
     MgtCircularBuffer<T> mHistory[7];  //
     uint mCounts[7];
 
 public:
+    MgtStat<T> current;
     HistoryOperation op;
 
     //static ClRcT clTstTimerCallback(void *pCookie);
@@ -154,13 +154,13 @@ public:
 #if 0
     void sample(T value)
       {
-        mCurrent = value;
+        current = value;
         roll();
       }
 
     void roll(void)
       {
-        mHistory10Sec.append(mCurrent);
+        mHistory10Sec.append(current);
       }
 #endif
     /**
@@ -170,6 +170,10 @@ public:
      */
     void setValue(T value);
 
+    void operator = (T value)
+    {
+      setValue(value);
+    }
   // virtual void toString(std::stringstream& xmlString, int depth=SAFplusI::MgtToStringRecursionDepth,SerializationOptions opts=SerializeNoOptions);
 
     virtual ClRcT write(MgtDatabase* db, std::string xpt = "")
@@ -206,7 +210,7 @@ template <class T>
 void MgtHistoryStat<T>::initialize(void)
 {
   op=HistoryOperation::SUM;
-  addChildObject(&mCurrent,mCurrent.tag);
+  addChildObject(&current,current.tag);
   for (int i=0;i<NumHistoryGroups;i++)
     {
       mHistory[i].initialize(historyNames[i]);
@@ -217,13 +221,13 @@ void MgtHistoryStat<T>::initialize(void)
 }
 
 template <class T>
-MgtHistoryStat<T>::MgtHistoryStat(const char* name) : MgtContainer(name),mCurrent("current")
+MgtHistoryStat<T>::MgtHistoryStat(const char* name) : MgtContainer(name),current("current")
 {
   initialize();
 }
 
 template <class T>
-MgtHistoryStat<T>::MgtHistoryStat() : MgtContainer(""),mCurrent("current")
+MgtHistoryStat<T>::MgtHistoryStat() : MgtContainer(""),current("current")
 {
   initialize();
 }
@@ -289,9 +293,9 @@ void MgtHistoryStat<T>::setValue(T value)
 {
     T sum;
 
-    mCurrent.value = value;
+    current.value = value;
 
-    mHistory[0].push_back(mCurrent.value);
+    mHistory[0].push_back(current.value);
     mCounts[0]++;
     for (int j=0;j<NumHistoryGroups-1;j++)  // -1 because we never roll the last group
       {

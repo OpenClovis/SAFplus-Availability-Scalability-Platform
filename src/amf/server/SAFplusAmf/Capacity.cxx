@@ -19,7 +19,7 @@ namespace SAFplusAmf
   {
 
     /* Apply MGT object factory */
-    MGT_REGISTER_IMPL(Capacity, /SAFplusAmf/Node/capacity)
+    MGT_REGISTER_IMPL(Capacity, /SAFplusAmf/safplusAmf/Node/capacity)
 
     Capacity::Capacity(): SAFplus::MgtContainer("capacity"), resource("resource"), value("value")
     {
@@ -47,7 +47,7 @@ namespace SAFplusAmf
     };
 
     /*
-     * XPATH: /SAFplusAmf/Node/capacity/resource
+     * XPATH: /SAFplusAmf/safplusAmf/Node/capacity/resource
      */
     std::string Capacity::getResource()
     {
@@ -55,7 +55,7 @@ namespace SAFplusAmf
     };
 
     /*
-     * XPATH: /SAFplusAmf/Node/capacity/resource
+     * XPATH: /SAFplusAmf/safplusAmf/Node/capacity/resource
      */
     void Capacity::setResource(std::string resourceValue, SAFplus::Transaction &t)
     {
@@ -68,7 +68,7 @@ namespace SAFplusAmf
     };
 
     /*
-     * XPATH: /SAFplusAmf/Node/capacity/value
+     * XPATH: /SAFplusAmf/safplusAmf/Node/capacity/value
      */
     ::int64_t Capacity::getValue()
     {
@@ -76,7 +76,7 @@ namespace SAFplusAmf
     };
 
     /*
-     * XPATH: /SAFplusAmf/Node/capacity/value
+     * XPATH: /SAFplusAmf/safplusAmf/Node/capacity/value
      */
     void Capacity::setValue(::int64_t valueValue, SAFplus::Transaction &t)
     {
@@ -93,4 +93,4 @@ namespace SAFplusAmf
     };
 
 }
-/* namespace SAFplusAmf */
+/* namespace ::SAFplusAmf */

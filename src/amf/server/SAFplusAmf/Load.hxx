@@ -38,107 +38,107 @@ namespace SAFplusAmf
         std::vector<std::string>* getChildNames();
 
         /*
-         * XPATH: /SAFplusAmf/Node/stats/load/user
+         * XPATH: /SAFplusAmf/safplusAmf/Node/stats/load/user
          */
         SAFplus::MgtHistoryStat<float>* getUser();
 
         /*
-         * XPATH: /SAFplusAmf/Node/stats/load/user
+         * XPATH: /SAFplusAmf/safplusAmf/Node/stats/load/user
          */
         void addUser(SAFplus::MgtHistoryStat<float> *userValue);
 
         /*
-         * XPATH: /SAFplusAmf/Node/stats/load/lowPriorityUser
+         * XPATH: /SAFplusAmf/safplusAmf/Node/stats/load/lowPriorityUser
          */
         SAFplus::MgtHistoryStat<float>* getLowPriorityUser();
 
         /*
-         * XPATH: /SAFplusAmf/Node/stats/load/lowPriorityUser
+         * XPATH: /SAFplusAmf/safplusAmf/Node/stats/load/lowPriorityUser
          */
         void addLowPriorityUser(SAFplus::MgtHistoryStat<float> *lowPriorityUserValue);
 
         /*
-         * XPATH: /SAFplusAmf/Node/stats/load/ioWait
+         * XPATH: /SAFplusAmf/safplusAmf/Node/stats/load/ioWait
          */
         SAFplus::MgtHistoryStat<float>* getIoWait();
 
         /*
-         * XPATH: /SAFplusAmf/Node/stats/load/ioWait
+         * XPATH: /SAFplusAmf/safplusAmf/Node/stats/load/ioWait
          */
         void addIoWait(SAFplus::MgtHistoryStat<float> *ioWaitValue);
 
         /*
-         * XPATH: /SAFplusAmf/Node/stats/load/sysTime
+         * XPATH: /SAFplusAmf/safplusAmf/Node/stats/load/sysTime
          */
         SAFplus::MgtHistoryStat<float>* getSysTime();
 
         /*
-         * XPATH: /SAFplusAmf/Node/stats/load/sysTime
+         * XPATH: /SAFplusAmf/safplusAmf/Node/stats/load/sysTime
          */
         void addSysTime(SAFplus::MgtHistoryStat<float> *sysTimeValue);
 
         /*
-         * XPATH: /SAFplusAmf/Node/stats/load/intTime
+         * XPATH: /SAFplusAmf/safplusAmf/Node/stats/load/intTime
          */
         SAFplus::MgtHistoryStat<float>* getIntTime();
 
         /*
-         * XPATH: /SAFplusAmf/Node/stats/load/intTime
+         * XPATH: /SAFplusAmf/safplusAmf/Node/stats/load/intTime
          */
         void addIntTime(SAFplus::MgtHistoryStat<float> *intTimeValue);
 
         /*
-         * XPATH: /SAFplusAmf/Node/stats/load/softIrqs
+         * XPATH: /SAFplusAmf/safplusAmf/Node/stats/load/softIrqs
          */
         SAFplus::MgtHistoryStat<float>* getSoftIrqs();
 
         /*
-         * XPATH: /SAFplusAmf/Node/stats/load/softIrqs
+         * XPATH: /SAFplusAmf/safplusAmf/Node/stats/load/softIrqs
          */
         void addSoftIrqs(SAFplus::MgtHistoryStat<float> *softIrqsValue);
 
         /*
-         * XPATH: /SAFplusAmf/Node/stats/load/idle
+         * XPATH: /SAFplusAmf/safplusAmf/Node/stats/load/idle
          */
         SAFplus::MgtHistoryStat<float>* getIdle();
 
         /*
-         * XPATH: /SAFplusAmf/Node/stats/load/idle
+         * XPATH: /SAFplusAmf/safplusAmf/Node/stats/load/idle
          */
         void addIdle(SAFplus::MgtHistoryStat<float> *idleValue);
 
         /*
-         * XPATH: /SAFplusAmf/Node/stats/load/contextSwitches
+         * XPATH: /SAFplusAmf/safplusAmf/Node/stats/load/contextSwitches
          */
         SAFplus::MgtHistoryStat<int>* getContextSwitches();
 
         /*
-         * XPATH: /SAFplusAmf/Node/stats/load/contextSwitches
+         * XPATH: /SAFplusAmf/safplusAmf/Node/stats/load/contextSwitches
          */
         void addContextSwitches(SAFplus::MgtHistoryStat<int> *contextSwitchesValue);
 
         /*
-         * XPATH: /SAFplusAmf/Node/stats/load/processCount
+         * XPATH: /SAFplusAmf/safplusAmf/Node/stats/load/processCount
          */
         SAFplus::MgtHistoryStat<int>* getProcessCount();
 
         /*
-         * XPATH: /SAFplusAmf/Node/stats/load/processCount
+         * XPATH: /SAFplusAmf/safplusAmf/Node/stats/load/processCount
          */
         void addProcessCount(SAFplus::MgtHistoryStat<int> *processCountValue);
 
         /*
-         * XPATH: /SAFplusAmf/Node/stats/load/processStarts
+         * XPATH: /SAFplusAmf/safplusAmf/Node/stats/load/processStarts
          */
         SAFplus::MgtHistoryStat<int>* getProcessStarts();
 
         /*
-         * XPATH: /SAFplusAmf/Node/stats/load/processStarts
+         * XPATH: /SAFplusAmf/safplusAmf/Node/stats/load/processStarts
          */
         void addProcessStarts(SAFplus::MgtHistoryStat<int> *processStartsValue);
         ~Load();
 
     };
 }
-/* namespace SAFplusAmf */
+/* namespace ::SAFplusAmf */
 #endif /* LOAD_HXX_ */

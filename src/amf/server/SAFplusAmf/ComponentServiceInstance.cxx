@@ -5,7 +5,7 @@
  */ 
 #include "SAFplusAmfCommon.hxx"
 
-#include "clMgtIdentifier.hxx"
+#include <string>
 #include "clTransaction.hxx"
 #include "ServiceInstance.hxx"
 #include "clMgtIdentifierList.hxx"
@@ -14,8 +14,8 @@
 #include <vector>
 #include "MgtFactory.hxx"
 #include "EntityId.hxx"
-#include <string>
 #include "clMgtProvList.hxx"
+#include "clMgtIdentifier.hxx"
 #include "ComponentServiceInstance.hxx"
 
 
@@ -23,7 +23,7 @@ namespace SAFplusAmf
   {
 
     /* Apply MGT object factory */
-    MGT_REGISTER_IMPL(ComponentServiceInstance, /SAFplusAmf/ComponentServiceInstance)
+    MGT_REGISTER_IMPL(ComponentServiceInstance, /SAFplusAmf/safplusAmf/ComponentServiceInstance)
 
     ComponentServiceInstance::ComponentServiceInstance(): protectionGroup("protectionGroup"), dependencies("dependencies"), serviceInstance("serviceInstance"), standbyComponents("standbyComponents"), activeComponents("activeComponents"), dataList("data")
     {
@@ -35,7 +35,7 @@ namespace SAFplusAmf
         this->addChildObject(&activeComponents, "activeComponents");
         activeComponents.config = false;
         this->addChildObject(&dataList, "data");
-        dataList.childXpath="/SAFplusAmf/ComponentServiceInstance/data";
+        dataList.childXpath="/SAFplusAmf/safplusAmf/ComponentServiceInstance/data";
         dataList.setListKey("name");
         this->tag.assign("ComponentServiceInstance");
     };
@@ -51,7 +51,7 @@ namespace SAFplusAmf
         this->addChildObject(&activeComponents, "activeComponents");
         activeComponents.config = false;
         this->addChildObject(&dataList, "data");
-        dataList.childXpath="/SAFplusAmf/ComponentServiceInstance/data";
+        dataList.childXpath="/SAFplusAmf/safplusAmf/ComponentServiceInstance/data";
         dataList.setListKey("name");
         this->tag.assign("ComponentServiceInstance");
     };
@@ -69,7 +69,7 @@ namespace SAFplusAmf
     };
 
     /*
-     * XPATH: /SAFplusAmf/ComponentServiceInstance/protectionGroup
+     * XPATH: /SAFplusAmf/safplusAmf/ComponentServiceInstance/protectionGroup
      */
     std::vector<std::string> ComponentServiceInstance::getProtectionGroup()
     {
@@ -77,7 +77,7 @@ namespace SAFplusAmf
     };
 
     /*
-     * XPATH: /SAFplusAmf/ComponentServiceInstance/protectionGroup
+     * XPATH: /SAFplusAmf/safplusAmf/ComponentServiceInstance/protectionGroup
      */
     void ComponentServiceInstance::setProtectionGroup(std::string protectionGroupValue)
     {
@@ -85,70 +85,70 @@ namespace SAFplusAmf
     };
 
     /*
-     * XPATH: /SAFplusAmf/ComponentServiceInstance/dependencies
+     * XPATH: /SAFplusAmf/safplusAmf/ComponentServiceInstance/dependencies
      */
-    std::vector<SAFplusAmf::ComponentServiceInstance*> ComponentServiceInstance::getDependencies()
+    std::vector<::SAFplusAmf::ComponentServiceInstance*> ComponentServiceInstance::getDependencies()
     {
         return this->dependencies.value;
     };
 
     /*
-     * XPATH: /SAFplusAmf/ComponentServiceInstance/dependencies
+     * XPATH: /SAFplusAmf/safplusAmf/ComponentServiceInstance/dependencies
      */
-    void ComponentServiceInstance::setDependencies(SAFplusAmf::ComponentServiceInstance* dependenciesValue)
+    void ComponentServiceInstance::setDependencies(::SAFplusAmf::ComponentServiceInstance* dependenciesValue)
     {
         this->dependencies.value.push_back(dependenciesValue);
     };
 
     /*
-     * XPATH: /SAFplusAmf/ComponentServiceInstance/serviceInstance
+     * XPATH: /SAFplusAmf/safplusAmf/ComponentServiceInstance/serviceInstance
      */
-    SAFplusAmf::ServiceInstance* ComponentServiceInstance::getServiceInstance()
+    ServiceInstance* ComponentServiceInstance::getServiceInstance()
     {
         return this->serviceInstance.value;
     };
 
     /*
-     * XPATH: /SAFplusAmf/ComponentServiceInstance/serviceInstance
+     * XPATH: /SAFplusAmf/safplusAmf/ComponentServiceInstance/serviceInstance
      */
-    void ComponentServiceInstance::setServiceInstance(SAFplusAmf::ServiceInstance* serviceInstanceValue, SAFplus::Transaction &t)
+    void ComponentServiceInstance::setServiceInstance(ServiceInstance* serviceInstanceValue, SAFplus::Transaction &t)
     {
         if(&t == &SAFplus::NO_TXN) this->serviceInstance.value = serviceInstanceValue;
         else
         {
-            SAFplus::SimpleTxnOperation<SAFplusAmf::ServiceInstance*> *opt = new SAFplus::SimpleTxnOperation<SAFplusAmf::ServiceInstance*>(&(serviceInstance.value),serviceInstanceValue);
+            SAFplus::SimpleTxnOperation<ServiceInstance*> *opt = new SAFplus::SimpleTxnOperation<ServiceInstance*>(&(serviceInstance.value),serviceInstanceValue);
             t.addOperation(opt);
         }
     };
 
     /*
-     * XPATH: /SAFplusAmf/ComponentServiceInstance/standbyComponents
+     * XPATH: /SAFplusAmf/safplusAmf/ComponentServiceInstance/standbyComponents
      */
-    std::vector<SAFplusAmf::Component*> ComponentServiceInstance::getStandbyComponents()
+    std::vector<::SAFplusAmf::Component*> ComponentServiceInstance::getStandbyComponents()
     {
         return this->standbyComponents.value;
     };
 
     /*
-     * XPATH: /SAFplusAmf/ComponentServiceInstance/standbyComponents
+     * XPATH: /SAFplusAmf/safplusAmf/ComponentServiceInstance/standbyComponents
      */
-    void ComponentServiceInstance::setStandbyComponents(SAFplusAmf::Component* standbyComponentsValue)
+    void ComponentServiceInstance::setStandbyComponents(::SAFplusAmf::Component* standbyComponentsValue)
     {
         this->standbyComponents.value.push_back(standbyComponentsValue);
     };
 
     /*
-     * XPATH: /SAFplusAmf/ComponentServiceInstance/activeComponents
+     * XPATH: /SAFplusAmf/safplusAmf/ComponentServiceInstance/activeComponents
      */
-    std::vector<SAFplusAmf::Component*> ComponentServiceInstance::getActiveComponents()
+    std::vector<::SAFplusAmf::Component*> ComponentServiceInstance::getActiveComponents()
     {
         return this->activeComponents.value;
     };
 
     /*
-     * XPATH: /SAFplusAmf/ComponentServiceInstance/activeComponents
+     * XPATH: /SAFplusAmf/safplusAmf/ComponentServiceInstance/activeComponents
      */
-    void ComponentServiceInstance::setActiveComponents(SAFplusAmf::Component* activeComponentsValue)
+    void ComponentServiceInstance::setActiveComponents(::SAFplusAmf::Component* activeComponentsValue)
     {
         this->activeComponents.value.push_back(activeComponentsValue);
     };
@@ -158,4 +158,4 @@ namespace SAFplusAmf
     };
 
 }
-/* namespace SAFplusAmf */
+/* namespace ::SAFplusAmf */

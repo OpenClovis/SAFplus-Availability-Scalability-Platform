@@ -303,8 +303,8 @@ namespace SAFplus
 
   void AmfOperations::removeWork(SAFplusAmf::ServiceInstance* si,Wakeable& w)
     {
-    SAFplusAmf::NumStandbyAssignments* standby = si->getNumStandbyAssignments();
-    SAFplusAmf::NumActiveAssignments* active = si->getNumActiveAssignments();
+    auto standby = si->getNumStandbyAssignments();
+    auto active = si->getNumActiveAssignments();
     
     
     }
@@ -337,8 +337,8 @@ namespace SAFplus
         }
 
       su->assignedServiceInstances.clear();
-      su->numActiveServiceInstances.current = 0;
-      su->numStandbyServiceInstances.current = 0;
+      su->numActiveServiceInstances = 0;
+      su->numStandbyServiceInstances = 0;
 
       SAFplus::MgtProvList<SAFplusAmf::Component*>::ContainerType::iterator   itcomp;
       SAFplus::MgtProvList<SAFplusAmf::Component*>::ContainerType::iterator   endcomp = su->components.value.end();
@@ -364,8 +364,8 @@ namespace SAFplus
     assert(su->assignedServiceInstances.contains(si) == false);  // We can only assign a particular SI to a particular SU once.
 
     su->assignedServiceInstances.push_back(si);
-    if (state == HighAvailabilityState::active) su->numActiveServiceInstances.current+=1;
-    if (state == HighAvailabilityState::standby) su->numStandbyServiceInstances.current+=1;
+    if (state == HighAvailabilityState::active) su->numActiveServiceInstances.current.value+=1;
+    if (state == HighAvailabilityState::standby) su->numStandbyServiceInstances.current.value+=1;
 
     SAFplus::MgtProvList<SAFplusAmf::Component*>::ContainerType::iterator   itcomp;
     SAFplus::MgtProvList<SAFplusAmf::Component*>::ContainerType::iterator   endcomp = su->components.value.end();

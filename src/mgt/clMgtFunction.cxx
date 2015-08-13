@@ -237,8 +237,9 @@ namespace SAFplus
 
   ClRcT mgtSet(const std::string& pathSpec, const std::string& value)
   {
-    ClRcT ret = CL_OK;
 
+    ClRcT ret = CL_OK;
+#if 0
     MgtRoot *mgtRoot = MgtRoot::getInstance();
     MgtObject *object = mgtRoot->findMgtObject(pathSpec);
 
@@ -256,6 +257,7 @@ namespace SAFplus
               return ret;
           }
       }
+#endif
     return ret;
   }
 
@@ -296,7 +298,7 @@ namespace SAFplus
   ClRcT mgtCreate(const std::string& pathSpec)
   {
     ClRcT ret = CL_OK;
-
+#if 0
     MgtRoot *mgtRoot = MgtRoot::getInstance();
 
     std::size_t idx = pathSpec.find_last_of("/");
@@ -326,6 +328,7 @@ namespace SAFplus
               return ret;
           }
       }
+#endif
     return ret;
   }
 
@@ -367,6 +370,7 @@ namespace SAFplus
   {
     ClRcT ret = CL_OK;
 
+#if 0
     MgtRoot *mgtRoot = MgtRoot::getInstance();
 
     std::size_t idx = pathSpec.find_last_of("/");
@@ -394,6 +398,7 @@ namespace SAFplus
            ret = mgtDelete(hdl, pathSpec);
          }
       }
+#endif
     return ret;
   }
 }

@@ -9,6 +9,7 @@
 #include <iostream>
 #include "Recovery.hxx"
 
+using namespace SAFplusAmf;
 
 namespace SAFplusAmf
   {
@@ -47,4 +48,4 @@ namespace SAFplusAmf
     };
 
 }
-/* namespace SAFplusAmf */
+/* namespace ::SAFplusAmf */

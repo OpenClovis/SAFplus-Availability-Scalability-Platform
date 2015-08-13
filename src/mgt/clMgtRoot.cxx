@@ -71,8 +71,37 @@ namespace SAFplus
     mgtAccessInitialize();
   }
 
+  void MgtRoot::bind(Handle handle,MgtObject* obj)
+  {
+    addChildObject(obj,obj->tag); 
+    std::string path = obj->getFullXpath();
+    // Add to Mgt Checkpoint
+    try
+    {
+      // for key
+      //std::string strXPath = "/";
+      //strXPath.append(path);
+
+      // for data
+      char handleData[sizeof(Buffer) - 1 + sizeof(Handle)];
+      Buffer* val = new (handleData) Buffer(sizeof(Handle));
+      *((Handle*) val->data) = handle;
+
+      // Add to checkpoint
+      mgtCheckpoint->write(path.c_str(), *val);
+    }
+    catch (Error &e)
+    {
+      assert(0);
+    }
+
+    logInfo("MGT", "LOAD", "Bound xpath [%s] to local object", path.c_str());
+  }
+
   ClRcT MgtRoot::loadMgtModule(Handle handle, MgtModule *module, std::string moduleName)
   {
+    assert(0);
+#if 0
     if (module == nullptr)
     {
       return CL_ERR_NULL_POINTER;
@@ -108,12 +137,14 @@ namespace SAFplus
     {
       assert(0);
     }
-
+#endif
     return CL_OK;
   }
 
   ClRcT MgtRoot::unloadMgtModule(std::string moduleName)
   {
+    assert(0);
+#if 0
     /* Check if MGT module already exists in the database */
     if (mMgtModules.find(moduleName) == mMgtModules.end())
     {
@@ -124,22 +155,27 @@ namespace SAFplus
     /* Remove MGT module out off the database */
     mMgtModules.erase(moduleName);
     logDebug("MGT", "LOAD", "Module [%s] removed successful!",moduleName.c_str());
-
+#endif
     return CL_OK;
   }
 
   MgtModule *MgtRoot::getMgtModule(const std::string moduleName)
   {
+    assert(0);
+#if 0
     map<string, MgtModule*>::iterator mapIndex = mMgtModules.find(moduleName);
     if (mapIndex != mMgtModules.end())
     {
       return static_cast<MgtModule *>((*mapIndex).second);
     }
+#endif
     return nullptr;
   }
 
   ClRcT MgtRoot::bindMgtObject(Handle handle, MgtObject *object,const std::string& module, const std::string& route)
   {
+    assert(0);
+#if 0
     ClRcT rc = CL_OK;
 
     if (object == nullptr)
@@ -225,6 +261,7 @@ namespace SAFplus
     }
 
     return rc;
+#endif
   }
 
   ClRcT MgtRoot::sendReplyMsg(Handle dest, void* payload, uint payloadlen)
@@ -281,6 +318,7 @@ namespace SAFplus
     return rc;
   }
 
+#if 0
   void MgtRoot::resolvePath(const char* path, std::vector<MgtObject*>* result)
   {
     size_t idx;
@@ -302,7 +340,9 @@ namespace SAFplus
         module->resolvePath(path+idx+1, result);
       }
   }
+#endif
 
+#if 0
   MgtObject *MgtRoot::findMgtObject(const std::string &xpath)
   {
     size_t idx;
@@ -347,6 +387,7 @@ namespace SAFplus
     std::string rest = xpath.substr(idx+1);
     return module->findMgtObject(rest);
   }
+#endif
 
   void MgtRoot::clMgtMsgXGetHandler(SAFplus::Handle srcAddr, Mgt::Msg::MsgMgt& reqMsg)
   {
@@ -356,6 +397,8 @@ namespace SAFplus
   MsgGeneral rplMesg;
   std::string cmds;
   unsigned int depth=64;  // To stop accidental infinite loops, let's set the default depth to something large but not crazy
+  MgtObject::SerializationOptions seropts =  (MgtObject::SerializationOptions) (MgtObject::SerializeListKeyAttribute | MgtObject::SerializePathAttribute | MgtObject::SerializeOnePath);
+
   if (path[0] == '{')  // Debugging requests
     {
       int end = path.find_first_of("}");
@@ -364,6 +407,10 @@ namespace SAFplus
       boost::split(strs,cmds,boost::is_any_of(","));
       for (auto cmd: strs)
         {
+          if (cmd[0] == 'n')  // NETCONF compatible XML
+            {
+              seropts = MgtObject::SerializeNoOptions;
+            }
           if (cmd[0] == 'b')
             {
               std::raise(SIGINT);
@@ -390,7 +437,7 @@ namespace SAFplus
       for (std::vector<MgtObject*>::iterator i=matches.begin(); i != matches.end(); i++)
         {
           MgtObject *object = *i;
-          object->toString(outBuff, depth, (MgtObject::SerializationOptions) (MgtObject::SerializePathAttribute | MgtObject::SerializeOnePath));
+          object->toString(outBuff, depth, seropts);
           
         }
       const std::string& s = outBuff.str();
@@ -466,7 +513,7 @@ namespace SAFplus
     std::string xpath = reqMsg.bind().substr(0, idx);
     std::string value = reqMsg.bind().substr(idx + 1);
 
-    MgtObject *object = findMgtObject(xpath);
+    MgtObject *object = nullptr; // TODO: findMgtObject(xpath);
 
     if (object != nullptr)
       {
@@ -488,7 +535,7 @@ namespace SAFplus
     std::string xpath = reqMsg.bind().substr(0, idx);
     std::string value = reqMsg.bind().substr(idx + 1);
 
-    MgtObject *object = findMgtObject(xpath);
+    MgtObject *object = nullptr; // TODO: findMgtObject(xpath);
 
     if (object != nullptr)
       {

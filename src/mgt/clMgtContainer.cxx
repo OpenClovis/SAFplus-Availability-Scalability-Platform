@@ -239,13 +239,14 @@ namespace SAFplus
   {
     bool openTagList = false;
     std::string closer;
-    if (1) // !parent || !strstr(typeid(*parent).name(), "SAFplus7MgtList"))
+    if (!tag.empty())  // If this object has no name, don't give it an xml tag
       {
         //if (!listTag.empty() )
         //if (parent && typeid(*parent)==typeid(SAFplus::MgtList))
         if (parent && strstr(typeid(*parent).name(), "MgtList"))  // If my parent is a list I need to use a different tag format 
           {
-            xmlString << '<' << parent->tag << " listkey=\"" << tag << "\"";
+            xmlString << '<' << parent->tag;
+            if (opts&MgtObject::SerializationOptions::SerializeListKeyAttribute) xmlString << " listkey=\"" << tag << "\"";
             closer = parent->tag;
           }
         else

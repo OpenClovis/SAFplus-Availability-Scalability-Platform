@@ -16,7 +16,7 @@ namespace SAFplusAmf
   {
 
     /* Apply MGT object factory */
-    MGT_REGISTER_IMPL(StandbyWeight, /SAFplusAmf/ServiceInstance/standbyWeight)
+    MGT_REGISTER_IMPL(StandbyWeight, /SAFplusAmf/safplusAmf/ServiceInstance/standbyWeight)
 
     StandbyWeight::StandbyWeight()
     {
@@ -46,4 +46,4 @@ namespace SAFplusAmf
     };
 
 }
-/* namespace SAFplusAmf */
+/* namespace ::SAFplusAmf */

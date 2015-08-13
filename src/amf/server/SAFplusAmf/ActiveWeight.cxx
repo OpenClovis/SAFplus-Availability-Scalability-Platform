@@ -16,7 +16,7 @@ namespace SAFplusAmf
   {
 
     /* Apply MGT object factory */
-    MGT_REGISTER_IMPL(ActiveWeight, /SAFplusAmf/ServiceInstance/activeWeight)
+    MGT_REGISTER_IMPL(ActiveWeight, /SAFplusAmf/safplusAmf/ServiceInstance/activeWeight)
 
     ActiveWeight::ActiveWeight()
     {
@@ -46,4 +46,4 @@ namespace SAFplusAmf
     };
 
 }
-/* namespace SAFplusAmf */
+/* namespace ::SAFplusAmf */

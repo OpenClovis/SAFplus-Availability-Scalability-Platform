@@ -19,7 +19,7 @@ namespace SAFplusAmf
   {
 
     /* Apply MGT object factory */
-    MGT_REGISTER_IMPL(EntityById, /SAFplusAmf/EntityById)
+    MGT_REGISTER_IMPL(EntityById, /SAFplusAmf/safplusAmf/EntityById)
 
     EntityById::EntityById(): SAFplus::MgtContainer("EntityById"), id("id"), entity("entity")
     {
@@ -53,7 +53,7 @@ namespace SAFplusAmf
     };
 
     /*
-     * XPATH: /SAFplusAmf/EntityById/id
+     * XPATH: /SAFplusAmf/safplusAmf/EntityById/id
      */
     ::uint16_t EntityById::getId()
     {
@@ -61,7 +61,7 @@ namespace SAFplusAmf
     };
 
     /*
-     * XPATH: /SAFplusAmf/EntityById/id
+     * XPATH: /SAFplusAmf/safplusAmf/EntityById/id
      */
     void EntityById::setId(::uint16_t idValue, SAFplus::Transaction &t)
     {
@@ -74,7 +74,7 @@ namespace SAFplusAmf
     };
 
     /*
-     * XPATH: /SAFplusAmf/EntityById/entity
+     * XPATH: /SAFplusAmf/safplusAmf/EntityById/entity
      */
     std::string EntityById::getEntity()
     {
@@ -82,7 +82,7 @@ namespace SAFplusAmf
     };
 
     /*
-     * XPATH: /SAFplusAmf/EntityById/entity
+     * XPATH: /SAFplusAmf/safplusAmf/EntityById/entity
      */
     void EntityById::setEntity(std::string entityValue, SAFplus::Transaction &t)
     {
@@ -99,4 +99,4 @@ namespace SAFplusAmf
     };
 
 }
-/* namespace SAFplusAmf */
+/* namespace ::SAFplusAmf */

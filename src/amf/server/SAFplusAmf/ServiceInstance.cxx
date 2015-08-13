@@ -5,33 +5,30 @@
  */ 
 #include "SAFplusAmfCommon.hxx"
 
-#include "NumActiveAssignments.hxx"
 #include "AssignmentState.hxx"
-#include "NumActiveAssignments.hxx"
 #include "clMgtIdentifier.hxx"
 #include "clTransaction.hxx"
+#include "clMgtProv.hxx"
+#include "clMgtIdentifierList.hxx"
 #include "ComponentServiceInstance.hxx"
 #include "ServiceGroup.hxx"
 #include "clMgtList.hxx"
-#include "MgtFactory.hxx"
-#include "AdministrativeState.hxx"
-#include <string>
-#include "clMgtProv.hxx"
-#include "clMgtIdentifierList.hxx"
 #include <vector>
+#include "MgtFactory.hxx"
 #include <cstdint>
+#include "AdministrativeState.hxx"
 #include "EntityId.hxx"
-#include "NumStandbyAssignments.hxx"
-#include "NumStandbyAssignments.hxx"
+#include <string>
 #include "ServiceUnit.hxx"
 #include "ServiceInstance.hxx"
 
+using namespace SAFplusAmf;
 
 namespace SAFplusAmf
   {
 
     /* Apply MGT object factory */
-    MGT_REGISTER_IMPL(ServiceInstance, /SAFplusAmf/ServiceInstance)
+    MGT_REGISTER_IMPL(ServiceInstance, /SAFplusAmf/safplusAmf/ServiceInstance)
 
     ServiceInstance::ServiceInstance(): adminState("adminState"), assignmentState("assignmentState"), preferredActiveAssignments("preferredActiveAssignments"), preferredStandbyAssignments("preferredStandbyAssignments"), rank("rank"), activeAssignments("activeAssignments"), standbyAssignments("standbyAssignments"), componentServiceInstances("componentServiceInstances"), serviceGroup("serviceGroup"), activeWeightList("activeWeight"), standbyWeightList("standbyWeight")
     {
@@ -52,9 +49,9 @@ namespace SAFplusAmf
         numStandbyAssignments.config = false;
         this->addChildObject(&activeWeightList, "activeWeight");
         this->addChildObject(&standbyWeightList, "standbyWeight");
-        activeWeightList.childXpath="/SAFplusAmf/ServiceInstance/activeWeight";
+        activeWeightList.childXpath="/SAFplusAmf/safplusAmf/ServiceInstance/activeWeight";
         activeWeightList.setListKey("resource");
-        standbyWeightList.childXpath="/SAFplusAmf/ServiceInstance/standbyWeight";
+        standbyWeightList.childXpath="/SAFplusAmf/safplusAmf/ServiceInstance/standbyWeight";
         standbyWeightList.setListKey("resource");
         this->tag.assign("ServiceInstance");
     };
@@ -79,9 +76,9 @@ namespace SAFplusAmf
         numStandbyAssignments.config = false;
         this->addChildObject(&activeWeightList, "activeWeight");
         this->addChildObject(&standbyWeightList, "standbyWeight");
-        activeWeightList.childXpath="/SAFplusAmf/ServiceInstance/activeWeight";
+        activeWeightList.childXpath="/SAFplusAmf/safplusAmf/ServiceInstance/activeWeight";
         activeWeightList.setListKey("resource");
-        standbyWeightList.childXpath="/SAFplusAmf/ServiceInstance/standbyWeight";
+        standbyWeightList.childXpath="/SAFplusAmf/safplusAmf/ServiceInstance/standbyWeight";
         standbyWeightList.setListKey("resource");
         this->tag.assign("ServiceInstance");
     };
@@ -99,49 +96,49 @@ namespace SAFplusAmf
     };
 
     /*
-     * XPATH: /SAFplusAmf/ServiceInstance/adminState
+     * XPATH: /SAFplusAmf/safplusAmf/ServiceInstance/adminState
      */
-    SAFplusAmf::AdministrativeState ServiceInstance::getAdminState()
+    ::SAFplusAmf::AdministrativeState ServiceInstance::getAdminState()
     {
         return this->adminState.value;
     };
 
     /*
-     * XPATH: /SAFplusAmf/ServiceInstance/adminState
+     * XPATH: /SAFplusAmf/safplusAmf/ServiceInstance/adminState
      */
-    void ServiceInstance::setAdminState(SAFplusAmf::AdministrativeState &adminStateValue, SAFplus::Transaction &t)
+    void ServiceInstance::setAdminState(::SAFplusAmf::AdministrativeState &adminStateValue, SAFplus::Transaction &t)
     {
         if(&t == &SAFplus::NO_TXN) this->adminState.value = adminStateValue;
         else
         {
-            SAFplus::SimpleTxnOperation<SAFplusAmf::AdministrativeState> *opt = new SAFplus::SimpleTxnOperation<SAFplusAmf::AdministrativeState>(&(adminState.value),adminStateValue);
+            SAFplus::SimpleTxnOperation<::SAFplusAmf::AdministrativeState> *opt = new SAFplus::SimpleTxnOperation<::SAFplusAmf::AdministrativeState>(&(adminState.value),adminStateValue);
             t.addOperation(opt);
         }
     };
 
     /*
-     * XPATH: /SAFplusAmf/ServiceInstance/assignmentState
+     * XPATH: /SAFplusAmf/safplusAmf/ServiceInstance/assignmentState
      */
-    SAFplusAmf::AssignmentState ServiceInstance::getAssignmentState()
+    ::SAFplusAmf::AssignmentState ServiceInstance::getAssignmentState()
     {
         return this->assignmentState.value;
     };
 
     /*
-     * XPATH: /SAFplusAmf/ServiceInstance/assignmentState
+     * XPATH: /SAFplusAmf/safplusAmf/ServiceInstance/assignmentState
      */
-    void ServiceInstance::setAssignmentState(SAFplusAmf::AssignmentState &assignmentStateValue, SAFplus::Transaction &t)
+    void ServiceInstance::setAssignmentState(::SAFplusAmf::AssignmentState &assignmentStateValue, SAFplus::Transaction &t)
     {
         if(&t == &SAFplus::NO_TXN) this->assignmentState.value = assignmentStateValue;
         else
         {
-            SAFplus::SimpleTxnOperation<SAFplusAmf::AssignmentState> *opt = new SAFplus::SimpleTxnOperation<SAFplusAmf::AssignmentState>(&(assignmentState.value),assignmentStateValue);
+            SAFplus::SimpleTxnOperation<::SAFplusAmf::AssignmentState> *opt = new SAFplus::SimpleTxnOperation<::SAFplusAmf::AssignmentState>(&(assignmentState.value),assignmentStateValue);
             t.addOperation(opt);
         }
     };
 
     /*
-     * XPATH: /SAFplusAmf/ServiceInstance/preferredActiveAssignments
+     * XPATH: /SAFplusAmf/safplusAmf/ServiceInstance/preferredActiveAssignments
      */
     ::uint32_t ServiceInstance::getPreferredActiveAssignments()
     {
@@ -149,7 +146,7 @@ namespace SAFplusAmf
     };
 
     /*
-     * XPATH: /SAFplusAmf/ServiceInstance/preferredActiveAssignments
+     * XPATH: /SAFplusAmf/safplusAmf/ServiceInstance/preferredActiveAssignments
      */
     void ServiceInstance::setPreferredActiveAssignments(::uint32_t preferredActiveAssignmentsValue, SAFplus::Transaction &t)
     {
@@ -162,7 +159,7 @@ namespace SAFplusAmf
     };
 
     /*
-     * XPATH: /SAFplusAmf/ServiceInstance/preferredStandbyAssignments
+     * XPATH: /SAFplusAmf/safplusAmf/ServiceInstance/preferredStandbyAssignments
      */
     ::uint32_t ServiceInstance::getPreferredStandbyAssignments()
     {
@@ -170,7 +167,7 @@ namespace SAFplusAmf
     };
 
     /*
-     * XPATH: /SAFplusAmf/ServiceInstance/preferredStandbyAssignments
+     * XPATH: /SAFplusAmf/safplusAmf/ServiceInstance/preferredStandbyAssignments
      */
     void ServiceInstance::setPreferredStandbyAssignments(::uint32_t preferredStandbyAssignmentsValue, SAFplus::Transaction &t)
     {
@@ -183,7 +180,7 @@ namespace SAFplusAmf
     };
 
     /*
-     * XPATH: /SAFplusAmf/ServiceInstance/rank
+     * XPATH: /SAFplusAmf/safplusAmf/ServiceInstance/rank
      */
     ::uint32_t ServiceInstance::getRank()
     {
@@ -191,7 +188,7 @@ namespace SAFplusAmf
     };
 
     /*
-     * XPATH: /SAFplusAmf/ServiceInstance/rank
+     * XPATH: /SAFplusAmf/safplusAmf/ServiceInstance/rank
      */
     void ServiceInstance::setRank(::uint32_t rankValue, SAFplus::Transaction &t)
     {
@@ -204,55 +201,55 @@ namespace SAFplusAmf
     };
 
     /*
-     * XPATH: /SAFplusAmf/ServiceInstance/activeAssignments
+     * XPATH: /SAFplusAmf/safplusAmf/ServiceInstance/activeAssignments
      */
-    std::vector<SAFplusAmf::ServiceUnit*> ServiceInstance::getActiveAssignments()
+    std::vector<::SAFplusAmf::ServiceUnit*> ServiceInstance::getActiveAssignments()
     {
         return this->activeAssignments.value;
     };
 
     /*
-     * XPATH: /SAFplusAmf/ServiceInstance/activeAssignments
+     * XPATH: /SAFplusAmf/safplusAmf/ServiceInstance/activeAssignments
      */
-    void ServiceInstance::setActiveAssignments(SAFplusAmf::ServiceUnit* activeAssignmentsValue)
+    void ServiceInstance::setActiveAssignments(::SAFplusAmf::ServiceUnit* activeAssignmentsValue)
     {
         this->activeAssignments.value.push_back(activeAssignmentsValue);
     };
 
     /*
-     * XPATH: /SAFplusAmf/ServiceInstance/standbyAssignments
+     * XPATH: /SAFplusAmf/safplusAmf/ServiceInstance/standbyAssignments
      */
-    std::vector<SAFplusAmf::ServiceUnit*> ServiceInstance::getStandbyAssignments()
+    std::vector<::SAFplusAmf::ServiceUnit*> ServiceInstance::getStandbyAssignments()
     {
         return this->standbyAssignments.value;
     };
 
     /*
-     * XPATH: /SAFplusAmf/ServiceInstance/standbyAssignments
+     * XPATH: /SAFplusAmf/safplusAmf/ServiceInstance/standbyAssignments
      */
-    void ServiceInstance::setStandbyAssignments(SAFplusAmf::ServiceUnit* standbyAssignmentsValue)
+    void ServiceInstance::setStandbyAssignments(::SAFplusAmf::ServiceUnit* standbyAssignmentsValue)
     {
         this->standbyAssignments.value.push_back(standbyAssignmentsValue);
     };
 
     /*
-     * XPATH: /SAFplusAmf/ServiceInstance/componentServiceInstances
+     * XPATH: /SAFplusAmf/safplusAmf/ServiceInstance/componentServiceInstances
      */
-    std::vector<SAFplusAmf::ComponentServiceInstance*> ServiceInstance::getComponentServiceInstances()
+    std::vector<::SAFplusAmf::ComponentServiceInstance*> ServiceInstance::getComponentServiceInstances()
     {
         return this->componentServiceInstances.value;
     };
 
     /*
-     * XPATH: /SAFplusAmf/ServiceInstance/componentServiceInstances
+     * XPATH: /SAFplusAmf/safplusAmf/ServiceInstance/componentServiceInstances
      */
-    void ServiceInstance::setComponentServiceInstances(SAFplusAmf::ComponentServiceInstance* componentServiceInstancesValue)
+    void ServiceInstance::setComponentServiceInstances(::SAFplusAmf::ComponentServiceInstance* componentServiceInstancesValue)
     {
         this->componentServiceInstances.value.push_back(componentServiceInstancesValue);
     };
 
     /*
-     * XPATH: /SAFplusAmf/ServiceInstance/serviceGroup
+     * XPATH: /SAFplusAmf/safplusAmf/ServiceInstance/serviceGroup
      */
     SAFplusAmf::ServiceGroup* ServiceInstance::getServiceGroup()
     {
@@ -260,7 +257,7 @@ namespace SAFplusAmf
     };
 
     /*
-     * XPATH: /SAFplusAmf/ServiceInstance/serviceGroup
+     * XPATH: /SAFplusAmf/safplusAmf/ServiceInstance/serviceGroup
      */
     void ServiceInstance::setServiceGroup(SAFplusAmf::ServiceGroup* serviceGroupValue, SAFplus::Transaction &t)
     {
@@ -273,33 +270,33 @@ namespace SAFplusAmf
     };
 
     /*
-     * XPATH: /SAFplusAmf/ServiceInstance/numActiveAssignments
+     * XPATH: /SAFplusAmf/safplusAmf/ServiceInstance/numActiveAssignments
      */
-    SAFplusAmf::NumActiveAssignments* ServiceInstance::getNumActiveAssignments()
+    SAFplus::MgtHistoryStat<int>* ServiceInstance::getNumActiveAssignments()
     {
-        return dynamic_cast<NumActiveAssignments*>(this->getChildObject("numActiveAssignments"));
+        return dynamic_cast<SAFplus::MgtHistoryStat<int>*>(this->getChildObject("numActiveAssignments"));
     };
 
     /*
-     * XPATH: /SAFplusAmf/ServiceInstance/numActiveAssignments
+     * XPATH: /SAFplusAmf/safplusAmf/ServiceInstance/numActiveAssignments
      */
-    void ServiceInstance::addNumActiveAssignments(SAFplusAmf::NumActiveAssignments *numActiveAssignmentsValue)
+    void ServiceInstance::addNumActiveAssignments(SAFplus::MgtHistoryStat<int> *numActiveAssignmentsValue)
     {
         this->addChildObject(numActiveAssignmentsValue, "numActiveAssignments");
     };
 
     /*
-     * XPATH: /SAFplusAmf/ServiceInstance/numStandbyAssignments
+     * XPATH: /SAFplusAmf/safplusAmf/ServiceInstance/numStandbyAssignments
      */
-    SAFplusAmf::NumStandbyAssignments* ServiceInstance::getNumStandbyAssignments()
+    SAFplus::MgtHistoryStat<int>* ServiceInstance::getNumStandbyAssignments()
     {
-        return dynamic_cast<NumStandbyAssignments*>(this->getChildObject("numStandbyAssignments"));
+        return dynamic_cast<SAFplus::MgtHistoryStat<int>*>(this->getChildObject("numStandbyAssignments"));
     };
 
     /*
-     * XPATH: /SAFplusAmf/ServiceInstance/numStandbyAssignments
+     * XPATH: /SAFplusAmf/safplusAmf/ServiceInstance/numStandbyAssignments
      */
-    void ServiceInstance::addNumStandbyAssignments(SAFplusAmf::NumStandbyAssignments *numStandbyAssignmentsValue)
+    void ServiceInstance::addNumStandbyAssignments(SAFplus::MgtHistoryStat<int> *numStandbyAssignmentsValue)
     {
         this->addChildObject(numStandbyAssignmentsValue, "numStandbyAssignments");
     };
@@ -309,4 +306,4 @@ namespace SAFplusAmf
     };
 
 }
-/* namespace SAFplusAmf */
+/* namespace ::SAFplusAmf */

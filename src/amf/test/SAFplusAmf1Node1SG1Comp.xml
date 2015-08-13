@@ -1,4 +1,4 @@
-<SAFplusAmf>
+<safplusAmf>
     <Cluster name="1">
       <adminState>on</adminState>
       <startupAssignmentDelay>1000</startupAssignmentDelay>
@@ -108,4 +108,4 @@
         <val>testVal2</val>
       </data>
     </ComponentServiceInstance>
-</SAFplusAmf>
+</safplusAmf>

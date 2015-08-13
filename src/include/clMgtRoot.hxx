@@ -56,7 +56,7 @@ namespace SAFplus
 /**
  * MgtRoot class provides APIs to setup the MGT database
  */
-class MgtRoot {
+  class MgtRoot:public MgtContainer {
 protected:
     MgtRoot();
     /*
@@ -67,7 +67,7 @@ protected:
     /*
      * Store the list of MGT module
      */
-    std::map<std::string, MgtModule*> mMgtModules;
+    //std::map<std::string, MgtModule*> mMgtModules;
 
     /*
      * Mgt ref list
@@ -122,6 +122,7 @@ public:
      * \return	CL_ERR_NULL_POINTER		Input parameter is a NULL pointer
      */
     ClRcT bindMgtObject(Handle handle, SAFplus::MgtObject *object, const std::string& module, const std::string& route);
+    void bind(Handle handle,MgtObject* obj);
 
     /**
      * \brief   Function to bind a MGT object to a specific manageability subtree within a particular module
@@ -158,8 +159,8 @@ public:
     static ClRcT sendReplyMsg(SAFplus::Handle dest, void* payload, uint payloadlen);
 
 
-  MgtObject *findMgtObject(const std::string &xpath);  // DEPRECATED
-  void resolvePath(const char* path, std::vector<MgtObject*>* result);
+    //MgtObject *findMgtObject(const std::string &xpath);  // DEPRECATED
+    //void resolvePath(const char* path, std::vector<MgtObject*>* result);
 
     void addReference(MgtObject* mgtObject);
     void updateReference(void);

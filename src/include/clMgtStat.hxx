@@ -39,7 +39,7 @@ namespace SAFplus
   class MgtStat : public MgtProv<T>
   {
   public:
-    MgtStat(const char* name);
+    MgtStat(const std::string& name);
     virtual ~MgtStat();
 
     /**
@@ -63,7 +63,7 @@ namespace SAFplus
    */
 
   template <class T>
-  MgtStat<T>::MgtStat(const char* name) : MgtProv<T>(name)
+  MgtStat<T>::MgtStat(const std::string& name) : MgtProv<T>(name.c_str())
   {}
 
   template <class T>

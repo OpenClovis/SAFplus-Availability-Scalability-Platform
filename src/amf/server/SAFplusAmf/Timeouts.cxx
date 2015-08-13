@@ -17,7 +17,7 @@ namespace SAFplusAmf
   {
 
     /* Apply MGT object factory */
-    MGT_REGISTER_IMPL(Timeouts, /SAFplusAmf/Component/timeouts)
+    MGT_REGISTER_IMPL(Timeouts, /SAFplusAmf/safplusAmf/Component/timeouts)
 
     Timeouts::Timeouts(): SAFplus::MgtContainer("timeouts"), quiescingComplete("quiescingComplete"), workRemoval("workRemoval"), workAssignment("workAssignment")
     {
@@ -33,7 +33,7 @@ namespace SAFplusAmf
     };
 
     /*
-     * XPATH: /SAFplusAmf/Component/timeouts/quiescingComplete
+     * XPATH: /SAFplusAmf/safplusAmf/Component/timeouts/quiescingComplete
      */
     SaTimeT Timeouts::getQuiescingComplete()
     {
@@ -41,7 +41,7 @@ namespace SAFplusAmf
     };
 
     /*
-     * XPATH: /SAFplusAmf/Component/timeouts/quiescingComplete
+     * XPATH: /SAFplusAmf/safplusAmf/Component/timeouts/quiescingComplete
      */
     void Timeouts::setQuiescingComplete(SaTimeT &quiescingCompleteValue, SAFplus::Transaction &txn)
     {
@@ -49,7 +49,7 @@ namespace SAFplusAmf
     };
 
     /*
-     * XPATH: /SAFplusAmf/Component/timeouts/workRemoval
+     * XPATH: /SAFplusAmf/safplusAmf/Component/timeouts/workRemoval
      */
     SaTimeT Timeouts::getWorkRemoval()
     {
@@ -57,7 +57,7 @@ namespace SAFplusAmf
     };
 
     /*
-     * XPATH: /SAFplusAmf/Component/timeouts/workRemoval
+     * XPATH: /SAFplusAmf/safplusAmf/Component/timeouts/workRemoval
      */
     void Timeouts::setWorkRemoval(SaTimeT &workRemovalValue, SAFplus::Transaction &txn)
     {
@@ -65,7 +65,7 @@ namespace SAFplusAmf
     };
 
     /*
-     * XPATH: /SAFplusAmf/Component/timeouts/workAssignment
+     * XPATH: /SAFplusAmf/safplusAmf/Component/timeouts/workAssignment
      */
     SaTimeT Timeouts::getWorkAssignment()
     {
@@ -73,7 +73,7 @@ namespace SAFplusAmf
     };
 
     /*
-     * XPATH: /SAFplusAmf/Component/timeouts/workAssignment
+     * XPATH: /SAFplusAmf/safplusAmf/Component/timeouts/workAssignment
      */
     void Timeouts::setWorkAssignment(SaTimeT &workAssignmentValue, SAFplus::Transaction &txn)
     {
@@ -85,4 +85,4 @@ namespace SAFplusAmf
     };
 
 }
-/* namespace SAFplusAmf */
+/* namespace ::SAFplusAmf */

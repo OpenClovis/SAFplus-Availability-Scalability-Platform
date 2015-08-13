@@ -5,17 +5,15 @@
  */ 
 #include "SAFplusAmfCommon.hxx"
 
-#include "NumServiceGroups.hxx"
 #include <string>
 #include "clTransaction.hxx"
 #include "clMgtProv.hxx"
-#include "clMgtIdentifierList.hxx"
 #include "ServiceGroup.hxx"
+#include "clMgtIdentifierList.hxx"
 #include <vector>
 #include "MgtFactory.hxx"
-#include "NumServiceGroups.hxx"
-#include "AdministrativeState.hxx"
 #include "EntityId.hxx"
+#include "AdministrativeState.hxx"
 #include "Application.hxx"
 
 
@@ -23,7 +21,7 @@ namespace SAFplusAmf
   {
 
     /* Apply MGT object factory */
-    MGT_REGISTER_IMPL(Application, /SAFplusAmf/Application)
+    MGT_REGISTER_IMPL(Application, /SAFplusAmf/safplusAmf/Application)
 
     Application::Application(): adminState("adminState"), serviceGroups("serviceGroups"), keepTogether("keepTogether")
     {
@@ -59,44 +57,44 @@ namespace SAFplusAmf
     };
 
     /*
-     * XPATH: /SAFplusAmf/Application/adminState
+     * XPATH: /SAFplusAmf/safplusAmf/Application/adminState
      */
-    SAFplusAmf::AdministrativeState Application::getAdminState()
+    ::SAFplusAmf::AdministrativeState Application::getAdminState()
     {
         return this->adminState.value;
     };
 
     /*
-     * XPATH: /SAFplusAmf/Application/adminState
+     * XPATH: /SAFplusAmf/safplusAmf/Application/adminState
      */
-    void Application::setAdminState(SAFplusAmf::AdministrativeState &adminStateValue, SAFplus::Transaction &t)
+    void Application::setAdminState(::SAFplusAmf::AdministrativeState &adminStateValue, SAFplus::Transaction &t)
     {
         if(&t == &SAFplus::NO_TXN) this->adminState.value = adminStateValue;
         else
         {
-            SAFplus::SimpleTxnOperation<SAFplusAmf::AdministrativeState> *opt = new SAFplus::SimpleTxnOperation<SAFplusAmf::AdministrativeState>(&(adminState.value),adminStateValue);
+            SAFplus::SimpleTxnOperation<::SAFplusAmf::AdministrativeState> *opt = new SAFplus::SimpleTxnOperation<::SAFplusAmf::AdministrativeState>(&(adminState.value),adminStateValue);
             t.addOperation(opt);
         }
     };
 
     /*
-     * XPATH: /SAFplusAmf/Application/serviceGroups
+     * XPATH: /SAFplusAmf/safplusAmf/Application/serviceGroups
      */
-    std::vector<SAFplusAmf::ServiceGroup*> Application::getServiceGroups()
+    std::vector<::SAFplusAmf::ServiceGroup*> Application::getServiceGroups()
     {
         return this->serviceGroups.value;
     };
 
     /*
-     * XPATH: /SAFplusAmf/Application/serviceGroups
+     * XPATH: /SAFplusAmf/safplusAmf/Application/serviceGroups
      */
-    void Application::setServiceGroups(SAFplusAmf::ServiceGroup* serviceGroupsValue)
+    void Application::setServiceGroups(::SAFplusAmf::ServiceGroup* serviceGroupsValue)
     {
         this->serviceGroups.value.push_back(serviceGroupsValue);
     };
 
     /*
-     * XPATH: /SAFplusAmf/Application/keepTogether
+     * XPATH: /SAFplusAmf/safplusAmf/Application/keepTogether
      */
     bool Application::getKeepTogether()
     {
@@ -104,7 +102,7 @@ namespace SAFplusAmf
     };
 
     /*
-     * XPATH: /SAFplusAmf/Application/keepTogether
+     * XPATH: /SAFplusAmf/safplusAmf/Application/keepTogether
      */
     void Application::setKeepTogether(bool keepTogetherValue, SAFplus::Transaction &t)
     {
@@ -117,17 +115,17 @@ namespace SAFplusAmf
     };
 
     /*
-     * XPATH: /SAFplusAmf/Application/numServiceGroups
+     * XPATH: /SAFplusAmf/safplusAmf/Application/numServiceGroups
      */
-    SAFplusAmf::NumServiceGroups* Application::getNumServiceGroups()
+    SAFplus::MgtHistoryStat<int>* Application::getNumServiceGroups()
     {
-        return dynamic_cast<NumServiceGroups*>(this->getChildObject("numServiceGroups"));
+        return dynamic_cast<SAFplus::MgtHistoryStat<int>*>(this->getChildObject("numServiceGroups"));
     };
 
     /*
-     * XPATH: /SAFplusAmf/Application/numServiceGroups
+     * XPATH: /SAFplusAmf/safplusAmf/Application/numServiceGroups
      */
-    void Application::addNumServiceGroups(SAFplusAmf::NumServiceGroups *numServiceGroupsValue)
+    void Application::addNumServiceGroups(SAFplus::MgtHistoryStat<int> *numServiceGroupsValue)
     {
         this->addChildObject(numServiceGroupsValue, "numServiceGroups");
     };
@@ -137,4 +135,4 @@ namespace SAFplusAmf
     };
 
 }
-/* namespace SAFplusAmf */
+/* namespace ::SAFplusAmf */

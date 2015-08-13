@@ -32,5 +32,5 @@ namespace SAFplusAmf
         static const map_t en2str_map;  // This is the lookup table.
     };
 }
-/* namespace SAFplusAmf */
+/* namespace ::SAFplusAmf */
 #endif /* ADMINISTRATIVESTATE_HXX_ */

@@ -18,7 +18,7 @@ namespace SAFplusAmf
   {
 
     /* Apply MGT object factory */
-    MGT_REGISTER_IMPL(Data, /SAFplusAmf/ComponentServiceInstance/data)
+    MGT_REGISTER_IMPL(Data, /SAFplusAmf/safplusAmf/ComponentServiceInstance/data)
 
     Data::Data(): SAFplus::MgtContainer("data"), name("name"), val("val")
     {
@@ -46,7 +46,7 @@ namespace SAFplusAmf
     };
 
     /*
-     * XPATH: /SAFplusAmf/ComponentServiceInstance/data/name
+     * XPATH: /SAFplusAmf/safplusAmf/ComponentServiceInstance/data/name
      */
     std::string Data::getName()
     {
@@ -54,7 +54,7 @@ namespace SAFplusAmf
     };
 
     /*
-     * XPATH: /SAFplusAmf/ComponentServiceInstance/data/name
+     * XPATH: /SAFplusAmf/safplusAmf/ComponentServiceInstance/data/name
      */
     void Data::setName(std::string nameValue, SAFplus::Transaction &t)
     {
@@ -67,7 +67,7 @@ namespace SAFplusAmf
     };
 
     /*
-     * XPATH: /SAFplusAmf/ComponentServiceInstance/data/val
+     * XPATH: /SAFplusAmf/safplusAmf/ComponentServiceInstance/data/val
      */
     std::string Data::getVal()
     {
@@ -75,7 +75,7 @@ namespace SAFplusAmf
     };
 
     /*
-     * XPATH: /SAFplusAmf/ComponentServiceInstance/data/val
+     * XPATH: /SAFplusAmf/safplusAmf/ComponentServiceInstance/data/val
      */
     void Data::setVal(std::string valValue, SAFplus::Transaction &t)
     {
@@ -92,4 +92,4 @@ namespace SAFplusAmf
     };
 
 }
-/* namespace SAFplusAmf */
+/* namespace ::SAFplusAmf */

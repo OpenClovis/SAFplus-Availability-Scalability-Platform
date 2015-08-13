@@ -28,5 +28,5 @@ namespace SAFplusAmf
 
     };
 }
-/* namespace SAFplusAmf */
+/* namespace ::SAFplusAmf */
 #endif /* SERVICEUNITRESTART_HXX_ */

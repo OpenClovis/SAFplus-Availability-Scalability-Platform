@@ -45,37 +45,37 @@ namespace SAFplusAmf
         std::vector<std::string>* getChildNames();
 
         /*
-         * XPATH: /SAFplusAmf/Component/timeouts/quiescingComplete
+         * XPATH: /SAFplusAmf/safplusAmf/Component/timeouts/quiescingComplete
          */
         SaTimeT getQuiescingComplete();
 
         /*
-         * XPATH: /SAFplusAmf/Component/timeouts/quiescingComplete
+         * XPATH: /SAFplusAmf/safplusAmf/Component/timeouts/quiescingComplete
          */
         void setQuiescingComplete(SaTimeT &quiescingCompleteValue, SAFplus::Transaction &txn=SAFplus::NO_TXN);
 
         /*
-         * XPATH: /SAFplusAmf/Component/timeouts/workRemoval
+         * XPATH: /SAFplusAmf/safplusAmf/Component/timeouts/workRemoval
          */
         SaTimeT getWorkRemoval();
 
         /*
-         * XPATH: /SAFplusAmf/Component/timeouts/workRemoval
+         * XPATH: /SAFplusAmf/safplusAmf/Component/timeouts/workRemoval
          */
         void setWorkRemoval(SaTimeT &workRemovalValue, SAFplus::Transaction &txn=SAFplus::NO_TXN);
 
         /*
-         * XPATH: /SAFplusAmf/Component/timeouts/workAssignment
+         * XPATH: /SAFplusAmf/safplusAmf/Component/timeouts/workAssignment
          */
         SaTimeT getWorkAssignment();
 
         /*
-         * XPATH: /SAFplusAmf/Component/timeouts/workAssignment
+         * XPATH: /SAFplusAmf/safplusAmf/Component/timeouts/workAssignment
          */
         void setWorkAssignment(SaTimeT &workAssignmentValue, SAFplus::Transaction &txn=SAFplus::NO_TXN);
         ~Timeouts();
 
     };
 }
-/* namespace SAFplusAmf */
+/* namespace ::SAFplusAmf */
 #endif /* TIMEOUTS_HXX_ */

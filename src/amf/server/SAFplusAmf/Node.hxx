@@ -37,7 +37,7 @@ namespace SAFplusAmf
         /*
          * Does the operator want this entity to be off, idle, or in service?
          */
-        SAFplus::MgtProv<SAFplusAmf::AdministrativeState> adminState;
+        SAFplus::MgtProv<::SAFplusAmf::AdministrativeState> adminState;
 
         /*
          * True is enabled, False is disabled.  To move from False to True a 'repair' action must occur.
@@ -62,7 +62,7 @@ namespace SAFplusAmf
         /*
          * Service Units configured to be instantiated on this node.
          */
-        SAFplus::MgtIdentifierList<SAFplusAmf::ServiceUnit*> serviceUnits;
+        SAFplus::MgtIdentifierList<::SAFplusAmf::ServiceUnit*> serviceUnits;
         SAFplusAmf::Stats stats;
         SAFplusAmf::ServiceUnitFailureEscalationPolicy serviceUnitFailureEscalationPolicy;
 
@@ -78,87 +78,87 @@ namespace SAFplusAmf
         std::vector<std::string>* getChildNames();
 
         /*
-         * XPATH: /SAFplusAmf/Node/adminState
+         * XPATH: /SAFplusAmf/safplusAmf/Node/adminState
          */
-        SAFplusAmf::AdministrativeState getAdminState();
+        ::SAFplusAmf::AdministrativeState getAdminState();
 
         /*
-         * XPATH: /SAFplusAmf/Node/adminState
+         * XPATH: /SAFplusAmf/safplusAmf/Node/adminState
          */
-        void setAdminState(SAFplusAmf::AdministrativeState &adminStateValue, SAFplus::Transaction &t=SAFplus::NO_TXN);
+        void setAdminState(::SAFplusAmf::AdministrativeState &adminStateValue, SAFplus::Transaction &t=SAFplus::NO_TXN);
 
         /*
-         * XPATH: /SAFplusAmf/Node/operState
+         * XPATH: /SAFplusAmf/safplusAmf/Node/operState
          */
         bool getOperState();
 
         /*
-         * XPATH: /SAFplusAmf/Node/operState
+         * XPATH: /SAFplusAmf/safplusAmf/Node/operState
          */
         void setOperState(bool operStateValue, SAFplus::Transaction &t=SAFplus::NO_TXN);
 
         /*
-         * XPATH: /SAFplusAmf/Node/autoRepair
+         * XPATH: /SAFplusAmf/safplusAmf/Node/autoRepair
          */
         bool getAutoRepair();
 
         /*
-         * XPATH: /SAFplusAmf/Node/autoRepair
+         * XPATH: /SAFplusAmf/safplusAmf/Node/autoRepair
          */
         void setAutoRepair(bool autoRepairValue, SAFplus::Transaction &t=SAFplus::NO_TXN);
 
         /*
-         * XPATH: /SAFplusAmf/Node/failFastOnInstantiationFailure
+         * XPATH: /SAFplusAmf/safplusAmf/Node/failFastOnInstantiationFailure
          */
         bool getFailFastOnInstantiationFailure();
 
         /*
-         * XPATH: /SAFplusAmf/Node/failFastOnInstantiationFailure
+         * XPATH: /SAFplusAmf/safplusAmf/Node/failFastOnInstantiationFailure
          */
         void setFailFastOnInstantiationFailure(bool failFastOnInstantiationFailureValue, SAFplus::Transaction &t=SAFplus::NO_TXN);
 
         /*
-         * XPATH: /SAFplusAmf/Node/failFastOnCleanupFailure
+         * XPATH: /SAFplusAmf/safplusAmf/Node/failFastOnCleanupFailure
          */
         bool getFailFastOnCleanupFailure();
 
         /*
-         * XPATH: /SAFplusAmf/Node/failFastOnCleanupFailure
+         * XPATH: /SAFplusAmf/safplusAmf/Node/failFastOnCleanupFailure
          */
         void setFailFastOnCleanupFailure(bool failFastOnCleanupFailureValue, SAFplus::Transaction &t=SAFplus::NO_TXN);
 
         /*
-         * XPATH: /SAFplusAmf/Node/serviceUnits
+         * XPATH: /SAFplusAmf/safplusAmf/Node/serviceUnits
          */
-        std::vector<SAFplusAmf::ServiceUnit*> getServiceUnits();
+        std::vector<::SAFplusAmf::ServiceUnit*> getServiceUnits();
 
         /*
-         * XPATH: /SAFplusAmf/Node/serviceUnits
+         * XPATH: /SAFplusAmf/safplusAmf/Node/serviceUnits
          */
-        void setServiceUnits(SAFplusAmf::ServiceUnit* serviceUnitsValue);
+        void setServiceUnits(::SAFplusAmf::ServiceUnit* serviceUnitsValue);
 
         /*
-         * XPATH: /SAFplusAmf/Node/stats
+         * XPATH: /SAFplusAmf/safplusAmf/Node/stats
          */
         SAFplusAmf::Stats* getStats();
 
         /*
-         * XPATH: /SAFplusAmf/Node/stats
+         * XPATH: /SAFplusAmf/safplusAmf/Node/stats
          */
         void addStats(SAFplusAmf::Stats *statsValue);
 
         /*
-         * XPATH: /SAFplusAmf/Node/serviceUnitFailureEscalationPolicy
+         * XPATH: /SAFplusAmf/safplusAmf/Node/serviceUnitFailureEscalationPolicy
          */
         SAFplusAmf::ServiceUnitFailureEscalationPolicy* getServiceUnitFailureEscalationPolicy();
 
         /*
-         * XPATH: /SAFplusAmf/Node/serviceUnitFailureEscalationPolicy
+         * XPATH: /SAFplusAmf/safplusAmf/Node/serviceUnitFailureEscalationPolicy
          */
         void addServiceUnitFailureEscalationPolicy(SAFplusAmf::ServiceUnitFailureEscalationPolicy *serviceUnitFailureEscalationPolicyValue);
         ~Node();
 
     };
 }
-/* namespace SAFplusAmf */
+/* namespace ::SAFplusAmf */
 #endif /* NODE_HXX_ */

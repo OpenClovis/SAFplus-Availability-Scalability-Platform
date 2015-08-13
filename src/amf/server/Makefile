@@ -23,11 +23,10 @@ COMMON_DIR=$(SAFPLUS_SRC_DIR)/common
 
 CPP_FLAGS += -I$(COMMON_DIR)/SAFplusTypes -ISAFplusAmf
 
-#SERVER_H := $(wildcard *.hpp) $(wildcard *.h) $(wildcard *.hxx) $(wildcard ../../../include7/*.hpp) $(wildcard SAFplusAmf/*.hxx) $(wildcard SAFplusTypes/*.hxx) $(wildcard ietfYangTypes/*.hxx) $(wildcard ENTITYSTATETCMIB/*.hxx)
+
 SERVER_H := $(wildcard *.hpp) $(wildcard *.h) $(wildcard *.hxx) $(wildcard $(SAFPLUS_INC_DIR)/*.hpp) $(wildcard $(SAFPLUS_INC_DIR)/*.hxx) $(wildcard SAFplusAmf/*.hxx) $(wildcard $(COMMON_DIR)/SAFplusTypes/*.hxx)
 SERVER_SRC := main.cxx amfcommon.cxx $(wildcard amfRpc/*.cc) $(wildcard amfRpc/*.cxx) amfAppRpcImpl.cxx
 
-#POLICY_ENV_SRC := $(wildcard SAFplusAmf/*.cxx) $(wildcard SAFplusTypes/*.cxx) $(wildcard ietfYangTypes/*.cxx) $(wildcard ENTITYSTATETCMIB/*.cxx)
 POLICY_ENV_SRC := amfOperations.cxx portAllocator.cxx $(wildcard SAFplusAmf/*.cxx) $(wildcard $(COMMON_DIR)/SAFplusTypes/*.cxx) $(wildcard amfRpc/server/*.cxx) $(wildcard amfAppRpc/*.cxx) $(wildcard amfAppRpc/*.cc)
 
 SERVER_OBJ := $(subst .cc,.o,$(subst .cxx,.o,$(notdir $(SERVER_SRC))))
@@ -37,7 +36,16 @@ POLICY_ENV_OBJ := $(subst .cxx,.o,$(notdir $(POLICY_ENV_SRC)))
 POLICY_ENV_OBJ := $(addprefix $(OBJ_DIR)/amfsvr/,$(POLICY_ENV_OBJ))
 
 
-Release all: $(PLUGIN_DIR)/customAmfPolicy.so $(PLUGIN_DIR)/nPlusmAmfPolicy.so  $(SAFPLUS_TARGET)/bin/safplus_amf
+Release all: $(PLUGIN_DIR)/customAmfPolicy.so $(PLUGIN_DIR)/nPlusmAmfPolicy.so  $(SAFPLUS_TARGET)/bin/safplus_amf $(SAFPLUS_TARGET)/share/netconf/modules/openclovis/SAFplusAmf.yang $(SAFPLUS_TARGET)/share/netconf/modules/openclovis/SAFplusTypes.yang
+
+$(SAFPLUS_TARGET)/share/netconf/modules/openclovis/SAFplusAmf.yang: $(SAFPLUS_SRC_DIR)/yang/SAFplusAmf.yang
+	@mkdir -p $(SAFPLUS_TARGET)/share/netconf/modules/openclovis
+	cp -rf $< $@
+
+$(SAFPLUS_TARGET)/share/netconf/modules/openclovis/SAFplusTypes.yang: $(SAFPLUS_SRC_DIR)/yang/SAFplusTypes.yang
+	@mkdir -p $(SAFPLUS_TARGET)/share/netconf/modules/openclovis
+	cp -rf $< $@
+
 
 # Shared library providing functions needed by the policy library & SAFplus AMF.
 $(POLICY_ENV_LIB): $(POLICY_ENV_OBJ) $(SAFPLUS_DEP_LIBS)
@@ -104,8 +112,9 @@ SAFplusRpcGen := $(SAFPLUS_TARGET)/bin/protoc-gen-rpc
 
 gen:
 	PYTHONPATH=$(MGT_SRC_DIR)/3rdparty/pyang PYANG_PLUGINPATH=$(MGT_SRC_DIR)/pyplugin $(MGT_SRC_DIR)/3rdparty/pyang/bin/pyang --path=$(SAFPLUS_SRC_DIR)/yang -f y2cpp $(SAFPLUS_SRC_DIR)/yang/SAFplusAmf.yang --y2cpp-output `pwd` --y2cpp-mgt $(MGT_SRC_DIR)
-	(rsync -avpDHL ietfYangTypes $(COMMON_DIR)/; rsync -avpDHL SAFplusTypes $(COMMON_DIR)/; rsync -avpDHL ENTITYSTATETCMIB $(COMMON_DIR)/)
-	(rm -rf ietfYangTypes SAFplusTypes ENTITYSTATETCMIB)
+
+#	(rsync -avpDHL ietfYangTypes $(COMMON_DIR)/; rsync -avpDHL SAFplusTypes $(COMMON_DIR)/; rsync -avpDHL ENTITYSTATETCMIB $(COMMON_DIR)/)
+#	(rm -rf ietfYangTypes SAFplusTypes ENTITYSTATETCMIB)
 
 genrpc: $(SAFplusRpcGen)
 	-mkdir -p amfRpc

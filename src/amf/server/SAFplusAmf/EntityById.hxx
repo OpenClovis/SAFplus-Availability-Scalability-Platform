@@ -36,27 +36,27 @@ namespace SAFplusAmf
         std::vector<std::string>* getChildNames();
 
         /*
-         * XPATH: /SAFplusAmf/EntityById/id
+         * XPATH: /SAFplusAmf/safplusAmf/EntityById/id
          */
         ::uint16_t getId();
 
         /*
-         * XPATH: /SAFplusAmf/EntityById/id
+         * XPATH: /SAFplusAmf/safplusAmf/EntityById/id
          */
         void setId(::uint16_t idValue, SAFplus::Transaction &t=SAFplus::NO_TXN);
 
         /*
-         * XPATH: /SAFplusAmf/EntityById/entity
+         * XPATH: /SAFplusAmf/safplusAmf/EntityById/entity
          */
         std::string getEntity();
 
         /*
-         * XPATH: /SAFplusAmf/EntityById/entity
+         * XPATH: /SAFplusAmf/safplusAmf/EntityById/entity
          */
         void setEntity(std::string entityValue, SAFplus::Transaction &t=SAFplus::NO_TXN);
         ~EntityById();
 
     };
 }
-/* namespace SAFplusAmf */
+/* namespace ::SAFplusAmf */
 #endif /* ENTITYBYID_HXX_ */

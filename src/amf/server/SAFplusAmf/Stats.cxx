@@ -15,12 +15,13 @@
 #include <cstdint>
 #include "Stats.hxx"
 
+using namespace SAFplusAmf;
 
 namespace SAFplusAmf
   {
 
     /* Apply MGT object factory */
-    MGT_REGISTER_IMPL(Stats, /SAFplusAmf/Node/stats)
+    MGT_REGISTER_IMPL(Stats, /SAFplusAmf/safplusAmf/Node/stats)
 
     Stats::Stats(): SAFplus::MgtContainer("stats"), upTime("upTime"), bootTime("bootTime")
     {
@@ -38,7 +39,7 @@ namespace SAFplusAmf
     };
 
     /*
-     * XPATH: /SAFplusAmf/Node/stats/upTime
+     * XPATH: /SAFplusAmf/safplusAmf/Node/stats/upTime
      */
     ::uint64_t Stats::getUpTime()
     {
@@ -46,7 +47,7 @@ namespace SAFplusAmf
     };
 
     /*
-     * XPATH: /SAFplusAmf/Node/stats/upTime
+     * XPATH: /SAFplusAmf/safplusAmf/Node/stats/upTime
      */
     void Stats::setUpTime(::uint64_t upTimeValue, SAFplus::Transaction &txn)
     {
@@ -54,7 +55,7 @@ namespace SAFplusAmf
     };
 
     /*
-     * XPATH: /SAFplusAmf/Node/stats/bootTime
+     * XPATH: /SAFplusAmf/safplusAmf/Node/stats/bootTime
      */
     ::uint64_t Stats::getBootTime()
     {
@@ -62,7 +63,7 @@ namespace SAFplusAmf
     };
 
     /*
-     * XPATH: /SAFplusAmf/Node/stats/bootTime
+     * XPATH: /SAFplusAmf/safplusAmf/Node/stats/bootTime
      */
     void Stats::setBootTime(::uint64_t bootTimeValue, SAFplus::Transaction &txn)
     {
@@ -70,7 +71,7 @@ namespace SAFplusAmf
     };
 
     /*
-     * XPATH: /SAFplusAmf/Node/stats/load
+     * XPATH: /SAFplusAmf/safplusAmf/Node/stats/load
      */
     SAFplusAmf::Load* Stats::getLoad()
     {
@@ -78,7 +79,7 @@ namespace SAFplusAmf
     };
 
     /*
-     * XPATH: /SAFplusAmf/Node/stats/load
+     * XPATH: /SAFplusAmf/safplusAmf/Node/stats/load
      */
     void Stats::addLoad(SAFplusAmf::Load *loadValue)
     {
@@ -90,4 +91,4 @@ namespace SAFplusAmf
     };
 
 }
-/* namespace SAFplusAmf */
+/* namespace ::SAFplusAmf */

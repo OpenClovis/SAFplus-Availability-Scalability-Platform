@@ -15,7 +15,7 @@ namespace SAFplusAmf
   {
 
     /* Apply MGT object factory */
-    MGT_REGISTER_IMPL(ProcStats, /SAFplusAmf/Component/procStats)
+    MGT_REGISTER_IMPL(ProcStats, /SAFplusAmf/safplusAmf/Component/procStats)
 
     ProcStats::ProcStats()
     {
@@ -39,4 +39,4 @@ namespace SAFplusAmf
     };
 
 }
-/* namespace SAFplusAmf */
+/* namespace ::SAFplusAmf */

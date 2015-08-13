@@ -31,5 +31,5 @@ namespace SAFplusAmf
 
     };
 }
-/* namespace SAFplusAmf */
+/* namespace ::SAFplusAmf */
 #endif /* ACTIVEWEIGHT_HXX_ */

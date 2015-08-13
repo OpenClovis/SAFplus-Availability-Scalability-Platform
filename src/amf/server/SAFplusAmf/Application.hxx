@@ -9,17 +9,15 @@
 #define APPLICATION_HXX_
 #include "SAFplusAmfCommon.hxx"
 
-#include "NumServiceGroups.hxx"
 #include <string>
 #include "clTransaction.hxx"
 #include "clMgtProv.hxx"
-#include "clMgtIdentifierList.hxx"
 #include "ServiceGroup.hxx"
+#include "clMgtIdentifierList.hxx"
 #include <vector>
 #include "MgtFactory.hxx"
-#include "NumServiceGroups.hxx"
-#include "AdministrativeState.hxx"
 #include "EntityId.hxx"
+#include "AdministrativeState.hxx"
 
 namespace SAFplusAmf
   {
@@ -34,18 +32,18 @@ namespace SAFplusAmf
         /*
          * Does the operator want this entity to be off, idle, or in service?
          */
-        SAFplus::MgtProv<SAFplusAmf::AdministrativeState> adminState;
+        SAFplus::MgtProv<::SAFplusAmf::AdministrativeState> adminState;
 
         /*
          * Service Groups in this Application
          */
-        SAFplus::MgtIdentifierList<SAFplusAmf::ServiceGroup*> serviceGroups;
+        SAFplus::MgtIdentifierList<::SAFplusAmf::ServiceGroup*> serviceGroups;
 
         /*
          * SAFplus Extension: To the greatest extent possible, all Service Groups in this application will be Active (or standby) on the same node.  This will only be not true if service groups are not configured to run on the same nodes.
          */
         SAFplus::MgtProv<bool> keepTogether;
-        SAFplusAmf::NumServiceGroups numServiceGroups;
+        SAFplus::MgtHistoryStat<int> numServiceGroups;
 
     public:
         Application();
@@ -54,47 +52,47 @@ namespace SAFplusAmf
         std::vector<std::string>* getChildNames();
 
         /*
-         * XPATH: /SAFplusAmf/Application/adminState
+         * XPATH: /SAFplusAmf/safplusAmf/Application/adminState
          */
-        SAFplusAmf::AdministrativeState getAdminState();
+        ::SAFplusAmf::AdministrativeState getAdminState();
 
         /*
-         * XPATH: /SAFplusAmf/Application/adminState
+         * XPATH: /SAFplusAmf/safplusAmf/Application/adminState
          */
-        void setAdminState(SAFplusAmf::AdministrativeState &adminStateValue, SAFplus::Transaction &t=SAFplus::NO_TXN);
+        void setAdminState(::SAFplusAmf::AdministrativeState &adminStateValue, SAFplus::Transaction &t=SAFplus::NO_TXN);
 
         /*
-         * XPATH: /SAFplusAmf/Application/serviceGroups
+         * XPATH: /SAFplusAmf/safplusAmf/Application/serviceGroups
          */
-        std::vector<SAFplusAmf::ServiceGroup*> getServiceGroups();
+        std::vector<::SAFplusAmf::ServiceGroup*> getServiceGroups();
 
         /*
-         * XPATH: /SAFplusAmf/Application/serviceGroups
+         * XPATH: /SAFplusAmf/safplusAmf/Application/serviceGroups
          */
-        void setServiceGroups(SAFplusAmf::ServiceGroup* serviceGroupsValue);
+        void setServiceGroups(::SAFplusAmf::ServiceGroup* serviceGroupsValue);
 
         /*
-         * XPATH: /SAFplusAmf/Application/keepTogether
+         * XPATH: /SAFplusAmf/safplusAmf/Application/keepTogether
          */
         bool getKeepTogether();
 
         /*
-         * XPATH: /SAFplusAmf/Application/keepTogether
+         * XPATH: /SAFplusAmf/safplusAmf/Application/keepTogether
          */
         void setKeepTogether(bool keepTogetherValue, SAFplus::Transaction &t=SAFplus::NO_TXN);
 
         /*
-         * XPATH: /SAFplusAmf/Application/numServiceGroups
+         * XPATH: /SAFplusAmf/safplusAmf/Application/numServiceGroups
          */
-        SAFplusAmf::NumServiceGroups* getNumServiceGroups();
+        SAFplus::MgtHistoryStat<int>* getNumServiceGroups();
 
         /*
-         * XPATH: /SAFplusAmf/Application/numServiceGroups
+         * XPATH: /SAFplusAmf/safplusAmf/Application/numServiceGroups
          */
-        void addNumServiceGroups(SAFplusAmf::NumServiceGroups *numServiceGroupsValue);
+        void addNumServiceGroups(SAFplus::MgtHistoryStat<int> *numServiceGroupsValue);
         ~Application();
 
     };
 }
-/* namespace SAFplusAmf */
+/* namespace ::SAFplusAmf */
 #endif /* APPLICATION_HXX_ */

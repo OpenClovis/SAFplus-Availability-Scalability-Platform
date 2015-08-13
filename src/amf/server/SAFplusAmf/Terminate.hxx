@@ -9,8 +9,8 @@
 #define TERMINATE_HXX_
 #include "SAFplusAmfCommon.hxx"
 
-#include "Execution.hxx"
 #include <vector>
+#include "Execution.hxx"
 #include "MgtFactory.hxx"
 
 namespace SAFplusAmf
@@ -28,5 +28,5 @@ namespace SAFplusAmf
 
     };
 }
-/* namespace SAFplusAmf */
+/* namespace ::SAFplusAmf */
 #endif /* TERMINATE_HXX_ */

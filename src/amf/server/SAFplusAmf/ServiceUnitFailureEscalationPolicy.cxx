@@ -15,7 +15,7 @@ namespace SAFplusAmf
   {
 
     /* Apply MGT object factory */
-    MGT_REGISTER_IMPL(ServiceUnitFailureEscalationPolicy, /SAFplusAmf/Node/serviceUnitFailureEscalationPolicy)
+    MGT_REGISTER_IMPL(ServiceUnitFailureEscalationPolicy, /SAFplusAmf/safplusAmf/Node/serviceUnitFailureEscalationPolicy)
 
     ServiceUnitFailureEscalationPolicy::ServiceUnitFailureEscalationPolicy()
     {
@@ -33,4 +33,4 @@ namespace SAFplusAmf
     };
 
 }
-/* namespace SAFplusAmf */
+/* namespace ::SAFplusAmf */

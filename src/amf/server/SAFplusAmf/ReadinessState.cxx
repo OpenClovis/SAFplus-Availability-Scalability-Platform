@@ -22,17 +22,17 @@ namespace SAFplusAmf
             pair_t(ReadinessState::stopping, "stopping")
     }; // uses c++11 initializer lists 
 
-    const char* c_str(const SAFplusAmf::ReadinessState &readinessState)
+    const char* c_str(const ::SAFplusAmf::ReadinessState &readinessState)
     {
         return ReadinessStateManager::c_str(readinessState);
     };
 
-    std::ostream& operator<<(std::ostream &os, const SAFplusAmf::ReadinessState &readinessState)
+    std::ostream& operator<<(std::ostream &os, const ::SAFplusAmf::ReadinessState &readinessState)
     {
         return os << ReadinessStateManager::toString(readinessState);
     };
 
-    std::istream& operator>>(std::istream &is, SAFplusAmf::ReadinessState &readinessState)
+    std::istream& operator>>(std::istream &is, ::SAFplusAmf::ReadinessState &readinessState)
     {
         std::string buf;
         is >> buf;
@@ -41,4 +41,4 @@ namespace SAFplusAmf
     };
 
 }
-/* namespace SAFplusAmf */
+/* namespace ::SAFplusAmf */

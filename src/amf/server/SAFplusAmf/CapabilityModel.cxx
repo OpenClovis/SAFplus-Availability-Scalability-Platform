@@ -9,6 +9,7 @@
 #include <iostream>
 #include "CapabilityModel.hxx"
 
+using namespace SAFplusAmf;
 
 namespace SAFplusAmf
   {
@@ -41,4 +42,4 @@ namespace SAFplusAmf
     };
 
 }
-/* namespace SAFplusAmf */
+/* namespace ::SAFplusAmf */

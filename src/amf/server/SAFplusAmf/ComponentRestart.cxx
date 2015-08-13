@@ -15,7 +15,7 @@ namespace SAFplusAmf
   {
 
     /* Apply MGT object factory */
-    MGT_REGISTER_IMPL(ComponentRestart, /SAFplusAmf/ServiceGroup/componentRestart)
+    MGT_REGISTER_IMPL(ComponentRestart, /SAFplusAmf/safplusAmf/ServiceGroup/componentRestart)
 
     ComponentRestart::ComponentRestart()
     {
@@ -33,4 +33,4 @@ namespace SAFplusAmf
     };
 
 }
-/* namespace SAFplusAmf */
+/* namespace ::SAFplusAmf */

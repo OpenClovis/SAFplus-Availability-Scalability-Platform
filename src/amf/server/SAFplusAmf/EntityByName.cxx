@@ -18,7 +18,7 @@ namespace SAFplusAmf
   {
 
     /* Apply MGT object factory */
-    MGT_REGISTER_IMPL(EntityByName, /SAFplusAmf/EntityByName)
+    MGT_REGISTER_IMPL(EntityByName, /SAFplusAmf/safplusAmf/EntityByName)
 
     EntityByName::EntityByName(): SAFplus::MgtContainer("EntityByName"), name("name"), entity("entity")
     {
@@ -52,7 +52,7 @@ namespace SAFplusAmf
     };
 
     /*
-     * XPATH: /SAFplusAmf/EntityByName/name
+     * XPATH: /SAFplusAmf/safplusAmf/EntityByName/name
      */
     std::string EntityByName::getName()
     {
@@ -60,7 +60,7 @@ namespace SAFplusAmf
     };
 
     /*
-     * XPATH: /SAFplusAmf/EntityByName/name
+     * XPATH: /SAFplusAmf/safplusAmf/EntityByName/name
      */
     void EntityByName::setName(std::string nameValue, SAFplus::Transaction &t)
     {
@@ -73,7 +73,7 @@ namespace SAFplusAmf
     };
 
     /*
-     * XPATH: /SAFplusAmf/EntityByName/entity
+     * XPATH: /SAFplusAmf/safplusAmf/EntityByName/entity
      */
     std::string EntityByName::getEntity()
     {
@@ -81,7 +81,7 @@ namespace SAFplusAmf
     };
 
     /*
-     * XPATH: /SAFplusAmf/EntityByName/entity
+     * XPATH: /SAFplusAmf/safplusAmf/EntityByName/entity
      */
     void EntityByName::setEntity(std::string entityValue, SAFplus::Transaction &t)
     {
@@ -98,4 +98,4 @@ namespace SAFplusAmf
     };
 
 }
-/* namespace SAFplusAmf */
+/* namespace ::SAFplusAmf */

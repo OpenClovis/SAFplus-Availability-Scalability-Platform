@@ -10,8 +10,8 @@
 #include "clMgtProv.hxx"
 #include <vector>
 #include "MgtFactory.hxx"
-#include "AdministrativeState.hxx"
 #include "EntityId.hxx"
+#include "AdministrativeState.hxx"
 #include "Cluster.hxx"
 
 
@@ -19,7 +19,7 @@ namespace SAFplusAmf
   {
 
     /* Apply MGT object factory */
-    MGT_REGISTER_IMPL(Cluster, /SAFplusAmf/Cluster)
+    MGT_REGISTER_IMPL(Cluster, /SAFplusAmf/safplusAmf/Cluster)
 
     Cluster::Cluster(): adminState("adminState"), startupAssignmentDelay("startupAssignmentDelay")
     {
@@ -49,28 +49,28 @@ namespace SAFplusAmf
     };
 
     /*
-     * XPATH: /SAFplusAmf/Cluster/adminState
+     * XPATH: /SAFplusAmf/safplusAmf/Cluster/adminState
      */
-    SAFplusAmf::AdministrativeState Cluster::getAdminState()
+    ::SAFplusAmf::AdministrativeState Cluster::getAdminState()
     {
         return this->adminState.value;
     };
 
     /*
-     * XPATH: /SAFplusAmf/Cluster/adminState
+     * XPATH: /SAFplusAmf/safplusAmf/Cluster/adminState
      */
-    void Cluster::setAdminState(SAFplusAmf::AdministrativeState &adminStateValue, SAFplus::Transaction &t)
+    void Cluster::setAdminState(::SAFplusAmf::AdministrativeState &adminStateValue, SAFplus::Transaction &t)
     {
         if(&t == &SAFplus::NO_TXN) this->adminState.value = adminStateValue;
         else
         {
-            SAFplus::SimpleTxnOperation<SAFplusAmf::AdministrativeState> *opt = new SAFplus::SimpleTxnOperation<SAFplusAmf::AdministrativeState>(&(adminState.value),adminStateValue);
+            SAFplus::SimpleTxnOperation<::SAFplusAmf::AdministrativeState> *opt = new SAFplus::SimpleTxnOperation<::SAFplusAmf::AdministrativeState>(&(adminState.value),adminStateValue);
             t.addOperation(opt);
         }
     };
 
     /*
-     * XPATH: /SAFplusAmf/Cluster/startupAssignmentDelay
+     * XPATH: /SAFplusAmf/safplusAmf/Cluster/startupAssignmentDelay
      */
     SaTimeT Cluster::getStartupAssignmentDelay()
     {
@@ -78,7 +78,7 @@ namespace SAFplusAmf
     };
 
     /*
-     * XPATH: /SAFplusAmf/Cluster/startupAssignmentDelay
+     * XPATH: /SAFplusAmf/safplusAmf/Cluster/startupAssignmentDelay
      */
     void Cluster::setStartupAssignmentDelay(SaTimeT &startupAssignmentDelayValue, SAFplus::Transaction &t)
     {
@@ -95,4 +95,4 @@ namespace SAFplusAmf
     };
 
 }
-/* namespace SAFplusAmf */
+/* namespace ::SAFplusAmf */

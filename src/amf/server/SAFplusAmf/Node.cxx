@@ -21,12 +21,13 @@
 #include "ServiceUnit.hxx"
 #include "Node.hxx"
 
+using namespace SAFplusAmf;
 
 namespace SAFplusAmf
   {
 
     /* Apply MGT object factory */
-    MGT_REGISTER_IMPL(Node, /SAFplusAmf/Node)
+    MGT_REGISTER_IMPL(Node, /SAFplusAmf/safplusAmf/Node)
 
     Node::Node(): adminState("adminState"), operState("operState"), autoRepair("autoRepair"), failFastOnInstantiationFailure("failFastOnInstantiationFailure"), failFastOnCleanupFailure("failFastOnCleanupFailure"), serviceUnits("serviceUnits"), capacityList("capacity")
     {
@@ -40,7 +41,7 @@ namespace SAFplusAmf
         this->addChildObject(&stats, "stats");
         this->addChildObject(&serviceUnitFailureEscalationPolicy, "serviceUnitFailureEscalationPolicy");
         this->addChildObject(&capacityList, "capacity");
-        capacityList.childXpath="/SAFplusAmf/Node/capacity";
+        capacityList.childXpath="/SAFplusAmf/safplusAmf/Node/capacity";
         capacityList.setListKey("resource");
         this->tag.assign("Node");
     };
@@ -58,7 +59,7 @@ namespace SAFplusAmf
         this->addChildObject(&stats, "stats");
         this->addChildObject(&serviceUnitFailureEscalationPolicy, "serviceUnitFailureEscalationPolicy");
         this->addChildObject(&capacityList, "capacity");
-        capacityList.childXpath="/SAFplusAmf/Node/capacity";
+        capacityList.childXpath="/SAFplusAmf/safplusAmf/Node/capacity";
         capacityList.setListKey("resource");
         this->tag.assign("Node");
     };
@@ -76,28 +77,28 @@ namespace SAFplusAmf
     };
 
     /*
-     * XPATH: /SAFplusAmf/Node/adminState
+     * XPATH: /SAFplusAmf/safplusAmf/Node/adminState
      */
-    SAFplusAmf::AdministrativeState Node::getAdminState()
+    ::SAFplusAmf::AdministrativeState Node::getAdminState()
     {
         return this->adminState.value;
     };
 
     /*
-     * XPATH: /SAFplusAmf/Node/adminState
+     * XPATH: /SAFplusAmf/safplusAmf/Node/adminState
      */
-    void Node::setAdminState(SAFplusAmf::AdministrativeState &adminStateValue, SAFplus::Transaction &t)
+    void Node::setAdminState(::SAFplusAmf::AdministrativeState &adminStateValue, SAFplus::Transaction &t)
     {
         if(&t == &SAFplus::NO_TXN) this->adminState.value = adminStateValue;
         else
         {
-            SAFplus::SimpleTxnOperation<SAFplusAmf::AdministrativeState> *opt = new SAFplus::SimpleTxnOperation<SAFplusAmf::AdministrativeState>(&(adminState.value),adminStateValue);
+            SAFplus::SimpleTxnOperation<::SAFplusAmf::AdministrativeState> *opt = new SAFplus::SimpleTxnOperation<::SAFplusAmf::AdministrativeState>(&(adminState.value),adminStateValue);
             t.addOperation(opt);
         }
     };
 
     /*
-     * XPATH: /SAFplusAmf/Node/operState
+     * XPATH: /SAFplusAmf/safplusAmf/Node/operState
      */
     bool Node::getOperState()
     {
@@ -105,7 +106,7 @@ namespace SAFplusAmf
     };
 
     /*
-     * XPATH: /SAFplusAmf/Node/operState
+     * XPATH: /SAFplusAmf/safplusAmf/Node/operState
      */
     void Node::setOperState(bool operStateValue, SAFplus::Transaction &t)
     {
@@ -118,7 +119,7 @@ namespace SAFplusAmf
     };
 
     /*
-     * XPATH: /SAFplusAmf/Node/autoRepair
+     * XPATH: /SAFplusAmf/safplusAmf/Node/autoRepair
      */
     bool Node::getAutoRepair()
     {
@@ -126,7 +127,7 @@ namespace SAFplusAmf
     };
 
     /*
-     * XPATH: /SAFplusAmf/Node/autoRepair
+     * XPATH: /SAFplusAmf/safplusAmf/Node/autoRepair
      */
     void Node::setAutoRepair(bool autoRepairValue, SAFplus::Transaction &t)
     {
@@ -139,7 +140,7 @@ namespace SAFplusAmf
     };
 
     /*
-     * XPATH: /SAFplusAmf/Node/failFastOnInstantiationFailure
+     * XPATH: /SAFplusAmf/safplusAmf/Node/failFastOnInstantiationFailure
      */
     bool Node::getFailFastOnInstantiationFailure()
     {
@@ -147,7 +148,7 @@ namespace SAFplusAmf
     };
 
     /*
-     * XPATH: /SAFplusAmf/Node/failFastOnInstantiationFailure
+     * XPATH: /SAFplusAmf/safplusAmf/Node/failFastOnInstantiationFailure
      */
     void Node::setFailFastOnInstantiationFailure(bool failFastOnInstantiationFailureValue, SAFplus::Transaction &t)
     {
@@ -160,7 +161,7 @@ namespace SAFplusAmf
     };
 
     /*
-     * XPATH: /SAFplusAmf/Node/failFastOnCleanupFailure
+     * XPATH: /SAFplusAmf/safplusAmf/Node/failFastOnCleanupFailure
      */
     bool Node::getFailFastOnCleanupFailure()
     {
@@ -168,7 +169,7 @@ namespace SAFplusAmf
     };
 
     /*
-     * XPATH: /SAFplusAmf/Node/failFastOnCleanupFailure
+     * XPATH: /SAFplusAmf/safplusAmf/Node/failFastOnCleanupFailure
      */
     void Node::setFailFastOnCleanupFailure(bool failFastOnCleanupFailureValue, SAFplus::Transaction &t)
     {
@@ -181,23 +182,23 @@ namespace SAFplusAmf
     };
 
     /*
-     * XPATH: /SAFplusAmf/Node/serviceUnits
+     * XPATH: /SAFplusAmf/safplusAmf/Node/serviceUnits
      */
-    std::vector<SAFplusAmf::ServiceUnit*> Node::getServiceUnits()
+    std::vector<::SAFplusAmf::ServiceUnit*> Node::getServiceUnits()
     {
         return this->serviceUnits.value;
     };
 
     /*
-     * XPATH: /SAFplusAmf/Node/serviceUnits
+     * XPATH: /SAFplusAmf/safplusAmf/Node/serviceUnits
      */
-    void Node::setServiceUnits(SAFplusAmf::ServiceUnit* serviceUnitsValue)
+    void Node::setServiceUnits(::SAFplusAmf::ServiceUnit* serviceUnitsValue)
     {
         this->serviceUnits.value.push_back(serviceUnitsValue);
     };
 
     /*
-     * XPATH: /SAFplusAmf/Node/stats
+     * XPATH: /SAFplusAmf/safplusAmf/Node/stats
      */
     SAFplusAmf::Stats* Node::getStats()
     {
@@ -205,7 +206,7 @@ namespace SAFplusAmf
     };
 
     /*
-     * XPATH: /SAFplusAmf/Node/stats
+     * XPATH: /SAFplusAmf/safplusAmf/Node/stats
      */
     void Node::addStats(SAFplusAmf::Stats *statsValue)
     {
@@ -213,7 +214,7 @@ namespace SAFplusAmf
     };
 
     /*
-     * XPATH: /SAFplusAmf/Node/serviceUnitFailureEscalationPolicy
+     * XPATH: /SAFplusAmf/safplusAmf/Node/serviceUnitFailureEscalationPolicy
      */
     SAFplusAmf::ServiceUnitFailureEscalationPolicy* Node::getServiceUnitFailureEscalationPolicy()
     {
@@ -221,7 +222,7 @@ namespace SAFplusAmf
     };
 
     /*
-     * XPATH: /SAFplusAmf/Node/serviceUnitFailureEscalationPolicy
+     * XPATH: /SAFplusAmf/safplusAmf/Node/serviceUnitFailureEscalationPolicy
      */
     void Node::addServiceUnitFailureEscalationPolicy(SAFplusAmf::ServiceUnitFailureEscalationPolicy *serviceUnitFailureEscalationPolicyValue)
     {
@@ -233,4 +234,4 @@ namespace SAFplusAmf
     };
 
 }
-/* namespace SAFplusAmf */
+/* namespace ::SAFplusAmf */

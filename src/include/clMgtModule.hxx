@@ -75,6 +75,7 @@ namespace SAFplus
      * \return	CL_ERR_ALREADY_EXIST	Module already exists
      */
     ClRcT bind(Handle handle);
+    ClRcT bind(Handle handle,MgtObject* obj);
 
     /**
      * \brief	Virtual function to initialize non-config data structures

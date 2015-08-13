@@ -5,8 +5,8 @@
  */ 
 #include "SAFplusAmfCommon.hxx"
 
-#include "Execution.hxx"
 #include <vector>
+#include "Execution.hxx"
 #include "MgtFactory.hxx"
 #include "Terminate.hxx"
 
@@ -15,7 +15,7 @@ namespace SAFplusAmf
   {
 
     /* Apply MGT object factory */
-    MGT_REGISTER_IMPL(Terminate, /SAFplusAmf/Component/terminate)
+    MGT_REGISTER_IMPL(Terminate, /SAFplusAmf/safplusAmf/Component/terminate)
 
     Terminate::Terminate()
     {
@@ -33,4 +33,4 @@ namespace SAFplusAmf
     };
 
 }
-/* namespace SAFplusAmf */
+/* namespace ::SAFplusAmf */
