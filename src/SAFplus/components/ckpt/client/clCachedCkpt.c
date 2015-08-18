@@ -389,45 +389,6 @@ ClRcT clCachedCkptInitialize(ClCachedCkptSvcInfoT *serviceInfo,
         rc = clOsalSemCreate((ClUint8T*)cacheName, 1, &serviceInfo->cacheSem);
     }
 
-    if(ckptAttributes || openFlags)
-    {
-        if(serviceInfo->ckptSvcHandle == CL_HANDLE_INVALID_VALUE)
-        {
-            /* Initialize checkpoint service instance */
-            do
-            {
-                rc = clCkptInitialize(&ckptSvcHandle, NULL, (ClVersionT *)&ckptVersion);
-            } while(rc != CL_OK && tries++ < 100 && clOsalTaskDelay(delay) == CL_OK);
-
-            if(rc != CL_OK)
-            {
-                clLogError("CCK", "INI", "Failed to initialize checkpoint service instance. error code [0x%x].", rc);
-                goto out2;
-            }
-
-            serviceInfo->ckptSvcHandle = ckptSvcHandle;
-        }
-
-        /* Create the checkpoint for read and write. */
-        do
-        {
-            rc = clCkptCheckpointOpen(serviceInfo->ckptSvcHandle,
-                                      (ClNameT *)ckptName,
-                                      (ClCkptCheckpointCreationAttributesT *)ckptAttributes,
-                                      openFlags,
-                                      0L,
-                                      &ckptHandle);
-        } while(rc != CL_OK && tries++ < 100 && clOsalTaskDelay(delay) == CL_OK);
-     
-        if(rc != CL_OK)
-        {
-            clLogError("CCK", "INI", "Failed to open checkpoint. error code [0x%x].", rc);
-            goto out3;
-        }
-
-        serviceInfo->ckptHandle = ckptHandle;
-    }
-
     /* Create shm */
 
     rc = clOsalShmOpen((ClCharT *)cacheName, CL_CACHED_CKPT_SHM_EXCL_CREATE_FLAGS,
@@ -465,6 +426,44 @@ ClRcT clCachedCkptInitialize(ClCachedCkptSvcInfoT *serviceInfo,
 
     clOsalMsync(serviceInfo->cache, shmSize, MS_SYNC);
 
+    if(ckptAttributes || openFlags)
+    {
+        if(serviceInfo->ckptSvcHandle == CL_HANDLE_INVALID_VALUE)
+        {
+            /* Initialize checkpoint service instance */
+            do
+            {
+                rc = clCkptInitialize(&ckptSvcHandle, NULL, (ClVersionT *)&ckptVersion);
+            } while(rc != CL_OK && tries++ < 100 && clOsalTaskDelay(delay) == CL_OK);
+
+            if(rc != CL_OK)
+            {
+                clLogError("CCK", "INI", "Failed to initialize checkpoint service instance. error code [0x%x].", rc);
+                goto out2;
+            }
+
+            serviceInfo->ckptSvcHandle = ckptSvcHandle;
+        }
+
+        /* Create the checkpoint for read and write. */
+        do
+        {
+            rc = clCkptCheckpointOpen(serviceInfo->ckptSvcHandle,
+                                      (ClNameT *)ckptName,
+                                      (ClCkptCheckpointCreationAttributesT *)ckptAttributes,
+                                      openFlags,
+                                      0L,
+                                      &ckptHandle);
+        } while(rc != CL_OK && tries++ < 10 && clOsalTaskDelay(delay) == CL_OK);
+
+        if(rc != CL_OK)
+        {
+            clLogError("CCK", "INI", "Failed to open checkpoint. error code [0x%x].", rc);
+            goto out3;
+        }
+
+        serviceInfo->ckptHandle = ckptHandle;
+    }
     goto out1;
 
     out5:

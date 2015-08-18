@@ -45,7 +45,7 @@ extern "C" {
 #endif
 
 #define CL_MSG_DEFAULT_DELAY            {.tsSec = 0, .tsMilliSec = 500 }
-#define CL_MSG_DEFAULT_RETRIES          (5)
+#define CL_MSG_DEFAULT_RETRIES          (10)
 
 
 #define CL_MSG_RC(err)          CL_RC(CL_CID_MSG, err)
