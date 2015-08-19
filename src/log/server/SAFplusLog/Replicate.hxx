@@ -32,5 +32,5 @@ namespace SAFplusLog
         static const map_t en2str_map;  // This is the lookup table.
     };
 }
-/* namespace SAFplusLog */
+/* namespace ::SAFplusLog */
 #endif /* REPLICATE_HXX_ */

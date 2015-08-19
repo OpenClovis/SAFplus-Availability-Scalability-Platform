@@ -9,11 +9,13 @@
 #define SERVERCONFIG_HXX_
 #include "SAFplusLogCommon.hxx"
 
+#include <cstdint>
 #include "clTransaction.hxx"
 #include "clMgtProv.hxx"
 #include <vector>
 #include "MgtFactory.hxx"
 #include "clMgtContainer.hxx"
+#include <cstdint>
 
 namespace SAFplusLog
   {
@@ -28,27 +30,27 @@ namespace SAFplusLog
         /*
          * Maximum number of log streams that can exist
          */
-        SAFplus::MgtProv<unsigned int> maximumStreams;
+        SAFplus::MgtProv<::uint32_t> maximumStreams;
 
         /*
          * 
          */
-        SAFplus::MgtProv<unsigned int> maximumComponents;
+        SAFplus::MgtProv<::uint32_t> maximumComponents;
 
         /*
          * Maximum size of shared memory to hold logs from all log streams
          */
-        SAFplus::MgtProv<unsigned int> maximumSharedMemoryPages;
+        SAFplus::MgtProv<::uint32_t> maximumSharedMemoryPages;
 
         /*
          * When logs are forwarded to another node, this specifies the maximum number of logs placed in a single message.
          */
-        SAFplus::MgtProv<unsigned int> maximumRecordsInPacket;
+        SAFplus::MgtProv<::uint32_t> maximumRecordsInPacket;
 
         /*
          * The log server wakes up every processingInterval ms and outputs all logs in shared memory.  This field therefore defines the maximum age of unposted logs during light log use.
          */
-        SAFplus::MgtProv<unsigned long int> processingInterval;
+        SAFplus::MgtProv<::uint64_t> processingInterval;
 
     public:
         ServerConfig();
@@ -57,55 +59,55 @@ namespace SAFplusLog
         /*
          * XPATH: /SAFplusLog/serverConfig/maximumStreams
          */
-        unsigned int getMaximumStreams();
+        ::uint32_t getMaximumStreams();
 
         /*
          * XPATH: /SAFplusLog/serverConfig/maximumStreams
          */
-        void setMaximumStreams(unsigned int maximumStreamsValue, SAFplus::Transaction &txn=SAFplus::NO_TXN);
+        void setMaximumStreams(::uint32_t maximumStreamsValue, SAFplus::Transaction &txn=SAFplus::NO_TXN);
 
         /*
          * XPATH: /SAFplusLog/serverConfig/maximumComponents
          */
-        unsigned int getMaximumComponents();
+        ::uint32_t getMaximumComponents();
 
         /*
          * XPATH: /SAFplusLog/serverConfig/maximumComponents
          */
-        void setMaximumComponents(unsigned int maximumComponentsValue, SAFplus::Transaction &txn=SAFplus::NO_TXN);
+        void setMaximumComponents(::uint32_t maximumComponentsValue, SAFplus::Transaction &txn=SAFplus::NO_TXN);
 
         /*
          * XPATH: /SAFplusLog/serverConfig/maximumSharedMemoryPages
          */
-        unsigned int getMaximumSharedMemoryPages();
+        ::uint32_t getMaximumSharedMemoryPages();
 
         /*
          * XPATH: /SAFplusLog/serverConfig/maximumSharedMemoryPages
          */
-        void setMaximumSharedMemoryPages(unsigned int maximumSharedMemoryPagesValue, SAFplus::Transaction &txn=SAFplus::NO_TXN);
+        void setMaximumSharedMemoryPages(::uint32_t maximumSharedMemoryPagesValue, SAFplus::Transaction &txn=SAFplus::NO_TXN);
 
         /*
          * XPATH: /SAFplusLog/serverConfig/maximumRecordsInPacket
          */
-        unsigned int getMaximumRecordsInPacket();
+        ::uint32_t getMaximumRecordsInPacket();
 
         /*
          * XPATH: /SAFplusLog/serverConfig/maximumRecordsInPacket
          */
-        void setMaximumRecordsInPacket(unsigned int maximumRecordsInPacketValue, SAFplus::Transaction &txn=SAFplus::NO_TXN);
+        void setMaximumRecordsInPacket(::uint32_t maximumRecordsInPacketValue, SAFplus::Transaction &txn=SAFplus::NO_TXN);
 
         /*
          * XPATH: /SAFplusLog/serverConfig/processingInterval
          */
-        unsigned long int getProcessingInterval();
+        ::uint64_t getProcessingInterval();
 
         /*
          * XPATH: /SAFplusLog/serverConfig/processingInterval
          */
-        void setProcessingInterval(unsigned long int processingIntervalValue, SAFplus::Transaction &txn=SAFplus::NO_TXN);
+        void setProcessingInterval(::uint64_t processingIntervalValue, SAFplus::Transaction &txn=SAFplus::NO_TXN);
         ~ServerConfig();
 
     };
 }
-/* namespace SAFplusLog */
+/* namespace ::SAFplusLog */
 #endif /* SERVERCONFIG_HXX_ */

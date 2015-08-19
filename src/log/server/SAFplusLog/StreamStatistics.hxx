@@ -9,10 +9,8 @@
 #define STREAMSTATISTICS_HXX_
 #include "SAFplusLogCommon.hxx"
 
-#include "NumLogs.hxx"
 #include <vector>
 #include "MgtFactory.hxx"
-#include "NumLogs.hxx"
 #include "clMgtContainer.hxx"
 
 namespace SAFplusLog
@@ -24,7 +22,7 @@ namespace SAFplusLog
         MGT_REGISTER(StreamStatistics);
 
     public:
-        SAFplusLog::NumLogs numLogs;
+        SAFplus::MgtHistoryStat<int> numLogs;
 
     public:
         StreamStatistics();
@@ -33,15 +31,15 @@ namespace SAFplusLog
         /*
          * XPATH: /SAFplusLog/streamConfig/stream/streamStatistics/numLogs
          */
-        SAFplusLog::NumLogs* getNumLogs();
+        SAFplus::MgtHistoryStat<int>* getNumLogs();
 
         /*
          * XPATH: /SAFplusLog/streamConfig/stream/streamStatistics/numLogs
          */
-        void addNumLogs(SAFplusLog::NumLogs *numLogsValue);
+        void addNumLogs(SAFplus::MgtHistoryStat<int> *numLogsValue);
         ~StreamStatistics();
 
     };
 }
-/* namespace SAFplusLog */
+/* namespace ::SAFplusLog */
 #endif /* STREAMSTATISTICS_HXX_ */

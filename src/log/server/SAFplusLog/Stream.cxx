@@ -13,6 +13,7 @@
 #include "StreamAttributes.hxx"
 #include "Stream.hxx"
 
+using namespace SAFplusLog;
 
 namespace SAFplusLog
   {
@@ -21,7 +22,7 @@ namespace SAFplusLog
     MGT_REGISTER_IMPL(Stream, /SAFplusLog/streamConfig/stream)
 
     Stream::Stream()
-        :fileBuffer(SAFplusI::LogDefaultFileBufferSize),msgBuffer(SAFplusI::LogDefaultMessageBufferSize),fp(NULL)  // additions
+      :fileBuffer(SAFplusI::LogDefaultFileBufferSize),msgBuffer(SAFplusI::LogDefaultMessageBufferSize),fp(NULL)  // additions
     {
         this->addChildObject(&streamStatistics, "streamStatistics");
         this->tag.assign("stream");
@@ -68,4 +69,4 @@ namespace SAFplusLog
     };
 
 }
-/* namespace SAFplusLog */
+/* namespace ::SAFplusLog */

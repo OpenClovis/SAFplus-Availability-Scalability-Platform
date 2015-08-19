@@ -9,6 +9,7 @@
 #include <iostream>
 #include "FileFullAction.hxx"
 
+using namespace SAFplusLog;
 
 namespace SAFplusLog
   {
@@ -41,4 +42,4 @@ namespace SAFplusLog
     };
 
 }
-/* namespace SAFplusLog */
+/* namespace ::SAFplusLog */

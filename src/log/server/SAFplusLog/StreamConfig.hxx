@@ -36,5 +36,5 @@ namespace SAFplusLog
 
     };
 }
-/* namespace SAFplusLog */
+/* namespace ::SAFplusLog */
 #endif /* STREAMCONFIG_HXX_ */

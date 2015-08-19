@@ -11,8 +11,10 @@
 #include "FileFullAction.hxx"
 #include <vector>
 #include "Replicate.hxx"
-#include "clMgtContainer.hxx"
+#include <cstdint>
 #include "StreamScope.hxx"
+#include "clMgtContainer.hxx"
+#include <cstdint>
 #include "StreamAttributes.hxx"
 
 
@@ -76,7 +78,7 @@ namespace SAFplusLog
     /*
      * XPATH: /SAFplusLog/StreamAttributes/replicate
      */
-    SAFplusLog::Replicate StreamAttributes::getReplicate()
+    ::SAFplusLog::Replicate StreamAttributes::getReplicate()
     {
         return this->replicate.value;
     };
@@ -84,7 +86,7 @@ namespace SAFplusLog
     /*
      * XPATH: /SAFplusLog/StreamAttributes/replicate
      */
-    void StreamAttributes::setReplicate(SAFplusLog::Replicate replicateValue, SAFplus::Transaction &txn)
+    void StreamAttributes::setReplicate(::SAFplusLog::Replicate &replicateValue, SAFplus::Transaction &txn)
     {
         this->replicate.set(replicateValue,txn);
     };
@@ -108,7 +110,7 @@ namespace SAFplusLog
     /*
      * XPATH: /SAFplusLog/StreamAttributes/fileUnitSize
      */
-    unsigned long int StreamAttributes::getFileUnitSize()
+    ::uint64_t StreamAttributes::getFileUnitSize()
     {
         return this->fileUnitSize.value;
     };
@@ -116,7 +118,7 @@ namespace SAFplusLog
     /*
      * XPATH: /SAFplusLog/StreamAttributes/fileUnitSize
      */
-    void StreamAttributes::setFileUnitSize(unsigned long int fileUnitSizeValue, SAFplus::Transaction &txn)
+    void StreamAttributes::setFileUnitSize(::uint64_t fileUnitSizeValue, SAFplus::Transaction &txn)
     {
         this->fileUnitSize.set(fileUnitSizeValue,txn);
     };
@@ -124,7 +126,7 @@ namespace SAFplusLog
     /*
      * XPATH: /SAFplusLog/StreamAttributes/recordSize
      */
-    unsigned long int StreamAttributes::getRecordSize()
+    ::uint64_t StreamAttributes::getRecordSize()
     {
         return this->recordSize.value;
     };
@@ -132,7 +134,7 @@ namespace SAFplusLog
     /*
      * XPATH: /SAFplusLog/StreamAttributes/recordSize
      */
-    void StreamAttributes::setRecordSize(unsigned long int recordSizeValue, SAFplus::Transaction &txn)
+    void StreamAttributes::setRecordSize(::uint64_t recordSizeValue, SAFplus::Transaction &txn)
     {
         this->recordSize.set(recordSizeValue,txn);
     };
@@ -140,7 +142,7 @@ namespace SAFplusLog
     /*
      * XPATH: /SAFplusLog/StreamAttributes/fileFullAction
      */
-    SAFplusLog::FileFullAction StreamAttributes::getFileFullAction()
+    ::SAFplusLog::FileFullAction StreamAttributes::getFileFullAction()
     {
         return this->fileFullAction.value;
     };
@@ -148,7 +150,7 @@ namespace SAFplusLog
     /*
      * XPATH: /SAFplusLog/StreamAttributes/fileFullAction
      */
-    void StreamAttributes::setFileFullAction(SAFplusLog::FileFullAction fileFullActionValue, SAFplus::Transaction &txn)
+    void StreamAttributes::setFileFullAction(::SAFplusLog::FileFullAction &fileFullActionValue, SAFplus::Transaction &txn)
     {
         this->fileFullAction.set(fileFullActionValue,txn);
     };
@@ -156,7 +158,7 @@ namespace SAFplusLog
     /*
      * XPATH: /SAFplusLog/StreamAttributes/maximumFilesRotated
      */
-    unsigned int StreamAttributes::getMaximumFilesRotated()
+    ::uint32_t StreamAttributes::getMaximumFilesRotated()
     {
         return this->maximumFilesRotated.value;
     };
@@ -164,7 +166,7 @@ namespace SAFplusLog
     /*
      * XPATH: /SAFplusLog/StreamAttributes/maximumFilesRotated
      */
-    void StreamAttributes::setMaximumFilesRotated(unsigned int maximumFilesRotatedValue, SAFplus::Transaction &txn)
+    void StreamAttributes::setMaximumFilesRotated(::uint32_t maximumFilesRotatedValue, SAFplus::Transaction &txn)
     {
         this->maximumFilesRotated.set(maximumFilesRotatedValue,txn);
     };
@@ -172,7 +174,7 @@ namespace SAFplusLog
     /*
      * XPATH: /SAFplusLog/StreamAttributes/flushFreq
      */
-    unsigned int StreamAttributes::getFlushFreq()
+    ::uint32_t StreamAttributes::getFlushFreq()
     {
         return this->flushFreq.value;
     };
@@ -180,7 +182,7 @@ namespace SAFplusLog
     /*
      * XPATH: /SAFplusLog/StreamAttributes/flushFreq
      */
-    void StreamAttributes::setFlushFreq(unsigned int flushFreqValue, SAFplus::Transaction &txn)
+    void StreamAttributes::setFlushFreq(::uint32_t flushFreqValue, SAFplus::Transaction &txn)
     {
         this->flushFreq.set(flushFreqValue,txn);
     };
@@ -188,7 +190,7 @@ namespace SAFplusLog
     /*
      * XPATH: /SAFplusLog/StreamAttributes/flushInterval
      */
-    unsigned long int StreamAttributes::getFlushInterval()
+    ::uint64_t StreamAttributes::getFlushInterval()
     {
         return this->flushInterval.value;
     };
@@ -196,7 +198,7 @@ namespace SAFplusLog
     /*
      * XPATH: /SAFplusLog/StreamAttributes/flushInterval
      */
-    void StreamAttributes::setFlushInterval(unsigned long int flushIntervalValue, SAFplus::Transaction &txn)
+    void StreamAttributes::setFlushInterval(::uint64_t flushIntervalValue, SAFplus::Transaction &txn)
     {
         this->flushInterval.set(flushIntervalValue,txn);
     };
@@ -220,7 +222,7 @@ namespace SAFplusLog
     /*
      * XPATH: /SAFplusLog/StreamAttributes/streamScope
      */
-    SAFplusLog::StreamScope StreamAttributes::getStreamScope()
+    ::SAFplusLog::StreamScope StreamAttributes::getStreamScope()
     {
         return this->streamScope.value;
     };
@@ -228,7 +230,7 @@ namespace SAFplusLog
     /*
      * XPATH: /SAFplusLog/StreamAttributes/streamScope
      */
-    void StreamAttributes::setStreamScope(SAFplusLog::StreamScope streamScopeValue, SAFplus::Transaction &txn)
+    void StreamAttributes::setStreamScope(::SAFplusLog::StreamScope &streamScopeValue, SAFplus::Transaction &txn)
     {
         this->streamScope.set(streamScopeValue,txn);
     };
@@ -238,4 +240,4 @@ namespace SAFplusLog
     };
 
 }
-/* namespace SAFplusLog */
+/* namespace ::SAFplusLog */

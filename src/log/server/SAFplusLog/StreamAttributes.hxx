@@ -15,8 +15,10 @@
 #include "FileFullAction.hxx"
 #include <vector>
 #include "Replicate.hxx"
-#include "clMgtContainer.hxx"
+#include <cstdint>
 #include "StreamScope.hxx"
+#include "clMgtContainer.hxx"
+#include <cstdint>
 
 namespace SAFplusLog
   {
@@ -37,7 +39,7 @@ namespace SAFplusLog
         /*
          * Replicate this log to other nodes/processes
          */
-        SAFplus::MgtProv<SAFplusLog::Replicate> replicate;
+        SAFplus::MgtProv<::SAFplusLog::Replicate> replicate;
 
         /*
          * Node and directory where the file is to be output
@@ -47,32 +49,32 @@ namespace SAFplusLog
         /*
          * Maximum size of a log file
          */
-        SAFplus::MgtProv<unsigned long int> fileUnitSize;
+        SAFplus::MgtProv<::uint64_t> fileUnitSize;
 
         /*
          * Maximum size of a single log record
          */
-        SAFplus::MgtProv<unsigned long int> recordSize;
+        SAFplus::MgtProv<::uint64_t> recordSize;
 
         /*
          * Action to take when the log file is full
          */
-        SAFplus::MgtProv<SAFplusLog::FileFullAction> fileFullAction;
+        SAFplus::MgtProv<::SAFplusLog::FileFullAction> fileFullAction;
 
         /*
          * If fileFullAction is ROTATE, this field indicates the number of files to rotate.
          */
-        SAFplus::MgtProv<unsigned int> maximumFilesRotated;
+        SAFplus::MgtProv<::uint32_t> maximumFilesRotated;
 
         /*
          * When this number of logs are available in shared memory, the log server is triggered to output them.  This field controls how often logs are posted during heavy log use.
          */
-        SAFplus::MgtProv<unsigned int> flushFreq;
+        SAFplus::MgtProv<::uint32_t> flushFreq;
 
         /*
          * The log server wakes up every flushInterval ms and outputs all logs in shared memory.  This field therefore defines the maximum age of unposted logs during light log use.
          */
-        SAFplus::MgtProv<unsigned long int> flushInterval;
+        SAFplus::MgtProv<::uint64_t> flushInterval;
 
         /*
          * Should these logs be output to syslog
@@ -82,7 +84,7 @@ namespace SAFplusLog
         /*
          * Is this log stream available across the entire cluster, or just available on the node?
          */
-        SAFplus::MgtProv<SAFplusLog::StreamScope> streamScope;
+        SAFplus::MgtProv<::SAFplusLog::StreamScope> streamScope;
 
     public:
         StreamAttributes();
@@ -111,12 +113,12 @@ namespace SAFplusLog
         /*
          * XPATH: /SAFplusLog/StreamAttributes/replicate
          */
-        SAFplusLog::Replicate getReplicate();
+        ::SAFplusLog::Replicate getReplicate();
 
         /*
          * XPATH: /SAFplusLog/StreamAttributes/replicate
          */
-        void setReplicate(SAFplusLog::Replicate replicateValue, SAFplus::Transaction &txn=SAFplus::NO_TXN);
+        void setReplicate(::SAFplusLog::Replicate &replicateValue, SAFplus::Transaction &txn=SAFplus::NO_TXN);
 
         /*
          * XPATH: /SAFplusLog/StreamAttributes/fileLocation
@@ -131,62 +133,62 @@ namespace SAFplusLog
         /*
          * XPATH: /SAFplusLog/StreamAttributes/fileUnitSize
          */
-        unsigned long int getFileUnitSize();
+        ::uint64_t getFileUnitSize();
 
         /*
          * XPATH: /SAFplusLog/StreamAttributes/fileUnitSize
          */
-        void setFileUnitSize(unsigned long int fileUnitSizeValue, SAFplus::Transaction &txn=SAFplus::NO_TXN);
+        void setFileUnitSize(::uint64_t fileUnitSizeValue, SAFplus::Transaction &txn=SAFplus::NO_TXN);
 
         /*
          * XPATH: /SAFplusLog/StreamAttributes/recordSize
          */
-        unsigned long int getRecordSize();
+        ::uint64_t getRecordSize();
 
         /*
          * XPATH: /SAFplusLog/StreamAttributes/recordSize
          */
-        void setRecordSize(unsigned long int recordSizeValue, SAFplus::Transaction &txn=SAFplus::NO_TXN);
+        void setRecordSize(::uint64_t recordSizeValue, SAFplus::Transaction &txn=SAFplus::NO_TXN);
 
         /*
          * XPATH: /SAFplusLog/StreamAttributes/fileFullAction
          */
-        SAFplusLog::FileFullAction getFileFullAction();
+        ::SAFplusLog::FileFullAction getFileFullAction();
 
         /*
          * XPATH: /SAFplusLog/StreamAttributes/fileFullAction
          */
-        void setFileFullAction(SAFplusLog::FileFullAction fileFullActionValue, SAFplus::Transaction &txn=SAFplus::NO_TXN);
+        void setFileFullAction(::SAFplusLog::FileFullAction &fileFullActionValue, SAFplus::Transaction &txn=SAFplus::NO_TXN);
 
         /*
          * XPATH: /SAFplusLog/StreamAttributes/maximumFilesRotated
          */
-        unsigned int getMaximumFilesRotated();
+        ::uint32_t getMaximumFilesRotated();
 
         /*
          * XPATH: /SAFplusLog/StreamAttributes/maximumFilesRotated
          */
-        void setMaximumFilesRotated(unsigned int maximumFilesRotatedValue, SAFplus::Transaction &txn=SAFplus::NO_TXN);
+        void setMaximumFilesRotated(::uint32_t maximumFilesRotatedValue, SAFplus::Transaction &txn=SAFplus::NO_TXN);
 
         /*
          * XPATH: /SAFplusLog/StreamAttributes/flushFreq
          */
-        unsigned int getFlushFreq();
+        ::uint32_t getFlushFreq();
 
         /*
          * XPATH: /SAFplusLog/StreamAttributes/flushFreq
          */
-        void setFlushFreq(unsigned int flushFreqValue, SAFplus::Transaction &txn=SAFplus::NO_TXN);
+        void setFlushFreq(::uint32_t flushFreqValue, SAFplus::Transaction &txn=SAFplus::NO_TXN);
 
         /*
          * XPATH: /SAFplusLog/StreamAttributes/flushInterval
          */
-        unsigned long int getFlushInterval();
+        ::uint64_t getFlushInterval();
 
         /*
          * XPATH: /SAFplusLog/StreamAttributes/flushInterval
          */
-        void setFlushInterval(unsigned long int flushIntervalValue, SAFplus::Transaction &txn=SAFplus::NO_TXN);
+        void setFlushInterval(::uint64_t flushIntervalValue, SAFplus::Transaction &txn=SAFplus::NO_TXN);
 
         /*
          * XPATH: /SAFplusLog/StreamAttributes/syslog
@@ -201,15 +203,15 @@ namespace SAFplusLog
         /*
          * XPATH: /SAFplusLog/StreamAttributes/streamScope
          */
-        SAFplusLog::StreamScope getStreamScope();
+        ::SAFplusLog::StreamScope getStreamScope();
 
         /*
          * XPATH: /SAFplusLog/StreamAttributes/streamScope
          */
-        void setStreamScope(SAFplusLog::StreamScope streamScopeValue, SAFplus::Transaction &txn=SAFplus::NO_TXN);
+        void setStreamScope(::SAFplusLog::StreamScope &streamScopeValue, SAFplus::Transaction &txn=SAFplus::NO_TXN);
         ~StreamAttributes();
 
     };
 }
-/* namespace SAFplusLog */
+/* namespace ::SAFplusLog */
 #endif /* STREAMATTRIBUTES_HXX_ */

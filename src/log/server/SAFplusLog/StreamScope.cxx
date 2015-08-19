@@ -9,6 +9,7 @@
 #include <iostream>
 #include "StreamScope.hxx"
 
+using namespace SAFplusLog;
 
 namespace SAFplusLog
   {
@@ -40,4 +41,4 @@ namespace SAFplusLog
     };
 
 }
-/* namespace SAFplusLog */
+/* namespace ::SAFplusLog */

@@ -9,6 +9,7 @@
 #include <iostream>
 #include "Replicate.hxx"
 
+using namespace SAFplusLog;
 
 namespace SAFplusLog
   {
@@ -42,4 +43,4 @@ namespace SAFplusLog
     };
 
 }
-/* namespace SAFplusLog */
+/* namespace ::SAFplusLog */

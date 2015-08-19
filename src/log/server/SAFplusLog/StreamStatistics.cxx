@@ -5,10 +5,8 @@
  */ 
 #include "SAFplusLogCommon.hxx"
 
-#include "NumLogs.hxx"
 #include <vector>
 #include "MgtFactory.hxx"
-#include "NumLogs.hxx"
 #include "clMgtContainer.hxx"
 #include "StreamStatistics.hxx"
 
@@ -33,15 +31,15 @@ namespace SAFplusLog
     /*
      * XPATH: /SAFplusLog/streamConfig/stream/streamStatistics/numLogs
      */
-    SAFplusLog::NumLogs* StreamStatistics::getNumLogs()
+    SAFplus::MgtHistoryStat<int>* StreamStatistics::getNumLogs()
     {
-        return dynamic_cast<NumLogs*>(this->getChildObject("numLogs"));
+        return dynamic_cast<SAFplus::MgtHistoryStat<int>*>(this->getChildObject("numLogs"));
     };
 
     /*
      * XPATH: /SAFplusLog/streamConfig/stream/streamStatistics/numLogs
      */
-    void StreamStatistics::addNumLogs(SAFplusLog::NumLogs *numLogsValue)
+    void StreamStatistics::addNumLogs(SAFplus::MgtHistoryStat<int> *numLogsValue)
     {
         this->addChildObject(numLogsValue, "numLogs");
     };
@@ -51,4 +49,4 @@ namespace SAFplusLog
     };
 
 }
-/* namespace SAFplusLog */
+/* namespace ::SAFplusLog */
