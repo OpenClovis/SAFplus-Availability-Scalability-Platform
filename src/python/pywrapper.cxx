@@ -1,3 +1,5 @@
+/* Added cltypes.h to Fix the PRIx64 error */
+#include <cltypes.h>
 #include <boost/python.hpp>
 
 #include <clLogApi.hxx>
