@@ -31,16 +31,16 @@ def startupAmf(tgtDir,outfile=None,infile="/dev/null"):
       infile = open(infile,"r")
     # delete the old database
     try:
-      os.remove(tgtDir + "/bin/SAFplusAmf.idx")
+      os.remove(tgtDir + "/bin/safplusAmf.idx")
     except OSError, e: pass # ok file does not exist
     try:
-      os.remove(tgtDir + "/bin/SAFplusAmf.db")
+      os.remove(tgtDir + "/bin/safplusAmf.db")
     except OSError, e: pass # ok file does not exist
 
     cwd = os.path.abspath(tgtDir + "/bin")
 
     # now write the new data
-    db = dbalpy.PyDBAL(cwd + "/SAFplusAmf") # Root of Log service start from /log ->  docRoot= "version.log_BootConfig.log"
+    db = dbalpy.PyDBAL(cwd + "/safplusAmf") # Root of Log service start from /log ->  docRoot= "version.log_BootConfig.log"
     db.LoadXML(modelXML)
     db.Finalize()
 

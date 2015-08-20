@@ -3,7 +3,7 @@ import types, pdb
 import pySAFplus as sp
 import microdom
 
-AmfPfx = "SAFplusAmf"
+AmfPfx = "safplusAmf"
 SiPfx = "ServiceInstance"
 
 def csv2List(csvString):
@@ -42,7 +42,7 @@ def removePrefix(text, prefix):
     return text #or whatever
 
 def getSgEntities(sgName):
-  sgx = sp.mgtGet("/SAFplusAmf/ServiceGroup/" + sgName)
+  sgx = sp.mgtGet("/" + AmfPfx + "/ServiceGroup/" + sgName)
   if sgx: sg = microdom.LoadString(sgx)
   else:
     raise Error("no service group [%s], or no access" % sgName)
@@ -148,8 +148,8 @@ def displaySgStatus(sg):
     numStandby = int(si.numStandbyAssignments.current.data_)
     print "%sAdministrative State: %4s  Assignment State: %s (%d/%d)" % ("  "*indent, si.adminState.data_, si.assignmentState.data_, numActive,numStandby)
     if numActive or numStandby:
-      activeSus = removePrefix([ x.strip() for x in si.activeAssignments.data_.split(",")] ,"/SAFplusAmf/ServiceUnit/")
-      standbySus = removePrefix([x.strip() for x in si.standbyAssignments.data_.split(",")],"/SAFplusAmf/ServiceUnit/")
+      activeSus = removePrefix([ x.strip() for x in si.activeAssignments.data_.split(",")] ,"/" + AmfPfx + "/ServiceUnit/")
+      standbySus = removePrefix([x.strip() for x in si.standbyAssignments.data_.split(",")],"/" + AmfPfx + "/ServiceUnit/")
       print "%sActive on: %s  Standby on: %s" % ("  "*indent,", ".join(activeSus), ", ".join(standbySus))
     indent-=1
 
