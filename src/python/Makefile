@@ -23,7 +23,7 @@ $(LIB_DIR)/%.py: %.py
 	cp $< $@
 
 $(SAFPLUS_TARGET)/lib/pySAFplus.so:  $(PY_CLIENT_OBJ)  $(SAFPLUS_DEP_LIBS)
-	$(LINK_SO) $@ $(PY_CLIENT_OBJ) $(LIB_DIR)/libclLog.so $(PY_LIB) $(SAFPLUS_LINK_LIBS) -L$(INSTALL_DIR)/lib -lezxml -lxml2 $(LINK_SO_LIBS)
+	$(LINK_SO) $@ $(PY_CLIENT_OBJ) $(PY_LIB) $(SAFPLUS_LINK_LIBS) -L$(INSTALL_DIR)/lib -lezxml -lxml2 $(LINK_SO_LIBS)
 
 $(OBJ_DIR)/%.o: %.cxx Makefile $(LOG_SERVER_H)
 	$(COMPILE_CPP)  $@ $(PY_INC) $<
