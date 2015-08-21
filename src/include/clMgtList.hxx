@@ -883,14 +883,16 @@ namespace SAFplus
     virtual void toString(std::stringstream& xmlString, int depth=SAFplusI::MgtToStringRecursionDepth, SerializationOptions opts=SerializeNoOptions)
       {
         typename Map::iterator iter;
+#if 0
         /* Name of this list */
         xmlString << '<' << tag;
         if (opts & MgtObject::SerializeNameAttribute)
           xmlString << " name=" << "\"" << getFullXpath(false) << "\"";
         if (opts & MgtObject::SerializePathAttribute)
           xmlString << " path=" << "\"" << getFullXpath(true) << "\"";
-        xmlString << '>';                
+        xmlString << '>';
 
+#endif
         MgtObject::SerializationOptions newopts = opts;
         if (opts & MgtObject::SerializeOnePath) newopts = (MgtObject::SerializationOptions) (newopts & ~MgtObject::SerializePathAttribute);
 
@@ -910,7 +912,9 @@ namespace SAFplus
             entry->toString(xmlString,depth-1, newopts);
           }
         }
+#if 0
         xmlString << "</" << tag << '>';
+#endif
       }
 
       MgtObject* lookUpMgtObject(const std::string & classType, const std::string &ref)
