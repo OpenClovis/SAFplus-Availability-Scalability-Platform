@@ -162,7 +162,6 @@ namespace SAFplus
     int recvQueueSize = 32; /* Maximum number of sent segments */
     int sendBufferSize;
     int recvBufferSize;
-    //byte[]  _recvbuffer = new byte[65535];
     bool isClosed    = false;
     bool isConnected = false;
     bool isReset     = false;
@@ -204,14 +203,13 @@ namespace SAFplus
     void handleReliableSocketThread(void);
     void sendReliableFragment(ReliableFragment *frag);
     void queueAndSendReliableFragment(ReliableFragment* frag);
-    virtual ReliableFragment* receiveReliableFragment(Handle &);
     void retransmitFragment(ReliableFragment* frag);
     void setconnection(connectionNotification state);
     void connectionOpened(void);
     void init();
 
   public:
-    boost::intrusive::list_member_hook<> m_reliableSocketmemberHook;
+    virtual ReliableFragment* receiveReliableFragment(Handle &);
     Handle destination;
     uint_t messageType;
     ReliableSocketProfile* profile;
@@ -219,6 +217,7 @@ namespace SAFplus
     SAFplusTimer retransmissionTimer;
     SAFplusTimer cumulativeAckTimer;
     SAFplusTimer keepAliveTimer;
+    boost::intrusive::list_member_hook<> m_reliableSocketmemberHook;
     MsgSocketReliable(uint_t port,MsgTransportPlugin_1* transport);
     MsgSocketReliable(uint_t port,MsgTransportPlugin_1* transport,Handle destination);
     MsgSocketReliable(MsgSocket* socket);
@@ -226,9 +225,11 @@ namespace SAFplus
     //? Send a bunch of messages.  You give up ownership of msg.
     virtual void send(Message* msg);
     virtual void send(SAFplus::Handle destination, void* buffer, uint_t length,uint_t msgtype);
+    virtual Message* receive(uint_t maxMsgs,int maxDelay=-1);
+    virtual void flush();
+    virtual void connectionClientOpen(MsgSocketReliable* sock){};
     int receiveReliable(Byte* buffer, int offset, int len);
     void sendReliable(Byte* buffer, int offset, int len);
-    virtual Message* receive(uint_t maxMsgs,int maxDelay=-1);
     void connect(Handle destination, int timeout);
     void close(void);
     void closeImpl();
@@ -239,10 +240,6 @@ namespace SAFplus
     void handleCumulativeAckTimerFunc(void);
     void handleKeepAliveTimerFunc(void);
     void handleReliableFragment(ReliableFragment *frag);
-    virtual void flush();
-
-
-
   };
 
 
@@ -258,7 +255,19 @@ namespace SAFplus
       &MsgSocketReliable::m_reliableSocketmemberHook> ReliableSocketMemberHookOption;
   typedef list<MsgSocketReliable, ReliableSocketMemberHookOption> ReliableSocketList;
 
+  class MsgSocketServerReliable;
 
+  class MsgSocketClientReliable : public MsgSocketReliable
+  {
+  public:
+    MsgSocketServerReliable *sockServer;
+    MsgSocketClientReliable(MsgSocket* socket) : MsgSocketReliable(socket)
+    {
+    };
+    virtual ReliableFragment* receiveReliableFragment(Handle &);
+    void receiverFragment(ReliableFragment* frag);
+    virtual void connectionClientOpen(void* sock);
+  };
 
   class MsgSocketServerReliable : public MsgSocketAdvanced
   {
@@ -268,34 +277,19 @@ namespace SAFplus
     void removeClientSocket(Handle destAddress);
     void addClientSocket(Handle destAddress);
     void handleRcvThread();
-    MsgSocketReliable* accept();
+  public:
+    void init();
     static void rcvThread(void * arg);
     MsgSocketServerReliable(uint_t port,MsgTransportPlugin_1* transport);
     MsgSocketServerReliable(MsgSocket* socket);
-    void init();
-  public:
     ReliableSocketList listenSock;
     ThreadCondition listenSockCond;
     SAFplus::Mutex listenSockMutex;
     ReliableFragmentList fragmentQueue;
     SAFplus::Mutex fragmentQueueLock;
     ThreadCondition fragmentQueueCond;
-    //This list will use the member hook
-    class MsgSocketClientReliable : public MsgSocketReliable
-    {
-    private:
-      MsgSocketServerReliable &sockServer;
-    public:
-      MsgSocketClientReliable(MsgSocketServerReliable &sockServerReliable, MsgSocket* sockClient,Handle destination);
-      virtual ReliableFragment* receiveReliableFragment(Handle &);
-      void receiverFragment(ReliableFragment* frag);
-    };
+    MsgSocketClientReliable* accept();
     typedef boost::unordered_map < SAFplus::Handle, MsgSocketClientReliable*, boost::hash<SAFplus::Handle>, std::equal_to<SAFplus::Handle> > HandleSockMap;
     HandleSockMap clientSockTable;
-
   };
-
-
-
-
 };

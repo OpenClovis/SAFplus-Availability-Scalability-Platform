@@ -685,7 +685,10 @@ namespace SAFplus
     }
     return p_Fragment;
   }
-
+  //  void MsgSocketReliable::connectionClientOpen(MsgSocketReliable* sock)
+  //  {
+  //    return;
+  //  }
   //Sends a fragment and increments its retransmission counter
   void MsgSocketReliable::retransmitFragment(ReliableFragment *frag)
   {
@@ -842,6 +845,8 @@ namespace SAFplus
       }
       thisCond.notify_one();
       thisMutex.unlock();
+      this->connectionClientOpen(this);
+
     }
   }
 
@@ -1205,7 +1210,8 @@ namespace SAFplus
     {
       try
       {
-        MsgSocketClientReliable *sockClient = new MsgSocketClientReliable(*this,sock,destAddress);
+        MsgSocketClientReliable *sockClient = new MsgSocketClientReliable(sock);
+        sockClient->sockServer=this;
         clientSockTable[destAddress]=sockClient;
       }
       catch (...)
@@ -1215,7 +1221,6 @@ namespace SAFplus
       }
     }
   }
-
 
   void MsgSocketServerReliable::removeClientSocket(Handle destAddress)
   {
@@ -1228,6 +1233,7 @@ namespace SAFplus
       }
     }
   }
+
   void MsgSocketServerReliable::handleRcvThread()
   {
     Message* p_Msg = nullptr;
@@ -1300,13 +1306,15 @@ namespace SAFplus
     sock=socket;
     ServerRcvThread = boost::thread(rcvThread, this);
   }
-
   void MsgSocketServerReliable::init()
   {
     ServerRcvThread.start_thread();
   }
 
-  MsgSocketReliable* MsgSocketServerReliable::accept()
+
+
+
+  MsgSocketClientReliable* MsgSocketServerReliable::accept()
   {
     listenSockMutex.lock();
     while (listenSock.empty())
@@ -1321,43 +1329,43 @@ namespace SAFplus
       }
     }
     listenSockMutex.unlock();
-    MsgSocketReliable* sock = &(listenSock.front());
+    MsgSocketClientReliable* sock = (MsgSocketClientReliable*)&(listenSock.front());
     listenSock.pop_front();
     return sock;
   }
 
-  ReliableFragment* MsgSocketServerReliable::MsgSocketClientReliable::receiveReliableFragment(Handle &)
+  ReliableFragment* MsgSocketClientReliable::receiveReliableFragment(Handle &)
   {
-    sockServer.fragmentQueueLock.lock();
-    while (sockServer.fragmentQueue.empty())
+    this->sockServer->fragmentQueueLock.lock();
+    while (sockServer->fragmentQueue.empty())
     {
       try
       {
-        sockServer.fragmentQueueCond.wait(sockServer.fragmentQueueLock);
+        sockServer->fragmentQueueCond.wait(sockServer->fragmentQueueLock);
       }
       catch(...)
       {
         // Handle Exception
       }
     }
-    ReliableFragment* frag = &(sockServer.fragmentQueue.front());
-    sockServer.fragmentQueue.pop_front();
-    sockServer.fragmentQueueLock.unlock();
+    ReliableFragment* frag = &(sockServer->fragmentQueue.front());
+    sockServer->fragmentQueue.pop_front();
+    sockServer->fragmentQueueLock.unlock();
     return frag;
   }
 
-
-
-  void MsgSocketServerReliable::MsgSocketClientReliable::receiverFragment(ReliableFragment* frag)
+  void MsgSocketClientReliable::receiverFragment(ReliableFragment* frag)
   {
-    sockServer.fragmentQueueLock.lock();
-    sockServer.fragmentQueue.push_back(*frag);
-    sockServer.fragmentQueueCond.notify_one();
-    sockServer.fragmentQueueLock.unlock();
+    sockServer->fragmentQueueLock.lock();
+    sockServer->fragmentQueue.push_back(*frag);
+    sockServer->fragmentQueueCond.notify_one();
+    sockServer->fragmentQueueLock.unlock();
   }
-  MsgSocketServerReliable::MsgSocketClientReliable::MsgSocketClientReliable(MsgSocketServerReliable &sockServerReliable,MsgSocket* sockClient,Handle dest) : MsgSocketReliable(sockClient),sockServer(sockServerReliable)
+  void MsgSocketClientReliable::connectionClientOpen(void* sock)
   {
-    this->destination=dest;
+    this->sockServer->listenSockMutex.lock();
+    this->sockServer->listenSock.push_back(*(MsgSocketReliable*)sock);
+    this->sockServer->listenSockCond.notify_one();
+    this->sockServer->listenSockMutex.unlock();
   }
-
 };
