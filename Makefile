@@ -82,7 +82,7 @@ deb_clean:
 	rm -rf debian/$(PACKAGENAME).*debhelper
 	rm -rf debian/$(PACKAGENAME).substvars
 deb_build:
-	cd src && make
+	cd src && make USE_DIST_LIB=1
 
 clean:
 	rm -rf $(TAR_NAME) $(BUILD)

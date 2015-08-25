@@ -22,7 +22,7 @@ the applications
 %build
 echo "Building RPM PACKAGE"
 cd src
-make
+make USE_DIST_LIB=1
 
 %install
 

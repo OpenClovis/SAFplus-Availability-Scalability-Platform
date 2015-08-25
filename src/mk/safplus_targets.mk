@@ -15,7 +15,9 @@ $(LIB_DIR)/libclUtils.so: $(wildcard $(SAFPLUS_SRC_DIR)/utils/*.cxx) $(wildcard 
 endif
 
 $(INSTALL_DIR)/lib/libxml2.so:
-	$(MAKE) -C $(SAFPLUS_SRC_DIR)/3rdparty/base
+	if [ $(DISTRIBUTION_LIB) -eq 0 ]; then \
+            $(MAKE) -C $(SAFPLUS_SRC_DIR)/3rdparty/base; \
+	fi
 
 #ifndef SAFPLUS_IOC_LIB
 #$(LIB_DIR)/libclIoc.so $(LIB_DIR)/libclTIPC.so  $(LIB_DIR)/libclUDP.so:

@@ -75,14 +75,28 @@ ifeq ($(XML2_CFLAGS),)
 $(info pkg-config was unable to determine libxml-2.0 header file location.  Using default)
 XML2_CFLAGS ?= -I$(SAFPLUS_SRC_DIR)/3rdparty/build/include/libxml2 -I$(SAFPLUS_SRC_DIR)/3rdparty/base/libxml2-2.9.0/include -I$(MGT_SRC_DIR)/3rdparty/build/include/libxml2/
 endif
+XML2_LINK ?= $(shell PKG_CONFIG_PATH=$(PKG_CONFIG_PATH) pkg-config --libs libxml-2.0)  
+ifeq ($(XML2_LINK),)
+$(info pkg-config was unable to determine libxml-2.0 location.  Using default)
+XML2_LINK ?= $(INSTALL_DIR)/lib -lxml2
+endif
 
 #? Flags (include directories) needed to compile programs using the SAFplus Mgt component.
 SAFPLUS_MGT_INC_FLAGS := -I$(SAFPLUS_SRC_DIR)/mgt $(XML2_CFLAGS)
 
 # Determine boost location
+# For SAFplus RPM/DEBIAN package generation, distribution provided libraries need to be used
+ifndef USE_DIST_LIB
+DISTRIBUTION_LIB = 0
 BOOST_INC_DIR ?= $(INSTALL_DIR)/include
 # $(shell (cd $(SAFPLUS_SRC_DIR)/../../boost; pwd))
 BOOST_LIB_DIR ?= $(INSTALL_DIR)/lib
+else
+DISTRIBUTION_LIB = 1
+BOOST_INC_DIR := /usr/include
+# Need to fix the BOOST_LIB_DIR path for handling various linux distributions
+BOOST_LIB_DIR := /usr/lib:/usr/lib64
+endif
 
 ifdef GPERFTOOLS
 GPERFTOOLS_LINK := -ltcmalloc
