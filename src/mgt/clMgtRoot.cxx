@@ -450,98 +450,172 @@ namespace SAFplus
     {
     MgtRoot::sendReplyMsg(srcAddr,(void *)strRplMesg.c_str(),strRplMesg.size());
     }
-
-#if 0
-    MgtObject *object = findMgtObject(reqMsg.bind());
-
-    if (object != nullptr)
-      {
-        MsgGeneral rplMesg;
-        std::string outBuff, strRplMesg;
-
-        object->get(&outBuff);
-        rplMesg.add_data(outBuff.c_str(), outBuff.length() + 1);
-        rplMesg.SerializeToString(&strRplMesg);
-        logDebug("MGT","XGET","Replying with msg of size [%lu]",(long unsigned int) strRplMesg.size());
-        MgtRoot::sendReplyMsg(srcAddr,(void *)strRplMesg.c_str(),strRplMesg.size());
-      }
-#endif
   }
 
   void MgtRoot::clMgtMsgXSetHandler(SAFplus::Handle srcAddr, Mgt::Msg::MsgMgt& reqMsg)
   {
-  std::vector<MgtObject*> matches;
-  std::string path = reqMsg.bind();
+    ClRcT rc = CL_OK;
+    std::vector<MgtObject*> matches;
+    std::string path = reqMsg.bind();
+    std::string cmds;
 
-  if (path[0] == '/') 
+    if (path[0] == '{')  // Debugging requests
     {
-      resolvePath(path.c_str()+1, &matches);
-      ClRcT rc = 0;
-      std::string value = reqMsg.data(0);
-      for (std::vector<MgtObject*>::iterator i=matches.begin(); i != matches.end(); i++)
+      int end = path.find_first_of("}");
+      cmds = path.substr(1,end-1);
+      vector<string> strs;
+      boost::split(strs,cmds,boost::is_any_of(","));
+      for (auto cmd: strs)
         {
-          MgtObject *object = *i;
-          ClRcT rc = object->setObj(value);
-          //object->toString(outBuff, (MgtObject::SerializationOptions) (MgtObject::SerializePathAttribute | MgtObject::SerializeOnePath));
-          
+          if (cmd[0] == 'b')
+            {
+              std::raise(SIGINT);
+            }
+          else if (cmd[0] == 'p')
+            {
+              clDbgPause();
+            }
         }
-      MgtRoot::sendReplyMsg(srcAddr,(void *)&rc,sizeof(ClRcT));
+      // TODO: parse the non-xml requests (depth, pause thread, break thread, log custom string)
+      cmds.append(" ");  // Right now I just assume everything in there is a custom logging string
+      path = path.substr(end+1);
     }
-  
 
-#if 0
-    MgtObject *object = findMgtObject(reqMsg.bind());
-    if (object != nullptr)
+    if (path[0] == '/')
       {
+        resolvePath(path.c_str() + 1, &matches);
         std::string value = reqMsg.data(0);
-        ClRcT rc = object->setObj(value);
-        MgtRoot::sendReplyMsg(srcAddr,(void *)&rc,sizeof(ClRcT));
+        if (matches.size())
+          {
+            for (std::vector<MgtObject*>::iterator i = matches.begin(); i != matches.end(); i++)
+              {
+                rc |= (*i)->setObj(value);
+              }
+          }
+        else
+          {
+            rc = CL_ERR_NOT_EXIST;
+          }
       }
-#endif
+    logDebug("MGT","SET","Object [%s] done updated", path.c_str());
+    MgtRoot::sendReplyMsg(srcAddr,(void *)&rc,sizeof(ClRcT));
   }
 
   void MgtRoot::clMgtMsgCreateHandler(SAFplus::Handle srcAddr, Mgt::Msg::MsgMgt& reqMsg)
   {
-    std::size_t idx = reqMsg.bind().find_last_of("/");
+    ClRcT rc = CL_OK;
+    std::string xpath = reqMsg.bind();
+    std::size_t idx = xpath.find_last_of("/");
+    std::vector<MgtObject*> matches;
+    std::string cmds;
 
-    if (idx == std::string::npos)
+    if (xpath[0] == '{')  // Debugging requests
+    {
+      int end = xpath.find_first_of("}");
+      cmds = xpath.substr(1,end-1);
+      vector<string> strs;
+      boost::split(strs,cmds,boost::is_any_of(","));
+      for (auto cmd: strs)
+        {
+          if (cmd[0] == 'b')
+            {
+              std::raise(SIGINT);
+            }
+          else if (cmd[0] == 'p')
+            {
+              clDbgPause();
+            }
+        }
+      // TODO: parse the non-xml requests (depth, pause thread, break thread, log custom string)
+      cmds.append(" ");  // Right now I just assume everything in there is a custom logging string
+      xpath = xpath.substr(end+1);
+    }
+
+    if (idx != std::string::npos)
+    {
+      std::string path = xpath.substr(0, idx);
+      std::string value = xpath.substr(idx + 1);
+
+      resolvePath(path.c_str() + 1, &matches);
+
+      if (matches.size())
       {
-        // Invalid xpath
-        return;
+        for (std::vector<MgtObject*>::iterator i = matches.begin(); i != matches.end(); i++)
+          {
+            rc = (*i)->createObj(value);
+            logDebug("MGT","CRET","Object [%s] done created", xpath.c_str());
+            MgtRoot::sendReplyMsg(srcAddr, (void *) &rc, sizeof(ClRcT));
+            /*
+             * Not allow multiple objects
+             */
+            return;
+          }
       }
-
-    std::string xpath = reqMsg.bind().substr(0, idx);
-    std::string value = reqMsg.bind().substr(idx + 1);
-
-    MgtObject *object = nullptr; // TODO: findMgtObject(xpath);
-
-    if (object != nullptr)
-      {
-        ClRcT rc = object->createObj(value);
-        MgtRoot::sendReplyMsg(srcAddr,(void *)&rc,sizeof(ClRcT));
-      }
+      else
+        {
+          rc = CL_ERR_NOT_EXIST;
+        }
+    }
+    logDebug("MGT","CRET","Creating object [%s] got failure, errorCode [0x%x]", xpath.c_str(), rc);
+    MgtRoot::sendReplyMsg(srcAddr, (void *) &rc, sizeof(ClRcT));
   }
 
   void MgtRoot::clMgtMsgDeleteHandler(SAFplus::Handle srcAddr, Mgt::Msg::MsgMgt& reqMsg)
   {
-    std::size_t idx = reqMsg.bind().find_last_of("/");
+    ClRcT rc = CL_OK;
+    std::string xpath = reqMsg.bind();
+    std::size_t idx = xpath.find_last_of("/");
+    std::vector<MgtObject*> matches;
+    std::string cmds;
 
-    if (idx == std::string::npos)
+    if (xpath[0] == '{')  // Debugging requests
+    {
+      int end = xpath.find_first_of("}");
+      cmds = xpath.substr(1,end-1);
+      vector<string> strs;
+      boost::split(strs,cmds,boost::is_any_of(","));
+      for (auto cmd: strs)
+        {
+          if (cmd[0] == 'b')
+            {
+              std::raise(SIGINT);
+            }
+          else if (cmd[0] == 'p')
+            {
+              clDbgPause();
+            }
+        }
+      // TODO: parse the non-xml requests (depth, pause thread, break thread, log custom string)
+      cmds.append(" ");  // Right now I just assume everything in there is a custom logging string
+      xpath = xpath.substr(end+1);
+    }
+
+    if (idx != std::string::npos)
+    {
+      std::string path = xpath.substr(0, idx);
+      std::string value = xpath.substr(idx + 1);
+
+      resolvePath(path.c_str() + 1, &matches);
+      if (matches.size())
       {
-        // Invalid xpath
-        return;
+        for (std::vector<MgtObject*>::iterator i = matches.begin(); i != matches.end(); i++)
+          {
+            rc = (*i)->deleteObj(value);
+            logDebug("MGT","DEL","Object [%s] got deleted",xpath.c_str());
+            MgtRoot::sendReplyMsg(srcAddr, (void *) &rc, sizeof(ClRcT));
+            /*
+             * Not allow multiple objects
+             */
+            return;
+          }
       }
-
-    std::string xpath = reqMsg.bind().substr(0, idx);
-    std::string value = reqMsg.bind().substr(idx + 1);
-
-    MgtObject *object = nullptr; // TODO: findMgtObject(xpath);
-
-    if (object != nullptr)
-      {
-        ClRcT rc = object->deleteObj(value);
-        MgtRoot::sendReplyMsg(srcAddr,(void *)&rc,sizeof(ClRcT));
-      }
+      else
+        {
+          rc = CL_ERR_NOT_EXIST;
+        }
+    }
+    logDebug("MGT","DEL","Deleting object [%s] got failure, errorCode [0x%x]", xpath.c_str(), rc);
+    MgtRoot::sendReplyMsg(srcAddr, (void *) &rc, sizeof(ClRcT));
   }
 
   MgtRoot::MgtMessageHandler::MgtMessageHandler()

@@ -53,6 +53,11 @@ namespace SAFplus
   SAFplus::Handle getMgtHandle(const std::string& pathSpec, ClRcT &errCode)
   {
     std::string xpath = pathSpec;  // I need to make a copy so I can modify it
+    if (pathSpec[0] == '{')
+      {
+        xpath = pathSpec.substr(pathSpec.find('}')+1);
+      }
+
     size_t lastSlash = std::string::npos;
     while(1)
       {
@@ -77,89 +82,11 @@ namespace SAFplus
         xpath = xpath.substr(0,lastSlash);
       }
     return INVALID_HDL;
-#if 0
-    errCode = CL_OK;
-    std::string strPath = "";
-    SAFplus::Checkpoint::Iterator iterMgtChkp = getMgtCheckpoint()->end();
-    for (iterMgtChkp = getMgtCheckpoint()->begin();
-          iterMgtChkp != getMgtCheckpoint()->end();
-          iterMgtChkp++)
-      {
-        SAFplus::Checkpoint::KeyValuePair& item = *iterMgtChkp;
-        strPath.assign((char*) (*item.first).data);
-        int find = strPath.find_last_of("/");
-        if (find != std::string::npos)
-          {
-            std::string route = strPath.substr(find);
-            if (pathSpec.find(route) != std::string::npos)
-              {
-                Handle &Hdl = *((Handle*) (*item.second).data);
-                return Hdl;
-              }
-          }
-      }
-    errCode = CL_ERR_INVALID_PARAMETER;
-    return *((Handle*) NULL);
-#endif
   }
 
-  std::string mgtGet(SAFplus::Handle src, const std::string& pathSpec)
+  void lookupObjects(const std::string& pathSpec, std::vector<MgtObject*>* matches)
   {
-    std::string output = "";
-    MsgMgt mgtMsgReq;
-    std::string request;
-    std::string strRev = "";
-    uint retryDuration = SAFplusI::MsgSafplusSendReplyRetryInterval;
-  
-    if (pathSpec[0]=='{')
-      {
-        if ((pathSpec[1] == 'b')||(pathSpec[1] == 'p')) // Commands a break (to gdb) or pause on the server side processing this RPC, so we'll wait forever before retrying
-          {
-            retryDuration = 1000*1000*1000;
-          }
-      }
-
-    mgtMsgReq.set_type(Mgt::Msg::MsgMgt::CL_MGT_MSG_XGET);
-    mgtMsgReq.set_bind(pathSpec);
-    //Send mine data revision
-    mgtMsgReq.add_data(strRev);
-    mgtMsgReq.SerializeToString(&request);
-
-    SAFplus::SafplusMsgServer* mgtIocInstance = &SAFplus::safplusMsgServer;
-    try
-      {
-        SAFplus::MsgReply *msgReply = mgtIocInstance->sendReply(src, (void *) request.c_str(), request.size(), SAFplusI::CL_MGT_MSG_TYPE,NULL,retryDuration);
-        MsgGeneral rxMsg;
-        if (!msgReply)
-          {
-            logError("MGT", "REV", "No REPLY");
-            return output;
-          }
-
-        rxMsg.ParseFromArray(msgReply->buffer, strlen(msgReply->buffer));
-
-        if (rxMsg.data_size() == 1) //Received data
-          {
-            output.assign(rxMsg.data(0));
-          }
-        else
-          {
-            logError("MGT", "REV", "Invalid message with data size %d", rxMsg.data_size());
-          }
-      }
-    catch (SAFplus::Error &ex)
-      {
-        logError("MGT", "REV", "Failure while retrieving data for route [%s]", pathSpec.c_str());
-      }
-    return output;
-  }
-
-  std::string mgtGet(const std::string& pathSpec)
-  {
-    std::string output = "";
-
     MgtRoot *mgtRoot = MgtRoot::getInstance();
-    std::vector<MgtObject*> matches;
 
     // If there are non xpath directives preceding the XPATH then strip and process them
     // TODO: add directives
@@ -173,7 +100,73 @@ namespace SAFplus
         xpath = pathSpec;
       }
 
-    mgtRoot->resolvePath(xpath.c_str()+1,&matches);  // +1 to drop the preceding /
+    mgtRoot->resolvePath(xpath.c_str()+1,matches);  // +1 to drop the preceding /
+
+  }
+
+  SAFplus::MsgReply *mgtRpcRequest(SAFplus::Handle src, MsgMgt_MgtMsgType reqType, const std::string& pathSpec, const std::string& value = "")
+  {
+    SAFplus::MsgReply *msgReply = NULL;
+    MsgMgt mgtMsgReq;
+    std::string request;
+    uint retryDuration = SAFplusI::MsgSafplusSendReplyRetryInterval;
+  
+    if (pathSpec[0]=='{')
+      {
+        if ((pathSpec[1] == 'b')||(pathSpec[1] == 'p')) // Commands a break (to gdb) or pause on the server side processing this RPC, so we'll wait forever before retrying
+          {
+            retryDuration = 1000*1000*1000;
+          }
+      }
+
+    mgtMsgReq.set_type(reqType);
+    mgtMsgReq.set_bind(pathSpec);
+    mgtMsgReq.add_data(value);
+    mgtMsgReq.SerializeToString(&request);
+
+    SAFplus::SafplusMsgServer* mgtIocInstance = &SAFplus::safplusMsgServer;
+    try
+      {
+        msgReply = mgtIocInstance->sendReply(src, (void *) request.c_str(), request.size(), SAFplusI::CL_MGT_MSG_TYPE, NULL, retryDuration);
+        if (!msgReply)
+          {
+            logError("MGT", "REV", "No REPLY");
+          }
+      }
+    catch (SAFplus::Error &ex)
+      {
+        logError("MGT", "REQ", "RPC [%d] failure for xpath [%s]", reqType, pathSpec.c_str());
+      }
+
+    return msgReply;
+  }
+
+  std::string mgtGet(SAFplus::Handle src, const std::string& pathSpec)
+  {
+    std::string output = "";
+    MsgGeneral rxMsg;
+    SAFplus::MsgReply *msgReply = mgtRpcRequest(src, Mgt::Msg::MsgMgt::CL_MGT_MSG_XGET, pathSpec);
+    if (msgReply != NULL)
+    {
+      rxMsg.ParseFromArray(msgReply->buffer, strlen(msgReply->buffer));
+      if (rxMsg.data_size() == 1) //Received data
+        {
+          output.assign(rxMsg.data(0));
+        }
+      else
+        {
+          logError("MGT", "REV", "Invalid message with data size %d", rxMsg.data_size());
+        }
+    }
+    return output;
+  }
+
+  std::string mgtGet(const std::string& pathSpec)
+  {
+    std::string output = "";
+    std::vector<MgtObject*> matches;
+
+    lookupObjects(pathSpec, &matches);
 
     if (matches.size())
       {
@@ -187,7 +180,7 @@ namespace SAFplus
     else  // Object Implementer not found. Broadcast message to get data
       {
         ClRcT errCode = CL_OK;
-        Handle hdl = getMgtHandle(xpath, errCode);
+        Handle hdl = getMgtHandle(pathSpec, errCode);
         if (INVALID_HDL != hdl)
         {
           output = mgtGet(hdl, pathSpec);  // Pass the {} directives through to the server side
@@ -205,59 +198,48 @@ namespace SAFplus
   {
     ClRcT ret = CL_OK;
 
-    MsgMgt mgtMsgReq;
-    std::string request;
+    SAFplus::MsgReply *msgReply = mgtRpcRequest(src, Mgt::Msg::MsgMgt::CL_MGT_MSG_XSET, pathSpec, value);
 
-    mgtMsgReq.set_type(Mgt::Msg::MsgMgt::CL_MGT_MSG_XSET);
-    mgtMsgReq.set_bind(pathSpec);
-    mgtMsgReq.add_data(value);
-    mgtMsgReq.SerializeToString(&request);
-
-    SAFplus::SafplusMsgServer* mgtIocInstance = &safplusMsgServer;
-    try
+    if (msgReply == NULL)
       {
-        MsgReply *msgReply = mgtIocInstance->sendReply(src, (void *) request.c_str(), request.size(), SAFplusI::CL_MGT_MSG_TYPE);
-
-        if (!msgReply)
-          return CL_ERR_IGNORE_REQUEST;
-
-        if (msgReply->len == 0)
-          return CL_ERR_IGNORE_REQUEST;
-
+        ret = CL_ERR_IGNORE_REQUEST;
+      }
+    else
+      {
         memcpy(&ret, msgReply->buffer, sizeof(ClRcT));
-        return ret;
       }
-    catch (SAFplus::Error &ex)
-      {
-        ret = CL_ERR_FAILED_OPERATION;
-      }
-
     return ret;
   }
 
   ClRcT mgtSet(const std::string& pathSpec, const std::string& value)
   {
-
     ClRcT ret = CL_OK;
-#if 0
-    MgtRoot *mgtRoot = MgtRoot::getInstance();
-    MgtObject *object = mgtRoot->findMgtObject(pathSpec);
+    std::vector<MgtObject*> matches;
 
-    if (object)
+    lookupObjects(pathSpec, &matches);
+
+    if (matches.size())
       {
-        ret = object->setObj(value);
+        for(std::vector<MgtObject*>::iterator i = matches.begin(); i != matches.end(); i++)
+          {
+            ret = (*i)->setObj(value);
+          }
       }
     else  // Object Implementer not found. Broadcast message to get data
       {
         Handle hdl = getMgtHandle(pathSpec, ret);
-        if((ret == CL_OK) && (NULL != &hdl))
+        if (ret == CL_OK && INVALID_HDL != hdl)
+        {
+          ret = mgtSet(hdl, pathSpec, value);
+        }
+        else
           {
-            ret = mgtSet(hdl, pathSpec, value);
-            if ((ret == CL_OK) || (ret != CL_ERR_IGNORE_REQUEST))
-              return ret;
+            ret = CL_OK;
+            logError("MGT", "REV", "Route [%s] has no implementer", pathSpec.c_str());
+            // TODO: throw exception
           }
       }
-#endif
+
     return ret;
   }
 
@@ -265,70 +247,58 @@ namespace SAFplus
   {
     ClRcT ret = CL_OK;
 
-    MsgMgt mgtMsgReq;
-    std::string request;
+    SAFplus::MsgReply *msgReply = mgtRpcRequest(src, Mgt::Msg::MsgMgt::CL_MGT_MSG_CREATE, pathSpec);
 
-    mgtMsgReq.set_type(Mgt::Msg::MsgMgt::CL_MGT_MSG_CREATE);
-    mgtMsgReq.set_bind(pathSpec);
-    mgtMsgReq.add_data("");
-    mgtMsgReq.SerializeToString(&request);
-
-    SAFplus::SafplusMsgServer* mgtIocInstance = &safplusMsgServer;
-    try
+    if (msgReply == NULL)
       {
-        MsgReply *msgReply = mgtIocInstance->sendReply(src, (void *) request.c_str(), request.size(), SAFplusI::CL_MGT_MSG_TYPE);
-
-        if (!msgReply)
-          return CL_ERR_IGNORE_REQUEST;
-
-        if (msgReply->len == 0)
-          return CL_ERR_IGNORE_REQUEST;
-
+        ret = CL_ERR_IGNORE_REQUEST;
+      }
+    else
+      {
         memcpy(&ret, msgReply->buffer, sizeof(ClRcT));
-        return ret;
       }
-    catch (SAFplus::Error &ex)
-      {
-        ret = CL_ERR_FAILED_OPERATION;
-      }
-
     return ret;
   }
 
   ClRcT mgtCreate(const std::string& pathSpec)
   {
-    ClRcT ret = CL_OK;
-#if 0
-    MgtRoot *mgtRoot = MgtRoot::getInstance();
+      ClRcT ret = CL_OK;
+      std::vector<MgtObject*> matches;
 
-    std::size_t idx = pathSpec.find_last_of("/");
+      std::size_t idx = pathSpec.find_last_of("/");
 
-    if (idx == std::string::npos)
-      {
-        // Invalid xpath
-        return CL_ERR_INVALID_PARAMETER;
-      }
+      if (idx == std::string::npos)
+        {
+          // Invalid xpath
+          return CL_ERR_INVALID_PARAMETER;
+        }
 
-    std::string xpath = pathSpec.substr(0, idx);
-    std::string value = pathSpec.substr(idx + 1);
+      std::string path = pathSpec.substr(0, idx);
+      std::string value = pathSpec.substr(idx + 1);
 
-    MgtObject *object = mgtRoot->findMgtObject(xpath);
+      lookupObjects(path, &matches);
 
-    if (object)
-      {
-        ret = object->createObj(value);
-      }
-    else  // Object Implementer not found. Broadcast message to get data
-      {
-        Handle hdl = getMgtHandle(pathSpec, ret);
-        if((ret == CL_OK) && (NULL != &hdl))
+      if (matches.size())
+        {
+          for(std::vector<MgtObject*>::iterator i = matches.begin(); i != matches.end(); i++)
+            {
+              ret = (*i)->createObj(value);
+            }
+        }
+      else  // Object Implementer not found. Broadcast message to get data
+        {
+          Handle hdl = getMgtHandle(pathSpec, ret);
+          if (ret == CL_OK && INVALID_HDL != hdl)
           {
             ret = mgtCreate(hdl, pathSpec);
-            if ((ret == CL_OK) || (ret != CL_ERR_IGNORE_REQUEST))
-              return ret;
           }
-      }
-#endif
+          else
+            {
+              ret = CL_OK;
+              logError("MGT", "REV", "Route [%s] has no implementer", pathSpec.c_str());
+              // TODO: throw exception
+            }
+        }
     return ret;
   }
 
@@ -336,43 +306,23 @@ namespace SAFplus
   {
     ClRcT ret = CL_OK;
 
-    MsgMgt mgtMsgReq;
-    std::string request;
+    SAFplus::MsgReply *msgReply = mgtRpcRequest(src, Mgt::Msg::MsgMgt::CL_MGT_MSG_DELETE, pathSpec);
 
-    mgtMsgReq.set_type(Mgt::Msg::MsgMgt::CL_MGT_MSG_DELETE);
-    mgtMsgReq.set_bind(pathSpec);
-    mgtMsgReq.add_data("");
-    mgtMsgReq.SerializeToString(&request);
-
-    SAFplus::SafplusMsgServer* mgtIocInstance = &safplusMsgServer;
-    try
+    if (msgReply == NULL)
       {
-        MsgReply *msgReply = mgtIocInstance->sendReply(src, (void *) request.c_str(), request.size(), SAFplusI::CL_MGT_MSG_TYPE);
-
-        if (!msgReply)
-          return CL_ERR_IGNORE_REQUEST;
-
-        if (msgReply->len == 0)
-          return CL_ERR_IGNORE_REQUEST;
-
+        ret = CL_ERR_IGNORE_REQUEST;
+      }
+    else
+      {
         memcpy(&ret, msgReply->buffer, sizeof(ClRcT));
-        return ret;
       }
-    catch (SAFplus::Error &ex)
-      {
-        ret = CL_ERR_FAILED_OPERATION;
-      }
-
     return ret;
   }
 
   ClRcT mgtDelete(const std::string& pathSpec)
   {
     ClRcT ret = CL_OK;
-
-#if 0
-    MgtRoot *mgtRoot = MgtRoot::getInstance();
-
+    std::vector<MgtObject*> matches;
     std::size_t idx = pathSpec.find_last_of("/");
 
     if (idx == std::string::npos)
@@ -381,24 +331,32 @@ namespace SAFplus
         return CL_ERR_INVALID_PARAMETER;
       }
 
-    std::string xpath = pathSpec.substr(0, idx);
+    std::string path = pathSpec.substr(0, idx);
     std::string value = pathSpec.substr(idx + 1);
 
-    MgtObject *object = mgtRoot->findMgtObject(xpath);
+    lookupObjects(path, &matches);
 
-    if (object)
+    if (matches.size())
       {
-        ret = object->deleteObj(value);
+        for(std::vector<MgtObject*>::iterator i = matches.begin(); i != matches.end(); i++)
+          {
+            ret = (*i)->deleteObj(value);
+          }
       }
     else  // Object Implementer not found. Broadcast message to get data
       {
         Handle hdl = getMgtHandle(pathSpec, ret);
-        if((ret == CL_OK) && (NULL != &hdl))
-         {
-           ret = mgtDelete(hdl, pathSpec);
-         }
+        if (ret == CL_OK && INVALID_HDL != hdl)
+        {
+          ret = mgtDelete(hdl, pathSpec);
+        }
+        else
+          {
+            ret = CL_OK;
+            logError("MGT", "REV", "Route [%s] has no implementer", pathSpec.c_str());
+            // TODO: throw exception
+          }
       }
-#endif
     return ret;
   }
 }
