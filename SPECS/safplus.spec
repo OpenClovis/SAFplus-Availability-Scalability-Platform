@@ -1,3 +1,6 @@
+#Below two macros are added to skip *.pyc and *.pyo files in the RPM package
+%define __python 0
+%define _python_bytecompile_errors_terminate_build 0
 Name:		safplus	        
 Version:	        
 Release:        
