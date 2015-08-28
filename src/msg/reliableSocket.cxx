@@ -82,42 +82,39 @@ namespace SAFplus
   void MsgSocketReliable::handleRetransmissionTimerFunc(void)
   {
     unackedSentQueueLock.lock();
+    for(ReliableFragmentList::iterator iter = unackedSentQueue.begin();
+        iter != unackedSentQueue.end();
+        iter++)
     {
-      for(ReliableFragmentList::iterator iter = unackedSentQueue.begin();
-          iter != unackedSentQueue.end();
-          iter++)
+      ReliableFragment &frag = *iter;
+      try
       {
-        ReliableFragment &frag = *iter;
-        try
-        {
-          retransmitFragment(&frag);
-        }
-        catch(...)
-        {
-          // Handle Exception
-        }
+        retransmitFragment(&frag);
+      }
+      catch(...)
+      {
+        // Handle Exception
       }
     }
+    unackedSentQueueLock.unlock();
+
   }
 
   // Handle Null Fragment function
   void MsgSocketReliable::handleNullFragmentTimerFunc(void)
   {
-    unackedSentQueueLock.lock();
-    {
       if (unackedSentQueue.empty())
       {
         try
         {
-          queueAndSendReliableFragment(new NULLFragment(queueInfo->nextSequenceNumber()));
+          // Send a new NULL segment if there is nothing to be retransmitted.
+          queueAndSendReliableFragment(new NULLFragment(queueInfo.nextSequenceNumber()));
         }
         catch (...)
         {
           // Hanlde Exception
         }
       }
-    }
-    unackedSentQueueLock.unlock();
   }
 
   // Handle Cumulative Ack function
@@ -150,7 +147,6 @@ namespace SAFplus
     }
   }
 
-  // Handle fragment received
   void MsgSocketReliable::handleReliableFragment(ReliableFragment *frag)
   {
     fragmentType fragType = frag->getType();
@@ -188,30 +184,29 @@ namespace SAFplus
     }
     bool bIsInSequence = false;
     recvQueueLock.lock();
-    if(compareFragment(frag->seq(), queueInfo->getLastInSequence() ) <= 0 )
+    if(compareFragment(frag->seq(), queueInfo.getLastInSequence() ) <= 0 )
     {
       /* Drop packet: duplicate. */
     }
-    else if(compareFragment(frag->seq(), nextSequenceNumber(queueInfo->getLastInSequence()) ) == 0 )
+    else if(compareFragment(frag->seq(), nextSequenceNumber(queueInfo.getLastInSequence()) ) == 0 )
     {
       //fragment is the next fragment in queue. Add to in-seq queue
       bIsInSequence = true;
       if (inSeqQueue.size() == 0 || (inSeqQueue.size() + outOfSeqQueue.size() < recvQueueSize))
       {
         /* Insert in-sequence segment */
-        queueInfo->setLastInSequence(frag->seq());
+        queueInfo.setLastInSequence(frag->seq());
         if ( fragType == fragmentType::FRAG_DATA ||
             fragType ==  fragmentType::FRAG_RST ||
             fragType == fragmentType::FRAG_FIN)
         {
           inSeqQueue.push_back(*frag);
-          if(frag->isLast())
-          {
-            recvQueueCond.notify_one();
-          }
+          //todo
+//          if(frag->isLast())
+//          {
+//            recvQueueCond.notify_one();
+//          }
         }
-        // Checks for in-sequence segments in the out-of-sequence queue
-        // that can be moved to the in-sequence queue
         checkRecvQueues();
       }
       else
@@ -246,7 +241,7 @@ namespace SAFplus
         outOfSeqQueue.push_back(*frag);
       }
       //inscreate out of sequence fragment
-      queueInfo->increaseOutOfSequenceCounter();
+      queueInfo.increaseOutOfSequenceCounter();
       if (fragType == fragmentType::FRAG_DATA)
       {
 
@@ -260,13 +255,13 @@ namespace SAFplus
     {
       sendACK();
     }
-    else if ( (queueInfo->getOutOfSequenceCounter() > 0) &&
-        (profile->maxOutOfSequence() == 0 || queueInfo->getOutOfSequenceCounter() > profile->maxOutOfSequence()) )
+    else if ( (queueInfo.getOutOfSequenceCounter() > 0) &&
+        (profile->maxOutOfSequence() == 0 || queueInfo.getOutOfSequenceCounter() > profile->maxOutOfSequence()) )
     {
       sendNAK();
     }
-    else if ((queueInfo->getCumulativeAckCounter() > 0) &&
-        (profile->maxCumulativeAcks() == 0 || queueInfo->getCumulativeAckCounter() > profile->maxCumulativeAcks()))
+    else if ((queueInfo.getCumulativeAckCounter() > 0) &&
+        (profile->maxCumulativeAcks() == 0 || queueInfo.getCumulativeAckCounter() > profile->maxCumulativeAcks()))
     {
       sendSingleAck();
     }
@@ -277,41 +272,39 @@ namespace SAFplus
         if (cumulativeAckTimer.status==TIMER_PAUSE)
         {
           cumulativeAckTimer.interval=profile->cumulativeAckTimeout();
+          cumulativeAckTimer.status=TIMER_RUN;
         }
       }
       cumulativeAckTimer.timerLock.unlock();
+      boost::thread(cumulativeAckTimerFunc,this);
+
     }
     recvQueueLock.unlock();
   }
 
   void MsgSocketReliable::checkRecvQueues()
   {
-    recvQueueLock.lock();
+    ReliableFragmentList::iterator it = outOfSeqQueue.begin();
+    while (it != outOfSeqQueue.end() )
     {
-      ReliableFragmentList::iterator it = outOfSeqQueue.begin();
-      while (it != outOfSeqQueue.end() )
+      ReliableFragment &s = *it;
+      if (compareFragment(s.seq(), nextSequenceNumber(queueInfo.getLastInSequence())) == 0)
       {
-        ReliableFragment &s = *it;
-        if (compareFragment(s.seq(), nextSequenceNumber(queueInfo->getLastInSequence())) == 0)
+        queueInfo.setLastInSequence(s.seq());
+        if (s.getType() == fragmentType::FRAG_DATA ||
+            s.getType() == fragmentType::FRAG_RST ||
+            s.getType() == fragmentType::FRAG_FIN)
         {
-          queueInfo->setLastInSequence(s.seq());
-          if (s.getType() == fragmentType::FRAG_DATA ||
-              s.getType() == fragmentType::FRAG_RST ||
-              s.getType() == fragmentType::FRAG_FIN)
-          {
-            inSeqQueue.push_back(s);
-          }
-          it = outOfSeqQueue.erase(it);
+          inSeqQueue.push_back(s);
         }
-        else
-        {
-          it++;
-        }
+        it = outOfSeqQueue.erase(it);
+      }
+      else
+      {
+        it++;
       }
     }
-    recvQueueLock.unlock();
   }
-
   void MsgSocketReliable::handleSYNReliableFragment(SYNFragment *frag)
   {
     try
@@ -321,8 +314,20 @@ namespace SAFplus
       {
         case connectionState::CONN_CLOSED:
         {
-          queueInfo->setLastInSequence(frag->seq());
+          queueInfo.setLastInSequence(frag->seq());
           state = connectionState::CONN_SYN_RCVD;
+          logDebug("MSG", "REL","CONN_CLOSED [%d] [%d] [%d] [%d] [%d] [%d] [%d] [%d] [%d] [%d] [%d]",sendQueueSize,
+              recvQueueSize,
+              frag->getMaxFragmentSize(),
+              frag->getMaxOutstandingFragments(),
+              frag->getMaxRetransmissions(),
+              frag->getMaxCumulativeAcks(),
+              frag->getMaxOutOfSequence(),
+              frag->getMaxAutoReset(),
+              frag->getNulFragmentTimeout(),
+              frag->getRetransmissionTimeout(),
+              frag->getCummulativeAckTimeout());
+
           ReliableSocketProfile* _profile = new ReliableSocketProfile(
               sendQueueSize,
               recvQueueSize,
@@ -337,7 +342,7 @@ namespace SAFplus
               frag->getCummulativeAckTimeout());
           profile = _profile;
           SYNFragment* synFrag = new SYNFragment(
-              queueInfo->setSequenceNumber(0),
+              queueInfo.setSequenceNumber(0),
               _profile->maxOutstandingSegs(),
               _profile->maxFragmentSize(),
               _profile->retransmissionTimeout(),
@@ -347,14 +352,14 @@ namespace SAFplus
               _profile->maxCumulativeAcks(),
               _profile->maxOutOfSequence(),
               _profile->maxAutoReset());
-
           synFrag->setAck(frag->seq());
           queueAndSendReliableFragment(synFrag);
           break;
         }
         case connectionState::CONN_SYN_SENT:
         {
-          queueInfo->setLastInSequence(frag->seq());
+          logDebug("MSG", "REL","Connection state : CONN_SYN_SENT");
+          queueInfo.setLastInSequence(frag->seq());
           state = connectionState::CONN_ESTABLISHED;
           /*
            * Here the client accepts or rejects the parameters sent by the
@@ -366,6 +371,7 @@ namespace SAFplus
         }
         default:
         {
+          logDebug("MSG", "REL","Connection state : Error");
           break;
         }
       }
@@ -388,7 +394,7 @@ namespace SAFplus
     int lastInSequence = frag->getAck();
     int lastOutSequence = acks[length -1];
     unackedSentQueueLock.lock();
-    /* Removed acknowledged segments from sent queue */
+    /* Removed acknowledged fragments from unackedSent queue */
     ReliableFragmentList::iterator it = unackedSentQueue.begin();
     while(it != unackedSentQueue.end())
     {
@@ -439,8 +445,7 @@ namespace SAFplus
 
   void MsgSocketReliable::sendACK()
   {
-    recvQueueLock.lock();
-    if (outOfSeqQueue.empty() )
+    if (!outOfSeqQueue.empty() )
     {
       sendNAK();
     }
@@ -448,19 +453,16 @@ namespace SAFplus
     {
       sendSingleAck();
     }
-    recvQueueLock.unlock();
   }
   void MsgSocketReliable::sendNAK()
   {
     logDebug("MSG", "REL","Send NAK fragment to Node [%d]",destination.getNode());
-    recvQueueLock.lock();
     if (outOfSeqQueue.empty())
     {
-      recvQueueLock.unlock();
       return;
     }
-    queueInfo->getAndResetCumulativeAckCounter();
-    queueInfo->getAndResetOutOfSequenceCounter();
+    queueInfo.getAndResetCumulativeAckCounter();
+    queueInfo.getAndResetOutOfSequenceCounter();
 
     /* Compose list of out-of-sequence sequence numbers */
     int size = outOfSeqQueue.size();
@@ -475,26 +477,25 @@ namespace SAFplus
     }
     try
     {
-      int lastInSequence = queueInfo->getLastInSequence();
+      int lastInSequence = queueInfo.getLastInSequence();
       this->sendReliableFragment(new NAKFragment(nextSequenceNumber(lastInSequence), lastInSequence, acks, size));
     }
     catch (...)
     {
       // Handle Exception
     }
-    recvQueueLock.unlock();
   }
 
   void MsgSocketReliable::sendSingleAck()
   {
-    if (queueInfo->getAndResetCumulativeAckCounter() == 0)
+    if (queueInfo.getAndResetCumulativeAckCounter() == 0)
     {
       return;
     }
     try
     {
       logDebug("MSG", "REL","Send single ACK to Node [%d]",destination.getNode());
-      int lastInSequence = queueInfo->getLastInSequence();
+      int lastInSequence = queueInfo.getLastInSequence();
       this->sendReliableFragment(new ACKFragment(nextSequenceNumber(lastInSequence), lastInSequence));
     }
     catch (...)
@@ -510,15 +511,15 @@ namespace SAFplus
 
   void MsgSocketReliable::sendSYN()
   {
-
+    //Todo
   }
   void MsgSocketReliable::setACK(ReliableFragment *frag)
   {
-    if (queueInfo->getAndResetCumulativeAckCounter() == 0)
+    if (queueInfo.getAndResetCumulativeAckCounter() == 0)
     {
       return;
     }
-    frag->setAck(queueInfo->getLastInSequence());
+    frag->setAck(queueInfo.getLastInSequence());
   }
 
   void MsgSocketReliable::getACK(ReliableFragment *frag)
@@ -528,7 +529,7 @@ namespace SAFplus
     {
       return;
     }
-    queueInfo->getAndResetOutstandingFragmentsCounter();
+    queueInfo.getAndResetOutstandingFragmentsCounter();
     if (state == connectionState::CONN_SYN_RCVD)
     {
       state = connectionState::CONN_ESTABLISHED;
@@ -571,27 +572,35 @@ namespace SAFplus
     /* Reset null segment timer */
     if (frag->getType()==fragmentType::FRAG_DATA || frag->getType()==fragmentType::FRAG_RST || frag->getType()==fragmentType::FRAG_FIN)
     {
-      //TODO nullSegmentTimer.reset();
       nullFragmentTimer.status=TimerStatus::TIMER_PAUSE;
+      nullFragmentTimer.status=TimerStatus::TIMER_RUN;
     }
     //send reliable fragment
-    Message* reliableReliableFragment = sock->msgPool->allocMsg();
-    assert(reliableReliableFragment);
-    reliableReliableFragment->setAddress(destination);
-    MsgFragment* pfx  = reliableReliableFragment->append(1);
-    * ((unsigned char*)pfx->data()) = messageType;
-    pfx->len = 1;
-    MsgFragment* fragment = reliableReliableFragment->append(0);
-    fragment->set((char*)frag,frag->length());
-    sock->send(reliableReliableFragment);
+    if(sock==NULL)
+    {
+      return;
+    }
+    if(sock->msgPool==NULL)
+    {
+      return;
+    }
+    Message* reliableFragment;
+    reliableFragment=sock->msgPool->allocMsg();
+    assert(reliableFragment);
+    reliableFragment->setAddress(destination);
+    MsgFragment* fragment = reliableFragment->append(0);
+    fragment->set((Byte*)frag->getBytes(),frag->length());
+    logDebug("REL","MSL","send Fragment to [%d][%d] ",reliableFragment->getAddress().getNode(),reliableFragment->getAddress().getPort());
+    sock->send(reliableFragment);
   }
 
   // send fragment and store it in uncheck ack
   void MsgSocketReliable::queueAndSendReliableFragment(ReliableFragment* frag)
   {
+    logDebug("REL","MSL","store Fragment to un-ack list and send ");
     unackedSentQueueLock.lock();
     while ((unackedSentQueue.size() >= sendQueueSize) ||
-        ( queueInfo->getOutstandingFragmentsCounter() > profile->maxOutstandingSegs()))
+        ( queueInfo.getOutstandingFragmentsCounter() > profile->maxOutstandingSegs()))
     {
       try
       {
@@ -602,7 +611,7 @@ namespace SAFplus
         // Hanlde Exception
       }
     }
-    queueInfo->incOutstandingFragmentsCounter();
+    queueInfo.incOutstandingFragmentsCounter();
     unackedSentQueue.push_back(*frag);
     unackedSentQueueLock.unlock();
     if (isClosed)
@@ -614,60 +623,43 @@ namespace SAFplus
     /* Re-start retransmission timer */
     if (!(frag->getType() == fragmentType::FRAG_NAK) && !(frag->getType() == fragmentType::FRAG_ACK))
     {
-      retransmissionTimer.timerLock.lock();
       if (retransmissionTimer.status==TIMER_PAUSE)
       {
-        retransmissionTimer.interval=profile->retransmissionTimeout();
+        //retransmissionTimer.interval=profile->retransmissionTimeout();
+        retransmissionTimer.status==TIMER_RUN;
+        boost::thread(retransmissionTimerFunc,this);
       }
-      retransmissionTimer.timerLock.lock();
     }
-    this->sendReliableFragment(frag);
+    sendReliableFragment(frag);
   }
 
   Message* MsgSocketReliable::receive(uint_t maxMsgs,int maxDelay)
   {
-    Message* p_Msg = nullptr;
-    return p_Msg;
+    return sock->receive(maxMsgs,maxDelay);
   }
 
   ReliableFragment* MsgSocketReliable::receiveReliableFragment(Handle &handle)
   {
-    ReliableFragment* p_Fragment=nullptr;
+    ReliableFragment* p_Fragment;
     Message* p_Msg = nullptr;
     MsgFragment* p_NextFrag = nullptr;
-    void * p_Data = nullptr;
     int iMaxMsg = 1;
     int iDelay = 1;
-    int iMsgType = 0;
 
     p_Msg = this->sock->receive( iMaxMsg, iDelay);
     if(p_Msg == nullptr)
     {
       return nullptr;
+
     }
     handle = p_Msg->getAddress();
     p_NextFrag = p_Msg->firstFragment;
     if(p_NextFrag == nullptr)
     {
-      return nullptr;
+      p_Fragment= nullptr;      return nullptr;
     }
-    p_Data = p_NextFrag->data();
-    if(p_Data)
-    {
-      iMsgType =  *((int*)p_Data);
-    }
-
-    p_NextFrag = p_NextFrag->nextFragment;
-    if(p_NextFrag == nullptr)
-    {
-      return nullptr;
-    }
-    p_Data = p_NextFrag->data();
-    if(p_Data)
-    {
-      p_Fragment = ReliableFragment::parse((Byte*)p_Data, 0, p_NextFrag->len);
-    }
-
+    p_Fragment = ReliableFragment::parse((Byte*)p_NextFrag->read(0), 0, p_NextFrag->len);
+    p_Fragment->address=p_Msg->getAddress();
     fragmentType fragType = p_Fragment->getType();
     if(fragType == fragmentType::FRAG_DATA ||
         fragType == fragmentType::FRAG_NUL ||
@@ -675,7 +667,7 @@ namespace SAFplus
         fragType == fragmentType::FRAG_FIN ||
         fragType == fragmentType::FRAG_SYN)
     {
-      queueInfo->increaseCumulativeAckCounter();
+      queueInfo.increaseCumulativeAckCounter();
     }
 
     if(iskeepAlive)
@@ -685,11 +677,7 @@ namespace SAFplus
     }
     return p_Fragment;
   }
-  //  void MsgSocketReliable::connectionClientOpen(MsgSocketReliable* sock)
-  //  {
-  //    return;
-  //  }
-  //Sends a fragment and increments its retransmission counter
+
   void MsgSocketReliable::retransmitFragment(ReliableFragment *frag)
   {
     logDebug("MSG", "REL","retransmit Fragment fradId [%d] to node [%d]", frag->seq(),destination.getNode());
@@ -702,7 +690,8 @@ namespace SAFplus
       setconnection(connectionNotification::FAILURE);
       return ;
     }
-    Message* reliableReliableFragment = sock->msgPool->allocMsg();
+    assert(sock);
+    Message* reliableReliableFragment =sock->msgPool->allocMsg();
     assert(reliableReliableFragment);
     reliableReliableFragment->setAddress(destination);
     MsgFragment* pfx  = reliableReliableFragment->append(1);
@@ -713,8 +702,7 @@ namespace SAFplus
     sock->send(reliableReliableFragment);
   }
 
-  //Puts the connection in a closed state and notifies
-  //all registered state listeners that the connection failed.
+
   void MsgSocketReliable::connectionFailure()
   {
     logDebug("MSG", "REL","connection failure");
@@ -824,10 +812,12 @@ namespace SAFplus
     logDebug("MSG", "REL","connection Opened");
     if(isConnected)
     {
-      nullFragmentTimer.status = TIMER_PAUSE;
+      nullFragmentTimer.status = TIMER_RUN;
+      boost::thread(nullFragmentTimerFunc,this);
       if(iskeepAlive)
       {
-        keepAliveTimer.status = TIMER_PAUSE;
+        keepAliveTimer.status = TIMER_RUN;
+        boost::thread(keepAliveTimerFunc,this);
       }
       resetMutex.lock();
       {
@@ -849,30 +839,31 @@ namespace SAFplus
 
     }
   }
+  static void ReliableSocketThread(void * arg)
+  {
+    MsgSocketReliable* p_this = (MsgSocketReliable*)arg;
+    p_this->handleReliableSocketThread();
+  }
 
   MsgSocketReliable::MsgSocketReliable(uint_t port,MsgTransportPlugin_1* transport)
   {
     sock=transport->createSocket(port);
-    queueInfo = new queueInfomation();
-    rcvThread = boost::thread(MsgSocketReliable::ReliableSocketThread, this);
+    profile = new ReliableSocketProfile();
+    rcvThread = boost::thread(ReliableSocketThread, this);
   }
   MsgSocketReliable::MsgSocketReliable(uint_t port,MsgTransportPlugin_1* transport,Handle destination)
   {
-    MsgSocketReliable(port,transport);
+    sock=transport->createSocket(port);
+    rcvThread = boost::thread(ReliableSocketThread, this);
+    profile = new ReliableSocketProfile();
     connect(destination,0);
   }
   MsgSocketReliable::MsgSocketReliable(MsgSocket* socket)
   {
     sock=socket;
-    queueInfo = new queueInfomation();
-    rcvThread = boost::thread(MsgSocketReliable::ReliableSocketThread, this);
+    rcvThread = boost::thread(ReliableSocketThread, this);
   }
 
-  void MsgSocketReliable::ReliableSocketThread(void * arg)
-  {
-    MsgSocketReliable* p_this = (MsgSocketReliable*)arg;
-    p_this->handleReliableSocketThread();
-  }
 
   void MsgSocketReliable::init()
   {
@@ -882,13 +873,20 @@ namespace SAFplus
 
   void MsgSocketReliable::handleReliableSocketThread(void)
   {
-    ReliableFragment* pFrag = nullptr;
     fragmentType fragType = fragmentType::FRAG_UDE;
     Handle handle;
-    while ((pFrag = receiveReliableFragment(handle)) != nullptr)
+    logDebug("REL","INI"," start thread to receive and handle fragment from [%d] [%d].",destination.getNode(),destination.getPort());
+    while (1)
     {
-      logDebug("MSG", "REL","Receive reliable fragment fragId [%d] from node [%d]",pFrag->seq(),handle.getNode());
+      ReliableFragment* pFrag =receiveReliableFragment(handle);
+      if(pFrag==nullptr)
+      {
+        logDebug("REL","INI","Receive NULL fragment . Exit thread");
+        return;
+      }
       fragType = pFrag->getType();
+      logDebug("MSG", "REL","Receive reliable fragment Id [%d] fragment type [%d] from node [%d]",pFrag->seq(),fragType,handle.getNode());
+
       if (fragType == fragmentType::FRAG_SYN)
       {
         this->destination = handle;
@@ -908,6 +906,7 @@ namespace SAFplus
       }
       getACK(pFrag);
     }
+    logDebug("REL","INI","Receive NULL fragment . Exit thread");
   }
 
   MsgSocketReliable::~MsgSocketReliable()
@@ -919,7 +918,7 @@ namespace SAFplus
   {
 
   }
-  void MsgSocketReliable::sendReliable(Byte* buffer, int offset, int len)
+  void MsgSocketReliable::writeReliable(Byte* buffer, int offset, int len)
   {
     //MsgFragment* p_Frag = nullptr;
     logDebug("MSG", "REL","send buffer to  node [%d] in reliable mode ",destination.getNode());
@@ -954,15 +953,15 @@ namespace SAFplus
         writeBytes = MIN(profile->maxFragmentSize() - RUDP_HEADER_LEN,len - totalBytes);
         if(totalBytes+writeBytes<len)
         {
-          queueAndSendReliableFragment(new DATFragment(queueInfo->nextSequenceNumber(),
-              queueInfo->getLastInSequence(), buffer, off + totalBytes, writeBytes));
+          queueAndSendReliableFragment(new DATFragment(queueInfo.nextSequenceNumber(),
+              queueInfo.getLastInSequence(), buffer, off + totalBytes, writeBytes));
           totalBytes += writeBytes;
         }
         else
         {
           logDebug("MSG", "REL","send last fragment to  node [%d] in reliable mode ",destination.getNode());
-          queueAndSendReliableFragment(new DATFragment(queueInfo->nextSequenceNumber(),
-              queueInfo->getLastInSequence(), buffer, off + totalBytes, writeBytes,1));
+          queueAndSendReliableFragment(new DATFragment(queueInfo.nextSequenceNumber(),
+              queueInfo.getLastInSequence(), buffer, off + totalBytes, writeBytes,1));
           totalBytes += writeBytes;
         }
       }
@@ -974,7 +973,7 @@ namespace SAFplus
     // TODO
   }
 
-  int MsgSocketReliable::receiveReliable(Byte* buffer, int offset, int len)
+  int MsgSocketReliable::readReliable(Byte* buffer, int offset, int len)
   {
     logDebug("MSG", "REL","receive buffer from node [%d] in reliable mode ",destination.getNode());
     int totalBytes = 0;
@@ -1045,11 +1044,14 @@ namespace SAFplus
             memcpy(buffer + (offset+totalBytes), (void*)data , length);
             inSeqQueue.erase_and_dispose(it, delete_disposer());
             totalBytes += length;
-            if(((DATFragment*) &s)->isLast())
-            {
-              break;
-              //exist while loop
-            }
+//            if(((DATFragment*) &s)->isLast())
+//            {
+//              //check out of sequence queue
+//              if()
+//              break;
+//
+//              //exist while loop
+//            }
           }
           it++;
         }
@@ -1066,6 +1068,7 @@ namespace SAFplus
 
   void MsgSocketReliable::connect(Handle destination, int timeout)
   {
+    logDebug("REL","MSR","Connect to log server");
     if (timeout < 0)
     {
       throw Error("connect: timeout can't be negative");
@@ -1081,12 +1084,21 @@ namespace SAFplus
     this->destination = destination;
     // Synchronize sequence numbers
     state = connectionState::CONN_SYN_SENT;
-    ReliableFragment *frag = new SYNFragment(queueInfo->setSequenceNumber(0),
+    int sequenceNum=queueInfo.setSequenceNumber(0);
+    ReliableFragment *frag = new SYNFragment(sequenceNum,
         profile->maxOutstandingSegs(), profile->maxFragmentSize(),
         profile->retransmissionTimeout(), profile->cumulativeAckTimeout(),
         profile->nullFragmentTimeout(), profile->maxRetrans(),
         profile->maxCumulativeAcks(), profile->maxOutOfSequence(),
         profile->maxAutoReset());
+
+    logDebug("REL","MSR","Create syn frag with folow parameter [%d] [%d] [%d] [%d] [%d] [%d] [%d] [%d] [%d] [%d].",sequenceNum,
+        profile->maxOutstandingSegs(), profile->maxFragmentSize(),
+        profile->retransmissionTimeout(), profile->cumulativeAckTimeout(),
+        profile->nullFragmentTimeout(), profile->maxRetrans(),
+        profile->maxCumulativeAcks(), profile->maxOutOfSequence(),
+        profile->maxAutoReset());
+
     queueAndSendReliableFragment(frag);
 
     // Wait for connection establishment (or timeout)
@@ -1119,7 +1131,7 @@ namespace SAFplus
     }
     unackedSentQueueLock.unlock();
 
-    queueInfo->reset();
+    queueInfo.reset();
     retransmissionTimer.status = TIMER_PAUSE;
     switch (state)
     {
@@ -1175,7 +1187,7 @@ namespace SAFplus
         case connectionState::CONN_SYN_RCVD:
         case connectionState::CONN_ESTABLISHED:
         {
-          sendReliableFragment(new FINFragment(queueInfo->nextSequenceNumber()));
+          sendReliableFragment(new FINFragment(queueInfo.nextSequenceNumber()));
           closeImpl();
           break;
         }
@@ -1201,7 +1213,7 @@ namespace SAFplus
   }
   void MsgSocketReliable::flush()
   {
-    sock->flush();
+   sock->flush();
   }
 
   void MsgSocketServerReliable::addClientSocket(Handle destAddress)
@@ -1210,7 +1222,7 @@ namespace SAFplus
     {
       try
       {
-        MsgSocketClientReliable *sockClient = new MsgSocketClientReliable(sock);
+        MsgSocketClientReliable *sockClient = new MsgSocketClientReliable(sock,destAddress);
         sockClient->sockServer=this;
         clientSockTable[destAddress]=sockClient;
       }
@@ -1229,7 +1241,7 @@ namespace SAFplus
     {
       if (isClosed==true)
       {
-        sock->~MsgSocket();
+       sock->~MsgSocket();
       }
     }
   }
@@ -1239,43 +1251,34 @@ namespace SAFplus
     Message* p_Msg = nullptr;
     int iMaxMsg = 1;
     int iDelay = 1;
-    int iMsgType = 0;
-    void * p_Data = nullptr;
     Handle destinationAddress;
     MsgFragment* p_NextFrag = nullptr;
+    logDebug("REL","MSS","Start server receive thread.");
     while (true)
     {
       try
       {
         p_Msg=this->sock->receive(iMaxMsg,iDelay);
         destinationAddress = p_Msg->getAddress();
+        logDebug("REL","MSS","receive fragment from [%d] - [%d]....",destinationAddress.getNode(),destinationAddress.getPort());
         ReliableFragment* p_Fragment = nullptr;
         p_NextFrag = p_Msg->firstFragment;
         if(p_NextFrag == nullptr)
         {
+          logError("REL","MSS","receive fragment null. Return");
           return;
         }
-        p_Data = p_NextFrag->data();
-        if(p_Data)
-        {
-          iMsgType =  *((int*)p_Data);
-        }
-        p_NextFrag = p_NextFrag->nextFragment;
-        if(p_NextFrag == nullptr)
-        {
-          return;
-        }
-        p_Data = p_NextFrag->data();
-        if(p_Data)
-        {
-          p_Fragment = ReliableFragment::parse((Byte*)p_Data, 0, p_NextFrag->len);
-        }
+        p_Fragment = ReliableFragment::parse((Byte*)p_NextFrag->read(0), 0, p_NextFrag->len);
+        p_Fragment->address=p_Msg->getAddress();
+        logDebug("REL","MSS","fragment type : [%d] - [%d] ",p_Fragment->getType(),p_Fragment->seq());
         if(!isClosed)
         {
           if (p_Fragment->getType()==FRAG_SYN)
           {
+            logDebug("REL","INI","receive SYN fragment from [%d] - [%d] .",destinationAddress.getNode(),destinationAddress.getPort());
             if(clientSockTable[destinationAddress]==nullptr)
             {
+              logDebug("REL","INI","create socket client and add to client Table");
               addClientSocket(destinationAddress);
             }
           }
@@ -1298,21 +1301,19 @@ namespace SAFplus
   }
   MsgSocketServerReliable::MsgSocketServerReliable(uint_t port,MsgTransportPlugin_1* transport)
   {
-    sock=transport->createSocket(port);
+    logError("REL","INI","Init sock server. ");
+   sock=transport->createSocket(port);
     ServerRcvThread = boost::thread(rcvThread, this);
   }
   MsgSocketServerReliable::MsgSocketServerReliable(MsgSocket* socket)
   {
-    sock=socket;
+   sock=socket;
     ServerRcvThread = boost::thread(rcvThread, this);
   }
   void MsgSocketServerReliable::init()
   {
     ServerRcvThread.start_thread();
   }
-
-
-
 
   MsgSocketClientReliable* MsgSocketServerReliable::accept()
   {
@@ -1321,6 +1322,7 @@ namespace SAFplus
     {
       try
       {
+        logDebug("REL","INI", "listenSock list is empty. Waiting for socket client.");
         listenSockCond.wait(listenSockMutex);
       }
       catch (...)
@@ -1330,11 +1332,12 @@ namespace SAFplus
     }
     listenSockMutex.unlock();
     MsgSocketClientReliable* sock = (MsgSocketClientReliable*)&(listenSock.front());
+    logDebug("REL","INI", "get Socket from listenSock list.");
     listenSock.pop_front();
     return sock;
   }
 
-  ReliableFragment* MsgSocketClientReliable::receiveReliableFragment(Handle &)
+  ReliableFragment* MsgSocketClientReliable::receiveReliableFragment(Handle &handle)
   {
     this->sockServer->fragmentQueueLock.lock();
     while (sockServer->fragmentQueue.empty())
@@ -1348,10 +1351,13 @@ namespace SAFplus
         // Handle Exception
       }
     }
-    ReliableFragment* frag = &(sockServer->fragmentQueue.front());
+
+    ReliableFragment* p_Fragment=&sockServer->fragmentQueue.front();
+    handle=p_Fragment->address;
     sockServer->fragmentQueue.pop_front();
     sockServer->fragmentQueueLock.unlock();
-    return frag;
+    logDebug("REL","MSS","get fragment from queue [%d]",p_Fragment->getType());
+    return p_Fragment;
   }
 
   void MsgSocketClientReliable::receiverFragment(ReliableFragment* frag)

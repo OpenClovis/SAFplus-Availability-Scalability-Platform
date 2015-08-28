@@ -27,10 +27,6 @@ namespace SAFplus
     }
     return -1;
   }
-  Byte* ReliableFragment::getACKs(int* length)
-  {
-    return nullptr;
-  }
 
 
   int ReliableFragment::getRetxCounter()
@@ -130,10 +126,10 @@ namespace SAFplus
 
   void ReliableFragment::parseBytes(const Byte* buffer, int _off, int _len)
   {
-    m_nFalgs = (buffer[_off] & 0xFF);
-    m_nLen   = (buffer[_off+1] & 0xFF);
-    m_nSeqn  = (buffer[_off+2] & 0xFF);
-    m_nAckn  = (buffer[_off+3] & 0xFF);
+    m_nFalgs = int(buffer[_off] & 255);
+    m_nLen   = int(buffer[_off+1] & 255);
+    m_nSeqn  = int(buffer[_off+2] & 255);
+    m_nAckn  = int(buffer[_off+3] & 255);
     m_isLastFragment  = (buffer[_off+4] & 0xFF);
 
   }
@@ -149,26 +145,32 @@ namespace SAFplus
     int flags = bytes[off];
     if ((flags & SYN_FLAG) != 0)
     {
+      logDebug("REL","FRT","parse SYN fragment");
       fragment = new SYNFragment();
     }
     else if ((flags & NUL_FLAG) != 0)
     {
+      logDebug("REL","FRT","parse NUL fragment");
       fragment = new NULLFragment();
     }
     else if ((flags & NAK_FLAG) != 0)
     {
+      logDebug("REL","FRT","parse NAK fragment");
       fragment = new NAKFragment();
     }
     else if ((flags & RST_FLAG) != 0)
     {
+      logDebug("REL","FRT","parse RST fragment");
       fragment = new RSTFragment();
     }
     else if ((flags & FIN_FLAG) != 0)
     {
+      logDebug("REL","FRT","parse FIN fragment");
       fragment = new FINFragment();
     }
     else if ((flags & ACK_FLAG) != 0)
     {
+      logDebug("REL","FRT","parse ACK fragment");
       /* always process ACKs or Data segments last */
       if (len == RUDP_HEADER_LEN)
       {
@@ -477,6 +479,10 @@ namespace SAFplus
   fragmentType NAKFragment::getType()
   {
     return FRAG_NAK;
+  }
+  Byte* NAKFragment::getACKs(int* length)
+  {
+    return m_pArrAcks;
   }
 
   // End NAK Fragment Class

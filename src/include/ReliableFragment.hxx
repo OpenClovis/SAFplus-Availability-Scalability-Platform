@@ -4,16 +4,15 @@ using namespace boost::intrusive;
 
 #define RUDP_VERSION 1
 #define RUDP_HEADER_LEN  6
-#define SYN_FLAG  (Byte) 0x80
-#define ACK_FLAG  (Byte) 0x40
-#define NAK_FLAG  (Byte) 0x20
-#define RST_FLAG  (Byte) 0x10
-#define NUL_FLAG  (Byte) 0x08
-#define CHK_FLAG  (Byte) 0x04
-#define FIN_FLAG  (Byte) 0x02
-#define LAS_FLAG  (Byte) 0x100
-#define SYN_HEADER_LEN  (RUDP_HEADER_LEN + 16)
 typedef unsigned char  Byte;  /* 8 bits */
+#define SYN_FLAG   0x80
+#define ACK_FLAG   0x40
+#define NAK_FLAG   0x20
+#define RST_FLAG   0x10
+#define NUL_FLAG   0x08
+#define CHK_FLAG   0x04
+#define FIN_FLAG   0x02
+#define SYN_HEADER_LEN  (RUDP_HEADER_LEN + 16)
 
 /*
  *  RUDP Header
@@ -30,6 +29,7 @@ typedef unsigned char  Byte;  /* 8 bits */
  *  +---------------+---------------+
  *
  */
+
 namespace SAFplus
 {
 
@@ -60,11 +60,11 @@ namespace SAFplus
     virtual void parseBytes(const Byte* buffer, int _off, int _len);
   public:
     boost::intrusive::list_member_hook<> m_memberHook;
+    Handle address;
     int flags();
     int seq();
     int length();
     int getAck();
-    Byte* getACKs(int* length);
     int getRetxCounter();
     bool isLast();
     void setAck(int _ackn);
@@ -167,6 +167,7 @@ namespace SAFplus
   public:
     NAKFragment();
     NAKFragment(int seqn, int ackn,  int* acks, int size);
+    Byte* getACKs(int* length);
     virtual Byte* getBytes();
     virtual fragmentType getType();
   }; // End NAK Fragment class

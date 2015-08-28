@@ -34,6 +34,11 @@ namespace SAFplus
   public:
     queueInfomation()
     {
+      fragNumber =0;
+      lastFrag=0;
+      numberOfCumAck=0;
+      numberOfOutOfSeq=0;
+      numberOfNakFrag=0; /* Outstanding segments counter */
     }
 
     int nextSequenceNumber()
@@ -145,7 +150,6 @@ namespace SAFplus
   class SAFplusTimer
   {
   public:
-    pthread_t nullFragmentTimer;
     bool isStop;
     TimerStatus status;
     SAFplus::Mutex timerLock;
@@ -162,20 +166,17 @@ namespace SAFplus
     int recvQueueSize = 32; /* Maximum number of sent segments */
     int sendBufferSize;
     int recvBufferSize;
-    bool isClosed    = false;
-    bool isConnected = false;
-    bool isReset     = false;
-    bool iskeepAlive = true;
+    bool isClosed    = false; //socket status closed
+    bool isConnected = false; //socket status connected
+    bool isReset     = false; //socket status reset
+    bool iskeepAlive = true; //socket status keep alive
     int  state     = connectionState::CONN_CLOSED;
-    int  timeout   = 0; /* (ms) */
-    bool  shutIn  = false;
-    bool  shutOut = false;
-    queueInfomation *queueInfo;
-    boost::thread rcvThread;
-    ReliableFragmentList unackedSentQueue;
-    ReliableFragmentList outOfSeqQueue;
-    ReliableFragmentList inSeqQueue;
-    ReliableFragmentList listener;
+    int  timeout   = 0; /* (ms) */ //wait to receive fragment
+    queueInfomation queueInfo; //socket queue Infomation
+    boost::thread rcvThread; //thread to receive and handle fragment
+    ReliableFragmentList unackedSentQueue; // list of fragment sended without receive ACK
+    ReliableFragmentList outOfSeqQueue;  // list of out-of-sequence fragments
+    ReliableFragmentList inSeqQueue; // list of in-sequence fragments
     SAFplus::Mutex closeMutex;
     SAFplus::Mutex resetMutex;
     ThreadCondition resetCond;
@@ -186,54 +187,81 @@ namespace SAFplus
     SAFplus::Mutex thisMutex;
     ThreadCondition thisCond;
 
+    //Handle close socket
     void handleCloseImpl(void);
+    //process fragment : push fragment to in-sequence or out-of-sequence queue
     void handleReliableFragment(ReliableFragment frag);
+    // handle SYN fragment : update connection profile, update connection state
     void handleSYNReliableFragment(SYNFragment *frag);
+    //Handle ACK fragment
     void handleACKReliableFragment(ReliableFragment *frag);
+    //Handle NAK fragment : Removed acknowledged fragments from unacked-sent queue
     void handleNAKReliableFragment(NAKFragment *frag);
+    //Checks for in-sequence segments in the out-of-sequence queue that can be moved to the in-sequence queue
     void checkRecvQueues(void);
+    // Send acknowledged fragment to sender
     void sendACK();
+    // Send list of received fragment id in out of sequence queue to sender
     void sendNAK();
+    // Send the last received fragment id to sender (out-of-sequence is empty)
     void sendSingleAck();
+    // no used
     void sendSYN();
+    // Piggy back any pending acknowledgments : Sets the ACK flag and number of a segment if there is at least one received segment to be acknowledged.
     void setACK(ReliableFragment *frag);
+    // ????
     void getACK(ReliableFragment *frag);
     static int nextSequenceNumber(int seqn);
-    static void ReliableSocketThread(void * arg);
-    void handleReliableSocketThread(void);
+    //Thread to receive fragment
+    //static void ReliableSocketThread(void * arg);
+    //send a reliable fragment
     void sendReliableFragment(ReliableFragment *frag);
+    // send fragment and store it in uncheck ack
     void queueAndSendReliableFragment(ReliableFragment* frag);
+    //Handle Retransmission un-ack fragment
     void retransmitFragment(ReliableFragment* frag);
+    // set connection state
     void setconnection(connectionNotification state);
     void connectionOpened(void);
+    //initial a reliable socket : start thread to receive fragment
     void init();
 
   public:
-    virtual ReliableFragment* receiveReliableFragment(Handle &);
-    Handle destination;
-    uint_t messageType;
-    ReliableSocketProfile* profile;
-    SAFplusTimer nullFragmentTimer;
-    SAFplusTimer retransmissionTimer;
-    SAFplusTimer cumulativeAckTimer;
-    SAFplusTimer keepAliveTimer;
+    void handleReliableSocketThread(void);
+    Handle destination; //destination of this connection (node id, port)
+    uint_t messageType; //type of the message
+    ReliableSocketProfile* profile; //socket connection profile
+    SAFplusTimer nullFragmentTimer; //If this timer expired , send null fragment if unackedQueue is empty
+    SAFplusTimer retransmissionTimer; //If this timer expired, retransmission all un-ack fragment
+    SAFplusTimer cumulativeAckTimer;//If this timer expired, send acknowledge fragment to sender
+    SAFplusTimer keepAliveTimer; // TODO
     boost::intrusive::list_member_hook<> m_reliableSocketmemberHook;
+    //receive fragment from socket
+    virtual ReliableFragment* receiveReliableFragment(Handle &handle);
     MsgSocketReliable(uint_t port,MsgTransportPlugin_1* transport);
     MsgSocketReliable(uint_t port,MsgTransportPlugin_1* transport,Handle destination);
     MsgSocketReliable(MsgSocket* socket);
     virtual ~MsgSocketReliable();
-    //? Send a bunch of messages.  You give up ownership of msg.
+    // Send a bunch of messages.  You give up ownership of msg.
     virtual void send(Message* msg);
+    //Send a buffer data 
     virtual void send(SAFplus::Handle destination, void* buffer, uint_t length,uint_t msgtype);
+    //Receiver a message
     virtual Message* receive(uint_t maxMsgs,int maxDelay=-1);
     virtual void flush();
+    //Add socket client to socket  server list 
     virtual void connectionClientOpen(MsgSocketReliable* sock){};
-    int receiveReliable(Byte* buffer, int offset, int len);
-    void sendReliable(Byte* buffer, int offset, int len);
+    //read maximum len byte data
+    int readReliable(Byte* buffer, int offset, int len);
+    //write maximum len byte data
+    void writeReliable(Byte* buffer, int offset, int len);
+    //connect to destination
     void connect(Handle destination, int timeout);
+    //close socket
     void close(void);
     void closeImpl();
     static void closeImplThread(void*);
+    //Puts the connection in a closed state and notifies
     void connectionFailure();
     void handleRetransmissionTimerFunc(void);
     void handleNullFragmentTimerFunc(void);
@@ -264,7 +292,11 @@ namespace SAFplus
     MsgSocketClientReliable(MsgSocket* socket) : MsgSocketReliable(socket)
     {
     };
-    virtual ReliableFragment* receiveReliableFragment(Handle &);
+    MsgSocketClientReliable(MsgSocket* socket,Handle destinationAddress) : MsgSocketReliable(socket)
+    {
+      destination=destinationAddress;
+    };
+    virtual ReliableFragment* receiveReliableFragment(Handle &handle);
     void receiverFragment(ReliableFragment* frag);
     virtual void connectionClientOpen(void* sock);
   };

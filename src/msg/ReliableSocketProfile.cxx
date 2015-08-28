@@ -15,6 +15,8 @@ namespace SAFplus
 
   ReliableSocketProfile::ReliableSocketProfile()
   {
+    //TODO remove hard code
+    ReliableSocketProfile(32, 32, 128, 3, 0, 3, 3, 3, 2000, 600, 300);
   }
   ReliableSocketProfile::ReliableSocketProfile(int maxSendQueueSize,
       int maxRecvQueueSize,
