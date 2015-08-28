@@ -59,7 +59,6 @@ namespace SAFplus
 
     ClBoolT mInitialized;
     ClDBHandleT mDbDataHdl;
-    ClDBHandleT mDbIterHdl;
     std::vector<std::string> listKey;
     std::vector<std::string> listXpath;
 

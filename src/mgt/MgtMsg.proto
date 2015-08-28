@@ -62,3 +62,9 @@ message MsgMgt
   required bytes bind = 2;
   repeated bytes data = 3;
 }
+
+message MsgMgtDb
+{
+  required string xpath = 1;
+  required string value = 2;
+}

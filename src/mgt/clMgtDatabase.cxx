@@ -20,16 +20,7 @@
 #include <clCommon.hxx>
 #include "clMgtDatabase.hxx"
 #include "clLogApi.hxx"
-#ifdef __cplusplus
-extern "C"
-{
-#endif
-//#include <clCommonErrors.h>
-//#include <clDebugApi.h>
-//#include <clCksmApi.h>
-#ifdef __cplusplus
-} /* end extern 'C' */
-#endif
+#include "MgtMsg.pb.hxx"
 
 namespace SAFplus
 {
@@ -87,24 +78,9 @@ namespace SAFplus
       }
 
     mDbDataHdl = dbDataHdl;
-
-    /*
-     * Open the index DB
-     */
-    dbNameIdx.append(dbName).append(".idx");
-    rc = clDbalOpen(dbNameIdx.c_str(), dbNameIdx.c_str(), CL_DB_APPEND, maxKeySize, maxRecordSize, &dbDataHdl);
-    if (CL_OK != rc)
-      {
-        goto exitOnError2;
-      }
-
-    mDbIterHdl = dbDataHdl;
-
     mInitialized = CL_TRUE;
     return rc;
 
-    exitOnError2: clDbalClose(mDbDataHdl);
-    mDbDataHdl = 0;
     exitOnError1: clDbalLibFinalize();
     return rc;
   }
@@ -119,10 +95,6 @@ namespace SAFplus
     /* Close the data DB */
     clDbalClose(mDbDataHdl);
     mDbDataHdl = 0;
-
-    /* Close the index DB */
-    clDbalClose(mDbIterHdl);
-    mDbIterHdl = 0;
 
     /*Finalize dbal */
     clDbalLibFinalize();
@@ -140,7 +112,15 @@ namespace SAFplus
 
     ClUint32T hashKey = getHashKeyFn(key.c_str());
 
-    rc = clDbalRecordReplace(mDbDataHdl, (ClDBKeyT) &hashKey, sizeof(hashKey), (ClDBRecordT) value.c_str(), value.length());
+    Mgt::Msg::MsgMgtDb dbValue;
+    dbValue.set_value(value);
+    dbValue.set_xpath(key);
+
+    std::string strVal;
+    // Marshall data
+    dbValue.SerializeToString(&strVal);
+
+    rc = clDbalRecordReplace(mDbDataHdl, (ClDBKeyT) &hashKey, sizeof(hashKey), (ClDBRecordT) strVal.c_str(), strVal.size());
 
     return rc;
   }
@@ -164,8 +144,14 @@ namespace SAFplus
         return rc;
       }
 
-    value.clear();
-    value.append(cvalue, dataSize);
+    Mgt::Msg::MsgMgtDb dbValue;
+    std::string strVal;
+    strVal.append(cvalue, dataSize);
+
+    // De-marshall data
+    dbValue.ParseFromString(strVal);
+    value.assign(dbValue.value());
+
     logInfo("MGT", "DBR", "Record [0x%x]: [%s] -> [%s]", hashKey, key.c_str(), value.c_str());
     SAFplusHeapFree(cvalue);
     return rc;
@@ -182,24 +168,17 @@ namespace SAFplus
 
     ClUint32T hashKey = getHashKeyFn(key.c_str());
 
-    /*
-     * Insert into idx table
-     */
-    rc = clDbalRecordInsert(mDbIterHdl, (ClDBKeyT) &hashKey, sizeof(hashKey), (ClDBRecordT) key.c_str(), key.length());
-    if (rc != CL_OK)
-      {
-        return rc;
-      }
+    Mgt::Msg::MsgMgtDb dbValue;
+    dbValue.set_value(value);
+    dbValue.set_xpath(key);
 
+    std::string strVal;
+    // Marshall data
+    dbValue.SerializeToString(&strVal);
     /*
      * Insert into data table
      */
-    rc = clDbalRecordInsert(mDbDataHdl, (ClDBKeyT) &hashKey, sizeof(hashKey), (ClDBRecordT) value.c_str(), value.length());
-    if (rc != CL_OK)
-      {
-        clDbalRecordDelete(mDbIterHdl, (ClDBKeyT) &hashKey, sizeof(hashKey));
-      }
-
+    rc = clDbalRecordInsert(mDbDataHdl, (ClDBKeyT) &hashKey, sizeof(hashKey), (ClDBRecordT) strVal.c_str(), strVal.size());
     return rc;
   }
 
@@ -213,8 +192,6 @@ namespace SAFplus
       }
 
     ClUint32T hashKey = getHashKeyFn(key.c_str());
-
-    rc = clDbalRecordDelete(mDbIterHdl, (ClDBKeyT) &hashKey, sizeof(hashKey));
 
     rc = clDbalRecordDelete(mDbDataHdl, (ClDBKeyT) &hashKey, sizeof(hashKey));
 
@@ -263,7 +240,7 @@ namespace SAFplus
     /*
      * Iterators key value
      */
-    rc = clDbalFirstRecordGet(mDbIterHdl, (ClDBKeyT*) &recKey, &keySize, (ClDBRecordT*) &recData, &dataSize);
+    rc = clDbalFirstRecordGet(mDbDataHdl, (ClDBKeyT*) &recKey, &keySize, (ClDBRecordT*) &recData, &dataSize);
     if (rc != CL_OK)
       {
         return;
@@ -271,21 +248,27 @@ namespace SAFplus
 
     while (1)
       {
-        std::string value(recData, dataSize);
-        listXpath.push_back(value);
-        logInfo("MGT", "LST", "Read [%s]", value.c_str());
-        //Free memory
+        Mgt::Msg::MsgMgtDb dbValue;
+        std::string strVal;
+        strVal.append(recData, dataSize);
+
+        // Free memory
         SAFplusHeapFree(recData);
 
-        // /a/b[@key"1"]/@key
-        std::size_t found = value.find_last_of("/@");
-        if ((found != std::string::npos) && (found != 0))
-          if (value[found - 2] == ']')
-            {
-              listKey.push_back(value);
-            }
+        // De-marshall data
+        dbValue.ParseFromString(strVal);
 
-        if ((rc = clDbalNextRecordGet(mDbIterHdl, (ClDBKeyT) recKey, keySize, (ClDBKeyT*) &nextKey, &nextKeySize, (ClDBRecordT*) &recData, &dataSize)) != CL_OK)
+        listXpath.push_back(dbValue.xpath());
+        logInfo("MGT", "LST", "Read [%s]", dbValue.xpath().c_str());
+
+        // /a/b[@key"1"]/@key
+        std::size_t found = dbValue.xpath().find_last_of("/@");
+        if ((found != std::string::npos) && (found != 0) && dbValue.xpath()[found - 2] == ']')
+        {
+          listKey.push_back(dbValue.xpath());
+        }
+
+        if ((rc = clDbalNextRecordGet(mDbDataHdl, (ClDBKeyT) recKey, keySize, (ClDBKeyT*) &nextKey, &nextKeySize, (ClDBRecordT*) &recData, &dataSize)) != CL_OK)
           {
             rc = CL_OK;
             break;
