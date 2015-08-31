@@ -1,22 +1,32 @@
 #include <ReliableFragment.hxx>
 namespace SAFplus
 {
-#define MAX_SEND_QUEUE_SIZE      32;
-#define MAX_RECV_QUEUE_SIZE      32;
-#define MAX_SEGMENT_SIZE         128;
-#define MAX_OUTSTANDING_SEGS     3;
-#define MAX_RETRANS              3;
-#define MAX_CUMULATIVE_ACKS      3;
-#define MAX_OUT_OF_SEQUENCE      3;
-#define MAX_AUTO_RESET           3;
-#define NULL_SEGMENT_TIMEOUT     2000;
-#define RETRANSMISSION_TIMEOUT   600;
-#define CUMULATIVE_ACK_TIMEOUT   300;
+#define DEFAULT_SEND_QUEUE_SIZE      32;
+#define DEFAULT_RECV_QUEUE_SIZE      32;
+#define DEFAULT_SEGMENT_SIZE         128;
+#define DEFAULT_OUTSTANDING_SEGS     3;
+#define DEFAULT_RETRANS              3;
+#define DEFAULT_CUMULATIVE_ACKS      3;
+#define DEFAULT_OUT_OF_SEQUENCE      3;
+#define DEFAULT_AUTO_RESET           3;
+#define DEFAULT_NULL_SEGMENT_TIMEOUT     2000;
+#define DEFAULT_RETRANSMISSION_TIMEOUT   600;
+#define DEFAULT_CUMULATIVE_ACK_TIMEOUT   300;
 
   ReliableSocketProfile::ReliableSocketProfile()
   {
     //TODO remove hard code
-    ReliableSocketProfile(32, 32, 128, 3, 0, 3, 3, 3, 2000, 600, 300);
+    m_nMaxSendQueueSize = DEFAULT_SEND_QUEUE_SIZE;
+    m_nMaxRecvQueueSize = DEFAULT_RECV_QUEUE_SIZE;
+    m_nMaxFragmentSize = DEFAULT_SEGMENT_SIZE;
+    m_nMaxOutstandingSegs = DEFAULT_OUTSTANDING_SEGS;
+    m_nMaxRetrans = DEFAULT_RETRANS;
+    m_nMaxCumulativeAcks = DEFAULT_CUMULATIVE_ACKS;
+    m_nMaxOutOfSequence = DEFAULT_OUT_OF_SEQUENCE;
+    m_nMaxAutoReset = DEFAULT_AUTO_RESET;
+    m_nNullFragmentTimeout = DEFAULT_NULL_SEGMENT_TIMEOUT;
+    m_nRetransmissionTimeout = DEFAULT_RETRANSMISSION_TIMEOUT;
+    m_nCumulativeAckTimeout = DEFAULT_CUMULATIVE_ACK_TIMEOUT;
   }
   ReliableSocketProfile::ReliableSocketProfile(int maxSendQueueSize,
       int maxRecvQueueSize,
@@ -30,17 +40,17 @@ namespace SAFplus
       int retransmissionTimeout,
       int cumulativeAckTimeout)
   {
-    checkValue("maxSendQueueSize", maxSendQueueSize, 1, 255);
-    checkValue("maxRecvQueueSize", maxRecvQueueSize, 1, 255);
-    checkValue("maxFragmentSize", maxFragmentSize, 22, 65535);
-    checkValue("maxOutstandingSegs", maxOutstandingSegs, 1, 255);
-    checkValue("maxRetrans", maxRetrans, 0, 255);
-    checkValue("maxCumulativeAcks", maxCumulativeAcks, 0, 255);
-    checkValue("maxOutOfSequence", maxOutOfSequence, 0, 255);
-    checkValue("maxAutoReset", maxAutoReset, 0, 255);
-    checkValue("nullFragmentTimeout", nullFragmentTimeout, 0, 65535);
-    checkValue("retransmissionTimeout", retransmissionTimeout, 100, 65535);
-    checkValue("cumulativeAckTimeout", cumulativeAckTimeout, 100, 65535);
+    validateValue("maxSendQueueSize", maxSendQueueSize, 1, 255);
+    validateValue("maxRecvQueueSize", maxRecvQueueSize, 1, 255);
+    validateValue("maxFragmentSize", maxFragmentSize, 22, 65535);
+    validateValue("maxOutstandingSegs", maxOutstandingSegs, 1, 255);
+    validateValue("maxRetrans", maxRetrans, 0, 255);
+    validateValue("maxCumulativeAcks", maxCumulativeAcks, 0, 255);
+    validateValue("maxOutOfSequence", maxOutOfSequence, 0, 255);
+    validateValue("maxAutoReset", maxAutoReset, 0, 255);
+    validateValue("nullFragmentTimeout", nullFragmentTimeout, 0, 65535);
+    validateValue("retransmissionTimeout", retransmissionTimeout, 100, 65535);
+    validateValue("cumulativeAckTimeout", cumulativeAckTimeout, 100, 65535);
 
     m_nMaxSendQueueSize = maxSendQueueSize;
     m_nMaxRecvQueueSize = maxRecvQueueSize;
@@ -109,7 +119,7 @@ namespace SAFplus
     return m_nCumulativeAckTimeout;
   }
 
-  bool ReliableSocketProfile::checkValue(const char* param,
+  bool ReliableSocketProfile::validateValue(const char* param,
       int value,
       int minValue,
       int maxValue)

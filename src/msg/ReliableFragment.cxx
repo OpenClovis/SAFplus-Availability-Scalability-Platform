@@ -21,7 +21,8 @@ namespace SAFplus
   }
   int ReliableFragment::getAck()
   {
-    if(m_nFalgs & ACK_FLAG == ACK_FLAG)
+    logDebug("REL","MSL","m_nFalgs [%d], [%d]",m_nFalgs,m_nFalgs & ACK_FLAG);
+    if((m_nFalgs & ACK_FLAG) == ACK_FLAG)
     {
       return m_nAckn;
     }
@@ -35,11 +36,7 @@ namespace SAFplus
   }
   bool ReliableFragment::isLast()
   {
-    if(m_isLastFragment==0)
-    {
       return false;
-    }
-    return true;
   }
 
 
@@ -94,11 +91,6 @@ namespace SAFplus
         temp=FRAG_FIN;
         break;
       }
-      case LAS_FLAG:
-      {
-        temp=FRAG_LAS;
-        break;
-      }
       default:
       {
         break;
@@ -121,7 +113,7 @@ namespace SAFplus
     m_nFalgs = _flags;
     m_nSeqn = _seqn;
     m_nLen = len;
-    m_isLastFragment=0;
+    //m_isLastFragment=0;
   }
 
   void ReliableFragment::parseBytes(const Byte* buffer, int _off, int _len)
@@ -130,8 +122,8 @@ namespace SAFplus
     m_nLen   = int(buffer[_off+1] & 255);
     m_nSeqn  = int(buffer[_off+2] & 255);
     m_nAckn  = int(buffer[_off+3] & 255);
-    m_isLastFragment  = (buffer[_off+4] & 0xFF);
-
+    //m_isLastFragment  = (buffer[_off+4] & 0xFF);
+    logDebug("REL","FRT","ParseBytes flag [%d] len [%d] seg [%d]  ack [%d]",m_nFalgs,m_nLen,m_nSeqn,m_nAckn);
   }
 
   ReliableFragment* ReliableFragment::parse(Byte* bytes, int off, int len)

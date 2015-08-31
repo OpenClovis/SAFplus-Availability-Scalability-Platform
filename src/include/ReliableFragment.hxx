@@ -54,7 +54,6 @@ namespace SAFplus
     int m_nSeqn;         /* Sequence number field */
     int m_nAckn;         /* Acknowledgment number field */
     int m_nRetCounter;   /* Retransmission counter */
-    int m_isLastFragment;   /* last fragment */
   protected:
     void init(int _flags, int _seqn, int len, int isLastFrag=0);
     virtual void parseBytes(const Byte* buffer, int _off, int _len);
@@ -219,7 +218,7 @@ namespace SAFplus
     int m_nRetransmissionTimeout;
     int m_nCumulativeAckTimeout;
   protected:
-    bool checkValue(const char* param, int value, int minValue, int maxValue);
+    bool validateValue(const char* param, int value, int minValue, int maxValue);
   public:
     ReliableSocketProfile();
     ReliableSocketProfile(int maxSendQueueSize,

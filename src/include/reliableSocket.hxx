@@ -192,7 +192,7 @@ namespace SAFplus
     //process fragment : push fragment to in-sequence or out-of-sequence queue
     void handleReliableFragment(ReliableFragment frag);
     // handle SYN fragment : update connection profile, update connection state
-    void handleSYNReliableFragment(SYNFragment *frag);
+    virtual void handleSYNReliableFragment(SYNFragment *frag);
     //Handle ACK fragment
     void handleACKReliableFragment(ReliableFragment *frag);
     //Handle NAK fragment : Removed acknowledged fragments from unacked-sent queue
@@ -250,7 +250,7 @@ namespace SAFplus
     virtual Message* receive(uint_t maxMsgs,int maxDelay=-1);
     virtual void flush();
     //Add socket client to socket  server list 
-    virtual void connectionClientOpen(MsgSocketReliable* sock){};
+    virtual void connectionClientOpen();
     //read maximum len byte data
     int readReliable(Byte* buffer, int offset, int len);
     //write maximum len byte data
@@ -298,7 +298,7 @@ namespace SAFplus
     };
     virtual ReliableFragment* receiveReliableFragment(Handle &handle);
     void receiverFragment(ReliableFragment* frag);
-    virtual void connectionClientOpen(void* sock);
+    virtual void connectionClientOpen();
   };
 
   class MsgSocketServerReliable : public MsgSocketAdvanced
