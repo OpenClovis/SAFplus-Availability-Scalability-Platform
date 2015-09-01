@@ -14,8 +14,8 @@
 #include <clMsgPortsAndTypes.hxx>
 #include <clMgtHistoryStat.hxx>
 #include <clGroupIpi.hxx>
-#include "unitTest/Ut.hxx"
-using namespace unitTest;
+#include <clPluginApi.hxx>
+
 using namespace std;
 using namespace SAFplus;
 
@@ -613,6 +613,7 @@ void testDatabase()
 
 void testLoadMultikey()
 {
+#if 0
     UnitTestRoot root;
     MgtDatabase *db = MgtDatabase::getInstance();
     ClRcT rc = db->initializeDB("unitTest");
@@ -631,7 +632,25 @@ void testLoadMultikey()
     root.toString(ss);
     cout<<"TEST:"<<ss.str()<<std::endl;
     db->finalizeDB();
+#endif
 }
+
+void testPluginLoad()
+  {
+    ClPlugin* moduleCfg = NULL;
+    ClPluginHandle* plug = clLoadPlugin(SAFplus::CL_MGT_MODULE_PLUGIN_ID,SAFplus::CL_MGT_MODULE_PLUGIN_VER, "unitTest.so");
+    if (plug) moduleCfg = plug->pluginApi;
+    if (moduleCfg)
+      {
+        SAFplus::MgtModule *unitTestCfg = dynamic_cast<SAFplus::MgtModule*> (moduleCfg);
+        logDebug("MGT", "TEST", "Loading yang module [%s] done!!!", unitTestCfg->tag.c_str());
+      }
+    else
+      {
+        logDebug("MGT", "TEST", "Loading yang module failure!!!");
+      }
+  }
+
 ClBoolT gIsNodeRepresentative = CL_TRUE;
 int main(int argc, char* argv[])
 {
@@ -687,8 +706,8 @@ int main(int argc, char* argv[])
 
     testDatabase();
 
-    safplusMsgServer.Stop();
-
+    // Plugin
+    testPluginLoad();
 
     return 0;
 }

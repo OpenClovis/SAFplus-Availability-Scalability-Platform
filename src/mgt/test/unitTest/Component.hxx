@@ -7,14 +7,15 @@
 #pragma once
 #ifndef COMPONENT_HXX_
 #define COMPONENT_HXX_
-#include "unitTestCommon.hxx"
 
-#include <string>
-#include "clTransaction.hxx"
-#include "clMgtProv.hxx"
-#include <vector>
 #include "MgtFactory.hxx"
+#include "unitTestCommon.hxx"
 #include "clMgtContainer.hxx"
+#include "clTransaction.hxx"
+#include <string>
+#include "clMgtProv.hxx"
+#include <cstdint>
+#include <vector>
 
 namespace unitTest
   {
@@ -26,13 +27,13 @@ namespace unitTest
 
     public:
         SAFplus::MgtProv<std::string> name;
-        SAFplus::MgtProv<unsigned int> id;
-        SAFplus::MgtProv<long int> data;
-        SAFplus::MgtProv<unsigned int> key;
+        SAFplus::MgtProv<::uint32_t> id;
+        SAFplus::MgtProv<::int64_t> data;
+        SAFplus::MgtProv<::uint32_t> key;
 
     public:
         Component();
-        Component(std::string nameValue, unsigned int idValue, unsigned int keyValue);
+        Component(std::string nameValue);
         std::vector<std::string> getKeys();
         std::vector<std::string>* getChildNames();
 
@@ -49,35 +50,35 @@ namespace unitTest
         /*
          * XPATH: /unitTest/Component/id
          */
-        unsigned int getId();
+        ::uint32_t getId();
 
         /*
          * XPATH: /unitTest/Component/id
          */
-        void setId(unsigned int idValue, SAFplus::Transaction &t=SAFplus::NO_TXN);
+        void setId(::uint32_t idValue, SAFplus::Transaction &t=SAFplus::NO_TXN);
 
         /*
          * XPATH: /unitTest/Component/data
          */
-        long int getData();
+        ::int64_t getData();
 
         /*
          * XPATH: /unitTest/Component/data
          */
-        void setData(long int dataValue, SAFplus::Transaction &t=SAFplus::NO_TXN);
+        void setData(::int64_t dataValue, SAFplus::Transaction &t=SAFplus::NO_TXN);
 
         /*
          * XPATH: /unitTest/Component/key
          */
-        unsigned int getKey();
+        ::uint32_t getKey();
 
         /*
          * XPATH: /unitTest/Component/key
          */
-        void setKey(unsigned int keyValue, SAFplus::Transaction &t=SAFplus::NO_TXN);
+        void setKey(::uint32_t keyValue, SAFplus::Transaction &t=SAFplus::NO_TXN);
         ~Component();
 
     };
 }
-/* namespace unitTest */
+/* namespace ::unitTest */
 #endif /* COMPONENT_HXX_ */

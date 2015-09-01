@@ -22,7 +22,6 @@
 
 #include <map>
 #include <string>
-#include <clMgtMsg.hxx>
 #include <clMgtObject.hxx>
 #include <clMgtContainer.hxx>
 #include <clCommon.hxx>

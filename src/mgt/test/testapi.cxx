@@ -15,8 +15,6 @@
 #include <clMgtDatabase.hxx>
 #include <clMsgPortsAndTypes.hxx>
 #include <clGroupIpi.hxx>
-#include "unitTest/Ut.hxx"
-
 #include <clMgtApi.hxx>
 
 using namespace SAFplus;

@@ -21,7 +21,6 @@
 
 #include <clSafplusMsgServer.hxx>
 #include <clMsgPortsAndTypes.hxx>
-#include "clMgtMsg.hxx"
 #include "clMgtRoot.hxx"
 #include "MgtMsg.pb.hxx"
 
