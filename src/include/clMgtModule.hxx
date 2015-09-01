@@ -34,7 +34,6 @@
 #include <map>
 #include <string>
 #include <clCommon.hxx>
-#include <clPluginApi.hxx>
 #include "clMgtObject.hxx"
 #include "clMgtNotify.hxx"
 #include "clMgtContainer.hxx"
@@ -45,7 +44,7 @@ namespace SAFplus
   /**
    * MgtModule class provides APIs to manage a MGT modules
    */
-  class MgtModule:public MgtContainer, public ClPlugin
+  class MgtModule:public MgtContainer
   {
   private:
     /*
