@@ -35,6 +35,7 @@
 #include <boost/circular_buffer.hpp>
 #include <clMgtContainer.hxx>
 #include <clMgtStat.hxx>
+#include <clThreadApi.hxx>
 #include <clCommon.hxx>
 
 
@@ -60,13 +61,14 @@ namespace SAFplus
   {
   public:
     boost::circular_buffer<T> value;
+    SAFplus::Mutex lock;
     MgtCircularBuffer():MgtObject(""),value(SAFplusI::MgtHistoryArrayLen)
     {}
 
-    void push_back(const T& item) { value.push_back(item); }
-    void push_front(const T& item) { value.push_front(item); }
-    void pop_front() { value.pop_front(); }
-    void pop_back() { value.pop_back(); }   
+    void push_back(const T& item) { SAFplus::ScopedLock<> l(lock); value.push_back(item); }
+    void push_front(const T& item) { SAFplus::ScopedLock<> l(lock); value.push_front(item); }
+    void pop_front() { SAFplus::ScopedLock<> l(lock); value.pop_front(); }
+    void pop_back() { SAFplus::ScopedLock<> l(lock); value.pop_back(); }   
     
 
     void initialize(const char* name)
@@ -79,6 +81,7 @@ namespace SAFplus
 
     virtual void toString(std::stringstream& xmlString, int depth=SAFplusI::MgtToStringRecursionDepth,SerializationOptions opts=SerializeNoOptions)
     {
+      SAFplus::ScopedLock<> l(lock);
       xmlString << "<" << tag;
       if (opts & MgtObject::SerializeNameAttribute)
         xmlString << " name=" << "\"" << getFullXpath(false) << "\"";

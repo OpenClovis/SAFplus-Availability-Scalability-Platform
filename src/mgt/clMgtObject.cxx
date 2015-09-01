@@ -286,10 +286,11 @@ namespace SAFplus
             xpath.append(parentXpath);
           }
       }
-    if (!this->tag.empty())  // Empty tags (like the module) are invisible, not generating //
-      {               
-      xpath.append("/").append(this->tag);
-      }
+    if (parent != nullptr) // The module is the top of the object hierarchy but it is not part of the xpath 
+      if (!this->tag.empty())  // Empty tags (like the module) are invisible, not generating //
+        {               
+        xpath.append("/").append(this->tag);
+        }
     return xpath;
   }
 

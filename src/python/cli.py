@@ -1,7 +1,9 @@
+#!/usr/bin/python
 import sys, os, os.path, time
 
 try:
   import localaccess as access
+  print "using local access"
 except ImportError, e:
   import netconfaccess as access
 
@@ -37,21 +39,28 @@ def commonSuffix(stringList):
 # Handlers take XML ElementTree objects and turn them into displayable objects
 
 
-def epochTimeHandler(elem, resolver):
+def epochTimeHandler(elem, resolver,context):
   """Convert an xml leaf containing seconds since the epoch into a user readable date panel"""
   seconds = int(elem.text)
   s = time.strftime('%Y-%b-%d %H:%M:%S', time.localtime(seconds))
   w = xmlterm.FancyText(resolver.parentWin, ("  "*resolver.depth) + formatTag(elem.tag) + ": " +  s)
   resolver.add(w)  
 
-def epochMsTimeHandler(elem, resolver):
+def epochMsTimeHandler(elem, resolver,context):
   """Convert an xml leaf containing milli-seconds since the epoch into a user readable date panel"""
-  mseconds = int(elem.text)
-  s = time.strftime('%Y-%b-%d %H:%M:%S', time.localtime(mseconds/1000))
+  try:
+    mseconds = int(elem.text)
+    s = time.strftime('%Y-%b-%d %H:%M:%S', time.localtime(mseconds/1000))
+  except TypeError:
+    if elem.text is None: s = 'unspecified'
+    else:  # garbage in the field
+      assert(0)  
+      s = "!error bad numeric field: ", str(elem.text)
+
   w = xmlterm.FancyText(resolver.parentWin, ("  "*resolver.depth) + formatTag(elem.tag) + ": " +  s)
   resolver.add(w)  
   
-def elapsedSecondsHandler(elem, resolver):
+def elapsedSecondsHandler(elem, resolver,context):
   """Convert an xml leaf containing seconds to a user readable version of elapsed time"""
   seconds = int(elem.text)
   days, rest = divmod(seconds,60*60*24)
@@ -61,9 +70,31 @@ def elapsedSecondsHandler(elem, resolver):
   resolver.add(w)  
   
 
-def defaultHandler(elem,resolver):
+def childReorg(elem,path):
+  """Reorganize children of this element into the manner preferred by display.  This includes:
+     1. Grouping all elements of a list into a common child node
+  """
+  lists = {}
+  #pdb.set_trace()
+  if elem.attrib.get("type",None) != "list":  # If I'm already a list, no list item isolation needed
+   for child in elem:  # go thru all the children
+    lstName = access.isListElem(child,path)  # Ask the access layer if this is a list element
+    if lstName:  # if so, add this element to our temporary dictionary and remove it from elem
+      if not lists.has_key(lstName):
+        lists[lstName] = []
+      lists[lstName].append(child)
+
+   for (lstName,children) in lists.items():  # go through the temp dict creating list elements and adding items
+    e = ET.SubElement(elem,lstName)
+    e.attrib["type"] = "list"  # Mark this new element as a list so no infinite recursion
+    for c in children:
+      elem.remove(c)
+      e.append(c)
+
+def defaultHandler(elem,resolver,context):
   """Handle normal text and any XML that does not have a specific handler"""
   # Name preference order is: "key" attribute of tag (for lists) > "name" attribute of tag > "name" child of tag > tag 
+  childReorg(elem,context.path)
   nameChild = elem.find("name")
   if nameChild is not None: name=nameChild.text
   else: name=elem.tag
@@ -76,27 +107,30 @@ def defaultHandler(elem,resolver):
   else:
     top = name
 
-  w = xmlterm.FancyText(resolver.parentWin, ("  "*resolver.depth) + top)
+  w = xmlterm.FancyTextChunked(resolver.parentWin, ("  "*resolver.depth) + top,chunkSize=2048)
   resolver.add(w)  
 
   resolver.depth += 1
+  context.path.append(elem.tag)
   for child in elem:
-    resolver.resolve(child)
+    resolver.resolve(child,context)
     if child.tail and child.tail.strip():
-      w = xmlterm.FancyText(resolver.parentWin,("  "*resolver.depth) + child.tail)
+      w = xmlterm.FancyTextChunked(resolver.parentWin,("  "*resolver.depth) + child.tail,chunkSize=2048)
       resolver.add(w)
+  del context.path[-1]   
   resolver.depth -= 1
 
 
-def childrenOnlyHandler(elem,resolver):
+def childrenOnlyHandler(elem,resolver,context):
   """Make this XML node invisible -- skip down to the children"""
+  childReorg(elem,context.path)
   for child in elem:
-    resolver.resolve(child)
+    resolver.resolve(child,context)
     if child.tail and child.tail.strip():
-      w = xmlterm.FancyText(resolver.parentWin,("  "*resolver.depth) + child.tail)
+      w = xmlterm.FancyTextChunked(resolver.parentWin,("  "*resolver.depth) + child.tail,chunkSize=2048)
       resolver.add(w)
 
-def historyHandler(elem,resolver):
+def historyHandler(elem,resolver,context):
   """Create a plot for the historical statistics XML nodes"""
   if elem.text:
     data = [float(x) for x in elem.text.split(",")]
@@ -115,10 +149,10 @@ def historyHandler(elem,resolver):
     w = xmlterm.PlotPanel(resolver.parentWin,plot)
     resolver.add(w)
   else:
-    resolver.defaultHandler(elem,resolver)
+    resolver.defaultHandler(elem,resolver,context)
 
 
-def serviceUnitHandler(elem,resolver):
+def serviceUnitHandler(elem,resolver,context):
   """Custom representation of a service unit"""
   name = elem.attrib.get("listkey",formatTag(elem.tag))
   w = xmlterm.FancyText(resolver.parentWin,("  "*resolver.depth) + name,fore=SuNameColor,size=SuNameSize)
@@ -133,7 +167,7 @@ def serviceUnitHandler(elem,resolver):
   except AttributeError, e: # object could have no children because recursion depth exceeded
     pass 
 
-def serviceUnitListHandler(elem,resolver):
+def serviceUnitListHandler(elem,resolver,context):
   """Create a graphical representation of the XML 'text' tag"""
   if elem.attrib.has_key("listkey"): # Its an instance of the list
     serviceUnitHandler(elem,resolver)
@@ -143,7 +177,7 @@ def serviceUnitListHandler(elem,resolver):
     resolver.add(xmlterm.FancyText(resolver.parentWin,("  "*resolver.depth) + "ServiceUnit",fore=SuListColor,size=SuListSize))
     resolver.depth += 1
     for su in elem:
-      serviceUnitHandler(su,resolver)
+      serviceUnitHandler(su,resolver,context)
     resolver.depth -= 1
   else:  # Could be ServiceUnit has no children because recursion depth exceeded
     w = xmlterm.FancyText(resolver.parentWin,("  "*resolver.depth) + formatTag(elem.tag))  # so normal display
@@ -218,6 +252,10 @@ class TermController(xmlterm.XmlResolver):
     xmlterm.XmlResolver.__init__(self)
     self.tags.update(xmlterm.GetDefaultResolverMapping())
     self.curdir = "/"
+
+  def newContext(self):
+    path = self.curdir.split("/")
+    return xmlterm.ParsingContext(path)
 
   def start(self,xt):
     """Called when the XML terminal is just getting started"""
@@ -307,8 +345,9 @@ class TermController(xmlterm.XmlResolver):
             else:             
               rest = sp[1]
           t = os.path.normpath(os.path.join(self.curdir,rest))
-          print "getting ", t
-          xml = access.mgtGet("{d=%s}%s" % (depth,str(t)))
+          gs = "{d=%s}%s" % (depth,str(t))
+          print "getting ", gs
+          xml = access.mgtGet(gs)
           print xml
           xt.doc.append("<top>" + xml + "</top>")  # I have to wrap in an xml tag in case I get 2 top levels from mgtGet
         elif sp[0]=="plot":
@@ -346,28 +385,28 @@ class TermController(xmlterm.XmlResolver):
         elif sp[0]=='pwd':
           xt.doc.append(self.curdir)
         elif sp[0]=='raw':
-          prefix = "{%s}"
+          prefix = "{d=%s}"
           rest = ""
-          if len(sp)>1:  
-            if sp[1][0] == "-":  # Its a flag
-              if sp[1][1] == 'b':
-                prefix = "{b,%s}"
-              elif sp[1][1] == 'p':
-                prefix = "{p,%s}"
+          flags = sp[1:]
+          for flag in flags:  
+            if flag[0] == "-":  # Its a flag
+              if flag[1] == 'b':
+                prefix = "{b,d=%s}"
+              elif flag[1] == 'p':
+                prefix = "{p,d=%s}"
               else:
                 try:  
-                  depth = int(sp[1][1:])  # depth modifier flag
+                  depth = int(flag[1:])  # depth modifier flag
                 except ValueError, e:
-                  xt.doc.append("bad flag: " + sp[1])
+                  xt.doc.append("bad flag: " + flag)
                   pass
-              if len(sp)>2:
-                rest = sp[2]
             else:             
-              rest = sp[1]
+              rest = flag
           t = os.path.normpath(os.path.join(self.curdir,rest))
           print (prefix % depth) + str(t)
           xml = access.mgtGet((prefix % depth) + str(t))
-          xt.doc.append("<text>" + xmlterm.escape(xmlterm.indent("<top>" + xml + "</top>")) + "</text>")  # I have to wrap in an xml tag in case I get 2 top levels from mgtGet
+          txt = "<text>" + xmlterm.escape(xmlterm.indent("<top>" + xml + "</top>")) + "</text>"
+          xt.doc.append(txt)  # I have to wrap in an xml tag in case I get 2 top levels from mgtGet
 
         elif sp[0]=="!time": # Show the time (for fun)
           xt.doc.append("<time/>")
@@ -384,8 +423,12 @@ class TermController(xmlterm.XmlResolver):
           xt.frame.SetTitle(sp[1])
         elif sp[0] == 'alias' or sp[0] == '!alias':  # Make one command become another
           xt.aliases[sp[1]] = " ".join(sp[2:])
+        elif sp[0] == '!exit' or sp[0] == 'exit':  # goodbye
+          self.parentWin.frame.Close()
         else:
-          xt.doc.append('<process exec="%s"/>' % " ".join(sp))  
+          # TODO look for registered RPC call
+          t = xmlterm.escape(" ".join(sp))
+          xt.doc.append('<process>%s</process>' % t)  
 
 
 

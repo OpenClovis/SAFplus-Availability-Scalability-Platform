@@ -289,11 +289,18 @@ struct CompStatsRefresh
                         }
                       if (hdl.getNode() == SAFplus::ASP_NODEADDR) // OK this component is local and on so gather stats on it.
                         {
-                          SAFplus::ProcStats ps(pid);
-                          comp->procStats.memUtilization.setValue(ps.virtualMemSize);
-                          comp->procStats.numThreads.setValue(ps.numThreads);
-                          comp->procStats.residentMem.setValue(ps.residentSetSize);
-                          comp->procStats.pageFaults.setValue(ps.numMajorFaults);
+                          try
+                            {
+                            SAFplus::ProcStats ps(pid);
+                            comp->procStats.memUtilization.setValue(ps.virtualMemSize);
+                            comp->procStats.numThreads.setValue(ps.numThreads);
+                            comp->procStats.residentMem.setValue(ps.residentSetSize);
+                            comp->procStats.pageFaults.setValue(ps.numMajorFaults);
+                            }
+                          catch(SAFplus::statAccessErrors &e)
+                            {
+                              // Should I write a zero to the stats or stop collecting?
+                            }
                         }
                     }
                   //printf("Component [%s] stats.\n",cname.c_str());
@@ -308,7 +315,7 @@ struct CompStatsRefresh
 
 bool activeAudit()  // Check to make sure DB and the system state are in sync.  Returns true if I need to rerun the AMF checking loop right away
   {
-    bool rerun=false;
+  bool rerun=false;
   logDebug("AUD","ACT","Active Audit");
   RedPolicyMap::iterator it;
 

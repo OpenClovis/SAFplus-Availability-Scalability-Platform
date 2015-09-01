@@ -896,7 +896,8 @@ namespace SAFplus
         MgtObject::SerializationOptions newopts = opts;
         if (opts & MgtObject::SerializeOnePath) newopts = (MgtObject::SerializationOptions) (newopts & ~MgtObject::SerializePathAttribute);
 
-        if (depth) for (iter = children.begin(); iter != children.end(); iter++)
+        // if (depth) Lists are "invisible" so depth is not reduced
+        for (iter = children.begin(); iter != children.end(); iter++)
         {
           std::string k = iter->first;
           MgtObject *entry = iter->second;
@@ -909,7 +910,7 @@ namespace SAFplus
               *     <interface>...</interface>
               */
             
-            entry->toString(xmlString,depth-1, newopts);
+            entry->toString(xmlString,depth, newopts); // Lists are "invisible" so depth is not reduced
           }
         }
 #if 0
@@ -1117,7 +1118,7 @@ namespace SAFplus
             std::string keyValue;
 
             db->getRecord(*it, keyValue);
-            //logInfo("MGT", "READ", "Read [%s] -> [%s]", it->c_str(),keyValue.c_str());
+            logInfo("MGT", "READ", "Read [%s] -> [%s]", it->c_str(),keyValue.c_str());
             std::size_t found = (*it).find_last_of("/@");
             // dataXPath= '/a/b[@key="1"]
             std::string dataXPath = (*it).substr(0, found - 1 );
@@ -1132,9 +1133,12 @@ namespace SAFplus
           }
 
         typename Map::iterator iter;
+        int count = 0;
         for(iter = children.begin(); iter != children.end(); iter++)
         {
+          count++;
           MgtObject *obj = iter->second;
+          logDebug("MGT", "READ", "read [%s]", obj->tag.c_str());
           rc = obj->read(db);
           if(CL_OK != rc)
             {
@@ -1142,6 +1146,8 @@ namespace SAFplus
               //logInfo("MGT", "READ", "Load of some elements of [%s] failed with error [0x%x]", obj->tag.c_str(), rc);
             }
         }
+        logDebug("MGT", "READ", "read [%d] items in [%s]", count, xpath.c_str());
+
         return rc;
       }
 

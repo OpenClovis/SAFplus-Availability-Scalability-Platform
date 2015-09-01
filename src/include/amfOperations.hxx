@@ -8,6 +8,7 @@ namespace SAFplusAmf
   class ServiceUnit;
   class ServiceGroup;
   class ServiceInstance;
+  class ComponentServiceInstance;
   }
 
 namespace SAFplus
