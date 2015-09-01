@@ -38,7 +38,6 @@
 #include "clMgtObject.hxx"
 #include <clSafplusMsgServer.hxx>
 #include <clMsgApi.hxx>
-#include <clMgtMsg.hxx>
 #include "clCommon.hxx"
 #include <clCkptApi.hxx> // to use checkpoint
 namespace Mgt

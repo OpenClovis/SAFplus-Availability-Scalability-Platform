@@ -37,7 +37,6 @@
 #include <map>
 
 #include "clTransaction.hxx"
-#include "clMgtMsg.hxx"
 #include "clMgtDatabase.hxx"
 
 #include <clCommon.hxx>

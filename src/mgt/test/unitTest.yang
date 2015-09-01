@@ -4,7 +4,7 @@ module unitTest
   prefix "ut";
   list Component
   {
-    key "name id key";
+    key "name";
 
     leaf name
     {

@@ -36,7 +36,6 @@
 
 #include "clLogApi.hxx"
 #include "clMgtObject.hxx"
-#include "clMgtMsg.hxx"
 #include "MgtFactory.hxx"
 #include <boost/algorithm/string.hpp>
 #include <boost/container/map.hpp>

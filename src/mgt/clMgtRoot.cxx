@@ -283,6 +283,7 @@ namespace SAFplus
   ClRcT MgtRoot::registerRpc(SAFplus::Handle handle,const std::string module,const std::string rpcName)
   {
     ClRcT rc = CL_OK;
+#if 0 //TODO: stored this handle into checkpoint
     Mgt::Msg::MsgBind bindData;
     MsgMgt mgtMsgReq;
     string strBind;
@@ -315,6 +316,7 @@ namespace SAFplus
       rc = ex.clError;
       logDebug("ROOT","RPC","Failed to send rpc registration");
     }
+#endif
     return rc;
   }
 
