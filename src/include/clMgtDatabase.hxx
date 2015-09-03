@@ -33,10 +33,11 @@
 
 #include <string>
 #include <vector>
+#include "MgtMsg.pb.hxx"
 
 extern "C"
 {
-//#include <clCommon.h>
+  //#include <clCommon.h>
 #include <clDbalApi.h>
 } /* end extern 'C' */
 
@@ -48,11 +49,11 @@ extern "C"
 #define MGT_DB_MAX_SIZE_RECORD 1024
 
 namespace SAFplus
-{
+  {
 
   class MgtDatabase
-  {
-  protected:
+    {
+    protected:
     MgtDatabase();
 
     static MgtDatabase *singletonInstance;
@@ -60,12 +61,22 @@ namespace SAFplus
     ClBoolT mInitialized;
     ClDBHandleT mDbDataHdl;
     std::vector<std::string> listKey;
-    std::vector<std::string> listXpath;
 
-  private:
-    void updateLists();
+    private:
+    /**
+     * \brief	Function to get all children of xpath
+     */
+    void getXpathList(const std::string &xpath, std::vector<std::string> &xpathList);
+    /**
+     * \brief	Function to check to insert valid key to it's parent
+     */
+    void insertToParentRecord(const std::string& key);
 
-  public:
+    ClRcT getRecordDbValue(const std::string &key, Mgt::Msg::MsgMgtDb &dbValue);
+    ClRcT setRecordByDbValue(const std::string &key, const Mgt::Msg::MsgMgtDb &dbValue);
+    ClRcT insertByDbValue(const std::string &key, const Mgt::Msg::MsgMgtDb &dbValue);
+
+    public:
     virtual ~MgtDatabase();
 
     /**
@@ -115,9 +126,8 @@ namespace SAFplus
      */
     std::vector<std::string> iterate(const std::string &xpath, bool keyOnly = false);
 
+    };
   };
-}
-;
 
 #endif /* CLMGTDATABASE_HXX_ */
 
