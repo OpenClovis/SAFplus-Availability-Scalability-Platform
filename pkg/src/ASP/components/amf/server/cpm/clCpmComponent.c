@@ -2509,6 +2509,7 @@ static ClRcT cpmNonProxiedNonPreinstantiableCompTerminate(ClCpmComponentT *comp,
                               cleanup ? "Cleanup" : "Terminate",
                               command);
                 }
+                comp->hbFailureDetected = CL_FALSE;
             }
             else
             {
@@ -2882,21 +2883,24 @@ static ClRcT compCleanupInvoke(ClCpmComponentT *comp)
                        cleanupCmdBuf, strerror(errno), comp->compConfig->compName);
             rc = CL_CPM_RC(CL_ERR_LIBRARY);
         }
-    }
-    /*
-     * Issue an unconditional sigkill incase cleanup didn't terminate 
-     * component.
-     */
-    if (comp->hbFailureDetected)
-    {
-        kill(comp->processId, SIGABRT);
         comp->hbFailureDetected = CL_FALSE;
     }
     else
     {
-        kill(comp->processId, SIGKILL);
+        /*
+         * Issue an unconditional sigkill incase cleanup didn't terminate
+         * component.
+         */
+        if (comp->hbFailureDetected)
+        {
+            kill(comp->processId, SIGABRT);
+            comp->hbFailureDetected = CL_FALSE;
+        }
+        else
+        {
+            kill(comp->processId, SIGKILL);
+        }
     }
-
     return rc;
 }
 
