@@ -70,7 +70,8 @@ namespace SAFplus
     /**
      * \brief	Function to check to insert valid key to it's parent
      */
-    void insertToParentRecord(const std::string& key);
+    void insertToParentRecord(const std::string& key, std::vector<Mgt::Msg::MsgMgtDb> &dbList);
+    void flushToDb(const std::vector<Mgt::Msg::MsgMgtDb> &dbList);
 
     ClRcT getRecordDbValue(const std::string &key, Mgt::Msg::MsgMgtDb &dbValue);
     ClRcT setRecordByDbValue(const std::string &key, const Mgt::Msg::MsgMgtDb &dbValue);

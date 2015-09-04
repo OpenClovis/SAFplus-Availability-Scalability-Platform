@@ -23,7 +23,7 @@
 #include "MgtMsg.pb.hxx"
 
 namespace SAFplus
-{
+  {
   static __inline__ ClUint32T getHashKeyFn(const ClCharT *keyStr)
   {
     ClUint32T cksum = SAFplus::computeCrc32((ClUint8T*) keyStr, (ClUint32T) strlen(keyStr));
@@ -195,14 +195,37 @@ namespace SAFplus
     return rc;
   }
 
-  void MgtDatabase::insertToParentRecord(const std::string &key)
+  void MgtDatabase::flushToDb (const std::vector<Mgt::Msg::MsgMgtDb> &dbList)
+  {
+    for (auto it = dbList.begin(); it != dbList.end(); ++it)
+      {
+        std::string xpath = (*it).xpath();
+        if (std::find(listKey.begin(), listKey.end(), xpath)!= listKey.end())
+          {
+            setRecordByDbValue(xpath, (*it));
+          }
+        else
+          {
+
+            ClRcT rc = insertByDbValue(xpath, (*it));
+            logInfo("MGT", "DBR", "Insert in to db : %s --->>> %d ", xpath.c_str(), (int)rc);
+            if (CL_OK == rc)
+              {
+                listKey.push_back(xpath);
+              }
+          }
+      }
+  }
+
+  void MgtDatabase::insertToParentRecord(const std::string &key, std::vector<Mgt::Msg::MsgMgtDb> &dbList)
   {
     ClRcT rc = CL_OK;
     std::string childName;
     std::string parentKey;
     std::size_t found = key.find_last_of("/");
-    if (found == std::string::npos || found == 0)
+    if (found == std::string::npos || key.length() <= 1)
       {
+        flushToDb(dbList);
         return;
       }
 
@@ -218,7 +241,7 @@ namespace SAFplus
     else
       {
         childName = key.substr(found + 1);
-        parentKey = key.substr(0, found);
+        parentKey = (found != 0) ? key.substr(0, found) : key.substr(0, found + 1);
       }
 
     if (std::find(listKey.begin(), listKey.end(), parentKey)!= listKey.end())
@@ -240,15 +263,15 @@ namespace SAFplus
             if(!found)
               {
                 dbValue.add_children(childName);
-                rc = setRecordByDbValue(parentKey, dbValue);
+                dbList.push_back(dbValue);
               }
           }
-        //					else
-        //						{
-        //							//remove the key from listKey
-        //							auto newEnd = std::remove(listKey.begin(), listKey.end(), parentKey);
-        //							listKey.erase(newEnd);
-        //						}
+        else
+          {
+            //remove the key from listKey
+            auto newEnd = std::remove(listKey.begin(), listKey.end(), parentKey);
+            listKey.erase(newEnd);
+          }
       }
     else
       {
@@ -257,14 +280,10 @@ namespace SAFplus
         dbValue.set_value("");
         dbValue.add_children(childName);
 
-        rc = insertByDbValue(parentKey, dbValue);
-        if (CL_OK == rc)
-          {
-            listKey.push_back(parentKey);
-          }
+        dbList.push_back(dbValue);
       }
 
-    insertToParentRecord(parentKey);
+    insertToParentRecord(parentKey, dbList);
   }
 
   ClRcT MgtDatabase::insertRecord(const std::string &key, const std::string &value)
@@ -276,16 +295,17 @@ namespace SAFplus
         return CL_ERR_NOT_INITIALIZED;
       }
 
-    //insert this key to parent
-    insertToParentRecord(key);
     Mgt::Msg::MsgMgtDb dbValue;
     dbValue.set_value(value);
     dbValue.set_xpath(key);
-
     /*
      * Insert into data table
      */
     rc = insertByDbValue(key, dbValue);
+
+    //insert this key to parent
+    std::vector<Mgt::Msg::MsgMgtDb> dbList;
+    insertToParentRecord(key, dbList);
     return rc;
   }
 
@@ -309,6 +329,7 @@ namespace SAFplus
   {
     ClRcT rc = CL_OK;
     Mgt::Msg::MsgMgtDb dbValue;
+
     rc = getRecordDbValue(xpath, dbValue);
     if (CL_OK != rc)
       {
@@ -329,7 +350,15 @@ namespace SAFplus
           }
         else
           {
-            childXpath.append(std::string("/").append(child));
+            //prevent there is a '//' string in the childXpath
+            if (childXpath[childXpath.length() - 1] == '/')
+              {
+                childXpath.append(child);
+              }
+            else
+              {
+                childXpath.append(std::string("/").append(child));
+              }
           }
         getXpathList(childXpath, xpathList);
       }
@@ -343,7 +372,7 @@ namespace SAFplus
     std::string path = xpath;
 
     //check to remove the last "/" character
-    if(path[path.length() - 1] == '/')
+    if(path.length() > 1 && path[path.length() - 1] == '/')
       {
         path.substr(0, path.length() - 2);
       }
