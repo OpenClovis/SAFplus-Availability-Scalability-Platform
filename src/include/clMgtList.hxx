@@ -1117,7 +1117,9 @@ namespace SAFplus
             std::string keyValue;
 
             db->getRecord(*it, keyValue);
+#ifdef MGTDBG
             logInfo("MGT", "READ", "Read [%s] -> [%s]", it->c_str(),keyValue.c_str());
+#endif
             std::size_t found = (*it).find_last_of("/@");
             // dataXPath= '/a/b[@key="1"]
             std::string dataXPath = (*it).substr(0, found - 1 );
@@ -1137,7 +1139,9 @@ namespace SAFplus
         {
           count++;
           MgtObject *obj = iter->second;
+#ifdef MGTDBG
           logDebug("MGT", "READ", "read [%s]", obj->tag.c_str());
+#endif
           rc = obj->read(db);
           if(CL_OK != rc)
             {
@@ -1145,8 +1149,9 @@ namespace SAFplus
               //logInfo("MGT", "READ", "Load of some elements of [%s] failed with error [0x%x]", obj->tag.c_str(), rc);
             }
         }
+#ifdef MGTDBG
         logDebug("MGT", "READ", "read [%d] items in [%s]", count, xpath.c_str());
-
+#endif
         return rc;
       }
 

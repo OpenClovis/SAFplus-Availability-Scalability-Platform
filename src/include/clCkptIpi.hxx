@@ -94,6 +94,14 @@ namespace SAFplusI
         boost::posix_time::ptime lastUsed; // the last time (in seconds) a checkpoint is used by a process
     };
 
+   enum CkptHeader{ structId, serverPid, generation, changeNum, hdl, replicaHandle, retentionDuration, lastUsed } ;
+   static const char * ckptHeaderStrings[] = {"structId", "serverPid", "generation", "changeNum", "handle", "replicaHandle", "retentionDuration", "lastUsed"};
+
+   inline const char* ckptHeader( int val )
+   {
+     return ckptHeaderStrings[val];
+   }
+
   class BufferPtr:public boost::interprocess::offset_ptr<SAFplus::Buffer>
   {
   public:

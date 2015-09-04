@@ -151,8 +151,15 @@ namespace SAFplusI
   /* ckpt default retention duration */
   enum 
   {
-    CkptUpdateDuration = 60, /* This is the configured duration in second for which the program update the checkpoint means to get changed checkpoint parameters such as last used time or there is any new checkpoint added */
+    CkptUpdateDuration = 60, /* This is the configured duration in second for which the program update the checkpoint, means to get changed checkpoint parameters such as last used time or there is any new checkpoint added */
     CkptRetentionDurationDefault = 28800, /* This is the default retention duration in second (8*60*60) for the retention timer to decide if a checkpoint data is deleted from memory */
+  };
+
+  /* ckpt peristent parameters */
+  enum 
+  {
+    CkptMaxKeySize = 1000, /* Maximum size of the key (in bytes) to be stored in the database. This parameter is ignored in case of Berkeley and GDBM databases */
+    CkptMaxRecordSize = 40000, /* Maximum size of the record (in bytes) to be stored in the database. This parameter is ignored in case of Berkeley and GDBM databases */
   };
 
   };
