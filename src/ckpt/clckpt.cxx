@@ -41,6 +41,8 @@ bool SAFplusI::BufferPtrContentsEqual::operator() (const BufferPtr& x, const Buf
 SAFplus::Checkpoint::~Checkpoint()
 {
   if (isSyncReplica) { if(sync) delete sync; }
+  clDbalClose(dbHandle);
+  clDbalLibFinalize();
 }
 
 /*
@@ -113,6 +115,8 @@ void SAFplus::Checkpoint::init(const Handle& hdl, uint_t _flags, uint64_t retent
 #endif
   //strcpy(tempStr,"test");  // DEBUGGING always uses one segment
 
+  bool isCkptExist = false;
+  
   if (flags & SHARED)
     {
 
@@ -154,6 +158,8 @@ void SAFplus::Checkpoint::init(const Handle& hdl, uint_t _flags, uint64_t retent
           hdr->structId   = SAFplusI::CL_CKPT_BUFFER_HEADER_STRUCT_ID_7; // Initialize this last.  It indicates that the header is properly initialized (and acts as a structure version number)          
           hdr->lastUsed = boost::posix_time::second_clock::universal_time();
           }
+        else
+          isCkptExist = true;
           
 	}
       else throw;
@@ -180,7 +186,7 @@ void SAFplus::Checkpoint::init(const Handle& hdl, uint_t _flags, uint64_t retent
     sync = NULL;
     }
 
-
+  initDB(tempStr, isCkptExist);
   //assert(sharedMemHandle);
   assert(hdr);
 }
@@ -546,3 +552,173 @@ bool SAFplus::Checkpoint::Iterator::operator !=(const SAFplus::Checkpoint::Itera
   if (iter != otherValue.iter) return true;
   return false;
 }
+
+void SAFplus::Checkpoint::initDB(char* ckptId, bool isCkptExist)
+{  
+  dbHandle = NULL;
+  char dbName[CL_MAX_NAME_LENGTH];
+  const char* path=ASP_RUNDIR;
+  if (!path || !strlen(ASP_RUNDIR))
+  {
+    path = ".";
+  }
+  snprintf (dbName, CL_MAX_NAME_LENGTH-1, "%s/%d%s.db", path, ASP_NODEADDR, ckptId);
+  ClRcT rc = clDbalLibInitialize();
+  if (rc != CL_OK)
+  {
+    logWarning("CKPT", "INITDB", "Dbal lib initialization failed, all database operations will be failed");
+    return;
+  }
+  rc = clDbalOpen(dbName, dbName, CL_DB_OPEN, CkptMaxKeySize, CkptMaxRecordSize, &dbHandle);
+  if (rc == CL_OK)
+  {
+    if (!isCkptExist)
+    {
+      syncFromDisk();
+    }
+  }
+  else if (flags&PERSISTENT)
+  {
+    rc = clDbalOpen(dbName, dbName, CL_DB_CREAT, CkptMaxKeySize, CkptMaxRecordSize, &dbHandle);
+    if (rc != CL_OK)
+    {
+      logWarning("CKPT", "INITDB", "Opening database failed, checkpoint data will not be stored on disk");
+    }
+  }  
+}
+
+void SAFplus::Checkpoint::writeCkptHdr(ClDBKeyHandleT key, ClUint32T keySize, ClDBRecordHandleT rec, ClUint32T recSize)
+{
+  if (!memcmp(key, ckptHeader(structId), keySize)) 
+    memcpy(&hdr->structId, rec, recSize);
+  else if (!memcmp(key, ckptHeader(serverPid), keySize))
+    memcpy(&hdr->serverPid, rec, recSize);
+  else if (!memcmp(key, ckptHeader(generation), keySize))
+    memcpy(&hdr->generation, rec, recSize);
+  else if (!memcmp(key, ckptHeader(changeNum), keySize)) 
+    memcpy(&hdr->changeNum, rec, recSize);
+  else if (!memcmp(key, ckptHeader(hdl), keySize)) 
+    memcpy(&hdr->handle, rec, recSize);
+  else if (!memcmp(key, ckptHeader(replicaHandle), keySize)) 
+    memcpy(&hdr->replicaHandle, rec, recSize);
+  else if (!memcmp(key, ckptHeader(retentionDuration), keySize)) 
+    memcpy(&hdr->retentionDuration, rec, recSize);
+  else if (!memcmp(key, ckptHeader(lastUsed), keySize)) 
+    memcpy(&hdr->lastUsed, rec, recSize);
+  else 
+    logWarning("CKPT", "WRTHDR", "Unknown key [%s] gotten from database", key);  
+  //SAFplusHeapFree(rec);
+  clDbalRecordFree(dbHandle, rec);
+}
+
+void SAFplus::Checkpoint::writeCkptData(ClDBKeyHandleT key, ClUint32T keySize, ClDBRecordHandleT rec, ClUint32T recSize)
+{
+  char kmem[sizeof(Buffer)-1+keySize];
+  Buffer* kb = new(kmem) Buffer(keySize);
+  memcpy(kb->data,key,keySize);
+  char vdata[sizeof(Buffer)-1+recSize];
+  Buffer* val = new(vdata) Buffer(recSize);
+  memcpy(val->data, rec, recSize);
+  write(*kb,*val);
+  //SAFplusHeapFree(rec);
+  clDbalRecordFree(dbHandle, rec);
+}
+
+void SAFplus::Checkpoint::syncFromDisk()
+{
+  if (!dbHandle)
+  {
+    logWarning("CKPT", "DSKSYN", "Database handle is NULL, cancel the operation");
+    return;
+  }
+  ClDBKeyHandleT key;
+  ClUint32T keySize;
+  ClDBRecordHandleT rec;
+  ClUint32T recSize;
+  size_t hdrSize = sizeof(ckptHeaderStrings)/sizeof(ckptHeaderStrings[0]);
+  ClRcT rc = clDbalFirstRecordGet(dbHandle, &key, &keySize, &rec, &recSize);  
+  --hdrSize;
+  while (rc == CL_OK)
+  {    
+    if (hdrSize>0)
+    {
+      // write header
+      writeCkptHdr(key, keySize, rec, recSize);
+      --hdrSize;
+    }
+    else
+    {
+      // write data
+      writeCkptData(key, keySize, rec, recSize);
+    }
+    ClDBKeyHandleT curKey = key;
+    ClUint32T curKeySize = keySize;    
+    rc = clDbalNextRecordGet(dbHandle, curKey, curKeySize, &key, &keySize, &rec, &recSize);     
+    //SAFplusHeapFree(curKey);    
+    clDbalKeyFree(dbHandle, curKey);
+  }
+  /*if (rc != CL_OK)
+  {
+    logWarning("CKPT", "DSKSYN", "Record gotten failed rc = [0x%x]", rc);
+    return;
+  }*/
+}
+
+void SAFplus::Checkpoint::writeHdrDB(int hdrKey, ClDBRecordT rec, ClUint32T recSize)
+{  
+  const char* key = ckptHeader(hdrKey);
+  ClRcT rc = clDbalRecordReplace(dbHandle, (ClDBKeyT) key, strlen(key), rec, recSize);
+  if (rc != CL_OK)
+  {
+    logWarning("CPKT", "WRTHDR", "add/update key [%s] to database fail", key);
+  }
+}
+
+void SAFplus::Checkpoint::writeDataDB(Buffer* key, Buffer* val)
+{   
+  ClRcT rc = clDbalRecordReplace(dbHandle, (ClDBKeyT) key->get(), key->len(), (ClDBRecordT) val->get(), val->len());
+  if (rc != CL_OK)
+  {
+    logWarning("CPKT", "WRTDATA", "add/update key [%s] to database fail", key->get());
+  }
+}
+
+void SAFplus::Checkpoint::flush()
+{  
+  if (flags&PERSISTENT)
+  {
+    if (!dbHandle)
+    {
+      logWarning("CKPT", "FLUSH", "Database handle is NULL, cancel the operation");
+      return;
+    }
+    // write code that reads data from shared memory, then synchronizes those with data from database
+    /* writting ckpt header. Note that writting header in order so that reading in that order */
+    logTrace("CKPT", "FLUSH", "Writting header DB");
+    writeHdrDB(structId, (ClDBRecordT) &hdr->structId, sizeof(hdr->structId));
+    writeHdrDB(serverPid, (ClDBRecordT) &hdr->serverPid, sizeof(hdr->serverPid));
+    writeHdrDB(generation, (ClDBRecordT) &hdr->generation, sizeof(hdr->generation));    
+    writeHdrDB(changeNum, (ClDBRecordT) &hdr->changeNum, sizeof(hdr->changeNum));
+    writeHdrDB(hdl, (ClDBRecordT) &hdr->handle, sizeof(hdr->handle));
+    writeHdrDB(replicaHandle, (ClDBRecordT) &hdr->replicaHandle, sizeof(hdr->replicaHandle));
+    writeHdrDB(retentionDuration, (ClDBRecordT) &hdr->retentionDuration, sizeof(hdr->retentionDuration));  
+    writeHdrDB(lastUsed, (ClDBRecordT) &hdr->lastUsed, sizeof(hdr->lastUsed));
+    /* writing ckpt data */
+    logTrace("CKPT", "FLUSH", "Writting data DB");
+    for(CkptHashMap::const_iterator iter = map->cbegin(); iter != map->cend(); iter++)
+    {       
+      writeDataDB(iter->first.get(), iter->second.get());
+    }
+  }
+  else
+  {
+    clDbgNotImplemented("%s is not supported with this checkpoint type", __FUNCTION__);
+  }
+}
+#if 0
+void SAFplus::Checkpoint::dumpHeader()
+{
+  char tempStr[81];
+  printf("Handle: %s serverPid: %lu, retention: %lu, generation: %d, change: %d, lastUsed: %s, structId: 0x%lx\n",hdr->handle.toStr(tempStr), (long unsigned int) hdr->serverPid,(long unsigned int) hdr->retentionDuration,hdr->generation, hdr->changeNum, to_simple_string(hdr->lastUsed).c_str(), hdr->structId);  
+}
+#endif

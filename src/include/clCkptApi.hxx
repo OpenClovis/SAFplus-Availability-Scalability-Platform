@@ -19,6 +19,7 @@
 
 #include <clCkptIpi.hxx>
 #include <clCustomization.hxx>
+#include <clDbalApi.h>
 
 
 #define	NullTMask 0x800000UL
@@ -274,6 +275,8 @@ namespace SAFplus
     void syncLock() { gate.lock(); }
     void syncUnlock() { gate.unlock(); }
 
+    //? Reflects all changes from checkpoint data to disk (database)
+    void flush();
 
     typedef SAFplusI::CkptMapPair KeyValuePair;
 
@@ -339,6 +342,20 @@ namespace SAFplus
     SAFplus::ProcGate              gate;
     bool isSyncReplica;
     SAFplusI::CkptSynchronization* sync;  // This is a separate object (and pointer) to break the synchronization requirements (messaging and groups) from the core checkpoint
+    
+    ClDBHandleT dbHandle; //Handle to manipulate with database. Basically, each persistent checkpoint data needs to be stored as a table on disk, so, if a persistent checkpoint is opened, dbHandle will be initialized. If it's not a persistent one, dbHandle is NULL (not used)
+
+  protected:    
+    void syncFromDisk(); // In the case that user opens a non-existing checkpoint but its data is available on disk, so this function copies data from database to checkpoint data to ensure data between them to be synchronized
+    void initDB(char* ckptId, bool isCkptExist); // Initialize dbal and synchronize data from disk with checkpoint if any
+    void writeCkptHdr(ClDBKeyHandleT key, ClUint32T keySize, ClDBRecordHandleT rec, ClUint32T recSize);
+    void writeCkptData(ClDBKeyHandleT key, ClUint32T keySize, ClDBRecordHandleT rec, ClUint32T recSize);
+    void writeHdrDB(int hdrKey, ClDBRecordT rec, ClUint32T recSize);
+    void writeDataDB(Buffer* key, Buffer* val);
+   #if 0
+   public:
+    void dumpHeader();
+   #endif
   }; //? </class>
 }
 
