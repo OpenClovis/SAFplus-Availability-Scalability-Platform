@@ -24,6 +24,7 @@ namespace SAFplusI
         CL_LOG_MAX_MSG_LEN7 = 1024,
         CL_LOG_BUFFER_HEADER_STRUCT_ID_7 = 0x59492348,
         CL_LOG_BUFFER_DEFAULT_LENGTH = 1024,
+        LOG_DEFAULT_SYS_SERVICE_ID = 0,
     };
     
 
@@ -80,31 +81,31 @@ namespace SAFplusI
  the inclusion of the this file means that this is a OpenClovis component.
  */
 #undef logEmergency    
-#define logEmergency(area, context, ...) clLog(CL_LOG_SEV_EMERGENCY, area, context, __VA_ARGS__)
+#define logEmergency(area, context, ...) clLog(SAFplus::LOG_SEV_EMERGENCY, area, context, __VA_ARGS__)
 
 #undef logAlert
-#define logAlert(area, context, ...) clLog(CL_LOG_SEV_ALERT, area, context, __VA_ARGS__)
+#define logAlert(area, context, ...) clLog(SAFplus::LOG_SEV_ALERT, area, context, __VA_ARGS__)
 
 #undef logCritical
-#define logCritical(area, context, ...) clLog(CL_LOG_SEV_CRITICAL, area, context, __VA_ARGS__)
+#define logCritical(area, context, ...) clLog(SAFplus::LOG_SEV_CRITICAL, area, context, __VA_ARGS__)
 
 #undef logError
-#define logError(area, context, ...) clLog(CL_LOG_SEV_ERROR, area, context, __VA_ARGS__)
+#define logError(area, context, ...) clLog(SAFplus::LOG_SEV_ERROR, area, context, __VA_ARGS__)
         
 #undef logWarning
-#define logWarning(area, context, ...) clLog(CL_LOG_SEV_WARNING, area, context, __VA_ARGS__)
+#define logWarning(area, context, ...) clLog(SAFplus::LOG_SEV_WARNING, area, context, __VA_ARGS__)
 
 #undef logNotice
-#define logNotice(area, context, ...) clLog(CL_LOG_SEV_NOTICE, area, context, __VA_ARGS__)
+#define logNotice(area, context, ...) clLog(SAFplus::LOG_SEV_NOTICE, area, context, __VA_ARGS__)
 
 #undef logInfo
-#define logInfo(area, context, ...) clLog(CL_LOG_SEV_INFO, area, context, __VA_ARGS__)
+#define logInfo(area, context, ...) clLog(SAFplus::LOG_SEV_INFO, area, context, __VA_ARGS__)
 
 #undef logDebug
-#define logDebug(area, context, ...) clLog(CL_LOG_SEV_DEBUG, area, context, __VA_ARGS__)
+#define logDebug(area, context, ...) clLog(SAFplus::LOG_SEV_DEBUG, area, context, __VA_ARGS__)
 
 #undef logTrace
-#define logTrace(area, context, ...) clLog(CL_LOG_SEV_TRACE, area, context, __VA_ARGS__)
+#define logTrace(area, context, ...) clLog(SAFplus::LOG_SEV_TRACE, area, context, __VA_ARGS__)
 
 /**
  * This macro provides the support to log messages by specifying
@@ -122,7 +123,7 @@ namespace SAFplusI
 #define clLog(severity, area, context, ...)                     \
 do                                                              \
 { \
-  SAFplus::logMsgWrite(CL_LOG_HANDLE_SYS, (ClLogSeverityT)severity, CL_LOG_DEFAULT_SYS_SERVICE_ID, area, context, __FILE__, __LINE__,  __VA_ARGS__); \
+  SAFplus::logMsgWrite(SAFplus::SYS_LOG, (SAFplus::LogSeverity)severity, SAFplusI::LOG_DEFAULT_SYS_SERVICE_ID, area, context, __FILE__, __LINE__,  __VA_ARGS__); \
 } while(0)
 
 

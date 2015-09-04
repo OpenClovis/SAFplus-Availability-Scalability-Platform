@@ -7,6 +7,7 @@ def Initialize():
   sic = safplus.SafplusInitializationConfiguration()
   sic.port = 51
   safplus.Initialize(svcs, sic)
+  return None
 
 def isListElem(elem,path):
   """Return the name of the list if this is an item in a list"""

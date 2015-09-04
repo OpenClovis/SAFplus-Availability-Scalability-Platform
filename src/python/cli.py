@@ -7,15 +7,21 @@ try:
 except ImportError, e:
   import netconfaccess as access
 
-
-import pdb
-import xml.etree.ElementTree as ET
-
 SuNameColor = (50,160,80)
 SuNameSize = 32
 
 SuListColor = (20,100,60)
 SuListSize = 40
+
+NodeColor = (30,30,0xc0)
+LeafColor = (0x30,0,0x30)
+
+FullPathColor = (0xa0,0x70,0)
+
+SAFplusNamespace = "http://www.openclovis.org/ns/amf"
+
+import pdb
+import xml.etree.ElementTree as ET
 
 try:
   import xmlterm
@@ -62,11 +68,15 @@ def epochMsTimeHandler(elem, resolver,context):
   
 def elapsedSecondsHandler(elem, resolver,context):
   """Convert an xml leaf containing seconds to a user readable version of elapsed time"""
-  seconds = int(elem.text)
-  days, rest = divmod(seconds,60*60*24)
-  hours, rest = divmod(rest,60*60)
-  minutes, seconds = divmod(rest,60)
-  w = xmlterm.FancyText(resolver.parentWin, ("  "*resolver.depth) + formatTag(elem.tag) + ": %d days %d hours %d minutes and %d seconds" % (days,hours,minutes,seconds))
+  if elem.text is None:
+    s = ": unspecified"
+  else:
+    seconds = int(elem.text)
+    days, rest = divmod(seconds,60*60*24)
+    hours, rest = divmod(rest,60*60)
+    minutes, seconds = divmod(rest,60)
+    s = ": %d days %d hours %d minutes and %d seconds" % (days,hours,minutes,seconds)
+  w = xmlterm.FancyText(resolver.parentWin, ("  "*resolver.depth) + formatTag(elem.tag) + s)
   resolver.add(w)  
   
 
@@ -101,13 +111,25 @@ def defaultHandler(elem,resolver,context):
   name = elem.attrib.get("name",elem.tag) 
   name = elem.attrib.get("listkey", name)
   name = formatTag(name) # Get rid of the namespace indicator b/c that's ugly
+  # ns = 
+
+  fore = None
+  #more = elem.find("more")
+  #if more is None:
+  #  more = elem.find("{%s}more" % SAFplusNamespace)
+  #if more is not None:
+
+  if elem._children:  # it will either have child nodes or a "more" child node if it has children
+    fore = NodeColor
+  else:
+    fore = LeafColor
 
   if elem.text:
     top = name + ":" + elem.text
   else:
     top = name
 
-  w = xmlterm.FancyTextChunked(resolver.parentWin, ("  "*resolver.depth) + top,chunkSize=2048)
+  w = xmlterm.FancyTextChunked(resolver.parentWin, ("  "*resolver.depth) + top,chunkSize=2048,fore=fore)
   resolver.add(w)  
 
   resolver.depth += 1
@@ -120,6 +142,23 @@ def defaultHandler(elem,resolver,context):
   del context.path[-1]   
   resolver.depth -= 1
 
+
+def topHandler(elem,resolver,context):
+  """Make this XML node invisible -- skip down to the children"""
+  childReorg(elem,context.path)
+  for child in elem:
+    fullpath = child.attrib.get("path",None)
+    if fullpath: # print out the full path with a : if it is placed into the child's attribute list.  This only happens for top level nodes so the user can see where they were found
+      resolver.add(xmlterm.FancyText(resolver.parentWin,fullpath + ":",fore=FullPathColor))      
+      resolver.depth+=1
+    resolver.resolve(child,context)
+    if fullpath:
+      resolver.depth-=1
+
+    if child.tail and child.tail.strip():
+      w = xmlterm.FancyTextChunked(resolver.parentWin,("  "*resolver.depth) + child.tail,chunkSize=2048)
+      resolver.add(w)
+    
 
 def childrenOnlyHandler(elem,resolver,context):
   """Make this XML node invisible -- skip down to the children"""
@@ -170,7 +209,7 @@ def serviceUnitHandler(elem,resolver,context):
 def serviceUnitListHandler(elem,resolver,context):
   """Create a graphical representation of the XML 'text' tag"""
   if elem.attrib.has_key("listkey"): # Its an instance of the list
-    serviceUnitHandler(elem,resolver)
+    serviceUnitHandler(elem,resolver,context)
     return
   path = elem.attrib.get("path",None)
   if path == "/SAFplusAmf/ServiceUnit" or len(elem)>0:  # serviceunit tag can be a list, a list entry, or a su ref.  SU ref has no children
@@ -252,6 +291,8 @@ class TermController(xmlterm.XmlResolver):
     xmlterm.XmlResolver.__init__(self)
     self.tags.update(xmlterm.GetDefaultResolverMapping())
     self.curdir = "/"
+    self.cmds.append(self)  # I provide some default commands
+    self.xmlterm = None
 
   def newContext(self):
     path = self.curdir.split("/")
@@ -320,8 +361,140 @@ class TermController(xmlterm.XmlResolver):
     # print "".join(st)
     xt.doc.append("".join(st))  # I have to wrap in an xml tag in case I get 2 top levels from mgtGet
  
+  def do_help(self,*command):
+    """? display this help, or detailed help about a particular command"""
+    if command:
+      command = [" ".join(command)]
+    else:
+      command = None
+    return "<top>" + self.getHelp(command) + "</top>"
 
-  def execute(self,textLine,xt):
+  def do_ls(self,*sp):
+    """Displays the object tree at the current or specified location.
+Arguments: [-N] location
+By default the specified location and children are shown.  Use -N to specify how many children to show.  For example -2 will show this location, children and grandchildren.
+    """
+    depth=1
+    rest = ""
+    if len(sp):  
+      if sp[0][0] == "-":  # Its a flag
+        depth = int(sp[0][1:])  # depth modifier flag
+        if len(sp)>2:
+          rest = sp[1]
+      else:             
+        rest = sp[0]
+    t = os.path.normpath(os.path.join(self.curdir,rest))
+    gs = "{d=%s}%s" % (depth,str(t))
+    print "getting ", gs
+    xml = access.mgtGet(gs)
+    print xml
+    return "<top>" + xml + "</top>"  # I have to wrap in an xml tag in case I get 2 top levels from mgtGet
+
+  def do_cd(self,location):
+    """Change the current directory (object tree context)"""
+    self.curdir = os.path.normpath(os.path.join(self.curdir,location))
+    self.xmlterm.cmdLine.setPrompt()
+    return ""
+
+  def do_pwd(self,*sp):
+    """Print working directory - shows the current directory"""
+    return self.curdir
+
+  def do_raw(self,*sp):
+    """Equivalent to 'ls' but displays raw XML"""
+    depth=1
+    prefix = "{d=%s}"
+    rest = ""
+    flags = sp
+    for flag in flags:  
+      if flag[0] == "-":  # Its a flag
+        if flag[1] == 'b':
+          prefix = "{b,d=%s}"
+        elif flag[1] == 'p':
+          prefix = "{p,d=%s}"
+        else:
+          try:  
+            depth = int(flag[1:])  # depth modifier flag
+          except ValueError, e:
+            xt.doc.append("bad flag: " + flag)
+            pass
+      else:             
+        rest = flag
+    t = os.path.normpath(os.path.join(self.curdir,rest))
+    print (prefix % depth) + str(t)
+    xml = access.mgtGet((prefix % depth) + str(t))
+    txt = "<text>" + xmlterm.escape(xmlterm.indent("<top>" + xml + "</top>")) + "</text>"
+    return txt # I have to wrap in an xml tag in case I get 2 top levels from mgtGet
+
+  def do_time(self,*sp):
+    """Show the time"""
+    return "<time/>"
+
+  def do_echo(self,*sp):
+    """Print the args back at the user"""
+    return " ".join(sp[1:])
+
+  def do_title(self,title):
+    """Change this window's title"""
+    self.xmlterm.frame.SetTitle(title)
+    return ""
+
+  def do_alias(self,alias,*val):
+    """Make one command be replaced by another string"""
+    self.xmlterm.aliases[alias] = " ".join(val)
+    return ""
+
+  def do_exit(self):
+    """Exit this program"""
+    self.xmlterm.frame.Close()    
+
+  def do_plot(self,*sp):
+          """? Draw a line graph
+    Arguments: locations that contain plottable data (comma separated list of numbers)
+    Example:  Plot memory utilization on all components in 10 second and 1 minute time frames. 
+       cd /*/safplusAmf/Component/*/procStats/memUtilization
+       plot history10sec history1min         
+"""
+          depth=1
+          rest = ""
+          if len(sp):  
+            if sp[0][0] == "-":  # Its a flag
+              depth = int(sp[0][1:])  # depth modifier flag
+              if len(sp)>1:
+                rest = sp[1:]
+            else:             
+              rest = sp
+          xml = []
+          for arg in rest:
+            t = os.path.normpath(os.path.join(self.curdir,arg))
+            xml.append(access.mgtGet("{d=%s}%s" % (depth,str(t))))
+          self.plot(xml,self.xmlterm)
+          return ""
+
+  def do_bar(self,*sp):
+          """? Draw a bar graph.  A bar graph compares single values of multiple entities.  If locations do not resolve to single-number entities, the bar graph will not be shown.
+    Arguments: locations (must contain a number)
+    Example:  Compare number of threads in all components on all network elements
+       cd /*/safplusAmf/Component/*/procStats
+       bar numThreads/current
+          """
+          depth=1
+          rest = ""
+          if len(sp):  
+            if sp[0][0] == "-":  # Its a flag
+              depth = int(sp[0][1:])  # depth modifier flag
+              if len(sp)>1:
+                rest = sp[1:]
+            else:             
+              rest = sp
+          xml = []
+          for arg in rest:
+            t = os.path.normpath(os.path.join(self.curdir,arg))
+            xml.append(access.mgtGet("{d=%s}%s" % (depth,str(t))))
+          self.bar(xml,self.xmlterm)
+          return ""
+
+  def xxexecute(self,textLine,xt):
     """Execute the passed string"""
     cmdList = textLine.split(";")
     depth = 1
@@ -424,8 +597,9 @@ class TermController(xmlterm.XmlResolver):
         elif sp[0] == 'alias' or sp[0] == '!alias':  # Make one command become another
           xt.aliases[sp[1]] = " ".join(sp[2:])
         elif sp[0] == '!exit' or sp[0] == 'exit':  # goodbye
-          self.parentWin.frame.Close()
+          self.parentWin.GetParent().frame.Close()
         else:
+          pdb.set_trace()
           # TODO look for registered RPC call
           t = xmlterm.escape(" ".join(sp))
           xt.doc.append('<process>%s</process>' % t)  
@@ -433,13 +607,15 @@ class TermController(xmlterm.XmlResolver):
 
 
 def main(args):
-  access.Initialize()
+  cmds,handlers = access.Initialize()
 
   if windowed:
     os.environ["TERM"] = "XT1" # Set the term in the environment so child programs know xmlterm is running
     resolver = TermController()
+    resolver.addCmds(cmds)
     resolver.tags["ServiceUnit"] = serviceUnitListHandler
-    resolver.tags["top"] = childrenOnlyHandler
+    resolver.tags["top"] = topHandler
+    resolver.tags["more"] = childrenOnlyHandler  # don't show this indicator that the node has children
     resolver.tags["bootTime"] = epochTimeHandler
     resolver.tags["lastInstantiation"] = epochMsTimeHandler
     resolver.tags["upTime"] = elapsedSecondsHandler
@@ -452,11 +628,14 @@ def main(args):
     resolver.tags["history1day"] = historyHandler
     resolver.tags["history1week"] = historyHandler
     resolver.tags["history4weeks"] = historyHandler
+
+    resolver.tags.update(handlers)
+
     resolver.depth = 0
     resolver.defaultHandler = defaultHandler
     doc = []
-    app = xmlterm.App(lambda parent,doc=doc,termController=resolver: xmlterm.XmlTerm(parent,doc,termController=resolver),redirect=False)
-  app.MainLoop()
+    app = xmlterm.App(lambda parent,doc=doc,termController=resolver: xmlterm.XmlTerm(parent,doc,termController=resolver),redirect=False,size=(600,900))
+    app.MainLoop()
 
 if __name__ == '__main__':
     main(sys.argv)
