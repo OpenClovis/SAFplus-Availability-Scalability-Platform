@@ -55,6 +55,7 @@ ClGmsNodeT gmsGlobalInfo;
 ClBoolT    readyToServeGroups = CL_FALSE;
 ClHandleDatabaseHandleT contextHandleDatabase;
 ClBoolT gClTotemRunning = CL_FALSE;
+extern ClOsalMutexT gGmsLeaderVerifierTaskLock;
 
 static ClVersionT versions_supported[] = {
 	{ 'B', 0x01, 0x01 }
@@ -139,6 +140,14 @@ _clGmsServiceInitialize ( const int argc  , char* const argv[] )
     {
         clLog(EMER,GEN,NA,
                     "Unable to create mutex to protect name-id database");
+        exit(-1);
+    }
+
+    /* Initialize the dbMutex to check gGmsLeaderVerifierTask running */
+    rc = clOsalMutexInit(&gGmsLeaderVerifierTaskLock);
+    if (rc != CL_OK)
+    {
+        clLog(EMER,GEN,NA, "Unable to create mutex to check gGmsLeaderVerifierTask running");
         exit(-1);
     }
 

@@ -246,21 +246,35 @@ static void gmsNotificationCallback(ClIocNotificationIdT eventId, ClPtrT unused,
 
 /* Trigger re-elect if mis-leader */
 ClOsalTaskIdT gGmsLeaderVerifierTask;
+
+ClOsalMutexT gGmsLeaderVerifierTaskLock;
+ClBoolT isGmsLeaderVerifierTaskRunning = CL_FALSE;
+
 static void *clGmsLeaderVerifierTask(void *cookie)
 {
   ClUint32T reportedLeader = *(ClUint32T *)cookie;
   free(cookie);
   ClUint32T retries = 1;
+  ClUint32T maxRetries = 5;
   ClTimerTimeOutT delay = {.tsSec = 1, .tsMilliSec = 0};
   ClGmsNodeIdT leaderNodeId = CL_GMS_INVALID_NODE_ID;
   ClGmsNodeIdT deputyNodeId = CL_GMS_INVALID_NODE_ID;
   ClIocNodeAddressT currentLeader;
 
+  if (!clCpmIsSC())
+  {
+    maxRetries = 60;
+  }
+
   do
   {
-    clLogDebug("NTF", "LEA", "Try [%d] of [%d] to verify reports leader [%d]", retries, 5, reportedLeader);
+    clLogDebug("NTF", "LEA", "Try [%d] of [%d] to verify reports leader [%d]", retries, maxRetries, reportedLeader);
     _clGmsEngineLeaderElect(0x0, NULL, CL_GMS_MEMBER_JOINED, &leaderNodeId, &deputyNodeId);
-  } while (retries++ < 5 && (leaderNodeId != reportedLeader) && clOsalTaskDelay(delay) == CL_OK);
+  } while (retries++ < maxRetries && (leaderNodeId != reportedLeader) && clOsalTaskDelay(delay) == CL_OK);
+
+  clOsalMutexLock(&gGmsLeaderVerifierTaskLock);
+  isGmsLeaderVerifierTaskRunning = CL_FALSE;
+  clOsalMutexUnlock(&gGmsLeaderVerifierTaskLock);
 
   /* New leader changed ? */
   if ((clNodeCacheLeaderGet(&currentLeader) == CL_OK) && (leaderNodeId == currentLeader))
@@ -299,14 +313,25 @@ ClRcT clGmsIocNotification(ClEoExecutionObjT *pThis, ClBufferHandleT eoRecvMsg,C
         len = length - sizeof(notification);
         if (len == sizeof(ClUint32T)) /* leader status is appended onto the end of the message */
         {
-            ClUint32T *reportedLeader = malloc(sizeof(ClUint32T));
-            len = sizeof(ClUint32T);
-            clBufferNBytesRead(eoRecvMsg, (ClUint8T*)reportedLeader, &len);
-            *reportedLeader = ntohl(*reportedLeader);
+            clOsalMutexLock(&gGmsLeaderVerifierTaskLock);
+            if (!isGmsLeaderVerifierTaskRunning)
+            {
+              isGmsLeaderVerifierTaskRunning = CL_TRUE;
+              clOsalMutexUnlock(&gGmsLeaderVerifierTaskLock);
 
-            /* leader verifier */
-            clOsalTaskCreateAttached("leader verifier", CL_OSAL_SCHED_OTHER, CL_OSAL_THREAD_PRI_NOT_APPLICABLE, 0, clGmsLeaderVerifierTask, (void *)reportedLeader, &gGmsLeaderVerifierTask);
-            reportedLeader = NULL;
+              ClUint32T *reportedLeader = malloc(sizeof(ClUint32T));
+              len = sizeof(ClUint32T);
+              clBufferNBytesRead(eoRecvMsg, (ClUint8T*)reportedLeader, &len);
+              *reportedLeader = ntohl(*reportedLeader);
+
+              /* leader verifier */
+              clOsalTaskCreateAttached("leader verifier", CL_OSAL_SCHED_OTHER, CL_OSAL_THREAD_PRI_NOT_APPLICABLE, 0, clGmsLeaderVerifierTask, (void *)reportedLeader, &gGmsLeaderVerifierTask);
+              reportedLeader = NULL;
+            }
+            else
+            {
+                clOsalMutexUnlock(&gGmsLeaderVerifierTaskLock);
+            }
         }
     }
 
