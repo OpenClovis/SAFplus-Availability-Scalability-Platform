@@ -43,7 +43,7 @@ void logInitializeSharedMem()
     if (temp)
       {
         logSharedMemoryObjectName.append("_");
-        logSharedMemoryObjectName.append(SAFplus::ASP_NODENAME);
+        logSharedMemoryObjectName.append(temp);
       }
 
     // Create or open the shared memory object.  If this process wins the race to create then it needs to create the mutex and initialize the header.
