@@ -16,6 +16,8 @@ namespace SAFplusI
 {
 // Shared memory variables
 shared_memory_object* clLogSharedMem = nullptr;
+std::string logSharedMemoryObjectName; // Separate memory object name for a nodeID to support multi-node running
+
 mapped_region* clLogBuffer = nullptr;
 int clLogBufferSize=0;
 LogBufferHeader* clLogHeader;
@@ -27,19 +29,28 @@ SAFplus::ProcSem serverSem("LogServerSem",0);
   // Even if not explicitly used in the code, this API is used during dev
 void logCleanupSharedMem()
   {
-    shared_memory_object::remove("SAFplusLog");
+    shared_memory_object::remove(logSharedMemoryObjectName.c_str());
   }
 
 void logInitializeSharedMem()
 {
     // If the shared memory buffer has size 0 then I better set it properly.
     offset_t shmsize=0;
+    logSharedMemoryObjectName = "SAFplusLog";
+
+    // This value is uninitialized until utilsInitialize called
+    char *temp = getenv("ASP_NODENAME");
+    if (temp)
+      {
+        logSharedMemoryObjectName.append("_");
+        logSharedMemoryObjectName.append(SAFplus::ASP_NODENAME);
+      }
 
     // Create or open the shared memory object.  If this process wins the race to create then it needs to create the mutex and initialize the header.
     // Otherwise place the header onto the location
     try  
       {
-        clLogSharedMem= new shared_memory_object(create_only,"SAFplusLog",read_write);
+        clLogSharedMem= new shared_memory_object(create_only, logSharedMemoryObjectName.c_str(),read_write);
         
         clLogSharedMem->truncate(SAFplus::CL_LOG_BUFFER_DEFAULT_LENGTH);
         clLogBuffer = new mapped_region(*clLogSharedMem,read_write);
@@ -54,7 +65,7 @@ void logInitializeSharedMem()
       }
     catch (interprocess_exception &e)
       {
-        clLogSharedMem = new shared_memory_object(open_only,"SAFplusLog",read_write);
+        clLogSharedMem = new shared_memory_object(open_only, logSharedMemoryObjectName.c_str(),read_write);
         clLogBuffer    = new mapped_region(*clLogSharedMem,read_write);
         void * addr    = clLogBuffer->get_address();   
        //shared_memory_buffer * data = new (addr) shared_memory_buffer;

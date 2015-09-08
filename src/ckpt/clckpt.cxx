@@ -86,7 +86,9 @@ void SAFplus::Checkpoint::init(const Handle& hdl, uint_t _flags, uint64_t retent
   if (flags & REPLICATED)
     if (!(flags & CHANGE_LOG)) flags |= CHANGE_ANNOTATION; // Change annotation is the default delta replication mechanism
 
-  char tempStr[256];
+  std::string ckptSharedMemoryObjectname = "ckpt_";
+  char sharedMemFile[256];
+
   if (hdl==INVALID_HDL)
     {
       // Allocate a new hdl
@@ -97,8 +99,14 @@ void SAFplus::Checkpoint::init(const Handle& hdl, uint_t _flags, uint64_t retent
   if (rows < CkptMinRows) rows = CkptDefaultRows;
 
   //sharedMemHandle = NULL;
-  strcpy(tempStr,"ckpt_");
-  hdl.toStr(&tempStr[5]);
+  hdl.toStr(sharedMemFile);
+  ckptSharedMemoryObjectname.append(sharedMemFile);
+  if (SAFplus::ASP_NODENAME[0] != 0)
+    {
+      ckptSharedMemoryObjectname.append("_");
+      ckptSharedMemoryObjectname.append(SAFplus::ASP_NODENAME);
+    }
+
 #if 0
   // check if this checkpoint has existed or not
   std::string ckptShmFile = getFullShmFile(tempStr);
@@ -122,11 +130,11 @@ void SAFplus::Checkpoint::init(const Handle& hdl, uint_t _flags, uint64_t retent
 
     if (flags & EXISTING)  // Try to create it first if the flags don't require that it exists.
       {
-      msm = managed_shared_memory(open_only, tempStr);  // will raise something if it does not exist
+      msm = managed_shared_memory(open_only, ckptSharedMemoryObjectname.c_str());  // will raise something if it does not exist
       }
     else
       {
-      msm = managed_shared_memory(open_or_create, tempStr, size);
+      msm = managed_shared_memory(open_or_create, ckptSharedMemoryObjectname.c_str(), size);
       }
 
     try
@@ -186,7 +194,7 @@ void SAFplus::Checkpoint::init(const Handle& hdl, uint_t _flags, uint64_t retent
     sync = NULL;
     }
 
-  initDB(tempStr, isCkptExist);
+  initDB(ckptSharedMemoryObjectname.c_str(), isCkptExist);
   //assert(sharedMemHandle);
   assert(hdr);
 }
@@ -553,7 +561,7 @@ bool SAFplus::Checkpoint::Iterator::operator !=(const SAFplus::Checkpoint::Itera
   return false;
 }
 
-void SAFplus::Checkpoint::initDB(char* ckptId, bool isCkptExist)
+void SAFplus::Checkpoint::initDB(const char* ckptId, bool isCkptExist)
 {  
   dbHandle = NULL;
   char dbName[CL_MAX_NAME_LENGTH];

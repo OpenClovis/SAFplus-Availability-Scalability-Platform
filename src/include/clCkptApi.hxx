@@ -347,7 +347,7 @@ namespace SAFplus
 
   protected:    
     void syncFromDisk(); // In the case that user opens a non-existing checkpoint but its data is available on disk, so this function copies data from database to checkpoint data to ensure data between them to be synchronized
-    void initDB(char* ckptId, bool isCkptExist); // Initialize dbal and synchronize data from disk with checkpoint if any
+    void initDB(const char* ckptId, bool isCkptExist); // Initialize dbal and synchronize data from disk with checkpoint if any
     void writeCkptHdr(ClDBKeyHandleT key, ClUint32T keySize, ClDBRecordHandleT rec, ClUint32T recSize);
     void writeCkptData(ClDBKeyHandleT key, ClUint32T keySize, ClDBRecordHandleT rec, ClUint32T recSize);
     void writeHdrDB(int hdrKey, ClDBRecordT rec, ClUint32T recSize);

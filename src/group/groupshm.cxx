@@ -6,8 +6,6 @@
 #include <chrono>
 #include <inttypes.h>
 
-#define GroupSharedMemoryName "SAFplusGroups"
-
 using namespace boost::interprocess;
 using namespace SAFplus;
 using namespace SAFplusI;
@@ -22,6 +20,7 @@ namespace SAFplusI
 {
 
 //ClRcT groupIocNotificationCallback(ClIocNotificationT *notification, ClPtrT cookie);
+std::string GroupSharedMem::groupSharedMemoryObjectName = "";
 
 GroupServer::GroupServer()
  { 
@@ -31,7 +30,7 @@ GroupServer::GroupServer()
 
 void GroupSharedMem::deleteSharedMemory()
   {
-  shared_memory_object::remove(GroupSharedMemoryName);
+  shared_memory_object::remove(groupSharedMemoryObjectName.c_str());
   }
 
 void GroupSharedMem::registerGroupObject(Group* grp)
@@ -188,8 +187,15 @@ void GroupSharedMem::clear()
 void GroupSharedMem::init()
   {
   mutex.init("GroupSharedMem",1);
+  groupSharedMemoryObjectName = "SAFplusGroups";
+  if (SAFplus::ASP_NODENAME[0] != 0)
+    {
+      groupSharedMemoryObjectName.append("_");
+      groupSharedMemoryObjectName.append(SAFplus::ASP_NODENAME);
+    }
+
   ScopedLock<ProcSem> lock(mutex);
-  groupMsm = boost::interprocess::managed_shared_memory(open_or_create, GroupSharedMemoryName, GroupSharedMemSize);
+  groupMsm = boost::interprocess::managed_shared_memory(open_or_create, groupSharedMemoryObjectName.c_str(), GroupSharedMemSize);
 
   try
     {

@@ -304,9 +304,16 @@ void onSharedMemRetentionTimeout(const boost::system::error_code& e, void* arg, 
     CkptTimerMap::iterator contents = timer->ckptTimerMap.find(*ckptHandle);
     if (contents != timer->ckptTimerMap.end())
     { 
+      std::string ckptSharedMemoryObjectname = "ckpt_";
       char sharedMemFile[256];
-      strcpy(sharedMemFile,"ckpt_");
-      ckptHandle->toStr(&sharedMemFile[5]);
+      ckptHandle->toStr(sharedMemFile);
+      ckptSharedMemoryObjectname.append(sharedMemFile);
+      if (SAFplus::ASP_NODENAME[0] != 0)
+        {
+          ckptSharedMemoryObjectname.append("_");
+          ckptSharedMemoryObjectname.append(SAFplus::ASP_NODENAME);
+        }
+
       // Get the checkpoint header to see whether the lastUsed changed or not      
       managed_shared_memory managed_shm(open_only, sharedMemFile);
       std::pair<SAFplusI::CkptBufferHeader*, std::size_t> ckptHdr = managed_shm.find<SAFplusI::CkptBufferHeader>("header");

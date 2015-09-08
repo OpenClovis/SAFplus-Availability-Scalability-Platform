@@ -631,6 +631,7 @@ Specific problems (if given). (@ref ITU X.733)
     SAFplus::ProcSem mutex;  // protects the shared memory region from simultaneous access
     SAFplus::Mutex  faultMutex;
     boost::interprocess::managed_shared_memory faultMsm;
+    std::string faultSharedMemoryObjectName; // Separate memory object name for a nodeID to support multi-node running
     FaultShmHashMap* faultMap;
     FaultShmHeader* faultHdr;
     SAFplus::Mutex  localMutex;

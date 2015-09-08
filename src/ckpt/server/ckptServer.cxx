@@ -71,10 +71,17 @@ void onTimeout(const boost::system::error_code& e, const SAFplus::Handle& ckptHa
   {
     // Timer was not cancelled, the timer has expired within retentionDuration, so delete data    
     logDebug("CKPSVR", "TIMEOUT", "timer was expired. Delete the data of specified checkpoint from memory");
-    char sharedMemName[256];
-    strcpy(sharedMemName,"ckpt_");
-    ckptHandle.toStr(&sharedMemName[5]);
-    boost::interprocess::shared_memory_object::remove(sharedMemName);
+
+    std::string ckptSharedMemoryObjectname = "ckpt_";
+    char sharedMemFile[256];
+    ckptHandle.toStr(sharedMemFile);
+    ckptSharedMemoryObjectname.append(sharedMemFile);
+    ckptSharedMemoryObjectname.append("_");
+    if (SAFplus::ASP_NODENAME[0] != 0)
+      {
+        ckptSharedMemoryObjectname.append(SAFplus::ASP_NODENAME);
+        boost::interprocess::shared_memory_object::remove(ckptSharedMemoryObjectname.c_str());
+      }
   }
   else
   {
