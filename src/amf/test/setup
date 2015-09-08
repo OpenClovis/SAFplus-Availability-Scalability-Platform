@@ -11,10 +11,13 @@ sysctl -w net.core.wmem_default=20485760
 export CL_LOG_SEVERITY=ERROR
 export CL_LOG_CODE_LOCATION_ENABLE=1
 
-export SAFPLUS_BACKPLANE_INTERFACE=lo
+# To use UDP broadcasts on the loopback interface I need to enable a broadcast address
+export SAFPLUS_BACKPLANE_INTERFACE=eth0
 
 # copy app binaries to the names configured in the configuration xml file
 cp test/exampleSafApp test/test0
 cp test/exampleSafApp test/test1
+
+# python ./bin/dbalpy.py -x ./test/safplusAmf.xml ./bin/safplusAmf
 
 ./bin/node --add 127.0.0.1

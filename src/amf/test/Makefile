@@ -20,7 +20,7 @@ all: $(TEST_DIR)/exampleSafApp $(TEST_DIR)/exampleNonSafApp $(TEST_DIR)/test111.
 $(TEST_DIR)/%.xml: %.xml
 	cp -f $< $@
 
-$(TEST_DIR)/test111.py: test111.py
+$(TEST_DIR)/embTest111.py: embTest111.py
 	cp -f $< $@
 
 $(TEST_DIR)/exampleSafApp:  $(OBJ_DIR)/exampleSafApp.o $(SAFPLUS_DEP_LIBS)
@@ -42,7 +42,8 @@ image: $(IMAGE_FILE)
 
 $(IMAGE_FILE): $(TEST_DIR)/exampleSafApp
 	cp setup start cleanup $(SAFPLUS_TARGET)  
-	cp SAFplusAmf.idx SAFplusAmf.db SAFplusAmf.xml $(SAFPLUS_TARGET)/test
+#	cp safplusAmf.idx safplusAmf.db safplusAmf.xml $(SAFPLUS_TARGET)/test
+	cp SAFplusAmf1Node1SG1Comp.xml $(SAFPLUS_TARGET)/test
 	$(SAFPLUS_MAKE_DIR)/safplus_packager.py -x "(cp setup start cleanup {image_dir})" $@
 
 
