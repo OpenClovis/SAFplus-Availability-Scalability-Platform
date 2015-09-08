@@ -257,6 +257,7 @@ def package(base_dir, tar_name, prefix_dir, machine=None, kernel_version=None, p
 
     log.info("Archive name is {0} Archive compression format is {1}".format(tar_name, compress_format))
     # put the tarball exactly where the requested on the command line: tar_name = os.path.join(image_dir, tar_name)
+    tar_name = os.path.join(image_dir_path, tar_name)
     tar_name = create_archive(tar_name, image_dir, compress_format)
     if yum_package:
 	from package import RPM
