@@ -187,7 +187,7 @@ void GroupSharedMem::clear()
 void GroupSharedMem::init()
   {
   mutex.init("GroupSharedMem",1);
-  groupSharedMemoryObjectName = "SAFplusGroups";
+  groupSharedMemoryObjectName = "SAFplusGroup";
   if (SAFplus::ASP_NODENAME[0] != 0)
     {
       groupSharedMemoryObjectName.append("_");

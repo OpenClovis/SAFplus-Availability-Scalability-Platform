@@ -120,7 +120,7 @@ namespace SAFplusI
     {
     UdpTransportMaxMsgSize = 65507,  // 65,535 - 8 byte UDP header - 20 byte IP header  (http://en.wikipedia.org/wiki/User_Datagram_Protocol).  This is defined here so you can artifically limit the packet size.
     UdpTransportNumPorts = 2048,  // Limit the ports to a range for no particular reason
-    UdpTransportStartPort = 7000,  // Pick a random spot in the UDP port range so our ports don't overlap common services
+    UdpTransportStartPort = 17000,  // Pick a random spot in the UDP port range so our ports don't overlap common services
     UdpTransportMaxMsg = 1024,
     UdpTransportMaxFragments = 1024,
     };
@@ -130,7 +130,7 @@ namespace SAFplusI
     {
     SctpTransportMaxMsgSize = 65503,  // 65,535 - 12 bytes SCTP header - 20 bytes IP header. This is defined here so you can artifically limit the packet size.
     SctpTransportNumPorts = 2048,  // Limit the ports to a range for no particular reason
-    SctpTransportStartPort = 8000,  // Pick a random spot in the UDP port range so our ports don't overlap common services
+    SctpTransportStartPort = 18000,  // Pick a random spot in the UDP port range so our ports don't overlap common services
     SctpTransportMaxMsg = 1024,
     SctpTransportMaxFragments = 1024,
     SctpMaxStream = 64,
@@ -140,7 +140,7 @@ namespace SAFplusI
     {
     TcpTransportMaxMsgSize = 65475,  // 65,535 - 40 bytes TCP header - 20 bytes IP header. This is defined here so you can artifically limit the packet size.
     TcpTransportNumPorts = 2048,  // Limit the ports to a range for no particular reason
-    TcpTransportStartPort = 9000,  // Pick a random spot in the TCP port range so our ports don't overlap common services
+    TcpTransportStartPort = 19000,  // Pick a random spot in the TCP port range so our ports don't overlap common services
     TcpTransportMaxMsg = 1024,
     TcpTransportMaxFragments = 2048,
     TcpMaxStream = 64,

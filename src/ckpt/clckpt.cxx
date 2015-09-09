@@ -41,8 +41,7 @@ bool SAFplusI::BufferPtrContentsEqual::operator() (const BufferPtr& x, const Buf
 SAFplus::Checkpoint::~Checkpoint()
 {
   if (isSyncReplica) { if(sync) delete sync; }
-  clDbalClose(dbHandle);
-  clDbalLibFinalize();
+  if (dbHandle) clDbalClose(dbHandle);
 }
 
 /*
@@ -86,7 +85,7 @@ void SAFplus::Checkpoint::init(const Handle& hdl, uint_t _flags, uint64_t retent
   if (flags & REPLICATED)
     if (!(flags & CHANGE_LOG)) flags |= CHANGE_ANNOTATION; // Change annotation is the default delta replication mechanism
 
-  std::string ckptSharedMemoryObjectname = "ckpt_";
+  std::string ckptSharedMemoryObjectname = "SAFplusCkpt_";
   char sharedMemFile[256];
 
   if (hdl==INVALID_HDL)
@@ -101,11 +100,6 @@ void SAFplus::Checkpoint::init(const Handle& hdl, uint_t _flags, uint64_t retent
   //sharedMemHandle = NULL;
   hdl.toStr(sharedMemFile);
   ckptSharedMemoryObjectname.append(sharedMemFile);
-  if (SAFplus::ASP_NODENAME[0] != 0)
-    {
-      ckptSharedMemoryObjectname.append("_");
-      ckptSharedMemoryObjectname.append(SAFplus::ASP_NODENAME);
-    }
 
 #if 0
   // check if this checkpoint has existed or not
@@ -562,7 +556,8 @@ bool SAFplus::Checkpoint::Iterator::operator !=(const SAFplus::Checkpoint::Itera
 }
 
 void SAFplus::Checkpoint::initDB(const char* ckptId, bool isCkptExist)
-{  
+{
+  ClRcT rc = CL_OK;
   dbHandle = NULL;
   char dbName[CL_MAX_NAME_LENGTH];
   const char* path=ASP_RUNDIR;
@@ -570,13 +565,7 @@ void SAFplus::Checkpoint::initDB(const char* ckptId, bool isCkptExist)
   {
     path = ".";
   }
-  snprintf (dbName, CL_MAX_NAME_LENGTH-1, "%s/%d%s.db", path, ASP_NODEADDR, ckptId);
-  ClRcT rc = clDbalLibInitialize();
-  if (rc != CL_OK)
-  {
-    logWarning("CKPT", "INITDB", "Dbal lib initialization failed, all database operations will be failed");
-    return;
-  }
+  snprintf (dbName, CL_MAX_NAME_LENGTH-1, "%s/%s.db", path, ckptId);
   rc = clDbalOpen(dbName, dbName, CL_DB_OPEN, CkptMaxKeySize, CkptMaxRecordSize, &dbHandle);
   if (rc == CL_OK)
   {

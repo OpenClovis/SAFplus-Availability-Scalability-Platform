@@ -140,7 +140,7 @@ class LibSet
     MSG = LibSet::MSG | LibDep::FAULT | LibDep::IOC,
     OBJMSG = LibSet::OBJMSG | LibDep::MSG,
     GRP = LibSet::GRP | LibDep::OBJMSG | LibDep::MSG,
-    CKPT = LibSet::CKPT | LibDep::GRP | LibDep::MSG | LibDep::UTILS,
+    CKPT = LibSet::CKPT | LibSet::DBAL | LibDep::GRP | LibDep::MSG | LibDep::UTILS,
     NAME = LibSet::NAME | LibDep::CKPT,
     HEAP = LibSet::HEAP,
     BUFFER = LibSet::BUFFER,

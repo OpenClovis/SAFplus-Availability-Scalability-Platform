@@ -9,7 +9,7 @@ namespace SAFplus
 {
 void FaultSharedMem::init(SAFplus::Handle active)
 {
-    faultSharedMemoryObjectName = "SAFplusFaults";
+    faultSharedMemoryObjectName = "SAFplusFault";
     if (SAFplus::ASP_NODENAME[0] != 0)
       {
         faultSharedMemoryObjectName.append("_");

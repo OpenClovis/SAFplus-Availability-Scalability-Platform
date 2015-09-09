@@ -15,7 +15,7 @@ SAFPLUS_LIBS := clAmf clRpc clName clCkpt clGroup clMsg clLog clUtils clOsal clF
 SAFPLUS_DEP_LIBS     := $(addsuffix .so,$(addprefix $(LIB_DIR)/lib,$(SAFPLUS_LIBS)))
 SAFPLUS_LINK_LIBS := -L$(LIB_DIR) $(addprefix -l,$(SAFPLUS_LIBS))
 
-all: $(TEST_DIR)/exampleSafApp $(TEST_DIR)/exampleNonSafApp $(TEST_DIR)/test111.py $(MODELS_TGT)
+all: $(TEST_DIR)/exampleSafApp $(TEST_DIR)/exampleNonSafApp $(TEST_DIR)/embTest111.py $(MODELS_TGT)
 
 $(TEST_DIR)/%.xml: %.xml
 	cp -f $< $@
