@@ -1,5 +1,5 @@
 #!/bin/bash
-export LD_LIBRARY_PATH=`pwd`/lib:$LD_LIBRARY_PATH
+export LD_LIBRARY_PATH=`pwd`/lib:`pwd`/plugin:$LD_LIBRARY_PATH
 export PYTHONPATH=`pwd`/lib:`pwd`/bin:`pwd`/test:$PYTHONPATH
 
 sysctl -w net.core.wmem_max=20485760
