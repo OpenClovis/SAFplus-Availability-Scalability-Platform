@@ -200,6 +200,8 @@ void MsgServer::MakeMePrimary()
     MsgHandler *msgHandler = q->handlers[msgType];
     if (msgHandler != NULL)
       {
+      logInfo("MSG", "SVR", "Received message of type [%d]", (int )msgType);
+
       msgHandler->msgHandler(q, msg,q->cookies[msgType]);
       msg=nullptr;  // ownership is given to the msgHandler
 #if 0

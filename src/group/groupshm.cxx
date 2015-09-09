@@ -193,6 +193,8 @@ void GroupSharedMem::init()
       groupSharedMemoryObjectName.append("_");
       groupSharedMemoryObjectName.append(SAFplus::ASP_NODENAME);
     }
+  logInfo("GRP", "INI", "Opening shared memory [%s]", groupSharedMemoryObjectName.c_str());
+
 
   ScopedLock<ProcSem> lock(mutex);
   groupMsm = boost::interprocess::managed_shared_memory(open_or_create, groupSharedMemoryObjectName.c_str(), GroupSharedMemSize);

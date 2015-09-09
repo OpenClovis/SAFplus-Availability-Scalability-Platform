@@ -2,7 +2,7 @@
 #include <boost/interprocess/exceptions.hpp>
 #include <boost/foreach.hpp>
 #include <boost/tokenizer.hpp>
-
+#include <clGlobals.hxx>
 #include <clGroupIpi.hxx>
 
 
@@ -28,6 +28,7 @@ boost::program_options::variables_map parseOptions(int argc,char *argv[])
 
 int main(int argc,char *argv[])
   {
+  SAFplus::utilsInitialize();  // Needed to grab the env vars like ASP_NODENAME
 
   boost::program_options::variables_map vm = parseOptions(argc,argv);
   if (vm.count("help")) return 0;  // Help already printed by parseOptions
