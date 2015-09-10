@@ -51,7 +51,7 @@ namespace SAFplusI
   enum
     {
     MsgSafplusSendReplyRetryInterval = 4000,   //? Default time to wait before retrying a message that expects a reply (uses sendReply API)
-
+    RpcRetryInterval = 4000,  //? Default time to wait before retrying a RPC that expects a reply
     };
 
   /* THREADS */

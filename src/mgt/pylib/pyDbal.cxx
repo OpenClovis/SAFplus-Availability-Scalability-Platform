@@ -45,7 +45,7 @@ static PyObject* Read(PyObject *self, PyObject *args)
     return ret;
 }
 
-static PyObject* Write(PyObject *self, PyObject *args)
+static PyObject* Create(PyObject *self, PyObject *args)
 {
     ClRcT rc = CL_OK;
     ClCharT *key;
@@ -66,7 +66,7 @@ static PyObject* Write(PyObject *self, PyObject *args)
     Py_RETURN_NONE;
 }
 
-static PyObject* Replace(PyObject *self, PyObject *args)
+static PyObject* Write(PyObject *self, PyObject *args)
 {
     ClRcT rc = CL_OK;
     ClCharT *key;
@@ -148,12 +148,12 @@ static PyObject* finalizeDbal(PyObject *self, PyObject *args)
 }
 
 static PyMethodDef DbalPyMethods[] = {
-    { "initializeDbal", initializeDbal, METH_VARARGS, "Call this function to initialize DBAL library." },
-    { "finalizeDbal", finalizeDbal, METH_VARARGS, "Call this function to finalize DBAL library." },
-    { "read", Read, METH_VARARGS, "Call this function to read a record DB with key." },
-    { "write", Write, METH_VARARGS, "Call this function to write a record with key and value to DB." },
-    { "replace", Replace, METH_VARARGS, "Call this function to replace a record with key and value to DB." },
-    { "iterators", Iterators, METH_VARARGS, "Call this function to iterator all key on DB." },
+    { "initialize", initializeDbal, METH_VARARGS, "Call this function to initialize this library.  Pass the database name, maximum key size and maximum record size." },
+    { "finalize", finalizeDbal, METH_VARARGS, "Call this function to finalize this library.  All data is flushed and the database is closed." },
+    { "read", Read, METH_VARARGS, "Call this function to read a database record given a key." },
+    { "write", Write, METH_VARARGS, "Call this function to write a record with key and value into the database.  If the record does not exist, it will be created." },
+    { "create", Create, METH_VARARGS, "Call this function to write a new record with key and value to the database.  If the record exists, it will not be overwritten" },
+    { "iterators", Iterators, METH_VARARGS, "Call this function to iterate over all keys in the database." },
     { NULL, NULL, 0, NULL } /* Sentinel */
 };
 

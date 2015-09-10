@@ -83,6 +83,8 @@ namespace SAFplus
     handle = Handle(TransientHandle,Handle::uniqueId(),port,sock->node);
 
     if (flags & AUTO_ACTIVATE) AutoActivate();
+
+    fault = NULL;
   }
 
   void MsgServer::AutoActivate()

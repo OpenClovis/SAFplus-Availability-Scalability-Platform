@@ -34,7 +34,6 @@
 namespace SAFplus
 {
   class Wakeable;
-  class Fault;
 
 #define MSGSIZE (1024*1024)
     struct MsgReply
@@ -82,7 +81,6 @@ namespace SAFplus
         protected:
             MsgHandler *handlers[NUM_MSG_TYPES];
             ClPtrT cookies[NUM_MSG_TYPES];
-            Fault* fault;
         public:
             /**
              * msg buffer for reply data
