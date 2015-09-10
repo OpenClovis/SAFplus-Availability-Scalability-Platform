@@ -1,4 +1,4 @@
-import types, pdb
+import types, pdb, os
 
 import pySAFplus as sp
 import microdom
@@ -155,12 +155,14 @@ def displaySgStatus(sg):
 
 
 def Test():
+  print "PID IS: ", os.getpid()
+  pdb.set_trace()
   # pdb.set_trace()
   global SAFplusInitialized
   if not SAFplusInitialized:
     svcs = sp.Libraries.MSG | sp.Libraries.GRP | sp.Libraries.MGT_ACCESS
     sic = sp.SafplusInitializationConfiguration()
-    sic.port = 55
+    sic.port = 0x40
     SAFplusInitialized = True
     sp.Initialize(svcs, sic)
   displaySgStatus("sg0")
