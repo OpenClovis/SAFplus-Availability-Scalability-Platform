@@ -1,13 +1,11 @@
 #!/usr/bin/python
 import sys, os, os.path, time
 
-#try:
-if 1:
+try:
   import localaccess as access
   print "using local access"
-
-#except ImportError, e:
-#  import netconfaccess as access
+except ImportError, e:
+  import netconfaccess as access
 
 SuNameColor = (50,160,80)
 SuNameSize = 32
