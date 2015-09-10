@@ -134,9 +134,9 @@ public:uint64_t waitDuration;
       // Extract just the file name by bracketing it between the preceding / and the file extension
       std::string filePath = dir_iter->path().string();
       logTrace("CKPRET","UDT", "[shm] parsing file [%s]", filePath.c_str());
-      // skip ahead to the last / so a name like /dev/shm/ckpt_ works
+      // skip ahead to the last / so a name like /dev/shm/SAFplusCkpt_ works
       lastSlashPos = filePath.rfind("/");
-      ckptShmPos = filePath.find("ckpt_", lastSlashPos);
+      ckptShmPos = filePath.find("SAFplusCkpt_", lastSlashPos);
       int flen = filePath.length();
       if (ckptShmPos >= 0 && ckptShmPos < flen)
       {
