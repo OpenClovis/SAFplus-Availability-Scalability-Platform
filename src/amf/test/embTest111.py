@@ -93,7 +93,7 @@ def waitForSiRecovery(si,maxTime=20):
     if count<maxTime:
       print now() + ": New active %s, new standby %s" % (active, standby)
     else:
-      raise TestFailed(now() + ": Failover did not work: active %s, standby %s" % (active,standby))
+      raise TestFailed(now() + ": Failover did not work: active %s, standby %s waited %d seconds" % (active,standby,maxTime))
     return (active,standby)
   
 
@@ -103,7 +103,6 @@ def mgtHammer():
 
 
 def main(tgtDir):
-    pdb.set_trace()
     os.environ["ASP_NODENAME"] = "sc0"
     try:
       amfpid = subprocess.check_output(["pidof","safplus_amf"])

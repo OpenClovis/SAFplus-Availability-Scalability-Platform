@@ -80,7 +80,7 @@ enum
   SC_ELECTION_BIT = 1<<8,           // This bit is set in the credential if the node is a system controller, making SCs preferred 
   STARTUP_ELECTION_DELAY_MS = 2000,  // Wait for 5 seconds during startup if nobody is active so that other nodes can arrive, making the initial election not dependent on small timing issues. 
 
-  REEVALUATION_DELAY = 20000, //? How long to wait (max) before reevaluating the cluster
+  REEVALUATION_DELAY = 5000, //? How long to wait (max) before reevaluating the cluster
   };
 
 static void sigChildHandler(int signum)
