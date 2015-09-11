@@ -47,6 +47,11 @@ namespace SAFplus
       return fragNumber;
     }
 
+    int getSequenceNumber()
+    {
+      return fragNumber;
+    }
+
     int setSequenceNumber(int n)
     {
       fragNumber = n;
@@ -155,6 +160,7 @@ namespace SAFplus
     TimerStatus status;
     SAFplus::Mutex timerLock;
     int interval;
+    bool started;
   };
 
   class MsgSocketReliable : public MsgSocketAdvanced //, SAFPlusLockable
@@ -182,8 +188,6 @@ namespace SAFplus
     ThreadCondition resetCond;
     SAFplus::Mutex recvQueueLock;
     ThreadCondition recvQueueCond;
-    SAFplus::Mutex readQueueLock;
-    ThreadCondition readQueueCond;
     SAFplus::Mutex unackedSentQueueLock;
     ThreadCondition unackedSentQueueCond;
     SAFplus::Mutex thisMutex;

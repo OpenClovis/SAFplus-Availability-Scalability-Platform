@@ -2,7 +2,7 @@
 
 #define DEFAULT_SEND_QUEUE_SIZE      320;
 #define DEFAULT_RECV_QUEUE_SIZE      320;
-#define DEFAULT_SEGMENT_SIZE         128;
+#define DEFAULT_SEGMENT_SIZE         64000;
 #define DEFAULT_OUTSTANDING_SEGS     6;
 #define DEFAULT_RETRANS              6;
 #define DEFAULT_CUMULATIVE_ACKS      6;

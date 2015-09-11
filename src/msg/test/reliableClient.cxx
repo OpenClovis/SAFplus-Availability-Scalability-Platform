@@ -48,7 +48,7 @@ const char* ModeStr = 0;
 int main(int argc, char* argv[])
 {
   logEchoToFd = 1;  // echo logs to stdout for debugging
-  SAFplus::logSeverity = SAFplus::LOG_SEV_DEBUG;
+  SAFplus::logSeverity = SAFplus::LOG_SEV_TRACE;
   //SAFplus::logCompName = "TSTTRA";
   std::string xport("clMsgUdp.so");
   boost::program_options::options_description desc("Allowed options");
@@ -110,14 +110,18 @@ int main(int argc, char* argv[])
       MsgSocketReliable sockclient(4,xp,destination);
       printf("init socket : done \n");
       int i=1;
-      do
-      {  
-      printf("send msg [%d] \n",i);
-      unsigned char* buffer = new unsigned char[12345+i*1000];
-      memset( buffer, 'c', sizeof(unsigned char)*(12345+i*1000));
-      sockclient.writeReliable(buffer,0,12345+i*1000);
-      i++;
-      }while(i<3);
+
+      sleep(1);
+      printf("send msg 1");
+      unsigned char* buffer = new unsigned char[1000000];
+      memset( buffer, 'c', sizeof(unsigned char)*(1000000));
+      sockclient.writeReliable(buffer,0,1000000);	
+
+      sleep(2);
+      printf("send msg 2");
+      unsigned char* buffer2 = new unsigned char[1500000];
+      memset( buffer2, 'c', sizeof(unsigned char)*(1500000));
+      sockclient.writeReliable(buffer2,0,1500000);
       do
       {
         sleep(2);

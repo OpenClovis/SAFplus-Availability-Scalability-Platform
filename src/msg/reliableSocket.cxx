@@ -272,19 +272,6 @@ namespace SAFplus
     {
       logDebug("MSG","REL", "Send single ACK");
       sendSingleAck();
-      usleep(100);
-      ReliableFragmentList::iterator it1 = inSeqQueue.end();
-      --it1;
-      ReliableFragment &s1 = *it1;
-      logDebug("MSG", "REL","Last fragment Id [%d] in in-sequence queue from [%d - %d]  ", s1.seq(),destination.getNode(),destination.getPort());
-      if(s1.isLastFragment())
-      {
-        logDebug("MSG", "REL","this is the last fragment of message");
-        {
-          logDebug("MSG", "REL","Notify to read message");
-          recvQueueCond.notify_one();
-        }
-      }
     }
     else
     {
@@ -298,7 +285,20 @@ namespace SAFplus
       }
       cumulativeAckTimer.timerLock.unlock();
       cumulativeAckTimer.interval=profile->cumulativeAckTimeout();
-      boost::thread(cumulativeAckTimerFunc,this);
+      if(!cumulativeAckTimer.started)
+      {
+        boost::thread(cumulativeAckTimerFunc,this);
+        cumulativeAckTimer.started=true;
+      }
+    }
+    ReliableFragmentList::iterator it1 = inSeqQueue.end();
+    --it1;
+    ReliableFragment &s1 = *it1;
+    logDebug("MSG", "REL","Last fragment Id [%d] in in-sequence queue from [%d - %d]  ", s1.seq(),destination.getNode(),destination.getPort());
+    if(s1.isLastFragment())
+    {
+      logDebug("MSG", "REL","Notify to read message");
+      recvQueueCond.notify_one();
     }
     recvQueueLock.unlock();
   }
@@ -307,6 +307,7 @@ namespace SAFplus
   {
 
     ReliableFragmentList::iterator it = outOfSeqQueue.begin();
+    bool haveLastFrag=false;
     while (it != outOfSeqQueue.end() )
     {
       ReliableFragment &s = *it;
@@ -320,12 +321,21 @@ namespace SAFplus
         {
           logDebug("MSG", "REL","Move fragment [%d] to in sequence list ",s.seq());
           inSeqQueue.push_back(s);
+          if(s.isLastFragment())
+          {
+            haveLastFrag=true;
+          }
         }
       }
       else
       {
         it++;
       }
+    }
+    if(haveLastFrag)
+    {
+      logDebug("MSG", "REL","Notify to read message");
+      recvQueueCond.notify_one();
     }
   }
   void MsgSocketReliable::handleSYNReliableFragment(SYNFragment *frag)
@@ -646,8 +656,12 @@ namespace SAFplus
       {
         retransmissionTimer.interval=profile->retransmissionTimeout();
         retransmissionTimer.status=TIMER_RUN;
-        logDebug("MSG","RST","Socket : Start retransmission timer [%d]",retransmissionTimer.status);
-        boost::thread(retransmissionTimerFunc,this);
+        if(!retransmissionTimer.started)
+        {
+          logDebug("MSG","RST","Socket : Start retransmission timer [%d]",retransmissionTimer.status);
+          boost::thread(retransmissionTimerFunc,this);
+          retransmissionTimer.started=true;
+        }
       }
     }
     sendReliableFragment(frag);
@@ -891,6 +905,10 @@ namespace SAFplus
     retransmissionTimer.status=TIMER_PAUSE;
     cumulativeAckTimer.status=TIMER_PAUSE;
     keepAliveTimer.status=TIMER_PAUSE;
+    nullFragmentTimer.started=false;
+    retransmissionTimer.started=false;
+    cumulativeAckTimer.started=false;
+    keepAliveTimer.started=false;
     profile = new ReliableSocketProfile();
     rcvThread = boost::thread(ReliableSocketThread, this);
   }
@@ -957,7 +975,7 @@ namespace SAFplus
   }
   void MsgSocketReliable::writeReliable(Byte* buffer, int offset, int len)
   {
-    logDebug("MSG","RST","Send buffer to  node [%d] in reliable mode ",destination.getNode());
+    logDebug("MSG","RST","Send buffer with len [%d] to  node [%d] in reliable mode ",len,destination.getNode());
     if (isClosed)
     {
       throw new Error("Socket is closed");
@@ -1025,6 +1043,7 @@ namespace SAFplus
     while(it != inSeqQueue.end())
     {
       ReliableFragment& s = *it;
+      logDebug("MSG","RST","read the fragment [%d]",s.seq());
       if (s.getType() == fragmentType::FRAG_RST)
       {
         it=inSeqQueue.erase_and_dispose(it, delete_disposer());
@@ -1050,13 +1069,16 @@ namespace SAFplus
             throw new Error("insufficient buffer space");
           }
         }
-        if(s.isLastFragment()) quit=true;
+        if(s.isLastFragment())
+        {
+          quit=true;
+          logDebug("MSG","RST","read the last fragment [%d]",s.seq());
+        }
         memcpy(buffer + (offset+totalBytes), (void*)data , length);
         totalBytes += length;
         it = inSeqQueue.erase_and_dispose(it, delete_disposer());
         if(quit==true)
         {
-          logDebug("MSG","RST","read the last fragment");
           break;
         }
       }
@@ -1067,7 +1089,7 @@ namespace SAFplus
     }
     if(totalBytes > 0)
     {
-      readQueueLock.unlock();
+      recvQueueLock.unlock();
       return totalBytes;
     }
     recvQueueLock.unlock();
