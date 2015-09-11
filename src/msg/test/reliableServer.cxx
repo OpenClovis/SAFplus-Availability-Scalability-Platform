@@ -50,7 +50,7 @@ const char* ModeStr = 0;
 int main(int argc, char* argv[])
 {
   logEchoToFd = 1;  // echo logs to stdout for debugging
-  SAFplus::logSeverity = SAFplus::LOG_SEV_DEBUG;
+  SAFplus::logSeverity = SAFplus::LOG_SEV_TRACE;
   //SAFplus::logCompName = "TSTTRA";
   std::string xport("clMsgUdp.so");
   boost::program_options::options_description desc("Allowed options");
@@ -111,11 +111,19 @@ int main(int argc, char* argv[])
       MsgSocketServerReliable sockServer(3,xp);
       MsgSocketClientReliable* connectionSocket = sockServer.accept();
       logInfo("TST","MSG","wait to receive from sender"	);
+
+      unsigned char* buffer = new unsigned char[5000000];
+      int count = connectionSocket->readReliable(buffer,0,5000000);
+      logInfo("TST","MSG","receive [%d] byte from sender",count);
+
+
+      logInfo("TST","MSG","wait to receive from sender"	);
+      unsigned char* buffer2 = new unsigned char[5000000];
+      int count2 = connectionSocket->readReliable(buffer2,0,5000000);
+      logInfo("TST","MSG","receive [%d] byte from sender",count2);
       do
       {
-      unsigned char* buffer = new unsigned char[50000];
-      int count = connectionSocket->readReliable(buffer,0,50000);
-      logInfo("TST","MSG","receive [%d] byte from sender",count);
+        sleep(1);
       }while(1);
      }
   }

@@ -166,10 +166,12 @@ namespace SAFplus
         if (len == RUDP_HEADER_LEN)
         {
           fragment = new ACKFragment();
+          fragment->setLast(false);
         }
         else
         {
           fragment = new DATFragment();
+          fragment->setLast(false);
         }
       }
     }
@@ -200,7 +202,6 @@ namespace SAFplus
   {
     if(isLastFrag==true)
     {
-      setLast(true);
       init(LAS_FLAG, seqn, RUDP_HEADER_LEN + len);
     }
     else
