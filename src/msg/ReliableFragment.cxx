@@ -33,12 +33,6 @@ namespace SAFplus
   {
     return m_nRetCounter;
   }
-  bool ReliableFragment::isLast()
-  {
-      return false;
-  }
-
-
   void ReliableFragment::setAck(int _ackn)
   {
     m_nFalgs = m_nFalgs | ACK_FLAG;
@@ -62,7 +56,7 @@ namespace SAFplus
       }
       case ACK_FLAG:
       {
-        temp=FRAG_ACK;
+        temp=FRAG_DATA;
         break;
       }
       case NAK_FLAG:
@@ -92,20 +86,19 @@ namespace SAFplus
       }
       default:
       {
+        temp=FRAG_UDE;
         break;
       }
     }
-    return FRAG_UDE;
+    return temp;
   }
   Byte* ReliableFragment::getBytes()
   {
-    logDebug("REL","FRT","GetBytes flag [%d] len [%d] seg [%d]  ack [%d]",m_nFalgs,m_nLen,m_nSeqn,m_nAckn);
     Byte *pBuffer = new Byte[length()];
     pBuffer[0] = (Byte) (m_nFalgs & 0xFF);
     pBuffer[1] = (Byte) (m_nLen & 0xFF);
     pBuffer[2] = (Byte) (m_nSeqn & 0xFF);
     pBuffer[3] = (Byte) (m_nAckn & 0xFF);
-    logDebug("REL","FRT","GetBytes flag [%d] len [%d] seg [%d]  ack [%d]",m_nFalgs,m_nLen,m_nSeqn,m_nAckn);
     return pBuffer;
   }
 
@@ -114,7 +107,6 @@ namespace SAFplus
     m_nFalgs = _flags;
     m_nSeqn = _seqn;
     m_nLen = len;
-    //m_isLastFragment=0;
   }
 
   void ReliableFragment::parseBytes(const Byte* buffer, int _off, int _len)
@@ -123,8 +115,6 @@ namespace SAFplus
     m_nLen   = int(buffer[_off+1] & 255);
     m_nSeqn  = int(buffer[_off+2] & 255);
     m_nAckn  = int(buffer[_off+3] & 255);
-    //m_isLastFragment  = (buffer[_off+4] & 0xFF);
-    logDebug("REL","FRT","ParseBytes flag [%d] len [%d] seg [%d]  ack [%d]",m_nFalgs,m_nLen,m_nSeqn,m_nAckn);
   }
 
   ReliableFragment* ReliableFragment::parse(Byte* bytes, int off, int len)
@@ -138,43 +128,51 @@ namespace SAFplus
     int flags = bytes[off];
     if ((flags & SYN_FLAG) != 0)
     {
-      logDebug("MSG","FRT","parse SYN fragment");
+      logTrace("MSG","FRT","parse SYN fragment");
       fragment = new SYNFragment();
     }
     else if ((flags & NUL_FLAG) != 0)
     {
-      logDebug("MSG","FRT","parse NUL fragment");
+      logTrace("MSG","FRT","parse NUL fragment");
       fragment = new NULLFragment();
     }
     else if ((flags & NAK_FLAG) != 0)
     {
-      logDebug("MSG","FRT","parse NAK fragment");
+      logTrace("MSG","FRT","parse NAK fragment");
       fragment = new NAKFragment();
     }
     else if ((flags & RST_FLAG) != 0)
     {
-      logDebug("MSG","FRT","parse RST fragment");
+      logTrace("MSG","FRT","parse RST fragment");
       fragment = new RSTFragment();
     }
     else if ((flags & FIN_FLAG) != 0)
     {
-      logDebug("MSG","FRT","parse FIN fragment");
+      logTrace("MSG","FRT","parse FIN fragment");
       fragment = new FINFragment();
     }
     else if ((flags & ACK_FLAG) != 0)
     {
-      logDebug("MSG","FRT","parse ACK fragment");
       /* always process ACKs or Data segments last */
-      if (len == RUDP_HEADER_LEN)
+      if ((flags & LAS_FLAG) != 0)
       {
-        fragment = new ACKFragment();
+        logTrace("MSG","FRT","parse LAST fragment");
+        fragment = new DATFragment();
+        fragment->setLast(true);
       }
       else
       {
-        fragment = new DATFragment();
+        logTrace("MSG","FRT","parse ACK fragment");
+        if (len == RUDP_HEADER_LEN)
+        {
+          fragment = new ACKFragment();
+        }
+        else
+        {
+          fragment = new DATFragment();
+        }
       }
     }
-
     if (fragment == nullptr)
     {
       //throw new IllegalArgumentException("Invalid segment");
@@ -198,18 +196,27 @@ namespace SAFplus
 
   }
 
-  DATFragment::DATFragment(int seqn, int ackn,const Byte* buffer, int off, int len , int isLastFrag)
+  DATFragment::DATFragment(int seqn, int ackn,const Byte* buffer, int off, int len , bool isLastFrag)
   {
-    init(ACK_FLAG, seqn, RUDP_HEADER_LEN + len);
+    if(isLastFrag==true)
+    {
+      setLast(true);
+      init(LAS_FLAG, seqn, RUDP_HEADER_LEN + len);
+    }
+    else
+    {
+      init(ACK_FLAG, seqn, RUDP_HEADER_LEN + len);
+    }
     setAck(ackn);
     m_pData = new Byte[len];
+    m_nLen= RUDP_HEADER_LEN + len;
     memcpy(m_pData, buffer + off, len);
   }
 
   int DATFragment::length()
   {
     //int dataLength = 0;
-    return (m_nLen + ReliableFragment::length() );
+    return m_nLen;
   }
 
   Byte* DATFragment::getData()
@@ -220,7 +227,7 @@ namespace SAFplus
   Byte* DATFragment::getBytes()
   {
     Byte* buffer = ReliableFragment::getBytes();
-    logDebug("MSG","FRT","copy [%d] by from mpdata   to buffer",m_nLen);
+    logTrace("MSG","FRT","copy [%d] by from mpdata   to buffer",m_nLen - RUDP_HEADER_LEN);
     memcpy(buffer+ RUDP_HEADER_LEN, m_pData , m_nLen - RUDP_HEADER_LEN);
     return buffer;
   }
@@ -237,56 +244,6 @@ namespace SAFplus
     return FRAG_DATA;
   }
   // End DATFragment class
-
-
-  //------------------------------
-  // LAST DATA Fragment
-  //------------------------------
-  //   LASFragment::LASFragment()
-  //   {
-  //
-  //   }
-  //
-  //   LASFragment::LASFragment(int seqn, int ackn,const Byte* buffer, int off, int len)
-  //   {
-  //      init(ACK_FLAG, seqn, RUDP_HEADER_LEN,1);
-  //      setAck(ackn);
-  //      m_nLen = len;
-  //      m_pData = new Byte[m_nLen];
-  //      memcpy(m_pData, buffer + off, len);
-  //   }
-  //
-  //   int LASFragment::length()
-  //   {
-  //      //int dataLength = 0;
-  //      return (m_nLen + ReliableFragment::length() );
-  //   }
-  //
-  //   Byte* LASFragment::getData()
-  //   {
-  //      return m_pData;
-  //   }
-  //
-  //   Byte* LASFragment::getBytes()
-  //   {
-  //      Byte* buffer = ReliableFragment::getBytes();
-  //      memcpy(buffer, m_pData + RUDP_HEADER_LEN, m_nLen);
-  //      return buffer;
-  //   }
-  //
-  //   void LASFragment::parseBytes(const Byte* buffer, int _off, int _len)
-  //   {
-  //      ReliableFragment::parseBytes(buffer, _off, _len);
-  //      m_nLen = _len - RUDP_HEADER_LEN;
-  //      m_pData = new Byte[m_nLen];
-  //      memcpy(m_pData, buffer + _off + RUDP_HEADER_LEN, m_nLen);
-  //   }
-  //   fragmentType LASFragment::getType()
-  //   {
-  //      return FRAG_DATA;
-  //   }
-  // End LAST DATA class
-
   SYNFragment::SYNFragment()
   {
 
@@ -445,8 +402,9 @@ namespace SAFplus
   {
     init(NAK_FLAG, seqn, RUDP_HEADER_LEN + size);
     setAck(ackn);
-    m_pArrAcks = (Byte*)malloc(size);
-    memcpy(m_pArrAcks, acks, size);
+    m_pArrAcks = (int*)malloc(size);
+    m_nNumNak=size;
+    m_pArrAcks=acks;
   }
 
   Byte* NAKFragment::getBytes()
@@ -463,18 +421,19 @@ namespace SAFplus
   {
     ReliableFragment::parseBytes(buffer, off, len);
     m_nNumNak = len - RUDP_HEADER_LEN;
-    m_pArrAcks = new Byte[m_nNumNak];
+    m_pArrAcks = new int[m_nNumNak];
     for (int i = 0; i < m_nNumNak; i++)
     {
-      m_pArrAcks[i] = (buffer[off + 4 + i] & 0xFF);
+      m_pArrAcks[i] = int(buffer[off + 4 + i] & 0xFF);
     }
   }
   fragmentType NAKFragment::getType()
   {
     return FRAG_NAK;
   }
-  Byte* NAKFragment::getACKs(int* length)
+  int* NAKFragment::getACKs(int* length)
   {
+    *length= m_nNumNak;
     return m_pArrAcks;
   }
 

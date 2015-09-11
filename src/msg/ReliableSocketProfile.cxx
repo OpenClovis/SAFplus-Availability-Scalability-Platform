@@ -1,18 +1,19 @@
 #include <ReliableFragment.hxx>
-namespace SAFplus
-{
-#define DEFAULT_SEND_QUEUE_SIZE      32;
-#define DEFAULT_RECV_QUEUE_SIZE      32;
+
+#define DEFAULT_SEND_QUEUE_SIZE      320;
+#define DEFAULT_RECV_QUEUE_SIZE      320;
 #define DEFAULT_SEGMENT_SIZE         128;
-#define DEFAULT_OUTSTANDING_SEGS     3;
-#define DEFAULT_RETRANS              3;
-#define DEFAULT_CUMULATIVE_ACKS      3;
-#define DEFAULT_OUT_OF_SEQUENCE      3;
-#define DEFAULT_AUTO_RESET           3;
+#define DEFAULT_OUTSTANDING_SEGS     6;
+#define DEFAULT_RETRANS              6;
+#define DEFAULT_CUMULATIVE_ACKS      6;
+#define DEFAULT_OUT_OF_SEQUENCE      6;
+#define DEFAULT_AUTO_RESET           6;
 #define DEFAULT_NULL_SEGMENT_TIMEOUT     2000;
 #define DEFAULT_RETRANSMISSION_TIMEOUT   600;
 #define DEFAULT_CUMULATIVE_ACK_TIMEOUT   300;
 
+namespace SAFplus
+{
   ReliableSocketProfile::ReliableSocketProfile()
   {
     //TODO remove hard code
@@ -40,14 +41,14 @@ namespace SAFplus
       int retransmissionTimeout,
       int cumulativeAckTimeout)
   {
-    validateValue("maxSendQueueSize", maxSendQueueSize, 1, 255);
-    validateValue("maxRecvQueueSize", maxRecvQueueSize, 1, 255);
+    validateValue("maxSendQueueSize", maxSendQueueSize, 1, 512);
+    validateValue("maxRecvQueueSize", maxRecvQueueSize, 1, 512);
     validateValue("maxFragmentSize", maxFragmentSize, 22, 65535);
-    validateValue("maxOutstandingSegs", maxOutstandingSegs, 1, 255);
+    validateValue("maxOutstandingSegs", maxOutstandingSegs, 1, 512);
     validateValue("maxRetrans", maxRetrans, 0, 255);
-    validateValue("maxCumulativeAcks", maxCumulativeAcks, 0, 255);
-    validateValue("maxOutOfSequence", maxOutOfSequence, 0, 255);
-    validateValue("maxAutoReset", maxAutoReset, 0, 255);
+    validateValue("maxCumulativeAcks", maxCumulativeAcks, 0, 512);
+    validateValue("maxOutOfSequence", maxOutOfSequence, 0, 512);
+    validateValue("maxAutoReset", maxAutoReset, 0, 512);
     validateValue("nullFragmentTimeout", nullFragmentTimeout, 0, 65535);
     validateValue("retransmissionTimeout", retransmissionTimeout, 100, 65535);
     validateValue("cumulativeAckTimeout", cumulativeAckTimeout, 100, 65535);

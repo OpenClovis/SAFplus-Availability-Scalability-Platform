@@ -76,10 +76,7 @@ int main(int argc, char* argv[])
   strncpy(MsgXportTestPfx,&xport.c_str()[5],3);
   MsgXportTestPfx[3] = 0;
   for (int i=0;i<3;i++) MsgXportTestPfx[i] = toupper(MsgXportTestPfx[i]);
-
-  logSeverity = LOG_SEV_MAX;
   safplusInitialize(SAFplus::LibDep::LOG);
-  logSeverity = LOG_SEV_MAX;
   ClPlugin* api = NULL;
   if (1)
   {
@@ -113,9 +110,12 @@ int main(int argc, char* argv[])
       logInfo("TST","MSG","Msg Transport [%s], node [%u] maxPort [%u] maxMsgSize [%u]", xp->type, xCfg.nodeId, xCfg.maxPort, xCfg.maxMsgSize);
       MsgSocketServerReliable sockServer(3,xp);
       MsgSocketClientReliable* connectionSocket = sockServer.accept();
+      logInfo("TST","MSG","wait to receive from sender"	);
       do
       {
-        sleep(2);
+      unsigned char* buffer = new unsigned char[50000];
+      int count = connectionSocket->readReliable(buffer,0,50000);
+      logInfo("TST","MSG","receive [%d] byte from sender",count);
       }while(1);
      }
   }
