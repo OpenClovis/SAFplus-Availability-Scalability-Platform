@@ -1,6 +1,5 @@
 S7 := 1
-include ./mk/preface.mk
-
+include ./src/mk/preface.mk
 
 export PKG_NAME=safplus
 export PKG_VER ?=7.0
@@ -16,15 +15,15 @@ $(info TOP DIR is $(TOP_DIR))
 all: rpm deb
 
 prepare:
-	@echo  "This target prepares your environment for package generation.  You only need to run this once (as root)"
+	echo  "This target prepares your environment for package generation.  You only need to run this once (as root)"
 	apt-get install dh-make
 
 archive: $(TAR_NAME)
 
 $(TAR_NAME):
 	$(info entering $(TOP_DIR))
-	echo "Generating $(TAR_NAME) archive"; \
-	tar cvzf $(TAR_NAME) -C $(TOP_DIR) . --exclude=build --exclude=target --exclude=images --exclude=boost_1_55_0;\
+	echo "Generating $(TAR_NAME) archive"; 
+	tar cvzf $(TAR_NAME) -C $(TOP_DIR)  --exclude=build --exclude=target --exclude=images --exclude=boost_1_55_0;
 	mkdir -p $(BUILD)
 
 rpm: archive
@@ -53,11 +52,11 @@ rpm: archive
 	cp $(SRPMS_DIR)/*.rpm $(BUILD)
 	rm -rf $(PKG_DIR)
 
-deb-src:
-	@echo TBD: create source install package
+deb-src: archive
+	echo TBD: create source install package
 
 
-$(BIN_DIR)/safplus_amf: 
+$(BIN_DIR)/safplus_amf:
 	cd src && make USE_DIST_LIB=1
 
 
@@ -73,12 +72,12 @@ deb: $(BIN_DIR)/safplus_amf
 	$(eval DEB_TOP_DIR=$(PKG_DIR)/$(PKG_NAME)-$(PKG_VER))
 	mkdir -p $(DEB_TOP_DIR)
 	#tar xvzf $(TAR_NAME) -C $(DEB_TOP_DIR)
-        touch $(TAR_NAME)
-        cp -rf $(BIN_DIR) $(PKG_DIR)/<whatever>
-        cp -rf $(PLUGIN_DIR) $(PKG_DIR)/<whatever>
-        cp -rf $(LIB_DIR) $(PKG_DIR)/<whatever>
-        cp -rf $(INC_DIR) $(PKG_DIR)/<whatever>  # Copy symlinks as full files
-
+        #touch $(TAR_NAME)
+	cp -rf $(BIN_DIR) $(DEB_TOP_DIR)
+	cp -rf $(PLUGIN_DIR) $(DEB_TOP_DIR)
+	cp -rf $(LIB_DIR) $(DEB_TOP_DIR)
+	cp -rf $(SAFPLUS_INC_DIR) $(DEB_TOP_DIR)
+	cp -rf $(TOP_DIR)/DEB/Makefile $(DEB_TOP_DIR)
 	$(eval DEBIAN_DIR:=$(DEB_TOP_DIR)/debian)
 	echo $(DEBIAN_DIR)
 	mkdir -p  $(DEBIAN_DIR)
@@ -89,9 +88,10 @@ deb: $(BIN_DIR)/safplus_amf
 	else \
 	     sed -i '/Architecture:/c Architecture: i386' $(DEBIAN_DIR)/control; \
 	fi;
+	sed -i '/Source:/c Source: safplus\nSection: lib' $(DEBIAN_DIR)/control
 	sed -i '/prefix:/c prefix=/opt/$(PKG_NAME)/$(PKG_VER)/sdk' $(DEBIAN_DIR)/postrm
 	sed -i '/prefix:/c export PREFIX?=/opt/$(PKG_NAME)/$(PKG_VER)/sdk\nexport PACKAGENAME?=$(PKG_NAME)' $(DEBIAN_DIR)/rules
-	sed -i '/Destdir:/c export DESTDIR?=$(DEBIAN_DIR)/$(PKG_NAME)\nexport LIBRARY_DIR=$(DEB_TOP_DIR)/src/target/$(shell uname -p)/$(shell uname -r)' $(DEBIAN_DIR)/rules
+	sed -i '/Destdir:/c export DESTDIR?=$(DEBIAN_DIR)/$(PKG_NAME)\nexport LIBRARY_DIR=$(DEB_TOP_DIR)' $(DEBIAN_DIR)/rules
 	sed -i '/$(PKG_NAME):/c$(PKG_NAME) ($(subst .,-,$(PKG_VER))-$(PKG_REL)) stable; urgency=medium' $(DEBIAN_DIR)/changelog
 	cd $(DEB_TOP_DIR) && dpkg-buildpackage -uc -us -b
 	cp $(PKG_DIR)/*.deb $(BUILD)
@@ -102,12 +102,13 @@ deb_install:
 	for value in $(REQ_FILES);do \
         cp -r $$value $(DESTDIR)/$(PREFIX); \
         done
-	cp -r $(PWD)/.git $(DESTDIR)/$(PREFIX)
+	# Need to uncomment the below line to include git repository in the SAFPlus Debian package.
+	#cp -r $(PWD)/.git $(DESTDIR)/$(PREFIX)
 deb_clean:
 	rm -rf debian/$(PACKAGENAME).*debhelper
 	rm -rf debian/$(PACKAGENAME).substvars
 deb_build:
-	cd src && make USE_DIST_LIB=1
+	echo "Not required"
 
 clean:
 	rm -rf $(TAR_NAME) $(BUILD)
