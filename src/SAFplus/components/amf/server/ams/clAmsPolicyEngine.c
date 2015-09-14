@@ -15591,16 +15591,21 @@ clAmsPeCompAssignCSIExtended(
              * succeeded, so SU assignment and rest of logic works.
              */
 
+            ClRcT error = CL_OK;
             if ( haState == CL_AMS_HA_STATE_ACTIVE )
             {
-                AMS_CALL ( clAmsPeCompInstantiate(comp) );
+                error = clAmsPeCompInstantiate(comp);
             }
-            else
+
+            /*
+             * Because of non response invocation for npnp, we create pseudo invocation for this component,
+             * in order to inform CSI dependents its done active assignment. Then, its dependents continue to
+             * work on assignment.
+             */
+            if (!error)
             {
                 ClInvocationT invocation = 0;
-
                 AMS_CALL ( clAmsInvocationCreateExtended( CL_AMS_CSI_SET_CALLBACK, comp, csi, reassignCSI, &invocation) );
-
                 AMS_CALL ( clAmsPeCompAssignCSICallback( comp, invocation, CL_OK, CL_AMS_ENTITY_SWITCHOVER_IMMEDIATE));
             }
 
