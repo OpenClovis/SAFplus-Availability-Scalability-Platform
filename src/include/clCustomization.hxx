@@ -51,7 +51,7 @@ namespace SAFplusI
   enum
     {
     MsgSafplusSendReplyRetryInterval = 4000,   //? Default time to wait before retrying a message that expects a reply (uses sendReply API)
-
+    RpcRetryInterval = 4000,  //? Default time to wait before retrying a RPC that expects a reply
     };
 
   /* THREADS */
@@ -119,7 +119,7 @@ namespace SAFplusI
   enum
     {
     UdpTransportMaxMsgSize = 65507,  // 65,535 - 8 byte UDP header - 20 byte IP header  (http://en.wikipedia.org/wiki/User_Datagram_Protocol).  This is defined here so you can artifically limit the packet size.
-    UdpTransportNumPorts = 2048,  // Limit the ports to a range for no particular reason
+    UdpTransportNumPorts = 256,  // Limit the ports to a range for no particular reason
     UdpTransportStartPort = 17000,  // Pick a random spot in the UDP port range so our ports don't overlap common services
     UdpTransportMaxMsg = 1024,
     UdpTransportMaxFragments = 1024,

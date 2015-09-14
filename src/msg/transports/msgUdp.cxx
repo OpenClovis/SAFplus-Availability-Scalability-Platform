@@ -120,7 +120,7 @@ namespace SAFplus
      myaddr.sin_addr.s_addr = htonl(INADDR_ANY);  // TODO: bind to the interface specified in env var
      if (port == 0) // any port
        myaddr.sin_port = htons(0);
-     else myaddr.sin_port = htons(port + SAFplusI::UdpTransportStartPort + node);
+     else myaddr.sin_port = htons(port + SAFplusI::UdpTransportStartPort + (SAFplusI::UdpTransportNumPorts*node));
 
      if (bind(sock, (struct sockaddr *)&myaddr, sizeof(myaddr)) < 0) 
        {
@@ -196,7 +196,7 @@ namespace SAFplus
             }
           }
 
-        to[msgCount].sin_port=htons(msg->port + SAFplusI::UdpTransportStartPort + node);
+        to[msgCount].sin_port=htons(msg->port + SAFplusI::UdpTransportStartPort + (SAFplusI::UdpTransportNumPorts*node));
 
         curvec->msg_hdr.msg_controllen = 0;
         curvec->msg_hdr.msg_control = NULL;
@@ -350,7 +350,7 @@ if(setsockopt(socket, SOL_SOCKET, SO_RCVTIMEO, &tv, sizeof(tv)) < 0)
               cur->node = ntohl(srcAddr->sin_addr.s_addr) & (((Udp*)transport)->nodeMask);
             }
 
-          cur->port = ntohs(srcAddr->sin_port) - SAFplusI::UdpTransportStartPort + node;
+          cur->port = ntohs(srcAddr->sin_port) - SAFplusI::UdpTransportStartPort - (SAFplusI::UdpTransportNumPorts*cur->node);
 
           MsgFragment* curFrag = cur->firstFragment;
           for (int fragIdx = 0; (fragIdx < msgs[msgIdx].msg_hdr.msg_iovlen) && msgLen; fragIdx++,curFrag=curFrag->nextFragment)

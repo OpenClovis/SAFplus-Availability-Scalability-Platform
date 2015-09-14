@@ -80,7 +80,7 @@ class PyDBAL():
         self.suppliedData = None
         self.dbName = os.path.splitext(fileName)[0]
         self.docRoot = docRoot
-        pyDbal.initializeDbal(self.dbName, maxKeySize, maxRecordSize)
+        pyDbal.initialize(self.dbName, maxKeySize, maxRecordSize)
 
     """ Load cfg xml and save to binary database """
     def LoadXML(self, xmlFile = None):
@@ -108,11 +108,7 @@ class PyDBAL():
         #Done customize xpath
         #Unit test http://xmltoolbox.appspot.com/xpath_generator.html
         for (key, value) in sorted(self.xpathDB.items()):
-            try:
-                self.Write(key, value)
-            except Exception, e:
-                #Duplicate key
-                pass
+          self.Write(key, value)
 
     """ Load cfg xml and save to binary database """
     def _load(self, element, xpath = ''):
@@ -290,7 +286,7 @@ class PyDBAL():
         file.close()
 
     def Finalize(self):
-        pyDbal.finalizeDbal()
+        pyDbal.finalize()
 
     def Iterators(self, xpath=None):
         if xpath:
@@ -309,13 +305,6 @@ class PyDBAL():
     def Read(self, key):
         return pyDbal.read(key)
 
-    def Replace(self, key, data):
-        if key in self.Iterators():
-            try:
-                return pyDbal.replace(key, data)
-            except Exception, e:
-                return e
-        raise ValueError(0x13)
 
 
 def main(argv):

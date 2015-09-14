@@ -24,7 +24,7 @@ namespace SAFplus
     virtual void lock(int amt=1) = 0;
     virtual void unlock(int amt=1) = 0;
     virtual bool try_lock(int amt=1) = 0;
-    virtual bool timed_lock(uint64_t mSec,int amt=1) = 0;
+    virtual bool timed_lock(uint64_t mSec,int amt=1) = 0;  //? returns TRUE if the lock was taken, FALSE if the time elapsed.
   };
 
   /* Interprocess semaphore must use SYS-V semaphores because they can be automatically released on process death.  Api signatures are very similar to c++ boost library. */
@@ -42,7 +42,7 @@ namespace SAFplus
     void lock(int amt=1);
     void unlock(int amt=1);
     bool try_lock(int amt=1);
-    bool timed_lock(uint64_t mSec,int amt=1);
+    bool timed_lock(uint64_t mSec,int amt=1); //? returns TRUE if the lock was taken, FALSE if the time elapsed.
   };
 
 
@@ -63,7 +63,7 @@ namespace SAFplus
     void lock(int amt=1);   // This is not exclusive -- multiple entities can hold the lock at the same time.
     void unlock(int amt=1);
     bool try_lock(int amt=1);
-    bool timed_lock(uint64_t mSec,int amt=1);
+    bool timed_lock(uint64_t mSec,int amt=1); //? returns TRUE if the lock was taken, FALSE if the time elapsed.
 
     void close();  // close the gate so all lockers block on lock, returns when no entity has a lock.
     void open();   // open the gate to allow lockers to proceed.
@@ -143,7 +143,7 @@ namespace SAFplus
     void unlock(int amt=1);  // Adds one to the semaphore
     bool blockUntil(uint val = 0, uint mSec=0xffffffff);   // wake me when the count is val or below. 
     bool try_lock(int amt=1);
-    bool timed_lock(uint64_t mSec,int amt=1);
+    bool timed_lock(uint64_t mSec,int amt=1); //? returns TRUE if the lock was taken, FALSE if the time elapsed.
   };
 };
 

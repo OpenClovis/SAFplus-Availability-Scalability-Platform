@@ -50,7 +50,7 @@ const char* ModeStr = 0;
 int main(int argc, char* argv[])
 {
   logEchoToFd = 1;  // echo logs to stdout for debugging
-  SAFplus::logSeverity = SAFplus::LOG_SEV_DEBUG;
+  SAFplus::logSeverity = SAFplus::LOG_SEV_TRACE;
   //SAFplus::logCompName = "TSTTRA";
   std::string xport("clMsgUdp.so");
   boost::program_options::options_description desc("Allowed options");
@@ -76,10 +76,7 @@ int main(int argc, char* argv[])
   strncpy(MsgXportTestPfx,&xport.c_str()[5],3);
   MsgXportTestPfx[3] = 0;
   for (int i=0;i<3;i++) MsgXportTestPfx[i] = toupper(MsgXportTestPfx[i]);
-
-  logSeverity = LOG_SEV_MAX;
   safplusInitialize(SAFplus::LibDep::LOG);
-  logSeverity = LOG_SEV_MAX;
   ClPlugin* api = NULL;
   if (1)
   {
@@ -113,9 +110,20 @@ int main(int argc, char* argv[])
       logInfo("TST","MSG","Msg Transport [%s], node [%u] maxPort [%u] maxMsgSize [%u]", xp->type, xCfg.nodeId, xCfg.maxPort, xCfg.maxMsgSize);
       MsgSocketServerReliable sockServer(3,xp);
       MsgSocketClientReliable* connectionSocket = sockServer.accept();
+      logInfo("TST","MSG","wait to receive from sender"	);
+
+      unsigned char* buffer = new unsigned char[5000000];
+      int count = connectionSocket->readReliable(buffer,0,5000000);
+      logInfo("TST","MSG","receive [%d] byte from sender",count);
+
+
+      logInfo("TST","MSG","wait to receive from sender"	);
+      unsigned char* buffer2 = new unsigned char[5000000];
+      int count2 = connectionSocket->readReliable(buffer2,0,5000000);
+      logInfo("TST","MSG","receive [%d] byte from sender",count2);
       do
       {
-        sleep(2);
+        sleep(1);
       }while(1);
      }
   }

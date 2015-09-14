@@ -10,12 +10,6 @@ namespace SAFplus
 void FaultSharedMem::init(SAFplus::Handle active)
 {
     faultSharedMemoryObjectName = "SAFplusFault";
-    if (SAFplus::ASP_NODENAME[0] != 0)
-      {
-        faultSharedMemoryObjectName.append("_");
-        faultSharedMemoryObjectName.append(SAFplus::ASP_NODENAME);
-      }
-
     faultMsm = boost::interprocess::managed_shared_memory(boost::interprocess::open_or_create, faultSharedMemoryObjectName.c_str(), SAFplusI::FaultSharedMemSize);
     faultMap = faultMsm.find_or_construct<SAFplus::FaultShmHashMap>("faults")  (faultMsm.get_allocator<SAFplus::FaultShmMapPair>());
     if(active == INVALID_HDL)

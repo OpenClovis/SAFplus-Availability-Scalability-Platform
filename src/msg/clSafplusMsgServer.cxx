@@ -102,8 +102,9 @@ namespace SAFplus
                         FaultState fs = fault->getFaultState(h);
                         if (fs==FaultState::STATE_UP)
                           {
-                            fault->notifyNoResponse(destination);  // Tell the fault manager that I'm having a problem.
+                            fault->notifyNoResponse(h);  // Tell the fault manager that I'm having a problem.
                             SendMsg(destination, buffer, length, msgtype);  // retry
+                            break;  // found what the fault manager is tracking so I'm done here
                           }
                         else if (fs==FaultState::STATE_UNDEFINED)
                           {

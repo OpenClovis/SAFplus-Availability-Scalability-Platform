@@ -64,8 +64,8 @@
       </instantiate>
       <instantiationSuccessDuration>60000</instantiationSuccessDuration>
       <maxActiveAssignments>1</maxActiveAssignments>
-      <maxDelayedInstantiations>1</maxDelayedInstantiations>
-      <maxInstantInstantiations>1</maxInstantInstantiations>
+      <maxDelayedInstantiations>100</maxDelayedInstantiations>
+      <maxInstantInstantiations>100</maxInstantInstantiations>
       <maxStandbyAssignments>1</maxStandbyAssignments>
       <proxy />
       <recovery>Restart</recovery>
@@ -79,14 +79,14 @@
     <Component name="c1">
       <capabilityModel>x_active_or_y_standby</capabilityModel>
       <compCategory>1</compCategory>
-      <delayBetweenInstantiation>20000</delayBetweenInstantiation>
+      <delayBetweenInstantiation>5000</delayBetweenInstantiation>
       <instantiate>
         <command>../test/exampleSafApp c1</command>
         <timeout>30000</timeout>
       </instantiate>
       <instantiationSuccessDuration>60000</instantiationSuccessDuration>
       <maxActiveAssignments>1</maxActiveAssignments>
-      <maxDelayedInstantiations>2</maxDelayedInstantiations>
+      <maxDelayedInstantiations>100</maxDelayedInstantiations>
       <maxInstantInstantiations>0</maxInstantInstantiations>
       <maxStandbyAssignments>1</maxStandbyAssignments>
       <proxy />

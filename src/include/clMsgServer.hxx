@@ -16,6 +16,7 @@ namespace SAFplus
   class MsgHandler;
   class MsgTransportPlugin_1;
   class MsgSocket;
+  class Fault;
 
   //typedef void (*MsgHandler) (ClIocAddressT from, MsgServer* q, ClPtrT msg, uint_t msglen, ClPtrT cookie);
 
@@ -120,6 +121,8 @@ namespace SAFplus
       }
 
     MsgPool& getMsgPool() { return *sock->msgPool; }
+
+    Fault* fault;  //? You need to initialize this if you want the message server to gain knowledge of system faults
 
   protected:
     void Shutdown();

@@ -47,6 +47,11 @@ namespace SAFplus
       return fragNumber;
     }
 
+    int getSequenceNumber()
+    {
+      return fragNumber;
+    }
+
     int setSequenceNumber(int n)
     {
       fragNumber = n;
@@ -144,8 +149,9 @@ namespace SAFplus
   };
   enum TimerStatus
   {
-    TIMER_RUN =0,
-    TIMER_PAUSE
+    TIMER_RUN =0 ,
+    TIMER_PAUSE,
+    TIMER_UNDEFINE
   };
   class SAFplusTimer
   {
@@ -154,6 +160,7 @@ namespace SAFplus
     TimerStatus status;
     SAFplus::Mutex timerLock;
     int interval;
+    bool started;
   };
 
   class MsgSocketReliable : public MsgSocketAdvanced //, SAFPlusLockable
@@ -162,8 +169,8 @@ namespace SAFplus
     /*
      * When this timer expires, the connection is considered broken.
      */
-    int sendQueueSize = 32; /* Maximum number of received segments */
-    int recvQueueSize = 32; /* Maximum number of sent segments */
+    int sendQueueSize = 320; /* Maximum number of received segments */
+    int recvQueueSize = 320; /* Maximum number of sent segments */
     int sendBufferSize;
     int recvBufferSize;
     bool isClosed    = false; //socket status closed
@@ -172,7 +179,6 @@ namespace SAFplus
     bool iskeepAlive = true; //socket status keep alive
     int  state     = connectionState::CONN_CLOSED;
     int  timeout   = 0; /* (ms) */ //wait to receive fragment
-    queueInfomation queueInfo; //socket queue Infomation
     boost::thread rcvThread; //thread to receive and handle fragment
     ReliableFragmentList unackedSentQueue; // list of fragment sended without receive ACK
     ReliableFragmentList outOfSeqQueue;  // list of out-of-sequence fragments
@@ -227,6 +233,7 @@ namespace SAFplus
     void init();
 
   public:
+    queueInfomation queueInfo; //socket queue Infomation
     void handleReliableSocketThread(void);
     Handle destination; //destination of this connection (node id, port)
     uint_t messageType; //type of the message

@@ -25,6 +25,8 @@
 #include "clMsgServer.hxx"
 #include "clMsgApi.hxx"
 #include <inttypes.h>
+#include <clFaultApi.hxx>
+
 #include <boost/iostreams/stream.hpp>
 
 using namespace std;
@@ -125,38 +127,86 @@ namespace SAFplus
             else
               {
                 overDest = dest;
+                destination = dest;
               }
 
-            try
+            bool retry=true;
+            while (retry)
               {
-                //string output;
-                //rpcMsgReq.SerializeToString(&output);
-                //int size = output.size();
-                //svr->SendMsg(overDest, (void *) output.c_str(), size, msgSendType);
-                MsgPool& pool = svr->getMsgPool();
-                Message* msg = pool.allocMsg();
-                msg->setAddress(overDest);
-                if (1)
+                try
                   {
-                  boost::iostreams::stream<MessageOStream>  mos(msg);
-                  rpcMsgReq.SerializeToOstream(&mos);
+                    //string output;
+                    //rpcMsgReq.SerializeToString(&output);
+                    //int size = output.size();
+                    //svr->SendMsg(overDest, (void *) output.c_str(), size, msgSendType);
+                    MsgPool& pool = svr->getMsgPool();
+                    Message* msg = pool.allocMsg();
+                    msg->setAddress(overDest);
+                    if (1)
+                      {
+                        boost::iostreams::stream<MessageOStream>  mos(msg);
+                        rpcMsgReq.SerializeToOstream(&mos);
+                      }
+                    svr->SendMsg(msg, msgSendType);
                   }
-                svr->SendMsg(msg, msgSendType);
-              }
-            catch (Error &e)
-              {
-                logError("RPC", "REQ", "Serialization Error: %s", e.what());
-              }
+                catch (Error &e)
+                  {
+                    logError("RPC", "REQ", "Serialization Error: %s", e.what());
+                  }
 
-            /*
-             * Do not handle block on receiving response
-             */
-            if (isRequestWithNoResponse)
-              return;
+                /*
+                 * Do not handle block on receiving response
+                 */
+                if (isRequestWithNoResponse)
+                  return;
 
-            if (&wakeable == &SAFplus::BLOCK)
-              {
-              blocker.lock(1);  // TODO: Handle dropped packets: use timed_lock with either a message retry or by raising exception? 
+                if (&wakeable == &SAFplus::BLOCK)
+                  {
+                    if (!blocker.timed_lock(SAFplusI::RpcRetryInterval,1))
+                      {
+                        logWarning("RPC", "REQ", "RPC reply timeout.  Waited [%d] ms",SAFplusI::RpcRetryInterval);
+                        SAFplus::Handle h = destination;
+                        
+                        if (!svr->fault) // A fault manager wasn't installed in this message server so I can't do discovery of node/process failures
+                          {
+                            assert(0);  // TODO: raise exception
+                          }
+                    
+                        for (int i=0;i<3;i++)  // Loop around 3 times checking this handle, then node/process, and finally just the node
+                          {
+                            FaultState fs = svr->fault->getFaultState(h);
+                            if (fs==FaultState::STATE_UP)
+                              {
+                                svr->fault->notifyNoResponse(h);  // Tell the fault manager that I'm having a problem.
+                                retry=true;
+                                break;
+                              }
+                            else if (fs==FaultState::STATE_UNDEFINED)
+                              {
+                                // Look at fault state of containing entity?
+                                if (i==0) h = getProcessHandle(destination.getProcess(), destination.getNode());                      
+                                if (i==1) h = getNodeHandle(destination.getNode());
+                                if (i==2)  // No information is stored in the fault manager... should never happen
+                                  {
+                                    //            throw Error(Error::SAFPLUS_ERROR, Error::MISCONFIGURATION, "Invalid messaging port [0]", __FILE__, __LINE__);
+                                    logCritical("MSG","SVR", "Fault manager has no information about this destination [%" PRIx64 ":%" PRIx64 "]", destination.id[0],destination.id[1]);
+                                    assert(0); // TODO: raise exception!!! //return NULL; 
+                                  }
+                              }
+                            else if (fs==FaultState::STATE_DOWN)
+                              {
+                                    assert(0); // TODO: raise exception!!! //return NULL;                                 
+                              }
+                            else 
+                              {
+                                assert(!"Impossible fault state");
+                              }
+                          }
+                           retry = true;
+
+                      }
+                    else retry = false;
+                  }
               }
           }
 

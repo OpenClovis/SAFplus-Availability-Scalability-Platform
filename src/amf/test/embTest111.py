@@ -49,7 +49,7 @@ def startupAmf(tgtDir,outfile=None,infile="/dev/null"):
     cwd = os.path.abspath(tgtDir + "/bin")
     args = (cwd + "/safplus_amf",)
     amf = subprocess.Popen(args,bufferingSize,executable=None, stdin=infile, stdout=outfile, stderr=outfile, preexec_fn=None, close_fds=True, shell=False, cwd=cwd, env=None, universal_newlines=False, startupinfo=None, creationflags=0)
-    time.sleep(30)  # TODO: without a sleep here, process is hanging waiting for mgt checkpoint gate.  I think that this process is being chosen as active replica (which should be ok) but for some reason is not working
+    time.sleep(20)  # TODO: without a sleep here, process is hanging waiting for mgt checkpoint gate.  I think that this process is being chosen as active replica (which should be ok) but for some reason is not working
 
 def connectToAmf():
   global SAFplusInitialized
@@ -93,7 +93,7 @@ def waitForSiRecovery(si,maxTime=20):
     if count<maxTime:
       print now() + ": New active %s, new standby %s" % (active, standby)
     else:
-      raise TestFailed(now() + ": Failover did not work: active %s, standby %s" % (active,standby))
+      raise TestFailed(now() + ": Failover did not work: active %s, standby %s waited %d seconds" % (active,standby,maxTime))
     return (active,standby)
   
 
@@ -103,6 +103,7 @@ def mgtHammer():
 
 
 def main(tgtDir):
+    os.environ["ASP_NODENAME"] = "sc0"
     try:
       amfpid = subprocess.check_output(["pidof","safplus_amf"])
       print "AMF is already running as process [%d]" % int(amfpid.strip()) 

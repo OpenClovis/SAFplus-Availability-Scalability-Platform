@@ -196,7 +196,7 @@ namespace SAFplus
 
     // clAspLocalId = ASP_NODEADDR;  // set clAspLocalId to ASP_NODEADDR regardless of the existence of the env var because the app could have set ASP_NODEADDR explicitly
 
-    SYSTEM_CONTROLLER = clParseEnvBoolean("SYSTEM_CONTROLLER");
+    SYSTEM_CONTROLLER = clParseEnvBoolean("SAFPLUS_SYSTEM_CONTROLLER");
     ASP_SC_PROMOTE = clParseEnvBoolean("ASP_SC_PROMOTE");
     clWithoutAmf = clParseEnvBoolean("ASP_WITHOUT_CPM");
 

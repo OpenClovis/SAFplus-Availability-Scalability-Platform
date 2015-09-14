@@ -12,6 +12,7 @@ typedef unsigned char  Byte;  /* 8 bits */
 #define NUL_FLAG   0x08
 #define CHK_FLAG   0x04
 #define FIN_FLAG   0x02
+#define LAS_FLAG   0x01
 #define SYN_HEADER_LEN  (RUDP_HEADER_LEN + 16)
 
 /*
@@ -54,6 +55,8 @@ namespace SAFplus
     int m_nSeqn;         /* Sequence number field */
     int m_nAckn;         /* Acknowledgment number field */
     int m_nRetCounter;   /* Retransmission counter */
+    bool isLast;
+
   protected:
     void init(int _flags, int _seqn, int len, int isLastFrag=0);
     virtual void parseBytes(const Byte* buffer, int _off, int _len);
@@ -65,7 +68,14 @@ namespace SAFplus
     int length();
     int getAck();
     int getRetxCounter();
-    bool isLast();
+    void setLast(bool isLastFragment)
+    {
+      isLast=isLastFragment;
+    }
+    bool isLastFragment()
+    {
+      return isLast;
+    }
     void setAck(int _ackn);
     void setRetxCounter(int _retCounter);
     virtual fragmentType getType();
@@ -90,11 +100,10 @@ namespace SAFplus
     Byte* m_pData;
     int m_nLen;
   protected:
-
     virtual void parseBytes(const Byte* buffer, int _off, int _len);
   public:
     DATFragment();
-    DATFragment(int seqn, int ackn,const Byte* buffer, int off, int len,int isLastFrag=0);
+    DATFragment(int seqn, int ackn,const Byte* buffer, int off, int len,bool isLastFrag=0);
     Byte* getData();
     int length();
     virtual Byte* getBytes();
@@ -158,7 +167,7 @@ namespace SAFplus
   class NAKFragment: public ReliableFragment
   {
   private:
-    Byte* m_pArrAcks;
+    int* m_pArrAcks;
     int m_nNumNak;
   protected:
 
@@ -166,7 +175,7 @@ namespace SAFplus
   public:
     NAKFragment();
     NAKFragment(int seqn, int ackn,  int* acks, int size);
-    Byte* getACKs(int* length);
+    int* getACKs(int* length);
     virtual Byte* getBytes();
     virtual fragmentType getType();
   }; // End NAK Fragment class

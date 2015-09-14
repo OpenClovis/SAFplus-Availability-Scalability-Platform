@@ -48,7 +48,7 @@ const char* ModeStr = 0;
 int main(int argc, char* argv[])
 {
   logEchoToFd = 1;  // echo logs to stdout for debugging
-  SAFplus::logSeverity = SAFplus::LOG_SEV_DEBUG;
+  SAFplus::logSeverity = SAFplus::LOG_SEV_TRACE;
   //SAFplus::logCompName = "TSTTRA";
   std::string xport("clMsgUdp.so");
   boost::program_options::options_description desc("Allowed options");
@@ -74,10 +74,7 @@ int main(int argc, char* argv[])
   strncpy(MsgXportTestPfx,&xport.c_str()[5],3);
   MsgXportTestPfx[3] = 0;
   for (int i=0;i<3;i++) MsgXportTestPfx[i] = toupper(MsgXportTestPfx[i]);
-
-  logSeverity = LOG_SEV_MAX;
   safplusInitialize(SAFplus::LibDep::LOG);
-  logSeverity = LOG_SEV_MAX;
   ClPlugin* api = NULL;
   if (1)
   {
@@ -109,12 +106,22 @@ int main(int argc, char* argv[])
       clTestCaseStart(("MXP-%3s-%3s.TC001: initialization",MsgXportTestPfx,ModeStr));
       MsgTransportConfig xCfg = xp->initialize(msgPool,clusterNodes);
       logInfo("TST","MSG","Msg Transport [%s], node [%u] maxPort [%u] maxMsgSize [%u]", xp->type, xCfg.nodeId, xCfg.maxPort, xCfg.maxMsgSize);
-      Handle destination = SAFplus::getProcessHandle(3,120);
+      Handle destination = SAFplus::getProcessHandle(3,122);
       MsgSocketReliable sockclient(4,xp,destination);
       printf("init socket : done \n");
-      unsigned char* buffer = new unsigned char[10000];
-      memset( buffer, 'c', sizeof(unsigned char)*10000 );
-      sockclient.writeReliable(buffer,0,10000);
+      int i=1;
+
+      sleep(1);
+      printf("send msg 1");
+      unsigned char* buffer = new unsigned char[1000000];
+      memset( buffer, 'c', sizeof(unsigned char)*(1000000));
+      sockclient.writeReliable(buffer,0,1000000);	
+
+      sleep(2);
+      printf("send msg 2");
+      unsigned char* buffer2 = new unsigned char[1500000];
+      memset( buffer2, 'c', sizeof(unsigned char)*(1500000));
+      sockclient.writeReliable(buffer2,0,1500000);
       do
       {
         sleep(2);

@@ -80,7 +80,7 @@ enum
   SC_ELECTION_BIT = 1<<8,           // This bit is set in the credential if the node is a system controller, making SCs preferred 
   STARTUP_ELECTION_DELAY_MS = 2000,  // Wait for 5 seconds during startup if nobody is active so that other nodes can arrive, making the initial election not dependent on small timing issues. 
 
-  REEVALUATION_DELAY = 20000, //? How long to wait (max) before reevaluating the cluster
+  REEVALUATION_DELAY = 5000, //? How long to wait (max) before reevaluating the cluster
   };
 
 static void sigChildHandler(int signum)
@@ -649,7 +649,9 @@ int main(int argc, char* argv[])
 
   if (parseArgs(argc,argv)<=0) return -1;
 
-  //clAspLocalId  = SAFplus::ASP_NODEADDR;  // TODO: remove clAspLocalId
+  // GAS DEBUG: Normally we would get these from the environment
+  if (SAFplus::ASP_NODENAME[0] == 0) strcpy(SAFplus::ASP_NODENAME,"sc0");  // TEMPORARY initialization
+  assert(SAFplus::ASP_NODENAME);
 
   SafplusInitializationConfiguration sic;
   sic.iocPort     = SAFplusI::AMF_IOC_PORT;
@@ -657,6 +659,13 @@ int main(int argc, char* argv[])
   sic.msgThreads  = MAX_HANDLER_THREADS;
   safplusInitialize( SAFplus::LibDep::FAULT | SAFplus::LibDep::GRP | SAFplus::LibDep::CKPT | SAFplus::LibDep::LOG, sic);
   //timerInitialize(NULL);
+
+  // Should be loaded from the environment during safplusInitialize.  But if it does not exist in the environment, override to true for the AMF rather then false which is default for non-existent variables.
+  char* val = getenv("SAFPLUS_SYSTEM_CONTROLLER");
+  if (val == NULL) // its not defined
+    {
+    SAFplus::SYSTEM_CONTROLLER = 1;      
+    }
 
   logAlert(LogArea,"INI","Welcome to OpenClovis SAFplus version %d.%d.%d %s %s", SAFplus::VersionMajor, SAFplus::VersionMinor, SAFplus::VersionBugfix, __DATE__, __TIME__);
 
@@ -715,11 +724,6 @@ int main(int argc, char* argv[])
   //service.startComponent(hdl,&req, &resp);
 #endif
   //sleep(10000);
-
-  // GAS DEBUG:
-  SAFplus::SYSTEM_CONTROLLER = 1;  // Normally we would get this from the environment
-  if (SAFplus::ASP_NODENAME[0] == 0) strcpy(SAFplus::ASP_NODENAME,"sc0");  // TEMPORARY initialization
-  assert(SAFplus::ASP_NODENAME);
 
 
   logInfo(LogArea,"NAM", "Registering this node [%s] as handle [%" PRIx64 ":%" PRIx64 "]", SAFplus::ASP_NODENAME, myHandle.id[0],myHandle.id[1]);
