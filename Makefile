@@ -1,3 +1,7 @@
+S7 := 1
+include ./mk/preface.mk
+
+
 export PKG_NAME=safplus
 export PKG_VER ?=7.0
 export PKG_REL ?=1
@@ -11,15 +15,19 @@ $(info TOP DIR is $(TOP_DIR))
 
 all: rpm deb
 
-gen_archive:
+prepare:
+	@echo  "This target prepares your environment for package generation.  You only need to run this once (as root)"
+	apt-get install dh-make
+
+archive: $(TAR_NAME)
+
+$(TAR_NAME):
 	$(info entering $(TOP_DIR))
-	if [ ! -f $(TAR_NAME) ]; \
-	then \
-	     echo "Genearting $(TAR_NAME) archive"; \
-	     tar cvzf $(TAR_NAME) -C $(TOP_DIR) . --exclude=build ;\
-	fi;
+	echo "Generating $(TAR_NAME) archive"; \
+	tar cvzf $(TAR_NAME) -C $(TOP_DIR) . --exclude=build --exclude=target --exclude=images --exclude=boost_1_55_0;\
 	mkdir -p $(BUILD)
-rpm: gen_archive
+
+rpm: archive
 	$(info Packing the $(PKG_NAME) in RPM)
 	$(eval PKG_DIR:=$(dir $(TOP_DIR))rpmbuild) 
 	$(info PKG_DIR is $(PKG_DIR))
@@ -44,16 +52,33 @@ rpm: gen_archive
 	cp $(RPMS_DIR)/$(shell uname -p)/*.rpm $(BUILD)
 	cp $(SRPMS_DIR)/*.rpm $(BUILD)
 	rm -rf $(PKG_DIR)
-deb: gen_archive
+
+deb-src:
+	@echo TBD: create source install package
+
+
+$(BIN_DIR)/safplus_amf: 
+	cd src && make USE_DIST_LIB=1
+
+
+deb: $(BIN_DIR)/safplus_amf
 	$(info Packing the $(PKG_NAME) in DEBIAN)
+	$(info from the archive $(TAR_NAME))
 	$(eval PKG_DIR:=$(dir $(TOP_DIR))debbuild)
 	$(info PKG_DIR is $(PKG_DIR))
+
 	rm -rf $(PKG_DIR)
 	mkdir -p $(PKG_DIR)
-	cp $(TAR_NAME) $(PKG_DIR)
+	#cp $(TAR_NAME) $(PKG_DIR)
 	$(eval DEB_TOP_DIR=$(PKG_DIR)/$(PKG_NAME)-$(PKG_VER))
 	mkdir -p $(DEB_TOP_DIR)
-	tar xvzf $(TAR_NAME) -C $(DEB_TOP_DIR)
+	#tar xvzf $(TAR_NAME) -C $(DEB_TOP_DIR)
+        touch $(TAR_NAME)
+        cp -rf $(BIN_DIR) $(PKG_DIR)/<whatever>
+        cp -rf $(PLUGIN_DIR) $(PKG_DIR)/<whatever>
+        cp -rf $(LIB_DIR) $(PKG_DIR)/<whatever>
+        cp -rf $(INC_DIR) $(PKG_DIR)/<whatever>  # Copy symlinks as full files
+
 	$(eval DEBIAN_DIR:=$(DEB_TOP_DIR)/debian)
 	echo $(DEBIAN_DIR)
 	mkdir -p  $(DEBIAN_DIR)
@@ -70,7 +95,7 @@ deb: gen_archive
 	sed -i '/$(PKG_NAME):/c$(PKG_NAME) ($(subst .,-,$(PKG_VER))-$(PKG_REL)) stable; urgency=medium' $(DEBIAN_DIR)/changelog
 	cd $(DEB_TOP_DIR) && dpkg-buildpackage -uc -us -b
 	cp $(PKG_DIR)/*.deb $(BUILD)
-	rm -rf $(PKG_DIR)
+	# rm -rf $(PKG_DIR)
 deb_install:
 	$(eval REQ_FILES:=$(filter-out $(PWD)/debian/, $(wildcard $(PWD)/*/)))
 	mkdir -p $(DESTDIR)/$(PREFIX)
