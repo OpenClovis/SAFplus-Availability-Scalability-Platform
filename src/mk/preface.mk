@@ -24,6 +24,9 @@
 #ifdef S7  # SAFplus v7
 $(info SAFplus7)
 
+#? By default we link with the local Linux distribution's installed libraries.  Override this to 0 if you are doing a crossbuild.
+USE_DIST_LIB ?= 1  
+
 SAFPLUS_MAKE_DIR := $(dir $(CURDIR)/$(word $(words $(MAKEFILE_LIST)),$(MAKEFILE_LIST)))
 
 SAFPLUS_SRC_DIR ?= $(shell (cd $(SAFPLUS_MAKE_DIR)../; pwd))
