@@ -11,7 +11,6 @@ def Initialize():
 
 def isListElem(elem,path):
   """Return the name of the list if this is an item in a list"""
-  print path
   if elem.attrib.has_key("listkey"):
     return elem.tag
   return None

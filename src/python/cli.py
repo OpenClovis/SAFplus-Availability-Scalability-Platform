@@ -4,8 +4,10 @@ import sys, os, os.path, time
 try:
   import localaccess as access
   print "using local access"
+  CliName = "SAFplus Local CLI"
 except ImportError, e:
   import netconfaccess as access
+  CliName = "SAFplus CLI"
 
 SuNameColor = (50,160,80)
 SuNameSize = 32
@@ -23,10 +25,13 @@ SAFplusNamespace = "http://www.openclovis.org/ns/amf"
 import pdb
 import xml.etree.ElementTree as ET
 
+
+
 try:
   import xmlterm
   windowed=True
 except Exception, e:
+  import textxmlterm as xmlterm
   windowed=False
 
 def formatTag(tag):
@@ -51,6 +56,10 @@ def epochTimeHandler(elem, resolver,context):
   s = time.strftime('%Y-%b-%d %H:%M:%S', time.localtime(seconds))
   w = xmlterm.FancyText(resolver.parentWin, ("  "*resolver.depth) + formatTag(elem.tag) + ": " +  s)
   resolver.add(w)  
+
+def dumpNoTagHandler(elem, resolver,context):
+  """"""
+  resolver.add(xmlterm.FancyText(resolver.parentWin, elem.text))
 
 def epochMsTimeHandler(elem, resolver,context):
   """Convert an xml leaf containing milli-seconds since the epoch into a user readable date panel"""
@@ -85,7 +94,6 @@ def childReorg(elem,path):
      1. Grouping all elements of a list into a common child node
   """
   lists = {}
-  #pdb.set_trace()
   if elem.attrib.get("type",None) != "list":  # If I'm already a list, no list item isolation needed
    for child in elem:  # go thru all the children
     lstName = access.isListElem(child,path)  # Ask the access layer if this is a list element
@@ -138,6 +146,42 @@ def defaultHandler(elem,resolver,context):
     resolver.resolve(child,context)
     if child.tail and child.tail.strip():
       w = xmlterm.FancyTextChunked(resolver.parentWin,("  "*resolver.depth) + child.tail,chunkSize=2048)
+      resolver.add(w)
+  del context.path[-1]   
+  resolver.depth -= 1
+
+
+def defaultTextHandler(elem,resolver,context):
+  """Handle normal text and any XML that does not have a specific handler"""
+  # Name preference order is: "key" attribute of tag (for lists) > "name" attribute of tag > "name" child of tag > tag 
+  childReorg(elem,context.path)
+  nameChild = elem.find("name")
+  if nameChild is not None: name=nameChild.text
+  else: name=elem.tag
+  name = elem.attrib.get("name",elem.tag) 
+  name = elem.attrib.get("listkey", name)
+  name = formatTag(name) # Get rid of the namespace indicator b/c that's ugly
+  fore = None
+
+  if elem._children:  # it will either have child nodes or a "more" child node if it has children
+    fore = NodeColor
+  else:
+    fore = LeafColor
+
+  if elem.text:
+    top = name + ":" + elem.text
+  else:
+    top = name
+
+  w = ("  "*resolver.depth) + top
+  resolver.add(w)  
+
+  resolver.depth += 1
+  context.path.append(elem.tag)
+  for child in elem:
+    resolver.resolve(child,context)
+    if child.tail and child.tail.strip():
+      w = ("  "*resolver.depth) + child.tail
       resolver.add(w)
   del context.path[-1]   
   resolver.depth -= 1
@@ -301,7 +345,7 @@ class TermController(xmlterm.XmlResolver):
   def start(self,xt):
     """Called when the XML terminal is just getting started"""
     self.xmlterm = xt
-    xt.frame.SetTitle("SAFplus CLI")
+    xt.frame.SetTitle(CliName)
     
   def prompt(self):
     """Returns the terminal prompt"""
@@ -385,9 +429,9 @@ By default the specified location and children are shown.  Use -N to specify how
         rest = sp[0]
     t = os.path.normpath(os.path.join(self.curdir,rest))
     gs = "{d=%s}%s" % (depth,str(t))
-    print "getting ", gs
+    #print "getting ", gs
     xml = access.mgtGet(gs)
-    print xml
+    #print xml
     return "<top>" + xml + "</top>"  # I have to wrap in an xml tag in case I get 2 top levels from mgtGet
 
   def do_cd(self,location):
@@ -421,7 +465,7 @@ By default the specified location and children are shown.  Use -N to specify how
       else:             
         rest = flag
     t = os.path.normpath(os.path.join(self.curdir,rest))
-    print (prefix % depth) + str(t)
+    # print (prefix % depth) + str(t)
     xml = access.mgtGet((prefix % depth) + str(t))
     txt = "<text>" + xmlterm.escape(xmlterm.indent("<top>" + xml + "</top>")) + "</text>"
     return txt # I have to wrap in an xml tag in case I get 2 top levels from mgtGet
@@ -519,9 +563,9 @@ By default the specified location and children are shown.  Use -N to specify how
               rest = sp[1]
           t = os.path.normpath(os.path.join(self.curdir,rest))
           gs = "{d=%s}%s" % (depth,str(t))
-          print "getting ", gs
+          #print "getting ", gs
           xml = access.mgtGet(gs)
-          print xml
+          #print xml
           xt.doc.append("<top>" + xml + "</top>")  # I have to wrap in an xml tag in case I get 2 top levels from mgtGet
         elif sp[0]=="plot":
           rest = ""
@@ -576,7 +620,7 @@ By default the specified location and children are shown.  Use -N to specify how
             else:             
               rest = flag
           t = os.path.normpath(os.path.join(self.curdir,rest))
-          print (prefix % depth) + str(t)
+          # print (prefix % depth) + str(t)
           xml = access.mgtGet((prefix % depth) + str(t))
           txt = "<text>" + xmlterm.escape(xmlterm.indent("<top>" + xml + "</top>")) + "</text>"
           xt.doc.append(txt)  # I have to wrap in an xml tag in case I get 2 top levels from mgtGet
@@ -636,6 +680,23 @@ def main(args):
     doc = []
     app = xmlterm.App(lambda parent,doc=doc,termController=resolver: xmlterm.XmlTerm(parent,doc,termController=resolver),redirect=False,size=(600,900))
     app.MainLoop()
+  else:
+    resolver = TermController()
+    resolver.xmlterm = resolver # just dumping everything in one class
+    resolver.defaultHandler = defaultTextHandler
+    resolver.tags["bootTime"] = epochTimeHandler
+    resolver.tags["lastInstantiation"] = epochMsTimeHandler
+    resolver.tags["upTime"] = elapsedSecondsHandler
+    resolver.tags["pendingOperationExpiration"] = epochMsTimeHandler
+    resolver.tags["top"] = topHandler
+    resolver.tags["more"] = childrenOnlyHandler  # don't show this indicator that the node has children
+    resolver.tags["text"] = dumpNoTagHandler 
+    resolver.addCmds(cmds)
+    while 1:      
+      cmd = resolver.cmdLine.input()
+      resolver.execute(cmd,resolver)
+
+
 
 if __name__ == '__main__':
     main(sys.argv)
