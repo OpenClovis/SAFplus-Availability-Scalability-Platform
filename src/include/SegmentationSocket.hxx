@@ -1,4 +1,5 @@
 #pragma once
+
 #include <clMsgApi.hxx>
 #include <clLogApi.hxx>
 #include <clMsgBase.hxx>
@@ -9,8 +10,8 @@
 using namespace boost::intrusive;
 #define MORE_FLAG   0x80
 #define LAST_FLAG   0x40
-#define USER_HEADER_LEN 4
-#define MAX_SEGMENT_SIZE 64000
+#define USER_HEADER_LEN 6
+#define MAX_SEGMENT_SIZE 100
 static ClUint32T currFragId = 0;
 
 namespace SAFplus
@@ -55,6 +56,7 @@ namespace SAFplus
     int m_nLen;          /* Header length field */
     int m_nSeqn;         /* Sequence number field */
     int m_nMsgId;
+    int m_nDataLen;
     bool isLast;
     Byte* m_pData;
 
@@ -65,7 +67,7 @@ namespace SAFplus
     boost::intrusive::list_member_hook<> m_memberHook;
     int flags();
     int seq();
-    int length();
+    int dataLength();
     void setMsgId(int msgId)
     {
       m_nMsgId=msgId;
@@ -121,12 +123,12 @@ namespace SAFplus
     virtual ~MsgSocketSegmentaion();
     //? Send a bunch of messages.  You give up ownership of msg.
     virtual void send(Message* msg);
-    virtual void send(SAFplus::Handle destination, void* buffer, uint_t length,uint_t msgtype);
+    virtual void send(SAFplus::Handle destination, void* buffer, uint_t length);
     virtual Message* receive(uint_t maxMsgs,int maxDelay=-1);
     Segment* receiveFragment(Handle &handle);
     int read(Byte* buffer,int maxlength);
     void handleReceiveThread(void);
-    void applySegmentaion(SAFplus::Handle destination, void* buffer, uint_t length,uint_t msgtype);
+    void applySegmentaion(SAFplus::Handle destination, void* buffer, uint_t length);
     void applySegmentaion(Message* m);
     void sendFragment(SAFplus::Handle destination,Segment * frag);
     virtual void flush();
