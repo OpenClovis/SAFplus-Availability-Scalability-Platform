@@ -309,8 +309,9 @@ void onSharedMemRetentionTimeout(const boost::system::error_code& e, void* arg, 
       ckptHandle->toStr(sharedMemFile);
       ckptSharedMemoryObjectname.append(sharedMemFile);
 
-      // Get the checkpoint header to see whether the lastUsed changed or not      
-      managed_shared_memory managed_shm(open_only, sharedMemFile);
+      // Get the checkpoint header to see whether the lastUsed changed or not 
+      logTrace("CKPRET", "TIMEOUT", "[%s] opening shm [%s]", __FUNCTION__, ckptSharedMemoryObjectname.c_str());     
+      managed_shared_memory managed_shm(open_only, ckptSharedMemoryObjectname.c_str());
       std::pair<SAFplusI::CkptBufferHeader*, std::size_t> ckptHdr = managed_shm.find<SAFplusI::CkptBufferHeader>("header");
       if (!ckptHdr.first)
       {
@@ -329,8 +330,8 @@ void onSharedMemRetentionTimeout(const boost::system::error_code& e, void* arg, 
       {
         // delete the checkpoint        
         Timer& tmr = contents->second.timer;
-        logTrace("CKPRET", "TIMEOUT", "[%s] deleting shared mem file [%s]", __FUNCTION__, sharedMemFile);
-        shared_memory_object::remove(sharedMemFile);
+        logTrace("CKPRET", "TIMEOUT", "[%s] deleting shared mem file [%s]", __FUNCTION__, ckptSharedMemoryObjectname.c_str());
+        shared_memory_object::remove(ckptSharedMemoryObjectname.c_str());
         delete tmr.timer;
         // Remove this item from the map, too
         timer->ckptTimerMap.erase(contents);

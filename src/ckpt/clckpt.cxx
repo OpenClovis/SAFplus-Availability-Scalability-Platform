@@ -634,7 +634,6 @@ void SAFplus::Checkpoint::syncFromDisk()
   ClUint32T recSize;
   size_t hdrSize = sizeof(ckptHeaderStrings)/sizeof(ckptHeaderStrings[0]);
   ClRcT rc = clDbalFirstRecordGet(dbHandle, &key, &keySize, &rec, &recSize);  
-  --hdrSize;
   while (rc == CL_OK)
   {    
     if (hdrSize>0)
@@ -664,7 +663,7 @@ void SAFplus::Checkpoint::syncFromDisk()
 void SAFplus::Checkpoint::writeHdrDB(int hdrKey, ClDBRecordT rec, ClUint32T recSize)
 {  
   const char* key = ckptHeader(hdrKey);
-  ClRcT rc = clDbalRecordReplace(dbHandle, (ClDBKeyT) key, strlen(key), rec, recSize);
+  ClRcT rc = clDbalRecordReplace(dbHandle, (ClDBKeyT) key, strlen(key)+1, rec, recSize);
   if (rc != CL_OK)
   {
     logWarning("CPKT", "WRTHDR", "add/update key [%s] to database fail", key);
