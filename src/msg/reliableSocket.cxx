@@ -2,8 +2,6 @@
 #include "clLogApi.hxx"
 #include <stdio.h>
 
-#define MIN(a,b) ( (a) < (b) ? (a) : (b) )
-
 namespace SAFplus
 {
   // Callback function for Null Fragment Timer
