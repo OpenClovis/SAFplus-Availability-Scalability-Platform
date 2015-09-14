@@ -8614,7 +8614,7 @@ clAmsPeSUAssignSI(
          * rank. It is assumed that the ranks are always contiguous and start at 1.
          */
 
-        AMS_ENTITY_LOG (su, CL_AMS_MGMT_SUB_AREA_MSG, CL_LOG_SEV_TRACE,
+        AMS_ENTITY_LOG (su, CL_AMS_MGMT_SUB_AREA_MSG, CL_LOG_SEV_INFO,
                         ("Assigning SI [%s] to SU [%s] with HA State [%s]\n",
                          si->config.entity.name.value,
                          su->config.entity.name.value,
@@ -12538,7 +12538,7 @@ clAmsPeCompInstantiate2(
 
             if ( error )
             {
-                AMS_ENTITY_LOG(comp, CL_AMS_MGMT_SUB_AREA_MSG, CL_LOG_SEV_TRACE,
+                AMS_ENTITY_LOG(comp, CL_AMS_MGMT_SUB_AREA_MSG, CL_LOG_SEV_WARNING,
                     ("CSI assignment to Component [%s] with HA state [%s] returned Error [0x%x]\n",
                      comp->config.entity.name.value,
                      CL_AMS_STRING_H_STATE(CL_AMS_HA_STATE_ACTIVE),
@@ -15101,7 +15101,7 @@ clAmsPeReplayCSI(ClAmsCompT *comp,ClAmsInvocationT *invocationData, ClBoolT scFa
 
             if ( error )
             {
-                AMS_ENTITY_LOG(comp, CL_AMS_MGMT_SUB_AREA_MSG, CL_LOG_SEV_TRACE,
+                AMS_ENTITY_LOG(comp, CL_AMS_MGMT_SUB_AREA_MSG, CL_LOG_SEV_WARNING,
                                ("CSI assignment to Component [%s] with HA state [%s] returned Error [0x%x]\n",
                                 comp->config.entity.name.value,
                                 CL_AMS_STRING_H_STATE(csiRef->haState),
@@ -15251,7 +15251,7 @@ clAmsPeCompAssignCSIExtended(
          * always contiguous and start at 1.
          */
 
-        AMS_ENTITY_LOG (comp, CL_AMS_MGMT_SUB_AREA_MSG, CL_LOG_SEV_TRACE,
+        AMS_ENTITY_LOG (comp, CL_AMS_MGMT_SUB_AREA_MSG, CL_LOG_SEV_INFO,
                         ("Assigning new CSI [%s] to Component [%s] with HA State [%s]\n",
                          csi->config.entity.name.value,
                          comp->config.entity.name.value,
@@ -15523,7 +15523,7 @@ clAmsPeCompAssignCSIExtended(
 
             if ( error )
             {
-                AMS_ENTITY_LOG(comp, CL_AMS_MGMT_SUB_AREA_MSG, CL_LOG_SEV_TRACE,
+                AMS_ENTITY_LOG(comp, CL_AMS_MGMT_SUB_AREA_MSG, CL_LOG_SEV_WARNING,
                                ("CSI assignment to Component [%s] with HA state [%s] returned Error [0x%x]\n",
                                 comp->config.entity.name.value, CL_AMS_STRING_H_STATE(haState), error) ); 
 
@@ -15573,7 +15573,7 @@ clAmsPeCompAssignCSIExtended(
 
             if ( error )
             {
-                AMS_ENTITY_LOG(comp, CL_AMS_MGMT_SUB_AREA_MSG, CL_LOG_SEV_TRACE,
+                AMS_ENTITY_LOG(comp, CL_AMS_MGMT_SUB_AREA_MSG, CL_LOG_SEV_WARNING,
                                ("CSI assignment to Component [%s] with HA state [%s] returned Error [0x%x]\n",
                                 comp->config.entity.name.value, CL_AMS_STRING_H_STATE(haState), error) ); 
 
