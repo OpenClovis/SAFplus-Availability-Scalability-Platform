@@ -2,8 +2,7 @@ Prerequisites:
 
   install the following the dependencies packages from the corresponding distribution
   Ubuntu:
-     apt-get install libprotoc-dev protobuf-compiler python-protobuf libbz2-dev python-dev g++ libboost1.55-dev 
-		     libdb-dev libgdbm-dev libsqlite3-dev
+     apt-get install libprotoc-dev protobuf-compiler python-protobuf libbz2-dev python-dev g++ libboost1.55-dev libdb-dev libgdbm-dev libsqlite3-dev dh-make libboost-thread1.55-dev libboost-system1.55-dev libboost-filesystem1.55-dev libboost-program-options1.55-dev libboost-python1.55-dev libxml2-dev
   Centos:
      yum install gcc bzip2-devel python-devel gcc-c++ boost-devel libdb-devel gdbm-devel sqlite-devel rpm-build
      For centos7: protobuf related libraries are need to be installed manually 
@@ -33,7 +32,7 @@ Package generation:
    for rpm:
         make rpm
 
-4) If the package generation is successful, .rpms or .deb are aviable in build directory present in the safplus.
+4) If the package generation is successful, .rpms or .deb are available <this file's dir>/build.
    Ex: ls  /home/openclovis/software/SAFplus/build
        safplus_7-0-1_amd64.deb
        safplus-7.0-1.el7.centos.x86_64.rpm
