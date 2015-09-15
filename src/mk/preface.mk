@@ -89,7 +89,7 @@ SAFPLUS_MGT_INC_FLAGS := -I$(SAFPLUS_SRC_DIR)/mgt $(XML2_CFLAGS)
 
 # Determine boost location
 # For SAFplus RPM/DEBIAN package generation, distribution provided libraries need to be used
-ifndef USE_DIST_LIB
+ifeq ($(strip $(USE_DIST_LIB)),0)
 DISTRIBUTION_LIB = 0
 BOOST_INC_DIR ?= $(INSTALL_DIR)/include
 # $(shell (cd $(SAFPLUS_SRC_DIR)/../../boost; pwd))
