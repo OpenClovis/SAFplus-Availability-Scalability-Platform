@@ -1,5 +1,5 @@
 deb_install:
-	$(eval REQ_FILES:=$(filter-out $(PWD)/debian/, $(wildcard $(PWD)/*/)))
+	$(eval REQ_FILES:=$(filter-out $(PWD)/Makefile,$(filter-out $(PWD)/debian/, $(wildcard $(PWD)/*/))))
 	mkdir -p $(DESTDIR)/$(PREFIX)
 	for value in $(REQ_FILES);do \
         cp -r $$value $(DESTDIR)/$(PREFIX); \

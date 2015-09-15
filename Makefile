@@ -7,7 +7,6 @@ export PKG_REL ?=1
 TOP_DIR := $(CURDIR)
 TAR_NAME := $(dir $(TOP_DIR))$(PKG_NAME)_$(PKG_VER).tar.gz
 BUILD := $(TOP_DIR)/build
-$(info PACKAGE NAME is $(PKG_NAME))
 $(info VERSION is $(PKG_VER))
 $(info RELEASE is $(PKG_REL))
 $(info TOP DIR is $(TOP_DIR))
@@ -23,7 +22,7 @@ archive: $(TAR_NAME)
 $(TAR_NAME):
 	$(info entering $(TOP_DIR))
 	echo "Generating $(TAR_NAME) archive"; 
-	tar cvzf $(TAR_NAME) -C $(TOP_DIR)  --exclude=build --exclude=target --exclude=images --exclude=boost_1_55_0;
+	tar cvzf $(TAR_NAME) -C $(TOP_DIR) *  --exclude=build --exclude=target --exclude=images --exclude=boost_1_55_0;
 	mkdir -p $(BUILD)
 
 rpm: archive
@@ -52,50 +51,59 @@ rpm: archive
 	cp $(SRPMS_DIR)/*.rpm $(BUILD)
 	rm -rf $(PKG_DIR)
 
-deb-src: archive
+define prepare_env_deb
+$(info Packing the $1 in DEBIAN)
+$(eval PKG_NAME=$1)
+$(eval PKG_DIR:=$(dir $(TOP_DIR))debbuild)
+$(info PKG_DIR is $(PKG_DIR))
+rm -rf $(PKG_DIR)
+mkdir -p $(PKG_DIR)
+$(eval DEB_TOP_DIR=$(PKG_DIR)/$(PKG_NAME)-$(PKG_VER))
+mkdir -p $(DEB_TOP_DIR)
+$(eval DEBIAN_DIR:=$(DEB_TOP_DIR)/debian)
+echo $(DEBIAN_DIR)
+mkdir -p  $(DEBIAN_DIR)
+cp -r $(TOP_DIR)/DEB/* $(DEBIAN_DIR)
+if [ "$(shell uname -p)" = "x86_64" ]; \
+then \
+     sed -i '/Architecture:/c Package: $(PKG_NAME)\nArchitecture: amd64\nSection: $2' $(DEBIAN_DIR)/control; \
+else \
+     sed -i '/Architecture:/c Architecture: i386' $(DEBIAN_DIR)/control; \
+fi;
+sed -i '/Source:/c Source: $(PKG_NAME)\nSection: $2' $(DEBIAN_DIR)/control
+sed -i '/prefix:/c prefix=/opt/saflus/$(PKG_VER)/$3' $(DEBIAN_DIR)/postrm
+sed -i '/prefix:/c export PREFIX?=/opt/safplus/$(PKG_VER)/$3\nexport PACKAGENAME?=$(PKG_NAME)' $(DEBIAN_DIR)/rules
+sed -i '/Destdir:/c export DESTDIR?=$(DEBIAN_DIR)/$(PKG_NAME)\nexport LIBRARY_DIR=$(DEB_TOP_DIR)' $(DEBIAN_DIR)/rules
+sed -i '/safplus:/c$(PKG_NAME) ($(subst .,-,$(PKG_VER))-$(PKG_REL)) stable; urgency=medium' $(DEBIAN_DIR)/changelog
+endef
+
+deb-src:archive
+	$(call prepare_env_deb,safplus-src,devel,sdk)
+	$(info Packing the $(PKG_NAME) in DEBIAN)
+	tar xvzf $(TAR_NAME) -C $(DEB_TOP_DIR)
 	echo TBD: create source install package
+	cd $(DEB_TOP_DIR) && dpkg-buildpackage -uc -us -b
+	mkdir -p $(BUILD)
+	cp $(PKG_DIR)/*.deb $(BUILD)
 
 
 $(BIN_DIR)/safplus_amf:
-	cd src && make USE_DIST_LIB=1
+	cd src && make 
 
 
-deb: $(BIN_DIR)/safplus_amf
-	$(info Packing the $(PKG_NAME) in DEBIAN)
-	$(info from the archive $(TAR_NAME))
-	$(eval PKG_DIR:=$(dir $(TOP_DIR))debbuild)
-	$(info PKG_DIR is $(PKG_DIR))
-
-	rm -rf $(PKG_DIR)
-	mkdir -p $(PKG_DIR)
-	#cp $(TAR_NAME) $(PKG_DIR)
-	$(eval DEB_TOP_DIR=$(PKG_DIR)/$(PKG_NAME)-$(PKG_VER))
-	mkdir -p $(DEB_TOP_DIR)
-	#tar xvzf $(TAR_NAME) -C $(DEB_TOP_DIR)
-        #touch $(TAR_NAME)
+deb-bin: $(BIN_DIR)/safplus_amf
+	$(call prepare_env_deb,safplus,lib,target)
 	cp -rf $(BIN_DIR) $(DEB_TOP_DIR)
 	cp -rf $(PLUGIN_DIR) $(DEB_TOP_DIR)
 	cp -rf $(LIB_DIR) $(DEB_TOP_DIR)
 	cp -rf $(SAFPLUS_INC_DIR) $(DEB_TOP_DIR)
 	cp -rf $(TOP_DIR)/DEB/Makefile $(DEB_TOP_DIR)
-	$(eval DEBIAN_DIR:=$(DEB_TOP_DIR)/debian)
-	echo $(DEBIAN_DIR)
-	mkdir -p  $(DEBIAN_DIR)
-	cp -r $(TOP_DIR)/DEB/* $(DEBIAN_DIR)
-	if [ "$(shell uname -p)" = "x86_64" ]; \
-	then \
-	     sed -i '/Architecture:/c Architecture: amd64' $(DEBIAN_DIR)/control; \
-	else \
-	     sed -i '/Architecture:/c Architecture: i386' $(DEBIAN_DIR)/control; \
-	fi;
-	sed -i '/Source:/c Source: safplus\nSection: lib' $(DEBIAN_DIR)/control
-	sed -i '/prefix:/c prefix=/opt/$(PKG_NAME)/$(PKG_VER)/sdk' $(DEBIAN_DIR)/postrm
-	sed -i '/prefix:/c export PREFIX?=/opt/$(PKG_NAME)/$(PKG_VER)/sdk\nexport PACKAGENAME?=$(PKG_NAME)' $(DEBIAN_DIR)/rules
-	sed -i '/Destdir:/c export DESTDIR?=$(DEBIAN_DIR)/$(PKG_NAME)\nexport LIBRARY_DIR=$(DEB_TOP_DIR)' $(DEBIAN_DIR)/rules
-	sed -i '/$(PKG_NAME):/c$(PKG_NAME) ($(subst .,-,$(PKG_VER))-$(PKG_REL)) stable; urgency=medium' $(DEBIAN_DIR)/changelog
 	cd $(DEB_TOP_DIR) && dpkg-buildpackage -uc -us -b
+	mkdir -p $(BUILD)
 	cp $(PKG_DIR)/*.deb $(BUILD)
-	# rm -rf $(PKG_DIR)
+
+deb: deb-bin deb-src
+
 deb_install:
 	$(eval REQ_FILES:=$(filter-out $(PWD)/debian/, $(wildcard $(PWD)/*/)))
 	mkdir -p $(DESTDIR)/$(PREFIX)
