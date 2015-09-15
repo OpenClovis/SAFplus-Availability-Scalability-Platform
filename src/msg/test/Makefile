@@ -1,4 +1,4 @@
-S7 := 1
+akeS7 := 1
 SAFPLUS_MSG_TEST:=1  # Identify what is being built, so safplus_targets does not override
 
 include ../../mk/preface.mk
@@ -17,7 +17,7 @@ SAFPLUS_LINK_LIBS := -L$(LIB_DIR) $(addprefix -l,$(SAFPLUS_LIBS))
 
 IMAGE_FILE ?= testMsg.zip
 
-all: $(TEST_DIR)/testTransport  $(TEST_DIR)/testMsgServer $(TEST_DIR)/testMsgPerf $(TEST_DIR)/msgReflector $(TEST_DIR)/reliableClient $(TEST_DIR)/reliableServer
+all: $(TEST_DIR)/testTransport  $(TEST_DIR)/testMsgServer $(TEST_DIR)/testMsgPerf $(TEST_DIR)/msgReflector $(TEST_DIR)/reliableClient $(TEST_DIR)/reliableServer  $(TEST_DIR)/testSegmentationReceive $(TEST_DIR)/testSegmentationSend
 
 deps:
 	make -C $(SAFPLUS_SRC_DIR)/msg/transports

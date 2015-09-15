@@ -53,13 +53,13 @@ namespace SAFplus
 
   Byte* Segment::getBytes()
   {
-    logTrace("MSG","FRT","get header data [%d] [%d] [%d] [%d] [%d]",dataLength(),m_nFalgs,m_nLen,m_nSeqn,m_nMsgId);
+    logTrace("MSG","FRT","Get header data :  flags [%d] - header len [%d] - Sequence [%d] - MsgId [%d]",m_nFalgs,m_nLen,m_nSeqn,m_nMsgId);
     Byte *pBuffer = new Byte[dataLength()];
     pBuffer[0] = (Byte) (m_nFalgs & 0xFF);
     pBuffer[1] = (Byte) (m_nLen & 0xFF);
     pBuffer[2] = (Byte) (m_nSeqn & 0xFF);
     pBuffer[3] = (Byte) (m_nMsgId & 0xFF);
-    logTrace("MSG","FRT","copy [%d] by from mpdata  to buffer",m_nDataLen);
+    logTrace("MSG","FRT","Get data : [%d] byte",m_nDataLen);
     memcpy(pBuffer+ USER_HEADER_LEN, m_pData , m_nDataLen);
     return pBuffer;
   }
@@ -70,11 +70,10 @@ namespace SAFplus
     m_nLen   = int(buffer[_off+1] & 255);
     m_nSeqn  = int(buffer[_off+2] & 255);
     m_nMsgId = int(buffer[_off+3] & 255);
-    m_nDataLen=_len;
-    logTrace("MSG","FRT","parse header data [%d] [%d] [%d] [%d]",m_nFalgs,m_nLen,m_nSeqn,m_nMsgId);
+    m_nDataLen=_len - USER_HEADER_LEN;
+    logTrace("MSG","FRT","parse header data flags : [%d] - header len : [%d] - Sequence : [%d] - MsgId : [%d]",m_nFalgs,m_nLen,m_nSeqn,m_nMsgId);
     m_pData = new Byte[m_nDataLen];
-    logTrace("MSG","FRT","copy [%d] byte from fragment data to mData",_len);
-    memcpy(m_pData, buffer + _off + USER_HEADER_LEN, _len);
+    memcpy(m_pData, buffer + _off + USER_HEADER_LEN, m_nDataLen);
   }
 
   Byte* Segment::getData()
@@ -86,7 +85,7 @@ namespace SAFplus
   {
     int flags = bytes[off];
     setLast(false);
-    logTrace("MSG","SMT","Parse fragment from sender with flag [%d] with len [%d]", flags,len);
+    logTrace("MSG","SMT","Parse segment ...");
     if ((flags & MORE_FLAG) != 0)
     {
       setLast(false);
@@ -105,6 +104,10 @@ namespace SAFplus
     m_pData = new Byte[len];
     memcpy(m_pData, buffer + off, len);
     m_nDataLen=len;
+    if(!isLastFrag)
+    {
+      logTrace("MSG","SMT","This is the last segment [%s]",m_pData +90);
+    }
   }
 
 
@@ -144,22 +147,24 @@ namespace SAFplus
       if(totalBytes+writeBytes<length)
       {
         Segment *frag = new Segment(seq, (Byte*)buffer, off + totalBytes, writeBytes , false);
-        logTrace("MSG","RST","Socket([%d - %d]) : Create fragment with seq [%d] ",sock->handle().getNode(),sock->handle().getPort(),frag->seq());
+        logTrace("MSG","RSS","Socket([%d - %d]) : Create segment with sequence id [%d] ",sock->handle().getNode(),sock->handle().getPort(),frag->seq());
         frag->setMsgId(currFragId);
-        sendFragment(destination,frag);
+        sendSegment(destination,frag);
         totalBytes += writeBytes;
+        delete frag;
       }
       else
       {
         Segment *frag = new Segment(seq, (Byte*)buffer, off + totalBytes, writeBytes, true);
-        logTrace("MSG", "REL","send last fragment to  node [%d] in reliable mode ",destination.getNode());
+        logTrace("MSG", "MSS","Create last segment with sequence id [%d]",frag->seq());
         frag->setMsgId(currFragId);
-        sendFragment(destination,frag);
+        sendSegment(destination,frag);
         totalBytes += writeBytes;
+        delete frag;
       }
     }
   }
-  void MsgSocketSegmentaion::sendFragment(SAFplus::Handle destination,Segment * frag)
+  void MsgSocketSegmentaion::sendSegment(SAFplus::Handle destination,Segment * frag)
   {
     if(sock==NULL)
     {
@@ -169,14 +174,16 @@ namespace SAFplus
     {
       return;
     }
-    Message* reliableFragment;
-    reliableFragment=sock->msgPool->allocMsg();
-    assert(reliableFragment);
-    reliableFragment->setAddress(destination);
-    MsgFragment* fragment = reliableFragment->append(0);
-    fragment->set((Byte*)frag->getBytes(),frag->dataLength());
-    logTrace("MSG","RST","Send Fragment to node [%d] port [%d] Id [%d] ",reliableFragment->getAddress().getNode(),reliableFragment->getAddress().getPort(),frag->seq());
-    sock->send(reliableFragment);
+    Message* msgSegment;
+    msgSegment=sock->msgPool->allocMsg();
+    assert(msgSegment);
+    msgSegment->setAddress(destination);
+    MsgFragment* fragment = msgSegment->append(0);
+    Byte *pBuffer= (Byte*)frag->getBytes();
+    fragment->set(pBuffer,frag->dataLength()+USER_HEADER_LEN);
+    logTrace("MSG","MSS","Send segment to node [%d] port [%d] with Sequence Id [%d] ",msgSegment->getAddress().getNode(),msgSegment->getAddress().getPort(),frag->seq());
+    sock->send(msgSegment);
+    delete pBuffer;
   }
 
 
@@ -184,10 +191,9 @@ namespace SAFplus
   {
 
   }
-
   void MsgSocketSegmentaion::send(Message* msg)
   {
-    applySegmentaion(msg);
+    applySegmentaion(msg->getAddress(),(Byte*)msg,msg->getLength());
   }
   void MsgSocketSegmentaion::send(SAFplus::Handle destination, void* buffer, uint_t length)
   {
@@ -195,7 +201,7 @@ namespace SAFplus
   }
   Message* MsgSocketSegmentaion::receive(uint_t maxMsgs,int maxDelay)
   {
-    return sock->receive(maxMsgs,maxDelay);
+    return nullptr;
   }
   Segment* MsgSocketSegmentaion::receiveFragment(Handle &handle)
   {
@@ -232,7 +238,7 @@ namespace SAFplus
       Segment* pFrag =receiveFragment(handle);
       if(pFrag==nullptr)
       {
-        logTrace("MSG","SMT","Receive NULL fragment . Exit thread");
+        logTrace("MSG","MSS","Receive NULL fragment . Exit thread");
         return ;
       }
       MsgKey temp;
@@ -240,40 +246,40 @@ namespace SAFplus
       temp.msgId=pFrag->getMsgId();
       if(receiveMap[temp]==nullptr)
       {
-        logTrace("MSG","SMT","create new segmentList");
+        logTrace("MSG","MSS","Create new segmentList");
         MsgSegments* msgSegments= new MsgSegments();
         receiveMap[temp]=msgSegments;
-        logTrace("MSG","SMT","push segment to segmentList");
+        logTrace("MSG","MSS","Push segment to segmentList");
         receiveMap[temp]->segmentList.push_back(*pFrag);
         receiveMap[temp]->segmentNum++;
       }
       else
       {
-        logTrace("MSG","SMT","push segment to segmentList");
+        logTrace("MSG","MSS","Push segment to segmentList");
         receiveMap[temp]->segmentList.push_back(*pFrag);
         receiveMap[temp]->segmentNum++;
       }
       if(pFrag->isLastSegment())
       {
-        logTrace("MSG","SMT","receive last segment with seq [%d] and number of segments [%d]",pFrag->seq(),receiveMap[temp]->segmentNum);
+        logTrace("MSG","MSS","Receive last segment with seq [%d] and number of segments [%d]",pFrag->seq(),receiveMap[temp]->segmentNum);
         if(receiveMap[temp]->segmentNum==pFrag->seq())
         {
           receiveMap[temp]->isFull=true;
           msgReceived++;
-          logTrace("MSG","SMT","increase msg received to [%d]",msgReceived);
+          logTrace("MSG","MSS","Increase msg received to [%d]",msgReceived);
         }
         else
         {
-          logTrace("MSG","SMT","update expected segments num to [%d]",pFrag->seq());
+          logTrace("MSG","MSS","Update expected segments num to [%d]",pFrag->seq());
           receiveMap[temp]->expectedSegments=pFrag->seq();
         }
       }
       else
       {
-        logTrace("MSG","SMT","receive segments [%d]",pFrag->seq());
+        logTrace("MSG","MSS","Receive segments [%d]",pFrag->seq());
         if(receiveMap[temp]->segmentNum==receiveMap[temp]->expectedSegments)
         {
-          logTrace("MSG","SMT","receive full segments with segment number [%d] and expected segments [%d]",receiveMap[temp]->segmentNum,receiveMap[temp]->expectedSegments);
+          logTrace("MSG","MSS","Receive full segments with segment number [%d] and expected segments [%d]",receiveMap[temp]->segmentNum,receiveMap[temp]->expectedSegments);
           receiveMap[temp]->isFull=true;
           msgReceived++;
         }
@@ -288,14 +294,14 @@ namespace SAFplus
     bool quit=false;
     do
     {
-      logTrace("MSG","SMT","wait to receive message . Exit thread");
+      //logTrace("MSG","MSS","Wait to receive message");
       if(msgReceived>0)
       {
         break;
       }
       usleep(100000);
     }while(1);
-    for ( auto it = receiveMap.begin(); it != receiveMap.end(); ++it )
+    for ( auto it = receiveMap.begin(); it != receiveMap.end();)
     {
       if(it->second->isFull)
       {
@@ -306,7 +312,7 @@ namespace SAFplus
           int length = 0;
           Byte* data =s.getData();
           length = s.dataLength();
-          logTrace("MSG","RST","read the fragment [%d] with length [%d]",s.seq(),length);
+          logTrace("MSG","MSS","Read the segment [%d] Msg Id [%d]  with len [%d]",s.seq(),s.getMsgId(),s.dataLength());
           if(totalBytes + length > maxlength)
           {
             if (totalBytes <= 0)
@@ -317,27 +323,38 @@ namespace SAFplus
           if(s.isLastSegment())
           {
             quit=true;
-            logTrace("MSG","RST","read the last fragment [%d]",s.seq());
           }
-          logTrace("MSG","RST","read %d  byte",length);
           memcpy(buffer + totalBytes, (void*)data , length);
           totalBytes += length;
           segment_it = it->second->segmentList.erase_and_dispose(segment_it, delete_disposer_segment());
+          //          if(&s)
+          //          {
+          //            delete &s;
+          //          }
           if(quit==true)
           {
             break;
-          }
-          else
-          {
-            it++;
           }
         }
         if(totalBytes > 0)
         {
           msgReceived--;
+          logTrace("MSG","MSS","Receive message with [%d] byte. Update received message to [%d] ",totalBytes,msgReceived);
+          if(it->second->segmentList.empty())
+          {
+            MsgSegments& temp = *(it->second);
+            logTrace("MSG","MSS","List empty");
+            it = receiveMap.erase(it);
+            if(&temp)
+            {
+              logTrace("MSG","MSS","delete MsgSegments");
+              delete &temp;
+            }
+          }
           return totalBytes;
         }
       }
+      ++it;
     }
     return -1;
   }
