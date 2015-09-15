@@ -63,20 +63,20 @@ namespace SAFplus
     std::string dbNameData = "";
     std::string dbNameIdx = "";
 
+    /*Initialize dbal if not initialized*/
+    rc = clDbalLibInitialize();
+    if (CL_OK != rc)
+      {
+        logDebug("MGT", "DBAL", "Dbal lib initialized failed [%x]", rc);
+        return rc;
+      }
+
     /*Check if DB already exists */
     std::map<std::string, ClDBHandleT>::iterator dbh;
     rc = checkIfDBOpened(dbName, dbh);
     if (rc == CL_OK)
       {
         logInfo("MGT", "DBAL", "DB Name [%s] was already initialized", dbName.c_str());
-        return rc;
-      }
-
-    /*Initialize dbal if not initialized*/
-    rc = clDbalLibInitialize();
-    if (CL_OK != rc)
-      {
-        logDebug("MGT", "DBAL", "Dbal lib initialized failed [%x]", rc);
         return rc;
       }
 
@@ -295,7 +295,7 @@ namespace SAFplus
 
   ClBoolT MgtDatabase::dataLoaded()
   {
-    return (mapKeyValue.size() > 0);
+    return !mapKeyValue.empty();
   }
 
   void MgtDatabase::insertToParentKey(const std::string &key)
