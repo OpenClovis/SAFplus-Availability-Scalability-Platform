@@ -100,7 +100,9 @@ deb-bin: $(BIN_DIR)/safplus_amf
 	mkdir -p $(DEB_TOP_DIR)/src
 	#Some of the header files present in the src/include contains symbolic links.
 	#We need to Copy those symlinks files as full files
-	rsync -rL $(SAFPLUS_INC_DIR) $(DEB_TOP_DIR)/src
+	#Both safplus src and binary debian package contains the header files,dpkg throws an error while installing the safplus
+	#debian package. Workaround is renameing the include directory to include1. Need to fix this problem.
+	rsync -rL $(SAFPLUS_INC_DIR)/ $(DEB_TOP_DIR)/src/include1
 	cp -rf $(TOP_DIR)/DEB/Makefile $(DEB_TOP_DIR)
 	cd $(DEB_TOP_DIR) && dpkg-buildpackage -uc -us -b
 	mkdir -p $(BUILD)
