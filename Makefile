@@ -11,7 +11,8 @@ $(info VERSION is $(PKG_VER))
 $(info RELEASE is $(PKG_REL))
 $(info TOP DIR is $(TOP_DIR))
 
-all: rpm deb
+all: 
+	$(info TBD)
 
 prepare:
 	echo  "This target prepares your environment for package generation.  You only need to run this once (as root)"
@@ -54,7 +55,7 @@ rpm: archive
 define prepare_env_deb
 $(info Packing the $1 in DEBIAN)
 $(eval PKG_NAME=$1)
-$(eval PKG_DIR:=$(dir $(TOP_DIR))debbuild)
+$(eval PKG_DIR:=$(dir $(TOP_DIR))debbuild_$1)
 $(info PKG_DIR is $(PKG_DIR))
 rm -rf $(PKG_DIR)
 mkdir -p $(PKG_DIR)
@@ -68,7 +69,7 @@ if [ "$(shell uname -p)" = "x86_64" ]; \
 then \
      sed -i '/Architecture:/c Package: $(PKG_NAME)\nArchitecture: amd64\nSection: $2' $(DEBIAN_DIR)/control; \
 else \
-     sed -i '/Architecture:/c Architecture: i386' $(DEBIAN_DIR)/control; \
+     sed -i '/Architecture:/c Package: $(PKG_NAME)\nArchitecture: i386\nSection: $2' $(DEBIAN_DIR)/control; \
 fi;
 sed -i '/Source:/c Source: $(PKG_NAME)\nSection: $2' $(DEBIAN_DIR)/control
 sed -i '/prefix:/c prefix=/opt/saflus/$(PKG_VER)/$3' $(DEBIAN_DIR)/postrm
@@ -81,7 +82,7 @@ deb-src:archive
 	$(call prepare_env_deb,safplus-src,devel,sdk)
 	$(info Packing the $(PKG_NAME) in DEBIAN)
 	tar xvzf $(TAR_NAME) -C $(DEB_TOP_DIR)
-	echo TBD: create source install package
+	#echo TBD: create source install package
 	cd $(DEB_TOP_DIR) && dpkg-buildpackage -uc -us -b
 	mkdir -p $(BUILD)
 	cp $(PKG_DIR)/*.deb $(BUILD)
@@ -92,11 +93,14 @@ $(BIN_DIR)/safplus_amf:
 
 
 deb-bin: $(BIN_DIR)/safplus_amf
-	$(call prepare_env_deb,safplus,lib,target)
+	$(call prepare_env_deb,safplus,lib,sdk/target)
 	cp -rf $(BIN_DIR) $(DEB_TOP_DIR)
 	cp -rf $(PLUGIN_DIR) $(DEB_TOP_DIR)
 	cp -rf $(LIB_DIR) $(DEB_TOP_DIR)
-	cp -rf $(SAFPLUS_INC_DIR) $(DEB_TOP_DIR)
+	mkdir -p $(DEB_TOP_DIR)/src
+	#Some of the header files present in the src/include contains symbolic links.
+	#We need to Copy those symlinks files as full files
+	rsync -rL $(SAFPLUS_INC_DIR) $(DEB_TOP_DIR)/src
 	cp -rf $(TOP_DIR)/DEB/Makefile $(DEB_TOP_DIR)
 	cd $(DEB_TOP_DIR) && dpkg-buildpackage -uc -us -b
 	mkdir -p $(BUILD)
@@ -104,7 +108,11 @@ deb-bin: $(BIN_DIR)/safplus_amf
 
 deb: deb-bin deb-src
 
-deb_install:
+#Due to inclusion of src/mk/preface.mk creates a src/target directory in the package.
+#This rule removes src/target from the safplus src package 
+remove_target:
+	rm -rf $(PWD)/src/target
+deb_install:remove_target
 	$(eval REQ_FILES:=$(filter-out $(PWD)/debian/, $(wildcard $(PWD)/*/)))
 	mkdir -p $(DESTDIR)/$(PREFIX)
 	for value in $(REQ_FILES);do \
@@ -112,10 +120,12 @@ deb_install:
         done
 	# Need to uncomment the below line to include git repository in the SAFPlus Debian package.
 	#cp -r $(PWD)/.git $(DESTDIR)/$(PREFIX)
-deb_clean:
+
+deb_clean:remove_target
 	rm -rf debian/$(PACKAGENAME).*debhelper
 	rm -rf debian/$(PACKAGENAME).substvars
-deb_build:
+
+deb_build:remove_target
 	echo "Not required"
 
 clean:
