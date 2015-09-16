@@ -8,6 +8,8 @@
 #include <iosfwd>                          // streamsize
 #include <boost/iostreams/categories.hpp>  // sink_tag
 #include <boost/iostreams/concepts.hpp>  // sink
+typedef unsigned char  Byte;  /* 8 bits */
+#define MIN(a,b) ( (a) < (b) ? (a) : (b) )
 
 namespace SAFplus
   {
@@ -185,23 +187,6 @@ namespace SAFplus
     virtual void send(SAFplus::Handle destination, void* buffer, uint_t length,uint_t msgtype);
     virtual Message* receive(uint_t maxMsgs,int maxDelay=-1);
     virtual void flush();
-  };
-
-  class MsgSocketSegmentaion : public MsgSocketAdvanced
-  {
-    private:
-    public:
-    MsgSocketSegmentaion(uint_t port,MsgTransportPlugin_1* transport);
-    MsgSocketSegmentaion(MsgSocket* socket);
-    virtual ~MsgSocketSegmentaion();
-    //? Send a bunch of messages.  You give up ownership of msg.
-    virtual void send(Message* msg);
-    virtual void send(SAFplus::Handle destination, void* buffer, uint_t length,uint_t msgtype);
-    virtual Message* receive(uint_t maxMsgs,int maxDelay=-1);
-    void applySegmentaion(Message* m ,SAFplus::Handle destination, void* buffer, uint_t length,uint_t msgtype);
-    void applySegmentaion(Message* m);
-    virtual void flush();
-
   };
 
   //? <class> A message socket whose lifetime rules follow lexical scoping

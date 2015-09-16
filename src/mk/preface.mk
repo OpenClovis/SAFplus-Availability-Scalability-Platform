@@ -24,6 +24,9 @@
 #ifdef S7  # SAFplus v7
 $(info SAFplus7)
 
+#? By default we link with the local Linux distribution's installed libraries.  Override this to 0 if you are doing a crossbuild.
+USE_DIST_LIB ?= 1  
+
 SAFPLUS_MAKE_DIR := $(dir $(CURDIR)/$(word $(words $(MAKEFILE_LIST)),$(MAKEFILE_LIST)))
 
 SAFPLUS_SRC_DIR ?= $(shell (cd $(SAFPLUS_MAKE_DIR)../; pwd))
@@ -86,7 +89,7 @@ SAFPLUS_MGT_INC_FLAGS := -I$(SAFPLUS_SRC_DIR)/mgt $(XML2_CFLAGS)
 
 # Determine boost location
 # For SAFplus RPM/DEBIAN package generation, distribution provided libraries need to be used
-ifndef USE_DIST_LIB
+ifeq ($(strip $(USE_DIST_LIB)),0)
 DISTRIBUTION_LIB = 0
 BOOST_INC_DIR ?= $(INSTALL_DIR)/include
 # $(shell (cd $(SAFPLUS_SRC_DIR)/../../boost; pwd))
