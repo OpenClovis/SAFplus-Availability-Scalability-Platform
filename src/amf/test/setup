@@ -15,8 +15,8 @@ export CL_LOG_CODE_LOCATION_ENABLE=1
 export SAFPLUS_BACKPLANE_INTERFACE=eth0
 
 # copy app binaries to the names configured in the configuration xml file
-cp test/exampleSafApp test/test0
-cp test/exampleSafApp test/test1
+/bin/cp test/exampleSafApp test/test0
+/bin/cp test/exampleSafApp test/test1
 
 # python ./bin/dbalpy.py -x ./test/safplusAmf.xml ./bin/safplusAmf
 
