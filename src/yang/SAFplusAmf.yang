@@ -84,6 +84,7 @@ module SAFplusAmf
 	enum terminationFailed;
       }
       default "uninstantiated";
+      config false;
     }
 
     typedef ReadinessState

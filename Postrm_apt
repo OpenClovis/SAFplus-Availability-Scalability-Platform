@@ -1,5 +1,0 @@
-#!/bin/sh
-
-cd /opt/clovis
-rm -rf sdk-6.0
-

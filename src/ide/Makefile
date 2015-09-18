@@ -4,7 +4,7 @@ include ../mk/preface.mk
 Release all: ide
 
 ide:
-	INSTALL_DIR=$(INSTALL_DIR) codeblocks --build ide.cbp
+	INSTALL_DIR=$(INSTALL_DIR) $(SAFPLUS_CODEBLOCKS_BIN_DIR)codeblocks --build ide.cbp
 
 clean:
 	rm -rf .objs *.pyc SAFplusIDE.cbplugin SAFplusIDE.so SAFplusIDE.zip helpers.zip wizard.zip

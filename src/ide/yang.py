@@ -123,11 +123,25 @@ def cvtRange(s,typ="int"):
     ret.append(rang) 
   return ret
 
+class Choices:
+  def __init__(self, d):
+    self.choices = d
+
 def createLeaf(s,count, result=None):
   """A leaf data item has been found.  Translate this into a clean format that the IDE can easily use to include this item in a configuraton dialog"""
   if result is None: result = {}
   typ = getArg(s,"type")
-  result[s.arg] = { "order":count, "type": typ,"help" : getArg(s,"description",None), "alias": getArg(s,("SAFplusTypes","alias"),None), "prompt":getArg(s,("SAFplusTypes","ui-prompt"),None), "default" : getArg(s,"default",None), "config": toBoolean(getArg(s,"config",True)), "range": cvtRange(getArg(s.search_one("type"),"range",None),typ)}
+  choices=None
+  if typ == "enumeration":
+    es = getChild(s,"type") # there will only be one
+    count = 0  # I need to store an ordering so it can be displayed in the same ordering as was in the file.  Presumably that is the preferred order.
+    d = {}
+    for c in getChildren(es,"enum"):
+      d[c.arg] = { "order": count, "value" : intOrNone(getArg(c,"value",None)), "help" : getArg(c,"description",None), "alias": getArg(c,"safplus:alias",None)}
+      count += 1
+    choices = Choices(d)
+
+  result[s.arg] = { "order":count, "type": typ,"help" : getArg(s,"description",None), "alias": getArg(s,("SAFplusTypes","alias"),None), "prompt":getArg(s,("SAFplusTypes","ui-prompt"),None), "default" : getArg(s,"default",None), "config": toBoolean(getArg(s,"config",True)), "range": cvtRange(getArg(s.search_one("type"),"range",None),typ),"choice":choices}
   return result
   
 def handleList(s,count):
@@ -145,7 +159,8 @@ def createObject(s,result=None):
   for c in s.substmts:
     count+=1
     if getArg(c,"config", True):  # If the config field does not exist or is true, this is configuration
-      if c.keyword == "leaf": createLeaf(c, count, result)
+      if c.keyword == "leaf": 
+        createLeaf(c, count, result)
       elif c.keyword == "leaf-list":  # Leaf-list can indicate a one to many containment relationship        
         result.setdefault("contains",{}).update(handleList(c,count))
       elif c.keyword == "list":
@@ -181,14 +196,15 @@ def createObject(s,result=None):
 def dictifyStatements(stmts,ts,objs,indent=0):
     for s in stmts:
       #print " "*indent, "keyword: ", s.keyword, " Arg: ", s.arg
-
+      if s.keyword == "container":
+        dictifyStatements(s.substmts,ts,objs,indent+1)
       # Handle Typedef types
       if s.keyword == "typedef":  # Add typedefs to the types dictionary (ts)
         typ = getArg(s,"type")
         ts[s.arg] = { "type": typ, "help": getArg(s,"description"), "source": (s.pos.ref,s.pos.line) }
 
         # Its an enum, so fill the children with the enum choices
-        if typ == "enumeration":  
+        if typ == "enumeration":
           es = getChild(s,"type") # there will only be one
           d = {}
           count = 0  # I need to store an ordering so it can be displayed in the same ordering as was in the file.  Presumably that is the preferred order.

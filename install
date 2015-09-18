@@ -1,5 +1,0 @@
-#!/bin/bash
-myFullPath=`which $0`
-myDir=`dirname $myFullPath`
-cd $myDir
-exec python install.py $@

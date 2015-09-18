@@ -49,6 +49,8 @@ TAE_DIR ?= $(SAFPLUS_SRC_DIR)/../../tae
 NOOP := $(shell mkdir -p $(SAFPLUS_SRC_DIR)/target/$(TARGET_PLATFORM)/$(TARGET_OS))
 SAFPLUS_TARGET ?= $(shell (cd $(SAFPLUS_SRC_DIR)/target/$(TARGET_PLATFORM)/$(TARGET_OS); pwd))
 
+SAFPLUS_CODEBLOCKS_BIN_DIR ?= /opt/SAFplus/7.0/ide/bin/
+
 NOOP := $(shell echo $(SAFPLUS_TARGET))
 
 #? All 3rdparty libs, etc will go here by default i.e. configure --prefix=$(INSTALL_DIR)

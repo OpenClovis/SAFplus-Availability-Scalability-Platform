@@ -1,4 +1,5 @@
 import pdb
+from collections import namedtuple
 
 import wx
 #from wx.py import shell,
@@ -26,6 +27,8 @@ except ImportError: # if it's not there locally, try the wxPython lib.
     import wx.lib.agw.hypertreelist as HTL
     import wx.lib.agw.infobar as IB
 
+Gui2Obj=namedtuple('Gui2Obj','fielddef widget lock help item entity')
+
 LOCK_BUTTON_ID = 3482
 HELP_BUTTON_ID = 4523
 TEXT_ENTRY_ID = 7598
@@ -46,14 +49,14 @@ class SliderCustom(wx.PyControl):
     wx.PyControl.__init__(self, parent, id, style = style)
 
     self.sliderText = wx.TextCtrl(self, id, str(v), style = wx.BORDER_SIMPLE)
-    self.slider = wx.Slider(self,id,v,rang[0],rang[1],size=(200,60), style = wx.SL_HORIZONTAL | wx.SL_AUTOTICKS | wx.SL_LABELS)
+    self.slider = wx.Slider(self,id,v,rang[0],rang[1],size=(200,60), style = wx.SL_HORIZONTAL) #  | wx.SL_AUTOTICKS | wx.SL_LABELS)
 
     self.tickFreq = 5
     self.slider.SetTickFreq(self.tickFreq)
 
-    sizer = wx.BoxSizer(wx.VERTICAL)
-    sizer.Add(self.sliderText, 0, wx.EXPAND | wx.ALL, 0)
-    sizer.Add(self.slider, wx.EXPAND | wx.ALL, wx.EXPAND, 0)
+    sizer = wx.BoxSizer(wx.HORIZONTAL)
+    sizer.Add(self.sliderText, 0, wx.ALIGN_CENTER | wx.FIXED_MINSIZE | wx.ALL, 0)
+    sizer.Add(self.slider, 1, wx.EXPAND | wx.ALL, 0)
 
     self.slider.Bind(wx.EVT_SLIDER, self.sliderHandler)
     self.sliderText.Bind(wx.EVT_TEXT, self.sliderTextHandler)
@@ -231,6 +234,13 @@ class Panel(scrolled.ScrolledPanel):
     def __init__(self, parent,menubar,toolbar,statusbar,model, isDetailInstance = False):
         global thePanel
         scrolled.ScrolledPanel.__init__(self, parent, style = wx.TAB_TRAVERSAL|wx.SUNKEN_BORDER)
+
+        #? Set to True if you want to only show the config items, set to false if you want to show config and runtime items
+        self.configOnly = True
+
+        #? Set to the list of types that should not appear in the panel.  The instance-identifier is not shown because it is constructed using the UML diagram
+        self.noShowTypes = ["instance-identifier"]
+
         self.SetupScrolling(True, True)
         self.SetScrollRate(10, 10)
 
@@ -262,7 +272,7 @@ class Panel(scrolled.ScrolledPanel):
         self.info = IB.InfoBar(self)
         self.sizer.Add(self.info, 0, wx.EXPAND)
 
-        # Create hyperlisttree 
+        # Creates hyperlisttree 
         self.eventDictTree = {wx.EVT_TREE_ITEM_EXPANDED:self.OnTreeSelExpanded, wx.EVT_TREE_SEL_CHANGING: self.OnTreeSelChanged, wx.EVT_TREE_SEL_CHANGED: self.OnTreeSelChanged}
         self._createTreeEntities()
 
@@ -274,7 +284,11 @@ class Panel(scrolled.ScrolledPanel):
         if StandaloneDev:
           e = model.entities["app"]
           self.showEntity(e)
-        self.SetSashPosition(self.GetParent().GetClientSize().x/4)
+
+        # Does not work because this panel does not have a size yet (parent has not laid it out)
+        #sz = self.GetParent().GetClientSize()
+        #pdb.set_trace()
+        #self.SetSashPosition(self.GetParent().GetClientSize().x/4)
 
 
     def partialDataValidate(self, proposedPartialValue, fieldData):
@@ -407,10 +421,10 @@ class Panel(scrolled.ScrolledPanel):
       # Toggle the locked state, create it unlocked (then instantly lock it) if it is not already set
 
       #TODO: handle for children controls not itself if it has child. If it being locked/unlocked, mean all children affected
-
-      self.entity.instanceLocked[obj[0][0]] = not self.entity.instanceLocked.get(obj[0][0],False)
+      entity = obj.entity
+      entity.instanceLocked[obj[0][0]] = not entity.instanceLocked.get(obj[0][0],False)
       # set the button appropriately
-      if self.entity.instanceLocked[obj[0][0]]:
+      if entity.instanceLocked[obj[0][0]]:
         lockButton.SetBitmap(self.lockedBmp);
         lockButton.SetBitmapSelected(self.unlockedBmp)
       else:
@@ -451,9 +465,17 @@ class Panel(scrolled.ScrolledPanel):
 
           # TODO create a control that contains both a slider and a small text box
           # TODO size the slider properly using min an max hints 
+        elif typeData["type"] == 'enumeration':  # This handles enums inside other lists or containers
+          vals = typeData["choice"].choices.items()
+          vals = sorted(vals, module.DataTypeSortOrder)
+          choices = [x[0] for x in vals]
+          if not value in choices:  # OOPS!  Either initial case or the datatype was changed
+              value = choices[0]  # so set the value to the first one TODO: set to default one
+          query = wx.ComboBox(self.tree.GetMainWindow(),id,value=value,choices=[x[0] for x in vals])
+
         elif self.model.dataTypes.has_key(typeData["type"]):
           typ = self.model.dataTypes[typeData["type"]]
-          if typ["type"] == "enumeration":
+          if typ["type"] == "enumeration":  # This is a typedef enum
             vals = typ["values"].items()
             vals = sorted(vals, module.DataTypeSortOrder)
             choices = [x[0] for x in vals]
@@ -511,10 +533,11 @@ class Panel(scrolled.ScrolledPanel):
       event.Skip()
 
     def CollapseAll(self):
-      self.tree.SelectAll()
-      for item in filter(lambda item: item != self.treeRoot, self.tree.GetSelections()):
-        self.tree.Collapse(item)
-      self.tree.UnselectAll()
+      #self.tree.SelectAll()
+      #for item in filter(lambda item: item != self.treeRoot, self.tree.GetSelections()):
+      #  self.tree.Collapse(item)
+      #self.tree.UnselectAll()
+      self.tree.Unselect()
 
     # Create controls for all entities
     def _createTreeEntities(self):
@@ -524,7 +547,15 @@ class Panel(scrolled.ScrolledPanel):
           self.tree.Destroy()
           del self.tree
 
-      self.tree = HTL.HyperTreeList(self, id=wx.ID_ANY, pos=wx.DefaultPosition, style=wx.BORDER_NONE, size=(5,5), agwStyle=HTL.TR_NO_HEADER | wx.TR_HAS_BUTTONS | wx.TR_HAS_VARIABLE_ROW_HEIGHT | HTL.TR_HIDE_ROOT | wx.TR_MULTIPLE)
+      self.tree = HTL.HyperTreeList(self, id=wx.ID_ANY, pos=wx.DefaultPosition, style=wx.BORDER_NONE, size=(5,5), agwStyle=HTL.TR_NO_HEADER | wx.TR_HAS_BUTTONS | wx.TR_HAS_VARIABLE_ROW_HEIGHT | HTL.TR_HIDE_ROOT | wx.TR_SINGLE) # wx.TR_MULTIPLE)
+      win = self.tree.GetMainWindow()
+      # win.SetBackgroundStyle(None)
+      # win._hilightBrush = wx.Brush(wx.Colour(255,255,255,255))
+
+      # workaround: the constructor of customtreectrl makes this very black which looks ugly when you click on a node in the tree:
+      bkcol = win.GetBackgroundColour()
+      win._hilightUnfocusedBrush = wx.Brush(bkcol)
+     # self.tree.ShouldInheritColors(True)
       self.tree.AddColumn("Main column")
       self.tree.AddColumn("Col 1")
       self.tree.AddColumn("Col 2")
@@ -608,9 +639,9 @@ class Panel(scrolled.ScrolledPanel):
 
       child = self.tree.AppendItem(treeItem, "Name:")
       self.tree.SetItemWindow(child, query, 2)
-      self.tree.SetItemWindow(child, b, 3)
+      self.tree.SetItemWindow(child, b, 1)
       b.Disable()
-      self.lookup[self.row] = [None,query,b,None,treeItem]
+      self.lookup[self.row] = Gui2Obj(None,query,b,None,treeItem,ent)
       self.row += 1
 
       # Create all controls of entity
@@ -632,6 +663,12 @@ class Panel(scrolled.ScrolledPanel):
         if item[0] == "contains":
           pass
         elif type(item[1]) is DictType:
+          if item[1].get("type","untyped") in self.noShowTypes:
+            continue
+          if self.configOnly and item[1].get("config",True)==False:
+            # Skip runtime items
+            continue
+
           # figure out the prompt; its either the name of the item or the prompt override
           s = item[1].get("prompt",name)
           if not s: s = name
@@ -640,23 +677,16 @@ class Panel(scrolled.ScrolledPanel):
             child = self.tree.AppendItem(treeItem, s)
             self.createChildControls(child, ent, item[1].items(), values.get(item[0], None))
           else:
-            #pdb.set_trace()
             query = self.createControl(self.row + TEXT_ENTRY_ID, item, values.get(item[0], None))
             if not query: continue  # If this piece of data has no control, it is not user editable
 
             #Create tree item
             child = self.tree.AppendItem(treeItem, s)
-
-            #Add control into tree item
-            self.tree.SetItemWindow(child, query, 2)
-
+            # pdb.set_trace()
             # Now create the lock/unlock button
             b = wx.BitmapButton(self, self.row + LOCK_BUTTON_ID, self.unlockedBmp,style = wx.NO_BORDER )
             b.SetToolTipString("If unlocked, instances can change this field")
             
-            #Add control into tree item
-            self.tree.SetItemWindow(child, b, 3)
-
             if ent.instanceLocked.get(name, False):  # Set its initial state
               b.SetBitmap(self.lockedBmp);
               b.SetBitmapSelected(self.unlockedBmp)
@@ -682,9 +712,12 @@ class Panel(scrolled.ScrolledPanel):
 
             #Add control into tree item
             if h:
-              self.tree.SetItemWindow(child, h, 1)
-            
-            self.lookup[self.row] = [item,query,b,h,child]
+              self.tree.SetItemWindow(child, h, 0)
+
+            self.tree.SetItemWindow(child, query, 2)
+            self.tree.SetItemWindow(child, b, 1)
+            # self.tree.SetItemBackgroundColor(child,wx.Color(50,50,50))
+            self.lookup[self.row] = Gui2Obj(item,query,b,h,child,ent)
             self.row+=1
 
     def OnPaint(self, evt):
@@ -698,7 +731,7 @@ class Panel(scrolled.ScrolledPanel):
         #self.Render(dc)
 
     def SetSashPosition(self, width = -1):
-      #Workaround to show scrollbar
+      # In the test configuration this window is just thrown into a frame so there is no sash...
       if isinstance(self.GetParent(), wx.SplitterWindow):
         self.GetParent().SetSashPosition(-1)
         self.GetParent().SetSashPosition(width)
