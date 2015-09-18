@@ -36,7 +36,7 @@
 
 extern "C"
 {
-//#include <clCommon.h>
+  //#include <clCommon.h>
 #include <clDbalApi.h>
 } /* end extern 'C' */
 
@@ -48,24 +48,52 @@ extern "C"
 #define MGT_DB_MAX_SIZE_RECORD 1024
 
 namespace SAFplus
-{
+  {
 
   class MgtDatabase
-  {
-  protected:
+    {
+    protected:
+    std::map<std::string, ClDBHandleT> databaseList;
     MgtDatabase();
 
     static MgtDatabase *singletonInstance;
 
     ClBoolT mInitialized;
     ClDBHandleT mDbDataHdl;
-    std::vector<std::string> listKey;
-    std::vector<std::string> listXpath;
+    std::string mDbName;
 
-  private:
-    void updateLists();
+    std::map<std::string, std::vector<std::string>> mapParentKey;
+    std::map<std::string, std::string> mapKeyValue;
 
-  public:
+    private:
+    /**
+     * \brief Function to check if data loaded
+     */
+    ClBoolT dataLoaded();
+
+    /**
+     * \brief Function to load data from DB to mapParentKey and mapKeyValue
+     */
+    void loadData();
+
+    /**
+     * \brief Function to check and insert the key name to it's parent
+     */
+    void insertToParentKey(const std::string &key);
+
+    /**
+     * \brief Function to iterate through xpath & all it's children
+     */
+    void iterateParentKey(const std::string &xpath, std::vector<std::string> &iter, bool keyOnly);
+
+    void insertToIterator(const std::string &xpath, std::vector<std::string> &iter, bool keyOnly);
+
+    /**
+     * \brief Function to check if dbName was opened and set dbhandle
+     */
+    ClRcT checkIfDBOpened(const std::string &dbName, std::map<std::string, ClDBHandleT>::iterator &dbh);
+
+    public:
     virtual ~MgtDatabase();
 
     /**
@@ -74,6 +102,21 @@ namespace SAFplus
     static MgtDatabase *getInstance();
 
     static void DestroyInstance(); // Constructor for singleton
+
+    /**
+     * \brief Function to switch to another Db
+     */
+    ClRcT switchDB(const std::string &dbName);
+
+    /**
+     * \brief Function to close a DB
+     */
+    void closeDB(const std::string &dbName);
+
+    /**
+     * \brief Function to close the current opened DB
+     */
+    void closeDB();
 
     /**
      * \brief	Function to initialize Database Abstraction Layer and open a mgt database
@@ -115,9 +158,8 @@ namespace SAFplus
      */
     std::vector<std::string> iterate(const std::string &xpath, bool keyOnly = false);
 
+    };
   };
-}
-;
 
 #endif /* CLMGTDATABASE_HXX_ */
 
