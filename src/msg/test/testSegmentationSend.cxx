@@ -55,11 +55,11 @@ int main(int argc, char* argv[])
   std::string xport("clMsgUdp.so");
   boost::program_options::options_description desc("Allowed options");
   desc.add_options()
-                    ("help", "this help message")
-                    ("xport", boost::program_options::value<std::string>(), "transport plugin filename")
-                    ("loglevel", boost::program_options::value<std::string>(), "logging cutoff level")
-                    ("mode", boost::program_options::value<std::string>()->default_value("LAN"), "specify LAN or cloud to set the messaging transport address resolution mode")
-                    ;
+                        ("help", "this help message")
+                        ("xport", boost::program_options::value<std::string>(), "transport plugin filename")
+                        ("loglevel", boost::program_options::value<std::string>(), "logging cutoff level")
+                        ("mode", boost::program_options::value<std::string>()->default_value("LAN"), "specify LAN or cloud to set the messaging transport address resolution mode")
+                        ;
 
   boost::program_options::variables_map vm;
   boost::program_options::store(boost::program_options::parse_command_line(argc, argv, desc), vm);
@@ -112,18 +112,27 @@ int main(int argc, char* argv[])
       MsgTransportConfig xCfg = xp->initialize(msgPool,clusterNodes);
       logInfo("TST","MSG","Msg Transport [%s], node [%u] maxPort [%u] maxMsgSize [%u]", xp->type, xCfg.nodeId, xCfg.maxPort, xCfg.maxMsgSize);
       Handle destination = SAFplus::getProcessHandle(4,122);
-      logInfo("TST","MSG","init segmentation socket p 3");
+      logInfo("TST","MSG","nit segmentation socket p 3");
       MsgSocketSegmentaion sockclient(3,xp);
       printf("init socket : done \n");
-      long len=2000000;
+      long len=9000000;
       int count = 0;
-      while(count<3)
+      while(count<1)
       {
         count ++;
         unsigned char* buffer = new unsigned char[len*count];
-        memset( buffer, 'c', sizeof(unsigned char)*len*count );
-        sockclient.send(destination,buffer,len*count);
+        memset(buffer, 'c', sizeof(unsigned char)*len*count);
+        Message* m = msgPool.allocMsg();
+        assert(m);
+        m->setAddress(destination);
+        MsgFragment* pfx  = m->append(1);
+        * ((unsigned char*)pfx->data()) = 2;
+        pfx->len = 1;
+        MsgFragment* frag = m->append(0);
+        frag->set(buffer,len*count);
+        sockclient.send(m);
         delete buffer;
+        m->msgPool->free(m);
         sleep(1);
       }
       do
@@ -131,6 +140,6 @@ int main(int argc, char* argv[])
         sleep(2);
       }while(1);
 
-     }
+    }
   }
 }

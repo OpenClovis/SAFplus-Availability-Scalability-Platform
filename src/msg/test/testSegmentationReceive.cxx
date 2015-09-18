@@ -55,11 +55,11 @@ int main(int argc, char* argv[])
   std::string xport("clMsgUdp.so");
   boost::program_options::options_description desc("Allowed options");
   desc.add_options()
-                    ("help", "this help message")
-                    ("xport", boost::program_options::value<std::string>(), "transport plugin filename")
-                    ("loglevel", boost::program_options::value<std::string>(), "logging cutoff level")
-                    ("mode", boost::program_options::value<std::string>()->default_value("LAN"), "specify LAN or cloud to set the messaging transport address resolution mode")
-                    ;
+                        ("help", "this help message")
+                        ("xport", boost::program_options::value<std::string>(), "transport plugin filename")
+                        ("loglevel", boost::program_options::value<std::string>(), "logging cutoff level")
+                        ("mode", boost::program_options::value<std::string>()->default_value("LAN"), "specify LAN or cloud to set the messaging transport address resolution mode")
+                        ;
 
   boost::program_options::variables_map vm;
   boost::program_options::store(boost::program_options::parse_command_line(argc, argv, desc), vm);
@@ -115,15 +115,28 @@ int main(int argc, char* argv[])
       logInfo("TST","MSG","init segmentation socket p 4");
       MsgSocketSegmentaion sockSegment(4,xp);
       int count =1;
-      long len = 10000000;
+      int len = 20000000;
+      int receiveLen=3000000;
       while(1)
       {
-          unsigned char* buffer = new unsigned char[len];
-          logInfo("TST","MSG","read...");
-          int recv = sockSegment.read(buffer,len);
-          logInfo("TST","MSG","receive [%d] byte [%s]",recv,buffer+ recv -20);
-          delete buffer;
+        int receiveByte=count*receiveLen;
+        logInfo("TST","MSG","read...");
+        Message* msg= sockSegment.receive(1);
+        assert(msg->firstFragment == msg->lastFragment);
+        MsgFragment* frag =  msg->firstFragment;
+        int msgType = *((char*)frag->read(0));
+        frag->start++;
+        frag->len--;
+        char* data= (char*)frag->read(0);
+        logInfo("TST","MSG","receive [%d] byte, msgType[%d] from [%d] [%d]",frag->len,msgType,msg->node,msg->port);
+        logInfo("TST","MSG","Data at [%d] : [%s]",0,data);
+        logInfo("TST","MSG","Data at [%d] : [%s]",MAX_SEGMENT_SIZE -10,data + MAX_SEGMENT_SIZE -10);
+        logInfo("TST","MSG","Data at [%d] : [%s]",receiveByte -5,data + (receiveByte -5));
+        msg->msgPool->free(msg);
+        count++;
       }
-     }
+    }
   }
 }
+
+

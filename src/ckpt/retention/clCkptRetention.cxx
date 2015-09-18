@@ -2,6 +2,7 @@
 #include <clThreadApi.hxx>
 #include <clCkptApi.hxx>
 #include <clCkptIpi.hxx>
+#include <clDbalApi.h>
 #include <boost/asio/deadline_timer.hpp>
 #include <boost/unordered_map.hpp>
 #include <boost/container/map.hpp>
@@ -14,16 +15,13 @@
 #include <string>
 
 using namespace boost::interprocess;
+using namespace SAFplusI;
 namespace fs = boost::filesystem;
 
 /* The callback function declaration for timer handler */
 class RetentionTimer;
 
 typedef void (*TimeoutCb) (const boost::system::error_code&, void*, RetentionTimer*);
-
-/* ThreadSem to prevent access map simultanceously */
-SAFplus::ThreadSem shmSem(1);
-
 
 /* this class wraps the boost deadline timer so that we can operate boost deadline timer via an object */
 class Timer
@@ -65,7 +63,9 @@ struct RetentionTimerData
   Timer timer;
   boost::posix_time::ptime lastUsed; // in seconds 
   bool isRunning; // states that if this timer is running or not 
-  RetentionTimerData(Timer t, boost::posix_time::ptime _lastUsed, bool running): timer(t), lastUsed(_lastUsed), isRunning(running)
+  ClDBHandleT dbHandle; // database handle to manipulate with persistent checkpoint. With non-persistent checkpoint, this variable is always NULL
+  std::string name; // Represents the physical file name of specified checkpoint type. For example, if this retention is based on share memory, its value is the name of shared memory (not included path). If this retention is persistence, its value is the full path to the database file name on disk
+  RetentionTimerData(Timer t, boost::posix_time::ptime _lastUsed, bool running, std::string _name, ClDBHandleT _dbHandle=NULL): timer(t), lastUsed(_lastUsed), isRunning(running), name(_name), dbHandle(_dbHandle)
   {
   }
 };
@@ -80,9 +80,24 @@ void onPersistentRetentionTimeout(const boost::system::error_code& e, void* arg,
 /* Retention timer class: use this class for retention timer for both shared memory files and persistent files on disk */
 class RetentionTimer
 {
-public:
+protected:
+  SAFplus::ThreadSem sem;
+
+public:  
   CkptTimerMap ckptTimerMap;
     
+  RetentionTimer()
+  {
+    sem.init(1);
+  }
+  void lock()
+  {
+    sem.lock();
+  }
+  void unlock()
+  {
+    sem.unlock();
+  }
   // an entry for starting retention timer
   void startTimer(CkptTimerMap::iterator& iter)
   {    
@@ -116,16 +131,17 @@ public:
     }
   }
   // Fill out the retentionTimerMap, also update in case there is a new checkpoint created
-  virtual void updateRetentionTimerMap(const char* path, boost::asio::io_service& iosvc)=0;  
+  virtual void updateRetentionTimerMap(boost::asio::io_service& iosvc)=0;  
 };
 
 class SharedMemFileTimer: public RetentionTimer
 {
-public:uint64_t waitDuration;
-  virtual void updateRetentionTimerMap(const char* path, boost::asio::io_service& iosvc)
+public:
+  
+  virtual void updateRetentionTimerMap(boost::asio::io_service& iosvc)
   {
-    /* Using boost library to walk thru the /dev/shm/ to get all the checkpoint shared memory files following the format: cktp_handle.id[0]:handle.id[1]:retentionDuration */
-    logTrace("CKPRET","UDT", "[shm] Enter [%s]", __FUNCTION__);
+    /* Using boost library to walk thru the /dev/shm/ to get all the checkpoint shared memory files following the format: SAFplusCkpt__handle.id[0]:handle.id[1] */
+    logTrace("CKPRET","UDT", "[shm] Enter [%s]", __FUNCTION__);    
     int lastSlashPos, ckptShmPos;
     fs::directory_iterator end_iter;
     for( fs::directory_iterator dir_iter(SharedMemPath) ; dir_iter != end_iter ; ++dir_iter)
@@ -139,7 +155,7 @@ public:uint64_t waitDuration;
       ckptShmPos = filePath.find("SAFplusCkpt_", lastSlashPos);
       int flen = filePath.length();
       if (ckptShmPos >= 0 && ckptShmPos < flen)
-      {
+      {        
         int hdlStartPos = filePath.find("_", ckptShmPos);                
         if (hdlStartPos >= 0 && hdlStartPos < flen)
         {
@@ -177,7 +193,7 @@ public:uint64_t waitDuration;
             // Add new item to map
             logTrace("CKPRET","UDT", "[shm] insert item {%" PRIx64 ":%" PRIx64 ", %lu} to map", ckptHdl.id[0], ckptHdl.id[1], retentionDuration);
             Timer timer(retentionDuration, iosvc, &onSharedMemRetentionTimeout);
-            RetentionTimerData rt(timer, ckptHdr.first->lastUsed, false);
+            RetentionTimerData rt(timer, ckptHdr.first->lastUsed, false, filePath.substr(ckptShmPos));
             CkptTimerMapPair kv(ckptHdl, rt);
             ckptTimerMap.insert(kv);                              
           }
@@ -198,21 +214,124 @@ public:uint64_t waitDuration;
 class PersistentFileTimer: public RetentionTimer
 {
 public:
-  virtual void updateRetentionTimerMap(const char* path, boost::asio::io_service& iosvc)
+  bool getHdrValue(ClDBHandleT dbHandle, int nkey, void* val)
   {
-    /* TODO: using boost library to walk thru the path to get all the checkpoint persistent files following the format: cktp_handle.id[0]:handle.id[1]:retentionDuration.db
-     Loop thru all files to get the ckpt handle, retention duration, handle.id[1] (as a ProcGate semId)
-    */
-    // Add item to map
-#if 0
-    uint64_t persistentRetentionDuration;
-    Timer timer(persistentRetentionDuration, iosvc, &onPersistentRetentionTimeout);
-    SAFplus::Handle ckptHandle;
-    SAFplus::ProcSem gate(ckptHandle.id[1]);
-    RetentionTimerData rt(timer, gate, false);
-    CkptTimerMapPair value(ckptHandle, rt);
-    ckptTimerMap.insert(value);
-#endif
+    if (!dbHandle) return false;
+    ClDBKeyHandleT key;
+    ClUint32T keySize;
+    ClDBRecordHandleT rec;
+    ClUint32T recSize;
+    size_t hdrSize = sizeof(ckptHeaderStrings)/sizeof(ckptHeaderStrings[0]);
+    ClRcT rc = clDbalFirstRecordGet(dbHandle, &key, &keySize, &rec, &recSize);  
+    while (rc == CL_OK)
+    {    
+      if (hdrSize>0)
+      {      
+        if (!memcmp(key, ckptHeader(nkey), keySize))
+        {
+          memcpy(val, rec, recSize);
+          clDbalKeyFree(dbHandle, key);
+          clDbalRecordFree(dbHandle, rec);
+          return true;
+        }
+        --hdrSize;
+        clDbalRecordFree(dbHandle, rec);
+        ClDBKeyHandleT curKey = key;
+        ClUint32T curKeySize = keySize;    
+        rc = clDbalNextRecordGet(dbHandle, curKey, curKeySize, &key, &keySize, &rec, &recSize);     
+        clDbalKeyFree(dbHandle, curKey);        
+      }
+      else
+        break;      
+    }
+    return false;
+  }  
+  
+  virtual void updateRetentionTimerMap(boost::asio::io_service& iosvc)
+  {
+    /* TODO: using boost library to walk thru the path to get all the checkpoint persistent files following the format: SAFplusCkpt_handle.id[0]:handle.id[1].db     
+    */     
+    logTrace("CKPRET","UDT", "[persist] Enter [%s]", __FUNCTION__);
+    ClRcT rc;
+    ClDBHandleT dbHandle;
+    const char* path=SAFplus::ASP_RUNDIR;
+    if (!path || !strlen(SAFplus::ASP_RUNDIR))
+    {
+      path = "./";
+    }
+    int lastSlashPos, ckptPersistPos;
+    fs::directory_iterator end_iter;
+    for( fs::directory_iterator dir_iter(path) ; dir_iter != end_iter ; ++dir_iter)
+    {
+      if (!fs::is_regular_file(dir_iter->status())) continue;  // skip any sym links, etc.
+      // Extract just the file name by bracketing it between the preceding / and the file extension
+      std::string filePath = dir_iter->path().string();
+      logTrace("CKPRET","UDT", "[persist] parsing file [%s]", filePath.c_str());
+      // skip ahead to the last / so a name like .../SAFplusCkpt_ works
+      lastSlashPos = filePath.rfind("/");
+      ckptPersistPos = filePath.find("SAFplusCkpt_", lastSlashPos);
+      int flen = filePath.length();
+      if (ckptPersistPos >= 0 && ckptPersistPos < flen)
+      {
+        int hdlStartPos = filePath.find("_", ckptPersistPos);
+        int hdlEndPos = filePath.find(".db", ckptPersistPos);
+        if (hdlStartPos >= 0 && hdlStartPos < flen && hdlEndPos>=0 && hdlEndPos<flen)
+        {
+          hdlStartPos++;
+          std::string strHdl = filePath.substr(hdlStartPos, hdlEndPos-hdlStartPos);
+          logTrace("CKPRET","UDT", "[persist] strHdl [%s]", strHdl.c_str());
+          SAFplus::Handle ckptHdl;
+          ckptHdl.fromStr(strHdl);          
+          CkptTimerMap::iterator contents = ckptTimerMap.find(ckptHdl);
+          if (contents != ckptTimerMap.end()) // exist
+          {
+            logTrace("CKPRET","UDT", "[persist] CkptHandle [%" PRIx64 ":%" PRIx64 "] exists in the map. Update the lastUsed field only", ckptHdl.id[0], ckptHdl.id[1]);
+            // update the lastUsed only
+            boost::posix_time::ptime lUsed;
+            if (getHdrValue(contents->second.dbHandle, lastUsed, &lUsed))
+               contents->second.lastUsed = lUsed;
+          }
+          else
+          {
+            rc = clDbalOpen(filePath.c_str(), filePath.c_str(), CL_DB_OPEN, CkptMaxKeySize, CkptMaxRecordSize, &dbHandle);
+            if (rc == CL_OK)
+            {
+              // Read database to get the checkpoint handle
+              SAFplus::Handle tmpHdl;
+              if (!(getHdrValue(dbHandle, hdl, &tmpHdl)))
+              {
+                logNotice("CKPRET","UDT", "[persist] No checkpoint handle from header found for checkpoint [%s]", strHdl.c_str());
+                continue; // no header found so bypass this checkpoint 
+              }
+              if (ckptHdl != tmpHdl) 
+              {
+                logNotice("CKPRET","UDT", "[persist] Handle from header found for checkpoint [%s] but its handle is invalid", strHdl.c_str());
+                continue; // it's not a valid handle, so bypass it and go to another
+              }  
+              uint64_t retDuration;          
+              boost::posix_time::ptime lUsed;
+              if (getHdrValue(dbHandle, retentionDuration, &retDuration) && getHdrValue(dbHandle, lastUsed, &lUsed))
+              {
+                // Add new item to map
+                logTrace("CKPRET","UDT", "[persist] insert item {%" PRIx64 ":%" PRIx64 ", %lu} to map", ckptHdl.id[0], ckptHdl.id[1], retDuration);
+                Timer timer(retDuration, iosvc, &onPersistentRetentionTimeout);
+                RetentionTimerData rt(timer, lUsed, false, filePath, dbHandle);
+                CkptTimerMapPair kv(ckptHdl, rt);
+                ckptTimerMap.insert(kv);                              
+              }
+            }
+          }
+        }
+        else
+        {
+          logWarning("CKPRET", "UDT", "[persist] Malformed ckpt peristent file [%s] for the handle", filePath.c_str());
+        }
+      }
+      else
+      {
+        logTrace("CKPRET", "UDT", "[persist] [%s] is not a ckpt persistent file", filePath.c_str());
+      }
+    }
   } 
 };
 
@@ -250,8 +369,7 @@ int main()
   PersistentFileTimer persistentFilesTimer;  
   // start the ckpt update
   Timer ckptUpdateTimer(SAFplusI::CkptUpdateDuration, io, onCkptUpdateTimeout);
-  //TimerArg timerArg(&ckptUpdateTimer, &sharedMemFilesTimer, &persistentFilesTimer);
-  TimerArg timerArg(&ckptUpdateTimer, &sharedMemFilesTimer, NULL);
+  TimerArg timerArg(&ckptUpdateTimer, &sharedMemFilesTimer, &persistentFilesTimer);
   ckptUpdateTimer.wait(&timerArg);
   // run the io service
   runIoService();  // The program control blocks here
@@ -277,14 +395,14 @@ void updateTimer(RetentionTimer* timer, boost::asio::io_service& iosvc)
     logNotice("CKPRET", "UPTTMR", "timer argument is NULL. Do not handle it");
     return;
   }
-  shmSem.lock();
-  timer->updateRetentionTimerMap(SharedMemPath, iosvc);
+  timer->lock();
+  timer->updateRetentionTimerMap(iosvc);
   // Loop thru the map for each ckpt, start the timer for each checkpoint
   for(CkptTimerMap::iterator iter = timer->ckptTimerMap.begin(); iter != timer->ckptTimerMap.end(); iter++)
   {    
     timer->startTimer(iter);    
   }
-  shmSem.unlock();
+  timer->unlock();
 }
 
 void runIoService()
@@ -297,26 +415,22 @@ void onSharedMemRetentionTimeout(const boost::system::error_code& e, void* arg, 
   logTrace("CKPRET", "TIMEOUT", "Enter [%s]", __FUNCTION__);
   if (e != boost::asio::error::operation_aborted)
   {
-    // Timer was not cancelled, the timer has expired within retentionDuration  
-    shmSem.lock();
+    // Timer was not cancelled, the timer has expired within retentionDuration      
     SAFplus::Handle* ckptHandle = (SAFplus::Handle*)arg;
-    SharedMemFileTimer* timer = (SharedMemFileTimer*)rt;        
+    SharedMemFileTimer* timer = (SharedMemFileTimer*)rt;
+    timer->lock();   
     CkptTimerMap::iterator contents = timer->ckptTimerMap.find(*ckptHandle);
     if (contents != timer->ckptTimerMap.end())
     { 
-      std::string ckptSharedMemoryObjectname = "SAFplusCkpt_";
-      char sharedMemFile[256];
-      ckptHandle->toStr(sharedMemFile);
-      ckptSharedMemoryObjectname.append(sharedMemFile);
-
-      // Get the checkpoint header to see whether the lastUsed changed or not 
-      logTrace("CKPRET", "TIMEOUT", "[%s] opening shm [%s]", __FUNCTION__, ckptSharedMemoryObjectname.c_str());     
-      managed_shared_memory managed_shm(open_only, ckptSharedMemoryObjectname.c_str());
+      // Get the checkpoint header to see whether the lastUsed changed or not
+      std::string& ckptShmName = contents->second.name;
+      logTrace("CKPRET", "TIMEOUT", "[%s] opening shm [%s]", __FUNCTION__, ckptShmName.c_str());     
+      managed_shared_memory managed_shm(open_only, ckptShmName.c_str());
       std::pair<SAFplusI::CkptBufferHeader*, std::size_t> ckptHdr = managed_shm.find<SAFplusI::CkptBufferHeader>("header");
       if (!ckptHdr.first)
       {
         logWarning("CKPRET", "TIMEOUT", "[%s] header for checkpoint [%" PRIx64 ":%" PRIx64 "] not found", __FUNCTION__, ckptHandle->id[0], ckptHandle->id[1]);
-        shmSem.unlock();
+        timer->unlock();
         return;
       }
       contents->second.isRunning = false;
@@ -330,14 +444,14 @@ void onSharedMemRetentionTimeout(const boost::system::error_code& e, void* arg, 
       {
         // delete the checkpoint        
         Timer& tmr = contents->second.timer;
-        logTrace("CKPRET", "TIMEOUT", "[%s] deleting shared mem file [%s]", __FUNCTION__, ckptSharedMemoryObjectname.c_str());
-        shared_memory_object::remove(ckptSharedMemoryObjectname.c_str());
+        logTrace("CKPRET", "TIMEOUT", "[%s] deleting shared mem file [%s]", __FUNCTION__, ckptShmName.c_str());
+        shared_memory_object::remove(ckptShmName.c_str());
         delete tmr.timer;
         // Remove this item from the map, too
         timer->ckptTimerMap.erase(contents);
-      }
-      shmSem.unlock();
+      }      
     }
+    timer->unlock();
   }
   else
   {
@@ -349,19 +463,43 @@ void onPersistentRetentionTimeout(const boost::system::error_code& e, void* arg,
 {
   if (e != boost::asio::error::operation_aborted)
   {
-    // Timer was not cancelled, the timer has expired within retentionDuration, so delete data    
+    // Timer was not cancelled, the timer has expired within retentionDuration  
     SAFplus::Handle* ckptHandle = (SAFplus::Handle*)arg;
-    PersistentFileTimer* timer = (PersistentFileTimer*)rt;
-    char path[256];
-    // TODO: construct the checkpoint persistent file based on its handle and persistent retention duration   
-    unlink(path); // remove file on disk
-    // Remove this item from the map, too
-    CkptTimerMap::iterator contents = timer->ckptTimerMap.find(*ckptHandle);
+    PersistentFileTimer* timer = (PersistentFileTimer*)rt;        
+    timer->lock();
+    CkptTimerMap::iterator contents = timer->ckptTimerMap.find(*ckptHandle);    
     if (contents != timer->ckptTimerMap.end())
-    {     
-      delete contents->second.timer.timer;
-      timer->ckptTimerMap.erase(contents);
+    { 
+      // Get the checkpoint header to see whether the lastUsed changed or not
+      std::string& ckptPersistName = contents->second.name;   
+      boost::posix_time::ptime lUsed;
+      if (!timer->getHdrValue(contents->second.dbHandle, lastUsed, &lUsed))      
+      {
+        logWarning("CKPRET", "TIMEOUT", "[%s] lastUsed from header for checkpoint [%" PRIx64 ":%" PRIx64 "] not found", __FUNCTION__, ckptHandle->id[0], ckptHandle->id[1]);
+        timer->unlock();
+        return;
+      }
+      contents->second.isRunning = false;
+      if (contents->second.lastUsed != lUsed)
+      {
+        // don't delete the checkpoint because it's still accessed by a process or app. So, restart the timer
+        logTrace("CKPRET", "TIMEOUT", "[%s] Restart timer for checkpoint [%" PRIx64 ":%" PRIx64 "]", __FUNCTION__, ckptHandle->id[0], ckptHandle->id[1]);
+        timer->startTimer(contents);
+      }
+      else
+      {
+        // delete the persistent checkpoint        
+        Timer& tmr = contents->second.timer;
+        logTrace("CKPRET", "TIMEOUT", "[%s] deleting peristent checkpoint file [%s]", __FUNCTION__, ckptPersistName.c_str());
+        // close the database handle
+        clDbalClose(contents->second.dbHandle);
+        unlink(ckptPersistName.c_str());
+        delete tmr.timer;
+        // Remove this item from the map, too
+        timer->ckptTimerMap.erase(contents);
+      }      
     }
+    timer->unlock();
   }
   else
   {

@@ -10,7 +10,7 @@
 using namespace boost::intrusive;
 #define MORE_FLAG   0x80
 #define LAST_FLAG   0x40
-#define USER_HEADER_LEN 4
+#define USER_HEADER_LEN 6
 #define MAX_SEGMENT_SIZE 64000
 #define MAX_MSG_SIZE 10000000;
 static ClUint32T currFragId = 0;
@@ -29,14 +29,14 @@ namespace SAFplus
     Handle sender;
     int msgId;
     bool operator == (const MsgKey& other) const
-                {
+                    {
       return ((sender == other.sender)&&(msgId==other.msgId));
-                }
+                    }
 
     bool operator != (const MsgKey& other) const
-                {
+                    {
       return ((sender != other.sender)||(msgId!=other.msgId));
-                }
+                    }
     //? Handles can be used as keys in hash tables
   };
   inline std::size_t hash_value(MsgKey const& h)
@@ -57,11 +57,12 @@ namespace SAFplus
     int m_nLen;          /* Header length field */
     int m_nSeqn;         /* Sequence number field */
     int m_nMsgId;
+    //    int m_nMsgType;
     int m_nDataLen;
     bool isLast;
-    Byte* m_pData;
 
   public:
+    Byte* m_pData;
     Segment();
     Segment(int seqn, const Byte* buffer, int off, int len , bool isLastFrag);
     void init(int _seqn, int len, bool isLastFrag);
@@ -77,6 +78,14 @@ namespace SAFplus
     {
       return m_nMsgId;
     }
+    //    void setMsgType(int msgType)
+    //    {
+    //      m_nMsgType=msgType;
+    //    }
+    //    int getMsgType()
+    //    {
+    //      return m_nMsgType;
+    //    }
     void setLast(bool isLastSeg);
     bool isLastSegment();
     Byte* getBytes();
@@ -88,13 +97,10 @@ namespace SAFplus
     friend bool operator> (const Segment &a, const Segment &b)
     {  return a.m_nSeqn > b.m_nSeqn;  }
     friend bool operator== (const Segment &a, const Segment &b)
-                           {  return a.m_nSeqn == b.m_nSeqn;  }
+                               {  return a.m_nSeqn == b.m_nSeqn;  }
     ~Segment()
     {
-      if(m_pData)
-      {
-        delete m_pData;
-      }
+      delete m_pData;
     }
 
   };
@@ -110,6 +116,8 @@ namespace SAFplus
     int expectedSegments;
     int segmentNum;
     bool isFull;
+    int length;
+    Handle handle;
     MsgSegments()
     {
       expectedSegments=-1;
@@ -118,11 +126,11 @@ namespace SAFplus
     };
 
   };
-  typedef boost::unordered_map<SAFplus::MsgKey, SAFplus::MsgSegments*> HandleStreamMap;
+  typedef boost::unordered_map<SAFplus::MsgKey, SAFplus::MsgSegments*> KeyMsgMap;
   class MsgSocketSegmentaion : public MsgSocketAdvanced
   {
   private:
-    HandleStreamMap receiveMap;
+    KeyMsgMap receiveMap;
     int msgReceived;
     boost::thread rcvThread; //thread to receive and handle fragment
   public:
@@ -131,10 +139,10 @@ namespace SAFplus
     MsgSocketSegmentaion(MsgSocket* socket);
     virtual ~MsgSocketSegmentaion();
     //? Send a bunch of messages.  You give up ownership of msg.
-    virtual void send(Message* msg);
+    virtual void send(Message* origMsg);
     virtual void send(SAFplus::Handle destination, void* buffer, uint_t length);
     virtual Message* receive(uint_t maxMsgs,int maxDelay=-1);
-    Segment* receiveFragment(Handle &handle);
+    Segment* receiveSegment(Handle &handle);
     int read(Byte* buffer,int maxlength);
     void handleReceiveThread(void);
     void applySegmentaion(SAFplus::Handle destination, void* buffer, uint_t length);
