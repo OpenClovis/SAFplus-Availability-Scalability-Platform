@@ -63,7 +63,8 @@ namespace SAFplus
     std::string mDbName;
 
     std::map<std::string, std::vector<std::string>> mapParentKey;
-    std::map<std::string, std::string> mapKeyValue;
+
+    std::vector<std::string> xpathList;
 
     private:
     /**

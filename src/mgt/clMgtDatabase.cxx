@@ -52,7 +52,7 @@ namespace SAFplus
   {
     mInitialized = CL_FALSE;
     mapParentKey.clear();
-    mapKeyValue.clear();
+    xpathList.clear();
   }
 
   ClRcT MgtDatabase::initializeDB(const std::string &dbName, ClUint32T maxKeySize, ClUint32T maxRecordSize)
@@ -115,7 +115,7 @@ namespace SAFplus
     mDbDataHdl = 0;
     databaseList.clear();
     mapParentKey.clear();
-    mapKeyValue.clear();
+    xpathList.clear();
 
     /*Finalize dbal */
     clDbalLibFinalize();
@@ -149,7 +149,7 @@ namespace SAFplus
     logInfo("MGT", "DBR", "Switch from %s to %s ", mDbName.c_str(), dbName.c_str());
     mDbName = dbName;
     mDbDataHdl = dbh->second;
-    mapKeyValue.clear();
+    xpathList.clear();
     mapParentKey.clear();
 
     return rc;
@@ -172,7 +172,7 @@ namespace SAFplus
 
     if (dbName == mDbName)
       {
-        mapKeyValue.clear();
+        xpathList.clear();
         mapParentKey.clear();
       }
     clDbalClose(dbh->second);
@@ -198,10 +198,7 @@ namespace SAFplus
     // Marshall data
     dbValue.SerializeToString(&strVal);
     rc = clDbalRecordReplace(mDbDataHdl, (ClDBKeyT) &hashKey, sizeof(hashKey), (ClDBRecordT) strVal.c_str(), strVal.size());
-    if (rc == CL_OK && dataLoaded())
-      {
-        mapKeyValue[key] = value;
-      }
+
     return rc;
   }
 
@@ -266,7 +263,7 @@ namespace SAFplus
 
     if (rc == CL_OK && dataLoaded())
       {
-        mapKeyValue[key] = value;
+        xpathList.push_back(key);
         insertToParentKey(key);
       }
 
@@ -287,7 +284,7 @@ namespace SAFplus
     rc = clDbalRecordDelete(mDbDataHdl, (ClDBKeyT) &hashKey, sizeof(hashKey));
     if (rc == CL_OK && dataLoaded())
       {
-        mapKeyValue.erase(key);
+        xpathList.erase(std::remove(xpathList.begin(), xpathList.end(), key), xpathList.end());
       }
 
     return rc;
@@ -295,7 +292,7 @@ namespace SAFplus
 
   ClBoolT MgtDatabase::dataLoaded()
   {
-    return !mapKeyValue.empty();
+    return !xpathList.empty();
   }
 
   void MgtDatabase::insertToParentKey(const std::string &key)
@@ -388,7 +385,7 @@ namespace SAFplus
         // De-marshall data
         dbValue.ParseFromString(strVal);
 
-        mapKeyValue[dbValue.xpath()] = dbValue.value();
+        xpathList.push_back(dbValue.xpath());
         insertToParentKey(dbValue.xpath());
 
         logInfo("MGT", "LST", "Read [%s]", dbValue.xpath().c_str());
@@ -405,7 +402,7 @@ namespace SAFplus
 
   void MgtDatabase::iterateParentKey(const std::string &xpath, std::vector<std::string> &iter, bool keyOnly)
   {
-    if (mapKeyValue.find(xpath) != mapKeyValue.end())
+    if (std::find(xpathList.begin(), xpathList.end(), xpath) != xpathList.end())
       {
         insertToIterator(xpath, iter, keyOnly);
         return;
@@ -425,7 +422,7 @@ namespace SAFplus
             path.append(std::string("/").append(childName));
           }
 
-        if (mapKeyValue.find(path) != mapKeyValue.end())
+        if (std::find(xpathList.begin(), xpathList.end(), path) != xpathList.end())
           {
             insertToIterator(path, iter, keyOnly);
           }
@@ -438,6 +435,7 @@ namespace SAFplus
 
   std::vector<std::string> MgtDatabase::iterate(const std::string &xpath, bool keyOnly)
   {
+    logInfo("MGT", "DBR", "iterate xpath : %s", xpath.c_str());
     std::vector<std::string> iter;
     std::string path = xpath;
     if (!dataLoaded())
