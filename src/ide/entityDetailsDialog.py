@@ -448,7 +448,7 @@ class Panel(scrolled.ScrolledPanel):
               v = int(default)
           rang = typeData["range"]
           if not rang:
-            rang=[0,100]
+            rang=[0,100000]
           else:
             rang=[rang[0][0], rang[-1][-1]]  # get the first and last element of this list of lists.  We are ignoring any gaps (i.e. [[1,3],[5,10]] because the slider can't handle them anyway. It might be better to just fall back to a text entry box if range is funky.
             if rang[0] == "min": rang[0] = MinValFor[typeData["type"]]

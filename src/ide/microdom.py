@@ -143,6 +143,15 @@ class MicroDom:
       self.delChild(name)
     self.addChild(value,name)
 
+
+  def addAttribute(self,name,value):
+    self.attributes_[name] = value
+    try:
+      self.__dict__[keyify(k)] = v
+    except:
+      pass
+ 
+
   def addChild(self,child,tag=None):
     if tag is None:
       tag = child.tag_

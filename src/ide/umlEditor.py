@@ -986,8 +986,8 @@ def Test():
     if e.errno != 2: # no such file
       raise
 
-  #gui.go(lambda parent,menu,tool,status,m=model: Panel(parent,menu,tool,status, m))
-  gui.start(lambda parent,menu,tool,status,m=model: Panel(parent,menu,tool,status, m))
+  gui.go(lambda parent,menu,tool,status,m=model: Panel(parent,menu,tool,status, m))
+  #gui.start(lambda parent,menu,tool,status,m=model: Panel(parent,menu,tool,status, m))
   return model
 
 # Notes

@@ -35,6 +35,12 @@ module SAFplusTypes
       description "Another name for the same thing";
     }
 
+    extension ui-commonRange
+    {
+    description "This indicates a reasonable range for sliders.  However, values outside this range are legal.";
+    argument "range";
+    }
+
     extension ui-prompt
     {
       argument "query";

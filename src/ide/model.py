@@ -207,7 +207,7 @@ instantiated  <instances>     instances                         instances     (e
 
   def save(self, filename=None):
     """Save XML representation of the model"""
-    if filename is None: filename = "test.xml" # self.filename
+    if filename is None: filename = self.filename
     f = open(filename,"w")
     f.write(self.xmlify())
     f.close()
@@ -377,7 +377,7 @@ instantiated  <instances>     instances                         instances     (e
         instances.addChild(instance)
 
       # Remove all "None", replacing with the default or ""
-      temp = {}
+      temp = {}      
       for (key,val) in e.data.items():
         if val is None:
           val = e.et.data[key].get("default",None)
@@ -385,6 +385,10 @@ instantiated  <instances>     instances                         instances     (e
             val = ""
         if val == "None": val = ""
         temp[key] = val
+
+      # Add module and xpath attributes
+      instance.addAttribute("xpath",e.entity.et.data["xpath"] + ("[@name=\"%s\"]" % e.data["name"]))
+      instance.addAttribute("module",e.entity.et.data["module"])
 
       # Write all the data fields into the model's microdom
       instance.update(temp)  
@@ -506,7 +510,10 @@ def UnitTest(m=None):
     raise "Test failed: should return true because sg is contained in app"
   if sg.canBeContained(app2):
     raise "Test failed: should return false because sg can only be contained in one app"
-  
+
+  m.entities["appSG"].createInstance((0,0),(100,40),"sg0")
+  m.instances[sg0.data["name"]] = sg0
+ 
   
 def Test():
   import pdb
@@ -516,13 +523,17 @@ def Test():
     for module in obj.children(lambda(x): x if (type(x) is types.InstanceType and x.__class__ is microdom.MicroDom) else None):   
       print module.tag_, ": ", module.data_
   print m.entityTypes.keys()
+  # pdb.set_trace()
+
+  sg0 = m.entities["appSG"].createInstance((0,0),(100,40),"sg0")
+  m.instances[sg0.data["name"]] = sg0
 
   #1. Build flatten entity instance
   #2. Build relation ship between instances
   # Load instances
-  #print m.instances
+  #print instances
   # UnitTest(m)
-  m.save()
+  m.save("test.xml")
   return m
 
 theModel = None

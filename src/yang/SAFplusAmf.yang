@@ -5,9 +5,9 @@ module SAFplusAmf
 
   namespace "http://www.openclovis.org/ns/amf";
   prefix "SAFplusAmf";
-  import ietf-yang-types { prefix "iyt"; }
+  //import ietf-yang-types { prefix "iyt"; }
   import SAFplusTypes { prefix "SAFplusTypes"; }
-  import ENTITY-STATE-TC-MIB { prefix "entity-state"; }
+  // import ENTITY-STATE-TC-MIB { prefix "entity-state"; }
 
   organization
         "OpenClovis Solutions, Inc";
@@ -84,7 +84,6 @@ module SAFplusAmf
 	enum terminationFailed;
       }
       default "uninstantiated";
-      config false;
     }
 
     typedef ReadinessState
@@ -226,9 +225,11 @@ point.  The operational, administrative, and presence states of a service unit, 
         {
         SAFplusTypes:c-type "NodeStats";
         description "Statistics on this node";
+        config false;
         container load
           {
           SAFplusTypes:c-type "NodeLoad";
+          config false;
           container user       
             {
             description "Percentage of CPU time spent in user mode";
@@ -405,7 +406,7 @@ point.  The operational, administrative, and presence states of a service unit, 
       {
 	type boolean;
 	SAFplusTypes:alias saAmfSGAutoRepair;
-	SAFplusTypes:ui-prompt "Auto-repair: ";
+	SAFplusTypes:ui-prompt "Auto-repair";
 	description "Automatically attempt to bring this entity back into a healthy state if its operational state becomes disabled.  A 'false' value will cause the system to wait for operator intervention (via the repair API) before attempting to restart this entity.";
       }
 
@@ -413,7 +414,7 @@ point.  The operational, administrative, and presence states of a service unit, 
       {
 	type boolean;
 	SAFplusTypes:alias saAmfSGAutoAdjust;
-	SAFplusTypes:ui-prompt "Auto-adjust: ";
+	SAFplusTypes:ui-prompt "Auto-adjust";
         default false;
         description "Match this service group as closely as possible to the preferred high availability configuration.  For example, if the preferred active comes online, 'fail-back' to it.  Another example is if a new work assignment is provisioned, the system could remove an existing standby assignment so the new active can be provisioned.";
       }
@@ -427,41 +428,47 @@ point.  The operational, administrative, and presence states of a service unit, 
       leaf preferredNumActiveServiceUnits
       {
 	SAFplusTypes:alias saAmfSGNumPrefActiveSUs;
-	SAFplusTypes:ui-prompt "Active: ";
+	SAFplusTypes:ui-prompt "Num active";
 	type uint32;
-	description "";
+	description "What is the optimal number of active Service Units for this Service Group?";
+        SAFplusTypes:ui-commonRange "1..20";
       }
       leaf preferredNumStandbyServiceUnits
       {
 	SAFplusTypes:alias saAmfSGNumPrefStandbySUs;
-	SAFplusTypes:ui-prompt "Standby: ";
+	SAFplusTypes:ui-prompt "Num standby";
 	type uint32;
-	description "";
+	description "What is the optimal number of standby Service Units for this Service Group?";
+        SAFplusTypes:ui-commonRange "0..20";
       }
       leaf preferredNumIdleServiceUnits
       {
-	SAFplusTypes:ui-prompt "Idle: ";
+	SAFplusTypes:ui-prompt "Num idle";
 	type uint32;
 	description "An idle service unit is running but is not assigned active or standby.  This concept is functionally equivalent to the saAmfSGNumPrefInserviceSUs since Active+Standby+Idle = Inservice";
+        SAFplusTypes:ui-commonRange "0..20";
       }
 
       // saAmfSGNumPrefAssignedSUs = preferredNumActiveServiceUnits + preferredNumStandbyServiceUnits so the field is unnecessary
       
       leaf maxActiveWorkAssignments
       {
-	SAFplusTypes:ui-prompt "Active workload: ";
+	SAFplusTypes:ui-prompt "Active workload";
 	SAFplusTypes:alias saAmfSGMaxActiveSIsperSU;
 	type uint32;
 	description "The maximum number of active work assignments that can be placed on a single service unit (and therefore component/process) simultaneously.";
+        SAFplusTypes:ui-commonRange "0..100";
       }
       leaf maxStandbyWorkAssignments
       {
-	SAFplusTypes:ui-prompt "Standby workload: ";
+	SAFplusTypes:ui-prompt "Standby workload";
 	SAFplusTypes:alias saAmfSGMaxStandbySIsperSU;
 	type uint32;
 	description "The maximum number of standby work assignments that can be placed on a single service unit (and therefore component/process) simultaneously.";
+        SAFplusTypes:ui-commonRange "0..100";
       }
 
+      // TODO: think about moving this into the ocmponent
       container componentRestart
       {
 	SAFplusTypes:ui-group "Component fault escalation policy: ";
@@ -538,7 +545,8 @@ point.  The operational, administrative, and presence states of a service unit, 
       uses EntityId;
       container procStats
       {
-        uses SAFplusTypes:ProcessStats;        
+        uses SAFplusTypes:ProcessStats; 
+        config false;       
       }
       leaf presenceState
       {
@@ -599,7 +607,9 @@ point.  The operational, administrative, and presence states of a service unit, 
 	type uint32;
 	default 1;
 	description "Maximum number of active work assignments this component can handle.";
+        SAFplusTypes:ui-commonRange "0..100";
       }
+
       leaf maxStandbyAssignments
       {
 	SAFplusTypes:alias saAmfCompNumMaxStandbyCSIs;
@@ -607,6 +617,7 @@ point.  The operational, administrative, and presence states of a service unit, 
 	type uint32;
 	default 1;
 	description "Maximum number of standby work assignments this component can handle.";
+        SAFplusTypes:ui-commonRange "0..100";
       }
 
       container activeAssignments
@@ -665,11 +676,14 @@ point.  The operational, administrative, and presence states of a service unit, 
 	type string;
 	description "Compatible SA-Forum API version";
         default "B.04.01";
+        config false;  // The version is determined when the component registers via the saAmfInitialize API call
       }
 
       leaf compCategory
       {
 	type uint32;
+        description "Information about the type of component, as defined in sec 7.4.8 of AMF-B.04.01.  This is C type: SaAmfCompCategoryT, and its value is set based on other configuration (namely the component capabilities and whether a proxy is defined)";
+        config false;
       }
 
       leaf swBundle
@@ -712,7 +726,7 @@ point.  The operational, administrative, and presence states of a service unit, 
 	type uint32;
 	default 1;
 	description "How many times to attempt to instantiate this entity without delay.  If the number of instantiation attempts exceeds both this and the max delayed instantiations field, the fault will be elevated to the Service Unit level.";
-	SAFplusTypes:ui-prompt "Instant starts: ";
+	SAFplusTypes:ui-prompt "Instant starts";
       }
 
       leaf maxDelayedInstantiations
@@ -721,7 +735,7 @@ point.  The operational, administrative, and presence states of a service unit, 
 	type uint32;
 	default 1;
 	description "How many times to attempt to instantiate this entity after an initial delay.  If the number of instantiation attempts exceeds both this and the max instant instantiations field, the fault will be elevated to the Service Unit level.";
-	SAFplusTypes:ui-prompt "Delayed starts: ";
+	SAFplusTypes:ui-prompt "Delayed starts";
       }
 
       leaf numInstantiationAttempts
@@ -736,7 +750,8 @@ point.  The operational, administrative, and presence states of a service unit, 
 	type uint32;
 	config true;
 	description "If this component remains instantiated for this length of time (in milliseconds), the component is deemed to be successfully instantiated and the numInstantiationAttempts field is zeroed.";
-        SAFplusTypes:ui-prompt "Startup OK: ";
+        SAFplusTypes:ui-prompt "Startup OK time";
+        default 30000; // 30 second default
       }
 
       leaf lastInstantiation
@@ -1020,6 +1035,7 @@ are switched over to other nodes (component service instances are not abruptly r
 	  enum partiallyAssigned;
 	}
         description "The assignment state of a service instance indicates whether the service represented by this service instance is being provided or not by some service unit.";
+        config false;
       }
 
       // ?? AmfSIProtectedbySG
@@ -1029,6 +1045,8 @@ are switched over to other nodes (component service instances are not abruptly r
         type uint32;
 	SAFplusTypes:ui-prompt "Preferred Active Assignments: ";
 	description "What is the optimal number of Service Units that should be given an active assignment for this work?  Note that the SA-Forum requires this field to be 1 for 2N, N+M, N-Way, and no redundancy models (see SAI-AIS-AMF-B.04.01@3.2.3.2 table 11).  However SAFplus allows this field to be set to any value for these models.";
+        default 1;
+        SAFplusTypes:ui-commonRange "1..20";
       }
 
       leaf preferredStandbyAssignments
@@ -1036,6 +1054,8 @@ are switched over to other nodes (component service instances are not abruptly r
         type uint32;
 	SAFplusTypes:ui-prompt "Preferred Standby Assignments: ";
 	description "What is the optimal number of Service Units that should be given a standby assignment for this work?  Note that the SA-Forum requires this field to be 1 for 2N, and N+M, redundancy models (see SAI-AIS-AMF-B.04.01@3.2.3.2 table 11).  However SAFplus allows this field to be set to any value for these models.  This field must be 0 for N-Way Active and No-redundancy models since these models do not have standby apps.";
+        default 1;
+        SAFplusTypes:ui-commonRange "0..20";
       }
       
       leaf rank
@@ -1043,7 +1063,7 @@ are switched over to other nodes (component service instances are not abruptly r
 	SAFplusTypes:alias saAmfSIRank;
 	SAFplusTypes:ui-prompt   "Rank";
 	type uint32;
-	description "Lower rank is instantiated before higher; but rank 0 means 'don't care'.";
+	description "Lower rank is instantiated before higher; but rank 0 means 'don't care'.  This field indicates priority but does not guarantee ordering. That is, it is NOT true that all rank 1 entities will be finished before rank 2 is initiated (use dependencies for that).";
       }
 
       list activeWeight
@@ -1122,6 +1142,9 @@ are switched over to other nodes (component service instances are not abruptly r
       uses EntityId;
       SAFplusTypes:ui-entity "su.svg";
       SAFplusTypes:ui-button "su_button.svg";
+
+      description "A Service Unit is a group of processes that must all fail over together.  All service unit members must be run on the same node.";
+
       leaf adminState
       {
         type AdministrativeState;
@@ -1138,7 +1161,7 @@ are switched over to other nodes (component service instances are not abruptly r
         range "0..1024";	
 	}
         default 0;
-	description "Lower rank is instantiated before higher; but rank 0 means 'don't care'.";
+	description "Lower rank is instantiated before higher; but rank 0 means 'don't care'.  This field indicates priority but does not guarantee ordering. That is, it is NOT true that all rank 1 entities will be finished before rank 2 is instantiated (use dependencies for that).";
       }
 
       leaf failover
@@ -1259,12 +1282,10 @@ are switched over to other nodes (component service instances are not abruptly r
         range "0..1000000";
 	}
 	default 0;
-	description "Once this Service Unit is instantiated, how long should I wait before assigning it?";
-	SAFplusTypes:ui-prompt "Start probation: ";
+	description "Once this Service Unit is instantiated, how long should I wait before trusting that it is working properly?  Work will not be assigned until after this period.";
+	SAFplusTypes:ui-prompt "Start up probation";
       }
 
-
-      description "A Service Unit is a group of processes that all fail over together.  All service unit members must be run on the same node.";
     }
 
 

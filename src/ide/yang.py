@@ -13,6 +13,18 @@ from pyang import util
 from pyang import hello
 from pyang import statements
 
+def xpathof(yang):
+  """Returns a string which is the xpath of this node"""
+  ret = []
+  y = yang
+  while y:
+    if y.keyword == "module":
+      ret.append("")  # Module name is not part of the xpath, but I put "" in to get the preceding /
+    else: ret.append(y.arg)
+    y=y.parent
+  ret.reverse()
+  return "/".join(ret)
+
 def go(path,filenames):
   repos = pyang.FileRepository(path)
   ctx = pyang.Context(repos)
@@ -158,7 +170,10 @@ def createObject(s,result=None):
   count = 0
   for c in s.substmts:
     count+=1
-    if getArg(c,"config", True):  # If the config field does not exist or is true, this is configuration
+    # If the config field does not exist or is true, this is configuration
+    isConfig = getattr(c,"i_config",True)
+    if isConfig is None: isConfig = True
+    if getArg(c,"config", True) and isConfig:  # We only want configuration stuff in the IDE
       if c.keyword == "leaf": 
         createLeaf(c, count, result)
       elif c.keyword == "leaf-list":  # Leaf-list can indicate a one to many containment relationship        
@@ -179,6 +194,8 @@ def createObject(s,result=None):
       elif c.keyword == ('SAFplusTypes', 'ui-entity'):
         result["ui-entity"] = True
         result["icon"] = c.arg
+        result["module"] = c.i_module.i_modulename
+        result["xpath"] = xpathof(c.parent)
         pass
       elif c.keyword == ('SAFplusTypes', 'ui-button'):
         result["button"] = c.arg
@@ -197,7 +214,10 @@ def dictifyStatements(stmts,ts,objs,indent=0):
     for s in stmts:
       #print " "*indent, "keyword: ", s.keyword, " Arg: ", s.arg
       if s.keyword == "container":
-        dictifyStatements(s.substmts,ts,objs,indent+1)
+        if s.arg == "instantiate":
+          pdb.set_trace()
+        if s.i_config:
+          dictifyStatements(s.substmts,ts,objs,indent+1)
       # Handle Typedef types
       if s.keyword == "typedef":  # Add typedefs to the types dictionary (ts)
         typ = getArg(s,"type")
