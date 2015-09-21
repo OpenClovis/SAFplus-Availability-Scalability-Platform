@@ -49,7 +49,8 @@ extern "C"
 
 namespace SAFplus
   {
-
+  typedef std::map<std::string, std::vector<std::string>> parentKeyMap;
+  typedef std::vector<std::string> xpathList;
   class MgtDatabase
     {
     protected:
@@ -60,13 +61,16 @@ namespace SAFplus
 
     ClBoolT mInitialized;
     ClDBHandleT mDbDataHdl;
+    parentKeyMap *mParentKeyMap;
+    xpathList *mXpathList;
     std::string mDbName;
 
-    std::map<std::string, std::vector<std::string>> mapParentKey;
-
-    std::vector<std::string> xpathList;
+    std::map<std::string, parentKeyMap> mapParentList;
+    std::map<std::string, xpathList> mapXpathList;
 
     private:
+
+    void resetData();
     /**
      * \brief Function to check if data loaded
      */
@@ -76,6 +80,16 @@ namespace SAFplus
      * \brief Function to load data from DB to mapParentKey and mapKeyValue
      */
     void loadData();
+
+    /**
+     * \brief Function to get current DB's xpathList
+     */
+    xpathList* getXpathList();
+
+    /**
+     * \brief Function to get current DB's mapParent
+     */
+    parentKeyMap* getParentKeyMap();
 
     /**
      * \brief Function to check and insert the key name to it's parent

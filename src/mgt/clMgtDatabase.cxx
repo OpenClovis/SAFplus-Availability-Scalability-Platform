@@ -50,9 +50,19 @@ namespace SAFplus
 
   MgtDatabase::MgtDatabase()
   {
+    resetData();
+  }
+
+  void MgtDatabase::resetData()
+  {
     mInitialized = CL_FALSE;
-    mapParentKey.clear();
-    xpathList.clear();
+    mDbName = "";
+    mDbDataHdl = 0;
+    mXpathList = nullptr;
+    mParentKeyMap = nullptr;
+    databaseList.clear();
+    mapParentList.clear();
+    mapXpathList.clear();
   }
 
   ClRcT MgtDatabase::initializeDB(const std::string &dbName, ClUint32T maxKeySize, ClUint32T maxRecordSize)
@@ -89,6 +99,8 @@ namespace SAFplus
         goto exitOnError1;
       }
 
+    mXpathList = nullptr;
+    mParentKeyMap = nullptr;
     databaseList.insert(std::make_pair(dbName, dbDataHdl));
     mDbDataHdl = dbDataHdl;
     mDbName = dbName;
@@ -109,13 +121,10 @@ namespace SAFplus
     /* Close all the data DB */
     for (auto it = databaseList.begin(); it != databaseList.end(); ++it)
       {
+        logInfo("MGT", "DBAL", "Close DB %s", it->first.c_str());
         clDbalClose(it->second);
       }
-    mDbName = "";
-    mDbDataHdl = 0;
-    databaseList.clear();
-    mapParentKey.clear();
-    xpathList.clear();
+    resetData();
 
     /*Finalize dbal */
     clDbalLibFinalize();
@@ -146,11 +155,11 @@ namespace SAFplus
         return rc;
       }
 
-    logInfo("MGT", "DBR", "Switch from %s to %s ", mDbName.c_str(), dbName.c_str());
+    logInfo("MGT", "DBAL", "Switch from %s to %s ", mDbName.c_str(), dbName.c_str());
+    mXpathList = nullptr;
+    mParentKeyMap = nullptr;
     mDbName = dbName;
     mDbDataHdl = dbh->second;
-    xpathList.clear();
-    mapParentKey.clear();
 
     return rc;
   }
@@ -170,20 +179,26 @@ namespace SAFplus
         return;
       }
 
+    logInfo("MGT", "DBAL", "Closing DB %s", dbName.c_str());
+    clDbalClose(dbh->second);
+    mapParentList.erase(dbName);
+    mapXpathList.erase(dbName);
+    databaseList.erase(dbName);
+
     if (dbName == mDbName)
       {
-        xpathList.clear();
-        mapParentKey.clear();
+        mDbDataHdl = 0;
+        mDbName = "";
       }
-    clDbalClose(dbh->second);
-    databaseList.erase(dbName);
+    mXpathList = nullptr;
+    mParentKeyMap = nullptr;
   }
 
   ClRcT MgtDatabase::setRecord(const std::string &key, const std::string &value)
   {
     ClRcT rc = CL_OK;
 
-    if (!mInitialized)
+    if (!mInitialized || !mDbDataHdl)
       {
         return CL_ERR_NOT_INITIALIZED;
       }
@@ -210,7 +225,7 @@ namespace SAFplus
     ClCharT *cvalue;
     ClUint32T dataSize = 0;
 
-    if (!mInitialized)
+    if (!mInitialized || !mDbDataHdl)
       {
         return CL_ERR_NOT_INITIALIZED;
       }
@@ -235,7 +250,7 @@ namespace SAFplus
       }
 
     value.assign(dbValue.value());
-    logInfo("MGT", "DBR", "Record [%s] -> [%s]", key.c_str(), value.c_str());
+    logInfo("MGT", "DBAL", "Record [%s] -> [%s]", key.c_str(), value.c_str());
     return rc;
   }
 
@@ -243,7 +258,7 @@ namespace SAFplus
   {
     ClRcT rc = CL_OK;
 
-    if (!mInitialized)
+    if (!mInitialized || !mDbDataHdl)
       {
         return CL_ERR_NOT_INITIALIZED;
       }
@@ -263,7 +278,17 @@ namespace SAFplus
 
     if (rc == CL_OK && dataLoaded())
       {
-        xpathList.push_back(key);
+        xpathList *list = getXpathList();
+        if (list)
+          {
+            list->push_back(key);
+          }
+        else
+          {
+            xpathList l;
+            l.push_back(key);
+            mapXpathList.insert(std::make_pair(mDbName, l));
+          }
         insertToParentKey(key);
       }
 
@@ -274,7 +299,7 @@ namespace SAFplus
   {
     ClRcT rc = CL_OK;
 
-    if (!mInitialized)
+    if (!mInitialized || !mDbDataHdl)
       {
         return CL_ERR_NOT_INITIALIZED;
       }
@@ -284,7 +309,8 @@ namespace SAFplus
     rc = clDbalRecordDelete(mDbDataHdl, (ClDBKeyT) &hashKey, sizeof(hashKey));
     if (rc == CL_OK && dataLoaded())
       {
-        xpathList.erase(std::remove(xpathList.begin(), xpathList.end(), key), xpathList.end());
+        xpathList *list = getXpathList();
+        if (list) list->erase(std::remove(list->begin(), list->end(), key), list->end());
       }
 
     return rc;
@@ -292,7 +318,8 @@ namespace SAFplus
 
   ClBoolT MgtDatabase::dataLoaded()
   {
-    return !xpathList.empty();
+    xpathList *list = getXpathList();
+    return list && !list->empty();
   }
 
   void MgtDatabase::insertToParentKey(const std::string &key)
@@ -305,6 +332,7 @@ namespace SAFplus
         return;
       }
 
+    parentKeyMap *map = getParentKeyMap();
     if (key[key.length() - 1] == ']')
       {
         found = key.find_last_of("[");
@@ -320,21 +348,33 @@ namespace SAFplus
         parentKey = (found != 0) ? key.substr(0, found) : key.substr(0, found + 1);
       }
 
-    if (mapParentKey.find(parentKey) != mapParentKey.end())
+    if (map)
       {
-        std::vector<std::string> listKey = mapParentKey[parentKey];
-        if(std::find(listKey.begin(), listKey.end(), childName) == listKey.end())
+        if (map->find(parentKey) != map->end())
           {
+            std::vector<std::string> listKey = (*map)[parentKey];
+            if(std::find(listKey.begin(), listKey.end(), childName) == listKey.end())
+              {
+                listKey.push_back(childName);
+                (*map)[parentKey] = listKey;
+              }
+          }
+        else
+          {
+            std::vector<std::string> listKey;
             listKey.push_back(childName);
-            mapParentKey[parentKey] = listKey;
+            (*map)[parentKey] = listKey;
           }
       }
     else
       {
+        parentKeyMap m;
         std::vector<std::string> listKey;
         listKey.push_back(childName);
-        mapParentKey[parentKey] = listKey;
+        m.insert(std::make_pair(parentKey, listKey));
+        mapParentList.insert(std::make_pair(mDbName, m));
       }
+
     insertToParentKey(parentKey);
   }
 
@@ -354,6 +394,32 @@ namespace SAFplus
       }
   }
 
+  xpathList* MgtDatabase::getXpathList()
+  {
+    if (!mXpathList)
+      {
+        auto it = mapXpathList.find(mDbName);
+        if (it != mapXpathList.end())
+          {
+            mXpathList = &it->second;
+          }
+      }
+      return mXpathList;
+  }
+
+  parentKeyMap* MgtDatabase::getParentKeyMap()
+  {
+    if (!mParentKeyMap)
+      {
+        auto it = mapParentList.find(mDbName);
+        if (it != mapParentList.end())
+          {
+            mParentKeyMap = &it->second;
+          }
+      }
+      return mParentKeyMap;
+  }
+
   void MgtDatabase::loadData()
   {
     ClUint32T keySize = 0;
@@ -364,6 +430,7 @@ namespace SAFplus
     ClCharT *recData = nullptr;
     ClRcT rc = CL_OK;
 
+    if (!mDbDataHdl) return;
     /*
      * Iterators key value
      */
@@ -385,10 +452,20 @@ namespace SAFplus
         // De-marshall data
         dbValue.ParseFromString(strVal);
 
-        xpathList.push_back(dbValue.xpath());
+        xpathList *list = getXpathList();
+        if (list)
+          {
+            list->push_back(dbValue.xpath());
+          }
+        else
+          {
+            xpathList l;
+            l.push_back(dbValue.xpath());
+            mapXpathList.insert(std::make_pair(mDbName, l));
+          }
         insertToParentKey(dbValue.xpath());
 
-        logInfo("MGT", "LST", "Read [%s]", dbValue.xpath().c_str());
+        logInfo("MGT", "DBAL", "Read [%s]", dbValue.xpath().c_str());
 
         if ((rc = clDbalNextRecordGet(mDbDataHdl, (ClDBKeyT) recKey, keySize, (ClDBKeyT*) &nextKey, &nextKeySize, (ClDBRecordT*) &recData, &dataSize)) != CL_OK)
           {
@@ -402,13 +479,19 @@ namespace SAFplus
 
   void MgtDatabase::iterateParentKey(const std::string &xpath, std::vector<std::string> &iter, bool keyOnly)
   {
-    if (std::find(xpathList.begin(), xpathList.end(), xpath) != xpathList.end())
+    xpathList *list = getXpathList();
+    if (!list) return;
+
+    if (std::find(list->begin(), list->end(), xpath) != list->end())
       {
         insertToIterator(xpath, iter, keyOnly);
         return;
       }
 
-    std::vector<std::string> childList = mapParentKey[xpath];
+    std::vector<std::string> childList;
+    parentKeyMap *map = getParentKeyMap();
+
+    if(map) childList = (*map)[xpath];
     for (auto it = childList.begin(); it != childList.end(); ++it)
       {
         std::string path = xpath;
@@ -422,7 +505,7 @@ namespace SAFplus
             path.append(std::string("/").append(childName));
           }
 
-        if (std::find(xpathList.begin(), xpathList.end(), path) != xpathList.end())
+        if (std::find(list->begin(), list->end(), path) != list->end())
           {
             insertToIterator(path, iter, keyOnly);
           }
@@ -435,7 +518,6 @@ namespace SAFplus
 
   std::vector<std::string> MgtDatabase::iterate(const std::string &xpath, bool keyOnly)
   {
-    logInfo("MGT", "DBR", "iterate xpath : %s", xpath.c_str());
     std::vector<std::string> iter;
     std::string path = xpath;
     if (!dataLoaded())
