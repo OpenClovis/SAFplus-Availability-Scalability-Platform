@@ -59,11 +59,10 @@ namespace SAFplus
 
     ClBoolT mInitialized;
     ClDBHandleT mDbDataHdl;
-    std::vector<std::string> listKey;
-    std::vector<std::string> listXpath;
 
   private:
-    void updateLists();
+    void loadDb(std::vector<std::string> &result);
+    ClRcT write2DB(const std::string &key, const std::string &value, std::vector<std::string> *child = nullptr, bool overwrite = false);
 
   public:
     virtual ~MgtDatabase();
@@ -93,17 +92,17 @@ namespace SAFplus
     /**
      * \brief	Function to set record to Db
      */
-    ClRcT setRecord(const std::string &key, const std::string &value);
+    ClRcT setRecord(const std::string &key, const std::string &value, std::vector<std::string> *child = nullptr);
+
+    /**
+     * \brief Function to insert record to Db
+     */
+    ClRcT insertRecord(const std::string &key, const std::string &value, std::vector<std::string> *child = nullptr);
 
     /**
      * \brief	Function to get record from Db
      */
-    ClRcT getRecord(const std::string &key, std::string &value);
-
-    /**
-     * \brief	Function to insert record to Db
-     */
-    ClRcT insertRecord(const std::string &key, const std::string &value);
+    ClRcT getRecord(const std::string &key, std::string &value, std::vector<std::string> *child = nullptr);
 
     /**
      * \brief	Function to delete record out of Db
@@ -113,7 +112,7 @@ namespace SAFplus
     /**
      * \brief   Function to return iterators match with xpath
      */
-    std::vector<std::string> iterate(const std::string &xpath, bool keyOnly = false);
+    void iterate(const std::string &xpath, std::vector<std::string> &result);
 
   };
 }

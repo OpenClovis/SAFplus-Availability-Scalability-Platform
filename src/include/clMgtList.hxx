@@ -534,7 +534,9 @@ namespace SAFplus
         xpath.append("/");
         xpath.append(tag);
 
-        std::vector<std::string> iters = db->iterate(xpath, true);
+        std::vector<std::string> iters;
+        db->iterate(xpath, iters);
+
         typedef std::map<std::string, keyMap> MultiKeyMap;
         MultiKeyMap multiKeyMap;
         std::vector<std::string>::iterator it = iters.begin();
@@ -1105,24 +1107,32 @@ namespace SAFplus
         xpath.append("/");
         xpath.append(tag);
 
-        std::vector<std::string> iters = db->iterate(xpath, true);
+        std::vector<std::string> iters;
+
+        // Input xpath : /safplusAmf/ServiceUnit
+        // Output iters: /safplusAmf/ServiceUnit[@name=su0], /safplusAmf/ServiceUnit[@name=su1] ...
+        db->iterate(xpath, iters);
 
         for (std::vector<std::string>::iterator it = iters.begin() ; it != iters.end(); ++it)
           {
-            // it = '/a/b[@key="1"]/@key'
+            // it = '/a/b[@key="su0"]'
             // xpath= '/a/b'
-            if ((*it).find("[", xpath.length() + 1) != std::string::npos )
+            if ((*it).find("[", xpath.length()) == std::string::npos )
                 continue;
 
-            std::string keyValue;
+            // it = '/a/b[@key="su0"]/a'
+            std::size_t posLastSlash = (*it).find_last_of("/");
+            if (posLastSlash != std::string::npos && posLastSlash > xpath.length())
+                continue;
 
-            db->getRecord(*it, keyValue);
-#ifdef MGTDBG
-            logInfo("MGT", "READ", "Read [%s] -> [%s]", it->c_str(),keyValue.c_str());
-#endif
-            std::size_t found = (*it).find_last_of("/@");
-            // dataXPath= '/a/b[@key="1"]
-            std::string dataXPath = (*it).substr(0, found - 1 );
+            // *it      :'/a/b[@key="su0"]'
+            // strKey   :[@key="su0"]
+            // keyValue :su0
+            std::string strKey = (*it).substr(xpath.length());
+            std::size_t posEquals = strKey.find("=");
+            std::string keyValue = strKey.substr(posEquals+2, strKey.length() - posEquals - 4);
+
+            dataXPath.assign(*it);
 
             MgtObject* object = MgtFactory::getInstance()->create(childXpath);
             if (object)
@@ -1149,9 +1159,9 @@ namespace SAFplus
               //logInfo("MGT", "READ", "Load of some elements of [%s] failed with error [0x%x]", obj->tag.c_str(), rc);
             }
         }
-#ifdef MGTDBG
+//#ifdef MGTDBG
         logDebug("MGT", "READ", "read [%d] items in [%s]", count, xpath.c_str());
-#endif
+//#endif
         return rc;
       }
 

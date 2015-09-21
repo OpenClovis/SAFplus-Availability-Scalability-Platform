@@ -1,6 +1,7 @@
 #include <cltypes.h>
 #include <Python.h>
 #include <string>
+#include <vector>
 
 using namespace std;
 
@@ -45,18 +46,51 @@ static PyObject* Read(PyObject *self, PyObject *args)
     return ret;
 }
 
+ClRcT ParseArgument(PyObject *args, string &strKey, string &strValue, vector<string> &child)
+  {
+    ClCharT *key;
+    ClCharT *value;
+    PyObject *argList;
+
+    int i = 0;
+    if (!PyArg_ParseTuple(args, "ssO!", &key, &value, &PyList_Type, &argList))
+      {
+        return 1;
+      }
+
+    if (argList)
+      {
+        PyObject *tseq = PySequence_List(argList);
+        if (tseq)
+          {
+            int t_seqlen = PySequence_Fast_GET_SIZE(tseq);
+            for (i = 0; i < t_seqlen; i++)
+              {
+                ClCharT *childArg = PyString_AsString(PySequence_Fast_GET_ITEM(tseq, i));
+                child.push_back(childArg);
+              }
+            Py_DECREF(tseq);
+          }
+      }
+
+    strKey.assign(key);
+    strValue.assign(value);
+    return CL_OK;
+  }
+
 static PyObject* Create(PyObject *self, PyObject *args)
 {
     ClRcT rc = CL_OK;
-    ClCharT *key;
-    ClCharT *value;
-    if (!PyArg_ParseTuple(args, "ss", &key, &value))
+    string key,value;
+    vector<string> child;
+
+    rc = ParseArgument(args, key, value, child);
+    if (rc != CL_OK)
     {
         return NULL;
     }
 
-    rc = MgtDatabase::getInstance()->insertRecord(key, value);
-
+    rc = MgtDatabase::getInstance()->insertRecord(key, value, &child);
     if (rc != CL_OK)
     {
         PyErr_SetObject(PyExc_SystemError, PyInt_FromLong(CL_GET_ERROR_CODE(rc)));
@@ -69,14 +103,17 @@ static PyObject* Create(PyObject *self, PyObject *args)
 static PyObject* Write(PyObject *self, PyObject *args)
 {
     ClRcT rc = CL_OK;
-    ClCharT *key;
-    ClCharT *value;
-    if (!PyArg_ParseTuple(args, "ss", &key, &value))
+
+    string key,value;
+    vector<string> child;
+
+    rc = ParseArgument(args, key, value, child);
+    if (rc != CL_OK)
     {
         return NULL;
     }
 
-    rc = MgtDatabase::getInstance()->setRecord(key, value);
+    rc = MgtDatabase::getInstance()->setRecord(key, value, &child);
     if (rc != CL_OK)
     {
         PyErr_SetObject(PyExc_SystemError, PyInt_FromLong(CL_GET_ERROR_CODE(rc)));
@@ -101,7 +138,9 @@ static PyObject* Iterators(PyObject *self, PyObject *args)
      * Iterators key value
      */
     PyObject* lstKeys = PyList_New(0);
-    std::vector<std::string> xpathIterators = MgtDatabase::getInstance()->iterate(xpath);
+    std::vector<std::string> xpathIterators;
+    MgtDatabase::getInstance()->iterate(xpath, xpathIterators);
+
     if (xpathIterators.size())
     {
       for (std::vector<std::string>::iterator iter = xpathIterators.begin(); iter!=xpathIterators.end(); ++iter)

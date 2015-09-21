@@ -410,7 +410,8 @@ ClRcT MgtProvList<T>::getDb(std::string pxp,MgtDatabase *db)
         return CL_ERR_NOT_INITIALIZED;
     }
 
-    std::vector<std::string> iter = db->iterate(key);
+    std::vector<std::string> iter;
+    db->iterate(key, iter);
 
     value.clear();
     for (std::vector<std::string>::iterator it=iter.begin(); it!=iter.end(); it++)

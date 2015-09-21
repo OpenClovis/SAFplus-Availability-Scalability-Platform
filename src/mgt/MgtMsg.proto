@@ -67,4 +67,5 @@ message MsgMgtDb
 {
   required string xpath = 1;
   required string value = 2;
+  repeated string child = 3;
 }

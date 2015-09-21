@@ -153,9 +153,10 @@ void protobuf_AssignDesc_MgtMsg_2eproto() {
       sizeof(MsgMgt));
   MsgMgt_MgtMsgType_descriptor_ = MsgMgt_descriptor_->enum_type(0);
   MsgMgtDb_descriptor_ = file->message_type(6);
-  static const int MsgMgtDb_offsets_[2] = {
+  static const int MsgMgtDb_offsets_[3] = {
     GOOGLE_PROTOBUF_GENERATED_MESSAGE_FIELD_OFFSET(MsgMgtDb, xpath_),
     GOOGLE_PROTOBUF_GENERATED_MESSAGE_FIELD_OFFSET(MsgMgtDb, value_),
+    GOOGLE_PROTOBUF_GENERATED_MESSAGE_FIELD_OFFSET(MsgMgtDb, child_),
   };
   MsgMgtDb_reflection_ =
     new ::google::protobuf::internal::GeneratedMessageReflection(
@@ -239,8 +240,9 @@ void protobuf_AddDesc_MgtMsg_2eproto() {
     "G_BIND_RPC\020\005\022\024\n\020CL_MGT_MSG_NOTIF\020\006\022\033\n\027CL"
     "_MGT_MSG_BIND_REQUEST\020\007\022\023\n\017CL_MGT_MSG_XG"
     "ET\020\010\022\023\n\017CL_MGT_MSG_XSET\020\t\022\025\n\021CL_MGT_MSG_"
-    "CREATE\020\n\022\025\n\021CL_MGT_MSG_DELETE\020\013\"(\n\010MsgMg"
-    "tDb\022\r\n\005xpath\030\001 \002(\t\022\r\n\005value\030\002 \002(\t", 753);
+    "CREATE\020\n\022\025\n\021CL_MGT_MSG_DELETE\020\013\"7\n\010MsgMg"
+    "tDb\022\r\n\005xpath\030\001 \002(\t\022\r\n\005value\030\002 \002(\t\022\r\n\005chi"
+    "ld\030\003 \003(\t", 768);
   ::google::protobuf::MessageFactory::InternalRegisterGeneratedFile(
     "MgtMsg.proto", &protobuf_RegisterTypes);
   Handle::default_instance_ = new Handle();
@@ -1911,6 +1913,7 @@ void MsgMgt::Swap(MsgMgt* other) {
 #ifndef _MSC_VER
 const int MsgMgtDb::kXpathFieldNumber;
 const int MsgMgtDb::kValueFieldNumber;
+const int MsgMgtDb::kChildFieldNumber;
 #endif  // !_MSC_VER
 
 MsgMgtDb::MsgMgtDb()
@@ -1983,6 +1986,7 @@ void MsgMgtDb::Clear() {
       }
     }
   }
+  child_.Clear();
   ::memset(_has_bits_, 0, sizeof(_has_bits_));
   mutable_unknown_fields()->Clear();
 }
@@ -2022,6 +2026,25 @@ bool MsgMgtDb::MergePartialFromCodedStream(
         } else {
           goto handle_uninterpreted;
         }
+        if (input->ExpectTag(26)) goto parse_child;
+        break;
+      }
+
+      // repeated string child = 3;
+      case 3: {
+        if (::google::protobuf::internal::WireFormatLite::GetTagWireType(tag) ==
+            ::google::protobuf::internal::WireFormatLite::WIRETYPE_LENGTH_DELIMITED) {
+         parse_child:
+          DO_(::google::protobuf::internal::WireFormatLite::ReadString(
+                input, this->add_child()));
+          ::google::protobuf::internal::WireFormat::VerifyUTF8String(
+            this->child(this->child_size() - 1).data(),
+            this->child(this->child_size() - 1).length(),
+            ::google::protobuf::internal::WireFormat::PARSE);
+        } else {
+          goto handle_uninterpreted;
+        }
+        if (input->ExpectTag(26)) goto parse_child;
         if (input->ExpectAtEnd()) return true;
         break;
       }
@@ -2062,6 +2085,15 @@ void MsgMgtDb::SerializeWithCachedSizes(
       2, this->value(), output);
   }
 
+  // repeated string child = 3;
+  for (int i = 0; i < this->child_size(); i++) {
+  ::google::protobuf::internal::WireFormat::VerifyUTF8String(
+    this->child(i).data(), this->child(i).length(),
+    ::google::protobuf::internal::WireFormat::SERIALIZE);
+    ::google::protobuf::internal::WireFormatLite::WriteString(
+      3, this->child(i), output);
+  }
+
   if (!unknown_fields().empty()) {
     ::google::protobuf::internal::WireFormat::SerializeUnknownFields(
         unknown_fields(), output);
@@ -2090,6 +2122,15 @@ void MsgMgtDb::SerializeWithCachedSizes(
         2, this->value(), target);
   }
 
+  // repeated string child = 3;
+  for (int i = 0; i < this->child_size(); i++) {
+    ::google::protobuf::internal::WireFormat::VerifyUTF8String(
+      this->child(i).data(), this->child(i).length(),
+      ::google::protobuf::internal::WireFormat::SERIALIZE);
+    target = ::google::protobuf::internal::WireFormatLite::
+      WriteStringToArray(3, this->child(i), target);
+  }
+
   if (!unknown_fields().empty()) {
     target = ::google::protobuf::internal::WireFormat::SerializeUnknownFieldsToArray(
         unknown_fields(), target);
@@ -2116,6 +2157,13 @@ int MsgMgtDb::ByteSize() const {
     }
 
   }
+  // repeated string child = 3;
+  total_size += 1 * this->child_size();
+  for (int i = 0; i < this->child_size(); i++) {
+    total_size += ::google::protobuf::internal::WireFormatLite::StringSize(
+      this->child(i));
+  }
+
   if (!unknown_fields().empty()) {
     total_size +=
       ::google::protobuf::internal::WireFormat::ComputeUnknownFieldsSize(
@@ -2141,6 +2189,7 @@ void MsgMgtDb::MergeFrom(const ::google::protobuf::Message& from) {
 
 void MsgMgtDb::MergeFrom(const MsgMgtDb& from) {
   GOOGLE_CHECK_NE(&from, this);
+  child_.MergeFrom(from.child_);
   if (from._has_bits_[0 / 32] & (0xffu << (0 % 32))) {
     if (from.has_xpath()) {
       set_xpath(from.xpath());
@@ -2174,6 +2223,7 @@ void MsgMgtDb::Swap(MsgMgtDb* other) {
   if (other != this) {
     std::swap(xpath_, other->xpath_);
     std::swap(value_, other->value_);
+    child_.Swap(&other->child_);
     std::swap(_has_bits_[0], other->_has_bits_[0]);
     _unknown_fields_.Swap(&other->_unknown_fields_);
     std::swap(_cached_size_, other->_cached_size_);

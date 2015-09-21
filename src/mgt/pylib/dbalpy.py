@@ -3,7 +3,7 @@
 
 This module provides interfaces to access the DBAL provided by SAFplus library.
 """
-import pdb
+import pdb, traceback
 import os, sys, os.path
 import re
 import pyDbal
@@ -97,6 +97,7 @@ class PyDBAL():
             raise Exception("Invalid format XML file!")
 
         self.xpathDB = {}
+        self.xpathMetadataDB = {}
         self.xpathParentDB = {}
 
         #Process first phrase to retrieve xpath
@@ -105,6 +106,10 @@ class PyDBAL():
         #Convert list container or list-leaf to array list
         map_change_xpath = {}
 
+        #Write metadata into db
+        for (k,v)  in self.xpathMetadataDB.items():
+            self.Write(k, '', v)
+
         #Done customize xpath
         #Unit test http://xmltoolbox.appspot.com/xpath_generator.html
         for (key, value) in sorted(self.xpathDB.items()):
@@ -112,20 +117,29 @@ class PyDBAL():
 
     """ Load cfg xml and save to binary database """
     def _load(self, element, xpath = ''):
+        child = None
+        parentXpath = xpath
         if isInstanceOf(element, microdom.MicroDom):
             xpath = "%s/%s" %(xpath, microdom.keyify(element.tag_))
 
             if len(element.attributes_) > 1:
                 # Format attribute string with 'and' expression for each attribute
                 attrs = [(microdom.keyify(k),v) for (k,v) in filter(lambda i: i[0] != 'tag_', element.attributes_.items())]
-                xpath = xpath + "[%s]" %" and ".join(["@%s=\"%s\"" %(k,v) for (k,v) in attrs])
-                for el in attrs:
-                    attrKey = "%s/@%s" %(xpath, el[0])
-                    self.xpathDB[attrKey] = el[1]
-                    self.xpathParentDB[attrKey] = 1
+                attrKey = " and ".join(["@%s=\"%s\"" %(k,v) for (k,v) in attrs])
+
+                try:
+                    self.xpathMetadataDB[xpath].append("[%s]" %attrKey)
+                except:
+                    self.xpathMetadataDB[xpath] = ["[%s]" %attrKey]
+
+                xpath = xpath + "[%s]" %attrKey
+                child = "%s[%s]" %(microdom.keyify(element.tag_), " and ".join(["@%s=\"%s\"" %(k,v) for (k,v) in attrs]))
+            else:
+                child = microdom.keyify(element.tag_)
 
             #Add index key into list container, also modify old one with index [1]
             if self.xpathParentDB.has_key(xpath):
+                #Update old xpath to new with append suffix [1]
                 if self.xpathParentDB[xpath] == 1:
                     # Lookup on xpathDB and replace with extra index [1]
                     for key in filter(lambda key: key.rfind(xpath) != -1, self.xpathDB.keys()):
@@ -133,11 +147,27 @@ class PyDBAL():
                         key_new = key.replace(xpath, key_prefix)
                         self.xpathDB[key_new] = self.xpathDB.pop(key)
 
+                        #Create new reference to xpath: a/b/c => [1]
+                        self.xpathMetadataDB[xpath] = ["[1]"]
+
                 #Now, all having [index], just increase
                 self.xpathParentDB[xpath] +=1
-                xpath = xpath + "[%d]" %self.xpathParentDB[xpath]
+                idx = "[%d]" %self.xpathParentDB[xpath]
+
+                #Append new reference to xpath: a/b/c => [2],[3],...
+                self.xpathMetadataDB[xpath].append(idx)
+
+                child = None # Don't add duplicate child into parent xpath
+                xpath = xpath + idx
             else:
                 self.xpathParentDB[xpath] = 1
+
+            # Store metadata for parent xpath
+            if parentXpath != '' and child != None:
+                try:
+                    self.xpathMetadataDB[parentXpath].append(child)
+                except:
+                    self.xpathMetadataDB[parentXpath] = [child]
 
             if len(element.children()) > 0:
                 for elchild in element.children():
@@ -298,10 +328,10 @@ class PyDBAL():
         else:
             return pyDbal.iterators('/') #Default select all rows of db
 
-    def Write(self, key, data):
-        print "Writing %s -> %s" % (str(key), str(data))
-        return pyDbal.write(key, data)
-    
+    def Write(self, key, data, childs = []):
+        print "Writing %s -> %s childs: [%s]" % (str(key), str(data), ",".join(childs))
+        return pyDbal.write(key, data, childs)
+
     def Read(self, key):
         return pyDbal.read(key)
 
@@ -331,8 +361,8 @@ def main(argv):
       data = PyDBAL(outFile)
       data.LoadXML(inFile);
       data.Finalize()
-    except Exception, e:
-      print e
+    except:
+      traceback.print_exc()
       return
 
   # Export to XML from binary database
@@ -341,14 +371,14 @@ def main(argv):
       data = PyDBAL(argv[2])
       data.ExportXML(outFile + ".xml");
       data.Finalize()
-    except Exception, e:
-      print e
+    except:
+      traceback.print_exc()
       return
 
 
 def Test():
     test = PyDBAL("SAFplusAmf.xml") # Root of Log service start from /log ->  docRoot= "version.log_BootConfig.log"
-    test.StoreDB();
+    test.LoadXML("SAFplusAmf.xml")
 
     # Iterators
     for key in test.Iterators():

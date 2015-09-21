@@ -824,6 +824,22 @@ class MsgMgtDb : public ::google::protobuf::Message {
   inline ::std::string* release_value();
   inline void set_allocated_value(::std::string* value);
 
+  // repeated string child = 3;
+  inline int child_size() const;
+  inline void clear_child();
+  static const int kChildFieldNumber = 3;
+  inline const ::std::string& child(int index) const;
+  inline ::std::string* mutable_child(int index);
+  inline void set_child(int index, const ::std::string& value);
+  inline void set_child(int index, const char* value);
+  inline void set_child(int index, const char* value, size_t size);
+  inline ::std::string* add_child();
+  inline void add_child(const ::std::string& value);
+  inline void add_child(const char* value);
+  inline void add_child(const char* value, size_t size);
+  inline const ::google::protobuf::RepeatedPtrField< ::std::string>& child() const;
+  inline ::google::protobuf::RepeatedPtrField< ::std::string>* mutable_child();
+
   // @@protoc_insertion_point(class_scope:Mgt.Msg.MsgMgtDb)
  private:
   inline void set_has_xpath();
@@ -835,9 +851,10 @@ class MsgMgtDb : public ::google::protobuf::Message {
 
   ::std::string* xpath_;
   ::std::string* value_;
+  ::google::protobuf::RepeatedPtrField< ::std::string> child_;
 
   mutable int _cached_size_;
-  ::google::protobuf::uint32 _has_bits_[(2 + 31) / 32];
+  ::google::protobuf::uint32 _has_bits_[(3 + 31) / 32];
 
   friend void  protobuf_AddDesc_MgtMsg_2eproto();
   friend void protobuf_AssignDesc_MgtMsg_2eproto();
@@ -1581,6 +1598,50 @@ inline void MsgMgtDb::set_allocated_value(::std::string* value) {
     clear_has_value();
     value_ = const_cast< ::std::string*>(&::google::protobuf::internal::kEmptyString);
   }
+}
+
+// repeated string child = 3;
+inline int MsgMgtDb::child_size() const {
+  return child_.size();
+}
+inline void MsgMgtDb::clear_child() {
+  child_.Clear();
+}
+inline const ::std::string& MsgMgtDb::child(int index) const {
+  return child_.Get(index);
+}
+inline ::std::string* MsgMgtDb::mutable_child(int index) {
+  return child_.Mutable(index);
+}
+inline void MsgMgtDb::set_child(int index, const ::std::string& value) {
+  child_.Mutable(index)->assign(value);
+}
+inline void MsgMgtDb::set_child(int index, const char* value) {
+  child_.Mutable(index)->assign(value);
+}
+inline void MsgMgtDb::set_child(int index, const char* value, size_t size) {
+  child_.Mutable(index)->assign(
+    reinterpret_cast<const char*>(value), size);
+}
+inline ::std::string* MsgMgtDb::add_child() {
+  return child_.Add();
+}
+inline void MsgMgtDb::add_child(const ::std::string& value) {
+  child_.Add()->assign(value);
+}
+inline void MsgMgtDb::add_child(const char* value) {
+  child_.Add()->assign(value);
+}
+inline void MsgMgtDb::add_child(const char* value, size_t size) {
+  child_.Add()->assign(reinterpret_cast<const char*>(value), size);
+}
+inline const ::google::protobuf::RepeatedPtrField< ::std::string>&
+MsgMgtDb::child() const {
+  return child_;
+}
+inline ::google::protobuf::RepeatedPtrField< ::std::string>*
+MsgMgtDb::mutable_child() {
+  return &child_;
 }
 
 

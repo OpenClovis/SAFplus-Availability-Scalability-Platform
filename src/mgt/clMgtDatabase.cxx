@@ -101,31 +101,65 @@ namespace SAFplus
     return CL_OK;
   }
 
-  ClRcT MgtDatabase::setRecord(const std::string &key, const std::string &value)
-  {
-    ClRcT rc = CL_OK;
+  ClRcT MgtDatabase::write2DB(const std::string &key, const std::string &value, std::vector<std::string> *child, bool overwrite)
+    {
+      ClRcT rc = CL_OK;
 
+      ClUint32T hashKey = getHashKeyFn(key.c_str());
+
+      Mgt::Msg::MsgMgtDb dbValue;
+      dbValue.set_value(value);
+      dbValue.set_xpath(key);
+
+      // Store metadata for child xpath
+      if (child != nullptr)
+        {
+          for (std::vector<std::string>::iterator i = child->begin(); i != child->end(); i++)
+           {
+              dbValue.add_child(*i);
+           }
+        }
+
+      std::string strVal;
+      // Marshall data
+      dbValue.SerializeToString(&strVal);
+
+      if (overwrite)
+        {
+          /*
+           * Update value
+           */
+          rc = clDbalRecordReplace(mDbDataHdl, (ClDBKeyT) &hashKey, sizeof(hashKey), (ClDBRecordT) strVal.c_str(), strVal.size());
+        }
+      else
+        {
+          /*
+           * Insert into data table
+           */
+          rc = clDbalRecordInsert(mDbDataHdl, (ClDBKeyT) &hashKey, sizeof(hashKey), (ClDBRecordT) strVal.c_str(), strVal.size());
+        }
+      return rc;
+    }
+
+  ClRcT MgtDatabase::insertRecord(const std::string &key, const std::string &value, std::vector<std::string> *child)
+  {
     if (!mInitialized)
       {
         return CL_ERR_NOT_INITIALIZED;
       }
-
-    ClUint32T hashKey = getHashKeyFn(key.c_str());
-
-    Mgt::Msg::MsgMgtDb dbValue;
-    dbValue.set_value(value);
-    dbValue.set_xpath(key);
-
-    std::string strVal;
-    // Marshall data
-    dbValue.SerializeToString(&strVal);
-
-    rc = clDbalRecordReplace(mDbDataHdl, (ClDBKeyT) &hashKey, sizeof(hashKey), (ClDBRecordT) strVal.c_str(), strVal.size());
-
-    return rc;
+    return write2DB(key, value, child);
   }
 
-  ClRcT MgtDatabase::getRecord(const std::string &key, std::string &value)
+  ClRcT MgtDatabase::setRecord(const std::string &key, const std::string &value, std::vector<std::string> *child)
+  {
+    if (!mInitialized)
+      {
+        return CL_ERR_NOT_INITIALIZED;
+      }
+    return write2DB(key, value, child, true);
+  }
+
+  ClRcT MgtDatabase::getRecord(const std::string &key, std::string &value, std::vector<std::string> *child)
   {
     ClRcT rc = CL_OK;
     ClCharT *cvalue;
@@ -152,33 +186,16 @@ namespace SAFplus
     dbValue.ParseFromString(strVal);
     value.assign(dbValue.value());
 
+    if (child != nullptr && dbValue.child_size() > 0)
+    {
+      for (int j = 0; j < dbValue.child_size(); j++)
+        {
+          child->push_back(dbValue.child(j));
+        }
+    }
+
     logInfo("MGT", "DBR", "Record [0x%x]: [%s] -> [%s]", hashKey, key.c_str(), value.c_str());
     SAFplusHeapFree(cvalue);
-    return rc;
-  }
-
-  ClRcT MgtDatabase::insertRecord(const std::string &key, const std::string &value)
-  {
-    ClRcT rc = CL_OK;
-
-    if (!mInitialized)
-      {
-        return CL_ERR_NOT_INITIALIZED;
-      }
-
-    ClUint32T hashKey = getHashKeyFn(key.c_str());
-
-    Mgt::Msg::MsgMgtDb dbValue;
-    dbValue.set_value(value);
-    dbValue.set_xpath(key);
-
-    std::string strVal;
-    // Marshall data
-    dbValue.SerializeToString(&strVal);
-    /*
-     * Insert into data table
-     */
-    rc = clDbalRecordInsert(mDbDataHdl, (ClDBKeyT) &hashKey, sizeof(hashKey), (ClDBRecordT) strVal.c_str(), strVal.size());
     return rc;
   }
 
@@ -198,36 +215,7 @@ namespace SAFplus
     return rc;
   }
 
-  std::vector<std::string> MgtDatabase::iterate(const std::string &xpath, bool keyOnly)
-  {
-    if (listXpath.size() == 0)
-      {
-        updateLists();
-      }
-
-    std::vector<std::string> iter;
-
-    if (keyOnly)
-      {
-        for (std::vector<std::string>::iterator it = listKey.begin() ; it != listKey.end(); ++it)
-          {
-            if (!(*it).compare(0, xpath.length(), xpath))
-              iter.push_back((*it));
-          }
-      }
-    else
-      {
-        for (std::vector<std::string>::iterator it = listXpath.begin() ; it != listXpath.end(); ++it)
-          {
-            if (!(*it).compare(0, xpath.length(), xpath))
-              iter.push_back((*it));
-          }
-      }
-
-    return iter;
-  }
-
-  void MgtDatabase::updateLists()
+  void MgtDatabase::loadDb(std::vector<std::string> &result)
   {
     ClUint32T keySize = 0;
     ClUint32T dataSize = 0;
@@ -258,15 +246,16 @@ namespace SAFplus
         // De-marshall data
         dbValue.ParseFromString(strVal);
 
-        listXpath.push_back(dbValue.xpath());
-        logInfo("MGT", "LST", "Read [%s]", dbValue.xpath().c_str());
-
-        // /a/b[@key"1"]/@key
-        std::size_t found = dbValue.xpath().find_last_of("/@");
-        if ((found != std::string::npos) && (found != 0) && dbValue.xpath()[found - 2] == ']')
-        {
-          listKey.push_back(dbValue.xpath());
-        }
+        // Ignore metadata key xpath
+        if (dbValue.child_size() > 0)
+          {
+            logDebug("MGT", "LOAD", "Ignore metadata key [%s]", dbValue.xpath().c_str());
+          }
+        else
+          {
+            result.push_back(dbValue.xpath());
+            logDebug("MGT", "LOAD", "Read [%s]", dbValue.xpath().c_str());
+          }
 
         if ((rc = clDbalNextRecordGet(mDbDataHdl, (ClDBKeyT) recKey, keySize, (ClDBKeyT*) &nextKey, &nextKeySize, (ClDBRecordT*) &recData, &dataSize)) != CL_OK)
           {
@@ -277,6 +266,43 @@ namespace SAFplus
         keySize = nextKeySize;
       }
   }
+
+  void MgtDatabase::iterate(const std::string &xpath, std::vector<std::string> &result )
+    {
+      if (xpath[0] == '/' and xpath.length() == 1) // Get whole db
+        {
+          return loadDb(result);
+        }
+
+      // Iterator through child (depth = 1)
+      std::string value;
+      std::vector<std::string> child;
+
+      logDebug("MGT", "ITER", "Trying [%s] ", xpath.c_str());
+      ClRcT rc = getRecord(xpath, value, &child);
+      if (rc == CL_OK)
+        {
+          if (child.size() > 0)
+            {
+              // Get all its child (depth = 1)
+              for (std::vector<std::string>::iterator i = child.begin(); i != child.end(); i++)
+                {
+                  std::string childxpath(xpath);
+                  if ((*i)[0] == '[') // Key value
+                    childxpath.append(*i);
+                  else
+                    childxpath.append("/").append(*i);
+
+                  logDebug("MGT", "ITER", "Lookup child [%s] ", childxpath.c_str());
+                  result.push_back(childxpath);
+                }
+            }
+          else
+            {
+              result.push_back(xpath);
+            }
+        }
+    }
 
   ClBoolT MgtDatabase::isInitialized()
   {
