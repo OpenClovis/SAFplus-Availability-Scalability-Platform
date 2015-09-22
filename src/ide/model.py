@@ -523,10 +523,20 @@ def Test():
     for module in obj.children(lambda(x): x if (type(x) is types.InstanceType and x.__class__ is microdom.MicroDom) else None):   
       print module.tag_, ": ", module.data_
   print m.entityTypes.keys()
-  # pdb.set_trace()
+  pdb.set_trace()
 
-  sg0 = m.entities["appSG"].createInstance((0,0),(100,40),"sg0")
-  m.instances[sg0.data["name"]] = sg0
+  #sg0 = m.entities["appSG"].createInstance((0,0),(100,40),"sg0")
+  (sg,instances) = m.recursiveInstantiation(m.entities["appSG"])
+  instances["app1"].data["instantiate"]["command"] = "app1"
+  node = m.entities["SC"].createInstance((0,0),(100,40),"sc0")
+  su = m.entities["ServiceUnit1"]
+  # connect the node to the su
+  ca = entity.ContainmentArrow(node,(0,0),su,(0,0))
+  node.containmentArrows.append(ca)
+
+  m.instances.update(instances)
+  m.instances[node.data["name"]] = node
+  # m.instances[sg0.data["name"]] = sg0
 
   #1. Build flatten entity instance
   #2. Build relation ship between instances
