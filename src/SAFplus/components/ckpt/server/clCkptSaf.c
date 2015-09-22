@@ -1173,11 +1173,11 @@ clCkptSecFindNDelete(CkptT             *pCkpt,
     pKey->scnId.idLen = pSecId->idLen;
     rc = clCksm32bitCompute(pKey->scnId.id, pKey->scnId.idLen, &cksum);
     if( CL_OK != rc )
-    {
-        clHeapFree(pKey);
+    {        
         clLogError(CL_CKPT_AREA_ACTIVE, CL_CKPT_CTX_CKPT_OPEN, 
                    "Failed to find cksum while finding section [%.*s]",
                    pKey->scnId.idLen, pKey->scnId.id);
+        clHeapFree(pKey);
         return rc;
     }
     pKey->hash        = cksum % pCkpt->pDpInfo->numOfBukts;
@@ -1186,16 +1186,14 @@ clCkptSecFindNDelete(CkptT             *pCkpt,
     rc = clCntAllNodesForKeyDelete(pCkpt->pDpInfo->secHashTbl, 
                                    (ClCntDataHandleT) pKey);
     if( CL_OK != rc )
-    {
-        clHeapFree(pKey);
+    {        
         clLogError(CL_CKPT_AREA_ACTIVE, CL_CKPT_CTX_CKPT_OPEN, 
                    "Failed to delete section [%.*s] rc [0x %x]",
                    pKey->scnId.idLen, pKey->scnId.id, rc);
         if( CL_GET_ERROR_CODE(rc) == CL_ERR_NOT_EXIST )
         {
             rc = CL_CKPT_ERR_NOT_EXIST;
-        }
-        return rc;
+        }     
     }
 
     clHeapFree(pKey);
