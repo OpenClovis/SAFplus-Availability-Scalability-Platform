@@ -145,7 +145,7 @@
       <contains></contains>
       <rank>None</rank>
       <_sizeY>128.0</_sizeY>
-      <adminState>None</adminState>
+      <adminState>on</adminState>
       <activeAssignments></activeAssignments>
       <id>None</id>
       <preferredActiveAssignments>1</preferredActiveAssignments>

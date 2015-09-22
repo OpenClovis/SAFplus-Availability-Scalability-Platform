@@ -40,11 +40,13 @@ PREDICATE_KEY_START = '['
 PREDICATE_KEY_END = ']'
 
 def key_to_xml(s):
-  s = s.replace("_",":")
-  #tag without array index
-  #/c[1] => /c
-  s = s.split("[")[0]
-  return s
+    s = s.replace('-', '_')
+    s = s.replace('/', '_')
+    s = s.replace(':', '_')
+    #tag without array index
+    #/c[1] => /c
+    s = s.split("[")[0]
+    return s
 
 def getErrorString(errCode):
     if type(errCode) == str:
@@ -52,8 +54,8 @@ def getErrorString(errCode):
     try:
         retStr = SAFplusError[errCode[0]]
     except KeyError:
-        retStr = "UNKNOWN_ERROR_CODE"
-   
+        traceback.print_exc()
+        retStr = ''
     return retStr
 
 def prettify(elem):
@@ -87,6 +89,11 @@ class PyDBAL():
         if xmlFile is None: xmlFile = self.cfgfile
         try:
             self.suppliedData = microdom.LoadFile(xmlFile)
+
+            # This is IDE's model?
+            if self.suppliedData.tag_ == 'SAFplusModel':
+                self.docRoot = 'instances'
+
             if self.docRoot:
                 self.suppliedData = self.suppliedData.get(self.docRoot)
 
@@ -121,6 +128,16 @@ class PyDBAL():
         parentXpath = xpath
         if isInstanceOf(element, microdom.MicroDom):
             xpath = "%s/%s" %(xpath, microdom.keyify(element.tag_))
+
+            # Work-around for loading from IDE's model
+            if element.attributes_.get('xpath') is not None:
+                tmp = element.attributes_.get('xpath')
+                xpath, attributes = self._buildMetadata(tmp)
+                element.attributes_.pop('xpath')
+                element.attributes_.update(attributes)
+
+            if element.attributes_.get('module') is not None:
+                element.attributes_.pop('module')
 
             if len(element.attributes_) > 1:
                 # Format attribute string with 'and' expression for each attribute
@@ -172,11 +189,37 @@ class PyDBAL():
             if len(element.children()) > 0:
                 for elchild in element.children():
                     self._load(elchild, xpath)
-            else:
-                self.xpathDB[xpath] = str(element.data_)
+            elif len(str(element.data_).strip()) > 0:
+                self.xpathDB[xpath] = str(element.data_).strip()
 
         elif len(str(element).strip()) > 0:
             self.xpathDB[xpath] = str(element).strip()
+
+    def _buildMetadata(self, xpath, metadata = {}):
+        parentXpath = xpath[:xpath.rfind("/")]
+        childXpath = xpath[xpath.rfind("/") + 1:]
+
+        if len(parentXpath) > 0:
+            try:
+                metadata[parentXpath].append(childXpath)
+            except:
+                metadata[parentXpath] = [childXpath]
+
+        attributes = None
+        next = iter(ElementPath.xpath_tokenizer(childXpath)).next
+
+        while 1:
+                try:
+                    token = next()
+                    if token[0] == "[":
+                        attributes = self._transformAttr(next, token)
+                except StopIteration:
+                    break
+
+        if attributes is not None:
+            childXpath = xpath[:xpath.rfind("[")]
+
+        return childXpath, attributes
 
     """ Build element attribute """
     def _transformAttr(self, next, token):
@@ -375,9 +418,9 @@ def main(argv):
       traceback.print_exc()
       return
 
-
+# Test SAFplusAmf service import/export-ing
 def Test():
-    test = PyDBAL("SAFplusAmf.xml") # Root of Log service start from /log ->  docRoot= "version.log_BootConfig.log"
+    test = PyDBAL("SAFplusAmf.xml") # Root of SAFplusAmf service start from / ->  docRoot= None
     test.LoadXML("SAFplusAmf.xml")
 
     # Iterators
@@ -388,22 +431,25 @@ def Test():
        except Exception, e:
            print getErrorString(e)
 
-    #Replace data with a key
-    try:
-        key="/SAFplusLog/ServerConfig/maximumSharedMemoryPages"
-        test.Replace(key, "100")
-    except Exception, e:
-        print getErrorString(e)
+    # Export to XML
+    test.ExportXML("SAFplusAmf_New.xml")
+    test.Finalize()
 
-    try:
-        key="/SAFplusLog/ServerConfig/maximumRecordsInPacket"
-        test.Replace(key,"150")
-    except Exception, e:
-        print getErrorString(e)
+# Test IDE's model import/export-ing
+def Test2():
+    test = PyDBAL("test.xml") # Root of IDE's model start from /instances ->  docRoot= "instances"
+    test.LoadXML("test.xml")
+
+    # Iterators
+    for key in test.Iterators():
+       try:
+           data = test.Read(key)
+           print "[%s] -> [%s]" %(key, data)
+       except Exception, e:
+           print getErrorString(e)
 
     #Export to XML
-    test.ExportXML("SAFplusLog_New.xml")
-
+    test.ExportXML("test_New.xml")
     test.Finalize()
 
 if __name__ == '__main__':
