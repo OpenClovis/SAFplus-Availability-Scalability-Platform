@@ -51,7 +51,7 @@ module myService
     {
       description "How much of the service this subscriber has used";
       type int64;
-      config false;  // Note config is set to false here since this is not provisioning -- the application uses this to track and report use.
+      //config false;  // This would normally not be config but we want to be able to reset this for the sake of the demo
     }
   }
 

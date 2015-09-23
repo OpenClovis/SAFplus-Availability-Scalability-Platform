@@ -499,7 +499,7 @@ namespace SAFplus
             rc = CL_ERR_NOT_EXIST;
           }
       }
-    logDebug("MGT","SET","Object [%s] done updated", path.c_str());
+    logDebug("MGT","SET","Object [%s] update complete [0x%x]", path.c_str(),rc);
     MgtRoot::sendReplyMsg(srcAddr,(void *)&rc,sizeof(ClRcT));
   }
 

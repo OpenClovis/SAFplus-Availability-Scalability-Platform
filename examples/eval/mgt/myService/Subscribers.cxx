@@ -29,7 +29,6 @@ namespace myService
         this->addChildObject(&level, "level");
         this->addChildObject(&limit, "limit");
         this->addChildObject(&use, "use");
-        use.config = false;
     };
 
     Subscribers::Subscribers(std::string nameValue): SAFplus::MgtContainer("subscribers"), name("name"), active("active"), level("level"), limit("limit"), use("use")
@@ -40,7 +39,6 @@ namespace myService
         this->addChildObject(&level, "level");
         this->addChildObject(&limit, "limit");
         this->addChildObject(&use, "use");
-        use.config = false;
     };
 
     std::vector<std::string> Subscribers::getKeys()

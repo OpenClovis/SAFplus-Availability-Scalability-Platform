@@ -29,7 +29,7 @@ namespace myService
         ::myService::ServiceCfg serviceCfg;
         ::myService::ServiceStats serviceStats;
 
-        /*x
+        /*
          * 
          */
         SAFplus::MgtList<std::string> subscribersList;
