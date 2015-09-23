@@ -12,6 +12,7 @@ import entity
 from entity import Entity
 
 VERSION = "7.0"
+MAX_RECURSIVE_INSTANTIATION_DEPTH = 5
 
 defaultForBuiltinType = {
   "boolean": False,
@@ -94,6 +95,15 @@ instantiated  <instances>     instances                         instances     (e
     instances = self.data.getElementsByTagName("instances")
     if instances:
       instances[0].delChild(instances[0].findOneByChild("name",entname))
+
+  def connect(self,container, contained):
+    """Connects 2 instances together.  Returns the containment arrow instance"""
+    assert(isinstance(container,entity.Instance))  # TODO, allow this function to connect 2 entities (but not 1 instance and 1 entity)
+    assert(isinstance(contained,entity.Instance))
+    ca = entity.ContainmentArrow(container,(0,0),contained,(0,0))
+    container.containmentArrows.append(ca)
+    contained.childOf.add(container)
+    return ca
 
   def load(self, fileOrString):
     """Load an XML representation of the model"""
@@ -462,7 +472,7 @@ instantiated  <instances>     instances                         instances     (e
       # 2 ways recursive:
       #   1. SG -> SI -> CSI
       #   2. Node -> SU -> Component
-      if depth<=3:
+      if depth<=MAX_RECURSIVE_INSTANTIATION_DEPTH:
         for ca in ent.containmentArrows:
           (ch, xtra) = self.recursiveInstantiation(ca.contained,instances, depth)
           ch.childOf.add(ei)
@@ -523,19 +533,17 @@ def Test():
     for module in obj.children(lambda(x): x if (type(x) is types.InstanceType and x.__class__ is microdom.MicroDom) else None):   
       print module.tag_, ": ", module.data_
   print m.entityTypes.keys()
-  #pdb.set_trace()
+  pdb.set_trace()
 
   #sg0 = m.entities["appSG"].createInstance((0,0),(100,40),"sg0")
   (sg,instances) = m.recursiveInstantiation(m.entities["appSG"])
-  instances["app1"].data["instantiate"]["command"] = "./app1 app1"
-  node = m.entities["SC"].createInstance((0,0),(100,40),"sc0")
-  su = m.entities["ServiceUnit1"]
-  # connect the node to the su
-  ca = entity.ContainmentArrow(node,(0,0),su,(0,0))
-  node.containmentArrows.append(ca)
+  instances["app1"].data["instantiate"]["command"] = "./app1 param"
+  node = m.entities["SC"].createInstance((0,0),(100,40),False,"sc0")
+  su = instances["ServiceUnit11"]
 
   m.instances.update(instances)
   m.instances[node.data["name"]] = node
+  m.connect(node,su)
   # m.instances[sg0.data["name"]] = sg0
 
   #1. Build flatten entity instance

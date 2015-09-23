@@ -1,4 +1,0 @@
-#!/bin/bash
-
-/sbin/ifconfig $4 $2 netmask $3 $1
-

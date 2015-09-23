@@ -1,4 +1,0 @@
-<?xml version="1.0" encoding="UTF-8"?>
-<modelMap:mapInformation xmlns:modelMap="modelMapping.ecore" sourceModel="component_model" targetModel="resource_model">
-  <link linkType="associatedResource"/>
-</modelMap:mapInformation>

@@ -1,4 +1,0 @@
-<?xml version="1.0" encoding="UTF-8"?>
-<modelMap:mapInformation xmlns:modelMap="modelMapping.ecore" targetModel="alarm_model">
-  <link linkType="associatedAlarm"/>
-</modelMap:mapInformation>

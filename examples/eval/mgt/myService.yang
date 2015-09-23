@@ -1,0 +1,70 @@
+module myService
+{
+  namespace "http://www.myCompany.com/ns/myService";
+  prefix "myService"; 
+  import SAFplusTypes { prefix "SAFplusTypes"; }
+
+  // Let's make a structure to track the subscribers to our fictious service:
+  list subscribers
+  {
+    key "name";
+    description "";
+
+    leaf name
+    {
+      type string;
+    }
+    leaf active
+    {
+      type boolean;
+      description "True means this subscriber is in good standing, False means service is off";
+      default true;
+    }
+
+    leaf level
+    {
+      type enumeration
+      {
+        enum gold
+        {
+          value 2; 
+        }
+        enum silver
+        { 
+          value 1;
+        }
+        enum copper
+        { 
+          value 0;
+        }
+      }
+    }
+
+    leaf limit
+    {
+      description "How much of the service this subscriber can use";
+      type int64;
+      default 10000;
+    }
+
+    leaf use
+    {
+      description "How much of the service this subscriber has used";
+      type int64;
+      config false;  // Note config is set to false here since this is not provisioning -- the application uses this to track and report use.
+    }
+  }
+
+  container serviceStats
+  {
+    description "Statistics on the use of this service";
+    container accessCounts
+    {
+      description "How much is the service being used";
+      SAFplusTypes:c-existing "SAFplus::MgtHistoryStat<int>"; 
+      uses SAFplusTypes:intStatistic; 
+      config false;
+    }
+  }
+
+}

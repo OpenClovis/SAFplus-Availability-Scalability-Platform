@@ -31,6 +31,7 @@ try:
   import xmlterm
   windowed=True
 except Exception, e:
+  print "Cannot initialize windowing [%s], using no-window mode" % str(e)
   import textxmlterm as xmlterm
   windowed=False
 
