@@ -42,6 +42,8 @@ namespace SAFplusI
   //typedef boost::unordered_map < CkptMapKey, CkptMapValue, boost::hash<CkptMapKey>, std::equal_to<CkptMapValue>, CkptAllocator> CkptHashMap;
   typedef boost::unordered_map < CkptMapKey, CkptMapValue, boost::hash<CkptMapKey>, BufferPtrContentsEqual, CkptAllocator> CkptHashMap;
 
+  typedef boost::unordered_map < SAFplus::Buffer*, uint_t> CkptOperationMap;
+
   class CkptSynchronization:public SAFplus::MsgHandler, public SAFplus::Wakeable
     {
     public:
@@ -101,6 +103,13 @@ namespace SAFplusI
    {
      return ckptHeaderStrings[val];
    }
+
+   /* This enum defines what operation performed on the checkpoint data. The purpose is to reflect only changed those items to disk. For those items unchanged, there isn't any operation on disk, too. This decreases the disk I/O operations */
+   enum 
+   { 
+     INUP, // Insert or update checkpoint data
+     DEL // Delete checkpoint data
+   };
 
   class BufferPtr:public boost::interprocess::offset_ptr<SAFplus::Buffer>
   {
