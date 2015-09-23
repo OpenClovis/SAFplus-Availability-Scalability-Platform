@@ -528,11 +528,12 @@ def Test():
   #sg0 = m.entities["appSG"].createInstance((0,0),(100,40),"sg0")
   (sg,instances) = m.recursiveInstantiation(m.entities["appSG"])
   instances["app1"].data["instantiate"]["command"] = "./app1 app1"
-  node = m.entities["SC"].createInstance((0,0),(100,40),"sc0")
-  su = m.entities["ServiceUnit1"]
+  node = m.entities["SC"].createInstance((0,0),(100,40),name="sc0")
+  su = instances["ServiceUnit11"]
   # connect the node to the su
   ca = entity.ContainmentArrow(node,(0,0),su,(0,0))
   node.containmentArrows.append(ca)
+  su.childOf = set([node, sg])
 
   m.instances.update(instances)
   m.instances[node.data["name"]] = node

@@ -45,10 +45,10 @@ YangIntegerTypes = ['int8','uint8','int16', 'uint16','int32','uint32','int64','u
 app = wx.App(0)
 
 class SliderCustom(wx.PyControl):
-  def __init__(self, parent, id, v, rang, style = wx.BORDER_NONE):
+  def __init__(self, parent, id, v, rang, style = wx.BORDER_NONE, name = ''):
     wx.PyControl.__init__(self, parent, id, style = style)
 
-    self.sliderText = wx.TextCtrl(self, id, str(v), style = wx.BORDER_SIMPLE)
+    self.sliderText = wx.TextCtrl(self, id, str(v), style = wx.BORDER_SIMPLE, name=name)
     self.slider = wx.Slider(self,id,v,rang[0],rang[1],size=(200,60), style = wx.SL_HORIZONTAL) #  | wx.SL_AUTOTICKS | wx.SL_LABELS)
 
     self.tickFreq = 5
@@ -85,8 +85,11 @@ class SliderCustom(wx.PyControl):
     return self.sliderText.GetValue()
 
   def GetName(self):
-    return "slidercustom"
-  
+    return self.sliderText.GetName()
+
+  def SetName(self, name):
+    return self.sliderText.SetName(name)
+
   def SetValidator(self, validator):
     self.sliderText.SetValidator(validator)
 
@@ -345,23 +348,21 @@ class Panel(scrolled.ScrolledPanel):
             return
 
           # TODO: Enable "SAVE_BUTTON" if mark dirty and handle only dirty (actually value changed) entity
-          self.ChangedValue(proposedValue, obj[0])
+          self.ChangedValue(proposedValue, event.GetEventObject(), obj[0])
       else:
         # Notify name change to umlEditor to validate and render
         # TODO: Enable "SAVE_BUTTON"
-        self.ChangedValue(event.GetEventObject().GetValue())
+        self.ChangedValue(event.GetEventObject().GetValue(), event.GetEventObject())
 
-    def ChangedValue(self, proposedValue, obj = None):
+    def ChangedValue(self, proposedValue, query, obj = None):
       if not self.treeItemSelected: return
 
       if self.treeItemSelected:
         self.entity = self.tree.GetPyData(self.treeItemSelected)
 
+      name = query.GetName()
       if obj == None:
-        name = 'name'
         self.tree.SetItemText(self.treeItemSelected, proposedValue)
-      else:
-        name = obj[0]
 
       if isinstance(self.entity,entity.Instance):
         if share.instancePanel:
@@ -431,7 +432,7 @@ class Panel(scrolled.ScrolledPanel):
         lockButton.SetBitmap(self.unlockedBmp);
         lockButton.SetBitmapSelected(self.lockedBmp)
 
-    def createControl(self,id,item, value):
+    def createControl(self,id,item, value, nameCtrl):
       """Create the best GUI control for this type of data"""
       # pdb.set_trace()
       typeData = item[1]
@@ -493,6 +494,7 @@ class Panel(scrolled.ScrolledPanel):
         
         # Bind to handle event on change
         self.BuildChangeEvent(query)
+        query.SetName(nameCtrl)
 
       else:
         # TODO do any of these need to be displayed?
@@ -630,6 +632,7 @@ class Panel(scrolled.ScrolledPanel):
       
       # Binding name wx control
       self.BuildChangeEvent(query)
+      query.SetName("%s_name"%name)
 
       # TODO: getcustom validator from yang
       query.SetValidator(NameObjectValidator(self.model.instances if self.isDetailInstance else self.model.entities, ent.data["name"]))
@@ -638,6 +641,8 @@ class Panel(scrolled.ScrolledPanel):
       b.SetToolTipString("If unlocked, instances can change this field")
 
       child = self.tree.AppendItem(treeItem, "Name:")
+      self.tree.SetPyData(child, ent)
+
       self.tree.SetItemWindow(child, query, 2)
       self.tree.SetItemWindow(child, b, 1)
       b.Disable()
@@ -645,7 +650,7 @@ class Panel(scrolled.ScrolledPanel):
       self.row += 1
 
       # Create all controls of entity
-      self.createChildControls(treeItem, ent, items, ent.data)
+      self.createChildControls(treeItem, ent, items, ent.data, nameCtrl=name)
 
       # Put comps/csis into SU/SI
       if self.isDetailInstance and ent.et.name in ("ServiceInstance", "ServiceUnit"):
@@ -657,7 +662,7 @@ class Panel(scrolled.ScrolledPanel):
 
       return treeItem
 
-    def createChildControls(self, treeItem, ent, items, values):
+    def createChildControls(self, treeItem, ent, items, values, nameCtrl):
       for item in filter(lambda item: item[0] != "name", items):
         name = item[0]
         if item[0] == "contains":
@@ -675,9 +680,9 @@ class Panel(scrolled.ScrolledPanel):
 
           if ent.isContainer(item[1]):
             child = self.tree.AppendItem(treeItem, s)
-            self.createChildControls(child, ent, item[1].items(), values.get(item[0], None))
+            self.createChildControls(child, ent, item[1].items(), values.get(item[0], None), nameCtrl="%s_%s"%(nameCtrl, name))
           else:
-            query = self.createControl(self.row + TEXT_ENTRY_ID, item, values.get(item[0], None))
+            query = self.createControl(self.row + TEXT_ENTRY_ID, item, values.get(item[0], None), nameCtrl="%s_%s"%(nameCtrl, name))
             if not query: continue  # If this piece of data has no control, it is not user editable
 
             #Create tree item
@@ -720,6 +725,8 @@ class Panel(scrolled.ScrolledPanel):
             self.lookup[self.row] = Gui2Obj(item,query,b,h,child,ent)
             self.row+=1
 
+          self.tree.SetPyData(child, ent)
+
     def OnPaint(self, evt):
         if self.IsDoubleBuffered():
             dc = wx.PaintDC(self)
@@ -739,15 +746,15 @@ class Panel(scrolled.ScrolledPanel):
 
     def BuildChangeEvent(self, ctrl):
         mapEvents = {
-            'text': [wx.EVT_TEXT, wx.EVT_TEXT_ENTER],
-            'check': [wx.EVT_CHECKBOX],
-            'slider': [wx.EVT_SCROLL, wx.EVT_SLIDER, wx.EVT_SCROLL_CHANGED, ],
-            'comboBox': [wx.EVT_COMBOBOX, wx.EVT_TEXT, wx.EVT_TEXT_ENTER, wx.EVT_COMBOBOX_DROPDOWN, wx.EVT_COMBOBOX_CLOSEUP],
-            'slidercustom':[wx.EVT_TEXT, wx.EVT_TEXT_ENTER]
+            'TextCtrl': [wx.EVT_TEXT, wx.EVT_TEXT_ENTER],
+            'CheckBox': [wx.EVT_CHECKBOX],
+            'Slider': [wx.EVT_SCROLL, wx.EVT_SLIDER, wx.EVT_SCROLL_CHANGED, ],
+            'ComboBox': [wx.EVT_COMBOBOX, wx.EVT_TEXT, wx.EVT_TEXT_ENTER, wx.EVT_COMBOBOX_DROPDOWN, wx.EVT_COMBOBOX_CLOSEUP],
+            'SliderCustom':[wx.EVT_TEXT, wx.EVT_TEXT_ENTER]
             # TBD 
         }
 
-        for t in mapEvents[ctrl.GetName()]:
+        for t in mapEvents[type(ctrl).__name__]:
           ctrl.Bind(t, self.EvtText)
         
         # Bind this to select treeItem container this control
