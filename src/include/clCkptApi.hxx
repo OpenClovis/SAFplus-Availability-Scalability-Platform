@@ -215,8 +215,8 @@ namespace SAFplus
   /*? Write a section of the checkpoint table 
    <arg name="key">The section to write</arg>
    <arg name="value">The data to write</arg>
-   <arg name="t" default="NO_TXN">[OPTIONAL, NOT IMPLEMENTED] Write this record as part of a transaction commit, rather than immediately</arg>
-   <exception name="SAFplus::Error">Raised if there is an underlying SAF read error that cannot be automatically handled</exception>
+   <arg name="t" default="NO_TXN">[OPTIONAL, NOT IMPLEMENTED] Write this record as part of a transaction commit, rather than immediately</arg>   
+   <exception name="SAFplus::Error">Raised if there is an underlying SAF read error that cannot be automatically handled</exception>   
    */ 
     void write(const Buffer& key, const Buffer& value,Transaction& t=SAFplus::NO_TXN);
  
@@ -344,14 +344,17 @@ namespace SAFplus
     SAFplusI::CkptSynchronization* sync;  // This is a separate object (and pointer) to break the synchronization requirements (messaging and groups) from the core checkpoint
     
     ClDBHandleT dbHandle; //Handle to manipulate with database. Basically, each persistent checkpoint data needs to be stored as a table on disk, so, if a persistent checkpoint is opened, dbHandle will be initialized. If it's not a persistent one, dbHandle is NULL (not used)
+    SAFplusI::CkptOperationMap operMap; /* Holding operation performed on the checkpoint data items identified by key. The purpose is to reflect only changed those items to disk. For those items unchanged, there isn't any operation on disk, too. This decreases the disk I/O operations */
 
   protected:    
     void syncFromDisk(); // In the case that user opens a non-existing checkpoint but its data is available on disk, so this function copies data from database to checkpoint data to ensure data between them to be synchronized
     void initDB(const char* ckptId, bool isCkptExist); // Initialize dbal and synchronize data from disk with checkpoint if any
-    void writeCkptHdr(ClDBKeyHandleT key, ClUint32T keySize, ClDBRecordHandleT rec, ClUint32T recSize);
+    void writeCkpt(ClDBKeyHandleT key, ClUint32T keySize, ClDBRecordHandleT rec, ClUint32T recSize);
     void writeCkptData(ClDBKeyHandleT key, ClUint32T keySize, ClDBRecordHandleT rec, ClUint32T recSize);
     void writeHdrDB(int hdrKey, ClDBRecordT rec, ClUint32T recSize);
     void writeDataDB(Buffer* key, Buffer* val);
+    void deleteDataDB(Buffer* key);
+    void updateOperMap(Buffer* key, uint_t oper);
    #if 0
    public:
     void dumpHeader();

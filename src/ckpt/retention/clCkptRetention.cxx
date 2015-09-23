@@ -221,28 +221,21 @@ public:
     ClUint32T keySize;
     ClDBRecordHandleT rec;
     ClUint32T recSize;
-    size_t hdrSize = sizeof(ckptHeaderStrings)/sizeof(ckptHeaderStrings[0]);
     ClRcT rc = clDbalFirstRecordGet(dbHandle, &key, &keySize, &rec, &recSize);  
     while (rc == CL_OK)
     {    
-      if (hdrSize>0)
-      {      
-        if (!memcmp(key, ckptHeader(nkey), keySize))
-        {
-          memcpy(val, rec, recSize);
-          clDbalKeyFree(dbHandle, key);
-          clDbalRecordFree(dbHandle, rec);
-          return true;
-        }
-        --hdrSize;
+      if (!memcmp(key, ckptHeader(nkey), keySize))
+      {
+        memcpy(val, rec, recSize);
+        clDbalKeyFree(dbHandle, key);
         clDbalRecordFree(dbHandle, rec);
-        ClDBKeyHandleT curKey = key;
-        ClUint32T curKeySize = keySize;    
-        rc = clDbalNextRecordGet(dbHandle, curKey, curKeySize, &key, &keySize, &rec, &recSize);     
-        clDbalKeyFree(dbHandle, curKey);        
+        return true;
       }
-      else
-        break;      
+      clDbalRecordFree(dbHandle, rec);
+      ClDBKeyHandleT curKey = key;
+      ClUint32T curKeySize = keySize;    
+      rc = clDbalNextRecordGet(dbHandle, curKey, curKeySize, &key, &keySize, &rec, &recSize);     
+      clDbalKeyFree(dbHandle, curKey);        
     }
     return false;
   }  

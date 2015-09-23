@@ -957,13 +957,24 @@ class Panel(scrolled.ScrolledPanel):
           ret.add(e)
       return ret
 
-    def notifyNameValueChange(self, ent, newValue):
-      self.notifyValueChange(ent, 'name', newValue)
-
     def notifyValueChange(self, ent, key, newValue):
       for (name, e) in self.entities.items():
         if e == ent:
-          e.data[key] = newValue
+          iterKeys = iter(key.split("_"))
+          token  = next(iterKeys)
+          d = e.data
+          while 1:
+            try:
+              token  = next(iterKeys)
+              if type(d[token]) is DictType:
+                #d[token] = newValue
+                d = d[token]
+              else:
+                # token is the last key
+                break
+            except StopIteration:
+              break
+          d[token] = newValue
           e.recreateBitmap()
       self.Refresh()
 

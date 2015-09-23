@@ -533,10 +533,11 @@ def Test():
     for module in obj.children(lambda(x): x if (type(x) is types.InstanceType and x.__class__ is microdom.MicroDom) else None):   
       print module.tag_, ": ", module.data_
   print m.entityTypes.keys()
-  pdb.set_trace()
+  # pdb.set_trace()
 
   #sg0 = m.entities["appSG"].createInstance((0,0),(100,40),"sg0")
   (sg,instances) = m.recursiveInstantiation(m.entities["appSG"])
+
   instances["app1"].data["instantiate"]["command"] = "./app1 param"
   node = m.entities["SC"].createInstance((0,0),(100,40),False,"sc0")
   su = instances["ServiceUnit11"]
