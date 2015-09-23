@@ -4,6 +4,7 @@
  * plug-in of pyang.
  */ 
 
+#include "ServiceCfg.hxx"
 #include "ServiceStats.hxx"
 #include "MgtFactory.hxx"
 #include "clMgtModule.hxx"
@@ -22,6 +23,7 @@ namespace myService
 
     MyServiceModule::MyServiceModule(): SAFplus::MgtModule("myService"), subscribersList("subscribers")
     {
+        this->addChildObject(&serviceCfg, "serviceCfg");
         this->addChildObject(&serviceStats, "serviceStats");
         this->addChildObject(&subscribersList, "subscribers");
         subscribersList.childXpath="/myService/subscribers";
@@ -30,7 +32,7 @@ namespace myService
 
     std::vector<std::string>* MyServiceModule::getChildNames()
     {
-        std::string childNames[] = { "subscribers", "serviceStats" };
+        std::string childNames[] = { "subscribers", "serviceCfg", "serviceStats" };
         return new std::vector<std::string> (childNames, childNames + sizeof(childNames) / sizeof(childNames[0]));
     };
 

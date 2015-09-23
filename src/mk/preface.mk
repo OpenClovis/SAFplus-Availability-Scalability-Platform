@@ -30,10 +30,10 @@ USE_DIST_LIB ?= 1
 # ifndef SAFPLUS_MAKE_DIR
 SAFPLUS_MAKE_DIR := $(patsubst %/,%,$(dir $(realpath $(lastword $(MAKEFILE_LIST)))))
 
-$(info A: $(dir $(CURDIR)/$(word $(words $(MAKEFILE_LIST)),$(MAKEFILE_LIST))))
-$(info B: $(shell dirname $(realpath $(lastword $(MAKEFILE_LIST)))))
-$(info C: $(patsubst %/,%,$(dir $(realpath $(lastword $(MAKEFILE_LIST))))))
-$(info D: $(patsubst %/,%,$(dir $(realpath $(SAFPLUS_MAKE_DIR)))))
+#$(info A: $(dir $(CURDIR)/$(word $(words $(MAKEFILE_LIST)),$(MAKEFILE_LIST))))
+#$(info B: $(shell dirname $(realpath $(lastword $(MAKEFILE_LIST)))))
+#$(info C: $(patsubst %/,%,$(dir $(realpath $(lastword $(MAKEFILE_LIST))))))
+#$(info D: $(patsubst %/,%,$(dir $(realpath $(SAFPLUS_MAKE_DIR)))))
 
 # endif
 

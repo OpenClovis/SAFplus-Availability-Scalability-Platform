@@ -35,8 +35,8 @@ all: $(TEST_DIR)/mgtApp
 $(TEST_DIR)/%.xml: %.xml
 	cp -f $< $@
 
-$(TEST_DIR)/mgtApp:  $(OBJ_DIR)/main.o $(LIB_DIR)/myService.so $(SAFPLUS_DEP_LIBS)
-	$(LINK_EXE) $@ $<  $(LIB_DIR)/myService.so $(SAFPLUS_LINK_LIBS) -lboost_filesystem $(LINK_SO_LIBS) -lprotobuf -lprotoc $(LINK_SO_LIBS)
+$(TEST_DIR)/mgtApp:  $(OBJ_DIR)/main.o $(OBJ_DIR)/httpd.o $(LIB_DIR)/myService.so $(SAFPLUS_DEP_LIBS)
+	$(LINK_EXE) $@ $<  $(OBJ_DIR)/httpd.o $(LIB_DIR)/myService.so $(SAFPLUS_LINK_LIBS) -lmicrohttpd -lboost_filesystem $(LINK_SO_LIBS) -lprotobuf -lprotoc $(LINK_SO_LIBS)
 
 $(OBJ_DIR)/%.o: %.cxx Makefile $(SAFPLUS_MAKE_DIR)/preface.mk $(CLIENT_H)
 	$(COMPILE_CPP)  $@ $(SAFPLUS_MGT_INC_FLAGS) $< 
@@ -49,6 +49,7 @@ yang:
 
 
 clean:
-	rm -f $(CLIENT_OBJ) $(TEST_DIR)/example
+	rm -f $(CLIENT_OBJ) $(TEST_DIR)/mgtApp $(OBJ_DIR)/myService/* $(LIB_DIR)/myService.so
+        $(MAKE) SAFPLUS_SRC_DIR=$(SAFPLUS_SRC_DIR) -C myService clean
 
 include $(SAFPLUS_MAKE_DIR)/safplus_targets.mk

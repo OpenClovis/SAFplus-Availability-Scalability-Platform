@@ -343,6 +343,7 @@ namespace SAFplus
     throw SerializationError("cannot deXMLize into a boolean");
   }
 
+#if 0
   void deXMLize(const std::string& obj, MgtObject* context, ClBoolT& result)
   {
     if ((obj[0] == 't') || (obj[0] == 'T') || (obj[0] == '1'))
@@ -358,6 +359,7 @@ namespace SAFplus
       }
     throw SerializationError("cannot deXMLize into a boolean");
   }
+#endif
 
   ClRcT MgtObject::setObj(const std::string &value)
   {

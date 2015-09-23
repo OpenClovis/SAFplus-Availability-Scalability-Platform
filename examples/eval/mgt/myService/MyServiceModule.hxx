@@ -8,6 +8,7 @@
 #ifndef MYSERVICEMODULE_HXX_
 #define MYSERVICEMODULE_HXX_
 
+#include "ServiceCfg.hxx"
 #include "ServiceStats.hxx"
 #include "MgtFactory.hxx"
 #include "clMgtModule.hxx"
@@ -25,9 +26,10 @@ namespace myService
         MGT_REGISTER(MyServiceModule);
 
     public:
+        ::myService::ServiceCfg serviceCfg;
         ::myService::ServiceStats serviceStats;
 
-        /*
+        /*x
          * 
          */
         SAFplus::MgtList<std::string> subscribersList;

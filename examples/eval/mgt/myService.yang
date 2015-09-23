@@ -55,6 +55,16 @@ module myService
     }
   }
 
+  container serviceCfg
+  {
+  leaf port
+    {
+    description "What TCP port to listen on";
+    type uint16;
+    default 8000;
+    }
+  }
+
   container serviceStats
   {
     description "Statistics on the use of this service";

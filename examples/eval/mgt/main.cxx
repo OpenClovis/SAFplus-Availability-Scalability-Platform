@@ -1,3 +1,5 @@
+#define HTTPD_EXAMPLE
+
 #include <clCommon.hxx>
 #include <saAmf.h>
 #include <clNameApi.hxx>
@@ -33,6 +35,9 @@ bool quitting = false;
 /* set when SAFplus assigns active/standby work */
 int running = false;
 
+extern void startHttpDaemon(int port);
+
+
 /* The application should fill these functions */
 void safTerminate(SaInvocationT invocation, const SaNameT *compName);
 void safAssignWork(SaInvocationT       invocation,
@@ -51,6 +56,10 @@ void printCSI(SaAmfCSIDescriptorT csiDescriptor, SaAmfHAStateT haState);
 int  errorExit(SaAisErrorT rc);
 
 
+// What to do when this application becomes active
+void* activeLoop(void* thunk);
+
+
 /* This simple helper function just prints an error and quits */
 int errorExit(SaAisErrorT rc)
 {
@@ -62,12 +71,14 @@ int errorExit(SaAisErrorT rc)
 namespace SAFplus
   {
   extern Handle           myHandle;  // This handle resolves to THIS process.
-  extern SafplusInitializationConfiguration   serviceConfig;  // TEMP
+  extern SafplusInitializationConfiguration   serviceConfig;
 };
 
 
 int main(int argc, char *argv[])
 {
+    bool amfControlled = true;
+
     SaAisErrorT rc = SA_AIS_OK;
  
     SAFplus::logEchoToFd = 1;  // echo logs to stdout (fd 1) for debugging
@@ -77,28 +88,46 @@ int main(int argc, char *argv[])
 
     // If you wanted this component to use a "well-known" port you would set it like this
     // If the AMF did not start this process, you MUST use a well-known port (you'll get an exception when the app attempts to use port 0)
-    SAFplus::serviceConfig.iocPort = SAFplus::MsgApplicationPortStart + 10;
+    char* port = getenv("SAFPLUS_RECOMMENDED_MSG_PORT");
+    if (port)
+      {
+        amfControlled=true;  // the AMF sets this environment variable
+        SAFplus::serviceConfig.iocPort = 0;  // I don't need to interprete the port because SAFplus will do it for me
+      }
+    else
+      {
+      SAFplus::serviceConfig.iocPort = SAFplus::MsgApplicationPortStart + 10;
+      amfControlled=false;    
+      }
 
     /* Connect to the SAF cluster */
     initializeAmf();
 
     /* Do the application specific initialization here. */
     
+    // MGT Typically at this point you'd need to set the starting values for all of your non-config objects.
+    initializeOperationalValues(mgt);
     // MGT load the management data from disk
     SAFplus::MgtDatabase *db = SAFplus::MgtDatabase::getInstance();
     db->initializeDB("appData");
     mgt.read(db);
-    // MGT Typically at this point you'd need to set the starting values for all of your non-config objects.
-    initializeOperationalValues(mgt);
     // MGT Now bind all top level entities to this program's entity handle
     //SAFplus::Handle myHandle = SAFplus::safplusMsgServer.GetAddress();
+    mgt.bind(SAFplus::myHandle,&mgt.serviceCfg);
     mgt.bind(SAFplus::myHandle,&mgt.serviceStats);
     mgt.bind(SAFplus::myHandle,&mgt.subscribersList);
 
-    /* Block on AMF dispatch file descriptor for callbacks.
-       When this function returns its time to quit. */
+    // If I am not under AMF control, run my "active" activities directly
+    if (!amfControlled) 
+      {
+        startHttpDaemon(mgt.serviceCfg.port);
+        pthread_t thr;
+        pthread_create(&thr,NULL,activeLoop,NULL);
+      }
+
+    // Block on AMF dispatch file descriptor for callbacks. When this function returns its time to quit.
     dispatchLoop();
-    
+  
     /* Do the application specific finalization here. */
 
 
@@ -112,9 +141,23 @@ int main(int argc, char *argv[])
     return 0;
 }
 
-void activeLoop(void* thunk)
+int accessCounts=0;
+void* activeLoop(void* thunk)
 {
+  int fakeAmt=1;
   
+  while(1)
+    {
+      sleep(10);
+#ifdef HTTPD_EXAMPLE
+      mgt.serviceStats.accessCounts.setValue(accessCounts);
+      accessCounts=0;
+#else
+      mgt.serviceStats.accessCounts.setValue(fakeAmt);
+      fakeAmt++;
+      if (fakeAmt > 120) fakeAmt = 0; 
+#endif
+    }
 }
 
 /*
@@ -461,5 +504,5 @@ void printCSI(SaAmfCSIDescriptorT csiDescriptor, SaAmfHAStateT haState)
 
 void initializeOperationalValues(myService::MyServiceModule& cfg)
 {
-
+  mgt.serviceCfg.port = 8080;
 }
