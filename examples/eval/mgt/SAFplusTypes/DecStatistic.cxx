@@ -48,7 +48,7 @@ namespace SAFplusTypes
      */
     void DecStatistic::setCurrent(::int64_t currentValue, SAFplus::Transaction &txn)
     {
-        this->current.set(CurrentValue,txn);
+        this->current.set(currentValue,txn);
     };
 
     /*
@@ -64,7 +64,7 @@ namespace SAFplusTypes
      */
     void DecStatistic::setHistory10sec(std::string history10secValue, SAFplus::Transaction &txn)
     {
-        this->history10sec.set(History10secValue,txn);
+        this->history10sec.set(history10secValue,txn);
     };
 
     /*
@@ -80,7 +80,7 @@ namespace SAFplusTypes
      */
     void DecStatistic::setHistory1min(std::string history1minValue, SAFplus::Transaction &txn)
     {
-        this->history1min.set(History1minValue,txn);
+        this->history1min.set(history1minValue,txn);
     };
 
     /*
@@ -96,7 +96,7 @@ namespace SAFplusTypes
      */
     void DecStatistic::setHistory10min(std::string history10minValue, SAFplus::Transaction &txn)
     {
-        this->history10min.set(History10minValue,txn);
+        this->history10min.set(history10minValue,txn);
     };
 
     /*
@@ -112,7 +112,7 @@ namespace SAFplusTypes
      */
     void DecStatistic::setHistory1hour(std::string history1hourValue, SAFplus::Transaction &txn)
     {
-        this->history1hour.set(History1hourValue,txn);
+        this->history1hour.set(history1hourValue,txn);
     };
 
     /*
@@ -128,7 +128,7 @@ namespace SAFplusTypes
      */
     void DecStatistic::setHistory1day(std::string history1dayValue, SAFplus::Transaction &txn)
     {
-        this->history1day.set(History1dayValue,txn);
+        this->history1day.set(history1dayValue,txn);
     };
 
     /*
@@ -144,7 +144,7 @@ namespace SAFplusTypes
      */
     void DecStatistic::setHistory1week(std::string history1weekValue, SAFplus::Transaction &txn)
     {
-        this->history1week.set(History1weekValue,txn);
+        this->history1week.set(history1weekValue,txn);
     };
 
     /*
@@ -160,7 +160,7 @@ namespace SAFplusTypes
      */
     void DecStatistic::setHistory1month(std::string history1monthValue, SAFplus::Transaction &txn)
     {
-        this->history1month.set(History1monthValue,txn);
+        this->history1month.set(history1monthValue,txn);
     };
 
     DecStatistic::~DecStatistic()

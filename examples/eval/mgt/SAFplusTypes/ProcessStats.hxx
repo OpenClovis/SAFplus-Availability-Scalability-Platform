@@ -11,6 +11,7 @@
 #include "clMgtContainer.hxx"
 #include "clTransaction.hxx"
 #include "clMgtProv.hxx"
+#include "clMgtHistoryStat.hxx"
 #include "ProcessState.hxx"
 #include "SAFplusTypesCommon.hxx"
 #include <vector>

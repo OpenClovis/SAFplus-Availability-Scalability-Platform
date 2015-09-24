@@ -30,18 +30,18 @@ SAFPLUS_LIBS := clAmf clMgt clRpc clName clCkpt clGroup clMsg clLog clUtils clOs
 SAFPLUS_DEP_LIBS     := $(addsuffix .so,$(addprefix $(LIB_DIR)/lib,$(SAFPLUS_LIBS)))
 SAFPLUS_LINK_LIBS := -L$(LIB_DIR) $(addprefix -l,$(SAFPLUS_LIBS))
 
-all: $(TEST_DIR)/mgtApp
+all: $(TEST_DIR)/mgtApp $(MODELS_TGT)
 
 $(TEST_DIR)/%.xml: %.xml
 	cp -f $< $@
 
-$(TEST_DIR)/mgtApp:  $(OBJ_DIR)/main.o $(OBJ_DIR)/httpd.o $(LIB_DIR)/myService.so $(SAFPLUS_DEP_LIBS)
-	$(LINK_EXE) $@ $<  $(OBJ_DIR)/httpd.o $(LIB_DIR)/myService.so $(SAFPLUS_LINK_LIBS) -lmicrohttpd -lboost_filesystem $(LINK_SO_LIBS) -lprotobuf -lprotoc $(LINK_SO_LIBS)
+$(TEST_DIR)/mgtApp: $(CLIENT_OBJ) $(LIB_DIR)/libmyService.so $(SAFPLUS_DEP_LIBS)
+	$(LINK_EXE) $@ $(CLIENT_OBJ) -lmyService $(SAFPLUS_LINK_LIBS) -lmicrohttpd -lboost_filesystem $(LINK_SO_LIBS) -lprotobuf -lprotoc $(LINK_SO_LIBS)
 
 $(OBJ_DIR)/%.o: %.cxx Makefile $(SAFPLUS_MAKE_DIR)/preface.mk $(CLIENT_H)
 	$(COMPILE_CPP)  $@ $(SAFPLUS_MGT_INC_FLAGS) $< 
 
-$(LIB_DIR)/myService.so:
+$(LIB_DIR)/libmyService.so:
 	$(MAKE) SAFPLUS_SRC_DIR=$(SAFPLUS_SRC_DIR) -C myService
 
 yang:
@@ -49,7 +49,7 @@ yang:
 
 
 clean:
-	rm -f $(CLIENT_OBJ) $(TEST_DIR)/mgtApp $(OBJ_DIR)/myService/* $(LIB_DIR)/myService.so
-        $(MAKE) SAFPLUS_SRC_DIR=$(SAFPLUS_SRC_DIR) -C myService clean
+	rm -f $(CLIENT_OBJ) $(TEST_DIR)/mgtApp $(OBJ_DIR)/myService/*
+	$(MAKE) SAFPLUS_SRC_DIR=$(SAFPLUS_SRC_DIR) -C myService clean
 
 include $(SAFPLUS_MAKE_DIR)/safplus_targets.mk

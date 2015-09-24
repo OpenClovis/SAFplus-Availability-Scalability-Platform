@@ -8,7 +8,7 @@
 extern myService::MyServiceModule mgt;
 extern int accessCounts;
 
-#define PAGE  "<html><head><title>SAFplus demo</title></head><body>start</body></html>"
+#define PAGE  "<html><head><title>SAFplus demo</title></head><body>start</body></html>\n"
 
 
 static int ahc_echo(void * cls,
@@ -46,12 +46,12 @@ static int ahc_echo(void * cls,
         {
           if (sub->use >= sub->limit)
             {
-            const char * nouser = "<html><head><title>SAFplus demo</title></head><body>usage limit exceeded</body></html>";
+            const char * nouser = "<html><head><title>SAFplus demo</title></head><body>usage limit exceeded</body></html>\n";
             response = MHD_create_response_from_data(strlen(nouser), (void*) nouser, MHD_NO, MHD_NO);
             }
           else
             {
-              const char* resp = "<html><head><title>SAFplus demo</title></head><body>Hi %s.  You've accessed this %d times</body></html>";
+              const char* resp = "<html><head><title>SAFplus demo</title></head><body>Hi %s.  You've accessed this %d times</body></html>\n";
               static char buf[1024]={0};
               snprintf(buf,1024,resp,sub->name.value.c_str(),sub->use.value);
               accessCounts++;
@@ -62,13 +62,13 @@ static int ahc_echo(void * cls,
         }
       else
         {
-        const char * nouser = "<html><head><title>SAFplus demo</title></head><body>account is inactive</body></html>";
+        const char * nouser = "<html><head><title>SAFplus demo</title></head><body>account is inactive</body></html>\n";
         response = MHD_create_response_from_data(strlen(nouser), (void*) nouser, MHD_NO, MHD_NO);
         }
     }
   else
     {
-      const char * nouser = "<html><head><title>SAFplus demo</title></head><body>Unknown user</body></html>";
+      const char * nouser = "<html><head><title>SAFplus demo</title></head><body>Unknown user</body></html>\n";
       response = MHD_create_response_from_data(strlen(nouser), (void*) nouser, MHD_NO, MHD_NO);
     }
  
