@@ -18,7 +18,7 @@ myService_H := $(wildcard *.hxx)
 myService_OBJ := $(subst .cxx,.o,$(notdir $(myService_SRC)))
 myService_OBJ := $(addprefix $(OBJ_DIR)/myService/,$(myService_OBJ))
 
-myService_LIB := $(LIB_DIR)/myService.so
+myService_LIB := $(LIB_DIR)/libmyService.so
 
 # Management includes and libraries
 CPP_FLAGS += $(SAFPLUS_MGT_INC_FLAGS)
@@ -27,13 +27,13 @@ all: $(myService_LIB)
 
 # Shared library providing functions that needs to provide that YANG data
 $(myService_LIB): $(myService_OBJ) $(SAFPLUS_DEP_LIBS)
-	$(LINK_SO) $@  $(myService_OBJ) $(SAFPLUS_LINK_LIBS) -L$(INSTALL_DIR)/lib -lezxml -lxml2 -lboost_filesystem $(LINK_SO_LIBS)
+	$(LINK_SO) $@ $(myService_OBJ) $(SAFPLUS_LINK_LIBS) -L$(INSTALL_DIR)/lib -lxml2 -lboost_filesystem $(LINK_SO_LIBS)
 
 $(OBJ_DIR)/myService/%.o: %.cxx $(myService_H)
 	-mkdir -p $(OBJ_DIR)/myService
 	$(COMPILE_CPP) $@ $<
 
 clean:
-	rm -rf $(OBJ_DIR)/myService
+	rm -rf $(OBJ_DIR)/myService $(myService_LIB)
 
 include $(SAFPLUS_MAKE_DIR)/safplus_targets.mk

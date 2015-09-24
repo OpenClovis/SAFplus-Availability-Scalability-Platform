@@ -8,10 +8,11 @@
 #ifndef SERVICESTATS_HXX_
 #define SERVICESTATS_HXX_
 
-#include "myServiceCommon.hxx"
-#include <vector>
 #include "MgtFactory.hxx"
 #include "clMgtContainer.hxx"
+#include "myServiceCommon.hxx"
+#include "clMgtHistoryStat.hxx"
+#include <vector>
 
 namespace myService
   {

@@ -7,6 +7,7 @@
 #include "clMgtContainer.hxx"
 #include "clTransaction.hxx"
 #include "clMgtProv.hxx"
+#include "clMgtHistoryStat.hxx"
 #include "ProcessState.hxx"
 #include "SAFplusTypesCommon.hxx"
 #include <vector>
@@ -46,7 +47,7 @@ namespace SAFplusTypes
      */
     void ProcessStats::setProcessState(::SAFplusTypes::ProcessState &processStateValue, SAFplus::Transaction &txn)
     {
-        this->processState.set(ProcessStateValue,txn);
+        this->processState.set(processStateValue,txn);
     };
 
     /*

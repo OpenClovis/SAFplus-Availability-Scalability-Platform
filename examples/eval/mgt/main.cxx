@@ -110,6 +110,12 @@ int main(int argc, char *argv[])
     // MGT load the management data from disk
     SAFplus::MgtDatabase *db = SAFplus::MgtDatabase::getInstance();
     db->initializeDB("appData");
+
+    /*
+     * Work-around to load from database since "bind" not follow: <yangModule>/...
+     */
+    mgt.dataXPath.assign("/myService");
+
     mgt.read(db);
     // MGT Now bind all top level entities to this program's entity handle
     //SAFplus::Handle myHandle = SAFplus::safplusMsgServer.GetAddress();
@@ -228,6 +234,11 @@ void safAssignWork(SaInvocationT       invocation,
             pthread_t thr;
             clprintf(SAFplus::LOG_SEV_INFO,"csa101: ACTIVE state requested; activating service");
             running = 1;
+            /*
+             * Start httpd 
+             */
+            clprintf(SAFplus::LOG_SEV_INFO,"Httpd is listening on port [%d]", mgt.serviceCfg.port.value);
+            startHttpDaemon(mgt.serviceCfg.port);
             pthread_create(&thr,NULL,activeLoop,NULL);
 
 

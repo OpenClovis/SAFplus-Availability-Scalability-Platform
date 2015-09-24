@@ -15,9 +15,14 @@ export CL_LOG_CODE_LOCATION_ENABLE=1
 export SAFPLUS_BACKPLANE_INTERFACE=eth0
 
 # copy app binaries to the names configured in the configuration xml file
-/bin/cp test/exampleSafApp test/test0
-/bin/cp test/exampleSafApp test/test1
+# /bin/cp test/exampleSafApp test/test0
+# /bin/cp test/exampleSafApp test/test1
 
 # python ./bin/dbalpy.py -x ./test/safplusAmf.xml ./bin/safplusAmf
+python ./bin/dbalpy.py -x ./test/myServiceCfg.xml ./bin/appData
+python ./bin/dbalpy.py -x ./test/SAFplusAmf1Node1SG1Comp.xml ./bin/safplusAmf
 
 ./bin/node --add 127.0.0.1
+
+# Configure this node with hostname sc0
+export ASP_NODENAME=sc0

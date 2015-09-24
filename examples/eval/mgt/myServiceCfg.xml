@@ -1,4 +1,4 @@
-<top>
+<myService>
   <subscribers name="Andrew">
   <active>true</active>
   <level>silver</level>
@@ -7,4 +7,4 @@
   <serviceCfg>
     <port>8000</port>
   </serviceCfg>
-</top>
+</myService>

@@ -12,6 +12,7 @@
 #include "clTransaction.hxx"
 #include <string>
 #include "clMgtProv.hxx"
+#include "clMgtHistoryStat.hxx"
 #include "SAFplusTypesCommon.hxx"
 #include <vector>
 

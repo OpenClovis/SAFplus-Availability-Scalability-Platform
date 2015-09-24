@@ -8,6 +8,7 @@
 #include "clTransaction.hxx"
 #include <string>
 #include "clMgtProv.hxx"
+#include "clMgtHistoryStat.hxx"
 #include "SAFplusTypesCommon.hxx"
 #include <vector>
 #include "Sensor.hxx"
@@ -58,7 +59,7 @@ namespace SAFplusTypes
      */
     void Sensor::setDesc(std::string descValue, SAFplus::Transaction &txn)
     {
-        this->desc.set(DescValue,txn);
+        this->desc.set(descValue,txn);
     };
 
     /*
