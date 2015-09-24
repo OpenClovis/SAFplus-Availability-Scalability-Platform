@@ -1,3 +1,23 @@
+/*? <section name="Examples"><section name="SAFplus Management">
+This example demonstrates the use of SAFplus configuration and management.
+It creates a simple web server that restricts access based on configured usernames and the number of times that user has accessed the service.
+
+<section name="prerequisites">
+This example requires the GNU libmicrohttpd.  This library can be installed on ubuntu systems by running:
+<pre>apt-get install libmicrohttpd-dev</pre>
+</section>
+
+<section name="building">
+To build this example, run:
+<pre>make</pre>
+To regenerate the information model (myService.yang) run:
+<pre>make yang</pre>
+</section>
+
+<section name="walkthrough">
+
+This walkthrough focuses only on the management-specific code.  It assumes that you are familiar with writing SAFplus components.  Please refer to the raw file to see the context in which these changes occur.
+*/
 #define HTTPD_EXAMPLE
 
 #include <clCommon.hxx>
@@ -6,12 +26,14 @@
 #include <safplus.hxx>
 #include <boost/thread/thread.hpp> 
 
-// MGT: Add the management header
+//? Include the management header
 #include <clMgtApi.hxx>
-// MGT: Add the messaging header (management needs messaging)
-#include <clMsgApi.hxx>
-// MGT: Add the generated include to grab the module declarations
+//?
+
+//? Add the generated include to grab the module declarations
 #include <myService/MyServiceModule.hxx>
+//? 
+
 // MGT: You need to define a function to initialize any non-configuration data located in the management (if any)
 void initializeOperationalValues(myService::MyServiceModule& cfg);
 
@@ -506,3 +528,5 @@ void initializeOperationalValues(myService::MyServiceModule& cfg)
 {
   mgt.serviceCfg.port = 8080;
 }
+
+//? </section></section></section>
