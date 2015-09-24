@@ -4,12 +4,30 @@ mgtGet = safplus.mgtGet
 
 class Commands:
   def do_set(self, location, value):
-    """?  syntax: 
+    """syntax: 
         set (location) (value)  
         Sets the leaf at the specified locations to the specified value
     """
     loc = self.context.curdir + "/" + location
     safplus.mgtSet(str(loc),str(value))
+    return ""
+
+  def do_create(self,location):
+    """syntax: 
+         create (location)  
+         Creates a new object at the specified location.  The type of the object is implied by its location in the tree.
+    """
+    loc = self.context.curdir + "/" + location
+    safplus.mgtCreate(str(loc))
+    return ""
+
+  def do_delete(self,location):
+    """syntax: 
+         delete (location)  
+         deletes the object at (location) and all children
+    """
+    loc = self.context.curdir + "/" + location
+    safplus.mgtDelete(str(loc))
     return ""
 
   def setContext(self,context):
