@@ -1,9 +1,0 @@
-<?xml version="1.0" encoding="UTF-8"?>
-<openClovisAsp>
-  <version v0="4.0.0">
-    <compInstances xmlns="cpmconfig.ecore">
-      <compInst compName="App2plus1Comp0"/>
-      <compInst compName="App1plus1I0"/>
-    </compInstances>
-  </version>
-</openClovisAsp>

@@ -42,6 +42,17 @@ SAFplus::Checkpoint::~Checkpoint()
 {
   if (isSyncReplica) { if(sync) delete sync; }
   if (dbHandle) clDbalClose(dbHandle);
+  if (flags&PERSISTENT) 
+  {
+    // deallocate remaining keys if any (in the case flush() is not called)
+    gate.lock();
+    for(CkptOperationMap::iterator iter = operMap.begin(); iter != operMap.end(); iter++)
+    {
+      msm.deallocate(iter->first);
+    }
+    operMap.clear();
+    gate.unlock();
+  }
 }
 
 /*
@@ -320,7 +331,8 @@ void SAFplus::Checkpoint::write(const Buffer& key, const Buffer& value,Transacti
                 *curval = value;
                 if (flags & CHANGE_ANNOTATION) curval->setChangeNum(change);
                 if (sync) sync->sendUpdate(&key,curval.get(), t);
-                hdr->lastUsed = boost::posix_time::second_clock::universal_time();
+                hdr->lastUsed = boost::posix_time::second_clock::universal_time(); 
+                updateOperMap(contents->first.get(), INUP);
                 gate.unlock();
                 return;
               }
@@ -336,7 +348,8 @@ void SAFplus::Checkpoint::write(const Buffer& key, const Buffer& value,Transacti
           else 
             old->decRef();
           if (sync) sync->sendUpdate(&key,v, t);  // Pass curval not the parameter because curval has the proper change number
-          hdr->lastUsed = boost::posix_time::second_clock::universal_time();
+          hdr->lastUsed = boost::posix_time::second_clock::universal_time();          
+          updateOperMap(contents->first.get(), INUP);
           gate.unlock();          
           return;
         }
@@ -355,6 +368,7 @@ void SAFplus::Checkpoint::write(const Buffer& key, const Buffer& value,Transacti
   map->insert(vt);
   if (sync) sync->sendUpdate(&key,v, t);
   hdr->lastUsed = boost::posix_time::second_clock::universal_time();
+  updateOperMap(k, INUP);
   gate.unlock();
 }
 
@@ -443,8 +457,11 @@ void SAFplus::Checkpoint::remove(const Buffer& key,Transaction& t)
         val->decRef();	     
 
       val = curkey.get();
-      if (val->ref()==1) 
-        msm.deallocate(val);  // if I'm the last owner, let this go.
+      if (val->ref()==1)         
+        if (flags&PERSISTENT)
+          operMap[val] = DEL; // Defer deallocate later after flush() or Checkpoint destructor
+        else
+          msm.deallocate(val); // if I'm the last owner, let this go. 
       else 
         val->decRef();
     }
@@ -584,7 +601,7 @@ void SAFplus::Checkpoint::initDB(const char* ckptId, bool isCkptExist)
   }  
 }
 
-void SAFplus::Checkpoint::writeCkptHdr(ClDBKeyHandleT key, ClUint32T keySize, ClDBRecordHandleT rec, ClUint32T recSize)
+void SAFplus::Checkpoint::writeCkpt(ClDBKeyHandleT key, ClUint32T keySize, ClDBRecordHandleT rec, ClUint32T recSize)
 {
   if (!memcmp(key, ckptHeader(structId), keySize)) 
     memcpy(&hdr->structId, rec, recSize);
@@ -603,22 +620,26 @@ void SAFplus::Checkpoint::writeCkptHdr(ClDBKeyHandleT key, ClUint32T keySize, Cl
   else if (!memcmp(key, ckptHeader(lastUsed), keySize)) 
     memcpy(&hdr->lastUsed, rec, recSize);
   else 
-    logWarning("CKPT", "WRTHDR", "Unknown key [%s] gotten from database", key);  
-  //SAFplusHeapFree(rec);
+    writeCkptData(key, keySize, rec, recSize);
   clDbalRecordFree(dbHandle, rec);
 }
 
 void SAFplus::Checkpoint::writeCkptData(ClDBKeyHandleT key, ClUint32T keySize, ClDBRecordHandleT rec, ClUint32T recSize)
 {
-  char kmem[sizeof(Buffer)-1+keySize];
-  Buffer* kb = new(kmem) Buffer(keySize);
-  memcpy(kb->data,key,keySize);
-  char vdata[sizeof(Buffer)-1+recSize];
-  Buffer* val = new(vdata) Buffer(recSize);
-  memcpy(val->data, rec, recSize);
-  write(*kb,*val);
-  //SAFplusHeapFree(rec);
-  clDbalRecordFree(dbHandle, rec);
+  /* Ckpt write is called comming from a disk synchronization to the ckpt, do not mark the operation to avoid disk write looping */
+  uint32_t change = ++hdr->changeNum; 
+  SAFplus::Buffer* k = new (msm.allocate(keySize+sizeof(SAFplus::Buffer)-1)) SAFplus::Buffer (keySize);
+  memcpy(k->data, key, keySize);
+  if (flags & CHANGE_ANNOTATION) k->setChangeNum(change);
+  SAFplus::Buffer* v = new (msm.allocate(recSize+sizeof(SAFplus::Buffer)-1)) SAFplus::Buffer (recSize);
+  memcpy(v->data, rec, recSize);
+  if (flags & CHANGE_ANNOTATION) v->setChangeNum(change);
+  SAFplusI::BufferPtr kb(k),kv(v);
+  SAFplusI::CkptMapPair vt(kb,kv);
+  map->insert(vt);
+  Transaction t=NO_TXN;
+  if (sync) sync->sendUpdate(k,v,t);
+  hdr->lastUsed = boost::posix_time::second_clock::universal_time();
 }
 
 void SAFplus::Checkpoint::syncFromDisk()
@@ -631,33 +652,18 @@ void SAFplus::Checkpoint::syncFromDisk()
   ClDBKeyHandleT key;
   ClUint32T keySize;
   ClDBRecordHandleT rec;
-  ClUint32T recSize;
-  size_t hdrSize = sizeof(ckptHeaderStrings)/sizeof(ckptHeaderStrings[0]);
+  ClUint32T recSize; 
+  gate.lock();
   ClRcT rc = clDbalFirstRecordGet(dbHandle, &key, &keySize, &rec, &recSize);  
   while (rc == CL_OK)
   {    
-    if (hdrSize>0)
-    {
-      // write header
-      writeCkptHdr(key, keySize, rec, recSize);
-      --hdrSize;
-    }
-    else
-    {
-      // write data
-      writeCkptData(key, keySize, rec, recSize);
-    }
+    writeCkpt(key, keySize, rec, recSize);
     ClDBKeyHandleT curKey = key;
     ClUint32T curKeySize = keySize;    
-    rc = clDbalNextRecordGet(dbHandle, curKey, curKeySize, &key, &keySize, &rec, &recSize);     
-    //SAFplusHeapFree(curKey);    
+    rc = clDbalNextRecordGet(dbHandle, curKey, curKeySize, &key, &keySize, &rec, &recSize);        
     clDbalKeyFree(dbHandle, curKey);
   }
-  /*if (rc != CL_OK)
-  {
-    logWarning("CKPT", "DSKSYN", "Record gotten failed rc = [0x%x]", rc);
-    return;
-  }*/
+  gate.unlock();
 }
 
 void SAFplus::Checkpoint::writeHdrDB(int hdrKey, ClDBRecordT rec, ClUint32T recSize)
@@ -679,6 +685,15 @@ void SAFplus::Checkpoint::writeDataDB(Buffer* key, Buffer* val)
   }
 }
 
+void SAFplus::Checkpoint::deleteDataDB(Buffer* key)
+{   
+  ClRcT rc = clDbalRecordDelete(dbHandle, (ClDBKeyT) key->get(), key->len());
+  if (rc != CL_OK)
+  {
+    logWarning("CPKT", "WRTDATA", "delete key [%s] from database fail", key->get());
+  }
+}
+
 void SAFplus::Checkpoint::flush()
 {  
   if (flags&PERSISTENT)
@@ -689,8 +704,8 @@ void SAFplus::Checkpoint::flush()
       return;
     }
     // write code that reads data from shared memory, then synchronizes those with data from database
-    /* writting ckpt header. Note that writting header in order so that reading in that order */
-    logTrace("CKPT", "FLUSH", "Writting header DB");
+    /* writting ckpt header */
+    logTrace("CKPT", "FLUSH", "Updating header DB");
     writeHdrDB(structId, (ClDBRecordT) &hdr->structId, sizeof(hdr->structId));
     writeHdrDB(serverPid, (ClDBRecordT) &hdr->serverPid, sizeof(hdr->serverPid));
     writeHdrDB(generation, (ClDBRecordT) &hdr->generation, sizeof(hdr->generation));    
@@ -700,16 +715,42 @@ void SAFplus::Checkpoint::flush()
     writeHdrDB(retentionDuration, (ClDBRecordT) &hdr->retentionDuration, sizeof(hdr->retentionDuration));  
     writeHdrDB(lastUsed, (ClDBRecordT) &hdr->lastUsed, sizeof(hdr->lastUsed));
     /* writing ckpt data */
-    logTrace("CKPT", "FLUSH", "Writting data DB");
-    for(CkptHashMap::const_iterator iter = map->cbegin(); iter != map->cend(); iter++)
+    logTrace("CKPT", "FLUSH", "Updating data DB");    
+    gate.lock();
+    for(CkptOperationMap::iterator iter = operMap.begin(); iter != operMap.end(); iter++)  
     {       
-      writeDataDB(iter->first.get(), iter->second.get());
+      CkptHashMap::iterator contents = map->find(SAFplusI::BufferPtr(iter->first));
+      if (contents != map->end()) 
+      {
+        if (iter->second == INUP)
+        {
+          writeDataDB(contents->first.get(), contents->second.get());
+        }
+      }
+      else if (iter->second == DEL)
+      {
+        deleteDataDB(iter->first);  
+        msm.deallocate(iter->first);
+      }      
     }
+    operMap.clear();
+    gate.unlock();    
   }
   else
   {
     clDbgNotImplemented("%s is not supported with this checkpoint type", __FUNCTION__);
   }
+}
+void SAFplus::Checkpoint::updateOperMap(Buffer* key, uint_t oper)
+{
+  if (!(flags&PERSISTENT)) return;
+  CkptOperationMap::iterator contents = operMap.find(key);
+  if (contents != operMap.end())
+  {
+    if (contents->second == DEL) // if this key was removed previously and now it's added (rewritten) again, so, it must be deallocated prior to being rewritten
+      msm.deallocate(contents->first);    
+  }
+  operMap[key] = oper;    
 }
 #if 0
 void SAFplus::Checkpoint::dumpHeader()

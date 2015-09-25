@@ -1,0 +1,10 @@
+<myService>
+  <subscribers name="Andrew">
+  <active>true</active>
+  <level>silver</level>
+  <limit>5</limit>
+  </subscribers>
+  <serviceCfg>
+    <port>8000</port>
+  </serviceCfg>
+</myService>

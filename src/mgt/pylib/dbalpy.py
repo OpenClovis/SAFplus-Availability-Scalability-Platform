@@ -16,6 +16,8 @@ from xml.dom import minidom
 
 cfgpath = os.environ.get("SAFPLUS_CONFIG",os.environ.get("SAFPLUS_BINDIR","."))
 
+InvisibleTags = ["top"]
+
 SAFPLUS_VERSION = "7.0.0"
 ROOT_WRAPPER = "SAFplus"
 
@@ -127,7 +129,9 @@ class PyDBAL():
         child = None
         parentXpath = xpath
         if isInstanceOf(element, microdom.MicroDom):
-            xpath = "%s/%s" %(xpath, microdom.keyify(element.tag_))
+            tag = microdom.keyify(element.tag_)
+            if not tag in InvisibleTags:
+              xpath = "%s/%s" %(xpath, tag)
 
             # Work-around for loading from IDE's model
             if element.attributes_.get('xpath') is not None:

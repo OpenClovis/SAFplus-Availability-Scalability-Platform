@@ -17,6 +17,7 @@
  * material.
  *
  */
+#include <algorithm>
 #include <clSafplusMsgServer.hxx>
 #include <clMsgPortsAndTypes.hxx>
 #include <MgtMsg.pb.hxx>
@@ -70,7 +71,7 @@ namespace SAFplus
                 assert(b.len() == sizeof(SAFplus::Handle));
                 SAFplus::Handle hdl = *((const SAFplus::Handle*) b.data);
 
-                std::string strRout = pathSpec.substr(lastSlash+1);  // request the "rest" of the string (everything that did not match the binding)
+                //std::string strRout = pathSpec.substr(lastSlash+1);  // request the "rest" of the string (everything that did not match the binding)
                 return hdl;
               }
           }
@@ -165,6 +166,47 @@ namespace SAFplus
   {
     std::string output = "";
     std::vector<MgtObject*> matches;
+
+    std::string suffixLoc = pathSpec.substr(pathSpec.find('/') + 1);
+    if (suffixLoc.empty())
+      {
+        MgtRoot *mgtRoot = MgtRoot::getInstance();
+
+        // 1. 'get' all children of root
+        for (MgtObject::Iterator it = mgtRoot->begin(); it != mgtRoot->end(); it++)
+        {
+            std::string objxml;
+            it->second->get(&objxml);
+            output.append(objxml);
+        }
+
+        // 2. Forward to retrieve from handle
+        // 2.1 Collect handle from checkpoint
+        std::vector<SAFplus::Handle> processHdl;
+        for (Checkpoint::Iterator it = mgtCheckpoint->begin(); it != mgtCheckpoint->end(); ++it)
+          {
+            SAFplus::Buffer *b = (*it).second.get();
+            if (b)
+              {
+                assert(b->len() == sizeof(SAFplus::Handle));
+                SAFplus::Handle hdl = *((const SAFplus::Handle*) b->data);
+                processHdl.push_back(hdl);
+              }
+          }
+
+        // 2.2 Issue 'get' all children for each handle (also ignore duplicate handle)
+        std::vector<SAFplus::Handle>::iterator it;
+        it = std::unique(processHdl.begin(), processHdl.end());
+        processHdl.resize(std::distance(processHdl.begin(), it));
+        for (it = processHdl.begin(); it != processHdl.end(); ++it)
+          {
+            std::string objxml;
+            objxml = mgtGet(*it, pathSpec);
+            output.append(objxml);
+          }
+
+        return output;
+      }
 
     lookupObjects(pathSpec, &matches);
 

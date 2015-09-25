@@ -300,9 +300,13 @@ void persistentWithObjects()
   writeObjToCkpt(c, key1, &o1, sizeof(o1));
   const char* key3 = "o3";
   writeObjToCkpt(c, key3, &o3, sizeof(o3));
+  printf("DUMP ckpt\n");
+  c.dump();
   c.flush(); // store checkpoint data to disk
   deleteCheckpoint(h); // simulate that this checkpoint no longer exists
   Checkpoint c2(h,Checkpoint::SHARED | Checkpoint::LOCAL);
+  printf("DUMP ckpt\n");
+  c2.dump();
   const Buffer& buf = c2.read(key1);  
   if (&buf)
   {
@@ -324,6 +328,75 @@ void persistentWithObjects()
     clTestFailed(("Expect non-null buffer but actually a null one was gotten\n"));
   }
 
+  clTestCaseEnd((" "));
+}
+
+void removeCkptData(Handle& h)
+{
+  clTestCaseStart(("Remove checkpoint keystr"));
+  deleteCheckpoint(h);  
+  Checkpoint c(h,Checkpoint::SHARED | Checkpoint::LOCAL | Checkpoint::PERSISTENT);
+  c.dump();
+  for (int i=0;i<LoopCount;i++)
+  {
+    std::string k;       
+    k.append("keystr ").append(std::to_string(i));
+    size_t keylen = k.length()+1; // '/0' is also counted
+    char kmem[sizeof(Buffer)-1+keylen];
+    Buffer* kb = new(kmem) Buffer(keylen);
+    memcpy(kb->data,k.c_str(),keylen);      
+    c.remove(*kb);
+  }
+  c.dump();
+  c.flush();
+  // Add one more item to this checkpoint
+  int verified_value = 1999;
+  std::string kk, vv;
+  kk.append("keystr ").append(std::to_string(verified_value));
+  vv.append("value ").append(std::to_string(verified_value));
+  c.write(kk,vv);
+  c.flush();
+  // verifying the remainings  
+  deleteCheckpoint(h);
+  Checkpoint c2(h,Checkpoint::SHARED | Checkpoint::LOCAL);
+  c2.dump();
+  for (int i=0;i<LoopCount;i++)
+  {
+    std::string k;
+    std::string k1;
+    //std::string v;
+    k.append("key ").append(std::to_string(i));
+    k1.append("keystr ").append(std::to_string(i));
+
+    const Buffer& output = c2.read(k);
+    clTest(("Record exists"), &output != NULL, (" "));
+    if (&output)
+    {
+      for (int j=0;j<10;j++)
+      {
+	int tmp = ((int*)output.data)[j];
+	if (tmp != i+j)
+	{
+	  clTestFailed(("Stored data MISCOMPARE i:%d, j:%d, expected:%d, got:%d\n", i,j,i+j,tmp));
+	  j=10; // break out of the loop
+	}
+      }
+    }
+    else
+      clTestFailed(("Record exists FAILED"));
+
+    const Buffer& output1 = c2.read(k1);
+    clTest(("Record not existing"), &output1 == NULL, (" "));    
+  }
+  //Verify one added item
+  const Buffer& output = c2.read(kk.c_str());  
+  if (&output)
+  {
+     char* s = (char*) output.data;
+     clTest(("new added item "), vv.compare(s)==0, (" "));  
+  }
+  else
+    clTestFailed(("New added item exists FAILED"));
   clTestCaseEnd((" "));
 }
 
@@ -384,8 +457,8 @@ int main(int argc, char* argv[])
     Handle h1 = Handle::create();
     Handle h2 = Handle::create();
 
-    Checkpoint c1(h1,Checkpoint::SHARED | Checkpoint::LOCAL);
-    Checkpoint c2(h2,Checkpoint::SHARED | Checkpoint::LOCAL | Checkpoint::PERSISTENT);
+    Checkpoint c1(h1,Checkpoint::SHARED | Checkpoint::LOCAL, 3600);
+    Checkpoint c2(h2,Checkpoint::SHARED | Checkpoint::LOCAL | Checkpoint::PERSISTENT, 1800);
     clTestCase(("Basic Read/Write"), test_readwrite(c1,c2));
 
     c2.flush();
@@ -394,6 +467,7 @@ int main(int argc, char* argv[])
     deleteCheckpoint(h2); // simulate that this checkpoint no longer exists 
     clTestCase(("Reopen"), test_reopen(h1, false));
     clTestCase(("Reopen"), test_reopen(h2));
+    clTestCase(("Reopen"), removeCkptData(h2));
 #endif
     persistentWithObjects();
     clTestGroupFinalize(); 

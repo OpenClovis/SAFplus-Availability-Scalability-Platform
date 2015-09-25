@@ -27,11 +27,23 @@ $(info SAFplus7)
 #? By default we link with the local Linux distribution's installed libraries.  Override this to 0 if you are doing a crossbuild.
 USE_DIST_LIB ?= 1  
 
-SAFPLUS_MAKE_DIR := $(dir $(CURDIR)/$(word $(words $(MAKEFILE_LIST)),$(MAKEFILE_LIST)))
+# ifndef SAFPLUS_MAKE_DIR
+SAFPLUS_MAKE_DIR := $(patsubst %/,%,$(dir $(realpath $(lastword $(MAKEFILE_LIST)))))
 
-SAFPLUS_SRC_DIR ?= $(shell (cd $(SAFPLUS_MAKE_DIR)../; pwd))
+#$(info A: $(dir $(CURDIR)/$(word $(words $(MAKEFILE_LIST)),$(MAKEFILE_LIST))))
+#$(info B: $(shell dirname $(realpath $(lastword $(MAKEFILE_LIST)))))
+#$(info C: $(patsubst %/,%,$(dir $(realpath $(lastword $(MAKEFILE_LIST))))))
+#$(info D: $(patsubst %/,%,$(dir $(realpath $(SAFPLUS_MAKE_DIR)))))
+
+# endif
+
+#SAFPLUS_SRC_DIR ?= $(shell (cd $(SAFPLUS_MAKE_DIR)/../; pwd))
+SAFPLUS_SRC_DIR ?= $(patsubst %/,%,$(dir $(realpath $(SAFPLUS_MAKE_DIR))))
 SAFPLUS_INC_DIR ?= $(SAFPLUS_SRC_DIR)/include
 SAFPLUS_3RDPARTY_DIR ?= $(SAFPLUS_SRC_DIR)/3rdparty
+
+$(info SAFplus source: $(SAFPLUS_SRC_DIR))
+$(info SAFplus include: $(SAFPLUS_INC_DIR))
 
 # we need to have -Wno-deprecated-warnings because boost uses std::auto_ptr
 COMPILE_CPP = g++ -std=c++11 -Wno-deprecated-declarations  -g -O0 -fPIC -c $(CPP_FLAGS) -o

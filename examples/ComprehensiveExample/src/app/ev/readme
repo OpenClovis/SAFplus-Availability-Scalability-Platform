@@ -1,4 +1,0 @@
-This little library help redirecting the stdout and stderr of a sample
-application to a dedicated pseudo device (terminal), so that the
-output of the different sample applications can be monitored separately
-despite they are all launched by the same asp_amf server.

@@ -425,7 +425,10 @@ namespace SAFplus
     ClRcT MgtProv<T>::setObj(const std::string &val)
     {
       if (!config)
+        {
+        logDebug("MGT","PROV","attempt to set a non-config object [%s]",tag.c_str());
         return CL_ERR_BAD_OPERATION;
+        }
 
       deXMLize(val, this, value);
 

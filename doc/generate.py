@@ -1,6 +1,7 @@
 import time
+import pdb
 import sys
-sys.path.append("../../yadog")
+sys.path = ["../../yadog"] + sys.path
 sys.path.append("doclayout")
 import yadog
 import PyHtmlGen.imagehtml
@@ -29,9 +30,9 @@ def main(dirs):
 
 def Test():
   
-  main(["../src"])
+  main(["../src", "../examples"])
   #main(["test"])
 
 if __name__ == "__main__":
-  main(["../src"])
+  main(["../src","../examples"])
 

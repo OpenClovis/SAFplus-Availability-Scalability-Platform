@@ -1,0 +1,28 @@
+#!/bin/bash
+export LD_LIBRARY_PATH=`pwd`/lib:`pwd`/plugin:$LD_LIBRARY_PATH
+export PYTHONPATH=`pwd`/lib:`pwd`/bin:`pwd`/test:$PYTHONPATH
+
+sysctl -w net.core.wmem_max=20485760
+sysctl -w net.core.rmem_max=20485760
+sysctl -w net.core.rmem_default=20485760
+sysctl -w net.core.wmem_default=20485760
+
+# excessive logging can cause expect's input buffer to fill up, hanging the app on stdout
+export CL_LOG_SEVERITY=ERROR
+export CL_LOG_CODE_LOCATION_ENABLE=1
+
+# To use UDP broadcasts on the loopback interface I need to enable a broadcast address
+export SAFPLUS_BACKPLANE_INTERFACE=eth0
+
+# copy app binaries to the names configured in the configuration xml file
+# /bin/cp test/exampleSafApp test/test0
+# /bin/cp test/exampleSafApp test/test1
+
+# python ./bin/dbalpy.py -x ./test/safplusAmf.xml ./bin/safplusAmf
+python ./bin/dbalpy.py -x ./test/myServiceCfg.xml ./bin/appData
+python ./bin/dbalpy.py -x ./test/SAFplusAmf1Node1SG1Comp.xml ./bin/safplusAmf
+
+./bin/node --add 127.0.0.1
+
+# Configure this node with hostname sc0
+export ASP_NODENAME=sc0

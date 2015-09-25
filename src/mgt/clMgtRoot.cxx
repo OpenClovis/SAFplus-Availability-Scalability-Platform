@@ -433,7 +433,22 @@ namespace SAFplus
     }
   if (path[0] == '/')  // Only absolute paths are allowed over the RPC API since there is no context
     {
-      resolvePath(path.c_str()+1, &matches);
+      std::string suffixLoc = path.substr(1);
+      if (suffixLoc.empty())
+        {
+          // Get top container/list/leaf
+          depth = 1;
+
+          // Retrieve all children of root
+          for (MgtObject::Iterator it = begin(); it != end(); ++it)
+          {
+              matches.push_back(it->second);
+          }
+        }
+      else
+        {
+          resolvePath(path.c_str()+1, &matches);
+        }
 
       std::stringstream outBuff;
       for (std::vector<MgtObject*>::iterator i=matches.begin(); i != matches.end(); i++)
@@ -499,7 +514,7 @@ namespace SAFplus
             rc = CL_ERR_NOT_EXIST;
           }
       }
-    logDebug("MGT","SET","Object [%s] done updated", path.c_str());
+    logDebug("MGT","SET","Object [%s] update complete [0x%x]", path.c_str(),rc);
     MgtRoot::sendReplyMsg(srcAddr,(void *)&rc,sizeof(ClRcT));
   }
 

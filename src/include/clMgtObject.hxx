@@ -318,7 +318,7 @@ extern MgtIteratorBase mgtIterEnd;
   inline void deXMLize(const std::string& obj,MgtObject* context, std::string& result) { result=obj; }
 // True is 1, anything that begins with t,T,y,Y (for yes).  False is 0, anything that begins with f,F,n or N (for no)
   void deXMLize(const std::string& obj,MgtObject* context, bool& result); // throw(SerializationError);
-  void deXMLize(const std::string& obj,MgtObject* context, ClBoolT& result); // throw(SerializationError);
+    // ClBoolT is a short so this breaks normal numbers: void deXMLize(const std::string& obj,MgtObject* context, ClBoolT& result); // throw(SerializationError);
 
   inline void deXMLize(const char* obj,MgtObject* context, std::string& result) { result=obj; }
   inline void deXMLize(const char* obj,MgtObject* context, int& result) { result=atoi(obj); }
