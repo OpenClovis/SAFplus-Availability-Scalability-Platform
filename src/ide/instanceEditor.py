@@ -634,13 +634,19 @@ class GenerateTool(Tool):
     self.panel = panel
     self.dictGenFunc = {CODEGEN_LANG_C:self.generateC, CODEGEN_LANG_CPP:self.generateCpp, CODEGEN_LANG_PYTHON:self.generatePython, CODEGEN_LANG_JAVA:self.generateJava}
 
+    self.makeBinApp = """
+$(BIN_DIR)/%s:
+	$(MAKE) SAFPLUS_SRC_DIR=$(SAFPLUS_SRC_DIR) -C %s
+"""
+    self.cleanApp = """	$(MAKE) SAFPLUS_SRC_DIR=$(SAFPLUS_SRC_DIR) -C %s clean """
+
   def OnSelect(self, panel, event):
     if event.GetId() == CODEGEN_BUTTON:
       mnuGenerateCode = wx.Menu()
       mnuItemC = mnuGenerateCode.Append(CODEGEN_LANG_C, "C")
       panel.Bind(wx.EVT_MENU, panel.OnToolClick, mnuItemC)
   
-      mnuItemCpp = mnuGenerateCode.Append(CODEGEN_LANG_CPP, "CPP")
+      mnuItemCpp = mnuGenerateCode.Append(CODEGEN_LANG_CPP, "C++")
       panel.Bind(wx.EVT_MENU, panel.OnToolClick, mnuItemCpp)
   
       mnuItemPython = mnuGenerateCode.Append(CODEGEN_LANG_PYTHON, "PYTHON")
@@ -654,51 +660,50 @@ class GenerateTool(Tool):
       output = FilesystemOutput()
       comps = filter(lambda inst: inst.entity.et.name == 'Component', panel.model.instances.values())
 
-      #Get relative directiry with model.xml
-      srcDir = os.path.dirname(panel.model.filename);
-      if srcDir is None or len(srcDir) == 0:
-        srcDir = os.getcwd()
+      srcDir = None
+      dlg = wx.DirDialog(panel, "Select output directory ...", os.getcwd(), style=wx.DD_DEFAULT_STYLE)
+      if dlg.ShowModal() == wx.ID_OK:
+        srcDir = dlg.GetPath()
+      else:
+        #Get relative directiry with model.xml
+        srcDir = os.path.dirname(panel.model.filename);
+        if srcDir is None or len(srcDir) == 0:
+          srcDir = os.getcwd()
 
       srcDir = os.sep.join([srcDir, "src", "app"])
 
       # Generate makefile for the "app" directory
       mkSubdirTmpl = templateMgr.loadPyTemplate(TemplatePath + "Makefile.subdir.ts")
-      s = mkSubdirTmpl.safe_substitute(subdirs=" ".join([c.data["name"] for c in comps]))
+      makeSubsDict = {}
+      makeSubsDict['subdirs'] = " ".join(["$(BIN_DIR)/%s" %c.data["name"] for c in comps])
+      makeSubsDict['labelApps'] = "\n".join([self.makeBinApp %(c.data["name"],c.data["name"]) for c in comps])
+      makeSubsDict['cleanupApps'] = "\n".join([self.cleanApp %c.data["name"] for c in comps])
+
+      s = mkSubdirTmpl.safe_substitute(**makeSubsDict)
       output.write(srcDir + os.sep + "Makefile", s)
 
       for c in comps:
         self.dictGenFunc[event.GetId()](output, srcDir, c, c.data)
+
     return False
 
 
-  def generateC(self, output, srcDir, comp,ts_comp):
-    compName = str(comp.data["name"])
-  
-    # Create main
-    cpptmpl = templateMgr.loadPyTemplate(TemplatePath + "main.c.ts")
-    s = cpptmpl.safe_substitute(addmain=False)
-    output.write(srcDir + os.sep + compName + os.sep + "main.c", s)
-    # Create cfg  -- not needed anymore
-    #tmpl = templateMgr.loadPyTemplate(TemplatePath + "cfg.c.ts")
-    #s = tmpl.safe_substitute(**ts_comp)
-    #output.write(srcDir + os.sep + compName + os.sep + "cfg.c", s)
-  
-    # Create Makefile
-    tmpl = templateMgr.loadPyTemplate(TemplatePath + "Makefile.c.ts")
-    s = tmpl.safe_substitute(**ts_comp)
-    output.write(srcDir + os.sep + compName + os.sep + "Makefile", s)
-  
   def generateCpp(self, output, srcDir, comp,ts_comp):
     # Create main
     compName = str(comp.data["name"])
+
+    ts_comp['name'] = comp.data["name"]
+    ts_comp['instantiate_command'] = comp.data["name"] # Default bin name
+
+    try:
+      ts_comp['instantiate_command'] = comp.data["instantiate"]["command"].split()[0]
+    except:
+      pass
+
     cpptmpl = templateMgr.loadPyTemplate(TemplatePath + "main.cpp.ts")
-    s = cpptmpl.safe_substitute(addmain=False)
-    output.write(srcDir + os.sep + compName + os.sep + "main.cpp", s)
-  
-    # Create cfg -- no longer needed
-    #tmpl = templateMgr.loadPyTemplate(TemplatePath + "cfg.cpp.ts")
-    #s = tmpl.safe_substitute(**ts_comp)
-    #output.write(srcDir + os.sep + compName + os.sep + "cfg.cpp", s)
+
+    s = cpptmpl.safe_substitute(**ts_comp)
+    output.write(srcDir + os.sep + compName + os.sep + "main.cxx", s)
   
     # Create Makefile
     tmpl = templateMgr.loadPyTemplate(TemplatePath + "Makefile.cpp.ts")
@@ -706,7 +711,24 @@ class GenerateTool(Tool):
     output.write(srcDir + os.sep + compName + os.sep + "Makefile", s)
 
 
+  def generateC(self, output, srcDir, comp,ts_comp):
+    #? TODO:
+    return
+    compName = str(comp.data["name"])
+  
+    # Create main
+    cpptmpl = templateMgr.loadPyTemplate(TemplatePath + "main.c.ts")
+    s = cpptmpl.safe_substitute(addmain=False)
+    output.write(srcDir + os.sep + compName + os.sep + "main.c", s)
+  
+    # Create Makefile
+    tmpl = templateMgr.loadPyTemplate(TemplatePath + "Makefile.c.ts")
+    s = tmpl.safe_substitute(**ts_comp)
+    output.write(srcDir + os.sep + compName + os.sep + "Makefile", s)
+
   def generatePython(self, output, srcDir, comp,ts_comp):
+    #? TODO:
+    return
     compName = str(comp.data["name"])
   
     # Create src files
@@ -719,15 +741,16 @@ class GenerateTool(Tool):
     # Create Makefile
     tmpl = templateMgr.loadPyTemplate(TemplatePath + "Makefile.python.ts")
     s = tmpl.safe_substitute(**ts_comp)
-    output.write(srcDir + os.sep + compName + os.sep + "Makefile", s)  
-
+    output.write(srcDir + os.sep + compName + os.sep + "Makefile", s)
 
   def generateJava(self, output, srcDir, comp,ts_comp):
+    #? TODO:
+    return
     compName = str(comp.data["name"])
     # Create Makefile
     tmpl = templateMgr.loadPyTemplate(TemplatePath + "Makefile.java.ts")
     s = tmpl.safe_substitute(**ts_comp)
-    output.write(srcDir + os.sep + compName + os.sep + "Makefile", s)  
+    output.write(srcDir + os.sep + compName + os.sep + "Makefile", s)
 
 # Global of this panel for debug purposes only.  DO NOT USE IN CODE
 dbgPanel = None

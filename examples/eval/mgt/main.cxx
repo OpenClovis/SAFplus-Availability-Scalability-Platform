@@ -143,7 +143,7 @@ int main(int argc, char *argv[])
     //SAFplus::Handle myHandle = SAFplus::safplusMsgServer.GetAddress();
 
     /*
-     * Indentify active/standby handle
+     * active/standby handle
      */
     SAFplus::myHandle = SAFplus::Handle::create();
     mgt.bind(SAFplus::myHandle,&mgt.serviceCfg);

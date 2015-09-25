@@ -1,5 +1,9 @@
 S7 := 1
-include /code/git/SAFplus7/src/mk/preface.mk
+ifeq ($(SAFPLUS_SRC_DIR),)
+$(error You must run this as a submake or define the SAFPLUS_SRC_DIR environment variable)
+endif
+
+include $(SAFPLUS_SRC_DIR)/mk/preface.mk
 
 # Specify the required libraries
 SAFPLUS_LIBS := clMgt
@@ -14,22 +18,22 @@ SAFplusTypes_H := $(wildcard *.hxx)
 SAFplusTypes_OBJ := $(subst .cxx,.o,$(notdir $(SAFplusTypes_SRC)))
 SAFplusTypes_OBJ := $(addprefix $(OBJ_DIR)/SAFplusTypes/,$(SAFplusTypes_OBJ))
 
-SAFplusTypes_LIB := $(LIB_DIR)/SAFplusTypes.so
+SAFplusTypes_LIB := libSAFplusTypes.so
 
 # Management includes and libraries
 CPP_FLAGS += $(SAFPLUS_MGT_INC_FLAGS)
 
-all: $(SAFplusTypes_LIB)
+Release all: $(LIB_DIR)/$(SAFplusTypes_LIB)
 
 # Shared library providing functions that needs to provide that YANG data
-$(SAFplusTypes_LIB): $(SAFplusTypes_OBJ) $(SAFPLUS_DEP_LIBS)
-	$(LINK_SO) $@  $(SAFplusTypes_OBJ) $(SAFPLUS_LINK_LIBS) -L$(INSTALL_DIR)/lib -lezxml -lxml2 -lboost_filesystem $(LINK_SO_LIBS)
+$(LIB_DIR)/$(SAFplusTypes_LIB): $(SAFplusTypes_OBJ) $(SAFPLUS_DEP_LIBS)
+	$(LINK_SO) $@ $(SAFplusTypes_OBJ) $(SAFPLUS_LINK_LIBS) -L$(INSTALL_DIR)/lib -lxml2 $(LINK_SO_LIBS)
 
 $(OBJ_DIR)/SAFplusTypes/%.o: %.cxx $(SAFplusTypes_H)
 	-mkdir -p $(OBJ_DIR)/SAFplusTypes
-	$(COMPILE_CPP) $@ $<
+	$(COMPILE_CPP) $@ $(SAFPLUS_MGT_INC_FLAGS) $<
 
 clean:
-	rm -rf $(OBJ_DIR)/SAFplusTypes
+	rm -rf $(OBJ_DIR)/SAFplusTypes $(LIB_DIR)/$(SAFplusTypes_LIB)
 
 include $(SAFPLUS_MAKE_DIR)/safplus_targets.mk
