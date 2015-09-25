@@ -141,6 +141,11 @@ int main(int argc, char *argv[])
     mgt.read(db);
     // MGT Now bind all top level entities to this program's entity handle
     //SAFplus::Handle myHandle = SAFplus::safplusMsgServer.GetAddress();
+
+    /*
+     * Indentify active/standby handle
+     */
+    SAFplus::myHandle = SAFplus::Handle::create();
     mgt.bind(SAFplus::myHandle,&mgt.serviceCfg);
     mgt.bind(SAFplus::myHandle,&mgt.serviceStats);
     mgt.bind(SAFplus::myHandle,&mgt.subscribersList);
