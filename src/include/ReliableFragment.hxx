@@ -1,10 +1,11 @@
 #include <boost/intrusive/list.hpp>
 #include "clCommon.hxx"
+#include "clMsgBase.hxx"
+
 using namespace boost::intrusive;
 
 #define RUDP_VERSION 1
-#define RUDP_HEADER_LEN  6
-typedef unsigned char  Byte;  /* 8 bits */
+#define RUDP_HEADER_LEN  4
 #define SYN_FLAG   0x80
 #define ACK_FLAG   0x40
 #define NAK_FLAG   0x20
@@ -33,7 +34,7 @@ typedef unsigned char  Byte;  /* 8 bits */
 
 namespace SAFplus
 {
-
+  static ClUint32T currFragId = 0;
   enum fragmentType
   {
     FRAG_UDE=0,
@@ -108,6 +109,9 @@ namespace SAFplus
     int length();
     virtual Byte* getBytes();
     virtual fragmentType getType();
+    ~DATFragment();
+
+
   };
 
   //-----------------------------------------------------

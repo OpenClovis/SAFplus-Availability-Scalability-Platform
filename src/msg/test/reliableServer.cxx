@@ -111,16 +111,33 @@ int main(int argc, char* argv[])
       MsgSocketServerReliable sockServer(3,xp);
       MsgSocketClientReliable* connectionSocket = sockServer.accept();
       logInfo("TST","MSG","wait to receive from sender"	);
-
-      unsigned char* buffer = new unsigned char[5000000];
-      int count = connectionSocket->readReliable(buffer,0,5000000);
-      logInfo("TST","MSG","receive [%d] byte from sender",count);
-
-
+/*
+      int length=0;
+      unsigned char* buffer = connectionSocket->readReliable(0,length,5000000);
+      logInfo("TST","MSG","receive [%d] byte from sender",int(sizeof(buffer)/sizeof(char)));
       logInfo("TST","MSG","wait to receive from sender"	);
-      unsigned char* buffer2 = new unsigned char[5000000];
-      int count2 = connectionSocket->readReliable(buffer2,0,5000000);
-      logInfo("TST","MSG","receive [%d] byte from sender",count2);
+      unsigned char* buffer2 = connectionSocket->readReliable(0,length,5000000);
+      logInfo("TST","MSG","receive [%d] byte from sender",length);
+      logInfo("TST","MSG","Data at [%d] : [%s]",0,buffer2);
+      logInfo("TST","MSG","Data at [%d] : [%s]",64000 -10,buffer2 + 64000 -10);
+      logInfo("TST","MSG","Data at [%d] : [%s]",1500000 -15,buffer2 + (1500000 -15));*/
+      while(1)
+      {
+        //int receiveByte=count*receiveLen;
+        logInfo("TST","MSG","read...");
+        Message* msg= connectionSocket->receive(1);
+        assert(msg->firstFragment == msg->lastFragment);
+        MsgFragment* frag =  msg->firstFragment;
+        int msgType = *((char*)frag->read(0));
+        frag->start++;
+        frag->len--;
+        char* data= (char*)frag->read(0);
+        logInfo("TST","MSG","receive [%d] byte, msgType[%d] from [%d] [%d]",frag->len,msgType,msg->node,msg->port);
+        logInfo("TST","MSG","Data at [%d] : [%s]",0,data);
+        logInfo("TST","MSG","Data at [%d] : [%s]",64000 -10,data + 64000 -10);
+        logInfo("TST","MSG","Data at [%d] : [%s]",1500000 -5,data + (1500000 -5));
+        msg->msgPool->free(msg);        
+      }
       do
       {
         sleep(1);
