@@ -386,6 +386,7 @@ namespace SAFplus
     {
       if(it->second->isFull)
       {
+        it->second->segmentList.sort();
         SegmentationList::iterator segment_it = it->second->segmentList.begin();
         while(segment_it != it->second->segmentList.end())
         {

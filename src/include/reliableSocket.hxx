@@ -259,7 +259,7 @@ namespace SAFplus
     //Add socket client to socket  server list 
     virtual void connectionClientOpen();
     //read maximum len byte data
-    int readReliable(Byte* buffer, int offset, int len);
+    Byte* readReliable(int offset, int &totalBytes, int maxLen);
     //write maximum len byte data
     void writeReliable(Byte* buffer, int offset, int len);
     //connect to destination

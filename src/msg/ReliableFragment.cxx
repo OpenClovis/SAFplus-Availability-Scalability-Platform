@@ -244,6 +244,11 @@ namespace SAFplus
   {
     return FRAG_DATA;
   }
+
+  DATFragment::~DATFragment()
+  {
+    delete m_pData;
+  };
   // End DATFragment class
   SYNFragment::SYNFragment()
   {
