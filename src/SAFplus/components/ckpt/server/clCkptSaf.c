@@ -161,6 +161,7 @@ ClRcT _ckptLocalDataUpdate(ClCkptHdlT         ckptHdl,
         CL_DEBUG_PRINT(CL_DEBUG_ERROR,
                 ("CheckpointInfo Updation Failed rc[0x %x]\n",
                  rc));
+        clHeapFree(pCkptHdl);
         return rc;            
     }
 
@@ -896,6 +897,7 @@ clCkptDefaultSectionAdd(CkptT      *pCkpt,
     {
         clHeapFree(pKey->scnId.id);
         clHeapFree(pKey);
+        clHeapFree(pSec);
         clLogError(CL_CKPT_AREA_ACTIVE, CL_CKPT_CTX_CKPT_OPEN,
                 "Failed to allocate memory");
         return CL_CKPT_ERR_NO_MEMORY;
@@ -1137,7 +1139,7 @@ ClRcT VDECL_VER(_ckptSectionCreate, 4, 0, 0)(ClCkptHdlT         ckptHdl,
         }   
     }
 exitOnError:
-    if( pSecCreateAttr->sectionId != NULL)
+    if( pSecCreateAttr->sectionId->id != NULL)
     {
         clHeapFree(pSecCreateAttr->sectionId->id);
     }
@@ -1571,6 +1573,7 @@ VDECL_VER(clCkptSvrIterationInitialize, 4, 0, 0)(ClVersionT        *pVersion,
         CKPT_ERR_CHECK(CL_CKPT_SVR,CL_DEBUG_ERROR,
                 ("Failed to allocate memory %s rc[0x %x]\n",
                  pCkpt->ckptName.value,rc), rc);
+        goto exitOnError;
     }
     *pSecId  = pTempSec;
 
@@ -2494,17 +2497,15 @@ clCkptDefaultSectionInfoGet(CkptT         *pCkpt,
     rc = clCntDataForKeyGet(pCkpt->pDpInfo->secHashTbl, (ClCntKeyHandleT)
                             &key, (ClCntDataHandleT *) ppSec);
     if( CL_OK != rc )
-    {
-        clHeapFree(key.scnId.id);
+    {        
         clLogError(CL_CKPT_AREA_ACTIVE, CL_CKPT_CTX_CKPT_OPEN, 
                    "Section [%.*s] doesnot exist in ckpt [%.*s]",
                    key.scnId.idLen, key.scnId.id, pCkpt->ckptName.length,
-                   pCkpt->ckptName.value);
+                   pCkpt->ckptName.value);        
         if( CL_GET_ERROR_CODE(rc) == CL_ERR_NOT_EXIST )
         {
             rc = CL_CKPT_ERR_NOT_EXIST;
-        }
-        return rc;
+        }        
     }
     clHeapFree(key.scnId.id);
         
