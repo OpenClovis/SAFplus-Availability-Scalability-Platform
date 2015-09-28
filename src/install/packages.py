@@ -499,7 +499,9 @@ class Ubuntu(OS):
                  'e2fslibs-dev',
                  'libsnmp-dev',
                  'zlib1g-dev',
-                 'swig']
+                 'swig',
+                 'zip',
+                 'unzip']
         
         
         for name in deps:
