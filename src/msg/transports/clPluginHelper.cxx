@@ -852,7 +852,7 @@ Returns:
   //? <cfg name="SAFPLUS_BACKPLANE_INTERFACE">Specifies the network interface to use for backplane communications</cfg>  
   const char* interface = getenv("SAFPLUS_BACKPLANE_INTERFACE");
   //? <cfg name="SAFPLUS_BACKPLANE_NETWORK">[OPTIONAL] Specifies the network to use for backplane communications.  Use <a href="http://en.wikipedia.org/wiki/Classless_Inter-Domain_Routing#CIDR_notation">CIDR Notation</a>, for example 169.254.100.0/8.  This network and SAFPLUS_NODE_ID will be assigned to an alias address on the selected interface.  If not defined the existing network address will be used and the node mask (logical not of the subnet mask) will be used as the node id.</cfg>  
-  const char* ip = getenv("SAFPLUS_NODE_ID");
+  const char* ip = getenv("SAFPLUS_BACKPLANE_NETWORK");
   //? <cfg name="SAFPLUS_NODE_ID">[OPTIONAL] Specifies the node identifier to be used for this node.  Only used if SAFPLUS_BACKPLANE_NETWORK is also defined.</cfg>  
   const char* nodeID = getenv("SAFPLUS_NODE_ID");
   if (!interface)
