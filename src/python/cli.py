@@ -352,6 +352,9 @@ class TermController(xmlterm.XmlResolver):
     """Returns the terminal prompt"""
     return self.curdir + "> "
 
+  def addCmds(self,cmds):
+    pass
+
   def new(self):
     """Clone this controller for sub-documents"""
     return TermController()

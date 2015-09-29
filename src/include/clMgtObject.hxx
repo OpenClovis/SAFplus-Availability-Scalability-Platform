@@ -312,6 +312,13 @@ extern MgtIteratorBase mgtIterEnd;
 
     virtual MgtObject* lookUpMgtObject(const std::string & classType, const std::string &ref);
     virtual void updateReference(void);
+
+    /**
+     * \brief Function to assign specific dataXPath key in database
+     * \param  xp   XPath key in database, i.e /a/b
+     * \return void
+     */
+    virtual void setPrefix(const std::string &xp);
     };
 
 
