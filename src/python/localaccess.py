@@ -1,8 +1,16 @@
 import safplus
+import pdb
 
 mgtGet = safplus.mgtGet
 
+def isValidDirectory(path):
+  return True
+
 class Commands:
+  def __init__(self):
+    self.commands = {}
+    self.context = None
+
   def do_set(self, location, value):
     """syntax: 
         set (location) (value)  

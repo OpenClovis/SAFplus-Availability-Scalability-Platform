@@ -352,9 +352,6 @@ class TermController(xmlterm.XmlResolver):
     """Returns the terminal prompt"""
     return self.curdir + "> "
 
-  def addCmds(self,cmds):
-    pass
-
   def new(self):
     """Clone this controller for sub-documents"""
     return TermController()
@@ -440,8 +437,12 @@ By default the specified location and children are shown.  Use -N to specify how
 
   def do_cd(self,location):
     """Change the current directory (object tree context)"""
-    self.curdir = os.path.normpath(os.path.join(self.curdir,location))
-    self.xmlterm.cmdLine.setPrompt()
+    tmp = os.path.normpath(os.path.join(self.curdir,location))
+    if access.isValidDirectory(tmp):
+      self.curdir = tmp
+      self.xmlterm.cmdLine.setPrompt()
+    else:
+      return "<error>Invalid path [%s]</error>" % tmp
     return ""
 
   def do_pwd(self,*sp):
