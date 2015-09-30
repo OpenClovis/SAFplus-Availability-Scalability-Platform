@@ -401,4 +401,9 @@ namespace SAFplus
     return ;
   }
 
+  void MgtObject::setPrefix(const std::string &xp)
+  {
+    // TODO: applicable for module/top level assignment only
+    dataXPath.assign(xp);
+  }
 }

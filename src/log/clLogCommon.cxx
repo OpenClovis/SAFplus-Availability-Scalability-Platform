@@ -38,14 +38,6 @@ void logInitializeSharedMem()
     offset_t shmsize=0;
     logSharedMemoryObjectName = "SAFplusLog";
 
-    // This value is uninitialized until utilsInitialize called
-    char *temp = getenv("ASP_NODENAME");
-    if (temp)
-      {
-        logSharedMemoryObjectName.append("_");
-        logSharedMemoryObjectName.append(temp);
-      }
-
     // Create or open the shared memory object.  If this process wins the race to create then it needs to create the mutex and initialize the header.
     // Otherwise place the header onto the location
     try  
