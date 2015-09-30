@@ -17,7 +17,7 @@ def main(dirs):
        "dir":"doclayout",
        "skin":"docskin",
        "pageimplementers": {"class":"jsclasspage","file":"jsfilepage"},
-       "nav": [ ("home","jshome"),("Examples","jssection",("Examples",)), ("search","jssearch"),("idx","jsindex") ],
+       "nav": [ ("Home","jshome"),("Examples","jssection",("Examples",)), ("search","jssearch"),("idx","jsindex") ],
        "indeximplementers": { "class":"jsclassindexpage","file":"jsfileindexpage","section":"jssectionindexpage"},
        # "quicklists": {"History":"jsqhist","Sections":"jsqsec","Classes":"jsqclass","Files":"jsqfile"},
        "misc": { "frame":"jsframe"}

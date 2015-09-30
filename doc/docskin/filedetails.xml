@@ -18,7 +18,9 @@
     <div py:def="displaySection(sec,depth)">
       <h2 class="sectionHeader" id="sectionHeader${sec.name}" py:if="depth>0">${sec.name}</h2>
       <div id="sectionContents${sec.name}" style="margin-left:${(depth-1)*2}.0em">
-
+        <div py:if="sec.childrenWithAttr('tag_','html')">
+        ${XML(R(this.text))}
+        </div>
         <div py:if="sec.childrenWithAttr('tag_','const')">
           <h2 class="constantsHeader">Constants</h2>
           <table style="text-align: left; width: 100%;" border="0" cellpadding="2" cellspacing="2">

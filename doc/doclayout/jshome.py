@@ -37,7 +37,7 @@ def generate(mdtree,cfg,args,tagDict=None):
   out['me'] = me
   out['R'] = render
 
-  me.homeSections = mdtree.filterByAttr({"tag_":"section","name":"home"})
+  me.homeSections = mdtree.filterByAttr({"tag_":"section","name":"Home"})
   templateFileName = cfg["html"]["skin"] + os.sep + "home.xml"
   template = kid.Template(file=templateFileName,**out)
   #print str(template)

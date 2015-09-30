@@ -1,3 +1,5 @@
+/*? Handles are the mechanism by which nodes, processes or objects identify eachother within the cluster 
+*/
 #ifndef clHandleApi_hpp
 #define clHandleApi_hpp
 #include <cltypes.h>

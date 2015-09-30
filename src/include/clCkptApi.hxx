@@ -1,4 +1,14 @@
+/*? <desc> Checkpointing is the act of preserving critical program data by writing it to persistent storage or to another node.  By checkpointing data, recovery from a failure can proceed from the point of the last checkpoint.  Checkpointing is implemented via a fully-replicated distributed hash table abstraction: write data to the hash table in one process and it can be read in the backup process.
+
+The SAFplus checkpoint service is implemented by creating a single checkpoint entity in shared memory per node.  This makes data sharing between processes in the same node extremely efficient.  Within each node, programs that have opened the checkpoint elect a "node representative" whose has the job of listening for checkpoint updates from other nodes, and applying them into shared memory.  However "node representative" is not involved in the write process; for speed, every process that writes the checkpoint also sends a checkpoint update message to all other nodes.
+
+Typically, a single active process writes the checkpoint and other standby entities read it.  If multiple processes need to write the checkpoint, it is the application programmer's task to ensure that these writes do not both write the same data nearly-simultaneously (collide).  In the case of a collision, the contents of that entry in the checkpoint may vary between nodes.  The application programmer can avoid collisions via data sharding or an application level synchronization mechanism.
+
+</desc>
+*/
+
 //? <section name="Checkpointing">
+
 #ifndef clCkptApi_hxx
 #define clCkptApi_hxx
 // Standard includes
@@ -131,7 +141,7 @@ namespace SAFplus
 	return seed;
     }    
 
-  //? <class> This class represents a replicated, distributed hash table
+  //? <class> This class represents a replicated, distributed hash table.  The same checkpoint can be opened on multiple nodes in the cluster to share data.
   class Checkpoint
   {
   public:
