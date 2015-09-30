@@ -8,7 +8,7 @@ module myService
   list subscribers
   {
     key "name";
-    description "";
+    description "This list defines who can use this service";
 
     leaf name
     {
