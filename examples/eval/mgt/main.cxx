@@ -175,6 +175,7 @@ int main(int argc, char *argv[])
 }
 
 int accessCounts=0;
+int bytesTransmitted = 0;
 void* activeLoop(void* thunk)
 {
   int fakeAmt=1;
@@ -184,9 +185,13 @@ void* activeLoop(void* thunk)
       sleep(10);
 #ifdef HTTPD_EXAMPLE
       mgt.serviceStats.accessCounts.setValue(accessCounts);
+      mgt.serviceStats.bytesTransmitted.setValue(bytesTransmitted);
       accessCounts=0;
+      bytesTransmitted=0;
 #else
       mgt.serviceStats.accessCounts.setValue(fakeAmt);
+      mgt.serviceStats.bytesTransmitted.setValue(fakeAmt);
+
       fakeAmt++;
       if (fakeAmt > 120) fakeAmt = 0; 
 #endif

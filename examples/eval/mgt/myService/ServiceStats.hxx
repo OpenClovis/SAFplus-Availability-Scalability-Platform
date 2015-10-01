@@ -24,6 +24,7 @@ namespace myService
 
     public:
         SAFplus::MgtHistoryStat<int> accessCounts;
+        SAFplus::MgtHistoryStat<int> bytesTransmitted;
 
     public:
         ServiceStats();
@@ -38,6 +39,16 @@ namespace myService
          * XPATH: /myService/serviceStats/accessCounts
          */
         void addAccessCounts(SAFplus::MgtHistoryStat<int> *accessCountsValue);
+
+        /*
+         * XPATH: /myService/serviceStats/bytesTransmitted
+         */
+        SAFplus::MgtHistoryStat<int>* getBytesTransmitted();
+
+        /*
+         * XPATH: /myService/serviceStats/bytesTransmitted
+         */
+        void addBytesTransmitted(SAFplus::MgtHistoryStat<int> *bytesTransmittedValue);
         ~ServiceStats();
 
     };

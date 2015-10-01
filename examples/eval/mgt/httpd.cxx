@@ -7,6 +7,7 @@
 #include <myService/Subscribers.hxx>
 extern myService::MyServiceModule mgt;
 extern int accessCounts;
+extern int bytesTransmitted;
 
 #define PAGE  "<html><head><title>SAFplus demo</title></head><body>start</body></html>\n"
 
@@ -55,8 +56,9 @@ static int ahc_echo(void * cls,
               static char buf[1024]={0};
               snprintf(buf,1024,resp,sub->name.value.c_str(),sub->use.value);
               accessCounts++;
+              bytesTransmitted += strlen(buf);
               sub->use.value++;
-              *ptr = NULL; /* clear context pointer */
+              *ptr = NULL; /* clear context pointer */              
               response = MHD_create_response_from_data(strlen(buf), (void*) buf, MHD_NO, MHD_NO);
             }
         }
