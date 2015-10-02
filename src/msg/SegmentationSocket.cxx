@@ -5,6 +5,7 @@
 
 namespace SAFplus
 {
+
   struct delete_disposer_segment
   {
     void operator()(Segment *delete_this)
@@ -110,11 +111,36 @@ namespace SAFplus
     p_this->handleReceiveThread();
   }
 
+  static ClRcT receiveTimeOutCallback(void *arg)
+  {
+//    MsgSocketSegmentaion* socketSegmentaion = (MsgSocketSegmentaion*)arg;
+//    if(socketSegmentaion->getMapsize()==0)
+//    {
+//      logDebug("MSG","RST","start clean unused segment list: map size is 0");
+//      return CL_OK;
+//    }
+//    else
+//    {
+//      logDebug("MSG","RST","start clean unused segment list %d",socketSegmentaion->getMapsize());
+//    }
+    logDebug("MSG","RST","start clean unused segment list");
+    return CL_OK;
+  }
+
   MsgSocketSegmentaion::MsgSocketSegmentaion(uint_t port,MsgTransportPlugin_1* transport)
   {
     sock = transport->createSocket(port);
     msgReceived=0;
     rcvThread = boost::thread(SegmentSocketThread, this);
+    ClRcT rc;
+    if ((rc = timerInitialize(NULL)) != CL_OK)
+    {
+      return;
+    }
+    testTimeout.tsMilliSec=0;
+    testTimeout.tsSec=1;
+    receiveTimeOut.timerCreate(testTimeout, TimerTypeT::TIMER_REPETITIVE, TimerContextT::TIMER_SEPARATE_CONTEXT,receiveTimeOutCallback, NULL);
+    receiveTimeOut.timerStart();
   }
 
   MsgSocketSegmentaion::MsgSocketSegmentaion(MsgSocket* socket)
@@ -125,6 +151,11 @@ namespace SAFplus
   {
     //TODO
   }
+  MsgPool* MsgSocketSegmentaion::getMsgPool()
+  {
+    logTrace("MSG", "MSS","get msg pool");
+    return sock->msgPool;
+  };
 
   void MsgSocketSegmentaion::applySegmentaion(SAFplus::Handle destination, void* buffer, uint_t length)
   {

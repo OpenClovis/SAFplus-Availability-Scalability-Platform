@@ -3,6 +3,7 @@
 #include <clMsgApi.hxx>
 #include <clLogApi.hxx>
 #include <clMsgBase.hxx>
+#include <Timer.hxx>
 #include <boost/intrusive/list.hpp>
 #include <boost/unordered_map.hpp>
 
@@ -13,6 +14,7 @@ using namespace boost::intrusive;
 #define USER_HEADER_LEN 6
 #define MAX_SEGMENT_SIZE 64000
 #define MAX_MSG_SIZE 10000000;
+#define CLEAR_QUEUE_INTERVAL 1000;
 static ClUint32T currFragId = 0;
 
 namespace SAFplus
@@ -124,7 +126,6 @@ namespace SAFplus
       segmentNum=0;
       isFull=false;
     };
-
   };
   typedef boost::unordered_map<SAFplus::MsgKey, SAFplus::MsgSegments*> KeyMsgMap;
   class MsgSocketSegmentaion : public MsgSocketAdvanced
@@ -132,8 +133,11 @@ namespace SAFplus
   private:
     KeyMsgMap receiveMap;
     int msgReceived;
+    int msgReceiving;
     boost::thread rcvThread; //thread to receive and handle fragment
   public:
+    Timer receiveTimeOut;
+    TimerTimeOutT testTimeout;
     Handle handle;
     MsgSocketSegmentaion(uint_t port,MsgTransportPlugin_1* transport);
     MsgSocketSegmentaion(MsgSocket* socket);
@@ -148,6 +152,11 @@ namespace SAFplus
     void applySegmentaion(SAFplus::Handle destination, void* buffer, uint_t length);
     void applySegmentaion(Message* m);
     void sendSegment(SAFplus::Handle destination,Segment * frag);
+    int getMapsize()
+    {
+      return receiveMap.size();
+    }
     virtual void flush();
+    virtual MsgPool* getMsgPool();
   };
 };

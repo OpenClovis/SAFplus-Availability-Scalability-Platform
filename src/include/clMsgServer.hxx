@@ -34,6 +34,14 @@ namespace SAFplus
         DEFAULT_OPTIONS = 0,
         AUTO_ACTIVATE = 1
       } Options;
+      typedef enum
+        {
+          SOCK_DEFAULT = 0,
+          SOCK_SHAPING = 1,
+          SOCK_SEGMENTATION = 2,
+          SOCK_RELIABLE = 3
+        } SocketType;
+
     
     uint_t sendFailureTimeoutMs;
     
@@ -47,10 +55,10 @@ namespace SAFplus
      <arg name='flags' default="DEFAULT_OPTIONS">Message server options.  Currently, you can choose for this server to remain quiescent (not connected) until the AMF assigns active work to the process.  </arg>
      </ctor>
      */
-    MsgServer(uint_t port, uint_t maxPendingMsgs, uint_t maxHandlerThreads, Options flags=DEFAULT_OPTIONS); 
+    MsgServer(uint_t port, uint_t maxPendingMsgs, uint_t maxHandlerThreads, Options flags=DEFAULT_OPTIONS, SocketType type = SOCK_DEFAULT);
 
     /*? 2 Phase Constructor.  See MsgServer(...) for parameter details */
-    void Init(uint_t port, uint_t maxPendingMsgs, uint_t maxHandlerThreads, Options flags=DEFAULT_OPTIONS);
+    void Init(uint_t port, uint_t maxPendingMsgs, uint_t maxHandlerThreads, Options flags=DEFAULT_OPTIONS, SocketType type = SOCK_DEFAULT);
     
     /*? Activate when I am assigned active work. Overrides the options flags. */
     void AutoActivate();
@@ -120,7 +128,7 @@ namespace SAFplus
       return getProcessHandle(port,Handle::AllNodes);
       }
 
-    MsgPool& getMsgPool() { return *sock->msgPool; }
+    MsgPool& getMsgPool() { return *sock->getMsgPool(); }
 
     Fault* fault;  //? You need to initialize this if you want the message server to gain knowledge of system faults
 

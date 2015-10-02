@@ -54,8 +54,8 @@ void RecvHandler::msgHandler(Handle from, MsgServer* svr, ClPtrT msg, ClWordT ms
 
 bool testSendRecv()
   {
-  MsgServer a(2,10,2);
-  MsgServer b(1,10,2);
+  MsgServer a(2,10,2,SAFplus::MsgServer::Options::DEFAULT_OPTIONS,SAFplus::MsgServer::SocketType::SOCK_SEGMENTATION);
+  MsgServer b(1,10,2,SAFplus::MsgServer::Options::DEFAULT_OPTIONS,SAFplus::MsgServer::SocketType::SOCK_SEGMENTATION);
 
   const char* strMsg = "This is a test of message sending";
 
@@ -134,13 +134,19 @@ bool testSendRecv()
   receiver.lock();
   printf("Message was: %s\n",receiver.data);
   clTest(("broadcast send/recv message ok"), 0 == strncmp((const char*) receiver.data,strMsg,sizeof(strMsg)),("message contents miscompare") );
+  while(1)
+  {
+    sleep(1);
+  }
+
   }
 
 
 int main(int argc, char* argv[])
 {
-  SAFplus::logSeverity = SAFplus::LOG_SEV_DEBUG;
-  //logEchoToFd = 1; // stdout
+  SAFplus::  logSeverity = LOG_SEV_MAX;
+
+  logEchoToFd = 1; // stdout
 
   std::string xport("clMsgUdp.so");
   boost::program_options::options_description desc("Allowed options");
@@ -176,5 +182,6 @@ int main(int argc, char* argv[])
   clMsgInitialize();
 
   clTestCase(("MSG-SVR-UNT.TC001: simple send/recv test"),testSendRecv());
+
   clTestGroupFinalize();
 }
