@@ -30,7 +30,7 @@ SAFPLUS_LIBS := clAmf clMgt clRpc clName clCkpt clGroup clMsg clLog clUtils clOs
 SAFPLUS_DEP_LIBS     := $(addsuffix .so,$(addprefix $(LIB_DIR)/lib,$(SAFPLUS_LIBS)))
 SAFPLUS_LINK_LIBS := -L$(LIB_DIR) $(addprefix -l,$(SAFPLUS_LIBS))
 
-all: $(TEST_DIR)/mgtApp $(MODELS_TGT)
+Release all: $(TEST_DIR)/mgtApp $(MODELS_TGT) $(SAFPLUS_TARGET)/share/netconf/modules/openclovis/myService.yang
 
 $(TEST_DIR)/%.xml: %.xml
 	cp -f $< $@
@@ -47,6 +47,9 @@ $(LIB_DIR)/libmyService.so:
 yang:
 	PYTHONPATH=$(MGT_SRC_DIR)/3rdparty/pyang PYANG_PLUGINPATH=$(MGT_SRC_DIR)/pyplugin $(MGT_SRC_DIR)/3rdparty/pyang/bin/pyang --path=$(SAFPLUS_SRC_DIR)/yang -f y2cpp myService.yang --y2cpp-output `pwd` --y2cpp-sdkdir $(SAFPLUS_SRC_DIR)
 
+$(SAFPLUS_TARGET)/share/netconf/modules/openclovis/myService.yang: myService.yang
+	@mkdir -p $(SAFPLUS_TARGET)/share/netconf/modules/openclovis
+	cp -rf $< $@
 
 clean:
 	rm -f $(CLIENT_OBJ) $(TEST_DIR)/mgtApp $(OBJ_DIR)/myService/*

@@ -2,7 +2,12 @@
   <subscribers name="Andrew">
   <active>true</active>
   <level>silver</level>
-  <limit>5</limit>
+  <limit>10</limit>
+  </subscribers>
+  <subscribers name="guest">
+  <active>true</active>
+  <level>copper</level>
+  <limit>1</limit>
   </subscribers>
   <serviceCfg>
     <port>8000</port>

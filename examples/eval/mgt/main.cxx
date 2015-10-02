@@ -143,12 +143,13 @@ int main(int argc, char *argv[])
     //SAFplus::Handle myHandle = SAFplus::safplusMsgServer.GetAddress();
 
     /*
-     * active/standby handle
+     * active/standby handle:
+     * Moved to CSI Active assignment, then only handle active take part of mgt data
+     * SAFplus::myHandle = SAFplus::Handle::create();
+     * mgt.bind(SAFplus::myHandle,&mgt.serviceCfg);
+     * mgt.bind(SAFplus::myHandle,&mgt.serviceStats);
+     * mgt.bind(SAFplus::myHandle,&mgt.subscribersList);
      */
-    SAFplus::myHandle = SAFplus::Handle::create();
-    mgt.bind(SAFplus::myHandle,&mgt.serviceCfg);
-    mgt.bind(SAFplus::myHandle,&mgt.serviceStats);
-    mgt.bind(SAFplus::myHandle,&mgt.subscribersList);
 
     // If I am not under AMF control, run my "active" activities directly
     if (!amfControlled) 
@@ -266,6 +267,14 @@ void safAssignWork(SaInvocationT       invocation,
             pthread_t thr;
             clprintf(SAFplus::LOG_SEV_INFO,"csa101: ACTIVE state requested; activating service");
             running = 1;
+
+            /*
+             * Binding data handle
+             */
+            SAFplus::myHandle = SAFplus::Handle::create();
+            mgt.bind(SAFplus::myHandle,&mgt.serviceCfg);
+            mgt.bind(SAFplus::myHandle,&mgt.serviceStats);
+            mgt.bind(SAFplus::myHandle,&mgt.subscribersList);
             /*
              * Start httpd 
              */
