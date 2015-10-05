@@ -233,25 +233,39 @@ void GroupServer::init()
     // TODO: use the already inited global GroupSharedMem rather than doing it twice. 
   gsm.init();
 
+#if 0
       // If the data is valid and the controlling process is alive, this process is in conflict.  There can be only one GroupServer per node.
   if ((gsm.groupHdr->structId == CL_GROUP_BUFFER_HEADER_STRUCT_ID_7)&&(SAFplus::Process(gsm.groupHdr->rep).alive()))
         {
           throw SAFplus::Error(SAFplus::Error::SAFPLUS_ERROR, SAFplus::Error::EXISTS, "Group Node Representative already exists", __FILE__, __LINE__);
         }
+#endif
 
   if(!groupMsgServer)
     {
     groupMsgServer = &safplusMsgServer;
     }
+  groupCommunicationPort=groupMsgServer->port;
 
-  gsm.claim(SAFplus::pid,groupMsgServer->port);  // Make me the node representative
-  gsm.clear();  // I am the node representative just starting up, so members may have fallen out while I was gone.  So I must delete everything I knew.
-  //clIocNotificationRegister(groupIocNotificationCallback,this);
-
-  if (1) //groupMsgServer->port == groupCommunicationPort) // If my listening port is the broadcast port then I must be the node representative
+  if (electNodeRepresentative())
     {
-    //allGrpMsgHdlr.handleMap[handle] = &groupMessageHandler;  //  Register this object's message handler into the global lookup.
-    groupMsgServer->RegisterHandler(SAFplusI::GRP_MSG_TYPE, this, NULL);  //  Register the main message handler (no-op if already registered)
+
+      // Elect node representative also claims so this is not necessary
+      //gsm.claim(SAFplus::pid,groupMsgServer->port);  // Make me the node representative
+
+      gsm.clear();  // I am the node representative just starting up, so members may have fallen out while I was gone.  So I must delete everything I knew.
+      //clIocNotificationRegister(groupIocNotificationCallback,this);
+
+      if (1) //groupMsgServer->port == groupCommunicationPort) // If my listening port is the broadcast port then I must be the node representative
+        {
+          //allGrpMsgHdlr.handleMap[handle] = &groupMessageHandler;  //  Register this object's message handler into the global lookup.
+          groupMsgServer->RegisterHandler(SAFplusI::GRP_MSG_TYPE, this, NULL);  //  Register the main message handler (no-op if already registered)
+        }
+    }
+  else
+    {
+      // TODO: instead of raising an exception, I could start monitoring the shared memory to ensure that the group rep does not die (but may be redundant with the AMF).
+      throw SAFplus::Error(SAFplus::Error::SAFPLUS_ERROR, SAFplus::Error::EXISTS, "Group Node Representative already exists", __FILE__, __LINE__);
     }
 
   }
@@ -826,14 +840,43 @@ void GroupServer::_deregister(GroupShmEntry* grp, unsigned int node, unsigned in
     {
     startElection(gd.hdl);
     }
-  /* We need to other entities about the left node, but only AFTER
-   * we have handled it. */
+  /* We need to inform other entities about the left node, but only AFTER we have handled it. */
   if(w)
     {
     // TODO: w->wake(1,(void*)SAFplus::NODE_LEAVE_SIG);
     }
   }
 
+bool GroupServer::electNodeRepresentative(void)
+  {
+    SAFplusI::GroupShmHeader* hdr = this->gsm.groupHdr;
+    assert(hdr);  // It must be nonzero because I would have created it if it did not exist.
+
+  // This code elects a single process within this node to be the entity that handles synchronization messages.
+  // It elects a process by checking a shared memory location for a pid.  If that pid is "alive" then that pid is elected.
+  // Otherwise this process writes its own pid into the location, waits, and then checks to see if its write was not overwritten.
+  // If its write remains valid, it wins the election.
+  while (1)
+    {
+    Process p(hdr->rep);
+    try
+      {
+      std::string cmd = p.getCmdline();
+      return (hdr->rep == SAFplus::pid);  // If the process is alive we assume it is acting as sync replica... return true if that process is me otherwise false
+      // TODO: this method suffers from a chance of a process respawn
+      }
+    catch (ProcessError& e)  // process in hdr->serverPid is dead, so put myself in there.
+      {
+      hdr->rep = SAFplus::pid;
+      hdr->repPort = groupCommunicationPort;
+      hdr->repWatchdog = std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::system_clock::now().time_since_epoch()).count();
+      logAlert("GMS","REP","This process is claiming group node representative, on port %d at beat %d",hdr->repPort, (int) hdr->repWatchdog); 
+      boost::this_thread::sleep(boost::posix_time::milliseconds(100));
+      if (hdr->rep == SAFplus::pid) return true;
+      // Otherwise I will wrap around, reload the PID and make sure that it is valid.  This will presumably solve theoretical write collisions which corrupt data due to different writes succeeding in different bytes in the number.
+      }
+    }  
+  }
 
 /**
  * API to deregister an entity from the group

@@ -61,8 +61,9 @@ namespace SAFplusI
     {
     public:
     uint64_t       structId;
-    pid_t          rep;        // This is the node representative
-    uint32_t       repPort;    // Node representative communications port
+    pid_t          rep;         // This is the node representative
+    uint32_t       repPort;     // Node representative communications port
+    uint64_t       repWatchdog; // Node representative periodically writes the current time to this variable so other apps are sure it is still active
     };
 
   class GroupData
@@ -272,6 +273,9 @@ class GroupServer:public SAFplus::MsgHandler
   int groupCommunicationPort;
 
   virtual void msgHandler(SAFplus::Handle from, SAFplus::MsgServer* svr, ClPtrT msg, ClWordT msglen, ClPtrT cookie);
+
+    // ? Elects the entity that will be updating the group shared memory segment on this node.  Returns true if this process is the representative
+  bool electNodeRepresentative();
 
   void init();
   void registerEntity (GroupShmEntry* grp, SAFplus::Handle me, uint64_t credentials, const void* data, int dataLength, uint capabilities,bool needNotify);

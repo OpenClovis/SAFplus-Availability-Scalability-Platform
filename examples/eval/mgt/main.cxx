@@ -154,9 +154,24 @@ int main(int argc, char *argv[])
     // If I am not under AMF control, run my "active" activities directly
     if (!amfControlled) 
       {
-        startHttpDaemon(mgt.serviceCfg.port);
-        pthread_t thr;
-        pthread_create(&thr,NULL,activeLoop,NULL);
+        SaAmfCSIDescriptorT fakeDescriptor;
+        fakeDescriptor.csiFlags=0;
+        fakeDescriptor.csiName.length=0;
+        fakeDescriptor.csiName.value[0]=0;
+        fakeDescriptor.csiAttr.number = 0;
+        fakeDescriptor.csiAttr.attr = NULL;
+        fakeDescriptor.csiStateDescriptor.activeDescriptor.activeCompName.length=0;
+        fakeDescriptor.csiStateDescriptor.activeDescriptor.activeCompName.value[0]=0;
+        fakeDescriptor.csiStateDescriptor.activeDescriptor.transitionDescriptor = SA_AMF_CSI_NEW_ASSIGN;
+        // Its a union
+        //fakeDescriptor.csiStateDescriptor.standbyDescriptor.activeCompName.length=0;
+        //fakeDescriptor.csiStateDescriptor.standbyDescriptor.activeCompName.value[0]=0;
+        //fakeDescriptor.csiStateDescriptor.standbyDescriptor.standbyRank = 0;
+
+        safAssignWork(0,&appName,SA_AMF_HA_ACTIVE,fakeDescriptor);
+        //startHttpDaemon(mgt.serviceCfg.port);
+        //pthread_t thr;
+        //pthread_create(&thr,NULL,activeLoop,NULL);
       }
 
     // Block on AMF dispatch file descriptor for callbacks. When this function returns its time to quit.
