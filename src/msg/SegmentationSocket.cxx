@@ -113,16 +113,6 @@ namespace SAFplus
 
   static ClRcT receiveTimeOutCallback(void *arg)
   {
-//    MsgSocketSegmentaion* socketSegmentaion = (MsgSocketSegmentaion*)arg;
-//    if(socketSegmentaion->getMapsize()==0)
-//    {
-//      logDebug("MSG","RST","start clean unused segment list: map size is 0");
-//      return CL_OK;
-//    }
-//    else
-//    {
-//      logDebug("MSG","RST","start clean unused segment list %d",socketSegmentaion->getMapsize());
-//    }
     logDebug("MSG","RST","start clean unused segment list");
     return CL_OK;
   }
@@ -133,14 +123,14 @@ namespace SAFplus
     msgReceived=0;
     rcvThread = boost::thread(SegmentSocketThread, this);
     ClRcT rc;
-    if ((rc = timerInitialize(NULL)) != CL_OK)
-    {
-      return;
-    }
-    testTimeout.tsMilliSec=0;
-    testTimeout.tsSec=1;
-    receiveTimeOut.timerCreate(testTimeout, TimerTypeT::TIMER_REPETITIVE, TimerContextT::TIMER_SEPARATE_CONTEXT,receiveTimeOutCallback, NULL);
-    receiveTimeOut.timerStart();
+//    if ((rc = timerInitialize(NULL)) != CL_OK)
+//    {
+//      return;
+//    }
+//    testTimeout.tsMilliSec=0;
+//    testTimeout.tsSec=1;
+//    receiveTimeOut.timerCreate(testTimeout, TimerTypeT::TIMER_REPETITIVE, TimerContextT::TIMER_SEPARATE_CONTEXT,receiveTimeOutCallback, NULL);
+//    //receiveTimeOut.timerStart();
   }
 
   MsgSocketSegmentaion::MsgSocketSegmentaion(MsgSocket* socket)

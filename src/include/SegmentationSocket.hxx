@@ -136,8 +136,8 @@ namespace SAFplus
     int msgReceiving;
     boost::thread rcvThread; //thread to receive and handle fragment
   public:
-    Timer receiveTimeOut;
-    TimerTimeOutT testTimeout;
+//    Timer receiveTimeOut;
+//    TimerTimeOutT testTimeout;
     Handle handle;
     MsgSocketSegmentaion(uint_t port,MsgTransportPlugin_1* transport);
     MsgSocketSegmentaion(MsgSocket* socket);
