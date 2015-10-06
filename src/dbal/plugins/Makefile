@@ -1,21 +1,29 @@
 S7 := 1
+SAFPLUS_DBAL_SQLITE_PLUGIN :=1
 SAFPLUS_DBAL_PLUGIN :=1
 include ../../mk/preface.mk
 
-Release all: $(PLUGIN_DIR)/libclBerkeleyDB.so $(PLUGIN_DIR)/libclGDBM.so $(PLUGIN_DIR)/libclSQLiteDB.so
+EXTRA_SO_LIBS +=-lsqlite3
 
-$(PLUGIN_DIR)/libclBerkeleyDB.so:
-	make -C berkeley
+# Specify the required libraries
+SAFPLUS_LIBS := clUtils clLog
+# Then use these in the make rule
+SAFPLUS_DEP_LIBS  := $(addsuffix .so,$(addprefix $(LIB_DIR)/lib,$(SAFPLUS_LIBS)))
+SAFPLUS_LINK_LIBS := -L$(LIB_DIR) $(addprefix -l,$(SAFPLUS_LIBS))
 
-$(PLUGIN_DIR)/libclGDBM.so:
-	make -C gdbm
+CLIENT_SQLITE_H   := $(wildcard *.h) $(wildcard $(SAFPLUS_INC_DIR)/*.h) $(wildcard $(SAFPLUS_INC_DIR)/*.hxx)
+CLIENT_SQLITE_SRC := $(wildcard *.cxx)
+CLIENT_SQLITE_OBJ := $(addprefix $(OBJ_DIR)/,$(subst .cxx,.o,$(CLIENT_SQLITE_SRC)))
 
-$(PLUGIN_DIR)/libclSQLiteDB.so:
-	make -C sqlite
+Release all: $(PLUGIN_DIR)/libclSQLiteDB.so
+
+$(OBJ_DIR)/%.o: %.cxx Makefile $(CLIENT_SQLITE_H)
+	$(COMPILE_CPP) $@ $(<F)
+
+$(PLUGIN_DIR)/libclSQLiteDB.so: $(CLIENT_SQLITE_OBJ) $(SAFPLUS_DEP_LIBS)
+	$(LINK_SO) $@ $(CLIENT_SQLITE_OBJ) $(SAFPLUS_LINK_LIBS) $(LINK_SO_LIBS) $(EXTRA_SO_LIBS)
 
 clean:
-	make -C berkeley clean
-	make -C gdbm clean
-	make -C sqlite clean
+	rm -f $(PLUGIN_DIR)/libclSQLiteDB.so $(CLIENT_SQLITE_OBJ)
 
 include $(SAFPLUS_MAKE_DIR)/safplus_targets.mk
