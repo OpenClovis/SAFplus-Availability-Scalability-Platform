@@ -54,10 +54,10 @@ void RecvHandler::msgHandler(Handle from, MsgServer* svr, ClPtrT msg, ClWordT ms
 
 bool testSendRecv()
   {
-  //MsgServer a(2,10,2,SAFplus::MsgServer::Options::DEFAULT_OPTIONS,SAFplus::MsgServer::SocketType::SOCK_SEGMENTATION);
-  //MsgServer b(1,10,2,SAFplus::MsgServer::Options::DEFAULT_OPTIONS,SAFplus::MsgServer::SocketType::SOCK_SEGMENTATION);
-  MsgServer a(2,10,2);
-  MsgServer b(1,10,2);
+  MsgServer a(2,10,2,SAFplus::MsgServer::Options::DEFAULT_OPTIONS,SAFplus::MsgServer::SocketType::SOCK_SEGMENTATION);
+  MsgServer b(1,10,2,SAFplus::MsgServer::Options::DEFAULT_OPTIONS,SAFplus::MsgServer::SocketType::SOCK_SEGMENTATION);
+  //MsgServer a(2,10,2);
+  //MsgServer b(1,10,2);
 
 
   const char* strMsg = "This is a test of message sending";
@@ -142,7 +142,7 @@ bool testSendRecv()
 
 int main(int argc, char* argv[])
 {
-  SAFplus::  logSeverity = LOG_SEV_MAX;
+  SAFplus::  logSeverity = LOG_SEV_DEBUG;
 
   logEchoToFd = 1; // stdout
 

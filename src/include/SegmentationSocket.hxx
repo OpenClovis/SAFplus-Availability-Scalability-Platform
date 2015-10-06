@@ -31,14 +31,14 @@ namespace SAFplus
     Handle sender;
     int msgId;
     bool operator == (const MsgKey& other) const
-                    {
+                        {
       return ((sender == other.sender)&&(msgId==other.msgId));
-                    }
+                        }
 
     bool operator != (const MsgKey& other) const
-                    {
+                        {
       return ((sender != other.sender)||(msgId!=other.msgId));
-                    }
+                        }
     //? Handles can be used as keys in hash tables
   };
   inline std::size_t hash_value(MsgKey const& h)
@@ -80,14 +80,7 @@ namespace SAFplus
     {
       return m_nMsgId;
     }
-    //    void setMsgType(int msgType)
-    //    {
-    //      m_nMsgType=msgType;
-    //    }
-    //    int getMsgType()
-    //    {
-    //      return m_nMsgType;
-    //    }
+
     void setLast(bool isLastSeg);
     bool isLastSegment();
     Byte* getBytes();
@@ -99,7 +92,7 @@ namespace SAFplus
     friend bool operator> (const Segment &a, const Segment &b)
     {  return a.m_nSeqn > b.m_nSeqn;  }
     friend bool operator== (const Segment &a, const Segment &b)
-                               {  return a.m_nSeqn == b.m_nSeqn;  }
+                                   {  return a.m_nSeqn == b.m_nSeqn;  }
     ~Segment()
     {
       delete m_pData;
@@ -119,6 +112,8 @@ namespace SAFplus
     int segmentNum;
     bool isFull;
     int length;
+    Timer receiveTimeOut;
+    TimerTimeOutT testTimeout;
     Handle handle;
     MsgSegments()
     {
@@ -136,8 +131,6 @@ namespace SAFplus
     int msgReceiving;
     boost::thread rcvThread; //thread to receive and handle fragment
   public:
-//    Timer receiveTimeOut;
-//    TimerTimeOutT testTimeout;
     Handle handle;
     MsgSocketSegmentaion(uint_t port,MsgTransportPlugin_1* transport);
     MsgSocketSegmentaion(MsgSocket* socket);
@@ -152,6 +145,7 @@ namespace SAFplus
     void applySegmentaion(SAFplus::Handle destination, void* buffer, uint_t length);
     void applySegmentaion(Message* m);
     void sendSegment(SAFplus::Handle destination,Segment * frag);
+    static ClRcT receiveTimeOutCallback(void *arg);
     int getMapsize()
     {
       return receiveMap.size();

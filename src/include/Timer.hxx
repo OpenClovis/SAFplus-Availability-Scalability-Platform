@@ -116,8 +116,8 @@ namespace SAFplus
     ClRcT timerStart();
     ClRcT timerUpdate(TimerTimeOutT newTimeOut);
     ClRcT timerRestart (TimerHandleT  timerHandle);
-    ClRcT timerIsStopped(bool *pState);
-    ClRcT timerIsRunning(TimerHandleT timerHandle, bool *pState);
+    bool timerIsStopped();
+    bool timerIsRunning();
     ClRcT timerCreate(TimerTimeOutT timeOut,
         TimerTypeT timerType,
         TimerContextT timerContext,
@@ -143,7 +143,7 @@ namespace SAFplus
     friend bool operator> (const Timer &a, const Timer &b)
     {  return a.timerExpiry > b.timerExpiry;  }
     friend bool operator== (const Timer &a, const Timer &b)
-               {  return a.timerExpiry == b.timerExpiry;  }
+                   {  return a.timerExpiry == b.timerExpiry;  }
   };
 
   class TimerBase
