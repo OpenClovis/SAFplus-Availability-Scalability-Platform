@@ -70,3 +70,8 @@ class CheckpointPlugin: public DbalPlugin
 {
 };
 */
+
+namespace SAFplusI
+{
+  extern SAFplus::DbalPlugin* defaultDbalPlugin;
+};
