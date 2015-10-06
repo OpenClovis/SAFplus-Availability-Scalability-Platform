@@ -49,7 +49,7 @@ endif
 
 ifndef SAFPLUS_TIMER_LIB
 $(LIB_DIR)/libclTimer.so:
-	$(MAKE) -C $(SAFPLUS_SRC_DIR)/Timer
+	$(MAKE) -C $(SAFPLUS_SRC_DIR)/timer
 endif
 
 ifndef SAFPLUS_PY_LIB
