@@ -12,6 +12,7 @@
 #include "clMgtProv.hxx"
 #include "clMgtContainer.hxx"
 #include "clTransaction.hxx"
+#include <string>
 #include "myServiceCommon.hxx"
 #include <cstdint>
 #include <vector>
@@ -31,6 +32,11 @@ namespace myService
          */
         SAFplus::MgtProv<::uint16_t> port;
 
+        /*
+         * What directory on the server contains the pages
+         */
+        SAFplus::MgtProv<std::string> homeLocation;
+
     public:
         ServiceCfg();
         std::vector<std::string>* getChildNames();
@@ -44,6 +50,16 @@ namespace myService
          * XPATH: /myService/serviceCfg/port
          */
         void setPort(::uint16_t portValue, SAFplus::Transaction &txn=SAFplus::NO_TXN);
+
+        /*
+         * XPATH: /myService/serviceCfg/homeLocation
+         */
+        std::string getHomeLocation();
+
+        /*
+         * XPATH: /myService/serviceCfg/homeLocation
+         */
+        void setHomeLocation(std::string homeLocationValue, SAFplus::Transaction &txn=SAFplus::NO_TXN);
         ~ServiceCfg();
 
     };

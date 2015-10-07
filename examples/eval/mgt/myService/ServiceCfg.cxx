@@ -8,6 +8,7 @@
 #include "clMgtProv.hxx"
 #include "clMgtContainer.hxx"
 #include "clTransaction.hxx"
+#include <string>
 #include "myServiceCommon.hxx"
 #include <cstdint>
 #include <vector>
@@ -20,14 +21,15 @@ namespace myService
     /* Apply MGT object factory */
     MGT_REGISTER_IMPL(ServiceCfg, /myService/serviceCfg)
 
-    ServiceCfg::ServiceCfg(): SAFplus::MgtContainer("serviceCfg"), port("port")
+    ServiceCfg::ServiceCfg(): SAFplus::MgtContainer("serviceCfg"), port("port"), homeLocation("homeLocation")
     {
         this->addChildObject(&port, "port");
+        this->addChildObject(&homeLocation, "homeLocation");
     };
 
     std::vector<std::string>* ServiceCfg::getChildNames()
     {
-        std::string childNames[] = { "port" };
+        std::string childNames[] = { "port", "homeLocation" };
         return new std::vector<std::string> (childNames, childNames + sizeof(childNames) / sizeof(childNames[0]));
     };
 
@@ -45,6 +47,22 @@ namespace myService
     void ServiceCfg::setPort(::uint16_t portValue, SAFplus::Transaction &txn)
     {
         this->port.set(portValue,txn);
+    };
+
+    /*
+     * XPATH: /myService/serviceCfg/homeLocation
+     */
+    std::string ServiceCfg::getHomeLocation()
+    {
+        return this->homeLocation.value;
+    };
+
+    /*
+     * XPATH: /myService/serviceCfg/homeLocation
+     */
+    void ServiceCfg::setHomeLocation(std::string homeLocationValue, SAFplus::Transaction &txn)
+    {
+        this->homeLocation.set(homeLocationValue,txn);
     };
 
     ServiceCfg::~ServiceCfg()

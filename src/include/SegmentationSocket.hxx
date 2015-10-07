@@ -3,6 +3,7 @@
 #include <clMsgApi.hxx>
 #include <clLogApi.hxx>
 #include <clMsgBase.hxx>
+#include <Timer.hxx>
 #include <boost/intrusive/list.hpp>
 #include <boost/unordered_map.hpp>
 
@@ -13,6 +14,7 @@ using namespace boost::intrusive;
 #define USER_HEADER_LEN 6
 #define MAX_SEGMENT_SIZE 64000
 #define MAX_MSG_SIZE 10000000;
+#define CLEAR_QUEUE_INTERVAL 1000;
 static ClUint32T currFragId = 0;
 
 namespace SAFplus
@@ -29,14 +31,14 @@ namespace SAFplus
     Handle sender;
     int msgId;
     bool operator == (const MsgKey& other) const
-                    {
+                        {
       return ((sender == other.sender)&&(msgId==other.msgId));
-                    }
+                        }
 
     bool operator != (const MsgKey& other) const
-                    {
+                        {
       return ((sender != other.sender)||(msgId!=other.msgId));
-                    }
+                        }
     //? Handles can be used as keys in hash tables
   };
   inline std::size_t hash_value(MsgKey const& h)
@@ -78,14 +80,7 @@ namespace SAFplus
     {
       return m_nMsgId;
     }
-    //    void setMsgType(int msgType)
-    //    {
-    //      m_nMsgType=msgType;
-    //    }
-    //    int getMsgType()
-    //    {
-    //      return m_nMsgType;
-    //    }
+
     void setLast(bool isLastSeg);
     bool isLastSegment();
     Byte* getBytes();
@@ -97,7 +92,7 @@ namespace SAFplus
     friend bool operator> (const Segment &a, const Segment &b)
     {  return a.m_nSeqn > b.m_nSeqn;  }
     friend bool operator== (const Segment &a, const Segment &b)
-                               {  return a.m_nSeqn == b.m_nSeqn;  }
+                                   {  return a.m_nSeqn == b.m_nSeqn;  }
     ~Segment()
     {
       delete m_pData;
@@ -117,6 +112,8 @@ namespace SAFplus
     int segmentNum;
     bool isFull;
     int length;
+    Timer receiveTimeOut;
+    TimerTimeOutT testTimeout;
     Handle handle;
     MsgSegments()
     {
@@ -124,7 +121,6 @@ namespace SAFplus
       segmentNum=0;
       isFull=false;
     };
-
   };
   typedef boost::unordered_map<SAFplus::MsgKey, SAFplus::MsgSegments*> KeyMsgMap;
   class MsgSocketSegmentaion : public MsgSocketAdvanced
@@ -132,6 +128,7 @@ namespace SAFplus
   private:
     KeyMsgMap receiveMap;
     int msgReceived;
+    int msgReceiving;
     boost::thread rcvThread; //thread to receive and handle fragment
   public:
     Handle handle;
@@ -148,6 +145,12 @@ namespace SAFplus
     void applySegmentaion(SAFplus::Handle destination, void* buffer, uint_t length);
     void applySegmentaion(Message* m);
     void sendSegment(SAFplus::Handle destination,Segment * frag);
+    static ClRcT receiveTimeOutCallback(void *arg);
+    int getMapsize()
+    {
+      return receiveMap.size();
+    }
     virtual void flush();
+    virtual MsgPool* getMsgPool();
   };
 };

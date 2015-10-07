@@ -47,6 +47,11 @@ $(LIB_DIR)/libclDbal.so:
 	$(MAKE) -C $(SAFPLUS_SRC_DIR)/dbal
 endif
 
+ifndef SAFPLUS_TIMER_LIB
+$(LIB_DIR)/libclTimer.so:
+	$(MAKE) -C $(SAFPLUS_SRC_DIR)/timer
+endif
+
 ifndef SAFPLUS_PY_LIB
 $(LIB_DIR)/pySAFplus.so $(LIB_DIR)/amfctrl.py $(LIB_DIR)/safplus.py:
 	$(MAKE) -C $(SAFPLUS_SRC_DIR)/python
@@ -118,7 +123,7 @@ $(LIB_DIR)/libezxml.so:
 	$(MAKE) -C $(SAFPLUS_SRC_DIR)/3rdparty/ezxml/ezxml-0.8.6/
 
 # ordered by dependency
-SAFplusSOs := $(LIB_DIR)/libclUtils.so $(LIB_DIR)/libclLog.so $(LIB_DIR)/libclOsal.so  $(LIB_DIR)/libclCkpt.so $(LIB_DIR)/libclMsg.so $(LIB_DIR)/libclRpc.so $(LIB_DIR)/libclName.so $(LIB_DIR)/libclGroup.so $(LIB_DIR)/libclMgt.so $(LIB_DIR)/libclFault.so $(LIB_DIR)/libclDbal.so $(LIB_DIR)/libclAmf.so $(LIB_DIR)/pyDbal.so
+SAFplusSOs := $(LIB_DIR)/libclUtils.so $(LIB_DIR)/libclTimer.so $(LIB_DIR)/libclLog.so $(LIB_DIR)/libclOsal.so  $(LIB_DIR)/libclCkpt.so $(LIB_DIR)/libclMsg.so $(LIB_DIR)/libclRpc.so $(LIB_DIR)/libclName.so $(LIB_DIR)/libclGroup.so $(LIB_DIR)/libclMgt.so $(LIB_DIR)/libclFault.so $(LIB_DIR)/libclDbal.so $(LIB_DIR)/libclAmf.so $(LIB_DIR)/pyDbal.so
 
 ifndef SAFPLUS_MSG_PLUGIN
 # .PHONY: $(LIB_DIR)/clMsgUdp.so

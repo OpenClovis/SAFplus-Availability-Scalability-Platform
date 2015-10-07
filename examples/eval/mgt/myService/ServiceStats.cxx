@@ -22,11 +22,13 @@ namespace myService
     {
         this->addChildObject(&accessCounts, "accessCounts");
         accessCounts.config = false;
+        this->addChildObject(&bytesTransmitted, "bytesTransmitted");
+        bytesTransmitted.config = false;
     };
 
     std::vector<std::string>* ServiceStats::getChildNames()
     {
-        std::string childNames[] = { "accessCounts" };
+        std::string childNames[] = { "accessCounts", "bytesTransmitted" };
         return new std::vector<std::string> (childNames, childNames + sizeof(childNames) / sizeof(childNames[0]));
     };
 
@@ -44,6 +46,22 @@ namespace myService
     void ServiceStats::addAccessCounts(SAFplus::MgtHistoryStat<int> *accessCountsValue)
     {
         this->addChildObject(accessCountsValue, "accessCounts");
+    };
+
+    /*
+     * XPATH: /myService/serviceStats/bytesTransmitted
+     */
+    SAFplus::MgtHistoryStat<int>* ServiceStats::getBytesTransmitted()
+    {
+        return dynamic_cast<SAFplus::MgtHistoryStat<int>*>(this->getChildObject("bytesTransmitted"));
+    };
+
+    /*
+     * XPATH: /myService/serviceStats/bytesTransmitted
+     */
+    void ServiceStats::addBytesTransmitted(SAFplus::MgtHistoryStat<int> *bytesTransmittedValue)
+    {
+        this->addChildObject(bytesTransmittedValue, "bytesTransmitted");
     };
 
     ServiceStats::~ServiceStats()

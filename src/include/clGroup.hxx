@@ -145,7 +145,7 @@ namespace SAFplus
 
       /*? <ctor>  Construct a group identified by a particular handle.
        <arg name="groupHandle">The identity of this group</arg>
-       <arg name="comPort" default="SAFplusI::GMS_IOC_PORT">[Optional]  What port the group system is using.  By default, this will use the correct SAFplus group port.</arg>
+       <arg name="comPort" default="discover">[Optional]  What port the group system is using.  By default, this will use the correct SAFplus group port discovered by looking into the shared memory segment</arg>
        </ctor> */
       Group(SAFplus::Handle groupHandle, int comPort = 0);
       // Named group uses the name service to resolve the name to a handle

@@ -145,13 +145,18 @@ namespace SAFplus
       virtual Message* receive(uint_t maxMsgs,int maxDelay=-1)=0;
       //? Enable Nagle's algorithm (delay and batch sending small messages), if the underlying transport supports it.  You should check the transport's capabilities before calling this function.  If the transport does not support NAGLE's algorithm, this function will be a no-op but issue a log.  See <a href="http://en.wikipedia.org/wiki/Nagle%27s_algorithm">Nagle's Algorithm</a> for more details.
       virtual void useNagle(bool value);
+      virtual MsgPool* getMsgPool()
+      {
+        logTrace("MSG", "MSS","Get message pool");
+        return msgPool;
+      };
 
     protected:
       MsgTransportPlugin* transport;
       friend class ScopedMsgSocket;
   }; //? </class>
 
-  class MsgSocketAdvanced
+  class MsgSocketAdvanced:public MsgSocket
   {
     public:
     virtual ~MsgSocketAdvanced()
@@ -165,6 +170,7 @@ namespace SAFplus
     }
     virtual Message* receive(uint_t maxMsgs,int maxDelay=-1)
     {
+      return nullptr;
     }
     virtual void send(SAFplus::Handle destination, void* buffer, uint_t length,uint_t msgtype)
     {

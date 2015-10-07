@@ -8,7 +8,7 @@ module myService
   list subscribers
   {
     key "name";
-    description "";
+    description "This list defines who can use this service";
 
     leaf name
     {
@@ -63,6 +63,12 @@ module myService
     type uint16;
     default 8000;
     }
+  leaf homeLocation
+    {
+    description "What directory on the server contains the pages";
+    type string;
+    default "/srv/web";
+    }
   }
 
   container serviceStats
@@ -71,6 +77,13 @@ module myService
     container accessCounts
     {
       description "How much is the service being used";
+      SAFplusTypes:c-existing "SAFplus::MgtHistoryStat<int>"; 
+      uses SAFplusTypes:intStatistic; 
+      config false;
+    }
+    container bytesTransmitted
+    {
+      description "How many bytes are transmitted by the service";
       SAFplusTypes:c-existing "SAFplus::MgtHistoryStat<int>"; 
       uses SAFplusTypes:intStatistic; 
       config false;

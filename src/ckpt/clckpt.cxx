@@ -199,7 +199,10 @@ void SAFplus::Checkpoint::init(const Handle& hdl, uint_t _flags, uint64_t retent
     sync = NULL;
     }
 
-  initDB(ckptSharedMemoryObjectname.c_str(), isCkptExist);
+  if (flags & PERSISTENT)
+    {
+    initDB(ckptSharedMemoryObjectname.c_str(), isCkptExist);
+    }
   //assert(sharedMemHandle);
   assert(hdr);
 }

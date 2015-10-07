@@ -10,14 +10,14 @@ CLIENT_SRC := $(wildcard *.cxx)
 CLIENT_OBJ := $(addprefix $(OBJ_DIR)/,$(subst .cxx,.o,$(CLIENT_SRC)))
 
 # Specify the required libraries
-SAFPLUS_LIBS := clMsg clFault clLog clUtils clOsal
+SAFPLUS_LIBS := clTimer clMsg clFault clLog clUtils clOsal
 # Then use these in the make rule
 SAFPLUS_DEP_LIBS     := $(addsuffix .so,$(addprefix $(LIB_DIR)/lib,$(SAFPLUS_LIBS)))
 SAFPLUS_LINK_LIBS := -L$(LIB_DIR) $(addprefix -l,$(SAFPLUS_LIBS))
 
 IMAGE_FILE ?= testMsg.zip
 
-all: $(TEST_DIR)/testTransport  $(TEST_DIR)/testMsgServer $(TEST_DIR)/testMsgPerf $(TEST_DIR)/msgReflector $(TEST_DIR)/reliableClient $(TEST_DIR)/reliableServer  $(TEST_DIR)/testSegmentationReceive $(TEST_DIR)/testSegmentationSend
+all: $(TEST_DIR)/testTransport  $(TEST_DIR)/testMsgServer $(TEST_DIR)/testMsgServerSegmentation $(TEST_DIR)/testMsgPerf $(TEST_DIR)/msgReflector $(TEST_DIR)/reliableClient $(TEST_DIR)/reliableServer  $(TEST_DIR)/testSegmentationReceive $(TEST_DIR)/testSegmentationSend
 
 deps:
 	make -C $(SAFPLUS_SRC_DIR)/msg/transports

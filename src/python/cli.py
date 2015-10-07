@@ -1,13 +1,34 @@
 #!/usr/bin/python
 import sys, os, os.path, time
 
+AVAILABLE_SERVICES = {'localaccess':None, 'netconfaccess':None}
+
 try:
-  import localaccess as access
-  print "using local access"
-  CliName = "SAFplus Local CLI"
+  import localaccess
+  AVAILABLE_SERVICES['localaccess'] = 1
 except ImportError, e:
-  import netconfaccess as access
+  pass
+
+try:
+  import netconfaccess
+  AVAILABLE_SERVICES['netconfaccess'] = 1
+except ImportError, e:
+  pass
+
+assert (AVAILABLE_SERVICES['localaccess'] == 1 or AVAILABLE_SERVICES['netconfaccess'] == 1)
+
+MODE = int(os.getenv("LOCAL_ACCESS", 1))
+
+if MODE == 1 and AVAILABLE_SERVICES['localaccess'] is not None:
+  CliName = "SAFplus Local CLI"
+  access = localaccess
+elif AVAILABLE_SERVICES['netconfaccess'] is not None:
+  access = netconfaccess
   CliName = "SAFplus CLI"
+elif AVAILABLE_SERVICES['localaccess'] is not None:
+  # Fallback to default if available
+  CliName = "SAFplus Local CLI"
+  access = localaccess
 
 SuNameColor = (50,160,80)
 SuNameSize = 32

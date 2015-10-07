@@ -29,7 +29,7 @@ namespace myService
         ::myService::ServiceStats serviceStats;
 
         /*
-         * 
+         * This list defines who can use this service
          */
         SAFplus::MgtList<std::string> subscribersList;
 

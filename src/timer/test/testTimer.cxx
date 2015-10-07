@@ -198,6 +198,8 @@ int main(int argc, char* argv[])
   static TimerTimeOutT testTimeout;
   testTimeout.tsMilliSec=0;
   testTimeout.tsSec=1;
+  Timer timerTest23;
+/*
   Timer timerTest1(testTimeout, TimerTypeT::TIMER_ONE_SHOT, TimerContextT::TIMER_SEPARATE_CONTEXT,testTimerCallback1, NULL);
   Timer timerTest2(testTimeout, TimerTypeT::TIMER_ONE_SHOT, TimerContextT::TIMER_SEPARATE_CONTEXT,testTimerCallback2, NULL);
   Timer timerTest3(testTimeout, TimerTypeT::TIMER_ONE_SHOT, TimerContextT::TIMER_SEPARATE_CONTEXT,testTimerCallback3, NULL);
@@ -220,8 +222,9 @@ int main(int argc, char* argv[])
   Timer timerTest20(testTimeout, TimerTypeT::TIMER_REPETITIVE, TimerContextT::TIMER_SEPARATE_CONTEXT,testTimerCallback20, NULL);
   Timer timerTest21(testTimeout, TimerTypeT::TIMER_REPETITIVE, TimerContextT::TIMER_SEPARATE_CONTEXT,testTimerCallback21, NULL);
   Timer timerTest22(testTimeout, TimerTypeT::TIMER_REPETITIVE, TimerContextT::TIMER_SEPARATE_CONTEXT,testTimerCallback22, NULL);
-  Timer timerTest23(testTimeout, TimerTypeT::TIMER_REPETITIVE, TimerContextT::TIMER_SEPARATE_CONTEXT,testTimerCallback23, NULL);
-
+*/
+  timerTest23.timerCreate(testTimeout, TimerTypeT::TIMER_REPETITIVE, TimerContextT::TIMER_SEPARATE_CONTEXT,testTimerCallback23, NULL);
+/*
   rc= timerTest1.timerStart();
   if( CL_OK != rc )
   {
@@ -410,6 +413,7 @@ int main(int argc, char* argv[])
   {
     clAspLocalId = atoi(argv[1]);
   }
+*/
   while(1)
   {
     sleep(1);

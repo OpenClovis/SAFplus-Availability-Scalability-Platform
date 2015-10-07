@@ -8,6 +8,7 @@
 #include "clLogApi.hxx"
 #include "clMsgHandler.hxx"
 #include <clMsgApi.hxx>
+#include "SegmentationSocket.hxx"
 
 namespace SAFplus
 {
@@ -44,12 +45,12 @@ namespace SAFplus
     Wipe();
   }
 
-  MsgServer::MsgServer(uint_t port, uint_t maxPending, uint_t maxThreads, Options flags):jq()
+  MsgServer::MsgServer(uint_t port, uint_t maxPending, uint_t maxThreads, Options flags, SocketType type):jq()
   {
     /* Created 1 extra thread since it will be used to listen to the IOC port */
 
     Wipe();
-    Init(port, maxPending, maxThreads,flags);
+    Init(port, maxPending, maxThreads,flags,type);
   }
 
   void MsgServer::Wipe()
@@ -66,7 +67,7 @@ namespace SAFplus
     sendFailureTimeoutMs = 100;
   }
 
-  void MsgServer::Init(uint_t _port, uint_t maxPending, uint_t maxThreads, Options flags)
+  void MsgServer::Init(uint_t _port, uint_t maxPending, uint_t maxThreads, Options flags, SocketType type)
   {
     SaNameT myName;
     assert(_port != 0);  // TODO if port==0, use a shared memory bitmap to allocate a port number
@@ -76,7 +77,27 @@ namespace SAFplus
 
     // Create the message port
     if (!transport) transport = SAFplusI::defaultMsgPlugin;
-    sock = transport->createSocket(port);
+    switch(type)
+    {
+      case SOCK_DEFAULT:
+      {
+        sock = transport->createSocket(port);
+        break;
+      }
+      case SOCK_SHAPING:
+      {
+        break;
+      }
+      case SOCK_SEGMENTATION:
+      {
+        sock= new MsgSocketSegmentaion(port,transport);
+        break;
+      }
+      case SOCK_RELIABLE:
+      {
+        break;
+      }
+    }
 
     logInfo("MSG", "SVR","Created message port [%d] for MsgServer object",(unsigned int) port);
 

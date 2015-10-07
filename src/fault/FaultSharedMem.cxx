@@ -48,9 +48,6 @@ void FaultSharedMem::init(SAFplus::Handle active)
 void FaultSharedMem::setActive(SAFplus::Handle active)
 {
     if(faultHdr!=NULL)
-    {
-        return;
-    }
     faultHdr->activeFaultServer=active;
 }
 

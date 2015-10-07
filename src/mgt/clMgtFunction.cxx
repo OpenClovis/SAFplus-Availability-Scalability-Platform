@@ -70,7 +70,7 @@ namespace SAFplus
               {
                 assert(b.len() == sizeof(SAFplus::Handle));
                 SAFplus::Handle hdl = *((const SAFplus::Handle*) b.data);
-
+                logDebug("MGT", "LKP", "Resolved [%s] to [%" PRIu64 ",%" PRIu64 "]", xpath.c_str(),hdl.id[0],hdl.id[1]);
                 //std::string strRout = pathSpec.substr(lastSlash+1);  // request the "rest" of the string (everything that did not match the binding)
                 return hdl;
               }

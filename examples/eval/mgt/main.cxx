@@ -143,19 +143,35 @@ int main(int argc, char *argv[])
     //SAFplus::Handle myHandle = SAFplus::safplusMsgServer.GetAddress();
 
     /*
-     * active/standby handle
+     * active/standby handle:
+     * Moved to CSI Active assignment, then only handle active take part of mgt data
+     * SAFplus::myHandle = SAFplus::Handle::create();
+     * mgt.bind(SAFplus::myHandle,&mgt.serviceCfg);
+     * mgt.bind(SAFplus::myHandle,&mgt.serviceStats);
+     * mgt.bind(SAFplus::myHandle,&mgt.subscribersList);
      */
-    SAFplus::myHandle = SAFplus::Handle::create();
-    mgt.bind(SAFplus::myHandle,&mgt.serviceCfg);
-    mgt.bind(SAFplus::myHandle,&mgt.serviceStats);
-    mgt.bind(SAFplus::myHandle,&mgt.subscribersList);
 
     // If I am not under AMF control, run my "active" activities directly
     if (!amfControlled) 
       {
-        startHttpDaemon(mgt.serviceCfg.port);
-        pthread_t thr;
-        pthread_create(&thr,NULL,activeLoop,NULL);
+        SaAmfCSIDescriptorT fakeDescriptor;
+        fakeDescriptor.csiFlags=0;
+        fakeDescriptor.csiName.length=0;
+        fakeDescriptor.csiName.value[0]=0;
+        fakeDescriptor.csiAttr.number = 0;
+        fakeDescriptor.csiAttr.attr = NULL;
+        fakeDescriptor.csiStateDescriptor.activeDescriptor.activeCompName.length=0;
+        fakeDescriptor.csiStateDescriptor.activeDescriptor.activeCompName.value[0]=0;
+        fakeDescriptor.csiStateDescriptor.activeDescriptor.transitionDescriptor = SA_AMF_CSI_NEW_ASSIGN;
+        // Its a union
+        //fakeDescriptor.csiStateDescriptor.standbyDescriptor.activeCompName.length=0;
+        //fakeDescriptor.csiStateDescriptor.standbyDescriptor.activeCompName.value[0]=0;
+        //fakeDescriptor.csiStateDescriptor.standbyDescriptor.standbyRank = 0;
+
+        safAssignWork(0,&appName,SA_AMF_HA_ACTIVE,fakeDescriptor);
+        //startHttpDaemon(mgt.serviceCfg.port);
+        //pthread_t thr;
+        //pthread_create(&thr,NULL,activeLoop,NULL);
       }
 
     // Block on AMF dispatch file descriptor for callbacks. When this function returns its time to quit.
@@ -175,6 +191,7 @@ int main(int argc, char *argv[])
 }
 
 int accessCounts=0;
+int bytesTransmitted = 0;
 void* activeLoop(void* thunk)
 {
   int fakeAmt=1;
@@ -184,9 +201,13 @@ void* activeLoop(void* thunk)
       sleep(10);
 #ifdef HTTPD_EXAMPLE
       mgt.serviceStats.accessCounts.setValue(accessCounts);
+      mgt.serviceStats.bytesTransmitted.setValue(bytesTransmitted);
       accessCounts=0;
+      bytesTransmitted=0;
 #else
       mgt.serviceStats.accessCounts.setValue(fakeAmt);
+      mgt.serviceStats.bytesTransmitted.setValue(fakeAmt);
+
       fakeAmt++;
       if (fakeAmt > 120) fakeAmt = 0; 
 #endif
@@ -261,6 +282,14 @@ void safAssignWork(SaInvocationT       invocation,
             pthread_t thr;
             clprintf(SAFplus::LOG_SEV_INFO,"csa101: ACTIVE state requested; activating service");
             running = 1;
+
+            /*
+             * Binding data handle
+             */
+            SAFplus::myHandle = SAFplus::Handle::create();
+            mgt.bind(SAFplus::myHandle,&mgt.serviceCfg);
+            mgt.bind(SAFplus::myHandle,&mgt.serviceStats);
+            mgt.bind(SAFplus::myHandle,&mgt.subscribersList);
             /*
              * Start httpd 
              */

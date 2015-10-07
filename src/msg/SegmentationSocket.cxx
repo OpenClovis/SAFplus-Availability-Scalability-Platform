@@ -5,6 +5,7 @@
 
 namespace SAFplus
 {
+
   struct delete_disposer_segment
   {
     void operator()(Segment *delete_this)
@@ -51,7 +52,7 @@ namespace SAFplus
 
   Byte* Segment::getBytes()
   {
-//    logTrace("MSG","FRT","Get header data [%d] :  flags [%d] - header len [%d] - Sequence [%d] - MsgId [%d] ",dataLength(),m_nFalgs,m_nLen,m_nSeqn,m_nMsgId);
+    //    logTrace("MSG","FRT","Get header data [%d] :  flags [%d] - header len [%d] - Sequence [%d] - MsgId [%d] ",dataLength(),m_nFalgs,m_nLen,m_nSeqn,m_nMsgId);
     Byte *pBuffer = new Byte[dataLength() + USER_HEADER_LEN];
     pBuffer[0] = (Byte) (m_nFalgs & 0xFF);
     pBuffer[1] = (Byte) (m_nLen & 0xFF);
@@ -69,7 +70,7 @@ namespace SAFplus
     m_nSeqn  = int(buffer[_off+2] & 255);
     m_nMsgId = int(buffer[_off+3] & 255);
     m_nDataLen=_len - USER_HEADER_LEN;
-//    logTrace("MSG","FRT","parse header data flags : [%d] - header len : [%d] - Sequence : [%d] - MsgId : [%d]",m_nFalgs,m_nLen,m_nSeqn,m_nMsgId);
+    //    logTrace("MSG","FRT","parse header data flags : [%d] - header len : [%d] - Sequence : [%d] - MsgId : [%d]",m_nFalgs,m_nLen,m_nSeqn,m_nMsgId);
     m_pData = new Byte[m_nDataLen];
     memcpy(m_pData, buffer + _off + USER_HEADER_LEN, m_nDataLen);
   }
@@ -110,11 +111,39 @@ namespace SAFplus
     p_this->handleReceiveThread();
   }
 
+  ClRcT MsgSocketSegmentaion::receiveTimeOutCallback(void *arg)
+  {
+    MsgSegments *temp = (MsgSegments *)arg;
+    logDebug("MSG","RST","start clean unused segment list");
+    SegmentationList::iterator segment_it = temp->segmentList.begin();
+    bool quit=false;
+    while(segment_it != temp->segmentList.end())
+    {
+      Segment& s = *segment_it;
+
+      if(s.isLastSegment())
+      {
+        quit=true;
+      }
+      segment_it = temp->segmentList.erase_and_dispose(segment_it, delete_disposer_segment());
+      if(quit==true)
+      {
+        break;
+      }
+    }
+    return CL_OK;
+  }
+
   MsgSocketSegmentaion::MsgSocketSegmentaion(uint_t port,MsgTransportPlugin_1* transport)
   {
     sock = transport->createSocket(port);
     msgReceived=0;
     rcvThread = boost::thread(SegmentSocketThread, this);
+    ClRcT rc;
+    if ((rc = timerInitialize(NULL)) != CL_OK)
+    {
+      return;
+    }
   }
 
   MsgSocketSegmentaion::MsgSocketSegmentaion(MsgSocket* socket)
@@ -125,6 +154,11 @@ namespace SAFplus
   {
     //TODO
   }
+  MsgPool* MsgSocketSegmentaion::getMsgPool()
+  {
+    logTrace("MSG", "MSS","get msg pool");
+    return sock->msgPool;
+  };
 
   void MsgSocketSegmentaion::applySegmentaion(SAFplus::Handle destination, void* buffer, uint_t length)
   {
@@ -230,12 +264,13 @@ namespace SAFplus
       {
         break;
       }
-      usleep(100000);
+      usleep(10000);
     }while(1);
     for ( auto it = receiveMap.begin(); it != receiveMap.end();)
     {
       if(it->second->isFull)
       {
+        it->second->receiveTimeOut.timerStop();
         int msgType;
         int length=it->second->length;
         logTrace("MSG","MSS","Wait to receive message length [%d]", length);
@@ -294,7 +329,7 @@ namespace SAFplus
     Message* p_Msg = nullptr;
     int iMaxMsg = 1;
     int iDelay = 1;
-    p_Msg = this->sock->receive( iMaxMsg, iDelay);
+    p_Msg = this->sock->receive(iMaxMsg, iDelay);
     if(p_Msg == nullptr)
     {
       return nullptr;
@@ -332,6 +367,11 @@ namespace SAFplus
         logTrace("MSG","MSS","Push segment to segmentList");
         receiveMap[temp]->segmentList.push_back(*pFrag);
         receiveMap[temp]->segmentNum++;
+        logTrace("MSG","MSS","Create timer");
+        receiveMap[temp]->testTimeout.tsMilliSec=0;
+        receiveMap[temp]->testTimeout.tsSec=1;
+        receiveMap[temp]->receiveTimeOut.timerCreate(msgSegments->testTimeout, TimerTypeT::TIMER_ONE_SHOT, TimerContextT::TIMER_SEPARATE_CONTEXT,receiveTimeOutCallback, &receiveMap[temp]);
+        receiveMap[temp]->receiveTimeOut.timerStart();
       }
       else
       {
