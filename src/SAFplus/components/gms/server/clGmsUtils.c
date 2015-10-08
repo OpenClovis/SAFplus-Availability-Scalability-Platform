@@ -81,38 +81,33 @@ void
 _clGmsLoadUserAlgorithm(const ClUint32T groupid , 
                         char* const    pluginPath)
 {
-    const ClGmsLeaderElectionAlgorithmT algorithm = NULL;
-
+    ClGmsLeaderElectionAlgorithmT algorithm = NULL;
 
     /* load the plugin in to process address space */ 
     pluginHandle = dlopen(pluginPath, RTLD_NOW | RTLD_GLOBAL );
-    if(pluginHandle == NULL)
+    if (pluginHandle == NULL)
     {
-        clLogMultiline(ERROR,GEN,NA,
-                 "Unable to open the leader election plugin :[%s],"
-                 "reason: [%s] ",pluginPath,dlerror()
-                 );
-        return;
+      const char *err = dlerror();
+      if (!err)
+        err = "unknown";
+      clLog(ERROR, GEN, NA, "Unable to open the leader election plugin :[%s], reason: [%s]", pluginPath, err);
+      return;
     }
 
     /* Get the algorithm from the plugin */ 
-    *(void**)&algorithm =dlsym( 
-            pluginHandle, 
-            LEADER_ELECTION_ALGORITHM);
+    *(void**)&algorithm = dlsym(pluginHandle, LEADER_ELECTION_ALGORITHM);
     if(algorithm == NULL)
     {
-        clLog(ERROR,GEN,NA,
-                 "Unable to find the algorithm in plugin:[%s] %s",
-                 pluginPath,dlerror());
-        dlclose(pluginHandle);
-        return;
+      const char *err = dlerror();
+      if (!err)
+        err = "unknown";
+      clLog(ERROR, GEN, NA, "Unable to find the algorithm in plugin:[%s] %s", pluginPath, err);
+      dlclose(pluginHandle);
+      return;
     }
 
-    /* Store the algorithm handle in the groups slot of the GmsConfiguration
-     *  structure */ 
-    clLogMultiline (INFO,GEN,NA, 
-             "Group [%d] is using [%s] for leader election; Loaded from [%s]", 
-            groupid, LEADER_ELECTION_ALGORITHM, pluginPath);
+    /* Store the algorithm handle in the groups slot of the GmsConfiguration structure */
+    clLog(INFO, GEN, NA, "Group [%d] is using [%s] for leader election; Loaded from [%s]", groupid, LEADER_ELECTION_ALGORITHM, pluginPath);
     gmsGlobalInfo.config.leaderAlgDb[groupid] = algorithm;
 
     return;
