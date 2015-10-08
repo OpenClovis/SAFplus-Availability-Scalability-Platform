@@ -7,11 +7,11 @@
 #pragma once
 #ifndef SERVICEUNITFAILUREESCALATIONPOLICY_HXX_
 #define SERVICEUNITFAILUREESCALATIONPOLICY_HXX_
-#include "SAFplusAmfCommon.hxx"
 
+#include "SAFplusAmfCommon.hxx"
 #include <vector>
-#include "MgtFactory.hxx"
 #include "EscalationPolicy.hxx"
+#include "MgtFactory.hxx"
 
 namespace SAFplusAmf
   {

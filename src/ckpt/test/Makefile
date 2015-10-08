@@ -16,10 +16,10 @@ SAFPLUS_LINK_LIBS := -L$(LIB_DIR) $(addprefix -l,$(SAFPLUS_LIBS))
 all: $(TEST_DIR)/testCkpt $(TEST_DIR)/testCkptSync $(TEST_DIR)/testCkptRetention
 
 $(TEST_DIR)/%:  $(OBJ_DIR)/%.o $(SAFPLUS_DEP_LIBS)
-	$(LINK_EXE) $@ $<  $(LINK_LIBS) $(SAFPLUS_LINK_LIBS) -lezxml $(LINK_STD_LIBS) -lboost_program_options
+	$(LINK_EXE) $@ $<  $(LINK_LIBS) $(SAFPLUS_LINK_LIBS) $(LINK_STD_LIBS) -lboost_program_options
 
 $(TEST_DIR)/try: $(CLIENT_OBJ) $(DEP_LIBS)
-	$(LINK_EXE) $@ $+ $(LINK_LIBS) $(DEP_LIBS) -lezxml $(LINK_STD_LIBS)
+	$(LINK_EXE) $@ $+ $(LINK_LIBS) $(DEP_LIBS) $(LINK_STD_LIBS)
 	cp $(TEST_DIR)/try .
 
 $(OBJ_DIR)/%.o: %.cxx Makefile $(SAFPLUS_MAKE_DIR)/preface.mk $(CLIENT_H)

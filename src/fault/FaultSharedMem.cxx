@@ -47,10 +47,11 @@ void FaultSharedMem::init(SAFplus::Handle active)
 
 void FaultSharedMem::setActive(SAFplus::Handle active)
 {
-    if(faultHdr!=NULL)
+  if (faultHdr==NULL) // Fault is not initialized yet
     {
         return;
     }
+
     faultHdr->activeFaultServer=active;
 }
 

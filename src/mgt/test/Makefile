@@ -23,10 +23,10 @@ MGT_TEST_OBJ := $(addprefix $(OBJ_DIR)/test/mgt/,$(MGT_TEST_OBJ))
 all: $(TEST_DIR)/testmgt $(TEST_DIR)/testmgtapi
 
 $(TEST_DIR)/testmgtapi: $(OBJ_DIR)/test/mgt/testapi.o $(SAFPLUS_DEP_LIBS)
-	$(LINK_EXE) $@  $(OBJ_DIR)/test/mgt/testapi.o $(SAFPLUS_LINK_LIBS) -L$(SAFPLUS_TARGET)/lib -lezxml -L$(INSTALL_DIR)/lib -lxml2 $(LINK_STD_LIBS)
+	$(LINK_EXE) $@  $(OBJ_DIR)/test/mgt/testapi.o $(SAFPLUS_LINK_LIBS) -L$(SAFPLUS_TARGET)/lib -L$(INSTALL_DIR)/lib $(XML2_LINK) $(LINK_STD_LIBS)
 
 $(TEST_DIR)/%: $(MGT_TEST_OBJ) $(SAFPLUS_DEP_LIBS)
-	$(LINK_EXE) $@ $(MGT_TEST_OBJ) $(SAFPLUS_LINK_LIBS) -L$(SAFPLUS_TARGET)/lib -lezxml -L$(INSTALL_DIR)/lib -lxml2 $(LINK_STD_LIBS)
+	$(LINK_EXE) $@ $(MGT_TEST_OBJ) $(SAFPLUS_LINK_LIBS) -L$(SAFPLUS_TARGET)/lib -L$(INSTALL_DIR)/lib $(XML2_LINK) $(LINK_STD_LIBS)
 
 $(OBJ_DIR)/test/mgt/%.o: %.cxx
 	-mkdir -p $(OBJ_DIR)/test/mgt

@@ -7,37 +7,32 @@
 #pragma once
 #ifndef COMPONENT_HXX_
 #define COMPONENT_HXX_
-#include "SAFplusAmfCommon.hxx"
 
-#include "Recovery.hxx"
-#include "clTransaction.hxx"
-#include "Timeouts.hxx"
-#include "Terminate.hxx"
-#include <cstdint>
-#include "Instantiate.hxx"
-#include "Terminate.hxx"
-#include "Cleanup.hxx"
 #include "MgtFactory.hxx"
-#include "CapabilityModel.hxx"
-#include "ProcStats.hxx"
-#include "Cleanup.hxx"
+#include "clTransaction.hxx"
 #include <string>
-#include "ProcStats.hxx"
-#include "ReadinessState.hxx"
-#include "clMgtIdentifier.hxx"
-#include "Timeouts.hxx"
-#include "Instantiate.hxx"
-#include "clMgtProv.hxx"
-#include "PendingOperation.hxx"
-#include "HighAvailabilityReadinessState.hxx"
-#include <vector>
-#include "HighAvailabilityState.hxx"
+#include "Recovery.hxx"
 #include <cstdint>
-#include "PresenceState.hxx"
 #include "Date.hxx"
+#include "PresenceState.hxx"
+#include "Cleanup.hxx"
+#include "clMgtHistoryStat.hxx"
+#include "ProcStats.hxx"
+#include "Instantiate.hxx"
 #include "EntityId.hxx"
 #include "clMgtProvList.hxx"
+#include "HighAvailabilityReadinessState.hxx"
+#include "Terminate.hxx"
 #include "ServiceUnit.hxx"
+#include "ReadinessState.hxx"
+#include "Timeouts.hxx"
+#include "SAFplusAmfCommon.hxx"
+#include <vector>
+#include "HighAvailabilityState.hxx"
+#include "PendingOperation.hxx"
+#include "clMgtIdentifier.hxx"
+#include "clMgtProv.hxx"
+#include "CapabilityModel.hxx"
 
 namespace SAFplusAmf
   {
@@ -86,6 +81,10 @@ namespace SAFplusAmf
          * Compatible SA-Forum API version
          */
         SAFplus::MgtProv<std::string> safVersion;
+
+        /*
+         * Information about the type of component, as defined in sec 7.4.8 of AMF-B.04.01.  This is C type: SaAmfCompCategoryT, and its value is set based on other configuration (namely the component capabilities and whether a proxy is defined)
+         */
         SAFplus::MgtProv<::uint32_t> compCategory;
 
         /*

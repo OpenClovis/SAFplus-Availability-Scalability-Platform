@@ -7,9 +7,9 @@
 #pragma once
 #ifndef LIFECYCLESTATE_HXX_
 #define LIFECYCLESTATE_HXX_
-#include "SAFplusTypesCommon.hxx"
 
 #include "MgtEnumType.hxx"
+#include "SAFplusTypesCommon.hxx"
 #include <iostream>
 
 namespace SAFplusTypes

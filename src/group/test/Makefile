@@ -20,7 +20,7 @@ SAFPLUS_LIBS := clName clMgt clTimer clMsg clGroup clCkpt clUtils clOsal clLog c
 SAFPLUS_DEP_LIBS     := $(addsuffix .so,$(addprefix $(LIB_DIR)/lib,$(SAFPLUS_LIBS)))
 SAFPLUS_LINK_LIBS := -L$(LIB_DIR) $(addprefix -l,$(SAFPLUS_LIBS))
 
-LINK_STD_LIBS := -L$(INSTALL_DIR)/lib -lezxml -lxml2 -lstdc++ -lm $(LINK_STD_LIBS)
+LINK_STD_LIBS := -L$(INSTALL_DIR)/lib $(XML2_LINK) -lstdc++ -lm $(LINK_STD_LIBS)
 
 # $(TEST_DIR)/testGroupServer $(TEST_DIR)/testGroup $(TEST_DIR)/testMultiGroup
 all:  $(TEST_DIR)/testGroup

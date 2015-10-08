@@ -7,13 +7,13 @@
 #pragma once
 #ifndef TIMEOUTS_HXX_
 #define TIMEOUTS_HXX_
-#include "SAFplusAmfCommon.hxx"
 
-#include "clTransaction.hxx"
-#include "clMgtProv.hxx"
-#include <vector>
 #include "MgtFactory.hxx"
 #include "clMgtContainer.hxx"
+#include "clTransaction.hxx"
+#include "clMgtProv.hxx"
+#include "SAFplusAmfCommon.hxx"
+#include <vector>
 
 namespace SAFplusAmf
   {

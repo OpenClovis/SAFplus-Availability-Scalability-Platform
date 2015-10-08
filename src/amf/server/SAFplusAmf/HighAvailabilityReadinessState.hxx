@@ -7,10 +7,10 @@
 #pragma once
 #ifndef HIGHAVAILABILITYREADINESSSTATE_HXX_
 #define HIGHAVAILABILITYREADINESSSTATE_HXX_
-#include "SAFplusAmfCommon.hxx"
 
-#include "MgtEnumType.hxx"
+#include "SAFplusAmfCommon.hxx"
 #include <iostream>
+#include "MgtEnumType.hxx"
 
 namespace SAFplusAmf
   {

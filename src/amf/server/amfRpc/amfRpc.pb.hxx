@@ -206,14 +206,14 @@ class StartComponentResponse : public ::google::protobuf::Message {
 
   // accessors -------------------------------------------------------
 
-  // optional int32 err = 1;
+  // optional sint32 err = 1;
   inline bool has_err() const;
   inline void clear_err();
   static const int kErrFieldNumber = 1;
   inline ::google::protobuf::int32 err() const;
   inline void set_err(::google::protobuf::int32 value);
 
-  // optional int32 pid = 2;
+  // optional sint32 pid = 2;
   inline bool has_pid() const;
   inline void clear_pid();
   static const int kPidFieldNumber = 2;
@@ -301,7 +301,7 @@ class StopComponentRequest : public ::google::protobuf::Message {
 
   // accessors -------------------------------------------------------
 
-  // optional int32 pid = 1;
+  // optional sint32 pid = 1;
   inline bool has_pid() const;
   inline void clear_pid();
   static const int kPidFieldNumber = 1;
@@ -386,7 +386,7 @@ class StopComponentResponse : public ::google::protobuf::Message {
 
   // accessors -------------------------------------------------------
 
-  // optional int32 err = 1;
+  // optional sint32 err = 1;
   inline bool has_err() const;
   inline void clear_err();
   static const int kErrFieldNumber = 1;
@@ -471,7 +471,7 @@ class ProcessInfoRequest : public ::google::protobuf::Message {
 
   // accessors -------------------------------------------------------
 
-  // optional int32 pid = 1;
+  // optional sint32 pid = 1;
   inline bool has_pid() const;
   inline void clear_pid();
   static const int kPidFieldNumber = 1;
@@ -656,7 +656,7 @@ class ProcessFailedRequest : public ::google::protobuf::Message {
 
   // accessors -------------------------------------------------------
 
-  // optional int32 pid = 1;
+  // optional sint32 pid = 1;
   inline bool has_pid() const;
   inline void clear_pid();
   static const int kPidFieldNumber = 1;
@@ -741,7 +741,7 @@ class ProcessFailedResponse : public ::google::protobuf::Message {
 
   // accessors -------------------------------------------------------
 
-  // optional int32 err = 1;
+  // optional sint32 err = 1;
   inline bool has_err() const;
   inline void clear_err();
   static const int kErrFieldNumber = 1;
@@ -921,7 +921,7 @@ inline void StartComponentRequest::set_allocated_command(::std::string* command)
 
 // StartComponentResponse
 
-// optional int32 err = 1;
+// optional sint32 err = 1;
 inline bool StartComponentResponse::has_err() const {
   return (_has_bits_[0] & 0x00000001u) != 0;
 }
@@ -943,7 +943,7 @@ inline void StartComponentResponse::set_err(::google::protobuf::int32 value) {
   err_ = value;
 }
 
-// optional int32 pid = 2;
+// optional sint32 pid = 2;
 inline bool StartComponentResponse::has_pid() const {
   return (_has_bits_[0] & 0x00000002u) != 0;
 }
@@ -969,7 +969,7 @@ inline void StartComponentResponse::set_pid(::google::protobuf::int32 value) {
 
 // StopComponentRequest
 
-// optional int32 pid = 1;
+// optional sint32 pid = 1;
 inline bool StopComponentRequest::has_pid() const {
   return (_has_bits_[0] & 0x00000001u) != 0;
 }
@@ -995,7 +995,7 @@ inline void StopComponentRequest::set_pid(::google::protobuf::int32 value) {
 
 // StopComponentResponse
 
-// optional int32 err = 1;
+// optional sint32 err = 1;
 inline bool StopComponentResponse::has_err() const {
   return (_has_bits_[0] & 0x00000001u) != 0;
 }
@@ -1021,7 +1021,7 @@ inline void StopComponentResponse::set_err(::google::protobuf::int32 value) {
 
 // ProcessInfoRequest
 
-// optional int32 pid = 1;
+// optional sint32 pid = 1;
 inline bool ProcessInfoRequest::has_pid() const {
   return (_has_bits_[0] & 0x00000001u) != 0;
 }
@@ -1143,7 +1143,7 @@ inline void ProcessInfoResponse::set_allocated_command(::std::string* command) {
 
 // ProcessFailedRequest
 
-// optional int32 pid = 1;
+// optional sint32 pid = 1;
 inline bool ProcessFailedRequest::has_pid() const {
   return (_has_bits_[0] & 0x00000001u) != 0;
 }
@@ -1169,7 +1169,7 @@ inline void ProcessFailedRequest::set_pid(::google::protobuf::int32 value) {
 
 // ProcessFailedResponse
 
-// optional int32 err = 1;
+// optional sint32 err = 1;
 inline bool ProcessFailedResponse::has_err() const {
   return (_has_bits_[0] & 0x00000001u) != 0;
 }

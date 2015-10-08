@@ -7,16 +7,17 @@
 #pragma once
 #ifndef APPLICATION_HXX_
 #define APPLICATION_HXX_
-#include "SAFplusAmfCommon.hxx"
 
-#include <string>
-#include "clTransaction.hxx"
-#include "clMgtProv.hxx"
-#include "ServiceGroup.hxx"
-#include "clMgtIdentifierList.hxx"
-#include <vector>
-#include "MgtFactory.hxx"
 #include "EntityId.hxx"
+#include "MgtFactory.hxx"
+#include "clTransaction.hxx"
+#include "clMgtIdentifierList.hxx"
+#include <string>
+#include "clMgtProv.hxx"
+#include "clMgtHistoryStat.hxx"
+#include "ServiceGroup.hxx"
+#include "SAFplusAmfCommon.hxx"
+#include <vector>
 #include "AdministrativeState.hxx"
 
 namespace SAFplusAmf

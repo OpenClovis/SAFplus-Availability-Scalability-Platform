@@ -7,9 +7,9 @@
 #pragma once
 #ifndef PROCESSSTATE_HXX_
 #define PROCESSSTATE_HXX_
-#include "SAFplusTypesCommon.hxx"
 
 #include "MgtEnumType.hxx"
+#include "SAFplusTypesCommon.hxx"
 #include <iostream>
 
 namespace SAFplusTypes

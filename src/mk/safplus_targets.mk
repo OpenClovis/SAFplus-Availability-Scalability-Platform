@@ -198,7 +198,7 @@ SAFplusTests := $(TEST_DIR)/testLog $(TEST_DIR)/testmgt   $(TEST_DIR)/testCkpt $
 
 SAFplusServices :=  $(SAFPLUS_TARGET)/bin/splogd $(SAFPLUS_TARGET)/bin/safplus_amf
 
-SAFplusTools := $(SAFPLUS_TARGET)/bin/protoc-gen-rpc
+SAFplusTools := $(SAFplusRpcGen)
 
 SAFplusPlugins := $(PLUGIN_DIR)/libclBerkeleyDB.so $(PLUGIN_DIR)/libclGDBM.so $(PLUGIN_DIR)/libclSQLiteDB.so $(SAFplusMsgTransports)
 
