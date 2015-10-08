@@ -39,11 +39,15 @@ extern "C" {
 #include <clCommon.h>
 #include <clGmsCommon.h>
 
+/*
+ * param: splitBrain to indicate calling leader algorithm is in split-brain or normal case
+ */
 extern ClRcT
 _clGmsEngineLeaderElect(
         CL_IN   ClGmsGroupIdT groupId ,
         CL_IN   ClGmsViewNodeT          *node ,
         CL_IN   ClGmsGroupChangesT       cond,
+        CL_IN   ClBoolT                 splitBrain,
         CL_OUT  ClGmsNodeIdT            *leaderNodeId ,
         CL_OUT  ClGmsNodeIdT            *deputyNodeId 
         );

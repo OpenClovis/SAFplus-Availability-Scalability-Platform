@@ -125,8 +125,9 @@ LeaderElectionAlgorithm (
         ClGmsNodeIdT            *leaderNodeId,
         ClGmsNodeIdT            *deputyNodeId, 
         ClGmsClusterMemberT     *memberJoinedOrLeft ,
-        ClGmsGroupChangesT      cond 
-        ){
+        ClGmsGroupChangesT      cond,
+        ClBoolT                 splitBrain)
+{
 
     /*
        Algorithm

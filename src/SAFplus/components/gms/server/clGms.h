@@ -272,13 +272,13 @@ _clGmsLoadUserAlgorithm(
         );
 
 extern ClRcT 
-_clGmsDefaultLeaderElectionAlgorithm(
-        ClGmsClusterNotificationBufferT buffer,
-        ClGmsNodeIdT            *leaderNodeId,
-        ClGmsNodeIdT            *deputyNodeId, 
-        ClGmsClusterMemberT     *memberJoinedOrLeft ,
-        ClGmsGroupChangesT      cond 
-        );
+_clGmsDefaultLeaderElectionAlgorithm (
+        const ClGmsClusterNotificationBufferT buffer,
+        ClGmsNodeIdT*  const        leaderNodeId,
+        ClGmsNodeIdT*  const        deputyNodeId, 
+        ClGmsClusterMemberT* const  memberJoinedOrLeft ,
+        const ClGmsGroupChangesT    cond,
+        ClBoolT                     splitBrain);
 
 void 
 _clGmsServiceInitialize ( const int argc , char* const argv[] );

@@ -220,8 +220,9 @@ LeaderElectionAlgorithm (
         ClGmsClusterNotificationBufferT buffer,
         ClGmsNodeIdT            *leaderNodeId,
         ClGmsNodeIdT            *deputyNodeId, 
-        ClGmsClusterMemberT     *memberJoinedOrLeft ,
-        ClGmsGroupChangesT      cond )
+        ClGmsClusterMemberT     *memberJoinedOrLeft,
+        ClGmsGroupChangesT      cond,
+        ClBoolT                 splitBrain)
 {
 
     ClRcT rc = CL_OK;

@@ -134,6 +134,7 @@ static ClRcT timerCallback( void *arg )
     rc = _clGmsEngineLeaderElect (0x0,
                                   NULL , 
                                   CL_GMS_MEMBER_JOINED,
+                                  CL_FALSE,
                                   &leaderNodeId,
                                   &deputyNodeId
                                    );
@@ -269,7 +270,7 @@ static void *clGmsLeaderVerifierTask(void *cookie)
   do
   {
     clLogDebug("NTF", "LEA", "Try [%d] of [%d] to verify reports leader [%d]", retries, maxRetries, reportedLeader);
-    _clGmsEngineLeaderElect(0x0, NULL, CL_GMS_MEMBER_JOINED, &leaderNodeId, &deputyNodeId);
+    _clGmsEngineLeaderElect(0x0, NULL, CL_GMS_MEMBER_JOINED, CL_TRUE, &leaderNodeId, &deputyNodeId);
   } while (retries++ < maxRetries && (leaderNodeId != reportedLeader) && clOsalTaskDelay(delay) == CL_OK);
 
   clOsalMutexLock(&gGmsLeaderVerifierTaskLock);
@@ -626,7 +627,8 @@ _clGmsDefaultLeaderElectionAlgorithm (
         ClGmsNodeIdT*  const        leaderNodeId,
         ClGmsNodeIdT*  const        deputyNodeId, 
         ClGmsClusterMemberT* const  memberJoinedOrLeft ,
-        const ClGmsGroupChangesT    cond )
+        const ClGmsGroupChangesT    cond,
+        ClBoolT                     splitBrain)
 {
     /*
        Algorithm
@@ -670,6 +672,7 @@ _clGmsEngineLeaderElect(
         CL_IN   const ClGmsGroupIdT         groupId ,
         CL_IN   ClGmsViewNodeT* const       node ,
         CL_IN   const ClGmsGroupChangesT    cond,
+        CL_IN   ClBoolT                     splitBrain,
         CL_OUT  ClGmsNodeIdT*   const       leaderNodeId ,
         CL_OUT  ClGmsNodeIdT*   const       deputyNodeId )
 {
@@ -732,7 +735,8 @@ _clGmsEngineLeaderElect(
             leaderNodeId,
             deputyNodeId,
             node == NULL ? NULL: &(node->viewMember.clusterMember),
-            cond 
+            cond,
+            splitBrain
             );
 
     if ((rc != CL_OK) || (*leaderNodeId == CL_GMS_INVALID_NODE_ID))
@@ -934,6 +938,7 @@ _clGmsEnginePreferredLeaderElect(
             0,
             NULL,
             CL_GMS_LEADER_ELECT_API_REQUEST,
+            CL_FALSE,
             &leaderNode,
             &deputyNode);
 
@@ -1144,7 +1149,7 @@ static ClRcT _clGmsEngineClusterJoinWrapper(
         return rc;
     }
 
-    rc = _clGmsEngineLeaderElect(groupId, node, CL_GMS_MEMBER_JOINED, &newLeader, &newDeputy);
+    rc = _clGmsEngineLeaderElect(groupId, node, CL_GMS_MEMBER_JOINED, CL_FALSE, &newLeader, &newDeputy);
 
     if (rc != CL_OK)
     {
@@ -1317,6 +1322,7 @@ ClRcT _clGmsEngineClusterLeaveExtended(
                 0x0,
                 NULL,   /* FIXME: need to send the node leaving the cluster*/
                 CL_GMS_MEMBER_LEFT,
+                CL_FALSE,
                 &new_leader,
                 &new_deputy 
                 );

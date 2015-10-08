@@ -177,6 +177,7 @@ _clGmsEngineLeaderElect(
         ClGmsGroupIdT            groupid,
         ClGmsViewNodeT          *node ,
         ClGmsGroupChangesT       cond,
+        ClBoolT                  splitBrain,
         ClGmsNodeIdT            *leaderNodeId ,
         ClGmsNodeIdT            *deputyNodeId );
 

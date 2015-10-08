@@ -130,13 +130,17 @@ typedef struct {
  *  algorithm is invoked. Condition can be
  *  \c CL_GMS_MEMBER_JOIN or \c CL_GMS_MEMBER_LEFT and the pointer to the node is
  *  passed to the algorithm. 
- */ 
+ */
+/*
+ * param: splitBrain to indicate calling leader algorithm is in split-brain or normal case
+ */
 typedef ClRcT (*ClGmsLeaderElectionAlgorithmT)(
         ClGmsClusterNotificationBufferT buffer,
         ClGmsNodeIdT            *leaderNodeId,
         ClGmsNodeIdT            *deputyNodeId, 
         ClGmsClusterMemberT     *memberJoinedOrLeft,
-        ClGmsGroupChangesT       cond 
+        ClGmsGroupChangesT       cond,
+        ClBoolT                  splitBrain
         );
 
 
