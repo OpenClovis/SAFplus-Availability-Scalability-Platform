@@ -11,8 +11,8 @@ using namespace SAFplus;
 
 static bool gClTimerDebug = CL_FALSE;
 static SAFplus::Mutex gClTimerDebugLock;
-signed int timerMinParallelThread=3000;
-signed int timerMaxParallelThread=20000;
+signed int timerMinParallelThread=5;
+signed int timerMaxParallelThread=50;
 
 #define TIMER_INITIALIZED_CHECK(rc,label) do {   \
     if(gTimerBase.initialized == CL_FALSE)          \
@@ -368,6 +368,7 @@ signed short SAFplus::Timer::timerAddCallbackTask()
 }
 SAFplus::Timer::~Timer()
 {
+  delete timerPool;
 }
 void SAFplus::Timer::timerInitCallbackTask()
 {
@@ -420,7 +421,7 @@ ClRcT SAFplus::Timer::timerCreate(TimerTimeOutT timeOut,
   this->timerCallback = timerCallback;
   this->timerData = timerData;
   this->timerInitCallbackTask();
-  this->timerFlags=TIMER_STOPPED;
+  this->timerFlags=0;
   rc = CL_OK;
   out:
   return rc;
@@ -460,7 +461,7 @@ ClRcT SAFplus::Timer::timerStartInternal(boost::posix_time::ptime expiry,bool lo
   /*
    * add to the rb tree.
    */
-   //TODO logDebug("TIMER", "START", "INSERT TIMER INTO RBTREE with time expire [%ld]",this->timerExpiry);
+  //TODO logDebug("TIMER", "START", "INSERT TIMER INTO RBTREE with time expire [%ld]",this->timerExpiry);
   if(this->timerCallback==NULL)
   {
     logDebug("TIMER", "START", "callback null in start function");
@@ -490,7 +491,10 @@ ClRcT SAFplus::Timer::timerStop()
   /*Reset timer expiry. and rip this guy off from the list.*/
   this->timerExpiry = boost::posix_time::not_a_date_time;
   this->timerFlags |= TIMER_STOPPED;
-  gTimerBase.timerTree.erase(boost::intrusive::rbtree<Timer>::s_iterator_to(*this));
+  if(gTimerBase.timerTree.find(*this)!=gTimerBase.timerTree.end())
+  {
+    gTimerBase.timerTree.erase(boost::intrusive::rbtree<Timer>::s_iterator_to(*this));
+  }
   gTimerBase.timerListLock.unlock();
   out:
   return rc;
@@ -566,25 +570,21 @@ ClRcT SAFplus::Timer::timerState(bool flags, bool *pState)
 /*
  * Assumed that the caller has also synchronized his call with his timer start/stop/delete
  */
-ClRcT SAFplus::Timer::timerIsStopped(bool *pState)
+bool SAFplus::Timer::timerIsStopped()
 {
-  ClRcT rc = CL_OK;
-  gTimerBase.timerListLock.lock();
-  rc = this->timerState(TIMER_STOPPED, pState);
-  gTimerBase.timerListLock.unlock();
-  return rc;
+  if((this->timerFlags & TIMER_STOPPED))
+    return true;
+  return false;
 }
 
 /*
  * Assumed that the caller has also synchronized his call with his timer start/stop/delete.
  */
-ClRcT SAFplus::Timer::timerIsRunning(TimerHandleT timerHandle, bool *pState)
+bool SAFplus::Timer::timerIsRunning()
 {
-  ClRcT rc = CL_OK;
-  gTimerBase.timerListLock.lock();
-  rc = this->timerState(TIMER_RUNNING, pState);
-  gTimerBase.timerListLock.unlock();
-  return rc;
+  if((this->timerFlags & TIMER_RUNNING))
+    return true;
+  return false;
 }
 
 ClRcT SAFplus::Timer::timerCreateAndStart(TimerTimeOutT timeOut,
@@ -611,76 +611,76 @@ ClRcT SAFplus::Timer::timerCreateAndStart(TimerTimeOutT timeOut,
  * Dont call it under a callback.
  */
 
- ClRcT SAFplus::timerInitialize(ClPtrT config, signed int maxTimer)
+ClRcT SAFplus::timerInitialize(ClPtrT config, signed int maxTimer)
 {
-   timerMinParallelThread=maxTimer;
-   logDebug("TIMER", "START", "Init timer with [%d] thread pools",maxTimer);
-   ClRcT rc = CL_TIMER_RC(CL_ERR_INITIALIZED);
-   if(gTimerBase.initialized == CL_TRUE)
-   {
-     goto out;
-   }
+  timerMinParallelThread=maxTimer;
+  logDebug("TIMER", "START", "Init timer with [%d] thread pools",maxTimer);
+  ClRcT rc = CL_TIMER_RC(CL_ERR_INITIALIZED);
+  if(gTimerBase.initialized == CL_TRUE)
+  {
+    goto out;
+  }
 
-   if(clParseEnvBoolean("CL_TIMER_DEBUG") == CL_TRUE)
-   {
-     gClTimerDebug = CL_TRUE;
-     /* crash if used outside debug context*/
-   }
+  if(clParseEnvBoolean("CL_TIMER_DEBUG") == CL_TRUE)
+  {
+    gClTimerDebug = CL_TRUE;
+    /* crash if used outside debug context*/
+  }
 
-   rc = gTimerBase.TimerBaseInitialize();
-   if(rc != CL_OK)
-   {
-     goto out;
-   }
+  rc = gTimerBase.TimerBaseInitialize();
+  if(rc != CL_OK)
+  {
+    goto out;
+  }
 
-   gTimerBase.timerRunning = CL_TRUE;
-   gTimerBase.timeUpdate();
-   logInfo("TIMER7", "INIT", "create thread to handle timer");
-   pthread_create(&gTimerBase.timerId, NULL,timerTask, NULL);
-   if(rc != CL_OK)
-   {
-     gTimerBase.timerRunning = CL_FALSE;
-     logError("TIMER7", "INIT", "Timer task create returned [%#x]", rc);
-     goto out_free;
-   }
-   logInfo("TIMER7", "INIT", "create thread to handle timer success");
-   gTimerBase.initialized = CL_TRUE;
-   return rc;
-   out_free:
-   if(gTimerBase.timerId)
-   {
-     gTimerBase.timerRunning = CL_FALSE;
-     pthread_join(gTimerBase.timerId, NULL);
+  gTimerBase.timerRunning = CL_TRUE;
+  gTimerBase.timeUpdate();
+  logInfo("TIMER7", "INIT", "create thread to handle timer");
+  pthread_create(&gTimerBase.timerId, NULL,timerTask, NULL);
+  if(rc != CL_OK)
+  {
+    gTimerBase.timerRunning = CL_FALSE;
+    logError("TIMER7", "INIT", "Timer task create returned [%#x]", rc);
+    goto out_free;
+  }
+  logInfo("TIMER7", "INIT", "create thread to handle timer success");
+  gTimerBase.initialized = CL_TRUE;
+  return rc;
+  out_free:
+  if(gTimerBase.timerId)
+  {
+    gTimerBase.timerRunning = CL_FALSE;
+    pthread_join(gTimerBase.timerId, NULL);
 
-   }
-   out:
-   return rc;
+  }
+  out:
+  return rc;
 }
 
- ClRcT SAFplus::timerFinalize(void)
- {
-   ClRcT rc = CL_TIMER_RC(CL_ERR_NOT_INITIALIZED);
+ClRcT SAFplus::timerFinalize(void)
+{
+  ClRcT rc = CL_TIMER_RC(CL_ERR_NOT_INITIALIZED);
 
-   if(gTimerBase.initialized == CL_FALSE)
-   {
-     goto out;
-   }
+  if(gTimerBase.initialized == CL_FALSE)
+  {
+    goto out;
+  }
 
-   gTimerBase.initialized = CL_FALSE;
+  gTimerBase.initialized = CL_FALSE;
 
-   if(gTimerBase.timerRunning == CL_TRUE)
-   {
-     gTimerBase.timerListLock.lock();
-     gTimerBase.timerRunning = CL_FALSE;
-     gTimerBase.timerListLock.unlock();
+  if(gTimerBase.timerRunning == CL_TRUE)
+  {
+    gTimerBase.timerListLock.lock();
+    gTimerBase.timerRunning = CL_FALSE;
+    gTimerBase.timerListLock.unlock();
 
-     if(gTimerBase.timerId)
-     {
-       pthread_join(gTimerBase.timerId,NULL);
-     }
-   }
-   gTimerBase.pool.stop();
-   rc = CL_OK;
-   out:
-   return rc;
- }
+    if(gTimerBase.timerId)
+    {
+      pthread_join(gTimerBase.timerId,NULL);
+    }
+  }
+  gTimerBase.pool.stop();
+  rc = CL_OK;
+  out:
+  return rc;
+}

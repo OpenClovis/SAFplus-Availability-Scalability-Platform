@@ -17,7 +17,7 @@ except ImportError, e:
 
 assert (AVAILABLE_SERVICES['localaccess'] == 1 or AVAILABLE_SERVICES['netconfaccess'] == 1)
 
-MODE = os.getenv("LOCAL_ACCESS", 1)
+MODE = int(os.getenv("LOCAL_ACCESS", 1))
 
 if MODE == 1 and AVAILABLE_SERVICES['localaccess'] is not None:
   CliName = "SAFplus Local CLI"
