@@ -48,7 +48,7 @@ signed int timerMaxParallelThread=50;
 SAFplus::TimerBase gTimerBase;
 
 
-SAFplus::TimerBase::TimerBase(): pool(timerMinParallelThread,timerMaxParallelThread)
+SAFplus::TimerBase::TimerBase()
 {
 
 }
@@ -306,7 +306,7 @@ void SAFplus::TimerBase::timerSpawn(Timer *pTimer)
   /*
    * Invoke the callback in the task pool context
    */
-  this->pool.run(pTimer->timerPool);
+  this->pool->run(pTimer->timerPool);
 }
 
 
@@ -611,10 +611,9 @@ ClRcT SAFplus::Timer::timerCreateAndStart(TimerTimeOutT timeOut,
  * Dont call it under a callback.
  */
 
-ClRcT SAFplus::timerInitialize(ClPtrT config, signed int maxTimer)
+ClRcT SAFplus::timerInitialize(ClPtrT config)
 {
-  // timerMinParallelThread=maxTimer;
-  logDebug("TIMER", "START", "Init timer with [%d] thread pools",maxTimer);
+  gTimerBase.pool = new ThreadPool(timerMinParallelThread,timerMaxParallelThread);
   ClRcT rc = CL_TIMER_RC(CL_ERR_INITIALIZED);
   if(gTimerBase.initialized == CL_TRUE)
   {
@@ -667,7 +666,6 @@ ClRcT SAFplus::timerFinalize(void)
   }
 
   gTimerBase.initialized = CL_FALSE;
-
   if(gTimerBase.timerRunning == CL_TRUE)
   {
     gTimerBase.timerListLock.lock();
@@ -679,7 +677,8 @@ ClRcT SAFplus::timerFinalize(void)
       pthread_join(gTimerBase.timerId,NULL);
     }
   }
-  gTimerBase.pool.stop();
+  gTimerBase.pool->stop();
+  delete gTimerBase.pool;
   rc = CL_OK;
   out:
   return rc;
