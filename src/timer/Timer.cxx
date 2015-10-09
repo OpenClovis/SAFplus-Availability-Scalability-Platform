@@ -613,7 +613,7 @@ ClRcT SAFplus::Timer::timerCreateAndStart(TimerTimeOutT timeOut,
 
 ClRcT SAFplus::timerInitialize(ClPtrT config, signed int maxTimer)
 {
-  timerMinParallelThread=maxTimer;
+  // timerMinParallelThread=maxTimer;
   logDebug("TIMER", "START", "Init timer with [%d] thread pools",maxTimer);
   ClRcT rc = CL_TIMER_RC(CL_ERR_INITIALIZED);
   if(gTimerBase.initialized == CL_TRUE)

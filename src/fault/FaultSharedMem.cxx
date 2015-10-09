@@ -7,21 +7,16 @@ using namespace boost::interprocess;
 
 namespace SAFplus
 {
-void FaultSharedMem::init(SAFplus::Handle active)
+void FaultSharedMem::init()
 {
     faultSharedMemoryObjectName = "SAFplusFault";
     faultMsm = boost::interprocess::managed_shared_memory(boost::interprocess::open_or_create, faultSharedMemoryObjectName.c_str(), SAFplusI::FaultSharedMemSize);
     faultMap = faultMsm.find_or_construct<SAFplus::FaultShmHashMap>("faults")  (faultMsm.get_allocator<SAFplus::FaultShmMapPair>());
-    if(active == INVALID_HDL)
-    {
-        // fault client
-        faultHdr = faultMsm.find_or_construct<SAFplus::FaultShmHeader>("header") ();
-        return;
-    }
+
     try
     {
         faultHdr = (SAFplus::FaultShmHeader*) faultMsm.construct<SAFplus::FaultShmHeader>("header") ();                                 // Ok it created one so initialize
-    	faultHdr->activeFaultServer = active;
+    	faultHdr->activeFaultServer = INVALID_HDL;
         faultHdr->structId=SAFplus::CL_FAULT_BUFFER_HEADER_STRUCT_ID_7; // Initialize this last.  It indicates that the header is properly initialized (and acts as a structure version number)
     }
     catch (interprocess_exception &e)
@@ -35,7 +30,7 @@ void FaultSharedMem::init(SAFplus::Handle active)
             while (faultHdr->structId != CL_FAULT_BUFFER_HEADER_STRUCT_ID_7)
               {
                 // That other process should have inited it by now... so that other process must not exist.  Maybe it died, or maybe the shared memory is bad.  I will initialize.
-              faultHdr->activeFaultServer = active;
+              faultHdr->activeFaultServer = INVALID_HDL;
               faultHdr->structId=SAFplus::CL_FAULT_BUFFER_HEADER_STRUCT_ID_7; // Initialize this last.  It indicates that the header is properly initialized (and acts as a structure version number)   
               boost::this_thread::sleep(boost::posix_time::milliseconds(100));             
               }
@@ -47,8 +42,8 @@ void FaultSharedMem::init(SAFplus::Handle active)
 
 void FaultSharedMem::setActive(SAFplus::Handle active)
 {
-    if(faultHdr!=NULL)  // If it is initialized
-      faultHdr->activeFaultServer=active;
+  assert(faultHdr);
+  faultHdr->activeFaultServer=active;
 }
 
 bool FaultSharedMem::createFault(FaultShmEntry* frp,SAFplus::Handle fault)

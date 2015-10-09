@@ -48,7 +48,7 @@ namespace SAFplus
       {
         faultInitCount++;
         if (faultInitCount > 1) return;
-    	SAFplus::fsm.init(INVALID_HDL);
+    	SAFplus::fsm.init();
       }
 
     // Register a Fault Entity to Fault Server
