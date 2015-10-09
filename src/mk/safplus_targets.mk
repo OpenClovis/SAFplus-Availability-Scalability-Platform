@@ -25,7 +25,7 @@ $(INSTALL_DIR)/lib/libxml2.so:
 #endif
 
 ifndef SAFPLUS_RPC_LIB
-$(SAFPLUS_TARGET)/bin/protoc-gen-rpc: $(wildcard $(SAFPLUS_SRC_DIR)/rpc/protoc/*.cxx) $(wildcard $(SAFPLUS_SRC_DIR)/rpc/protoc/*.hxx)
+$(SAFPLUS_TOOL_TARGET)/bin/protoc-gen-rpc: $(wildcard $(SAFPLUS_SRC_DIR)/rpc/protoc/*.cxx) $(wildcard $(SAFPLUS_SRC_DIR)/rpc/protoc/*.hxx)
 	$(MAKE) -C $(SAFPLUS_SRC_DIR)/rpc/protoc
 
 $(LIB_DIR)/libclRpc.so: $(wildcard $(SAFPLUS_SRC_DIR)/rpc/*.cxx) $(wildcard $(SAFPLUS_SRC_DIR)/include/*.hxx) $(wildcard $(SAFPLUS_SRC_DIR)/rpc/protoc/*.cxx) $(wildcard $(SAFPLUS_SRC_DIR)/rpc/protoc/*.hxx)
