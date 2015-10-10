@@ -401,6 +401,8 @@ namespace SAFplus
   unsigned int depth=64;  // To stop accidental infinite loops, let's set the default depth to something large but not crazy
   MgtObject::SerializationOptions seropts =  (MgtObject::SerializationOptions) (MgtObject::SerializeListKeyAttribute | MgtObject::SerializePathAttribute | MgtObject::SerializeOnePath);
 
+  rplMesg.clear_data();
+
   if (path[0] == '{')  // Debugging requests
     {
       int end = path.find_first_of("}");
@@ -463,6 +465,8 @@ namespace SAFplus
 
   rplMesg.SerializeToString(&strRplMesg);
   logDebug("MGT","XGET","Replying to request [%s] %sfrom [%" PRIx64 ",%" PRIx64 "] with msg of size [%lu]",path.c_str(),cmds.c_str(),srcAddr.id[0], srcAddr.id[1], (long unsigned int) strRplMesg.size());
+  logDebug("MGT","XGET","Contents [%.400s...]",rplMesg.data(0).c_str());
+
   if (strRplMesg.size()>0)
     {
     MgtRoot::sendReplyMsg(srcAddr,(void *)strRplMesg.c_str(),strRplMesg.size());

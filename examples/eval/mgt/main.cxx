@@ -280,7 +280,7 @@ void safAssignWork(SaInvocationT       invocation,
             /* Typically you would spawn a thread here to initiate active 
                processing of the work. */
             pthread_t thr;
-            clprintf(SAFplus::LOG_SEV_INFO,"csa101: ACTIVE state requested; activating service");
+            clprintf(SAFplus::LOG_SEV_INFO,"ACTIVE state requested; activating service");
             running = 1;
 
             /*
@@ -471,7 +471,7 @@ void dispatchLoop(void)
   do
     {
       struct timeval timeout;
-      timeout.tv_sec = 2; timeout.tv_usec = 0;
+      timeout.tv_sec = 10; timeout.tv_usec = 0;
 
       FD_ZERO(&read_fds);
       FD_SET(amf_dispatch_fd, &read_fds);
@@ -572,6 +572,7 @@ void printCSI(SaAmfCSIDescriptorT csiDescriptor, SaAmfHAStateT haState)
 void initializeOperationalValues(myService::MyServiceModule& cfg)
 {
   mgt.serviceCfg.port = 8080;
+  mgt.serviceCfg.homeLocation.value = "/srv/http";
 }
 
 //? </section></section></section>

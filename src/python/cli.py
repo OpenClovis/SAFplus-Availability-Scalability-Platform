@@ -7,12 +7,14 @@ try:
   import localaccess
   AVAILABLE_SERVICES['localaccess'] = 1
 except ImportError, e:
+  print e
   pass
 
 try:
   import netconfaccess
   AVAILABLE_SERVICES['netconfaccess'] = 1
 except ImportError, e:
+  print e
   pass
 
 assert (AVAILABLE_SERVICES['localaccess'] == 1 or AVAILABLE_SERVICES['netconfaccess'] == 1)
