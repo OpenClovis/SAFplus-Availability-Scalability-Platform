@@ -73,10 +73,11 @@ TARGET_PLATFORM ?= `$(COMPILER) -dumpmachine` #$(shell uname -p)
 MGT_SRC_DIR ?= $(SAFPLUS_SRC_DIR)/../../mgt
 TAE_DIR ?= $(SAFPLUS_SRC_DIR)/../../tae
 
-NOOP := $(shell mkdir -p $(SAFPLUS_SRC_DIR)/../target/$(TARGET_PLATFORM)/$(TARGET_OS))
-SAFPLUS_TARGET ?= $(shell (cd $(SAFPLUS_SRC_DIR)/../target/$(TARGET_PLATFORM)/$(TARGET_OS); pwd))
+NOOP := $(shell mkdir -p $(SAFPLUS_SRC_DIR)/../target/$(strip $(TARGET_PLATFORM))/$(TARGET_OS))
+SAFPLUS_TARGET ?= $(shell (cd $(SAFPLUS_SRC_DIR)/../target/$(strip $(TARGET_PLATFORM))/$(TARGET_OS); pwd))
 
 # Put compilation tools (that you have to build) here
+NOOP := $(shell mkdir -p $(SAFPLUS_SRC_DIR)/../target/$(LOCAL_TARGET_PLATFORM)/$(LOCAL_TARGET_OS))
 SAFPLUS_TOOL_TARGET ?= $(shell (cd $(SAFPLUS_SRC_DIR)/../target/$(LOCAL_TARGET_PLATFORM)/$(LOCAL_TARGET_OS); pwd))
 $(info STT $(SAFPLUS_TOOL_TARGET))
 
