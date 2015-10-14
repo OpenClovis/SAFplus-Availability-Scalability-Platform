@@ -113,11 +113,11 @@ int main(int argc, char* argv[])
       logInfo("TST","MSG","Msg Transport [%s], node [%u] maxPort [%u] maxMsgSize [%u]", xp->type, xCfg.nodeId, xCfg.maxPort, xCfg.maxMsgSize);
       Handle destination = SAFplus::getProcessHandle(4,122);
       logInfo("TST","MSG","nit segmentation socket p 3");
-      MsgSocketSegmentaion sockclient(3,xp);
+      MsgSocketSegmentation sockclient(3,xp);
       printf("init socket : done \n");
-      long len=9000000;
+      long len=900;
       int count = 0;
-      while(count<1)
+      while(count<1000)
       {
         count ++;
         unsigned char* buffer = new unsigned char[len*count];

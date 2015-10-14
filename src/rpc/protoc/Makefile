@@ -3,7 +3,6 @@ SAFPLUS_RPC_LIB := 1
 include ../../mk/preface.mk
 
 CPP_FLAGS += `$(PKG_CONFIG) --cflags protobuf` -I$(SAFPLUS_3RDPARTY_DIR)
-PROTOC_LIBS := $(shell $(PKG_CONFIG) --libs protobuf) -lprotoc
 
 PROTOC_TOOL_H   := $(wildcard *.hxx)
 PROTOC_TOOL_SRC := $(wildcard *.cxx)
@@ -17,7 +16,7 @@ $(LOCAL_OBJ_DIR)/protoc/%.o: %.cxx Makefile $(PROTOC_TOOL_H)
 	$(LOCAL_COMPILE_CPP) $@ $<
 
 $(SAFPLUS_TOOL_TARGET)/bin/protoc-gen-rpc: $(PROTOC_TOOL_OBJ)
-	$(LOCAL_LINK_EXE) $@ $(PROTOC_TOOL_OBJ) $(PROTOC_LIBS)
+	$(LOCAL_LINK_EXE) $@ $(PROTOC_TOOL_OBJ) $(PROTOBUF_LINK)
 
 clean:
 	rm -rf $(OBJ_DIR)/protoc $(SAFPLUS_TARGET)/bin/protoc-gen-rpc

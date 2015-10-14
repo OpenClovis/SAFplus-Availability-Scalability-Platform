@@ -73,12 +73,12 @@ TARGET_PLATFORM ?= `$(COMPILER) -dumpmachine` #$(shell uname -p)
 MGT_SRC_DIR ?= $(SAFPLUS_SRC_DIR)/../../mgt
 TAE_DIR ?= $(SAFPLUS_SRC_DIR)/../../tae
 
-NOOP := $(shell mkdir -p $(SAFPLUS_SRC_DIR)/../target/$(strip $(TARGET_PLATFORM))/$(TARGET_OS))
-SAFPLUS_TARGET ?= $(shell (cd $(SAFPLUS_SRC_DIR)/../target/$(strip $(TARGET_PLATFORM))/$(TARGET_OS); pwd))
+NOOP := $(shell mkdir -p $(SAFPLUS_SRC_DIR)/../target/$(strip $(TARGET_PLATFORM)))
+SAFPLUS_TARGET ?= $(shell (cd $(SAFPLUS_SRC_DIR)/../target/$(strip $(TARGET_PLATFORM)); pwd))
 
 # Put compilation tools (that you have to build) here
-NOOP := $(shell mkdir -p $(SAFPLUS_SRC_DIR)/../target/$(LOCAL_TARGET_PLATFORM)/$(LOCAL_TARGET_OS))
-SAFPLUS_TOOL_TARGET ?= $(shell (cd $(SAFPLUS_SRC_DIR)/../target/$(LOCAL_TARGET_PLATFORM)/$(LOCAL_TARGET_OS); pwd))
+NOOP := $(shell mkdir -p $(SAFPLUS_SRC_DIR)/../target/$(LOCAL_TARGET_PLATFORM))
+SAFPLUS_TOOL_TARGET ?= $(shell (cd $(SAFPLUS_SRC_DIR)/../target/$(LOCAL_TARGET_PLATFORM); pwd))
 $(info STT $(SAFPLUS_TOOL_TARGET))
 
 SAFPLUS_CODEBLOCKS_BIN_DIR ?= /opt/SAFplus/7.0/ide/bin/
@@ -147,7 +147,7 @@ GPERFTOOLS_LINK :=
 endif
 
 # Determine protobuf location
-PROTOBUF_LINK ?= $(shell PKG_CONFIG_PATH=$(PKG_CONFIG_PATH) pkg-config --libs protobuf) -lprotoc
+PROTOBUF_LINK ?= -L/usr/lib -L/usr/lib/i386-linux-gnu $(shell PKG_CONFIG_PATH=$(PKG_CONFIG_PATH) pkg-config --libs protobuf) -lprotoc
 PROTOBUF_FLAGS ?= $(shell PKG_CONFIG_PATH=$(PKG_CONFIG_PATH) pkg-config --cflags protobuf)
 # $(info PROTOBUF_FLAGS is $(PROTOBUF_FLAGS) PROTOBUF_LINK is $(PROTOBUF_LINK))
 

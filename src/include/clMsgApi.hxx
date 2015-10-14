@@ -6,5 +6,6 @@
 #include <clMsgTransportPlugin.hxx>
 #include <clMsgBase.hxx>
 #include <clSafplusMsgServer.hxx>
+#include <clMsgSarSocket.hxx>
 
 //? </section>

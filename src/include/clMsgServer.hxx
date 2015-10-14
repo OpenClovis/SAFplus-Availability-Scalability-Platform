@@ -132,6 +132,9 @@ namespace SAFplus
 
     Fault* fault;  //? You need to initialize this if you want the message server to gain knowledge of system faults
 
+    SAFplus::MsgSocket* getSocket() { return sock; }
+    void setSocket(SAFplus::MsgSocket* s) { sock = s; }
+ 
   protected:
     void Shutdown();
 

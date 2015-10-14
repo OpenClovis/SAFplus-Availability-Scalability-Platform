@@ -1,10 +1,16 @@
 #include <clMsgServer.hxx>
 #include <clMsgHandler.hxx>
+#include <clMsgSarSocket.hxx>
 #include <clTestApi.hxx>
 #include <boost/program_options.hpp>
 #include <boost/iostreams/stream.hpp>
 
 using namespace SAFplus;
+
+// add segmentation and reassembly layer if this is true
+bool sar = false;
+
+const char* suiteName = "SVR";  // this is the name of the suite of tests.  It changes based on the parameters supplied
 
 class xorshf96
   {
@@ -58,6 +64,12 @@ bool testSendRecv()
   //MsgServer b(1,10,2,SAFplus::MsgServer::Options::DEFAULT_OPTIONS,SAFplus::MsgServer::SocketType::SOCK_SEGMENTATION);
   MsgServer a(2,10,2);
   MsgServer b(1,10,2);
+  if (sar)
+    {
+      // TODO memory leak
+      a.setSocket(new MsgSarSocket(a.getSocket()));
+      b.setSocket(new MsgSarSocket(b.getSocket()));
+    }
 
 
   const char* strMsg = "This is a test of message sending";
@@ -153,6 +165,7 @@ int main(int argc, char* argv[])
     ("xport", boost::program_options::value<std::string>(), "transport plugin filename")
     ("loglevel", boost::program_options::value<std::string>(), "logging cutoff level")
     ("mode", boost::program_options::value<std::string>()->default_value("LAN"), "specify 'LAN' or 'cloud' to set the messaging transport address resolution mode")
+    ("sar", boost::program_options::value<bool>()->default_value("false"), "Use segmentation and reassembly layer")
     ;
 
   boost::program_options::variables_map vm;
@@ -166,7 +179,13 @@ int main(int argc, char* argv[])
   if (vm.count("xport")) xport = vm["xport"].as<std::string>();
   if (vm.count("loglevel")) SAFplus::logSeverity = logSeverityGet(vm["loglevel"].as<std::string>().c_str());
 
-  clTestGroupInitialize(("MSG-SVR-UNT.TG003: Test MsgServer class"));
+  if (vm.count("sar"))
+    {
+      sar=true;
+      suiteName = "SAR";
+    }
+
+  clTestGroupInitialize(("MSG-%s-UNT.TG003: Test MsgServer class",suiteName));
 
   if (vm["mode"].as<std::string>() == "cloud")
     {
@@ -179,7 +198,7 @@ int main(int argc, char* argv[])
 
   clMsgInitialize();
 
-  clTestCase(("MSG-SVR-UNT.TC001: simple send/recv test"),testSendRecv());
+  clTestCase(("MSG-%s-UNT.TC001: simple send/recv test",suiteName),testSendRecv());
 
   clTestGroupFinalize();
 }
