@@ -233,9 +233,9 @@ namespace SAFplus
             case SAFplus::FaultMessageType::MSG_ENTITY_FAULT:
                 if(1)
                 {
-                  //logDebug(FAULT,"MSG","Process fault event message");
+                    logDebug("POL","AMF", "Process fault event message");
                     processFaultEvent(pluginId,eventData,faultEntity,reporterHandle);
-                    logDebug("POL","AMF","Fault event data severity [%s] , cause [%s] , catagory [%s] , state [%d] ", SAFplus::strFaultSeverity[int(eventData.severity)],SAFplus::strFaultProbableCause[int(eventData.cause)],SAFplus::strFaultCategory[int(eventData.category)],eventData.alarmState);
+                    logDebug("POL","AMF","Fault event data severity [%s] , cause [%s] , catagory [%s] , state [%d] ", ITUALARMTCMIB::ItuPerceivedSeverityManager::c_str(eventData.severity), IANAITUALARMTCMIB::ProbableCauseManager::c_str(eventData.cause), IANAITUALARMTCMIB::IANAItuEventTypeManager::c_str(eventData.category), eventData.alarmState);
                     FaultHistoryEntity faultHistoryEntry;
                     time_t now;
                     time(&now);
@@ -416,7 +416,7 @@ namespace SAFplus
             logDebug(FAULT,"MSG","Send broadcast fault entity join message :  node id [%d] and process Id [%d]",faultClient.getNode(),faultClient.getProcess());
             broadcastEntityAnnounceMessage(faultClient,frp->state);
         }
-    }   
+    }
     //Deregister a fault client entity
 
     void FaultServer::removeFaultEntity(SAFplus::Handle faultClient,bool needNotify)
@@ -485,7 +485,7 @@ namespace SAFplus
             //TODO return
             return false;
         }
-    }   
+    }
     //process a fault event
     void FaultServer::processFaultEvent(SAFplus::FaultPolicy pluginId, FaultEventData fault , SAFplus::Handle faultEntity, SAFplus::Handle faultReporter)
     {
@@ -527,7 +527,7 @@ namespace SAFplus
         sndMessage.messageType = FaultMessageType::MSG_ENTITY_JOIN_BROADCAST;
         sndMessage.state = state;
         sndMessage.faultEntity = handle;
-        sndMessage.data.init(SAFplus::AlarmState::ALARM_STATE_INVALID,SAFplus::AlarmCategory::ALARM_CATEGORY_INVALID,SAFplus::AlarmSeverity::ALARM_SEVERITY_INVALID,SAFplus::AlarmProbableCause::ALARM_ID_INVALID);
+        sndMessage.data.init(SAFplus::AlarmState::ALARM_STATE_INVALID,IANAITUALARMTCMIB::IANAItuEventType::other,ITUALARMTCMIB::ItuPerceivedSeverity::cleared,IANAITUALARMTCMIB::ProbableCause::aIS);
         sndMessage.pluginId=SAFplus::FaultPolicy::Undefined;
         sndMessage.syncData[0]=0;
         sendFaultNotificationToGroup((void *)&sndMessage,sizeof(FaultMessageProtocol));
@@ -542,7 +542,7 @@ namespace SAFplus
         sndMessage.messageType = FaultMessageType::MSG_ENTITY_STATE_CHANGE_BROADCAST;
         sndMessage.state = state;
         sndMessage.faultEntity = handle;
-        sndMessage.data.init(SAFplus::AlarmState::ALARM_STATE_INVALID,SAFplus::AlarmCategory::ALARM_CATEGORY_INVALID,SAFplus::AlarmSeverity::ALARM_SEVERITY_INVALID,SAFplus::AlarmProbableCause::ALARM_ID_INVALID);
+        sndMessage.data.init(SAFplus::AlarmState::ALARM_STATE_INVALID,IANAITUALARMTCMIB::IANAItuEventType::other,ITUALARMTCMIB::ItuPerceivedSeverity::cleared,IANAITUALARMTCMIB::ProbableCause::aIS);
         sndMessage.pluginId=SAFplus::FaultPolicy::Undefined;
         sndMessage.syncData[0]=0;
         sendFaultNotificationToGroup((void *)&sndMessage,sizeof(FaultMessageProtocol));
@@ -557,7 +557,7 @@ namespace SAFplus
         sndMessage.messageType = FaultMessageType::MSG_ENTITY_LEAVE_BROADCAST;
         sndMessage.state = FaultState::STATE_UP; // TODO: wouldn't state be down or undefined?
         sndMessage.faultEntity=handle;
-        sndMessage.data.init(SAFplus::AlarmState::ALARM_STATE_INVALID,SAFplus::AlarmCategory::ALARM_CATEGORY_INVALID,SAFplus::AlarmSeverity::ALARM_SEVERITY_INVALID,SAFplus::AlarmProbableCause::ALARM_ID_INVALID);
+        sndMessage.data.init(SAFplus::AlarmState::ALARM_STATE_INVALID,IANAITUALARMTCMIB::IANAItuEventType::other,ITUALARMTCMIB::ItuPerceivedSeverity::cleared,IANAITUALARMTCMIB::ProbableCause::aIS);
         sndMessage.pluginId=SAFplus::FaultPolicy::Undefined;
         sndMessage.syncData[0]=0;
         sendFaultNotificationToGroup((void *)&sndMessage,sizeof(FaultMessageProtocol));

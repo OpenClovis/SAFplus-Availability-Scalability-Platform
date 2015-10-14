@@ -70,9 +70,9 @@ void testAllFeature()
     sleep(10);
     FaultEventData faultData;
     faultData.alarmState=SAFplus::AlarmState::ALARM_STATE_INVALID;
-    faultData.category=SAFplus::AlarmCategory::ALARM_CATEGORY_COMMUNICATIONS;
-    faultData.cause=SAFplus::AlarmProbableCause::ALARM_PROB_CAUSE_PROCESSOR_PROBLEM;
-    faultData.severity=SAFplus::AlarmSeverity::ALARM_SEVERITY_MINOR;
+    faultData.category=IANAITUALARMTCMIB::IANAItuEventType::communicationsAlarm;
+    faultData.cause = IANAITUALARMTCMIB::ProbableCause::processorProblem;
+    faultData.severity=ITUALARMTCMIB::ItuPerceivedSeverity::minor;
     state = fc.getFaultState(me);
     logInfo("FLT","CLT","Get current fault state in shared memory [%s]", strFaultEntityState[int(state)]);
     logInfo("FLT","CLT","Send fault event to local fault server");
@@ -94,9 +94,9 @@ void tressTest(int eventNum)
     {
         FaultEventData faultData;
         faultData.alarmState=SAFplus::AlarmState::ALARM_STATE_INVALID;
-        faultData.category=SAFplus::AlarmCategory::ALARM_CATEGORY_COMMUNICATIONS;
-        faultData.cause=SAFplus::AlarmProbableCause::ALARM_PROB_CAUSE_PROCESSOR_PROBLEM;
-        faultData.severity=SAFplus::AlarmSeverity::ALARM_SEVERITY_MINOR;
+        faultData.category=IANAITUALARMTCMIB::IANAItuEventType::communicationsAlarm;
+        faultData.cause=IANAITUALARMTCMIB::ProbableCause::processorProblem;
+        faultData.severity = ITUALARMTCMIB::ItuPerceivedSeverity::minor;
         fc.notify(faultData,FaultPolicy::AMF);
         sleep(1);
     }
