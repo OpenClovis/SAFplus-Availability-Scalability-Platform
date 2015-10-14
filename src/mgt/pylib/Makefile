@@ -19,7 +19,7 @@ CLIENT_PYLIB_OBJ := $(addprefix $(OBJ_DIR)/,$(subst .cxx,.o,$(CLIENT_PYLIB_SRC))
 
 PYLIB_SRC := $(BIN_DIR)/dbalpy.py $(LIB_DIR)/common.py $(LIB_DIR)/microdom.py $(LIB_DIR)/pyDbal.py
 
-Release all: $(LIB_DIR)/pyDbal.so
+Release all: $(LIB_DIR)/pyDbal.so $(BIN_DIR)/dbalpy.py
 
 $(LIB_DIR)/pyDbal.so: $(CLIENT_PYLIB_OBJ) $(PYLIB_SRC) $(SAFPLUS_DEP_LIBS)
 	$(LINK_SO) $@ $(CLIENT_PYLIB_OBJ) $(SAFPLUS_LINK_LIBS) -lxml2 $(LINK_SO_LIBS)

@@ -16,7 +16,7 @@ endif
 # --- 2 --- Choose Cross Compilation Target
 
 # If you are cross compiling, set 'Xtarget' to the cross-compilation executable prefix (the argument to --host= in 'normal' .configure scripts).  For example, if your gcc binary is called "i586-wrs-linux-gnu-gcc" then the Xtarget should be "i586-wrs-linux-gnu".  You can generally discover this name by going into your cross-compilation install directory and doing a "find" on a known binary, for example 'find <cross-comp install base dir> -name "*-gcc" -print'.
-Xtarget:=$(TARGET)
+Xtarget:=$(CROSSPFX)
 # Example using PNE 1.4
 #Xtarget:=i586-wrs-linux-gnu
 # Example using clovis el4 cross compile toolchain
@@ -57,6 +57,8 @@ Xenv:=
 #   + ./configure --prefix=/opt/clovis/buildtools/powerpc-unknown-linux-gnu --host=powerpc-unknown-linux-gnu
 #   + make
 #   + make install
+
+PROTOBUF_VER=v2.5.0
 
 NETSNMP=net-snmp
 NETSNMP_VER=5.4.4
@@ -102,13 +104,15 @@ BOOST_PKG=$(BOOST)_$(subst .,_,$(BOOST_VER)).tar.gz
 #PyHPI_VER=1.1
 #PyHPI_PKG=$(PyHPI)-$(PyHPI_VER).tar.gz
 #
-#PYTHON=Python
-#PYTHON_VER=2.7.3
-#PYTHON_PKG=$(PYTHON)-$(PYTHON_VER).tar.bz2
+
+PYTHON=Python
+PYTHON_VER=2.7.10
+PYTHON_PKG=$(PYTHON)-$(PYTHON_VER).tgz
 
 # THAT IS ALL
 ifneq ($(Xtarget),)
   Xconfigure:=--host=$(Xtarget)
+#  Xconfigure:=--build=$(Xtarget)
   Xargs:=CXXFLAGS="-I$(InstDir)/include -I$(InstDir)/$(Xtarget)/include -I$(InstDir)/glib-2.0/glib" CPPFLAGS="-I$(InstDir)/include -I$(InstDir)/$(Xtarget)/include -I$(InstDir)/glib-2.0/glib" LDFLAGS="-L$(InstDir)/lib -L$(InstDir)/$(Xtarget)/lib" CC=$(Xtarget)-gcc CXX=$(Xtarget)-g++
 ifeq ($(Xenv),)
   Xenv:=export PKG_CONFIG_PATH=$(InstDir)/lib/pkgconfig/:$$PKG_CONFIG_PATH;PATH=$(InstDir)/bin:$$PATH;LD_LIBRARY_PATH=$(InstDir)/lib
@@ -155,16 +159,26 @@ else
 XconfNETSNMP_PKG:=
 endif
 
-libs: $(NETSNMP) $(InstDir) $(LIBXML2) $(BOOST) 
+libs: $(InstDir) $(LIBXML2) $(BOOST) 
 	echo building libs
 
-# $(OPENHPI) $(OPENHPISUBAGENT)
-all: $(InstDir) $(LIBXML2) $(BOOST) $(NETSNMP)  
+# $(NETSNMP)  $(OPENHPI) $(OPENHPISUBAGENT)
+all: $(InstDir) $(LIBXML2) $(BOOST) 
 
 
 
 $(InstDir):
 	mkdir -p $@
+
+protobuf:
+	git clone git@github.com:google/protobuf.git
+	(cd protobuf; git checkout -b $(PROTOBUF_VER) $(PROTOBUF_VER))
+	(cd protobuf; ./autogen.sh)
+
+protobufs: protobuf
+	(cd protobuf; $(Xenv); $(Xargs) ./configure --prefix=$(InstDir) --with-protoc=$(shell which protoc) $(Xconfigure) )
+	(cd protobuf; make )
+	(cd protobuf; make install )
 
 $(NETSNMP): $(NETSNMP_PKG)
 	(tar xvfz $<  > /dev/null)
@@ -217,11 +231,11 @@ $(PyHPI_PKG):
 	wget http://sourceforge.net/projects/openhpi/files/$(PyHPI)/$(PyHPI_VER)/$(PyHPI)-$(PyHPI_VER).tar.gz
 
 $(PYTHON): $(PYTHON_PKG)
-	(tar xvfj $<  > /dev/null)
+	(tar xvf $<  > /dev/null)
 	(cd $(PYTHON)-$(PYTHON_VER); $(foreach config, $(XconfCROSS_PYTHON), \
 		echo $(config) >> config.cache; \
 	))
-	(cd $(PYTHON)-$(PYTHON_VER); $(Xenv); $(Xargs) ./configure --prefix=$(InstDir) $(Xconfigure) $(XconfPYTHON_PKG))
+	(cd $(PYTHON)-$(PYTHON_VER); $(Xenv); $(Xargs) ./configure --prefix=$(InstDir) $(Xconfigure) $(XconfPYTHON_PKG) --build=i686-pc-linux-gnu --disable-ipv6)
 	(cd $(PYTHON)-$(PYTHON_VER); $(Xenv); $(Xargs) make CROSS_COMPILE_TARGET=yes)
 	(cd $(PYTHON)-$(PYTHON_VER); $(Xenv); $(Xargs) make install)
 
@@ -282,7 +296,8 @@ $(EXPAT_PKG):
 
 $(LIBXML2):$(LIBXML2_PKG)
 	(tar xvfz $<  > /dev/null)
-	(cd $(LIBXML2)-$(LIBXML2_VER); $(Xenv); $(Xargs) ./configure --with-debug --with-run-debug --with-mem-debug CFLAGS="-O0 -g" --prefix=$(InstDir) $(Xconfigure))
+        # without-python so crossbuilds don't have to build python
+	(cd $(LIBXML2)-$(LIBXML2_VER); $(Xenv); $(Xargs) ./configure --without-python --with-debug --with-run-debug --with-mem-debug CFLAGS="-O0 -g" --prefix=$(InstDir) $(Xconfigure))
 	(cd $(LIBXML2)-$(LIBXML2_VER); $(Xenv); make)
 	(cd $(LIBXML2)-$(LIBXML2_VER); $(Xenv); make install)
 
@@ -291,8 +306,13 @@ $(LIBXML2_PKG):
 
 $(BOOST):$(BOOST_PKG)
 	(tar xvfz $<  > /dev/null)
-	(cd $(BOOST)_$(subst .,_,$(BOOST_VER)); $(Xenv); $(Xargs) ./bootstrap.sh --prefix=$(InstDir) --without-icu $(Xconfigure))
+	(cd $(BOOST)_$(subst .,_,$(BOOST_VER)); $(Xenv); $(Xargs) ./bootstrap.sh --prefix=$(InstDir) --without-icu)
+ifneq ($(Xtarget),)
+#        echo "using gcc : $(Xtarget) : $(Xtarget)-g++ ;" > tools/build/v2/user-config.jam
+	(cd $(BOOST)_$(subst .,_,$(BOOST_VER)); $(Xenv); ./b2 toolset=gcc-$(Xtarget) install)
+else
 	(cd $(BOOST)_$(subst .,_,$(BOOST_VER)); $(Xenv); ./b2 install)
+endif
 
 $(BOOST_PKG):
 	wget http://sourceforge.net/projects/boost/files/$(BOOST)/$(BOOST_VER)/$(BOOST_PKG)

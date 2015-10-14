@@ -7,25 +7,24 @@
 #pragma once
 #ifndef SERVICEGROUP_HXX_
 #define SERVICEGROUP_HXX_
-#include "SAFplusAmfCommon.hxx"
 
-#include "clMgtIdentifier.hxx"
-#include "clTransaction.hxx"
+#include "EntityId.hxx"
+#include "clMgtIdentifierList.hxx"
 #include "ComponentRestart.hxx"
 #include "MgtFactory.hxx"
+#include "clTransaction.hxx"
+#include "clMgtIdentifier.hxx"
 #include "ServiceUnitRestart.hxx"
-#include "AdministrativeState.hxx"
 #include <string>
-#include "ComponentRestart.hxx"
-#include "clMgtProv.hxx"
 #include "Application.hxx"
+#include "clMgtProv.hxx"
+#include "clMgtHistoryStat.hxx"
 #include "ServiceInstance.hxx"
-#include "clMgtIdentifierList.hxx"
-#include "ServiceUnitRestart.hxx"
-#include <vector>
-#include <cstdint>
-#include "EntityId.hxx"
 #include "ServiceUnit.hxx"
+#include "SAFplusAmfCommon.hxx"
+#include <cstdint>
+#include <vector>
+#include "AdministrativeState.hxx"
 
 namespace SAFplusAmf
   {
@@ -58,12 +57,12 @@ namespace SAFplusAmf
         SAFplus::MgtProv<SaTimeT> autoAdjustInterval;
 
         /*
-         * 
+         * What is the optimal number of active Service Units for this Service Group?
          */
         SAFplus::MgtProv<::uint32_t> preferredNumActiveServiceUnits;
 
         /*
-         * 
+         * What is the optimal number of standby Service Units for this Service Group?
          */
         SAFplus::MgtProv<::uint32_t> preferredNumStandbyServiceUnits;
 

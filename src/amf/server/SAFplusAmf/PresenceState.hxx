@@ -7,10 +7,10 @@
 #pragma once
 #ifndef PRESENCESTATE_HXX_
 #define PRESENCESTATE_HXX_
-#include "SAFplusAmfCommon.hxx"
 
-#include "MgtEnumType.hxx"
+#include "SAFplusAmfCommon.hxx"
 #include <iostream>
+#include "MgtEnumType.hxx"
 
 namespace SAFplusAmf
   {

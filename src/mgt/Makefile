@@ -12,8 +12,6 @@ CLIENT_H := $(wildcard ../include/*.hxx)
 CLIENT_SRC := $(wildcard *.cxx) $(wildcard *.cc)
 CLIENT_OBJ := $(addprefix $(MWOBJ_DIR)/,$(subst .cc,.o, $(subst .cxx,.o,$(CLIENT_SRC))))
 
-SAFplusRpcGen := $(SAFPLUS_TARGET)/bin/protoc-gen-rpc
-
 # Specify the required libraries
 SAFPLUS_LIBS := clCkpt clGroup
 # Then use these in the make rule
@@ -33,7 +31,7 @@ $(MWOBJ_DIR)/%.o: %.cc Makefile $(CLIENT_H)
 	$(COMPILE_CPP) $@ $<
 
 gen:
-	protoc -I../3rdparty -I. --cpp_out=./ MgtMsg.proto
+	$(PROTOC) -I../3rdparty -I. --cpp_out=./ MgtMsg.proto
 	$(SAFplusRpcGen) -I../3rdparty -I. --rpc_out=./ --rpc_opts=rename=true MgtMsg.proto
 
 clean:

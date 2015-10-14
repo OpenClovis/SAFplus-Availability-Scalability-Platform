@@ -3,6 +3,23 @@ SAFPLUS_DBAL_SQLITE_PLUGIN :=1
 SAFPLUS_DBAL_PLUGIN :=1
 include ../../../mk/preface.mk
 
+# Skip compiling this plugin if SAFPLUS_WITH_GDBM exists and is set to 0 or false
+skip_sqlite:=0
+ifdef SAFPLUS_WITH_SQLITE
+ifeq ($(strip $(SAFPLUS_WITH_SQLITE)),0)
+skip_sqlite:=1
+endif
+ifeq ($(strip $(SAFPLUS_WITH_SQLITE)),false)
+skip_sqlite:=1
+endif
+endif
+
+ifeq ($(strip $(skip_sqlite)),1)
+all:
+
+else
+
+
 EXTRA_SO_LIBS +=-lsqlite3
 
 # Specify the required libraries
@@ -27,3 +44,5 @@ clean:
 	rm -f $(PLUGIN_DIR)/libclSQLiteDB.so $(CLIENT_SQLITE_OBJ)
 
 include $(SAFPLUS_MAKE_DIR)/safplus_targets.mk
+
+endif

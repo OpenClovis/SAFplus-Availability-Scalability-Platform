@@ -7,13 +7,14 @@
 #pragma once
 #ifndef PROCESSSTATS_HXX_
 #define PROCESSSTATS_HXX_
-#include "SAFplusTypesCommon.hxx"
 
-#include "clMgtProv.hxx"
-#include <vector>
-#include "clTransaction.hxx"
 #include "clMgtContainer.hxx"
+#include "clTransaction.hxx"
+#include "clMgtProv.hxx"
+#include "clMgtHistoryStat.hxx"
 #include "ProcessState.hxx"
+#include "SAFplusTypesCommon.hxx"
+#include <vector>
 
 namespace SAFplusTypes
   {

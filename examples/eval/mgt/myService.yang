@@ -25,17 +25,17 @@ module myService
     {
       type enumeration
       {
-        enum gold
-        {
-          value 2; 
+        enum copper
+        { 
+          value 0;
         }
         enum silver
         { 
           value 1;
         }
-        enum copper
-        { 
-          value 0;
+        enum gold
+        {
+          value 2; 
         }
       }
     }

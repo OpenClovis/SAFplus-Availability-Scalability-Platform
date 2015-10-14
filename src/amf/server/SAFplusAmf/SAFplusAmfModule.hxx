@@ -7,22 +7,12 @@
 #pragma once
 #ifndef SAFPLUSAMFMODULE_HXX_
 #define SAFPLUSAMFMODULE_HXX_
-#include "SAFplusAmfCommon.hxx"
 
-#include "clMgtModule.hxx"
-#include "EntityByName.hxx"
-#include "Application.hxx"
-#include "EntityById.hxx"
 #include "MgtFactory.hxx"
 #include "SafplusAmf.hxx"
-#include "Node.hxx"
-#include "ServiceGroup.hxx"
-#include "ComponentServiceInstance.hxx"
-#include "Component.hxx"
-#include "Cluster.hxx"
+#include "clMgtModule.hxx"
+#include "SAFplusAmfCommon.hxx"
 #include <vector>
-#include "ServiceUnit.hxx"
-#include "ServiceInstance.hxx"
 
 namespace SAFplusAmf
   {

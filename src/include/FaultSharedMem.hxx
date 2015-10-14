@@ -249,7 +249,7 @@ namespace SAFplus
     FaultShmHashMap* faultMap;
     FaultShmHeader* faultHdr;
     SAFplus::Mutex  localMutex;
-    void init(SAFplus::Handle active);
+    void init(void);
     void setActive(SAFplus::Handle active);
     void clientInit();
     void clear();

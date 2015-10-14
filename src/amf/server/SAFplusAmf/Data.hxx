@@ -7,14 +7,14 @@
 #pragma once
 #ifndef DATA_HXX_
 #define DATA_HXX_
-#include "SAFplusAmfCommon.hxx"
 
-#include <string>
-#include "clTransaction.hxx"
-#include "clMgtProv.hxx"
-#include <vector>
 #include "MgtFactory.hxx"
 #include "clMgtContainer.hxx"
+#include "clTransaction.hxx"
+#include <string>
+#include "clMgtProv.hxx"
+#include "SAFplusAmfCommon.hxx"
+#include <vector>
 
 namespace SAFplusAmf
   {

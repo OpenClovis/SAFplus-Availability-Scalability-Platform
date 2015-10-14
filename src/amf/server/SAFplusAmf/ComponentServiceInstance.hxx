@@ -7,19 +7,19 @@
 #pragma once
 #ifndef COMPONENTSERVICEINSTANCE_HXX_
 #define COMPONENTSERVICEINSTANCE_HXX_
-#include "SAFplusAmfCommon.hxx"
 
-#include <string>
-#include "clTransaction.hxx"
-#include "ServiceInstance.hxx"
-#include "clMgtIdentifierList.hxx"
-#include "Component.hxx"
-#include "clMgtList.hxx"
-#include <vector>
-#include "MgtFactory.hxx"
 #include "EntityId.hxx"
-#include "clMgtProvList.hxx"
 #include "clMgtIdentifier.hxx"
+#include "MgtFactory.hxx"
+#include "clMgtProvList.hxx"
+#include "Component.hxx"
+#include "clTransaction.hxx"
+#include "clMgtIdentifierList.hxx"
+#include <string>
+#include "clMgtList.hxx"
+#include "ServiceInstance.hxx"
+#include "SAFplusAmfCommon.hxx"
+#include <vector>
 
 namespace SAFplusAmf
   {

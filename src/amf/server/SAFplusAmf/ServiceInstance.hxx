@@ -7,23 +7,24 @@
 #pragma once
 #ifndef SERVICEINSTANCE_HXX_
 #define SERVICEINSTANCE_HXX_
-#include "SAFplusAmfCommon.hxx"
 
+#include "EntityId.hxx"
 #include "AssignmentState.hxx"
-#include "clMgtIdentifier.hxx"
+#include "MgtFactory.hxx"
 #include "clTransaction.hxx"
+#include "clMgtIdentifier.hxx"
+#include <string>
 #include "clMgtProv.hxx"
+#include "clMgtList.hxx"
+#include "clMgtHistoryStat.hxx"
+#include "ServiceGroup.hxx"
 #include "clMgtIdentifierList.hxx"
 #include "ComponentServiceInstance.hxx"
-#include "ServiceGroup.hxx"
-#include "clMgtList.hxx"
-#include <vector>
-#include "MgtFactory.hxx"
-#include <cstdint>
-#include "AdministrativeState.hxx"
-#include "EntityId.hxx"
-#include <string>
 #include "ServiceUnit.hxx"
+#include "SAFplusAmfCommon.hxx"
+#include <cstdint>
+#include <vector>
+#include "AdministrativeState.hxx"
 
 namespace SAFplusAmf
   {
@@ -56,7 +57,7 @@ namespace SAFplusAmf
         SAFplus::MgtProv<::uint32_t> preferredStandbyAssignments;
 
         /*
-         * Lower rank is instantiated before higher; but rank 0 means 'don't care'.
+         * Lower rank is instantiated before higher; but rank 0 means 'don't care'.  This field indicates priority but does not guarantee ordering. That is, it is NOT true that all rank 1 entities will be finished before rank 2 is initiated (use dependencies for that).
          */
         SAFplus::MgtProv<::uint32_t> rank;
 

@@ -89,7 +89,7 @@ namespace SAFplus
     //? Change the address of this message to that of the node and port of the provided handle.
     void setAddress(const Handle& h);
     void deleteLastFragment();
-    u_int getLength();
+    uint getLength();
 
     MsgFragment* prepend(uint_t size); //? Create a message fragment at the beginning of this message and return it
     MsgFragment* append(uint_t size);  //? Create a message fragment at the end of this message and return it

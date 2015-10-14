@@ -7,8 +7,8 @@
 #pragma once
 #ifndef TERMINATE_HXX_
 #define TERMINATE_HXX_
-#include "SAFplusAmfCommon.hxx"
 
+#include "SAFplusAmfCommon.hxx"
 #include <vector>
 #include "Execution.hxx"
 #include "MgtFactory.hxx"

@@ -49,18 +49,18 @@ $(SAFPLUS_TARGET)/share/netconf/modules/openclovis/SAFplusTypes.yang: $(SAFPLUS_
 
 # Shared library providing functions needed by the policy library & SAFplus AMF.
 $(POLICY_ENV_LIB): $(POLICY_ENV_OBJ) $(SAFPLUS_DEP_LIBS)
-	$(LINK_SO) $@  $(POLICY_ENV_OBJ) $(SAFPLUS_LINK_LIBS) -L$(INSTALL_DIR)/lib -lezxml -lxml2 -lboost_filesystem $(LINK_SO_LIBS)
+	$(LINK_SO) $@  $(POLICY_ENV_OBJ) $(SAFPLUS_LINK_LIBS) -L$(INSTALL_DIR)/lib -lxml2 -lboost_filesystem $(LINK_SO_LIBS)
 
 # Define policies as shared libraries
 $(PLUGIN_DIR)/customAmfPolicy.so: $(OBJ_DIR)/amfsvr/customAmfPolicy.o $(POLICY_ENV_LIB) $(SAFPLUS_DEP_LIBS)
-	$(LINK_SO) $@ $(OBJ_DIR)/amfsvr/customAmfPolicy.o -lAmfPolicyEnv $(SAFPLUS_LINK_LIBS) -L$(INSTALL_DIR)/lib -lezxml -lxml2 -lboost_filesystem -lprotobuf -lprotoc $(LINK_SO_LIBS)
+	$(LINK_SO) $@ $(OBJ_DIR)/amfsvr/customAmfPolicy.o -lAmfPolicyEnv $(SAFPLUS_LINK_LIBS) -L$(INSTALL_DIR)/lib  -lxml2 -lboost_filesystem -lprotobuf -lprotoc $(LINK_SO_LIBS)
 
 $(PLUGIN_DIR)/nPlusmAmfPolicy.so: $(OBJ_DIR)/amfsvr/nPlusmAmfPolicy.o $(POLICY_ENV_LIB) $(SAFPLUS_DEP_LIBS)
-	$(LINK_SO) $@ $(OBJ_DIR)/amfsvr/nPlusmAmfPolicy.o -lAmfPolicyEnv $(SAFPLUS_LINK_LIBS)  -L$(INSTALL_DIR)/lib -lezxml -lxml2 -lboost_filesystem -lprotobuf -lprotoc $(LINK_SO_LIBS)
+	$(LINK_SO) $@ $(OBJ_DIR)/amfsvr/nPlusmAmfPolicy.o -lAmfPolicyEnv $(SAFPLUS_LINK_LIBS)  -L$(INSTALL_DIR)/lib -lxml2 -lboost_filesystem -lprotobuf -lprotoc $(LINK_SO_LIBS)
 
 # SAFplus AMF binary
 $(BIN_DIR)/safplus_amf: $(SERVER_OBJ) $(POLICY_ENV_LIB) $(SAFPLUS_DEP_LIBS)
-	$(LINK_EXE) $@ $(SERVER_OBJ) -lAmfPolicyEnv $(SAFPLUS_LINK_LIBS) -L$(INSTALL_DIR)/lib -lezxml  -lxml2 -lboost_filesystem -lprotobuf -lprotoc $(LINK_SO_LIBS)
+	$(LINK_EXE) $@ $(SERVER_OBJ) -lAmfPolicyEnv $(SAFPLUS_LINK_LIBS) -L$(INSTALL_DIR)/lib -lxml2 -lboost_filesystem -lprotobuf -lprotoc $(LINK_SO_LIBS)
 
 # C code
 $(OBJ_DIR)/amfsvr/%.o: %.cxx $(MakefileDepend) $(SERVER_H)
@@ -108,8 +108,6 @@ $(OBJ_DIR)/amfsvr/%.o: stubs/%.cc
 	-mkdir -p $(OBJ_DIR)/amfsvr/
 	$(COMPILE_CPP) $@ $<
 
-SAFplusRpcGen := $(SAFPLUS_TARGET)/bin/protoc-gen-rpc
-
 gen:
 	PYTHONPATH=$(MGT_SRC_DIR)/3rdparty/pyang PYANG_PLUGINPATH=$(MGT_SRC_DIR)/pyplugin $(MGT_SRC_DIR)/3rdparty/pyang/bin/pyang --path=$(SAFPLUS_SRC_DIR)/yang -f y2cpp $(SAFPLUS_SRC_DIR)/yang/SAFplusAmf.yang --y2cpp-output `pwd` --y2cpp-sdkdir $(SAFPLUS_SRC_DIR)
 
@@ -119,14 +117,14 @@ gen:
 genrpc: $(SAFplusRpcGen)
 	-mkdir -p amfRpc
 	PYTHONPATH=$(MGT_SRC_DIR)/3rdparty/pyang:/usr/local/lib PYANG_PLUGINPATH=$(MGT_SRC_DIR)/pyplugin $(MGT_SRC_DIR)/3rdparty/pyang/bin/pyang --path=$(SAFPLUS_SRC_DIR)/yang -f y2cpp amfRpc.yang --y2cpp-output `pwd` --y2cpp-rpc --y2cpp-sdkdir $(SAFPLUS_SRC_DIR)
-	LD_LIBRARY_PATH=/usr/local/lib:/usr/lib protoc -I../../../3rdparty -I../../rpc -I. --cpp_out=./amfRpc amfRpc.proto
-	LD_LIBRARY_PATH=/usr/local/lib:/usr/lib $(SAFplusRpcGen) -I../../../3rdparty -I../../rpc -I. --rpc_out=./amfRpc amfRpc.proto
+	LD_LIBRARY_PATH=/usr/local/lib:/usr/lib protoc -I../../3rdparty -I../../rpc -I. --cpp_out=./amfRpc amfRpc.proto
+	LD_LIBRARY_PATH=/usr/local/lib:/usr/lib $(SAFplusRpcGen) -I../../3rdparty -I../../rpc -I. --rpc_out=./amfRpc amfRpc.proto
 
 genapprpc: $(SAFplusRpcGen)
 	-mkdir -p amfAppRpc
 	PYTHONPATH=$(MGT_SRC_DIR)/3rdparty/pyang:/usr/local/lib PYANG_PLUGINPATH=$(MGT_SRC_DIR)/pyplugin $(MGT_SRC_DIR)/3rdparty/pyang/bin/pyang --path=$(SAFPLUS_SRC_DIR)/yang -f y2cpp amfAppRpc.yang --y2cpp-output `pwd` --y2cpp-rpc --y2cpp-sdkdir $(SAFPLUS_SRC_DIR)
-	LD_LIBRARY_PATH=/usr/local/lib:/usr/lib protoc -I../../../3rdparty -I../../rpc -I. --cpp_out=./amfAppRpc amfAppRpc.proto
-	LD_LIBRARY_PATH=/usr/local/lib:/usr/lib $(SAFplusRpcGen) -I../../../3rdparty -I../../rpc -I. --rpc_out=./amfAppRpc amfAppRpc.proto
+	LD_LIBRARY_PATH=/usr/local/lib:/usr/lib protoc -I../../3rdparty -I../../rpc -I. --cpp_out=./amfAppRpc amfAppRpc.proto
+	LD_LIBRARY_PATH=/usr/local/lib:/usr/lib $(SAFplusRpcGen) -I../../3rdparty -I../../rpc -I. --rpc_out=./amfAppRpc amfAppRpc.proto
 
 cleangen:
 	(cd SAFplusAmf && find . -type f -not -name "*Common.hxx" -not -name "*Base.cxx" | xargs rm)
