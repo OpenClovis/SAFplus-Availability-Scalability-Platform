@@ -107,34 +107,39 @@ namespace SAFplus
 
   static void SegmentSocketThread(void * arg)
   {
-    MsgSocketSegmentaion* p_this = (MsgSocketSegmentaion*)arg;
+    MsgSocketSegmentation* p_this = (MsgSocketSegmentation*)arg;
+    assert(p_this);
     p_this->handleReceiveThread();
   }
 
-  ClRcT MsgSocketSegmentaion::receiveTimeOutCallback(void *arg)
+  ClRcT MsgSocketSegmentation::receiveTimeOutCallback(void *arg)
   {
+    return CL_OK;
     MsgSegments *temp = (MsgSegments *)arg;
     logDebug("MSG","RST","start clean unused segment list");
     SegmentationList::iterator segment_it = temp->segmentList.begin();
     bool quit=false;
     while(segment_it != temp->segmentList.end())
-    {
-      Segment& s = *segment_it;
+      {
+        Segment& s = *segment_it;
+        if (&s)
+          {
 
-      if(s.isLastSegment())
-      {
-        quit=true;
+            if(s.isLastSegment())
+              {
+                quit=true;
+              }
+            segment_it = temp->segmentList.erase_and_dispose(segment_it, delete_disposer_segment());
+            if(quit==true)
+              {
+                break;
+              }
+          }
       }
-      segment_it = temp->segmentList.erase_and_dispose(segment_it, delete_disposer_segment());
-      if(quit==true)
-      {
-        break;
-      }
-    }
     return CL_OK;
   }
 
-  MsgSocketSegmentaion::MsgSocketSegmentaion(uint_t port,MsgTransportPlugin_1* transport)
+  MsgSocketSegmentation::MsgSocketSegmentation(uint_t port,MsgTransportPlugin_1* transport)
   {
     sock = transport->createSocket(port);
     msgReceived=0;
@@ -146,21 +151,21 @@ namespace SAFplus
     }
   }
 
-  MsgSocketSegmentaion::MsgSocketSegmentaion(MsgSocket* socket)
+  MsgSocketSegmentation::MsgSocketSegmentation(MsgSocket* socket)
   {
     sock = socket;
   }
-  MsgSocketSegmentaion::~MsgSocketSegmentaion()
+  MsgSocketSegmentation::~MsgSocketSegmentation()
   {
     //TODO
   }
-  MsgPool* MsgSocketSegmentaion::getMsgPool()
+  MsgPool* MsgSocketSegmentation::getMsgPool()
   {
     logTrace("MSG", "MSS","get msg pool");
     return sock->msgPool;
   };
 
-  void MsgSocketSegmentaion::applySegmentaion(SAFplus::Handle destination, void* buffer, uint_t length)
+  void MsgSocketSegmentation::applySegmentation(SAFplus::Handle destination, void* buffer, uint_t length)
   {
     int totalBytes = 0;
     int off = 0;
@@ -192,7 +197,7 @@ namespace SAFplus
       usleep(100);
     }
   }
-  void MsgSocketSegmentaion::sendSegment(SAFplus::Handle destination,Segment * frag)
+  void MsgSocketSegmentation::sendSegment(SAFplus::Handle destination,Segment * frag)
   {
     if(sock==NULL)
     {
@@ -217,11 +222,11 @@ namespace SAFplus
   }
 
 
-  void MsgSocketSegmentaion::applySegmentaion(Message* m)
+  void MsgSocketSegmentation::applySegmentation(Message* m)
   {
 
   }
-  void MsgSocketSegmentaion::send(Message* origMsg)
+  void MsgSocketSegmentation::send(Message* origMsg)
   {
     Message* msg;
     Message* next = origMsg;
@@ -249,11 +254,11 @@ namespace SAFplus
     } while (next != NULL);
   }
 
-  void MsgSocketSegmentaion::send(SAFplus::Handle destination, void* buffer, uint_t length)
+  void MsgSocketSegmentation::send(SAFplus::Handle destination, void* buffer, uint_t length)
   {
-    applySegmentaion(destination,buffer,length);
+    applySegmentation(destination,buffer,length);
   }
-  Message* MsgSocketSegmentaion::receive(uint_t maxMsgs,int maxDelay)
+  Message* MsgSocketSegmentation::receive(uint_t maxMsgs,int maxDelay)
   {
     int totalBytes = 0;
     bool quit=false;
@@ -323,7 +328,8 @@ namespace SAFplus
     }
     return nullptr;
   }
-  Segment* MsgSocketSegmentaion::receiveSegment(Handle &handle)
+
+  Segment* MsgSocketSegmentation::receiveSegment(Handle &handle)
   {
     Segment* p_Fragment = new Segment();
     Message* p_Msg = nullptr;
@@ -343,7 +349,7 @@ namespace SAFplus
 
 
 
-  void MsgSocketSegmentaion::handleReceiveThread(void)
+  void MsgSocketSegmentation::handleReceiveThread(void)
   {
     Handle handle;
     while (1)
@@ -408,7 +414,7 @@ namespace SAFplus
     }
   }
 
-  int MsgSocketSegmentaion::read(Byte* buffer,int maxlength)
+  int MsgSocketSegmentation::read(Byte* buffer,int maxlength)
   {
     Handle handle;
     int totalBytes = 0;
@@ -422,6 +428,7 @@ namespace SAFplus
       }
       usleep(100000);
     }while(1);
+
     for ( auto it = receiveMap.begin(); it != receiveMap.end();)
     {
       if(it->second->isFull)
@@ -476,7 +483,8 @@ namespace SAFplus
     }
     return -1;
   }
-  void MsgSocketSegmentaion::flush()
+
+  void MsgSocketSegmentation::flush()
   {
     sock->flush();
   }

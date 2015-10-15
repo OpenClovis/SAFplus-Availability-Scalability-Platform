@@ -100,6 +100,10 @@ namespace SAFplus
      transport = xp;
      node = xp->config.nodeId;
 
+     cap.capabilities = (SAFplus::MsgSocketCapabilities::Capabilities) xp->config.capabilities;
+     cap.maxMsgSize = xp->config.maxMsgSize;
+     cap.maxMsgAtOnce = xp->config.maxMsgAtOnce;
+
      if ((sock = socket(AF_INET, SOCK_DGRAM, 0)) < 0) 
        {
        int err = errno;
@@ -174,6 +178,7 @@ namespace SAFplus
 
           fragCount++;
           totalFragCount++;
+          assert(totalFragCount < SAFplusI::UdpTransportMaxFragments);
           curIov++;
           } while(nextFrag);
         assert(msgCount < SAFplusI::UdpTransportMaxMsg);  // or stack buffer will be exceeded

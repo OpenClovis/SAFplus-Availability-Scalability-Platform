@@ -7,15 +7,15 @@
 #pragma once
 #ifndef ENTITYBYID_HXX_
 #define ENTITYBYID_HXX_
-#include "SAFplusAmfCommon.hxx"
 
-#include <string>
-#include "clTransaction.hxx"
-#include "clMgtProv.hxx"
-#include <vector>
 #include "MgtFactory.hxx"
 #include "clMgtContainer.hxx"
+#include "clTransaction.hxx"
+#include <string>
+#include "clMgtProv.hxx"
+#include "SAFplusAmfCommon.hxx"
 #include <cstdint>
+#include <vector>
 
 namespace SAFplusAmf
   {

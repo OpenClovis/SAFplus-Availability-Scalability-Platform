@@ -7,11 +7,12 @@
 #pragma once
 #ifndef LOAD_HXX_
 #define LOAD_HXX_
-#include "SAFplusAmfCommon.hxx"
 
-#include <vector>
 #include "MgtFactory.hxx"
 #include "clMgtContainer.hxx"
+#include "clMgtHistoryStat.hxx"
+#include "SAFplusAmfCommon.hxx"
+#include <vector>
 
 namespace SAFplusAmf
   {

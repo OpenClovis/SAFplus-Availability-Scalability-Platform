@@ -1,14 +1,8 @@
-//#include <clCommon.h>
-//#include <clCommonErrors.h>
-//#include <clIocApi.h>
-//#include <clIocUserApi.h>
-//#include <clCpmApi.h>
-
 #include <clCommon.hxx>
-#include "clLogApi.hxx"
-#include "clMsgHandler.hxx"
+#include <clLogApi.hxx>
+#include <clMsgHandler.hxx>
 #include <clMsgApi.hxx>
-#include "SegmentationSocket.hxx"
+#include <clMsgSarSocket.hxx>
 
 namespace SAFplus
 {
@@ -90,7 +84,9 @@ namespace SAFplus
       }
       case SOCK_SEGMENTATION:
       {
-        sock= new MsgSocketSegmentaion(port,transport);
+        MsgSocket* xport = transport->createSocket(port);
+        sock = new MsgSarSocket(xport);
+        //sock= new MsgSocketSegmentation(port,transport);
         break;
       }
       case SOCK_RELIABLE:

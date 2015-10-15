@@ -7,13 +7,14 @@
 #pragma once
 #ifndef SENSOR_HXX_
 #define SENSOR_HXX_
-#include "SAFplusTypesCommon.hxx"
 
 #include "clMgtContainer.hxx"
-#include <vector>
-#include <string>
 #include "clTransaction.hxx"
+#include <string>
 #include "clMgtProv.hxx"
+#include "clMgtHistoryStat.hxx"
+#include "SAFplusTypesCommon.hxx"
+#include <vector>
 
 namespace SAFplusTypes
   {

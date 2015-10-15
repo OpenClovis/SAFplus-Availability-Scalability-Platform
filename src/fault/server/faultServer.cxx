@@ -100,6 +100,11 @@ namespace SAFplus
     void FaultServer::init()
     {
         faultServerHandle = Handle::create();  // This is the handle for this specific fault server
+
+        logDebug(FAULT,FAULT_SERVER,"Initialize shared memory");
+        fsmServer.init();
+        fsmServer.clear();  // I am the node representative just starting up, so members may have fallen out while I was gone.  So I must delete everything I knew.
+
         logDebug(FAULT,FAULT_SERVER,"Initial Fault Server Group with Node address [%d]",faultServerHandle.getNode());
         group.init(FAULT_GROUP);
         group.setNotification(*this);
@@ -113,9 +118,7 @@ namespace SAFplus
         SAFplus::Handle activeMember = group.getActive();
         assert(activeMember != INVALID_HDL);  // It can't be invalid because I am available to be active.
         logDebug(FAULT,FAULT_SERVER,"Fault Server active address : nodeAddress [%d] - port [%d]",activeMember.getNode(),activeMember.getPort());
-        logDebug(FAULT,FAULT_SERVER,"Initialize shared memory");
-        fsmServer.init(activeMember);
-        fsmServer.clear();  // I am the node representative just starting up, so members may have fallen out while I was gone.  So I must delete everything I knew.
+        fsmServer.setActive(activeMember);
         logDebug(FAULT,FAULT_SERVER,"Loading Fault Policy");
         loadFaultPlugins();
         logDebug(FAULT,FAULT_SERVER,"Register fault message server");

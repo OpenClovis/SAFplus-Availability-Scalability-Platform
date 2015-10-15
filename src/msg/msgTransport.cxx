@@ -12,6 +12,13 @@ namespace SAFplus
     port = h.getPort();
     }
 
+  void Message::prependFrag(MsgFragment* frag)
+  {
+      frag->nextFragment = firstFragment;
+      firstFragment = frag;
+      if (!lastFragment) lastFragment = frag;  // If this is the very first message fragment
+  }
+  
   MsgFragment* Message::prepend(uint_t size)
     {
       MsgFragment* f = msgPool->allocMsgFragment(size);

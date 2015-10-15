@@ -7,8 +7,8 @@
 #pragma once
 #ifndef DATE_HXX_
 #define DATE_HXX_
-#include "SAFplusTypesCommon.hxx"
 
+#include "SAFplusTypesCommon.hxx"
 #include <iostream>
 #include "clTransaction.hxx"
 #include <cstdint>

@@ -7,13 +7,13 @@
 #pragma once
 #ifndef DECSTATISTIC_HXX_
 #define DECSTATISTIC_HXX_
-#include "SAFplusTypesCommon.hxx"
 
-#include <string>
-#include "clTransaction.hxx"
-#include "clMgtProv.hxx"
-#include <vector>
 #include "clMgtContainer.hxx"
+#include "clTransaction.hxx"
+#include <string>
+#include "clMgtProv.hxx"
+#include "SAFplusTypesCommon.hxx"
+#include <vector>
 #include <cstdint>
 
 namespace SAFplusTypes

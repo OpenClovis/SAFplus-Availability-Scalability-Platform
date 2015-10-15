@@ -113,25 +113,27 @@ int main(int argc, char* argv[])
       logInfo("TST","MSG","Msg Transport [%s], node [%u] maxPort [%u] maxMsgSize [%u]", xp->type, xCfg.nodeId, xCfg.maxPort, xCfg.maxMsgSize);
       Handle destination = SAFplus::getProcessHandle(4,122);
       logInfo("TST","MSG","init segmentation socket p 4");
-      MsgSocketSegmentaion sockSegment(4,xp);
+      MsgSocketSegmentation sockSegment(4,xp);
       int count =1;
       int len = 20000000;
       int receiveLen=3000000;
       while(1)
       {
-        int receiveByte=count*receiveLen;
         logInfo("TST","MSG","read...");
         Message* msg= sockSegment.receive(1);
+        int receiveLen=msg->getLength();
         assert(msg->firstFragment == msg->lastFragment);
         MsgFragment* frag =  msg->firstFragment;
         int msgType = *((char*)frag->read(0));
         frag->start++;
         frag->len--;
         char* data= (char*)frag->read(0);
-        logInfo("TST","MSG","receive [%d] byte, msgType[%d] from [%d] [%d]",frag->len,msgType,msg->node,msg->port);
-        logInfo("TST","MSG","Data at [%d] : [%s]",0,data);
-        logInfo("TST","MSG","Data at [%d] : [%s]",MAX_SEGMENT_SIZE -10,data + MAX_SEGMENT_SIZE -10);
-        logInfo("TST","MSG","Data at [%d] : [%s]",receiveByte -5,data + (receiveByte -5));
+        logInfo("TST","MSG","Received [%d] bytes, msgType[%d] from [%d:%d]",frag->len,msgType,msg->node,msg->port);
+        if (receiveLen>8)
+          {
+          logInfo("TST","MSG","Data at [%d] : [%.8s]",0,data);
+          logInfo("TST","MSG","Data at [%d] : [%.8s]",receiveLen-8,data +  receiveLen-8);
+          }
         msg->msgPool->free(msg);
         count++;
       }

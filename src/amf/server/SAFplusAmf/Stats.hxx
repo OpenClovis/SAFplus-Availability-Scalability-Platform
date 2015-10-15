@@ -7,16 +7,15 @@
 #pragma once
 #ifndef STATS_HXX_
 #define STATS_HXX_
-#include "SAFplusAmfCommon.hxx"
 
-#include "Load.hxx"
-#include "Load.hxx"
-#include "clTransaction.hxx"
-#include "clMgtProv.hxx"
-#include <vector>
 #include "MgtFactory.hxx"
 #include "clMgtContainer.hxx"
+#include "clTransaction.hxx"
+#include "clMgtProv.hxx"
+#include "Load.hxx"
+#include "SAFplusAmfCommon.hxx"
 #include <cstdint>
+#include <vector>
 
 namespace SAFplusAmf
   {

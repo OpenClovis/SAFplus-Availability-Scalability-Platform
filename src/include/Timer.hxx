@@ -69,7 +69,7 @@ typedef enum {
 
 namespace SAFplus
 {
-  ClRcT timerInitialize(ClPtrT config, signed int maxTimer=3000);
+  ClRcT timerInitialize(ClPtrT config);
   ClRcT timerFinalize(void);
 
   class TimerPoolable: public Poolable
@@ -157,7 +157,7 @@ namespace SAFplus
     pthread_t timerId;
     unsigned int runningTimers;
     int frequency; //millisecond
-    ThreadPool pool;
+    ThreadPool *pool;
     /*
      * Cluster timer replicate method registered
      */

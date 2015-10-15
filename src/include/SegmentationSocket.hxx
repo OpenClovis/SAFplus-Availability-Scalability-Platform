@@ -123,7 +123,7 @@ namespace SAFplus
     };
   };
   typedef boost::unordered_map<SAFplus::MsgKey, SAFplus::MsgSegments*> KeyMsgMap;
-  class MsgSocketSegmentaion : public MsgSocketAdvanced
+  class MsgSocketSegmentation : public MsgSocketAdvanced
   {
   private:
     KeyMsgMap receiveMap;
@@ -132,9 +132,9 @@ namespace SAFplus
     boost::thread rcvThread; //thread to receive and handle fragment
   public:
     Handle handle;
-    MsgSocketSegmentaion(uint_t port,MsgTransportPlugin_1* transport);
-    MsgSocketSegmentaion(MsgSocket* socket);
-    virtual ~MsgSocketSegmentaion();
+    MsgSocketSegmentation(uint_t port,MsgTransportPlugin_1* transport);
+    MsgSocketSegmentation(MsgSocket* socket);
+    virtual ~MsgSocketSegmentation();
     //? Send a bunch of messages.  You give up ownership of msg.
     virtual void send(Message* origMsg);
     virtual void send(SAFplus::Handle destination, void* buffer, uint_t length);
@@ -142,8 +142,8 @@ namespace SAFplus
     Segment* receiveSegment(Handle &handle);
     int read(Byte* buffer,int maxlength);
     void handleReceiveThread(void);
-    void applySegmentaion(SAFplus::Handle destination, void* buffer, uint_t length);
-    void applySegmentaion(Message* m);
+    void applySegmentation(SAFplus::Handle destination, void* buffer, uint_t length);
+    void applySegmentation(Message* m);
     void sendSegment(SAFplus::Handle destination,Segment * frag);
     static ClRcT receiveTimeOutCallback(void *arg);
     int getMapsize()

@@ -6,6 +6,9 @@
 uint_t reflectorPort = 10;
 using namespace SAFplus;
 
+// add segmentation and reassembly layer if this is true
+bool sar = false;
+
 int main(int argc, char* argv[])
 {
   std::string xport("clMsgUdp.so");
@@ -18,7 +21,8 @@ int main(int argc, char* argv[])
     ("port", boost::program_options::value<int>(), "reflector port number")
     ("xport", boost::program_options::value<std::string>(), "transport plugin filename")
     ("loglevel", boost::program_options::value<std::string>(), "logging cutoff level")
-    ;
+    ("sar", boost::program_options::value<bool>()->default_value("false"), "Use segmentation and reassembly layer")
+   ;
 
   boost::program_options::variables_map vm;        
   boost::program_options::store(boost::program_options::parse_command_line(argc, argv, desc), vm);
@@ -31,6 +35,10 @@ int main(int argc, char* argv[])
   if (vm.count("port")) reflectorPort = vm["port"].as<int>();
   if (vm.count("xport")) xport = vm["xport"].as<std::string>();
   if (vm.count("loglevel")) SAFplus::logSeverity = logSeverityGet(vm["loglevel"].as<std::string>().c_str());
+  if (vm.count("sar"))
+    {
+      sar=true;
+    }
 
   MsgPool msgPool;
   ClPlugin* api = NULL;
@@ -60,11 +68,17 @@ int main(int argc, char* argv[])
   clMsgInitialize();
   MsgTransportPlugin_1* xp = SAFplusI::defaultMsgPlugin;
   MsgTransportConfig& xCfg = xp->config;
-  logNotice("MSG","RFL","Message Reflector: Transport [%s] [%s] mode, node [%u] maxPort [%u] maxMsgSize [%u]", xp->type, xp->clusterNodes ? "Cloud":"LAN",xCfg.nodeId, xCfg.maxPort, xCfg.maxMsgSize);
+  logNotice("MSG","RFL","Message Reflector: Transport [%s] [%s] mode. Layers [%s], node [%u] maxPort [%u] maxMsgSize [%u]", xp->type, xp->clusterNodes ? "Cloud":"LAN", sar ? "SAR":"none", xCfg.nodeId, xCfg.maxPort, xCfg.maxMsgSize);
   if (xp)
     {
       Message* m;
-      ScopedMsgSocket sock(xp,reflectorPort);
+      //MsgSocket* xport = xp->createSocket(reflectorPort);
+      ScopedMsgSocket xportSock(xp,reflectorPort);
+      
+      MsgSocket* sock=NULL;
+      if (sar) sock = new MsgSarSocket(xportSock.sock);
+      else sock = xportSock.sock;
+
 
       while(1)
         {
@@ -75,6 +89,8 @@ int main(int argc, char* argv[])
               sock->send(m);
             }
         }
+
+      if (sar) delete sock;  // cleanup the SAR socket if we created one
     }
 
 

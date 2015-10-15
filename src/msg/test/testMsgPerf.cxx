@@ -8,11 +8,15 @@
 uint_t reflectorPort = 10;
 uint_t reflectorNode = 102;
 uint_t repeat = 1;
+bool sar = false;
 using namespace SAFplus;
 using namespace boost;
 namespace po = boost::program_options;
 
 std::ostringstream performanceReport;
+
+const char* suiteName = "MSG";
+const char* testName = "TST";
 
 class PerfData
 {
@@ -257,10 +261,10 @@ bool testLatency(MsgSocket* src, MsgSocket* sink,Handle dest, int msgLen, int nu
 
 void testGroup(MsgSocket* src, MsgSocket* sink,Handle dest,const char* desc)
 {
-  testLatency(src,sink,dest,1,10000 * repeat, desc,true);
-  testLatency(src,sink,dest,16,10000 * repeat, desc,true);
-  testLatency(src,sink,dest,100,10000 * repeat, desc,true);
-  testLatency(src,sink,dest,1000,10000 * repeat, desc,true);
+  //  testLatency(src,sink,dest,1,10000 * repeat, desc,true);
+  //  testLatency(src,sink,dest,16,10000 * repeat, desc,true);
+  //  testLatency(src,sink,dest,100,10000 * repeat, desc,true);
+  //  testLatency(src,sink,dest,1000,10000 * repeat, desc,true);
   testLatency(src,sink,dest,10000,10000 * repeat, desc,true);
 
   testChunkingPerf(src, sink,dest,1, 1 , 1 , 10000 * repeat,desc);
@@ -287,9 +291,42 @@ void testGroup(MsgSocket* src, MsgSocket* sink,Handle dest,const char* desc)
   testChunkingPerf(src, sink,dest,50000, 50 , 1 , 1000 * repeat,desc);
 
   // high perf RPC: This test simulates a server being hit by tons of small RPC calls
-  testChunkingPerf(src, sink,dest,32, 1000 , 1 , 1000 * repeat,desc); 
+  testChunkingPerf(src, sink,dest,32, 500 , 1 , 1000 * repeat,desc); 
 #endif
 }
+
+class Sock
+{
+  public:
+  //? <ctor> Pass the message transport plugin and port to create your message socket </ctor>
+  Sock(MsgTransportPlugin* xp, ::uint_t port) 
+    { 
+    xport=xp->createSocket(port); 
+    if (sar) 
+      {
+        sarSock = new MsgSarSocket(xport);
+        sock = sarSock;
+      }
+    else
+      {
+        sarSock = NULL;
+        sock = xport;
+      }
+    }
+
+  ~Sock() 
+    { 
+    xport->transport->deleteSocket(xport);
+    if (sarSock) delete sarSock; 
+    }
+  MsgSocket* xport;
+  MsgSocket* sarSock;
+
+      //? Access the MsgSocket object directly
+  MsgSocket* sock;
+      //? A convenience function that makes the ScopedMsgSocket object behave like a MsgSocket* object.
+  MsgSocket* operator->() {return sock;}
+};
 
 int main(int argc, char* argv[])
 {
@@ -306,6 +343,7 @@ int main(int argc, char* argv[])
     ("rnode", po::value<int>(), "reflector node id")
     ("rport", po::value<int>(), "reflector port number")
     ("xport", boost::program_options::value<std::string>(), "transport plugin filename")
+    ("sar", boost::program_options::value<bool>()->default_value("false"), "Use segmentation and reassembly layer")
     ("loglevel", boost::program_options::value<std::string>(), "logging cutoff level")
     ("repeat", boost::program_options::value<int>(), "repeat factor: bigger number means longer test")
     ("variant", po::value<std::string>()->default_value("all"), "use 'process','node', or 'cluster' to select the testing scope.")
@@ -324,6 +362,11 @@ int main(int argc, char* argv[])
   if (vm.count("xport")) xport = vm["xport"].as<std::string>();
   if (vm.count("repeat")) repeat = vm["repeat"].as<int>();
   if (vm.count("loglevel")) SAFplus::logSeverity = logSeverityGet(vm["loglevel"].as<std::string>().c_str());
+  if (vm.count("sar"))
+    {
+      sar = vm["sar"].as<bool>();
+      if (sar) suiteName = "SAR";
+    }
   if (vm.count("variant")) 
     {
     std::string s = vm["variant"].as<std::string>();
@@ -367,26 +410,26 @@ int main(int argc, char* argv[])
   MsgTransportPlugin_1* xp = SAFplusI::defaultMsgPlugin;
   MsgTransportConfig& xCfg = xp->config;
 
-  logInfo("TST","MSG","Msg Transport [%s], node [%u] maxPort [%u] maxMsgSize [%u] reflector node [%d] reflector port [%d]", xp->type, xCfg.nodeId, xCfg.maxPort, xCfg.maxMsgSize, reflectorNode, reflectorPort);
-  if (testProcess)
+  logInfo(testName,suiteName,"Msg Transport [%s], node [%u] maxPort [%u] maxMsgSize [%u] reflector node [%d] reflector port [%d]", xp->type, xCfg.nodeId, xCfg.maxPort, xCfg.maxMsgSize, reflectorNode, reflectorPort);
+  if (0) // testProcess)
     {
-      logInfo("TST","MSG","Loopback to same process");
-      ScopedMsgSocket a(xp,1);
+      logInfo(testName,suiteName,"Loopback to same process");
+      Sock a(xp,1);
       testGroup(a.sock,a.sock,a->handle(),"same process");
     }
 
   if (testNode)
     {
-      logInfo("TST","MSG","Different process, same node: run the msgReflector program on this node");
+      logInfo(testName,suiteName,"Different process, same node: run the msgReflector program on this node");
 
-      ScopedMsgSocket a(xp,1);
+      Sock a(xp,1);
       testGroup(a.sock,a.sock,getProcessHandle(reflectorPort,a->node),"inter-process");
     }
 
   if (testCluster)
     {
-      logInfo("TST","MSG","Different process, different node: run the msgReflector program on node %d", reflectorNode);
-      ScopedMsgSocket a(xp,1);
+      logInfo(testName,suiteName,"Different process, different node: run the msgReflector program on node %d", reflectorNode);
+      Sock a(xp,1);
       testGroup(a.sock,a.sock,getProcessHandle(reflectorPort,reflectorNode),"inter-node");
     }
 

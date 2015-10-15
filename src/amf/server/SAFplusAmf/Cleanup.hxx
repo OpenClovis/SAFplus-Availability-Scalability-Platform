@@ -7,8 +7,8 @@
 #pragma once
 #ifndef CLEANUP_HXX_
 #define CLEANUP_HXX_
-#include "SAFplusAmfCommon.hxx"
 
+#include "SAFplusAmfCommon.hxx"
 #include <vector>
 #include "Execution.hxx"
 #include "MgtFactory.hxx"

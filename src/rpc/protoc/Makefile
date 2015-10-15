@@ -2,22 +2,21 @@ S7 := 1
 SAFPLUS_RPC_LIB := 1
 include ../../mk/preface.mk
 
-CPP_FLAGS += `pkg-config --cflags protobuf` -I$(SAFPLUS_3RDPARTY_DIR)
-PROTOC_LIBS = `pkg-config --libs protobuf` -lprotoc
+CPP_FLAGS += `$(PKG_CONFIG) --cflags protobuf` -I$(SAFPLUS_3RDPARTY_DIR)
 
 PROTOC_TOOL_H   := $(wildcard *.hxx)
 PROTOC_TOOL_SRC := $(wildcard *.cxx)
-PROTOC_TOOL_OBJ := $(addprefix $(OBJ_DIR)/protoc/,$(subst .cxx,.o, $(notdir $(PROTOC_TOOL_SRC))))
+PROTOC_TOOL_OBJ := $(addprefix $(LOCAL_OBJ_DIR)/protoc/,$(subst .cxx,.o, $(notdir $(PROTOC_TOOL_SRC))))
 
-NOOP := $(shell mkdir -p $(OBJ_DIR)/protoc)
+NOOP := $(shell mkdir -p $(LOCAL_OBJ_DIR)/protoc)
 
-Release all: $(SAFPLUS_TARGET)/bin/protoc-gen-rpc
+Release all: $(SAFPLUS_TOOL_TARGET)/bin/protoc-gen-rpc
 
-$(OBJ_DIR)/protoc/%.o: %.cxx Makefile $(PROTOC_TOOL_H)
-	$(COMPILE_CPP) $@ $<
+$(LOCAL_OBJ_DIR)/protoc/%.o: %.cxx Makefile $(PROTOC_TOOL_H)
+	$(LOCAL_COMPILE_CPP) $@ $<
 
-$(SAFPLUS_TARGET)/bin/protoc-gen-rpc: $(PROTOC_TOOL_OBJ)
-	$(LINK_EXE) $@ $(PROTOC_TOOL_OBJ) $(PROTOC_LIBS)
+$(SAFPLUS_TOOL_TARGET)/bin/protoc-gen-rpc: $(PROTOC_TOOL_OBJ)
+	$(LOCAL_LINK_EXE) $@ $(PROTOC_TOOL_OBJ) $(PROTOBUF_LINK)
 
 clean:
 	rm -rf $(OBJ_DIR)/protoc $(SAFPLUS_TARGET)/bin/protoc-gen-rpc

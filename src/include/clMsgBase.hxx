@@ -13,6 +13,23 @@ typedef unsigned char  Byte;  /* 8 bits */
 
 namespace SAFplus
   {
+
+  class MsgSocketCapabilities
+  {
+  public:
+    enum Capabilities  //? This must be the same numbers as MsgTransportConfig::Capabilities
+        {
+          NONE              = 0,
+          RELIABLE          = 1,    //? Reliable messages are supported at this level
+          NAGLE_AVAILABLE   = 0x20, //? Layer can delay transmission to attempt to combine short messages
+          BROADCAST         = 0x40, //? Layer can broadcast or simulate broadcasts.  Below the typical application layer, this capability may start as false.  Then the messaging initialization my add cluster nodes object.  Since the transport layer can use this object to send a message to every node (simulated broadcast), subsequent calls will return true for this capability.
+        };
+
+      Capabilities capabilities; //? What features does this message transport support?
+      uint_t maxMsgSize;  //? Maximum size of messages in bytes
+      uint_t maxMsgAtOnce; //? Maximum number of messages that can be sent in a single call
+  };
+
     //? <class> A message fragment is a buffer that contains part or all of a message.
   class MsgFragment
     {
@@ -46,6 +63,11 @@ namespace SAFplus
       int append(const char* s, int n); //? Copy these bytes to the end of the buffer allocated for this fragment.  You keep ownership of s and can free at any time after this function returns.
       void* data(int offset=0);  //? Get a pointer to the data in this fragment at the provided offset.
       const void* read(int offset=0);  //? Get a read-only pointer to the data in this fragment at the provided offset
+
+      void used(uint_t length) //? Indicate that you have used this many bytes beyond the current end of the fragment (typically by setting them directly via the data() API)
+      {
+        len+=length;
+      }
 
       // Internal interface: initializes this fragment as one that points to an external buffer
       void constructPointerFrag()
@@ -89,10 +111,12 @@ namespace SAFplus
     //? Change the address of this message to that of the node and port of the provided handle.
     void setAddress(const Handle& h);
     void deleteLastFragment();
-    u_int getLength();
+    uint getLength();
 
     MsgFragment* prepend(uint_t size); //? Create a message fragment at the beginning of this message and return it
     MsgFragment* append(uint_t size);  //? Create a message fragment at the end of this message and return it
+
+    void prependFrag(MsgFragment* frag); //? Put this fragment in the beginning of the message
 
     MsgPool*     msgPool;  //? The message pool that this message and fragments were allocated from
     Message* nextMsg; //? The next message in this send or received groups. 
@@ -131,6 +155,7 @@ namespace SAFplus
       public:
       friend class MsgFragment;
       virtual ~MsgSocket()=0;
+      MsgSocketCapabilities cap; //? Report the capabilities of this message socket
       MsgPool* msgPool;  //? The message pool that will be used when allocating messages and fragments during receive() and freeing messages and fragments during send()
       uint_t node; //? node address of this socket -- that is, the address of this node
       uint_t port; //? port this socket is listening to.  This may not directly correspond to underlying transport port numbers. Instead, SAFplus ports will be within a specific range in the underlying transport, so to get the underlying port number, you'd use "port + <start port constant defined in clCustomization.hxx>"
@@ -151,8 +176,8 @@ namespace SAFplus
         return msgPool;
       };
 
-    protected:
       MsgTransportPlugin* transport;
+    protected:
       friend class ScopedMsgSocket;
   }; //? </class>
 
@@ -164,6 +189,7 @@ namespace SAFplus
       //sock->transport->deleteSocket(sock);
     }
     MsgSocket *sock;
+
     //? Send a bunch of messages.  You give up ownership of msg.
     virtual void send(Message* msg)
     {
@@ -175,6 +201,7 @@ namespace SAFplus
     virtual void send(SAFplus::Handle destination, void* buffer, uint_t length,uint_t msgtype)
     {
     }
+
     virtual void flush();
   };
 

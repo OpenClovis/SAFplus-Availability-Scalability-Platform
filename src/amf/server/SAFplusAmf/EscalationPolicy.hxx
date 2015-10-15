@@ -7,13 +7,13 @@
 #pragma once
 #ifndef ESCALATIONPOLICY_HXX_
 #define ESCALATIONPOLICY_HXX_
-#include "SAFplusAmfCommon.hxx"
 
+#include "clMgtContainer.hxx"
 #include "clTransaction.hxx"
 #include "clMgtProv.hxx"
-#include <vector>
-#include "clMgtContainer.hxx"
+#include "SAFplusAmfCommon.hxx"
 #include <cstdint>
+#include <vector>
 
 namespace SAFplusAmf
   {

@@ -7,11 +7,12 @@
 #pragma once
 #ifndef PROCSTATS_HXX_
 #define PROCSTATS_HXX_
-#include "SAFplusAmfCommon.hxx"
 
-#include "ProcessStats.hxx"
-#include <vector>
 #include "MgtFactory.hxx"
+#include "ProcessStats.hxx"
+#include "clMgtHistoryStat.hxx"
+#include "SAFplusAmfCommon.hxx"
+#include <vector>
 
 namespace SAFplusAmf
   {

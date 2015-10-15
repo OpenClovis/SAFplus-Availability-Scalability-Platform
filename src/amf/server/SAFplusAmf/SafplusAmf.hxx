@@ -7,15 +7,15 @@
 #pragma once
 #ifndef SAFPLUSAMF_HXX_
 #define SAFPLUSAMF_HXX_
-#include "SAFplusAmfCommon.hxx"
 
-#include "clTransaction.hxx"
-#include "clMgtProv.hxx"
-#include "clMgtList.hxx"
-#include <vector>
 #include "MgtFactory.hxx"
 #include "clMgtContainer.hxx"
 #include "EntityByIdKey.hxx"
+#include "clTransaction.hxx"
+#include "clMgtProv.hxx"
+#include "clMgtList.hxx"
+#include "SAFplusAmfCommon.hxx"
+#include <vector>
 
 namespace SAFplusAmf
   {
@@ -68,7 +68,7 @@ namespace SAFplusAmf
         SAFplus::MgtList<std::string> serviceInstanceList;
 
         /*
-         * A Service Unit is a group of processes that all fail over together.  All service unit members must be run on the same node.
+         * A Service Unit is a group of processes that must all fail over together.  All service unit members must be run on the same node.
          */
         SAFplus::MgtList<std::string> serviceUnitList;
 

@@ -7,25 +7,26 @@
 #pragma once
 #ifndef SERVICEUNIT_HXX_
 #define SERVICEUNIT_HXX_
-#include "SAFplusAmfCommon.hxx"
 
-#include "Node.hxx"
-#include "clMgtIdentifier.hxx"
-#include "clTransaction.hxx"
-#include "Component.hxx"
-#include "MgtFactory.hxx"
-#include "AdministrativeState.hxx"
-#include <string>
-#include "ReadinessState.hxx"
-#include "clMgtProv.hxx"
-#include "ServiceInstance.hxx"
-#include "HighAvailabilityReadinessState.hxx"
-#include "ServiceGroup.hxx"
-#include <vector>
-#include "clMgtIdentifierList.hxx"
-#include <cstdint>
-#include "PresenceState.hxx"
 #include "EntityId.hxx"
+#include "HighAvailabilityReadinessState.hxx"
+#include "clMgtIdentifierList.hxx"
+#include "PresenceState.hxx"
+#include "MgtFactory.hxx"
+#include "Component.hxx"
+#include "clTransaction.hxx"
+#include "clMgtIdentifier.hxx"
+#include <string>
+#include "clMgtProv.hxx"
+#include "clMgtHistoryStat.hxx"
+#include "ServiceGroup.hxx"
+#include "ReadinessState.hxx"
+#include "Node.hxx"
+#include "ServiceInstance.hxx"
+#include "SAFplusAmfCommon.hxx"
+#include <cstdint>
+#include <vector>
+#include "AdministrativeState.hxx"
 #include "HighAvailabilityState.hxx"
 
 namespace SAFplusAmf
@@ -44,7 +45,7 @@ namespace SAFplusAmf
         SAFplus::MgtProv<::SAFplusAmf::AdministrativeState> adminState;
 
         /*
-         * Lower rank is instantiated before higher; but rank 0 means 'don't care'.
+         * Lower rank is instantiated before higher; but rank 0 means 'don't care'.  This field indicates priority but does not guarantee ordering. That is, it is NOT true that all rank 1 entities will be finished before rank 2 is instantiated (use dependencies for that).
          */
         SAFplus::MgtProv<::uint32_t> rank;
 
@@ -81,7 +82,7 @@ namespace SAFplusAmf
         SAFplus::MgtIdentifier<SAFplusAmf::ServiceGroup*> serviceGroup;
 
         /*
-         * Once this Service Unit is instantiated, how long should I wait before assigning it?
+         * Once this Service Unit is instantiated, how long should I wait before trusting that it is working properly?  Work will not be assigned until after this period.
          */
         SAFplus::MgtProv<::uint32_t> probationTime;
         SAFplus::MgtHistoryStat<int> numActiveServiceInstances;

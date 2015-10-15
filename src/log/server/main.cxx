@@ -68,7 +68,7 @@ extern HandleStreamMap hsMap;
 void checkAndRotateLog(Stream* s)
 {
   long fileSize = ftell(s->fp);
-  Dbg("checkAndRotateLog(): fileSize [%ld], conf fileSize [%ld]\n", fileSize, s->fileUnitSize.value);
+  Dbg("checkAndRotateLog(): fileSize [%ld], conf fileSize [%ld]\n", (long int) fileSize, (long int) s->fileUnitSize.value);
   if (fileSize >= s->fileUnitSize.value)
   {
     if (s->fileFullAction == FileFullAction::ROTATE)

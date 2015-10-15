@@ -241,16 +241,16 @@ void protobuf_AddDesc_amfRpc_2eproto() {
     "\n\014amfRpc.proto\022\022SAFplus.Rpc.amfRpc\032\022SAFp"
     "lusPBExt.proto\"A\n\025StartComponentRequest\022"
     "\014\n\004name\030\001 \001(\t\022\017\n\007command\030\002 \001(\t*\t\010\350\007\020\200\200\200\200"
-    "\002\"=\n\026StartComponentResponse\022\013\n\003err\030\001 \001(\005"
-    "\022\013\n\003pid\030\002 \001(\005*\t\010\350\007\020\200\200\200\200\002\".\n\024StopComponen"
-    "tRequest\022\013\n\003pid\030\001 \001(\005*\t\010\350\007\020\200\200\200\200\002\"/\n\025Stop"
-    "ComponentResponse\022\013\n\003err\030\001 \001(\005*\t\010\350\007\020\200\200\200\200"
-    "\002\",\n\022ProcessInfoRequest\022\013\n\003pid\030\001 \001(\005*\t\010\350"
+    "\002\"=\n\026StartComponentResponse\022\013\n\003err\030\001 \001(\021"
+    "\022\013\n\003pid\030\002 \001(\021*\t\010\350\007\020\200\200\200\200\002\".\n\024StopComponen"
+    "tRequest\022\013\n\003pid\030\001 \001(\021*\t\010\350\007\020\200\200\200\200\002\"/\n\025Stop"
+    "ComponentResponse\022\013\n\003err\030\001 \001(\021*\t\010\350\007\020\200\200\200\200"
+    "\002\",\n\022ProcessInfoRequest\022\013\n\003pid\030\001 \001(\021*\t\010\350"
     "\007\020\200\200\200\200\002\"B\n\023ProcessInfoResponse\022\017\n\007runnin"
     "g\030\001 \001(\010\022\017\n\007command\030\002 \001(\t*\t\010\350\007\020\200\200\200\200\002\".\n\024P"
-    "rocessFailedRequest\022\013\n\003pid\030\001 \001(\005*\t\010\350\007\020\200\200"
+    "rocessFailedRequest\022\013\n\003pid\030\001 \001(\021*\t\010\350\007\020\200\200"
     "\200\200\002\"/\n\025ProcessFailedResponse\022\013\n\003err\030\001 \001("
-    "\005*\t\010\350\007\020\200\200\200\200\0022\235\003\n\006amfRpc\022g\n\016startComponen"
+    "\021*\t\010\350\007\020\200\200\200\200\0022\235\003\n\006amfRpc\022g\n\016startComponen"
     "t\022).SAFplus.Rpc.amfRpc.StartComponentReq"
     "uest\032*.SAFplus.Rpc.amfRpc.StartComponent"
     "Response\022d\n\rstopComponent\022(.SAFplus.Rpc."
@@ -664,12 +664,12 @@ bool StartComponentResponse::MergePartialFromCodedStream(
   ::google::protobuf::uint32 tag;
   while ((tag = input->ReadTag()) != 0) {
     switch (::google::protobuf::internal::WireFormatLite::GetTagFieldNumber(tag)) {
-      // optional int32 err = 1;
+      // optional sint32 err = 1;
       case 1: {
         if (::google::protobuf::internal::WireFormatLite::GetTagWireType(tag) ==
             ::google::protobuf::internal::WireFormatLite::WIRETYPE_VARINT) {
           DO_((::google::protobuf::internal::WireFormatLite::ReadPrimitive<
-                   ::google::protobuf::int32, ::google::protobuf::internal::WireFormatLite::TYPE_INT32>(
+                   ::google::protobuf::int32, ::google::protobuf::internal::WireFormatLite::TYPE_SINT32>(
                  input, &err_)));
           set_has_err();
         } else {
@@ -679,13 +679,13 @@ bool StartComponentResponse::MergePartialFromCodedStream(
         break;
       }
 
-      // optional int32 pid = 2;
+      // optional sint32 pid = 2;
       case 2: {
         if (::google::protobuf::internal::WireFormatLite::GetTagWireType(tag) ==
             ::google::protobuf::internal::WireFormatLite::WIRETYPE_VARINT) {
          parse_pid:
           DO_((::google::protobuf::internal::WireFormatLite::ReadPrimitive<
-                   ::google::protobuf::int32, ::google::protobuf::internal::WireFormatLite::TYPE_INT32>(
+                   ::google::protobuf::int32, ::google::protobuf::internal::WireFormatLite::TYPE_SINT32>(
                  input, &pid_)));
           set_has_pid();
         } else {
@@ -718,14 +718,14 @@ bool StartComponentResponse::MergePartialFromCodedStream(
 
 void StartComponentResponse::SerializeWithCachedSizes(
     ::google::protobuf::io::CodedOutputStream* output) const {
-  // optional int32 err = 1;
+  // optional sint32 err = 1;
   if (has_err()) {
-    ::google::protobuf::internal::WireFormatLite::WriteInt32(1, this->err(), output);
+    ::google::protobuf::internal::WireFormatLite::WriteSInt32(1, this->err(), output);
   }
 
-  // optional int32 pid = 2;
+  // optional sint32 pid = 2;
   if (has_pid()) {
-    ::google::protobuf::internal::WireFormatLite::WriteInt32(2, this->pid(), output);
+    ::google::protobuf::internal::WireFormatLite::WriteSInt32(2, this->pid(), output);
   }
 
   // Extension range [1000, 536870912)
@@ -740,14 +740,14 @@ void StartComponentResponse::SerializeWithCachedSizes(
 
 ::google::protobuf::uint8* StartComponentResponse::SerializeWithCachedSizesToArray(
     ::google::protobuf::uint8* target) const {
-  // optional int32 err = 1;
+  // optional sint32 err = 1;
   if (has_err()) {
-    target = ::google::protobuf::internal::WireFormatLite::WriteInt32ToArray(1, this->err(), target);
+    target = ::google::protobuf::internal::WireFormatLite::WriteSInt32ToArray(1, this->err(), target);
   }
 
-  // optional int32 pid = 2;
+  // optional sint32 pid = 2;
   if (has_pid()) {
-    target = ::google::protobuf::internal::WireFormatLite::WriteInt32ToArray(2, this->pid(), target);
+    target = ::google::protobuf::internal::WireFormatLite::WriteSInt32ToArray(2, this->pid(), target);
   }
 
   // Extension range [1000, 536870912)
@@ -765,17 +765,17 @@ int StartComponentResponse::ByteSize() const {
   int total_size = 0;
 
   if (_has_bits_[0 / 32] & (0xffu << (0 % 32))) {
-    // optional int32 err = 1;
+    // optional sint32 err = 1;
     if (has_err()) {
       total_size += 1 +
-        ::google::protobuf::internal::WireFormatLite::Int32Size(
+        ::google::protobuf::internal::WireFormatLite::SInt32Size(
           this->err());
     }
 
-    // optional int32 pid = 2;
+    // optional sint32 pid = 2;
     if (has_pid()) {
       total_size += 1 +
-        ::google::protobuf::internal::WireFormatLite::Int32Size(
+        ::google::protobuf::internal::WireFormatLite::SInt32Size(
           this->pid());
     }
 
@@ -928,12 +928,12 @@ bool StopComponentRequest::MergePartialFromCodedStream(
   ::google::protobuf::uint32 tag;
   while ((tag = input->ReadTag()) != 0) {
     switch (::google::protobuf::internal::WireFormatLite::GetTagFieldNumber(tag)) {
-      // optional int32 pid = 1;
+      // optional sint32 pid = 1;
       case 1: {
         if (::google::protobuf::internal::WireFormatLite::GetTagWireType(tag) ==
             ::google::protobuf::internal::WireFormatLite::WIRETYPE_VARINT) {
           DO_((::google::protobuf::internal::WireFormatLite::ReadPrimitive<
-                   ::google::protobuf::int32, ::google::protobuf::internal::WireFormatLite::TYPE_INT32>(
+                   ::google::protobuf::int32, ::google::protobuf::internal::WireFormatLite::TYPE_SINT32>(
                  input, &pid_)));
           set_has_pid();
         } else {
@@ -966,9 +966,9 @@ bool StopComponentRequest::MergePartialFromCodedStream(
 
 void StopComponentRequest::SerializeWithCachedSizes(
     ::google::protobuf::io::CodedOutputStream* output) const {
-  // optional int32 pid = 1;
+  // optional sint32 pid = 1;
   if (has_pid()) {
-    ::google::protobuf::internal::WireFormatLite::WriteInt32(1, this->pid(), output);
+    ::google::protobuf::internal::WireFormatLite::WriteSInt32(1, this->pid(), output);
   }
 
   // Extension range [1000, 536870912)
@@ -983,9 +983,9 @@ void StopComponentRequest::SerializeWithCachedSizes(
 
 ::google::protobuf::uint8* StopComponentRequest::SerializeWithCachedSizesToArray(
     ::google::protobuf::uint8* target) const {
-  // optional int32 pid = 1;
+  // optional sint32 pid = 1;
   if (has_pid()) {
-    target = ::google::protobuf::internal::WireFormatLite::WriteInt32ToArray(1, this->pid(), target);
+    target = ::google::protobuf::internal::WireFormatLite::WriteSInt32ToArray(1, this->pid(), target);
   }
 
   // Extension range [1000, 536870912)
@@ -1003,10 +1003,10 @@ int StopComponentRequest::ByteSize() const {
   int total_size = 0;
 
   if (_has_bits_[0 / 32] & (0xffu << (0 % 32))) {
-    // optional int32 pid = 1;
+    // optional sint32 pid = 1;
     if (has_pid()) {
       total_size += 1 +
-        ::google::protobuf::internal::WireFormatLite::Int32Size(
+        ::google::protobuf::internal::WireFormatLite::SInt32Size(
           this->pid());
     }
 
@@ -1155,12 +1155,12 @@ bool StopComponentResponse::MergePartialFromCodedStream(
   ::google::protobuf::uint32 tag;
   while ((tag = input->ReadTag()) != 0) {
     switch (::google::protobuf::internal::WireFormatLite::GetTagFieldNumber(tag)) {
-      // optional int32 err = 1;
+      // optional sint32 err = 1;
       case 1: {
         if (::google::protobuf::internal::WireFormatLite::GetTagWireType(tag) ==
             ::google::protobuf::internal::WireFormatLite::WIRETYPE_VARINT) {
           DO_((::google::protobuf::internal::WireFormatLite::ReadPrimitive<
-                   ::google::protobuf::int32, ::google::protobuf::internal::WireFormatLite::TYPE_INT32>(
+                   ::google::protobuf::int32, ::google::protobuf::internal::WireFormatLite::TYPE_SINT32>(
                  input, &err_)));
           set_has_err();
         } else {
@@ -1193,9 +1193,9 @@ bool StopComponentResponse::MergePartialFromCodedStream(
 
 void StopComponentResponse::SerializeWithCachedSizes(
     ::google::protobuf::io::CodedOutputStream* output) const {
-  // optional int32 err = 1;
+  // optional sint32 err = 1;
   if (has_err()) {
-    ::google::protobuf::internal::WireFormatLite::WriteInt32(1, this->err(), output);
+    ::google::protobuf::internal::WireFormatLite::WriteSInt32(1, this->err(), output);
   }
 
   // Extension range [1000, 536870912)
@@ -1210,9 +1210,9 @@ void StopComponentResponse::SerializeWithCachedSizes(
 
 ::google::protobuf::uint8* StopComponentResponse::SerializeWithCachedSizesToArray(
     ::google::protobuf::uint8* target) const {
-  // optional int32 err = 1;
+  // optional sint32 err = 1;
   if (has_err()) {
-    target = ::google::protobuf::internal::WireFormatLite::WriteInt32ToArray(1, this->err(), target);
+    target = ::google::protobuf::internal::WireFormatLite::WriteSInt32ToArray(1, this->err(), target);
   }
 
   // Extension range [1000, 536870912)
@@ -1230,10 +1230,10 @@ int StopComponentResponse::ByteSize() const {
   int total_size = 0;
 
   if (_has_bits_[0 / 32] & (0xffu << (0 % 32))) {
-    // optional int32 err = 1;
+    // optional sint32 err = 1;
     if (has_err()) {
       total_size += 1 +
-        ::google::protobuf::internal::WireFormatLite::Int32Size(
+        ::google::protobuf::internal::WireFormatLite::SInt32Size(
           this->err());
     }
 
@@ -1382,12 +1382,12 @@ bool ProcessInfoRequest::MergePartialFromCodedStream(
   ::google::protobuf::uint32 tag;
   while ((tag = input->ReadTag()) != 0) {
     switch (::google::protobuf::internal::WireFormatLite::GetTagFieldNumber(tag)) {
-      // optional int32 pid = 1;
+      // optional sint32 pid = 1;
       case 1: {
         if (::google::protobuf::internal::WireFormatLite::GetTagWireType(tag) ==
             ::google::protobuf::internal::WireFormatLite::WIRETYPE_VARINT) {
           DO_((::google::protobuf::internal::WireFormatLite::ReadPrimitive<
-                   ::google::protobuf::int32, ::google::protobuf::internal::WireFormatLite::TYPE_INT32>(
+                   ::google::protobuf::int32, ::google::protobuf::internal::WireFormatLite::TYPE_SINT32>(
                  input, &pid_)));
           set_has_pid();
         } else {
@@ -1420,9 +1420,9 @@ bool ProcessInfoRequest::MergePartialFromCodedStream(
 
 void ProcessInfoRequest::SerializeWithCachedSizes(
     ::google::protobuf::io::CodedOutputStream* output) const {
-  // optional int32 pid = 1;
+  // optional sint32 pid = 1;
   if (has_pid()) {
-    ::google::protobuf::internal::WireFormatLite::WriteInt32(1, this->pid(), output);
+    ::google::protobuf::internal::WireFormatLite::WriteSInt32(1, this->pid(), output);
   }
 
   // Extension range [1000, 536870912)
@@ -1437,9 +1437,9 @@ void ProcessInfoRequest::SerializeWithCachedSizes(
 
 ::google::protobuf::uint8* ProcessInfoRequest::SerializeWithCachedSizesToArray(
     ::google::protobuf::uint8* target) const {
-  // optional int32 pid = 1;
+  // optional sint32 pid = 1;
   if (has_pid()) {
-    target = ::google::protobuf::internal::WireFormatLite::WriteInt32ToArray(1, this->pid(), target);
+    target = ::google::protobuf::internal::WireFormatLite::WriteSInt32ToArray(1, this->pid(), target);
   }
 
   // Extension range [1000, 536870912)
@@ -1457,10 +1457,10 @@ int ProcessInfoRequest::ByteSize() const {
   int total_size = 0;
 
   if (_has_bits_[0 / 32] & (0xffu << (0 % 32))) {
-    // optional int32 pid = 1;
+    // optional sint32 pid = 1;
     if (has_pid()) {
       total_size += 1 +
-        ::google::protobuf::internal::WireFormatLite::Int32Size(
+        ::google::protobuf::internal::WireFormatLite::SInt32Size(
           this->pid());
     }
 
@@ -1891,12 +1891,12 @@ bool ProcessFailedRequest::MergePartialFromCodedStream(
   ::google::protobuf::uint32 tag;
   while ((tag = input->ReadTag()) != 0) {
     switch (::google::protobuf::internal::WireFormatLite::GetTagFieldNumber(tag)) {
-      // optional int32 pid = 1;
+      // optional sint32 pid = 1;
       case 1: {
         if (::google::protobuf::internal::WireFormatLite::GetTagWireType(tag) ==
             ::google::protobuf::internal::WireFormatLite::WIRETYPE_VARINT) {
           DO_((::google::protobuf::internal::WireFormatLite::ReadPrimitive<
-                   ::google::protobuf::int32, ::google::protobuf::internal::WireFormatLite::TYPE_INT32>(
+                   ::google::protobuf::int32, ::google::protobuf::internal::WireFormatLite::TYPE_SINT32>(
                  input, &pid_)));
           set_has_pid();
         } else {
@@ -1929,9 +1929,9 @@ bool ProcessFailedRequest::MergePartialFromCodedStream(
 
 void ProcessFailedRequest::SerializeWithCachedSizes(
     ::google::protobuf::io::CodedOutputStream* output) const {
-  // optional int32 pid = 1;
+  // optional sint32 pid = 1;
   if (has_pid()) {
-    ::google::protobuf::internal::WireFormatLite::WriteInt32(1, this->pid(), output);
+    ::google::protobuf::internal::WireFormatLite::WriteSInt32(1, this->pid(), output);
   }
 
   // Extension range [1000, 536870912)
@@ -1946,9 +1946,9 @@ void ProcessFailedRequest::SerializeWithCachedSizes(
 
 ::google::protobuf::uint8* ProcessFailedRequest::SerializeWithCachedSizesToArray(
     ::google::protobuf::uint8* target) const {
-  // optional int32 pid = 1;
+  // optional sint32 pid = 1;
   if (has_pid()) {
-    target = ::google::protobuf::internal::WireFormatLite::WriteInt32ToArray(1, this->pid(), target);
+    target = ::google::protobuf::internal::WireFormatLite::WriteSInt32ToArray(1, this->pid(), target);
   }
 
   // Extension range [1000, 536870912)
@@ -1966,10 +1966,10 @@ int ProcessFailedRequest::ByteSize() const {
   int total_size = 0;
 
   if (_has_bits_[0 / 32] & (0xffu << (0 % 32))) {
-    // optional int32 pid = 1;
+    // optional sint32 pid = 1;
     if (has_pid()) {
       total_size += 1 +
-        ::google::protobuf::internal::WireFormatLite::Int32Size(
+        ::google::protobuf::internal::WireFormatLite::SInt32Size(
           this->pid());
     }
 
@@ -2118,12 +2118,12 @@ bool ProcessFailedResponse::MergePartialFromCodedStream(
   ::google::protobuf::uint32 tag;
   while ((tag = input->ReadTag()) != 0) {
     switch (::google::protobuf::internal::WireFormatLite::GetTagFieldNumber(tag)) {
-      // optional int32 err = 1;
+      // optional sint32 err = 1;
       case 1: {
         if (::google::protobuf::internal::WireFormatLite::GetTagWireType(tag) ==
             ::google::protobuf::internal::WireFormatLite::WIRETYPE_VARINT) {
           DO_((::google::protobuf::internal::WireFormatLite::ReadPrimitive<
-                   ::google::protobuf::int32, ::google::protobuf::internal::WireFormatLite::TYPE_INT32>(
+                   ::google::protobuf::int32, ::google::protobuf::internal::WireFormatLite::TYPE_SINT32>(
                  input, &err_)));
           set_has_err();
         } else {
@@ -2156,9 +2156,9 @@ bool ProcessFailedResponse::MergePartialFromCodedStream(
 
 void ProcessFailedResponse::SerializeWithCachedSizes(
     ::google::protobuf::io::CodedOutputStream* output) const {
-  // optional int32 err = 1;
+  // optional sint32 err = 1;
   if (has_err()) {
-    ::google::protobuf::internal::WireFormatLite::WriteInt32(1, this->err(), output);
+    ::google::protobuf::internal::WireFormatLite::WriteSInt32(1, this->err(), output);
   }
 
   // Extension range [1000, 536870912)
@@ -2173,9 +2173,9 @@ void ProcessFailedResponse::SerializeWithCachedSizes(
 
 ::google::protobuf::uint8* ProcessFailedResponse::SerializeWithCachedSizesToArray(
     ::google::protobuf::uint8* target) const {
-  // optional int32 err = 1;
+  // optional sint32 err = 1;
   if (has_err()) {
-    target = ::google::protobuf::internal::WireFormatLite::WriteInt32ToArray(1, this->err(), target);
+    target = ::google::protobuf::internal::WireFormatLite::WriteSInt32ToArray(1, this->err(), target);
   }
 
   // Extension range [1000, 536870912)
@@ -2193,10 +2193,10 @@ int ProcessFailedResponse::ByteSize() const {
   int total_size = 0;
 
   if (_has_bits_[0 / 32] & (0xffu << (0 % 32))) {
-    // optional int32 err = 1;
+    // optional sint32 err = 1;
     if (has_err()) {
       total_size += 1 +
-        ::google::protobuf::internal::WireFormatLite::Int32Size(
+        ::google::protobuf::internal::WireFormatLite::SInt32Size(
           this->err());
     }
 

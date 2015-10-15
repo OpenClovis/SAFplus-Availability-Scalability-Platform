@@ -7,10 +7,10 @@
 #pragma once
 #ifndef ASSIGNMENTSTATE_HXX_
 #define ASSIGNMENTSTATE_HXX_
-#include "SAFplusAmfCommon.hxx"
 
-#include "MgtEnumType.hxx"
+#include "SAFplusAmfCommon.hxx"
 #include <iostream>
+#include "MgtEnumType.hxx"
 
 namespace SAFplusAmf
   {

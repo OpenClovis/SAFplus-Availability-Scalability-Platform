@@ -3,6 +3,8 @@
 #include <string.h>
 #include <stdio.h>
 
+#include <clLogApi.hxx>
+
 #include <myService/MyServiceModule.hxx>
 #include <myService/Subscribers.hxx>
 extern myService::MyServiceModule mgt;
@@ -11,6 +13,7 @@ extern int bytesTransmitted;
 
 #define PAGE  "<html><head><title>SAFplus demo</title></head><body>start</body></html>\n"
 
+static int queryCount=0;
 
 static int ahc_echo(void * cls,
 		    struct MHD_Connection * connection,
@@ -36,6 +39,7 @@ static int ahc_echo(void * cls,
   if (0 != *upload_data_size)
     return MHD_NO; /* upload data in a GET!? */
 
+  logDebug("WEB","RSP", "Query [%d] received", queryCount++);
   const char* user = MHD_lookup_connection_value(connection, MHD_GET_ARGUMENT_KIND, "user");
   if (user == NULL)
     return MHD_NO;

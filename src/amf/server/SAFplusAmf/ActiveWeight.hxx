@@ -7,12 +7,12 @@
 #pragma once
 #ifndef ACTIVEWEIGHT_HXX_
 #define ACTIVEWEIGHT_HXX_
-#include "SAFplusAmfCommon.hxx"
 
-#include <vector>
 #include "MgtFactory.hxx"
-#include <string>
 #include "Capacity.hxx"
+#include <string>
+#include "SAFplusAmfCommon.hxx"
+#include <vector>
 
 namespace SAFplusAmf
   {
