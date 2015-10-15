@@ -805,7 +805,7 @@ ClRcT BerkeleyPlugin::syncDbal(ClUint32T flags)
 
 ClRcT BerkeleyPlugin::openTransaction(ClDBFileT dbFile, ClDBNameT  dbName, ClDBFlagT dbFlag, ClUint32T  maxKeySize, ClUint32T  maxRecordSize)
 {
-    //close(); // close the current non-transactional database handle first if any
+#if ( DB_VERSION_MAJOR >= 4 && DB_VERSION_MINOR >= 0 )
 
     ClRcT errorCode = CL_OK;
     BerkeleyDBHandle_t* pBerkeleyHandle = NULL;
@@ -994,6 +994,9 @@ err_cleaup:
     logWarning(CL_LOG_AREA_UNSPECIFIED, CL_LOG_CONTEXT_UNSPECIFIED,"Berkeley DB open failed.");
     
     return(errorCode);
+#else
+    return CL_OK;
+#endif
 }
 
 ClRcT BerkeleyPlugin::beginTransaction()
