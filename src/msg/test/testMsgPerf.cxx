@@ -261,10 +261,10 @@ bool testLatency(MsgSocket* src, MsgSocket* sink,Handle dest, int msgLen, int nu
 
 void testGroup(MsgSocket* src, MsgSocket* sink,Handle dest,const char* desc)
 {
-  //  testLatency(src,sink,dest,1,10000 * repeat, desc,true);
-  //  testLatency(src,sink,dest,16,10000 * repeat, desc,true);
-  //  testLatency(src,sink,dest,100,10000 * repeat, desc,true);
-  //  testLatency(src,sink,dest,1000,10000 * repeat, desc,true);
+  testLatency(src,sink,dest,1,10000 * repeat, desc,true);
+  testLatency(src,sink,dest,16,10000 * repeat, desc,true);
+  testLatency(src,sink,dest,100,10000 * repeat, desc,true);
+  testLatency(src,sink,dest,1000,10000 * repeat, desc,true);
   testLatency(src,sink,dest,10000,10000 * repeat, desc,true);
 
   testChunkingPerf(src, sink,dest,1, 1 , 1 , 10000 * repeat,desc);
@@ -316,7 +316,7 @@ class Sock
 
   ~Sock() 
     { 
-    xport->transport->deleteSocket(xport);
+      // done by sarSock: xport->transport->deleteSocket(xport);
     if (sarSock) delete sarSock; 
     }
   MsgSocket* xport;
@@ -411,7 +411,7 @@ int main(int argc, char* argv[])
   MsgTransportConfig& xCfg = xp->config;
 
   logInfo(testName,suiteName,"Msg Transport [%s], node [%u] maxPort [%u] maxMsgSize [%u] reflector node [%d] reflector port [%d]", xp->type, xCfg.nodeId, xCfg.maxPort, xCfg.maxMsgSize, reflectorNode, reflectorPort);
-  if (0) // testProcess)
+  if (testProcess)
     {
       logInfo(testName,suiteName,"Loopback to same process");
       Sock a(xp,1);

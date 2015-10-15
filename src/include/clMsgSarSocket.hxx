@@ -1,3 +1,4 @@
+#pragma once
 #include <boost/unordered_map.hpp>
 
 #include <clMsgBase.hxx>
@@ -14,8 +15,25 @@ namespace SAFplus
     class MsgSarIdentifier
     {
     public:
+      MsgSarIdentifier(SAFplus::Handle& f,uint_t m):from(f),msgId(m) {}
       SAFplus::Handle from;
-      uint_t msgNum; 
+      uint_t msgId; 
+      bool operator == (const MsgSarIdentifier& other) const { return (from==other.from) && (msgId==other.msgId); }
+    };
+
+  inline std::size_t hash_value(MsgSarIdentifier const& h)
+  {
+     boost::hash<uint64_t> hasher;        
+     return hash_value(h.from) ^ hasher(h.msgId);
+  }     
+
+    class MsgSarTracker
+    {
+    public:
+      MsgSarTracker():last(0),count(0) {}
+      uint_t last;
+      uint_t count;
+      std::vector<Message*> msgs; 
     };
 
 
@@ -25,7 +43,7 @@ namespace SAFplus
       friend class MsgFragment;
       virtual ~MsgSarSocket();
 
-      typedef boost::unordered_map<MsgSarIdentifier,Message*> MsgSarMap;
+      typedef boost::unordered_map<MsgSarIdentifier,MsgSarTracker> MsgSarMap;
 
       MsgSarMap received;
 
@@ -47,7 +65,10 @@ namespace SAFplus
     protected:
       int msgNum;
       int setHeader(void* ptr, uint msgNum, uint offset);  // fills the ptr with a valid message header.  Returns the length of the header.
+      void addSarHeader(Message* msg, uint msgNum, uint chunkNum);  // Adds the SAR header to the message either by allocating a new fragment or squeezing it into unused buffer space in front of the first message
+
       bool consumeHeader(Message* m, uint* msgNum, uint* offset);  // extracts the header from m.  Returns data in msgNum and offset.  Return value is true if this is the last packet in the message.
+      void setLastChunk(Message* msg); // set the last chunk bit on this message
 
       MsgTransportPlugin* transport;
       friend class ScopedMsgSocket;

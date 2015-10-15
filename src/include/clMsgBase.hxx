@@ -93,38 +93,7 @@ namespace SAFplus
       friend class MsgPool;
   };  //? </class>
 
-  class MsgPool;
-
-  //? <class> Defines a linked list of iovector message buffers
-  class Message
-    {
-    public:
-    Message() { initialize(); }
-    void initialize() { node=0; port=0; nextMsg=0; firstFragment=nullptr; lastFragment=nullptr; nextMsg=nullptr; msgPool=nullptr;  }
-    uint_t node; //? source or destination node, depending on whether this message is being sent or was received.
-    uint_t port; //? source or destination port, depending on whether this message is being sent or was received.
-
-      //? Get the source or destination handle (depending on whether this message is being sent or was received) of this message.  This is just a convenience function that constructs a handle from the node and port fields of this object
-    Handle getAddress() { return getProcessHandle(port,node); }
-    //? Change the address of this message.
-    void setAddress(uint_t nodep, uint_t portp) { node=nodep; port=portp; }
-    //? Change the address of this message to that of the node and port of the provided handle.
-    void setAddress(const Handle& h);
-    void deleteLastFragment();
-    uint getLength();
-
-    MsgFragment* prepend(uint_t size); //? Create a message fragment at the beginning of this message and return it
-    MsgFragment* append(uint_t size);  //? Create a message fragment at the end of this message and return it
-
-    void prependFrag(MsgFragment* frag); //? Put this fragment in the beginning of the message
-
-    MsgPool*     msgPool;  //? The message pool that this message and fragments were allocated from
-    Message* nextMsg; //? The next message in this send or received groups. 
-
-      // protected:  Should only be used by message transport implementations
-    MsgFragment* firstFragment;  //? The first fragment in this message.  Typically only used by the lower layers; upper layers should "hang on" to the MsgFragments returned by the prepend and append functions.
-    MsgFragment* lastFragment;  //?  The last fragment in this message.  Typically only used by the lower layers; upper layers should "hang on" to the MsgFragments returned by the prepend and append functions.
-    };   //? </class>
+  class Message;
 
   //? <class> A pool of message buffers so we don't have to keep freeing/allocating.
   class MsgPool
@@ -148,6 +117,46 @@ namespace SAFplus
       virtual void free(Message* msg);
       void freeFragment(MsgFragment* frag);
     }; //? </class>
+
+  //? <class> Defines a linked list of iovector message buffers
+  class Message
+    {
+    public:
+    Message() { initialize(); }
+    void initialize() { node=0; port=0; nextMsg=0; firstFragment=nullptr; lastFragment=nullptr; nextMsg=nullptr; msgPool=nullptr;  }
+    uint_t node; //? source or destination node, depending on whether this message is being sent or was received.
+    uint_t port; //? source or destination port, depending on whether this message is being sent or was received.
+
+      //? Get the source or destination handle (depending on whether this message is being sent or was received) of this message.  This is just a convenience function that constructs a handle from the node and port fields of this object
+    Handle getAddress() { return getProcessHandle(port,node); }
+    //? Change the address of this message.
+    void setAddress(uint_t nodep, uint_t portp) { node=nodep; port=portp; }
+    //? Change the address of this message to that of the node and port of the provided handle.
+    void setAddress(const Handle& h);
+    void deleteLastFragment();
+    uint getLength();
+
+      //? Copy the data in the message to the supplied buffer.  Return the number of bytes copied.
+    uint_t copy(void* data, uint_t offset, uint_t maxlength);
+
+      //? Return a pointer to a buffer which contains the requested data, contiguous and aligned.  This pointer MAY point to data inside the message or MAY point to data inside the supplied buffer.  The supplied buffer must contain at least length+align bytes (or length bytes and be properly aligned).  If align==0 or 1 data is byte aligned (unaligned).  align==2, 4, 8 means alignment for short, int32 and int64 respectively.  Returns NULL if offset+length is longer than the message
+    void* flatten(void* data, uint_t offset, uint_t length,uint_t align=0);
+
+    MsgFragment* prepend(uint_t size); //? Create a message fragment at the beginning of this message and return it
+    MsgFragment* append(uint_t size);  //? Create a message fragment at the end of this message and return it
+
+    void prependFrag(MsgFragment* frag); //? Put this fragment in the beginning of the message
+
+    void free(void) { msgPool->free(this); }  //? Return this message, all fragments, and child messages to the message pool
+
+    MsgPool*     msgPool;  //? The message pool that this message and fragments were allocated from
+    Message* nextMsg; //? The next message in this send or received groups. 
+
+      // protected:  Should only be used by message transport implementations
+    MsgFragment* firstFragment;  //? The first fragment in this message.  Typically only used by the lower layers; upper layers should "hang on" to the MsgFragments returned by the prepend and append functions.
+    MsgFragment* lastFragment;  //?  The last fragment in this message.  Typically only used by the lower layers; upper layers should "hang on" to the MsgFragments returned by the prepend and append functions.
+    };   //? </class>
+
 
   //? <class> A interface defining a portal to send and receive messages.  The application can create or delete a MsgSocket by calling the MsgTransportPlugin_1::createSocket() and MsgTransportPlugin_1::deleteSocket() functions, or by using the @ScopedMsgSocket convenience class for stack-scoped sockets.  Classes derived from MsgSocket can also be layered on top of transport MsgSockets to create additional functionality such as traffic shaping, large message capability, etc.  For more information see [[Messaging#Message_Transport_Layer]]
   class MsgSocket
