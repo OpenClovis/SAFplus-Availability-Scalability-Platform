@@ -1,3 +1,6 @@
+#ifndef CL_MSG_SAR_SOCKET_HXX
+#define CL_MSG_SAR_SOCKET_HXX
+
 #include <boost/unordered_map.hpp>
 
 #include <clMsgBase.hxx>
@@ -55,3 +58,4 @@ namespace SAFplus
 
 
   };
+#endif
