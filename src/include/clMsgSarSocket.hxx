@@ -1,14 +1,13 @@
 #pragma once
-#include <boost/unordered_map.hpp>
+#ifndef CL_MSG_SAR_SOCKET_HXX
+#define CL_MSG_SAR_SOCKET_HXX
 
+#include <boost/unordered_map.hpp>
 #include <clMsgBase.hxx>
 
 namespace SAFplus
   {
-
     /*? <class> Segmentation and Reassembly socket
-    
-
     Messages are broken into packets.  All are prefixed with 2 fields: msgNum (8 bits) and index (16 bits) written in network order.
     The msgNum field has a final message indicator (msgNum&1)==1, and 7 bits specifying which message this is.  From the receiver's perspective, source address:msgNum uniquely identifies a "live" message.  Index starts at zero and counts up.  Dropped messages can be identified due to gaps in the index, the initial index not starting a zero (lost first message), or the final message bit not being set (lost last message). 
     */ 
@@ -76,3 +75,4 @@ namespace SAFplus
 
 
   };
+#endif
