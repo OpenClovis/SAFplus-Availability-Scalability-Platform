@@ -16,9 +16,6 @@ SAFPLUS_LINK_LIBS := -L$(LIB_DIR) $(addprefix -l,$(SAFPLUS_LIBS))
 
 all: $(TEST_DIR)/testDBPlugin
 
-#deps:
-#	make -C $(SAFPLUS_SRC_DIR)/msg/transports
-#	make -C $(SAFPLUS_SRC_DIR)/msg
 
 ifdef DIRECTLY_LINK
 $(TEST_DIR)/%:  $(OBJ_DIR)/%.o $(SAFPLUS_DEP_LIBS)

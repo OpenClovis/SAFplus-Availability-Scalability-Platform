@@ -46,7 +46,7 @@ protected:
   ClDBHandleT pDBHandle;
 
   virtual ClRcT close()=0; /* destructor of derived class will call this function */
-  DbalPlugin() {}
+  DbalPlugin() {pDBHandle=NULL;}
 };
 
 DbalPlugin::~DbalPlugin() { }

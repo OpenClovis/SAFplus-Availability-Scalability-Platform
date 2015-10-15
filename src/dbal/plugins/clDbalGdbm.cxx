@@ -58,6 +58,8 @@ GdbmPlugin::~GdbmPlugin()
 
 ClRcT GdbmPlugin::open(ClDBFileT dbFile, ClDBNameT dbName, ClDBFlagT dbFlag, ClUint32T maxKeySize, ClUint32T maxRecordSize)
 {
+  if (pDBHandle) return;
+
   ClRcT errorCode = CL_OK;
   GDBMHandle_t* pGDBMHandle = NULL;
   ClUint32T read_write = 0;
@@ -166,6 +168,8 @@ ClRcT GdbmPlugin::open(ClDBFileT dbFile, ClDBNameT dbName, ClDBFlagT dbFlag, ClU
 
 ClRcT GdbmPlugin::close()
 {
+  if (!pDBHandle) return CL_OK;
+
   GDBMHandle_t* pGDBMHandle = (GDBMHandle_t*)pDBHandle;
   
   /* close the GDBM database */

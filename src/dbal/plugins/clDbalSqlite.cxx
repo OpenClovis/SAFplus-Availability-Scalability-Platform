@@ -76,14 +76,14 @@ SqlitePlugin::~SqlitePlugin()
 
 ClRcT SqlitePlugin::open(ClDBFileT dbFile, ClDBNameT dbName, ClDBFlagT dbFlag, ClUint32T maxKeySize, ClUint32T maxRecordSize)
 {
+    if (pDBHandle) return;
+
     ClRcT errorCode = CL_OK;
     SQLiteDBHandle_t* pSQLiteHandle = NULL;
     sqlite3_stmt *stmt =  NULL;
     ClUint32T rc = 0;
     FILE* fp = NULL;
     ClBoolT enableSync = CL_FALSE;
-
-    
 
     //NULL_CHECK(pDBHandle);
     NULL_CHECK(dbName);
@@ -417,6 +417,9 @@ ClRcT SqlitePlugin::cdbSQLiteDBCreate(ClDBNameT dbName)
 ClRcT SqlitePlugin::close()
 {
     ClRcT errorCode = CL_OK;
+
+    if (!pDBHandle) return errorCode;
+
     SQLiteDBHandle_t* pSQLiteHandle = NULL;
     ClUint32T rc = 0;
     
