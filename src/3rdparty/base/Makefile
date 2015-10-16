@@ -165,7 +165,9 @@ libs: $(InstDir) $(LIBXML2) $(BOOST)
 # $(NETSNMP)  $(OPENHPI) $(OPENHPISUBAGENT)
 all: $(InstDir) $(LIBXML2) $(BOOST) 
 
-
+wipe:
+	rm -rf $(LIBXML2)-$(LIBXML2_VER)
+	rm -rf protobuf
 
 $(InstDir):
 	mkdir -p $@
