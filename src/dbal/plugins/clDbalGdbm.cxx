@@ -58,7 +58,7 @@ GdbmPlugin::~GdbmPlugin()
 
 ClRcT GdbmPlugin::open(ClDBFileT dbFile, ClDBNameT dbName, ClDBFlagT dbFlag, ClUint32T maxKeySize, ClUint32T maxRecordSize)
 {
-  if (pDBHandle) return;
+  if (pDBHandle) close();
 
   ClRcT errorCode = CL_OK;
   GDBMHandle_t* pGDBMHandle = NULL;
@@ -177,6 +177,7 @@ ClRcT GdbmPlugin::close()
 
   /* make the GDBM handle invalid */
   SAFplusHeapFree(pGDBMHandle);
+  pDBHandle=NULL;
 
   logInfo(CL_LOG_AREA_UNSPECIFIED, CL_LOG_CONTEXT_UNSPECIFIED,"\nGDBM closed.");
   

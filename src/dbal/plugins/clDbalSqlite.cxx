@@ -76,7 +76,7 @@ SqlitePlugin::~SqlitePlugin()
 
 ClRcT SqlitePlugin::open(ClDBFileT dbFile, ClDBNameT dbName, ClDBFlagT dbFlag, ClUint32T maxKeySize, ClUint32T maxRecordSize)
 {
-    if (pDBHandle) return;
+    if (pDBHandle) close();
 
     ClRcT errorCode = CL_OK;
     SQLiteDBHandle_t* pSQLiteHandle = NULL;
@@ -513,7 +513,7 @@ ClRcT SqlitePlugin::close()
     }
 
     SAFplusHeapFree(pSQLiteHandle);
-    
+    pDBHandle=NULL;
     
     return (CL_OK);  
 }
