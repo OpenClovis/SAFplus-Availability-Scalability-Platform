@@ -124,7 +124,7 @@ build_binary:
 
 
 deb-bin: build_binary
-	$(call prepare_env_deb,safplus,lib,sdk/target)
+	$(call prepare_env_deb,safplus,lib,sdk/target/$(__TMP_TARGET_PLATFORM))
 	$(call copy_binpkg_files, $(DEB_TOP_DIR))
 	cd $(DEB_TOP_DIR) && dpkg-buildpackage -uc -us -b
 	mkdir -p $(BUILD)

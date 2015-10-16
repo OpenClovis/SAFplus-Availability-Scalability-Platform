@@ -66,12 +66,12 @@ LOCAL_COMPILE_CPP ?= $(LOCAL_COMPILER) -std=c++11 -Wno-deprecated-declarations  
 LOCAL_LINK_SO     ?= $(LOCAL_COMPILER) $(LINK_FLAGS) -g -shared -o
 LOCAL_LINK_EXE    ?= $(LOCAL_COMPILER) -g -O0 -fPIC $(LINK_FLAGS) -o
 LOCAL_TARGET_OS ?= $(shell uname -r)
-LOCAL_TARGET_PLATFORM ?= $(shell uname -p)
+__TMP_TARGET_PLATFORM := $(shell $(COMPILER) -dumpmachine)
+LOCAL_TARGET_PLATFORM ?= $(__TMP_TARGET_PLATFORM)
 
 LINK_LIBS ?=
 
 TARGET_OS ?= linux # $(shell uname -r)
-__TMP_TARGET_PLATFORM := $(shell $(COMPILER) -dumpmachine)
 TARGET_PLATFORM ?= $(__TMP_TARGET_PLATFORM)
 
 MGT_SRC_DIR ?= $(SAFPLUS_SRC_DIR)/../../mgt
