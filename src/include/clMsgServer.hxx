@@ -57,6 +57,8 @@ namespace SAFplus
      */
     MsgServer(uint_t port, uint_t maxPendingMsgs, uint_t maxHandlerThreads, Options flags=DEFAULT_OPTIONS, SocketType type = SOCK_DEFAULT);
 
+    ~MsgServer();
+
     /*? 2 Phase Constructor.  See MsgServer(...) for parameter details */
     void Init(uint_t port, uint_t maxPendingMsgs, uint_t maxHandlerThreads, Options flags=DEFAULT_OPTIONS, SocketType type = SOCK_DEFAULT);
     
@@ -128,12 +130,21 @@ namespace SAFplus
       return getProcessHandle(port,Handle::AllNodes);
       }
 
+    //? Get the message buffer pool used by this MsgServer.
     MsgPool& getMsgPool() { return *sock->getMsgPool(); }
 
     Fault* fault;  //? You need to initialize this if you want the message server to gain knowledge of system faults
 
+    //? Get the underlying transport socket.  This is used to add socket layers to your network stack.  If you use this socket to inject messages, you will confuse the receiving side.
     SAFplus::MsgSocket* getSocket() { return sock; }
+    //? Set the underlying transport socket.  This is used to add socket layers to your network stack.  
     void setSocket(SAFplus::MsgSocket* s) { sock = s; }
+
+    //? Get the maximum theoretical message length supported by this server.  This may exceed your available memory.  Sockets that support unlimited sizes will return UINT_MAX.
+    uint_t maxMsgLength()
+    {
+      return sock->cap.maxMsgSize - 1;  // Subtract 1 to account for the message type prefix
+    }
  
   protected:
     void Shutdown();

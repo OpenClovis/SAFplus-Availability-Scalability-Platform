@@ -162,6 +162,8 @@ namespace SAFplus
       do {
         msg = next;
         next = msg->nextMsg;  // Save the next message so we use it next
+        assert(msg->node != 0);  // Destination node was not specified
+        assert(msg->port != 0);  // Destination port was not specified 
 
         struct iovec *msg_iov = iovecBuffer + totalFragCount;
         struct iovec *curIov = msg_iov;

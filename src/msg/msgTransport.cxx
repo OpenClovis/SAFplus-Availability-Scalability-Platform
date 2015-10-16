@@ -18,6 +18,96 @@ namespace SAFplus
       firstFragment = frag;
       if (!lastFragment) lastFragment = frag;  // If this is the very first message fragment
   }
+
+    uint_t Message::copy(void* data, uint_t offset, uint_t maxlen)
+    {
+      int maxlength = (maxlen > INT_MAX) ? INT_MAX: (int) maxlen;  // numbers higher than INT_MAX basically mean "the whole thing"
+      uint8_t* ptr = (uint8_t*) data;
+      assert(ptr);
+      int loc = offset;
+      uint_t amtCopied = 0;
+      // advance to the position
+      MsgFragment* frag;
+      for (frag = firstFragment; frag != NULL; frag = frag->nextFragment)
+        {
+          loc -= frag->len;
+          if (loc <= 0) break;
+        }
+
+      if (frag)
+        {
+          if (loc < 0)  // Copy the portion in this fragment.
+            {            
+              int amt2copy = std::min(-loc, maxlength); 
+              memcpy(ptr,frag->read(frag->len + loc),amt2copy);  // actually subtracting, loc is negative
+              maxlength -= amt2copy; 
+              amtCopied += amt2copy;
+              ptr+=amt2copy;
+            }
+          frag = frag->nextFragment;
+
+          // Copy the rest
+          for (; (frag != NULL) && (maxlength>0); frag = frag->nextFragment)
+            {
+              int amt2copy = std::min((int) frag->len, maxlength); 
+              memcpy(ptr,frag->read(0),amt2copy);
+              maxlength -= amt2copy; 
+              amtCopied += amt2copy;            
+              ptr+=amt2copy;
+            }
+        }
+      
+      return amtCopied;
+    }
+
+    void* Message::flatten(void* data, uint_t offset, uint_t length,uint_t align)
+    {
+      int loc = offset;
+      uint_t amtCopied = 0;
+
+      // advance to the position
+      MsgFragment* frag;
+      for (frag = firstFragment; frag != NULL; frag = frag->nextFragment)
+        {
+          loc -= frag->len;
+          if (loc <= 0) break;
+        }
+      if (!frag) return NULL; // offset is beyond the end of the message
+
+      uint8_t* out = (uint8_t*) data;
+          if (align>1)  // Align the out pointer
+            {
+              out = (uint8_t*) ((((uintptr_t)out)+(align-1))&(align-1));
+            }
+          uint8_t* ret = out;
+
+      if (loc < 0)  // Copy the portion in this fragment.
+        {            
+          int amt2copy = std::min(-loc, (int) length); 
+          if (amt2copy <= -loc) // All requested data is in one fragment
+            {
+              uint8_t* ptr = (uint8_t*) frag->read(frag->len + loc);
+              if (align==0 || align==1 || (((uintptr_t)ptr)&(align-1)==0)) return ptr; // The pointer is properly aligned (and contains all requested data) so just return it
+            }
+
+          memcpy(out,frag->read(frag->len + loc),amt2copy);
+          length -= amt2copy; 
+          out+=amt2copy;
+        }
+
+      // Copy the rest
+      for (; (frag != NULL)&&length; frag = frag->nextFragment)
+        {
+          int amt2copy = std::min(frag->len, length); 
+          memcpy(out,frag->read(0),amt2copy);
+          length -= amt2copy; 
+          out+=amt2copy;
+        }      
+
+      if (length) return NULL;  // unable to copy the whole thing
+      return ret;
+    }
+
   
   MsgFragment* Message::prepend(uint_t size)
     {
@@ -196,7 +286,7 @@ namespace SAFplus
        next = msg->nextMsg;  // Save the next message so we can delete it next
 
        nextFrag = msg->firstFragment;
-       do {
+       if (nextFrag) do {
           frag = nextFrag;
           nextFrag = frag->nextFragment;
 

@@ -58,7 +58,8 @@ mkdir -p $(DEST_PKG_DIR)/src
 #We need to Copy those symlinks files as full files
 #Both safplus src and binary debian package contains the header files,dpkg throws an error while installing the safplus
 #debian package. Workaround is renameing the include directory to include1. Need to fix this problem.
-rsync -rL $(SAFPLUS_INC_DIR)/ $(DEST_PKG_DIR)/src/include1
+rsync -rL $(SAFPLUS_INC_DIR) $(DEST_PKG_DIR)/src
+rsync -rL $(SAFPLUS_MAKE_DIR) $(DEST_PKG_DIR)/src
 cp -rf $(TOP_DIR)/DEB/Makefile $(DEST_PKG_DIR)
 endef
 
@@ -71,7 +72,7 @@ rpm-src: archive
 	mkdir -p $(BUILD)
 	cp $(RPMS_DIR)/$(shell uname -p)/*.rpm $(BUILD)
 
-rpm-bin: $(BIN_DIR)/safplus_amf
+rpm-bin: build_binary
 	$(call prepare_env_rpm,safplus,sdk/target)
 	$(call copy_binpkg_files,$(BUILD_DIR))
 	sed -i '/%install/aexport PREFIX=%prefix\nexport DESTDIR=$$RPM_BUILD_ROOT\nmake rpm_install' $(SPECS_DIR)/safplus.spec
@@ -111,17 +112,18 @@ endef
 deb-src:archive
 	$(call prepare_env_deb,safplus-src,devel,sdk)
 	tar xvzf $(TAR_NAME) -C $(DEB_TOP_DIR)
+	sed -i '/Architecture:/aReplaces: safplus' $(DEBIAN_DIR)/control
 	#echo TBD: create source install package
 	cd $(DEB_TOP_DIR) && dpkg-buildpackage -uc -us -b
 	mkdir -p $(BUILD)
 	cp $(PKG_DIR)/*.deb $(BUILD)
 
 
-$(BIN_DIR)/safplus_amf:
+build_binary:
 	cd src && make 
 
 
-deb-bin: $(BIN_DIR)/safplus_amf
+deb-bin: build_binary
 	$(call prepare_env_deb,safplus,lib,sdk/target)
 	$(call copy_binpkg_files, $(DEB_TOP_DIR))
 	cd $(DEB_TOP_DIR) && dpkg-buildpackage -uc -us -b

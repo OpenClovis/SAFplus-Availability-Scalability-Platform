@@ -47,6 +47,14 @@ namespace SAFplus
     Init(port, maxPending, maxThreads,flags,type);
   }
 
+  MsgServer::~MsgServer()
+  {
+    Shutdown();
+    if (sock) delete sock;
+    sock = NULL;
+    transport = NULL;
+  }
+
   void MsgServer::Wipe()
   {
     transport = NULL;
@@ -128,7 +136,8 @@ void MsgServer::MakeMePrimary()
   void MsgServer::Shutdown()
   {
     // TODO close 
-
+    receiving = false;
+    jq.stop();
   }
 
   void  MsgServer::SendMsg(Message* msg,uint_t msgtype)
@@ -219,7 +228,7 @@ void MsgServer::MakeMePrimary()
     MsgHandler *msgHandler = q->handlers[msgType];
     if (msgHandler != NULL)
       {
-      logInfo("MSG", "SVR", "Received message of type [%d]", (int )msgType);
+      logDebug("MSG", "SVR", "Received message of type [%d]", (int )msgType);
 
       msgHandler->msgHandler(q, msg,q->cookies[msgType]);
       msg=nullptr;  // ownership is given to the msgHandler

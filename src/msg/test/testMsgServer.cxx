@@ -58,6 +58,30 @@ void RecvHandler::msgHandler(Handle from, MsgServer* svr, ClPtrT msg, ClWordT ms
   unlock(1);
   }
 
+class RecvMessageHandler:public SAFplus::MsgHandler, public SAFplus::ThreadSem
+  {
+  public:
+    RecvMessageHandler(int max):maxLength(max) { data = new uint8_t[maxLength]; }
+    ~RecvMessageHandler() { delete data; data=NULL; maxLength=0; }                             
+  virtual void msgHandler(MsgServer* svr, Message* msg, ClPtrT cookie);
+  uint_t maxLength;
+  uint8_t* data;
+  int len;
+  };
+
+void RecvMessageHandler::msgHandler(MsgServer* svr, Message* msg, ClPtrT cookie)
+  {
+  // NOTE: this is a bad example. If more than one message is received the first might be overwritten by subsequent calls.
+  // DO NOT USE in real code.
+  len = msg->getLength();
+  assert(len < maxLength);
+  int temp = msg->copy(data,0,maxLength);
+  assert(temp == len);
+  unlock(1);
+  msg->free();
+  }
+
+
 bool testSendRecv()
   {
   //MsgServer a(2,10,2,SAFplus::MsgServer::Options::DEFAULT_OPTIONS,SAFplus::MsgServer::SocketType::SOCK_SEGMENTATION);
@@ -152,9 +176,52 @@ bool testSendRecv()
   }
 
 
+bool testMsgLengths(uint_t maxLength,int randSeed=0x5848323)
+  {
+  xorshf96 rnd(randSeed);
+  //MsgServer a(2,10,2,SAFplus::MsgServer::Options::DEFAULT_OPTIONS,SAFplus::MsgServer::SocketType::SOCK_SEGMENTATION);
+  //MsgServer b(1,10,2,SAFplus::MsgServer::Options::DEFAULT_OPTIONS,SAFplus::MsgServer::SocketType::SOCK_SEGMENTATION);
+  MsgServer a(4,10,2);
+  MsgServer b(3,10,2);
+  if (sar)
+    {
+      // TODO memory leak
+      a.setSocket(new MsgSarSocket(a.getSocket()));
+      b.setSocket(new MsgSarSocket(b.getSocket()));
+    }
+
+  maxLength = std::min(a.maxMsgLength(),maxLength);
+  RecvMessageHandler receiver(maxLength);
+  const int MSG_TYPE = 1;
+  b.RegisterHandler(MSG_TYPE,&receiver,NULL);
+  b.Start();
+
+  for (int len=1; len< maxLength; len++)
+    {
+      if ((len&4095)==0) printf("Message size: %d\n",len);
+      unsigned char* buf = new unsigned char[len];
+
+      for (int i=0;i<len;i++) buf[i] = rnd();
+      
+      a.SendMsg(b.handle,(void*) buf,len,MSG_TYPE);
+      receiver.lock();
+
+      for (int i=0;i<len;i++) 
+        {
+          if (buf[i] != receiver.data[i])
+            {
+              assert(0); // test failed
+            }
+
+        }
+      delete buf;
+    }
+  }
+
+
 int main(int argc, char* argv[])
 {
-  SAFplus::  logSeverity = LOG_SEV_MAX;
+  SAFplus::logSeverity = LOG_SEV_INFO; //LOG_SEV_MAX;
 
   logEchoToFd = 1; // stdout
 
@@ -198,7 +265,9 @@ int main(int argc, char* argv[])
 
   clMsgInitialize();
 
-  clTestCase(("MSG-%s-UNT.TC001: simple send/recv test",suiteName),testSendRecv());
+  //clTestCase(("MSG-%s-UNT.TC001: simple send/recv test",suiteName),testSendRecv());
+
+  testMsgLengths(50000000);
 
   clTestGroupFinalize();
 }
