@@ -89,7 +89,6 @@ SAFPLUS_TARGET ?= $(__TMP_SAFPLUS_TARGET)
 # Put compilation tools (that you have to build) here
 __TMP_SAFPLUS_TOOL_TARGET := $(shell (cd $(SAFPLUS_SRC_DIR)/../target/$(LOCAL_TARGET_PLATFORM); pwd))
 SAFPLUS_TOOL_TARGET ?= $(__TMP_SAFPLUS_TOOL_TARGET)
-$(info STT $(SAFPLUS_TOOL_TARGET))
 
 SAFPLUS_CODEBLOCKS_BIN_DIR ?= /opt/SAFplus/7.0/ide/bin/
 
@@ -108,6 +107,9 @@ OBJ_DIR ?= $(SAFPLUS_TARGET)/obj
 
 LOCAL_OBJ_DIR ?= $(SAFPLUS_TOOL_TARGET)/obj
 
+$(info SAFplus libraries: $(LIB_DIR))
+$(info )
+ifeq ($(BUILD_SAFPLUS),1)
 NOOP := $(shell mkdir -p $(INSTALL_DIR))
 NOOP := $(shell mkdir -p $(TEST_DIR))
 NOOP := $(shell mkdir -p $(LIB_DIR))
@@ -116,7 +118,7 @@ NOOP := $(shell mkdir -p $(PLUGIN_DIR))
 NOOP := $(shell mkdir -p $(MWOBJ_DIR))
 NOOP := $(shell mkdir -p $(OBJ_DIR))
 NOOP := $(shell mkdir -p $(SAFPLUS_TOOL_TARGET)/bin)
-
+endif
 
 PKG_CONFIG_PATH ?= /lib/pkgconfig:$(INSTALL_DIR)/lib/pkgconfig
 PKG_CONFIG ?= PKG_CONFIG_PATH=$(PKG_CONFIG_PATH) pkg-config

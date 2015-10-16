@@ -12,7 +12,7 @@ ifneq ($(wildcard ../../../src/mk/preface.mk),)   # within source tree
 else
 ifneq ($(wildcard /opt/safplus/7.0/sdk),) 
     SAFPLUS_MAKE_DIR ?= /opt/safplus/7.0/sdk/src/mk
-    BUILD_SAFPLUS ?=1
+    BUILD_SAFPLUS ?=0
 else
 $(error Cannot find SAFPLUS SDK)
 endif
