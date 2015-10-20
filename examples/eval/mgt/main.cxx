@@ -154,6 +154,7 @@ int main(int argc, char *argv[])
     // If I am not under AMF control, run my "active" activities directly
     if (!amfControlled) 
       {
+#if 0
         SaAmfCSIDescriptorT fakeDescriptor;
         fakeDescriptor.csiFlags=0;
         fakeDescriptor.csiName.length=0;
@@ -172,6 +173,23 @@ int main(int argc, char *argv[])
         //startHttpDaemon(mgt.serviceCfg.port);
         //pthread_t thr;
         //pthread_create(&thr,NULL,activeLoop,NULL);
+
+#endif 
+        running = 1;
+        /*
+         * Binding data handle
+         */
+        SAFplus::myHandle = SAFplus::Handle::create();
+        mgt.bind(SAFplus::myHandle,&mgt.serviceCfg);
+        mgt.bind(SAFplus::myHandle,&mgt.serviceStats);
+        mgt.bind(SAFplus::myHandle,&mgt.subscribersList);
+        /*
+         * Start httpd 
+         */
+        clprintf(SAFplus::LOG_SEV_INFO,"Httpd is listening on port [%d]", mgt.serviceCfg.port.value);
+        pthread_t thr;
+        startHttpDaemon(mgt.serviceCfg.port);
+        pthread_create(&thr,NULL,activeLoop,NULL);
       }
 
     // Block on AMF dispatch file descriptor for callbacks. When this function returns its time to quit.
