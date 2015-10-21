@@ -73,10 +73,10 @@ rpm-src: archive
 	cp $(RPMS_DIR)/$(shell uname -p)/*.rpm $(BUILD)
 
 rpm-bin: build_binary
-	$(call prepare_env_rpm,safplus,sdk/target)
+	$(call prepare_env_rpm,safplus,sdk/target/$(__TMP_TARGET_PLATFORM))
 	$(call copy_binpkg_files,$(BUILD_DIR))
 	sed -i '/%install/aexport PREFIX=%prefix\nexport DESTDIR=$$RPM_BUILD_ROOT\nmake rpm_install' $(SPECS_DIR)/safplus.spec
-	sed -i '/%defattr/a /%prefix/*\n/%prefix/../src/*' $(SPECS_DIR)/safplus.spec
+	sed -i '/%defattr/a /%prefix/*\n/%prefix/../../src/*' $(SPECS_DIR)/safplus.spec
 	rpmbuild  --define '_topdir $(PKG_DIR)' -bb $(SPECS_DIR)/safplus.spec
 	mkdir -p $(BUILD)
 	cp $(RPMS_DIR)/$(shell uname -p)/*.rpm $(BUILD)
