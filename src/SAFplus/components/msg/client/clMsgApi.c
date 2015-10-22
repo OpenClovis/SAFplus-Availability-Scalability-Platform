@@ -799,6 +799,7 @@ static ClRcT clMsgQueueDestAddrGet(SaNameT *pDestination, ClIocAddressT *pQueueA
         {
             if (qGroupData.numberOfQueues == 0)
             {
+                clLogWarning("MSG", "SND", "Message sent to [%.*s] -- but nobody is listening",pDestination->length, pDestination->value);
                 goto out;
             }
 
@@ -851,6 +852,10 @@ static ClRcT clMsgQueueDestAddrGet(SaNameT *pDestination, ClIocAddressT *pQueueA
                         pGroupRR->rrIndex = rrIndex;
 
                     }while (rrIndex != startIndex && retVal == CL_FALSE);
+                    if (retVal == CL_FALSE)
+                    {
+                      clLogWarning("MSG", "SND", "Message sent to [%.*s] using round robin send semantics -- but nobody is listening",pDestination->length, pDestination->value);
+                    }                    
 
                     break;
                 case SA_MSG_QUEUE_GROUP_LOCAL_BEST_QUEUE:
@@ -888,6 +893,10 @@ static ClRcT clMsgQueueDestAddrGet(SaNameT *pDestination, ClIocAddressT *pQueueA
 
                         pGroupRR->rrIndex = rrIndex;
                     }while (rrIndex != startIndex && retVal == CL_FALSE);
+                    if (retVal == CL_FALSE)
+                    {
+                      clLogWarning("MSG", "SND", "Message sent to [%.*s] using local round robin send semantics -- but nobody local is listening",pDestination->length, pDestination->value);
+                    }                    
 
                     break;
                 case SA_MSG_QUEUE_GROUP_BROADCAST:
@@ -898,12 +907,19 @@ static ClRcT clMsgQueueDestAddrGet(SaNameT *pDestination, ClIocAddressT *pQueueA
                     break;
                 default:
                     retVal = CL_FALSE;
+                    clLogError("MSG", "SND", "Queue [%.*s] Unknown send semantics",pDestination->length, pDestination->value);
             }
 
             CL_OSAL_MUTEX_UNLOCK(&gClGroupRRLock);
             clMsgQGroupCkptDataFree(&qGroupData);
         }
+        else
+        {
+            clLogWarning("MSG", "SND", "Message queue [%.*s] has no checkpoint entry",pDestination->length, pDestination->value);
+        }        
+
     }
+    
 out:
     return rc;
 }
@@ -955,14 +971,14 @@ static SaAisErrorT clMsgMessageSendInternal(
     rc = clHandleCheckout(gMsgHandleDatabase, msgHandle, (void**)&pMsgLibInfo);
     if(rc != CL_OK)
     {
-        clLogError("MSG", "SND", "Failed to checkout the message handle. error code [0x%x].", rc);
+        clLogError("MSG", "SND", "Failed to checkout the message handle, destination [%.*s]. error code [0x%x].", pDestination->length,pDestination->value,rc);
         goto error_out;
     }
 
     rc = clMsgQueueDestAddrGet(&tempDest, &queueAddr, &queueServerAddr);
     if(rc != CL_OK)
     {
-        clLogError("MSG", "SND", "Failed to send the message. error code [0x%x].", rc);
+        clLogError("MSG", "SND", "Failed to discover destination [%.*s].  error code [0x%x].", pDestination->length,pDestination->value,rc);
         goto error_out;
     }
 
@@ -1496,6 +1512,24 @@ SaAisErrorT saMsgMessageSendReceive(
     if(pReceiveMsg->data == NULL)
         pTempMessage->size = 0;
 
+    ClInt32T tries = 0, maxTry=3;
+    ClTimerTimeOutT delay = {.tsSec = 0, .tsMilliSec = 1000 };
+    do 
+    {
+       rc = clMsgQueueDestAddrGet(&tempDest, &queueAddr, &queueServerAddr);
+       if (rc != CL_OK)
+       {
+          clLogNotice("MSG", "SendRecv", "Failed at send and receive to [%.*s]. error code [0x%x]. Try [%d] of [%d]",
+               pDestAddress->length, pDestAddress->value, rc, tries+1, maxTry);		  
+       }
+     } while ((rc!=CL_OK) && (++tries<maxTry) && (clOsalTaskDelay(delay)==CL_OK));
+
+     if (rc!=CL_OK)
+     {
+         clLogError("MSG", "SendRecv", "Queue address resolution failed with [%s] after trying [%d] times", clErrorToString(rc), tries);
+         goto error_out_2; 
+     }
+    
     rc = clMsgQueueDestAddrGet(&tempDest, &queueAddr, &queueServerAddr);
     if (rc != CL_OK)
     {
