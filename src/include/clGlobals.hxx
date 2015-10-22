@@ -197,7 +197,6 @@ extern "C" {
 
   extern void groupInitialize(void) __attribute__((weak));
   extern void faultInitialize(void) __attribute__((weak));
-  extern void clDbalInitialize(void) __attribute__((weak));
 
   inline void safplusInitialize(unsigned int svc,const SafplusInitializationConfiguration& cfg=*((SafplusInitializationConfiguration*)NULL))
   {

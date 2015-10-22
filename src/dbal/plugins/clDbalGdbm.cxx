@@ -47,7 +47,7 @@ protected:
   virtual ClRcT close();
 };
 
-static GdbmPlugin api;
+//static GdbmPlugin api;
 
 
 
@@ -503,10 +503,11 @@ extern "C" SAFplus::ClPlugin* clPluginInitialize(uint_t preferredPluginVersion)
   // We can only provide a single version, so don't bother with the 'preferredPluginVersion' variable.
 
   // Initialize the pluginData structure
-  SAFplus::api.pluginId         = SAFplus::CL_DBAL_PLUGIN_ID;
-  SAFplus::api.pluginVersion    = SAFplus::CL_DBAL_PLUGIN_VER;
-  SAFplus::api.type = "Gdbm";
+  SAFplus::GdbmPlugin* api = new SAFplus::GdbmPlugin();
+  api->pluginId         = SAFplus::CL_DBAL_PLUGIN_ID;
+  api->pluginVersion    = SAFplus::CL_DBAL_PLUGIN_VER;
+  api->type = "Gdbm";
 
   // return it
-  return (SAFplus::ClPlugin*) &SAFplus::api;
+  return (SAFplus::ClPlugin*) api;
 }

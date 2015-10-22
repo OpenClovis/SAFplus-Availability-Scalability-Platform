@@ -7,8 +7,9 @@ int main()
   logEchoToFd = 1;
   SAFplus::logSeverity = SAFplus::LOG_SEV_MAX;
   safplusInitialize(SAFplus::LibDep::LOG|SAFplus::LibDep::UTILS);   
-  clDbalInitialize();
-  DbalPlugin* p = SAFplusI::defaultDbalPlugin;
+  //clDbalInitialize();
+  //DbalPlugin* p = SAFplusI::defaultDbalPlugin;
+  DbalPlugin* p = clDbalObjCreate();
   if (p)
   {     
     ClRcT rc = p->open("/tmp/testDB2.db", "/tmp/testDB2.db", CL_DB_CREAT, 255, 5000);
@@ -96,7 +97,7 @@ int main()
     }
     logInfo("DBAL","TEST","Got value [%s]; size [%u]", (char*)rec, recSz);
     p->freeRecord(rec);
-    
+    delete p;
 #endif
   }
   else
