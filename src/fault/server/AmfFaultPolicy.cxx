@@ -41,9 +41,9 @@ namespace SAFplus
       logInfo("POL","AMF","Received fault report from [%" PRIx64 ":%" PRIx64 "]:  Entity [%" PRIx64 ":%" PRIx64 "] (on node [%d], port [%d]).  Current fault count is [%d] ", faultReporter.id[0], faultReporter.id[1], faultEntity.id[0], faultEntity.id[1], faultEntity.getNode(), faultEntity.getProcess(), countFaultEvent);
 
         // If this fault comes from an AMF and its telling me that there was a crash the trust it because the local AMF monitors its local processes.
-      if ((faultReporter.getPort() == SAFplusI::AMF_IOC_PORT)&&(fault.cause == IANAITUALARMTCMIB::ProbableCause::softwareError))
+      if ((faultReporter.getPort() == SAFplusI::AMF_IOC_PORT)&&(fault.cause == FaultEnums::FaultProbableCause::ALARM_PROB_CAUSE_SOFTWARE_ERROR))
           {
-            if (fault.alarmState == SAFplus::AlarmState::ALARM_STATE_ASSERT)
+            if (fault.alarmState == FaultEnums::FaultAlarmState::ALARM_STATE_ASSERT)
               {
                 assert(faultServer);
                 faultServer->setFaultState(faultEntity,FaultState::STATE_DOWN);
@@ -51,7 +51,7 @@ namespace SAFplus
                 return true;
               }
             
-            if (fault.alarmState == SAFplus::AlarmState::ALARM_STATE_CLEAR)
+            if (fault.alarmState == FaultEnums::FaultAlarmState::ALARM_STATE_CLEAR)
               {  // Probably never going to happen.  Program will die and AMF will start a new one, reregistering the handle
                 logInfo("FLT","POL","Entity UP [%" PRIx64 ":%" PRIx64 "] (on node [%d], port [%d]).", faultEntity.id[0], faultEntity.id[1], faultEntity.getNode(), faultEntity.getProcess());
                 faultServer->setFaultState(faultEntity,FaultState::STATE_UP);

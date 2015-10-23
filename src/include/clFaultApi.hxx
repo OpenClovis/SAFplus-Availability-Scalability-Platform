@@ -55,7 +55,7 @@ public:
 
     //? Notify the fault manager about a fault event.
     //? [ARGS TBD when we figure out the alarm portion of fault]
-    void notify(SAFplus::Handle faultEntity,SAFplus::AlarmState alarmState,IANAITUALARMTCMIB::IANAItuEventType category,ITUALARMTCMIB::ItuPerceivedSeverity severity,IANAITUALARMTCMIB::ProbableCause cause,FaultPolicy pluginId = FaultPolicy::Undefined);
+    void notify(SAFplus::Handle faultEntity,FaultEnums::FaultAlarmState alarmState,FaultEnums::AlarmCategory category,FaultEnums::FaultSeverity severity,FaultEnums::FaultProbableCause cause,FaultPolicy pluginId = FaultPolicy::Undefined);
     //? Notify the fault manager about a fault event.
     //? [ARGS TBD when we figure out the alarm portion of fault]
     void notify(SAFplus::Handle faultEntity,FaultEventData faultData,FaultPolicy pluginId = FaultPolicy::Undefined);
@@ -67,15 +67,15 @@ public:
     //? Shortcut fault notification in the case where an entity is not responding to your request
     // <arg name="faultEntity">The entity that is not responding</arg>
     // <arg name="severity" default="ITUALARMTCMIB::ItuPerceivedSeverity::critical">[DEFAULT: critical] How important is this problem to the health of the system</arg>
-    void notifyNoResponse(SAFplus::Handle faultEntity,ITUALARMTCMIB::ItuPerceivedSeverity severity=ITUALARMTCMIB::ItuPerceivedSeverity::critical);
+    void notifyNoResponse(SAFplus::Handle faultEntity, FaultEnums::FaultSeverity severity = FaultEnums::FaultSeverity::ALARM_SEVERITY_CRITICAL);
 
     protected:
     // send a fault entity to fault server
-    void sendFaultEventMessage(SAFplus::Handle faultEntity,SAFplus::FaultMessageSendMode messageMode,SAFplus::FaultMessageType msgType,SAFplus::AlarmState alarmState,IANAITUALARMTCMIB::IANAItuEventType category,ITUALARMTCMIB::ItuPerceivedSeverity severity,IANAITUALARMTCMIB::ProbableCause cause,FaultPolicy pluginId);
+    void sendFaultEventMessage(SAFplus::Handle faultEntity,SAFplus::FaultMessageSendMode messageMode,FaultEnums::FaultMessageType msgType,FaultEnums::FaultAlarmState alarmState, FaultEnums::AlarmCategory category,FaultEnums::FaultSeverity severity,FaultEnums::FaultProbableCause cause,FaultPolicy pluginId);
     // send a fault entity to fault server
-    void sendFaultEventMessage(SAFplus::Handle faultEntity,SAFplus::FaultMessageSendMode messageMode,SAFplus::FaultMessageType msgType,FaultPolicy pluginId,FaultEventData faultData);
+    void sendFaultEventMessage(SAFplus::Handle faultEntity,SAFplus::FaultMessageSendMode messageMode,FaultEnums::FaultMessageType msgType,FaultPolicy pluginId,FaultEventData faultData);
     // fill and send a fault event to fault server or broadcast
-    void fillAndSendMessage(void* data, SAFplus::FaultMessageType msgType,SAFplus::FaultMessageSendMode msgSendMode,bool forcing=false);
+    void fillAndSendMessage(void* data, FaultEnums::FaultMessageType msgType,SAFplus::FaultMessageSendMode msgSendMode,bool forcing=false);
     //send a fault notification to fault server
     void sendFaultNotification(void* data, int dataLength, SAFplus::FaultMessageSendMode messageMode);
     friend class SAFplusI::GroupSharedMem;

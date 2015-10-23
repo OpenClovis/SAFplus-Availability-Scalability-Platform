@@ -19,25 +19,15 @@
 #include <clGlobals.hxx>
 #include <clLogApi.hxx>
 #include <clGroup.hxx>
-#include "../fault/server/IANAITUALARMTCMIB/ProbableCause.hxx"
-#include "../fault/server/IANAITUALARMTCMIB/IANAItuEventType.hxx"
-#include "../fault/server/ITUALARMTCMIB/ItuPerceivedSeverity.hxx"
+#include "../fault/server/FaultEnums/FaultAlarmState.hxx"
+#include "../fault/server/FaultEnums/AlarmCategory.hxx"
+#include "../fault/server/FaultEnums/FaultProbableCause.hxx"
+#include "../fault/server/FaultEnums/FaultSeverity.hxx"
+#include "../fault/server/FaultEnums/FaultMessageType.hxx"
+#include "../fault/server/FaultEnums/FaultState.hxx"
 
 namespace SAFplus
   {
-  enum class FaultMessageType
-    {
-    MSG_ENTITY_JOIN = 1,     // the entity joins
-    MSG_ENTITY_LEAVE,       // the entity leave
-    MSG_ENTITY_FAULT,       // the fault event
-    MSG_ENTITY_STATE_CHANGE,       // the fault event
-    MSG_ENTITY_JOIN_BROADCAST,  // broadcast entity join
-    MSG_ENTITY_LEAVE_BROADCAST,  // broadcast entity leave
-    MSG_ENTITY_FAULT_BROADCAST,   // broadcast fault event
-    MSG_ENTITY_STATE_CHANGE_BROADCAST,
-    MSG_UNDEFINED
-    };
-
   //comunication mode between fault entity and fault server
   enum class FaultMessageSendMode
     {
@@ -54,36 +44,6 @@ namespace SAFplus
    */
   typedef int AlarmSpecificProblemT;
 
-  /**
-   * The enumeration to depict the state of the alarm that is
-   * into. It can be in any of the following state that is
-   * cleared, assert, suppressed or under soaking.
-   */
-  enum class AlarmState
-    {
-    /**
-     *  The alarm condition has cleared.
-     */
-    ALARM_STATE_CLEAR   =   0,
-    /**
-     *  The alarm condition has occured.
-     */
-      ALARM_STATE_ASSERT  =   1,
-    /**
-     * The alarm state is suppressed.
-     */
-      ALARM_STATE_SUPPRESSED = 2,
-    /**
-     * The alarm state is under soaking.
-     */
-      ALARM_STATE_UNDER_SOAKING = 3,
-    /**
-     * Invalid alarm state.
-     */
-      ALARM_STATE_INVALID = 4
-
-      };
-
   //fault policy plugin
   enum class FaultPolicy
     {
@@ -99,36 +59,36 @@ namespace SAFplus
     /**
      * Flag to indicate if the alarm was for assert or for clear.
      */
-    SAFplus::AlarmState alarmState;
+    FaultEnums::FaultAlarmState alarmState;
 
     /**
      * The category of the fault event.
      */
-    IANAITUALARMTCMIB::IANAItuEventType category;
+    FaultEnums::AlarmCategory category;
 
     /**
      * The severity of the fault event.
      */
-    ITUALARMTCMIB::ItuPerceivedSeverity severity;
+    FaultEnums::FaultSeverity severity;
 
     /**
      * The probable cause of the fault event.
      */
-    IANAITUALARMTCMIB::ProbableCause cause;
+    FaultEnums::FaultProbableCause cause;
 
     FaultEventData()
       {
-      alarmState= SAFplus::AlarmState::ALARM_STATE_INVALID;
-      category= IANAITUALARMTCMIB::IANAItuEventType::other;
-      cause = IANAITUALARMTCMIB::ProbableCause::aIS;
-      severity = ITUALARMTCMIB::ItuPerceivedSeverity::cleared;
+      alarmState= FaultEnums::FaultAlarmState::ALARM_STATE_INVALID;
+      category= FaultEnums::AlarmCategory::ALARM_CATEGORY_INVALID;
+      cause = FaultEnums::FaultProbableCause::ALARM_ID_INVALID;
+      severity = FaultEnums::FaultSeverity::ALARM_SEVERITY_CLEAR;
       }
-    FaultEventData(SAFplus::AlarmState a_state,IANAITUALARMTCMIB::IANAItuEventType a_category,ITUALARMTCMIB::ItuPerceivedSeverity a_severity,IANAITUALARMTCMIB::ProbableCause a_cause)
+    FaultEventData(FaultEnums::FaultAlarmState a_state, FaultEnums::AlarmCategory a_category,FaultEnums::FaultSeverity a_severity,FaultEnums::FaultProbableCause a_cause)
       {
         init(a_state,a_category,a_severity,a_cause);
       }
 
-    void init(SAFplus::AlarmState a_state,IANAITUALARMTCMIB::IANAItuEventType a_category,ITUALARMTCMIB::ItuPerceivedSeverity a_severity,IANAITUALARMTCMIB::ProbableCause a_cause)
+    void init(FaultEnums::FaultAlarmState a_state,FaultEnums::AlarmCategory a_category,FaultEnums::FaultSeverity a_severity,FaultEnums::FaultProbableCause a_cause)
       {
       alarmState= a_state;
       category= a_category;
@@ -171,7 +131,7 @@ namespace SAFplus
   class FaultMessageProtocol
     {
   public:
-    SAFplus::FaultMessageType     messageType;
+    FaultEnums::FaultMessageType messageType;
     SAFplus::FaultState state;
     FaultPolicy pluginId;
     FaultEventData data;
@@ -180,9 +140,9 @@ namespace SAFplus
     char                  syncData[1];
     FaultMessageProtocol()
       {
-      messageType=SAFplus::FaultMessageType::MSG_UNDEFINED;
+      messageType = FaultEnums::FaultMessageType::MSG_UNDEFINED;
       faultEntity=SAFplus::INVALID_HDL;
-      data.init(SAFplus::AlarmState::ALARM_STATE_INVALID,IANAITUALARMTCMIB::IANAItuEventType::other,ITUALARMTCMIB::ItuPerceivedSeverity::cleared,IANAITUALARMTCMIB::ProbableCause::aIS);
+      data.init(FaultEnums::FaultAlarmState::ALARM_STATE_INVALID,FaultEnums::AlarmCategory::ALARM_CATEGORY_INVALID,FaultEnums::FaultSeverity::ALARM_SEVERITY_CLEAR,FaultEnums::FaultProbableCause::ALARM_ID_INVALID);
       pluginId=FaultPolicy::Undefined;
       }
     };

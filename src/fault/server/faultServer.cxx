@@ -159,7 +159,7 @@ namespace SAFplus
             return;
         }
         const SAFplus::FaultMessageProtocol *rxMsg = (SAFplus::FaultMessageProtocol *)msg;
-        SAFplus::FaultMessageType msgType=  rxMsg->messageType;
+        FaultEnums::FaultMessageType msgType=  rxMsg->messageType;
         SAFplus::Handle reporterHandle = rxMsg->reporter;
         SAFplus::FaultState faultState = rxMsg->state;
         SAFplus::FaultPolicy pluginId = rxMsg->pluginId;
@@ -182,7 +182,7 @@ namespace SAFplus
         *((Handle*)key->data)=faultEntity;
         if (entryPtr == fsmServer.faultMap->end())  // We don't know about the fault entity, so create it;
         {
-            if(msgType!=SAFplus::FaultMessageType::MSG_ENTITY_JOIN && msgType!=SAFplus::FaultMessageType::MSG_ENTITY_JOIN_BROADCAST)
+            if(msgType!=FaultEnums::FaultMessageType::MSG_ENTITY_JOIN && msgType!=FaultEnums::FaultMessageType::MSG_ENTITY_JOIN_BROADCAST)
             {
                 logWarning(FAULT,"MSG","Fault report from [%" PRIx64 ":%" PRIx64 "] about an entity [%" PRIx64 ":%" PRIx64 "] not available in shared memory. Ignoring this message",reporterHandle.id[0],reporterHandle.id[1],faultEntity.id[0],faultEntity.id[1]);
                 return;
@@ -211,7 +211,7 @@ namespace SAFplus
 
         switch(msgType)
         {
-            case SAFplus::FaultMessageType::MSG_ENTITY_JOIN:
+            case FaultEnums::FaultMessageType::MSG_ENTITY_JOIN:
                 if(1)
                 {
                     fe->state=faultState;
@@ -224,7 +224,7 @@ namespace SAFplus
                     faultCheckpoint.write(*key,*val);
                 }
                 break;
-            case SAFplus::FaultMessageType::MSG_ENTITY_LEAVE:
+            case FaultEnums::FaultMessageType::MSG_ENTITY_LEAVE:
                 if(1)
                 {
                     logDebug(FAULT,"MSG","Entity Fault message from local node . Deregister fault entity.");
@@ -233,12 +233,12 @@ namespace SAFplus
                     faultCheckpoint.remove(*key);
                 }
                 break;
-            case SAFplus::FaultMessageType::MSG_ENTITY_FAULT:
+            case FaultEnums::FaultMessageType::MSG_ENTITY_FAULT:
                 if(1)
                 {
                     logDebug("POL","AMF", "Process fault event message");
                     processFaultEvent(pluginId,eventData,faultEntity,reporterHandle);
-                    logDebug("POL","AMF","Fault event data severity [%s] , cause [%s] , catagory [%s] , state [%d] ", ITUALARMTCMIB::ItuPerceivedSeverityManager::c_str(eventData.severity), IANAITUALARMTCMIB::ProbableCauseManager::c_str(eventData.cause), IANAITUALARMTCMIB::IANAItuEventTypeManager::c_str(eventData.category), eventData.alarmState);
+                    logDebug("POL","AMF","Fault event data severity [%s] , cause [%s] , catagory [%s] , state [%s] ", FaultEnums::FaultSeverityManager::c_str(eventData.severity), FaultEnums::FaultProbableCauseManager::c_str(eventData.cause), FaultEnums::AlarmCategoryManager::c_str(eventData.category), FaultEnums::FaultAlarmStateManager::c_str(eventData.alarmState));
                     FaultHistoryEntity faultHistoryEntry;
                     time_t now;
                     time(&now);
@@ -275,7 +275,7 @@ namespace SAFplus
 //                    }
                 }
                 break;
-            case SAFplus::FaultMessageType::MSG_ENTITY_STATE_CHANGE:
+            case FaultEnums::FaultMessageType::MSG_ENTITY_STATE_CHANGE:
                 if(1)
                 {
                     fe->state=faultState;
@@ -283,7 +283,7 @@ namespace SAFplus
                     setFaultState(faultEntity,faultState);
                 }
             break;
-            case SAFplus::FaultMessageType::MSG_ENTITY_JOIN_BROADCAST:
+            case FaultEnums::FaultMessageType::MSG_ENTITY_JOIN_BROADCAST:
                 if(1)
                 {
                     if(fromHandle.getNode()==SAFplus::ASP_NODEADDR)
@@ -301,7 +301,7 @@ namespace SAFplus
                     }
                 }
              break;
-             case SAFplus::FaultMessageType::MSG_ENTITY_LEAVE_BROADCAST:
+             case FaultEnums::FaultMessageType::MSG_ENTITY_LEAVE_BROADCAST:
                  if(1)
                  {
                      if(fromHandle.getNode()==SAFplus::ASP_NODEADDR)
@@ -317,7 +317,7 @@ namespace SAFplus
                      }
                  }
              break;
-             case SAFplus::FaultMessageType::MSG_ENTITY_FAULT_BROADCAST:
+             case FaultEnums::FaultMessageType::MSG_ENTITY_FAULT_BROADCAST:
              if(1)
              {
                  if(fromHandle.getNode()==SAFplus::ASP_NODEADDR)
@@ -331,7 +331,7 @@ namespace SAFplus
                  }
              }
              break;
-             case SAFplus::FaultMessageType::MSG_ENTITY_STATE_CHANGE_BROADCAST:
+             case FaultEnums::FaultMessageType::MSG_ENTITY_STATE_CHANGE_BROADCAST:
                  if(1)
                  {
                      if(fromHandle.getNode()==SAFplus::ASP_NODEADDR)
@@ -527,10 +527,10 @@ namespace SAFplus
         logDebug(FAULT,FAULT_SERVER,"Sending announce message to server with node[%d] , process [%d]", handle.getNode(), handle.getProcess());
         FaultMessageProtocol sndMessage;
         sndMessage.reporter = faultServerHandle;
-        sndMessage.messageType = FaultMessageType::MSG_ENTITY_JOIN_BROADCAST;
+        sndMessage.messageType = FaultEnums::FaultMessageType::MSG_ENTITY_JOIN_BROADCAST;
         sndMessage.state = state;
         sndMessage.faultEntity = handle;
-        sndMessage.data.init(SAFplus::AlarmState::ALARM_STATE_INVALID,IANAITUALARMTCMIB::IANAItuEventType::other,ITUALARMTCMIB::ItuPerceivedSeverity::cleared,IANAITUALARMTCMIB::ProbableCause::aIS);
+        sndMessage.data.init(FaultEnums::FaultAlarmState::ALARM_STATE_INVALID,FaultEnums::AlarmCategory::ALARM_CATEGORY_INVALID,FaultEnums::FaultSeverity::ALARM_SEVERITY_CLEAR, FaultEnums::FaultProbableCause::ALARM_ID_INVALID);
         sndMessage.pluginId=SAFplus::FaultPolicy::Undefined;
         sndMessage.syncData[0]=0;
         sendFaultNotificationToGroup((void *)&sndMessage,sizeof(FaultMessageProtocol));
@@ -542,10 +542,10 @@ namespace SAFplus
         logDebug(FAULT,FAULT_SERVER,"Sending announce message to server with node[%d] , process [%d]", handle.getNode(), handle.getProcess());
         FaultMessageProtocol sndMessage;
         sndMessage.reporter = faultServerHandle;
-        sndMessage.messageType = FaultMessageType::MSG_ENTITY_STATE_CHANGE_BROADCAST;
+        sndMessage.messageType = FaultEnums::FaultMessageType::MSG_ENTITY_STATE_CHANGE_BROADCAST;
         sndMessage.state = state;
         sndMessage.faultEntity = handle;
-        sndMessage.data.init(SAFplus::AlarmState::ALARM_STATE_INVALID,IANAITUALARMTCMIB::IANAItuEventType::other,ITUALARMTCMIB::ItuPerceivedSeverity::cleared,IANAITUALARMTCMIB::ProbableCause::aIS);
+        sndMessage.data.init(FaultEnums::FaultAlarmState::ALARM_STATE_INVALID, FaultEnums::AlarmCategory::ALARM_CATEGORY_INVALID, FaultEnums::FaultSeverity::ALARM_SEVERITY_CLEAR, FaultEnums::FaultProbableCause::ALARM_ID_INVALID);
         sndMessage.pluginId=SAFplus::FaultPolicy::Undefined;
         sndMessage.syncData[0]=0;
         sendFaultNotificationToGroup((void *)&sndMessage,sizeof(FaultMessageProtocol));
@@ -557,10 +557,10 @@ namespace SAFplus
         logDebug(FAULT,FAULT_SERVER,"Sending announce message to server with node[%d] , process [%d]", handle.getNode(), handle.getProcess());
         FaultMessageProtocol sndMessage;
         sndMessage.reporter = handle;
-        sndMessage.messageType = FaultMessageType::MSG_ENTITY_LEAVE_BROADCAST;
+        sndMessage.messageType = FaultEnums::FaultMessageType::MSG_ENTITY_LEAVE_BROADCAST;
         sndMessage.state = FaultState::STATE_UP; // TODO: wouldn't state be down or undefined?
         sndMessage.faultEntity=handle;
-        sndMessage.data.init(SAFplus::AlarmState::ALARM_STATE_INVALID,IANAITUALARMTCMIB::IANAItuEventType::other,ITUALARMTCMIB::ItuPerceivedSeverity::cleared,IANAITUALARMTCMIB::ProbableCause::aIS);
+        sndMessage.data.init(FaultEnums::FaultAlarmState::ALARM_STATE_INVALID,FaultEnums::AlarmCategory::ALARM_CATEGORY_INVALID, FaultEnums::FaultSeverity::ALARM_SEVERITY_CLEAR, FaultEnums::FaultProbableCause::ALARM_ID_INVALID);
         sndMessage.pluginId=SAFplus::FaultPolicy::Undefined;
         sndMessage.syncData[0]=0;
         sendFaultNotificationToGroup((void *)&sndMessage,sizeof(FaultMessageProtocol));

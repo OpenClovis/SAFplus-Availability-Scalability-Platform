@@ -1,0 +1,483 @@
+module FaultEnums
+{
+
+  namespace "http://www.openclovis.org/ns/FaultEnums";
+  prefix "FaultEnums";
+
+  organization
+    "OpenClovis Solutions, Inc";
+
+  contact
+    "Andrew Stone <stone@openclovis.com>";
+
+  description
+    "Enums for fault management";
+
+  revision 2014-09-15 
+  {
+    description "Initial description";
+    reference "SAI-AIS-AMF-B.04.01.pdf";
+  }
+
+  /*** TYPE DEFINITIONS ***/
+
+  typedef FaultMessageType {
+  	type enumeration {
+  		enum MSG_UNDEFINED {
+      	description "default value";
+      }
+      
+	  	enum MSG_ENTITY_JOIN {}
+	  	
+	    enum MSG_ENTITY_LEAVE {}
+	    
+	    enum MSG_ENTITY_FAULT {}
+	    
+	    enum MSG_ENTITY_STATE_CHANGE {}
+	    
+	    enum MSG_ENTITY_JOIN_BROADCAST {}
+	    
+	    enum MSG_ENTITY_LEAVE_BROADCAST {}
+	    
+	    enum MSG_ENTITY_FAULT_BROADCAST {}
+	    
+	    enum MSG_ENTITY_STATE_CHANGE_BROADCAST {}
+  	} 
+  }
+  
+  typedef FaultProbableCause {
+    type enumeration {
+	    enum ALARM_ID_INVALID {
+	    	description 
+	    	"Invalid cause";
+	    }
+
+      enum ALARM_PROB_CAUSE_LOSS_OF_SIGNAL {
+      	description
+      	"An error condition when there is no data in the communication channel";
+      }
+
+      enum ALARM_PROB_CAUSE_LOSS_OF_FRAME {
+      	description
+      	"An inability to locate the information in bit-delimiters.";
+      }
+
+      enum ALARM_PROB_CAUSE_FRAMING_ERROR {
+      	description
+      	"Error in the bit-groups delimiters within the bit-stream.";
+      }
+
+      enum ALARM_PROB_CAUSE_LOCAL_NODE_TRANSMISSION_ERROR {
+      	description
+      	"An error has occurred in the tranClAlarmCategoryTypeTsmission between local node and adjacent node.";
+      }
+
+      enum ALARM_PROB_CAUSE_REMOTE_NODE_TRANSMISSION_ERROR {
+      	description
+      	"An error has occurred on the transmission channel beyond the adjacent node.";
+      }
+
+      enum ALARM_PROB_CAUSE_CALL_ESTABLISHMENT_ERROR {
+      	description
+      	"Error occured while establishing the connection.";
+      }
+
+      enum ALARM_PROB_CAUSE_DEGRADED_SIGNAL {
+      	description
+      	"The quality of the signal has decreased.";
+      }
+
+      enum ALARM_PROB_CAUSE_COMMUNICATIONS_SUBSYSTEM_FAILURE {
+      	description
+      	"A failure in the subsystem which supports communication over telecommunication links.";
+      }
+
+      enum ALARM_PROB_CAUSE_COMMUNICATIONS_PROTOCOL_ERROR {
+      	description
+      	"The communication protocol has been violated.";
+      }
+
+      enum ALARM_PROB_CAUSE_LAN_ERROR {
+      	description
+      	"Problem detected in the local area network.";
+      }
+
+      enum ALARM_PROB_CAUSE_DTE {
+      	description
+      	"Probable cause of the alarm is data transmission error.";
+      }
+
+      enum ALARM_PROB_CAUSE_RESPONSE_TIME_EXCESSIVE {
+      	description
+      	"The time delays between the query and its result is beyond the allowable limits.";
+      }
+
+      enum ALARM_PROB_CAUSE_QUEUE_SIZE_EXCEEDED {
+      	description
+      	"The number of items to be processed has exceeded the specified limits.";
+      }
+
+      enum ALARM_PROB_CAUSE_BANDWIDTH_REDUCED {
+      	description
+      	"The bandwidth available for transmission has reduced.";
+      }
+
+      enum ALARM_PROB_CAUSE_RETRANSMISSION_RATE_EXCESSIVE {
+      	description
+      	"Number of repeat transmission is beyond the allowed limits.";
+      }
+
+      enum ALARM_PROB_CAUSE_THRESHOLD_CROSSED {
+      	description
+      	"The limit allowed (or configured) has exceeded.";
+      }
+
+      enum ALARM_PROB_CAUSE_PERFORMANCE_DEGRADED {
+      	description
+      	"Service limit or service agreement are outside the acceptable limits.";
+      }
+
+      enum ALARM_PROB_CAUSE_CONGESTION {
+      	description
+      	"System is reaching its capacity or approaching it.";
+      }
+
+      enum ALARM_PROB_CAUSE_RESOURCE_AT_OR_NEARING_CAPACITY {
+      	description
+      	"Probable cause of the alarm is the maximum capacity is already reached or about to be reached.";
+      }
+
+      enum ALARM_PROB_CAUSE_STORAGE_CAPACITY_PROBLEM {
+      	description
+      	"Probable cause of the alarm is storage capacity problem.";
+      }
+
+      enum ALARM_PROB_CAUSE_VERSION_MISMATCH {
+      	description
+      	"There is a mismatch in the version of two communicating entities.";
+      }
+
+      enum ALARM_PROB_CAUSE_CORRUPT_DATA {
+      	description
+      	"An error has caused the data to be incorrect.";
+      }
+
+      enum ALARM_PROB_CAUSE_CPU_CYCLES_LIMIT_EXCEEDED {
+      	description
+      	"CPU cycles limited has been exceeded its limit.";
+      }
+
+      enum ALARM_PROB_CAUSE_SOFTWARE_ERROR {
+      	description
+      	"Probable cause of alarm is error in software.";
+      }
+
+      enum ALARM_PROB_CAUSE_SOFTWARE_PROGRAM_ERROR {
+      	description
+      	"Probable cause of alarm is error in software program error.";
+      }
+
+      enum ALARM_PROB_CAUSE_SOFWARE_PROGRAM_ABNORMALLY_TERMINATED {
+      	description
+      	"Probable cause of alarm is software program abnormally terminated.";
+      }
+
+      enum ALARM_PROB_CAUSE_FILE_ERROR {
+      	description
+      	"Format of the file is incorrect.";
+      }
+
+      enum ALARM_PROB_CAUSE_OUT_OF_MEMORY {
+      	description
+      	"There is no program-addressable stClAlarmCategoryTypeTorage available.";
+      }
+
+      enum ALARM_PROB_CAUSE_UNDERLYING_RESOURCE_UNAVAILABLE {
+      	description
+      	"An entity upon which the reporting object depends has become unreliable.";
+      }
+
+      enum ALARM_PROB_CAUSE_APPLICATION_SUBSYSTEM_FAILURE {
+      	description
+      	"A failure is detected in the application subsystem failure.
+      	 A subsystem can be a software supporting the larger module.";
+      }
+
+      enum ALARM_PROB_CAUSE_CONFIGURATION_OR_CUSTOMIZATION_ERROR {
+      	description
+      	"The parameter for configuration or customization are given improperly.";
+      }
+
+      enum ALARM_PROB_CAUSE_POWER_PROBLEM {
+      	description
+      	"There is a problem with the power supply.";
+      }
+
+      enum ALARM_PROB_CAUSE_TIMING_PROBLEM {
+      	description
+      	"The process which has timing constraints didn't complete with the specified
+      	 time or has completed but the results are not reliable.";
+      }
+
+      enum ALARM_PROB_CAUSE_PROCESSOR_PROBLEM {
+      	description
+      	"Internal machine error has occurred on the a Central processing Unit.";
+      }
+
+      enum ALARM_PROB_CAUSE_DATASET_OR_MODEM_ERROR {
+      	description
+      	"An internal error has occurred on a dataset or modem.";
+      }
+
+      enum ALARM_PROB_CAUSE_MULTIPLEXER_PROBLEM {
+      	description
+      	"Error occurred while multiplexing the communication signal.";
+      }
+
+      enum ALARM_PROB_CAUSE_RECEIVER_FAILURE {
+      	description
+      	"Probable cause of alarm is receiver failure.";
+      }
+
+      enum ALARM_PROB_CAUSE_TRANSMITTER_FAILURE {
+      	description
+      	"Probable cause of alarm is transmitter failure.";
+      }
+
+      enum ALARM_PROB_CAUSE_RECEIVE_FAILURE {
+      	description
+      	"Probable cause of alarm is receive failure.";
+      }
+
+      enum ALARM_PROB_CAUSE_TRANSMIT_FAILURE {
+      	description
+      	"Probable cause of alarm is transmission failure.";
+      }
+
+      enum ALARM_PROB_CAUSE_OUTPUT_DEVICE_ERROR {
+      	description
+      	"Error has occurred on a output device.";
+      }
+
+      enum ALARM_PROB_CAUSE_INPUT_DEVICE_ERROR {
+      	description
+      	"Probable cause of alarm is input device error.";
+      }
+
+      enum ALARM_PROB_CAUSE_INPUT_OUTPUT_DEVICE_ERROR {
+      	description
+      	"Probable cause of alarm is input output device error.";
+      }
+
+      enum ALARM_PROB_CAUSE_EQUIPMENT_MALFUNCTION {
+      	description
+      	"Internal error in equipment malfunction for which no actual cause has been identified.";
+      }
+
+      enum ALARM_PROB_CAUSE_ADAPTER_ERROR {
+      	description
+      	"Probable cause of alarm is adapter error.";
+      }
+
+      enum ALARM_PROB_CAUSE_TEMPERATURE_UNACCEPTABLE {
+      	description
+      	"Probable cause of alarm is temperature unacceptable.";
+      }
+
+      enum ALARM_PROB_CAUSE_HUMIDITY_UNACCEPTABLE {
+      	description
+      	"Probable cause of alarm is humidity unacceptable around equipment.";
+      }
+
+      enum ALARM_PROB_CAUSE_HEATING_OR_VENTILATION_OR_COOLING_SYSTEM_PROBLEM {
+      	description
+      	"Probable cause of alarm is heating or ventilation or cooling system problem.";
+      }
+
+      enum ALARM_PROB_CAUSE_FIRE_DETECTED {
+      	description
+      	"Probable cause of alarm is fire around the equipment.";
+      }
+
+      enum ALARM_PROB_CAUSE_FLOOD_DETECTED {
+      	description
+      	"Probable cause of alarm is flood around equipment.";
+      }
+
+      enum ALARM_PROB_CAUSE_TOXIC_LEAK_DETECTED {
+      	description
+      	"Probable cause of alarm is toxic leak is detected around equipment.";
+      }
+
+      enum ALARM_PROB_CAUSE_LEAK_DETECTED {
+      	description
+      	"A leak of gas or fluid is detected around equipment.";
+      }
+
+      enum ALARM_PROB_CAUSE_PRESSURE_UNACCEPTABLE {
+      	description
+      	"The fluid or gas pressure is unacceptable.";
+      }
+
+      enum ALARM_PROB_CAUSE_EXCESSIVE_VIBRATION {
+      	description
+      	"The vibration around the equipment has exceeded the limit.";
+      }
+
+      enum ALARM_PROB_CAUSE_MATERIAL_SUPPLY_EXHAUSTED {
+      	description
+      	"Probable cause of alarm is exhaustion of the material supply.";
+      }
+
+      enum ALARM_PROB_CAUSE_PUMP_FAILURE {
+      	description
+      	"Error has occurred in the pump which is used to transfer fluid in the equipment.";
+      }
+
+      enum ALARM_PROB_CAUSE_ENCLOSURE_DOOR_OPEN {
+      	description
+      	"Probable cause of alarm is enclosure door is open.";
+      }
+    }
+    description     
+     "Fault Probable Cause values";
+    reference       
+     "";
+  }
+  
+  typedef FaultAlarmState {
+		type enumeration {
+    	enum ALARM_STATE_CLEAR {
+    		description
+    		"The alarm condition has cleared.";
+    	}
+
+      enum ALARM_STATE_ASSERT {
+      	description
+      	"The alarm condition has occured.";
+      }
+
+      enum ALARM_STATE_SUPPRESSED {
+      	description
+      	"The alarm state is suppressed.";
+      }
+
+      enum ALARM_STATE_UNDER_SOAKING {
+      	description
+      	"The alarm state is under soaking.";
+      }
+
+      enum ALARM_STATE_INVALID {
+      	description
+      	"Invalid alarm state.";
+      } 		
+		}  
+		description     
+     "Fault Alarm State values";
+    reference       
+     "";
+  }
+
+  typedef AlarmCategory {
+    type enumeration {
+    	enum ALARM_CATEGORY_INVALID {
+    		description
+    		"Category for alarms that are not valid";
+    	}
+
+      enum ALARM_CATEGORY_COMMUNICATIONS {
+      	description
+      	"Category for alarms that are related to communication between to points.";
+      }
+
+      enum ALARM_CATEGORY_QUALITY_OF_SERVICE {
+      	description
+      	"Category for alarms that are related to degration in quality of service.";
+      }
+
+      enum ALARM_CATEGORY_PROCESSING_ERROR {
+      	description
+      	"Category for alarms that are related to software or processing error.";
+      }
+
+      enum ALARM_CATEGORY_EQUIPMENT {
+      	description
+      	"Category for alarms that are related to equipment problems.";
+      }
+
+      enum ALARM_CATEGORY_ENVIRONMENTAL {
+      	description
+      	"Category for alarms that are related to environmental conditions around the equipment.";
+      }
+      
+    }
+    description     
+     "Fault Event Type value";
+    reference       
+     "";
+  }
+  
+  typedef FaultSeverity {
+    type enumeration {
+    	enum ALARM_SEVERITY_INVALID {
+    		description
+    		"Alarm with invalid severity";
+    	}
+
+    	enum ALARM_SEVERITY_CRITICAL {
+    		description
+    		"Alarm with severity level as critical.
+    		 The Critical severity level indicates that a service affecting condition has occurred and an immediate corrective action is required.
+    		 Such a severity can be reported, for example, when a managed object becomes totally out of service and its capability must be restored. (@ref ITU X.733)";
+    	}
+
+      enum ALARM_SEVERITY_MAJOR {
+      	description
+      	"The Major severity level indicates that a service affecting condition has developed and an urgent
+				 corrective action is required. Such a severity can be reported, for example, when there is a severe
+				 degradation in the capability of the managed object and its full capability must be restored.";
+      }
+
+      enum ALARM_SEVERITY_MINOR {
+      	description
+      	"The Minor severity level indicates the existence of a non-service affecting fault condition and that
+				 corrective action should be taken in order to prevent a more serious (for example, service affecting) fault.
+				 Such a severity can be reported, for example, when the detected alarm condition is not currently
+				 degrading the capacity of the managed object.";
+      }
+
+      enum ALARM_SEVERITY_WARNING {
+      	description
+      	"The Warning severity level indicates the detection of a potential or impending service affecting
+				 fault, before any significant effects have been felt. Action should be taken to further diagnose (if
+				 necessary) and correct the problem in order to prevent it from becoming a more serious service affecting
+				 fault. (@ref ITU X.733)";
+      }
+
+      enum ALARM_SEVERITY_INDETERMINATE {
+      	description
+      	"The severity level cannot be determined (@ref ITU X.733)";
+      }
+
+      enum ALARM_SEVERITY_CLEAR {
+      	description
+      	"The Cleared severity level indicates the clearing of one or more previously reported alarms. This
+				 alarm clears all alarms for this managed object that have the same Alarm type, Probable cause and
+				 Specific problems (if given). (@ref ITU X.733)";
+      }
+    }
+    description     
+     "Fault severity value";
+    reference       
+     "";
+  }
+  
+  typedef FaultState {
+  	type enumeration {
+  		enum STATE_UNDEFINED {}
+  		enum STATE_UP {}
+  		enum STATE_DOWN {}
+  	}
+  }
+
+}

@@ -747,7 +747,7 @@ namespace SAFplus
                     {
                     Handle compHdl = ::name.getHandle(comp->name);
                     // Actually it throws NameException: assert(compHdl != INVALID_HDL);  // AMF MUST register this component before it does anything else with it so the name must exist.              
-                    fault->notify(compHdl,FaultEventData(AlarmState::ALARM_STATE_ASSERT, IANAITUALARMTCMIB::IANAItuEventType::processingErrorAlarm, ITUALARMTCMIB::ItuPerceivedSeverity::major, IANAITUALARMTCMIB::ProbableCause::softwareError));
+                    fault->notify(compHdl,FaultEventData(FaultEnums::FaultAlarmState::ALARM_STATE_ASSERT, FaultEnums::AlarmCategory::ALARM_CATEGORY_PROCESSING_ERROR, FaultEnums::FaultSeverity::ALARM_SEVERITY_MAJOR, FaultEnums::FaultProbableCause::ALARM_PROB_CAUSE_SOFTWARE_ERROR));
                     // TODO: it may be better to have the AMF react to fault manager's notification instead of doing it preemptively here
                     }
                   catch(NameException& ne)
