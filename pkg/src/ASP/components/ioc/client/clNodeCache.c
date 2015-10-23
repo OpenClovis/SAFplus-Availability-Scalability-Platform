@@ -720,12 +720,15 @@ ClRcT clNodeCacheLeaderUpdate(ClIocNodeAddressT lastLeader,
         return CL_ERR_INVALID_PARAMETER;
 
     clOsalSemLock(gClNodeCacheSem);
-    if((ClInt32T)lastLeader > 0 && lastLeader < CL_IOC_MAX_NODES)
+
+    /* Reset leader capability except currentLeader */
+    int cl = CL_NODE_CACHE_HEADER_BASE(gpClNodeCache)->currentLeader;
+    if (cl != currentLeader) /* we are about to set this one as leader so skip clearing it if its already set */
     {
-        CL_NODE_CACHE_ENTRY_BASE(gpClNodeCache)[lastLeader].capability &= ~__LEADER_CAPABILITY_MASK;
-        CL_NODE_CACHE_HEADER_BASE(gpClNodeCache)->currentLeader = 0;
-        clLogNotice("CAP", "SET", "Node cache capability for last leader [%d] is [%#x]",
-                    lastLeader, CL_NODE_CACHE_ENTRY_BASE(gpClNodeCache)[lastLeader].capability);
+      if ((cl > 0) && (cl < CL_IOC_MAX_NODES))
+      {
+        CL_NODE_CACHE_ENTRY_BASE(gpClNodeCache)[cl].capability &= ~__LEADER_CAPABILITY_MASK;
+      }
     }
     if((ClInt32T)currentLeader > 0 && currentLeader < CL_IOC_MAX_NODES)
     {

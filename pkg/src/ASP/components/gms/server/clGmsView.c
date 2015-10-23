@@ -208,39 +208,48 @@ ClRcT clGmsViewCacheCheckAndAdd(ClGmsNodeIdT currentLeader, ClIocNodeAddressT no
 {
     ClGmsViewNodeT *node = NULL;
     ClRcT rc = CL_OK;
+    ClNodeCacheMemberT member = {0};
+
     if(!nodeAddress || !pNode)
         return CL_GMS_RC(CL_ERR_INVALID_PARAMETER);
-    rc = gmsViewCacheGet(currentLeader, nodeAddress, &node);
-    if(rc != CL_OK && CL_GET_ERROR_CODE(rc) != CL_ERR_TRY_AGAIN) return rc;
+
+    if(clNodeCacheMemberGetExtendedSafe(nodeAddress, &member, 5, 200) != CL_OK)
+    {
+        clLogWarning("VIEW", "CHECK", "Node view for [%d] not yet updated in the node cache", nodeAddress);
+        return CL_GMS_RC(CL_ERR_NOT_INITIALIZED);
+    }
+
     if(!node)
     {
-        ClNodeCacheMemberT member = {0};
-        if(clNodeCacheMemberGetExtendedSafe(nodeAddress, &member, 5, 200) != CL_OK)
-        {
-            clLogWarning("VIEW", "CHECK", "Node view for [%d] not yet updated in the node cache", nodeAddress);
-            return CL_GMS_RC(CL_ERR_NOT_INITIALIZED);
-        }
         node = clHeapCalloc(1, sizeof(*node));
         CL_ASSERT(node !=  NULL);
         node->viewMember.clusterMember.nodeId = member.address;
         node->viewMember.clusterMember.nodeAddress.iocPhyAddress.nodeAddress = member.address;
         clNameSet(&node->viewMember.clusterMember.nodeName, member.name);
-        node->viewMember.clusterMember.isCurrentLeader = 
-            CL_NODE_CACHE_LEADER_CAPABILITY(member.capability);
         node->viewMember.clusterMember.credential = CL_GMS_INELIGIBLE_CREDENTIALS;
-        if(CL_NODE_CACHE_SC_CAPABILITY(member.capability))
-        {
-            node->viewMember.clusterMember.credential = member.address + CL_IOC_MAX_NODES + 1;
-        }
-        else if(CL_NODE_CACHE_SC_PROMOTE_CAPABILITY(member.capability))
-        {
-            node->viewMember.clusterMember.credential = member.address;
-        }
+
+        node->viewMember.clusterMember.isPreferredLeader = CL_FALSE;
+        node->viewMember.clusterMember.leaderPreferenceSet = CL_FALSE;
         node->viewMember.clusterMember.bootTimestamp = clOsalStopWatchTimeGet();
-        clLogNotice("VIEW", "CHECK", "Node [%d] added to the view with capability [%#x] "
-                    "credentials [%d]", member.address, member.capability, 
-                    node->viewMember.clusterMember.credential);
     }
+
+    /* Always update the capability from the node cache in case it has changed. */
+    if (CL_NODE_CACHE_SC_CAPABILITY(member.capability))
+    {
+      node->viewMember.clusterMember.credential = member.address + CL_IOC_MAX_NODES + 1;
+    }
+    else if (CL_NODE_CACHE_SC_PROMOTE_CAPABILITY(member.capability))
+    {
+      node->viewMember.clusterMember.credential = member.address;
+    }
+
+    node->viewMember.clusterMember.isCurrentLeader = CL_NODE_CACHE_LEADER_CAPABILITY(member.capability);
+
+    clLogDebug("VIEW", "CHECK",
+               "Node [%s] slot/address [%d] added/updated to the view cache with capability [%#x] credentials [%d].  Is leader?: %d",
+               member.name, member.address, member.capability, node->viewMember.clusterMember.credential,
+               node->viewMember.clusterMember.isCurrentLeader);
+
     *pNode = node;
     return rc;
 }
@@ -1442,9 +1451,7 @@ ClRcT   _clGmsViewAddNodeExtended(
              */
             if(!reElection)
             {
-                foundNode->viewMember.clusterMember.isCurrentLeader &= ~__SC_PROMOTE_CAPABILITY_MASK;
-                foundNode->viewMember.clusterMember.isCurrentLeader =
-                    node->viewMember.clusterMember.isCurrentLeader;
+                foundNode->viewMember.clusterMember.isCurrentLeader = node->viewMember.clusterMember.isCurrentLeader;
             }
             if(!foundNode->viewMember.clusterMember.isCurrentLeader
                &&
