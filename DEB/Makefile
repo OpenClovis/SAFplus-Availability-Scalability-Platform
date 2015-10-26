@@ -4,7 +4,7 @@ mkdir -p $(DESTDIR)/$(PREFIX)
 for value in $1;do \
 cp -r $$value $(DESTDIR)/$(PREFIX); \
 done
-cp -r  $(PWD)/src $(DESTDIR)/$(PREFIX)/..
+cp -r  $(PWD)/src $(DESTDIR)/$(PREFIX)/../..
 endef
 
 deb_install:

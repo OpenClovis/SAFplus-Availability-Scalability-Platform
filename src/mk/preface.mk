@@ -27,6 +27,9 @@ $(info SAFplus7)
 #? By default we link with the local Linux distribution's installed libraries.  Override this to 0 if you are doing a crossbuild.
 USE_DIST_LIB ?= 1  
 
+#? If this is included from an application makefile, the application build may choose to not build SAFplus 
+BUILD_SAFPLUS ?=1
+
 SAFPLUS_MAKE_DIR := $(patsubst %/,%,$(dir $(realpath $(lastword $(MAKEFILE_LIST)))))
 
 #$(info A: $(dir $(CURDIR)/$(word $(words $(MAKEFILE_LIST)),$(MAKEFILE_LIST))))
@@ -63,27 +66,33 @@ LOCAL_COMPILE_CPP ?= $(LOCAL_COMPILER) -std=c++11 -Wno-deprecated-declarations  
 LOCAL_LINK_SO     ?= $(LOCAL_COMPILER) $(LINK_FLAGS) -g -shared -o
 LOCAL_LINK_EXE    ?= $(LOCAL_COMPILER) -g -O0 -fPIC $(LINK_FLAGS) -o
 LOCAL_TARGET_OS ?= $(shell uname -r)
-LOCAL_TARGET_PLATFORM ?= $(shell uname -p)
+__TMP_TARGET_PLATFORM := $(shell $(COMPILER) -dumpmachine)
+LOCAL_TARGET_PLATFORM ?= $(__TMP_TARGET_PLATFORM)
 
 LINK_LIBS ?=
 
 TARGET_OS ?= linux # $(shell uname -r)
-TARGET_PLATFORM ?= `$(COMPILER) -dumpmachine` #$(shell uname -p)
+TARGET_PLATFORM ?= $(__TMP_TARGET_PLATFORM)
 
 MGT_SRC_DIR ?= $(SAFPLUS_SRC_DIR)/../../mgt
 TAE_DIR ?= $(SAFPLUS_SRC_DIR)/../../tae
 
+# create the necessary directories for building SAFplus
+ifeq ($(BUILD_SAFPLUS),1)
 NOOP := $(shell mkdir -p $(SAFPLUS_SRC_DIR)/../target/$(strip $(TARGET_PLATFORM)))
-SAFPLUS_TARGET ?= $(shell (cd $(SAFPLUS_SRC_DIR)/../target/$(strip $(TARGET_PLATFORM)); pwd))
+NOOP := $(shell mkdir -p $(SAFPLUS_SRC_DIR)/../target/$(LOCAL_TARGET_PLATFORM))
+endif
+
+__TMP_SAFPLUS_TARGET := $(shell (cd $(SAFPLUS_SRC_DIR)/../target/$(strip $(TARGET_PLATFORM)); pwd))
+SAFPLUS_TARGET ?= $(__TMP_SAFPLUS_TARGET)
 
 # Put compilation tools (that you have to build) here
-NOOP := $(shell mkdir -p $(SAFPLUS_SRC_DIR)/../target/$(LOCAL_TARGET_PLATFORM))
-SAFPLUS_TOOL_TARGET ?= $(shell (cd $(SAFPLUS_SRC_DIR)/../target/$(LOCAL_TARGET_PLATFORM); pwd))
-$(info STT $(SAFPLUS_TOOL_TARGET))
+__TMP_SAFPLUS_TOOL_TARGET := $(shell (cd $(SAFPLUS_SRC_DIR)/../target/$(LOCAL_TARGET_PLATFORM); pwd))
+SAFPLUS_TOOL_TARGET ?= $(__TMP_SAFPLUS_TOOL_TARGET)
 
 SAFPLUS_CODEBLOCKS_BIN_DIR ?= /opt/SAFplus/7.0/ide/bin/
 
-NOOP := $(shell echo $(SAFPLUS_TARGET))
+# NOOP := $(shell echo $(SAFPLUS_TARGET))
 
 #? All 3rdparty libs, etc will go here by default i.e. configure --prefix=$(INSTALL_DIR)
 INSTALL_DIR ?=  $(SAFPLUS_TARGET)/install
@@ -98,6 +107,9 @@ OBJ_DIR ?= $(SAFPLUS_TARGET)/obj
 
 LOCAL_OBJ_DIR ?= $(SAFPLUS_TOOL_TARGET)/obj
 
+$(info SAFplus libraries: $(LIB_DIR))
+$(info )
+ifeq ($(BUILD_SAFPLUS),1)
 NOOP := $(shell mkdir -p $(INSTALL_DIR))
 NOOP := $(shell mkdir -p $(TEST_DIR))
 NOOP := $(shell mkdir -p $(LIB_DIR))
@@ -106,7 +118,7 @@ NOOP := $(shell mkdir -p $(PLUGIN_DIR))
 NOOP := $(shell mkdir -p $(MWOBJ_DIR))
 NOOP := $(shell mkdir -p $(OBJ_DIR))
 NOOP := $(shell mkdir -p $(SAFPLUS_TOOL_TARGET)/bin)
-
+endif
 
 PKG_CONFIG_PATH ?= /lib/pkgconfig:$(INSTALL_DIR)/lib/pkgconfig
 PKG_CONFIG ?= PKG_CONFIG_PATH=$(PKG_CONFIG_PATH) pkg-config
