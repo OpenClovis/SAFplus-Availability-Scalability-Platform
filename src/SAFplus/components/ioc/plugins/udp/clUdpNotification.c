@@ -535,13 +535,8 @@ static void clUdpEventHandler(ClPtrT pArg)
 static ClRcT udpMcastSetup(void)
 {
     ClRcT rc = CL_OK;
-    
-    if(gClMcastNotifPort) 
-        return CL_OK;
 
-    if(!gClMcastPort)
-        gClMcastPort = clTransportMcastPortGet();
-
+    gClMcastPort = clTransportMcastPortGet();
     gClMcastNotifPort = gClMcastPort;
 
     if(gClMcastPeers)
@@ -950,5 +945,13 @@ ClRcT clUdpEventHandlerFinalize(void) {
             timeout);
     clOsalMutexUnlock(&gIocEventHandlerClose.lock);
 
+    /*
+     * Cleanup multicast peer addresses
+     */
+    if(gClMcastPeers)
+    {
+        clHeapFree(gClMcastPeers);
+        gClMcastPeers = NULL;
+    }
     return CL_OK;
 }

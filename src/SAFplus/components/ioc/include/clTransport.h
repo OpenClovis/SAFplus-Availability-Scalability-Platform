@@ -14,6 +14,11 @@ extern "C" {
 #define CL_TRANSPORT_BASE_PORT (18000)
 #define CL_TRANSPORT_CONFIG_FILE "clTransport.xml"
 
+/*
+ * Maximum multicast peer addresses node cache
+ */
+#define CL_MCAST_MAX_NODES 16
+
 typedef ClRcT (*ClTransportNotifyCallbackT)
 (ClIocPhysicalAddressT *compAddr, ClUint32T status, ClPtrT arg);
 
@@ -30,7 +35,6 @@ typedef struct ClIocAddrMap
         struct sockaddr_in sin_addr;
         struct sockaddr_in6 sin6_addr;
     } _addr;
-    ClListHeadT list;
 }ClIocAddrMapT;
 
 /*
@@ -148,6 +152,8 @@ extern ClRcT clTransportBroadcastListGet(const ClCharT *hostXport,
 
 extern ClBoolT clTransportMcastSupported(ClUint32T *numPeers);
 extern ClRcT clTransportMcastPeerListGet(ClIocAddrMapT *peers, ClUint32T *numPeers);
+extern ClRcT clTransportMcastPeerListAdd(const ClCharT *addr);
+extern ClRcT clTransportMcastPeerListDelete(const ClCharT *addr);
 
 #ifdef __cplusplus
 }

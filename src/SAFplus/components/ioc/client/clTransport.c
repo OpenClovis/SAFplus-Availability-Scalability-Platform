@@ -7,6 +7,7 @@
 #include <netinet/in.h>
 #include <netdb.h>
 #include <sys/epoll.h>
+#include <sys/mman.h>
 #include <clTransport.h>
 #include <clLogApi.h>
 #include <clParserApi.h>
@@ -24,6 +25,7 @@
 #include <clTimerApi.h>
 #include <clClmTmsCommon.h>
 #include <clNodeCache.h>
+#include <clIocSetup.h>
 
 #define CL_XPORT_MAX_PAYLOAD_SIZE_DEFAULT_HEADROOM (100)
 #define CL_XPORT_MAX_PAYLOAD_SIZE_DEFAULT (64000 - CL_XPORT_MAX_PAYLOAD_SIZE_DEFAULT_HEADROOM)
@@ -165,9 +167,23 @@ static ClNameT gClLocalNodeName;
  */
 ClInt32T gClTransportId;
 
+/*
+ * Multicast peer address supported configurable via APIs: clTransportMcastPeerListAdd & clTransportMcastPeerListDelete
+ */
+#define CL_MCAST_ADDR_CACHE_SEGMENT "/CL_MCAST_ADDR_CACHE"
+#define CL_MCAST_ADDR_CACHE_SEGMENT_SIZE CL_IOC_ALIGN((ClUint32T)(CL_MCAST_MAX_NODES*sizeof(ClIocAddrMapT)), 8)
+#define CL_MCAST_ADDR_CACHE_ENTRY_BASE(base) ( (ClIocAddrMapT*)(base) )
+
 static ClBoolT gClMcastSupported = CL_TRUE;
-static CL_LIST_HEAD_DECLARE(gClMcastPeerList);
-static ClUint32T gClMcastPeers;
+static ClRcT _iocMcastAddrCacheFinalize(ClBoolT createFlag);
+static ClRcT _iocMcastAddrCacheInitialize(ClBoolT createFlag);
+static ClRcT _iocMcastAddrCacheOpen(void);
+static ClRcT _iocMcastAddrCacheCreate(void);
+extern ClBoolT gIsNodeRepresentative;
+
+static ClUint8T *gClMcastAddrCache;
+static ClCharT gClMcastAddrCacheSegment[CL_MAX_NAME_LENGTH+1];
+static ClOsalSemIdT gClMcastAddrCacheSem;
 
 #define MULTICAST_ADDR_DEFAULT "224.1.1.1"
 #define MULTICAST_PORT_DEFAULT 5678
@@ -1415,6 +1431,65 @@ static void _clSetupDestNodeLUTData(void)
     }
 }
 
+static ClRcT _iocMcastPeerAdd(const ClCharT *addr)
+{
+  ClRcT rc = CL_OK;
+  ClUint32T i = 0;
+
+  if (!gClMcastAddrCache) return CL_ERR_NOT_EXIST;
+
+  clOsalSemLock(gClMcastAddrCacheSem);
+  for (i = 0; i < CL_MCAST_MAX_NODES; i++)
+  {
+    ClIocAddrMapT *map = &CL_MCAST_ADDR_CACHE_ENTRY_BASE(gClMcastAddrCache)[i];
+    if ((map->addrstr == NULL )|| (strlen(map->addrstr) <= 0))
+    {
+      map->family = PF_INET;
+      map->_addr.sin_addr.sin_family = PF_INET;
+      map->_addr.sin_addr.sin_port = htons(gClTransportMcastPort);
+      if (inet_pton(PF_INET, addr, (void*) &map->_addr.sin_addr.sin_addr) != 1)
+      {
+        map->family = PF_INET6;
+        map->_addr.sin6_addr.sin6_family = PF_INET6;
+        if (inet_pton(PF_INET6, addr, (void*) &map->_addr.sin6_addr.sin6_addr) != 1)
+        {
+          clLogError("MCAST", "MAP", "Error interpreting address [%s]", addr);
+          clOsalSemUnlock(gClMcastAddrCacheSem);
+          return CL_ERR_INVALID_PARAMETER;
+        }
+        map->_addr.sin6_addr.sin6_port = htons(gClTransportMcastPort);
+      }
+      strncat(map->addrstr, addr, sizeof(map->addrstr) - 1);
+      clLogDebug("MCAST", "MAP", "Added to mcast peer address [%s] at idx [%d]", map->addrstr, i);
+      break;
+    }
+  }
+  clOsalSemUnlock(gClMcastAddrCacheSem);
+  return rc;
+}
+
+static ClRcT _iocMcastPeerDel(const ClCharT *addr)
+{
+  ClRcT rc = CL_ERR_NOT_EXIST;
+  ClUint32T i = 0;
+
+  if (!gClMcastAddrCache) return rc;
+
+  clOsalSemLock(gClMcastAddrCacheSem);
+  for (i = 0; i < CL_MCAST_MAX_NODES; i++)
+  {
+    ClIocAddrMapT *map = &CL_MCAST_ADDR_CACHE_ENTRY_BASE(gClMcastAddrCache)[i];;
+    if (map->addrstr != NULL && !strcmp(map->addrstr, addr))
+    {
+      map->addrstr[0] = 0;
+      clLogDebug("MCAST", "MAP", "Removed mcast peer address [%s] at idx [%d]", addr, i);
+      rc = CL_OK;
+    }
+  }
+  clOsalSemUnlock(gClMcastAddrCacheSem);
+  return rc;
+}
+
 /*
  * Lookup in hash table to get node address destination and xport type to send/receive
   */
@@ -1699,8 +1774,8 @@ static ClRcT _iocSetMulticastPeers(ClParserPtrT peers)
 {
     ClRcT rc = CL_ERR_INVALID_PARAMETER;
     const ClCharT *port = NULL;
+    ClUint32T numMcastPeers = 0;
     ClParserPtrT peer = clParserChild(peers, "peer");
-    ClUint32T numPeers = 0;
 
     if(!peer)
     {
@@ -1714,59 +1789,35 @@ static ClRcT _iocSetMulticastPeers(ClParserPtrT peers)
         if(!gClTransportMcastPort)
             gClTransportMcastPort = MULTICAST_PORT_DEFAULT;
     }
-    clLogNotice("MCAST", "MAP", "Set to use port [%d] for peer discovery", 
-                gClTransportMcastPort);
 
-    while(peer)
+    clLogNotice("MCAST", "MAP", "Set to use port [%d] for peer discovery", gClTransportMcastPort);
+
+    if (gIsNodeRepresentative)
     {
-        ClIocAddrMapT *map = NULL;
+      while (peer)
+      {
         const ClCharT *addr = clParserAttr(peer, "addr");
-        if(!addr) 
+        if (!addr)
         {
-            goto next;
+          goto next;
         }
-        map = clHeapCalloc(1, sizeof(*map));
-        CL_ASSERT(map != NULL);
-        map->family = PF_INET;
-        map->_addr.sin_addr.sin_family = PF_INET;
-        map->_addr.sin_addr.sin_port = htons(gClTransportMcastPort);
-        if(inet_pton(PF_INET, addr, (void*)&map->_addr.sin_addr.sin_addr) != 1)
-        {
-            map->family = PF_INET6;
-            map->_addr.sin6_addr.sin6_family = PF_INET6;
-            if(inet_pton(PF_INET6, addr, (void*)&map->_addr.sin6_addr.sin6_addr) != 1)
-            {
-                clLogError("MCAST", "MAP", "Error interpreting address [%s]", addr);
-                clHeapFree(map);
-                goto out_free;
-            }
-            map->_addr.sin6_addr.sin6_port = htons(gClTransportMcastPort);
-        }
-        strncat(map->addrstr, addr, sizeof(map->addrstr)-1);
-        clListAddTail(&map->list, &gClMcastPeerList);
-        ++numPeers;
-        clLogNotice("MCAST", "MAP", "Added addr [%s] to mcast peer map", 
-                    map->addrstr);
+        rc = _iocMcastPeerAdd(addr);
+        if (rc == CL_OK) numMcastPeers++;
+  
         next:
         peer = peer->next;
+      }
+    }
+    else
+    {
+      clTransportMcastPeerListGet(NULL, &numMcastPeers);
     }
 
-    if(numPeers > 0)
+    if (numMcastPeers > 0)
     {
-        gClMcastPeers = numPeers;
         rc = CL_OK;
-        goto out;
     }
 
-    out_free:
-    while(!CL_LIST_HEAD_EMPTY(&gClMcastPeerList))
-    {
-        ClListHeadT *head = gClMcastPeerList.pNext;
-        ClIocAddrMapT *map = CL_LIST_ENTRY(head, ClIocAddrMapT, list);
-        clListDel(head);
-        clHeapFree(map);
-    }
-    
     out:
     return rc;
 }
@@ -1880,6 +1931,7 @@ ClRcT clTransportLayerInitialize(void)
 
     _setDefaultXportForNode(parent);
 
+    _iocMcastAddrCacheInitialize(gIsNodeRepresentative);
     /*
      * Loading config of multicast
      */
@@ -2979,6 +3031,12 @@ ClRcT clTransportLayerFinalize(void)
         clListDel(&xport->xportList);
         transportFree(xport);
     }
+
+    /*
+     * Cleanup multicast peer addresses node cache
+     */
+    _iocMcastAddrCacheFinalize(gIsNodeRepresentative);
+
     return CL_OK;
 }
 
@@ -2994,9 +3052,9 @@ ClUint32T clTransportMcastPortGet(void)
 
 ClBoolT clTransportMcastSupported(ClUint32T *numPeers)
 {
-    if(numPeers)
+    if (numPeers)
     {
-        *numPeers = gClMcastPeers;
+      clTransportMcastPeerListGet(NULL, numPeers);
     }
     return gClMcastSupported;
 }
@@ -3004,23 +3062,32 @@ ClBoolT clTransportMcastSupported(ClUint32T *numPeers)
 ClRcT clTransportMcastPeerListGet(ClIocAddrMapT *peers, ClUint32T *pNumPeers)
 {
     ClRcT rc = CL_OK;
-    ClListHeadT *iter = NULL;
     ClUint32T numPeers = 0;
+    ClUint32T i = 0;
 
-    if(!pNumPeers || !(numPeers = *pNumPeers))
+    if (!pNumPeers && !peers)
         return CL_ERR_INVALID_PARAMETER;
-    
-    CL_LIST_FOR_EACH(iter, &gClMcastPeerList)
-    {
-        ClIocAddrMapT *map = CL_LIST_ENTRY(iter, ClIocAddrMapT, list);
-        memcpy(peers, map, sizeof(*peers));
-        ++peers;
-        --numPeers;
-        if(!numPeers)
-            break;
-    }
 
-    *pNumPeers -= numPeers; /* copied entries */
+    clOsalSemLock(gClMcastAddrCacheSem);
+    for (i = 0; i < CL_MCAST_MAX_NODES; i++)
+    {
+      ClIocAddrMapT *map = &CL_MCAST_ADDR_CACHE_ENTRY_BASE(gClMcastAddrCache)[i];
+      if (map->addrstr != NULL && (strlen(map->addrstr) > 0))
+      {
+        if (peers)
+        {
+          memcpy(peers, map, sizeof(*peers));
+          ++peers;
+        }
+        numPeers++;
+      }
+    }
+    clOsalSemUnlock(gClMcastAddrCacheSem);
+
+    if (pNumPeers)
+    {
+      *pNumPeers = numPeers;
+    }
     return rc;
 }
 
@@ -3041,3 +3108,173 @@ ClBoolT clTransportBridgeEnabled(ClIocNodeAddressT node)
     clOsalMutexUnlock(&gClXportNodeAddrListMutex);
     return bridge;
 }
+
+static ClRcT _iocMcastAddrCacheCreate(void)
+{
+    ClRcT rc = CL_OK;
+    ClFdT fd;
+
+    clOsalShmUnlink(gClMcastAddrCacheSegment);
+    rc = clOsalShmOpen(gClMcastAddrCacheSegment, O_RDWR | O_CREAT | O_EXCL, 0666, &fd);
+    if (rc != CL_OK)
+    {
+        clLogError("MCAST", "CACHE", "Multicast addresses cache shm open of segment [%s] returned [%#x]", gClMcastAddrCacheSegment, rc);
+        return rc;
+    }
+
+    rc = clOsalFtruncate(fd, CL_MCAST_ADDR_CACHE_SEGMENT_SIZE);
+    if (rc != CL_OK)
+    {
+        clLogError("MCAST", "CACHE", "Multicast addresses cache truncate of size [%d] returned [%#x]", (ClUint32T) CL_MCAST_ADDR_CACHE_SEGMENT_SIZE,
+                rc);
+        clOsalShmUnlink(gClMcastAddrCacheSegment);
+        close((ClInt32T) fd);
+        return rc;
+    }
+
+    rc = clOsalMmap(0, CL_MCAST_ADDR_CACHE_SEGMENT_SIZE, PROT_READ | PROT_WRITE, MAP_SHARED, fd, 0, (ClPtrT*) &gClMcastAddrCache);
+    if (rc != CL_OK)
+    {
+        clLogError("MCAST", "CACHE", "Multicast addresses cache segment mmap returned [%#x]", rc);
+        clOsalShmUnlink(gClMcastAddrCacheSegment);
+        close((ClInt32T) fd);
+        return rc;
+    }
+
+    rc = clOsalSemCreate((ClUint8T*) gClMcastAddrCacheSegment, 1, &gClMcastAddrCacheSem);
+
+    if (rc != CL_OK)
+    {
+        /* Delete existing one and try again */
+        ClOsalSemIdT semId = 0;
+
+        if (clOsalSemIdGet((ClUint8T*) gClMcastAddrCacheSegment, &semId) != CL_OK)
+        {
+            clLogError("MCAST", "CACHE", "Multicast addresses cache segment sem creation error while fetching sem id");
+            clOsalShmUnlink(gClMcastAddrCacheSegment);
+            close((ClInt32T) fd);
+            return rc;
+        }
+
+        if (clOsalSemDelete(semId) != CL_OK)
+        {
+            clLogError("MCAST", "CACHE", "Multicast addresses cache segment sem creation error while deleting old sem id");
+            clOsalShmUnlink(gClMcastAddrCacheSegment);
+            close((ClInt32T) fd);
+            return rc;
+        }
+        rc = clOsalSemCreate((ClUint8T*) gClMcastAddrCacheSegment, 1, &gClMcastAddrCacheSem);
+        CL_ASSERT(rc == CL_OK);
+    }
+
+    return rc;
+}
+
+static ClRcT _iocMcastAddrCacheOpen(void)
+{
+    ClRcT rc = CL_OK;
+    ClFdT fd;
+
+    rc = clOsalShmOpen(gClMcastAddrCacheSegment, O_RDWR, 0666, &fd);
+    if(rc != CL_OK)
+    {
+        clLogError("MCAST", "CACHE", "Multicast addresses cache [%s] segment open returned [%#x]",
+                   gClMcastAddrCacheSegment, rc);
+        return rc;
+    }
+
+    rc = clOsalMmap(0, CL_MCAST_ADDR_CACHE_SEGMENT_SIZE, PROT_READ | PROT_WRITE, MAP_SHARED, fd, 0,
+                    (ClPtrT*)&gClMcastAddrCache);
+
+    if(rc != CL_OK)
+    {
+        clLogError("MCAST", "CACHE", "Multicast addresses cache segment mmap returned [%#x]", rc);
+        close((ClInt32T)fd);
+        return rc;
+    }
+
+    rc = clOsalSemIdGet((ClUint8T*)gClMcastAddrCacheSegment, &gClMcastAddrCacheSem);
+
+    if(rc != CL_OK)
+    {
+        clLogError("MCAST", "CACHE", "Multicast addresses cache semid get returned [%#x]", rc);
+        close((ClInt32T)fd);
+    }
+
+    return rc;
+}
+
+static ClRcT _iocMcastAddrCacheInitialize(ClBoolT createFlag)
+{
+    ClRcT rc = CL_OK;
+
+    if (gClMcastAddrCache)
+        return rc;
+
+    snprintf(gClMcastAddrCacheSegment, sizeof(gClMcastAddrCacheSegment) - 1, "%s_%d", CL_MCAST_ADDR_CACHE_SEGMENT, clIocLocalAddressGet());
+
+    if (createFlag == CL_TRUE)
+    {
+        rc = _iocMcastAddrCacheCreate();
+    }
+    else
+    {
+        rc = _iocMcastAddrCacheOpen();
+    }
+
+    if (rc != CL_OK)
+    {
+        clLogError("MCAST", "CACHE", "Segment initialize returned [%#x]", rc);
+    }
+
+    CL_ASSERT(gClMcastAddrCache != NULL);
+
+    if (createFlag == CL_TRUE)
+    {
+        rc = clOsalMsync(gClMcastAddrCache, CL_MCAST_ADDR_CACHE_SEGMENT_SIZE, MS_ASYNC);
+        if (rc != CL_OK)
+        {
+            clLogError("MCAST", "CACHE", "Multicast addresses cache segment msync returned [%#x]", rc);
+        }
+    }
+
+    return rc;
+}
+
+static ClRcT _iocMcastAddrCacheFinalize(ClBoolT createFlag)
+{
+    ClRcT rc = CL_ERR_NOT_INITIALIZED;
+
+    if (gClMcastAddrCache)
+    {
+        clOsalSemLock(gClMcastAddrCacheSem);
+
+        if (createFlag)
+        {
+            clOsalMsync(gClMcastAddrCache, CL_MCAST_ADDR_CACHE_SEGMENT_SIZE, MS_SYNC);
+        }
+
+        clOsalMunmap(gClMcastAddrCache, CL_MCAST_ADDR_CACHE_SEGMENT_SIZE);
+        gClMcastAddrCache = NULL;
+
+        clOsalSemUnlock(gClMcastAddrCacheSem);
+
+        if (createFlag)
+        {
+            clOsalShmUnlink(gClMcastAddrCacheSegment);
+            clOsalSemDelete(gClMcastAddrCacheSem);
+        }
+    }
+    return rc;
+}
+
+ClRcT clTransportMcastPeerListAdd(const ClCharT *addr)
+{
+  return _iocMcastPeerAdd(addr);
+}
+
+ClRcT clTransportMcastPeerListDelete(const ClCharT *addr)
+{
+  return _iocMcastPeerDel(addr);
+}
+
