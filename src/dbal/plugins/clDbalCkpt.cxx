@@ -151,9 +151,10 @@ ClRcT CkptPlugin::insertRecord(ClDBKeyT dbKey, ClUint32T keySize, ClDBRecordT db
 
     NULL_CHECK(dbKey);
     NULL_CHECK(dbRec);
+    NULL_CHECK(p);
 
     logTrace("DBA", "ADD", "Adding a record into the database");    
-    char data[sizeof(Buffer)-1+keySize]; // -1 because inside Buffer the data field is already length one.
+    char data[sizeof(Buffer)-1+keySize];
     Buffer* key = new(data) Buffer(keySize);
     memcpy(key->data, dbKey, keySize);
     const Buffer& rec = p->read(*key);
@@ -161,7 +162,7 @@ ClRcT CkptPlugin::insertRecord(ClDBKeyT dbKey, ClUint32T keySize, ClDBRecordT db
     {
         /* Duplicate record is getting inserted */
         errorCode = CL_DBAL_RC(CL_ERR_DUPLICATE);
-        logTrace("DBA", "ADD", "Failed to execute the SQL statement. Duplicate record is getting inserted.");
+        logTrace("DBA", "ADD", "Duplicate record is getting inserted.");
         return errorCode;
     }
     char vmem[sizeof(Buffer)-1+recSize];
@@ -185,9 +186,10 @@ ClRcT CkptPlugin::replaceRecord(ClDBKeyT dbKey, ClUint32T keySize, ClDBRecordT d
 
     NULL_CHECK(dbKey);
     NULL_CHECK(dbRec);
+    NULL_CHECK(p);
 
     logTrace("DBA", "ADD", "Replacing a record in the database");    
-    char data[sizeof(Buffer)-1+keySize]; // -1 because inside Buffer the data field is already length one.
+    char data[sizeof(Buffer)-1+keySize];
     Buffer* key = new(data) Buffer(keySize);
     memcpy(key->data, dbKey, keySize);
     
@@ -213,8 +215,10 @@ ClRcT CkptPlugin::getRecord(ClDBKeyT dbKey, ClUint32T keySize, ClDBRecordT* pDBR
     NULL_CHECK(pRecSize);
 
     p = (Checkpoint*)pDBHandle;
+    NULL_CHECK(p);
+
     logTrace("DBA", "GET", "Retrieving a record from the database");
-    char data[sizeof(Buffer)-1+keySize]; // -1 because inside Buffer the data field is already length one.
+    char data[sizeof(Buffer)-1+keySize];
     Buffer* key = new(data) Buffer(keySize);
     memcpy(key->data, dbKey, keySize);
     const Buffer& rec = p->read(*key);
@@ -250,6 +254,7 @@ ClRcT CkptPlugin::getFirstRecord(ClDBKeyT* pDBKey, ClUint32T* pKeySize, ClDBReco
     NULL_CHECK(pRecSize);
 
     p = (Checkpoint*)pDBHandle;
+    NULL_CHECK(p);
     
     logTrace("DBA", "GET", "Retrieving the first record from the database");
     
@@ -296,6 +301,37 @@ ClRcT CkptPlugin::getNextRecord(ClDBKeyT currentKey, ClUint32T currentKeySize, C
     NULL_CHECK(pDBNextRec);
     NULL_CHECK(pNextRecSize);    
     
+    p = (Checkpoint*)pDBHandle;
+    NULL_CHECK(p);
+    
+    Checkpoint::Iterator i=p->find(currentKey, currentKeySize);
+    if ((i!=p->end()) && (++i!=p->end()))
+    {       
+        Checkpoint::KeyValuePair& item = *i;
+        *pNextKeySize = (*item.first).len();
+        *pDBNextKey = (ClDBKeyT)SAFplusHeapAlloc(*pNextKeySize);
+        if (*pDBNextKey == NULL)
+        {        
+            logError("DBA", "DBO", "Checkpoint getFirstRecord failed: No Memory.");
+            errorCode = CL_DBAL_RC(CL_ERR_NO_MEMORY);
+            return errorCode;  
+        }
+        memcpy(*pDBNextKey, (*item.first).data, *pNextKeySize);
+        *pNextRecSize = (*item.second).len();
+        *pDBNextRec = (ClDBRecordT)SAFplusHeapAlloc(*pNextRecSize);
+        if (*pDBNextRec == NULL)
+        {        
+            logError("DBA", "DBO", "Checkpoint getFirstRecord failed: No Memory.");
+            errorCode = CL_DBAL_RC(CL_ERR_NO_MEMORY);
+            return errorCode;  
+        }
+        memcpy(*pDBNextRec, (*item.second).data, *pNextRecSize);
+        return CL_OK;
+    }
+
+    errorCode = CL_DBAL_RC(CL_ERR_NOT_EXIST);
+    logTrace("DBA", "GET", "No records found in the database.");
+
     return (errorCode);
 }
 
@@ -306,17 +342,28 @@ ClRcT CkptPlugin::deleteRecord(ClDBKeyHandleT dbKey, ClUint32T keySize)
     ClUint32T rc = 0;  
        
     NULL_CHECK(dbKey);
+    p = (Checkpoint*)pDBHandle;
+    NULL_CHECK(p);
 
     logTrace("DBA", "DEL", "Removing a record from the database");      
 
-    
+    char data[sizeof(Buffer)-1+keySize];
+    Buffer* key = new(data) Buffer(keySize);
+    memcpy(key->data, dbKey, keySize);
+    Checkpoint::Iterator i=p->find(*key);
+    if (i!=p->end())
+    {  
+       p->remove(*key);
+       return errorCode;
+    }
+    errorCode = CL_DBAL_RC(CL_ERR_NOT_EXIST);
+    logTrace("DBA", "DEL", "No record exists in the database");
     return (errorCode);
 }
 
 ClRcT CkptPlugin::syncDbal(ClUint32T flags)
 {
-   /*Auto.DB sync would be through DB_SYNC open flag for DBAL*/
-    return (CL_OK);
+   return (CL_OK);
 }
 
 ClRcT CkptPlugin::openTransaction(ClDBFileT dbFile, ClDBNameT  dbName, ClDBFlagT dbFlag, ClUint32T  maxKeySize, ClUint32T  maxRecordSize)
