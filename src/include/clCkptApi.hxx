@@ -331,8 +331,8 @@ namespace SAFplus
     //? Similar to the Standard Template Library (STL), this returns the termination sentinel -- that is, an invalid object that can be compared to an iterator to determine that it is at the end of the list of members.
     Iterator end();
     //? Similar to the Standard Template Library (STL), this returns the iterator of the map designated by the key -- data of the key stored in the map
-    Iterator find(void* key, uint_t len);
-    Iterator find(Buffer& key);
+    Iterator find(const void* key, uint_t len);
+    Iterator find(const Buffer& key);
     //? Return the universal identifier for this checkpoint.
     const SAFplus::Handle& handle() { return hdr->handle; } // its read only
     //? Get the name of the checkpoint

@@ -542,7 +542,7 @@ SAFplus::Checkpoint::Iterator SAFplus::Checkpoint::end()
   return i;
 }
 
-SAFplus::Checkpoint::Iterator SAFplus::Checkpoint::find(void* key, uint_t len)
+SAFplus::Checkpoint::Iterator SAFplus::Checkpoint::find(const void* key, uint_t len)
 {   
   assert(this->map);
   char kdata[sizeof(Buffer)-1+len];
@@ -551,11 +551,11 @@ SAFplus::Checkpoint::Iterator SAFplus::Checkpoint::find(void* key, uint_t len)
   return (find(*kbuf));
 }
 
-SAFplus::Checkpoint::Iterator SAFplus::Checkpoint::find(Buffer& key)
+SAFplus::Checkpoint::Iterator SAFplus::Checkpoint::find(const Buffer& key)
 {   
   assert(this->map);  
   gate.lock();
-  CkptHashMap::iterator it = map->find(SAFplusI::BufferPtr(&key));
+  CkptHashMap::iterator it = map->find(SAFplusI::BufferPtr((Buffer*)&key));
   gate.unlock();
   SAFplus::Checkpoint::Iterator i(this);
   i.iter = it;
