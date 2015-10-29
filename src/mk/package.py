@@ -97,6 +97,9 @@ class RPM:
             shutil.copy2(os.path.join(rpm_pkg_template_dir, rpm_spec_file_name), self.rpm_specs_dir)
             self.customise_spec_file()
             exe_shell_cmd("rpmbuild -bb {}".format(os.path.join(self.rpm_specs_dir, self.rpm_spec_file_name)))
+            rpm_file_list = safplus_packager.file_list(self.rpm_rpm_dir + os.sep + platform.machine(), "*.rpm")
+            for rpm_file in rpm_file_list:
+                shutil.copy2(rpm_file, os.path.split(archive_name)[0]) 
         else:
             log.error("Provide correct details like rpm_template dir or Makefile or rpm spec file location")
 
@@ -147,7 +150,7 @@ class DEBIAN:
         self.deb_change_log_file = None
         self.deb_makefile = None
 
-    def prepare_env(self, archive_file):
+    def prepare_env(self, archive_file, machine_type):
         """ Rename the archive name to <package_name>_<version> format ( SAFplus.tgz -> SAFplus_1.0.tgz)
             extract the archive, rename the package directory to <package_name>-<version>, copy the required configuration
             files into <package_name>-<version>/debian.
@@ -156,6 +159,12 @@ class DEBIAN:
         log.debug("Archive name is {}".format(archive_name))
         log.debug("Archive compress format is {}".format(compress_format))
         log.debug("Archive extension is {}".format(pkg_suffix))
+        mach_type_arch = False
+        if len(machine_type.split("-")) > 1:
+            machine_type = machine_type.split("-")[0]
+        if machine_type in archive_name:
+            archive_name = archive_name.split("_{}".format(machine_type))[0]
+            mach_type_arch = True
         self.pkg_name = archive_name.split("_")[0].lower()
         pkg_ver = self.pkg_version
         if len(archive_name.split("_")) > 1:
@@ -170,7 +179,10 @@ class DEBIAN:
         #Rename the extracted directory to <package_name>-<package_version>
         self.req_dir_name = self.build_top_dir + os.sep + self.pkg_name + "-" + self.pkg_version
         log.debug("Required archive directory:{}".format(self.req_dir_name))
-        shutil.move(self.build_top_dir + os.sep + archive_name, self.req_dir_name)
+        if mach_type_arch:
+            shutil.move(self.build_top_dir + os.sep + archive_name + "_" + machine_type, self.req_dir_name)
+        else:
+            shutil.move(self.build_top_dir + os.sep + archive_name, self.req_dir_name)
         self.deb_dir = self.req_dir_name + os.sep + "debian"
         os.mkdir(self.deb_dir)
         log.debug("Debian directory {}".format(self.deb_dir))
@@ -201,7 +213,7 @@ class DEBIAN:
         self.deb_makefile = self.deb_dir + os.sep + "Makefile"
         check_file_exists(self.deb_makefile)
 
-    def deb_build(self, archive_file, deb_pkg_template_dir, machine_type=None, kernel_version=None, third_party_dir=None):
+    def deb_build(self, archive_file, deb_pkg_template_dir, machine_type=None, third_party_dir=None):
         """
         :param archive_file: name of the archive including the full path
         :param deb_pkg_template_dir: path to the debian template directory
@@ -212,18 +224,16 @@ class DEBIAN:
 
         if machine_type is None:
             machine_type = platform.machine()
-        if kernel_version is None:
-            kernel_version = platform.release()
         if third_party_dir is None:
             # Need to fix the third party library location
             # if we are using the distribution provided libraries, deb_build may fail
-            third_party_dir = os.path.abspath(os.path.dirname(__file__) + os.sep + "../target/{}/{}/install".format(machine_type, kernel_version))
+            third_party_dir = os.path.abspath(os.path.dirname(__file__) + os.sep + "../../target/{}/install".format(machine_type))
         log.debug("Archive file is {}".format(archive_file))
-        self.prepare_env(archive_file)
+        self.prepare_env(archive_file, machine_type)
         if os.path.exists(deb_pkg_template_dir):
             safplus_packager.copy_dir(deb_pkg_template_dir, self.deb_dir)
             self.check_req_deb_files()
-            self.customise_deb_files(machine_type, third_party_dir)
+            self.customise_deb_files(archive_file, machine_type, third_party_dir)
         else:
             print "Provide correct details like deb_template dir {}".format(deb_pkg_template_dir)
         pass
@@ -299,7 +309,7 @@ class DEBIAN:
         f.write(str_buf)
         f.close()
 
-    def customise_deb_files(self, machine_type, third_party_dir):
+    def customise_deb_files(self, archive_file, machine_type, third_party_dir):
         shutil.move(self.deb_makefile, self.req_dir_name)
         self.customise_control_file(machine_type)
         self.customise_rules_file(third_party_dir)
@@ -307,6 +317,9 @@ class DEBIAN:
         self.customise_postrm()
         os.chdir(self.req_dir_name)
         exe_shell_cmd("dpkg-buildpackage -us -uc -b")
+        deb_file_list = safplus_packager.file_list(self.build_top_dir, "*.deb")
+        for deb_file in deb_file_list:
+            shutil.copy2(deb_file, os.path.split(archive_file)[0])
 
 
 def test_deb():

@@ -70,7 +70,6 @@ def create_archive(tar_name, tar_dir, arch_format='gztar'):
     """ Create an archive with a given archive name and archive format for the provided directory
     """
     if check_dir_exists(tar_dir):
-        log.info("Archive name is {}".format(tar_name))
         tar_name = shutil.make_archive(tar_name, arch_format, tar_dir)
         log.info("Archive {} generated successfully".format(tar_name))
     else:
@@ -187,7 +186,7 @@ def get_image_file_name(tar_name):
     return image_file_name
 
 
-def package(base_dir, tar_name, prefix_dir, machine=None, kernel_version=None, pre_build_dir=None,execute=None, yum_package = False, debain_package = False):
+def package(base_dir, tar_name, prefix_dir, machine=None, pre_build_dir=None,execute=None, yum_package = False, debain_package = False):
     """ This function packages the model related binaries, libraries, test examples and 3rd party utilities
        into an archive to the given target platform.
     """
@@ -216,14 +215,10 @@ def package(base_dir, tar_name, prefix_dir, machine=None, kernel_version=None, p
 
     # If the user does not supply the crossbuild into, assume the local machine -- so get the local machine's data
     if not machine:
-        machine = platform.machine()  # architecture, e.g. x86_64
-
-    if not kernel_version:
-        kernel_version = platform.release() # e.g 3.13.0-32-generic
+        machine = get_target_machine_type() # target processor compiler type, e.g. x86_64-linux-gnu, i686-linux-gnu
 
     # Print out what was discovered so user can visually verify.
     log.info("Target platform machine type:{}".format(machine))
-    log.info("Target platform kernel version:{}".format(kernel_version))
     log.info("Target platform image directory is {}".format(image_dir))
     if yum_package:
         log.info("Packaging the Model/SAFplus in RPM ")
@@ -234,18 +229,22 @@ def package(base_dir, tar_name, prefix_dir, machine=None, kernel_version=None, p
     log.info("Packaging files from {0} and {1}".format(pre_build_dir,base_dir));
 
     if pre_build_dir:  # Create the actual prebuilt dir by combining what the user passed with the arch and kernel.
-        target_dir = "{0}/target/{1}/{2}".format(pre_build_dir, machine, kernel_version)
-        log.info("Prebuilt target platform related SAFPlus binaries, libraries, and third party utilities are present in {}".format(target_dir))
-        if check_dir_exists(pre_build_dir):
-            pre_build_dir = "{}/target/{}/{}".format(pre_build_dir, machine, kernel_version)
-            package_dirs(pre_build_dir, image_stage_dir, yum_package, debain_package)
+        target_dir = "{0}/target/{1}".format(pre_build_dir, machine)
+        if check_dir_exists(target_dir):
+            log.info("SAFPlus binaries, libraries and third party utilities related to target platform are present in {}".format(target_dir))
+            package_dirs(target_dir, image_stage_dir, yum_package, debain_package)
+        else:
+            fail_and_exit("Specified {} does not exists".format(target_dir))
 
     if base_dir:
-        target_dir = "{0}/target/{1}/{2}".format(base_dir, machine, kernel_version)
-        log.info("SAFPlus binaries, libraries and third party utilities related to target platform are present in {}".format(target_dir))
-        package_dirs(target_dir, image_stage_dir, yum_package, debain_package)
-    log.info("Packaging complete")
+        target_dir = "{0}/target/{1}".format(base_dir, machine)
+        if check_dir_exists(target_dir):
+            log.info("Model related binaries, libraries and  utilities related to target platform are present in {}".format(target_dir))
+            package_dirs(target_dir, image_stage_dir, yum_package, debain_package)
+        else:
+            fail_and_exit("Specified {} does not exists".format(target_dir))
 
+    log.info("Packaging complete")
     if execute:
       tmp = execute.format(image_dir=image_stage_dir)
       log.info("Executing user supplied script: %s" % tmp)
@@ -268,40 +267,50 @@ def package(base_dir, tar_name, prefix_dir, machine=None, kernel_version=None, p
         from package import DEBIAN
         deb_gen = DEBIAN(prefix_loc=prefix_dir)
         deb_template_dir = os.path.abspath(os.path.dirname(__file__) + os.sep + "pkg_templates/deb")
-        deb_gen.deb_build(tar_name, deb_template_dir, machine, kernel_version)
+        deb_gen.deb_build(tar_name, deb_template_dir, machine)
+
+def get_target_machine_type():
+    global target_mch_compiler_type
+    if target_mch_compiler_type is None:
+        try:
+            target_mch_compiler_type = subprocess.check_output("g++ -dumpmachine", shell=True)
+            target_mch_compiler_type = target_mch_compiler_type.rstrip()
+        except subprocess.CalledProcessError,e:
+            print "Script is aborted due to the following error{}".format(e)
+            sys.exit(-1)
+    return target_mch_compiler_type
 
 
 def usage():
     """ print the usage and supported options of the script.
     """
     target_platform = platform.system()
-    target_machine = platform.machine()
-    target_kernel_version = platform.release()
+    target_machine = get_target_machine_type()
+    target_machine = target_machine.rstrip()
     progName = os.path.split(sys.argv[0])[1]
     print """
 The {0} script generates an archive for the given project/prebuild  directory
-to a given machine type and kernel version.""".format(os.path.split(sys.argv[0])[1])
+to a given target machine compiler type """.format(os.path.split(sys.argv[0])[1])
     print """
-If you are producing a cross build, use the -m and -k flags to copy files from
-the appropriate target/<-m flag>/<-k flag> directory to produce an archive for
+If you are producing a cross build, use the -b flag to copy files from
+the appropriate target/<-m flag> directory to produce an archive for
 your target architecture."""
     print """
-Syntax {} [-p <pathToProject>] [-s <pathToSAFplus>] [-m <machineType>] [-k <kernelVersion>] [[-o] <outputFile>]""".format(sys.argv[0])
+Syntax {} [-p <pathToProject>] [-s <pathToSAFplus>] [-m <target machine compiler Type>] [[-o] <outputFile>]""".format(sys.argv[0])
     print """
 Options:
   -h or --help: This help
+  -m or --target-machine=<target machine compiler Type>
+     Ex: i686-linux-gnu, x86_64-linux-gnu
+     Default value is {tgtMachine}
   -p or --project-dir=<PathtoProject/Applicationdir>
   -s or --safplus-dir=<PathtoSafplusLibraryDir>
-  -m or --target-machine=<target architecture type>
-     Ex: x86_64 x86 Default is {tgtMachine}
-  -k or --target-os-kernel-version=<target operating system kernel version>
-     Default is {kernelVersion}
   -x or --execute="string"
      Execute this string on the bash prompt after copying files but before creating the archive
   -o or --output=<archive name>
      Output file name. Can also be supplied as the first non-flag argument.
      Extension selects the format (.tgz, .tar.gz, or .zip)
-     default output file is {tp}_{tm}_{tk}
+     default output file is {tp}_{tm}
   -y or --yum
      Generates the RPM package for the given project/safplus directory 
   -d or --debian
@@ -309,7 +318,7 @@ Options:
   -i or --install_dir
      Installation directory/location for the target RPM/Debian Package 
      default installation directory is /opt/safplus/target
-""".format(tgtMachine=target_machine,kernelVersion=target_kernel_version,tp=target_platform, tm=target_machine, tk=target_kernel_version)
+""".format(tgtMachine=target_machine,tm=target_machine.split('-')[0],tp=target_platform)
 
     print """Example usage:
 
@@ -320,15 +329,15 @@ Package SAFplus and a project together into myApp.tgz
 $ {sp} [TODO]
 
 Crossbuild packaging:
-$ {sp} -s {s} -m {m} -k {k} crossPkg.zip
+$ {sp} -s {s} -m {m} crossPkg.zip
 
 Package SAFplus into safplus.tgz and generate safplus-1.0-1.{m}.rpm:
 $ {sp} -y safplus.tgz
 
 Crossbuild RPM package generation:
-$ {sp} -s {s} -m {m} -k {k} -y crossPkg.tgz""".\
-        format(s=os.path.abspath(os.path.split(sys.argv[0])[0] +("/..")), m=target_machine,
-               k=target_kernel_version, sp=progName)
+$ {sp} -s {s} -m {m} -y crossPkg.tgz""".\
+        format(s=os.path.abspath(os.path.split(sys.argv[0])[0] +("/../..")), m=target_machine,
+               sp=progName)
 
 
 def parser(args):
@@ -341,13 +350,12 @@ def parser(args):
     install_dir = None
 
     target_platform = platform.system()
-    target_machine = platform.machine()
-    target_kernel_version = platform.release()
+    target_machine = get_target_machine_type()
     pre_build_dir = None
 
     try:
-        opts, args = getopt.getopt(args, "hm:k:s:o:p:x:ydi:", ["help", "project-dir=", "target-machine=",
-                                                          "target-kernel=", "tar-name=", "safplus-dir=","execute=", "yum", "debian", "install_dir="])
+        opts, args = getopt.getopt(args, "hm:s:o:p:x:ydi:", ["help", "project-dir=", "target-machine=",
+                                                           "tar-name=", "safplus-dir=","execute=", "yum", "debian", "install_dir="])
     except getopt.GetoptError as err:
         log.error("{}".format(err))
         usage()
@@ -372,9 +380,6 @@ def parser(args):
         elif opt in ("-a", "--target-machine"):
             target_machine = get_option_value(arg)
             log.info("target-machine is {}".format(target_machine))
-        elif opt in ("-r", "--target-kernel"):
-            target_kernel_version = get_option_value(arg)
-            log.info("target-os-kernel-version is {}".format(target_kernel_version))
         elif opt in ("-s", "--safplus-dir"):
             pre_build_dir = get_option_value(arg)
             log.info("SAFplus dir {}".format(pre_build_dir))
@@ -391,15 +396,16 @@ def parser(args):
             pass
     if len(args) >= 1:
       tar_name = args[0]
-
-
+    tg_platform = None
+    if len(target_machine.split("-")) > 1:
+        tg_platform = target_machine.split('-')[0]
     if tar_name is None:
-        tar_name = "safplus_{}_{}".format(target_machine, target_kernel_version)
+        tar_name = "safplus_{}".format(tg_platform)
     elif not re.search(r'(\w+).(tar|zip|tgz|gz)', tar_name):
-        tar_name = "{}_{}_{}".format(tar_name, target_machine, target_kernel_version)
+        tar_name = "{}_{}".format(tar_name, tg_platform)
     else:
         pass
-    return model_dir, tar_name, target_machine, target_kernel_version, pre_build_dir,execute,yum_package, debian_package, install_dir
+    return model_dir, tar_name, target_machine, pre_build_dir,execute,yum_package, debian_package, install_dir
 
 
 def get_option_value(arg_val):
@@ -411,16 +417,18 @@ def get_option_value(arg_val):
 
 def main():
     log.debug("Command line Arguments are {}".format(sys.argv))
-    model_dir, tar_name, target_machine, target_kernel, pre_build_dir,execute, yum_package, debian_package, prefix_dir  = parser(sys.argv[1:])
+    model_dir, tar_name, target_machine, pre_build_dir,execute, yum_package, debian_package, prefix_dir  = parser(sys.argv[1:])
     if pre_build_dir is None:
-        pre_build_dir = os.path.abspath(os.path.dirname(__file__) + os.sep + '..')
+        pre_build_dir = os.path.abspath(os.path.dirname(__file__) + os.sep + '..' + os.sep + '..')
     if prefix_dir is None:
         prefix_dir = "/opt/safplus/target"
    
     # log.info("%s, %s, %s, %s, %s, %s" % (model_dir, tar_name, target_machine, target_kernel, pre_build_dir,execute))
-    package(model_dir, tar_name, prefix_dir, target_machine, target_kernel, pre_build_dir,execute, yum_package, debian_package)
+    package(model_dir, tar_name, prefix_dir, target_machine, pre_build_dir,execute, yum_package, debian_package)
 
 
 log = log_init()
+target_mch_compiler_type = None
+get_target_machine_type()
 if __name__ == '__main__':
     main()
