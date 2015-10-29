@@ -162,7 +162,14 @@ GPERFTOOLS_LINK :=
 endif
 
 # Determine protobuf location
-PROTOBUF_LINK ?= -L/usr/lib -L/usr/lib/$(TARGET_PLATFORM) $(shell PKG_CONFIG_PATH=$(PKG_CONFIG_PATH) pkg-config --libs protobuf) -lprotoc
+
+ifeq ($(TARGET_PLATFORM),i686-linux-gnu)  # Nasty hardcoding because g++ -dumpmachine uses i686- but linux directory structure uses i386-
+PROTOBUF_LIB_DIR ?= /usr/lib/i386-linux-gnu
+else
+PROTOBUF_LIB_DIR ?= /usr/lib/$(TARGET_PLATFORM)
+endif
+
+PROTOBUF_LINK ?= -L/usr/lib -L$(PROTOBUF_LIB_DIR) $(shell PKG_CONFIG_PATH=$(PKG_CONFIG_PATH) pkg-config --libs protobuf) -lprotoc
 PROTOBUF_FLAGS ?= $(shell PKG_CONFIG_PATH=$(PKG_CONFIG_PATH) pkg-config --cflags protobuf)
 # $(info PROTOBUF_FLAGS is $(PROTOBUF_FLAGS) PROTOBUF_LINK is $(PROTOBUF_LINK))
 

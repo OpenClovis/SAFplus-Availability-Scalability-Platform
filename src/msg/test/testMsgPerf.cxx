@@ -275,7 +275,7 @@ bool testLatency(MsgSocket* src, MsgSocket* sink,Handle dest, int msgLen, int nu
 
 void testGroup(MsgSocket* src, MsgSocket* sink,Handle dest,const char* desc)
 {
-#if 0
+#if 1
   testLatency(src,sink,dest,1,10000 * repeat, desc,true);
   testLatency(src,sink,dest,16,10000 * repeat, desc,true);
   testLatency(src,sink,dest,100,10000 * repeat, desc,true);
