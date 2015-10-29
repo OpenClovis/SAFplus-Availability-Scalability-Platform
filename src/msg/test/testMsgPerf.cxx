@@ -138,7 +138,7 @@ bool testChunkingPerf(MsgSocket* src, MsgSocket* sink,Handle dest, int msgLen, i
               msgCount = 0;
               while (msgCount < atOnce)
                 {
-                  m = sink->receive(1,10);  // Even though a sent multiples, I may not receive them as multiples
+                  m = sink->receive(1,1000);  // Even though a sent multiples, I may not receive them as multiples
                   assert(m);  /* If you get this then messages were dropped in
                                  the kernel.  Use these commands to increase the kernel network buffers:
                                  sysctl -w net.core.wmem_max=10485760

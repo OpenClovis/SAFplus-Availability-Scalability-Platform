@@ -201,7 +201,7 @@ namespace SAFplus
 
       while(1)
         {
-        Message* m = xport->receive(curDelay);
+        Message* m = xport->receive(maxMsgs,curDelay);
         if (!m) return NULL;  // Timeout
 
         Handle from = m->getAddress();
@@ -240,7 +240,7 @@ namespace SAFplus
               {
                 Message* prev = NULL;
                 std::vector<Message*>::iterator it;
-#if 0
+#if 0  // this is equivalent to the for loop below but not working
                 for (it = trk.msgs.begin(); it != trk.msgs.end(); it++)
                   {
                     if (prev) prev->nextMsg = (*it);
