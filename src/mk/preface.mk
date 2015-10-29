@@ -39,16 +39,19 @@ SAFPLUS_MAKE_DIR := $(patsubst %/,%,$(dir $(realpath $(lastword $(MAKEFILE_LIST)
 
 ifdef CROSS
 include $(SAFPLUS_MAKE_DIR)/$(CROSS)
+SYSTEM_INC_DIR ?= $(CROSS_SYS_ROOT)/usr/include
+else
+SYSTEM_INC_DIR ?= /usr/include
 endif
+
 
 SAFPLUS_SRC_DIR ?= $(patsubst %/,%,$(dir $(realpath $(SAFPLUS_MAKE_DIR))))
 SAFPLUS_INC_DIR ?= $(SAFPLUS_SRC_DIR)/include
 SAFPLUS_3RDPARTY_DIR ?= $(SAFPLUS_SRC_DIR)/3rdparty
 
-SYSTEM_INC_DIR ?= /usr/include
-
 $(info SAFplus source: $(SAFPLUS_SRC_DIR))
 $(info SAFplus include: $(SAFPLUS_INC_DIR))
+$(info System include: $(SYSTEM_INC_DIR))
 
 COMPILER ?= g++
 LOCAL_COMPILER ?= g++
@@ -63,8 +66,8 @@ LINK_EXE    ?= $(COMPILER) -g -O0 -fPIC $(LINK_FLAGS) -o
 
 # Use these variables if you are building something to run on the local machine (a tool or something)
 LOCAL_COMPILE_CPP ?= $(LOCAL_COMPILER) -std=c++11 -Wno-deprecated-declarations  -g -O0 -fPIC -c $(CPP_FLAGS) -o
-LOCAL_LINK_SO     ?= $(LOCAL_COMPILER) $(LINK_FLAGS) -g -shared -o
-LOCAL_LINK_EXE    ?= $(LOCAL_COMPILER) -g -O0 -fPIC $(LINK_FLAGS) -o
+LOCAL_LINK_SO     ?= $(LOCAL_COMPILER) $(LOCAL_LINK_FLAGS) -g -shared -o
+LOCAL_LINK_EXE    ?= $(LOCAL_COMPILER) -g -O0 -fPIC $(LOCAL_LINK_FLAGS) -o
 LOCAL_TARGET_OS ?= $(shell uname -r)
 __TMP_TARGET_PLATFORM := $(shell $(COMPILER) -dumpmachine)
 LOCAL_TARGET_PLATFORM ?= $(__TMP_TARGET_PLATFORM)
@@ -159,7 +162,7 @@ GPERFTOOLS_LINK :=
 endif
 
 # Determine protobuf location
-PROTOBUF_LINK ?= -L/usr/lib -L/usr/lib/i386-linux-gnu $(shell PKG_CONFIG_PATH=$(PKG_CONFIG_PATH) pkg-config --libs protobuf) -lprotoc
+PROTOBUF_LINK ?= -L/usr/lib -L/usr/lib/$(TARGET_PLATFORM) $(shell PKG_CONFIG_PATH=$(PKG_CONFIG_PATH) pkg-config --libs protobuf) -lprotoc
 PROTOBUF_FLAGS ?= $(shell PKG_CONFIG_PATH=$(PKG_CONFIG_PATH) pkg-config --cflags protobuf)
 # $(info PROTOBUF_FLAGS is $(PROTOBUF_FLAGS) PROTOBUF_LINK is $(PROTOBUF_LINK))
 

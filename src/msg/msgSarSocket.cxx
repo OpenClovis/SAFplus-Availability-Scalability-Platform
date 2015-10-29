@@ -122,7 +122,7 @@ namespace SAFplus
             }
           else
             {
-              int chunkSize=0;
+              int chunkSize=0;  // How big this groups of fragments has gotten.
               nextFrag = msg->firstFragment;
               prevFrag = NULL;
               do 
@@ -148,6 +148,8 @@ namespace SAFplus
                           msg->lastFragment = prevFrag;
                           prevFrag->nextFragment = NULL;
                           nextFrag = frag;  // I need to recheck this frag in its new position as first in the message
+                          frag = split->firstFragment;
+                          if (frag == nextFrag) frag = NULL;  // I don't want to add frag->len twice if no header needed to be added
                         }
                       else  // Split the fragment
                         {
@@ -180,7 +182,7 @@ namespace SAFplus
                       chunkSize = 0;  // I can set the chunkSize to 0 here because it will be incremented by the frag length at the bottom of the loop                      
                   }
                 prevFrag = frag;
-                chunkSize += frag->len;                              
+                if (frag) chunkSize += frag->len;                              
                 } while(nextFrag);
             }
           setLastChunk(msg);              

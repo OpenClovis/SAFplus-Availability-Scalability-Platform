@@ -731,6 +731,7 @@ int main(int argc, char* argv[])
 
   /* Initialize mgt database  */
   MgtDatabase *db = MgtDatabase::getInstance();
+  logInfo(LogArea,"DB", "Opening database file [%s]", "safplusAmf");
   db->initializeDB("safplusAmf");
   cfg.read(db);
   initializeOperationalValues(cfg);

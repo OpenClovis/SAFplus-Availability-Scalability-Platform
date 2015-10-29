@@ -3,7 +3,7 @@ SAFPLUS_DBAL_PYLIB :=1
 include ../../mk/preface.mk
 
 CP=cp -f
-CPP_FLAGS +=-I/usr/include/python2.7
+CPP_FLAGS +=-I$(SYSTEM_INC_DIR) -I$(SYSTEM_INC_DIR)/python2.7
 
 # Specify the required libraries
 SAFPLUS_LIBS := clMgt clDbal

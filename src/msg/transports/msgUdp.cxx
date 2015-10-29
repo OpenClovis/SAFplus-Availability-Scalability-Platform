@@ -124,7 +124,11 @@ namespace SAFplus
      myaddr.sin_addr.s_addr = htonl(INADDR_ANY);  // TODO: bind to the interface specified in env var
      if (port == 0) // any port
        myaddr.sin_port = htons(0);
+#if 0 // multiple SAFplus instances per node
      else myaddr.sin_port = htons(port + SAFplusI::UdpTransportStartPort + (SAFplusI::UdpTransportNumPorts*node));
+#else
+     else myaddr.sin_port = htons(port + SAFplusI::UdpTransportStartPort);
+#endif
 
      if (bind(sock, (struct sockaddr *)&myaddr, sizeof(myaddr)) < 0) 
        {
@@ -203,7 +207,11 @@ namespace SAFplus
             }
           }
 
+#if 0 // multiple SAFplus instances per node -- but this makes debugging difficult since the ports are hard to calculate
         to[msgCount].sin_port=htons(msg->port + SAFplusI::UdpTransportStartPort + (SAFplusI::UdpTransportNumPorts*node));
+#else
+        to[msgCount].sin_port=htons(msg->port + SAFplusI::UdpTransportStartPort);
+#endif
 
         curvec->msg_hdr.msg_controllen = 0;
         curvec->msg_hdr.msg_control = NULL;
@@ -357,7 +365,11 @@ if(setsockopt(socket, SOL_SOCKET, SO_RCVTIMEO, &tv, sizeof(tv)) < 0)
               cur->node = ntohl(srcAddr->sin_addr.s_addr) & (((Udp*)transport)->nodeMask);
             }
 
+#if 0
           cur->port = ntohs(srcAddr->sin_port) - SAFplusI::UdpTransportStartPort - (SAFplusI::UdpTransportNumPorts*cur->node);
+#else
+          cur->port = ntohs(srcAddr->sin_port) - SAFplusI::UdpTransportStartPort;
+#endif
 
           MsgFragment* curFrag = cur->firstFragment;
           for (int fragIdx = 0; (fragIdx < msgs[msgIdx].msg_hdr.msg_iovlen) && msgLen; fragIdx++,curFrag=curFrag->nextFragment)

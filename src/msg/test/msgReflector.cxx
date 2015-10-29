@@ -37,7 +37,7 @@ int main(int argc, char* argv[])
   if (vm.count("loglevel")) SAFplus::logSeverity = logSeverityGet(vm["loglevel"].as<std::string>().c_str());
   if (vm.count("sar"))
     {
-      sar=true;
+      sar = vm["sar"].as<bool>();
     }
 
   MsgPool msgPool;
@@ -68,7 +68,7 @@ int main(int argc, char* argv[])
   clMsgInitialize();
   MsgTransportPlugin_1* xp = SAFplusI::defaultMsgPlugin;
   MsgTransportConfig& xCfg = xp->config;
-  logNotice("MSG","RFL","Message Reflector: Transport [%s] [%s] mode. Layers [%s], node [%u] maxPort [%u] maxMsgSize [%u]", xp->type, xp->clusterNodes ? "Cloud":"LAN", sar ? "SAR":"none", xCfg.nodeId, xCfg.maxPort, xCfg.maxMsgSize);
+  logNotice("MSG","RFL","Message Reflector: Transport [%s] [%s] mode. Layers [%s], node [%u] port [%u] UDP port [%u] maxPort [%u] maxMsgSize [%u]", xp->type, xp->clusterNodes ? "Cloud":"LAN", sar ? "SAR":"none", xCfg.nodeId, reflectorPort, reflectorPort + SAFplusI::UdpTransportStartPort,xCfg.maxPort, xCfg.maxMsgSize);
   if (xp)
     {
       Message* m;
