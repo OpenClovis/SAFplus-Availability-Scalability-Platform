@@ -50,10 +50,18 @@ namespace SAFplus
     }
   }
 #endif
-  DbalPlugin* clDbalObjCreate(void)
-  {    
-    //? This environment variable specifies which dbal plugin should be used.
-    const char* dbalFile = getenv("SAFPLUS_DB_PLUGIN");
+  DbalPlugin* clDbalObjCreate(const char* pluginFile)
+  {     
+    const char* dbalFile = NULL;
+    if (pluginFile && strlen(pluginFile)>0)
+    {
+      dbalFile = pluginFile;
+    }
+    else
+    {
+      //? This environment variable specifies which dbal plugin should be used.
+      dbalFile = getenv("SAFPLUS_DB_PLUGIN");
+    }
     if (!dbalFile)
     {
       dbalFile = SAFplusI::defaultDbalPluginFile;

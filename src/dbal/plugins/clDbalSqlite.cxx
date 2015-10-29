@@ -515,6 +515,7 @@ ClRcT SqlitePlugin::close()
     SAFplusHeapFree(pSQLiteHandle);
     pDBHandle=NULL;
     
+    logInfo(CL_LOG_AREA_UNSPECIFIED, CL_LOG_CONTEXT_UNSPECIFIED,"\nSqlite closed.");
     return (CL_OK);  
 }
 

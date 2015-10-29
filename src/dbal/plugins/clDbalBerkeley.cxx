@@ -477,7 +477,7 @@ ClRcT BerkeleyPlugin::close()
 
     //SAFplusHeapFree(pBerkeleyHandle);
     //pDBHandle = NULL;
-    
+    logInfo(CL_LOG_AREA_UNSPECIFIED, CL_LOG_CONTEXT_UNSPECIFIED,"\nBerkeley closed.");
     return (CL_OK);    
 
 err_out:    

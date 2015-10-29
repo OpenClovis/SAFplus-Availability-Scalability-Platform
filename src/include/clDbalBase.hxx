@@ -51,6 +51,15 @@ protected:
 
 DbalPlugin::~DbalPlugin() { }
 
+/*
+This function loads and creates a new dbal plugin object based on the pluginFile parameter.
+The value of pluginFile is the one of the dbal plugin shared libraries (libclSqliteDB.so, libclGDBM.so, libclBerkeleyDB.so or libclCkptDB.so).
+Therefore, user can decide which dbal plugin should be loaded and created on his own. 
+If this parameter is omitted or set as NULL, the dbal plugin will be determined by the environment variable SAFPLUS_DB_PLUGIN. If environment variable SAFPLUS_DB_PLUGIN is not set, the dbal plugin will be the default one. 
+ - Return value: DbalPlugin object pointer. User has to delete it when it's not used to avoid memory leak.
+*/
+extern DbalPlugin* clDbalObjCreate(const char* pluginFile=NULL);
+
 };
 /* specific database classes implement their own functionalities */
 /*
@@ -70,11 +79,6 @@ class CheckpointPlugin: public DbalPlugin
 {
 };
 */
-
-namespace SAFplus
-{
-  extern DbalPlugin* clDbalObjCreate(void);
-};
 
 namespace SAFplusI
 {

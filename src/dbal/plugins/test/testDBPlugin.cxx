@@ -12,11 +12,11 @@ int main()
   DbalPlugin* p = clDbalObjCreate();
   if (p)
   {     
-    ClRcT rc = p->open("/tmp/testDB2.db", "/tmp/testDB2.db", CL_DB_CREAT, 255, 5000);
+    ClRcT rc = p->open("/tmp/testDB.db", "/tmp/testDB.db", CL_DB_CREAT, 255, 5000);
     if (rc != CL_OK)
     {
       logError("DBAL","TEST", "open database fail");
-      return 0;
+      goto retfree;
     } 
     logNotice("DBAL","TEST", "open database OK");
 #if 1
@@ -26,7 +26,7 @@ int main()
     if (rc != CL_OK)
     {
       logError("DBAL","TEST","replacing record with key [%s] fail", key);
-      return 0;
+      goto retfree;
     }
     ClDBRecordT rec;
     ClUint32T recSz;
@@ -34,7 +34,7 @@ int main()
     if (rc != CL_OK)
     {
       logError("DBAL","TEST","getting record with key [%s] fail", key);
-      return 0;
+      goto retfree;
     }
     logInfo("DBAL","TEST","Got value [%s]; size [%u]", (char*)rec, recSz);
     p->freeRecord(rec);
@@ -42,7 +42,7 @@ int main()
     if (rc != CL_OK)
     {
       logError("DBAL","TEST","deleting record with key [%s] fail", key);
-      return 0;
+      goto retfree;
     }
     rc = p->getRecord((ClDBKeyT)key, strlen(key)+1,&rec, &recSz);
     if (rc != CL_OK)
@@ -53,7 +53,7 @@ int main()
     if (rc != CL_OK)
     {
       logError("DBAL","TEST","openTransaction fail [0x%x]", rc);
-      return 0;
+      goto retfree;
     }    
     char keyout[255];
     ClUint32T keySizeout;
@@ -65,26 +65,26 @@ int main()
     else
     {
       logError("DBAL","TEST","getFirstRecord got unexpected result");
-      return 0;
+      goto retfree;
     } 
     rc = p->beginTransaction();
     if (rc != CL_OK)
     {
       logError("DBAL","TEST","beginTransaction fail [0x%x]", rc);
-      return 0;
+      goto retfree;
     }
     logInfo("DBAL","TEST","beginTransaction ok");
     rc = p->replaceRecord((ClDBKeyT)key, strlen(key)+1, (ClDBRecordT)val, strlen(val)+1);
     if (rc != CL_OK)
     {
       logError("DBAL","TEST","replacing record with key [%s] fail", key);
-      return 0;
+      goto retfree;
     }
     rc = p->commitTransaction();
     if (rc != CL_OK)
     {
       logError("DBAL","TEST","commitTransaction fail [0x%x]", rc);
-      return 0;
+      goto retfree;
     }
     logInfo("DBAL","TEST","commitTransaction ok");    
     //ClDBRecordT rec;
@@ -93,7 +93,7 @@ int main()
     if (rc != CL_OK)
     {
       logError("DBAL","TEST","getting record with key [%s] fail", key);
-      return 0;
+      goto retfree;
     }
     logInfo("DBAL","TEST","Got value [%s]; size [%u]", (char*)rec, recSz);
     p->freeRecord(rec);
@@ -104,5 +104,11 @@ int main()
   {
     logError("DBAL","TEST", "load plugin fail");
   }
+
   return 1;
+
+retfree:
+
+  delete p;
+  return 0;
 }

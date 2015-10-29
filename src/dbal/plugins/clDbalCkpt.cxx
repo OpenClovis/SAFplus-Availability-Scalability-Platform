@@ -49,7 +49,6 @@ ClRcT CkptPlugin::open(ClDBFileT dbFile, ClDBNameT dbName, ClDBFlagT dbFlag, ClU
     ClRcT errorCode = CL_OK;
     
     ClUint32T rc = 0;
-    FILE* fp = NULL;
     
     NULL_CHECK(dbName);
     NULL_CHECK(dbFile);
