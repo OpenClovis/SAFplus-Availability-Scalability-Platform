@@ -17,6 +17,8 @@ PY_CLIENT_SRC := $(wildcard *.cxx)
 PY_CLIENT_OBJ := $(subst .cxx,.o,$(PY_CLIENT_SRC))
 PY_CLIENT_OBJ := $(addprefix $(OBJ_DIR)/,$(subst .cxx,.o,$(PY_CLIENT_SRC)))
 
+FAULT_ENUMS_OBJ := $(wildcard $(OBJ_DIR)/FaultEnums/*.o)
+
 all: $(LIB_DIR)/pySAFplus.so $(LIB_DIR)/amfctrl.py $(LIB_DIR)/safplus.py $(BIN_DIR)/cli.py $(LIB_DIR)/localaccess.py $(LIB_DIR)/textxmlterm.py
 
 $(LIB_DIR)/%.py: %.py
@@ -25,8 +27,8 @@ $(LIB_DIR)/%.py: %.py
 $(BIN_DIR)/%.py: %.py
 	cp $< $@
 
-$(SAFPLUS_TARGET)/lib/pySAFplus.so:  $(PY_CLIENT_OBJ)  $(SAFPLUS_DEP_LIBS)
-	$(LINK_SO) $@ $(PY_CLIENT_OBJ) $(PY_LIB) $(SAFPLUS_LINK_LIBS) -L$(INSTALL_DIR)/lib -lxml2 $(LINK_SO_LIBS)
+$(SAFPLUS_TARGET)/lib/pySAFplus.so:  $(PY_CLIENT_OBJ) $(SAFPLUS_DEP_LIBS)
+	$(LINK_SO) $@ $(PY_CLIENT_OBJ) $(PY_LIB) $(FAULT_ENUMS_OBJ) $(SAFPLUS_LINK_LIBS) -L$(INSTALL_DIR)/lib -lxml2 $(LINK_SO_LIBS)
 
 $(OBJ_DIR)/%.o: %.cxx Makefile $(LOG_SERVER_H)
 	$(COMPILE_CPP)  $@ $(PY_INC) $<
