@@ -350,6 +350,7 @@ if(setsockopt(socket, SOL_SOCKET, SO_RCVTIMEO, &tv, sizeof(tv)) < 0)
         int err = errno;
         ret->msgPool->free(ret);  // clean up this unused message.  TODO: save it for the next receive call
         if (errno == EAGAIN) return NULL;  // its ok just no messages received.  This is a "normal" error not an exception
+        if (errno == EINTR) return NULL;  // TODO: should I raise an interrupt exception here?
         throw Error(Error::SYSTEM_ERROR,errno, strerror(errno),__FILE__,__LINE__);
         }
       else

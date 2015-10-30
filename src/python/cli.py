@@ -1,4 +1,4 @@
-#!/usr/bin/python
+#!/usr/bin/env python
 import sys, os, os.path, time
 
 AVAILABLE_SERVICES = {'localaccess':None, 'netconfaccess':None}
