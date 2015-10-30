@@ -261,6 +261,8 @@ class DEBIAN:
         d = dict()
         d["Source"] = "{}".format(self.pkg_name)
         d["Package"] = "{}".format(self.pkg_name)
+        if len(machine_type.split("-"))>1:
+	    machine_type = machine_type.split("-")[0]
         if machine_type == "x86_64":
             d["Architecture"] = "amd64"
         else:
