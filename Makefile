@@ -1,6 +1,6 @@
 S7 := 1
 include ./src/mk/preface.mk
-include /etc/lsb-release
+-include /etc/lsb-release
 
 GIT_REV := $(shell git rev-parse --short=8 HEAD)
 
@@ -173,4 +173,4 @@ rpm_install:remove_target
 	$(call safplus_pkg_install,$(REQ_FILES))
 
 clean:
-	rm -rf $(TAR_NAME) $(BUILD) apt ../debbuild_safplus ../debbuild_safplus-src ../safplus_7.0.tar.gz
+	rm -rf $(TAR_NAME) $(BUILD) apt ../debbuild_safplus ../debbuild_safplus-src ../safplus_7.0.tar.gz ../rpmbuild_safplus ../rpmbuild_safplus-src
