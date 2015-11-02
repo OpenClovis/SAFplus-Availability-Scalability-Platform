@@ -26,6 +26,7 @@
 #include <boost/date_time/posix_time/posix_time.hpp>
 #include <clCommon.hxx>
 #include <clThreadApi.hxx>
+#include <boost/thread.hpp>
 #include <cltypes.h>
 #include <stdio.h>
 
@@ -35,38 +36,39 @@
 using namespace boost::intrusive;
 namespace SAFplus
 {
-    typedef struct leakyBucketWaterMark
+    typedef struct
     {
         long long lowWM;
         long long highWM;
         long lowWMDelay;
         long highWMDelay;
-    }leakyBucketWaterMarkT;
+    } LeakyBucketWaterMark;
 
-    class leakyBucket
+    class LeakyBucket
     {
       protected:
-        bool __leakyBucketFill(long long amt,bool block);
+        bool fill(long long amt,bool block);
+      boost::thread filler;
       public:
+        ~LeakyBucket();
+        LeakyBucket();
         SAFplus::Mutex mutex;
         SAFplus::ThreadCondition  cond;
         int     waiters;
-        long long     value; /*current limit*/
-        long long     volume; /*bucket size*/
-        long long     leakSize; /*how much to leak on timer fire*/
-        leakyBucketWaterMarkT waterMark; /*bucket marks for delay*/
+        int64_t     value; /*current limit*/
+        int64_t     volume; /*bucket size*/
+        int64_t     leakSize; /*how much to leak on timer fire*/
         bool isStopped;
         bool lowWMHit;
         bool highWMHit;
         long leakInterval;
-        bool leakyBucketCreateExtended(long long volume, long long leakSize, long leakInterval,leakyBucketWaterMarkT *waterMark);
-        bool leakyBucketCreate(long long volume, long long leakSize, long leakInterval);
+        LeakyBucketWaterMark waterMark; /*bucket marks for delay*/
         /* Introduces a delay as the bucket nears empty */
-        bool leakyBucketCreateSoft(long long volume, long long leakSize, long leakInterval,leakyBucketWaterMarkT *waterMark);
-        bool leakyBucketDestroy();
-        bool leakyBucketFill(long long amt);
-        bool leakyBucketTryFill(long long amt);
-        bool leakyBucketLeak();
+        bool start(long long volume, long long leakSize, long leakInterval,LeakyBucketWaterMark *waterMark=NULL);
+        void stop();
+        void fill(long long amt);  //? If the leaky bucket is stopped while a thread is waiting for a fill, SAFplus::Error(SAFPLUS_ERROR,SERVICE_STOPPED...) will be raised.
+        bool tryFill(long long amt);
+        void leak();
     };
 }
 

@@ -31,12 +31,12 @@ SAFPLUS_LIBS := clFault clUtils clOsal clLog clTimer
 SAFPLUS_DEP_LIBS  := $(addsuffix .so,$(addprefix $(LIB_DIR)/lib,$(SAFPLUS_LIBS)))
 SAFPLUS_LINK_LIBS := -L$(LIB_DIR) $(addprefix -l,$(SAFPLUS_LIBS))
 
-Release all: $(LIB_DIR)/libclMsg.so $(BIN_DIR)/node 
+Release all: $(LIB_DIR)/libclMsg.so $(BIN_DIR)/safplus_cloud
 
 #$(BIN_DIR)/node: $(NODE_CMD_OBJ) 
 #	$(LINK) $@ $(NODE_CMD_OBJ)
 
-$(BIN_DIR)/node: $(NODE_CMD_OBJ) $(SAFPLUS_DEP_LIBS)
+$(BIN_DIR)/safplus_cloud: $(NODE_CMD_OBJ) $(SAFPLUS_DEP_LIBS)
 	$(LINK_EXE) $@ $(NODE_CMD_OBJ) -lclMsg $(SAFPLUS_LINK_LIBS) -lboost_program_options $(LINK_SO_LIBS)
 
 $(LIB_DIR)/libclMsg.so: $(CLIENT_OBJ) $(CLIENT_IOC_OBJ) $(SAFPLUS_DEP_LIBS)

@@ -43,7 +43,7 @@ public:
 
 bool testSendRecv(MsgTransportPlugin_1* xp)
 {
-  const char* strMsg = "This is a test of message sending";
+  const char* strMsg = "testSendRecv: This is a test of message sending";
   MsgSocket* a = xp->createSocket(3);
   MsgSocket* b = xp->createSocket(4);
   Handle bHdl = b->handle();
@@ -138,7 +138,7 @@ bool testSendRecv(MsgTransportPlugin_1* xp)
 
 bool testSendRecvSize(MsgTransportPlugin_1* xp)
 {
-  const char* strMsg = "This is a test of message sending";
+  const char* strMsg = "testSendRecvSize: This is a test of message sending";
   //MsgSocket* a = xp->createSocket(1);
   //MsgSocket* b = xp->createSocket(2);
   ScopedMsgSocket a(xp,1);
@@ -208,10 +208,10 @@ bool testSendRecvShaping(MsgTransportPlugin_1* xp)
   int maxTry = 1;
   Message* m;
   unsigned long seed = 0;
-  for (int size = 1; size <= xp->config.maxMsgSize; size+=512)
+  for (int size = 1; size <= xp->config.maxMsgSize; size+=4512)
   {
     seed++;
-    printf("%d ", size);
+    printf("s%d ", size);
     fflush(stdout);
     m = a.sock->msgPool->allocMsg();
     clTest(("message allocated"), m != NULL,(" "));
@@ -230,7 +230,7 @@ bool testSendRecvShaping(MsgTransportPlugin_1* xp)
     int tries = 0;
     while (tries<maxTry && !m)
     {
-      boost::this_thread::sleep(boost::posix_time::milliseconds(50));
+      boost::this_thread::sleep(boost::posix_time::milliseconds(20));
       m = b.receive(1,0);
       tries++;
     }
@@ -253,7 +253,7 @@ bool testSendRecvShaping(MsgTransportPlugin_1* xp)
 }
 bool testSendRecvMultiple(MsgTransportPlugin_1* xp)
 {
-  const char* strMsg = "This is a test of message sending";
+  const char* strMsg = "This is a test of message sending multiple";
   MsgSocket* a = xp->createSocket(3);
   MsgSocket* b = xp->createSocket(4);
 
@@ -341,7 +341,7 @@ bool testSendRecvMultiple(MsgTransportPlugin_1* xp)
 
     }
   }
-
+  printf("\nchunks done\n");
   return true;
 }
 

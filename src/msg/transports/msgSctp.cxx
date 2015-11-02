@@ -103,12 +103,15 @@ namespace SAFplus
     node = xp->config.nodeId;
     nagleEnabled = false; // Nagle algorithm is disabled by default
 
+    cap.capabilities = (SAFplus::MsgSocketCapabilities::Capabilities) xp->config.capabilities;
+    cap.maxMsgSize = xp->config.maxMsgSize;
+    cap.maxMsgAtOnce = xp->config.maxMsgAtOnce;
+
     if ((sock = socket(AF_INET, SOCK_SEQPACKET, IPPROTO_SCTP)) < 0) 
     {
       int err = errno;
       throw Error(Error::SYSTEM_ERROR,errno, strerror(errno),__FILE__,__LINE__);
     }
-
 
     struct sctp_event_subscribe event;  
     struct sctp_paddrparams heartbeat;    

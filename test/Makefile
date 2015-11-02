@@ -7,6 +7,7 @@ all: $(TEST_DIR)/testLog
 	echo Nothing to do
 
 test:
+	@rm -f /var/log/testresults.log
 	$(TAE_DIR)/tae -S safplusTest1Node.xml
 
 testone:

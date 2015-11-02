@@ -31,9 +31,9 @@ using namespace SAFplusI;
 
 #define CL_LEAKY_BUCKET_RC(rc) CL_RC(CL_CID_LEAKY_BUCKET, rc)
 
-static bool leakyBucketIntervalCallback(void *arg)
+static void leakyBucketIntervalCallback(void *arg)
 {
-    leakyBucket *bucket = (leakyBucket *) arg;
+    LeakyBucket *bucket = (LeakyBucket *) arg;
     bucket->mutex.lock();
     bucket->value -= bucket->leakSize;
     if(bucket->value < 0) bucket->value = 0;
@@ -44,23 +44,36 @@ static bool leakyBucketIntervalCallback(void *arg)
     bucket->lowWMHit = false;
     bucket->highWMHit = false;
     bucket->mutex.unlock();
-    return true;
 }
 
 static void timerLeakThreadFunc(void* arg)
 {
-    leakyBucket* tempBucket = (leakyBucket*)arg;
-    logTrace("THRPOOL","TIMERFUNC", "timerThreadFunc enter");
-    while(!tempBucket->isStopped)
+    LeakyBucket* bucket = (LeakyBucket*)arg;
+    logTrace("LKY","BKT", "Leaky bucket leak thread has started");
+    while(!bucket->isStopped)
     {
-        boost::this_thread::sleep(boost::posix_time::milliseconds(tempBucket->leakInterval));
-        leakyBucketIntervalCallback(arg);
+        boost::this_thread::sleep(boost::posix_time::milliseconds(bucket->leakInterval));
+        bucket->leak();
     }
 }
 
-bool leakyBucket::leakyBucketCreateExtended(long long volume, long long leakSize, long leakInterval,leakyBucketWaterMarkT *waterMark)
+LeakyBucket::LeakyBucket()
+{
+  waiters=0;
+  value = 0;
+  volume = 0;
+  leakSize = 0;
+  isStopped = true;
+  lowWMHit = false;
+  highWMHit = false;
+  leakInterval = 0;
+}
+
+bool LeakyBucket::start(long long volume, long long leakSize, long leakInterval,LeakyBucketWaterMark *waterMarkp)
 {
     bool rc = true;
+    mutex.lock();  // Typically SAFplus expects start and stop to be single threaded and therefore uses non-reentrant code, but we have the mutex so might as well use it.
+    assert(isStopped);
 
     if(!volume || !leakSize || !leakInterval)
         return false;
@@ -70,9 +83,10 @@ bool leakyBucket::leakyBucketCreateExtended(long long volume, long long leakSize
     this->highWMHit = false;
     this->leakInterval=leakInterval;
     this->value=0;
-    if(waterMark)
+    if(waterMarkp)
     {
-        memcpy(&this->waterMark, waterMark, sizeof(this->waterMark));
+      waterMark = *waterMarkp;
+      //memcpy(&this->waterMark, waterMark, sizeof(this->waterMark));
         if(this->waterMark.lowWM > this->waterMark.highWM)
         {
             this->waterMark.highWM = this->waterMark.lowWM;
@@ -90,45 +104,54 @@ bool leakyBucket::leakyBucketCreateExtended(long long volume, long long leakSize
             this->waterMark.highWM = 0;
         }
     }
-    boost::thread(timerLeakThreadFunc,this);
-    return true;
-}
-
-bool leakyBucket::leakyBucketCreate(long long volume, long long leakSize, long leakInterval)
-{
-    return leakyBucketCreateExtended(volume, leakSize, leakInterval, NULL);
-}
-
-bool leakyBucket::leakyBucketCreateSoft(long long volume, long long leakSize, long leakInterval,leakyBucketWaterMarkT *waterMark)
-{
-    return leakyBucketCreateExtended(volume, leakSize, leakInterval, waterMark);
-}
-
-bool leakyBucket::leakyBucketDestroy()
-{
-    if(!this) return false;
-    mutex.lock();
-    if(this->waiters > 0)
-    {
-        mutex.unlock();
-        return false;
-    }
-    this->value = 0;
-    isStopped = true;
-    /*delete the bucket timer*/
-    //clTimerDelete(&bucket->timer);
-    //clOsalMutexDestroy(&bucket->mutex);
-    //clOsalCondDestroy(&bucket->cond);
-    //clHeapFree(bucket);
+    isStopped = false;
+    filler = boost::thread(timerLeakThreadFunc,this);
     mutex.unlock();
     return true;
 }
 
-bool leakyBucket::__leakyBucketFill(long long amt,bool block)
+
+LeakyBucket::~LeakyBucket()
 {
-    ClRcT rc = true;
+  stop();
+}
+
+void LeakyBucket::stop()
+{
+  bool stopping = false;
+  mutex.lock();
+  if (!isStopped)
+    {
+      stopping = true;
+      while (this->waiters > 0)
+        {
+          cond.notify_all();
+          mutex.unlock();
+          boost::this_thread::sleep(boost::posix_time::milliseconds(50));  // Wake up waiting threads because we are quitting!!!
+          mutex.lock();
+        }
+      this->value = 0;
+      isStopped = true;
+      /*delete the bucket timer*/
+      //clTimerDelete(&bucket->timer);
+      //clOsalMutexDestroy(&bucket->mutex);
+      //clOsalCondDestroy(&bucket->cond);
+      //clHeapFree(bucket);
+    }
+  mutex.unlock();
+  if (stopping) filler.join();  // wait for the filler thread to terminate
+}
+
+bool LeakyBucket::fill(long long amt,bool block)
+{
+    bool rc = true;
     long delay = 0;
     mutex.lock();
+    if (isStopped)
+      {
+        mutex.unlock();
+        throw SAFplus::Error(Error::ErrorFamily::SAFPLUS_ERROR, Error::SERVICE_STOPPED,"Leaky bucket is stopped", __FILE__, __LINE__);
+      }
     amt = MIN(this->volume, amt);  /* If the caller tries to put in more than the bucket will ever hold it would block forever so just reduce the value to fill the bucket fully */
     /* Check for soft watermark limits. */
     if(!this->highWMHit && this->waterMark.highWM && (this->value + amt > this->waterMark.highWM))
@@ -160,8 +183,13 @@ bool leakyBucket::__leakyBucketFill(long long amt,bool block)
         ++waiters; /* Time for me to wait until the bucket is emptied */
         do
         {
-            //clOsalCondWait(&bucket->cond, &bucket->mutex, delay);
-            cond.timed_wait(mutex,delay);
+          cond.timed_wait(mutex,delay);
+          if (isStopped)
+            {
+              --waiters;
+              mutex.unlock();
+              throw SAFplus::Error(Error::ErrorFamily::SAFPLUS_ERROR, Error::SERVICE_STOPPED,"Leaky bucket has been stopped", __FILE__, __LINE__);
+            }
         } while(value + amt > volume);
         --waiters;
     }
@@ -169,17 +197,29 @@ bool leakyBucket::__leakyBucketFill(long long amt,bool block)
     mutex.unlock();
     return rc;
 }
-bool leakyBucket::leakyBucketFill(long long amt)
+
+void LeakyBucket::fill(long long amt)
 {
-    return __leakyBucketFill(amt, true);
+    fill(amt, true);
 }
-bool leakyBucket::leakyBucketTryFill(long long amt)
+
+bool LeakyBucket::tryFill(long long amt)
 {
-    return __leakyBucketFill(amt,false);
+    return fill(amt,false);
 }
-bool leakyBucket::leakyBucketLeak()
+
+void LeakyBucket::leak()
 {
-    return leakyBucketIntervalCallback(this);
+    mutex.lock();
+    value -= leakSize;
+    if(value < 0) value = 0;
+    if(waiters > 0)
+    {
+        cond.notify_all();
+    }
+    lowWMHit = false;
+    highWMHit = false;
+    mutex.unlock();
 }
 
 
