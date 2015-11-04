@@ -27,7 +27,7 @@ namespace SAFplus
 {
 
 SAFplus::LogSeverity testLogLevel = LOG_SEV_INFO;  /* 7 */
-int testOn                    =       1;
+  //int testOn                    =       1;
 int testPrintIndent           =       0;
 TestVerbosity testVerbosity = (TestVerbosity) (TEST_PRINT_ALL & (~TEST_PRINT_TEST_OK));
 
