@@ -37,14 +37,16 @@ LINK_SO_LIBS += -lboost_thread
 
 Release all: $(PLUGIN_DIR)/clMsgUdp.so $(SCTP_TARGET) $(PLUGIN_DIR)/clMsgTcp.so
 
+# Note, I have to link with libclMsg because base class functions are implemented in there.  TODO: move these into a separate .o that can be directly linked so that the message transport plugins are completely standalone
+
 $(PLUGIN_DIR)/clMsgUdp.so: $(OBJ_DIR)/msgUdp.o $(OBJ_DIR)/clPluginHelper.o
 	$(LINK_SO) $@ $^ $(SAFPLUS_LINK_LIBS) $(LINK_SO_LIBS)
 
 $(PLUGIN_DIR)/clMsgSctp.so: $(OBJ_DIR)/msgSctp.o $(OBJ_DIR)/clPluginHelper.o
-	$(LINK_SO) $@ $^ $(LINK_SO_LIBS)
+	$(LINK_SO) $@ $^ $(SAFPLUS_LINK_LIBS) $(LINK_SO_LIBS)
 
 $(PLUGIN_DIR)/clMsgTcp.so: $(OBJ_DIR)/msgTcp.o $(OBJ_DIR)/clPluginHelper.o
-	$(LINK_SO) $@ $^ $(LINK_SO_LIBS)
+	$(LINK_SO) $@ $^ $(SAFPLUS_LINK_LIBS) $(LINK_SO_LIBS)
 
 $(OBJ_DIR)/%.o: %.cxx Makefile $(CLIENT_H)
 	$(COMPILE_CPP) $@ $<

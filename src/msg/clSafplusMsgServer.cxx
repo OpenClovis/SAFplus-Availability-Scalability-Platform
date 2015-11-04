@@ -55,6 +55,7 @@ namespace SAFplus
         MsgHandler *replyHandler = new MsgReplyHandler();
         this->RegisterHandler(SAFplusI::CL_IOC_SAF_MSG_REPLY_PROTO, replyHandler, &msgReply);
         SAFplus::iocPort = port; // Set this global to be used as a unique identifier for this component across the node.  There can be many MsgServers per component but only one SafplusMsgServer.
+        assert(SAFplus::faultAvailable());  // Fault must be initialized before the message server so we can learn if nodes die
         fault = new Fault();
         fault->init(handle);
       }

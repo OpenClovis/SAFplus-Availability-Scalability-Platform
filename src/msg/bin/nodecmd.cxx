@@ -10,7 +10,11 @@ using namespace SAFplus;
 
 int main(int argc, char* argv[])
 {
-  clMsgInitialize();
+  // Explicitly create the shared memory segment if it does not exist
+  SAFplus::defaultClusterNodes = new ClusterNodes(true);
+  // I need the transport initialized so I can transform a string address into the transport's underlying address
+  safplusInitialize( SAFplus::LibDep::IOC);
+
   //SAFplus::logCompName = "RFL";
   //SAFplus::logSeverity = SAFplus::LOG_SEV_INFO;
   //logEchoToFd = 1; // stdout
@@ -88,7 +92,7 @@ int main(int argc, char* argv[])
     {
     if (vm.count("list")) 
       {
-    ClusterNodes cn;
+     ClusterNodes cn;
     uint id = 1;
     if (vm.count("id")) { id = vm["id"].as<uint>(); }  
     int showAmt = vm["list"].as<uint>();
@@ -105,6 +109,16 @@ int main(int argc, char* argv[])
     {
     printf("Exception '%s': possibly segment is not created\n",e.what());
     }
+  catch(SAFplus::Error &e)
+    {
+      if (e.clError == SAFplus::Error::DOES_NOT_EXIST)
+        {
+          // section does not exist so nothing to list
+        }
+      else throw;
+    }
     //SAFplus::logSeverity = logSeverityGet(vm["loglevel"].as<std::string>().c_str());
-  printf("done\n");
+  //printf("done\n");
+
+  return 0;
   }

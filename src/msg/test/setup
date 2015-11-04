@@ -17,3 +17,5 @@ export SAFPLUS_BACKPLANE_INTERFACE=eth0
 `pwd`/bin/safplus_cloud --add `ifconfig eth0 | awk '/inet addr/{print substr($2,6)}'`
 
 `pwd`/bin/safplus_cloud --list
+
+echo "msg setup complete"

@@ -64,10 +64,12 @@ int main(int argc, char* argv[])
     boost::program_options::variables_map vm = parseOptions(argc,argv);
     if (vm.count("help")) return 0;  // Help already printed by parseOptions
 
-    clMsgInitialize();
+    SafplusInitializationConfiguration sic;
+    sic.iocPort     = SERVER_MSG_PORT;
+    sic.msgQueueLen = 1000;
+    sic.msgThreads  = 30;
+    safplusInitialize( SAFplus::LibDep::MSG, sic);
 
-    //Msg server listening
-    SAFplus::SafplusMsgServer safplusMsgServer(SERVER_MSG_PORT, 1000, 30);
 
     // Handle RPC
     SAFplus::Rpc::RpcChannel *channel = new SAFplus::Rpc::RpcChannel(&safplusMsgServer, new SAFplus::Rpc::msgReflection::msgReflectionImpl());

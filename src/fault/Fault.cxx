@@ -158,6 +158,8 @@ namespace SAFplus
     int faultInitCount=0;
     FaultSharedMem fsm;
 
+    bool faultAvailable() { return (faultInitCount>0); }
+
     void faultInitialize(void)
     {
       faultInitCount++;

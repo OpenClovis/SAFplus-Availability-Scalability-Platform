@@ -13,6 +13,7 @@ export CL_LOG_CODE_LOCATION_ENABLE=1
 
 # To use UDP broadcasts on the loopback interface I need to enable a broadcast address
 export SAFPLUS_BACKPLANE_INTERFACE=eth0
+export SAFPLUS_MSG_TRANSPORT=clMsgSctp.so
 
 # copy app binaries to the names configured in the configuration xml file
 /bin/cp test/exampleSafApp test/test0
@@ -20,4 +21,7 @@ export SAFPLUS_BACKPLANE_INTERFACE=eth0
 
 # python ./bin/dbalpy.py -x ./test/safplusAmf.xml ./bin/safplusAmf
 
-./bin/node --add 127.0.0.1
+./bin/safplus_cloud --add `ifconfig $SAFPLUS_BACKPLANE_INTERFACE | awk '/inet addr/{print substr($2,6)}'`
+./bin/safplus_cloud --list
+
+echo "AMF test setup complete"
