@@ -7,6 +7,7 @@ if __name__ != '__main__':  # called from inside the source tree
   sys.path.append("../../python")  # Point to the python code, in source control
 
 import safplus as sp
+import clTest
 import amfctrl
 
 modelXML = "SAFplusAmf1Node1SG1Comp.xml"
@@ -47,7 +48,14 @@ def startupAmf(tgtDir,outfile=None,infile="/dev/null"):
     args = (cwd + "/safplus_amf",)
     print "Environment is: ", os.environ
     amf = subprocess.Popen(args,bufferingSize,executable=None, stdin=infile, stdout=outfile, stderr=outfile, preexec_fn=None, close_fds=True, shell=False, cwd=cwd, env=None, universal_newlines=False, startupinfo=None, creationflags=0)
-    time.sleep(40)  # TODO: without a sleep here, process is hanging waiting for mgt checkpoint gate.  I think that this process is being chosen as active replica (which should be ok) but for some reason is not working
+    print "SAFplus AMF is running pid [%d]" % amf.pid
+    time.sleep(5)
+    if amf.poll() != None:  # If some kind of config error then AMF will quit early
+      time.sleep(20)
+      pdb.set_trace()
+      raise TestFailed("AMF quit unexpectedly")
+      
+    time.sleep(10)  # TODO: without a sleep here, process is hanging waiting for mgt checkpoint gate.  I think that this process is being chosen as active replica (which should be ok) but for some reason is not working
 
 def connectToAmf():
   global SAFplusInitialized
@@ -92,6 +100,7 @@ def waitForSiRecovery(si,maxTime=20):
       print now() + ": New active %s, new standby %s" % (active, standby)
     else:
       raise TestFailed(now() + ": Failover did not work: active %s, standby %s waited %d seconds" % (active,standby,maxTime))
+    clTest.testSuccess("work assigned")
     return (active,standby)
   
 
@@ -107,23 +116,27 @@ def main(tgtDir):
       print "AMF is already running as process [%d]" % int(amfpid.strip())
     except subprocess.CalledProcessError:
       startupAmf(tgtDir,"amfOutput.txt")  
-
+      time.sleep(3) # Give the AMF time to initialize shared memory segments
     connectToAmf()
     print "AMF started"
     amfctrl.displaySgStatus("sg0")
 
     # mgtHammer()
 
+    clTest.testCase("AMF-FAL-OVR.TC001: Component fail over",AmfFailComp)
+    clTest.finalize();
+
+def AmfFailComp():
     # Make sure sg is fully up
     (active, standby) = waitForSiRecovery("si",60)
     if not active:
-      raise TestFailed(now() + ": No active was chosen")
+      raise clTest.Malfunction(now() + "Initial conditions incorrect: No active was chosen")
     if not standby:
-      raise TestFailed(now() + ": No standby was chosen")
+      raise clTest.Malfunction(now() + "Initial conditions incorrect: No standby was chosen")
     count = 0
     for i in range(1,2):
       print now() +":" + str(count) + " Killing Active Component"
-      for i in range(1,10):
+      for i in range(1,2):
         # grab a random process from the active list and kill it.
         signalRandomCompInSi("si","active")
         # wait for AMF to react
@@ -132,7 +145,7 @@ def main(tgtDir):
         time.sleep(5)
         count += 1
       print now() + ":" + str(count) + " Killing Standby Component"
-      for i in range(1,10):
+      for i in range(1,2):
         # grab a random process from the active list and kill it.
         signalRandomCompInSi("si","standby")
         # wait for AMF to react

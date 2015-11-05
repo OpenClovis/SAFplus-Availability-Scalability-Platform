@@ -17,7 +17,7 @@ PY_CLIENT_SRC := $(wildcard *.cxx)
 PY_CLIENT_OBJ := $(subst .cxx,.o,$(PY_CLIENT_SRC))
 PY_CLIENT_OBJ := $(addprefix $(OBJ_DIR)/,$(subst .cxx,.o,$(PY_CLIENT_SRC)))
 
-all: $(LIB_DIR)/pySAFplus.so $(LIB_DIR)/amfctrl.py $(LIB_DIR)/safplus.py $(BIN_DIR)/safplus_cli $(LIB_DIR)/localaccess.py $(LIB_DIR)/textxmlterm.py
+all: $(LIB_DIR)/pySAFplus.so $(LIB_DIR)/amfctrl.py $(LIB_DIR)/clTest.py $(LIB_DIR)/safplus.py $(BIN_DIR)/safplus_cli $(LIB_DIR)/localaccess.py $(LIB_DIR)/textxmlterm.py
 
 $(LIB_DIR)/%.py: %.py
 	cp $< $@
