@@ -106,6 +106,7 @@ def amf_watchdog_loop():
                     safe_remove(reboot_file)
                     if getenv("ASP_NODE_REBOOT_DISABLE", 0) != 0:
                         logging.debug('SAFplus watchdog would normally reboot %s, but ASP_NODE_REBOOT_DISABLE is set' % node_name)
+                        os.system("rm -f /dev/shm/CL_*")
                         asp.zap_asp()
                         sys.exit(1)
                     else:
@@ -120,6 +121,7 @@ def amf_watchdog_loop():
                                   'was called on it and ASP_NODE_REBOOT_DISABLE '
                                   'environment variable is set for it.'
                                   % node_name)
+                    os.system("rm -f /dev/shm/CL_*")
                     asp.zap_asp()
                     sys.exit(1)
                 else:
