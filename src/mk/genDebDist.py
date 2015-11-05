@@ -19,7 +19,7 @@ def main(fil,prod,dist):
   f = open(fil,"w")
 
   gk = inp("Enter GPG key: ")
-  gk = '"' + gk + '"'
+  # gk = '"' + gk + '"'
 
   s = distTemplate.safe_substitute(product=prod,distro=dist,gpgkey=gk)
   f.write(s)

@@ -173,4 +173,4 @@ rpm_install:remove_target
 	$(call safplus_pkg_install,$(REQ_FILES))
 
 clean:
-	rm -rf $(TAR_NAME) $(BUILD)
+	rm -rf $(TAR_NAME) $(BUILD) apt ../debbuild_safplus ../debbuild_safplus-src ../safplus_7.0.tar.gz
