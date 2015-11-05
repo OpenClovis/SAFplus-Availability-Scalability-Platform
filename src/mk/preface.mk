@@ -44,8 +44,8 @@ else
 SYSTEM_INC_DIR ?= /usr/include
 endif
 
-
 SAFPLUS_SRC_DIR ?= $(patsubst %/,%,$(dir $(realpath $(SAFPLUS_MAKE_DIR))))
+SAFPLUS_TOP_DIR ?= $(patsubst %/,%,$(dir $(realpath $(SAFPLUS_SRC_DIR))))
 SAFPLUS_INC_DIR ?= $(SAFPLUS_SRC_DIR)/include
 SAFPLUS_3RDPARTY_DIR ?= $(SAFPLUS_SRC_DIR)/3rdparty
 

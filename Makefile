@@ -1,9 +1,12 @@
 S7 := 1
 include ./src/mk/preface.mk
+include /etc/lsb-release
+
+GIT_REV := $(shell git rev-parse --short=8 HEAD)
 
 export PKG_NAME=safplus
 export PKG_VER ?=7.0
-export PKG_REL ?=1
+export PKG_REL ?=$(GIT_REV)
 TOP_DIR := $(CURDIR)
 TAR_NAME := $(dir $(TOP_DIR))$(PKG_NAME)_$(PKG_VER).tar.gz
 BUILD := $(TOP_DIR)/build
@@ -16,7 +19,7 @@ all:
 
 prepare:
 	echo  "This target prepares your environment for package generation.  You only need to run this once (as root)"
-	apt-get install dh-make
+	apt-get install dh-make reprepro
 
 archive: $(TAR_NAME)
 
@@ -156,6 +159,13 @@ deb_clean:remove_target
 
 deb_build:remove_target
 	echo "Not required"
+
+apt/debian/conf/distributions:
+	mkdir -p apt/debian/conf
+	python src/mk/genDebDist.py apt/debian/conf/distributions safplus $(DISTRIB_CODENAME)
+
+deb_upload: apt/debian/conf/distributions
+	(cd apt/debian; reprepro -v includedeb $(DISTRIB_CODENAME) $(SAFPLUS_TOP_DIR)/build/*.deb)
 
 rpm_install:remove_target
 	$(eval REQ_FILES:=$(wildcard $(PWD)/*/))
