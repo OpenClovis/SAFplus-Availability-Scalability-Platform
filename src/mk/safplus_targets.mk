@@ -1,4 +1,9 @@
 
+# If we don't want to spawn off any submakes then set this variable.  This is needed when
+# we are doing multi-threaded builds because we don't want multiple submakes attempting to build the same subdirectory
+ifndef NO_SUB_BUILD  
+$(info sub-building is enabled)
+
 ifndef SAFPLUS_LOG_LIB
 $(LIB_DIR)/libclLog.so:
 	$(MAKE) -C $(SAFPLUS_SRC_DIR)/log
@@ -14,10 +19,11 @@ $(LIB_DIR)/libclUtils.so: $(wildcard $(SAFPLUS_SRC_DIR)/utils/*.cxx) $(wildcard 
 	$(MAKE) -C $(SAFPLUS_SRC_DIR)/utils
 endif
 
-$(INSTALL_DIR)/lib/libxml2.so:
-	if [ $(DISTRIBUTION_LIB) -eq 0 ]; then \
-            $(MAKE) -C $(SAFPLUS_SRC_DIR)/3rdparty/base; \
-	fi
+# We expect this to be installed by default -- 3rd party is just in case this does not work for you
+#$(INSTALL_DIR)/lib/libxml2.so:
+#	if [ $(DISTRIBUTION_LIB) -eq 0 ]; then \
+#            $(MAKE) -C $(SAFPLUS_SRC_DIR)/3rdparty/base; \
+#	fi
 
 #ifndef SAFPLUS_IOC_LIB
 #$(LIB_DIR)/libclIoc.so $(LIB_DIR)/libclTIPC.so  $(LIB_DIR)/libclUDP.so:
@@ -122,16 +128,11 @@ endif
 $(LIB_DIR)/libezxml.so:
 	$(MAKE) -C $(SAFPLUS_SRC_DIR)/3rdparty/ezxml/ezxml-0.8.6/
 
-# ordered by dependency
-SAFplusSOs := $(LIB_DIR)/libclUtils.so $(LIB_DIR)/libclTimer.so $(LIB_DIR)/libclLog.so $(LIB_DIR)/libclOsal.so  $(LIB_DIR)/libclCkpt.so $(LIB_DIR)/libclMsg.so $(LIB_DIR)/libclRpc.so $(LIB_DIR)/libclName.so $(LIB_DIR)/libclGroup.so $(LIB_DIR)/libclMgt.so $(LIB_DIR)/libclFault.so $(LIB_DIR)/libclDbal.so $(LIB_DIR)/libclAmf.so $(LIB_DIR)/pyDbal.so
-
 ifndef SAFPLUS_MSG_PLUGIN
 # .PHONY: $(LIB_DIR)/clMsgUdp.so
 $(LIB_DIR)/clMsgUdp.so: $(wildcard $(SAFPLUS_SRC_DIR)/msg/transports/*.cxx)
 	$(MAKE) -C $(SAFPLUS_SRC_DIR)/msg/transports
 endif
-
-SAFplusMsgTransports := $(LIB_DIR)/clMsgUdp.so
 
 ifndef SAFPLUS_MSG_TEST
 $(TEST_DIR)/testTransport $(TEST_DIR)/testMsgPerf $(TEST_DIR)/msgReflector:
@@ -189,7 +190,15 @@ $(BIN_DIR)/safplus_amf $(PLUGIN_DIR)/customAmfPolicy.so $(PLUGIN_DIR)/nPlusmAmfP
 	$(MAKE) -C $(SAFPLUS_SRC_DIR)/amf/server
 endif
 
+endif
+
 #SAFplusTests := $(TEST_DIR)/testLog $(TEST_DIR)/testmgt   $(TEST_DIR)/TestClient $(TEST_DIR)/TestServer $(TEST_DIR)/TestCombine $(TEST_DIR)/testCkpt $(TEST_DIR)/testGroup $(TEST_DIR)/exampleSafApp $(TEST_DIR)/testTransport $(TEST_DIR)/testMsgPerf
+
+SAFplusMsgTransports := $(LIB_DIR)/clMsgUdp.so
+
+# ordered by dependency
+SAFplusSOs := $(LIB_DIR)/libclUtils.so $(LIB_DIR)/libclTimer.so $(LIB_DIR)/libclLog.so $(LIB_DIR)/libclOsal.so  $(LIB_DIR)/libclCkpt.so $(LIB_DIR)/libclMsg.so $(LIB_DIR)/libclRpc.so $(LIB_DIR)/libclName.so $(LIB_DIR)/libclGroup.so $(LIB_DIR)/libclMgt.so $(LIB_DIR)/libclFault.so $(LIB_DIR)/libclDbal.so $(LIB_DIR)/libclAmf.so $(LIB_DIR)/pyDbal.so
+
 
 SAFplusTests := $(TEST_DIR)/testLog $(TEST_DIR)/testmgt   $(TEST_DIR)/testCkpt $(TEST_DIR)/testGroup $(TEST_DIR)/exampleSafApp $(TEST_DIR)/testTransport $(TEST_DIR)/testMsgPerf
 

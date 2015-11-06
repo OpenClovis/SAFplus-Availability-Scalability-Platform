@@ -44,8 +44,11 @@ namespace SAFplus
 {
   typedef boost::unordered_map<SAFplus::FaultPolicy,ClPluginHandle*> FaultPolicyMap;
 
-  int faultInitCount=0;
-  FaultSharedMem fsm;
+  	int faultInitCount=0;
+  	FaultSharedMem fsm;
+
+    bool faultAvailable() { return (faultInitCount>0); }
+
     void faultInitialize(void)
     {
       faultInitCount++;

@@ -124,7 +124,11 @@ namespace SAFplus
      myaddr.sin_addr.s_addr = htonl(INADDR_ANY);  // TODO: bind to the interface specified in env var
      if (port == 0) // any port
        myaddr.sin_port = htons(0);
+#if 0 // multiple SAFplus instances per node
      else myaddr.sin_port = htons(port + SAFplusI::UdpTransportStartPort + (SAFplusI::UdpTransportNumPorts*node));
+#else
+     else myaddr.sin_port = htons(port + SAFplusI::UdpTransportStartPort);
+#endif
 
      if (bind(sock, (struct sockaddr *)&myaddr, sizeof(myaddr)) < 0) 
        {
@@ -203,7 +207,11 @@ namespace SAFplus
             }
           }
 
+#if 0 // multiple SAFplus instances per node -- but this makes debugging difficult since the ports are hard to calculate
         to[msgCount].sin_port=htons(msg->port + SAFplusI::UdpTransportStartPort + (SAFplusI::UdpTransportNumPorts*node));
+#else
+        to[msgCount].sin_port=htons(msg->port + SAFplusI::UdpTransportStartPort);
+#endif
 
         curvec->msg_hdr.msg_controllen = 0;
         curvec->msg_hdr.msg_control = NULL;
@@ -283,6 +291,7 @@ if(setsockopt(socket, SOL_SOCKET, SO_RCVTIMEO, &tv, sizeof(tv)) < 0)
       struct sockaddr_in from[SAFplusI::UdpTransportMaxMsg];
       struct iovec iovecs[SAFplusI::UdpTransportMaxFragments];
       struct timespec timeoutMem;
+      struct timeval timeout4sockopt;
       struct timespec* timeout;
       uint_t flags = MSG_WAITFORONE;
 
@@ -291,6 +300,9 @@ if(setsockopt(socket, SOL_SOCKET, SO_RCVTIMEO, &tv, sizeof(tv)) < 0)
         timeout = &timeoutMem;
         timeout->tv_sec = maxDelay/1000;
         timeout->tv_nsec = (maxDelay%1000)*1000000L;  // convert milli to nano, multiply by 1 million
+
+        timeout4sockopt.tv_sec = maxDelay/1000;
+        timeout4sockopt.tv_usec = (maxDelay%1000)*1000L;  // convert milli to micro, multiply by 1 thousand
         }
       else if (maxDelay == 0)
         {
@@ -300,6 +312,9 @@ if(setsockopt(socket, SOL_SOCKET, SO_RCVTIMEO, &tv, sizeof(tv)) < 0)
       else 
         {
         timeout = NULL;
+
+        timeout4sockopt.tv_sec = INT_MAX;  // basically forever
+        timeout4sockopt.tv_usec = 0;  // convert milli to micro, multiply by 1 thousand
         }
 
       memset(msgs,0,sizeof(msgs));
@@ -320,12 +335,22 @@ if(setsockopt(socket, SOL_SOCKET, SO_RCVTIMEO, &tv, sizeof(tv)) < 0)
         msgs[i].msg_hdr.msg_namelen = sizeof(struct sockaddr_in);
         }
 
+      if (timeout)
+        {
+          // For Linux only.  For Windows, pass a 32 bit integer in milliseconds.
+          if(setsockopt(sock, SOL_SOCKET, SO_RCVTIMEO, &timeout4sockopt, sizeof(timeout4sockopt)) < 0)
+            {
+              assert(0);
+            }
+        }
+
       int retval = recvmmsg(sock, msgs, 1, flags, timeout);
       if (retval == -1)
         {
         int err = errno;
         ret->msgPool->free(ret);  // clean up this unused message.  TODO: save it for the next receive call
         if (errno == EAGAIN) return NULL;  // its ok just no messages received.  This is a "normal" error not an exception
+        if (errno == EINTR) return NULL;  // TODO: should I raise an interrupt exception here?
         throw Error(Error::SYSTEM_ERROR,errno, strerror(errno),__FILE__,__LINE__);
         }
       else
@@ -357,7 +382,11 @@ if(setsockopt(socket, SOL_SOCKET, SO_RCVTIMEO, &tv, sizeof(tv)) < 0)
               cur->node = ntohl(srcAddr->sin_addr.s_addr) & (((Udp*)transport)->nodeMask);
             }
 
+#if 0
           cur->port = ntohs(srcAddr->sin_port) - SAFplusI::UdpTransportStartPort - (SAFplusI::UdpTransportNumPorts*cur->node);
+#else
+          cur->port = ntohs(srcAddr->sin_port) - SAFplusI::UdpTransportStartPort;
+#endif
 
           MsgFragment* curFrag = cur->firstFragment;
           for (int fragIdx = 0; (fragIdx < msgs[msgIdx].msg_hdr.msg_iovlen) && msgLen; fragIdx++,curFrag=curFrag->nextFragment)

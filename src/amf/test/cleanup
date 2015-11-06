@@ -1,4 +1,5 @@
 #!/bin/bash
 # start clean, or tests may fail because groups might already exist that we expect to create
 pkill -9 safplus_amf
+bin/safplus_cleanup
 exit 0

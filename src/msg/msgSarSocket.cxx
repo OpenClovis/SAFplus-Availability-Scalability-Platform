@@ -122,7 +122,7 @@ namespace SAFplus
             }
           else
             {
-              int chunkSize=0;
+              int chunkSize=0;  // How big this groups of fragments has gotten.
               nextFrag = msg->firstFragment;
               prevFrag = NULL;
               do 
@@ -148,6 +148,8 @@ namespace SAFplus
                           msg->lastFragment = prevFrag;
                           prevFrag->nextFragment = NULL;
                           nextFrag = frag;  // I need to recheck this frag in its new position as first in the message
+                          frag = split->firstFragment;
+                          if (frag == nextFrag) frag = NULL;  // I don't want to add frag->len twice if no header needed to be added
                         }
                       else  // Split the fragment
                         {
@@ -180,7 +182,7 @@ namespace SAFplus
                       chunkSize = 0;  // I can set the chunkSize to 0 here because it will be incremented by the frag length at the bottom of the loop                      
                   }
                 prevFrag = frag;
-                chunkSize += frag->len;                              
+                if (frag) chunkSize += frag->len;                              
                 } while(nextFrag);
             }
           setLastChunk(msg);              
@@ -192,14 +194,24 @@ namespace SAFplus
     {
       xport->flush();
     }
-
+    ClRcT timeOutCallback(void *arg)
+    {
+      MsgSarTracker *temp = (MsgSarTracker *)arg;
+      std::vector<Message*>::iterator it;
+      for (it = temp->msgs.begin(); it != temp->msgs.end(); it++)
+      {
+        (*it)->free();
+      }
+      temp->msgs.clear();
+      return CL_OK;
+    };
     Message* MsgSarSocket::receive(uint_t maxMsgs,int maxDelay)
     {
       int curDelay=maxDelay;
 
       while(1)
         {
-        Message* m = xport->receive(curDelay);
+        Message* m = xport->receive(maxMsgs,curDelay);
         if (!m) return NULL;  // Timeout
 
         Handle from = m->getAddress();
@@ -221,6 +233,12 @@ namespace SAFplus
               {
                 item = received.insert(MsgSarMap::value_type(sarId,MsgSarTracker())).first;
                 //received.insert(MsgSarMap::value_type(sarId,MsgSarTracker()));
+                MsgSarTracker& trk = item->second;
+                trk.trackerTimeOut.tsMilliSec=0;
+                trk.trackerTimeOut.tsSec=1;
+                //logDebug("SAR","RCV","Create timer for message id : [%d]",sarId);
+                trk.trackerTimer.timerCreate(trk.trackerTimeOut,TimerTypeT::TIMER_ONE_SHOT, TimerContextT::TIMER_SEPARATE_CONTEXT,timeOutCallback,&(item->second));
+                trk.trackerTimer.timerStart();
               }
 
             MsgSarTracker& trk = item->second;
@@ -238,7 +256,7 @@ namespace SAFplus
               {
                 Message* prev = NULL;
                 std::vector<Message*>::iterator it;
-#if 0
+#if 0  // this is equivalent to the for loop below but not working
                 for (it = trk.msgs.begin(); it != trk.msgs.end(); it++)
                   {
                     if (prev) prev->nextMsg = (*it);
@@ -268,6 +286,7 @@ namespace SAFplus
                     MsgPool* mp = old->msgPool;
                     mp->free(old);  // free the message without freeing its fragments or linked messages
                   }
+                trk.trackerTimer.timerStop();
                 received.erase(item);  // remove this message from the lookup table
                 return top;
               }

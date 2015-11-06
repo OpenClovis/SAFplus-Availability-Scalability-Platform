@@ -348,7 +348,15 @@ void dispatchLoop(void)
           clprintf (SAFplus::LOG_SEV_ERROR, "Error [%d] during dispatch loop select() call: [%s]",err,errorStr);
           break;
         }
-      if (FD_ISSET(amf_dispatch_fd,&read_fds)) saAmfDispatch(amfHandle, SA_DISPATCH_ALL);
+      if (FD_ISSET(amf_dispatch_fd,&read_fds)) 
+        {
+        saAmfDispatch(amfHandle, SA_DISPATCH_ALL);
+        }
+      else 
+        {
+        clprintf(SAFplus::LOG_SEV_WARNING,"Select returned but nothing to dispatch");
+        sleep(15);
+        }
       /* if (FD_ISSET(ckpt_dispatch_fd,&read_fds)) saCkptDispatch(ckptLibraryHandle, SA_DISPATCH_ALL); */
  
       if (running==1) clprintf(SAFplus::LOG_SEV_INFO,"csa101: Active.  Hello World!"); // show_progress());

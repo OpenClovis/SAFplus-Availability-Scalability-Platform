@@ -1,5 +1,5 @@
 #!/bin/bash
-export LD_LIBRARY_PATH=`pwd`/lib:$LD_LIBRARY_PATH
+export LD_LIBRARY_PATH=`pwd`/lib:`pwd`/plugin:$LD_LIBRARY_PATH
 export PYTHONPATH=`pwd`/lib:`pwd`/bin:`pwd`/test:$PYTHONPATH
 
 sysctl -w net.core.wmem_max=20485760
@@ -11,6 +11,15 @@ sysctl -w net.core.wmem_default=20485760
 export CL_LOG_SEVERITY=ERROR
 export CL_LOG_CODE_LOCATION_ENABLE=1
 
-export SAFPLUS_BACKPLANE_INTERFACE=lo
+export SAFPLUS_BACKPLANE_INTERFACE=eth0
 
-./bin/node --add 127.0.0.1
+`pwd`/bin/safplus_cloud --add `ifconfig $SAFPLUS_BACKPLANE_INTERFACE | awk '/inet addr/{print substr($2,6)}'`
+`pwd`/bin/safplus_cloud --list
+
+# To use UDP broadcasts on the loopback interface I need to enable a broadcast address
+# ifconfig lo broadcast 127.255.255.255
+# export SAFPLUS_BACKPLANE_INTERFACE=lo
+# `pwd`/bin/safplus_cloud --add 127.0.0.1
+
+# Not that this echo also ensures that this script has a return code of 0
+echo "complete"

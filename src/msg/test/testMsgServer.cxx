@@ -9,7 +9,7 @@ using namespace SAFplus;
 
 // add segmentation and reassembly layer if this is true
 bool sar = false;
-
+int duration = 100;
 const char* suiteName = "SVR";  // this is the name of the suite of tests.  It changes based on the parameters supplied
 
 class xorshf96
@@ -196,9 +196,10 @@ bool testMsgLengths(uint_t maxLength,int randSeed=0x5848323)
   b.RegisterHandler(MSG_TYPE,&receiver,NULL);
   b.Start();
 
-  for (int len=1; len< maxLength; len++)
+  for (int len=1; len < maxLength; len+=1+(rnd()%(1+(len/3))))
     {
-      if ((len&4095)==0) printf("Message size: %d\n",len);
+      //if ((len&4095)==0) 
+      printf("Message size: %d\n",len);
       unsigned char* buf = new unsigned char[len];
 
       for (int i=0;i<len;i++) buf[i] = rnd();
@@ -208,10 +209,13 @@ bool testMsgLengths(uint_t maxLength,int randSeed=0x5848323)
 
       for (int i=0;i<len;i++) 
         {
+          int badData = -1;
           if (buf[i] != receiver.data[i])
             {
+              badData = i;
               assert(0); // test failed
             }
+          clTest(("data integrity ok"), badData == -1,("Data miscompare at location [%d]", badData) );
 
         }
       delete buf;
@@ -233,6 +237,7 @@ int main(int argc, char* argv[])
     ("loglevel", boost::program_options::value<std::string>(), "logging cutoff level")
     ("mode", boost::program_options::value<std::string>()->default_value("LAN"), "specify 'LAN' or 'cloud' to set the messaging transport address resolution mode")
     ("sar", boost::program_options::value<bool>()->default_value("false"), "Use segmentation and reassembly layer")
+    ("duration", boost::program_options::value<int>()->default_value(100), "Shorter numbers make the test run faster.  Default is 100")
     ;
 
   boost::program_options::variables_map vm;
@@ -243,13 +248,18 @@ int main(int argc, char* argv[])
       std::cout << desc << "\n";
       return 0;
     }
+
   if (vm.count("xport")) xport = vm["xport"].as<std::string>();
   if (vm.count("loglevel")) SAFplus::logSeverity = logSeverityGet(vm["loglevel"].as<std::string>().c_str());
+  if (vm.count("duration")) 
+    {
+      duration = vm["duration"].as<int>();
+    }
 
   if (vm.count("sar"))
     {
-      sar=true;
-      suiteName = "SAR";
+      sar = vm["sar"].as<bool>();
+      if (sar) suiteName = "SAR";
     }
 
   clTestGroupInitialize(("MSG-%s-UNT.TG003: Test MsgServer class",suiteName));
@@ -265,9 +275,9 @@ int main(int argc, char* argv[])
 
   clMsgInitialize();
 
-  //clTestCase(("MSG-%s-UNT.TC001: simple send/recv test",suiteName),testSendRecv());
+  clTestCase(("MSG-%s-UNT.TC001: simple send/recv test",suiteName),testSendRecv());
 
-  testMsgLengths(50000000);
+  clTestCase(("MSG-%s-UNT.TC002: message lengths",suiteName), testMsgLengths(200*duration));
 
   clTestGroupFinalize();
 }

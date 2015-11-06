@@ -7,7 +7,7 @@
 # YOU MUST CHANGE:
 
 # Set this to where you copied your target's system libraries and headers
-CROSS_SYS_ROOT := /code/armEnv
+CROSS_SYS_ROOT := /code/opipEnv
 
 # Select which database you want
 SAFPLUS_WITH_GDBM := false
@@ -23,7 +23,7 @@ CROSSPFX := arm-linux-gnueabihf
 COMPILER := $(CROSSPFX)-g++
 
 # Set up the pkg-config program to point to the crossbuild environment not the local environment
-PKG_CONFIG_PATH = $(INSTALL_DIR)/lib/pkgconfig
+PKG_CONFIG_PATH = $(INSTALL_DIR)/lib/pkgconfig:$(CROSS_SYS_ROOT)/usr/lib/arm-linux-gnueabihf/pkgconfig
 PKG_CONFIG = PKG_CONFIG_LIBDIR=$(INSTALL_DIR) PKG_CONFIG_PATH=$(PKG_CONFIG_PATH) pkg-config
 
 # We are not building a .deb or .rpm

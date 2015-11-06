@@ -1,5 +1,5 @@
 #!/bin/bash
-export LD_LIBRARY_PATH=`pwd`/lib:$LD_LIBRARY_PATH
+export LD_LIBRARY_PATH=`pwd`/lib:`pwd`/plugin:$LD_LIBRARY_PATH
 export PYTHONPATH=`pwd`/lib:`pwd`/bin:`pwd`/test:$PYTHONPATH
 
 sysctl -w net.core.wmem_max=10485760
@@ -14,3 +14,8 @@ export CL_LOG_CODE_LOCATION_ENABLE=1
 # To use UDP broadcasts on the loopback interface I need to enable a broadcast address
 export SAFPLUS_BACKPLANE_INTERFACE=eth0
 
+`pwd`/bin/safplus_cloud --add `ifconfig eth0 | awk '/inet addr/{print substr($2,6)}'`
+
+`pwd`/bin/safplus_cloud --list
+
+echo "msg setup complete"

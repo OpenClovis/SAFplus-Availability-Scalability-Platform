@@ -207,6 +207,7 @@ namespace SAFplus
                       }
                     else retry = false;
                   }
+                else retry = false; // If the function is not blocking, then the app will handle any needed retries
               }
           }
 

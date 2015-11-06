@@ -24,21 +24,11 @@
 namespace SAFplus
 {
 
-/**
- * \file
- * \brief OpenClovis Test Infrastructure
- * \ingroup test_apis
- *
- */
 
-/**
- * \addtogroup test_apis
- * \{
- */
-
-/* See clTest.c for documentation on these global variables */
+//? Issue test related logs at this level (default is INFO) 
 extern SAFplus::LogSeverity testLogLevel;
-extern int testOn;
+  
+//extern int testOn;
 extern int testPrintIndent;
 
 enum 
@@ -47,13 +37,14 @@ enum
   TestMaxNameLen     = 512
 };
 
-typedef enum /* A bit field that turns on/off types of printout */
+typedef enum /*? A bit field that turns on/off types of printout */
 {
     TEST_PRINT_ALL = 0xffffff,
     TEST_PRINT_TEST_OK = 1,
     TEST_PRINT_TEST_FAILED = 2,
 } TestVerbosity;
 
+  //? Set this global variable to control how much test detail is output
 extern TestVerbosity testVerbosity;
 };
 

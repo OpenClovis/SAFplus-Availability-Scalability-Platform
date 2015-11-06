@@ -1,5 +1,5 @@
 #!/bin/bash
-export LD_LIBRARY_PATH=`pwd`/lib:$LD_LIBRARY_PATH
+export LD_LIBRARY_PATH=`pwd`/lib:`pwd`/plugin:$LD_LIBRARY_PATH
 export PYTHONPATH=`pwd`/lib:`pwd`/bin:`pwd`/test:$PYTHONPATH
 
 sysctl -w net.core.wmem_max=10485760
@@ -15,3 +15,9 @@ export CL_LOG_SEVERITY=ERROR
 export CL_LOG_CODE_LOCATION_ENABLE=1
 export SAFPLUS_BACKPLANE_INTERFACE=lo
 
+# The group tests rely on a clean start because they check the number of existing groups after creating/deleting
+./bin/safplus_cleanup
+# Normally safplus_amf is the group server but for the unit tests we use the standalone group server
+`pwd`/bin/safplus_group > safplus_group_server.log &
+
+echo "complete"

@@ -1,9 +1,12 @@
 S7 := 1
 include ./src/mk/preface.mk
+include /etc/lsb-release
+
+GIT_REV := $(shell git rev-parse --short=8 HEAD)
 
 export PKG_NAME=safplus
 export PKG_VER ?=7.0
-export PKG_REL ?=1
+export PKG_REL ?=$(GIT_REV)
 TOP_DIR := $(CURDIR)
 TAR_NAME := $(dir $(TOP_DIR))$(PKG_NAME)_$(PKG_VER).tar.gz
 BUILD := $(TOP_DIR)/build
@@ -16,7 +19,7 @@ all:
 
 prepare:
 	echo  "This target prepares your environment for package generation.  You only need to run this once (as root)"
-	apt-get install dh-make
+	apt-get install dh-make reprepro
 
 archive: $(TAR_NAME)
 
@@ -73,10 +76,10 @@ rpm-src: archive
 	cp $(RPMS_DIR)/$(shell uname -p)/*.rpm $(BUILD)
 
 rpm-bin: build_binary
-	$(call prepare_env_rpm,safplus,sdk/target)
+	$(call prepare_env_rpm,safplus,sdk/target/$(__TMP_TARGET_PLATFORM))
 	$(call copy_binpkg_files,$(BUILD_DIR))
 	sed -i '/%install/aexport PREFIX=%prefix\nexport DESTDIR=$$RPM_BUILD_ROOT\nmake rpm_install' $(SPECS_DIR)/safplus.spec
-	sed -i '/%defattr/a /%prefix/*\n/%prefix/../src/*' $(SPECS_DIR)/safplus.spec
+	sed -i '/%defattr/a /%prefix/*\n/%prefix/../../src/*' $(SPECS_DIR)/safplus.spec
 	rpmbuild  --define '_topdir $(PKG_DIR)' -bb $(SPECS_DIR)/safplus.spec
 	mkdir -p $(BUILD)
 	cp $(RPMS_DIR)/$(shell uname -p)/*.rpm $(BUILD)
@@ -157,10 +160,17 @@ deb_clean:remove_target
 deb_build:remove_target
 	echo "Not required"
 
+apt/debian/conf/distributions:
+	mkdir -p apt/debian/conf
+	python src/mk/genDebDist.py apt/debian/conf/distributions safplus $(DISTRIB_CODENAME)
+
+deb_upload: apt/debian/conf/distributions
+	(cd apt/debian; reprepro -v includedeb $(DISTRIB_CODENAME) $(SAFPLUS_TOP_DIR)/build/*.deb)
+
 rpm_install:remove_target
 	$(eval REQ_FILES:=$(wildcard $(PWD)/*/))
 	$(info $(REQ_FILES))
 	$(call safplus_pkg_install,$(REQ_FILES))
 
 clean:
-	rm -rf $(TAR_NAME) $(BUILD)
+	rm -rf $(TAR_NAME) $(BUILD) apt ../debbuild_safplus ../debbuild_safplus-src ../safplus_7.0.tar.gz

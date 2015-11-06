@@ -21,8 +21,20 @@ endif
 
 include $(SAFPLUS_MAKE_DIR)/preface.mk
 
-APP_BIN_DIR ?= $(THIS_DIR)/target/$(TARGET_PLATFORM)
-APP_OBJ_DIR ?= $(THIS_DIR)/target/$(TARGET_PLATFORM)
+
+# always return empty string: TMP2 := $(strip $(wildcard $(THIS_DIR)/../../../mk/preface.mk))
+TMP2 := $(strip $(shell ls $(THIS_DIR)/../../../src/mk/preface.mk))
+
+ifneq ($(TMP2),)  # Is this build happening within the SAFplus source tree?
+  # yes, generate output in the SAFplus output directories
+  $(info Building from within SAFplus)
+  APP_BIN_DIR ?= $(BIN_DIR)
+  APP_OBJ_DIR ?= $(OBJ_DIR)
+else  # no, so generate output relative to this director  
+  $(info Building outside of SAFplus)
+  APP_BIN_DIR ?= $(THIS_DIR)/target/$(TARGET_PLATFORM)/bin
+  APP_OBJ_DIR ?= $(THIS_DIR)/target/$(TARGET_PLATFORM)/obj
+endif
 
 NOOP := $(shell mkdir -p $(APP_BIN_DIR))
 NOOP := $(shell mkdir -p $(APP_OBJ_DIR))

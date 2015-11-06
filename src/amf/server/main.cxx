@@ -56,6 +56,7 @@ typedef boost::unordered_map<SAFplus::AmfRedundancyPolicy,ClPluginHandle*> RedPo
 // namespace SAFplusAmf { void loadAmfConfig(SAFplusAmfModule* self); };
 
 void initializeOperationalValues(SAFplusAmf::SAFplusAmfModule& cfg);
+void loadAmfPluginsAt(const char* soPath, AmfOperations& amfOps,Fault& fault);
 
 RedPolicyMap redPolicies;
 
@@ -387,8 +388,24 @@ void becomeStandby(void)
   }
 
 
+
 void loadAmfPlugins(AmfOperations& amfOps,Fault& fault)
   {
+  if (SAFplus::ASP_BINDIR[0]!=0)
+    {
+      std::string s(SAFplus::ASP_BINDIR);
+      s.append("/../plugin");
+      try
+        {
+        boost::filesystem::path p = boost::filesystem::canonical(s);
+        loadAmfPluginsAt(p.c_str(),amfOps,fault);
+        }
+      catch (boost::filesystem::filesystem_error& e)
+        {
+          // directory does not exist
+        }
+    }
+#if 0 // TODO: load user plugins from a relative directory, but we have to make sure that this directory is not the SAME as the safplus_amf plugin directory
   // pick the SAFplus directory or the current directory if it is not defined.
   const char * soPath = ".";
   if (boost::filesystem::is_directory("../plugin")) soPath = "../plugin";
@@ -397,7 +414,17 @@ void loadAmfPlugins(AmfOperations& amfOps,Fault& fault)
         soPath = SAFplus::ASP_APP_BINDIR;
       }
   else if (boost::filesystem::is_directory("../lib")) soPath = "../lib";
-  
+
+  loadAmfPluginsAt(soPath,amfOps,fault);
+
+
+#endif
+
+  }
+
+
+void loadAmfPluginsAt(const char* soPath, AmfOperations& amfOps,Fault& fault)
+  {  
   boost::filesystem::path p(soPath);
   boost::filesystem::directory_iterator it(p),eod;
 
@@ -667,7 +694,17 @@ int main(int argc, char* argv[])
     SAFplus::SYSTEM_CONTROLLER = 1;      
     }
 
-  logAlert(LogArea,"INI","Welcome to OpenClovis SAFplus version %d.%d.%d %s %s", SAFplus::VersionMajor, SAFplus::VersionMinor, SAFplus::VersionBugfix, __DATE__, __TIME__);
+  if (SAFplus::ASP_BINDIR[0]==0) // Was not set
+    {
+      char spbinary[CL_MAX_NAME_LENGTH];
+      int len = readlink("/proc/self/exe", spbinary, CL_MAX_NAME_LENGTH);  // will only work on linux
+      spbinary[len] = 0;
+      boost::filesystem::path canonicalPath = boost::filesystem::canonical(spbinary).parent_path();
+      assert(strlen(canonicalPath.c_str())<CL_MAX_NAME_LENGTH);
+      strncpy(SAFplus::ASP_BINDIR, canonicalPath.c_str(),CL_MAX_NAME_LENGTH);
+    }
+
+  logAlert(LogArea,"INI","Welcome to OpenClovis SAFplus version %d.%d.%d %s %s running from %s", SAFplus::VersionMajor, SAFplus::VersionMinor, SAFplus::VersionBugfix, __DATE__, __TIME__,SAFplus::ASP_BINDIR);
 
   //SAFplus::safplusMsgServer.init(SAFplusI::AMF_IOC_PORT, MAX_MSGS, MAX_HANDLER_THREADS);
 
@@ -731,6 +768,7 @@ int main(int argc, char* argv[])
 
   /* Initialize mgt database  */
   MgtDatabase *db = MgtDatabase::getInstance();
+  logInfo(LogArea,"DB", "Opening database file [%s]", "safplusAmf");
   db->initializeDB("safplusAmf");
   cfg.read(db);
   initializeOperationalValues(cfg);

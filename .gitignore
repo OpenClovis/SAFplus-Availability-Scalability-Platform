@@ -1,0 +1,7 @@
+*.pyc
+cscope.*
+doc/html/*
+*.so
+target/*
+src/3rdparty/base/*.tar.gz
+src/3rdparty/base/*.tgz

@@ -46,6 +46,8 @@ int SERVER_MSG_NODE=0;
 int SERVER_MSG_PORT=65;
 int MY_MSG_PORT=66;
 
+int loopCount=1000;
+
 boost::program_options::variables_map parseOptions(int argc,char *argv[])
 {
   boost::program_options::options_description desc("Allowed options");
@@ -55,6 +57,7 @@ boost::program_options::variables_map parseOptions(int argc,char *argv[])
     ("rport", boost::program_options::value<int>()->default_value(SERVER_MSG_PORT), "reflector port number")
     ("port", boost::program_options::value<int>()->default_value(MY_MSG_PORT), "my port number")
     ("loglevel", boost::program_options::value<std::string>(), "logging cutoff level")
+    ("count", boost::program_options::value<int>()->default_value(loopCount))
     ;
 
   boost::program_options::variables_map vm;        
@@ -64,6 +67,7 @@ boost::program_options::variables_map parseOptions(int argc,char *argv[])
   if (vm.count("rnode")) SERVER_MSG_NODE = vm["rnode"].as<int>();
   if (vm.count("rport")) SERVER_MSG_PORT = vm["rport"].as<int>();
   if (vm.count("port")) MY_MSG_PORT = vm["port"].as<int>();
+  if (vm.count("count")) loopCount = vm["count"].as<int>();
   if (vm.count("loglevel")) SAFplus::logSeverity = logSeverityGet(vm["loglevel"].as<std::string>().c_str());
   if (vm.count("help")) 
     {
@@ -102,6 +106,7 @@ bool testLatency(Handle dest, int msgLen, int atOnce, int numLoops,const char* t
           totalMsgs++;
           }
         wakeable.lock(atOnce);  // Bring it back to 0 for the next loop.
+        clTestSuccess(("received %d msgs", atOnce));
         //delete[] resp;
       }
     delete[] resp;
@@ -117,17 +122,21 @@ bool testLatency(Handle dest, int msgLen, int atOnce, int numLoops,const char* t
 
 int main(int argc, char* argv[])
 {
-  // logSeverity = LOG_SEV_DEBUG;
+  logSeverity = LOG_SEV_DEBUG;
 
   boost::program_options::variables_map vm = parseOptions(argc,argv);
   if (vm.count("help")) return 0;  // Help already printed by parseOptions
 
   clTestGroupInitialize(("remote procedure call"));
 
-  clMsgInitialize();
+  SafplusInitializationConfiguration sic;
+  sic.iocPort     = MY_MSG_PORT;
+  sic.msgQueueLen = 1000;
+  sic.msgThreads  = 30;
+  safplusInitialize( SAFplus::LibDep::MSG, sic);
 
   //Msg server listening
-  safplusMsgServer.init(MY_MSG_PORT, 1000, 30);
+  //safplusMsgServer.init(MY_MSG_PORT, 1000, 30);
 
   // sending to a different port on this node
   Handle msgDest = getProcessHandle(SERVER_MSG_PORT,SERVER_MSG_NODE);
@@ -136,15 +145,15 @@ int main(int argc, char* argv[])
 
   //testLatency(msgDest, 100, 1, 10000,"100 bytes by 1");
   //testLatency(msgDest, 1000, 1, 10000,"1000 bytes by 1");
-  clTestCase(("RPC-PRF-TST.TC001: 10000 bytes by 1"), testLatency(msgDest, 10000, 1, 10000,"10000 bytes by 1"));
+  clTestCase(("RPC-PRF-TST.TC001: 10000 bytes by 1"), testLatency(msgDest, 10000, 1, loopCount,"10000 bytes by 1"));
 
-  clTestCase(("RPC-PRF-TST.TC002: 100 bytes by 10"),testLatency(msgDest, 100, 10, 1000,"100 bytes by 10"));
-  clTestCase(("RPC-PRF-TST.TC003: 1000 bytes by 10"),testLatency(msgDest, 1000, 10, 1000,"1000 bytes by 10"));
-  clTestCase(("RPC-PRF-TST.TC004: 10000 bytes by 10"),testLatency(msgDest, 10000, 10, 1000,"10000 bytes by 10"));
+  clTestCase(("RPC-PRF-TST.TC002: 100 bytes by 10"),testLatency(msgDest, 100, 10, loopCount,"100 bytes by 10"));
+  clTestCase(("RPC-PRF-TST.TC003: 1000 bytes by 10"),testLatency(msgDest, 1000, 10, loopCount,"1000 bytes by 10"));
+  clTestCase(("RPC-PRF-TST.TC004: 10000 bytes by 10"),testLatency(msgDest, 10000, 10, loopCount,"10000 bytes by 10"));
 
-  clTestCase(("RPC-PRF-TST.TC005: 100 bytes by 100"),testLatency(msgDest, 100, 100, 1000,"100 bytes by 100"));
-  clTestCase(("RPC-PRF-TST.TC005: 10000 bytes by 100"),testLatency(msgDest, 1000, 100, 1000,"1000 bytes by 100"));
-  clTestCase(("RPC-PRF-TST.TC005: 10000 bytes by 100"),testLatency(msgDest, 10000, 100, 1000,"10000 bytes by 100"));
+  clTestCase(("RPC-PRF-TST.TC005: 100 bytes by 100"),testLatency(msgDest, 100, 100, loopCount,"100 bytes by 100"));
+  clTestCase(("RPC-PRF-TST.TC005: 10000 bytes by 100"),testLatency(msgDest, 1000, 100, loopCount,"1000 bytes by 100"));
+  clTestCase(("RPC-PRF-TST.TC005: 10000 bytes by 100"),testLatency(msgDest, 10000, 100, loopCount,"10000 bytes by 100"));
 
   //testLatency(msgDest, 10000, 100, 10000000,"10000 bytes by 10");
   //testLatency(msgDest, 10000, 100, 900000000,"10000 bytes by 10");

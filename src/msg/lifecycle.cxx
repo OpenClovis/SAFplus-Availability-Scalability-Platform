@@ -30,7 +30,8 @@ void clMsgInitialize(void)
   if (plug) api = plug->pluginApi;
   else
     {
-    assert(!"Cannot load message transport plugin");
+      logCritical("MSG", "INI", "Cannot load message transport plugin [%s] library path is [%s]",xportFile, getenv("LD_LIBRARY_PATH"));
+      assert(!"Cannot load message transport plugin");
     }
 #endif
 

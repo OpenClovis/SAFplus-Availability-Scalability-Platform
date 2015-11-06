@@ -176,7 +176,19 @@ void MsgServer::MakeMePrimary()
 
     while (q->receiving)
       {
-        Message* m = q->sock->receive(1,1000);  // block for one second or until a message is received
+        Message* m = NULL;
+        try
+          {
+          m = q->sock->receive(1,1000);  // block for one second or until a message is received
+          }
+        catch(Error &e)
+          {
+            if ((e.osError == EBADF)&&(q->receiving == false))  // we closed the FD because all done
+              {
+                break;
+              }
+            else throw;
+          }
 
         if (m) 
           {

@@ -218,6 +218,11 @@ namespace SAFplus
         req.set_pid(pid);
         ProcessInfoResponse resp;
         amfInternalRpc->processInfo(nodeHdl,&req, &resp);
+        if (!resp.IsInitialized())
+          {
+            // RPC call is broken, should throw exception
+            assert(0);
+          }
         if (resp.running()) 
           {
           // TODO: I need to compare the process command line with my command line to make sure that my proc didn't die and another reuse the pid
@@ -532,16 +537,16 @@ namespace SAFplus
       return;
       }
 
-    if (nodeHdl == nodeHandle)  // Handle this request locally.  This is an optimization.  The RPC call will also work locally.
-      {
-      if ( comp->capabilityModel == CapabilityModel::not_preinstantiable)
+    if ( comp->capabilityModel == CapabilityModel::not_preinstantiable)
         {
         comp->presenceState.value  = PresenceState::instantiated;
         // TODO: add the WORK key/value pairs to the environment variables
         }
-      else 
+    else 
         comp->presenceState.value  = PresenceState::instantiating;
 
+    if (nodeHdl == nodeHandle)  // Handle this request locally.  This is an optimization.  The RPC call will also work locally.
+      {
       std::vector<std::string> newEnv = comp->commandEnvironment.value;
       std::string strCompName("ASP_COMPNAME=");
       std::string strNodeName("ASP_NODENAME=");

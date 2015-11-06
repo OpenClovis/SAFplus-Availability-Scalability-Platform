@@ -216,12 +216,12 @@ namespace SAFplus
 
   class MsgSocketShaping : public MsgSocketAdvanced
   {
-    private:
-      SAFplus::leakyBucket bucket;
+    protected:
+      SAFplus::LeakyBucket bucket;
     public:
     MsgSocketShaping(uint_t port,MsgTransportPlugin_1* transport,uint_t volume, uint_t leakSize, uint_t leakInterval);
     MsgSocketShaping(MsgSocket* socket,uint_t volume, uint_t leakSize, uint_t leakInterval);
-    virtual ~MsgSocketShaping();
+    virtual ~MsgSocketShaping();  // If you do not want the underlying socket to be returned when this object is destructed, then set sock to NULL before deleting this object
     //? Tell the traffic shaper that a message of the supplied length was sent.  This function is automatically called by send so the application typically never needs to use it.
     void applyShaping(uint_t length);
     //? Send a bunch of messages.  You give up ownership of msg.

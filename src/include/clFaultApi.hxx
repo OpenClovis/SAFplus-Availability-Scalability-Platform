@@ -6,6 +6,9 @@
 namespace SAFplus
 {
 
+  //? Returns true if the fault manager is available
+  bool faultAvailable(void);
+
   //? <class> Interact with the fault management subsystem.
 class Fault
 {

@@ -461,27 +461,30 @@ namespace SAFplus
 #endif
 
   //*****************Advanced socket : MsgSocketShaping********************
-  MsgSocketShaping::MsgSocketShaping(uint_t port,MsgTransportPlugin_1* transport,uint_t volume, uint_t leakSize, uint_t leakInterval)
+MsgSocketShaping::MsgSocketShaping(uint_t port,MsgTransportPlugin_1* transportp,uint_t volume, uint_t leakSize, uint_t leakInterval)
   {
-    bucket.leakyBucketCreate(volume,leakSize,leakInterval);
+    transport = transportp;
     sock=transport->createSocket(port);
-    if(sock==NULL)
-    {
-      logDebug("MSG","SCK","cannot create socket shaping.");
-    }
+    assert(sock);
+    bucket.start(volume,leakSize,leakInterval);
   };
-  MsgSocketShaping::MsgSocketShaping(MsgSocket* socket,uint_t volume, uint_t leakSize, uint_t leakInterval)
+
+MsgSocketShaping::MsgSocketShaping(MsgSocket* socket,uint_t volume, uint_t leakSize, uint_t leakInterval)
   {
-    bucket.leakyBucketCreate(volume,leakSize,leakInterval);
+    transport= socket->transport;
+    bucket.start(volume,leakSize,leakInterval);
     sock=socket;
   };
   MsgSocketShaping::~MsgSocketShaping()
   {
-     //TODO
+    bucket.stop();
+    if (sock&&transport) transport->deleteSocket(sock);
+    sock = NULL;
+    transport = NULL;
   }
   void MsgSocketShaping::applyShaping(uint_t length)
   {
-      bucket.leakyBucketFill(length);
+      bucket.fill(length);
   }
   //? Send a bunch of messages.  You give up ownership of msg.
   void MsgSocketShaping::send(Message* msg)

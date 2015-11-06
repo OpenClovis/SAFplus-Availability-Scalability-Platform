@@ -92,7 +92,17 @@ namespace SAFplus
        }
     else
       {
-        mem = boost::interprocess::shared_memory_object(boost::interprocess::open_only, ClusterNodesSharedMemoryName, boost::interprocess::read_only);
+        try
+          {
+          mem = boost::interprocess::shared_memory_object(boost::interprocess::open_only, ClusterNodesSharedMemoryName, boost::interprocess::read_only);
+          }
+        catch (interprocess_exception &err)
+          {
+            if (err.get_error_code()==boost::interprocess::not_found_error)
+              {
+                throw SAFplus::Error(Error::ErrorFamily::SAFPLUS_ERROR, Error::DOES_NOT_EXIST,"Shared memory segment does not exist", __FILE__, __LINE__);
+              }
+          }
       memRegion = mapped_region(mem,read_only,0,sizeof(ClusterNodeArray));
       }
 

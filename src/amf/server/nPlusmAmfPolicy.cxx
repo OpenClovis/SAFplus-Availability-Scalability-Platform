@@ -387,16 +387,23 @@ namespace SAFplus
                 }
               else
                 {
-                  if (comp->capabilityModel == CapabilityModel::not_preinstantiable)
+                  if (comp->presenceState == PresenceState::instantiating)
                     {
+                      // TODO: make sure that the component hasn't been in this state for too long
+                    }
+                  else
+                    {
+                    if (comp->capabilityModel == CapabilityModel::not_preinstantiable)
+                      {
                       // TODO: in this case I need to look at the work to determine if this component should be instantiated but is not
                       //startSg=true;
+                      }
+                    else if (eas != SAFplusAmf::AdministrativeState::off)
+                      {
+                      logError("N+M","AUDIT","Component [%s] could be on but is not instantiated", comp->name.value.c_str());
+                      startSg=true;
+                      }
                     }
-                  else if (eas != SAFplusAmf::AdministrativeState::off)
-                  {
-                  logError("N+M","AUDIT","Component [%s] could be on but is not instantiated", comp->name.value.c_str());
-                  startSg=true;
-                  }
                 }
               }
             }
@@ -741,7 +748,7 @@ namespace SAFplus
             if (running(comp->presenceState))  // If I think its running, let's check it out.
               {
               CompStatus status = amfOps->getCompState(comp);
-              if (status == CompStatus::Uninstantiated)  // database shows should be running but actually no process is there.  I should update DB.
+              if ((status == CompStatus::Uninstantiated) && (comp->presenceState != PresenceState::instantiating))  // database shows should be running but actually no process is there.  I should update DB.
                 {
                   try
                     {

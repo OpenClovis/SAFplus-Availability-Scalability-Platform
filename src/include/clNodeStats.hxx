@@ -91,9 +91,10 @@ class NodeStatistics
     void scanDiskStats(std::string fBuf);
 
     public:
+    //? Load the information from the system
     void read();
 
-    //? The avarage of CPU and IO utilization for last 1 minute.
+    //? The average of CPU and IO utilization for last 1 minute.
     double loadAvg;
 
     //? The uptime of the system in seconds.

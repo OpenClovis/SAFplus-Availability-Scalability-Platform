@@ -26,7 +26,7 @@ public:
   PerfData(const char* identifier, int val)
   {   add(identifier, val); }
   PerfData& operator()(const char* identifier, int val)
-  {  data << ","; add(identifier, val); }
+  {  data << ","; add(identifier, val); return *this; }
   void add(const char* identifier, int val)
   {
     data << "('" << identifier << "'," << val << ")";
@@ -35,7 +35,7 @@ public:
   PerfData(const char* identifier, double val)
   {  add(identifier, val); }
   PerfData& operator()(const char* identifier, double val)
-  { data << ",";  add(identifier, val); }
+  { data << ",";  add(identifier, val);  return *this; }
   void add(const char* identifier, double val)
   {
     data << "('" << identifier << "'," << val << ")";
@@ -43,12 +43,24 @@ public:
 
   const std::string str() const { return data.str(); }
 
+  /* void copy(std::string& s)
+  {
+    std::copy(data.begin(),data.end(),s.begin());
+  }
+  */
+  //void finish() { data << "\0"; }
+
 };
 
-void perfReport(const char* graph,const char* series, const PerfData& parameters, const PerfData& outputs)
+void perfReport(const char* graph,const char* series, PerfData& parameters, PerfData& outputs)
 {
+  //parameters.finish();
   //printf("perfReport ('%s','%s',%s,%s)\n",graph,series,parameters.str().c_str(),outputs.str().c_str());
-  performanceReport << "('" << graph << "','" << series << "',(" << parameters.str().c_str() << "),(" << outputs.str().c_str() << "))\n";
+  std::string ps = parameters.str();
+  std::string os = outputs.str();
+  //printf("%s", ps.c_str());
+  //printf("%s", os.c_str());
+  performanceReport << "('" << graph << "','" << series << "',(" << ps.c_str() << "),(" << os.c_str() << "))\n";
 }
 
 
@@ -126,7 +138,7 @@ bool testChunkingPerf(MsgSocket* src, MsgSocket* sink,Handle dest, int msgLen, i
               msgCount = 0;
               while (msgCount < atOnce)
                 {
-                  m = sink->receive(1,10);  // Even though a sent multiples, I may not receive them as multiples
+                  m = sink->receive(1,1000);  // Even though a sent multiples, I may not receive them as multiples
                   assert(m);  /* If you get this then messages were dropped in
                                  the kernel.  Use these commands to increase the kernel network buffers:
                                  sysctl -w net.core.wmem_max=10485760
@@ -213,6 +225,8 @@ bool testLatency(MsgSocket* src, MsgSocket* sink,Handle dest, int msgLen, int nu
   timer t;
   for (int loop = 0; loop<numLoops; loop++)
     {
+      Handle d = m->getAddress();
+      assert(d == dest);
       src->send(m);
       m = sink->receive(1,1000);
       assert(m);  /* If you get this then messages were dropped in
@@ -261,6 +275,7 @@ bool testLatency(MsgSocket* src, MsgSocket* sink,Handle dest, int msgLen, int nu
 
 void testGroup(MsgSocket* src, MsgSocket* sink,Handle dest,const char* desc)
 {
+#if 1
   testLatency(src,sink,dest,1,10000 * repeat, desc,true);
   testLatency(src,sink,dest,16,10000 * repeat, desc,true);
   testLatency(src,sink,dest,100,10000 * repeat, desc,true);
@@ -268,20 +283,22 @@ void testGroup(MsgSocket* src, MsgSocket* sink,Handle dest,const char* desc)
   testLatency(src,sink,dest,10000,10000 * repeat, desc,true);
 
   testChunkingPerf(src, sink,dest,1, 1 , 1 , 10000 * repeat,desc);
-#if 1
   testChunkingPerf(src, sink,dest,16, 1 , 1 , 5000 * repeat,desc);
   testChunkingPerf(src, sink,dest,100, 1 , 1 , 5000 * repeat,desc);
   testChunkingPerf(src, sink,dest,1000, 1 , 1 , 2000 * repeat,desc);
   testChunkingPerf(src, sink,dest,10000, 1 , 1 , 1000 * repeat,desc);
   testChunkingPerf(src, sink,dest,50000, 1 , 1 , 1000 * repeat,desc);
+#endif
+  if (src->cap.maxMsgSize > 200000) testChunkingPerf(src, sink,dest,200000, 1 , 1 , 500 * repeat,desc);
 
-
+#if 1
   testChunkingPerf(src, sink,dest,1, 10 , 1 , 10000 * repeat,desc);
   testChunkingPerf(src, sink,dest,16, 10 , 1 , 5000 * repeat,desc);
   testChunkingPerf(src, sink,dest,100, 10 , 1 , 5000 * repeat,desc);
   testChunkingPerf(src, sink,dest,1000, 10 , 1 , 2000 * repeat,desc);
   testChunkingPerf(src, sink,dest,10000, 10, 1 , 1000 * repeat,desc);
   testChunkingPerf(src, sink,dest,50000, 10 , 1 , 1000 * repeat,desc);
+  if (src->cap.maxMsgSize > 100000) testChunkingPerf(src, sink,dest,100000, 10 , 1 , 300 * repeat,desc);
 
   testChunkingPerf(src, sink,dest,1, 50 , 1 , 10000 * repeat,desc);
   testChunkingPerf(src, sink,dest,16, 50 , 1 , 5000 * repeat,desc);
@@ -289,6 +306,7 @@ void testGroup(MsgSocket* src, MsgSocket* sink,Handle dest,const char* desc)
   testChunkingPerf(src, sink,dest,1000, 50, 1 , 2000 * repeat,desc);
   testChunkingPerf(src, sink,dest,10000, 50, 1 , 1000 * repeat,desc);
   testChunkingPerf(src, sink,dest,50000, 50 , 1 , 1000 * repeat,desc);
+  if (src->cap.maxMsgSize > 130000) testChunkingPerf(src, sink,dest,130000, 50 , 1 , 100 * repeat,desc);
 
   // high perf RPC: This test simulates a server being hit by tons of small RPC calls
   testChunkingPerf(src, sink,dest,32, 500 , 1 , 1000 * repeat,desc); 

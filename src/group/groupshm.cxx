@@ -870,7 +870,7 @@ bool GroupServer::electNodeRepresentative(void)
       hdr->rep = SAFplus::pid;
       hdr->repPort = groupCommunicationPort;
       hdr->repWatchdog = std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::system_clock::now().time_since_epoch()).count();
-      logAlert("GMS","REP","This process is claiming group node representative, on port %d at beat %d",hdr->repPort, (int) hdr->repWatchdog); 
+      logAlert("GMS","REP","This process is claiming group node representative, on port %d at beat %u",hdr->repPort, (unsigned int) hdr->repWatchdog); 
       boost::this_thread::sleep(boost::posix_time::milliseconds(100));
       if (hdr->rep == SAFplus::pid) return true;
       // Otherwise I will wrap around, reload the PID and make sure that it is valid.  This will presumably solve theoretical write collisions which corrupt data due to different writes succeeding in different bytes in the number.

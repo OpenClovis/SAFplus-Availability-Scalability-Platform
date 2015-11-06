@@ -23,6 +23,7 @@ $(TEST_DIR)/%.xml: %.xml
 $(TEST_DIR)/embTest111.py: embTest111.py
 	cp -f $< $@
 
+
 $(TEST_DIR)/exampleSafApp:  $(OBJ_DIR)/exampleSafApp.o $(SAFPLUS_DEP_LIBS)
 	$(LINK_EXE) $@ $<  $(SAFPLUS_LINK_LIBS) -lboost_filesystem $(LINK_SO_LIBS) -lprotobuf -lprotoc $(LINK_SO_LIBS)
 
