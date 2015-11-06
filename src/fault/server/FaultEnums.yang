@@ -42,6 +42,8 @@ module FaultEnums
 	    enum MSG_ENTITY_FAULT_BROADCAST {}
 	    
 	    enum MSG_ENTITY_STATE_CHANGE_BROADCAST {}
+	    
+	    enum MSG_ENTITY_COUNT {}
   	} 
   }
   
@@ -338,6 +340,8 @@ module FaultEnums
       	description
       	"Probable cause of alarm is enclosure door is open.";
       }
+      
+      enum ALARM_PROB_CAUSE_COUNT {}
     }
     description     
      "Fault Probable Cause values";
@@ -370,7 +374,9 @@ module FaultEnums
       enum ALARM_STATE_INVALID {
       	description
       	"Invalid alarm state.";
-      } 		
+      } 
+      
+      enum ALARM_STATE_COUNT {}		
 		}  
 		description     
      "Fault Alarm State values";
@@ -410,6 +416,7 @@ module FaultEnums
       	"Category for alarms that are related to environmental conditions around the equipment.";
       }
       
+      enum ALARM_CATEGORY_COUNT {}
     }
     description     
      "Fault Event Type value";
@@ -465,19 +472,12 @@ module FaultEnums
 				 alarm clears all alarms for this managed object that have the same Alarm type, Probable cause and
 				 Specific problems (if given). (@ref ITU X.733)";
       }
+      
+      enum ALARM_SEVERITY_COUNT {}
     }
     description     
      "Fault severity value";
     reference       
      "";
   }
-  
-  typedef FaultState {
-  	type enumeration {
-  		enum STATE_UNDEFINED {}
-  		enum STATE_UP {}
-  		enum STATE_DOWN {}
-  	}
-  }
-
 }

@@ -17,7 +17,7 @@ namespace FaultEnums
 
     enum class FaultAlarmState
       {
-        ALARM_STATE_CLEAR, ALARM_STATE_ASSERT, ALARM_STATE_SUPPRESSED, ALARM_STATE_UNDER_SOAKING, ALARM_STATE_INVALID
+        ALARM_STATE_CLEAR, ALARM_STATE_ASSERT, ALARM_STATE_SUPPRESSED, ALARM_STATE_UNDER_SOAKING, ALARM_STATE_INVALID, ALARM_STATE_COUNT
       };
     std::ostream& operator<<(std::ostream& os, const FaultAlarmState& e);
     std::istream& operator>>(std::istream& is, FaultAlarmState& e);

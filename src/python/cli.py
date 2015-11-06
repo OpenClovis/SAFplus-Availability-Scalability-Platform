@@ -1,5 +1,6 @@
 #!/usr/bin/env python
 import sys, os, os.path, time
+import safplus
 
 AVAILABLE_SERVICES = {'localaccess':None, 'netconfaccess':None}
 
@@ -48,7 +49,7 @@ SAFplusNamespace = "http://www.openclovis.org/ns/amf"
 import pdb
 import xml.etree.ElementTree as ET
 
-
+faultData = safplus.FaultEventData()
 
 try:
   import xmlterm
@@ -566,6 +567,81 @@ By default the specified location and children are shown.  Use -N to specify how
           self.bar(xml,self.xmlterm)
           return ""
 
+  def do_alarmCategory(self):
+    count = int(faultData.category.ALARM_CATEGORY_COUNT)
+    tx = "<text>"
+    for i in range(0, count):
+      str = "\n" if (i < (count - 1)) else ""
+      tx += safplus.AlarmCategoryManager.c_str(safplus.AlarmCategory(i)) + str
+    tx += "</text>"
+    return tx
+  
+  def do_alarmState(self):
+    count = int(faultData.alarmState.ALARM_STATE_COUNT)
+    tx = "<text>"
+    for i in range(0, count):
+      str = "\n" if (i < (count - 1)) else ""
+      tx += safplus.FaultAlarmStateManager.c_str(safplus.FaultAlarmState(i)) + str
+    tx += "</text>"
+    return tx
+      
+  def do_probableCause(self):
+    count = int(faultData.cause.ALARM_PROB_CAUSE_COUNT)
+    tx = "<text>"
+    for i in range(0, count):
+      str = "\n" if (i < (count - 1)) else ""
+      tx += safplus.FaultProbableCauseManager.c_str(safplus.FaultProbableCause(i)) + str
+    tx += "</text>"
+    return tx
+      
+  def do_severity(self):
+    count = int(faultData.severity.ALARM_SEVERITY_COUNT)
+    tx = "<text>"
+    for i in range(0, count):
+      str = "\n" if (i < (count - 1)) else ""
+      tx += safplus.FaultSeverityManager.c_str(safplus.FaultSeverity(i)) + str
+    tx += "</text>"
+    return tx
+  
+  def do_notify(self):
+    
+    FAULT_CLIENT_PID = 200
+    FAULT_ENTITY_PID = 201
+    
+    sic = safplus.SafplusInitializationConfiguration()
+    sic.port = 50
+    
+    me = safplus.getProcessHandle(FAULT_CLIENT_PID, 0)
+    faultEntityHandle = safplus.getProcessHandle(FAULT_ENTITY_PID, 0)
+    
+    fc = safplus.Fault()
+    fc.init(me, safplus.WellKnownHandle(0,0,0,0), sic.port)
+    
+    state = fc.getFaultState(me)
+    
+    print"Current state : " + str(state)
+    time.sleep(5)
+    print "Register State Down"
+    fc.registerEntity(faultEntityHandle, safplus.FaultState.STATE_DOWN)
+    time.sleep(5)
+    state = fc.getFaultState(faultEntityHandle)
+    
+    print "current state : " + str(state)
+    
+    time.sleep(5)
+    print "Register State Up"
+    fc.registerEntity(faultEntityHandle, safplus.FaultState.STATE_UP)
+    time.sleep(5)
+    state = fc.getFaultState(faultEntityHandle)
+   
+    print "current state " + str(state)
+    time.sleep(5)
+    state = fc.getFaultState(me)
+        
+    fc.notify(faultData, safplus.FaultPolicy.Custom)
+    print "Notify sent"
+    return ""
+  
   def xxexecute(self,textLine,xt):
     """Execute the passed string"""
     cmdList = textLine.split(";")
@@ -681,6 +757,11 @@ By default the specified location and children are shown.  Use -N to specify how
 def main(args):
   cmds,handlers = access.Initialize()
 
+  faultData.alarmState = safplus.FaultAlarmState.ALARM_STATE_INVALID
+  faultData.category = safplus.AlarmCategory.ALARM_CATEGORY_COMMUNICATIONS
+  faultData.cause = safplus.FaultProbableCause.ALARM_PROB_CAUSE_PROCESSOR_PROBLEM
+  faultData.severity = safplus.FaultSeverity.ALARM_SEVERITY_MINOR
+    
   if windowed:
     os.environ["TERM"] = "XT1" # Set the term in the environment so child programs know xmlterm is running
     resolver = TermController()

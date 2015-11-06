@@ -74,7 +74,8 @@ namespace FaultEnums
             pair_t(FaultProbableCause::ALARM_PROB_CAUSE_EXCESSIVE_VIBRATION, "ALARM_PROB_CAUSE_EXCESSIVE_VIBRATION"),
             pair_t(FaultProbableCause::ALARM_PROB_CAUSE_MATERIAL_SUPPLY_EXHAUSTED, "ALARM_PROB_CAUSE_MATERIAL_SUPPLY_EXHAUSTED"),
             pair_t(FaultProbableCause::ALARM_PROB_CAUSE_PUMP_FAILURE, "ALARM_PROB_CAUSE_PUMP_FAILURE"),
-            pair_t(FaultProbableCause::ALARM_PROB_CAUSE_ENCLOSURE_DOOR_OPEN, "ALARM_PROB_CAUSE_ENCLOSURE_DOOR_OPEN")
+            pair_t(FaultProbableCause::ALARM_PROB_CAUSE_ENCLOSURE_DOOR_OPEN, "ALARM_PROB_CAUSE_ENCLOSURE_DOOR_OPEN"),
+            pair_t(FaultProbableCause::ALARM_PROB_CAUSE_COUNT, "ALARM_PROB_CAUSE_COUNT")
     }; // uses c++11 initializer lists 
 
     const char* c_str(const ::FaultEnums::FaultProbableCause &faultProbableCause)

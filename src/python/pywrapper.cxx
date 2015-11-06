@@ -12,7 +12,6 @@
 #include <clCkptApi.hxx>
 #include <clMgtApi.hxx>
 #include <clFaultApi.hxx>
-//#include <FaultSeverity.hxx>
 
 using namespace SAFplus;
 using namespace FaultEnums;
@@ -41,12 +40,16 @@ static object ckpt_get(Checkpoint& self, char* key)
   return object();
 }
 
+BOOST_PYTHON_MEMBER_FUNCTION_OVERLOADS(fault_init, Fault::init, 1, 2);
+BOOST_PYTHON_MEMBER_FUNCTION_OVERLOADS(fault_init2, Fault::init, 3, 4);
+
 BOOST_PYTHON_MODULE(pySAFplus)
 {
 
   void (Fault::*notify)(FaultEventData, FaultPolicy) = &Fault::notify;
-  void (Fault::*faultInit) (Handle, Handle, int, Wakeable&) = &Fault::init;
-  void (Fault::*faultInit2) (Handle) = &Fault::init;
+  void (Fault::*faultInit) (Handle, Wakeable&) = &Fault::init;
+  void (Fault::*faultInit2) (Handle, Handle, int, Wakeable&) = &Fault::init;
+
   logInitialize();
   utilsInitialize();
 
@@ -89,7 +92,8 @@ BOOST_PYTHON_MODULE(pySAFplus)
       .value("ALARM_STATE_ASSERT", FaultEnums::FaultAlarmState::ALARM_STATE_ASSERT)
       .value("ALARM_STATE_SUPPRESSED", FaultEnums::FaultAlarmState::ALARM_STATE_SUPPRESSED)
       .value("ALARM_STATE_UNDER_SOAKING", FaultEnums::FaultAlarmState::ALARM_STATE_UNDER_SOAKING)
-      .value("ALARM_STATE_INVALID", FaultEnums::FaultAlarmState::ALARM_STATE_INVALID);
+      .value("ALARM_STATE_INVALID", FaultEnums::FaultAlarmState::ALARM_STATE_INVALID)
+      .value("ALARM_STATE_COUNT", FaultEnums::FaultAlarmState::ALARM_STATE_COUNT);
 
   enum_<FaultEnums::AlarmCategory>("AlarmCategory")
       .value("ALARM_CATEGORY_INVALID", FaultEnums::AlarmCategory::ALARM_CATEGORY_INVALID)
@@ -97,7 +101,8 @@ BOOST_PYTHON_MODULE(pySAFplus)
       .value("ALARM_CATEGORY_QUALITY_OF_SERVICE", FaultEnums::AlarmCategory::ALARM_CATEGORY_QUALITY_OF_SERVICE)
       .value("ALARM_CATEGORY_PROCESSING_ERROR", FaultEnums::AlarmCategory::ALARM_CATEGORY_PROCESSING_ERROR)
       .value("ALARM_CATEGORY_EQUIPMENT", FaultEnums::AlarmCategory::ALARM_CATEGORY_EQUIPMENT)
-      .value("ALARM_CATEGORY_ENVIRONMENTAL", FaultEnums::AlarmCategory::ALARM_CATEGORY_ENVIRONMENTAL);
+      .value("ALARM_CATEGORY_ENVIRONMENTAL", FaultEnums::AlarmCategory::ALARM_CATEGORY_ENVIRONMENTAL)
+      .value("ALARM_CATEGORY_COUNT", FaultEnums::AlarmCategory::ALARM_CATEGORY_COUNT);
 
   enum_<FaultEnums::FaultProbableCause>("FaultProbableCause")
       .value("ALARM_ID_INVALID", FaultEnums::FaultProbableCause::ALARM_ID_INVALID)
@@ -157,7 +162,8 @@ BOOST_PYTHON_MODULE(pySAFplus)
       .value("ALARM_PROB_CAUSE_EXCESSIVE_VIBRATION", FaultEnums::FaultProbableCause::ALARM_PROB_CAUSE_EXCESSIVE_VIBRATION)
       .value("ALARM_PROB_CAUSE_MATERIAL_SUPPLY_EXHAUSTED", FaultEnums::FaultProbableCause::ALARM_PROB_CAUSE_MATERIAL_SUPPLY_EXHAUSTED)
       .value("ALARM_PROB_CAUSE_PUMP_FAILURE", FaultEnums::FaultProbableCause::ALARM_PROB_CAUSE_PUMP_FAILURE)
-      .value("ALARM_PROB_CAUSE_ENCLOSURE_DOOR_OPEN", FaultEnums::FaultProbableCause::ALARM_PROB_CAUSE_ENCLOSURE_DOOR_OPEN);
+      .value("ALARM_PROB_CAUSE_ENCLOSURE_DOOR_OPEN", FaultEnums::FaultProbableCause::ALARM_PROB_CAUSE_ENCLOSURE_DOOR_OPEN)
+      .value("ALARM_PROB_CAUSE_COUNT", FaultEnums::FaultProbableCause::ALARM_PROB_CAUSE_COUNT);
 
   enum_<FaultEnums::FaultSeverity>("FaultSeverity")
       .value("ALARM_SEVERITY_INVALID", FaultEnums::FaultSeverity::ALARM_SEVERITY_INVALID)
@@ -166,11 +172,25 @@ BOOST_PYTHON_MODULE(pySAFplus)
       .value("ALARM_SEVERITY_MINOR", FaultEnums::FaultSeverity::ALARM_SEVERITY_MINOR)
       .value("ALARM_SEVERITY_WARNING", FaultEnums::FaultSeverity::ALARM_SEVERITY_WARNING)
       .value("ALARM_SEVERITY_INDETERMINATE", FaultEnums::FaultSeverity::ALARM_SEVERITY_INDETERMINATE)
-      .value("ALARM_SEVERITY_CLEAR", FaultEnums::FaultSeverity::ALARM_SEVERITY_CLEAR);
+      .value("ALARM_SEVERITY_CLEAR", FaultEnums::FaultSeverity::ALARM_SEVERITY_CLEAR)
+      .value("ALARM_SEVERITY_COUNT", FaultEnums::FaultSeverity::ALARM_SEVERITY_COUNT);
+
 
   class_<FaultSeverityManager>("FaultSeverityManager", no_init)
       .def("c_str",static_cast< const char* (*)(FaultSeverity) > (&FaultSeverityManager::c_str))
     .staticmethod("c_str");
+
+  class_<AlarmCategoryManager>("AlarmCategoryManager", no_init)
+        .def("c_str",static_cast< const char* (*)(AlarmCategory) > (&AlarmCategoryManager::c_str))
+      .staticmethod("c_str");
+
+  class_<FaultProbableCauseManager>("FaultProbableCauseManager", no_init)
+        .def("c_str",static_cast< const char* (*)(FaultProbableCause) > (&FaultProbableCauseManager::c_str))
+      .staticmethod("c_str");
+
+  class_<FaultAlarmStateManager>("FaultAlarmStateManager", no_init)
+        .def("c_str",static_cast< const char* (*)(FaultAlarmState) > (&FaultAlarmStateManager::c_str))
+      .staticmethod("c_str");
 
   enum_<FaultEnums::FaultMessageType>("FaultMessageType")
       .value("MSG_UNDEFINED", FaultEnums::FaultMessageType::MSG_UNDEFINED)
@@ -181,12 +201,14 @@ BOOST_PYTHON_MODULE(pySAFplus)
       .value("MSG_ENTITY_JOIN_BROADCAST", FaultEnums::FaultMessageType::MSG_ENTITY_JOIN_BROADCAST)
       .value("MSG_ENTITY_LEAVE_BROADCAST", FaultEnums::FaultMessageType::MSG_ENTITY_LEAVE_BROADCAST)
       .value("MSG_ENTITY_FAULT_BROADCAST", FaultEnums::FaultMessageType::MSG_ENTITY_FAULT_BROADCAST)
-      .value("MSG_ENTITY_STATE_CHANGE_BROADCAST", FaultEnums::FaultMessageType::MSG_ENTITY_STATE_CHANGE_BROADCAST);
+      .value("MSG_ENTITY_STATE_CHANGE_BROADCAST", FaultEnums::FaultMessageType::MSG_ENTITY_STATE_CHANGE_BROADCAST)
+      .value("MSG_ENTITY_COUNT", FaultEnums::FaultMessageType::MSG_ENTITY_COUNT);
 
   // Fault
   class_<Fault>("Fault", no_init)
     .def(init<>())
-        .def("init", faultInit2)
+        .def("init", faultInit, fault_init())
+        .def("init", faultInit2, fault_init2())
         .def("notify", notify)
         .def("getFaultState", &Fault::getFaultState)
         .def("registerEntity", &Fault::registerEntity);
@@ -226,7 +248,7 @@ BOOST_PYTHON_MODULE(pySAFplus)
         .def("create",static_cast< Handle (*)(int) > (&Handle::create))
     .staticmethod("create");
 
-  class_<WellKnownHandle,bases<Handle> >("WellKnownHandle",no_init)
+  class_<WellKnownHandle,bases<Handle> >("WellKnownHandle", init<uint64_t,optional<uint32_t,uint16_t,uint_t> >())
         .def("getNode", &WellKnownHandle::getNode)
         .def("getCluster", &WellKnownHandle::getCluster)
         .def("getProcess", &WellKnownHandle::getProcess)
