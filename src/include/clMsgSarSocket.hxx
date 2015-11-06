@@ -4,6 +4,8 @@
 
 #include <boost/unordered_map.hpp>
 #include <clMsgBase.hxx>
+#include <Timer.hxx>
+
 
 namespace SAFplus
   {
@@ -32,9 +34,10 @@ namespace SAFplus
       MsgSarTracker():last(0),count(0) {}
       uint_t last;
       uint_t count;
+      Timer trackerTimer;
+      TimerTimeOutT trackerTimeOut;
       std::vector<Message*> msgs; 
     };
-
 
     class MsgSarSocket: public MsgSocket
     {
@@ -45,10 +48,9 @@ namespace SAFplus
       typedef boost::unordered_map<MsgSarIdentifier,MsgSarTracker> MsgSarMap;
 
       MsgSarMap received;
-
       MsgSocket* xport;
       MsgPool* headerPool;
-
+      //ClRcT timeOutCallback(void *arg);
       //? Construct the socket.  Provide the underlying transport (or additional layer) that this segmentation and reassembly layer will use 
       MsgSarSocket(MsgSocket* underlyingSocket);
       
