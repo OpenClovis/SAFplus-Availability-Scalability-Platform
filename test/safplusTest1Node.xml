@@ -9,7 +9,7 @@
       </timeout> 
     </git>
     <!-- notify>
-      <email from="c3po-z1@openclovis.com" server="smtp.gmail.com" password="poc3secret" to="eng-all@openclovis.com"/>
+      <email from="c3po-z1@openclovis.com" server="smtp.gmail.com" password="" to="eng-all@openclovis.com"/>
     </notify -->
     <report_url value="scp://report@test.openclovis.com//webdata/import" />
   </env_cfg>
