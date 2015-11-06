@@ -49,8 +49,6 @@ protected:
   DbalPlugin() {pDBHandle=NULL;}
 };
 
-DbalPlugin::~DbalPlugin() { }
-
 /*
 This function loads and creates a new dbal plugin object based on the pluginFile parameter.
 The value of pluginFile is the one of the dbal plugin shared libraries (libclSqliteDB.so, libclGDBM.so, libclBerkeleyDB.so or libclCkptDB.so).

@@ -50,6 +50,8 @@ namespace SAFplus
     }
   }
 #endif
+  DbalPlugin::~DbalPlugin() { }
+
   DbalPlugin* clDbalObjCreate(const char* pluginFile)
   {     
     const char* dbalFile = NULL;

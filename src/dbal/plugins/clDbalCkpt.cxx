@@ -6,15 +6,19 @@
 #include <clCommon.hxx>
 #include <clLogApi.hxx>
 #include <clDbg.hxx>
+#include <boost/unordered_map.hpp>
 #include <boost/interprocess/shared_memory_object.hpp>
-
+using namespace boost::interprocess;
+using namespace std;
 
 namespace SAFplus {
+
+typedef boost::unordered_map <string, Handle> DatabaseNameToHandleMap;
 
 class CkptPlugin: public DbalPlugin
 {
 public:
-  //CkptPlugin() {}
+  CkptPlugin();
   virtual ClRcT open(ClDBFileT dbFile, ClDBNameT dbName, ClDBFlagT dbFlag, ClUint32T maxKeySize, ClUint32T maxRecordSize);  
   virtual ClRcT insertRecord(ClDBKeyT dbKey, ClUint32T keySize, ClDBRecordT dbRec, ClUint32T recSize);
   virtual ClRcT replaceRecord(ClDBKeyT dbKey, ClUint32T keySize, ClDBRecordT dbRec, ClUint32T recSize);
@@ -33,9 +37,17 @@ public:
 
 protected:
   virtual ClRcT close();
+  managed_shared_memory msm; // this shared memory is to manage the mapping between the database name and checkpoint handle. The reason is that user doesn't care about checkpoint handle, he only knows the database name, but to open a checkpoint, we must provide a handle. So, the underlying implementation have to manage this mapping
+  DatabaseNameToHandleMap* map;
 };
 
 //static CkptPlugin api;
+
+CkptPlugin::CkptPlugin()
+{
+  msm = managed_shared_memory (open_or_create, "SAFplusDbal_DatabaseNameToHandleMapping", 1024);
+  map = msm.find_or_construct<DatabaseNameToHandleMap>("database_name")  (1024);
+}
 
 CkptPlugin::~CkptPlugin()
 { 
@@ -77,7 +89,18 @@ ClRcT CkptPlugin::open(ClDBFileT dbFile, ClDBNameT dbName, ClDBFlagT dbFlag, ClU
             enableSync = CL_FALSE;
     }
 */
-    Handle ckptHdl; // TODO: convert dbName to checkpoint handle???
+    Handle ckptHdl;
+    string strDBName(dbName);
+    DatabaseNameToHandleMap::iterator contents = map->find(strDBName);
+    if (contents != map->end())
+    {
+      ckptHdl = contents->second;
+    }
+    else 
+    {
+      ckptHdl = SAFplus::Handle::create();
+      (*map)[strDBName] = ckptHdl;
+    }
     Checkpoint* p = NULL;
 
     /*if(NULL == p) {
@@ -88,12 +111,18 @@ ClRcT CkptPlugin::open(ClDBFileT dbFile, ClDBNameT dbName, ClDBFlagT dbFlag, ClU
     }*/
 
 
-    //logTrace("DBA", "DBO", "Opening the Database : [%s]", dbName);
+    logTrace("DBA", "DBO", "Opening the Database : [%s]", dbName);
 
     if (dbFlag == CL_DB_CREAT)
     {
+        const char* temp = "SAFplusCkpt_";
+        char sharedMemFile[256];
+        memcpy(sharedMemFile, temp, strlen(temp));         
+        ckptHdl.toStr(sharedMemFile+strlen(temp));
+        logInfo("DBA", "DBO", "Removing [%s]", sharedMemFile);
+        //ckptSharedMemoryObjectname.append(sharedMemFile);
         // remove the checkpoint from shared mem
-        boost::interprocess::shared_memory_object::remove(dbName);
+        boost::interprocess::shared_memory_object::remove(sharedMemFile);
         p = new Checkpoint(ckptHdl, Checkpoint::SHARED | Checkpoint::LOCAL);
     }    
     else if(dbFlag == CL_DB_OPEN)

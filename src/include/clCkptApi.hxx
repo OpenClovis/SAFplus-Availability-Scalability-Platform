@@ -29,7 +29,7 @@ Typically, a single active process writes the checkpoint and other standby entit
 
 #include <clCkptIpi.hxx>
 #include <clCustomization.hxx>
-#include <clDbalApi.h>
+#include <clDbalBase.hxx>
 
 
 #define	NullTMask 0x800000UL
@@ -355,7 +355,7 @@ namespace SAFplus
     bool isSyncReplica;
     SAFplusI::CkptSynchronization* sync;  // This is a separate object (and pointer) to break the synchronization requirements (messaging and groups) from the core checkpoint
     
-    ClDBHandleT dbHandle; //Handle to manipulate with database. Basically, each persistent checkpoint data needs to be stored as a table on disk, so, if a persistent checkpoint is opened, dbHandle will be initialized. If it's not a persistent one, dbHandle is NULL (not used)
+    DbalPlugin* pDbal; //Dbal plugin object to manipulate with database. Basically, each persistent checkpoint data needs to be stored as a table on disk, so, if a persistent checkpoint is opened, dbal plugin object will be initialized. If it's not a persistent one, dbal plugin is NULL (not used)
     SAFplusI::CkptOperationMap operMap; /* Holding operation performed on the checkpoint data items identified by key. The purpose is to reflect only changed those items to disk. For those items unchanged, there isn't any operation on disk, too. This decreases the disk I/O operations */
 
   protected:    
