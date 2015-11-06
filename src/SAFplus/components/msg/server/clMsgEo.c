@@ -107,7 +107,6 @@ ClUint8T clEoClientLibs[] = {
 
 
 
-static ClHandleT gMsgNotificationHandle;
 ClInt32T gClMsgSvcRefCnt;
 ClHandleDatabaseHandleT gMsgClientHandleDb;
 ClOsalMutexT gClMsgFinalizeLock;
@@ -224,10 +223,24 @@ error_out_1:
     return NULL;
 }
 
+static ClRcT _msgIocNotificationReceiveCallback(ClEoExecutionObjT *pThis, ClBufferHandleT eoRecvMsg,ClUint8T priority,ClUint8T protoType,ClUint32T length, ClIocPhysicalAddressT srcAddr)
+{
+  ClIocNotificationT notification = { 0 };
+  ClUint32T len = sizeof(notification);
+
+  clBufferNBytesRead(eoRecvMsg, (ClUint8T*) &notification, &len);
+
+  notification.id = ntohl(notification.id);
+  notification.nodeAddress.iocPhyAddress.nodeAddress = ntohl(notification.nodeAddress.iocPhyAddress.nodeAddress);
+  notification.nodeAddress.iocPhyAddress.portId = ntohl(notification.nodeAddress.iocPhyAddress.portId);
+
+  clMsgNotificationReceiveCallback(notification.id, 0, &notification.nodeAddress);
+  return CL_OK;
+}
+
 static ClRcT clMsgInitialize(ClUint32T argc, ClCharT *argv[])
 {
     ClRcT rc, retCode;
-    ClIocPhysicalAddressT notificationForComp = { CL_IOC_BROADCAST_ADDRESS, 0};
 
     /* Checking if message service is already initialized */
     if(gClMsgInit == CL_TRUE)
@@ -281,13 +294,21 @@ static ClRcT clMsgInitialize(ClUint32T argc, ClCharT *argv[])
     rc = clOsalMutexInit(&gClGroupDbLock);
     CL_ASSERT(rc == CL_OK);
 
-    rc = clCpmNotificationCallbackInstall(notificationForComp, &clMsgNotificationReceiveCallback, NULL, &gMsgNotificationHandle);
-    if(rc != CL_OK)
+    /* fast node/comp up/down detection */
+    if (1)
     {
-        clLogError("MSG", "INI", "Failed to install the notification callback function. error code [0x%x].", rc);
-        goto error_out_5;
-    }
+        ClEoProtoDefT eoProtoDef = 
+        {
+            CL_IOC_PORT_NOTIFICATION_PROTO,
+            "IOC notification to MSG",
+            _msgIocNotificationReceiveCallback,
+            NULL,
+            CL_EO_STATE_ACTIVE | CL_EO_STATE_SUSPEND | CL_EO_STATE_THREAD_SAFE
+        };
 
+        clEoProtoSwitch(&eoProtoDef);
+    }
+    
     /* Initializing the IDL generated code. */
     rc = clMsgIdlClientInstall();
     if(rc != CL_OK)
@@ -375,10 +396,6 @@ error_out_7:
     if(retCode != CL_OK)
         clLogError("MSG", "INI", "Failed to destroy the just opened handle database. error code [0x%x].", retCode);
 error_out_6:
-    retCode = clCpmNotificationCallbackUninstall(&gMsgNotificationHandle);
-    if(retCode != CL_OK)
-        clLogError("MSG", "INI", "Failed to uninstall the notification callback function. error code [0x%x].", retCode);
-error_out_5:
     retCode = clOsalMutexDestroy(&gClGroupDbLock);
     if(retCode != CL_OK)
         clLogError("MSG", "INI", "Failed to destroy the group db mutex. error code [0x%x].", retCode);
@@ -465,10 +482,6 @@ static ClRcT clMsgFinalize(ClBoolT *pLockStatus)
     rc = clMsgQueueFinalize();
     if(rc != CL_OK)
         clLogError("MSG", "FIN", "Failed to finalize queue databases. error code [0x%x].", rc);
-
-    rc = clCpmNotificationCallbackUninstall(&gMsgNotificationHandle);
-    if(rc != CL_OK)
-        clLogError("MSG", "FIN", "Failed to uninstall the notification callback function. error code [0x%x].", rc);
 
     rc = clOsalMutexDestroy(&gClGroupDbLock);
     if(rc != CL_OK)
