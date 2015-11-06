@@ -162,7 +162,7 @@ deb_build:remove_target
 
 apt/debian/conf/distributions:
 	mkdir -p apt/debian/conf
-	python src/mk/genDebDist.py apt/debian/conf/distributions safplus $(DISTRIB_CODENAME)
+	python src/mk/genDebDist.py apt/debian/conf safplus $(DISTRIB_CODENAME) $(__TMP_TARGET_PLATFORM)
 
 deb_upload: apt/debian/conf/distributions
 	(cd apt/debian; reprepro -v includedeb $(DISTRIB_CODENAME) $(SAFPLUS_TOP_DIR)/build/*.deb)
