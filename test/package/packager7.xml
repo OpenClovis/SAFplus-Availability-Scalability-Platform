@@ -1,0 +1,37 @@
+<packager ver="1.0.0.0">
+  <pkg_version value="7.0" />
+  <pkg_release value="1" />
+  <env_cfg>
+    <git>
+      <timeout>
+	<checkout value='10000' />
+	<update   value='3000' />
+	<revert   value='500' />
+	<status   value='200' />
+      </timeout>
+    </git>
+  </env_cfg>
+  <project name="s7" />
+  <source>
+     <SAFplus source="git://username:passwd@github.com/OpenClovis/SAFplus-Availability-Scalability-Platform.git@@s7"/>
+     <TAE     source="git://username:passwd@github.com/OpenClovis/TAE.git@@s7" />
+  </source>
+  <builder ip="127.0.0.1" user="root" password=""/>
+  <distributions>
+     <distribution1 name="Centos_s7_test_vm" os="ubuntu">
+        <credentials ip="10.20.26.238" user="root" password="" />
+	<working_dir value="/home/openclovis/software" />
+        <pkg_format value="rpm" />
+     </distribution1>
+     <distribution2 name="ubuntu_s7_14_test_vm_32" os="ubuntu">
+        <credentials ip="10.20.26.94" user="root" password="" />
+	<working_dir value="/home/openclovis/software" />
+        <pkg_format value="deb" />
+     </distribution2>
+     <!--distribution3 name="ubuntu_s7_teset_vm" os="ubuntu">
+        <credentials ip="10.20.26.126" user="root" password="" />
+	<working_dir value="/home/openclovis/software" />
+        <pkg_format value="deb" />
+     </distribution3-->
+  </distributions>
+</packager>

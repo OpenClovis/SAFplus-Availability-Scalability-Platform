@@ -1,0 +1,10 @@
+Before start executing the safplus_rpm_deb_gen.py script,
+you need to update the packager7.xml file.
+
+1. safplus_rpm_deb_gen.py uses a git to fetch the latest code and generates the safplus packages.
+   For accessing the code repository, script requires github username and password.
+   In the source section of packager7.xml file, replace the username:password with github username and password 
+2. Update the  password filed in the packager7.xml with the corresponding machine password 
+
+Usage:
+./safplus_rpm_deb_gen.py -S packager7.xml
