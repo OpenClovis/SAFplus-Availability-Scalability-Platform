@@ -18,13 +18,13 @@
   </source>
   <builder ip="127.0.0.1" user="root" password=""/>
   <distributions>
-     <distribution1 name="Centos_s7_test_vm" os="ubuntu">
-        <credentials ip="10.20.26.238" user="root" password="" />
+     <distribution1 name="vm_name on your virtual box" os="ubuntu">
+        <credentials ip="" user="root" password="" />
 	<working_dir value="/home/openclovis/software" />
         <pkg_format value="rpm" />
      </distribution1>
-     <distribution2 name="ubuntu_s7_14_test_vm_32" os="ubuntu">
-        <credentials ip="10.20.26.94" user="root" password="" />
+     <distribution2 name="vm_name on your virtual box " os="ubuntu">
+        <credentials ip="" user="root" password="" />
 	<working_dir value="/home/openclovis/software" />
         <pkg_format value="deb" />
      </distribution2>
