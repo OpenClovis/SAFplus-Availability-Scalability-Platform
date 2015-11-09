@@ -7,13 +7,24 @@
 #include <clLogApi.hxx>
 #include <clDbg.hxx>
 #include <boost/unordered_map.hpp>
+#include <functional>                  //std::equal_to
+#include <boost/functional/hash.hpp>   //boost::hash
+#include <boost/interprocess/allocators/allocator.hpp>
 #include <boost/interprocess/shared_memory_object.hpp>
+#include <boost/interprocess/containers/string.hpp>
+
 using namespace boost::interprocess;
-using namespace std;
 
 namespace SAFplus {
 
-typedef boost::unordered_map <string, Handle> DatabaseNameToHandleMap;
+typedef allocator<char, managed_shared_memory::segment_manager> CharAllocator;
+typedef basic_string<char, std::char_traits<char>, CharAllocator> ShmString;
+typedef ShmString HashKeyType;
+typedef Handle HashMappedType;
+typedef std::pair<const ShmString, Handle> HashValueType;
+typedef allocator<HashValueType, managed_shared_memory::segment_manager> HashMemAllocator;
+typedef boost::unordered_map<HashKeyType, HashMappedType, boost::hash<HashKeyType>, std::equal_to<HashKeyType>, HashMemAllocator>  HashMap; // database name in string maps to SAFplus Handle
+
 
 class CkptPlugin: public DbalPlugin
 {
@@ -35,18 +46,20 @@ public:
   virtual ClRcT freeKey(ClDBRecordT dbKey);
   virtual ~CkptPlugin();
 
+  void dbgDumpMap();
+
 protected:
   virtual ClRcT close();
-  managed_shared_memory msm; // this shared memory is to manage the mapping between the database name and checkpoint handle. The reason is that user doesn't care about checkpoint handle, he only knows the database name, but to open a checkpoint, we must provide a handle. So, the underlying implementation have to manage this mapping
-  DatabaseNameToHandleMap* map;
+  managed_shared_memory segment; // this shared memory is to manage the mapping between the database name and checkpoint handle. The reason is that user doesn't care about checkpoint handle, he only knows the database name, but to open a checkpoint, we must provide a handle. So, the underlying implementation have to manage this mapping
+  HashMap* map;
 };
 
 //static CkptPlugin api;
 
 CkptPlugin::CkptPlugin()
 {
-  msm = managed_shared_memory (open_or_create, "SAFplusDbal_DatabaseNameToHandleMapping", 1024);
-  map = msm.find_or_construct<DatabaseNameToHandleMap>("database_name")  (1024);
+  segment = managed_shared_memory (open_or_create, "SAFplusDbal_DatabaseNameToHandleMapping", 65536);
+  map = segment.find_or_construct<HashMap>("HashMap")(256, boost::hash<ShmString>(), std::equal_to<ShmString>(), segment.get_allocator<HashValueType>());
 }
 
 CkptPlugin::~CkptPlugin()
@@ -89,27 +102,22 @@ ClRcT CkptPlugin::open(ClDBFileT dbFile, ClDBNameT dbName, ClDBFlagT dbFlag, ClU
             enableSync = CL_FALSE;
     }
 */
+    //dbgDumpMap();
     Handle ckptHdl;
-    string strDBName(dbName);
-    DatabaseNameToHandleMap::iterator contents = map->find(strDBName);
+    ShmString strDBName(dbName, segment.get_allocator<ShmString>());
+    HashMap::iterator contents = map->find(strDBName);
     if (contents != map->end())
     {
       ckptHdl = contents->second;
     }
     else 
     {
-      ckptHdl = SAFplus::Handle::create();
-      (*map)[strDBName] = ckptHdl;
+      ckptHdl = SAFplus::Handle::create();      
+      map->insert(HashValueType(strDBName, ckptHdl));
     }
     Checkpoint* p = NULL;
-
-    /*if(NULL == p) {
-        errorCode = CL_DBAL_RC(CL_ERR_NO_MEMORY);
-        logError("DBA", "DBO", "Checkpoint DB Open failed: No Memory.");
-        
-        return(errorCode);
-    }*/
-
+    //dbgDumpMap();
+    
 
     logTrace("DBA", "DBO", "Opening the Database : [%s]", dbName);
 
@@ -471,6 +479,19 @@ ClRcT CkptPlugin::freeKey(ClDBRecordT dbKey)
     NULL_CHECK(dbKey);
     SAFplusHeapFree(dbKey);
     return (CL_OK);
+}
+
+void CkptPlugin::dbgDumpMap()
+{
+#if 1
+  for(HashMap::iterator iter = map->begin(); iter != map->end(); iter++)  
+  {
+    logInfo("DBA","DBO","key [%s]", iter->first.c_str());
+    char str[256];
+    iter->second.toStr(str);
+    logInfo("DBA","DBO","value [%s]", str);
+  }
+#endif
 }
 
 };
