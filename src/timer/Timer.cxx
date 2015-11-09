@@ -368,7 +368,8 @@ signed short SAFplus::Timer::timerAddCallbackTask()
 }
 SAFplus::Timer::~Timer()
 {
-  delete timerPool;
+  if (timerPool)
+    delete timerPool;
 }
 void SAFplus::Timer::timerInitCallbackTask()
 {
