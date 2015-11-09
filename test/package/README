@@ -17,4 +17,6 @@ For ubuntu host machine:
 Note: vboxapi package is currently not available on https://pypi.python.org/pypi/vboxapi
 
 Usage:
+Before runnin the script, need to export the TAE_DIR variable.
+Ex: export TAE_DIR=~/software/TAE
 ./safplus_rpm_deb_gen.py -S packager7.xml
