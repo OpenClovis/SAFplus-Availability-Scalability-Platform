@@ -91,7 +91,7 @@ namespace SAFplus
   MsgSocket* Tipc::createSocket(uint_t port)
     {
     if (port >= SAFplusI::TipcTransportNumPorts) return NULL;
-    return new TipcSocket(port, msgPool,this);    
+    return new TipcSocket(port, msgPool,this);
     }
 
   void Tipc::deleteSocket(MsgSocket* sock)
@@ -133,10 +133,8 @@ namespace SAFplus
      myaddr.addrtype = TIPC_ADDR_NAME;  // TODO: bind to the interface specified in env var
      myaddr.scope = TIPC_ZONE_SCOPE;
      myaddr.addr.name.domain = 0;
-     //myaddr.addr.name.name.instance = gIocLocalBladeAddress;//TODO: Need to get and update Local Tipc Node Address
-     if (port == 0) // any port
-       myaddr.addr.name.name.type = 0;
-     else myaddr.addr.name.name.type = (port + SAFplusI::TipcTransportStartPort);
+     myaddr.addr.name.name.instance = node;
+     myaddr.addr.name.name.type = (port + SAFplusI::TipcTransportStartPort);
 
      if (bind(sock, (struct sockaddr *)&myaddr, sizeof(myaddr)) < 0) 
        {
@@ -181,7 +179,7 @@ namespace SAFplus
 
           // Fill the iovector with messages
           curIov->iov_base = frag->data();     //((char*)frag->buffer)+frag->start;
-          assert((frag->len > 0) && "The UDP protocol allows sending zero length messages but I think you forgot to set the fragment len field.");
+          assert((frag->len > 0) && "The TIPC protocol allows sending zero length messages but I think you forgot to set the fragment len field.");
           curIov->iov_len = frag->len;
 
           fragCount++;
@@ -191,10 +189,13 @@ namespace SAFplus
         assert(msgCount < SAFplusI::TipcTransportMaxMsg);  // or stack buffer will be exceeded
         bzero(&to[msgCount],sizeof(struct sockaddr_tipc));
         to[msgCount].family = AF_TIPC;
+        //to[msgCount].addrtype = TIPC_ADDR_NAME;
+        //to[msgCount].scope = TIPC_ZONE_SCOPE;
+
         if (msg->node == Handle::AllNodes)
           {
             to[msgCount].addrtype = TIPC_ADDR_NAMESEQ;
-            to[msgCount].addr.nameseq.type = htonl(msg->port + SAFplusI::TipcTransportStartPort);
+            to[msgCount].addr.nameseq.type = msg->port + SAFplusI::TipcTransportStartPort;
             to[msgCount].addr.nameseq.lower = CL_TIPC_MIN_NODE_ADDRESS;
             to[msgCount].addr.nameseq.upper = CL_TIPC_MAX_NODE_ADDRESS;
           }
@@ -202,19 +203,18 @@ namespace SAFplus
           {
           if (transport->clusterNodes)
             {
-              to[msgCount].addr.name.name.type = htonl(msg->port + SAFplusI::TipcTransportStartPort); 
-              to[msgCount].addr.name.name.instance = htonl(msg->node);
+              to[msgCount].addr.name.name.type = msg->port + SAFplusI::TipcTransportStartPort; 
+              to[msgCount].addr.name.name.instance = msg->node;
               to[msgCount].addr.name.domain=0;
             }
           else
-            {          
+            {
             to[msgCount].addrtype = TIPC_ADDR_NAMESEQ;
-            to[msgCount].addr.nameseq.type = htonl(msg->port + SAFplusI::TipcTransportStartPort);
-            to[msgCount].addr.nameseq.lower = htonl(msg->lower);
-            to[msgCount].addr.nameseq.upper = htonl(msg->upper);
+            to[msgCount].addr.nameseq.type = msg->port + SAFplusI::TipcTransportStartPort;
+            to[msgCount].addr.nameseq.lower = CL_TIPC_MIN_NODE_ADDRESS;
+            to[msgCount].addr.nameseq.upper = CL_TIPC_MAX_NODE_ADDRESS;
             }
           }
-
 
         curvec->msg_hdr.msg_controllen = 0;
         curvec->msg_hdr.msg_control = NULL;

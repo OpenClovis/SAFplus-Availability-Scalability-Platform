@@ -103,16 +103,6 @@ namespace SAFplusI
     UdpTransportMaxFragments = 1024,
     };
 
-  /* TIPC message transport */
-  enum
-    {
-    TipcTransportMaxMsgSize = 66000,
-    TipcTransportNumPorts = 2048,  // Limit the ports to a range for no particular reason
-    TipcTransportStartPort = 11000,  // Pick a random spot in the TIPC port range so our ports don't overlap common services
-    TipcTransportMaxMsg = 1024,
-    TipcTransportMaxFragments = 1024,
-    };
-
   /* SCTP message transport */
   enum
     {
@@ -123,7 +113,7 @@ namespace SAFplusI
     SctpTransportMaxFragments = 1024,
     SctpMaxStream = 64,
     }; 
-  
+
   enum
     {
     TcpTransportMaxMsgSize = 65475,  // 65,535 - 40 bytes TCP header - 20 bytes IP header. This is defined here so you can artifically limit the packet size.
@@ -133,6 +123,16 @@ namespace SAFplusI
     TcpTransportMaxFragments = 1024,
     TcpMaxStream = 64,
     }; 
+
+  /* TIPC message transport */
+    enum
+    {
+    TipcTransportMaxMsgSize = 66000,
+    TipcTransportNumPorts = 2048,  // Limit the ports to a range for no particular reason
+    TipcTransportStartPort = 20000,  // Pick a random spot in the TIPC port range so our ports don't overlap common services
+    TipcTransportMaxMsg = 1024,
+    TipcTransportMaxFragments = 1024,
+    };
 
   extern const char* defaultMsgTransport;  //? Specifies the default messaging transport plugin filename.  This can be overridden by an environment variable.
 
