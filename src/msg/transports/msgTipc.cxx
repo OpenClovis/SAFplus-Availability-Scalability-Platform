@@ -107,6 +107,10 @@ namespace SAFplus
      transport = xp;
      node = xp->config.nodeId;
 
+     cap.capabilities = (SAFplus::MsgSocketCapabilities::Capabilities) xp->config.capabilities;
+     cap.maxMsgSize = xp->config.maxMsgSize;
+     cap.maxMsgAtOnce = xp->config.maxMsgAtOnce;
+
      if ((sock = socket(AF_TIPC, SOCK_RDM, 0)) < 0) 
        {
        int err = errno;
@@ -252,7 +256,7 @@ namespace SAFplus
       MsgFragment* frag = ret->append(SAFplusI::TipcTransportMaxMsgSize);
 
       mmsghdr msgs[SAFplusI::TipcTransportMaxMsg];  // We are doing this for perf so we certainly don't want to new or malloc it!
-      struct sockaddr_in from[SAFplusI::TipcTransportMaxMsg];
+      struct sockaddr_tipc from[SAFplusI::TipcTransportMaxMsg];
       struct iovec iovecs[SAFplusI::TipcTransportMaxFragments];
       struct timespec timeoutMem;
       struct timespec* timeout;
@@ -289,7 +293,7 @@ namespace SAFplus
         msgs[i].msg_hdr.msg_iov    = &iovecs[i];
         msgs[i].msg_hdr.msg_iovlen = 1;
         msgs[i].msg_hdr.msg_name    = &from[i];
-        msgs[i].msg_hdr.msg_namelen = sizeof(struct sockaddr_in);
+        msgs[i].msg_hdr.msg_namelen = sizeof(struct sockaddr_tipc);
         }
 
       int retval = recvmmsg(sock, msgs, 1, flags, timeout);
@@ -316,7 +320,7 @@ namespace SAFplus
           {
           int msgLen = msgs[msgIdx].msg_len;
           struct sockaddr_tipc* srcAddr = (struct sockaddr_tipc*) msgs[msgIdx].msg_hdr.msg_name;
-          assert(msgs[msgIdx].msg_hdr.msg_namelen == sizeof(struct sockaddr_in));
+          assert(msgs[msgIdx].msg_hdr.msg_namelen == sizeof(struct sockaddr_tipc));
           assert(srcAddr);
           
           cur->port = ntohl(srcAddr->addr.name.name.type) - SAFplusI::TipcTransportStartPort;
