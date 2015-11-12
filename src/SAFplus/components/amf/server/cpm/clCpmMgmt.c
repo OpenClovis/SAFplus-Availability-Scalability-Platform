@@ -582,17 +582,15 @@ ClRcT cpmEntityRmv(ClAmsEntityRefT *entityRef)
 
 ClRcT cpmCompParseArgs(ClCpmCompConfigT *compConfig, ClCharT *cmd, ClUint32T *pArgIndex)
 {
-    ClCharT tmp[CL_MAX_NAME_LENGTH] = {0};
     ClCharT imageName[CL_MAX_NAME_LENGTH];
-    ClCharT *c = NULL;
-    ClCharT *saveptr = NULL;
     ClUint32T i = 0;
     ClUint32T argIndex = 0;
     ClRcT rc = CL_OK;
+    ClCharT *saveptr = NULL;
+    ClCharT *token = cmd;
+    ClBoolT doubleQuote = CL_FALSE;
 
     if(pArgIndex) *pArgIndex = 0;
-
-    strncpy(tmp, cmd, CL_MAX_NAME_LENGTH-1);
 
     for(i = 0; compConfig->argv[i]; ++i)
     {
@@ -607,6 +605,7 @@ ClRcT cpmCompParseArgs(ClCpmCompConfigT *compConfig, ClCharT *cmd, ClUint32T *pA
         cpmModifyCompArgs(compConfig, &i);
     }
     argIndex = i;
+#if 0
     c = strtok_r(tmp, " ", &saveptr);
     while (c && (i < CPM_MAX_ARGS - 1))
     {
@@ -633,6 +632,74 @@ ClRcT cpmCompParseArgs(ClCpmCompConfigT *compConfig, ClCharT *cmd, ClUint32T *pA
 
         c = strtok_r(NULL, " ", &saveptr);
     }
+#else
+    while (*token)
+    {
+      // Remove leading spaces
+      while (*token == ' ')
+        ++token;
+
+      saveptr = token;
+      while (*saveptr)
+      {
+        if (*saveptr != '\"' || !doubleQuote)
+        {
+          ++saveptr;
+          if (*saveptr == '\"')
+          {
+            doubleQuote = CL_TRUE;
+            break;
+          }
+          else if (*saveptr == ' ')
+          {
+            break;
+          }
+        }
+      }
+
+      // if possible double quotes string, scan for next one
+      if (doubleQuote)
+      {
+        char quote = *saveptr++;
+        while (*saveptr)
+          if (*saveptr != quote)
+            ++saveptr;
+          else if (saveptr[1] == quote)
+            saveptr += 2;
+          else
+          {
+            ++saveptr;
+            break;
+          }
+        doubleQuote = CL_FALSE;
+      }
+
+      ClCharT tmp[CL_MAX_NAME_LENGTH] = {0};
+      strncpy(tmp, token, (saveptr - token));
+      ClUint32T len = strlen(tmp);
+      if (i == argIndex && *tmp != '/')
+      {
+        ClCharT *binPath = getenv(CL_ASP_BINDIR_PATH);
+        snprintf(imageName, sizeof(imageName) - 1, "%s%s%s", binPath ? binPath : "", binPath ? "/" : "", tmp);
+        len = strlen(imageName);
+        strncpy(tmp, imageName, CL_MAX_NAME_LENGTH - 1);
+        tmp[len] = '\0';
+      }
+
+      compConfig->argv[i] = (ClCharT *)clHeapAllocate(len + 1);
+      if (!compConfig->argv[i])
+      {
+          rc = CL_CPM_RC(CL_ERR_NO_MEMORY);
+          goto failure;
+      }
+
+      strcpy(compConfig->argv[i], tmp);
+      ++i;
+
+      token = saveptr;
+    }
+#endif
+
     compConfig->argv[i] = NULL;
 
     if(compConfig->argv[argIndex])
