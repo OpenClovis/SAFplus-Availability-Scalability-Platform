@@ -41,7 +41,7 @@ bool SAFplusI::BufferPtrContentsEqual::operator() (const BufferPtr& x, const Buf
 SAFplus::Checkpoint::~Checkpoint()
 {
   if (isSyncReplica) { if(sync) delete sync; }
-  if (dbHandle) clDbalClose(dbHandle);
+  if (pDbal) delete pDbal;
   if (flags&PERSISTENT) 
   {
     // deallocate remaining keys if any (in the case flush() is not called)
@@ -542,6 +542,26 @@ SAFplus::Checkpoint::Iterator SAFplus::Checkpoint::end()
   return i;
 }
 
+SAFplus::Checkpoint::Iterator SAFplus::Checkpoint::find(const void* key, uint_t len)
+{   
+  assert(this->map);
+  char kdata[sizeof(Buffer)-1+len];
+  Buffer* kbuf = new(kdata) Buffer(len);
+  memcpy(kbuf->data, key, len);  
+  return (find(*kbuf));
+}
+
+SAFplus::Checkpoint::Iterator SAFplus::Checkpoint::find(const Buffer& key)
+{   
+  assert(this->map);  
+  gate.lock();
+  CkptHashMap::iterator it = map->find(SAFplusI::BufferPtr((Buffer*)&key));
+  gate.unlock();
+  SAFplus::Checkpoint::Iterator i(this);
+  i.iter = it;
+  i.curval = &(*i.iter);   
+  return i;
+}
 
 SAFplus::Checkpoint::Iterator::Iterator(SAFplus::Checkpoint* _ckpt):ckpt(_ckpt)
 {
@@ -578,15 +598,21 @@ bool SAFplus::Checkpoint::Iterator::operator !=(const SAFplus::Checkpoint::Itera
 void SAFplus::Checkpoint::initDB(const char* ckptId, bool isCkptExist)
 {
   ClRcT rc = CL_OK;
-  dbHandle = NULL;
+  pDbal = NULL;
   char dbName[CL_MAX_NAME_LENGTH];
   const char* path=ASP_RUNDIR;
   if (!path || !strlen(ASP_RUNDIR))
   {
     path = ".";
   }
-  snprintf (dbName, CL_MAX_NAME_LENGTH-1, "%s/%s.db", path, ckptId);
-  rc = clDbalOpen(dbName, dbName, CL_DB_OPEN, CkptMaxKeySize, CkptMaxRecordSize, &dbHandle);
+  pDbal = clDbalObjCreate();
+  if (!pDbal)
+  {
+    logError("CKPT","INITDB", "Load DBAL plugin fail");
+    return;
+  }
+  snprintf (dbName, CL_MAX_NAME_LENGTH-1, "%s/%s.db", path, ckptId);  
+  rc = pDbal->open(dbName, dbName, CL_DB_OPEN, CkptMaxKeySize, CkptMaxRecordSize);
   if (rc == CL_OK)
   {
     if (!isCkptExist)
@@ -596,7 +622,7 @@ void SAFplus::Checkpoint::initDB(const char* ckptId, bool isCkptExist)
   }
   else if (flags&PERSISTENT)
   {
-    rc = clDbalOpen(dbName, dbName, CL_DB_CREAT, CkptMaxKeySize, CkptMaxRecordSize, &dbHandle);
+    rc = pDbal->open(dbName, dbName, CL_DB_CREAT, CkptMaxKeySize, CkptMaxRecordSize);
     if (rc != CL_OK)
     {
       logWarning("CKPT", "INITDB", "Opening database failed, checkpoint data will not be stored on disk");
@@ -624,7 +650,7 @@ void SAFplus::Checkpoint::writeCkpt(ClDBKeyHandleT key, ClUint32T keySize, ClDBR
     memcpy(&hdr->lastUsed, rec, recSize);
   else 
     writeCkptData(key, keySize, rec, recSize);
-  clDbalRecordFree(dbHandle, rec);
+  pDbal->freeRecord(rec);
 }
 
 void SAFplus::Checkpoint::writeCkptData(ClDBKeyHandleT key, ClUint32T keySize, ClDBRecordHandleT rec, ClUint32T recSize)
@@ -647,7 +673,7 @@ void SAFplus::Checkpoint::writeCkptData(ClDBKeyHandleT key, ClUint32T keySize, C
 
 void SAFplus::Checkpoint::syncFromDisk()
 {
-  if (!dbHandle)
+  if (!pDbal)
   {
     logWarning("CKPT", "DSKSYN", "Database handle is NULL, cancel the operation");
     return;
@@ -657,14 +683,14 @@ void SAFplus::Checkpoint::syncFromDisk()
   ClDBRecordHandleT rec;
   ClUint32T recSize; 
   gate.lock();
-  ClRcT rc = clDbalFirstRecordGet(dbHandle, &key, &keySize, &rec, &recSize);  
+  ClRcT rc = pDbal->getFirstRecord(&key, &keySize, &rec, &recSize);  
   while (rc == CL_OK)
   {    
     writeCkpt(key, keySize, rec, recSize);
     ClDBKeyHandleT curKey = key;
     ClUint32T curKeySize = keySize;    
-    rc = clDbalNextRecordGet(dbHandle, curKey, curKeySize, &key, &keySize, &rec, &recSize);        
-    clDbalKeyFree(dbHandle, curKey);
+    rc = pDbal->getNextRecord(curKey, curKeySize, &key, &keySize, &rec, &recSize);        
+    pDbal->freeKey(curKey);
   }
   gate.unlock();
 }
@@ -672,7 +698,7 @@ void SAFplus::Checkpoint::syncFromDisk()
 void SAFplus::Checkpoint::writeHdrDB(int hdrKey, ClDBRecordT rec, ClUint32T recSize)
 {  
   const char* key = ckptHeader(hdrKey);
-  ClRcT rc = clDbalRecordReplace(dbHandle, (ClDBKeyT) key, strlen(key)+1, rec, recSize);
+  ClRcT rc = pDbal->replaceRecord((ClDBKeyT) key, strlen(key)+1, rec, recSize);
   if (rc != CL_OK)
   {
     logWarning("CPKT", "WRTHDR", "add/update key [%s] to database fail", key);
@@ -681,7 +707,7 @@ void SAFplus::Checkpoint::writeHdrDB(int hdrKey, ClDBRecordT rec, ClUint32T recS
 
 void SAFplus::Checkpoint::writeDataDB(Buffer* key, Buffer* val)
 {   
-  ClRcT rc = clDbalRecordReplace(dbHandle, (ClDBKeyT) key->get(), key->len(), (ClDBRecordT) val->get(), val->len());
+  ClRcT rc = pDbal->replaceRecord((ClDBKeyT) key->get(), key->len(), (ClDBRecordT) val->get(), val->len());
   if (rc != CL_OK)
   {
     logWarning("CPKT", "WRTDATA", "add/update key [%s] to database fail", key->get());
@@ -690,7 +716,7 @@ void SAFplus::Checkpoint::writeDataDB(Buffer* key, Buffer* val)
 
 void SAFplus::Checkpoint::deleteDataDB(Buffer* key)
 {   
-  ClRcT rc = clDbalRecordDelete(dbHandle, (ClDBKeyT) key->get(), key->len());
+  ClRcT rc = pDbal->deleteRecord((ClDBKeyT) key->get(), key->len());
   if (rc != CL_OK)
   {
     logWarning("CPKT", "WRTDATA", "delete key [%s] from database fail", key->get());
@@ -701,7 +727,7 @@ void SAFplus::Checkpoint::flush()
 {  
   if (flags&PERSISTENT)
   {
-    if (!dbHandle)
+    if (!pDbal)
     {
       logWarning("CKPT", "FLUSH", "Database handle is NULL, cancel the operation");
       return;
