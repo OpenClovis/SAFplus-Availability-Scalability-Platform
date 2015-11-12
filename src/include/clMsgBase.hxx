@@ -126,6 +126,8 @@ namespace SAFplus
     void initialize() { node=0; port=0; nextMsg=0; firstFragment=nullptr; lastFragment=nullptr; nextMsg=nullptr; msgPool=nullptr;  }
     uint_t node; //? source or destination node, depending on whether this message is being sent or was received.
     uint_t port; //? source or destination port, depending on whether this message is being sent or was received.
+    //uint_t lower; //? TIPC lower instance.
+    //uint_t upper; //? TIPC upper instance.
 
       //? Get the source or destination handle (depending on whether this message is being sent or was received) of this message.  This is just a convenience function that constructs a handle from the node and port fields of this object
     Handle getAddress() { return getProcessHandle(port,node); }
