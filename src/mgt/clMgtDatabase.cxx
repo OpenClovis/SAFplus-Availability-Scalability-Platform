@@ -95,7 +95,8 @@ namespace SAFplus
 
     /* Close the data DB */
     //clDbalClose(mDbDataHdl);
-    //mDbDataHdl = 0;
+    delete mDbDataHdl;
+    mDbDataHdl=NULL;
 
     /*Finalize dbal */
     //clDbalLibFinalize();
