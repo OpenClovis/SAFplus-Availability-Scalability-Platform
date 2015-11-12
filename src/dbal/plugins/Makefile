@@ -1,5 +1,5 @@
 S7 := 1
-SAFPLUS_DBAL_SQLITE_PLUGIN :=1
+#SAFPLUS_DBAL_SQLITE_PLUGIN :=1
 SAFPLUS_DBAL_PLUGIN :=1
 include ../../mk/preface.mk
 

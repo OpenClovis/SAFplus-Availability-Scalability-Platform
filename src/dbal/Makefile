@@ -1,5 +1,5 @@
 S7 := 1
-SAFPLUS_MSG_LIB := 1
+SAFPLUS_DBAL_LIB :=1
 
 include ../mk/preface.mk
 
