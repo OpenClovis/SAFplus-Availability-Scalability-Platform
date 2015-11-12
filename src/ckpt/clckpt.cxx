@@ -40,10 +40,10 @@ bool SAFplusI::BufferPtrContentsEqual::operator() (const BufferPtr& x, const Buf
 
 SAFplus::Checkpoint::~Checkpoint()
 {
-  if (isSyncReplica) { if(sync) delete sync; }
-  if (pDbal) delete pDbal;
+  if (isSyncReplica) { if(sync) delete sync; }  
   if (flags&PERSISTENT) 
   {
+    if (pDbal) delete pDbal;
     // deallocate remaining keys if any (in the case flush() is not called)
     gate.lock();
     for(CkptOperationMap::iterator iter = operMap.begin(); iter != operMap.end(); iter++)
