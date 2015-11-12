@@ -304,9 +304,9 @@ namespace SAFplus
                 receiveMutex.unlock();
                 return top;
               }
+            receiveMutex.unlock();
           }
         }  
-        
     }
  
     void MsgSarSocket::useNagle(bool value)
