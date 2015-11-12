@@ -1,21 +1,4 @@
- /*
- * Copyright (C) 2002-2012 OpenClovis Solutions Inc.  All Rights Reserved.
- *
- * This file is available  under  a  commercial  license  from  the
- * copyright  holder or the GNU General Public License Version 2.0.
- * 
- * The source code for  this program is not published  or otherwise 
- * divested of  its trade secrets, irrespective  of  what  has been 
- * deposited with the U.S. Copyright office.
- * 
- * This program is distributed in the  hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied  warranty  of 
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU 
- * General Public License for more details.
- * 
- * For more  information, see  the file  COPYING provided with this
- * material.
- */
+#include <clDbalBase.hxx>
 #include <string.h>
 #include <clCommon6.h>
 #include <clCommonErrors6.h>
@@ -23,19 +6,14 @@
 #if (SQLITE_VERSION_NUMBER < 3003013)
 #error SQLITE version number must be >= 3003013
 #endif
-#include <clDbalApi.h>
 #include <clCommon.hxx>
 #include <clLogApi.hxx>
 #include <clDbg.hxx>
-#include "../../clovisDbalInternal.h"
-#include "../../clDbalInterface.h"
-#include <clDbalCfg.h>
+//#include "../../clovisDbalInternal.h"
+//#include "../../clDbalInterface.h"
+//#include <clDbalCfg.h>
 
-#ifdef __cplusplus
-extern "C" {
-#endif
-
-extern ClDbalFunctionPtrsT *gDbalFunctionPtrs;
+namespace SAFplus {
 
 typedef struct SQLiteDBHandle_t {
     sqlite3* pDatabase;
@@ -51,60 +29,35 @@ typedef struct SQLiteDBHandle_t {
      */
     sqlite3_stmt* stmt[7];
 
-}SQLiteDBHandle_t;
+  }SQLiteDBHandle_t;
 
-/*ClRcT clDbalInterface(ClDbalFunctionPtrsT *);*/
-/*****************************************************************************/
-static ClRcT cdbSQLiteDBCreate(ClDBNameT dbName, SQLiteDBHandle_t* pSQLiteHandle);
-/*****************************************************************************/
-static ClRcT  cdbSQLiteDBOpen(ClDBFileT dbFile, ClDBNameT  dbName, ClDBFlagT  dbFlag, ClUint32T  maxKeySize, ClUint32T maxRecordSize,
-        ClDBHandleT* pDBHandle);
-/*****************************************************************************/
-static ClRcT cdbSQLiteDBClose(ClDBHandleT dbHandle);
-/*****************************************************************************/
-static ClRcT cdbSQLiteDBSync(ClDBHandleT dbHandle, ClUint32T flags);
-/*****************************************************************************/
-static ClRcT cdbSQLiteDBRecordAdd(ClDBHandleT  dbHandle, ClDBKeyT dbKey, ClUint32T  keySize, ClDBRecordT  dbRec, ClUint32T  recSize);
-/*****************************************************************************/
-static ClRcT cdbSQLiteDBRecordReplace(ClDBHandleT  dbHandle, ClDBKeyT  dbKey, ClUint32T  keySize, ClDBRecordT  dbRec, ClUint32T recSize);
-/*****************************************************************************/
-static ClRcT  cdbSQLiteDBRecordGet(ClDBHandleT  dbHandle, ClDBKeyT   dbKey, ClUint32T   keySize, ClDBRecordT*  pDBRec, ClUint32T*  pRecSize);
-/*****************************************************************************/
-static ClRcT cdbSQLiteDBRecordDelete(ClDBHandleT   dbHandle, ClDBKeyT    dbKey, ClUint32T   keySize);
-/*****************************************************************************/
-static ClRcT cdbSQLiteDBFirstRecordGet(ClDBHandleT dbHandle, ClDBKeyT* pDBKey, ClUint32T* pKeySize, ClDBRecordT* pDBRec, ClUint32T*  pRecSize);
-/*****************************************************************************/
-static ClRcT cdbSQLiteDBNextRecordGet(ClDBHandleT  dbHandle, ClDBKeyT  currentKey, ClUint32T  currentKeySize, ClDBKeyT*  pDBNextKey,                        ClUint32T*  pNextKeySize, ClDBRecordT*  pDBNextRec, ClUint32T*  pNextRecSize);
-/*****************************************************************************/
-static ClRcT  cdbSQLiteDBTxnOpen(ClDBFileT dbFile, ClDBNameT  dbName, ClDBFlagT dbFlag, ClUint32T  maxKeySize, ClUint32T  maxRecordSize, ClDBHandleT* pDBHandle);
-/*****************************************************************************/
-static ClRcT cdbSQLiteDBTransactionBegin(ClDBHandleT  dbHandle);
-/*****************************************************************************/
-static ClRcT cdbSQLiteDBTransactionCommit(ClDBHandleT  dbHandle);
-/*****************************************************************************/
-static ClRcT cdbSQLiteDBTransactionAbort(ClDBHandleT  dbHandle);
-/*****************************************************************************/
-static ClRcT cdbSQLiteDBRecordFree(ClDBHandleT  dbHandle, ClDBRecordT  dbRec );
-/*****************************************************************************/
-static ClRcT cdbSQLiteDBKeyFree(ClDBHandleT  dbHandle, ClDBKeyT     dbKey );
-/*****************************************************************************/
-static ClRcT cdbSQLiteDBInitialize(ClDBFileT    dbEnvFile);
-/*****************************************************************************/
+class SqlitePlugin: public DbalPlugin
+{
+public:
+  //SqlitePlugin() {}
+  virtual ClRcT open(ClDBFileT dbFile, ClDBNameT dbName, ClDBFlagT dbFlag, ClUint32T maxKeySize, ClUint32T maxRecordSize);  
+  virtual ClRcT insertRecord(ClDBKeyT dbKey, ClUint32T keySize, ClDBRecordT dbRec, ClUint32T recSize);
+  virtual ClRcT replaceRecord(ClDBKeyT dbKey, ClUint32T keySize, ClDBRecordT dbRec, ClUint32T recSize);
+  virtual ClRcT getRecord(ClDBKeyT dbKey, ClUint32T keySize, ClDBRecordT* pDBRec, ClUint32T* pRecSize);
+  virtual ClRcT getFirstRecord(ClDBKeyT* pDBKey, ClUint32T* pKeySize, ClDBRecordT* pDBRec, ClUint32T* pRecSize);
+  virtual ClRcT getNextRecord(ClDBKeyT currentKey, ClUint32T currentKeySize, ClDBKeyT* pDBNextKey, ClUint32T* pNextKeySize, ClDBRecordT* pDBNextRec, ClUint32T* pNextRecSize);
+  virtual ClRcT deleteRecord(ClDBKeyHandleT dbKey, ClUint32T keySize);
+  virtual ClRcT syncDbal(ClUint32T flags);
+  virtual ClRcT openTransaction(ClDBFileT dbFile, ClDBNameT  dbName, ClDBFlagT dbFlag, ClUint32T  maxKeySize, ClUint32T  maxRecordSize);
+  virtual ClRcT beginTransaction();
+  virtual ClRcT commitTransaction();
+  virtual ClRcT abortTransaction();
+  virtual ClRcT freeRecord(ClDBRecordT dbRec);
+  virtual ClRcT freeKey(ClDBRecordT dbKey);
+  virtual ~SqlitePlugin();
 
-static void* clHeapAllocate(uint_t amt)
-  {
-  return malloc(amt);
-  }
+protected:
+  ClRcT cdbSQLiteDBCreate(ClDBNameT dbName);
+  virtual ClRcT close();
+};
 
-static void clHeapFree(void* v)
-  {
-  free(v);
-  }
+//static SqlitePlugin api;
 
-/* Earlier versions of sqlite 3 (3.3.6 for example) defined the 
-   sqlite3_clear_bindings routine as experimental.  Some Linux distributions do
-   not include the "experimental" APIs in the sqlite library.  Therefore,
-   we have reproduced the routine here. */
 static int cl_clear_bindings(sqlite3_stmt *pStmt)
 {
   int i;
@@ -116,44 +69,301 @@ static int cl_clear_bindings(sqlite3_stmt *pStmt)
   return rc;
 }
 
-ClRcT clDbalConfigInitialize(void* pDbalConfiguration)
+SqlitePlugin::~SqlitePlugin()
+{ 
+  close(); 
+}
+
+ClRcT SqlitePlugin::open(ClDBFileT dbFile, ClDBNameT dbName, ClDBFlagT dbFlag, ClUint32T maxKeySize, ClUint32T maxRecordSize)
 {
+    if (pDBHandle) close();
+
     ClRcT errorCode = CL_OK;
-    ClDbalConfigurationT* pConfig = NULL;
+    SQLiteDBHandle_t* pSQLiteHandle = NULL;
+    sqlite3_stmt *stmt =  NULL;
+    ClUint32T rc = 0;
+    FILE* fp = NULL;
+    ClBoolT enableSync = CL_FALSE;
 
+    //NULL_CHECK(pDBHandle);
+    NULL_CHECK(dbName);
+    NULL_CHECK(dbFile);
     
-    pConfig = (ClDbalConfigurationT *)pDbalConfiguration;
-
-    NULL_CHECK(pConfig);
-
-    errorCode = cdbSQLiteDBInitialize((ClDBFileT)pConfig->Database.sqliteConfig.enginePath);
-
-    if(CL_OK != errorCode) {
-        logError("DBA", "INI", "SQLite Initialization failed. rc [0x%x]", errorCode);
+    if(dbFlag >= CL_DB_MAX_FLAG) {
+        errorCode = CL_RC(CL_CID_DBAL,CL_ERR_INVALID_PARAMETER);
+        logError("DBA", "DBO", "SQLite DB Open failed: Invalid flag specified.");
         
         return(errorCode);
     }
+
+	if((CL_DB_SYNC & dbFlag))
+	{
+		dbFlag &= ~(CL_DB_SYNC);
+		enableSync = CL_TRUE;
+	}
+
+    /* Let the environment variable override the coded behaviour */
+    if (getenv("ASP_DB_SYNC"))
+    {
+        if (SAFplus::clParseEnvBoolean("ASP_DB_SYNC"))
+            enableSync = CL_TRUE;
+        else
+            enableSync = CL_FALSE;
+    }
+
+    pSQLiteHandle = (SQLiteDBHandle_t *)SAFplusHeapAlloc(sizeof(SQLiteDBHandle_t));
+
+    if(NULL == pSQLiteHandle) {
+        errorCode = CL_DBAL_RC(CL_ERR_NO_MEMORY);
+        logError("DBA", "DBO", "SQLite DB Open failed: No Memory.");
+        
+        return(errorCode);
+    }
+
+    pDBHandle = (ClDBHandleT) pSQLiteHandle;
+
+    logTrace("DBA", "DBO", "Opening the Database : [%s]", dbName);
+
+    if (dbFlag == CL_DB_CREAT)
+    {
+        if((fp = fopen(dbName, "r")) != NULL)
+        {
+            fclose(fp);
+
+            rc = remove(dbName);
+            
+            if (0 != rc)
+            {
+                SAFplusHeapFree(pSQLiteHandle);
+                errorCode = CL_DBAL_RC(CL_DBAL_ERR_DB_ERROR);
+                logError("DBA", "DBO", "SQLite DB remove failed.");
+                
+                return(errorCode);    
+            }
+        }
+
+        rc = cdbSQLiteDBCreate(dbName);
+        if (rc != CL_OK)
+        {
+            sqlite3_close(pSQLiteHandle->pDatabase);
+            SAFplusHeapFree(pSQLiteHandle);
+            errorCode = CL_DBAL_RC(CL_DBAL_ERR_DB_ERROR);
+            logError("DBA", "DBC", "SQLite DB Create failed. rc [0x%x]", rc);
+            
+            return errorCode;
+        }
+    }
+    else if(dbFlag == CL_DB_OPEN)
+    {
+		if ((fp = fopen(dbName, "r")) == NULL)
+		{	
+			SAFplusHeapFree(pSQLiteHandle);
+			errorCode = CL_DBAL_RC(CL_DBAL_ERR_DB_ERROR);
+			logError("DBA", "DBO", "Cannot open SQLite DB file [%s].",dbName);
+			
+			return(errorCode);    
+		}
+
+		fclose(fp);
+
+        rc = sqlite3_open(dbName, &(pSQLiteHandle->pDatabase));
+
+        if(SQLITE_OK != rc) {
+            logError("DBA", "DBO", "Failed to open the database");
+            logError("DBA", "DBO", "SQLite Error : %s. errorCode [%d]", 
+                    sqlite3_errmsg(pSQLiteHandle->pDatabase), sqlite3_errcode(pSQLiteHandle->pDatabase));
+            sqlite3_close(pSQLiteHandle->pDatabase);
+            SAFplusHeapFree(pSQLiteHandle);
+            errorCode = CL_DBAL_RC(CL_DBAL_ERR_DB_ERROR);
+            
+            return(errorCode);
+        }               
+    }
+    else if(dbFlag == CL_DB_APPEND)
+    {
+        if ((fp = fopen(dbName, "r")) == NULL)
+        {
+            /* Database doesn't exist. Create it.. */
+            rc = cdbSQLiteDBCreate(dbName);
+            if (rc != CL_OK)
+            {
+                sqlite3_close(pSQLiteHandle->pDatabase);
+                SAFplusHeapFree(pSQLiteHandle);
+                errorCode = CL_DBAL_RC(CL_DBAL_ERR_DB_ERROR);
+                logError("DBA", "DBO", "SQLite DB Create failed. rc [0x%x]", rc);
+                
+                return errorCode;
+            }
+        }
+        else
+        {
+             fclose(fp);
+
+             rc = sqlite3_open(dbName, &(pSQLiteHandle->pDatabase));
+
+             if(SQLITE_OK != rc) {
+                logError("DBA", "DBO", "Error in opening the DB in append mode");
+                logError("DBA", "DBO", "SQLite Error : %s. errorCode [%d]", 
+                        sqlite3_errmsg(pSQLiteHandle->pDatabase), sqlite3_errcode(pSQLiteHandle->pDatabase));
+                sqlite3_close(pSQLiteHandle->pDatabase);
+                SAFplusHeapFree(pSQLiteHandle);
+                errorCode = CL_DBAL_RC(CL_DBAL_ERR_DB_ERROR);
+                
+                return(errorCode);
+            }           
+        } 
+    }
+    
+    if(enableSync == CL_TRUE)
+    {
+        rc = sqlite3_prepare(pSQLiteHandle->pDatabase, "pragma synchronous = full", -1, &stmt, 0);
+    }
+    else
+    {
+        rc = sqlite3_prepare(pSQLiteHandle->pDatabase, "pragma synchronous = off", -1, &stmt, 0);
+    }
+
+    if(rc != SQLITE_OK)
+    {
+        logError("DBA", "DBO", "Error in pragma prepare");
+        logError("DBA", "DBO", "SQLite Error : %s. errorCode [%d]",
+                   sqlite3_errmsg(pSQLiteHandle->pDatabase), sqlite3_errcode(pSQLiteHandle->pDatabase));
+		sqlite3_close(pSQLiteHandle->pDatabase);
+		SAFplusHeapFree(pSQLiteHandle);
+        errorCode= CL_DBAL_RC(CL_DBAL_ERR_DB_ERROR);
+        
+        return errorCode;
+    }
+
+    rc = sqlite3_step(stmt);      
+    
+    if(SQLITE_DONE != rc)
+    { 
+        sqlite3_finalize(stmt); 
+        logError("DBA", "DBO", "Failed to execute the pragma SQL statement");
+        logError("DBA", "DBO", "SQLite Error : %s. errorCode [%d]", 
+                sqlite3_errmsg(pSQLiteHandle->pDatabase), sqlite3_errcode(pSQLiteHandle->pDatabase));
+        errorCode= CL_DBAL_RC(CL_DBAL_ERR_DB_ERROR);
+		sqlite3_close(pSQLiteHandle->pDatabase);
+		SAFplusHeapFree(pSQLiteHandle);
+        
+        return(errorCode);               
+    }
+
+    rc = sqlite3_finalize(stmt); 
+
+    if(SQLITE_OK != rc)
+    {
+        logError("DBA", "DBO", "Failed to finalize the SQL statement.");
+        logError("DBA", "DBO", "SQLite Error : %s. errorCode [%d]", 
+                sqlite3_errmsg(pSQLiteHandle->pDatabase), sqlite3_errcode(pSQLiteHandle->pDatabase));
+		sqlite3_close(pSQLiteHandle->pDatabase);
+		SAFplusHeapFree(pSQLiteHandle);
+        errorCode= CL_DBAL_RC(CL_DBAL_ERR_DB_ERROR);
+        
+        return(errorCode);
+    }
+    
+    /* Prepare the statements */
+    rc = sqlite3_prepare(pSQLiteHandle->pDatabase, "insert into ObjectRepository values(?, ?)", -1, &(pSQLiteHandle->stmt[0]), 0);
+
+    if (rc != SQLITE_OK)
+    {
+        logError("DBA", "DBO", "Error in prepare statement in record add");
+        logError("DBA", "DBO", "SQLite Error : %s. errorCode [%d]", 
+                sqlite3_errmsg(pSQLiteHandle->pDatabase), sqlite3_errcode(pSQLiteHandle->pDatabase));
+		sqlite3_close(pSQLiteHandle->pDatabase);
+		SAFplusHeapFree(pSQLiteHandle);
+        errorCode = CL_DBAL_RC(CL_DBAL_ERR_DB_ERROR);
+        
+        return(errorCode);       
+    }
+
+    /* INSERT or REPLACE */
+    rc = sqlite3_prepare(pSQLiteHandle->pDatabase, "replace into ObjectRepository(Key, Data) values(?, ?)", -1, 
+		&(pSQLiteHandle->stmt[1]), 0);
+
+    if (rc != SQLITE_OK)
+    {
+        logError("DBA", "DBO", "Failed to prepare the SQL statement.");
+        logError("DBA", "DBO", "SQLite Error : %s. errorCode [%d]", 
+                sqlite3_errmsg(pSQLiteHandle->pDatabase), sqlite3_errcode(pSQLiteHandle->pDatabase));
+		sqlite3_close(pSQLiteHandle->pDatabase);
+		SAFplusHeapFree(pSQLiteHandle);
+        errorCode = CL_DBAL_RC(CL_DBAL_ERR_DB_ERROR);
+        return(errorCode);       
+    }
+
+    /* DELETE */
+    rc = sqlite3_prepare(pSQLiteHandle->pDatabase, "delete from ObjectRepository where Key=?", -1, &(pSQLiteHandle->stmt[2]), 0);
+
+    if (rc != SQLITE_OK)
+    {
+        logError("DBA", "DBO", "Failed to prepare the SQL statement.");
+        logError("DBA", "DBO", "SQLite Error : %s. errorCode [%d]", 
+                sqlite3_errmsg(pSQLiteHandle->pDatabase), sqlite3_errcode(pSQLiteHandle->pDatabase));
+		sqlite3_close(pSQLiteHandle->pDatabase);
+		SAFplusHeapFree(pSQLiteHandle);
+        errorCode = CL_DBAL_RC(CL_DBAL_ERR_DB_ERROR);
+        return(errorCode);       
+    }
+
+    /* RECORD GET */
+    rc = sqlite3_prepare(pSQLiteHandle->pDatabase, "select * from ObjectRepository where Key=?", -1, &(pSQLiteHandle->stmt[3]), 0);
+
+    if (rc != SQLITE_OK)
+    {
+        logError("DBA", "DBO", "Failed to prepare the SQL statement.");
+        logError("DBA", "DBO", "SQLite Error : %s. errorCode [%d]", 
+                sqlite3_errmsg(pSQLiteHandle->pDatabase), sqlite3_errcode(pSQLiteHandle->pDatabase));
+		sqlite3_close(pSQLiteHandle->pDatabase);
+		SAFplusHeapFree(pSQLiteHandle);
+        errorCode = CL_DBAL_RC(CL_DBAL_ERR_DB_ERROR);
+        return(errorCode);       
+    }
+
+    /* FIRST RECORD GET */
+    rc = sqlite3_prepare(pSQLiteHandle->pDatabase, "select * from ObjectRepository limit 0,1", -1, &(pSQLiteHandle->stmt[4]), 0);
+
+    if(rc != SQLITE_OK)
+    {
+        logError("DBA", "DBO", "Failed to prepare the SQL statement.");
+        logError("DBA", "DBO", "SQLite Error : %s. errorCode [%d]", 
+                sqlite3_errmsg(pSQLiteHandle->pDatabase), sqlite3_errcode(pSQLiteHandle->pDatabase));
+		sqlite3_close(pSQLiteHandle->pDatabase);
+		SAFplusHeapFree(pSQLiteHandle);
+        errorCode = CL_DBAL_RC(CL_DBAL_ERR_DB_ERROR);
+        return (errorCode);       
+    }
+ 
+    /* NEXT RECORD GET */
+    rc = sqlite3_prepare(
+			pSQLiteHandle->pDatabase, 
+			"select * from ObjectRepository where rowid = (select min(rowid) from ObjectRepository "
+			"where rowid > (select rowid from ObjectRepository where Key=?))", 
+			-1, &(pSQLiteHandle->stmt[5]), 0);
+    if (rc != SQLITE_OK)
+    {
+        logError("DBA", "DBO", "Failed to prepare the SQL statement.");
+        logError("DBA", "DBO", "SQLite Error : %s. errorCode [%d]", 
+                sqlite3_errmsg(pSQLiteHandle->pDatabase), sqlite3_errcode(pSQLiteHandle->pDatabase));
+		sqlite3_close(pSQLiteHandle->pDatabase);
+		SAFplusHeapFree(pSQLiteHandle);
+        errorCode = CL_DBAL_RC(CL_DBAL_ERR_DB_ERROR);
+        return (errorCode);
+    }
+
+    //pDBHandle = (ClDBHandleT) pSQLiteHandle;
 
     
     return(CL_OK);
 }
 
-static ClRcT cdbSQLiteDBInitialize(ClDBFileT dbEnvFile)
-{
-    /* 
-     * No need for configuration as of now.
-     * Defining these functions to do any configuration in the future.
-     */
-
-    return CL_OK;
-}
-
-static ClRcT cdbSQLiteDBCreate(ClDBNameT dbName, SQLiteDBHandle_t* pSQLiteHandle)
+ClRcT SqlitePlugin::cdbSQLiteDBCreate(ClDBNameT dbName)
 {
     sqlite3_stmt* stmt = NULL; 
     ClRcT rc = CL_OK;
-
-    
+    SQLiteDBHandle_t* pSQLiteHandle = (SQLiteDBHandle_t*)pDBHandle;
 
     rc = sqlite3_open(dbName, &(pSQLiteHandle->pDatabase));
 
@@ -204,300 +414,17 @@ static ClRcT cdbSQLiteDBCreate(ClDBNameT dbName, SQLiteDBHandle_t* pSQLiteHandle
     return rc;
 }
 
-static ClRcT  cdbSQLiteDBOpen(ClDBFileT    dbFile, ClDBNameT    dbName, ClDBFlagT    dbFlag, ClUint32T   maxKeySize, ClUint32T   maxRecordSize,
-        ClDBHandleT* pDBHandle)
+ClRcT SqlitePlugin::close()
 {
     ClRcT errorCode = CL_OK;
-    SQLiteDBHandle_t* pSQLiteHandle = NULL;
-    sqlite3_stmt *stmt =  NULL;
-    ClUint32T rc = 0;
-    FILE* fp = NULL;
-    ClBoolT enableSync = CL_FALSE;
 
-    
+    if (!pDBHandle) return errorCode;
 
-    NULL_CHECK(pDBHandle);
-    NULL_CHECK(dbName);
-    NULL_CHECK(dbFile);
-    
-    if(dbFlag >= CL_DB_MAX_FLAG) {
-        errorCode = CL_RC(CL_CID_DBAL,CL_ERR_INVALID_PARAMETER);
-        logError("DBA", "DBO", "SQLite DB Open failed: Invalid flag specified.");
-        
-        return(errorCode);
-    }
-
-	if((CL_DB_SYNC & dbFlag))
-	{
-		dbFlag &= ~(CL_DB_SYNC);
-		enableSync = CL_TRUE;
-	}
-
-    /* Let the environment variable override the coded behaviour */
-    if (getenv("ASP_DB_SYNC"))
-    {
-        if (SAFplus::clParseEnvBoolean("ASP_DB_SYNC"))
-            enableSync = CL_TRUE;
-        else
-            enableSync = CL_FALSE;
-    }
-
-    pSQLiteHandle = (SQLiteDBHandle_t *)clHeapAllocate(sizeof(SQLiteDBHandle_t));
-
-    if(NULL == pSQLiteHandle) {
-        errorCode = CL_DBAL_RC(CL_ERR_NO_MEMORY);
-        logError("DBA", "DBO", "SQLite DB Open failed: No Memory.");
-        
-        return(errorCode);
-    }
-
-    logTrace("DBA", "DBO", "Opening the Database : [%s]", dbName);
-
-    if (dbFlag == CL_DB_CREAT)
-    {
-        if((fp = fopen(dbName, "r")) != NULL)
-        {
-            fclose(fp);
-
-            rc = remove(dbName);
-            
-            if (0 != rc)
-            {
-                clHeapFree(pSQLiteHandle);
-                errorCode = CL_DBAL_RC(CL_DBAL_ERR_DB_ERROR);
-                logError("DBA", "DBO", "SQLite DB remove failed.");
-                
-                return(errorCode);    
-            }
-        }
-
-        rc = cdbSQLiteDBCreate(dbName, pSQLiteHandle);
-        if (rc != CL_OK)
-        {
-            sqlite3_close(pSQLiteHandle->pDatabase);
-            clHeapFree(pSQLiteHandle);
-            errorCode = CL_DBAL_RC(CL_DBAL_ERR_DB_ERROR);
-            logError("DBA", "DBC", "SQLite DB Create failed. rc [0x%x]", rc);
-            
-            return errorCode;
-        }
-    }
-    else if(dbFlag == CL_DB_OPEN)
-    {
-		if ((fp = fopen(dbName, "r")) == NULL)
-		{	
-			clHeapFree(pSQLiteHandle);
-			errorCode = CL_DBAL_RC(CL_DBAL_ERR_DB_ERROR);
-			logError("DBA", "DBO", "Cannot open SQLite DB file [%s].",dbName);
-			
-			return(errorCode);    
-		}
-
-		fclose(fp);
-
-        rc = sqlite3_open(dbName, &(pSQLiteHandle->pDatabase));
-
-        if(SQLITE_OK != rc) {
-            logError("DBA", "DBO", "Failed to open the database");
-            logError("DBA", "DBO", "SQLite Error : %s. errorCode [%d]", 
-                    sqlite3_errmsg(pSQLiteHandle->pDatabase), sqlite3_errcode(pSQLiteHandle->pDatabase));
-            sqlite3_close(pSQLiteHandle->pDatabase);
-            clHeapFree(pSQLiteHandle);
-            errorCode = CL_DBAL_RC(CL_DBAL_ERR_DB_ERROR);
-            
-            return(errorCode);
-        }               
-    }
-    else if(dbFlag == CL_DB_APPEND)
-    {
-        if ((fp = fopen(dbName, "r")) == NULL)
-        {
-            /* Database doesn't exist. Create it.. */
-            rc = cdbSQLiteDBCreate(dbName, pSQLiteHandle);
-            if (rc != CL_OK)
-            {
-                sqlite3_close(pSQLiteHandle->pDatabase);
-                clHeapFree(pSQLiteHandle);
-                errorCode = CL_DBAL_RC(CL_DBAL_ERR_DB_ERROR);
-                logError("DBA", "DBO", "SQLite DB Create failed. rc [0x%x]", rc);
-                
-                return errorCode;
-            }
-        }
-        else
-        {
-             fclose(fp);
-
-             rc = sqlite3_open(dbName, &(pSQLiteHandle->pDatabase));
-
-             if(SQLITE_OK != rc) {
-                logError("DBA", "DBO", "Error in opening the DB in append mode");
-                logError("DBA", "DBO", "SQLite Error : %s. errorCode [%d]", 
-                        sqlite3_errmsg(pSQLiteHandle->pDatabase), sqlite3_errcode(pSQLiteHandle->pDatabase));
-                sqlite3_close(pSQLiteHandle->pDatabase);
-                clHeapFree(pSQLiteHandle);
-                errorCode = CL_DBAL_RC(CL_DBAL_ERR_DB_ERROR);
-                
-                return(errorCode);
-            }           
-        } 
-    }
-    
-    if(enableSync == CL_TRUE)
-    {
-        rc = sqlite3_prepare(pSQLiteHandle->pDatabase, "pragma synchronous = full", -1, &stmt, 0);
-    }
-    else
-    {
-        rc = sqlite3_prepare(pSQLiteHandle->pDatabase, "pragma synchronous = off", -1, &stmt, 0);
-    }
-
-    if(rc != SQLITE_OK)
-    {
-        logError("DBA", "DBO", "Error in pragma prepare");
-        logError("DBA", "DBO", "SQLite Error : %s. errorCode [%d]",
-                   sqlite3_errmsg(pSQLiteHandle->pDatabase), sqlite3_errcode(pSQLiteHandle->pDatabase));
-		sqlite3_close(pSQLiteHandle->pDatabase);
-		clHeapFree(pSQLiteHandle);
-        errorCode= CL_DBAL_RC(CL_DBAL_ERR_DB_ERROR);
-        
-        return errorCode;
-    }
-
-    rc = sqlite3_step(stmt);      
-    
-    if(SQLITE_DONE != rc)
-    { 
-        sqlite3_finalize(stmt); 
-        logError("DBA", "DBO", "Failed to execute the pragma SQL statement");
-        logError("DBA", "DBO", "SQLite Error : %s. errorCode [%d]", 
-                sqlite3_errmsg(pSQLiteHandle->pDatabase), sqlite3_errcode(pSQLiteHandle->pDatabase));
-        errorCode= CL_DBAL_RC(CL_DBAL_ERR_DB_ERROR);
-		sqlite3_close(pSQLiteHandle->pDatabase);
-		clHeapFree(pSQLiteHandle);
-        
-        return(errorCode);               
-    }
-
-    rc = sqlite3_finalize(stmt); 
-
-    if(SQLITE_OK != rc)
-    {
-        logError("DBA", "DBO", "Failed to finalize the SQL statement.");
-        logError("DBA", "DBO", "SQLite Error : %s. errorCode [%d]", 
-                sqlite3_errmsg(pSQLiteHandle->pDatabase), sqlite3_errcode(pSQLiteHandle->pDatabase));
-		sqlite3_close(pSQLiteHandle->pDatabase);
-		clHeapFree(pSQLiteHandle);
-        errorCode= CL_DBAL_RC(CL_DBAL_ERR_DB_ERROR);
-        
-        return(errorCode);
-    }
-    
-    /* Prepare the statements */
-    rc = sqlite3_prepare(pSQLiteHandle->pDatabase, "insert into ObjectRepository values(?, ?)", -1, &(pSQLiteHandle->stmt[0]), 0);
-
-    if (rc != SQLITE_OK)
-    {
-        logError("DBA", "DBO", "Error in prepare statement in record add");
-        logError("DBA", "DBO", "SQLite Error : %s. errorCode [%d]", 
-                sqlite3_errmsg(pSQLiteHandle->pDatabase), sqlite3_errcode(pSQLiteHandle->pDatabase));
-		sqlite3_close(pSQLiteHandle->pDatabase);
-		clHeapFree(pSQLiteHandle);
-        errorCode = CL_DBAL_RC(CL_DBAL_ERR_DB_ERROR);
-        
-        return(errorCode);       
-    }
-
-    /* INSERT or REPLACE */
-    rc = sqlite3_prepare(pSQLiteHandle->pDatabase, "replace into ObjectRepository(Key, Data) values(?, ?)", -1, 
-		&(pSQLiteHandle->stmt[1]), 0);
-
-    if (rc != SQLITE_OK)
-    {
-        logError("DBA", "DBO", "Failed to prepare the SQL statement.");
-        logError("DBA", "DBO", "SQLite Error : %s. errorCode [%d]", 
-                sqlite3_errmsg(pSQLiteHandle->pDatabase), sqlite3_errcode(pSQLiteHandle->pDatabase));
-		sqlite3_close(pSQLiteHandle->pDatabase);
-		clHeapFree(pSQLiteHandle);
-        errorCode = CL_DBAL_RC(CL_DBAL_ERR_DB_ERROR);
-        return(errorCode);       
-    }
-
-    /* DELETE */
-    rc = sqlite3_prepare(pSQLiteHandle->pDatabase, "delete from ObjectRepository where Key=?", -1, &(pSQLiteHandle->stmt[2]), 0);
-
-    if (rc != SQLITE_OK)
-    {
-        logError("DBA", "DBO", "Failed to prepare the SQL statement.");
-        logError("DBA", "DBO", "SQLite Error : %s. errorCode [%d]", 
-                sqlite3_errmsg(pSQLiteHandle->pDatabase), sqlite3_errcode(pSQLiteHandle->pDatabase));
-		sqlite3_close(pSQLiteHandle->pDatabase);
-		clHeapFree(pSQLiteHandle);
-        errorCode = CL_DBAL_RC(CL_DBAL_ERR_DB_ERROR);
-        return(errorCode);       
-    }
-
-    /* RECORD GET */
-    rc = sqlite3_prepare(pSQLiteHandle->pDatabase, "select * from ObjectRepository where Key=?", -1, &(pSQLiteHandle->stmt[3]), 0);
-
-    if (rc != SQLITE_OK)
-    {
-        logError("DBA", "DBO", "Failed to prepare the SQL statement.");
-        logError("DBA", "DBO", "SQLite Error : %s. errorCode [%d]", 
-                sqlite3_errmsg(pSQLiteHandle->pDatabase), sqlite3_errcode(pSQLiteHandle->pDatabase));
-		sqlite3_close(pSQLiteHandle->pDatabase);
-		clHeapFree(pSQLiteHandle);
-        errorCode = CL_DBAL_RC(CL_DBAL_ERR_DB_ERROR);
-        return(errorCode);       
-    }
-
-    /* FIRST RECORD GET */
-    rc = sqlite3_prepare(pSQLiteHandle->pDatabase, "select * from ObjectRepository limit 0,1", -1, &(pSQLiteHandle->stmt[4]), 0);
-
-    if(rc != SQLITE_OK)
-    {
-        logError("DBA", "DBO", "Failed to prepare the SQL statement.");
-        logError("DBA", "DBO", "SQLite Error : %s. errorCode [%d]", 
-                sqlite3_errmsg(pSQLiteHandle->pDatabase), sqlite3_errcode(pSQLiteHandle->pDatabase));
-		sqlite3_close(pSQLiteHandle->pDatabase);
-		clHeapFree(pSQLiteHandle);
-        errorCode = CL_DBAL_RC(CL_DBAL_ERR_DB_ERROR);
-        return (errorCode);       
-    }
- 
-    /* NEXT RECORD GET */
-    rc = sqlite3_prepare(
-			pSQLiteHandle->pDatabase, 
-			"select * from ObjectRepository where rowid = (select min(rowid) from ObjectRepository "
-			"where rowid > (select rowid from ObjectRepository where Key=?))", 
-			-1, &(pSQLiteHandle->stmt[5]), 0);
-    if (rc != SQLITE_OK)
-    {
-        logError("DBA", "DBO", "Failed to prepare the SQL statement.");
-        logError("DBA", "DBO", "SQLite Error : %s. errorCode [%d]", 
-                sqlite3_errmsg(pSQLiteHandle->pDatabase), sqlite3_errcode(pSQLiteHandle->pDatabase));
-		sqlite3_close(pSQLiteHandle->pDatabase);
-		clHeapFree(pSQLiteHandle);
-        errorCode = CL_DBAL_RC(CL_DBAL_ERR_DB_ERROR);
-        return (errorCode);
-    }
-
-    *pDBHandle = (ClDBHandleT) pSQLiteHandle;
-
-    
-    return(CL_OK);
-}
-/*****************************************************************************/
-
-static ClRcT
-cdbSQLiteDBClose(ClDBHandleT dbHandle)
-{
-    ClRcT errorCode = CL_OK;
     SQLiteDBHandle_t* pSQLiteHandle = NULL;
     ClUint32T rc = 0;
     
 
-    pSQLiteHandle = (SQLiteDBHandle_t *)dbHandle;  
+    pSQLiteHandle = (SQLiteDBHandle_t *)pDBHandle;  
 
     /* Finalize the prepared statements */
     /* ADD */
@@ -585,35 +512,21 @@ cdbSQLiteDBClose(ClDBHandleT dbHandle)
         return(errorCode);
     }
 
-    clHeapFree(pSQLiteHandle);
+    SAFplusHeapFree(pSQLiteHandle);
+    pDBHandle=NULL;
     
-    
-    return (CL_OK);    
+    logInfo(CL_LOG_AREA_UNSPECIFIED, CL_LOG_CONTEXT_UNSPECIFIED,"\nSqlite closed.");
+    return (CL_OK);  
 }
 
-/****************************************************************************/
-static ClRcT
-cdbSQLiteDBSync(ClDBHandleT dbHandle,
-                ClUint32T flags)
+ClRcT SqlitePlugin::insertRecord(ClDBKeyT dbKey, ClUint32T keySize, ClDBRecordT dbRec, ClUint32T recSize)
 {
-    /*Auto.DB sync would be through DB_SYNC open flag for DBAL*/
-    return (CL_OK);
-}
-/****************************************************************************/
-
-static ClRcT
-cdbSQLiteDBRecordAdd(ClDBHandleT      dbHandle,
-                       ClDBKeyT         dbKey,
-                       ClUint32T       keySize,
-                       ClDBRecordT      dbRec,
-                       ClUint32T       recSize)
-{   
     ClRcT errorCode = CL_OK;
     SQLiteDBHandle_t* pSQLiteHandle = NULL;
     ClUint32T rc = 0;
 
     
-    pSQLiteHandle = (SQLiteDBHandle_t *)dbHandle;
+    pSQLiteHandle = (SQLiteDBHandle_t *)pDBHandle;
 
     NULL_CHECK(dbKey);
     NULL_CHECK(dbRec);
@@ -665,21 +578,15 @@ finalize:
     return (errorCode);
 }
 
-
-static ClRcT
-cdbSQLiteDBRecordReplace(ClDBHandleT      dbHandle,
-                       ClDBKeyT         dbKey,
-                       ClUint32T       keySize,
-                       ClDBRecordT      dbRec,
-                       ClUint32T       recSize)
-{   
+ClRcT SqlitePlugin::replaceRecord(ClDBKeyT dbKey, ClUint32T keySize, ClDBRecordT dbRec, ClUint32T recSize)
+{
     ClRcT errorCode = CL_OK;
     SQLiteDBHandle_t* pSQLiteHandle = NULL;
     ClUint32T rc = 0;
 
     
 
-    pSQLiteHandle = (SQLiteDBHandle_t *)dbHandle;
+    pSQLiteHandle = (SQLiteDBHandle_t *)pDBHandle;
 
     NULL_CHECK(dbKey);
     NULL_CHECK(dbRec);
@@ -718,18 +625,251 @@ finalize:
     return (errorCode);
 }
 
-
-static ClRcT
-cdbSQLiteDBRecordDelete(ClDBHandleT      dbHandle,
-                    ClDBKeyT         dbKey,
-                    ClUint32T       keySize)
+ClRcT SqlitePlugin::getRecord(ClDBKeyT dbKey, ClUint32T keySize, ClDBRecordT* pDBRec, ClUint32T* pRecSize)
 {
     ClRcT errorCode = CL_OK;
     SQLiteDBHandle_t* pSQLiteHandle = NULL;
     ClUint32T rc = 0;
 
     
-    pSQLiteHandle = (SQLiteDBHandle_t *)dbHandle;
+    
+    NULL_CHECK(dbKey);
+    NULL_CHECK(pDBRec);
+    NULL_CHECK(pRecSize);
+
+    pSQLiteHandle = (SQLiteDBHandle_t *)pDBHandle;
+
+    //TODO: happens too often, even for trace, but first verify efficient use
+    logTrace("DBA", "GET", "Retrieving a record from the database");
+
+    rc = sqlite3_bind_blob(pSQLiteHandle->stmt[3], 1, (const void *) dbKey, keySize, SQLITE_STATIC);
+
+retry:
+
+    rc = sqlite3_step(pSQLiteHandle->stmt[3]);    
+
+    if (rc != SQLITE_ROW)
+    {
+        if (rc == SQLITE_BUSY)
+        {
+            logTrace("DBA", "GET", "Couldn't get lock to update the database. retrying..");
+            goto retry;
+        }
+
+        if (rc == SQLITE_DONE)
+        {
+            errorCode = CL_DBAL_RC(CL_ERR_NOT_EXIST);
+            logTrace("DBA", "GET", "No record found in the database");
+            rc = sqlite3_reset(pSQLiteHandle->stmt[3]);
+            rc = cl_clear_bindings(pSQLiteHandle->stmt[3]);
+        }
+        else
+        {
+            rc = sqlite3_reset(pSQLiteHandle->stmt[3]);
+            errorCode = CL_DBAL_RC(CL_DBAL_ERR_DB_ERROR);
+            logError("DBA", "GET", "Failed to execute the SQL statement to retrieve a record.");
+            logError("DBA", "GET", "SQLite Error : %s. errorCode [%d]", 
+                    sqlite3_errmsg(pSQLiteHandle->pDatabase), sqlite3_errcode(pSQLiteHandle->pDatabase));
+        }
+
+        goto finalize;
+    }
+
+    *pRecSize = (ClUint32T) sqlite3_column_bytes(pSQLiteHandle->stmt[3], 1);
+    
+    *pDBRec = (ClDBRecordT) SAFplusHeapAlloc(*pRecSize);
+    
+    if(NULL == *pDBRec) {
+        errorCode = CL_DBAL_RC(CL_ERR_NO_MEMORY);
+        logError("DBA", "GET", "Failed to allocate memory.");
+        
+        goto finalize;
+    }
+
+    memcpy(*pDBRec, sqlite3_column_blob(pSQLiteHandle->stmt[3], 1), *pRecSize);
+
+    rc = sqlite3_reset(pSQLiteHandle->stmt[3]);
+    rc = cl_clear_bindings(pSQLiteHandle->stmt[3]);
+
+finalize:
+
+    
+    return (errorCode);
+}
+
+ClRcT SqlitePlugin::getFirstRecord(ClDBKeyT* pDBKey, ClUint32T* pKeySize, ClDBRecordT* pDBRec, ClUint32T* pRecSize)
+{
+    ClRcT errorCode = CL_OK;
+    SQLiteDBHandle_t* pSQLiteHandle = NULL;
+    ClUint32T rc = 0;
+ 
+    
+   
+    NULL_CHECK(pDBKey);
+    NULL_CHECK(pKeySize);
+
+    NULL_CHECK(pDBRec);
+    NULL_CHECK(pRecSize);
+
+    pSQLiteHandle = (SQLiteDBHandle_t *)pDBHandle;   
+    
+    logTrace("DBA", "GET", "Retrieving the first record from the database");
+
+retry:    
+    rc = sqlite3_step(pSQLiteHandle->stmt[4]);
+
+    if((rc != SQLITE_ROW))
+    { 
+        if (rc == SQLITE_BUSY)
+        {
+            logInfo("DBA", "GET", "Couldn't get the lock to retrieve the value. retrying..");
+            goto retry;
+        }
+
+        if (rc == SQLITE_DONE)
+        {
+            errorCode = CL_DBAL_RC(CL_ERR_NOT_EXIST);
+            logTrace("DBA", "GET", "No records found in the database.");
+            rc = sqlite3_reset(pSQLiteHandle->stmt[4]);
+            rc = cl_clear_bindings(pSQLiteHandle->stmt[4]);
+            goto finalize;
+        }
+             
+        rc = sqlite3_reset(pSQLiteHandle->stmt[4]);
+        errorCode = CL_DBAL_RC(CL_DBAL_ERR_DB_ERROR);
+        logError("DBA", "GET", "Failed to retrieve the First Record.");
+        logError("DBA", "GET", "SQLite Error : %s. errorCode [%d]", 
+                sqlite3_errmsg(pSQLiteHandle->pDatabase), sqlite3_errcode(pSQLiteHandle->pDatabase));
+        goto finalize;       
+    }
+
+    *pKeySize = (ClUint32T) sqlite3_column_bytes(pSQLiteHandle->stmt[4], 0);
+    *pRecSize = (ClUint32T) sqlite3_column_bytes(pSQLiteHandle->stmt[4], 1);
+
+    *pDBKey = (ClDBKeyT) SAFplusHeapAlloc(*pKeySize);
+
+    if(NULL == *pDBKey) {
+        errorCode = CL_DBAL_RC(CL_ERR_NO_MEMORY);
+        logError("DBA", "GET", "Failed to allocate memory");
+        
+        goto finalize;
+    }
+
+    memcpy(*pDBKey, sqlite3_column_blob(pSQLiteHandle->stmt[4], 0), *pKeySize);
+   
+    *pDBRec = (ClDBRecordT) SAFplusHeapAlloc(*pRecSize);
+
+    if(NULL == *pDBRec) {
+        errorCode = CL_DBAL_RC(CL_ERR_NO_MEMORY);
+        logError("DBA", "GET", "Failed to allocate memory");
+        SAFplusHeapFree(*pDBKey);
+        
+        goto finalize;
+    }
+
+    memcpy(*pDBRec, sqlite3_column_blob(pSQLiteHandle->stmt[4], 1), *pRecSize); 
+
+    rc = sqlite3_reset(pSQLiteHandle->stmt[4]);
+    rc = cl_clear_bindings(pSQLiteHandle->stmt[4]);
+
+finalize:    
+    
+    
+    return (errorCode);
+}
+
+ClRcT SqlitePlugin::getNextRecord(ClDBKeyT currentKey, ClUint32T currentKeySize, ClDBKeyT* pDBNextKey, ClUint32T* pNextKeySize, ClDBRecordT* pDBNextRec, ClUint32T* pNextRecSize)
+{
+   ClRcT errorCode = CL_OK;
+    SQLiteDBHandle_t* pSQLiteHandle = NULL;
+    ClUint32T rc = 0;
+
+    
+
+    NULL_CHECK(currentKey);
+    NULL_CHECK(pDBNextKey);
+    NULL_CHECK(pNextKeySize);
+
+    NULL_CHECK(pDBNextRec);
+    NULL_CHECK(pNextRecSize);
+
+    pSQLiteHandle = (SQLiteDBHandle_t *)pDBHandle;
+
+    logTrace("DBA", "GET", "Retrieving the next record from the database");
+
+    sqlite3_bind_blob(pSQLiteHandle->stmt[5], 1, (const void *) currentKey, currentKeySize, SQLITE_STATIC);
+    
+retry1:    
+    rc = sqlite3_step(pSQLiteHandle->stmt[5]);
+
+    if (rc != SQLITE_ROW)
+    { 
+        if (rc == SQLITE_BUSY)
+        {
+            logTrace("DBA", "GET", "Couldn't get the lock the retrieve the value. retrying..");
+            goto retry1;
+        }
+
+        if (rc == SQLITE_DONE)
+        {
+            errorCode = CL_DBAL_RC(CL_ERR_NOT_EXIST);
+            logInfo("DBA", "GET", "Current record does not exist in the database.");
+            rc = sqlite3_reset(pSQLiteHandle->stmt[5]);
+            rc = cl_clear_bindings(pSQLiteHandle->stmt[5]);
+            goto finalize;
+        }
+
+        rc = sqlite3_reset(pSQLiteHandle->stmt[5]);
+        errorCode = CL_DBAL_RC(CL_DBAL_ERR_DB_ERROR);
+        logError("DBA", "GET", "Failed to retrieve the record with the key value specified.");
+        logError("DBA", "GET", "SQLite Error : %s. errorCode [%d]", 
+                sqlite3_errmsg(pSQLiteHandle->pDatabase), sqlite3_errcode(pSQLiteHandle->pDatabase));
+        goto finalize;       
+    }
+
+    *pNextKeySize = (ClUint32T) sqlite3_column_bytes(pSQLiteHandle->stmt[5], 0);
+    *pNextRecSize = (ClUint32T) sqlite3_column_bytes(pSQLiteHandle->stmt[5], 1);
+
+    *pDBNextKey = (ClDBKeyT) SAFplusHeapAlloc(*pNextKeySize);
+
+    if(NULL == *pDBNextKey) {
+        errorCode = CL_DBAL_RC(CL_ERR_NO_MEMORY);
+        logError("DBA", "GET", "Failed to allocate memory");
+        
+        goto finalize;
+    }
+
+    memcpy(*pDBNextKey, sqlite3_column_blob(pSQLiteHandle->stmt[5], 0), *pNextKeySize);
+   
+    *pDBNextRec = (ClDBRecordT) SAFplusHeapAlloc(*pNextRecSize);
+
+    if(NULL == *pDBNextRec) {
+        errorCode = CL_DBAL_RC(CL_ERR_NO_MEMORY);
+        logError("DBA", "GET", "Failed to allocate memory");
+        SAFplusHeapFree(*pDBNextKey);
+        
+        goto finalize;
+    }
+
+    memcpy(*pDBNextRec, sqlite3_column_blob(pSQLiteHandle->stmt[5], 1), *pNextRecSize); 
+
+    rc = sqlite3_reset(pSQLiteHandle->stmt[5]);
+    rc = cl_clear_bindings(pSQLiteHandle->stmt[5]);
+
+finalize:
+
+    
+    return (errorCode);
+}
+
+ClRcT SqlitePlugin::deleteRecord(ClDBKeyHandleT dbKey, ClUint32T keySize)
+{
+    ClRcT errorCode = CL_OK;
+    SQLiteDBHandle_t* pSQLiteHandle = NULL;
+    ClUint32T rc = 0;
+
+    
+    pSQLiteHandle = (SQLiteDBHandle_t *)pDBHandle;
 
     NULL_CHECK(dbKey);
 
@@ -772,270 +912,16 @@ retry:
 finalize:    
 
     
-    return (errorCode);    
-}
-
-static ClRcT  
-cdbSQLiteDBRecordGet(ClDBHandleT      dbHandle,
-                 ClDBKeyT         dbKey,
-                 ClUint32T       keySize,
-                 ClDBRecordT*     pDBRec,
-                 ClUint32T*      pRecSize)
-{
-    ClRcT errorCode = CL_OK;
-    SQLiteDBHandle_t* pSQLiteHandle = NULL;
-    ClUint32T rc = 0;
-
-    
-    
-    NULL_CHECK(dbKey);
-    NULL_CHECK(pDBRec);
-    NULL_CHECK(pRecSize);
-
-    pSQLiteHandle = (SQLiteDBHandle_t *)dbHandle;
-
-    //TODO: happens too often, even for trace, but first verify efficient use
-    logTrace("DBA", "GET", "Retrieving a record from the database");
-
-    rc = sqlite3_bind_blob(pSQLiteHandle->stmt[3], 1, (const void *) dbKey, keySize, SQLITE_STATIC);
-
-retry:
-
-    rc = sqlite3_step(pSQLiteHandle->stmt[3]);    
-
-    if (rc != SQLITE_ROW)
-    {
-        if (rc == SQLITE_BUSY)
-        {
-            logTrace("DBA", "GET", "Couldn't get lock to update the database. retrying..");
-            goto retry;
-        }
-
-        if (rc == SQLITE_DONE)
-        {
-            errorCode = CL_DBAL_RC(CL_ERR_NOT_EXIST);
-            logTrace("DBA", "GET", "No record found in the database");
-            rc = sqlite3_reset(pSQLiteHandle->stmt[3]);
-            rc = cl_clear_bindings(pSQLiteHandle->stmt[3]);
-        }
-        else
-        {
-            rc = sqlite3_reset(pSQLiteHandle->stmt[3]);
-            errorCode = CL_DBAL_RC(CL_DBAL_ERR_DB_ERROR);
-            logError("DBA", "GET", "Failed to execute the SQL statement to retrieve a record.");
-            logError("DBA", "GET", "SQLite Error : %s. errorCode [%d]", 
-                    sqlite3_errmsg(pSQLiteHandle->pDatabase), sqlite3_errcode(pSQLiteHandle->pDatabase));
-        }
-
-        goto finalize;;       
-    }
-
-    *pRecSize = (ClUint32T) sqlite3_column_bytes(pSQLiteHandle->stmt[3], 1);
-    
-    *pDBRec = (ClDBRecordT) clHeapAllocate(*pRecSize);
-    
-    if(NULL == *pDBRec) {
-        errorCode = CL_DBAL_RC(CL_ERR_NO_MEMORY);
-        logError("DBA", "GET", "Failed to allocate memory.");
-        
-        goto finalize;
-    }
-
-    memcpy(*pDBRec, sqlite3_column_blob(pSQLiteHandle->stmt[3], 1), *pRecSize);
-
-    rc = sqlite3_reset(pSQLiteHandle->stmt[3]);
-    rc = cl_clear_bindings(pSQLiteHandle->stmt[3]);
-
-finalize:
-
-    
     return (errorCode);
 }
 
-static ClRcT
-cdbSQLiteDBFirstRecordGet(ClDBHandleT      dbHandle,
-                      ClDBKeyT*        pDBKey,
-                      ClUint32T*      pKeySize,
-                      ClDBRecordT*     pDBRec,
-                      ClUint32T*      pRecSize)
+ClRcT SqlitePlugin::syncDbal(ClUint32T flags)
 {
-    ClRcT errorCode = CL_OK;
-    SQLiteDBHandle_t* pSQLiteHandle = NULL;
-    ClUint32T rc = 0;
- 
-    
-   
-    NULL_CHECK(pDBKey);
-    NULL_CHECK(pKeySize);
-
-    NULL_CHECK(pDBRec);
-    NULL_CHECK(pRecSize);
-
-    pSQLiteHandle = (SQLiteDBHandle_t *)dbHandle;   
-    
-    logTrace("DBA", "GET", "Retrieving the first record from the database");
-
-retry:    
-    rc = sqlite3_step(pSQLiteHandle->stmt[4]);
-
-    if((rc != SQLITE_ROW))
-    { 
-        if (rc == SQLITE_BUSY)
-        {
-            logInfo("DBA", "GET", "Couldn't get the lock to retrieve the value. retrying..");
-            goto retry;
-        }
-
-        if (rc == SQLITE_DONE)
-        {
-            errorCode = CL_DBAL_RC(CL_ERR_NOT_EXIST);
-            logTrace("DBA", "GET", "No records found in the database.");
-            rc = sqlite3_reset(pSQLiteHandle->stmt[4]);
-            rc = cl_clear_bindings(pSQLiteHandle->stmt[4]);
-            goto finalize;
-        }
-             
-        rc = sqlite3_reset(pSQLiteHandle->stmt[4]);
-        errorCode = CL_DBAL_RC(CL_DBAL_ERR_DB_ERROR);
-        logError("DBA", "GET", "Failed to retrieve the First Record.");
-        logError("DBA", "GET", "SQLite Error : %s. errorCode [%d]", 
-                sqlite3_errmsg(pSQLiteHandle->pDatabase), sqlite3_errcode(pSQLiteHandle->pDatabase));
-        goto finalize;       
-    }
-
-    *pKeySize = (ClUint32T) sqlite3_column_bytes(pSQLiteHandle->stmt[4], 0);
-    *pRecSize = (ClUint32T) sqlite3_column_bytes(pSQLiteHandle->stmt[4], 1);
-
-    *pDBKey = (ClDBKeyT) clHeapAllocate(*pKeySize);
-
-    if(NULL == *pDBKey) {
-        errorCode = CL_DBAL_RC(CL_ERR_NO_MEMORY);
-        logError("DBA", "GET", "Failed to allocate memory");
-        
-        goto finalize;
-    }
-
-    memcpy(*pDBKey, sqlite3_column_blob(pSQLiteHandle->stmt[4], 0), *pKeySize);
-   
-    *pDBRec = (ClDBRecordT) clHeapAllocate(*pRecSize);
-
-    if(NULL == *pDBRec) {
-        errorCode = CL_DBAL_RC(CL_ERR_NO_MEMORY);
-        logError("DBA", "GET", "Failed to allocate memory");
-        clHeapFree(*pDBKey);
-        
-        goto finalize;
-    }
-
-    memcpy(*pDBRec, sqlite3_column_blob(pSQLiteHandle->stmt[4], 1), *pRecSize); 
-
-    rc = sqlite3_reset(pSQLiteHandle->stmt[4]);
-    rc = cl_clear_bindings(pSQLiteHandle->stmt[4]);
-
-finalize:    
-    
-    
-    return (errorCode);
+   /*Auto.DB sync would be through DB_SYNC open flag for DBAL*/
+    return (CL_OK);
 }
 
-static ClRcT
-cdbSQLiteDBNextRecordGet(ClDBHandleT      dbHandle,
-                     ClDBKeyT         currentKey,
-                     ClUint32T       currentKeySize,
-                     ClDBKeyT*        pDBNextKey,
-                     ClUint32T*      pNextKeySize,
-                     ClDBRecordT*     pDBNextRec,
-                     ClUint32T*      pNextRecSize)
-{
-    ClRcT errorCode = CL_OK;
-    SQLiteDBHandle_t* pSQLiteHandle = NULL;
-    ClUint32T rc = 0;
-
-    
-
-    NULL_CHECK(currentKey);
-    NULL_CHECK(pDBNextKey);
-    NULL_CHECK(pNextKeySize);
-
-    NULL_CHECK(pDBNextRec);
-    NULL_CHECK(pNextRecSize);
-
-    pSQLiteHandle = (SQLiteDBHandle_t *)dbHandle;
-
-    logTrace("DBA", "GET", "Retrieving the next record from the database");
-
-    sqlite3_bind_blob(pSQLiteHandle->stmt[5], 1, (const void *) currentKey, currentKeySize, SQLITE_STATIC);
-    
-retry1:    
-    rc = sqlite3_step(pSQLiteHandle->stmt[5]);
-
-    if (rc != SQLITE_ROW)
-    { 
-        if (rc == SQLITE_BUSY)
-        {
-            logTrace("DBA", "GET", "Couldn't get the lock the retrieve the value. retrying..");
-            goto retry1;
-        }
-
-        if (rc == SQLITE_DONE)
-        {
-            errorCode = CL_DBAL_RC(CL_ERR_NOT_EXIST);
-            logInfo("DBA", "GET", "Current record does not exist in the database.");
-            rc = sqlite3_reset(pSQLiteHandle->stmt[5]);
-            rc = cl_clear_bindings(pSQLiteHandle->stmt[5]);
-            goto finalize;
-        }
-
-        rc = sqlite3_reset(pSQLiteHandle->stmt[5]);
-        errorCode = CL_DBAL_RC(CL_DBAL_ERR_DB_ERROR);
-        logError("DBA", "GET", "Failed to retrieve the record with the key value specified.");
-        logError("DBA", "GET", "SQLite Error : %s. errorCode [%d]", 
-                sqlite3_errmsg(pSQLiteHandle->pDatabase), sqlite3_errcode(pSQLiteHandle->pDatabase));
-        goto finalize;       
-    }
-
-    *pNextKeySize = (ClUint32T) sqlite3_column_bytes(pSQLiteHandle->stmt[5], 0);
-    *pNextRecSize = (ClUint32T) sqlite3_column_bytes(pSQLiteHandle->stmt[5], 1);
-
-    *pDBNextKey = (ClDBKeyT) clHeapAllocate(*pNextKeySize);
-
-    if(NULL == *pDBNextKey) {
-        errorCode = CL_DBAL_RC(CL_ERR_NO_MEMORY);
-        logError("DBA", "GET", "Failed to allocate memory");
-        
-        goto finalize;
-    }
-
-    memcpy(*pDBNextKey, sqlite3_column_blob(pSQLiteHandle->stmt[5], 0), *pNextKeySize);
-   
-    *pDBNextRec = (ClDBRecordT) clHeapAllocate(*pNextRecSize);
-
-    if(NULL == *pDBNextRec) {
-        errorCode = CL_DBAL_RC(CL_ERR_NO_MEMORY);
-        logError("DBA", "GET", "Failed to allocate memory");
-        clHeapFree(*pDBNextKey);
-        
-        goto finalize;
-    }
-
-    memcpy(*pDBNextRec, sqlite3_column_blob(pSQLiteHandle->stmt[5], 1), *pNextRecSize); 
-
-    rc = sqlite3_reset(pSQLiteHandle->stmt[5]);
-    rc = cl_clear_bindings(pSQLiteHandle->stmt[5]);
-
-finalize:
-
-    
-    return (errorCode);
-}
-
-static ClRcT  
-cdbSQLiteDBTxnOpen(ClDBFileT    dbFile,
-               ClDBNameT    dbName, 
-               ClDBFlagT    dbFlag,
-               ClUint32T    maxKeySize,
-               ClUint32T    maxRecordSize,
-               ClDBHandleT* pDBHandle)
+ClRcT SqlitePlugin::openTransaction(ClDBFileT dbFile, ClDBNameT  dbName, ClDBFlagT dbFlag, ClUint32T  maxKeySize, ClUint32T  maxRecordSize)
 {
     ClRcT errorCode = CL_OK;
 
@@ -1048,8 +934,7 @@ cdbSQLiteDBTxnOpen(ClDBFileT    dbFile,
     return (errorCode);
 }
 
-static ClRcT
-cdbSQLiteDBTransactionBegin(ClDBHandleT  dbHandle)
+ClRcT SqlitePlugin::beginTransaction()
 {
     ClRcT errorCode = CL_OK;
 
@@ -1063,8 +948,21 @@ cdbSQLiteDBTransactionBegin(ClDBHandleT  dbHandle)
     return (errorCode);
 }
 
-static ClRcT
-cdbSQLiteDBTransactionCommit(ClDBHandleT  dbHandle)
+ClRcT SqlitePlugin::commitTransaction()
+{
+   ClRcT errorCode = CL_OK;
+
+    
+
+    /* Transactions are not supported currently */
+    errorCode = CL_DBAL_RC(CL_ERR_NOT_SUPPORTED);
+    logError("DBA", "TXN", "SQLite Transaction is not supported");
+    
+
+    return (errorCode);
+}
+
+ClRcT SqlitePlugin::abortTransaction()
 {
     ClRcT errorCode = CL_OK;
 
@@ -1078,114 +976,37 @@ cdbSQLiteDBTransactionCommit(ClDBHandleT  dbHandle)
     return (errorCode);
 }
 
-static ClRcT
-cdbSQLiteDBTransactionAbort(ClDBHandleT  dbHandle)
-{
-    ClRcT errorCode = CL_OK;
-
-    
-
-    /* Transactions are not supported currently */
-    errorCode = CL_DBAL_RC(CL_ERR_NOT_SUPPORTED);
-    logError("DBA", "TXN", "SQLite Transaction is not supported");
-    
-
-    return (errorCode);
-}
-
-/*****************************************************************************/
-static ClRcT
-cdbSQLiteDBRecordFree(ClDBHandleT  dbHandle,
-                        ClDBRecordT  dbRec)
+ClRcT SqlitePlugin::freeRecord(ClDBRecordT dbRec)
 {
     ClRcT errorCode = CL_OK;
 
     NULL_CHECK(dbRec);
-    clHeapFree(dbRec);
+    SAFplusHeapFree(dbRec);
     return (CL_OK);
 }
 
-/*****************************************************************************/
-static ClRcT cdbSQLiteDBKeyFree(ClDBHandleT  dbHandle, ClDBKeyT     dbKey)
+ClRcT SqlitePlugin::freeKey(ClDBRecordT dbKey)
 {
     ClRcT errorCode = CL_OK;
 
     NULL_CHECK(dbKey);
-    clHeapFree(dbKey);
+    SAFplusHeapFree(dbKey);
     return (CL_OK);
 }
 
-/****************************************************************************/
-ClRcT clDbalEngineFinalize()
+};
+
+extern "C" SAFplus::ClPlugin* clPluginInitialize(uint_t preferredPluginVersion)
 {
-    return CL_OK;
+  // We can only provide a single version, so don't bother with the 'preferredPluginVersion' variable.
+
+  // Initialize the pluginData structure
+  SAFplus::SqlitePlugin* api = new SAFplus::SqlitePlugin();
+  api->pluginId         = SAFplus::CL_DBAL_PLUGIN_ID;
+  api->pluginVersion    = SAFplus::CL_DBAL_PLUGIN_VER;
+  api->type = "Sqlite";
+
+  // return it
+  //return (SAFplus::ClPlugin*) &SAFplus::api;
+  return (SAFplus::ClPlugin*) api;
 }
-
-/****************************************************************************/
-ClRcT clDbalInterface(ClDbalFunctionPtrsT  *funcDbPtr)
-{
-    ClDbalConfigT* pDbalConfiguration = NULL;
-    ClRcT          rc = CL_OK;
-    int            sqLiteSoNum;
-    
-    logTrace("DBA", "INI", "SQLite version : %s", SQLITE_VERSION);
-    sqLiteSoNum = sqlite3_libversion_number();
-    
-    if (sqLiteSoNum != SQLITE_VERSION_NUMBER)
-    {
-        logWarning("DBA", "INI", "SQLite was compiled with version [%d], but dynamically loaded library is different: version [%d].  You may have 2 versions of sqlite installed in different directories (for example, /usr/lib, /usr/local/lib), or have different versions installed in the build machine vs. this machine.  This issue may cause runtime instability.",
-                  SQLITE_VERSION_NUMBER,sqLiteSoNum);
-    }
-
-    /* Check for the minimum sqlite version supported */
-    if (!(sqLiteSoNum >= 3003013))
-    {
-        logError("DBA", "INI", "SQLite version [%d] found in the system is unsupported. "
-                "Please install the SQLite version >= 3.3.13.", sqLiteSoNum);
-        return CL_DBAL_RC(CL_ERR_NOT_SUPPORTED);
-    }
-
-    pDbalConfiguration = (ClDbalConfigT*)clHeapAllocate(sizeof(ClDbalConfigT));
-    if ( NULL == pDbalConfiguration )
-    {
-        logError("DBA", "INI", "Failed to allocate memory.");
-        return CL_DBAL_RC(CL_ERR_NO_MEMORY);
-    }
-
-    memset(pDbalConfiguration, '\0', sizeof(ClDbalConfigT));  
-
-    strcpy((ClCharT*)pDbalConfiguration->Database.sqliteConfig.enginePath, CL_DBAL_SQLITE_DB_PATH);
-    if ((rc = clDbalConfigInitialize((void *)pDbalConfiguration)) != CL_OK )
-    {
-        logError("DBA", "INI", "Failed to initialize DBAL Config. rc [0x%x]", rc);
-        clHeapFree(pDbalConfiguration);
-        return rc;
-    }
-
-    funcDbPtr->fpCdbOpen              = cdbSQLiteDBOpen;
-    funcDbPtr->fpCdbClose             = cdbSQLiteDBClose;
-    funcDbPtr->fpCdbSync              = cdbSQLiteDBSync;
-    funcDbPtr->fpCdbRecordAdd         = cdbSQLiteDBRecordAdd;
-    funcDbPtr->fpCdbRecordReplace     = cdbSQLiteDBRecordReplace;
-    funcDbPtr->fpCdbRecordGet         = cdbSQLiteDBRecordGet;
-    funcDbPtr->fpCdbRecordDelete      = cdbSQLiteDBRecordDelete;
-    funcDbPtr->fpCdbFirstRecordGet    = cdbSQLiteDBFirstRecordGet;
-    funcDbPtr->fpCdbNextRecordGet     = cdbSQLiteDBNextRecordGet;
-    funcDbPtr->fpCdbTxnOpen           = cdbSQLiteDBTxnOpen;
-    funcDbPtr->fpCdbTransactionBegin  = cdbSQLiteDBTransactionBegin;
-    funcDbPtr->fpCdbTransactionCommit = cdbSQLiteDBTransactionCommit;
-    funcDbPtr->fpCdbTransactionAbort  = cdbSQLiteDBTransactionAbort;
-    funcDbPtr->fpCdbRecordFree        = cdbSQLiteDBRecordFree;
-    funcDbPtr->fpCdbKeyFree           = cdbSQLiteDBKeyFree;
-    funcDbPtr->fpCdbFinalize          = clDbalEngineFinalize;
-    funcDbPtr->validDatabase          = DATABASE_ID;
-
-    clHeapFree(pDbalConfiguration);
-
-    return rc; 
-}
-
-#ifdef __cplusplus
- }
-#endif
-

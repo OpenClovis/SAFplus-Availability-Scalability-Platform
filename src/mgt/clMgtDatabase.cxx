@@ -51,18 +51,19 @@ namespace SAFplus
   MgtDatabase::MgtDatabase()
   {
     mInitialized = CL_FALSE;
+    mDbDataHdl = clDbalObjCreate();
   }
 
   ClRcT MgtDatabase::initializeDB(const std::string &dbName, ClUint32T maxKeySize, ClUint32T maxRecordSize)
   {
     ClRcT rc = CL_OK;
-    ClDBHandleT dbDataHdl = 0; /* Database handle*/
+    //ClDBHandleT dbDataHdl = 0; /* Database handle*/
 
     std::string dbNameData = "";
     std::string dbNameIdx = "";
 
     /*Initialize dbal if not initialized*/
-    rc = clDbalLibInitialize();
+    //rc = clDbalLibInitialize();
     if (CL_OK != rc)
       {
         logDebug("MGT", "DBAL", "Dbal lib initialized failed [%x]", rc);
@@ -71,17 +72,17 @@ namespace SAFplus
 
     /* Open the data DB */
     dbNameData.append(dbName).append(".db");
-    rc = clDbalOpen(dbNameData.c_str(), dbNameData.c_str(), CL_DB_APPEND, maxKeySize, maxRecordSize, &dbDataHdl);
+    rc = mDbDataHdl->open(dbNameData.c_str(), dbNameData.c_str(), CL_DB_APPEND, maxKeySize, maxRecordSize);
     if (CL_OK != rc)
       {
         goto exitOnError1;
       }
 
-    mDbDataHdl = dbDataHdl;
+    //mDbDataHdl = dbDataHdl;
     mInitialized = CL_TRUE;
     return rc;
 
-    exitOnError1: clDbalLibFinalize();
+    exitOnError1: //clDbalLibFinalize();
     return rc;
   }
 
@@ -93,11 +94,11 @@ namespace SAFplus
       }
 
     /* Close the data DB */
-    clDbalClose(mDbDataHdl);
-    mDbDataHdl = 0;
+    //clDbalClose(mDbDataHdl);
+    //mDbDataHdl = 0;
 
     /*Finalize dbal */
-    clDbalLibFinalize();
+    //clDbalLibFinalize();
     return CL_OK;
   }
 
@@ -129,14 +130,14 @@ namespace SAFplus
           /*
            * Update value
            */
-          rc = clDbalRecordReplace(mDbDataHdl, (ClDBKeyT) &hashKey, sizeof(hashKey), (ClDBRecordT) strVal.c_str(), strVal.size());
+          rc = mDbDataHdl->replaceRecord((ClDBKeyT) &hashKey, sizeof(hashKey), (ClDBRecordT) strVal.c_str(), strVal.size());
         }
       else
         {
           /*
            * Insert into data table
            */
-          rc = clDbalRecordInsert(mDbDataHdl, (ClDBKeyT) &hashKey, sizeof(hashKey), (ClDBRecordT) strVal.c_str(), strVal.size());
+          rc = mDbDataHdl->insertRecord((ClDBKeyT) &hashKey, sizeof(hashKey), (ClDBRecordT) strVal.c_str(), strVal.size());
         }
       return rc;
     }
@@ -172,7 +173,7 @@ namespace SAFplus
 
     ClUint32T hashKey = getHashKeyFn(key.c_str());
 
-    rc = clDbalRecordGet(mDbDataHdl, (ClDBKeyT) &hashKey, sizeof(hashKey), (ClDBRecordT*) &cvalue, &dataSize);
+    rc = mDbDataHdl->getRecord((ClDBKeyT) &hashKey, sizeof(hashKey), (ClDBRecordT*) &cvalue, &dataSize);
     if (CL_OK != rc)
       {
         return rc;
@@ -210,7 +211,7 @@ namespace SAFplus
 
     ClUint32T hashKey = getHashKeyFn(key.c_str());
 
-    rc = clDbalRecordDelete(mDbDataHdl, (ClDBKeyT) &hashKey, sizeof(hashKey));
+    rc = mDbDataHdl->deleteRecord((ClDBKeyT) &hashKey, sizeof(hashKey));
 
     return rc;
   }
@@ -228,7 +229,7 @@ namespace SAFplus
     /*
      * Iterators key value
      */
-    rc = clDbalFirstRecordGet(mDbDataHdl, (ClDBKeyT*) &recKey, &keySize, (ClDBRecordT*) &recData, &dataSize);
+    rc = mDbDataHdl->getFirstRecord((ClDBKeyT*) &recKey, &keySize, (ClDBRecordT*) &recData, &dataSize);
     if (rc != CL_OK)
       {
         return;
@@ -257,7 +258,7 @@ namespace SAFplus
             logDebug("MGT", "LOAD", "Read [%s]", dbValue.xpath().c_str());
           }
 
-        if ((rc = clDbalNextRecordGet(mDbDataHdl, (ClDBKeyT) recKey, keySize, (ClDBKeyT*) &nextKey, &nextKeySize, (ClDBRecordT*) &recData, &dataSize)) != CL_OK)
+        if ((rc = mDbDataHdl->getNextRecord((ClDBKeyT) recKey, keySize, (ClDBKeyT*) &nextKey, &nextKeySize, (ClDBRecordT*) &recData, &dataSize)) != CL_OK)
           {
             rc = CL_OK;
             break;

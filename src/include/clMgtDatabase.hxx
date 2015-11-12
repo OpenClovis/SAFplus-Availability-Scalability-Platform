@@ -33,11 +33,11 @@
 
 #include <string>
 #include <vector>
-
+#include <clDbalBase.hxx>
 extern "C"
 {
 //#include <clCommon.h>
-#include <clDbalApi.h>
+//#include <clDbalBase.hxx>
 } /* end extern 'C' */
 
 #define DBAL_DB_KEY_BITS (32ULL)
@@ -58,7 +58,7 @@ namespace SAFplus
     static MgtDatabase *singletonInstance;
 
     ClBoolT mInitialized;
-    ClDBHandleT mDbDataHdl;
+    DbalPlugin* mDbDataHdl;
 
   private:
     void loadDb(std::vector<std::string> &result);

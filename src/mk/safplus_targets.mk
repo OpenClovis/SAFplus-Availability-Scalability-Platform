@@ -81,9 +81,9 @@ $(PLUGIN_DIR)/libclGDBM.so:
 	$(MAKE) -C $(SAFPLUS_SRC_DIR)/dbal/plugins/gdbm
 endif
 
-ifndef SAFPLUS_DBAL_SQLITE_PLUGIN
-$(PLUGIN_DIR)/libclSQLiteDB.so:
-	$(MAKE) -C $(SAFPLUS_SRC_DIR)/dbal/plugins/sqlite
+ifndef SAFPLUS_DBAL_PLUGIN
+$(PLUGIN_DIR)/libclSQLiteDB.so: $(wildcard $(SAFPLUS_SRC_DIR)/dbal/plugins/*.cxx)
+	$(MAKE) -C $(SAFPLUS_SRC_DIR)/dbal/plugins
 endif
 
 endif
@@ -195,6 +195,7 @@ endif
 #SAFplusTests := $(TEST_DIR)/testLog $(TEST_DIR)/testmgt   $(TEST_DIR)/TestClient $(TEST_DIR)/TestServer $(TEST_DIR)/TestCombine $(TEST_DIR)/testCkpt $(TEST_DIR)/testGroup $(TEST_DIR)/exampleSafApp $(TEST_DIR)/testTransport $(TEST_DIR)/testMsgPerf
 
 SAFplusMsgTransports := $(LIB_DIR)/clMsgUdp.so
+SAFplusDbalPlugins := $(PLUGIN_DIR)/libclSQLiteDB.so
 
 # ordered by dependency
 SAFplusSOs := $(LIB_DIR)/libclUtils.so $(LIB_DIR)/libclTimer.so $(LIB_DIR)/libclLog.so $(LIB_DIR)/libclOsal.so  $(LIB_DIR)/libclCkpt.so $(LIB_DIR)/libclMsg.so $(LIB_DIR)/libclRpc.so $(LIB_DIR)/libclName.so $(LIB_DIR)/libclGroup.so $(LIB_DIR)/libclMgt.so $(LIB_DIR)/libclFault.so $(LIB_DIR)/libclDbal.so $(LIB_DIR)/libclAmf.so $(LIB_DIR)/pyDbal.so
@@ -209,7 +210,7 @@ SAFplusServices :=  $(SAFPLUS_TARGET)/bin/splogd $(SAFPLUS_TARGET)/bin/safplus_a
 
 SAFplusTools := $(SAFplusRpcGen)
 
-SAFplusPlugins := $(PLUGIN_DIR)/libclBerkeleyDB.so $(PLUGIN_DIR)/libclGDBM.so $(PLUGIN_DIR)/libclSQLiteDB.so $(SAFplusMsgTransports)
+SAFplusPlugins := $(SAFplusDbalPlugins) $(SAFplusMsgTransports)
 
 ThirdPartySOs := $(LIB_DIR)/libezxml.so
 

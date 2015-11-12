@@ -43,12 +43,11 @@
 #ifndef _CL_CLIST_ERRORS_H_
 #define _CL_CLIST_ERRORS_H_
 
-#ifdef __cplusplus
-extern "C" {
-#endif
 
 #include <clCommon6.h>
 #include <clCommonErrors6.h>
+
+namespace SAFplusI {
 
 /******************************************************************************
  * ERROR CODES
@@ -61,9 +60,7 @@ extern "C" {
  *****************************************************************************/
 #define CL_CLIST_RC(ERROR_CODE)  CL_RC(CL_CID_CLIST, (ERROR_CODE))
 
-#ifdef __cplusplus
-}
-#endif
+};
 
 #endif /* _CL_CLIST_ERRORS_H_ */
 

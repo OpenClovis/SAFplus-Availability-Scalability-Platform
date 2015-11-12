@@ -147,6 +147,8 @@ namespace SAFplusI
     }; 
 
   extern const char* defaultMsgTransport;  //? Specifies the default messaging transport plugin filename.  This can be overridden by an environment variable.
+  extern const char* defaultDbalPluginFile;  //? Specifies the default dbal plugin filename.  This can be overridden by an environment variable.
+
 
   /* ckpt default retention duration */
   enum 
