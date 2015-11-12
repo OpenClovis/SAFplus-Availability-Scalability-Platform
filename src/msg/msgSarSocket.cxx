@@ -202,10 +202,10 @@ namespace SAFplus
       MsgSarSocket::MsgSarMap::iterator item = temp->socket->received.find(*temp->sarId);
       if (item == temp->socket->received.end())
       {
+        temp->socket->receiveMutex.unlock();
         return CL_OK;
       }
       MsgSarTracker& trk = item->second;
-
       for (it = trk.msgs.begin(); it != trk.msgs.end(); it++)
       {
         (*it)->free();
@@ -215,7 +215,6 @@ namespace SAFplus
       temp->socket->receiveMutex.unlock();
       return CL_OK;
     };
-
 
     Message* MsgSarSocket::receive(uint_t maxMsgs,int maxDelay)
     {

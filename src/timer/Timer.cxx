@@ -48,6 +48,11 @@ signed int timerMaxParallelThread=50;
 SAFplus::TimerBase gTimerBase;
 
 
+void ReleaseTimerPool(TimerPoolable* tp)
+{
+  if(tp)
+    delete tp;
+}
 SAFplus::TimerBase::TimerBase()
 {
 
@@ -183,6 +188,7 @@ ClRcT SAFplus::TimerBase::timerRun(void)
          */
         if(timerContext == TimerContextT::TIMER_TASK_CONTEXT)
         {
+          ReleaseTimerPool(pTimer->timerPool);
           delete pTimer;
         }
         break;
@@ -368,8 +374,7 @@ signed short SAFplus::Timer::timerAddCallbackTask()
 }
 SAFplus::Timer::~Timer()
 {
-  if (timerPool)
-    delete timerPool;
+
 }
 void SAFplus::Timer::timerInitCallbackTask()
 {
