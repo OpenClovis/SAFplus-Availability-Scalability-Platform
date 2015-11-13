@@ -106,18 +106,18 @@ namespace SAFplus
   // Handle Null Fragment function
   void MsgSocketReliable::handleNullFragmentTimerFunc(void)
   {
-      if (unackedSentQueue.empty())
+    if (unackedSentQueue.empty())
+    {
+      try
       {
-        try
-        {
-          // Send a new NULL segment if there is nothing to be retransmitted.
-          queueAndSendReliableFragment(new NULLFragment(queueInfo.nextSequenceNumber()));
-        }
-        catch (...)
-        {
-          // Hanlde Exception
-        }
+        // Send a new NULL segment if there is nothing to be retransmitted.
+        queueAndSendReliableFragment(new NULLFragment(queueInfo.nextSequenceNumber()));
       }
+      catch (...)
+      {
+        // Hanlde Exception
+      }
+    }
   }
 
   // Handle Cumulative Ack function
@@ -620,19 +620,21 @@ namespace SAFplus
     {
       return;
     }
-    Message* reliableFragment;
-    reliableFragment=sock->msgPool->allocMsg();
-    assert(reliableFragment);
-    reliableFragment->setAddress(destination);
-    MsgFragment* fragment = reliableFragment->append(0);
-    Byte *pBuffer= (Byte*)frag->getBytes();
-    fragment->set(pBuffer,frag->length());
-    logTrace("MSG","RST","Send Fragment to node [%d] port [%d] Id [%d] ",reliableFragment->getAddress().getNode(),reliableFragment->getAddress().getPort(),frag->seq());
-    sock->send(reliableFragment);
-    if(pBuffer)
-    {
-      delete pBuffer;
-    }
+    Message* split;
+    MsgFragment* hdr = sock->msgPool->allocMsgFragment(RUDP_HEADER_LEN);
+    uint_t hdrLen = frag->setHeader(hdr->data(0));
+    hdr->used(hdrLen);
+    // allocate a fragment that will be used to split the current fragment up
+    MsgFragment* splitFrag = sock->msgPool->allocMsgFragment(0);
+    splitFrag->set(frag->getData(),frag->length());  // update the buffer of the new fragment.  This frag does NOT manage the memory since we didn't allocate any upon fragment creation.
+    // hook the new fragments into the new message
+    split->firstFragment = hdr;
+    hdr->nextFragment = splitFrag;
+    splitFrag->nextFragment = NULL;  // hook the rest of the fragments into the new message
+    split->lastFragment = NULL;
+    // remove them from the old message
+    split->setAddress(destination);
+    sock->send(split);
   }
 
   // send fragment and store it in uncheck ack
@@ -681,86 +683,86 @@ namespace SAFplus
 
   Message* MsgSocketReliable::receive(uint_t maxMsgs,int maxDelay)
   {
-     logDebug("MSG","RST","receive buffer from [%d - %d] in reliable mode ",destination.getNode(),destination.getPort());
-     int totalBytes = 0;
-     bool quit=false;
-     Handle address;
-     if (isClosed)
-     {
-       throw Error("Socket is closed");
-     }
-     if (!isConnected)
-     {
-       throw Error("Connection reset");
-     }
-     if (timeout == 0)
-     {
-       recvQueueLock.lock();
-       recvQueueCond.wait(recvQueueLock);
-     }
-     else
-     {
-       recvQueueLock.lock();
-       recvQueueCond.timed_wait(recvQueueLock, timeout);
-     }
-     int maxFragmentSize=profile->maxFragmentSize() - RUDP_HEADER_LEN;
-     Byte* buffer = (Byte*)SAFplusHeapAlloc(maxFragmentSize);
-     ReliableFragmentList::iterator it = inSeqQueue.begin();
-     while(it != inSeqQueue.end())
-     {
-       ReliableFragment& s = *it;
-       buffer=(Byte*)SAFplusHeapRealloc(buffer,totalBytes + ((DATFragment*) &s)->length());
-       logDebug("MSG","RST","read the fragment [%d]",s.seq());
-       if (s.getType() == fragmentType::FRAG_RST)
-       {
-         it=inSeqQueue.erase_and_dispose(it, delete_disposer());
-       }
-       else if (s.getType() == fragmentType::FRAG_FIN)
-       {
-         if (totalBytes <= 0)
-         {
-           it=inSeqQueue.erase_and_dispose(it, delete_disposer());
-           recvQueueLock.unlock();
-           return nullptr; /* EOF */
-         }
-       }
-       else if (s.getType() == fragmentType::FRAG_DATA)
-       {
-         int length = 0;
-         Byte* data = ((DATFragment*) &s)->getData();
-         length = ((DATFragment*) &s)->length();
-         if(s.isLastFragment())
-         {
-           quit=true;
-           address=s.address;
-           logDebug("MSG","RST","read the last fragment [%d]",s.seq());
-         }
-         memcpy(buffer + (totalBytes), (void*)data , length);
-         totalBytes += length;
-         it = inSeqQueue.erase_and_dispose(it, delete_disposer());
-         if(quit==true)
-         {
-           break;
-         }
-       }
-       else
-       {
-         it++;
-       }
-     }
-     if(totalBytes > 0)
-     {
-       recvQueueLock.unlock();
-       Message* m = sock->msgPool->allocMsg();
-       assert(m);
-       logTrace("MSG","MSS","Set Address [%d] - [%d] ",address.getNode(),address.getPort());
-       m->setAddress(address);
-       MsgFragment* frag = m->append(0);
-       frag->set(buffer,totalBytes);
-       return m;
-     }
-     recvQueueLock.unlock();
-     return nullptr;
+    logDebug("MSG","RST","receive buffer from [%d - %d] in reliable mode ",destination.getNode(),destination.getPort());
+    int totalBytes = 0;
+    bool quit=false;
+    Handle address;
+    if (isClosed)
+    {
+      throw Error("Socket is closed");
+    }
+    if (!isConnected)
+    {
+      throw Error("Connection reset");
+    }
+    if (timeout == 0)
+    {
+      recvQueueLock.lock();
+      recvQueueCond.wait(recvQueueLock);
+    }
+    else
+    {
+      recvQueueLock.lock();
+      recvQueueCond.timed_wait(recvQueueLock, timeout);
+    }
+    int maxFragmentSize=profile->maxFragmentSize() - RUDP_HEADER_LEN;
+    Byte* buffer = (Byte*)SAFplusHeapAlloc(maxFragmentSize);
+    ReliableFragmentList::iterator it = inSeqQueue.begin();
+    while(it != inSeqQueue.end())
+    {
+      ReliableFragment& s = *it;
+      buffer=(Byte*)SAFplusHeapRealloc(buffer,totalBytes + ((DATFragment*) &s)->length());
+      logDebug("MSG","RST","read the fragment [%d]",s.seq());
+      if (s.getType() == fragmentType::FRAG_RST)
+      {
+        it=inSeqQueue.erase_and_dispose(it, delete_disposer());
+      }
+      else if (s.getType() == fragmentType::FRAG_FIN)
+      {
+        if (totalBytes <= 0)
+        {
+          it=inSeqQueue.erase_and_dispose(it, delete_disposer());
+          recvQueueLock.unlock();
+          return nullptr; /* EOF */
+        }
+      }
+      else if (s.getType() == fragmentType::FRAG_DATA)
+      {
+        int length = 0;
+        Byte* data = ((DATFragment*) &s)->getData();
+        length = ((DATFragment*) &s)->length();
+        if(s.isLastFragment())
+        {
+          quit=true;
+          address=s.address;
+          logDebug("MSG","RST","read the last fragment [%d]",s.seq());
+        }
+        memcpy(buffer + (totalBytes), (void*)data , length);
+        totalBytes += length;
+        it = inSeqQueue.erase_and_dispose(it, delete_disposer());
+        if(quit==true)
+        {
+          break;
+        }
+      }
+      else
+      {
+        it++;
+      }
+    }
+    if(totalBytes > 0)
+    {
+      recvQueueLock.unlock();
+      Message* m = sock->msgPool->allocMsg();
+      assert(m);
+      logTrace("MSG","MSS","Set Address [%d] - [%d] ",address.getNode(),address.getPort());
+      m->setAddress(address);
+      MsgFragment* frag = m->append(0);
+      frag->set(buffer,totalBytes);
+      return m;
+    }
+    recvQueueLock.unlock();
+    return nullptr;
   }
 
   ReliableFragment* MsgSocketReliable::receiveReliableFragment(Handle &handle)
@@ -768,6 +770,8 @@ namespace SAFplus
     ReliableFragment* p_Fragment;
     Message* p_Msg = nullptr;
     MsgFragment* p_NextFrag = nullptr;
+    MsgFragment* p_DataFrag = nullptr;
+
     int iMaxMsg = 1;
     int iDelay = 1;
 
@@ -801,6 +805,11 @@ namespace SAFplus
       // Reset keepAliveTimer
       // keepAliveTimer
     }
+    p_DataFrag=p_NextFrag->nextFragment;
+    if(p_DataFrag != nullptr)
+    {
+      p_Fragment->parseData((Byte*)p_DataFrag->read(0), 0, p_DataFrag->len);
+    }
     p_Msg->msgPool->free(p_Msg);
     return p_Fragment;
   }
@@ -818,15 +827,21 @@ namespace SAFplus
       return ;
     }
     assert(sock);
-    Message* reliableFragment;
-    reliableFragment=sock->msgPool->allocMsg();
-    assert(reliableFragment);
-    reliableFragment->setAddress(destination);
-    MsgFragment* fragment = reliableFragment->append(0);
-    Byte* buffer = (Byte*)frag->getBytes();
-    fragment->set(buffer,frag->length());
-    sock->send(reliableFragment);
-    delete buffer;
+    Message* split;
+    MsgFragment* hdr = sock->msgPool->allocMsgFragment(RUDP_HEADER_LEN);
+    uint_t hdrLen = frag->setHeader(hdr->data(0));
+    hdr->used(hdrLen);
+    // allocate a fragment that will be used to split the current fragment up
+    MsgFragment* splitFrag = sock->msgPool->allocMsgFragment(0);
+    splitFrag->set(frag->getData(),frag->length());  // update the buffer of the new fragment.  This frag does NOT manage the memory since we didn't allocate any upon fragment creation.
+    // hook the new fragments into the new message
+    split->firstFragment = hdr;
+    hdr->nextFragment = splitFrag;
+    splitFrag->nextFragment = NULL;  // hook the rest of the fragments into the new message
+    split->lastFragment = NULL;
+    // remove them from the old message
+    split->setAddress(destination);
+    sock->send(split);
   }
 
   void MsgSocketReliable::connectionFailure()
@@ -860,11 +875,11 @@ namespace SAFplus
             unackedSentQueueCond.notify_all();
           }
           unackedSentQueueLock.unlock();
-//          recvQueueLock.lock();
-//          {
-//            recvQueueCond.notify_one();
-//          }
-//          recvQueueLock.unlock();
+          //          recvQueueLock.lock();
+          //          {
+          //            recvQueueCond.notify_one();
+          //          }
+          //          recvQueueLock.unlock();
           closeImpl();
           break;
         }
@@ -1039,19 +1054,19 @@ namespace SAFplus
       }
       else
       {
-// For testing
-//        if((test % 6)==0)
-//        {
-//          logDebug("MSG","RST","remove frag to test fragment missing");
-//          continue;
-//        }
-//        else
-//        {
-//          logDebug("MSG","RST","Socket([%d - %d]) : Receive reliable fragment Id [%d] fragment type [%d] from [%d - %d]",sock->handle().getNode(),sock->handle().getPort(),pFrag->seq(),fragType,handle.getNode(),handle.getPort());
-//          handleReliableFragment(pFrag);
-//        }
-          logDebug("MSG","RST","Socket([%d - %d]) : Receive reliable fragment Id [%d] fragment type [%d] from [%d - %d]",sock->handle().getNode(),sock->handle().getPort(),pFrag->seq(),fragType,handle.getNode(),handle.getPort());
-          handleReliableFragment(pFrag);
+        // For testing
+        //        if((test % 6)==0)
+        //        {
+        //          logDebug("MSG","RST","remove frag to test fragment missing");
+        //          continue;
+        //        }
+        //        else
+        //        {
+        //          logDebug("MSG","RST","Socket([%d - %d]) : Receive reliable fragment Id [%d] fragment type [%d] from [%d - %d]",sock->handle().getNode(),sock->handle().getPort(),pFrag->seq(),fragType,handle.getNode(),handle.getPort());
+        //          handleReliableFragment(pFrag);
+        //        }
+        logDebug("MSG","RST","Socket([%d - %d]) : Receive reliable fragment Id [%d] fragment type [%d] from [%d - %d]",sock->handle().getNode(),sock->handle().getPort(),pFrag->seq(),fragType,handle.getNode(),handle.getPort());
+        handleReliableFragment(pFrag);
       }
       getACK(pFrag);
     }
@@ -1131,8 +1146,42 @@ namespace SAFplus
   void MsgSocketReliable::send(SAFplus::Handle destination, void* buffer, uint_t length,uint_t msgtype)
   {
     // TODO
-  }
+    connect(destination,0);
+    logDebug("MSG","RST","Send buffer with len [%d] to  node [%d] in reliable mode ",length,destination.getNode());
+    if (isClosed)
+    {
+      throw new Error("Socket is closed");
+    }
 
+    if (!isConnected)
+    {
+      throw new Error("Connection reset");
+    }
+
+    int totalBytes = 0;
+    int off = 0;
+    int writeBytes = 0;
+    while(totalBytes<length)
+    {
+      writeBytes = MIN(profile->maxFragmentSize() - RUDP_HEADER_LEN,length - totalBytes);
+      logTrace("MSG","RST","sending [%d] byte",writeBytes);
+      if(totalBytes+writeBytes<length)
+      {
+        ReliableFragment *frag = new DATFragment(queueInfo.nextSequenceNumber(),
+            queueInfo.getLastInSequence(), (Byte*)buffer, off + totalBytes, writeBytes,false);
+        logTrace("MSG","RST","Socket([%d - %d]) : Create fragment with seq [%d] type [%d] ack [%d].",sock->handle().getNode(),sock->handle().getPort(),frag->seq(),frag->getType(),frag->getAck());
+        queueAndSendReliableFragment(frag);
+        totalBytes += writeBytes;
+      }
+      else
+      {
+        logDebug("MSG", "REL","send last fragment to  node [%d] in reliable mode ",destination.getNode());
+        queueAndSendReliableFragment(new DATFragment(queueInfo.nextSequenceNumber(),
+            queueInfo.getLastInSequence(), (Byte*)buffer, off + totalBytes, writeBytes,true));
+        totalBytes += writeBytes;
+      }
+    }
+  }
   Byte* MsgSocketReliable::readReliable(int offset, int &totalBytes, int len)
   {
     logDebug("MSG","RST","receive buffer from [%d - %d] in reliable mode ",destination.getNode(),destination.getPort());
@@ -1363,7 +1412,7 @@ namespace SAFplus
   }
   void MsgSocketReliable::flush()
   {
-   sock->flush();
+    sock->flush();
   }
   void MsgSocketReliable::connectionClientOpen()
   {
@@ -1437,8 +1486,8 @@ namespace SAFplus
         }
         if(clientSockTable[destinationAddress]!=nullptr)
         {
-            MsgSocketClientReliable *socket = clientSockTable[destinationAddress];
-            socket->receiverFragment(p_Fragment);
+          MsgSocketClientReliable *socket = clientSockTable[destinationAddress];
+          socket->receiverFragment(p_Fragment);
         }
         p_Msg->msgPool->free(p_Msg);
       }catch (...)

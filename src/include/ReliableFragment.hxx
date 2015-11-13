@@ -50,18 +50,16 @@ namespace SAFplus
 
   class ReliableFragment
   {
-  private:
+  protected:
+    void init(int _flags, int _seqn, int len, int isLastFrag=0);
+    virtual void parseHeader(const Byte* buffer, int _off, int _len);
+  public:
     int m_nFalgs;           /* Control flags field */
     int m_nLen;          /* Header length field */
     int m_nSeqn;         /* Sequence number field */
     int m_nAckn;         /* Acknowledgment number field */
     int m_nRetCounter;   /* Retransmission counter */
     bool isLast;
-
-  protected:
-    void init(int _flags, int _seqn, int len, int isLastFrag=0);
-    virtual void parseBytes(const Byte* buffer, int _off, int _len);
-  public:
     boost::intrusive::list_member_hook<> m_memberHook;
     Handle address;
     int flags();
@@ -80,7 +78,17 @@ namespace SAFplus
     void setAck(int _ackn);
     void setRetxCounter(int _retCounter);
     virtual fragmentType getType();
-    virtual Byte* getBytes();
+    virtual Byte* getHeader();
+    virtual int setHeader(void* ptr);
+    virtual Byte* getData()
+    {
+      return NULL;
+    }
+    virtual void parseData(const Byte* buffer, int _off, int _len)
+    {
+
+    }
+
     //virtual void parseBytes(const Byte* buffer, int _off, int _len);
     static ReliableFragment* parse(Byte* bytes, int off, int len);
     static ReliableFragment* parse(Byte* bytes);
@@ -99,16 +107,17 @@ namespace SAFplus
   {
   private:
     Byte* m_pData;
-    int m_nLen;
   protected:
-    virtual void parseBytes(const Byte* buffer, int _off, int _len);
+    virtual void parseHeader(const Byte* buffer, int _off, int _len);
   public:
     DATFragment();
-    DATFragment(int seqn, int ackn,const Byte* buffer, int off, int len,bool isLastFrag=0);
-    Byte* getData();
+    DATFragment(int seqn, int ackn,Byte* buffer, int off, int len,bool isLastFrag=0);
+    virtual Byte* getData();
     int length();
-    virtual Byte* getBytes();
+    virtual Byte* getHeader();
     virtual fragmentType getType();
+    virtual void parseData(const Byte* buffer, int _off, int _len);
+
     ~DATFragment();
 
 
@@ -134,7 +143,7 @@ namespace SAFplus
     int m_nMaxautorst;
   protected:
 
-    void parseBytes(const Byte* buffer, int off, int len);
+    void parseHeader(const Byte* buffer, int off, int len);
   public:
     SYNFragment();
     SYNFragment(int seqn, int maxseg, int maxsegsize, int rettoval,
@@ -151,8 +160,12 @@ namespace SAFplus
     int getMaxCumulativeAcks();
     int getMaxOutOfSequence();
     int getMaxAutoReset();
-    virtual Byte* getBytes();
+    virtual Byte* getHeader();
     virtual fragmentType getType();
+    virtual Byte* getData();
+    virtual void parseData(const Byte* buffer, int _off, int _len);
+
+
   };
   // End SysnSegMent
   class ACKFragment : public ReliableFragment
@@ -164,7 +177,6 @@ namespace SAFplus
     ACKFragment();
     ACKFragment(int seqn, int ackn);
     virtual fragmentType getType();
-
   }; // End ACK Fragment Class
 
 
@@ -175,13 +187,17 @@ namespace SAFplus
     int m_nNumNak;
   protected:
 
-    void parseBytes(const Byte* buffer, int off, int len);
+    void parseHeader(const Byte* buffer, int off, int len);
   public:
     NAKFragment();
     NAKFragment(int seqn, int ackn,  int* acks, int size);
     int* getACKs(int* length);
-    virtual Byte* getBytes();
+    virtual Byte* getHeader();
     virtual fragmentType getType();
+    virtual Byte* getData();
+    virtual void parseData(const Byte* buffer, int _off, int _len);
+
+
   }; // End NAK Fragment class
 
   class FINFragment: public ReliableFragment
@@ -216,6 +232,7 @@ namespace SAFplus
     RSTFragment();
     RSTFragment(int seqn);
   }; // End RSTFragment Class.
+
   class ReliableSocketProfile
   {
   private:
