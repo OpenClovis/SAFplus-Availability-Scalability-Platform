@@ -695,7 +695,7 @@ error_out:
     return rc;
 }
 
-static ClBoolT clCkptEntryExist(ClCachedCkptSvcInfoT *serviceInfo, const ClNameT *sectionName)
+static ClBoolT clCkptEntryExist(ClCachedCkptSvcInfoT *serviceInfo, const ClNameT *sectionName, ClRcT *ret)
 {
     ClBoolT                    retVal         = CL_FALSE;
     ClRcT                      rc;
@@ -708,6 +708,7 @@ static ClBoolT clCkptEntryExist(ClCachedCkptSvcInfoT *serviceInfo, const ClNameT
     if( CL_OK != rc )
     {
         clLogError("CCK", "EXIST", "clCkptSectionIterationInitialize(): rc [0x%x].",rc);
+        *ret = rc;
         goto out;
     }
 
@@ -733,6 +734,9 @@ static ClBoolT clCkptEntryExist(ClCachedCkptSvcInfoT *serviceInfo, const ClNameT
     }while( (rc == CL_OK) );
 
     out_free:
+    if (!retVal)
+      *ret = rc;
+
     if(hSecIter)
     {
         rc = clCkptSectionIterationFinalize(hSecIter);
@@ -749,6 +753,7 @@ static ClBoolT clCkptEntryExist(ClCachedCkptSvcInfoT *serviceInfo, const ClNameT
 ClRcT clCkptEntryDelete(ClCachedCkptSvcInfoT *serviceInfo, const ClNameT *sectionName)
 {
     ClRcT rc = CL_OK;
+    ClBoolT isCkptExist = CL_FALSE;
 
     SaCkptSectionIdT ckptSectionId = {        /* Section id for checkpoints   */
         .id = (SaUint8T *) sectionName->value,
@@ -757,9 +762,13 @@ ClRcT clCkptEntryDelete(ClCachedCkptSvcInfoT *serviceInfo, const ClNameT *sectio
     ClInt32T tries = 0;
     ClTimerTimeOutT delay = {.tsSec = 0, .tsMilliSec = 500 };
 
+retryCheck:
+    isCkptExist = clCkptEntryExist(serviceInfo, sectionName, &rc);
+
     /* Delete section from the ckpt */
-    if (clCkptEntryExist(serviceInfo, sectionName) == CL_TRUE)
+  if (isCkptExist == CL_TRUE)
     {
+      tries = 0;
 retry:
         rc = clCkptSectionDelete(serviceInfo->ckptHandle, (ClCkptSectionIdT *)&ckptSectionId);
         if (CL_ERR_TRY_AGAIN == CL_GET_ERROR_CODE(rc))
@@ -769,6 +778,16 @@ retry:
                 goto retry;
             }
         }
+    }
+  else if ((CL_GET_ERROR_CODE(rc) == CL_IOC_ERR_COMP_UNREACHABLE) || (CL_IOC_ERR_HOST_UNREACHABLE == CL_GET_ERROR_CODE(rc)))
+    {
+      if (tries++ >= 3)
+        return rc;
+  
+      if (tries > 1)
+        clOsalTaskDelay(delay);
+  
+      goto retryCheck;
     }
 
     return rc;
