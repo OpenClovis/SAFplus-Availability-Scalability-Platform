@@ -1,5 +1,4 @@
 S7 := 1
-#SAFPLUS_DBAL_SQLITE_PLUGIN :=1
 SAFPLUS_DBAL_PLUGIN :=1
 include ../../mk/preface.mk
 
@@ -19,7 +18,38 @@ CLIENT_H   := $(wildcard *.h) $(wildcard $(SAFPLUS_INC_DIR)/*.h) $(wildcard $(SA
 CLIENT_SRC := $(wildcard *.cxx)
 CLIENT_OBJ := $(addprefix $(OBJ_DIR)/,$(subst .cxx,.o,$(CLIENT_SRC)))
 
-Release all: $(PLUGIN_DIR)/libclSQLiteDB.so $(PLUGIN_DIR)/libclGDBM.so $(PLUGIN_DIR)/libclBerkeleyDB.so $(PLUGIN_DIR)/libclCkptDB.so
+SAFplusDbalPlugins:=$(PLUGIN_DIR)/libclBerkeleyDB.so $(PLUGIN_DIR)/libclCkptDB.so
+
+# Skip compiling Gdbm plugin if SAFPLUS_WITH_GDBM exists and is set to 0 or false
+skip_gdbm:=0
+ifdef SAFPLUS_WITH_GDBM
+ifeq ($(strip $(SAFPLUS_WITH_GDBM)),0)
+skip_gdbm:=1
+endif
+ifeq ($(strip $(SAFPLUS_WITH_GDBM)),false)
+skip_gdbm:=1
+endif
+endif
+
+ifeq ($(strip $(skip_gdbm)),0)
+SAFplusDbalPlugins+= $(PLUGIN_DIR)/libclGDBM.so
+endif
+# Skip compiling Sqlite plugin if SAFPLUS_WITH_GDBM exists and is set to 0 or false
+skip_sqlite:=0
+ifdef SAFPLUS_WITH_SQLITE
+ifeq ($(strip $(SAFPLUS_WITH_SQLITE)),0)
+skip_sqlite:=1
+endif
+ifeq ($(strip $(SAFPLUS_WITH_SQLITE)),false)
+skip_sqlite:=1
+endif
+endif
+
+ifeq ($(strip $(skip_sqlite)),0)
+SAFplusDbalPlugins+= $(PLUGIN_DIR)/libclSQLiteDB.so
+endif
+#Release all: $(PLUGIN_DIR)/libclSQLiteDB.so $(PLUGIN_DIR)/libclGDBM.so $(PLUGIN_DIR)/libclBerkeleyDB.so $(PLUGIN_DIR)/libclCkptDB.so
+Release all: $(SAFplusDbalPlugins)
 
 $(OBJ_DIR)/%.o: %.cxx Makefile $(CLIENT_H)
 	$(COMPILE_CPP) $@ $(<F)
