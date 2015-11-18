@@ -4,7 +4,7 @@ import pdb
 mgtGet = safplus.mgtGet
 
 def isValidDirectory(path):
-  data = mgtGet(str("{d=0}"+path))
+  data = mgtGet(str("{d=0}" + path))
   if not data: return False  # TODO, what about an empty list?
   # print "isValidDir: ", str(data)
   # pdb.set_trace()
@@ -15,11 +15,11 @@ class Commands:
     self.commands = {}
     self.context = None
 
-  def canonicalPath(self,location):
+  def canonicalPath(self, location):
     print "cur: ", self.context.curdir, " loc: ", location
     if location == "." or location == "" or location == None:
       return self.context.curdir
-    if location[0] == "/": # not a relative path
+    if location[0] == "/":  # not a relative path
       return location
     if self.context.curdir == "/":
       return "/" + location
@@ -34,14 +34,14 @@ class Commands:
         Sets the leaf at the specified locations to the specified value
     """
     loc = self.canonicalPath(location)
-    ret = safplus.mgtSet(str(loc),str(value))
+    ret = safplus.mgtSet(str(loc), str(value))
     if ret == 4:  # CL_ERROR_NOT_EXIST
       return "<error>location [%s] does not exist</error>" % location
     elif ret == 0:
       return ""
     return str(ret)
 
-  def do_create(self,location):
+  def do_create(self, location):
     """syntax: 
          create (location)  
          Creates a new object at the specified location.  The type of the object is implied by its location in the tree.
@@ -51,7 +51,7 @@ class Commands:
     safplus.mgtCreate(str(loc))
     return ""
 
-  def do_delete(self,*locations):
+  def do_delete(self, *locations):
     """syntax: 
          delete (location)  
          deletes the object at (location) and all children
@@ -61,7 +61,7 @@ class Commands:
       safplus.mgtDelete(str(loc))
     return ""
 
-  def setContext(self,context):
+  def setContext(self, context):
     """Sets the context (environment) object so commands can access it while they are executing"""
     self.context = context
 
@@ -71,9 +71,9 @@ def Initialize():
   sic = safplus.SafplusInitializationConfiguration()
   sic.port = 51
   safplus.Initialize(svcs, sic)
-  return (Commands(),{})
+  return (Commands(), {})
 
-def isListElem(elem,path):
+def isListElem(elem, path):
   """Return the name of the list if this is an item in a list"""
   if elem.attrib.has_key("listkey"):
     return elem.tag

@@ -1,7 +1,9 @@
 #!/usr/bin/env python
 import sys, os, os.path, time
 import safplus
+import cmd
 
+HISTORY_FILE = '.cli-info.hist'
 AVAILABLE_SERVICES = {'localaccess':None, 'netconfaccess':None}
 
 try:
@@ -359,6 +361,8 @@ class TermController(xmlterm.XmlResolver):
   def __init__(self):
     xmlterm.XmlResolver.__init__(self)
     self.tags.update(xmlterm.GetDefaultResolverMapping())
+    self.histfile = HISTORY_FILE
+    self.histinfo = []
     self.curdir = "/"
     self.cmds.append(self)  # I provide some default commands
     self.xmlterm = None
@@ -430,14 +434,29 @@ class TermController(xmlterm.XmlResolver):
     # print "".join(st)
     xt.doc.append("".join(st))  # I have to wrap in an xml tag in case I get 2 top levels from mgtGet
  
-  def do_help(self,*command):
+  def do_help(self, *command):
     """? display this help, or detailed help about a particular command"""
     if command:
       command = [" ".join(command)]
     else:
       command = None
-    return "<top>" + self.getHelp(command) + "</top>"
-
+    
+    for cmd in command:
+      # XXX check arg syntax
+      try:
+        func = getattr(self, 'do_' + cmd)
+      except AttributeError:
+        sys.stdout.write("No command do_%s\n"%str(cmd))
+        continue
+      
+      try:
+        doc = getattr(self, 'do_' + cmd).__doc__
+        if doc:
+          sys.stdout.write("%s\n"%str(doc))
+      except AttributeError:
+        sys.stdout.write("No doc for command do_%s\n"%str(cmd))    
+    return ""
+  
   def do_ls(self,*sp):
     """Displays the object tree at the current or specified location.
 Arguments: [-N] location
@@ -568,6 +587,8 @@ By default the specified location and children are shown.  Use -N to specify how
           return ""
 
   def do_alarmCategory(self):
+    """List out defined Alarm Category enums"""
+    
     count = int(faultData.category.ALARM_CATEGORY_COUNT)
     tx = "<text>"
     for i in range(0, count):
@@ -577,6 +598,8 @@ By default the specified location and children are shown.  Use -N to specify how
     return tx
   
   def do_alarmState(self):
+    """List out defined Alarm State enums"""
+    
     count = int(faultData.alarmState.ALARM_STATE_COUNT)
     tx = "<text>"
     for i in range(0, count):
@@ -586,6 +609,8 @@ By default the specified location and children are shown.  Use -N to specify how
     return tx
       
   def do_probableCause(self):
+    """List out defined Probable Cause enums"""
+    
     count = int(faultData.cause.ALARM_PROB_CAUSE_COUNT)
     tx = "<text>"
     for i in range(0, count):
@@ -595,6 +620,8 @@ By default the specified location and children are shown.  Use -N to specify how
     return tx
       
   def do_severity(self):
+    """List out defined Severity enums"""
+    
     count = int(faultData.severity.ALARM_SEVERITY_COUNT)
     tx = "<text>"
     for i in range(0, count):
@@ -603,8 +630,55 @@ By default the specified location and children are shown.  Use -N to specify how
     tx += "</text>"
     return tx
   
-  def do_notify(self):
+  def do_notify(self, faultState, alarmState = 'ALARM_STATE_ASSERT', category = 'ALARM_CATEGORY_COMMUNICATIONS', 
+                severity = 'ALARM_SEVERITY_MAJOR', cause = 'ALARM_PROB_CAUSE_PROCESSOR_PROBLEM'):
+    """Usage: notify [OPTION] \n" \
+      Send notifications to the fault server\n
+      Mandatory option
+      faultState    fault State <UP or DOWN>\n
+      
+      Optional options:
+      alarmState    alarm state - using alarmState command for details
+      category      alarm category - using alarmCategory command for details
+      severity      fault severity - using severity command for details
+      cause         fault probable cause - using  probableCause command for details
+      
+      For example from CLI : notify DOWN ALARM_STATE_ASSERT ALARM_CATEGORY_COMMUNICATIONS ALARM_SEVERITY_MAJOR ALARM_PROB_CAUSE_PROCESSOR_PROBLEM
+      """
+    if faultState.lower() == 'down': faultState = safplus.FaultState.STATE_DOWN
+    elif faultState.lower() == 'up': faultState = safplus.FaultState.STATE_UP
+    else: faultState = None    
     
+    stateEnum = self.string_to_enum('state', alarmState)
+    categoryEnum = self.string_to_enum('category', category)
+    severityEnum = self.string_to_enum('severity', severity)
+    causeEnum = self.string_to_enum('cause', cause)
+
+    if faultState == None:
+      print "Missing or invalid input state"
+      return
+    
+    if stateEnum == None:
+      print "Missing or invalid input state"
+      return
+ 
+    if categoryEnum == None:
+      print "Missing or invalid input category"
+      return
+     
+    if severityEnum == None:
+      print "Missing or invalid input severity " + severity
+      return
+     
+    if causeEnum == None:
+      print "Missing or invalid input cause"      
+      return
+    
+    faultData.alarmState = stateEnum
+    faultData.category = categoryEnum
+    faultData.cause = causeEnum
+    faultData.severity = severityEnum
+  
     FAULT_CLIENT_PID = 200
     FAULT_ENTITY_PID = 201
     
@@ -616,31 +690,84 @@ By default the specified location and children are shown.  Use -N to specify how
     
     fc = safplus.Fault()
     fc.init(me, safplus.WellKnownHandle(0,0,0,0), sic.port)
-    
     state = fc.getFaultState(me)
     
     print"Current state : " + str(state)
-    time.sleep(5)
-    print "Register State Down"
-    fc.registerEntity(faultEntityHandle, safplus.FaultState.STATE_DOWN)
+    print "Register State : " + str(faultState)
+    fc.registerEntity(faultEntityHandle, faultState)
+    fc.registerEntity(me, faultState)
     time.sleep(5)
     state = fc.getFaultState(faultEntityHandle)
     
-    print "current state : " + str(state)
-    
-    time.sleep(5)
-    print "Register State Up"
-    fc.registerEntity(faultEntityHandle, safplus.FaultState.STATE_UP)
-    time.sleep(5)
-    state = fc.getFaultState(faultEntityHandle)
-   
-    print "current state " + str(state)
-    time.sleep(5)
-    state = fc.getFaultState(me)
-        
     fc.notify(faultData, safplus.FaultPolicy.Custom)
     print "Notify sent"
+    
+    time.sleep(10)
+    state = fc.getFaultState(me)
+    print "Current state : " + str(state)
+    
+    print "Send fault event to fault server"
+    fc.notify(faultData, safplus.FaultPolicy.AMF)
+    time.sleep(10)
+    
+    fc.notify(faultEntityHandle, faultData, safplus.FaultPolicy.Custom)
+    state = fc.getFaultState(me)
+    print "Get current fault state in shared memory " + str(state)
+    time.sleep(5)
+
     return ""
+  
+  def string_to_enum(self, type, string):
+    if string == None:
+      return None
+    
+    if type == 'state':
+      count = int(faultData.alarmState.ALARM_STATE_COUNT)
+      for i in range(0, count):
+        enumStr = safplus.FaultAlarmStateManager.c_str(safplus.FaultAlarmState(i))
+        if string == enumStr:
+          return safplus.FaultAlarmState(i)
+
+    elif type == 'category':
+      count = int(faultData.category.ALARM_CATEGORY_COUNT)
+      for i in range(0, count):
+        enumStr = safplus.AlarmCategoryManager.c_str(safplus.AlarmCategory(i))
+        if string == enumStr:
+          return safplus.AlarmCategory(i)
+
+    elif type == 'severity':
+      count = int(faultData.severity.ALARM_SEVERITY_COUNT)
+      for i in range(0, count):
+        enumStr = safplus.FaultSeverityManager.c_str(safplus.FaultSeverity(i))
+        if string == enumStr:
+          return safplus.FaultSeverity(i)
+
+    elif type == 'cause':
+      count = int(faultData.cause.ALARM_PROB_CAUSE_COUNT)
+      for i in range(0, count):
+        enumStr = safplus.FaultProbableCauseManager.c_str(safplus.FaultProbableCause(i))
+        if string == enumStr:
+          return safplus.FaultProbableCause(i)
+          
+    return None
+    
+  def read_from_history(self):
+    #TODO get history commands
+    hist = ""
+    info = []
+    try:
+      hist = open(HISTORY_FILE, r)
+    except:
+      print "Cannot open file" + str(HISTORY_FILE)
+      return
+    for line in hist:
+      info.append(line)
+    
+    return info
+     
+  def write_to_history(self):
+    #TODO add recently commands to history
+    pass
   
   def xxexecute(self,textLine,xt):
     """Execute the passed string"""
@@ -758,9 +885,9 @@ def main(args):
   cmds,handlers = access.Initialize()
 
   faultData.alarmState = safplus.FaultAlarmState.ALARM_STATE_INVALID
-  faultData.category = safplus.AlarmCategory.ALARM_CATEGORY_COMMUNICATIONS
-  faultData.cause = safplus.FaultProbableCause.ALARM_PROB_CAUSE_PROCESSOR_PROBLEM
-  faultData.severity = safplus.FaultSeverity.ALARM_SEVERITY_MINOR
+  faultData.category = safplus.AlarmCategory.ALARM_CATEGORY_INVALID
+  faultData.cause = safplus.FaultProbableCause.ALARM_ID_INVALID
+  faultData.severity = safplus.FaultSeverity.ALARM_SEVERITY_INVALID
     
   if windowed:
     os.environ["TERM"] = "XT1" # Set the term in the environment so child programs know xmlterm is running
