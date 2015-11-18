@@ -1081,29 +1081,76 @@ namespace SAFplus
   void MsgSocketReliable::send(Message* origMsg)
   {
     Message* msg;
-    Message* next = origMsg;
-    MsgFragment* nextFrag;
-    MsgFragment* frag;
-    int bufferLen;
+    Message* nextMsg = origMsg;
+    int chunkCount=0;
+    Message* newMsg = NULL;
     do
     {
-      msg = next;
-      next = msg->nextMsg;  // Save the next message so we use it next
-      bufferLen=0;
-      nextFrag = msg->firstFragment;
-      Byte* buffer = new Byte[msg->getLength()];
-      do
+      msg = nextMsg;
+      nextMsg = msg->nextMsg;
+      sendSingle(msg);
+    }while (nextMsg != NULL);
+  }
+
+
+  void MsgSocketReliable::sendSingle(Message* origMsg)
+  {
+    Message* nextMsg = origMsg;
+    MsgFragment* nextFrag;
+    MsgFragment* frag;
+    MsgFragment* prevFrag;
+    nextFrag = origMsg->firstFragment;
+    bool lastFrag = false;
+    do
+    {
+      frag = nextFrag;
+      nextFrag = frag->nextFragment;
+      if(nextFrag==NULL)
       {
-        frag = nextFrag;
-        nextFrag = frag->nextFragment;
-        memcpy(buffer + bufferLen ,(void*)frag->data(),frag->len);
-        assert((frag->len > 0) && "The UDP protocol allows sending zero length messages but I think you forgot to set the fragment len field.");
-        bufferLen+=frag->len;
-      }while(nextFrag);
-      Handle destination = getProcessHandle(msg->port,msg->node);
-      writeReliable(buffer,0,bufferLen);
-      delete buffer;
-    } while (next != NULL);
+        bool lastFrag = true;
+      }
+      if (frag->len == sock->cap.maxMsgSize )  // In this case we just need to move the fragment to a new message not split it.
+      {
+        ReliableFragment *fragment = new DATFragment(queueInfo.nextSequenceNumber(),
+            queueInfo.getLastInSequence(), (Byte*)frag->data(0) ,0, frag->len ,lastFrag);
+        //logTrace("MSG","RST","Socket([%d - %d]) : Create fragment with seq [%d] type [%d] ack [%d].",sock->handle().getNode(),sock->handle().getPort(),frag->seq(),frag->getType(),frag->getAck());
+        queueAndSendReliableFragment(fragment);
+
+      }
+      else if (frag->len > sock->cap.maxMsgSize)
+      {
+        int totalBytes = 0;
+        int off = 0;
+        int writeBytes = 0;
+        while(totalBytes<frag->len)
+        {
+          writeBytes = MIN(sock->cap.maxMsgSize - RUDP_HEADER_LEN,frag->len - totalBytes);
+          //logTrace("MSG","RST","sending [%d] byte",writeBytes);
+          if(totalBytes+writeBytes<frag->len)
+          {
+            ReliableFragment *fragment = new DATFragment(queueInfo.nextSequenceNumber(),
+                queueInfo.getLastInSequence(), (Byte*)frag->data(0), off + totalBytes, writeBytes,false);
+            //logTrace("MSG","RST","Socket([%d - %d]) : Create fragment with seq [%d] type [%d] ack [%d].",sock->handle().getNode(),sock->handle().getPort(),frag->seq(),frag->getType(),frag->getAck());
+            queueAndSendReliableFragment(fragment);
+            totalBytes += writeBytes;
+          }
+          else
+          {
+            //logDebug("MSG", "REL","send last fragment to  node [%d] in reliable mode ",destination.getNode());
+            queueAndSendReliableFragment(new DATFragment(queueInfo.nextSequenceNumber(),
+                queueInfo.getLastInSequence(), (Byte*)frag->data(0), off + totalBytes, writeBytes,lastFrag));
+            totalBytes += writeBytes;
+          }
+        }
+      }
+      else
+      {
+        ReliableFragment *fragment = new DATFragment(queueInfo.nextSequenceNumber(),
+            queueInfo.getLastInSequence(), (Byte*)frag->data(0), 0 , frag->len,lastFrag);
+        //logTrace("MSG","RST","Socket([%d - %d]) : Create fragment with seq [%d] type [%d] ack [%d].",sock->handle().getNode(),sock->handle().getPort(),frag->seq(),frag->getType(),frag->getAck());
+        queueAndSendReliableFragment(fragment);
+      }
+    } while(nextFrag);
   }
   void MsgSocketReliable::writeReliable(Byte* buffer, int offset, int len)
   {
@@ -1297,9 +1344,7 @@ namespace SAFplus
         profile->nullFragmentTimeout(), profile->maxRetrans(),
         profile->maxCumulativeAcks(), profile->maxOutOfSequence(),
         profile->maxAutoReset());
-
     queueAndSendReliableFragment(frag);
-
     // Wait for connection establishment (or timeout)
     bool timedout = false;
     thisMutex.lock();

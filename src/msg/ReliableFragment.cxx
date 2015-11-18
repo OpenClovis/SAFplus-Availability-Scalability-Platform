@@ -221,6 +221,7 @@ namespace SAFplus
     }
     setAck(ackn);
     m_pData =  buffer + off;
+    memcpy(m_pData ,buffer+off, len);
   }
 
   int DATFragment::length()
