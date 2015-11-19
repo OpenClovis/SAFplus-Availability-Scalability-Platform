@@ -55,16 +55,16 @@ $(OBJ_DIR)/%.o: %.cxx Makefile $(CLIENT_H)
 	$(COMPILE_CPP) $@ $(<F)
 
 $(PLUGIN_DIR)/libclSQLiteDB.so: $(OBJ_DIR)/clDbalSqlite.o $(SAFPLUS_DEP_LIBS)
-	$(LINK_SO) $@ $^ $(SAFPLUS_LINK_LIBS) $(LINK_SO_LIBS) $(SQLITE_SO_LIBS)
+	$(LINK_SO) $@ $(OBJ_DIR)/clDbalSqlite.o $(SAFPLUS_LINK_LIBS) $(LINK_SO_LIBS) $(SQLITE_SO_LIBS)
 
 $(PLUGIN_DIR)/libclGDBM.so: $(OBJ_DIR)/clDbalGdbm.o $(SAFPLUS_DEP_LIBS)
-	$(LINK_SO) $@ $^ $(SAFPLUS_LINK_LIBS) $(LINK_SO_LIBS) $(GDBM_SO_LIBS)
+	$(LINK_SO) $@ $(OBJ_DIR)/clDbalGdbm.o $(SAFPLUS_LINK_LIBS) $(LINK_SO_LIBS) $(GDBM_SO_LIBS)
 
 $(PLUGIN_DIR)/libclBerkeleyDB.so: $(OBJ_DIR)/clDbalBerkeley.o $(SAFPLUS_DEP_LIBS) $(OBJ_DIR)/clist.o
-	$(LINK_SO) $@ $^ $(SAFPLUS_LINK_LIBS) $(LINK_SO_LIBS) $(BERKELEY_SO_LIBS)
+	$(LINK_SO) $@ $(OBJ_DIR)/clDbalBerkeley.o $(SAFPLUS_LINK_LIBS) $(LINK_SO_LIBS) $(BERKELEY_SO_LIBS)
 
 $(PLUGIN_DIR)/libclCkptDB.so: $(OBJ_DIR)/clDbalCkpt.o $(SAFPLUS_DEP_LIBS)
-	$(LINK_SO) $@ $^ $(SAFPLUS_LINK_LIBS) $(LINK_SO_LIBS) $(BERKELEY_SO_LIBS)
+	$(LINK_SO) $@ $(OBJ_DIR)/clDbalCkpt.o $(SAFPLUS_LINK_LIBS) $(LINK_SO_LIBS) $(BERKELEY_SO_LIBS)
 
 clean:
 	rm -f $(PLUGIN_DIR)/libclSQLiteDB.so rm -f $(OBJ_DIR)/clDbalSqlite.o rm -f $(PLUGIN_DIR)/libclGDBM.so rm -f $(OBJ_DIR)/clDbalGdbm.o rm -f $(PLUGIN_DIR)/libclBerkeleyDB.so rm -f $(OBJ_DIR)/clDbalBerkeley.o rm -f $(PLUGIN_DIR)/libclCkptDB.so rm -f $(OBJ_DIR)/clDbalCkpt.o
