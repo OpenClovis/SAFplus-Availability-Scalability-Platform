@@ -28,6 +28,10 @@ namespace SAFplus
      return hash_value(h.from) ^ hasher(h.msgId);
   }     
 
+
+
+
+
     class MsgSarTracker
     {
     public:
@@ -50,6 +54,7 @@ namespace SAFplus
       MsgSarMap received;
       MsgSocket* xport;
       MsgPool* headerPool;
+      Mutex receiveMutex;
       //ClRcT timeOutCallback(void *arg);
       //? Construct the socket.  Provide the underlying transport (or additional layer) that this segmentation and reassembly layer will use 
       MsgSarSocket(MsgSocket* underlyingSocket);
@@ -75,6 +80,17 @@ namespace SAFplus
       friend class ScopedMsgSocket;
     }; //? </class>
 
+    class SaRemoveInfo
+    {
+    public :
+      MsgSarIdentifier *sarId;
+      MsgSarSocket* socket;
+      SaRemoveInfo(MsgSarIdentifier *Id,MsgSarSocket* sock)
+      {
+        sarId = Id;
+        socket=sock;
+      }
+    };
 
   };
 #endif

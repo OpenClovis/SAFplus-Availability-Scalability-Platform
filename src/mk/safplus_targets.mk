@@ -81,9 +81,9 @@ $(PLUGIN_DIR)/libclGDBM.so:
 	$(MAKE) -C $(SAFPLUS_SRC_DIR)/dbal/plugins/gdbm
 endif
 
-ifndef SAFPLUS_DBAL_SQLITE_PLUGIN
-$(PLUGIN_DIR)/libclSQLiteDB.so:
-	$(MAKE) -C $(SAFPLUS_SRC_DIR)/dbal/plugins/sqlite
+ifndef SAFPLUS_DBAL_PLUGIN
+$(PLUGIN_DIR)/libclBerkeleyDB.so: $(wildcard $(SAFPLUS_SRC_DIR)/dbal/plugins/*.cxx)
+	$(MAKE) -C $(SAFPLUS_SRC_DIR)/dbal/plugins
 endif
 
 endif
@@ -91,6 +91,11 @@ endif
 ifndef SAFPLUS_CKPT_LIB
 $(LIB_DIR)/libclCkpt.so: $(wildcard $(SAFPLUS_SRC_DIR)/ckpt/*.cxx) $(wildcard $(SAFPLUS_SRC_DIR)/include/*.hxx) 
 	$(MAKE) -C $(SAFPLUS_SRC_DIR)/ckpt
+endif
+
+ifndef SAFPLUS_CKPT_RET
+$(BIN_DIR)/ckptretention: $(wildcard $(SAFPLUS_SRC_DIR)/ckpt/retention/*.cxx) $(wildcard $(SAFPLUS_SRC_DIR)/include/*.hxx) 
+	$(MAKE) -C $(SAFPLUS_SRC_DIR)/ckpt/retention
 endif
 
 ifndef SAFPLUS_GROUP_LIB
@@ -195,6 +200,7 @@ endif
 #SAFplusTests := $(TEST_DIR)/testLog $(TEST_DIR)/testmgt   $(TEST_DIR)/TestClient $(TEST_DIR)/TestServer $(TEST_DIR)/TestCombine $(TEST_DIR)/testCkpt $(TEST_DIR)/testGroup $(TEST_DIR)/exampleSafApp $(TEST_DIR)/testTransport $(TEST_DIR)/testMsgPerf
 
 SAFplusMsgTransports := $(LIB_DIR)/clMsgUdp.so
+SAFplusDbalPlugins := $(PLUGIN_DIR)/libclBerkeleyDB.so
 
 # ordered by dependency
 SAFplusSOs := $(LIB_DIR)/libclUtils.so $(LIB_DIR)/libclTimer.so $(LIB_DIR)/libclLog.so $(LIB_DIR)/libclOsal.so  $(LIB_DIR)/libclCkpt.so $(LIB_DIR)/libclMsg.so $(LIB_DIR)/libclRpc.so $(LIB_DIR)/libclName.so $(LIB_DIR)/libclGroup.so $(LIB_DIR)/libclMgt.so $(LIB_DIR)/libclFault.so $(LIB_DIR)/libclDbal.so $(LIB_DIR)/libclAmf.so $(LIB_DIR)/pyDbal.so
@@ -205,11 +211,11 @@ SAFplusTests := $(TEST_DIR)/testLog $(TEST_DIR)/testmgt   $(TEST_DIR)/testCkpt $
 # $(TEST_DIR)/TestSendMsg $(TEST_DIR)/TestReceiveMsg
 #  $(SAFPLUS_TARGET)/bin/splogd $(TEST_DIR)/testGroup $(TEST_DIR)/testGroupServer
 
-SAFplusServices :=  $(SAFPLUS_TARGET)/bin/splogd $(SAFPLUS_TARGET)/bin/safplus_amf
+SAFplusServices :=  $(SAFPLUS_TARGET)/bin/splogd $(SAFPLUS_TARGET)/bin/safplus_amf $(BIN_DIR)/ckptretention
 
 SAFplusTools := $(SAFplusRpcGen)
 
-SAFplusPlugins := $(PLUGIN_DIR)/libclBerkeleyDB.so $(PLUGIN_DIR)/libclGDBM.so $(PLUGIN_DIR)/libclSQLiteDB.so $(SAFplusMsgTransports)
+SAFplusPlugins := $(SAFplusDbalPlugins) $(SAFplusMsgTransports)
 
 ThirdPartySOs := $(LIB_DIR)/libezxml.so
 

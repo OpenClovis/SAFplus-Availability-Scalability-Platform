@@ -29,7 +29,7 @@ Typically, a single active process writes the checkpoint and other standby entit
 
 #include <clCkptIpi.hxx>
 #include <clCustomization.hxx>
-#include <clDbalApi.h>
+#include <clDbalBase.hxx>
 
 
 #define	NullTMask 0x800000UL
@@ -330,7 +330,9 @@ namespace SAFplus
     Iterator begin();
     //? Similar to the Standard Template Library (STL), this returns the termination sentinel -- that is, an invalid object that can be compared to an iterator to determine that it is at the end of the list of members.
     Iterator end();
-
+    //? Similar to the Standard Template Library (STL), this returns the iterator of the map designated by the key -- data of the key stored in the map
+    Iterator find(const void* key, uint_t len);
+    Iterator find(const Buffer& key);
     //? Return the universal identifier for this checkpoint.
     const SAFplus::Handle& handle() { return hdr->handle; } // its read only
     //? Get the name of the checkpoint
@@ -353,7 +355,7 @@ namespace SAFplus
     bool isSyncReplica;
     SAFplusI::CkptSynchronization* sync;  // This is a separate object (and pointer) to break the synchronization requirements (messaging and groups) from the core checkpoint
     
-    ClDBHandleT dbHandle; //Handle to manipulate with database. Basically, each persistent checkpoint data needs to be stored as a table on disk, so, if a persistent checkpoint is opened, dbHandle will be initialized. If it's not a persistent one, dbHandle is NULL (not used)
+    DbalPlugin* pDbal; //Dbal plugin object to manipulate with database. Basically, each persistent checkpoint data needs to be stored as a table on disk, so, if a persistent checkpoint is opened, dbal plugin object will be initialized. If it's not a persistent one, dbal plugin is NULL (not used)
     SAFplusI::CkptOperationMap operMap; /* Holding operation performed on the checkpoint data items identified by key. The purpose is to reflect only changed those items to disk. For those items unchanged, there isn't any operation on disk, too. This decreases the disk I/O operations */
 
   protected:    

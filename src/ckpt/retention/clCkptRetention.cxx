@@ -2,7 +2,6 @@
 #include <clThreadApi.hxx>
 #include <clCkptApi.hxx>
 #include <clCkptIpi.hxx>
-#include <clDbalApi.h>
 #include <boost/asio/deadline_timer.hpp>
 #include <boost/unordered_map.hpp>
 #include <boost/container/map.hpp>
@@ -63,9 +62,9 @@ struct RetentionTimerData
   Timer timer;
   boost::posix_time::ptime lastUsed; // in seconds 
   bool isRunning; // states that if this timer is running or not 
-  ClDBHandleT dbHandle; // database handle to manipulate with persistent checkpoint. With non-persistent checkpoint, this variable is always NULL
+  SAFplus::DbalPlugin* pDbal; // database handle to manipulate with persistent checkpoint. With non-persistent checkpoint, this variable is always NULL
   std::string name; // Represents the physical file name of specified checkpoint type. For example, if this retention is based on share memory, its value is the name of shared memory (not included path). If this retention is persistence, its value is the full path to the database file name on disk
-  RetentionTimerData(Timer t, boost::posix_time::ptime _lastUsed, bool running, std::string _name, ClDBHandleT _dbHandle=NULL): timer(t), lastUsed(_lastUsed), isRunning(running), name(_name), dbHandle(_dbHandle)
+  RetentionTimerData(Timer t, boost::posix_time::ptime _lastUsed, bool running, std::string _name, SAFplus::DbalPlugin* _pDbal=NULL): timer(t), lastUsed(_lastUsed), isRunning(running), name(_name), pDbal(_pDbal)
   {
   }
 };
@@ -214,28 +213,28 @@ public:
 class PersistentFileTimer: public RetentionTimer
 {
 public:
-  bool getHdrValue(ClDBHandleT dbHandle, int nkey, void* val)
+  bool getHdrValue(SAFplus::DbalPlugin* dbal, int nkey, void* val)
   {
-    if (!dbHandle) return false;
+    if (!dbal) return false;
     ClDBKeyHandleT key;
     ClUint32T keySize;
     ClDBRecordHandleT rec;
     ClUint32T recSize;
-    ClRcT rc = clDbalFirstRecordGet(dbHandle, &key, &keySize, &rec, &recSize);  
+    ClRcT rc = dbal->getFirstRecord(&key, &keySize, &rec, &recSize);  
     while (rc == CL_OK)
     {    
       if (!memcmp(key, ckptHeader(nkey), keySize))
       {
         memcpy(val, rec, recSize);
-        clDbalKeyFree(dbHandle, key);
-        clDbalRecordFree(dbHandle, rec);
+        dbal->freeKey(key);
+        dbal->freeRecord(rec);
         return true;
       }
-      clDbalRecordFree(dbHandle, rec);
+      dbal->freeRecord(rec);
       ClDBKeyHandleT curKey = key;
       ClUint32T curKeySize = keySize;    
-      rc = clDbalNextRecordGet(dbHandle, curKey, curKeySize, &key, &keySize, &rec, &recSize);     
-      clDbalKeyFree(dbHandle, curKey);        
+      rc = dbal->getNextRecord(curKey, curKeySize, &key, &keySize, &rec, &recSize);     
+      dbal->freeKey(curKey);        
     }
     return false;
   }  
@@ -246,7 +245,7 @@ public:
     */     
     logTrace("CKPRET","UDT", "[persist] Enter [%s]", __FUNCTION__);
     ClRcT rc;
-    ClDBHandleT dbHandle;
+    SAFplus::DbalPlugin* dbal;
     const char* path=SAFplus::ASP_RUNDIR;
     if (!path || !strlen(SAFplus::ASP_RUNDIR))
     {
@@ -281,17 +280,18 @@ public:
             logTrace("CKPRET","UDT", "[persist] CkptHandle [%" PRIx64 ":%" PRIx64 "] exists in the map. Update the lastUsed field only", ckptHdl.id[0], ckptHdl.id[1]);
             // update the lastUsed only
             boost::posix_time::ptime lUsed;
-            if (getHdrValue(contents->second.dbHandle, lastUsed, &lUsed))
+            if (getHdrValue(contents->second.pDbal, lastUsed, &lUsed))
                contents->second.lastUsed = lUsed;
           }
           else
           {
-            rc = clDbalOpen(filePath.c_str(), filePath.c_str(), CL_DB_OPEN, CkptMaxKeySize, CkptMaxRecordSize, &dbHandle);
+            dbal = SAFplus::clDbalObjCreate();
+            rc = dbal->open(filePath.c_str(), filePath.c_str(), CL_DB_OPEN, CkptMaxKeySize, CkptMaxRecordSize);
             if (rc == CL_OK)
             {
               // Read database to get the checkpoint handle
               SAFplus::Handle tmpHdl;
-              if (!(getHdrValue(dbHandle, hdl, &tmpHdl)))
+              if (!(getHdrValue(dbal, hdl, &tmpHdl)))
               {
                 logNotice("CKPRET","UDT", "[persist] No checkpoint handle from header found for checkpoint [%s]", strHdl.c_str());
                 continue; // no header found so bypass this checkpoint 
@@ -303,12 +303,12 @@ public:
               }  
               uint64_t retDuration;          
               boost::posix_time::ptime lUsed;
-              if (getHdrValue(dbHandle, retentionDuration, &retDuration) && getHdrValue(dbHandle, lastUsed, &lUsed))
+              if (getHdrValue(dbal, retentionDuration, &retDuration) && getHdrValue(dbal, lastUsed, &lUsed))
               {
                 // Add new item to map
                 logTrace("CKPRET","UDT", "[persist] insert item {%" PRIx64 ":%" PRIx64 ", %lu} to map", ckptHdl.id[0], ckptHdl.id[1], retDuration);
                 Timer timer(retDuration, iosvc, &onPersistentRetentionTimeout);
-                RetentionTimerData rt(timer, lUsed, false, filePath, dbHandle);
+                RetentionTimerData rt(timer, lUsed, false, filePath, dbal);
                 CkptTimerMapPair kv(ckptHdl, rt);
                 ckptTimerMap.insert(kv);                              
               }
@@ -466,7 +466,7 @@ void onPersistentRetentionTimeout(const boost::system::error_code& e, void* arg,
       // Get the checkpoint header to see whether the lastUsed changed or not
       std::string& ckptPersistName = contents->second.name;   
       boost::posix_time::ptime lUsed;
-      if (!timer->getHdrValue(contents->second.dbHandle, lastUsed, &lUsed))      
+      if (!timer->getHdrValue(contents->second.pDbal, lastUsed, &lUsed))      
       {
         logWarning("CKPRET", "TIMEOUT", "[%s] lastUsed from header for checkpoint [%" PRIx64 ":%" PRIx64 "] not found", __FUNCTION__, ckptHandle->id[0], ckptHandle->id[1]);
         timer->unlock();
@@ -485,7 +485,7 @@ void onPersistentRetentionTimeout(const boost::system::error_code& e, void* arg,
         Timer& tmr = contents->second.timer;
         logTrace("CKPRET", "TIMEOUT", "[%s] deleting peristent checkpoint file [%s]", __FUNCTION__, ckptPersistName.c_str());
         // close the database handle
-        clDbalClose(contents->second.dbHandle);
+        delete contents->second.pDbal;
         unlink(ckptPersistName.c_str());
         delete tmr.timer;
         // Remove this item from the map, too

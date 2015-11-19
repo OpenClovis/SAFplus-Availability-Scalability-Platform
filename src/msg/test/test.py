@@ -138,6 +138,7 @@ class test(testcase.TestGroup):
         \brief     	TPC LAN Basic messaging functional tests 
         """
         # pdb.set_trace()
+        # os.system('modprobe -a tipc')
         self.progTest(self.model.cfg.mapping.SysCtrl0.installDir + "/test/testTransport --xport=clMsgTipc.so --mode=LAN",160)  # An App Test just starts running its tests when started (there is no addtl trigger required to put the entity "in service", etc.  The parameter is how long to wait before assuming the test hung.
         self.assert_equal(1, 1, 'This test always works')
 
@@ -147,6 +148,7 @@ class test(testcase.TestGroup):
         \brief     	TPC CLOUD Basic messaging functional tests 
         """
         # pdb.set_trace()
+        # os.system('modprobe -a tipc')
         self.progTest(self.model.cfg.mapping.SysCtrl0.installDir + "/test/testTransport --xport=clMsgTipc.so --mode=cloud",160)  # An App Test just starts running its tests when started (there is no addtl trigger required to put the entity "in service", etc.  The parameter is how long to wait before assuming the test hung.
         self.assert_equal(1, 1, 'This test always works')
 
@@ -155,7 +157,7 @@ class test(testcase.TestGroup):
         \testcase   MSG-TPC-LAN.TC003
         \brief     	TPC LAN software stack
         """
-  
+        # os.system('modprobe -a tipc')
         self.progTest(self.model.cfg.mapping.SysCtrl0.installDir + "/test/testMsgServer --xport=clMsgTipc.so --mode=LAN --duration=7000",120)  # An App Test just starts running its tests when started (there is no addtl trigger required to put the entity "in service", etc.  The parameter is how long to wait before assuming the test hung.
         self.assert_equal(1, 1, 'This test always works')
 
@@ -164,6 +166,7 @@ class test(testcase.TestGroup):
         \testcase   MSG-TPC-CLD.TC004
         \brief     	TPC cloud software stack
         """
+        # os.system('modprobe -a tipc')
         self.progTest(self.model.cfg.mapping.SysCtrl0.installDir + "/test/testMsgServer --xport=clMsgTipc.so --mode=cloud --duration=7000",120)
         self.assert_equal(1, 1, 'This test always works')
 

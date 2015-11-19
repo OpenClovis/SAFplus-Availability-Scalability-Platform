@@ -251,6 +251,7 @@ namespace SAFplus
     virtual ~MsgSocketReliable();
     // Send a bunch of messages.  You give up ownership of msg.
     virtual void send(Message* msg);
+    virtual void sendSingle(Message* msg);
     //Send a buffer data 
     virtual void send(SAFplus::Handle destination, void* buffer, uint_t length,uint_t msgtype);
     //Receiver a message

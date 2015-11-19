@@ -1,6 +1,6 @@
 S7 := 1
 include ./src/mk/preface.mk
-include /etc/lsb-release
+-include /etc/lsb-release
 
 GIT_REV := $(shell git rev-parse --short=8 HEAD)
 
@@ -162,7 +162,7 @@ deb_build:remove_target
 
 apt/debian/conf/distributions:
 	mkdir -p apt/debian/conf
-	python src/mk/genDebDist.py apt/debian/conf/distributions safplus $(DISTRIB_CODENAME)
+	python src/mk/genDebDist.py apt/debian/conf safplus $(DISTRIB_CODENAME) $(__TMP_TARGET_PLATFORM)
 
 deb_upload: apt/debian/conf/distributions
 	(cd apt/debian; reprepro -v includedeb $(DISTRIB_CODENAME) $(SAFPLUS_TOP_DIR)/build/*.deb)
@@ -173,4 +173,4 @@ rpm_install:remove_target
 	$(call safplus_pkg_install,$(REQ_FILES))
 
 clean:
-	rm -rf $(TAR_NAME) $(BUILD) apt ../debbuild_safplus ../debbuild_safplus-src ../safplus_7.0.tar.gz
+	rm -rf $(TAR_NAME) $(BUILD) apt ../debbuild_safplus ../debbuild_safplus-src ../safplus_7.0.tar.gz ../rpmbuild_safplus ../rpmbuild_safplus-src

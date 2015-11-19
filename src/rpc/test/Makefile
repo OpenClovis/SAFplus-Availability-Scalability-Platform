@@ -65,6 +65,9 @@ $(OBJ_DIR)/test/rpc/%.o: stubs/server/%.cxx Makefile $(STUBS_H)
 	-mkdir -p $(OBJ_DIR)/test/rpc
 	$(COMPILE_CPP) $@ $<
 
+#work-around to not include this path (contain the test.py) into PYANG_PLUGINPATH, otherwise 'make gen' failed
+export PYANG_PLUGINPATH=$(shell pwd)/../
+
 gen:
 	mkdir -p ./stubs
 	$(call SAFPLUS_RPC_GEN,rpcTest,stubs)

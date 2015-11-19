@@ -196,15 +196,26 @@ namespace SAFplus
     }
     ClRcT timeOutCallback(void *arg)
     {
-      MsgSarTracker *temp = (MsgSarTracker *)arg;
+      SaRemoveInfo *temp = (SaRemoveInfo *)arg;
       std::vector<Message*>::iterator it;
-      for (it = temp->msgs.begin(); it != temp->msgs.end(); it++)
+      temp->socket->receiveMutex.lock();
+      MsgSarSocket::MsgSarMap::iterator item = temp->socket->received.find(*temp->sarId);
+      if (item == temp->socket->received.end())
+      {
+        temp->socket->receiveMutex.unlock();
+        return CL_OK;
+      }
+      MsgSarTracker& trk = item->second;
+      for (it = trk.msgs.begin(); it != trk.msgs.end(); it++)
       {
         (*it)->free();
       }
-      temp->msgs.clear();
+      trk.msgs.clear();
+      temp->socket->received.erase(*temp->sarId);
+      temp->socket->receiveMutex.unlock();
       return CL_OK;
     };
+
     Message* MsgSarSocket::receive(uint_t maxMsgs,int maxDelay)
     {
       int curDelay=maxDelay;
@@ -228,6 +239,7 @@ namespace SAFplus
         else
           {
             MsgSarIdentifier sarId(from,msgId);
+            receiveMutex.lock();
             MsgSarMap::iterator item = received.find(sarId);
             if (item == received.end())
               {
@@ -237,7 +249,8 @@ namespace SAFplus
                 trk.trackerTimeOut.tsMilliSec=0;
                 trk.trackerTimeOut.tsSec=1;
                 //logDebug("SAR","RCV","Create timer for message id : [%d]",sarId);
-                trk.trackerTimer.timerCreate(trk.trackerTimeOut,TimerTypeT::TIMER_ONE_SHOT, TimerContextT::TIMER_SEPARATE_CONTEXT,timeOutCallback,&(item->second));
+                SaRemoveInfo* removeInfo=new SaRemoveInfo(&sarId,this);
+                trk.trackerTimer.timerCreate(trk.trackerTimeOut,TimerTypeT::TIMER_ONE_SHOT, TimerContextT::TIMER_SEPARATE_CONTEXT,timeOutCallback,removeInfo);
                 trk.trackerTimer.timerStart();
               }
 
@@ -288,11 +301,12 @@ namespace SAFplus
                   }
                 trk.trackerTimer.timerStop();
                 received.erase(item);  // remove this message from the lookup table
+                receiveMutex.unlock();
                 return top;
               }
+            receiveMutex.unlock();
           }
         }  
-        
     }
  
     void MsgSarSocket::useNagle(bool value)
