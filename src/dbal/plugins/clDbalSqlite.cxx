@@ -52,7 +52,7 @@ public:
   virtual ~SqlitePlugin();
 
 protected:
-  ClRcT cdbSQLiteDBCreate(ClDBNameT dbName);
+  ClRcT cdbSQLiteDBCreate(SQLiteDBHandle_t* handle, ClDBNameT dbName);
   virtual ClRcT close();
 };
 
@@ -120,7 +120,7 @@ ClRcT SqlitePlugin::open(ClDBFileT dbFile, ClDBNameT dbName, ClDBFlagT dbFlag, C
         return(errorCode);
     }
 
-    pDBHandle = (ClDBHandleT) pSQLiteHandle;
+    //pDBHandle = (ClDBHandleT) pSQLiteHandle;
 
     logTrace("DBA", "DBO", "Opening the Database : [%s]", dbName);
 
@@ -142,7 +142,7 @@ ClRcT SqlitePlugin::open(ClDBFileT dbFile, ClDBNameT dbName, ClDBFlagT dbFlag, C
             }
         }
 
-        rc = cdbSQLiteDBCreate(dbName);
+        rc = cdbSQLiteDBCreate(pSQLiteHandle, dbName);
         if (rc != CL_OK)
         {
             sqlite3_close(pSQLiteHandle->pDatabase);
@@ -184,7 +184,7 @@ ClRcT SqlitePlugin::open(ClDBFileT dbFile, ClDBNameT dbName, ClDBFlagT dbFlag, C
         if ((fp = fopen(dbName, "r")) == NULL)
         {
             /* Database doesn't exist. Create it.. */
-            rc = cdbSQLiteDBCreate(dbName);
+            rc = cdbSQLiteDBCreate(pSQLiteHandle, dbName);
             if (rc != CL_OK)
             {
                 sqlite3_close(pSQLiteHandle->pDatabase);
@@ -353,17 +353,19 @@ ClRcT SqlitePlugin::open(ClDBFileT dbFile, ClDBNameT dbName, ClDBFlagT dbFlag, C
         return (errorCode);
     }
 
-    //pDBHandle = (ClDBHandleT) pSQLiteHandle;
+    pDBHandle = (ClDBHandleT) pSQLiteHandle;
 
     
     return(CL_OK);
 }
 
-ClRcT SqlitePlugin::cdbSQLiteDBCreate(ClDBNameT dbName)
+ClRcT SqlitePlugin::cdbSQLiteDBCreate(SQLiteDBHandle_t* handle, ClDBNameT dbName)
 {
     sqlite3_stmt* stmt = NULL; 
     ClRcT rc = CL_OK;
-    SQLiteDBHandle_t* pSQLiteHandle = (SQLiteDBHandle_t*)pDBHandle;
+    SQLiteDBHandle_t* pSQLiteHandle = handle;
+    ClRcT errorCode = CL_OK;
+    NULL_CHECK(pSQLiteHandle);
 
     rc = sqlite3_open(dbName, &(pSQLiteHandle->pDatabase));
 
@@ -528,6 +530,7 @@ ClRcT SqlitePlugin::insertRecord(ClDBKeyT dbKey, ClUint32T keySize, ClDBRecordT 
     
     pSQLiteHandle = (SQLiteDBHandle_t *)pDBHandle;
 
+    NULL_CHECK(pSQLiteHandle);
     NULL_CHECK(dbKey);
     NULL_CHECK(dbRec);
 
@@ -588,6 +591,7 @@ ClRcT SqlitePlugin::replaceRecord(ClDBKeyT dbKey, ClUint32T keySize, ClDBRecordT
 
     pSQLiteHandle = (SQLiteDBHandle_t *)pDBHandle;
 
+    NULL_CHECK(pSQLiteHandle);
     NULL_CHECK(dbKey);
     NULL_CHECK(dbRec);
 
@@ -638,7 +642,7 @@ ClRcT SqlitePlugin::getRecord(ClDBKeyT dbKey, ClUint32T keySize, ClDBRecordT* pD
     NULL_CHECK(pRecSize);
 
     pSQLiteHandle = (SQLiteDBHandle_t *)pDBHandle;
-
+    NULL_CHECK(pSQLiteHandle);
     //TODO: happens too often, even for trace, but first verify efficient use
     logTrace("DBA", "GET", "Retrieving a record from the database");
 
@@ -712,7 +716,7 @@ ClRcT SqlitePlugin::getFirstRecord(ClDBKeyT* pDBKey, ClUint32T* pKeySize, ClDBRe
     NULL_CHECK(pRecSize);
 
     pSQLiteHandle = (SQLiteDBHandle_t *)pDBHandle;   
-    
+    NULL_CHECK(pSQLiteHandle);
     logTrace("DBA", "GET", "Retrieving the first record from the database");
 
 retry:    
@@ -794,7 +798,7 @@ ClRcT SqlitePlugin::getNextRecord(ClDBKeyT currentKey, ClUint32T currentKeySize,
     NULL_CHECK(pNextRecSize);
 
     pSQLiteHandle = (SQLiteDBHandle_t *)pDBHandle;
-
+    NULL_CHECK(pSQLiteHandle);
     logTrace("DBA", "GET", "Retrieving the next record from the database");
 
     sqlite3_bind_blob(pSQLiteHandle->stmt[5], 1, (const void *) currentKey, currentKeySize, SQLITE_STATIC);
@@ -870,7 +874,7 @@ ClRcT SqlitePlugin::deleteRecord(ClDBKeyHandleT dbKey, ClUint32T keySize)
 
     
     pSQLiteHandle = (SQLiteDBHandle_t *)pDBHandle;
-
+    NULL_CHECK(pSQLiteHandle);
     NULL_CHECK(dbKey);
 
     logTrace("DBA", "DEL", "Removing a record from the database");
