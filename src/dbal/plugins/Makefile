@@ -60,8 +60,8 @@ $(PLUGIN_DIR)/libclSQLiteDB.so: $(OBJ_DIR)/clDbalSqlite.o $(SAFPLUS_DEP_LIBS)
 $(PLUGIN_DIR)/libclGDBM.so: $(OBJ_DIR)/clDbalGdbm.o $(SAFPLUS_DEP_LIBS)
 	$(LINK_SO) $@ $(OBJ_DIR)/clDbalGdbm.o $(SAFPLUS_LINK_LIBS) $(LINK_SO_LIBS) $(GDBM_SO_LIBS)
 
-$(PLUGIN_DIR)/libclBerkeleyDB.so: $(OBJ_DIR)/clDbalBerkeley.o $(SAFPLUS_DEP_LIBS) $(OBJ_DIR)/clist.o
-	$(LINK_SO) $@ $(OBJ_DIR)/clDbalBerkeley.o $(SAFPLUS_LINK_LIBS) $(LINK_SO_LIBS) $(BERKELEY_SO_LIBS)
+$(PLUGIN_DIR)/libclBerkeleyDB.so: $(OBJ_DIR)/clDbalBerkeley.o $(SAFPLUS_DEP_LIBS)
+	$(LINK_SO) $@ $(OBJ_DIR)/clDbalBerkeley.o $(OBJ_DIR)/clist.o $(SAFPLUS_LINK_LIBS) $(LINK_SO_LIBS) $(BERKELEY_SO_LIBS)
 
 $(PLUGIN_DIR)/libclCkptDB.so: $(OBJ_DIR)/clDbalCkpt.o $(SAFPLUS_DEP_LIBS)
 	$(LINK_SO) $@ $(OBJ_DIR)/clDbalCkpt.o $(SAFPLUS_LINK_LIBS) $(LINK_SO_LIBS) $(BERKELEY_SO_LIBS)
