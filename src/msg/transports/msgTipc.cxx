@@ -12,10 +12,14 @@
 #include <linux/tipc.h>
 #endif
 
-#define CL_TIPC_MIN_NODE_ADDRESS 1
-#define CL_TIPC_MAX_NODE_ADDRESS 255
 namespace SAFplus
 {
+  enum TipcConfig
+  {
+    MinNodeAddress = 1,
+    MaxNodeAddress = 255,
+  };
+
   class Tipc:public MsgTransportPlugin_1
     {
   public:
@@ -193,30 +197,32 @@ namespace SAFplus
         assert(msgCount < SAFplusI::TipcTransportMaxMsg);  // or stack buffer will be exceeded
         bzero(&to[msgCount],sizeof(struct sockaddr_tipc));
         to[msgCount].family = AF_TIPC;
-        //to[msgCount].addrtype = TIPC_ADDR_NAME;
-        //to[msgCount].scope = TIPC_ZONE_SCOPE;
+
+        //printf("messages to [%d:%d]\n",msg->node, msg->port);
 
         if (msg->node == Handle::AllNodes)
           {
             to[msgCount].addrtype = TIPC_ADDR_NAMESEQ;
             to[msgCount].addr.nameseq.type = msg->port + SAFplusI::TipcTransportStartPort;
-            to[msgCount].addr.nameseq.lower = CL_TIPC_MIN_NODE_ADDRESS;
-            to[msgCount].addr.nameseq.upper = CL_TIPC_MAX_NODE_ADDRESS;
+            to[msgCount].addr.nameseq.lower = TipcConfig::MinNodeAddress;
+            to[msgCount].addr.nameseq.upper = TipcConfig::MaxNodeAddress;
           }
         else
           {
           if (transport->clusterNodes)
             {
-              to[msgCount].addr.name.name.type = msg->port + SAFplusI::TipcTransportStartPort; 
-              to[msgCount].addr.name.name.instance = msg->node;
-              to[msgCount].addr.name.domain=0;
+            to[msgCount].addrtype = TIPC_ADDR_NAME;
+            to[msgCount].scope    = TIPC_ZONE_SCOPE;
+            to[msgCount].addr.name.name.type = msg->port + SAFplusI::TipcTransportStartPort; 
+            to[msgCount].addr.name.name.instance = msg->node;
+            to[msgCount].addr.name.domain=0;
             }
           else
             {
             to[msgCount].addrtype = TIPC_ADDR_NAMESEQ;
             to[msgCount].addr.nameseq.type = msg->port + SAFplusI::TipcTransportStartPort;
-            to[msgCount].addr.nameseq.lower = CL_TIPC_MIN_NODE_ADDRESS;
-            to[msgCount].addr.nameseq.upper = CL_TIPC_MAX_NODE_ADDRESS;
+            to[msgCount].addr.nameseq.lower = TipcConfig::MinNodeAddress;
+            to[msgCount].addr.nameseq.upper = TipcConfig::MaxNodeAddress;
             }
           }
 
@@ -322,11 +328,18 @@ namespace SAFplus
           struct sockaddr_tipc* srcAddr = (struct sockaddr_tipc*) msgs[msgIdx].msg_hdr.msg_name;
           assert(msgs[msgIdx].msg_hdr.msg_namelen == sizeof(struct sockaddr_tipc));
           assert(srcAddr);
-          
-          cur->port = ntohl(srcAddr->addr.name.name.type) - SAFplusI::TipcTransportStartPort;
-          
-          cur->node = ntohl(srcAddr->addr.name.name.instance) & (((Tipc*)transport)->nodeMask);
-          
+
+          /* 
+           * H TODO:
+           * 1. Translate node/port from type
+           * 2. Append header into msg -> refer 
+           * cur->port = ntohl(srcAddr->addr.name.name.type) - SAFplusI::TipcTransportStartPort;
+           * cur->node = ntohl(srcAddr->addr.name.name.instance) & (((Tipc*)transport)->nodeMask);
+           * printf("messages from [%d:%d]\n",cur->node, cur->port);
+           *
+           */
+          cur->port = cur->port = 0; // H TODO removed
+
           MsgFragment* curFrag = cur->firstFragment;
           for (int fragIdx = 0; (fragIdx < msgs[msgIdx].msg_hdr.msg_iovlen) && msgLen; fragIdx++,curFrag=curFrag->nextFragment)
             {
