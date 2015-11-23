@@ -92,6 +92,7 @@ protected:
 
 //static BerkeleyPlugin api;
 
+
 #if ( DB_VERSION_MAJOR >= 4 && DB_VERSION_MINOR >= 5 )
 
 static void
@@ -132,9 +133,7 @@ static void myDummyDeleteCallBack(ClClistDataT userData)
 BerkeleyPlugin::~BerkeleyPlugin()
 { 
   close();   
-  cdbBerkeleyDBFinalize();
-  SAFplusHeapFree(pDBHandle);
-  pDBHandle = NULL;
+  cdbBerkeleyDBFinalize();  
 }
 
 BerkeleyPlugin::BerkeleyPlugin()
@@ -146,8 +145,9 @@ ClRcT BerkeleyPlugin::cdbBerkeleyDBInitialize()
 {
     ClRcT errorCode = CL_OK;
     ClUint32T rc = 0;
+
     dbEnvironment.isInitialized = 0;
-    
+
     rc = db_env_create(&(dbEnvironment.pDBEnv), 0);
     if(0 != rc) {
         errorCode = CL_DBAL_RC(CL_DBAL_ERR_DB_ERROR);
@@ -156,7 +156,7 @@ ClRcT BerkeleyPlugin::cdbBerkeleyDBInitialize()
     dbEnvironment.pDBEnv->set_errpfx(dbEnvironment.pDBEnv,"DBAL");
     dbEnvironment.pDBEnv->set_errfile(dbEnvironment.pDBEnv,stderr);
 
-    rc = (dbEnvironment.pDBEnv)->open(dbEnvironment.pDBEnv, NULL, DB_CREATE | DB_INIT_LOG | DB_INIT_MPOOL | DB_INIT_TXN | DB_PRIVATE | DB_THREAD, 0);
+    rc = (dbEnvironment.pDBEnv)->open(dbEnvironment.pDBEnv, NULL, DB_CREATE | DB_INIT_LOG | DB_INIT_MPOOL | DB_INIT_TXN | DB_THREAD, 0);
 
     if(0 != rc) {
         errorCode = CL_DBAL_RC(CL_DBAL_ERR_DB_ERROR);
@@ -232,18 +232,16 @@ ClRcT BerkeleyPlugin::cdbBerkeleyDBFinalize()
         
         return(errorCode);
     }
-    BerkeleyDBHandle_t* pBerkeleyHandle = (BerkeleyDBHandle_t*)pDBHandle;
-    if (pBerkeleyHandle)
-    {        
-        rc = (dbEnvironment.pDBEnv)->close(dbEnvironment.pDBEnv, 0);
-        if(0 != rc) 
-        {
-            errorCode = CL_DBAL_RC(CL_DBAL_ERR_DB_ERROR);
-            logWarning(CL_LOG_AREA_UNSPECIFIED, CL_LOG_CONTEXT_UNSPECIFIED,"Berkeley Shutdown failed.");
-        
-            return(errorCode);
-        }
+   
+    rc = (dbEnvironment.pDBEnv)->close(dbEnvironment.pDBEnv, 0);
+    if(0 != rc) 
+    {
+         errorCode = CL_DBAL_RC(CL_DBAL_ERR_DB_ERROR);
+         logWarning(CL_LOG_AREA_UNSPECIFIED, CL_LOG_CONTEXT_UNSPECIFIED,"Berkeley Shutdown failed.");
+       
+         return(errorCode);
     }
+   
 
     dbEnvironment.isInitialized = 0;
     dbEnvironment.validity = 0;
@@ -391,6 +389,7 @@ ClRcT BerkeleyPlugin::open(ClDBFileT dbFile, ClDBNameT dbName, ClDBFlagT dbFlag,
 #endif
         if(0 != rc) 
         {
+            pBerkeleyHandle->pDatabase->err(pBerkeleyHandle->pDatabase, rc, "Database opened failed: %s", dbName);
             goto err_open_failed;
         }
     }
@@ -475,8 +474,10 @@ ClRcT BerkeleyPlugin::close()
         goto err_out;
     }
 
-    //SAFplusHeapFree(pBerkeleyHandle);
-    //pDBHandle = NULL;
+    
+    SAFplusHeapFree(pBerkeleyHandle);
+    pDBHandle = NULL;
+
     logInfo(CL_LOG_AREA_UNSPECIFIED, CL_LOG_CONTEXT_UNSPECIFIED,"\nBerkeley closed.");
     return (CL_OK);    
 
@@ -499,6 +500,7 @@ ClRcT BerkeleyPlugin::insertRecord(ClDBKeyT dbKey, ClUint32T keySize, ClDBRecord
 
     NULL_CHECK(dbKey);
     NULL_CHECK(dbRec);
+    NULL_CHECK(pBerkeleyHandle);
 
     memset(&key, 0, sizeof(key));
 	memset(&record, 0, sizeof(record));
@@ -523,7 +525,7 @@ ClRcT BerkeleyPlugin::insertRecord(ClDBKeyT dbKey, ClUint32T keySize, ClDBRecord
     if(0 != rc) {
         errorCode = CL_DBAL_RC(CL_DBAL_ERR_DB_ERROR);
         logTrace(CL_LOG_AREA_UNSPECIFIED, CL_LOG_CONTEXT_UNSPECIFIED,"Berkeley DB record add failed.");
-        
+        pBerkeleyHandle->pDatabase->err(pBerkeleyHandle->pDatabase, rc, "insertRecord:");
         return(errorCode);
     }
 
@@ -545,6 +547,7 @@ ClRcT BerkeleyPlugin::replaceRecord(ClDBKeyT dbKey, ClUint32T keySize, ClDBRecor
     
     NULL_CHECK(dbKey);
     NULL_CHECK(dbRec);
+    NULL_CHECK(pBerkeleyHandle);
 
     memset(&key, 0, sizeof(key));
     memset(&record, 0, sizeof(record));
@@ -559,7 +562,7 @@ ClRcT BerkeleyPlugin::replaceRecord(ClDBKeyT dbKey, ClUint32T keySize, ClDBRecor
     if(0 != rc) {
         errorCode = CL_DBAL_RC(CL_DBAL_ERR_DB_ERROR);
         logTrace(CL_LOG_AREA_UNSPECIFIED, CL_LOG_CONTEXT_UNSPECIFIED,"Berkeley DB record replace failed.");
-        
+        pBerkeleyHandle->pDatabase->err(pBerkeleyHandle->pDatabase, rc, "replaceRecord:");
         return(errorCode);
     }  
 
@@ -584,6 +587,8 @@ ClRcT BerkeleyPlugin::getRecord(ClDBKeyT dbKey, ClUint32T keySize, ClDBRecordT* 
 
     pBerkeleyHandle = (BerkeleyDBHandle_t *)pDBHandle;
 
+    NULL_CHECK(pBerkeleyHandle);
+
     memset(&key, 0, sizeof(key));
     memset(&record, 0, sizeof(record));
 	
@@ -594,7 +599,7 @@ ClRcT BerkeleyPlugin::getRecord(ClDBKeyT dbKey, ClUint32T keySize, ClDBRecordT* 
     if(0 != rc) {
         errorCode = CL_DBAL_RC(CL_DBAL_ERR_DB_ERROR);
         logTrace(CL_LOG_AREA_UNSPECIFIED, CL_LOG_CONTEXT_UNSPECIFIED,"Berkeley DB record get failed.");
-        
+        pBerkeleyHandle->pDatabase->err(pBerkeleyHandle->pDatabase, rc, "getRecord:");
         return(errorCode);
     }
 
@@ -631,6 +636,8 @@ ClRcT BerkeleyPlugin::getFirstRecord(ClDBKeyT* pDBKey, ClUint32T* pKeySize, ClDB
 
     pBerkeleyHandle = (BerkeleyDBHandle_t *)pDBHandle;
 
+    NULL_CHECK(pBerkeleyHandle);
+
     memset(&key, 0, sizeof(key));
 	memset(&record, 0, sizeof(record));
     key.flags = DB_DBT_MALLOC;
@@ -640,7 +647,7 @@ ClRcT BerkeleyPlugin::getFirstRecord(ClDBKeyT* pDBKey, ClUint32T* pKeySize, ClDB
         if(DB_NOTFOUND == rc) {
             errorCode = CL_DBAL_RC(CL_ERR_NOT_EXIST);
             logTrace(CL_LOG_AREA_UNSPECIFIED, CL_LOG_CONTEXT_UNSPECIFIED,"Berkeley DB first record get failed.");
-            
+            pBerkeleyHandle->pDatabase->err(pBerkeleyHandle->pDatabase, rc, "getFirstRecord:");
             return(errorCode);
         }
         errorCode = CL_DBAL_RC(CL_DBAL_ERR_DB_ERROR);
@@ -697,6 +704,7 @@ ClRcT BerkeleyPlugin::getNextRecord(ClDBKeyT currentKey, ClUint32T currentKeySiz
     NULL_CHECK(pNextRecSize);
 
     pBerkeleyHandle = (BerkeleyDBHandle_t *)pDBHandle;
+    NULL_CHECK(pBerkeleyHandle);
 
     memset(&key, 0, sizeof(key));
 	memset(&record, 0, sizeof(record));
@@ -711,7 +719,7 @@ ClRcT BerkeleyPlugin::getNextRecord(ClDBKeyT currentKey, ClUint32T currentKeySiz
         if(DB_NOTFOUND == rc) {
             errorCode = CL_DBAL_RC(CL_ERR_NOT_EXIST);
             logTrace(CL_LOG_AREA_UNSPECIFIED, CL_LOG_CONTEXT_UNSPECIFIED,"Berkeley DB next record get failed.");
-            
+            pBerkeleyHandle->pDatabase->err(pBerkeleyHandle->pDatabase, rc, "getNextRecord:");
             return(errorCode);
         }
         errorCode = CL_DBAL_RC(CL_DBAL_ERR_DB_ERROR);
@@ -761,6 +769,7 @@ ClRcT BerkeleyPlugin::deleteRecord(ClDBKeyHandleT dbKey, ClUint32T keySize)
     
     pBerkeleyHandle = (BerkeleyDBHandle_t *)pDBHandle;
 
+    NULL_CHECK(pBerkeleyHandle);
     NULL_CHECK(dbKey);
     
     memset(&key, 0, sizeof(key));
@@ -773,7 +782,7 @@ ClRcT BerkeleyPlugin::deleteRecord(ClDBKeyHandleT dbKey, ClUint32T keySize)
         if(DB_NOTFOUND == rc) {
             errorCode = CL_DBAL_RC(CL_ERR_NOT_EXIST);
             logTrace(CL_LOG_AREA_UNSPECIFIED, CL_LOG_CONTEXT_UNSPECIFIED,"Berkeley DB record delete failed:Record not found.");
-            
+            pBerkeleyHandle->pDatabase->err(pBerkeleyHandle->pDatabase, rc, "deleteRecord:");
             return(errorCode);
         }
         errorCode = CL_DBAL_RC(CL_DBAL_ERR_DB_ERROR);
