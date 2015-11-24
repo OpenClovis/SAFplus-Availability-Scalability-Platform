@@ -70,22 +70,8 @@ $(LIB_DIR)/pyDbal.so:
 endif
 
 ifndef SAFPLUS_DBAL_PLUGIN
-
-ifndef SAFPLUS_DBAL_BERKELEY_PLUGIN
-$(PLUGIN_DIR)/libclBerkeleyDB.so:
-	$(MAKE) -C $(SAFPLUS_SRC_DIR)/dbal/plugins/berkeley
-endif
-
-ifndef SAFPLUS_DBAL_GDBM_PLUGIN
-$(PLUGIN_DIR)/libclGDBM.so:
-	$(MAKE) -C $(SAFPLUS_SRC_DIR)/dbal/plugins/gdbm
-endif
-
-ifndef SAFPLUS_DBAL_PLUGIN
-$(PLUGIN_DIR)/libclBerkeleyDB.so: $(wildcard $(SAFPLUS_SRC_DIR)/dbal/plugins/*.cxx)
+$(PLUGIN_DIR)/libclSQLiteDB.so $(PLUGIN_DIR)/libclGDBM.so $(PLUGIN_DIR)/libclBerkeleyDB.so $(PLUGIN_DIR)/libclCkptDB.so:
 	$(MAKE) -C $(SAFPLUS_SRC_DIR)/dbal/plugins
-endif
-
 endif
 
 ifndef SAFPLUS_CKPT_LIB
