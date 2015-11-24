@@ -34,7 +34,7 @@ svn checkout svn://svn.code.sf.net/p/codeblocks/code/trunk
 mv trunk codeblocks
 cd codeblocks
 ./bootstrap 
-./configure --with-contrib-plugins=all --prefix /opt/SAFplus/7.0/ide GTK2_CFLAGS="`pkg-config --cflags gtk+-3.0`" GTK2_LIBS="`pkg-config --libs gtk+-3.0`"
+./configure CFLAGS="-g -O0" CXXFLAGS="-g -O0" --with-contrib-plugins=all --prefix /opt/SAFplus/7.0/ide GTK2_CFLAGS="`pkg-config --cflags gtk+-3.0`" GTK2_LIBS="`pkg-config --libs gtk+-3.0`"
 make
 make install
 

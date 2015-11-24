@@ -752,8 +752,8 @@ class Panel(scrolled.ScrolledPanel):
       self.SetupScrolling(True, True)
       self.SetScrollRate(10, 10)
       self.Bind(wx.EVT_SIZE, self.OnReSize)
-
       self.Bind(wx.EVT_PAINT, self.OnPaint)
+      self.Bind(wx.EVT_SHOW, self.OnShow)
 
       share.umlEditorPanel = self
 
@@ -790,9 +790,12 @@ class Panel(scrolled.ScrolledPanel):
       #new_bmp =  wx.ArtProvider.GetBitmap(wx.ART_NEW, wx.ART_TOOLBAR, tsize)
       #self.toolBar.AddLabelTool(10, "New", new_bmp, shortHelp="New", longHelp="Long help for 'New'")
 
-      bitmap = svg.SvgFile("save_as.svg").bmp(tsize, { }, (222,222,222,wx.ALPHA_OPAQUE))
-      self.toolBar.AddTool(SAVE_BUTTON, bitmap, wx.NullBitmap, shortHelpString="save", longHelpString="Save model as...")
-      self.idLookup[SAVE_BUTTON] = SaveTool(self)
+      # TODO: add disabled versions to these buttons
+
+      if 0:  # Save is handled at the project level
+        bitmap1 = svg.SvgFile("save_as.svg").bmp(tsize, { }, (222,222,222,wx.ALPHA_OPAQUE))
+        self.toolBar.AddTool(SAVE_BUTTON, bitmap1, wx.NullBitmap, shortHelpString="save", longHelpString="Save model as...")
+        self.idLookup[SAVE_BUTTON] = SaveTool(self)
 
       # Add the umlEditor's standard tools
       self.toolBar.AddSeparator()
@@ -807,8 +810,6 @@ class Panel(scrolled.ScrolledPanel):
       bitmap = svg.SvgFile("zoom.svg").bmp(tsize, { }, (222,222,222,wx.ALPHA_OPAQUE))
       self.toolBar.AddRadioTool(ZOOM_BUTTON, bitmap, wx.NullBitmap, shortHelp="zoom", longHelp="Left click (+) to zoom in. Right click (-) to zoom out.")
       self.idLookup[ZOOM_BUTTON] = ZoomTool(self)
-
-      self.idLookup[SAVE_BUTTON] = SaveTool(self)
 
       bitmap = svg.SvgFile("remove.svg").bmp(tsize, { }, (222,222,222,wx.ALPHA_OPAQUE))
       self.toolBar.AddRadioTool(DELETE_BUTTON, bitmap, wx.NullBitmap, shortHelp="Delete entity/entities", longHelp="Select one or many entities. Click entity to delete.")
@@ -825,6 +826,20 @@ class Panel(scrolled.ScrolledPanel):
       toolEvents = [ wx.EVT_LEAVE_WINDOW, wx.EVT_LEFT_DCLICK, wx.EVT_LEFT_DOWN , wx.EVT_LEFT_UP, wx.EVT_MOUSEWHEEL , wx.EVT_MOVE,wx.EVT_MOTION , wx.EVT_RIGHT_DCLICK, wx.EVT_RIGHT_DOWN , wx.EVT_RIGHT_UP, wx.EVT_KEY_DOWN, wx.EVT_KEY_UP]
       for t in toolEvents:
         self.Bind(t, self.OnToolEvent)
+      self.toolIds = [CONNECT_BUTTON,SELECT_BUTTON,ZOOM_BUTTON,DELETE_BUTTON]
+
+    def OnShow(self,event):
+      print "ON SHOW"
+      if event.IsShown():
+        enable = True
+      else:
+        enable = False
+      for i in self.toolIds:  # Enable/disable the tools when the tab is shown/removed
+        print i
+        #self.toolBar.EnableTool(i,enable)
+        tool = self.toolBar.FindById(i)
+        tool.Enable(enable)
+      self.toolBar.Refresh()
 
     def OnReSize(self, event):
       self.Refresh(False)
@@ -859,22 +874,32 @@ class Panel(scrolled.ScrolledPanel):
       cd = event.GetClientData()
       id = event.GetId()
       print "Tool Clicked %d %s %s" % (id, str(co), str(cd))
-      tool = self.idLookup[id]
-      if self.tool:
-        self.tool.OnUnselect(self,event)
-        self.tool = None
-      if tool:
-        tool.OnSelect(self,event)
-        self.tool = tool
+      try:
+        tool = self.idLookup[id]
+        if self.tool:
+          self.tool.OnUnselect(self,event)
+          self.tool = None
+        if tool:
+          tool.OnSelect(self,event)
+          self.tool = tool
+      except KeyError, e:
+        event.Skip()
+        pass # Not one of my tools
+      
 
     def OnToolRClick(self,event):
       co = event.GetClientObject()
       cd = event.GetClientData()
       id = event.GetId()
       print "Tool Right Clicked %d %s %s" % (id, str(co), str(cd))      
-      tool = self.idLookup[id]
-      if tool:
-        tool.OnRightClick(self,event)
+      try:
+        tool = self.idLookup[id]
+        if tool:
+          tool.OnRightClick(self,event)
+      except KeyError, e:
+        event.Skip()
+        pass # Not one of my tools
+      
 
     def OnPaint(self, event):
         #dc = wx.PaintDC(self)

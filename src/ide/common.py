@@ -2,6 +2,20 @@ import os
 import re
 userWorkspace = None
 
+class Log():
+  def write(self,string):
+    print string
+
+log = Log()
+
+class GuiPlaces:
+  def __init__(self,menubar, toolbar, statusbar, menu, projectTree):
+    self.menubar = menubar
+    self.toolbar = toolbar
+    self.statusbar = statusbar
+    self.menu = menu
+    self.prjTree = projectTree
+
 def str2Tuple(s):
   return tuple(float(x) for x in re.findall("[0-9\.]+",s))
 

@@ -942,9 +942,12 @@ class Panel(scrolled.ScrolledPanel):
       #new_bmp =  wx.ArtProvider.GetBitmap(wx.ART_NEW, wx.ART_TOOLBAR, tsize)
       #self.toolBar.AddLabelTool(10, "New", new_bmp, shortHelp="New", longHelp="Long help for 'New'")
 
-      bitmap = svg.SvgFile("save_as.svg").bmp(tsize, { }, (222,222,222,wx.ALPHA_OPAQUE))
-      self.toolBar.AddTool(SAVE_BUTTON, bitmap, wx.NullBitmap, shortHelpString="save", longHelpString="Save model as...")
-      self.idLookup[SAVE_BUTTON] = SaveTool(self)
+      # TODO: add disabled versions to these buttons
+
+      if 0: # Save is handled at the project level
+        bitmap = svg.SvgFile("save_as.svg").bmp(tsize, { }, (222,222,222,wx.ALPHA_OPAQUE))
+        self.toolBar.AddTool(SAVE_BUTTON, bitmap, wx.NullBitmap, shortHelpString="save", longHelpString="Save model as...")
+        self.idLookup[SAVE_BUTTON] = SaveTool(self)
 
       bitmap = svg.SvgFile("generate.svg").bmp(tsize, { }, (222,222,222,wx.ALPHA_OPAQUE))
       self.toolBar.AddTool(CODEGEN_BUTTON, bitmap, wx.NullBitmap, shortHelpString="Generate Source Code", longHelpString="Generate source code ...")
@@ -1054,13 +1057,17 @@ class Panel(scrolled.ScrolledPanel):
       cd = event.GetClientData()
       id = event.GetId()
       print "Tool Clicked %d %s %s" % (id, str(co), str(cd))
-      tool = self.idLookup[id]
-      if self.tool:
-        self.tool.OnUnselect(self,event)
-        self.tool = None
-      if tool:
-        tool.OnSelect(self,event)
-        self.tool = tool
+      try:
+        tool = self.idLookup[id]
+        if self.tool:
+          self.tool.OnUnselect(self,event)
+          self.tool = None
+        if tool:
+          tool.OnSelect(self,event)
+          self.tool = tool
+      except KeyError, e:
+        event.Skip()
+        pass # Not one of my tools
 
     def OnToolRClick(self,event):
       co = event.GetClientObject()
@@ -1068,8 +1075,12 @@ class Panel(scrolled.ScrolledPanel):
       id = event.GetId()
       print "Tool Right Clicked %d %s %s" % (id, str(co), str(cd))      
       tool = self.idLookup[id]
-      if tool:
-        tool.OnRightClick(self,event)
+      try:
+        if tool:
+          tool.OnRightClick(self,event)
+      except KeyError, e:
+        event.Skip()
+        pass # Not one of my tools
 
     def OnPaint(self, event):
         #dc = wx.PaintDC(self)
