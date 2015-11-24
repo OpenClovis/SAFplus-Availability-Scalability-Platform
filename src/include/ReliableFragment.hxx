@@ -5,7 +5,7 @@
 using namespace boost::intrusive;
 
 #define RUDP_VERSION 1
-#define RUDP_HEADER_LEN  4
+#define RUDP_HEADER_LEN  5
 #define SYN_FLAG   0x80
 #define ACK_FLAG   0x40
 #define NAK_FLAG   0x20
@@ -59,7 +59,9 @@ namespace SAFplus
     int m_nSeqn;         /* Sequence number field */
     int m_nAckn;         /* Acknowledgment number field */
     int m_nRetCounter;   /* Retransmission counter */
+    bool isFirstSegmentofFragment;
     bool isLast;
+    Message *message;
     boost::intrusive::list_member_hook<> m_memberHook;
     Handle address;
     int flags();
@@ -75,6 +77,10 @@ namespace SAFplus
     {
       return isLast;
     }
+    bool isFirstSegmentOfFrag()
+    {
+      return isFirstSegmentofFragment;
+    }
     void setAck(int _ackn);
     void setRetxCounter(int _retCounter);
     virtual fragmentType getType();
@@ -88,7 +94,10 @@ namespace SAFplus
     {
 
     }
+    virtual void parseData(Message *message)
+    {
 
+    }
     //virtual void parseBytes(const Byte* buffer, int _off, int _len);
     static ReliableFragment* parse(Byte* bytes, int off, int len);
     static ReliableFragment* parse(Byte* bytes);
@@ -106,17 +115,17 @@ namespace SAFplus
   class DATFragment : public ReliableFragment
   {
   private:
-    Byte* m_pData;
   protected:
     virtual void parseHeader(const Byte* buffer, int _off, int _len);
   public:
     DATFragment();
-    DATFragment(int seqn, int ackn,Byte* buffer, int off, int len,bool isLastFrag=0);
+    DATFragment(int seqn, int ackn,Byte* buffer, int off, int len,MsgPool* msgPool,bool isLastFrag=false,bool isLastSegmentOfFrag=false);
     virtual Byte* getData();
     int length();
     virtual Byte* getHeader();
     virtual fragmentType getType();
     virtual void parseData(const Byte* buffer, int _off, int _len);
+    virtual void parseData(Message *message);
 
     ~DATFragment();
 
@@ -148,7 +157,7 @@ namespace SAFplus
     SYNFragment();
     SYNFragment(int seqn, int maxseg, int maxsegsize, int rettoval,
         int cumacktoval, int niltoval, int maxret,
-        int maxcumack, int maxoutseq, int maxautorst);
+        int maxcumack, int maxoutseq, int maxautorst,MsgPool* msgPool);
     int getVersion();
     int getMaxOutstandingFragments();
     int getOptionFlags();
@@ -164,8 +173,7 @@ namespace SAFplus
     virtual fragmentType getType();
     virtual Byte* getData();
     virtual void parseData(const Byte* buffer, int _off, int _len);
-
-
+    virtual void parseData(Message *m);
   };
   // End SysnSegMent
   class ACKFragment : public ReliableFragment
@@ -190,12 +198,14 @@ namespace SAFplus
     void parseHeader(const Byte* buffer, int off, int len);
   public:
     NAKFragment();
-    NAKFragment(int seqn, int ackn,  int* acks, int size);
+    NAKFragment(int seqn, int ackn,  int* acks, int size,MsgPool *msgPool);
     int* getACKs(int* length);
     virtual Byte* getHeader();
     virtual fragmentType getType();
     virtual Byte* getData();
     virtual void parseData(const Byte* buffer, int _off, int _len);
+    virtual void parseData(Message *m);
+
 
 
   }; // End NAK Fragment class
