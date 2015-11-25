@@ -149,11 +149,11 @@ namespace SAFplusI
   /* TIPC message transport */
     enum
     {
-    TipcTransportMaxMsgSize = 66000,
+    TipcTransportMaxMsgSize = 65996, // TIPC_MAX_USER_MSG_SIZE  66000U - 4 bytes reserved for IP header
     TipcTransportNumPorts = 2048,  // Limit the ports to a range for no particular reason
     TipcTransportStartPort = 20000,  // Pick a random spot in the TIPC port range so our ports don't overlap common services
     TipcTransportMaxMsg = 1024,
-    TipcTransportMaxFragments = 1024,
+    TipcTransportMaxFragments = 2048,
     };
 
   extern const char* defaultMsgTransport;  //? Specifies the default messaging transport plugin filename.  This can be overridden by an environment variable.

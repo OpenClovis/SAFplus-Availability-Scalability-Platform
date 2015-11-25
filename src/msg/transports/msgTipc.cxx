@@ -172,6 +172,7 @@ namespace SAFplus
       MsgFragment* nextFrag;
       MsgFragment* frag;
       struct sockaddr_tipc to[SAFplusI::TipcTransportMaxMsg];
+      unsigned int headers[SAFplusI::TipcTransportMaxMsg];
 
       do {
         msg = next;
@@ -180,6 +181,16 @@ namespace SAFplus
         struct iovec *msg_iov = iovecBuffer + totalFragCount;
         struct iovec *curIov = msg_iov;
         fragCount=0;
+
+        headers[msgCount] = (node<<16)|port;
+        // Fill the first iovector with message header
+        curIov->iov_base = &headers[msgCount];
+        curIov->iov_len = 4;
+
+        fragCount++;
+        totalFragCount++;
+        curIov++;
+
         nextFrag = msg->firstFragment;
         do {
           frag = nextFrag;
@@ -260,6 +271,7 @@ namespace SAFplus
       // TODO receive multiple messages
       Message* ret = msgPool->allocMsg();
       MsgFragment* frag = ret->append(SAFplusI::TipcTransportMaxMsgSize);
+      unsigned int header;
 
       mmsghdr msgs[SAFplusI::TipcTransportMaxMsg];  // We are doing this for perf so we certainly don't want to new or malloc it!
       struct sockaddr_tipc from[SAFplusI::TipcTransportMaxMsg];
@@ -293,11 +305,15 @@ namespace SAFplus
         // If the fragment is not inline then the buffer variable works as a normal pointer.
         else iovecs[i].iov_base         = frag->buffer;
 #endif
-        iovecs[i].iov_base = frag->data(0);
+        // First ioVector is IP header, next is data
+        iovecs[0].iov_base = &header;
+        iovecs[0].iov_len  = 4;
 
-        iovecs[i].iov_len          = frag->allocatedLen;
-        msgs[i].msg_hdr.msg_iov    = &iovecs[i];
-        msgs[i].msg_hdr.msg_iovlen = 1;
+        iovecs[1].iov_base = frag->data(0);
+        iovecs[1].iov_len  = frag->allocatedLen;
+
+        msgs[i].msg_hdr.msg_iov    = iovecs;
+        msgs[i].msg_hdr.msg_iovlen = 2;
         msgs[i].msg_hdr.msg_name    = &from[i];
         msgs[i].msg_hdr.msg_namelen = sizeof(struct sockaddr_tipc);
         }
@@ -324,24 +340,16 @@ namespace SAFplus
         Message* cur = ret;
         for (int msgIdx = 0; (msgIdx<retval); msgIdx++,cur = cur->nextMsg)
           {
-          int msgLen = msgs[msgIdx].msg_len;
+          int msgLen = msgs[msgIdx].msg_len - 4; // 4 bytes reserved for IP header
           struct sockaddr_tipc* srcAddr = (struct sockaddr_tipc*) msgs[msgIdx].msg_hdr.msg_name;
           assert(msgs[msgIdx].msg_hdr.msg_namelen == sizeof(struct sockaddr_tipc));
           assert(srcAddr);
 
-          /* 
-           * H TODO:
-           * 1. Translate node/port from type
-           * 2. Append header into msg -> refer 
-           * cur->port = ntohl(srcAddr->addr.name.name.type) - SAFplusI::TipcTransportStartPort;
-           * cur->node = ntohl(srcAddr->addr.name.name.instance) & (((Tipc*)transport)->nodeMask);
-           * printf("messages from [%d:%d]\n",cur->node, cur->port);
-           *
-           */
-          cur->port = cur->port = 0; // H TODO removed
+          cur->node = (header & (0xffff<<16))>>16;
+          cur->port = header & 0xffff;
 
           MsgFragment* curFrag = cur->firstFragment;
-          for (int fragIdx = 0; (fragIdx < msgs[msgIdx].msg_hdr.msg_iovlen) && msgLen; fragIdx++,curFrag=curFrag->nextFragment)
+          for (int fragIdx = 0; (fragIdx < (msgs[msgIdx].msg_hdr.msg_iovlen - 1)) && msgLen; fragIdx++,curFrag=curFrag->nextFragment)
             {
             // Apply the received size to this fragment.  If the fragment is bigger then the msg length then the entire msg must be in this buffer
             if (curFrag->allocatedLen >= msgLen)
