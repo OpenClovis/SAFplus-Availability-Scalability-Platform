@@ -123,6 +123,10 @@ namespace SAFplus
     nagleEnabled = false; // Nagle algorithm is disabled by default
     dataAvailOnSndSock = true; //assume sndSocket for send & receiving data 
 
+    cap.capabilities = (SAFplus::MsgSocketCapabilities::Capabilities) xp->config.capabilities;
+    cap.maxMsgSize = xp->config.maxMsgSize;
+    cap.maxMsgAtOnce = xp->config.maxMsgAtOnce;
+
     if ((sock = socket(AF_INET, SOCK_STREAM, 0)) < 0) 
     {
       int err = errno;
