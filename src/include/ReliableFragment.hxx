@@ -7,8 +7,8 @@ using namespace boost::intrusive;
 #define RUDP_VERSION 1
 #define RUDP_HEADER_LEN  5
 #define SYN_FLAG   0x80
-#define ACK_FLAG   0x40
 #define NAK_FLAG   0x20
+#define ACK_FLAG   0x40
 #define RST_FLAG   0x10
 #define NUL_FLAG   0x08
 #define CHK_FLAG   0x04
@@ -139,25 +139,26 @@ namespace SAFplus
   class SYNFragment: public ReliableFragment
   {
   private:
-    int m_nVersion;
-    int m_nMaxseg;
-    int m_nOptflags;
-    int m_nMaxsegsize;
-    int m_nRettoval;
-    int m_nCumacktoval;
-    int m_nNiltoval;
-    int m_nMaxret;
-    int m_nMaxcumack;
-    int m_nMaxoutseq;
-    int m_nMaxautorst;
+//    int m_nVersion;
+//    int m_nMaxseg;
+//    int m_nOptflags;
+//    int m_nMaxsegsize;
+//    int m_nRettoval;
+//    int m_nCumacktoval;
+//    int m_nNiltoval;
+//    int m_nMaxret;
+//    int m_nMaxcumack;
+//    int m_nMaxoutseq;
+//    int m_nMaxautorst;
   protected:
-
     void parseHeader(const Byte* buffer, int off, int len);
   public:
     SYNFragment();
     SYNFragment(int seqn, int maxseg, int maxsegsize, int rettoval,
         int cumacktoval, int niltoval, int maxret,
         int maxcumack, int maxoutseq, int maxautorst,MsgPool* msgPool);
+    int getSyncValueOneByte(int pos);
+    int getSyncValueTwoByte(int pos);
     int getVersion();
     int getMaxOutstandingFragments();
     int getOptionFlags();
@@ -183,7 +184,7 @@ namespace SAFplus
 
   public:
     ACKFragment();
-    ACKFragment(int seqn, int ackn);
+    ACKFragment(int seqn, int ackn,MsgPool* msgPool);
     virtual fragmentType getType();
   }; // End ACK Fragment Class
 
