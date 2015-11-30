@@ -464,8 +464,8 @@ namespace SAFplus
 MsgSocketShaping::MsgSocketShaping(uint_t port,MsgTransportPlugin_1* transportp,uint_t volume, uint_t leakSize, uint_t leakInterval)
   {
     transport = transportp;
-    sock=transport->createSocket(port);
-    assert(sock);
+    xPort=transport->createSocket(port);
+    assert(xPort);
     bucket.start(volume,leakSize,leakInterval);
   };
 
@@ -473,13 +473,13 @@ MsgSocketShaping::MsgSocketShaping(MsgSocket* socket,uint_t volume, uint_t leakS
   {
     transport= socket->transport;
     bucket.start(volume,leakSize,leakInterval);
-    sock=socket;
+    xPort=socket;
   };
   MsgSocketShaping::~MsgSocketShaping()
   {
     bucket.stop();
-    if (sock&&transport) transport->deleteSocket(sock);
-    sock = NULL;
+    if (xPort&&transport) transport->deleteSocket(xPort);
+    xPort = NULL;
     transport = NULL;
   }
   void MsgSocketShaping::applyShaping(uint_t length)
@@ -491,12 +491,12 @@ MsgSocketShaping::MsgSocketShaping(MsgSocket* socket,uint_t volume, uint_t leakS
   {
     logDebug("MSG","SCK","apply leaky bucket with msg lenght %d",msg->getLength());
     applyShaping(msg->getLength());
-    sock->send(msg);
+    xPort->send(msg);
   }
   void MsgSocketShaping::send(SAFplus::Handle destination, void* buffer, uint_t length,uint_t msgtype)
   {
-    assert(sock);
-    Message* m = sock->msgPool->allocMsg();
+    assert(xPort);
+    Message* m = xPort->msgPool->allocMsg();
     assert(m);
     m->setAddress(destination);
     MsgFragment* pfx  = m->append(1);
@@ -505,20 +505,20 @@ MsgSocketShaping::MsgSocketShaping(MsgSocket* socket,uint_t volume, uint_t leakS
     MsgFragment* frag = m->append(0);
     frag->set(buffer,length);
     applyShaping(m->getLength());
-    sock->send(m);
+    xPort->send(m);
   }
   Message* MsgSocketShaping::receive(uint_t maxMsgs,int maxDelay)
   {
-    return sock->receive(maxMsgs,maxDelay);
+    return xPort->receive(maxMsgs,maxDelay);
   }
 
   void MsgSocketShaping::flush()
   {
-    sock->flush();
+    xPort->flush();
   }
   void MsgSocketAdvanced::flush()
   {
-    sock->flush();
+    xPort->flush();
   }
 
   std::streamsize MessageOStream::write(const char* s, std::streamsize n)
