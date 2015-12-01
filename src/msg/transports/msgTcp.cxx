@@ -49,7 +49,8 @@ namespace SAFplus
     virtual void useNagle(bool value);    
     virtual ~TcpSocket();
   protected:   
-    Mutex mutex;     
+    Mutex mutex;
+    pthread_t tid;     
     //ThreadCondition cond;
     //bool recvBlocked;
     int sock;
@@ -168,10 +169,8 @@ namespace SAFplus
       int err = errno;
       throw Error(Error::SYSTEM_ERROR,errno, strerror(errno),__FILE__,__LINE__);
     }
-    pthread_t tid;
-    //pthread_attr_t tattr;
-    //pthread_attr_init(&tattr);
-    //pthread_attr_setschedpolicy(&tattr, SCHED_RR);
+    
+    pthread_setcanceltype(PTHREAD_CANCEL_ASYNCHRONOUS,NULL);
     logTrace("TCP", "CONS","Create thread to acceptClients");
     pthread_create(&tid, NULL, acceptClients, this);
     pthread_detach(tid);
@@ -180,7 +179,9 @@ namespace SAFplus
   void* TcpSocket::acceptClients(void* arg)
   {
     logTrace("TCP", "ACPT","Enter acceptClients()");
-    TcpSocket* tcp = (TcpSocket*)arg;
+    TcpSocket* tcp = static_cast<TcpSocket*>(arg);
+    if (!tcp || tcp->sock < 0) return NULL;
+    
     struct sockaddr_in clientAddr;
     socklen_t addrlen = sizeof(clientAddr);
     while (true)
@@ -194,7 +195,7 @@ namespace SAFplus
       }
       else
       {
-        logNotice("TCP", "ACPT", "accept error: sd [%d]; errno [%d], errmsg [%s]", tcp->sock, errno, strerror(errno));
+        logNotice("TCP", "ACPT", "accept error: sd [%d]; ret [%d]; errno [%d], errmsg [%s]", tcp->sock, clientSock, errno, strerror(errno));
         return NULL;
       }
       //boost::this_thread::sleep(boost::posix_time::milliseconds(2));
@@ -269,7 +270,7 @@ namespace SAFplus
         throw Error(Error::SYSTEM_ERROR,errno, strerror(errno),__FILE__,__LINE__);
       }
     }
-
+    
     int qack = 1;
     if ((ret = setsockopt(sd, IPPROTO_TCP, TCP_QUICKACK, (void *)&qack, sizeof(qack))) < 0)
       throw Error(Error::SYSTEM_ERROR,errno, strerror(errno),__FILE__,__LINE__);
@@ -371,7 +372,7 @@ namespace SAFplus
     MsgFragment* frag;
     int msgSize, retval;
     //MsgFragment* headerFrag = oriMsg->prepend(4); // reserve 4 bytes (32 bits for the header (8 bits id + 8 bits port + 16 bits msg len)
-    unsigned short id = 0x10; // assume
+    unsigned char id = 0x10; // assume
     unsigned short totalLenPerMsg;
     do 
     { 
@@ -539,15 +540,8 @@ namespace SAFplus
       // There are 2 sockets per map item, so we must divide 2
       if (maxDelay > 0)
       { 
-        timeout->tv_sec = (maxDelay/1000)/mapSize/2;
-        if (timeout->tv_sec>0)
-        {          
-          timeout->tv_nsec = ((maxDelay%1000)*1000000L)/mapSize/2;
-        }
-        else
-        {
-          timeout->tv_nsec = maxDelay*1000000L/mapSize/2; 
-        }        
+        timeout->tv_sec = maxDelay/1000;
+        timeout->tv_nsec = (maxDelay%1000)*1000000L;                
       }
       else
       {
@@ -739,6 +733,7 @@ namespace SAFplus
 
    int TcpSocket::checkDataAvail(int sd, const struct timespec* timeout)
    {
+     if (sd==0) return 0;
      fd_set rfds;
      FD_ZERO(&rfds);
      FD_SET(sd, &rfds);  
@@ -783,14 +778,12 @@ namespace SAFplus
          logTrace("TCP", "SWTNGL", "switch nagle algorithm for socket successfully");
        }
      }
-   }   
-
+   }
+   
    TcpSocket::~TcpSocket()
    {
-     // Close all the sockets: both server socket itself and client sockets in the map
-     shutdown(sock, SHUT_RDWR);     
-     close(sock);
-     sock = -1;
+     // Close all the sockets: both server socket itself and client sockets in the map     
+     pthread_cancel(tid);
      for(NodeIDSocketMap::iterator iter = clientSockMap.begin(); iter != clientSockMap.end(); iter++)
      {       
        int socket = iter->second.sndSock;
@@ -807,6 +800,10 @@ namespace SAFplus
        }
      }
      clientSockMap.clear();
+     shutdown(sock, SHUT_RDWR);     
+     close(sock);
+     sock = -1;
+     boost::this_thread::sleep(boost::posix_time::milliseconds(100)); // wait for all sockets releasing in 100ms
    }
 };
 
