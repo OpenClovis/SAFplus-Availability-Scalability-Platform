@@ -9,11 +9,16 @@ GDBM_SO_LIBS =-lgdbm
 BERKELEY_SO_LIBS +=-ldb
 
 # Specify the required libraries
-SAFPLUS_LIBS := clDbal clUtils clLog clCkpt
+SAFPLUS_LIBS := clDbal clUtils clLog
 # Then use these in the make rule
 SAFPLUS_DEP_LIBS  := $(addsuffix .so,$(addprefix $(LIB_DIR)/lib,$(SAFPLUS_LIBS)))
 SAFPLUS_LINK_LIBS := -L$(LIB_DIR) $(addprefix -l,$(SAFPLUS_LIBS))
 
+# Specify the required libraries for CkptDB
+SAFPLUS_LIBS_FOR_CKPTDB := clDbal clUtils clLog clCkpt
+# Then use these in the make rule
+SAFPLUS_DEP_LIBS_FOR_CKPTDB  := $(addsuffix .so,$(addprefix $(LIB_DIR)/lib,$(SAFPLUS_LIBS_FOR_CKPTDB)))
+SAFPLUS_LINK_LIBS_FOR_CKPTDB := -L$(LIB_DIR) $(addprefix -l,$(SAFPLUS_LIBS_FOR_CKPTDB))
 CLIENT_H   := $(wildcard *.h) $(wildcard $(SAFPLUS_INC_DIR)/*.h) $(wildcard $(SAFPLUS_INC_DIR)/*.hxx)
 
 SAFplusDbalPlugins:=$(PLUGIN_DIR)/libclBerkeleyDB.so $(PLUGIN_DIR)/libclCkptDB.so
@@ -61,8 +66,8 @@ $(PLUGIN_DIR)/libclGDBM.so: $(OBJ_DIR)/clDbalGdbm.o $(SAFPLUS_DEP_LIBS)
 $(PLUGIN_DIR)/libclBerkeleyDB.so: $(OBJ_DIR)/clDbalBerkeley.o $(OBJ_DIR)/clist.o $(SAFPLUS_DEP_LIBS)
 	$(LINK_SO) $@ $< $(OBJ_DIR)/clist.o $(SAFPLUS_LINK_LIBS) $(LINK_SO_LIBS) $(BERKELEY_SO_LIBS)
 
-$(PLUGIN_DIR)/libclCkptDB.so: $(OBJ_DIR)/clDbalCkpt.o $(SAFPLUS_DEP_LIBS)
-	$(LINK_SO) $@ $< $(SAFPLUS_LINK_LIBS) $(LINK_SO_LIBS) $(BERKELEY_SO_LIBS)
+$(PLUGIN_DIR)/libclCkptDB.so: $(OBJ_DIR)/clDbalCkpt.o $(SAFPLUS_DEP_LIBS_FOR_CKPTDB)
+	$(LINK_SO) $@ $< $(SAFPLUS_LINK_LIBS_FOR_CKPTDB) $(LINK_SO_LIBS)
 
 clean:
 	rm -f $(PLUGIN_DIR)/libclSQLiteDB.so rm -f $(OBJ_DIR)/clDbalSqlite.o rm -f $(PLUGIN_DIR)/libclGDBM.so rm -f $(OBJ_DIR)/clDbalGdbm.o rm -f $(PLUGIN_DIR)/libclBerkeleyDB.so rm -f $(OBJ_DIR)/clDbalBerkeley.o rm -f $(PLUGIN_DIR)/libclCkptDB.so rm -f $(OBJ_DIR)/clDbalCkpt.o
