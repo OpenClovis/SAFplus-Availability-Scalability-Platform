@@ -1424,6 +1424,11 @@ ClRcT clIocSendWithXportRelay(ClIocCommPortHandleT commPortHandle,
                 ++frags;
                 if(0 && !(frags & 511))
                     sleep(1);
+
+#ifdef COMPAT_5
+                // This is work-around in Cloud mode to make sure fragment sent/received with right order
+                usleep(CL_IOC_MICRO_SLEEP_INTERVAL);
+#endif
             }                       /* while */
             /*
              * sending the last fragment
@@ -1879,7 +1884,11 @@ ClRcT clIocSendSlow(ClIocCommPortHandleT commPortHandle,
             ++frags;
             if(!(frags & 511))
                 sleep(1);
-            /*usleep(CL_IOC_MICRO_SLEEP_INTERVAL);*/
+
+#ifdef COMPAT_5
+            // This is work-around in Cloud mode to make sure fragment sent/received with right order
+            usleep(CL_IOC_MICRO_SLEEP_INTERVAL);
+#endif
         }                       /* while */
         /*
          * sending the last fragment
