@@ -6,6 +6,8 @@ namespace SAFplus
     // To do
     this->m_nAckn=-1;
     this->m_nRetCounter=0;
+    m_pData=NULL;
+    dataLen=0;
   }
   int ReliableFragment::flags()
   {
@@ -27,7 +29,35 @@ namespace SAFplus
     }
     return -1;
   }
-
+  void ReliableFragment::parseData(Byte* buffer, int _len)
+  {
+    return;
+  };
+  void ReliableFragment::parseDataMessage(Message* msg)
+  {
+    message=msg;
+  };
+  Byte* ReliableFragment::getData()
+  {
+    return NULL;
+  }
+  int ReliableFragment::setHeader(void* ptr)
+  {
+    logTrace("MSG","FRT","parse HEADER fragment");
+    ((Byte*)ptr)[0] = (Byte) (m_nFalgs & 0xFF);
+    ((Byte*)ptr)[1] = (Byte) (m_nLen & 0xFF);
+    ((Byte*)ptr)[2] = (Byte) (m_nSeqn & 0xFF);
+    ((Byte*)ptr)[3] = (Byte) (m_nAckn & 0xFF);
+    if (isFirstSegmentofFragment==true)
+    {
+      ((Byte*)ptr)[4] = (Byte) (1 & 0xFF);
+    }
+    else
+    {
+      ((Byte*)ptr)[4] = (Byte) (0 & 0xFF);
+    }
+    return RUDP_HEADER_LEN;
+  }
 
   int ReliableFragment::getRetxCounter()
   {
@@ -110,40 +140,22 @@ namespace SAFplus
     return pBuffer;
   }
 
-  int ReliableFragment::setHeader(void* ptr)
-  {
-    ((Byte*)ptr)[0] = (Byte) (m_nFalgs & 0xFF);
-    ((Byte*)ptr)[1] = (Byte) (m_nLen & 0xFF);
-    ((Byte*)ptr)[2] = (Byte) (m_nSeqn & 0xFF);
-    ((Byte*)ptr)[3] = (Byte) (m_nAckn & 0xFF);
-    if (isFirstSegmentofFragment==true)
-    {
-      ((Byte*)ptr)[4] = (Byte) (1 & 0xFF);
-    }
-    else
-    {
-      ((Byte*)ptr)[4] = (Byte) (0 & 0xFF);
-    }
-    return RUDP_HEADER_LEN;
-  }
-
-
   void ReliableFragment::init(int _flags, int _seqn, int len, int isLastFrag)
   {
     m_nFalgs = _flags;
     m_nSeqn = _seqn;
     m_nLen = len;
-    isFirstSegmentofFragment=false;
-
+    message=NULL;
   }
 
-  void ReliableFragment::parseHeader(const Byte* buffer, int _off, int _len)
+  void ReliableFragment::parseHeader(const Byte* buffer, int _len)
   {
-    m_nFalgs = int(buffer[_off] & 255);
-    m_nLen   = int(buffer[_off+1] & 255);
-    m_nSeqn  = int(buffer[_off+2] & 255);
-    m_nAckn  = int(buffer[_off+3] & 255);
-    if(int(buffer[_off+4] & 255)==1)
+
+    m_nFalgs = int(buffer[0] & 255);
+    m_nLen   = int(buffer[1] & 255);
+    m_nSeqn  = int(buffer[2] & 255);
+    m_nAckn  = int(buffer[3] & 255);
+    if(int(buffer[4] & 255)==1)
     {
       isFirstSegmentofFragment=true;
     }
@@ -154,15 +166,15 @@ namespace SAFplus
 
   }
 
-  ReliableFragment* ReliableFragment::parse(Byte* bytes, int off, int len)
+  ReliableFragment* ReliableFragment::parse(Byte* bytes, int len)
   {
-    ReliableFragment *fragment = nullptr;
+    ReliableFragment *fragment = NULL;
     if (len < RUDP_HEADER_LEN)
     {
       // throw new IllegalArgumentException("Invalid segment");
       throw Error("Invalid segment");
     }
-    int flags = bytes[off];
+    int flags = bytes[0];
     if ((flags & SYN_FLAG) != 0)
     {
       logTrace("MSG","FRT","parse SYN fragment");
@@ -191,43 +203,40 @@ namespace SAFplus
     else if ((flags & ACK_FLAG) != 0)
     {
       /* always process ACKs or Data segments last */
-      if ((flags & LAS_FLAG) != 0)
+
+      if (len == RUDP_HEADER_LEN)
       {
-        logTrace("MSG","FRT","parse LAST fragment");
-        fragment = new DATFragment();
-        fragment->setLast(true);
+        logTrace("MSG","FRT","parse ACK fragment");
+        fragment = new ACKFragment();
+        fragment->setLast(false);
       }
       else
       {
-        logTrace("MSG","FRT","parse ACK fragment");
-        if (len == RUDP_HEADER_LEN)
-        {
-          fragment = new ACKFragment();
-          fragment->setLast(false);
-        }
-        else
-        {
-          fragment = new DATFragment();
-          fragment->setLast(false);
-        }
+        logTrace("MSG","FRT","parse DATA fragment");
+        fragment = new DATFragment();
+        fragment->setLast(false);
       }
     }
-    if (fragment == nullptr)
+    else if ((flags & LAS_FLAG) != 0)
+    {
+      logTrace("MSG","FRT","parse LAST fragment");
+      fragment = new DATFragment();
+      fragment->setLast(true);
+    }
+    if (fragment == NULL)
     {
       //throw new IllegalArgumentException("Invalid segment");
       throw Error("Invalid segment");
     }
-    fragment->parseHeader(bytes, off, len);
+    fragment->parseHeader(bytes, len);
     return fragment;
   }
-
   ReliableFragment* ReliableFragment::parse(Byte* bytes)
   {
     int length = 0;
-    return ReliableFragment::parse(bytes, 0, length);
+    return ReliableFragment::parse(bytes, length);
   }
-
-
+  //--- End Reliable Fragment
 
   //------------------------------
   // Data Fragment
@@ -236,9 +245,11 @@ namespace SAFplus
   {
 
   }
-
-  DATFragment::DATFragment(int seqn, int ackn,Byte* buffer, int off, int len ,MsgPool* msgPool, bool isLastFrag, bool isLastSegmentOfFrag)
+  int DATFragment::length()
   {
+    return dataLen;
+  }
+  DATFragment::DATFragment(int seqn, int ackn,Byte* buffer, int off, int len , bool isLastFrag, bool isFirstSegmentOfFrag)  {
     if(isLastFrag==true)
     {
       init(LAS_FLAG, seqn, len);
@@ -247,56 +258,23 @@ namespace SAFplus
     {
       init(ACK_FLAG, seqn, len);
     }
-    if(isLastSegmentOfFrag==true)
-    {
-      this->isFirstSegmentofFragment=true;
-    }
-    else
-    {
-      this->isFirstSegmentofFragment=false;
-    }
-    setAck(ackn);
-    MsgFragment* hdr = msgPool->allocMsgFragment(RUDP_HEADER_LEN);
-    uint_t hdrLen = setHeader(hdr->data(0));
-    hdr->used(hdrLen);
-    MsgFragment* splitFrag = msgPool->allocMsgFragment(0);
-    splitFrag->set(buffer,len);
-    message->firstFragment = hdr;
-    hdr->nextFragment = splitFrag;
-    splitFrag->nextFragment = NULL;
-    message->lastFragment = NULL;
-  }
-
-  int DATFragment::length()
-  {
-    return m_nLen;
+    this->isFirstSegmentofFragment=isFirstSegmentOfFrag;
+    m_pData=buffer+off;
+    dataLen=len;
   }
 
   Byte* DATFragment::getData()
   {
-    return (Byte*)message->lastFragment->read(0);
+    //logInfo("TST","MSG","---------Data at [%d] : [%s]",0,m_pData);
+    //logInfo("TST","MSG","---------Data at [%d] : [%s]",dataLen -10,m_pData+(dataLen-10));
+    return m_pData;
   }
 
-  Byte* DATFragment::getHeader()
+  void DATFragment::parseData(Byte* buffer, int _len)
   {
-    Byte* buffer = ReliableFragment::getHeader();
-    return buffer;
+    dataLen = _len;
+    m_pData = buffer;
   }
-
-  void DATFragment::parseHeader(const Byte* buffer, int _off, int _len)
-  {
-    ReliableFragment::parseHeader(buffer, _off, _len);
-
-  }
-  void DATFragment::parseData(const Byte* buffer, int _off, int _len)
-  {
-
-  }
-  void DATFragment::parseData(Message *m)
-  {
-    message = m;
-  }
-
   fragmentType DATFragment::getType()
   {
     return FRAG_DATA;
@@ -311,128 +289,127 @@ namespace SAFplus
   {
 
   }
-
   SYNFragment::SYNFragment(int seqn, int maxseg, int maxsegsize, int rettoval,
       int cumacktoval, int niltoval, int maxret,
-      int maxcumack, int maxoutseq, int maxautorst,MsgPool* msgPool)
+      int maxcumack, int maxoutseq, int maxautorst)
   {
-    init(SYN_FLAG, seqn, SYN_HEADER_LEN);
-    Byte *buffer = new Byte(16);
-    buffer[0] = (Byte) ((RUDP_VERSION << 4) & 0xFF);
-    buffer[1] = (Byte) (maxseg & 0xFF);
-    buffer[2] = (Byte) (0x01 & 0xFF);
-    buffer[3] = 0; /* spare */
-    buffer[4] = (Byte) ((maxsegsize >> 8) & 0xFF);
-    buffer[5] = (Byte) ((maxsegsize >> 0) & 0xFF);
-    buffer[6] = (Byte) ((rettoval >> 8) & 0xFF);
-    buffer[7] = (Byte) ((rettoval >> 0) & 0xFF);
-    buffer[8] = (Byte) ((cumacktoval >> 8) & 0xFF);
-    buffer[9] = (Byte) ((cumacktoval >> 0) & 0xFF);
-    buffer[10] = (Byte) ((niltoval >> 8) & 0xFF);
-    buffer[11] = (Byte) ((niltoval >> 0) & 0xFF);
-    buffer[12] = (Byte) (maxret & 0xFF);
-    buffer[13] = (Byte) (maxcumack & 0xFF);
-    buffer[14] = (Byte) (maxoutseq & 0xFF);
-    buffer[15] = (Byte) (maxautorst & 0xFF);
-    MsgFragment* hdr = msgPool->allocMsgFragment(RUDP_HEADER_LEN);
-    uint_t hdrLen = setHeader(hdr->data(0));
-    hdr->used(hdrLen);
-    MsgFragment* splitFrag = msgPool->allocMsgFragment(0);
-    splitFrag->set(buffer,16);
-    message->firstFragment = hdr;
-    hdr->nextFragment = splitFrag;
-    splitFrag->nextFragment = NULL;
-    message->lastFragment = NULL;
+    init(SYN_FLAG, seqn, SYN_DATA_LEN);
+    m_nVersion = RUDP_VERSION;
+    m_nMaxseg = maxseg;
+    m_nOptflags = 0x01; /* no options */
+    m_nMaxsegsize = maxsegsize;
+    m_nRettoval = rettoval;
+    m_nCumacktoval = cumacktoval;
+    m_nNiltoval = niltoval;
+    m_nMaxret = maxret;
+    m_nMaxcumack = maxcumack;
+    m_nMaxoutseq = maxoutseq;
+    m_nMaxautorst = maxautorst;
   }
-
-  int SYNFragment::getSyncValueOneByte(int pos)
-  {
-    Byte* temp = (Byte*)message->lastFragment->read(0);
-    return (temp[pos] & 0xFF);
-  }
-  int SYNFragment::getSyncValueTwoByte(int pos)
-  {
-    Byte* buffer = (Byte*)message->lastFragment->read(0);
-    return ((buffer[pos] & 0xFF) << 8) | ((buffer[pos+1] & 0xFF) << 0);
-  }
-
   int SYNFragment::getVersion()
   {
-    return getSyncValueOneByte(0);
+    return m_nVersion;
   }
   int SYNFragment::getMaxOutstandingFragments()
   {
-    return getSyncValueOneByte(1);
+    return m_nMaxseg;
   }
 
   int SYNFragment::getOptionFlags()
   {
-    return getSyncValueOneByte(2);
+    return m_nOptflags;
   }
 
   int SYNFragment::getMaxFragmentSize()
   {
-    return getSyncValueTwoByte(4);
+    return m_nMaxsegsize;
   }
   int SYNFragment::getRetransmissionTimeout()
   {
-    return getSyncValueTwoByte(6);
+    return m_nRettoval;
   }
   int SYNFragment::getCummulativeAckTimeout()
   {
-    return getSyncValueTwoByte(8);
+    return m_nCumacktoval;
   }
   int SYNFragment::getNulFragmentTimeout()
   {
-    return getSyncValueTwoByte(10);
+    return m_nNiltoval;
   }
 
   int SYNFragment::getMaxRetransmissions()
   {
-    return getSyncValueOneByte(12);
+    return m_nMaxret;
   }
 
   int SYNFragment::getMaxCumulativeAcks()
   {
-    return getSyncValueOneByte(13);
+    return m_nMaxcumack;
   }
   int SYNFragment::getMaxOutOfSequence()
   {
-    return getSyncValueOneByte(14);
+    return m_nMaxoutseq;
   }
   int SYNFragment::getMaxAutoReset()
   {
-    return getSyncValueOneByte(15);
+    return m_nMaxautorst;
   }
 
-  Byte* SYNFragment::getHeader()
-  {
-    Byte *buffer = ReliableFragment::getHeader();
-    return buffer;
-  }
   Byte* SYNFragment::getData()
   {
-    return NULL;
+    logDebug("MSG","FRT","get SYNC data");
+    Byte *buffer = new Byte[SYN_DATA_LEN];
+    buffer[0] = (Byte) ((m_nVersion << 4) & 0xFF);
+    buffer[1] = (Byte) (m_nMaxseg & 0xFF);
+    buffer[2] = (Byte) (m_nOptflags & 0xFF);
+    buffer[3] = 0; /* spare */
+    buffer[4] = (Byte) ((m_nMaxsegsize >> 8) & 0xFF);
+    buffer[5] = (Byte) ((m_nMaxsegsize >> 0) & 0xFF);
+    buffer[6] = (Byte) ((m_nRettoval >> 8) & 0xFF);
+    buffer[7] = (Byte) ((m_nRettoval >> 0) & 0xFF);
+    buffer[8] = (Byte) ((m_nCumacktoval >> 8) & 0xFF);
+    buffer[9] = (Byte) ((m_nCumacktoval >> 0) & 0xFF);
+    buffer[10] = (Byte) ((m_nNiltoval >> 8) & 0xFF);
+    buffer[11] = (Byte) ((m_nNiltoval >> 0) & 0xFF);
+    buffer[12] = (Byte) (m_nMaxret & 0xFF);
+    buffer[13] = (Byte) (m_nMaxcumack & 0xFF);
+    buffer[14] = (Byte) (m_nMaxoutseq & 0xFF);
+    buffer[15] = (Byte) (m_nMaxautorst & 0xFF);
+    return buffer;
   }
-  void SYNFragment::parseHeader(const  Byte* buffer, int off, int len)
+  void SYNFragment::parseData(Byte* buffer, int len)
   {
-    ReliableFragment::parseHeader(buffer, off, len);
-  }
-  void SYNFragment::parseData(Message *m)
-  {
-    parseData((Byte*)m->lastFragment->read(0),0,m->lastFragment->len);
-  }
-  void SYNFragment::parseData(const  Byte* buffer, int off, int len)
-  {
-    if (len < (0) )
+    logDebug("MSG","FRT","parse SYN fragment data len [%d]",len);
+    if(buffer==NULL)
     {
-      throw Error("Invalid SYN Fragment");
+      logDebug("MSG","FRT","SYN fragment is null ");
+      return;
     }
+    m_nVersion = ((buffer[0] & 0xFF) >> 4);
+    if (m_nVersion != RUDP_VERSION)
+    {
+      //throw new IllegalArgumentException("Invalid RUDP version");
+      throw Error("Invalid RUDP version");
+    }
+    m_nMaxseg = (buffer[1] & 0xFF);
+    m_nOptflags = (buffer[2] & 0xFF);
+    // spare     =  (buffer[3] & 0xFF);
+    m_nMaxsegsize = ((buffer[4] & 0xFF) << 8) | ((buffer[5] & 0xFF) << 0);
+    m_nRettoval = ((buffer[6] & 0xFF) << 8) | ((buffer[7] & 0xFF) << 0);
+    m_nCumacktoval = ((buffer[8] & 0xFF) << 8) | ((buffer[9] & 0xFF) << 0);
+    m_nNiltoval = ((buffer[10] & 0xFF) << 8) | ((buffer[11] & 0xFF) << 0);
+    m_nMaxret = (buffer[12] & 0xFF);
+    m_nMaxcumack = (buffer[13] & 0xFF);
+    m_nMaxoutseq = (buffer[14] & 0xFF);
+    m_nMaxautorst = (buffer[15] & 0xFF);
   }
+
   fragmentType SYNFragment::getType()
   {
     return FRAG_SYN;
   }
+
+  // End-----Syn Fragment Class
 
 
   //--------------------------------------------------
@@ -442,21 +419,24 @@ namespace SAFplus
   {
 
   }
-  ACKFragment::ACKFragment(int seqn, int ackn,MsgPool* msgPool)
+  ACKFragment::ACKFragment(int seqn, int ackn)
   {
-    init(ACK_FLAG, seqn, 0);
+    init(ACK_FLAG, seqn, RUDP_HEADER_LEN);
     setAck(ackn);
-    MsgFragment* hdr = msgPool->allocMsgFragment(RUDP_HEADER_LEN);
-    uint_t hdrLen = setHeader(hdr->data(0));
-    hdr->used(hdrLen);
-    message->firstFragment = hdr;
-    hdr->nextFragment = NULL;
   }
   fragmentType ACKFragment::getType()
   {
     return FRAG_ACK;
   }
 
+  Byte* ACKFragment::getData()
+  {
+    return NULL;
+  }
+
+
+
+  // End ACK Fragment Class
 
   //-------------------------------------------
   // NAK Fragment
@@ -464,32 +444,19 @@ namespace SAFplus
   NAKFragment::NAKFragment()
   {
   }
-  NAKFragment::NAKFragment(int seqn, int ackn,  int* acks, int size,MsgPool *msgPool)
+
+  NAKFragment::NAKFragment(int seqn, int ackn,  int* acks, int size)
   {
-    init(NAK_FLAG, seqn, size);
+    init(NAK_FLAG, seqn, RUDP_HEADER_LEN + size);
     setAck(ackn);
     m_pArrAcks = (int*)malloc(size);
     m_nNumNak=size;
     m_pArrAcks=acks;
-    MsgFragment* hdr = msgPool->allocMsgFragment(RUDP_HEADER_LEN);
-    uint_t hdrLen = setHeader(hdr->data(0));
-    hdr->used(hdrLen);
-    MsgFragment* splitFrag = msgPool->allocMsgFragment(0);
-    splitFrag->set(getData(),m_nNumNak);
-    message->firstFragment = hdr;
-    hdr->nextFragment = splitFrag;
-    splitFrag->nextFragment = NULL;
-    message->lastFragment = NULL;
   }
 
-  Byte* NAKFragment::getHeader()
-  {
-    Byte* buffer= ReliableFragment::getHeader();
-    return buffer;
-  }
   Byte* NAKFragment::getData()
   {
-    Byte* buffer = new Byte(m_nNumNak);
+    Byte *buffer = new Byte[m_nNumNak];
     for (int i = 0; i < m_nNumNak; i++)
     {
       buffer[i] = (Byte) (m_pArrAcks[i] & 0xFF);
@@ -497,24 +464,15 @@ namespace SAFplus
     return buffer;
   }
 
-  void NAKFragment::parseHeader(const Byte* buffer, int off, int len)
-  {
-    ReliableFragment::parseHeader(buffer, off, len);
-  }
-  void NAKFragment::parseData(const Byte* buffer, int off, int len)
+  void NAKFragment::parseData(Byte* buffer, int len)
   {
     m_nNumNak = len;
     m_pArrAcks = new int[m_nNumNak];
     for (int i = 0; i < m_nNumNak; i++)
     {
-      m_pArrAcks[i] = int(buffer[off + i] & 0xFF);
+      m_pArrAcks[i] = int(buffer[i] & 0xFF);
     }
   }
-  void NAKFragment::parseData(Message *m)
-  {
-    parseData((Byte*)m->lastFragment->read(0),0,m->lastFragment->len);
-  }
-
   fragmentType NAKFragment::getType()
   {
     return FRAG_NAK;
@@ -537,7 +495,7 @@ namespace SAFplus
   }
   FINFragment::FINFragment(int seqn)
   {
-    init(FIN_FLAG, seqn, 0);
+    init(FIN_FLAG, seqn, RUDP_HEADER_LEN);
   }
   // End FIN Fragment
   fragmentType FINFragment::getType()
@@ -551,7 +509,7 @@ namespace SAFplus
   }
   NULLFragment::NULLFragment(int seqn)
   {
-    init(NUL_FLAG, seqn, 0);
+    init(NUL_FLAG, seqn, RUDP_HEADER_LEN);
   }
   fragmentType NULLFragment::getType()
   {
@@ -565,7 +523,7 @@ namespace SAFplus
   }
   RSTFragment::RSTFragment( int seqn)
   {
-    init(RST_FLAG, seqn, 0);
+    init(RST_FLAG, seqn, RUDP_HEADER_LEN);
   }
   fragmentType RSTFragment::getType()
   {

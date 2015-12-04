@@ -124,7 +124,7 @@ int main(int argc, char* argv[])
       memset( buffer2, 'c', sizeof(unsigned char)*(1500000));
       sockclient.writeReliable(buffer2,0,1500000);
 */
-      long len=1500000;
+      long len=150000;
       int count = 0;
       while(count<1)
       {
