@@ -56,7 +56,7 @@ typedef struct
     ClUint32T reserved;
 } ClIocFragHeaderT;
 
-#ifdef COMPAT_5
+#ifdef COMPAT_5 // Using these header if destNode is old sdk
 typedef struct
 {
     ClUint8T version;
@@ -65,19 +65,19 @@ typedef struct
     ClUint8T flag;
     ClUint32T reserved;
     ClIocAddressT srcAddress;
-#ifdef CL_TIPC_COMPRESSION
+#ifdef CL_IOC_COMPRESSION
     ClTimeT       pktTime;
 #endif
-} ClTipcHeaderT;
+} ClIocHeaderCompatT;
 
 typedef struct
 {
-    ClTipcHeaderT header;
+    ClIocHeaderCompatT header;
     ClUint32T msgId;
     ClUint32T fragOffset;
     ClUint32T fragLength;
     ClUint32T reserved;
-} ClTipcFragHeaderT;
+} ClIocFragHeaderCompatT;
 #endif
 
 typedef struct

@@ -186,7 +186,7 @@ ClRcT clNodeBackwardCacheInitialize(ClBoolT createFlag)
 
     CL_ASSERT(gpClNodeBackwardCache != NULL);
 
-    clIocSetNodeCompat(gIocLocalBladeAddress, 0x1);
+    clIocSetNodeCompat(gIocLocalBladeAddress, 0x0);
 
     if (createFlag == CL_TRUE)
     {
@@ -268,6 +268,11 @@ ClUint8T clIocGetNodeCompat(ClIocNodeAddressT nodeAddr)
         return CL_ERR_NOT_INITIALIZED;
     }
 
+    /*
+     * compat(ible) value:
+     *     : 0x1 => old SDK version
+     *     : 0x0 (default) => current SDK version
+     */
     compat = gpClNodeBackwardCache[nodeAddr];
     clOsalSemUnlock(gClNodeBackwardCacheSem);
 
