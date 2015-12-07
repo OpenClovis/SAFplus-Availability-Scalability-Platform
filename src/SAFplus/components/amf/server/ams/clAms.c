@@ -844,7 +844,18 @@ ClRcT clAmsCheckNodeJoinState(const ClCharT *pNodeName)
            &&
            node->status.presenceState == CL_AMS_PRESENCE_STATE_INSTANTIATED)
         {
+            /* If the failover/error node comes up again and send a request to join the cluster.
+             * Active system controller will cleanup all sus present in that node and reset the node status if the sucleanup call is 
+             * successful Otherwise failedover node need to be repair manually.
+             */
             clLogNotice("NODE", "JOIN", "Returning try again as node [%s] is being failed over", pNodeName);
+            if(node->status.numInstantiatedSUs || node->status.numAssignedSUs)
+            {
+                if(clAmsEntityListWalkGetEntity(&node->config.suList, (ClAmsEntityCallbackT) clAmsPeSUCleanup) == CL_OK)              
+                {
+                    clAmsPeNodeReset(node);
+                }
+            }
             rc = CL_AMS_RC(CL_ERR_TRY_AGAIN);
             goto out_unlock;
         }
