@@ -20,12 +20,12 @@ from model import Model
 
 import share
  
-ENTITY_TYPE_BUTTON_START = 100
-SAVE_BUTTON = 99
-ZOOM_BUTTON = 98
-CONNECT_BUTTON = 97
-SELECT_BUTTON = 96
-DELETE_BUTTON = 95
+ENTITY_TYPE_BUTTON_START = wx.NewId()
+SAVE_BUTTON = wx.NewId()
+ZOOM_BUTTON = wx.NewId()
+CONNECT_BUTTON = wx.NewId()
+SELECT_BUTTON = wx.NewId()
+DELETE_BUTTON = wx.NewId()
 
 PI = 3.141592636
 
@@ -851,15 +851,16 @@ class Panel(scrolled.ScrolledPanel):
 
       sortedEt = self.model.entityTypes.items()  # Do this so the buttons always appear in the same order
       sortedEt.sort()
-      buttonIdx = ENTITY_TYPE_BUTTON_START
+      #buttonIdx = ENTITY_TYPE_BUTTON_START
       for et in sortedEt:
+        buttonIdx = wx.NewId()
         bitmap = et[1].buttonSvg.bmp(tsize, { "name":et[0][0:3] }, (222,222,222,wx.ALPHA_OPAQUE))  # Use the first 3 letters of the name as the button text if nothing
         shortHelp = et[1].data.get("shortHelp",None)
         longHelp = et[1].data.get("help",None)
         #self.toolBar.AddLabelTool(11, et[0], bitmap, shortHelp=shortHelp, longHelp=longHelp)
         self.toolBar.AddRadioTool(buttonIdx, bitmap, wx.NullBitmap, shortHelp=et[0], longHelp=longHelp,clientData=et)
         self.idLookup[buttonIdx] = EntityTypeTool(self,et[1])  # register this button so when its clicked we know about it
-        buttonIdx+=1
+        #buttonIdx+=1
         et[1].buttonIdx = buttonIdx
       self.toolBar.Realize()
 

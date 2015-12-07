@@ -31,18 +31,18 @@ from entity import Entity
 
 import share
  
-ENTITY_TYPE_BUTTON_START = 100
-SAVE_BUTTON = 99
-ZOOM_BUTTON = 98
-CONNECT_BUTTON = 97
-SELECT_BUTTON = 96
-CODEGEN_BUTTON = 95
-CODEGEN_LANG_C = 94
-CODEGEN_LANG_CPP = 93
-CODEGEN_LANG_PYTHON = 92
-CODEGEN_LANG_JAVA = 91
+ENTITY_TYPE_BUTTON_START = wx.NewId()
+SAVE_BUTTON = wx.NewId()
+ZOOM_BUTTON = wx.NewId()
+CONNECT_BUTTON = wx.NewId()
+SELECT_BUTTON = wx.NewId()
+CODEGEN_BUTTON = wx.NewId()
+CODEGEN_LANG_C = wx.NewId()
+CODEGEN_LANG_CPP = wx.NewId()
+CODEGEN_LANG_PYTHON = wx.NewId()
+CODEGEN_LANG_JAVA = wx.NewId()
 
-DELETE_BUTTON = 90
+DELETE_BUTTON = wx.NewId()
 
 COL_MARGIN = 250
 COL_SPACING = 2
@@ -1024,7 +1024,7 @@ class Panel(scrolled.ScrolledPanel):
 
       sortedent = self.model.entities.items()  # Do this so the buttons always appear in the same order
       sortedent.sort()
-      buttonIdx = ENTITY_TYPE_BUTTON_START
+      # buttonIdx = ENTITY_TYPE_BUTTON_START
       for e in sortedent:
         et = e[1].et
         placement = None
@@ -1034,6 +1034,7 @@ class Panel(scrolled.ScrolledPanel):
           placement = "row"
 
         if placement:
+          buttonIdx = wx.NewId()
           buttonSvg = e[1].buttonSvg if hasattr(e[1],"buttonSvg") else et.buttonSvg
           bitmap = buttonSvg.bmp(tsize, { "name":e[0] }, (222,222,222,wx.ALPHA_OPAQUE))  # Use the first 3 letters of the name as the button text if nothing
           shortHelp = e[1].data.get("shortHelp",et.data.get("help",None)) 
@@ -1041,7 +1042,7 @@ class Panel(scrolled.ScrolledPanel):
           self.toolBar.AddRadioLabelTool(buttonIdx, e[0], bitmap, shortHelp=shortHelp, longHelp=longHelp)
           #self.toolBar.AddRadioTool(buttonIdx, bitmap, wx.NullBitmap, shortHelp=et[0], longHelp=longHelp,clientData=et)
           self.idLookup[buttonIdx] = EntityTool(self,e[1])  # register this button so when its clicked we know about it
-          buttonIdx+=1
+          #buttonIdx+=1
           e[1].buttonIdx = buttonIdx
 
       self.toolBar.Realize()
