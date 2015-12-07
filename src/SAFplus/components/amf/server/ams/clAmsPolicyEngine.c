@@ -3872,8 +3872,8 @@ clAmsPeNodeSwitchoverWork(
     {
         /* If the system controller not cleaned the node status properly, any sus ruuning on that node have an active Ha state, 
          * standy sus ruuning in other nodes will not provide services to user.  
-         * For node which is going down or left the cluster, an Active system controller need to clean up the corresponding node 
-         * status from it's AMS datebase even an error occured during the node cleanup process.
+         * An active system controller need to remove remaining sus work present in that node even an error occured 
+         * during the node switchoverwork process.
          */
            
         while(!CL_LIST_HEAD_EMPTY(&suListHead))
@@ -3890,15 +3890,7 @@ clAmsPeNodeSwitchoverWork(
             rc = clAmsPeSUSwitchoverWork(su, switchoverMode);
             if(rc != CL_OK)
             {
-                if((node->status.isClusterMember != CL_AMS_NODE_IS_CLUSTER_MEMBER) || (node->config.adminState == CL_AMS_ADMIN_STATE_SHUTTINGDOWN))
-                {
-                     
-                    clAmsPeSUCleanup(su);
-                }
-                else
-                {
-                    goto exitfn;
-                }
+                clAmsPeSUCleanup(su);
             } 
         }
     }
