@@ -580,8 +580,10 @@ class GenerateTool(Tool):
   def OnSelect(self, panel, event):
     if event.GetId() == CODEGEN_BUTTON:
       # code gen must be per-component -- not generation of one type of application
-      panel.model.generateSource(self.panel.model.directory())
-
+      files = panel.model.generateSource(self.panel.model.directory())
+      # TODO add these files to the "source" part of the project tab
+      print files
+ 
     return False
 
 

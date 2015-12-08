@@ -115,12 +115,12 @@ instantiated  <instances>     instances                         instances     (e
     output = common.FilesystemOutput()
     comps = filter(lambda entity: entity.et.name == 'Component', self.entities.values())
     srcDir = os.sep.join([srcDir, "src"])
-      
-    generate.topMakefile(output, srcDir,[c.data["name"] for c in comps])
+    files = []  
+    files += generate.topMakefile(output, srcDir,[c.data["name"] for c in comps])
 
     for c in comps:
-      generate.cpp(output, srcDir, c, c.data)
-  
+      files += generate.cpp(output, srcDir, c, c.data)
+    return files
 
 
   def load(self, fileOrString):

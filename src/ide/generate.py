@@ -48,6 +48,7 @@ def topMakefile(output, srcDir,dirNames):
     makeSubsDict['cleanupApps'] = "\n".join([cleanApp % c for c in dirNames])
     s = mkSubdirTmpl.safe_substitute(**makeSubsDict)
     output.write(srcDir + os.sep + "Makefile", s)
+    return [srcDir + os.sep + "Makefile"]
 
 
 def cpp(output, srcDir, comp,ts_comp):
@@ -71,6 +72,7 @@ def cpp(output, srcDir, comp,ts_comp):
     tmpl = templateMgr.loadPyTemplate(TemplatePath + "Makefile.cpp.ts")
     s = tmpl.safe_substitute(**ts_comp)
     output.write(srcDir + os.sep + compName + os.sep + "Makefile", s)
+    return [srcDir + os.sep + compName + os.sep + "Makefile",srcDir + os.sep + compName + os.sep + "main.cxx"]
 
 
 def c(output, srcDir, comp,ts_comp):
