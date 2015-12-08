@@ -29,6 +29,7 @@ class Module:
   def __init__(self, filename):
     global observer
     global handler
+    print filename
     self.filename = common.fileResolver(filename)
     realfile = os.path.realpath(self.filename)  # Chase thru symbolic links
     handler.files[realfile] = self

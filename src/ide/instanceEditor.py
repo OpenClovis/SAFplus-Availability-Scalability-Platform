@@ -54,53 +54,10 @@ ROW_WIDTH   = 120
 
 linkNormalLook = dot.Dot({ "color":(0,0,.8,.75), "lineThickness": 4, "buttonRadius": 6, "arrowLength":15, "arrowAngle": PI/8 })
 
-class TemplateMgr:
-  """ This class caches template files for later use to reduce disk access"""
-  def __init__(self):
-    self.cache = {}
-  
-  def loadPyTemplate(self,fname):
-    """Load a template file and return it as a string"""
-    if self.cache.has_key(fname): return self.cache[fname]
-
-    fname = common.fileResolver(fname);
-    f = open(fname,"r")
-    s = f.read()
-    t = Template(s)
-    self.cache[fname] = t
-    return t
-
-  def loadKidTemplate(self,fname):
-    pass
-
-# The global template manager
-templateMgr = TemplateMgr()
-
-#TODO: Get relative directiry with model.xml
-TemplatePath = "codegen/templates/"
 
 def touch(f):
     f = file(f,'a')
     f.close()
-
-class Output:
-  """This abstract class defines how the generated output is written to the file system
-     or tarball.
-
-     In these routines if you tell it to write a file or template to a nonexistant path
-     then that path is created.  So you no longer have to worry about creating directories.
-     If you call writes("/foo/bar/yarh/myfile.txt","contents") then the directory hierarchy /foo/bar/yarh is automatically created.  The file "myfile.txt" is created and written with "contents".
-  """
-  def write(self, filename, data):
-    if type(data) in types.StringTypes:
-      self.writes(filename, data)
-    else: self.writet(filename,data)
-        
-  def writet(self, filename, template):
-    pass
-  def writes(self, filename, template):
-    pass
-   
 
 class EntityTool(Tool):
   def __init__(self, panel,entity):
@@ -614,143 +571,19 @@ class SaveTool(Tool):
       touch(filename) # If any modified flag trigger on this model.xml, just recreate GUIs
     return False
 
-class FilesystemOutput(Output):
-  """Write to a normal file system"""
-
-  def writet(self, filename, template):
-    if not os.path.exists(os.path.dirname(filename)):
-      os.makedirs(os.path.dirname(filename))
-    template.write(filename, "utf-8",False,"xml")
-    
-  def writes(self, filename, string):
-    if not os.path.exists(os.path.dirname(filename)):
-      os.makedirs(os.path.dirname(filename))
-    f = open(filename,"w")
-    f.write(string)
-    f.close()
-
 class GenerateTool(Tool):
   def __init__(self, panel):
     self.panel = panel
-    self.dictGenFunc = {CODEGEN_LANG_C:self.generateC, CODEGEN_LANG_CPP:self.generateCpp, CODEGEN_LANG_PYTHON:self.generatePython, CODEGEN_LANG_JAVA:self.generateJava}
+    # self.dictGenFunc = {CODEGEN_LANG_C:self.generateC, CODEGEN_LANG_CPP:self.generateCpp, CODEGEN_LANG_PYTHON:self.generatePython, CODEGEN_LANG_JAVA:self.generateJava}
 
-    self.makeBinApp = """
-$(BIN_DIR)/%s:
-	$(MAKE) SAFPLUS_SRC_DIR=$(SAFPLUS_SRC_DIR) -C %s
-"""
-    self.cleanApp = """	$(MAKE) SAFPLUS_SRC_DIR=$(SAFPLUS_SRC_DIR) -C %s clean """
 
   def OnSelect(self, panel, event):
     if event.GetId() == CODEGEN_BUTTON:
-      mnuGenerateCode = wx.Menu()
-      mnuItemC = mnuGenerateCode.Append(CODEGEN_LANG_C, "C")
-      panel.Bind(wx.EVT_MENU, panel.OnToolClick, mnuItemC)
-  
-      mnuItemCpp = mnuGenerateCode.Append(CODEGEN_LANG_CPP, "C++")
-      panel.Bind(wx.EVT_MENU, panel.OnToolClick, mnuItemCpp)
-  
-      mnuItemPython = mnuGenerateCode.Append(CODEGEN_LANG_PYTHON, "PYTHON")
-      panel.Bind(wx.EVT_MENU, panel.OnToolClick, mnuItemPython)
-  
-      mnuItemJava = mnuGenerateCode.Append(CODEGEN_LANG_JAVA, "JAVA")
-      panel.Bind(wx.EVT_MENU, panel.OnToolClick, mnuItemJava)
-  
-      panel.PopupMenu(mnuGenerateCode)
-    else:
-      output = FilesystemOutput()
-      comps = filter(lambda inst: inst.entity.et.name == 'Component', panel.model.instances.values())
-
-      srcDir = None
-      dlg = wx.DirDialog(panel, "Select output directory ...", os.getcwd(), style=wx.DD_DEFAULT_STYLE)
-      if dlg.ShowModal() == wx.ID_OK:
-        srcDir = dlg.GetPath()
-      else:
-        #Get relative directiry with model.xml
-        srcDir = os.path.dirname(panel.model.filename);
-        if srcDir is None or len(srcDir) == 0:
-          srcDir = os.getcwd()
-
-      srcDir = os.sep.join([srcDir, "src", "app"])
-
-      # Generate makefile for the "app" directory
-      mkSubdirTmpl = templateMgr.loadPyTemplate(TemplatePath + "Makefile.subdir.ts")
-      makeSubsDict = {}
-      makeSubsDict['subdirs'] = " ".join(["$(BIN_DIR)/%s" %c.data["name"] for c in comps])
-      makeSubsDict['labelApps'] = "\n".join([self.makeBinApp %(c.data["name"],c.data["name"]) for c in comps])
-      makeSubsDict['cleanupApps'] = "\n".join([self.cleanApp %c.data["name"] for c in comps])
-
-      s = mkSubdirTmpl.safe_substitute(**makeSubsDict)
-      output.write(srcDir + os.sep + "Makefile", s)
-
-      for c in comps:
-        self.dictGenFunc[event.GetId()](output, srcDir, c, c.data)
+      # code gen must be per-component -- not generation of one type of application
+      panel.model.generateSource(self.panel.model.directory())
 
     return False
 
-
-  def generateCpp(self, output, srcDir, comp,ts_comp):
-    # Create main
-    compName = str(comp.data["name"])
-
-    ts_comp['name'] = comp.data["name"]
-    ts_comp['instantiate_command'] = comp.data["name"] # Default bin name
-
-    try:
-      ts_comp['instantiate_command'] = comp.data["instantiate"]["command"].split()[0]
-    except:
-      pass
-
-    cpptmpl = templateMgr.loadPyTemplate(TemplatePath + "main.cpp.ts")
-
-    s = cpptmpl.safe_substitute(**ts_comp)
-    output.write(srcDir + os.sep + compName + os.sep + "main.cxx", s)
-  
-    # Create Makefile
-    tmpl = templateMgr.loadPyTemplate(TemplatePath + "Makefile.cpp.ts")
-    s = tmpl.safe_substitute(**ts_comp)
-    output.write(srcDir + os.sep + compName + os.sep + "Makefile", s)
-
-
-  def generateC(self, output, srcDir, comp,ts_comp):
-    #? TODO:
-    return
-    compName = str(comp.data["name"])
-  
-    # Create main
-    cpptmpl = templateMgr.loadPyTemplate(TemplatePath + "main.c.ts")
-    s = cpptmpl.safe_substitute(addmain=False)
-    output.write(srcDir + os.sep + compName + os.sep + "main.c", s)
-  
-    # Create Makefile
-    tmpl = templateMgr.loadPyTemplate(TemplatePath + "Makefile.c.ts")
-    s = tmpl.safe_substitute(**ts_comp)
-    output.write(srcDir + os.sep + compName + os.sep + "Makefile", s)
-
-  def generatePython(self, output, srcDir, comp,ts_comp):
-    #? TODO:
-    return
-    compName = str(comp.data["name"])
-  
-    # Create src files
-    for (inp,outp) in [("main.py.ts",str(comp.data[instantiateCommand]) + ".py"),("pythonexec.sh",str(comp.data[instantiateCommand]))]:
-      tmpl = templateMgr.loadPyTemplate(TemplatePath + inp)
-      s = tmpl.safe_substitute(**ts_comp)
-      output.write(srcDir + os.sep + compName + os.sep + outp, s)
-    
-  
-    # Create Makefile
-    tmpl = templateMgr.loadPyTemplate(TemplatePath + "Makefile.python.ts")
-    s = tmpl.safe_substitute(**ts_comp)
-    output.write(srcDir + os.sep + compName + os.sep + "Makefile", s)
-
-  def generateJava(self, output, srcDir, comp,ts_comp):
-    #? TODO:
-    return
-    compName = str(comp.data["name"])
-    # Create Makefile
-    tmpl = templateMgr.loadPyTemplate(TemplatePath + "Makefile.java.ts")
-    s = tmpl.safe_substitute(**ts_comp)
-    output.write(srcDir + os.sep + compName + os.sep + "Makefile", s)
 
 # Global of this panel for debug purposes only.  DO NOT USE IN CODE
 dbgPanel = None

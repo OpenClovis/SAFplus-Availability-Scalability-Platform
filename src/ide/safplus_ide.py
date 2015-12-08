@@ -1,4 +1,5 @@
 import os
+import inspect
 import pdb
 import math
 import time
@@ -80,7 +81,7 @@ class SAFplusFrame(wx.Frame):
       self.model[prj.name] = t = namedtuple('model','model uml instance details')
       # only 1 model file allowed for now
       t.model = model.Model()
-      modelFile = prj.model.children()[0].strip()
+      modelFile = os.path.join(prj.directory(), prj.model.children()[0].strip())
       t.model.load(modelFile)
       t.uml = umlEditor.Panel(self.tab,self.guiPlaces.menubar, self.guiPlaces.toolbar, self.guiPlaces.statusbar, t.model)
       self.tab.AddPage(t.uml, prj.name + " Modelling")
@@ -115,6 +116,7 @@ class SAFplusApp(wx.App):
 
 def go():
   global app
+  common.programDirectory = os.path.dirname(os.path.abspath(inspect.getfile(inspect.currentframe()))) 
   app = SAFplusApp(redirect=False)
   app.MainLoop()
 

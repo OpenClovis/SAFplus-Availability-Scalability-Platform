@@ -24,6 +24,10 @@ class Project(microdom.MicroDom):
     if filename: self.load(filename)
     pass
 
+  def directory(self):
+    """Returns the location of this model on disk """
+    return os.path.dirname(self.projectFilename)   
+
   def load(self,filename):
     self.projectFilename = filename
     self.name = os.path.splitext(os.path.basename(filename))[0]
