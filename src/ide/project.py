@@ -111,11 +111,21 @@ class ProjectTreePanel(wx.Panel):
 
   def latest(self):
     i = self.tree.GetLastChild(self.root)
-    if i:
+    if i.IsOk():
        project = self.tree.GetItemPyData(i)
        if type(project) is TupleType: project = project[0]
        return project
     return None
+
+  def isPrjLoaded(self, prjPath):
+     name = os.path.splitext(os.path.basename(prjPath))[0]
+     (child, cookie) = self.tree.GetFirstChild(self.root)
+     while child.IsOk():
+       p = self.tree.GetItemPyData(child)
+       if p.name == name:
+         return True
+       (child, cookie) = self.tree.GetNextChild(self.root, cookie)
+     return False
 
   def populateGui(self,project,tree, onNew=False):
      p = project.projectFilename
@@ -161,7 +171,8 @@ class ProjectTreePanel(wx.Panel):
       #self.tree.SetItemImage(self.root, fldridx, wx.TreeItemIcon_Normal)
       #self.tree.SetItemImage(self.root, fldropenidx, wx.TreeItemIcon_Expanded)
       for p in paths:
-        project = Project(p)
+        if self.isPrjLoaded(p): return 
+        project = Project(p)                 
         self.populateGui(project, self.root)
       evt = ProjectLoadedEvent(EVT_PROJECT_LOADED.evtType[0])
       wx.PostEvent(self.parent,evt)
@@ -210,26 +221,26 @@ class NewPrjDialog(wx.Dialog):
         """Constructor"""
         wx.Dialog.__init__(self, None, title="New project", size=(430,220))
          
-        user_sizer = wx.BoxSizer(wx.HORIZONTAL)
+        prjname_sizer = wx.BoxSizer(wx.HORIZONTAL)
  
         prj_lbl = wx.StaticText(self, label="Project name", size=(100,25))
-        user_sizer.Add(prj_lbl, 0, wx.ALL|wx.CENTER, 5)
+        prjname_sizer.Add(prj_lbl, 0, wx.ALL|wx.CENTER, 5)
         self.prjName = wx.TextCtrl(self)
-        user_sizer.Add(self.prjName, 0, wx.ALL, 5)
+        prjname_sizer.Add(self.prjName, 0, wx.ALL, 5)
  
-        p_sizer = wx.BoxSizer(wx.HORIZONTAL)
+        datamodel_sizer = wx.BoxSizer(wx.HORIZONTAL)
  
         datamodel_lbl = wx.StaticText(self, label="Data model", size=(100,25))
-        p_sizer.Add(datamodel_lbl, 0, wx.ALL|wx.CENTER, 5)
+        datamodel_sizer.Add(datamodel_lbl, 0, wx.ALL|wx.CENTER, 5)
         self.datamodel = wx.TextCtrl(self, size=(200, 25))
-        p_sizer.Add(self.datamodel, 0, wx.ALL, 5)
+        datamodel_sizer.Add(self.datamodel, 0, wx.ALL, 5)
         select_btn = wx.Button(self, label="Select")
         select_btn.Bind(wx.EVT_BUTTON, self.onSelect)
-        p_sizer.Add(select_btn, 0, wx.ALL, 5)
+        datamodel_sizer.Add(select_btn, 0, wx.ALL, 5)
  
         main_sizer = wx.BoxSizer(wx.VERTICAL)
-        main_sizer.Add(user_sizer, 0, wx.ALL, 5)
-        main_sizer.Add(p_sizer, 0, wx.ALL, 5)
+        main_sizer.Add(prjname_sizer, 0, wx.ALL, 5)
+        main_sizer.Add(datamodel_sizer, 0, wx.ALL, 5)
  
         OK_btn = wx.Button(self, label="OK")
         OK_btn.Bind(wx.EVT_BUTTON, self.onBtnHandler)
@@ -260,9 +271,14 @@ class NewPrjDialog(wx.Dialog):
               msgBox.ShowModal()
               msgBox.Destroy()
               return            
-           self.path = os.getcwd()+os.sep+prjName                   
+           self.path = os.getcwd()+os.sep+prjName                             
            if not re.search('.spp$', self.path):
               self.path+=".spp" 
+           if os.path.exists(self.path):
+              msgBox = wx.MessageDialog(self, "Project exists. Please specify another name", style=wx.OK|wx.CENTRE)
+              msgBox.ShowModal()
+              msgBox.Destroy()
+              return
         self.what = what
         self.Close()
     
