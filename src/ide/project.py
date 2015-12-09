@@ -251,12 +251,12 @@ class NewPrjDialog(wx.Dialog):
         if (what == "OK"):
            prjName = self.prjName.GetValue()
            if len(prjName)==0:
-              msgBox = wx.MessageDialog(self, "Project name exists. Please create a new project", style=wx.OK|wx.CENTRE)
+              msgBox = wx.MessageDialog(self, "Project name is missing. Please specify a new project", style=wx.OK|wx.CENTRE)
               msgBox.ShowModal()
               msgBox.Destroy()
               return           
            if len(self.datamodel.GetValue()) == 0:
-              msgBox = wx.MessageDialog(self, "Please choose a datamodel for the new project", style=wx.OK|wx.CENTRE)
+              msgBox = wx.MessageDialog(self, "Data model is missing. Please choose a data model for the new project", style=wx.OK|wx.CENTRE)
               msgBox.ShowModal()
               msgBox.Destroy()
               return            
