@@ -862,7 +862,7 @@ _clGmsEngineLeaderElect(
              * "gratuitous" sending of our view of the leader to other AMFs to update
              *  node cache on ALL nodes via a "gratuitous" IOC notification
              */
-            clNodeCacheLeaderSend(currentLeaderNodeId);
+            clNodeCacheLeaderSend(*leaderNodeId);
 
             /* Notify all nodes that I am the leader.  It is necessary to do this so that external apps/nodes (with no AMF or GMS) receive the new leader notification */
             ClIocAddressT allNodeReps;
