@@ -4,22 +4,22 @@
   </modules>
   <entities>
     <ServiceUnit>
-      <node>None</node>
       <restartCount></restartCount>
-      <entityType>ServiceUnit</entityType>
       <numActiveServiceInstances></numActiveServiceInstances>
-      <name>ServiceUnit1</name>
-      <failover>None</failover>
-      <contains></contains>
-      <saAmfSUHostNodeOrNodeGroup>None</saAmfSUHostNodeOrNodeGroup>
-      <serviceGroup>None</serviceGroup>
-      <rank>None</rank>
-      <_sizeY>128</_sizeY>
-      <adminState>on</adminState>
-      <probationTime>7782</probationTime>
-      <_sizeX>256</_sizeX>
-      <id>None</id>
       <numStandbyServiceInstances></numStandbyServiceInstances>
+      <node></node>
+      <serviceGroup></serviceGroup>
+      <contains></contains>
+      <name>ServiceUnit1</name>
+      <failover></failover>
+      <entityType>ServiceUnit</entityType>
+      <saAmfSUHostNodeOrNodeGroup></saAmfSUHostNodeOrNodeGroup>
+      <probationTime>7782</probationTime>
+      <id></id>
+      <_sizeY>128.0</_sizeY>
+      <adminState>on</adminState>
+      <rank></rank>
+      <_sizeX>256.0</_sizeX>
       <Components>app</Components>
     </ServiceUnit>
     <Component>
@@ -45,79 +45,79 @@
       <numSpareServiceUnits></numSpareServiceUnits>
       <autoAdjustInterval>None</autoAdjustInterval>
       <maxActiveWorkAssignments>1</maxActiveWorkAssignments>
+      <restartCount></restartCount>
+      <safVersion>B.0101</safVersion>
+      <standbyAssignments></standbyAssignments>
+      <activeAssignments></activeAssignments>
+      <compCategory>1</compCategory>
+      <delayBetweenInstantiation>10000</delayBetweenInstantiation>
+      <instantiationSuccessDuration>30</instantiationSuccessDuration>
+      <recovery></recovery>
+      <restartable>True</restartable>
+      <timeouts>
+        <quiescingComplete>120000</quiescingComplete>
+        <workRemoval>120000</workRemoval>
+        <workAssignment>120000</workAssignment>
+      </timeouts>
       <_sizeX>256.0</_sizeX>
       <entityType>Component</entityType>
       <terminate>
         <command></command>
         <timeout>120000</timeout>
       </terminate>
-      <id>None</id>
-      <restartCount></restartCount>
-      <recovery>None</recovery>
-      <safVersion>B.0101</safVersion>
-      <standbyAssignments></standbyAssignments>
-      <contains></contains>
       <maxDelayedInstantiations>5</maxDelayedInstantiations>
-      <cleanup>
-        <command></command>
-        <timeout>120000</timeout>
-      </cleanup>
-      <maxStandbyAssignments>11</maxStandbyAssignments>
-      <activeAssignments></activeAssignments>
-      <maxActiveAssignments>1</maxActiveAssignments>
+      <id></id>
       <_sizeY>128.0</_sizeY>
-      <compCategory>1</compCategory>
-      <restartable>True</restartable>
-      <delayBetweenInstantiation>10000</delayBetweenInstantiation>
-      <instantiationSuccessDuration>30</instantiationSuccessDuration>
-      <proxy>None</proxy>
-      <maxInstantInstantiations>5</maxInstantInstantiations>
-      <serviceUnit>None</serviceUnit>
-      <name>app</name>
-      <timeouts>
-        <quiescingComplete>120000</quiescingComplete>
-        <workRemoval>120000</workRemoval>
-        <workAssignment>120000</workAssignment>
-      </timeouts>
       <instantiate>
         <command></command>
         <timeout>120000</timeout>
       </instantiate>
-      <capabilityModel>None</capabilityModel>
+      <maxStandbyAssignments>11</maxStandbyAssignments>
+      <proxy></proxy>
+      <maxActiveAssignments>1</maxActiveAssignments>
+      <maxInstantInstantiations>5</maxInstantInstantiations>
+      <serviceUnit></serviceUnit>
+      <contains></contains>
+      <cleanup>
+        <command></command>
+        <timeout>120000</timeout>
+      </cleanup>
+      <capabilityModel></capabilityModel>
+      <name>app</name>
     </Component>
     <ServiceGroup>
-      <entityType>ServiceGroup</entityType>
-      <preferredNumStandbyServiceUnits>1</preferredNumStandbyServiceUnits>
-      <autoAdjust>None</autoAdjust>
       <numIdleServiceUnits></numIdleServiceUnits>
+      <numAssignedServiceUnits></numAssignedServiceUnits>
+      <numSpareServiceUnits></numSpareServiceUnits>
+      <preferredNumStandbyServiceUnits>1</preferredNumStandbyServiceUnits>
+      <autoAdjust></autoAdjust>
+      <contains></contains>
       <name>appSG</name>
-      <preferredNumActiveServiceUnits>10</preferredNumActiveServiceUnits>
       <maxStandbyWorkAssignments>10</maxStandbyWorkAssignments>
       <_sizeX>256.0</_sizeX>
-      <contains></contains>
-      <preferredNumIdleServiceUnits>None</preferredNumIdleServiceUnits>
-      <componentRestart>
-        <duration>None</duration>
-        <maximum>None</maximum>
-      </componentRestart>
-      <adminState>on</adminState>
-      <autoRepair>True</autoRepair>
-      <application>app</application>
+      <entityType>ServiceGroup</entityType>
       <serviceUnitRestart>
         <duration>None</duration>
         <maximum>None</maximum>
       </serviceUnitRestart>
-      <numAssignedServiceUnits></numAssignedServiceUnits>
-      <numSpareServiceUnits></numSpareServiceUnits>
-      <autoAdjustInterval>None</autoAdjustInterval>
+      <componentRestart>
+        <duration>None</duration>
+        <maximum>None</maximum>
+      </componentRestart>
+      <preferredNumActiveServiceUnits>10</preferredNumActiveServiceUnits>
+      <autoRepair>True</autoRepair>
+      <application>app</application>
+      <adminState>on</adminState>
       <_sizeY>128.0</_sizeY>
+      <preferredNumIdleServiceUnits></preferredNumIdleServiceUnits>
+      <id></id>
       <maxActiveWorkAssignments>1</maxActiveWorkAssignments>
-      <id>None</id>
+      <autoAdjustInterval></autoAdjustInterval>
       <ServiceUnits>ServiceUnit1</ServiceUnits>
       <ServiceInstances>work</ServiceInstances>
     </ServiceGroup>
     <Node>
-      <failFastOnInstantiationFailure>None</failFastOnInstantiationFailure>
+      <failFastOnInstantiationFailure></failFastOnInstantiationFailure>
       <entityType>Node</entityType>
       <name>SC</name>
       <_sizeX>256.0</_sizeX>
@@ -125,29 +125,29 @@
       <autoRepair>True</autoRepair>
       <adminState>on</adminState>
       <_sizeY>128.0</_sizeY>
-      <failFastOnCleanupFailure>None</failFastOnCleanupFailure>
+      <failFastOnCleanupFailure></failFastOnCleanupFailure>
       <serviceUnitFailureEscalationPolicy>
         <duration>None</duration>
         <maximum>None</maximum>
       </serviceUnitFailureEscalationPolicy>
-      <id>None</id>
+      <id></id>
       <ServiceUnits>ServiceUnit1</ServiceUnits>
       <Components>app</Components>
     </Node>
     <ServiceInstance>
-      <entityType>ServiceInstance</entityType>
       <assignmentState>None</assignmentState>
-      <serviceGroup>None</serviceGroup>
+      <standbyAssignments></standbyAssignments>
+      <activeAssignments></activeAssignments>
+      <entityType>ServiceInstance</entityType>
+      <serviceGroup></serviceGroup>
       <preferredStandbyAssignments>1</preferredStandbyAssignments>
       <name>work</name>
-      <standbyAssignments></standbyAssignments>
       <_sizeX>256.0</_sizeX>
       <contains></contains>
-      <rank>None</rank>
+      <rank></rank>
       <_sizeY>128.0</_sizeY>
       <adminState>on</adminState>
-      <activeAssignments></activeAssignments>
-      <id>None</id>
+      <id></id>
       <preferredActiveAssignments>1</preferredActiveAssignments>
       <ComponentServiceInstances>csi</ComponentServiceInstances>
     </ServiceInstance>
@@ -157,8 +157,8 @@
       <_sizeX>256.0</_sizeX>
       <entityType>ComponentServiceInstance</entityType>
       <_sizeY>128.0</_sizeY>
-      <id>None</id>
-      <serviceInstance>None</serviceInstance>
+      <id></id>
+      <serviceInstance></serviceInstance>
       <Components>app</Components>
     </ComponentServiceInstance>
   </entities>
@@ -185,8 +185,8 @@
         <size>(256.0, 128.0)</size>
       </appSG>
       <ServiceUnit1>
-        <position>(173, 302)</position>
-        <size>(256, 128)</size>
+        <position>(173.0, 302.0)</position>
+        <size>(256.0, 128.0)</size>
       </ServiceUnit1>
     </ide_entity_info>
     <ide_instance_info></ide_instance_info>
@@ -209,5 +209,389 @@
       <appSG></appSG>
     </ServiceGroup>
   </ide>
-  <instances></instances>
+  <instances>
+    <ComponentServiceInstance xpath='/safplusAmf/ComponentServiceInstance[@name="csi1"]' module='SAFplusAmf'>
+      <contains></contains>
+      <_sizeY>61</_sizeY>
+      <name>csi1</name>
+      <_sizeX>118</_sizeX>
+      <entityType>ComponentServiceInstance</entityType>
+      <id></id>
+      <serviceInstance>work1</serviceInstance>
+      <components>app3</components>
+      <ComponentServiceInstanceType>csi</ComponentServiceInstanceType>
+    </ComponentServiceInstance>
+    <ComponentServiceInstance xpath='/safplusAmf/ComponentServiceInstance[@name="csi3"]' module='SAFplusAmf'>
+      <contains></contains>
+      <_sizeY>61</_sizeY>
+      <name>csi3</name>
+      <_sizeX>118</_sizeX>
+      <entityType>ComponentServiceInstance</entityType>
+      <id></id>
+      <serviceInstance>work3</serviceInstance>
+      <components>app7</components>
+      <ComponentServiceInstanceType>csi</ComponentServiceInstanceType>
+    </ComponentServiceInstance>
+    <ServiceUnit xpath='/safplusAmf/ServiceUnit[@name="ServiceUnit11"]' module='SAFplusAmf'>
+      <node>SC2</node>
+      <serviceGroup>appSG1</serviceGroup>
+      <contains></contains>
+      <name>ServiceUnit11</name>
+      <failover></failover>
+      <entityType>ServiceUnit</entityType>
+      <saAmfSUHostNodeOrNodeGroup></saAmfSUHostNodeOrNodeGroup>
+      <probationTime>7782</probationTime>
+      <id></id>
+      <_sizeY>91</_sizeY>
+      <adminState>on</adminState>
+      <rank></rank>
+      <_sizeX>240</_sizeX>
+      <components>app1</components>
+      <ServiceUnitType>ServiceUnit1</ServiceUnitType>
+    </ServiceUnit>
+    <ServiceUnit xpath='/safplusAmf/ServiceUnit[@name="ServiceUnit13"]' module='SAFplusAmf'>
+      <node></node>
+      <serviceGroup>appSG3</serviceGroup>
+      <contains></contains>
+      <name>ServiceUnit13</name>
+      <failover></failover>
+      <entityType>ServiceUnit</entityType>
+      <saAmfSUHostNodeOrNodeGroup></saAmfSUHostNodeOrNodeGroup>
+      <probationTime>7782</probationTime>
+      <id></id>
+      <_sizeY>91</_sizeY>
+      <adminState>on</adminState>
+      <rank></rank>
+      <_sizeX>118</_sizeX>
+      <components>app5</components>
+      <ServiceUnitType>ServiceUnit1</ServiceUnitType>
+    </ServiceUnit>
+    <ServiceGroup xpath='/safplusAmf/ServiceGroup[@name="appSG3"]' module='SAFplusAmf'>
+      <preferredNumStandbyServiceUnits>1</preferredNumStandbyServiceUnits>
+      <autoAdjust></autoAdjust>
+      <contains></contains>
+      <name>appSG3</name>
+      <maxStandbyWorkAssignments>10</maxStandbyWorkAssignments>
+      <_sizeX>1258</_sizeX>
+      <entityType>ServiceGroup</entityType>
+      <serviceUnitRestart>
+        <duration>None</duration>
+        <maximum>None</maximum>
+      </serviceUnitRestart>
+      <componentRestart>
+        <duration>None</duration>
+        <maximum>None</maximum>
+      </componentRestart>
+      <preferredNumActiveServiceUnits>10</preferredNumActiveServiceUnits>
+      <autoRepair>True</autoRepair>
+      <application>app</application>
+      <adminState>on</adminState>
+      <_sizeY>120</_sizeY>
+      <preferredNumIdleServiceUnits></preferredNumIdleServiceUnits>
+      <id></id>
+      <maxActiveWorkAssignments>1</maxActiveWorkAssignments>
+      <autoAdjustInterval></autoAdjustInterval>
+      <serviceInstances>work3</serviceInstances>
+      <serviceUnits>ServiceUnit13</serviceUnits>
+      <ServiceGroupType>appSG</ServiceGroupType>
+    </ServiceGroup>
+    <ServiceGroup xpath='/safplusAmf/ServiceGroup[@name="appSG1"]' module='SAFplusAmf'>
+      <preferredNumStandbyServiceUnits>1</preferredNumStandbyServiceUnits>
+      <autoAdjust></autoAdjust>
+      <contains></contains>
+      <name>appSG1</name>
+      <maxStandbyWorkAssignments>10</maxStandbyWorkAssignments>
+      <_sizeX>1258</_sizeX>
+      <entityType>ServiceGroup</entityType>
+      <serviceUnitRestart>
+        <duration>None</duration>
+        <maximum>None</maximum>
+      </serviceUnitRestart>
+      <componentRestart>
+        <duration>None</duration>
+        <maximum>None</maximum>
+      </componentRestart>
+      <preferredNumActiveServiceUnits>10</preferredNumActiveServiceUnits>
+      <autoRepair>True</autoRepair>
+      <application>app</application>
+      <adminState>on</adminState>
+      <_sizeY>120</_sizeY>
+      <preferredNumIdleServiceUnits></preferredNumIdleServiceUnits>
+      <id></id>
+      <maxActiveWorkAssignments>1</maxActiveWorkAssignments>
+      <autoAdjustInterval></autoAdjustInterval>
+      <serviceInstances>work1</serviceInstances>
+      <serviceUnits>ServiceUnit111</serviceUnits>
+      <serviceUnits>ServiceUnit11</serviceUnits>
+      <ServiceGroupType>appSG</ServiceGroupType>
+    </ServiceGroup>
+    <Component xpath='/safplusAmf/Component[@name="app3"]' module='SAFplusAmf'>
+      <contains></contains>
+      <instantiate>
+        <command></command>
+        <timeout>120000</timeout>
+      </instantiate>
+      <recovery></recovery>
+      <restartable>True</restartable>
+      <timeouts>
+        <quiescingComplete>120000</quiescingComplete>
+        <workRemoval>120000</workRemoval>
+        <workAssignment>120000</workAssignment>
+      </timeouts>
+      <terminate>
+        <command></command>
+        <timeout>120000</timeout>
+      </terminate>
+      <_sizeX>10</_sizeX>
+      <entityType>Component</entityType>
+      <delayBetweenInstantiation>10000</delayBetweenInstantiation>
+      <maxDelayedInstantiations>5</maxDelayedInstantiations>
+      <_sizeY>10</_sizeY>
+      <cleanup>
+        <command></command>
+        <timeout>120000</timeout>
+      </cleanup>
+      <maxStandbyAssignments>11</maxStandbyAssignments>
+      <proxy></proxy>
+      <maxActiveAssignments>1</maxActiveAssignments>
+      <maxInstantInstantiations>5</maxInstantInstantiations>
+      <serviceUnit></serviceUnit>
+      <instantiationSuccessDuration>30</instantiationSuccessDuration>
+      <id></id>
+      <capabilityModel></capabilityModel>
+      <name>app3</name>
+      <ComponentType>app</ComponentType>
+    </Component>
+    <Component xpath='/safplusAmf/Component[@name="app1"]' module='SAFplusAmf'>
+      <contains></contains>
+      <instantiate>
+        <command></command>
+        <timeout>120000</timeout>
+      </instantiate>
+      <recovery></recovery>
+      <restartable>True</restartable>
+      <timeouts>
+        <quiescingComplete>120000</quiescingComplete>
+        <workRemoval>120000</workRemoval>
+        <workAssignment>120000</workAssignment>
+      </timeouts>
+      <terminate>
+        <command></command>
+        <timeout>120000</timeout>
+      </terminate>
+      <_sizeX>240</_sizeX>
+      <entityType>Component</entityType>
+      <delayBetweenInstantiation>10000</delayBetweenInstantiation>
+      <maxDelayedInstantiations>5</maxDelayedInstantiations>
+      <_sizeY>61</_sizeY>
+      <cleanup>
+        <command></command>
+        <timeout>120000</timeout>
+      </cleanup>
+      <maxStandbyAssignments>11</maxStandbyAssignments>
+      <proxy></proxy>
+      <maxActiveAssignments>1</maxActiveAssignments>
+      <maxInstantInstantiations>5</maxInstantInstantiations>
+      <serviceUnit>ServiceUnit111</serviceUnit>
+      <instantiationSuccessDuration>30</instantiationSuccessDuration>
+      <id></id>
+      <capabilityModel></capabilityModel>
+      <name>app1</name>
+      <ComponentType>app</ComponentType>
+    </Component>
+    <Component xpath='/safplusAmf/Component[@name="app7"]' module='SAFplusAmf'>
+      <contains></contains>
+      <instantiate>
+        <command></command>
+        <timeout>120000</timeout>
+      </instantiate>
+      <recovery></recovery>
+      <restartable>True</restartable>
+      <timeouts>
+        <quiescingComplete>120000</quiescingComplete>
+        <workRemoval>120000</workRemoval>
+        <workAssignment>120000</workAssignment>
+      </timeouts>
+      <terminate>
+        <command></command>
+        <timeout>120000</timeout>
+      </terminate>
+      <_sizeX>10</_sizeX>
+      <entityType>Component</entityType>
+      <delayBetweenInstantiation>10000</delayBetweenInstantiation>
+      <maxDelayedInstantiations>5</maxDelayedInstantiations>
+      <_sizeY>10</_sizeY>
+      <cleanup>
+        <command></command>
+        <timeout>120000</timeout>
+      </cleanup>
+      <maxStandbyAssignments>11</maxStandbyAssignments>
+      <proxy></proxy>
+      <maxActiveAssignments>1</maxActiveAssignments>
+      <maxInstantInstantiations>5</maxInstantInstantiations>
+      <serviceUnit></serviceUnit>
+      <instantiationSuccessDuration>30</instantiationSuccessDuration>
+      <id></id>
+      <capabilityModel></capabilityModel>
+      <name>app7</name>
+      <ComponentType>app</ComponentType>
+    </Component>
+    <ServiceInstance xpath='/safplusAmf/ServiceInstance[@name="work1"]' module='SAFplusAmf'>
+      <contains></contains>
+      <serviceGroup>appSG1</serviceGroup>
+      <preferredStandbyAssignments>1</preferredStandbyAssignments>
+      <name>work1</name>
+      <_sizeX>118</_sizeX>
+      <entityType>ServiceInstance</entityType>
+      <rank></rank>
+      <_sizeY>91</_sizeY>
+      <adminState>on</adminState>
+      <id></id>
+      <preferredActiveAssignments>1</preferredActiveAssignments>
+      <componentServiceInstances>csi1</componentServiceInstances>
+      <ServiceInstanceType>work</ServiceInstanceType>
+    </ServiceInstance>
+    <ServiceInstance xpath='/safplusAmf/ServiceInstance[@name="work3"]' module='SAFplusAmf'>
+      <contains></contains>
+      <serviceGroup>appSG3</serviceGroup>
+      <preferredStandbyAssignments>1</preferredStandbyAssignments>
+      <name>work3</name>
+      <_sizeX>118</_sizeX>
+      <entityType>ServiceInstance</entityType>
+      <rank></rank>
+      <_sizeY>91</_sizeY>
+      <adminState>on</adminState>
+      <id></id>
+      <preferredActiveAssignments>1</preferredActiveAssignments>
+      <componentServiceInstances>csi3</componentServiceInstances>
+      <ServiceInstanceType>work</ServiceInstanceType>
+    </ServiceInstance>
+    <Node xpath='/safplusAmf/Node[@name="SC1"]' module='SAFplusAmf'>
+      <failFastOnInstantiationFailure></failFastOnInstantiationFailure>
+      <entityType>Node</entityType>
+      <name>SC1</name>
+      <_sizeX>250</_sizeX>
+      <contains></contains>
+      <autoRepair>True</autoRepair>
+      <adminState>on</adminState>
+      <_sizeY>738</_sizeY>
+      <failFastOnCleanupFailure></failFastOnCleanupFailure>
+      <serviceUnitFailureEscalationPolicy>
+        <duration>None</duration>
+        <maximum>None</maximum>
+      </serviceUnitFailureEscalationPolicy>
+      <id></id>
+      <serviceInstances>work1</serviceInstances>
+      <serviceUnits>ServiceUnit111</serviceUnits>
+      <NodeType>SC</NodeType>
+    </Node>
+    <Component xpath='/safplusAmf/Component[@name="app5"]' module='SAFplusAmf'>
+      <contains></contains>
+      <instantiate>
+        <command></command>
+        <timeout>120000</timeout>
+      </instantiate>
+      <recovery></recovery>
+      <restartable>True</restartable>
+      <timeouts>
+        <quiescingComplete>120000</quiescingComplete>
+        <workRemoval>120000</workRemoval>
+        <workAssignment>120000</workAssignment>
+      </timeouts>
+      <terminate>
+        <command></command>
+        <timeout>120000</timeout>
+      </terminate>
+      <_sizeX>118</_sizeX>
+      <entityType>Component</entityType>
+      <delayBetweenInstantiation>10000</delayBetweenInstantiation>
+      <maxDelayedInstantiations>5</maxDelayedInstantiations>
+      <_sizeY>61</_sizeY>
+      <cleanup>
+        <command></command>
+        <timeout>120000</timeout>
+      </cleanup>
+      <maxStandbyAssignments>11</maxStandbyAssignments>
+      <proxy></proxy>
+      <maxActiveAssignments>1</maxActiveAssignments>
+      <maxInstantInstantiations>5</maxInstantInstantiations>
+      <serviceUnit>ServiceUnit13</serviceUnit>
+      <instantiationSuccessDuration>30</instantiationSuccessDuration>
+      <id></id>
+      <capabilityModel></capabilityModel>
+      <name>app5</name>
+      <ComponentType>app</ComponentType>
+    </Component>
+    <Node xpath='/safplusAmf/Node[@name="SC2"]' module='SAFplusAmf'>
+      <failFastOnInstantiationFailure></failFastOnInstantiationFailure>
+      <entityType>Node</entityType>
+      <name>SC2</name>
+      <_sizeX>250</_sizeX>
+      <contains></contains>
+      <autoRepair>True</autoRepair>
+      <adminState>on</adminState>
+      <_sizeY>738</_sizeY>
+      <failFastOnCleanupFailure></failFastOnCleanupFailure>
+      <serviceUnitFailureEscalationPolicy>
+        <duration>None</duration>
+        <maximum>None</maximum>
+      </serviceUnitFailureEscalationPolicy>
+      <id></id>
+      <serviceUnits>ServiceUnit11</serviceUnits>
+      <NodeType>SC</NodeType>
+    </Node>
+    <ServiceUnit xpath='/safplusAmf/ServiceUnit[@name="ServiceUnit111"]' module='SAFplusAmf'>
+      <node>SC1</node>
+      <serviceGroup>appSG1</serviceGroup>
+      <entityType>ServiceUnit</entityType>
+      <name>ServiceUnit111</name>
+      <failover></failover>
+      <contains></contains>
+      <saAmfSUHostNodeOrNodeGroup></saAmfSUHostNodeOrNodeGroup>
+      <_sizeX>118</_sizeX>
+      <probationTime>7782</probationTime>
+      <_sizeY>91</_sizeY>
+      <adminState>on</adminState>
+      <rank></rank>
+      <id></id>
+      <components>app11</components>
+      <ServiceUnitType>ServiceUnit1</ServiceUnitType>
+    </ServiceUnit>
+    <Component xpath='/safplusAmf/Component[@name="app11"]' module='SAFplusAmf'>
+      <entityType>Component</entityType>
+      <recovery></recovery>
+      <restartable>True</restartable>
+      <timeouts>
+        <workAssignment>120000</workAssignment>
+        <workRemoval>120000</workRemoval>
+        <quiescingComplete>120000</quiescingComplete>
+      </timeouts>
+      <_sizeX>118</_sizeX>
+      <instantiate>
+        <command></command>
+        <timeout>120000</timeout>
+      </instantiate>
+      <terminate>
+        <command></command>
+        <timeout>120000</timeout>
+      </terminate>
+      <maxDelayedInstantiations>5</maxDelayedInstantiations>
+      <id></id>
+      <_sizeY>61</_sizeY>
+      <cleanup>
+        <command></command>
+        <timeout>120000</timeout>
+      </cleanup>
+      <maxStandbyAssignments>11</maxStandbyAssignments>
+      <proxy></proxy>
+      <maxActiveAssignments>1</maxActiveAssignments>
+      <maxInstantInstantiations>5</maxInstantInstantiations>
+      <serviceUnit>ServiceUnit111</serviceUnit>
+      <instantiationSuccessDuration>30</instantiationSuccessDuration>
+      <delayBetweenInstantiation>10000</delayBetweenInstantiation>
+      <capabilityModel></capabilityModel>
+      <name>app11</name>
+      <ComponentType>app</ComponentType>
+    </Component>
+  </instances>
 </SAFplusModel>

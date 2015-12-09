@@ -23,6 +23,9 @@ ProjectNewEvent, EVT_PROJECT_NEW = wx.lib.newevent.NewCommandEvent()
 class Project(microdom.MicroDom):
   def __init__(self, filename=None):
     self.dirty = False
+    self._safplusModel = None
+    self.datamodel = None
+    self.name = ""
     if filename: self.load(filename)
     pass
 
@@ -37,9 +40,15 @@ class Project(microdom.MicroDom):
     microdom.MicroDom.__init__(self,md.attributes_, md.children_, md.data_)
     # TODO validate the structure of the microdom tree
 
+  def setSAFplusModel(self,mdl):
+    self._safplusModel = mdl
+
   def save(self, filename=None):
     if not filename: filename = self.projectFilename
-    assert(0) # TODO
+    # TODO, save the project XML 
+
+    # Now save the model to XML
+    self._safplusModel.save()
 
   def new(self, datamodel):
     self.name = os.path.splitext(os.path.basename(self.projectFilename))[0]
@@ -47,17 +56,17 @@ class Project(microdom.MicroDom):
 
 
 class ProjectTreeCtrl(wx.TreeCtrl):
-    def __init__(self, parent, id, pos, size, style):
-        self.parent = parent
-        wx.TreeCtrl.__init__(self, parent, id, pos, size, style)
+  def __init__(self, parent, id, pos, size, style):
+    self.parent = parent
+    wx.TreeCtrl.__init__(self, parent, id, pos, size, style)
 
     def OnCompareItems(self, item1, item2):
-        t1 = self.GetItemText(item1)
-        t2 = self.GetItemText(item2)
-        self.log.write('compare: ' + t1 + ' <> ' + t2 + '\n')
-        if t1 < t2: return -1
-        if t1 == t2: return 0
-        return 1
+      t1 = self.GetItemText(item1)
+      t2 = self.GetItemText(item2)
+      self.log.write('compare: ' + t1 + ' <> ' + t2 + '\n')
+      if t1 < t2: return -1
+      if t1 == t2: return 0
+      return 1
 
 
 class ProjectTreePanel(wx.Panel):
@@ -191,7 +200,12 @@ class ProjectTreePanel(wx.Panel):
       wx.PostEvent(self.parent,evt)
 
   def OnSave(self,event):
-    pass
+    saved = []
+    for p in self.projects:
+      prj = self.tree.GetPyData(p)
+      prj.save()
+      saved.append(prj.name)
+    self.guiPlaces.statusbar.SetStatusText("Projects %s saved." % ", ".join(saved),0);
 
   def OnSaveAs(self,event):
     dlg = wx.FileDialog(

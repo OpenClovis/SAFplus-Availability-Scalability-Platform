@@ -1,5 +1,5 @@
 S7 := 1
-SAFPLUS_AMF_${name}:=1  # Identify what is being built, so safplus_targets does not override
+APP_COMPONENT_${name}:=1  # Identify what is being built, so safplus_targets does not override
 
 ifeq ($(SAFPLUS_SRC_DIR),)
 $(error You must run this as a submake or define the SAFPLUS_SRC_DIR environment variable)
@@ -12,7 +12,7 @@ CLIENT_SRC := $(wildcard *.cxx)
 CLIENT_OBJ := $(addprefix $(OBJ_DIR)/,$(subst .cxx,.o,$(CLIENT_SRC)))
 
 # Specify the required libraries
-SAFPLUS_LIBS := clAmf clMgt clRpc clName clCkpt clGroup clMsg clLog clUtils clOsal clFault clDbal
+SAFPLUS_LIBS := clAmf clMgt clRpc clName clCkpt clGroup clMsg clLog clUtils clOsal clTimer clFault clDbal
 # Then use these in the make rule
 SAFPLUS_DEP_LIBS     := $(addsuffix .so,$(addprefix $(LIB_DIR)/lib,$(SAFPLUS_LIBS)))
 SAFPLUS_LINK_LIBS := -L$(LIB_DIR) $(addprefix -l,$(SAFPLUS_LIBS))
