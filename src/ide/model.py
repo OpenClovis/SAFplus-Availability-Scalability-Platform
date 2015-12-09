@@ -261,6 +261,18 @@ instantiated  <instances>     instances                         instances     (e
     for (name,e) in self.entityTypes.items():
       e.context = self
 
+  def loadModuleFromFile(self, moduleFile):
+    """Load the modules specified in the model"""
+    if not self.modules.has_key(moduleFile):  # really load it since it does not exist
+      tmp = self.modules[moduleFile] = Module(moduleFile)
+      self.entityTypes.update(tmp.entityTypes)  # make the entity types easily accdef xmlify(self):
+      for (typName,data) in tmp.ytypes.items():
+        self.dataTypes[typName] = data
+
+    # Set the entityType's context to this model so it can resolve referenced types, etc.
+    for (name,e) in self.entityTypes.items():
+      e.context = self
+
   def defaultForType(self,typ):
     """Figure out a reasonable default for the passed type"""
     ret = defaultForBuiltinType.get(typ,None)  # Is the type a builtin?

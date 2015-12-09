@@ -12,7 +12,7 @@ import wx.aui
 import instanceEditor
 import entityDetailsDialog
 import umlEditor
-from project import Project, ProjectTreePanel, EVT_PROJECT_LOADED
+from project import Project, ProjectTreePanel, EVT_PROJECT_LOADED, EVT_PROJECT_NEW
 import common
 import model
 
@@ -38,6 +38,7 @@ class SAFplusFrame(wx.Frame):
         # bind the menu event to an event handler
         self.Bind(wx.EVT_MENU, self.OnTimeToClose, id=wx.ID_EXIT)
         self.Bind(EVT_PROJECT_LOADED, self.OnProjectLoaded)
+        self.Bind(EVT_PROJECT_NEW, self.OnProjectNew)
 
         # and put the menu on the menubar
         self.menuBar.Append(self.menu, "&File")
@@ -77,7 +78,9 @@ class SAFplusFrame(wx.Frame):
       self.model = {}
 
       # Now load the new one:
-      prj = self.project.active()
+      # prj = self.project.active()
+      prj = self.project.latest()
+      if not prj: return
       self.model[prj.name] = t = namedtuple('model','model uml instance details')
       # only 1 model file allowed for now
       t.model = model.Model()
@@ -92,6 +95,31 @@ class SAFplusFrame(wx.Frame):
       t.details = entityDetailsDialog.Panel(self.tab,self.guiPlaces.menubar, self.guiPlaces.toolbar, self.guiPlaces.statusbar, t.model,True)
       self.tab.AddPage(t.details, prj.name + " Instance Details")
 
+    def OnProjectNew(self,evt):
+      """Called when a new project is created"""
+      print "New project created"
+
+      # clean up -- if we support multi-projects this won't happen
+      self.cleanupTabs()
+      self.model = {}
+
+      # Now create the new one:
+      #prj = self.project.active()
+      prj = self.project.latest()
+      if not prj: return
+      self.model[prj.name] = t = namedtuple('model','model uml instance details')
+      # only 1 model file allowed for now
+      t.model = model.Model()
+      #modelFile = prj.model.children()[0].strip()
+      t.model.loadModuleFromFile(prj.datamodel)
+      t.uml = umlEditor.Panel(self.tab,self.guiPlaces.menubar, self.guiPlaces.toolbar, self.guiPlaces.statusbar, t.model)
+      self.tab.AddPage(t.uml, prj.name + " Modelling")
+      t.details = entityDetailsDialog.Panel(self.tab,self.guiPlaces.menubar, self.guiPlaces.toolbar, self.guiPlaces.statusbar, t.model,False)
+      self.tab.AddPage(t.details, prj.name + " Model Details")
+      t.instance = instanceEditor.Panel(self.tab,self.guiPlaces.menubar, self.guiPlaces.toolbar, self.guiPlaces.statusbar, t.model)
+      self.tab.AddPage(t.instance, prj.name + " Instantiation")
+      t.details = entityDetailsDialog.Panel(self.tab,self.guiPlaces.menubar, self.guiPlaces.toolbar, self.guiPlaces.statusbar, t.model,True)
+      self.tab.AddPage(t.details, prj.name + " Instance Details")
 
     def OnTimeToClose(self, evt):
       """Event handler for the button click"""
