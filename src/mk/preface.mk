@@ -103,6 +103,7 @@ TEST_DIR ?= $(SAFPLUS_TARGET)/test
 LIB_DIR ?= $(SAFPLUS_TARGET)/lib
 PLUGIN_DIR ?= $(SAFPLUS_TARGET)/plugin
 BIN_DIR ?= $(SAFPLUS_TARGET)/bin
+IDE_DIR ?= $(BIN_DIR)/ide
 # All objects that should end up into libmw.so:
 MWOBJ_DIR ?= $(SAFPLUS_TARGET)/mwobj
 # All other objects

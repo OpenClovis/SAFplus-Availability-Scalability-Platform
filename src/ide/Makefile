@@ -3,7 +3,27 @@ include ../mk/preface.mk
 
 Release all: ide
 
-ide:
+PYTHON_FILES := $(wildcard *.py)
+# $(warning $(PYTHON_FILES))
+PYTHON_OBJECTS := $(addprefix $(IDE_DIR)/,$(subst .py,.pyc,$(PYTHON_FILES)))
+# $(warning $(PYTHON_OBJECTS))
+
+ide: $(PYTHON_OBJECTS) $(BIN_DIR)/safplus_ide $(IDE_DIR)/SAFplusAmf.yang
+	cp -rf resources $(IDE_DIR)
+
+$(IDE_DIR)/SAFplusAmf.yang: $(SAFPLUS_SRC_DIR)/yang/SAFplusAmf.yang
+	cp -f $< $@
+
+$(BIN_DIR)/safplus_ide: safplus_ide 
+	cp -f safplus_ide $(BIN_DIR)/safplus_ide
+
+$(IDE_DIR)/%.pyc: %.py
+	mkdir -p $(IDE_DIR)
+	python -m compileall $<
+	cp $<c $@
+
+
+codeblocks_ide:
 	INSTALL_DIR=$(INSTALL_DIR) $(SAFPLUS_CODEBLOCKS_BIN_DIR)codeblocks --build ide.cbp
 
 clean:
