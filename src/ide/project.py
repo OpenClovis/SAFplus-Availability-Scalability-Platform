@@ -49,7 +49,7 @@ class Project(microdom.MicroDom):
     self.name = os.path.splitext(os.path.basename(filename))[0]
     md = microdom.LoadFile(filename)
     microdom.MicroDom.__init__(self,md.attributes_, md.children_, md.data_)    
-    # TODO validate the structure of the microdom tree
+    # TODO validate the structure of the microdom treeguiPlaces
 
   def setSAFplusModel(self,mdl):
     self._safplusModel = mdl
@@ -167,15 +167,16 @@ class ProjectTreePanel(wx.Panel):
         self.tree.SetPyData(self.root, None)
 
         # Insert my tools etc into the GUI
-        menu = guiPlaces.menu["File"]
-        menu.Append(wx.ID_NEW, "&New\tAlt-n", "New Project")
-        menu.Append(PROJECT_LOAD, "L&oad\tAlt-l", "Load Project")
-        menu.Append(PROJECT_SAVE, "S&ave\tAlt-s", "Save Project")
+        self.fileMenu = guiPlaces.menu["File"]
+        self.fileMenu.Append(wx.ID_NEW, "&New\tAlt-n", "New Project")
+        self.fileMenu.Append(PROJECT_LOAD, "L&oad\tAlt-l", "Load Project")
+        self.fileMenu.Append(PROJECT_SAVE, "S&ave\tAlt-s", "Save Project")
+        self.fileMenu.Enable(PROJECT_SAVE, False)
 
         # bind the menu event to an event handler
-        menu.Bind(wx.EVT_MENU, self.OnNew, id=wx.ID_NEW)
-        menu.Bind(wx.EVT_MENU, self.OnLoad, id=PROJECT_LOAD)
-        menu.Bind(wx.EVT_MENU, self.OnSave, id=PROJECT_SAVE)
+        self.fileMenu.Bind(wx.EVT_MENU, self.OnNew, id=wx.ID_NEW)
+        self.fileMenu.Bind(wx.EVT_MENU, self.OnLoad, id=PROJECT_LOAD)
+        self.fileMenu.Bind(wx.EVT_MENU, self.OnSave, id=PROJECT_SAVE)
 
   def active(self):
     i = self.tree.GetSelections()
@@ -255,6 +256,7 @@ class ProjectTreePanel(wx.Panel):
         self.populateGui(project, self.root)
       evt = ProjectLoadedEvent(EVT_PROJECT_LOADED.evtType[0])
       wx.PostEvent(self.parent,evt)
+      self.fileMenu.Enable(PROJECT_SAVE, True)
 
   def OnNew(self,event):
     dlg = NewPrjDialog()
@@ -268,6 +270,7 @@ class ProjectTreePanel(wx.Panel):
       self.populateGui(project, self.root)
       evt = ProjectNewEvent(EVT_PROJECT_NEW.evtType[0])
       wx.PostEvent(self.parent,evt)
+      self.fileMenu.Enable(PROJECT_SAVE, True)
 
   def OnSave(self,event):
     saved = []
