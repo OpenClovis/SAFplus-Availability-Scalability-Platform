@@ -1189,9 +1189,8 @@ clCkptSecFindNDelete(CkptT             *pCkpt,
                                    (ClCntDataHandleT) pKey);
     if( CL_OK != rc )
     {        
-        clLogError(CL_CKPT_AREA_ACTIVE, CL_CKPT_CTX_CKPT_OPEN, 
-                   "Failed to delete section [%.*s] rc [0x %x]",
-                   pKey->scnId.idLen, pKey->scnId.id, rc);
+        clLogWarning(CL_CKPT_AREA_ACTIVE, CL_CKPT_CTX_CKPT_OPEN, "Failed to delete section [%.*s] rc [0x%x]", pKey->scnId.idLen, pKey->scnId.id,
+               rc);
         if( CL_GET_ERROR_CODE(rc) == CL_ERR_NOT_EXIST )
         {
             rc = CL_CKPT_ERR_NOT_EXIST;
@@ -1245,9 +1244,8 @@ ClRcT VDECL_VER(_ckptSectionDelete, 4, 0, 0)( ClCkptHdlT 	    ckptHdl,
     rc = clCkptSectionLevelDelete(ckptHdl, pCkpt, pSecId, srcClient);
     if( CL_OK != rc )
     {
-        clLogError(CL_CKPT_AREA_ACTIVE, CL_CKPT_CTX_CKPT_OPEN, 
-                "Failed to delete the section [%.*s]", 
-                pSecId->idLen, pSecId->id);
+        clLogWarning(CL_CKPT_AREA_ACTIVE, CL_CKPT_CTX_CKPT_OPEN, "Failed to delete the section [%.*s] rc [0x%x]", pSecId->idLen, pSecId->id,
+                     rc);
     }
     CKPT_UNLOCK(pCkpt->ckptMutex);
 
@@ -4736,10 +4734,8 @@ clCkptSectionLevelDelete(ClCkptHdlT        ckptHdl,
     rc = clCkptSecFindNDelete(pCkpt, pSecId);
     if( CL_OK != rc )
     {
-        clLogError(CL_CKPT_AREA_ACTIVE, CL_CKPT_CTX_CKPT_OPEN, 
-                "Deletion of section [%.*s] of ckpt [%.*s] failed", 
-                pSecId->idLen, pSecId->id, pCkpt->ckptName.length,
-                pCkpt->ckptName.value);
+        clLogWarning(CL_CKPT_AREA_ACTIVE, CL_CKPT_CTX_CKPT_OPEN, "Deletion of section [%.*s] of ckpt [%.*s] failed rc [0x%x]", pSecId->idLen,
+                     pSecId->id, pCkpt->ckptName.length, pCkpt->ckptName.value, rc);
         clCkptSectionLevelUnlock(pCkpt, pSecId, sectionLockTaken);
         return rc;
     }

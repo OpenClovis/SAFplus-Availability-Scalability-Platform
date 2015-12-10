@@ -1967,8 +1967,9 @@ ClRcT clCkptSectionDelete(ClCkptHdlT               ckptHdl,
                     version.minorVersion);
           rc = CL_CKPT_ERR_VERSION_MISMATCH;             
     }
+#if 0
     CKPT_ERR_CHECK(CL_CKPT_LIB,CL_DEBUG_ERROR, ("Ckpt: Section delete error rc[0x %x]\n",rc), rc);
-    
+#endif
 exitOnError:
     {
         CL_ASSERT(tempSecId.id);

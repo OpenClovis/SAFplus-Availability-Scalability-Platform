@@ -1925,9 +1925,8 @@ ClRcT _ckptSectionTimerCallback(void *pArg)
     rc = clCkptSectionLevelDelete(pSecInfo->ckptHdl, pCkpt, &pSecInfo->secId, 0);
     if( CL_OK != rc )
     {
-        clLogError(CL_CKPT_AREA_ACTIVE, CL_CKPT_CTX_CKPT_OPEN, 
-                "Failed to delete the section [%.*s]", 
-                pSecInfo->secId.idLen, pSecInfo->secId.id);
+        clLogWarning(CL_CKPT_AREA_ACTIVE, CL_CKPT_CTX_CKPT_OPEN, "Failed to delete the section [%.*s] rc [0x%x]", pSecInfo->secId.idLen,
+                     pSecInfo->secId.id, rc);
     }
     CKPT_UNLOCK(pCkpt->ckptMutex);
 
