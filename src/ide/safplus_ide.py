@@ -111,8 +111,10 @@ class SAFplusFrame(wx.Frame):
       self.model[prj.name] = t = namedtuple('model','model uml instance details')
       # only 1 model file allowed for now
       t.model = model.Model()
-      #modelFile = prj.model.children()[0].strip()
-      t.model.loadModuleFromFile(prj.datamodel)
+      prj.setSAFplusModel(t.model)
+      modelFile = os.path.join(prj.directory(), prj.model.children()[0].strip())
+      #t.model.loadModuleFromFile(prj.datamodel)
+      t.model.load(modelFile)
       t.uml = umlEditor.Panel(self.tab,self.guiPlaces.menubar, self.guiPlaces.toolbar, self.guiPlaces.statusbar, t.model)
       self.tab.AddPage(t.uml, prj.name + " Modelling")
       t.details = entityDetailsDialog.Panel(self.tab,self.guiPlaces.menubar, self.guiPlaces.toolbar, self.guiPlaces.statusbar, t.model,False)
