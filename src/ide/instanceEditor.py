@@ -715,12 +715,11 @@ class Margin:
 
 
 class Panel(scrolled.ScrolledPanel):
-    def __init__(self, parent,menubar,toolbar,statusbar,model):
+    def __init__(self, parent,guiPlaces,model,**cfg):
       global dbgPanel
       dbgPanel = self
       scrolled.ScrolledPanel.__init__(self, parent, style = wx.TAB_TRAVERSAL|wx.SUNKEN_BORDER)
       share.instancePanel = self
-
       self.addBmp = svg.SvgFile("add.svg").instantiate((24,24), {})
 
       # self.displayGraph = networkx.Graph()
@@ -737,9 +736,10 @@ class Panel(scrolled.ScrolledPanel):
 
       self.Bind(wx.EVT_PAINT, self.OnPaint)
 
-      self.menuBar = menubar
-      self.toolBar = toolbar
-      self.statusBar = statusbar
+      self.guiPlaces = guiPlaces
+      self.menuBar = self.guiPlaces.menubar
+      self.toolBar = self.guiPlaces.toolbar
+      self.statusBar = self.guiPlaces.statusbar
       self.model=model
       self.tool = None  # The current tool
       self.drawers = set()

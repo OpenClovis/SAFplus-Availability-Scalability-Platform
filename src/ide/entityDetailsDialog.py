@@ -234,10 +234,10 @@ class NumberObjectValidator(GenericObjectValidator):
 
 
 class Panel(scrolled.ScrolledPanel):
-    def __init__(self, parent,menubar,toolbar,statusbar,model, isDetailInstance = False):
+    def __init__(self, parent,guiPlaces,model, **kw):
         global thePanel
         scrolled.ScrolledPanel.__init__(self, parent, style = wx.TAB_TRAVERSAL|wx.SUNKEN_BORDER)
-
+        
         #? Set to True if you want to only show the config items, set to false if you want to show config and runtime items
         self.configOnly = True
 
@@ -248,6 +248,7 @@ class Panel(scrolled.ScrolledPanel):
         self.SetScrollRate(10, 10)
 
         self.model = model
+        self.guiPlaces = guiPlaces
         self.lockedSvg = svg.SvgFile("locked.svg") 
         self.unlockedSvg = svg.SvgFile("unlocked.svg") 
         self.helpSvg = svg.SvgFile("help.svg") 
@@ -268,7 +269,7 @@ class Panel(scrolled.ScrolledPanel):
   
         # for the data entry
         # self.Bind(wx.EVT_TEXT, self.EvtText)
-        self.isDetailInstance = isDetailInstance
+        self.isDetailInstance = kw.get("isDetailInstance",False)
         self.entityTreeTypes = ["ServiceGroup", "Node", "ServiceUnit", "ServiceInstance"]
 
         # Create the InfoBar to show error message

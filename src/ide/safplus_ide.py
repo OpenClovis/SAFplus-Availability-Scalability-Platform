@@ -27,6 +27,10 @@ class SAFplusFrame(wx.Frame):
         self.menuBar = wx.MenuBar()
         # and a menu 
         self.menu = wx.Menu()
+        self.menuModelling = wx.Menu()
+        self.menuInstantiation = wx.Menu()
+        self.menuWindows = wx.Menu()
+        self.menuHelp = wx.Menu()
         # and a toolbar
         self.tb = self.CreateToolBar()
         self.tb.SetToolBitmapSize((24,24))
@@ -42,11 +46,16 @@ class SAFplusFrame(wx.Frame):
 
         # and put the menu on the menubar
         self.menuBar.Append(self.menu, "&File")
+        self.menuBar.Append(self.menuModelling, "&Modelling")
+        self.menuBar.Append(self.menuInstantiation, "&Instantiation")
+        self.menuBar.Append(self.menuWindows, "&Windows")
+        self.menuBar.Append(self.menuHelp, "&Help")
+
         self.SetMenuBar(self.menuBar)
 
         self.sb = self.CreateStatusBar()
         
-        self.guiPlaces = common.GuiPlaces(self.menuBar, self.tb, self.sb, { "File": self.menu }, None)
+        self.guiPlaces = common.GuiPlaces(self.menuBar, self.tb, self.sb, { "File": self.menu, "Modelling":self.menuModelling, "Instantiation":self.menuInstantiation, "Windows": self.menuWindows, "Help": self.menuHelp }, None)
 
         # Now create the Panel to put the other controls on.
         panel = self.panel = None # panelFactory(self,menuBar,tb,sb) # wx.Panel(self)
@@ -87,13 +96,13 @@ class SAFplusFrame(wx.Frame):
       prj.setSAFplusModel(t.model)
       modelFile = os.path.join(prj.directory(), prj.model.children()[0].strip())
       t.model.load(modelFile)
-      t.uml = umlEditor.Panel(self.tab,self.guiPlaces.menubar, self.guiPlaces.toolbar, self.guiPlaces.statusbar, t.model)
+      t.uml = umlEditor.Panel(self.tab,self.guiPlaces, t.model)
       self.tab.AddPage(t.uml, prj.name + " Modelling")
-      t.details = entityDetailsDialog.Panel(self.tab,self.guiPlaces.menubar, self.guiPlaces.toolbar, self.guiPlaces.statusbar, t.model,False)
+      t.details = entityDetailsDialog.Panel(self.tab,self.guiPlaces, t.model,isDetailInstance=False)
       self.tab.AddPage(t.details, prj.name + " Model Details")
-      t.instance = instanceEditor.Panel(self.tab,self.guiPlaces.menubar, self.guiPlaces.toolbar, self.guiPlaces.statusbar, t.model)
+      t.instance = instanceEditor.Panel(self.tab,self.guiPlaces, t.model)
       self.tab.AddPage(t.instance, prj.name + " Instantiation")
-      t.details = entityDetailsDialog.Panel(self.tab,self.guiPlaces.menubar, self.guiPlaces.toolbar, self.guiPlaces.statusbar, t.model,True)
+      t.details = entityDetailsDialog.Panel(self.tab,self.guiPlaces, t.model,isDetailInstance=True)
       self.tab.AddPage(t.details, prj.name + " Instance Details")
 
     def OnProjectNew(self,evt):

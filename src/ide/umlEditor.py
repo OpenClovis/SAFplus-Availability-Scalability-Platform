@@ -747,8 +747,9 @@ class DeleteTool(Tool):
 dbgUep = None
 
 class Panel(scrolled.ScrolledPanel):
-    def __init__(self, parent,menubar,toolbar,statusbar,model):
+    def __init__(self, parent,guiPlaces,model,**cfg):
       scrolled.ScrolledPanel.__init__(self, parent, style = wx.TAB_TRAVERSAL|wx.SUNKEN_BORDER)
+      self.guiPlaces = guiPlaces
       self.SetupScrolling(True, True)
       self.SetScrollRate(10, 10)
       self.Bind(wx.EVT_SIZE, self.OnReSize)
@@ -758,9 +759,9 @@ class Panel(scrolled.ScrolledPanel):
       share.umlEditorPanel = self
 
       dbgUep = self 
-      self.menuBar = menubar
-      self.toolBar = toolbar
-      self.statusBar = statusbar
+      self.menuBar = self.guiPlaces.menubar
+      self.toolBar = self.guiPlaces.toolbar
+      self.statusBar = self.guiPlaces.statusbar
       self.model=model
       self.tool = None  # The current tool
       self.drawers = set()
@@ -852,15 +853,21 @@ class Panel(scrolled.ScrolledPanel):
       sortedEt = self.model.entityTypes.items()  # Do this so the buttons always appear in the same order
       sortedEt.sort()
       #buttonIdx = ENTITY_TYPE_BUTTON_START
+      menu = self.guiPlaces.menu.get("Modelling",None)
       for et in sortedEt:
         buttonIdx = wx.NewId()
-        bitmap = et[1].buttonSvg.bmp(tsize, { "name":et[0][0:3] }, (222,222,222,wx.ALPHA_OPAQUE))  # Use the first 3 letters of the name as the button text if nothing
+        name = et[0]
+        bitmap = et[1].buttonSvg.bmp(tsize, { "name":name[0:3] }, (222,222,222,wx.ALPHA_OPAQUE))  # Use the first 3 letters of the name as the button text if nothing
         shortHelp = et[1].data.get("shortHelp",None)
         longHelp = et[1].data.get("help",None)
         #self.toolBar.AddLabelTool(11, et[0], bitmap, shortHelp=shortHelp, longHelp=longHelp)
         self.toolBar.AddRadioTool(buttonIdx, bitmap, wx.NullBitmap, shortHelp=et[0], longHelp=longHelp,clientData=et)
         self.idLookup[buttonIdx] = EntityTypeTool(self,et[1])  # register this button so when its clicked we know about it
         #buttonIdx+=1
+        if menu: # If there's a menu for these entity tools, then add the object to the menu as well
+          menu.Append(buttonIdx, name, name)
+          menu.Bind(wx.EVT_MENU, self.OnToolMenu, id=buttonIdx)
+
         et[1].buttonIdx = buttonIdx
       self.toolBar.Realize()
 
@@ -869,6 +876,10 @@ class Panel(scrolled.ScrolledPanel):
       if self.tool:
         handled = self.tool.OnEditEvent(self, event)
       event.Skip(not handled)  # if you pass false, event will not be processed anymore
+
+    def OnToolMenu(self,event):
+      print "On Tool Menu"
+      self.OnToolClick(event)
 
     def OnToolClick(self,event):
       co = event.GetClientObject()
