@@ -3116,7 +3116,9 @@ static ClRcT clAmsAuditNode(ClAmsNodeT *node, ClPtrT arg)
                         "whose db state is still present",
                         node->config.entity.name.value);
             *dirty = CL_TRUE;
-            clAmsPeNodeHasLeftCluster(node, CL_FALSE);
+            //clAmsPeNodeHasLeftCluster(node, CL_FALSE);
+            // ??? terminate all SUs on this node since switchover done - No CPML entry present
+            clAmsPeNodeIsLeavingClusterCallback_Step1(node, CL_OK);
         }
     }
     return CL_OK;
