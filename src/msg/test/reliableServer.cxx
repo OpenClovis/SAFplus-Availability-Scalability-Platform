@@ -108,14 +108,14 @@ int main(int argc, char* argv[])
       clTestCaseStart(("MXP-%3s-%3s.TC001: initialization",MsgXportTestPfx,ModeStr));
       MsgTransportConfig xCfg = xp->initialize(msgPool,clusterNodes);
       logInfo("TST","MSG","Msg Transport [%s], node [%u] maxPort [%u] maxMsgSize [%u]", xp->type, xCfg.nodeId, xCfg.maxPort, xCfg.maxMsgSize);
-      MsgSocketServerReliable sockServer(3,xp);
-      MsgSocketClientReliable* connectionSocket = sockServer.accept();
+      MsgReliableSocketServer sockServer(37,xp);
+      MsgReliableSocketClient* connectionSocket = sockServer.accept();
       logInfo("TST","MSG","wait to receive from sender"	);
       while(1)
       {
         //int receiveByte=count*receiveLen;
         logInfo("TST","MSG","read...");
-        Message* msg= connectionSocket->receiveMultipleFragment(1);
+        Message* msg= connectionSocket->receive(1);
         logInfo("TST","MSG","read done...");
         MsgFragment* frag =  msg->firstFragment;
         logInfo("TST","MSG","first frag len [%d]...",frag->len);
@@ -131,3 +131,4 @@ int main(int argc, char* argv[])
      }
   }
 }
+
