@@ -3,13 +3,13 @@
 #define DEFAULT_SEND_QUEUE_SIZE      320;
 #define DEFAULT_RECV_QUEUE_SIZE      320;
 #define DEFAULT_SEGMENT_SIZE         64000;
-#define DEFAULT_OUTSTANDING_SEGS     3;
-#define DEFAULT_RETRANS              3;
+#define DEFAULT_NAK_FRAG     3;
+#define DEFAULT_RETRANS              9;
 #define DEFAULT_CUMULATIVE_ACKS      2;
-#define DEFAULT_OUT_OF_SEQUENCE      2;
+#define DEFAULT_OUT_OF_SEQUENCE      3;
 #define DEFAULT_AUTO_RESET           3;
 #define DEFAULT_NULL_SEGMENT_TIMEOUT     200;
-#define DEFAULT_RETRANSMISSION_TIMEOUT   600;
+#define DEFAULT_RETRANSMISSION_TIMEOUT   800;
 #define DEFAULT_CUMULATIVE_ACK_TIMEOUT   300;
 
 namespace SAFplus
@@ -20,7 +20,7 @@ namespace SAFplus
     pMaxSndListSize = DEFAULT_SEND_QUEUE_SIZE;
     pMaxRcvListSize = DEFAULT_RECV_QUEUE_SIZE;
     pMaxFragmentSize = DEFAULT_SEGMENT_SIZE;
-    pMaxNAKFragments = DEFAULT_OUTSTANDING_SEGS;
+    pMaxNAKFragments = DEFAULT_NAK_FRAG;
     pMaxRetrans = DEFAULT_RETRANS;
     pMaxCumulativeAcks = DEFAULT_CUMULATIVE_ACKS;
     pMaxOutOfSequence = DEFAULT_OUT_OF_SEQUENCE;

@@ -300,6 +300,9 @@ namespace SAFplus
   class MsgReliableSocketClient : public MsgReliableSocket
   {
   public:
+    ReliableFragmentList fragmentQueue;
+    SAFplus::Mutex fragmentQueueLock;
+    ThreadCondition fragmentQueueCond;
     MsgReliableSocketServer *sockServer;
     MsgReliableSocketClient(MsgSocket* socket) : MsgReliableSocket(socket)
     {
@@ -331,10 +334,8 @@ namespace SAFplus
     ReliableSocketList listenSock;
     ThreadCondition listenSockCond;
     virtual void send(Message* msg);
+    void connect(Handle destination, int timeout);
     SAFplus::Mutex listenSockMutex;
-    ReliableFragmentList fragmentQueue;
-    SAFplus::Mutex fragmentQueueLock;
-    ThreadCondition fragmentQueueCond;
     MsgReliableSocketClient* accept();
     typedef boost::unordered_map < SAFplus::Handle, MsgReliableSocketClient*, boost::hash<SAFplus::Handle>, std::equal_to<SAFplus::Handle> > HandleSockMap;
     HandleSockMap clientSockTable;
