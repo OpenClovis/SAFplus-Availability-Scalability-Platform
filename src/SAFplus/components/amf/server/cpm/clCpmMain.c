@@ -1131,6 +1131,11 @@ static ClRcT clCpmFinalize(void)
 
     clTimeServerFinalize();
 
+    /*
+     * Shut down the node ... Shouldn't return
+     */
+    exit(0);
+
     return rc;
 
   withlock:
