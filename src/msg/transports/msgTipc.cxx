@@ -23,9 +23,6 @@ namespace SAFplus
   class Tipc:public MsgTransportPlugin_1
     {
   public:
-    in_addr_t netAddr;
-    in_addr_t broadcastAddr; //TODO: Need to update broadcast address
-    uint32_t nodeMask;
     Tipc(); 
 
    //? This needs to be available before initialize()
@@ -77,17 +74,9 @@ namespace SAFplus
       config.capabilities = SAFplus::MsgTransportConfig::Capabilities::BROADCAST;  // not reliable, can't tell if anything joins or leaves...
       }
     else config.capabilities = SAFplus::MsgTransportConfig::Capabilities::NONE;
-    std::pair<in_addr,in_addr> ipAndBcast = SAFplusI::setNodeNetworkAddr(&nodeMask,clusterNodes); // This function sets SAFplus::ASP_NODEADDR
-    struct in_addr bip = ipAndBcast.first;
-    broadcastAddr = ntohl(ipAndBcast.second.s_addr); // devToBroadcastAddress("xxx");
-    if ((broadcastAddr == 0)&&(!cn))
-      {
-        int err = errno;
-        throw Error(Error::SAFPLUS_ERROR,Error::MISCONFIGURATION, "Broadcast is not enabled on the backplane interface, but the node list (cloud mode) is not enabled.",__FILE__,__LINE__);
-      }
 
+    SAFplusI::setNodeNetworkAddr(NULL,clusterNodes); // This function sets SAFplus::ASP_NODEADDR
     config.nodeId = SAFplus::ASP_NODEADDR;
-    netAddr = ntohl(bip.s_addr)&(~nodeMask);
  
     return config;
     }

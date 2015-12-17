@@ -159,11 +159,11 @@ else
 XconfNETSNMP_PKG:=
 endif
 
-libs: $(InstDir) $(LIBXML2) $(BOOST) 
+libs: $(InstDir) $(LIBXML2) $(BOOST) protobufs
 	echo building libs
 
 # $(NETSNMP)  $(OPENHPI) $(OPENHPISUBAGENT)
-all: $(InstDir) $(LIBXML2) $(BOOST) 
+all: $(InstDir) $(LIBXML2) $(BOOST) protobufs
 
 wipe:
 	rm -rf $(LIBXML2)-$(LIBXML2_VER)
@@ -173,7 +173,7 @@ $(InstDir):
 	mkdir -p $@
 
 protobuf:
-	git clone git@github.com:google/protobuf.git
+	git clone https://github.com/google/protobuf.git
 	(cd protobuf; git checkout -b $(PROTOBUF_VER) $(PROTOBUF_VER))
 	(cd protobuf; ./autogen.sh)
 
