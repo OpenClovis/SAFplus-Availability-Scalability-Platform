@@ -123,13 +123,24 @@ ClRcT clDbalConfigInitialize(void* pDbalConfiguration)
     return(CL_OK);
 }
 
+void errorLogCallback(void *pArg, int iErrCode, const char *zMsg)
+{
+    printf("(%d) %s\n", iErrCode, zMsg);
+    clLogError("DBA", "DBO", "(%d) %s\n", iErrCode, zMsg);
+}
+
 static ClRcT cdbSQLiteDBInitialize(ClDBFileT dbEnvFile)
 {
     /* 
      * No need for configuration as of now.
      * Defining these functions to do any configuration in the future.
      */
-
+    int rc = sqlite3_config(SQLITE_CONFIG_LOG, errorLogCallback, NULL);
+    if (rc != 0)
+    {
+        printf("Setting up the error logging callback failed. rc [%d]\n", rc);
+        clLogNotice("DBA", "INI", "Setting up the error logging callback failed. rc [%d]", rc);        
+    }
     return CL_OK;
 }
 
