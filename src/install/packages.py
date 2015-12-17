@@ -439,8 +439,8 @@ class OS:
 
         sqlite = objects.BuildDep()
         sqlite.name          = 'sqlite'
-        sqlite.version       = '3.6.7'
-        sqlite.pkg_name      = 'sqlite-3.6.7.tar.gz'
+        sqlite.version       = '3.6.23'
+        sqlite.pkg_name      = 'sqlite-3.6.23.tar.gz'
 
         log = self.log_string_for_dep(sqlite.name)
 
