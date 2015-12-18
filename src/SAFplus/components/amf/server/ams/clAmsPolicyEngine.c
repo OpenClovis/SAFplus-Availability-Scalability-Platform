@@ -3792,13 +3792,28 @@ clAmsPeNodeSwitchoverWork(
 
     if(numSUs)
     {
+        /* If the system controller not cleaned the node status properly, any sus ruuning on that node have an active Ha state, 
+         * standy sus ruuning in other nodes will not provide services to user.  
+         * An active system controller need to remove remaining sus work present in that node even an error occured 
+         * during the node switchoverwork process.
+         */
         while(!CL_LIST_HEAD_EMPTY(&suListHead))
         {
             ClListHeadT *head = suListHead.pNext;
             ClAmsNodeSUListT *entry = CL_LIST_ENTRY(head, ClAmsNodeSUListT, list);
             ClAmsSUT *su = entry->su;
             clListDel(head);
-            AMS_CHECK_RC_ERROR ( clAmsPeSUSwitchoverWork(su, switchoverMode) );
+            /* Active System controller cleanup the su for which work removed was failed.
+             * See the bug-322 in cloviszilla.
+             * Work remove may failed due to non reachable of the node where the next standby su is running or master AMS database was 
+             * corrupted by using dynamic HA apis.
+             */
+            rc = clAmsPeSUSwitchoverWork(su, switchoverMode);
+            if(rc != CL_OK)
+            {
+                clAmsPeSUCleanup(su);
+            }
+
         }
     }
     else

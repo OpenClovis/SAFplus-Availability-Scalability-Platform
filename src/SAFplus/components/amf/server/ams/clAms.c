@@ -829,7 +829,42 @@ ClRcT clAmsCheckNodeJoinState(const ClCharT *pNodeName)
            &&
            node->status.presenceState == CL_AMS_PRESENCE_STATE_INSTANTIATED)
         {
+            /* If the failover/error node comes up again and send a request to join the cluster.
+             * Active system controller will cleanup all sus present in that node and reset the node status if the sucleanup call is 
+             * successful.
+             */
+
+            ClTimerTimeOutT delay = {.tsSec = 0, .tsMilliSec = 100};
+            ClAmsNodeClusterMemberT isClusterMember;
+            ClBoolT wasMemberBefore;
+
+            /* Below part of code is executed repeatedly when the node contains corrupted/broken entity relationship among SU CSI, SI 
+             * and Components. This delay is useful in reducing the cpu utilization */
+            clOsalTaskDelay(delay);
             clLogNotice("NODE", "JOIN", "Returning try again as node [%s] is being failed over", pNodeName);
+            if(node->status.numInstantiatedSUs || node->status.numAssignedSUs)
+            {
+                ClRcT ret = CL_OK;
+                ClAmsEntityRefT *entityRef;
+                for(entityRef = clAmsEntityListGetFirst(&node->config.suList); entityRef != (ClAmsEntityRefT *) NULL;
+                    entityRef = clAmsEntityListGetNext(&node->config.suList,entityRef))
+                {
+                   ClAmsSUT *su = (ClAmsSUT *) entityRef->ptr;
+                   clLogInfo("NODE", "JOIN", " SU presencestate is %s",CL_AMS_STRING_P_STATE(su->status.presenceState));
+                   if(su && su->status.presenceState != CL_AMS_PRESENCE_STATE_UNINSTANTIATED)
+                   {
+                      ret |= clAmsPeSUCleanup(su);
+                   }
+                }
+                 if(ret == CL_OK)
+                {
+                    wasMemberBefore = node->status.wasMemberBefore;
+                    isClusterMember = node->status.isClusterMember;
+                    clAmsEntityReset((ClAmsEntityT *) node);
+                    node->status.wasMemberBefore = wasMemberBefore;
+                    node->status.isClusterMember = isClusterMember;
+                }
+            }
             rc = CL_AMS_RC(CL_ERR_TRY_AGAIN);
             goto out_unlock;
         }
