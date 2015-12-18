@@ -100,10 +100,11 @@ def start_watchdog():
     # check whether watchdog exist 
     watchdog_pid = get_watchdog_pid()
     if not watchdog_pid:
-        if TipcSettings=='enforce': 
-          safplus_tipc.unload_tipc_module()
-        if TipcSettings!='ignore': 
-          safplus_tipc.load_config_tipc_module()
+        if safplus_tipc.checkTipc():
+          if TipcSettings=='enforce': 
+            safplus_tipc.unload_tipc_module()
+          if TipcSettings!='ignore': 
+            safplus_tipc.load_config_tipc_module()
         set_ld_library_paths()
 
         codeBootFile = safplus.SAFPLUS_RUN_DIR + '/' + safplus.SAFPLUS_CODEBOOT_FILE 

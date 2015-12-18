@@ -260,7 +260,6 @@ class OS:
 
         TIPC = objects.BuildDep()
         TIPC.name           = 'tipc'
-
         if cmp_version(self.kernelVerString, "2.7") < 0:
             if cmp_version(self.kernelVerString, "2.6.39") > 0:
                 TIPC.version        = '2.0'
@@ -611,6 +610,13 @@ class RedHat6(OS):
             D = objects.RepoDep(name)
             self.pre_dep_list.append(D)
 
+class RedHat7(RedHat6):
+  def pre_init(self):
+    self.name = 'Red Hat 7'
+    self.yum = True
+ 
+
+
 # ------------------------------------------------------------------------------
 class CentOS4(OS):
     
@@ -697,6 +703,12 @@ class CentOS6(OS):
         # Add a repo dependency that allows either package to be installed
         D = objects.RepoDep(['kernel-headers','kernel-ml-headers'])
         self.pre_dep_list.append(D)
+
+class CentOS7(CentOS6):
+  def pre_init(self):
+        self.name = 'CentOS 7'
+        self.yum = True
+        
 
 
 # ------------------------------------------------------------------------------
@@ -895,11 +907,13 @@ def determine_os():
                 if 'release 4' in fdata: return CentOS4()
                 if 'release 5' in fdata: return CentOS5()
                 if 'release 6' in fdata: return CentOS6()
+                if 'release 7' in fdata: return CentOS7()
             else: 
                 # must be redhat
                 if 'release 4' in fdata: return RedHat4()
                 if 'release 5' in fdata: return RedHat5()
                 if 'release 6' in fdata: return RedHat6()
+                if 'release 7' in fdata: return RedHat7()
         
         # SUSE
         if os.path.isfile('/etc/SuSE-release'):
