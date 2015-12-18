@@ -116,8 +116,8 @@ void* csa103CkptActive(ClPtrT unused)
 
     /* Attempt to recover the state of the prior active */
     checkpoint_read_seq(&seq);
-    
-    while (!unblockNow)
+    /* When the work assignment is removed,  Active component shouldn't write the data into check-point */ 
+    while((!unblockNow) && (ha_state ==SA_AMF_HA_ACTIVE))
     {
         clprintf(CL_LOG_SEV_INFO,"Hello World! (seq=%d)", seq++);            
         /* Checkpoint new sequence number */
