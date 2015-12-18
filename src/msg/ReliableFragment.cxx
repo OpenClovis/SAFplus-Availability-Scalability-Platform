@@ -53,17 +53,18 @@ namespace SAFplus
   }
   int ReliableFragment::setHeader(void* ptr)
   {
-    //logTrace("MSG","FRT","parse HEADER fragment");
     ((Byte*)ptr)[0] = (Byte) (controlFlag & 0xFF);
-    ((Byte*)ptr)[1] = (Byte) (fragmentId & 0xFF);
-    ((Byte*)ptr)[2] = (Byte) (ackNumber & 0xFF);
+    ((Byte*)ptr)[1] = (Byte)((fragmentId >> 8) & 0xFF);
+    ((Byte*)ptr)[2] = (Byte)((fragmentId >> 0) & 0xFF);
+    ((Byte*)ptr)[3] = (Byte)((ackNumber >> 8) & 0xFF);
+    ((Byte*)ptr)[4] = (Byte)((ackNumber >> 0) & 0xFF);
     if (isFirst==true)
     {
-      ((Byte*)ptr)[3] = (Byte) (1 & 0xFF);
+      ((Byte*)ptr)[5] = (Byte) (1 & 0xFF);
     }
     else
     {
-      ((Byte*)ptr)[3] = (Byte) (0 & 0xFF);
+      ((Byte*)ptr)[5] = (Byte) (0 & 0xFF);
     }
     return RUDP_HEADER_LEN;
   }
@@ -135,15 +136,17 @@ namespace SAFplus
   {
     Byte *pBuffer = (Byte*)malloc(RUDP_HEADER_LEN);
     pBuffer[0] = (Byte) (controlFlag & 0xFF);
-    pBuffer[1] = (Byte) (fragmentId & 0xFF);
-    pBuffer[2] = (Byte) (ackNumber & 0xFF);
+    pBuffer[1] = (Byte)((fragmentId >> 8) & 0xFF);
+    pBuffer[2] = (Byte)((fragmentId >> 0) & 0xFF);
+    pBuffer[3] = (Byte)((ackNumber >> 8) & 0xFF);
+    pBuffer[4] = (Byte)((ackNumber >> 0) & 0xFF);
     if (isFirst==true)
     {
-      pBuffer[3] = (Byte) (1 & 0xFF);
+      pBuffer[5] = (Byte) (1 & 0xFF);
     }
     else
     {
-      pBuffer[3] = (Byte) (0 & 0xFF);
+      pBuffer[5] = (Byte) (0 & 0xFF);
     }
     return pBuffer;
   }
@@ -164,9 +167,9 @@ namespace SAFplus
   void ReliableFragment::parseHeader(const Byte* buffer, int _len)
   {
     controlFlag = int(buffer[0] & 255);
-    fragmentId  = int(buffer[1] & 255);
-    ackNumber  = int(buffer[2] & 255);
-    if(int(buffer[3] & 255)==1)
+    fragmentId = ((buffer[1] & 0xFF) << 8) | ((buffer[2] & 0xFF) << 0);
+    ackNumber  = ((buffer[3] & 0xFF) << 8) | ((buffer[4] & 0xFF) << 0);
+    if(int(buffer[5] & 255)==1)
     {
       isFirst=true;
     }
@@ -187,22 +190,18 @@ namespace SAFplus
     int flags = bytes[0];
     if ((flags & SYN_FLAG) != 0)
     {
-      //logTrace("MSG","FRT","parse SYN fragment");
       fragment = new SYNFragment();
     }
     else if ((flags & NUL_FLAG) != 0)
     {
-      //logTrace("MSG","FRT","parse NUL fragment");
       fragment = new NULLFragment();
     }
     else if ((flags & NAK_FLAG) != 0)
     {
-      //logTrace("MSG","FRT","parse NAK fragment");
       fragment = new NAKFragment();
     }
     else if ((flags & RST_FLAG) != 0)
     {
-      //logTrace("MSG","FRT","parse RST fragment");
       fragment = new RSTFragment();
     }
     else if ((flags & FIN_FLAG) != 0)
@@ -212,7 +211,6 @@ namespace SAFplus
     }
     else if ((flags & LAS_FLAG) != 0)
     {
-      //logTrace("MSG","FRT","parse LAST fragment");
       fragment = new DATFragment();
       fragment->setLast(true);
     }
@@ -222,7 +220,6 @@ namespace SAFplus
 
       if (len == RUDP_HEADER_LEN)
       {
-        //logTrace("MSG","FRT","parse ACK fragment");
         fragment = new ACKFragment();
         fragment->setLast(false);
       }
@@ -441,28 +438,29 @@ namespace SAFplus
   {
     initFragment(NAK_FLAG, seqn);
     setAck(ackn);
-    nakData = (int*)malloc(size);
     nakNumber=size;
     nakData=acks;
   }
 
   Byte* NAKFragment::getData()
   {
-    Byte *buffer = new Byte[nakNumber];
+    Byte *buffer = new Byte[nakNumber*2];
     for (int i = 0; i < nakNumber; i++)
     {
-      buffer[i] = (Byte) (nakData[i] & 0xFF);
+      int nakValue= nakData[i];
+      buffer[i*2] = (Byte) ((nakValue >> 8) & 0xFF);
+      buffer[i*2+1] = (Byte) ((nakValue >> 0) & 0xFF);
     }
     return buffer;
   }
 
   void NAKFragment::parseData(Byte* buffer, int len)
   {
-    nakNumber = len;
-    nakData = new int[nakNumber];
+    nakNumber = len/2;
+    nakData = (int*)malloc(nakNumber*sizeof(int));
     for (int i = 0; i < nakNumber; i++)
     {
-      nakData[i] = int(buffer[i] & 0xFF);
+      nakData[i]=((buffer[i*2] & 0xFF) << 8) | ((buffer[i*2+1] & 0xFF) << 0);
     }
   }
   fragmentType NAKFragment::getType()

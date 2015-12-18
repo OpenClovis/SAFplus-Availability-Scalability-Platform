@@ -6,7 +6,7 @@
 
 //TODO
 u_int RELIABLE_MSG_TYPE = 0x50;
-static u_int MAX_FRAGMENT_NUMBER        = 255;
+static u_int MAX_FRAGMENT_NUMBER        = 255*255;
 
 namespace SAFplus
 {
@@ -171,8 +171,8 @@ namespace SAFplus
     /*
      * When this timer expires, the connection is considered broken.
      */
-    int sendQueueSize = 320; /* Maximum number of received segments */
-    int recvQueueSize = 320; /* Maximum number of sent segments */
+    int sendQueueSize = 6400; /* Maximum number of received segments */
+    int recvQueueSize = 6400; /* Maximum number of sent segments */
     int sendBufferSize;
     int recvBufferSize;
     bool isClosed    = false; //socket status closed

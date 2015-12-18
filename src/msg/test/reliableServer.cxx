@@ -111,18 +111,21 @@ int main(int argc, char* argv[])
       MsgReliableSocketServer sockServer(37,xp);
       MsgReliableSocketClient* connectionSocket = sockServer.accept();
       logInfo("TST","MSG","wait to receive from sender"	);
+      int count=0;
       while(1)
       {
         //int receiveByte=count*receiveLen;
         logInfo("TST","MSG","read...");
         Message* msg= connectionSocket->receive(1);
-        logInfo("TST","MSG","read done...");
+        logInfo("TST","MSG","read done [%d]...",count);
         MsgFragment* frag =  msg->firstFragment;
         logInfo("TST","MSG","first frag len [%d]...",frag->len);
         MsgFragment* frag2 =  msg->lastFragment;
         logInfo("TST","MSG","last frag len [%d]...",frag2->len);
         logInfo("TST","MSG","Data at [%d] : [%s]",0,(char*)(frag2->read(0)));
-        logInfo("TST","MSG","Data at [%d] : [%s]",frag2->len-10,(char*)(frag2->read(frag2->len-10)));      
+        logInfo("TST","MSG","Data at [%d] : [%s]",frag2->len-10,(char*)(frag2->read(frag2->len-10))); 
+        free(frag->data(0)); 
+        count++;
       }
       do
       {

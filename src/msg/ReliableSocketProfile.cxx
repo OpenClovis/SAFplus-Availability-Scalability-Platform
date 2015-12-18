@@ -6,7 +6,7 @@
 #define DEFAULT_NAK_FRAG     3;
 #define DEFAULT_RETRANS              9;
 #define DEFAULT_CUMULATIVE_ACKS      2;
-#define DEFAULT_OUT_OF_SEQUENCE      3;
+#define DEFAULT_OUT_OF_SEQUENCE      9;
 #define DEFAULT_AUTO_RESET           3;
 #define DEFAULT_NULL_SEGMENT_TIMEOUT     200;
 #define DEFAULT_RETRANSMISSION_TIMEOUT   800;
@@ -41,8 +41,8 @@ namespace SAFplus
       int retransmissionTimeout,
       int cumulativeAckTimeout)
   {
-    validateValue("maxSendQueueSize", maxSendQueueSize, 1, 512);
-    validateValue("maxRecvQueueSize", maxRecvQueueSize, 1, 512);
+    validateValue("maxSendQueueSize", maxSendQueueSize, 1, 6401);
+    validateValue("maxRecvQueueSize", maxRecvQueueSize, 1, 6401);
     validateValue("maxFragmentSize", maxFragmentSize, 22, 65535);
     validateValue("maxOutstandingSegs", maxOutstandingSegs, 1, 512);
     validateValue("maxRetrans", maxRetrans, 0, 255);

@@ -5,7 +5,7 @@
 using namespace boost::intrusive;
 
 #define RUDP_VERSION 1
-#define RUDP_HEADER_LEN  4
+#define RUDP_HEADER_LEN  6
 #define SYN_FLAG   0x80
 #define ACK_FLAG   0x40
 #define NAK_FLAG   0x20
@@ -163,7 +163,7 @@ namespace SAFplus
     virtual void parseData(Byte* buffer, int _len);
     virtual int getlength()
     {
-      return nakNumber;
+      return nakNumber*2;
     }
   }; // End NAK Fragment class
 

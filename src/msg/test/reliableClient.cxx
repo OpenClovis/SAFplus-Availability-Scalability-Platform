@@ -109,15 +109,15 @@ int main(int argc, char* argv[])
       Handle destination = SAFplus::getProcessHandle(37,122);
       MsgReliableSocket sockclient(47,xp);
       printf("init socket : done \n");
-      long len=800000;
+      long len=50000000;
       int count = 0;
-      while(count<2)
+      while(count<50)
       {
         count ++;
         sockclient.connect(destination,0);
         sleep(1);
-        unsigned char* buffer = new unsigned char[len*count];
-        memset(buffer, 'c', sizeof(unsigned char)*len*count);
+        unsigned char* buffer = new unsigned char[len];
+        memset(buffer, 'c', sizeof(unsigned char)*len);
         Message* m = msgPool.allocMsg();
         assert(m);
         m->setAddress(destination);
@@ -125,11 +125,11 @@ int main(int argc, char* argv[])
         * ((unsigned char*)pfx->data()) = 2;
         pfx->len = 1;
         MsgFragment* frag = m->append(0);
-        frag->set(buffer,len*count);        
+        frag->set(buffer,len);        
         sockclient.send(m);
         delete buffer;
         m->msgPool->free(m);
-        sleep(1);
+        sleep(2);
       }
       do
       {
