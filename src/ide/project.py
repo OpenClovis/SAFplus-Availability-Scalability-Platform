@@ -177,6 +177,11 @@ class ProjectTreePanel(wx.Panel):
         self.fileMenu.Bind(wx.EVT_MENU, self.OnNew, id=wx.ID_NEW)
         self.fileMenu.Bind(wx.EVT_MENU, self.OnLoad, id=PROJECT_LOAD)
         self.fileMenu.Bind(wx.EVT_MENU, self.OnSave, id=PROJECT_SAVE)
+        
+        # wx 2.8 compatibility
+        wx.EVT_MENU(guiPlaces.frame, wx.ID_NEW, self.OnNew)
+        wx.EVT_MENU(guiPlaces.frame, PROJECT_LOAD, self.OnLoad)
+        wx.EVT_MENU(guiPlaces.frame, PROJECT_SAVE, self.OnSave)
 
   def active(self):
     i = self.tree.GetSelections()

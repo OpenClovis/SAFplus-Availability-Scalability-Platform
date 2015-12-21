@@ -6,6 +6,8 @@ import time
 from types import *
 from collections import namedtuple
 
+# import wxversion
+# wxversion.select("2.8")
 import wx
 import wx.aui
 
@@ -55,7 +57,7 @@ class SAFplusFrame(wx.Frame):
 
         self.sb = self.CreateStatusBar()
         
-        self.guiPlaces = common.GuiPlaces(self.menuBar, self.tb, self.sb, { "File": self.menu, "Modelling":self.menuModelling, "Instantiation":self.menuInstantiation, "Windows": self.menuWindows, "Help": self.menuHelp }, None)
+        self.guiPlaces = common.GuiPlaces(self,self.menuBar, self.tb, self.sb, { "File": self.menu, "Modelling":self.menuModelling, "Instantiation":self.menuInstantiation, "Windows": self.menuWindows, "Help": self.menuHelp }, None)
 
         # Now create the Panel to put the other controls on.
         panel = self.panel = None # panelFactory(self,menuBar,tb,sb) # wx.Panel(self)
@@ -124,13 +126,13 @@ class SAFplusFrame(wx.Frame):
       modelFile = os.path.join(prj.directory(), prj.model.children()[0].strip())
       #t.model.loadModuleFromFile(prj.datamodel)
       t.model.load(modelFile)
-      t.uml = umlEditor.Panel(self.tab,self.guiPlaces.menubar, self.guiPlaces.toolbar, self.guiPlaces.statusbar, t.model)
+      t.uml = umlEditor.Panel(self.tab,self.guiPlaces, t.model)
       self.tab.AddPage(t.uml, prj.name + " Modelling")
-      t.details = entityDetailsDialog.Panel(self.tab,self.guiPlaces.menubar, self.guiPlaces.toolbar, self.guiPlaces.statusbar, t.model,False)
+      t.details = entityDetailsDialog.Panel(self.tab,self.guiPlaces, t.model,isDetailInstance=False)
       self.tab.AddPage(t.details, prj.name + " Model Details")
-      t.instance = instanceEditor.Panel(self.tab,self.guiPlaces.menubar, self.guiPlaces.toolbar, self.guiPlaces.statusbar, t.model)
+      t.instance = instanceEditor.Panel(self.tab,self.guiPlaces, t.model)
       self.tab.AddPage(t.instance, prj.name + " Instantiation")
-      t.details = entityDetailsDialog.Panel(self.tab,self.guiPlaces.menubar, self.guiPlaces.toolbar, self.guiPlaces.statusbar, t.model,True)
+      t.details = entityDetailsDialog.Panel(self.tab,self.guiPlaces, t.model,isDetailInstance=True)
       self.tab.AddPage(t.details, prj.name + " Instance Details")
 
     def OnTimeToClose(self, evt):

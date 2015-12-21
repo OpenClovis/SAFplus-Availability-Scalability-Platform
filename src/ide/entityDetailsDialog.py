@@ -20,12 +20,39 @@ from model import *
 from entity import *
 import wx.lib.scrolledpanel as scrolled
 
-try:
+
+if int(wx.__version__[0]) >= 3:
+  try:
     from agw import hypertreelist as HTL
     from agw import infobar as IB
-except ImportError: # if it's not there locally, try the wxPython lib.
+  except ImportError: # if it's not there locally, try the wxPython lib.
     import wx.lib.agw.hypertreelist as HTL
     import wx.lib.agw.infobar as IB
+else:
+  try:
+    from agw import hypertreelist as HTL
+    #import infobar as IB
+  except ImportError: # if it's not there locally, try the wxPython lib.
+    import wx.lib.agw.hypertreelist as HTL
+    #import infobar as IB
+
+  class FakeIB:
+    def __init__(self):
+      pass
+    def InfoBar(self,parent):
+      return InfoBar(parent)
+
+  class InfoBar(wx.Panel):
+    def __init__(self,parent):
+      wx.Panel.__init__(self,parent)
+      self.parent=parent
+    def ShowMessage(self,msg, severity):
+      pass
+    def Dismiss(self):
+      pass
+
+  IB = FakeIB()
+
 
 Gui2Obj=namedtuple('Gui2Obj','fielddef widget lock help item entity')
 
@@ -750,7 +777,7 @@ class Panel(scrolled.ScrolledPanel):
             'TextCtrl': [wx.EVT_TEXT, wx.EVT_TEXT_ENTER],
             'CheckBox': [wx.EVT_CHECKBOX],
             'Slider': [wx.EVT_SCROLL, wx.EVT_SLIDER, wx.EVT_SCROLL_CHANGED, ],
-            'ComboBox': [wx.EVT_COMBOBOX, wx.EVT_TEXT, wx.EVT_TEXT_ENTER, wx.EVT_COMBOBOX_DROPDOWN, wx.EVT_COMBOBOX_CLOSEUP],
+            'ComboBox': [wx.EVT_COMBOBOX, wx.EVT_TEXT, wx.EVT_TEXT_ENTER ], # , wx.EVT_COMBOBOX_CLOSEUP],  # wx.EVT_COMBOBOX_DROPDOWN,
             'SliderCustom':[wx.EVT_TEXT, wx.EVT_TEXT_ENTER]
             # TBD 
         }
@@ -772,7 +799,7 @@ def Test():
   #sgt = mdl.entityTypes["ServiceGroup"]
   #sg = mdl.entities["MyServiceGroup"] = Entity(sgt,(0,0),(100,20))
   StandaloneDev = True
-  gui.go(lambda parent,menu,tool,status,m=mdl: Panel(parent,menu,tool,status, m))
+  gui.go(lambda parent,menu,tool,status,m=mdl: Panel(parent,common.GuiPlaces(parent,menu,tool,status,None,None), m))
   #time.sleep(2)
   #thePanel.showEntity(sg)
 

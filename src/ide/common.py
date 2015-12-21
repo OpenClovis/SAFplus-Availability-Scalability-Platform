@@ -46,7 +46,8 @@ class FilesystemOutput(Output):
     f.close()
 
 class GuiPlaces:
-  def __init__(self,menubar, toolbar, statusbar, menu, projectTree):
+  def __init__(self,frame, menubar, toolbar, statusbar, menu, projectTree):
+    self.frame = frame
     self.menubar = menubar
     self.toolbar = toolbar
     self.statusbar = statusbar
