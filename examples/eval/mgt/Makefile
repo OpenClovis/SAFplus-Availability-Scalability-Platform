@@ -46,6 +46,9 @@ $(LIB_DIR)/libmyService.so:
 
 yang:
 	PYTHONPATH=$(MGT_SRC_DIR)/3rdparty/pyang PYANG_PLUGINPATH=$(MGT_SRC_DIR)/pyplugin $(MGT_SRC_DIR)/3rdparty/pyang/bin/pyang --path=$(SAFPLUS_SRC_DIR)/yang -f y2cpp myService.yang --y2cpp-output `pwd` --y2cpp-sdkdir $(SAFPLUS_SRC_DIR)
+	
+yang2mib:
+	PYTHONPATH=$(MGT_SRC_DIR)/3rdparty/pyang PYANG_PLUGINPATH=$(MGT_SRC_DIR)/pyplugin $(MGT_SRC_DIR)/3rdparty/pyang/bin/pyang --path=$(SAFPLUS_SRC_DIR)/yang -f yang2smi myService.yang --yang2smi-oid=99840 -o MY-SERVICE.MIB
 
 $(SAFPLUS_TARGET)/share/netconf/modules/openclovis/myService.yang: myService.yang
 	@mkdir -p $(SAFPLUS_TARGET)/share/netconf/modules/openclovis

@@ -131,7 +131,7 @@ PKG_CONFIG ?= PKG_CONFIG_PATH=$(PKG_CONFIG_PATH) pkg-config
 XML2_CFLAGS ?= $(shell $(PKG_CONFIG) --cflags libxml-2.0)
 ifeq ($(XML2_CFLAGS),)
 $(info pkg-config was unable to determine libxml-2.0 header file location.  Using default)
-XML2_CFLAGS ?= -I$(SAFPLUS_SRC_DIR)/3rdparty/build/include/libxml2 -I$(SAFPLUS_SRC_DIR)/3rdparty/base/libxml2-2.9.0/include -I$(MGT_SRC_DIR)/3rdparty/build/include/libxml2/
+XML2_CFLAGS ?= -I$(SAFPLUS_SRC_DIR)/3rdparty/base/libxml2-2.9.0/include
 endif
 XML2_LINK ?= $(shell $(PKG_CONFIG) --libs libxml-2.0)  
 ifeq ($(XML2_LINK),)
