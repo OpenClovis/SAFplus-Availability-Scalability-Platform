@@ -4603,7 +4603,9 @@ ClRcT cpmMain(ClInt32T argc, ClCharT *argv[])
     loadAspInstallInfo();
 
     clLogNotice(CPM_LOG_AREA_CPM, CPM_LOG_CTX_CPM_BOOT,"%s %s", CPM_ASP_WELCOME_MSG, gAspVersion);
-    printf("%s %s\n", CPM_ASP_WELCOME_MSG, gAspVersion);
+    ClCharT timeStr[40] = {0};
+    clLogTimeGet(timeStr, (ClUint32T)sizeof(timeStr));
+    printf("%s: %s %s\n",timeStr,CPM_ASP_WELCOME_MSG, gAspVersion);
     printf("This file is the standard output of all applications.\n");
     fflush(stdout);
     
