@@ -10,7 +10,6 @@ MYSERVICE-MIB DEFINITIONS ::= BEGIN
         Unsigned32,
         enterprises,
         MODULE-IDENTITY,
-        Integer,
         OBJECT-IDENTITY    FROM SNMPv2-SMI
         NOTIFICATION-GROUP,
         MODULE-COMPLIANCE,
@@ -19,7 +18,7 @@ MYSERVICE-MIB DEFINITIONS ::= BEGIN
         TEXTUAL-CONVENTION    FROM SNMPv2-TC;
 
     myService MODULE-IDENTITY
-        LAST-UPDATED "201512231657Z"
+        LAST-UPDATED "201512231922Z"
         ORGANIZATION
             "OpenClovis Solutions, Inc"
 
@@ -60,8 +59,8 @@ MYSERVICE-MIB DEFINITIONS ::= BEGIN
             name    OCTET STRING,
             active    TruthValue,
             level    INTEGER,
-            limit    Integer,
-            use    Integer
+            limit    Integer64,
+            use    Integer64
         }
 
     name OBJECT-TYPE
@@ -98,7 +97,7 @@ MYSERVICE-MIB DEFINITIONS ::= BEGIN
         ::= { subscribers 3 }
 
     limit OBJECT-TYPE
-        SYNTAX Integer
+        SYNTAX Integer64
         MAX-ACCESS read-create
         STATUS current
         DESCRIPTION
@@ -109,7 +108,7 @@ MYSERVICE-MIB DEFINITIONS ::= BEGIN
         ::= { subscribers 4 }
 
     use OBJECT-TYPE
-        SYNTAX Integer
+        SYNTAX Integer64
         MAX-ACCESS read-create
         STATUS current
         DESCRIPTION
