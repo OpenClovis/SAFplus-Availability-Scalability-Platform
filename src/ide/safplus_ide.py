@@ -24,7 +24,7 @@ class SAFplusFrame(wx.Frame):
     """
     def __init__(self, parent, title):
         wx.Frame.__init__(self, parent, -1, title, pos=(150, 150), size=(800, 600))
-        self.model = {}
+        self.model = None
        # Create the menubar
         self.menuBar = wx.MenuBar()
         # and a menu 
@@ -85,27 +85,59 @@ class SAFplusFrame(wx.Frame):
       print "New project loaded"
 
       # clean up -- if we support multi-projects this won't happen
-      self.cleanupTabs()
-      self.model = {}
+      #self.cleanupTabs()
+      #self.model = {}
 
       # Now load the new one:
       # prj = self.project.active()
       prj = self.project.latest()
       if not prj: return
-      self.model[prj.name] = t = namedtuple('model','model uml instance details')
+      #self.model[prj.name] = t = namedtuple('model','model uml instance details')      
       # only 1 model file allowed for now
-      t.model = model.Model()
-      prj.setSAFplusModel(t.model)
-      modelFile = os.path.join(prj.directory(), prj.model.children()[0].strip())
-      t.model.load(modelFile)
-      t.uml = umlEditor.Panel(self.tab,self.guiPlaces, t.model)
-      self.tab.AddPage(t.uml, prj.name + " Modelling")
-      t.details = entityDetailsDialog.Panel(self.tab,self.guiPlaces, t.model,isDetailInstance=False)
-      self.tab.AddPage(t.details, prj.name + " Model Details")
-      t.instance = instanceEditor.Panel(self.tab,self.guiPlaces, t.model)
-      self.tab.AddPage(t.instance, prj.name + " Instantiation")
-      t.details = entityDetailsDialog.Panel(self.tab,self.guiPlaces, t.model,isDetailInstance=True)
-      self.tab.AddPage(t.details, prj.name + " Instance Details")
+      #t.model = model.Model()
+      #prj.setSAFplusModel(t.model)
+      #modelFile = os.path.join(prj.directory(), prj.model.children()[0].strip())
+      #t.model.load(modelFile)
+      #t.uml = umlEditor.Panel(self.tab,self.guiPlaces, t.model)
+      #self.tab.AddPage(t.uml, prj.name + " Modelling")
+      #t.details = entityDetailsDialog.Panel(self.tab,self.guiPlaces, t.model,isDetailInstance=False)
+      #self.tab.AddPage(t.details, prj.name + " Model Details")
+      #t.instance = instanceEditor.Panel(self.tab,self.guiPlaces, t.model)
+      #self.tab.AddPage(t.instance, prj.name + " Instantiation")
+      #t.details = entityDetailsDialog.Panel(self.tab,self.guiPlaces, t.model,isDetailInstance=True)
+      #self.tab.AddPage(t.details, prj.name + " Instance Details")
+      if not self.model:
+        self.cleanupTabs()
+        self.model = t = namedtuple('model','model uml instance modelDetails instanceDetails')
+        t.model = model.Model()
+        prj.setSAFplusModel(t.model)
+        modelFile = os.path.join(prj.directory(), prj.model.children()[0].strip())
+        t.model.load(modelFile)
+        t.uml = umlEditor.Panel(self.tab,self.guiPlaces, t.model)
+        self.tab.AddPage(t.uml, prj.name + " Modelling")
+        t.modelDetails = entityDetailsDialog.Panel(self.tab,self.guiPlaces, t.model,isDetailInstance=False)
+        self.tab.AddPage(t.modelDetails, prj.name + " Model Details")
+        t.instance = instanceEditor.Panel(self.tab,self.guiPlaces, t.model)
+        self.tab.AddPage(t.instance, prj.name + " Instantiation")
+        t.instanceDetails = entityDetailsDialog.Panel(self.tab,self.guiPlaces, t.model,isDetailInstance=True)
+        self.tab.AddPage(t.instanceDetails, prj.name + " Instance Details")
+      else:
+        print 'OnProjectLoaded: model is not None'
+        t = self.model
+        prj.setSAFplusModel(t.model)
+        modelFile = os.path.join(prj.directory(), prj.model.children()[0].strip())
+        t.model.init()
+        t.model.load(modelFile)
+        t.uml.setModelData(t.model)
+        t.instance.deleteTools()
+        t.uml.deleteEntityTools()
+        t.uml.addEntityTools()
+        self.setPagesText(prj)
+        t.uml.refresh()
+        t.instance.setModelData(t.model)
+        #t.instance.deleteTools()
+        t.instance.addTools()
+        t.instance.refresh()
 
     def OnProjectNew(self,evt):
       """Called when a new project is created"""
@@ -139,7 +171,12 @@ class SAFplusFrame(wx.Frame):
       """Event handler for the button click"""
       print "Quitting..."
       self.Close()
-
+   
+    def setPagesText(self, prj):
+      self.tab.SetPageText(0, prj.name + " Modelling")
+      self.tab.SetPageText(1, prj.name + " Model Details")
+      self.tab.SetPageText(2, prj.name + " Instantiation")
+      self.tab.SetPageText(3, prj.name + " Instance Details")
 
 
 class SAFplusApp(wx.App):

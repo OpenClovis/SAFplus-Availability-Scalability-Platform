@@ -771,7 +771,7 @@ class Panel(scrolled.ScrolledPanel):
         self.toolBar = wx.ToolBar(self,-1)
         self.toolBar.SetToolBitmapSize((24,24))
 
-      tsize = self.toolBar.GetToolBitmapSize()
+     
 
       # example of adding a standard button
       #new_bmp =  wx.ArtProvider.GetBitmap(wx.ART_NEW, wx.ART_TOOLBAR, tsize)
@@ -779,34 +779,7 @@ class Panel(scrolled.ScrolledPanel):
 
       # TODO: add disabled versions to these buttons
 
-      if 0: # Save is handled at the project level
-        bitmap = svg.SvgFile("save_as.svg").bmp(tsize, { }, (222,222,222,wx.ALPHA_OPAQUE))
-        self.toolBar.AddTool(SAVE_BUTTON, bitmap, wx.NullBitmap, shortHelpString="save", longHelpString="Save model as...")
-        self.idLookup[SAVE_BUTTON] = SaveTool(self)
-
-      bitmap = svg.SvgFile("generate.svg").bmp(tsize, { }, (222,222,222,wx.ALPHA_OPAQUE))
-      self.toolBar.AddTool(CODEGEN_BUTTON, bitmap, wx.NullBitmap, shortHelpString="Generate Source Code", longHelpString="Generate source code ...")
-      idMnuGenerateCode = [CODEGEN_BUTTON, CODEGEN_LANG_C, CODEGEN_LANG_CPP, CODEGEN_LANG_PYTHON, CODEGEN_LANG_JAVA]
-      for idx in idMnuGenerateCode:
-        self.idLookup[idx] = GenerateTool(self)
-
-      # Add the umlEditor's standard tools
-      self.toolBar.AddSeparator()
-      bitmap = svg.SvgFile("connect.svg").bmp(tsize, { }, (222,222,222,wx.ALPHA_OPAQUE))
-      self.toolBar.AddRadioTool(CONNECT_BUTTON, bitmap, wx.NullBitmap, shortHelp="connect", longHelp="Draw relationships between entities")
-      self.idLookup[CONNECT_BUTTON] = LinkTool(self)
-
-      bitmap = svg.SvgFile("pointer.svg").bmp(tsize, { }, (222,222,222,wx.ALPHA_OPAQUE))
-      self.toolBar.AddRadioTool(SELECT_BUTTON, bitmap, wx.NullBitmap, shortHelp="select", longHelp="Select one or many entities.  Click entity to edit details.  Double click to expand/contract.")
-      self.idLookup[SELECT_BUTTON] = SelectTool(self)
-
-      bitmap = svg.SvgFile("zoom.svg").bmp(tsize, { }, (222,222,222,wx.ALPHA_OPAQUE))
-      self.toolBar.AddRadioTool(ZOOM_BUTTON, bitmap, wx.NullBitmap, shortHelp="zoom", longHelp="Left click (+) to zoom in. Right click (-) to zoom out.")
-      self.idLookup[ZOOM_BUTTON] = ZoomTool(self)
-
-      bitmap = svg.SvgFile("remove.svg").bmp(tsize, { }, (222,222,222,wx.ALPHA_OPAQUE))
-      self.toolBar.AddRadioTool(DELETE_BUTTON, bitmap, wx.NullBitmap, shortHelp="Delete entity/entities", longHelp="Select one or many entities. Click entity to delete.")
-      self.idLookup[DELETE_BUTTON] = DeleteTool(self)
+      self.addCommonTools()
 
       # Add the custom entity creation tools as specified by the model's YANG
       self.addEntityTools()
@@ -836,6 +809,76 @@ class Panel(scrolled.ScrolledPanel):
             self.columns.append(entInstance)  # TODO: calculate an insertion position based on the mouse position and the positions of the other entities
       self.UpdateVirtualSize()
       self.layout()
+
+    def addCommonTools(self):
+      tsize = self.toolBar.GetToolBitmapSize()
+      if 0: # Save is handled at the project level
+        bitmap = svg.SvgFile("save_as.svg").bmp(tsize, { }, (222,222,222,wx.ALPHA_OPAQUE))
+        self.toolBar.AddTool(SAVE_BUTTON, bitmap, wx.NullBitmap, shortHelpString="save", longHelpString="Save model as...")
+        self.idLookup[SAVE_BUTTON] = SaveTool(self)
+
+      bitmap = svg.SvgFile("generate.svg").bmp(tsize, { }, (222,222,222,wx.ALPHA_OPAQUE))
+      self.toolBar.AddTool(CODEGEN_BUTTON, bitmap, wx.NullBitmap, shortHelpString="Generate Source Code", longHelpString="Generate source code ...")
+      idMnuGenerateCode = [CODEGEN_BUTTON, CODEGEN_LANG_C, CODEGEN_LANG_CPP, CODEGEN_LANG_PYTHON, CODEGEN_LANG_JAVA]
+      for idx in idMnuGenerateCode:
+        self.idLookup[idx] = GenerateTool(self)
+
+      # Add the umlEditor's standard tools
+      self.toolBar.AddSeparator()
+      bitmap = svg.SvgFile("connect.svg").bmp(tsize, { }, (222,222,222,wx.ALPHA_OPAQUE))
+      self.toolBar.AddRadioTool(CONNECT_BUTTON, bitmap, wx.NullBitmap, shortHelp="connect", longHelp="Draw relationships between entities")
+      self.idLookup[CONNECT_BUTTON] = LinkTool(self)
+
+      bitmap = svg.SvgFile("pointer.svg").bmp(tsize, { }, (222,222,222,wx.ALPHA_OPAQUE))
+      self.toolBar.AddRadioTool(SELECT_BUTTON, bitmap, wx.NullBitmap, shortHelp="select", longHelp="Select one or many entities.  Click entity to edit details.  Double click to expand/contract.")
+      self.idLookup[SELECT_BUTTON] = SelectTool(self)
+
+      bitmap = svg.SvgFile("zoom.svg").bmp(tsize, { }, (222,222,222,wx.ALPHA_OPAQUE))
+      self.toolBar.AddRadioTool(ZOOM_BUTTON, bitmap, wx.NullBitmap, shortHelp="zoom", longHelp="Left click (+) to zoom in. Right click (-) to zoom out.")
+      self.idLookup[ZOOM_BUTTON] = ZoomTool(self)
+
+      bitmap = svg.SvgFile("remove.svg").bmp(tsize, { }, (222,222,222,wx.ALPHA_OPAQUE))
+      self.toolBar.AddRadioTool(DELETE_BUTTON, bitmap, wx.NullBitmap, shortHelp="Delete entity/entities", longHelp="Select one or many entities. Click entity to delete.")
+      self.idLookup[DELETE_BUTTON] = DeleteTool(self)    
+
+    def deleteTools(self):
+      for btnId in self.idLookup:
+        self.toolBar.DeleteTool(btnId)        
+          
+      self.idLookup.clear()
+
+    def addTools(self):
+      self.addCommonTools()
+      self.addEntityTools()
+
+    def resetDataMembers(self):
+      self.tool = None  # The current tool
+      self.drawers = set()
+      self.renderArrow = {}
+      # The position of the panel's viewport within the larger drawing
+      self.location = (0,0)
+      self.rotate = 0.0
+      self.scale = 1.0
+
+      # Buttons and other IDs that are registered may need to be looked up to turn the ID back into a python object
+      self.idLookup={}  
+
+      # Ordering of instances in the GUI display, from the upper left
+      self.columns = []
+      self.rows = []
+
+      self.intersects = []
+
+      self.addButtons = {}
+
+    def setModelData(self, model):
+      self.model = model
+
+    def refresh(self):
+      print 'instance refresh called'
+      self.resetDataMembers()
+      self.layout()
+      self.Refresh()
 
     def sgInstantiator(self,ent,pos,size,children,name):
       """Custom instantiator for service groups"""

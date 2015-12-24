@@ -49,7 +49,7 @@ class Project(microdom.MicroDom):
     self.name = os.path.splitext(os.path.basename(filename))[0]
     md = microdom.LoadFile(filename)
     microdom.MicroDom.__init__(self,md.attributes_, md.children_, md.data_)    
-    # TODO validate the structure of the microdom treeguiPlaces
+    # TODO validate the structure of the microdom tree
 
   def setSAFplusModel(self,mdl):
     self._safplusModel = mdl

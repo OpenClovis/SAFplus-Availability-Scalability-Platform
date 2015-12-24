@@ -816,6 +816,7 @@ class Panel(scrolled.ScrolledPanel):
       self.toolBar.AddRadioTool(DELETE_BUTTON, bitmap, wx.NullBitmap, shortHelp="Delete entity/entities", longHelp="Select one or many entities. Click entity to delete.")
       self.idLookup[DELETE_BUTTON] = DeleteTool(self)
 
+      self.entityToolIds = [] # stores entity tool id
       # Add the custom entity creation tools as specified by the model's YANG
       self.addEntityTools()
 
@@ -828,6 +829,18 @@ class Panel(scrolled.ScrolledPanel):
       for t in toolEvents:
         self.Bind(t, self.OnToolEvent)
       self.toolIds = [CONNECT_BUTTON,SELECT_BUTTON,ZOOM_BUTTON,DELETE_BUTTON]
+
+    def resetDataMembers(self):
+      self.location = (0,0)
+      self.rotate = 0.0
+      self.scale = 1.0
+      self.tool = None
+      self.entityToolIds = []
+
+    def setModelData(self, model):
+      print 'set model data'
+      self.model = model
+      self.entities = self.model.entities
 
     def OnShow(self,event):
       print "ON SHOW"
@@ -848,6 +861,7 @@ class Panel(scrolled.ScrolledPanel):
     
     def addEntityTools(self):
       """Iterate through all the entity types, adding them as tools"""
+      print 'addEntityTools'
       tsize = self.toolBar.GetToolBitmapSize()
 
       sortedEt = self.model.entityTypes.items()  # Do this so the buttons always appear in the same order
@@ -869,7 +883,22 @@ class Panel(scrolled.ScrolledPanel):
           menu.Bind(wx.EVT_MENU, self.OnToolMenu, id=buttonIdx)
 
         et[1].buttonIdx = buttonIdx
+        self.entityToolIds.append(buttonIdx)
       self.toolBar.Realize()
+
+    def deleteEntityTools(self):
+      """Iterate through all the entity types, adding them as tools"""  
+      print 'deleteEntityTools'
+      menu = self.guiPlaces.menu.get("Modelling",None)    
+      for btnId in self.entityToolIds:        
+        self.toolBar.DeleteTool(btnId)        
+        if menu:
+          menuItem = menu.FindItemById(btnId)
+          if menuItem:
+            menu.Delete(btnId)
+        del self.idLookup[btnId]      
+      
+      self.resetDataMembers()
 
     def OnToolEvent(self,event):
       handled = False
@@ -891,7 +920,9 @@ class Panel(scrolled.ScrolledPanel):
         if self.tool:
           self.tool.OnUnselect(self,event)
           self.tool = None
+
         if tool:
+
           tool.OnSelect(self,event)
           self.tool = tool
       except KeyError, e:
@@ -915,12 +946,13 @@ class Panel(scrolled.ScrolledPanel):
 
     def OnPaint(self, event):
         #dc = wx.PaintDC(self)
+        print 'enter OnPaint'
         dc = wx.BufferedPaintDC(self)
         dc.SetBackground(wx.Brush('white'))
         dc.Clear()
         self.PrepareDC(dc)
         self.UpdateVirtualSize(dc)
-        self.render(dc)
+        #self.render(dc)
 
     def GetBoundingBox(self):
       # Calculate bounding box
@@ -943,6 +975,7 @@ class Panel(scrolled.ScrolledPanel):
 
     def render(self, dc):
         """Put the entities on the screen"""
+        print 'enter render'
         ctx = wx.lib.wxcairo.ContextFromDC(dc)
         # Now draw the graph
         ctx.save()
@@ -1019,6 +1052,10 @@ class Panel(scrolled.ScrolledPanel):
       if share.detailsPanel:
         share.detailsPanel.deleteTreeItemEntities(ents)
       self.model.delete(ents)
+      self.Refresh()
+
+    def refresh(self):
+      print 'refresh window'
       self.Refresh()
 
 model = None
