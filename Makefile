@@ -57,13 +57,13 @@ cp -rf $(BIN_DIR) $(DEST_PKG_DIR)
 cp -rf $(PLUGIN_DIR) $(DEST_PKG_DIR)
 cp -rf $(LIB_DIR) $(DEST_PKG_DIR)
 mkdir -p $(DEST_PKG_DIR)/src
+mkdir -p $(DEST_PKG_DIR)/IDE
 #Some of the header files present in the src/include contains symbolic links.
-#We need to Copy those symlinks files as full files
-#Both safplus src and binary debian package contains the header files,dpkg throws an error while installing the safplus
-#debian package. Workaround is renameing the include directory to include1. Need to fix this problem.
+#Copy those symlinks files as full files
 rsync -rL $(SAFPLUS_INC_DIR) $(DEST_PKG_DIR)/src
 rsync -rL $(SAFPLUS_MAKE_DIR) $(DEST_PKG_DIR)/src
 cp -rf $(TOP_DIR)/DEB/Makefile $(DEST_PKG_DIR)
+cp -rf $(SAFPLUS_TOP_DIR)/bin/*	$(DEST_PKG_DIR)/IDE
 endef
 
 rpm-src: archive
@@ -79,7 +79,7 @@ rpm-bin: build_binary
 	$(call prepare_env_rpm,safplus,sdk/target/$(__TMP_TARGET_PLATFORM))
 	$(call copy_binpkg_files,$(BUILD_DIR))
 	sed -i '/%install/aexport PREFIX=%prefix\nexport DESTDIR=$$RPM_BUILD_ROOT\nmake rpm_install' $(SPECS_DIR)/safplus.spec
-	sed -i '/%defattr/a /%prefix/*\n/%prefix/../../src/*' $(SPECS_DIR)/safplus.spec
+	sed -i '/%defattr/a /%prefix/*\n/%prefix/../../src/*\n%prefix/../../../ide/*' $(SPECS_DIR)/safplus.spec
 	rpmbuild  --define '_topdir $(PKG_DIR)' -bb $(SPECS_DIR)/safplus.spec
 	mkdir -p $(BUILD)
 	cp $(RPMS_DIR)/$(shell uname -p)/*.rpm $(BUILD)
@@ -106,7 +106,9 @@ else \
      sed -i '/Architecture:/c Package: $(PKG_NAME)\nArchitecture: i386\nSection: $2' $(DEBIAN_DIR)/control; \
 fi;
 sed -i '/Source:/c Source: $(PKG_NAME)\nSection: $2' $(DEBIAN_DIR)/control
-sed -i '/prefix:/c prefix=/opt/saflus/$(PKG_VER)/$3' $(DEBIAN_DIR)/postrm
+sed -i '/prefix:/c prefix=/opt/safplus/$(PKG_VER)/$3' $(DEBIAN_DIR)/postrm
+sed -i '/IDE_DIR:=/c IDE_DIR=/opt/safplus/$(PKG_VER)/ide' $(DEBIAN_DIR)/postinst
+sed -i '/PKG_NAME:=/c PKG_NAME=$(PKG_NAME)\nPREFIX_DIR=/opt/safplus/$(PKG_VER)/$3/../../' $(DEBIAN_DIR)/prerm
 sed -i '/prefix:/c export PREFIX?=/opt/safplus/$(PKG_VER)/$3\nexport PACKAGENAME?=$(PKG_NAME)' $(DEBIAN_DIR)/rules
 sed -i '/Destdir:/c export DESTDIR?=$(DEBIAN_DIR)/$(PKG_NAME)\nexport LIBRARY_DIR=$(DEB_TOP_DIR)' $(DEBIAN_DIR)/rules
 sed -i '/safplus:/c$(PKG_NAME) ($(subst .,-,$(PKG_VER))-$(PKG_REL)) stable; urgency=medium' $(DEBIAN_DIR)/changelog
@@ -121,12 +123,14 @@ deb-src:archive
 	mkdir -p $(BUILD)
 	cp $(PKG_DIR)/*.deb $(BUILD)
 
+ide_build:
+	cd src/ide && make
 
 build_binary:
 	cd src && make 
 
 
-deb-bin: build_binary
+deb-bin: build_binary ide_build
 	$(call prepare_env_deb,safplus,lib,sdk/target/$(__TMP_TARGET_PLATFORM))
 	$(call copy_binpkg_files, $(DEB_TOP_DIR))
 	cd $(DEB_TOP_DIR) && dpkg-buildpackage -uc -us -b

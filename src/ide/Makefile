@@ -1,6 +1,10 @@
 S7 := 1
 include ../mk/preface.mk
-
+$(info SAFPLUS_TOP_DIR = $(SAFPLUS_TOP_DIR))
+IDE_TOP_DIR = $(SAFPLUS_TOP_DIR)/bin
+NOOP := $(shell mkdir -p $(IDE_TOP_DIR))
+IDE_DIR = $(IDE_TOP_DIR)/ide
+$(info IDE_DIR = $(IDE_DIR))
 Release all: ide
 
 PYTHON_FILES := $(wildcard *.py)
@@ -9,13 +13,13 @@ PYTHON_OBJECTS := $(addprefix $(IDE_DIR)/,$(subst .py,.pyc,$(PYTHON_FILES)))
 # $(warning $(PYTHON_OBJECTS))
 
 ide: $(PYTHON_OBJECTS) $(BIN_DIR)/safplus_ide $(IDE_DIR)/SAFplusAmf.yang
-	cp -rf resources $(IDE_DIR)
+	cp -rLf resources $(IDE_DIR)
 
 $(IDE_DIR)/SAFplusAmf.yang: $(SAFPLUS_SRC_DIR)/yang/SAFplusAmf.yang
 	cp -f $< $@
 
 $(BIN_DIR)/safplus_ide: safplus_ide 
-	cp -f safplus_ide $(BIN_DIR)/safplus_ide
+	cp -f safplus_ide $(IDE_TOP_DIR)/safplus_ide
 
 $(IDE_DIR)/%.pyc: %.py
 	mkdir -p $(IDE_DIR)
