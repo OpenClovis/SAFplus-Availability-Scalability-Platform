@@ -44,6 +44,32 @@ CODEGEN_LANG_JAVA = wx.NewId()
 
 DELETE_BUTTON = wx.NewId()
 
+def reassignCommonToolIds():
+  print 'reassignCommonToolIds'
+  global ENTITY_TYPE_BUTTON_START
+  global SAVE_BUTTON
+  global ZOOM_BUTTON
+  global CONNECT_BUTTON
+  global SELECT_BUTTON
+  global CODEGEN_BUTTON
+  global CODEGEN_LANG_C
+  global CODEGEN_LANG_CPP
+  global CODEGEN_LANG_PYTHON
+  global CODEGEN_LANG_JAVA
+  global DELETE_BUTTON
+  ENTITY_TYPE_BUTTON_START = wx.NewId()
+  SAVE_BUTTON = wx.NewId()
+  ZOOM_BUTTON = wx.NewId()
+  CONNECT_BUTTON = wx.NewId()
+  SELECT_BUTTON = wx.NewId()
+  CODEGEN_BUTTON = wx.NewId()
+  CODEGEN_LANG_C = wx.NewId()
+  CODEGEN_LANG_CPP = wx.NewId()
+  CODEGEN_LANG_PYTHON = wx.NewId()
+  CODEGEN_LANG_JAVA = wx.NewId()
+
+  DELETE_BUTTON = wx.NewId()
+
 COL_MARGIN = 250
 COL_SPACING = 2
 COL_WIDTH = 250
@@ -778,15 +804,15 @@ class Panel(scrolled.ScrolledPanel):
       #self.toolBar.AddLabelTool(10, "New", new_bmp, shortHelp="New", longHelp="Long help for 'New'")
 
       # TODO: add disabled versions to these buttons
-
-      self.addCommonTools()
+      self.addTools()
+      #self.addCommonTools()
 
       # Add the custom entity creation tools as specified by the model's YANG
-      self.addEntityTools()
+      #self.addEntityTools()
 
       # Set up to handle tool clicks
-      self.toolBar.Bind(wx.EVT_TOOL, self.OnToolClick)  # id=start, id2=end to bind a range
-      self.toolBar.Bind(wx.EVT_TOOL_RCLICKED, self.OnToolRClick)
+      #self.toolBar.Bind(wx.EVT_TOOL, self.OnToolClick, id=ENTITY_TYPE_BUTTON_START. id2=self.idLookup[len(self.idLookup)-1])  # id=start, id2=end to bind a range
+      #self.toolBar.Bind(wx.EVT_TOOL_RCLICKED, self.OnToolRClick)
 
       # Set up events that tools may be interested in
       toolEvents = [ wx.EVT_LEAVE_WINDOW, wx.EVT_LEFT_DCLICK, wx.EVT_LEFT_DOWN , wx.EVT_LEFT_UP, wx.EVT_MOUSEWHEEL , wx.EVT_MOVE,wx.EVT_MOTION , wx.EVT_RIGHT_DCLICK, wx.EVT_RIGHT_DOWN , wx.EVT_RIGHT_UP, wx.EVT_KEY_DOWN, wx.EVT_KEY_UP]
@@ -844,14 +870,25 @@ class Panel(scrolled.ScrolledPanel):
     def deleteTools(self):
       for btnId in self.idLookup:
         self.toolBar.DeleteTool(btnId)        
-          
+      #self.toolBar.Unbind(wx.EVT_TOOL)  
+      self.toolBar.DeletePendingEvents()  
       self.idLookup.clear()
 
     def addTools(self):
+      print 'instanceEditor: addTools'      
+      reassignCommonToolIds()
+      self.idLookup.clear()
       self.addCommonTools()
       self.addEntityTools()
+      self.toolBar.Bind(wx.EVT_TOOL, self.OnToolClick, id=ENTITY_TYPE_BUTTON_START, id2=wx.NewId())
+      self.toolBar.Bind(wx.EVT_TOOL_RCLICKED, self.OnToolRClick)      
+      #self.toolBar.Bind(wx.EVT_TOOL, self.OnToolClick)
+      #self.toolBar.Bind(wx.EVT_TOOL_RCLICKED, self.OnToolRClick)
 
     def resetDataMembers(self):
+      for (name,m) in self.model.entities.items():
+        if m.et.name == "ServiceGroup":
+          m.customInstantiator = lambda entity,pos,size,children,name,pnl=self: pnl.sgInstantiator(entity, pos,size,children,name)
       self.tool = None  # The current tool
       self.drawers = set()
       self.renderArrow = {}
@@ -859,9 +896,6 @@ class Panel(scrolled.ScrolledPanel):
       self.location = (0,0)
       self.rotate = 0.0
       self.scale = 1.0
-
-      # Buttons and other IDs that are registered may need to be looked up to turn the ID back into a python object
-      self.idLookup={}  
 
       # Ordering of instances in the GUI display, from the upper left
       self.columns = []
@@ -871,13 +905,30 @@ class Panel(scrolled.ScrolledPanel):
 
       self.addButtons = {}
 
+      # Building flatten instance from model.xml
+      for entInstance in self.model.instances.values():
+        """Create a new instance of this entity type at this position"""
+        placement = None
+        if entInstance.et.name in self.columnTypes:
+          placement = "column"
+        if entInstance.et.name in self.rowTypes:
+          placement = "row"
+
+        if placement:
+          if placement == "row":
+            self.rows.append(entInstance)  # TODO: calculate an insertion position based on the mouse position and the positions of the other entities
+          if placement == "column":
+            self.columns.append(entInstance)  # TODO: calculate an insertion position based on the mouse position and the positions of the other entities
+      self.UpdateVirtualSize()
+      self.layout()
+
     def setModelData(self, model):
       self.model = model
 
     def refresh(self):
       print 'instance refresh called'
       self.resetDataMembers()
-      self.layout()
+      #self.layout()
       self.Refresh()
 
     def sgInstantiator(self,ent,pos,size,children,name):

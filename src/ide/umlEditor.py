@@ -785,44 +785,15 @@ class Panel(scrolled.ScrolledPanel):
         self.toolBar = wx.ToolBar(self,-1)
         self.toolBar.SetToolBitmapSize((24,24))
 
-      tsize = self.toolBar.GetToolBitmapSize()
+      #self.addCommonTools()
 
-      # example of adding a standard button
-      #new_bmp =  wx.ArtProvider.GetBitmap(wx.ART_NEW, wx.ART_TOOLBAR, tsize)
-      #self.toolBar.AddLabelTool(10, "New", new_bmp, shortHelp="New", longHelp="Long help for 'New'")
-
-      # TODO: add disabled versions to these buttons
-
-      if 0:  # Save is handled at the project level
-        bitmap1 = svg.SvgFile("save_as.svg").bmp(tsize, { }, (222,222,222,wx.ALPHA_OPAQUE))
-        self.toolBar.AddTool(SAVE_BUTTON, bitmap1, wx.NullBitmap, shortHelpString="save", longHelpString="Save model as...")
-        self.idLookup[SAVE_BUTTON] = SaveTool(self)
-
-      # Add the umlEditor's standard tools
-      self.toolBar.AddSeparator()
-      bitmap = svg.SvgFile("connect.svg").bmp(tsize, { }, (222,222,222,wx.ALPHA_OPAQUE))
-      self.toolBar.AddRadioTool(CONNECT_BUTTON, bitmap, wx.NullBitmap, shortHelp="connect", longHelp="Draw relationships between entities")
-      self.idLookup[CONNECT_BUTTON] = LinkTool(self)
-
-      bitmap = svg.SvgFile("pointer.svg").bmp(tsize, { }, (222,222,222,wx.ALPHA_OPAQUE))
-      self.toolBar.AddRadioTool(SELECT_BUTTON, bitmap, wx.NullBitmap, shortHelp="select", longHelp="Select one or many entities.  Click entity to edit details.  Double click to expand/contract.")
-      self.idLookup[SELECT_BUTTON] = SelectTool(self)
-
-      bitmap = svg.SvgFile("zoom.svg").bmp(tsize, { }, (222,222,222,wx.ALPHA_OPAQUE))
-      self.toolBar.AddRadioTool(ZOOM_BUTTON, bitmap, wx.NullBitmap, shortHelp="zoom", longHelp="Left click (+) to zoom in. Right click (-) to zoom out.")
-      self.idLookup[ZOOM_BUTTON] = ZoomTool(self)
-
-      bitmap = svg.SvgFile("remove.svg").bmp(tsize, { }, (222,222,222,wx.ALPHA_OPAQUE))
-      self.toolBar.AddRadioTool(DELETE_BUTTON, bitmap, wx.NullBitmap, shortHelp="Delete entity/entities", longHelp="Select one or many entities. Click entity to delete.")
-      self.idLookup[DELETE_BUTTON] = DeleteTool(self)
-
-      self.entityToolIds = [] # stores entity tool id
+      #self.entityToolIds = [] # stores entity tool id
       # Add the custom entity creation tools as specified by the model's YANG
-      self.addEntityTools()
-
+      #self.addEntityTools()
+      self.addTools()
       # Set up to handle tool clicks
-      self.toolBar.Bind(wx.EVT_TOOL, self.OnToolClick)  # id=start, id2=end to bind a range
-      self.toolBar.Bind(wx.EVT_TOOL_RCLICKED, self.OnToolRClick)
+      #self.toolBar.Bind(wx.EVT_TOOL, self.OnToolClick, id=ENTITY_TYPE_BUTTON_START. id2=self.idLookup[len(self.idLookup)-1])  # id=start, id2=end to bind a range
+      #self.toolBar.Bind(wx.EVT_TOOL_RCLICKED, self.OnToolRClick)
 
       # Set up events that tools may be interested in
       toolEvents = [ wx.EVT_LEAVE_WINDOW, wx.EVT_LEFT_DCLICK, wx.EVT_LEFT_DOWN , wx.EVT_LEFT_UP, wx.EVT_MOUSEWHEEL , wx.EVT_MOVE,wx.EVT_MOTION , wx.EVT_RIGHT_DCLICK, wx.EVT_RIGHT_DOWN , wx.EVT_RIGHT_UP, wx.EVT_KEY_DOWN, wx.EVT_KEY_UP]
@@ -835,7 +806,7 @@ class Panel(scrolled.ScrolledPanel):
       self.rotate = 0.0
       self.scale = 1.0
       self.tool = None
-      self.entityToolIds = []
+      #self.entityToolIds = []
 
     def setModelData(self, model):
       print 'set model data'
@@ -883,8 +854,15 @@ class Panel(scrolled.ScrolledPanel):
           menu.Bind(wx.EVT_MENU, self.OnToolMenu, id=buttonIdx)
 
         et[1].buttonIdx = buttonIdx
-        self.entityToolIds.append(buttonIdx)
+        #self.entityToolIds.append(buttonIdx)
       self.toolBar.Realize()
+      
+
+    def addTools(self):
+     self.addCommonTools()
+     self.addEntityTools()
+     self.toolBar.Bind(wx.EVT_TOOL, self.OnToolClick, id=ENTITY_TYPE_BUTTON_START, id2=wx.NewId())
+     self.toolBar.Bind(wx.EVT_TOOL_RCLICKED, self.OnToolRClick)
 
     def deleteEntityTools(self):
       """Iterate through all the entity types, adding them as tools"""  
@@ -897,10 +875,49 @@ class Panel(scrolled.ScrolledPanel):
           if menuItem:
             menu.Delete(btnId)
         del self.idLookup[btnId]      
-      
+      #self.toolBar.Unbind(wx.EVT_TOOL)
+      self.toolBar.DeletePendingEvents()
       self.resetDataMembers()
 
-    def OnToolEvent(self,event):
+    def addCommonTools(self):
+      tsize = self.toolBar.GetToolBitmapSize()
+
+      # example of adding a standard button
+      #new_bmp =  wx.ArtProvider.GetBitmap(wx.ART_NEW, wx.ART_TOOLBAR, tsize)
+      #self.toolBar.AddLabelTool(10, "New", new_bmp, shortHelp="New", longHelp="Long help for 'New'")
+
+      # TODO: add disabled versions to these buttons
+
+      if 0:  # Save is handled at the project level
+        bitmap1 = svg.SvgFile("save_as.svg").bmp(tsize, { }, (222,222,222,wx.ALPHA_OPAQUE))
+        self.toolBar.AddTool(SAVE_BUTTON, bitmap1, wx.NullBitmap, shortHelpString="save", longHelpString="Save model as...")
+        self.idLookup[SAVE_BUTTON] = SaveTool(self)
+
+      # Add the umlEditor's standard tools
+      self.toolBar.AddSeparator()
+      bitmap = svg.SvgFile("connect.svg").bmp(tsize, { }, (222,222,222,wx.ALPHA_OPAQUE))
+      self.toolBar.AddRadioTool(CONNECT_BUTTON, bitmap, wx.NullBitmap, shortHelp="connect", longHelp="Draw relationships between entities")
+      self.idLookup[CONNECT_BUTTON] = LinkTool(self)
+
+      bitmap = svg.SvgFile("pointer.svg").bmp(tsize, { }, (222,222,222,wx.ALPHA_OPAQUE))
+      self.toolBar.AddRadioTool(SELECT_BUTTON, bitmap, wx.NullBitmap, shortHelp="select", longHelp="Select one or many entities.  Click entity to edit details.  Double click to expand/contract.")
+      self.idLookup[SELECT_BUTTON] = SelectTool(self)
+
+      bitmap = svg.SvgFile("zoom.svg").bmp(tsize, { }, (222,222,222,wx.ALPHA_OPAQUE))
+      self.toolBar.AddRadioTool(ZOOM_BUTTON, bitmap, wx.NullBitmap, shortHelp="zoom", longHelp="Left click (+) to zoom in. Right click (-) to zoom out.")
+      self.idLookup[ZOOM_BUTTON] = ZoomTool(self)
+
+      bitmap = svg.SvgFile("remove.svg").bmp(tsize, { }, (222,222,222,wx.ALPHA_OPAQUE))
+      self.toolBar.AddRadioTool(DELETE_BUTTON, bitmap, wx.NullBitmap, shortHelp="Delete entity/entities", longHelp="Select one or many entities. Click entity to delete.")
+      self.idLookup[DELETE_BUTTON] = DeleteTool(self)
+
+    def deleteTools(self):   
+      self.toolBar.DeletePendingEvents()
+      self.toolBar.Unbind(wx.EVT_TOOL)
+      self.toolBar.ClearTools()
+      self.idLookup.clear()
+
+    def OnToolEvent(self,event):      
       handled = False
       if self.tool:
         handled = self.tool.OnEditEvent(self, event)
@@ -942,11 +959,11 @@ class Panel(scrolled.ScrolledPanel):
       except KeyError, e:
         event.Skip()
         pass # Not one of my tools
-      
+
 
     def OnPaint(self, event):
         #dc = wx.PaintDC(self)
-        print 'enter OnPaint'
+        #print 'enter OnPaint'
         dc = wx.BufferedPaintDC(self)
         dc.SetBackground(wx.Brush('white'))
         dc.Clear()
@@ -975,7 +992,7 @@ class Panel(scrolled.ScrolledPanel):
 
     def render(self, dc):
         """Put the entities on the screen"""
-        print 'enter render'
+        #print 'enter render'
         ctx = wx.lib.wxcairo.ContextFromDC(dc)
         # Now draw the graph
         ctx.save()
