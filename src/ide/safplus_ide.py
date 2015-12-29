@@ -44,7 +44,7 @@ class SAFplusFrame(wx.Frame):
         # bind the menu event to an event handler
         self.Bind(wx.EVT_MENU, self.OnTimeToClose, id=wx.ID_EXIT)
         self.Bind(EVT_PROJECT_LOADED, self.OnProjectLoaded)
-        self.Bind(EVT_PROJECT_NEW, self.OnProjectNew)
+        self.Bind(EVT_PROJECT_NEW, self.OnProjectLoaded) # Basically, new project is like load project. With new project, at the beginning, data for it was created although it's empty. After that, the newly created project is loaded with its data model
 
         # and put the menu on the menubar
         self.menuBar.Append(self.menu, "&File")
@@ -138,6 +138,8 @@ class SAFplusFrame(wx.Frame):
         #t.instance.deleteTools()
         t.instance.addTools()
         t.instance.refresh()
+        t.instanceDetails.setModelData(t.model)
+        t.instanceDetails.refresh()
 
     def OnProjectNew(self,evt):
       """Called when a new project is created"""

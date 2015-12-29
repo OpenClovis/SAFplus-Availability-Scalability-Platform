@@ -321,6 +321,8 @@ class Panel(scrolled.ScrolledPanel):
         #pdb.set_trace()
         #self.SetSashPosition(self.GetParent().GetClientSize().x/4)
 
+    def setModelData(self, model):
+      self.model = model
 
     def partialDataValidate(self, proposedPartialValue, fieldData):
       """Return True if the passed data could be part of a valid entry for this field -- that is, user might enter more text"""
@@ -787,6 +789,10 @@ class Panel(scrolled.ScrolledPanel):
         
         # Bind this to select treeItem container this control
         ctrl.Bind(wx.EVT_LEFT_DOWN, self.OnFocus)
+   
+    def refresh(self):      
+      self.treeItemSelected = None
+      self._createTreeEntities()
 
 def Test():
   global StandaloneDev

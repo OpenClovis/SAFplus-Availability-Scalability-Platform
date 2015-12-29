@@ -962,14 +962,12 @@ class Panel(scrolled.ScrolledPanel):
 
 
     def OnPaint(self, event):
-        #dc = wx.PaintDC(self)
-        #print 'enter OnPaint'
         dc = wx.BufferedPaintDC(self)
         dc.SetBackground(wx.Brush('white'))
         dc.Clear()
         self.PrepareDC(dc)
         self.UpdateVirtualSize(dc)
-        #self.render(dc)
+        self.render(dc)
 
     def GetBoundingBox(self):
       # Calculate bounding box
