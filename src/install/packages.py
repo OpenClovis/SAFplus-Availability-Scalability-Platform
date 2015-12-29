@@ -500,7 +500,8 @@ class Ubuntu(OS):
                  'zlib1g-dev',
                  'swig',
                  'zip',
-                 'unzip']
+                 'unzip',
+                 'tcl']
         
         
         for name in deps:
@@ -643,7 +644,8 @@ class CentOS4(OS):
                  'gdbm-devel',
                  'sqlite', 
                  'sqlite-devel',
-                 'zlib-devel']
+                 'zlib-devel',
+                 'tcl']
             
             
         for name in deps:
@@ -678,7 +680,8 @@ class CentOS5(OS):
                  'sqlite', 
                  'sqlite-devel',
                  'zlib-devel',
-                 'swig']
+                 'swig',
+                 'tcl']
             
             
         for name in deps:
@@ -694,7 +697,7 @@ class CentOS6(OS):
         self.yum = True
     
     def load_preinstall_deps(self):
-        deps =  ['pkgconfig','libtool','libtool-libs','gcc','gcc-c++','gettext','kernel-devel','perl-devel','db4','db4-devel','db4-utils','e2fsprogs','e2fsprogs-devel','gdbm','gdbm-devel','sqlite','sqlite-devel','make','libuuid-devel','ncurses-devel','libtool-ltdl-devel','zlib-devel','swig']
+        deps =  ['pkgconfig','libtool','libtool-libs','gcc','gcc-c++','gettext','kernel-devel','perl-devel','db4','db4-devel','db4-utils','e2fsprogs','e2fsprogs-devel','gdbm','gdbm-devel','sqlite','sqlite-devel','make','libuuid-devel','ncurses-devel','libtool-ltdl-devel','zlib-devel','swig','tcl']
                         
         for name in deps:
             D = objects.RepoDep(name)
@@ -740,7 +743,8 @@ class Fedora(OS):
                     'db4-utils',
                     'sqlite', 
                     'sqlite-devel',
-                    'swig']
+                    'swig',
+                    'tcl']
 
                     
         for name in deps:
