@@ -392,6 +392,9 @@ class EntityTypeTool(Tool):
     panel.entities[ent.data["name"]] = ent
     panel.Refresh()
 
+    if share.instancePanel:
+      share.instancePanel.addEntityTool(ent)
+
     if share.detailsPanel:
       share.detailsPanel.createTreeItemEntity(ent.data["name"], ent)
 
@@ -861,7 +864,9 @@ class Panel(scrolled.ScrolledPanel):
     def addTools(self):
      self.addCommonTools()
      self.addEntityTools()
-     self.toolBar.Bind(wx.EVT_TOOL, self.OnToolClick, id=ENTITY_TYPE_BUTTON_START, id2=wx.NewId())
+     #self.toolBar.Bind(wx.EVT_TOOL, self.OnToolClick, id=ENTITY_TYPE_BUTTON_START, id2=wx.NewId())
+     #self.toolBar.Bind(wx.EVT_TOOL_RCLICKED, self.OnToolRClick)
+     self.toolBar.Bind(wx.EVT_TOOL, self.OnToolClick)
      self.toolBar.Bind(wx.EVT_TOOL_RCLICKED, self.OnToolRClick)
 
     def deleteEntityTools(self):
@@ -913,7 +918,7 @@ class Panel(scrolled.ScrolledPanel):
 
     def deleteTools(self):   
       self.toolBar.DeletePendingEvents()
-      self.toolBar.Unbind(wx.EVT_TOOL)
+      #self.toolBar.Unbind(wx.EVT_TOOL)
       self.toolBar.ClearTools()
       self.idLookup.clear()
 
@@ -1064,6 +1069,8 @@ class Panel(scrolled.ScrolledPanel):
       self.Refresh()
 
     def deleteEntities(self, ents):
+      #if share.instancePanel:
+        #share.instancePanel.deleteEntityTool(ents)
       if share.detailsPanel:
         share.detailsPanel.deleteTreeItemEntities(ents)
       self.model.delete(ents)

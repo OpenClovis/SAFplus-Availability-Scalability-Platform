@@ -804,7 +804,7 @@ class Panel(scrolled.ScrolledPanel):
       #self.toolBar.AddLabelTool(10, "New", new_bmp, shortHelp="New", longHelp="Long help for 'New'")
 
       # TODO: add disabled versions to these buttons
-      self.addTools()
+      self.addTools(True)
       #self.addCommonTools()
 
       # Add the custom entity creation tools as specified by the model's YANG
@@ -874,16 +874,17 @@ class Panel(scrolled.ScrolledPanel):
       self.toolBar.DeletePendingEvents()  
       self.idLookup.clear()
 
-    def addTools(self):
+    def addTools(self, init=False):
       print 'instanceEditor: addTools'      
-      reassignCommonToolIds()
-      self.idLookup.clear()
+      if not init:
+        reassignCommonToolIds()
+        self.idLookup.clear()
       self.addCommonTools()
       self.addEntityTools()
-      self.toolBar.Bind(wx.EVT_TOOL, self.OnToolClick, id=ENTITY_TYPE_BUTTON_START, id2=wx.NewId())
-      self.toolBar.Bind(wx.EVT_TOOL_RCLICKED, self.OnToolRClick)      
-      #self.toolBar.Bind(wx.EVT_TOOL, self.OnToolClick)
-      #self.toolBar.Bind(wx.EVT_TOOL_RCLICKED, self.OnToolRClick)
+      #self.toolBar.Bind(wx.EVT_TOOL, self.OnToolClick, id=ENTITY_TYPE_BUTTON_START, id2=wx.NewId())
+      #self.toolBar.Bind(wx.EVT_TOOL_RCLICKED, self.OnToolRClick)      
+      self.toolBar.Bind(wx.EVT_TOOL, self.OnToolClick)
+      self.toolBar.Bind(wx.EVT_TOOL_RCLICKED, self.OnToolRClick)
 
     def resetDataMembers(self):
       for (name,m) in self.model.entities.items():
@@ -975,6 +976,50 @@ class Panel(scrolled.ScrolledPanel):
           e[1].buttonIdx = buttonIdx
 
       self.toolBar.Realize()
+
+    def addEntityTool(self, ent):
+      name = ent.et.name
+      entExists = False
+      for (eid,e) in self.idLookup.items():
+        if isinstance(e, EntityTool) and e.entity.et.name==name:
+          print 'addEntityTool: Entity [%s] exists' % name
+          entExists = True
+          break
+      if not entExists:
+        print 'addEntityTool: Entity [%s] not exists. adding tool' % name        
+        placement = None
+        if name in self.columnTypes:
+          placement = "column"
+        if name in self.rowTypes:
+          placement = "row"
+
+        if placement:
+          tsize = self.toolBar.GetToolBitmapSize()
+          buttonIdx = wx.NewId()
+          buttonSvg = ent.buttonSvg if hasattr(ent,"buttonSvg") else ent.et.buttonSvg
+          bitmap = buttonSvg.bmp(tsize, { "name":name }, (222,222,222,wx.ALPHA_OPAQUE))  # Use the first 3 letters of the name as the button text if nothing
+          shortHelp = ent.data.get("shortHelp",ent.et.data.get("help",None)) 
+          longHelp = ent.data.get("help",ent.et.data.get("help",None))
+          self.toolBar.AddRadioLabelTool(buttonIdx, name, bitmap, shortHelp=shortHelp, longHelp=longHelp)
+          #print 'instanceEditor::addEntityTools: e[0]:%s;e[1].data[name]:%s' % (e[0], e[1].data["name"])
+          #self.toolBar.AddRadioTool(buttonIdx, bitmap, wx.NullBitmap, shortHelp=et[0], longHelp=longHelp,clientData=et)
+          self.idLookup[buttonIdx] = EntityTool(self,ent)  # register this button so when its clicked we know about it          
+          ent.buttonIdx = buttonIdx
+        self.toolBar.Realize()
+
+    def deleteEntityTool(self, ents):
+      for ent in ents:
+        name = ent.et.name
+        entExists = False
+        for (eid,e) in self.idLookup.items():
+          if isinstance(e, EntityTool) and e.entity.et.name==name:
+            print 'deleteEntityTool: Entity [%s] exists' % name
+            entExists = True          
+            break
+        if entExists:
+          print 'deleteEntityTool: Entity [%s] exists --> delete it from toolbar' % name
+          self.toolBar.DeleteTool(eid)
+          del self.idLookup[eid]
 
     def OnToolEvent(self,event):
       handled = False

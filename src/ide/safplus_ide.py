@@ -140,6 +140,7 @@ class SAFplusFrame(wx.Frame):
         t.instance.refresh()
         t.instanceDetails.setModelData(t.model)
         t.instanceDetails.refresh()
+        t.modelDetails.refresh()
 
     def OnProjectNew(self,evt):
       """Called when a new project is created"""
