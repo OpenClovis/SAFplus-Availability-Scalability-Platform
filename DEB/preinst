@@ -1,0 +1,25 @@
+#!/bin/sh
+
+check_and_install_pypi_packages() {
+  python -c "$1" >/dev/null 2>&1 
+  pkg_status=$?
+  if [ "$pkg_status" -ne 0 ]; then
+    printf "Installing $2 using pip\n"
+    output="$(pip install $2)"
+    if [ $? -ne 0 ]; then
+      printf "$1 installation failed with below message $output\n"
+      exit -1
+    fi
+  fi
+}
+check_and_install_pypi_packages "import watchdog" "watchdog"
+check_and_install_pypi_packages "import pyang"  "pyang"
+check_and_install_pypi_packages "import genshi" "genshi"
+#wxPython_version="$(cut -c="Version:" -f2 $wxPython)"
+#echo "$wxPython_version"
+#check_wx_python_version() {
+#  cmd="pip show wxPython
+
+
+#if [ "$1" = "install" ]; then
+#  check_wx_python_version

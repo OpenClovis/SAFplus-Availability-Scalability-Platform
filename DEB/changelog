@@ -1,5 +1,12 @@
 safplus:
 
+  * Added IDE support to safplus debian packages
+  * This relase conatins gitcode code base changes upto b06d307
+
+ -- OpenClovisInc <info@openclovis.com>  Thu, 31 Dec 2015 09:14:14 -0700
+
+safplus (7-0-1) stable; urgency=medium
+
   * Initial package version for openclovis SAFplus software. (Closes: #XXXXXX)
 
- -- OpenClovis Inc <http://www.openclovis.com/blog/>  Fri, 31 Jul 2015 04:40:14 -0700
+ -- OpenClovisInc <info@openclovis.com>  Fri, 31 Jul 2015 04:40:14 -0700
