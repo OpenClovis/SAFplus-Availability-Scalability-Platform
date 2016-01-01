@@ -1,10 +1,8 @@
 S7 := 1
 include ../mk/preface.mk
-$(info SAFPLUS_TOP_DIR = $(SAFPLUS_TOP_DIR))
 IDE_TOP_DIR = $(SAFPLUS_TOP_DIR)/bin
 NOOP := $(shell mkdir -p $(IDE_TOP_DIR))
 IDE_DIR = $(IDE_TOP_DIR)/ide
-$(info IDE_DIR = $(IDE_DIR))
 Release all: ide
 
 PYTHON_FILES := $(wildcard *.py)

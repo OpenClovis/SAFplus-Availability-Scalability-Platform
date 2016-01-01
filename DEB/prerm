@@ -18,7 +18,6 @@ case "$1" in
     case "$PKG_NAME" in
       safplus) 
         remove_ide_sym_link safplus-src
-        rm -rf $PREFIX_DIR/target
         ;;
       safplus-src)
         remove_ide_sym_link safplus

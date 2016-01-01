@@ -106,7 +106,7 @@ else \
      sed -i '/Architecture:/c Package: $(PKG_NAME)\nArchitecture: i386\nSection: $2' $(DEBIAN_DIR)/control; \
 fi;
 sed -i '/Source:/c Source: $(PKG_NAME)\nSection: $2' $(DEBIAN_DIR)/control
-sed -i '/prefix:/c prefix=/opt/safplus/$(PKG_VER)/$3' $(DEBIAN_DIR)/postrm
+sed -i '/prefix:/c PKG_NAME=$(PKG_NAME)\nprefix=/opt/safplus/$(PKG_VER)/$4\nIDE_DIR=/opt/safplus/$(PKG_VER)/ide' $(DEBIAN_DIR)/postrm
 sed -i '/IDE_DIR:=/c IDE_DIR=/opt/safplus/$(PKG_VER)/ide' $(DEBIAN_DIR)/postinst
 sed -i '/PKG_NAME:=/c PKG_NAME=$(PKG_NAME)\nPREFIX_DIR=/opt/safplus/$(PKG_VER)/$3/../../' $(DEBIAN_DIR)/prerm
 sed -i '/prefix:/c export PREFIX?=/opt/safplus/$(PKG_VER)/$3\nexport PACKAGENAME?=$(PKG_NAME)' $(DEBIAN_DIR)/rules
@@ -117,7 +117,7 @@ cp -rf $(SAFPLUS_TOP_DIR)/bin/*	$(DEB_TOP_DIR)/IDE
 endef
 
 deb-src:ide_build_clean archive ide_build
-	$(call prepare_env_deb,safplus-src,devel,sdk)
+	$(call prepare_env_deb,safplus-src,devel,sdk,sdk)
 	tar xvzf $(TAR_NAME) -C $(DEB_TOP_DIR)
 	sed -i '/Architecture:/aReplaces: safplus' $(DEBIAN_DIR)/control
 	cd $(DEB_TOP_DIR) && dpkg-buildpackage -uc -us -b
@@ -136,7 +136,7 @@ build_binary:
 
 
 deb-bin: ide_build_clean build_binary ide_build
-	$(call prepare_env_deb,safplus,lib,sdk/target/$(__TMP_TARGET_PLATFORM))
+	$(call prepare_env_deb,safplus,lib,sdk/target/$(__TMP_TARGET_PLATFORM),sdk)
 	$(call copy_binpkg_files, $(DEB_TOP_DIR))
 	cd $(DEB_TOP_DIR) && dpkg-buildpackage -uc -us -b
 	mkdir -p $(BUILD)
@@ -161,7 +161,7 @@ cp -r $(PWD)/IDE/* $(DESTDIR)/$(PREFIX)/../ide
 endef
 
 deb_install:remove_target
-	$(eval REQ_FILES:=$(filter-out $(PWD)/debian/, $(filter-out $(PWD)/IDE/, $(wildcard $(PWD)/*/))))
+	$(eval REQ_FILES:=$(filter-out $(PWD)/debian/, $(filter-out $(PWD)/IDE/, $(filter-out $(PWD)/bin/, $(wildcard $(PWD)/*/)))))
 	$(call safplus_pkg_install,$(REQ_FILES))
 
 deb_clean:remove_target

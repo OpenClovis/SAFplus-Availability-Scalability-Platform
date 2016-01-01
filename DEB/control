@@ -8,7 +8,7 @@ Vcs-Browser: https://github.com/OpenClovis/SAFplus-Availability-Scalability-Plat
 
 Architecture: 
 Priority: extra
-Depends: libprotoc-dev, protobuf-compiler, python-protobuf, libbz2-dev, python-dev, g++, libboost1.55-all-dev, libxml2-dev, libdb-dev, libgdbm-dev, libsqlite3-dev, dh-make, dpkg-dev, python-pip, python-rsvg, python-wxgtk3.0 (>= 3.0), python-wxtools3.0, wx3.0-i18n(>= 3.0)
+Depends: libprotoc-dev, protobuf-compiler, python-protobuf, libbz2-dev, python-dev, g++, libboost1.55-all-dev, libxml2-dev, libdb-dev, libgdbm-dev, libsqlite3-dev, dh-make, dpkg-dev, python-pip, python-rsvg, python-wxgtk3.0 (>= 3.0), wx3.0-i18n(>= 3.0)
 Description: SAFplus is SA-Forum API compatible  middleware 
  SAFplus is SA-Forum API compatible middleware that provides High 
  Availability (HA), System Management, and other services, addressing 
