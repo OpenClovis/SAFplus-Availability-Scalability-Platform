@@ -1,0 +1,67 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<openClovisAsp>
+  <version v0="4.0.0">
+    <EOList xmlns="eoConfig.ecore">
+      <eoConfig name="ALM">
+        <eoMemConfig bufferConfig="Default" heapConfig="Default" memoryConfig="Default"/>
+        <eoIocConfig/>
+      </eoConfig>
+      <eoConfig name="AMF">
+        <eoMemConfig bufferConfig="Default" heapConfig="Default" memoryConfig="Default"/>
+        <eoIocConfig/>
+      </eoConfig>
+      <eoConfig name="CKP">
+        <eoMemConfig bufferConfig="Default" heapConfig="Default" memoryConfig="Default"/>
+        <eoIocConfig/>
+      </eoConfig>
+      <eoConfig name="CHM">
+        <eoMemConfig bufferConfig="Default" heapConfig="Default" memoryConfig="Default"/>
+        <eoIocConfig/>
+      </eoConfig>
+      <eoConfig name="COR">
+        <eoMemConfig bufferConfig="Default" heapConfig="CorHeapConfig" memoryConfig="CorMemoryConfig"/>
+        <eoIocConfig/>
+      </eoConfig>
+      <eoConfig name="DBG">
+        <eoMemConfig bufferConfig="Default" heapConfig="Default" memoryConfig="Default"/>
+        <eoIocConfig/>
+      </eoConfig>
+      <eoConfig name="EVT">
+        <eoMemConfig bufferConfig="Default" heapConfig="Default" memoryConfig="Default"/>
+        <eoIocConfig/>
+      </eoConfig>
+      <eoConfig name="FLT">
+        <eoMemConfig bufferConfig="Default" heapConfig="Default" memoryConfig="Default"/>
+        <eoIocConfig/>
+      </eoConfig>
+      <eoConfig name="GMS">
+        <eoMemConfig bufferConfig="Default" heapConfig="Default" memoryConfig="Default"/>
+        <eoIocConfig/>
+      </eoConfig>
+      <eoConfig name="LOG">
+        <eoMemConfig bufferConfig="Default" heapConfig="Default" memoryConfig="Default"/>
+        <eoIocConfig/>
+      </eoConfig>
+      <eoConfig name="NAM">
+        <eoMemConfig bufferConfig="Default" heapConfig="Default" memoryConfig="Default"/>
+        <eoIocConfig/>
+      </eoConfig>
+      <eoConfig name="SNS">
+        <eoMemConfig bufferConfig="Default" heapConfig="Default" memoryConfig="Default"/>
+        <eoIocConfig/>
+      </eoConfig>
+      <eoConfig name="TXN">
+        <eoMemConfig bufferConfig="Default" heapConfig="Default" memoryConfig="Default"/>
+        <eoIocConfig/>
+      </eoConfig>
+      <eoConfig name="MSG">
+        <eoMemConfig bufferConfig="Default" heapConfig="Default" memoryConfig="Default"/>
+        <eoIocConfig/>
+      </eoConfig>
+      <eoConfig name="cloudMgr_EO">
+        <eoMemConfig bufferConfig="Default" heapConfig="Default" memoryConfig="Default"/>
+        <eoIocConfig/>
+      </eoConfig>
+    </EOList>
+  </version>
+</openClovisAsp>

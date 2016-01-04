@@ -1,0 +1,34 @@
+SAFplus Cloud Example
+
+This model shows how SAFplus can be deployed in a cloud environment.  The model
+is very simple; it just defines 2 system controllers with one application.  This
+application is a server that listens for dynamic HA requests.
+
+A new cloud node can add itself and applications into the cluster using a 
+command line program located at src/client.  This program can be run on either
+the system controller or the new node.
+
+To add a node run:
+cloudCfg <controller IP address> add node <node name>
+
+To add an application run:
+cloudCfg <controller IP address> add app <app name> <node name>
+
+
+
+This should be run before SAFplus is started on the new node.
+
+
+BUILDING:
+
+1. First install boost.
+
+sudo apt-get install libboost-1.55-all
+
+2. Configure and compile the model as any SAFplus model
+
+3. compile the client:
+  cd src/client
+  make
+
+ 
