@@ -96,7 +96,7 @@ namespace SAFplus
       }
       case ACK_FLAG:
       {
-        temp=FRAG_DATA;
+        temp=FRAG_DAT;
         break;
       }
       case NAK_FLAG:
@@ -284,7 +284,7 @@ namespace SAFplus
   }
   fragmentType DATFragment::getType()
   {
-    return FRAG_DATA;
+    return FRAG_DAT;
   }
 
   DATFragment::~DATFragment()

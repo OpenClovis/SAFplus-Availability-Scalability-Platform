@@ -26,7 +26,7 @@ namespace SAFplus
     CONN_SYN_RCVD, /* Request to connect received, waiting ACK */
     CONN_SYN_SENT, /* Request to connect sent */
     CONN_ESTABLISHED, /* Data transfer state */
-    CONN_CLOSE_WAIT /* Request to close the connection */
+    CONN_CLOSE_REQUEST /* Request to close the connection */
   };
 
   class rcvListInfomation

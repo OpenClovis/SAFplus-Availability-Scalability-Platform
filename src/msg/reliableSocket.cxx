@@ -139,10 +139,7 @@ namespace SAFplus
       setconnection(connectionNotification::RESET);
     }
 
-    /*
-     * When a FIN segment is received, no more packets
-     * are expected to arrive after this segment.
-     */
+
     if(fragType == fragmentType::FRAG_FIN)
     {
       switch(state)
@@ -158,7 +155,7 @@ namespace SAFplus
         }
         default:
         {
-          state = connectionState::CONN_CLOSE_WAIT;
+          state = connectionState::CONN_CLOSE_REQUEST;
           break;
         }
       }
@@ -182,7 +179,7 @@ namespace SAFplus
       {
         /* Insert in-sequence segment */
         rcvListInfo.setLastInSequence(frag->getFragmentId());
-        if ( fragType == fragmentType::FRAG_DATA ||
+        if ( fragType == fragmentType::FRAG_DAT ||
             fragType ==  fragmentType::FRAG_RST ||
             fragType == fragmentType::FRAG_FIN)
         {
@@ -295,7 +292,7 @@ namespace SAFplus
       {
         rcvListInfo.setLastInSequence(s.getFragmentId());
         it = outOfSeqQueue.erase(it);
-        if (s.getType() == fragmentType::FRAG_DATA ||
+        if (s.getType() == fragmentType::FRAG_DAT ||
             s.getType() == fragmentType::FRAG_RST ||
             s.getType() == fragmentType::FRAG_FIN)
         {
@@ -618,12 +615,12 @@ namespace SAFplus
   void MsgReliableSocket::sendReliableFragment(ReliableFragment *frag)
   {
     /* Piggyback any pending acknowledgments */
-    if (frag->getType()==fragmentType::FRAG_DATA || frag->getType()==fragmentType::FRAG_RST || frag->getType()==fragmentType::FRAG_FIN || frag->getType()==fragmentType::FRAG_NUL)
+    if (frag->getType()==fragmentType::FRAG_DAT || frag->getType()==fragmentType::FRAG_RST || frag->getType()==fragmentType::FRAG_FIN || frag->getType()==fragmentType::FRAG_NUL)
     {
       setACK(frag);
     }
     /* Reset null segment timer */
-    if (frag->getType()==fragmentType::FRAG_DATA || frag->getType()==fragmentType::FRAG_RST || frag->getType()==fragmentType::FRAG_FIN)
+    if (frag->getType()==fragmentType::FRAG_DAT || frag->getType()==fragmentType::FRAG_RST || frag->getType()==fragmentType::FRAG_FIN)
     {
       nullFragmentTimer.status=TimerStatus::TIMER_PAUSE;
       nullFragmentTimer.status=TimerStatus::TIMER_RUN;
@@ -755,13 +752,12 @@ namespace SAFplus
         }
         it=inSeqQueue.erase_and_dispose(it, delete_disposer());
       }
-      else if (s.getType() == fragmentType::FRAG_DATA)
+      else if (s.getType() == fragmentType::FRAG_DAT)
       {
         if(s.isLastFragment())
         {
           quit=true;
           m->setAddress(s.address);
-          //logTrace("MSG","RST","read the last fragment [%d]",s.getFragmentId());
         }
         int length = 0;
         Byte* data = s.getData();
@@ -772,14 +768,12 @@ namespace SAFplus
           temp=m->append(0);
           buffer = (Byte*)SAFplusHeapAlloc(length);
           temp->set((void*)buffer,length);
-          //logTrace("MSG","RST","current len [%d]",temp->len);
         }
         else
         {
           Byte* newBuffer=(Byte*)SAFplusHeapRealloc(buffer,totalBytes + length);
           buffer=newBuffer;
           temp->len+=((DATFragment*) &s)->getlength();
-          //logTrace("MSG","RST","current len [%d]",temp->len);
         }
         memcpy(buffer + (totalBytes), (void*)data , length);
         totalBytes += length;
@@ -835,7 +829,6 @@ namespace SAFplus
     while(it != inSeqQueue.end())
     {
       ReliableFragment& s = *it;
-      //logTrace("MSG","RST","Read the fragment id [%d] with length [%d]",s.seq(),s.length());
       if (s.getType() == fragmentType::FRAG_RST)
       {
         it=inSeqQueue.erase_and_dispose(it, delete_disposer());
@@ -850,7 +843,7 @@ namespace SAFplus
         }
         it=inSeqQueue.erase_and_dispose(it, delete_disposer());
       }
-      else if (s.getType() == fragmentType::FRAG_DATA)
+      else if (s.getType() == fragmentType::FRAG_DAT)
       {
         if(s.isLastFragment())
         {
@@ -928,7 +921,6 @@ namespace SAFplus
     while(it != inSeqQueue.end())
     {
       ReliableFragment& s = *it;
-      //logTrace("MSG","RST","Read the fragment id [%d] with length [%d]",s.getFragmentId(),s.getlength());
       if (s.getType() == fragmentType::FRAG_RST)
       {
         it=inSeqQueue.erase_and_dispose(it, delete_disposer());
@@ -943,13 +935,12 @@ namespace SAFplus
         }
         it=inSeqQueue.erase_and_dispose(it, delete_disposer());
       }
-      else if (s.getType() == fragmentType::FRAG_DATA)
+      else if (s.getType() == fragmentType::FRAG_DAT)
       {
         if(s.isLastFragment())
         {
           quit=true;
           m->setAddress(s.address);
-          //logTrace("MSG","RST","read the last fragment [%d]",s.getFragmentId());
         }
         int length = 0;
         Byte* data = s.getData();
@@ -1014,7 +1005,7 @@ namespace SAFplus
     p_Fragment = ReliableFragment::parse((Byte*)p_NextFrag->read(0),p_NextFrag->len);
     p_Fragment->address=p_Msg->getAddress();
     fragmentType fragType = p_Fragment->getType();
-    if(fragType == fragmentType::FRAG_DATA ||
+    if(fragType == fragmentType::FRAG_DAT ||
         fragType == fragmentType::FRAG_NUL ||
         fragType == fragmentType::FRAG_RST ||
         fragType == fragmentType::FRAG_FIN ||
@@ -1053,7 +1044,6 @@ namespace SAFplus
     MsgFragment* hdr = message->append(0);
     Byte* buffer =frag->getHeader();
     hdr->set(buffer,RUDP_HEADER_LEN);
-    //logTrace("MSG","FRT","send message with header length [%d]",message->firstFragment->len);
     if(frag->getlength() > 0)
     {
       MsgFragment* splitFrag = message->append(0);
@@ -1089,7 +1079,7 @@ namespace SAFplus
           thisMutex.unlock();
           break;
         }
-        case connectionState::CONN_CLOSE_WAIT :
+        case connectionState::CONN_CLOSE_REQUEST :
         case connectionState::CONN_SYN_RCVD :
         case connectionState::CONN_ESTABLISHED :
         {
@@ -1112,17 +1102,11 @@ namespace SAFplus
   void MsgReliableSocket::closeImpl()
   {
     nullFragmentTimer.status=TIMER_PAUSE;
-    state = connectionState::CONN_CLOSE_WAIT;
+    state = connectionState::CONN_CLOSE_REQUEST;
     nullFragmentTimer.isStop=true;
-    try
-    {
-      boost::this_thread::sleep_for(boost::chrono::seconds{profile->getNullFragmentInterval() * 2});
-    }
-    catch (...)
-    {
-    }
     retransmissionTimer.isStop=true;
     cumulativeAckTimer.isStop=true;
+    //TODO remove all un - ackfragment.
   }
   void MsgReliableSocket::setconnection(connectionNotification state)
   {
@@ -1312,8 +1296,12 @@ namespace SAFplus
     MsgFragment* frag;
     nextFrag = origMsg->firstFragment;
     bool lastFrag = false;
-    do
     {
+      if(isClosed==true)
+      {
+        logError("MSG","RST","Message Sending Failed");
+        return;
+      }
       frag = nextFrag;
       nextFrag = frag->nextFragment;
       if(nextFrag==NULL)
@@ -1485,7 +1473,7 @@ namespace SAFplus
 
       }
       case connectionState::CONN_CLOSED:
-      case connectionState::CONN_CLOSE_WAIT:
+      case connectionState::CONN_CLOSE_REQUEST:
       {
         state = connectionState::CONN_CLOSED;
         throw Error("Socket closed");
@@ -1513,7 +1501,7 @@ namespace SAFplus
           thisMutex.unlock();
           break;
         }
-        case connectionState::CONN_CLOSE_WAIT:
+        case connectionState::CONN_CLOSE_REQUEST:
         case connectionState::CONN_SYN_RCVD:
         case connectionState::CONN_ESTABLISHED:
         {
@@ -1736,7 +1724,7 @@ namespace SAFplus
     handle=p_Fragment->address;
     fragmentQueue.pop_front();
     fragmentQueueLock.unlock();
-    if(p_Fragment->getType() == fragmentType::FRAG_DATA ||
+    if(p_Fragment->getType() == fragmentType::FRAG_DAT ||
         p_Fragment->getType() == fragmentType::FRAG_NUL ||
         p_Fragment->getType() == fragmentType::FRAG_RST ||
         p_Fragment->getType() == fragmentType::FRAG_FIN ||
