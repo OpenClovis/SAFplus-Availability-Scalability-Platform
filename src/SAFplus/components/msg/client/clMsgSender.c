@@ -37,6 +37,7 @@
 #include <clMsgDebugInternal.h>
 #include <clMsgCkptClient.h>
 
+#define MESSAGE_INTERVAL 5000 //5 ms
 
 ClHandleDatabaseHandleT gMsgSenderDatabase;
 
@@ -153,7 +154,6 @@ static ClRcT clMsgMessageSend(ClIocAddressT * pDestAddr,
             && (pDestAddr->iocPhyAddress.portId == gLocalPortId))
     {
         CL_OSAL_MUTEX_LOCK(&gClQueueDbLock);
-
         if(clMsgQNameEntryExists(pDest, &pQueue) == CL_FALSE)
         {
             CL_OSAL_MUTEX_UNLOCK(&gClQueueDbLock);
@@ -270,6 +270,11 @@ ClRcT clMsgClientMessageSend(ClIocAddressT *pDestAddr,
                 }
             }
             clMsgQGroupCkptDataFree(&qGroupData);
+#ifdef CL_MESSAGE_ORDER
+            // Work-around in message broadcast : make sure message received with right order in each node
+            clLogTrace("MSG", "SND", "sleep 5ms to make sure message received with right order...");
+            usleep(MESSAGE_INTERVAL);
+#endif
         }
         else
         {
