@@ -33,6 +33,7 @@ ClUint32T clTipcMcastType(ClUint32T type);
 ClRcT xportListenStop(ClIocPortT port);
 ClRcT xportNotifyInit(void );
 ClRcT xportNotifyOpen(ClIocPortT port);
+ClUint32T clTipcOwnAddrGet(void);
 #ifdef BCAST_SOCKET_NEEDED
 ClRcT clTipcGetAddress(struct sockaddr_tipc *pAddress, ClIocAddressT *pDestAddress, ClUint32T *pSendFDFlag);
 #else

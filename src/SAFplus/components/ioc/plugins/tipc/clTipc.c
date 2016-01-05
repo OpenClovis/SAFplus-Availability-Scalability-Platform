@@ -104,6 +104,7 @@
 #define TIPC_LOG_CTX_TIPC_GET		"GET"
 #define TIPC_LOG_CTX_TIPC_RECV		"RECV"
 #define TIPC_LOG_CTX_TIPC_READY		"RDY"
+#define TIPC_LOG_CTX_TIPC_INIT		"INI"
 
 extern ClIocNodeAddressT gIocLocalBladeAddress;
 
@@ -761,6 +762,19 @@ ClRcT xportInit(const ClCharT *xportType, ClInt32T xportId, ClBoolT nodeRep)
     CL_ASSERT(rc == CL_OK);
     rc = clOsalMutexInit(&gClTipcMcastMutex);
     CL_ASSERT(rc == CL_OK);
+
+     /* 
+     * Check if we have a TIPC address (tipc is installed and configured) 
+     */   
+    {
+        ClUint32T tipcAddress = clTipcOwnAddrGet();
+        if (tipcAddress == 0) // TIPC not installed or no address assigned
+        {
+            clLogError(TIPC_LOG_AREA_TIPC,TIPC_LOG_CTX_TIPC_INIT,"No TIPC address.  TIPC is either not installed or not configured.  TIPC communications will not be available and this error will be fatal if no other transports are defined.");
+            rc = CL_IOC_RC(CL_ERR_NO_RESOURCE);
+            goto out;
+        }        
+    }   
     /* 
      * Check if the tipc address or asp address is in use
      */

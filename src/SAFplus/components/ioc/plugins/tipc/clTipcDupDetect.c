@@ -52,7 +52,7 @@
 #define	TIPC_LOG_CTX_ADDR_GET	"GET"
 #define TIPC_LOG_CTX_TIPC_ADDR	"ADDR"
 
-static ClUint32T clTipcOwnAddrGet(void)
+ClUint32T clTipcOwnAddrGet(void)
 {
     struct sockaddr_tipc addr;
     socklen_t sz = sizeof(addr);
@@ -62,9 +62,10 @@ static ClUint32T clTipcOwnAddrGet(void)
     sd = socket(AF_TIPC, SOCK_RDM, 0);
     if(sd < 0)
     {
-        clLogError(TIPC_LOG_AREA_TIPC,TIPC_LOG_CTX_ADDR_GET,"Error : socket() failed. system error [%s].\n", strerror(errno));
-        CL_ASSERT(0);
-        return CL_IOC_RC(CL_ERR_UNSPECIFIED);
+        clLogError(TIPC_LOG_AREA_TIPC,TIPC_LOG_CTX_ADDR_GET,"socket() failed. system error [%s].", strerror(errno));
+        return 0;  // Not returning an error code... return an invalid tipc address
+        //CL_ASSERT(0);
+        //return CL_IOC_RC(CL_ERR_UNSPECIFIED);
     }
     
     rc = getsockname(sd, (struct sockaddr *)&addr, &sz);
@@ -192,18 +193,21 @@ ClRcT clTipcDoesNodeAlreadyExist(void)
          * as of this node exists 
          */
         tipcAddress = clTipcOwnAddrGet();
+        if (tipcAddress == 0) // TIPC not installed or no address assigned
+        {
+            return CL_IOC_RC(CL_ERR_NO_RESOURCE);
+        }
+        
         rc = clTipcIsAddressInUse(CL_TIPC_SET_TYPE(CL_IOC_XPORT_PORT), tipcAddress);
-        if(rc != CL_OK) 
-            goto error_detected;
+        if(rc != CL_OK) return rc;
+        
     }
 
     if(tipcAddress != gIocLocalBladeAddress)
     {
         /* Check whether another ASP-node is using same IOC address as of this ASP */
-        rc = clTipcIsAddressInUse(CL_TIPC_SET_TYPE(CL_IOC_XPORT_PORT),
-                                  gIocLocalBladeAddress);
+        rc = clTipcIsAddressInUse(CL_TIPC_SET_TYPE(CL_IOC_XPORT_PORT), gIocLocalBladeAddress);
     }
 
-    error_detected:
     return rc;
 }

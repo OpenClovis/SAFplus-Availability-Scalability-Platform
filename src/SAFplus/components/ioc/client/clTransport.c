@@ -624,6 +624,7 @@ static void addTransport(const ClCharT *type, const ClCharT *plugin)
     CL_ASSERT(xport->xportType != NULL);
     xport->xportPlugin = clStrdup(plugin);
     CL_ASSERT(xport->xportPlugin != NULL);
+    xport->xportState = 0;
     xport->xportPluginHandle = dlopen(plugin, RTLD_GLOBAL | RTLD_NOW);
     if(!xport->xportPluginHandle)
     {
@@ -1952,6 +1953,8 @@ ClRcT clTransportInitialize(const ClCharT *type, ClBoolT nodeRep)
         }
         return rc;
     }
+    int xportsInited = 0;
+    
     CL_LIST_FOR_EACH(iter, &gClTransportList)
     {
         ClRcT err = CL_OK;
@@ -1960,15 +1963,21 @@ ClRcT clTransportInitialize(const ClCharT *type, ClBoolT nodeRep)
            &&
            (err = xport->xportInit(xport->xportType, xport->xportId, nodeRep)) != CL_OK)
         {
-            clLogError("XPORT", "INI", "Unable to initialize transport [%s]. Error [%#x]", 
-                       xport->xportType, err);
+            clLogError("XPORT", "INI", "Unable to initialize transport [%s]. Error [%#x]", xport->xportType, err);
             rc = err;
-            goto out;
         }
-        else xport->xportState |= XPORT_STATE_INITIALIZED;
+        else
+        {
+            xport->xportState |= XPORT_STATE_INITIALIZED;
+            xportsInited++;
+        }
+        
     }
+    
+    if (xportsInited == 0) return rc;  // No transport was able to be initialized, so give up
 
     out_notify:
+    rc = CL_OK;
     if (nodeRep) 
     {
         rc = clTransportAddressAssign(type);
@@ -1979,7 +1988,6 @@ ClRcT clTransportInitialize(const ClCharT *type, ClBoolT nodeRep)
         rc = clTransportNotificationInitialize(type);
     }
 
-    out:
     return rc;
 }
 
