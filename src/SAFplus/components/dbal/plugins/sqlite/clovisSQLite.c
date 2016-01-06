@@ -178,6 +178,7 @@ clDbalConfigInitialize(void* pDbalConfiguration)
 void errorLogCallback(void *pArg, int iErrCode, const char *zMsg)
 {
     printf("(%d) %s\n", iErrCode, zMsg);
+    fflush(stdout);
     clLogError("DBA", "DBO", "(%d) %s\n", iErrCode, zMsg);
 }
 
@@ -193,7 +194,8 @@ cdbSQLiteDBInitialize(ClDBFileT dbEnvFile)
     {
         printf("Setting up the error logging callback failed. rc [%d]\n", rc);
         clLogNotice("DBA", "INI", "Setting up the error logging callback failed. rc [%d]", rc);        
-    }
+    }    
+    fflush(stdout);
     return CL_OK;
 }
 
