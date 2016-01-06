@@ -44,6 +44,7 @@ LeafColor = (0x30,0,0x30)
 FullPathColor = (0xa0,0x70,0)
 
 SAFplusNamespace = "http://www.openclovis.org/ns/amf"
+HISTORYLOG = "xmlshellhistory.txt"
 
 import pdb
 import xml.etree.ElementTree as ET
@@ -350,7 +351,59 @@ def uniquePortion(seriesNames):
     if sfxLen==0: sfxLen = None
     return (pfxLen,sfxLen)
 
+class History():
+  def __init__(self, histFile = HISTORYLOG, num_log = 20):
+    self._histFile = histFile
+    self._buffer = []
+    self._numLog = 20 #Number of log to show
+    self._isLoaded = False
+    self.loadBuffer()
+    
+  def append(self, command):
+    if command is None:
+      print "ERROR: command should not be NULL"
+      return
+    self._buffer.append(command)
+    
+  def loadBuffer(self):
+    if self._isLoaded == True: return
+    if not os.path.exists(self._histFile):
+      #create new file
+      open(self._histFile, "a")
+    with open(self._histFile, "r") as f:
+      for line in f:
+        self._buffer.append(line)
+    self._isLoaded = True
+  
+  def save(self):
+    string = ""
+    if not os.path.exists(self._histFile):
+      #create new file
+      open(self._histFile, "a")
+    with open(self._histFile, "w") as f:
+      for str in self._buffer:
+        string += "%s\n" % str
+      f.write(string)
 
+  def clear(self):
+    self._buffer = []
+    self.save()
+    return "<text>OK</text>"
+  
+  def show(self, number = None):
+    txt = ""
+    if number is not None and not number.isdigit():
+      txt = "<error>Invalid number: %s</error>" % number
+    else:
+      txt += "<top>"
+      if number is None: number = self._numLog
+      showList = self._buffer[:]
+      showList.reverse()
+      for cmd in showList[:int(number)]:
+        txt += "<text>" + cmd + "</text>"
+      txt+= "</top>"
+    return txt
+  
 class TermController(xmlterm.XmlResolver):
   """This class customizes the XML terminal"""
   def __init__(self):
@@ -359,6 +412,7 @@ class TermController(xmlterm.XmlResolver):
     self.curdir = "/"
     self.cmds.append(self)  # I provide some default commands
     self.xmlterm = None
+    self.history = History()
 
   def newContext(self):
     path = self.curdir.split("/")
@@ -426,40 +480,15 @@ class TermController(xmlterm.XmlResolver):
     st.append("</plot>")
     # print "".join(st)
     xt.doc.append("".join(st))  # I have to wrap in an xml tag in case I get 2 top levels from mgtGet
- 
+    
   def do_help(self,*command):
     """? display this help, or detailed help about a particular command"""
-    if command and len(command) > 0:
-      access.showHelp(*command)
-       
+    if command:
+      command = [" ".join(command)]
     else:
-      help = """help
-      Print the CLI help text
-      input
-        default parameter: command
-        choice helptype
-          leaf command [NcxIdentifier]
-            Show help for the specified command,
-            also called an RPC method
-    
-          leaf commands [empty]
-            Show info for all local commands
-          
-          leaf notifications [empty]
-            Show info for all defined notifications
-            
-          leaf notification [NcxIdentifier]
-            Show help for the specified notification 
-          
-      commands
-        notification [NcxIdentifier] <on/off>
-          If [NcxIdentifier] is "all" turn all notifications on or off.
-          If notifications are "on" an notify message will be output when they occur.
-        
-        notification show <N or date or all> 
-          Show the last N notifications or notifications from a date or all notifications"""
-      
-      print help
+      command = None
+    return "<top>" + self.getHelp(command) + "</top>"
+
 
   def do_ls(self,*sp):
     """Displays the object tree at the current or specified location.
@@ -521,6 +550,26 @@ By default the specified location and children are shown.  Use -N to specify how
     xml = access.mgtGet((prefix % depth) + str(t))
     txt = "<text>" + xmlterm.escape(xmlterm.indent("<top>" + xml + "</top>")) + "</text>"
     return txt # I have to wrap in an xml tag in case I get 2 top levels from mgtGet
+       
+  
+  def do_history(self, *sp):
+    """? Show or clear your history commands
+  Argument: [show number] or [clear]. In case of number is None. Default of number will be used
+  Example: "history show 30" will show 30 latest inputed commands
+           "history clear" clears all your buffer commands
+"""
+    rt = ""
+    if len(sp) > 0:
+      if sp[0] == 'show':
+        try:
+          rt = self.history.show(sp[1])
+        except:
+          rt = self.history.show(None)
+      elif sp[0] == 'clear':
+        rt = self.history.clear()
+      else:
+        rt = self.history.show(sp[0])
+    return rt
   
   def do_loadmodule(self, moduleName):
     cmds.do_load(moduleName)
@@ -614,8 +663,13 @@ By default the specified location and children are shown.  Use -N to specify how
             xml.append(access.mgtGet("{d=%s}%s" % (depth,str(t))))
           self.bar(xml,self.xmlterm)
           return ""
+  
+  def execute(self, textLine, xt):
+    """Execute the passed string"""
+    self.history.append(textLine)
+    return xmlterm.XmlResolver.execute(self, textLine, xt)
 
-  def execute(self,textLine,xt):
+  def xxexecute(self,textLine,xt):
     """Execute the passed string"""
     cmdList = textLine.split(";")
     depth = 1
@@ -719,12 +773,11 @@ By default the specified location and children are shown.  Use -N to specify how
           xt.aliases[sp[1]] = " ".join(sp[2:])
         elif sp[0] == '!exit' or sp[0] == 'exit':  # goodbye
           self.parentWin.GetParent().frame.Close()
-        elif sp[0] == 'help':
-          self.do_help(*sp[1:])
-        elif sp[0] == 'notification':
-          self.do_notification(*sp[1:])
         else:
-          self.do_rpcCommands(*sp)  
+          pdb.set_trace()
+          #TODO look for registered RPC call
+          t = xmlterm.escape(" ".join(sp))
+          xt.doc.append('<process>%s</process>' % t) 
 
 def main(args):
   cmds,handlers = access.Initialize()
