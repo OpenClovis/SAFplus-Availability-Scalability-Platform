@@ -3,13 +3,9 @@
   <version v0="4.0.0">
     <ioc:BootConfig xmlns:ioc="ioc.ecore">
      <config>
-       <default>TIPC</default>
+       <default>UDP</default>
      </config>
       <xports>
-        <xport>
-          <type>TIPC</type>
-          <plugin>libClTIPC.so</plugin>
-        </xport>
         <xport>
           <type>UDP</type>
           <plugin>libClUDP.so</plugin>
@@ -19,7 +15,7 @@
       <heartbeat>
           <interval>2000</interval>
           <intervalLocal>1000</intervalLocal>
-          <retries>3</retries>
+          <retries>5</retries>
       </heartbeat>
       <peerAddresses port="6799">
          <peer addr="192.168.6.101"/>
