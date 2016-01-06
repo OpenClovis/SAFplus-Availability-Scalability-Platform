@@ -108,35 +108,24 @@ int main(int argc, char* argv[])
       clTestCaseStart(("MXP-%3s-%3s.TC001: initialization",MsgXportTestPfx,ModeStr));
       MsgTransportConfig xCfg = xp->initialize(msgPool,clusterNodes);
       logInfo("TST","MSG","Msg Transport [%s], node [%u] maxPort [%u] maxMsgSize [%u]", xp->type, xCfg.nodeId, xCfg.maxPort, xCfg.maxMsgSize);
-      MsgSocketServerReliable sockServer(3,xp);
-      MsgSocketClientReliable* connectionSocket = sockServer.accept();
+      MsgReliableSocketServer sockServer(37,xp);
+      MsgReliableSocketClient* connectionSocket = sockServer.accept();
       logInfo("TST","MSG","wait to receive from sender"	);
-/*
-      int length=0;
-      unsigned char* buffer = connectionSocket->readReliable(0,length,5000000);
-      logInfo("TST","MSG","receive [%d] byte from sender",int(sizeof(buffer)/sizeof(char)));
-      logInfo("TST","MSG","wait to receive from sender"	);
-      unsigned char* buffer2 = connectionSocket->readReliable(0,length,5000000);
-      logInfo("TST","MSG","receive [%d] byte from sender",length);
-      logInfo("TST","MSG","Data at [%d] : [%s]",0,buffer2);
-      logInfo("TST","MSG","Data at [%d] : [%s]",64000 -10,buffer2 + 64000 -10);
-      logInfo("TST","MSG","Data at [%d] : [%s]",1500000 -15,buffer2 + (1500000 -15));*/
+      int count=0;
       while(1)
       {
         //int receiveByte=count*receiveLen;
         logInfo("TST","MSG","read...");
         Message* msg= connectionSocket->receive(1);
-        assert(msg->firstFragment == msg->lastFragment);
+        logInfo("TST","MSG","read done [%d]...",count);
         MsgFragment* frag =  msg->firstFragment;
-        int msgType = *((char*)frag->read(0));
-        frag->start++;
-        frag->len--;
-        char* data= (char*)frag->read(0);
-        logInfo("TST","MSG","receive [%d] byte, msgType[%d] from [%d] [%d]",frag->len,msgType,msg->node,msg->port);
-        logInfo("TST","MSG","Data at [%d] : [%s]",0,data);
-        logInfo("TST","MSG","Data at [%d] : [%s]",64000 -10,data + 64000 -10);
-        logInfo("TST","MSG","Data at [%d] : [%s]",1500000 -5,data + (1500000 -5));
-        msg->msgPool->free(msg);        
+        logInfo("TST","MSG","first frag len [%d]...",frag->len);
+        MsgFragment* frag2 =  msg->lastFragment;
+        logInfo("TST","MSG","last frag len [%d]...",frag2->len);
+        logInfo("TST","MSG","Data at [%d] : [%s]",0,(char*)(frag2->read(0)));
+        logInfo("TST","MSG","Data at [%d] : [%s]",frag2->len-10,(char*)(frag2->read(frag2->len-10))); 
+        free(frag->data(0)); 
+        count++;
       }
       do
       {
@@ -145,3 +134,4 @@ int main(int argc, char* argv[])
      }
   }
 }
+

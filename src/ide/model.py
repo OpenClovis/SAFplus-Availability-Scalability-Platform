@@ -10,6 +10,7 @@ from module import Module
 import svg
 import entity
 from entity import Entity
+import generate
 
 VERSION = "7.0"
 MAX_RECURSIVE_INSTANTIATION_DEPTH = 5
@@ -47,6 +48,10 @@ instantiated  <instances>     instances                         instances     (e
     self.entityTypes = {}
     self.entities = {}
     self.instances = {}
+
+  def directory(self):
+    """Returns the location of this model on disk """
+    return os.path.dirname(self.filename)
 
   def delete(self, items):
     """Accept a list of items in a variety of formats to be deleted"""
@@ -104,6 +109,19 @@ instantiated  <instances>     instances                         instances     (e
     container.containmentArrows.append(ca)
     contained.childOf.add(container)
     return ca
+
+  def generateSource(self,srcDir):
+
+    output = common.FilesystemOutput()
+    comps = filter(lambda entity: entity.et.name == 'Component', self.entities.values())
+    srcDir = os.sep.join([srcDir, "src"])
+    files = []  
+    files += generate.topMakefile(output, srcDir,[c.data["name"] for c in comps])
+
+    for c in comps:
+      files += generate.cpp(output, srcDir, c, c.data)
+    return files
+
 
   def load(self, fileOrString):
     """Load an XML representation of the model"""
@@ -238,6 +256,18 @@ instantiated  <instances>     instances                         instances     (e
           self.entityTypes.update(tmp.entityTypes)  # make the entity types easily accdef xmlify(self):
           for (typName,data) in tmp.ytypes.items():
             self.dataTypes[typName] = data
+
+    # Set the entityType's context to this model so it can resolve referenced types, etc.
+    for (name,e) in self.entityTypes.items():
+      e.context = self
+
+  def loadModuleFromFile(self, moduleFile):
+    """Load the modules specified in the model"""
+    if not self.modules.has_key(moduleFile):  # really load it since it does not exist
+      tmp = self.modules[moduleFile] = Module(moduleFile)
+      self.entityTypes.update(tmp.entityTypes)  # make the entity types easily accdef xmlify(self):
+      for (typName,data) in tmp.ytypes.items():
+        self.dataTypes[typName] = data
 
     # Set the entityType's context to this model so it can resolve referenced types, etc.
     for (name,e) in self.entityTypes.items():

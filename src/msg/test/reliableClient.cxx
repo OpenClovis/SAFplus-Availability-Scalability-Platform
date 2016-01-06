@@ -106,31 +106,18 @@ int main(int argc, char* argv[])
       clTestCaseStart(("MXP-%3s-%3s.TC001: initialization",MsgXportTestPfx,ModeStr));
       MsgTransportConfig xCfg = xp->initialize(msgPool,clusterNodes);
       logInfo("TST","MSG","Msg Transport [%s], node [%u] maxPort [%u] maxMsgSize [%u]", xp->type, xCfg.nodeId, xCfg.maxPort, xCfg.maxMsgSize);
-      Handle destination = SAFplus::getProcessHandle(3,122);
-      MsgSocketReliable sockclient(4,xp,destination);
+      Handle destination = SAFplus::getProcessHandle(37,122);
+      MsgReliableSocket sockclient(47,xp);
       printf("init socket : done \n");
-
-/*      int i=1;
-
-      sleep(1);
-      printf("send msg 1");
-      unsigned char* buffer = new unsigned char[1000000];
-      memset( buffer, 'c', sizeof(unsigned char)*(1000000));
-      sockclient.writeReliable(buffer,0,1000000);	
-
-      sleep(2);
-      printf("send msg 2");
-      unsigned char* buffer2 = new unsigned char[1500000];
-      memset( buffer2, 'c', sizeof(unsigned char)*(1500000));
-      sockclient.writeReliable(buffer2,0,1500000);
-*/
-      long len=1500000;
+      long len=50000000;
       int count = 0;
-      while(count<1)
+      while(count<50)
       {
         count ++;
-        unsigned char* buffer = new unsigned char[len*count];
-        memset(buffer, 'c', sizeof(unsigned char)*len*count);
+        sockclient.connect(destination,0);
+        sleep(1);
+        unsigned char* buffer = new unsigned char[len];
+        memset(buffer, 'c', sizeof(unsigned char)*len);
         Message* m = msgPool.allocMsg();
         assert(m);
         m->setAddress(destination);
@@ -138,11 +125,11 @@ int main(int argc, char* argv[])
         * ((unsigned char*)pfx->data()) = 2;
         pfx->len = 1;
         MsgFragment* frag = m->append(0);
-        frag->set(buffer,len*count);
+        frag->set(buffer,len);        
         sockclient.send(m);
         delete buffer;
         m->msgPool->free(m);
-        sleep(1);
+        sleep(2);
       }
       do
       {

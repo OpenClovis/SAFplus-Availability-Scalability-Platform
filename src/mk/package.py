@@ -31,19 +31,31 @@ def check_file_exists(file_path, skip=False):
         safplus_packager.fail_and_exit(" Package generation failed due to non existence of {}".format(os.path.split(file_path)[1]))
 
 
+def extract_archive(archive_file_name, change_dir=".", compress_format="gztar"):
+    """ extract_archive function the uncompress the archive file into the debian build directory"""
+    change_dir_path = os.path.abspath(change_dir)
+    archive_mode = {'tar': 'r', 'gztar': 'r:gz', 'bztar': 'r:bz2'}
+    if compress_format != 'zip':
+        t = tarfile.open(self.archive_file_name, archive_mode.get(compress_format))
+    else:
+        t = zipfile.ZipFile(archive_file_name)
+    t.extractall(change_dir_path)
+    t.close()
+
 class RPM:
     """ Class for creating a package for RPM package manager
     """
 
-    def __init__(self, package_ver=1.0, prefix_loc="opt/safplus/target"):
+    def __init__(self, prefix_loc="opt/safplus/target", pkg_ver=1.0, pkg_rel=1):
         """ Preparing the environment for RPM package generation
             like creating the directory structure and
             exporting the some environment variables for building the
         """
-        log.debug("Package Version is {}".format(package_ver))
+        log.debug("Package Version is {}".format(pkg_ver))
         self.user_home_dir = os.path.expanduser('~')
         self.package_name = None
-        self.package_ver = package_ver
+        self.package_ver = pkg_ver
+        self.package_rel = pkg_rel
         self.prefix_loc = prefix_loc
         self.archive_name = None
         self.rpm_spec_file_name = None
@@ -64,8 +76,8 @@ class RPM:
         d = dict()
         d["Name"] = "{}".format(self.package_name)
         d["Version"] = "{}".format(self.package_ver)
-        d["Source0"] = "{}".format(self.archive_name)
         d["Prefix"] = "{}".format(self.prefix_loc)
+        d["Release"] ="{}%{{dist}}".format(self.package_rel)
         fh, abs_path = tempfile.mkstemp()
         log.debug("{}".format(d))
         with open(abs_path, 'w') as new_file:
@@ -79,7 +91,7 @@ class RPM:
 
         shutil.move(abs_path, os.path.join(self.rpm_specs_dir, self.rpm_spec_file_name))
 
-    def rpm_build(self, archive_name, rpm_pkg_template_dir, rpm_makefile_name, rpm_spec_file_name):
+    def rpm_build(self, archive_file, rpm_pkg_template_dir, rpm_makefile_name, rpm_spec_file_name):
         """
         :param archive_name: name of the archive including the full path
         :param rpm_pkg_template_dir: path to the rpm template directory
@@ -87,19 +99,20 @@ class RPM:
         :param rpm_spec_file_name: useful for building the rpm to the given package
         :return:
         """
-        self.archive_name = os.path.split(archive_name)[1]
+        self.archive_name, compress_format, pkg_suffix = safplus_packager.get_compression_format(os.path.split(archive_file)[1])
         self.package_name = self.archive_name.split(".")[0]
         self.rpm_spec_file_name = os.path.split(rpm_spec_file_name)[1]
         log.debug("RPM SPEC file name is {}".format(self.rpm_spec_file_name))
         if os.path.exists(rpm_pkg_template_dir) and os.path.exists(os.path.join(rpm_pkg_template_dir, rpm_makefile_name)) and os.path.exists(os.path.join(rpm_pkg_template_dir, rpm_spec_file_name)):
-            shutil.copy2(archive_name,  self.rpm_src_dir)
+            shutil.copy2(archive_file,  self.rpm_src_dir)
             shutil.copy2(os.path.join(rpm_pkg_template_dir, rpm_makefile_name), self.rpm_build_dir)
             shutil.copy2(os.path.join(rpm_pkg_template_dir, rpm_spec_file_name), self.rpm_specs_dir)
             self.customise_spec_file()
+            extract_archive(archive_file, self.rpm_build_dir, compress_format)
             exe_shell_cmd("rpmbuild -bb {}".format(os.path.join(self.rpm_specs_dir, self.rpm_spec_file_name)))
             rpm_file_list = safplus_packager.file_list(self.rpm_rpm_dir + os.sep + platform.machine(), "*.rpm")
             for rpm_file in rpm_file_list:
-                shutil.copy2(rpm_file, os.path.split(archive_name)[0]) 
+                shutil.copy2(rpm_file, os.path.split(archive_file)[0])
         else:
             log.error("Provide correct details like rpm_template dir or Makefile or rpm spec file location")
 
@@ -127,13 +140,13 @@ class RPM:
 class DEBIAN:
     """ DEBIAN class for creating a .deb package for DEBIAN based package management systems
     """
-    def __init__(self, prefix_loc="/opt/safplus/target", release_number=1, package_ver="1.0"):
+    def __init__(self, prefix_loc="/opt/safplus/target", package_ver=1.0, package_rel=1):
         """ Preparing the environment for Debian package generation like
             creation of top directory for debian package generation
         """
         self.user_home_dir = os.path.expanduser('~')
         self.prefix_loc = prefix_loc
-        self.release_number = release_number
+        self.pkg_release_number = package_rel
         self.build_top_dir = self.user_home_dir + os.sep + "deb_build"
         if os.path.exists(self.build_top_dir):
             print " {} is already existed".format(self.build_top_dir)
@@ -141,7 +154,7 @@ class DEBIAN:
         os.mkdir(self.build_top_dir)
         self.pkg_name = None
         self.pkg_version = package_ver
-        self.req_archive_name = None
+        self.archive_name = None
         self.req_dir_name = None
         self.deb_dir = None
         self.deb_control_file = None
@@ -159,6 +172,7 @@ class DEBIAN:
         log.debug("Archive name is {}".format(archive_name))
         log.debug("Archive compress format is {}".format(compress_format))
         log.debug("Archive extension is {}".format(pkg_suffix))
+        self.archive_name = archive_file
         mach_type_arch = False
         if len(machine_type.split("-")) > 1:
             machine_type = machine_type.split("-")[0]
@@ -169,15 +183,16 @@ class DEBIAN:
         pkg_ver = self.pkg_version
         if len(archive_name.split("_")) > 1:
             self.pkg_version = archive_name.split("_")[1]
-        if not re.match(r'[^a-zA-Z]\d*.\d*', self.pkg_version):
+        if not re.match(r'[^a-zA-Z]\d*.\d*', str(self.pkg_version)):
             self.pkg_version = pkg_ver
         log.debug("PKG NAME:{} VERSION:{}".format(self.pkg_name, self.pkg_version))
-        self.req_archive_name = self.build_top_dir + os.sep + self.pkg_name + "_" + self.pkg_version + pkg_suffix
-        log.debug("Required archive name format:{}".format(self.req_archive_name))
-        shutil.copy2(archive_file, self.req_archive_name)
-        self.extract_archive(compress_format)
+        # archive is not mandatory for generating the debian package
+        #self.req_archive_name = self.build_top_dir + os.sep + self.pkg_name + "_" + self.pkg_version + pkg_suffix
+        #log.debug("Required archive name format:{}".format(self.req_archive_name))
+        #shutil.copy2(archive_file, self.req_archive_name)
+        extract_archive(self.archive_name, self.build_top_dir, compress_format)
         #Rename the extracted directory to <package_name>-<package_version>
-        self.req_dir_name = self.build_top_dir + os.sep + self.pkg_name + "-" + self.pkg_version
+        self.req_dir_name = self.build_top_dir + os.sep + self.pkg_name + "-" + str(self.pkg_version)
         log.debug("Required archive directory:{}".format(self.req_dir_name))
         if mach_type_arch:
             shutil.move(self.build_top_dir + os.sep + archive_name + "_" + machine_type, self.req_dir_name)
@@ -187,19 +202,6 @@ class DEBIAN:
         os.mkdir(self.deb_dir)
         log.debug("Debian directory {}".format(self.deb_dir))
 
-    def extract_archive(self, compress_format="gztar"):
-        """ extract_archive function the uncompress the archive file into the
-            debian build directory
-        """
-        archive_mode = {'tar': 'r', 'gztar': 'r:gz', 'bztar': 'r:bz2'}
-        if compress_format != 'zip':
-            t = tarfile.open(self.req_archive_name, archive_mode.get(compress_format))
-            t.extractall(self.build_top_dir + os.sep)
-            t.close()
-        else:
-            z = zipfile.ZipFile(self.req_archive_name)
-            z.extractall(self.build_top_dir)
-            z.close()
 
     def check_req_deb_files(self):
         self.deb_control_file = self.deb_dir + os.sep + "control"
@@ -297,8 +299,10 @@ class DEBIAN:
         """This function adds the package name version number, release number and date of modification
            to the changelog file
         """
-        pkg_version = self.pkg_version.split(".")
-        str_buf = "{} ({}-{}-{})".format(self.pkg_name, pkg_version[0], pkg_version[1], self.release_number)
+        pkg_version = str(self.pkg_version).split(".")
+        if len(pkg_version) == 1:
+            pkg_version.insert(1, "0")
+        str_buf = "{} ({}-{}-{})".format(self.pkg_name, pkg_version[0], pkg_version[1], self.pkg_release_number)
         f = open(self.deb_change_log_file, 'r')
         for line in f.readlines():
             str_buf = str_buf + str(line)

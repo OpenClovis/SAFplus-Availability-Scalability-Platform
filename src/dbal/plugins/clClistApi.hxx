@@ -67,12 +67,9 @@
 #ifndef _CL_CLIST_API_H_
 #define _CL_CLIST_API_H_
 
-#ifdef __cplusplus
-extern "C" {
-#endif
-
 #include <clCommon6.h>
 
+namespace SAFplusI {
 
 /******************************************************************************
  *  Data Types
@@ -216,7 +213,7 @@ typedef ClRcT  (*ClClistWalkCallbackT)(CL_IN ClClistDataT userData,
  *
  */
 
-extern ClRcT clClistCreate(CL_IN  ClUint32T                maxSize,
+ClRcT clClistCreate(CL_IN  ClUint32T                maxSize,
                            CL_IN  ClClistDropPolicyT       dropPolicy,
                            CL_IN  ClClistDeleteCallbackT   fpUserDeleteCallBack,
                            CL_IN  ClClistDeleteCallbackT   fpUserDestroyCallBack,
@@ -252,7 +249,7 @@ extern ClRcT clClistCreate(CL_IN  ClUint32T                maxSize,
  *
  */
 
-extern ClRcT clClistFirstNodeAdd(CL_IN ClClistT      listHead,
+ClRcT clClistFirstNodeAdd(CL_IN ClClistT      listHead,
                                  CL_IN ClClistDataT  userData);
 
 /**
@@ -285,7 +282,7 @@ extern ClRcT clClistFirstNodeAdd(CL_IN ClClistT      listHead,
  *
  */
 
-extern ClRcT clClistLastNodeAdd(CL_IN ClClistT     listHead,
+ClRcT clClistLastNodeAdd(CL_IN ClClistT     listHead,
                                 CL_IN ClClistDataT userData);
 
 /**
@@ -320,7 +317,7 @@ extern ClRcT clClistLastNodeAdd(CL_IN ClClistT     listHead,
  *
  */
 
-extern ClRcT clClistAfterNodeAdd(CL_IN ClClistT      listHead,
+ClRcT clClistAfterNodeAdd(CL_IN ClClistT      listHead,
                                  CL_IN ClClistNodeT  currentNode,
                                  CL_IN ClClistDataT  userData);
 /**
@@ -355,7 +352,7 @@ extern ClRcT clClistAfterNodeAdd(CL_IN ClClistT      listHead,
  *
  */
 
-extern ClRcT clClistBeforeNodeAdd(CL_IN ClClistT      listHead,
+ClRcT clClistBeforeNodeAdd(CL_IN ClClistT      listHead,
                                   CL_IN ClClistNodeT  currentNode,
                                   CL_IN ClClistDataT  userData);
 
@@ -388,7 +385,7 @@ extern ClRcT clClistBeforeNodeAdd(CL_IN ClClistT      listHead,
  *  \sa clClistDelete()
  *
  */
-extern ClRcT clClistNodeDelete(CL_IN ClClistT      listHead,
+ClRcT clClistNodeDelete(CL_IN ClClistT      listHead,
                                CL_IN ClClistNodeT  node);
 /**
  ************************************
@@ -421,7 +418,7 @@ extern ClRcT clClistNodeDelete(CL_IN ClClistT      listHead,
  *
  */
 
-extern ClRcT clClistFirstNodeGet(CL_IN ClClistT       listHead,
+ClRcT clClistFirstNodeGet(CL_IN ClClistT       listHead,
                                  CL_IN ClClistNodeT*  pFirstNode);
 /**
  ************************************
@@ -454,7 +451,7 @@ extern ClRcT clClistFirstNodeGet(CL_IN ClClistT       listHead,
  *
  */
 
-extern ClRcT clClistLastNodeGet(CL_IN  ClClistT     listHead,
+ClRcT clClistLastNodeGet(CL_IN  ClClistT     listHead,
                                 CL_OUT ClClistNodeT *pLastNode);
 
 /**
@@ -489,7 +486,7 @@ extern ClRcT clClistLastNodeGet(CL_IN  ClClistT     listHead,
  *
  */
 
-extern ClRcT clClistNextNodeGet(CL_IN  ClClistT       listHead,
+ClRcT clClistNextNodeGet(CL_IN  ClClistT       listHead,
                                 CL_IN  ClClistNodeT   currentNode,
                                 CL_OUT ClClistNodeT*  pNextNode);
 /**
@@ -524,7 +521,7 @@ extern ClRcT clClistNextNodeGet(CL_IN  ClClistT       listHead,
  *
  */
 
-extern ClRcT clClistPreviousNodeGet(CL_IN  ClClistT       listHead,
+ClRcT clClistPreviousNodeGet(CL_IN  ClClistT       listHead,
                                     CL_IN  ClClistNodeT   currentNode,
                                     CL_OUT ClClistNodeT*  pPreviousNode);
 /**
@@ -565,7 +562,7 @@ extern ClRcT clClistPreviousNodeGet(CL_IN  ClClistT       listHead,
  *
  */
 
-extern ClRcT clClistWalk(CL_IN ClClistT              listHead,
+ClRcT clClistWalk(CL_IN ClClistT              listHead,
                          CL_IN ClClistWalkCallbackT  fpUserWalkCallBack,
                          CL_IN void*                 userArg);
 /**
@@ -599,7 +596,7 @@ extern ClRcT clClistWalk(CL_IN ClClistT              listHead,
  *
  */
 
-extern ClRcT clClistDataGet(CL_IN  ClClistT      listHead,
+ClRcT clClistDataGet(CL_IN  ClClistT      listHead,
                             CL_IN  ClClistNodeT  node,
                             CL_OUT ClClistDataT  *pUserData);
 /**
@@ -632,7 +629,7 @@ extern ClRcT clClistDataGet(CL_IN  ClClistT      listHead,
  *
  */
 
-extern ClRcT clClistSizeGet(CL_IN  ClClistT  listHead,
+ClRcT clClistSizeGet(CL_IN  ClClistT  listHead,
                             CL_OUT ClUint32T *pSize);
 /**
  ************************************
@@ -665,11 +662,9 @@ extern ClRcT clClistSizeGet(CL_IN  ClClistT  listHead,
  *
  */
 
-extern ClRcT clClistDelete(CL_IN ClClistT* pListHead);
+ClRcT clClistDelete(CL_IN ClClistT* pListHead);
 
-#ifdef __cplusplus
-}
-#endif
+};
 
 #endif /* _CL_CLIST_API_H_ */
 

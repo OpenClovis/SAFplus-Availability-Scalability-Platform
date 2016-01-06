@@ -31,18 +31,44 @@ from entity import Entity
 
 import share
  
-ENTITY_TYPE_BUTTON_START = 100
-SAVE_BUTTON = 99
-ZOOM_BUTTON = 98
-CONNECT_BUTTON = 97
-SELECT_BUTTON = 96
-CODEGEN_BUTTON = 95
-CODEGEN_LANG_C = 94
-CODEGEN_LANG_CPP = 93
-CODEGEN_LANG_PYTHON = 92
-CODEGEN_LANG_JAVA = 91
+ENTITY_TYPE_BUTTON_START = wx.NewId()
+SAVE_BUTTON = wx.NewId()
+ZOOM_BUTTON = wx.NewId()
+CONNECT_BUTTON = wx.NewId()
+SELECT_BUTTON = wx.NewId()
+CODEGEN_BUTTON = wx.NewId()
+CODEGEN_LANG_C = wx.NewId()
+CODEGEN_LANG_CPP = wx.NewId()
+CODEGEN_LANG_PYTHON = wx.NewId()
+CODEGEN_LANG_JAVA = wx.NewId()
 
-DELETE_BUTTON = 90
+DELETE_BUTTON = wx.NewId()
+
+def reassignCommonToolIds():
+  print 'reassignCommonToolIds'
+  global ENTITY_TYPE_BUTTON_START
+  global SAVE_BUTTON
+  global ZOOM_BUTTON
+  global CONNECT_BUTTON
+  global SELECT_BUTTON
+  global CODEGEN_BUTTON
+  global CODEGEN_LANG_C
+  global CODEGEN_LANG_CPP
+  global CODEGEN_LANG_PYTHON
+  global CODEGEN_LANG_JAVA
+  global DELETE_BUTTON
+  ENTITY_TYPE_BUTTON_START = wx.NewId()
+  SAVE_BUTTON = wx.NewId()
+  ZOOM_BUTTON = wx.NewId()
+  CONNECT_BUTTON = wx.NewId()
+  SELECT_BUTTON = wx.NewId()
+  CODEGEN_BUTTON = wx.NewId()
+  CODEGEN_LANG_C = wx.NewId()
+  CODEGEN_LANG_CPP = wx.NewId()
+  CODEGEN_LANG_PYTHON = wx.NewId()
+  CODEGEN_LANG_JAVA = wx.NewId()
+
+  DELETE_BUTTON = wx.NewId()
 
 COL_MARGIN = 250
 COL_SPACING = 2
@@ -54,53 +80,10 @@ ROW_WIDTH   = 120
 
 linkNormalLook = dot.Dot({ "color":(0,0,.8,.75), "lineThickness": 4, "buttonRadius": 6, "arrowLength":15, "arrowAngle": PI/8 })
 
-class TemplateMgr:
-  """ This class caches template files for later use to reduce disk access"""
-  def __init__(self):
-    self.cache = {}
-  
-  def loadPyTemplate(self,fname):
-    """Load a template file and return it as a string"""
-    if self.cache.has_key(fname): return self.cache[fname]
-
-    fname = common.fileResolver(fname);
-    f = open(fname,"r")
-    s = f.read()
-    t = Template(s)
-    self.cache[fname] = t
-    return t
-
-  def loadKidTemplate(self,fname):
-    pass
-
-# The global template manager
-templateMgr = TemplateMgr()
-
-#TODO: Get relative directiry with model.xml
-TemplatePath = "codegen/templates/"
 
 def touch(f):
     f = file(f,'a')
     f.close()
-
-class Output:
-  """This abstract class defines how the generated output is written to the file system
-     or tarball.
-
-     In these routines if you tell it to write a file or template to a nonexistant path
-     then that path is created.  So you no longer have to worry about creating directories.
-     If you call writes("/foo/bar/yarh/myfile.txt","contents") then the directory hierarchy /foo/bar/yarh is automatically created.  The file "myfile.txt" is created and written with "contents".
-  """
-  def write(self, filename, data):
-    if type(data) in types.StringTypes:
-      self.writes(filename, data)
-    else: self.writet(filename,data)
-        
-  def writet(self, filename, template):
-    pass
-  def writes(self, filename, template):
-    pass
-   
 
 class EntityTool(Tool):
   def __init__(self, panel,entity):
@@ -614,143 +597,21 @@ class SaveTool(Tool):
       touch(filename) # If any modified flag trigger on this model.xml, just recreate GUIs
     return False
 
-class FilesystemOutput(Output):
-  """Write to a normal file system"""
-
-  def writet(self, filename, template):
-    if not os.path.exists(os.path.dirname(filename)):
-      os.makedirs(os.path.dirname(filename))
-    template.write(filename, "utf-8",False,"xml")
-    
-  def writes(self, filename, string):
-    if not os.path.exists(os.path.dirname(filename)):
-      os.makedirs(os.path.dirname(filename))
-    f = open(filename,"w")
-    f.write(string)
-    f.close()
-
 class GenerateTool(Tool):
   def __init__(self, panel):
     self.panel = panel
-    self.dictGenFunc = {CODEGEN_LANG_C:self.generateC, CODEGEN_LANG_CPP:self.generateCpp, CODEGEN_LANG_PYTHON:self.generatePython, CODEGEN_LANG_JAVA:self.generateJava}
+    # self.dictGenFunc = {CODEGEN_LANG_C:self.generateC, CODEGEN_LANG_CPP:self.generateCpp, CODEGEN_LANG_PYTHON:self.generatePython, CODEGEN_LANG_JAVA:self.generateJava}
 
-    self.makeBinApp = """
-$(BIN_DIR)/%s:
-	$(MAKE) SAFPLUS_SRC_DIR=$(SAFPLUS_SRC_DIR) -C %s
-"""
-    self.cleanApp = """	$(MAKE) SAFPLUS_SRC_DIR=$(SAFPLUS_SRC_DIR) -C %s clean """
 
   def OnSelect(self, panel, event):
     if event.GetId() == CODEGEN_BUTTON:
-      mnuGenerateCode = wx.Menu()
-      mnuItemC = mnuGenerateCode.Append(CODEGEN_LANG_C, "C")
-      panel.Bind(wx.EVT_MENU, panel.OnToolClick, mnuItemC)
-  
-      mnuItemCpp = mnuGenerateCode.Append(CODEGEN_LANG_CPP, "C++")
-      panel.Bind(wx.EVT_MENU, panel.OnToolClick, mnuItemCpp)
-  
-      mnuItemPython = mnuGenerateCode.Append(CODEGEN_LANG_PYTHON, "PYTHON")
-      panel.Bind(wx.EVT_MENU, panel.OnToolClick, mnuItemPython)
-  
-      mnuItemJava = mnuGenerateCode.Append(CODEGEN_LANG_JAVA, "JAVA")
-      panel.Bind(wx.EVT_MENU, panel.OnToolClick, mnuItemJava)
-  
-      panel.PopupMenu(mnuGenerateCode)
-    else:
-      output = FilesystemOutput()
-      comps = filter(lambda inst: inst.entity.et.name == 'Component', panel.model.instances.values())
-
-      srcDir = None
-      dlg = wx.DirDialog(panel, "Select output directory ...", os.getcwd(), style=wx.DD_DEFAULT_STYLE)
-      if dlg.ShowModal() == wx.ID_OK:
-        srcDir = dlg.GetPath()
-      else:
-        #Get relative directiry with model.xml
-        srcDir = os.path.dirname(panel.model.filename);
-        if srcDir is None or len(srcDir) == 0:
-          srcDir = os.getcwd()
-
-      srcDir = os.sep.join([srcDir, "src", "app"])
-
-      # Generate makefile for the "app" directory
-      mkSubdirTmpl = templateMgr.loadPyTemplate(TemplatePath + "Makefile.subdir.ts")
-      makeSubsDict = {}
-      makeSubsDict['subdirs'] = " ".join(["$(BIN_DIR)/%s" %c.data["name"] for c in comps])
-      makeSubsDict['labelApps'] = "\n".join([self.makeBinApp %(c.data["name"],c.data["name"]) for c in comps])
-      makeSubsDict['cleanupApps'] = "\n".join([self.cleanApp %c.data["name"] for c in comps])
-
-      s = mkSubdirTmpl.safe_substitute(**makeSubsDict)
-      output.write(srcDir + os.sep + "Makefile", s)
-
-      for c in comps:
-        self.dictGenFunc[event.GetId()](output, srcDir, c, c.data)
-
+      # code gen must be per-component -- not generation of one type of application
+      files = panel.model.generateSource(self.panel.model.directory())
+      # TODO add these files to the "source" part of the project tab
+      print files
+ 
     return False
 
-
-  def generateCpp(self, output, srcDir, comp,ts_comp):
-    # Create main
-    compName = str(comp.data["name"])
-
-    ts_comp['name'] = comp.data["name"]
-    ts_comp['instantiate_command'] = comp.data["name"] # Default bin name
-
-    try:
-      ts_comp['instantiate_command'] = comp.data["instantiate"]["command"].split()[0]
-    except:
-      pass
-
-    cpptmpl = templateMgr.loadPyTemplate(TemplatePath + "main.cpp.ts")
-
-    s = cpptmpl.safe_substitute(**ts_comp)
-    output.write(srcDir + os.sep + compName + os.sep + "main.cxx", s)
-  
-    # Create Makefile
-    tmpl = templateMgr.loadPyTemplate(TemplatePath + "Makefile.cpp.ts")
-    s = tmpl.safe_substitute(**ts_comp)
-    output.write(srcDir + os.sep + compName + os.sep + "Makefile", s)
-
-
-  def generateC(self, output, srcDir, comp,ts_comp):
-    #? TODO:
-    return
-    compName = str(comp.data["name"])
-  
-    # Create main
-    cpptmpl = templateMgr.loadPyTemplate(TemplatePath + "main.c.ts")
-    s = cpptmpl.safe_substitute(addmain=False)
-    output.write(srcDir + os.sep + compName + os.sep + "main.c", s)
-  
-    # Create Makefile
-    tmpl = templateMgr.loadPyTemplate(TemplatePath + "Makefile.c.ts")
-    s = tmpl.safe_substitute(**ts_comp)
-    output.write(srcDir + os.sep + compName + os.sep + "Makefile", s)
-
-  def generatePython(self, output, srcDir, comp,ts_comp):
-    #? TODO:
-    return
-    compName = str(comp.data["name"])
-  
-    # Create src files
-    for (inp,outp) in [("main.py.ts",str(comp.data[instantiateCommand]) + ".py"),("pythonexec.sh",str(comp.data[instantiateCommand]))]:
-      tmpl = templateMgr.loadPyTemplate(TemplatePath + inp)
-      s = tmpl.safe_substitute(**ts_comp)
-      output.write(srcDir + os.sep + compName + os.sep + outp, s)
-    
-  
-    # Create Makefile
-    tmpl = templateMgr.loadPyTemplate(TemplatePath + "Makefile.python.ts")
-    s = tmpl.safe_substitute(**ts_comp)
-    output.write(srcDir + os.sep + compName + os.sep + "Makefile", s)
-
-  def generateJava(self, output, srcDir, comp,ts_comp):
-    #? TODO:
-    return
-    compName = str(comp.data["name"])
-    # Create Makefile
-    tmpl = templateMgr.loadPyTemplate(TemplatePath + "Makefile.java.ts")
-    s = tmpl.safe_substitute(**ts_comp)
-    output.write(srcDir + os.sep + compName + os.sep + "Makefile", s)
 
 # Global of this panel for debug purposes only.  DO NOT USE IN CODE
 dbgPanel = None
@@ -880,12 +741,11 @@ class Margin:
 
 
 class Panel(scrolled.ScrolledPanel):
-    def __init__(self, parent,menubar,toolbar,statusbar,model):
+    def __init__(self, parent,guiPlaces,model,**cfg):
       global dbgPanel
       dbgPanel = self
       scrolled.ScrolledPanel.__init__(self, parent, style = wx.TAB_TRAVERSAL|wx.SUNKEN_BORDER)
       share.instancePanel = self
-
       self.addBmp = svg.SvgFile("add.svg").instantiate((24,24), {})
 
       # self.displayGraph = networkx.Graph()
@@ -902,9 +762,10 @@ class Panel(scrolled.ScrolledPanel):
 
       self.Bind(wx.EVT_PAINT, self.OnPaint)
 
-      self.menuBar = menubar
-      self.toolBar = toolbar
-      self.statusBar = statusbar
+      self.guiPlaces = guiPlaces
+      self.menuBar = self.guiPlaces.menubar
+      self.toolBar = self.guiPlaces.toolbar
+      self.statusBar = self.guiPlaces.statusbar
       self.model=model
       self.tool = None  # The current tool
       self.drawers = set()
@@ -936,46 +797,22 @@ class Panel(scrolled.ScrolledPanel):
         self.toolBar = wx.ToolBar(self,-1)
         self.toolBar.SetToolBitmapSize((24,24))
 
-      tsize = self.toolBar.GetToolBitmapSize()
+     
 
       # example of adding a standard button
       #new_bmp =  wx.ArtProvider.GetBitmap(wx.ART_NEW, wx.ART_TOOLBAR, tsize)
       #self.toolBar.AddLabelTool(10, "New", new_bmp, shortHelp="New", longHelp="Long help for 'New'")
 
-      bitmap = svg.SvgFile("save_as.svg").bmp(tsize, { }, (222,222,222,wx.ALPHA_OPAQUE))
-      self.toolBar.AddTool(SAVE_BUTTON, bitmap, wx.NullBitmap, shortHelpString="save", longHelpString="Save model as...")
-      self.idLookup[SAVE_BUTTON] = SaveTool(self)
-
-      bitmap = svg.SvgFile("generate.svg").bmp(tsize, { }, (222,222,222,wx.ALPHA_OPAQUE))
-      self.toolBar.AddTool(CODEGEN_BUTTON, bitmap, wx.NullBitmap, shortHelpString="Generate Source Code", longHelpString="Generate source code ...")
-      idMnuGenerateCode = [CODEGEN_BUTTON, CODEGEN_LANG_C, CODEGEN_LANG_CPP, CODEGEN_LANG_PYTHON, CODEGEN_LANG_JAVA]
-      for idx in idMnuGenerateCode:
-        self.idLookup[idx] = GenerateTool(self)
-
-      # Add the umlEditor's standard tools
-      self.toolBar.AddSeparator()
-      bitmap = svg.SvgFile("connect.svg").bmp(tsize, { }, (222,222,222,wx.ALPHA_OPAQUE))
-      self.toolBar.AddRadioTool(CONNECT_BUTTON, bitmap, wx.NullBitmap, shortHelp="connect", longHelp="Draw relationships between entities")
-      self.idLookup[CONNECT_BUTTON] = LinkTool(self)
-
-      bitmap = svg.SvgFile("pointer.svg").bmp(tsize, { }, (222,222,222,wx.ALPHA_OPAQUE))
-      self.toolBar.AddRadioTool(SELECT_BUTTON, bitmap, wx.NullBitmap, shortHelp="select", longHelp="Select one or many entities.  Click entity to edit details.  Double click to expand/contract.")
-      self.idLookup[SELECT_BUTTON] = SelectTool(self)
-
-      bitmap = svg.SvgFile("zoom.svg").bmp(tsize, { }, (222,222,222,wx.ALPHA_OPAQUE))
-      self.toolBar.AddRadioTool(ZOOM_BUTTON, bitmap, wx.NullBitmap, shortHelp="zoom", longHelp="Left click (+) to zoom in. Right click (-) to zoom out.")
-      self.idLookup[ZOOM_BUTTON] = ZoomTool(self)
-
-      bitmap = svg.SvgFile("remove.svg").bmp(tsize, { }, (222,222,222,wx.ALPHA_OPAQUE))
-      self.toolBar.AddRadioTool(DELETE_BUTTON, bitmap, wx.NullBitmap, shortHelp="Delete entity/entities", longHelp="Select one or many entities. Click entity to delete.")
-      self.idLookup[DELETE_BUTTON] = DeleteTool(self)
+      # TODO: add disabled versions to these buttons
+      self.addTools(True)
+      #self.addCommonTools()
 
       # Add the custom entity creation tools as specified by the model's YANG
-      self.addEntityTools()
+      #self.addEntityTools()
 
       # Set up to handle tool clicks
-      self.toolBar.Bind(wx.EVT_TOOL, self.OnToolClick)  # id=start, id2=end to bind a range
-      self.toolBar.Bind(wx.EVT_TOOL_RCLICKED, self.OnToolRClick)
+      #self.toolBar.Bind(wx.EVT_TOOL, self.OnToolClick, id=ENTITY_TYPE_BUTTON_START. id2=self.idLookup[len(self.idLookup)-1])  # id=start, id2=end to bind a range
+      #self.toolBar.Bind(wx.EVT_TOOL_RCLICKED, self.OnToolRClick)
 
       # Set up events that tools may be interested in
       toolEvents = [ wx.EVT_LEAVE_WINDOW, wx.EVT_LEFT_DCLICK, wx.EVT_LEFT_DOWN , wx.EVT_LEFT_UP, wx.EVT_MOUSEWHEEL , wx.EVT_MOVE,wx.EVT_MOTION , wx.EVT_RIGHT_DCLICK, wx.EVT_RIGHT_DOWN , wx.EVT_RIGHT_UP, wx.EVT_KEY_DOWN, wx.EVT_KEY_UP]
@@ -999,6 +836,102 @@ class Panel(scrolled.ScrolledPanel):
       self.UpdateVirtualSize()
       self.layout()
 
+    def addCommonTools(self):
+      tsize = self.toolBar.GetToolBitmapSize()
+      if 0: # Save is handled at the project level
+        bitmap = svg.SvgFile("save_as.svg").bmp(tsize, { }, (222,222,222,wx.ALPHA_OPAQUE))
+        self.toolBar.AddTool(SAVE_BUTTON, bitmap, wx.NullBitmap, shortHelpString="save", longHelpString="Save model as...")
+        self.idLookup[SAVE_BUTTON] = SaveTool(self)
+
+      bitmap = svg.SvgFile("generate.svg").bmp(tsize, { }, (222,222,222,wx.ALPHA_OPAQUE))
+      self.toolBar.AddTool(CODEGEN_BUTTON, bitmap, wx.NullBitmap, shortHelpString="Generate Source Code", longHelpString="Generate source code ...")
+      idMnuGenerateCode = [CODEGEN_BUTTON, CODEGEN_LANG_C, CODEGEN_LANG_CPP, CODEGEN_LANG_PYTHON, CODEGEN_LANG_JAVA]
+      for idx in idMnuGenerateCode:
+        self.idLookup[idx] = GenerateTool(self)
+
+      # Add the umlEditor's standard tools
+      self.toolBar.AddSeparator()
+      bitmap = svg.SvgFile("connect.svg").bmp(tsize, { }, (222,222,222,wx.ALPHA_OPAQUE))
+      self.toolBar.AddRadioTool(CONNECT_BUTTON, bitmap, wx.NullBitmap, shortHelp="connect", longHelp="Draw relationships between entities")
+      self.idLookup[CONNECT_BUTTON] = LinkTool(self)
+
+      bitmap = svg.SvgFile("pointer.svg").bmp(tsize, { }, (222,222,222,wx.ALPHA_OPAQUE))
+      self.toolBar.AddRadioTool(SELECT_BUTTON, bitmap, wx.NullBitmap, shortHelp="select", longHelp="Select one or many entities.  Click entity to edit details.  Double click to expand/contract.")
+      self.idLookup[SELECT_BUTTON] = SelectTool(self)
+
+      bitmap = svg.SvgFile("zoom.svg").bmp(tsize, { }, (222,222,222,wx.ALPHA_OPAQUE))
+      self.toolBar.AddRadioTool(ZOOM_BUTTON, bitmap, wx.NullBitmap, shortHelp="zoom", longHelp="Left click (+) to zoom in. Right click (-) to zoom out.")
+      self.idLookup[ZOOM_BUTTON] = ZoomTool(self)
+
+      bitmap = svg.SvgFile("remove.svg").bmp(tsize, { }, (222,222,222,wx.ALPHA_OPAQUE))
+      self.toolBar.AddRadioTool(DELETE_BUTTON, bitmap, wx.NullBitmap, shortHelp="Delete entity/entities", longHelp="Select one or many entities. Click entity to delete.")
+      self.idLookup[DELETE_BUTTON] = DeleteTool(self)    
+
+    def deleteTools(self):
+      for btnId in self.idLookup:
+        self.toolBar.DeleteTool(btnId)        
+      #self.toolBar.Unbind(wx.EVT_TOOL)  
+      self.toolBar.DeletePendingEvents()  
+      self.idLookup.clear()
+
+    def addTools(self, init=False):
+      print 'instanceEditor: addTools'      
+      if not init:
+        reassignCommonToolIds()
+        self.idLookup.clear()
+      self.addCommonTools()
+      self.addEntityTools()
+      #self.toolBar.Bind(wx.EVT_TOOL, self.OnToolClick, id=ENTITY_TYPE_BUTTON_START, id2=wx.NewId())
+      #self.toolBar.Bind(wx.EVT_TOOL_RCLICKED, self.OnToolRClick)      
+      self.toolBar.Bind(wx.EVT_TOOL, self.OnToolClick)
+      self.toolBar.Bind(wx.EVT_TOOL_RCLICKED, self.OnToolRClick)
+
+    def resetDataMembers(self):
+      for (name,m) in self.model.entities.items():
+        if m.et.name == "ServiceGroup":
+          m.customInstantiator = lambda entity,pos,size,children,name,pnl=self: pnl.sgInstantiator(entity, pos,size,children,name)
+      self.tool = None  # The current tool
+      self.drawers = set()
+      self.renderArrow = {}
+      # The position of the panel's viewport within the larger drawing
+      self.location = (0,0)
+      self.rotate = 0.0
+      self.scale = 1.0
+
+      # Ordering of instances in the GUI display, from the upper left
+      self.columns = []
+      self.rows = []
+
+      self.intersects = []
+
+      self.addButtons = {}
+
+      # Building flatten instance from model.xml
+      for entInstance in self.model.instances.values():
+        """Create a new instance of this entity type at this position"""
+        placement = None
+        if entInstance.et.name in self.columnTypes:
+          placement = "column"
+        if entInstance.et.name in self.rowTypes:
+          placement = "row"
+
+        if placement:
+          if placement == "row":
+            self.rows.append(entInstance)  # TODO: calculate an insertion position based on the mouse position and the positions of the other entities
+          if placement == "column":
+            self.columns.append(entInstance)  # TODO: calculate an insertion position based on the mouse position and the positions of the other entities
+      self.UpdateVirtualSize()
+      self.layout()
+
+    def setModelData(self, model):
+      self.model = model
+
+    def refresh(self):
+      print 'instance refresh called'
+      self.resetDataMembers()
+      #self.layout()
+      self.Refresh()
+
     def sgInstantiator(self,ent,pos,size,children,name):
       """Custom instantiator for service groups"""
       # TODO: there is one unexpected "app" component being created
@@ -1021,7 +954,7 @@ class Panel(scrolled.ScrolledPanel):
 
       sortedent = self.model.entities.items()  # Do this so the buttons always appear in the same order
       sortedent.sort()
-      buttonIdx = ENTITY_TYPE_BUTTON_START
+      # buttonIdx = ENTITY_TYPE_BUTTON_START
       for e in sortedent:
         et = e[1].et
         placement = None
@@ -1031,6 +964,7 @@ class Panel(scrolled.ScrolledPanel):
           placement = "row"
 
         if placement:
+          buttonIdx = wx.NewId()
           buttonSvg = e[1].buttonSvg if hasattr(e[1],"buttonSvg") else et.buttonSvg
           bitmap = buttonSvg.bmp(tsize, { "name":e[0] }, (222,222,222,wx.ALPHA_OPAQUE))  # Use the first 3 letters of the name as the button text if nothing
           shortHelp = e[1].data.get("shortHelp",et.data.get("help",None)) 
@@ -1038,10 +972,54 @@ class Panel(scrolled.ScrolledPanel):
           self.toolBar.AddRadioLabelTool(buttonIdx, e[0], bitmap, shortHelp=shortHelp, longHelp=longHelp)
           #self.toolBar.AddRadioTool(buttonIdx, bitmap, wx.NullBitmap, shortHelp=et[0], longHelp=longHelp,clientData=et)
           self.idLookup[buttonIdx] = EntityTool(self,e[1])  # register this button so when its clicked we know about it
-          buttonIdx+=1
+          #buttonIdx+=1
           e[1].buttonIdx = buttonIdx
 
       self.toolBar.Realize()
+
+    def addEntityTool(self, ent):
+      name = ent.et.name
+      entExists = False
+      for (eid,e) in self.idLookup.items():
+        if isinstance(e, EntityTool) and e.entity.et.name==name:
+          print 'addEntityTool: Entity [%s] exists' % name
+          entExists = True
+          break
+      if not entExists:
+        print 'addEntityTool: Entity [%s] not exists. adding tool' % name        
+        placement = None
+        if name in self.columnTypes:
+          placement = "column"
+        if name in self.rowTypes:
+          placement = "row"
+
+        if placement:
+          tsize = self.toolBar.GetToolBitmapSize()
+          buttonIdx = wx.NewId()
+          buttonSvg = ent.buttonSvg if hasattr(ent,"buttonSvg") else ent.et.buttonSvg
+          bitmap = buttonSvg.bmp(tsize, { "name":name }, (222,222,222,wx.ALPHA_OPAQUE))  # Use the first 3 letters of the name as the button text if nothing
+          shortHelp = ent.data.get("shortHelp",ent.et.data.get("help",None)) 
+          longHelp = ent.data.get("help",ent.et.data.get("help",None))
+          self.toolBar.AddRadioLabelTool(buttonIdx, name, bitmap, shortHelp=shortHelp, longHelp=longHelp)
+          #print 'instanceEditor::addEntityTools: e[0]:%s;e[1].data[name]:%s' % (e[0], e[1].data["name"])
+          #self.toolBar.AddRadioTool(buttonIdx, bitmap, wx.NullBitmap, shortHelp=et[0], longHelp=longHelp,clientData=et)
+          self.idLookup[buttonIdx] = EntityTool(self,ent)  # register this button so when its clicked we know about it          
+          ent.buttonIdx = buttonIdx
+        self.toolBar.Realize()
+
+    def deleteEntityTool(self, ents):
+      for ent in ents:
+        name = ent.et.name
+        entExists = False
+        for (eid,e) in self.idLookup.items():
+          if isinstance(e, EntityTool) and e.entity.et.name==name:
+            print 'deleteEntityTool: Entity [%s] exists' % name
+            entExists = True          
+            break
+        if entExists:
+          print 'deleteEntityTool: Entity [%s] exists --> delete it from toolbar' % name
+          self.toolBar.DeleteTool(eid)
+          del self.idLookup[eid]
 
     def OnToolEvent(self,event):
       handled = False
@@ -1054,13 +1032,17 @@ class Panel(scrolled.ScrolledPanel):
       cd = event.GetClientData()
       id = event.GetId()
       print "Tool Clicked %d %s %s" % (id, str(co), str(cd))
-      tool = self.idLookup[id]
-      if self.tool:
-        self.tool.OnUnselect(self,event)
-        self.tool = None
-      if tool:
-        tool.OnSelect(self,event)
-        self.tool = tool
+      try:
+        tool = self.idLookup[id]
+        if self.tool:
+          self.tool.OnUnselect(self,event)
+          self.tool = None
+        if tool:
+          tool.OnSelect(self,event)
+          self.tool = tool
+      except KeyError, e:
+        event.Skip()
+        pass # Not one of my tools
 
     def OnToolRClick(self,event):
       co = event.GetClientObject()
@@ -1068,8 +1050,12 @@ class Panel(scrolled.ScrolledPanel):
       id = event.GetId()
       print "Tool Right Clicked %d %s %s" % (id, str(co), str(cd))      
       tool = self.idLookup[id]
-      if tool:
-        tool.OnRightClick(self,event)
+      try:
+        if tool:
+          tool.OnRightClick(self,event)
+      except KeyError, e:
+        event.Skip()
+        pass # Not one of my tools
 
     def OnPaint(self, event):
         #dc = wx.PaintDC(self)

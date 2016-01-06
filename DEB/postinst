@@ -1,0 +1,12 @@
+#!/bin/sh
+
+IDE_DIR:=
+IDE_NAME=safplus_ide
+SYM_LINK_DIR=/usr/local/bin
+
+if [ ! -f $SYM_LINK_DIR/$IDE_NAME ]; then
+  /bin/ln -s $IDE_DIR/$IDE_NAME $SYM_LINK_DIR/$IDE_NAME
+fi
+
+exit 0
+

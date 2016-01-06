@@ -20,12 +20,39 @@ from model import *
 from entity import *
 import wx.lib.scrolledpanel as scrolled
 
-try:
+
+if int(wx.__version__[0]) >= 3:
+  try:
     from agw import hypertreelist as HTL
     from agw import infobar as IB
-except ImportError: # if it's not there locally, try the wxPython lib.
+  except ImportError: # if it's not there locally, try the wxPython lib.
     import wx.lib.agw.hypertreelist as HTL
     import wx.lib.agw.infobar as IB
+else:
+  try:
+    from agw import hypertreelist as HTL
+    #import infobar as IB
+  except ImportError: # if it's not there locally, try the wxPython lib.
+    import wx.lib.agw.hypertreelist as HTL
+    #import infobar as IB
+
+  class FakeIB:
+    def __init__(self):
+      pass
+    def InfoBar(self,parent):
+      return InfoBar(parent)
+
+  class InfoBar(wx.Panel):
+    def __init__(self,parent):
+      wx.Panel.__init__(self,parent)
+      self.parent=parent
+    def ShowMessage(self,msg, severity):
+      pass
+    def Dismiss(self):
+      pass
+
+  IB = FakeIB()
+
 
 Gui2Obj=namedtuple('Gui2Obj','fielddef widget lock help item entity')
 
@@ -234,10 +261,10 @@ class NumberObjectValidator(GenericObjectValidator):
 
 
 class Panel(scrolled.ScrolledPanel):
-    def __init__(self, parent,menubar,toolbar,statusbar,model, isDetailInstance = False):
+    def __init__(self, parent,guiPlaces,model, **kw):
         global thePanel
         scrolled.ScrolledPanel.__init__(self, parent, style = wx.TAB_TRAVERSAL|wx.SUNKEN_BORDER)
-
+        
         #? Set to True if you want to only show the config items, set to false if you want to show config and runtime items
         self.configOnly = True
 
@@ -248,6 +275,7 @@ class Panel(scrolled.ScrolledPanel):
         self.SetScrollRate(10, 10)
 
         self.model = model
+        self.guiPlaces = guiPlaces
         self.lockedSvg = svg.SvgFile("locked.svg") 
         self.unlockedSvg = svg.SvgFile("unlocked.svg") 
         self.helpSvg = svg.SvgFile("help.svg") 
@@ -268,7 +296,7 @@ class Panel(scrolled.ScrolledPanel):
   
         # for the data entry
         # self.Bind(wx.EVT_TEXT, self.EvtText)
-        self.isDetailInstance = isDetailInstance
+        self.isDetailInstance = kw.get("isDetailInstance",False)
         self.entityTreeTypes = ["ServiceGroup", "Node", "ServiceUnit", "ServiceInstance"]
 
         # Create the InfoBar to show error message
@@ -293,6 +321,8 @@ class Panel(scrolled.ScrolledPanel):
         #pdb.set_trace()
         #self.SetSashPosition(self.GetParent().GetClientSize().x/4)
 
+    def setModelData(self, model):
+      self.model = model
 
     def partialDataValidate(self, proposedPartialValue, fieldData):
       """Return True if the passed data could be part of a valid entry for this field -- that is, user might enter more text"""
@@ -749,7 +779,7 @@ class Panel(scrolled.ScrolledPanel):
             'TextCtrl': [wx.EVT_TEXT, wx.EVT_TEXT_ENTER],
             'CheckBox': [wx.EVT_CHECKBOX],
             'Slider': [wx.EVT_SCROLL, wx.EVT_SLIDER, wx.EVT_SCROLL_CHANGED, ],
-            'ComboBox': [wx.EVT_COMBOBOX, wx.EVT_TEXT, wx.EVT_TEXT_ENTER, wx.EVT_COMBOBOX_DROPDOWN, wx.EVT_COMBOBOX_CLOSEUP],
+            'ComboBox': [wx.EVT_COMBOBOX, wx.EVT_TEXT, wx.EVT_TEXT_ENTER ], # , wx.EVT_COMBOBOX_CLOSEUP],  # wx.EVT_COMBOBOX_DROPDOWN,
             'SliderCustom':[wx.EVT_TEXT, wx.EVT_TEXT_ENTER]
             # TBD 
         }
@@ -759,6 +789,10 @@ class Panel(scrolled.ScrolledPanel):
         
         # Bind this to select treeItem container this control
         ctrl.Bind(wx.EVT_LEFT_DOWN, self.OnFocus)
+   
+    def refresh(self):      
+      self.treeItemSelected = None
+      self._createTreeEntities()
 
 def Test():
   global StandaloneDev
@@ -771,7 +805,7 @@ def Test():
   #sgt = mdl.entityTypes["ServiceGroup"]
   #sg = mdl.entities["MyServiceGroup"] = Entity(sgt,(0,0),(100,20))
   StandaloneDev = True
-  gui.go(lambda parent,menu,tool,status,m=mdl: Panel(parent,menu,tool,status, m))
+  gui.go(lambda parent,menu,tool,status,m=mdl: Panel(parent,common.GuiPlaces(parent,menu,tool,status,None,None), m))
   #time.sleep(2)
   #thePanel.showEntity(sg)
 

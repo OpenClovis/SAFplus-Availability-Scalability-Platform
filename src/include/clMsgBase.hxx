@@ -197,7 +197,7 @@ namespace SAFplus
     {
       //sock->transport->deleteSocket(sock);
     }
-    MsgSocket *sock;
+    MsgSocket *xPort;
 
     //? Send a bunch of messages.  You give up ownership of msg.
     virtual void send(Message* msg)

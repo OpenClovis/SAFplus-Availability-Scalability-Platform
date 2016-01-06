@@ -29,15 +29,15 @@
 
 #include <clCommon6.h>
 #include <clCommonErrors6.h>
+#include <clCommon.hxx>
 
-#include <clClistApi.h>
-#include <clClistErrors.h>
+#include <clClistApi.hxx>
+#include <clClistErrors.hxx>
 
 #include <clDbg.hxx>
 
-extern void* clPluginAllocate(uint_t amt);
-extern void clPluginFree(void* v);
 
+namespace SAFplusI {
 
 /*****************************************************************************/
 #define CLIST_ID 0xABCD
@@ -123,7 +123,7 @@ clClistCreate(ClUint32T       maxSize,
   /* check if the destroy function pointer is NULL */
   NULL_POINTER_CHECK(fpUserDestroyCallBack);
   
-  pCListHead = (CircularLinkedListHead_t *)clPluginAllocate((ClUint32T)sizeof(CircularLinkedListHead_t));
+  pCListHead = (CircularLinkedListHead_t *)SAFplusHeapAlloc((ClUint32T)sizeof(CircularLinkedListHead_t));
 
   /* check if clHeapAllocate has failed */
   NULL_POINTER_CHECK(pCListHead);
@@ -178,7 +178,7 @@ clClistFirstNodeAdd(ClClistT  listHead,
         }
     }
 
-    pCListNode = (CircularLinkedListNode_t *)clPluginAllocate((ClUint32T)sizeof(CircularLinkedListNode_t));
+    pCListNode = (CircularLinkedListNode_t *)SAFplusHeapAlloc((ClUint32T)sizeof(CircularLinkedListNode_t));
 
     /* check if clHeapAllocate failed */
     NULL_POINTER_CHECK(pCListNode);
@@ -242,7 +242,7 @@ clClistLastNodeAdd(ClClistT  listHead,
         }    
     }
 
-    pCListNode = (CircularLinkedListNode_t *)clPluginAllocate((ClUint32T)sizeof(CircularLinkedListNode_t));
+    pCListNode = (CircularLinkedListNode_t *)SAFplusHeapAlloc((ClUint32T)sizeof(CircularLinkedListNode_t));
 
     /* check if clHeapAllocate failed */
     NULL_POINTER_CHECK(pCListNode);
@@ -313,7 +313,7 @@ clClistAfterNodeAdd(ClClistT      listHead,
         /* delete the first node in the list */      
         errorCode =clClistNodeDelete(listHead, pCListHead->pFirstNode);
       
-        pCListNode = (CircularLinkedListNode_t *)clPluginAllocate((ClUint32T)sizeof(CircularLinkedListNode_t));
+        pCListNode = (CircularLinkedListNode_t *)SAFplusHeapAlloc((ClUint32T)sizeof(CircularLinkedListNode_t));
 
         /*check if clHeapAllocate failed */
         NULL_POINTER_CHECK(pCListNode);
@@ -353,7 +353,7 @@ clClistAfterNodeAdd(ClClistT      listHead,
     }
   }  
 
-  pCListNode = (CircularLinkedListNode_t *)clPluginAllocate((ClUint32T)sizeof(CircularLinkedListNode_t));
+  pCListNode = (CircularLinkedListNode_t *)SAFplusHeapAlloc((ClUint32T)sizeof(CircularLinkedListNode_t));
 
   /*check if clHeapAllocate failed */
   NULL_POINTER_CHECK(pCListNode);
@@ -418,7 +418,7 @@ clClistBeforeNodeAdd(ClClistT      listHead,
         if((NULL == pCListHead->pFirstNode) && 
            (NULL == pCListHead->pLastNode)) {
            
-           pCListNode = (CircularLinkedListNode_t *)clPluginAllocate((ClUint32T)sizeof(CircularLinkedListNode_t));
+           pCListNode = (CircularLinkedListNode_t *)SAFplusHeapAlloc((ClUint32T)sizeof(CircularLinkedListNode_t));
 
            /* check if clHeapAllocate failed */
            NULL_POINTER_CHECK(pCListNode);
@@ -446,7 +446,7 @@ clClistBeforeNodeAdd(ClClistT      listHead,
     }
   }
 
-  pCListNode = (CircularLinkedListNode_t *)clPluginAllocate((ClUint32T)sizeof(CircularLinkedListNode_t));
+  pCListNode = (CircularLinkedListNode_t *)SAFplusHeapAlloc((ClUint32T)sizeof(CircularLinkedListNode_t));
 
   /* check if clHeapAllocate failed */
   NULL_POINTER_CHECK(pCListNode);
@@ -503,10 +503,10 @@ clClistNodeDelete(ClClistT      listHead,
     /* Decrement the currentSize of the list by 1 */
     (pCListHead->currentSize)--;
       
-    /* clPluginFree the node and return CL_OK */
+    /* SAFplusHeapFree the node and return CL_OK */
     userData = pCListNode->userData;
     pCListNode->validNode = 0;
-    clPluginFree(pCListNode);
+    SAFplusHeapFree(pCListNode);
     pCListHead->fpUserDeleteCallBack(userData);
     return(CL_OK);
     
@@ -529,7 +529,7 @@ clClistNodeDelete(ClClistT      listHead,
   (pCListHead->currentSize)--;
   userData = pCListNode->userData;
   pCListNode->validNode = 0;
-  clPluginFree(pCListNode);
+  SAFplusHeapFree(pCListNode);
   pCListHead->fpUserDeleteCallBack(userData);
   return(CL_OK);
   
@@ -831,7 +831,7 @@ clClistDelete(ClClistT* pListHead)
     /* make the node invalid */
     pCListFreeNode->validNode = 0;
     /* clHeapFree the node */
-    clPluginFree(pCListFreeNode);
+    SAFplusHeapFree(pCListFreeNode);
     /* call the destroy callback function */
     pCListHead->fpUserDestroyCallBack(userData);
   }
@@ -840,7 +840,7 @@ clClistDelete(ClClistT* pListHead)
   pCListHead->validList = 0;
 
   /* clHeapFree the list handle */
-  clPluginFree(pCListHead);
+  SAFplusHeapFree(pCListHead);
 
   /* Set the list handle to NULL and return CL_OK */
   *pListHead = NULL;
@@ -849,4 +849,6 @@ clClistDelete(ClClistT* pListHead)
   return (CL_OK);
   
 }
+
+};
 /*****************************************************************************/

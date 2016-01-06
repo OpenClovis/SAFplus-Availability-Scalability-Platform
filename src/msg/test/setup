@@ -18,4 +18,7 @@ export SAFPLUS_BACKPLANE_INTERFACE=eth0
 
 `pwd`/bin/safplus_cloud --list
 
+# TIPC module loaded
+modprobe -a tipc
+
 echo "msg setup complete"

@@ -1,0 +1,12 @@
+<SAFplusProject version='7.0'>
+  <datamodel>
+  SAFplusAmf.yang
+  </datamodel>
+  <model>
+  testModel.xml
+  </model>
+  <source>
+  test.cpp
+  test.h
+  </source>
+</SAFplusProject>

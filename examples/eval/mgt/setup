@@ -19,10 +19,10 @@ export SAFPLUS_BACKPLANE_INTERFACE=eth0
 # /bin/cp test/exampleSafApp test/test1
 
 # python ./bin/dbalpy.py -x ./test/safplusAmf.xml ./bin/safplusAmf
-python ./bin/dbalpy.py -x ./test/myServiceCfg.xml ./bin/appData
-python ./bin/dbalpy.py -x ./test/SAFplusAmf1Node1SG1Comp.xml ./bin/safplusAmf
+./bin/safplus_db -x ./test/myServiceCfg.xml ./bin/appData
+./bin/safplus_db -x ./test/SAFplusAmf1Node1SG1Comp.xml ./bin/safplusAmf
 
-./bin/node --add 127.0.0.1
+./bin/safplus_cloud --add 127.0.0.1
 
 # Configure this node with hostname sc0
 export ASP_NODENAME=sc0

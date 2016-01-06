@@ -48,8 +48,6 @@ SAFplusNamespace = "http://www.openclovis.org/ns/amf"
 import pdb
 import xml.etree.ElementTree as ET
 
-
-
 try:
   import xmlterm
   windowed=True
@@ -431,11 +429,37 @@ class TermController(xmlterm.XmlResolver):
  
   def do_help(self,*command):
     """? display this help, or detailed help about a particular command"""
-    if command:
-      command = [" ".join(command)]
+    if command and len(command) > 0:
+      access.showHelp(*command)
+       
     else:
-      command = None
-    return "<top>" + self.getHelp(command) + "</top>"
+      help = """help
+      Print the CLI help text
+      input
+        default parameter: command
+        choice helptype
+          leaf command [NcxIdentifier]
+            Show help for the specified command,
+            also called an RPC method
+    
+          leaf commands [empty]
+            Show info for all local commands
+          
+          leaf notifications [empty]
+            Show info for all defined notifications
+            
+          leaf notification [NcxIdentifier]
+            Show help for the specified notification 
+          
+      commands
+        notification [NcxIdentifier] <on/off>
+          If [NcxIdentifier] is "all" turn all notifications on or off.
+          If notifications are "on" an notify message will be output when they occur.
+        
+        notification show <N or date or all> 
+          Show the last N notifications or notifications from a date or all notifications"""
+      
+      print help
 
   def do_ls(self,*sp):
     """Displays the object tree at the current or specified location.
@@ -497,7 +521,32 @@ By default the specified location and children are shown.  Use -N to specify how
     xml = access.mgtGet((prefix % depth) + str(t))
     txt = "<text>" + xmlterm.escape(xmlterm.indent("<top>" + xml + "</top>")) + "</text>"
     return txt # I have to wrap in an xml tag in case I get 2 top levels from mgtGet
-
+  
+  def do_loadmodule(self, moduleName):
+    cmds.do_load(moduleName)
+  
+  def do_rpcCommands(self, *sp):
+    if (AVAILABLE_SERVICES['netconfaccess'] != 1):
+      #RPC commands are only supported via netconf server
+      pass
+    else:
+      access.rpcCommands(*sp)
+    return ""
+  
+  def do_notification(self, *sp):
+    """ Notification setting """
+    if sp == None:
+      print "Missing inputed paramaters !"
+      return
+    
+    if (AVAILABLE_SERVICES['netconfaccess'] != 1):
+      #RPC commands are only supported via netconf server
+      pass
+    else:
+      access.notificationSetting(*sp)
+    return "" 
+        
+  
   def do_time(self,*sp):
     """Show the time"""
     return "<time/>"
@@ -566,7 +615,7 @@ By default the specified location and children are shown.  Use -N to specify how
           self.bar(xml,self.xmlterm)
           return ""
 
-  def xxexecute(self,textLine,xt):
+  def execute(self,textLine,xt):
     """Execute the passed string"""
     cmdList = textLine.split(";")
     depth = 1
@@ -670,17 +719,15 @@ By default the specified location and children are shown.  Use -N to specify how
           xt.aliases[sp[1]] = " ".join(sp[2:])
         elif sp[0] == '!exit' or sp[0] == 'exit':  # goodbye
           self.parentWin.GetParent().frame.Close()
+        elif sp[0] == 'help':
+          self.do_help(*sp[1:])
+        elif sp[0] == 'notification':
+          self.do_notification(*sp[1:])
         else:
-          pdb.set_trace()
-          # TODO look for registered RPC call
-          t = xmlterm.escape(" ".join(sp))
-          xt.doc.append('<process>%s</process>' % t)  
-
-
+          self.do_rpcCommands(*sp)  
 
 def main(args):
   cmds,handlers = access.Initialize()
-
   if windowed:
     os.environ["TERM"] = "XT1" # Set the term in the environment so child programs know xmlterm is running
     resolver = TermController()
@@ -723,8 +770,6 @@ def main(args):
     while 1:      
       cmd = resolver.cmdLine.input()
       resolver.execute(cmd,resolver)
-
-
 
 if __name__ == '__main__':
     main(sys.argv)

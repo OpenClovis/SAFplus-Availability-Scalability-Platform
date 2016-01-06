@@ -1,0 +1,37 @@
+#!/bin/sh
+
+PKG_NAME:=
+SYM_LINK_DIR=/usr/local/bin
+IDE_NAME=safplus_ide
+
+remove_ide_sym_link() {
+  dpkg -l $1 >/dev/null 2>&1
+  pkg_status=$?
+  if [ $pkg_status -ne 0 ]; then
+    unlink $SYM_LINK_DIR/$IDE_NAME
+  fi
+}    
+
+case "$1" in
+  # only remove in remove/deconfigure so we don't disrupt users' preferences
+  remove|deconfigure)
+    case "$PKG_NAME" in
+      safplus) 
+        remove_ide_sym_link safplus-src
+        ;;
+      safplus-src)
+        remove_ide_sym_link safplus
+        ;;
+    esac
+    ;;
+
+  upgrade|failed-upgrade)
+    ;;
+
+  *)
+    echo "prerm called with unknown argument \`$1'" >&2
+    exit 0
+    ;;
+esac
+
+exit 0

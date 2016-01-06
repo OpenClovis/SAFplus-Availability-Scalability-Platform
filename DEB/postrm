@@ -1,14 +1,27 @@
 #!/bin/sh
 prefix:
-set -e 
 . /usr/share/debconf/confmodule
+
+check_and_remove_pkg(){
+  dpkg -l $1 >/dev/null 2>&1
+  pkg_status=$?
+  if [ "$pkg_status" -ne 0 ]; then
+    if [ -d "$(dirname $prefix)" ]; then
+      cd $(dirname $prefix) && rm -rf $(basename $prefix)
+      rm -rf $IDE_DIR
+    fi
+  fi
+}
 case "$1" in 
   purge|remove|failed-upgrade|abort-install|abort-upgrade|disappear)
-    if [ -d "$(dirname $prefix)" ] 
-    then 
-      cd  $(dirname $prefix)
-      rm -rf $(basename $prefix)
-    fi
+    case "$PKG_NAME" in
+      safplus)
+        check_and_remove_pkg safplus-src
+      ;;
+      safplus-src)
+        check_and_remove_pkg safplus
+      ;;
+    esac
   ;;
   upgrade)
     echo "Donothing"

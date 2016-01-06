@@ -4,7 +4,6 @@ Release:        1
 Summary:     	SAFplus is SA-Forum API compatible middleware   
 Group:          Application/Programming
 License:	commercial license or GPL-3.0+
-Source0:	        
 URL:		http://www.openclovis.com   
 Vendor:		OpenClovis Inc
 Packager:	OpenClovisInc <http://www.openclovis.com/blog>
@@ -15,15 +14,6 @@ SAFplus is SA-Forum API compatible middleware that provides High
 Availability (HA), System Management, and other services, addressing 
 the infrastructure needs of complex devices found in the telecom, 
 defense, financial and server cluster appliance (MMORPG gaming, etc) markets
-
-%prep
-for file in $RPM_SOURCE_DIR/*
-do
-  # Currently it is supporting only .gz, .tgz extensions only. Need to Handle other extensions like .bz2, .zip etc
-  zcat $file | tar -xvf -
-done
-echo $RPM_TOP_DIR
-#cp $RPM_SOURCE_DIR/../Makefile	$RPM_BUILD_DIR/
 
 %build
 echo "Building binary RPM PACKAGE"

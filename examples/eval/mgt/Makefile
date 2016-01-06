@@ -30,7 +30,7 @@ SAFPLUS_LIBS := clAmf clMgt clRpc clName clCkpt clGroup clTimer clMsg clLog clUt
 SAFPLUS_DEP_LIBS     := $(addsuffix .so,$(addprefix $(LIB_DIR)/lib,$(SAFPLUS_LIBS)))
 SAFPLUS_LINK_LIBS := -L$(LIB_DIR) $(addprefix -l,$(SAFPLUS_LIBS))
 
-Release all: $(TEST_DIR)/mgtApp $(MODELS_TGT) $(SAFPLUS_TARGET)/share/netconf/modules/openclovis/myService.yang
+Release all: $(TEST_DIR)/mgtApp $(MODELS_TGT) $(SAFPLUS_TARGET)/share/modules/openclovis/myService.yang $(SAFPLUS_TARGET)/share/modules/openclovis/MYSERVICE.MIB scripts
 
 $(TEST_DIR)/%.xml: %.xml
 	cp -f $< $@
@@ -46,10 +46,20 @@ $(LIB_DIR)/libmyService.so:
 
 yang:
 	PYTHONPATH=$(MGT_SRC_DIR)/3rdparty/pyang PYANG_PLUGINPATH=$(MGT_SRC_DIR)/pyplugin $(MGT_SRC_DIR)/3rdparty/pyang/bin/pyang --path=$(SAFPLUS_SRC_DIR)/yang -f y2cpp myService.yang --y2cpp-output `pwd` --y2cpp-sdkdir $(SAFPLUS_SRC_DIR)
+	
+yang2mib:
+	PYTHONPATH=$(MGT_SRC_DIR)/3rdparty/pyang PYANG_PLUGINPATH=$(MGT_SRC_DIR)/pyplugin $(MGT_SRC_DIR)/3rdparty/pyang/bin/pyang --path=$(SAFPLUS_SRC_DIR)/yang -f yang2smi myService.yang --yang2smi-oid=99840 -o MYSERVICE.MIB
 
-$(SAFPLUS_TARGET)/share/netconf/modules/openclovis/myService.yang: myService.yang
-	@mkdir -p $(SAFPLUS_TARGET)/share/netconf/modules/openclovis
+$(SAFPLUS_TARGET)/share/modules/openclovis/myService.yang: myService.yang
+	@mkdir -p $(SAFPLUS_TARGET)/share/modules/openclovis
 	cp -rf $< $@
+
+$(SAFPLUS_TARGET)/share/modules/openclovis/MYSERVICE.MIB: MYSERVICE.MIB
+	@mkdir -p $(SAFPLUS_TARGET)/share/modules/openclovis
+	cp -rf $< $@
+
+scripts:
+	cp -f setup $(SAFPLUS_TARGET)
 
 clean:
 	rm -f $(CLIENT_OBJ) $(TEST_DIR)/mgtApp $(OBJ_DIR)/myService/*

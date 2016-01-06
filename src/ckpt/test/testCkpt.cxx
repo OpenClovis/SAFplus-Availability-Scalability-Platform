@@ -175,15 +175,16 @@ SAFplus::Handle test_readwrite(Checkpoint& c1,Checkpoint& c2)
 }
 
 
-void test_reopen(SAFplus::Handle handle, bool recordExists=true)
+void test_reopen(SAFplus::Handle handle, bool persistentCkpt=false, bool recordExists=true)
 {
   int LoopCount=10;
 
   if (1)
     {
       clTestCaseStart(("String key"));
-
-      Checkpoint c2(handle,Checkpoint::SHARED | Checkpoint::LOCAL);
+      uint_t flags = Checkpoint::SHARED | Checkpoint::LOCAL;
+      if (persistentCkpt) flags|=Checkpoint::PERSISTENT;
+      Checkpoint c2(handle,flags);
       char vdata[sizeof(Buffer)-1+sizeof(int)*10];
       Buffer* val = new(vdata) Buffer(sizeof(int)*10);
 
@@ -304,7 +305,7 @@ void persistentWithObjects()
   c.dump();
   c.flush(); // store checkpoint data to disk
   deleteCheckpoint(h); // simulate that this checkpoint no longer exists
-  Checkpoint c2(h,Checkpoint::SHARED | Checkpoint::LOCAL);
+  Checkpoint c2(h,Checkpoint::SHARED | Checkpoint::LOCAL|Checkpoint::PERSISTENT);
   printf("DUMP ckpt\n");
   c2.dump();
   const Buffer& buf = c2.read(key1);  
@@ -358,7 +359,7 @@ void removeCkptData(Handle& h)
   c.flush();
   // verifying the remainings  
   deleteCheckpoint(h);
-  Checkpoint c2(h,Checkpoint::SHARED | Checkpoint::LOCAL);
+  Checkpoint c2(h,Checkpoint::SHARED | Checkpoint::LOCAL|Checkpoint::PERSISTENT);
   c2.dump();
   for (int i=0;i<LoopCount;i++)
   {
@@ -465,8 +466,8 @@ int main(int argc, char* argv[])
     
     deleteCheckpoint(h1); // simulate that this checkpoint no longer exists
     deleteCheckpoint(h2); // simulate that this checkpoint no longer exists 
-    clTestCase(("Reopen"), test_reopen(h1, false));
-    clTestCase(("Reopen"), test_reopen(h2));
+    clTestCase(("Reopen"), test_reopen(h1, false, false));
+    clTestCase(("Reopen"), test_reopen(h2, true));
     clTestCase(("Reopen"), removeCkptData(h2));
 #endif
     persistentWithObjects();

@@ -83,11 +83,9 @@ namespace SAFplus
         fn(arg);
       }
     }
-    virtual ~TimerPoolable()
-    {
-
-    }
   };
+
+
   class Timer : public boost::intrusive::set_base_hook<boost::intrusive::optimize_size<true>>
   {
   public:

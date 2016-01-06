@@ -186,7 +186,7 @@ def get_image_file_name(tar_name):
     return image_file_name
 
 
-def package(base_dir, tar_name, prefix_dir, machine=None, pre_build_dir=None,execute=None, yum_package = False, debain_package = False):
+def package(base_dir, tar_name, prefix_dir, machine=None, pre_build_dir=None,execute=None, yum_package = False, debain_package = False, pkg_ver = 1.0, pkg_rel = 1):
     """ This function packages the model related binaries, libraries, test examples and 3rd party utilities
        into an archive to the given target platform.
     """
@@ -221,14 +221,14 @@ def package(base_dir, tar_name, prefix_dir, machine=None, pre_build_dir=None,exe
     log.info("Target platform machine type:{}".format(machine))
     log.info("Target platform image directory is {}".format(image_dir))
     if yum_package:
-        log.info("Packaging the Model/SAFplus in RPM ")
+        log.info("Packaging the Model/SAFplus in RPM for {} version {} release".format(pkg_ver, pkg_rel))
     if debain_package:
-        log.info("Packaging the Model/SAFplus in DEBIAN ")
+        log.info("Packaging the Model/SAFplus in DEBIAN for {} version {} release".format(pkg_ver, pkg_rel))
     #tar_dir = "{}/{}".format(image_dir, tar_name)
     #check_and_createdir(tar_dir)
     log.info("Packaging files from {0} and {1}".format(pre_build_dir,base_dir));
 
-    if pre_build_dir:  # Create the actual prebuilt dir by combining what the user passed with the arch and kernel.
+    if pre_build_dir:  # Create the actual prebuilt dir by combining what the user passed with the given machine type.
         target_dir = "{0}/target/{1}".format(pre_build_dir, machine)
         if check_dir_exists(target_dir):
             log.info("SAFPlus binaries, libraries and third party utilities related to target platform are present in {}".format(target_dir))
@@ -258,14 +258,15 @@ def package(base_dir, tar_name, prefix_dir, machine=None, pre_build_dir=None,exe
     # put the tarball exactly where the requested on the command line: tar_name = os.path.join(image_dir, tar_name)
     tar_name = os.path.join(image_dir_path, tar_name)
     tar_name = create_archive(tar_name, image_dir, compress_format)
+    # select the corresponding package generation class method from the package module
     if yum_package:
 	from package import RPM
-	rpm_gen = RPM(prefix_loc=prefix_dir)
+	rpm_gen = RPM(prefix_dir, pkg_ver, pkg_rel)
         rpm_template_dir = os.path.abspath(os.path.dirname(__file__) + os.sep + "pkg_templates/rpm")
         rpm_gen.rpm_build(tar_name, rpm_template_dir, "Makefile", "package.spec")
     if debain_package:
         from package import DEBIAN
-        deb_gen = DEBIAN(prefix_loc=prefix_dir)
+        deb_gen = DEBIAN(prefix_dir, pkg_ver, pkg_rel)
         deb_template_dir = os.path.abspath(os.path.dirname(__file__) + os.sep + "pkg_templates/deb")
         deb_gen.deb_build(tar_name, deb_template_dir, machine)
 
@@ -296,6 +297,15 @@ If you are producing a cross build, use the -b flag to copy files from
 the appropriate target/<-m flag> directory to produce an archive for
 your target architecture."""
     print """
+The {0} script generates an Debian/RPM package for a given Project directory with the default
+package version number 1.0 and default release number 1.
+use the -y flag to generate the RPM package.
+use the -d flag to generate the DEBIAN PACKAGE.
+For generating a RPM/Debian package with custom version number and release number
+use th -r flag anf -v flag along with -y/-d flags.
+    """
+
+    print """
 Syntax {} [-p <pathToProject>] [-s <pathToSAFplus>] [-m <target machine compiler Type>] [[-o] <outputFile>]""".format(sys.argv[0])
     print """
 Options:
@@ -317,7 +327,13 @@ Options:
      Generates the debian package for the given project/safplus directory 
   -i or --install_dir
      Installation directory/location for the target RPM/Debian Package 
-     default installation directory is /opt/safplus/target
+     default installation directory for model is /opt/<model_name>
+  -v or --pkg-version=<pkg-version number>
+     script generates the RPM/Debian package with the given version number  and given release number
+     default value is 1.0
+  -r or --pkg-release=<pkg-release number>
+     when a minor update happens, RPM/Debian package need to rebuilt with incremented release number
+     default valus is 1
 """.format(tgtMachine=target_machine,tm=target_machine.split('-')[0],tp=target_platform)
 
     print """Example usage:
@@ -331,8 +347,11 @@ $ {sp} [TODO]
 Crossbuild packaging:
 $ {sp} -s {s} -m {m} crossPkg.zip
 
-Package SAFplus into safplus.tgz and generate safplus-1.0-1.{m}.rpm:
-$ {sp} -y safplus.tgz
+Package the model and safplus libraries into an rpm <model_name>-1.0-1.{m}.rpm:
+$ {sp} -y -p <path to a model dir> <model_name>.tgz
+
+Package the model along with safplus libraries into a rpm for version 2.0 with a release 2:
+$ {sp} -p <path to model dir> -v 2.0 -r 2 -y <model_name>.tgz
 
 Crossbuild RPM package generation:
 $ {sp} -s {s} -m {m} -y crossPkg.tgz""".\
@@ -348,14 +367,17 @@ def parser(args):
     yum_package = False
     debian_package = False
     install_dir = None
+    pkg_ver = None
+    pkg_rel = None
 
     target_platform = platform.system()
     target_machine = get_target_machine_type()
     pre_build_dir = None
 
     try:
-        opts, args = getopt.getopt(args, "hm:s:o:p:x:ydi:", ["help", "project-dir=", "target-machine=",
-                                                           "tar-name=", "safplus-dir=","execute=", "yum", "debian", "install_dir="])
+        opts, args = getopt.getopt(args, "hm:s:o:p:x:ydi:v:r:", ["help", "project-dir=", "target-machine=",
+                                                           "tar-name=", "safplus-dir=","execute=", "yum", "debian", "install_dir=",
+                                                           "pkg-version", "pkg-pkgrelease"])
     except getopt.GetoptError as err:
         log.error("{}".format(err))
         usage()
@@ -391,11 +413,17 @@ def parser(args):
         elif opt in ("-i", "--install_dir"):
             install_dir = get_option_value(arg)
 	    log.info(" Package Installation directory on the target Machine is {}".format(install_dir))
+        elif opt in ("-v", "--pkg-version"):
+            pkg_ver = get_option_value(arg)
+        elif opt in ("-r", "--pkg-release"):
+            pkg_rel = get_option_value(arg)
         else:
             pass
+
     if len(args) >= 1:
       tar_name = args[0]
     tg_platform = None
+
     if len(target_machine.split("-")) > 1:
         tg_platform = target_machine.split('-')[0]
     #Below logic is useful to check whether the archive name starts with safplus or not.
@@ -403,9 +431,12 @@ def parser(args):
     if debian_package or yum_package:
         if tar_name is not None :
             if tar_name.lower().startswith("safplus"):
-                fail_and_exit("Archive name {} starts with safplus. It will overwrite the safplus debian packages installed on the system".format(tar_name))
+                fail_and_exit("Archive name {} starts with safplus. It may overwrite the safplus debian packages installed on the system".format(tar_name))
         else:
-            fail_and_exit(" For RPM/Debian packages generation Archive name is mandatory and does not starts with safplus") 
+            if model_dir is not None and check_dir_exists(model_dir):
+                pass
+            else:
+                fail_and_exit(" For RPM/Debian packages generation Archive name is mandatory and does not starts with safplus") 
     if debian_package or yum_package:
 	if model_dir is not None:
             if check_dir_exists(model_dir):
@@ -414,15 +445,21 @@ def parser(args):
                 fail_and_exit("Model directory {} does not exists".format(model_dir))
 
     if install_dir is not None:
-        log.debug("Installation directory is {}".format(install_dir))
+        if yum_package:
+            log.debug("Installation directory for a generated Rpm package is {}".format(install_dir))
+        elif debian_package:
+            log.debug("Installation directory for a generated debian package is {}".format(install_dir))
 
     if tar_name is None:
-        tar_name = "safplus_{}".format(tg_platform)
+        if model_dir is not None and check_dir_exists(model_dir):
+            tar_name = os.path.split(model_dir)[1] + "_{}".format(tg_platform)
+        else:
+            tar_name = "safplus_{}".format(tg_platform)
     elif not re.search(r'(\w+).(tar|zip|tgz|gz)', tar_name):
         tar_name = "{}_{}".format(tar_name, tg_platform)
     else:
         pass
-    return model_dir, tar_name, target_machine, pre_build_dir,execute,yum_package, debian_package, install_dir
+    return model_dir, tar_name, target_machine, pre_build_dir,execute,yum_package, debian_package, install_dir, pkg_ver, pkg_rel
 
 
 def get_option_value(arg_val):
@@ -434,15 +471,19 @@ def get_option_value(arg_val):
 
 def main():
     log.debug("Command line Arguments are {}".format(sys.argv))
-    model_dir, tar_name, target_machine, pre_build_dir,execute, yum_package, debian_package, prefix_dir  = parser(sys.argv[1:])
+    model_dir, tar_name, target_machine, pre_build_dir,execute, yum_package, debian_package, prefix_dir, pkg_ver, pkg_rel = parser(sys.argv[1:])
     if pre_build_dir is None:
         pre_build_dir = os.path.abspath(os.path.dirname(__file__) + os.sep + '..' + os.sep + '..')
     if prefix_dir is None:
         prefix_dir = "/opt/safplus/target"
-   
+    if pkg_ver is None:
+         if yum_package or debian_package:
+             pkg_ver = "1.0"
+    if pkg_rel is None:
+         if yum_package or debian_package:
+             pkg_rel = "1"
     # log.info("%s, %s, %s, %s, %s, %s" % (model_dir, tar_name, target_machine, target_kernel, pre_build_dir,execute))
-    package(model_dir, tar_name, prefix_dir, target_machine, pre_build_dir,execute, yum_package, debian_package)
-
+    package(model_dir, tar_name, prefix_dir, target_machine, pre_build_dir,execute, yum_package, debian_package, pkg_ver, pkg_rel)
 
 log = log_init()
 target_mch_compiler_type = None

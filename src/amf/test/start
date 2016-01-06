@@ -2,4 +2,6 @@
 pkill -9 safplus_amf
 pkill -9 safplus_group
 # don't need to run this here, because the python code starts it: bin/safplus_amf > safplus_amf.log &
+echo PYTHONPATH=$PYTHONPATH
+echo LD_LIBRARY_PATH=$LD_LIBRARY_PATH
 exit 0

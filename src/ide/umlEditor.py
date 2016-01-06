@@ -20,12 +20,12 @@ from model import Model
 
 import share
  
-ENTITY_TYPE_BUTTON_START = 100
-SAVE_BUTTON = 99
-ZOOM_BUTTON = 98
-CONNECT_BUTTON = 97
-SELECT_BUTTON = 96
-DELETE_BUTTON = 95
+ENTITY_TYPE_BUTTON_START = wx.NewId()
+SAVE_BUTTON = wx.NewId()
+ZOOM_BUTTON = wx.NewId()
+CONNECT_BUTTON = wx.NewId()
+SELECT_BUTTON = wx.NewId()
+DELETE_BUTTON = wx.NewId()
 
 PI = 3.141592636
 
@@ -392,6 +392,9 @@ class EntityTypeTool(Tool):
     panel.entities[ent.data["name"]] = ent
     panel.Refresh()
 
+    if share.instancePanel:
+      share.instancePanel.addEntityTool(ent)
+
     if share.detailsPanel:
       share.detailsPanel.createTreeItemEntity(ent.data["name"], ent)
 
@@ -747,20 +750,21 @@ class DeleteTool(Tool):
 dbgUep = None
 
 class Panel(scrolled.ScrolledPanel):
-    def __init__(self, parent,menubar,toolbar,statusbar,model):
+    def __init__(self, parent,guiPlaces,model,**cfg):
       scrolled.ScrolledPanel.__init__(self, parent, style = wx.TAB_TRAVERSAL|wx.SUNKEN_BORDER)
+      self.guiPlaces = guiPlaces
       self.SetupScrolling(True, True)
       self.SetScrollRate(10, 10)
       self.Bind(wx.EVT_SIZE, self.OnReSize)
-
       self.Bind(wx.EVT_PAINT, self.OnPaint)
+      self.Bind(wx.EVT_SHOW, self.OnShow)
 
       share.umlEditorPanel = self
 
       dbgUep = self 
-      self.menuBar = menubar
-      self.toolBar = toolbar
-      self.statusBar = statusbar
+      self.menuBar = self.guiPlaces.menubar
+      self.toolBar = self.guiPlaces.toolbar
+      self.statusBar = self.guiPlaces.statusbar
       self.model=model
       self.tool = None  # The current tool
       self.drawers = set()
@@ -784,15 +788,115 @@ class Panel(scrolled.ScrolledPanel):
         self.toolBar = wx.ToolBar(self,-1)
         self.toolBar.SetToolBitmapSize((24,24))
 
+      #self.addCommonTools()
+
+      #self.entityToolIds = [] # stores entity tool id
+      # Add the custom entity creation tools as specified by the model's YANG
+      #self.addEntityTools()
+      self.addTools()
+      # Set up to handle tool clicks
+      #self.toolBar.Bind(wx.EVT_TOOL, self.OnToolClick, id=ENTITY_TYPE_BUTTON_START. id2=self.idLookup[len(self.idLookup)-1])  # id=start, id2=end to bind a range
+      #self.toolBar.Bind(wx.EVT_TOOL_RCLICKED, self.OnToolRClick)
+
+      # Set up events that tools may be interested in
+      toolEvents = [ wx.EVT_LEAVE_WINDOW, wx.EVT_LEFT_DCLICK, wx.EVT_LEFT_DOWN , wx.EVT_LEFT_UP, wx.EVT_MOUSEWHEEL , wx.EVT_MOVE,wx.EVT_MOTION , wx.EVT_RIGHT_DCLICK, wx.EVT_RIGHT_DOWN , wx.EVT_RIGHT_UP, wx.EVT_KEY_DOWN, wx.EVT_KEY_UP]
+      for t in toolEvents:
+        self.Bind(t, self.OnToolEvent)
+      self.toolIds = [CONNECT_BUTTON,SELECT_BUTTON,ZOOM_BUTTON,DELETE_BUTTON]
+
+    def resetDataMembers(self):
+      self.location = (0,0)
+      self.rotate = 0.0
+      self.scale = 1.0
+      self.tool = None
+      #self.entityToolIds = []
+
+    def setModelData(self, model):
+      print 'set model data'
+      self.model = model
+      self.entities = self.model.entities
+
+    def OnShow(self,event):
+      print "ON SHOW"
+      if event.IsShown():
+        enable = True
+      else:
+        enable = False
+      for i in self.toolIds:  # Enable/disable the tools when the tab is shown/removed
+        print i
+        #self.toolBar.EnableTool(i,enable)
+        tool = self.toolBar.FindById(i)
+        tool.Enable(enable)
+      self.toolBar.Refresh()
+
+    def OnReSize(self, event):
+      self.Refresh(False)
+      event.Skip()
+    
+    def addEntityTools(self):
+      """Iterate through all the entity types, adding them as tools"""
+      print 'addEntityTools'
+      tsize = self.toolBar.GetToolBitmapSize()
+
+      sortedEt = self.model.entityTypes.items()  # Do this so the buttons always appear in the same order
+      sortedEt.sort()
+      #buttonIdx = ENTITY_TYPE_BUTTON_START
+      menu = self.guiPlaces.menu.get("Modelling",None)
+      for et in sortedEt:
+        buttonIdx = wx.NewId()
+        name = et[0]
+        bitmap = et[1].buttonSvg.bmp(tsize, { "name":name[0:3] }, (222,222,222,wx.ALPHA_OPAQUE))  # Use the first 3 letters of the name as the button text if nothing
+        shortHelp = et[1].data.get("shortHelp",None)
+        longHelp = et[1].data.get("help",None)
+        #self.toolBar.AddLabelTool(11, et[0], bitmap, shortHelp=shortHelp, longHelp=longHelp)
+        self.toolBar.AddRadioTool(buttonIdx, bitmap, wx.NullBitmap, shortHelp=et[0], longHelp=longHelp,clientData=et)
+        self.idLookup[buttonIdx] = EntityTypeTool(self,et[1])  # register this button so when its clicked we know about it
+        #buttonIdx+=1
+        if menu: # If there's a menu for these entity tools, then add the object to the menu as well
+          menu.Append(buttonIdx, name, name)
+          menu.Bind(wx.EVT_MENU, self.OnToolMenu, id=buttonIdx)
+
+        et[1].buttonIdx = buttonIdx
+        #self.entityToolIds.append(buttonIdx)
+      self.toolBar.Realize()
+      
+
+    def addTools(self):
+     self.addCommonTools()
+     self.addEntityTools()
+     #self.toolBar.Bind(wx.EVT_TOOL, self.OnToolClick, id=ENTITY_TYPE_BUTTON_START, id2=wx.NewId())
+     #self.toolBar.Bind(wx.EVT_TOOL_RCLICKED, self.OnToolRClick)
+     self.toolBar.Bind(wx.EVT_TOOL, self.OnToolClick)
+     self.toolBar.Bind(wx.EVT_TOOL_RCLICKED, self.OnToolRClick)
+
+    def deleteEntityTools(self):
+      """Iterate through all the entity types, adding them as tools"""  
+      print 'deleteEntityTools'
+      menu = self.guiPlaces.menu.get("Modelling",None)    
+      for btnId in self.entityToolIds:        
+        self.toolBar.DeleteTool(btnId)        
+        if menu:
+          menuItem = menu.FindItemById(btnId)
+          if menuItem:
+            menu.Delete(btnId)
+        del self.idLookup[btnId]      
+      #self.toolBar.Unbind(wx.EVT_TOOL)
+      self.toolBar.DeletePendingEvents()
+      self.resetDataMembers()
+
+    def addCommonTools(self):
       tsize = self.toolBar.GetToolBitmapSize()
 
       # example of adding a standard button
       #new_bmp =  wx.ArtProvider.GetBitmap(wx.ART_NEW, wx.ART_TOOLBAR, tsize)
       #self.toolBar.AddLabelTool(10, "New", new_bmp, shortHelp="New", longHelp="Long help for 'New'")
 
-      bitmap = svg.SvgFile("save_as.svg").bmp(tsize, { }, (222,222,222,wx.ALPHA_OPAQUE))
-      self.toolBar.AddTool(SAVE_BUTTON, bitmap, wx.NullBitmap, shortHelpString="save", longHelpString="Save model as...")
-      self.idLookup[SAVE_BUTTON] = SaveTool(self)
+      # TODO: add disabled versions to these buttons
+
+      if 0:  # Save is handled at the project level
+        bitmap1 = svg.SvgFile("save_as.svg").bmp(tsize, { }, (222,222,222,wx.ALPHA_OPAQUE))
+        self.toolBar.AddTool(SAVE_BUTTON, bitmap1, wx.NullBitmap, shortHelpString="save", longHelpString="Save model as...")
+        self.idLookup[SAVE_BUTTON] = SaveTool(self)
 
       # Add the umlEditor's standard tools
       self.toolBar.AddSeparator()
@@ -808,76 +912,61 @@ class Panel(scrolled.ScrolledPanel):
       self.toolBar.AddRadioTool(ZOOM_BUTTON, bitmap, wx.NullBitmap, shortHelp="zoom", longHelp="Left click (+) to zoom in. Right click (-) to zoom out.")
       self.idLookup[ZOOM_BUTTON] = ZoomTool(self)
 
-      self.idLookup[SAVE_BUTTON] = SaveTool(self)
-
       bitmap = svg.SvgFile("remove.svg").bmp(tsize, { }, (222,222,222,wx.ALPHA_OPAQUE))
       self.toolBar.AddRadioTool(DELETE_BUTTON, bitmap, wx.NullBitmap, shortHelp="Delete entity/entities", longHelp="Select one or many entities. Click entity to delete.")
       self.idLookup[DELETE_BUTTON] = DeleteTool(self)
 
-      # Add the custom entity creation tools as specified by the model's YANG
-      self.addEntityTools()
+    def deleteTools(self):   
+      self.toolBar.DeletePendingEvents()
+      #self.toolBar.Unbind(wx.EVT_TOOL)
+      self.toolBar.ClearTools()
+      self.idLookup.clear()
 
-      # Set up to handle tool clicks
-      self.toolBar.Bind(wx.EVT_TOOL, self.OnToolClick)  # id=start, id2=end to bind a range
-      self.toolBar.Bind(wx.EVT_TOOL_RCLICKED, self.OnToolRClick)
-
-      # Set up events that tools may be interested in
-      toolEvents = [ wx.EVT_LEAVE_WINDOW, wx.EVT_LEFT_DCLICK, wx.EVT_LEFT_DOWN , wx.EVT_LEFT_UP, wx.EVT_MOUSEWHEEL , wx.EVT_MOVE,wx.EVT_MOTION , wx.EVT_RIGHT_DCLICK, wx.EVT_RIGHT_DOWN , wx.EVT_RIGHT_UP, wx.EVT_KEY_DOWN, wx.EVT_KEY_UP]
-      for t in toolEvents:
-        self.Bind(t, self.OnToolEvent)
-
-    def OnReSize(self, event):
-      self.Refresh(False)
-      event.Skip()
-    
-    def addEntityTools(self):
-      """Iterate through all the entity types, adding them as tools"""
-      tsize = self.toolBar.GetToolBitmapSize()
-
-      sortedEt = self.model.entityTypes.items()  # Do this so the buttons always appear in the same order
-      sortedEt.sort()
-      buttonIdx = ENTITY_TYPE_BUTTON_START
-      for et in sortedEt:
-        bitmap = et[1].buttonSvg.bmp(tsize, { "name":et[0][0:3] }, (222,222,222,wx.ALPHA_OPAQUE))  # Use the first 3 letters of the name as the button text if nothing
-        shortHelp = et[1].data.get("shortHelp",None)
-        longHelp = et[1].data.get("help",None)
-        #self.toolBar.AddLabelTool(11, et[0], bitmap, shortHelp=shortHelp, longHelp=longHelp)
-        self.toolBar.AddRadioTool(buttonIdx, bitmap, wx.NullBitmap, shortHelp=et[0], longHelp=longHelp,clientData=et)
-        self.idLookup[buttonIdx] = EntityTypeTool(self,et[1])  # register this button so when its clicked we know about it
-        buttonIdx+=1
-        et[1].buttonIdx = buttonIdx
-      self.toolBar.Realize()
-
-    def OnToolEvent(self,event):
+    def OnToolEvent(self,event):      
       handled = False
       if self.tool:
         handled = self.tool.OnEditEvent(self, event)
       event.Skip(not handled)  # if you pass false, event will not be processed anymore
+
+    def OnToolMenu(self,event):
+      print "On Tool Menu"
+      self.OnToolClick(event)
 
     def OnToolClick(self,event):
       co = event.GetClientObject()
       cd = event.GetClientData()
       id = event.GetId()
       print "Tool Clicked %d %s %s" % (id, str(co), str(cd))
-      tool = self.idLookup[id]
-      if self.tool:
-        self.tool.OnUnselect(self,event)
-        self.tool = None
-      if tool:
-        tool.OnSelect(self,event)
-        self.tool = tool
+      try:
+        tool = self.idLookup[id]
+        if self.tool:
+          self.tool.OnUnselect(self,event)
+          self.tool = None
+
+        if tool:
+
+          tool.OnSelect(self,event)
+          self.tool = tool
+      except KeyError, e:
+        event.Skip()
+        pass # Not one of my tools
+      
 
     def OnToolRClick(self,event):
       co = event.GetClientObject()
       cd = event.GetClientData()
       id = event.GetId()
       print "Tool Right Clicked %d %s %s" % (id, str(co), str(cd))      
-      tool = self.idLookup[id]
-      if tool:
-        tool.OnRightClick(self,event)
+      try:
+        tool = self.idLookup[id]
+        if tool:
+          tool.OnRightClick(self,event)
+      except KeyError, e:
+        event.Skip()
+        pass # Not one of my tools
+
 
     def OnPaint(self, event):
-        #dc = wx.PaintDC(self)
         dc = wx.BufferedPaintDC(self)
         dc.SetBackground(wx.Brush('white'))
         dc.Clear()
@@ -906,6 +995,7 @@ class Panel(scrolled.ScrolledPanel):
 
     def render(self, dc):
         """Put the entities on the screen"""
+        #print 'enter render'
         ctx = wx.lib.wxcairo.ContextFromDC(dc)
         # Now draw the graph
         ctx.save()
@@ -979,9 +1069,15 @@ class Panel(scrolled.ScrolledPanel):
       self.Refresh()
 
     def deleteEntities(self, ents):
+      #if share.instancePanel:
+        #share.instancePanel.deleteEntityTool(ents)
       if share.detailsPanel:
         share.detailsPanel.deleteTreeItemEntities(ents)
       self.model.delete(ents)
+      self.Refresh()
+
+    def refresh(self):
+      print 'refresh window'
       self.Refresh()
 
 model = None
