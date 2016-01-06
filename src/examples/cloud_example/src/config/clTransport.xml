@@ -10,16 +10,21 @@
           <type>TIPC</type>
           <plugin>libClTIPC.so</plugin>
         </xport>
-        <!--xport>
+        <xport>
           <type>UDP</type>
           <plugin>libClUDP.so</plugin>
-        </xport-->
+        </xport>
       </xports>
-      <!--heartbeat>
+      <protocol default="UDP"/>
+      <heartbeat>
           <interval>2000</interval>
           <intervalLocal>1000</intervalLocal>
           <retries>3</retries>
-      </heartbeat-->
+      </heartbeat>
+      <peerAddresses port="6799">
+         <peer addr="192.168.6.101"/>
+         <!--peer addr="192.168.6.102"/-->
+      </peerAddresses>
     </ioc:BootConfig>
   </version>
 </openClovisAsp>

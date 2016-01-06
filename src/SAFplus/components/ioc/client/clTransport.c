@@ -29,7 +29,7 @@
 
 #define CL_XPORT_MAX_PAYLOAD_SIZE_DEFAULT_HEADROOM (100)
 #define CL_XPORT_MAX_PAYLOAD_SIZE_DEFAULT (64000 - CL_XPORT_MAX_PAYLOAD_SIZE_DEFAULT_HEADROOM)
-#define CL_XPORT_DEFAULT_TYPE "tipc"
+#define CL_XPORT_DEFAULT_TYPE "TIPC"
 #define CL_XPORT_DEFAULT_PLUGIN "libClTIPC.so"
 typedef struct ClTransportLayer
 {
@@ -1283,11 +1283,11 @@ static ClRcT setDefaultXport(ClParserPtrT parent)
     ClRcT rc = CL_OK;
     if(parent)
     {
-        ClParserPtrT xportConfigDefault = clParserChild(parent, "default");
-        if(xportConfigDefault && xportConfigDefault->txt)
+        const ClCharT *xportConfigDefault = clParserAttr(parent, "default");
+        if(xportConfigDefault)
         {
             gClXportDefaultType[0] = 0;
-            strncat(gClXportDefaultType, xportConfigDefault->txt, sizeof(gClXportDefaultType)-1);
+            strncat(gClXportDefaultType, xportConfigDefault, sizeof(gClXportDefaultType)-1);
         }
     }
     if(gClXportDefaultType[0])
@@ -1307,6 +1307,7 @@ static ClRcT setDefaultXport(ClParserPtrT parent)
 
     if(gClXportDefault)
     {
+        gClXportDefaultType[0] = 0;
         clLogDebug("XPORT", "INIT", "Default transport set to [%s]", gClXportDefault->xportType);
         strncat(gClXportDefaultType, gClXportDefault->xportType, sizeof(gClXportDefaultType)-1);
     }
@@ -1386,7 +1387,8 @@ static void _clSetupDestNodeLUTData(void)
         {
             entryLUTData->bridgeIocNodeAddress = map->iocAddress;
             entryLUTData->destIocNodeAddress = map->iocAddress;
-            entryLUTData->xportType = clStrdup(map->xports[0]);
+            /* Using default xportType */
+            entryLUTData->xportType = clStrdup(gClXportDefaultType);
             _clXportDestNodeLUTMapAdd(entryLUTData);
             goto loop;
         }
@@ -1632,8 +1634,6 @@ static ClRcT _setDefaultXportForNode(ClParserPtrT parent)
         goto default_xport;
     }
 
-    const ClCharT *xportDefault = clParserAttr(protocol, "default");
-
     node = clParserChild(protocol, "node");
     if (!node)
     {
@@ -1702,11 +1702,11 @@ static ClRcT _setDefaultXportForNode(ClParserPtrT parent)
     default_xport_node:
     numxn = 0;
     // If xport default type from file config
-    if (xportDefault)
+    if (gClXportDefaultType[0])
     {
         // Split the default protocol into xports
         xportType[0] = 0;
-        strncat(xportType, xportDefault, sizeof(xportType)-1);
+        strncat(xportType, gClXportDefaultType, sizeof(xportType)-1);
         token = strtok_r(xportType, " ", &nextToken);
         while (token && numxn < MAX_XPORTS_PER_SLOT)
         {
@@ -2025,7 +2025,7 @@ ClRcT clTransportInitialize(const ClCharT *type, ClBoolT nodeRep)
 
     if(nodeRep && rc == CL_OK)
     {
-        rc = clTransportNotificationInitialize(type);
+        rc = clTransportNotificationInitialize(gClXportDefaultType);
     }
 
     out:
