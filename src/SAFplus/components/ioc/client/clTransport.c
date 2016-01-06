@@ -1281,10 +1281,9 @@ void *clTransportPrivateDataDelete(ClInt32T fd, ClIocPortT port)
 static ClRcT setDefaultXport(ClParserPtrT parent)
 {
     ClRcT rc = CL_OK;
-    ClParserPtrT xportConfig = clParserChild(parent, "config");
-    if(xportConfig)
+    if(parent)
     {
-        ClParserPtrT xportConfigDefault = clParserChild(xportConfig, "default");
+        ClParserPtrT xportConfigDefault = clParserChild(parent, "default");
         if(xportConfigDefault && xportConfigDefault->txt)
         {
             gClXportDefaultType[0] = 0;
@@ -1309,6 +1308,7 @@ static ClRcT setDefaultXport(ClParserPtrT parent)
     if(gClXportDefault)
     {
         clLogDebug("XPORT", "INIT", "Default transport set to [%s]", gClXportDefault->xportType);
+        strncat(gClXportDefaultType, gClXportDefault->xportType, sizeof(gClXportDefaultType)-1);
     }
     else
     {
@@ -1605,7 +1605,7 @@ ClRcT clFindTransport(ClIocNodeAddressT dstIocAddress, ClIocAddressT *rdstIocAdd
     return CL_OK;
 }
 
-static void _setDefaultXportForNode(ClParserPtrT parent)
+static ClRcT _setDefaultXportForNode(ClParserPtrT parent)
 {
 #define MAX_XPORTS_PER_SLOT (8)
     ClParserPtrT protocol = clParserChild(parent, "protocol");
@@ -1618,6 +1618,13 @@ static void _setDefaultXportForNode(ClParserPtrT parent)
     ClXportNodeAddrDataT *nodeAddrConfig = NULL;
     int numxn = 0;
     int i = 0;
+    ClRcT rc = CL_OK;
+
+    rc = setDefaultXport(protocol);
+    if (rc != CL_OK)
+    {
+        return rc;
+    }
 
     if (!protocol)
     {
@@ -1765,7 +1772,7 @@ static void _setDefaultXportForNode(ClParserPtrT parent)
     {
         clLogNotice("IOC", "LUT", "Local node bridge enabled with multiple transports");
     }
-    return;
+    return rc;
 
 #undef MAX_XPORTS_PER_SLOT
 }
@@ -1923,13 +1930,11 @@ ClRcT clTransportLayerInitialize(void)
 
     clOsalMutexInit(&gClXportNodeAddrListMutex);
 
-    rc = setDefaultXport(parent);
-    if(rc != CL_OK)
+    rc = _setDefaultXportForNode(parent);
+    if (rc != CL_OK)
     {
-        goto out_free;
+      goto out_free;
     }
-
-    _setDefaultXportForNode(parent);
 
     _iocMcastAddrCacheInitialize(gIsNodeRepresentative);
     /*

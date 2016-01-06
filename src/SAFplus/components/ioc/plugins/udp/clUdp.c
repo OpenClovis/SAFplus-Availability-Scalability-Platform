@@ -15,6 +15,7 @@
 #include <clDebugApi.h>
 #include <clPluginHelper.h>
 #include <clIocNeighComps.h>
+#include <clNodeCache.h>
 #include "clUdpSetup.h"
 #include "clUdpNotification.h"
 
@@ -1393,3 +1394,9 @@ ClRcT clUdpAddrGet(ClIocNodeAddressT nodeAddress, ClCharT *addrStr)
     return rc;
 }
 
+ClRcT xportMasterAddressGet(ClIocLogicalAddressT logicalAddress, ClIocPortT portId,
+                            ClIocNodeAddressT *pIocNodeAddress)
+{
+  // Retrive from node cache
+  return clNodeCacheLeaderGet(pIocNodeAddress);
+}

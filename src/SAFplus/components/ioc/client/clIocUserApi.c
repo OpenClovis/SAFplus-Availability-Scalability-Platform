@@ -3342,6 +3342,10 @@ ClRcT clIocConfigInitialize(ClIocLibConfigT *pConf)
         goto error_2;
     }
 
+#ifdef COMPAT_5
+    clNodeBackwardCacheInitialize(gIsNodeRepresentative);
+#endif
+
     clIocLeakyBucketInitialize();
 
     gClIocReplicast = clParseEnvBoolean("CL_ASP_IOC_REPLICAST");
@@ -3384,9 +3388,6 @@ ClRcT clIocConfigInitialize(ClIocLibConfigT *pConf)
     }
 
     clIocHeartBeatInitialize(gIsNodeRepresentative);
-#ifdef COMPAT_5
-    clNodeBackwardCacheInitialize(gIsNodeRepresentative);
-#endif
     gIocInit = CL_TRUE;
     return CL_OK;
 
