@@ -25,7 +25,8 @@ namespace FaultEnums
             pair_t(FaultMessageType::MSG_ENTITY_JOIN_BROADCAST, "MSG_ENTITY_JOIN_BROADCAST"),
             pair_t(FaultMessageType::MSG_ENTITY_LEAVE_BROADCAST, "MSG_ENTITY_LEAVE_BROADCAST"),
             pair_t(FaultMessageType::MSG_ENTITY_FAULT_BROADCAST, "MSG_ENTITY_FAULT_BROADCAST"),
-            pair_t(FaultMessageType::MSG_ENTITY_STATE_CHANGE_BROADCAST, "MSG_ENTITY_STATE_CHANGE_BROADCAST")
+            pair_t(FaultMessageType::MSG_ENTITY_STATE_CHANGE_BROADCAST, "MSG_ENTITY_STATE_CHANGE_BROADCAST"),
+            pair_t(FaultMessageType::MSG_ENTITY_COUNT, "MSG_ENTITY_COUNT")
     }; // uses c++11 initializer lists 
 
     const char* c_str(const ::FaultEnums::FaultMessageType &faultMessageType)

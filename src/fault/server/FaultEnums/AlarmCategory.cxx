@@ -22,7 +22,8 @@ namespace FaultEnums
             pair_t(AlarmCategory::ALARM_CATEGORY_QUALITY_OF_SERVICE, "ALARM_CATEGORY_QUALITY_OF_SERVICE"),
             pair_t(AlarmCategory::ALARM_CATEGORY_PROCESSING_ERROR, "ALARM_CATEGORY_PROCESSING_ERROR"),
             pair_t(AlarmCategory::ALARM_CATEGORY_EQUIPMENT, "ALARM_CATEGORY_EQUIPMENT"),
-            pair_t(AlarmCategory::ALARM_CATEGORY_ENVIRONMENTAL, "ALARM_CATEGORY_ENVIRONMENTAL")
+            pair_t(AlarmCategory::ALARM_CATEGORY_ENVIRONMENTAL, "ALARM_CATEGORY_ENVIRONMENTAL"),
+            pair_t(AlarmCategory::ALARM_CATEGORY_COUNT, "ALARM_CATEGORY_COUNT")
     }; // uses c++11 initializer lists 
 
     const char* c_str(const ::FaultEnums::AlarmCategory &alarmCategory)

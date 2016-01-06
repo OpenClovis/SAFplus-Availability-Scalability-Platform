@@ -21,7 +21,8 @@ namespace FaultEnums
             pair_t(FaultAlarmState::ALARM_STATE_ASSERT, "ALARM_STATE_ASSERT"),
             pair_t(FaultAlarmState::ALARM_STATE_SUPPRESSED, "ALARM_STATE_SUPPRESSED"),
             pair_t(FaultAlarmState::ALARM_STATE_UNDER_SOAKING, "ALARM_STATE_UNDER_SOAKING"),
-            pair_t(FaultAlarmState::ALARM_STATE_INVALID, "ALARM_STATE_INVALID")
+            pair_t(FaultAlarmState::ALARM_STATE_INVALID, "ALARM_STATE_INVALID"),
+            pair_t(FaultAlarmState::ALARM_STATE_COUNT, "ALARM_STATE_COUNT")
     }; // uses c++11 initializer lists 
 
     const char* c_str(const ::FaultEnums::FaultAlarmState &faultAlarmState)

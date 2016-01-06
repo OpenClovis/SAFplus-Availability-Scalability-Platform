@@ -30,7 +30,7 @@ public:
     };
 
     //? [Deprecated]: Initialize a fault entity with handle and comport information
-    void init(SAFplus::Handle faultHandle,SAFplus::Handle faultServer, int comPort,SAFplus::Wakeable& execSemantics);
+    void init(SAFplus::Handle faultHandle,SAFplus::Handle faultServer, int comPort,SAFplus::Wakeable& execSemantics = SAFplus::BLOCK);
 
     //? Initialize a fault entity with handle and comport information
     void init(SAFplus::Handle yourHandle, SAFplus::Wakeable& execSemantics = SAFplus::BLOCK);

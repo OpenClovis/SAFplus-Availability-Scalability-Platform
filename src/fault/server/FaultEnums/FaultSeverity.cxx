@@ -23,7 +23,8 @@ namespace FaultEnums
             pair_t(FaultSeverity::ALARM_SEVERITY_MINOR, "ALARM_SEVERITY_MINOR"),
             pair_t(FaultSeverity::ALARM_SEVERITY_WARNING, "ALARM_SEVERITY_WARNING"),
             pair_t(FaultSeverity::ALARM_SEVERITY_INDETERMINATE, "ALARM_SEVERITY_INDETERMINATE"),
-            pair_t(FaultSeverity::ALARM_SEVERITY_CLEAR, "ALARM_SEVERITY_CLEAR")
+            pair_t(FaultSeverity::ALARM_SEVERITY_CLEAR, "ALARM_SEVERITY_CLEAR"),
+            pair_t(FaultSeverity::ALARM_SEVERITY_COUNT, "ALARM_SEVERITY_COUNT")
     }; // uses c++11 initializer lists 
 
     const char* c_str(const ::FaultEnums::FaultSeverity &faultSeverity)

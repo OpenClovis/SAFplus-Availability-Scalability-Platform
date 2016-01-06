@@ -24,7 +24,6 @@
 #include "../fault/server/FaultEnums/FaultProbableCause.hxx"
 #include "../fault/server/FaultEnums/FaultSeverity.hxx"
 #include "../fault/server/FaultEnums/FaultMessageType.hxx"
-#include "../fault/server/FaultEnums/FaultState.hxx"
 
 namespace SAFplus
   {
