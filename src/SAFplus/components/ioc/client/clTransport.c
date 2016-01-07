@@ -1373,14 +1373,14 @@ static void _clSetupDestNodeLUTData(void)
     CL_LIST_FOR_EACH(iterNodeAddr, &gClXportNodeAddrList)
     {
         ClXportNodeAddrDataT *map = CL_LIST_ENTRY(iterNodeAddr, ClXportNodeAddrDataT, list);
-        ClXportDestNodeLUTDataT *entryLUTData = clHeapCalloc(1, sizeof(*entryLUTData));
-        CL_ASSERT(entryLUTData != NULL);
 
         // Don't update if it exists or node address not defined
         if (!map->iocAddress || _clXportDestNodeLUTMapFind(map->iocAddress)) {
-            clHeapFree(entryLUTData);
             goto loop;
         }
+
+        ClXportDestNodeLUTDataT *entryLUTData = clHeapCalloc(1, sizeof(*entryLUTData));
+        CL_ASSERT(entryLUTData != NULL);
 
         // The order protocol base on the config instead of available protocol
         if (map->iocAddress == gIocLocalBladeAddress)
