@@ -45,7 +45,7 @@
 #define CL_IOC_MAX_HB_RETRIES_DEFAULT 5
 #define CL_IOC_HB_METHOD "HeartBeatPlugin"
 #define CL_IOC_HB_HELLO_MESSAGE "HELLO"
-#define CL_IOC_HB_EXIT_MESSAGE "EXIT"
+#define CL_IOC_HB_EXIT_MESSAGE "QUIT"
 
 #define __CL_IOC_HB_STATUS_ACTIVE (0x1)
 #define __CL_IOC_HB_STATUS_PAUSED (0x2)
@@ -980,7 +980,7 @@ static ClRcT HeartBeatPluginDefault(ClUint32T interval, ClUint32T retires) {
     }
     /*
      * TODO
-     * Using plugin for easy replace with other hearbeat algorithm.
+     * Using plugin for easy replace with other heartbeat algorithm.
      */
     rc = clTimerCreateAndStart(timeOut, CL_TIMER_REPETITIVE,
             CL_TIMER_SEPARATE_CONTEXT,

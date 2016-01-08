@@ -28,7 +28,7 @@ import shutil
 # import pdb
 
 # RemovePersistentDb = False
-TipcSettings=None
+tipc_settings=None
  
 def get_watchdog_pid():
     p = '%s/safplus_watchdog.py' % safplus.SAFPLUS_ETC_DIR
@@ -96,15 +96,14 @@ def set_ld_library_paths():
     os.putenv('LD_LIBRARY_PATH', v)
 
 def start_watchdog():
-    global TipcSettings
+    global tipc_settings
     # check whether watchdog exist 
     watchdog_pid = get_watchdog_pid()
     if not watchdog_pid:
-        if safplus_tipc.checkTipc():
-          if TipcSettings=='enforce': 
+        if safplus_tipc.has_tipc_plugin() and (safplus_tipc.ignore_tipc_settings() == False):
+          if safplus_tipc.enforce_tipc_settings() == True:
             safplus_tipc.unload_tipc_module()
-          if TipcSettings!='ignore': 
-            safplus_tipc.load_config_tipc_module()
+          safplus_tipc.load_config_tipc_module()
         set_ld_library_paths()
 
         codeBootFile = safplus.SAFPLUS_RUN_DIR + '/' + safplus.SAFPLUS_CODEBOOT_FILE 
@@ -187,7 +186,7 @@ def watchdog_driver(cmd):
 
 def parse_command_line(args):
     # global RemovePersistentDb
-    global TipcSettings
+    global tipc_settings
     import getopt
     optdict = {}
     try:
@@ -204,10 +203,10 @@ def parse_command_line(args):
             #for h in logging.handlers:
             #    h.setLevel(logging.DEBUG)
         elif o == '--enforce-tipc-settings':
-            TipcSettings='enforce'
+            tipc_settings = 'enforce'
             logging.info("tipc settings is 'enforce'")
         elif o == '--ignore-tipc-settings':
-            TipcSettings='ignore'
+            tipc_settings = 'ignore'
             logging.info("tipc settings is 'ignore'")
         elif o == '--remove-persistent-db':
             # RemovePersistentDb=True

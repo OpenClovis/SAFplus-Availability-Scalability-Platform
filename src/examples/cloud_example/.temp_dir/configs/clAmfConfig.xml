@@ -1,0 +1,77 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<amfConfig xmlns="cpmconfig.ecore" version="B.01.01">
+  <cpmConfigs>
+    <cpmConfig nodeType="ctrl" cpmType="GLOBAL">
+      <bootConfigs>
+        <bootConfig name="default" maxBootLevel="6" defaultBootLevel="5"/>
+      </bootConfigs>
+      <aspServiceUnits>
+        <aspServiceUnit name="gmsSU"/>
+        <aspServiceUnit name="eventSU"/>
+        <aspServiceUnit name="ckptSU"/>
+        <aspServiceUnit name="corSU"/>
+        <aspServiceUnit name="txnSU"/>
+        <aspServiceUnit name="oampSU"/>
+        <aspServiceUnit name="logSU"/>
+        <aspServiceUnit name="nameSU"/>
+        <aspServiceUnit name="msgSU"/>
+      </aspServiceUnits>
+    </cpmConfig>
+    <cpmConfig nodeType="node" cpmType="LOCAL">
+      <bootConfigs>
+        <bootConfig name="default" maxBootLevel="6" defaultBootLevel="5"/>
+      </bootConfigs>
+      <aspServiceUnits>
+        <aspServiceUnit name="gmsSU"/>
+        <aspServiceUnit name="eventSU"/>
+        <aspServiceUnit name="ckptSU"/>
+        <aspServiceUnit name="txnSU"/>
+        <aspServiceUnit name="oampSU"/>
+        <aspServiceUnit name="logSU"/>
+        <aspServiceUnit name="nameSU"/>
+        <aspServiceUnit name="msgSU"/>
+      </aspServiceUnits>
+    </cpmConfig>
+  </cpmConfigs>
+  <nodeInstances>
+    <nodeInstance name="ctrlI0" type="ctrl" nodeMoId="\Chassis:0\node:0">
+      <serviceUnitInstances>
+        <serviceUnitInstance name="cloudMgrSUI0" type="cloudMgrSU" rank="0">
+          <componentInstances>
+            <componentInstance name="cloudMgrI0" type="cloudMgr"/>
+          </componentInstances>
+        </serviceUnitInstance>
+      </serviceUnitInstances>
+      <dependencies node=""/>
+    </nodeInstance>
+    <nodeInstance name="ctrlI1" type="ctrl" nodeMoId="\Chassis:0\node:1">
+      <serviceUnitInstances>
+        <serviceUnitInstance name="cloudMgrSUI1" type="cloudMgrSU" rank="0">
+          <componentInstances>
+            <componentInstance name="cloudMgrI1" type="cloudMgr"/>
+          </componentInstances>
+        </serviceUnitInstance>
+      </serviceUnitInstances>
+      <dependencies node=""/>
+    </nodeInstance>
+  </nodeInstances>
+  <serviceGroups>
+    <serviceGroup name="cloudMgrSGI0" type="cloudMgrSG">
+      <serviceInstances>
+        <serviceInstance name="cloudMgrSII0" type="cloudMgrSI">
+          <componentServiceInstances>
+            <componentServiceInstance name="cloudMgrCSII0" type="cloudMgrCSI">
+              <dependencies componentServiceInstance=""/>
+            </componentServiceInstance>
+          </componentServiceInstances>
+          <dependencies serviceInstance=""/>
+          <prefferedServiceUnits prefferedServiceUnit=""/>
+        </serviceInstance>
+      </serviceInstances>
+      <associatedServiceUnits>
+        <associatedServiceUnit>cloudMgrSUI0</associatedServiceUnit>
+        <associatedServiceUnit>cloudMgrSUI1</associatedServiceUnit>
+      </associatedServiceUnits>
+    </serviceGroup>
+  </serviceGroups>
+</amfConfig>

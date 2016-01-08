@@ -259,6 +259,7 @@ def load_xml_file(filename, strip_root=None):
     
 def stripNamespace(x):
   l = x.split("}")
+  l = l[-1].split(":")
   return l[-1]
 
 def load_xml_string(string, strip_root=None):
@@ -269,11 +270,12 @@ def load_xml_string(string, strip_root=None):
         d = {}
         if len(node):
             for n in list(node):
-                tag = stripNamespace(n.tag)
+                tag = n.tag
                 text = n.text
                 if tag is et.Comment:
                     continue
                 else:
+                    tag = stripNamespace(tag)
                     if not d.has_key(tag):
                         d[tag] = []
                     d[tag].append({})
@@ -294,12 +296,13 @@ def load_xml_string(string, strip_root=None):
                         if list(n):
                             d2 = d[tag][-1]
                             for n2 in list(n):
-                              n2tag = stripNamespace(n2.tag)
+                              n2tag = n2.tag
                               if n2tag is et.Comment:
                                   continue
                               if n2.attrib.has_key('value'):
                                   pass
                               else:
+                                  n2tag = stripNamespace(n2tag)
                                   d2[n2tag][-1] =  decode_tree(n2)
                             d[tag][-1] = d2
                         else:

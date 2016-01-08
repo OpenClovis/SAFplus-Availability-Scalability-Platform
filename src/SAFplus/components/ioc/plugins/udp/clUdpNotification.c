@@ -44,6 +44,7 @@
 #include <clTaskPool.h>
 #include <clCpmApi.h>
 #include <clAmfPluginApi.h>
+#include <clNodeCache.h>
 
 #define CL_UDP_HANDLER_MAX_SOCKETS            2
 #define UDP_CLUSTER_SYNC_WAIT_TIME 2 /* in seconds*/
@@ -231,6 +232,7 @@ ClRcT clIocPeerList(ClIocUdpMapT *map, void *args)
     ClRcT rc = CL_OK;
     ClIocAddressT *destAddress = (ClIocAddressT *)args;
     ClBufferHandleT message = 0;
+    ClUint32T currentLeader = 0;
 
     ClUint32T i = 0;
     ClBoolT found = CL_FALSE;
@@ -250,9 +252,19 @@ ClRcT clIocPeerList(ClIocUdpMapT *map, void *args)
         return rc;
     }
 
+    // Append current leader into discovery message if any
+    if (clNodeCacheLeaderGet(&currentLeader) == CL_OK)
+    {
+      currentLeader = htonl(currentLeader);
+    }
+    else
+    {
+      currentLeader = 0;
+    }
+
     clBufferCreate(&message);
     rc = clBufferNBytesWrite(message, (ClUint8T *) map, sizeof(*map));
-
+    rc |= clBufferNBytesWrite(message, (ClUint8T*)&currentLeader, sizeof(currentLeader));
     if (rc == CL_OK)
     {
         ClIocSendOptionT sendOption = { CL_IOC_HIGH_PRIORITY};
@@ -398,8 +410,18 @@ static ClRcT clUdpReceivedPacket(ClUint32T socketType, struct msghdr *pMsgHdr) {
             if (userHeader.protocolType == CL_IOC_NODE_DISCOVER_PEER_NOTIFICATION)
             {
                 ClIocUdpMapT udpAddr = {0};
+                ClUint32T currentLeader = 0;
+
                 memset(&udpAddr, 0, sizeof(udpAddr));
                 memcpy(&udpAddr, pRecvBase + sizeof(userHeader), sizeof(udpAddr));
+
+                // Unmarshall leader received from SCs
+                memcpy(&currentLeader, pRecvBase + sizeof(userHeader) + sizeof(udpAddr), sizeof(currentLeader));
+                currentLeader = ntohl(currentLeader);
+                if (currentLeader)
+                {
+                  clNodeCacheLeaderSet(currentLeader);
+                }
 
                 /* ignore self discover */
                 if (udpAddr.slot != gIocLocalBladeAddress)
@@ -534,13 +556,8 @@ static void clUdpEventHandler(ClPtrT pArg)
 static ClRcT udpMcastSetup(void)
 {
     ClRcT rc = CL_OK;
-    
-    if(gClMcastNotifPort) 
-        return CL_OK;
 
-    if(!gClMcastPort)
-        gClMcastPort = clTransportMcastPortGet();
-
+    gClMcastPort = clTransportMcastPortGet();
     gClMcastNotifPort = gClMcastPort;
 
     if(gClMcastPeers)
@@ -863,8 +880,10 @@ ClRcT clUdpEventHandlerInitialize(void)
     rc = clOsalCondInit(&gIocEventHandlerClose.condVar);
     CL_ASSERT(rc == CL_OK);
 
+#if 0 //Ignore to support bridge 
     rc = clIocNotificationInitialize();
     CL_ASSERT(rc == CL_OK);
+#endif
 
     /* Creating a socket for handling the data packets sent by other node CPM/amf. */
     rc = clIocCommPortCreateStatic(CL_IOC_XPORT_PORT, CL_IOC_RELIABLE_MESSAGING, &dummyCommPort, gClUdpXportType);
@@ -931,5 +950,13 @@ ClRcT clUdpEventHandlerFinalize(void) {
             timeout);
     clOsalMutexUnlock(&gIocEventHandlerClose.lock);
 
+    /*
+     * Cleanup multicast peer addresses
+     */
+    if(gClMcastPeers)
+    {
+        clHeapFree(gClMcastPeers);
+        gClMcastPeers = NULL;
+    }
     return CL_OK;
 }

@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<dbal:BootConfig xmlns:dbal="dbal.ecore">
+  <Dbal>
+    <Engine>
+      <FileName>libClSQLiteDB.so</FileName>
+      <Type>SQLite</Type>
+    </Engine>
+  </Dbal>
+</dbal:BootConfig>

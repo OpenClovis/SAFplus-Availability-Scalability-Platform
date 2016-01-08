@@ -699,6 +699,10 @@ ClRcT xportSend(ClIocPortT port, ClUint32T tempPriority, ClIocAddressT *pIocAddr
         rc = CL_ERR_UNSPECIFIED;
     }
 
+#if 0
+    clLogTrace("TIPC", "SEND", "TIPC send successful to port [0x%x:%d]",pIocAddress->iocPhyAddress.nodeAddress, pIocAddress->iocPhyAddress.portId);
+#endif
+
     out:
     return rc;
 }

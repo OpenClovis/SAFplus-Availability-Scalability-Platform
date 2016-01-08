@@ -1967,6 +1967,9 @@ static ClRcT internalSend(ClIocCommPortT *pIocCommPort,
     
     if(recordIOCSend) clTaskPoolRecordIOCSend(CL_TRUE);
 
+    clLogTrace("IOC", "SEND", "Sending to destination [%#x: %#x] with [xport: %s]", pIocAddress->iocPhyAddress.nodeAddress,
+               pIocAddress->iocPhyAddress.portId, xportType);
+
     rc = clTransportSendProxy(xportType, pIocCommPort->portId, priority, pIocAddress,
                               target, targetVectors, 0, proxy);
 
@@ -2115,6 +2118,9 @@ static ClRcT internalSendSlow(ClIocCommPortT *pIocCommPort,
     }
     
     if(recordIOCSend) clTaskPoolRecordIOCSend(CL_TRUE);
+
+    clLogTrace("IOC", "SEND", "Sending to destination [%#x: %#x] with [xport: %s]", pIocAddress->iocPhyAddress.nodeAddress,
+               pIocAddress->iocPhyAddress.portId, xportType);
 
     rc = clTransportSendProxy(xportType, pIocCommPort->portId, priority, pIocAddress,
                               pIOVector, ioVectorLen, 0, proxy);
@@ -2576,10 +2582,9 @@ ClRcT clIocDispatch(const ClCharT *xportType, ClIocCommPortHandleT commPort, ClI
     pRecvParam->protoType = userHeader.protocolType;
     memcpy(&pRecvParam->srcAddr, &userHeader.srcAddress, sizeof(pRecvParam->srcAddr));
 
-    clLogTrace("XPORT", "RECV",
-               "Received message of size [%d] and protocolType [0x%x] from node [0x%x:0x%x]", 
-               bytes, userHeader.protocolType, userHeader.srcAddress.iocPhyAddress.nodeAddress, 
-               userHeader.srcAddress.iocPhyAddress.portId);
+    clLogTrace("XPORT", "RECV", "Received message of size [%d] and protocolType [0x%x] from node [0x%x:0x%x] xportType [%s]", bytes,
+               userHeader.protocolType, userHeader.srcAddress.iocPhyAddress.nodeAddress, userHeader.srcAddress.iocPhyAddress.portId,
+               xportType);
 
     out:
     return rc;
@@ -2881,8 +2886,8 @@ ClRcT clIocDispatchAsync(const ClCharT *xportType, ClIocPortT port, ClUint8T *bu
     recvParam.priority = userHeader.priority;
     recvParam.protoType = userHeader.protocolType;
     memcpy(&recvParam.srcAddr, &userHeader.srcAddress, sizeof(recvParam.srcAddr));
-    clLogTrace( "XPORT", "RECV",
-               "Received message of size [%d] and protocolType [0x%x] from node [0x%x:0x%x]", bytes, userHeader.protocolType, recvParam.srcAddr.iocPhyAddress.nodeAddress, recvParam.srcAddr.iocPhyAddress.portId);
+    clLogTrace("XPORT", "RECV", "Received message of size [%d] and protocolType [0x%x] from node [0x%x:0x%x] xportType [%s]", bytes,
+               userHeader.protocolType, recvParam.srcAddr.iocPhyAddress.nodeAddress, recvParam.srcAddr.iocPhyAddress.portId, xportType);
     clEoEnqueueReassembleJob(message, &recvParam);
     message = 0;
 

@@ -1,0 +1,101 @@
+===
+Kid
+===
+
+------------------------------
+Pythonic, XML-based Templating
+------------------------------
+
+Kid is a simple template language for `XML` based vocabularies written
+in `Python`_. It was spawned as a result of a kinky love triangle
+between `XSLT`_, `TAL`_, and `PHP`_. We believe many of the best
+features of these languages live on in Kid with much of the limitations
+and complexity stamped out (see `WhatsBorrowed`_ and `WhatsDifferent`_).
+For more info on current and planned features and licensing
+information, see `AboutKid`_.
+
+.. _Python: http://python.org/
+.. _XML: http://w3.org/XML/
+.. _XSLT: http://www.w3.org/TR/xslt
+.. _TAL: http://www.zope.org/Wikis/DevSite/Projects/ZPT/TAL
+.. _PHP: http://www.php.net/
+.. _WhatsBorrowed: http://www.kid-templating.org/trac/wiki/WhatsBorrowed
+.. _WhatsDifferent: http://www.kid-templating.org/trac/wiki/WhatsDifferent
+.. _AboutKid: http://www.kid-templating.org/trac/wiki/AboutKid
+
+
+Download
+--------
+
+The current stable version of Kid is 0.9.6 and is available from the
+following location:
+
+http://www.kid-templating.org/dist/0.9.6/kid-0.9.6.tar.gz
+
+You can find older and bleeding version in the 
+`dist <http://www.kid-templating.org/dist/>`_ directory.
+
+See `GettingStarted`_ for information on installing Kid on your system.
+
+.. _GettingStarted: http://www.kid-templating.org/trac/wiki/GettingStarted
+
+You may also grab the project directly from subversion::
+
+  svn co svn://kid-templating.org/trunk 
+
+Documentation / Articles
+------------------------
+
+Official documentation in HTML and text formats is available with the
+source distribution and is also available right here.
+
+* `Release Notes`_ - contains release notes for Kid releases.
+* `User's Guide`_ - Information on using kid from Python, the command line,
+  and in various web environments.
+* `Language Specification`_ - detail on template syntax and semantics.
+
+.. _Release Notes: notes.html
+.. _User's Guide: guide.html
+.. _Language Specification: language.html
+
+Note that the `Kid Wiki`_ contains supplementary documentation on Kid.
+Please consider creating your own pages if you have a useful tip to
+share.
+
+* `KidFaq`_ - Frequently Asked Questions on the Kid template language.
+* `KidRecipes`_ - Recipes for solving some common tasks using Kid.
+* `KidExamples`_ - Check out some template examples.
+* `ProjectsUsingKid`_
+
+.. _Kid Wiki: http://www.kid-templating.org/trac/wiki/
+.. _KidFaq: http://www.kid-templating.org/trac/wiki/KidFaq
+.. _KidRecipes: http://www.kid-templating.org/trac/wiki/KidRecipes
+.. _KidExamples: http://www.kid-templating.org/trac/wiki/KidExamples
+.. _ProjectsUsingKid: http://www.kid-templating.org/trac/wiki/ProjectsUsingKid
+
+Other sources of information include the `mailing list archives`_,
+the `Planet Kid`_. Older ramblings on kid can be found on 
+`Ryan Tomayko's Weblog`_ under the tag, "kid".
+
+.. _mailing list archives: http://news.gmane.org/gmane.comp.python.kid.general
+.. _Ryan Tomayko's Weblog: http://naeblis.cx/rtomayko/
+.. _Planet Kid: http://planet.kid-templating.org/
+
+Contribute
+----------
+
+* `Join the mailing list`_ and discuss Kid usage, bugs, ideas, whatever...
+* Report a bug or suggest a feature by creating a `new ticket`_. 
+
+.. _Join the mailing list: http://lists.sourceforge.net/lists/listinfo/kid-template-discuss
+.. _new ticket: http://www.kid-templating.org/trac/newticket
+.. _TracWiki: http://www.kid-templating.org/trac/wiki/TracWiki
+.. _SandBox: http://www.kid-templating.org/trac/wiki/SandBox
+
+Contact
+-------
+
+If you need help or support, please send it to the Kid mailing list:
+
+<kid-template-discuss@lists.sourceforge.net>
+

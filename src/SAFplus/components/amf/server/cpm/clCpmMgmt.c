@@ -366,7 +366,7 @@ ClRcT cpmNodeAdd(ClCharT *nodeName)
     }
     if(rc != CL_OK)
     {
-        if((CL_GET_ERROR_CODE(rc) != CL_IOC_ERR_COMP_UNREACHABLE) && (CL_GET_ERROR_CODE(rc) != CL_ERR_NOT_EXIST))
+        if((CL_GET_ERROR_CODE(rc) != CL_IOC_ERR_COMP_UNREACHABLE) && (CL_GET_ERROR_CODE(rc) != CL_ERR_NOT_EXIST) && (CL_GET_ERROR_CODE(rc) != CL_ERR_NOT_SUPPORTED))
         {
             goto failure;
         }

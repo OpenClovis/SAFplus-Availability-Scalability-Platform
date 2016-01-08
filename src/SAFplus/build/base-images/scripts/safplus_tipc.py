@@ -25,9 +25,207 @@ import re
 import glob
 import commands
 import safplus_watchdog_start
-#import pdb
+
+import xml.dom.minidom as minidom
+try:
+    from lxml import etree as et
+    hasLxml = True
+except ImportError:
+    hasLxml = False
+
+import pdb
 
 log = logging
+
+class Dot:
+    """
+    The dot class lets you access fields either through field notation (.)
+    or dictionary notation ([]).
+    """
+
+    def __init__(self, dict):
+        for (key, val) in dict.items():
+            if type(val) == type({}): val = Dot(val)
+            self.__dict__[key] = val
+
+    def __str__(self):
+        s=[]
+        for (key, val) in self.__dict__.items():
+            s.append("'%s':%s" % (str(key), str(val)))
+        return "{ " + ", ".join(s) + " }"
+
+    def __repr__(self): return 'Dot(%s)' % self.__str__()
+
+    def has_key(self, key): return self.__dict__.has_key(key)
+
+    def keys(self): return self.__dict__.keys()
+
+    def values(self): return self.__dict__.values()
+
+    def items(self): return self.__dict__.items()
+
+    def clear(self): self.__dict__.clear()
+
+    def get(self, key, default = None): return self.__dict__.get(key, default)
+
+    def setdefault(self, key, default = None): return self.__dict__.setdefault(key, default)
+
+    def pop(self, key, default = None): return self.__dict__.pop(key, default)
+
+    def popitem(self): return self.__dict__.popitem()
+
+    def iteritems(self): return self.__dict__.iteritems()
+
+    def iterkeys(self): return self.__dict__.iterkeys()
+
+    def itervalues(self): return self.__dict__.itervalues()
+
+    def __getitem__(self, key): return self.__dict__[key]
+
+    def __setitem__(self, key, val): self.__dict__[key] = val
+
+    def __delitem__(self, key): del self.__dict__[key]
+
+    def __len__(self): return self.__dict__.__len__()
+
+    def __contains__(self, item): return item in self.__dict__
+
+    def dot_print(self, prefix=None):
+        s = []
+        for (key, val) in self.__dict__.items():
+            p = (prefix and prefix+'.' or '')+str(key)
+            try:
+                s.append(val.dot_print(p))
+            except AttributeError:
+                s.append(p + '=' + str(val)) 
+        return '\n'.join(s)
+
+def stripNamespace(x):
+  l = x.split("}")
+  l = l[-1].split(":")
+  return l[-1]
+
+def load_xml_file(filename, strip_root=None):
+    """Parse given xml file and turn it into a nested dot object"""
+    
+    f = open(filename, "r")
+    content = f.read()
+    f.close()
+    
+    return load_xml_string(content, strip_root)
+
+def load_xml_string(string, strip_root=None):
+    """Parse given xml string and turn it into a nested dot object"""
+
+    """Using lxml to parse"""
+    def decode_tree(node):
+        d = {}
+        if len(node):
+            for n in list(node):
+                text = n.text
+                tag = n.tag
+                if tag is et.Comment:
+                    continue
+                else:
+                    tag = stripNamespace(tag)
+                    if not d.has_key(tag):
+                        d[tag] = []
+                    d[tag].append({})
+
+                    if len(n):
+                        d[tag][-1] = decode_tree(n)
+
+                    for attr,val in n.attrib.items():
+                      if attr != "value":
+                        d[tag][-1][attr] = val
+
+                    if n.attrib.has_key('value'):
+                        if d[tag][-1]:
+                            d[tag][-1]['value'] = n.attrib.get('value').strip()
+                        else:
+                            d[tag][-1] = n.attrib.get('value').strip()
+                    else:
+                        if list(n):
+                            d2 = d[tag][-1]
+                            for n2 in list(n):
+                              n2tag = n2.tag
+                              if n2tag is et.Comment:
+                                  continue
+                              if n2.attrib.has_key('value'):
+                                  pass
+                              else:
+                                  n2tag = stripNamespace(n2tag)
+                                  d2[n2tag][-1] =  decode_tree(n2)
+                            d[tag][-1] = d2
+                        else:
+                            d[tag][-1] = text
+
+        else:
+            if node.attrib.has_key('value'):
+                return node.attrib.get('value').strip()
+            else:
+                return node.text
+
+        return Dot(d)
+
+    """Using minidom to parse"""
+    def decode_dom(dom):
+        d = {}
+        str = ""
+        if len(dom.childNodes) > 0:
+            for n in dom.childNodes:
+                if n.nodeType == minidom.Comment.nodeType: # Skip all comments
+                    pass
+                elif n.__dict__.has_key('nodeValue'):
+                    str += n.nodeValue.strip()
+                else:
+                    tag = stripNamespace(n.tagName)
+                    if not d.has_key(tag):
+                        d[tag] = []
+                    d[tag].append({})
+                    
+                    if len(n.childNodes) > 0:
+                        d[tag][-1] = decode_dom(n)
+
+                    for attr,val in n._attrs.items():
+                      if attr != "value":
+                        d[tag][-1][attr] = val
+                        
+                    if n._attrs.has_key('value'):
+                        if d[tag][-1]:
+                            d[tag][-1]['value'] = n._attrs['value'].nodeValue
+                        else:
+                            d[tag][-1] = n._attrs['value'].nodeValue
+                        
+                    elif len(n._attrs.items())>0:
+                        d2 = d[tag][-1]
+                        for (k, v) in n._attrs.items():
+                            d2[k] = v.nodeValue
+                        d[tag][-1] = d2
+        else:
+            return dom.nodeValue.strip()
+
+        if len(d)==0: return str
+        elif len(str):
+            d['value'] = str
+        return Dot(d)
+
+    d = None
+
+    if hasLxml:
+        tree = et.fromstring(string)
+        d = decode_tree(tree)
+    else:
+        dom = minidom.parseString(string)
+        d = decode_dom(dom)
+    if strip_root:
+        for t in strip_root:
+            for tag in t:
+                if not d.has_key(tag) or len(d[tag]) != 1:
+                    break
+                d = d[tag][0]
+
+    return d
 
 def system(cmd)   : return safplus.system(cmd)
 
@@ -43,9 +241,9 @@ def is_system_controller(): return safplus.safplus_getenv('SYSTEM_CONTROLLER')
 
 def is_simulation(): return bool(int(safplus.safplus_getenv('ASP_SIMULATION', default='0')))
    
-def enforce_tipc_settings(): return safplus_watchdog_start.TipcSettings=='enforce'
+def enforce_tipc_settings(): return safplus_watchdog_start.tipc_settings == 'enforce'
 
-def ignore_tipc_settings(): return safplus_watchdog_start.TipcSettings=='ignore'
+def ignore_tipc_settings(): return safplus_watchdog_start.tipc_settings == 'ignore'
 
 def get_link_name(): return safplus.safplus_getenv('LINK_NAME', default='eth0')
 
@@ -106,32 +304,22 @@ def get_tipc_config_cmd():
             return tipc_config_cmd
     else:
         return tipc_config_cmd
-    
-def checkTipc(): 
+
+def has_tipc_plugin():
     p = os.path.dirname(os.path.realpath(__file__))
-    p = os.path.split(p)[0]      
+    p = os.path.split(p)[0]
     filePath = p + '/etc/clTransport.xml'
+    xports = None
     try:
-      searchfile = open(filePath, "r")
+        xports = load_xml_file(filePath, strip_root=(('openClovisAsp', 'version',),('version',),('BootConfig', 'xports'),('multixport', 'xports')))
     except IOError:  # If clTransport.xml does not even exist, then default to TIPC
       return True
-    res=False
-    override = None
-    for line in searchfile:
-        if ("TIPC" in line) and ("default" in line):
-            res=True 
-        if ("node" in line) and ("name" in line) and ("protocol" in line) and (os.getenv('NODENAME') in line): 
-          if ("TIPC" in line):
-            override= True
-          else:
-            override= False
 
-    if not override is None:
-      res = override
+    tipcPlugin = filter(lambda xport: 'TIPC' in xport['type'], xports['xport'])
+    if len(tipcPlugin) > 0:
+      return True
 
-    searchfile.close()
-    log.debug("checkTipc: %s" % str(res))
-    return res
+    return False
 
 def is_tipc_build(): return bool(int(safplus.safplus_getenv('BUILD_TIPC', default='1')))
 

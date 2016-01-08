@@ -1,0 +1,81 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<openClovisAsp>
+  <version v0="4.0.0">
+    <amfConfig xmlns="cpmconfig.ecore" version="B.01.01">
+      <cpmConfigs>
+        <cpmConfig cpmType="GLOBAL" nodeType="ctrl">
+          <bootConfigs>
+            <bootConfig defaultBootLevel="5" maxBootLevel="6" name="default"/>
+          </bootConfigs>
+          <aspServiceUnits>
+            <aspServiceUnit name="gmsSU"/>
+            <aspServiceUnit name="eventSU"/>
+            <aspServiceUnit name="ckptSU"/>
+            <aspServiceUnit name="corSU"/>
+            <aspServiceUnit name="txnSU"/>
+            <aspServiceUnit name="oampSU"/>
+            <aspServiceUnit name="logSU"/>
+            <aspServiceUnit name="nameSU"/>
+            <aspServiceUnit name="msgSU"/>
+          </aspServiceUnits>
+        </cpmConfig>
+        <cpmConfig cpmType="LOCAL" nodeType="node">
+          <bootConfigs>
+            <bootConfig defaultBootLevel="5" maxBootLevel="6" name="default"/>
+          </bootConfigs>
+          <aspServiceUnits>
+            <aspServiceUnit name="gmsSU"/>
+            <aspServiceUnit name="eventSU"/>
+            <aspServiceUnit name="ckptSU"/>
+            <aspServiceUnit name="txnSU"/>
+            <aspServiceUnit name="oampSU"/>
+            <aspServiceUnit name="logSU"/>
+            <aspServiceUnit name="nameSU"/>
+            <aspServiceUnit name="msgSU"/>
+          </aspServiceUnits>
+        </cpmConfig>
+      </cpmConfigs>
+      <nodeInstances>
+        <nodeInstance name="ctrlI0" nodeMoId="\Chassis:0\node:0" type="ctrl">
+          <serviceUnitInstances>
+            <serviceUnitInstance name="cloudMgrSUI0" rank="0" type="cloudMgrSU">
+              <componentInstances>
+                <componentInstance name="cloudMgrI0" type="cloudMgr"/>
+              </componentInstances>
+            </serviceUnitInstance>
+          </serviceUnitInstances>
+          <dependencies node=""/>
+        </nodeInstance>
+        <nodeInstance name="ctrlI1" nodeMoId="\Chassis:0\node:1" type="ctrl">
+          <serviceUnitInstances>
+            <serviceUnitInstance name="cloudMgrSUI1" rank="0" type="cloudMgrSU">
+              <componentInstances>
+                <componentInstance name="cloudMgrI1" type="cloudMgr"/>
+              </componentInstances>
+            </serviceUnitInstance>
+          </serviceUnitInstances>
+          <dependencies node=""/>
+        </nodeInstance>
+      </nodeInstances>
+      <serviceGroups>
+        <serviceGroup name="cloudMgrSGI0" type="cloudMgrSG">
+          <serviceInstances>
+            <serviceInstance name="cloudMgrSII0" type="cloudMgrSI">
+              <componentServiceInstances>
+                <componentServiceInstance name="cloudMgrCSII0" type="cloudMgrCSI">
+                  <dependencies componentServiceInstance=""/>
+                </componentServiceInstance>
+              </componentServiceInstances>
+              <dependencies serviceInstance=""/>
+              <prefferedServiceUnits prefferedServiceUnit=""/>
+            </serviceInstance>
+          </serviceInstances>
+          <associatedServiceUnits>
+            <associatedServiceUnit>cloudMgrSUI0</associatedServiceUnit>
+            <associatedServiceUnit>cloudMgrSUI1</associatedServiceUnit>
+          </associatedServiceUnits>
+        </serviceGroup>
+      </serviceGroups>
+    </amfConfig>
+  </version>
+</openClovisAsp>

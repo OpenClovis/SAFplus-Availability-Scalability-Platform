@@ -1,0 +1,33 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<openClovisAsp>
+  <version v0="4.0.0">
+    <multixport:multixport xmlns:multixport="multixport.ecore">
+      <xports>
+        <xport>
+          <type>UDP</type>
+          <plugin>libClUDP.so</plugin>
+        </xport>
+        <xport>
+          <type>TIPC</type>
+          <plugin>libClTIPC.so</plugin>
+        </xport>
+      </xports>
+      <protocol default="UDP">
+        <node name="Node0I0" protocol="UDP"/>
+        <node name="Node0I1" protocol="UDP"/>
+        <node name="Node1I0" protocol="UDP"/>
+        <node name="Node1I1" protocol="UDP"/>
+      </protocol>
+      <!--multicast address="225.1.1.1" port="5678"/ -->
+      <heartbeat>
+          <interval>1000</interval>
+          <intervalLocal>1000</intervalLocal>
+          <retries>5</retries>
+      </heartbeat>
+      <peerAddresses port="6799">
+         <peer addr="192.168.6.101"/>
+         <!--peer addr="192.168.6.102"/-->
+      </peerAddresses>
+    </multixport:multixport>
+  </version>
+</openClovisAsp>
