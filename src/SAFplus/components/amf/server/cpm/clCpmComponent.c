@@ -88,7 +88,7 @@
 
 extern int gCompHealthCheckFailSendSignal;
 extern ClBoolT gCpmShuttingDown;
-
+extern void turnOffStdout();
 /*
  * Versions supported
  */
@@ -1632,6 +1632,12 @@ ClRcT VDECL(cpmComponentRegister)(ClEoDataT data,
 
             }
         }
+
+        if (comp->eoPort == CL_IOC_LOG_PORT)
+        {
+            turnOffStdout(0);
+        }
+         
         rc = cpmCompRespondToCaller(comp, CL_CPM_INSTANTIATE, CL_OK);
         CL_CPM_CHECK(CL_DEBUG_ERROR, ("Unable to respond to caller %x\n", rc),
                      rc);

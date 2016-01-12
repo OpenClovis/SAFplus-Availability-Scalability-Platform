@@ -36,6 +36,8 @@
 #include <LogPortMasterClient.h>
 #include <clLogApiExt.h>
 
+extern void clLogDbgShmFinalize();
+
 /* Supported Client Version */
 static ClVersionT gLogClntVersionsSupported[] = {CL_LOG_CLIENT_VERSION};
 
@@ -1154,6 +1156,8 @@ clLogFinalize(ClLogHandleT  hLog)
     {
         return rc;
     }
+	
+    clLogDbgShmFinalize();
 
     CL_LOG_DEBUG_TRACE(("Exit"));
     return rc;
