@@ -922,6 +922,10 @@ class Panel(scrolled.ScrolledPanel):
       self.toolBar.ClearTools()
       self.idLookup.clear()
 
+    def enableTools(self, enable):
+      for toolId in self.idLookup:
+        self.toolBar.EnableTool(toolId, enable)
+
     def OnToolEvent(self,event):      
       handled = False
       if self.tool:

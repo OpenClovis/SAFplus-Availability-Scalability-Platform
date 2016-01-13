@@ -67,7 +67,7 @@ class SAFplusFrame(wx.Frame):
         self.Bind(wx.EVT_TREE_ITEM_ACTIVATED, self.onPrjTreeActivated, self.project.tree) # handle an event when user double-clicks on a project at the tree on the left to switch views to it or to set it active
         self.tab = wx.aui.AuiNotebook(self.prjSplitter)
         self.help = wx.TextCtrl(self.tab, -1, "test", style=wx.TE_MULTILINE)
-        self.tab.AddPage(self.help, "Welcome")
+        self.tab.AddPage(self.help, "Welcome")        
         self.prjSplitter.SplitVertically(self.project,self.tab,200)
         # And also use a sizer to manage the size of the panel such
         # that it fills the frame
@@ -93,11 +93,12 @@ class SAFplusFrame(wx.Frame):
       # Now load the new one:
       # prj = self.project.active()
       prj = self.project.latest()      
-      self.showProject(prj)      
+      self.showProject(prj)
 
     def showProject(self, prj):
       if not prj: return
       self.currentActivePrj = prj
+      self.tab.Unbind(wx.aui.EVT_AUINOTEBOOK_PAGE_CHANGED) # need to unbind to not catch page delete event b/c we only want to catch page selection event
       if not self.model:
         self.cleanupTabs()
         self.model = t = namedtuple('model','model uml instance modelDetails instanceDetails')
@@ -131,6 +132,8 @@ class SAFplusFrame(wx.Frame):
         t.instanceDetails.setModelData(t.model)
         t.instanceDetails.refresh()
         t.modelDetails.refresh()
+      self.tab.Bind(wx.aui.EVT_AUINOTEBOOK_PAGE_CHANGED, self.onPageChanged) # bind to catch page selection event
+      self.tab.SetSelection(0) # open uml model view by default
 
     def OnProjectNew(self,evt):
       """Called when a new project is created"""
@@ -185,6 +188,27 @@ class SAFplusFrame(wx.Frame):
           return
         else:
           self.showProject(prj)
+
+    def onPageChanged(self, evt):
+      page = self.tab.GetPageText(evt.GetSelection())
+      print 'onPageChangedEvent: page [%s] is selected' % page
+      self.enableTools(page)
+
+    def enableTools(self, page):
+      t = self.model
+      if not t: return      
+      if page == self.currentActivePrj.name + " Modelling":
+        # uml modelling is selected, now enable tools belonging to it and disable the others not belonging to it
+        t.uml.enableTools(True)
+        t.instance.enableTools(False)
+      elif page == self.currentActivePrj.name + " Instantiation":
+        # instantiation is selected, now enable tools belonging to it and disable the others not belonging to it
+        t.uml.enableTools(False)
+        t.instance.enableTools(True)
+      else:
+        # disable all tools because in these pages, we do not model
+        t.uml.enableTools(False)
+        t.instance.enableTools(False)
 
 class SAFplusApp(wx.App):
     """ WX Application wrapper for SAFplus IDE"""
