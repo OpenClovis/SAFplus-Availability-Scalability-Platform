@@ -133,7 +133,7 @@ class SAFplusFrame(wx.Frame):
         t.instanceDetails.refresh()
         t.modelDetails.refresh()
       self.tab.Bind(wx.aui.EVT_AUINOTEBOOK_PAGE_CHANGED, self.onPageChanged) # bind to catch page selection event
-      self.tab.SetSelection(0) # open uml model view by default
+      self.tab.SetSelection(0, True) # open uml model view by default
 
     def OnProjectNew(self,evt):
       """Called when a new project is created"""
@@ -200,15 +200,21 @@ class SAFplusFrame(wx.Frame):
       if page == self.currentActivePrj.name + " Modelling":
         # uml modelling is selected, now enable tools belonging to it and disable the others not belonging to it
         t.uml.enableTools(True)
+        t.uml.enableMenuItems(True) # set menu items state also
         t.instance.enableTools(False)
+        t.instance.enableMenuItems(False) # set menu items state also
       elif page == self.currentActivePrj.name + " Instantiation":
         # instantiation is selected, now enable tools belonging to it and disable the others not belonging to it
         t.uml.enableTools(False)
+        t.uml.enableMenuItems(False)
         t.instance.enableTools(True)
+        t.instance.enableMenuItems(True)
       else:
         # disable all tools because in these pages, we do not model
         t.uml.enableTools(False)
+        t.uml.enableMenuItems(False)
         t.instance.enableTools(False)
+        t.instance.enableMenuItems(False)
 
 class SAFplusApp(wx.App):
     """ WX Application wrapper for SAFplus IDE"""

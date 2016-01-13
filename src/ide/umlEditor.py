@@ -869,21 +869,6 @@ class Panel(scrolled.ScrolledPanel):
      self.toolBar.Bind(wx.EVT_TOOL, self.OnToolClick)
      self.toolBar.Bind(wx.EVT_TOOL_RCLICKED, self.OnToolRClick)
 
-    def deleteEntityTools(self):
-      """Iterate through all the entity types, adding them as tools"""  
-      print 'deleteEntityTools'
-      menu = self.guiPlaces.menu.get("Modelling",None)    
-      for btnId in self.entityToolIds:        
-        self.toolBar.DeleteTool(btnId)        
-        if menu:
-          menuItem = menu.FindItemById(btnId)
-          if menuItem:
-            menu.Delete(btnId)
-        del self.idLookup[btnId]      
-      #self.toolBar.Unbind(wx.EVT_TOOL)
-      self.toolBar.DeletePendingEvents()
-      self.resetDataMembers()
-
     def addCommonTools(self):
       tsize = self.toolBar.GetToolBitmapSize()
 
@@ -920,7 +905,22 @@ class Panel(scrolled.ScrolledPanel):
       self.toolBar.DeletePendingEvents()
       #self.toolBar.Unbind(wx.EVT_TOOL)
       self.toolBar.ClearTools()
+      self.deleteMenuItems()
+      if share.instancePanel:
+        share.instancePanel.deleteMenuItems()
       self.idLookup.clear()
+
+    def deleteMenuItems(self):
+      menu = self.guiPlaces.menu.get("Modelling",None)
+      menuItems = menu.GetMenuItems()
+      for item in menuItems:
+        menu.Delete(item.Id)
+
+    def enableMenuItems(self, enable):
+      menu = self.guiPlaces.menu.get("Modelling",None)
+      menuItems = menu.GetMenuItems()
+      for item in menuItems:
+        menu.Enable(item.Id, enable)
 
     def enableTools(self, enable):
       for toolId in self.idLookup:
