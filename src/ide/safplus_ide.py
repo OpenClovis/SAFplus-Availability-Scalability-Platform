@@ -25,6 +25,7 @@ class SAFplusFrame(wx.Frame):
     def __init__(self, parent, title):
         wx.Frame.__init__(self, parent, -1, title, pos=(150, 150), size=(800, 600))
         self.model = None
+        self.currentActivePrj = None # indicating that this the current project which is active
        # Create the menubar
         self.menuBar = wx.MenuBar()
         # and a menu 
@@ -63,6 +64,7 @@ class SAFplusFrame(wx.Frame):
         panel = self.panel = None # panelFactory(self,menuBar,tb,sb) # wx.Panel(self)
         self.prjSplitter = wx.SplitterWindow(self, style=wx.SP_3D)
         self.project = ProjectTreePanel(self.prjSplitter,self.guiPlaces)
+        self.Bind(wx.EVT_TREE_ITEM_ACTIVATED, self.onPrjTreeActivated, self.project.tree) # handle an event when user double-clicks on a project at the tree on the left to switch views to it or to set it active
         self.tab = wx.aui.AuiNotebook(self.prjSplitter)
         self.help = wx.TextCtrl(self.tab, -1, "test", style=wx.TE_MULTILINE)
         self.tab.AddPage(self.help, "Welcome")
@@ -90,22 +92,12 @@ class SAFplusFrame(wx.Frame):
 
       # Now load the new one:
       # prj = self.project.active()
-      prj = self.project.latest()
+      prj = self.project.latest()      
+      self.showProject(prj)      
+
+    def showProject(self, prj):
       if not prj: return
-      #self.model[prj.name] = t = namedtuple('model','model uml instance details')      
-      # only 1 model file allowed for now
-      #t.model = model.Model()
-      #prj.setSAFplusModel(t.model)
-      #modelFile = os.path.join(prj.directory(), prj.model.children()[0].strip())
-      #t.model.load(modelFile)
-      #t.uml = umlEditor.Panel(self.tab,self.guiPlaces, t.model)
-      #self.tab.AddPage(t.uml, prj.name + " Modelling")
-      #t.details = entityDetailsDialog.Panel(self.tab,self.guiPlaces, t.model,isDetailInstance=False)
-      #self.tab.AddPage(t.details, prj.name + " Model Details")
-      #t.instance = instanceEditor.Panel(self.tab,self.guiPlaces, t.model)
-      #self.tab.AddPage(t.instance, prj.name + " Instantiation")
-      #t.details = entityDetailsDialog.Panel(self.tab,self.guiPlaces, t.model,isDetailInstance=True)
-      #self.tab.AddPage(t.details, prj.name + " Instance Details")
+      self.currentActivePrj = prj
       if not self.model:
         self.cleanupTabs()
         self.model = t = namedtuple('model','model uml instance modelDetails instanceDetails')
@@ -129,13 +121,11 @@ class SAFplusFrame(wx.Frame):
         t.model.init()
         t.model.load(modelFile)
         t.uml.setModelData(t.model)
-        #t.instance.deleteTools()
         t.uml.deleteTools()
         t.uml.addTools()
         self.setPagesText(prj)
         t.uml.refresh()
         t.instance.setModelData(t.model)
-        #t.instance.deleteTools()
         t.instance.addTools()
         t.instance.refresh()
         t.instanceDetails.setModelData(t.model)
@@ -181,6 +171,20 @@ class SAFplusFrame(wx.Frame):
       self.tab.SetPageText(2, prj.name + " Instantiation")
       self.tab.SetPageText(3, prj.name + " Instance Details")
 
+    def onPrjTreeActivated(self, evt):
+      """ handle an event when user double-clicks on a project at the tree on the left to switch views to it or to set it active """
+      pt = evt.GetPoint()
+      item, _ = self.project.tree.HitTest(pt)
+      if item:        
+        print "onPrjTreeActivated [%s]" % self.project.tree.GetItemText(item)
+        prjname = os.path.splitext(self.project.tree.GetItemText(item))[0]
+        print 'project [%s] is activated' % prjname
+        prj = self.project.active()
+        print 'project [%s] is selected' % prj.name
+        if prj == self.currentActivePrj:
+          return
+        else:
+          self.showProject(prj)
 
 class SAFplusApp(wx.App):
     """ WX Application wrapper for SAFplus IDE"""
