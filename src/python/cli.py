@@ -1,10 +1,20 @@
 #!/usr/bin/env python
 import sys, os, os.path, time
+import argparse
 
 AVAILABLE_SERVICES = {'localaccess':None, 'netconfaccess':None}
 
+basedir = os.path.split(os.path.realpath(__file__))[0]
+sys.path.append(os.path.abspath(os.path.join(basedir, '..', 'lib')))
+sys.path.append(os.path.abspath(os.path.join(basedir, '..', 'lib', '3rdparty')))
+
+access = None
+CliName = ''
+
 try:
   import localaccess
+  access = localaccess
+  CliName = "SAFplus Local CLI"
   AVAILABLE_SERVICES['localaccess'] = 1
 except ImportError, e:
   print e
@@ -12,25 +22,14 @@ except ImportError, e:
 
 try:
   import netconfaccess
+  access = netconfaccess
+  CliName = "SAFplus CLI"
   AVAILABLE_SERVICES['netconfaccess'] = 1
 except ImportError, e:
   print e
   pass
 
 assert (AVAILABLE_SERVICES['localaccess'] == 1 or AVAILABLE_SERVICES['netconfaccess'] == 1)
-
-MODE = int(os.getenv("LOCAL_ACCESS", 1))
-
-if MODE == 1 and AVAILABLE_SERVICES['localaccess'] is not None:
-  CliName = "SAFplus Local CLI"
-  access = localaccess
-elif AVAILABLE_SERVICES['netconfaccess'] is not None:
-  access = netconfaccess
-  CliName = "SAFplus CLI"
-elif AVAILABLE_SERVICES['localaccess'] is not None:
-  # Fallback to default if available
-  CliName = "SAFplus Local CLI"
-  access = localaccess
 
 SuNameColor = (50,160,80)
 SuNameSize = 32
@@ -679,6 +678,16 @@ By default the specified location and children are shown.  Use -N to specify how
 
 
 def main(args):
+  global access, CliName
+
+  parser = argparse.ArgumentParser()
+  parser.add_argument("-l", "--local", action="store_true", help=('Overwrite local access mode'))
+  args = parser.parse_args()
+
+  if args.local and AVAILABLE_SERVICES['localaccess'] is not None:
+    access = localaccess
+    CliName = "SAFplus Local CLI"
+
   cmds,handlers = access.Initialize()
 
   if windowed:
