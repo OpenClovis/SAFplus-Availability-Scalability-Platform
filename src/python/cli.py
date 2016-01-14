@@ -571,31 +571,6 @@ By default the specified location and children are shown.  Use -N to specify how
         rt = self.history.show(sp[0])
     return rt
   
-  def do_loadmodule(self, moduleName):
-    cmds.do_load(moduleName)
-  
-  def do_rpcCommands(self, *sp):
-    if (AVAILABLE_SERVICES['netconfaccess'] != 1):
-      #RPC commands are only supported via netconf server
-      pass
-    else:
-      access.rpcCommands(*sp)
-    return ""
-  
-  def do_notification(self, *sp):
-    """ Notification setting """
-    if sp == None:
-      print "Missing inputed paramaters !"
-      return
-    
-    if (AVAILABLE_SERVICES['netconfaccess'] != 1):
-      #RPC commands are only supported via netconf server
-      pass
-    else:
-      access.notificationSetting(*sp)
-    return "" 
-        
-  
   def do_time(self,*sp):
     """Show the time"""
     return "<time/>"
