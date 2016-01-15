@@ -133,7 +133,7 @@ class SAFplusFrame(wx.Frame):
         t.instanceDetails.refresh()
         t.modelDetails.refresh()
       self.tab.Bind(wx.aui.EVT_AUINOTEBOOK_PAGE_CHANGED, self.onPageChanged) # bind to catch page selection event
-      self.tab.SetSelection(0, True) # open uml model view by default
+      self.tab.SetSelection(0) # open uml model view by default
 
     def OnProjectNew(self,evt):
       """Called when a new project is created"""
@@ -175,19 +175,21 @@ class SAFplusFrame(wx.Frame):
       self.tab.SetPageText(3, prj.name + " Instance Details")
 
     def onPrjTreeActivated(self, evt):
-      """ handle an event when user double-clicks on a project at the tree on the left to switch views to it or to set it active """
+      """ handle an event when user double-clicks on an item at the tree on the left to switch views to it or to set it active """
       pt = evt.GetPoint()
       item, _ = self.project.tree.HitTest(pt)
-      if item:        
+      if item:       
         print "onPrjTreeActivated [%s]" % self.project.tree.GetItemText(item)
-        prjname = os.path.splitext(self.project.tree.GetItemText(item))[0]
-        print 'project [%s] is activated' % prjname
-        prj = self.project.active()
-        print 'project [%s] is selected' % prj.name
-        if prj == self.currentActivePrj:
-          return
-        else:
-          self.showProject(prj)
+        if self.project.tree.GetItemParent(item) == self.project.root: # check to see if this is the project name
+          prjname = os.path.splitext(self.project.tree.GetItemText(item))[0]
+          print 'project [%s] is activated' % prjname
+          prj = self.project.active()
+          print 'project [%s] is selected' % prj.name
+          if prj == self.currentActivePrj:
+            return
+          else:
+            self.showProject(prj)
+        else: pass #TODO : handling other tree item clicked e.g. c++ source or others
 
     def onPageChanged(self, evt):
       page = self.tab.GetPageText(evt.GetSelection())
