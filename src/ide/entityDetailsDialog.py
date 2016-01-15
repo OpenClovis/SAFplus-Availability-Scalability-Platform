@@ -792,6 +792,8 @@ class Panel(scrolled.ScrolledPanel):
    
     def refresh(self):      
       self.treeItemSelected = None
+      self.lookup.clear()
+      self.lookup={}
       self._createTreeEntities()
 
 def Test():
