@@ -5235,7 +5235,7 @@ ClRcT cpmCompNodeHealthcheckStop(ClNameT *pCompName, ClNameT *pNodeName)
     rc = cpmCompHealthcheckStop(pCompName, CL_TRUE);
 
     // Checking to send the request to remote node
-    if (CL_GET_ERROR_CODE(rc) == CL_ERR_NOT_EXIST && pNodeName != NULL)
+    if ((CL_GET_ERROR_CODE(rc) == CL_ERR_DOESNT_EXIST || CL_GET_ERROR_CODE(rc) == CL_ERR_NOT_EXIST) && pNodeName != NULL)
       {
         ClCpmCompHealthcheckT cpmCompHealthcheck = { { 0 } };
         ClIocAddressT nodeAddress = { { 0 } };
