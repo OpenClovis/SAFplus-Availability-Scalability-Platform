@@ -109,7 +109,7 @@ class SAFplusFrame(wx.Frame):
         t.uml = umlEditor.Panel(self.tab,self.guiPlaces, t.model)
         self.tab.AddPage(t.uml, prj.name + " Modelling")
         t.modelDetails = entityDetailsDialog.Panel(self.tab,self.guiPlaces, t.model,isDetailInstance=False)
-        self.tab.AddPage(t.modelDetails, prj.name + " Model Details")
+        self.tab.AddPage(t.modelDetails, prj.name + " Model Details", select=True)
         t.instance = instanceEditor.Panel(self.tab,self.guiPlaces, t.model)
         self.tab.AddPage(t.instance, prj.name + " Instantiation")
         t.instanceDetails = entityDetailsDialog.Panel(self.tab,self.guiPlaces, t.model,isDetailInstance=True)
@@ -134,7 +134,7 @@ class SAFplusFrame(wx.Frame):
         t.modelDetails.refresh()
       self.tab.Bind(wx.aui.EVT_AUINOTEBOOK_PAGE_CHANGED, self.onPageChanged) # bind to catch page selection event
       self.tab.SetSelection(0) # open uml model view by default
-
+      
     def OnProjectNew(self,evt):
       """Called when a new project is created"""
       print "New project created"
