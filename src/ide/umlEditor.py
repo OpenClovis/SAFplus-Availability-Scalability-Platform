@@ -757,7 +757,7 @@ class Panel(scrolled.ScrolledPanel):
       self.SetScrollRate(10, 10)
       self.Bind(wx.EVT_SIZE, self.OnReSize)
       self.Bind(wx.EVT_PAINT, self.OnPaint)
-      self.Bind(wx.EVT_SHOW, self.OnShow)
+      #self.Bind(wx.EVT_SHOW, self.OnShow)
 
       share.umlEditorPanel = self
 
@@ -866,7 +866,8 @@ class Panel(scrolled.ScrolledPanel):
      self.addEntityTools()
      #self.toolBar.Bind(wx.EVT_TOOL, self.OnToolClick, id=ENTITY_TYPE_BUTTON_START, id2=wx.NewId())
      #self.toolBar.Bind(wx.EVT_TOOL_RCLICKED, self.OnToolRClick)
-     self.toolBar.Bind(wx.EVT_TOOL, self.OnToolClick)
+     for toolId in self.idLookup:
+       self.toolBar.Bind(wx.EVT_TOOL, self.OnToolClick, id=toolId)
      self.toolBar.Bind(wx.EVT_TOOL_RCLICKED, self.OnToolRClick)
 
     def addCommonTools(self):
@@ -910,6 +911,12 @@ class Panel(scrolled.ScrolledPanel):
         share.instancePanel.deleteMenuItems()
       self.idLookup.clear()
 
+    def deleteMyTools(self):
+      for toolId in self.idLookup:
+        self.toolBar.DeleteTool(toolId)
+      self.deleteMenuItems()
+      self.idLookup.clear()
+
     def deleteMenuItems(self):
       menu = self.guiPlaces.menu.get("Modelling",None)
       menuItems = menu.GetMenuItems()
@@ -922,7 +929,7 @@ class Panel(scrolled.ScrolledPanel):
       for item in menuItems:
         menu.Enable(item.Id, enable)
 
-    def enableTools(self, enable):
+    def enableTools(self, enable):      
       for toolId in self.idLookup:
         self.toolBar.EnableTool(toolId, enable)
 

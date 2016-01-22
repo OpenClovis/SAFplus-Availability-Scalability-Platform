@@ -867,11 +867,17 @@ class Panel(scrolled.ScrolledPanel):
       self.toolBar.AddRadioTool(DELETE_BUTTON, bitmap, wx.NullBitmap, shortHelp="Delete entity/entities", longHelp="Select one or many entities. Click entity to delete.")
       self.idLookup[DELETE_BUTTON] = DeleteTool(self)    
 
-    def deleteTools(self):
-      for btnId in self.idLookup:
-        self.toolBar.DeleteTool(btnId)        
-      #self.toolBar.Unbind(wx.EVT_TOOL)  
-      self.toolBar.DeletePendingEvents()        
+    
+    def deleteTools(self):   
+      self.toolBar.DeletePendingEvents()
+      self.toolBar.ClearTools()
+      self.deleteMenuItems()      
+      self.idLookup.clear()
+
+    def deleteMyTools(self):
+      for toolId in self.idLookup:
+        self.toolBar.DeleteTool(toolId)
+      self.deleteMenuItems()
       self.idLookup.clear()
 
     def addTools(self, init=False):
@@ -883,7 +889,8 @@ class Panel(scrolled.ScrolledPanel):
       self.addEntityTools()
       #self.toolBar.Bind(wx.EVT_TOOL, self.OnToolClick, id=ENTITY_TYPE_BUTTON_START, id2=wx.NewId())
       #self.toolBar.Bind(wx.EVT_TOOL_RCLICKED, self.OnToolRClick)      
-      self.toolBar.Bind(wx.EVT_TOOL, self.OnToolClick)
+      for toolId in self.idLookup:
+        self.toolBar.Bind(wx.EVT_TOOL, self.OnToolClick, id=toolId)
       self.toolBar.Bind(wx.EVT_TOOL_RCLICKED, self.OnToolRClick)
 
     def resetDataMembers(self):
