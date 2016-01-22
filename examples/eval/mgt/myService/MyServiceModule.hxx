@@ -10,6 +10,7 @@
 
 #include "ServiceCfg.hxx"
 #include "ServiceStats.hxx"
+#include "reset.hxx"
 #include "MgtFactory.hxx"
 #include "clMgtModule.hxx"
 #include "myServiceCommon.hxx"
@@ -27,6 +28,7 @@ namespace myService
     public:
         ::myService::ServiceCfg serviceCfg;
         ::myService::ServiceStats serviceStats;
+        ::myService::reset reset;
 
         /*
          * This list defines who can use this service

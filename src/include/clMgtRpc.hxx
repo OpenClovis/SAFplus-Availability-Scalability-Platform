@@ -52,6 +52,10 @@ namespace SAFplus
     {
 
     }
+    virtual void toString(std::stringstream& xmlString,int depth=SAFplusI::MgtToStringRecursionDepth, MgtObject::SerializationOptions opts=SerializeNoOptions)
+    {
+
+    }
     /**
      * Function to add input parameter
      */
@@ -86,6 +90,11 @@ namespace SAFplus
     virtual ClBoolT set(const void *pBuffer, ClUint64T buffLen, SAFplus::Transaction& t)
     {
       return CL_TRUE;
+    }
+
+    virtual ClRcT doRpc(const std::string &attrs = "")
+    {
+      return CL_OK;
     }
   };
 };

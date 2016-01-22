@@ -385,6 +385,12 @@ namespace SAFplus
   {
     return CL_ERR_BAD_OPERATION;
   }
+
+  ClRcT MgtObject::doRpc(const std::string &attr)
+  {
+    return CL_ERR_BAD_OPERATION;
+  }
+
   MgtObject* MgtObject::lookUpMgtObject(const std::string & classType, const std::string &ref)
   {
     std::string type = "P";

@@ -283,17 +283,27 @@ namespace SAFplus
   ClRcT MgtRoot::registerRpc(SAFplus::Handle handle,const std::string module,const std::string rpcName)
   {
     ClRcT rc = CL_OK;
-#if 0 //TODO: stored this handle into checkpoint
+#if 1
+    //stored this handle into checkpoint
+    char fullpath[CL_MAX_NAME_LENGTH];
+    sprintf(fullpath, "/%s/%s", module.c_str(), rpcName.c_str());
+    // for data
+    char handleData[sizeof(Buffer) - 1 + sizeof(Handle)];
+    Buffer* val = new (handleData) Buffer(sizeof(Handle));
+    *((Handle*) val->data) = handle;
+
+    // Add to checkpoint
+    mgtCheckpoint->write(fullpath, *val);
+
     Mgt::Msg::MsgBind bindData;
     MsgMgt mgtMsgReq;
     string strBind;
-
 
     Mgt::Msg::Handle *hdl = bindData.mutable_handle();
     hdl->set_id0(handle.id[0]);
     hdl->set_id1(handle.id[1]);
     bindData.set_module(module.c_str(),CL_MAX_NAME_LENGTH - 1);
-    bindData.set_route(rpcName.c_str(),MGT_MAX_ATTR_STR_LEN - 1);
+    bindData.set_route(rpcName.c_str(),CL_MAX_NAME_LENGTH - 1);
     bindData.SerializeToString(&strBind);
     /* Send bind data to the server */
     mgtMsgReq.set_type(Mgt::Msg::MsgMgt::CL_MGT_MSG_BIND);
@@ -639,6 +649,131 @@ namespace SAFplus
     MgtRoot::sendReplyMsg(srcAddr, (void *) &rc, sizeof(ClRcT));
   }
 
+  void MgtRoot::clRpcMsgValidateHandler(SAFplus::Handle srcAddr, Mgt::Msg::MsgRpc& reqMsg)
+  {
+#if 0
+    ClRcT rc = CL_OK;
+    std::vector<MgtObject*> matches;
+    std::string path = reqMsg.bind();
+    std::string attrs = reqMsg.data();
+    std::string cmds;
+
+    if (path[0] == '{')  // Debugging requests
+    {
+      int end = path.find_first_of("}");
+      cmds = path.substr(1,end-1);
+      vector<string> strs;
+      boost::split(strs,cmds,boost::is_any_of(","));
+      for (auto cmd: strs)
+        {
+          if (cmd[0] == 'b')
+            {
+              std::raise(SIGINT);
+            }
+          else if (cmd[0] == 'p')
+            {
+              clDbgPause();
+            }
+        }
+      cmds.append(" ");  // Right now I just assume everything in there is a custom logging string
+      path = path.substr(end+1);
+    }
+
+    if (path[0] == '/')
+      {
+        resolvePath(path.c_str() + 1, &matches);
+        std::string value = reqMsg.data(0);
+        if (matches.size())
+          {
+            for (std::vector<MgtObject*>::iterator i = matches.begin(); i != matches.end(); i++)
+              {
+                MgtRpc *rpc = dynamic_cast<MgtRpc*> (*i);
+                if (rpc)
+                  {
+                    rc = rpc->validate();
+                    logDebug("MGT","RPC","Object [%s] do validate msg",path.c_str());
+                    MgtRoot::sendReplyMsg(srcAddr, (void *) &rc, sizeof(ClRcT));
+
+                    return;
+                  }
+                else
+                  {
+                    rc = CL_ERR_NOT_EXIST;
+                  }
+              }
+          }
+        else
+          {
+            rc = CL_ERR_NOT_EXIST;
+          }
+      }
+    logDebug("MGT","SET","Object [%s] update complete [0x%x]", path.c_str(),rc);
+    MgtRoot::sendReplyMsg(srcAddr,(void *)&rc,sizeof(ClRcT));
+#endif
+  }
+
+  void MgtRoot::clRpcMsgInvokeHandler(SAFplus::Handle srcAddr, Mgt::Msg::MsgRpc& reqMsg)
+  {
+    //TODO
+  }
+
+  void MgtRoot::clRpcMsgPostReplyHandler(SAFplus::Handle srcAddr, Mgt::Msg::MsgRpc& reqMsg)
+  {
+    //TODO
+  }
+
+  void MgtRoot::clMgtMsgRpcHandler(SAFplus::Handle srcAddr, Mgt::Msg::MsgMgt& reqMsg)
+    {
+      ClRcT rc = CL_OK;
+      std::vector<MgtObject*> matches;
+      std::string path = reqMsg.bind();
+      std::string attrs = reqMsg.data().Get(0);
+      std::string cmds;
+
+      if (path[0] == '{')  // Debugging requests
+      {
+        int end = path.find_first_of("}");
+        cmds = path.substr(1,end-1);
+        vector<string> strs;
+        boost::split(strs,cmds,boost::is_any_of(","));
+        for (auto cmd: strs)
+          {
+            if (cmd[0] == 'b')
+              {
+                std::raise(SIGINT);
+              }
+            else if (cmd[0] == 'p')
+              {
+                clDbgPause();
+              }
+          }
+        // TODO: parse the non-xml requests (depth, pause thread, break thread, log custom string)
+        cmds.append(" ");  // Right now I just assume everything in there is a custom logging string
+        path = path.substr(end+1);
+      }
+
+      if (path[0] == '/')
+        {
+          resolvePath(path.c_str() + 1, &matches);
+          std::string value = reqMsg.data(0);
+          if (matches.size())
+            {
+              for (std::vector<MgtObject*>::iterator i = matches.begin(); i != matches.end(); i++)
+                {
+                  rc = (*i)->doRpc(attrs);
+                  logDebug("MGT","RPC","Object [%s] got do rpc",path.c_str());
+                  MgtRoot::sendReplyMsg(srcAddr, (void *) &rc, sizeof(ClRcT));
+                }
+            }
+          else
+            {
+              rc = CL_ERR_NOT_EXIST;
+            }
+        }
+      logDebug("MGT","SET","Object [%s] update complete [0x%x]", path.c_str(),rc);
+      MgtRoot::sendReplyMsg(srcAddr,(void *)&rc,sizeof(ClRcT));
+    }
+
   MgtRoot::MgtMessageHandler::MgtMessageHandler()
   {
 
@@ -672,6 +807,30 @@ namespace SAFplus
         break;
       case Mgt::Msg::MsgMgt::CL_MGT_MSG_DELETE:
         mRoot->clMgtMsgDeleteHandler(from,mgtMsgReq);
+        break;
+      case Mgt::Msg::MsgMgt::CL_MGT_MSG_RPC:
+        mRoot->clMgtMsgRpcHandler(from,mgtMsgReq);
+        break;
+      default:
+        break;
+    }
+  }
+
+  void MgtRoot::RpcMessageHandler::msgHandler(SAFplus::Handle from, SAFplus::MsgServer* svr, ClPtrT msg, ClWordT msglen, ClPtrT cookie)
+  {
+    Mgt::Msg::MsgRpc rpcMsgReq;
+    rpcMsgReq.ParseFromArray(msg, msglen);
+
+    switch(rpcMsgReq.rpctype())
+    {
+      case Mgt::Msg::MsgRpc::CL_MGT_RPC_VALIDATE:
+        mRoot->clRpcMsgValidateHandler(from,rpcMsgReq);
+        break;
+      case Mgt::Msg::MsgRpc::CL_MGT_RPC_INVOKE:
+        mRoot->clRpcMsgInvokeHandler(from,rpcMsgReq);
+        break;
+      case Mgt::Msg::MsgRpc::CL_MGT_RPC_POSTREPLY:
+        mRoot->clRpcMsgPostReplyHandler(from,rpcMsgReq);
         break;
       default:
         break;

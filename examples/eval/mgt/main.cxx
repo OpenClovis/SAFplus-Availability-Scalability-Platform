@@ -183,6 +183,7 @@ int main(int argc, char *argv[])
         mgt.bind(SAFplus::myHandle,&mgt.serviceCfg);
         mgt.bind(SAFplus::myHandle,&mgt.serviceStats);
         mgt.bind(SAFplus::myHandle,&mgt.subscribersList);
+        mgt.bind(SAFplus::myHandle,&mgt.reset);
         /*
          * Start httpd 
          */
@@ -308,6 +309,7 @@ void safAssignWork(SaInvocationT       invocation,
             mgt.bind(SAFplus::myHandle,&mgt.serviceCfg);
             mgt.bind(SAFplus::myHandle,&mgt.serviceStats);
             mgt.bind(SAFplus::myHandle,&mgt.subscribersList);
+            mgt.bind(SAFplus::myHandle,&mgt.reset);
             /*
              * Start httpd 
              */
@@ -590,6 +592,7 @@ void printCSI(SaAmfCSIDescriptorT csiDescriptor, SaAmfHAStateT haState)
 void initializeOperationalValues(myService::MyServiceModule& cfg)
 {
   mgt.serviceCfg.port = 8080;
+  mgt.reset.port = 8080;
   mgt.serviceCfg.homeLocation.value = "/srv/http";
 }
 

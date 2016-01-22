@@ -45,5 +45,8 @@ namespace SAFplus
      ClRcT mgtDelete(SAFplus::Handle src, const std::string& pathSpec);
      ClRcT mgtDelete(const std::string& pathSpec);
 
+     ClRcT mgtRpc(SAFplus::Handle src, const std::string& pathSpec, const std::string &attrs = "");
+     ClRcT mgtRpc(const std::string& pathSpec, const std::string &attrs = "");
+
 }
 #endif /* CLMGT_HXX_ */

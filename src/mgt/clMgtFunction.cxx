@@ -401,4 +401,51 @@ namespace SAFplus
       }
     return ret;
   }
+
+  ClRcT mgtRpc(SAFplus::Handle src, const std::string& pathSpec, const std::string &attrs)
+  {
+    ClRcT ret = CL_OK;
+
+    SAFplus::MsgReply *msgReply = mgtRpcRequest(src, Mgt::Msg::MsgMgt::CL_MGT_MSG_RPC, pathSpec, attrs);
+
+    if (msgReply == NULL)
+      {
+        ret = CL_ERR_IGNORE_REQUEST;
+      }
+    else
+      {
+        memcpy(&ret, msgReply->buffer, sizeof(ClRcT));
+      }
+    return ret;
+  }
+
+  ClRcT mgtRpc(const std::string& pathSpec, const std::string &attrs)
+  {
+    ClRcT ret = CL_OK;
+    std::vector<MgtObject*> matches;
+    std::size_t idx = pathSpec.find_last_of("/");
+
+    if (idx == std::string::npos)
+      {
+        // Invalid xpath
+        return CL_ERR_INVALID_PARAMETER;
+      }
+
+    std::string path = pathSpec.substr(0, idx);
+    std::string value = pathSpec.substr(idx + 1);
+
+    Handle hdl = getMgtHandle(pathSpec, ret);
+    if (ret == CL_OK && INVALID_HDL != hdl)
+    {
+      ret = mgtRpc(hdl, pathSpec, attrs);
+    }
+    else
+      {
+        ret = CL_OK;
+        logError("MGT", "REV", "Route [%s] has no implementer", pathSpec.c_str());
+        // TODO: throw exception
+      }
+//      }
+    return ret;
+  }
 }
