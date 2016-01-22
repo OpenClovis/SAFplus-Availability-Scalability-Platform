@@ -1109,10 +1109,7 @@ static ClRcT clCpmFinalize(void)
             sleep(cpmValgrindTimeout);
         }
 
-#if 0
-        // Let's keep all components terminating graceful
         cpmKillAllComponents();
-#endif
 
         /*
          * Delete the component info.
@@ -1133,11 +1130,6 @@ static ClRcT clCpmFinalize(void)
     }
 
     clTimeServerFinalize();
-
-    /*
-     * Shut down the node ... Shouldn't return
-     */
-    exit(0);
 
     return rc;
 
