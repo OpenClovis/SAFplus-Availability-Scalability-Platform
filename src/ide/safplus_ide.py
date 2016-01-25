@@ -83,6 +83,21 @@ class SAFplusFrame(wx.Frame):
         #if not w: break
       while self.tab.DeletePage(0): pass
 
+    def cleanupTools(self):
+      self.tb.DeletePendingEvents()      
+      self.tb.ClearTools()
+
+    def cleanupMenus(self):
+      menuItems = self.menuModelling.GetMenuItems()
+      for item in menuItems:
+        self.menuModelling.Delete(item.Id)
+      menuItems = self.menuInstantiation.GetMenuItems()
+      for item in menuItems:
+        self.menuInstantiation.Delete(item.Id)
+      menuItems = self.menuWindows.GetMenuItems()
+      for item in menuItems:
+        self.menuWindows.Delete(item.Id)
+
     def OnProjectLoaded(self,evt):
       """Called when a project is loaded in the project tree"""
       print "New project loaded"
@@ -117,22 +132,40 @@ class SAFplusFrame(wx.Frame):
         self.tab.AddPage(t.instanceDetails, self.getCurrentPageText(3))
       else:
         print 'OnProjectLoaded: model is not None'
+        self.cleanupTools()
+        self.cleanupMenus()
         t = self.model
         prj.setSAFplusModel(t.model)
         modelFile = os.path.join(prj.directory(), prj.model.children()[0].strip())
         t.model.init()
         t.model.load(modelFile)
-        t.uml.setModelData(t.model)
-        t.uml.deleteTools()
-        t.uml.addTools()
+        if t.uml:
+          t.uml.setModelData(t.model)
+          t.uml.deleteTools()
+          t.uml.addTools()        
+          t.uml.refresh()
+        else:
+          t.uml = umlEditor.Panel(self.tab,self.guiPlaces, t.model)
+          self.tab.InsertPage(0, t.uml, self.getCurrentPageText(0), select=True)        
+        if t.instance:
+          t.instance.setModelData(t.model)
+          t.instance.addTools()
+          t.instance.refresh()
+        else:
+          t.instance = instanceEditor.Panel(self.tab,self.guiPlaces, t.model)
+          self.tab.InsertPage(2, t.instance, self.getCurrentPageText(2))
+        if t.instanceDetails:
+          t.instanceDetails.setModelData(t.model)
+          t.instanceDetails.refresh()
+        else:
+          t.instanceDetails = entityDetailsDialog.Panel(self.tab,self.guiPlaces, t.model,isDetailInstance=True)
+          self.tab.InsertPage(3, t.instanceDetails, self.getCurrentPageText(3))
+        if t.modelDetails:
+          t.modelDetails.refresh()
+        else:
+          t.modelDetails = entityDetailsDialog.Panel(self.tab,self.guiPlaces, t.model,isDetailInstance=False)
+          self.tab.InsertPage(1, t.modelDetails, self.getCurrentPageText(1))
         self.setPagesText()
-        t.uml.refresh()
-        t.instance.setModelData(t.model)
-        t.instance.addTools()
-        t.instance.refresh()
-        t.instanceDetails.setModelData(t.model)
-        t.instanceDetails.refresh()
-        t.modelDetails.refresh()
       self.tab.Bind(wx.aui.EVT_AUINOTEBOOK_PAGE_CHANGED, self.onPageChanged) # bind to catch page selection event
       self.tab.SetSelection(0) # open uml model view by default
       
@@ -275,13 +308,18 @@ class SAFplusFrame(wx.Frame):
         pageIdx = 0  
       elif pageText == self.getCurrentPageText(1):
         page = t.modelDetails = entityDetailsDialog.Panel(self.tab,self.guiPlaces, t.model,isDetailInstance=False)
-        pageIdx = 1 if self.tab.GetPageCount()>1 else 0          
+        pageIdx = 1 if t.uml else 0               
       elif pageText == self.getCurrentPageText(2):
         page = t.instance = instanceEditor.Panel(self.tab,self.guiPlaces, t.model)
-        pageIdx = 2 if self.tab.GetPageCount()>1 else 0
+        if t.uml and t.modelDetails:
+          pageIdx = 2
+        elif (t.uml and not t.modelDetails) or (not t.uml and t.modelDetails):
+          pageIdx = 1
+        else:
+          pageIdx = 0
       else:
         page = t.instanceDetails = entityDetailsDialog.Panel(self.tab,self.guiPlaces, t.model,isDetailInstance=True)
-        pageIdx = 3 if self.tab.GetPageCount()>1 else 0
+        pageIdx = 3
       print 'insert page id [%d] text [%s]' % (pageIdx, pageText)
       self.tab.InsertPage(pageIdx, page, pageText)
       self.menuWindows.Delete(idx)
