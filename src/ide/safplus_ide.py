@@ -325,6 +325,26 @@ class SAFplusFrame(wx.Frame):
       self.menuWindows.Delete(idx)
       self.tab.SetSelection(pageIdx)
 
+    def deleteWindowsMenuItem(self, text):
+      menuItems = self.menuWindows.GetMenuItems()
+      for item in menuItems:
+        if item.GetItemLabelText() == text:
+          self.menuWindows.Delete(item.Id)
+          break
+
+    def insertPage(self, idx):
+      t = self.model      
+      if not t: return
+      page = None
+      if idx==1: 
+        page = t.modelDetails = entityDetailsDialog.Panel(self.tab,self.guiPlaces, t.model,isDetailInstance=False)        
+      elif idx==3:
+        page = t.instanceDetails = entityDetailsDialog.Panel(self.tab,self.guiPlaces, t.model,isDetailInstance=True)
+      if page:
+        pageText = self.getCurrentPageText(idx)
+        self.tab.InsertPage(idx, page, pageText, select=True)
+        self.deleteWindowsMenuItem(pageText)
+
 class SAFplusApp(wx.App):
     """ WX Application wrapper for SAFplus IDE"""
     def __init__(self, redirect):

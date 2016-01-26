@@ -453,8 +453,12 @@ class SelectTool(Tool):
       ents = sorted(ents, key=lambda ent: self.entOrder.index(ent.et.name))
       # Show first entity
       ent = ents[0]
-
+    parentFrame = share.instancePanel.guiPlaces.frame
     if share.instanceDetailsPanel:
+      share.instanceDetailsPanel.showEntity(ent)
+      parentFrame.tab.SetSelection(3)
+    else:
+      parentFrame.insertPage(3)
       share.instanceDetailsPanel.showEntity(ent)
 
   def deleteEntities(self, ents):

@@ -495,7 +495,7 @@ class SelectTool(Tool):
   def OnEditEvent(self,panel, event):
     pos = panel.CalcUnscrolledPosition(event.GetPositionTuple())
     if isinstance(event,wx.MouseEvent):
-      if event.ButtonDown(wx.MOUSE_BTN_LEFT):  # Select
+      if event.ButtonDown(wx.MOUSE_BTN_LEFT) or event.LeftDClick():  # Select
         entities = panel.findEntitiesAt(pos)
         self.dragPos = pos
         if not entities:
@@ -515,7 +515,8 @@ class SelectTool(Tool):
         if event.ControlDown():
           self.selected = self.selected.union(self.touching)
         else: self.selected = self.touching.copy()
-        self.updateSelected()
+        if event.LeftDClick():
+          self.updateSelected()
         return True
       if event.Dragging():
         # if you are touching anything, then drag everything
@@ -561,12 +562,17 @@ class SelectTool(Tool):
       else:
         return False # Give this key to someone else
 
-    self.updateSelected()
+    #self.updateSelected()
   
   def updateSelected(self):
     if len(self.selected) == 1:
+      parentFrame = share.umlEditorPanel.guiPlaces.frame
       if share.detailsPanel:
         share.detailsPanel.showEntity(next(iter(self.selected)))
+        parentFrame.tab.SetSelection(1)
+      else:
+        parentFrame.insertPage(1)
+        share.detailsPanel.showEntity(next(iter(self.selected)))    
 
 class ZoomTool(Tool):
   def __init__(self, panel):
