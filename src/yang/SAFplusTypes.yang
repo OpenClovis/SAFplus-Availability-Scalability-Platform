@@ -139,7 +139,7 @@ module SAFplusTypes
       {
         type string; // comma separated list of uint64;
       }
-      leaf history1month
+      leaf history4weeks
       {
         type string; // comma separated list of uint64;
       }
@@ -184,7 +184,7 @@ module SAFplusTypes
       {
         type string; // Comma separated list of float
       }
-      leaf history1month
+      leaf history4weeks
       {
         type string; // Comma separated list of float
       }
