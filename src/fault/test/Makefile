@@ -27,16 +27,24 @@ SAFPLUS_LINK_LIBS := -L$(LIB_DIR) $(addprefix -l,$(SAFPLUS_LIBS))
 LINK_STD_LIBS := -L$(SAFPLUS_TARGET)/lib -L$(MGT_SRC_DIR)/3rdparty/build/lib -lxml2 -lezxml $(LINK_STD_LIBS)
 # -lstdc++ -lm
 
+FAULT_OBJ := FaultSharedMem faultServer FaultHistoryEntity FaultStatistic
+FAULT_LIB := $(addsuffix .o, $(addprefix $(MWOBJ_DIR)/, $(FAULT_OBJ)))
+
+FAULT_ENUMS_LIB := $(wildcard $(OBJ_DIR)/FaultEnums/*.o)
+
 all: $(TEST_DIR)/fault_client $(TEST_DIR)/fault_server
 
 $(TEST_DIR)/fault_client: $(OBJ_DIR)/fault_client.o $(SAFPLUS_DEP_LIBS)
 	$(LINK_EXE) $@ $+ $(LINK_LIBS) $(SAFPLUS_LINK_LIBS) $(LINK_STD_LIBS) 
 
-$(TEST_DIR)/fault_server: $(OBJ_DIR)/fault_server.o $(SAFPLUS_DEP_LIBS)
+$(TEST_DIR)/fault_server: $(OBJ_DIR)/fault_server.o $(FAULT_LIB) $(FAULT_ENUMS_LIB) $(SAFPLUS_DEP_LIBS)
 	$(LINK_EXE) $@ $+ $(LINK_LIBS) $(SAFPLUS_LINK_LIBS) $(LINK_STD_LIBS) 
 
 $(OBJ_DIR)/%.o: %.cxx $(CLIENT_H)
 	$(COMPILE_CPP) $@ $<
+
+$(MWOBJ_DIR)/%.o: %.cxx $(CLIENT_H)
+	$(COMPILE_CPP) $@ $<	
 
 test: all
 	cp -f $(TEST_DIR)/safplus_fault .

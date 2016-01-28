@@ -3,7 +3,7 @@ import pySAFplus as sp
 import amfctrl
 
 
-from pySAFplus import SafplusInitializationConfiguration, Libraries, Initialize, logMsgWrite, LogSeverity, HandleType, Handle, WellKnownHandle, Transaction, SYS_LOG, APP_LOG, Buffer, Checkpoint, mgtGet, mgtSet, mgtCreate, mgtDelete, logSeverity
+from pySAFplus import SafplusInitializationConfiguration, Fault, FaultState, FaultAlarmState, FaultPolicy, FaultEventData, AlarmCategory, FaultProbableCause, FaultSeverity, FaultSeverityManager, AlarmCategoryManager, FaultAlarmStateManager, FaultProbableCauseManager, Libraries, Initialize, logMsgWrite, LogSeverity, HandleType, Handle, WellKnownHandle, Transaction, SYS_LOG, APP_LOG, Buffer, Checkpoint, getProcessHandle, mgtGet, mgtSet, mgtCreate, mgtDelete, logSeverity
 
 def zz__bootstrap__():
    global __bootstrap__, __loader__, __file__

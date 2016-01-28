@@ -30,7 +30,7 @@ public:
     };
 
     //? [Deprecated]: Initialize a fault entity with handle and comport information
-    void init(SAFplus::Handle faultHandle,SAFplus::Handle faultServer, int comPort,SAFplus::Wakeable& execSemantics);
+    void init(SAFplus::Handle faultHandle,SAFplus::Handle faultServer, int comPort,SAFplus::Wakeable& execSemantics = SAFplus::BLOCK);
 
     //? Initialize a fault entity with handle and comport information
     void init(SAFplus::Handle yourHandle, SAFplus::Wakeable& execSemantics = SAFplus::BLOCK);
@@ -58,7 +58,7 @@ public:
 
     //? Notify the fault manager about a fault event.
     //? [ARGS TBD when we figure out the alarm portion of fault]
-    void notify(SAFplus::Handle faultEntity,SAFplus::AlarmState alarmState,SAFplus::AlarmCategory category,SAFplus::AlarmSeverity severity,SAFplus::AlarmProbableCause cause,FaultPolicy pluginId = FaultPolicy::Undefined);
+    void notify(SAFplus::Handle faultEntity,FaultEnums::FaultAlarmState alarmState,FaultEnums::AlarmCategory category,FaultEnums::FaultSeverity severity,FaultEnums::FaultProbableCause cause,FaultPolicy pluginId = FaultPolicy::Undefined);
     //? Notify the fault manager about a fault event.
     //? [ARGS TBD when we figure out the alarm portion of fault]
     void notify(SAFplus::Handle faultEntity,FaultEventData faultData,FaultPolicy pluginId = FaultPolicy::Undefined);
@@ -69,16 +69,16 @@ public:
 
     //? Shortcut fault notification in the case where an entity is not responding to your request
     // <arg name="faultEntity">The entity that is not responding</arg>
-    // <arg name="severity" default="SAFplus::AlarmSeverity::ALARM_SEVERITY_CRITICAL">[DEFAULT: critical] How important is this problem to the health of the system</arg>
-    void notifyNoResponse(SAFplus::Handle faultEntity,SAFplus::AlarmSeverity severity=SAFplus::AlarmSeverity::ALARM_SEVERITY_CRITICAL);
+    // <arg name="severity" default="ITUALARMTCMIB::ItuPerceivedSeverity::critical">[DEFAULT: critical] How important is this problem to the health of the system</arg>
+    void notifyNoResponse(SAFplus::Handle faultEntity, FaultEnums::FaultSeverity severity = FaultEnums::FaultSeverity::ALARM_SEVERITY_CRITICAL);
 
     protected:
     // send a fault entity to fault server
-    void sendFaultEventMessage(SAFplus::Handle faultEntity,SAFplus::FaultMessageSendMode messageMode,SAFplus::FaultMessageType msgType,SAFplus::AlarmState alarmState,SAFplus::AlarmCategory category,SAFplus::AlarmSeverity severity,SAFplus::AlarmProbableCause cause,FaultPolicy pluginId);
+    void sendFaultEventMessage(SAFplus::Handle faultEntity,SAFplus::FaultMessageSendMode messageMode,FaultEnums::FaultMessageType msgType,FaultEnums::FaultAlarmState alarmState, FaultEnums::AlarmCategory category,FaultEnums::FaultSeverity severity,FaultEnums::FaultProbableCause cause,FaultPolicy pluginId);
     // send a fault entity to fault server
-    void sendFaultEventMessage(SAFplus::Handle faultEntity,SAFplus::FaultMessageSendMode messageMode,SAFplus::FaultMessageType msgType,FaultPolicy pluginId,FaultEventData faultData);
+    void sendFaultEventMessage(SAFplus::Handle faultEntity,SAFplus::FaultMessageSendMode messageMode,FaultEnums::FaultMessageType msgType,FaultPolicy pluginId,FaultEventData faultData);
     // fill and send a fault event to fault server or broadcast
-    void fillAndSendMessage(void* data, SAFplus::FaultMessageType msgType,SAFplus::FaultMessageSendMode msgSendMode,bool forcing=false);
+    void fillAndSendMessage(void* data, FaultEnums::FaultMessageType msgType,SAFplus::FaultMessageSendMode msgSendMode,bool forcing=false);
     //send a fault notification to fault server
     void sendFaultNotification(void* data, int dataLength, SAFplus::FaultMessageSendMode messageMode);
     friend class SAFplusI::GroupSharedMem;
@@ -91,11 +91,11 @@ public:
 }; //? </class>
 
 //? Convert fault category enum to a string
-extern const char* strFaultCategory[];
+//extern const char* strFaultCategory[];
 //? Convert fault severity enum to a string
-extern const char* strFaultSeverity[];
+//extern const char* strFaultSeverity[];
 //? Convert fault probable cause to a string
-extern const char* strFaultProbableCause[];
+//extern const char* strFaultProbableCause[];
 //? Convert fault entity state enum to a string
 extern const char* strFaultEntityState[];
 

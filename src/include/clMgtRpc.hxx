@@ -52,6 +52,10 @@ namespace SAFplus
     {
 
     }
+    virtual void toString(std::stringstream& xmlString,int depth=SAFplusI::MgtToStringRecursionDepth, MgtObject::SerializationOptions opts=SerializeNoOptions)
+    {
+
+    }
     /**
      * Function to add input parameter
      */
@@ -71,9 +75,9 @@ namespace SAFplus
     void getOutParams(std::string *pBuff);
 
 
-    virtual ClBoolT validate() = 0;
-    virtual ClBoolT invoke() = 0;
-    virtual ClBoolT postReply() = 0;
+    virtual ClRcT validate(const std::string &attrs = "") = 0;
+    virtual ClRcT invoke(const std::string &attrs = "") = 0;
+    virtual ClRcT postReply(const std::string &attrs = "") = 0;
 
     /**
      * \brief   Function to register a Rpc to the server

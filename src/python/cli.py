@@ -43,11 +43,10 @@ LeafColor = (0x30,0,0x30)
 FullPathColor = (0xa0,0x70,0)
 
 SAFplusNamespace = "http://www.openclovis.org/ns/amf"
+HISTORYLOG = "xmlshellhistory.txt"
 
 import pdb
 import xml.etree.ElementTree as ET
-
-
 
 try:
   import xmlterm
@@ -351,7 +350,59 @@ def uniquePortion(seriesNames):
     if sfxLen==0: sfxLen = None
     return (pfxLen,sfxLen)
 
+class History():
+  def __init__(self, histFile = HISTORYLOG, num_log = 20):
+    self._histFile = histFile
+    self._buffer = []
+    self._numLog = 20 #Number of log to show
+    self._isLoaded = False
+    self.loadBuffer()
+    
+  def append(self, command):
+    if command is None:
+      print "ERROR: command should not be NULL"
+      return
+    self._buffer.append(command)
+    
+  def loadBuffer(self):
+    if self._isLoaded == True: return
+    if not os.path.exists(self._histFile):
+      #create new file
+      open(self._histFile, "a")
+    with open(self._histFile, "r") as f:
+      for line in f:
+        self._buffer.append(line)
+    self._isLoaded = True
+  
+  def save(self):
+    string = ""
+    if not os.path.exists(self._histFile):
+      #create new file
+      open(self._histFile, "a")
+    with open(self._histFile, "w") as f:
+      for str in self._buffer:
+        string += "%s\n" % str
+      f.write(string)
 
+  def clear(self):
+    self._buffer = []
+    self.save()
+    return "<text>OK</text>"
+  
+  def show(self, number = None):
+    txt = ""
+    if number is not None and not number.isdigit():
+      txt = "<error>Invalid number: %s</error>" % number
+    else:
+      txt += "<top>"
+      if number is None: number = self._numLog
+      showList = self._buffer[:]
+      showList.reverse()
+      for cmd in showList[:int(number)]:
+        txt += "<text>" + cmd + "</text>"
+      txt+= "</top>"
+    return txt
+  
 class TermController(xmlterm.XmlResolver):
   """This class customizes the XML terminal"""
   def __init__(self):
@@ -360,6 +411,7 @@ class TermController(xmlterm.XmlResolver):
     self.curdir = "/"
     self.cmds.append(self)  # I provide some default commands
     self.xmlterm = None
+    self.history = History()
 
   def newContext(self):
     path = self.curdir.split("/")
@@ -427,7 +479,7 @@ class TermController(xmlterm.XmlResolver):
     st.append("</plot>")
     # print "".join(st)
     xt.doc.append("".join(st))  # I have to wrap in an xml tag in case I get 2 top levels from mgtGet
- 
+    
   def do_help(self,*command):
     """? display this help, or detailed help about a particular command"""
     if command:
@@ -435,6 +487,7 @@ class TermController(xmlterm.XmlResolver):
     else:
       command = None
     return "<top>" + self.getHelp(command) + "</top>"
+
 
   def do_ls(self,*sp):
     """Displays the object tree at the current or specified location.
@@ -496,7 +549,27 @@ By default the specified location and children are shown.  Use -N to specify how
     xml = access.mgtGet((prefix % depth) + str(t))
     txt = "<text>" + xmlterm.escape(xmlterm.indent("<top>" + xml + "</top>")) + "</text>"
     return txt # I have to wrap in an xml tag in case I get 2 top levels from mgtGet
-
+       
+  
+  def do_history(self, *sp):
+    """? Show or clear your history commands
+  Argument: [show number] or [clear]. In case of number is None. Default of number will be used
+  Example: "history show 30" will show 30 latest inputed commands
+           "history clear" clears all your buffer commands
+"""
+    rt = ""
+    if len(sp) > 0:
+      if sp[0] == 'show':
+        try:
+          rt = self.history.show(sp[1])
+        except:
+          rt = self.history.show(None)
+      elif sp[0] == 'clear':
+        rt = self.history.clear()
+      else:
+        rt = self.history.show(sp[0])
+    return rt
+  
   def do_time(self,*sp):
     """Show the time"""
     return "<time/>"
@@ -564,6 +637,11 @@ By default the specified location and children are shown.  Use -N to specify how
             xml.append(access.mgtGet("{d=%s}%s" % (depth,str(t))))
           self.bar(xml,self.xmlterm)
           return ""
+  
+  def execute(self, textLine, xt):
+    """Execute the passed string"""
+    self.history.append(textLine)
+    return xmlterm.XmlResolver.execute(self, textLine, xt)
 
   def xxexecute(self,textLine,xt):
     """Execute the passed string"""
@@ -671,11 +749,9 @@ By default the specified location and children are shown.  Use -N to specify how
           self.parentWin.GetParent().frame.Close()
         else:
           pdb.set_trace()
-          # TODO look for registered RPC call
+          #TODO look for registered RPC call
           t = xmlterm.escape(" ".join(sp))
-          xt.doc.append('<process>%s</process>' % t)  
-
-
+          xt.doc.append('<process>%s</process>' % t) 
 
 def main(args):
   global access, CliName
@@ -689,7 +765,6 @@ def main(args):
     CliName = "SAFplus Local CLI"
 
   cmds,handlers = access.Initialize()
-
   if windowed:
     os.environ["TERM"] = "XT1" # Set the term in the environment so child programs know xmlterm is running
     resolver = TermController()
@@ -732,8 +807,6 @@ def main(args):
     while 1:      
       cmd = resolver.cmdLine.input()
       resolver.execute(cmd,resolver)
-
-
 
 if __name__ == '__main__':
     main(sys.argv)

@@ -3,6 +3,8 @@
 #include <clMsgPortsAndTypes.hxx>
 #include <clSafplusMsgServer.hxx>
 #include <string>
+#include <clFaultServerIpi.hxx>
+#include <FaultHistoryEntity.hxx>
 
 using namespace std;
 using namespace SAFplus;
@@ -21,8 +23,9 @@ int main(int argc, char* argv[])
     //safplusMsgServer.init(50, MAX_MSGS, MAX_HANDLER_THREADS);
     safplusMsgServer.Start();
     SAFplus::FaultServer fs;
-    logInfo("FLT","CLT","Initial fault server");
     fs.init();
+    logInfo("FLT","CLT","Initial fault server");
+
     sleep(2);
     fs.RemoveAllEntity();
     while(1) { sleep(10000); }

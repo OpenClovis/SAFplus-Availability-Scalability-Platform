@@ -45,6 +45,7 @@ namespace Mgt
     namespace Msg
       {
         class MsgMgt;
+        class MsgRpc;
       }
   }
 
@@ -143,15 +144,29 @@ public:
     void clMgtMsgXSetHandler(SAFplus::Handle srcAddr, Mgt::Msg::MsgMgt& mgtMsgReq);
     void clMgtMsgCreateHandler(SAFplus::Handle srcAddr, Mgt::Msg::MsgMgt& mgtMsgReq);
     void clMgtMsgDeleteHandler(SAFplus::Handle srcAddr, Mgt::Msg::MsgMgt& mgtMsgReq);
+    void clMgtMsgRpcHandler(SAFplus::Handle srcAddr, Mgt::Msg::MsgMgt& mgtMsgReq);
+    /*
+     * Rpc message handler
+     */
+    void clRpcMsgHandler(SAFplus::Handle srcAddr, Mgt::Msg::MsgRpc& rpcMsgReq);
+
     class MgtMessageHandler:public SAFplus::MsgHandler
     {
       public:
         MgtRoot* mRoot;
         MgtMessageHandler();
         void init(SAFplus::MgtRoot *mroot=nullptr);
-        void msgHandler(SAFplus::Handle from, SAFplus::MsgServer* svr, ClPtrT msg, ClWordT msglen, ClPtrT cookie);
+        virtual void msgHandler(SAFplus::Handle from, SAFplus::MsgServer* svr, ClPtrT msg, ClWordT msglen, ClPtrT cookie);
     };
     MgtMessageHandler mgtMessageHandler;
+
+    class RpcMessageHandler:public MgtMessageHandler
+      {
+      public:
+        RpcMessageHandler();
+        virtual void msgHandler(SAFplus::Handle from, SAFplus::MsgServer* svr, ClPtrT msg, ClWordT msglen, ClPtrT cookie);
+      };
+    RpcMessageHandler rpcMessageHandler;
 
 //TODO:
 //    static ClRcT sendMsg(SAFplus::Handle dest, void* payload, uint payloadlen, MgtMsgType msgtype,void* reply = NULL);

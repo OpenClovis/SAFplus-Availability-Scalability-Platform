@@ -303,6 +303,7 @@ extern MgtIteratorBase mgtIterEnd;
     virtual ClRcT setObj(const std::string &value);
     virtual ClRcT createObj(const std::string &value);
     virtual ClRcT deleteObj(const std::string &value);
+    virtual ClRcT doRpc(const std::string &attr = "");
     virtual ClRcT setChildObj(const std::string &childName, const std::string &value);
     virtual ClRcT setChildObj(const std::map<std::string,std::string> &keyList);
 

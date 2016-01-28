@@ -61,7 +61,7 @@ module myService
     {
     description "What TCP port to listen on";
     type uint16;
-    default 8000;
+    default 8080;
     }
   leaf homeLocation
     {
@@ -87,6 +87,24 @@ module myService
       SAFplusTypes:c-existing "SAFplus::MgtHistoryStat<int>"; 
       uses SAFplusTypes:intStatistic; 
       config false;
+    }
+  }
+
+  rpc reset
+  {
+    description "Apply the setting changes. If no parameters are specified the current setting are applied, otherwise the passed parameters are applied and the data model is updated with these parameters";
+    input
+    {
+      leaf path
+      {
+      	description "Location of the 'root' directory of the web server";
+      	type string;
+      }
+      leaf port
+      {
+      	description "The TCP port this web server should listen on (default is 80)";
+      	type uint16;
+      }
     }
   }
 

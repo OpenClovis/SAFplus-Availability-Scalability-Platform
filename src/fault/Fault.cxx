@@ -31,6 +31,9 @@
 #include <FaultHistoryEntity.hxx>
 #include <clObjectMessager.hxx>
 #include <time.h>
+#include "server/FaultEnums/FaultProbableCause.hxx"
+#include "server/FaultEnums/AlarmCategory.hxx"
+
 
 using namespace SAFplus;
 using namespace std;
@@ -41,122 +44,8 @@ namespace SAFplus
 {
   typedef boost::unordered_map<SAFplus::FaultPolicy,ClPluginHandle*> FaultPolicyMap;
 
-  const char* strFaultCategory[]={
-      "CL_ALARM_CATEGORY_UNKNOWN",
-      "CL_ALARM_CATEGORY_COMMUNICATIONS",
-      "CL_ALARM_CATEGORY_QUALITY_OF_SERVICE",
-      "CL_ALARM_CATEGORY_PROCESSING_ERROR",
-      "CL_ALARM_CATEGORY_EQUIPMENT",
-      "CL_ALARM_CATEGORY_ENVIRONMENTAL"
-  };
-
-  const char* strFaultSeverity[]={
-      "CL_ALARM_SEVERITY_UNKNOWN",
-      "CL_ALARM_SEVERITY_CRITICAL",
-      "CL_ALARM_SEVERITY_MAJOR",
-      "CL_ALARM_SEVERITY_MINOR",
-      "CL_ALARM_SEVERITY_WARNING",
-      "CL_ALARM_SEVERITY_INDETERMINATE",
-      "CL_ALARM_SEVERITY_CLEAR"
-  };
-
-  const char* strFaultProbableCause[]={
-      "CL_ALARM_PROB_CAUSE_UNKNOWN",
-      /**
-       * Probable cause for Communication related alarms
-       */
-      "CL_ALARM_PROB_CAUSE_LOSS_OF_SIGNAL",
-      "CL_ALARM_PROB_CAUSE_LOSS_OF_FRAME",
-      "CL_ALARM_PROB_CAUSE_FRAMING_ERROR",
-      "CL_ALARM_PROB_CAUSE_LOCAL_NODE_TRANSMISSION_ERROR",
-      "CL_ALARM_PROB_CAUSE_REMOTE_NODE_TRANSMISSION_ERROR",
-      "CL_ALARM_PROB_CAUSE_CALL_ESTABLISHMENT_ERROR",
-      "CL_ALARM_PROB_CAUSE_DEGRADED_SIGNAL",
-      "CL_ALARM_PROB_CAUSE_COMMUNICATIONS_SUBSYSTEM_FAILURE",
-      "CL_ALARM_PROB_CAUSE_COMMUNICATIONS_PROTOCOL_ERROR",
-      "CL_ALARM_PROB_CAUSE_LAN_ERROR",
-      "CL_ALARM_PROB_CAUSE_DTE",
-      /**
-       * Probable cause for Quality of Service related alarms
-       */
-      "CL_ALARM_PROB_CAUSE_RESPONSE_TIME_EXCESSIVE",
-      "CL_ALARM_PROB_CAUSE_QUEUE_SIZE_EXCEEDED",
-      "CL_ALARM_PROB_CAUSE_BANDWIDTH_REDUCED",
-      "CL_ALARM_PROB_CAUSE_RETRANSMISSION_RATE_EXCESSIVE",
-      "CL_ALARM_PROB_CAUSE_THRESHOLD_CROSSED",
-      "CL_ALARM_PROB_CAUSE_PERFORMANCE_DEGRADED",
-      "CL_ALARM_PROB_CAUSE_CONGESTION",
-      "CL_ALARM_PROB_CAUSE_RESOURCE_AT_OR_NEARING_CAPACITY",
-      /**
-       * Probable cause for Processing Error related alarms
-       */
-      "CL_ALARM_PROB_CAUSE_STORAGE_CAPACITY_PROBLEM",
-      "CL_ALARM_PROB_CAUSE_VERSION_MISMATCH",
-      "CL_ALARM_PROB_CAUSE_CORRUPT_DATA",
-      "CL_ALARM_PROB_CAUSE_CPU_CYCLES_LIMIT_EXCEEDED",
-      "CL_ALARM_PROB_CAUSE_SOFWARE_ERROR",
-      "CL_ALARM_PROB_CAUSE_SOFTWARE_PROGRAM_ERROR",
-      "CL_ALARM_PROB_CAUSE_SOFWARE_PROGRAM_ABNORMALLY_TERMINATED",
-      "CL_ALARM_PROB_CAUSE_FILE_ERROR",
-      "CL_ALARM_PROB_CAUSE_OUT_OF_MEMORY",
-      "CL_ALARM_PROB_CAUSE_UNDERLYING_RESOURCE_UNAVAILABLE",
-      "CL_ALARM_PROB_CAUSE_APPLICATION_SUBSYSTEM_FAILURE",
-      "CL_ALARM_PROB_CAUSE_CONFIGURATION_OR_CUSTOMIZATION_ERROR",
-      /**
-       * Probable cause for Equipment related alarms
-       */
-      "CL_ALARM_PROB_CAUSE_POWER_PROBLEM",
-      "CL_ALARM_PROB_CAUSE_TIMING_PROBLEM",
-      "CL_ALARM_PROB_CAUSE_PROCESSOR_PROBLEM",
-      "CL_ALARM_PROB_CAUSE_DATASET_OR_MODEM_ERROR",
-      "CL_ALARM_PROB_CAUSE_MULTIPLEXER_PROBLEM",
-      "CL_ALARM_PROB_CAUSE_RECEIVER_FAILURE",
-      "CL_ALARM_PROB_CAUSE_TRANSMITTER_FAILURE",
-      "CL_ALARM_PROB_CAUSE_RECEIVE_FAILURE",
-      "CL_ALARM_PROB_CAUSE_TRANSMIT_FAILURE",
-      "CL_ALARM_PROB_CAUSE_OUTPUT_DEVICE_ERROR",
-      "CL_ALARM_PROB_CAUSE_INPUT_DEVICE_ERROR",
-      "CL_ALARM_PROB_CAUSE_INPUT_OUTPUT_DEVICE_ERROR",
-      "CL_ALARM_PROB_CAUSE_EQUIPMENT_MALFUNCTION",
-      "CL_ALARM_PROB_CAUSE_ADAPTER_ERROR",
-      /**
-       * Probable cause for Environmental related alarms
-       */
-      "CL_ALARM_PROB_CAUSE_TEMPERATURE_UNACCEPTABLE",
-      "CL_ALARM_PROB_CAUSE_HUMIDITY_UNACCEPTABLE",
-      "CL_ALARM_PROB_CAUSE_HEATING_OR_VENTILATION_OR_COOLING_SYSTEM_PROBLEM",
-      "CL_ALARM_PROB_CAUSE_FIRE_DETECTED",
-      "CL_ALARM_PROB_CAUSE_FLOOD_DETECTED",
-      "CL_ALARM_PROB_CAUSE_TOXIC_LEAK_DETECTED",
-      "CL_ALARM_PROB_CAUSE_LEAK_DETECTED",
-      "CL_ALARM_PROB_CAUSE_PRESSURE_UNACCEPTABLE",
-      "CL_ALARM_PROB_CAUSE_EXCESSIVE_VIBRATION",
-      "CL_ALARM_PROB_CAUSE_MATERIAL_SUPPLY_EXHAUSTED",
-      "CL_ALARM_PROB_CAUSE_PUMP_FAILURE",
-      "CL_ALARM_PROB_CAUSE_ENCLOSURE_DOOR_OPEN"
-  };
-
-  const char* strFaultMsgType[]=
-  {
-    "MSG_ENTITY_JOIN",
-    "MSG_ENTITY_LEAVE",
-    "MSG_ENTITY_FAULT",
-    "MSG_ENTITY_JOIN_BROADCAST",
-    "MSG_ENTITY_LEAVE_BROADCAST",
-    "MSG_ENTITY_FAULT_BROADCAST",
-    "MSG_UNDEFINED"
-  };
-
-  const char* strFaultEntityState[]=
-  {
-      "STATE_UNDEFINED",
-      "STATE_UP",
-      "STATE_DOWN"
-  };
-
-
-    int faultInitCount=0;
-    FaultSharedMem fsm;
+  	int faultInitCount=0;
+  	FaultSharedMem fsm;
 
     bool faultAvailable() { return (faultInitCount>0); }
 
@@ -173,10 +62,10 @@ namespace SAFplus
         assert(other != INVALID_HDL);  // We must always report the state of a particular entity, even if that entity is myself (i.e. reporter == other)
         FaultMessageProtocol sndMessage;
         sndMessage.reporter = reporter;
-        sndMessage.messageType = FaultMessageType::MSG_ENTITY_JOIN;
+        sndMessage.messageType = FaultEnums::FaultMessageType::MSG_ENTITY_JOIN;
         sndMessage.state = state;
         sndMessage.faultEntity=other;
-        sndMessage.data.init(SAFplus::AlarmState::ALARM_STATE_INVALID,SAFplus::AlarmCategory::ALARM_CATEGORY_INVALID,SAFplus::AlarmSeverity::ALARM_SEVERITY_INVALID,SAFplus::AlarmProbableCause::ALARM_ID_INVALID);
+        sndMessage.data.init(FaultEnums::FaultAlarmState::ALARM_STATE_INVALID, FaultEnums::AlarmCategory::ALARM_CATEGORY_INVALID, FaultEnums::FaultSeverity::ALARM_SEVERITY_CLEAR, FaultEnums::FaultProbableCause::ALARM_ID_INVALID);
         sndMessage.pluginId=SAFplus::FaultPolicy::Undefined;
         sndMessage.syncData[0]=0;
         sendFaultNotification((void *)&sndMessage,sizeof(FaultMessageProtocol),FaultMessageSendMode::SEND_TO_ACTIVE_SERVER);
@@ -186,10 +75,10 @@ namespace SAFplus
         assert(other != INVALID_HDL);  // We must always report the state of a particular entity, even if that entity is myself (i.e. reporter == other)
         FaultMessageProtocol sndMessage;
         sndMessage.reporter = reporter;
-        sndMessage.messageType = FaultMessageType::MSG_ENTITY_STATE_CHANGE;
+        sndMessage.messageType = FaultEnums::FaultMessageType::MSG_ENTITY_STATE_CHANGE;
         sndMessage.state = state;
         sndMessage.faultEntity=other;
-        sndMessage.data.init(SAFplus::AlarmState::ALARM_STATE_INVALID,SAFplus::AlarmCategory::ALARM_CATEGORY_INVALID,SAFplus::AlarmSeverity::ALARM_SEVERITY_INVALID,SAFplus::AlarmProbableCause::ALARM_ID_INVALID);
+        sndMessage.data.init(FaultEnums::FaultAlarmState::ALARM_STATE_INVALID,FaultEnums::AlarmCategory::ALARM_CATEGORY_INVALID, FaultEnums::FaultSeverity::ALARM_SEVERITY_CLEAR, FaultEnums::FaultProbableCause::ALARM_ID_INVALID);
         sndMessage.pluginId=SAFplus::FaultPolicy::Undefined;
         sndMessage.syncData[0]=0;
         sendFaultNotification((void *)&sndMessage,sizeof(FaultMessageProtocol),FaultMessageSendMode::SEND_TO_ACTIVE_SERVER);
@@ -199,24 +88,23 @@ namespace SAFplus
     {
         deRegister(reporter);
     }
-
     //deregister Fault Entity by Entity Handle
     void Fault::deRegister(SAFplus::Handle faultEntity)
     {
         FaultMessageProtocol sndMessage;
         sndMessage.reporter = reporter;
         FaultPolicyMap faultPolicies;
-        sndMessage.messageType = FaultMessageType::MSG_ENTITY_LEAVE;
+        sndMessage.messageType = FaultEnums::FaultMessageType::MSG_ENTITY_LEAVE;
         sndMessage.state = FaultState::STATE_UP;
         sndMessage.faultEntity=faultEntity;
-        sndMessage.data.init(SAFplus::AlarmState::ALARM_STATE_INVALID,SAFplus::AlarmCategory::ALARM_CATEGORY_INVALID,SAFplus::AlarmSeverity::ALARM_SEVERITY_INVALID,SAFplus::AlarmProbableCause::ALARM_ID_INVALID);
+        sndMessage.data.init(FaultEnums::FaultAlarmState::ALARM_STATE_INVALID,FaultEnums::AlarmCategory::ALARM_CATEGORY_INVALID, FaultEnums::FaultSeverity::ALARM_SEVERITY_CLEAR, FaultEnums::FaultProbableCause::ALARM_ID_INVALID);
         sndMessage.pluginId=SAFplus::FaultPolicy::Undefined;
         sndMessage.syncData[0]=0;
         logDebug(FAULT,FAULT_ENTITY,"Deregister fault entity : Node [%d], Process [%d] , Message Type [%d]", reporter.getNode(), reporter.getProcess(),sndMessage.messageType);
         sendFaultNotification((void *)&sndMessage,sizeof(FaultMessageProtocol),FaultMessageSendMode::SEND_TO_ACTIVE_SERVER);
     }
 
-    void Fault::sendFaultEventMessage(SAFplus::Handle faultEntity,SAFplus::FaultMessageSendMode messageMode,SAFplus::FaultMessageType msgType,SAFplus::FaultPolicy pluginId,SAFplus::FaultEventData faultData)
+    void Fault::sendFaultEventMessage(SAFplus::Handle faultEntity,SAFplus::FaultMessageSendMode messageMode,FaultEnums::FaultMessageType msgType,SAFplus::FaultPolicy pluginId,SAFplus::FaultEventData faultData)
     {
         logDebug(FAULT,FAULT_ENTITY,"Sending Fault Event message ... ");
         FaultMessageProtocol sndMessage;
@@ -231,7 +119,8 @@ namespace SAFplus
         sndMessage.syncData[0]=0;
         sendFaultNotification((void *)&sndMessage,sizeof(FaultMessageProtocol),messageMode);
     }
-    void Fault::sendFaultEventMessage(SAFplus::Handle faultEntity,SAFplus::FaultMessageSendMode messageMode,SAFplus::FaultMessageType msgType,SAFplus::AlarmState alarmState,SAFplus::AlarmCategory category,SAFplus::AlarmSeverity severity,SAFplus::AlarmProbableCause cause,SAFplus::FaultPolicy pluginId)
+
+    void Fault::sendFaultEventMessage(SAFplus::Handle faultEntity,SAFplus::FaultMessageSendMode messageMode,FaultEnums::FaultMessageType msgType,FaultEnums::FaultAlarmState alarmState, FaultEnums::AlarmCategory category, FaultEnums::FaultSeverity severity,FaultEnums::FaultProbableCause cause,SAFplus::FaultPolicy pluginId)
     {
         logDebug(FAULT,FAULT_ENTITY,"Sending Fault Event message ...");
         FaultMessageProtocol sndMessage;
@@ -246,29 +135,27 @@ namespace SAFplus
         sndMessage.syncData[0]=0;
         sendFaultNotification((void *)&sndMessage,sizeof(FaultMessageProtocol),messageMode);
     }
-
-    void Fault::notify(SAFplus::Handle faultEntity,SAFplus::AlarmState alarmState,SAFplus::AlarmCategory category,SAFplus::AlarmSeverity severity,SAFplus::AlarmProbableCause cause,SAFplus::FaultPolicy pluginId)
+    void Fault::notify(SAFplus::Handle faultEntity,FaultEnums::FaultAlarmState alarmState, FaultEnums::AlarmCategory category,FaultEnums::FaultSeverity severity, FaultEnums::FaultProbableCause cause,SAFplus::FaultPolicy pluginId)
     {
       assert(faultEntity != INVALID_HDL);
-        sendFaultEventMessage(faultEntity,FaultMessageSendMode::SEND_TO_ACTIVE_SERVER,SAFplus::FaultMessageType::MSG_ENTITY_FAULT,alarmState,category,severity,cause,pluginId);
+        sendFaultEventMessage(faultEntity,FaultMessageSendMode::SEND_TO_ACTIVE_SERVER, FaultEnums::FaultMessageType::MSG_ENTITY_FAULT,alarmState,category,severity,cause,pluginId);
     }
-
     void Fault::notify(SAFplus::Handle faultEntity,SAFplus::FaultEventData faultData,SAFplus::FaultPolicy pluginId)
     {
       assert(faultEntity != INVALID_HDL);
-        sendFaultEventMessage(faultEntity,FaultMessageSendMode::SEND_TO_ACTIVE_SERVER,SAFplus::FaultMessageType::MSG_ENTITY_FAULT,pluginId,faultData);
+        sendFaultEventMessage(faultEntity,FaultMessageSendMode::SEND_TO_ACTIVE_SERVER,FaultEnums::FaultMessageType::MSG_ENTITY_FAULT,pluginId,faultData);
     }
 
     void Fault::notify(SAFplus::FaultEventData faultData,SAFplus::FaultPolicy pluginId)
     {
       assert(reporter != INVALID_HDL);
-      sendFaultEventMessage(reporter,FaultMessageSendMode::SEND_TO_ACTIVE_SERVER,SAFplus::FaultMessageType::MSG_ENTITY_FAULT,pluginId,faultData);
+        sendFaultEventMessage(reporter,FaultMessageSendMode::SEND_TO_ACTIVE_SERVER,FaultEnums::FaultMessageType::MSG_ENTITY_FAULT,pluginId,faultData);
     }
 
-    void Fault::notifyNoResponse(SAFplus::Handle faultEntity,SAFplus::AlarmSeverity severity)
+    void Fault::notifyNoResponse(SAFplus::Handle faultEntity,FaultEnums::FaultSeverity severity)
     {
       assert(faultEntity != INVALID_HDL);
-      sendFaultEventMessage(faultEntity,FaultMessageSendMode::SEND_TO_ACTIVE_SERVER,SAFplus::FaultMessageType::MSG_ENTITY_FAULT,AlarmState::ALARM_STATE_ASSERT,AlarmCategory::ALARM_CATEGORY_COMMUNICATIONS,severity,SAFplus::AlarmProbableCause::ALARM_PROB_CAUSE_RECEIVER_FAILURE,FaultPolicy::Undefined);
+      sendFaultEventMessage(faultEntity,FaultMessageSendMode::SEND_TO_ACTIVE_SERVER,FaultEnums::FaultMessageType::MSG_ENTITY_FAULT, FaultEnums::FaultAlarmState::ALARM_STATE_ASSERT, FaultEnums::AlarmCategory::ALARM_CATEGORY_COMMUNICATIONS, severity, FaultEnums::FaultProbableCause::ALARM_PROB_CAUSE_RECEIVE_FAILURE, FaultPolicy::Undefined);
     }
 
     //Sending a fault notification to fault server
@@ -439,5 +326,24 @@ namespace SAFplus
         return rc;
     }
 #endif
+
+
+const char* strFaultMsgType[]=
+{
+	"MSG_ENTITY_JOIN",
+	"MSG_ENTITY_LEAVE",
+	"MSG_ENTITY_FAULT",
+	"MSG_ENTITY_JOIN_BROADCAST",
+	"MSG_ENTITY_LEAVE_BROADCAST",
+	"MSG_ENTITY_FAULT_BROADCAST",
+	"MSG_UNDEFINED"
+};
+
+const char* strFaultEntityState[]=
+{
+    "STATE_UNDEFINED",
+    "STATE_UP",
+    "STATE_DOWN"
+};
 
 };
