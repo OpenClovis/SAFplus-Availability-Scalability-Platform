@@ -200,6 +200,8 @@ class ProjectTreePanel(wx.Panel):
     if i.IsOk():
        project = self.tree.GetItemPyData(i)
        if type(project) is TupleType: project = project[0]
+       self.tree.ClearFocusedItem()
+       self.tree.SetFocusedItem(i)
        return project
     return None
 

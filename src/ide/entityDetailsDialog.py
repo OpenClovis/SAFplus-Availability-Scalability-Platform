@@ -547,13 +547,14 @@ class Panel(scrolled.ScrolledPanel):
       return None
 
     def showEntity(self,ent):
-      if self.entity == ent: return  # Its already being shown
+      #if self.entity == ent: return  # Its already being shown
       self.entity = ent
 
       # Collapse all tree items
       self.CollapseAll()
       treeItem = self.createTreeItemEntity(ent.data["name"], ent)
-      self.tree.Expand(treeItem)
+      if not self.tree.IsExpanded(treeItem):
+        self.tree.Expand(treeItem)
       self.tree.SelectItem(treeItem)
 
     def OnTreeSelExpanded(self, event):
@@ -792,6 +793,7 @@ class Panel(scrolled.ScrolledPanel):
    
     def refresh(self):      
       self.treeItemSelected = None
+      self.lookup.clear()      
       self._createTreeEntities()
 
 def Test():

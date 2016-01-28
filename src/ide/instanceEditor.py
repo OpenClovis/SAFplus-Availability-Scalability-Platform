@@ -453,8 +453,12 @@ class SelectTool(Tool):
       ents = sorted(ents, key=lambda ent: self.entOrder.index(ent.et.name))
       # Show first entity
       ent = ents[0]
-
+    parentFrame = share.instancePanel.guiPlaces.frame
     if share.instanceDetailsPanel:
+      share.instanceDetailsPanel.showEntity(ent)
+      parentFrame.tab.SetSelection(3)
+    else:
+      parentFrame.insertPage(3)
       share.instanceDetailsPanel.showEntity(ent)
 
   def deleteEntities(self, ents):
@@ -867,11 +871,17 @@ class Panel(scrolled.ScrolledPanel):
       self.toolBar.AddRadioTool(DELETE_BUTTON, bitmap, wx.NullBitmap, shortHelp="Delete entity/entities", longHelp="Select one or many entities. Click entity to delete.")
       self.idLookup[DELETE_BUTTON] = DeleteTool(self)    
 
-    def deleteTools(self):
-      for btnId in self.idLookup:
-        self.toolBar.DeleteTool(btnId)        
-      #self.toolBar.Unbind(wx.EVT_TOOL)  
-      self.toolBar.DeletePendingEvents()  
+    
+    def deleteTools(self):   
+      self.toolBar.DeletePendingEvents()
+      self.toolBar.ClearTools()
+      self.deleteMenuItems()      
+      self.idLookup.clear()
+
+    def deleteMyTools(self):
+      for toolId in self.idLookup:
+        self.toolBar.DeleteTool(toolId)
+      self.deleteMenuItems()
       self.idLookup.clear()
 
     def addTools(self, init=False):
@@ -883,7 +893,8 @@ class Panel(scrolled.ScrolledPanel):
       self.addEntityTools()
       #self.toolBar.Bind(wx.EVT_TOOL, self.OnToolClick, id=ENTITY_TYPE_BUTTON_START, id2=wx.NewId())
       #self.toolBar.Bind(wx.EVT_TOOL_RCLICKED, self.OnToolRClick)      
-      self.toolBar.Bind(wx.EVT_TOOL, self.OnToolClick)
+      for toolId in self.idLookup:
+        self.toolBar.Bind(wx.EVT_TOOL, self.OnToolClick, id=toolId)
       self.toolBar.Bind(wx.EVT_TOOL_RCLICKED, self.OnToolRClick)
 
     def resetDataMembers(self):
@@ -955,6 +966,7 @@ class Panel(scrolled.ScrolledPanel):
       sortedent = self.model.entities.items()  # Do this so the buttons always appear in the same order
       sortedent.sort()
       # buttonIdx = ENTITY_TYPE_BUTTON_START
+      menu = self.guiPlaces.menu.get("Instantiation",None)
       for e in sortedent:
         et = e[1].et
         placement = None
@@ -974,6 +986,10 @@ class Panel(scrolled.ScrolledPanel):
           self.idLookup[buttonIdx] = EntityTool(self,e[1])  # register this button so when its clicked we know about it
           #buttonIdx+=1
           e[1].buttonIdx = buttonIdx
+          name = e[0]
+          if menu: # If there's a menu for these entity tools, then add the object to the menu as well
+            menu.Append(buttonIdx, name, name)
+            menu.Bind(wx.EVT_MENU, self.OnToolMenu, id=buttonIdx)
 
       self.toolBar.Realize()
 
@@ -986,12 +1002,14 @@ class Panel(scrolled.ScrolledPanel):
           entExists = True
           break
       if not entExists:
-        print 'addEntityTool: Entity [%s] not exists. adding tool' % name        
+        print 'addEntityTool: Entity [%s] not exists. adding tool' % name
         placement = None
         if name in self.columnTypes:
           placement = "column"
         if name in self.rowTypes:
           placement = "row"
+
+        menu = self.guiPlaces.menu.get("Instantiation",None)
 
         if placement:
           tsize = self.toolBar.GetToolBitmapSize()
@@ -1005,6 +1023,9 @@ class Panel(scrolled.ScrolledPanel):
           #self.toolBar.AddRadioTool(buttonIdx, bitmap, wx.NullBitmap, shortHelp=et[0], longHelp=longHelp,clientData=et)
           self.idLookup[buttonIdx] = EntityTool(self,ent)  # register this button so when its clicked we know about it          
           ent.buttonIdx = buttonIdx
+          if menu: # If there's a menu for these entity tools, then add the object to the menu as well
+            menu.Append(buttonIdx, name, name)
+            menu.Bind(wx.EVT_MENU, self.OnToolMenu, id=buttonIdx)
         self.toolBar.Realize()
 
     def deleteEntityTool(self, ents):
@@ -1020,6 +1041,26 @@ class Panel(scrolled.ScrolledPanel):
           print 'deleteEntityTool: Entity [%s] exists --> delete it from toolbar' % name
           self.toolBar.DeleteTool(eid)
           del self.idLookup[eid]
+
+    def deleteMenuItems(self):
+      menu = self.guiPlaces.menu.get("Instantiation",None)
+      menuItems = menu.GetMenuItems()
+      for item in menuItems:
+        menu.Delete(item.Id)
+
+    def enableMenuItems(self, enable):
+      menu = self.guiPlaces.menu.get("Instantiation",None)
+      menuItems = menu.GetMenuItems()
+      for item in menuItems:
+        menu.Enable(item.Id, enable)
+
+    def enableTools(self, enable):
+      for toolId in self.idLookup:
+        self.toolBar.EnableTool(toolId, enable)
+
+    def OnToolMenu(self,event):
+      print "On Tool Menu"
+      self.OnToolClick(event)
 
     def OnToolEvent(self,event):
       handled = False

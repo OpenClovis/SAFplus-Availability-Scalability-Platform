@@ -25,6 +25,7 @@ class SAFplusFrame(wx.Frame):
     def __init__(self, parent, title):
         wx.Frame.__init__(self, parent, -1, title, pos=(150, 150), size=(800, 600))
         self.model = None
+        self.currentActivePrj = None # indicating that this the current project which is active
        # Create the menubar
         self.menuBar = wx.MenuBar()
         # and a menu 
@@ -63,9 +64,11 @@ class SAFplusFrame(wx.Frame):
         panel = self.panel = None # panelFactory(self,menuBar,tb,sb) # wx.Panel(self)
         self.prjSplitter = wx.SplitterWindow(self, style=wx.SP_3D)
         self.project = ProjectTreePanel(self.prjSplitter,self.guiPlaces)
+        self.Bind(wx.EVT_TREE_ITEM_ACTIVATED, self.onPrjTreeActivated, self.project.tree) # handle an event when user double-clicks on a project at the tree on the left to switch views to it or to set it active
         self.tab = wx.aui.AuiNotebook(self.prjSplitter)
         self.help = wx.TextCtrl(self.tab, -1, "test", style=wx.TE_MULTILINE)
-        self.tab.AddPage(self.help, "Welcome")
+        self.tab.AddPage(self.help, "Welcome")        
+        self.Bind(wx.aui.EVT_AUINOTEBOOK_PAGE_CLOSE, self.onPageClosing, self.tab) # handle tab page close
         self.prjSplitter.SplitVertically(self.project,self.tab,200)
         # And also use a sizer to manage the size of the panel such
         # that it fills the frame
@@ -80,6 +83,21 @@ class SAFplusFrame(wx.Frame):
         #if not w: break
       while self.tab.DeletePage(0): pass
 
+    def cleanupTools(self):
+      self.tb.DeletePendingEvents()      
+      self.tb.ClearTools()
+
+    def cleanupMenus(self):
+      menuItems = self.menuModelling.GetMenuItems()
+      for item in menuItems:
+        self.menuModelling.Delete(item.Id)
+      menuItems = self.menuInstantiation.GetMenuItems()
+      for item in menuItems:
+        self.menuInstantiation.Delete(item.Id)
+      menuItems = self.menuWindows.GetMenuItems()
+      for item in menuItems:
+        self.menuWindows.Delete(item.Id)
+
     def OnProjectLoaded(self,evt):
       """Called when a project is loaded in the project tree"""
       print "New project loaded"
@@ -90,22 +108,13 @@ class SAFplusFrame(wx.Frame):
 
       # Now load the new one:
       # prj = self.project.active()
-      prj = self.project.latest()
+      prj = self.project.latest()      
+      self.showProject(prj)
+
+    def showProject(self, prj):
       if not prj: return
-      #self.model[prj.name] = t = namedtuple('model','model uml instance details')      
-      # only 1 model file allowed for now
-      #t.model = model.Model()
-      #prj.setSAFplusModel(t.model)
-      #modelFile = os.path.join(prj.directory(), prj.model.children()[0].strip())
-      #t.model.load(modelFile)
-      #t.uml = umlEditor.Panel(self.tab,self.guiPlaces, t.model)
-      #self.tab.AddPage(t.uml, prj.name + " Modelling")
-      #t.details = entityDetailsDialog.Panel(self.tab,self.guiPlaces, t.model,isDetailInstance=False)
-      #self.tab.AddPage(t.details, prj.name + " Model Details")
-      #t.instance = instanceEditor.Panel(self.tab,self.guiPlaces, t.model)
-      #self.tab.AddPage(t.instance, prj.name + " Instantiation")
-      #t.details = entityDetailsDialog.Panel(self.tab,self.guiPlaces, t.model,isDetailInstance=True)
-      #self.tab.AddPage(t.details, prj.name + " Instance Details")
+      self.currentActivePrj = prj
+      self.tab.Unbind(wx.aui.EVT_AUINOTEBOOK_PAGE_CHANGED) # need to unbind to not catch page delete event b/c we only want to catch page selection event
       if not self.model:
         self.cleanupTabs()
         self.model = t = namedtuple('model','model uml instance modelDetails instanceDetails')
@@ -114,34 +123,52 @@ class SAFplusFrame(wx.Frame):
         modelFile = os.path.join(prj.directory(), prj.model.children()[0].strip())
         t.model.load(modelFile)
         t.uml = umlEditor.Panel(self.tab,self.guiPlaces, t.model)
-        self.tab.AddPage(t.uml, prj.name + " Modelling")
+        self.tab.AddPage(t.uml, self.getCurrentPageText(0))
         t.modelDetails = entityDetailsDialog.Panel(self.tab,self.guiPlaces, t.model,isDetailInstance=False)
-        self.tab.AddPage(t.modelDetails, prj.name + " Model Details")
+        self.tab.AddPage(t.modelDetails, self.getCurrentPageText(1), select=True)
         t.instance = instanceEditor.Panel(self.tab,self.guiPlaces, t.model)
-        self.tab.AddPage(t.instance, prj.name + " Instantiation")
+        self.tab.AddPage(t.instance, self.getCurrentPageText(2))
         t.instanceDetails = entityDetailsDialog.Panel(self.tab,self.guiPlaces, t.model,isDetailInstance=True)
-        self.tab.AddPage(t.instanceDetails, prj.name + " Instance Details")
+        self.tab.AddPage(t.instanceDetails, self.getCurrentPageText(3))
       else:
         print 'OnProjectLoaded: model is not None'
+        self.cleanupTools()
+        self.cleanupMenus()
         t = self.model
         prj.setSAFplusModel(t.model)
         modelFile = os.path.join(prj.directory(), prj.model.children()[0].strip())
         t.model.init()
         t.model.load(modelFile)
-        t.uml.setModelData(t.model)
-        #t.instance.deleteTools()
-        t.uml.deleteTools()
-        t.uml.addTools()
-        self.setPagesText(prj)
-        t.uml.refresh()
-        t.instance.setModelData(t.model)
-        #t.instance.deleteTools()
-        t.instance.addTools()
-        t.instance.refresh()
-        t.instanceDetails.setModelData(t.model)
-        t.instanceDetails.refresh()
-        t.modelDetails.refresh()
-
+        if t.uml:
+          t.uml.setModelData(t.model)
+          t.uml.deleteTools()
+          t.uml.addTools()        
+          t.uml.refresh()
+        else:
+          t.uml = umlEditor.Panel(self.tab,self.guiPlaces, t.model)
+          self.tab.InsertPage(0, t.uml, self.getCurrentPageText(0), select=True)        
+        if t.instance:
+          t.instance.setModelData(t.model)
+          t.instance.addTools()
+          t.instance.refresh()
+        else:
+          t.instance = instanceEditor.Panel(self.tab,self.guiPlaces, t.model)
+          self.tab.InsertPage(2, t.instance, self.getCurrentPageText(2))
+        if t.instanceDetails:
+          t.instanceDetails.setModelData(t.model)
+          t.instanceDetails.refresh()
+        else:
+          t.instanceDetails = entityDetailsDialog.Panel(self.tab,self.guiPlaces, t.model,isDetailInstance=True)
+          self.tab.InsertPage(3, t.instanceDetails, self.getCurrentPageText(3))
+        if t.modelDetails:
+          t.modelDetails.refresh()
+        else:
+          t.modelDetails = entityDetailsDialog.Panel(self.tab,self.guiPlaces, t.model,isDetailInstance=False)
+          self.tab.InsertPage(1, t.modelDetails, self.getCurrentPageText(1))
+        self.setPagesText()
+      self.tab.Bind(wx.aui.EVT_AUINOTEBOOK_PAGE_CHANGED, self.onPageChanged) # bind to catch page selection event
+      self.tab.SetSelection(0) # open uml model view by default
+      
     def OnProjectNew(self,evt):
       """Called when a new project is created"""
       print "New project created"
@@ -175,12 +202,148 @@ class SAFplusFrame(wx.Frame):
       print "Quitting..."
       self.Close()
    
-    def setPagesText(self, prj):
-      self.tab.SetPageText(0, prj.name + " Modelling")
-      self.tab.SetPageText(1, prj.name + " Model Details")
-      self.tab.SetPageText(2, prj.name + " Instantiation")
-      self.tab.SetPageText(3, prj.name + " Instance Details")
+    def setPagesText(self):
+      self.tab.SetPageText(0, self.getCurrentPageText(0))
+      self.tab.SetPageText(1, self.getCurrentPageText(1))
+      self.tab.SetPageText(2, self.getCurrentPageText(2))
+      self.tab.SetPageText(3, self.getCurrentPageText(3))
 
+    def onPrjTreeActivated(self, evt):
+      """ handle an event when user double-clicks on an item at the tree on the left to switch views to it or to set it active """
+      pt = evt.GetPoint()
+      item, _ = self.project.tree.HitTest(pt)
+      if item:       
+        print "onPrjTreeActivated [%s]" % self.project.tree.GetItemText(item)
+        if self.project.tree.GetItemParent(item) == self.project.root: # check to see if this is the project name
+          prjname = os.path.splitext(self.project.tree.GetItemText(item))[0]
+          print 'project [%s] is activated' % prjname
+          prj = self.project.active()
+          print 'project [%s] is selected' % prj.name
+          if prj == self.currentActivePrj:
+            return
+          else:
+            self.showProject(prj)
+        else: pass #TODO : handling other tree item clicked e.g. c++ source or others
+
+    def onPageChanged(self, evt):
+      page = self.tab.GetPageText(evt.GetSelection())
+      print 'onPageChangedEvent: page [%s] is selected' % page
+      self.enableTools(page)
+
+    def enableTools(self, page):
+      t = self.model
+      if not t: return      
+      if page == self.getCurrentPageText(0):
+        # uml modelling is selected, now enable tools belonging to it and disable the others not belonging to it
+        if t.uml: 
+          t.uml.enableTools(True)
+          t.uml.enableMenuItems(True) # set menu items state also
+        if t.instance:
+          t.instance.enableTools(False)
+          t.instance.enableMenuItems(False) # set menu items state also
+      elif page == self.getCurrentPageText(2):
+        # instantiation is selected, now enable tools belonging to it and disable the others not belonging to it
+        if t.uml:
+          t.uml.enableTools(False)
+          t.uml.enableMenuItems(False)
+        if t.instance:
+          t.instance.enableTools(True)
+          t.instance.enableMenuItems(True)
+      else:
+        # disable all tools because in these pages, we do not model
+        if t.uml:
+          t.uml.enableTools(False)
+          t.uml.enableMenuItems(False)
+        if t.instance:
+          t.instance.enableTools(False)
+          t.instance.enableMenuItems(False)
+
+    def getCurrentPageText(self, pageIdx):
+      if pageIdx==0:
+        return self.currentActivePrj.name + " Modelling"
+      elif pageIdx==1:
+        return self.currentActivePrj.name + " Model Details"
+      elif pageIdx==2:
+        return self.currentActivePrj.name + " Instantiation"
+      elif pageIdx==3:
+        return self.currentActivePrj.name + " Instance Details"
+      return None
+
+    def onPageClosing(self, evt):
+      print 'page closing event launched'
+      idx = evt.GetSelection()
+      pageText = self.tab.GetPageText(idx)
+      print 'page [%s] idx [%d] closing' % (pageText, idx)
+      t = self.model
+      if pageText == self.getCurrentPageText(0):
+        t.uml.deleteMyTools()        
+        pageIdx = 0
+      elif pageText == self.getCurrentPageText(1):
+        pageIdx = 1
+      elif pageText == self.getCurrentPageText(2):
+        t.instance.deleteMyTools()
+        pageIdx = 2
+      else:
+        pageIdx = 3 
+      print 'insert menu item id [%d] text [%s]' % (pageIdx, pageText)
+      self.menuWindows.Append(pageIdx, pageText)
+      self.menuWindows.Bind(wx.EVT_MENU, self.onWindowsMenu, id=pageIdx)
+      #evt.Veto()   
+      #self.tab.RemovePage(idx)
+
+    def onWindowsMenu(self, evt):
+      print 'onWindowsMenu launched'
+      idx = evt.GetId()
+      pageText = self.menuWindows.GetLabel(idx)
+      print 'menu item [%s] idx [%d] clicked' % (pageText, idx)
+      t = self.model
+      if pageText == self.getCurrentPageText(0):
+        if t.instance:
+          t.instance.deleteTools()
+        else:
+          self.tb.ClearTools()
+        page = t.uml = umlEditor.Panel(self.tab,self.guiPlaces, t.model)
+        if t.instance:
+          t.instance.addTools()
+        pageIdx = 0  
+      elif pageText == self.getCurrentPageText(1):
+        page = t.modelDetails = entityDetailsDialog.Panel(self.tab,self.guiPlaces, t.model,isDetailInstance=False)
+        pageIdx = 1 if t.uml else 0               
+      elif pageText == self.getCurrentPageText(2):
+        page = t.instance = instanceEditor.Panel(self.tab,self.guiPlaces, t.model)
+        if t.uml and t.modelDetails:
+          pageIdx = 2
+        elif (t.uml and not t.modelDetails) or (not t.uml and t.modelDetails):
+          pageIdx = 1
+        else:
+          pageIdx = 0
+      else:
+        page = t.instanceDetails = entityDetailsDialog.Panel(self.tab,self.guiPlaces, t.model,isDetailInstance=True)
+        pageIdx = 3
+      print 'insert page id [%d] text [%s]' % (pageIdx, pageText)
+      self.tab.InsertPage(pageIdx, page, pageText)
+      self.menuWindows.Delete(idx)
+      self.tab.SetSelection(pageIdx)
+
+    def deleteWindowsMenuItem(self, text):
+      menuItems = self.menuWindows.GetMenuItems()
+      for item in menuItems:
+        if item.GetItemLabelText() == text:
+          self.menuWindows.Delete(item.Id)
+          break
+
+    def insertPage(self, idx):
+      t = self.model      
+      if not t: return
+      page = None
+      if idx==1: 
+        page = t.modelDetails = entityDetailsDialog.Panel(self.tab,self.guiPlaces, t.model,isDetailInstance=False)        
+      elif idx==3:
+        page = t.instanceDetails = entityDetailsDialog.Panel(self.tab,self.guiPlaces, t.model,isDetailInstance=True)
+      if page:
+        pageText = self.getCurrentPageText(idx)
+        self.tab.InsertPage(idx, page, pageText, select=True)
+        self.deleteWindowsMenuItem(pageText)
 
 class SAFplusApp(wx.App):
     """ WX Application wrapper for SAFplus IDE"""

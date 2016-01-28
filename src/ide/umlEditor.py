@@ -495,7 +495,7 @@ class SelectTool(Tool):
   def OnEditEvent(self,panel, event):
     pos = panel.CalcUnscrolledPosition(event.GetPositionTuple())
     if isinstance(event,wx.MouseEvent):
-      if event.ButtonDown(wx.MOUSE_BTN_LEFT):  # Select
+      if event.ButtonDown(wx.MOUSE_BTN_LEFT) or event.LeftDClick():  # Select
         entities = panel.findEntitiesAt(pos)
         self.dragPos = pos
         if not entities:
@@ -515,7 +515,8 @@ class SelectTool(Tool):
         if event.ControlDown():
           self.selected = self.selected.union(self.touching)
         else: self.selected = self.touching.copy()
-        self.updateSelected()
+        if event.LeftDClick():
+          self.updateSelected()
         return True
       if event.Dragging():
         # if you are touching anything, then drag everything
@@ -561,12 +562,17 @@ class SelectTool(Tool):
       else:
         return False # Give this key to someone else
 
-    self.updateSelected()
+    #self.updateSelected()
   
   def updateSelected(self):
     if len(self.selected) == 1:
+      parentFrame = share.umlEditorPanel.guiPlaces.frame
       if share.detailsPanel:
         share.detailsPanel.showEntity(next(iter(self.selected)))
+        parentFrame.tab.SetSelection(1)
+      else:
+        parentFrame.insertPage(1)
+        share.detailsPanel.showEntity(next(iter(self.selected)))    
 
 class ZoomTool(Tool):
   def __init__(self, panel):
@@ -757,7 +763,7 @@ class Panel(scrolled.ScrolledPanel):
       self.SetScrollRate(10, 10)
       self.Bind(wx.EVT_SIZE, self.OnReSize)
       self.Bind(wx.EVT_PAINT, self.OnPaint)
-      self.Bind(wx.EVT_SHOW, self.OnShow)
+      #self.Bind(wx.EVT_SHOW, self.OnShow)
 
       share.umlEditorPanel = self
 
@@ -866,23 +872,9 @@ class Panel(scrolled.ScrolledPanel):
      self.addEntityTools()
      #self.toolBar.Bind(wx.EVT_TOOL, self.OnToolClick, id=ENTITY_TYPE_BUTTON_START, id2=wx.NewId())
      #self.toolBar.Bind(wx.EVT_TOOL_RCLICKED, self.OnToolRClick)
-     self.toolBar.Bind(wx.EVT_TOOL, self.OnToolClick)
+     for toolId in self.idLookup:
+       self.toolBar.Bind(wx.EVT_TOOL, self.OnToolClick, id=toolId)
      self.toolBar.Bind(wx.EVT_TOOL_RCLICKED, self.OnToolRClick)
-
-    def deleteEntityTools(self):
-      """Iterate through all the entity types, adding them as tools"""  
-      print 'deleteEntityTools'
-      menu = self.guiPlaces.menu.get("Modelling",None)    
-      for btnId in self.entityToolIds:        
-        self.toolBar.DeleteTool(btnId)        
-        if menu:
-          menuItem = menu.FindItemById(btnId)
-          if menuItem:
-            menu.Delete(btnId)
-        del self.idLookup[btnId]      
-      #self.toolBar.Unbind(wx.EVT_TOOL)
-      self.toolBar.DeletePendingEvents()
-      self.resetDataMembers()
 
     def addCommonTools(self):
       tsize = self.toolBar.GetToolBitmapSize()
@@ -920,7 +912,32 @@ class Panel(scrolled.ScrolledPanel):
       self.toolBar.DeletePendingEvents()
       #self.toolBar.Unbind(wx.EVT_TOOL)
       self.toolBar.ClearTools()
+      self.deleteMenuItems()
+      if share.instancePanel:
+        share.instancePanel.deleteMenuItems()
       self.idLookup.clear()
+
+    def deleteMyTools(self):
+      for toolId in self.idLookup:
+        self.toolBar.DeleteTool(toolId)
+      self.deleteMenuItems()
+      self.idLookup.clear()
+
+    def deleteMenuItems(self):
+      menu = self.guiPlaces.menu.get("Modelling",None)
+      menuItems = menu.GetMenuItems()
+      for item in menuItems:
+        menu.Delete(item.Id)
+
+    def enableMenuItems(self, enable):
+      menu = self.guiPlaces.menu.get("Modelling",None)
+      menuItems = menu.GetMenuItems()
+      for item in menuItems:
+        menu.Enable(item.Id, enable)
+
+    def enableTools(self, enable):      
+      for toolId in self.idLookup:
+        self.toolBar.EnableTool(toolId, enable)
 
     def OnToolEvent(self,event):      
       handled = False
