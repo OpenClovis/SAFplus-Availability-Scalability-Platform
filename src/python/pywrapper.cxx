@@ -303,4 +303,5 @@ BOOST_PYTHON_MODULE(pySAFplus)
   def("mgtSet",static_cast< ClRcT (*)(const std::string&,const std::string&) > (&SAFplus::mgtSet)); 
   def("mgtCreate",static_cast< ClRcT (*)(const std::string& pathSpec) > (&SAFplus::mgtCreate));
   def("mgtDelete",static_cast< ClRcT (*)(const std::string& pathSpec) > (&SAFplus::mgtDelete));
+  def("mgtModuleRpcCall",static_cast< ClRcT (*)(Mgt::Msg::MsgRpc::MgtRpcType mgtRpcType, const std::string& pathSpec, const std::string& attrs) > (&SAFplus::mgtModuleRpcCall));
 }

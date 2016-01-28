@@ -76,46 +76,58 @@ namespace myService
         this->homeLocation.set(homeLocationValue,txn);
     };
 
-    ClRcT reset::doRpc(const std::string &attrs)
+    ClRcT reset::validate(const std::string &attrs)
     {
-        logInfo("APP","Reset","do RPC works, then reset the port %s", attrs.c_str());
-        std::vector<std::string> strs;
-        boost::split(strs, attrs, boost::is_any_of(","));
-        //reset with the set port
-        if (strs.size() <= 0)
+      logInfo("APP","Reset","Validate the data !!!!", attrs.c_str());
+        return CL_OK;
+    }
+
+    ClRcT reset::invoke(const std::string &attrs)
+    {
+      logInfo("APP","Reset","invoke %s", attrs.c_str());
+      std::vector<std::string> strs;
+      boost::split(strs, attrs, boost::is_any_of(","));
+      //reset with the set port
+      if (strs.size() <= 0)
+        {
+          uint16_t new_port = mgt.serviceCfg.getPort();
+          uint16_t listening_port = getPort();
+          if (new_port != listening_port)
+            {
+              stopHttpDaemon(listening_port);
+              startHttpDaemon(new_port);
+              setPort(new_port);
+            }
+        }
+      else
+        {
+          for (auto attr : strs)
           {
-            uint16_t new_port = mgt.serviceCfg.getPort();
-            uint16_t listening_port = getPort();
-            if (new_port != listening_port)
+            std::vector<std::string> s;
+            boost::split(s, attr, boost::is_any_of("="));
+            std::string key = s[0];
+            std::string value = s[1];
+
+            if (key == "port")
               {
-                stopHttpDaemon(listening_port);
-                startHttpDaemon(new_port);
-                setPort(new_port);
+                uint16_t new_port = atoi(value.c_str());
+                if (new_port && new_port != getPort())
+                  {
+                    stopHttpDaemon(getPort());
+                    startHttpDaemon(new_port);
+                    setPort(new_port);
+                    mgt.serviceCfg.setPort(new_port);
+                  }
               }
           }
-        else
-          {
-            for (auto attr : strs)
-            {
-              std::vector<std::string> s;
-              boost::split(s, attr, boost::is_any_of("="));
-              std::string key = s[0];
-              std::string value = s[1];
+        }
+      return CL_OK;
+    }
 
-              if (key == "port")
-                {
-                  uint16_t new_port = atoi(value.c_str());
-                  if (new_port && new_port != getPort())
-                    {
-                      stopHttpDaemon(getPort());
-                      startHttpDaemon(new_port);
-                      setPort(new_port);
-                      mgt.serviceCfg.setPort(new_port);
-                    }
-                }
-            }
-          }
-        return CL_OK;
+    ClRcT reset::postReply(const std::string &attrs)
+    {
+      logInfo("APP","Reset","post Reply %s", attrs.c_str());
+      return CL_OK;
     }
 
     reset::~reset()

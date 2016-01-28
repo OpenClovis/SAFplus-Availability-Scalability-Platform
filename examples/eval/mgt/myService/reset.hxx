@@ -55,11 +55,10 @@ namespace myService
          */
         void setHomeLocation(std::string homeLocationValue, SAFplus::Transaction &txn=SAFplus::NO_TXN);
 
-        virtual ClBoolT validate() {return CL_TRUE;}
-        virtual ClBoolT invoke() {return CL_TRUE;}
-        virtual ClBoolT postReply() {return CL_TRUE;}
+        virtual ClRcT validate(const std::string &attrs = "");
+        virtual ClRcT invoke(const std::string &attrs = "");
+        virtual ClRcT postReply(const std::string &attrs = "");
 
-        virtual ClRcT doRpc(const std::string &attrs = "");
         ~reset();
 
     };

@@ -59,14 +59,16 @@ namespace SAFplus
   MgtRoot::~MgtRoot()
   {
   }
-  MgtRoot::MgtRoot():mgtMessageHandler()
+  MgtRoot::MgtRoot():mgtMessageHandler(), rpcMessageHandler()
   {
     /*
      * Message server to communicate with snmp/netconf
      */
     SAFplus::SafplusMsgServer* mgtIocInstance = &safplusMsgServer;
     mgtMessageHandler.init(this);
+    rpcMessageHandler.init(this);
     mgtIocInstance->RegisterHandler(SAFplusI::CL_MGT_MSG_TYPE, &mgtMessageHandler, nullptr);
+    mgtIocInstance->RegisterHandler(SAFplusI::CL_MGT_RPC_TYPE, &rpcMessageHandler, nullptr);
     // Init Mgt Checkpoint
     mgtAccessInitialize();
   }
@@ -283,10 +285,9 @@ namespace SAFplus
   ClRcT MgtRoot::registerRpc(SAFplus::Handle handle,const std::string module,const std::string rpcName)
   {
     ClRcT rc = CL_OK;
-#if 1
+#if 0
     //stored this handle into checkpoint
-    char fullpath[CL_MAX_NAME_LENGTH];
-    sprintf(fullpath, "/%s/%s", module.c_str(), rpcName.c_str());
+    std::string fullpath = "/" + module;
     // for data
     char handleData[sizeof(Buffer) - 1 + sizeof(Handle)];
     Buffer* val = new (handleData) Buffer(sizeof(Handle));
@@ -306,7 +307,7 @@ namespace SAFplus
     bindData.set_route(rpcName.c_str(),CL_MAX_NAME_LENGTH - 1);
     bindData.SerializeToString(&strBind);
     /* Send bind data to the server */
-    mgtMsgReq.set_type(Mgt::Msg::MsgMgt::CL_MGT_MSG_BIND);
+    mgtMsgReq.set_type(Mgt::Msg::MsgMgt::CL_MGT_MSG_BIND_RPC);
     mgtMsgReq.set_bind(strBind);
 
     // TODO: Who do I send this message to?  I think it should go to the active Mgt server?  Or broadcast to both Mgt servers?
@@ -649,21 +650,28 @@ namespace SAFplus
     MgtRoot::sendReplyMsg(srcAddr, (void *) &rc, sizeof(ClRcT));
   }
 
-  void MgtRoot::clRpcMsgValidateHandler(SAFplus::Handle srcAddr, Mgt::Msg::MsgRpc& reqMsg)
+  void MgtRoot::clRpcMsgHandler(SAFplus::Handle srcAddr, Mgt::Msg::MsgRpc& reqMsg)
   {
-#if 0
     ClRcT rc = CL_OK;
     std::vector<MgtObject*> matches;
-    std::string path = reqMsg.bind();
-    std::string attrs = reqMsg.data();
-    std::string cmds;
+    std::string path, cmds;
+    std::string attrs = "";
+    std::string data = reqMsg.data();
+
+    std::vector<std::string> strs;
+    boost::split(strs, data, boost::is_any_of(","));
+    path = strs[0];
+    if (strs.size() > 0)
+      {
+        attrs = data.substr(path.length() + 1);
+      }
 
     if (path[0] == '{')  // Debugging requests
     {
       int end = path.find_first_of("}");
       cmds = path.substr(1,end-1);
       vector<string> strs;
-      boost::split(strs,cmds,boost::is_any_of(","));
+      boost::split(strs, cmds, boost::is_any_of(","));
       for (auto cmd: strs)
         {
           if (cmd[0] == 'b')
@@ -675,6 +683,7 @@ namespace SAFplus
               clDbgPause();
             }
         }
+      // TODO: parse the non-xml requests (depth, pause thread, break thread, log custom string)
       cmds.append(" ");  // Right now I just assume everything in there is a custom logging string
       path = path.substr(end+1);
     }
@@ -682,7 +691,6 @@ namespace SAFplus
     if (path[0] == '/')
       {
         resolvePath(path.c_str() + 1, &matches);
-        std::string value = reqMsg.data(0);
         if (matches.size())
           {
             for (std::vector<MgtObject*>::iterator i = matches.begin(); i != matches.end(); i++)
@@ -690,7 +698,89 @@ namespace SAFplus
                 MgtRpc *rpc = dynamic_cast<MgtRpc*> (*i);
                 if (rpc)
                   {
-                    rc = rpc->validate();
+                    switch (reqMsg.rpctype())
+                    {
+                    case Mgt::Msg::MsgRpc::CL_MGT_RPC_VALIDATE:
+                      rc = rpc->validate(attrs);
+                      break;
+                    case Mgt::Msg::MsgRpc::CL_MGT_RPC_INVOKE:
+                      rc = rpc->invoke(attrs);
+                      break;
+                    case Mgt::Msg::MsgRpc::CL_MGT_RPC_POSTREPLY:
+                      rc = rpc->postReply(attrs);
+                      break;
+                    default:
+                      break;
+                    }
+
+                    MgtRoot::sendReplyMsg(srcAddr, (void *) &rc, sizeof(ClRcT));
+                    return;
+                  }
+                else
+                  {
+                    rc = CL_ERR_NOT_EXIST;
+                  }
+              }
+          }
+        else
+          {
+            rc = CL_ERR_NOT_EXIST;
+          }
+      }
+    logDebug("MGT","SET","Object [%s] update complete [0x%x]", path.c_str(),rc);
+    MgtRoot::sendReplyMsg(srcAddr,(void *)&rc,sizeof(ClRcT));
+  }
+
+#if 0
+  void MgtRoot::clRpcMsgValidateHandler(SAFplus::Handle srcAddr, Mgt::Msg::MsgRpc& reqMsg)
+  {
+    ClRcT rc = CL_OK;
+    std::vector<MgtObject*> matches;
+    std::string path, cmds;
+    std::string attrs = "";
+    std::string data = reqMsg.data();
+
+    std::vector<std::string> strs;
+    boost::split(strs, data, boost::is_any_of(","));
+    path = strs[0];
+    if (strs.size() > 0)
+      {
+        attrs = data.substr(path.length() + 1);
+      }
+
+    if (path[0] == '{')  // Debugging requests
+    {
+      int end = path.find_first_of("}");
+      cmds = path.substr(1,end-1);
+      vector<string> strs;
+      boost::split(strs, cmds, boost::is_any_of(","));
+      for (auto cmd: strs)
+        {
+          if (cmd[0] == 'b')
+            {
+              std::raise(SIGINT);
+            }
+          else if (cmd[0] == 'p')
+            {
+              clDbgPause();
+            }
+        }
+      // TODO: parse the non-xml requests (depth, pause thread, break thread, log custom string)
+      cmds.append(" ");  // Right now I just assume everything in there is a custom logging string
+      path = path.substr(end+1);
+    }
+
+    if (path[0] == '/')
+      {
+        resolvePath(path.c_str() + 1, &matches);
+        if (matches.size())
+          {
+            for (std::vector<MgtObject*>::iterator i = matches.begin(); i != matches.end(); i++)
+              {
+                MgtRpc *rpc = dynamic_cast<MgtRpc*> (*i);
+                if (rpc)
+                  {
+                    rc = rpc->validate(attrs);
                     logDebug("MGT","RPC","Object [%s] do validate msg",path.c_str());
                     MgtRoot::sendReplyMsg(srcAddr, (void *) &rc, sizeof(ClRcT));
 
@@ -709,7 +799,6 @@ namespace SAFplus
       }
     logDebug("MGT","SET","Object [%s] update complete [0x%x]", path.c_str(),rc);
     MgtRoot::sendReplyMsg(srcAddr,(void *)&rc,sizeof(ClRcT));
-#endif
   }
 
   void MgtRoot::clRpcMsgInvokeHandler(SAFplus::Handle srcAddr, Mgt::Msg::MsgRpc& reqMsg)
@@ -721,6 +810,7 @@ namespace SAFplus
   {
     //TODO
   }
+#endif
 
   void MgtRoot::clMgtMsgRpcHandler(SAFplus::Handle srcAddr, Mgt::Msg::MsgMgt& reqMsg)
     {
@@ -816,25 +906,16 @@ namespace SAFplus
     }
   }
 
+  MgtRoot::RpcMessageHandler::RpcMessageHandler()
+  {
+
+  }
+
   void MgtRoot::RpcMessageHandler::msgHandler(SAFplus::Handle from, SAFplus::MsgServer* svr, ClPtrT msg, ClWordT msglen, ClPtrT cookie)
   {
     Mgt::Msg::MsgRpc rpcMsgReq;
     rpcMsgReq.ParseFromArray(msg, msglen);
-
-    switch(rpcMsgReq.rpctype())
-    {
-      case Mgt::Msg::MsgRpc::CL_MGT_RPC_VALIDATE:
-        mRoot->clRpcMsgValidateHandler(from,rpcMsgReq);
-        break;
-      case Mgt::Msg::MsgRpc::CL_MGT_RPC_INVOKE:
-        mRoot->clRpcMsgInvokeHandler(from,rpcMsgReq);
-        break;
-      case Mgt::Msg::MsgRpc::CL_MGT_RPC_POSTREPLY:
-        mRoot->clRpcMsgPostReplyHandler(from,rpcMsgReq);
-        break;
-      default:
-        break;
-    }
+    mRoot->clRpcMsgHandler(from, rpcMsgReq);
   }
 
   void MgtRoot::addReference(MgtObject* mgtObject)

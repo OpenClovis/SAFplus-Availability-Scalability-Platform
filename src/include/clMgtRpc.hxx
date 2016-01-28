@@ -75,9 +75,9 @@ namespace SAFplus
     void getOutParams(std::string *pBuff);
 
 
-    virtual ClBoolT validate() = 0;
-    virtual ClBoolT invoke() = 0;
-    virtual ClBoolT postReply() = 0;
+    virtual ClRcT validate(const std::string &attrs = "") = 0;
+    virtual ClRcT invoke(const std::string &attrs = "") = 0;
+    virtual ClRcT postReply(const std::string &attrs = "") = 0;
 
     /**
      * \brief   Function to register a Rpc to the server
@@ -90,11 +90,6 @@ namespace SAFplus
     virtual ClBoolT set(const void *pBuffer, ClUint64T buffLen, SAFplus::Transaction& t)
     {
       return CL_TRUE;
-    }
-
-    virtual ClRcT doRpc(const std::string &attrs = "")
-    {
-      return CL_OK;
     }
   };
 };

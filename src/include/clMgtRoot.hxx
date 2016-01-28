@@ -148,9 +148,8 @@ public:
     /*
      * Rpc message handler
      */
-    void clRpcMsgValidateHandler(SAFplus::Handle srcAddr, Mgt::Msg::MsgRpc& rpcMsgReq);
-    void clRpcMsgInvokeHandler(SAFplus::Handle srcAddr, Mgt::Msg::MsgRpc& rpcMsgReq);
-    void clRpcMsgPostReplyHandler(SAFplus::Handle srcAddr, Mgt::Msg::MsgRpc& rpcMsgReq);
+    void clRpcMsgHandler(SAFplus::Handle srcAddr, Mgt::Msg::MsgRpc& rpcMsgReq);
+
     class MgtMessageHandler:public SAFplus::MsgHandler
     {
       public:
@@ -164,8 +163,10 @@ public:
     class RpcMessageHandler:public MgtMessageHandler
       {
       public:
+        RpcMessageHandler();
         virtual void msgHandler(SAFplus::Handle from, SAFplus::MsgServer* svr, ClPtrT msg, ClWordT msglen, ClPtrT cookie);
       };
+    RpcMessageHandler rpcMessageHandler;
 
 //TODO:
 //    static ClRcT sendMsg(SAFplus::Handle dest, void* payload, uint payloadlen, MgtMsgType msgtype,void* reply = NULL);
