@@ -13,6 +13,7 @@ import xml.dom.minidom
 from common import log
 import re
 import ntpath
+import common
 
 PROJECT_LOAD = wx.NewId()
 PROJECT_SAVE = wx.NewId()
@@ -215,6 +216,19 @@ class ProjectTreePanel(wx.Panel):
        (child, cookie) = self.tree.GetNextChild(self.root, cookie)
      return False
 
+  def fillDataModel(self, srcPath, destPath):
+     #if not os.path.exists(srcPath):
+     #   print 'model patch [%s] does not exist' % srcPath
+     #   return False
+     if os.path.exists(destPath) and srcPath==destPath:
+        return True
+     output = common.FilesystemOutput()
+     with open(srcPath) as f:
+        content = f.read()        
+        output.write(destPath, content)
+        f.close()
+     return True          
+
   def populateGui(self,project,tree):
      p = project.projectFilename
      projName = os.path.basename(p)
@@ -271,6 +285,8 @@ class ProjectTreePanel(wx.Panel):
     if dlg.what == "OK":
       print 'handling ok clicked'                   
       log.write('You selected %d files: %s; datamodel: %s' % (len(dlg.path),str(dlg.path), dlg.datamodel.GetValue()))       
+      if not self.fillDataModel(dlg.datamodel.GetValue(), dlg.prjDir+os.sep+"SAFplusAmf.yang"):
+        return
       project = Project()
       project.projectFilename = dlg.path
       project.new(dlg.datamodel.GetValue())
@@ -313,7 +329,7 @@ class NewPrjDialog(wx.Dialog):
     #----------------------------------------------------------------------
     def __init__(self):
         """Constructor"""
-        wx.Dialog.__init__(self, None, title="New project", size=(430,220))
+        wx.Dialog.__init__(self, None, title="New project", size=(430,240))
          
         prjname_sizer = wx.BoxSizer(wx.HORIZONTAL)
  
@@ -321,6 +337,16 @@ class NewPrjDialog(wx.Dialog):
         prjname_sizer.Add(prj_lbl, 0, wx.ALL|wx.CENTER, 5)
         self.prjName = wx.TextCtrl(self)
         prjname_sizer.Add(self.prjName, 0, wx.ALL, 5)
+
+        prjlocation_sizer = wx.BoxSizer(wx.HORIZONTAL)
+        prj_location_lbl = wx.StaticText(self, label="Location", size=(100,25))
+        prjlocation_sizer.Add(prj_location_lbl, 0, wx.ALL|wx.CENTER, 5)
+        self.prjLocationName = wx.TextCtrl(self, size=(200, 25))
+        self.prjLocationName.SetValue(common.getMostRecentPrjDir())
+        prjlocation_sizer.Add(self.prjLocationName, 0, wx.ALL, 5)
+        prj_location_btn = wx.Button(self, label="Browse")
+        prj_location_btn.Bind(wx.EVT_BUTTON, self.onBrowse)
+        prjlocation_sizer.Add(prj_location_btn, 0, wx.ALL, 5)
  
         datamodel_sizer = wx.BoxSizer(wx.HORIZONTAL)
  
@@ -334,6 +360,7 @@ class NewPrjDialog(wx.Dialog):
  
         main_sizer = wx.BoxSizer(wx.VERTICAL)
         main_sizer.Add(prjname_sizer, 0, wx.ALL, 5)
+        main_sizer.Add(prjlocation_sizer, 0, wx.ALL, 5)
         main_sizer.Add(datamodel_sizer, 0, wx.ALL, 5)
  
         OK_btn = wx.Button(self, label="OK")
@@ -359,15 +386,29 @@ class NewPrjDialog(wx.Dialog):
               msgBox = wx.MessageDialog(self, "Project name is missing. Please specify a new project", style=wx.OK|wx.CENTRE)
               msgBox.ShowModal()
               msgBox.Destroy()
-              return           
-           if len(self.datamodel.GetValue()) == 0:
-              msgBox = wx.MessageDialog(self, "Data model is missing. Please choose a data model for the new project", style=wx.OK|wx.CENTRE)
+              return     
+           self.prjDir = self.prjLocationName.GetValue()+os.sep
+           if not self.prjLocationName.GetValue() or not os.path.exists(self.prjDir):
+              msgBox = wx.MessageDialog(self, "Project location is missing or does not exist. Please choose a location for the new project", style=wx.OK|wx.CENTRE)
               msgBox.ShowModal()
               msgBox.Destroy()
-              return            
-           self.path = os.getcwd()+os.sep+prjName                             
-           if not re.search('.spp$', self.path):
-              self.path+=".spp" 
+              return
+           t = self.datamodel.GetValue()
+           if not t or not os.path.exists(t) or not re.search('.yang$', t):
+              msgBox = wx.MessageDialog(self, "Data model is missing or does not exist. Please choose a valid data model for the new project", style=wx.OK|wx.CENTRE)
+              msgBox.ShowModal()
+              msgBox.Destroy()
+              return           
+           #self.path = os.getcwd()+os.sep+prjName                      
+           pos = prjName.rfind('.spp')
+           if pos<0:
+              self.prjDir+=prjName
+              self.path = self.prjDir+os.sep+prjName+'.spp'              
+           else:              
+              self.prjDir+= prjName[0:pos]
+              self.path=self.prjDir+os.sep+prjName
+           if not os.path.exists(self.prjDir):
+              os.makedirs(self.prjDir)
            if os.path.exists(self.path):
               msgBox = wx.MessageDialog(self, "Project exists. Please specify another name", style=wx.OK|wx.CENTRE)
               msgBox.ShowModal()
@@ -389,3 +430,15 @@ class NewPrjDialog(wx.Dialog):
             path = dlg.GetPath()
             print 'You selected %d files: %s' % (len(path),str(path))
             self.datamodel.SetValue(path)
+
+    def onBrowse(self, event):
+        print 'about to browse project location'        
+        dlg = wx.DirDialog(
+            self, message="Choose a project location",
+            defaultPath=common.getMostRecentPrjDir(),             
+            style=wx.DD_DEFAULT_STYLE | wx.DD_CHANGE_DIR
+            )
+        if dlg.ShowModal() == wx.ID_OK:
+            path = dlg.GetPath()
+            print 'You selected %d path: %s' % (len(path),str(path))
+            self.prjLocationName.SetValue(path)
