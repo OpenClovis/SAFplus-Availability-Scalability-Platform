@@ -1820,7 +1820,9 @@ clAmsCCBValidateAdminState(
 
                 if ( si && ( si->config.adminState != CL_AMS_ADMIN_STATE_LOCKED_A ) )
                 {
-                    return CL_AMS_RC (CL_AMS_ERR_INVALID_ENTITY_STATE);
+                    // Enhancement dynamic HA: Allow to delete CSI if no component has it assigned
+                    if (csi->status.pgList.numEntities)
+                      return CL_AMS_RC (CL_AMS_ERR_INVALID_ENTITY_STATE);
                 }
 
                 break;
