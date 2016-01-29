@@ -3,6 +3,7 @@ import inspect
 import os
 import re
 import types
+import pwd
 userWorkspace = None
 programDirectory = None
 
@@ -11,6 +12,7 @@ class Log():
     print string
 
 log = Log()
+numRecentProjects = 5 # define the maximum number of recent projects
 
 class Output:
   """This abstract class defines how the generated output is written to the file system
@@ -86,3 +88,54 @@ def fileResolver(filename):
   # print "No such file: %s" % filename
   pdb.set_trace()
   raise IOError(2,'No such file')
+
+def getRecentPrjFile(force_create=False):
+  currentUsername = pwd.getpwuid(os.getuid())[0]
+  path = '/home/'+currentUsername+'/.safplus_ide'
+  if force_create:
+    if not os.path.exists(path):
+      os.makedirs(path)
+  return path 
+
+recentPrjFile = getRecentPrjFile(True)+'/recent_projects'
+
+def getRecentPrjs():
+  if not os.path.exists(recentPrjFile):
+    return []
+  with open(recentPrjFile) as f:
+    contents = f.readlines()
+    f.close()
+  return contents
+
+def getMostRecentPrj():
+  prjs = getRecentPrjs()
+  if len(prjs)==0:
+    return None
+  return prjs[-1]
+
+def getMostRecentPrjDir():  
+  t = getMostRecentPrj()
+  if t:
+    p = os.path.dirname(t)
+    return os.path.dirname(p)  
+  # t is None, return the default dir /home/`$user`
+  currentUsername = pwd.getpwuid(os.getuid())[0]
+  return '/home/'+currentUsername
+
+def addRecentPrj(prjPath):
+  t = getRecentPrjs()  
+  l=len(t)
+  p = prjPath+'\n'
+  if l<numRecentProjects and not p in t:    
+    f = open(recentPrjFile,"a+")
+    f.write(p)
+    f.close()
+  else:
+    os.remove(recentPrjFile)    
+    f = open(recentPrjFile, "a+")
+    t2 = t[l-numRecentProjects+1:] # excerpt last n-1 elements from the original list
+    for i in t2:
+      if i!=p:        
+        f.write(i)    
+    f.write(p)
+    f.close()

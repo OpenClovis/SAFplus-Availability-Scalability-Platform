@@ -41,6 +41,7 @@ class SAFplusFrame(wx.Frame):
         # creates an accelerator, the third param is some help text
         # that will show up in the statusbar
         self.menu.Append(wx.ID_EXIT, "E&xit\tAlt-X", "Exit")
+        self.menu.AppendSeparator()
 
         # bind the menu event to an event handler
         self.Bind(wx.EVT_MENU, self.OnTimeToClose, id=wx.ID_EXIT)
@@ -75,6 +76,12 @@ class SAFplusFrame(wx.Frame):
         self.sizer = wx.BoxSizer()
         self.sizer.Add(self.prjSplitter, 1, wx.EXPAND)
         self.SetSizer(self.sizer)
+
+        # add recent projects menu items
+        self.menu.AppendSeparator()
+        self.recentPrjMenu = wx.Menu()
+        self.menu.AppendMenu(wx.NewId(), "Recent projects", self.recentPrjMenu)
+        self.loadRecentProjects()
 
     def cleanupTabs(self):
       """remove all editor window tabs"""
@@ -168,6 +175,8 @@ class SAFplusFrame(wx.Frame):
         self.setPagesText()
       self.tab.Bind(wx.aui.EVT_AUINOTEBOOK_PAGE_CHANGED, self.onPageChanged) # bind to catch page selection event
       self.tab.SetSelection(0) # open uml model view by default
+      # append to recent projects repository and update the menu
+      self.updateRecentProject(prj)
       
     def OnProjectNew(self,evt):
       """Called when a new project is created"""
@@ -207,6 +216,25 @@ class SAFplusFrame(wx.Frame):
       self.tab.SetPageText(1, self.getCurrentPageText(1))
       self.tab.SetPageText(2, self.getCurrentPageText(2))
       self.tab.SetPageText(3, self.getCurrentPageText(3))
+
+    def loadRecentProjects(self):
+      recentPrjs = common.getRecentPrjs()
+      for i in recentPrjs[::-1]:
+        itemId = wx.NewId()
+        self.recentPrjMenu.Append(itemId, i.replace('\n',''))
+        self.recentPrjMenu.Bind(wx.EVT_MENU, self.onRecentPrjMenu, id=itemId)
+
+    def updateRecentProject(self, prj):
+      common.addRecentPrj(prj.projectFilename)
+      menuItems = self.recentPrjMenu.GetMenuItems()
+      #if len(menuItems)>0 and menuItems[0].GetItemLabelText()==prj.projectFilename:
+      #  return
+      for item in menuItems:
+        self.recentPrjMenu.Delete(item.Id)
+      self.loadRecentProjects()
+
+    def onRecentPrjMenu(self, evt):
+      print 'onRecentPrjMenu: %d' % evt.GetId()
 
     def onPrjTreeActivated(self, evt):
       """ handle an event when user double-clicks on an item at the tree on the left to switch views to it or to set it active """
