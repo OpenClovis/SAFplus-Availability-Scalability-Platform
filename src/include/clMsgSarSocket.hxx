@@ -11,7 +11,7 @@ namespace SAFplus
   {
     /*? <class> Segmentation and Reassembly socket
     Messages are broken into packets.  All are prefixed with 2 fields: msgNum (8 bits) and index (16 bits) written in network order.
-    The msgNum field has a final message indicator (msgNum&1)==1, and 7 bits specifying which message this is.  From the receiver's perspective, source address:msgNum uniquely identifies a "live" message.  Index starts at zero and counts up.  Dropped messages can be identified due to gaps in the index, the initial index not starting a zero (lost first message), or the final message bit not being set (lost last message). 
+    The msgNum field has a final message indicator (msgNum and 1)==1, and 7 bits specifying which message this is.  From the receiver's perspective, source address:msgNum uniquely identifies a "live" message.  Index starts at zero and counts up.  Dropped messages can be identified due to gaps in the index, the initial index not starting a zero (lost first message), or the final message bit not being set (lost last message). 
     */ 
     class MsgSarIdentifier
     {
@@ -20,16 +20,13 @@ namespace SAFplus
       SAFplus::Handle from;
       uint_t msgId; 
       bool operator == (const MsgSarIdentifier& other) const { return (from==other.from) && (msgId==other.msgId); }
-    };
+    }; //? </class>
 
   inline std::size_t hash_value(MsgSarIdentifier const& h)
   {
      boost::hash<uint64_t> hasher;        
      return hash_value(h.from) ^ hasher(h.msgId);
   }     
-
-
-
 
 
     class MsgSarTracker
@@ -43,6 +40,7 @@ namespace SAFplus
       std::vector<Message*> msgs; 
     };
 
+    //? <class> The message socket for the segmentation and reassembly layer
     class MsgSarSocket: public MsgSocket
     {
       public:
