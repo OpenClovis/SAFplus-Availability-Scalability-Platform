@@ -116,9 +116,9 @@ class SAFplusFrame(wx.Frame):
       # Now load the new one:
       # prj = self.project.active()
       prj = self.project.latest()      
-      self.showProject(prj)
+      self.loadProject(prj)
 
-    def showProject(self, prj):
+    def loadProject(self, prj):
       if not prj: return
       self.currentActivePrj = prj
       self.tab.Unbind(wx.aui.EVT_AUINOTEBOOK_PAGE_CHANGED) # need to unbind to not catch page delete event b/c we only want to catch page selection event
@@ -234,7 +234,14 @@ class SAFplusFrame(wx.Frame):
       self.loadRecentProjects()
 
     def onRecentPrjMenu(self, evt):
-      print 'onRecentPrjMenu: %d' % evt.GetId()
+      itemId = evt.GetId()
+      p = self.recentPrjMenu.FindItemById(itemId).GetItemLabelText()      
+      print 'onRecentPrjMenu: name [%s]; id [%d]' % (p, itemId) 
+      if self.project.isPrjLoaded(p): return 
+      project = Project(p)                 
+      self.project.populateGui(project, self.project.root)
+      prj = self.project.latest()      
+      self.loadProject(prj)
 
     def onPrjTreeActivated(self, evt):
       """ handle an event when user double-clicks on an item at the tree on the left to switch views to it or to set it active """
@@ -250,7 +257,7 @@ class SAFplusFrame(wx.Frame):
           if prj == self.currentActivePrj:
             return
           else:
-            self.showProject(prj)
+            self.loadProject(prj)
         else: pass #TODO : handling other tree item clicked e.g. c++ source or others
 
     def onPageChanged(self, evt):
