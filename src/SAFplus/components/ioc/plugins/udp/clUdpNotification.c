@@ -880,10 +880,8 @@ ClRcT clUdpEventHandlerInitialize(void)
     rc = clOsalCondInit(&gIocEventHandlerClose.condVar);
     CL_ASSERT(rc == CL_OK);
 
-#if 0 //Ignore to support bridge 
     rc = clIocNotificationInitialize();
     CL_ASSERT(rc == CL_OK);
-#endif
 
     /* Creating a socket for handling the data packets sent by other node CPM/amf. */
     rc = clIocCommPortCreateStatic(CL_IOC_XPORT_PORT, CL_IOC_RELIABLE_MESSAGING, &dummyCommPort, gClUdpXportType);

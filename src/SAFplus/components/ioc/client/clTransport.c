@@ -1400,6 +1400,21 @@ static void _clSetupDestNodeLUTData(void)
             _clXportDestNodeLUTMapAdd(entryLUTData);
             goto loop;
         }
+        else
+        {
+          for (i = 0; i < map->numXport; i++)
+          {
+            // Using default xportType if remote node supports
+            if (!strcmp(gClXportDefaultType, map->xports[i]))
+            {
+              entryLUTData->bridgeIocNodeAddress = map->iocAddress;
+              entryLUTData->destIocNodeAddress = map->iocAddress;
+              entryLUTData->xportType = clStrdup(gClXportDefaultType);
+              _clXportDestNodeLUTMapAdd(entryLUTData);
+              goto loop;
+            }
+          }
+        }
 
         CL_LIST_FOR_EACH(iter, &gClTransportList)
         {
@@ -1657,52 +1672,52 @@ static ClRcT _setDefaultXportForNode(ClParserPtrT parent)
 
         if (!name || !protocols)
         {
-               goto next;
+          goto next;
         }
         {
-        clLogDebug("LUT", "MAP", "Adding entry for node [%s]", name);
-        // Split the protocol into xports
-        xportType[0] = 0;
-        strncat(xportType, protocols, sizeof(xportType)-1);
+          clLogDebug("LUT", "MAP", "Adding entry for node [%s]", name);
+          // Split the protocol into xports
+          xportType[0] = 0;
+          strncat(xportType, protocols, sizeof(xportType)-1);
 
-        token = strtok_r(xportType, " ", &nextToken);
-        while (token && numxn < MAX_XPORTS_PER_SLOT)
-        {
-            ClTransportLayerT *xport = findTransport(token);
+          token = strtok_r(xportType, " ", &nextToken);
+          while (token && numxn < MAX_XPORTS_PER_SLOT)
+          {
+              ClTransportLayerT *xport = findTransport(token);
 
-            /* On destination node there maybe existing protocol not available in this blade */
-            if (xport || strcmp(name, (const ClCharT *)gClLocalNodeName.value))
-            {
-                xports[numxn++] = token;
-            }
-            token = strtok_r(NULL, " ", &nextToken);
-        }
+              /* On destination node there maybe existing protocol not available in this blade */
+              if (xport || strcmp(name, (const ClCharT *)gClLocalNodeName.value))
+              {
+                  xports[numxn++] = token;
+              }
+              token = strtok_r(NULL, " ", &nextToken);
+          }
 
-        ClXportNodeAddrDataT *entry = (ClXportNodeAddrDataT*) clHeapCalloc(1, sizeof(*entry));
-        CL_ASSERT(entry != NULL);
-        entry->iocAddress = 0;
-        entry->nodeName = clStrdup(name);
-        entry->numXport = numxn;
-        if (bridge && numxn > 1 && (!strncmp(bridge, "1", 1) ||
-                        !strncasecmp(bridge, "yes", 3) ||
-                        !strncasecmp(bridge, "y", 1) ||
-                        !strncasecmp(bridge, "true", 4) ||
-                        !strncasecmp(bridge, "t", 1) ))
-        {
-            entry->bridge = CL_TRUE;
-        }
-        else
-        {
-            entry->bridge = CL_FALSE;
-        }
-        entry->xports = (ClCharT **) clHeapCalloc(entry->numXport, sizeof(ClCharT *));
-        CL_ASSERT(entry->xports != NULL);
-        for (i = 0; i < entry->numXport; i++)
-        {
-            entry->xports[i] = clStrdup(xports[i]);
-        }
+          ClXportNodeAddrDataT *entry = (ClXportNodeAddrDataT*) clHeapCalloc(1, sizeof(*entry));
+          CL_ASSERT(entry != NULL);
+          entry->iocAddress = 0;
+          entry->nodeName = clStrdup(name);
+          entry->numXport = numxn;
+          if ((bridge && numxn > 1 && (!strncmp(bridge, "1", 1) ||
+                          !strncasecmp(bridge, "yes", 3) ||
+                          !strncasecmp(bridge, "y", 1) ||
+                          !strncasecmp(bridge, "true", 4) ||
+                          !strncasecmp(bridge, "t", 1) )) || (!strcmp(name, (const ClCharT *)gClLocalNodeName.value) && numxn > 1))
+          {
+              entry->bridge = CL_TRUE;
+          }
+          else
+          {
+              entry->bridge = CL_FALSE;
+          }
+          entry->xports = (ClCharT **) clHeapCalloc(entry->numXport, sizeof(ClCharT *));
+          CL_ASSERT(entry->xports != NULL);
+          for (i = 0; i < entry->numXport; i++)
+          {
+              entry->xports[i] = clStrdup(xports[i]);
+          }
 
-        _clXportNodeAddrMapAdd(entry);
+          _clXportNodeAddrMapAdd(entry);
         }
         next:
         node = node->next;
@@ -2409,7 +2424,8 @@ ClRcT clTransportNotificationOpen(const ClCharT *type, ClIocNodeAddressT node,
         }
         return rc;
     }
-    rc = CL_ERR_NOT_SUPPORTED;
+
+    rc = CL_OK;
     CL_LIST_FOR_EACH(iter, &gClTransportList)
     {
         ClRcT err = CL_OK;
@@ -2420,7 +2436,7 @@ ClRcT clTransportNotificationOpen(const ClCharT *type, ClIocNodeAddressT node,
             if (err != CL_OK)
             {
                 clLogError("XPORT", "NOTIFY", "Transport [%s] notify open failed with [%#x]", xport->xportType, rc);
-                rc |= err;
+                rc = CL_ERR_NOT_SUPPORTED;
             }
         }
     }
