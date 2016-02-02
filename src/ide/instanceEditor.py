@@ -611,6 +611,7 @@ class GenerateTool(Tool):
     if event.GetId() == CODEGEN_BUTTON:
       # code gen must be per-component -- not generation of one type of application
       files = panel.model.generateSource(self.panel.model.directory())
+      self.panel.statusBar.SetStatusText("Code generation complete")
       # TODO add these files to the "source" part of the project tab
       print files
  
@@ -849,6 +850,11 @@ class Panel(scrolled.ScrolledPanel):
 
       bitmap = svg.SvgFile("generate.svg").bmp(tsize, { }, (222,222,222,wx.ALPHA_OPAQUE))
       self.toolBar.AddTool(CODEGEN_BUTTON, bitmap, wx.NullBitmap, shortHelpString="Generate Source Code", longHelpString="Generate source code ...")
+      # add the generate menu item
+      menuFile = self.guiPlaces.menu.get("File",None)
+      gen = menuFile.Insert(5, CODEGEN_BUTTON, "&Generate code\tAlt-G", "Generate source code ...")
+      gen.Enable(False)
+     
       idMnuGenerateCode = [CODEGEN_BUTTON, CODEGEN_LANG_C, CODEGEN_LANG_CPP, CODEGEN_LANG_PYTHON, CODEGEN_LANG_JAVA]
       for idx in idMnuGenerateCode:
         self.idLookup[idx] = GenerateTool(self)
@@ -871,6 +877,9 @@ class Panel(scrolled.ScrolledPanel):
       self.toolBar.AddRadioTool(DELETE_BUTTON, bitmap, wx.NullBitmap, shortHelp="Delete entity/entities", longHelp="Select one or many entities. Click entity to delete.")
       self.idLookup[DELETE_BUTTON] = DeleteTool(self)    
 
+      #add event handler for menu generate code
+      fileMenu = self.guiPlaces.menu.get("File",None)
+      fileMenu.Bind(wx.EVT_MENU, self.OnToolMenu, id=CODEGEN_BUTTON)
     
     def deleteTools(self):   
       self.toolBar.DeletePendingEvents()
@@ -1047,12 +1056,18 @@ class Panel(scrolled.ScrolledPanel):
       menuItems = menu.GetMenuItems()
       for item in menuItems:
         menu.Delete(item.Id)
+      menuFile = self.guiPlaces.menu.get("File",None)
+      menuGen = menuFile.FindItemById(CODEGEN_BUTTON)
+      if menuGen:
+        menuFile.Delete(CODEGEN_BUTTON)
 
     def enableMenuItems(self, enable):
       menu = self.guiPlaces.menu.get("Instantiation",None)
       menuItems = menu.GetMenuItems()
       for item in menuItems:
         menu.Enable(item.Id, enable)
+      menuFile = self.guiPlaces.menu.get("File",None)
+      menuFile.Enable(CODEGEN_BUTTON, enable)
 
     def enableTools(self, enable):
       for toolId in self.idLookup:

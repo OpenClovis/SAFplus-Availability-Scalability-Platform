@@ -14,7 +14,7 @@ import wx.aui
 import instanceEditor
 import entityDetailsDialog
 import umlEditor
-from project import Project, ProjectTreePanel, EVT_PROJECT_LOADED, EVT_PROJECT_NEW
+from project import Project, ProjectTreePanel, EVT_PROJECT_LOADED, EVT_PROJECT_NEW, PROJECT_SAVE
 import common
 import model
 
@@ -41,8 +41,7 @@ class SAFplusFrame(wx.Frame):
         # creates an accelerator, the third param is some help text
         # that will show up in the statusbar
         self.menu.Append(wx.ID_EXIT, "E&xit\tAlt-X", "Exit")
-        self.menu.AppendSeparator()
-
+        self.menu.AppendSeparator()        
         # bind the menu event to an event handler
         self.Bind(wx.EVT_MENU, self.OnTimeToClose, id=wx.ID_EXIT)
         self.Bind(EVT_PROJECT_LOADED, self.OnProjectLoaded)
@@ -75,12 +74,11 @@ class SAFplusFrame(wx.Frame):
         # that it fills the frame
         self.sizer = wx.BoxSizer()
         self.sizer.Add(self.prjSplitter, 1, wx.EXPAND)
-        self.SetSizer(self.sizer)
-
+        self.SetSizer(self.sizer)        
         # add recent projects menu items
         self.menu.AppendSeparator()
         self.recentPrjMenu = wx.Menu()
-        self.menu.AppendMenu(wx.NewId(), "Recent projects", self.recentPrjMenu)
+        self.menu.AppendMenu(wx.NewId(), "Recent", self.recentPrjMenu, "Recent projects")
         self.loadRecentProjects()
 
     def cleanupTabs(self):
@@ -100,7 +98,7 @@ class SAFplusFrame(wx.Frame):
         self.menuModelling.Delete(item.Id)
       menuItems = self.menuInstantiation.GetMenuItems()
       for item in menuItems:
-        self.menuInstantiation.Delete(item.Id)
+        self.menuInstantiation.Delete(item.Id)      
       menuItems = self.menuWindows.GetMenuItems()
       for item in menuItems:
         self.menuWindows.Delete(item.Id)
@@ -232,6 +230,7 @@ class SAFplusFrame(wx.Frame):
       for item in menuItems:
         self.recentPrjMenu.Delete(item.Id)
       self.loadRecentProjects()
+      
 
     def onRecentPrjMenu(self, evt):
       itemId = evt.GetId()
@@ -242,6 +241,7 @@ class SAFplusFrame(wx.Frame):
       self.project.populateGui(project, self.project.root)
       prj = self.project.latest()      
       self.loadProject(prj)
+      self.menu.Enable(PROJECT_SAVE, True)
 
     def onPrjTreeActivated(self, evt):
       """ handle an event when user double-clicks on an item at the tree on the left to switch views to it or to set it active """
