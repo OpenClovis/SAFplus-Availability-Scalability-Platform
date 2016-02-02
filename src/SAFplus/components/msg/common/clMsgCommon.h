@@ -64,7 +64,7 @@ do {                                                                    \
     }                                                                   \
 } while(0)
 
-ClRcT clMsgIovecToMessageCopy(SaMsgMessageT **ppNewMsg, ClMsgMessageIovecT *pMessage, ClUint32T index);
+ClRcT clMsgIovecToMessageCopy(SaMsgMessageT **ppNewMsg, ClMsgMessageIovecT *pMessage, ClUint32T index,ClHandleT sendHandle);
 ClRcT clMsgIovecToIovecCopy(ClMsgMessageIovecT **ppNewMsg, ClMsgMessageIovecT *pMessage);
 void clMsgMessageFree(SaMsgMessageT *pMessage);
 
