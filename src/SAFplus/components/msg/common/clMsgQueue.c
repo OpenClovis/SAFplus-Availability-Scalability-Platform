@@ -38,62 +38,6 @@ ClHandleDatabaseHandleT gClMsgQDatabase;
 ClOsalMutexT gClLocalQsLock;
 ClOsalMutexT gClQueueDbLock;
 
-
-
-ClUint32T *getCurrentId(struct CurrentIdHashTable *table,const ClHandleT *key)
-{
-    ClUint32T bucket = table->handleHashfn(key)%NR_BUCKETS;
-    struct CurrentIdHashNode *node;
-    node = table->buckets[bucket];
-    while(node) {
-        if(table->handleCmpfn(key,node->key) == 0)
-            return node->value;
-        node = node->next;
-    }
-    return NULL;
-}
-ClUint32T insertCurrentId(struct CurrentIdHashTable *table,ClHandleT *key,ClUint32T *value)
-{
-    ClUint32T bucket = table->handleHashfn(key)%NR_BUCKETS;
-    struct CurrentIdHashNode **tmp;
-    struct CurrentIdHashNode *node ;
-
-    tmp = &table->buckets[bucket];
-    while(*tmp) {
-        if(table->handleCmpfn(key,(*tmp)->key) == 0)
-            break;
-        tmp = &(*tmp)->next;
-    }
-    if(*tmp)
-    {
-        if(table->freeKeyfn != NULL)
-            table->freeKeyfn((*tmp)->key);
-        if(table->freeValuefn != NULL)
-            table->freeValuefn((*tmp)->value);
-        node = *tmp;
-    }else
-    {
-        node = malloc(sizeof *node);
-        if(node == NULL)
-            return -1;
-        node->next = NULL;
-        *tmp = node;
-    }
-    node->key = key;
-    node->value = value;
-    return 0;
-}
-
-ClHandleT senderHandleHash(const ClHandleT *key)
-{
-    return *key;
-}
-ClUint32T senderHandleCmp(const ClHandleT *first,const ClHandleT *second)
-{
-  return *first - *second;
-}
-
-
 ClRcT clMsgQueueInitialize(void)
 {
     ClRcT rc, retCode;
@@ -752,20 +696,6 @@ out:
 
 static ClInt32T clMsgMessageKeyCompare(ClCntKeyHandleT key1, ClCntKeyHandleT key2)
 {
-#ifdef MESSAGE_ORDER
-    ClMsgKeyT *msgKey1 = NULL;
-    ClMsgKeyT *msgKey2 = NULL;
-    msgKey1=(ClMsgKeyT*)key1;
-    msgKey2=(ClMsgKeyT*)key2;
-    if(msgKey1->senderHandle!=msgKey2->senderHandle)
-    {
-        return 1;
-    }
-    else
-    {
-         return (msgKey1->messageId - msgKey2->messageId);
-    }
-#endif
     return 1;
 }
 
@@ -842,16 +772,7 @@ ClRcT clMsgQueueAllocate(
             goto error_out_5;
         }
     }
-
-    pQInfo->currentIdTable.freeKeyfn=NULL;
-    pQInfo->currentIdTable.freeValuefn=NULL;
-    pQInfo->currentIdTable.handleHashfn=senderHandleHash;
-    pQInfo->currentIdTable.handleCmpfn=senderHandleCmp;
-    for(int i=0;i<NR_BUCKETS;i++)
-    {
-      pQInfo->currentIdTable.buckets[i] = 0;
-    }
-
+    
     pQInfo->creationFlags = pCreationAttributes->creationFlags;
     memcpy(pQInfo->size, pCreationAttributes->size, sizeof(pQInfo->size));
     pQInfo->retentionTime = pCreationAttributes->retentionTime;

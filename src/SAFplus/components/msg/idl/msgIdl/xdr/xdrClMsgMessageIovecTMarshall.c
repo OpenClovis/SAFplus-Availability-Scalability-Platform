@@ -77,12 +77,6 @@ ClRcT clXdrMarshallClMsgMessageIovecT_4_0_0(void* pGenVar, ClBufferHandleT msg, 
         return rc;
     }
 
-    rc = clXdrMarshallClUint32T(&(pVar->messageId),msg,isDelete);
-    if (CL_OK != rc)
-    {
-        return rc;
-    }
-
     rc = clXdrMarshallPtriovec_t_4_0_0(pVar->pIovec, pVar->numIovecs,msg,isDelete);
     if (CL_OK != rc)
     {

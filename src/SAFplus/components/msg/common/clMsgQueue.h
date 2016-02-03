@@ -53,27 +53,6 @@ typedef struct {
     SaMsgQueueHandleT qHandle;
 }ClMsgQueueRecordT;
 
-#define NR_BUCKETS 1024
-typedef void (*freeKey)(ClHandleT *);
-typedef void (*freeValue)(ClUint32T*);
-typedef ClHandleT (*handleHash)(const ClHandleT *key);
-typedef ClUint32T (*handleCmp)(const ClHandleT *first,const ClHandleT *second);
-
-struct CurrentIdHashNode {
-    ClHandleT  *key;
-    ClUint32T *value;
-    struct CurrentIdHashNode *next;
-};
-
-struct CurrentIdHashTable
-{
-    struct CurrentIdHashNode *buckets[NR_BUCKETS];
-    freeKey freeKeyfn;
-    freeValue freeValuefn;
-    handleHash handleHashfn;
-    handleCmp handleCmpfn;
-};
-
 typedef struct {
     ClMsgQueueRecordT *pQueueEntry;
     /* configuration */
@@ -93,7 +72,6 @@ typedef struct {
     ClOsalCondIdT qCondVar;
     ClUint32T numThreadsBlocked;
     ClTimerHandleT timerHandle;
-    struct CurrentIdHashTable currentIdTable;
 } ClMsgQueueInfoT;
 
 typedef struct {
@@ -133,10 +111,6 @@ ClRcT clMsgQEntryAdd(ClNameT *pName, SaMsgQueueHandleT queueHandle, ClMsgQueueRe
 void clMsgQEntryDel(ClNameT *pQName);
 ClRcT clMsgToDestQueueMove(ClIocNodeAddressT destNode, ClNameT *pQName);
 ClRcT clMsgToLocalQueueMove(ClIocPhysicalAddressT srcAddr, ClNameT * pQName, ClBoolT qDelete);
-
-ClUint32T insertCurrentId(struct CurrentIdHashTable *table,ClHandleT *key,ClUint32T *value);
-ClUint32T *getCurrentId(struct CurrentIdHashTable *table,const ClHandleT *key);
-
 
 #ifdef __cplusplus
 }

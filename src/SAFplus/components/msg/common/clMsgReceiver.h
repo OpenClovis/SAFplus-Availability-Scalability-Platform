@@ -47,11 +47,6 @@ typedef struct {
 } ClMsgReplyDetailsT;
 
 typedef struct {
-    ClHandleT senderHandle;
-    ClUint32T messageId;
-}ClMsgKeyT;
-
-typedef struct {
     SaMsgMessageT *pMessage;
     SaTimeT sendTime;
     ClHandleT replyId;

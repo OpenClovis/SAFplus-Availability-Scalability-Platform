@@ -42,7 +42,7 @@ ClBoolT gClMsgInit = CL_FALSE;
 ClIocNodeAddressT gLocalAddress;
 ClIocPortT gLocalPortId;
 
-ClRcT clMsgIovecToMessageCopy(SaMsgMessageT **ppNewMsg, ClMsgMessageIovecT *pMessage, ClUint32T index,ClHandleT sendHandle)
+ClRcT clMsgIovecToMessageCopy(SaMsgMessageT **ppNewMsg, ClMsgMessageIovecT *pMessage, ClUint32T index)
 {
     ClRcT rc = CL_MSG_RC(CL_ERR_NO_MEMORY);
     ClNameT *pTempName = NULL;
@@ -68,8 +68,6 @@ ClRcT clMsgIovecToMessageCopy(SaMsgMessageT **ppNewMsg, ClMsgMessageIovecT *pMes
     pTempMessage->type = pMessage->type;
     pTempMessage->version = pMessage->version;
     pTempMessage->priority = pMessage->priority;
-    pTempMessage->messageId = pMessage->messageId;
-    pTempMessage->senderHandle = sendHandle;
     if(pMessage->senderName != NULL)
         memcpy(pTempName, pMessage->senderName, sizeof(ClNameT));
     pTempMessage->senderName = (SaNameT*)pTempName;

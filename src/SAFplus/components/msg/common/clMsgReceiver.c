@@ -37,6 +37,7 @@
 #include <msgCltClientCallsFromServerToClientServer.h>
 
 ClHandleDatabaseHandleT gMsgReplyDetailsDb;
+
 /***********************************************************************************************************************/
 
 static ClRcT clMsgDeleteDetailsStoredForReplier(void *pParam)
@@ -167,9 +168,7 @@ ClRcT clMsgQueueTheLocalMessage(
     ClHandleT *pReplierHandle = NULL;
     ClUint32T i;
     SaSizeT msgSize = 0;
-#ifdef MESSAGE_ORDER
-    ClMsgKeyT *messageKey=NULL;
-#endif
+
     rc = clHandleCheckout(gClMsgQDatabase, qHandle, (void**)&pQInfo);
     if(rc != CL_OK)
     {
@@ -204,7 +203,7 @@ ClRcT clMsgQueueTheLocalMessage(
             goto error_out_1;
         }
 
-        rc = clMsgIovecToMessageCopy(&pRecvInfo->pMessage, pMessage, i,senderHandle);
+        rc = clMsgIovecToMessageCopy(&pRecvInfo->pMessage, pMessage, i);
         if(rc != CL_OK)
         {
             clLogCritical("MSG", "QUE", "Failed to copy the message to the local memory.");
@@ -227,14 +226,7 @@ ClRcT clMsgQueueTheLocalMessage(
 
         CL_MSG_SEND_TIME_GET(pRecvInfo->sendTime);
 
-#ifdef MESSAGE_ORDER
-        messageKey = clHeapAllocate(sizeof(ClMsgKeyT));
-        messageKey->messageId=pMessage->messageId;
-        messageKey->senderHandle = senderHandle;
-        rc = clCntNodeAdd(pQInfo->pPriorityContainer[priority], messageKey, (ClCntDataHandleT)pRecvInfo, NULL);
-#else
         rc = clCntNodeAdd(pQInfo->pPriorityContainer[priority], NULL, (ClCntDataHandleT)pRecvInfo, NULL);
-#endif
         if(rc != CL_OK)
         {
             clLogCritical("MSG", "QUE", "Failed to add the new message to the message queue with priority %d. error code [0x%x].", priority, rc);
@@ -242,11 +234,13 @@ ClRcT clMsgQueueTheLocalMessage(
             goto error_out_4;
         }
     }
+
     clOsalCondSignal(pQInfo->qCondVar);
+
     pQInfo->numberOfMessages[priority] += pMessage->numIovecs;
     pQInfo->usedSize[priority] = pQInfo->usedSize[priority] + msgSize;
 
-    clLogTrace("MSG", "QUE", "Queued a message of size [%llu] to queue [%.*s].",
+    clLogTrace("MSG", "QUE", "Queued a message of size [%llu] to queue [%.*s].", 
             msgSize, pQInfo->pQueueEntry->qName.length, pQInfo->pQueueEntry->qName.value);
 
     if((pQInfo->state == CL_MSG_QUEUE_OPEN) 
@@ -266,10 +260,6 @@ error_out_4:
         if(retCode != CL_OK)
             clLogError("MSG", "QUE", "Failed to delete data stored for replier. error code [0x%x].", retCode);
     }
-#ifdef MESSAGE_ORDER
-    clHeapFree(messageKey);
-#endif
-
 error_out_3:
     clMsgMessageFree(pRecvInfo->pMessage);
 error_out_2:

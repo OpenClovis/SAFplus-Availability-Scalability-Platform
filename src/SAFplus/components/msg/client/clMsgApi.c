@@ -72,8 +72,6 @@
 #include <msgIdlClientCallsFromClientClient.h>
 #include <clMsgConsistentHash.h>
 
-
-#define MSG_RECEIVE_MAX_RETRY 10
 #define MSG_DISPATCH_QUEUE_HASH_BITS (8)
 #define MSG_DISPATCH_QUEUE_HASH_BUCKETS (1<<MSG_DISPATCH_QUEUE_HASH_BITS)
 #define MSG_DISPATCH_QUEUE_HASH_MASK (MSG_DISPATCH_QUEUE_HASH_BUCKETS-1)
@@ -98,7 +96,6 @@ static ClVersionDatabaseT versionDatabase=
     clVersionSupported
 }; 
 
-static pthread_mutex_t mutexMsgId = PTHREAD_MUTEX_INITIALIZER;
 static pthread_mutex_t gClMsgCliLock = PTHREAD_MUTEX_INITIALIZER;
 static ClInt32T gClMsgCliRefCnt;
 
@@ -131,7 +128,6 @@ typedef struct ClMsgDispatchQueue
 }ClMsgDispatchQueueT;
 
 static ClMsgDispatchQueueCtrlT gClMsgDispatchQueueCtrl;
-static ClUint32T currentMessageId = 0;
 
 ClHandleDatabaseHandleT gMsgHandleDatabase;
 static SaMsgHandleT gMsgHandle;
@@ -1036,13 +1032,6 @@ error_out:
     return CL_MSG_SA_RC(rc);
 }
 
-ClUint32T getNextMsgId()
-{
-  pthread_mutex_lock(&mutexMsgId);
-  currentMessageId++;
-  pthread_mutex_unlock(&mutexMsgId);
-  return currentMessageId;
-}
 
 SaAisErrorT saMsgMessageSend(
         SaMsgHandleT msgHandle,
@@ -1061,7 +1050,7 @@ SaAisErrorT saMsgMessageSend(
     msgVector.priority = pMessage->priority;
     msgVector.pIovec = &iovec;
     msgVector.numIovecs = 1;
-    msgVector.messageId=getNextMsgId();
+
     return clMsgMessageSendIovec(msgHandle, pDestination, &msgVector, timeout);
 }
 
@@ -1083,11 +1072,9 @@ SaAisErrorT saMsgMessageSendAsync(SaMsgHandleT msgHandle,
     msgVector.priority = pMessage->priority;
     msgVector.pIovec = &iovec;
     msgVector.numIovecs = 1;
-    msgVector.messageId=getNextMsgId();
+
     return clMsgMessageSendAsyncIovec(msgHandle, invocation, pDestination, &msgVector, ackFlags);
 }
-
-
 
 SaAisErrorT clMsgMessageSendIovec(
         SaMsgHandleT msgHandle,
@@ -1176,11 +1163,9 @@ SaAisErrorT saMsgMessageGet(SaMsgQueueHandleT queueHandle,
     ClMsgReceivedMessageDetailsT *pRecvInfo;
     ClNameT qName;
     ClMsgQueueCkptDataT queueData = {{0}};
+
     CL_MSG_INIT_CHECK;
-#ifdef MESSAGE_ORDER
-    ClUint8T tryAgain=0;
-try_again:
-#endif
+
     if(pMessage == NULL || pSenderId == NULL)
     {
         rc = CL_MSG_RC(CL_ERR_NULL_POINTER);
@@ -1223,45 +1208,8 @@ get_message:
             continue;
         }
 
-#ifdef MESSAGE_ORDER
-        // check the messageID . try again if wrong order
-        ClUint32T *currentMsgId;
-        ClHandleT *sendHandle;
-        currentMsgId =getCurrentId(&pQInfo->currentIdTable,&pRecvInfo->pMessage->senderHandle);
-        if(currentMsgId == NULL)
-        {
-            currentMsgId=clHeapAllocate(sizeof(ClUint32T));
-            sendHandle = clHeapAllocate(sizeof(ClHandleT)); ;
-            *currentMsgId=0;
-            *sendHandle=pRecvInfo->pMessage->senderHandle;
-
-        }
-        else
-        {
-            sendHandle=&pRecvInfo->pMessage->senderHandle;
-            clLogError("MSG", "GET", "handle [%d] : get the user-data from the first node with message Id [%d] current id [%d]",(int)queueHandle,(int)pRecvInfo->pMessage->messageId,*currentMsgId);
-
-        }
-        if(pRecvInfo->pMessage->messageId - *currentMsgId !=1)
-        {
-          if(pRecvInfo->pMessage->messageId!=1)
-          {
-              if(tryAgain < MSG_RECEIVE_MAX_RETRY)
-              {
-                CL_OSAL_MUTEX_UNLOCK(&pQInfo->qLock);
-                rc = clHandleCheckin(gClMsgQDatabase, queueHandle);
-                usleep(1000);
-                pQInfo = NULL;
-                nodeHandle = NULL;
-                tryAgain++;
-                goto try_again;
-              }
-          }
-        }
-        *currentMsgId=pRecvInfo->pMessage->messageId;
-        insertCurrentId(&pQInfo->currentIdTable,&pRecvInfo->pMessage->senderHandle,currentMsgId);
-#endif
         pRecvMessage = pRecvInfo->pMessage;
+
         if(pMessage->size != 0 && pMessage->size < pRecvMessage->size)
         {
             pMessage->size = pRecvMessage->size;

@@ -122,8 +122,6 @@ typedef struct {
 	SaNameT *senderName;
 	void *data;
 	SaUint8T priority;
-    SaUint32T messageId;
-    ClHandleT senderHandle;
 } SaMsgMessageT;
 
 typedef void (*SaMsgQueueOpenCallbackT) (
