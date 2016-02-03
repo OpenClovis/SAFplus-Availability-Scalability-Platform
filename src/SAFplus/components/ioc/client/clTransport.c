@@ -2059,7 +2059,7 @@ ClRcT clTransportInitialize(const ClCharT *type, ClBoolT nodeRep)
 
     if(nodeRep && rc == CL_OK)
     {
-        rc = clTransportNotificationInitialize(gClXportDefaultType);
+        rc = clTransportNotificationInitialize(type);
     }
 
     return rc;
@@ -2278,26 +2278,51 @@ ClRcT clTransportNotificationInitialize(const ClCharT *type)
         }
         return rc;
     }
-    rc = CL_ERR_NOT_SUPPORTED;
+    rc = CL_OK;
+    /*
+     * Protocols available in this blade can be specified randomize, this lead to mismatch on destination.
+     * Example:
+     *     TIPC and UDP are protocols available in this blade, but on destination using
+     *     TIPC or UDP only as configuration
+     *         <protocol default="UDP">
+     *           <node name="<RemoteNodeName>" protocol="UDP"/>
+     *         </protocol>
+     *      or
+     *         <protocol default="TIPC">
+     *           <node name="<RemoteNodeName>" protocol="TIPC"/>
+     *         </protocol>
+     * So, to make sure they can make a handshake, use default protocol is top priority
+     */
+    if (gClXportDefault->xportState & XPORT_STATE_INITIALIZED)
+    {
+      rc = gClXportDefault->xportNotifyInit();
+      if (rc != CL_OK && (CL_GET_ERROR_CODE(rc) != CL_ERR_NOT_SUPPORTED))
+      {
+        clLogError("XPORT", "NOTIFY", "Transport [%s] notify initialize failed with [%#x]", gClXportDefault->xportType, rc);
+      }
+    }
+    /*
+     * Handle notification for remain protocols available
+     */
     CL_LIST_FOR_EACH(iter, &gClTransportList)
     {
-        ClRcT rc2 = CL_OK;
-        xport = CL_LIST_ENTRY(iter, ClTransportLayerT, xportList);
-        if(xport->xportState & XPORT_STATE_INITIALIZED)
+      ClRcT rc2 = CL_OK;
+      xport = CL_LIST_ENTRY(iter, ClTransportLayerT, xportList);
+      if ((xport->xportState & XPORT_STATE_INITIALIZED) && strcmp(gClXportDefaultType, xport->xportType))
+      {
+        rc2 = xport->xportNotifyInit();
+        if (rc != CL_OK)
         {
-            rc2 = xport->xportNotifyInit();
-            if(rc != CL_OK)
-            {
-                rc = rc2;
-            }
+          rc = rc2;
         }
+      }
     }
-    if(CL_GET_ERROR_CODE(rc) == CL_ERR_NOT_SUPPORTED)
+    if (CL_GET_ERROR_CODE(rc) == CL_ERR_NOT_SUPPORTED)
     {
-        if( (rc = clTransportNotifyInitialize()) != CL_OK)
-        {
-            clLogError("XPORT", "NOTIFY", "Transport notify initialize failed with [%#x]", rc);
-        }
+      if ((rc = clTransportNotifyInitialize()) != CL_OK)
+      {
+        clLogError("XPORT", "NOTIFY", "Transport notify initialize failed with [%#x]", rc);
+      }
     }
     return rc;
 }
