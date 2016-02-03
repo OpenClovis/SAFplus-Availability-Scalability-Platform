@@ -19,7 +19,6 @@
 #include <sys/types.h>
 #include <stdarg.h>
 #include <sys/stat.h>
-#include <sys/mman.h>
 #include <signal.h>
 #include <ctype.h>
 #include <clDebugApi.h>
@@ -106,46 +105,6 @@ do\
 #define CL_LOG_PRNT_FMT_STR_WO_FILE         "%-26s (%.*s.%d : %s.%3s.%3s"
 #define CL_LOG_PRNT_FMT_STR_WO_FILE_CONSOLE "%-26s (%.*s.%d : %s.%3s.%3s.%05d : %6s) "
 #endif
-
-static int shmFd = -1;
-static int* shmAddr = NULL;
-static ClCharT shmName[] = {"CL_stdout_redirection_flag"};
-  
-void turnOffStdout()
-{
-  if (!shmAddr)
-  {    
-    return;
-  }  
-  *shmAddr = 1;
-}
-  
-static void initShm()
-{  
-  int shmCreate = 1;
-  shmFd = shm_open(shmName, O_CREAT|O_EXCL|O_RDWR,S_IRUSR|S_IWUSR|S_IRGRP|S_IROTH);
-  if (shmFd == -1 && errno == EEXIST)
-  {
-    shmFd = shm_open(shmName, O_RDWR, S_IRUSR|S_IWUSR|S_IRGRP|S_IROTH);
-    shmCreate = 0;
-  } 
-  if (shmFd == -1)
-  {
-    perror("shm_open ");
-    return;  
-  }
-  if (shmCreate)
-  {
-     int off = 0;
-     write(shmFd, &off, sizeof(off));
-  }  
-  shmAddr = mmap(NULL,sizeof(int),PROT_READ|PROT_WRITE,MAP_SHARED,shmFd,0);
-  if (shmAddr == NULL)
-  {	
-    perror("mmap ");
-    return;
-  }  
-}
 
 static
 ClCharT *logGetLogRulesFile(void)
@@ -811,9 +770,8 @@ clLogEnvironmentVariablesGet(void)
 {
     ClCharT  *pEnvVar = NULL;
     /* getting file varible for putting debug messages */
-    // Let clLogToFile value as its default (stdout)
-    //clLogToFile = getenv("CL_LOG_TO_FILE");
-    initShm();
+    clLogToFile = getenv("CL_LOG_TO_FILE");    
+
     /* Whether logging should be enabled or not */
     if( NULL == (pEnvVar = getenv("CL_LOG_STREAM_ENABLE")) )
     {
@@ -991,20 +949,6 @@ ClUint32T clLogFormatRecord(ClCharT *msgHeader, ClUint32T maxHeaderLen, ClCharT 
     return formatHdrLen;
 }
 
-static void setDbgFd()
-{  
-  if (!shmAddr)
-  {    
-    return;
-  }  
-  int* stdoutOff = shmAddr;  
-  if (clDbgFp == stdout && *stdoutOff == 1) // turn off stdout, otherwise do nothing
-  {
-    clLogToFile = getenv("CL_LOG_TO_FILE");
-    clLogDbgFilePtrAssign();	
-  }   
-}
-
 static ClRcT
 logVMsgWriteDeferred(ClLogStreamHandleT streamHdl,
                      ClLogSeverityT  severity,
@@ -1067,8 +1011,7 @@ logVMsgWriteDeferred(ClLogStreamHandleT streamHdl,
      * Dump to console first to be emitted into nodename log file
      */
     vsnprintf(msg + formatStrLen, CL_LOG_MAX_MSG_LEN - formatStrLen, pFmtStr, vaargs);
-    
-    setDbgFd();
+
     if( NULL != clDbgFp && match == CL_TRUE)
     {
         fprintf(clDbgFp, "%s\n", msg);
@@ -1170,13 +1113,4 @@ clLogDbgFileClose(void)
         fclose(clDbgFp);
     }
     return CL_OK;
-}
-
-void clLogDbgShmFinalize()
-{ 
-  munmap(shmAddr, sizeof(int));
-  close(shmFd);
-  if (shmAddr) shm_unlink(shmName);
-  shmFd = -1;
-  shmAddr = NULL;
 }
