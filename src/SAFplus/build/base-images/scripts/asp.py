@@ -687,10 +687,10 @@ def config_tipc_module():
     tipc_netid = get_asp_tipc_netid()
     node_addr = get_asp_node_addr()
     num,link_name = getMultiLink()
-    log.info('num of bearer : %d ...' %(num))
+    log.info('num of bearer : %d ...' %num)
     tipcCfg = os.getenv('CL_TIPC_CFG_PARAMS')
     if tipcCfg is None: tipcCfg = ""    
-    cmd = '%s -netid=%s -addr=1.1.%s %s -be=eth:%s' % (get_asp_tipc_config_cmd(), tipc_netid, node_addr, tipcCfg, link_name[0])
+    cmd = '%s -netid=%s -addr=1.1.%s -be=eth:%s' % (get_asp_tipc_config_cmd(), tipc_netid, node_addr, link_name[0])
     log.debug('TIPC command is [%s]' % cmd)
     ret, output, signal, core = system(cmd)
     if ret:
@@ -710,7 +710,7 @@ def config_tipc_module():
             # tipc.  Otherwise it will work in the next run, but only
             # in "local" mode.
             num,link_name = getMultiLink()    
-            cmd = 'tipc-config -bd=eth:%s' %(link_name[0])
+            cmd = 'tipc-config -bd=eth:%s' %link_name[0]
             ret, output, signal, core = system(cmd)
             system("rmmod tipc")  
             fail_and_exit(msg)
@@ -743,11 +743,16 @@ def config_tipc_module():
                               'and LINK_NAME are correct in %s/asp.conf.' %\
                               get_asp_etc_dir()])
             fail_and_exit(msg1 + msg2)
-    for x in range(1,num) :       
-        cmd = '%s -be=eth:%s' %\
-          (get_asp_tipc_config_cmd(),link_name[x])
-        log.debug('enable bearer name : %s ...' %(cmd))
-        ret, output, signal, core = system(cmd)        
+    elif len(tipcCfg) > 0:
+        cmd = 'tipc-config %s' % (tipcCfg)
+        ret, output, signal, core = system(cmd)
+        if ret:
+            log.warning('Could not set TIPC configuration parameters')
+
+    for x in range(1,num):
+        cmd = '%s -be=eth:%s' %(get_asp_tipc_config_cmd(),link_name[x])
+        log.debug('enable bearer name : %s ...' %cmd)
+        ret, output, signal, core = system(cmd)
 
 def unload_tipc_module():
     if not is_tipc_build():
@@ -756,8 +761,8 @@ def unload_tipc_module():
     log.info('Unloading TIPC ...')
     num,link_name = getMultiLink()
     for x in range(0,num) :
-        cmd = 'tipc-config -bd=eth:%s' %(link_name[x])
-        log.debug('disable bearer :%s ...' %(cmd))
+        cmd = 'tipc-config -bd=eth:%s' %link_name[x]
+        log.debug('disable bearer :%s ...' %cmd)
         ret, output, signal, core = system(cmd)
     cmd = sys_asp['unload_tipc_cmd']
     ret, output, signal, core = system(cmd)
@@ -1250,7 +1255,7 @@ def get_amf_pid(watchdog_pid = False):
         if valid[0] == 0:
             l = valid[1].split()
             if is_simulation():
-	        l = filter(get_pid_for_this_sandbox, l)
+                l = filter(get_pid_for_this_sandbox, l)
             if len(l) == 1 :          
                 return int(l[0])            
             if len(l) == 0 :          
@@ -1264,7 +1269,7 @@ def get_amf_pid(watchdog_pid = False):
          if valid[0] == 0:
             l = valid[1].split()
             if is_simulation():
-	        l = filter(get_pid_for_this_sandbox, l)
+                l = filter(get_pid_for_this_sandbox, l)
             if len(l) == 1: 
                 return int(l[0])
             if len(l) == 0 :          

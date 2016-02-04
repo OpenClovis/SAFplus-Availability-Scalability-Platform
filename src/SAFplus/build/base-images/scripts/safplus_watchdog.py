@@ -80,7 +80,7 @@ def amf_watchdog_loop():
         try:
             pid = asp.get_amf_pid()
             if pid == 0:
-                logging.critical('SAFplus watchdog invoked')
+                logging.critical('SAFplus watchdog invoked on %s' % time.strftime('%a %d %b %Y %H:%M:%S'))
                 is_restart = os.access(restart_file, os.F_OK)
                 is_forced_restart = os.access(watchdog_restart_file, os.F_OK)
                 if is_restart or is_forced_restart:
@@ -165,7 +165,6 @@ def amf_watchdog_loop():
                         #time.sleep(1)
                         asp.start_openhpid()
                     else:
-                        
                         if openhpid_pid != seen_openhpid_id:
                             logging.debug('SAFplus watchdog openhpid pid(%d) found as expected, nothing to do.' % openhpid_pid)
                             seen_openhpid_id = openhpid_pid
