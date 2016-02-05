@@ -80,6 +80,12 @@ ClRcT clXdrUnmarshallClMsgMessageIovecT_4_0_0(ClBufferHandleT msg , void* pGenVa
         return rc;
     }
 
+    rc = clXdrUnmarshallClUint32T(msg,&(pVar->messageId));
+    if (CL_OK != rc)
+    {
+        return rc;
+    }
+
     rc = clXdrUnmarshallPtriovec_t_4_0_0(msg,(void**)&(pVar->pIovec),pVar->numIovecs);
     if (CL_OK != rc)
     {

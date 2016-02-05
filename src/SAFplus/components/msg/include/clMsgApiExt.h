@@ -48,6 +48,7 @@ typedef struct ClMsgMessageIovec
     SaUint8T priority;
     iovec_t *pIovec;
     ClUint32T numIovecs;
+    SaUint32T messageId;
 } ClMsgMessageIovecT;
 
 /**
