@@ -91,11 +91,27 @@ namespace SAFplus
       mgtCheckpoint->write(path.c_str(), *val);
     }
     catch (Error &e)
-    {
-      assert(0);
-    }
+      {
+        assert(0);
+      }
 
     logInfo("MGT", "LOAD", "Bound xpath [%s] to local object", path.c_str());
+  }
+
+  void dbgDumpMgtCheckpoint()
+  {
+    if (!mgtCheckpoint) 
+      {
+        printf("management checkpoint not available\n");
+        return;
+      }
+    for (Checkpoint::Iterator i=mgtCheckpoint->begin();i!=mgtCheckpoint->end();i++)
+      {
+        SAFplus::Checkpoint::KeyValuePair& item = *i;
+        char* key = ((char*) (*item.first).data);
+        SAFplus::Handle hdl = *((const SAFplus::Handle*) (*item.second).data);
+        printf("key [%s], value [%" PRIx64 ",%" PRIx64 ", cluster: %d node: %d port: %d obj: %" PRIx64 "] , change [%d]\n",key, hdl.id[0],hdl.id[1], hdl.getCluster(),hdl.getNode(),hdl.getPort(),hdl.getIndex(), item.second->changeNum());
+      }
   }
 
   ClRcT MgtRoot::loadMgtModule(Handle handle, MgtModule *module, std::string moduleName)
@@ -270,6 +286,7 @@ namespace SAFplus
     try
     {
       SAFplus::SafplusMsgServer* mgtIocInstance = &safplusMsgServer;
+      logDebug("MGT","MSG","Sent reply length [%d]", payloadlen);
       mgtIocInstance->SendMsg(dest, (void *)payload, payloadlen, SAFplusI::CL_IOC_SAF_MSG_REPLY_PROTO);
     }
     catch (SAFplus::Error &ex)
@@ -467,7 +484,9 @@ namespace SAFplus
   logDebug("MGT","XGET","Replying to request [%s] %sfrom [%" PRIx64 ",%" PRIx64 "] with msg of size [%lu]",path.c_str(),cmds.c_str(),srcAddr.id[0], srcAddr.id[1], (long unsigned int) strRplMesg.size());
   logDebug("MGT","XGET","Contents [%.400s...]",rplMesg.data(0).c_str());
 
-  if (strRplMesg.size()>0)
+  // TODO: in the case of a broadcast to figure out the owner we don't want to reply, but in the case
+  // of an explicit query, we must reply even if 0
+  //if (strRplMesg.size()>0)
     {
     MgtRoot::sendReplyMsg(srcAddr,(void *)strRplMesg.c_str(),strRplMesg.size());
     }

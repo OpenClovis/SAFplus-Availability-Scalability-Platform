@@ -197,8 +197,10 @@ typedef union CosSemCtl_u
 
    bool ThreadCondition::timed_wait(SAFplus::Mutex &mutex, int duration)
    {
-       boost::system_time const timeout = boost::get_system_time() + boost::posix_time::milliseconds(duration);
-       return waitCondition.timed_wait(mutex, timeout);
+     //boost::system_time const timeout = boost::get_system_time() + boost::posix_time::milliseconds(duration);
+     // return waitCondition.timed_wait(mutex, timeout);
+     auto timeout = boost::posix_time::milliseconds(duration);
+     return waitCondition.timed_wait(mutex, timeout);
    }
 
   ThreadSem::ThreadSem(int initialValue)

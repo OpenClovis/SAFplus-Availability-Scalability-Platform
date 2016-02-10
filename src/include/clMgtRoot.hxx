@@ -164,6 +164,10 @@ public:
     void addReference(MgtObject* mgtObject);
     void updateReference(void);
 };
+
+  // function to execute in gdb to dump the current management checkpoint routing data
+  void dbgDumpMgtCheckpoint();
+
 };
 #endif /* CLMGTROOT_H_ */
 

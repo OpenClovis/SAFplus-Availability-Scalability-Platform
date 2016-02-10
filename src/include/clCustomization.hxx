@@ -120,7 +120,7 @@ namespace SAFplusI
     {
     UdpTransportMaxMsgSize = 65507,  // 65,535 - 8 byte UDP header - 20 byte IP header  (http://en.wikipedia.org/wiki/User_Datagram_Protocol).  This is defined here so you can artifically limit the packet size.
     UdpTransportNumPorts = 256,  // Limit the ports to a range for no particular reason
-    UdpTransportStartPort = 17000,  // Pick a random spot in the UDP port range so our ports don't overlap common services
+    UdpTransportStartPort = 21500,  // Pick a random spot in the UDP port range so our ports don't overlap common services
     UdpTransportMaxMsg = 1024,
     UdpTransportMaxFragments = 1024,
     };
