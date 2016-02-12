@@ -14,7 +14,7 @@ Packager:	OpenClovisInc <info@openclovis.com>
 Obsoletes:	%{name} <= %{version}
 BuildRequires:  libxml2-devel, boost-devel, libdb-devel, gdbm-devel, sqlite-devel, protobuf-devel >= 2.5, protobuf-python >= 2.5 bzip2-devel
 Requires:       libxml2-devel, gcc-c++, boost-devel, libdb-devel, gdbm-devel, sqlite-devel, protobuf-devel >= 2.5, protobuf-python >= 2.5 python-devel
-Requires:	python-pip wx-i18n >= 3.0 wxPython >= 3.0.2 bzip2-devel lksctp-tools lksctp-tools-devel
+Requires:	python-pip wx-i18n >= 3.0 wxPython >= 3.0.2 bzip2-devel lksctp-tools lksctp-tools-devel librsvg2-devel gnome-python2-rsvg
 Summary:     	SAFplus is SA-Forum API compatible middleware   
 Prefix:		
 %description
@@ -46,11 +46,20 @@ cd %{_builddir}/src/ide && make clean
 for files in %{_builddir}/*
 do
  file_name=`basename "$files"`
- if [ "$file_name" != "target" ] && [ "$file_name" != "bin" ]
+ if [ "$file_name" != "target" ] && [ "$file_name" != "bin" ] && [ "$file_name" != "src" ]
  then
   cp -rf $files %{buildroot}%{saf_src_prefix}
  fi
 done
+for files in %{_builddir}/src/*
+do
+ file_name=`basename "$files"`
+ if [ "$file_name" != "include" ]
+ then
+  cp -rf $files %{buildroot}%{saf_src_prefix}/src
+ fi
+done
+rsync -rL %{_builddir}/src/include %{buildroot}%{saf_src_prefix}/src
 mkdir -p %{buildroot}%{prefix}/ide
 cp -rf %{_builddir}/bin/*   %{buildroot}%{prefix}/ide  
 
