@@ -89,6 +89,16 @@ namespace SAFplus
     for (itcomp = su->components.value.begin(); itcomp != endcomp; itcomp++)
       {
       Component* comp = dynamic_cast<Component*>(*itcomp);
+      if (!comp->serviceUnit.value)
+        {
+          comp->serviceUnit.updateReference(); // find the pointer if it is not resolved         
+        }
+      if (comp->serviceUnit.value != su)
+        {
+          logAlert("N+M","STRT","Model inconsistency.  Service Unit [%s] contains component [%s], but component does not refer to the Service Unit.  Please fix the model, using service unit's data for now.",su->name.value.c_str(),comp->name.value.c_str());
+          comp->serviceUnit.value = su;
+        }
+
       if (comp->processId)
         {
         logDebug("N+M","STRT","Not starting [%s]. Its already started as pid [%d].",comp->name.value.c_str(),comp->processId.value);
@@ -359,7 +369,15 @@ namespace SAFplus
           //ServiceUnit* su = dynamic_cast<ServiceUnit*>(itsu->second);
           ServiceUnit* su = dynamic_cast<ServiceUnit*>(*itsu);
           const std::string& suName = su->name;
-          logInfo("N+M","AUDIT","Auditing service unit [%s]: Operational State [%s] AdminState [%s] PresenceState [%s] ReadinessState [%s] HA State [%s] HA Readiness [%s] ", suName.c_str(),oper_str(su->operState.value), c_str(su->adminState.value), c_str(su->presenceState.value), c_str(su->readinessState.value), c_str(su->haState.value), c_str(su->haReadinessState.value) );
+
+          Node* node = su->node;
+          bool nodeExists  = false;  
+          if (node)
+            {
+              nodeExists = (node->stats.upTime > 0); // TODO: use the presence state
+            }
+     
+          logInfo("N+M","AUDIT","Auditing service unit [%s] on [%s]: Operational State [%s] AdminState [%s] PresenceState [%s] ReadinessState [%s] HA State [%s] HA Readiness [%s] ", suName.c_str(),node ? node->name.value.c_str() : "unattached", oper_str(su->operState.value), c_str(su->adminState.value), c_str(su->presenceState.value), c_str(su->readinessState.value), c_str(su->haState.value), c_str(su->haReadinessState.value) );
 
           SAFplus::MgtProvList<SAFplusAmf::Component*>::ContainerType::iterator   itcomp;
           SAFplus::MgtProvList<SAFplusAmf::Component*>::ContainerType::iterator   endcomp = su->components.value.end();
@@ -383,27 +401,51 @@ namespace SAFplus
                   //timeinfo = localtime(&rawtime);
                   strftime(timeString,80,"%c",localtime(&rawtime));
                   logDebug("N+M","AUDIT","Component [%s] process [%s.%d] is [%s].  Instantiated since [%s].  Instantiation attempts [%d].",comp->name.value.c_str(), su->node.value->name.value.c_str(), comp->processId.value, c_str(comp->presenceState.value),timeString, comp->numInstantiationAttempts.value);
+
+                  if (comp->presenceState == PresenceState::instantiating)
+                      {
+                        uint64_t curTime = std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::system_clock::now().time_since_epoch()).count();
+                        if (curTime - comp->lastInstantiation.value.value >= comp->getInstantiate()->timeout.value)
+                          {
+                            logError("N+M","AUDIT","Component [%s] process [%s:%d] never registered with AMF after instantiation.  Killing it.", comp->name.value.c_str(), node->name.value.c_str(),comp->processId.value);
+                            // Process is not responding after instantiation.  Kill it.  When we discover it is dead, we will update the database and the next step (restart) will happen.
+                            amfOps->abort(comp);
+                          }                        
+                      }
                   }
                 }
               else
                 {
-                  if (comp->presenceState == PresenceState::instantiating)
-                    {
-                      // TODO: make sure that the component hasn't been in this state for too long
-                    }
-                  else
-                    {
-                    if (comp->capabilityModel == CapabilityModel::not_preinstantiable)
+                if (nodeExists)  // Make sure that components are running if they can be.
+                  {
+                    if (comp->presenceState == PresenceState::instantiating)
                       {
-                      // TODO: in this case I need to look at the work to determine if this component should be instantiated but is not
-                      //startSg=true;
+                        uint64_t curTime = std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::system_clock::now().time_since_epoch()).count();
+                        if (curTime - comp->lastInstantiation.value.value >= comp->getInstantiate()->timeout.value)
+                          {
+                            logError("N+M","AUDIT","Component [%s] process [%s:%d] never registered with AMF after instantiation.  Killing it.", comp->name.value.c_str(), node->name.value.c_str(),comp->processId.value);
+                            // Process is not responding after instantiation.  Kill it.  When we discover it is dead, we will update the database and the next step (restart) will happen.
+                            amfOps->abort(comp);
+                          }                        
                       }
-                    else if (eas != SAFplusAmf::AdministrativeState::off)
+                    else
                       {
-                      logError("N+M","AUDIT","Component [%s] could be on but is not instantiated", comp->name.value.c_str());
-                      startSg=true;
+                        if (comp->capabilityModel == CapabilityModel::not_preinstantiable)
+                          {
+                            // TODO: in this case I need to look at the work to determine if this component should be instantiated but is not
+                            //startSg=true;
+                          }
+                        else if (eas != SAFplusAmf::AdministrativeState::off)
+                          {
+                            logError("N+M","AUDIT","Component [%s] could be on but is not instantiated", comp->name.value.c_str());
+                            startSg=true;
+                          }
                       }
-                    }
+                  }
+                else  
+                  {
+                    // TODO: if the node does not exist, make sure that the component's state is properly set
+                  }
                 }
               }
             }
@@ -748,7 +790,9 @@ namespace SAFplus
             if (running(comp->presenceState))  // If I think its running, let's check it out.
               {
               CompStatus status = amfOps->getCompState(comp);
-              if ((status == CompStatus::Uninstantiated) && (comp->presenceState != PresenceState::instantiating))  // database shows should be running but actually no process is there.  I should update DB.
+                  
+              // In the instantiating case, the process may not have even been started yet.  So to detect failure, we must check both that it has reported a PID and that it is currently uninstantiated
+              if ((status == CompStatus::Uninstantiated) && ((comp->processId.value > 0) || (comp->presenceState != PresenceState::instantiating)))  // database shows should be running but actually no process is there.  I should update DB.
                 {
                   try
                     {
@@ -765,35 +809,36 @@ namespace SAFplus
                 }
               else if (comp->presenceState == PresenceState::instantiating)  // If the component is in the instantiating state, look for it to register with the AMF
                 {
-                Handle compHandle=INVALID_HDL;
-                try
-                  {
-                  RefObjMapPair p = SAFplus::name.get(comp->name);  // The way a component "registers" is that it puts its name in the name service.
-                  compHandle = p.first;
-                  }
-                catch(NameException& n)
-                  {
-                    // compHandle=INVALID_HDL; I'd do this but its already set.
-                  }
-                
-                if (compHandle != INVALID_HDL) // TODO: what other things do we need to do for registration?
-                  {
-                  comp->presenceState = PresenceState::instantiated;
-                  fault->registerEntity(compHandle ,FaultState::STATE_UP);
-                  }
-                else
-                  {
-                  uint64_t curTime = std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::system_clock::now().time_since_epoch()).count();
-                  if (curTime - comp->lastInstantiation.value.value >= comp->getInstantiate()->timeout.value)
+                  Handle compHandle=INVALID_HDL;
+                  try
                     {
-                    // TODO: process is not responding after instantiation.  Kill it.
-                    logError("N+M","AUDIT","Component [%s] never registered with AMF after instantiation.", comp->name.value.c_str());
+                      RefObjMapPair p = SAFplus::name.get(comp->name);  // The way a component "registers" is that it puts its name in the name service.
+                      compHandle = p.first;
+                    }
+                  catch(NameException& n)
+                    {
+                      // compHandle=INVALID_HDL; I'd do this but its already set.
+                    }
+                
+                  if (compHandle != INVALID_HDL) // TODO: what other things do we need to do for registration?
+                    {
+                      comp->presenceState = PresenceState::instantiated;
+                      fault->registerEntity(compHandle ,FaultState::STATE_UP);
                     }
                   else
                     {
-                      logInfo("N+M","AUDIT","Component [%s] waiting [%lu] more milliseconds for instantiation.", comp->name.value.c_str(),(long unsigned int) (comp->getInstantiate()->timeout.value - (curTime - comp->lastInstantiation.value.value)));
+                      uint64_t curTime = std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::system_clock::now().time_since_epoch()).count();
+                      if (curTime - comp->lastInstantiation.value.value >= comp->getInstantiate()->timeout.value)
+                        {               
+                          // logError("N+M","DSC","Component [%s] never registered with AMF after instantiation.", comp->name.value.c_str());
+                          // Process is not responding after instantiation.  We'll catch and kill it in the operation's phase... nothing to do here
+                        }
+                      else
+                        {
+                          logInfo("N+M","DSC","Component [%s] waiting [%lu] more milliseconds for instantiation.", comp->name.value.c_str(),(long unsigned int) (comp->getInstantiate()->timeout.value - (curTime - comp->lastInstantiation.value.value)));
+                        }
                     }
-                  }
+                    
                 }
               else if (comp->presenceState == PresenceState::instantiated)
                 {
@@ -827,10 +872,20 @@ namespace SAFplus
               comp->readinessState = SAFplusAmf::ReadinessState::stopping;
               }
 
-            assert(((int)comp->presenceState.value <= ((int)PresenceState::terminationFailed))&&((int)comp->presenceState.value >= ((int)PresenceState::uninstantiated)));
-            presenceCounts[(int)comp->presenceState.value]++;
-            assert(((int)comp->haState.value <= (int)HighAvailabilityState::quiescing)&&((int)comp->haState.value >= (int)HighAvailabilityState::active));
-            haCounts[(int)comp->haState.value]++;
+            // From the point of view of the Service Unit, a non_preinstantiable component is always "instantiated" (ready for work assignment), because the act of assigning active work is what instantiates it
+            if (comp->capabilityModel == CapabilityModel::not_preinstantiable) 
+              {
+                presenceCounts[(int)PresenceState::instantiated]++;
+                assert(((int)comp->haState.value <= (int)HighAvailabilityState::quiescing)&&((int)comp->haState.value >= (int)HighAvailabilityState::active));
+                haCounts[(int)comp->haState.value]++;                
+              }
+            else
+              {
+                assert(((int)comp->presenceState.value <= ((int)PresenceState::terminationFailed))&&((int)comp->presenceState.value >= ((int)PresenceState::uninstantiated)));
+                presenceCounts[(int)comp->presenceState.value]++;
+                assert(((int)comp->haState.value <= (int)HighAvailabilityState::quiescing)&&((int)comp->haState.value >= (int)HighAvailabilityState::active));
+                haCounts[(int)comp->haState.value]++;
+              }
             //amfOps->reportChange();
             }
 

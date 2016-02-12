@@ -11,11 +11,11 @@ extern char **environ;
 using namespace std;
 
 namespace SAFplus
-  {
+{
 
   Process::Process(int processId): pid(processId)
-    {
-    }
+  {
+  }
 
   bool Process::alive()
   {
@@ -26,6 +26,17 @@ namespace SAFplus
     assert(errno == ESRCH);  // there can be no other error coming from kill
     return false;
   }
+
+  void Process::signal(int sig)
+  {
+    assert(pid > 1);  // Use something else to access the broadcast versions of kill
+    assert(sig > 0);
+    int result = kill(pid, sig);
+    if (result == 0) return; // worked
+    if (errno == EPERM) { assert (0); } // software error: permissions problem
+    if (errno == EINVAL) { assert (0); } // software error: bad signal
+    assert(errno == ESRCH); // (there can be no other error coming from kill) The pid or process group does not exist. Note that an existing process might be a zombie...    
+    }
 
   std::string Process::getCmdline(void)
     {

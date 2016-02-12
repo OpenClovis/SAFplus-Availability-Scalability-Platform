@@ -42,9 +42,20 @@ namespace amfAppRpc {
     if (SAFplusI::amfSession)
       {
       uint tgt = request->target();
+      SaAmfHAStateT haState = (SaAmfHAStateT) request->operation();
+      if ((int)haState == SAFplusI::AMF_HA_OPERATION_REMOVE)
+        {
+          if (tgt == SA_AMF_CSI_TARGET_ALL)
+            {
+            }
+          else   
+            {
+              // TODO
+              assert(0);
+            }
+        }
       if (tgt != SAFplusI::AMF_CSI_REMOVE_ONE)
         {
-        SaAmfHAStateT haState = (SaAmfHAStateT) request->operation();
         SaAmfCSIDescriptorT csiDescriptor;  // TODO
         csiDescriptor.csiFlags = tgt;
         strcpy((char*)csiDescriptor.csiName.value,"TODO");
