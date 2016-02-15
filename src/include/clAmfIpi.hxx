@@ -1,3 +1,6 @@
+#pragma once
+#ifndef CL_AMF_IPI_HXX
+#define CL_AMF_IPI_HXX
 #include <clCommon.hxx>
 #include <saAmf.h>
 #include <clThreadApi.hxx>
@@ -18,7 +21,9 @@ namespace SAFplusI
     SAFplus::Handle handle;
     bool finalize;
     SAFplus::ThreadSem dispatchCount;
-    SaAmfCallbacksT_4 callbacks;
+    SaAmfCallbacksT callbacks;
+    SaAmfCallbacksT_4 callbacks4;
+    int safVersion;
 
     AmfSession()
       {
@@ -38,3 +43,5 @@ namespace SAFplusI
   
   extern AmfSession* amfSession;
   }
+
+#endif

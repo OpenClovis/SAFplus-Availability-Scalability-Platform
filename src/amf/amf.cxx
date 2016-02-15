@@ -33,6 +33,7 @@ using namespace SAFplusI;
 
 extern "C"
 {
+
   SaAmfCallbacksT_3& set (SaAmfCallbacksT_3& lhs, const SaAmfCallbacksT& rhs)
   {
     lhs.saAmfHealthcheckCallback = rhs.saAmfHealthcheckCallback;
@@ -48,16 +49,11 @@ extern "C"
 
   }
 
-  SaAisErrorT saAmfInitialize(SaAmfHandleT *amfHandle, const SaAmfCallbacksT *amfCallbacks, SaVersionT *version)
+
+  static SaAisErrorT  commonInitialize(SaAmfHandleT *amfHandle,AmfSession* ret)
     {
-    assert(amfHandle);
-    assert(amfCallbacks);
-    ClRcT rc;
     uint_t tmp = amfInitCount;
     amfInitCount++;
-    AmfSession* ret = new AmfSession;
-    
-    ::set(ret->callbacks, *amfCallbacks);
 
     if (tmp==0)
       {
@@ -82,6 +78,31 @@ extern "C"
     ret->structId = AmfSession::STRUCT_ID;
     return SA_AIS_OK;
     }
+
+  SaAisErrorT saAmfInitialize_4(SaAmfHandleT *amfHandle, const SaAmfCallbacksT_4 *amfCallbacks, SaVersionT *ver)
+    {
+    assert(amfHandle);
+    assert(amfCallbacks);
+    ClRcT rc;
+    AmfSession* ret = new AmfSession;
+    
+    ret->callbacks4 = *amfCallbacks;
+    ret->safVersion = 4;
+    return commonInitialize(amfHandle,ret);
+    }
+
+  SaAisErrorT saAmfInitialize(SaAmfHandleT *amfHandle, const SaAmfCallbacksT *amfCallbacks, SaVersionT *ver)
+    {
+    assert(amfHandle);
+    assert(amfCallbacks);
+    ClRcT rc;
+    AmfSession* ret = new AmfSession;
+    
+    ret->callbacks = *amfCallbacks;
+    ret->safVersion = 3;
+    return commonInitialize(amfHandle, ret);
+    }
+
 
 SaAisErrorT saAmfFinalize(SaAmfHandleT amfHandle)
   {

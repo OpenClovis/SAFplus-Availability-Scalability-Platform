@@ -1,7 +1,6 @@
 #include <chrono>
 #include <google/protobuf/stubs/common.h>
-#include <saAmf.h>
-
+#include <clCommon.hxx>
 #include "amfRpc/amfRpc.pb.hxx"
 #include "amfRpc/amfRpc.hxx"
 #include "amfAppRpc/amfAppRpc.hxx"

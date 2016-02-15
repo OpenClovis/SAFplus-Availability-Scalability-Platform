@@ -4,7 +4,7 @@
       <startupAssignmentDelay>1000</startupAssignmentDelay>
     </Cluster>
 
-    <Node name="sc0">
+    <Node name="node0">
       <adminState>on</adminState>
       <autoRepair>true</autoRepair>
       <failFastOnCleanupFailure>false</failFastOnCleanupFailure>
@@ -34,7 +34,7 @@
       <failover>true</failover>
       <components>c0</components>
       <serviceGroup>sg0</serviceGroup>
-      <node>sc0</node>
+      <node>node0</node>
     </ServiceUnit>
     <ServiceUnit name="su1">
       <adminState>on</adminState>
@@ -42,7 +42,7 @@
       <failover>true</failover>
       <components>c1</components>
       <serviceGroup>sg0</serviceGroup>
-      <node>sc0</node>
+      <node>node0</node>
     </ServiceUnit>
 
     <ServiceInstance name="si">
