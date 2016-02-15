@@ -14,7 +14,7 @@ Packager:	OpenClovisInc <info@openclovis.com>
 Obsoletes:	%{name} <= %{version}
 BuildRequires:  libxml2-devel, boost-devel, libdb-devel, gdbm-devel, sqlite-devel, protobuf-devel >= 2.5, protobuf-python >= 2.5 bzip2-devel
 Requires:       libxml2-devel, gcc-c++, boost-devel, libdb-devel, gdbm-devel, sqlite-devel, protobuf-devel >= 2.5, protobuf-python >= 2.5 python-devel
-Requires:	python-pip wx-i18n >= 3.0 wxPython >= 3.0.2 bzip2-devel lksctp-tools lksctp-tools-devel librsvg2-devel gnome-python2-rsvg
+Requires:	epel-release python-pip wx-i18n >= 3.0 wxPython >= 3.0.2 bzip2-devel lksctp-tools lksctp-tools-devel librsvg2-devel gnome-python2-rsvg
 Summary:     	SAFplus is SA-Forum API compatible middleware   
 Prefix:		
 %description
@@ -27,7 +27,7 @@ the applications
 %package src
 Summary: source code for %{name}
 Group: Development/Libraries
-Requires: wxPython >= 3.0.2 boost-devel libdb-devl gdbm-devel sqlite-devl protobuf-devel >= 2.5 protobuf-python >= 2.5 python-devl python-pip 
+Requires: epel-release wxPython >= 3.0.2 boost-devel libdb-devel gdbm-devel sqlite-devel protobuf-devel >= 2.5 protobuf-python >= 2.5 python-devel python-pip 
 Requires: libxml2-devel wx-i18n >= 3.0 bzip2-devel rpm-build gcc-c++ lksctp-tools lksctp-tools-devel
 
 %description src
