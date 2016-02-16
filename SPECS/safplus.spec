@@ -43,22 +43,9 @@ echo %{saf_src_prefix}
 mkdir -p %{buildroot}%{saf_prefix}
 cp -rf %{_builddir}/target/%{tmp_target_platform}/* %{buildroot}%{saf_prefix}
 cd %{_builddir}/src/ide && make clean
-for files in %{_builddir}/*
-do
- file_name=`basename "$files"`
- if [ "$file_name" != "target" ] && [ "$file_name" != "bin" ] && [ "$file_name" != "src" ]
- then
-  cp -rf $files %{buildroot}%{saf_src_prefix}
- fi
-done
-for files in %{_builddir}/src/*
-do
- file_name=`basename "$files"`
- if [ "$file_name" != "include" ]
- then
-  cp -rf $files %{buildroot}%{saf_src_prefix}/src
- fi
-done
+rsync -avr --exclude 'target' --exclude 'bin' --exclude 'src' %{_builddir}/ %{buildroot}%{saf_src_prefix}
+#Some of the header files present in the src/include contains symbolic links. Need to copy those files as a full files
+rsync -avr --exclude 'include' %{_builddir}/src/ %{buildroot}%{saf_src_prefix}/src
 rsync -rL %{_builddir}/src/include %{buildroot}%{saf_src_prefix}/src
 mkdir -p %{buildroot}%{prefix}/ide
 cp -rf %{_builddir}/bin/*   %{buildroot}%{prefix}/ide  
