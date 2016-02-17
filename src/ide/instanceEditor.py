@@ -1041,8 +1041,7 @@ class Panel(scrolled.ScrolledPanel):
             menu.Bind(wx.EVT_MENU, self.OnToolMenu, id=buttonIdx)
         self.toolBar.Realize()
 
-    def deleteEntityTool(self, ents):
-      menu = self.guiPlaces.menu.get("Instantiation",None)
+    def deleteEntityTool(self, ents):      
       for ent in ents:
         name = ent.et.name
         entExists = False
@@ -1055,6 +1054,7 @@ class Panel(scrolled.ScrolledPanel):
           print 'deleteEntityTool: Entity [%s] exists --> delete it from toolbar' % name
           self.toolBar.DeleteTool(eid)
           # delete the corresponding menu item from the instantiation menu too
+          menu = self.guiPlaces.menu.get("Instantiation",None)
           if menu:
             menu.Delete(eid)
           del self.idLookup[eid]          

@@ -95,7 +95,7 @@ class Project(microdom.MicroDom):
 
     self.prjXmlData = microdom.LoadMiniDom(dom.childNodes[0])
     f = open(self.projectFilename,"w")
-    f.write(prjXmlData.pretty())
+    f.write(self.prjXmlData.pretty())
     f.close()    
         
   def createModelXml(self):
