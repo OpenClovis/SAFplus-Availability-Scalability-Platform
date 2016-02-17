@@ -1086,8 +1086,8 @@ class Panel(scrolled.ScrolledPanel):
       self.Refresh()
 
     def deleteEntities(self, ents):
-      #if share.instancePanel:
-        #share.instancePanel.deleteEntityTool(ents)
+      if share.instancePanel:
+        share.instancePanel.deleteEntityTool(ents)
       if share.detailsPanel:
         share.detailsPanel.deleteTreeItemEntities(ents)
       self.model.delete(ents)

@@ -1034,12 +1034,15 @@ class Panel(scrolled.ScrolledPanel):
           #self.toolBar.AddRadioTool(buttonIdx, bitmap, wx.NullBitmap, shortHelp=et[0], longHelp=longHelp,clientData=et)
           self.idLookup[buttonIdx] = EntityTool(self,ent)  # register this button so when its clicked we know about it          
           ent.buttonIdx = buttonIdx
+          # Bind this tool to event handler
+          self.toolBar.Bind(wx.EVT_TOOL, self.OnToolClick, id=buttonIdx)
           if menu: # If there's a menu for these entity tools, then add the object to the menu as well
             menu.Append(buttonIdx, name, name)
             menu.Bind(wx.EVT_MENU, self.OnToolMenu, id=buttonIdx)
         self.toolBar.Realize()
 
     def deleteEntityTool(self, ents):
+      menu = self.guiPlaces.menu.get("Instantiation",None)
       for ent in ents:
         name = ent.et.name
         entExists = False
@@ -1051,7 +1054,10 @@ class Panel(scrolled.ScrolledPanel):
         if entExists:
           print 'deleteEntityTool: Entity [%s] exists --> delete it from toolbar' % name
           self.toolBar.DeleteTool(eid)
-          del self.idLookup[eid]
+          # delete the corresponding menu item from the instantiation menu too
+          if menu:
+            menu.Delete(eid)
+          del self.idLookup[eid]          
 
     def deleteMenuItems(self):
       menu = self.guiPlaces.menu.get("Instantiation",None)
