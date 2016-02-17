@@ -612,8 +612,10 @@ class GenerateTool(Tool):
       # code gen must be per-component -- not generation of one type of application
       files = panel.model.generateSource(self.panel.model.directory())
       self.panel.statusBar.SetStatusText("Code generation complete")
-      # TODO add these files to the "source" part of the project tab
-      print files
+      # add these files to the "source" part of the project tab and update the project xml file
+      #print files
+      parentFrame = self.panel.guiPlaces.frame
+      parentFrame.project.updateTreeItem(parentFrame.currentActivePrj, "source", files)
  
     return False
 

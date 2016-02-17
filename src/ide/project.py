@@ -29,6 +29,7 @@ class Project(microdom.MicroDom):
     self._safplusModel = None
     self.datamodel = None
     self.name = ""    
+    self.prjXmlData = None
     if filename: self.load(filename)
     pass
 
@@ -39,11 +40,11 @@ class Project(microdom.MicroDom):
   def modelFilename(self):
     return self.name+"Model.xml"
 
-  def sourceFilename(self):
-    return self.name+".cpp"
+  #def sourceFilename(self):
+  #  return self.name+".cpp"
 
-  def headerFilename(self):
-    return self.name+".h"
+  #def headerFilename(self):
+  #  return self.name+".h"
 
   def load(self,filename):    
     self.projectFilename = filename
@@ -89,12 +90,12 @@ class Project(microdom.MicroDom):
 
     sourceElem = dom.createElement("source")
     safplusPrjElem.appendChild(sourceElem)
-    sourceText = dom.createTextNode(self.sourceFilename()+" "+self.headerFilename())
-    sourceElem.appendChild(sourceText)
+    #sourceText = dom.createTextNode(self.sourceFilename()+" "+self.headerFilename())
+    #sourceElem.appendChild(sourceText)
 
-    data = microdom.LoadMiniDom(dom.childNodes[0])
+    self.prjXmlData = microdom.LoadMiniDom(dom.childNodes[0])
     f = open(self.projectFilename,"w")
-    f.write(data.pretty())
+    f.write(prjXmlData.pretty())
     f.close()    
         
   def createModelXml(self):
@@ -126,6 +127,26 @@ class Project(microdom.MicroDom):
     f.write(data.pretty())
     f.close()  
 
+  def loadModel(self):
+    if not self.prjXmlData:
+      f = open(self.projectFilename,"r")
+      data = f.read()
+      f.close()
+      dom = xml.dom.minidom.parseString(data)
+      self.prjXmlData = microdom.LoadMiniDom(dom.childNodes[0])
+
+  def updatePrjXmlSource(self, srcFiles):
+    self.loadModel()
+    sources = self.prjXmlData.getElementsByTagName("source")    
+    #data="" 
+    #for f in srcFiles:
+    #  data+=f
+    #  data+=" "
+    #sources[0].data_ = data
+    sources[0].children_ = srcFiles    
+    f = open(self.projectFilename,"w")
+    f.write(self.prjXmlData.pretty())
+    f.close()
 
 class ProjectTreeCtrl(wx.TreeCtrl):
   def __init__(self, parent, id, pos, size, style):
@@ -257,6 +278,27 @@ class ProjectTreePanel(wx.Panel):
          self.tree.SetPyData(fileT, (project,c))  # TODO more descriptive PY data   
  
      # TODO: add children under subdirectories    
+  def updateTreeItem(self, project, itemText, srcFiles):
+     (child, cookie) = self.tree.GetFirstChild(self.root)
+     while child.IsOk():
+       p = self.tree.GetItemPyData(child)
+       if p.name == project.name:
+         break
+       (child, cookie) = self.tree.GetNextChild(self.root, cookie)
+     if child.IsOk():
+        (c, cookie) = self.tree.GetFirstChild(child)
+        while (c.IsOk()):           
+           print 'updateTreeItem: child explored [%s]' % self.tree.GetItemText(c)
+           if self.tree.GetItemText(c) == itemText:
+              break
+           (c, cookie) = self.tree.GetNextChild(child, cookie)
+     if c.IsOk():
+        self.tree.DeleteChildren(c)
+        project.updatePrjXmlSource(srcFiles)
+        for f in srcFiles:
+           fileT = self.tree.AppendItem(c,f)
+           self.tree.SetPyData(fileT, (project.name,f))         
+
 
   def OnLoad(self,event):
     dlg = wx.FileDialog(
