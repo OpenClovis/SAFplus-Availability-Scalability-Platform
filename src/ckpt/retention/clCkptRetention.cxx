@@ -104,7 +104,7 @@ public:
     Timer& timer = iter->second.timer;
     if (!iter->second.isRunning)
     {
-      logTrace("CKPRET", "START", "starting timer of ckpt handle [%" PRIx64 ":%" PRIx64 "]; Duration [%lu]", iter->first.id[0], iter->first.id[1], timer.waitDuration);
+      logTrace("CKPRET", "START", "starting timer of ckpt handle [%" PRIx64 ":%" PRIx64 "]; Duration [%" PRIx64 "]", iter->first.id[0], iter->first.id[1], timer.waitDuration);
       timer.wait((void*)&iter->first, this);    
       iter->second.isRunning = true;
     }
@@ -190,7 +190,7 @@ public:
           {
             uint64_t retentionDuration = ckptHdr.first->retentionDuration;          
             // Add new item to map
-            logTrace("CKPRET","UDT", "[shm] insert item {%" PRIx64 ":%" PRIx64 ", %lu} to map", ckptHdl.id[0], ckptHdl.id[1], retentionDuration);
+            logTrace("CKPRET","UDT", "[shm] insert item {%" PRIx64 ":%" PRIx64 ", %" PRIx64 "} to map", ckptHdl.id[0], ckptHdl.id[1], retentionDuration);
             Timer timer(retentionDuration, iosvc, &onSharedMemRetentionTimeout);
             RetentionTimerData rt(timer, ckptHdr.first->lastUsed, false, filePath.substr(ckptShmPos));
             CkptTimerMapPair kv(ckptHdl, rt);
@@ -306,7 +306,7 @@ public:
               if (getHdrValue(dbal, retentionDuration, &retDuration) && getHdrValue(dbal, lastUsed, &lUsed))
               {
                 // Add new item to map
-                logTrace("CKPRET","UDT", "[persist] insert item {%" PRIx64 ":%" PRIx64 ", %lu} to map", ckptHdl.id[0], ckptHdl.id[1], retDuration);
+                logTrace("CKPRET","UDT", "[persist] insert item {%" PRIx64 ":%" PRIx64 ", %" PRIx64 "} to map", ckptHdl.id[0], ckptHdl.id[1], retDuration);
                 Timer timer(retDuration, iosvc, &onPersistentRetentionTimeout);
                 RetentionTimerData rt(timer, lUsed, false, filePath, dbal);
                 CkptTimerMapPair kv(ckptHdl, rt);

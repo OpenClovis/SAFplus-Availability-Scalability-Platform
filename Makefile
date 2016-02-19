@@ -47,9 +47,9 @@ mkdir -p $(SPECS_DIR)
 mkdir -p $(SRPMS_DIR)
 mkdir -p $(RPMS_DIR)
 cp -r $(TOP_DIR)/SPECS/* $(SPECS_DIR)
-sed -i '/Name:/c Name:\t\t$(PKG_NAME)\nVersion:\t$(PKG_VER)\nRelease:\t$(PKG_REL)%{dist}' $(SPECS_DIR)/safplus.spec
-sed -i '/Prefix:/c Prefix:\t/opt/safplus/$(PKG_VER)/$2' $(SPECS_DIR)/safplus.spec
-cp -rf $(SAFPLUS_TOP_DIR)/bin/*	$(BUILD_DIR)/IDE
+sed -i '/my_build_arch:/c %define tmp_target_platform $(__TMP_TARGET_PLATFORM)' $(SPECS_DIR)/safplus.spec 
+sed -i '/Version:/c Version:\t$(PKG_VER)\nRelease:\t$(PKG_REL)%{dist}' $(SPECS_DIR)/safplus.spec
+sed -i '/Prefix:/c Prefix:\t/opt/safplus/$(PKG_VER)' $(SPECS_DIR)/safplus.spec
 endef
 
 define copy_binpkg_files
@@ -66,25 +66,12 @@ rsync -rL $(SAFPLUS_MAKE_DIR) $(DEST_PKG_DIR)/src
 cp -rf $(TOP_DIR)/DEB/Makefile $(DEST_PKG_DIR)
 endef
 
-rpm-src: archive
-	$(call prepare_env_rpm,safplus-src,sdk)
-	tar xvzf $(TAR_NAME) -C $(BUILD_DIR)
-	sed -i '/%install/aexport PREFIX=%prefix\nexport DESTDIR=$$RPM_BUILD_ROOT\nmake rpm_install' $(SPECS_DIR)/safplus.spec
-	sed -i '/%defattr/a /%prefix/*' $(SPECS_DIR)/safplus.spec
-	rpmbuild  --define '_topdir $(PKG_DIR)' -bb $(SPECS_DIR)/safplus.spec
-	mkdir -p $(BUILD)
-	cp $(RPMS_DIR)/$(shell uname -p)/*.rpm $(BUILD)
-
-rpm-bin: build_binary
+rpm: ide_build_clean build_binary ide_build 
 	$(call prepare_env_rpm,safplus,sdk/target/$(__TMP_TARGET_PLATFORM))
-	$(call copy_binpkg_files,$(BUILD_DIR))
-	sed -i '/%install/aexport PREFIX=%prefix\nexport DESTDIR=$$RPM_BUILD_ROOT\nmake rpm_install' $(SPECS_DIR)/safplus.spec
-	sed -i '/%defattr/a /%prefix/*\n/%prefix/../../src/*\n%prefix/../../../ide/*' $(SPECS_DIR)/safplus.spec
+	rsync -avr  --exclude '.git' --exclude '.gitignore' --exclude 'target/$(__TMP_TARGET_PLATFORM)/obj' --exclude 'target/$(__TMP_TARGET_PLATFORM)/mwobj' --exclude 'target/$(__TMP_TARGET_PLATFORM)/install' $(TOP_DIR)/   $(BUILD_DIR)
 	rpmbuild  --define '_topdir $(PKG_DIR)' -bb $(SPECS_DIR)/safplus.spec
 	mkdir -p $(BUILD)
 	cp $(RPMS_DIR)/$(shell uname -p)/*.rpm $(BUILD)
-
-rpm: rpm-bin rpm-src
 
 define prepare_env_deb
 $(eval PKG_NAME=$1)
@@ -184,4 +171,4 @@ rpm_install:remove_target
 	$(call safplus_pkg_install,$(REQ_FILES))
 
 clean:
-	rm -rf $(TAR_NAME) $(BUILD) apt ../debbuild_safplus ../debbuild_safplus-src ../safplus_7.0.tar.gz ../rpmbuild_safplus ../rpmbuild_safplus-src
+	rm -rf $(TAR_NAME) $(BUILD) apt ../debbuild_safplus ../debbuild_safplus-src ../safplus_7.0.tar.gz ../rpmbuild_safplus 

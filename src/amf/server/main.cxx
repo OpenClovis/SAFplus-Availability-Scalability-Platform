@@ -274,7 +274,9 @@ struct CompStatsRefresh
               if (comp->operState == true) 
                 {
                   SAFplusAmf::ServiceUnit* su = comp->serviceUnit;
+                  if (!su) continue;  // database is not valid (correctly formed) for this object
                   SAFplusAmf::Node* node = su->node;
+                  if (!node) continue;  // database is not valid (correctly formed) for this object
 
                   pid = comp->processId;
                   if (pid > 1)

@@ -50,9 +50,11 @@ namespace SAFplus
 
         SAFplus::SafplusMsgServer *safplusMsgServer = reinterpret_cast<SAFplus::SafplusMsgServer*>(svr);
 
-        //Signal to wake
-        safplusMsgServer->msgSendConditionMutex.notify_all();
-
+        // wake the receiver
+        {
+          ScopedLock<> lockIt(safplusMsgServer->msgSendReplyMutex);
+          safplusMsgServer->msgSendConditionMutex.notify_all();
+        }
     }
 
 } /* namespace SAFplus */

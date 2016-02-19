@@ -88,9 +88,7 @@ module SAFplusAmf
 
     typedef ReadinessState
     {
-      description "This state indicates if a service unit is eligible to
-take service instance assignments from an administrative and health status view-
-point.  The operational, administrative, and presence states of a service unit, the operational state of its containing node, and the administrative states of its containing node, service group, application, and the cluster are combined to form this state.";
+      description "This state indicates if a service unit is eligible to take service instance assignments from an administrative and health status view-point.  The operational, administrative, and presence states of a service unit, the operational state of its containing node, and the administrative states of its containing node, service group, application, and the cluster are combined to form this state.";
       type enumeration
       {
 	enum outOfService;
@@ -315,6 +313,13 @@ point.  The operational, administrative, and presence states of a service unit, 
           }
         
         }
+
+      // SA-Forum does not define presence state for a node, but it should...
+      leaf presenceState
+      {
+	type PresenceState;
+        config false;
+      }
 
       // SA-Forum defined fields
       leaf adminState

@@ -110,6 +110,13 @@ namespace SAFplus
        throw Error(Error::SYSTEM_ERROR,errno, strerror(errno),__FILE__,__LINE__);
        }
 
+     // Close this socket if we spawn another program
+     if (fcntl(sock,F_SETFD,FD_CLOEXEC)==-1)
+       {
+       int err = errno;
+       throw Error(Error::SYSTEM_ERROR,errno, strerror(errno),__FILE__,__LINE__);
+       }
+
      // enable broadcast permissions on this socket
      int broadcastEnable=1;
      if(setsockopt(sock, SOL_SOCKET, SO_BROADCAST, &broadcastEnable, sizeof(broadcastEnable)))
@@ -363,7 +370,7 @@ if(setsockopt(socket, SOL_SOCKET, SO_RCVTIMEO, &tv, sizeof(tv)) < 0)
           }
 #endif
 
-        //printf("%d messages received. [%s]\n", retval,(char*) &frag->buffer);
+        // printf("%d messages received.\n", retval);
         Message* cur = ret;
         for (int msgIdx = 0; (msgIdx<retval); msgIdx++,cur = cur->nextMsg)
           {

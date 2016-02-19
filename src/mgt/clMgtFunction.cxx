@@ -243,7 +243,8 @@ namespace SAFplus
         for (it = processHdl.begin(); it != processHdl.end(); ++it)
           {
             std::string objxml;
-            objxml = mgtGet(*it, pathSpec);
+            SAFplus::Handle hdl = *it;
+            objxml = mgtGet(hdl, pathSpec);
             output.append(objxml);
           }
 

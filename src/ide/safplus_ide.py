@@ -14,7 +14,7 @@ import wx.aui
 import instanceEditor
 import entityDetailsDialog
 import umlEditor
-from project import Project, ProjectTreePanel, EVT_PROJECT_LOADED, EVT_PROJECT_NEW
+from project import Project, ProjectTreePanel, EVT_PROJECT_LOADED, EVT_PROJECT_NEW, PROJECT_SAVE
 import common
 import model
 
@@ -41,7 +41,7 @@ class SAFplusFrame(wx.Frame):
         # creates an accelerator, the third param is some help text
         # that will show up in the statusbar
         self.menu.Append(wx.ID_EXIT, "E&xit\tAlt-X", "Exit")
-
+        self.menu.AppendSeparator()        
         # bind the menu event to an event handler
         self.Bind(wx.EVT_MENU, self.OnTimeToClose, id=wx.ID_EXIT)
         self.Bind(EVT_PROJECT_LOADED, self.OnProjectLoaded)
@@ -74,7 +74,12 @@ class SAFplusFrame(wx.Frame):
         # that it fills the frame
         self.sizer = wx.BoxSizer()
         self.sizer.Add(self.prjSplitter, 1, wx.EXPAND)
-        self.SetSizer(self.sizer)
+        self.SetSizer(self.sizer)        
+        # add recent projects menu items
+        self.menu.AppendSeparator()
+        self.recentPrjMenu = wx.Menu()
+        self.menu.AppendMenu(wx.NewId(), "Recent", self.recentPrjMenu, "Recent projects")
+        self.loadRecentProjects()
 
     def cleanupTabs(self):
       """remove all editor window tabs"""
@@ -93,7 +98,7 @@ class SAFplusFrame(wx.Frame):
         self.menuModelling.Delete(item.Id)
       menuItems = self.menuInstantiation.GetMenuItems()
       for item in menuItems:
-        self.menuInstantiation.Delete(item.Id)
+        self.menuInstantiation.Delete(item.Id)      
       menuItems = self.menuWindows.GetMenuItems()
       for item in menuItems:
         self.menuWindows.Delete(item.Id)
@@ -109,9 +114,9 @@ class SAFplusFrame(wx.Frame):
       # Now load the new one:
       # prj = self.project.active()
       prj = self.project.latest()      
-      self.showProject(prj)
+      self.loadProject(prj)
 
-    def showProject(self, prj):
+    def loadProject(self, prj):
       if not prj: return
       self.currentActivePrj = prj
       self.tab.Unbind(wx.aui.EVT_AUINOTEBOOK_PAGE_CHANGED) # need to unbind to not catch page delete event b/c we only want to catch page selection event
@@ -168,6 +173,8 @@ class SAFplusFrame(wx.Frame):
         self.setPagesText()
       self.tab.Bind(wx.aui.EVT_AUINOTEBOOK_PAGE_CHANGED, self.onPageChanged) # bind to catch page selection event
       self.tab.SetSelection(0) # open uml model view by default
+      # append to recent projects repository and update the menu
+      self.updateRecentProject(prj)
       
     def OnProjectNew(self,evt):
       """Called when a new project is created"""
@@ -208,6 +215,34 @@ class SAFplusFrame(wx.Frame):
       self.tab.SetPageText(2, self.getCurrentPageText(2))
       self.tab.SetPageText(3, self.getCurrentPageText(3))
 
+    def loadRecentProjects(self):
+      recentPrjs = common.getRecentPrjs()
+      for i in recentPrjs[::-1]:
+        itemId = wx.NewId()
+        self.recentPrjMenu.Append(itemId, i.replace('\n',''))
+        self.recentPrjMenu.Bind(wx.EVT_MENU, self.onRecentPrjMenu, id=itemId)
+
+    def updateRecentProject(self, prj):
+      common.addRecentPrj(prj.projectFilename)
+      menuItems = self.recentPrjMenu.GetMenuItems()
+      #if len(menuItems)>0 and menuItems[0].GetItemLabelText()==prj.projectFilename:
+      #  return
+      for item in menuItems:
+        self.recentPrjMenu.Delete(item.Id)
+      self.loadRecentProjects()
+      
+
+    def onRecentPrjMenu(self, evt):
+      itemId = evt.GetId()
+      p = self.recentPrjMenu.FindItemById(itemId).GetItemLabelText()      
+      print 'onRecentPrjMenu: name [%s]; id [%d]' % (p, itemId) 
+      if self.project.isPrjLoaded(p): return 
+      project = Project(p)                 
+      self.project.populateGui(project, self.project.root)
+      prj = self.project.latest()      
+      self.loadProject(prj)
+      self.menu.Enable(PROJECT_SAVE, True)
+
     def onPrjTreeActivated(self, evt):
       """ handle an event when user double-clicks on an item at the tree on the left to switch views to it or to set it active """
       pt = evt.GetPoint()
@@ -222,7 +257,7 @@ class SAFplusFrame(wx.Frame):
           if prj == self.currentActivePrj:
             return
           else:
-            self.showProject(prj)
+            self.loadProject(prj)
         else: pass #TODO : handling other tree item clicked e.g. c++ source or others
 
     def onPageChanged(self, evt):

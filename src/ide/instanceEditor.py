@@ -611,8 +611,11 @@ class GenerateTool(Tool):
     if event.GetId() == CODEGEN_BUTTON:
       # code gen must be per-component -- not generation of one type of application
       files = panel.model.generateSource(self.panel.model.directory())
-      # TODO add these files to the "source" part of the project tab
-      print files
+      self.panel.statusBar.SetStatusText("Code generation complete")
+      # add these files to the "source" part of the project tab and update the project xml file
+      #print files
+      parentFrame = self.panel.guiPlaces.frame
+      parentFrame.project.updateTreeItem(parentFrame.currentActivePrj, "source", files)
  
     return False
 
@@ -849,6 +852,11 @@ class Panel(scrolled.ScrolledPanel):
 
       bitmap = svg.SvgFile("generate.svg").bmp(tsize, { }, (222,222,222,wx.ALPHA_OPAQUE))
       self.toolBar.AddTool(CODEGEN_BUTTON, bitmap, wx.NullBitmap, shortHelpString="Generate Source Code", longHelpString="Generate source code ...")
+      # add the generate menu item
+      menuFile = self.guiPlaces.menu.get("File",None)
+      gen = menuFile.Insert(5, CODEGEN_BUTTON, "&Generate code\tAlt-G", "Generate source code ...")
+      gen.Enable(False)
+     
       idMnuGenerateCode = [CODEGEN_BUTTON, CODEGEN_LANG_C, CODEGEN_LANG_CPP, CODEGEN_LANG_PYTHON, CODEGEN_LANG_JAVA]
       for idx in idMnuGenerateCode:
         self.idLookup[idx] = GenerateTool(self)
@@ -871,6 +879,9 @@ class Panel(scrolled.ScrolledPanel):
       self.toolBar.AddRadioTool(DELETE_BUTTON, bitmap, wx.NullBitmap, shortHelp="Delete entity/entities", longHelp="Select one or many entities. Click entity to delete.")
       self.idLookup[DELETE_BUTTON] = DeleteTool(self)    
 
+      #add event handler for menu generate code
+      fileMenu = self.guiPlaces.menu.get("File",None)
+      fileMenu.Bind(wx.EVT_MENU, self.OnToolMenu, id=CODEGEN_BUTTON)
     
     def deleteTools(self):   
       self.toolBar.DeletePendingEvents()
@@ -1023,12 +1034,14 @@ class Panel(scrolled.ScrolledPanel):
           #self.toolBar.AddRadioTool(buttonIdx, bitmap, wx.NullBitmap, shortHelp=et[0], longHelp=longHelp,clientData=et)
           self.idLookup[buttonIdx] = EntityTool(self,ent)  # register this button so when its clicked we know about it          
           ent.buttonIdx = buttonIdx
+          # Bind this tool to event handler
+          self.toolBar.Bind(wx.EVT_TOOL, self.OnToolClick, id=buttonIdx)
           if menu: # If there's a menu for these entity tools, then add the object to the menu as well
             menu.Append(buttonIdx, name, name)
             menu.Bind(wx.EVT_MENU, self.OnToolMenu, id=buttonIdx)
         self.toolBar.Realize()
 
-    def deleteEntityTool(self, ents):
+    def deleteEntityTool(self, ents):      
       for ent in ents:
         name = ent.et.name
         entExists = False
@@ -1040,19 +1053,29 @@ class Panel(scrolled.ScrolledPanel):
         if entExists:
           print 'deleteEntityTool: Entity [%s] exists --> delete it from toolbar' % name
           self.toolBar.DeleteTool(eid)
-          del self.idLookup[eid]
+          # delete the corresponding menu item from the instantiation menu too
+          menu = self.guiPlaces.menu.get("Instantiation",None)
+          if menu:
+            menu.Delete(eid)
+          del self.idLookup[eid]          
 
     def deleteMenuItems(self):
       menu = self.guiPlaces.menu.get("Instantiation",None)
       menuItems = menu.GetMenuItems()
       for item in menuItems:
         menu.Delete(item.Id)
+      menuFile = self.guiPlaces.menu.get("File",None)
+      menuGen = menuFile.FindItemById(CODEGEN_BUTTON)
+      if menuGen:
+        menuFile.Delete(CODEGEN_BUTTON)
 
     def enableMenuItems(self, enable):
       menu = self.guiPlaces.menu.get("Instantiation",None)
       menuItems = menu.GetMenuItems()
       for item in menuItems:
         menu.Enable(item.Id, enable)
+      menuFile = self.guiPlaces.menu.get("File",None)
+      menuFile.Enable(CODEGEN_BUTTON, enable)
 
     def enableTools(self, enable):
       for toolId in self.idLookup:

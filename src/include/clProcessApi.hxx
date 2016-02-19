@@ -4,6 +4,7 @@
 
 #include <string>
 #include <clCommon.hxx>
+#include <signal.h>
 
 namespace SAFplus
   {
@@ -39,6 +40,9 @@ namespace SAFplus
 
     //? Returns true if the process exists
       bool alive();
+     
+    //? Send a signal to a process
+      void signal(int sig);    
 
     //? Returns the command line that was used to start this process
     std::string getCmdline(void);

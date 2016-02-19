@@ -76,6 +76,7 @@ namespace SAFplus
         /*
          * Send message
          */
+        ScopedLock<> lockIt(msgSendReplyMutex);  // It is necessary to lock here so that the send and the wait happens atomically relative to the receipt of the response
         try
         {
             SendMsg(destination, buffer, length, msgtype);

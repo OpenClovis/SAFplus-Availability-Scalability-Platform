@@ -1,3 +1,7 @@
+#pragma once
+#ifndef CL_AMF_IPI_HXX
+#define CL_AMF_IPI_HXX
+#include <clCommon.hxx>
 #include <saAmf.h>
 #include <clThreadApi.hxx>
 #include <clHandleApi.hxx>
@@ -17,7 +21,9 @@ namespace SAFplusI
     SAFplus::Handle handle;
     bool finalize;
     SAFplus::ThreadSem dispatchCount;
-    SaAmfCallbacksT_3 callbacks;
+    SaAmfCallbacksT callbacks;
+    SaAmfCallbacksT_4 callbacks4;
+    int safVersion;
 
     AmfSession()
       {
@@ -31,8 +37,11 @@ namespace SAFplusI
 
   enum
     {
-    AMF_CSI_REMOVE_ONE = 0x8
+      AMF_CSI_REMOVE_ONE = 0x8,
+      AMF_HA_OPERATION_REMOVE = 5, // HighAvailabilityState.hxx:HighAvailabilityState::quiescing + 1
     };
   
   extern AmfSession* amfSession;
   }
+
+#endif
