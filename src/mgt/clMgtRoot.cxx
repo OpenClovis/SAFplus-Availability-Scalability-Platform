@@ -661,7 +661,7 @@ namespace SAFplus
     std::vector<std::string> strs;
     boost::split(strs, data, boost::is_any_of(","));
     path = strs[0];
-    if (strs.size() > 0)
+    if (strs.size() > 1)
       {
         attrs = data.substr(path.length() + 1);
       }

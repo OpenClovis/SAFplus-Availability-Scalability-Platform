@@ -59,6 +59,10 @@ public:
     {
 
     }
+    virtual void toString(std::stringstream& xmlString,int depth=SAFplusI::MgtToStringRecursionDepth, MgtObject::SerializationOptions opts=SerializeNoOptions)
+    {
+
+    }
     /**
      * Function add a leaf to the notification
      */

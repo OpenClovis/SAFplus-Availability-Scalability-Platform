@@ -32,6 +32,7 @@ namespace SAFplusI
     CL_MGT_MSG_TYPE = 5,
     CKPT_SYNC_MSG_TYPE = 6,
     CL_MGT_RPC_TYPE = 7,
+    CL_MGT_NOT_TYPE = 8,
 
     AMF_REQ_HANDLER_TYPE = 17,
     AMF_REPLY_HANDLER_TYPE = 18,

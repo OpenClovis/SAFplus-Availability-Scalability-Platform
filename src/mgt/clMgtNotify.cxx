@@ -112,7 +112,7 @@ namespace SAFplus
 
     try
     {
-      mgtIocInstance->SendMsg(SAFplus::getProcessHandle(SAFplusI::MGT_IOC_PORT,Handle::AllNodes),(void *) msgRequestStr.c_str(), msgRequestStr.size(), SAFplusI::CL_MGT_MSG_TYPE);
+      mgtIocInstance->SendMsg(SAFplus::getProcessHandle(SAFplusI::MGT_IOC_PORT,Handle::AllNodes),(void *) msgRequestStr.c_str(), msgRequestStr.size(), SAFplusI::CL_MGT_NOT_TYPE);
     }
     catch(SAFplus::Error &ex)
     {

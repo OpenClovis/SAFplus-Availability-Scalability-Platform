@@ -121,7 +121,11 @@ namespace SAFplus
           }
       }
 
-    std::string data = pathSpec + "," + attrs;
+    std::string data = pathSpec;
+    if (attrs.length() > 0)
+      {
+        data += "," + attrs;
+      }
     rpcMsgReq.set_rpctype(reqType);
     rpcMsgReq.set_data(data);
     rpcMsgReq.SerializeToString(&request);
