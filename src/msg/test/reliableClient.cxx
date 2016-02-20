@@ -108,10 +108,11 @@ int main(int argc, char* argv[])
       logInfo("TST","MSG","Msg Transport [%s], node [%u] maxPort [%u] maxMsgSize [%u]", xp->type, xCfg.nodeId, xCfg.maxPort, xCfg.maxMsgSize);
       Handle destination = SAFplus::getProcessHandle(37,122);
       MsgReliableSocket sockclient(47,xp);
+      //MsgReliableSocketServer sockclient(47,xp);
       printf("init socket : done \n");
-      long len=50000000;
+      long len=5000000;
       int count = 0;
-      while(count<50)
+      while(count<2)
       {
         count ++;
         sockclient.connect(destination,0);
@@ -131,6 +132,9 @@ int main(int argc, char* argv[])
         m->msgPool->free(m);
         sleep(2);
       }
+      printf("close socket \n");
+      sockclient.close();
+      printf("init socket : done \n");
       do
       {
         sleep(2);

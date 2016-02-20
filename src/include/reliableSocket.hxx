@@ -5,12 +5,12 @@
 #include <boost/unordered_map.hpp>
 
 //TODO
-u_int RELIABLE_MSG_TYPE = 0x50;
 static u_int MAX_FRAGMENT_NUMBER        = 255*255;
 
 namespace SAFplus
 {
 
+  class MsgReliableSocketServer;
   enum connectionNotification
   {
     OPENED=0,
@@ -180,19 +180,19 @@ namespace SAFplus
     bool isReset     = false; //socket status reset
     int  state     = connectionState::CONN_CLOSED;
     int  timeout   = 0; /* (ms) */ //wait to receive fragment
-    boost::thread rcvThread; //thread to receive and handle fragment
     ReliableFragmentList unackedSentQueue; // list of fragment sended without receive ACK
     ReliableFragmentList outOfSeqQueue;  // list of out-of-sequence fragments
     ReliableFragmentList inSeqQueue; // list of in-sequence fragments
     SAFplus::Mutex closeMutex;
     SAFplus::Mutex resetMutex;
     ThreadCondition resetCond;
-    SAFplus::Mutex recvQueueLock;
-    ThreadCondition recvQueueCond;
     SAFplus::Mutex unackedSentQueueLock;
     ThreadCondition unackedSentQueueCond;
     SAFplus::Mutex thisMutex;
     ThreadCondition thisCond;
+    SAFplus::Mutex recvQueueLock;
+    ThreadCondition recvQueueCond;
+    boost::thread rcvThread; //thread to receive and handle fragment
 
     //Handle close socket
     void handleCloseImpl(void);
@@ -234,6 +234,8 @@ namespace SAFplus
     void init();
 
   public:
+
+    MsgReliableSocketServer *sockServer;
     SAFplus::Mutex sendReliableLock;
     int lastFragmentIdOfMessage;
     ThreadCondition sendReliableCond;
@@ -272,7 +274,7 @@ namespace SAFplus
     void connect(Handle destination, int timeout);
     //close socket
     void close(void);
-    void closeImpl();
+    void closeConnection();
     static void closeImplThread(void*);
     //Puts the connection in a closed state and notifies
     void connectionFailure();
@@ -295,7 +297,6 @@ namespace SAFplus
       &MsgReliableSocket::m_reliableSocketmemberHook> ReliableSocketMemberHookOption;
   typedef list<MsgReliableSocket, ReliableSocketMemberHookOption> ReliableSocketList;
 
-  class MsgReliableSocketServer;
 
   class MsgReliableSocketClient : public MsgReliableSocket
   {
@@ -303,7 +304,6 @@ namespace SAFplus
     ReliableFragmentList fragmentQueue;
     SAFplus::Mutex fragmentQueueLock;
     ThreadCondition fragmentQueueCond;
-    MsgReliableSocketServer *sockServer;
     MsgReliableSocketClient(MsgSocket* socket) : MsgReliableSocket(socket)
     {
     };
@@ -315,18 +315,19 @@ namespace SAFplus
     void receiverFragment(ReliableFragment* frag);
     virtual void connectionClientOpen();
   };
-
+  typedef boost::unordered_map < SAFplus::Handle, MsgReliableSocketClient*, boost::hash<SAFplus::Handle>, std::equal_to<SAFplus::Handle> > HandleSockMap;
   class MsgReliableSocketServer : public MsgSocketAdvanced
   {
     int timeout;
     bool isClosed;
     boost::thread ServerRcvThread;
-    void removeClientSocket(Handle destAddress);
     void addClientSocket(Handle destAddress);
     void handleRcvThread();
     Handle sendDestination;
     MsgReliableSocketClient* sendSock;
   public:
+    void removeClientSocket(Handle destAddress);
+    void close();
     void init();
     static void rcvThread(void * arg);
     MsgReliableSocketServer(uint_t port,MsgTransportPlugin_1* transport);
@@ -337,7 +338,6 @@ namespace SAFplus
     void connect(Handle destination, int timeout);
     SAFplus::Mutex listenSockMutex;
     MsgReliableSocketClient* accept();
-    typedef boost::unordered_map < SAFplus::Handle, MsgReliableSocketClient*, boost::hash<SAFplus::Handle>, std::equal_to<SAFplus::Handle> > HandleSockMap;
     HandleSockMap clientSockTable;
   };
 };

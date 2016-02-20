@@ -35,14 +35,10 @@ namespace SAFplus
   class ReliableFragment
   {
   private:
-    //The control bits indicate what is present in the fragment
-    int controlFlag;
-    //Each fragment contains a fragment number
-    int fragmentId;
-    //The acknowledgment number field indicates to a transmitter the last in-sequence fragment the receiver has received.
-    int ackNumber;
-    int retransCounter;
-    // SAFplus : Indicate the last fragment of message
+    int controlFlag;           /* Control flags field */
+    int fragmentId;         /* Sequence number field */
+    int ackNumber;         /* Acknowledgment number field */
+    int retransCounter;   /* Retransmission counter */
     bool isLast;
 
   protected:
@@ -63,7 +59,6 @@ namespace SAFplus
     bool isLastFragment();
     void setAck(int _ackn);
     void setRetxCounter(int _retCounter);
-    //Parse message data to fragment
     static ReliableFragment* parse(Byte* bytes, int len);
     static ReliableFragment* parse(Byte* bytes);
     int setHeader(void* ptr);
@@ -105,7 +100,7 @@ namespace SAFplus
   class SYNFragment: public ReliableFragment
   {
   private:
-        int maxFragment;
+    int maxFragment;
     int maxFragmentSize;
     int retransInterval;
     int cumAckInterval;
@@ -119,6 +114,7 @@ namespace SAFplus
     SYNFragment(int seqn, int maxseg, int maxsegsize, int rettoval,
         int cumacktoval, int niltoval, int maxret,
         int maxcumack, int maxoutseq, int maxautorst);
+    int getVersion();
     int getMaxOutstandingFragments();
     int getOptionFlags();
     int getMaxFragmentSize();
