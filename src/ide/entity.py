@@ -170,12 +170,12 @@ class Entity:
               data[name] = ""
     #self.data = new
   
-  def createInstance(self,pos, size=None,children=False, name=None):
+  def createInstance(self,pos, size=None,children=False, name=None, parent=None):
     """Create an entity of this type"""
     if not size:
-      size = self.size
-    if self.customInstantiator: 
-      ret = (self.customInstantiator)(self,pos,size,children,name=name)
+      size = self.size    
+    if parent and self.et.name == "ServiceGroup":      
+      ret = parent.sgInstantiator(self,pos,size,children,name)
     else: 
       newdata = copy.deepcopy(self.data)
       ret = Instance(self,newdata,pos,size,name=name)

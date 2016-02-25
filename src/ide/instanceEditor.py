@@ -1141,8 +1141,8 @@ class Panel(scrolled.ScrolledPanel):
       if placement:
         self.statusBar.SetStatusText("Created instance of %s" % entity.data["name"],0);
         # TODO ent = self.entityType.createEntity(position, size)
-        if size is None: size = (COL_WIDTH, ROW_WIDTH)  # The layout will automatically update the long size to be the width of the screen
-        inst = entity.createInstance(position, size, name=name)
+        if size is None: size = (COL_WIDTH, ROW_WIDTH)  # The layout will automatically update the long size to be the width of the screen        
+        inst = entity.createInstance(position, size, name=name, parent=self)
         inst.instanceLocked = copy.deepcopy(entity.instanceLocked)
 
         self.model.instances[inst.data["name"]] = inst

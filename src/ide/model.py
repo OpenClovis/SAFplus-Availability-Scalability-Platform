@@ -92,14 +92,28 @@ instantiated  <instances>     instances                         instances     (e
 
   def deleteInstance(self,inst):
     entname = inst.data["name"]
-    for (name,e) in self.instances.items():
-      e.containmentArrows[:] = [ x for x in e.containmentArrows if x.contained != inst]
-    del self.instances[entname]
-
-    # Also delete the entity from the microdom
+    self.recursiveDeleteInstance(inst)
+    
+  def deleteInstanceFromMicrodom(self, entname):
     instances = self.data.getElementsByTagName("instances")
-    if instances:
+    if instances:    
       instances[0].delChild(instances[0].findOneByChild("name",entname))
+
+  def recursiveDeleteInstance(self,inst):
+    entname = inst.data["name"]    
+    if len(inst.containmentArrows)==0:
+      self.deleteInstanceFromMicrodom(entname)
+      for (name, e) in self.instances.items():
+        if name==entname:          
+          del self.instances[name]
+      for (name,e) in self.instances.items():
+        e.containmentArrows[:] = [ x for x in e.containmentArrows if x.contained != inst]      
+      return
+    for ca in inst.containmentArrows:
+      self.recursiveDeleteInstance(ca.contained)
+    del inst.containmentArrows[:]
+    self.deleteInstanceFromMicrodom(entname)
+    del self.instances[entname]
 
   def connect(self,container, contained):
     """Connects 2 instances together.  Returns the containment arrow instance"""
@@ -511,6 +525,7 @@ instantiated  <instances>     instances                         instances     (e
           cai.contained = ch
           ei.containmentArrows.append(cai)
           children.append(ch)
+
       return (ei, instances)
 
 
