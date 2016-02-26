@@ -54,9 +54,23 @@ namespace SAFplus
     return MgtRoot::getInstance()->loadMgtModule(handle, this, this->tag);
   }
 
-  ClRcT MgtModule::bind(Handle handle,MgtObject* obj)
+  ClRcT MgtModule::bind(Handle handle, MgtObject* obj)
   {
-    MgtRoot::getInstance()->bind(handle,obj);
+    // Binding from its children
+    if (this == obj)
+    {
+      std::map<std::string, MgtObject*>::iterator iter;
+      std::map<std::string, MgtObject*>::iterator endd = children.end();
+      for (iter = children.begin(); iter != endd; ++iter)
+      {
+        MgtObject *childObj = iter->second;
+        MgtRoot::getInstance()->bind(handle, childObj);
+      }
+    }
+    else
+    {
+      MgtRoot::getInstance()->bind(handle, obj);
+    }
   }
 
 
