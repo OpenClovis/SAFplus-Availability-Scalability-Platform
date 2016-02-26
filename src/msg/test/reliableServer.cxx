@@ -109,14 +109,14 @@ int main(int argc, char* argv[])
       MsgTransportConfig xCfg = xp->initialize(msgPool,clusterNodes);
       logInfo("TST","MSG","Msg Transport [%s], node [%u] maxPort [%u] maxMsgSize [%u]", xp->type, xCfg.nodeId, xCfg.maxPort, xCfg.maxMsgSize);
       MsgReliableSocketServer sockServer(37,xp);
-      MsgReliableSocketClient* connectionSocket = sockServer.accept();
+      //MsgReliableSocketClient* connectionSocket = sockServer.accept();
       logInfo("TST","MSG","wait to receive from sender"	);
       int count=0;
       while(1)
       {
         //int receiveByte=count*receiveLen;
         logInfo("TST","MSG","read...");
-        Message* msg= connectionSocket->receive(1);
+        Message* msg=sockServer.receive(1);
         logInfo("TST","MSG","read done [%d]...",count);
         MsgFragment* frag =  msg->firstFragment;
         logInfo("TST","MSG","first frag len [%d]...",frag->len);

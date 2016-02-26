@@ -15,6 +15,8 @@
 #include <boost/iostreams/stream.hpp>
 #include <reliableSocket.hxx>
 
+
+
 using namespace SAFplus;
 
 class xorshf96
@@ -106,41 +108,31 @@ int main(int argc, char* argv[])
       clTestCaseStart(("MXP-%3s-%3s.TC001: initialization",MsgXportTestPfx,ModeStr));
       MsgTransportConfig xCfg = xp->initialize(msgPool,clusterNodes);
       logInfo("TST","MSG","Msg Transport [%s], node [%u] maxPort [%u] maxMsgSize [%u]", xp->type, xCfg.nodeId, xCfg.maxPort, xCfg.maxMsgSize);
-      Handle destination = SAFplus::getProcessHandle(37,122);
-      //MsgReliableSocket sockclient(47,xp);
-      MsgReliableSocketServer sockclient(47,xp);
-      printf("init socket : done \n");
-      long len=5000000;
-      int count = 0;
-      while(count<2)
+      MsgReliableSocketServer sockServer(37,xp);
+      MsgReliableSocketServer sockServer(38,xp);
+      //MsgReliableSocketClient* connectionSocket = sockServer.accept();
+      logInfo("TST","MSG","wait to receive from sender"	);
+      int count=0;
+      while(1)
       {
-        count ++;
-        logInfo("TST","MSG","Msg Transport [%s], node [%u] maxPort [%u] maxMsgSize [%u] : connect", xp->type, xCfg.nodeId, xCfg.maxPort, xCfg.maxMsgSize);
-        //sockclient.connect(destination,0);
-        sleep(1);
-        logInfo("TST","MSG","Msg Transport [%s], node [%u] maxPort [%u] maxMsgSize [%u] : start sending", xp->type, xCfg.nodeId, xCfg.maxPort, xCfg.maxMsgSize);
-        unsigned char* buffer = new unsigned char[len];
-        memset(buffer, 'c', sizeof(unsigned char)*len);
-        Message* m = msgPool.allocMsg();
-        assert(m);
-        m->setAddress(destination);
-        MsgFragment* pfx  = m->append(1);
-        * ((unsigned char*)pfx->data()) = 2;
-        pfx->len = 1;
-        MsgFragment* frag = m->append(0);
-        frag->set(buffer,len);        
-        sockclient.send(m);
-        delete buffer;
-        m->msgPool->free(m);
-        sleep(2);
+        //int receiveByte=count*receiveLen;
+        logInfo("TST","MSG","read...");
+        Message* msg=sockServer.receive(1);
+        logInfo("TST","MSG","read done [%d]...",count);
+        MsgFragment* frag =  msg->firstFragment;
+        logInfo("TST","MSG","first frag len [%d]...",frag->len);
+        MsgFragment* frag2 =  msg->lastFragment;
+        logInfo("TST","MSG","last frag len [%d]...",frag2->len);
+        logInfo("TST","MSG","Data at [%d] : [%s]",0,(char*)(frag2->read(0)));
+        logInfo("TST","MSG","Data at [%d] : [%s]",frag2->len-10,(char*)(frag2->read(frag2->len-10))); 
+        free(frag->data(0)); 
+        count++;
       }
-      printf("close socket \n");
-      sockclient.close();
-      printf("init socket : done \n");
       do
       {
-        sleep(2);
+        sleep(1);
       }while(1);
      }
   }
 }
+

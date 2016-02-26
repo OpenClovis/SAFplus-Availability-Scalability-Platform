@@ -3,7 +3,7 @@
 #include "clCommon.hxx"
 #include <stdio.h>
 #define MAXSIZE 64000
-#define MSG_SEND_TIMEOUT 6000
+#define MSG_SEND_TIMEOUT 10000
 namespace SAFplus
 {
   // Callback function for Null Fragment Timer
@@ -136,7 +136,7 @@ namespace SAFplus
       resetMutex.lock();
       isReset = true;
       resetMutex.unlock();
-      setconnection(connectionNotification::RESET);
+      //setconnection(connectionNotification::RESET);
     }
 
     /*
@@ -159,7 +159,8 @@ namespace SAFplus
         default:
         {
           state = connectionState::CONN_CLOSED;
-          break;
+          logTrace("MSG","REL", "Set connection state to CLOSED");
+          return;
         }
       }
     }
@@ -983,6 +984,12 @@ namespace SAFplus
     {
       temp->set((void*)buffer,totalBytes);
       recvQueueLock.unlock();
+      //add to message queue
+      std::vector<Message*>::iterator it = this->sockServer->msgs.begin();
+      sockServer->msgs.insert(it,m);
+      sockServer->receiveMsgLock.lock();
+      sockServer->receiveMsgCond.notify_one();
+      sockServer->receiveMsgLock.unlock();
       return m;
     }
     recvQueueLock.unlock();
@@ -1217,12 +1224,40 @@ namespace SAFplus
     rcvThread = boost::thread(ReliableSocketThread, this);
   }
 
+  void MsgReliableSocket::resetSocket()
+  {
+    rcvListInfo.fragNumber =0;
+    rcvListInfo.lastFrag=0;
+    rcvListInfo.numberOfCumAck=0;
+    rcvListInfo.numberOfOutOfSeq=0;
+    rcvListInfo.numberOfNakFrag=0; /* Outstanding segments counter */
+    nullFragmentTimer.status=TIMER_PAUSE;
+    retransmissionTimer.status=TIMER_PAUSE;
+    cumulativeAckTimer.status=TIMER_PAUSE;
+    nullFragmentTimer.started=false;
+    retransmissionTimer.started=false;
+    cumulativeAckTimer.started=false;
+    nullFragmentTimer.interval=0;
+    retransmissionTimer.interval=0;
+    cumulativeAckTimer.interval=0;
+    nullFragmentTimer.isStop=true;
+    lastFragmentIdOfMessage=0;
+    delete profile;
+    if(!inSeqQueue.empty())
+    {
+      inSeqQueue.clear_and_dispose(delete_disposer());
+    }
+    if(!outOfSeqQueue.empty())
+    {
+      outOfSeqQueue.clear_and_dispose(delete_disposer());
+    }
+  }
+
   void MsgReliableSocket::handleReliableSocketThread(void)
   {
     fragmentType fragType = fragmentType::FRAG_UDE;
     Handle handle;
     logTrace("MSG","RST"," Socket([%d - %d]) : start thread to receive and handle fragment from [%d] [%d].",xPort->handle().getNode(),xPort->handle().getPort(),destination.getNode(),destination.getPort());
-    int test=0;
     while (1)
     {
       //logTrace("MSG","RST","waiting new fragment");
@@ -1256,20 +1291,19 @@ namespace SAFplus
       }
       else
       {
-        //         For testing ............
-        test++;
-        if(test % 10 == 2)
-        {
-          logTrace("MSG","RST","Remove fragment [%d] for testing",pFrag->getFragmentId());
-          delete pFrag;
-          continue;
-        }
-        else
-        {
+//        //         For testing ............
+//        test++;
+//        if(test % 9 == 2)
+//        {
+//          logTrace("MSG","RST","Remove fragment [%d] for testing",pFrag->getFragmentId());
+//          delete pFrag;
+//          continue;
+//        }
+//        else
+//        {
+//          handleReliableFragment(pFrag);
+//        }
           handleReliableFragment(pFrag);
-        }
-        //        logTrace("MSG","RST","Socket([%d - %d]) : Receive reliable fragment Id [%d] last [%d] fragment type [%d] from [%d - %d]",xPort->handle().getNode(),xPort->handle().getPort(),pFrag->getFragmentId(),pFrag->isLastFragment(),fragType,handle.getNode(),handle.getPort());
-        //        handleReliableFragment(pFrag);
       }
       getACK(pFrag);
       if (fragType == fragmentType::FRAG_ACK||fragType == fragmentType::FRAG_SYN||fragType == fragmentType::FRAG_NAK)
@@ -1292,6 +1326,7 @@ namespace SAFplus
     Message* nextMsg = origMsg;
     int chunkCount=0;
     Message* newMsg = NULL;
+    connect(origMsg->getAddress(),0);
     do
     {
       msg = nextMsg;
@@ -1420,7 +1455,6 @@ namespace SAFplus
       }
     }
     this->destination = destination;
-    logTrace("MSG","RST","set destination 2");
     // Synchronize sequence numbers
     state = connectionState::CONN_SYN_SENT;
     if(!unackedSentQueue.empty())
@@ -1556,6 +1590,7 @@ namespace SAFplus
         MsgReliableSocketClient *sockClient = new MsgReliableSocketClient(xPort,destAddress);
         sockClient->sockServer=this;
         clientSockTable[destAddress]=sockClient;
+        sockClient->startReceiveThread();
       }
       catch (...)
       {
@@ -1637,6 +1672,7 @@ namespace SAFplus
 //            logTrace("MSG","FRT","ACK-NAK from sender [%d]",int(socket->fragmentQueue.size()));
 //            socket->receiverFragment(p_Fragment);
           }
+          continue;
         }
         if((p_Fragment->getType()==FRAG_FIN))
         {
@@ -1644,22 +1680,8 @@ namespace SAFplus
           {
             logTrace("MSG","FRT","FIN from sender");
             MsgReliableSocketClient *socket = clientSockTable[destinationAddress];
-            socket->receiverFragment(p_Fragment);
-//          TODO : Reset socket
-            socket->rcvListInfo.reset();
-//            if(!socket->inSeqQueue.empty())
-//            {
-//              socket->inSeqQueue.clear_and_dispose(delete_disposer());
-//            }
-//            if(!socket->outOfSeqQueue.empty())
-//            {
-//              socket->outOfSeqQueue.clear_and_dispose(delete_disposer());
-//            }
-            if(!socket->fragmentQueue.empty())
-            {
-              socket->fragmentQueue.clear_and_dispose(delete_disposer());
-            }
-
+            socket->handleReliableFragment(p_Fragment);
+            socket->resetSocketClient();
           }
         }
         else
@@ -1701,6 +1723,16 @@ namespace SAFplus
   {
     xPort=socket;
     ServerRcvThread = boost::thread(rcvThread, this);
+  }
+
+  Message* MsgReliableSocketServer::receive(uint_t maxMsgs,int maxDelay)
+  {
+    receiveMsgLock.lock();
+    receiveMsgCond.wait(receiveMsgLock);
+    Message *m =msgs.back();
+    msgs.pop_back();
+    receiveMsgLock.unlock();
+    return m;
   }
   void MsgReliableSocketServer::init()
   {
@@ -1783,5 +1815,34 @@ namespace SAFplus
     sockServer->listenSock.push_back(*this);
     sockServer->listenSockCond.notify_one();
     sockServer->listenSockMutex.unlock();
+  }
+  void MsgReliableSocketClient::resetSocketClient()
+  {
+    resetSocket();
+    if(!fragmentQueue.empty())
+    {
+      fragmentQueue.clear_and_dispose(delete_disposer());
+    }
+
+  }
+
+  static void SocketClientThread(void * arg)
+  {
+    while(1)
+    {
+      MsgReliableSocketClient* p_this = (MsgReliableSocketClient*)arg;
+      if(!p_this->isConnected)
+      {
+        usleep(5);
+      }
+      else
+      {
+        p_this->receive(1);
+      }
+    }
+  }
+  void MsgReliableSocketClient::startReceiveThread()
+  {
+    receiveMsgThread= boost::thread(SocketClientThread,this);
   }
 };

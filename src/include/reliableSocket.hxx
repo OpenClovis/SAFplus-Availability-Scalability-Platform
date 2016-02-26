@@ -176,7 +176,6 @@ namespace SAFplus
     int sendBufferSize;
     int recvBufferSize;
     bool isClosed    = false; //socket status closed
-    bool isConnected = false; //socket status connected
     bool isReset     = false; //socket status reset
     int  state     = connectionState::CONN_CLOSED;
     int  timeout   = 0; /* (ms) */ //wait to receive fragment
@@ -234,7 +233,7 @@ namespace SAFplus
     void init();
 
   public:
-
+    bool isConnected = false; //socket status connected
     MsgReliableSocketServer *sockServer;
     SAFplus::Mutex sendReliableLock;
     int lastFragmentIdOfMessage;
@@ -261,6 +260,7 @@ namespace SAFplus
     virtual void send(SAFplus::Handle destination, void* buffer, uint_t length,uint_t msgtype);
     //Receiver a message
     virtual Message* receive(uint_t maxMsgs,int maxDelay=-1);
+    //virtual Message* receiveReassemble(uint_t maxMsgs,int maxDelay=-1);
     virtual Message* receiveFast(uint_t maxMsgs,int maxDelay=-1);
     virtual Message* receiveOrigin(uint_t maxMsgs,int maxDelay=-1);
     virtual void flush();
@@ -282,6 +282,7 @@ namespace SAFplus
     void handleNullFragmentTimerFunc(void);
     void handleCumulativeAckTimerFunc(void);
     void handleReliableFragment(ReliableFragment *frag);
+    void resetSocket();
   };
 
 
@@ -304,6 +305,8 @@ namespace SAFplus
     ReliableFragmentList fragmentQueue;
     SAFplus::Mutex fragmentQueueLock;
     ThreadCondition fragmentQueueCond;
+    boost::thread receiveMsgThread;
+
     MsgReliableSocketClient(MsgSocket* socket) : MsgReliableSocket(socket)
     {
     };
@@ -311,9 +314,11 @@ namespace SAFplus
     {
       destination=destinationAddress;
     };
+    void startReceiveThread();
     virtual ReliableFragment* receiveReliableFragment(Handle &handle);
     void receiverFragment(ReliableFragment* frag);
     virtual void connectionClientOpen();
+    void resetSocketClient();
   };
   typedef boost::unordered_map < SAFplus::Handle, MsgReliableSocketClient*, boost::hash<SAFplus::Handle>, std::equal_to<SAFplus::Handle> > HandleSockMap;
   class MsgReliableSocketServer : public MsgSocketAdvanced
@@ -326,6 +331,9 @@ namespace SAFplus
     Handle sendDestination;
     MsgReliableSocketClient* sendSock;
   public:
+    std::vector<Message*> msgs;
+    ThreadCondition receiveMsgCond;
+    SAFplus::Mutex receiveMsgLock;
     void removeClientSocket(Handle destAddress);
     void close();
     void init();
@@ -339,5 +347,6 @@ namespace SAFplus
     SAFplus::Mutex listenSockMutex;
     MsgReliableSocketClient* accept();
     HandleSockMap clientSockTable;
+    virtual Message* receive(uint_t maxMsgs,int maxDelay=-1);
   };
 };

@@ -6,7 +6,7 @@
 #define DEFAULT_NAK_FRAG     3;
 #define DEFAULT_RETRANS              9;
 #define DEFAULT_CUMULATIVE_ACKS      2;
-#define DEFAULT_OUT_OF_SEQUENCE      9;
+#define DEFAULT_OUT_OF_SEQUENCE      4;
 #define DEFAULT_AUTO_RESET           3;
 #define DEFAULT_NULL_SEGMENT_TIMEOUT     200;
 #define DEFAULT_RETRANSMISSION_TIMEOUT   800;
