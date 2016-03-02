@@ -627,7 +627,7 @@ class Panel(scrolled.ScrolledPanel):
           treeItem = self.findEntityRecursive(ent)
 
           if treeItem:
-            if 0: # TODO: recursive deleting???
+            if 1: # TODO: recursive deleting???
               if ent.et.name in self.entityTreeTypes:
                 for a in ent.containmentArrows:
                     self.deleteTreeItemEntities(set([a.contained]), tmpList)

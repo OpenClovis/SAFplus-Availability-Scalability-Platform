@@ -91,7 +91,6 @@ instantiated  <instances>     instances                         instances     (e
     """
 
   def deleteInstance(self,inst):
-    entname = inst.data["name"]
     self.recursiveDeleteInstance(inst)
     
   def deleteInstanceFromMicrodom(self, entname):
