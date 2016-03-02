@@ -14,7 +14,7 @@ import wx.aui
 import instanceEditor
 import entityDetailsDialog
 import umlEditor
-from project import Project, ProjectTreePanel, EVT_PROJECT_LOADED, EVT_PROJECT_NEW, PROJECT_SAVE
+from project import Project, ProjectTreePanel, EVT_PROJECT_LOADED, EVT_PROJECT_NEW, PROJECT_SAVE, PROJECT_SAVE_AS
 import common
 import model
 
@@ -242,6 +242,7 @@ class SAFplusFrame(wx.Frame):
       prj = self.project.latest()      
       self.loadProject(prj)
       self.menu.Enable(PROJECT_SAVE, True)
+      self.menu.Enable(PROJECT_SAVE_AS, True)
 
     def onPrjTreeActivated(self, evt):
       """ handle an event when user double-clicks on an item at the tree on the left to switch views to it or to set it active """

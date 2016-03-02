@@ -17,11 +17,13 @@ import common
 
 PROJECT_LOAD = wx.NewId()
 PROJECT_SAVE = wx.NewId()
+PROJECT_SAVE_AS = wx.NewId()
 
 PROJECT_WILDCARD = "SAFplus Project (*.spp)|*.spp|All files (*.*)|*.*"
 
 ProjectLoadedEvent, EVT_PROJECT_LOADED = wx.lib.newevent.NewCommandEvent()  # Must be a command event so it propagates
 ProjectNewEvent, EVT_PROJECT_NEW = wx.lib.newevent.NewCommandEvent()
+ProjectSaveAsEvent, EVT_PROJECT_SAVE_AS = wx.lib.newevent.NewCommandEvent()
 
 class Project(microdom.MicroDom):
   def __init__(self, filename=None):
@@ -70,6 +72,41 @@ class Project(microdom.MicroDom):
     self.createModelXml()
     md = microdom.LoadFile(self.projectFilename)
     microdom.MicroDom.__init__(self,md.attributes_, md.children_, md.data_)
+
+  def saveAs(self, fromProject):    
+    self.name = os.path.splitext(os.path.basename(self.projectFilename))[0]
+    self.doSaveAs(fromProject)
+
+  def doSaveAs(self, fromProject):
+    def copy(srcpath, destpath):
+      f = open(srcpath, "r")
+      data = f.read()
+      f.close()
+      f = open(destpath, "w")
+      f.write(data)
+      f.close()
+    srcRootdir = fromProject.directory()
+    destRootdir = self.directory()
+    for subdir, dirs, files in os.walk(srcRootdir):
+      for f in files:
+        srcpath = os.path.join(subdir, f)
+        dstpath = os.path.join(destRootdir, srcpath.replace(os.path.join(srcRootdir, ""), ""))
+        if dstpath.find(fromProject.modelFilename()) != -1:
+          dstpath = dstpath.replace(fromProject.modelFilename(), self.modelFilename())
+        else:
+          if dstpath.find(fromProject.name+'.spp') != -1:
+            dstpath = dstpath.replace(fromProject.name+'.spp', self.name+'.spp') 
+        if os.path.exists(dstpath):
+          if os.stat(srcpath).st_mtime > os.stat(dstpath).st_mtime:
+            copy(srcpath, dstpath)
+        else:
+          copy(srcpath, dstpath)
+      for d in dirs:
+        srcpath = os.path.join(subdir, d)
+        dstpath = os.path.join(destRootdir, srcpath.replace(os.path.join(srcRootdir, ""), ""))
+        if not os.path.exists(dstpath):
+          os.mkdir(dstpath)
+    self.updatePrjXml(fromProject)
 
   def createPrjXml(self):
     dom = xml.dom.minidom.Document()
@@ -148,6 +185,24 @@ class Project(microdom.MicroDom):
     f.write(self.prjXmlData.pretty())
     f.close()
 
+  def updatePrjXml(self, fromProject):
+    self.loadModel()
+    # update model
+    model = self.prjXmlData.getElementsByTagName("model")    
+    newModel = []
+    for m in model[0].children_:
+      newModel.append(m.replace(fromProject.modelFilename(), self.modelFilename()))
+    model[0].children_ = newModel    
+    # update sources
+    sources = self.prjXmlData.getElementsByTagName("source")    
+    newSrc = []
+    for src in sources[0].children_:
+      newSrc.append(src.replace(fromProject.directory(), self.directory()))
+    sources[0].children_ = newSrc
+    f = open(self.projectFilename,"w")
+    f.write(self.prjXmlData.pretty())
+    f.close()
+
 class ProjectTreeCtrl(wx.TreeCtrl):
   def __init__(self, parent, id, pos, size, style):
     self.parent = parent
@@ -194,16 +249,21 @@ class ProjectTreePanel(wx.Panel):
         self.fileMenu.Append(PROJECT_LOAD, "L&oad\tAlt-l", "Load Project")
         self.fileMenu.Append(PROJECT_SAVE, "S&ave\tAlt-s", "Save Project")
         self.fileMenu.Enable(PROJECT_SAVE, False)
+        self.fileMenu.Append(PROJECT_SAVE_AS, "Save As...\tAlt-a", "Save As")
+        self.fileMenu.Enable(PROJECT_SAVE_AS, False)
+        
 
         # bind the menu event to an event handler
         self.fileMenu.Bind(wx.EVT_MENU, self.OnNew, id=wx.ID_NEW)
         self.fileMenu.Bind(wx.EVT_MENU, self.OnLoad, id=PROJECT_LOAD)
         self.fileMenu.Bind(wx.EVT_MENU, self.OnSave, id=PROJECT_SAVE)
+        self.fileMenu.Bind(wx.EVT_MENU, self.OnSaveAs, id=PROJECT_SAVE_AS)
         
         # wx 2.8 compatibility
         wx.EVT_MENU(guiPlaces.frame, wx.ID_NEW, self.OnNew)
         wx.EVT_MENU(guiPlaces.frame, PROJECT_LOAD, self.OnLoad)
         wx.EVT_MENU(guiPlaces.frame, PROJECT_SAVE, self.OnSave)
+        wx.EVT_MENU(guiPlaces.frame, PROJECT_SAVE_AS, self.OnSaveAs)
 
   def active(self):
     i = self.tree.GetSelections()
@@ -320,6 +380,7 @@ class ProjectTreePanel(wx.Panel):
       evt = ProjectLoadedEvent(EVT_PROJECT_LOADED.evtType[0])
       wx.PostEvent(self.parent,evt)
       self.fileMenu.Enable(PROJECT_SAVE, True)
+      self.fileMenu.Enable(PROJECT_SAVE_AS, True) 
 
   def OnNew(self,event):
     dlg = NewPrjDialog()
@@ -336,6 +397,7 @@ class ProjectTreePanel(wx.Panel):
       evt = ProjectNewEvent(EVT_PROJECT_NEW.evtType[0])
       wx.PostEvent(self.parent,evt)
       self.fileMenu.Enable(PROJECT_SAVE, True)
+      self.fileMenu.Enable(PROJECT_SAVE_AS, True)
 
   def OnSave(self,event):
     saved = []
@@ -345,19 +407,19 @@ class ProjectTreePanel(wx.Panel):
       saved.append(prj.name)
     self.guiPlaces.statusbar.SetStatusText("Projects %s saved." % ", ".join(saved),0);
 
-  def OnSaveAs(self,event):
-    dlg = wx.FileDialog(
-            self, message="Save file as...",
-            defaultDir=os.getcwd(), 
-            defaultFile="",
-            wildcard=wildcard,
-            style=wx.SAVE | wx.CHANGE_DIR
-            )
-    if dlg.ShowModal() == wx.ID_OK:
-      paths = dlg.GetPaths()
-      log.write('You selected %d files: %s' % (len(paths),str(paths)))
-    pass
+  def OnSaveAs(self, event):
+    dlg = SaveAsDialog()
+    dlg.ShowModal()
+    if dlg.what == "OK":
+      print 'SaveAs: handling ok clicked'                   
+      log.write('SaveAs: You selected %d files: %s' % (len(dlg.path),str(dlg.path)))
 
+      if self.isPrjLoaded(dlg.path): return 
+      project = Project()
+      project.projectFilename = dlg.path
+      currentActivePrj = self.latest()
+      project.saveAs(currentActivePrj)
+      self.guiPlaces.statusbar.SetStatusText("Saving as completed",0);
 
   def OnSize(self, event):
         w,h = self.GetClientSizeTuple()
@@ -472,6 +534,96 @@ class NewPrjDialog(wx.Dialog):
             path = dlg.GetPath()
             print 'You selected %d files: %s' % (len(path),str(path))
             self.datamodel.SetValue(path)
+
+    def onBrowse(self, event):
+        print 'about to browse project location'        
+        dlg = wx.DirDialog(
+            self, message="Choose a project location",
+            defaultPath=common.getMostRecentPrjDir(),             
+            style=wx.DD_DEFAULT_STYLE | wx.DD_CHANGE_DIR
+            )
+        if dlg.ShowModal() == wx.ID_OK:
+            path = dlg.GetPath()
+            print 'You selected %d path: %s' % (len(path),str(path))
+            self.prjLocationName.SetValue(path)
+
+class SaveAsDialog(wx.Dialog):
+    """
+    Class to define new prj dialog
+    """
+ 
+    #----------------------------------------------------------------------
+    def __init__(self):
+        """Constructor"""
+        wx.Dialog.__init__(self, None, title="Save project as...", size=(430,200))
+         
+        prjname_sizer = wx.BoxSizer(wx.HORIZONTAL)
+ 
+        prj_lbl = wx.StaticText(self, label="Project name", size=(100,25))
+        prjname_sizer.Add(prj_lbl, 0, wx.ALL|wx.CENTER, 5)
+        self.prjName = wx.TextCtrl(self)
+        prjname_sizer.Add(self.prjName, 0, wx.ALL, 5)
+
+        prjlocation_sizer = wx.BoxSizer(wx.HORIZONTAL)
+        prj_location_lbl = wx.StaticText(self, label="Location", size=(100,25))
+        prjlocation_sizer.Add(prj_location_lbl, 0, wx.ALL|wx.CENTER, 5)
+        self.prjLocationName = wx.TextCtrl(self, size=(200, 25))
+        self.prjLocationName.SetValue(common.getMostRecentPrjDir())
+        prjlocation_sizer.Add(self.prjLocationName, 0, wx.ALL, 5)
+        prj_location_btn = wx.Button(self, label="Browse")
+        prj_location_btn.Bind(wx.EVT_BUTTON, self.onBrowse)
+        prjlocation_sizer.Add(prj_location_btn, 0, wx.ALL, 5)
+ 
+        main_sizer = wx.BoxSizer(wx.VERTICAL)
+        main_sizer.Add(prjname_sizer, 0, wx.ALL, 5)
+        main_sizer.Add(prjlocation_sizer, 0, wx.ALL, 5)
+         
+        OK_btn = wx.Button(self, label="OK")
+        OK_btn.Bind(wx.EVT_BUTTON, self.onBtnHandler)
+        cancel_btn = wx.Button(self, label="Cancel")
+        cancel_btn.Bind(wx.EVT_BUTTON, self.onBtnHandler)
+  
+        btn_sizer = wx.BoxSizer(wx.HORIZONTAL)
+        btn_sizer.Add(OK_btn, 0, wx.ALL|wx.CENTER, 5)
+        btn_sizer.Add(cancel_btn, 0, wx.ALL|wx.CENTER, 5)  
+              
+        main_sizer.Add(btn_sizer, 0, wx.ALL|wx.CENTER, 5)
+
+        self.SetSizer(main_sizer)
+ 
+    #----------------------------------------------------------------------
+    def onBtnHandler(self, event):
+        what = event.GetEventObject().GetLabel()
+        print 'about to %s' % what  
+        if (what == "OK"):
+           prjName = self.prjName.GetValue()
+           if len(prjName)==0:
+              msgBox = wx.MessageDialog(self, "Project name is missing. Please specify a new project", style=wx.OK|wx.CENTRE)
+              msgBox.ShowModal()
+              msgBox.Destroy()
+              return     
+           self.prjDir = self.prjLocationName.GetValue()+os.sep
+           if not self.prjLocationName.GetValue() or not os.path.exists(self.prjDir):
+              msgBox = wx.MessageDialog(self, "Project location is missing or does not exist. Please choose a location for the new project", style=wx.OK|wx.CENTRE)
+              msgBox.ShowModal()
+              msgBox.Destroy()
+              return                              
+           pos = prjName.rfind('.spp')
+           if pos<0:
+              self.prjDir+=prjName
+              self.path = self.prjDir+os.sep+prjName+'.spp'              
+           else:              
+              self.prjDir+= prjName[0:pos]
+              self.path=self.prjDir+os.sep+prjName
+           if not os.path.exists(self.prjDir):
+              os.makedirs(self.prjDir)
+           if os.path.exists(self.path):
+              msgBox = wx.MessageDialog(self, "Project exists. Please specify another name", style=wx.OK|wx.CENTRE)
+              msgBox.ShowModal()
+              msgBox.Destroy()
+              return
+        self.what = what
+        self.Close()    
 
     def onBrowse(self, event):
         print 'about to browse project location'        

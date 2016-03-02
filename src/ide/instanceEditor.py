@@ -759,9 +759,10 @@ class Panel(scrolled.ScrolledPanel):
       # These variables define what types can be instantiated in the outer row/columns of the edit tool
       self.rowTypes = ["ServiceGroup","Application"]
       self.columnTypes = ["Node"]
-      for (name,m) in model.entities.items():
-        if m.et.name == "ServiceGroup":
-          m.customInstantiator = lambda entity,pos,size,children,name,pnl=self: pnl.sgInstantiator(entity, pos,size,children,name)
+
+      #for (name,m) in model.entities.items():
+      #  if m.et.name == "ServiceGroup":
+      #    m.customInstantiator = lambda entity,pos,size,children,name,pnl=self: pnl.sgInstantiator(entity, pos,size,children,name)
 
       self.SetupScrolling(True, True)
       self.SetScrollRate(10, 10)
@@ -854,7 +855,7 @@ class Panel(scrolled.ScrolledPanel):
       self.toolBar.AddTool(CODEGEN_BUTTON, bitmap, wx.NullBitmap, shortHelpString="Generate Source Code", longHelpString="Generate source code ...")
       # add the generate menu item
       menuFile = self.guiPlaces.menu.get("File",None)
-      gen = menuFile.Insert(5, CODEGEN_BUTTON, "&Generate code\tAlt-G", "Generate source code ...")
+      gen = menuFile.Insert(6, CODEGEN_BUTTON, "&Generate code\tAlt-G", "Generate source code ...")
       gen.Enable(False)
      
       idMnuGenerateCode = [CODEGEN_BUTTON, CODEGEN_LANG_C, CODEGEN_LANG_CPP, CODEGEN_LANG_PYTHON, CODEGEN_LANG_JAVA]
@@ -909,9 +910,9 @@ class Panel(scrolled.ScrolledPanel):
       self.toolBar.Bind(wx.EVT_TOOL_RCLICKED, self.OnToolRClick)
 
     def resetDataMembers(self):
-      for (name,m) in self.model.entities.items():
-        if m.et.name == "ServiceGroup":
-          m.customInstantiator = lambda entity,pos,size,children,name,pnl=self: pnl.sgInstantiator(entity, pos,size,children,name)
+      #for (name,m) in self.model.entities.items():
+      #  if m.et.name == "ServiceGroup":
+      #    m.customInstantiator = lambda entity,pos,size,children,name,pnl=self: pnl.sgInstantiator(entity, pos,size,children,name)
       self.tool = None  # The current tool
       self.drawers = set()
       self.renderArrow = {}
