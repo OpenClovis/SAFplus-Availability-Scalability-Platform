@@ -71,9 +71,10 @@ namespace SAFplus
     void pop_back() { SAFplus::ScopedLock<> l(lock); value.pop_back(); }   
     
 
-    void initialize(const char* name)
+    void initialize(const char* name ,int size)
     {
       tag = name;
+      value.set_capacity(size);
     }
 
     MgtCircularBuffer(char* name,int size): MgtObject(name), value(size)
@@ -216,7 +217,7 @@ void MgtHistoryStat<T>::initialize(void)
   addChildObject(&current,current.tag);
   for (int i=0;i<NumHistoryGroups;i++)
     {
-      mHistory[i].initialize(historyNames[i]);
+      mHistory[i].initialize(historyNames[i], historyMultiples[i]);
       mCounts[i] = 0;
       addChildObject(&mHistory[i],historyNames[i]);
     }
