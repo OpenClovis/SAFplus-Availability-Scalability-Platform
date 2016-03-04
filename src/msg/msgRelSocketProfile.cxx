@@ -1,4 +1,4 @@
-#include <ReliableFragment.hxx>
+#include <clMsgRelSocketFragment.hxx>
 
 #define DEFAULT_SEND_QUEUE_SIZE      320;
 #define DEFAULT_RECV_QUEUE_SIZE      320;
@@ -9,7 +9,7 @@
 #define DEFAULT_OUT_OF_SEQUENCE      4;
 #define DEFAULT_AUTO_RESET           3;
 #define DEFAULT_NULL_SEGMENT_TIMEOUT     200;
-#define DEFAULT_RETRANSMISSION_TIMEOUT   800;
+#define DEFAULT_RETRANSMISSION_TIMEOUT   200;
 #define DEFAULT_CUMULATIVE_ACK_TIMEOUT   300;
 
 namespace SAFplus

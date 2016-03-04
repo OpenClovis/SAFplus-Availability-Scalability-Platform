@@ -13,7 +13,7 @@
 #include <clTestApi.hxx>
 #include <boost/program_options.hpp>
 #include <boost/iostreams/stream.hpp>
-#include <reliableSocket.hxx>
+#include <clMsgRelSocket.hxx>
 
 
 
@@ -58,9 +58,7 @@ int main(int argc, char* argv[])
                     ("help", "this help message")
                     ("xport", boost::program_options::value<std::string>(), "transport plugin filename")
                     ("loglevel", boost::program_options::value<std::string>(), "logging cutoff level")
-                    ("mode", boost::program_options::value<std::string>()->default_value("LAN"), "specify LAN or cloud to set the messaging transport address resolution mode")
-                    ;
-
+                    ("mode", boost::program_options::value<std::string>()->default_value("LAN"), "specify LAN or cloud to set the messaging transport address resolution mode");
   boost::program_options::variables_map vm;
   boost::program_options::store(boost::program_options::parse_command_line(argc, argv, desc), vm);
   boost::program_options::notify(vm);
@@ -108,25 +106,32 @@ int main(int argc, char* argv[])
       clTestCaseStart(("MXP-%3s-%3s.TC001: initialization",MsgXportTestPfx,ModeStr));
       MsgTransportConfig xCfg = xp->initialize(msgPool,clusterNodes);
       logInfo("TST","MSG","Msg Transport [%s], node [%u] maxPort [%u] maxMsgSize [%u]", xp->type, xCfg.nodeId, xCfg.maxPort, xCfg.maxMsgSize);
-      MsgReliableSocketServer sockServer(37,xp);
-      //MsgReliableSocketClient* connectionSocket = sockServer.accept();
+      MsgSocket* xport1 = xp->createSocket(37);
+      MsgReliableSocketServer *sockServer = new MsgReliableSocketServer(xport1);
       logInfo("TST","MSG","wait to receive from sender"	);
       int count=0;
-      while(1)
+      while(count<14)
       {
+tryAgain:
         //int receiveByte=count*receiveLen;
         logInfo("TST","MSG","read...");
-        Message* msg=sockServer.receive(1);
+        Message* msg=sockServer->receive(1);
+        if(msg==NULL)
+        {
+          goto tryAgain;
+        }
         logInfo("TST","MSG","read done [%d]...",count);
         MsgFragment* frag =  msg->firstFragment;
         logInfo("TST","MSG","first frag len [%d]...",frag->len);
         MsgFragment* frag2 =  msg->lastFragment;
         logInfo("TST","MSG","last frag len [%d]...",frag2->len);
-        logInfo("TST","MSG","Data at [%d] : [%s]",0,(char*)(frag2->read(0)));
-        logInfo("TST","MSG","Data at [%d] : [%s]",frag2->len-10,(char*)(frag2->read(frag2->len-10))); 
+        //logInfo("TST","MSG","Data at [%d] : [%s]",0,(char*)(frag2->read(0)));
+        //logInfo("TST","MSG","Data at [%d] : [%s]",frag2->len-10,(char*)(frag2->read(frag2->len-10))); 
         free(frag->data(0)); 
         count++;
       }
+        logInfo("TST","MSG","delete Sock server...");
+        delete sockServer;
       do
       {
         sleep(1);
