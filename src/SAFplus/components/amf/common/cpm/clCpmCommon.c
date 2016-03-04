@@ -234,6 +234,62 @@ ClRcT cpmInvocationGet(ClInvocationT invocationId,
     return rc;
 }
 
+ClRcT cpmHBInvocationGet(const ClNameT *compName, ClInvocationT *invocation, ClTimeT *createdTime, ClIocPortT *eoPort)
+{
+    ClRcT rc = CL_OK;
+    ClCntNodeHandleT nodeHandle, nextNodeHandle;
+    ClCpmInvocationT *invocationData = NULL;
+
+    /*
+     * Check the input parameter 
+     */
+    if (!compName || !invocation || !createdTime)
+    {
+        return CL_ERR_INVALID_PARAMETER;
+    }
+
+    clOsalMutexLock(gpClCpm->invocationMutex);
+
+    rc = clCntFirstNodeGet(gpClCpm->invocationTable, &nodeHandle);
+    if (rc != CL_OK)
+        goto withLock;
+
+    while (nodeHandle)
+    {
+        rc = clCntNodeUserDataGet(gpClCpm->invocationTable, nodeHandle, (ClCntDataHandleT *) &invocationData);
+        if (rc != CL_OK)
+            goto withLock;
+
+        if (invocationData->data && (invocationData->flags & CL_CPM_INVOCATION_CPM))
+        {
+            ClUint32T cbType = 0;
+            CL_CPM_INVOCATION_CB_TYPE_GET(invocationData->invocation, cbType);
+
+            if (!strncmp(((ClCpmComponentT*) invocationData->data)->compConfig->compName, compName->value, compName->length)
+                    && (CL_CPM_HB_CALLBACK == cbType))
+            {
+                *invocation = invocationData->invocation;
+                *createdTime = invocationData->createdTime;
+                *eoPort = ((ClCpmComponentT*) invocationData->data)->eoPort;
+                break;
+            }
+        }
+        rc = clCntNextNodeGet(gpClCpm->invocationTable, nodeHandle, &nextNodeHandle);
+        if (rc != CL_OK)
+            goto withLock;
+
+        nodeHandle = nextNodeHandle;
+    }
+
+    clOsalMutexUnlock(gpClCpm->invocationMutex);
+    return CL_OK;
+
+  withLock: 
+      clOsalMutexUnlock(gpClCpm->invocationMutex);
+
+    return rc;
+}
+
 ClRcT cpmInvocationAdd(ClUint32T cbType,
                        void *data,
                        ClInvocationT *invocationId,

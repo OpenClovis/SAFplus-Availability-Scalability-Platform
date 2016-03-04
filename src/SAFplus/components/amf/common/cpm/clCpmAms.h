@@ -313,6 +313,8 @@ extern ClRcT cpmInvocationGet(ClInvocationT invocationId,
                               ClUint32T *cbType,
                               void **data);
 
+extern ClRcT cpmHBInvocationGet(const ClNameT *compName, ClInvocationT *invocation, ClTimeT *createdTime, ClIocPortT *eoPort);
+
 extern ClRcT cpmInvocationGetWithLock(ClInvocationT invocationId,
                                       ClUint32T *cbType,
                                       void **data);

@@ -5013,7 +5013,36 @@ static ClRcT compHealthCheckAmfInvokedCB(ClPtrT arg)
 
         comp->hbInvocationPending = CL_YES;
     }
-    
+    else
+    {
+        /* Somehow heartbeat sent/replied for a invocation lost, re-sent the heartbeat if still in maxDuration timeout */
+        ClInvocationT invocationId;
+        ClIocPortT eoPort = 0;
+        ClCpmClientCompTerminateT compHealthcheck = { 0 };
+
+        ClTimeT curTime = clOsalStopWatchTimeGet();
+        ClTimeT createdTime = curTime;
+
+        clNameSet(&compHealthcheck.compName, comp->compConfig->compName);
+        rc = cpmHBInvocationGet(&compHealthcheck.compName, &invocationId, &createdTime, &eoPort);
+        if (rc == CL_OK)
+        {
+            ClUint32T maxRetries = comp->compConfig->healthCheckConfig.maxDuration / comp->compConfig->healthCheckConfig.period;
+            ClUint32T numRetries = ((curTime - createdTime) / 1000) / comp->compConfig->healthCheckConfig.period;
+            compHealthcheck.invocation = invocationId;
+            if (numRetries < maxRetries)
+            {
+                rc = CL_CPM_CALL_RMD_ASYNC_NEW(clIocLocalAddressGet(), eoPort, CPM_HEALTH_CHECK_FN_ID, (ClUint8T *) &compHealthcheck,
+                                               sizeof(ClCpmClientCompTerminateT),
+                                               NULL,
+                                               NULL,
+                                               CL_RMD_CALL_ATMOST_ONCE,
+                                               0, 0, CL_IOC_HIGH_PRIORITY,
+                                               NULL,
+                                               NULL, MARSHALL_FN(ClCpmClientCompTerminateT, 4, 0, 0));
+            }
+        }
+    }
     clOsalMutexUnlock(comp->compMutex);
     
     return CL_OK;
