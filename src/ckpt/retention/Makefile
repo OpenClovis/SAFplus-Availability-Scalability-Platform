@@ -18,7 +18,7 @@ all: $(BIN_DIR)/ckptretention
 
 
 $(BIN_DIR)/ckptretention:  $(OBJ) $(SAFPLUS_DEP_LIBS)
-	$(LINK_EXE) $@ $(OBJ)  $(LINK_LIBS) $(SAFPLUS_LINK_LIBS) -lezxml $(LINK_STD_LIBS)
+	$(LINK_EXE) $@ $(OBJ)  $(LINK_LIBS) $(SAFPLUS_LINK_LIBS) $(LINK_STD_LIBS)
 
 $(OBJ_DIR)/%.o: %.cxx	
 	$(COMPILE_CPP) $@ $<

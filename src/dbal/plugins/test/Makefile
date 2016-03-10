@@ -19,13 +19,13 @@ all: $(TEST_DIR)/testDBPlugin
 
 ifdef DIRECTLY_LINK
 $(TEST_DIR)/%:  $(OBJ_DIR)/%.o $(SAFPLUS_DEP_LIBS)
-	$(LINK_EXE) $@ $<  $(LINK_LIBS) $(DIRECTLY_LINK) $(SAFPLUS_LINK_LIBS) -lezxml $(LINK_STD_LIBS)
+	$(LINK_EXE) $@ $<  $(LINK_LIBS) $(DIRECTLY_LINK) $(SAFPLUS_LINK_LIBS) $(LINK_STD_LIBS)
 
 $(OBJ_DIR)/%.o: %.cxx Makefile $(SAFPLUS_MAKE_DIR)/preface.mk $(CLIENT_H)
 	$(COMPILE_CPP)  $@ -DDIRECTLY_LINKED $<
 else
 $(TEST_DIR)/%:  $(OBJ_DIR)/%.o $(SAFPLUS_DEP_LIBS)
-	$(LINK_EXE) $@ $<  $(LINK_LIBS)  $(SAFPLUS_LINK_LIBS) -lboost_program_options -lezxml $(LINK_STD_LIBS)
+	$(LINK_EXE) $@ $<  $(LINK_LIBS)  $(SAFPLUS_LINK_LIBS) -lboost_program_options $(LINK_STD_LIBS)
 
 $(OBJ_DIR)/%.o: %.cxx Makefile $(SAFPLUS_MAKE_DIR)/preface.mk $(CLIENT_H)
 	$(COMPILE_CPP) $@ $<
