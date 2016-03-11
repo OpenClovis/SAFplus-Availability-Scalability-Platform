@@ -5,9 +5,6 @@ include ../mk/preface.mk
 
 CPP_FLAGS += -I$(BOOST_DIR) -I. -I../../protoc
 
-# Management includes and libraries
-CPP_FLAGS += -I$(SAFPLUS_SRC_DIR)/SAFplus/3rdparty/ezxml/stable
-
 CLIENT_H := $(wildcard *.hxx)
 CLIENT_SRC := $(wildcard *.cxx)
 CLIENT_OBJ := $(addprefix $(MWOBJ_DIR)/,$(subst .cxx,.o,$(CLIENT_SRC)))

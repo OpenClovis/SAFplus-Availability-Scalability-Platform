@@ -116,9 +116,6 @@ $(LIB_DIR)/libclAmf.so: $(wildcard $(SAFPLUS_SRC_DIR)/amf/*.cxx)
 	$(MAKE) -C $(SAFPLUS_SRC_DIR)/amf
 endif
 
-$(LIB_DIR)/libezxml.so:
-	$(MAKE) -C $(SAFPLUS_SRC_DIR)/3rdparty/ezxml/ezxml-0.8.6/
-
 ifndef SAFPLUS_MSG_PLUGIN
 # .PHONY: $(LIB_DIR)/clMsgUdp.so
 $(LIB_DIR)/clMsgUdp.so: $(wildcard $(SAFPLUS_SRC_DIR)/msg/transports/*.cxx)
@@ -203,7 +200,7 @@ SAFplusTools := $(SAFplusRpcGen)
 
 SAFplusPlugins := $(SAFplusDbalPlugins) $(SAFplusMsgTransports)
 
-ThirdPartySOs := $(LIB_DIR)/libezxml.so
+ThirdPartySOs :=
 
 Languages := $(LIB_DIR)/pySAFplus.so
 

@@ -1,4 +1,4 @@
-#include <ReliableFragment.hxx>
+#include <clMsgRelSocketFragment.hxx>
 
 #define DEFAULT_SEND_QUEUE_SIZE      320;
 #define DEFAULT_RECV_QUEUE_SIZE      320;
@@ -9,7 +9,7 @@
 #define DEFAULT_OUT_OF_SEQUENCE      4;
 #define DEFAULT_AUTO_RESET           3;
 #define DEFAULT_NULL_SEGMENT_TIMEOUT     200;
-#define DEFAULT_RETRANSMISSION_TIMEOUT   800;
+#define DEFAULT_RETRANSMISSION_TIMEOUT   200;
 #define DEFAULT_CUMULATIVE_ACK_TIMEOUT   300;
 
 namespace SAFplus
@@ -32,7 +32,7 @@ namespace SAFplus
   ReliableSocketProfile::ReliableSocketProfile(int maxSendQueueSize,
       int maxRecvQueueSize,
       int maxFragmentSize,
-      int maxOutstandingSegs,
+      int maxNAKFragments,
       int maxRetrans,
       int maxCumulativeAcks,
       int maxOutOfSequence,
@@ -44,7 +44,7 @@ namespace SAFplus
     validateValue("maxSendQueueSize", maxSendQueueSize, 1, 6401);
     validateValue("maxRecvQueueSize", maxRecvQueueSize, 1, 6401);
     validateValue("maxFragmentSize", maxFragmentSize, 22, 65535);
-    validateValue("maxOutstandingSegs", maxOutstandingSegs, 1, 512);
+    validateValue("maxNAKFragments", maxNAKFragments, 1, 512);
     validateValue("maxRetrans", maxRetrans, 0, 255);
     validateValue("maxCumulativeAcks", maxCumulativeAcks, 0, 512);
     validateValue("maxOutOfSequence", maxOutOfSequence, 0, 512);
@@ -56,7 +56,7 @@ namespace SAFplus
     pMaxSndListSize = maxSendQueueSize;
     pMaxRcvListSize = maxRecvQueueSize;
     pMaxFragmentSize = maxFragmentSize;
-    pMaxNAKFragments = maxOutstandingSegs;
+    pMaxNAKFragments = maxNAKFragments;
     pMaxRetrans = maxRetrans;
     pMaxCumulativeAcks = maxCumulativeAcks;
     pMaxOutOfSequence = maxOutOfSequence;

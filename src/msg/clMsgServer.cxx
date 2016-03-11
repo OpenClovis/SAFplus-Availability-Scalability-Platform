@@ -3,7 +3,7 @@
 #include <clMsgHandler.hxx>
 #include <clMsgApi.hxx>
 #include <clMsgSarSocket.hxx>
-#include <reliableSocket.hxx>
+#include <clMsgRelSocket.hxx>
 
 
 namespace SAFplus
@@ -101,7 +101,8 @@ namespace SAFplus
       }
       case SOCK_RELIABLE:
       {
-        sock= new MsgReliableSocketServer(port,transport);
+        MsgSocket* xport = transport->createSocket(port);
+        sock= new MsgReliableSocketServer(xport);
         break;
       }
     }
@@ -198,7 +199,6 @@ void MsgServer::MakeMePrimary()
           MsgTracker* rm = CreateMsgTracker(m,q);
           m = 0;  // wipe it so I know to create another
           q->jq.run(rm);
-
           }
         //boost::this_thread::sleep(boost::posix_time::milliseconds(1000));  // Just sleep until this function is implemented
 
@@ -242,6 +242,7 @@ void MsgServer::MakeMePrimary()
     MsgHandler *msgHandler = q->handlers[msgType];
     if (msgHandler != NULL)
       {
+      logDebug("MSG", "SVR", "Received message of type [%d]", (int )msgType);
 
       msgHandler->msgHandler(q, msg,q->cookies[msgType]);
       msg=nullptr;  // ownership is given to the msgHandler

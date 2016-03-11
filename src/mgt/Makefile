@@ -6,7 +6,6 @@ CPP_FLAGS += -I$(BOOST_DIR) -I. -I.. -I$(SAFPLUS_INC_DIR)
 
 # Management includes and libraries
 CPP_FLAGS +=  $(SAFPLUS_MGT_INC_FLAGS)
-C_FLAGS += -I$(SAFPLUS_SRC_DIR)/SAFplus/include -I$(SAFPLUS_INC_DIR) -I$(SAFPLUS_SRC_DIR)/SAFplus/3rdparty/ezxml/stable
 
 CLIENT_H := $(wildcard ../include/*.hxx)
 CLIENT_SRC := $(wildcard *.cxx) $(wildcard *.cc)

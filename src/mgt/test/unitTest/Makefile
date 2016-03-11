@@ -23,7 +23,7 @@ all: $(unitTest_LIB)
 
 # Shared library providing functions that needs to provide that YANG data
 $(unitTest_LIB): $(unitTest_OBJ) $(SAFPLUS_DEP_LIBS)
-	$(LINK_SO) $@  $(unitTest_OBJ) $(SAFPLUS_LINK_LIBS) -L$(INSTALL_DIR)/lib -lezxml -lxml2 -lboost_filesystem $(LINK_SO_LIBS)
+	$(LINK_SO) $@  $(unitTest_OBJ) $(SAFPLUS_LINK_LIBS) -L$(INSTALL_DIR)/lib -lxml2 -lboost_filesystem $(LINK_SO_LIBS)
 
 $(OBJ_DIR)/unitTest/%.o: %.cxx $(unitTest_H)
 	-mkdir -p $(OBJ_DIR)/unitTest

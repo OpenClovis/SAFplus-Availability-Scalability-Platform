@@ -1,32 +1,26 @@
 #pragma once
 #include <boost/thread.hpp>
 #include <clMsgBase.hxx>
-#include <ReliableFragment.hxx>
+#include <clMsgRelSocketFragment.hxx>
 #include <boost/unordered_map.hpp>
-
-//TODO
-static u_int MAX_FRAGMENT_NUMBER        = 255*255;
-
+static u_int MAX_FRAGMENT_NUMBER = 255 * 255;
 namespace SAFplus
 {
 
   class MsgReliableSocketServer;
   enum connectionNotification
   {
-    OPENED=0,
-    REFUSED,
-    CLOSE,
-    FAILURE,
-    RESET
+    OPENED = 0, REFUSED, CLOSE, FAILURE, RESET
   };
 
   enum connectionState
   {
-    CONN_CLOSED      = 0, /* There is not an active or pending connection */
+    CONN_CLOSED = 0, /* There is not an active or pending connection */
     CONN_SYN_RCVD, /* Request to connect received, waiting ACK */
     CONN_SYN_SENT, /* Request to connect sent */
     CONN_ESTABLISHED, /* Data transfer state */
-    CONN_CLOSE_REQUEST /* Request to close the connection */
+    CONN_CLOSE_REQUEST
+  /* Request to close the connection */
   };
 
   class rcvListInfomation
@@ -34,16 +28,16 @@ namespace SAFplus
   public:
     rcvListInfomation()
     {
-      fragNumber =0;
-      lastFrag=0;
-      numberOfCumAck=0;
-      numberOfOutOfSeq=0;
-      numberOfNakFrag=0; /* Outstanding segments counter */
+      fragNumber = 0;
+      lastFrag = 0;
+      numberOfCumAck = 0;
+      numberOfOutOfSeq = 0;
+      numberOfNakFrag = 0; /* Outstanding segments counter */
     }
 
     int nextFragmentId()
     {
-      fragNumber = fragNumber+1;
+      fragNumber = fragNumber + 1;
       return fragNumber;
     }
 
@@ -122,14 +116,14 @@ namespace SAFplus
 
     void reset()
     {
-      fragNumber =0;
-      lastFrag=0;
+      fragNumber = 0;
+      lastFrag = 0;
       numberOfOutOfSeq = 0;
-      numberOfNakFrag  = 0;
-      numberOfCumAck   = 0;
+      numberOfNakFrag = 0;
+      numberOfCumAck = 0;
     }
-    int fragNumber;             /* Fragment sequence number */
-    int lastFrag;   /* Last in-Fragment received segment */
+    int fragNumber; /* Fragment sequence number */
+    int lastFrag; /* Last in-Fragment received segment */
     /*
      * The receiver maintains a counter of unacknowledged segments received
      * without an acknowledgment being sent to the transmitter. T
@@ -151,36 +145,33 @@ namespace SAFplus
   };
   enum TimerStatus
   {
-    TIMER_RUN =0 ,
-    TIMER_PAUSE,
-    TIMER_UNDEFINE
+    TIMER_RUN = 0, TIMER_PAUSE, TIMER_UNDEFINE
   };
   class SAFplusTimer
   {
   public:
-    bool isStop;
     TimerStatus status;
-    SAFplus::Mutex timerLock;
+    //SAFplus::Mutex timerLock;
     int interval;
     bool started;
+    bool isRunning;
   };
-
-  class MsgReliableSocket : public MsgSocketAdvanced //, SAFPlusLockable
+  class MsgReliableSocket: public MsgSocket //, SAFPlusLockable
   {
   private:
     /*
      * When this timer expires, the connection is considered broken.
      */
+
     int sendQueueSize = 6400; /* Maximum number of received segments */
     int recvQueueSize = 6400; /* Maximum number of sent segments */
     int sendBufferSize;
     int recvBufferSize;
-    bool isClosed    = false; //socket status closed
-    bool isReset     = false; //socket status reset
-    int  state     = connectionState::CONN_CLOSED;
-    int  timeout   = 0; /* (ms) */ //wait to receive fragment
+    bool isClosed = false; //socket status closed
+    bool isReset = false; //socket status reset
+    int timeout = 10; /* (ms) */ //wait to receive fragment
     ReliableFragmentList unackedSentQueue; // list of fragment sended without receive ACK
-    ReliableFragmentList outOfSeqQueue;  // list of out-of-sequence fragments
+    ReliableFragmentList outOfSeqQueue; // list of out-of-sequence fragments
     ReliableFragmentList inSeqQueue; // list of in-sequence fragments
     SAFplus::Mutex closeMutex;
     SAFplus::Mutex resetMutex;
@@ -191,7 +182,7 @@ namespace SAFplus
     ThreadCondition thisCond;
     SAFplus::Mutex recvQueueLock;
     ThreadCondition recvQueueCond;
-    boost::thread rcvThread; //thread to receive and handle fragment
+    boost::thread rcvFragmentThread; //thread to receive and handle fragment
 
     //Handle close socket
     void handleCloseImpl(void);
@@ -206,11 +197,11 @@ namespace SAFplus
     //Checks for in-sequence segments in the out-of-sequence queue that can be moved to the in-sequence queue
     void checkRecvQueues(void);
     // Send acknowledged fragment to sender
-    void sendAcknowledged(bool isFirst=false);
+    void sendAcknowledged(bool isFirst = false);
     // Send list of received fragment id in out of sequence queue to sender
     void sendNAK();
     // Send the last received fragment id to sender (out-of-sequence is empty)
-    void sendAck(bool isFirst=false);
+    void sendAck(bool isFirst = false);
     // no used
     void sendSYN();
     // Piggy back any pending acknowledgments : Sets the ACK flag and number of a segment if there is at least one received segment to be acknowledged.
@@ -233,36 +224,42 @@ namespace SAFplus
     void init();
 
   public:
+    int state = connectionState::CONN_CLOSED;
+    bool rcvFragmentThreadRunning;
+    bool getMsgThreadRunning;
+    MsgSocket* xport;
     bool isConnected = false; //socket status connected
     MsgReliableSocketServer *sockServer;
     SAFplus::Mutex sendReliableLock;
     int lastFragmentIdOfMessage;
     ThreadCondition sendReliableCond;
     rcvListInfomation rcvListInfo; //socket queue Infomation
-    void handleReliableSocketThread(void);
+    void handleReceiveFragmentThread(void);
     Handle destination; //destination of this connection (node id, port)
     uint_t messageType; //type of the message
     ReliableSocketProfile* profile; //socket connection profile
     SAFplusTimer nullFragmentTimer; //If this timer expired , send null fragment if unackedQueue is empty
     SAFplusTimer retransmissionTimer; //If this timer expired, retransmission all un-ack fragment
-    SAFplusTimer cumulativeAckTimer;//If this timer expired, send acknowledge fragment to sender
+    SAFplusTimer cumulativeAckTimer; //If this timer expired, send acknowledge fragment to sender
     boost::intrusive::list_member_hook<> m_reliableSocketmemberHook;
     //receive fragment from socket
     virtual ReliableFragment* receiveReliableFragment(Handle &handle);
-    MsgReliableSocket(uint_t port,MsgTransportPlugin_1* transport);
-    MsgReliableSocket(uint_t port,MsgTransportPlugin_1* transport,Handle destination);
+    MsgReliableSocket(uint_t port, MsgTransportPlugin_1* transport);
+    MsgReliableSocket(uint_t port, MsgTransportPlugin_1* transport,
+        Handle destination);
     MsgReliableSocket(MsgSocket* socket);
     virtual ~MsgReliableSocket();
     // Send a bunch of messages.  You give up ownership of msg.
     virtual void send(Message* msg);
-    virtual void sendOneMsg(Message* msg);
+    virtual bool sendOneMsg(Message* msg);
     //Send a buffer data 
-    virtual void send(SAFplus::Handle destination, void* buffer, uint_t length,uint_t msgtype);
+    virtual void send(SAFplus::Handle destination, void* buffer, uint_t length,
+        uint_t msgtype);
     //Receiver a message
-    virtual Message* receive(uint_t maxMsgs,int maxDelay=-1);
+    virtual Message* receive(uint_t maxMsgs, int maxDelay = -1);
     //virtual Message* receiveReassemble(uint_t maxMsgs,int maxDelay=-1);
-    virtual Message* receiveFast(uint_t maxMsgs,int maxDelay=-1);
-    virtual Message* receiveOrigin(uint_t maxMsgs,int maxDelay=-1);
+    virtual Message* receiveFast(uint_t maxMsgs, int maxDelay = -1);
+    virtual Message* receiveOrigin(uint_t maxMsgs, int maxDelay = -1);
     virtual void flush();
     //Add socket client to socket  server list 
     virtual void connectionClientOpen();
@@ -285,7 +282,6 @@ namespace SAFplus
     void resetSocket();
   };
 
-
   //The disposer object function
   struct delete_disposer
   {
@@ -298,47 +294,58 @@ namespace SAFplus
       &MsgReliableSocket::m_reliableSocketmemberHook> ReliableSocketMemberHookOption;
   typedef list<MsgReliableSocket, ReliableSocketMemberHookOption> ReliableSocketList;
 
-
-  class MsgReliableSocketClient : public MsgReliableSocket
+  class MsgReliableSocketClient: public MsgReliableSocket
   {
   public:
     ReliableFragmentList fragmentQueue;
     SAFplus::Mutex fragmentQueueLock;
+    SAFplus::Mutex receiveLock;
     ThreadCondition fragmentQueueCond;
-    boost::thread receiveMsgThread;
-
-    MsgReliableSocketClient(MsgSocket* socket) : MsgReliableSocket(socket)
+    boost::thread getMsgThread;
+    MsgReliableSocketClient(MsgSocket* socket) :
+        MsgReliableSocket(socket)
     {
-    };
-    MsgReliableSocketClient(MsgSocket* socket,Handle destinationAddress) : MsgReliableSocket(socket)
+    }
+    ;
+    MsgReliableSocketClient(MsgSocket* socket, Handle destinationAddress) :
+        MsgReliableSocket(socket)
     {
-      destination=destinationAddress;
-    };
+      destination = destinationAddress;
+    }
+    ;
     void startReceiveThread();
     virtual ReliableFragment* receiveReliableFragment(Handle &handle);
     void receiverFragment(ReliableFragment* frag);
     virtual void connectionClientOpen();
     void resetSocketClient();
+    static void getMsgThreadFunc(void * arg);
+    void handleGetMsgThread();
+    virtual ~MsgReliableSocketClient();
+
   };
-  typedef boost::unordered_map < SAFplus::Handle, MsgReliableSocketClient*, boost::hash<SAFplus::Handle>, std::equal_to<SAFplus::Handle> > HandleSockMap;
-  class MsgReliableSocketServer : public MsgSocketAdvanced
+  typedef boost::unordered_map<SAFplus::Handle, MsgReliableSocketClient*,
+      boost::hash<SAFplus::Handle>, std::equal_to<SAFplus::Handle> > HandleSockMap;
+  class MsgReliableSocketServer: public MsgSocket
   {
+    MsgSocket* xport;
     int timeout;
     bool isClosed;
-    boost::thread ServerRcvThread;
+    boost::thread readMsgThread;
+    bool readMsgThreadRunning;
     void addClientSocket(Handle destAddress);
-    void handleRcvThread();
+    void handlereadMsgThread();
     Handle sendDestination;
     MsgReliableSocketClient* sendSock;
   public:
+    virtual void flush();
     std::vector<Message*> msgs;
-    ThreadCondition receiveMsgCond;
-    SAFplus::Mutex receiveMsgLock;
+    ThreadCondition readMsgCond;
+    SAFplus::Mutex readMsgLock;
     void removeClientSocket(Handle destAddress);
     void close();
     void init();
-    static void rcvThread(void * arg);
-    MsgReliableSocketServer(uint_t port,MsgTransportPlugin_1* transport);
+    static void readMsgThreadFunc(void * arg);
+    MsgReliableSocketServer(uint_t port, MsgTransportPlugin_1* transport);
     MsgReliableSocketServer(MsgSocket* socket);
     ReliableSocketList listenSock;
     ThreadCondition listenSockCond;
@@ -347,6 +354,8 @@ namespace SAFplus
     SAFplus::Mutex listenSockMutex;
     MsgReliableSocketClient* accept();
     HandleSockMap clientSockTable;
-    virtual Message* receive(uint_t maxMsgs,int maxDelay=-1);
+    virtual Message* receive(uint_t maxMsgs, int maxDelay = -1);
+    virtual ~MsgReliableSocketServer();
   };
-};
+}
+;

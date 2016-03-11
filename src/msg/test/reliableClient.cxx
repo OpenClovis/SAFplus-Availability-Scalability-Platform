@@ -13,7 +13,7 @@
 #include <clTestApi.hxx>
 #include <boost/program_options.hpp>
 #include <boost/iostreams/stream.hpp>
-#include <reliableSocket.hxx>
+#include <clMsgRelSocket.hxx>
 
 using namespace SAFplus;
 
@@ -108,15 +108,18 @@ int main(int argc, char* argv[])
       logInfo("TST","MSG","Msg Transport [%s], node [%u] maxPort [%u] maxMsgSize [%u]", xp->type, xCfg.nodeId, xCfg.maxPort, xCfg.maxMsgSize);
       Handle destination = SAFplus::getProcessHandle(37,122);
       //MsgReliableSocket sockclient(47,xp);
-      MsgReliableSocketServer sockclient(47,xp);
+      MsgSocket* xport1 = xp->createSocket(47);
+      MsgSocket* xport2 = xp->createSocket(57);
+      MsgReliableSocketServer* sockclient=new MsgReliableSocketServer(xport1);
+      MsgReliableSocketServer* sockclient1=new MsgReliableSocketServer(xport2);
       printf("init socket : done \n");
-      long len=5000000;
+      long len=300000000;
       int count = 0;
-      while(count<2)
+      while(count<1)
       {
         count ++;
         logInfo("TST","MSG","Msg Transport [%s], node [%u] maxPort [%u] maxMsgSize [%u] : connect", xp->type, xCfg.nodeId, xCfg.maxPort, xCfg.maxMsgSize);
-        //sockclient.connect(destination,0);
+        //sockclient->connect(destination,0);
         sleep(1);
         logInfo("TST","MSG","Msg Transport [%s], node [%u] maxPort [%u] maxMsgSize [%u] : start sending", xp->type, xCfg.nodeId, xCfg.maxPort, xCfg.maxMsgSize);
         unsigned char* buffer = new unsigned char[len];
@@ -129,14 +132,16 @@ int main(int argc, char* argv[])
         pfx->len = 1;
         MsgFragment* frag = m->append(0);
         frag->set(buffer,len);        
-        sockclient.send(m);
+        sockclient->send(m);
+        sockclient1->send(m);
         delete buffer;
         m->msgPool->free(m);
-        sleep(2);
+        usleep(1000);
       }
       printf("close socket \n");
-      sockclient.close();
+      //sockclient->close();
       printf("init socket : done \n");
+      delete sockclient;
       do
       {
         sleep(2);

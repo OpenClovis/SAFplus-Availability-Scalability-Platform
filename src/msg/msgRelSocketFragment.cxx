@@ -1,4 +1,4 @@
-#include "ReliableFragment.hxx"
+#include "clMsgRelSocketFragment.hxx"
 namespace SAFplus
 {
   ReliableFragment::ReliableFragment()
@@ -311,7 +311,7 @@ namespace SAFplus
     maxOutSeq = maxoutseq;
     maxAutoReset = maxautorst;
   }
-  int SYNFragment::getMaxOutstandingFragments()
+  int SYNFragment::getMaxFragment()
   {
     return maxFragment;
   }

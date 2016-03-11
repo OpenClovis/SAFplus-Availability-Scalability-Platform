@@ -13,7 +13,7 @@ MGT_SRC_DIR ?= $(SAFPLUS_SRC_DIR)/../../mgt
 #SAFPLUS_LINK_LIBS := -L$(LIB_DIR) $(addprefix -l,$(SAFPLUS_LIBS))
 
 SAFPLUS_LIBS := clName clCkpt clGroup clIoc7 clUtils7 clLog clOsal7
-SAFPLUS_LINK_LIBS := -L$(LIB_DIR) $(addprefix -l,$(SAFPLUS_LIBS)) -L$(SAFPLUS_SDK_TARGET)/lib -lmw -lezxml -L$(MGT_SRC_DIR)/3rdparty/build/lib -lxml2
+SAFPLUS_LINK_LIBS := -L$(LIB_DIR) $(addprefix -l,$(SAFPLUS_LIBS)) -L$(SAFPLUS_SDK_TARGET)/lib -lmw -L$(MGT_SRC_DIR)/3rdparty/build/lib -lxml2
 
 all: $(TEST_DIR)/testName $(TEST_DIR)/dumpName
 
