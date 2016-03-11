@@ -113,7 +113,7 @@ int main(int argc, char* argv[])
       MsgReliableSocketServer* sockclient=new MsgReliableSocketServer(xport1);
       MsgReliableSocketServer* sockclient1=new MsgReliableSocketServer(xport2);
       printf("init socket : done \n");
-      long len=5000000;
+      long len=300000000;
       int count = 0;
       while(count<1)
       {

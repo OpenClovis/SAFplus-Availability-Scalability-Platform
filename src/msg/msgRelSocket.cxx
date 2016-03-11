@@ -299,8 +299,8 @@ namespace SAFplus
           logTrace("MSG","RST",
               "Reliable Socket([%d]-[%d]) : State CONN_CLOSED. set state to CONN_SYN_RCVD. Send sync frag to [%d] - [%d]", xport->handle().getNode(), xport->handle().getPort(), destination.getNode(), destination.getPort());
           logTrace("MSG","RST",
-              "Socket PROFILE [%d] [%d] [%d] [%d] [%d] [%d] [%d] [%d] [%d] [%d] [%d]", sendQueueSize, recvQueueSize, frag->getMaxFragmentSize(), frag->getMaxOutstandingFragments(), frag->getMaxRetrans(), frag->getMaxCumulativeAcks(), frag->getMaxOutOfSequence(), frag->getMaxAutoReset(), frag->getNulFragmentInterval(), frag->getRetransmissionIntervel(), frag->getCummulativeAckInterval());
-          profile = new ReliableSocketProfile(sendQueueSize, recvQueueSize, frag->getMaxFragmentSize(), frag->getMaxOutstandingFragments(),
+              "Socket PROFILE [%d] [%d] [%d] [%d] [%d] [%d] [%d] [%d] [%d] [%d] [%d]", sendQueueSize, recvQueueSize, frag->getMaxFragmentSize(), frag->getMaxFragment(), frag->getMaxRetrans(), frag->getMaxCumulativeAcks(), frag->getMaxOutOfSequence(), frag->getMaxAutoReset(), frag->getNulFragmentInterval(), frag->getRetransmissionIntervel(), frag->getCummulativeAckInterval());
+          profile = new ReliableSocketProfile(sendQueueSize, recvQueueSize, frag->getMaxFragmentSize(), frag->getMaxFragment(),
               frag->getMaxRetrans(), frag->getMaxCumulativeAcks(), frag->getMaxOutOfSequence(), frag->getMaxAutoReset(), frag->getNulFragmentInterval(),
               frag->getRetransmissionIntervel(), frag->getCummulativeAckInterval());
           SYNFragment* synFrag = new SYNFragment(rcvListInfo.setFragmentId(0), profile->maxNAKFrags(), profile->maxFragmentSize(),
@@ -1172,6 +1172,9 @@ namespace SAFplus
     fragmentType fragType = fragmentType::FRAG_UDE;
     Handle handle;
     logTrace( "MSG", "RST", " Reliable Socket([%d - %d]) : receiver fragment thread started .", xport->handle().getNode(), xport->handle().getPort());
+#ifdef TEST_RELIABLE
+    int test =0;
+#endif
     while(rcvFragmentThreadRunning)
     {
       ReliableFragment* pFrag = receiveReliableFragment(handle);
@@ -1201,7 +1204,22 @@ namespace SAFplus
       }
       else
       {
+#ifdef TEST_RELIABLE
+        //         For testing ............
+        test++;
+        if(test % 5 == 0)
+        {
+          logTrace("MSG","RST","Remove fragment [%d] for testing",pFrag->getFragmentId());
+          delete pFrag;
+          continue;
+        }
+        else
+        {
+          handleReliableFragment(pFrag);
+        }
+#else
         handleReliableFragment(pFrag);
+#endif
       }
       getACK(pFrag);
       if(fragType == fragmentType::FRAG_ACK || fragType == fragmentType::FRAG_SYN || fragType == fragmentType::FRAG_NAK)
@@ -1246,13 +1264,14 @@ namespace SAFplus
     while(nextMsg != NULL);
   }
 
-  void MsgReliableSocket::sendOneMsg(Message* origMsg)
+  bool MsgReliableSocket::sendOneMsg(Message* origMsg)
   {
     Message* nextMsg = origMsg;
     MsgFragment* nextFrag;
     MsgFragment* frag;
     nextFrag = origMsg->firstFragment;
     bool lastFrag = false;
+    bool result=false;
     do
     {
       frag = nextFrag;
@@ -1304,14 +1323,25 @@ namespace SAFplus
     //    logTrace("MSG", "RST", "set last Fragment id  %d", lastFragmentIdOfMessage);
     sendReliableLock.lock();
     //wait until send successful or timeout
-    sendReliableCond.timed_wait(sendReliableLock, MSG_SEND_TIMEOUT);
-    nullFragmentTimer.isRunning = false;
-    retransmissionTimer.isRunning = false;
-    cumulativeAckTimer.isRunning = false;
-    nullFragmentTimer.started = false;
-    retransmissionTimer.started = false;
-    cumulativeAckTimer.started = false;
+    result= sendReliableCond.timed_wait(sendReliableLock, MSG_SEND_TIMEOUT);
+//    nullFragmentTimer.isRunning = false;
+//    retransmissionTimer.isRunning = false;
+//    cumulativeAckTimer.isRunning = false;
+//    nullFragmentTimer.started = false;
+//    retransmissionTimer.started = false;
+//    cumulativeAckTimer.started = false;
     sendReliableLock.unlock();
+    if(result==false)
+    {
+      //clear all message in un ack ...
+      unackedSentQueueLock.lock();
+      {
+        unackedSentQueue.clear();
+        unackedSentQueueCond.notify_all();
+      }
+      unackedSentQueueLock.unlock();
+    }
+    return result;
   }
 
   void MsgReliableSocket::send(SAFplus::Handle destination, void* buffer, uint_t length, uint_t msgtype)

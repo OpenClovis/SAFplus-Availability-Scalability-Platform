@@ -32,7 +32,7 @@ namespace SAFplus
   ReliableSocketProfile::ReliableSocketProfile(int maxSendQueueSize,
       int maxRecvQueueSize,
       int maxFragmentSize,
-      int maxOutstandingSegs,
+      int maxNAKFragments,
       int maxRetrans,
       int maxCumulativeAcks,
       int maxOutOfSequence,
@@ -44,7 +44,7 @@ namespace SAFplus
     validateValue("maxSendQueueSize", maxSendQueueSize, 1, 6401);
     validateValue("maxRecvQueueSize", maxRecvQueueSize, 1, 6401);
     validateValue("maxFragmentSize", maxFragmentSize, 22, 65535);
-    validateValue("maxOutstandingSegs", maxOutstandingSegs, 1, 512);
+    validateValue("maxNAKFragments", maxNAKFragments, 1, 512);
     validateValue("maxRetrans", maxRetrans, 0, 255);
     validateValue("maxCumulativeAcks", maxCumulativeAcks, 0, 512);
     validateValue("maxOutOfSequence", maxOutOfSequence, 0, 512);
@@ -56,7 +56,7 @@ namespace SAFplus
     pMaxSndListSize = maxSendQueueSize;
     pMaxRcvListSize = maxRecvQueueSize;
     pMaxFragmentSize = maxFragmentSize;
-    pMaxNAKFragments = maxOutstandingSegs;
+    pMaxNAKFragments = maxNAKFragments;
     pMaxRetrans = maxRetrans;
     pMaxCumulativeAcks = maxCumulativeAcks;
     pMaxOutOfSequence = maxOutOfSequence;

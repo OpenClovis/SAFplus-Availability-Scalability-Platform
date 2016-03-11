@@ -311,7 +311,7 @@ namespace SAFplus
     maxOutSeq = maxoutseq;
     maxAutoReset = maxautorst;
   }
-  int SYNFragment::getMaxOutstandingFragments()
+  int SYNFragment::getMaxFragment()
   {
     return maxFragment;
   }

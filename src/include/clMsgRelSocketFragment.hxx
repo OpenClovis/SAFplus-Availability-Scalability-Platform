@@ -32,6 +32,7 @@ namespace SAFplus
     FRAG_LAS
   };
 
+
   class ReliableFragment
   {
   private:
@@ -115,7 +116,7 @@ namespace SAFplus
         int cumacktoval, int niltoval, int maxret,
         int maxcumack, int maxoutseq, int maxautorst);
     int getVersion();
-    int getMaxOutstandingFragments();
+    int getMaxFragment();
     int getOptionFlags();
     int getMaxFragmentSize();
     int getRetransmissionIntervel();
