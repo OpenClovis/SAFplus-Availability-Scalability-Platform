@@ -6,7 +6,8 @@ GIT_REV := $(shell git rev-parse --short=8 HEAD)
 
 export PKG_NAME=safplus
 export PKG_VER ?=7.0
-export PKG_REL ?=$(GIT_REV)
+export PKG_REL ?=12
+# $(GIT_REV)
 TOP_DIR := $(CURDIR)
 TAR_NAME := $(dir $(TOP_DIR))$(PKG_NAME)_$(PKG_VER).tar.gz
 BUILD := $(TOP_DIR)/build

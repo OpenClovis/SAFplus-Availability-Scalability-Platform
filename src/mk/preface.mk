@@ -18,17 +18,27 @@
 # This file is included at the top of all other makefiles
 # It discovers the environment and sets standard variables.
 
+mkfile_path := $(abspath $(lastword $(MAKEFILE_LIST)))
+SAFPLUS_HA_DIR ?= $(patsubst %/,%, $(dir $(realpath $(mkfile_path)/..)))
+
 # Link with Google's performance toolkit http://code.google.com/p/gperftools
 # GPERFTOOLS := 1
+ifeq ($(SAFPLUS_HA_DIR),/opt/safplus/7.0/sdk)
+SAFPLUS_HA_INSTALLED:=1
+endif
 
 #ifdef S7  # SAFplus v7
-$(info SAFplus7)
+$(info Using SAFplus7 located in $(SAFPLUS_HA_DIR))
 
 #? By default we link with the local Linux distribution's installed libraries.  Override this to 0 if you are doing a crossbuild.
 USE_DIST_LIB ?= 1  
 
 #? If this is included from an application makefile, the application build may choose to not build SAFplus 
+ifndef SAFPLUS_HA_INSTALLED  # by default don't build HA if we are getting it from the installed location
 BUILD_SAFPLUS ?=1
+else
+BUILD_SAFPLUS ?=0
+endif
 
 SAFPLUS_MAKE_DIR := $(patsubst %/,%,$(dir $(realpath $(lastword $(MAKEFILE_LIST)))))
 
