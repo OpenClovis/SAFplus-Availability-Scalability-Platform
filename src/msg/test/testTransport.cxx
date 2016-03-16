@@ -213,9 +213,9 @@ bool testSendRecvShaping(MsgTransportPlugin_1* xp)
     seed++;
     printf("s%d ", size);
     fflush(stdout);
-    m = a.xPort->msgPool->allocMsg();
+    m = a.xport->msgPool->allocMsg();
     clTest(("message allocated"), m != NULL,(" "));
-    m->setAddress(b.xPort->node,b.xPort->port);
+    m->setAddress(b.xport->node,b.xport->port);
     MsgFragment* frag = m->append(size);
     clTest(("message frag allocated"), frag != NULL,(" "));
     xorshf96 rnd(seed);

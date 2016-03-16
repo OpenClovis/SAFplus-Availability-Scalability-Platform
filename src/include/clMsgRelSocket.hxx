@@ -173,17 +173,6 @@ namespace SAFplus
     ReliableFragmentList unackedSentQueue; // list of fragment sended without receive ACK
     ReliableFragmentList outOfSeqQueue; // list of out-of-sequence fragments
     ReliableFragmentList inSeqQueue; // list of in-sequence fragments
-    SAFplus::Mutex closeMutex;
-    SAFplus::Mutex resetMutex;
-    ThreadCondition resetCond;
-    SAFplus::Mutex unackedSentQueueLock;
-    ThreadCondition unackedSentQueueCond;
-    SAFplus::Mutex thisMutex;
-    ThreadCondition thisCond;
-    SAFplus::Mutex recvQueueLock;
-    ThreadCondition recvQueueCond;
-    boost::thread rcvFragmentThread; //thread to receive and handle fragment
-
     //Handle close socket
     void handleCloseImpl(void);
     //process fragment : push fragment to in-sequence or out-of-sequence queue
@@ -234,7 +223,16 @@ namespace SAFplus
     int lastFragmentIdOfMessage;
     ThreadCondition sendReliableCond;
     rcvListInfomation rcvListInfo; //socket queue Infomation
-    void handleReceiveFragmentThread(void);
+    SAFplus::Mutex closeMutex;
+    SAFplus::Mutex resetMutex;
+    ThreadCondition resetCond;
+    SAFplus::Mutex unackedSentQueueLock;
+    ThreadCondition unackedSentQueueCond;
+    SAFplus::Mutex thisMutex;
+    ThreadCondition thisCond;
+    SAFplus::Mutex recvQueueLock;
+    ThreadCondition recvQueueCond;
+    boost::thread rcvFragmentThread; //thread to receive and handle fragment
     Handle destination; //destination of this connection (node id, port)
     uint_t messageType; //type of the message
     ReliableSocketProfile* profile; //socket connection profile
@@ -243,6 +241,7 @@ namespace SAFplus
     SAFplusTimer cumulativeAckTimer; //If this timer expired, send acknowledge fragment to sender
     boost::intrusive::list_member_hook<> m_reliableSocketmemberHook;
     //receive fragment from socket
+    void handleReceiveFragmentThread(void);
     virtual ReliableFragment* receiveReliableFragment(Handle &handle);
     MsgReliableSocket(uint_t port, MsgTransportPlugin_1* transport);
     MsgReliableSocket(uint_t port, MsgTransportPlugin_1* transport,

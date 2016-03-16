@@ -10,6 +10,7 @@
 #include <boost/iostreams/concepts.hpp>  // sink
 typedef unsigned char  Byte;  /* 8 bits */
 #define MIN(a,b) ( (a) < (b) ? (a) : (b) )
+typedef list_base_hook<link_mode<auto_unlink> > auto_unlink_hook;
 
 namespace SAFplus
   {
@@ -214,11 +215,12 @@ namespace SAFplus
     virtual void flush();
   };
 
-  class MsgSocketShaping : public MsgSocketAdvanced
+  class MsgSocketShaping : public MsgSocket
   {
     protected:
-      SAFplus::LeakyBucket bucket;
+    SAFplus::LeakyBucket bucket;
     public:
+    MsgSocket *xport;
     MsgSocketShaping(uint_t port,MsgTransportPlugin_1* transport,uint_t volume, uint_t leakSize, uint_t leakInterval);
     MsgSocketShaping(MsgSocket* socket,uint_t volume, uint_t leakSize, uint_t leakInterval);
     virtual ~MsgSocketShaping();  // If you do not want the underlying socket to be returned when this object is destructed, then set sock to NULL before deleting this object

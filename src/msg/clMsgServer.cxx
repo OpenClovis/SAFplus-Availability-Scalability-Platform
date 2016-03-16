@@ -5,6 +5,9 @@
 #include <clMsgSarSocket.hxx>
 #include <clMsgRelSocket.hxx>
 
+#define CL_LEAKY_BUCKET_DEFAULT_VOL (50 << 20)
+#define CL_LEAKY_BUCKET_DEFAULT_LEAK_SIZE (25 << 20)
+#define CL_LEAKY_BUCKET_DEFAULT_LEAK_INTERVAL (500)
 
 namespace SAFplus
 {
@@ -90,6 +93,16 @@ namespace SAFplus
       }
       case SOCK_SHAPING:
       {
+        MsgSocket* xport = transport->createSocket(port);
+        char* temp;
+        temp = getenv("CL_LEAKY_BUCKET_VOL");
+        uint_t leakyBucketVol = temp ? (ClInt64T)atoi(temp) : CL_LEAKY_BUCKET_DEFAULT_VOL;
+        temp = getenv("CL_LEAKY_BUCKET_LEAK_SIZE");
+        uint_t leakyBucketLeakSize = temp ? (ClInt64T)atoi(temp) : CL_LEAKY_BUCKET_DEFAULT_LEAK_SIZE;
+        uint_t leakyBucketInterval;
+        temp = getenv("CL_LEAKY_BUCKET_LEAK_INTERVAL");
+        leakyBucketInterval = temp ? (ClInt64T)atoi(temp) : CL_LEAKY_BUCKET_DEFAULT_LEAK_INTERVAL;
+        sock = new MsgSocketShaping(xport,leakyBucketVol,leakyBucketLeakSize,leakyBucketInterval);
         break;
       }
       case SOCK_SEGMENTATION:
@@ -184,6 +197,7 @@ void MsgServer::MakeMePrimary()
         try
           {
           m = q->sock->receive(1,1000);  // block for one second or until a message is received
+          logDebug("MSG", "RCV","receiver message");
           }
         catch(Error &e)
           {
@@ -196,9 +210,11 @@ void MsgServer::MakeMePrimary()
 
         if (m) 
           {
+            //logInfo("IOC", "MSG","Rcvd Msg");
           MsgTracker* rm = CreateMsgTracker(m,q);
           m = 0;  // wipe it so I know to create another
           q->jq.run(rm);
+
           }
         //boost::this_thread::sleep(boost::posix_time::milliseconds(1000));  // Just sleep until this function is implemented
 

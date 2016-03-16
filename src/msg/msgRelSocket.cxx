@@ -1324,12 +1324,6 @@ namespace SAFplus
     sendReliableLock.lock();
     //wait until send successful or timeout
     result= sendReliableCond.timed_wait(sendReliableLock, MSG_SEND_TIMEOUT);
-//    nullFragmentTimer.isRunning = false;
-//    retransmissionTimer.isRunning = false;
-//    cumulativeAckTimer.isRunning = false;
-//    nullFragmentTimer.started = false;
-//    retransmissionTimer.started = false;
-//    cumulativeAckTimer.started = false;
     sendReliableLock.unlock();
     if(result==false)
     {
@@ -1757,7 +1751,7 @@ namespace SAFplus
   MsgReliableSocketServer::~MsgReliableSocketServer()
   {
     readMsgThreadRunning = false;
-    usleep(2000);
+    //usleep(2000);
     readMsgThread.join();
     HandleSockMap::iterator it;
     if(clientSockTable.size() != 0)
@@ -1773,7 +1767,9 @@ namespace SAFplus
     sendSock->getMsgThreadRunning = false;
     sendSock->rcvFragmentThreadRunning = false;
     //wait for getMsgThread stopped
-    usleep(2000);
+    //usleep(2000);
+    sendSock->getMsgThread.join();
+    sendSock->rcvFragmentThread.join();
     delete sendSock;
     sendSock = NULL;
     if(xport)
@@ -1879,6 +1875,8 @@ namespace SAFplus
   {
     getMsgThreadRunning = false;
     rcvFragmentThreadRunning = false;
+    getMsgThread.join();
+    rcvFragmentThread.join();
     usleep(100000);
   }
 }

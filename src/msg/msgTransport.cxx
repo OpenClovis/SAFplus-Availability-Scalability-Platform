@@ -463,23 +463,30 @@ namespace SAFplus
   //*****************Advanced socket : MsgSocketShaping********************
 MsgSocketShaping::MsgSocketShaping(uint_t port,MsgTransportPlugin_1* transportp,uint_t volume, uint_t leakSize, uint_t leakInterval)
   {
-    transport = transportp;
-    xPort=transport->createSocket(port);
-    assert(xPort);
+    //transport = transportp;
+    xport=transport->createSocket(port);
+    msgPool = xport->getMsgPool();
+    assert(xport);
     bucket.start(volume,leakSize,leakInterval);
   };
 
 MsgSocketShaping::MsgSocketShaping(MsgSocket* socket,uint_t volume, uint_t leakSize, uint_t leakInterval)
   {
-    transport= socket->transport;
+    //transport= socket->transport;
+    xport=socket;
+    msgPool = xport->getMsgPool();
     bucket.start(volume,leakSize,leakInterval);
-    xPort=socket;
+    node = xport->node;
+    port = xport->port;
   };
   MsgSocketShaping::~MsgSocketShaping()
   {
     bucket.stop();
-    if (xPort&&transport) transport->deleteSocket(xPort);
-    xPort = NULL;
+    logDebug("MSG","SCK","debug 1");
+    if (xport&&transport) transport->deleteSocket(xport);
+    logDebug("MSG","SCK","debug 2");
+    xport = NULL;
+    logDebug("MSG","SCK","debug 3");
     transport = NULL;
   }
   void MsgSocketShaping::applyShaping(uint_t length)
@@ -489,14 +496,15 @@ MsgSocketShaping::MsgSocketShaping(MsgSocket* socket,uint_t volume, uint_t leakS
   //? Send a bunch of messages.  You give up ownership of msg.
   void MsgSocketShaping::send(Message* msg)
   {
-    logDebug("MSG","SCK","apply leaky bucket with msg lenght %d",msg->getLength());
-    applyShaping(msg->getLength());
-    xPort->send(msg);
+    logDebug("MSG","SCK","apply leaky bucket with msg lenght %d to %d",msg->getLength(),msg->node);
+    uint_t length = msg->getLength();
+    applyShaping(length);
+    xport->send(msg);
   }
   void MsgSocketShaping::send(SAFplus::Handle destination, void* buffer, uint_t length,uint_t msgtype)
   {
-    assert(xPort);
-    Message* m = xPort->msgPool->allocMsg();
+    assert(xport);
+    Message* m = xport->msgPool->allocMsg();
     assert(m);
     m->setAddress(destination);
     MsgFragment* pfx  = m->append(1);
@@ -505,22 +513,21 @@ MsgSocketShaping::MsgSocketShaping(MsgSocket* socket,uint_t volume, uint_t leakS
     MsgFragment* frag = m->append(0);
     frag->set(buffer,length);
     applyShaping(m->getLength());
-    xPort->send(m);
+    xport->send(m);
   }
   Message* MsgSocketShaping::receive(uint_t maxMsgs,int maxDelay)
   {
-    return xPort->receive(maxMsgs,maxDelay);
+    return xport->receive(maxMsgs,maxDelay);
   }
 
   void MsgSocketShaping::flush()
   {
-    xPort->flush();
+    xport->flush();
   }
   void MsgSocketAdvanced::flush()
   {
     xPort->flush();
   }
-
   std::streamsize MessageOStream::write(const char* s, std::streamsize n)
     {
       // Write up to n characters to the underlying 
