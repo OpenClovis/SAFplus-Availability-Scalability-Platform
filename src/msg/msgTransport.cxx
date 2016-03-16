@@ -482,11 +482,8 @@ MsgSocketShaping::MsgSocketShaping(MsgSocket* socket,uint_t volume, uint_t leakS
   MsgSocketShaping::~MsgSocketShaping()
   {
     bucket.stop();
-    logDebug("MSG","SCK","debug 1");
     if (xport&&transport) transport->deleteSocket(xport);
-    logDebug("MSG","SCK","debug 2");
     xport = NULL;
-    logDebug("MSG","SCK","debug 3");
     transport = NULL;
   }
   void MsgSocketShaping::applyShaping(uint_t length)

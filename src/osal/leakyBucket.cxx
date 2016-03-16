@@ -51,13 +51,11 @@ static void leakyBucketIntervalCallback(void *arg)
 static void timerLeakThreadFunc(void* arg)
 {
   LeakyBucket* bucket = (LeakyBucket*)arg;
-  logTrace("LKY","BKT", "Leaky bucket leak thread has started");
   while(!bucket->isStopped)
   {
     boost::this_thread::sleep(boost::posix_time::milliseconds(bucket->leakInterval));
     bucket->leak();
   }
-  logTrace("LKY","BKT", "Leaky bucket leak thread has stoped");
 }
 
 LeakyBucket::LeakyBucket()
@@ -121,7 +119,6 @@ LeakyBucket::~LeakyBucket()
 
 void LeakyBucket::stop()
 {
-  logTrace("MSG", "REL", "stop leaky bucket");
   bool stopping = false;
   mutex.lock();
   if (!isStopped)
@@ -131,7 +128,6 @@ void LeakyBucket::stop()
     {
       cond.notify_all();
       mutex.unlock();
-      logTrace("MSG", "REL", "Wake up waiting threads because we are quitting!!!");
       boost::this_thread::sleep(boost::posix_time::milliseconds(50));  // Wake up waiting threads because we are quitting!!!
       mutex.lock();
     }
@@ -140,7 +136,6 @@ void LeakyBucket::stop()
     boost::this_thread::sleep(boost::posix_time::milliseconds(50));  // Wake up waiting threads because we are quitting!!!
   }
   mutex.unlock();
-  logTrace("MSG", "REL", "stop leaky bucket done");
   boost::this_thread::sleep(boost::posix_time::milliseconds(50));  // Wake up waiting threads because we are quitting!!!
   if (stopping) filler.join();  // wait for the filler thread to terminate
 }
