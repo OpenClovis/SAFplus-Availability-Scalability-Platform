@@ -70,7 +70,7 @@ namespace SAFplus
               {
                 assert(b.len() == sizeof(SAFplus::Handle));
                 SAFplus::Handle hdl = *((const SAFplus::Handle*) b.data);
-                logDebug("MGT", "LKP", "Resolved [%s] to [%" PRIu64 ",%" PRIu64 "]", xpath.c_str(),hdl.id[0],hdl.id[1]);
+                logDebug("MGT", "LKP", "Resolved [%s] to [%" PRIx64 ",%" PRIx64 "]", xpath.c_str(),hdl.id[0],hdl.id[1]);
                 //std::string strRout = pathSpec.substr(lastSlash+1);  // request the "rest" of the string (everything that did not match the binding)
                 return hdl;
               }
@@ -402,4 +402,23 @@ namespace SAFplus
       }
     return ret;
   }
+}
+
+
+extern "C" void dbgDumpMgtBindings()
+{
+  // 2. Forward to retrieve from handle
+  // 2.1 Collect handle from checkpoint
+  std::vector<SAFplus::Handle> processHdl;
+  for (SAFplus::Checkpoint::Iterator it = SAFplus::mgtCheckpoint->begin(); it != SAFplus::mgtCheckpoint->end(); ++it)
+    {
+      SAFplus::Buffer *b = (*it).second.get();
+
+      if (b)
+	{
+	  assert(b->len() == sizeof(SAFplus::Handle));
+	  SAFplus::Handle hdl = *((const SAFplus::Handle*) b->data);
+	  printf("%s -> [%" PRIx64 ":%" PRIx64 "] node: %d, port: %d\n",((char*) (*it).first->data),hdl.id[0],hdl.id[1],hdl.getNode(),hdl.getPort());
+	}
+    }
 }
