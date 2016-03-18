@@ -342,7 +342,7 @@ namespace SAFplus
     SAFplus::Mutex readMsgLock;
     void removeClientSocket(Handle destAddress);
     void close();
-    void init();
+    //void init();
     static void readMsgThreadFunc(void * arg);
     MsgReliableSocketServer(uint_t port, MsgTransportPlugin_1* transport);
     MsgReliableSocketServer(MsgSocket* socket);

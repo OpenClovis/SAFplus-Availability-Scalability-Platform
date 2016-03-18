@@ -2,7 +2,8 @@ S7 := 1
 SAFPLUS_RPC_LIB := 1
 include ../../mk/preface.mk
 
-CPP_FLAGS += `$(PKG_CONFIG) --cflags protobuf` -I$(SAFPLUS_3RDPARTY_DIR)
+CPP_FLAGS += `$(PKG_CONFIG) --cflags protobuf` -I/usr/include
+# -I$(SAFPLUS_3RDPARTY_DIR)
 
 PROTOC_TOOL_H   := $(wildcard *.hxx)
 PROTOC_TOOL_SRC := $(wildcard *.cxx)

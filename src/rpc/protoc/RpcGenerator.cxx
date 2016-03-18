@@ -21,12 +21,12 @@
 #include <stdlib.h>
 #include <unistd.h>
 #include <google/protobuf/descriptor.h>
-#include <google/protobuf/stubs/strutil.h>
 #include <google/protobuf/stubs/common.h>
 #include <google/protobuf/io/zero_copy_stream.h>
 #include "RpcGenerator.hxx"
 #include "RpcFileGenerator.hxx"
 #include "RenamePbFile.hxx"
+#include "protobufUtils.hxx"
 
 using namespace std;
 using namespace google::protobuf::compiler;
@@ -72,7 +72,7 @@ namespace SAFplus
                 // TODO: other options
             }
 
-            std::string basename = google::protobuf::StripSuffixString(file->name(), ".proto");
+            std::string basename = StripSuffixString(file->name(), ".proto");
 
             /* Rename pb.cc => pb.cxx, pb.h => pb.hxx */
             RenamePbFile renamePbFile(dir, basename);

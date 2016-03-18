@@ -35,9 +35,9 @@
 // Modified by OpenClovis
 #include <string>
 #include <iostream>
-#include <google/protobuf/stubs/strutil.h>
 #include <google/protobuf/stubs/common.h>
 #include "RpcFileGenerator.hxx"
+#include "protobufUtils.hxx"
 
 using namespace std;
 using namespace google::protobuf;
@@ -52,7 +52,7 @@ namespace SAFplus
             string result;
             for (unsigned int i = 0; i < filename.size(); i++)
               {
-                if (google::protobuf::ascii_isalnum(filename[i]))
+                if (ascii_isalnum(filename[i]))
                   {
                     result.push_back(filename[i]);
                   }
@@ -61,8 +61,8 @@ namespace SAFplus
                     // Not alphanumeric.  To avoid any possibility of name conflicts we
                     // use the hex code for the character.
                     result.push_back('_');
-                    char buffer[google::protobuf::kFastToBufferSize];
-                    result.append(google::protobuf::FastHexToBuffer(static_cast<uint8_t>(filename[i]), buffer));
+                    char buffer[kFastToBufferSize];
+                    result.append(FastHexToBuffer(static_cast<uint8_t>(filename[i]), buffer));
                   }
               }
             return result;
@@ -87,7 +87,7 @@ namespace SAFplus
         RpcFileGenerator::RpcFileGenerator(const google::protobuf::FileDescriptor *fileDesc, const std::string &fileName) :
             fileDesc(fileDesc), fileName(fileName)
           {
-            google::protobuf::SplitStringUsing(fileDesc->package(), ".", &package_parts_);
+            SplitStringUsing(fileDesc->package(), ".", &package_parts_);
             for (int i = 0; i < fileDesc->service_count(); i++)
               {
                 service_generators.push_back(new ServiceGenerator(fileDesc->service(i)));
@@ -117,7 +117,7 @@ namespace SAFplus
                 "#include <google/protobuf/stubs/common.h>\n"
                 "#include <google/protobuf/stubs/once.h>\n"
                 "#include <clRpcService.hxx>\n"
-                "#include \"$stubs$\"\n", "stubs", google::protobuf::StripSuffixString(fileDesc->name(), ".proto") + ".pb.hxx");
+                "#include \"$stubs$\"\n", "stubs", StripSuffixString(fileDesc->name(), ".proto") + ".pb.hxx");
 
             //Forward declare
             printer->Print("\nnamespace SAFplus {\n"

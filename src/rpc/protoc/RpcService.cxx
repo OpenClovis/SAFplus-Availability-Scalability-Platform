@@ -35,11 +35,11 @@
 // Modified by OpenClovis
 
 #include <google/protobuf/io/printer.h>
-#include <google/protobuf/stubs/strutil.h>
 #include "RpcService.hxx"
-
+#include "protobufUtils.hxx"
 using namespace std;
 using namespace google::protobuf;
+
 
 namespace SAFplus
   {
@@ -58,12 +58,12 @@ namespace SAFplus
 
         string DotsToUnderscores(const string& name)
           {
-            return google::protobuf::StringReplace(name, ".", "_", true);
+            return StringReplace(name, ".", "_", true);
           }
 
         string DotsToColons(const string& name)
           {
-            return google::protobuf::StringReplace(name, ".", "::", true);
+            return StringReplace(name, ".", "::", true);
           }
 
         string ClassName(const google::protobuf::Descriptor* descriptor, bool qualified)
@@ -102,7 +102,7 @@ namespace SAFplus
           {
             map<string,string> vars;
             vars["classname"] = descriptor_->name();
-            vars["index"] = google::protobuf::SimpleItoa(index);
+            vars["index"] = SimpleItoa(index);
 
             printer->Print(vars, "$classname$_descriptor_ = file->service($index$);\n");
           }
@@ -412,7 +412,7 @@ namespace SAFplus
                 const google::protobuf::MethodDescriptor* method = descriptor_->method(i);
                 map<string,string> sub_vars;
                 sub_vars["name"] = method->name();
-                sub_vars["index"] = google::protobuf::SimpleItoa(i);
+                sub_vars["index"] = SimpleItoa(i);
                 sub_vars["input_type"] = ClassName(method->input_type(), true);
                 sub_vars["output_type"] = ClassName(method->output_type(), true);
 
@@ -462,7 +462,7 @@ namespace SAFplus
                 const google::protobuf::Descriptor* type = (which == REQUEST) ? method->input_type() : method->output_type();
 
                 map<string,string> sub_vars;
-                sub_vars["index"] = google::protobuf::SimpleItoa(i);
+                sub_vars["index"] = SimpleItoa(i);
                 sub_vars["type"] = ClassName(type, true);
 
                 printer->Print(sub_vars, "    case $index$:\n"
@@ -485,7 +485,7 @@ namespace SAFplus
                 map<string,string> sub_vars;
                 sub_vars["classname"] = descriptor_->name();
                 sub_vars["name"] = method->name();
-                sub_vars["index"] = google::protobuf::SimpleItoa(i);
+                sub_vars["index"] = SimpleItoa(i);
                 sub_vars["input_type"] = ClassName(method->input_type(), true);
                 sub_vars["output_type"] = ClassName(method->output_type(), true);
 

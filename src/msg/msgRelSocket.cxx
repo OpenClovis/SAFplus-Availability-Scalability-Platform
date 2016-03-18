@@ -1721,10 +1721,13 @@ namespace SAFplus
     }
     return m;
   }
+
+#if 0
   void MsgReliableSocketServer::init()
   {
     readMsgThread.start_thread();
   }
+#endif  
 
   MsgReliableSocketClient* MsgReliableSocketServer::accept()
   {
