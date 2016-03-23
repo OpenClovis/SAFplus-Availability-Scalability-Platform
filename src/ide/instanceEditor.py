@@ -81,6 +81,11 @@ ROW_WIDTH   = 120
 linkNormalLook = dot.Dot({ "color":(0,0,.8,.75), "lineThickness": 4, "buttonRadius": 6, "arrowLength":15, "arrowAngle": PI/8 })
 
 
+#delta_x = 59 # 
+#delta_y = 17
+delta_x = 0 
+delta_y = 0
+
 def touch(f):
     f = file(f,'a')
     f.close()
@@ -289,6 +294,8 @@ class SelectTool(Tool):
     self.entOrder = ["Component", "ComponentServiceInstance", "ServiceUnit", "ServiceInstance", "Node", "ServiceGroup"] # Select layer entity by order: Component->csi->su->si->node->sg
     self.selectMultiple = False
 
+    self.mouseDownPos = None # to determine the left mouse being clicked
+
   def OnSelect(self, panel,event):
     panel.statusBar.SetStatusText(self.defaultStatusText,0);
     return True
@@ -311,10 +318,11 @@ class SelectTool(Tool):
     pos = panel.CalcUnscrolledPosition(event.GetPositionTuple())
     if isinstance(event,wx.MouseEvent):
       if event.ButtonDown(wx.MOUSE_BTN_LEFT):  # Select
+        self.mouseDownPos = pos 
         self.selectMultiple = False
-        entities = panel.findEntitiesAt(pos)
+        self.entities = panel.findEntitiesAt(pos)
         self.dragPos = pos
-        if not entities:
+        if not self.entities:
           panel.statusBar.SetStatusText(self.defaultStatusText,0);
           self.touching = set()
           self.boxSel.start(panel,pos)
@@ -323,7 +331,7 @@ class SelectTool(Tool):
         # Remove the background entities; you can't move them
         ent = set()
         rcent = set()
-        for e in entities:
+        for e in self.entities:
           if e.et.name in panel.rowTypes or e.et.name in panel.columnTypes:
             rcent.add(e)
           else:
@@ -331,17 +339,17 @@ class SelectTool(Tool):
 
         # I'm going to let you select row/column entities OR contained entities but not both
         if ent:
-          entities = ent
+          self.entities = ent
         else:
-          entities = rcent
-        print "Touching %s" % ", ".join([ e.data["name"] for e in entities])
+          self.entities = rcent
+        print "Touching %s" % ", ".join([ e.data["name"] for e in self.entities])
 
-        panel.statusBar.SetStatusText("Touching %s" % ", ".join([ e.data["name"] for e in entities]),0);
+        panel.statusBar.SetStatusText("Touching %s" % ", ".join([ e.data["name"] for e in self.entities]),0);
 
         # If you touch something else, your touching set changes.  But if you touch something in your current touch group then nothing changes
         # This enables behavior like selecting a group of entities and then dragging them (without using the ctrl key)
-        if not entities.issubset(self.touching) or (len(self.touching) != len(entities)):
-          self.touching = set(entities)
+        if not self.entities.issubset(self.touching) or (len(self.touching) != len(self.entities)):
+          self.touching = set(self.entities)
           self.selected = self.touching.copy()
         # If the control key is down, then add to the currently selected group, otherwise replace it.
         if event.ControlDown():
@@ -370,8 +378,8 @@ class SelectTool(Tool):
                panel.repositionRow(e,pos)
              if e.et.name in panel.columnTypes:
                panel.repositionColumn(e,pos)
-             else:
-               panel.grid.reposition(e)
+             else:               
+               panel.grid.reposition(e, panel)
           self.touching = set()
           panel.layout()
           panel.Refresh()
@@ -391,7 +399,19 @@ class SelectTool(Tool):
           else: 
             self.selected = self.touching
           panel.Refresh()
-        
+
+        if self.mouseDownPos and self.mouseDownPos == pos: # left mouse button was clicked
+          if len(self.entities) == 2:
+            flag = True
+            for e in self.entities:
+              if not e.et.name in panel.rowTypes and not e.et.name in panel.columnTypes:
+                flag = False
+                break
+            if flag:
+              panel.createGrayCell(pos, self.entities)
+              self.panel.Refresh()
+        self.mouseDownPos = None 
+
       elif event.ButtonDClick(wx.MOUSE_BTN_LEFT):
         # Check if double click at "duplicate" button
         e = panel.findAddButtonAt(pos)
@@ -629,6 +649,9 @@ class GridObject:
     self.entities = set()
     self.row = None
     self.col = None
+    self.grayBmp = None
+    self.grayPos = None
+    self.graySize = None
 
   def addEnt(self, ob):
     self.entities.add(ob)
@@ -683,7 +706,7 @@ class GridEntityLayout:
         x += 1
       y += 1
 
-  def reposition(self,instance):
+  def reposition(self,instance, panel):
     """Move an instance somewhere else -- its physical movement may change its parent relationships"""
     pos = instance.pos
     for row in self.grid:
@@ -692,6 +715,9 @@ class GridEntityLayout:
 
         # Not allow put at cell (0,0)
         if isinstance(cell.row, Margin) and isinstance(cell.col, Margin):
+          continue
+        # not allow to put at "disabled" (gray) cell
+        if cell.bound in panel.grayCells:
           continue
 
         if inBox(pos,cell.bound):
@@ -703,6 +729,31 @@ class GridEntityLayout:
           # Create the new containment arrows
           for i in instance.childOf:  
             i.createContainmentArrowTo(instance)
+
+  def getCell(self, pos):
+    for row in self.grid:
+      for cell in row:        
+        if inBox(pos,cell.bound) and len(cell.entities)==0:
+          return cell
+    return None
+
+  def createGrayCell(self, pos, panel):
+    cell = self.getCell(pos)
+    if not cell:
+      print 'createGrayCell: cell is null at pos: %s' % str(pos)
+      return
+    if cell.bound in panel.grayCells:
+      print 'createGrayCell: clear gray cell'
+      del panel.grayCells[cell.bound]
+      return False # return False: clear the gray from the cell
+    tmp = svg.SvgFile("gray.svg")    
+    print 'createGrayCell: pos (%d,%d); bound(%d,%d,%d,%d)' % (pos[0],pos[1],cell.bound[0],cell.bound[1],cell.bound[2],cell.bound[3])    
+    cell.graySize = (cell.bound[2]-cell.bound[0],cell.bound[3]-cell.bound[1])
+    cell.grayPos = (cell.bound[0],cell.bound[1])
+    cell.grayBmp = tmp.instantiate((cell.graySize[0]+delta_x,cell.graySize[1]+delta_y))
+    panel.grayCells[cell.bound] = cell.grayBmp
+
+    return True # return True: set the gray to the cell
 
   def idx(self,row,col=-1):
     """Reference a location in the grid either by integer or by entity"""
@@ -795,6 +846,8 @@ class Panel(scrolled.ScrolledPanel):
 
       self.addButtons = {}
 
+      self.grayCells = {}
+
       # Ignore render entities since size(0,0) is invalid
       self.ignoreEntities = ["Component", "ComponentServiceInstance"]
 
@@ -843,6 +896,7 @@ class Panel(scrolled.ScrolledPanel):
             self.columns.append(entInstance)  # TODO: calculate an insertion position based on the mouse position and the positions of the other entities
       self.UpdateVirtualSize()
       self.layout()
+      self.loadGrayCells()
 
     def addCommonTools(self):
       tsize = self.toolBar.GetToolBitmapSize()
@@ -928,6 +982,8 @@ class Panel(scrolled.ScrolledPanel):
       self.intersects = []
 
       self.addButtons = {}
+     
+      self.grayCells = {}
 
       # Building flatten instance from model.xml
       for entInstance in self.model.instances.values():
@@ -945,6 +1001,7 @@ class Panel(scrolled.ScrolledPanel):
             self.columns.append(entInstance)  # TODO: calculate an insertion position based on the mouse position and the positions of the other entities
       self.UpdateVirtualSize()
       self.layout()
+      self.loadGrayCells()
 
     def setModelData(self, model):
       self.model = model
@@ -1130,6 +1187,73 @@ class Panel(scrolled.ScrolledPanel):
         self.PrepareDC(dc)
         self.UpdateVirtualSize()
         self.render(dc)
+
+    def renderGrayCell(self, ctx):
+      print 'enter renderGrayCell'
+      for row in self.grid.grid:
+        for cell in row:
+          grayBmp = self.grayCells.get(cell.bound, None)
+          if grayBmp:
+            pos = (cell.bound[0],cell.bound[1])            
+            print 'render gray cell at (%d,%d), size: %s; bound (%d,%d,%d,%d)' %(pos[0], pos[1], str(cell.graySize), cell.bound[0],cell.bound[1], cell.bound[2], cell.bound[3])
+            svg.blit(ctx,grayBmp,pos, (1.0,1.0), 0.0)
+
+    def createGrayCell(self, pos, entities=None, save=True):
+      added = self.grid.createGrayCell(pos, self)
+      if save:
+        self.saveGrayCell(added, entities)      
+
+    def loadGrayCells(self):
+      print 'enter loadGrayCells'
+      tagName = "disableAssignmentOn"
+      y = ROW_MARGIN+1
+      for e1 in self.rows:
+        x = COL_MARGIN+1
+        for e2 in self.columns:
+          thisNode = e2.data["name"]
+          values = self.model.instances.get(thisNode, None)
+          if values:
+            sgs = values.data.get(tagName, None)
+            if sgs:
+              sgs = sgs.split()
+              if e1.data["name"] in sgs:
+                pos = (x,y)
+                self.createGrayCell(pos, entities=None, save=False)
+          x+=COL_SPACING+COL_WIDTH
+        y+=ROW_SPACING+ROW_WIDTH
+    
+    def saveGrayCell(self, added, entities):
+      thisSg = ""
+      for e in entities:
+        if e.et.name == "ServiceGroup":
+          thisSg = e.data["name"]
+          break
+      for e in entities:
+        if e.et.name == "Node":           
+          tagName = "disableAssignmentOn"
+          thisNode = e.data["name"]
+          values = self.model.instances.get(thisNode, None)
+          if not values:
+            continue
+          sgs = values.data.get(tagName, None)
+          if sgs:
+            if added:
+              if sgs.find(thisSg) == -1:
+                sgs += " "+thisSg
+                values.data[tagName] = sgs
+            else:
+              # exclude the this sg from the node.instances
+              sgs = sgs.split()
+              temp = sgs[0] if sgs[0]!=thisSg else ""
+              #temp = ""
+              for i in range(1,len(sgs)):
+                if sgs[i]!=thisSg:
+                  temp+=" "+sgs[i]
+              values.data[tagName]=temp
+          else:
+            if added:
+              values.data[tagName] = thisSg            
+          break    
 
     def CreateNewInstance(self,entity,position,size=None, name=None):
       """Create a new instance of this entity type at this position"""
@@ -1354,7 +1478,8 @@ class Panel(scrolled.ScrolledPanel):
             if self.renderArrow.get((a.container,a.contained),True):  # Check to see if there's an directive whether to render this arrow or not.  If there is not one, render it by default
               # pdb.set_trace()
               drawCurvyArrow(ctx, (st[0] + a.beginOffset[0],st[1] + a.beginOffset[1]),(end[0] + a.endOffset[0],end[1] + a.endOffset[1]),a.midpoints, linkNormalLook)
-
+        
+        self.renderGrayCell(ctx)
         ctx.restore()
 
         # These are non-model based transient elements that need to be drawn like selection boxes
