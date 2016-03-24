@@ -863,6 +863,7 @@ bool MsgRpc_MgtRpcType_IsValid(int value) {
 }
 
 #ifndef _MSC_VER
+const MsgRpc_MgtRpcType MsgRpc::CL_MGT_RPC_UNDEFINE;
 const MsgRpc_MgtRpcType MsgRpc::CL_MGT_RPC_VALIDATE;
 const MsgRpc_MgtRpcType MsgRpc::CL_MGT_RPC_INVOKE;
 const MsgRpc_MgtRpcType MsgRpc::CL_MGT_RPC_POSTREPLY;

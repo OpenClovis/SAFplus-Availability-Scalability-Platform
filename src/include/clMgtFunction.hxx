@@ -24,6 +24,7 @@
 #include <string>
 #include <clHandleApi.hxx>
 #include <clCkptApi.hxx> // to use checkpoint
+#include <MgtMsg.pb.hxx>
 namespace SAFplus
 {
      extern Checkpoint* mgtCheckpoint;
@@ -35,6 +36,9 @@ namespace SAFplus
 
      std::string mgtGet(const std::string& pathSpec);
      std::string mgtGet(SAFplus::Handle src, const std::string& pathSpec);
+
+     ClRcT mgtRpc(Mgt::Msg::MsgRpc::MgtRpcType mgtRpcType,const std::string& pathSpec, const std::string& attribute);
+     ClRcT mgtRpc(SAFplus::Handle src,Mgt::Msg::MsgRpc::MgtRpcType mgtRpcType,const std::string& pathSpec, const std::string& attribute);
 
      ClRcT mgtSet(SAFplus::Handle src, const std::string& pathSpec, const std::string& value);
      ClRcT mgtSet(const std::string& pathSpec, const std::string& value);

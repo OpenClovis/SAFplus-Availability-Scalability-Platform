@@ -45,6 +45,7 @@ namespace Mgt
     namespace Msg
       {
         class MsgMgt;
+        class MsgRpc;
       }
   }
 
@@ -122,6 +123,8 @@ public:
      */
     ClRcT bindMgtObject(Handle handle, SAFplus::MgtObject *object, const std::string& module, const std::string& route);
     void bind(Handle handle,MgtObject* obj);
+    void registerRpc(Handle handle,MgtRpc* rpc);
+
 
     /**
      * \brief   Function to bind a MGT object to a specific manageability subtree within a particular module
@@ -143,6 +146,7 @@ public:
     void clMgtMsgXSetHandler(SAFplus::Handle srcAddr, Mgt::Msg::MsgMgt& mgtMsgReq);
     void clMgtMsgCreateHandler(SAFplus::Handle srcAddr, Mgt::Msg::MsgMgt& mgtMsgReq);
     void clMgtMsgDeleteHandler(SAFplus::Handle srcAddr, Mgt::Msg::MsgMgt& mgtMsgReq);
+    void clMgtMsgRPCHandler(SAFplus::Handle srcAddr, Mgt::Msg::MsgRpc& reqMsg);
     class MgtMessageHandler:public SAFplus::MsgHandler
     {
       public:
@@ -164,10 +168,6 @@ public:
     void addReference(MgtObject* mgtObject);
     void updateReference(void);
 };
-
-  // function to execute in gdb to dump the current management checkpoint routing data
-  void dbgDumpMgtCheckpoint();
-
 };
 #endif /* CLMGTROOT_H_ */
 

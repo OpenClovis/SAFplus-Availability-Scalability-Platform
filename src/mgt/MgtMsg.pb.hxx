@@ -44,6 +44,7 @@ class MsgMgt;
 class MsgMgtDb;
 
 enum MsgRpc_MgtRpcType {
+  MsgRpc_MgtRpcType_CL_MGT_RPC_UNDEFINE = 0,
   MsgRpc_MgtRpcType_CL_MGT_RPC_VALIDATE = 1,
   MsgRpc_MgtRpcType_CL_MGT_RPC_INVOKE = 2,
   MsgRpc_MgtRpcType_CL_MGT_RPC_POSTREPLY = 3
@@ -353,6 +354,7 @@ class MsgRpc : public ::google::protobuf::Message {
   // nested types ----------------------------------------------------
 
   typedef MsgRpc_MgtRpcType MgtRpcType;
+  static const MgtRpcType CL_MGT_RPC_UNDEFINE = MsgRpc_MgtRpcType_CL_MGT_RPC_UNDEFINE;
   static const MgtRpcType CL_MGT_RPC_VALIDATE = MsgRpc_MgtRpcType_CL_MGT_RPC_VALIDATE;
   static const MgtRpcType CL_MGT_RPC_INVOKE = MsgRpc_MgtRpcType_CL_MGT_RPC_INVOKE;
   static const MgtRpcType CL_MGT_RPC_POSTREPLY = MsgRpc_MgtRpcType_CL_MGT_RPC_POSTREPLY;
