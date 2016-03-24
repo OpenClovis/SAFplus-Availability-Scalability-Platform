@@ -9,6 +9,8 @@ MakefileDepend :=
 
 CPP_FLAGS += -I$(BOOST_DIR)  -I. -I..  -I../rpc -I./amfRpc $(SAFPLUS_MGT_INC_FLAGS)
 
+LINK_SO_LIBS += -lprotobuf -lprotoc $(XML2_LINK)
+
 # Specify the required libraries
 SAFPLUS_LIBS := clRpc clMgt clName clFaultServer clFault clCkpt clGroup clTimer clMsg clUtils clLog clDbal clOsal
 # Then use these in the make rule
@@ -49,18 +51,18 @@ $(SAFPLUS_TARGET)/share/netconf/modules/openclovis/SAFplusTypes.yang: $(SAFPLUS_
 
 # Shared library providing functions needed by the policy library & SAFplus AMF.
 $(POLICY_ENV_LIB): $(POLICY_ENV_OBJ) $(SAFPLUS_DEP_LIBS)
-	$(LINK_SO) $@  $(POLICY_ENV_OBJ) $(SAFPLUS_LINK_LIBS) -L$(INSTALL_DIR)/lib -lxml2 -lboost_filesystem $(LINK_SO_LIBS)
+	$(LINK_SO) $@  $(POLICY_ENV_OBJ) $(SAFPLUS_LINK_LIBS) $(XML2_LINK) $(LINK_SO_LIBS)
 
 # Define policies as shared libraries
 $(PLUGIN_DIR)/customAmfPolicy.so: $(OBJ_DIR)/amfsvr/customAmfPolicy.o $(POLICY_ENV_LIB) $(SAFPLUS_DEP_LIBS)
-	$(LINK_SO) $@ $(OBJ_DIR)/amfsvr/customAmfPolicy.o -lAmfPolicyEnv $(SAFPLUS_LINK_LIBS) -L$(INSTALL_DIR)/lib  -lxml2 -lboost_filesystem -lprotobuf -lprotoc $(LINK_SO_LIBS)
+	$(LINK_SO) $@ $(OBJ_DIR)/amfsvr/customAmfPolicy.o -lAmfPolicyEnv $(SAFPLUS_LINK_LIBS) -lprotobuf -lprotoc $(LINK_SO_LIBS)
 
 $(PLUGIN_DIR)/nPlusmAmfPolicy.so: $(OBJ_DIR)/amfsvr/nPlusmAmfPolicy.o $(POLICY_ENV_LIB) $(SAFPLUS_DEP_LIBS)
-	$(LINK_SO) $@ $(OBJ_DIR)/amfsvr/nPlusmAmfPolicy.o -lAmfPolicyEnv $(SAFPLUS_LINK_LIBS)  -L$(INSTALL_DIR)/lib -lxml2 -lboost_filesystem -lprotobuf -lprotoc $(LINK_SO_LIBS)
+	$(LINK_SO) $@ $(OBJ_DIR)/amfsvr/nPlusmAmfPolicy.o -lAmfPolicyEnv $(SAFPLUS_LINK_LIBS) $(LINK_SO_LIBS)
 
 # SAFplus AMF binary
 $(BIN_DIR)/safplus_amf: $(SERVER_OBJ) $(POLICY_ENV_LIB) $(SAFPLUS_DEP_LIBS)
-	$(LINK_EXE) $@ $(SERVER_OBJ) -lAmfPolicyEnv $(SAFPLUS_LINK_LIBS) -L$(INSTALL_DIR)/lib -lxml2 -lboost_filesystem -lprotobuf -lprotoc $(LINK_SO_LIBS)
+	$(LINK_EXE) $@ $(SERVER_OBJ) -lAmfPolicyEnv $(SAFPLUS_LINK_LIBS) -lprotobuf -lprotoc $(LINK_SO_LIBS)
 
 # C code
 $(OBJ_DIR)/amfsvr/%.o: %.cxx $(MakefileDepend) $(SERVER_H)
