@@ -13,15 +13,15 @@ MGT_SRC_DIR ?= $(SAFPLUS_SRC_DIR)/../../mgt
 #SAFPLUS_LINK_LIBS := -L$(LIB_DIR) $(addprefix -l,$(SAFPLUS_LIBS))
 
 SAFPLUS_LIBS := clName clCkpt clGroup clIoc7 clUtils7 clLog clOsal7
-SAFPLUS_LINK_LIBS := -L$(LIB_DIR) $(addprefix -l,$(SAFPLUS_LIBS)) -L$(SAFPLUS_SDK_TARGET)/lib -lmw -L$(MGT_SRC_DIR)/3rdparty/build/lib -lxml2
+SAFPLUS_LINK_LIBS := -L$(LIB_DIR) $(addprefix -l,$(SAFPLUS_LIBS))
 
 all: $(TEST_DIR)/testName $(TEST_DIR)/dumpName
 
 $(TEST_DIR)/testName:  $(OBJ_DIR)/testName.o $(SAFPLUS_DEP_LIBS)
-	$(LINK_EXE) $@ $<  $(LINK_LIBS) $(SAFPLUS_LINK_LIBS) $(LINK_STD_LIBS)
+	$(LINK_EXE) $@ $<  $(LINK_LIBS) $(SAFPLUS_LINK_LIBS) $(LINK_STD_LIBS) $(XML2_LINK) 
 
 $(TEST_DIR)/dumpName:  $(OBJ_DIR)/dumpName.o $(SAFPLUS_DEP_LIBS)
-	$(LINK_EXE) $@ $<  $(LINK_LIBS) $(SAFPLUS_LINK_LIBS) $(LINK_STD_LIBS)
+	$(LINK_EXE) $@ $<  $(LINK_LIBS) $(SAFPLUS_LINK_LIBS) $(LINK_STD_LIBS) $(XML2_LINK) 
 
 $(OBJ_DIR)/%.o: %.cxx Makefile ../../../mk/preface.mk $(CLIENT_H)
 	$(COMPILE_CPP) $@ $<

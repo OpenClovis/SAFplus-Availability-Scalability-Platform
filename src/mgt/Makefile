@@ -21,7 +21,7 @@ SAFPLUS_LINK_LIBS := -L$(LIB_DIR) $(addprefix -l,$(SAFPLUS_LIBS))
 Release all: $(LIB_DIR)/libclMgt.so
 
 $(LIB_DIR)/libclMgt.so: $(CLIENT_OBJ) $(SAFPLUS_DEP_LIBS)
-	$(LINK_SO) $@ $(CLIENT_OBJ) $(LINK_SO_LIBS) $(SAFPLUS_LINK_LIBS) `pkg-config --libs protobuf` -lxml2 
+	$(LINK_SO) $@ $(CLIENT_OBJ) $(LINK_SO_LIBS) $(SAFPLUS_LINK_LIBS) $(XML2_LINK)
 
 $(MWOBJ_DIR)/%.o: %.cxx Makefile $(CLIENT_H)
 	$(COMPILE_CPP) $@ $<

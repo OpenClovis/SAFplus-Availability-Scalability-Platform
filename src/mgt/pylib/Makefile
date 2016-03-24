@@ -11,8 +11,6 @@ SAFPLUS_LIBS := clMgt clDbal
 SAFPLUS_DEP_LIBS  := $(addsuffix .so,$(addprefix $(LIB_DIR)/lib,$(SAFPLUS_LIBS)))
 SAFPLUS_LINK_LIBS := -L$(LIB_DIR) $(addprefix -l,$(SAFPLUS_LIBS))
 
-CPP_FLAGS +=-lxml2
-
 CLIENT_PYLIB_H   := $(wildcard *.hxx) $(wildcard $(SAFPLUS_INC_DIR)/*.h) $(wildcard $(SAFPLUS_INC_DIR)/*.hxx)
 CLIENT_PYLIB_SRC := $(wildcard *.cxx)
 CLIENT_PYLIB_OBJ := $(addprefix $(OBJ_DIR)/,$(subst .cxx,.o,$(CLIENT_PYLIB_SRC)))
@@ -22,7 +20,7 @@ PYLIB_SRC := $(BIN_DIR)/safplus_db $(LIB_DIR)/dbalpy.py $(LIB_DIR)/common.py $(L
 Release all: $(LIB_DIR)/pyDbal.so $(BIN_DIR)/safplus_db
 
 $(LIB_DIR)/pyDbal.so: $(CLIENT_PYLIB_OBJ) $(PYLIB_SRC) $(SAFPLUS_DEP_LIBS)
-	$(LINK_SO) $@ $(CLIENT_PYLIB_OBJ) $(SAFPLUS_LINK_LIBS) -lxml2 $(LINK_SO_LIBS)
+	$(LINK_SO) $@ $(CLIENT_PYLIB_OBJ) $(SAFPLUS_LINK_LIBS) $(XML2_LINK) $(LINK_SO_LIBS)
 
 $(OBJ_DIR)/%.o: %.cxx Makefile $(CLIENT_PYLIB_H)
 	$(COMPILE_CPP) $@ $(<F)
