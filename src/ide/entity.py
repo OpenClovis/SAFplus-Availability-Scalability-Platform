@@ -8,9 +8,16 @@ import copy
 nameIdx = {
 }
 
-def NameCreator(typ):
+def NameCreator(typ, etname=None):
   """Create a unique name by using the type and an instance number"""
   idx = nameIdx.get(typ, 1)
+  entIdx = 0
+  if etname:
+    try: 
+      entIdx = int(etname[len(typ):])
+    except ValueError:
+      pass
+  idx = max(idx,entIdx)
   nameIdx[typ] = idx+1
   return typ + str(idx)
 
@@ -205,4 +212,4 @@ class Instance(Entity):
 
     # Put this entity name into namely dict
     if name:
-      NameCreator(entity.data["name"])
+      NameCreator(entity.data["name"], name)
