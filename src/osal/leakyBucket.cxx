@@ -68,6 +68,10 @@ LeakyBucket::LeakyBucket()
   lowWMHit = false;
   highWMHit = false;
   leakInterval = 0;
+  waterMark.lowWM=0;
+  waterMark.highWM=0;
+  waterMark.lowWMDelay=0;
+  waterMark.highWMDelay=0;
 }
 
 bool LeakyBucket::start(long long volume, long long leakSize, long leakInterval,LeakyBucketWaterMark *waterMarkp)

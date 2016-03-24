@@ -463,22 +463,25 @@ namespace SAFplus
   //*****************Advanced socket : MsgSocketShaping********************
 MsgSocketShaping::MsgSocketShaping(uint_t port,MsgTransportPlugin_1* transportp,uint_t volume, uint_t leakSize, uint_t leakInterval)
   {
-    //transport = transportp;
+    transport = transportp;
     xport=transport->createSocket(port);
     msgPool = xport->getMsgPool();
     assert(xport);
     bucket.start(volume,leakSize,leakInterval);
+    node = xport->node;
+    port = xport->port;
   };
 
 MsgSocketShaping::MsgSocketShaping(MsgSocket* socket,uint_t volume, uint_t leakSize, uint_t leakInterval)
   {
-    //transport= socket->transport;
+    transport= socket->transport;
     xport=socket;
     msgPool = xport->getMsgPool();
     bucket.start(volume,leakSize,leakInterval);
     node = xport->node;
     port = xport->port;
   };
+
   MsgSocketShaping::~MsgSocketShaping()
   {
     bucket.stop();

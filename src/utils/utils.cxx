@@ -228,41 +228,45 @@ namespace SAFplus
       {
       return LOG_SEV_NOTICE;
       }
-    if( !strcmp(pSevName, "EMERGENCY") )
+    if( !strcasecmp(pSevName, "EMERGENCY") )
       {
       return LOG_SEV_EMERGENCY;
       }
-    else if( !strcmp(pSevName, "ALERT") )
+    else if( !strcasecmp(pSevName, "ALERT") )
       {
       return LOG_SEV_ALERT;
       }
-    else if( !strcmp(pSevName, "CRITICAL") )
+    else if( !strcasecmp(pSevName, "CRITICAL") )
       {
       return LOG_SEV_CRITICAL;
       }
-    else if( !strcmp(pSevName, "ERROR") )
+    else if( !strcasecmp(pSevName, "ERROR") )
       {
       return LOG_SEV_ERROR;
       }
-    else if( !strcmp(pSevName, "WARN") )
+    else if( !strcasecmp(pSevName, "WARN") )
       {
       return LOG_SEV_WARNING;
       }
-    else if( !strcmp(pSevName, "NOTICE") )
+    else if( !strcasecmp(pSevName, "NOTICE") )
       {
       return LOG_SEV_NOTICE;
       }
-    else if( !strcmp(pSevName, "INFO") )
+    else if( !strcasecmp(pSevName, "INFO") )
       {
       return LOG_SEV_INFO;
       }
-    else if( !strcmp(pSevName, "DEBUG") )
+    else if( !strcasecmp(pSevName, "DEBUG") )
       {
       return LOG_SEV_DEBUG;
       }
-    else if( !strcmp(pSevName, "TRACE") )
+    else if( !strcasecmp(pSevName, "TRACE") )
       {
       return LOG_SEV_TRACE;
+      }
+    else
+      {
+	logNotice("UTL", "ENV", "Log severity setting [%s] not understood", pSevName);
       }
 
     int val = atoi(pSevName);

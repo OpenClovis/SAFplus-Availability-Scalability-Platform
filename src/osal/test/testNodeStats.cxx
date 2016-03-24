@@ -100,7 +100,7 @@ void TestNodeStats::testNodeStats()
     //testing time spent for servicing interrupts
     uint64_t tInterrupt = 0;
     tInterrupt = nStat.timeServicingInterrupts;
-    clTest(("Time for servicing interrupts"), tInterrupt > 0, ("Invalid value %" PRIu64 " for time taken to service interrupts", tInterrupt));
+    clTest(("Time for servicing interrupts"), tInterrupt >= 0, ("Invalid value %" PRIu64 " for time taken to service interrupts", tInterrupt));
 
 
     //testing time taken for serviceing softIRQs

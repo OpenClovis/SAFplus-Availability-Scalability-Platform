@@ -71,6 +71,7 @@ namespace SAFplus
     int getMsgLen(struct msghdr* msg);
     virtual void switchNagle();
 
+    int receiveAllOrThrow(int sock, void* buf, unsigned int amt, int flags);
     void sendMsgs(int sd, struct msghdr* msgvec, int msgCount);
     int getAvailSocket(const SndRecvSock& srsock, bool sndSock);
   };
@@ -232,7 +233,8 @@ namespace SAFplus
       return;
     }
     // else add this client socket to the map with the specified nodeId   
-    logTrace("TCP", "ADD", "Add client socket [%d]; nodeId [%d] to map ", socket, nodeId); 
+    logTrace("TCP", "ADD", "Add client socket [%d]; nodeId [%d] to map ", socket, nodeId);
+    assert(socket>0);
     SndRecvSock srsock(0, socket); 
     SockMapPair smp(nodeId, srsock);
     clientSockMap.insert(smp);    
@@ -286,8 +288,8 @@ namespace SAFplus
 
   int TcpSocket::getClientSocket(uint_t nodeID, uint_t port)
   {
-    mutex.lock();
-    logTrace("TCP", "ADD", "Mutex locked. nodeId [%d]", nodeID); 
+    ScopedLock<> sl(mutex);
+    //logTrace("TCP", "ADD", "Mutex locked. nodeId [%d]", nodeID); 
     int sd = 0;
     NodeIDSocketMap::iterator contents = clientSockMap.find(nodeID);
     if (contents != clientSockMap.end()) // Socket connected to this NodeID has been opened
@@ -312,7 +314,6 @@ namespace SAFplus
         sd = srsock.recvSock;
       }   
 
-      mutex.unlock();
       return sd;
     }
     if (node == nodeID) // there is no send socket added to the map and this is same nodeID
@@ -321,8 +322,8 @@ namespace SAFplus
       logTrace("TCP", "ADD", "Add client socket [%d]; nodeId[%d] to map", newSock, nodeID); 
       SndRecvSock srsock(newSock, 0); 
       SockMapPair smp(nodeID, srsock);
+      assert(newSock>0);
       clientSockMap.insert(smp);
-      mutex.unlock();
       return newSock;
     }
     contents = clientSockMap.find(nodeID); // there may client socket has been accepted before
@@ -335,11 +336,11 @@ namespace SAFplus
     {
       sd = openClientSocket(nodeID, port);
       logTrace("TCP", "ADD", "Different nodeID, add client socket [%d]; nodeId[%d] to map", sd, nodeID); 
+      assert(sd>0);
       SndRecvSock srsock(sd, 0); 
       SockMapPair smp(nodeID, srsock);
       clientSockMap.insert(smp);
     }   
-    mutex.unlock();    
     return sd;
   }
 
@@ -359,7 +360,6 @@ namespace SAFplus
     the timeout value, NULL will be returned on this socket.
 */
     msghdr msgvec[SAFplusI::TcpTransportMaxMsg];  // We are doing this for perf so we certainly don't want to new or malloc it!
-    unsigned int headers[SAFplusI::TcpTransportMaxMsg];
     bzero(msgvec,sizeof(msgvec));
     struct iovec iovecBuffer[SAFplusI::TcpTransportMaxFragments];
     msghdr* curvec = msgvec;
@@ -372,15 +372,14 @@ namespace SAFplus
     MsgFragment* frag;
     int msgSize, retval;
     //MsgFragment* headerFrag = oriMsg->prepend(4); // reserve 4 bytes (32 bits for the header (8 bits id + 8 bits port + 16 bits msg len)
-    unsigned char id = 0x10; // assume
-    unsigned short totalLenPerMsg;
+    uint32_t totalLenPerMsg;
     do 
     { 
       msg = next;
       next = msg->nextMsg;  // Save the next message so we use it next
  
-      MsgFragment* headerFrag = msg->prepend(0); // reserve 4 bytes (32 bits) as a header for each msg (8 bits id + 8 bits port + 16 bits msg len)
-      headerFrag->len = 4;
+      MsgFragment* headerFrag = msg->prepend(8); // reserve 4 bytes (32 bits) as a header for each msg (8 bits id + 8 bits port + 16 bits msg len)
+      headerFrag->len = 8;
       totalLenPerMsg = 0;
 
       struct iovec *msg_iov = iovecBuffer + totalFragCount;
@@ -396,7 +395,7 @@ namespace SAFplus
         curIov->iov_base = frag->data();
         assert((frag->len > 0) && "The Tcp protocol allows sending zero length messages but I think you forgot to set the fragment len field.");
         curIov->iov_len = frag->len;
-        totalLenPerMsg+=curIov->iov_len;
+        totalLenPerMsg += frag->len;
         fragCount++;
         totalFragCount++;
         curIov++;        
@@ -408,10 +407,10 @@ namespace SAFplus
       curvec->msg_iov = msg_iov;
       curvec->msg_iovlen = fragCount;      
       // fill the header
-      totalLenPerMsg-=4; // exclude the len of the header
-      headers[msgCount] = (id<<24)|(port<<16)|totalLenPerMsg;      
-      headerFrag->set(&headers[msgCount], sizeof(headers[msgCount]));      
-      curvec->msg_iov[0].iov_base = headerFrag->data();
+      totalLenPerMsg -= headerFrag->len; // exclude the len of the header
+      uint32_t hdr = ((node<<16)|(port&(1<<16)-1));  
+      memcpy(headerFrag->data(0), &hdr, sizeof(uint32_t));
+      memcpy(headerFrag->data(sizeof(uint32_t)), &totalLenPerMsg, sizeof(uint32_t));
       curvec++;
       msgCount++;       
     } while (next != NULL);   
@@ -464,7 +463,7 @@ namespace SAFplus
           bytes+=retval;
           if (!updateBuffer(msgvec+i, retval)) break;
         }        
-        logDebug("TCP", "RECV", "msgLen [%u]; retval [%d]; bytes [%d]; iov_len [%d]", msgLen, retval, bytes, (int)(msgvec+i)->msg_iov->iov_len);
+        logDebug("TCP", "SEND", "msgLen [%u]; retval [%d]; bytes [%d]; iov_len [%d]", msgLen, retval, bytes, (int)(msgvec+i)->msg_iov->iov_len);
       } while (true);
       assert(bytes==msgLen);
     }
@@ -522,6 +521,29 @@ namespace SAFplus
     }    
     return msgLen;
   }
+
+  int TcpSocket::receiveAllOrThrow(int sock, void* buf, unsigned int amt, int flags)
+  {
+    unsigned int bytesReceived = 0;
+    do 
+      {                
+        int retval = recv(sock, ((unsigned char*)buf) + bytesReceived, amt-bytesReceived, flags);  
+        if (retval == -1)
+          {
+            int err = errno;
+            assert(!(err == EFAULT) || (err == EINVAL) || (err ==  ENOTCONN) || (err == ENOTSOCK));  // These programmatic errors should cause a core dump and fail over
+            if ((err != EINTR)&&(err != EAGAIN))  // EWOULDBLOCK?
+              {
+              throw Error(Error::SYSTEM_ERROR,errno, strerror(errno),__FILE__,__LINE__);
+              }
+          }
+        else 
+          {
+            bytesReceived+=retval;            
+          }
+      } while (bytesReceived < amt);
+    return bytesReceived;
+  }
   
   Message* TcpSocket::receive(uint_t maxMsgs, int maxDelay)
   {
@@ -531,8 +553,7 @@ namespace SAFplus
         return NULL;
       }
       // TODO receive multiple messages
-      msghdr msgvec[SAFplusI::TcpTransportMaxMsg];  // We are doing this for perf so we certainly don't want to new or malloc it!
-      struct iovec iovecs[SAFplusI::TcpTransportMaxFragments];
+
       struct timespec timeoutMem;
       struct timespec* timeout = &timeoutMem;
       uint_t flags = MSG_DONTWAIT;      
@@ -551,152 +572,71 @@ namespace SAFplus
       
       int clientSock;
       int retval=-1;
-      unsigned short msgLen;
       unsigned char srcPort;
       int bytes; 
       unsigned int header;
-      //fd_set rfds;  
-      for(NodeIDSocketMap::iterator iter = clientSockMap.begin(); iter != clientSockMap.end(); iter++)
-      {       
-        SndRecvSock& srsock = iter->second; 
-        clientSock = getAvailSocket(srsock, dataAvailOnSndSock); 
-        logDebug("TCP", "RECV", "Try to receive msg from socket [%d]", clientSock);        
-        retval = checkDataAvail(clientSock, timeout);
-        if (retval == -1) 
-        {        
-          throw Error(Error::SYSTEM_ERROR,errno, strerror(errno),__FILE__,__LINE__);
-        }
-        else if (!retval)
-        {
-          dataAvailOnSndSock = false;
-          logNotice("TCP", "RECV", "No msg found on socket [%d]. Continue other one", clientSock);
-          clientSock = getAvailSocket(srsock, false);
-          if (!clientSock) continue;
-          retval = checkDataAvail(clientSock, timeout);
-          if (retval == -1) throw Error(Error::SYSTEM_ERROR,errno, strerror(errno),__FILE__,__LINE__);
-          if (!retval)
-          {
-            logNotice("TCP", "RECV", "No msg found on socket [%d]. Continue other one", clientSock);
-            continue;
-          }
-        }        
-        logTrace("TCP", "RECV", "Data found on socket [%d]", clientSock);        
-        // Reading the header of the message to know how much msg body length can be read next
-        msgLen = 4; // 4 bytes reserved for reading msg header
-        Message* temp = msgPool->allocMsg();
-        MsgFragment* frag = temp->append(msgLen);
-        //frag->len = msgLen;
-        memset(msgvec,0,sizeof(msgvec));
-        iovecs[0].iov_base   = frag->data(0);
-        iovecs[0].iov_len    = frag->allocatedLen;
-        msgvec[0].msg_iov    = &iovecs[0];
-        msgvec[0].msg_iovlen = 1;   
-        bytes = 0;          
-        do 
-        {                
-          retval = recvmsg(clientSock, &msgvec[0], flags);  
-          if (retval == -1)
-          {        
-            //if (errno != EAGAIN)
-              throw Error(Error::SYSTEM_ERROR,errno, strerror(errno),__FILE__,__LINE__);
-          }
-          else 
-          {
-            bytes+=retval;
-            if (!updateBuffer(&msgvec[0], retval)) break;
-          }
-          logDebug("TCP", "RECV", "msgLen [%u]; retval [%d]; bytes [%d]; iov_len [%d]", msgLen, retval, bytes, (int)iovecs[0].iov_len);            
-        } while (true);
+      //fd_set rfds;
+      
+      fd_set rfds;
+      FD_ZERO(&rfds);
+      int max=0;
 
-        assert(bytes==msgLen);
-        iovecs[0].iov_len = msgLen;
-        --msgvec[0].msg_iov;
+      if (1)  // TODO maintain the fd_set when fds are added or removed so that we don't have to calculate it every time.
+	{
+	  ScopedLock<> sl(mutex);
 
-        header=0;
-        memcpy(&header, msgvec[0].msg_iov->iov_base, msgvec[0].msg_iov->iov_len);         
-        Message* msg = msgPool->allocMsg();
-        srcPort = (header & (0xff<<16)) >>16;
-        msgLen = header&0xffff;
-        msg->port = srcPort;
-        msg->node = iter->first;
-        frag = msg->append(msgLen);
-        frag->len = msgLen;
-        logTrace("TCP", "RECV", "msgLen read [%u]", msgLen);
+	  for(NodeIDSocketMap::iterator iter = clientSockMap.begin(); iter != clientSockMap.end(); iter++)
+	    {       
+	      SndRecvSock& srsock = iter->second;
+	      if (srsock.sndSock > max) max = srsock.sndSock;
+	      if (srsock.recvSock > max) max = srsock.recvSock;
 
-        temp->msgPool->free(temp);
-        
-        logTrace("TCP", "RECV", "Now read the msg body on socket [%d]", clientSock);  
-        // Reading the msg body. If timeout occurs while reading, canceling the read and try to read from the other socket in the map
-        bytes = 0;
-        msgLen = msg->getLength();
-        memset(msgvec,0,sizeof(msgvec));
-        iovecs[0].iov_base   = msg->firstFragment->data(0);
-        iovecs[0].iov_len    = msgLen;
-        msgvec[0].msg_iov    = &iovecs[0];
-        msgvec[0].msg_iovlen = 1;   
-        do 
-        { 
-          retval = checkDataAvail(clientSock, timeout);
-          if (retval == -1) throw Error(Error::SYSTEM_ERROR,errno, strerror(errno),__FILE__,__LINE__);
-          if (!retval)
-          {
-            logWarning("TCP", "RECV", "No data found on socket [%d] within [%ld]s/[%ld]ns", clientSock, timeout->tv_sec, timeout->tv_nsec);
-            break;
-          }               
-          retval = recvmsg(clientSock, &msgvec[0], flags);  
-          if (retval == -1)
-          {        
-             //if (errno != EAGAIN)
-               throw Error(Error::SYSTEM_ERROR,errno, strerror(errno),__FILE__,__LINE__);
-          }
-          else 
-          {
-            bytes+=retval;
-            if (!updateBuffer(&msgvec[0], retval)) break;
-          }
-          logDebug("TCP", "RECV", "msgLen [%u]; retval [%d]; bytes [%d]; iov_len [%d]", msgLen, retval, bytes, (int)iovecs[0].iov_len);          
-        } while (true);
+	      if (srsock.sndSock > 0)
+		FD_SET(srsock.sndSock, &rfds);
+	      if (srsock.recvSock > 0)
+		FD_SET(srsock.recvSock, &rfds);       
+	    }
+	}
+      
+     logTrace("TCP", "RECV", "Waiting for messages. timeout [%u]s/[%u]ns", (unsigned int)timeout->tv_sec, (unsigned int)timeout->tv_nsec);
+     retval = pselect(max+1, &rfds, NULL, NULL, timeout, NULL);
+     if (retval==-1)
+       {
+	 int err = errno;
+	 if (err == EINTR) return NULL;
+	 if (err == EBADF) return NULL;  // bad file descriptor (socket closed) presumably will be cleaned up for next time
+	 else
+	   {
+	     throw Error(Error::SYSTEM_ERROR,errno, strerror(errno),__FILE__,__LINE__);
+	   }
+       }
+     if (retval==0) // nothing updated
+       {
+	 return NULL;
+       }
 
-        if (bytes<msgLen)
-        {
-          logWarning("TCP", "RECV", "Number of bytes [%d] read from socket [%d] less than msgLen [%u]", bytes, clientSock, msgLen);
-          msg->msgPool->free(msg);
-          continue;
-        }
 
-        logTrace("TCP", "RECV", "Finish reading msg body on socket [%d]", clientSock);  
-        assert(bytes==msgLen);
-        iovecs[0].iov_len = msgLen;
-        --msgvec[0].msg_iov;
-        msgvec[0].msg_iovlen = 1;
-
-        retval = 1;         
-        Message* cur = msg;
-        for (int msgIdx = 0; (msgIdx<retval); msgIdx++,cur = cur->nextMsg)          
-        {             
-          cur->port = srcPort;
-          cur->node = iter->first;
-          MsgFragment* curFrag = cur->firstFragment;            
-          for (int fragIdx = 0; (fragIdx < msgvec[msgIdx].msg_iovlen) && msgLen; fragIdx++,curFrag=curFrag->nextFragment)
-          {
-            // Apply the received size to this fragment.  If the fragment is bigger then the msg length then the entire msg must be in this buffer
-            msgLen = msgvec[msgIdx].msg_iov[fragIdx].iov_len;
-            if (curFrag->allocatedLen >= msgLen)
-            {
-              curFrag->len = msgLen;
-              msgLen=0;
-            }
-            else // If the fragment is smaller, the buffer is full and reduce the size of the msgLen temporary by the amount in this buffer
-            {
-              curFrag->len = curFrag->allocatedLen;
-              msgLen -= curFrag->allocatedLen;
-            }
-          }
-        }
-        logTrace("TCP", "RECV", "Return msg to the caller");  
-        return msg;
-      }                
-     
+     for(int sock=0;sock<=max;sock++)
+       {
+	 if (FD_ISSET(sock, &rfds))
+	   {
+	     logTrace("TCP", "RECV", "Data found on socket [%d]", sock);        
+	     // Reading the header of the message to know how much msg body length can be read next
+	     uint32_t header[2]; // 8 bytes reserved for reading msg header
+	     int fraglen = receiveAllOrThrow(sock, &header, sizeof(uint32_t)*2, 0);
+	     int msgLen = header[1];
+	     
+	     Message* msg = msgPool->allocMsg();
+             // TODO: port, node, (and endian) could be determined by a single hello message on the connection and stored in a lookup table, not passed every time
+	     msg->port = header[0]&((1<<16)-1);
+	     msg->node = header[0]>>16;
+	     MsgFragment* frag = msg->append(msgLen);
+             int bytesReceived = receiveAllOrThrow(sock, frag->data(0), msgLen, flags);  
+	     logDebug("TCP", "RECV", "msgLen [%u] retval [%d] bytes [%d]", msgLen, retval, bytes);            
+	     frag->used(bytesReceived);
+	     return msg;
+	   }
+       }     
       //logNotice("TCP", "RECV", "No any msg found on all sockets. Returns NULL");
       return NULL;
    }
@@ -766,6 +706,8 @@ namespace SAFplus
      {
        nodelay = 1;
      }
+     ScopedLock<> sl(mutex);
+
      for(NodeIDSocketMap::iterator iter = clientSockMap.begin(); iter != clientSockMap.end(); iter++)
      {      
        socket = iter->second.sndSock?iter->second.sndSock:iter->second.recvSock;       
@@ -784,6 +726,7 @@ namespace SAFplus
    {
      // Close all the sockets: both server socket itself and client sockets in the map     
      pthread_cancel(tid);
+     ScopedLock<> sl(mutex);         
      for(NodeIDSocketMap::iterator iter = clientSockMap.begin(); iter != clientSockMap.end(); iter++)
      {       
        int socket = iter->second.sndSock;

@@ -1,8 +1,8 @@
 /*
-        sysctl -w net.core.wmem_max=10485760
-        sysctl -w net.core.rmem_max=10485760
-        sysctl -w net.core.rmem_default=10485760
-        sysctl -w net.core.wmem_default=10485760
+        sudo sysctl -w net.core.wmem_max=20485760
+        sudo sysctl -w net.core.rmem_max=20485760
+        sudo sysctl -w net.core.rmem_default=20485760
+        sudo sysctl -w net.core.wmem_default=20485760
  */
 
 // If the test's send amount exceeds the kernel's network buffers then packets are dropped.  These packets disappear in unreliable transports like UDP which breaks this unit test.
@@ -86,7 +86,7 @@ bool testSendRecv(MsgTransportPlugin_1* xp)
 
     clTest(("recv"),m != NULL,(" "));
     printf("%s\n",(const char*) m->firstFragment->read());
-    clTest(("send/recv message ok"), 0 == strncmp((const char*) m->firstFragment->read(),strMsg,sizeof(strMsg)),("message contents miscompare: %s -> %s", strMsg,(const char*) m->firstFragment->read()) );
+    clTest(("send/recv message ok"), 0 == strncmp((const char*) m->firstFragment->read(),strMsg,strlen(strMsg)),("message contents miscompare: %s -> %s", strMsg,(const char*) m->firstFragment->read()) );
     b->msgPool->free(m);
     clTest(("message rcv pool audit"), (b->msgPool->allocated - initialAlloc == 0), ("Allocated msgs is [%" PRIu64 "]. Expected 0", b->msgPool->allocated));
     clTest(("msg rcv frag pool audit"), (a->msgPool->fragAllocated - initialFrag == 0), ("Allocated frags is [%" PRIu64 "]. Expected 0", b->msgPool->fragAllocated));
@@ -121,13 +121,15 @@ bool testSendRecv(MsgTransportPlugin_1* xp)
 
   // Test max msg size
   int maxMsgSize = xp->config.maxMsgSize;
+  if (maxMsgSize > 1500000) maxMsgSize = 1500000;  // experimentally the kernel can't handle more than 2MB buffered before it hangs
   m = a->msgPool->allocMsg();
   clTest(("message allocated"), m != NULL,(" "));
   frag = m->append(maxMsgSize);
   // TODO fill message with data
   frag->len=maxMsgSize;
   m->setAddress(b->node, b->port);
-  a->send(m);
+  printf("Sequential Send/Recv of %d bytes.  Kernel buffers must be large or hangs here!\n",maxMsgSize);
+  a->send(m);  // Note: since send/recv is single-threaded the full message needs to fit in kernel buffers or it will hang here
   m = b->receive(1);
 
 
@@ -144,13 +146,15 @@ bool testSendRecvSize(MsgTransportPlugin_1* xp)
   ScopedMsgSocket a(xp,1);
   ScopedMsgSocket b(xp,2);
 
-  int maxTry = 1;
+  int maxTry = 3;
 
   Message* m;
 
   unsigned long seed = 0;
+  int maxMsgSize = xp->config.maxMsgSize;
+  if (maxMsgSize > 1300000) maxMsgSize = 1300000;  // experimentally the kernel can't handle more than 2MB buffered before it hangs
 
-  for (int size = 1; size <= xp->config.maxMsgSize; size+=512)
+  for (int size = 1; size <= maxMsgSize; size+=512)
   {
     seed++;
     printf("%d ", size);
@@ -173,7 +177,7 @@ bool testSendRecvSize(MsgTransportPlugin_1* xp)
     int tries = 0;
     while (tries<maxTry && !m)
     {
-      boost::this_thread::sleep(boost::posix_time::milliseconds(50));
+      boost::this_thread::sleep(boost::posix_time::milliseconds(250));
       m = b->receive(1,0);
       tries++;
     }
@@ -208,7 +212,11 @@ bool testSendRecvShaping(MsgTransportPlugin_1* xp)
   int maxTry = 1;
   Message* m;
   unsigned long seed = 0;
-  for (int size = 1; size <= xp->config.maxMsgSize; size+=4512)
+
+  int maxMsgSize = xp->config.maxMsgSize;
+  if (maxMsgSize > 500000) maxMsgSize = 500000; 
+  
+  for (int size = 1; size <= maxMsgSize; size+=4512)
   {
     seed++;
     printf("s%d ", size);
@@ -260,16 +268,17 @@ bool testSendRecvMultiple(MsgTransportPlugin_1* xp)
   Message* m;
 
   unsigned long seed = 0;
-
+  int maxMsgSize = xp->config.maxMsgSize;
+  if (maxMsgSize > 1000000) maxMsgSize = 1000000;  // experimentally the kernel can't handle more
   for (int atOnce = 1; atOnce < xp->config.maxMsgAtOnce; atOnce+=((rand()%37)+1))
   {
     printf("\nchunk [%d]: ",atOnce);
-    for (int size = 1; size <= xp->config.maxMsgSize; size+=((rand()%4096)+1))
+    for (int size = 1; size <= maxMsgSize; size+=((rand()%4096)+1))
     {
 
       // If the test's send amount exceeds the kernel's network buffers then packets are dropped.  These packets disappear in unreliable transports like UDP which breaks this unit test.
       // Experimentally (UDP), it actually needs to be be the network buffer size / 2.  Not sure why that would be...
-      if (atOnce*size > KERNEL_NET_BUF_SIZE/2) { size=xp->config.maxMsgSize+1; break; }
+      if (atOnce*size > KERNEL_NET_BUF_SIZE/2) { size=maxMsgSize+1; break; }
 
       seed++;
       printf("%d ", size);
@@ -530,13 +539,16 @@ int main(int argc, char* argv[])
   clTestCase(("MXP-SND-FNC.TC002: Message send recv functional loopback tests"), messageTests(msgPool));
   safplusInitialize(SAFplus::LibDep::LOG);
   ClPlugin* api = NULL;
+
+  clTestCaseStart(("MXP-%3s-%3s.TC001: initialization",MsgXportTestPfx,ModeStr));
+  
   if (1)
   {
 #ifdef DIRECTLY_LINKED
     api  = clPluginInitialize(SAFplus::CL_MSG_TRANSPORT_PLUGIN_VER);
 #else
     ClPluginHandle* plug = clLoadPlugin(SAFplus::CL_MSG_TRANSPORT_PLUGIN_ID,SAFplus::CL_MSG_TRANSPORT_PLUGIN_VER,xport.c_str());
-    clTest(("plugin loads"), plug != NULL,(" "));
+    clTestCaseMalfunction(("Node address is not set properly"), plug != NULL, );
     if (plug) api = plug->pluginApi;
 #endif
   }
@@ -554,7 +566,6 @@ int main(int argc, char* argv[])
       }
       else ModeStr = "LAN";
 
-      clTestCaseStart(("MXP-%3s-%3s.TC001: initialization",MsgXportTestPfx,ModeStr));
       MsgTransportConfig xCfg = xp->initialize(msgPool,clusterNodes);
       bool abort = false;
       clTestCaseMalfunction(("Node address is not set properly"), xCfg.nodeId != 0, abort=true);
