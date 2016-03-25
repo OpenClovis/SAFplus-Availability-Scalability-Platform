@@ -378,7 +378,7 @@ class SelectTool(Tool):
                panel.repositionRow(e,pos)
              if e.et.name in panel.columnTypes:
                panel.repositionColumn(e,pos)
-             else:               
+             else:
                panel.grid.reposition(e, panel)
           self.touching = set()
           panel.layout()
@@ -729,6 +729,8 @@ class GridEntityLayout:
           # Create the new containment arrows
           for i in instance.childOf:  
             i.createContainmentArrowTo(instance)
+          return True
+    return False
 
   def getCell(self, pos):
     for row in self.grid:
@@ -1253,7 +1255,27 @@ class Panel(scrolled.ScrolledPanel):
           else:
             if added:
               values.data[tagName] = thisSg            
-          break    
+          break
+ 
+    def setSUAssignment(self, inst):
+      su = None
+      for ca in inst.containmentArrows:        
+        if ca.contained.et.name == "ServiceUnit":
+          su = ca.contained
+          break
+      if not su:
+        print 'setSUAssignment: SU is not found. Nothing to do'
+        return
+      y = ROW_MARGIN+1
+      for e1 in self.rows:        
+        x = COL_MARGIN+1
+        for e2 in self.columns:
+          su.pos = (x,y)
+          ok = self.grid.reposition(su, self)
+          if ok:
+            return
+          x+=COL_SPACING+COL_WIDTH
+        y+=ROW_SPACING+ROW_WIDTH    
 
     def CreateNewInstance(self,entity,position,size=None, name=None):
       """Create a new instance of this entity type at this position"""
@@ -1285,6 +1307,10 @@ class Panel(scrolled.ScrolledPanel):
 
       self.UpdateVirtualSize()
       self.layout()
+      if entity.et.name == "ServiceGroup":
+        self.setSUAssignment(inst)
+        self.layout()
+        self.Refresh()
       return True
  
 
