@@ -1529,7 +1529,7 @@ static ClBoolT clCkptHandleTypicalErrors(ClRcT rc, ClCkptHdlT ckptHdl,ClIocNodeA
          (CL_IOC_ERR_HOST_UNREACHABLE == CL_GET_ERROR_CODE(rc)) || 
          (rc == CL_CKPT_ERR_NOT_EXIST && nodeAddr && *nodeAddr == CL_CKPT_UNINIT_VALUE)
          ||
-         rc == CL_ERR_NOT_EXIST)
+         (CL_GET_ERROR_CODE(rc) == CL_ERR_NOT_EXIST))
     {
         /* 
          * Maybe the active address has changed and this client 
@@ -1761,6 +1761,14 @@ ClRcT clCkptSectionCreate(
             }
         }while(CL_GET_ERROR_CODE(rc) == CL_ERR_TIMEOUT && (numRetries++ < 2));                         
         tryAgain = clCkptHandleTypicalErrors(rc, ckptHdl,&nodeAddr);
+
+        /* 
+         * Maybe the active address has changed and this client hasn't received the update yet.
+         */
+        if ((rc != CL_OK) && (nodeAddr == CL_CKPT_UNINIT_VALUE))
+        {
+            rc = CL_ERR_TRY_AGAIN;
+        }
 
     }while((tryAgain == CL_TRUE) && (maxRetry++ < 2));
 

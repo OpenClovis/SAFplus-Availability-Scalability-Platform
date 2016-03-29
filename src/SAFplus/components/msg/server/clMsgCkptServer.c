@@ -366,6 +366,11 @@ ClRcT clMsgQCkptDataUpdate(ClMsgSyncActionT syncupType, ClMsgQueueCkptDataT *pQu
             else
                 rc = clCacheEntryDelete(&gMsgQCkptServer, &ckptData.sectionName);
 
+            if (CL_GET_ERROR_CODE(rc) == CL_ERR_NOT_EXIST)
+            {
+              rc = CL_OK; //It is OK if ckpt has been deleted in node failover
+            }
+
             clMsgQueueGroupsRemove((ClNameT *)&ckptData.sectionName);
             break;
         case CL_MSG_DATA_UPD:
