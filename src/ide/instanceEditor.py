@@ -1101,6 +1101,32 @@ class Panel(scrolled.ScrolledPanel):
             menu.Bind(wx.EVT_MENU, self.OnToolMenu, id=buttonIdx)
         self.toolBar.Realize()
 
+    def modifyEntityTool(self, ent, newValue):      
+      name = ent.et.name
+      entExists = False
+      for (eid,e) in self.idLookup.items():
+        if isinstance(e, EntityTool) and e.entity.et.name==name:
+          print 'modifyEntityTool: Entity [%s] exists' % name
+          entExists = True          
+          break
+      if entExists:
+        print 'modifyEntityTool: Entity [%s] exists --> modify it from toolbar to the new name [%s]' % (name, newValue)
+        toolItem = self.toolBar.FindById(eid)
+        if toolItem:
+          toolItem.SetLabel(newValue)
+        else:
+          print 'modifyEntityTool: tool item with id [%d] does not exist' % eid
+        # modify the corresponding menu item from the instantiation menu too
+        menu = self.guiPlaces.menu.get("Instantiation",None)
+        if menu:
+          menuItem = menu.FindItemById(eid)
+          if menuItem:
+            menuItem.SetText(newValue)
+          else:
+            print 'modifyEntityTool: menu item with id [%d] does not exist' % eid
+      else:
+        print 'modifyEntityTool: tool name [%s] does not exist' % name
+
     def deleteEntityTool(self, ents):      
       for ent in ents:
         name = ent.et.name
@@ -1559,7 +1585,7 @@ class Panel(scrolled.ScrolledPanel):
           return e
       return None
 
-    def notifyValueChange(self, ent, key, newValue):
+    def notifyValueChange(self, ent, key, newValue):      
       for (name, e) in self.model.instances.items():
         if e == ent:
           iterKeys = iter(key.split("_"))

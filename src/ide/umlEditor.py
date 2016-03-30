@@ -1065,6 +1065,8 @@ class Panel(scrolled.ScrolledPanel):
       return ret
 
     def notifyValueChange(self, ent, key, newValue):
+      if share.instancePanel:
+        share.instancePanel.modifyEntityTool(ent, newValue)
       for (name, e) in self.entities.items():
         if e == ent:
           iterKeys = iter(key.split("_"))
