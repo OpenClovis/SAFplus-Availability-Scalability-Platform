@@ -450,7 +450,7 @@ void loadAmfPluginsAt(const char* soPath, AmfOperations& amfOps,Fault& fault)
               if (result)
                 {
                 redPolicies[pp->policyId] = plug;
-                logInfo("POL","LOAD","AMF Policy [%d] plugin [%s] load succeeded.", pp->policyId, p.c_str());
+                logInfo("POL","LOAD","AMF Policy [%d] plugin [%s] load succeeded.", ((int)pp->policyId), p.c_str());
                 }
               else
                 {
@@ -673,14 +673,9 @@ int main(int argc, char* argv[])
   Mutex m;
   bool firstTime=true;
   logEchoToFd = 1;  // echo logs to stdout for debugging
-  logSeverity = LOG_SEV_DEBUG;
   logCompName = "AMF";
 
   if (parseArgs(argc,argv)<=0) return -1;
-
-  // GAS DEBUG: Normally we would get these from the environment
-  if (SAFplus::ASP_NODENAME[0] == 0) strcpy(SAFplus::ASP_NODENAME,"sc0");  // TEMPORARY initialization
-  assert(SAFplus::ASP_NODENAME);
 
   SafplusInitializationConfiguration sic;
   sic.iocPort     = SAFplusI::AMF_IOC_PORT;
@@ -688,6 +683,11 @@ int main(int argc, char* argv[])
   sic.msgThreads  = MAX_HANDLER_THREADS;
   safplusInitialize( SAFplus::LibDep::FAULT | SAFplus::LibDep::GRP | SAFplus::LibDep::CKPT | SAFplus::LibDep::LOG, sic);
   //timerInitialize(NULL);
+  //logSeverity = LOG_SEV_DEBUG;
+
+  // GAS DEBUG: Normally we would get these from the environment
+  // if (SAFplus::ASP_NODENAME[0] == 0) strcpy(SAFplus::ASP_NODENAME,"sc0");  // TEMPORARY initialization
+  assert(SAFplus::ASP_NODENAME);
 
   // Should be loaded from the environment during safplusInitialize.  But if it does not exist in the environment, override to true for the AMF rather then false which is default for non-existent variables.
   char* val = getenv("SAFPLUS_SYSTEM_CONTROLLER");
@@ -1017,6 +1017,11 @@ void initializeOperationalValues(SAFplusAmf::SAFplusAmfModule& cfg)
       comp->haState = HighAvailabilityState::idle;
 
       comp->numInstantiationAttempts = 0;
+      comp->lastInstantiation.value.value = 0;
+      comp->processId = 0;
+      comp->pendingOperation =  PendingOperation::none;
+      comp->pendingOperationExpiration.value.value = 0;
+      comp->restartCount = 0;
     }
 
   MgtObject::Iterator itnode;

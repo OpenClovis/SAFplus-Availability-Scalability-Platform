@@ -186,6 +186,17 @@ void NameRegistrar::set(const std::string& name, const void* data, int length) t
    }
 }
 
+void NameRegistrar::remove(const char* name) throw (NameException&)
+{
+   m_checkpoint.remove(name);
+}
+
+void NameRegistrar::remove(const std::string& name) throw (NameException&)
+{
+  m_checkpoint.remove(name);
+}
+
+
 void NameRegistrar::set(const char* name, Buffer* p_buf) throw (NameException&)
 {
    m_checkpoint.write(name,*p_buf);

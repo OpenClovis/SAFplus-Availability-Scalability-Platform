@@ -8,12 +8,20 @@ sysctl -w net.core.rmem_default=20485760
 sysctl -w net.core.wmem_default=20485760
 
 # excessive logging can cause expect's input buffer to fill up, hanging the app on stdout
-export CL_LOG_SEVERITY=ERROR
+export CL_LOG_SEVERITY=DEBUG
 export CL_LOG_CODE_LOCATION_ENABLE=1
+export ASP_NODENAME=node0
 
 # To use UDP broadcasts on the loopback interface I need to enable a broadcast address
-export SAFPLUS_BACKPLANE_INTERFACE=eth0
-export SAFPLUS_MSG_TRANSPORT=clMsgSctp.so
+IFS=$(ifconfig -a | sed 's/[ \t].*//;/^\(lo\|\)$/d')
+echo "interfaces $IFS"
+export SAFPLUS_BACKPLANE_INTERFACE=$(echo "$IFS" | awk '{print $1}')
+echo "backplane: $SAFPLUS_BACKPLANE_INTERFACE"
+echo "ifconfig $SAFPLUS_BACKPLANE_INTERFACE | awk '/inet addr/{print substr($2,6)}'"
+IP=$(ifconfig  "$SAFPLUS_BACKPLANE_INTERFACE" | awk '/inet addr/{print substr($2,6)}')
+echo "IP: $IP"
+
+export SAFPLUS_MSG_TRANSPORT=clMsgUdp.so
 
 # copy app binaries to the names configured in the configuration xml file
 /bin/cp test/exampleSafApp test/test0
@@ -21,7 +29,8 @@ export SAFPLUS_MSG_TRANSPORT=clMsgSctp.so
 
 # python ./bin/dbalpy.py -x ./test/safplusAmf.xml ./bin/safplusAmf
 
-./bin/safplus_cloud --add `ifconfig $SAFPLUS_BACKPLANE_INTERFACE | awk '/inet addr/{print substr($2,6)}'`
+./bin/safplus_cloud --add "$IP"
+# ./bin/safplus_cloud --add `ifconfig $SAFPLUS_BACKPLANE_INTERFACE | awk '/inet addr/{print substr($2,6)}'`
 ./bin/safplus_cloud --list
 
 echo "AMF test setup complete"

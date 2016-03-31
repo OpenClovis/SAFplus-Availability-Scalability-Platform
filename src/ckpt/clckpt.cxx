@@ -441,6 +441,25 @@ void SAFplus::Checkpoint::remove (const uintcw_t key,Transaction& t)
   remove(*b,t);
 }
 
+
+void SAFplus::Checkpoint::remove (const char* key,Transaction& t)
+{
+    int klen = strlen(key)+1;  // +1 for the null term
+    char kmem[sizeof(Buffer)-1+klen];
+    Buffer* kb = new(kmem) Buffer(klen);
+    memcpy(kb->data,key,klen);
+    remove(*kb,t);
+}
+
+void SAFplus::Checkpoint::remove (const std::string& key,Transaction& t)
+{
+    int klen = key.size()+1;  // +1 for the null term
+    char kmem[sizeof(Buffer)-1+klen];
+    Buffer* kb = new(kmem) Buffer(klen);
+    memcpy(kb->data,key.c_str(),klen);
+    remove(*kb,t);
+}
+
 void SAFplus::Checkpoint::remove(const Buffer& key,Transaction& t)
 {
   gate.lock();

@@ -313,6 +313,8 @@ namespace SAFplus
                 {
                   //assert(to[i].sin_addr.s_addr== 0);
                   in_addr_t* t = (in_addr_t*) it.transportAddress();
+		  if (!t)
+		    throw Error(Error::SAFPLUS_ERROR,Error::DOES_NOT_EXIST,"Destination does not exist",__FILE__,__LINE__);
                   to[i].sin_addr.s_addr = htonl(*t);
                 }
 

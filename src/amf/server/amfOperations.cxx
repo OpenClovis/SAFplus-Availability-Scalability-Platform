@@ -50,14 +50,14 @@ namespace SAFplus
       const std::string& suName = su->name;
       if (su->adminState.value != tgt)
         {
-        logInfo("N+M","AUDIT","Setting service unit [%s] to admin state [%d]",suName.c_str(),tgt);
+        logInfo("N+M","AUDIT","Setting service unit [%s] to admin state [%s]",suName.c_str(),c_str(tgt));
         su->adminState.value = tgt;
         // TODO: transactional and event
         }
       }
       if (sg->adminState.value != tgt)
         {
-        logInfo("N+M","AUDIT","Setting service group [%s] to admin state [%d]",sg->name.value.c_str(),tgt);
+        logInfo("N+M","AUDIT","Setting service group [%s] to admin state [%s]",sg->name.value.c_str(),c_str(tgt));
         sg->adminState.value = tgt;
         }
     }
@@ -234,6 +234,11 @@ namespace SAFplus
             // RPC call is broken, should throw exception
             assert(0);
           }
+        if (resp.command().size() == 0)
+          {
+            // RPC call is not implemented -- probably code regeneration issue
+            assert(0);
+          }
         logInfo("OP","CMP","Request component [%s] state from node [%s] returned [%s]", comp->name.value.c_str(), comp->serviceUnit.value->node.value->name.value.c_str(),resp.running() ? "running" : "stopped");
 
         if (resp.running()) 
@@ -403,7 +408,7 @@ namespace SAFplus
                       comp->pendingOperation = PendingOperation::workRemoval;
 
                       request.set_componentname(comp->name.value.c_str());
-                      request.set_componenthandle((const char*) &hdl, sizeof(Handle)); // [libprotobuf ERROR google/protobuf/wire_format.cc:1053] String field contains invalid UTF-8 data when serializing a protocol buffer. Use the 'bytes' type if you intend to send raw bytes.
+                      request.set_componenthandle(0,(const char*) &hdl, sizeof(Handle)); // [libprotobuf ERROR google/protobuf/wire_format.cc:1053] String field contains invalid UTF-8 data when serializing a protocol buffer. Use the 'bytes' type if you intend to send raw bytes.
                       request.set_operation((uint32_t)SAFplusI::AMF_HA_OPERATION_REMOVE);
                       request.set_target(SA_AMF_CSI_TARGET_ALL);
                       if ((invocation & 0xFFFFFFFF) == 0xFFFFFFFF) invocation &= 0xFFFFFFFF00000000ULL;  // Don't let increasing invocation numbers overwrite the node or port... ofc this'll never happen 4 billion invocations? :-)
@@ -490,7 +495,7 @@ namespace SAFplus
             comp->pendingOperation = PendingOperation::workAssignment;
 
             request.set_componentname(comp->name.value.c_str());
-            request.set_componenthandle((const char*) &hdl, sizeof(Handle)); // [libprotobuf ERROR google/protobuf/wire_format.cc:1053] String field contains invalid UTF-8 data when serializing a protocol buffer. Use the 'bytes' type if you intend to send raw bytes.
+            request.add_componenthandle((const char*) &hdl, sizeof(Handle)); // [libprotobuf ERROR google/protobuf/wire_format.cc:1053] String field contains invalid UTF-8 data when serializing a protocol buffer. Use the 'bytes' type if you intend to send raw bytes.
             request.set_operation((uint32_t)state);
             request.set_target(SA_AMF_CSI_ADD_ONE);
             if ((invocation & 0xFFFFFFFF) == 0xFFFFFFFF) invocation &= 0xFFFFFFFF00000000ULL;  // Don't let increasing invocation numbers overwrite the node or port... ofc this'll never happen 4 billion invocations? :-)
@@ -603,6 +608,18 @@ namespace SAFplus
       comp->operState = false;  // A configuration error isn't going to heal itself -- component needs manual intervention then repair
       if (&w) w.wake(1,(void*)comp);
       return;
+      }
+
+    try  // Is a component by that name already running?
+      {
+      Handle nodeHdl = name.getHandle(comp->name);
+      // For now, if it is assume that its old data in the name service
+      // In the future, wew will check the process's existence and attempt to connect to it.
+      name.remove(comp->name);      
+      }
+    catch (SAFplus::NameException& n)
+      {
+	// This is the expected condition -- comp is not registered
       }
 
     Handle nodeHdl;

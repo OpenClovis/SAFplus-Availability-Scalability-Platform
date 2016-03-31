@@ -273,6 +273,16 @@ namespace SAFplus
    <arg name="t" default="NO_TXN">[OPTIONAL, NOT IMPLEMENTED] Write this record as part of a transaction commit, rather than immediately</arg>
    */ 
     void remove(const uintcw_t key,Transaction& t=SAFplus::NO_TXN);
+ /*? Delete a section from the checkpoint table 
+   <arg name="key">The section to delete</arg>
+   <arg name="t" default="NO_TXN">[OPTIONAL, NOT IMPLEMENTED] Write this record as part of a transaction commit, rather than immediately</arg>
+   */ 
+    void remove(const char* key, Transaction& t=SAFplus::NO_TXN);
+ /*? Delete a section from the checkpoint table 
+   <arg name="key">The section to delete</arg>
+   <arg name="t" default="NO_TXN">[OPTIONAL, NOT IMPLEMENTED] Write this record as part of a transaction commit, rather than immediately</arg>
+   */ 
+    void remove(const std::string& key, Transaction& t=SAFplus::NO_TXN);
 #if 0    
     void remove(const SAFplusI::BufferPtr& bufPtr, bool isKey=false, Transaction& t=SAFplus::NO_TXN);
     void remove(Buffer* buf, bool isKey=false, Transaction& t=SAFplus::NO_TXN);

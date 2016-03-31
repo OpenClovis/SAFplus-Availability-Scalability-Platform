@@ -25,6 +25,12 @@ class TestFailed:
 def now():
   return datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%-S")
 
+def procStatus(pid):
+    for line in open("/proc/%d/status" % pid).readlines():
+        if line.startswith("State:"):
+            return line.split(":",1)[1].strip().split(' ')[0]
+    return None
+
 def startupAmf(tgtDir,outfile=None,infile="/dev/null"):
     if type(outfile) is types.StringType:
       outfile = open(outfile,"w+")
@@ -108,13 +114,18 @@ def mgtHammer():
   for i in range(1,10000):
       (active, standby) = amfctrl.activeStandby("si")
 
+class ZombieException(Exception):
+  pass
 
 def main(tgtDir):
-    os.environ["ASP_NODENAME"] = "sc0"
+    os.environ["ASP_NODENAME"] = "node0"
     try:
-      amfpid = subprocess.check_output(["pidof","safplus_amf"])
+      amfpid = int(subprocess.check_output(["pidof","safplus_amf"]))
+      status = procStatus(amfpid)
+      if status == "Z": # zombie
+        raise ZombieException()
       print "AMF is already running as process [%d]" % int(amfpid.strip())
-    except subprocess.CalledProcessError:
+    except (subprocess.CalledProcessError,ZombieException):
       startupAmf(tgtDir,"amfOutput.txt")  
       time.sleep(3) # Give the AMF time to initialize shared memory segments
     connectToAmf()
@@ -160,5 +171,7 @@ if __name__ == '__main__':  # called from the target "test" directory
   main("..")
 
 def Test():  # called from inside the source tree
-  sys.path.append("../../python")  # Point to the python code, in source control
-  main("../../target/i686/3.13.0-37-generic")
+  pdb.set_trace()
+  main("..")
+  #sys.path.append("../../python")  # Point to the python code, in source control
+  #main("../../target/i686/3.13.0-37-generic")

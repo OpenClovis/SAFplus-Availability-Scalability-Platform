@@ -145,6 +145,10 @@ namespace SAFplus
      // Associate name with arbitrary data. A copy of the data is NOT made; this call transfers the reference count (ownership) to the callee.
      void set(const char* name, SAFplus::Buffer*) throw (NameException&);
      void set(const std::string& name, SAFplus::Buffer*) throw (NameException&);
+
+     // Remove
+     void remove(const char* name) throw (NameException&);
+     void remove(const std::string& name) throw (NameException&);
   
      // Get a handle associated with the data
      // The SAFplus APIs use these calls to resolve names to handles or objects.

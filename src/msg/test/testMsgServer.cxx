@@ -277,7 +277,7 @@ int main(int argc, char* argv[])
 
   clTestCase(("MSG-%s-UNT.TC001: simple send/recv test",suiteName),testSendRecv());
 
-  clTestCase(("MSG-%s-UNT.TC002: message lengths",suiteName), testMsgLengths(200*duration));
+  clTestCase(("MSG-%s-UNT.TC002: message lengths",suiteName), testMsgLengths(std::min(200*duration,1000000)));
 
   clTestGroupFinalize();
 }

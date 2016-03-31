@@ -91,7 +91,7 @@ module amfAppRpc
 	}
 	leaf-list componentHandle
 	{
-	  type string
+	  type binary
             { 
 	    length 16;  // 2 64-bit words 
 	    }
