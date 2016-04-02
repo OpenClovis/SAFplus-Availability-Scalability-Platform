@@ -266,7 +266,7 @@ bool testSendRecvMultiple(MsgTransportPlugin_1* xp)
   MsgSocket* b = xp->createSocket(4);
 
   Message* m;
-
+  int drops = 0;
   unsigned long seed = 0;
   int maxMsgSize = xp->config.maxMsgSize;
   if (maxMsgSize > 1000000) maxMsgSize = 1000000;  // experimentally the kernel can't handle more
@@ -278,7 +278,7 @@ bool testSendRecvMultiple(MsgTransportPlugin_1* xp)
 
       // If the test's send amount exceeds the kernel's network buffers then packets are dropped.  These packets disappear in unreliable transports like UDP which breaks this unit test.
       // Experimentally (UDP), it actually needs to be be the network buffer size / 2.  Not sure why that would be...
-      if (atOnce*size > KERNEL_NET_BUF_SIZE/2) { size=maxMsgSize+1; break; }
+      if (atOnce*size > KERNEL_NET_BUF_SIZE/4) { size=maxMsgSize+1; break; }
 
       seed++;
       printf("%d ", size);
@@ -316,15 +316,23 @@ bool testSendRecvMultiple(MsgTransportPlugin_1* xp)
         m = b->receive(1,0);  // Even though a sent multiples, I may not receive them as multiples
         if (!m)
         {
-          boost::this_thread::sleep(boost::posix_time::milliseconds(250));
+          boost::this_thread::sleep(boost::posix_time::milliseconds(50));
           m = b->receive(1,0);
         }
-        assert(m);  /* If you get this then messages were dropped in
+	if (!m)
+	  {
+	    drops++;
+	    msgCount++;
+	    printf("drop  ");
+	    continue;
+	  }
+        //assert(m);
+	/* If you get this then messages were dropped in
         the kernel.  Use these commands to increase the kernel network buffers:
-        sysctl -w net.core.wmem_max=10485760
-        sysctl -w net.core.rmem_max=10485760
-        sysctl -w net.core.rmem_default=10485760
-        sysctl -w net.core.wmem_default=10485760
+        sysctl -w net.core.wmem_max=20485760
+        sysctl -w net.core.rmem_max=20485760
+        sysctl -w net.core.rmem_default=20485760
+        sysctl -w net.core.wmem_default=20485760
          */
         curm = m;
         while(curm)
@@ -350,7 +358,11 @@ bool testSendRecvMultiple(MsgTransportPlugin_1* xp)
 
     }
   }
-  printf("\nchunks done\n");
+  printf("\nchunks done: Drops: %d\n", drops);
+  if (xp->config.capabilities & MsgTransportConfig::RELIABLE)
+    {
+      clTest(("no drops in reliable messaging"),drops==0,("messages dropped [%d]",drops));
+    }
   return true;
 }
 
@@ -582,4 +594,5 @@ int main(int argc, char* argv[])
     }
   }
   clTestGroupFinalize();
+  printf("complete\n\n");
 }

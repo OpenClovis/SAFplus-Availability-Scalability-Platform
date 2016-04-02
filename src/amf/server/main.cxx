@@ -683,7 +683,7 @@ int main(int argc, char* argv[])
   sic.msgThreads  = MAX_HANDLER_THREADS;
   safplusInitialize( SAFplus::LibDep::FAULT | SAFplus::LibDep::GRP | SAFplus::LibDep::CKPT | SAFplus::LibDep::LOG, sic);
   //timerInitialize(NULL);
-  //logSeverity = LOG_SEV_DEBUG;
+  logSeverity = LOG_SEV_DEBUG;
 
   // GAS DEBUG: Normally we would get these from the environment
   // if (SAFplus::ASP_NODENAME[0] == 0) strcpy(SAFplus::ASP_NODENAME,"sc0");  // TEMPORARY initialization

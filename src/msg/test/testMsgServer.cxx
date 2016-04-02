@@ -229,7 +229,7 @@ int main(int argc, char* argv[])
 
   logEchoToFd = 1; // stdout
 
-  std::string xport("clMsgUdp.so");
+  std::string xport; // ("clMsgUdp.so");
   boost::program_options::options_description desc("Allowed options");
   desc.add_options()
     ("help", "this help message")
@@ -270,7 +270,11 @@ int main(int argc, char* argv[])
     SAFplus::defaultClusterNodes = new ClusterNodes(false);
     }
 
-  SAFplusI::defaultMsgTransport = xport.c_str();  // only works bc the context of xport is the full main() function
+  if (xport.size())
+    {
+    SAFplusI::defaultMsgTransport = xport.c_str();  // only works bc the context of xport is the full main() function
+    setenv("SAFPLUS_MSG_TRANSPORT",xport.c_str(),1);  // override the env with the command line option
+    }
   //SAFplusI::defaultMsgTransport = "clMsgSctp.so";
 
   clMsgInitialize();

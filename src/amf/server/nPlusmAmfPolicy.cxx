@@ -383,8 +383,12 @@ namespace SAFplus
           SAFplus::MgtProvList<SAFplusAmf::Component*>::ContainerType::iterator   endcomp = su->components.value.end();
           for (itcomp = su->components.value.begin(); itcomp != endcomp; itcomp++)
             {
+	    uint64_t curTime = std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::system_clock::now().time_since_epoch()).count();
             Component* comp = dynamic_cast<Component*>(*itcomp);
             SAFplusAmf::AdministrativeState eas = effectiveAdminState(comp);
+	    logInfo("N+M","AUDIT","Auditing component [%s] on [%s.%s]: Operational State [%s] ReadinessState [%s] HA State [%s] HA Readiness [%s] Pending Operation [%s] (expires in: [%d]) ",comp->name.value.c_str(),node->name.value.c_str(),suName.c_str(),
+		    oper_str(comp->operState.value), c_str(comp->readinessState.value),
+		    c_str(comp->haState.value), c_str(comp->haReadinessState.value), c_str(comp->pendingOperation.value), (int) (comp->pendingOperationExpiration.value.value - curTime));
             if (comp->operState == true) // false means that the component needs repair before we will deal with it.
               {
               if (running(comp->presenceState.value))
@@ -647,7 +651,7 @@ namespace SAFplus
 
   void updateStateDueToProcessDeath(SAFplusAmf::Component* comp)
     {
-
+    assert(comp);
       // Reset component's basic state to dead
     comp->presenceState = PresenceState::uninstantiated;
     comp->activeAssignments = 0;
@@ -656,7 +660,8 @@ namespace SAFplus
     comp->readinessState = ReadinessState::outOfService;
     // right now, only the customer changes this; with presence uninstantiated, this comp obviously can't take an assignment: comp->haReadinessState = HighAvailabilityReadinessState::notReadyForAssignment;
     comp->haState = HighAvailabilityState::idle;
-
+    comp->pendingOperation = PendingOperation::none;
+    comp->pendingOperationExpiration.value.value = 0;
     comp->processId = 0;
     SAFplus::name.set(comp->name,INVALID_HDL,NameRegistrar::MODE_NO_CHANGE);  // remove the handle in the name service because the component is dead
     
@@ -910,7 +915,7 @@ namespace SAFplus
           if (ha != su->haState.value)
             {
             // high availability state changed.
-            logInfo("N+M","AUDIT","High Availability state of Service Unit [%s] changed from [%s (%d)] to [%s (%d)]", su->name.value.c_str(),c_str(su->haState.value),su->haState.value, c_str(ha), ha);
+	      logInfo("N+M","AUDIT","High Availability state of Service Unit [%s] changed from [%s (%d)] to [%s (%d)]", su->name.value.c_str(),c_str(su->haState.value),(int) su->haState.value, c_str(ha), (int) ha);
             su->haState = ha;
             amfOps->reportChange();
 
@@ -952,7 +957,7 @@ namespace SAFplus
           if (ps != su->presenceState.value)
             {
             // Presence state changed.
-            logInfo("N+M","AUDIT","Presence state of Service Unit [%s] changed from [%s (%d)] to [%s (%d)]", su->name.value.c_str(),c_str(su->presenceState.value),su->presenceState.value, c_str(ps), ps);
+	      logInfo("N+M","AUDIT","Presence state of Service Unit [%s] changed from [%s (%d)] to [%s (%d)]", su->name.value.c_str(),c_str(su->presenceState.value),(int) su->presenceState.value, c_str(ps), (int) ps);
             su->presenceState.value = ps;
             amfOps->reportChange();
 
@@ -966,7 +971,7 @@ namespace SAFplus
           else hrs = HighAvailabilityReadinessState::notReadyForAssignment;
           if (hrs != su->haReadinessState)
             {
-            logInfo("N+M","AUDIT","High availability readiness state of Service Unit [%s] changed from [%s (%d)] to [%s (%d)]", su->name.value.c_str(),c_str(su->haReadinessState.value),su->haReadinessState.value, c_str(hrs), hrs);
+	      logInfo("N+M","AUDIT","High availability readiness state of Service Unit [%s] changed from [%s (%d)] to [%s (%d)]", su->name.value.c_str(),c_str(su->haReadinessState.value),(int) su->haReadinessState.value, c_str(hrs), (int) hrs);
             su->haReadinessState.value = hrs;
 
             if (hrs == HighAvailabilityReadinessState::notReadyForAssignment)
@@ -997,7 +1002,7 @@ namespace SAFplus
 
             if (as != si->assignmentState)
               {
-              logInfo("N+M","AUDIT","Assignment state of service instance [%s] changed from [%s (%d)] to [%s (%d)]", si->name.value.c_str(),c_str(si->assignmentState.value),si->assignmentState.value, c_str(as), as);
+	      logInfo("N+M","AUDIT","Assignment state of service instance [%s] changed from [%s (%d)] to [%s (%d)]", si->name.value.c_str(),c_str(si->assignmentState.value),(int) si->assignmentState.value, c_str(as), (int) as);
               si->assignmentState = as;
               amfOps->reportChange();
               }

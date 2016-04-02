@@ -11,20 +11,27 @@
 #include "clPluginHelper.hxx"
 #include <boost/unordered_map.hpp>
 #include <boost/thread.hpp>
+#define MAX_SOCKET 1024
 
 struct SndRecvSock
 {
   int sndSock;
   int recvSock;
-  SndRecvSock(int sndsock, int recvsock):sndSock(sndsock), recvSock(recvsock){}
+  uint32_t header[2];
+  SAFplus::Message* msg;
+  int msgLen;
+  int curLen;
+  SndRecvSock(int sndsock, int recvsock):sndSock(sndsock), recvSock(recvsock),msg(NULL), msgLen(0), curLen(0) {}
 };
 
-typedef std::pair<uint_t, SndRecvSock> SockMapPair; 
-typedef boost::unordered_map<uint_t, SndRecvSock> NodeIDSocketMap;
+typedef std::pair<SAFplus::Handle, SndRecvSock> SockMapPair; 
+typedef boost::unordered_map<SAFplus::Handle, SndRecvSock> HandleSocketMap;
 
 
 namespace SAFplus
-{ 
+{
+  static const int INVALID_SOCK = 0;  // TODO change to -1
+  
   class Tcp: public MsgTransportPlugin_1
     {
   public:
@@ -55,11 +62,12 @@ namespace SAFplus
     //bool recvBlocked;
     int sock;
     bool nagleEnabled; 
-    NodeIDSocketMap clientSockMap; //TODO in case node failure: if a node got failure, this must be notified so that
+    HandleSocketMap clientSockMap; //TODO in case node failure: if a node got failure, this must be notified so that
     // the item associated with it in the map must be deleted too, if not, the associated socket may be invalid because of its server failure
 
     bool dataAvailOnSndSock;
     int getClientSocket(uint_t nodeID, uint_t port);
+    void closeClientSocket(int clientSock, uint_t nodeId, uint_t port);  // closes an errored socket and cleans up the data structure
     int openClientSocket(uint_t nodeID, uint_t port);    
     static void* acceptClients(void* arg);
     void addToMap(const sockaddr_in& client, int socket);
@@ -71,12 +79,38 @@ namespace SAFplus
     int getMsgLen(struct msghdr* msg);
     virtual void switchNagle();
 
+    void invalidate(int sock, SndRecvSock* sockData);
+
+    void sendAllOrThrow(int sd, void* buffer, int size,int flags);
     int receiveAllOrThrow(int sock, void* buf, unsigned int amt, int flags);
+    int receiveOrThrow(int sock, void* buf, unsigned int amt, int flags);
     void sendMsgs(int sd, struct msghdr* msgvec, int msgCount);
     int getAvailSocket(const SndRecvSock& srsock, bool sndSock);
+    Handle sockaddr2Handle(const sockaddr_in& client);
   };
   static Tcp api;
 
+  Handle TcpSocket::sockaddr2Handle(const sockaddr_in& client)
+  {
+    uint_t nodeId;
+    uint_t port;
+    assert(client.sin_family == AF_INET);  // otherwise sockaddr_in is not initialized/corrupt
+    if (transport->clusterNodes)
+    {
+      int temp = ntohl(client.sin_addr.s_addr);
+      nodeId = transport->clusterNodes->idOf((void*) &temp,sizeof(uint32_t));
+    }
+    else
+    {
+      nodeId = ntohl(client.sin_addr.s_addr) & (((Tcp*)transport)->nodeMask);
+    }
+    
+    port = ntohl(client.sin_port);
+    port -= SAFplusI::TcpTransportStartPort;
+    
+    return Handle(SAFplus::TransientHandle,0,port,nodeId);
+  }
+  
   Tcp::Tcp()
   {
     msgPool = NULL;
@@ -204,39 +238,28 @@ namespace SAFplus
     logTrace("TCP", "ACPT", "QUIT the connection accept loop");
     return NULL;
   }
-
+  
   void TcpSocket::addToMap(const sockaddr_in& client, int socket)
   {
-    logTrace("TCP", "ADD", "Add socket to map");
-    uint_t nodeId;
-    if (transport->clusterNodes)
-    {
-      int temp = ntohl(client.sin_addr.s_addr);
-      nodeId = transport->clusterNodes->idOf((void*) &temp,sizeof(uint32_t));
-    }
-    else
-    {
-      nodeId = ntohl(client.sin_addr.s_addr) & (((Tcp*)transport)->nodeMask);
-    }
+    Handle hdl = sockaddr2Handle(client);
+    
     mutex.lock();
-    logTrace("TCP", "ADD", "Mutex locked; nodeId [%d]; map size [%u]", nodeId, (unsigned int) clientSockMap.size());
-    NodeIDSocketMap::iterator contents = clientSockMap.find(nodeId);
+    //logTrace("TCP", "ADD", "Add handle [%" PRIx64 ",%" PRIx64 "] -> Socket [%d]; map size [%u]", hdl.id[0],hdl.id[1], (unsigned int) clientSockMap.size());
+    HandleSocketMap::iterator contents = clientSockMap.find(hdl);
     if (contents != clientSockMap.end()) // Socket connected to this nodeId has been established
     {
       SndRecvSock& srsock = contents->second;
       if (srsock.recvSock == 0) // there is no receive socket added to the map
       {
-        logTrace("TCP", "ADD", "Add client socket [%d]; nodeId [%d] to map", socket, nodeId); 
         srsock.recvSock = socket;
       }
       mutex.unlock();
       return;
     }
     // else add this client socket to the map with the specified nodeId   
-    logTrace("TCP", "ADD", "Add client socket [%d]; nodeId [%d] to map ", socket, nodeId);
     assert(socket>0);
     SndRecvSock srsock(0, socket); 
-    SockMapPair smp(nodeId, srsock);
+    SockMapPair smp(hdl, srsock);
     clientSockMap.insert(smp);    
     mutex.unlock();
   }
@@ -249,13 +272,18 @@ namespace SAFplus
     addr.sin_family = AF_INET;
     if (transport->clusterNodes)
     {
-      addr.sin_addr.s_addr = htonl(*((uint32_t*)transport->clusterNodes->transportAddress(nodeID)));
+      uint32_t* addrptr =  (uint32_t*) transport->clusterNodes->transportAddress(nodeID);
+      if (addrptr)
+	{
+        addr.sin_addr.s_addr = htonl(*addrptr);
+	}
+      else throw Error(Error::SAFPLUS_ERROR,Error::DOES_NOT_EXIST, "Node not registered in the cluster list",__FILE__,__LINE__);
     }
     else
     {      
       addr.sin_addr.s_addr = htonl(((Tcp*)transport)->netAddr | nodeID);
     }
-    addr.sin_port = htons(port);
+    addr.sin_port = htons(port + SAFplusI::TcpTransportStartPort);
 
     if((ret = (sd = socket(AF_INET, SOCK_STREAM, 0))) < 0)    
     {
@@ -286,64 +314,178 @@ namespace SAFplus
     return sd;
   }
 
-  int TcpSocket::getClientSocket(uint_t nodeID, uint_t port)
+  void TcpSocket::closeClientSocket(int clientSock, uint_t nodeId, uint_t port)
   {
-    ScopedLock<> sl(mutex);
-    //logTrace("TCP", "ADD", "Mutex locked. nodeId [%d]", nodeID); 
-    int sd = 0;
-    NodeIDSocketMap::iterator contents = clientSockMap.find(nodeID);
+    // ScopedLock<> sl(mutex);  mutex must already be taken
+    
+    assert(clientSock != INVALID_SOCK);
+    Handle hdl(SAFplus::TransientHandle,0,port,nodeId);
+    HandleSocketMap::iterator contents = clientSockMap.find(hdl);
     if (contents != clientSockMap.end()) // Socket connected to this NodeID has been opened
     {
       SndRecvSock& srsock = contents->second;
-      if (srsock.sndSock == 0 && node == nodeID) // there is no send socket added to the map and this is same nodeID
+      
+      if (srsock.sndSock == clientSock)
       {
-        if (srsock.recvSock) sd = srsock.recvSock;
-        else {
-          int newSock = openClientSocket(nodeID, port);
-          logTrace("TCP", "ADD", "Add client socket [%d]; nodeId [%d] to map", newSock, nodeID);
-          srsock.sndSock = newSock;
-          sd = newSock;
-        }
+        srsock.sndSock = INVALID_SOCK;
       }
-      else if (srsock.sndSock)
+      if (srsock.recvSock == clientSock)
+      {
+        srsock.recvSock = INVALID_SOCK;
+      }      
+    }
+    close(clientSock);
+  }
+  
+  int TcpSocket::getClientSocket(uint_t nodeId, uint_t port)
+  {
+    ScopedLock<> sl(mutex);
+    //logTrace("TCP", "ADD", "Mutex locked. nodeId [%d]", nodeID); 
+    int sd = INVALID_SOCK;
+    Handle hdl(SAFplus::TransientHandle,0,port,nodeId);
+    HandleSocketMap::iterator contents = clientSockMap.find(hdl);
+    if (contents != clientSockMap.end()) // Socket connected to this NodeID has been opened
+    {
+      SndRecvSock& srsock = contents->second;
+
+      if (srsock.sndSock != INVALID_SOCK)
       {
         sd = srsock.sndSock;
       }
-      else
+      if (srsock.recvSock != INVALID_SOCK)
       {
         sd = srsock.recvSock;
-      }   
+      }
+    }
 
+    if (sd != INVALID_SOCK)
       return sd;
-    }
-    if (node == nodeID) // there is no send socket added to the map and this is same nodeID
-    {
-      int newSock = openClientSocket(nodeID, port);
-      logTrace("TCP", "ADD", "Add client socket [%d]; nodeId[%d] to map", newSock, nodeID); 
-      SndRecvSock srsock(newSock, 0); 
-      SockMapPair smp(nodeID, srsock);
-      assert(newSock>0);
-      clientSockMap.insert(smp);
-      return newSock;
-    }
-    contents = clientSockMap.find(nodeID); // there may client socket has been accepted before
+   
+    sd = openClientSocket(nodeId, port);
+    assert(sd != INVALID_SOCK);
+    logTrace("TCP", "ADD", "Add client socket [%d]; endpoint [%d.%d] to map", sd, nodeId,port);
     if (contents != clientSockMap.end())
     {
-      sd = contents->second.recvSock;
-      logTrace("TCP", "ADD", "Different nodeID, got the accepted socket [%d]", sd);       
+      SndRecvSock& srsock = contents->second;
+      srsock.sndSock = sd;
     }
     else
-    {
-      sd = openClientSocket(nodeID, port);
-      logTrace("TCP", "ADD", "Different nodeID, add client socket [%d]; nodeId[%d] to map", sd, nodeID); 
-      assert(sd>0);
-      SndRecvSock srsock(sd, 0); 
-      SockMapPair smp(nodeID, srsock);
+      {
+      SndRecvSock srsock(sd, INVALID_SOCK); 
+      SockMapPair smp(hdl, srsock);
       clientSockMap.insert(smp);
-    }   
+      }
     return sd;
   }
 
+  void TcpSocket::send(Message* origMsg)
+  {
+    Message* msg;
+    Message* next = origMsg;
+    MsgFragment* nextFrag;
+    MsgFragment* frag;
+    int msgCount = 0;
+    do 
+    { 
+      msg = next;
+      next = msg->nextMsg;  // Save the next message so we use it next
+
+      int totalLenPerMsg=0;
+      frag = msg->firstFragment;      
+      while (frag)
+      {
+        totalLenPerMsg += frag->len;
+        frag = frag->nextFragment;
+      }    
+
+      uint32_t hdr[2];
+      hdr[0] = ((node<<16)|(port&(1<<16)-1));
+      hdr[1] = totalLenPerMsg;
+
+    if (msg->node == Handle::AllNodes) // Send the message to all nodes
+      {  
+      assert(transport->clusterNodes);  // TCP must use cloud mode        
+      for (ClusterNodes::Iterator it=transport->clusterNodes->begin();it != transport->clusterNodes->endSentinel;it++)
+        {
+          int clientSock = getClientSocket(it.nodeId(), msg->port);
+	  try
+	    {
+	      if (clientSock)
+		{
+		  sendAllOrThrow(clientSock,&hdr, sizeof(uint32_t)*2,0);
+		  frag = msg->firstFragment;      
+		  while (frag)
+		    {
+		      sendAllOrThrow(clientSock,frag->data(0), frag->len,0);
+		      frag = frag->nextFragment;
+		    }           
+		}
+	    }
+	  catch (SAFplus::Error& e)
+	    {
+	      if (e.osError == EPIPE)
+		{
+		  closeClientSocket(clientSock, it.nodeId(), msg->port);
+		}
+	    }
+        }
+      }
+    else
+      {
+	int clientSock = getClientSocket(msg->node, msg->port);
+	assert(clientSock != INVALID_SOCK);
+	try
+	  {
+	    if (clientSock)
+	      {
+	
+		sendAllOrThrow(clientSock,&hdr, sizeof(uint32_t)*2,0);
+		frag = msg->firstFragment;      
+		while (frag)
+		  {
+		    sendAllOrThrow(clientSock,frag->data(0), frag->len,0);
+		    frag = frag->nextFragment;
+		  }    
+	      }
+	  }
+	catch (SAFplus::Error& e)
+	  {
+	    if (e.osError == EPIPE)
+	      {
+		closeClientSocket(clientSock, msg->node, msg->port);
+	      }
+	  }      
+      msgCount++;
+      }
+    } while (next != NULL);
+
+    MsgPool* temp = origMsg->msgPool;
+    temp->free(origMsg);    
+  }
+
+  void TcpSocket::sendAllOrThrow(int sd, void* buffer, int size, int flags)
+  {
+    int sent = 0;
+      do 
+      {                
+        int retval = ::send(sd, buffer, size - sent,flags | MSG_NOSIGNAL);  
+        if (retval == -1)
+        {        
+          if (errno != EAGAIN)
+            throw Error(Error::SYSTEM_ERROR,errno, strerror(errno),__FILE__,__LINE__);
+	  usleep(10000);
+        }
+        else 
+        {
+          sent+=retval;
+	  buffer = ((unsigned char*) buffer) + retval;
+        }        
+        //logDebug("TCP", "SEND", "msgLen [%u]; retval [%d]; bytes [%d]; iov_len [%d]", msgLen, retval, bytes, (int)(msgvec+i)->msg_iov->iov_len);
+      } while (sent < size);
+  }
+  
+#if 0
+  
   void TcpSocket::send(Message* origMsg)
   {
 /*
@@ -415,22 +557,16 @@ namespace SAFplus
       msgCount++;       
     } while (next != NULL);   
    
-    uint_t pt = msg->port + SAFplusI::TcpTransportStartPort;
+    uint_t pt = msg->port;
     int clientSock;
     if (msg->node == Handle::AllNodes) // Send the message to all nodes
     {
-      if (transport->clusterNodes)
-      {        
-        for (ClusterNodes::Iterator it=transport->clusterNodes->begin();it != transport->clusterNodes->endSentinel;it++)
+      assert(transport->clusterNodes);  // TCP must use cloud mode        
+      for (ClusterNodes::Iterator it=transport->clusterNodes->begin();it != transport->clusterNodes->endSentinel;it++)
         {
           clientSock = getClientSocket(it.nodeId(), pt);
           sendMsgs(clientSock, msgvec, msgCount);
         }
-      }
-      else
-      {
-        logWarning("TCP", "SEND", "Broadcast the message to all nodes but the clusterNodes is NULL");
-      }
     }        
     else
     {
@@ -441,7 +577,8 @@ namespace SAFplus
     MsgPool* temp = origMsg->msgPool;
     temp->free(origMsg);
   }
-
+#endif
+      
   void TcpSocket::sendMsgs(int sd, struct msghdr* msgvec, int msgCount)
   {
     int retval = -1;
@@ -522,6 +659,23 @@ namespace SAFplus
     return msgLen;
   }
 
+  int TcpSocket::receiveOrThrow(int sock, void* buf, unsigned int amt, int flags)
+  {
+    int retval = recv(sock, ((unsigned char*)buf), amt, flags | MSG_DONTWAIT);  
+    if (retval == -1)
+      {
+	int err = errno;
+	assert(!(err == EFAULT) || (err == EINVAL) || (err ==  ENOTCONN) || (err == ENOTSOCK));  // These programmatic errors should cause a core dump and fail over
+	if ((err != EINTR)&&(err != EAGAIN))  // EWOULDBLOCK?
+	  {
+	    throw Error(Error::SYSTEM_ERROR,errno, strerror(errno),__FILE__,__LINE__);
+	  }
+        return 0;
+      }
+    return retval;
+  }
+  
+  
   int TcpSocket::receiveAllOrThrow(int sock, void* buf, unsigned int amt, int flags)
   {
     unsigned int bytesReceived = 0;
@@ -543,6 +697,15 @@ namespace SAFplus
           }
       } while (bytesReceived < amt);
     return bytesReceived;
+  }
+
+  void TcpSocket::invalidate(int sock, SndRecvSock* sockData)
+  {
+    close(sock);
+    if (sockData->sndSock == sock) sockData->sndSock = INVALID_SOCK;
+    if (sockData->recvSock == sock) sockData->recvSock = INVALID_SOCK;
+    if (sockData->msg) { msgPool->free(sockData->msg); sockData->msg = NULL; }
+    
   }
   
   Message* TcpSocket::receive(uint_t maxMsgs, int maxDelay)
@@ -575,31 +738,51 @@ namespace SAFplus
       unsigned char srcPort;
       int bytes; 
       unsigned int header;
-      //fd_set rfds;
       
-      fd_set rfds;
-      FD_ZERO(&rfds);
+      fd_set rdfds;
+      FD_ZERO(&rdfds);
       int max=0;
-
-      if (1)  // TODO maintain the fd_set when fds are added or removed so that we don't have to calculate it every time.
+      SAFplus::Handle reverseMap[MAX_SOCKET];
+      int count = 0;
+      do  // TODO maintain the fd_set when fds are added or removed so that we don't have to calculate it every time.
 	{
-	  ScopedLock<> sl(mutex);
+	  if (1)
+	    {
+	      ScopedLock<> sl(mutex);
 
-	  for(NodeIDSocketMap::iterator iter = clientSockMap.begin(); iter != clientSockMap.end(); iter++)
-	    {       
-	      SndRecvSock& srsock = iter->second;
-	      if (srsock.sndSock > max) max = srsock.sndSock;
-	      if (srsock.recvSock > max) max = srsock.recvSock;
+	      for(HandleSocketMap::iterator iter = clientSockMap.begin(); iter != clientSockMap.end(); iter++)
+		{       
+		  SndRecvSock& srsock = iter->second;
+		  if (srsock.sndSock > max) max = srsock.sndSock;
+		  if (srsock.recvSock > max) max = srsock.recvSock;
 
-	      if (srsock.sndSock > 0)
-		FD_SET(srsock.sndSock, &rfds);
-	      if (srsock.recvSock > 0)
-		FD_SET(srsock.recvSock, &rfds);       
+		  if (srsock.sndSock > 0)
+		    {
+		      FD_SET(srsock.sndSock, &rdfds);
+		      assert(srsock.sndSock < MAX_SOCKET);
+		      reverseMap[srsock.sndSock] = iter->first;
+		    }
+		  if (srsock.recvSock > 0)
+		    {
+		      FD_SET(srsock.recvSock, &rdfds);
+		      assert(srsock.recvSock < MAX_SOCKET);
+		      reverseMap[srsock.recvSock] = iter->first;
+		    }
+	      
+		}
 	    }
-	}
+	  if (max == 0)
+	    {
+	      usleep(maxDelay*100);  // sleep for 1/10th of the time then retry to see if any sockets connected
+	      count++;
+	      if (count >= 10) return NULL;
+	    }	  
+	} while(max == 0);
       
      logTrace("TCP", "RECV", "Waiting for messages. timeout [%u]s/[%u]ns", (unsigned int)timeout->tv_sec, (unsigned int)timeout->tv_nsec);
-     retval = pselect(max+1, &rfds, NULL, NULL, timeout, NULL);
+     fd_set excfds;
+     memcpy(&excfds, &rdfds, sizeof(fd_set));
+     retval = pselect(max+1, &rdfds, NULL, &excfds, timeout, NULL);
      if (retval==-1)
        {
 	 int err = errno;
@@ -618,23 +801,79 @@ namespace SAFplus
 
      for(int sock=0;sock<=max;sock++)
        {
-	 if (FD_ISSET(sock, &rfds))
+	 if (FD_ISSET(sock, &excfds))
 	   {
-	     logTrace("TCP", "RECV", "Data found on socket [%d]", sock);        
-	     // Reading the header of the message to know how much msg body length can be read next
-	     uint32_t header[2]; // 8 bytes reserved for reading msg header
-	     int fraglen = receiveAllOrThrow(sock, &header, sizeof(uint32_t)*2, 0);
-	     int msgLen = header[1];
+	     logTrace("TCP", "RECV", "Exception on socket [%d]", sock);
+	     ScopedLock<> sl(mutex);
+	     HandleSocketMap::iterator lookup = clientSockMap.find(reverseMap[sock]);
+	     if (lookup == clientSockMap.end()) continue; // was deleted between the select and now
+	     SndRecvSock* sockData = &lookup->second;
+             if (sockData)
+	       {
+		 if (sockData->sndSock == sock) sockData->sndSock = INVALID_SOCK;
+		 if (sockData->recvSock == sock) sockData->recvSock = INVALID_SOCK;		 
+	       }
+	     close(sock);
+	     sockData->msgLen = 0;
+	     sockData->curLen = 0;
+	     if (sockData->msg)
+	       {
+	       MsgPool* temp = sockData->msg->msgPool;
+               temp->free(sockData->msg);
+	       sockData->msg = NULL;	 
+	       }
+	   }
+
+	 if (FD_ISSET(sock, &rdfds))
+	   {
+	     logTrace("TCP", "RECV", "Data found on socket [%d]", sock);
+	     ScopedLock<> sl(mutex);
+
+	     HandleSocketMap::iterator lookup = clientSockMap.find(reverseMap[sock]);
+	     if (lookup == clientSockMap.end()) continue; // was deleted between the select and now
+	     SndRecvSock* sockData = &lookup->second;
+             if (!sockData) continue;  // was deleted between the select and now
 	     
-	     Message* msg = msgPool->allocMsg();
-             // TODO: port, node, (and endian) could be determined by a single hello message on the connection and stored in a lookup table, not passed every time
-	     msg->port = header[0]&((1<<16)-1);
-	     msg->node = header[0]>>16;
-	     MsgFragment* frag = msg->append(msgLen);
-             int bytesReceived = receiveAllOrThrow(sock, frag->data(0), msgLen, flags);  
-	     logDebug("TCP", "RECV", "msgLen [%u] retval [%d] bytes [%d]", msgLen, retval, bytes);            
+	     if (!sockData->msg) // Reading the header of the message to know how much msg body length can be read next
+	       {
+		 assert(sockData->curLen >= 0);
+		 sockData->curLen += receiveOrThrow(sock, &sockData->header[sockData->curLen], (sizeof(uint32_t)*2) - sockData->curLen, flags);
+		 assert(sockData->curLen <= sizeof(uint32_t)*2);
+		 
+		 if (sockData->curLen == sizeof(uint32_t)*2)  // Ok received all the header data.
+		   {
+	           sockData->msg = msgPool->allocMsg();
+                   // TODO: port, node, (and endian) could be determined by a single hello message on the connection and stored in a lookup table, not passed every time
+	           sockData->msg->port = sockData->header[0]&((1<<16)-1);
+	           sockData->msg->node = sockData->header[0]>>16;
+		   sockData->msgLen = sockData->header[1];
+		   if (sockData->msgLen > cap.maxMsgSize)
+		     {
+		       invalidate(sock, sockData);
+		       logWarning("TCP", "RECV", "Bad message length [%d] on socket [%d]", sockData->msgLen, sock);
+		       // TODO send error to fault mgr
+		       continue;
+		     }
+		   logInfo("TCP", "RECV", "Message length [%d] on socket [%d]", sockData->msgLen, sock);
+		   sockData->msg->append(sockData->msgLen);
+		   assert(sockData->msg->lastFragment->len == 0);
+		   }
+		 else continue;  // Cannot continue receiving on this socket because did not receive the full header
+	       }
+	     
+	     MsgFragment* frag = sockData->msg->lastFragment;
+             int bytesReceived = receiveOrThrow(sock, frag->data(frag->len), sockData->msgLen - frag->len , flags);  // TODO only works with 1 frag
+	     assert((bytesReceived >= 0)&&(bytesReceived <= sockData->msgLen - frag->len));
+	     logDebug("TCP", "RECV", "msgLen [%u] received [%d]", sockData->msgLen, bytesReceived);            
 	     frag->used(bytesReceived);
-	     return msg;
+	     if (frag->len == sockData->msgLen)
+	       {
+		 Message* temp = sockData->msg;
+		 sockData->msg = NULL;
+		 sockData->msgLen = 0;
+		 sockData->curLen = 0;
+    	         return temp;
+	       }
 	   }
        }     
       //logNotice("TCP", "RECV", "No any msg found on all sockets. Returns NULL");
@@ -647,13 +886,13 @@ namespace SAFplus
 #if 0
      if (srsock.recvSock) return srsock.recvSock;
      // Wait until server accepts connections
-     fd_set rfds;
-     FD_ZERO(&rfds);
-     FD_SET(sock, &rfds);
+     fd_set rdfds;
+     FD_ZERO(&rdfds);
+     FD_SET(sock, &rdfds);
      struct timeval acceptTimeout;
      acceptTimeout.tv_sec = 0;
      acceptTimeout.tv_usec = 5000; // 5ms
-     int retval = select(sock+1, &rfds, NULL, NULL, &acceptTimeout);
+     int retval = select(sock+1, &rdfds, NULL, NULL, &acceptTimeout);
      if (retval == -1) 
      {            
        throw Error(Error::SYSTEM_ERROR,errno, strerror(errno),__FILE__,__LINE__);
@@ -674,11 +913,11 @@ namespace SAFplus
    int TcpSocket::checkDataAvail(int sd, const struct timespec* timeout)
    {
      if (sd==0) return 0;
-     fd_set rfds;
-     FD_ZERO(&rfds);
-     FD_SET(sd, &rfds);  
+     fd_set rdfds;
+     FD_ZERO(&rdfds);
+     FD_SET(sd, &rdfds);  
      logTrace("TCP", "RECV", "Waiting in timeout [%u]s/[%u]ns on socket [%d]", (unsigned int)timeout->tv_sec, (unsigned int)timeout->tv_nsec, sd);  
-     int retval = pselect(sd+1, &rfds, NULL, NULL, timeout, NULL); 
+     int retval = pselect(sd+1, &rdfds, NULL, NULL, timeout, NULL); 
      return retval;
    }
 
@@ -708,7 +947,7 @@ namespace SAFplus
      }
      ScopedLock<> sl(mutex);
 
-     for(NodeIDSocketMap::iterator iter = clientSockMap.begin(); iter != clientSockMap.end(); iter++)
+     for(HandleSocketMap::iterator iter = clientSockMap.begin(); iter != clientSockMap.end(); iter++)
      {      
        socket = iter->second.sndSock?iter->second.sndSock:iter->second.recvSock;       
        if((ret = setsockopt(socket, IPPROTO_TCP, TCP_NODELAY, &nodelay, sizeof(nodelay))) != 0)
@@ -727,7 +966,7 @@ namespace SAFplus
      // Close all the sockets: both server socket itself and client sockets in the map     
      pthread_cancel(tid);
      ScopedLock<> sl(mutex);         
-     for(NodeIDSocketMap::iterator iter = clientSockMap.begin(); iter != clientSockMap.end(); iter++)
+     for(HandleSocketMap::iterator iter = clientSockMap.begin(); iter != clientSockMap.end(); iter++)
      {       
        int socket = iter->second.sndSock;
        if (socket)

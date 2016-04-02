@@ -150,12 +150,6 @@ void MsgServer::MakeMePrimary()
   }
 
   
-  void MsgServer::Shutdown()
-  {
-    // TODO close 
-    receiving = false;
-    jq.stop();
-  }
 
   void  MsgServer::SendMsg(Message* msg,uint_t msgtype)
   {
@@ -317,12 +311,19 @@ void MsgServer::MakeMePrimary()
   {
     receiving=false;
     jq.stop();
-    receiverThread.detach();
+    receiverThread.join();
   }
 
   void MsgServer::Quiesce(void)
   {
     receiving=false;
+    jq.stop();
+    receiverThread.join();
+  }
+
+  void MsgServer::Shutdown()
+  {
+    receiving = false;
     jq.stop();
     receiverThread.join();
   }
