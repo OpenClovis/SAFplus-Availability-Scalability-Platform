@@ -27,7 +27,7 @@ Release all: $(LIB_DIR)/$(SAFplusAmf_LIB)
 
 # Shared library providing functions that needs to provide that YANG data
 $(LIB_DIR)/$(SAFplusAmf_LIB): $(SAFplusAmf_OBJ) $(SAFPLUS_DEP_LIBS)
-	$(LINK_SO) $@ $(SAFplusAmf_OBJ) $(SAFPLUS_LINK_LIBS) -L$(INSTALL_DIR)/lib -lxml2 $(LINK_SO_LIBS)
+	$(LINK_SO) $@ $(SAFplusAmf_OBJ) $(SAFPLUS_LINK_LIBS) $(LINK_SO_LIBS) $(XML2_LINK)
 
 $(OBJ_DIR)/SAFplusAmf/%.o: %.cxx $(SAFplusAmf_H)
 	-mkdir -p $(OBJ_DIR)/SAFplusAmf

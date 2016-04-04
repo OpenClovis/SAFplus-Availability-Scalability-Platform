@@ -191,7 +191,7 @@ void MsgServer::MakeMePrimary()
         try
           {
           m = q->sock->receive(1,1000);  // block for one second or until a message is received
-          // logDebug("MSG", "RCV","receiver message");
+          // logDebug("MSG", "RCV","received message");
           }
         catch(Error &e)
           {

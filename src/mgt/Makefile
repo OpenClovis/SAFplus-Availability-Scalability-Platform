@@ -24,7 +24,7 @@ MgtMsg.pb.hxx:
 	ln -s $(PROTOBUFVER)/$@ $@
 
 $(LIB_DIR)/libclMgt.so: $(CLIENT_OBJ) $(SAFPLUS_DEP_LIBS)
-	$(LINK_SO) $@ $(CLIENT_OBJ) $(LINK_SO_LIBS) $(SAFPLUS_LINK_LIBS) $(PROTOBUF_LINK) -lxml2 
+	$(LINK_SO) $@ $(CLIENT_OBJ) $(LINK_SO_LIBS) $(SAFPLUS_LINK_LIBS) $(PROTOBUF_LINK) $(XML2_LINK)
 
 $(MWOBJ_DIR)/%.o: $(PROTOBUFVER)/%.cxx Makefile $(CLIENT_H)
 	$(COMPILE_CPP) $@ $<

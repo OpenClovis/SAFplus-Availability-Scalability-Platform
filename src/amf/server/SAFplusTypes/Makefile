@@ -27,7 +27,7 @@ Release all: $(LIB_DIR)/$(SAFplusTypes_LIB)
 
 # Shared library providing functions that needs to provide that YANG data
 $(LIB_DIR)/$(SAFplusTypes_LIB): $(SAFplusTypes_OBJ) $(SAFPLUS_DEP_LIBS)
-	$(LINK_SO) $@ $(SAFplusTypes_OBJ) $(SAFPLUS_LINK_LIBS) -L$(INSTALL_DIR)/lib -lxml2 $(LINK_SO_LIBS)
+	$(LINK_SO) $@ $(SAFplusTypes_OBJ) $(SAFPLUS_LINK_LIBS) $(XML2_LINK) $(LINK_SO_LIBS)
 
 $(OBJ_DIR)/SAFplusTypes/%.o: %.cxx $(SAFplusTypes_H)
 	-mkdir -p $(OBJ_DIR)/SAFplusTypes

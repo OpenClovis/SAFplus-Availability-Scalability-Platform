@@ -27,7 +27,7 @@ SAFPLUS_LINK_LIBS := -L$(LIB_DIR) $(addprefix -l,$(SAFPLUS_LIBS))
 all: $(TEST_DIR)/logReader
 
 $(TEST_DIR)/logReader: $(LOG_REP_TEST_OBJ)
-	$(LINK_EXE) $@ $(LOG_REP_TEST_OBJ) $(LOG_SERVER_OBJ) $(SAFPLUS_LINK_LIBS) -L$(SAFPLUS_SDK_TARGET)/lib -lmw -L$(MGT_SRC_DIR)/3rdparty/build/lib -lxml2 $(LINK_SO_LIBS)
+	$(LINK_EXE) $@ $(LOG_REP_TEST_OBJ) $(LOG_SERVER_OBJ) $(SAFPLUS_LINK_LIBS) $(XML2_LINK) $(LINK_SO_LIBS)
 	#$(LINK_EXE) $@ $(LOG_REP_TEST_OBJ) $(SAFPLUS_LINK_LIBS) $(LINK_STD_LIBS)
 
 #-lpthread -lrt -L$(SAFPLUS_SDK_TARGET)/lib -lmw -ldl

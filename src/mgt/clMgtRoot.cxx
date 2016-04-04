@@ -486,9 +486,11 @@ namespace SAFplus
 
   // TODO: in the case of a broadcast to figure out the owner we don't want to reply, but in the case
   // of an explicit query, we must reply even if 0
-  //if (strRplMesg.size()>0)
+  if (strRplMesg.size()>0)
     {
-    MgtRoot::sendReplyMsg(srcAddr,(void *)strRplMesg.c_str(),strRplMesg.size());
+      logDebug("MGT","XGET","Replying to request [%s] %sfrom [%" PRIx64 ",%" PRIx64 "] with msg of size [%lu]",path.c_str(),cmds.c_str(),srcAddr.id[0], srcAddr.id[1], (long unsigned int) strRplMesg.size());
+      logDebug("MGT","XGET","Contents [%.400s...]",rplMesg.data(0).c_str());
+      MgtRoot::sendReplyMsg(srcAddr,(void *)strRplMesg.c_str(),strRplMesg.size());
     }
   }
 
@@ -600,6 +602,81 @@ namespace SAFplus
     MgtRoot::sendReplyMsg(srcAddr, (void *) &rc, sizeof(ClRcT));
   }
 
+  void MgtRoot::clMgtMsgRPCHandler(SAFplus::Handle srcAddr, Mgt::Msg::MsgRpc& reqMsg)
+  {
+    std::vector<MgtObject*> matches;
+    std::string path, cmds;
+    std::string attrs = "";
+    std::string data = reqMsg.data();
+
+    std::vector<std::string> strs;
+    boost::split(strs, data, boost::is_any_of(","));
+    path = strs[0];
+    if (strs.size() > 0)
+    {
+      attrs = data.substr(path.length() + 1);
+    }
+
+    if (path[0] == '{')  // Debugging requests
+    {
+      int end = path.find_first_of("}");
+      cmds = path.substr(1,end-1);
+      vector<string> strs;
+      boost::split(strs, cmds, boost::is_any_of(","));
+      for (auto cmd: strs)
+      {
+        if (cmd[0] == 'b')
+        {
+          std::raise(SIGINT);
+        }
+        else if (cmd[0] == 'p')
+        {
+          clDbgPause();
+        }
+      }
+      // TODO: parse the non-xml requests (depth, pause thread, break thread, log custom string)
+      cmds.append(" ");  // Right now I just assume everything in there is a custom logging string
+      path = path.substr(end+1);
+    }
+    if (path[0] == '/')
+    {
+      resolvePath(path.c_str() + 1, &matches);
+      ClBoolT rc;
+      if (matches.size())
+      {
+        for (std::vector<MgtObject*>::iterator i = matches.begin(); i != matches.end(); i++)
+        {
+          MgtRpc *rpc = dynamic_cast<MgtRpc*> (*i);
+          if (rpc)
+          {
+            switch (reqMsg.rpctype())
+            {
+              case Mgt::Msg::MsgRpc::CL_MGT_RPC_VALIDATE:
+                rc = rpc->validate();
+                break;
+              case Mgt::Msg::MsgRpc::CL_MGT_RPC_INVOKE:
+                rc = rpc->invoke();
+                break;
+              case Mgt::Msg::MsgRpc::CL_MGT_RPC_POSTREPLY:
+                rc = rpc->postReply();
+                break;
+              default:
+                break;
+            }
+            MgtRoot::sendReplyMsg(srcAddr, (void *) &rc, sizeof(ClRcT));
+            return;
+          }
+          else
+          {
+            rc = CL_ERR_NOT_EXIST;
+          }
+        }
+      }
+    }
+    //logDebug("MGT","SET","Object [%s] update complete [0x%x]", path.c_str(),rc);
+    //MgtRoot::sendReplyMsg(srcAddr,(void *)&rc,sizeof(ClRcT));
+  }
+
   void MgtRoot::clMgtMsgDeleteHandler(SAFplus::Handle srcAddr, Mgt::Msg::MsgMgt& reqMsg)
   {
     ClRcT rc = CL_OK;
@@ -668,32 +745,35 @@ namespace SAFplus
   }
   void MgtRoot::MgtMessageHandler::msgHandler(SAFplus::Handle from, SAFplus::MsgServer* svr, ClPtrT msg, ClWordT msglen, ClPtrT cookie)
   {
+    //Check message is rpc ???
     Mgt::Msg::MsgMgt mgtMsgReq;
-    mgtMsgReq.ParseFromArray(msg, msglen);
-    switch(mgtMsgReq.type())
+    if(mgtMsgReq.ParseFromArray(msg, msglen))
     {
-#if 0 // Obsoletely, don't use anymore
-      case Mgt::Msg::MsgMgt::CL_MGT_MSG_SET:
-        mRoot->clMgtMsgEditHandler(from,mgtMsgReq);
-        break;
-      case Mgt::Msg::MsgMgt::CL_MGT_MSG_GET:
-        mRoot->clMgtMsgGetHandler(from,mgtMsgReq);
-        break;
-#endif
-      case Mgt::Msg::MsgMgt::CL_MGT_MSG_XGET:
-        mRoot->clMgtMsgXGetHandler(from,mgtMsgReq);
-        break;
-      case Mgt::Msg::MsgMgt::CL_MGT_MSG_XSET:
-        mRoot->clMgtMsgXSetHandler(from,mgtMsgReq);
-        break;
-      case Mgt::Msg::MsgMgt::CL_MGT_MSG_CREATE:
-        mRoot->clMgtMsgCreateHandler(from,mgtMsgReq);
-        break;
-      case Mgt::Msg::MsgMgt::CL_MGT_MSG_DELETE:
-        mRoot->clMgtMsgDeleteHandler(from,mgtMsgReq);
-        break;
-      default:
-        break;
+      logDebug("MGT","DEL","process MGT message");
+      switch(mgtMsgReq.type())
+      {
+        case Mgt::Msg::MsgMgt::CL_MGT_MSG_XGET:
+          mRoot->clMgtMsgXGetHandler(from,mgtMsgReq);
+          break;
+        case Mgt::Msg::MsgMgt::CL_MGT_MSG_XSET:
+          mRoot->clMgtMsgXSetHandler(from,mgtMsgReq);
+          break;
+        case Mgt::Msg::MsgMgt::CL_MGT_MSG_CREATE:
+          mRoot->clMgtMsgCreateHandler(from,mgtMsgReq);
+          break;
+        case Mgt::Msg::MsgMgt::CL_MGT_MSG_DELETE:
+          mRoot->clMgtMsgDeleteHandler(from,mgtMsgReq);
+          break;
+        default:
+          break;
+      }
+    }
+    else
+    {
+      logDebug("MGT","DEL","process RPC message");
+      Mgt::Msg::MsgRpc mgtRpcReq;
+      mgtRpcReq.ParseFromArray(msg, msglen);
+      mRoot->clMgtMsgRPCHandler(from,mgtRpcReq);
     }
   }
 

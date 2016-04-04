@@ -24,7 +24,7 @@ SAFPLUS_LIBS := clFault clCkpt clName clMsg  clGroup clMgt clLog clUtils clOsal 
 SAFPLUS_DEP_LIBS     := $(addsuffix .so,$(addprefix $(LIB_DIR)/lib,$(SAFPLUS_LIBS)))
 SAFPLUS_LINK_LIBS := -L$(LIB_DIR) $(addprefix -l,$(SAFPLUS_LIBS))
 
-LINK_STD_LIBS := -L$(SAFPLUS_TARGET)/lib -L$(MGT_SRC_DIR)/3rdparty/build/lib -lxml2 $(LINK_STD_LIBS)
+LINK_STD_LIBS := $(XML2_LINK) $(LINK_STD_LIBS)
 # -lstdc++ -lm
 
 all: $(TEST_DIR)/fault_client $(TEST_DIR)/fault_server
