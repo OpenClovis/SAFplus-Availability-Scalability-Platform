@@ -5,6 +5,7 @@
  */ 
 
 #include "EntityId.hxx"
+#include "PresenceState.hxx"
 #include "MgtFactory.hxx"
 #include "clTransaction.hxx"
 #include "clMgtIdentifierList.hxx"
@@ -27,14 +28,17 @@ namespace SAFplusAmf
     /* Apply MGT object factory */
     MGT_REGISTER_IMPL(Node, /SAFplusAmf/safplusAmf/Node)
 
-    Node::Node(): adminState("adminState"), operState("operState"), autoRepair("autoRepair"), failFastOnInstantiationFailure("failFastOnInstantiationFailure"), failFastOnCleanupFailure("failFastOnCleanupFailure"), serviceUnits("serviceUnits"), capacityList("capacity")
+    Node::Node(): presenceState("presenceState"), adminState("adminState"), operState("operState"), autoRepair("autoRepair"), failFastOnInstantiationFailure("failFastOnInstantiationFailure"), failFastOnCleanupFailure("failFastOnCleanupFailure"), disableAssignmentOn("disableAssignmentOn"), serviceUnits("serviceUnits"), capacityList("capacity")
     {
+        this->addChildObject(&presenceState, "presenceState");
+        presenceState.config = false;
         this->addChildObject(&adminState, "adminState");
         this->addChildObject(&operState, "operState");
         operState.config = false;
         this->addChildObject(&autoRepair, "autoRepair");
         this->addChildObject(&failFastOnInstantiationFailure, "failFastOnInstantiationFailure");
         this->addChildObject(&failFastOnCleanupFailure, "failFastOnCleanupFailure");
+        this->addChildObject(&disableAssignmentOn, "disableAssignmentOn");
         this->addChildObject(&serviceUnits, "serviceUnits");
         this->addChildObject(&stats, "stats");
         stats.config = false;
@@ -45,15 +49,18 @@ namespace SAFplusAmf
         this->tag.assign("Node");
     };
 
-    Node::Node(std::string nameValue): adminState("adminState"), operState("operState"), autoRepair("autoRepair"), failFastOnInstantiationFailure("failFastOnInstantiationFailure"), failFastOnCleanupFailure("failFastOnCleanupFailure"), serviceUnits("serviceUnits"), capacityList("capacity")
+    Node::Node(std::string nameValue): presenceState("presenceState"), adminState("adminState"), operState("operState"), autoRepair("autoRepair"), failFastOnInstantiationFailure("failFastOnInstantiationFailure"), failFastOnCleanupFailure("failFastOnCleanupFailure"), disableAssignmentOn("disableAssignmentOn"), serviceUnits("serviceUnits"), capacityList("capacity")
     {
         this->name.value =  nameValue;
+        this->addChildObject(&presenceState, "presenceState");
+        presenceState.config = false;
         this->addChildObject(&adminState, "adminState");
         this->addChildObject(&operState, "operState");
         operState.config = false;
         this->addChildObject(&autoRepair, "autoRepair");
         this->addChildObject(&failFastOnInstantiationFailure, "failFastOnInstantiationFailure");
         this->addChildObject(&failFastOnCleanupFailure, "failFastOnCleanupFailure");
+        this->addChildObject(&disableAssignmentOn, "disableAssignmentOn");
         this->addChildObject(&serviceUnits, "serviceUnits");
         this->addChildObject(&stats, "stats");
         stats.config = false;
@@ -72,8 +79,29 @@ namespace SAFplusAmf
 
     std::vector<std::string>* Node::getChildNames()
     {
-        std::string childNames[] = { "name", "id", "stats", "adminState", "operState", "capacity", "serviceUnitFailureEscalationPolicy", "autoRepair", "failFastOnInstantiationFailure", "failFastOnCleanupFailure", "serviceUnits" };
+        std::string childNames[] = { "name", "id", "stats", "presenceState", "adminState", "operState", "capacity", "serviceUnitFailureEscalationPolicy", "autoRepair", "failFastOnInstantiationFailure", "failFastOnCleanupFailure", "disableAssignmentOn", "serviceUnits" };
         return new std::vector<std::string> (childNames, childNames + sizeof(childNames) / sizeof(childNames[0]));
+    };
+
+    /*
+     * XPATH: /SAFplusAmf/safplusAmf/Node/presenceState
+     */
+    ::SAFplusAmf::PresenceState Node::getPresenceState()
+    {
+        return this->presenceState.value;
+    };
+
+    /*
+     * XPATH: /SAFplusAmf/safplusAmf/Node/presenceState
+     */
+    void Node::setPresenceState(::SAFplusAmf::PresenceState &presenceStateValue, SAFplus::Transaction &t)
+    {
+        if(&t == &SAFplus::NO_TXN) this->presenceState.value = presenceStateValue;
+        else
+        {
+            SAFplus::SimpleTxnOperation<::SAFplusAmf::PresenceState> *opt = new SAFplus::SimpleTxnOperation<::SAFplusAmf::PresenceState>(&(presenceState.value),presenceStateValue);
+            t.addOperation(opt);
+        }
     };
 
     /*
@@ -177,6 +205,27 @@ namespace SAFplusAmf
         else
         {
             SAFplus::SimpleTxnOperation<bool> *opt = new SAFplus::SimpleTxnOperation<bool>(&(failFastOnCleanupFailure.value),failFastOnCleanupFailureValue);
+            t.addOperation(opt);
+        }
+    };
+
+    /*
+     * XPATH: /SAFplusAmf/safplusAmf/Node/disableAssignmentOn
+     */
+    std::string Node::getDisableAssignmentOn()
+    {
+        return this->disableAssignmentOn.value;
+    };
+
+    /*
+     * XPATH: /SAFplusAmf/safplusAmf/Node/disableAssignmentOn
+     */
+    void Node::setDisableAssignmentOn(std::string disableAssignmentOnValue, SAFplus::Transaction &t)
+    {
+        if(&t == &SAFplus::NO_TXN) this->disableAssignmentOn.value = disableAssignmentOnValue;
+        else
+        {
+            SAFplus::SimpleTxnOperation<std::string> *opt = new SAFplus::SimpleTxnOperation<std::string>(&(disableAssignmentOn.value),disableAssignmentOnValue);
             t.addOperation(opt);
         }
     };

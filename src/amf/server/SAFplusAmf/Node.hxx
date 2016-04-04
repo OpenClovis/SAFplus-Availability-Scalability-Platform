@@ -9,6 +9,7 @@
 #define NODE_HXX_
 
 #include "EntityId.hxx"
+#include "PresenceState.hxx"
 #include "MgtFactory.hxx"
 #include "clTransaction.hxx"
 #include "clMgtIdentifierList.hxx"
@@ -31,6 +32,7 @@ namespace SAFplusAmf
         MGT_REGISTER(Node);
 
     public:
+        SAFplus::MgtProv<::SAFplusAmf::PresenceState> presenceState;
 
         /*
          * Does the operator want this entity to be off, idle, or in service?
@@ -58,6 +60,11 @@ namespace SAFplusAmf
         SAFplus::MgtProv<bool> failFastOnCleanupFailure;
 
         /*
+         * A list of service group name separated by space to indicate that the cell in the node by this SG array is disabled, no assignment is performed
+         */
+        SAFplus::MgtProv<std::string> disableAssignmentOn;
+
+        /*
          * Service Units configured to be instantiated on this node.
          */
         SAFplus::MgtIdentifierList<::SAFplusAmf::ServiceUnit*> serviceUnits;
@@ -74,6 +81,16 @@ namespace SAFplusAmf
         Node(std::string nameValue);
         std::vector<std::string> getKeys();
         std::vector<std::string>* getChildNames();
+
+        /*
+         * XPATH: /SAFplusAmf/safplusAmf/Node/presenceState
+         */
+        ::SAFplusAmf::PresenceState getPresenceState();
+
+        /*
+         * XPATH: /SAFplusAmf/safplusAmf/Node/presenceState
+         */
+        void setPresenceState(::SAFplusAmf::PresenceState &presenceStateValue, SAFplus::Transaction &t=SAFplus::NO_TXN);
 
         /*
          * XPATH: /SAFplusAmf/safplusAmf/Node/adminState
@@ -124,6 +141,16 @@ namespace SAFplusAmf
          * XPATH: /SAFplusAmf/safplusAmf/Node/failFastOnCleanupFailure
          */
         void setFailFastOnCleanupFailure(bool failFastOnCleanupFailureValue, SAFplus::Transaction &t=SAFplus::NO_TXN);
+
+        /*
+         * XPATH: /SAFplusAmf/safplusAmf/Node/disableAssignmentOn
+         */
+        std::string getDisableAssignmentOn();
+
+        /*
+         * XPATH: /SAFplusAmf/safplusAmf/Node/disableAssignmentOn
+         */
+        void setDisableAssignmentOn(std::string disableAssignmentOnValue, SAFplus::Transaction &t=SAFplus::NO_TXN);
 
         /*
          * XPATH: /SAFplusAmf/safplusAmf/Node/serviceUnits

@@ -28,7 +28,7 @@ namespace SAFplusTypes
         SAFplus::MgtProv<std::string> history1hour;
         SAFplus::MgtProv<std::string> history1day;
         SAFplus::MgtProv<std::string> history1week;
-        SAFplus::MgtProv<std::string> history1month;
+        SAFplus::MgtProv<std::string> history4weeks;
 
     public:
         DecStatistic();
@@ -105,14 +105,14 @@ namespace SAFplusTypes
         void setHistory1week(std::string history1weekValue, SAFplus::Transaction &txn=SAFplus::NO_TXN);
 
         /*
-         * XPATH: /SAFplusTypes/decStatistic/history1month
+         * XPATH: /SAFplusTypes/decStatistic/history4weeks
          */
-        std::string getHistory1month();
+        std::string getHistory4weeks();
 
         /*
-         * XPATH: /SAFplusTypes/decStatistic/history1month
+         * XPATH: /SAFplusTypes/decStatistic/history4weeks
          */
-        void setHistory1month(std::string history1monthValue, SAFplus::Transaction &txn=SAFplus::NO_TXN);
+        void setHistory4weeks(std::string history4weeksValue, SAFplus::Transaction &txn=SAFplus::NO_TXN);
         ~DecStatistic();
 
     };

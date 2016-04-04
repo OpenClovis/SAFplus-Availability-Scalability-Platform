@@ -20,7 +20,6 @@ echo "ifconfig $SAFPLUS_BACKPLANE_INTERFACE | awk '/inet addr/{print substr($2,6
 IP=$(ifconfig  "$SAFPLUS_BACKPLANE_INTERFACE" | awk '/inet addr/{print substr($2,6)}')
 echo "IP: $IP"
 ./bin/safplus_cloud --add "$IP"
-
 ./bin/safplus_cloud --list
 
 # TIPC module loaded

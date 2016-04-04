@@ -120,7 +120,7 @@ class ZombieException(Exception):
 def main(tgtDir):
     os.environ["ASP_NODENAME"] = "node0"
     try:
-      amfpid = int(subprocess.check_output(["pidof","safplus_amf"]))
+      amfpid = int(subprocess.check_output(["pgrep","-n", "safplus_amf"]))
       status = procStatus(amfpid)
       if status == "Z": # zombie
         raise ZombieException()
