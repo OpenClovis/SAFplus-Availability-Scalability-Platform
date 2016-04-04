@@ -307,7 +307,7 @@ void GroupServer::msgHandler(Handle from, SAFplus::MsgServer* svr, ClPtrT msg, C
     logError("GMS","MSG","Received NULL message. Ignored");
     return;
   }
-  logInfo("GMS","MSG","Received message [%x] from node [%d]",rxMsg->messageType,fromNode);
+  logInfo("GMS","MSG","Received message [0x%x] from node [%d]",(unsigned int) rxMsg->messageType,fromNode);
 
   switch(rxMsg->messageType)
   {
@@ -349,7 +349,7 @@ void GroupServer::msgHandler(Handle from, SAFplus::MsgServer* svr, ClPtrT msg, C
       logDebug("GMS","MSG","Group announce message");
       } break;
     default:
-      logDebug("GMS","MSG","Unknown message type [%d] from node [%d]",rxMsg->messageType,fromNode);
+      logDebug("GMS","MSG","Unknown message type [0x%x] from node [%d]",(unsigned int) rxMsg->messageType,fromNode);
       break;
   }
 }

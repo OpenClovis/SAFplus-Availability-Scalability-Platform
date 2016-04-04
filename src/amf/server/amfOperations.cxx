@@ -1,10 +1,10 @@
 #include <chrono>
 #include <google/protobuf/stubs/common.h>
 #include <clCommon.hxx>
-#include "amfRpc/amfRpc.pb.hxx"
-#include "amfRpc/amfRpc.hxx"
-#include "amfAppRpc/amfAppRpc.hxx"
-#include "clPortAllocator.hxx"
+#include <amfRpc.pb.hxx>
+#include <amfRpc.hxx>
+#include <amfAppRpc.hxx>
+#include <clPortAllocator.hxx>
 #include <clRpcChannel.hxx>
 
 #include <amfOperations.hxx>

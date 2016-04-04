@@ -7,7 +7,7 @@ MGT_SRC_DIR ?= $(SAFPLUS_SRC_DIR)/../../mgt
 #MakefileDepend := Makefile
 MakefileDepend :=
 
-CPP_FLAGS += -I$(BOOST_DIR)  -I. -I..  -I../rpc -I./amfRpc $(SAFPLUS_MGT_INC_FLAGS)
+CPP_FLAGS += -I$(BOOST_DIR)  -I. -I..  -I../rpc -I./amfRpc/$(PROTOBUFVER) -I../amfAppRpc/$(PROTOBUFVER) $(SAFPLUS_MGT_INC_FLAGS)
 
 # Specify the required libraries
 SAFPLUS_LIBS := clRpc clMgt clName clFaultServer clFault clCkpt clGroup clTimer clMsg clUtils clLog clDbal clOsal
@@ -25,9 +25,9 @@ CPP_FLAGS += -I$(COMMON_DIR)/SAFplusTypes -ISAFplusAmf
 
 
 SERVER_H := $(wildcard *.hpp) $(wildcard *.h) $(wildcard *.hxx) $(wildcard $(SAFPLUS_INC_DIR)/*.hpp) $(wildcard $(SAFPLUS_INC_DIR)/*.hxx) $(wildcard SAFplusAmf/*.hxx) $(wildcard $(COMMON_DIR)/SAFplusTypes/*.hxx)
-SERVER_SRC := main.cxx amfcommon.cxx $(wildcard amfRpc/*.cc) $(wildcard amfRpc/*.cxx) amfAppRpcImpl.cxx
+SERVER_SRC := main.cxx amfcommon.cxx $(wildcard amfRpc/$(PROTOBUFVER)/*.cc) $(wildcard amfRpc/$(PROTOBUFVER)/*.cxx) amfAppRpcImpl.cxx
 
-POLICY_ENV_SRC := amfOperations.cxx portAllocator.cxx $(wildcard SAFplusAmf/*.cxx) $(wildcard $(COMMON_DIR)/SAFplusTypes/*.cxx) $(wildcard amfRpc/server/*.cxx) $(wildcard amfAppRpc/*.cxx) $(wildcard amfAppRpc/*.cc)
+POLICY_ENV_SRC := amfOperations.cxx portAllocator.cxx $(wildcard SAFplusAmf/*.cxx) $(wildcard $(COMMON_DIR)/SAFplusTypes/*.cxx) $(wildcard amfRpc/$(PROTOBUFVER)/server/*.cxx) $(wildcard amfAppRpc/$(PROTOBUFVER)/*.cxx) $(wildcard amfAppRpc/$(PROTOBUFVER)/*.cc)
 
 SERVER_OBJ := $(subst .cc,.o,$(subst .cxx,.o,$(notdir $(SERVER_SRC))))
 SERVER_OBJ := $(addprefix $(OBJ_DIR)/amfsvr/,$(SERVER_OBJ))
@@ -71,20 +71,20 @@ $(OBJ_DIR)/amfsvr/%.o: SAFplusAmf/%.cxx $(MakefileDepend) $(SERVER_H)
 	-mkdir -p $(OBJ_DIR)/amfsvr/
 	$(COMPILE_CPP) $@ $<
 
-$(OBJ_DIR)/amfsvr/%.o: amfRpc/%.cc $(MakefileDepend) $(SERVER_H)
+$(OBJ_DIR)/amfsvr/%.o: amfRpc/$(PROTOBUFVER)/%.cc $(MakefileDepend) $(SERVER_H)
 	-mkdir -p $(OBJ_DIR)/amfsvr/
 	$(COMPILE_CPP) $@ $<
 
-$(OBJ_DIR)/amfsvr/%.o: amfRpc/%.cxx $(MakefileDepend) $(SERVER_H)
+$(OBJ_DIR)/amfsvr/%.o: amfRpc/$(PROTOBUFVER)/%.cxx $(MakefileDepend) $(SERVER_H)
 	-mkdir -p $(OBJ_DIR)/amfsvr/
 	$(COMPILE_CPP) $@ $<
 
 
-$(OBJ_DIR)/amfsvr/%.o: amfAppRpc/%.cxx $(MakefileDepend) $(SERVER_H)
+$(OBJ_DIR)/amfsvr/%.o: amfAppRpc/$(PROTOBUFVER)/%.cxx $(MakefileDepend) $(SERVER_H)
 	-mkdir -p $(OBJ_DIR)/amfsvr/
 	$(COMPILE_CPP) $@ $<
 
-$(OBJ_DIR)/amfsvr/%.o: amfRpc/server/%.cxx $(MakefileDepend) $(SERVER_H)
+$(OBJ_DIR)/amfsvr/%.o: amfRpc/$(PROTOBUFVER)/server/%.cxx $(MakefileDepend) $(SERVER_H)
 	-mkdir -p $(OBJ_DIR)/amfsvr/
 	$(COMPILE_CPP) $@ $<
 
@@ -115,16 +115,16 @@ gen:
 #	(rm -rf ietfYangTypes SAFplusTypes ENTITYSTATETCMIB)
 
 genrpc: $(SAFplusRpcGen)
-	-mkdir -p amfRpc
+	-mkdir -p amfRpc/$(PROTOBUFVER)
 	PYTHONPATH=$(MGT_SRC_DIR)/3rdparty/pyang:/usr/local/lib PYANG_PLUGINPATH=$(MGT_SRC_DIR)/pyplugin $(MGT_SRC_DIR)/3rdparty/pyang/bin/pyang --path=$(SAFPLUS_SRC_DIR)/yang -f y2cpp amfRpc.yang --y2cpp-output `pwd` --y2cpp-rpc --y2cpp-sdkdir $(SAFPLUS_SRC_DIR)
-	LD_LIBRARY_PATH=/usr/local/lib:/usr/lib protoc -I../../3rdparty -I../../rpc -I. --cpp_out=./amfRpc amfRpc.proto
-	LD_LIBRARY_PATH=/usr/local/lib:/usr/lib $(SAFplusRpcGen) -I../../3rdparty -I../../rpc -I. --rpc_out=./amfRpc amfRpc.proto
+	LD_LIBRARY_PATH=/usr/local/lib:/usr/lib protoc -I../../3rdparty -I../../rpc -I. --cpp_out=./amfRpc/$(PROTOBUFVER) amfRpc.proto
+	LD_LIBRARY_PATH=/usr/local/lib:/usr/lib $(SAFplusRpcGen) -I../../3rdparty -I../../rpc -I. --rpc_out=./amfRpc/$(PROTOBUFVER) amfRpc.proto
 
 genapprpc: $(SAFplusRpcGen)
-	-mkdir -p amfAppRpc
+	-mkdir -p amfAppRpc/$(PROTOBUFVER)
 	PYTHONPATH=$(MGT_SRC_DIR)/3rdparty/pyang:/usr/local/lib PYANG_PLUGINPATH=$(MGT_SRC_DIR)/pyplugin $(MGT_SRC_DIR)/3rdparty/pyang/bin/pyang --path=$(SAFPLUS_SRC_DIR)/yang -f y2cpp amfAppRpc.yang --y2cpp-output `pwd` --y2cpp-rpc --y2cpp-sdkdir $(SAFPLUS_SRC_DIR)
-	LD_LIBRARY_PATH=/usr/local/lib:/usr/lib protoc -I../../3rdparty -I../../rpc -I. --cpp_out=./amfAppRpc amfAppRpc.proto
-	LD_LIBRARY_PATH=/usr/local/lib:/usr/lib $(SAFplusRpcGen) -I../../3rdparty -I../../rpc -I. --rpc_out=./amfAppRpc amfAppRpc.proto
+	LD_LIBRARY_PATH=/usr/local/lib:/usr/lib protoc -I../../3rdparty -I../../rpc -I. --cpp_out=./amfAppRpc/$(PROTOBUFVER) amfAppRpc.proto
+	LD_LIBRARY_PATH=/usr/local/lib:/usr/lib $(SAFplusRpcGen) -I../../3rdparty -I../../rpc -I. --rpc_out=./amfAppRpc/$(PROTOBUFVER) amfAppRpc.proto
 
 cleangen:
 	(cd SAFplusAmf && find . -type f -not -name "*Common.hxx" -not -name "*Base.cxx" | xargs rm)

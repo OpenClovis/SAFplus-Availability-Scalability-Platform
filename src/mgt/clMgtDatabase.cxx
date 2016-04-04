@@ -18,9 +18,9 @@
  */
 
 #include <clCommon.hxx>
-#include "clMgtDatabase.hxx"
-#include "clLogApi.hxx"
-#include "MgtMsg.pb.hxx"
+#include <clMgtDatabase.hxx>
+#include <clLogApi.hxx>
+#include <clMgtApi.hxx>
 
 namespace SAFplus
 {

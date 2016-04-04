@@ -4,7 +4,7 @@
 #include <saAis.h>
 #include <saAmf.h>
 
-#include <amfAppRpc/amfAppRpc.hxx>
+#include <amfAppRpc.hxx>
 #include <clRpcChannel.hxx>
 
 #include <clAmfIpi.hxx>

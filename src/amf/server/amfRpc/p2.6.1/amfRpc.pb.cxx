@@ -299,6 +299,7 @@ const int StartComponentRequest::kCommandFieldNumber;
 StartComponentRequest::StartComponentRequest()
   : ::google::protobuf::Message() {
   SharedCtor();
+  // @@protoc_insertion_point(constructor:SAFplus.Rpc.amfRpc.StartComponentRequest)
 }
 
 void StartComponentRequest::InitAsDefaultInstance() {
@@ -308,24 +309,27 @@ StartComponentRequest::StartComponentRequest(const StartComponentRequest& from)
   : ::google::protobuf::Message() {
   SharedCtor();
   MergeFrom(from);
+  // @@protoc_insertion_point(copy_constructor:SAFplus.Rpc.amfRpc.StartComponentRequest)
 }
 
 void StartComponentRequest::SharedCtor() {
+  ::google::protobuf::internal::GetEmptyString();
   _cached_size_ = 0;
-  name_ = const_cast< ::std::string*>(&::google::protobuf::internal::kEmptyString);
-  command_ = const_cast< ::std::string*>(&::google::protobuf::internal::kEmptyString);
+  name_ = const_cast< ::std::string*>(&::google::protobuf::internal::GetEmptyStringAlreadyInited());
+  command_ = const_cast< ::std::string*>(&::google::protobuf::internal::GetEmptyStringAlreadyInited());
   ::memset(_has_bits_, 0, sizeof(_has_bits_));
 }
 
 StartComponentRequest::~StartComponentRequest() {
+  // @@protoc_insertion_point(destructor:SAFplus.Rpc.amfRpc.StartComponentRequest)
   SharedDtor();
 }
 
 void StartComponentRequest::SharedDtor() {
-  if (name_ != &::google::protobuf::internal::kEmptyString) {
+  if (name_ != &::google::protobuf::internal::GetEmptyStringAlreadyInited()) {
     delete name_;
   }
-  if (command_ != &::google::protobuf::internal::kEmptyString) {
+  if (command_ != &::google::protobuf::internal::GetEmptyStringAlreadyInited()) {
     delete command_;
   }
   if (this != default_instance_) {
@@ -355,14 +359,14 @@ StartComponentRequest* StartComponentRequest::New() const {
 
 void StartComponentRequest::Clear() {
   _extensions_.Clear();
-  if (_has_bits_[0 / 32] & (0xffu << (0 % 32))) {
+  if (_has_bits_[0 / 32] & 3) {
     if (has_name()) {
-      if (name_ != &::google::protobuf::internal::kEmptyString) {
+      if (name_ != &::google::protobuf::internal::GetEmptyStringAlreadyInited()) {
         name_->clear();
       }
     }
     if (has_command()) {
-      if (command_ != &::google::protobuf::internal::kEmptyString) {
+      if (command_ != &::google::protobuf::internal::GetEmptyStringAlreadyInited()) {
         command_->clear();
       }
     }
@@ -373,21 +377,25 @@ void StartComponentRequest::Clear() {
 
 bool StartComponentRequest::MergePartialFromCodedStream(
     ::google::protobuf::io::CodedInputStream* input) {
-#define DO_(EXPRESSION) if (!(EXPRESSION)) return false
+#define DO_(EXPRESSION) if (!(EXPRESSION)) goto failure
   ::google::protobuf::uint32 tag;
-  while ((tag = input->ReadTag()) != 0) {
+  // @@protoc_insertion_point(parse_start:SAFplus.Rpc.amfRpc.StartComponentRequest)
+  for (;;) {
+    ::std::pair< ::google::protobuf::uint32, bool> p = input->ReadTagWithCutoff(127);
+    tag = p.first;
+    if (!p.second) goto handle_unusual;
     switch (::google::protobuf::internal::WireFormatLite::GetTagFieldNumber(tag)) {
       // optional string name = 1;
       case 1: {
-        if (::google::protobuf::internal::WireFormatLite::GetTagWireType(tag) ==
-            ::google::protobuf::internal::WireFormatLite::WIRETYPE_LENGTH_DELIMITED) {
+        if (tag == 10) {
           DO_(::google::protobuf::internal::WireFormatLite::ReadString(
                 input, this->mutable_name()));
-          ::google::protobuf::internal::WireFormat::VerifyUTF8String(
+          ::google::protobuf::internal::WireFormat::VerifyUTF8StringNamedField(
             this->name().data(), this->name().length(),
-            ::google::protobuf::internal::WireFormat::PARSE);
+            ::google::protobuf::internal::WireFormat::PARSE,
+            "name");
         } else {
-          goto handle_uninterpreted;
+          goto handle_unusual;
         }
         if (input->ExpectTag(18)) goto parse_command;
         break;
@@ -395,26 +403,27 @@ bool StartComponentRequest::MergePartialFromCodedStream(
 
       // optional string command = 2;
       case 2: {
-        if (::google::protobuf::internal::WireFormatLite::GetTagWireType(tag) ==
-            ::google::protobuf::internal::WireFormatLite::WIRETYPE_LENGTH_DELIMITED) {
+        if (tag == 18) {
          parse_command:
           DO_(::google::protobuf::internal::WireFormatLite::ReadString(
                 input, this->mutable_command()));
-          ::google::protobuf::internal::WireFormat::VerifyUTF8String(
+          ::google::protobuf::internal::WireFormat::VerifyUTF8StringNamedField(
             this->command().data(), this->command().length(),
-            ::google::protobuf::internal::WireFormat::PARSE);
+            ::google::protobuf::internal::WireFormat::PARSE,
+            "command");
         } else {
-          goto handle_uninterpreted;
+          goto handle_unusual;
         }
-        if (input->ExpectAtEnd()) return true;
+        if (input->ExpectAtEnd()) goto success;
         break;
       }
 
       default: {
-      handle_uninterpreted:
-        if (::google::protobuf::internal::WireFormatLite::GetTagWireType(tag) ==
+      handle_unusual:
+        if (tag == 0 ||
+            ::google::protobuf::internal::WireFormatLite::GetTagWireType(tag) ==
             ::google::protobuf::internal::WireFormatLite::WIRETYPE_END_GROUP) {
-          return true;
+          goto success;
         }
         if ((8000u <= tag)) {
           DO_(_extensions_.ParseField(tag, input, default_instance_,
@@ -427,27 +436,35 @@ bool StartComponentRequest::MergePartialFromCodedStream(
       }
     }
   }
+success:
+  // @@protoc_insertion_point(parse_success:SAFplus.Rpc.amfRpc.StartComponentRequest)
   return true;
+failure:
+  // @@protoc_insertion_point(parse_failure:SAFplus.Rpc.amfRpc.StartComponentRequest)
+  return false;
 #undef DO_
 }
 
 void StartComponentRequest::SerializeWithCachedSizes(
     ::google::protobuf::io::CodedOutputStream* output) const {
+  // @@protoc_insertion_point(serialize_start:SAFplus.Rpc.amfRpc.StartComponentRequest)
   // optional string name = 1;
   if (has_name()) {
-    ::google::protobuf::internal::WireFormat::VerifyUTF8String(
+    ::google::protobuf::internal::WireFormat::VerifyUTF8StringNamedField(
       this->name().data(), this->name().length(),
-      ::google::protobuf::internal::WireFormat::SERIALIZE);
-    ::google::protobuf::internal::WireFormatLite::WriteString(
+      ::google::protobuf::internal::WireFormat::SERIALIZE,
+      "name");
+    ::google::protobuf::internal::WireFormatLite::WriteStringMaybeAliased(
       1, this->name(), output);
   }
 
   // optional string command = 2;
   if (has_command()) {
-    ::google::protobuf::internal::WireFormat::VerifyUTF8String(
+    ::google::protobuf::internal::WireFormat::VerifyUTF8StringNamedField(
       this->command().data(), this->command().length(),
-      ::google::protobuf::internal::WireFormat::SERIALIZE);
-    ::google::protobuf::internal::WireFormatLite::WriteString(
+      ::google::protobuf::internal::WireFormat::SERIALIZE,
+      "command");
+    ::google::protobuf::internal::WireFormatLite::WriteStringMaybeAliased(
       2, this->command(), output);
   }
 
@@ -459,15 +476,18 @@ void StartComponentRequest::SerializeWithCachedSizes(
     ::google::protobuf::internal::WireFormat::SerializeUnknownFields(
         unknown_fields(), output);
   }
+  // @@protoc_insertion_point(serialize_end:SAFplus.Rpc.amfRpc.StartComponentRequest)
 }
 
 ::google::protobuf::uint8* StartComponentRequest::SerializeWithCachedSizesToArray(
     ::google::protobuf::uint8* target) const {
+  // @@protoc_insertion_point(serialize_to_array_start:SAFplus.Rpc.amfRpc.StartComponentRequest)
   // optional string name = 1;
   if (has_name()) {
-    ::google::protobuf::internal::WireFormat::VerifyUTF8String(
+    ::google::protobuf::internal::WireFormat::VerifyUTF8StringNamedField(
       this->name().data(), this->name().length(),
-      ::google::protobuf::internal::WireFormat::SERIALIZE);
+      ::google::protobuf::internal::WireFormat::SERIALIZE,
+      "name");
     target =
       ::google::protobuf::internal::WireFormatLite::WriteStringToArray(
         1, this->name(), target);
@@ -475,9 +495,10 @@ void StartComponentRequest::SerializeWithCachedSizes(
 
   // optional string command = 2;
   if (has_command()) {
-    ::google::protobuf::internal::WireFormat::VerifyUTF8String(
+    ::google::protobuf::internal::WireFormat::VerifyUTF8StringNamedField(
       this->command().data(), this->command().length(),
-      ::google::protobuf::internal::WireFormat::SERIALIZE);
+      ::google::protobuf::internal::WireFormat::SERIALIZE,
+      "command");
     target =
       ::google::protobuf::internal::WireFormatLite::WriteStringToArray(
         2, this->command(), target);
@@ -491,6 +512,7 @@ void StartComponentRequest::SerializeWithCachedSizes(
     target = ::google::protobuf::internal::WireFormat::SerializeUnknownFieldsToArray(
         unknown_fields(), target);
   }
+  // @@protoc_insertion_point(serialize_to_array_end:SAFplus.Rpc.amfRpc.StartComponentRequest)
   return target;
 }
 
@@ -600,6 +622,7 @@ const int StartComponentResponse::kPidFieldNumber;
 StartComponentResponse::StartComponentResponse()
   : ::google::protobuf::Message() {
   SharedCtor();
+  // @@protoc_insertion_point(constructor:SAFplus.Rpc.amfRpc.StartComponentResponse)
 }
 
 void StartComponentResponse::InitAsDefaultInstance() {
@@ -609,6 +632,7 @@ StartComponentResponse::StartComponentResponse(const StartComponentResponse& fro
   : ::google::protobuf::Message() {
   SharedCtor();
   MergeFrom(from);
+  // @@protoc_insertion_point(copy_constructor:SAFplus.Rpc.amfRpc.StartComponentResponse)
 }
 
 void StartComponentResponse::SharedCtor() {
@@ -619,6 +643,7 @@ void StartComponentResponse::SharedCtor() {
 }
 
 StartComponentResponse::~StartComponentResponse() {
+  // @@protoc_insertion_point(destructor:SAFplus.Rpc.amfRpc.StartComponentResponse)
   SharedDtor();
 }
 
@@ -650,30 +675,44 @@ StartComponentResponse* StartComponentResponse::New() const {
 
 void StartComponentResponse::Clear() {
   _extensions_.Clear();
-  if (_has_bits_[0 / 32] & (0xffu << (0 % 32))) {
-    err_ = 0;
-    pid_ = 0;
-  }
+#define OFFSET_OF_FIELD_(f) (reinterpret_cast<char*>(      \
+  &reinterpret_cast<StartComponentResponse*>(16)->f) - \
+   reinterpret_cast<char*>(16))
+
+#define ZR_(first, last) do {                              \
+    size_t f = OFFSET_OF_FIELD_(first);                    \
+    size_t n = OFFSET_OF_FIELD_(last) - f + sizeof(last);  \
+    ::memset(&first, 0, n);                                \
+  } while (0)
+
+  ZR_(err_, pid_);
+
+#undef OFFSET_OF_FIELD_
+#undef ZR_
+
   ::memset(_has_bits_, 0, sizeof(_has_bits_));
   mutable_unknown_fields()->Clear();
 }
 
 bool StartComponentResponse::MergePartialFromCodedStream(
     ::google::protobuf::io::CodedInputStream* input) {
-#define DO_(EXPRESSION) if (!(EXPRESSION)) return false
+#define DO_(EXPRESSION) if (!(EXPRESSION)) goto failure
   ::google::protobuf::uint32 tag;
-  while ((tag = input->ReadTag()) != 0) {
+  // @@protoc_insertion_point(parse_start:SAFplus.Rpc.amfRpc.StartComponentResponse)
+  for (;;) {
+    ::std::pair< ::google::protobuf::uint32, bool> p = input->ReadTagWithCutoff(127);
+    tag = p.first;
+    if (!p.second) goto handle_unusual;
     switch (::google::protobuf::internal::WireFormatLite::GetTagFieldNumber(tag)) {
       // optional sint32 err = 1;
       case 1: {
-        if (::google::protobuf::internal::WireFormatLite::GetTagWireType(tag) ==
-            ::google::protobuf::internal::WireFormatLite::WIRETYPE_VARINT) {
+        if (tag == 8) {
           DO_((::google::protobuf::internal::WireFormatLite::ReadPrimitive<
                    ::google::protobuf::int32, ::google::protobuf::internal::WireFormatLite::TYPE_SINT32>(
                  input, &err_)));
           set_has_err();
         } else {
-          goto handle_uninterpreted;
+          goto handle_unusual;
         }
         if (input->ExpectTag(16)) goto parse_pid;
         break;
@@ -681,25 +720,25 @@ bool StartComponentResponse::MergePartialFromCodedStream(
 
       // optional sint32 pid = 2;
       case 2: {
-        if (::google::protobuf::internal::WireFormatLite::GetTagWireType(tag) ==
-            ::google::protobuf::internal::WireFormatLite::WIRETYPE_VARINT) {
+        if (tag == 16) {
          parse_pid:
           DO_((::google::protobuf::internal::WireFormatLite::ReadPrimitive<
                    ::google::protobuf::int32, ::google::protobuf::internal::WireFormatLite::TYPE_SINT32>(
                  input, &pid_)));
           set_has_pid();
         } else {
-          goto handle_uninterpreted;
+          goto handle_unusual;
         }
-        if (input->ExpectAtEnd()) return true;
+        if (input->ExpectAtEnd()) goto success;
         break;
       }
 
       default: {
-      handle_uninterpreted:
-        if (::google::protobuf::internal::WireFormatLite::GetTagWireType(tag) ==
+      handle_unusual:
+        if (tag == 0 ||
+            ::google::protobuf::internal::WireFormatLite::GetTagWireType(tag) ==
             ::google::protobuf::internal::WireFormatLite::WIRETYPE_END_GROUP) {
-          return true;
+          goto success;
         }
         if ((8000u <= tag)) {
           DO_(_extensions_.ParseField(tag, input, default_instance_,
@@ -712,12 +751,18 @@ bool StartComponentResponse::MergePartialFromCodedStream(
       }
     }
   }
+success:
+  // @@protoc_insertion_point(parse_success:SAFplus.Rpc.amfRpc.StartComponentResponse)
   return true;
+failure:
+  // @@protoc_insertion_point(parse_failure:SAFplus.Rpc.amfRpc.StartComponentResponse)
+  return false;
 #undef DO_
 }
 
 void StartComponentResponse::SerializeWithCachedSizes(
     ::google::protobuf::io::CodedOutputStream* output) const {
+  // @@protoc_insertion_point(serialize_start:SAFplus.Rpc.amfRpc.StartComponentResponse)
   // optional sint32 err = 1;
   if (has_err()) {
     ::google::protobuf::internal::WireFormatLite::WriteSInt32(1, this->err(), output);
@@ -736,10 +781,12 @@ void StartComponentResponse::SerializeWithCachedSizes(
     ::google::protobuf::internal::WireFormat::SerializeUnknownFields(
         unknown_fields(), output);
   }
+  // @@protoc_insertion_point(serialize_end:SAFplus.Rpc.amfRpc.StartComponentResponse)
 }
 
 ::google::protobuf::uint8* StartComponentResponse::SerializeWithCachedSizesToArray(
     ::google::protobuf::uint8* target) const {
+  // @@protoc_insertion_point(serialize_to_array_start:SAFplus.Rpc.amfRpc.StartComponentResponse)
   // optional sint32 err = 1;
   if (has_err()) {
     target = ::google::protobuf::internal::WireFormatLite::WriteSInt32ToArray(1, this->err(), target);
@@ -758,6 +805,7 @@ void StartComponentResponse::SerializeWithCachedSizes(
     target = ::google::protobuf::internal::WireFormat::SerializeUnknownFieldsToArray(
         unknown_fields(), target);
   }
+  // @@protoc_insertion_point(serialize_to_array_end:SAFplus.Rpc.amfRpc.StartComponentResponse)
   return target;
 }
 
@@ -866,6 +914,7 @@ const int StopComponentRequest::kPidFieldNumber;
 StopComponentRequest::StopComponentRequest()
   : ::google::protobuf::Message() {
   SharedCtor();
+  // @@protoc_insertion_point(constructor:SAFplus.Rpc.amfRpc.StopComponentRequest)
 }
 
 void StopComponentRequest::InitAsDefaultInstance() {
@@ -875,6 +924,7 @@ StopComponentRequest::StopComponentRequest(const StopComponentRequest& from)
   : ::google::protobuf::Message() {
   SharedCtor();
   MergeFrom(from);
+  // @@protoc_insertion_point(copy_constructor:SAFplus.Rpc.amfRpc.StopComponentRequest)
 }
 
 void StopComponentRequest::SharedCtor() {
@@ -884,6 +934,7 @@ void StopComponentRequest::SharedCtor() {
 }
 
 StopComponentRequest::~StopComponentRequest() {
+  // @@protoc_insertion_point(destructor:SAFplus.Rpc.amfRpc.StopComponentRequest)
   SharedDtor();
 }
 
@@ -915,39 +966,41 @@ StopComponentRequest* StopComponentRequest::New() const {
 
 void StopComponentRequest::Clear() {
   _extensions_.Clear();
-  if (_has_bits_[0 / 32] & (0xffu << (0 % 32))) {
-    pid_ = 0;
-  }
+  pid_ = 0;
   ::memset(_has_bits_, 0, sizeof(_has_bits_));
   mutable_unknown_fields()->Clear();
 }
 
 bool StopComponentRequest::MergePartialFromCodedStream(
     ::google::protobuf::io::CodedInputStream* input) {
-#define DO_(EXPRESSION) if (!(EXPRESSION)) return false
+#define DO_(EXPRESSION) if (!(EXPRESSION)) goto failure
   ::google::protobuf::uint32 tag;
-  while ((tag = input->ReadTag()) != 0) {
+  // @@protoc_insertion_point(parse_start:SAFplus.Rpc.amfRpc.StopComponentRequest)
+  for (;;) {
+    ::std::pair< ::google::protobuf::uint32, bool> p = input->ReadTagWithCutoff(127);
+    tag = p.first;
+    if (!p.second) goto handle_unusual;
     switch (::google::protobuf::internal::WireFormatLite::GetTagFieldNumber(tag)) {
       // optional sint32 pid = 1;
       case 1: {
-        if (::google::protobuf::internal::WireFormatLite::GetTagWireType(tag) ==
-            ::google::protobuf::internal::WireFormatLite::WIRETYPE_VARINT) {
+        if (tag == 8) {
           DO_((::google::protobuf::internal::WireFormatLite::ReadPrimitive<
                    ::google::protobuf::int32, ::google::protobuf::internal::WireFormatLite::TYPE_SINT32>(
                  input, &pid_)));
           set_has_pid();
         } else {
-          goto handle_uninterpreted;
+          goto handle_unusual;
         }
-        if (input->ExpectAtEnd()) return true;
+        if (input->ExpectAtEnd()) goto success;
         break;
       }
 
       default: {
-      handle_uninterpreted:
-        if (::google::protobuf::internal::WireFormatLite::GetTagWireType(tag) ==
+      handle_unusual:
+        if (tag == 0 ||
+            ::google::protobuf::internal::WireFormatLite::GetTagWireType(tag) ==
             ::google::protobuf::internal::WireFormatLite::WIRETYPE_END_GROUP) {
-          return true;
+          goto success;
         }
         if ((8000u <= tag)) {
           DO_(_extensions_.ParseField(tag, input, default_instance_,
@@ -960,12 +1013,18 @@ bool StopComponentRequest::MergePartialFromCodedStream(
       }
     }
   }
+success:
+  // @@protoc_insertion_point(parse_success:SAFplus.Rpc.amfRpc.StopComponentRequest)
   return true;
+failure:
+  // @@protoc_insertion_point(parse_failure:SAFplus.Rpc.amfRpc.StopComponentRequest)
+  return false;
 #undef DO_
 }
 
 void StopComponentRequest::SerializeWithCachedSizes(
     ::google::protobuf::io::CodedOutputStream* output) const {
+  // @@protoc_insertion_point(serialize_start:SAFplus.Rpc.amfRpc.StopComponentRequest)
   // optional sint32 pid = 1;
   if (has_pid()) {
     ::google::protobuf::internal::WireFormatLite::WriteSInt32(1, this->pid(), output);
@@ -979,10 +1038,12 @@ void StopComponentRequest::SerializeWithCachedSizes(
     ::google::protobuf::internal::WireFormat::SerializeUnknownFields(
         unknown_fields(), output);
   }
+  // @@protoc_insertion_point(serialize_end:SAFplus.Rpc.amfRpc.StopComponentRequest)
 }
 
 ::google::protobuf::uint8* StopComponentRequest::SerializeWithCachedSizesToArray(
     ::google::protobuf::uint8* target) const {
+  // @@protoc_insertion_point(serialize_to_array_start:SAFplus.Rpc.amfRpc.StopComponentRequest)
   // optional sint32 pid = 1;
   if (has_pid()) {
     target = ::google::protobuf::internal::WireFormatLite::WriteSInt32ToArray(1, this->pid(), target);
@@ -996,6 +1057,7 @@ void StopComponentRequest::SerializeWithCachedSizes(
     target = ::google::protobuf::internal::WireFormat::SerializeUnknownFieldsToArray(
         unknown_fields(), target);
   }
+  // @@protoc_insertion_point(serialize_to_array_end:SAFplus.Rpc.amfRpc.StopComponentRequest)
   return target;
 }
 
@@ -1093,6 +1155,7 @@ const int StopComponentResponse::kErrFieldNumber;
 StopComponentResponse::StopComponentResponse()
   : ::google::protobuf::Message() {
   SharedCtor();
+  // @@protoc_insertion_point(constructor:SAFplus.Rpc.amfRpc.StopComponentResponse)
 }
 
 void StopComponentResponse::InitAsDefaultInstance() {
@@ -1102,6 +1165,7 @@ StopComponentResponse::StopComponentResponse(const StopComponentResponse& from)
   : ::google::protobuf::Message() {
   SharedCtor();
   MergeFrom(from);
+  // @@protoc_insertion_point(copy_constructor:SAFplus.Rpc.amfRpc.StopComponentResponse)
 }
 
 void StopComponentResponse::SharedCtor() {
@@ -1111,6 +1175,7 @@ void StopComponentResponse::SharedCtor() {
 }
 
 StopComponentResponse::~StopComponentResponse() {
+  // @@protoc_insertion_point(destructor:SAFplus.Rpc.amfRpc.StopComponentResponse)
   SharedDtor();
 }
 
@@ -1142,39 +1207,41 @@ StopComponentResponse* StopComponentResponse::New() const {
 
 void StopComponentResponse::Clear() {
   _extensions_.Clear();
-  if (_has_bits_[0 / 32] & (0xffu << (0 % 32))) {
-    err_ = 0;
-  }
+  err_ = 0;
   ::memset(_has_bits_, 0, sizeof(_has_bits_));
   mutable_unknown_fields()->Clear();
 }
 
 bool StopComponentResponse::MergePartialFromCodedStream(
     ::google::protobuf::io::CodedInputStream* input) {
-#define DO_(EXPRESSION) if (!(EXPRESSION)) return false
+#define DO_(EXPRESSION) if (!(EXPRESSION)) goto failure
   ::google::protobuf::uint32 tag;
-  while ((tag = input->ReadTag()) != 0) {
+  // @@protoc_insertion_point(parse_start:SAFplus.Rpc.amfRpc.StopComponentResponse)
+  for (;;) {
+    ::std::pair< ::google::protobuf::uint32, bool> p = input->ReadTagWithCutoff(127);
+    tag = p.first;
+    if (!p.second) goto handle_unusual;
     switch (::google::protobuf::internal::WireFormatLite::GetTagFieldNumber(tag)) {
       // optional sint32 err = 1;
       case 1: {
-        if (::google::protobuf::internal::WireFormatLite::GetTagWireType(tag) ==
-            ::google::protobuf::internal::WireFormatLite::WIRETYPE_VARINT) {
+        if (tag == 8) {
           DO_((::google::protobuf::internal::WireFormatLite::ReadPrimitive<
                    ::google::protobuf::int32, ::google::protobuf::internal::WireFormatLite::TYPE_SINT32>(
                  input, &err_)));
           set_has_err();
         } else {
-          goto handle_uninterpreted;
+          goto handle_unusual;
         }
-        if (input->ExpectAtEnd()) return true;
+        if (input->ExpectAtEnd()) goto success;
         break;
       }
 
       default: {
-      handle_uninterpreted:
-        if (::google::protobuf::internal::WireFormatLite::GetTagWireType(tag) ==
+      handle_unusual:
+        if (tag == 0 ||
+            ::google::protobuf::internal::WireFormatLite::GetTagWireType(tag) ==
             ::google::protobuf::internal::WireFormatLite::WIRETYPE_END_GROUP) {
-          return true;
+          goto success;
         }
         if ((8000u <= tag)) {
           DO_(_extensions_.ParseField(tag, input, default_instance_,
@@ -1187,12 +1254,18 @@ bool StopComponentResponse::MergePartialFromCodedStream(
       }
     }
   }
+success:
+  // @@protoc_insertion_point(parse_success:SAFplus.Rpc.amfRpc.StopComponentResponse)
   return true;
+failure:
+  // @@protoc_insertion_point(parse_failure:SAFplus.Rpc.amfRpc.StopComponentResponse)
+  return false;
 #undef DO_
 }
 
 void StopComponentResponse::SerializeWithCachedSizes(
     ::google::protobuf::io::CodedOutputStream* output) const {
+  // @@protoc_insertion_point(serialize_start:SAFplus.Rpc.amfRpc.StopComponentResponse)
   // optional sint32 err = 1;
   if (has_err()) {
     ::google::protobuf::internal::WireFormatLite::WriteSInt32(1, this->err(), output);
@@ -1206,10 +1279,12 @@ void StopComponentResponse::SerializeWithCachedSizes(
     ::google::protobuf::internal::WireFormat::SerializeUnknownFields(
         unknown_fields(), output);
   }
+  // @@protoc_insertion_point(serialize_end:SAFplus.Rpc.amfRpc.StopComponentResponse)
 }
 
 ::google::protobuf::uint8* StopComponentResponse::SerializeWithCachedSizesToArray(
     ::google::protobuf::uint8* target) const {
+  // @@protoc_insertion_point(serialize_to_array_start:SAFplus.Rpc.amfRpc.StopComponentResponse)
   // optional sint32 err = 1;
   if (has_err()) {
     target = ::google::protobuf::internal::WireFormatLite::WriteSInt32ToArray(1, this->err(), target);
@@ -1223,6 +1298,7 @@ void StopComponentResponse::SerializeWithCachedSizes(
     target = ::google::protobuf::internal::WireFormat::SerializeUnknownFieldsToArray(
         unknown_fields(), target);
   }
+  // @@protoc_insertion_point(serialize_to_array_end:SAFplus.Rpc.amfRpc.StopComponentResponse)
   return target;
 }
 
@@ -1320,6 +1396,7 @@ const int ProcessInfoRequest::kPidFieldNumber;
 ProcessInfoRequest::ProcessInfoRequest()
   : ::google::protobuf::Message() {
   SharedCtor();
+  // @@protoc_insertion_point(constructor:SAFplus.Rpc.amfRpc.ProcessInfoRequest)
 }
 
 void ProcessInfoRequest::InitAsDefaultInstance() {
@@ -1329,6 +1406,7 @@ ProcessInfoRequest::ProcessInfoRequest(const ProcessInfoRequest& from)
   : ::google::protobuf::Message() {
   SharedCtor();
   MergeFrom(from);
+  // @@protoc_insertion_point(copy_constructor:SAFplus.Rpc.amfRpc.ProcessInfoRequest)
 }
 
 void ProcessInfoRequest::SharedCtor() {
@@ -1338,6 +1416,7 @@ void ProcessInfoRequest::SharedCtor() {
 }
 
 ProcessInfoRequest::~ProcessInfoRequest() {
+  // @@protoc_insertion_point(destructor:SAFplus.Rpc.amfRpc.ProcessInfoRequest)
   SharedDtor();
 }
 
@@ -1369,39 +1448,41 @@ ProcessInfoRequest* ProcessInfoRequest::New() const {
 
 void ProcessInfoRequest::Clear() {
   _extensions_.Clear();
-  if (_has_bits_[0 / 32] & (0xffu << (0 % 32))) {
-    pid_ = 0;
-  }
+  pid_ = 0;
   ::memset(_has_bits_, 0, sizeof(_has_bits_));
   mutable_unknown_fields()->Clear();
 }
 
 bool ProcessInfoRequest::MergePartialFromCodedStream(
     ::google::protobuf::io::CodedInputStream* input) {
-#define DO_(EXPRESSION) if (!(EXPRESSION)) return false
+#define DO_(EXPRESSION) if (!(EXPRESSION)) goto failure
   ::google::protobuf::uint32 tag;
-  while ((tag = input->ReadTag()) != 0) {
+  // @@protoc_insertion_point(parse_start:SAFplus.Rpc.amfRpc.ProcessInfoRequest)
+  for (;;) {
+    ::std::pair< ::google::protobuf::uint32, bool> p = input->ReadTagWithCutoff(127);
+    tag = p.first;
+    if (!p.second) goto handle_unusual;
     switch (::google::protobuf::internal::WireFormatLite::GetTagFieldNumber(tag)) {
       // optional sint32 pid = 1;
       case 1: {
-        if (::google::protobuf::internal::WireFormatLite::GetTagWireType(tag) ==
-            ::google::protobuf::internal::WireFormatLite::WIRETYPE_VARINT) {
+        if (tag == 8) {
           DO_((::google::protobuf::internal::WireFormatLite::ReadPrimitive<
                    ::google::protobuf::int32, ::google::protobuf::internal::WireFormatLite::TYPE_SINT32>(
                  input, &pid_)));
           set_has_pid();
         } else {
-          goto handle_uninterpreted;
+          goto handle_unusual;
         }
-        if (input->ExpectAtEnd()) return true;
+        if (input->ExpectAtEnd()) goto success;
         break;
       }
 
       default: {
-      handle_uninterpreted:
-        if (::google::protobuf::internal::WireFormatLite::GetTagWireType(tag) ==
+      handle_unusual:
+        if (tag == 0 ||
+            ::google::protobuf::internal::WireFormatLite::GetTagWireType(tag) ==
             ::google::protobuf::internal::WireFormatLite::WIRETYPE_END_GROUP) {
-          return true;
+          goto success;
         }
         if ((8000u <= tag)) {
           DO_(_extensions_.ParseField(tag, input, default_instance_,
@@ -1414,12 +1495,18 @@ bool ProcessInfoRequest::MergePartialFromCodedStream(
       }
     }
   }
+success:
+  // @@protoc_insertion_point(parse_success:SAFplus.Rpc.amfRpc.ProcessInfoRequest)
   return true;
+failure:
+  // @@protoc_insertion_point(parse_failure:SAFplus.Rpc.amfRpc.ProcessInfoRequest)
+  return false;
 #undef DO_
 }
 
 void ProcessInfoRequest::SerializeWithCachedSizes(
     ::google::protobuf::io::CodedOutputStream* output) const {
+  // @@protoc_insertion_point(serialize_start:SAFplus.Rpc.amfRpc.ProcessInfoRequest)
   // optional sint32 pid = 1;
   if (has_pid()) {
     ::google::protobuf::internal::WireFormatLite::WriteSInt32(1, this->pid(), output);
@@ -1433,10 +1520,12 @@ void ProcessInfoRequest::SerializeWithCachedSizes(
     ::google::protobuf::internal::WireFormat::SerializeUnknownFields(
         unknown_fields(), output);
   }
+  // @@protoc_insertion_point(serialize_end:SAFplus.Rpc.amfRpc.ProcessInfoRequest)
 }
 
 ::google::protobuf::uint8* ProcessInfoRequest::SerializeWithCachedSizesToArray(
     ::google::protobuf::uint8* target) const {
+  // @@protoc_insertion_point(serialize_to_array_start:SAFplus.Rpc.amfRpc.ProcessInfoRequest)
   // optional sint32 pid = 1;
   if (has_pid()) {
     target = ::google::protobuf::internal::WireFormatLite::WriteSInt32ToArray(1, this->pid(), target);
@@ -1450,6 +1539,7 @@ void ProcessInfoRequest::SerializeWithCachedSizes(
     target = ::google::protobuf::internal::WireFormat::SerializeUnknownFieldsToArray(
         unknown_fields(), target);
   }
+  // @@protoc_insertion_point(serialize_to_array_end:SAFplus.Rpc.amfRpc.ProcessInfoRequest)
   return target;
 }
 
@@ -1548,6 +1638,7 @@ const int ProcessInfoResponse::kCommandFieldNumber;
 ProcessInfoResponse::ProcessInfoResponse()
   : ::google::protobuf::Message() {
   SharedCtor();
+  // @@protoc_insertion_point(constructor:SAFplus.Rpc.amfRpc.ProcessInfoResponse)
 }
 
 void ProcessInfoResponse::InitAsDefaultInstance() {
@@ -1557,21 +1648,24 @@ ProcessInfoResponse::ProcessInfoResponse(const ProcessInfoResponse& from)
   : ::google::protobuf::Message() {
   SharedCtor();
   MergeFrom(from);
+  // @@protoc_insertion_point(copy_constructor:SAFplus.Rpc.amfRpc.ProcessInfoResponse)
 }
 
 void ProcessInfoResponse::SharedCtor() {
+  ::google::protobuf::internal::GetEmptyString();
   _cached_size_ = 0;
   running_ = false;
-  command_ = const_cast< ::std::string*>(&::google::protobuf::internal::kEmptyString);
+  command_ = const_cast< ::std::string*>(&::google::protobuf::internal::GetEmptyStringAlreadyInited());
   ::memset(_has_bits_, 0, sizeof(_has_bits_));
 }
 
 ProcessInfoResponse::~ProcessInfoResponse() {
+  // @@protoc_insertion_point(destructor:SAFplus.Rpc.amfRpc.ProcessInfoResponse)
   SharedDtor();
 }
 
 void ProcessInfoResponse::SharedDtor() {
-  if (command_ != &::google::protobuf::internal::kEmptyString) {
+  if (command_ != &::google::protobuf::internal::GetEmptyStringAlreadyInited()) {
     delete command_;
   }
   if (this != default_instance_) {
@@ -1601,10 +1695,10 @@ ProcessInfoResponse* ProcessInfoResponse::New() const {
 
 void ProcessInfoResponse::Clear() {
   _extensions_.Clear();
-  if (_has_bits_[0 / 32] & (0xffu << (0 % 32))) {
+  if (_has_bits_[0 / 32] & 3) {
     running_ = false;
     if (has_command()) {
-      if (command_ != &::google::protobuf::internal::kEmptyString) {
+      if (command_ != &::google::protobuf::internal::GetEmptyStringAlreadyInited()) {
         command_->clear();
       }
     }
@@ -1615,20 +1709,23 @@ void ProcessInfoResponse::Clear() {
 
 bool ProcessInfoResponse::MergePartialFromCodedStream(
     ::google::protobuf::io::CodedInputStream* input) {
-#define DO_(EXPRESSION) if (!(EXPRESSION)) return false
+#define DO_(EXPRESSION) if (!(EXPRESSION)) goto failure
   ::google::protobuf::uint32 tag;
-  while ((tag = input->ReadTag()) != 0) {
+  // @@protoc_insertion_point(parse_start:SAFplus.Rpc.amfRpc.ProcessInfoResponse)
+  for (;;) {
+    ::std::pair< ::google::protobuf::uint32, bool> p = input->ReadTagWithCutoff(127);
+    tag = p.first;
+    if (!p.second) goto handle_unusual;
     switch (::google::protobuf::internal::WireFormatLite::GetTagFieldNumber(tag)) {
       // optional bool running = 1;
       case 1: {
-        if (::google::protobuf::internal::WireFormatLite::GetTagWireType(tag) ==
-            ::google::protobuf::internal::WireFormatLite::WIRETYPE_VARINT) {
+        if (tag == 8) {
           DO_((::google::protobuf::internal::WireFormatLite::ReadPrimitive<
                    bool, ::google::protobuf::internal::WireFormatLite::TYPE_BOOL>(
                  input, &running_)));
           set_has_running();
         } else {
-          goto handle_uninterpreted;
+          goto handle_unusual;
         }
         if (input->ExpectTag(18)) goto parse_command;
         break;
@@ -1636,26 +1733,27 @@ bool ProcessInfoResponse::MergePartialFromCodedStream(
 
       // optional string command = 2;
       case 2: {
-        if (::google::protobuf::internal::WireFormatLite::GetTagWireType(tag) ==
-            ::google::protobuf::internal::WireFormatLite::WIRETYPE_LENGTH_DELIMITED) {
+        if (tag == 18) {
          parse_command:
           DO_(::google::protobuf::internal::WireFormatLite::ReadString(
                 input, this->mutable_command()));
-          ::google::protobuf::internal::WireFormat::VerifyUTF8String(
+          ::google::protobuf::internal::WireFormat::VerifyUTF8StringNamedField(
             this->command().data(), this->command().length(),
-            ::google::protobuf::internal::WireFormat::PARSE);
+            ::google::protobuf::internal::WireFormat::PARSE,
+            "command");
         } else {
-          goto handle_uninterpreted;
+          goto handle_unusual;
         }
-        if (input->ExpectAtEnd()) return true;
+        if (input->ExpectAtEnd()) goto success;
         break;
       }
 
       default: {
-      handle_uninterpreted:
-        if (::google::protobuf::internal::WireFormatLite::GetTagWireType(tag) ==
+      handle_unusual:
+        if (tag == 0 ||
+            ::google::protobuf::internal::WireFormatLite::GetTagWireType(tag) ==
             ::google::protobuf::internal::WireFormatLite::WIRETYPE_END_GROUP) {
-          return true;
+          goto success;
         }
         if ((8000u <= tag)) {
           DO_(_extensions_.ParseField(tag, input, default_instance_,
@@ -1668,12 +1766,18 @@ bool ProcessInfoResponse::MergePartialFromCodedStream(
       }
     }
   }
+success:
+  // @@protoc_insertion_point(parse_success:SAFplus.Rpc.amfRpc.ProcessInfoResponse)
   return true;
+failure:
+  // @@protoc_insertion_point(parse_failure:SAFplus.Rpc.amfRpc.ProcessInfoResponse)
+  return false;
 #undef DO_
 }
 
 void ProcessInfoResponse::SerializeWithCachedSizes(
     ::google::protobuf::io::CodedOutputStream* output) const {
+  // @@protoc_insertion_point(serialize_start:SAFplus.Rpc.amfRpc.ProcessInfoResponse)
   // optional bool running = 1;
   if (has_running()) {
     ::google::protobuf::internal::WireFormatLite::WriteBool(1, this->running(), output);
@@ -1681,10 +1785,11 @@ void ProcessInfoResponse::SerializeWithCachedSizes(
 
   // optional string command = 2;
   if (has_command()) {
-    ::google::protobuf::internal::WireFormat::VerifyUTF8String(
+    ::google::protobuf::internal::WireFormat::VerifyUTF8StringNamedField(
       this->command().data(), this->command().length(),
-      ::google::protobuf::internal::WireFormat::SERIALIZE);
-    ::google::protobuf::internal::WireFormatLite::WriteString(
+      ::google::protobuf::internal::WireFormat::SERIALIZE,
+      "command");
+    ::google::protobuf::internal::WireFormatLite::WriteStringMaybeAliased(
       2, this->command(), output);
   }
 
@@ -1696,10 +1801,12 @@ void ProcessInfoResponse::SerializeWithCachedSizes(
     ::google::protobuf::internal::WireFormat::SerializeUnknownFields(
         unknown_fields(), output);
   }
+  // @@protoc_insertion_point(serialize_end:SAFplus.Rpc.amfRpc.ProcessInfoResponse)
 }
 
 ::google::protobuf::uint8* ProcessInfoResponse::SerializeWithCachedSizesToArray(
     ::google::protobuf::uint8* target) const {
+  // @@protoc_insertion_point(serialize_to_array_start:SAFplus.Rpc.amfRpc.ProcessInfoResponse)
   // optional bool running = 1;
   if (has_running()) {
     target = ::google::protobuf::internal::WireFormatLite::WriteBoolToArray(1, this->running(), target);
@@ -1707,9 +1814,10 @@ void ProcessInfoResponse::SerializeWithCachedSizes(
 
   // optional string command = 2;
   if (has_command()) {
-    ::google::protobuf::internal::WireFormat::VerifyUTF8String(
+    ::google::protobuf::internal::WireFormat::VerifyUTF8StringNamedField(
       this->command().data(), this->command().length(),
-      ::google::protobuf::internal::WireFormat::SERIALIZE);
+      ::google::protobuf::internal::WireFormat::SERIALIZE,
+      "command");
     target =
       ::google::protobuf::internal::WireFormatLite::WriteStringToArray(
         2, this->command(), target);
@@ -1723,6 +1831,7 @@ void ProcessInfoResponse::SerializeWithCachedSizes(
     target = ::google::protobuf::internal::WireFormat::SerializeUnknownFieldsToArray(
         unknown_fields(), target);
   }
+  // @@protoc_insertion_point(serialize_to_array_end:SAFplus.Rpc.amfRpc.ProcessInfoResponse)
   return target;
 }
 
@@ -1829,6 +1938,7 @@ const int ProcessFailedRequest::kPidFieldNumber;
 ProcessFailedRequest::ProcessFailedRequest()
   : ::google::protobuf::Message() {
   SharedCtor();
+  // @@protoc_insertion_point(constructor:SAFplus.Rpc.amfRpc.ProcessFailedRequest)
 }
 
 void ProcessFailedRequest::InitAsDefaultInstance() {
@@ -1838,6 +1948,7 @@ ProcessFailedRequest::ProcessFailedRequest(const ProcessFailedRequest& from)
   : ::google::protobuf::Message() {
   SharedCtor();
   MergeFrom(from);
+  // @@protoc_insertion_point(copy_constructor:SAFplus.Rpc.amfRpc.ProcessFailedRequest)
 }
 
 void ProcessFailedRequest::SharedCtor() {
@@ -1847,6 +1958,7 @@ void ProcessFailedRequest::SharedCtor() {
 }
 
 ProcessFailedRequest::~ProcessFailedRequest() {
+  // @@protoc_insertion_point(destructor:SAFplus.Rpc.amfRpc.ProcessFailedRequest)
   SharedDtor();
 }
 
@@ -1878,39 +1990,41 @@ ProcessFailedRequest* ProcessFailedRequest::New() const {
 
 void ProcessFailedRequest::Clear() {
   _extensions_.Clear();
-  if (_has_bits_[0 / 32] & (0xffu << (0 % 32))) {
-    pid_ = 0;
-  }
+  pid_ = 0;
   ::memset(_has_bits_, 0, sizeof(_has_bits_));
   mutable_unknown_fields()->Clear();
 }
 
 bool ProcessFailedRequest::MergePartialFromCodedStream(
     ::google::protobuf::io::CodedInputStream* input) {
-#define DO_(EXPRESSION) if (!(EXPRESSION)) return false
+#define DO_(EXPRESSION) if (!(EXPRESSION)) goto failure
   ::google::protobuf::uint32 tag;
-  while ((tag = input->ReadTag()) != 0) {
+  // @@protoc_insertion_point(parse_start:SAFplus.Rpc.amfRpc.ProcessFailedRequest)
+  for (;;) {
+    ::std::pair< ::google::protobuf::uint32, bool> p = input->ReadTagWithCutoff(127);
+    tag = p.first;
+    if (!p.second) goto handle_unusual;
     switch (::google::protobuf::internal::WireFormatLite::GetTagFieldNumber(tag)) {
       // optional sint32 pid = 1;
       case 1: {
-        if (::google::protobuf::internal::WireFormatLite::GetTagWireType(tag) ==
-            ::google::protobuf::internal::WireFormatLite::WIRETYPE_VARINT) {
+        if (tag == 8) {
           DO_((::google::protobuf::internal::WireFormatLite::ReadPrimitive<
                    ::google::protobuf::int32, ::google::protobuf::internal::WireFormatLite::TYPE_SINT32>(
                  input, &pid_)));
           set_has_pid();
         } else {
-          goto handle_uninterpreted;
+          goto handle_unusual;
         }
-        if (input->ExpectAtEnd()) return true;
+        if (input->ExpectAtEnd()) goto success;
         break;
       }
 
       default: {
-      handle_uninterpreted:
-        if (::google::protobuf::internal::WireFormatLite::GetTagWireType(tag) ==
+      handle_unusual:
+        if (tag == 0 ||
+            ::google::protobuf::internal::WireFormatLite::GetTagWireType(tag) ==
             ::google::protobuf::internal::WireFormatLite::WIRETYPE_END_GROUP) {
-          return true;
+          goto success;
         }
         if ((8000u <= tag)) {
           DO_(_extensions_.ParseField(tag, input, default_instance_,
@@ -1923,12 +2037,18 @@ bool ProcessFailedRequest::MergePartialFromCodedStream(
       }
     }
   }
+success:
+  // @@protoc_insertion_point(parse_success:SAFplus.Rpc.amfRpc.ProcessFailedRequest)
   return true;
+failure:
+  // @@protoc_insertion_point(parse_failure:SAFplus.Rpc.amfRpc.ProcessFailedRequest)
+  return false;
 #undef DO_
 }
 
 void ProcessFailedRequest::SerializeWithCachedSizes(
     ::google::protobuf::io::CodedOutputStream* output) const {
+  // @@protoc_insertion_point(serialize_start:SAFplus.Rpc.amfRpc.ProcessFailedRequest)
   // optional sint32 pid = 1;
   if (has_pid()) {
     ::google::protobuf::internal::WireFormatLite::WriteSInt32(1, this->pid(), output);
@@ -1942,10 +2062,12 @@ void ProcessFailedRequest::SerializeWithCachedSizes(
     ::google::protobuf::internal::WireFormat::SerializeUnknownFields(
         unknown_fields(), output);
   }
+  // @@protoc_insertion_point(serialize_end:SAFplus.Rpc.amfRpc.ProcessFailedRequest)
 }
 
 ::google::protobuf::uint8* ProcessFailedRequest::SerializeWithCachedSizesToArray(
     ::google::protobuf::uint8* target) const {
+  // @@protoc_insertion_point(serialize_to_array_start:SAFplus.Rpc.amfRpc.ProcessFailedRequest)
   // optional sint32 pid = 1;
   if (has_pid()) {
     target = ::google::protobuf::internal::WireFormatLite::WriteSInt32ToArray(1, this->pid(), target);
@@ -1959,6 +2081,7 @@ void ProcessFailedRequest::SerializeWithCachedSizes(
     target = ::google::protobuf::internal::WireFormat::SerializeUnknownFieldsToArray(
         unknown_fields(), target);
   }
+  // @@protoc_insertion_point(serialize_to_array_end:SAFplus.Rpc.amfRpc.ProcessFailedRequest)
   return target;
 }
 
@@ -2056,6 +2179,7 @@ const int ProcessFailedResponse::kErrFieldNumber;
 ProcessFailedResponse::ProcessFailedResponse()
   : ::google::protobuf::Message() {
   SharedCtor();
+  // @@protoc_insertion_point(constructor:SAFplus.Rpc.amfRpc.ProcessFailedResponse)
 }
 
 void ProcessFailedResponse::InitAsDefaultInstance() {
@@ -2065,6 +2189,7 @@ ProcessFailedResponse::ProcessFailedResponse(const ProcessFailedResponse& from)
   : ::google::protobuf::Message() {
   SharedCtor();
   MergeFrom(from);
+  // @@protoc_insertion_point(copy_constructor:SAFplus.Rpc.amfRpc.ProcessFailedResponse)
 }
 
 void ProcessFailedResponse::SharedCtor() {
@@ -2074,6 +2199,7 @@ void ProcessFailedResponse::SharedCtor() {
 }
 
 ProcessFailedResponse::~ProcessFailedResponse() {
+  // @@protoc_insertion_point(destructor:SAFplus.Rpc.amfRpc.ProcessFailedResponse)
   SharedDtor();
 }
 
@@ -2105,39 +2231,41 @@ ProcessFailedResponse* ProcessFailedResponse::New() const {
 
 void ProcessFailedResponse::Clear() {
   _extensions_.Clear();
-  if (_has_bits_[0 / 32] & (0xffu << (0 % 32))) {
-    err_ = 0;
-  }
+  err_ = 0;
   ::memset(_has_bits_, 0, sizeof(_has_bits_));
   mutable_unknown_fields()->Clear();
 }
 
 bool ProcessFailedResponse::MergePartialFromCodedStream(
     ::google::protobuf::io::CodedInputStream* input) {
-#define DO_(EXPRESSION) if (!(EXPRESSION)) return false
+#define DO_(EXPRESSION) if (!(EXPRESSION)) goto failure
   ::google::protobuf::uint32 tag;
-  while ((tag = input->ReadTag()) != 0) {
+  // @@protoc_insertion_point(parse_start:SAFplus.Rpc.amfRpc.ProcessFailedResponse)
+  for (;;) {
+    ::std::pair< ::google::protobuf::uint32, bool> p = input->ReadTagWithCutoff(127);
+    tag = p.first;
+    if (!p.second) goto handle_unusual;
     switch (::google::protobuf::internal::WireFormatLite::GetTagFieldNumber(tag)) {
       // optional sint32 err = 1;
       case 1: {
-        if (::google::protobuf::internal::WireFormatLite::GetTagWireType(tag) ==
-            ::google::protobuf::internal::WireFormatLite::WIRETYPE_VARINT) {
+        if (tag == 8) {
           DO_((::google::protobuf::internal::WireFormatLite::ReadPrimitive<
                    ::google::protobuf::int32, ::google::protobuf::internal::WireFormatLite::TYPE_SINT32>(
                  input, &err_)));
           set_has_err();
         } else {
-          goto handle_uninterpreted;
+          goto handle_unusual;
         }
-        if (input->ExpectAtEnd()) return true;
+        if (input->ExpectAtEnd()) goto success;
         break;
       }
 
       default: {
-      handle_uninterpreted:
-        if (::google::protobuf::internal::WireFormatLite::GetTagWireType(tag) ==
+      handle_unusual:
+        if (tag == 0 ||
+            ::google::protobuf::internal::WireFormatLite::GetTagWireType(tag) ==
             ::google::protobuf::internal::WireFormatLite::WIRETYPE_END_GROUP) {
-          return true;
+          goto success;
         }
         if ((8000u <= tag)) {
           DO_(_extensions_.ParseField(tag, input, default_instance_,
@@ -2150,12 +2278,18 @@ bool ProcessFailedResponse::MergePartialFromCodedStream(
       }
     }
   }
+success:
+  // @@protoc_insertion_point(parse_success:SAFplus.Rpc.amfRpc.ProcessFailedResponse)
   return true;
+failure:
+  // @@protoc_insertion_point(parse_failure:SAFplus.Rpc.amfRpc.ProcessFailedResponse)
+  return false;
 #undef DO_
 }
 
 void ProcessFailedResponse::SerializeWithCachedSizes(
     ::google::protobuf::io::CodedOutputStream* output) const {
+  // @@protoc_insertion_point(serialize_start:SAFplus.Rpc.amfRpc.ProcessFailedResponse)
   // optional sint32 err = 1;
   if (has_err()) {
     ::google::protobuf::internal::WireFormatLite::WriteSInt32(1, this->err(), output);
@@ -2169,10 +2303,12 @@ void ProcessFailedResponse::SerializeWithCachedSizes(
     ::google::protobuf::internal::WireFormat::SerializeUnknownFields(
         unknown_fields(), output);
   }
+  // @@protoc_insertion_point(serialize_end:SAFplus.Rpc.amfRpc.ProcessFailedResponse)
 }
 
 ::google::protobuf::uint8* ProcessFailedResponse::SerializeWithCachedSizesToArray(
     ::google::protobuf::uint8* target) const {
+  // @@protoc_insertion_point(serialize_to_array_start:SAFplus.Rpc.amfRpc.ProcessFailedResponse)
   // optional sint32 err = 1;
   if (has_err()) {
     target = ::google::protobuf::internal::WireFormatLite::WriteSInt32ToArray(1, this->err(), target);
@@ -2186,6 +2322,7 @@ void ProcessFailedResponse::SerializeWithCachedSizes(
     target = ::google::protobuf::internal::WireFormat::SerializeUnknownFieldsToArray(
         unknown_fields(), target);
   }
+  // @@protoc_insertion_point(serialize_to_array_end:SAFplus.Rpc.amfRpc.ProcessFailedResponse)
   return target;
 }
 

@@ -101,8 +101,10 @@ void InterfaceStatisctics::scanInterfaceDevStats(std::string contents)
         std::strncpy(ifLine, line.c_str(), lineLen);
 
         char *subStr = strstr(ifLine, ": ");
-        sscanf(subStr, "%llu %llu %llu %llu %llu %llu %llu %llu "
-                       "%llu %llu %llu %llu %llu %llu %llu %llu ",
+	//        sscanf(subStr, "%llu %llu %llu %llu %llu %llu %llu %llu "
+	//                "%llu %llu %llu %llu %llu %llu %llu %llu ",
+        sscanf(subStr, "%" PRIu64 " %" PRIu64 " %" PRIu64 " %" PRIu64   " %" PRIu64 " %" PRIu64 " %" PRIu64 " %" PRIu64 " "
+	               "%" PRIu64 " %" PRIu64 " %" PRIu64 " %" PRIu64   " %" PRIu64 " %" PRIu64 " %" PRIu64 " %" PRIu64 " ",
                         &(ifStat->rxBytes),
                         &(ifStat->rxPackets),
                         &(ifStat->rxErrors), 

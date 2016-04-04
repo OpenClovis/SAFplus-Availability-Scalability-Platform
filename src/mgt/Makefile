@@ -8,8 +8,8 @@ CPP_FLAGS += -I$(BOOST_DIR) -I. -I.. -I$(SAFPLUS_INC_DIR)
 CPP_FLAGS +=  $(SAFPLUS_MGT_INC_FLAGS)
 
 CLIENT_H := $(wildcard ../include/*.hxx)
-CLIENT_SRC := $(wildcard *.cxx) $(wildcard *.cc)
-CLIENT_OBJ := $(addprefix $(MWOBJ_DIR)/,$(subst .cc,.o, $(subst .cxx,.o,$(CLIENT_SRC))))
+CLIENT_SRC := $(wildcard *.cxx) $(wildcard *.cc) $(wildcard $(PROTOBUFVER)/*.cxx)
+CLIENT_OBJ := $(addprefix $(MWOBJ_DIR)/,$(subst .cc,.o, $(subst .cxx,.o,$(notdir $(CLIENT_SRC)))))
 
 # Specify the required libraries
 SAFPLUS_LIBS := clCkpt clGroup clDbal
@@ -18,10 +18,16 @@ SAFPLUS_DEP_LIBS     := $(addsuffix .so,$(addprefix $(LIB_DIR)/lib,$(SAFPLUS_LIB
 SAFPLUS_LINK_LIBS := -L$(LIB_DIR) $(addprefix -l,$(SAFPLUS_LIBS))  
 
 
-Release all: $(LIB_DIR)/libclMgt.so
+Release all: MgtMsg.pb.hxx $(LIB_DIR)/libclMgt.so
+
+MgtMsg.pb.hxx:
+	ln -s $(PROTOBUFVER)/$@ $@
 
 $(LIB_DIR)/libclMgt.so: $(CLIENT_OBJ) $(SAFPLUS_DEP_LIBS)
-	$(LINK_SO) $@ $(CLIENT_OBJ) $(LINK_SO_LIBS) $(SAFPLUS_LINK_LIBS) `pkg-config --libs protobuf` -lxml2 
+	$(LINK_SO) $@ $(CLIENT_OBJ) $(LINK_SO_LIBS) $(SAFPLUS_LINK_LIBS) $(PROTOBUF_LINK) -lxml2 
+
+$(MWOBJ_DIR)/%.o: $(PROTOBUFVER)/%.cxx Makefile $(CLIENT_H)
+	$(COMPILE_CPP) $@ $<
 
 $(MWOBJ_DIR)/%.o: %.cxx Makefile $(CLIENT_H)
 	$(COMPILE_CPP) $@ $<
@@ -30,8 +36,9 @@ $(MWOBJ_DIR)/%.o: %.cc Makefile $(CLIENT_H)
 	$(COMPILE_CPP) $@ $<
 
 gen:
-	$(PROTOC) -I../3rdparty -I. --cpp_out=./ MgtMsg.proto
-	$(SAFplusRpcGen) -I../3rdparty -I. --rpc_out=./ --rpc_opts=rename=true MgtMsg.proto
+	@mkdir -p $(PROTOBUFVER)
+	$(PROTOC) -I../3rdparty -I. --cpp_out=./$(PROTOBUFVER) MgtMsg.proto
+	$(SAFplusRpcGen) -I../3rdparty -I. --rpc_out=./$(PROTOBUFVER) --rpc_opts=rename=true MgtMsg.proto
 
 clean:
 	rm -f $(LIB_DIR)/libclMgt.so $(CLIENT_OBJ)

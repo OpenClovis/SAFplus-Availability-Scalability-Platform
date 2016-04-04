@@ -212,7 +212,7 @@ namespace SAFplus
         sndMessage.data.init(SAFplus::AlarmState::ALARM_STATE_INVALID,SAFplus::AlarmCategory::ALARM_CATEGORY_INVALID,SAFplus::AlarmSeverity::ALARM_SEVERITY_INVALID,SAFplus::AlarmProbableCause::ALARM_ID_INVALID);
         sndMessage.pluginId=SAFplus::FaultPolicy::Undefined;
         sndMessage.syncData[0]=0;
-        logDebug(FAULT,FAULT_ENTITY,"Deregister fault entity : Node [%d], Process [%d] , Message Type [%d]", reporter.getNode(), reporter.getProcess(),sndMessage.messageType);
+        logDebug(FAULT,FAULT_ENTITY,"Deregister fault entity : Node [%d], Process [%d] , Message Type [%d]", reporter.getNode(), reporter.getProcess(),(int) sndMessage.messageType);
         sendFaultNotification((void *)&sndMessage,sizeof(FaultMessageProtocol),FaultMessageSendMode::SEND_TO_ACTIVE_SERVER);
     }
 

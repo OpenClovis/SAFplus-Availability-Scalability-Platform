@@ -2,7 +2,7 @@
 // source: rpcTest.proto
 
 #define INTERNAL_SUPPRESS_PROTOBUF_FIELD_DEPRECATION
-#include "rpcTest.pb.hxx"
+#include "rpcTest.pb.h"
 
 #include <algorithm>
 

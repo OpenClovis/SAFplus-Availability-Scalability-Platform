@@ -6,7 +6,6 @@
 #include <sstream>
 
 namespace SAFplus {
-
 namespace Rpc {
 namespace amfRpc {
 
@@ -76,20 +75,21 @@ namespace amfRpc {
     //DbgAssert(request->has_pid());
   if (!request->has_pid())  // Improperly formatted RPC call sent -- its asking for processInfo but the process is not specified
     {
-      response->set_command("");
+      response->set_command(" ");  // indicate that the call was valid
       response->set_running(0);
     }
   Process p(request->pid());
   try
     {
     std::string cmdline = p.getCmdline();
+    if (cmdline.size() == 0) cmdline = " ";
     response->set_command(cmdline);
     response->set_running(1);
     }
   catch(ProcessError& e)
     {
       SAFplusI::portAllocator.releasePortByPid(request->pid());
-      response->set_command("");
+      response->set_command(" ");
       response->set_running(0);
     }
   }

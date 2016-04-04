@@ -69,6 +69,9 @@ LOCAL_COMPILER ?= g++
 TMP := $(shell which protoc) # Forces the evaluation right now
 PROTOC ?= $(TMP)
 
+PROTOBUFVER ?= p$(word 2,$(shell $(PROTOC) --version))
+$(info Protobuf version is $(PROTOBUFVER))
+
 # we need to have -Wno-deprecated-warnings because boost uses std::auto_ptr
 COMPILE_CPP ?= $(COMPILER) -std=c++11 -Wno-deprecated-declarations  -g -O0 -fPIC -c $(CPP_FLAGS) -o
 LINK_SO     ?= $(COMPILER) $(LINK_FLAGS) -g -shared -o
@@ -203,15 +206,15 @@ SAFplusRpcGen ?= $(SAFPLUS_TOOL_TARGET)/bin/protoc-gen-rpc
 #Function to do codegen RPC from .yang
 define SAFPLUS_YANG_RPC_GEN
 	PYTHONPATH=$$PYTHONPATH:$(MGT_SRC_DIR)/3rdparty/pyang:/usr/local/lib PYANG_PLUGINPATH=$$PYANG_PLUGINPATH:$(MGT_SRC_DIR)/pyplugin $(MGT_SRC_DIR)/3rdparty/pyang/bin/pyang --path=$(SAFPLUS_SRC_DIR)/yang -f y2cpp $(strip $1).yang --y2cpp-output=`pwd` --y2cpp-sdkdir=$(SAFPLUS_SRC_DIR) --y2cpp-rpc
-	LD_LIBRARY_PATH=/usr/local/lib:/usr/lib protoc -I$(SAFPLUS_3RDPARTY_DIR) -I$(dir $1.proto) -I$(SAFPLUS_SRC_DIR)/rpc --cpp_out=$(strip $2) $(strip $1).proto
-	LD_LIBRARY_PATH=/usr/local/lib:/usr/lib $(SAFplusRpcGen) -I$(SAFPLUS_3RDPARTY_DIR) -I$(dir $1.proto) -I$(SAFPLUS_SRC_DIR)/rpc --rpc_out=$(strip $2) --rpc_opts=$(strip $3) $(strip $1).proto
+	LD_LIBRARY_PATH=/usr/local/lib:/usr/lib protoc -I$(SAFPLUS_3RDPARTY_DIR) -I$(dir $1.proto) -I$(SAFPLUS_SRC_DIR)/rpc --cpp_out=$(PROTOBUFVER)/$(strip $2) $(strip $1).proto
+	LD_LIBRARY_PATH=/usr/local/lib:/usr/lib $(SAFplusRpcGen) -I$(SAFPLUS_3RDPARTY_DIR) -I$(dir $1.proto) -I$(SAFPLUS_SRC_DIR)/rpc --rpc_out=$(PROTOBUFVER)/$(strip $2) --rpc_opts=$(strip $3) $(strip $1).proto
 endef
 
 #1. Google protoc generated
 #2. Rename pb.h => pb.hxx, pb.cc => pb.cxx if param = true
 #3. Code generated fro SAFplus RPC architecture 
 define SAFPLUS_RPC_GEN
-	$(PROTOC) -I$(SAFPLUS_3RDPARTY_DIR) -I$(dir $1.proto) -I$(SAFPLUS_SRC_DIR)/rpc --cpp_out=$2 $1.proto
+	$(PROTOC) -I$(SAFPLUS_3RDPARTY_DIR) -I$(dir $1.proto) -I$(SAFPLUS_SRC_DIR)/rpc --cpp_out=$(PROTOBUFVER)/$2 $1.proto
 	LD_LIBRARY_PATH=$$LD_LIBRARY_PATH:/usr/local/lib:/usr/lib $(SAFplusRpcGen) -I$(SAFPLUS_3RDPARTY_DIR) -I$(dir $1.proto) -I$(SAFPLUS_SRC_DIR)/rpc --rpc_out=$2 --rpc_opts=$(strip $3) $1.proto
 endef
 

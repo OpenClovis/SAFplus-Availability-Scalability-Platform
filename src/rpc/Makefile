@@ -2,13 +2,16 @@ S7 := 1
 SAFPLUS_RPC_LIB := 1
 include ../mk/preface.mk
 
-CPP_FLAGS += `$(PKG_CONFIG) --cflags protobuf`
+CPP_FLAGS += -I./$(PROTOBUFVER)
 
 CLIENT_H := $(wildcard *.hxx) $(wildcard $(SAFPLUS_INC_DIR)/*.h) $(wildcard $(SAFPLUS_INC_DIR)/*.hxx)
-CLIENT_SRC = $(wildcard *.cxx)
-CLIENT_OBJ = $(addprefix $(MWOBJ_DIR)/, $(subst .cxx,.o,$(CLIENT_SRC)))
+CLIENT_SRC = $(wildcard *.cxx) $(wildcard $(PROTOBUFVER)/*.cc)
+CLIENT_OBJ = $(addprefix $(MWOBJ_DIR)/, $(subst .cc,.o, $(subst .cxx,.o,$(notdir $(CLIENT_SRC)))))
 
-Release all: $(SAFPLUS_TOOL_TARGET)/bin/protoc-gen-rpc $(LIB_DIR)/libclRpc.so
+Release all: SAFplusPBExt.pb.hxx $(SAFPLUS_TOOL_TARGET)/bin/protoc-gen-rpc $(LIB_DIR)/libclRpc.so
+
+SAFplusPBExt.pb.hxx:
+	ln -s $(PROTOBUFVER)/SAFplusPBExt.pb.h $@
 
 $(LIB_DIR)/libclRpc.so: $(CLIENT_OBJ)
 	$(LINK_SO) $@ $(CLIENT_OBJ) $(SAFPLUS_LINK_LIBS) $(LINK_SO_LIBS)
@@ -19,7 +22,11 @@ $(SAFPLUS_TOOL_TARGET)/bin/protoc-gen-rpc:
 $(MWOBJ_DIR)/%.o: %.cxx
 	$(COMPILE_CPP) $@ $<
 
+$(MWOBJ_DIR)/%.o: $(PROTOBUFVER)/%.cc
+	$(COMPILE_CPP) $@ $<
+
 gen: $(SAFPLUS_TOOL_TARGET)/bin/protoc-gen-rpc
+	@mkdir -p $(PROTOBUFVER)
 	$(call SAFPLUS_RPC_GEN, SAFplusPBExt,.,rename=true)
 	$(call SAFPLUS_RPC_GEN, SAFplusRpc,.,rename=true)
 

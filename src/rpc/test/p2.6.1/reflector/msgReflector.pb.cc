@@ -2,7 +2,7 @@
 // source: msgReflector.proto
 
 #define INTERNAL_SUPPRESS_PROTOBUF_FIELD_DEPRECATION
-#include "msgReflector.pb.hxx"
+#include "msgReflector.pb.h"
 
 #include <algorithm>
 

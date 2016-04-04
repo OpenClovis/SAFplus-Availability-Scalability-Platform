@@ -1,4 +1,4 @@
-#include "amfAppRpc/amfAppRpc.hxx"
+#include <amfAppRpc.hxx>
 
 namespace SAFplus {
 

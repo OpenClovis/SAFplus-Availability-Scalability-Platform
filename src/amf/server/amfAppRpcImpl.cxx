@@ -1,4 +1,4 @@
-#include "amfAppRpc/amfAppRpc.hxx"
+#include <amfAppRpc.hxx>
 #include <clLogApi.hxx>
 #include <clNameApi.hxx>
 //#include <clAmfIpi.hxx>
@@ -30,13 +30,13 @@ namespace amfAppRpc {
                                 ::SAFplus::Rpc::amfAppRpc::TerminateResponse* response)
   {
   logInfo("AMF","RPC", "terminate");
-  dbgAssert(0); // Should never be received by an AMF
+  assert(0); // Should never be received by an AMF
   }
 
   void amfAppRpcImplAmfSide::workOperation(const ::SAFplus::Rpc::amfAppRpc::WorkOperationRequest* request)
     {
     logError("AMF","RPC","work Operation");
-    dbgAssert(0); // Should never be received by an AMF
+    assert(0); // Should never be received by an AMF
     }
 
   void amfAppRpcImplAmfSide::workOperationResponse(const ::SAFplus::Rpc::amfAppRpc::WorkOperationResponseRequest* request)

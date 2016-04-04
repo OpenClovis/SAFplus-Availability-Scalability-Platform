@@ -35,7 +35,14 @@ namespace amfAppRpc {
     {
     ScopedAllocation allocated;
     Handle hdl;
-    memcpy(&hdl,request->componenthandle().c_str(),sizeof(Handle));
+
+    if (request->componenthandle().size() != 1)
+      {
+      logWarning("AMF","RPC","Bad work operation, garbage component handle");
+      return;  
+      }
+    
+    memcpy(&hdl,request->componenthandle().Get(0).c_str(),sizeof(Handle));
     logInfo("AMF","RPC","Work Operation on component [%" PRIx64 ":%" PRIx64 "]",hdl.id[0],hdl.id[1]);
     SaNameT compName;
     SAFplus::saNameSet(&compName,request->componentname().c_str());

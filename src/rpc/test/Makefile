@@ -6,19 +6,19 @@ CPP_FLAGS += -I.. -I./stubs
 
 STUBS_H   := $(wildcard *.hxx) $(wildcard stubs/*.hxx)
 
-CLIENT_SRC := TestClient.cxx RpcWakeable.cxx $(notdir $(wildcard stubs/*.cxx))
+CLIENT_SRC := TestClient.cxx RpcWakeable.cxx $(notdir $(wildcard $(PROTOBUFVER)/stubs/*.cxx))
 CLIENT_OBJ := $(addprefix $(OBJ_DIR)/test/rpc/, $(subst .cxx,.o,$(CLIENT_SRC)))
 
-SERVER_SRC := TestServer.cxx $(notdir $(wildcard stubs/*.cxx)) $(notdir $(wildcard stubs/server/*.cxx))
+SERVER_SRC := TestServer.cxx $(notdir $(wildcard $(PROTOBUFVER)/stubs/*.cxx)) $(notdir $(wildcard $(PROTOBUFVER)/stubs/server/*.cxx))
 SERVER_OBJ := $(addprefix $(OBJ_DIR)/test/rpc/,$(subst .cxx,.o,$(SERVER_SRC)))
 
-COMBINE_SRC := TestCombine.cxx RpcWakeable.cxx $(notdir $(wildcard stubs/*.cxx)) $(notdir $(wildcard stubs/server/*.cxx))
+COMBINE_SRC := TestCombine.cxx RpcWakeable.cxx $(notdir $(wildcard $(PROTOBUFVER)/stubs/*.cxx)) $(notdir $(wildcard $(PROTOBUFVER)/stubs/server/*.cxx))
 COMBINE_OBJ := $(addprefix $(OBJ_DIR)/test/rpc/,$(subst .cxx,.o,$(COMBINE_SRC)))
 
-REFLECTOR_SRC := rpcReflector.cxx $(notdir $(wildcard reflection/*.cxx))
+REFLECTOR_SRC := rpcReflector.cxx $(notdir $(wildcard $(PROTOBUFVER)/reflection/*.cxx))
 REFLECTOR_OBJ := $(addprefix $(OBJ_DIR)/test/rpc/,$(subst .cxx,.o,$(REFLECTOR_SRC)))
 
-PERF_SRC := testRpcPerf.cxx $(notdir $(wildcard reflection/*.cxx))
+PERF_SRC := testRpcPerf.cxx $(notdir $(wildcard $(PROTOBUFVER)/reflection/*.cxx))
 PERF_OBJ := $(addprefix $(OBJ_DIR)/test/rpc/,$(subst .cxx,.o,$(PERF_SRC)))
 
 # Specify the required libraries
@@ -53,15 +53,15 @@ $(OBJ_DIR)/test/rpc/%.o: %.cxx Makefile $(STUBS_H)
 	-mkdir -p $(OBJ_DIR)/test/rpc
 	$(COMPILE_CPP) $@ $<
 
-$(OBJ_DIR)/test/rpc/%.o: stubs/%.cxx Makefile $(STUBS_H)
+$(OBJ_DIR)/test/rpc/%.o: $(PROTOBUFVER)/stubs/%.cxx Makefile $(STUBS_H)
 	-mkdir -p $(OBJ_DIR)/test/rpc
 	$(COMPILE_CPP) $@ $<
 
-$(OBJ_DIR)/test/rpc/%.o: reflection/%.cxx Makefile $(STUBS_H)
+$(OBJ_DIR)/test/rpc/%.o: $(PROTOBUFVER)/reflection/%.cxx Makefile $(STUBS_H)
 	-mkdir -p $(OBJ_DIR)/test/rpc
 	$(COMPILE_CPP) $@ $<
 
-$(OBJ_DIR)/test/rpc/%.o: stubs/server/%.cxx Makefile $(STUBS_H)
+$(OBJ_DIR)/test/rpc/%.o: $(PROTOBUFVER)/stubs/server/%.cxx Makefile $(STUBS_H)
 	-mkdir -p $(OBJ_DIR)/test/rpc
 	$(COMPILE_CPP) $@ $<
 
@@ -69,11 +69,11 @@ $(OBJ_DIR)/test/rpc/%.o: stubs/server/%.cxx Makefile $(STUBS_H)
 export PYANG_PLUGINPATH=$(shell pwd)/../
 
 gen:
-	mkdir -p ./stubs
+	mkdir -p ./$(PROTOBUFVER)/stubs
 	$(call SAFPLUS_RPC_GEN,rpcTest,stubs)
-	mkdir -p ./reflector
+	mkdir -p ./$(PROTOBUFVER)/reflector
 	$(call SAFPLUS_RPC_GEN,msgReflector,reflector)
-	-mkdir -p reflection
+	-mkdir -p ./$(PROTOBUFVER)/reflection
 	$(call SAFPLUS_YANG_RPC_GEN, msgReflection, reflection)
 
 cleangen:

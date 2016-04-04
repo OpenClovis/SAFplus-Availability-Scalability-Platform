@@ -365,6 +365,7 @@ namespace SAFplus
       struct sockaddr_in from[SAFplusI::SctpTransportMaxMsg] = {0};
       struct iovec iovecs[SAFplusI::SctpTransportMaxFragments];
       struct timespec timeoutMem;
+      struct timeval timeout4sockopt;
       struct timespec* timeout;
       uint_t flags = MSG_WAITFORONE;
 
@@ -373,6 +374,9 @@ namespace SAFplus
         timeout = &timeoutMem;
         timeout->tv_sec = maxDelay/1000;
         timeout->tv_nsec = (maxDelay%1000)*1000000L;  // convert milli to nano, multiply by 1 million
+
+        timeout4sockopt.tv_sec = maxDelay/1000;
+        timeout4sockopt.tv_usec = (maxDelay%1000)*1000L;  // convert milli to micro, multiply by 1 thousand
         }
       else if (maxDelay == 0)
         {
@@ -382,6 +386,8 @@ namespace SAFplus
       else 
         {
         timeout = NULL;
+        timeout4sockopt.tv_sec = INT_MAX;  // basically forever
+        timeout4sockopt.tv_usec = 0;  // convert milli to micro, multiply by 1 thousand
         }
 
       memset(msgs,0,sizeof(msgs));
@@ -395,6 +401,16 @@ namespace SAFplus
         msgs[i].msg_hdr.msg_namelen = sizeof(struct sockaddr_in);
         }
 
+      if (timeout)
+        {
+          // For Linux only.  For Windows, pass a 32 bit integer in milliseconds.
+          if(setsockopt(sock, SOL_SOCKET, SO_RCVTIMEO, &timeout4sockopt, sizeof(timeout4sockopt)) < 0)
+            {
+              assert(0);
+            }
+        }
+      
+      
       int retval = recvmmsg(sock, msgs, 1, flags, timeout);
       if (retval == -1)
         {

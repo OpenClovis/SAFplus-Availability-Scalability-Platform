@@ -35,9 +35,9 @@
 //#include <clTimer7.hxx>
 
 #include "clRpcChannel.hxx"
-#include "amfRpc/amfRpc.pb.hxx"
-#include "amfRpc/amfRpc.hxx"
-#include "amfAppRpc/amfAppRpc.hxx"
+#include <amfRpc.pb.hxx>
+#include <amfRpc.hxx>
+#include <amfAppRpc.hxx>
 #include "amfAppRpcImplAmfSide.hxx"
 
 #define USE_GRP
