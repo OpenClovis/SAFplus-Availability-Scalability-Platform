@@ -40,7 +40,7 @@ endif
 image: $(IMAGE_FILE)
 
 $(IMAGE_FILE): $(TEST_DIR)/testLog
-	cp setup start $(SAFPLUS_TARGET)
+	cp setup start cleanup $(SAFPLUS_TARGET)
 	$(SAFPLUS_MAKE_DIR)/safplus_packager.py -x "(cp setup start {image_dir})" $@
 
 

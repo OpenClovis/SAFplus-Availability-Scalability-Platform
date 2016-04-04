@@ -2,7 +2,7 @@ S7 := 1
 SAFPLUS_RPC_TEST := 1
 include ../../mk/preface.mk
 
-CPP_FLAGS += -I.. -I./stubs
+CPP_FLAGS += -I.. -I$(PROTOBUFVER) -I$(PROTOBUFVER)/stubs
 
 STUBS_H   := $(wildcard *.hxx) $(wildcard stubs/*.hxx)
 
@@ -74,7 +74,7 @@ gen:
 	mkdir -p ./$(PROTOBUFVER)/reflector
 	$(call SAFPLUS_RPC_GEN,msgReflector,reflector)
 	-mkdir -p ./$(PROTOBUFVER)/reflection
-	$(call SAFPLUS_YANG_RPC_GEN, msgReflection, reflection)
+	$(call SAFPLUS_YANG_RPC_GEN, msgReflection,reflection)
 
 cleangen:
 	rm -rf stubs

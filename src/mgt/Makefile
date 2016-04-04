@@ -20,7 +20,7 @@ SAFPLUS_LINK_LIBS := -L$(LIB_DIR) $(addprefix -l,$(SAFPLUS_LIBS))
 
 Release all: MgtMsg.pb.hxx $(LIB_DIR)/libclMgt.so
 
-MgtMsg.pb.hxx:
+MgtMsg.pb.hxx: $(PROTOBUFVER)/MgtMsg.pb.hxx
 	ln -s $(PROTOBUFVER)/$@ $@
 
 $(LIB_DIR)/libclMgt.so: $(CLIENT_OBJ) $(SAFPLUS_DEP_LIBS)
@@ -35,10 +35,13 @@ $(MWOBJ_DIR)/%.o: %.cxx Makefile $(CLIENT_H)
 $(MWOBJ_DIR)/%.o: %.cc Makefile $(CLIENT_H)
 	$(COMPILE_CPP) $@ $<
 
-gen:
+$(PROTOBUFVER)/MgtMsg.pb.hxx:
 	@mkdir -p $(PROTOBUFVER)
 	$(PROTOC) -I../3rdparty -I. --cpp_out=./$(PROTOBUFVER) MgtMsg.proto
 	$(SAFplusRpcGen) -I../3rdparty -I. --rpc_out=./$(PROTOBUFVER) --rpc_opts=rename=true MgtMsg.proto
+
+
+gen:  $(PROTOBUFVER)/MgtMsg.pb.hxx MgtMsg.pb.hxx 
 
 clean:
 	rm -f $(LIB_DIR)/libclMgt.so $(CLIENT_OBJ)

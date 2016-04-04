@@ -10,7 +10,7 @@ CLIENT_OBJ = $(addprefix $(MWOBJ_DIR)/, $(subst .cc,.o, $(subst .cxx,.o,$(notdir
 
 Release all: SAFplusPBExt.pb.hxx $(SAFPLUS_TOOL_TARGET)/bin/protoc-gen-rpc $(LIB_DIR)/libclRpc.so
 
-SAFplusPBExt.pb.hxx:
+SAFplusPBExt.pb.hxx: $(PROTOBUFVER)/SAFplusPBExt.pb.h
 	ln -s $(PROTOBUFVER)/SAFplusPBExt.pb.h $@
 
 $(LIB_DIR)/libclRpc.so: $(CLIENT_OBJ)
@@ -19,16 +19,19 @@ $(LIB_DIR)/libclRpc.so: $(CLIENT_OBJ)
 $(SAFPLUS_TOOL_TARGET)/bin/protoc-gen-rpc:
 	make -C protoc
 
-$(MWOBJ_DIR)/%.o: %.cxx
+$(MWOBJ_DIR)/%.o: %.cxx SAFplusPBExt.pb.hxx
 	$(COMPILE_CPP) $@ $<
 
-$(MWOBJ_DIR)/%.o: $(PROTOBUFVER)/%.cc
+$(MWOBJ_DIR)/%.o: $(PROTOBUFVER)/%.cc SAFplusPBExt.pb.hxx
 	$(COMPILE_CPP) $@ $<
 
-gen: $(SAFPLUS_TOOL_TARGET)/bin/protoc-gen-rpc
+$(PROTOBUFVER)/SAFplusPBExt.pb.h:
 	@mkdir -p $(PROTOBUFVER)
 	$(call SAFPLUS_RPC_GEN, SAFplusPBExt,.,rename=true)
 	$(call SAFPLUS_RPC_GEN, SAFplusRpc,.,rename=true)
+
+
+gen: SAFplusPBExt.pb.hxx $(SAFPLUS_TOOL_TARGET)/bin/protoc-gen-rpc
 
 cleangen:
 	rm -rf *.pb.hxx *.pb.cxx

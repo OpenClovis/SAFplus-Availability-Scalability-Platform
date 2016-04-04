@@ -215,7 +215,7 @@ endef
 #3. Code generated fro SAFplus RPC architecture 
 define SAFPLUS_RPC_GEN
 	$(PROTOC) -I$(SAFPLUS_3RDPARTY_DIR) -I$(dir $1.proto) -I$(SAFPLUS_SRC_DIR)/rpc --cpp_out=$(PROTOBUFVER)/$2 $1.proto
-	LD_LIBRARY_PATH=$$LD_LIBRARY_PATH:/usr/local/lib:/usr/lib $(SAFplusRpcGen) -I$(SAFPLUS_3RDPARTY_DIR) -I$(dir $1.proto) -I$(SAFPLUS_SRC_DIR)/rpc --rpc_out=$2 --rpc_opts=$(strip $3) $1.proto
+	LD_LIBRARY_PATH=$$LD_LIBRARY_PATH:/usr/local/lib:/usr/lib $(SAFplusRpcGen) -I$(SAFPLUS_3RDPARTY_DIR) -I$(dir $1.proto) -I$(SAFPLUS_SRC_DIR)/rpc --rpc_out=$(PROTOBUFVER)/$2 --rpc_opts=$(strip $3) $1.proto
 endef
 
 #endif
