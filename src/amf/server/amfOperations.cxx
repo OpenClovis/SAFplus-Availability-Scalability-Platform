@@ -29,8 +29,6 @@ extern Handle           nodeHandle; //? The handle associated with this node
 namespace SAFplus
   {
 
-    uint64_t nowMs() { return std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::system_clock::now().time_since_epoch()).count(); }
-
     WorkOperationTracker::WorkOperationTracker(SAFplusAmf::Component* c,SAFplusAmf::ComponentServiceInstance* cwork,SAFplusAmf::ServiceInstance* work,uint statep, uint targetp)
     {
     comp = c; csi = cwork; si=work; state = statep; target = targetp;

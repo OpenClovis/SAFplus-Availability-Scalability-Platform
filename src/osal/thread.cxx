@@ -6,9 +6,12 @@
 //#include <clCommonErrors.h>
 #include <errno.h>
 #include <stdio.h>
+#include <chrono>
 
 namespace SAFplus
 {
+
+  uint64_t nowMs() { return std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::system_clock::now().time_since_epoch()).count(); }
 
 Wakeable& BLOCK = *((Wakeable*) NULL);
 Wakeable& ABORT = *((Wakeable*) 1);

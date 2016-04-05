@@ -4,3 +4,9 @@
 
 #include <clThreadApi.hxx>
 #include <clProcessApi.hxx>
+
+namespace SAFplus
+{
+  //? Return the current monotonically increasing time in milliseconds
+  uint64_t nowMs();
+}

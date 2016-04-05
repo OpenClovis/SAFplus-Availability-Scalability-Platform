@@ -145,6 +145,13 @@ class NodeStatistics
     //? Number of processes blocked waiting for I/O to complete
     uint64_t numProcBlocked;
 
+    //? The number of threads (a process contains at least 1 thread) currently in runnable state.
+    uint64_t numThreadsRunning;
+
+    //? Number of threads (a process contains at least 1 thread) blocked waiting for I/O to complete
+    uint64_t numThreads;
+
+
     NodeStatistics();
     ~NodeStatistics();
     NodeStatistics operator-(const NodeStatistics& b); 

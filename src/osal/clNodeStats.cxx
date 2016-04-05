@@ -42,7 +42,9 @@ NodeStatistics::NodeStatistics():loadAvg(0), sysUpTime(0),
                                  numProcesses(0),
                                  cumulativeProcesses(0),
                                  numProcRunning(0),
-                                 numProcBlocked(0) 
+                                 numProcBlocked(0),
+                                 numThreadsRunning(0),
+                                 numThreads(0) 
 {
 }
 
@@ -183,18 +185,18 @@ void NodeStatistics::scanProcLoadAvg(std::string fileBuf)
     double avg1;
     double avg5;
     double avg15;
+    pid_t lastPidCreated;
 
     str = const_cast<char *>(fileBuf.c_str());
 
-    if (sscanf(str, "%lf %lf %lf", &avg1, &avg5, &avg15) < 3)
+    if (sscanf(str, "%lf %lf %lf %" PRIu64 "/%" PRIu64 " %d", &avg1, &avg5, &avg15,&numThreadsRunning,&numThreads,&lastPidCreated) < 3)
     {
         logDebug("STAT", "SCAN", "Unable to read the CPU load average");
         throw statAccessErrors("Unable to access Node Statistics");
     }
     
     loadAvg = avg1;
-    logTrace("STAT", "SCAN", "CPU utilization in last 15 "
-             "minutes is %lf", loadAvg);
+    logTrace("STAT", "SCAN", "Avergage job in last minute is %lf", loadAvg);
 
     return;
 }

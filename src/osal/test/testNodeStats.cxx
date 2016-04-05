@@ -19,8 +19,10 @@
 #include <clTestApi.hxx>
 #include <clLogApi.hxx>
 #include <clGlobals.hxx>
-//#include <clCommon.hxx>
-#include "clNodeStats.hxx"
+#include <clOsalApi.hxx>
+#include <clNodeStats.hxx>
+#include <clThreadApi.hxx>
+#include <boost/thread.hpp>
 #include "testOsal.hxx"
 
 
@@ -36,6 +38,31 @@ TestNodeStats::~TestNodeStats()
 {
 }
 
+
+class CpuChewer
+{
+public:
+  int instance;
+  CpuChewer(int inst) { instance = inst; }
+  void operator()()
+  {
+    double someMath=1;
+    uint64_t start = nowMs();
+    uint64_t end;
+    printf("starting load cpu chewer %d at: %" PRIu64 "\n", instance, start);
+    do
+      {
+      for(int iloop=0;iloop<999999999;iloop++)
+      {
+        someMath = iloop + (someMath*1.342343);
+        someMath = sqrt(37.56*someMath);
+      }
+      end = nowMs();
+      } while (end - start < 60000);  // Need at least 1 minute test or the load Avg might not update
+  }
+};
+
+
 void TestNodeStats::testLoadAvg()
 {
     
@@ -43,19 +70,34 @@ void TestNodeStats::testLoadAvg()
     double ldAvg1;
     double ldAvg2;
     int32_t iloop = 0;
+
+    printf("Load ave test -- sample current process utilization\n");
+    sleep(60); // get a sample with idle processes
     nStat.read();
     ldAvg1 = nStat.loadAvg;
     double someMath=1;
-    for(int iloop=0;iloop<999999999;iloop++)
-    {
-       iloop++;
-       someMath = someMath*1.342343;
-       someMath = sqrt(37.56*someMath);
-    }
+    uint64_t start = nowMs();
+    uint64_t end;
+    printf("starting load ave test at: %" PRIu64 "\n", start);
+    boost::thread(CpuChewer(1));
+    boost::thread(CpuChewer(2));
+    boost::thread(CpuChewer(3));
+    boost::thread(CpuChewer(4));
+    do
+      {
+      for(int iloop=0;iloop<999999999;iloop++)
+      {
+        someMath = iloop + (someMath*1.342343);
+        someMath = sqrt(37.56*someMath);
+      }
+      end = nowMs();
+      } while (end - start < 60000);  // Need at least 1 minute test or the load Avg might not update
 
     NodeStatistics nStat2;
     nStat2.read();
     ldAvg2 = nStat2.loadAvg;
+
+    printf("ending load ave test at: %" PRIu64 " Duration: %" PRIu64 " sec.  load: %lf, then %lf\n", start, (end-start)/1000,ldAvg1,ldAvg2); 
 
     //TODO: Better way is to have a seperate thread with spin loop,
     // and the main thread should wait for 1 min and then 

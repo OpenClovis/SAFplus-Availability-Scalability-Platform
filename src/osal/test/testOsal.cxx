@@ -51,7 +51,7 @@ public:
   void operator()()
   {
         boost::this_thread::sleep(boost::posix_time::milliseconds(delay));
-        printf(printThis);
+        printf("%s",printThis);
 	wake->wake(1,NULL);
   }
 };
