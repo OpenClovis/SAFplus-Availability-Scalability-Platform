@@ -4983,9 +4983,16 @@ clAmsPeSURestart(
             for ( k = clAmsEntityListGetFirst(&csi->status.pgList); k != (ClAmsEntityRefT *) NULL; k = clAmsEntityListGetNext(&csi->status.pgList, k) )
               {
               ClAmsCSICompRefT    *cref = (ClAmsCSICompRefT *) k;    
-              ClAmsCompT          *c = (ClAmsCompT *) k->ptr;
-              assert((ClAmsSUT *)c->config.parentSU.ptr == su); // This must be the case if the pointers are properly hooked up 
-              
+              ClAmsCompT          *c = (ClAmsCompT *) k->ptr;              
+              ClAmsEntityRefT* t;
+              for ( t = clAmsEntityListGetFirst(&su->config.compList); t != (ClAmsEntityRefT *) NULL; t = clAmsEntityListGetNext(&su->config.compList, t) )
+              {
+                 ClAmsCompT* comp = (ClAmsCompT*) t->ptr;
+                 if (comp == c)
+                 {
+                    assert((ClAmsSUT *)c->config.parentSU.ptr == su); // This must be the case if the pointers are properly hooked up
+                 }
+              }
               if ((cref->haState == CL_AMS_HA_STATE_ACTIVE)&&(c->config.property == CL_AMS_COMP_PROPERTY_NON_PROXIED_NON_PREINSTANTIABLE))
                 {
                     CL_AMS_SET_P_STATE(c, CL_AMS_PRESENCE_STATE_INSTANTIATING);
