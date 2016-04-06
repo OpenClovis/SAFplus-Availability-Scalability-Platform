@@ -78,7 +78,7 @@ SaAisErrorT saMsgQueueGroupCreate(SaMsgHandleT msgHandle,
     if(clMsgQGroupCkptExists((ClNameT*)pQueueGroupName, &qGroupData) == CL_TRUE)
     {
         rc = CL_MSG_RC(CL_ERR_ALREADY_EXIST);
-        clLogError("MSG", "QGC", "Message queue group [%.*s] already exists. error code [0x%x]."
+        clLogWarning("MSG", "QGC", "Message queue group [%.*s] already exists. error code [0x%x]."
                         , pQueueGroupName->length, pQueueGroupName->value
                         , rc);
         goto error_out;
