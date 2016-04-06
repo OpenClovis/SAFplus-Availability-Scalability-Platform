@@ -1762,6 +1762,7 @@ ClRcT clCkptSectionCreate(
         }while(CL_GET_ERROR_CODE(rc) == CL_ERR_TIMEOUT && (numRetries++ < 2));                         
         tryAgain = clCkptHandleTypicalErrors(rc, ckptHdl,&nodeAddr);
 
+#if 0
         /* 
          * Maybe the active address has changed and this client hasn't received the update yet.
          */
@@ -1769,7 +1770,7 @@ ClRcT clCkptSectionCreate(
         {
             rc = CL_ERR_TRY_AGAIN;
         }
-
+#endif
     }while((tryAgain == CL_TRUE) && (maxRetry++ < 2));
 
     /* 
