@@ -4991,6 +4991,7 @@ clAmsPeSURestart(
                  if (comp == c)
                  {
                     assert((ClAmsSUT *)c->config.parentSU.ptr == su); // This must be the case if the pointers are properly hooked up
+                    break;
                  }
               }
               if ((cref->haState == CL_AMS_HA_STATE_ACTIVE)&&(c->config.property == CL_AMS_COMP_PROPERTY_NON_PROXIED_NON_PREINSTANTIABLE))
