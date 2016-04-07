@@ -1064,7 +1064,7 @@ class Panel(scrolled.ScrolledPanel):
           ret.add(e)
       return ret
 
-    def notifyValueChange(self, ent, key, newValue):
+    def notifyValueChange(self, ent, key, query, newValue):      
       if share.instancePanel:
         share.instancePanel.modifyEntityTool(ent, newValue)
       for (name, e) in self.entities.items():
@@ -1084,6 +1084,13 @@ class Panel(scrolled.ScrolledPanel):
             except StopIteration:
               break
           d[token] = newValue
+          if token == "name":
+            self.entities[newValue] = self.entities.pop(name)
+          validator = query.GetValidator()
+          if validator:            
+            validator.currentValue = newValue
+          else:
+            print 'umlEditor::notifyValueChange: validator is null'
           e.recreateBitmap()
       self.Refresh()
 

@@ -1252,13 +1252,13 @@ class Panel(scrolled.ScrolledPanel):
     
     def saveGrayCell(self, added, entities):
       thisSg = ""
+      tagName = "disableAssignmentOn"
       for e in entities:
         if e.et.name == "ServiceGroup":
           thisSg = e.data["name"]
           break
       for e in entities:
-        if e.et.name == "Node":           
-          tagName = "disableAssignmentOn"
+        if e.et.name == "Node":
           thisNode = e.data["name"]
           values = self.model.instances.get(thisNode, None)
           if not values:
@@ -1585,7 +1585,7 @@ class Panel(scrolled.ScrolledPanel):
           return e
       return None
 
-    def notifyValueChange(self, ent, key, newValue):      
+    def notifyValueChange(self, ent, key, query, newValue):
       for (name, e) in self.model.instances.items():
         if e == ent:
           iterKeys = iter(key.split("_"))
@@ -1602,7 +1602,15 @@ class Panel(scrolled.ScrolledPanel):
                 break
             except StopIteration:
               break
-          d[token] = newValue
+          d[token] = newValue          
+          # set the name (as a key) of self.model.instances dict
+          if token == "name":
+            self.model.instances[newValue] = self.model.instances.pop(name)
+          validator = query.GetValidator()
+          if validator:            
+            validator.currentValue = newValue
+          else:
+            print 'instanceEditor::notifyValueChange: validator is null'
           e.recreateBitmap()
       self.Refresh()
 
