@@ -1361,8 +1361,12 @@ ClRcT handleCompCSIAssign(ClCpmCompCSISetT *info,
         if((csiDescriptor.csiFlags & CL_AMS_CSI_FLAG_TARGET_ALL))
         {
             ClBoolT haStateUpdated = CL_TRUE;
+            ClUint32T csiCount = 0;
+            clCntSizeGet(pCompCSIList->csiList, &csiCount);
             cpmCompCSIUpdateAll(pCompCSIList,&csiDescriptor,info->haState, &haStateUpdated);
-            if(haStateUpdated == CL_TRUE)
+
+            /* If no CSI active assigned to this component (csiCount=0), treat re-assignment as swap state */
+            if(haStateUpdated == CL_TRUE || ((CL_AMS_HA_STATE_ACTIVE == info->haState) && !csiCount)) /* expecting a swap state standby->active but not quicescing/quiesced */
             {
                 clOsalMutexUnlock(gCpmCompCSIListMutex);
                 goto csi_set;
