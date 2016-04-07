@@ -619,6 +619,11 @@ class Panel(scrolled.ScrolledPanel):
       self.sizer.Layout()
       self.Refresh()
 
+    def deleteEntFromLookup(self, ent):      
+      deletedItems = [k for (k,v) in self.lookup.items() if v[5] == ent]
+      for k in deletedItems:
+        del self.lookup[k]
+
     def deleteTreeItemEntities(self, ents, tmpList = None):
       if tmpList == None:
         tmpList = ents
@@ -639,6 +644,8 @@ class Panel(scrolled.ScrolledPanel):
               except:
                 pass
             self.tree.Delete(treeItem)
+            # delete associated items with this entity from self.lookup dict
+            self.deleteEntFromLookup(ent)          
 
     # Create controls for an entity
     def createTreeItemEntity(self, name, ent, parentItem = None):
