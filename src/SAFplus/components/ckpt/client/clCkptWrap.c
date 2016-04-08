@@ -1529,7 +1529,7 @@ static ClBoolT clCkptHandleTypicalErrors(ClRcT rc, ClCkptHdlT ckptHdl,ClIocNodeA
          (CL_IOC_ERR_HOST_UNREACHABLE == CL_GET_ERROR_CODE(rc)) || 
          (rc == CL_CKPT_ERR_NOT_EXIST && nodeAddr && *nodeAddr == CL_CKPT_UNINIT_VALUE)
          ||
-         (CL_GET_ERROR_CODE(rc) == CL_ERR_NOT_EXIST))
+         ((CL_GET_ERROR_CODE(rc) == CL_ERR_NOT_EXIST) && (CL_GET_CID(rc) == CL_CID_IOC)))
     {
         /* 
          * Maybe the active address has changed and this client 
