@@ -22,6 +22,8 @@
 #include <clMsgPortsAndTypes.hxx>
 #include <MgtMsg.pb.hxx>
 
+
+
 //TODO Temporary using clCommonErrors6.h
 #include <clCommonErrors6.h>
 
@@ -121,16 +123,11 @@ namespace SAFplus
     MsgRpc rpcMsgReq;
     if(reqType==Mgt::Msg::MsgMgt::CL_MGT_MSG_RPC)
     {
-        std::string request;
-        std::string data = pathSpec;
-        if (value.length() > 0)
-        {
-          data += "," + value;
-        }
+        std::string data = value;
         rpcMsgReq.set_rpctype(rpcType);
         rpcMsgReq.set_data(data);
+//        rpcMsgReq.set_bind(pathSpec)
         rpcMsgReq.SerializeToString(&request);
-        logError("MGT", "REV", "send RPC");
     }
     else
     {
@@ -138,7 +135,7 @@ namespace SAFplus
         mgtMsgReq.set_bind(pathSpec);
         mgtMsgReq.add_data(value);
         mgtMsgReq.SerializeToString(&request);
-        logError("MGT", "REV", "send MGT");
+        logError("MGT", "REV", "send MGT [%d] [%s] [%s]",reqType,pathSpec.c_str(),value.c_str());
     }
     SAFplus::SafplusMsgServer* mgtIocInstance = &SAFplus::safplusMsgServer;
     try
@@ -160,6 +157,7 @@ namespace SAFplus
   {
     std::string output = "";
     MsgGeneral rxMsg;
+    logError("MGT", "REV", "mgtget call");
     SAFplus::MsgReply *msgReply = mgtRpcRequest(src, Mgt::Msg::MsgMgt::CL_MGT_MSG_XGET, pathSpec);
     if (msgReply != NULL)
     {
@@ -254,7 +252,7 @@ namespace SAFplus
   ClRcT mgtSet(SAFplus::Handle src, const std::string& pathSpec, const std::string& value)
   {
     ClRcT ret = CL_OK;
-
+    logError("MGT", "REV", "mgtSet call");
     SAFplus::MsgReply *msgReply = mgtRpcRequest(src, Mgt::Msg::MsgMgt::CL_MGT_MSG_XSET, pathSpec, value);
 
     if (msgReply == NULL)
@@ -301,10 +299,10 @@ namespace SAFplus
   }
 
 
-  ClRcT mgtRpc(SAFplus::Handle src,Mgt::Msg::MsgRpc::MgtRpcType mgtRpcType,const std::string& pathSpec, const std::string& attribute)
+  ClRcT mgtRpc(SAFplus::Handle src,Mgt::Msg::MsgRpc::MgtRpcType mgtRpcType,const std::string& pathSpec,const std::string& request)
   {
     ClRcT ret = CL_OK;
-    SAFplus::MsgReply *msgReply = mgtRpcRequest(src, Mgt::Msg::MsgMgt::CL_MGT_MSG_RPC, pathSpec, attribute,mgtRpcType);
+    SAFplus::MsgReply *msgReply = mgtRpcRequest(src, Mgt::Msg::MsgMgt::CL_MGT_MSG_RPC, pathSpec, request,mgtRpcType);
     if (msgReply == NULL)
       {
         ret = CL_ERR_IGNORE_REQUEST;
@@ -316,27 +314,31 @@ namespace SAFplus
     return ret;
   }
 
-  ClRcT mgtRpc(Mgt::Msg::MsgRpc::MgtRpcType mgtRpcType,const std::string& pathSpec, const std::string& attribute)
+  ClRcT mgtRpc(Mgt::Msg::MsgRpc::MgtRpcType mgtRpcType,const std::string& pathSpec, const std::string& request)
   {
     ClRcT ret = CL_OK;
+    std::string xpath = "{n}/";
+    xpath.append(pathSpec);
     std::vector<MgtObject*> matches;
-
-    lookupObjects(pathSpec, &matches);
-
+    lookupObjects(xpath, &matches);
     if (matches.size())
       {
         for(std::vector<MgtObject*>::iterator i = matches.begin(); i != matches.end(); i++)
           {
             MgtRpc *rpc = dynamic_cast<MgtRpc*> (*i);
+            rpc->setInParams((void*)request.c_str(),request.length());
             switch (mgtRpcType)
             {
               case Mgt::Msg::MsgRpc::CL_MGT_RPC_VALIDATE:
+                // set parameter
                 ret = rpc->validate();
                 break;
               case Mgt::Msg::MsgRpc::CL_MGT_RPC_INVOKE:
+                //set input parram
                 ret = rpc->invoke();
                 break;
               case Mgt::Msg::MsgRpc::CL_MGT_RPC_POSTREPLY:
+                //set input parram
                 ret = rpc->postReply();
                 break;
               default:
@@ -346,10 +348,10 @@ namespace SAFplus
       }
     else  // Object Implementer not found. Broadcast message to get data
       {
-        Handle hdl = getMgtHandle(pathSpec, ret);
+        Handle hdl = getMgtHandle(xpath, ret);
         if (ret == CL_OK && INVALID_HDL != hdl)
         {
-          ret = mgtRpc(hdl,mgtRpcType, pathSpec, attribute);
+          ret = mgtRpc(hdl,mgtRpcType, pathSpec, request);
         }
         else
           {

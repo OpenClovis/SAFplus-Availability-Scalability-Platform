@@ -57,6 +57,7 @@ namespace SAFplus
   ClRcT MgtModule::bind(Handle handle, MgtObject* obj)
   {
     // Binding from its children
+    logWarning("MGT", "ROUTE", "bind object");
     if (this == obj)
     {
       std::map<std::string, MgtObject*>::iterator iter;
@@ -64,6 +65,7 @@ namespace SAFplus
       for (iter = children.begin(); iter != endd; ++iter)
       {
         MgtObject *childObj = iter->second;
+        logWarning("MGT", "ROUTE", "bind child [%s]",(char*)childObj->tag.c_str());
         MgtRoot::getInstance()->bind(handle, childObj);
       }
     }
@@ -73,6 +75,10 @@ namespace SAFplus
     }
   }
 
+  ClRcT MgtModule::registerRpc(Handle handle, MgtRpc* obj)
+  {
+      MgtRoot::getInstance()->registerRpc(handle, obj);
+  }
 
   ClRcT MgtModule::addMgtObject(MgtObject *mgtObject, const std::string& route)
   {

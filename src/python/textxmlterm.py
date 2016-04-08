@@ -79,7 +79,11 @@ class XmlResolver:
         ret = self.bindCmd(out,lst[1:])
         return ret
       else:
-        return (out,lst[1:],None)  # TODO keyword args
+        if out[0].__name__ == "handleRpc":
+          return (out,lst,None)  # TODO keyword args
+        else:
+          print"bbb"
+          return (out,lst[1:],None)  # TODO keyword args
 
     default = cmds.get(None,None)  # If there's a dictionary entry whose key is None, then this is used if nothing else matches
     if default:

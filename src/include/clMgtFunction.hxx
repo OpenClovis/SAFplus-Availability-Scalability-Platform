@@ -21,6 +21,15 @@
 #ifndef CLMGTFUNCTION_HXX_
 #define CLMGTFUNCTION_HXX_
 
+extern "C"
+{
+  #include <libxml/xmlreader.h>
+  #include <libxml/xmlmemory.h>
+  #include <libxml/parser.h>
+  #include <libxml/xmlstring.h>
+  //#include <clCommon.h>
+  //#include <clCommonErrors.h>
+} /* end extern 'C' */
 #include <string>
 #include <clHandleApi.hxx>
 #include <clCkptApi.hxx> // to use checkpoint
@@ -37,8 +46,8 @@ namespace SAFplus
      std::string mgtGet(const std::string& pathSpec);
      std::string mgtGet(SAFplus::Handle src, const std::string& pathSpec);
 
-     ClRcT mgtRpc(Mgt::Msg::MsgRpc::MgtRpcType mgtRpcType,const std::string& pathSpec, const std::string& attribute);
-     ClRcT mgtRpc(SAFplus::Handle src,Mgt::Msg::MsgRpc::MgtRpcType mgtRpcType,const std::string& pathSpec, const std::string& attribute);
+     ClRcT mgtRpc(SAFplus::Handle src,Mgt::Msg::MsgRpc::MgtRpcType mgtRpcType,const std::string& pathSpec,const std::string& request);
+     ClRcT mgtRpc(Mgt::Msg::MsgRpc::MgtRpcType mgtRpcType,const std::string& pathSpec, const std::string& request);
 
      ClRcT mgtSet(SAFplus::Handle src, const std::string& pathSpec, const std::string& value);
      ClRcT mgtSet(const std::string& pathSpec, const std::string& value);

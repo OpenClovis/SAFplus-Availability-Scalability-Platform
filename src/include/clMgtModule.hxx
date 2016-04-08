@@ -76,7 +76,7 @@ namespace SAFplus
      */
     ClRcT bind(Handle handle);
     ClRcT bind(Handle handle,MgtObject* obj);
-
+    ClRcT registerRpc(Handle handle, MgtRpc* obj);
     /**
      * \brief	Virtual function to initialize non-config data structures
      */

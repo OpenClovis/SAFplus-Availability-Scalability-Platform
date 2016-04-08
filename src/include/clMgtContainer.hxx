@@ -73,6 +73,7 @@ class MgtContainer:public MgtObject
     // Override not needed, end is the same: virtual MgtObject::Iterator end(void);
 
     virtual ClRcT addChildObject(MgtObject *mgtObject, const std::string& objectName=*((std::string*)nullptr));
+//    ClRcT addChildRpc(MgtRpc *rpcObject, const std::string& objectName);
     virtual ClRcT addChildObject(MgtObject *mgtObject, const char* objectName);
     virtual ClRcT removeChildObject(const std::string& objectName);
     virtual ClRcT setChildObj(const std::string &childName, const std::string &value);
