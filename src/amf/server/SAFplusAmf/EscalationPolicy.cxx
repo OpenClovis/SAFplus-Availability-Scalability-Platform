@@ -16,10 +16,12 @@
 namespace SAFplusAmf
   {
 
-    EscalationPolicy::EscalationPolicy(): SAFplus::MgtContainer("EscalationPolicy"), maximum("maximum"), duration("duration")
+    EscalationPolicy::EscalationPolicy(): SAFplus::MgtContainer("EscalationPolicy"), maximum("maximum",0), duration("duration",SaTimeT(0))
     {
         this->addChildObject(&maximum, "maximum");
         this->addChildObject(&duration, "duration");
+        maximum = 0;
+        duration = SaTimeT(0);
     };
 
     std::vector<std::string>* EscalationPolicy::getChildNames()

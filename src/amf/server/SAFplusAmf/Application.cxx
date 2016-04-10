@@ -24,7 +24,7 @@ namespace SAFplusAmf
     /* Apply MGT object factory */
     MGT_REGISTER_IMPL(Application, /SAFplusAmf/safplusAmf/Application)
 
-    Application::Application(): adminState("adminState"), serviceGroups("serviceGroups"), keepTogether("keepTogether")
+    Application::Application(): adminState("adminState",::SAFplusAmf::AdministrativeState::on), serviceGroups("serviceGroups"), keepTogether("keepTogether")
     {
         this->addChildObject(&adminState, "adminState");
         this->addChildObject(&serviceGroups, "serviceGroups");
@@ -32,9 +32,10 @@ namespace SAFplusAmf
         this->addChildObject(&numServiceGroups, "numServiceGroups");
         numServiceGroups.config = false;
         this->tag.assign("Application");
+        adminState = ::SAFplusAmf::AdministrativeState::on;
     };
 
-    Application::Application(std::string nameValue): adminState("adminState"), serviceGroups("serviceGroups"), keepTogether("keepTogether")
+    Application::Application(std::string nameValue): adminState("adminState",::SAFplusAmf::AdministrativeState::on), serviceGroups("serviceGroups"), keepTogether("keepTogether")
     {
         this->name.value =  nameValue;
         this->addChildObject(&adminState, "adminState");

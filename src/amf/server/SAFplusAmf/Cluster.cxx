@@ -21,14 +21,15 @@ namespace SAFplusAmf
     /* Apply MGT object factory */
     MGT_REGISTER_IMPL(Cluster, /SAFplusAmf/safplusAmf/Cluster)
 
-    Cluster::Cluster(): adminState("adminState"), startupAssignmentDelay("startupAssignmentDelay")
+    Cluster::Cluster(): adminState("adminState",::SAFplusAmf::AdministrativeState::on), startupAssignmentDelay("startupAssignmentDelay")
     {
         this->addChildObject(&adminState, "adminState");
         this->addChildObject(&startupAssignmentDelay, "startupAssignmentDelay");
         this->tag.assign("Cluster");
+        adminState = ::SAFplusAmf::AdministrativeState::on;
     };
 
-    Cluster::Cluster(std::string nameValue): adminState("adminState"), startupAssignmentDelay("startupAssignmentDelay")
+    Cluster::Cluster(std::string nameValue): adminState("adminState",::SAFplusAmf::AdministrativeState::on), startupAssignmentDelay("startupAssignmentDelay")
     {
         this->name.value =  nameValue;
         this->addChildObject(&adminState, "adminState");

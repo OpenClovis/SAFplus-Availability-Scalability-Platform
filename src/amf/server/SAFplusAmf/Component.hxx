@@ -162,7 +162,7 @@ namespace SAFplusAmf
         SAFplus::MgtProv<::SAFplusAmf::PendingOperation> pendingOperation;
 
         /*
-         * When the system will give up on the pending operation
+         * When the system will give up on the pending operation, in milliseconds
          */
         SAFplus::MgtProv<::SAFplusTypes::Date> pendingOperationExpiration;
         SAFplusAmf::ProcStats procStats;

@@ -50,7 +50,7 @@ int errorExit(SaAisErrorT rc)
 namespace SAFplus
   {
   extern Handle           myHandle;  // This handle resolves to THIS process.
-  extern SafplusInitializationConfiguration   serviceConfig;  // TEMP
+  extern SafplusInitializationConfiguration   serviceConfig;
 };
 
 
@@ -58,16 +58,19 @@ int main(int argc, char *argv[])
 {
     SaAisErrorT rc = SA_AIS_OK;
  
-    SAFplus::logEchoToFd = 1;  // echo logs to stdout (fd 1) for debugging
-    SAFplus::logSeverity = SAFplus::LOG_SEV_DEBUG;
     // You can override the component name that appears in logs like this. Otherwise it gets set to the component name defined in the AMF data.  Typically you'd override it if your component name is inconveniently long.
     //SAFplus::logCompName = DEFAULT_APP_NAME;
 
     // If you wanted this component to use a "well-known" port you would set it like this
     // SAFplus::serviceConfig.iocPort = SAFplus::MsgApplicationPortStart + 5;
+    // Otherwise, SAFplus AMF will assign a port.
 
     /* Connect to the SAF cluster */
     initializeAmf();
+
+    // You can override the logging parameters, but it must be done AFTER calling initializeAmf() because that function loads the logSeverity from the environment variable CL_LOG_SEVERITY.
+    SAFplus::logEchoToFd = 1;  // echo logs to stdout (fd 1) for debugging
+    //SAFplus::logSeverity = SAFplus::LOG_SEV_DEBUG;
 
     /* Do the application specific initialization here. */
     
@@ -332,7 +335,7 @@ void dispatchLoop(void)
   do
     {
       struct timeval timeout;
-      timeout.tv_sec = 2; timeout.tv_usec = 0;
+      timeout.tv_sec = 1; timeout.tv_usec = 0;  // you may want to increase the idle timeout...
 
       FD_ZERO(&read_fds);
       FD_SET(amf_dispatch_fd, &read_fds);
@@ -354,8 +357,7 @@ void dispatchLoop(void)
         }
       else 
         {
-        clprintf(SAFplus::LOG_SEV_WARNING,"Select returned but nothing to dispatch");
-        sleep(15);
+        clprintf(SAFplus::LOG_SEV_TRACE,"Select returned but nothing to dispatch");
         }
       /* if (FD_ISSET(ckpt_dispatch_fd,&read_fds)) saCkptDispatch(ckptLibraryHandle, SA_DISPATCH_ALL); */
  

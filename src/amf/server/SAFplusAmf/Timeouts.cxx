@@ -19,11 +19,14 @@ namespace SAFplusAmf
     /* Apply MGT object factory */
     MGT_REGISTER_IMPL(Timeouts, /SAFplusAmf/safplusAmf/Component/timeouts)
 
-    Timeouts::Timeouts(): SAFplus::MgtContainer("timeouts"), quiescingComplete("quiescingComplete"), workRemoval("workRemoval"), workAssignment("workAssignment")
+    Timeouts::Timeouts(): SAFplus::MgtContainer("timeouts"), quiescingComplete("quiescingComplete",SaTimeT(120000)), workRemoval("workRemoval",SaTimeT(120000)), workAssignment("workAssignment",SaTimeT(120000))
     {
         this->addChildObject(&quiescingComplete, "quiescingComplete");
         this->addChildObject(&workRemoval, "workRemoval");
         this->addChildObject(&workAssignment, "workAssignment");
+        quiescingComplete = SaTimeT(120000);
+        workRemoval = SaTimeT(120000);
+        workAssignment = SaTimeT(120000);
     };
 
     std::vector<std::string>* Timeouts::getChildNames()

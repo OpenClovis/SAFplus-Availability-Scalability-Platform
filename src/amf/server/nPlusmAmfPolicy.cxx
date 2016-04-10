@@ -386,9 +386,9 @@ namespace SAFplus
 	    uint64_t curTime = std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::system_clock::now().time_since_epoch()).count();
             Component* comp = dynamic_cast<Component*>(*itcomp);
             SAFplusAmf::AdministrativeState eas = effectiveAdminState(comp);
-	    logInfo("N+M","AUDIT","Auditing component [%s] on [%s.%s]: Operational State [%s] ReadinessState [%s] HA State [%s] HA Readiness [%s] Pending Operation [%s] (expires in: [%d]) ",comp->name.value.c_str(),node->name.value.c_str(),suName.c_str(),
+	    logInfo("N+M","AUDIT","Auditing component [%s] on [%s.%s]: Operational State [%s] ReadinessState [%s] HA State [%s] HA Readiness [%s] Pending Operation [%s] (expires in: [%d ms]) ",comp->name.value.c_str(),node->name.value.c_str(),suName.c_str(),
 		    oper_str(comp->operState.value), c_str(comp->readinessState.value),
-		    c_str(comp->haState.value), c_str(comp->haReadinessState.value), c_str(comp->pendingOperation.value), (int) (comp->pendingOperationExpiration.value.value - curTime));
+		    c_str(comp->haState.value), c_str(comp->haReadinessState.value), c_str(comp->pendingOperation.value), ((comp->pendingOperationExpiration.value.value>0) ? (int) (comp->pendingOperationExpiration.value.value - curTime): 0));
             if (comp->operState == true) // false means that the component needs repair before we will deal with it.
               {
               if (running(comp->presenceState.value))

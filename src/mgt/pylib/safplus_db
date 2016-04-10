@@ -7,9 +7,15 @@ This module provides interfaces to access the DBAL provided by SAFplus library.
 import pdb, traceback
 import os, sys, os.path
 import re
-import pyDbal
-import microdom
-from common import *
+
+try:
+  import pyDbal
+  import microdom
+  from common import *
+except ImportError, e:
+  print "Unable to import SAFplus libraries.  Is your PATH and PYTHONPATH set up properly?"
+  print "Error was:", str(e)
+  exit(1)
 
 from xml.etree import ElementPath
 from xml.etree import ElementTree as ET

@@ -57,9 +57,12 @@ endif
 
 SAFPLUS_LINK_LIBS := -L$(LIB_DIR) $(addprefix -l,$(SAFPLUS_LIBS))
 
-all: $(APP_BIN_DIR)/basicApp
+all: $(APP_BIN_DIR)/basicApp $(APP_BIN_DIR)/setup.basicApp
 
 $(APP_BIN_DIR)/%.xml: %.xml
+	cp -f $< $@
+
+$(APP_BIN_DIR)/setup.basicApp: setup
 	cp -f $< $@
 
 $(APP_BIN_DIR)/basicApp:  $(APP_OBJ_DIR)/main.o $(SAFPLUS_DEP_LIBS)

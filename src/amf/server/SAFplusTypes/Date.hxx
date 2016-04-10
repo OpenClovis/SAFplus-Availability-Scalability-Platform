@@ -22,6 +22,7 @@ namespace SAFplusTypes
 
     public:
         Date();
+        Date(::uint64_t value);
         ::uint64_t getValue();
         void setValue(::uint64_t value, SAFplus::Transaction &t=SAFplus::NO_TXN);
         ::SAFplusTypes::Date& operator=(const ::SAFplusTypes::Date &date);

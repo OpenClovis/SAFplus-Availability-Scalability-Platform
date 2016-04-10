@@ -28,7 +28,7 @@ namespace SAFplusAmf
     /* Apply MGT object factory */
     MGT_REGISTER_IMPL(Node, /SAFplusAmf/safplusAmf/Node)
 
-    Node::Node(): presenceState("presenceState"), adminState("adminState"), operState("operState"), autoRepair("autoRepair"), failFastOnInstantiationFailure("failFastOnInstantiationFailure"), failFastOnCleanupFailure("failFastOnCleanupFailure"), disableAssignmentOn("disableAssignmentOn"), serviceUnits("serviceUnits"), capacityList("capacity")
+    Node::Node(): presenceState("presenceState",::SAFplusAmf::PresenceState::uninstantiated), adminState("adminState",::SAFplusAmf::AdministrativeState::on), operState("operState"), autoRepair("autoRepair"), failFastOnInstantiationFailure("failFastOnInstantiationFailure"), failFastOnCleanupFailure("failFastOnCleanupFailure"), disableAssignmentOn("disableAssignmentOn"), serviceUnits("serviceUnits"), capacityList("capacity")
     {
         this->addChildObject(&presenceState, "presenceState");
         presenceState.config = false;
@@ -47,9 +47,11 @@ namespace SAFplusAmf
         capacityList.childXpath="/SAFplusAmf/safplusAmf/Node/capacity";
         capacityList.setListKey("resource");
         this->tag.assign("Node");
+        presenceState = ::SAFplusAmf::PresenceState::uninstantiated;
+        adminState = ::SAFplusAmf::AdministrativeState::on;
     };
 
-    Node::Node(std::string nameValue): presenceState("presenceState"), adminState("adminState"), operState("operState"), autoRepair("autoRepair"), failFastOnInstantiationFailure("failFastOnInstantiationFailure"), failFastOnCleanupFailure("failFastOnCleanupFailure"), disableAssignmentOn("disableAssignmentOn"), serviceUnits("serviceUnits"), capacityList("capacity")
+    Node::Node(std::string nameValue): presenceState("presenceState",::SAFplusAmf::PresenceState::uninstantiated), adminState("adminState",::SAFplusAmf::AdministrativeState::on), operState("operState"), autoRepair("autoRepair"), failFastOnInstantiationFailure("failFastOnInstantiationFailure"), failFastOnCleanupFailure("failFastOnCleanupFailure"), disableAssignmentOn("disableAssignmentOn"), serviceUnits("serviceUnits"), capacityList("capacity")
     {
         this->name.value =  nameValue;
         this->addChildObject(&presenceState, "presenceState");

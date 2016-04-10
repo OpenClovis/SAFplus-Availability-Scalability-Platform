@@ -21,7 +21,7 @@ namespace SAFplusAmf
     /* Apply MGT object factory */
     MGT_REGISTER_IMPL(SafplusAmf, /SAFplusAmf/safplusAmf)
 
-    SafplusAmf::SafplusAmf(): SAFplus::MgtContainer("safplusAmf"), healthCheckPeriod("healthCheckPeriod"), healthCheckMaxSilence("healthCheckMaxSilence"), clusterList("Cluster"), nodeList("Node"), serviceGroupList("ServiceGroup"), componentList("Component"), componentServiceInstanceList("ComponentServiceInstance"), serviceInstanceList("ServiceInstance"), serviceUnitList("ServiceUnit"), applicationList("Application"), entityByNameList("EntityByName"), entityByIdList("EntityById")
+    SafplusAmf::SafplusAmf(): SAFplus::MgtContainer("safplusAmf"), healthCheckPeriod("healthCheckPeriod",SaTimeT(0)), healthCheckMaxSilence("healthCheckMaxSilence",SaTimeT(0)), clusterList("Cluster"), nodeList("Node"), serviceGroupList("ServiceGroup"), componentList("Component"), componentServiceInstanceList("ComponentServiceInstance"), serviceInstanceList("ServiceInstance"), serviceUnitList("ServiceUnit"), applicationList("Application"), entityByNameList("EntityByName"), entityByIdList("EntityById")
     {
         this->addChildObject(&healthCheckPeriod, "healthCheckPeriod");
         this->addChildObject(&healthCheckMaxSilence, "healthCheckMaxSilence");
@@ -55,6 +55,8 @@ namespace SAFplusAmf
         entityByNameList.setListKey("name");
         entityByIdList.childXpath="/SAFplusAmf/safplusAmf/EntityById";
         entityByIdList.setListKey("id");
+        healthCheckPeriod = SaTimeT(0);
+        healthCheckMaxSilence = SaTimeT(0);
     };
 
     std::vector<std::string>* SafplusAmf::getChildNames()

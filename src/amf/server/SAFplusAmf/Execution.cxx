@@ -17,10 +17,11 @@
 namespace SAFplusAmf
   {
 
-    Execution::Execution(): SAFplus::MgtContainer("execution"), command("command"), timeout("timeout")
+    Execution::Execution(): SAFplus::MgtContainer("execution"), command("command"), timeout("timeout",120000)
     {
         this->addChildObject(&command, "command");
         this->addChildObject(&timeout, "timeout");
+        timeout = 120000;
     };
 
     std::vector<std::string>* Execution::getChildNames()

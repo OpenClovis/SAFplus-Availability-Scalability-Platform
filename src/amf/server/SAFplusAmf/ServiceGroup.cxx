@@ -31,7 +31,7 @@ namespace SAFplusAmf
     /* Apply MGT object factory */
     MGT_REGISTER_IMPL(ServiceGroup, /SAFplusAmf/safplusAmf/ServiceGroup)
 
-    ServiceGroup::ServiceGroup(): adminState("adminState"), autoRepair("autoRepair"), autoAdjust("autoAdjust"), autoAdjustInterval("autoAdjustInterval"), preferredNumActiveServiceUnits("preferredNumActiveServiceUnits"), preferredNumStandbyServiceUnits("preferredNumStandbyServiceUnits"), preferredNumIdleServiceUnits("preferredNumIdleServiceUnits"), maxActiveWorkAssignments("maxActiveWorkAssignments"), maxStandbyWorkAssignments("maxStandbyWorkAssignments"), serviceUnits("serviceUnits"), serviceInstances("serviceInstances"), application("application")
+    ServiceGroup::ServiceGroup(): adminState("adminState",::SAFplusAmf::AdministrativeState::on), autoRepair("autoRepair"), autoAdjust("autoAdjust",false), autoAdjustInterval("autoAdjustInterval"), preferredNumActiveServiceUnits("preferredNumActiveServiceUnits"), preferredNumStandbyServiceUnits("preferredNumStandbyServiceUnits"), preferredNumIdleServiceUnits("preferredNumIdleServiceUnits"), maxActiveWorkAssignments("maxActiveWorkAssignments"), maxStandbyWorkAssignments("maxStandbyWorkAssignments"), serviceUnits("serviceUnits"), serviceInstances("serviceInstances"), application("application")
     {
         this->addChildObject(&adminState, "adminState");
         this->addChildObject(&autoRepair, "autoRepair");
@@ -54,9 +54,11 @@ namespace SAFplusAmf
         this->addChildObject(&numSpareServiceUnits, "numSpareServiceUnits");
         numSpareServiceUnits.config = false;
         this->tag.assign("ServiceGroup");
+        adminState = ::SAFplusAmf::AdministrativeState::on;
+        autoAdjust = false;
     };
 
-    ServiceGroup::ServiceGroup(std::string nameValue): adminState("adminState"), autoRepair("autoRepair"), autoAdjust("autoAdjust"), autoAdjustInterval("autoAdjustInterval"), preferredNumActiveServiceUnits("preferredNumActiveServiceUnits"), preferredNumStandbyServiceUnits("preferredNumStandbyServiceUnits"), preferredNumIdleServiceUnits("preferredNumIdleServiceUnits"), maxActiveWorkAssignments("maxActiveWorkAssignments"), maxStandbyWorkAssignments("maxStandbyWorkAssignments"), serviceUnits("serviceUnits"), serviceInstances("serviceInstances"), application("application")
+    ServiceGroup::ServiceGroup(std::string nameValue): adminState("adminState",::SAFplusAmf::AdministrativeState::on), autoRepair("autoRepair"), autoAdjust("autoAdjust",false), autoAdjustInterval("autoAdjustInterval"), preferredNumActiveServiceUnits("preferredNumActiveServiceUnits"), preferredNumStandbyServiceUnits("preferredNumStandbyServiceUnits"), preferredNumIdleServiceUnits("preferredNumIdleServiceUnits"), maxActiveWorkAssignments("maxActiveWorkAssignments"), maxStandbyWorkAssignments("maxStandbyWorkAssignments"), serviceUnits("serviceUnits"), serviceInstances("serviceInstances"), application("application")
     {
         this->name.value =  nameValue;
         this->addChildObject(&adminState, "adminState");

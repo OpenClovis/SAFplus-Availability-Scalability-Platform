@@ -16,6 +16,12 @@ namespace SAFplusTypes
 
     Date::Date()
     {
+        value = ::uint64_t();
+    };
+
+    Date::Date(::uint64_t value)
+    {
+        this->value = value;
     };
 
     ::uint64_t Date::getValue()

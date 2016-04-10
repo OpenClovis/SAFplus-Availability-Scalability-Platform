@@ -31,7 +31,7 @@ namespace SAFplusAmf
     /* Apply MGT object factory */
     MGT_REGISTER_IMPL(ServiceInstance, /SAFplusAmf/safplusAmf/ServiceInstance)
 
-    ServiceInstance::ServiceInstance(): adminState("adminState"), assignmentState("assignmentState"), preferredActiveAssignments("preferredActiveAssignments"), preferredStandbyAssignments("preferredStandbyAssignments"), rank("rank"), activeAssignments("activeAssignments"), standbyAssignments("standbyAssignments"), componentServiceInstances("componentServiceInstances"), serviceGroup("serviceGroup"), activeWeightList("activeWeight"), standbyWeightList("standbyWeight")
+    ServiceInstance::ServiceInstance(): adminState("adminState",::SAFplusAmf::AdministrativeState::on), assignmentState("assignmentState"), preferredActiveAssignments("preferredActiveAssignments",1), preferredStandbyAssignments("preferredStandbyAssignments",1), rank("rank"), activeAssignments("activeAssignments"), standbyAssignments("standbyAssignments"), componentServiceInstances("componentServiceInstances"), serviceGroup("serviceGroup"), activeWeightList("activeWeight"), standbyWeightList("standbyWeight")
     {
         this->addChildObject(&adminState, "adminState");
         this->addChildObject(&assignmentState, "assignmentState");
@@ -56,9 +56,12 @@ namespace SAFplusAmf
         standbyWeightList.childXpath="/SAFplusAmf/safplusAmf/ServiceInstance/standbyWeight";
         standbyWeightList.setListKey("resource");
         this->tag.assign("ServiceInstance");
+        adminState = ::SAFplusAmf::AdministrativeState::on;
+        preferredActiveAssignments = 1;
+        preferredStandbyAssignments = 1;
     };
 
-    ServiceInstance::ServiceInstance(std::string nameValue): adminState("adminState"), assignmentState("assignmentState"), preferredActiveAssignments("preferredActiveAssignments"), preferredStandbyAssignments("preferredStandbyAssignments"), rank("rank"), activeAssignments("activeAssignments"), standbyAssignments("standbyAssignments"), componentServiceInstances("componentServiceInstances"), serviceGroup("serviceGroup"), activeWeightList("activeWeight"), standbyWeightList("standbyWeight")
+    ServiceInstance::ServiceInstance(std::string nameValue): adminState("adminState",::SAFplusAmf::AdministrativeState::on), assignmentState("assignmentState"), preferredActiveAssignments("preferredActiveAssignments",1), preferredStandbyAssignments("preferredStandbyAssignments",1), rank("rank"), activeAssignments("activeAssignments"), standbyAssignments("standbyAssignments"), componentServiceInstances("componentServiceInstances"), serviceGroup("serviceGroup"), activeWeightList("activeWeight"), standbyWeightList("standbyWeight")
     {
         this->name.value =  nameValue;
         this->addChildObject(&adminState, "adminState");

@@ -66,6 +66,7 @@ namespace SAFplus
 
     public:
       MgtProv(const char* name);
+      MgtProv(const char* name, const T& initialValue);
       virtual ~MgtProv();
 
       virtual void toString(std::stringstream& xmlString,int depth=SAFplusI::MgtToStringRecursionDepth,SerializationOptions opts=SerializeNoOptions);
@@ -226,6 +227,12 @@ namespace SAFplus
 
   template<class T>
   MgtProv<T>::MgtProv(const char* name) : MgtObject(name),value()
+    {
+      mValIndex = -1;
+    }
+
+  template<class T>
+  MgtProv<T>::MgtProv(const char* name, const T& initialValue) : MgtObject(name),value(initialValue)
     {
       mValIndex = -1;
     }

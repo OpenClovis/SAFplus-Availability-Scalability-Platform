@@ -34,7 +34,7 @@ namespace SAFplusAmf
     /* Apply MGT object factory */
     MGT_REGISTER_IMPL(ServiceUnit, /SAFplusAmf/safplusAmf/ServiceUnit)
 
-    ServiceUnit::ServiceUnit(): adminState("adminState"), rank("rank"), failover("failover"), preinstantiable("preinstantiable"), saAmfSUHostNodeOrNodeGroup("saAmfSUHostNodeOrNodeGroup"), presenceState("presenceState"), readinessState("readinessState"), haReadinessState("haReadinessState"), haState("haState"), operState("operState"), assignedServiceInstances("assignedServiceInstances"), components("components"), node("node"), serviceGroup("serviceGroup"), probationTime("probationTime")
+    ServiceUnit::ServiceUnit(): adminState("adminState",::SAFplusAmf::AdministrativeState::on), rank("rank",0), failover("failover"), preinstantiable("preinstantiable"), saAmfSUHostNodeOrNodeGroup("saAmfSUHostNodeOrNodeGroup"), presenceState("presenceState",::SAFplusAmf::PresenceState::uninstantiated), readinessState("readinessState",::SAFplusAmf::ReadinessState::outOfService), haReadinessState("haReadinessState",::SAFplusAmf::HighAvailabilityReadinessState::readyForAssignment), haState("haState"), operState("operState"), assignedServiceInstances("assignedServiceInstances"), components("components"), node("node"), serviceGroup("serviceGroup"), probationTime("probationTime",0)
     {
         this->addChildObject(&adminState, "adminState");
         this->addChildObject(&rank, "rank");
@@ -65,9 +65,15 @@ namespace SAFplusAmf
         this->addChildObject(&restartCount, "restartCount");
         restartCount.config = false;
         this->tag.assign("ServiceUnit");
+        adminState = ::SAFplusAmf::AdministrativeState::on;
+        rank = 0;
+        presenceState = ::SAFplusAmf::PresenceState::uninstantiated;
+        readinessState = ::SAFplusAmf::ReadinessState::outOfService;
+        haReadinessState = ::SAFplusAmf::HighAvailabilityReadinessState::readyForAssignment;
+        probationTime = 0;
     };
 
-    ServiceUnit::ServiceUnit(std::string nameValue): adminState("adminState"), rank("rank"), failover("failover"), preinstantiable("preinstantiable"), saAmfSUHostNodeOrNodeGroup("saAmfSUHostNodeOrNodeGroup"), presenceState("presenceState"), readinessState("readinessState"), haReadinessState("haReadinessState"), haState("haState"), operState("operState"), assignedServiceInstances("assignedServiceInstances"), components("components"), node("node"), serviceGroup("serviceGroup"), probationTime("probationTime")
+    ServiceUnit::ServiceUnit(std::string nameValue): adminState("adminState",::SAFplusAmf::AdministrativeState::on), rank("rank",0), failover("failover"), preinstantiable("preinstantiable"), saAmfSUHostNodeOrNodeGroup("saAmfSUHostNodeOrNodeGroup"), presenceState("presenceState",::SAFplusAmf::PresenceState::uninstantiated), readinessState("readinessState",::SAFplusAmf::ReadinessState::outOfService), haReadinessState("haReadinessState",::SAFplusAmf::HighAvailabilityReadinessState::readyForAssignment), haState("haState"), operState("operState"), assignedServiceInstances("assignedServiceInstances"), components("components"), node("node"), serviceGroup("serviceGroup"), probationTime("probationTime",0)
     {
         this->name.value =  nameValue;
         this->addChildObject(&adminState, "adminState");

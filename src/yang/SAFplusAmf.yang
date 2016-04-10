@@ -949,9 +949,10 @@ are switched over to other nodes (component service instances are not abruptly r
 
     leaf pendingOperationExpiration
       {
-	description "When the system will give up on the pending operation";
+	description "When the system will give up on the pending operation, in milliseconds";
 	type SAFplusTypes:date;
 	config false;
+        default 30000;
       }
 
 

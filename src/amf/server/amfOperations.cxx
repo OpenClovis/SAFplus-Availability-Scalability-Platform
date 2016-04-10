@@ -682,7 +682,7 @@ namespace SAFplus
           comp->presenceState.value  = PresenceState::instantiated;    // There are no transitional states in the not_preinstantiable (not SAF aware) case
         }
 
-      logInfo("OPS","SRT","Launching Component [%s] as [%s] locally with process id [%d]", comp->name.value.c_str(),inst->command.value.c_str(),p.pid);
+      logInfo("OPS","SRT","Launching Component [%s] as [%s] locally with process id [%d], recommended port [%d]", comp->name.value.c_str(),inst->command.value.c_str(),p.pid,port);
 
 
       if (&w) w.wake(1,(void*)comp);
