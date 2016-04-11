@@ -596,8 +596,8 @@ class Panel(scrolled.ScrolledPanel):
       self.tree.SetMainColumn(0) # the one with the tree in it...
       self.tree.SetColumnWidth(0, 185)
       self.tree.SetColumnWidth(1, 35)
-      self.tree.SetColumnWidth(2, 225)
-      self.tree.SetColumnWidth(3, 50)
+      self.tree.SetColumnWidth(2, 50)
+      self.tree.SetColumnWidth(3, 225)
       self.row = 0
 
       for (evt, func) in self.eventDictTree.items():
@@ -622,6 +622,15 @@ class Panel(scrolled.ScrolledPanel):
     def deleteEntFromLookup(self, ent):      
       deletedItems = [k for (k,v) in self.lookup.items() if v[5] == ent]
       for k in deletedItems:
+        query = self.lookup[k][1]
+        if query:
+          query.Destroy()
+        b = self.lookup[k][2]
+        if b:
+          b.Destroy()
+        h = self.lookup[k][3]
+        if h:
+          h.Destroy()
         del self.lookup[k]
 
     def deleteTreeItemEntities(self, ents, tmpList = None):
@@ -643,9 +652,9 @@ class Panel(scrolled.ScrolledPanel):
                 self.model.delete(ent)
               except:
                 pass
-            self.tree.Delete(treeItem)
             # delete associated items with this entity from self.lookup dict
-            self.deleteEntFromLookup(ent)          
+            self.deleteEntFromLookup(ent)
+            self.tree.Delete(treeItem)
 
     # Create controls for an entity
     def createTreeItemEntity(self, name, ent, parentItem = None):
@@ -681,8 +690,8 @@ class Panel(scrolled.ScrolledPanel):
       child = self.tree.AppendItem(treeItem, "Name:")
       self.tree.SetPyData(child, ent)
 
-      self.tree.SetItemWindow(child, query, 2)
-      self.tree.SetItemWindow(child, b, 1)
+      self.tree.SetItemWindow(child, query, 3)
+      self.tree.SetItemWindow(child, b, 2)
       b.Disable()
       self.lookup[self.row] = Gui2Obj(None,query,b,None,treeItem,ent)
       self.row += 1
@@ -755,10 +764,10 @@ class Panel(scrolled.ScrolledPanel):
 
             #Add control into tree item
             if h:
-              self.tree.SetItemWindow(child, h, 0)
+              self.tree.SetItemWindow(child, h, 1)
 
-            self.tree.SetItemWindow(child, query, 2)
-            self.tree.SetItemWindow(child, b, 1)
+            self.tree.SetItemWindow(child, query, 3)
+            self.tree.SetItemWindow(child, b, 2)
             # self.tree.SetItemBackgroundColor(child,wx.Color(50,50,50))
             self.lookup[self.row] = Gui2Obj(item,query,b,h,child,ent)
             self.row+=1
