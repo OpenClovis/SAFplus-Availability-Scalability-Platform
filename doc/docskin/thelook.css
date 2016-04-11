@@ -2,14 +2,15 @@
 tr.header { background-color:  #FFCC9A; color: darkblue;}
 tr.rowA { background-color: #D9EABE; color: black;}
 tr.rowB { background-color: #E0EAE1; color: black;}
-textarea { background-color: cornsilk; color: cornflowerblue; }
+textarea { background-color: cornsilk; color: blue; }
 .desc { border-style:ridge; border-width:2px; border-color: #009070; margin: 0px; border-top-style: none }
 .descHeader { font-size:100%; font-style: italic; }
 .code { font-size:100%; }
+pre { font-size: 90%; color: cornflowerblue; }
 /* Top page */
-body{  background-color: #ffF8ec; color: cornflowerblue; } 
+body{  background-color: #ffF8ec; color: blue; } 
 p { color: blue; } 
-h3{ color: #5077BE; font-size:120%;}
+h3{ color: #324A76; font-size:120%;}
 h2{ color: #324A76; font-size:130%; }
 h1{ color: #1E2D47; font-size:150%; }
 #projectName { font-size:150%; color: cornflowerblue; }

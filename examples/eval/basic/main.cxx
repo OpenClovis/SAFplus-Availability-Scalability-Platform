@@ -1,3 +1,4 @@
+
 #include <clCommon.hxx>
 #include <saAmf.h>
 #include <clNameApi.hxx>
@@ -53,26 +54,29 @@ namespace SAFplus
   extern SafplusInitializationConfiguration   serviceConfig;
 };
 
-
+//? <excerpt id="AMFBasicMain">
 int main(int argc, char *argv[])
 {
     SaAisErrorT rc = SA_AIS_OK;
  
-    // You can override the component name that appears in logs like this. Otherwise it gets set to the component name defined in the AMF data.  Typically you'd override it if your component name is inconveniently long.
+    // You can override the component name that appears in logs like this.
+    // Otherwise it gets set to the component name defined in the AMF data.
+    // Typically you'd override it if your component name is inconveniently long.
     //SAFplus::logCompName = DEFAULT_APP_NAME;
 
     // If you wanted this component to use a "well-known" port you would set it like this
     // SAFplus::serviceConfig.iocPort = SAFplus::MsgApplicationPortStart + 5;
     // Otherwise, SAFplus AMF will assign a port.
 
-    /* Connect to the SAF cluster */
-    initializeAmf();
+    initializeAmf(); // Connect to the AMF cluster
 
-    // You can override the logging parameters, but it must be done AFTER calling initializeAmf() because that function loads the logSeverity from the environment variable CL_LOG_SEVERITY.
+    // You can override the logging parameters, but it must be done AFTER
+    // calling initializeAmf() because that function loads the logSeverity
+    //  from the environment variable CL_LOG_SEVERITY.
     SAFplus::logEchoToFd = 1;  // echo logs to stdout (fd 1) for debugging
     //SAFplus::logSeverity = SAFplus::LOG_SEV_DEBUG;
 
-    /* Do the application specific initialization here. */
+    /* Do any application specific initialization here. */
     
     /* Block on AMF dispatch file descriptor for callbacks.
        When this function returns its time to quit. */
@@ -80,8 +84,6 @@ int main(int argc, char *argv[])
     
     /* Do the application specific finalization here. */
 
-
-    while (!quitting) boost::this_thread::sleep(boost::posix_time::milliseconds(250));
     /* Now finalize my connection with the SAF cluster */
     if((rc = saAmfFinalize(amfHandle)) != SA_AIS_OK)
       logError("APP","FIN", "AMF finalization error[0x%X]", rc);
@@ -90,6 +92,7 @@ int main(int argc, char *argv[])
 
     return 0;
 }
+//? </excerpt>
 
 /*
  * clCompAppTerminate
@@ -131,7 +134,7 @@ void safTerminate(SaInvocationT invocation, const SaNameT *compName)
  * This function is invoked when a CSI assignment is made or the state
  * of a CSI is changed.
  */
-
+//? <excerpt id="AMFBasicWorkAssignment">
 void safAssignWork(SaInvocationT       invocation,
                    const SaNameT       *compName,
                    SaAmfHAStateT       haState,
@@ -157,7 +160,7 @@ void safAssignWork(SaInvocationT       invocation,
             /* Typically you would spawn a thread here to initiate active 
                processing of the work. */
             pthread_t thr;
-            clprintf(SAFplus::LOG_SEV_INFO,"csa101: ACTIVE state requested; activating service");
+            clprintf(SAFplus::LOG_SEV_INFO,"Basic HA app: ACTIVE state requested; activating service");
             running = 1;
             //pthread_create(&thr,NULL,activeLoop,NULL);
 
@@ -177,7 +180,7 @@ void safAssignWork(SaInvocationT       invocation,
             /* If your standby has ongoing maintenance, you would spawn a thread
                here to do it. */
 
-            clprintf(SAFplus::LOG_SEV_INFO,"csa101: Standby state requested");
+            clprintf(SAFplus::LOG_SEV_INFO,"Basic HA app: Standby state requested");
             running = 2;
 
             /* The AMF times the interval between the assignment and acceptance
@@ -195,7 +198,7 @@ void safAssignWork(SaInvocationT       invocation,
              * assigned the active or quiescing HA state. The application 
              * must stop work associated with the CSI immediately.
              */
-            clprintf(SAFplus::LOG_SEV_INFO, "csa101: Acknowledging new state quiesced");
+            clprintf(SAFplus::LOG_SEV_INFO, "Basic HA app: Acknowledging new state quiesced");
             running = 0;
 
             saAmfResponse(amfHandle, invocation, SA_AIS_OK);
@@ -216,7 +219,7 @@ void safAssignWork(SaInvocationT       invocation,
             if (1)
               {
               /* App code here: Now finish your work and cleanly stop the work*/
-              clprintf(SAFplus::LOG_SEV_INFO, "csa101: Signaling completion of QUIESCING");
+              clprintf(SAFplus::LOG_SEV_INFO, "Basic HA app: Signaling completion of QUIESCING");
               running = 0;
             
               /* Call saAmfCSIQuiescingComplete when stopping the work is done */
@@ -248,6 +251,7 @@ void safAssignWork(SaInvocationT       invocation,
 
     return;
 }
+//? </excerpt>
 
 /*
  * safRemoveWork
@@ -273,6 +277,7 @@ void safRemoveWork(SaInvocationT  invocation,
     saAmfResponse(amfHandle, invocation, SA_AIS_OK);
 }
 
+//? <excerpt id="AMFBasicInitializeAmf">
 void initializeAmf(void)
   {
   SaAmfCallbacksT     callbacks;
@@ -302,15 +307,17 @@ void initializeAmf(void)
     errorExit(rc);
 #else
 
-  // If spawned by the AMF, you can just pass NULL as the component name since the AMF has told this app its name (SAFplus::COMP_NAME variable)
+  // If spawned by the AMF, you can just pass NULL as the component name since
+  // the AMF has told this app its name (SAFplus::COMP_NAME variable)
   if ( (rc = saAmfComponentRegister(amfHandle, NULL, NULL)) != SA_AIS_OK)
     errorExit(rc);
 #endif
 
   logInfo("APP","MAIN","Component [%s] registered successfully", appName.value);
   }
+//? </excerpt>
 
-
+//? <excerpt id="AMFBasicDispatchLoop">
 void dispatchLoop(void)
 {
   SaAisErrorT         rc = SA_AIS_OK;
@@ -321,7 +328,6 @@ void dispatchLoop(void)
   /* This boilerplate code includes an example of how to simultaneously
      dispatch for 2 services (in this case AMF and CKPT).  But since checkpoint
      is not initialized or used, it is commented out */
-  /* SaSelectionObjectT ckpt_dispatch_fd; */
 
   /*
    * Get the AMF dispatch FD for the callbacks
@@ -340,7 +346,7 @@ void dispatchLoop(void)
       FD_ZERO(&read_fds);
       FD_SET(amf_dispatch_fd, &read_fds);
       /* FD_SET(ckpt_dispatch_fd, &read_fds); */
-      if( select(maxFd + 1, &read_fds, NULL, NULL, &timeout) < 0)
+      if(!(select(maxFd + 1, &read_fds, NULL, NULL, &timeout) >= 0))
         {
           char errorStr[80];
           int err = errno;
@@ -361,16 +367,18 @@ void dispatchLoop(void)
         }
       /* if (FD_ISSET(ckpt_dispatch_fd,&read_fds)) saCkptDispatch(ckptLibraryHandle, SA_DISPATCH_ALL); */
  
-      if (running==1) clprintf(SAFplus::LOG_SEV_INFO,"csa101: Active.  Hello World!"); // show_progress());
-      else if (running==2) clprintf(SAFplus::LOG_SEV_INFO,"csa101: Standby."); // show_progress());
+      if (running==1) clprintf(SAFplus::LOG_SEV_INFO,"Basic HA app: Active.  Hello World!"); // show_progress());
+      else if (running==2) clprintf(SAFplus::LOG_SEV_INFO,"Basic HA app: Standby."); // show_progress());
       else 
         {
-        clprintf(SAFplus::LOG_SEV_INFO,"csa101: idle");
+        clprintf(SAFplus::LOG_SEV_INFO,"Basic HA app: idle");
         SAFplus::name.set(SAFplus::ASP_COMPNAME,SAFplus::myHandle,SAFplus::NameRegistrar::MODE_NO_CHANGE);
 
         }
     }while(!quitting);
 }
+//? </excerpt>
+
 
 #define STRING_HA_STATE(S)                                                  \
 (   ((S) == SA_AMF_HA_ACTIVE)             ? "Active" :                \

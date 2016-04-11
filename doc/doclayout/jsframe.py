@@ -108,7 +108,16 @@ def main(obj,cfg,tagdict):
     prj = cfg["project"]
     
     hdr = HSplit([Chunk(prj["name"],myId="projectName"),VSplit([Span(["Version: ",prj['version']],myId="projectVersion"),Span([" Released: ",prj['date']],myId="projectReleaseDate").setAttrs("align","right") ]),ImageHtml("thinbar.png",localFileName=mediaDir+"/thinbar.png")]).setAttrs("align","top")
-    content = HeaderFooter(hdr, None,helpContent)
+
+    startContents = '<script language="JavaScript">\n' + """
+var childPage = getUrlParameters('sec','',true);
+if (childPage=='') childPage='Home';
+ReplaceChildrenWithUri('center',childPage + '.html'); 
+LoadScript('centerscript',childPage + '.js');
+</script>
+"""
+
+    content = HeaderFooter(hdr, startContents,helpContent)
 
     sidebarContent=HSplit([ImageHtml("medlogo.svg",localFileName=mediaDir+"/medlogo.svg"), navbar,idxbar, BR,quickbar, Chunk("",myId='sidebar')])
     page = Sidebar(length(15,"%"), sidebarContent, content)

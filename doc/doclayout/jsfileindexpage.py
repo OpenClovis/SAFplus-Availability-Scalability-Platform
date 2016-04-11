@@ -26,6 +26,7 @@ from constants import *
 def genFiles(fllist):
   header = ["File"]
   body = []
+  fllist.sort(key=lambda x: x.name)
   for obj in fllist:
     body.append([obj2tlink(obj,PageLocCenter)])
 

@@ -2,6 +2,8 @@
 This module generates an html page based on some class
 """
 import pdb
+import kid
+from xml.sax.saxutils import escape
 
 from PyHtmlGen.gen import *
 from PyHtmlGen.document import *
@@ -23,11 +25,73 @@ from jscommon import *
 from htmlcommon import *
 from constants import *
 
-def genBody(fllist):
+
+class Tainer:
+  pass
+
+def render2(obj):
+  z = render(obj)
+  if "You can override" in z:
+    pdb.set_trace()
+    t = render(obj)
+    return t
+  return z
+
+def generateSectionFile(name,fname, objlist,cfg):
+   page = []
+   sec = Tainer()
+   sec.name = name
+   sec.variables = []
+   sec.methods = []
+   sec.classes = []
+   sec.desc = []
+   for obj in objlist:
+     sec.name = name
+     sec.variables += obj.childrenWithTag(TagField) + obj.childrenWithTag(TagVariable)
+     sec.methods   += obj.childrenWithTag(TagFunction) + obj.childrenWithTag(TagMethod)
+     sec.classes   += obj.childrenWithTag(TagClass)
+     sec.desc      += obj.childrenWithTag(TagDesc)
+
+   sec.desc.sort(key=lambda x: x.order if hasattr(x,"order") else x.name if hasattr(x,"name") else "zzzzzzzz")
+   sec.variables.sort(key=lambda x: x.order if hasattr(x,"order") else x.name if hasattr(x,"name") else "zzzzzzzz")
+   sec.methods.sort(key=lambda x: x.name)
+   sec.classes.sort(key=lambda x: x.name)
+
+
+   out = {}
+   out["g"] = globals()
+   out["replace"] = PageLocCenter
+   out["R"] = render
+   out["XESC"] = escape
+   out["this"] = sec 
+   template = kid.Template(file=cfg["html"]["skin"] + os.sep + "asection.xml",**out)
+     
+
+   # page = [ "section %s test" % fname ]
+   # WriteFile(FilePrefix+fname,page,HtmlFragment())
+   f = open(FilePrefix+fname, "wb")
+   f.write(str(template))
+   f.close()
+   
+
+
+def genBody(fllist,cfg):
   header = ["Sections"]
   body = []
+  secDict = {}
   for obj in fllist:
-    body.append([obj2tlink(obj,PageLocCenter)])
+    if not secDict.has_key(obj.name):
+      secDict[obj.name] = []
+    sec = secDict[obj.name]
+    sec.append(obj)
+
+  lst = secDict.items()
+  lst.sort(key=lambda x: x[0])
+
+  for name,objlist in lst:
+    secFil = name + ".html"
+    body.append( [obj2tlink(objlist[0],PageLocCenter,name,secFil)])
+    generateSectionFile(name, secFil, objlist,cfg)
 
   grid = GridFromList(header, body )
   grid.RowAttrs({"class":"header sectionIndexHeaderRow"},[{"class":"rowA fileIndexRowA"},{"class":"rowB fileIndexRowB"}])
@@ -36,7 +100,7 @@ def genBody(fllist):
 
 
 def generate(objs,cfg):
-  mv = genBody(objs)
+  mv = genBody(objs,cfg)
 
   hdr = VSplit([resize(2,"")])
   ctr = HSplit([BR,mv])

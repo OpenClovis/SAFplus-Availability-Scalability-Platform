@@ -41,7 +41,7 @@ def generate(mdtree,cfg,args,tagDict=None):
   templateFileName = cfg["html"]["skin"] + os.sep + "home.xml"
   template = kid.Template(file=templateFileName,**out)
   #print str(template)
-  fname = "home.html"
+  fname = "Home.html"
   f = open("html"+os.sep+fname, "wb")
   f.write(str(template))
   f.close()

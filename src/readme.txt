@@ -1,5 +1,4 @@
-<desc>
-
+<section name="Home">
 <html>
 <h2>Introduction</h2>
 The SAFplus Availailability Scalability Platform provides a software toolkit for the design, implementation and management of highly available, scalable clusters.  The computers that constitute these clusters can be placed directly on physical hardware (ATCA chassis or servers, for example) or exist as virtual machines in a heterogenuous cloud environment.
@@ -9,8 +8,8 @@ This API document describes the runtime services of SAFplus.
 <h2>Features</h2>
 
 <ul>
-<li>Checkpoint</li>
-<li>Group</li>
+<li><a href="?sec=file_clCkptApi.hxx">Checkpoint</a></li>
+<li><a href="?sec=Group_Membership">Group_Membership</a></li>
 <li>Messaging</li>
 <ul>
 <li>Message Protocol Plugins</li>
@@ -36,6 +35,7 @@ This API document describes the runtime services of SAFplus.
 </ul>
 
 </html>
-</desc>
+</section>
+
 
 

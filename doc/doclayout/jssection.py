@@ -31,7 +31,6 @@ class Dotter:
 
 def generate(mdtree,cfg,args,tagDict):
   me=Dotter()
-  #pdb.set_trace()
   out = {}
   out['me'] = me
   out['R'] = render
