@@ -1,0 +1,107 @@
+<?xml version='1.0' encoding='utf-8'?>
+<html xmlns="http://www.w3.org/1999/xhtml" xmlns:py="http://purl.org/kid/ns#">
+  <div id="ASection">
+    <h2 id="sectionName">Section: ${this.name}</h2>
+      <div py:if="this.desc">
+        <div py:for="s in this.desc">
+          <p>
+          ${XML(R(s))}
+          </p>
+        </div>
+      </div>
+
+        <div py:if="this.variables">
+          <h2 class="varsHeader">Variables</h2>
+          <table style="text-align: left; width: 100%;" border="0" cellpadding="2" cellspacing="2">
+            <col width="5%"/>
+            <tbody>
+               <div py:for="var in this.variables">
+                <tr class="rowA varsTableRow">
+                  <td onclick="swapAttr(this.parentNode.nextSibling.nextSibling,'class','oclass');">+</td>
+                  <td class="varsTableRowName">${var.name}</td>
+                  <td class="varsTableRowType">${var.type}</td>
+                  <td class="varsTableRowBrief">${XML(R(var.brief))}</td>
+                </tr>
+                <tr class="hidden" oclass="varsTableDescRow">
+                  <td COLSPAN="4">${XML(R(var.desc))}</td>
+                </tr>
+               </div>
+            </tbody>
+          </table>
+        </div>
+
+        <div py:if="this.methods">
+          <h2 class="fnsHeader">Functions</h2>
+          <table style="text-align: left; width: 100%;" border="0" cellpadding="2" cellspacing="2">
+            <col width="5%"/>
+            <tbody>
+              <tr class="header fnsTableHeaderRow">
+                <td></td>
+                <th>Type</th>
+                <th>Declaration</th>
+                <th>Brief</th>
+              </tr>
+              <div py:for="me in this.methods">
+                <tr class="rowA fnsTableRow">
+                  <td onclick="swapAttr(this.parentNode.nextSibling.nextSibling,'class','oclass');">+</td>
+                  <td>${me.type}</td>
+                  <td>${XML(R(me.decl.escapedContents()))}</td>
+                  <td>${XML(R(me.brief))}</td>
+                </tr>
+                <tr class="hidden" oclass="varsTableDescRow">
+                  <td COLSPAN="4">
+                    <div class="desc classMethodDesc" style="margin-left: 4.0em">
+                    <br/><center class="descHeader">Declaration</center>
+                    ${XML(R(me.decl.escapedContents()))}
+                    <div py:if="me.childrenWithAttr('tag_','arg')">
+                      <br/><center class="descHeader">Parameters</center>
+                      <table class="argTable" style="width: 100%;">
+                        <tr class="header argHeader">
+                          <th>Type</th>
+                          <th>Name</th>
+                          <th>Description</th>
+                        </tr>
+                        <tr class="rowA argRow" py:for="arg in me.childrenWithAttr('tag_','arg')">
+                          <td>${arg.type}</td>
+                          <td>${arg.name}</td>
+                          <td>${XML(R(arg))}</td>
+                        </tr>
+                      </table>
+                    </div>
+                    <br/><center class="descHeader">Description</center>
+                    ${XML(R(me.desc))}
+                    </div>
+                  </td>
+                </tr>
+              </div>
+            </tbody>
+          </table>
+  </div>
+
+        <div py:if="this.classes">
+          <h2 class="header classesHeader">Classes</h2>
+          <table style="text-align: left; width: 100%;" border="0" cellpadding="2" cellspacing="2">
+            <col width="5%"/>
+            <tbody>
+              <tr class="header classesTableHeaderRow">
+                <td></td>
+                <th>Name</th>
+                <th>Brief</th>
+              </tr>
+              <div py:for="me in this.classes">
+                <tr class="rowA classesTableRow">
+                  <td onclick="swapAttr(this.parentNode.nextSibling.nextSibling,'class','oclass');">+</td>
+                  <td>${XML(g["obj2tlink"](me,replace,XESC(me.name)))}</td>
+                  <td>${XML(R(me.brief))}</td>
+                </tr>
+                <tr class="hidden" oclass="classesTableDescRow">
+                  <td COLSPAN="3">${XML(R(me.desc))}</td>
+                </tr>
+              </div>
+            </tbody>
+          </table>
+        </div>
+ 
+  </div>
+</html>
+
