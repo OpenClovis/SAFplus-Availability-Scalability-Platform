@@ -44,7 +44,6 @@ class MsgMgt;
 class MsgMgtDb;
 
 enum MsgRpc_MgtRpcType {
-  MsgRpc_MgtRpcType_CL_MGT_RPC_UNDEFINE = 0,
   MsgRpc_MgtRpcType_CL_MGT_RPC_VALIDATE = 1,
   MsgRpc_MgtRpcType_CL_MGT_RPC_INVOKE = 2,
   MsgRpc_MgtRpcType_CL_MGT_RPC_POSTREPLY = 3
@@ -354,7 +353,6 @@ class MsgRpc : public ::google::protobuf::Message {
   // nested types ----------------------------------------------------
 
   typedef MsgRpc_MgtRpcType MgtRpcType;
-  static const MgtRpcType CL_MGT_RPC_UNDEFINE = MsgRpc_MgtRpcType_CL_MGT_RPC_UNDEFINE;
   static const MgtRpcType CL_MGT_RPC_VALIDATE = MsgRpc_MgtRpcType_CL_MGT_RPC_VALIDATE;
   static const MgtRpcType CL_MGT_RPC_INVOKE = MsgRpc_MgtRpcType_CL_MGT_RPC_INVOKE;
   static const MgtRpcType CL_MGT_RPC_POSTREPLY = MsgRpc_MgtRpcType_CL_MGT_RPC_POSTREPLY;
@@ -400,20 +398,35 @@ class MsgRpc : public ::google::protobuf::Message {
   inline ::std::string* release_data();
   inline void set_allocated_data(::std::string* data);
 
+  // required bytes bind = 3;
+  inline bool has_bind() const;
+  inline void clear_bind();
+  static const int kBindFieldNumber = 3;
+  inline const ::std::string& bind() const;
+  inline void set_bind(const ::std::string& value);
+  inline void set_bind(const char* value);
+  inline void set_bind(const void* value, size_t size);
+  inline ::std::string* mutable_bind();
+  inline ::std::string* release_bind();
+  inline void set_allocated_bind(::std::string* bind);
+
   // @@protoc_insertion_point(class_scope:Mgt.Msg.MsgRpc)
  private:
   inline void set_has_rpctype();
   inline void clear_has_rpctype();
   inline void set_has_data();
   inline void clear_has_data();
+  inline void set_has_bind();
+  inline void clear_has_bind();
 
   ::google::protobuf::UnknownFieldSet _unknown_fields_;
 
   ::std::string* data_;
+  ::std::string* bind_;
   int rpctype_;
 
   mutable int _cached_size_;
-  ::google::protobuf::uint32 _has_bits_[(2 + 31) / 32];
+  ::google::protobuf::uint32 _has_bits_[(3 + 31) / 32];
 
   friend void  protobuf_AddDesc_MgtMsg_2eproto();
   friend void protobuf_AssignDesc_MgtMsg_2eproto();
@@ -1192,6 +1205,76 @@ inline void MsgRpc::set_allocated_data(::std::string* data) {
   } else {
     clear_has_data();
     data_ = const_cast< ::std::string*>(&::google::protobuf::internal::kEmptyString);
+  }
+}
+
+// required bytes bind = 3;
+inline bool MsgRpc::has_bind() const {
+  return (_has_bits_[0] & 0x00000004u) != 0;
+}
+inline void MsgRpc::set_has_bind() {
+  _has_bits_[0] |= 0x00000004u;
+}
+inline void MsgRpc::clear_has_bind() {
+  _has_bits_[0] &= ~0x00000004u;
+}
+inline void MsgRpc::clear_bind() {
+  if (bind_ != &::google::protobuf::internal::kEmptyString) {
+    bind_->clear();
+  }
+  clear_has_bind();
+}
+inline const ::std::string& MsgRpc::bind() const {
+  return *bind_;
+}
+inline void MsgRpc::set_bind(const ::std::string& value) {
+  set_has_bind();
+  if (bind_ == &::google::protobuf::internal::kEmptyString) {
+    bind_ = new ::std::string;
+  }
+  bind_->assign(value);
+}
+inline void MsgRpc::set_bind(const char* value) {
+  set_has_bind();
+  if (bind_ == &::google::protobuf::internal::kEmptyString) {
+    bind_ = new ::std::string;
+  }
+  bind_->assign(value);
+}
+inline void MsgRpc::set_bind(const void* value, size_t size) {
+  set_has_bind();
+  if (bind_ == &::google::protobuf::internal::kEmptyString) {
+    bind_ = new ::std::string;
+  }
+  bind_->assign(reinterpret_cast<const char*>(value), size);
+}
+inline ::std::string* MsgRpc::mutable_bind() {
+  set_has_bind();
+  if (bind_ == &::google::protobuf::internal::kEmptyString) {
+    bind_ = new ::std::string;
+  }
+  return bind_;
+}
+inline ::std::string* MsgRpc::release_bind() {
+  clear_has_bind();
+  if (bind_ == &::google::protobuf::internal::kEmptyString) {
+    return NULL;
+  } else {
+    ::std::string* temp = bind_;
+    bind_ = const_cast< ::std::string*>(&::google::protobuf::internal::kEmptyString);
+    return temp;
+  }
+}
+inline void MsgRpc::set_allocated_bind(::std::string* bind) {
+  if (bind_ != &::google::protobuf::internal::kEmptyString) {
+    delete bind_;
+  }
+  if (bind) {
+    set_has_bind();
+    bind_ = bind;
+  } else {
+    clear_has_bind();
+    bind_ = const_cast< ::std::string*>(&::google::protobuf::internal::kEmptyString);
   }
 }
 

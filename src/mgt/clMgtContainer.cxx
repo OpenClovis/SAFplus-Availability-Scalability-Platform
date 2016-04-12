@@ -218,10 +218,11 @@ namespace SAFplus
   {
     ClRcT rc = CL_OK;
     assert(mgtObject);
-
     const std::string* name = &objectName;
     if (name == nullptr)
+    {
       name = &mgtObject->tag;
+    }
     if (mgtObject->tag.size() == 0)  // Unnamed: so assign it the passed name
       {
         mgtObject->tag = objectName;
@@ -231,7 +232,6 @@ namespace SAFplus
     if (!mgtObject->parent)
       mgtObject->parent = this;
     children[*name] = mgtObject;
-
     return rc;
   }
 
@@ -377,7 +377,6 @@ namespace SAFplus
 
   ClBoolT MgtContainer::set(const void *pBuffer, ClUint64T buffLen, SAFplus::Transaction& t)
   {
-    logDebug("MGT", "SET", "Set data [%s] for container [%s]", (const char*) pBuffer, getFullXpath(true).c_str());
     SAFplus::MgtObjectMap::iterator iter;
     int ret, nodetyp, depth;
     xmlChar *valstr, *namestr;

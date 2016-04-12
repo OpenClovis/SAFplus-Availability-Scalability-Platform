@@ -88,9 +88,10 @@ void protobuf_AssignDesc_MgtMsg_2eproto() {
       ::google::protobuf::MessageFactory::generated_factory(),
       sizeof(MsgBind));
   MsgRpc_descriptor_ = file->message_type(2);
-  static const int MsgRpc_offsets_[2] = {
+  static const int MsgRpc_offsets_[3] = {
     GOOGLE_PROTOBUF_GENERATED_MESSAGE_FIELD_OFFSET(MsgRpc, rpctype_),
     GOOGLE_PROTOBUF_GENERATED_MESSAGE_FIELD_OFFSET(MsgRpc, data_),
+    GOOGLE_PROTOBUF_GENERATED_MESSAGE_FIELD_OFFSET(MsgRpc, bind_),
   };
   MsgRpc_reflection_ =
     new ::google::protobuf::internal::GeneratedMessageReflection(
@@ -226,23 +227,23 @@ void protobuf_AddDesc_MgtMsg_2eproto() {
     "\n\014MgtMsg.proto\022\007Mgt.Msg\"\"\n\006Handle\022\013\n\003id0"
     "\030\001 \002(\006\022\013\n\003id1\030\002 \002(\006\"I\n\007MsgBind\022\037\n\006handle"
     "\030\001 \002(\0132\017.Mgt.Msg.Handle\022\016\n\006module\030\002 \002(\t\022"
-    "\r\n\005route\030\003 \002(\t\"\233\001\n\006MsgRpc\022+\n\007rpctype\030\001 \002"
+    "\r\n\005route\030\003 \002(\t\"\251\001\n\006MsgRpc\022+\n\007rpctype\030\001 \002"
     "(\0162\032.Mgt.Msg.MsgRpc.MgtRpcType\022\014\n\004data\030\002"
-    " \001(\t\"V\n\nMgtRpcType\022\027\n\023CL_MGT_RPC_VALIDAT"
-    "E\020\001\022\025\n\021CL_MGT_RPC_INVOKE\020\002\022\030\n\024CL_MGT_RPC"
-    "_POSTREPLY\020\003\"\031\n\tMsgSetGet\022\014\n\004data\030\002 \001(\t\""
-    "\032\n\nMsgGeneral\022\014\n\004data\030\001 \003(\014\"\351\002\n\006MsgMgt\022("
-    "\n\004type\030\001 \002(\0162\032.Mgt.Msg.MsgMgt.MgtMsgType"
-    "\022\014\n\004bind\030\002 \002(\014\022\014\n\004data\030\003 \003(\014\"\230\002\n\nMgtMsgT"
-    "ype\022\025\n\021CL_MGT_MSG_UNUSED\020\000\022\023\n\017CL_MGT_MSG"
-    "_BIND\020\001\022\022\n\016CL_MGT_MSG_GET\020\002\022\022\n\016CL_MGT_MS"
-    "G_SET\020\003\022\022\n\016CL_MGT_MSG_RPC\020\004\022\027\n\023CL_MGT_MS"
-    "G_BIND_RPC\020\005\022\024\n\020CL_MGT_MSG_NOTIF\020\006\022\033\n\027CL"
-    "_MGT_MSG_BIND_REQUEST\020\007\022\023\n\017CL_MGT_MSG_XG"
-    "ET\020\010\022\023\n\017CL_MGT_MSG_XSET\020\t\022\025\n\021CL_MGT_MSG_"
-    "CREATE\020\n\022\025\n\021CL_MGT_MSG_DELETE\020\013\"7\n\010MsgMg"
-    "tDb\022\r\n\005xpath\030\001 \002(\t\022\r\n\005value\030\002 \002(\t\022\r\n\005chi"
-    "ld\030\003 \003(\t", 768);
+    " \001(\t\022\014\n\004bind\030\003 \002(\014\"V\n\nMgtRpcType\022\027\n\023CL_M"
+    "GT_RPC_VALIDATE\020\001\022\025\n\021CL_MGT_RPC_INVOKE\020\002"
+    "\022\030\n\024CL_MGT_RPC_POSTREPLY\020\003\"\031\n\tMsgSetGet\022"
+    "\014\n\004data\030\002 \001(\t\"\032\n\nMsgGeneral\022\014\n\004data\030\001 \003("
+    "\014\"\351\002\n\006MsgMgt\022(\n\004type\030\001 \002(\0162\032.Mgt.Msg.Msg"
+    "Mgt.MgtMsgType\022\014\n\004bind\030\002 \002(\014\022\014\n\004data\030\003 \003"
+    "(\014\"\230\002\n\nMgtMsgType\022\025\n\021CL_MGT_MSG_UNUSED\020\000"
+    "\022\023\n\017CL_MGT_MSG_BIND\020\001\022\022\n\016CL_MGT_MSG_GET\020"
+    "\002\022\022\n\016CL_MGT_MSG_SET\020\003\022\022\n\016CL_MGT_MSG_RPC\020"
+    "\004\022\027\n\023CL_MGT_MSG_BIND_RPC\020\005\022\024\n\020CL_MGT_MSG"
+    "_NOTIF\020\006\022\033\n\027CL_MGT_MSG_BIND_REQUEST\020\007\022\023\n"
+    "\017CL_MGT_MSG_XGET\020\010\022\023\n\017CL_MGT_MSG_XSET\020\t\022"
+    "\025\n\021CL_MGT_MSG_CREATE\020\n\022\025\n\021CL_MGT_MSG_DEL"
+    "ETE\020\013\"7\n\010MsgMgtDb\022\r\n\005xpath\030\001 \002(\t\022\r\n\005valu"
+    "e\030\002 \002(\t\022\r\n\005child\030\003 \003(\t", 782);
   ::google::protobuf::MessageFactory::InternalRegisterGeneratedFile(
     "MgtMsg.proto", &protobuf_RegisterTypes);
   Handle::default_instance_ = new Handle();
@@ -863,7 +864,6 @@ bool MsgRpc_MgtRpcType_IsValid(int value) {
 }
 
 #ifndef _MSC_VER
-const MsgRpc_MgtRpcType MsgRpc::CL_MGT_RPC_UNDEFINE;
 const MsgRpc_MgtRpcType MsgRpc::CL_MGT_RPC_VALIDATE;
 const MsgRpc_MgtRpcType MsgRpc::CL_MGT_RPC_INVOKE;
 const MsgRpc_MgtRpcType MsgRpc::CL_MGT_RPC_POSTREPLY;
@@ -874,6 +874,7 @@ const int MsgRpc::MgtRpcType_ARRAYSIZE;
 #ifndef _MSC_VER
 const int MsgRpc::kRpctypeFieldNumber;
 const int MsgRpc::kDataFieldNumber;
+const int MsgRpc::kBindFieldNumber;
 #endif  // !_MSC_VER
 
 MsgRpc::MsgRpc()
@@ -894,6 +895,7 @@ void MsgRpc::SharedCtor() {
   _cached_size_ = 0;
   rpctype_ = 1;
   data_ = const_cast< ::std::string*>(&::google::protobuf::internal::kEmptyString);
+  bind_ = const_cast< ::std::string*>(&::google::protobuf::internal::kEmptyString);
   ::memset(_has_bits_, 0, sizeof(_has_bits_));
 }
 
@@ -904,6 +906,9 @@ MsgRpc::~MsgRpc() {
 void MsgRpc::SharedDtor() {
   if (data_ != &::google::protobuf::internal::kEmptyString) {
     delete data_;
+  }
+  if (bind_ != &::google::protobuf::internal::kEmptyString) {
+    delete bind_;
   }
   if (this != default_instance_) {
   }
@@ -936,6 +941,11 @@ void MsgRpc::Clear() {
     if (has_data()) {
       if (data_ != &::google::protobuf::internal::kEmptyString) {
         data_->clear();
+      }
+    }
+    if (has_bind()) {
+      if (bind_ != &::google::protobuf::internal::kEmptyString) {
+        bind_->clear();
       }
     }
   }
@@ -982,6 +992,20 @@ bool MsgRpc::MergePartialFromCodedStream(
         } else {
           goto handle_uninterpreted;
         }
+        if (input->ExpectTag(26)) goto parse_bind;
+        break;
+      }
+
+      // required bytes bind = 3;
+      case 3: {
+        if (::google::protobuf::internal::WireFormatLite::GetTagWireType(tag) ==
+            ::google::protobuf::internal::WireFormatLite::WIRETYPE_LENGTH_DELIMITED) {
+         parse_bind:
+          DO_(::google::protobuf::internal::WireFormatLite::ReadBytes(
+                input, this->mutable_bind()));
+        } else {
+          goto handle_uninterpreted;
+        }
         if (input->ExpectAtEnd()) return true;
         break;
       }
@@ -1019,6 +1043,12 @@ void MsgRpc::SerializeWithCachedSizes(
       2, this->data(), output);
   }
 
+  // required bytes bind = 3;
+  if (has_bind()) {
+    ::google::protobuf::internal::WireFormatLite::WriteBytes(
+      3, this->bind(), output);
+  }
+
   if (!unknown_fields().empty()) {
     ::google::protobuf::internal::WireFormat::SerializeUnknownFields(
         unknown_fields(), output);
@@ -1043,6 +1073,13 @@ void MsgRpc::SerializeWithCachedSizes(
         2, this->data(), target);
   }
 
+  // required bytes bind = 3;
+  if (has_bind()) {
+    target =
+      ::google::protobuf::internal::WireFormatLite::WriteBytesToArray(
+        3, this->bind(), target);
+  }
+
   if (!unknown_fields().empty()) {
     target = ::google::protobuf::internal::WireFormat::SerializeUnknownFieldsToArray(
         unknown_fields(), target);
@@ -1065,6 +1102,13 @@ int MsgRpc::ByteSize() const {
       total_size += 1 +
         ::google::protobuf::internal::WireFormatLite::StringSize(
           this->data());
+    }
+
+    // required bytes bind = 3;
+    if (has_bind()) {
+      total_size += 1 +
+        ::google::protobuf::internal::WireFormatLite::BytesSize(
+          this->bind());
     }
 
   }
@@ -1100,6 +1144,9 @@ void MsgRpc::MergeFrom(const MsgRpc& from) {
     if (from.has_data()) {
       set_data(from.data());
     }
+    if (from.has_bind()) {
+      set_bind(from.bind());
+    }
   }
   mutable_unknown_fields()->MergeFrom(from.unknown_fields());
 }
@@ -1117,7 +1164,7 @@ void MsgRpc::CopyFrom(const MsgRpc& from) {
 }
 
 bool MsgRpc::IsInitialized() const {
-  if ((_has_bits_[0] & 0x00000001) != 0x00000001) return false;
+  if ((_has_bits_[0] & 0x00000005) != 0x00000005) return false;
 
   return true;
 }
@@ -1126,6 +1173,7 @@ void MsgRpc::Swap(MsgRpc* other) {
   if (other != this) {
     std::swap(rpctype_, other->rpctype_);
     std::swap(data_, other->data_);
+    std::swap(bind_, other->bind_);
     std::swap(_has_bits_[0], other->_has_bits_[0]);
     _unknown_fields_.Swap(&other->_unknown_fields_);
     std::swap(_cached_size_, other->_cached_size_);

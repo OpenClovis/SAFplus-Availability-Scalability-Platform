@@ -630,9 +630,11 @@ namespace SAFplus
     std::vector<MgtObject*> matches;
     std::string path, cmds;
     std::string attrs = "";
+    logDebug("MGT","RPC","get data");
     std::string data = reqMsg.data();
+    logDebug("MGT","RPC","get data %s",reqMsg.data().c_str());
     //Todo Remove this hard code
-    path = "/reset";
+    path = reqMsg.bind();
     if (path[0] == '/')
     {
       resolvePath(path.c_str() + 1, &matches);
@@ -644,7 +646,11 @@ namespace SAFplus
           MgtRpc *rpc = dynamic_cast<MgtRpc*> (*i);
           if (rpc)
           {
-            rpc->setInParams((void*)data.c_str(),data.length());
+            if(data!="")
+            {
+              logDebug("MGT","RPC","set rpc input parameter");
+              rpc->setInParams((void*)data.c_str(),data.length());
+            }
             switch (reqMsg.rpctype())
             {
               case Mgt::Msg::MsgRpc::CL_MGT_RPC_VALIDATE:
@@ -747,6 +753,7 @@ namespace SAFplus
     Mgt::Msg::MsgRpc mgtRpcReq;
     if(mgtRpcReq.ParseFromArray(msg, msglen))
     {
+      logDebug("MGT","DEL","process RPC message");
       mRoot->clMgtMsgRPCHandler(from,mgtRpcReq);
     }
     else

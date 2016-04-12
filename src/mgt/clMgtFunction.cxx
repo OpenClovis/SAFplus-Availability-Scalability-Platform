@@ -107,7 +107,7 @@ namespace SAFplus
 
   }
 
-  SAFplus::MsgReply *mgtRpcRequest(SAFplus::Handle src, MsgMgt_MgtMsgType reqType, const std::string& pathSpec, const std::string& value = "", Mgt::Msg::MsgRpc::MgtRpcType rpcType=Mgt::Msg::MsgRpc::CL_MGT_RPC_UNDEFINE)
+  SAFplus::MsgReply *mgtRpcRequest(SAFplus::Handle src, MsgMgt_MgtMsgType reqType, const std::string& pathSpec, const std::string& value = "", Mgt::Msg::MsgRpc::MgtRpcType rpcType=Mgt::Msg::MsgRpc::CL_MGT_RPC_VALIDATE)
   {
     SAFplus::MsgReply *msgReply = NULL;
     uint retryDuration = SAFplusI::MsgSafplusSendReplyRetryInterval;
@@ -126,7 +126,7 @@ namespace SAFplus
         std::string data = value;
         rpcMsgReq.set_rpctype(rpcType);
         rpcMsgReq.set_data(data);
-//        rpcMsgReq.set_bind(pathSpec)
+        rpcMsgReq.set_bind(pathSpec);
         rpcMsgReq.SerializeToString(&request);
     }
     else
@@ -317,28 +317,27 @@ namespace SAFplus
   ClRcT mgtRpc(Mgt::Msg::MsgRpc::MgtRpcType mgtRpcType,const std::string& pathSpec, const std::string& request)
   {
     ClRcT ret = CL_OK;
-    std::string xpath = "{n}/";
-    xpath.append(pathSpec);
     std::vector<MgtObject*> matches;
-    lookupObjects(xpath, &matches);
+    lookupObjects(pathSpec, &matches);
     if (matches.size())
       {
         for(std::vector<MgtObject*>::iterator i = matches.begin(); i != matches.end(); i++)
           {
             MgtRpc *rpc = dynamic_cast<MgtRpc*> (*i);
-            rpc->setInParams((void*)request.c_str(),request.length());
+            if(request!="")
+            {
+              logDebug("MGT","RPC","set rpc input parameter");
+              rpc->setInParams((void*)request.c_str(),request.length());
+            }
             switch (mgtRpcType)
             {
               case Mgt::Msg::MsgRpc::CL_MGT_RPC_VALIDATE:
-                // set parameter
                 ret = rpc->validate();
                 break;
               case Mgt::Msg::MsgRpc::CL_MGT_RPC_INVOKE:
-                //set input parram
                 ret = rpc->invoke();
                 break;
               case Mgt::Msg::MsgRpc::CL_MGT_RPC_POSTREPLY:
-                //set input parram
                 ret = rpc->postReply();
                 break;
               default:
@@ -348,7 +347,7 @@ namespace SAFplus
       }
     else  // Object Implementer not found. Broadcast message to get data
       {
-        Handle hdl = getMgtHandle(xpath, ret);
+        Handle hdl = getMgtHandle(pathSpec, ret);
         if (ret == CL_OK && INVALID_HDL != hdl)
         {
           ret = mgtRpc(hdl,mgtRpcType, pathSpec, request);
