@@ -630,15 +630,13 @@ namespace SAFplus
     std::vector<MgtObject*> matches;
     std::string path, cmds;
     std::string attrs = "";
-    logDebug("MGT","RPC","get data");
     std::string data = reqMsg.data();
-    logDebug("MGT","RPC","get data %s",reqMsg.data().c_str());
+    ClBoolT rc;
     //Todo Remove this hard code
     path = reqMsg.bind();
     if (path[0] == '/')
     {
       resolvePath(path.c_str() + 1, &matches);
-      ClBoolT rc;
       if (matches.size())
       {
         for (std::vector<MgtObject*>::iterator i = matches.begin(); i != matches.end(); i++)
@@ -648,7 +646,6 @@ namespace SAFplus
           {
             if(data!="")
             {
-              logDebug("MGT","RPC","set rpc input parameter");
               rpc->setInParams((void*)data.c_str(),data.length());
             }
             switch (reqMsg.rpctype())
@@ -675,8 +672,7 @@ namespace SAFplus
         }
       }
     }
-    //logDebug("MGT","SET","Object [%s] update complete [0x%x]", path.c_str(),rc);
-    //MgtRoot::sendReplyMsg(srcAddr,(void *)&rc,sizeof(ClRcT));
+    MgtRoot::sendReplyMsg(srcAddr,(void *)&rc,sizeof(ClRcT));
   }
 
   void MgtRoot::clMgtMsgDeleteHandler(SAFplus::Handle srcAddr, Mgt::Msg::MsgMgt& reqMsg)
