@@ -11,6 +11,7 @@ import svg
 import entity
 from entity import Entity
 import generate
+import share
 
 VERSION = "7.0"
 MAX_RECURSIVE_INSTANTIATION_DEPTH = 5
@@ -71,7 +72,19 @@ instantiated  <instances>     instances                         instances     (e
         self.deleteInstance(self.instances[items])
 
     if isinstance(items,entity.Instance): self.deleteInstance(items)
-    elif isinstance(items, entity.Entity): self.deleteEntity(items)
+    elif isinstance(items, entity.Entity): 
+      self.deleteEntity(items)
+      entname = items.data["name"]
+      insToDelete = []
+      for name,e in self.instances.items():
+        if e.entity.data["name"] == entname:
+          insToDelete.append(name)
+          if share.instanceDetailsPanel:
+            # delete instance details from the dialog also
+            share.instanceDetailsPanel.deleteTreeItemEntities([e])
+      for i in insToDelete:
+          # delete instances and its related instances (instances have relationship with it)
+          self.deleteInstance(self.instances[i])
 
   def deleteEntity(self,entity):
     """Delete this instance of Entity from the model"""
