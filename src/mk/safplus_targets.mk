@@ -46,6 +46,10 @@ endif
 ifndef SAFPLUS_MGT_LIB
 $(LIB_DIR)/libclMgt.so:
 	$(MAKE) -C $(SAFPLUS_SRC_DIR)/mgt
+
+$(SAFPLUS_SRC_DIR)/mgt/MgtMsg.pb.hxx:
+	ln -s $(PROTOBUFVER)/MgtMsg.pb.hxx $@
+
 endif
 
 ifndef SAFPLUS_DBAL_LIB
@@ -101,7 +105,7 @@ $(LIB_DIR)/libclMsg.so: $(wildcard $(SAFPLUS_SRC_DIR)/msg/*.cxx) $(wildcard $(SA
 endif
 
 ifndef SAFPLUS_FAULT_LIB
-$(LIB_DIR)/libclFault.so: $(wildcard $(SAFPLUS_SRC_DIR)/fault/*.cxx) $(wildcard $(SAFPLUS_SRC_DIR)/include/*.hxx) 
+$(LIB_DIR)/libclFault.so: $(SAFPLUS_SRC_DIR)/mgt/MgtMsg.pb.hxx $(wildcard $(SAFPLUS_SRC_DIR)/fault/*.cxx) $(wildcard $(SAFPLUS_SRC_DIR)/include/*.hxx) 
 	$(MAKE) -C $(SAFPLUS_SRC_DIR)/fault
 endif
 
