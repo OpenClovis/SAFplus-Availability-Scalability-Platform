@@ -26,6 +26,7 @@
 #include "HighAvailabilityState.hxx"
 #include "ServiceUnit.hxx"
 
+using namespace  std;
 using namespace SAFplusAmf;
 
 namespace SAFplusAmf
@@ -73,7 +74,7 @@ namespace SAFplusAmf
         probationTime = 0;
     };
 
-    ServiceUnit::ServiceUnit(std::string nameValue): adminState("adminState",::SAFplusAmf::AdministrativeState::on), rank("rank",0), failover("failover"), preinstantiable("preinstantiable"), saAmfSUHostNodeOrNodeGroup("saAmfSUHostNodeOrNodeGroup"), presenceState("presenceState",::SAFplusAmf::PresenceState::uninstantiated), readinessState("readinessState",::SAFplusAmf::ReadinessState::outOfService), haReadinessState("haReadinessState",::SAFplusAmf::HighAvailabilityReadinessState::readyForAssignment), haState("haState"), operState("operState"), assignedServiceInstances("assignedServiceInstances"), components("components"), node("node"), serviceGroup("serviceGroup"), probationTime("probationTime",0)
+    ServiceUnit::ServiceUnit(const std::string& nameValue): adminState("adminState",::SAFplusAmf::AdministrativeState::on), rank("rank",0), failover("failover"), preinstantiable("preinstantiable"), saAmfSUHostNodeOrNodeGroup("saAmfSUHostNodeOrNodeGroup"), presenceState("presenceState",::SAFplusAmf::PresenceState::uninstantiated), readinessState("readinessState",::SAFplusAmf::ReadinessState::outOfService), haReadinessState("haReadinessState",::SAFplusAmf::HighAvailabilityReadinessState::readyForAssignment), haState("haState"), operState("operState"), assignedServiceInstances("assignedServiceInstances"), components("components"), node("node"), serviceGroup("serviceGroup"), probationTime("probationTime",0)
     {
         this->name.value =  nameValue;
         this->addChildObject(&adminState, "adminState");

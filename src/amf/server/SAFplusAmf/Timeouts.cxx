@@ -16,9 +16,6 @@
 namespace SAFplusAmf
   {
 
-    /* Apply MGT object factory */
-    MGT_REGISTER_IMPL(Timeouts, /SAFplusAmf/safplusAmf/Component/timeouts)
-
     Timeouts::Timeouts(): SAFplus::MgtContainer("timeouts"), quiescingComplete("quiescingComplete",SaTimeT(120000)), workRemoval("workRemoval",SaTimeT(120000)), workAssignment("workAssignment",SaTimeT(120000))
     {
         this->addChildObject(&quiescingComplete, "quiescingComplete");

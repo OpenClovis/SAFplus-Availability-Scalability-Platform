@@ -78,7 +78,7 @@ namespace SAFplusAmf
 
     public:
         Node();
-        Node(std::string nameValue);
+        Node(const std::string& nameValue);
         std::vector<std::string> getKeys();
         std::vector<std::string>* getChildNames();
 

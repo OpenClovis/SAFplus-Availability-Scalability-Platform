@@ -78,6 +78,7 @@ namespace SAFplus
       MgtProv<T>& operator =(const T& val)
       {
         value = val;
+        lastChange = beat++;
         setDb();
         return *this;
       }
@@ -180,6 +181,7 @@ namespace SAFplus
     void ProvOperation<T>::setData(MgtProv<T> *owner, void *data, ClUint64T buffLen)
     {
       mOwner = owner;
+      assert(mData == nullptr);
       mData = (void *) malloc(buffLen);
 
       if (!mData)
@@ -276,6 +278,7 @@ namespace SAFplus
       if (&t == &SAFplus::NO_TXN)
         {
           value = val;
+          lastChange = beat++;
           MgtObject *r = root();
           r->headRev = r->headRev + 1;
         }
@@ -425,6 +428,7 @@ namespace SAFplus
           return rc;
         }
       deXMLize(val, this, value);
+      lastChange = beat++;
       return rc;
     }
 
@@ -438,6 +442,7 @@ namespace SAFplus
         }
 
       deXMLize(val, this, value);
+      lastChange = beat++;
 
       MgtObject *r = root();
       r->headRev = r->headRev + 1;

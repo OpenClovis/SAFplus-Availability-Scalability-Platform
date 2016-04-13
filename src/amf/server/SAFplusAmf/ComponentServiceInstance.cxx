@@ -18,6 +18,7 @@
 #include <vector>
 #include "ComponentServiceInstance.hxx"
 
+using namespace  std;
 
 namespace SAFplusAmf
   {
@@ -40,7 +41,7 @@ namespace SAFplusAmf
         this->tag.assign("ComponentServiceInstance");
     };
 
-    ComponentServiceInstance::ComponentServiceInstance(std::string nameValue): protectionGroup("protectionGroup"), dependencies("dependencies"), serviceInstance("serviceInstance"), standbyComponents("standbyComponents"), activeComponents("activeComponents"), dataList("data")
+    ComponentServiceInstance::ComponentServiceInstance(const std::string& nameValue): protectionGroup("protectionGroup"), dependencies("dependencies"), serviceInstance("serviceInstance"), standbyComponents("standbyComponents"), activeComponents("activeComponents"), dataList("data")
     {
         this->name.value =  nameValue;
         this->addChildObject(&protectionGroup, "protectionGroup");

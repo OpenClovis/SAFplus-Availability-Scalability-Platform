@@ -107,6 +107,7 @@ extern MgtIteratorBase mgtIterEnd;
     bool config;  // True if this object is configuration (available in the database).  False if it is statistics or status
     MgtObject *parent;
     ClUint32T headRev; // Revision to check before sending
+    uint64_t  lastChange;
   public:
     MgtObject(const char* name);
     virtual ~MgtObject();

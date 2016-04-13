@@ -14,9 +14,6 @@
 namespace SAFplusAmf
   {
 
-    /* Apply MGT object factory */
-    MGT_REGISTER_IMPL(ServiceUnitFailureEscalationPolicy, /SAFplusAmf/safplusAmf/Node/serviceUnitFailureEscalationPolicy)
-
     ServiceUnitFailureEscalationPolicy::ServiceUnitFailureEscalationPolicy()
     {
         this->tag.assign("serviceUnitFailureEscalationPolicy");

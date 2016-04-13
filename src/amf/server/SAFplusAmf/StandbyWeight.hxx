@@ -24,7 +24,7 @@ namespace SAFplusAmf
 
     public:
         StandbyWeight();
-        StandbyWeight(std::string resourceValue);
+        StandbyWeight(const std::string& resourceValue);
         std::vector<std::string> getKeys();
         std::vector<std::string>* getChildNames();
         ~StandbyWeight();

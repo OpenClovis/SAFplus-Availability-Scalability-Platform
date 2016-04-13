@@ -15,9 +15,6 @@
 namespace SAFplusAmf
   {
 
-    /* Apply MGT object factory */
-    MGT_REGISTER_IMPL(Load, /SAFplusAmf/safplusAmf/Node/stats/load)
-
     Load::Load(): SAFplus::MgtContainer("load")
     {
         this->addChildObject(&user, "user");

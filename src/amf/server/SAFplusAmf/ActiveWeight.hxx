@@ -24,7 +24,7 @@ namespace SAFplusAmf
 
     public:
         ActiveWeight();
-        ActiveWeight(std::string resourceValue);
+        ActiveWeight(const std::string& resourceValue);
         std::vector<std::string> getKeys();
         std::vector<std::string>* getChildNames();
         ~ActiveWeight();

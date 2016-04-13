@@ -18,9 +18,6 @@
 namespace SAFplusAmf
   {
 
-    /* Apply MGT object factory */
-    MGT_REGISTER_IMPL(SafplusAmf, /SAFplusAmf/safplusAmf)
-
     SafplusAmf::SafplusAmf(): SAFplus::MgtContainer("safplusAmf"), healthCheckPeriod("healthCheckPeriod",SaTimeT(0)), healthCheckMaxSilence("healthCheckMaxSilence",SaTimeT(0)), clusterList("Cluster"), nodeList("Node"), serviceGroupList("ServiceGroup"), componentList("Component"), componentServiceInstanceList("ComponentServiceInstance"), serviceInstanceList("ServiceInstance"), serviceUnitList("ServiceUnit"), applicationList("Application"), entityByNameList("EntityByName"), entityByIdList("EntityById")
     {
         this->addChildObject(&healthCheckPeriod, "healthCheckPeriod");

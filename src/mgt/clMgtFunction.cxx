@@ -471,6 +471,71 @@ namespace SAFplus
       }
     return ret;
   }
+
+     //? Get information from the management subsystem -- removes the XML and casts
+  uint64_t mgtGetUint(const std::string& pathSpec)
+     {
+       std::string result = mgtGet(pathSpec);
+       if (result.size() == 0)
+         {
+            throw Error(Error::SAFPLUS_ERROR,Error::DOES_NOT_EXIST,"Path does not exist",__FILE__,__LINE__);
+         }
+       int start = result.find('>');
+       start++;
+       int end = result.find('<',start);
+       std::string val = result.substr(start,end-start);
+       return boost::lexical_cast<uint64_t>(val);
+
+     }
+
+     //? Get information from the management subsystem -- removes the XML and casts
+     int64_t mgtGetInt(const std::string& pathSpec)
+     {
+       std::string result = mgtGet(pathSpec);
+       if (result.size() == 0)
+         {
+            throw Error(Error::SAFPLUS_ERROR,Error::DOES_NOT_EXIST,"Path does not exist",__FILE__,__LINE__);
+         }
+       int start = result.find('>');
+       start++;
+       int end = result.find('<',start);
+       std::string val = result.substr(start,end-start);
+       return boost::lexical_cast<int64_t>(val);
+
+ 
+     }
+     //? Get information from the management subsystem -- removes the XML and casts
+     double   mgtGetNum(const std::string& pathSpec)
+     {
+       std::string result = mgtGet(pathSpec);
+       if (result.size() == 0)
+         {
+            throw Error(Error::SAFPLUS_ERROR,Error::DOES_NOT_EXIST,"Path does not exist",__FILE__,__LINE__);
+         }
+       int start = result.find('>');
+       start++;
+       int end = result.find('<',start);
+       std::string val = result.substr(start,end-start);
+       return boost::lexical_cast<double>(val);
+
+      }
+     //? Get information from the management subsystem -- removes the XML and casts
+     std::string mgtGetString(const std::string& pathSpec)
+     {
+       std::string result = mgtGet(pathSpec);
+       if (result.size() == 0)
+         {
+            throw Error(Error::SAFPLUS_ERROR,Error::DOES_NOT_EXIST,"Path does not exist",__FILE__,__LINE__);
+         }
+       int start = result.find('>');
+       start++;
+       int end = result.find('<',start);
+       std::string val = result.substr(start,end-start);
+       return val;
+
+      }
+
+
 }
 
 

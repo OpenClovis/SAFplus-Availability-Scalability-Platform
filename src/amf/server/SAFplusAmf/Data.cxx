@@ -13,6 +13,7 @@
 #include <vector>
 #include "Data.hxx"
 
+using namespace  std;
 
 namespace SAFplusAmf
   {
@@ -26,7 +27,7 @@ namespace SAFplusAmf
         this->addChildObject(&val, "val");
     };
 
-    Data::Data(std::string nameValue): SAFplus::MgtContainer("data"), name("name"), val("val")
+    Data::Data(const std::string& nameValue): SAFplus::MgtContainer("data"), name("name"), val("val")
     {
         this->name.value =  nameValue;
         this->addChildObject(&name, "name");

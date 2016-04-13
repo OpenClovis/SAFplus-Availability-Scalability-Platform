@@ -15,9 +15,6 @@
 namespace SAFplusAmf
   {
 
-    /* Apply MGT object factory */
-    MGT_REGISTER_IMPL(ProcStats, /SAFplusAmf/safplusAmf/Component/procStats)
-
     ProcStats::ProcStats()
     {
         this->addChildObject(&failures, "failures");

@@ -14,9 +14,6 @@
 namespace SAFplusAmf
   {
 
-    /* Apply MGT object factory */
-    MGT_REGISTER_IMPL(Terminate, /SAFplusAmf/safplusAmf/Component/terminate)
-
     Terminate::Terminate()
     {
         this->tag.assign("terminate");

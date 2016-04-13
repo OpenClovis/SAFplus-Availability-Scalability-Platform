@@ -30,7 +30,7 @@ namespace SAFplusAmf
 
     public:
         Data();
-        Data(std::string nameValue);
+        Data(const std::string& nameValue);
         std::vector<std::string> getKeys();
         std::vector<std::string>* getChildNames();
 

@@ -10,50 +10,48 @@
 
 namespace SAFplus
   {
-  extern pid_t pid;  // This process's ID
-  extern const char* logCompName;  // Override this component name for display in the logs.  If this variable is not changed the name will be the SAF component name.
-  extern bool  logCodeLocationEnable;
-  /** Set this to a file descriptor to echo all logs that pass the severity limit to it this fd on the client side.  For example, use 1 to send to stdout.  -1 to turn off (default) */
-  extern int logEchoToFd;
+  extern pid_t pid;  //? This process's ID
+  extern const char* logCompName;  //? Override this component name for display in the logs.  If this variable is not changed the name will be the SAF component name.
+  extern bool  logCodeLocationEnable; //? Set this to a file descriptor to echo all logs that pass the severity limit to it this fd on the client side.  For example, use 1 to send to stdout.  -1 to turn off (default)
+  extern int logEchoToFd;  //? Echo all logs to a particular file descriptor (typically used to echo to stdout (or fd 1)
+  extern SAFplus::LogSeverity logSeverity;  //? The log severity cutoff.  Logs less severe than this will not be issued
 
-  extern SAFplus::LogSeverity logSeverity;
   extern uint_t iocPort;  //? The default communications port number for this component
 
-/** Name of the node.  Loaded from the same-named environment variable.  */
+  extern uint64_t beat; //? Objects can save their last change time by setting a local variable to this "beat" and then incrementing beat.  Other entities can then tell if the object was changed since the last time the other entity checked.
+
+    //? Name of the node.  Loaded from the same-named environment variable.
   extern char ASP_NODENAME[CL_MAX_NAME_LENGTH];
-/** Name of the component.  Loaded from the same-named environment variable.  */
+    //? Name of the component.  Loaded from the same-named environment variable.
   extern char ASP_COMPNAME[CL_MAX_NAME_LENGTH];
-/** Address of the node. This is the same as the slot number in slot-based system.  Loaded from the same-named environment variable.  On a slot-based system, it is the application programmer's job to access the hardware and set this environment variable properly (and remove it from asp.conf).  Otherwise a unique number should be provided in the asp.conf file. */
+    //? Address of the node. This is the same as the slot number in slot-based system.  Loaded from the same-named environment variable.  On a slot-based system, it is the application programmer's job to access the hardware and set this environment variable properly (and remove it from asp.conf).  Otherwise a unique number should be provided in the asp.conf file.
   extern int ASP_NODEADDR;
 
-/** Working dir where programs are run. Loaded from the same-named environment variable.  */
+    //? Working dir where programs are run. Loaded from the same-named environment variable.
   extern char ASP_RUNDIR[CL_MAX_NAME_LENGTH];
-/** Dir where logs are stored. Loaded from the same-named environment variable.  */
-  extern char ASP_LOGDIR[CL_MAX_NAME_LENGTH];
-/** Dir where ASP binaries are located. Loaded from the same-named environment variable.  */
+    //? Dir where logs are stored by default.  Loaded from the same-named environment variable.
+    extern char ASP_LOGDIR[CL_MAX_NAME_LENGTH];
+    //? Dir where ASP binaries are located. Loaded from the same-named environment variable.
   extern char ASP_BINDIR[CL_MAX_NAME_LENGTH];
-/** Dir where application binaries are located. Derived from ASP_BINDIR and argv[0].  Deprecated. */
+    //? Dir where application binaries are located. Derived from ASP_BINDIR and argv[0].  Deprecated, use ASP_APP_BINDIR
   extern char CL_APP_BINDIR[CL_MAX_NAME_LENGTH];
-/** Dir where application binaries are located. Derived from ASP_BINDIR and argv[0]. */
+    //? Dir where application binaries are located. Derived from ASP_BINDIR and argv[0].
   extern char ASP_APP_BINDIR[CL_MAX_NAME_LENGTH];
 
-/** Dir where xml config are located. Loaded from the same-named environment variable.  */
+    //? Dir where xml config are located. Loaded from the same-named environment variable.
   extern char ASP_CONFIG[CL_MAX_NAME_LENGTH];
-/** Dir where persistent db files are to be stored. Loaded from the same-named environment variable.  */
+    //? Dir where persistent db files are to be stored. Loaded from the same-named environment variable.
   extern char ASP_DBDIR[CL_MAX_NAME_LENGTH];
 
 
   
-/** Variable to check if the current node is a system controller node.  Loaded from the same-named environment variable.  */
+    //? Variable to check if the current node is a system controller node.  Loaded from the same-named environment variable.
   extern bool SYSTEM_CONTROLLER; 
-/** Variable to check if the current node is a SC capable node.  Loaded from the same-named environment variable.  */
+    //? Variable to check if the current node is a SC capable node.  Loaded from the same-named environment variable.
   extern bool ASP_SC_PROMOTE;
-
-/** The IOC port assigned to this component.  */
-//  extern ClIocPortT gEOIocPort;
   
-/** AMF did not start this component. ASP_WITHOUT_CPM environment variable.  */
-  extern bool clWithoutAmf;
+    //? AMF did not start this component. ASP_WITHOUT_CPM environment variable.  DEPRECATED (component can discover this itself in main())
+    // extern bool clWithoutAmf;
 
 /* SAFplus initialization */
 

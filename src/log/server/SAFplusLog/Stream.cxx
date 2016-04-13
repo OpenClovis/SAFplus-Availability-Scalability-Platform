@@ -12,6 +12,7 @@
 #include <vector>
 #include "Stream.hxx"
 
+using namespace  std;
 using namespace SAFplusLog;
 
 namespace SAFplusLog
@@ -21,18 +22,20 @@ namespace SAFplusLog
     MGT_REGISTER_IMPL(Stream, /SAFplusLog/safplusLog/streamConfig/stream)
 
     Stream::Stream()
-      :fileBuffer(SAFplusI::LogDefaultFileBufferSize),msgBuffer(SAFplusI::LogDefaultMessageBufferSize),fp(NULL)  // additions
+    :fileBuffer(SAFplusI::LogDefaultFileBufferSize),msgBuffer(SAFplusI::LogDefaultMessageBufferSize),fp(NULL),numLogs(0),fileIdx(0),earliestIdx(0),numFiles(0),fileSize(0),sendMsg(false),dirty(false),lastUpdate(0)  // additions
     {
         this->addChildObject(&streamStatistics, "streamStatistics");
         this->tag.assign("stream");
     };
 
-    Stream::Stream(std::string nameValue)
-        :fileBuffer(SAFplusI::LogDefaultFileBufferSize),msgBuffer(SAFplusI::LogDefaultMessageBufferSize),fp(NULL)  // additions
+    Stream::Stream(const std::string& nameValue)
+      :fileBuffer(SAFplusI::LogDefaultFileBufferSize),msgBuffer(SAFplusI::LogDefaultMessageBufferSize),fp(NULL),numLogs(0),fileIdx(0),earliestIdx(0),numFiles(0),fileSize(0),sendMsg(false),dirty(false),lastUpdate(0)  // additions
     {
         this->name.value =  nameValue;
         this->addChildObject(&streamStatistics, "streamStatistics");
         this->tag.assign("stream");
+        // Additions
+        addStreamObjMapping(this->name.value.c_str(), this);
     };
 
     std::vector<std::string> Stream::getKeys()

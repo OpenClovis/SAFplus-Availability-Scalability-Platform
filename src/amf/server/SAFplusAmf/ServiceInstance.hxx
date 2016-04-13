@@ -91,7 +91,7 @@ namespace SAFplusAmf
 
     public:
         ServiceInstance();
-        ServiceInstance(std::string nameValue);
+        ServiceInstance(const std::string& nameValue);
         std::vector<std::string> getKeys();
         std::vector<std::string>* getChildNames();
 

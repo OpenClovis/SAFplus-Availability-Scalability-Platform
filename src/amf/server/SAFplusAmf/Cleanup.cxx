@@ -14,9 +14,6 @@
 namespace SAFplusAmf
   {
 
-    /* Apply MGT object factory */
-    MGT_REGISTER_IMPL(Cleanup, /SAFplusAmf/safplusAmf/Component/cleanup)
-
     Cleanup::Cleanup()
     {
         this->tag.assign("cleanup");

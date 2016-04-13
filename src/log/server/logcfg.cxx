@@ -9,6 +9,13 @@
 #include <string>
 #include <boost/lexical_cast.hpp>
 
+#include <ServerConfig.hxx>
+#include <StreamConfig.hxx>
+#include <FileFullAction.hxx>
+#include <Stream.hxx>
+#include <StreamScope.hxx>
+#include <SAFplusLogModule.hxx>
+
 using namespace std;
 using namespace SAFplusLog;
 using namespace SAFplus;
@@ -73,7 +80,6 @@ int getFileIdx(std::string filePath, std::string fileName)
   }
   return fileIdx;
 }
-
 
 void streamRotationInit(Stream* s)
 {
@@ -173,41 +179,12 @@ void streamRotationInit(Stream* s)
         std::string temp = (*rit).second.string();
         s->fileIdx = getFileIdx(temp, s->fileName);
         }
-      
-
-#if 0 // TODO: REMOVE THIS: Deleting files, etc should be done whenever a new log file needs to be created.  It is not necessary to do it upon initialization
-        s->numFiles = file_result_set.size();
-        if (s->fileFullAction == FileFullAction::ROTATE && s->numFiles >= s->maximumFilesRotated)
+      else
         {
-          file_result_set_t::iterator it = file_result_set.begin();
-          s->earliestIdx = getFileIdx((*it).second.string(), s->fileName);
-          // Delete this oldest file
-          Dbg("Deleting file [%s]\n", (*it).second.string().c_str());
-          fs::remove((*it).second);
-          s->earliestIdx++;
-          s->numFiles--;
-        } 
-        else if (s->fileFullAction == FileFullAction::HALT)
-        {
-          // HALT means stopping logging to file => do not open fp => Nothing to do
-        }
-        // get the last modified file
-        if (s->numFiles>0)
-        {
-          file_result_set_t::reverse_iterator rit = file_result_set.rbegin();
-          std::string temp = (*rit).second.string();
-          s->fileIdx = getFileIdx(temp, s->fileName);
-          if (s->fileFullAction == FileFullAction::ROTATE)
-          {
-            s->fileIdx++;  // NO we don't want to create a new file every time we initialize.  Is that how it works other standard logs?  syslog, apache logs, etc?
-          }
-        }
-        else
-        {       
-          s->fileIdx = 0;
           s->earliestIdx = 0;
+          s->fileIdx = 0;
         }
-#endif
+      
     }
     // reset the map for processing other log stream
     file_result_set.clear();
@@ -215,6 +192,7 @@ void streamRotationInit(Stream* s)
 
 void initializeStream(Stream* s)
 {
+    s->lastUpdate = beat;
     streamRotationInit(s);
     printf("Initializing stream %s file: %s location: %s\n", s->name.value.c_str(),s->fileName.value.c_str(),s->fileLocation.value.c_str());
 
@@ -246,7 +224,7 @@ void initializeStream(Stream* s)
     }
 }
 
-void addStreamObjMapping(const char* streamName, Stream* s, Handle strmHdl=INVALID_HDL)
+void addStreamObjMapping(const char* streamName, Stream* s, Handle strmHdl)
 {
   // sys and app stream have their own wellknown handle, so other streams must register a handle
   Handle streamHdl;
@@ -417,6 +395,7 @@ void postRecord(SAFplusI::LogBufferEntry* rec, char* msg, SAFplusLog::SAFplusLog
           //printf("Load or create new stream [%s]; handle [%" PRIx64 ":%" PRIx64 "]\n", strmName, rec->stream.id[0], rec->stream.id[1]);
           strmCfg = loadOrCreateNewStream(strmName, Replicate::ANY, rec->stream); // do we need to create new stream with the handle specified? Yes. But this stream may come from other process, the log server does not know about it, so how does the log server know if the stream's replicate config is NONE or other values? Here, Replicate::ANY is hardcoded.
           initializeStream(strmCfg);
+          hsMap[rec->stream] = strmCfg;
         }
         catch(NameException& e)
         {

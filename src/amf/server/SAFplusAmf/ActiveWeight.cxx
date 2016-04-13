@@ -11,6 +11,7 @@
 #include <vector>
 #include "ActiveWeight.hxx"
 
+using namespace  std;
 
 namespace SAFplusAmf
   {
@@ -23,7 +24,7 @@ namespace SAFplusAmf
         this->tag.assign("activeWeight");
     };
 
-    ActiveWeight::ActiveWeight(std::string resourceValue)
+    ActiveWeight::ActiveWeight(const std::string& resourceValue)
     {
         this->resource.value =  resourceValue;
         this->tag.assign("activeWeight");

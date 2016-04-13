@@ -2,11 +2,17 @@
 #include "../server/logcfg.hxx"
 #include <clMgtRoot.hxx>
 #include <clGroupApi.hxx>
-#include <Stream.hxx>
 #include <Replicate.hxx>
 #include <algorithm>
 #include <string>
 #include <boost/lexical_cast.hpp>
+
+#include <ServerConfig.hxx>
+#include <StreamConfig.hxx>
+#include <FileFullAction.hxx>
+#include <Stream.hxx>
+#include <StreamScope.hxx>
+#include <SAFplusLogModule.hxx>
 
 using namespace SAFplus;
 

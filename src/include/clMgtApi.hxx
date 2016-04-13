@@ -17,6 +17,9 @@ namespace SAFplus
     CL_MGT_MODULE_PLUGIN_ID = 0x1710618,
     CL_MGT_MODULE_PLUGIN_VER = 1
     };
-}
+  }
+
+
+
 
 //? </section>

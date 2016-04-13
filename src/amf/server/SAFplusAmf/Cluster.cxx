@@ -14,6 +14,7 @@
 #include "AdministrativeState.hxx"
 #include "Cluster.hxx"
 
+using namespace  std;
 
 namespace SAFplusAmf
   {
@@ -29,7 +30,7 @@ namespace SAFplusAmf
         adminState = ::SAFplusAmf::AdministrativeState::on;
     };
 
-    Cluster::Cluster(std::string nameValue): adminState("adminState",::SAFplusAmf::AdministrativeState::on), startupAssignmentDelay("startupAssignmentDelay")
+    Cluster::Cluster(const std::string& nameValue): adminState("adminState",::SAFplusAmf::AdministrativeState::on), startupAssignmentDelay("startupAssignmentDelay")
     {
         this->name.value =  nameValue;
         this->addChildObject(&adminState, "adminState");

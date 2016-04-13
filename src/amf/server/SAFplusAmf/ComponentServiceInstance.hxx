@@ -59,7 +59,7 @@ namespace SAFplusAmf
 
     public:
         ComponentServiceInstance();
-        ComponentServiceInstance(std::string nameValue);
+        ComponentServiceInstance(const std::string& nameValue);
         std::vector<std::string> getKeys();
         std::vector<std::string>* getChildNames();
 

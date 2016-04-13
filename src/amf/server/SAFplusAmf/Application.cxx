@@ -17,6 +17,7 @@
 #include "AdministrativeState.hxx"
 #include "Application.hxx"
 
+using namespace  std;
 
 namespace SAFplusAmf
   {
@@ -35,7 +36,7 @@ namespace SAFplusAmf
         adminState = ::SAFplusAmf::AdministrativeState::on;
     };
 
-    Application::Application(std::string nameValue): adminState("adminState",::SAFplusAmf::AdministrativeState::on), serviceGroups("serviceGroups"), keepTogether("keepTogether")
+    Application::Application(const std::string& nameValue): adminState("adminState",::SAFplusAmf::AdministrativeState::on), serviceGroups("serviceGroups"), keepTogether("keepTogether")
     {
         this->name.value =  nameValue;
         this->addChildObject(&adminState, "adminState");

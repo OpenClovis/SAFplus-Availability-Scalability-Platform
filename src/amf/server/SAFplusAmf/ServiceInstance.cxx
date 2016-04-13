@@ -23,6 +23,7 @@
 #include "AdministrativeState.hxx"
 #include "ServiceInstance.hxx"
 
+using namespace  std;
 using namespace SAFplusAmf;
 
 namespace SAFplusAmf
@@ -61,7 +62,7 @@ namespace SAFplusAmf
         preferredStandbyAssignments = 1;
     };
 
-    ServiceInstance::ServiceInstance(std::string nameValue): adminState("adminState",::SAFplusAmf::AdministrativeState::on), assignmentState("assignmentState"), preferredActiveAssignments("preferredActiveAssignments",1), preferredStandbyAssignments("preferredStandbyAssignments",1), rank("rank"), activeAssignments("activeAssignments"), standbyAssignments("standbyAssignments"), componentServiceInstances("componentServiceInstances"), serviceGroup("serviceGroup"), activeWeightList("activeWeight"), standbyWeightList("standbyWeight")
+    ServiceInstance::ServiceInstance(const std::string& nameValue): adminState("adminState",::SAFplusAmf::AdministrativeState::on), assignmentState("assignmentState"), preferredActiveAssignments("preferredActiveAssignments",1), preferredStandbyAssignments("preferredStandbyAssignments",1), rank("rank"), activeAssignments("activeAssignments"), standbyAssignments("standbyAssignments"), componentServiceInstances("componentServiceInstances"), serviceGroup("serviceGroup"), activeWeightList("activeWeight"), standbyWeightList("standbyWeight")
     {
         this->name.value =  nameValue;
         this->addChildObject(&adminState, "adminState");

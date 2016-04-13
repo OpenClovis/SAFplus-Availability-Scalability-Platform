@@ -32,6 +32,7 @@ namespace SAFplusAmf
     public:
         EntityById();
         EntityById(::uint16_t idValue);
+        EntityById(const std::string& nameParam);
         std::vector<std::string> getKeys();
         std::vector<std::string>* getChildNames();
 

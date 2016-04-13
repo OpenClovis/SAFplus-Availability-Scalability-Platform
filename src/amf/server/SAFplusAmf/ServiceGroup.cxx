@@ -23,6 +23,7 @@
 #include "AdministrativeState.hxx"
 #include "ServiceGroup.hxx"
 
+using namespace  std;
 using namespace SAFplusAmf;
 
 namespace SAFplusAmf
@@ -58,7 +59,7 @@ namespace SAFplusAmf
         autoAdjust = false;
     };
 
-    ServiceGroup::ServiceGroup(std::string nameValue): adminState("adminState",::SAFplusAmf::AdministrativeState::on), autoRepair("autoRepair"), autoAdjust("autoAdjust",false), autoAdjustInterval("autoAdjustInterval"), preferredNumActiveServiceUnits("preferredNumActiveServiceUnits"), preferredNumStandbyServiceUnits("preferredNumStandbyServiceUnits"), preferredNumIdleServiceUnits("preferredNumIdleServiceUnits"), maxActiveWorkAssignments("maxActiveWorkAssignments"), maxStandbyWorkAssignments("maxStandbyWorkAssignments"), serviceUnits("serviceUnits"), serviceInstances("serviceInstances"), application("application")
+    ServiceGroup::ServiceGroup(const std::string& nameValue): adminState("adminState",::SAFplusAmf::AdministrativeState::on), autoRepair("autoRepair"), autoAdjust("autoAdjust",false), autoAdjustInterval("autoAdjustInterval"), preferredNumActiveServiceUnits("preferredNumActiveServiceUnits"), preferredNumStandbyServiceUnits("preferredNumStandbyServiceUnits"), preferredNumIdleServiceUnits("preferredNumIdleServiceUnits"), maxActiveWorkAssignments("maxActiveWorkAssignments"), maxStandbyWorkAssignments("maxStandbyWorkAssignments"), serviceUnits("serviceUnits"), serviceInstances("serviceInstances"), application("application")
     {
         this->name.value =  nameValue;
         this->addChildObject(&adminState, "adminState");

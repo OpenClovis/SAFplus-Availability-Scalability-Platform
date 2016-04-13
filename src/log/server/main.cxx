@@ -9,6 +9,15 @@ using namespace std;
 #include <clMsgHandler.hxx>
 #include <clLogIpi.hxx>
 #include <clMsgPortsAndTypes.hxx>
+
+#include <ServerConfig.hxx>
+#include <StreamConfig.hxx>
+#include <FileFullAction.hxx>
+#include <Stream.hxx>
+#include <StreamScope.hxx>
+#include <SAFplusLogModule.hxx>
+
+
 #include <boost/date_time/posix_time/posix_time.hpp>
 #include <boost/filesystem.hpp>
 #include <boost/container/map.hpp>
@@ -67,14 +76,21 @@ extern HandleStreamMap hsMap;
 
 void checkAndRotateLog(Stream* s)
 {
+  
+  if ((s->lastUpdate < s->fileName.lastChange) || (s->lastUpdate < s->fileLocation.lastChange))
+    { // Something changed so close and reopen the files associated with this stream
+      if (s->fp) { fclose(s->fp); s->fp = NULL; }
+      initializeStream(s);
+    }
   long fileSize = ftell(s->fp);
-  Dbg("checkAndRotateLog(): fileSize [%ld], conf fileSize [%ld]\n", (long int) fileSize, (long int) s->fileUnitSize.value);
+  Dbg("checkAndRotateLog(): stream [%s] fileSize [%ld], conf fileSize [%ld]\n", s->tag.c_str(), (long int) fileSize, (long int) s->fileUnitSize.value);
   if (fileSize >= s->fileUnitSize.value)
   {
     if (s->fileFullAction == FileFullAction::ROTATE)
     {
+      if (s->maximumFilesRotated < 1) s->maximumFilesRotated=1;  // Correct crazy values that could be set by operator
       std::string fname;
-      if (s->numFiles >= s->maximumFilesRotated)
+      while (s->numFiles >= s->maximumFilesRotated)
       {
         fname.assign(s->filePath +  "/" + s->fileName.value + boost::lexical_cast<std::string>(s->earliestIdx) + ".log");
         // Delete the oldest file
@@ -258,6 +274,7 @@ int main(int argc, char* argv[])
             {
               if (rec->offset == 0) continue;  // Bad record
               char* msg = ((char*) base)+rec->offset;
+              //printf("log: %s\n", msg);
               postRecord(rec, msg, cfg);
               // Forward logs to log subscribers
               IF_CLUSTERWIDE_LOG(logRep.logReplicate(rec, msg));
@@ -273,6 +290,7 @@ int main(int argc, char* argv[])
             {
               if (rec->offset == 0) continue;  // Bad record
               char* msg = ((char*) base)+rec->offset;
+              //printf("log: %s\n", msg);
               postRecord(rec,msg,cfg);
               // Forward logs to log subscribers
               IF_CLUSTERWIDE_LOG(logRep.logReplicate(rec, msg));

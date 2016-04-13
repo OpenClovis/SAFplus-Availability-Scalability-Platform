@@ -561,7 +561,7 @@ namespace SAFplus
           KEYTYPE *keyType = new KEYTYPE;
           keyType->build(it->second);
 
-          MgtObject* object = MgtFactory::getInstance()->create(childXpath);
+          MgtObject* object = MgtFactory::getInstance()->create(childXpath,"");
           if ( object )
           {
             addChildObject(object, *keyType);
@@ -1134,7 +1134,7 @@ namespace SAFplus
 
             dataXPath.assign(*it);
 
-            MgtObject* object = MgtFactory::getInstance()->create(childXpath);
+            MgtObject* object = MgtFactory::getInstance()->create(childXpath,keyValue);
             if (object)
               {
                 addChildObject(object, keyValue);
@@ -1276,7 +1276,7 @@ namespace SAFplus
             return ret;
           }
 
-        MgtObject* object = MgtFactory::getInstance()->create(childXpath);
+        MgtObject* object = MgtFactory::getInstance()->create(childXpath,value);
         addChildObject(object, value);
         object->setChildObj(keyList, value);
 

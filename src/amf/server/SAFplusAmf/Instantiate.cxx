@@ -14,9 +14,6 @@
 namespace SAFplusAmf
   {
 
-    /* Apply MGT object factory */
-    MGT_REGISTER_IMPL(Instantiate, /SAFplusAmf/safplusAmf/Component/instantiate)
-
     Instantiate::Instantiate()
     {
         this->tag.assign("instantiate");

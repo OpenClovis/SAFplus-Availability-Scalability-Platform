@@ -17,9 +17,6 @@
 namespace SAFplusLog
   {
 
-    /* Apply MGT object factory */
-    MGT_REGISTER_IMPL(ServerConfig, /SAFplusLog/safplusLog/serverConfig)
-
     ServerConfig::ServerConfig(): SAFplus::MgtContainer("serverConfig"), maximumStreams("maximumStreams"), maximumComponents("maximumComponents"), maximumSharedMemoryPages("maximumSharedMemoryPages"), maximumRecordsInPacket("maximumRecordsInPacket"), processingInterval("processingInterval")
     {
         this->addChildObject(&maximumStreams, "maximumStreams");

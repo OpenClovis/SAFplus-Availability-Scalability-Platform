@@ -14,6 +14,7 @@
 #include <vector>
 #include "Capacity.hxx"
 
+using namespace  std;
 
 namespace SAFplusAmf
   {
@@ -27,7 +28,7 @@ namespace SAFplusAmf
         this->addChildObject(&value, "value");
     };
 
-    Capacity::Capacity(std::string resourceValue): SAFplus::MgtContainer("capacity"), resource("resource"), value("value")
+    Capacity::Capacity(const std::string& resourceValue): SAFplus::MgtContainer("capacity"), resource("resource"), value("value")
     {
         this->resource.value =  resourceValue;
         this->addChildObject(&resource, "resource");

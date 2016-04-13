@@ -15,9 +15,6 @@
 namespace SAFplusLog
   {
 
-    /* Apply MGT object factory */
-    MGT_REGISTER_IMPL(StreamConfig, /SAFplusLog/safplusLog/streamConfig)
-
     StreamConfig::StreamConfig(): SAFplus::MgtContainer("streamConfig"), streamList("stream")
     {
         this->addChildObject(&streamList, "stream");

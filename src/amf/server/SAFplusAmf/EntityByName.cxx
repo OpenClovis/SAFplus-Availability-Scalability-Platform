@@ -13,6 +13,7 @@
 #include <vector>
 #include "EntityByName.hxx"
 
+using namespace  std;
 
 namespace SAFplusAmf
   {
@@ -29,7 +30,7 @@ namespace SAFplusAmf
         entity.config = false;
     };
 
-    EntityByName::EntityByName(std::string nameValue): SAFplus::MgtContainer("EntityByName"), name("name"), entity("entity")
+    EntityByName::EntityByName(const std::string& nameValue): SAFplus::MgtContainer("EntityByName"), name("name"), entity("entity")
     {
         this->name.value =  nameValue;
         this->config = false;

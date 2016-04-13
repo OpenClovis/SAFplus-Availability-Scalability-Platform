@@ -99,7 +99,7 @@ namespace SAFplusAmf
 
     public:
         ServiceGroup();
-        ServiceGroup(std::string nameValue);
+        ServiceGroup(const std::string& nameValue);
         std::vector<std::string> getKeys();
         std::vector<std::string>* getChildNames();
 

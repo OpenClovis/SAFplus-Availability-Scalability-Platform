@@ -57,7 +57,8 @@ namespace SAFplus
   pid_t      pid = 0;
   uint_t iocPort = 0;
   /** True if this component is not under AMF control (will not receive CSI callbacks) */
-  bool clWithoutAmf = false;
+  //  bool clWithoutAmf = false;
+  uint64_t beat=1;
 
   uint64_t curHandleIdx = (1<<SUB_HDL_SHIFT);
 
@@ -198,7 +199,7 @@ namespace SAFplus
 
     SYSTEM_CONTROLLER = clParseEnvBoolean("SAFPLUS_SYSTEM_CONTROLLER");
     ASP_SC_PROMOTE = clParseEnvBoolean("ASP_SC_PROMOTE");
-    clWithoutAmf = clParseEnvBoolean("ASP_WITHOUT_CPM");
+    //clWithoutAmf = clParseEnvBoolean("ASP_WITHOUT_CPM");
 
     if (1)
       {

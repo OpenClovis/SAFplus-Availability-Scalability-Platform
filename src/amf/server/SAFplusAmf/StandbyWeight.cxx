@@ -11,6 +11,7 @@
 #include <vector>
 #include "StandbyWeight.hxx"
 
+using namespace  std;
 
 namespace SAFplusAmf
   {
@@ -23,7 +24,7 @@ namespace SAFplusAmf
         this->tag.assign("standbyWeight");
     };
 
-    StandbyWeight::StandbyWeight(std::string resourceValue)
+    StandbyWeight::StandbyWeight(const std::string& resourceValue)
     {
         this->resource.value =  resourceValue;
         this->tag.assign("standbyWeight");

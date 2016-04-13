@@ -20,6 +20,7 @@
 #include "ServiceUnitFailureEscalationPolicy.hxx"
 #include "Node.hxx"
 
+using namespace  std;
 using namespace SAFplusAmf;
 
 namespace SAFplusAmf
@@ -51,7 +52,7 @@ namespace SAFplusAmf
         adminState = ::SAFplusAmf::AdministrativeState::on;
     };
 
-    Node::Node(std::string nameValue): presenceState("presenceState",::SAFplusAmf::PresenceState::uninstantiated), adminState("adminState",::SAFplusAmf::AdministrativeState::on), operState("operState"), autoRepair("autoRepair"), failFastOnInstantiationFailure("failFastOnInstantiationFailure"), failFastOnCleanupFailure("failFastOnCleanupFailure"), disableAssignmentOn("disableAssignmentOn"), serviceUnits("serviceUnits"), capacityList("capacity")
+    Node::Node(const std::string& nameValue): presenceState("presenceState",::SAFplusAmf::PresenceState::uninstantiated), adminState("adminState",::SAFplusAmf::AdministrativeState::on), operState("operState"), autoRepair("autoRepair"), failFastOnInstantiationFailure("failFastOnInstantiationFailure"), failFastOnCleanupFailure("failFastOnCleanupFailure"), disableAssignmentOn("disableAssignmentOn"), serviceUnits("serviceUnits"), capacityList("capacity")
     {
         this->name.value =  nameValue;
         this->addChildObject(&presenceState, "presenceState");

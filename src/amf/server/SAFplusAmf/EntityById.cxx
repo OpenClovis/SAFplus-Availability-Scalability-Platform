@@ -14,6 +14,7 @@
 #include <vector>
 #include "EntityById.hxx"
 
+using namespace  std;
 
 namespace SAFplusAmf
   {
@@ -33,6 +34,16 @@ namespace SAFplusAmf
     EntityById::EntityById(::uint16_t idValue): SAFplus::MgtContainer("EntityById"), id("id"), entity("entity")
     {
         this->id.value =  idValue;
+        this->config = false;
+        this->addChildObject(&id, "id");
+        id.config = false;
+        this->addChildObject(&entity, "entity");
+        entity.config = false;
+    };
+
+    EntityById::EntityById(const std::string& nameParam): SAFplus::MgtContainer("EntityById"), id("id"), entity("entity")
+    {
+        this->tag = nameParam;
         this->config = false;
         this->addChildObject(&id, "id");
         id.config = false;

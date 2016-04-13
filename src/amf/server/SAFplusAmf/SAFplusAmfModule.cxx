@@ -15,9 +15,6 @@
 namespace SAFplusAmf
   {
 
-    /* Apply MGT object factory */
-    MGT_REGISTER_IMPL(SAFplusAmfModule, /)
-
     SAFplusAmfModule::SAFplusAmfModule(): SAFplus::MgtModule("SAFplusAmf")
     {
         this->addChildObject(&safplusAmf, "safplusAmf");

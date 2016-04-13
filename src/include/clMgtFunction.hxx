@@ -41,6 +41,15 @@ namespace SAFplus
      //? Get information from the management subsystem -- this call will send the request directly to the process specified by the supplied handle
      std::string mgtGet(SAFplus::Handle src, const std::string& pathSpec);
 
+     //? Get information from the management subsystem -- removes the XML and casts
+     uint64_t mgtGetUint(const std::string& pathSpec);
+     //? Get information from the management subsystem -- removes the XML and casts
+     int64_t mgtGetInt(const std::string& pathSpec);
+     //? Get information from the management subsystem -- removes the XML and casts
+     double   mgtGetNum(const std::string& pathSpec);
+     //? Get information from the management subsystem -- removes the XML and casts
+     std::string mgtGetString(const std::string& pathSpec);
+
      //? Make a management remote procedure call (RPC).  
      ClRcT mgtRpc(Mgt::Msg::MsgRpc::MgtRpcType mgtRpcType,const std::string& pathSpec, const std::string& attribute);
      ClRcT mgtRpc(SAFplus::Handle src,Mgt::Msg::MsgRpc::MgtRpcType mgtRpcType,const std::string& pathSpec, const std::string& attribute);

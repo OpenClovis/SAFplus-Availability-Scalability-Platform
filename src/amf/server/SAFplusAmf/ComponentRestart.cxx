@@ -14,9 +14,6 @@
 namespace SAFplusAmf
   {
 
-    /* Apply MGT object factory */
-    MGT_REGISTER_IMPL(ComponentRestart, /SAFplusAmf/safplusAmf/ServiceGroup/componentRestart)
-
     ComponentRestart::ComponentRestart()
     {
         this->tag.assign("componentRestart");

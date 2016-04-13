@@ -19,9 +19,6 @@ using namespace SAFplusAmf;
 namespace SAFplusAmf
   {
 
-    /* Apply MGT object factory */
-    MGT_REGISTER_IMPL(Stats, /SAFplusAmf/safplusAmf/Node/stats)
-
     Stats::Stats(): SAFplus::MgtContainer("stats"), upTime("upTime"), bootTime("bootTime")
     {
         this->addChildObject(&upTime, "upTime");

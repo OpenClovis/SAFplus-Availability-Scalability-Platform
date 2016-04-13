@@ -30,7 +30,7 @@ namespace SAFplus
   public:
     MgtCreatorImpl<T>(const std::string& xpath) : IMgtCreator(xpath) {}
     virtual ~MgtCreatorImpl() {};
-    virtual MgtObject* create() { return new T; }
+    virtual MgtObject* create(const std::string& name) { return new T(name); }
 
   };
 };

@@ -35,7 +35,7 @@ using namespace std;
 
 namespace SAFplus
 {
-  MgtObject::MgtObject(const char* name)
+  MgtObject::MgtObject(const char* name):lastChange(0)
   {
     assert(name);
     tag.assign(name);

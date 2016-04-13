@@ -30,7 +30,7 @@ namespace SAFplusAmf
 
     public:
         EntityByName();
-        EntityByName(std::string nameValue);
+        EntityByName(const std::string& nameValue);
         std::vector<std::string> getKeys();
         std::vector<std::string>* getChildNames();
 

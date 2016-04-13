@@ -39,9 +39,9 @@ enum
 
 typedef enum /*? A bit field that turns on/off types of printout */
 {
-    TEST_PRINT_ALL = 0xffffff,
-    TEST_PRINT_TEST_OK = 1,
-    TEST_PRINT_TEST_FAILED = 2,
+  TEST_PRINT_ALL = 0xffffff,  //? Print all test results
+  TEST_PRINT_TEST_OK = 1, //? Print successful results
+  TEST_PRINT_TEST_FAILED = 2,  //? Print failed results
 } TestVerbosity;
 
   //? Set this global variable to control how much test detail is output
@@ -82,7 +82,9 @@ extern ClTestCaseData clCurTc;
 
 
 #ifndef CL_NO_TEST
-/**
+
+#ifndef     clTestGroupInitialize
+/*?
  ************************************
  *  \brief Start up the Test infrastructure
  *
@@ -104,7 +106,6 @@ extern ClTestCaseData clCurTc;
  *  \sa clTestGroupFinalize()
  *
  */
-#ifndef     clTestGroupInitialize
 #define clTestGroupInitialize(name) do { clTestPrint(name); SAFplusI::clTestGroupInitializeImpl(); } while(0)
 #endif
 /**
@@ -379,23 +380,21 @@ do { \
     } \
 } while(0)
 
-/**
- ************************************
- *  \brief Indicate that a test failed
- *
- *  \param __string        A parenthesized printf-style string that identifies this test
- *
- *  \par Description:
- *   Sometimes deciding whether a test passed or failed requires some complex logic.  Other times you have to write an
- *  if() statement anyway.  This call simply indicates that the test identified by the 'string' failed.  Do not put
- *  words like "failed", "didn't work" etc. in the string.  The library will do that for you.
- *
- *  \par Examples:
- *  rc = Foo()
- *  if (rc != CL_OK) clTestFailed(("Foo"));
- *
- *  \sa clTestSuccess()
- *
+/*? Indicate that a test failed.
+<html>
+<p>Sometimes deciding whether a test passed or failed requires some complex logic.  Other times you have to write an
+if() statement anyway.  This call simply indicates that the test identified by the 'string' failed.  Do not put
+words like "failed", "didn't work" etc. in the string.  The library will do that for you.
+</p><p>
+<strong>Don't forget that strings are enclosed in their OWN parens!!!</strong>
+</p><p>
+Examples:</p>
+<pre>
+  rc = Foo()
+  if (rc != CL_OK) clTestFailed(("Foo returned %d",rc));
+</pre>
+</html>
+<arg name="__string">A parenthesized printf-style string that identifies this test</arg>
  */
 #define clTestFailed(__string) clTestFailedAt(__FILE__, __LINE__,__string)
 

@@ -31,7 +31,7 @@ namespace SAFplusAmf
 
     public:
         Capacity();
-        Capacity(std::string resourceValue);
+        Capacity(const std::string& resourceValue);
         std::vector<std::string> getKeys();
         std::vector<std::string>* getChildNames();
 
