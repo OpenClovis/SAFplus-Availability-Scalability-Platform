@@ -727,8 +727,11 @@ class GridEntityLayout:
           # Rewrite the back pointers
           instance.childOf = set([cell.row,cell.col])
           # Create the new containment arrows
-          for i in instance.childOf:  
-            i.createContainmentArrowTo(instance)
+          for i in instance.childOf:
+            if not isinstance(i, Margin) and not isinstance(instance, Margin):
+              #to prevent to create containment arrow to the instance itself
+              if i!=instance:
+                i.createContainmentArrowTo(instance)
           return True
     return False
 
