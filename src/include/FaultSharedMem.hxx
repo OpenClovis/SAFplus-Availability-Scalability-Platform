@@ -11,14 +11,14 @@
 
 #include <ctime>
 #include <clMsgApi.hxx>
-#include <clGroup.hxx>
+#include <clGroupApi.hxx>
 #include <clGlobals.hxx>
 #include <clLogApi.hxx>
 #include <clCustomization.hxx>
 #include <clMsgApi.hxx>
 #include <clGlobals.hxx>
 #include <clLogApi.hxx>
-#include <clGroup.hxx>
+#include <clGroupApi.hxx>
 
 
 namespace SAFplus

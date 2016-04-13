@@ -245,7 +245,7 @@ namespace SAFplus
         else
           {
             logError("MGT", "REV", "Route [%s] has no implementer", pathSpec.c_str());
-            // TODO: throw exception
+            throw Error(Error::SAFPLUS_ERROR,Error::DOES_NOT_EXIST,"Route has no implementer",__FILE__,__LINE__);
           }
       }
     return output;
@@ -291,9 +291,8 @@ namespace SAFplus
         }
         else
           {
-            ret = CL_OK;
             logError("MGT", "REV", "Route [%s] has no implementer", pathSpec.c_str());
-            // TODO: throw exception
+            throw Error(Error::SAFPLUS_ERROR,Error::DOES_NOT_EXIST,"Route has no implementer",__FILE__,__LINE__);
           }
       }
 
@@ -353,9 +352,8 @@ namespace SAFplus
         }
         else
           {
-            ret = CL_OK;
             logError("MGT", "REV", "Route [%s] has no implementer", pathSpec.c_str());
-            // TODO: throw exception
+            throw Error(Error::SAFPLUS_ERROR,Error::DOES_NOT_EXIST,"Route has no implementer",__FILE__,__LINE__);
           }
       }
     return ret;
@@ -415,7 +413,7 @@ namespace SAFplus
             {
               ret = CL_OK;
               logError("MGT", "REV", "Route [%s] has no implementer", pathSpec.c_str());
-              // TODO: throw exception
+              throw Error(Error::SAFPLUS_ERROR,Error::DOES_NOT_EXIST,"Route has no implementer",__FILE__,__LINE__);
             }
         }
     return ret;
@@ -429,7 +427,7 @@ namespace SAFplus
 
     if (msgReply == NULL)
       {
-        ret = CL_ERR_IGNORE_REQUEST;
+        ret = Error::DOES_NOT_EXIST;
       }
     else
       {
@@ -444,11 +442,7 @@ namespace SAFplus
     std::vector<MgtObject*> matches;
     std::size_t idx = pathSpec.find_last_of("/");
 
-    if (idx == std::string::npos)
-      {
-        // Invalid xpath
-        return CL_ERR_INVALID_PARAMETER;
-      }
+    assert(idx != std::string::npos);  // All the xpaths should have at least one / (they should BEGIN with a /)
 
     std::string path = pathSpec.substr(0, idx);
     std::string value = pathSpec.substr(idx + 1);
@@ -471,9 +465,8 @@ namespace SAFplus
         }
         else
           {
-            ret = CL_OK;
             logError("MGT", "REV", "Route [%s] has no implementer", pathSpec.c_str());
-            // TODO: throw exception
+            throw Error(Error::SAFPLUS_ERROR,Error::DOES_NOT_EXIST,"Route has no implementer",__FILE__,__LINE__);
           }
       }
     return ret;

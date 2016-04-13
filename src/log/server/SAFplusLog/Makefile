@@ -1,62 +1,39 @@
-# Copyright (C) 2002-2012 OpenClovis Solutions Inc.  All Rights Reserved.
-# This file is available  under  a  commercial  license  from  the
-# copyright  holder or the GNU General Public License Version 2.0.
-#
-# The source code for  this program is not published  or otherwise 
-# divested of  its trade secrets, irrespective  of  what  has been 
-# deposited with the U.S. Copyright office.
-# 
-# This program is distributed in the  hope that it will be useful,
-# but WITHOUT ANY WARRANTY; without even the implied  warranty  of 
-# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU 
-# General Public License for more details.
-# 
-# For more  information,  see the  file COPYING provided with this
-# material.
+S7 := 1
+ifeq ($(SAFPLUS_SRC_DIR),)
+$(error You must run this as a submake or define the SAFPLUS_SRC_DIR environment variable)
+endif
 
-##### Component name (using all lowercase):
+include $(SAFPLUS_SRC_DIR)/mk/preface.mk
 
-COMPNAME    := 
+# Specify the required libraries
+SAFPLUS_LIBS := clMgt
 
-##### Source files for the client of this component
+# Then use these in the make rule
+SAFPLUS_DEP_LIBS     := $(addsuffix .so,$(addprefix $(LIB_DIR)/lib,$(SAFPLUS_LIBS)))
+SAFPLUS_LINK_LIBS := -L$(LIB_DIR) $(addprefix -l,$(SAFPLUS_LIBS))
 
-SRC_FILES := $(wildcard *.c)
-CPP_FILES := $(wildcard *.C) $(wildcard *.cxx) 
+SAFplusLog_SRC := $(wildcard *.cxx)
+SAFplusLog_H := $(wildcard *.hxx)
 
-##### ASP libraries needed to get this client built
+SAFplusLog_OBJ := $(subst .cxx,.o,$(notdir $(SAFplusLog_SRC)))
+SAFplusLog_OBJ := $(addprefix $(OBJ_DIR)/SAFplusLog/,$(SAFplusLog_OBJ))
 
-DEP_COMP_LIST   := cpp utils osal timer buffer cnt ioc eo amf rmd debug log ckpt
+SAFplusLog_LIB := libSAFplusLog.so
 
-##### Libraries built for this component
+# Management includes and libraries
+CPP_FLAGS += $(SAFPLUS_MGT_INC_FLAGS)
 
-LIB_NAMES       = libSAFplusLog
+Release all: $(LIB_DIR)/$(SAFplusLog_LIB)
 
-SRC_FILES_libSAFplusLog := $(wildcard *.cxx) $(wildcard *.C)
+# Shared library providing functions that needs to provide that YANG data
+$(LIB_DIR)/$(SAFplusLog_LIB): $(SAFplusLog_OBJ) $(SAFPLUS_DEP_LIBS)
+	$(LINK_SO) $@ $(SAFplusLog_OBJ) $(SAFPLUS_LINK_LIBS) -L$(INSTALL_DIR)/lib -lxml2 $(LINK_SO_LIBS)
 
-# List any third party libs needed to get this server built (or None):
-THIRD_PARTY_PATH = /code/git/SAFplus7/src/../../mgt/3rdparty
-THIRD_PARTY_TARGET := $(THIRD_PARTY_PATH)/build
+$(OBJ_DIR)/SAFplusLog/%.o: %.cxx $(SAFplusLog_H)
+	-mkdir -p $(OBJ_DIR)/SAFplusLog
+	$(COMPILE_CPP) $@ $(SAFPLUS_MGT_INC_FLAGS) $<
 
-XML2_INC_BASE := $(THIRD_PARTY_TARGET)/include/libxml2
-XML2_INCLUDE  := -I$(XML2_INC_BASE) -I$(XML2_INC_BASE)/libxml
+clean:
+	rm -rf $(OBJ_DIR)/SAFplusLog $(LIB_DIR)/$(SAFplusLog_LIB)
 
-EXTRA_CPPFLAGS := $(XML2_INCLUDE) \
-                 -I$(THIRD_PARTY_TARGET)/include
-
-THIRDPARTY_LIBS += -L$(THIRD_PARTY_TARGET)/lib -lxml2
-
-EXTRA_LDLIBS += 
-
-CPPFLAGS += -I$(ASP_INCLUDE) \
-            -I/code/git/SAFplus7/src/../../mgt/model/src/app/include \
-            -I/code/git/SAFplus7/src/../../mgt/model/src/app/client
-
-CPPFLAGS += -I/code/git/SAFplus7/src/SAFplus/components/log7/server/SAFplusTypes \
-            -I/code/git/SAFplus7/src/SAFplus/components/log7/server/SAFplusLog \
-            -I/code/git/SAFplus7/src/SAFplus/components/log7/server/ietfYangTypes
-
-BUILD_WITHOUT_C99 := 1
-LDFLAGS += -lstdc++
-BUILD_CPLUSPLUS = 1
-
-include $(CLOVIS_ROOT)/ASP/mk/make-client.mk
+include $(SAFPLUS_MAKE_DIR)/safplus_targets.mk

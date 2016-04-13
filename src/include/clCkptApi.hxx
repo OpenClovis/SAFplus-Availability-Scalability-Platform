@@ -293,8 +293,8 @@ namespace SAFplus
     void applySync(const Buffer& key, const Buffer& value,Transaction& t=SAFplus::NO_TXN);
 
     /* temporarily disallow/allow synchronization */
-    void syncLock() { gate.lock(); }
-    void syncUnlock() { gate.unlock(); }
+    //void syncLock() { gate.lock(); }
+    //void syncUnlock() { gate.unlock(); }
 
     //? Reflects all changes from checkpoint data to disk (database)
     void flush();

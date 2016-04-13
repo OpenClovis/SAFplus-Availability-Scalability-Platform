@@ -18,8 +18,10 @@
  *
  */
 
+#pragma once
 #ifndef CLMGTFUNCTION_HXX_
 #define CLMGTFUNCTION_HXX_
+//? <section name="Management">
 
 #include <string>
 #include <clHandleApi.hxx>
@@ -34,20 +36,31 @@ namespace SAFplus
      //? Call this before any other management APIs (or call safplusInitialize with the MGT flag)
      void mgtAccessInitialize();
 
+     //? Get information from the management subsystem -- this call will look up the path in the Management checkpoint and forward the request to the appropriately bound process handle
      std::string mgtGet(const std::string& pathSpec);
+     //? Get information from the management subsystem -- this call will send the request directly to the process specified by the supplied handle
      std::string mgtGet(SAFplus::Handle src, const std::string& pathSpec);
 
+     //? Make a management remote procedure call (RPC).  
      ClRcT mgtRpc(Mgt::Msg::MsgRpc::MgtRpcType mgtRpcType,const std::string& pathSpec, const std::string& attribute);
      ClRcT mgtRpc(SAFplus::Handle src,Mgt::Msg::MsgRpc::MgtRpcType mgtRpcType,const std::string& pathSpec, const std::string& attribute);
 
+     //? Set a management entity to a specific value -- this call will send the request directly to the process specified by the supplied handle
      ClRcT mgtSet(SAFplus::Handle src, const std::string& pathSpec, const std::string& value);
+     //? Set a management entity to a specific value -- this call will look up the path in the Management checkpoint and forward the request to the appropriately bound process handle
      ClRcT mgtSet(const std::string& pathSpec, const std::string& value);
 
+     //? Create a new management entity (if allowed). For example, you may create new elements in YANG lists.  The entity's fields will be created with default values (or zero).  You may then use <ref>mgtSet()</ref> to set the field values.  This call will send the request directly to the process specified by the supplied handle.
      ClRcT mgtCreate(SAFplus::Handle src, const std::string& pathSpec);
+     //? Create a new management entity (if allowed). For example, you may create new elements in YANG lists.  The entity's fields will be created with default values (or zero).  You may then use <ref>mgtSet()</ref> to set the field values.  This call will look up the path in the Management checkpoint and forward the request to the appropriately bound process handle.
      ClRcT mgtCreate(const std::string& pathSpec);
 
+     //? Delete a new management entity (if allowed). For example, you may create new elements in YANG lists.  This call will send the request directly to the process specified by the supplied handle
      ClRcT mgtDelete(SAFplus::Handle src, const std::string& pathSpec);
+     //? Delete a new management entity (if allowed). For example, you may create new elements in YANG lists.  This call will look up the path in the Management checkpoint and forward the request to the appropriately bound process handle.
      ClRcT mgtDelete(const std::string& pathSpec);
 
 }
+//? </section>
+
 #endif /* CLMGT_HXX_ */

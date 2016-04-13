@@ -1,7 +1,7 @@
 #include "clLogRep.hxx"
 #include "../server/logcfg.hxx"
 #include <clMgtRoot.hxx>
-#include <clGroup.hxx>
+#include <clGroupApi.hxx>
 #include <Stream.hxx>
 #include <Replicate.hxx>
 #include <algorithm>
@@ -15,7 +15,7 @@ LogRep SAFplus::logRep;
 
 LogRep::LogRep()
 {
-  logcfg.serverConfig.maximumRecordsInPacket.value = 5; // This is an temporary assignment to do the replication test. This value (default) should have been read from MGT database
+  logcfg.safplusLog.serverConfig.maximumRecordsInPacket.value = 5; // This is an temporary assignment to do the replication test. This value (default) should have been read from MGT database
 }
 
 void LogRep::logReplicate(SAFplusI::LogBufferEntry* rec, char* msg)
@@ -67,7 +67,7 @@ void LogRep::logReplicate(SAFplusI::LogBufferEntry* rec, char* msg)
     repMsgBuf.append(msg, msglen); // append msg to the replication message buffer
     // Increase numLogs after packed one item into the replication message buffer
     s->numLogs++;
-    if (s->numLogs == logcfg.serverConfig.maximumRecordsInPacket.value) // numLogs reach maximumRecordsInPacket, so send this buffer to all members of the group belonging to this stream
+    if (s->numLogs == logcfg.safplusLog.serverConfig.maximumRecordsInPacket.value) // numLogs reach maximumRecordsInPacket, so send this buffer to all members of the group belonging to this stream
     {
 #if 0
       // Fill the log message header

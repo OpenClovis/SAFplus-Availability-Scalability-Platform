@@ -32,11 +32,11 @@ using namespace SAFplusLog;
 
 MgtModule dataModule("SAFplusLog");
 
-SAFplusLog::SAFplusLogRoot* cfg;
+SAFplusLog::SAFplusLogModule* cfg;
 extern Stream* sysStreamCfg;
 extern Stream* appStreamCfg;
 
-extern void postRecord(LogBufferEntry* rec, char* msg, SAFplusLog::SAFplusLogRoot* cfg);
+extern void postRecord(LogBufferEntry* rec, char* msg, SAFplusLog::SAFplusLogModule* cfg);
 extern void initializeStream(Stream* s);
 extern void streamRotationInit(Stream* s);
 
@@ -111,11 +111,11 @@ void checkAndRotateLog(Stream* s)
   }
 }
 
-void finishLogProcessing(SAFplusLog::SAFplusLogRoot* cfg)
+void finishLogProcessing(SAFplusLog::SAFplusLogModule* cfg)
   {
   MgtObject::Iterator iter;
-  MgtObject::Iterator end = cfg->streamConfig.streamList.end();
-  for (iter = cfg->streamConfig.streamList.begin(); iter != end; iter++)
+  MgtObject::Iterator end = cfg->safplusLog.streamConfig.streamList.end();
+  for (iter = cfg->safplusLog.streamConfig.streamList.begin(); iter != end; iter++)
     {
     Stream* s = dynamic_cast<Stream*>(iter->second);
     if (s->dirty)
@@ -146,11 +146,11 @@ void finishLogProcessing(SAFplusLog::SAFplusLogRoot* cfg)
   }
 
 
-void initializeLogRotation(SAFplusLog::SAFplusLogRoot* cfg)
+void initializeLogRotation(SAFplusLog::SAFplusLogModule* cfg)
 { 
   MgtObject::Iterator iter; 
-  MgtObject::Iterator end = cfg->streamConfig.streamList.end();  
-  for (iter = cfg->streamConfig.streamList.begin(); iter != end; iter++)
+  MgtObject::Iterator end = cfg->safplusLog.streamConfig.streamList.end();  
+  for (iter = cfg->safplusLog.streamConfig.streamList.begin(); iter != end; iter++)
   {
     Stream* s = dynamic_cast<Stream*>(iter->second);
     streamRotationInit(s);    
@@ -159,15 +159,15 @@ void initializeLogRotation(SAFplusLog::SAFplusLogRoot* cfg)
 
 // Look at the log configuration and initialize temporary variables, open log files, etc based on the values.
 
-void logInitializeStreams(SAFplusLog::SAFplusLogRoot* cfg)
+void logInitializeStreams(SAFplusLog::SAFplusLogModule* cfg)
 {
   // Open FP if needed
   // if rotate
   // determine the current fileIdx by looking at the current files in the directory and adding one.
   initializeLogRotation(cfg);  
   MgtObject::Iterator iter;
-  MgtObject::Iterator end = cfg->streamConfig.streamList.end();
-  for (iter = cfg->streamConfig.streamList.begin(); iter != end; iter++)
+  MgtObject::Iterator end = cfg->safplusLog.streamConfig.streamList.end();
+  for (iter = cfg->safplusLog.streamConfig.streamList.begin(); iter != end; iter++)
   {
     Stream* s = dynamic_cast<Stream*>(iter->second);
     initializeStream(s);
@@ -175,14 +175,14 @@ void logInitializeStreams(SAFplusLog::SAFplusLogRoot* cfg)
 }
 
 // Look at the log configuration and initialize temporary variables, open log files, etc based on the values.
-void dumpStreams(SAFplusLog::SAFplusLogRoot* cfg)
+void dumpStreams(SAFplusLog::SAFplusLogModule* cfg)
   {
   // Open FP if needed
   // if rotate
   // determine the current fileIdx by looking at the current files in the directory and adding one.
   MgtObject::Iterator iter;
-  MgtObject::Iterator end = cfg->streamConfig.streamList.end();
-  for (iter = cfg->streamConfig.streamList.begin(); iter != end; iter++)
+  MgtObject::Iterator end = cfg->safplusLog.streamConfig.streamList.end();
+  for (iter = cfg->safplusLog.streamConfig.streamList.begin(); iter != end; iter++)
     {
     Stream* s = dynamic_cast<Stream*>(iter->second);
     Dbg("Address %p\n", s);
@@ -210,7 +210,7 @@ int main(int argc, char* argv[])
   // Load logging configuration
   cfg = loadLogCfg();
   SAFplus::Handle hdl = SAFplus::Handle::create(SAFplusI::LOG_IOC_PORT);
-  cfg->bind(hdl);
+  cfg->bind(hdl,cfg);
 
 //  cfg->streamConfig.bind(hdl, "SAFplusLog", "/StreamConfig");
 //  cfg->serverConfig.bind(hdl, "SAFplusLog", "/ServerConfig");
@@ -223,8 +223,8 @@ int main(int argc, char* argv[])
   logInitializeSharedMem();
 
     // Hard code the well known streams
-  appStreamCfg = dynamic_cast<Stream*> (cfg->streamConfig.streamList["app"]);
-  sysStreamCfg = dynamic_cast<Stream*> (cfg->streamConfig.streamList["sys"]);
+  appStreamCfg = dynamic_cast<Stream*> (cfg->safplusLog.streamConfig.streamList["app"]);
+  sysStreamCfg = dynamic_cast<Stream*> (cfg->safplusLog.streamConfig.streamList["sys"]);
 
   logInitializeStreams(cfg);
   dumpStreams(cfg);  
@@ -286,7 +286,7 @@ int main(int argc, char* argv[])
         }
 
       // Wait for more records
-      if (serverSem.timed_lock(cfg->serverConfig.processingInterval))
+      if (serverSem.timed_lock(cfg->safplusLog.serverConfig.processingInterval))
         {  // kicked awake
           Dbg("timed_wait TRUE\n");
         }

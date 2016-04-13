@@ -301,8 +301,17 @@ ProcGate::ProcGate(const char* key,int initialValue)
   init(realKey,initialValue);
   }
 
+enum
+  {
+    LockSem = 0,
+    GateSem = 1,
+
+    SEM_NO_FLAG = 0,
+  };
+  
   void ProcGate::init(unsigned int key, int initialValue)
     {
+    locked = false;
     if (initialValue != 0) initialValue = 1;  // Make it boolean
     uint_t retry;
     uint_t flags = 0666;
@@ -333,7 +342,7 @@ ProcGate::ProcGate(const char* key,int initialValue)
       retry = 0;
       do
         {
-        err = semctl(semId,0,SETVAL,0);
+        err = semctl(semId,LockSem,SETVAL,0);
         if(err < 0 )
           {
           if(errno == EINTR) retry = 1;
@@ -343,7 +352,7 @@ ProcGate::ProcGate(const char* key,int initialValue)
             }
           }
         arg.val = initialValue;  // The gate starts open or closed?
-        err = semctl(semId,1,SETVAL,arg);
+        err = semctl(semId,GateSem,SETVAL,arg);
         if(err < 0 )
           {
           if(errno == EINTR) retry = 1;
@@ -361,23 +370,25 @@ ProcGate::ProcGate(const char* key,int initialValue)
     void ProcGate::wake(int amt,void* cookie) { open(); }
     void ProcGate::lock(int amt)   // This is not exclusive -- multiple entities can hold the lock at the same time.
       {
+        assert(!locked);  // A recursive lock when the gate closes between lock calls will deadlock
       // Block until the gate is open (= zero), then this lock will increment the semaphore
-      struct sembuf sembuf[] = {{1, 0,SEM_UNDO},{0, (short int)(amt),SEM_UNDO }};
-      int err;
+      struct sembuf sembuf[] = {{GateSem, 0,SEM_NO_FLAG},{LockSem, (short int)(1*amt),SEM_UNDO }};  // semadj -= amt
+      int error;
       do
         {
-          err = semop(semId,sembuf,2);
-        } while ((err<0)&&(errno==EINTR));
-      if (err<0)
+          error = semop(semId,sembuf,2);
+        } while ((error<0)&&(errno==EINTR));
+      if (error<0)
         {
           int err = errno;
-          assert(err<0);
+          assert(errno);  // Sem does not exist, or you don't have permissions.  Did you remember to initialize the service?
         }
-
+      locked=true;
       }
-    void ProcGate::unlock(int amt)
+  void ProcGate::unlock(int amt)
       {
-      struct sembuf sembuf = {0, (short int)(-1*amt),SEM_UNDO };
+        assert(locked);
+        struct sembuf sembuf = {LockSem, (short int)(-1*amt),SEM_UNDO };  // semadj += amt: "undo"ing this operation actually undoes the lock() resulting in a zero adjustment if the process then fails.
       int err;
       do
         {
@@ -388,7 +399,7 @@ ProcGate::ProcGate(const char* key,int initialValue)
           int err = errno;
           assert(err<0);
         }
-
+      locked=false;
       }
 
     bool ProcGate::try_lock(int amt)
@@ -405,7 +416,7 @@ ProcGate::ProcGate(const char* key,int initialValue)
       {
       if (1)  // First, close the gate
         {
-        struct sembuf sembuf[] = { {1, (short int)1,SEM_UNDO }  };
+        struct sembuf sembuf[] = { {GateSem, (short int)1,SEM_UNDO }  };
         int err;
         do
           {
@@ -420,7 +431,7 @@ ProcGate::ProcGate(const char* key,int initialValue)
 
       if (1)  // now wait for all racers to leave or be blocked by the gate (wait for zero)
         {
-        struct sembuf sembuf =  {0, 0,SEM_UNDO };
+        struct sembuf sembuf =  {LockSem, 0,SEM_NO_FLAG };
         int err;
         do
           {
@@ -435,16 +446,14 @@ ProcGate::ProcGate(const char* key,int initialValue)
       }
 
 void ProcGate::open()   // open the gate to allow lockers to proceed.
-  {
-  // open the gate
-        
-  struct sembuf sembuf[] = { {1, (short int) -1,SEM_UNDO }  };
-  int err;
+  {        
+  struct sembuf sembuf[] = { {GateSem, (short int) -1,SEM_UNDO }  };  // semadj += 1: "undo"ing this operation actually undoes the close() resulting in a zero adjustment if the process then fails.
+  int error;
   do
     {
-    err = semop(semId,sembuf,1);
-    } while ((err<0)&&(errno==EINTR));
-  if (err<0)
+    error = semop(semId,sembuf,1);
+    } while ((error<0)&&(errno==EINTR));
+  if (error<0)
     {
     int err = errno;
     assert(err<0);

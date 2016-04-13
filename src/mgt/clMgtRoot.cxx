@@ -585,7 +585,7 @@ namespace SAFplus
         for (std::vector<MgtObject*>::iterator i = matches.begin(); i != matches.end(); i++)
           {
             rc = (*i)->createObj(value);
-            logDebug("MGT","CRET","Object [%s] done created", xpath.c_str());
+            logDebug("MGT","CRET","Object [%s] created", xpath.c_str());
             MgtRoot::sendReplyMsg(srcAddr, (void *) &rc, sizeof(ClRcT));
             /*
              * Not allow multiple objects
@@ -598,7 +598,7 @@ namespace SAFplus
           rc = CL_ERR_NOT_EXIST;
         }
     }
-    logDebug("MGT","CRET","Creating object [%s] got failure, errorCode [0x%x]", xpath.c_str(), rc);
+    logDebug("MGT","CRET","Creating object [%s] failed, errorCode [0x%x]", xpath.c_str(), rc);
     MgtRoot::sendReplyMsg(srcAddr, (void *) &rc, sizeof(ClRcT));
   }
 

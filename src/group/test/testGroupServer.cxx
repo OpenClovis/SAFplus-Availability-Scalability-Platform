@@ -1,6 +1,6 @@
 #include <boost/thread.hpp>
 #include <boost/date_time/posix_time/posix_time.hpp>
-#include <clGroup.hxx>
+#include <clGroupApi.hxx>
 
 ClUint32T clAspLocalId = 0x1;
 ClBoolT   gIsNodeRepresentative = CL_TRUE;

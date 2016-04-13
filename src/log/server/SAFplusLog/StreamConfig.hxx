@@ -7,12 +7,12 @@
 #pragma once
 #ifndef STREAMCONFIG_HXX_
 #define STREAMCONFIG_HXX_
-#include "SAFplusLogCommon.hxx"
 
+#include "MgtFactory.hxx"
+#include "SAFplusLogCommon.hxx"
+#include "clMgtContainer.hxx"
 #include "clMgtList.hxx"
 #include <vector>
-#include "MgtFactory.hxx"
-#include "clMgtContainer.hxx"
 
 namespace SAFplusLog
   {

@@ -7,15 +7,14 @@
 #pragma once
 #ifndef SERVERCONFIG_HXX_
 #define SERVERCONFIG_HXX_
-#include "SAFplusLogCommon.hxx"
 
-#include <cstdint>
+#include "MgtFactory.hxx"
+#include "SAFplusLogCommon.hxx"
+#include "clMgtContainer.hxx"
 #include "clTransaction.hxx"
 #include "clMgtProv.hxx"
-#include <vector>
-#include "MgtFactory.hxx"
-#include "clMgtContainer.hxx"
 #include <cstdint>
+#include <vector>
 
 namespace SAFplusLog
   {
@@ -57,52 +56,52 @@ namespace SAFplusLog
         std::vector<std::string>* getChildNames();
 
         /*
-         * XPATH: /SAFplusLog/serverConfig/maximumStreams
+         * XPATH: /SAFplusLog/safplusLog/serverConfig/maximumStreams
          */
         ::uint32_t getMaximumStreams();
 
         /*
-         * XPATH: /SAFplusLog/serverConfig/maximumStreams
+         * XPATH: /SAFplusLog/safplusLog/serverConfig/maximumStreams
          */
         void setMaximumStreams(::uint32_t maximumStreamsValue, SAFplus::Transaction &txn=SAFplus::NO_TXN);
 
         /*
-         * XPATH: /SAFplusLog/serverConfig/maximumComponents
+         * XPATH: /SAFplusLog/safplusLog/serverConfig/maximumComponents
          */
         ::uint32_t getMaximumComponents();
 
         /*
-         * XPATH: /SAFplusLog/serverConfig/maximumComponents
+         * XPATH: /SAFplusLog/safplusLog/serverConfig/maximumComponents
          */
         void setMaximumComponents(::uint32_t maximumComponentsValue, SAFplus::Transaction &txn=SAFplus::NO_TXN);
 
         /*
-         * XPATH: /SAFplusLog/serverConfig/maximumSharedMemoryPages
+         * XPATH: /SAFplusLog/safplusLog/serverConfig/maximumSharedMemoryPages
          */
         ::uint32_t getMaximumSharedMemoryPages();
 
         /*
-         * XPATH: /SAFplusLog/serverConfig/maximumSharedMemoryPages
+         * XPATH: /SAFplusLog/safplusLog/serverConfig/maximumSharedMemoryPages
          */
         void setMaximumSharedMemoryPages(::uint32_t maximumSharedMemoryPagesValue, SAFplus::Transaction &txn=SAFplus::NO_TXN);
 
         /*
-         * XPATH: /SAFplusLog/serverConfig/maximumRecordsInPacket
+         * XPATH: /SAFplusLog/safplusLog/serverConfig/maximumRecordsInPacket
          */
         ::uint32_t getMaximumRecordsInPacket();
 
         /*
-         * XPATH: /SAFplusLog/serverConfig/maximumRecordsInPacket
+         * XPATH: /SAFplusLog/safplusLog/serverConfig/maximumRecordsInPacket
          */
         void setMaximumRecordsInPacket(::uint32_t maximumRecordsInPacketValue, SAFplus::Transaction &txn=SAFplus::NO_TXN);
 
         /*
-         * XPATH: /SAFplusLog/serverConfig/processingInterval
+         * XPATH: /SAFplusLog/safplusLog/serverConfig/processingInterval
          */
         ::uint64_t getProcessingInterval();
 
         /*
-         * XPATH: /SAFplusLog/serverConfig/processingInterval
+         * XPATH: /SAFplusLog/safplusLog/serverConfig/processingInterval
          */
         void setProcessingInterval(::uint64_t processingIntervalValue, SAFplus::Transaction &txn=SAFplus::NO_TXN);
         ~ServerConfig();

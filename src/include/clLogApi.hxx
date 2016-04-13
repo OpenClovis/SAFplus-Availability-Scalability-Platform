@@ -28,6 +28,11 @@ namespace SAFplus
 
 //? <section name="Logging">
 
+/*? <desc order="1"><html><p>The SAFplus logging framework provides a simple mechanism for applications to log text-based information to a file, the screen, to syslog, or to another computer (management station, for example).  To be clear, "logs" are intended to be human-readable information about the execution of an application.  They are not intended to be used as a method where applications communicate -- don't write an app that reads logs and acts on them (except to notify the operator, display them, etc).  Events or RPC calls are a better means of intra-cluster inter-application notification, and extra-cluster notifications are beyond the scope of this document, but many solutions exist such as HTTP POST.
+</p>
+</html>
+</desc>
+*/
   /* Log handle */
 class Logger
 {

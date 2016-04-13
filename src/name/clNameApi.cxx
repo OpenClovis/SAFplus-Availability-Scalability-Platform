@@ -7,6 +7,15 @@
 using namespace SAFplus;
 using namespace SAFplusI;
 
+#define ENDIAN_SWAP_U64(val) ((uint64_t) ( \
+    (((uint64_t) (val) & (uint64_t) 0x00000000000000ff) << 56) | \
+    (((uint64_t) (val) & (uint64_t) 0x000000000000ff00) << 40) | \
+    (((uint64_t) (val) & (uint64_t) 0x0000000000ff0000) << 24) | \
+    (((uint64_t) (val) & (uint64_t) 0x00000000ff000000) <<  8) | \
+    (((uint64_t) (val) & (uint64_t) 0x000000ff00000000) >>  8) | \
+    (((uint64_t) (val) & (uint64_t) 0x0000ff0000000000) >> 24) | \
+    (((uint64_t) (val) & (uint64_t) 0x00ff000000000000) >> 40) | \
+    (((uint64_t) (val) & (uint64_t) 0xff00000000000000) >> 56)))
 
 
 NameRegistrar SAFplus::name;
@@ -409,7 +418,7 @@ char* NameRegistrar::getName(const SAFplus::Handle& handle) throw(NameException&
    for(Checkpoint::Iterator iter = ibegin; iter != iend; iter++)
    {
       BufferPtr curkey = iter->first;
-      logDebug("NAME","GETNAME","key [%s]\n", curkey.get()->data);
+      // getName CANNOT log because logging uses it: logDebug("NAME","GETNAME","key [%s]\n", curkey.get()->data);
 
       BufferPtr& curval = iter->second;
       if (curval)
@@ -430,7 +439,7 @@ char* NameRegistrar::getName(const SAFplus::Handle& handle) throw(NameException&
       }
       else
       {
-         logWarning("NAME","GETNAME","name data is empty");
+         // getName CANNOT log because logging uses it: logWarning("NAME","GETNAME","name data is empty");
       }
    }
    throw NameException("Handle provided doesn't exist in Name");

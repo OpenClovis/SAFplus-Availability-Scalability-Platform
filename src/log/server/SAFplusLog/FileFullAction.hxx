@@ -7,10 +7,10 @@
 #pragma once
 #ifndef FILEFULLACTION_HXX_
 #define FILEFULLACTION_HXX_
-#include "SAFplusLogCommon.hxx"
 
 #include "MgtEnumType.hxx"
 #include <iostream>
+#include "SAFplusLogCommon.hxx"
 
 namespace SAFplusLog
   {

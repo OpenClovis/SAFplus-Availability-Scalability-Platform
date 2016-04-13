@@ -47,28 +47,30 @@ namespace SAFplus
 
 
   /* Interprocess gate must use SYS-V semaphores because they can be automatically released on process death.  Api signatures are very similar to c++ boost library. */
-  /* A gate is an abstraction that allows multiple threads/processes
-   * access until the gate is "shut".  Once all processes are out of
-   * the critical region, the entity that shut the gate is allowed to run */
+  /*? <class> A gate is an abstraction that allows multiple threads/processes access until the gate is "shut".  Once all processes are out of the critical region, the entity that shut the gate is allowed to run */
   class ProcGate:public SemI
   {
   protected:
     int semId;
+    bool locked;
   public:
+    //? <ctor> Default constructor, constructs an invalid ProcGate.  You must call <ref>init()</ref></ctor>
     ProcGate() { semId = -1; }
-    ProcGate(unsigned int key,int initialValue=0);
+    //? <ctor> Constructs a ProcGate based on the unique key.  Pass a 0 to initialValue to start the gate closed. </ctor>
+    ProcGate(unsigned int key,int initialValue=0);  // Gate starts open
+    //? <ctor> Constructs a ProcGate based on the hash of the unique string.  Pass a 1 to initialValue to start the gate closed.</ctor>
     ProcGate(const char* key,int initialValue=0);
+    //? <ctor> Constructs a ProcGate based on the unique key.  Pass a 1 to initialValue to start the gate closed. </ctor>
     void init(unsigned int key,int initialValue=0);
     void wake(int amt,void* cookie=NULL);
-    void lock(int amt=1);   // This is not exclusive -- multiple entities can hold the lock at the same time.
-    void unlock(int amt=1);
-    bool try_lock(int amt=1);
+    void lock(int amt=1);   //? Lock the gate open. This is not exclusive -- multiple entities can hold the lock at the same time, but no entity can be holding it locked when the gate is <ref>close()</ref>.  If the gate is already closed, this function blocks until the gate is opened.
+    void unlock(int amt=1); //? Unlock the gate.
+    bool try_lock(int amt=1); //? Lock the gate open and return true if it was locked.  Otherwise return false.
     bool timed_lock(uint64_t mSec,int amt=1); //? returns TRUE if the lock was taken, FALSE if the time elapsed.
 
-    void close();  // close the gate so all lockers block on lock, returns when no entity has a lock.
-    void open();   // open the gate to allow lockers to proceed.
-  };
-
+    void close();  //? close the gate so all lockers block on lock, returns when no entity has a lock.
+    void open();   //? open the gate to allow lockers to proceed.
+  }; //? </class>
   
   template<class bstMutT> class tMutex: public Wakeable
   {

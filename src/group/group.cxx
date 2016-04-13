@@ -1,9 +1,8 @@
 /* Standard headers */
 #include <string>
 /* SAFplus headers */
-#include <clGroup.hxx>
 #include <clCommon.hxx>
-#include <clGroup.hxx>
+#include <clGroupApi.hxx>
 #include <clNameApi.hxx>
 #include <clMsgPortsAndTypes.hxx>
 #include <clGroupIpi.hxx>
@@ -107,6 +106,7 @@ char* Group::capStr(uint cap, char* buf)
     GroupShmHashMap::iterator entryPtr;
     do  // waiting for group to be registered into shared memory by the group's node representative.  If this loop never exits, the group node rep is dead.
       {
+      assert(gsm.groupMap);  // You did not call groupInitialize()
       entryPtr = gsm.groupMap->find(handle);
       if (entryPtr == gsm.groupMap->end())
         {

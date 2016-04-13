@@ -14,7 +14,7 @@
 #include <clHandleApi.hxx>
 #include <clLogApi.hxx>
 #include <clCkptApi.hxx>
-#include <clGroup.hxx>
+#include <clGroupApi.hxx>
 #include <clThreadApi.hxx>
 #include <clTestApi.hxx>
 #include <clLogApi.hxx>

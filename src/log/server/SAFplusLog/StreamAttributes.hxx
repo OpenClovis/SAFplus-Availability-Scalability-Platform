@@ -7,18 +7,17 @@
 #pragma once
 #ifndef STREAMATTRIBUTES_HXX_
 #define STREAMATTRIBUTES_HXX_
-#include "SAFplusLogCommon.hxx"
 
-#include <string>
-#include "clTransaction.hxx"
-#include "clMgtProv.hxx"
 #include "FileFullAction.hxx"
-#include <vector>
-#include "Replicate.hxx"
-#include <cstdint>
-#include "StreamScope.hxx"
+#include "SAFplusLogCommon.hxx"
 #include "clMgtContainer.hxx"
+#include "clTransaction.hxx"
+#include "Replicate.hxx"
+#include <string>
+#include "clMgtProv.hxx"
 #include <cstdint>
+#include <vector>
+#include "StreamScope.hxx"
 
 namespace SAFplusLog
   {

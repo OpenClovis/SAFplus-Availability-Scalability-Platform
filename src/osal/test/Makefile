@@ -2,19 +2,19 @@ S7 := 1
 include ../../mk/preface.mk
 
 CLIENT_H := $(wildcard *.hpp) $(wildcard $(SAFPLUS_INC_DIR)/*.hpp)
-CLIENT_SRC := $(wildcard *.cxx)
-CLIENT_OBJ := $(addprefix $(OBJ_DIR)/,$(subst .cxx,.o,$(CLIENT_SRC)))
 
 # Specify the required libraries
-#SAFPLUS_LIBS := clUtils7 clLog clOsal7
-SAFPLUS_LIBS := clUtils clLog clOsal
+SAFPLUS_LIBS := clOsal clLog clUtils 
 # Then use these in the make rule
 SAFPLUS_DEP_LIBS     := $(addsuffix .so,$(addprefix $(LIB_DIR)/lib,$(SAFPLUS_LIBS)))
 SAFPLUS_LINK_LIBS := -L$(LIB_DIR) $(addprefix -l,$(SAFPLUS_LIBS))
 
-Release all: $(TEST_DIR)/testOsal
+Release all: $(TEST_DIR)/testOsal $(TEST_DIR)/testGate
 
-$(TEST_DIR)/testOsal: $(CLIENT_OBJ) $(DEP_LIBS)
+$(TEST_DIR)/testOsal: $(OBJ_DIR)/testOsal.o $(OBJ_DIR)/testNodeStats.o
+	$(LINK_EXE) $@ $+ $(SAFPLUS_LINK_LIBS)  $(LINK_SO_LIBS)
+
+$(TEST_DIR)/testGate: $(OBJ_DIR)/testGate.o $(DEP_LIBS)
 	$(LINK_EXE) $@ $+ $(SAFPLUS_LINK_LIBS)  $(LINK_SO_LIBS)
 
 #$(TEST_DIR)/testNodeStats: $(CLIENT_OBJ) $(DEP_LIBS)
