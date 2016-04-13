@@ -1,7 +1,7 @@
 <section name="Availability Management">
-  <example order="1" name="Basic AMF Tutorial">
+  <example order="2" name="Basic AMF Tutorial">
     <html>
-      <h2>Introduction</h2>
+      <h2>SAFplus AMF Tutorial and Example</h2>
       <p>This example covers the basic use of the SAFplus Availability Management Framework (AMF).  When complete, you will have defined and created a redundant program on first one node and then 2 nodes.  These programs will be running in Active/Standby mode and will periodically print their role.  You will then kill one of the programs and watch the roles change and the program be restarted.</p>
       <p>Let's take a look at the code</p>
     </html>

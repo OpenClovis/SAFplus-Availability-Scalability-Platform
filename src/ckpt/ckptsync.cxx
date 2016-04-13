@@ -13,7 +13,7 @@
 #include <clCkptIpi.hxx>
 #include <clCkptApi.hxx>
 #include <clMsgApi.hxx>
-#include <clGroup.hxx>
+#include <clGroupApi.hxx>
 #include <clProcessApi.hxx>
 #include <clObjectMessager.hxx>
 

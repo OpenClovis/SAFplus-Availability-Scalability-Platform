@@ -5,7 +5,7 @@
 #include <clHandleApi.hxx>
 #include <clLogApi.hxx>
 #include <clIocApi.h>
-#include <clGroup.hxx>
+#include <clGroupApi.hxx>
 #include <clGlobals.hxx>
 
 void singleElect();

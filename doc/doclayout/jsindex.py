@@ -30,8 +30,8 @@ from microdom import *
 def genSymbols(cllist):
   header = ["symbol","class","section","file"]
   body = []
-  for (obj,cls,sec,fil) in cllist:
-    body.append([obj2tlink(obj,PageLocCenter),obj2tlink(cls,PageLocCenter),obj2tlink(sec,PageLocCenter),obj2tlink(fil,PageLocCenter)])
+  for (obj,name, cls,sec,fil) in cllist:
+    body.append([obj2tlink(obj,PageLocCenter,name),obj2tlink(cls,PageLocCenter),obj2tlink(sec,PageLocCenter),obj2tlink(fil,PageLocCenter)])
   # parenttLink(obj,TagSection,PageLocCenter),parenttLink(obj,TagFile,PageLocCenter
   grid = GridFromList(header, body )
   #grid.RowBackground(Color(250,250,100),[Color(200,200,200),Color(240,240,240)])
@@ -55,10 +55,13 @@ def generate(objs,cfg,args,tagDict=None):
           f = obj.findParent(TagFile)
           if f: f = f[0]
           else: f=None
+          n = obj.name
+          if obj.tag_ in TagFile: # strip off any directory in the filename for the index
+            n = os.path.basename(obj.name)
+          objlst.append((obj,n,c,s,f))
 
-          objlst.append((obj,c,s,f))
-
-  objlst.sort(lambda x,y: cmp(x[0].name.lower(),y[0].name.lower()))
+  #objlst.sort(lambda x,y: cmp(x[1].lower(),y[0].name.lower()))
+  objlst.sort(key = lambda x: x[1].lower())
 
   mv = genSymbols(objlst)
 

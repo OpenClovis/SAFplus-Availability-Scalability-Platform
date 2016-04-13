@@ -1,5 +1,5 @@
 #include <cltypes.h>
-#include <clGroup.hxx>
+#include <clGroupApi.hxx>
 
 #include <saAis.h>
 #include <saAmf.h>

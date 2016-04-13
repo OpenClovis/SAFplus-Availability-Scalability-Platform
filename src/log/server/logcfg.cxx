@@ -24,7 +24,7 @@ LogCfg::LogCfg():MgtContainer("SAFplusLog")
 }
 
 #endif
-SAFplusLog::SAFplusLogRoot logcfg;
+SAFplusLog::SAFplusLogModule logcfg;
 
 HandleStreamMap hsMap;
 Stream* sysStreamCfg;
@@ -336,27 +336,27 @@ void loadStreamConfigs()
 
 /* Initialization code would load the configuration from the database rather than setting it by hand.
  */
-SAFplusLog::SAFplusLogRoot* loadLogCfg()
+SAFplusLog::SAFplusLogModule* loadLogCfg()
 {
   loadStreamConfigs();
 
-  Stream* s =  dynamic_cast<Stream*>(logcfg.streamConfig.streamList.getChildObject("sys"));
+  Stream* s =  dynamic_cast<Stream*>(logcfg.safplusLog.streamConfig.streamList.getChildObject("sys"));
   if (!s)  // The sys log is an Openclovis system log.  So if its config does not exist, or was deleted, recreate the log.
     {
       s = createStreamCfg("sys","sys","/var/log/safplus",32*1024*1024, 2048, FileFullAction::ROTATE, 10, 200, 500, false, StreamScope::LOCAL);
       std::string cfgName("sys");
-      logcfg.streamConfig.streamList.addChildObject(s,cfgName);
+      logcfg.safplusLog.streamConfig.streamList.addChildObject(s,cfgName);
     }
   else
     {
       addStreamObjMapping("sys", s, SYS_LOG);
     }
-  s =  dynamic_cast<Stream*>(logcfg.streamConfig.streamList.getChildObject("app"));
+  s =  dynamic_cast<Stream*>(logcfg.safplusLog.streamConfig.streamList.getChildObject("app"));
   if (!s)  // The all log is an Openclovis system log.  So if its config does not exist, or was deleted, recreate the log.
     {
       s = createStreamCfg("app","app","/var/log/safplus",1024*1024/4, 2048, FileFullAction::ROTATE, 4, 200, 500, false, StreamScope::LOCAL);
       std::string cfgName("app");
-      logcfg.streamConfig.streamList.addChildObject(s,cfgName);
+      logcfg.safplusLog.streamConfig.streamList.addChildObject(s,cfgName);
     }
   else
     {
@@ -368,12 +368,12 @@ SAFplusLog::SAFplusLogRoot* loadLogCfg()
 
 Stream* loadOrCreateNewStream(const char* streamName, Replicate repMode=Replicate::NONE, Handle strmHdl=INVALID_HDL)
 {
-  Stream* s =  dynamic_cast<Stream*>(logcfg.streamConfig.streamList.getChildObject(streamName));
+  Stream* s =  dynamic_cast<Stream*>(logcfg.safplusLog.streamConfig.streamList.getChildObject(streamName));
   if (!s)  // The sys log is an Openclovis system log.  So if its config does not exist, or was deleted, recreate the log.
     {
       s = createStreamCfg(streamName,streamName,"/var/log/safplus",32*1024*1024, 2048, FileFullAction::ROTATE, 10, 200, 500, false, StreamScope::GLOBAL, repMode, strmHdl);
       std::string cfgName(streamName);
-      logcfg.streamConfig.streamList.addChildObject(s,cfgName);
+      logcfg.safplusLog.streamConfig.streamList.addChildObject(s,cfgName);
     }
   else
     {
@@ -388,7 +388,7 @@ logRecv parameter indicates that this log is received from other nodes (true).
 if logRecv==true, log must be written to this node AND do not forward it to others, 
 otherwise, write to this node AND forward it to others
 */
-void postRecord(SAFplusI::LogBufferEntry* rec, char* msg, SAFplusLog::SAFplusLogRoot* cfg)
+void postRecord(SAFplusI::LogBufferEntry* rec, char* msg, SAFplusLog::SAFplusLogModule* cfg)
 {
   if (rec->severity > SAFplus::logSeverity) return;  // don't log if the severity cutoff is lower than that of the log.  Note that the client also does this check.
   //printf("%s\n",msg);

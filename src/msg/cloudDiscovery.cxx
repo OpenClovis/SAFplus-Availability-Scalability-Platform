@@ -3,7 +3,6 @@
 #include <boost/interprocess/shared_memory_object.hpp>
 #include <boost/foreach.hpp>
 #include <boost/tokenizer.hpp>
-#include <clGroup.hxx>
 
 
   CloudDiscovery::CloudDiscovery()

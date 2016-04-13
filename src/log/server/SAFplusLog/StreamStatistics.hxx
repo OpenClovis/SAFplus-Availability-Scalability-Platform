@@ -7,11 +7,12 @@
 #pragma once
 #ifndef STREAMSTATISTICS_HXX_
 #define STREAMSTATISTICS_HXX_
-#include "SAFplusLogCommon.hxx"
 
-#include <vector>
 #include "MgtFactory.hxx"
+#include "SAFplusLogCommon.hxx"
 #include "clMgtContainer.hxx"
+#include "clMgtHistoryStat.hxx"
+#include <vector>
 
 namespace SAFplusLog
   {
@@ -29,12 +30,12 @@ namespace SAFplusLog
         std::vector<std::string>* getChildNames();
 
         /*
-         * XPATH: /SAFplusLog/streamConfig/stream/streamStatistics/numLogs
+         * XPATH: /SAFplusLog/safplusLog/streamConfig/stream/streamStatistics/numLogs
          */
         SAFplus::MgtHistoryStat<int>* getNumLogs();
 
         /*
-         * XPATH: /SAFplusLog/streamConfig/stream/streamStatistics/numLogs
+         * XPATH: /SAFplusLog/safplusLog/streamConfig/stream/streamStatistics/numLogs
          */
         void addNumLogs(SAFplus::MgtHistoryStat<int> *numLogsValue);
         ~StreamStatistics();

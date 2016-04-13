@@ -4,7 +4,7 @@
 // SAFplus includes
 #include <clHandleApi.hxx>
 #include <clLogApi.hxx>
-#include <clGroup.hxx>
+#include <clGroupApi.hxx>
 #include <clGlobals.hxx>
 #include <clNameApi.hxx>
 #include <clGroupIpi.hxx>  // only for debug -- dumping the group shared memory

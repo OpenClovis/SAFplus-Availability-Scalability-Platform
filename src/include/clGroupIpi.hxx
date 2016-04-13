@@ -11,10 +11,10 @@
 
 #include <clCustomization.hxx>
 #include <clMsgApi.hxx>
-#include <clGroup.hxx>
+#include <clGroupApi.hxx>
 #include <clGlobals.hxx>
 #include <clLogApi.hxx>
-#include <clGroup.hxx>
+
 namespace SAFplusI
 {
   enum

@@ -7,10 +7,10 @@
 #pragma once
 #ifndef STREAMSCOPE_HXX_
 #define STREAMSCOPE_HXX_
-#include "SAFplusLogCommon.hxx"
 
 #include "MgtEnumType.hxx"
 #include <iostream>
+#include "SAFplusLogCommon.hxx"
 
 namespace SAFplusLog
   {
