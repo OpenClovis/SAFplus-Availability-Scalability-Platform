@@ -50,12 +50,12 @@ namespace SAFplus
     //? Variable to check if the current node is a SC capable node.  Loaded from the same-named environment variable.
   extern bool ASP_SC_PROMOTE;
   
-    //? AMF did not start this component. ASP_WITHOUT_CPM environment variable.  DEPRECATED (component can discover this itself in main())
+    // AMF did not start this component. ASP_WITHOUT_CPM environment variable.  DEPRECATED (component can discover this itself in main())
     // extern bool clWithoutAmf;
 
 /* SAFplus initialization */
 
-//? This class defines initialization parameters for the SAFplus services.  It can be passed to safplusInitialize to customize service creation.
+//? <class> This class defines initialization parameters for the SAFplus services.  It can be passed to safplusInitialize to customize service creation.
 class SafplusInitializationConfiguration
   {
   public:
@@ -69,7 +69,7 @@ class SafplusInitializationConfiguration
     msgQueueLen = SAFplus::MsgAppQueueLen;
     msgThreads  = SAFplus::MsgAppMaxThreads;
     }
-  };
+}; //? </class>
 
 class LibSet
   {
@@ -96,88 +96,39 @@ class LibSet
   };
   };
 
-#if 0
-  /* LibSet operators overload */
-  inline constexpr uint32_t operator*(LibSet ls)
-  {
-    return static_cast<uint32_t>(ls);
-  }
 
-  inline constexpr LibSet operator|(LibSet lls, LibSet rls)
-  {
-    return static_cast<LibSet>((*lls) | (*rls));
-  }
+    //? <class> This class is a namespace wrapper around bitfields describing components and their dependencies
+    class LibDep
+    {
+    public:
+      /* Library dependencies */
+      enum Bits
+        {
+          LOG = LibSet::LOG | LibSet::OSAL | LibSet::UTILS,  //? Log service and dependencies
+          OSAL = LibSet::OSAL | LibSet::LOG | LibSet::UTILS, //? Operating System Adaption Layer and dependencies
+          UTILS = LibSet::UTILS | LibSet::OSAL,              //? Utility library and dependencies (initializing this loads global vars from the environment)
+          IOC = LibSet::IOC | LibSet::LOG |  LibSet::UTILS | LibSet::OSAL | LibSet::HEAP | LibSet::TIMER | LibSet::BUFFER,
+          FAULT = LibSet::FAULT | LibDep::LOG,               //? Fault determination library and dependencies
+          MSG = LibSet::MSG | LibDep::FAULT | LibDep::IOC,   //? Messaging library and dependencies
+          OBJMSG = LibSet::OBJMSG | LibDep::MSG,             //? Object Messaging library and dependencies
+          GRP = LibSet::GRP | LibDep::OBJMSG | LibDep::MSG,  //? Group membership library and dependencies
+          CKPT = LibSet::CKPT | LibSet::DBAL | LibDep::GRP | LibDep::MSG | LibDep::UTILS, //? Checkpoint library and dependencies
+          NAME = LibSet::NAME | LibDep::CKPT, //? Name service and dependencies
+          HEAP = LibSet::HEAP,
+          BUFFER = LibSet::BUFFER,
+          TIMER = LibSet::TIMER, //? Timer library and dependencies
+          DBAL = LibSet::DBAL | LibSet::OSAL | LibSet::HEAP | LibSet::TIMER | LibSet::BUFFER, //? Database adaption layer and dependencies
+          MGT_ACCESS = LibSet::MGT_ACCESS | LibDep::MSG | LibDep::CKPT, //? Management client access library and dependencies
 
-  inline bool operator&(LibSet lls, LibSet rls)
-  {
-    return ((*lls) & (*rls)) != 0;
-  }
-
-  inline constexpr LibSet operator|(uint32_t ld, LibSet ls)
-  {
-   return static_cast<LibSet>(ld | (*ls));
-  }
-
-  inline constexpr LibSet operator|(LibSet ls, uint32_t ld)
-  {
-   return static_cast<LibSet>(ld | (*ls));
-  }
-#endif
-
-  class LibDep
-  {
-  public:
-  /* Library dependencies */
-  enum Bits
-  {
-    LOG = LibSet::LOG | LibSet::OSAL | LibSet::UTILS,
-    OSAL = LibSet::OSAL | LibSet::LOG | LibSet::UTILS,
-    UTILS = LibSet::UTILS | LibSet::OSAL,
-    IOC = LibSet::IOC | LibSet::LOG |  LibSet::UTILS | LibSet::OSAL | LibSet::HEAP | LibSet::TIMER | LibSet::BUFFER,
-    FAULT = LibSet::FAULT | LibDep::LOG,
-    MSG = LibSet::MSG | LibDep::FAULT | LibDep::IOC,
-    OBJMSG = LibSet::OBJMSG | LibDep::MSG,
-    GRP = LibSet::GRP | LibDep::OBJMSG | LibDep::MSG,
-    CKPT = LibSet::CKPT | LibSet::DBAL | LibDep::GRP | LibDep::MSG | LibDep::UTILS,
-    NAME = LibSet::NAME | LibDep::CKPT,
-    HEAP = LibSet::HEAP,
-    BUFFER = LibSet::BUFFER,
-    TIMER = LibSet::TIMER,
-    DBAL = LibSet::DBAL | LibSet::OSAL | LibSet::HEAP | LibSet::TIMER | LibSet::BUFFER,
-    MGT_ACCESS = LibSet::MGT_ACCESS | LibDep::MSG | LibDep::CKPT,
-
-  };
-  };
-
-#if 0
-  /* LibDep operators overload */
-  inline uint32_t operator*(LibDep ld)
-  { 
-    return static_cast<uint32_t>(ld);
-  }
-
-  inline LibDep operator|(LibDep lld, LibDep rld)
-  {
-    return static_cast<LibDep>(((unsigned int) lld) | ((unsigned int) rld));
-  }
-
-  inline bool operator&(LibDep lld, LibDep rld)
-  {
-    return ((*lld) & (*rld)) != 0;
-  }
-
-  inline bool operator&(LibDep ld, LibSet ls)
-  {
-    return ((*ld) & (*ls)) != 0;
-  }
-
-#endif
+        };
+    }; //? </class>
 
   extern void utilsInitialize() __attribute__((weak));
   extern Logger* logInitialize(void) __attribute__((weak));
   extern void objectMessagerInitialize() __attribute__((weak));
   extern void nameInitialize() __attribute__((weak));
   extern void msgServerInitialize(uint_t port, uint_t maxPendingMsgs, uint_t maxHandlerThreads)  __attribute__((weak));
+  extern void msgServerFinalize() __attribute__((weak));
   extern void clMsgInitialize(void) __attribute__((weak)); 
   extern void mgtAccessInitialize(void) __attribute__((weak));
 
@@ -194,8 +145,12 @@ extern "C" {
 #endif
 
   extern void groupInitialize(void) __attribute__((weak));
+  extern void groupFinalize(void) __attribute__((weak));
   extern void faultInitialize(void) __attribute__((weak));
 
+    //? Initialize specific SAFplus components and dependencies.  This API is automatically called by <ref>saAmfInitialize()</ref> so it is unnecessary to call it for SA-Aware components.
+    //<arg name="svc">A bit field describing the services to initialize.  Use constants defined in the LibDep class.</arg>
+    //<arg name="cfg">Optional extended configuration parameters.  See <ref>SafplusInitializationConfiguration</ref> for information about each parameter.</arg>
   inline void safplusInitialize(unsigned int svc,const SafplusInitializationConfiguration& cfg=*((SafplusInitializationConfiguration*)NULL))
   {
     SafplusInitializationConfiguration defaults;
@@ -268,4 +223,10 @@ extern "C" {
       }
   }
 
+    //? Finalize (stop) SAFplus services.  Call this function if you want a clean shutdown
+    inline void safplusFinalize(void)
+    {
+      SAFplus::groupFinalize();
+      msgServerFinalize();
+    }
   };

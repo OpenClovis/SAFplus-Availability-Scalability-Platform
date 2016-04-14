@@ -237,6 +237,8 @@ namespace SAFplusI
   class GroupSharedMem
     {
     public:
+      bool quit;
+      boost::thread grpDispatchThread;
     SAFplus::ProcSem mutex;  // protects the shared memory region from simultaneous access
     SAFplus::Mutex  localMutex;
     GroupChangeMap lastChange;
@@ -244,8 +246,9 @@ namespace SAFplusI
     SAFplusI::GroupShmHashMap* groupMap;
     SAFplusI::GroupShmHeader* groupHdr;
     void init();
-    void clear(); //? Remove all group's entities from shared memory
-    void claim(int pid, int port); //? Claim that the provided pid and port is the node representative.  Overwrites an existing claim
+    void finalize();
+    void clear(); // Remove all group's entities from shared memory
+    void claim(int pid, int port); // Claim that the provided pid and port is the node representative.  Overwrites an existing claim
     void dispatcher(void);
     GroupShmEntry* createGroup(SAFplus::Handle grp);
 

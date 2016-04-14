@@ -62,10 +62,10 @@ static void runDispatcher(void * gsm)
 // This thread wakes whenever any group changes and then wakes the interested groups
 void GroupSharedMem::dispatcher()
   {
-  while(1)
+  while(!quit)
     {
     boost::this_thread::sleep(boost::posix_time::milliseconds(250));  // TODO: should be woken via a global sem...
-    if (1)
+    if (!quit)
       {
       ScopedLock<Mutex> lock2(localMutex);
       ScopedLock<ProcSem> lock(mutex);
@@ -184,8 +184,15 @@ void GroupSharedMem::clear()
   }
 
 
+void GroupSharedMem::finalize()
+  {
+    quit = true;
+    grpDispatchThread.join();
+  }
+
 void GroupSharedMem::init()
   {
+  quit = false;
   mutex.init("GroupSharedMem",1);
   groupSharedMemoryObjectName = "SAFplusGroup";
   logInfo("GRP", "INI", "Opening shared memory [%s]", groupSharedMemoryObjectName.c_str());
@@ -224,7 +231,7 @@ void GroupSharedMem::init()
   // TODO assocData = groupMsm.find_or_construct<CkptHashMap>("data") ...
 
     //start dispatcher thread
-    boost::thread(runDispatcher, this);
+    grpDispatchThread = boost::thread(runDispatcher, this);
   }
 
 

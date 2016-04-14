@@ -77,12 +77,13 @@ extern HandleStreamMap hsMap;
 void checkAndRotateLog(Stream* s)
 {
   
-  if ((s->lastUpdate < s->fileName.lastChange) || (s->lastUpdate < s->fileLocation.lastChange))
+  if ((s->lastUpdate < s->fileName.lastChange) || (s->lastUpdate < s->fileLocation.lastChange) || (s->fp == NULL))
     { // Something changed so close and reopen the files associated with this stream
       if (s->fp) { fclose(s->fp); s->fp = NULL; }
       initializeStream(s);
     }
-  long fileSize = ftell(s->fp);
+  long fileSize = 0;
+  if (s->fp) fileSize = ftell(s->fp);
   Dbg("checkAndRotateLog(): stream [%s] fileSize [%ld], conf fileSize [%ld]\n", s->tag.c_str(), (long int) fileSize, (long int) s->fileUnitSize.value);
   if (fileSize >= s->fileUnitSize.value)
   {

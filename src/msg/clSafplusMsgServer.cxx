@@ -27,6 +27,16 @@ namespace SAFplus
 {
     SafplusMsgServer safplusMsgServer;
   int msgServerInitCount=0;
+
+  void msgServerFinalize()
+  {
+    if (msgServerInitCount > 0)
+      {
+        msgServerInitCount--;
+        if (msgServerInitCount==0) safplusMsgServer.Stop();
+      }
+  }
+
     void msgServerInitialize(uint_t port, uint_t maxPendingMsgs, uint_t maxHandlerThreads)
       {
         if (msgServerInitCount > 0) return;

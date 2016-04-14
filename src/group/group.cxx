@@ -638,5 +638,13 @@ void SAFplus::Group::send(void* data, int dataLength, SAFplus::GroupMessageSendM
       gsm.init();
     }
 
+    void groupFinalize(void)
+    {
+      if (groupInitCount)
+        {
+        groupInitCount--;
+        if (groupInitCount == 0) gsm.finalize();
+        }
+    }
 
   };

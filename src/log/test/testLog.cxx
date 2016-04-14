@@ -9,6 +9,10 @@
 using namespace SAFplus;
 using namespace boost::filesystem;
 
+#ifdef CL_NO_TEST
+#error This test only makes sense to be compiled with test macros on
+#endif
+
 void TestLog_basic(void)
 {
   logSeverity = LOG_SEV_DEBUG;
@@ -48,8 +52,10 @@ void TestLog_mgt(void)
   mgtSet("/safplusLog/streamConfig/stream/test/maximumFilesRotated","2");
   mgtSet("/safplusLog/streamConfig/stream/test/fileName",logFileName);
 
-  std::string logdir(getcwd(cwd,256));
-  assert(logdir.size() > 10);  // Sanity to check so we don't accidentally remove everything on the disk.
+  clTestCaseMalfunction(("no current directory -- you deleted the directory from underneath this program (or gdb)"), getcwd(cwd,256)==NULL, return);
+
+  std::string logdir(cwd);
+  assert(logdir.size() > 10);  // Sanity check so we don't accidentally remove everything on the disk.
   logdir.append("/tmplogs");
   boost::filesystem::remove_all(logdir);
 
@@ -147,7 +153,7 @@ void TestLog_mgt(void)
   clTest(("file rotation decreased"), numfiles == 3, ("too many files %d",numfiles));
 
 
-  const int STRM_CNT = 2;
+  const int STRM_CNT = 20;
 
   for (int i=0;i<STRM_CNT;i++)
     {
@@ -205,6 +211,7 @@ int main(int argc, char* argv[])
   safplusInitialize(SAFplus::LibDep::NAME | SAFplus::LibDep::MGT_ACCESS,sic);
   TestLog_mgt();
   clTestGroupFinalize(); 
+  safplusFinalize();
 }
 
 

@@ -560,7 +560,7 @@ int main(int argc, char* argv[])
     api  = clPluginInitialize(SAFplus::CL_MSG_TRANSPORT_PLUGIN_VER);
 #else
     ClPluginHandle* plug = clLoadPlugin(SAFplus::CL_MSG_TRANSPORT_PLUGIN_ID,SAFplus::CL_MSG_TRANSPORT_PLUGIN_VER,xport.c_str());
-    clTestCaseMalfunction(("Node address is not set properly"), plug != NULL, );
+    clTestCaseMalfunction(("Node address is not set properly"), plug == NULL, );
     if (plug) api = plug->pluginApi;
 #endif
   }
@@ -580,7 +580,7 @@ int main(int argc, char* argv[])
 
       MsgTransportConfig xCfg = xp->initialize(msgPool,clusterNodes);
       bool abort = false;
-      clTestCaseMalfunction(("Node address is not set properly"), xCfg.nodeId != 0, abort=true);
+      clTestCaseMalfunction(("Node address is not set properly"), xCfg.nodeId == 0, abort=true);
 
       if (!abort)
       {
