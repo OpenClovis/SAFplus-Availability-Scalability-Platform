@@ -8,7 +8,8 @@ When complete, you will have defined and created a redundant program on first on
 These programs will be running in Active/Standby mode and will periodically print their role.  
 You will then kill one of the programs and watch the roles change and the program be restarted.</brief></p>
 
-      <p>Let's take a look at the code</p>
+      <p>Let's take a look at the code.  It is located in the <a href="https://github.com/OpenClovis/SAFplus-Availability-Scalability-Platform/tree/s7/examples/eval/basic">examples/eval/basic directory</a>.  In the next section, we will learn how to make a basic "SAF-aware" application.  After that, we will compile this application (you should compile from source since not every line is shown in this tutorial) and run it.
+</p>
     </html>
 
     <html>
@@ -83,14 +84,14 @@ this component with the AMF by name.
     <html>
       <h2> The "Basic" Example: Compiling and Running </h2>
       <p>
-        This example presumes that you have already installed SAFplus, built it from source.
+        This example presumes that you have already installed SAFplus, or built it from source.
       </p>
       <p>
-        First, Download and detar the example, or cd to [safplus dir]/examples/eval/basic if you are using SAFplus source from Github.
+        First, download and detar this example, or cd to [safplus dir]/examples/eval/basic if you are using SAFplus source from Github.
         Next build:
       </p>
       <pre>
-        make V=1
+        make
       </pre>
       <p>
         The program "basicApp" will be created.  If you installed SAFplus it will be created in this directory, but if you are using SAFplus from source, it will be located in the SAFplus target directory ([safplus]/target/[architecture]/bin).  This will be called the "bin" directory.
@@ -102,20 +103,19 @@ this component with the AMF by name.
         <li>SAFplusAmf2Node1SG1Comp.xml: Run on two nodes</li>
       </ul>
       <p>
-        Please choose which option you want, cd to the bin directory, and install the model:
+        Please choose which option you want (let's start with the single node version for simplicity).  Now "cd" to the bin directory, and install the model:
       </p>
       <pre>
-        cd SAFplus/target/i686-linux-gnu/bin
+        cd ../../../../SAFplus/target/i686-linux-gnu/bin
         ./safplus_db -x [example_source_dir]/SAFplusAmf1Node1SG1Comp.xml safplusAmf
       </pre>
       <p>
-        This command reads the model XML in and writes it to a file called safplusAmf.db in the current directory.  The AMF will read this file to access the cluster model.
-
+        This command reads the model XML (specified first) and writes it to a file called safplusAmf.db (specified second, '.db' extension automatically added) in the current directory.  When we run safplus_amf, it will read the "safplusAmf.db" file to access the cluster model.
+      </p><p>
         Now set up environment variables:
       </p>
       <pre>
-        cd SAFplus/target/i686-linux-gnu/bin
-        source setup.basicApp 
+        source ./setup.basicApp 
       </pre>
       <p>
         You should open this script and familiarize yourself with what it is doing since you will need to modify it for your own applications.  Essentially it:
@@ -125,7 +125,7 @@ this component with the AMF by name.
           <li> Sets up SAFplus environment variables, most importantly:</li> 
           <ul>
             <li> ASP_NODENAME: selects this node's name, which corresponds to a node definition in the XML model file.</li> 
-            <li> SAFPLUS_BACKPLANE_INTERFACE: selects the intra-cluster networking interface</li> 
+            <li> SAFPLUS_BACKPLANE_INTERFACE: selects the intra-cluster networking interface <span class="emphasize">This is currently hard-coded to 'eth0' so you may need to change it to your inteface name</span> </li> 
           </ul>
           <li> Sets up the cloud node identification table (only needed if using "cloud" based transports).</li> 
         </ul>
@@ -137,8 +137,14 @@ this component with the AMF by name.
         ./safplus_amf
       </pre>
       <p>
-        You should see the SAFplus AMF start up, load your model from the database, start 2 copies of the "basicApp" application, and then assign them to active and standby roles.
+        You should see the SAFplus AMF start up, load your model from the database, start 2 copies of the "basicApp" application, and then assign them to active and standby roles.  Ultimately you will see logs coming from the active and standby applications that look like this:
+      <pre>
+Mon Apr 11 15:29:31.717 2016 [main.cxx:370] (node0.25828.25828 : c0.APP.MAIN:00024 : INFO) Basic HA app: Active.  Hello World!
+Mon Apr 11 15:29:31.728 2016 [main.cxx:371] (node0.25827.25827 : c1.APP.MAIN:00024 : INFO) Basic HA app: Standby.
+      </pre>
+      You can learn about the fields in each log message in the <ref ref="LogFormatDescription">logging section</ref>.
 </p>
+
       <h2>Failovers</h2>
       <p>Next, let's kill the active application.  We should see the standby become active, and a new process be started that eventually becomes standby.  First, look at what is being logged:</p>
       <pre>
@@ -192,6 +198,43 @@ Mon Apr 11 15:33:09.912 2016 [main.cxx:374] (node0.25862.25862 : c0.APP.MAIN:000
 Mon Apr 11 15:33:13.915 2016 [main.cxx:371] (node0.25862.25862 : c0.APP.MAIN:00023 : INFO) Basic HA app: Standby.
 Mon Apr 11 15:33:13.990 2016 [main.cxx:370] (node0.25827.25827 : c1.APP.MAIN:00258 : INFO) Basic HA app: Active.  Hello World!
 </pre>
+
+      <h3>Multi-node Example</h3>
+Next, stop the safplus_amf on this node, remove "safplusAmf.db" and load the two node model:
+<pre>
+# kill -9 safplus_amf (or ctrl-c)
+# ./safplus_db -x /code/git/SAFplus/examples/eval/basic/SAFplusAmf2Node1SG1Comp.xml safplusAmf
+</pre>
+Now, copy this to another node.
+<pre>
+# cd ../..
+# tar cvfz amfbasicbin.tgz i686-linux-gnu/
+# scp amfbasicbin.tgz user@anotherNode:~
+# ssh -X -A user@anotherNode
+anotherNode# tar xvfz amfbasicbin.tgz
+</pre>
+
+Next, we need to set up the SAFplus execution environment and specify the node name "node1".  This corresponds to another node defined in the SAFplusAmf2Node1SG1Comp.xml model file.  You might want to modify the setup script, but for the purpose of this tutorial we'll just source the script and then override the different environment variables:
+
+<pre>
+anotherNode# cd i686-linux-gnu/bin
+anotherNode# source setup.basicApp
+anotherNode# export ASP_NODENAME=node1
+anotherNode# export SAFPLUS_BACKPLANE_INTERFACE=eth0
+</pre>
+<p>
+This tutorial presumes that you are using UDP or TIPC over a local LAN.  If you are using "cloud" network transports (SCTP or TCP), you must tell every node about the other nodes in the cluster using the <ref>safplus_cloud</ref> command.
+</p>
+<p>
+Finally, run safplus_amf on both nodes:
+<pre>
+# ./safplus_amf
+anotherNode# ./safplus_amf
+</pre>
+
+You will see one copy of the "basicApp" running on each node and active/standby roles assigned.  You can now "kill" these processes, just like in the single node example to test fail over. 
+</p>
+
 
       <h2>Troubleshooting</h2>
 

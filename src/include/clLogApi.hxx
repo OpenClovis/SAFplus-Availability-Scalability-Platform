@@ -30,6 +30,28 @@ namespace SAFplus
 
 /*? <desc order="1"><html><p>The SAFplus logging framework provides a simple mechanism for applications to log text-based information to a file, the screen, to syslog, or to another computer (management station, for example).  To be clear, "logs" are intended to be human-readable information about the execution of an application.  They are not intended to be used as a method where applications communicate -- don't write an app that reads logs and acts on them (except to notify the operator, display them, etc).  Events or RPC calls are a better means of intra-cluster inter-application notification, and extra-cluster notifications are beyond the scope of this document, but many solutions exist such as HTTP POST.
 </p>
+<p name="LogFormatDescription">
+Logs are formatted like this:
+<pre>
+Mon Apr 11 15:29:31.717 2016 [main.cxx:370] (node0.25828.25830 : c0.APP.MAIN:00024 : INFO) This is the log message
+</pre>
+<pre>
+1                             2              3     4     5       6  7   8    9       10    11
+</pre>
+<ol start="1">
+  <li>Date the log was issued</li>
+  <li>Source code file and line (optional based on the CL_LOG_CODE_LOCATION_ENABLE environment variable)</li>
+  <li>Originating node name (defined in the AMF model and in the ASP_NODENAME environment variable)</li>
+  <li>Originating process id</li>
+  <li>Originating thread id</li>
+  <li>Originating component name as defined in the AMF model, or overridden via the <ref>logCompName</ref> global variable</li>
+  <li>Originating area -- you provide this as part of the logging API</li>
+  <li>Originating sub-area -- you provide this as part of the logging API</li>
+  <li>Log number -- this is unique to this process</li>
+  <li>Log severity -- provided as part of the logging API</li>
+  <li>Log message -- provided as part of the logging API</li>
+</ol>
+</p>
 </html>
 </desc>
 */
