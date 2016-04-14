@@ -36,6 +36,10 @@ $(SAFPLUS_TOOL_TARGET)/bin/protoc-gen-rpc: $(wildcard $(SAFPLUS_SRC_DIR)/rpc/pro
 
 $(LIB_DIR)/libclRpc.so: $(wildcard $(SAFPLUS_SRC_DIR)/rpc/*.cxx) $(wildcard $(SAFPLUS_SRC_DIR)/include/*.hxx) $(wildcard $(SAFPLUS_SRC_DIR)/rpc/protoc/*.cxx) $(wildcard $(SAFPLUS_SRC_DIR)/rpc/protoc/*.hxx)
 	$(MAKE) -C $(SAFPLUS_SRC_DIR)/rpc
+
+$(SAFPLUS_SRC_DIR)/rpc/SAFplusPBExt.pb.hxx:
+	ln -s $(PROTOBUFVER)/SAFplusPBExt.pb.hxx $@
+
 endif
 
 ifndef SAFPLUS_OSAL_LIB
