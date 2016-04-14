@@ -1084,9 +1084,11 @@ class Panel(scrolled.ScrolledPanel):
             except StopIteration:
               break
           d[token] = newValue
-          if token == "name":
-            self.entities[newValue] = self.entities.pop(name)
           validator = query.GetValidator()
+          if token == "name":
+            if validator:              
+              self.model.deleteEntityFromMicrodom(validator.currentValue, e.et.name)
+            self.entities[newValue] = self.entities.pop(name)          
           if validator:            
             validator.currentValue = newValue
           else:
