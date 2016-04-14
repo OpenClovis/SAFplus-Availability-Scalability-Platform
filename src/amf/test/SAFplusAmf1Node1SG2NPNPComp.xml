@@ -1,0 +1,159 @@
+<safplusAmf>
+    <Cluster name="1">
+      <adminState>on</adminState>
+      <startupAssignmentDelay>1000</startupAssignmentDelay>
+    </Cluster>
+
+    <Node name="node0">
+      <adminState>on</adminState>
+      <autoRepair>true</autoRepair>
+      <failFastOnCleanupFailure>false</failFastOnCleanupFailure>
+      <failFastOnInstantiationFailure>false</failFastOnInstantiationFailure>
+      <serviceUnits>su0</serviceUnits>
+      <serviceUnits>su1</serviceUnits>
+    </Node>
+
+    <ServiceGroup name="sg0">
+      <adminState>on</adminState>
+      <autoAdjust>false</autoAdjust>
+      <autoAdjustInterval>0</autoAdjustInterval>
+      <autoRepair>true</autoRepair>
+      <maxActiveWorkAssignments>1</maxActiveWorkAssignments>
+      <maxStandbyWorkAssignments>1</maxStandbyWorkAssignments>
+      <preferredNumActiveServiceUnits>1</preferredNumActiveServiceUnits>
+      <preferredNumIdleServiceUnits>1</preferredNumIdleServiceUnits>
+      <preferredNumStandbyServiceUnits>1</preferredNumStandbyServiceUnits>
+      <serviceInstances>si</serviceInstances>
+      <serviceUnits>su0</serviceUnits>
+      <serviceUnits>su1</serviceUnits>
+    </ServiceGroup>
+
+    <ServiceUnit name="su0">
+      <adminState>on</adminState>
+      <rank>0</rank>
+      <failover>true</failover>
+      <components>c0</components>
+      <components>c0a</components>
+      <serviceGroup>sg0</serviceGroup>
+      <node>node0</node>
+    </ServiceUnit>
+    <ServiceUnit name="su1">
+      <adminState>on</adminState>
+      <rank>1</rank>
+      <failover>true</failover>
+      <components>c1</components>
+      <components>c1a</components>
+      <serviceGroup>sg0</serviceGroup>
+      <node>node0</node>
+    </ServiceUnit>
+
+    <ServiceInstance name="si">
+      <adminState>on</adminState>
+      <componentServiceInstances>csi</componentServiceInstances>
+      <preferredActiveAssignments>1</preferredActiveAssignments>
+      <preferredStandbyAssignments>1</preferredStandbyAssignments>
+      <rank>0</rank>
+      <serviceGroup>sg0</serviceGroup>
+    </ServiceInstance>
+
+    <Component name="c0">
+      <capabilityModel>not_preinstantiable</capabilityModel>
+      <compCategory>1</compCategory>
+      <delayBetweenInstantiation>10000</delayBetweenInstantiation>
+      <instantiate>
+        <command>../test/exampleNonSafApp c0</command>
+        <timeout>30000</timeout>
+      </instantiate>
+      <instantiationSuccessDuration>60000</instantiationSuccessDuration>
+      <maxActiveAssignments>1</maxActiveAssignments>
+      <maxDelayedInstantiations>1</maxDelayedInstantiations>
+      <maxInstantInstantiations>1</maxInstantInstantiations>
+      <maxStandbyAssignments>1</maxStandbyAssignments>
+      <proxy />
+      <recovery>Restart</recovery>
+      <restartable>true</restartable>
+      <safVersion>B.01.01</safVersion>
+      <serviceUnit>su0</serviceUnit>
+      <swBundle>testBundle.tgz</swBundle>
+      <commandEnvironment>TEST_ENV=1</commandEnvironment>
+      <commandEnvironment>TEST_ENV=2</commandEnvironment>
+    </Component>
+    <Component name="c0a">
+      <capabilityModel>not_preinstantiable</capabilityModel>
+      <compCategory>1</compCategory>
+      <delayBetweenInstantiation>10000</delayBetweenInstantiation>
+      <instantiate>
+        <command>../test/exampleNonSafApp c0a</command>
+        <timeout>30000</timeout>
+      </instantiate>
+      <instantiationSuccessDuration>60000</instantiationSuccessDuration>
+      <maxActiveAssignments>1</maxActiveAssignments>
+      <maxDelayedInstantiations>1</maxDelayedInstantiations>
+      <maxInstantInstantiations>1</maxInstantInstantiations>
+      <maxStandbyAssignments>1</maxStandbyAssignments>
+      <proxy />
+      <recovery>Restart</recovery>
+      <restartable>true</restartable>
+      <safVersion>B.01.01</safVersion>
+      <serviceUnit>su0</serviceUnit>
+      <swBundle>testBundle.tgz</swBundle>
+      <commandEnvironment>TEST_ENV=1</commandEnvironment>
+      <commandEnvironment>TEST_ENV=2</commandEnvironment>
+    </Component>
+
+
+    <Component name="c1">
+      <capabilityModel>not_preinstantiable</capabilityModel>
+      <compCategory>1</compCategory>
+      <delayBetweenInstantiation>20000</delayBetweenInstantiation>
+      <instantiate>
+        <command>../test/exampleNonSafApp c1</command>
+        <timeout>30000</timeout>
+      </instantiate>
+      <instantiationSuccessDuration>60000</instantiationSuccessDuration>
+      <maxActiveAssignments>1</maxActiveAssignments>
+      <maxDelayedInstantiations>2</maxDelayedInstantiations>
+      <maxInstantInstantiations>0</maxInstantInstantiations>
+      <maxStandbyAssignments>1</maxStandbyAssignments>
+      <proxy />
+      <recovery>Restart</recovery>
+      <restartable>true</restartable>
+      <safVersion>B.01.01</safVersion>
+      <serviceUnit>su1</serviceUnit>
+      <swBundle>testBundle.tgz</swBundle>
+      <commandEnvironment>TEST_ENV=3</commandEnvironment>
+      <commandEnvironment>TEST_ENV=4</commandEnvironment>
+    </Component>
+    <Component name="c1a">
+      <capabilityModel>not_preinstantiable</capabilityModel>
+      <compCategory>1</compCategory>
+      <delayBetweenInstantiation>20000</delayBetweenInstantiation>
+      <instantiate>
+        <command>../test/exampleNonSafApp c1a</command>
+        <timeout>30000</timeout>
+      </instantiate>
+      <instantiationSuccessDuration>60000</instantiationSuccessDuration>
+      <maxActiveAssignments>1</maxActiveAssignments>
+      <maxDelayedInstantiations>2</maxDelayedInstantiations>
+      <maxInstantInstantiations>0</maxInstantInstantiations>
+      <maxStandbyAssignments>1</maxStandbyAssignments>
+      <proxy />
+      <recovery>Restart</recovery>
+      <restartable>true</restartable>
+      <safVersion>B.01.01</safVersion>
+      <serviceUnit>su1</serviceUnit>
+      <swBundle>testBundle.tgz</swBundle>
+      <commandEnvironment>TEST_ENV=3</commandEnvironment>
+      <commandEnvironment>TEST_ENV=4</commandEnvironment>
+    </Component>
+
+    <ComponentServiceInstance name="csi">
+      <serviceInstance>si</serviceInstance>
+      <data name="testKey">
+        <val>testVal</val>
+      </data>
+      <data name="testKey2">
+        <val>testVal2</val>
+      </data>
+    </ComponentServiceInstance>
+</safplusAmf>

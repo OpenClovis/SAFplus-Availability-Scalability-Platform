@@ -35,14 +35,14 @@ def genClasses(cllist):
   return grid
 
 
-def generate(objs,cfg):
+def generate(objs,cfg,args,tagDict):
 
+  objs.sort(key=lambda x: x.name)
   mv = genClasses(objs)
 
   hdr = VSplit([resize(2,"Class Directory")])
   ctr = HSplit([BR,mv])
-
-  fname = "class.html"
+  fname = "Class.html"
   page = [hdr,ctr]
   WriteFile(FilePrefix + fname,page,HtmlFragment())
  

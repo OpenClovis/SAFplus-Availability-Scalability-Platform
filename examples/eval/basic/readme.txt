@@ -2,14 +2,22 @@
   <example order="2" name="Basic AMF Tutorial">
     <html>
       <h2>SAFplus AMF Tutorial and Example</h2>
-      <p>This example covers the basic use of the SAFplus Availability Management Framework (AMF).  When complete, you will have defined and created a redundant program on first one node and then 2 nodes.  These programs will be running in Active/Standby mode and will periodically print their role.  You will then kill one of the programs and watch the roles change and the program be restarted.</p>
+      <p><brief>
+This example covers the basic use of the SAFplus Availability Management Framework (AMF).  
+When complete, you will have defined and created a redundant program on first one node and then 2 nodes.  
+These programs will be running in Active/Standby mode and will periodically print their role.  
+You will then kill one of the programs and watch the roles change and the program be restarted.</brief></p>
+
       <p>Let's take a look at the code</p>
     </html>
 
     <html>
       <h2>Code</h2>
       <p>
-        When a "normal" program is run, its "main" function starts doing the whatever the application was written to do.  However a SAF-aware application must wait until it gets a notification to become "active" before it really begins work.  Instead, there are 3 elements to the "main" of a SAF-aware application:
+When a "normal" program is run, its "main" function starts doing the 
+whatever the application was written to do.  However a SAF-aware application 
+must wait until it gets a notification to become "active" before it really 
+begins work.  Instead, there are 3 elements to the "main" of a SAF-aware application:
         <ul>
           <li> Connect to the AMF </li>
           <li> Dispatch any incoming AMF events, until its time to quit</li>
@@ -23,7 +31,12 @@
 
       <h3>Initialization</h3>
       <p>
-        Connecting to the AMF is accomplished via the initializeAmf() helper function.  It is pretty simple.  First, it uses the saAmfInitialize() function to initialize the local AMF library and all its dependencies (messaging, logging, etc).  Callback functions are registered so that the AMF can tell the application to quit, become active/standby, or stop being active/standby.  Next, it registers this component with the AMF by name.
+Connecting to the AMF is accomplished via the initializeAmf() helper 
+function.  It is pretty simple.  First, it uses the saAmfInitialize() function
+to initialize the local AMF library and all its dependencies (messaging, logging,
+etc).  Callback functions are registered so that the AMF can tell the application 
+to quit, become active/standby, or stop being active/standby.  Next, it registers
+this component with the AMF by name.
       </p>
 
       <p>Here is the relevant code:</p>

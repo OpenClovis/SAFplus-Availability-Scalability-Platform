@@ -16,9 +16,9 @@ def main(dirs):
        {
        "dir":"doclayout",
        "skin":"docskin",
-       "pageimplementers": {"class":"jsclasspage","file":"jsfilepage"},
-       "nav": [ ("Home","jshome"),("Examples","jssection",("Examples",)), ("search","jssearch"),("idx","jsindex") ],
-       "indeximplementers": { "class":"jsclassindexpage","file":"jsfileindexpage","section":"jssectionindexpage"},
+       "sectionPageImplementers": {"class":"jsclasspage","file":"jsfilepage"},
+       "sectionIndexImplementers": { "Class":"jsclassindexpage","File":"jsfileindexpage","Section":"jssectionindexpage"},
+       "nav": [ ("Home","jshome"),("Examples","jstoc",("Examples",{"tag_":"example"},"example.xml")), ("Search","jssearch"),{"name":"Index","gen":"jsindex","file":"idx"} ],
        # "quicklists": {"History":"jsqhist","Sections":"jsqsec","Classes":"jsqclass","Files":"jsqfile"},
        "misc": { "frame":"jsframe"}
        }
@@ -34,5 +34,6 @@ def Test():
   #main(["test"])
 
 if __name__ == "__main__":
+  yadog.DropToDebugger = False
   main(["../src","../examples"])
 

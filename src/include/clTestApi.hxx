@@ -26,6 +26,30 @@ namespace SAFplus
 
 //? <section name="Testing">
 
+/*? <html>
+<p>
+SAFplus provides test macros that are integrated with the SAFplus Test Automation Environment (TAE) product.
+However, since these macros produce an easily-parsed output file, they can also be used with other test frameworks.
+</p><p>
+Two flavors of testing are possible -- unit testing and application testing.  
+Unit testing is very important but is a familiar concept so will not be discussed further.
+Application testing is a bit different; in this technique, the programmer 
+instruments the real application with tests, and then can conditionally
+compile the tests "in" or "out".  
+</p><p>
+For example, your test harness might run your application against a set of carefully chosen
+input data.  By controlling the input data, specific application behavior can be tested.
+
+For example, the application could check for:
+<ul>
+ <li>Memory leaks</li>
+ <li>Successful execution of functions</li>
+ <li>Proper handling of invalid data</li>
+</ul>
+</p>
+</html> */
+
+
 //? Issue test related logs at this level (default is INFO) 
 extern SAFplus::LogSeverity testLogLevel;
   

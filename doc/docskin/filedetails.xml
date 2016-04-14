@@ -144,6 +144,13 @@
             </tbody>
           </table>
         </div>
+        <div py:if="sec.childrenWithAttr('tag_','example')">
+          <h2 class="header classesHeader">Examples</h2>
+              <div py:for="me in sec.childrenWithAttr('tag_','example')">
+              <p>${XML(R(me))}</p>
+              </div>
+        </div>
+
         <div id="subsection" py:for="subsec in sec.childrenWithAttr('tag_','section')" py:content="displaySection(subsec,depth+1)">
         </div>
       </div>

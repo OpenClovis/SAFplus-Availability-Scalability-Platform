@@ -36,14 +36,14 @@ def genFiles(fllist):
   return grid
 
 
-def generate(objs,cfg):
+def generate(objs,cfg,args,tagDict):
   mv = genFiles(objs)
 
   hdr = VSplit([resize(2,"File Directory")])
   ctr = HSplit([BR,mv])
   page = HeaderFooter(hdr, None,ctr)
 
-  fname = "file.html"
+  fname = "File.html"
   WriteFile(FilePrefix+fname,page,HtmlFragment())
  
   return (fname,page)

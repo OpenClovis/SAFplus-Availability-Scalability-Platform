@@ -3,6 +3,7 @@ This module generates an html page based on some class
 """
 import pdb
 import shutil
+import types
 
 from constants import *
 
@@ -29,7 +30,7 @@ yadogJsModule = Module("yadogJs",jsm,[("head",["<script language='JavaScript' sr
 
 myDir = os.path.dirname(__file__) + os.sep
 
-def generate(obj,cfg,tagdict=None):
+def generate(obj,cfg,args,tagdict=None):
   ret = (None,None)
   try:
     ret = main(obj,cfg,tagdict)
@@ -50,29 +51,35 @@ def main(obj,cfg,tagdict):
   mediaDir = cfg["html"]["skin"]
 
   hlst = []
-  for (name,page) in cfg["html"]["indeximplementers"].items():
+  for (name,page) in cfg["html"]["sectionIndexImplementers"].items():
     #c = anchor(link,name).setClass(cleanAnchor)
     c = Span(name)
     action(c,"onClick",actionDynGetScript(helpContent,name + ".html",name + ".js"))
     
     hlst.append(c)
   
-  idxbar = HorizList(activeStyleItems(hlst, "color:%s;" % "Blue", ""),None, "  |  ")
+  idxbar = VerticalList(activeStyleItems(hlst, "color:%s;" % "Blue", ""),None, "  |  ")
 
   hlst = []
   for nav in cfg["html"]["nav"]:
-    name = nav[0]
-    pi = nav[1]
-    if len(nav) > 2:
-      args = nav[2]
+    if type(nav) is types.DictType:
+      name = nav["name"]
+      filename = nav["file"]
+      pi = nav["gen"]
     else:
-      args = None
-    #c = anchor(link,name).setClass(cleanAnchor)
+      name = nav[0]
+      pi = nav[1]
+      if len(nav) > 2:
+        args = nav[2]
+      else:
+        args = None
+      filename = name
+
     c = Span(name)
-    action(c,"onClick",actionDynGetScript(helpContent,name + ".html",name + ".js"))
-    
+    action(c,"onClick",actionDynGetScript(helpContent,filename + ".html",filename + ".js"))    
     hlst.append(c)
-  navbar = HorizList(activeStyleItems(hlst, "color:%s;" % "Blue", ""),None, "  |  ")
+
+  navbar = VerticalList(activeStyleItems(hlst, "color:%s;" % "Blue", ""),None, "  |  ")
 
   if cfg["html"].has_key("quicklists"):
     quicklst = []

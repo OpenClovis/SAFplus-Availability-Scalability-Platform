@@ -107,12 +107,13 @@ function CopyContent(contentId,toId,remExisting){
 
 function LoadScript(id,src) {
   var newScript = null;
+/* Does not allow you to overwrite a script
   if (id != null) 
     {
       newScript = document.getElementById(id);
       if (newScript) return 1;
     }
-
+*/
   var headID = document.getElementsByTagName("head")[0];      
   newScript = document.createElement('script'); 
   newScript.id = id;

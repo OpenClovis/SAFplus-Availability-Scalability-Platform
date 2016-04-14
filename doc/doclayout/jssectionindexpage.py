@@ -99,14 +99,14 @@ def genBody(fllist,cfg):
   return grid
 
 
-def generate(objs,cfg):
+def generate(objs,cfg,args,tagDict):
   mv = genBody(objs,cfg)
 
   hdr = VSplit([resize(2,"")])
   ctr = HSplit([BR,mv])
   page = HeaderFooter(hdr, None,ctr)
 
-  fname = "section.html"
+  fname = "Section.html"
   WriteFile(FilePrefix+fname,page,HtmlFragment())
  
   return (fname,page)

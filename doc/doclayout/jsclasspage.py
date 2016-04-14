@@ -28,7 +28,7 @@ class Tainer:
   pass
 
 
-def generate(obj,cfg):
+def generate(obj,cfg,args,tagDict):
   
   sec = Tainer()
   sec.name = "all"

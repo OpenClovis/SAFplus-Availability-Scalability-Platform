@@ -125,15 +125,15 @@ def generate(objs,cfg,args,tagDict):
   me.searchDict = str(wordDict)
   me.indexEntities = str(mv)
 
-  template = kid.Template(file="docskin/search.xml",me=me)
+  template = kid.Template(file=cfg["html"]["skin"] + os.sep + "search.xml",me=me)
   #print str(template)
-  fname = "search.html"
+  fname = "Search.html"
   f = open("html"+os.sep+fname, "wb")
   f.write(str(template))
   f.close()
 
-  jstpl = kid.Template(file="doclayout/search.js.kid",me=me)
-  fname = "search.js"
+  jstpl = kid.Template(file=cfg["html"]["dir"] + os.sep + "search.js.kid",me=me)
+  fname = "Search.js"
   f = open("html"+os.sep+fname, "wb")
   ser = kid.PlainSerializer()
   f.write(jstpl.serialize(output=ser))
@@ -142,7 +142,6 @@ def generate(objs,cfg,args,tagDict):
 
   #page = [hdr,ctr]
   #WriteFile(FilePrefix + fname,page,HtmlFragment())
- 
   return (fname,template)
 
 #</module>
