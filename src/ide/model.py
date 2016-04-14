@@ -94,14 +94,34 @@ instantiated  <instances>     instances                         instances     (e
     del self.entities[entname]
 
     # Also delete the entity from the microdom
-    entities = self.data.getElementsByTagName("entities")
-    if entities:
-      entities[0].delChild(entities[0].findOneByChild("name",entname))
+    #entities = self.data.getElementsByTagName("entities")
+    #if entities:
+    #  entities[0].delChild(entities[0].findOneByChild("name",entname))
+    self.deleteEntityFromMicrodom(entname, entity.et.name)
 
     """Delete entity.Instance of Entity type
     nameInstances = [name for (name, e) in self.instances.items() if e.entity.data["name"] == entname]
     self.delete(nameInstances)
     """
+
+  def deleteEntityFromMicrodom(self, entname, enttype):
+    entities = self.data.getElementsByTagName("entities")    
+    if entities:
+      entities[0].delChild(entities[0].findOneByChild("name",entname))
+
+    ide = self.data.getElementsByTagName("ide")
+    if ide:
+      entTypes = ide[0].getElementsByTagName(enttype)
+      if entTypes:
+        e = entTypes[0].getElementsByTagName(entname)
+        if e:
+          entTypes[0].delChild(e[0])
+
+    ideEntities = self.data.getElementsByTagName("ide_entity_info")
+    if ideEntities:
+      e = ideEntities[0].getElementsByTagName(entname)
+      if e:
+        ideEntities[0].delChild(e[0])
 
   def deleteInstance(self,inst):
     self.recursiveDeleteInstance(inst)

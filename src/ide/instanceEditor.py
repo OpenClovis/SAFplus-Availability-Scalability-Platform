@@ -1607,10 +1607,12 @@ class Panel(scrolled.ScrolledPanel):
               break
           d[token] = newValue          
           # set the name (as a key) of self.model.instances dict
-          if token == "name":
-            self.model.instances[newValue] = self.model.instances.pop(name)
           validator = query.GetValidator()
-          if validator:            
+          if token == "name":
+            if validator:
+              self.model.deleteInstanceFromMicrodom(validator.currentValue)
+            self.model.instances[newValue] = self.model.instances.pop(name)
+          if validator:
             validator.currentValue = newValue
           else:
             print 'instanceEditor::notifyValueChange: validator is null'
