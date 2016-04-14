@@ -2409,7 +2409,7 @@ ClRcT clTransportNotificationOpen(const ClCharT *type, ClIocNodeAddressT node,
         }
         return rc;
     }
-    rc = CL_ERR_NOT_SUPPORTED;
+    rc = CL_OK;
     CL_LIST_FOR_EACH(iter, &gClTransportList)
     {
         ClRcT err = CL_OK;
@@ -2420,7 +2420,7 @@ ClRcT clTransportNotificationOpen(const ClCharT *type, ClIocNodeAddressT node,
             if (err != CL_OK)
             {
                 clLogError("XPORT", "NOTIFY", "Transport [%s] notify open failed with [%#x]", xport->xportType, rc);
-                rc |= err;
+                rc = CL_ERR_NOT_SUPPORTED;
             }
         }
     }
