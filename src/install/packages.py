@@ -707,12 +707,17 @@ class CentOS6(OS):
         D = objects.RepoDep(['kernel-headers','kernel-ml-headers'])
         self.pre_dep_list.append(D)
 
-class CentOS7(CentOS6):
+class CentOS7(CentOS6, object):
   def pre_init(self):
         self.name = 'CentOS 7'
         self.yum = True
         
+  def load_preinstall_deps(self):
+        super(CentOS7, self).load_preinstall_deps()
 
+        # Add a psmisc package: killall program
+        D = objects.RepoDep('psmisc')
+        self.pre_dep_list.append(D)
 
 # ------------------------------------------------------------------------------
 class Fedora(OS):
