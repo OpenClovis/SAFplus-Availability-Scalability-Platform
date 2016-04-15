@@ -8,6 +8,59 @@
 
 using namespace SAFplus;
 
+/*? <section name="Command Line Programs">
+<command name="safplus_cloud">
+<html>
+<h2>safplus_cloud</h2>
+<p>This command allows you to see and modify the cluster membership on a node, 
+if the message transport is using "cloud" mode.  You must use "Cloud" mode if your
+selected message transport or network does not support broadcast functionality.
+</p><p>
+Without broadcast, it is impossible for SAFplus to discover what nodes are part of 
+the cluster.  Therefore, it is necessary to use this tool to configure well known
+addresses for at least two cluster nodes (in case one fails).
+</p>
+
+commands are:
+<pre>
+./safplus_cloud --[help,add,remove,zap,list,reload]
+</pre>
+<p>
+Adding nodes:
+<pre>
+./safplus_cloud --add (address)
+</pre>
+</p>
+<p>
+Removing nodes:
+<pre>
+./safplus_cloud --remove (index)
+</pre>
+Pass in the index of the node to remove, as discovered by ./safplus_cloud --list
+</p>
+<p>
+Listing all known nodes:
+<pre>
+./safplus_cloud --list
+</pre>
+</p>
+<p>
+Delete the entire cloud table
+<pre>
+./safplus_cloud --zap
+</pre>
+</p>
+<p>
+Load the cloud table from the SAFPLUS_CLOUD_NODES environment variable
+<pre>
+./safplus_cloud --reload
+</pre>
+</p>
+</html>
+</command>
+
+</section> */
+
 int main(int argc, char* argv[])
 {
   // Explicitly create the shared memory segment if it does not exist

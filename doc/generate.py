@@ -34,6 +34,6 @@ def Test():
   #main(["test"])
 
 if __name__ == "__main__":
-  yadog.DropToDebugger = False
+  yadog.DropToDebugger = True
   main(["../src","../examples"])
 

@@ -73,6 +73,10 @@ tr.classesTableDescRow { color: #1E2D47; font-size: 110%; }
 .classIndexRowB { background-color: #e2c49C;}
 */
 
+a.invis {
+  text-decoration: none;
+/*  color: blue; */
+}
 
 /* DO NOT CHANGE these classes! */
 

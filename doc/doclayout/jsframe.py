@@ -52,8 +52,7 @@ def main(obj,cfg,tagdict):
 
   hlst = []
   for (name,page) in cfg["html"]["sectionIndexImplementers"].items():
-    #c = anchor(link,name).setClass(cleanAnchor)
-    c = Span(name)
+    c = anchor(name + ".html",name).setClass(cleanAnchor)
     action(c,"onClick",actionDynGetScript(helpContent,name + ".html",name + ".js"))
     
     hlst.append(c)
@@ -75,7 +74,7 @@ def main(obj,cfg,tagdict):
         args = None
       filename = name
 
-    c = Span(name)
+    c = anchor(name + ".html",name).setClass(cleanAnchor)
     action(c,"onClick",actionDynGetScript(helpContent,filename + ".html",filename + ".js"))    
     hlst.append(c)
 
@@ -85,7 +84,7 @@ def main(obj,cfg,tagdict):
     quicklst = []
     loading = []
     for (name,page) in cfg["html"]["quicklists"].items():
-      c = Span(name)
+      c = anchor(page + ".html",page).setClass(cleanAnchor)
       action(c,"onClick",actionDynGet(page,page + ".html"))    
       quicklst.append(c)
       tmp = ChunkTable(1,1,border="2px").setAttrs({"class":"hidden","oclass":"quicktable"})

@@ -30,6 +30,7 @@ class Tainer:
   pass
 
 def render2(obj):
+  pdb.set_trace()
   z = render(obj)
   if "You can override" in z:
     pdb.set_trace()

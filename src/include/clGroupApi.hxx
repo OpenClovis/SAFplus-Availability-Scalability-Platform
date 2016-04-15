@@ -58,13 +58,14 @@ namespace SAFplus
   //? Initialize the group subsystem.  Typically this is called during execution of safplusInitialize(), so applications would only call this if they are using the group service standalone.
   void groupInitialize(void);
 
+  //? <class>Information about a particular group
   class GroupIdentity
   {
   public:
-    EntityIdentifier id;
-    uint64_t credentials;
-    uint capabilities;
-    uint dataLen;
+    EntityIdentifier id; //? Entity's identifying <ref>Handle</ref>
+    uint64_t credentials;  //? Set by the user; highest credential wins the election
+    uint capabilities; //? Can this entity be active or standby, etc?  Bitfield defined by enums in <ref>Group</ref>
+    uint dataLen; //? How much additional info is included by this entity
     GroupIdentity& operator=(const GroupIdentity & c)
     {
       id            = c.id;
@@ -73,13 +74,14 @@ namespace SAFplus
       dataLen       = c.dataLen;
       return *this;
     }
-    GroupIdentity()
+    GroupIdentity() //? <ctor>Default two-phase constructor.  Call <ref>init()</ref></ctor>
     {
       id = INVALID_HDL;
       credentials = 0;
       capabilities = 0;
       dataLen = 0;
     }
+    //? Initialize this object.  See member fields for documentation of the arguments.
     void init(EntityIdentifier me,uint64_t creds,uint caps,uint datasz=0)
     {
       id = me;
@@ -87,6 +89,7 @@ namespace SAFplus
       capabilities = caps;
       dataLen = datasz;
     }
+    //? <ctor>Initialize this object.  See member fields for documentation of the arguments.</ctor>
     GroupIdentity(EntityIdentifier me,uint64_t credentials,uint datalen,uint capabilities)
     {
       this->id = me;
@@ -98,6 +101,7 @@ namespace SAFplus
     //? Change this entity's info if the configured values are different.  Return whether changes needed to be made.
     bool override(uint64_t new_credentials,uint new_capabilities);
    
+    //? Debugging -- log this object's data at Info level
     void dumpInfo();
 #if 0
     void dumpInfo()
@@ -109,7 +113,7 @@ namespace SAFplus
       logInfo("GMS", "---","DATA LENGTH: 0x%x ",dataLen);
     }
 #endif
-  };
+  }; //? </class>
 
   //? When using the message send capabilities of a group, this determines the semantics of the message send.
   enum class GroupMessageSendMode

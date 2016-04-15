@@ -35,7 +35,7 @@ namespace SAFplus
       TransientHandle,     //? This handle uses slot numbers and message port numbers or process ids so won't be the same across restarts.  Rather than a pointer to an object, it simple increments an integer to make each handle unique.
     } HandleType;
 
-  //? <class> The handle class is the universal mechanism to reference an entity within the cluster.  It is also the address used to send messages within the cluster (<ref type="method">MsgServer.SendMsg</ref>, and with the <ref type="class">ObjectMessager</ref> facility can be used to send messages directly to classes that implement <ref type="class">ObjectMessager</ref>.  A Handle can refer to a cluster, node or process by using 0xffff for the unused fields.  It can refer to an object by pointer, by well-known id, or by automatically assigned ID.  Applications can discover eachother's id via the <ref type="class">Group</ref> service, could pass exchange handles via the message service, or could associate a well-known string with the Handle using the <ref type="class">Name</ref> service.
+  //? <class> The handle class is the universal mechanism to reference an entity within the cluster.  It is also the address used to send messages within the cluster (<ref type="method">MsgServer.SendMsg</ref>, and with the <ref type="class">ObjectMessager</ref> facility can be used to send messages directly to classes that implement <ref type="class">ObjectMessager</ref>.  A Handle can refer to a cluster, node or process by using 0xffff for the unused fields.  It can refer to an object by pointer, by well-known id, or by automatically assigned ID.  Applications can discover eachother's id via the <ref type="class">Group</ref> service, could pass exchange handles via the message service, or could associate a well-known string with the Handle using the <ref type="class">NameRegistrar</ref> service.
   class Handle
   {
   public:    
@@ -110,7 +110,7 @@ namespace SAFplus
     //? <ctor> Initializes this handle to <ref type="variable">INVALID_HDL</ref></ctor>
     Handle() { id[0] = 0; id[1] = 0; }
 
-    //? <ctor> Initializes the handle.  This is the detailed initializer.  Typically applications would use the <ref type="function">getNodeHandle()</ref>,  <ref type="function">getProcessHandle()</ref>,<ref type="function">getObjectHandle(void* object)</ref>, or <ref type="method">create</ref> functions to create handles.</ctor>
+    //? <ctor> Initializes the handle.  This is the detailed initializer.  Typically applications would use the <ref type="function">getNodeHandle()</ref>,  <ref type="function">getProcessHandle()</ref>,<ref type="function">getObjectHandle()</ref>, or <ref type="method">create</ref> functions to create handles.</ctor>
     Handle(HandleType t,uint64_t idx, uint32_t process=0xffffffff,uint16_t node=0xffff,uint_t clusterId=0xfff)
     {
       uint64_t id0 = (( ((uint64_t)t) << HDL_TYPE_ID_SHIFT) & HDL_TYPE_ID_MASK)
