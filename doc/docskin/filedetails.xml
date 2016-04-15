@@ -92,7 +92,7 @@
                   <td>${XML(R(me.decl.escapedContents()))}</td>
                   <td>${XML(R(me.brief))}</td>
                 </tr>
-                <tr class="hidden" oclass="varsTableDescRow">
+                <tr class="hidden" oclass="varsTableDescRow" hash="${me.name}">
                   <td COLSPAN="4">
                     <div class="desc classMethodDesc" style="margin-left: 4.0em">
                     <br/><center class="descHeader">Declaration</center>

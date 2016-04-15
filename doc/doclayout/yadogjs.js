@@ -1,3 +1,48 @@
+
+function FindByAttributeValue(attribute, value)    {
+  var All = document.getElementsByTagName('*');
+  for (var i = 0; i < All.length; i++)       {
+    if (All[i].getAttribute(attribute) == value) { return All[i]; }
+  }
+}
+
+function onHashChange() {
+    var hsh=location.hash.replace('#','');
+    if (hsh=='') hsh='Home';
+    var hshArr = hsh.split('__');
+    var childPage = hshArr[0];
+    var anchorLoc = '';
+    if (hshArr.length > 1)
+    {
+        anchorLoc = hshArr[1];
+    }
+    ReplaceChildrenWithUri('center',childPage + '.html'); 
+    console.log('loaded ' + childPage + '.html');
+    LoadScript('centerscript',childPage + '.js');
+    if (anchorLoc)
+    {
+      console.log("looking for " + anchorLoc);
+      var elem = FindByAttributeValue("hash",anchorLoc);
+      if (elem)
+        {
+        console.log("found " + anchorLoc);
+        //console.log(elem.parentNode.nextSibling.nodeValue);
+        setTimeout(function() {
+          console.log("show " + anchorLoc);
+          swapAttr(elem,'class','oclass');
+/*
+          var n = document.createTextNode('DDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDD');
+          elem.parentNode.appendChild(n);
+          elem.className = "varsTableDescRow";
+          var tmp = elem.parentNode.style.display;
+          elem.parentNode.style.display = 'none';
+          elem.parentNode.style.display = 'block';   */
+}, 500);
+        }
+    }
+}
+
+
 function getUrlParameters(parameter, staticURL, decode){
    /*
     Function: getUrlParameters
@@ -12,12 +57,12 @@ function getUrlParameters(parameter, staticURL, decode){
        returnBool = true;
 
    try
-{
- parArr = currLocation.split("?")[1].split("&");
-} catch(e)
-{
-  return "";
-} 
+   {
+     parArr = currLocation.split("?")[1].split("&");
+   } catch(e)
+   {
+     return "";
+   } 
   
    for(var i = 0; i < parArr.length; i++){
         parr = parArr[i].split("=");

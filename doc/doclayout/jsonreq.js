@@ -44,6 +44,7 @@
       }
      
       // Make the actual request
+      console.log("REQ " + uri);
       req.send(null);
       if (!async) return(req.responseText);
     }

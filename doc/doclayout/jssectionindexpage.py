@@ -90,7 +90,7 @@ def genBody(fllist,cfg):
   lst.sort(key=lambda x: x[0])
 
   for name,objlist in lst:
-    secFil = name + ".html"
+    secFil = filenameify(name + ".html")
     body.append( [obj2tlink(objlist[0],PageLocCenter,name,secFil)])
     generateSectionFile(name, secFil, objlist,cfg)
 

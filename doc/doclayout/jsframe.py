@@ -116,10 +116,7 @@ def main(obj,cfg,tagdict):
     hdr = HSplit([Chunk(prj["name"],myId="projectName"),VSplit([Span(["Version: ",prj['version']],myId="projectVersion"),Span([" Released: ",prj['date']],myId="projectReleaseDate").setAttrs("align","right") ]),ImageHtml("thinbar.png",localFileName=mediaDir+"/thinbar.png")]).setAttrs("align","top")
 
     startContents = '<script language="JavaScript">\n' + """
-var childPage = getUrlParameters('sec','',true);
-if (childPage=='') childPage='Home';
-ReplaceChildrenWithUri('center',childPage + '.html'); 
-LoadScript('centerscript',childPage + '.js');
+onHashChange();
 </script>
 """
 
@@ -132,6 +129,10 @@ LoadScript('centerscript',childPage + '.js');
 
     fname = "index.html"
     doc = HtmlSkel()
+    doc.Insert("""<script language='JavaScript'>
+window.onhashchange = function() { onHashChange(); };
+</script>""",doc.head);
+
     doc.AddModule(jsModule,LocationBoth)  
     doc.AddModule(jsonModule,LocationBoth)
     doc.AddStyleSheet("thelook.css")
