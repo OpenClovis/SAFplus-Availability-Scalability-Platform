@@ -22,14 +22,18 @@ COMMON_DIR=$(SAFPLUS_SRC_DIR)/common
 CPP_FLAGS += -ISAFplusLog -I$(COMMON_DIR)/SAFplusTypes $(SAFPLUS_MGT_INC_FLAGS)
 
 LOG_SERVER_H := $(wildcard SAFplusLog/*.hxx) $(wildcard $(COMMON_DIR)/SAFplusTypes/*.hxx) $(wildcard *.hpp) $(wildcard *.h) $(wildcard *.hxx)  $(wildcard $(SAFPLUS_INC_DIR)/*.hxx)
-LOG_SERVER_SRC := $(wildcard SAFplusLog/*.cxx) $(wildcard $(COMMON_DIR)/SAFplusTypes/*.cxx) $(wildcard *.cxx)
+LOG_SERVER_SRC := $(wildcard SAFplusLog/*.cxx) $(wildcard $(COMMON_DIR)/SAFplusTypes/*.cxx) logcfg.cxx logserver.cxx
 LOG_SERVER_OBJ := $(subst .cxx,.o,$(notdir $(LOG_SERVER_SRC)))
 LOG_SERVER_OBJ := $(addprefix $(OBJ_DIR)/logsvr/,$(LOG_SERVER_OBJ))
 
-all: $(SAFPLUS_TARGET)/bin/safplus_logd
+all: $(LIB_DIR)/libclLogServer.so $(SAFPLUS_TARGET)/bin/safplus_logd
 
-$(SAFPLUS_TARGET)/bin/safplus_logd: $(LOG_SERVER_OBJ) $(SAFPLUS_DEP_LIBS)
-	$(LINK_EXE) $@ $(LOG_SERVER_OBJ) $(SAFPLUS_LINK_LIBS) $(XML2_LINK) $(LINK_SO_LIBS) `pkg-config --libs protobuf`
+$(SAFPLUS_TARGET)/bin/safplus_logd: $(OBJ_DIR)/logsvr/main.o  $(LIB_DIR)/libclLogServer.so $(SAFPLUS_DEP_LIBS)
+	$(LINK_EXE) $@ $(OBJ_DIR)/logsvr/main.o $(LIB_DIR)/libclLogServer.so $(SAFPLUS_LINK_LIBS) $(XML2_LINK) $(LINK_SO_LIBS) `pkg-config --libs protobuf`
+
+$(LIB_DIR)/libclLogServer.so: $(LOG_SERVER_OBJ) $(SAFPLUS_DEP_LIBS)
+	$(LINK_SO) $@  $(LOG_SERVER_OBJ) $(SAFPLUS_LINK_LIBS) $(LINK_SO_LIBS)
+
 
 $(OBJ_DIR)/logsvr/%.o: %.cxx Makefile $(LOG_SERVER_H)
 	-mkdir -p $(OBJ_DIR)/logsvr/

@@ -10,6 +10,9 @@
 //? Indicates that the AMF will act as the one-per-node fault manager, rather than using a standalone safplus_fault process
 #define SAFPLUS_AMF_FAULT_NODE_REPRESENTATIVE
 
+//? Indicates that the AMF will act as the one-per-node log server, rather than using a standalone safplus_log process
+#define SAFPLUS_AMF_LOG_NODE_REPRESENTATIVE
+
 //? Define this if you want the logging system to be cluster wide.  Comment it out to make the logging system local to the node.
 #define SAFPLUS_CLUSTERWIDE_LOG
 

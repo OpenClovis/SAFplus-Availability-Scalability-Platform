@@ -16,6 +16,8 @@
 #include <StreamScope.hxx>
 #include <SAFplusLogModule.hxx>
 
+#define Dbg printf
+
 using namespace std;
 using namespace SAFplusLog;
 using namespace SAFplus;
@@ -87,7 +89,7 @@ void streamRotationInit(Stream* s)
     string fpath = s->fileLocation.value;
     if (fpath[0] != '/')  // If the location begins with a /, it is an absolute directory.  
     { // If it is a relative directory, prepend ASP_LOGDIR
-      printf("path [%s] is invalid. Trying to use ASP_LOGDIR or current directory\n", fpath.c_str());
+      Dbg("path [%s] is invalid. Trying to use ASP_LOGDIR or current directory\n", fpath.c_str());
       if (SAFplus::ASP_LOGDIR[0] != 0)
         s->filePath = SAFplus::ASP_LOGDIR;
       else
@@ -113,7 +115,7 @@ void streamRotationInit(Stream* s)
         }
       catch (boost::filesystem::filesystem_error &ex)
         {
-        printf("path [%s] is invalid; ASP_LOGDIR may not be set. System error [%s]\n", pathToFile.c_str(), ex.what());
+        Dbg("path [%s] is invalid; ASP_LOGDIR may not be set. System error [%s]\n", pathToFile.c_str(), ex.what());
         s->fp = NULL;
         s->fileIdx = -1;
         s->earliestIdx = -1;
@@ -157,7 +159,7 @@ void streamRotationInit(Stream* s)
             }
             catch(...)
             {
-              printf("[%s] is not safplus log, ignore it\n", filePath.c_str());
+              Dbg("[%s] is not safplus log, ignore it\n", filePath.c_str());
             }
             strIdx.clear();
           }              
@@ -194,7 +196,7 @@ void initializeStream(Stream* s)
 {
     s->lastUpdate = beat;
     streamRotationInit(s);
-    printf("Initializing stream %s file: %s location: %s\n", s->name.value.c_str(),s->fileName.value.c_str(),s->fileLocation.value.c_str());
+    //Dbg("Initializing stream %s file: %s location: %s\n", s->name.value.c_str(),s->fileName.value.c_str(),s->fileLocation.value.c_str());
 
     if (s->filePath.length() > 0)
     {
@@ -216,10 +218,10 @@ void initializeStream(Stream* s)
           }
         }
 
-      printf("Opening file: %s %s\n", fname.c_str(), (s->fp) ? "OK":"FAILED");
+      //Dbg("Opening file: %s %s\n", fname.c_str(), (s->fp) ? "OK":"FAILED");
       if (!s->fp)
       {
-        printf("Opening file: %s FAILED. Errno [%d]. Error message [%s]\n", fname.c_str(), errno, strerror(errno));
+        //Dbg("Opening file: %s FAILED. Errno [%d]. Error message [%s]\n", fname.c_str(), errno, strerror(errno));
       }
     }
 }
@@ -260,7 +262,7 @@ void addStreamObjMapping(const char* streamName, Stream* s, Handle strmHdl)
       }
       catch(NameException& e)
       {
-        printf("addStreamObjMapping > getHandle got exception [%s]\n", e.what());
+        Dbg("addStreamObjMapping > getHandle got exception [%s]\n", e.what());
       }
 #endif
     }
@@ -369,7 +371,7 @@ otherwise, write to this node AND forward it to others
 void postRecord(SAFplusI::LogBufferEntry* rec, char* msg, SAFplusLog::SAFplusLogModule* cfg)
 {
   if (rec->severity > SAFplus::logSeverity) return;  // don't log if the severity cutoff is lower than that of the log.  Note that the client also does this check.
-  //printf("%s\n",msg);
+  //Dbg("%s\n",msg);
 
   // Determine the stream
   Stream* strmCfg = NULL;
@@ -382,24 +384,24 @@ void postRecord(SAFplusI::LogBufferEntry* rec, char* msg, SAFplusLog::SAFplusLog
       // The Name service will hold the name to handle mapping.  During Log service initialization, a handle to Stream* hash table should
       // be created using data in the Name service.  This hash table can be used to look up the data.
       // lookup the handle in the hastable to find the stream
-      // printf("Dynamic stream: handle gotten from hashmap\n");
+      // Dbg("Dynamic stream: handle gotten from hashmap\n");
       strmCfg = hsMap[rec->stream];
       if (!strmCfg)
       {
         // Stream object not found. Load or create new string with the specified handle
-        //printf("Stream object not found. Load or create new stream with the specified handle\n");
+        //Dbg("Stream object not found. Load or create new stream with the specified handle\n");
         // Try to get the stream name associated with this handle from Name
         try 
         {
           char* strmName = name.getName(rec->stream);
-          //printf("Load or create new stream [%s]; handle [%" PRIx64 ":%" PRIx64 "]\n", strmName, rec->stream.id[0], rec->stream.id[1]);
+          //Dbg("Load or create new stream [%s]; handle [%" PRIx64 ":%" PRIx64 "]\n", strmName, rec->stream.id[0], rec->stream.id[1]);
           strmCfg = loadOrCreateNewStream(strmName, Replicate::ANY, rec->stream); // do we need to create new stream with the handle specified? Yes. But this stream may come from other process, the log server does not know about it, so how does the log server know if the stream's replicate config is NONE or other values? Here, Replicate::ANY is hardcoded.
           initializeStream(strmCfg);
           hsMap[rec->stream] = strmCfg;
         }
         catch(NameException& e)
         {
-          printf("postRecord > getName got exception [%s]\n", e.what());
+          Dbg("postRecord > getName got exception [%s]\n", e.what());
         }
       }
     }
@@ -417,8 +419,8 @@ void postRecord(SAFplusI::LogBufferEntry* rec, char* msg, SAFplusLog::SAFplusLog
 
   if (strmCfg->fp)  // If the file handle is non zero, write the log to that file
     {
-      // printf("DEBUG: %s\n",msg);  
-      // printf("DEBUG: msgLen [%d]\n",(int) strlen(msg));  
+      // Dbg("DEBUG: %s\n",msg);  
+      // Dbg("DEBUG: msgLen [%d]\n",(int) strlen(msg));  
       strmCfg->fileBuffer += msg;
       strmCfg->fileBuffer += "\n";
     }

@@ -127,4 +127,7 @@ do                                                              \
 } while(0)
 
 
+extern int logServerInitialize();
+extern void logServerProcessing();
+
 #endif

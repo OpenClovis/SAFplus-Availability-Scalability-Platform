@@ -5,7 +5,7 @@ include ../../mk/preface.mk
 CPP_FLAGS += -I$(BOOST_DIR) -I. $(SAFPLUS_MGT_INC_FLAGS)
 
 CLIENT_H := $(wildcard *.hxx) $(wildcard $(SAFPLUS_INC_DIR)/*.hxx)
-CLIENT_SRC := FaultSharedMem.cxx faultServer.cxx FaultHistoryEntity.cxx FaultStatistic.cxx
+CLIENT_SRC := ../FaultSharedMem.cxx faultServer.cxx FaultHistoryEntity.cxx FaultStatistic.cxx
 CLIENT_OBJ := $(addprefix $(MWOBJ_DIR)/,$(subst .cxx,.o,$(CLIENT_SRC)))
 
 CLIENT_DEFAULT_SRC := AmfFaultPolicy.cxx

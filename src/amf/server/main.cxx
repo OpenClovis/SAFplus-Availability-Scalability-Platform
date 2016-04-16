@@ -46,6 +46,10 @@
 #include <clGroupIpi.hxx>
 #endif
 
+#ifdef SAFPLUS_AMF_LOG_NODE_REPRESENTATIVE
+#include "../../log/clLogIpi.hxx"
+#endif
+
 using namespace SAFplus;
 using namespace SAFplusI;
 using namespace SAFplusAmf;
@@ -191,11 +195,14 @@ struct LogServer
   {
   void operator()()
     {
+#ifdef SAFPLUS_AMF_LOG_NODE_REPRESENTATIVE
+    logServerInitialize();
+
     while(!quitting)
       {
-      //printf("log server code here\n");
-      sleep(1);
+      logServerProcessing();
       }
+#endif
     }
   };
 
