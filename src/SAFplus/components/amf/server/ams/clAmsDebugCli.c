@@ -1602,7 +1602,21 @@ clAmsDebugCliPrintAmsDBXML(ClUint32T argc,
 
     ClRcT  rc = CL_AMS_RC(CL_ERR_LIBRARY);
     extern ClRcT cpmPrintDBXML(FILE *fp);
+    ClCharT *aspRunDir = NULL;
     ClCharT buf[256]={0};
+    ClCharT fname[CL_MAX_NAME_LENGTH] = {0};
+
+    aspRunDir = getenv("ASP_RUNDIR");
+    if (aspRunDir)
+    {
+        strncpy(buf, aspRunDir, CL_MAX_NAME_LENGTH-1);
+    }
+    else
+    {
+        if(!getcwd(buf,sizeof(buf))) buf[0] = 0;
+    }
+
+    snprintf(fname, CL_MAX_NAME_LENGTH-1, "%s/%s", buf, CL_AMS_DEBUG_PRINT_XML_FILE);
 
     *ret = (ClCharT*) clHeapCalloc(1,1024);
 
@@ -1637,7 +1651,7 @@ clAmsDebugCliPrintAmsDBXML(ClUint32T argc,
         debugPrintAll = CL_NO;
     }
     
-    debugPrintFP = fopen (CL_AMS_DEBUG_PRINT_XML_FILE, "w+");
+    debugPrintFP = fopen (fname, "w+");
 
     if ( debugPrintFP == NULL )
     {
@@ -1658,9 +1672,7 @@ clAmsDebugCliPrintAmsDBXML(ClUint32T argc,
     
     fclose(debugPrintFP);
 
-    if(!getcwd(buf,sizeof(buf))) buf[0] = 0;
-
-    snprintf(*ret,1024,"Success - Output written to [%s/%s]\n",buf,CL_AMS_DEBUG_PRINT_XML_FILE);
+    snprintf(*ret,1024,"Success - Output written to [%s]\n",fname);
 
     /*
      * Also dump to the console for utilities to utilize the output
@@ -1669,14 +1681,14 @@ clAmsDebugCliPrintAmsDBXML(ClUint32T argc,
     {
         struct stat stat_buf;
         ClInt32T err = 0;
-        debugPrintFP = fopen(CL_AMS_DEBUG_PRINT_XML_FILE, "r");
+        debugPrintFP = fopen(fname, "r");
         if(!debugPrintFP)
         {
             snprintf(*ret, 1024, "Console output fopen error [%s]\n", 
                      strerror(errno));
             return CL_AMS_RC(CL_ERR_LIBRARY);
         }
-        err = stat(CL_AMS_DEBUG_PRINT_XML_FILE, &stat_buf);
+        err = stat(fname, &stat_buf);
         if(err < 0)
         {
             snprintf(*ret, 1024, "Console output stat error [%s]\n",
@@ -1712,7 +1724,7 @@ clAmsDebugCliPrintAmsDBXML(ClUint32T argc,
     
     fclose(debugPrintFP);
     debugPrintFP = NULL;
-    unlink(CL_AMS_DEBUG_PRINT_XML_FILE);
+    unlink(fname);
 
     error_print:
 
