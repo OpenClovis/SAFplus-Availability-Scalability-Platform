@@ -140,6 +140,8 @@ typedef enum
     CL_IOC_SAF_MSG_REQUEST_PROTO    =   0x18,
 
     CL_IOC_SAF_MSG_REPLY_PROTO    =     0x19,            
+
+    CL_IOC_CONFIG_CHANGE_PROTO   =    0x20,
 /**
  * Here the reserved protocols for ASP end.
  */
@@ -170,6 +172,11 @@ typedef enum
 
     CL_IOC_NUM_PROTOS            =      0x100
   } ClIocProtocols;
+
+  typedef enum
+  {
+    CL_CONFIG_TIME_ZONE = 1
+  } ClConfigChange;
 
 # ifdef __cplusplus
 }

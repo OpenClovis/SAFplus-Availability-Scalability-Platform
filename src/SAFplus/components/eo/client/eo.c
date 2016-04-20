@@ -42,6 +42,8 @@
 #include <fcntl.h>
 #include <signal.h>
 #include <sys/time.h>
+#include <time.h>
+#include <stdlib.h>
 #include <clCommon.h>
 #include <clCommonErrors.h>
 #include <clBufferApi.h>
@@ -154,6 +156,11 @@ static ClRcT clEoJobQueueWMAction(ClEoExecutionObjT *,
 static ClRcT clEoJobQueueLogAction(ClEoExecutionObjT *,
         ClEoStaticQueueInfoT *,
         ClUint32T);
+
+static ClRcT clConfigChangeRequest(ClEoExecutionObjT *pThis,
+                               ClBufferHandleT rmdRecvMsg,
+                               ClUint8T priority, ClUint8T protoType,
+                               ClUint32T length, ClIocPhysicalAddressT srcAddr);
 
 /*The queue infos for various actions*/
 static ClEoStaticQueueInfoT gEoActionStaticQueueInfo[EO_ACTION_STATIC_QUEUE_INFO_SIZE];
@@ -398,6 +405,7 @@ static ClEoProtoDefT protos[] =
     {CL_IOC_PORT_NOTIFICATION_PROTO, "port notification", clEoProcessIocRecvPortNotification, NULL, CL_EO_STATE_ACTIVE | CL_EO_STATE_SUSPEND | CL_EO_STATE_THREAD_SAFE },
     {CL_IOC_RMD_SYNC_REPLY_PROTO,    "RMD sync reply",    clEoDropPkt,                        clRmdReceiveReply, CL_EO_STATE_ACTIVE | CL_EO_STATE_SUSPEND | CL_EO_STATE_THREAD_SAFE},
     {CL_IOC_RMD_ORDERED_PROTO,       "RMD ordered request", clRmdReceiveOrderedRequest,       NULL, CL_EO_STATE_ACTIVE | CL_EO_STATE_SUSPEND | CL_EO_STATE_THREAD_SAFE },
+    {CL_IOC_CONFIG_CHANGE_PROTO,     "configure change request", clConfigChangeRequest,       NULL, CL_EO_STATE_ACTIVE | CL_EO_STATE_SUSPEND | CL_EO_STATE_THREAD_SAFE },
 
     /*
      * {CL_IOC_EM_PROTO,"EM IOC MSG", emIocMsg}
@@ -3088,8 +3096,46 @@ ClRcT clEoRmdExecute(ClIocNodeAddressT omAddress, ClIocPortT eoPort,
 /************************************************************************/
 
 /**
- *  NAME: clEoDropPkt
+ *  NAME: clTimeZoneChangeRequest
  * 
+ *  This function is called if timezone change request recvd
+ *
+ *  @param    pThis        : EO Obj pointer, where to execute the RMD
+ *            eoRecvMsg    : Recvd message
+ *            ClUint8T    : Priority
+ *            protoType    : Prototype
+ *            length       : Message length
+ *            srcAddr      : Source address
+ *
+ *  @returns CL_OK          - Success<br>
+ */
+static ClRcT clConfigChangeRequest(ClEoExecutionObjT *pThis,
+                               ClBufferHandleT rmdRecvMsg,
+                               ClUint8T priority, ClUint8T protoType,
+                               ClUint32T length, ClIocPhysicalAddressT srcAddr)
+{
+    ClRcT rc;
+    ClUint32T  configChangeType;
+    rc = clBufferNBytesRead(rmdRecvMsg, (ClUint8T *)&configChangeType, &length);
+    switch(configChangeType)
+    {
+      case CL_CONFIG_TIME_ZONE:
+        clLogDebug(CL_LOG_EO_AREA, CL_LOG_EO_CONTEXT_CREATE,"Change time zone");
+        tzset();
+        break;
+      default:
+        clLogDebug(CL_LOG_EO_AREA, CL_LOG_EO_CONTEXT_CREATE,"Undefined request");
+        break;
+    }
+    return rc;
+}
+
+
+/************************************************************************/
+
+/**
+ *  NAME: clEoDropPkt
+ *
  *  This function is called if packet of unknown protocol is recvd 
  *
  *  @param    pThis        : EO Obj pointer, where to execute the RMD

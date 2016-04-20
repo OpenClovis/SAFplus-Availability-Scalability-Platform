@@ -2566,7 +2566,7 @@ ClRcT clIocDispatch(const ClCharT *xportType, ClIocCommPortHandleT commPort,
          * Hoping that the notification packet will not exceed 64K packet size :-). 
          */
         if (pIocCommPort->notify == CL_IOC_NOTIFICATION_DISABLE
-            && (protocolType == CL_IOC_PORT_NOTIFICATION_PROTO || protocolType == CL_IOC_PROTO_ARP))
+            && (protocolType == CL_IOC_PORT_NOTIFICATION_PROTO || protocolType == CL_IOC_PROTO_ARP || protocolType == CL_IOC_CONFIG_CHANGE_PROTO))
           {
             clBufferClear(message);
             rc = CL_IOC_RC(CL_ERR_TRY_AGAIN);
@@ -3341,7 +3341,6 @@ ClRcT clIocConfigInitialize(ClIocLibConfigT *pConf)
         CL_DEBUG_PRINT(CL_DEBUG_ERROR, ("Node cache initialize returned [%#x]", retCode));
         goto error_2;
     }
-
 #ifdef COMPAT_5
     clNodeBackwardCacheInitialize(gIsNodeRepresentative);
 #endif
@@ -3388,6 +3387,7 @@ ClRcT clIocConfigInitialize(ClIocLibConfigT *pConf)
     }
 
     clIocHeartBeatInitialize(gIsNodeRepresentative);
+
     gIocInit = CL_TRUE;
     return CL_OK;
 
@@ -4394,6 +4394,28 @@ ClRcT clIocTotalNeighborEntryGet(ClUint32T *pNumberOfEntries)
         }
     }
     return CL_OK;
+}
+
+ClRcT clConfigChange(ClConfigChange requestType)
+{
+    ClRcT rc = CL_OK;
+    ClBufferHandleT message = 0;
+    clBufferCreate(&message);
+    ClEoExecutionObjT *eoObj = NULL;
+    clEoMyEoObjectGet(&eoObj);
+    ClConfigChange configChangeType = requestType;
+    ClUint64T allComps = CL_IOC_ADDRESS_FORM(CL_IOC_INTRANODE_ADDRESS_TYPE, gIocLocalBladeAddress, CL_IOC_BROADCAST_ADDRESS);
+    rc = clBufferNBytesWrite(message, (ClUint8T *) &configChangeType, sizeof(ClConfigChange));
+    if (rc != CL_OK)
+    {
+        clLogError("IOC", "TZC", "clBufferNBytesWrite failed with rc = %#x", rc);
+        goto out_delete;
+    }
+    ClIocSendOptionT sendOption = { .priority = CL_IOC_HIGH_PRIORITY, .timeout = 200 };
+    rc = clIocSend(eoObj->commObj, message, CL_IOC_CONFIG_CHANGE_PROTO, (ClIocAddressT*)&allComps, &sendOption);
+    out_delete:
+    clBufferDelete(&message);
+    return rc;
 }
 
 ClRcT clIocNeighborListGet(ClUint32T *pNumberOfEntries,
