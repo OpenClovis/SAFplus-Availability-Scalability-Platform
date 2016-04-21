@@ -947,6 +947,7 @@ class Panel(scrolled.ScrolledPanel):
 
     def OnToolMenu(self,event):
       print "On Tool Menu"
+      self.toolBar.ToggleTool(event.GetId(), True)
       self.OnToolClick(event)
 
     def OnToolClick(self,event):

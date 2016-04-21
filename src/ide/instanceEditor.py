@@ -1071,7 +1071,7 @@ class Panel(scrolled.ScrolledPanel):
       name = ent.et.name
       entExists = False
       for (eid,e) in self.idLookup.items():
-        if isinstance(e, EntityTool) and e.entity.et.name==name:
+        if isinstance(e, EntityTool) and e.entity==ent:
           print 'addEntityTool: Entity [%s] exists' % name
           entExists = True
           break
@@ -1095,6 +1095,7 @@ class Panel(scrolled.ScrolledPanel):
           self.toolBar.AddRadioLabelTool(buttonIdx, name, bitmap, shortHelp=shortHelp, longHelp=longHelp)
           #print 'instanceEditor::addEntityTools: e[0]:%s;e[1].data[name]:%s' % (e[0], e[1].data["name"])
           #self.toolBar.AddRadioTool(buttonIdx, bitmap, wx.NullBitmap, shortHelp=et[0], longHelp=longHelp,clientData=et)
+          self.toolBar.EnableTool(buttonIdx, False)          
           self.idLookup[buttonIdx] = EntityTool(self,ent)  # register this button so when its clicked we know about it          
           ent.buttonIdx = buttonIdx
           # Bind this tool to event handler
@@ -1135,7 +1136,7 @@ class Panel(scrolled.ScrolledPanel):
         name = ent.et.name
         entExists = False
         for (eid,e) in self.idLookup.items():
-          if isinstance(e, EntityTool) and e.entity.et.name==name:
+          if isinstance(e, EntityTool) and e.entity==ent:
             print 'deleteEntityTool: Entity [%s] exists' % name
             entExists = True          
             break
@@ -1172,6 +1173,7 @@ class Panel(scrolled.ScrolledPanel):
 
     def OnToolMenu(self,event):
       print "On Tool Menu"
+      self.toolBar.ToggleTool(event.GetId(), True)
       self.OnToolClick(event)
 
     def OnToolEvent(self,event):
