@@ -1,5 +1,9 @@
 # There are several steps to get this makefile working
 include ../../mk/preface.mk
+# --- 0 --- Install required tools:
+
+# sudo apt-get install curl autotools
+
 # --- 1 --- Choose your installation directory
 
 # If you are cross compiling you must also specify a different installation target, or the executables built for your target will pollute your host machine!
@@ -16,7 +20,11 @@ endif
 # --- 2 --- Choose Cross Compilation Target
 
 # If you are cross compiling, set 'Xtarget' to the cross-compilation executable prefix (the argument to --host= in 'normal' .configure scripts).  For example, if your gcc binary is called "i586-wrs-linux-gnu-gcc" then the Xtarget should be "i586-wrs-linux-gnu".  You can generally discover this name by going into your cross-compilation install directory and doing a "find" on a known binary, for example 'find <cross-comp install base dir> -name "*-gcc" -print'.
-Xtarget:=$(CROSSPFX)
+Xtarget:=$(strip $(CROSSPFX))
+
+$(info crossbuild: $(Xtarget))
+$(info install dir: $(InstDir))
+
 # Example using PNE 1.4
 #Xtarget:=i586-wrs-linux-gnu
 # Example using clovis el4 cross compile toolchain
@@ -97,8 +105,9 @@ LIBXML2_VER=2.9.0
 LIBXML2_PKG=$(LIBXML2)-$(LIBXML2_VER).tar.gz
 
 BOOST=boost
-BOOST_VER=1.55.0
+BOOST_VER=1.60.0
 BOOST_PKG=$(BOOST)_$(subst .,_,$(BOOST_VER)).tar.gz
+BOOST_FLAVOR=link=shared runtime-link=shared variant=debug threading=multi --without-python --without-iostreams --without-mpi --without-context
 
 #PyHPI=py-openhpi
 #PyHPI_VER=1.1
@@ -111,9 +120,9 @@ PYTHON_PKG=$(PYTHON)-$(PYTHON_VER).tgz
 
 # THAT IS ALL
 ifneq ($(Xtarget),)
-  Xconfigure:=--host=$(Xtarget)
+  Xconfigure:=--host=$(strip $(Xtarget))
 #  Xconfigure:=--build=$(Xtarget)
-  Xargs:=CXXFLAGS="-I$(InstDir)/include -I$(InstDir)/$(Xtarget)/include -I$(InstDir)/glib-2.0/glib" CPPFLAGS="-I$(InstDir)/include -I$(InstDir)/$(Xtarget)/include -I$(InstDir)/glib-2.0/glib" LDFLAGS="-L$(InstDir)/lib -L$(InstDir)/$(Xtarget)/lib" CC=$(Xtarget)-gcc CXX=$(Xtarget)-g++
+  Xargs:=CXXFLAGS="-I$(InstDir)/include -I$(InstDir)/$(Xtarget)/include -I$(InstDir)/glib-2.0/glib" CPPFLAGS="-I$(InstDir)/include -I$(InstDir)/$(Xtarget)/include -I$(InstDir)/glib-2.0/glib" LDFLAGS="-L$(InstDir)/lib -L$(InstDir)/$(Xtarget)/lib" CC=$(strip $(Xtarget)-gcc) CXX=$(strip $(Xtarget)-g++)
 ifeq ($(Xenv),)
   Xenv:=export PKG_CONFIG_PATH=$(InstDir)/lib/pkgconfig/:$$PKG_CONFIG_PATH;PATH=$(InstDir)/bin:$$PATH;LD_LIBRARY_PATH=$(InstDir)/lib
 endif
@@ -159,11 +168,11 @@ else
 XconfNETSNMP_PKG:=
 endif
 
-libs: $(InstDir) $(LIBXML2) $(BOOST) protobufs
+libs: $(InstDir) protobufs $(LIBXML2) $(BOOST) 
 	echo building libs
 
 # $(NETSNMP)  $(OPENHPI) $(OPENHPISUBAGENT)
-all: $(InstDir) $(LIBXML2) $(BOOST) protobufs
+all: $(InstDir) protobufs $(LIBXML2) $(BOOST)
 
 wipe:
 	rm -rf $(LIBXML2)-$(LIBXML2_VER)
@@ -308,10 +317,11 @@ $(LIBXML2_PKG):
 
 $(BOOST):$(BOOST_PKG)
 	(tar xvfz $<  > /dev/null)
-	(cd $(BOOST)_$(subst .,_,$(BOOST_VER)); $(Xenv); $(Xargs) ./bootstrap.sh --prefix=$(InstDir) --without-icu)
+	(cd $(BOOST)_$(subst .,_,$(BOOST_VER)); CC= CXX= CFLAGS= ./bootstrap.sh --without-icu) # This is a native tool so remove all the cross compilation env vars
 ifneq ($(Xtarget),)
-#        echo "using gcc : $(Xtarget) : $(Xtarget)-g++ ;" > tools/build/v2/user-config.jam
-	(cd $(BOOST)_$(subst .,_,$(BOOST_VER)); $(Xenv); ./b2 toolset=gcc-$(Xtarget) install)
+	-rm -f ~/user-config.jam
+	echo "using gcc : cross : $(COMPILER) ;" > ~/user-config.jam
+	(cd $(BOOST)_$(subst .,_,$(BOOST_VER)); $(Xenv); ./b2 $(BOOST_FLAVOR) --prefix=$(InstDir) toolset=gcc-cross install)
 else
 	(cd $(BOOST)_$(subst .,_,$(BOOST_VER)); $(Xenv); ./b2 install)
 endif

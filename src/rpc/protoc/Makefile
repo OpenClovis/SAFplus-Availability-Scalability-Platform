@@ -17,9 +17,9 @@ $(LOCAL_OBJ_DIR)/protoc/%.o: %.cxx Makefile $(PROTOC_TOOL_H)
 	$(LOCAL_COMPILE_CPP) $@ $<
 
 $(SAFPLUS_TOOL_TARGET)/bin/protoc-gen-rpc: $(PROTOC_TOOL_OBJ)
-	$(LOCAL_LINK_EXE) $@ $(PROTOC_TOOL_OBJ) $(PROTOBUF_LINK)
+	$(LOCAL_LINK_EXE) $@ $(PROTOC_TOOL_OBJ) $(LOCAL_PROTOBUF_LINK)
 
 clean:
-	rm -rf $(OBJ_DIR)/protoc $(SAFPLUS_TARGET)/bin/protoc-gen-rpc
+	rm -rf $(OBJ_DIR)/protoc $(SAFPLUS_TOOL_TARGET)/bin/protoc-gen-rpc
 
 include $(SAFPLUS_MAKE_DIR)/safplus_targets.mk

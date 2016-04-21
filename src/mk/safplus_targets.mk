@@ -210,7 +210,7 @@ SAFplusPlugins := $(SAFplusDbalPlugins) $(SAFplusMsgTransports)
 
 ThirdPartySOs :=
 
-Languages := $(LIB_DIR)/pySAFplus.so
+Languages ?= $(LIB_DIR)/pySAFplus.so
 
 cleanSAFplus:
 	rm -rf $(SAFplusTests) $(SAFplusSOs) $(SAFplusServices) $(LIB_DIR)/* $(MWOBJ_DIR)/* $(OBJ_DIR)/* $(TEST_DIR)/*

@@ -21,7 +21,23 @@ SAFPLUS_DEP_LIBS_FOR_CKPTDB  := $(addsuffix .so,$(addprefix $(LIB_DIR)/lib,$(SAF
 SAFPLUS_LINK_LIBS_FOR_CKPTDB := -L$(LIB_DIR) $(addprefix -l,$(SAFPLUS_LIBS_FOR_CKPTDB))
 CLIENT_H   := $(wildcard *.h) $(wildcard $(SAFPLUS_INC_DIR)/*.h) $(wildcard $(SAFPLUS_INC_DIR)/*.hxx)
 
-SAFplusDbalPlugins:=$(PLUGIN_DIR)/libclBerkeleyDB.so $(PLUGIN_DIR)/libclCkptDB.so
+SAFplusDbalPlugins:= $(PLUGIN_DIR)/libclCkptDB.so
+
+# Skip compiling Berkeley plugin if SAFPLUS_WITH_BERKELEYDB exists and is set to 0 or false
+skip_bdb:=0
+ifdef SAFPLUS_WITH_BERKELEYDB
+ifeq ($(strip $(SAFPLUS_WITH_BERKELEYDB)),0)
+skip_bdb:=1
+endif
+ifeq ($(strip $(SAFPLUS_WITH_BERKELEYDB)),false)
+skip_bdb:=1
+endif
+endif
+
+ifeq ($(strip $(skip_bdb)),0)
+SAFplusDbalPlugins+= $(PLUGIN_DIR)/libclBerkeleyDB.so
+endif
+
 
 # Skip compiling Gdbm plugin if SAFPLUS_WITH_GDBM exists and is set to 0 or false
 skip_gdbm:=0
@@ -37,6 +53,7 @@ endif
 ifeq ($(strip $(skip_gdbm)),0)
 SAFplusDbalPlugins+= $(PLUGIN_DIR)/libclGDBM.so
 endif
+
 # Skip compiling Sqlite plugin if SAFPLUS_WITH_GDBM exists and is set to 0 or false
 skip_sqlite:=0
 ifdef SAFPLUS_WITH_SQLITE

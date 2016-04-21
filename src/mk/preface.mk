@@ -50,8 +50,10 @@ SAFPLUS_MAKE_DIR := $(patsubst %/,%,$(dir $(realpath $(lastword $(MAKEFILE_LIST)
 ifdef CROSS
 include $(SAFPLUS_MAKE_DIR)/$(CROSS)
 SYSTEM_INC_DIR ?= $(CROSS_SYS_ROOT)/usr/include
+$(info Running crossbuild using definitions in $(SAFPLUS_MAKE_DIR)/$(CROSS), g++ is $(COMPILER), sysroot is $(CROSS_SYS_ROOT))
 else
 SYSTEM_INC_DIR ?= /usr/include
+$(info Native build)
 endif
 
 SAFPLUS_SRC_DIR ?= $(patsubst %/,%,$(dir $(realpath $(SAFPLUS_MAKE_DIR))))
@@ -78,16 +80,17 @@ LINK_SO     ?= $(COMPILER) $(LINK_FLAGS) -g -shared -o
 LINK_EXE    ?= $(COMPILER) -g -O0 -fPIC $(LINK_FLAGS) -o
 
 # Use these variables if you are building something to run on the local machine (a tool or something)
-LOCAL_COMPILE_CPP ?= $(LOCAL_COMPILER) -std=c++11 -Wno-deprecated-declarations  -g -O0 -fPIC -c $(CPP_FLAGS) -o
+LOCAL_COMPILE_CPP ?= $(LOCAL_COMPILER) -std=c++11 -Wno-deprecated-declarations  -g -O0 -fPIC -c $(LOCAL_CPP_FLAGS) -o
 LOCAL_LINK_SO     ?= $(LOCAL_COMPILER) $(LOCAL_LINK_FLAGS) -g -shared -o
 LOCAL_LINK_EXE    ?= $(LOCAL_COMPILER) -g -O0 -fPIC $(LOCAL_LINK_FLAGS) -o
 LOCAL_TARGET_OS ?= $(shell uname -r)
-__TMP_TARGET_PLATFORM := $(shell $(COMPILER) -dumpmachine)
-LOCAL_TARGET_PLATFORM ?= $(__TMP_TARGET_PLATFORM)
+__TMP_LOCAL_TARGET_PLATFORM := $(shell $(LOCAL_COMPILER) -dumpmachine)
+LOCAL_TARGET_PLATFORM ?= $(__TMP_LOCAL_TARGET_PLATFORM)
 
 LINK_LIBS ?=
 
 TARGET_OS ?= linux # $(shell uname -r)
+__TMP_TARGET_PLATFORM := $(shell $(COMPILER) -dumpmachine)
 TARGET_PLATFORM ?= $(__TMP_TARGET_PLATFORM)
 
 MGT_SRC_DIR ?= $(SAFPLUS_SRC_DIR)/../../mgt
@@ -137,18 +140,24 @@ NOOP := $(shell mkdir -p $(SAFPLUS_TOOL_TARGET)/bin)
 endif
 
 PKG_CONFIG_PATH ?= /lib/pkgconfig:$(INSTALL_DIR)/lib/pkgconfig
+LOCAL_PKG_CONFIG_PATH ?= /lib/pkgconfig:$(LOCAL_INSTALL_DIR)/lib/pkgconfig
 PKG_CONFIG ?= PKG_CONFIG_PATH=$(PKG_CONFIG_PATH) pkg-config
 
 # Determine XML2 location
-XML2_CFLAGS ?= $(shell $(PKG_CONFIG) --cflags libxml-2.0)
-ifeq ($(XML2_CFLAGS),)
+PKG_XML2_CFLAGS ?= $(shell $(PKG_CONFIG) --cflags libxml-2.0)
+ifeq ($(strip $(PKG_XML2_CFLAGS)),)
 $(info pkg-config was unable to determine libxml-2.0 header file location.  Using default)
 XML2_CFLAGS ?= -I$(SAFPLUS_SRC_DIR)/3rdparty/base/libxml2-2.9.0/include
+else
+XML2_CFLAGS ?= $(PKG_XML2_CFLAGS)
 endif
-XML2_LINK ?= $(shell $(PKG_CONFIG) --libs libxml-2.0)  
-ifeq ($(XML2_LINK),)
+
+PKG_XML2_LINK ?=$(shell $(PKG_CONFIG) --libs libxml-2.0)
+ifeq ($(strip $(PKG_XML2_LINK)),)
 $(info pkg-config was unable to determine libxml-2.0 location.  Using default)
-XML2_LINK ?= $(INSTALL_DIR)/lib -lxml2
+XML2_LINK ?= -L$(INSTALL_DIR)/lib -lxml2
+else
+XML2_LINK ?= $(PKG_XML2_LINK)
 endif
 
 #? Flags (include directories) needed to compile programs using the SAFplus Mgt component.
@@ -163,7 +172,7 @@ BOOST_INC_DIR ?= $(INSTALL_DIR)/include
 BOOST_LIB_DIR ?= $(INSTALL_DIR)/lib
 else
 DISTRIBUTION_LIB = 1
-BOOST_INC_DIR := $(SYSTEM_INC_DIR)
+BOOST_INC_DIR = $(SYSTEM_INC_DIR)
 # Need to fix the BOOST_LIB_DIR path for handling various linux distributions
 BOOST_LIB_DIR ?= /usr/lib:/usr/lib64
 endif
@@ -182,14 +191,39 @@ else
 PROTOBUF_LIB_DIR ?= /usr/lib/$(TARGET_PLATFORM)
 endif
 
-PROTOBUF_LINK ?= -L/usr/lib -L$(PROTOBUF_LIB_DIR) $(shell PKG_CONFIG_PATH=$(PKG_CONFIG_PATH) pkg-config --libs protobuf) -lprotoc
-PROTOBUF_FLAGS ?= $(shell PKG_CONFIG_PATH=$(PKG_CONFIG_PATH) pkg-config --cflags protobuf)
-# $(info PROTOBUF_FLAGS is $(PROTOBUF_FLAGS) PROTOBUF_LINK is $(PROTOBUF_LINK))
+ifeq ($(LOCAL_TARGET_PLATFORM),i686-linux-gnu)  # Nasty hardcoding because g++ -dumpmachine uses i686- but linux directory structure uses i386-
+LOCAL_PROTOBUF_LIB_DIR ?= /usr/lib/i386-linux-gnu
+else
+LOCAL_PROTOBUF_LIB_DIR ?= /usr/lib/$(LOCAL_TARGET_PLATFORM)
+endif
 
-LINK_STD_LIBS += $(PROTOBUF_LINK) -L$(BOOST_LIB_DIR) -lboost_thread -lboost_chrono -lboost_system -lboost_filesystem -lpthread -lrt -ldl $(GPERFTOOLS_LINK)
-LINK_SO_LIBS += $(PROTOBUF_LINK) -L$(BOOST_LIB_DIR) -lboost_thread -lboost_chrono -lboost_system -lboost_filesystem -lpthread -lrt -ldl $(GPERFTOOLS_LINK)
+#PROTOBUF_LINK ?= -L$(PROTOBUF_LIB_DIR) $(shell PKG_CONFIG_PATH=$(PKG_CONFIG_PATH) pkg-config --libs protobuf) -lprotoc
+#PROTOBUF_FLAGS ?= $(shell PKG_CONFIG_PATH=$(PKG_CONFIG_PATH) pkg-config --cflags protobuf)
 
-CPP_FLAGS := $(CPP_FLAGS) -I$(SAFPLUS_INC_DIR) -I$(BOOST_INC_DIR) $(PROTOBUF_FLAGS) -I. -DSAFplus7
+LOCAL_PROTOBUF_LINK ?= -L/usr/lib -L$(LOCAL_PROTOBUF_LIB_DIR) -lprotobuf -lprotoc
+LOCAL_PROTOBUF_FLAGS ?= $(shell PKG_CONFIG_PATH=$(PKG_CONFIG_PATH) pkg-config --cflags protobuf)
+
+$(info PKG_CONFIG_PATH: $(PKG_CONFIG_PATH)  PROTOBUF_FLAGS is $(PROTOBUF_FLAGS) PROTOBUF_LINK is $(PROTOBUF_LINK))
+$(info LOCAL_PROTOBUF_FLAGS is $(LOCAL_PROTOBUF_FLAGS) LOCAL_PROTOBUF_LINK is $(LOCAL_PROTOBUF_LINK) local cfg path is $(LOCAL_PKG_CONFIG_PATH))
+
+ifdef SAFPLUS_WITH_BOOST_CHRONO
+  ifeq ($(strip $(SAFPLUS_WITH_BOOST_CHRONO)),true)
+    BOOST_CHRONO_LIB:=-lboost_chrono
+    BOOST_CHRONO_CFLAGS:=-DUSE_BOOST_CHRONO
+  else
+    BOOST_CHRONO_LIB:=
+    BOOST_CHRONO_CFLAGS:=
+  endif
+else
+  BOOST_CHRONO_LIB:=-lboost_chrono
+  BOOST_CHRONO_CFLAGS:=-DUSE_BOOST_CHRONO
+endif
+
+LINK_STD_LIBS += $(PROTOBUF_LINK) -L$(BOOST_LIB_DIR) -lboost_thread $(BOOST_CHRONO_LIB) -lboost_system -lboost_filesystem -lpthread -lrt -ldl $(GPERFTOOLS_LINK)
+LINK_SO_LIBS += $(PROTOBUF_LINK) -L$(BOOST_LIB_DIR) -lboost_thread $(BOOST_CHRONO_LIB) -lboost_system -lboost_filesystem -lpthread -lrt -ldl $(GPERFTOOLS_LINK)
+
+CPP_FLAGS := $(CPP_FLAGS) -I$(SAFPLUS_INC_DIR) -I$(BOOST_INC_DIR) $(PROTOBUF_FLAGS) -I. -I$(SYSTEM_INC_DIR) -DSAFplus7 $(BOOST_CHRONO_CFLAGS)
+LOCAL_CPP_FLAGS := $(CPP_FLAGS) -I$(BOOST_INC_DIR) $(PROTOBUF_FLAGS) -I. -DSAFplus7 $(BOOST_CHRONO_CFLAGS)
 
 ifdef GNU_PROFILE
 CPP_FLAGS += -pg
@@ -224,4 +258,4 @@ define SAFPLUS_RPC_GEN
 	LD_LIBRARY_PATH=$$LD_LIBRARY_PATH:/usr/local/lib:/usr/lib $(SAFplusRpcGen) -I$(SAFPLUS_3RDPARTY_DIR) -I$(dir $1.proto) -I$(SAFPLUS_SRC_DIR)/rpc --rpc_out=$(PROTOBUFVER)/$2 --rpc_opts=$(strip $3) $1.proto
 endef
 
-#endif
+$(info local obj: $(LOCAL_OBJ_DIR) local tgt: $(SAFPLUS_TOOL_TARGET) local compiler: $(LOCAL_COMPILE_CPP))

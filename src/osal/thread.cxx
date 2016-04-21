@@ -12,7 +12,15 @@ namespace SAFplus
 {
 
   uint64_t nowMs() { return std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::system_clock::now().time_since_epoch()).count(); }
-  uint64_t timerMs() { return boost::chrono::time_point_cast<boost::chrono::milliseconds>(boost::chrono::steady_clock::now()).time_since_epoch().count(); }
+
+  uint64_t timerMs() 
+{ 
+#ifdef USE_BOOST_CHRONO
+  return boost::chrono::time_point_cast<boost::chrono::milliseconds>(boost::chrono::steady_clock::now()).time_since_epoch().count(); 
+#else
+  return std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::system_clock::now().time_since_epoch()).count();
+#endif
+}
 
 Wakeable& BLOCK = *((Wakeable*) NULL);
 Wakeable& ABORT = *((Wakeable*) 1);
@@ -415,7 +423,7 @@ enum
 
     void ProcGate::close()  // close the gate so all lockers block on lock, returns when no entity has a lock.
       {
-        printf("GATE %d closed\n", semId);
+	//  printf("GATE %d closed\n", semId);
       if (1)  // First, close the gate
         {
         struct sembuf sembuf[] = { {GateSem, (short int)1,SEM_UNDO }  };
@@ -449,7 +457,7 @@ enum
 
 void ProcGate::open()   // open the gate to allow lockers to proceed.
   {  
-  printf("GATE %d opened\n", semId);
+    //printf("GATE %d opened\n", semId);
       
   struct sembuf sembuf[] = { {GateSem, (short int) -1,SEM_UNDO }  };  // semadj += 1: "undo"ing this operation actually undoes the close() resulting in a zero adjustment if the process then fails.
   int error;
