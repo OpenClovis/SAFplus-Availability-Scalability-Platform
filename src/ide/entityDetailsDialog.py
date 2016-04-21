@@ -469,6 +469,8 @@ class Panel(scrolled.ScrolledPanel):
       if type(typeData) is DictType and typeData.has_key("type"):
         if typeData["type"] == "boolean":
           query = wx.CheckBox(self.tree.GetMainWindow(),id,"")
+          checked = bool(value)
+          query.SetValue(checked)
         elif typeData["type"] in YangIntegerTypes:
           v = 0
           try:
