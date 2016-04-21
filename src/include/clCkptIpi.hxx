@@ -47,6 +47,7 @@ namespace SAFplusI
   class CkptSynchronization:public SAFplus::MsgHandler, public SAFplus::Wakeable
     {
     public:
+    SAFplus::Mutex       atomize;
     bool                 synchronizing;
     bool                 syncReplica;
     SAFplus::Checkpoint* ckpt;

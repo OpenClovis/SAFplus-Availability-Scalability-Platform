@@ -7,6 +7,7 @@
 
 #include <clTestApi.hxx>
 
+#include <chrono>
 #include <boost/program_options.hpp>
 #include <string.h>
 
@@ -175,6 +176,21 @@ SAFplus::Handle test_readwrite(Checkpoint& c1,Checkpoint& c2)
 }
 
 
+SAFplus::Handle test_wait(Checkpoint& c1)
+{
+  uint_t change = c1.getChangeNum();
+
+  c1.write("key","value");
+  clTest(("wait returns properly"), c1.wait(change)==true, ("incorrect return value"));
+  change = c1.getChangeNum();
+  uint_t t1 = std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::system_clock::now().time_since_epoch()).count();
+  clTest(("waiting returns properly"), c1.wait(change,500)==false, ("incorrect return value"));
+  uint_t t2 = std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::system_clock::now().time_since_epoch()).count();
+  clTest(("wait actually waited"), t2-t1 > 500, ("st: %d end: %d",t1, t2));
+  clTest(("but not too long"), t2-t1 < 600, ("st: %d end: %d",t1, t2));
+}
+
+
 void test_reopen(SAFplus::Handle handle, bool persistentCkpt=false, bool recordExists=true)
 {
   int LoopCount=10;
@@ -234,6 +250,10 @@ void test_reopen(SAFplus::Handle handle, bool persistentCkpt=false, bool recordE
     }
 }
 
+
+
+
+
 void parseCmdLineOptions(int argc, char* argv[])
 {
   boost::program_options::options_description desc("Allowed options");
@@ -277,7 +297,7 @@ void writeObjToCkpt(Checkpoint& c, const char* key, const void* obj, int objlen)
 
 void persistentWithObjects()
 {
-  clTestCaseStart(("Value as an object"));
+  clTestCaseStart(("CKP-PST-FNC.TC010: Persistent objects"));
   class Obj 
   {
   public:
@@ -334,7 +354,6 @@ void persistentWithObjects()
 
 void removeCkptData(Handle& h)
 {
-  clTestCaseStart(("Remove checkpoint keystr"));
   deleteCheckpoint(h);  
   Checkpoint c(h,Checkpoint::SHARED | Checkpoint::LOCAL | Checkpoint::PERSISTENT);
   c.dump();
@@ -398,7 +417,6 @@ void removeCkptData(Handle& h)
   }
   else
     clTestFailed(("New added item exists FAILED"));
-  clTestCaseEnd((" "));
 }
 
 // IOC related globals
@@ -435,11 +453,18 @@ int main(int argc, char* argv[])
     {
       Checkpoint c1(Checkpoint::SHARED | Checkpoint::LOCAL);
       Checkpoint c2(Checkpoint::SHARED | Checkpoint::LOCAL);
-      clTestCase(("Basic Read/Write"), hdl = test_readwrite(c1,c2));
+      clTestCase(("CKP-BAS-FNC.TC001: Basic Read/Write"), hdl = test_readwrite(c1,c2));
     }
 
-    clTestCase(("Reopen"), test_reopen(hdl));
+    clTestCase(("CKP-BAS-FNC.TC002: Reopen"), test_reopen(hdl));
 
+    if (1)
+    {
+      Checkpoint c1(Checkpoint::SHARED | Checkpoint::LOCAL);
+      clTestCase(("CKP-BAS-FNC.TC003: Wait functionality"), hdl = test_wait(c1));
+    }    
+
+    printf("\n***************\nSubsequent tests require a group server (safplus_amf), or you will hang here.\n***************\n");
     if (1)
     {
       Handle h1 = Handle::create();
@@ -447,7 +472,7 @@ int main(int argc, char* argv[])
 
       Checkpoint c1(h1,Checkpoint::SHARED | Checkpoint::REPLICATED);
       Checkpoint c2(h2,Checkpoint::SHARED | Checkpoint::REPLICATED);
-      clTestCase(("Basic Read/Write"), hdl = test_readwrite(c1,c2));
+      clTestCase(("CKP-RPL-FNC.TC004: Replicated Read/Write"), hdl = test_readwrite(c1,c2));
     }    
     clTestGroupFinalize();
   }
@@ -460,18 +485,20 @@ int main(int argc, char* argv[])
 
     Checkpoint c1(h1,Checkpoint::SHARED | Checkpoint::LOCAL, 3600);
     Checkpoint c2(h2,Checkpoint::SHARED | Checkpoint::LOCAL | Checkpoint::PERSISTENT, 1800);
-    clTestCase(("Basic Read/Write"), test_readwrite(c1,c2));
+    clTestCase(("CKP-PST-FNC.TC005: Persistent Basic Read/Write"), test_readwrite(c1,c2));
 
     c2.flush();
     
     deleteCheckpoint(h1); // simulate that this checkpoint no longer exists
     deleteCheckpoint(h2); // simulate that this checkpoint no longer exists 
-    clTestCase(("Reopen"), test_reopen(h1, false, false));
-    clTestCase(("Reopen"), test_reopen(h2, true));
-    clTestCase(("Reopen"), removeCkptData(h2));
+    clTestCase(("CKP-PST-FNC.TC006: Persistent Reopen"), test_reopen(h1, false, false));
+    clTestCase(("CKP-PST-FNC.TC007: Persistent Reopen 2"), test_reopen(h2, true));
+    clTestCase(("CKP-PST-FNC.TC008: Persistent removal"), removeCkptData(h2));
 #endif
     persistentWithObjects();
     clTestGroupFinalize(); 
  }
+
+ safplusFinalize();
  return 0;
 }

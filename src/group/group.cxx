@@ -91,6 +91,7 @@ char* Group::capStr(uint cap, char* buf)
 
   void Group::init(Handle groupHandle, int comPort,SAFplus::Wakeable& execSemantics)
     {
+    member = false;
     handle = groupHandle;
     if (comPort==0)  // If 0 is passed, that means to use the default port, which is whatever is stored in shared memory
       {
@@ -158,10 +159,27 @@ char* Group::capStr(uint cap, char* buf)
     std::pair<EntityIdentifier,EntityIdentifier> ret(INVALID_HDL,INVALID_HDL);
     GroupShmHashMap::iterator entryPtr;
     entryPtr = gsm.groupMap->find(handle);
-    if (entryPtr == gsm.groupMap->end()) return ret;
+    if (entryPtr == gsm.groupMap->end())  // Group was not even in shared memory.  This can happen if the Group's Node Representative failed and/or was started AFTER the process
+      {
+        if (member) 
+          {
+          sendMemberJoinMessage();
+          boost::this_thread::sleep(boost::posix_time::milliseconds(250)); 
+          }
+      return ret;
+      }
     GroupShmEntry *gse = &entryPtr->second;
     if (!gse) return ret;
     ret = gse->getRoles();
+    if ((ret.first == SAFplus::INVALID_HDL)&&(member))
+      {
+        const GroupData& gd = gse->read();
+        if (gd.numMembers == 0)
+          {
+          sendMemberJoinMessage();
+          boost::this_thread::sleep(boost::posix_time::milliseconds(250)); 
+          }
+      }
     return ret;
     }
 
@@ -306,6 +324,7 @@ void Group::setNotification(SAFplus::Wakeable& w)
         }
       }
 
+    member=true;
     // TODO:  Should I wait here until the registration is successful?
     }
 
@@ -319,6 +338,10 @@ void Group::setNotification(SAFplus::Wakeable& w)
     }
 #endif
 
+    void SAFplus::Group::sendMemberJoinMessage()
+    {
+        fillAndSendMessage((void *)&myInformation,GroupMessageTypeT::MSG_ENTITY_JOIN,GroupMessageSendMode::SEND_BROADCAST,GroupRoleNotifyTypeT::ROLE_UNDEFINED);
+    }
 /**
  * API to deregister an entity from the group
  */

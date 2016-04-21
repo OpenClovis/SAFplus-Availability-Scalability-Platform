@@ -289,12 +289,17 @@ namespace SAFplus
     void remove(Buffer* buf, bool isKey=false, Transaction& t=SAFplus::NO_TXN);
 #endif    
 
+    //? Get a number which changes whenever the checkpoint changes
+    uint_t getChangeNum();
+    //? Block for a time or until the checkpoint is changed.  If the checkpoint is closed (destructed), that is considered a change.
+    bool wait(uint_t changeNum, uint64_t timeout=ULLONG_MAX);
+
     /* During replication, changes are received from the remote checkpoint.  This API applies these changes */
     void applySync(const Buffer& key, const Buffer& value,Transaction& t=SAFplus::NO_TXN);
 
     /* temporarily disallow/allow synchronization */
-    //void syncLock() { gate.lock(); }
-    //void syncUnlock() { gate.unlock(); }
+    // NOT USED: void syncLock() { gate.lock(); }
+    // NOT USED: void syncUnlock() { gate.unlock(); }
 
     //? Reflects all changes from checkpoint data to disk (database)
     void flush();

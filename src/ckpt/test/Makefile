@@ -29,4 +29,14 @@ clean:
 	rm -f $(CLIENT_OBJ) $(TEST_DIR)/testCkpt
 	rm -f $(CLIENT_OBJ) $(TEST_DIR)/testCkptRetention
 
+# TAE packaging stuff
+IMAGE_FILE ?= ckptTest.zip
+
+image: $(IMAGE_FILE)
+
+$(IMAGE_FILE): $(TEST_DIR)/testCkpt
+	cp setup start cleanup $(SAFPLUS_TARGET)  
+	$(SAFPLUS_MAKE_DIR)/safplus_packager.py -x "(cp setup start cleanup {image_dir})" $@
+
+
 include $(SAFPLUS_MAKE_DIR)/safplus_targets.mk

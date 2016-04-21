@@ -146,7 +146,7 @@ void Poolable::complete()
 
 Poolable* ThreadPool::dequeue()
 {
-  logTrace("THRPOOL","DEQ", "ThreadPool::dequeue enter");
+  //logTrace("THRPOOL","DEQ", "ThreadPool::dequeue enter");
   mutex.lock();
   if (poolableList.empty())
   {
@@ -169,7 +169,7 @@ void ThreadPool::immediatelyRun(Poolable*p)
     WakeableHelper* wh = dynamic_cast<WakeableHelper*>(p);
     if (!wh) // it's Poolable object
     {
-      logTrace("THRPOOL","RUNTSK", "Execute user-defined func of Poolable object");
+      //logTrace("THRPOOL","RUNTSK", "Execute user-defined func of Poolable object");
       assert(p->structId == Poolable::STRUCT_ID);
       p->calculateStartTime();
       p->wake(0, p->arg);
@@ -177,7 +177,7 @@ void ThreadPool::immediatelyRun(Poolable*p)
       p->calculateExecTime(); 
       bool tmp = p->isDeleteWhenComplete(); 
       p->complete();   // Its possible that complete() will release p so I can't use it after this line
-      if (tmp)  // Unless delete is requested, the I will delete it.
+      if (tmp)  // Unless delete is requested, then I will delete it.
       {
         assert(0);  // this feature is not used
         logTrace("THRPOOL","RUNTSK", "Delete the poolable object");

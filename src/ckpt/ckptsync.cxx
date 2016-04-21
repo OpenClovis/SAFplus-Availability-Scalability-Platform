@@ -120,13 +120,15 @@ void SAFplusI::CkptSynchronization::msgHandler(Handle from, SAFplus::MsgServer* 
       while (syncRecvCount < sc->finalCount)
         {
         logInfo("SYNC","MSG","sync complete waiting for msg processing received [%d] expected [%d]...", syncRecvCount, sc->finalCount);
-        boost::this_thread::sleep(boost::posix_time::microseconds(100000));
+        boost::this_thread::sleep(boost::posix_time::milliseconds(100));
         }
       ckpt->hdr->generation = sc->finalGeneration;
       if (ckpt->hdr->changeNum < sc->finalChangeNum) ckpt->hdr->changeNum = sc->finalChangeNum;
       logInfo("SYNC","MSG","Checkpoint [%" PRIx64 ":%" PRIx64 "] sync complete.  Msg count [%d]. change [%d.%d]", ckpt->hdr->handle.id[0], ckpt->hdr->handle.id[1], sc->finalCount, ckpt->hdr->generation,ckpt->hdr->changeNum);
+      atomize.lock();
       synchronizing = false;
       ckpt->gate.open(); // TODO: I need to open this gate during all kinds of checkpoint failure conditions, sender process death, node death, message lost.
+      atomize.unlock();
       } break;
 
     case CKPT_MSG_TYPE_SYNC_RESPONSE_1:
@@ -344,8 +346,9 @@ void SAFplusI::CkptSynchronization::wake(int amt,void* cookie)
     if (roles.first == ckpt->hdr->replicaHandle)
       {
       logInfo("SYNC","GRP","Checkpoint is master replica");
+      ScopedLock<> lock(atomize);
       if (synchronizing)
-        { 
+        {
         synchronizing = false;
         ckpt->gate.open(); // If this checkpoint becomes the master replica, it is by definition the authorative copy so allow reading/writing
         }
@@ -360,7 +363,7 @@ void SAFplusI::CkptSynchronization::wake(int amt,void* cookie)
 
 void SAFplusI::CkptSynchronization::operator()()
   {
-  if (1)
+  while(synchronizing)
     {
     logInfo("SYNC","TRD","checkpoint synchronization thread");
 
@@ -392,8 +395,19 @@ void SAFplusI::CkptSynchronization::operator()()
       msgSvr->SendMsg(active,&msg,sizeof(msg),CKPT_SYNC_MSG_TYPE);
       logInfo("SYNC","TRD","Sent synchronization request message to [%d:%d] type [%d] generation [%d] change [%d] sync cookie [%x]", active.getNode(), active.getPort(),CKPT_SYNC_MSG_TYPE,msg.generation, msg.changeNum, syncCookie);
       }
+    else 
+      {
+        ScopedLock<> lock(atomize);
+        if (synchronizing)
+          {
+          synchronizing = false;
+          ckpt->gate.open();
+          break; // I am active so am the authorative copy
+          }
+      }
 
-    boost::this_thread::sleep(boost::posix_time::milliseconds(150000));
+    // Repeat a sync request every 2 seconds in case the checkpoint master fails
+    boost::this_thread::sleep(boost::posix_time::milliseconds(2000));
     }
   }
 

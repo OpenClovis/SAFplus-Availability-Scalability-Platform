@@ -12,6 +12,11 @@
 
 namespace SAFplus
 {
+  //? Return the current time in milliseconds.  DO NOT USE for interval timing.
+  extern uint64_t nowMs();
+
+  //? Return a monotonically increasing count in milliseconds.  Use for interval timing.
+  extern uint64_t timerMs();
 
   inline long gettid()
     {

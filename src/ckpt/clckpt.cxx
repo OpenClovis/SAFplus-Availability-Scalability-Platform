@@ -5,6 +5,7 @@
 //#include <boost/interprocess/mapped_region.hpp>
 #include <boost/lexical_cast.hpp>
 #include <boost/filesystem.hpp>
+#include <algorithm>
 #include <string>
 #include <clCommon.hxx>
 
@@ -207,6 +208,25 @@ void SAFplus::Checkpoint::init(const Handle& hdl, uint_t _flags, uint64_t retent
   assert(hdr);
 }
 
+uint_t SAFplus::Checkpoint::getChangeNum()
+{
+  return hdr->changeNum;
+}
+
+bool SAFplus::Checkpoint::wait(uint32_t changeNum, uint64_t timeout)
+{
+  if (changeNum != hdr->changeNum) return true; // it already changed
+
+  // TODO block until opening of the thread gate.  For now use a delay loop
+  do {
+    uint64_t waitAmt = std::min(10ULL,timeout);
+    boost::this_thread::sleep(boost::posix_time::milliseconds(waitAmt));
+    timeout -= waitAmt;
+  } while((timeout > 0)&&(changeNum == hdr->changeNum));
+
+  return (changeNum != hdr->changeNum);
+}
+
 const Buffer& SAFplus::Checkpoint::read (const Buffer& key) //const
 {
   gate.lock();
@@ -312,7 +332,7 @@ bool SAFplus::Buffer::isNullT() const { return (refAndLen&NullTMask)>0; }
 
 void SAFplus::Checkpoint::write(const Buffer& key, const Buffer& value,Transaction& t)
 {
-  gate.lock();
+  gate.close();
   // All write operations are funneled through this function.
 
   //Buffer* existing = read(key);
@@ -336,7 +356,7 @@ void SAFplus::Checkpoint::write(const Buffer& key, const Buffer& value,Transacti
                 if (sync) sync->sendUpdate(&key,curval.get(), t);
                 hdr->lastUsed = boost::posix_time::second_clock::universal_time(); 
                 updateOperMap(contents->first.get(), INUP);
-                gate.unlock();
+                gate.open();
                 return;
               }
             }
@@ -353,7 +373,7 @@ void SAFplus::Checkpoint::write(const Buffer& key, const Buffer& value,Transacti
           if (sync) sync->sendUpdate(&key,v, t);  // Pass curval not the parameter because curval has the proper change number
           hdr->lastUsed = boost::posix_time::second_clock::universal_time();          
           updateOperMap(contents->first.get(), INUP);
-          gate.unlock();          
+          gate.open();          
           return;
         }
     }
@@ -372,11 +392,12 @@ void SAFplus::Checkpoint::write(const Buffer& key, const Buffer& value,Transacti
   if (sync) sync->sendUpdate(&key,v, t);
   hdr->lastUsed = boost::posix_time::second_clock::universal_time();
   updateOperMap(k, INUP);
-  gate.unlock();
+  gate.open();
 }
 
 void SAFplus::Checkpoint::applySync(const Buffer& key, const Buffer& value,Transaction& t)
 {
+  gate.close();
   //Buffer* existing = read(key);
   uint_t newlen = value.len();
 
@@ -392,6 +413,7 @@ void SAFplus::Checkpoint::applySync(const Buffer& key, const Buffer& value,Trans
       if (curval->changeNum() >= value.changeNum())
         {
         logInfo("TEST","GRP", "Checkpoint has more recent change [%d] vs [%d], not applying...",curval->changeNum(),value.changeNum());
+        gate.open();
         return;
         }
 
@@ -402,6 +424,7 @@ void SAFplus::Checkpoint::applySync(const Buffer& key, const Buffer& value,Trans
             {
               if (curval->len() == newlen) {// lengths are the same, most efficient is to just copy the new data onto the old.
                 *curval = value;  // change num is copied over as part of the assignment
+                gate.open();
                 return;
               }
             }
@@ -414,6 +437,7 @@ void SAFplus::Checkpoint::applySync(const Buffer& key, const Buffer& value,Trans
             msm.deallocate(old);  // if I'm the last owner, let this go.
           else 
             old->decRef();
+          gate.open();
           return;
         }
     }
@@ -427,7 +451,7 @@ void SAFplus::Checkpoint::applySync(const Buffer& key, const Buffer& value,Trans
   SAFplusI::BufferPtr kb(k),kv(v);
   SAFplusI::CkptMapPair vt(kb,kv);
   map->insert(vt);
-  
+  gate.open();
   // I don't update hdr->changeNum in case the replication fails.  Then I need to restart it from the original sync location, so I need to preserve that.  
 }
 

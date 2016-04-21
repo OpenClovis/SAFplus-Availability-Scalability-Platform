@@ -66,6 +66,9 @@
      <grpUnitTest>
 	<image_source value="dir://code/git/SAFplus/test/grpUnitTest" />
      </grpUnitTest>
+      <ckptUnitTest>
+	<image_source value="dir://code/git/SAFplus/test/ckptUnitTest" />
+     </ckptUnitTest>
       <amfUnitTest>
 	<image_source value="dir://code/git/SAFplus/test/amfUnitTest" />
      </amfUnitTest>
@@ -86,6 +89,16 @@
       <testfilter>
       </testfilter>
     </amfUnitTest>
+    <ckptUnitTest>
+      <mapping>
+	<SysCtrl0   node="node0" role="controller" installDir="~/ckptUnitTest" />
+      </mapping>
+      <testcase_dir  value="/code/git/SAFplus/test/ckptUnitTest" />
+      <make_options value="" />
+      <configure_options value="" />
+      <testfilter>
+      </testfilter>
+    </ckptUnitTest>
     <rpcUnitTest>
       <mapping>
 	<SysCtrl0   node="node0" role="controller" installDir="~/rpcUnitTest" />

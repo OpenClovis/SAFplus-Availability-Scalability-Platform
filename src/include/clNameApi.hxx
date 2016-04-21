@@ -180,10 +180,10 @@ namespace SAFplus
      //? This function gets the name associated with the specified handle
      char* getName(const SAFplus::Handle& handle) throw(NameException&); 
    
-     //? Gets the handle associated with a name.  Throws exception if the name does not exist or the handle is INVALID_HDL
-     SAFplus::Handle& getHandle(const char* name) throw(NameException&);
-     //? Gets the handle associated with a name.  Throws exception if the name does not exist or the handle is INVALID_HDL
-     SAFplus::Handle& getHandle(const std::string& name) throw(NameException&);
+     //? Gets the handle associated with a name.  Throws exception if the name does not exist or the handle is INVALID_HDL, after timeoutMs milliseconds
+     SAFplus::Handle& getHandle(const char* name, unsigned int timeoutMs=0) throw(NameException&);
+     //? Gets the handle associated with a name.  Throws exception if the name does not exist or the handle is INVALID_HDL, after timeoutMs milliseconds
+     SAFplus::Handle& getHandle(const std::string& name, unsigned int timeoutMs=0) throw(NameException&);
    
        
      //? Get a handle associated with the data.

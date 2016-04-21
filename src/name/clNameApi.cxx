@@ -1,4 +1,5 @@
 #include <clLogApi.hxx>
+#include <clThreadApi.hxx>
 #include <clCommon.hxx>
 #include <clNameApi.hxx>
 #include <clCustomization.hxx>
@@ -332,82 +333,96 @@ HandleData& NameRegistrar::Iterator::handle()
   return *data;
   }
 
-Handle& NameRegistrar::getHandle(const char* name) throw(NameException&)
+Handle& NameRegistrar::getHandle(const char* name,unsigned int timeoutMs) throw(NameException&)
 {
-   const Buffer& buf = m_checkpoint.read(name);
-   if (&buf != NULL)
-   {
-      HandleData* data = (HandleData*) buf.data;
-      if (data->structIdAndEndian != STRID && data->structIdAndEndian != STRIDEN) // Arbitrary data in this case
-      {
-         throw NameException("Unable to get handle because only arbitrary data registered for this name");
-      }
-      size_t sz = data->numHandles;
-      MappingMode m = data->mappingMode;
-      int idx = -1;
-      if (m == MODE_REDUNDANCY)
-      {
-         // first association must be returned
-         assert(sz > 0);
-         idx = 0;
-      }
-      else if (m == MODE_ROUND_ROBIN)
-      {
-         srand (time(NULL));
-         idx = rand() % sz;
-      }
-      else if (m == MODE_PREFER_LOCAL)
-      {
-         pid_t thisPid = getpid();
-         int i;
-         for(i=0;i<sz;i++)
-         {
-            if (data->handles[i].getProcess() == (uint32_t)thisPid)
+  uint_t change;
+  bool occurence;  // whether the ckpt changed
+  do
+    {
+      occurence = false;
+      change = m_checkpoint.getChangeNum();
+      const Buffer& buf = m_checkpoint.read(name);
+      if (&buf != NULL)
+        {
+          HandleData* data = (HandleData*) buf.data;
+          if (data->structIdAndEndian != STRID && data->structIdAndEndian != STRIDEN) // Arbitrary data in this case
             {
-               idx = i;
-               break;
+              throw NameException("Unable to get handle because only arbitrary data registered for this name");
             }
-         }
-         //No process match, get handle of THIS NODE
-         if (idx == -1)
-         {
-            uint_t thisNode = SAFplus::ASP_NODEADDR;
-            logDebug("NAME","GETHDL","getHandle of name [%s]: thisNode [%d]", name, thisNode);
-            for(i=0;i<sz;i++)
-	    {
-		if ((uint32_t)data->handles[i].getNode() == thisNode)
-		{
-                   idx = i;
-                   break;
-		}
+          size_t sz = data->numHandles;
+          MappingMode m = data->mappingMode;
+          int idx = -1;
+          if (m == MODE_REDUNDANCY)
+            {
+              // first association must be returned
+              assert(sz > 0);
+              idx = 0;
             }
-         }
-         // If no any match, get "closer" handle over others. It may be the latest one
-         if (idx == -1)
-         {
-            idx = sz-1;
-         }
-      }
-      else // Other case, REDUNDANCY mode is picked
-      {
-         assert(sz > 0);
-         idx = 0;
-      }
-      assert(idx >=0 && idx < sz);
-      if (data->structIdAndEndian == STRIDEN) // Need to swap the endian
-      {
-         data->handles[idx].id[0] = ENDIAN_SWAP_U64(data->handles[idx].id[0]);
-         data->handles[idx].id[1] = ENDIAN_SWAP_U64(data->handles[idx].id[1]);
-      }
-      if (data->handles[idx] == INVALID_HDL) throw NameException("Provided name has invalid handle");
-      return data->handles[idx];
-   }
-   throw NameException("name provided does not exist");
+          else if (m == MODE_ROUND_ROBIN)
+            {
+              srand (time(NULL));
+              idx = rand() % sz;
+            }
+          else if (m == MODE_PREFER_LOCAL)
+            {
+              pid_t thisPid = getpid();
+              int i;
+              for(i=0;i<sz;i++)
+                {
+                  if (data->handles[i].getProcess() == (uint32_t)thisPid)
+                    {
+                      idx = i;
+                      break;
+                    }
+                }
+              //No process match, get handle of THIS NODE
+              if (idx == -1)
+                {
+                  uint_t thisNode = SAFplus::ASP_NODEADDR;
+                  logDebug("NAME","GETHDL","getHandle of name [%s]: thisNode [%d]", name, thisNode);
+                  for(i=0;i<sz;i++)
+                    {
+                      if ((uint32_t)data->handles[i].getNode() == thisNode)
+                        {
+                          idx = i;
+                          break;
+                        }
+                    }
+                }
+              // If no any match, get "closer" handle over others. It may be the latest one
+              if (idx == -1)
+                {
+                  idx = sz-1;
+                }
+            }
+          else // Other case, REDUNDANCY mode is picked
+            {
+              assert(sz > 0);
+              idx = 0;
+            }
+          assert(idx >=0 && idx < sz);
+          if (data->structIdAndEndian == STRIDEN) // Need to swap the endian
+            {
+              data->handles[idx].id[0] = ENDIAN_SWAP_U64(data->handles[idx].id[0]);
+              data->handles[idx].id[1] = ENDIAN_SWAP_U64(data->handles[idx].id[1]);
+            }
+          if (data->handles[idx] == INVALID_HDL) throw NameException("Provided name has invalid handle");
+          return data->handles[idx];
+        }
+      if (timeoutMs)
+        {
+          uint64_t st = timerMs();
+          occurence = m_checkpoint.wait(change, timeoutMs);
+          uint64_t end = timerMs();
+          timeoutMs -= std::min((unsigned int)(end - st), timeoutMs);
+        }
+    } while ((timeoutMs>0)||(occurence));
+  throw NameException("name provided does not exist");
 }
 
-Handle& NameRegistrar::getHandle(const std::string& name) throw(NameException&)
+Handle& NameRegistrar::getHandle(const std::string& name, unsigned int timeoutMs) throw(NameException&)
 {
-  Handle& handle = getHandle(name.c_str());
+  Handle& handle = getHandle(name.c_str(),timeoutMs);
   return handle;
 }
 

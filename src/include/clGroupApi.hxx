@@ -316,10 +316,12 @@ namespace SAFplus
       void fillAndSendMessage(void* data, SAFplusI::GroupMessageTypeT msgType,SAFplus::GroupMessageSendMode msgSendMode, SAFplusI::GroupRoleNotifyTypeT roleType, bool forcing=false);
       void sendNotification(void* data, int dataLength, SAFplus::GroupMessageSendMode messageMode);
  
-     // Communication port
-      int                               groupCommunicationPort;
+      void sendMemberJoinMessage();     
+
+      int                               groupCommunicationPort; // Communication port
       SAFplus::SafplusMsgServer*        groupMsgServer;
       SAFplus::Wakeable*                wakeable;               // Wakeable object for change notification
+      bool                              member;             // Is my info registered (i.e. am I a member of the group) -- used to reregister if group rep restarts.
       friend class SAFplusI::GroupSharedMem;
       Iterator roundRobin;
   };  //? </class>
