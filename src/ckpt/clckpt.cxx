@@ -219,7 +219,7 @@ bool SAFplus::Checkpoint::wait(uint32_t changeNum, uint64_t timeout)
 
   // TODO block until opening of the thread gate.  For now use a delay loop
   do {
-    uint64_t waitAmt = std::min(10ULL,timeout);
+    uint64_t waitAmt = std::min(((uint64_t)10),timeout);
     boost::this_thread::sleep(boost::posix_time::milliseconds(waitAmt));
     timeout -= waitAmt;
   } while((timeout > 0)&&(changeNum == hdr->changeNum));

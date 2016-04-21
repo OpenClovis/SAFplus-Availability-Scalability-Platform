@@ -197,8 +197,8 @@ else
 LOCAL_PROTOBUF_LIB_DIR ?= /usr/lib/$(LOCAL_TARGET_PLATFORM)
 endif
 
-#PROTOBUF_LINK ?= -L$(PROTOBUF_LIB_DIR) $(shell PKG_CONFIG_PATH=$(PKG_CONFIG_PATH) pkg-config --libs protobuf) -lprotoc
-#PROTOBUF_FLAGS ?= $(shell PKG_CONFIG_PATH=$(PKG_CONFIG_PATH) pkg-config --cflags protobuf)
+PROTOBUF_LINK ?= -L$(PROTOBUF_LIB_DIR) $(shell PKG_CONFIG_PATH=$(PKG_CONFIG_PATH) pkg-config --libs protobuf) -lprotoc
+PROTOBUF_FLAGS ?= $(shell PKG_CONFIG_PATH=$(PKG_CONFIG_PATH) pkg-config --cflags protobuf)
 
 LOCAL_PROTOBUF_LINK ?= -L/usr/lib -L$(LOCAL_PROTOBUF_LIB_DIR) -lprotobuf -lprotoc
 LOCAL_PROTOBUF_FLAGS ?= $(shell PKG_CONFIG_PATH=$(PKG_CONFIG_PATH) pkg-config --cflags protobuf)
