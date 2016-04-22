@@ -147,15 +147,15 @@ class SAFplusFrame(wx.Frame):
         if t.uml:
           t.uml.setModelData(t.model)
           t.uml.deleteTools()
-          t.uml.addTools()        
+          t.uml.addTools()
           t.uml.refresh()
         else:
           t.uml = umlEditor.Panel(self.tab,self.guiPlaces, t.model)
           self.tab.InsertPage(0, t.uml, self.getCurrentPageText(0), select=True)        
         if t.instance:
           t.instance.setModelData(t.model)
-          t.instance.addTools()
           t.instance.refresh()
+          t.instance.addTools()
         else:
           t.instance = instanceEditor.Panel(self.tab,self.guiPlaces, t.model)
           self.tab.InsertPage(2, t.instance, self.getCurrentPageText(2))

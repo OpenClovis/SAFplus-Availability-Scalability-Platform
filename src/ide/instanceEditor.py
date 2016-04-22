@@ -80,6 +80,8 @@ ROW_WIDTH   = 120
 
 linkNormalLook = dot.Dot({ "color":(0,0,.8,.75), "lineThickness": 4, "buttonRadius": 6, "arrowLength":15, "arrowAngle": PI/8 })
 
+NEW_NODE_INST = "New node instance"
+NEW_NODE_INST_INHERIT_FROM_A_NODE = "Inherit from a node instance"
 
 #delta_x = 59 # 
 #delta_y = 17
@@ -853,6 +855,11 @@ class Panel(scrolled.ScrolledPanel):
 
       self.grayCells = {}
 
+      self.userDefineNodeType = None
+      self.menuNodeInstCreate = wx.Menu()
+      self.newNodeInstOption = None
+      self.menuUserDefineNodeTypes = wx.Menu()
+
       # Ignore render entities since size(0,0) is invalid
       self.ignoreEntities = ["Component", "ComponentServiceInstance"]
 
@@ -870,7 +877,7 @@ class Panel(scrolled.ScrolledPanel):
       #self.toolBar.AddLabelTool(10, "New", new_bmp, shortHelp="New", longHelp="Long help for 'New'")
 
       # TODO: add disabled versions to these buttons
-      self.addTools(True)
+      #self.addTools(True)
       #self.addCommonTools()
 
       # Add the custom entity creation tools as specified by the model's YANG
@@ -899,6 +906,7 @@ class Panel(scrolled.ScrolledPanel):
             self.rows.append(entInstance)  # TODO: calculate an insertion position based on the mouse position and the positions of the other entities
           if placement == "column":
             self.columns.append(entInstance)  # TODO: calculate an insertion position based on the mouse position and the positions of the other entities
+      self.addTools(True)
       self.UpdateVirtualSize()
       self.layout()
       self.loadGrayCells()
@@ -962,11 +970,21 @@ class Panel(scrolled.ScrolledPanel):
         self.idLookup.clear()
       self.addCommonTools()
       self.addEntityTools()
+      self.deleteNodeInstCreateMenu()
+      self.addNodeInstCreateMenuItems()
       #self.toolBar.Bind(wx.EVT_TOOL, self.OnToolClick, id=ENTITY_TYPE_BUTTON_START, id2=wx.NewId())
       #self.toolBar.Bind(wx.EVT_TOOL_RCLICKED, self.OnToolRClick)      
       for toolId in self.idLookup:
         self.toolBar.Bind(wx.EVT_TOOL, self.OnToolClick, id=toolId)
       self.toolBar.Bind(wx.EVT_TOOL_RCLICKED, self.OnToolRClick)
+
+    def deleteNodeInstCreateMenu(self):
+      menuItems = self.menuUserDefineNodeTypes.GetMenuItems()
+      for item in menuItems:
+        self.menuUserDefineNodeTypes.Delete(item.Id)   
+      menuItems = self.menuNodeInstCreate.GetMenuItems()
+      for item in menuItems:
+        self.menuNodeInstCreate.Delete(item.Id)
 
     def resetDataMembers(self):
       #for (name,m) in self.model.entities.items():
@@ -1105,6 +1123,12 @@ class Panel(scrolled.ScrolledPanel):
             menu.Bind(wx.EVT_MENU, self.OnToolMenu, id=buttonIdx)
         self.toolBar.Realize()
 
+    def addNodeInstCreateMenuItems(self):
+      i = self.menuNodeInstCreate.Append(wx.NewId(), NEW_NODE_INST)
+      self.Bind(wx.EVT_MENU, self.OnMenuNodeInstCreate, i)
+      self.createNodeTypeMenu()      
+      self.menuNodeInstCreate.AppendMenu(wx.NewId(), NEW_NODE_INST_INHERIT_FROM_A_NODE, self.menuUserDefineNodeTypes, "Create new node instance from another one")
+
     def modifyEntityTool(self, ent, newValue):      
       name = ent.et.name
       entExists = False
@@ -1142,6 +1166,8 @@ class Panel(scrolled.ScrolledPanel):
             break
         if entExists:
           print 'deleteEntityTool: Entity [%s] exists --> delete it from toolbar' % name
+          if self.tool == self.idLookup[eid]:
+            self.tool = None
           self.toolBar.DeleteTool(eid)
           # delete the corresponding menu item from the instantiation menu too
           menu = self.guiPlaces.menu.get("Instantiation",None)
@@ -1179,7 +1205,13 @@ class Panel(scrolled.ScrolledPanel):
     def OnToolEvent(self,event):
       handled = False
       if self.tool:
-        handled = self.tool.OnEditEvent(self, event)
+        if isinstance(self.tool, EntityTool) and self.tool.entity.et.name=="Node":
+          if self.newNodeInstOption==NEW_NODE_INST:
+            handled = self.tool.OnEditEvent(self, event)
+          else:
+            print 'OnToolEvent: action is pending...'
+        else:
+          handled = self.tool.OnEditEvent(self, event)          
       event.Skip(not handled)  # if you pass false, event will not be processed anymore
 
     def OnToolClick(self,event):
@@ -1192,9 +1224,14 @@ class Panel(scrolled.ScrolledPanel):
         if self.tool:
           self.tool.OnUnselect(self,event)
           self.tool = None
+          if isinstance(self.tool, EntityTool) and self.tool.entity.et.name=="Node":
+            self.newNodeInstOption = None
         if tool:
           tool.OnSelect(self,event)
           self.tool = tool
+        # show the menu node inst create options
+        if isinstance(self.tool, EntityTool) and self.tool.entity.et.name=="Node":
+          self.PopupMenu(self.menuNodeInstCreate)
       except KeyError, e:
         event.Skip()
         pass # Not one of my tools
@@ -1211,6 +1248,12 @@ class Panel(scrolled.ScrolledPanel):
       except KeyError, e:
         event.Skip()
         pass # Not one of my tools
+
+    def OnMenuNodeInstCreate(self, event):
+      item = self.menuNodeInstCreate.FindItemById(event.GetId())
+      self.newNodeInstOption = item.GetText()
+      print 'OnMenuNodeInstCreate: item [%s] selected' % self.newNodeInstOption
+      
 
     def OnPaint(self, event):
         #dc = wx.PaintDC(self)
@@ -1306,7 +1349,27 @@ class Panel(scrolled.ScrolledPanel):
           if ok:
             return
           x+=COL_SPACING+COL_WIDTH
-        y+=ROW_SPACING+ROW_WIDTH    
+        y+=ROW_SPACING+ROW_WIDTH
+
+    def getUserDefinedNodeTypes(self):
+      userDefinedNodeTypes = []     
+      for e in self.columns:
+        thisNode = e.data["name"]
+        values = self.model.instances.get(thisNode, None)
+        if not values:
+          continue
+        canBeInherited = bool(values.data.get("canBeInherited", None))
+        if canBeInherited:
+          userDefineType = values.data.get("userDefinedType", None)
+          if userDefineType:
+            userDefinedNodeTypes.append(userDefineType)
+      return userDefinedNodeTypes
+
+    def createNodeTypeMenu(self):
+      usrDefinedNodeTypes = self.getUserDefinedNodeTypes()      
+      for t in usrDefinedNodeTypes:
+        i = self.menuUserDefineNodeTypes.Append(wx.NewId(), t)
+        self.Bind(wx.EVT_MENU, self.OnMenuNodeInstCreate, i)
 
     def CreateNewInstance(self,entity,position,size=None, name=None):
       """Create a new instance of this entity type at this position"""
