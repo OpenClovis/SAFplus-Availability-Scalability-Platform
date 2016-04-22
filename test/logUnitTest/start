@@ -1,2 +1,5 @@
 #!/bin/bash
+# Startup AMF which acts as the logging server
+bin/safplus_amf > safplus_amf.log &
+sleep 10  # Wait for AMF to come up
 exit 0

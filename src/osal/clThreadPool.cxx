@@ -35,12 +35,12 @@ Poolable::~Poolable()
     structId = 0xdeadbeef;
 }
 
-ThreadPool::ThreadPool(): minThreads(0), maxThreads(0), numCurrentThreads(0), numIdleThreads(0), isStopped(false), unusedWakeableHelperList(nullptr)
+ThreadPool::ThreadPool(): minThreads(0), maxThreads(0), numCurrentThreads(0), numIdleThreads(0), isStopped(true), unusedWakeableHelperList(nullptr)
 {
 checker = 0; // TODO
 }
 
-ThreadPool::ThreadPool(short _minThreads, short _maxThreads): minThreads(_minThreads), maxThreads(_maxThreads), numCurrentThreads(0), numIdleThreads(0), isStopped(false), unusedWakeableHelperList(nullptr)
+ThreadPool::ThreadPool(short _minThreads, short _maxThreads): minThreads(_minThreads), maxThreads(_maxThreads), numCurrentThreads(0), numIdleThreads(0), isStopped(true), unusedWakeableHelperList(nullptr)
 {
   checker = 0; // TODO
   start();
@@ -86,13 +86,16 @@ void ThreadPool::stop()
 
 void ThreadPool::start()
 {
-  logTrace("THRPOOL","START", "ThreadPool::start enter");
-  for(int i=0;i<minThreads;i++)
+  if (isStopped)
   {
-    startThread();
+    isStopped=false;
+    logTrace("THRPOOL","START", "ThreadPool::start enter");
+    for(int i=0;i<minThreads;i++)
+    {
+      startThread();
+    }
+    pthread_create(&checker, NULL, timerThreadFunc, this);
   }
-  pthread_create(&checker, NULL, timerThreadFunc, this);
-  //pthread_detach(thid);
 }
 
 void ThreadPool::run(Poolable* p)

@@ -19,9 +19,21 @@ testonedebug:
 testdebug:
 	$(TAE_DIR)/tae -v -v -v -d -S safplusTest1Node.xml
 
+testyocto:
+	$(TAE_DIR)/tae -S safplusTest1NodeYocto.xml
+
+testyoctoone:
+	$(TAE_DIR)/tae -S safplusTest1NodeYocto.xml -M $(MODEL)
+
+testyoctodebug:
+	$(TAE_DIR)/tae -v -v -v -d -S safplusTest1NodeYocto.xml
+
+testyoctodebugone:
+	$(TAE_DIR)/tae -v -v -v -d -S safplusTest1NodeYocto.xml -M $(MODEL)
+
 
 
 clean:
-	rm -rf stamps* *.zip *.pyc log_*/* /var/log/testresults.log
+	rm -rf *.tgz stamps* *.zip *.pyc log_*/* /var/log/testresults.log
 
 include $(SAFPLUS_MAKE_DIR)/safplus_targets.mk

@@ -1,7 +1,8 @@
 # This file overrides the relevant make variables to create a cross compilation of SAFplus for ARM machines.
 # It expects that you have:
 
-# 1. installed Yocto build environment, built and an image with some additional components.
+# 1. Install Yocto build environment, build an image with some additional components.
+# 1a. Install meta-openembedded and add these layers by setting the poky/build/conf/bblayers.conf BBLAYERS variable (see Yocto documentation).
 # Add this to your poky/build/conf/local.conf to build the additional components:
 # IMAGE_INSTALL_append = "  gdb gcc g++ openssh python-core boost glib-2.0 dbus zlib libxml2 e2fsprogs sqlite3 db "
 # (gdb gcc g++ and openssh are not strictly necessary)
@@ -26,7 +27,10 @@
 # YOU MUST CHANGE:
 
 # Set this to where you copied your target's system libraries and headers
-CROSS_SYS_ROOT:=/code/git/poky/build/tmp/sysroots/qemuarm
+CROSS_SYS_ROOT:=/clovis/git/poky/build/tmp/sysroots/qemuarm
+
+# Which protobuf version does your embedded platform supply? Add a "p" in front, i.e. 2.6.1 -> p2.6.1.  To figure this out, run "bitbake-layers show-recipes protobuf", if not > 2.5.0 build protobufs in 3rdparty/base)
+PROTOBUFVER:=p2.6.1
 
 # Select which database you want
 SAFPLUS_WITH_GDBM:=false
@@ -62,7 +66,7 @@ $(echo Using compiler supplied by Yocto poxy setup file: $(CXX))
 COMPILER:=$(strip $(CXX))
 
 # Set up the pkg-config program to point to the crossbuild environment not the local environment
-PKG_CONFIG_PATH = $(INSTALL_DIR)/lib/pkgconfig:$(CROSS_SYS_ROOT)/usr/lib/arm-linux-gnueabihf/pkgconfig
+PKG_CONFIG_PATH = $(INSTALL_DIR)/lib/pkgconfig:$(CROSS_SYS_ROOT)/usr/lib/pkgconfig
 PKG_CONFIG = PKG_CONFIG_LIBDIR=$(INSTALL_DIR) PKG_CONFIG_PATH=$(PKG_CONFIG_PATH) pkg-config
 
 # Have to override this because pkg-config is returning a bogus directory

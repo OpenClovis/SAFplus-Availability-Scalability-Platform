@@ -7,7 +7,7 @@ CLIENT_SRC := $(wildcard *.cxx)
 CLIENT_OBJ := $(addprefix $(OBJ_DIR)/,$(subst .cxx,.o,$(CLIENT_SRC)))
 
 # Specify the required libraries
-SAFPLUS_LIBS := clLog clUtils clOsal
+SAFPLUS_LIBS := clMgt clName clCkpt clMsg clFault clTimer clDbal clLog clUtils clOsal
 # Then use these in the make rule
 SAFPLUS_DEP_LIBS     := $(addsuffix .so,$(addprefix $(LIB_DIR)/lib,$(SAFPLUS_LIBS)))
 SAFPLUS_LINK_LIBS := -L$(LIB_DIR) $(addprefix -l,$(SAFPLUS_LIBS))
@@ -27,7 +27,7 @@ image: $(IMAGE_FILE)
 
 $(IMAGE_FILE): $(TEST_DIR)/testLog
 	cp start setup $(SAFPLUS_TARGET)
-	$(SAFPLUS_MAKE_DIR)/safplus_packager.py -x "(cp start setup {image_dir})" $@
+	$(SAFPLUS_MAKE_DIR)/safplus_packager.py -a $(TARGET_PLATFORM) -x "(cp start setup {image_dir})" $@
 
 
 $(IMAGE_FILE)_old: $(TEST_DIR)/testLog

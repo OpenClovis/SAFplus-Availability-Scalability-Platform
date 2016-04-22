@@ -120,9 +120,11 @@ PYTHON_PKG=$(PYTHON)-$(PYTHON_VER).tgz
 
 # THAT IS ALL
 ifneq ($(Xtarget),)
+  CC?=$(strip $(Xtarget)-gcc)
+  CXX?=$(strip $(Xtarget)-g++
   Xconfigure:=--host=$(strip $(Xtarget))
 #  Xconfigure:=--build=$(Xtarget)
-  Xargs:=CXXFLAGS="-I$(InstDir)/include -I$(InstDir)/$(Xtarget)/include -I$(InstDir)/glib-2.0/glib" CPPFLAGS="-I$(InstDir)/include -I$(InstDir)/$(Xtarget)/include -I$(InstDir)/glib-2.0/glib" LDFLAGS="-L$(InstDir)/lib -L$(InstDir)/$(Xtarget)/lib" CC=$(strip $(Xtarget)-gcc) CXX=$(strip $(Xtarget)-g++)
+  Xargs:=CXXFLAGS="-I$(InstDir)/include -I$(InstDir)/$(Xtarget)/include -I$(InstDir)/glib-2.0/glib" CPPFLAGS="-I$(InstDir)/include -I$(InstDir)/$(Xtarget)/include -I$(InstDir)/glib-2.0/glib" LDFLAGS="-L$(InstDir)/lib -L$(InstDir)/$(Xtarget)/lib" CC="$(CC)" CXX="$(CXX)"
 ifeq ($(Xenv),)
   Xenv:=export PKG_CONFIG_PATH=$(InstDir)/lib/pkgconfig/:$$PKG_CONFIG_PATH;PATH=$(InstDir)/bin:$$PATH;LD_LIBRARY_PATH=$(InstDir)/lib
 endif

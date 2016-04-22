@@ -21,6 +21,7 @@ SAFPLUS_LINK_LIBS := -L$(LIB_DIR) $(addprefix -l,$(SAFPLUS_LIBS))
 Release all: MgtMsg.pb.hxx $(LIB_DIR)/libclMgt.so
 
 MgtMsg.pb.hxx: $(PROTOBUFVER)/MgtMsg.pb.hxx
+	rm $@
 	ln -s $(PROTOBUFVER)/$@ $@
 
 $(LIB_DIR)/libclMgt.so: $(CLIENT_OBJ) $(SAFPLUS_DEP_LIBS)

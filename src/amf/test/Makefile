@@ -45,7 +45,7 @@ $(IMAGE_FILE): $(TEST_DIR)/exampleSafApp
 	cp setup start cleanup $(SAFPLUS_TARGET)  
 #	cp safplusAmf.idx safplusAmf.db safplusAmf.xml $(SAFPLUS_TARGET)/test
 	cp SAFplusAmf1Node1SG1Comp.xml $(SAFPLUS_TARGET)/test
-	$(SAFPLUS_MAKE_DIR)/safplus_packager.py -x "(cp setup start cleanup {image_dir})" $@
+	$(SAFPLUS_MAKE_DIR)/safplus_packager.py  -a $(TARGET_PLATFORM) -x "(cp setup start cleanup {image_dir})" $@
 
 
 include $(SAFPLUS_MAKE_DIR)/safplus_targets.mk

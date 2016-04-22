@@ -66,14 +66,17 @@ def log_init():
 
 
 # make_archive() is available from python 2.7 version onwards
-def create_archive(tar_name, tar_dir, arch_format='gztar'):
+def create_archive(tar_name, ext, tar_dir, arch_format='gztar'):
     """ Create an archive with a given archive name and archive format for the provided directory
     """
     if check_dir_exists(tar_dir):
-        tar_name = shutil.make_archive(tar_name, arch_format, tar_dir)
-        log.info("Archive {} generated successfully".format(tar_name))
+        gen_tar_name = shutil.make_archive(tar_name, arch_format, tar_dir)
+    # Rename this archive if create_archive gave us the wrong name
+        if gen_tar_name != tar_name + ext:
+          os.rename(gen_tar_name, tar_name + ext)
+        log.info("Archive {} generated successfully".format(tar_name + ext))
     else:
-        fail_and_exit("Archive directory {} not exists".format(tar_dir))
+        fail_and_exit("Archive directory {} does not exist".format(tar_dir))
     return tar_name
 
 def copy_dir(src, dst, recursion=0):
@@ -257,7 +260,7 @@ def package(base_dir, tar_name, prefix_dir, machine=None, pre_build_dir=None,exe
     log.info("Archive name is {0} Archive compression format is {1}".format(tar_name, compress_format))
     # put the tarball exactly where the requested on the command line: tar_name = os.path.join(image_dir, tar_name)
     tar_name = os.path.join(image_dir_path, tar_name)
-    tar_name = create_archive(tar_name, image_dir, compress_format)
+    gen_tar_name = create_archive(tar_name, archive_suffix, image_dir, compress_format)
     # select the corresponding package generation class method from the package module
     if yum_package:
 	from package import RPM
@@ -375,7 +378,7 @@ def parser(args):
     pre_build_dir = None
 
     try:
-        opts, args = getopt.getopt(args, "hm:s:o:p:x:ydi:v:r:", ["help", "project-dir=", "target-machine=",
+        opts, args = getopt.getopt(args, "hm:s:a:o:p:x:ydi:v:r:", ["help", "project-dir=", "target-machine=",
                                                            "tar-name=", "safplus-dir=","execute=", "yum", "debian", "install_dir=",
                                                            "pkg-version", "pkg-pkgrelease"])
     except getopt.GetoptError as err:

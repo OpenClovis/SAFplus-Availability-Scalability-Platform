@@ -50,7 +50,7 @@ image: $(IMAGE_FILE)
 
 $(IMAGE_FILE): $(TEST_DIR)/testGroup
 	cp setup start cleanup $(SAFPLUS_TARGET)
-	$(SAFPLUS_MAKE_DIR)/safplus_packager.py -x "(cp setup start cleanup {image_dir})" $@
+	$(SAFPLUS_MAKE_DIR)/safplus_packager.py  -a $(TARGET_PLATFORM) -x "(cp setup start cleanup {image_dir})" $@
 
 
 .PRECIOUS: $(OBJ_DIR)/%.o
