@@ -22,7 +22,6 @@
 
   <default>
     <model>
-      <make_options value="clean; make" />
       <install_dir value="/home/clovis/sp" />
       <logDir value="/var/log" />
       <configure_options value="" />
@@ -81,9 +80,10 @@
   <models>
     <amfUnitTest>
       <mapping>
-	<SysCtrl0   node="node0" role="controller" installDir="~/amfUnitTest" />
+	<SysCtrl0   node="node0" role="controller" install_dir="~" />
       </mapping>
       <testcase_dir  value="/code/git/SAFplus/test/amfUnitTest" />
+      <model_bin_dir value="amfUnitTest" />
       <make_options value="" />
       <configure_options value="" />
       <testfilter>
@@ -91,9 +91,10 @@
     </amfUnitTest>
     <ckptUnitTest>
       <mapping>
-	<SysCtrl0   node="node0" role="controller" installDir="~/ckptUnitTest" />
+	<SysCtrl0   node="node0" role="controller" install_dir="~" />
       </mapping>
       <testcase_dir  value="/code/git/SAFplus/test/ckptUnitTest" />
+      <model_bin_dir value="ckptUnitTest" />
       <make_options value="" />
       <configure_options value="" />
       <testfilter>
@@ -101,9 +102,10 @@
     </ckptUnitTest>
     <rpcUnitTest>
       <mapping>
-	<SysCtrl0   node="node0" role="controller" installDir="~/rpcUnitTest" />
+	<SysCtrl0   node="node0" role="controller" install_dir="~" />
       </mapping>
       <testcase_dir  value="/code/git/SAFplus/test/rpcUnitTest" />
+      <model_bin_dir value="rpcUnitTest" />
       <make_options value="" />
       <configure_options value="" />
       <testfilter>
@@ -111,9 +113,10 @@
     </rpcUnitTest>
     <grpUnitTest>
       <mapping>
-	<SysCtrl0   node="node0" role="controller" installDir="~/grpUnitTest" />
+	<SysCtrl0   node="node0" role="controller" install_dir="~" />
       </mapping>
       <testcase_dir  value="/code/git/SAFplus/test/grpUnitTest" />
+      <model_bin_dir value="grpUnitTest" />
       <make_options value="" />
       <configure_options value="" />
       <testfilter>
@@ -121,9 +124,10 @@
     </grpUnitTest>
     <logUnitTest>
       <mapping>
-	<SysCtrl0   node="node0" role="controller" installDir="~/logUnitTest" />
+	<SysCtrl0   node="node0" role="controller" install_dir="~" />
       </mapping>
       <testcase_dir  value="/code/git/SAFplus/test/logUnitTest" />
+      <model_bin_dir value="logUnitTest" />
       <make_options value="" />
       <configure_options value="" />
       <testfilter>
@@ -131,9 +135,10 @@
     </logUnitTest>
     <osalUnitTest>
       <mapping>
-	<SysCtrl0   node="node0" role="controller" installDir="~/osalUnitTest" />
+	<SysCtrl0   node="node0" role="controller" install_dir="~" />
       </mapping>
       <testcase_dir  value="/code/git/SAFplus/test/osalUnitTest" />
+      <model_bin_dir value="osalUnitTest" />
       <make_options value="" />
       <configure_options value="" />
       <testfilter>
@@ -142,8 +147,9 @@
     <msgUnitTest>
       <testcase_dir  value="/code/git/SAFplus/test/msgUnitTest" />
       <mapping>
-	<SysCtrl0   node="node0" role="controller" installDir="~/msgUnitTest" />
+	<SysCtrl0   node="node0" role="controller" install_dir="~" />
       </mapping>
+      <model_bin_dir value="msgUnitTest" />
       <make_options value="" />
       <configure_options value="" />
       <testfilter>

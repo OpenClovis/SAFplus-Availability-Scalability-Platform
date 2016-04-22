@@ -14,7 +14,6 @@ class test(testcase.TestGroup):
         """
         # pdb.set_trace()
         self.progTest(self.dirPfx() + "/test/testTransport --xport=clMsgUdp.so --mode=LAN",160)  # An App Test just starts running its tests when started (there is no addtl trigger required to put the entity "in service", etc.  The parameter is how long to wait before assuming the test hung.
-        self.assert_equal(1, 1, 'This test always works')
 
     def test_udp2(self):
         r"""
@@ -23,7 +22,6 @@ class test(testcase.TestGroup):
         """
         # pdb.set_trace()
         self.progTest(self.dirPfx() + "/test/testTransport --xport=clMsgUdp.so --mode=cloud",160)  # An App Test just starts running its tests when started (there is no addtl trigger required to put the entity "in service", etc.  The parameter is how long to wait before assuming the test hung.
-        self.assert_equal(1, 1, 'This test always works')
 
     def test_udp3(self):
         r"""
@@ -32,7 +30,6 @@ class test(testcase.TestGroup):
         """
   
         self.progTest(self.dirPfx() + "/test/testMsgServer --sar=0 --xport=clMsgUdp.so --mode=LAN --duration=7000",300)  # An App Test just starts running its tests when started (there is no addtl trigger required to put the entity "in service", etc.  The parameter is how long to wait before assuming the test hung.
-        self.assert_equal(1, 1, 'This test always works')
 
     def test_udp4(self):
         r"""
@@ -40,9 +37,6 @@ class test(testcase.TestGroup):
         \brief     	UDP cloud message software stack test
         """
         self.progTest(self.dirPfx() + "/test/testMsgServer --sar=0 --xport=clMsgUdp.so --mode=cloud --duration=7000",300)
-        self.assert_equal(1, 1, 'This test always works')
-
-
 
     def test_sctp1(self):
         r"""
@@ -51,7 +45,6 @@ class test(testcase.TestGroup):
         """
         # pdb.set_trace()
         self.progTest(self.dirPfx() + "/test/testTransport --xport=clMsgSctp.so --mode=LAN",160,"pkill -9 testTransport")  # An App Test just starts running its tests when started (there is no addtl trigger required to put the entity "in service", etc.  The parameter is how long to wait before assuming the test hung.
-        self.assert_equal(1, 1, 'This test always works')
 
     def test_sctp2(self):
         r"""
@@ -60,7 +53,6 @@ class test(testcase.TestGroup):
         """
         # pdb.set_trace()
         self.progTest(self.dirPfx() + "/test/testTransport --xport=clMsgSctp.so --mode=cloud",160,"pkill -9 testTransport")  # An App Test just starts running its tests when started (there is no addtl trigger required to put the entity "in service", etc.  The parameter is how long to wait before assuming the test hung.
-        self.assert_equal(1, 1, 'This test always works')
 
     def test_sctp3(self):
         r"""
@@ -69,7 +61,6 @@ class test(testcase.TestGroup):
         """
   
         self.progTest(self.dirPfx() + "/test/testMsgServer --sar=0 --xport=clMsgSctp.so --mode=LAN --duration=7000",300,"pkill -9 testMsgServer")  # An App Test just starts running its tests when started (there is no addtl trigger required to put the entity "in service", etc.  The parameter is how long to wait before assuming the test hung.
-        self.assert_equal(1, 1, 'This test always works')
 
     def test_sctp4(self):
         r"""
@@ -77,8 +68,6 @@ class test(testcase.TestGroup):
         \brief     	SCTP cloud software stack
         """
         self.progTest(self.dirPfx() + "/test/testMsgServer --sar=0 --xport=clMsgSctp.so --mode=cloud --duration=7000",300,"pkill -9 testMsgServer")
-        self.assert_equal(1, 1, 'This test always works')
-
 
     def test_sctp7(self):
         r"""
@@ -87,7 +76,6 @@ class test(testcase.TestGroup):
         """
   
         self.progTest(self.dirPfx() + "/test/testMsgServer --sar=1 --xport=clMsgSctp.so --mode=LAN --duration=20000",300,"pkill -9 testMsgServer")  # An App Test just starts running its tests when started (there is no addtl trigger required to put the entity "in service", etc.  The parameter is how long to wait before assuming the test hung.
-        self.assert_equal(1, 1, 'This test always works')
 
     def test_sctp8(self):
         r"""
@@ -95,9 +83,6 @@ class test(testcase.TestGroup):
         \brief     	SCTP cloud software stack
         """
         self.progTest(self.dirPfx() + "/test/testMsgServer --sar=1 --xport=clMsgSctp.so --mode=cloud --duration=20000",300,"pkill -9 testMsgServer")
-        self.assert_equal(1, 1, 'This test always works')
-
-
 
     def xxxtest_TCP1(self):  # TCP LAN makes no sense! (no broadcast so you need the node list)
         r"""
@@ -106,7 +91,6 @@ class test(testcase.TestGroup):
         """
         # pdb.set_trace()
         self.progTest(self.dirPfx() + "/test/testTransport --loglevel=error --xport=clMsgTcp.so --mode=LAN",160)  # An App Test just starts running its tests when started (there is no addtl trigger required to put the entity "in service", etc.  The parameter is how long to wait before assuming the test hung.
-        self.assert_equal(1, 1, 'This test always works')
 
     def test_TCP2(self):
         r"""
@@ -115,7 +99,6 @@ class test(testcase.TestGroup):
         """
         # pdb.set_trace()
         self.progTest(self.dirPfx() + "/test/testTransport --loglevel=error --xport=clMsgTcp.so --mode=cloud",160)  # An App Test just starts running its tests when started (there is no addtl trigger required to put the entity "in service", etc.  The parameter is how long to wait before assuming the test hung.
-        self.assert_equal(1, 1, 'This test always works')
 
     def xxxtest_TCP3(self): # TCP LAN makes no sense (no broadcast so you need the node list)
         r"""
@@ -124,7 +107,6 @@ class test(testcase.TestGroup):
         """
   
         self.progTest(self.dirPfx() + "/test/testMsgServer --loglevel=error --xport=clMsgTcp.so --mode=LAN --duration=7000",300)  # An App Test just starts running its tests when started (there is no addtl trigger required to put the entity "in service", etc.  The parameter is how long to wait before assuming the test hung.
-        self.assert_equal(1, 1, 'This test always works')
 
     def test_TCP4(self):
         r"""
@@ -132,9 +114,6 @@ class test(testcase.TestGroup):
         \brief     	TCP cloud software stack
         """
         self.progTest(self.dirPfx() + "/test/testMsgServer --loglevel=error --xport=clMsgTcp.so --mode=cloud --duration=7000",300)
-        self.assert_equal(1, 1, 'This test always works')
-
-
 
     def test_TPC1(self):
         r"""
@@ -144,7 +123,6 @@ class test(testcase.TestGroup):
         # pdb.set_trace()
         # os.system('modprobe -a tipc')
         self.progTest(self.dirPfx() + "/test/testTransport --xport=clMsgTipc.so --mode=LAN",160)  # An App Test just starts running its tests when started (there is no addtl trigger required to put the entity "in service", etc.  The parameter is how long to wait before assuming the test hung.
-        self.assert_equal(1, 1, 'This test always works')
 
     def test_TPC2(self):
         r"""
@@ -154,7 +132,6 @@ class test(testcase.TestGroup):
         # pdb.set_trace()
         # os.system('modprobe -a tipc')
         self.progTest(self.dirPfx() + "/test/testTransport --xport=clMsgTipc.so --mode=cloud",160)  # An App Test just starts running its tests when started (there is no addtl trigger required to put the entity "in service", etc.  The parameter is how long to wait before assuming the test hung.
-        self.assert_equal(1, 1, 'This test always works')
 
     def test_TPC3(self):
         r"""
@@ -163,7 +140,6 @@ class test(testcase.TestGroup):
         """
         # os.system('modprobe -a tipc')
         self.progTest(self.dirPfx() + "/test/testMsgServer --xport=clMsgTipc.so --mode=LAN --duration=7000",300)  # An App Test just starts running its tests when started (there is no addtl trigger required to put the entity "in service", etc.  The parameter is how long to wait before assuming the test hung.
-        self.assert_equal(1, 1, 'This test always works')
 
     def test_TPC4(self):
         r"""
@@ -172,6 +148,5 @@ class test(testcase.TestGroup):
         """
         # os.system('modprobe -a tipc')
         self.progTest(self.dirPfx() + "/test/testMsgServer --xport=clMsgTipc.so --mode=cloud --duration=7000",300)
-        self.assert_equal(1, 1, 'This test always works')
 
 

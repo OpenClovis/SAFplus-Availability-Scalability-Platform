@@ -9,4 +9,3 @@ class test(testcase.TestGroup):
         \brief     	Basic log functional tests 
         """
         self.progTest(self.model.cfg.mapping.SysCtrl0.install_dir + os.sep + self.model.cfg.model_bin_dir + "/test/testLog",120)
-        self.assert_equal(1, 1, 'This test always works')

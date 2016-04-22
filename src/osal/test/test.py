@@ -1,7 +1,10 @@
 import openclovis.test.testcase as testcase
+import os
 import pdb
                 
 class test(testcase.TestGroup):
+    def dirPfx(self):
+      return self.model.cfg.mapping.SysCtrl0.install_dir + os.sep + self.model.cfg.model_bin_dir    
   
     def test_osal(self):
         r"""
@@ -9,6 +12,5 @@ class test(testcase.TestGroup):
         \brief     	OSAL C unit tests 
         """
         # pdb.set_trace()
-        self.progTest(self.model.cfg.mapping.SysCtrl0.installDir + "/test/testOsal",160)  # An App Test just starts running its tests when started (there is no addtl trigger required to put the entity "in service", etc.  The parameter is how long to wait before assuming the test hung.
-        self.assert_equal(1, 1, 'This test always works')
+        self.progTest(self.dirPfx() + "/test/testOsal",300)  # An App Test just starts running its tests when started (there is no addtl trigger required to put the entity "in service", etc.  The parameter is how long to wait before assuming the test hung.
 
