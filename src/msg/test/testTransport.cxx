@@ -16,6 +16,8 @@
 
 using namespace SAFplus;
 
+int testMaxMsgSize = 1000000;
+
 class xorshf96
 {
 public:
@@ -121,7 +123,7 @@ bool testSendRecv(MsgTransportPlugin_1* xp)
 
   // Test max msg size
   int maxMsgSize = xp->config.maxMsgSize;
-  if (maxMsgSize > 1500000) maxMsgSize = 1500000;  // experimentally the kernel can't handle more than 2MB buffered before it hangs
+  if (maxMsgSize > testMaxMsgSize) maxMsgSize = testMaxMsgSize;  // experimentally the kernel can't handle more than 2MB buffered before it hangs
   m = a->msgPool->allocMsg();
   clTest(("message allocated"), m != NULL,(" "));
   frag = m->append(maxMsgSize);
@@ -152,9 +154,13 @@ bool testSendRecvSize(MsgTransportPlugin_1* xp)
 
   unsigned long seed = 0;
   int maxMsgSize = xp->config.maxMsgSize;
-  if (maxMsgSize > 1300000) maxMsgSize = 1300000;  // experimentally the kernel can't handle more than 2MB buffered before it hangs
+  if (maxMsgSize > testMaxMsgSize) maxMsgSize = testMaxMsgSize;  // experimentally the kernel can't handle more than 2MB buffered before it hangs
+  printf("Sequential Send/Recv from 1 to %d bytes.\n",maxMsgSize);
 
-  for (int size = 1; size <= maxMsgSize; size+=512)
+  // Since this starts small and rises it ends up allocating a huge amount of message buffers...
+  // since the available buffers in the pool are never large enough to fit the next message
+  // TODO: this isn't a normal use case, but perhaps fix by cleaning out the pool periodically?
+  for (int size = 1; size <= maxMsgSize; size+=512) 
   {
     seed++;
     printf("%d ", size);
@@ -269,7 +275,7 @@ bool testSendRecvMultiple(MsgTransportPlugin_1* xp)
   int drops = 0;
   unsigned long seed = 0;
   int maxMsgSize = xp->config.maxMsgSize;
-  if (maxMsgSize > 1000000) maxMsgSize = 1000000;  // experimentally the kernel can't handle more
+  if (maxMsgSize > testMaxMsgSize) maxMsgSize = testMaxMsgSize;  // experimentally the kernel can't handle more
   for (int atOnce = 1; atOnce < xp->config.maxMsgAtOnce; atOnce+=((rand()%37)+1))
   {
     printf("\nchunk [%d]: ",atOnce);
@@ -523,6 +529,7 @@ int main(int argc, char* argv[])
             ("xport", boost::program_options::value<std::string>(), "transport plugin filename")
             ("loglevel", boost::program_options::value<std::string>(), "logging cutoff level")
             ("mode", boost::program_options::value<std::string>()->default_value("LAN"), "specify LAN or cloud to set the messaging transport address resolution mode")
+            ("maxsize", boost::program_options::value<int>(), "Maximum message size")
             ;
 
   boost::program_options::variables_map vm;        
@@ -535,6 +542,7 @@ int main(int argc, char* argv[])
   }
   if (vm.count("xport")) xport = vm["xport"].as<std::string>();
   if (vm.count("loglevel")) SAFplus::logSeverity = logSeverityGet(vm["loglevel"].as<std::string>().c_str());
+  if (vm.count("maxsize")) testMaxMsgSize = vm["maxsize"].as<int>();
 
   // Create a unique test prefix based on the transport name
   strncpy(MsgXportTestPfx,&xport.c_str()[5],3);
