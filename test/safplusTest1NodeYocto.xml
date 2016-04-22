@@ -1,0 +1,169 @@
+<tae ver="1.0.0.0">
+  <env_cfg>
+    <git> 
+      <timeout>
+	<checkout value='10000' />
+	<update   value='3000' />
+	<revert   value='500' />
+	<status   value='200' />
+      </timeout> 
+    </git>
+    <!-- notify>
+      <email from="c3po-z1@openclovis.com" server="smtp.gmail.com" password="" to="eng-all@openclovis.com"/>
+    </notify -->
+    <report_url value="scp://report@test.openclovis.com//webdata/import" />
+  </env_cfg>
+
+  <!-- buildserver>
+    <sdk_root_dir value="/opt/clovis" />
+    <asp_dir      value="/home/c3po/git-tests/safplus" />
+    <project_dir  value="/home/c3po/git-tests/asptest" />
+  </buildserver -->
+
+  <default>
+    <model>
+      <make_command value="source /opt/poky/2.0.1/environment-setup-armv5e-poky-linux-gnueabi; make CROSS=qemuarm.mk" />
+      <make_image value="source /opt/poky/2.0.1/environment-setup-armv5e-poky-linux-gnueabi; IMAGE_FILE=%s/%s.tgz make CROSS=qemuarm.mk image" />
+      <logDir value="/var/log" />
+      <configure_options value="" />
+    </model>
+    <fixture>
+      <build_server ip='localhost' os='ubuntu' user='clovis' password='clovis' />
+      <nodes>
+	<node0 ip='192.168.7.2' os='Yocto-minimal' user="root" password="root" />
+      </nodes>
+      <description>
+	Yocto embedded QEMU node
+      </description>
+    </fixture>
+  </default>
+  
+
+ <projects>
+
+  <SAFplus7.0>
+    <default>
+      <model>
+        <middleware value="Standalone" />
+        <architecture value="" />
+        <cross_build_envscript_absolute_path value="" />
+      </model>
+    </default>
+   
+    <models> 
+      <osalUnitTest>
+	<image_source value="dir://clovis/git/SAFplus/test/osalUnitTest" />
+     </osalUnitTest>
+      <logUnitTest>
+	<image_source value="dir://clovis/git/SAFplus/test/logUnitTest" />
+     </logUnitTest>
+      <msgUnitTest>
+	<image_source value="dir://clovis/git/SAFplus/test/msgUnitTest" />
+     </msgUnitTest>
+      <rpcUnitTest>
+	<image_source value="dir://clovis/git/SAFplus/test/rpcUnitTest" />
+     </rpcUnitTest>
+     <grpUnitTest>
+	<image_source value="dir://clovis/git/SAFplus/test/grpUnitTest" />
+     </grpUnitTest>
+      <ckptUnitTest>
+	<image_source value="dir://clovis/git/SAFplus/test/ckptUnitTest" />
+     </ckptUnitTest>
+      <amfUnitTest>
+	<image_source value="dir://clovis/git/SAFplus/test/amfUnitTest" />
+     </amfUnitTest>
+    </models>
+
+  </SAFplus7.0>
+
+ </projects>
+
+  <models>
+    <amfUnitTest>
+      <mapping>
+	<SysCtrl0   node="node0" role="controller" install_dir="/code" />
+      </mapping>
+      <model_bin_dir value="amfUnitTest" />
+      <testcase_dir  value="/clovis/git/SAFplus/test/amfUnitTest" />
+      <make_options value="" />
+      <configure_options value="" />
+      <testfilter>
+      </testfilter>
+    </amfUnitTest>
+    <ckptUnitTest>
+      <mapping>
+	<SysCtrl0   node="node0" role="controller" install_dir="/code" />
+      </mapping>
+      <model_bin_dir value="ckptUnitTest" />
+      <testcase_dir  value="/clovis/git/SAFplus/test/ckptUnitTest" />
+      <make_options value="" />
+      <configure_options value="" />
+      <testfilter>
+      </testfilter>
+    </ckptUnitTest>
+    <rpcUnitTest>
+      <mapping>
+	<SysCtrl0   node="node0" role="controller" install_dir="/code" />
+      </mapping>
+      <model_bin_dir value="rpcUnitTest" />
+      <testcase_dir  value="/clovis/git/SAFplus/test/rpcUnitTest" />
+      <make_options value="" />
+      <configure_options value="" />
+      <testfilter>
+      </testfilter>
+    </rpcUnitTest>
+    <grpUnitTest>
+      <mapping>
+	<SysCtrl0   node="node0" role="controller" install_dir="/code" />
+      </mapping>
+      <model_bin_dir value="grpUnitTest" />
+      <testcase_dir  value="/clovis/git/SAFplus/test/grpUnitTest" />
+      <make_options value="" />
+      <configure_options value="" />
+      <testfilter>
+      </testfilter>
+    </grpUnitTest>
+    <logUnitTest>
+      <mapping>
+	<SysCtrl0   node="node0" role="controller" install_dir="/code" />
+      </mapping>
+      <model_bin_dir value="logUnitTest" />
+      <testcase_dir  value="/clovis/git/SAFplus/test/logUnitTest" />
+      <make_options value="" />
+      <configure_options value="" />
+      <testfilter>
+      </testfilter>
+    </logUnitTest>
+    <osalUnitTest>
+      <mapping>
+	<SysCtrl0   node="node0" role="controller" install_dir="/code" />
+      </mapping>
+      <model_bin_dir value="osalUnitTest" />
+      <testcase_dir  value="/clovis/git/SAFplus/test/osalUnitTest" />
+      <make_options value="" />
+      <configure_options value="" />
+      <testfilter>
+      </testfilter>
+    </osalUnitTest>
+    <msgUnitTest>
+      <testcase_dir  value="/clovis/git/SAFplus/test/msgUnitTest" />
+      <mapping>
+	<SysCtrl0   node="node0" role="controller" install_dir="/code" />
+      </mapping>
+      <model_bin_dir value="msgUnitTest" />
+      <make_options value="" />
+      <configure_options value="" />
+      <testfilter>
+      </testfilter>
+    </msgUnitTest>
+
+  </models>
+
+  <buildserver>
+    <sdk_root_dir value="/clovis/git/SAFplus" />
+    <asp_dir      value="/clovis/git/SAFplus" />
+    <project_dir  value="/clovis/git/SAFplus/test" />
+  </buildserver>
+
+  <skip_stages value="" />
+</tae>
