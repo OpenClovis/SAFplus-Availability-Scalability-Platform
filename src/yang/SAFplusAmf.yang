@@ -382,6 +382,20 @@ module SAFplusAmf
 	     SAFplusTypes:ui-prompt "Assignment disabled on the cell";
        }
 
+      leaf userDefinedType
+       {
+         type string;
+	     description "This is a type of node in string that user wants to make this node can be inherted (see canBeInherited property. If canBeInherited is 'false', the value may be empty). If a node is supposed to be configured like this node, user must specify this property when creating a new node";
+	     SAFplusTypes:ui-prompt "User-defined node type";
+       }
+
+      leaf canBeInherited
+       {
+         type boolean;
+	     description "This flag is to determine whether this node can be inherited by a new node or not. If a node is supposed to be configured like this node, user must specify user-defined node type when creating a new node";
+	     SAFplusTypes:ui-prompt "Can be inherited by a new node";
+       }
+
     leaf-list serviceUnits
       {
        SAFplusTypes:c-type "::SAFplusAmf::ServiceUnit*";
