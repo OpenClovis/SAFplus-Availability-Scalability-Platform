@@ -11,4 +11,8 @@ class test(testcase.TestGroup):
         \brief     	Interprocess Remote Procedure Call performance test
         """
         # pdb.set_trace()
-        self.progTest(self.dirPfx() + "/test/testRpcPerf",300)  # An App Test just starts running its tests when started (there is no addtl trigger required to put the entity "in service", etc.  The parameter is how long to wait before assuming the test hung.
+        args = ""
+        if self.fixture.nodes["SysCtrl0"].has_key("rpcCount"): 
+          args += " --count=%s" % str(self.fixture.nodes["SysCtrl0"].rpcCount)
+
+        self.progTest(self.dirPfx() + "/test/testRpcPerf%s" % args,300)  # An App Test just starts running its tests when started (there is no addtl trigger required to put the entity "in service", etc.  The parameter is how long to wait before assuming the test hung.

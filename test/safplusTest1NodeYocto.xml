@@ -30,7 +30,7 @@
     <fixture>
       <build_server ip='localhost' os='ubuntu' user='clovis' password='clovis' />
       <nodes>
-	<node0 ip='192.168.7.2' os='Yocto-minimal' user="root" password="root" maxMsgSize="250000" />
+	<node0 ip='192.168.7.2' os='Yocto-minimal' user="root" password="root" maxMsgSize="250000" rpcCount="50" />
       </nodes>
       <description>
 	Yocto embedded QEMU node

@@ -1,4 +1,4 @@
-import os, sys, time,types, pdb, signal, random, datetime
+import os, sys, time,types, signal, random, datetime
 import subprocess
 
 import dbalpy
