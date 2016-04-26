@@ -120,11 +120,11 @@ class ZombieException(Exception):
 def main(tgtDir):
     os.environ["ASP_NODENAME"] = "node0"
     try:
-      amfpid = int(subprocess.check_output(["pgrep","-n", "safplus_amf"]))
+      amfpid = int(subprocess.check_output(["pgrep","-n", "safplus_amf"]).strip())
       status = procStatus(amfpid)
       if status == "Z": # zombie
         raise ZombieException()
-      print "AMF is already running as process [%d]" % int(amfpid.strip())
+      print "AMF is already running as process [%d]" % amfpid
     except (subprocess.CalledProcessError,ZombieException):
       startupAmf(tgtDir,"amfOutput.txt")  
       time.sleep(3) # Give the AMF time to initialize shared memory segments
@@ -136,6 +136,7 @@ def main(tgtDir):
 
     clTest.testCase("AMF-FAL-OVR.TC001: Component fail over",AmfFailComp)
     clTest.finalize();
+    sp.Finalize()
 
 def AmfFailComp():
     # Make sure sg is fully up

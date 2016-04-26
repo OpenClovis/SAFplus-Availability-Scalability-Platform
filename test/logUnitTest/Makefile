@@ -26,8 +26,8 @@ $(OBJ_DIR)/%.o: %.cxx Makefile $(SAFPLUS_MAKE_DIR)/preface.mk $(CLIENT_H)
 image: $(IMAGE_FILE)
 
 $(IMAGE_FILE): $(TEST_DIR)/testLog
-	cp start setup $(SAFPLUS_TARGET)
-	$(SAFPLUS_MAKE_DIR)/safplus_packager.py -a $(TARGET_PLATFORM) -x "(cp start setup {image_dir})" $@
+	cp start setup cleanup $(SAFPLUS_TARGET)
+	$(SAFPLUS_MAKE_DIR)/safplus_packager.py -a $(TARGET_PLATFORM) -x "(cp start setup cleanup {image_dir})" $@
 
 
 $(IMAGE_FILE)_old: $(TEST_DIR)/testLog

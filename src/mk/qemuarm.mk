@@ -41,7 +41,7 @@ SAFPLUS_WITH_BERKELEYDB:=false
 SAFPLUS_WITH_BOOST_CHRONO:=false
 
 # Skip Python (because it is not included by default in the Yocto images)
-Languages := 
+# Languages := 
 
 # Override the target platform because ARM compiled code differs based on the architecture and thumb instruction set.
 # So getting the target platform by asking the compiler is not sufficient

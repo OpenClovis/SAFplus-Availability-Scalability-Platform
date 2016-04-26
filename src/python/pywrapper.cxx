@@ -67,6 +67,7 @@ BOOST_PYTHON_MODULE(pySAFplus)
     .value("DBAL",LibDep::Bits::DBAL)
     .value("MGT_ACCESS",LibDep::Bits::MGT_ACCESS);
   def("Initialize",SAFplus::safplusInitialize);
+  def("Finalize",SAFplus::safplusFinalize);
 
 
   // Basic Logging
