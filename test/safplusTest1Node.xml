@@ -23,13 +23,13 @@
   <default>
     <model>
       <install_dir value="/home/clovis/sp" />
-      <logDir value="/var/log" />
+      <logDir value="~" />
       <configure_options value="" />
     </model>
     <fixture>
-      <build_server ip='localhost' os='ubuntu' user='root' password='root' />
+      <build_server ip='localhost' os='ubuntu' user='clovis' password='clovis' />
       <nodes>
-	<node0 ip='localhost' os='Ubuntu' user="root" password="root" />
+	<node0 ip='localhost' os='Ubuntu' user="clovis" password="clovis" />
       </nodes>
       <description>
 	single node 32 bit
@@ -51,25 +51,25 @@
    
     <models> 
       <osalUnitTest>
-	<image_source value="dir://code/git/SAFplus/test/osalUnitTest" />
+	<image_source value="dir://home/clovis/git/safplus/test/osalUnitTest" />
      </osalUnitTest>
       <logUnitTest>
-	<image_source value="dir://code/git/SAFplus/test/logUnitTest" />
+	<image_source value="dir://home/clovis/git/safplus/test/logUnitTest" />
      </logUnitTest>
       <msgUnitTest>
-	<image_source value="dir://code/git/SAFplus/test/msgUnitTest" />
+	<image_source value="dir://home/clovis/git/safplus/test/msgUnitTest" />
      </msgUnitTest>
       <rpcUnitTest>
-	<image_source value="dir://code/git/SAFplus/test/rpcUnitTest" />
+	<image_source value="dir://home/clovis/git/safplus/test/rpcUnitTest" />
      </rpcUnitTest>
      <grpUnitTest>
-	<image_source value="dir://code/git/SAFplus/test/grpUnitTest" />
+	<image_source value="dir://home/clovis/git/safplus/test/grpUnitTest" />
      </grpUnitTest>
       <ckptUnitTest>
-	<image_source value="dir://code/git/SAFplus/test/ckptUnitTest" />
+	<image_source value="dir://home/clovis/git/safplus/test/ckptUnitTest" />
      </ckptUnitTest>
       <amfUnitTest>
-	<image_source value="dir://code/git/SAFplus/test/amfUnitTest" />
+	<image_source value="dir://home/clovis/git/safplus/test/amfUnitTest" />
      </amfUnitTest>
     </models>
 
@@ -82,8 +82,8 @@
       <mapping>
 	<SysCtrl0   node="node0" role="controller" install_dir="~" />
       </mapping>
-      <testcase_dir  value="/code/git/SAFplus/test/amfUnitTest" />
       <model_bin_dir value="amfUnitTest" />
+      <testcase_dir  value="/home/clovis/git/safplus/test/amfUnitTest" />
       <make_options value="" />
       <configure_options value="" />
       <testfilter>
@@ -93,8 +93,8 @@
       <mapping>
 	<SysCtrl0   node="node0" role="controller" install_dir="~" />
       </mapping>
-      <testcase_dir  value="/code/git/SAFplus/test/ckptUnitTest" />
       <model_bin_dir value="ckptUnitTest" />
+      <testcase_dir  value="/home/clovis/git/safplus/test/ckptUnitTest" />
       <make_options value="" />
       <configure_options value="" />
       <testfilter>
@@ -104,8 +104,8 @@
       <mapping>
 	<SysCtrl0   node="node0" role="controller" install_dir="~" />
       </mapping>
-      <testcase_dir  value="/code/git/SAFplus/test/rpcUnitTest" />
       <model_bin_dir value="rpcUnitTest" />
+      <testcase_dir  value="/home/clovis/git/safplus/test/rpcUnitTest" />
       <make_options value="" />
       <configure_options value="" />
       <testfilter>
@@ -115,7 +115,6 @@
       <mapping>
 	<SysCtrl0   node="node0" role="controller" install_dir="~" />
       </mapping>
-      <testcase_dir  value="/code/git/SAFplus/test/grpUnitTest" />
       <model_bin_dir value="grpUnitTest" />
       <make_options value="" />
       <configure_options value="" />
@@ -126,8 +125,8 @@
       <mapping>
 	<SysCtrl0   node="node0" role="controller" install_dir="~" />
       </mapping>
-      <testcase_dir  value="/code/git/SAFplus/test/logUnitTest" />
       <model_bin_dir value="logUnitTest" />
+      <testcase_dir  value="/home/clovis/git/safplus/test/logUnitTest" />
       <make_options value="" />
       <configure_options value="" />
       <testfilter>
@@ -137,15 +136,15 @@
       <mapping>
 	<SysCtrl0   node="node0" role="controller" install_dir="~" />
       </mapping>
-      <testcase_dir  value="/code/git/SAFplus/test/osalUnitTest" />
       <model_bin_dir value="osalUnitTest" />
+      <testcase_dir  value="/home/clovis/git/safplus/test/osalUnitTest" />
       <make_options value="" />
       <configure_options value="" />
       <testfilter>
       </testfilter>
     </osalUnitTest>
     <msgUnitTest>
-      <testcase_dir  value="/code/git/SAFplus/test/msgUnitTest" />
+      <testcase_dir  value="/home/clovis/git/safplus/test/msgUnitTest" />
       <mapping>
 	<SysCtrl0   node="node0" role="controller" install_dir="~" />
       </mapping>
@@ -159,9 +158,9 @@
   </models>
 
   <buildserver>
-    <sdk_root_dir value="/code/git/SAFplus" />
-    <asp_dir      value="/code/git/SAFplus" />
-    <project_dir  value="/code/git/SAFplus/test" />
+    <sdk_root_dir value="/home/clovis/git/safplus" />
+    <asp_dir      value="/home/clovis/git/safplus" />
+    <project_dir  value="/home/clovis/git/safplus/test" />
   </buildserver>
 
   <skip_stages value="" />
