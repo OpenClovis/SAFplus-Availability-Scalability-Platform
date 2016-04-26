@@ -7,17 +7,21 @@ sysctl -w net.core.rmem_max=10485760
 sysctl -w net.core.rmem_default=10485760
 sysctl -w net.core.wmem_default=10485760
 
+# cleanup anything from old tests
+pkill -9 safplus_amf
+bin/safplus_cleanup
+
 # excessive logging can cause expect's input buffer to fill up, hanging the app on stdout
 export CL_LOG_SEVERITY=ERROR
 export CL_LOG_CODE_LOCATION_ENABLE=1
 
 # Remember: To use UDP broadcasts on the loopback interface I need to enable a broadcast address
-IFS=$(ifconfig -a | sed 's/[ \t].*//;/^\(lo\|\)$/d')
+IFS=($( { ifconfig -a || ip link show; } 2>/dev/null | sed 's/[ \t].*//;/^\(lo\|\)$/d'))
 echo "interfaces $IFS"
 export SAFPLUS_BACKPLANE_INTERFACE=$(echo "$IFS" | tr "\n" " " | awk '{print $1}')
 echo "backplane: $SAFPLUS_BACKPLANE_INTERFACE"
 echo "ifconfig $SAFPLUS_BACKPLANE_INTERFACE | awk '/inet addr/{print substr($2,6)}'"
-IP=$(ifconfig  "$SAFPLUS_BACKPLANE_INTERFACE" | awk '/inet addr/{print substr($2,6)}')
+IP=($(ifconfig "$SAFPLUS_BACKPLANE_INTERFACE" | awk '/inet addr/{print substr($2,6)}'))
 echo "IP: $IP"
 ./bin/safplus_cloud --add "$IP"
 ./bin/safplus_cloud --list

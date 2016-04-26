@@ -47,18 +47,14 @@ public:
   void operator()()
   {
     double someMath=1;
-    uint64_t start = nowMs();
-    uint64_t end;
+    uint64_t start = timerMs();
+    uint64_t end = start;
     printf("starting load cpu chewer %d at: %" PRIu64 "\n", instance, start);
-    do
-      {
-      for(int iloop=0;iloop<999999999;iloop++)
+    for(int iloop=0;(iloop<999999999) && (end - start < 61000);iloop++,end = timerMs())
       {
         someMath = iloop + (someMath*1.342343);
         someMath = sqrt(37.56*someMath);
       }
-      end = nowMs();
-      } while (end - start < 60000);  // Need at least 1 minute test or the load Avg might not update
   }
 };
 
@@ -76,22 +72,19 @@ void TestNodeStats::testLoadAvg()
     nStat.read();
     ldAvg1 = nStat.loadAvg;
     double someMath=1;
-    uint64_t start = nowMs();
-    uint64_t end;
+    uint64_t start = timerMs();
+    uint64_t end = start;
     printf("starting load ave test at: %" PRIu64 "\n", start);
     boost::thread(CpuChewer(1));
     boost::thread(CpuChewer(2));
     boost::thread(CpuChewer(3));
     boost::thread(CpuChewer(4));
-    do
-      {
-      for(int iloop=0;iloop<999999999;iloop++)
+
+    for(int iloop=0;(iloop<999999999) && (end - start < 61000);iloop++,end = timerMs())
       {
         someMath = iloop + (someMath*1.342343);
         someMath = sqrt(37.56*someMath);
       }
-      end = nowMs();
-      } while (end - start < 60000);  // Need at least 1 minute test or the load Avg might not update
 
     NodeStatistics nStat2;
     nStat2.read();

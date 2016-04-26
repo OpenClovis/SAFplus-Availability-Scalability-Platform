@@ -13,12 +13,12 @@ export CL_LOG_CODE_LOCATION_ENABLE=1
 export ASP_NODENAME=node0
 
 # To use UDP broadcasts on the loopback interface I need to enable a broadcast address
-IFS=$(ifconfig -a | sed 's/[ \t].*//;/^\(lo\|\)$/d')
+IFS=($( { ifconfig -a || ip link show; } 2>/dev/null | sed 's/[ \t].*//;/^\(lo\|\)$/d'))
 echo "interfaces $IFS"
 export SAFPLUS_BACKPLANE_INTERFACE=$(echo "$IFS" | tr "\n" " " | awk '{print $1}')
 echo "backplane: $SAFPLUS_BACKPLANE_INTERFACE"
 echo "ifconfig $SAFPLUS_BACKPLANE_INTERFACE | awk '/inet addr/{print substr($2,6)}'"
-IP=$(ifconfig  "$SAFPLUS_BACKPLANE_INTERFACE" | awk '/inet addr/{print substr($2,6)}')
+IP=($(ifconfig "$SAFPLUS_BACKPLANE_INTERFACE" | awk '/inet addr/{print substr($2,6)}'))
 echo "IP: $IP"
 
 export SAFPLUS_MSG_TRANSPORT=clMsgUdp.so

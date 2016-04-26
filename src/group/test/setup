@@ -15,6 +15,7 @@ export CL_LOG_SEVERITY=ERROR
 export CL_LOG_CODE_LOCATION_ENABLE=1
 export SAFPLUS_BACKPLANE_INTERFACE=lo
 
+pkill -9 safplus_amf
 # The group tests rely on a clean start because they check the number of existing groups after creating/deleting
 ./bin/safplus_cleanup
 # Normally safplus_amf is the group server but for the unit tests we use the standalone group server

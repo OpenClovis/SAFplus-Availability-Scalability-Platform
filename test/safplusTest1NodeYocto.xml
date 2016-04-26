@@ -8,6 +8,7 @@
 	<status   value='200' />
       </timeout> 
     </git>
+    <fixture_image_untar value="60" />
     <!-- notify>
       <email from="c3po-z1@openclovis.com" server="smtp.gmail.com" password="" to="eng-all@openclovis.com"/>
     </notify -->
