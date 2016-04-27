@@ -113,6 +113,7 @@ extern "C"
  * Infinite timeout.
  */
 # define CL_IOC_TIMEOUT_FOREVER ~0U
+# define CL_IOC_RECEIVE_TIMEOUT 1500
 
 
 /**

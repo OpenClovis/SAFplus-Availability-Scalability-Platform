@@ -3895,7 +3895,7 @@ static ClRcT clEoIocRecvQueueProcess(ClEoExecutionObjT *pThis)
         pThis->eoInitDone = 1;
     }
 
-    recvOption.recvTimeout = 1000; //CL_IOC_TIMEOUT_FOREVER;
+    recvOption.recvTimeout = CL_IOC_RECEIVE_TIMEOUT; //CL_IOC_TIMEOUT_FOREVER;
 
     clOsalSelfTaskIdGet(&selfTaskId);
     clLogDebug(CL_LOG_EO_AREA, CL_LOG_EO_CONTEXT_RECV, "IOC Receive Thread is running with id [%llx]", selfTaskId);
