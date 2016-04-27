@@ -46,7 +46,7 @@ int SERVER_MSG_NODE=0;
 int SERVER_MSG_PORT=65;
 int MY_MSG_PORT=66;
 
-int loopCount=1000;
+int loopCount=200;
 
 boost::program_options::variables_map parseOptions(int argc,char *argv[])
 {

@@ -32,6 +32,15 @@ testyoctodebugone:
 	$(TAE_DIR)/tae -v -v -v -d -S safplusTest1NodeYocto.xml -M $(MODEL)
 
 
+testopi:
+	$(TAE_DIR)/tae -S safplusTest1NodeOrangePi.xml
+
+testopione:
+	$(TAE_DIR)/tae -S safplusTest1NodeOrangePi.xml -M $(MODEL)
+
+testopidebugone:
+	$(TAE_DIR)/tae -v -v -v -d -S safplusTest1NodeOrangePi.xml -M $(MODEL)
+
 
 clean:
 	rm -rf *.tgz stamps* *.zip *.pyc log_*/* /var/log/testresults.log

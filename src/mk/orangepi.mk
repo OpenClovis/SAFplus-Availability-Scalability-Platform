@@ -9,10 +9,14 @@
 # Set this to where you copied your target's system libraries and headers
 CROSS_SYS_ROOT := /code/opipEnv
 
+# This specifies the output directory name.  Override because ARM compiled code
+# differs based on the architecture and thumb instruction set.
+# So getting the target platform by asking the compiler is not sufficient
+TARGET_PLATFORM?=orangepi
+
 # Select which database you want
 SAFPLUS_WITH_GDBM := false
 #SAFPLUS_WITH_SQLITE := false
-
 
 # YOU MAY NEED TO CHANGE:
 

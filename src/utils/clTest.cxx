@@ -113,7 +113,17 @@ void clTestPrintImpl(const char* file, int line, const char* fn, const char* str
   testLogMutex.lock(); /* Lock clTestFp because it is closed and reopened each time a log is written (in case the file is deleted or moved) */
   if (!clTestFp)
     {
-      clTestFp = fopen("/var/log/testresults.log","a+");
+      char* testDir = getenv("CL_TEST_LOG");
+      if (!testDir)
+        clTestFp = fopen("/var/log/testresults.log","a+");
+      else
+	{
+	  char testFilename[512];
+	  strncpy(testFilename,testDir,511);
+	  strncat(testFilename,"/testresults.log",511);
+	  testFilename[511]=0;
+	  clTestFp = fopen(testFilename,"a+");
+	}
       /* fprintf(clTestFp, "\n\n"); */
     }
 

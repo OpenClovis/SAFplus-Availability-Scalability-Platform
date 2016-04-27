@@ -1,5 +1,9 @@
 #!/bin/bash
-export SAFPLUS_BACKPLANE_INTERFACE=eth0
+
+# find any interface and use it
+IFS=($( { ifconfig -a || ip link show; } 2>/dev/null | sed 's/[ \t].*//;/^\(lo\|\)$/d'))
+export SAFPLUS_BACKPLANE_INTERFACE=$(echo "$IFS" | tr "\n" " " | awk '{print $1}')
+
 export SAFPLUS_MSG_TRANSPORT=clMsgUdp.so
 export LD_LIBRARY_PATH=`pwd`/lib:`pwd`/plugin:$LD_LIBRARY_PATH
 export PYTHONPATH=`pwd`/lib:`pwd`/bin:`pwd`/test:$PYTHONPATH
