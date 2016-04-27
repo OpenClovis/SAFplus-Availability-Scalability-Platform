@@ -96,6 +96,7 @@ bool testChunkingPerf(MsgSocket* src, MsgSocket* sink,Handle dest, int msgLen, i
   unsigned int totalMsgs=0;
   unsigned long seed = 0;
   timer t;
+  int drops = 0;
 
   for (int loop = 0; loop<numLoops; loop++)
     {
@@ -138,7 +139,8 @@ bool testChunkingPerf(MsgSocket* src, MsgSocket* sink,Handle dest, int msgLen, i
               msgCount = 0;
               while (msgCount < atOnce)
                 {
-                  m = sink->receive(1,1000);  // Even though a sent multiples, I may not receive them as multiples
+                  m = sink->receive(1,2000);  // Even though a sent multiples, I may not receive them as multiples
+#if 0              
                   assert(m);  /* If you get this then messages were dropped in
                                  the kernel.  Use these commands to increase the kernel network buffers:
                                  sysctl -w net.core.wmem_max=10485760
@@ -146,6 +148,9 @@ bool testChunkingPerf(MsgSocket* src, MsgSocket* sink,Handle dest, int msgLen, i
                                  sysctl -w net.core.rmem_default=10485760
                                  sysctl -w net.core.wmem_default=10485760
                               */
+#else
+
+#endif
                   curm = m;
                   while(curm)
                     {
@@ -168,7 +173,13 @@ bool testChunkingPerf(MsgSocket* src, MsgSocket* sink,Handle dest, int msgLen, i
                       msgCount++;
                       curm=m->nextMsg;
                     }
-                  sink->msgPool->free(m);
+                  if (m)
+                    sink->msgPool->free(m);
+		  else 
+                  {
+                  drops++;
+                  msgCount++;
+		  }
                 }
             }
         }
@@ -176,7 +187,7 @@ bool testChunkingPerf(MsgSocket* src, MsgSocket* sink,Handle dest, int msgLen, i
 
   double elapsed = t.elapsed();
   // Bandwidth measurements are doubled because the program sends AND receives each message
-  printf("%s: len [%6d] stride [%6d] Bandwidth [%8.2f msg/s, %8.2f MB/s]\n", testIdentifier, msgLen, msgsPerCall, 2*((double) totalMsgs)/elapsed, 2*(((double)(totalMsgs*msgLen*8))/elapsed)/1000000.0);
+  printf("%s: len [%6d] stride [%6d] Bandwidth [%8.2f msg/s, %8.2f MB/s] drops [%5d]\n", testIdentifier, msgLen, msgsPerCall, 2*((double) totalMsgs)/elapsed, 2*(((double)(totalMsgs*msgLen*8))/elapsed)/1000000.0,drops);
 
   perfReport("Message Performance", testIdentifier, PerfData("length",msgLen) ("chunk",msgsPerCall), PerfData("msg/s",2*((double) totalMsgs)/elapsed)("MB/s",2*(((double)(totalMsgs*msgLen*8))/elapsed)/1000000.0));
 
@@ -199,7 +210,7 @@ bool testLatency(MsgSocket* src, MsgSocket* sink,Handle dest, int msgLen, int nu
   Message* m;
   unsigned int totalMsgs=0;
   unsigned long seed = 0;
-
+  int drops = 0;
   seed++;
   m = src->msgPool->allocMsg();
   assert(m); //clTest(("message allocated"), m != NULL,(" "));
@@ -226,9 +237,13 @@ bool testLatency(MsgSocket* src, MsgSocket* sink,Handle dest, int msgLen, int nu
   for (int loop = 0; loop<numLoops; loop++)
     {
       Handle d = m->getAddress();
-      assert(d == dest);
+      if (d != dest)
+	{
+	  m->setAddress(dest);
+	}
       src->send(m);
-      m = sink->receive(1,1000);
+      m = sink->receive(1,2000);
+#if 0
       assert(m);  /* If you get this then messages were dropped in
                      the kernel.  Use these commands to increase the kernel network buffers:
                      sysctl -w net.core.wmem_max=10485760
@@ -236,29 +251,39 @@ bool testLatency(MsgSocket* src, MsgSocket* sink,Handle dest, int msgLen, int nu
                      sysctl -w net.core.rmem_default=10485760
                      sysctl -w net.core.wmem_default=10485760
                   */
+#else
+      if (!m)
+	{
+        printf("abort due to drop");
+        break;
+	}
+#endif
     }
   double elapsed = t.elapsed();
 
-  frag = m->firstFragment;
-  assert(frag);
-  if (verify)
+  if (m)
     {
-      xorshf96 rnd1(seed);
-      const unsigned char* bufr = (const unsigned char*) frag->read();
-      int miscompare=-1;
-      for (int i = 0; (i < msgLen) && !miscompare; i++,bufr++)
-        {
-          if (*bufr != rnd1())
-            {
-              miscompare = i;
-            }
-        }
-      clTest(("send/recv message ok"),miscompare==-1,("message size [%d] contents miscompare at position: [%d]",msgLen,miscompare));
+      frag = m->firstFragment;
+      assert(frag);
+      if (verify)
+	{
+	  xorshf96 rnd1(seed);
+	  const unsigned char* bufr = (const unsigned char*) frag->read();
+	  int miscompare=-1;
+	  for (int i = 0; (i < msgLen) && !miscompare; i++,bufr++)
+	    {
+	      if (*bufr != rnd1())
+		{
+		  miscompare = i;
+		}
+	    }
+	  clTest(("send/recv message ok"),miscompare==-1,("message size [%d] contents miscompare at position: [%d]",msgLen,miscompare));
+	}
+
+      sink->msgPool->free(m);
+
+      printf("%s: len [%6d] Latency [%8.6f ms]\n", testIdentifier, msgLen, ((elapsed*1000.0)/(double) numLoops));
     }
-
-  sink->msgPool->free(m);
-
-  printf("%s: len [%6d] Latency [%8.6f ms]\n", testIdentifier, msgLen, ((elapsed*1000.0)/(double) numLoops));
 #if 0
   printf("      : frag allocations: [%" PRIi64 "->%" PRIi64 "] cur allocated: msgs [%" PRIi64 "->%" PRIi64 "] frags[%" PRIi64 "->%" PRIi64 "]\n", 
          src->msgPool->fragCumulativeAllocated,sink->msgPool->fragCumulativeAllocated, 

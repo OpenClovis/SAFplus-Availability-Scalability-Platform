@@ -7,6 +7,9 @@
 #include <errno.h>
 #include <stdio.h>
 #include <chrono>
+#ifdef USE_BOOST_CHRONO
+#include <boost/chrono.hpp>
+#endif
 
 namespace SAFplus
 {

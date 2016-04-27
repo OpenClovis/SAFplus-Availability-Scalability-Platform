@@ -79,14 +79,17 @@ int main(int argc, char* argv[])
       if (sar) sock = new MsgSarSocket(xportSock.sock);
       else sock = xportSock.sock;
 
-
+      int count=0;
       while(1)
         {
-          m = sock->receive(1,0);
+          m = sock->receive(1,1000000);
           if (m) 
-            { 
+            {
+              count++;
               // for max speed we don't even call the log: logDebug("MSG","RFL", "rcv port [%d] node [%d]\n", m->port, m->node);
               sock->send(m);
+              if ((count&4095)==0) { printf("%d ",count); fflush(stdout); } 
+              if ((count&(4096*16)-1)==0) { printf("\n"); } 
             }
         }
 

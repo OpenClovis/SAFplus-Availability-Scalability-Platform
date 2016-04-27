@@ -12,6 +12,11 @@ typedef unsigned char  Byte;  /* 8 bits */
 #define MIN(a,b) ( (a) < (b) ? (a) : (b) )
 typedef list_base_hook<link_mode<auto_unlink> > auto_unlink_hook;
 
+#if __GNUC__ == 4 && __GNUC_MINOR__ == 7
+static inline unsigned short __builtin_bswap16(unsigned short s) { return (s<<8) | (s>>8); }
+#endif
+
+
 namespace SAFplus
   {
 

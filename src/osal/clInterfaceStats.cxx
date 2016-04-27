@@ -16,7 +16,7 @@
  * For more  information, see  the file  COPYING provided with this
  * material.
  */
-
+#include <string.h>
 #include "clLogApi.hxx"
 #include "clNodeStats.hxx"
 #include "clInterfaceStats.hxx"
@@ -87,7 +87,7 @@ void InterfaceStatisctics::scanInterfaceDevStats(std::string contents)
         // So making a new copy of the line. 
         ifLine = new char[lineLen + 1];
         memset(ifLine, 0, (lineLen + 1));
-        std::strncpy(ifLine, line.c_str(), lineLen);
+        ::strncpy(ifLine, line.c_str(), lineLen);
 
         token = strtok_r(ifLine, ": ", &sp);
         if (token == NULL)
@@ -98,7 +98,7 @@ void InterfaceStatisctics::scanInterfaceDevStats(std::string contents)
         InterfaceDevStats *ifStat = new InterfaceDevStats(token);
 
         memset(ifLine, 0, (lineLen + 1));
-        std::strncpy(ifLine, line.c_str(), lineLen);
+        ::strncpy(ifLine, line.c_str(), lineLen);
 
         char *subStr = strstr(ifLine, ": ");
 	//        sscanf(subStr, "%llu %llu %llu %llu %llu %llu %llu %llu "

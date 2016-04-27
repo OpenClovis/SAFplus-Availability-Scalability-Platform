@@ -12,6 +12,25 @@
 #include <linux/tipc.h>
 #endif
 
+#if (__GLIBC__ < 2 || ((__GLIBC__ == 2) && (__GLIBC_MINOR__ < 14)))
+
+#if 0
+struct mmsghdr {
+    struct msghdr msg_hdr;  /* Message header */
+    unsigned int  msg_len;  /* Number of bytes transmitted */
+};
+#endif
+
+static int sendmmsg(int sockfd, struct mmsghdr *msgvec, unsigned int vlen, unsigned int flags)
+{
+  for (int i=0;i<vlen;i++)
+    {
+      msgvec[i].msg_len = sendmsg(sockfd, &msgvec[i].msg_hdr, flags);
+    }
+  return vlen;
+}
+#endif
+
 namespace SAFplus
 {
   enum TipcConfig
@@ -75,8 +94,11 @@ namespace SAFplus
       }
     else config.capabilities = SAFplus::MsgTransportConfig::Capabilities::NONE;
 
-    SAFplusI::setNodeNetworkAddr(NULL,clusterNodes); // This function sets SAFplus::ASP_NODEADDR
-    config.nodeId = SAFplus::ASP_NODEADDR;
+    // TODO: get this value from tipc
+    const char* nodeID = getenv("SAFPLUS_NODE_ID");
+    assert(nodeID);
+    config.nodeId = SAFplus::ASP_NODEADDR = boost::lexical_cast<unsigned int>(nodeID);
+    assert(config.nodeId != 0);
  
     return config;
     }

@@ -68,12 +68,6 @@ $(info System include: $(SYSTEM_INC_DIR))
 COMPILER ?= g++
 LOCAL_COMPILER ?= g++
 
-TMP := $(shell which protoc) # Forces the evaluation right now
-PROTOC ?= $(TMP)
-
-PROTOBUFVER ?= p$(word 2,$(shell $(PROTOC) --version))
-$(info Protobuf version is $(PROTOBUFVER))
-
 # we need to have -Wno-deprecated-warnings because boost uses std::auto_ptr
 COMPILE_CPP ?= $(COMPILER) -std=c++11 -Wno-deprecated-declarations  -g -O0 -fPIC -c $(CPP_FLAGS) -o
 LINK_SO     ?= $(COMPILER) $(LINK_FLAGS) -g -shared -o
@@ -125,6 +119,17 @@ MWOBJ_DIR ?= $(SAFPLUS_TARGET)/mwobj
 OBJ_DIR ?= $(SAFPLUS_TARGET)/obj
 
 LOCAL_OBJ_DIR ?= $(SAFPLUS_TOOL_TARGET)/obj
+
+# Figure out which protobuf
+TMP:=$(shell which protoc) # Forces the evaluation right now
+ifeq ($(strip $(TMP)),)
+TMP := $(INSTALL_DIR)/bin/protoc
+
+endif
+PROTOC ?= $(TMP)
+
+PROTOBUFVER ?= p$(word 2,$(shell $(PROTOC) --version))
+$(info protoc is $(PROTOC). Protobuf version is $(PROTOBUFVER))
 
 $(info SAFplus libraries: $(LIB_DIR))
 $(info )

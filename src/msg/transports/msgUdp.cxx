@@ -7,6 +7,26 @@
 #include "clPluginHelper.hxx"
 #include <clCommon.hxx>  // For exceptions
 
+#if (__GLIBC__ < 2 || ((__GLIBC__ == 2) && (__GLIBC_MINOR__ < 14)))
+
+#if 0
+struct mmsghdr {
+    struct msghdr msg_hdr;  /* Message header */
+    unsigned int  msg_len;  /* Number of bytes transmitted */
+};
+#endif
+
+static int sendmmsg(int sockfd, struct mmsghdr *msgvec, unsigned int vlen, unsigned int flags)
+{
+  for (int i=0;i<vlen;i++)
+    {
+      msgvec[i].msg_len = sendmsg(sockfd, &msgvec[i].msg_hdr, flags);
+      assert(msgvec[i].msg_len != -1);
+    }
+  return vlen;
+}
+#endif
+
 namespace SAFplus
 {
   class Udp:public MsgTransportPlugin_1
@@ -244,7 +264,7 @@ namespace SAFplus
                   in_addr_t* t = (in_addr_t*) it.transportAddress();
                   to[i].sin_addr.s_addr = htonl(*t);
                 }
-              int retval = sendmmsg(sock, &msgvec[0], msgCount, 0);  // TODO flags
+              int retval = ::sendmmsg(sock, &msgvec[0], msgCount, 0);  // TODO flags
               if (retval == -1)
                 {
                   err = errno;  // Try all the nodes before erroring
