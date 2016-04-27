@@ -51,22 +51,27 @@ namespace SAFplus
 
       virtual MsgSocket* createSocket(uint_t port);
       virtual void deleteSocket(MsgSocket* sock);
+
+      void getAddress(void); //? Returns zero if no tipc or node not configured
+      uint_t cluster;
+      uint_t zone;
+      uint_t node;
     };
 
   class TipcSocket:public MsgSocket
     {
     public:
-    TipcSocket(){}
-    TipcSocket(uint_t port,MsgPool* pool,MsgTransportPlugin_1* transport);
-    virtual ~TipcSocket();
-    virtual void send(Message* msg);
-    virtual Message* receive(uint_t maxMsgs,int maxDelay=-1);
-    virtual void flush();
+      TipcSocket(){}
+      TipcSocket(uint_t port,MsgPool* pool,MsgTransportPlugin_1* transport);
+      virtual ~TipcSocket();
+      virtual void send(Message* msg);
+      virtual Message* receive(uint_t maxMsgs,int maxDelay=-1);
+      virtual void flush();
     protected:
-    int sock;    
-    
+      int sock;    
     };
   static Tipc api;
+
 
   MsgTransportConfig::Capabilities Tipc::getCapabilities()
   {
@@ -95,12 +100,32 @@ namespace SAFplus
     else config.capabilities = SAFplus::MsgTransportConfig::Capabilities::NONE;
 
     // TODO: get this value from tipc
+    getAddress();
+    assert((node != 0) && "TIPC address must be configured before running SAFplus"); 
     const char* nodeID = getenv("SAFPLUS_NODE_ID");
-    assert(nodeID);
-    config.nodeId = SAFplus::ASP_NODEADDR = boost::lexical_cast<unsigned int>(nodeID);
-    assert(config.nodeId != 0);
- 
+    if (nodeID)
+      {
+      unsigned int envNodeId = boost::lexical_cast<unsigned int>(nodeID);
+      assert(envNodeId == node); // SAFPLUS_NODE_ID is optional when using the TIPC transport, but if defined it MUST match the TIPC node address.
+      }
+    config.nodeId = SAFplus::ASP_NODEADDR = node;
     return config;
+    }
+
+  void Tipc::getAddress(void)
+    {
+	struct sockaddr_tipc addr;
+	socklen_t sz = sizeof(addr);
+	int sd;
+        cluster = 0; zone = 0; node = 0;
+
+	sd = socket(AF_TIPC, SOCK_RDM, 0);
+	if (sd < 0) return;
+	if (getsockname(sd, (struct sockaddr *)&addr, &sz) < 0) return;
+	close(sd);
+        cluster = tipc_cluster(addr.addr.id.node);
+        zone = tipc_zone(addr.addr.id.node);
+        node = tipc_node(addr.addr.id.node);
     }
 
   MsgSocket* Tipc::createSocket(uint_t port)
@@ -148,12 +173,21 @@ namespace SAFplus
 
      struct sockaddr_tipc myaddr;
      memset((char *)&myaddr, 0, sizeof(myaddr));
+#if 1
      myaddr.family = AF_TIPC;
      myaddr.addrtype = TIPC_ADDR_NAME;  // TODO: bind to the interface specified in env var
      myaddr.scope = TIPC_ZONE_SCOPE;
      myaddr.addr.name.domain = 0;
      myaddr.addr.name.name.instance = node;
      myaddr.addr.name.name.type = (port + SAFplusI::TipcTransportStartPort);
+#else
+     myaddr.family = AF_TIPC;
+     myaddr.addrtype = TIPC_ADDR_ID;  // TODO: bind to the interface specified in env var
+     myaddr.scope = 0;
+     myaddr.addr.id.ref = (port + SAFplusI::TipcTransportStartPort);
+     myaddr.addr.id.node = tipc_addr(((Tipc*)transport)->cluster,((Tipc*)transport)->zone,node);
+     //myaddr.addr.name.name.type = (port + SAFplusI::TipcTransportStartPort);
+#endif
 
      if (bind(sock, (struct sockaddr *)&myaddr, sizeof(myaddr)) < 0) 
        {
@@ -231,20 +265,27 @@ namespace SAFplus
           }
         else
           {
-          if (transport->clusterNodes)
+          if (!transport->clusterNodes)
+            {
+#if 0  // A thought, but does not work
+              to[msgCount].addrtype = TIPC_ADDR_ID;
+              to[msgCount].scope    = 0;
+              to[msgCount].addr.id.ref = msg->port + SAFplusI::TipcTransportStartPort; 
+              to[msgCount].addr.id.node = tipc_addr(((Tipc*)transport)->cluster,((Tipc*)transport)->zone,msg->node);                  
+#endif
+              to[msgCount].addrtype = TIPC_ADDR_NAME;
+              to[msgCount].scope    = TIPC_ZONE_SCOPE;
+              to[msgCount].addr.name.name.type = msg->port + SAFplusI::TipcTransportStartPort; 
+              to[msgCount].addr.name.name.instance = msg->node;
+              to[msgCount].addr.name.domain=0;
+            }
+          else  
             {
             to[msgCount].addrtype = TIPC_ADDR_NAME;
             to[msgCount].scope    = TIPC_ZONE_SCOPE;
             to[msgCount].addr.name.name.type = msg->port + SAFplusI::TipcTransportStartPort; 
-            to[msgCount].addr.name.name.instance = msg->node;
+            to[msgCount].addr.name.name.instance = *((uint32_t*)transport->clusterNodes->transportAddress(msg->node));
             to[msgCount].addr.name.domain=0;
-            }
-          else
-            {
-            to[msgCount].addrtype = TIPC_ADDR_NAMESEQ;
-            to[msgCount].addr.nameseq.type = msg->port + SAFplusI::TipcTransportStartPort;
-            to[msgCount].addr.nameseq.lower = TipcConfig::MinNodeAddress;
-            to[msgCount].addr.nameseq.upper = TipcConfig::MaxNodeAddress;
             }
           }
 

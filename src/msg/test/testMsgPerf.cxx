@@ -313,6 +313,7 @@ void testGroup(MsgSocket* src, MsgSocket* sink,Handle dest,const char* desc)
   testChunkingPerf(src, sink,dest,1000, 1 , 1 , 2000 * repeat,desc);
   testChunkingPerf(src, sink,dest,10000, 1 , 1 , 1000 * repeat,desc);
   testChunkingPerf(src, sink,dest,50000, 1 , 1 , 1000 * repeat,desc);
+
 #endif
   if (src->cap.maxMsgSize > 200000) testChunkingPerf(src, sink,dest,200000, 1 , 1 , 500 * repeat,desc);
 
@@ -359,8 +360,11 @@ class Sock
 
   ~Sock() 
     { 
-      // done by sarSock: xport->transport->deleteSocket(xport);
-    if (sarSock) delete sarSock; 
+    if (sarSock) delete sarSock; // sarSock deletes the underlying transport
+    else
+      {
+      xport->transport->deleteSocket(xport);
+      }
     }
   MsgSocket* xport;
   MsgSocket* sarSock;
@@ -402,7 +406,11 @@ int main(int argc, char* argv[])
     }
   if (vm.count("rnode")) reflectorNode = vm["rnode"].as<int>();
   if (vm.count("rport")) reflectorPort = vm["rport"].as<int>();
-  if (vm.count("xport")) xport = vm["xport"].as<std::string>();
+  if (vm.count("xport"))
+    {
+    xport = vm["xport"].as<std::string>();
+    setenv("SAFPLUS_MSG_TRANSPORT", xport.c_str(),true);  // Override environment definition with command line
+    }
   if (vm.count("repeat")) repeat = vm["repeat"].as<int>();
   if (vm.count("loglevel")) SAFplus::logSeverity = logSeverityGet(vm["loglevel"].as<std::string>().c_str());
   if (vm.count("sar"))
