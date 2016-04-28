@@ -919,8 +919,18 @@ static ClRcT cpmCompRespondToCaller(ClCpmComponentT *comp,
         {
             priority = CL_IOC_CPM_TERMINATE_PRIORITY;
         }
-
-        rc = CL_CPM_CALL_RMD_ASYNC_NEW(comp->requestSrcAddress.nodeAddress,
+        // If I'm shutting down, forward the response to master
+        if (gCpmShuttingDown)
+        {            
+            ClInt32T tries = 0;
+            ClTimerTimeOutT delay = {.tsSec = 1, .tsMilliSec = 0};
+            do
+            {
+                rc = clCpmMasterAddressGet(&comp->requestSrcAddress.nodeAddress);
+                if (rc == CL_OK)
+                {
+                    clLogDebug("CPM", "RESPONSE", "Forwarding response to active AMF on node [%d]", comp->requestSrcAddress.nodeAddress);
+                    rc = CL_CPM_CALL_RMD_ASYNC_NEW(comp->requestSrcAddress.nodeAddress,
                                        comp->requestSrcAddress.portId,
                                        comp->requestRmdNumber,
                                        (ClUint8T *) &response,
@@ -934,27 +944,52 @@ static ClRcT cpmCompRespondToCaller(ClCpmComponentT *comp,
                                        NULL,
                                        NULL,
                                        MARSHALL_FN(ClCpmLcmResponseT, 4, 0, 0));
-        if(rc != CL_OK 
-           &&
-           comp->requestSrcAddress.portId == CL_IOC_CPM_PORT
-           &&
-           comp->requestSrcAddress.nodeAddress 
-           &&
-           comp->requestSrcAddress.nodeAddress != CL_IOC_BROADCAST_ADDRESS
-           &&
-           !cpmIsInfrastructureComponent(&compName)
-           )
-        {
-            ClInt32T tries = 0;
-            ClTimerTimeOutT delay = { .tsSec = 1, .tsMilliSec = 0};
-            /*
-             * We could be in the middle of a master transitioning phase
-             */
-            do
-            {
-                if(clCpmMasterAddressGet(&comp->requestSrcAddress.nodeAddress) != CL_OK)
-                    break;
-                rc = CL_CPM_CALL_RMD_ASYNC_NEW(comp->requestSrcAddress.nodeAddress,
+               
+                }
+             }  while(rc != CL_OK && ++tries < 5 && clOsalTaskDelay(delay) == CL_OK);
+             if (rc!=CL_OK)
+             {
+                 clLogError("CPM", "RESPONSE", "RMD failed with [%#x]", rc);
+             }
+         }
+         else
+         {
+             rc = CL_CPM_CALL_RMD_ASYNC_NEW(comp->requestSrcAddress.nodeAddress,
+                                       comp->requestSrcAddress.portId,
+                                       comp->requestRmdNumber,
+                                       (ClUint8T *) &response,
+                                       sizeof(ClCpmLcmResponseT),
+                                       NULL,
+                                       NULL,
+                                       CL_RMD_CALL_ATMOST_ONCE,
+                                       0,
+                                       0,
+                                       priority,
+                                       NULL,
+                                       NULL,
+                                       MARSHALL_FN(ClCpmLcmResponseT, 4, 0, 0));
+        
+             if(rc != CL_OK 
+                &&
+                comp->requestSrcAddress.portId == CL_IOC_CPM_PORT
+                &&
+                comp->requestSrcAddress.nodeAddress 
+                &&
+                comp->requestSrcAddress.nodeAddress != CL_IOC_BROADCAST_ADDRESS
+                &&
+                !cpmIsInfrastructureComponent(&compName)
+               )
+               {
+                   ClInt32T tries = 0;
+                   ClTimerTimeOutT delay = { .tsSec = 1, .tsMilliSec = 0};
+                   /*
+                   * We could be in the middle of a master transitioning phase
+                   */
+                   do
+                   {
+                       if(clCpmMasterAddressGet(&comp->requestSrcAddress.nodeAddress) != CL_OK)
+                           break;
+                       rc = CL_CPM_CALL_RMD_ASYNC_NEW(comp->requestSrcAddress.nodeAddress,
                                                comp->requestSrcAddress.portId,
                                                comp->requestRmdNumber,
                                                (ClUint8T *) &response,
@@ -968,9 +1003,13 @@ static ClRcT cpmCompRespondToCaller(ClCpmComponentT *comp,
                                                NULL,
                                                NULL,
                                                MARSHALL_FN(ClCpmLcmResponseT, 4, 0, 0));
-            } while (rc != CL_OK && ++tries < 5 && clOsalTaskDelay(delay) == CL_OK);
-            
-        }
+                   } while (rc != CL_OK && ++tries < 5 && clOsalTaskDelay(delay) == CL_OK);
+                   if (rc!=CL_OK)
+                   {
+                       clLogError("CPM", "RESPONSE", "RMD failed with [%#x]", rc);
+                   }
+                }
+         }
     }
 
     return rc;
@@ -5013,36 +5052,7 @@ static ClRcT compHealthCheckAmfInvokedCB(ClPtrT arg)
 
         comp->hbInvocationPending = CL_YES;
     }
-    else
-    {
-        /* Somehow heartbeat sent/replied for a invocation lost, re-sent the heartbeat if still in maxDuration timeout */
-        ClInvocationT invocationId;
-        ClIocPortT eoPort = 0;
-        ClCpmClientCompTerminateT compHealthcheck = { 0 };
-
-        ClTimeT curTime = clOsalStopWatchTimeGet();
-        ClTimeT createdTime = curTime;
-
-        clNameSet(&compHealthcheck.compName, comp->compConfig->compName);
-        rc = cpmHBInvocationGet(&compHealthcheck.compName, &invocationId, &createdTime, &eoPort);
-        if (rc == CL_OK)
-        {
-            ClUint32T maxRetries = comp->compConfig->healthCheckConfig.maxDuration / comp->compConfig->healthCheckConfig.period;
-            ClUint32T numRetries = ((curTime - createdTime) / 1000) / comp->compConfig->healthCheckConfig.period;
-            compHealthcheck.invocation = invocationId;
-            if (numRetries < maxRetries)
-            {
-                rc = CL_CPM_CALL_RMD_ASYNC_NEW(clIocLocalAddressGet(), eoPort, CPM_HEALTH_CHECK_FN_ID, (ClUint8T *) &compHealthcheck,
-                                               sizeof(ClCpmClientCompTerminateT),
-                                               NULL,
-                                               NULL,
-                                               CL_RMD_CALL_ATMOST_ONCE,
-                                               0, 0, CL_IOC_HIGH_PRIORITY,
-                                               NULL,
-                                               NULL, MARSHALL_FN(ClCpmClientCompTerminateT, 4, 0, 0));
-            }
-        }
-    }
+    
     clOsalMutexUnlock(comp->compMutex);
     
     return CL_OK;
@@ -5264,7 +5274,7 @@ ClRcT cpmCompNodeHealthcheckStop(ClNameT *pCompName, ClNameT *pNodeName)
     rc = cpmCompHealthcheckStop(pCompName, CL_TRUE);
 
     // Checking to send the request to remote node
-    if ((CL_GET_ERROR_CODE(rc) == CL_ERR_DOESNT_EXIST || CL_GET_ERROR_CODE(rc) == CL_ERR_NOT_EXIST) && pNodeName != NULL)
+    if (CL_GET_ERROR_CODE(rc) == CL_ERR_NOT_EXIST && pNodeName != NULL)
       {
         ClCpmCompHealthcheckT cpmCompHealthcheck = { { 0 } };
         ClIocAddressT nodeAddress = { { 0 } };
