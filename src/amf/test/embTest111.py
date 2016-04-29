@@ -146,9 +146,9 @@ def AmfFailComp():
     if not standby:
       raise clTest.Malfunction(now() + "Initial conditions incorrect: No standby was chosen")
     count = 0
-    for i in range(1,2):
+    for i in range(1,5):
       print now() +":" + str(count) + " Killing Active Component"
-      for i in range(1,2):
+      for j in range(1,3):
         # grab a random process from the active list and kill it.
         signalRandomCompInSi("si","active")
         # wait for AMF to react
@@ -157,7 +157,7 @@ def AmfFailComp():
         time.sleep(5)
         count += 1
       print now() + ":" + str(count) + " Killing Standby Component"
-      for i in range(1,2):
+      for j in range(1,3):
         # grab a random process from the active list and kill it.
         signalRandomCompInSi("si","standby")
         # wait for AMF to react
