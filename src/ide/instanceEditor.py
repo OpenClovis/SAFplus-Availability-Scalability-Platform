@@ -123,6 +123,14 @@ class EntityTool(Tool):
         #size = (rect[2]-rect[0],rect[3]-rect[1])
         #if size[0] < 15 or size[1] < 15:  # its so small it was probably an accidental drag rather then a deliberate sizing
         #  size = None
+        if self.entity.et.name=="Node" and self.panel.newNodeInstOption!=NEW_NODE_INST:
+          ret = self.panel.duplicateNode() 
+          if ret:
+            self.panel.updateInstDetails()
+            self.panel.UpdateVirtualSize()
+            self.panel.layout()
+            self.panel.Refresh()
+          return True
         size = None
         ret = self.panel.CreateNewInstance(self.entity,(pos[0],pos[1]),size)
             
@@ -855,7 +863,7 @@ class Panel(scrolled.ScrolledPanel):
 
       self.grayCells = {}
 
-      self.userDefineNodeType = None
+      self.userSelectionNode = None
       self.menuNodeInstCreate = wx.Menu()
       self.newNodeInstOption = None
       self.menuUserDefineNodeTypes = wx.Menu()
@@ -1211,7 +1219,7 @@ class Panel(scrolled.ScrolledPanel):
           else:
             print 'OnToolEvent: action is pending...'
         else:
-          handled = self.tool.OnEditEvent(self, event)          
+          handled = self.tool.OnEditEvent(self, event)
       event.Skip(not handled)  # if you pass false, event will not be processed anymore
 
     def OnToolClick(self,event):
@@ -1365,11 +1373,46 @@ class Panel(scrolled.ScrolledPanel):
             userDefinedNodeTypes.append(userDefineType)
       return userDefinedNodeTypes
 
+    def getNodeInst(self, usrDefinedType):      
+      for e in self.columns:
+        thisNode = e.data["name"]
+        values = self.model.instances.get(thisNode, None)
+        if not values:
+          continue
+        canBeInherited = bool(values.data.get("canBeInherited", None))
+        if canBeInherited:
+          if usrDefinedType==values.data.get("userDefinedType", None):
+            return values
+      return None
+
     def createNodeTypeMenu(self):
       usrDefinedNodeTypes = self.getUserDefinedNodeTypes()      
       for t in usrDefinedNodeTypes:
         i = self.menuUserDefineNodeTypes.Append(wx.NewId(), t)
         self.Bind(wx.EVT_MENU, self.OnMenuNodeInstCreate, i)
+
+    def duplicateNode(self):
+      if self.userSelectionNode:
+        name = NameCreator(self.userSelectionNode.entity.data["name"])
+        dupNode = self.userSelectionNode.duplicate(name)
+        if dupNode:
+          self.model.instances[name] = dupNode
+          self.columns.append(dupNode)
+          # duplicate containment arrows
+          for ca in self.userSelectionNode.containmentArrows:
+            print 'duplicateNode: ca [%s]' % ca.contained.data["name"]
+            inst = self.model.recursiveDuplicateInst(ca.contained)
+            if inst.et.name == "ServiceUnit":
+              inst.childOf.add(dupNode)
+              dupNode.createContainmentArrowTo(inst)              
+          self.model.dumpInstances()
+          return True
+      return False
+
+    def updateInstDetails(self):
+      if share.instanceDetailsPanel:
+        for (name, ent) in filter(lambda (name, ent): not ent.et.name in (self.ignoreEntities),self.model.instances.items()):
+          share.instanceDetailsPanel.createTreeItemEntity(name, ent)
 
     def CreateNewInstance(self,entity,position,size=None, name=None):
       """Create a new instance of this entity type at this position"""
@@ -1403,10 +1446,11 @@ class Panel(scrolled.ScrolledPanel):
       self.layout()
       if entity.et.name == "ServiceGroup":
         self.setSUAssignment(inst)
-        self.layout()
+        #self.layout()
         self.Refresh()
-      return True
- 
+      if entity.et.name == "Node":
+        self.updateNodeTypeMenu()
+      return True 
 
     def GetBoundingBox(self):
       """Calculate the bounding box -- the smallest box that will fit around all the elements in this panel"""

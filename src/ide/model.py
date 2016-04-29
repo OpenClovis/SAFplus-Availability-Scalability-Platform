@@ -560,6 +560,40 @@ instantiated  <instances>     instances                         instances     (e
 
       return (ei, instances)
 
+  def recursiveDuplicateInst(self,inst,instances=None, depth=1):
+    if not instances: instances = self.instances    
+    if 1:
+      name=entity.NameCreator(inst.data["name"])  # Let's see if the instance is already here before we recreate it.
+      print 'model::recursiveAndDuplicateInst: new dup inst name = [%s]' % name
+      ei = instances.get(name,None)  
+      if not ei:
+        ei = inst.duplicate(name)
+        instances[name] = ei
+        # add the SG and SU relationship
+        self.addContainmenArrow(inst, ei)
+          
+      depth = depth + 1      
+      if depth<=MAX_RECURSIVE_INSTANTIATION_DEPTH:
+        for ca in inst.containmentArrows:
+          print 'model::recursiveAndDuplicateInst: ca = [%s]' % ca.contained.data["name"]
+          ch = self.recursiveDuplicateInst(ca.contained,instances, depth)
+          print 'model::recursiveAndDuplicateInst: ch name = [%s]' % ch.data["name"]
+          ch.childOf.add(ei)
+          cai = copy.copy(ca)
+          cai.container = ei
+          cai.contained = ch
+          ei.containmentArrows.append(cai)
+    
+      return ei
+
+  def addContainmenArrow(self, inst, newinst):
+    if inst.et.name=="ServiceUnit":
+      for e in filter(lambda entInt: entInt.et.name=="ServiceGroup", self.instances.values()):
+        self.dumpContainmentArrow(e.containmentArrows)
+        for ca in e.containmentArrows:
+          if ca.contained==inst:
+            newinst.childOf.add(e)
+            e.createContainmentArrowTo(newinst)            
 
   def xmlify(self):
     """Returns an XML string that defines the IDE Model, for saving to disk"""
