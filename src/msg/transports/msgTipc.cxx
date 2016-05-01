@@ -87,6 +87,7 @@ namespace SAFplus
   MsgTransportConfig& Tipc::initialize(MsgPool& msgPoolp,ClusterNodes* cn)
     {
     clusterNodes = cn;
+    assert((clusterNodes == 0) && "TIPC only supports LAN mode");
     msgPool = &msgPoolp;
 
     config.nodeId       = 0;
@@ -109,6 +110,7 @@ namespace SAFplus
       assert(envNodeId == node); // SAFPLUS_NODE_ID is optional when using the TIPC transport, but if defined it MUST match the TIPC node address.
       }
     config.nodeId = SAFplus::ASP_NODEADDR = node;
+
     return config;
     }
 
@@ -284,7 +286,12 @@ namespace SAFplus
             to[msgCount].addrtype = TIPC_ADDR_NAME;
             to[msgCount].scope    = TIPC_ZONE_SCOPE;
             to[msgCount].addr.name.name.type = msg->port + SAFplusI::TipcTransportStartPort; 
-            to[msgCount].addr.name.name.instance = *((uint32_t*)transport->clusterNodes->transportAddress(msg->node));
+            uint32_t* tipcAddr = (uint32_t*)transport->clusterNodes->transportAddress(msg->node);
+            if (!tipcAddr)
+              {
+              throw Error(Error::SAFPLUS_ERROR,Error::DOES_NOT_EXIST, "Destination node does not exist in cluster node table",__FILE__,__LINE__);
+              }
+            to[msgCount].addr.name.name.instance = *tipcAddr;
             to[msgCount].addr.name.domain=0;
             }
           }

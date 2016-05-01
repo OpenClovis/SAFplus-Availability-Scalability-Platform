@@ -74,7 +74,7 @@ bool testSendRecv(MsgTransportPlugin_1* xp)
   boost::this_thread::sleep(boost::posix_time::milliseconds(100));  
   clTest(("message release"), (a->msgPool->allocated - initialAlloc == 0), ("Allocated msgs is [%" PRIu64 "]. Expected 0", a->msgPool->allocated));
   clTest(("Frag release"), (a->msgPool->fragAllocated - initialFrag == 0), ("Allocated frags is [%" PRIu64 "]. Expected 0", a->msgPool->fragAllocated));
-  m = b->receive(1);
+  m = b->receive(1,1000);
 
   if (m)
   {
@@ -93,6 +93,10 @@ bool testSendRecv(MsgTransportPlugin_1* xp)
     clTest(("message rcv pool audit"), (b->msgPool->allocated - initialAlloc == 0), ("Allocated msgs is [%" PRIu64 "]. Expected 0", b->msgPool->allocated));
     clTest(("msg rcv frag pool audit"), (a->msgPool->fragAllocated - initialFrag == 0), ("Allocated frags is [%" PRIu64 "]. Expected 0", b->msgPool->fragAllocated));
   }
+  else
+    {
+      clTestFailed(("Did not receive expected message"));
+    }
 
   // Test min msg size
   m = a->msgPool->allocMsg();
@@ -101,10 +105,13 @@ bool testSendRecv(MsgTransportPlugin_1* xp)
   frag->set("1");
   m->setAddress(bHdl);
   a->send(m);
-  m = b->receive(1);
+  m = b->receive(1,1000);
   clTest(("recv"),m != NULL,(" "));
-  printf("%s\n",(const char*) m->firstFragment->read());
-  clTest(("Mininum Msg Size, const char*"), ((const char*)m->firstFragment->read())[0] == '1',("message contents miscompare: %c -> %c", '1',((const char*) m->firstFragment->read())[0]) );
+  if (m)
+    {
+    printf("%s\n",(const char*) m->firstFragment->read());
+    clTest(("Mininum Msg Size, const char*"), ((const char*)m->firstFragment->read())[0] == '1',("message contents miscompare: %c -> %c", '1',((const char*) m->firstFragment->read())[0]) );
+    }
   if (m) b->msgPool->free(m);
 
   // Test using attached memory buffers
@@ -115,10 +122,13 @@ bool testSendRecv(MsgTransportPlugin_1* xp)
   frag->len = 1;
   m->setAddress(b->node, b->port);
   a->send(m);
-  m = b->receive(1);
+  m = b->receive(1,1000);
   clTest(("recv"),m != NULL,(" "));
-  printf("%s\n",(const char*) m->firstFragment->read());
-  clTest(("Mininum Msg Size, const char*"), ((const char *)m->firstFragment->read())[0] == '2',("message contents miscompare: %c -> %c", '2',((const char*) m->firstFragment->read())[0] ));
+  if (m)
+    {
+    printf("%s\n",(const char*) m->firstFragment->read());
+    clTest(("Mininum Msg Size, const char*"), ((const char *)m->firstFragment->read())[0] == '2',("message contents miscompare: %c -> %c", '2',((const char*) m->firstFragment->read())[0] ));
+    }
   if (m) b->msgPool->free(m);
 
   // Test max msg size
@@ -133,7 +143,8 @@ bool testSendRecv(MsgTransportPlugin_1* xp)
   printf("Sequential Send/Recv of %d bytes.  Kernel buffers must be large or hangs here!\n",maxMsgSize);
   a->send(m);  // Note: since send/recv is single-threaded the full message needs to fit in kernel buffers or it will hang here
   m = b->receive(1);
-
+  clTest(("recv"),m != NULL,(" "));
+  if (m) b->msgPool->free(m);
 
   xp->deleteSocket(a);
   xp->deleteSocket(b);

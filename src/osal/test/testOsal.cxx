@@ -65,6 +65,12 @@ void testCondition(void)
 
   if (1)
     { 
+    ScopedLock<> lock(m);
+    clTest(("condition abort"), c.timed_wait(m,1000)==0, (" "));
+    }
+
+  if (1)
+    { 
       ScopedLock<> lock(m);
       boost::thread(SleepWaker(c,1000,"Kicking the condition\n"));
       clTest(("condition kicker"), c.timed_wait(m,2000)==1, (" "));

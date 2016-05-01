@@ -226,7 +226,10 @@ namespace SAFplus
           {
           if (transport->clusterNodes)
             {
-              to[msgCount].sin_addr.s_addr = htonl(*((uint32_t*)transport->clusterNodes->transportAddress(msg->node)));
+              uint32_t* addr = (uint32_t*)transport->clusterNodes->transportAddress(msg->node);
+              if (!addr)
+                throw Error(Error::SAFPLUS_ERROR,Error::DOES_NOT_EXIST, "Destination node does not exist in cluster node table",__FILE__,__LINE__);
+              to[msgCount].sin_addr.s_addr = htonl(*addr);
             }
           else
             {          

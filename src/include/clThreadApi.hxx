@@ -139,11 +139,12 @@ namespace SAFplus
   protected:
     ThreadCondition cond;
     Mutex           mutex;
-    int count;
+    int             countv;
   public:
-    ThreadSem():count(0) {}
+    ThreadSem():countv(0) {}
     ThreadSem(int initialValue);
     ~ThreadSem();
+    int  count(void) { return countv; }
     void init(int initialValue);
     void wake(int amt,void* cookie=NULL);
     void lock(int amt=1);    // subtracts one from the semaphore, blocks if that would cause the value to become < 0

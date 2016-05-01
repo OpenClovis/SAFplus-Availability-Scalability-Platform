@@ -220,29 +220,29 @@ typedef union CosSemCtl_u
 
   ThreadSem::ThreadSem(int initialValue)
   {
-  count = initialValue;
+  countv = initialValue;
   }
 
 #if 0
   ThreadSem::ThreadSem()
   {
-  count = 0;
+  countv = 0;
   }
 #endif
 
   void ThreadSem::init(int initialValue)
   {
-  count = initialValue;
+  countv = initialValue;
   }
 
   void ThreadSem::lock(int amt)
   {
   mutex.lock();
-  while (count<amt)
+  while (countv<amt)
     {
     cond.wait(mutex);
     }
-  count -= amt;
+  countv -= amt;
   mutex.unlock();
   }
 
@@ -251,7 +251,7 @@ typedef union CosSemCtl_u
   void ThreadSem::unlock(int amt)
   {
   mutex.lock();
-  count += amt;
+  countv += amt;
   cond.notify_all();
   mutex.unlock();
   }
@@ -259,12 +259,12 @@ typedef union CosSemCtl_u
 bool ThreadSem::try_lock(int amt)
   {
   mutex.lock();
-  if (count<amt)
+  if (countv<amt)
     {
     mutex.unlock();
     return false;
     }
-  count -= amt;
+  countv -= amt;
   cond.notify_all();  // Notifying here because the count was decreased, and some people may be blocking until zero
   mutex.unlock();
   return true;
@@ -273,12 +273,12 @@ bool ThreadSem::try_lock(int amt)
 bool ThreadSem::timed_lock(uint64_t mSec,int amt)
   {
   ScopedLock<> lock(mutex);
-  while (count<amt)
+  while (countv<amt)
     {
     // TODO: take into account elapsed time going around the while loop more than once
     if (!cond.timed_wait(mutex,mSec)) return false;
     }
-  count -= amt;
+  countv -= amt;
   cond.notify_all(); // Notifying here because the count was decreased, and some people may be blocking until zero
   return true;
   }
@@ -286,7 +286,7 @@ bool ThreadSem::timed_lock(uint64_t mSec,int amt)
 bool ThreadSem::blockUntil(uint amt,uint mSec)
   {
   ScopedLock<> lock(mutex);
-  while (count > amt)
+  while (countv > amt)
     {
     // TODO: take into account elapsed time going around the while loop more than once
     if (!cond.timed_wait(mutex,mSec)) return false;
@@ -296,14 +296,14 @@ bool ThreadSem::blockUntil(uint amt,uint mSec)
 
   ThreadSem::~ThreadSem()
   {
-  count = -1;  // Indicate that this object was deleted by putting an impossible value in count
+  countv = -1;  // Indicate that this object was deleted by putting an impossible value in count
   }
 
 
-    ProcGate::ProcGate(unsigned int key,int initialValue)
-      {
-      init(key,initialValue);
-      }
+ProcGate::ProcGate(unsigned int key,int initialValue)
+  {
+  init(key,initialValue);
+  }
 
 ProcGate::ProcGate(const char* key,int initialValue)
   {

@@ -46,6 +46,8 @@ int SERVER_MSG_NODE=0;
 int SERVER_MSG_PORT=65;
 int MY_MSG_PORT=66;
 
+bool dropIsFailure = true;
+
 int loopCount=200;
 
 boost::program_options::variables_map parseOptions(int argc,char *argv[])
@@ -81,6 +83,7 @@ boost::program_options::variables_map parseOptions(int argc,char *argv[])
 
 bool testLatency(Handle dest, int msgLen, int atOnce, int numLoops,const char* testIdentifier,bool verify = false)
 {
+    uint drops = 0;
     SAFplus::Rpc::RpcChannel channel(&safplusMsgServer, dest);
     channel.setMsgType(100, 101);
     unsigned long int totalMsgs=0;
@@ -105,8 +108,15 @@ bool testLatency(Handle dest, int msgLen, int atOnce, int numLoops,const char* t
           reflectorService.call(dest, &req, &resp[simul], wakeable);
           totalMsgs++;
           }
-        wakeable.lock(atOnce);  // Bring it back to 0 for the next loop.
-        clTestSuccess(("received %d msgs", atOnce));
+        bool ok = wakeable.timed_lock(1000, atOnce);  // Bring it back to 0 for the next loop.
+        if (!ok)
+          {
+            if (dropIsFailure) clTestFailed(("Message drop!  Only received %d msgs", atOnce-wakeable.count()));
+            drops += atOnce-wakeable.count();
+            wakeable.lock(wakeable.count());
+            clTestCaseMalfunction(("Message drops exceeded tolerance"),drops > 25, break);
+          }
+        else clTestSuccess(("received %d msgs", atOnce));
         //delete[] resp;
       }
     delete[] resp;

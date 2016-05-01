@@ -269,7 +269,6 @@ namespace SAFplus
                 to[msgCount].sin_addr.s_addr = htonl(*((uint32_t*)transport->clusterNodes->transportAddress(msg->node)));
               else
                 {
-                  // tODO: unknown destination
                   throw Error(Error::SAFPLUS_ERROR,Error::DOES_NOT_EXIST, "Destination node does not exist in cluster node table",__FILE__,__LINE__);
                 }
             }

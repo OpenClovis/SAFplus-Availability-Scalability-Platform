@@ -136,10 +136,11 @@ class test(testcase.TestGroup):
         # os.system('modprobe -a tipc')
         self.progTest(self.dirPfx() + "/test/testTransport --xport=clMsgTipc.so --mode=LAN",160)  # An App Test just starts running its tests when started (there is no addtl trigger required to put the entity "in service", etc.  The parameter is how long to wait before assuming the test hung.
 
-    def test_TPC2(self):
+    def REMOVED_test_TPC2(self):
         r"""
+        REMOVED:    TIPC DOES NOT SUPPORT CLOUD MODE
         \testcase   MSG-TPC-CLD.TC002
-        \brief     	TPC CLOUD Basic messaging functional tests 
+        \brief     	TPC CLOUD Basic messaging functional tests
         """
         # pdb.set_trace()
         # os.system('modprobe -a tipc')
