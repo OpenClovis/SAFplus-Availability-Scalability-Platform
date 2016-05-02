@@ -86,18 +86,47 @@ namespace SAFplus
       config.capabilities = SAFplus::MsgTransportConfig::Capabilities::BROADCAST;  // not reliable, can't tell if anything joins or leaves...
       }
     else config.capabilities = SAFplus::MsgTransportConfig::Capabilities::NONE;
-    std::pair<in_addr,in_addr> ipAndBcast = SAFplusI::setNodeNetworkAddr(&nodeMask,clusterNodes); // This function sets SAFplus::ASP_NODEADDR
-    struct in_addr bip = ipAndBcast.first;
-    broadcastAddr = ntohl(ipAndBcast.second.s_addr); // devToBroadcastAddress("xxx");
-    if ((broadcastAddr == 0)&&(!cn))
+
+    if (clusterNodes == NULL) // LAN mode
       {
-        int err = errno;
-        throw Error(Error::SAFPLUS_ERROR,Error::MISCONFIGURATION, "Broadcast is not enabled on the backplane interface, but the node list (cloud mode) is not enabled.",__FILE__,__LINE__);
+	std::pair<in_addr,in_addr> ipAndBcast = SAFplusI::setNodeNetworkAddr(&nodeMask,clusterNodes); // This function sets SAFplus::ASP_NODEADDR
+	struct in_addr bip = ipAndBcast.first;
+	broadcastAddr = ntohl(ipAndBcast.second.s_addr); // devToBroadcastAddress("xxx");
+	if ((broadcastAddr == 0)&&(!cn))
+	  {
+	    int err = errno;
+	    throw Error(Error::SAFPLUS_ERROR,Error::MISCONFIGURATION, "Broadcast is not enabled on the backplane interface, but the node list (cloud mode) is not enabled.",__FILE__,__LINE__);
+	  }
+	netAddr = ntohl(bip.s_addr)&(~nodeMask);
+
+	assert (SAFplus::ASP_NODEADDR != 0);
+	config.nodeId = SAFplus::ASP_NODEADDR;
+      }
+    else
+      {
+	broadcastAddr = 0;
+	const char* nodeIDstr = getenv("SAFPLUS_NODE_ID");
+	if (nodeIDstr)  // OK, I have an ID from the environment, use it to figure myself out
+	  {
+	    config.nodeId = SAFplus::ASP_NODEADDR = boost::lexical_cast<uint>(nodeIDstr);
+            assert (SAFplus::ASP_NODEADDR != 0);
+            const char* myXportAddr = clusterNodes->transportAddress(config.nodeId);
+            if (!myXportAddr) throw Error(Error::SAFPLUS_ERROR,Error::MISCONFIGURATION, "Your own node address is not defined in the cluster node list",__FILE__,__LINE__);
+            memcpy(&netAddr, myXportAddr, sizeof(in_addr_t));
+          }
+        else  // Use the network interface to figure myself out.
+	  {
+            const char* nif = getenv("SAFPLUS_BACKPLANE_INTERFACE");
+            assert(nif && "SAFPLUS_BACKPLANE_NETWORK or SAFPLUS_NODE_ID environment variable must be defined");
+            struct in_addr inp;
+            inp = SAFplusI::devToIpAddress(nif);
+            inp.s_addr = ntohl(inp.s_addr);
+            config.nodeId = SAFplus::ASP_NODEADDR = clusterNodes->idOf(&inp, sizeof(struct in_addr));
+            if (!config.nodeId) throw Error(Error::SAFPLUS_ERROR,Error::MISCONFIGURATION, "Your own node address is not defined in the cluster node list",__FILE__,__LINE__);
+	  }
+
       }
 
-    config.nodeId = SAFplus::ASP_NODEADDR;
-    netAddr = ntohl(bip.s_addr)&(~nodeMask);
- 
     return config;
     }
 

@@ -1,0 +1,13 @@
+#!/bin/bash
+#/usr/sbin/sshd -D &
+cd /root/evalBasic/bin
+env > /root/startupenv.txt
+source ./setup
+
+./safplus_cloud --reload
+./safplus_cloud --add "$SAFPLUS_IP" --id "$SAFPLUS_NODE_ID"
+
+# exec ./safplus_amf > /root/amfOutput.txt
+./safplus_amf > /root/amfOutput.txt &
+exec /usr/sbin/sshd -D
+

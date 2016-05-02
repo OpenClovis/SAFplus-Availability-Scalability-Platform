@@ -66,7 +66,13 @@ int main(int argc, char* argv[])
   // Explicitly create the shared memory segment if it does not exist
   SAFplus::defaultClusterNodes = new ClusterNodes(true);
   // I need the transport initialized so I can transform a string address into the transport's underlying address
-  safplusInitialize( SAFplus::LibDep::IOC);
+  try
+    {
+    safplusInitialize( SAFplus::LibDep::IOC);
+    }
+  catch (SAFplus::Error& e)  // IOC initialize cloud mode will throw an error because my own node is not in the cloud list.  This is a problem for everyone EXCEPT this program, because it ADDS to the list.
+    {
+    }
 
   //SAFplus::logCompName = "RFL";
   //SAFplus::logSeverity = SAFplus::LOG_SEV_INFO;
@@ -79,7 +85,8 @@ int main(int argc, char* argv[])
     ("zap", boost::program_options::value<uint>()->implicit_value(0), "delete the shared memory segment")
     ("list", boost::program_options::value<uint>()->implicit_value(SAFplus::MaxNodes), "show all existing cluster nodes ")
     ("id", boost::program_options::value<uint>(), "supply a node id if needed")
-    ("reload", boost::program_options::value<std::string>()->implicit_value("*env*"), "clear current entries and load from argument or SAFPLUS_CLOUD_NODES variable")
+    ("reload", boost::program_options::value<std::string>()->implicit_value("*env*"), "clear current entries and load from argument or SAFPLUS_CLOUD_NODES variable if no argument")
+    ("load", boost::program_options::value<std::string>(), "load from argument or SAFPLUS_CLOUD_NODES variable if no argument, do not clear current entries")
     ;
 
   boost::program_options::variables_map vm;        
@@ -109,9 +116,18 @@ int main(int argc, char* argv[])
     {
     ClusterNodes::deleteSharedMemory();
     }
-  if (vm.count("reload")) 
+  if (vm.count("reload") || vm.count("load")) 
     {
-      std::string nodes = vm["reload"].as<std::string>();
+      bool erase = false;
+      std::string nodes;
+      if (vm.count("reload"))
+	{
+        nodes = vm["reload"].as<std::string>();
+        erase = true;
+	}
+      else
+        nodes = vm["reload"].as<std::string>();
+
       if (nodes == "*env*")
       {
         char* cnVar = std::getenv("SAFPLUS_CLOUD_NODES");
@@ -122,29 +138,36 @@ int main(int argc, char* argv[])
           }
         nodes = cnVar;
       }
-      ClusterNodes::deleteSharedMemory();
-
-      ClusterNodes cn(true);
-      int id = 0;
-      boost::char_separator<char> sep(",: ");
-      boost::tokenizer< boost::char_separator<char> > tokens(nodes, sep);
-      int wkn=1;
-      BOOST_FOREACH (const std::string& t, tokens) 
-          {
-            if (!t.empty())
-              { 
-              cn.set(wkn,t,1,NodeStatus::Unknown);
-              }
-            wkn++;
-            printf("Adding '%s'\n",t.c_str());
-          }
+      if (erase)
+        ClusterNodes::deleteSharedMemory();
+      if (nodes != "1")
+	{
+	  ClusterNodes cn(true);
+	  int id = 0;
+	  boost::char_separator<char> sep(",: ");
+	  boost::tokenizer< boost::char_separator<char> > tokens(nodes, sep);
+	  int wkn=1;
+	  BOOST_FOREACH (const std::string& t, tokens) 
+	    {
+	      if (!t.empty())
+		{ 
+		  cn.set(wkn,t,1,NodeStatus::Unknown);
+		}
+	      wkn++;
+	      printf("Adding '%s'\n",t.c_str());
+	    }
+	}
     }
 
 
   try
     {
+
     if (vm.count("list")) 
       {
+  // I need the transport initialized so I can transform a string address into the transport's underlying address
+  safplusInitialize( SAFplus::LibDep::IOC);
+
      ClusterNodes cn;
     uint id = 1;
     if (vm.count("id")) { id = vm["id"].as<uint>(); }  

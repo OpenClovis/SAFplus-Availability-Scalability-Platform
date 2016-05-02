@@ -51,8 +51,8 @@ void clMsgInitialize(void)
         if (!SAFplus::defaultClusterNodes)  SAFplus::defaultClusterNodes = new ClusterNodes(false);
         }       
 
-      MsgTransportConfig cfg = xp->initialize(msgPool,SAFplus::defaultClusterNodes);
       SAFplusI::defaultMsgPlugin = xp;
+      MsgTransportConfig cfg = xp->initialize(msgPool,SAFplus::defaultClusterNodes);
       logInfo("MSG","INI","Message Transport [%s] [%s] mode initialized.  Max Size [%d], Max Chunk [%d].", xp->type, xp->clusterNodes ? "Cloud": "LAN", xp->config.maxMsgSize, xp->config.maxMsgAtOnce);
 
       if (SAFplus::ASP_NODEADDR == ~((ClWordT) 0))  // not initialized

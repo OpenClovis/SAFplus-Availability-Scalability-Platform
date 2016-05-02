@@ -55,9 +55,9 @@ namespace SAFplus
         else if (boost::filesystem::is_directory("../lib")) soPath = "../lib";
 
         logDebug(FAULT,"POL","loadFaultPlugins policy: %s", soPath);
-        boost::filesystem::path p(soPath);
+        boost::filesystem::path pth(soPath);
 
-        boost::filesystem::directory_iterator it(p),eod;
+        boost::filesystem::directory_iterator it(pth),eod;
         BOOST_FOREACH(boost::filesystem::path const &p, std::make_pair(it, eod))
         {
             if (p.extension()==".so")

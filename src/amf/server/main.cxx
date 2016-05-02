@@ -350,11 +350,21 @@ bool activeAudit()  // Check to make sure DB and the system state are in sync.  
       }
 #endif
     }
-  logDebug("AUD","ACT","Active Audit -- Applications");
+  logDebug("AUD","ACT","Active Audit -- Redundancy Policies");
+  int policyCount=0;
   for (it = redPolicies.begin(); it != redPolicies.end();it++)
     {
     ClAmfPolicyPlugin_1* pp = dynamic_cast<ClAmfPolicyPlugin_1*>(it->second->pluginApi);
     pp->activeAudit(&cfg);
+    policyCount++;
+    }
+  if (policyCount == 0)
+    {
+    logWarning("AUD","ACT","No policies loaded -- no applications can run");
+    }
+  else
+    {
+      logDebug("AUD","ACT","Audited %d redundancy policies", policyCount);
     }
 
   return rerun;

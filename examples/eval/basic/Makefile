@@ -71,6 +71,20 @@ $(APP_BIN_DIR)/basicApp:  $(APP_OBJ_DIR)/main.o $(SAFPLUS_DEP_LIBS)
 $(APP_OBJ_DIR)/%.o: %.cxx Makefile $(SAFPLUS_MAKE_DIR)/preface.mk $(CLIENT_H)
 	$(COMPILE_CPP) $@ $<
 
+.PHONY: image docker clean
+
+image: evalBasic.tgz
+
+evalBasic.tgz: $(SAFPLUS_MAKE_DIR)/safplus_packager.py $(APP_BIN_DIR)/basicApp $(SAFPLUS_DEP_LIBS) $(wildcard $(PLUGIN_DIR)/*.so)
+	$(SAFPLUS_MAKE_DIR)/safplus_packager.py -a $(TARGET_PLATFORM) -x "(cp setup {image_dir}/bin)" $@
+
+docker/model.xml: SAFplusAmf1Node1SG1Comp.xml
+	cp SAFplusAmf1Node1SG1Comp.xml docker/model.xml
+
+docker: evalBasic.tgz docker/Dockerfile docker/model.xml
+	cp evalBasic.tgz docker/evalBasic.tgz
+	(cd docker; docker build -t evalbasic .)
+
 clean:
 	rm -f $(CLIENT_OBJ) $(APP_BIN_DIR)/basicApp
 
