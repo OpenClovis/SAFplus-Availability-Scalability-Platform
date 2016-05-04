@@ -85,6 +85,8 @@
 #define AMS_CKPT_WRITE_FREQUENCY_USEC (1000000LL)
 #define AMS_CKPT_WRITE_THRESHOLD_SLOW (10)
 
+extern ClBoolT gCpmShuttingDown;
+
 static ClUint32T gClAmsCkptFrequency;
 static ClBoolT gClAmsCkptDifferential;
 static ClCharT gClAmsCkptVersionBuf[CL_MAX_NAME_LENGTH];
@@ -1490,15 +1492,20 @@ static ClRcT amsCkptWriteCallback(ClPtrT unused)
     {
         ClUint32T elapsedMsec = (currentTime - lastTime)/1000;
         ClUint32T remainMsec = 0;
-        ClTimerTimeOutT delay;
         if(AMS_CKPT_FREQUENCY_MSEC > 0)
             remainMsec = AMS_CKPT_FREQUENCY_MSEC - elapsedMsec;
         else
             remainMsec = 1000;
-        delay.tsSec = 0;
-        delay.tsMilliSec = remainMsec;
         numWrites = 0;
-        clOsalTaskDelay(delay);
+
+        ClUint32T nloop = remainMsec/AMS_CKPT_WRITE_PAUSE_MSEC;
+
+        // AMS ckpt write immediately if SC is in progress of shutting down
+        while (nloop > 0 && !gCpmShuttingDown)
+        {
+          clOsalTaskDelay(writePause);
+          nloop--;
+        }
     }
     /*
      * Fire the ams ckpt write now.
