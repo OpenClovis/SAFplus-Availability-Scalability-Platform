@@ -1,6 +1,10 @@
 #!/bin/bash
 # start clean, or tests may fail because groups might already exist that we expect to create
-pkill -9 safplus_group
+pkill -9 safplus_amf
+pkill -9 spgroupd
+# The group tests rely on a clean start because they check the number of existing groups after creating/deleting
+./bin/safplus_cleanup
 rm -f /dev/shm/SAFplusGroups 
-bin/safplus_group > safplus_group.log &
+
+bin/spgroupd > spgroupd.log &
 exit 0

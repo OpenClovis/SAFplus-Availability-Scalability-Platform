@@ -48,6 +48,7 @@ int main(int argc, char* argv[])
   clTestCase(("GRP-FNC-REG.TC002: change tracking"),testChanges());
   clTestCase(("GRP-FNC-REG.TC003: group messages"),testSendMessages());
   clTestGroupFinalize();
+  safplusFinalize();
   return 0;
 }
 
