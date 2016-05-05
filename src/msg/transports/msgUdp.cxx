@@ -35,6 +35,7 @@ namespace SAFplus
     in_addr_t netAddr;
     in_addr_t broadcastAddr;
     uint32_t nodeMask;
+    uint16_t basePort;
     Udp(); 
 
    //? This needs to be available before initialize()
@@ -68,6 +69,7 @@ namespace SAFplus
  
   Udp::Udp()
     {
+    basePort = SAFplusI::UdpTransportStartPort;
     msgPool = NULL;
     clusterNodes = NULL;
     }
@@ -87,6 +89,16 @@ namespace SAFplus
       }
     else config.capabilities = SAFplus::MsgTransportConfig::Capabilities::NONE;
 
+#if 0  // unnecessary, put the port in the ClusterNodes database via safplus_cloud
+    // <cfg name="SAFPLUS_BASE_PORT">This environment variable overrides the normal starting port used by SAFplus</cfg>
+    const char* basePortstr = getenv("SAFPLUS_BASE_PORT");
+    if (basePortstr)
+      {
+        basePort = boost::lexical_cast<uint>(basePortstr);
+      }    
+    else basePort = SAFplusI::UdpTransportStartPort;
+#endif
+
     if (clusterNodes == NULL) // LAN mode
       {
 	std::pair<in_addr,in_addr> ipAndBcast = SAFplusI::setNodeNetworkAddr(&nodeMask,clusterNodes); // This function sets SAFplus::ASP_NODEADDR
@@ -101,6 +113,7 @@ namespace SAFplus
 
 	assert (SAFplus::ASP_NODEADDR != 0);
 	config.nodeId = SAFplus::ASP_NODEADDR;
+        basePort = SAFplusI::UdpTransportStartPort;  //? Base port override does not work because node cannot communicate port change with other nodes
       }
     else
       {
@@ -113,6 +126,8 @@ namespace SAFplus
             const char* myXportAddr = clusterNodes->transportAddress(config.nodeId);
             if (!myXportAddr) throw Error(Error::SAFPLUS_ERROR,Error::MISCONFIGURATION, "Your own node address is not defined in the cluster node list",__FILE__,__LINE__);
             memcpy(&netAddr, myXportAddr, sizeof(in_addr_t));
+            memcpy(&basePort, myXportAddr+sizeof(in_addr_t),sizeof(uint16_t));
+            if (basePort == 0) basePort = SAFplusI::UdpTransportStartPort;
           }
         else  // Use the network interface to figure myself out.
 	  {
@@ -181,9 +196,9 @@ namespace SAFplus
      if (port == 0) // any port
        myaddr.sin_port = htons(0);
 #if 0 // multiple SAFplus instances per node
-     else myaddr.sin_port = htons(port + SAFplusI::UdpTransportStartPort + (SAFplusI::UdpTransportNumPorts*node));
+     else myaddr.sin_port = htons(port + ((Udp*) transport)->basePort + (SAFplusI::UdpTransportNumPorts*node));
 #else
-     else myaddr.sin_port = htons(port + SAFplusI::UdpTransportStartPort);
+     else myaddr.sin_port = htons(port + ((Udp*) transport)->basePort);
 #endif
 
      if (bind(sock, (struct sockaddr *)&myaddr, sizeof(myaddr)) < 0) 
@@ -246,6 +261,7 @@ namespace SAFplus
         assert(msgCount < SAFplusI::UdpTransportMaxMsg);  // or stack buffer will be exceeded
         bzero(&to[msgCount],sizeof(struct sockaddr_in));
         to[msgCount].sin_family = AF_INET;
+        uint_t basePort = ((Udp*) transport)->basePort;
         if (msg->node == Handle::AllNodes)
           {
             to[msgCount].sin_addr.s_addr= htonl(((Udp*)transport)->broadcastAddr);
@@ -255,10 +271,14 @@ namespace SAFplus
           {
           if (transport->clusterNodes)
             {
-              uint32_t* addr = (uint32_t*)transport->clusterNodes->transportAddress(msg->node);
-              if (!addr)
+              const char* ta = (const char*)transport->clusterNodes->transportAddress(msg->node);
+              if (!ta)
                 throw Error(Error::SAFPLUS_ERROR,Error::DOES_NOT_EXIST, "Destination node does not exist in cluster node table",__FILE__,__LINE__);
-              to[msgCount].sin_addr.s_addr = htonl(*addr);
+              const uint32_t addr = *((const uint32_t*)ta);
+              uint16_t bp;  // base port
+              memcpy(&bp,ta+sizeof(uint32_t),sizeof(uint16_t));
+              to[msgCount].sin_addr.s_addr = htonl(addr);
+              if (bp) basePort = bp;
             }
           else
             {          
@@ -269,7 +289,7 @@ namespace SAFplus
 #if 0 // multiple SAFplus instances per node -- but this makes debugging difficult since the ports are hard to calculate
         to[msgCount].sin_port=htons(msg->port + SAFplusI::UdpTransportStartPort + (SAFplusI::UdpTransportNumPorts*node));
 #else
-        to[msgCount].sin_port=htons(msg->port + SAFplusI::UdpTransportStartPort);
+        to[msgCount].sin_port=htons(msg->port + basePort);
 #endif
 
         curvec->msg_hdr.msg_controllen = 0;
@@ -293,8 +313,13 @@ namespace SAFplus
               for (int i=0;i<msgCount;i++)  // Fix up the destination addresses
                 {
                   //assert(to[i].sin_addr.s_addr== 0);
-                  in_addr_t* t = (in_addr_t*) it.transportAddress();
+                  const char* ta = (const char*) it.transportAddress();
+                  in_addr_t* t = (in_addr_t*) ta;
+                  uint16_t basePort=0;
+                  memcpy(&basePort,ta+sizeof(uint32_t),sizeof(uint16_t));
+                  if (basePort == 0) basePort = ((Udp*) transport)->basePort;
                   to[i].sin_addr.s_addr = htonl(*t);
+                  to[i].sin_port=htons(msg->port + basePort);
                 }
               int retval = ::sendmmsg(sock, &msgvec[0], msgCount, 0);  // TODO flags
               if (retval == -1)
@@ -444,7 +469,7 @@ if(setsockopt(socket, SOL_SOCKET, SO_RCVTIMEO, &tv, sizeof(tv)) < 0)
 #if 0
           cur->port = ntohs(srcAddr->sin_port) - SAFplusI::UdpTransportStartPort - (SAFplusI::UdpTransportNumPorts*cur->node);
 #else
-          cur->port = ntohs(srcAddr->sin_port) - SAFplusI::UdpTransportStartPort;
+          cur->port = ntohs(srcAddr->sin_port) - ((Udp*) transport)->basePort; //SAFplusI::UdpTransportStartPort;
 #endif
 
           MsgFragment* curFrag = cur->firstFragment;

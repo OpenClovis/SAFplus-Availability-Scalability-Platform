@@ -26,9 +26,9 @@ LOG_SERVER_SRC := $(wildcard SAFplusLog/*.cxx) $(wildcard $(COMMON_DIR)/SAFplusT
 LOG_SERVER_OBJ := $(subst .cxx,.o,$(notdir $(LOG_SERVER_SRC)))
 LOG_SERVER_OBJ := $(addprefix $(OBJ_DIR)/logsvr/,$(LOG_SERVER_OBJ))
 
-all: $(LIB_DIR)/libclLogServer.so $(SAFPLUS_TARGET)/bin/safplus_logd
+all: $(LIB_DIR)/libclLogServer.so $(SAFPLUS_TARGET)/bin/splogd
 
-$(SAFPLUS_TARGET)/bin/safplus_logd: $(OBJ_DIR)/logsvr/main.o  $(LIB_DIR)/libclLogServer.so $(SAFPLUS_DEP_LIBS)
+$(SAFPLUS_TARGET)/bin/splogd: $(OBJ_DIR)/logsvr/main.o  $(LIB_DIR)/libclLogServer.so $(SAFPLUS_DEP_LIBS)
 	$(LINK_EXE) $@ $(OBJ_DIR)/logsvr/main.o $(LIB_DIR)/libclLogServer.so $(SAFPLUS_LINK_LIBS) $(XML2_LINK) $(LINK_SO_LIBS) `pkg-config --libs protobuf`
 
 $(LIB_DIR)/libclLogServer.so: $(LOG_SERVER_OBJ) $(SAFPLUS_DEP_LIBS)
@@ -62,6 +62,6 @@ cleangen:
 	(cd $(COMMON_DIR)/ietfYangTypes; find . -type f -not -name "*Common.hxx" -not -name "*Base.cxx" | xargs rm)
 
 clean:
-	rm -f $(OBJ_DIR)/logsvr/*.o $(SAFPLUS_TARGET)/bin/safplus_logd
+	rm -f $(OBJ_DIR)/logsvr/*.o $(SAFPLUS_TARGET)/bin/splogd
 
 include $(SAFPLUS_MAKE_DIR)/safplus_targets.mk

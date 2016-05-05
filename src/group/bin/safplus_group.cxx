@@ -1,28 +1,59 @@
-#include <clGroupIpi.hxx>
+#include <boost/program_options.hpp>
+#include <boost/interprocess/exceptions.hpp>
+#include <boost/foreach.hpp>
+#include <boost/tokenizer.hpp>
 #include <clGlobals.hxx>
-#include <clMsgPortsAndTypes.hxx>
-#include <clSafplusMsgServer.hxx>
+#include <clGroupIpi.hxx>
 
-static unsigned int MAX_MSGS=25;
-static unsigned int MAX_HANDLER_THREADS=2;
+
+boost::program_options::variables_map parseOptions(int argc,char *argv[])
+{
+  boost::program_options::options_description desc("Allowed options");
+  desc.add_options()
+    ("help", "produce help message")
+    ("zap", boost::program_options::value<uint>()->implicit_value(0), "delete the shared memory segment")
+    ("list", boost::program_options::value<uint>()->implicit_value(SAFplus::MaxNodes), "show all existing groups and entities ")
+    ("clear", boost::program_options::value<std::string>()->implicit_value("*all*"), "delete all entities from a group (or all groups with no argument)")
+    ;
+
+  boost::program_options::variables_map vm;        
+  boost::program_options::store(boost::program_options::parse_command_line(argc, argv, desc), vm);
+  boost::program_options::notify(vm);    
+  if (vm.count("help")) 
+    {
+      std::cout << desc << "\n";
+    }
+  return vm;
+}
 
 int main(int argc,char *argv[])
   {
-  SAFplus::logEchoToFd = 1;  // echo logs to stdout for debugging
-  SAFplus::logSeverity = SAFplus::LOG_SEV_DEBUG;
+  SAFplus::utilsInitialize();  // Needed to grab the env vars like ASP_NODENAME
 
-  SAFplus::SafplusInitializationConfiguration sic;
-  sic.iocPort     = SAFplusI::GMS_STANDALONE_IOC_PORT;
-  sic.msgQueueLen = MAX_MSGS;
-  sic.msgThreads  = MAX_HANDLER_THREADS;
-  SAFplus::safplusInitialize(SAFplus::LibDep::GRP | SAFplus::LibDep::IOC | SAFplus::LibDep::CKPT | SAFplus::LibDep::LOG,sic);
+  boost::program_options::variables_map vm = parseOptions(argc,argv);
+  if (vm.count("help")) return 0;  // Help already printed by parseOptions
 
-  SAFplusI::GroupServer gs;
-  gs.groupCommunicationPort = sic.iocPort;
-  gs.init();
+  if (vm.count("zap")) 
+    {
+      SAFplusI::GroupSharedMem::deleteSharedMemory();
+    }
 
-  /* Library should start it */
-  SAFplus::safplusMsgServer.Start();
-  while(1) { sleep(10000); }
+  SAFplusI::GroupSharedMem gsm;
+  gsm.init();
+
+  if (vm.count("clear")) 
+    {
+      std::string group = vm["clear"].as<std::string>();
+      if (group == "*all*") gsm.clear();
+      else
+        {
+          printf("not implemented\n");
+        }
+    }
+  if (vm.count("list")) 
+    {
+    gsm.dbgDump();
+    }
+
   return 0;
   }

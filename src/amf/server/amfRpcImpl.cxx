@@ -69,6 +69,12 @@ namespace amfRpc {
     //TODO: put your code here 
   }
 
+  void amfRpcImpl::nodeInfo(const ::SAFplus::Rpc::amfRpc::NodeInfoRequest* request,
+                                ::SAFplus::Rpc::amfRpc::NodeInfoResponse* response)
+  {
+    response->set_time(nowMs());
+  }
+
   void amfRpcImpl::processInfo(const ::SAFplus::Rpc::amfRpc::ProcessInfoRequest* request,
                                 ::SAFplus::Rpc::amfRpc::ProcessInfoResponse* response)
   {

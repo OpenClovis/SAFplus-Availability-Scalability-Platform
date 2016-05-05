@@ -40,15 +40,24 @@ namespace SAFplus
     {
       logInfo("POL","AMF","Received fault report from [%" PRIx64 ":%" PRIx64 "]:  Entity [%" PRIx64 ":%" PRIx64 "] (on node [%d], port [%d]).  Current fault count is [%d] ", faultReporter.id[0], faultReporter.id[1], faultEntity.id[0], faultEntity.id[1], faultEntity.getNode(), faultEntity.getProcess(), countFaultEvent);
 
+        // If this fault comes from an AMF
+      if (faultReporter.getPort() == SAFplusI::AMF_IOC_PORT)
+        {
+          if ((faultEntity.getPort() == 0)&&(fault.cause == SAFplus::AlarmProbableCause::ALARM_PROB_CAUSE_RECEIVER_FAILURE))  // port==0 means that this fault concerns the whole node, its a Keep-alive failure
+            {
+            assert(faultServer);
+            faultServer->setFaultState(faultEntity,FaultState::STATE_DOWN);
+            }
+
         // If this fault comes from an AMF and its telling me that there was a crash the trust it because the local AMF monitors its local processes.
-      if ((faultReporter.getPort() == SAFplusI::AMF_IOC_PORT)&&(fault.cause == SAFplus::AlarmProbableCause::ALARM_PROB_CAUSE_SOFTWARE_ERROR))
-          {
+          else if (fault.cause == SAFplus::AlarmProbableCause::ALARM_PROB_CAUSE_SOFTWARE_ERROR)
+            {
             if (fault.alarmState == SAFplus::AlarmState::ALARM_STATE_ASSERT)
               {
                 assert(faultServer);
                 faultServer->setFaultState(faultEntity,FaultState::STATE_DOWN);
                 logWarning("FLT","POL","Entity DOWN [%" PRIx64 ":%" PRIx64 "] (on node [%d], port [%d]).", faultEntity.id[0], faultEntity.id[1], faultEntity.getNode(), faultEntity.getProcess());
-              return true;
+                return true;
               }
             
             if (fault.alarmState == SAFplus::AlarmState::ALARM_STATE_CLEAR)
@@ -57,7 +66,8 @@ namespace SAFplus
               faultServer->setFaultState(faultEntity,FaultState::STATE_UP);
               return true;
               }
-          }
+            }
+        }
 
 #if 0
         // If I get multiple reports from other entities, then start believing them

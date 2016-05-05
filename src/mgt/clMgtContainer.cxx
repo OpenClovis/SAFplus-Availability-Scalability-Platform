@@ -240,7 +240,9 @@ namespace SAFplus
       {
         //if (!listTag.empty() )
         //if (parent && typeid(*parent)==typeid(SAFplus::MgtList))
-        if (parent && strstr(typeid(*parent).name(), "MgtList"))  // If my parent is a list I need to use a different tag format 
+        const std::type_info* objType = NULL;
+        if (parent) objType = &typeid(*parent);
+        if (objType && strstr(objType->name(), "MgtList"))  // If my parent is a list I need to use a different tag format 
           {
             xmlString << '<' << parent->tag;
             if (opts&MgtObject::SerializationOptions::SerializeListKeyAttribute) xmlString << " listkey=\"" << tag << "\"";

@@ -113,7 +113,9 @@ namespace SAFplusI
   /* AMF */
   enum
     {
-    AmfMaxComponentServiceInstanceKeyValuePairs = 1024
+      AmfMaxComponentServiceInstanceKeyValuePairs = 1024,
+      NodeSilentInterval = 5*1024, //? Maximum time to wait for unresponsive node before notifying the fault manager in milliseconds
+      NodeHeartbeatInterval = 1024    //? Send heartbeats at this interval
     };
 
 

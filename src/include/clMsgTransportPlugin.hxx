@@ -4,7 +4,7 @@
 
 namespace SAFplus
   {
-  class MsgTransportPlugin_1;
+    class MsgTransportPlugin_1;
     class MsgSocket;
     class MsgPool;
 

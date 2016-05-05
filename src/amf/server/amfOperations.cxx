@@ -196,6 +196,7 @@ namespace SAFplus
     try
       {
       Handle nodeHdl = name.getHandle(comp->serviceUnit.value->node.value->name);
+      Handle amfHdl = getProcessHandle(SAFplusI::AMF_IOC_PORT,nodeHdl.getNode());
 
       int pid = comp->processId;
       if (0) // nodeHdl == nodeHandle)  // Handle this request locally
@@ -226,7 +227,7 @@ namespace SAFplus
         ProcessInfoRequest req;
         req.set_pid(pid);
         ProcessInfoResponse resp;
-        amfInternalRpc->processInfo(nodeHdl,&req, &resp);
+        amfInternalRpc->processInfo(amfHdl,&req, &resp);
         if (!resp.IsInitialized())
           {
             // RPC call is broken, should throw exception
@@ -250,6 +251,12 @@ namespace SAFplus
     catch (NameException& e)
       {
       return CompStatus::Uninstantiated;
+      }
+    catch (Error& e)
+      {
+        if (e.clError == Error::DOES_NOT_EXIST) return CompStatus::Uninstantiated; // actually this could be the node does not exist (or hasn't been found yet by this AMF), so this may have to evolve into an "unknown" comp status, or we must make sure that an existing node is always found
+        if (e.clError == Error::CONTAINER_DOES_NOT_EXIST) throw;
+        throw; // TODO, any other errors?
       }
     }
 
@@ -562,6 +569,7 @@ namespace SAFplus
   void AmfOperations::abort(SAFplusAmf::Component* comp,Wakeable& w)
     {
     Handle nodeHdl;
+    Handle remoteAmfHdl;
     try
       {
       nodeHdl = name.getHandle(comp->serviceUnit.value->node.value->name);
@@ -581,6 +589,8 @@ namespace SAFplus
       }
     else  
       {
+        remoteAmfHdl = getProcessHandle(SAFplusI::AMF_IOC_PORT,nodeHdl.getNode());
+
         assert(0);  // TODO implement process stop RPC
       }
     }
@@ -689,21 +699,15 @@ namespace SAFplus
       }
     else  // RPC call
       {
+      Handle remoteAmfHdl = getProcessHandle(SAFplusI::AMF_IOC_PORT,nodeHdl.getNode());
+
       logInfo("OP","CMP","Request launch component [%s] as [%s] on node [%s]", comp->name.value.c_str(),inst->command.value.c_str(),comp->serviceUnit.value->node.value->name.value.c_str());
 
-#if 0
-      SAFplus::Rpc::RpcChannel channel(&safplusMsgServer, nodeHdl);
-      channel->setMsgType(AMF_REQ_HANDLER_TYPE, AMF_REPLY_HANDLER_TYPE);
-      amfRpc_Stub service(channel);
-      StartComponentRequest req;
-      StartCompResp respData(w,comp);
-      service.startComponent(INVALID_HDL, &req, &respData.response, respData);  // TODO: what happens in a RPC call timeout?
-#endif
       StartComponentRequest req;
       req.set_name(comp->name.value.c_str());
       req.set_command(inst->command.value.c_str());
       StartCompResp* resp = new StartCompResp(&w,comp);
-      amfInternalRpc->startComponent(nodeHdl,&req, &resp->response,*resp);
+      amfInternalRpc->startComponent(remoteAmfHdl,&req, &resp->response,*resp);
       }
     reportChange();
     }

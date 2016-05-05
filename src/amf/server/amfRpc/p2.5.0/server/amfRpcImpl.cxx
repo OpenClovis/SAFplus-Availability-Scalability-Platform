@@ -26,6 +26,12 @@ namespace amfRpc {
     //TODO: put your code here
   }
 
+  void amfRpcImpl::nodeInfo(const ::SAFplus::Rpc::amfRpc::NodeInfoRequest* request,
+                                ::SAFplus::Rpc::amfRpc::NodeInfoResponse* response)
+  {
+    //TODO: put your code here
+  }
+
   void amfRpcImpl::processInfo(const ::SAFplus::Rpc::amfRpc::ProcessInfoRequest* request,
                                 ::SAFplus::Rpc::amfRpc::ProcessInfoResponse* response)
   {

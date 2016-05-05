@@ -186,16 +186,16 @@ namespace SAFplus
                                 // Look at fault state of containing entity?
                                 if (i==0) h = getProcessHandle(destination.getProcess(), destination.getNode());                      
                                 if (i==1) h = getNodeHandle(destination.getNode());
-                                if (i==2)  // No information is stored in the fault manager... should never happen
+                                if (i==2)  // No information is stored in the fault manager... should never happen, unless old data in shared mem.
                                   {
                                     //            throw Error(Error::SAFPLUS_ERROR, Error::MISCONFIGURATION, "Invalid messaging port [0]", __FILE__, __LINE__);
                                     logCritical("MSG","SVR", "Fault manager has no information about this destination [%" PRIx64 ":%" PRIx64 "]", destination.id[0],destination.id[1]);
-                                    assert(0); // TODO: raise exception!!! //return NULL; 
-                                  }
+                                    throw Error(Error::SAFPLUS_ERROR,Error::CONTAINER_DOES_NOT_EXIST, "Fault manager has no information about destination",__FILE__,__LINE__);
+                                 }
                               }
                             else if (fs==FaultState::STATE_DOWN)
                               {
-                                    assert(0); // TODO: raise exception!!! //return NULL;                                 
+                                   throw Error(Error::SAFPLUS_ERROR,Error::DOES_NOT_EXIST, "Fault manager has no information about destination",__FILE__,__LINE__);                          
                               }
                             else 
                               {

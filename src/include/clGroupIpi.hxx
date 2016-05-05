@@ -271,9 +271,12 @@ class GroupServer:public SAFplus::MsgHandler
   GroupServer();
   GroupSharedMem gsm;
   SAFplus::SafplusMsgServer   *groupMsgServer;
-
+  boost::thread faultHandler;
+    bool quit;
       // Communication port
   int groupCommunicationPort;
+
+  void operator()(void);  // fault polling thread
 
   virtual void msgHandler(SAFplus::Handle from, SAFplus::MsgServer* svr, ClPtrT msg, ClWordT msglen, ClPtrT cookie);
 

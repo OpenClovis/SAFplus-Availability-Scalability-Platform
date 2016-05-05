@@ -75,11 +75,11 @@ namespace SAFplus
       if (!frag) return NULL; // offset is beyond the end of the message
 
       uint8_t* out = (uint8_t*) data;
-          if (align>1)  // Align the out pointer
-            {
-              out = (uint8_t*) ((((uintptr_t)out)+(align-1))&(align-1));
-            }
-          uint8_t* ret = out;
+      if (align>1)  // Align the out pointer
+        {
+          out = (uint8_t*) ((((uintptr_t)out)+(align-1))&(~(align-1)));
+        }
+      uint8_t* ret = out;
 
       if (loc < 0)  // Copy the portion in this fragment.
         {            
@@ -386,6 +386,8 @@ namespace SAFplus
       std::ostringstream s;
       uint32_t val1, val2, val3, val4;
       uint32_t addr = *((uint32_t*) transportAddr);
+      uint16_t port;
+      memcpy(&port, ((char*)transportAddr)+sizeof(uint32_t),sizeof(uint16_t));
 
       val1 = addr & 0xff000000;
       val1 = val1 >> 24;
@@ -395,7 +397,14 @@ namespace SAFplus
       val3 = val3 >> 8;
       val4 = addr & 0x000000ff;
 
-      s << val1 << '.' << val2 << '.' << val3 << '.' << val4;
+      if (port)
+        {
+          s << val1 << '.' << val2 << '.' << val3 << '.' << val4 << ':' << port;
+        }
+      else
+        {
+          s << val1 << '.' << val2 << '.' << val3 << '.' << val4;
+        }
 
       return s.str();    
     }
@@ -420,13 +429,23 @@ namespace SAFplus
       assert(*transportAddrLen >= sizeof(uint32_t));
       boost::tokenizer<> tok(str);
       uint32_t addr=0;
-      for(boost::tokenizer<>::iterator it=tok.begin(); it!=tok.end();it++)
+      uint16_t port=0;
+      int count=0;
+      for(boost::tokenizer<>::iterator it=tok.begin(); it!=tok.end();it++,count++)
         {
-          addr <<= 8;
-          addr |= std::stoi(*it);
+          if (count < 4)
+            {
+            addr <<= 8;
+            addr |= std::stoi(*it);
+            }
+          else
+            {
+            port = std::stoi(*it);
+            }
         }
-      *transportAddrLen=sizeof(uint32_t);
+      *transportAddrLen=sizeof(uint32_t) + sizeof(uint16_t);
       memcpy(transportAddr,&addr,sizeof(uint32_t));
+      memcpy(((char*)transportAddr)+sizeof(uint32_t),&port,sizeof(uint16_t));
     }
 
 #if 0

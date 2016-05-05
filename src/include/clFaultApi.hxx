@@ -14,8 +14,8 @@ class Fault
 {
 public:
 
-    SAFplus::Handle                   reporter;               // handle for identify a fault entity
-    SAFplus::SafplusMsgServer*        faultMsgServer;       //safplus message for send fault notification to fault server
+    SAFplus::Handle                   reporter;             // handle for identify a fault entity
+    SAFplus::SafplusMsgServer*        faultMsgServer;       // safplus message for send fault notification to fault server
     SAFplus::Wakeable*                wakeable;             // Wakeable object for change notification
     SAFplus::Handle faultServer;
     //int faultCommunicationPort;
@@ -59,6 +59,8 @@ public:
     //? Notify the fault manager about a fault event.
     //? [ARGS TBD when we figure out the alarm portion of fault]
     void notify(SAFplus::Handle faultEntity,SAFplus::AlarmState alarmState,SAFplus::AlarmCategory category,SAFplus::AlarmSeverity severity,SAFplus::AlarmProbableCause cause,FaultPolicy pluginId = FaultPolicy::Undefined);
+    //?  Notify the local fault server of a fault.  This API should only be used to report faults in the active fault server, or active fault server's node.
+    void notifyLocal(SAFplus::Handle faultEntity,SAFplus::AlarmState alarmState,SAFplus::AlarmCategory category,SAFplus::AlarmSeverity severity,SAFplus::AlarmProbableCause cause,FaultPolicy pluginId = FaultPolicy::Undefined);
     //? Notify the fault manager about a fault event.
     //? [ARGS TBD when we figure out the alarm portion of fault]
     void notify(SAFplus::Handle faultEntity,FaultEventData faultData,FaultPolicy pluginId = FaultPolicy::Undefined);
@@ -71,6 +73,9 @@ public:
     // <arg name="faultEntity">The entity that is not responding</arg>
     // <arg name="severity" default="SAFplus::AlarmSeverity::ALARM_SEVERITY_CRITICAL">[DEFAULT: critical] How important is this problem to the health of the system</arg>
     void notifyNoResponse(SAFplus::Handle faultEntity,SAFplus::AlarmSeverity severity=SAFplus::AlarmSeverity::ALARM_SEVERITY_CRITICAL);
+
+    void setNotification(SAFplus::Wakeable& w);  //? call w.wake when there is a fault state change.  Pass what happened into the wakeable.  There can be only one registered notification per Fault object.
+    uint64_t lastChange(); //?  Return the time of the last change to this group in monotonically increasing system ticks.
 
     protected:
     // send a fault entity to fault server

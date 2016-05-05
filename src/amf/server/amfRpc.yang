@@ -71,6 +71,27 @@ module amfRpc
       
   }
   
+  rpc nodeInfo
+    {
+      // description "This RPC call is also used to see if the node is available"
+    input
+      {
+        leaf time
+          {
+            //description "Pass the current time-since-epoch in milliseconds on the originating node"
+            type uint64;
+          }
+      }
+    output
+      {
+        leaf time
+          {
+            //description "Pass the current time-since-epoch in milliseconds on the replying node"
+            type uint64;
+          }
+        // TBD, add other info from NodeStats here
+      }
+    }
 
   rpc processInfo
     {

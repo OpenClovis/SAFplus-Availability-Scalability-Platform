@@ -40,6 +40,8 @@
 #include <amfAppRpc.hxx>
 #include "amfAppRpcImplAmfSide.hxx"
 
+#include "nodeMonitor.hxx"
+
 #define USE_GRP
 
 #ifdef SAFPLUS_AMF_GRP_NODE_REPRESENTATIVE
@@ -183,6 +185,7 @@ unsigned int     myRole = 0;
 unsigned int     capabilities=0;
 unsigned int     credential=0;
 
+NodeMonitor      nodeMonitor;
 
 static unsigned int MAX_MSGS=25;
 static unsigned int MAX_HANDLER_THREADS=10;
@@ -329,14 +332,63 @@ bool activeAudit()  // Check to make sure DB and the system state are in sync.  
   logDebug("AUD","ACT","Active Audit");
   RedPolicyMap::iterator it;
 
-  logDebug("AUD","ACT","Active Audit -- Nodes");
+  logDebug("AUD","ACT","Active Audit: Nodes");
+
+
+  MgtObject::Iterator itnode;
+  MgtObject::Iterator endnode = cfg.safplusAmf.nodeList.end();
+  for (itnode = cfg.safplusAmf.nodeList.begin(); itnode != endnode; itnode++)
+    {
+      Handle nodeHdl;
+      Node* node = dynamic_cast<Node*>(itnode->second);
+      try
+        {
+         nodeHdl = name.getHandle(node->name);
+         SAFplus::FaultState fs = fault.getFaultState(nodeHdl);
+         if ((fs == FaultState::STATE_UP)&&(node->presenceState != PresenceState::instantiated))
+           {
+             node->presenceState = PresenceState::instantiated;
+             // TODO: set change flag
+           }
+         else if ((fs == FaultState::STATE_DOWN)&&(node->presenceState != PresenceState::terminating))
+           {
+             node->presenceState = PresenceState::uninstantiated;
+           }
+        }
+      catch (SAFplus::NameException& n)
+        {
+          node->presenceState.value = PresenceState::uninstantiated;
+        }
+      if (nodeHdl != INVALID_HDL)
+        {
+        Handle amfHdl = getProcessHandle(SAFplusI::AMF_IOC_PORT,nodeHdl.getNode());
+        bool inCluster = clusterGroup.isMember(amfHdl);
+        logInfo("AUD","NOD","Node [%s] Id [%d] Handle [%" PRIx64 ":%" PRIx64 "] Member: [%c]",node->name.value.c_str(), nodeHdl.getNode(), nodeHdl.id[0],nodeHdl.id[1],inCluster ? 'Y':'N');
+        }
+      else
+        {
+          logInfo("AUD","NOD","Node [%s] is uninstantiated",node->name.value.c_str());
+        }
+    }
+
 
   Group::Iterator end = clusterGroup.end();
   for (Group::Iterator it = clusterGroup.begin();it != end; it++)
     {
     Handle hdl = it->first;  // same as gi->id
     const GroupIdentity* gi = &it->second;
-    logInfo("AUD","NOD","Node handle [%" PRIx64 ":%" PRIx64 "], [%" PRIx64 ":%" PRIx64 "], ",hdl.id[0],hdl.id[1],gi->id.id[0],gi->id.id[1]);
+    //logInfo("AUD","NOD","Node handle [%" PRIx64 ":%" PRIx64 "], [%" PRIx64 ":%" PRIx64 "], ",hdl.id[0],hdl.id[1],gi->id.id[0],gi->id.id[1]);
+#if 0
+    NodeInfoRequest request;
+    NodeInfoResponse response;
+    request->set_time(nowMs());
+    amfInternalRpc->nodeInfo(hdl,&req,&resp);
+    if (!resp.IsInitialized())
+          {
+            // RPC call is broken, should throw exception
+            assert(0);
+          }    
+#endif
 #if 0
     ClusterGroupData* data = (ClusterGroupData*) it->second;
     if (data)
@@ -398,12 +450,14 @@ bool standbyAudit(void) // Check to make sure DB and the system state are in syn
 
 void becomeActive(void)
   {
-  activeAudit();
+    nodeMonitor.becomeActive();
+    activeAudit();
   }
 
 void becomeStandby(void)
   {
-  standbyAudit();
+    nodeMonitor.becomeStandby();
+    standbyAudit();
   }
 
 
@@ -729,7 +783,7 @@ int main(int argc, char* argv[])
 
   myHandle = getProcessHandle(SAFplusI::AMF_IOC_PORT,SAFplus::ASP_NODEADDR);
   // Register a mapping between this node's name and its handle.
-  nodeHandle = myHandle; // TODO: No should be different
+  nodeHandle = getNodeHandle(SAFplus::ASP_NODEADDR);
 
   // Start up Server RPC.  Note that since I create some variables on the stack,
   // we must shut this down before going out of context.
@@ -882,6 +936,8 @@ int main(int argc, char* argv[])
   fault.init(myHandle);
   fault.registerEntity(nodeHandle,FaultState::STATE_UP);
 
+  nodeMonitor.init();
+
   struct sigaction newAction;
   newAction.sa_handler = sigChildHandler;
   sigemptyset(&newAction.sa_mask);
@@ -939,9 +995,6 @@ int main(int argc, char* argv[])
       amfChange = false;
       if (myRole == Group::IS_ACTIVE) amfChange |= activeAudit();    // Check to make sure DB and the system state are in sync
       if (myRole == Group::IS_STANDBY) amfChange |= standbyAudit();  // Check to make sure DB and the system state are in sync
-
-      // GAS DBG: just to test audit with election not working
-      // activeAudit();
       }
     else
       {  // Something changed in the group.

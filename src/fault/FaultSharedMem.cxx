@@ -18,6 +18,7 @@ void FaultSharedMem::init()
         faultHdr = (SAFplus::FaultShmHeader*) faultMsm.construct<SAFplus::FaultShmHeader>("header") ();                                 // Ok it created one so initialize
     	faultHdr->activeFaultServer = INVALID_HDL;
         faultHdr->structId=SAFplus::CL_FAULT_BUFFER_HEADER_STRUCT_ID_7; // Initialize this last.  It indicates that the header is properly initialized (and acts as a structure version number)
+        faultHdr->lastChange = nowMs();
     }
     catch (interprocess_exception &e)
     {
@@ -32,6 +33,7 @@ void FaultSharedMem::init()
                 // That other process should have inited it by now... so that other process must not exist.  Maybe it died, or maybe the shared memory is bad.  I will initialize.
               faultHdr->activeFaultServer = INVALID_HDL;
               faultHdr->structId=SAFplus::CL_FAULT_BUFFER_HEADER_STRUCT_ID_7; // Initialize this last.  It indicates that the header is properly initialized (and acts as a structure version number)   
+              faultHdr->lastChange = nowMs();
               boost::this_thread::sleep(boost::posix_time::milliseconds(100));             
               }
         }
@@ -39,6 +41,18 @@ void FaultSharedMem::init()
     }
 }
 
+uint64_t FaultSharedMem::lastChange(void)
+  {
+    assert(faultHdr); 
+    ScopedLock<Mutex> lock(faultMutex);
+    return faultHdr->lastChange;
+  }
+
+void FaultSharedMem::changed(void)
+  {
+    assert(faultHdr);
+    faultHdr->lastChange = std::max(faultHdr->lastChange+1,nowMs()); // Use the current time because its useful, but ensure that the number is monotonically increasing
+  }
 
 void FaultSharedMem::setActive(SAFplus::Handle active)
 {
@@ -48,24 +62,25 @@ void FaultSharedMem::setActive(SAFplus::Handle active)
 
 bool FaultSharedMem::createFault(FaultShmEntry* frp,SAFplus::Handle fault)
 {
+    bool result = false;
     ScopedLock<Mutex> lock(faultMutex);
     FaultShmHashMap::iterator entryPtr;
     entryPtr = faultMap->find(fault);
     if (entryPtr == faultMap->end())
     {
-
         FaultShmEntry* fe = &((*faultMap)[fault]);
         assert(fe);  // TODO: throw out of memory
         fe->init(fault,frp);
-        return true;
+        result = true;
     }
     else
     {
         //update fault entry
         FaultShmEntry *fe = &entryPtr->second;
         fe->init(fault,frp);
-        return false;
     }
+    changed();
+    return result;
 }
 
 bool FaultSharedMem::updateFaultHandle(FaultShmEntry* frp,SAFplus::Handle fault)
@@ -85,21 +100,24 @@ bool FaultSharedMem::updateFaultHandle(FaultShmEntry* frp,SAFplus::Handle fault)
     return true;
 }
 
-  bool FaultSharedMem::updateFaultHandleState(SAFplus::Handle fault, SAFplus::FaultState state)
+bool FaultSharedMem::updateFaultHandleState(SAFplus::Handle fault, SAFplus::FaultState state)
 {
-	ScopedLock<Mutex> lock(faultMutex);
+    ScopedLock<Mutex> lock(faultMutex);
     SAFplus::FaultShmHashMap::iterator entryPtr;
     entryPtr = faultMap->find(fault);
     if (entryPtr == faultMap->end()) return false; // TODO: raise exception
     SAFplus::FaultShmEntry *fse = &entryPtr->second;
     assert(fse);  // TODO: throw out of memory
+
+    if (fse->state == state) return false; // No change needed
     fse->state=state;
+    changed();
     return true;
 }
 
 void FaultSharedMem::clear()
 {
-	ScopedLock<Mutex> lock(faultMutex);
+    ScopedLock<Mutex> lock(faultMutex);
     SAFplus::FaultShmHashMap::iterator i;
     if(!faultMap)
     {
@@ -113,6 +131,7 @@ void FaultSharedMem::clear()
         fe.dependecyNum=0;
         //fe.name[0] = '\0';
     }
+    changed();
 }
 void FaultSharedMem::remove(const SAFplus::Handle handle)
 {
@@ -126,7 +145,33 @@ void FaultSharedMem::remove(const SAFplus::Handle handle)
     if (entryPtr == faultMap->end()) return; // TODO: raise exception
     assert(&handle);  // TODO: throw out of memory
     faultMap->erase(handle);
+    changed();
 }
+
+void FaultSharedMem::setChildFaults(SAFplus::Handle handle,SAFplus::FaultState state)
+  {
+    if (handle.getIndex() != 0) return;  // A handle with an index has no contained children.
+    int changes = 0;
+    ScopedLock<Mutex> lock(faultMutex);
+    int node = handle.getNode();
+    int port = handle.getPort();
+    if (port == SAFplus::Handle::ThisProcess) port = SAFplus::Handle::AllPorts;  // 0 being misused to mean NA
+
+    SAFplus::FaultShmHashMap::iterator i;
+    for (i=faultMap->begin(); i!=faultMap->end();i++)
+    {
+        SAFplus::Handle faultHdl = i->first;
+        if ( (node == faultHdl.getNode())
+             && ((port == SAFplus::Handle::AllPorts) || (port == faultHdl.getPort())))
+          {
+          SAFplus::FaultShmEntry *fse = &i->second;
+          assert(fse);  // program error
+          fse->state=state;
+          changes++;
+          }
+    }
+    if (changes) changed();
+  }
 
 void FaultSharedMem::removeAll()
 {
@@ -141,7 +186,8 @@ void FaultSharedMem::removeAll()
         SAFplus::Handle faultHdl = i->first;
         assert(&faultHdl);  // TODO: throw out of memory
         faultMap->erase(faultHdl);
-	}
+    }
+    changed();
 }
 
 uint_t FaultSharedMem::getAllFaultClient(char* buf, ClWordT bufSize)
@@ -186,7 +232,9 @@ void FaultSharedMem::applyFaultSync(char* buf, ClWordT bufSize)
         curpos += sizeof(Buffer) + val->len() - 1;
         createFault((FaultShmEntry*)val, *(Handle*)key);
     }
+    changed();
 }
+
 };
 
 

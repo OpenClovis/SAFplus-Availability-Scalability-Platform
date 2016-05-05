@@ -167,6 +167,18 @@ namespace SAFplus
       SAFplus::fsm.init();
     }
 
+void Fault::setNotification(SAFplus::Wakeable& w)
+  {
+    //? if (!wakeable) gsm.registerGroupObject(this);
+  wakeable = &w;
+  assert(0);  // NOT IMPLEMENTED
+  }
+
+  uint64_t Fault::lastChange()
+    {
+      return fsm.lastChange();
+    }
+
     // Register a Fault Entity to Fault Server
     void Fault::sendFaultAnnounceMessage(SAFplus::Handle other, SAFplus::FaultState state)
     {
@@ -181,6 +193,7 @@ namespace SAFplus
         sndMessage.syncData[0]=0;
         sendFaultNotification((void *)&sndMessage,sizeof(FaultMessageProtocol),FaultMessageSendMode::SEND_TO_ACTIVE_SERVER);
     }
+
     void Fault::changeFaultState(SAFplus::Handle other, SAFplus::FaultState state)
     {
         assert(other != INVALID_HDL);  // We must always report the state of a particular entity, even if that entity is myself (i.e. reporter == other)
@@ -250,13 +263,19 @@ namespace SAFplus
     void Fault::notify(SAFplus::Handle faultEntity,SAFplus::AlarmState alarmState,SAFplus::AlarmCategory category,SAFplus::AlarmSeverity severity,SAFplus::AlarmProbableCause cause,SAFplus::FaultPolicy pluginId)
     {
       assert(faultEntity != INVALID_HDL);
-        sendFaultEventMessage(faultEntity,FaultMessageSendMode::SEND_TO_ACTIVE_SERVER,SAFplus::FaultMessageType::MSG_ENTITY_FAULT,alarmState,category,severity,cause,pluginId);
+      sendFaultEventMessage(faultEntity,FaultMessageSendMode::SEND_TO_ACTIVE_SERVER,SAFplus::FaultMessageType::MSG_ENTITY_FAULT,alarmState,category,severity,cause,pluginId);
+    }
+
+    void Fault::notifyLocal(SAFplus::Handle faultEntity,SAFplus::AlarmState alarmState,SAFplus::AlarmCategory category,SAFplus::AlarmSeverity severity,SAFplus::AlarmProbableCause cause,SAFplus::FaultPolicy pluginId)
+    {
+      assert(faultEntity != INVALID_HDL);
+      sendFaultEventMessage(faultEntity,FaultMessageSendMode::SEND_TO_LOCAL_SERVER,SAFplus::FaultMessageType::MSG_ENTITY_FAULT,alarmState,category,severity,cause,pluginId);
     }
 
     void Fault::notify(SAFplus::Handle faultEntity,SAFplus::FaultEventData faultData,SAFplus::FaultPolicy pluginId)
     {
       assert(faultEntity != INVALID_HDL);
-        sendFaultEventMessage(faultEntity,FaultMessageSendMode::SEND_TO_ACTIVE_SERVER,SAFplus::FaultMessageType::MSG_ENTITY_FAULT,pluginId,faultData);
+      sendFaultEventMessage(faultEntity,FaultMessageSendMode::SEND_TO_ACTIVE_SERVER,SAFplus::FaultMessageType::MSG_ENTITY_FAULT,pluginId,faultData);
     }
 
     void Fault::notify(SAFplus::FaultEventData faultData,SAFplus::FaultPolicy pluginId)
@@ -297,7 +316,8 @@ namespace SAFplus
                 logDebug(FAULT,FAULT_ENTITY,"Send Fault Notification to local Fault server");
                 try
                 {
-                    faultMsgServer->SendMsg(activeServer, (void *)data, dataLength, SAFplusI::FAULT_MSG_TYPE);
+                  Handle hdl = getProcessHandle(SAFplusI::FAULT_IOC_PORT);
+                  faultMsgServer->SendMsg(hdl, (void *)data, dataLength, SAFplusI::FAULT_MSG_TYPE);
                 }
                 catch (...) // SAFplus::Error &e)
                 {
@@ -374,11 +394,11 @@ namespace SAFplus
       entryPtr = fsm.faultMap->find(faultHandle);
       if (entryPtr == fsm.faultMap->end())
       {
-        logError(FAULT,FAULT_ENTITY,"Fault Entity [%" PRIx64 ":%" PRIx64 "] is not available in shared memory",faultHandle.id[0],faultHandle.id[1]);
-          return SAFplus::FaultState::STATE_UNDEFINED;
+        // logDebug(FAULT,FAULT_ENTITY,"Fault Entity [%" PRIx64 ":%" PRIx64 "] is not available in shared memory",faultHandle.id[0],faultHandle.id[1]);
+        return SAFplus::FaultState::STATE_UNDEFINED;
       }
       FaultShmEntry *fse = &entryPtr->second;
-      logDebug(FAULT,FAULT_ENTITY,"Fault state of Fault Entity [%" PRIx64 ":%" PRIx64 "] is [%s]",faultHandle.id[0],faultHandle.id[1],strFaultEntityState[int(fse->state)]);
+      //logDebug(FAULT,FAULT_ENTITY,"Fault state of Fault Entity [%" PRIx64 ":%" PRIx64 "] is [%s]",faultHandle.id[0],faultHandle.id[1],strFaultEntityState[int(fse->state)]);
       return fse->state;
     }
 

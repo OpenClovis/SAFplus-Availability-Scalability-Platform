@@ -15,7 +15,7 @@ SAFPLUS_DEP_LIBS     := $(addsuffix .so,$(addprefix $(LIB_DIR)/lib,$(SAFPLUS_LIB
 SAFPLUS_LINK_LIBS := -L$(LIB_DIR) $(addprefix -l,$(SAFPLUS_LIBS))
 
 
-Release all: $(LIB_DIR)/libclGroup.so $(LIB_DIR)/libclGroup.a $(BIN_DIR)/spgroup $(BIN_DIR)/safplus_group 
+Release all: $(LIB_DIR)/libclGroup.so $(LIB_DIR)/libclGroup.a $(BIN_DIR)/spgroupd $(BIN_DIR)/safplus_group 
 
 $(LIB_DIR)/libclGroup.so: $(CLIENT_OBJ) $(SAFPLUS_DEP_LIBS)
 	$(LINK_SO) $@  $(CLIENT_OBJ) $(SAFPLUS_LINK_LIBS) $(LINK_SO_LIBS)
@@ -29,7 +29,7 @@ $(OBJ_DIR)/%.o: bin/%.cxx Makefile $(CLIENT_H)
 $(MWOBJ_DIR)/%.o: %.cxx Makefile $(CLIENT_H)
 	$(COMPILE_CPP) $@ $<
 
-$(BIN_DIR)/spgroup: $(OBJ_DIR)/spgroup.o $(SAFPLUS_DEP_LIBS)
+$(BIN_DIR)/spgroupd: $(OBJ_DIR)/spgroupd.o $(SAFPLUS_DEP_LIBS)
 	$(LINK_EXE) $@  $< -lclGroup $(SAFPLUS_LINK_LIBS) -lboost_program_options $(LINK_SO_LIBS)
 
 $(BIN_DIR)/safplus_group: $(OBJ_DIR)/safplus_group.o $(SAFPLUS_DEP_LIBS)

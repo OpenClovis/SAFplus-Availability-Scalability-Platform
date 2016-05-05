@@ -1,6 +1,7 @@
 #include <clCustomization.hxx>
 #include <clHandleApi.hxx>
 #include <clProcessApi.hxx>
+#include <clFaultApi.hxx>
 #include <clGroupIpi.hxx>
 #include <clMsgPortsAndTypes.hxx>
 #include <chrono>
@@ -24,6 +25,7 @@ std::string GroupSharedMem::groupSharedMemoryObjectName = "";
 
 GroupServer::GroupServer()
  { 
+ quit = false;
  groupCommunicationPort=GMS_IOC_PORT; 
  groupMsgServer = NULL;
  }
@@ -65,6 +67,7 @@ void GroupSharedMem::dispatcher()
   while(!quit)
     {
     boost::this_thread::sleep(boost::posix_time::milliseconds(250));  // TODO: should be woken via a global sem...
+
     if (!quit)
       {
       ScopedLock<Mutex> lock2(localMutex);
@@ -256,6 +259,7 @@ void GroupServer::init()
 
   if (electNodeRepresentative())
     {
+      // I am node representative
 
       // Elect node representative also claims so this is not necessary
       //gsm.claim(SAFplus::pid,groupMsgServer->port);  // Make me the node representative
@@ -268,6 +272,7 @@ void GroupServer::init()
           //allGrpMsgHdlr.handleMap[handle] = &groupMessageHandler;  //  Register this object's message handler into the global lookup.
           groupMsgServer->RegisterHandler(SAFplusI::GRP_MSG_TYPE, this, NULL);  //  Register the main message handler (no-op if already registered)
         }
+      faultHandler = boost::thread(boost::ref(*this));
     }
   else
     {
@@ -277,6 +282,41 @@ void GroupServer::init()
 
   }
 
+  void GroupServer::operator() (void)
+  {
+    uint64_t faultChange=0;
+    SAFplus::Fault fault;
+
+    while(!quit)
+      {
+        boost::this_thread::sleep(boost::posix_time::milliseconds(250));  // TODO: should be woken via a global sem...
+        // TODO this polling & searching should be replaced with explicit notification of what changed
+        if ((!quit)&&(faultChange != fault.lastChange()))  // Fault manager changed; update groups
+          {
+            faultChange = fault.lastChange();
+            //ScopedLock<Mutex> lock2(localMutex);
+            //ScopedLock<ProcSem> lock(mutex);
+            SAFplusI::GroupShmHashMap::iterator i;
+            for (i=gsm.groupMap->begin(); i!=gsm.groupMap->end();i++)
+              {
+                GroupShmEntry& ge = i->second;
+                const GroupData& gd = ge.read();
+                for (int j=0;j<::SAFplusI::GroupMaxMembers;j++)
+                  {
+                    if (gd.members[j].id != INVALID_HDL)
+                      {
+                        FaultState fs = fault.getFaultState(gd.members[j].id);
+                        if (fs == FaultState::STATE_DOWN)
+                          {
+                            deregisterEntity(&ge,gd.members[j].id,true);
+                            break;  // Not going to find a double
+                          }
+                      }
+                  }
+              }
+          }
+      }
+  }
 
 GroupShmEntry* GroupSharedMem::createGroup(SAFplus::Handle grp)
   {

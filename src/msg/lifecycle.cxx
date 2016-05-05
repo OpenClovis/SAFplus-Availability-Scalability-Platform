@@ -14,7 +14,7 @@ void clMsgInitialize(void)
   {
     msgInitCount++;
     if (msgInitCount > 1) return;
-    //? This environment variable specifies which message transport plugin your cluster should use.
+    //? <cfg name="SAFPLUS_MSG_TRANSPORT">This environment variable specifies which message transport plugin your cluster should use.  example: export SAFPLUS_MSG_TRANSPORT=clMsgSctp.so</cfg>
   const char* xportFile = getenv("SAFPLUS_MSG_TRANSPORT");
   if (!xportFile)
     {
@@ -41,6 +41,7 @@ void clMsgInitialize(void)
     if (xp) 
       {
       MsgTransportConfig::Capabilities cap = xp->getCapabilities();
+      //? <cfg name="SAFPLUS_CLOUD_NODES">Specifies to use cloud mode and the address/base port of other cluster nodes (or just 1 if you do not want to specify any cluster nodes).  Running safplus_cloud --reload will use this variable to load nodes.  Nodes IDs will be assigned in order, starting with 1.  Therefore, it is important that this environment variable be the same for all nodes in the cluster.  Example: export SAFPLUS_CLOUD_NODES=192.168.45.32,192.168.45.35:10000.</cfg>
       char* cnVar = std::getenv("SAFPLUS_CLOUD_NODES");
       if (cnVar)
         {

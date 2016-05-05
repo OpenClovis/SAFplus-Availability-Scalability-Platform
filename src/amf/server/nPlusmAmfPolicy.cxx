@@ -131,12 +131,19 @@ namespace SAFplus
         }
 
       logInfo("N+M","STRT","Starting component [%s]", comp->name.value.c_str());
-      CompStatus status = amfOps->getCompState(comp);
+      try
+        {
+        CompStatus status = amfOps->getCompState(comp);
 
-      SAFplusAmf::AdministrativeState eas = effectiveAdminState(comp);
-      assert(eas != SAFplusAmf::AdministrativeState::off); // Do not call this API if the component is administratively OFF!
-      amfOps->start(comp,w);
-      ret++;
+        SAFplusAmf::AdministrativeState eas = effectiveAdminState(comp);
+        assert(eas != SAFplusAmf::AdministrativeState::off); // Do not call this API if the component is administratively OFF!
+        amfOps->start(comp,w);
+        ret++;
+        }
+      catch (Error& e)  // Can't talk to the node and the fault manager entry does not exist.
+        {
+          // TODO: cleanup data about this node
+        }
       }
     return ret;
     }
@@ -374,7 +381,7 @@ namespace SAFplus
           bool nodeExists  = false;  
           if (node)
             {
-              nodeExists = (node->stats.upTime > 0); // TODO: use the presence state
+              nodeExists = (node->presenceState == PresenceState::instantiated);  //(node->stats.upTime > 0); // TODO: use the presence state
             }
      
           logInfo("N+M","AUDIT","Auditing service unit [%s] on [%s]: Operational State [%s] AdminState [%s] PresenceState [%s] ReadinessState [%s] HA State [%s] HA Readiness [%s] ", suName.c_str(),node ? node->name.value.c_str() : "unattached", oper_str(su->operState.value), c_str(su->adminState.value), c_str(su->presenceState.value), c_str(su->readinessState.value), c_str(su->haState.value), c_str(su->haReadinessState.value) );

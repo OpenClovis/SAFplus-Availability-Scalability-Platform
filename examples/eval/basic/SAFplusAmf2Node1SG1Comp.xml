@@ -1,4 +1,4 @@
-<SAFplusAmf>
+<safplusAmf>
     <Cluster name="1">
       <adminState>on</adminState>
       <startupAssignmentDelay>1000</startupAssignmentDelay>
@@ -65,7 +65,7 @@
       <compCategory>1</compCategory>
       <delayBetweenInstantiation>10000</delayBetweenInstantiation>
       <instantiate>
-        <command>./test0 arg1 arg2</command>
+        <command>./basicApp c0</command>
         <timeout>30000</timeout>
       </instantiate>
       <instantiationSuccessDuration>60000</instantiationSuccessDuration>
@@ -87,7 +87,7 @@
       <compCategory>1</compCategory>
       <delayBetweenInstantiation>20000</delayBetweenInstantiation>
       <instantiate>
-        <command>./test0 arg1 arg2</command>
+        <command>./basicApp c1</command>
         <timeout>30000</timeout>
       </instantiate>
       <instantiationSuccessDuration>60000</instantiationSuccessDuration>
@@ -114,4 +114,4 @@
         <val>testVal2</val>
       </data>
     </ComponentServiceInstance>
-</SAFplusAmf>
+</safplusAmf>

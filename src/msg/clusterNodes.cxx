@@ -23,7 +23,7 @@ namespace SAFplus
       uint64_t generation;  //? The generation field differentiates reboots of a node.
       SAFplus::NodeStatus  status;
       char     transport;  //? an ID describing the message transport used to contact this node. 0 = default transport.  This transport is used to decode the address
-      char     address[SAFplus::MsgTransportAddressMaxLen];  //? The underlying (IP, TIPC) address of the node.  Format is defined by the transport
+      char     address[SAFplus::MsgTransportAddressMaxLen];  //? The underlying (IP, TIPC) address of the node, base port, and any other information.  Format is defined by the transport
     };
 
     enum 

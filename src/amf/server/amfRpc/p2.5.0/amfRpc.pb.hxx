@@ -40,6 +40,8 @@ class StartComponentRequest;
 class StartComponentResponse;
 class StopComponentRequest;
 class StopComponentResponse;
+class NodeInfoRequest;
+class NodeInfoResponse;
 class ProcessInfoRequest;
 class ProcessInfoResponse;
 class ProcessFailedRequest;
@@ -414,6 +416,176 @@ class StopComponentResponse : public ::google::protobuf::Message {
 
   void InitAsDefaultInstance();
   static StopComponentResponse* default_instance_;
+};
+// -------------------------------------------------------------------
+
+class NodeInfoRequest : public ::google::protobuf::Message {
+ public:
+  NodeInfoRequest();
+  virtual ~NodeInfoRequest();
+
+  NodeInfoRequest(const NodeInfoRequest& from);
+
+  inline NodeInfoRequest& operator=(const NodeInfoRequest& from) {
+    CopyFrom(from);
+    return *this;
+  }
+
+  inline const ::google::protobuf::UnknownFieldSet& unknown_fields() const {
+    return _unknown_fields_;
+  }
+
+  inline ::google::protobuf::UnknownFieldSet* mutable_unknown_fields() {
+    return &_unknown_fields_;
+  }
+
+  static const ::google::protobuf::Descriptor* descriptor();
+  static const NodeInfoRequest& default_instance();
+
+  void Swap(NodeInfoRequest* other);
+
+  // implements Message ----------------------------------------------
+
+  NodeInfoRequest* New() const;
+  void CopyFrom(const ::google::protobuf::Message& from);
+  void MergeFrom(const ::google::protobuf::Message& from);
+  void CopyFrom(const NodeInfoRequest& from);
+  void MergeFrom(const NodeInfoRequest& from);
+  void Clear();
+  bool IsInitialized() const;
+
+  int ByteSize() const;
+  bool MergePartialFromCodedStream(
+      ::google::protobuf::io::CodedInputStream* input);
+  void SerializeWithCachedSizes(
+      ::google::protobuf::io::CodedOutputStream* output) const;
+  ::google::protobuf::uint8* SerializeWithCachedSizesToArray(::google::protobuf::uint8* output) const;
+  int GetCachedSize() const { return _cached_size_; }
+  private:
+  void SharedCtor();
+  void SharedDtor();
+  void SetCachedSize(int size) const;
+  public:
+
+  ::google::protobuf::Metadata GetMetadata() const;
+
+  // nested types ----------------------------------------------------
+
+  // accessors -------------------------------------------------------
+
+  // optional uint64 time = 1;
+  inline bool has_time() const;
+  inline void clear_time();
+  static const int kTimeFieldNumber = 1;
+  inline ::google::protobuf::uint64 time() const;
+  inline void set_time(::google::protobuf::uint64 value);
+
+  GOOGLE_PROTOBUF_EXTENSION_ACCESSORS(NodeInfoRequest)
+  // @@protoc_insertion_point(class_scope:SAFplus.Rpc.amfRpc.NodeInfoRequest)
+ private:
+  inline void set_has_time();
+  inline void clear_has_time();
+
+  ::google::protobuf::internal::ExtensionSet _extensions_;
+
+  ::google::protobuf::UnknownFieldSet _unknown_fields_;
+
+  ::google::protobuf::uint64 time_;
+
+  mutable int _cached_size_;
+  ::google::protobuf::uint32 _has_bits_[(1 + 31) / 32];
+
+  friend void  protobuf_AddDesc_amfRpc_2eproto();
+  friend void protobuf_AssignDesc_amfRpc_2eproto();
+  friend void protobuf_ShutdownFile_amfRpc_2eproto();
+
+  void InitAsDefaultInstance();
+  static NodeInfoRequest* default_instance_;
+};
+// -------------------------------------------------------------------
+
+class NodeInfoResponse : public ::google::protobuf::Message {
+ public:
+  NodeInfoResponse();
+  virtual ~NodeInfoResponse();
+
+  NodeInfoResponse(const NodeInfoResponse& from);
+
+  inline NodeInfoResponse& operator=(const NodeInfoResponse& from) {
+    CopyFrom(from);
+    return *this;
+  }
+
+  inline const ::google::protobuf::UnknownFieldSet& unknown_fields() const {
+    return _unknown_fields_;
+  }
+
+  inline ::google::protobuf::UnknownFieldSet* mutable_unknown_fields() {
+    return &_unknown_fields_;
+  }
+
+  static const ::google::protobuf::Descriptor* descriptor();
+  static const NodeInfoResponse& default_instance();
+
+  void Swap(NodeInfoResponse* other);
+
+  // implements Message ----------------------------------------------
+
+  NodeInfoResponse* New() const;
+  void CopyFrom(const ::google::protobuf::Message& from);
+  void MergeFrom(const ::google::protobuf::Message& from);
+  void CopyFrom(const NodeInfoResponse& from);
+  void MergeFrom(const NodeInfoResponse& from);
+  void Clear();
+  bool IsInitialized() const;
+
+  int ByteSize() const;
+  bool MergePartialFromCodedStream(
+      ::google::protobuf::io::CodedInputStream* input);
+  void SerializeWithCachedSizes(
+      ::google::protobuf::io::CodedOutputStream* output) const;
+  ::google::protobuf::uint8* SerializeWithCachedSizesToArray(::google::protobuf::uint8* output) const;
+  int GetCachedSize() const { return _cached_size_; }
+  private:
+  void SharedCtor();
+  void SharedDtor();
+  void SetCachedSize(int size) const;
+  public:
+
+  ::google::protobuf::Metadata GetMetadata() const;
+
+  // nested types ----------------------------------------------------
+
+  // accessors -------------------------------------------------------
+
+  // optional uint64 time = 1;
+  inline bool has_time() const;
+  inline void clear_time();
+  static const int kTimeFieldNumber = 1;
+  inline ::google::protobuf::uint64 time() const;
+  inline void set_time(::google::protobuf::uint64 value);
+
+  GOOGLE_PROTOBUF_EXTENSION_ACCESSORS(NodeInfoResponse)
+  // @@protoc_insertion_point(class_scope:SAFplus.Rpc.amfRpc.NodeInfoResponse)
+ private:
+  inline void set_has_time();
+  inline void clear_has_time();
+
+  ::google::protobuf::internal::ExtensionSet _extensions_;
+
+  ::google::protobuf::UnknownFieldSet _unknown_fields_;
+
+  ::google::protobuf::uint64 time_;
+
+  mutable int _cached_size_;
+  ::google::protobuf::uint32 _has_bits_[(1 + 31) / 32];
+
+  friend void  protobuf_AddDesc_amfRpc_2eproto();
+  friend void protobuf_AssignDesc_amfRpc_2eproto();
+  friend void protobuf_ShutdownFile_amfRpc_2eproto();
+
+  void InitAsDefaultInstance();
+  static NodeInfoResponse* default_instance_;
 };
 // -------------------------------------------------------------------
 
@@ -1015,6 +1187,58 @@ inline ::google::protobuf::int32 StopComponentResponse::err() const {
 inline void StopComponentResponse::set_err(::google::protobuf::int32 value) {
   set_has_err();
   err_ = value;
+}
+
+// -------------------------------------------------------------------
+
+// NodeInfoRequest
+
+// optional uint64 time = 1;
+inline bool NodeInfoRequest::has_time() const {
+  return (_has_bits_[0] & 0x00000001u) != 0;
+}
+inline void NodeInfoRequest::set_has_time() {
+  _has_bits_[0] |= 0x00000001u;
+}
+inline void NodeInfoRequest::clear_has_time() {
+  _has_bits_[0] &= ~0x00000001u;
+}
+inline void NodeInfoRequest::clear_time() {
+  time_ = GOOGLE_ULONGLONG(0);
+  clear_has_time();
+}
+inline ::google::protobuf::uint64 NodeInfoRequest::time() const {
+  return time_;
+}
+inline void NodeInfoRequest::set_time(::google::protobuf::uint64 value) {
+  set_has_time();
+  time_ = value;
+}
+
+// -------------------------------------------------------------------
+
+// NodeInfoResponse
+
+// optional uint64 time = 1;
+inline bool NodeInfoResponse::has_time() const {
+  return (_has_bits_[0] & 0x00000001u) != 0;
+}
+inline void NodeInfoResponse::set_has_time() {
+  _has_bits_[0] |= 0x00000001u;
+}
+inline void NodeInfoResponse::clear_has_time() {
+  _has_bits_[0] &= ~0x00000001u;
+}
+inline void NodeInfoResponse::clear_time() {
+  time_ = GOOGLE_ULONGLONG(0);
+  clear_has_time();
+}
+inline ::google::protobuf::uint64 NodeInfoResponse::time() const {
+  return time_;
+}
+inline void NodeInfoResponse::set_time(::google::protobuf::uint64 value) {
+  set_has_time();
+  time_ = value;
 }
 
 // -------------------------------------------------------------------

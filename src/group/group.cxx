@@ -202,8 +202,11 @@ char* Group::capStr(uint cap, char* buf)
   // Utility functions
   bool Group::isMember(EntityIdentifier id)
     {
-    clDbgNotImplemented();
-    return false;
+      GroupShmHashMap::iterator entryPtr;
+      assert(gsm.groupMap);  // You did not call groupInitialize()
+      entryPtr = gsm.groupMap->find(handle);
+      if (entryPtr == gsm.groupMap->end()) return false;
+      return true;
     }
 
 #if 0

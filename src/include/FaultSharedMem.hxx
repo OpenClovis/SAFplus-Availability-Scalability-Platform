@@ -549,8 +549,9 @@ Specific problems (if given). (@ref ITU X.733)
   class FaultShmHeader
     {
   public:
-    uint64_t       structId;
+    uint64_t        structId;  //? Unique number identfying this as fault related data
     SAFplus::Handle activeFaultServer;
+    uint64_t        lastChange; //? monotonically increasing number indicating the last time a change was made to fault
     };
   void faultInitialize(void);
 
@@ -581,16 +582,19 @@ Specific problems (if given). (@ref ITU X.733)
     int dependecyNum;
     SAFplus::Handle depends[SAFplusI::MAX_FAULT_DEPENDENCIES];  // If this entity fails, all entities in this array will also fail.
     SAFplus::FaultState state;  //Fault state of an entity
+    uint64_t        lastChange; //? monotonically increasing number indicating the last time a change was made to fault
     FaultShmEntry()
       {
       dependecyNum = 0;
       state=SAFplus::FaultState::STATE_UNDEFINED;
+      lastChange = 0;
       }
     void init(SAFplus::Handle fHandle,FaultShmEntry* frp)
       {
       faultHdl=fHandle;
       dependecyNum=frp->dependecyNum;
       state=frp->state;
+      lastChange = frp->lastChange;
       for(int i=0;i<SAFplusI::MAX_FAULT_DEPENDENCIES;i++)
         {
         depends[i]=SAFplus::INVALID_HDL;
@@ -609,7 +613,7 @@ Specific problems (if given). (@ref ITU X.733)
 
     };
 
-  class FaultEntryData
+    class FaultEntryData // passed in messages
     {
   public :
     SAFplus::Handle faultHdl;
@@ -634,7 +638,7 @@ Specific problems (if given). (@ref ITU X.733)
     std::string faultSharedMemoryObjectName; // Separate memory object name for a nodeID to support multi-node running
     FaultShmHashMap* faultMap;
     FaultShmHeader* faultHdr;
-    SAFplus::Mutex  localMutex;
+      //SAFplus::Mutex  localMutex;
     void init(void);
     void setActive(SAFplus::Handle active);
     void clientInit();
@@ -643,12 +647,16 @@ Specific problems (if given). (@ref ITU X.733)
     void removeAll();
     void dbgDump(void);
     void dispatcher(void);
+    uint64_t lastChange(void);
+    void changed(void);  // private: Indicates that the fault state has changed so update the lastchange count, etc 
     bool createFault(FaultShmEntry* frp,SAFplus::Handle fault);
     bool updateFaultHandle(FaultShmEntry* frp,SAFplus::Handle fault);
       bool updateFaultHandleState(SAFplus::Handle fault, SAFplus::FaultState state);
     //? copy all data (up to size bufSize) into buf. Returns the number of records copied.
     uint_t getAllFaultClient(char* buf,ClWordT bufSize);
     void applyFaultSync(char* buf,ClWordT bufSize);
+
+    void setChildFaults(SAFplus::Handle handle,SAFplus::FaultState state); //? Sets all handles that are contained within the entiy that this handler references to the provided state.
     };
 
   class FaultGroupData

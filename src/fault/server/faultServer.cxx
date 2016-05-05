@@ -86,6 +86,7 @@ namespace SAFplus
             }
         }
     }
+
     void FaultServer::writeToSharedMemoryAllEntity()
     {
         for (Checkpoint::Iterator i=faultCheckpoint.begin();i!=faultCheckpoint.end();i++)
@@ -97,6 +98,7 @@ namespace SAFplus
             registerFaultEntity(tmpShmEntry,tmpHandle,false);
         }
     }
+
     void FaultServer::init()
     {
         faultServerHandle = Handle::create();  // This is the handle for this specific fault server
@@ -623,12 +625,21 @@ namespace SAFplus
          SAFplus::Handle activeMember = g->getActive();
          fsmServer.setActive(activeMember);
     }
+
     void FaultServer::setFaultState(SAFplus::Handle handle,SAFplus::FaultState state)
     {
-        fsmServer.updateFaultHandleState(handle, state);
-        // TODO: broadcast this state update to all other fault node representatives
+      if (fsmServer.updateFaultHandleState(handle, state))  // If there was a change
+        {
+
+        // If the state is DOWN, then mark all children of nodes or processes as also DOWN
+        if (state == FaultState::STATE_DOWN)
+          {
+            fsmServer.setChildFaults(handle, state);
+          }
+
+        // broadcast this state update to all other fault node representatives
         broadcastEntityStateChangeMessage(handle,state);
-        // TODO: update fault checkpoint
+        // update fault checkpoint
         FaultShmHashMap::iterator entryPtr;
         entryPtr = fsmServer.faultMap->find(handle);
         FaultShmEntry feMem;
@@ -649,6 +660,7 @@ namespace SAFplus
         	tmpShrEntity->depends[i]=fe->depends[i];
         }
         faultCheckpoint.write(*key,*val);
+        }
     }
     void FaultServer::RemoveAllEntity()
     {
