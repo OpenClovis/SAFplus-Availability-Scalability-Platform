@@ -21,7 +21,7 @@ namespace SAFplusI
 {
 
 //ClRcT groupIocNotificationCallback(ClIocNotificationT *notification, ClPtrT cookie);
-std::string GroupSharedMem::groupSharedMemoryObjectName = "";
+char groupSharedMemoryObjectName[256] = {0};
 
 GroupServer::GroupServer()
  { 
@@ -32,7 +32,7 @@ GroupServer::GroupServer()
 
 void GroupSharedMem::deleteSharedMemory()
   {
-  shared_memory_object::remove(groupSharedMemoryObjectName.c_str());
+  shared_memory_object::remove(groupSharedMemoryObjectName);
   }
 
 void GroupSharedMem::registerGroupObject(Group* grp)
@@ -197,13 +197,15 @@ void GroupSharedMem::init()
   {
   quit = false;
   mutex.init("GroupSharedMem",1);
-  groupSharedMemoryObjectName = "SAFplusGroup";
-  logInfo("GRP", "INI", "Opening shared memory [%s]", groupSharedMemoryObjectName.c_str());
+
+  groupSharedMemoryObjectName[0] = 0;
+  strncat(groupSharedMemoryObjectName, "SAFplusGroup", sizeof(groupSharedMemoryObjectName) - 1);
+  logInfo("GRP", "INI", "Opening shared memory [%s]", groupSharedMemoryObjectName);
 
 
   ScopedLock<ProcSem> lock(mutex);
-  groupMsm = boost::interprocess::managed_shared_memory(open_or_create, groupSharedMemoryObjectName.c_str(), GroupSharedMemSize);
-
+  groupMsm = boost::interprocess::managed_shared_memory(open_or_create, groupSharedMemoryObjectName, GroupSharedMemSize);
+//  ScopedLock<ProcSem> lock(mutex);
   try
     {
     groupHdr = (SAFplusI::GroupShmHeader*) groupMsm.construct<SAFplusI::GroupShmHeader>("header") ();                                 // Ok it created one so initialize
@@ -228,11 +230,11 @@ void GroupSharedMem::init()
       }
     else throw;
     }
-
+//  try
   //groupMap = new GroupShmHashMap();
   groupMap = groupMsm.find_or_construct<GroupShmHashMap>("groups")  (groupMsm.get_allocator<GroupMapPair>());
   // TODO assocData = groupMsm.find_or_construct<CkptHashMap>("data") ...
-
+//    {
     //start dispatcher thread
     grpDispatchThread = boost::thread(runDispatcher, this);
   }

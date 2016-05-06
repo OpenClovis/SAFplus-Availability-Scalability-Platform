@@ -262,7 +262,6 @@ namespace SAFplusI
 
     //? typically you'd never call this... it deletes the shared memory segment out of under any running applications which can cause crashes, etc.
     static void deleteSharedMemory();
-    static std::string groupSharedMemoryObjectName; // Separate memory object name for a nodeID to support multi-node running
     };
 
 class GroupServer:public SAFplus::MsgHandler
@@ -298,6 +297,7 @@ class GroupServer:public SAFplus::MsgHandler
   };
 
   // Group associated data
-  // TODO
+  extern char groupSharedMemoryObjectName[256]; // Separate memory object name for a nodeID to support multi-node running
+
 }
 #endif // clGroupIpi_hxx
