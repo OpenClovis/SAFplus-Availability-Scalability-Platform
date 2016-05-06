@@ -23,7 +23,7 @@ all: $(LIB_DIR)/libclFault.so $(LIB_DIR)/libclFault.a
 $(LIB_DIR)/libclFault.so: $(CLIENT_OBJ) $(SAFPLUS_DEP_LIBS)
 	$(LINK_SO) $@  $(CLIENT_OBJ) $(SAFPLUS_LINK_LIBS) $(LINK_SO_LIBS)
 
-$(LIB_DIR)/libclFault.a: $(CLIENT_OBJ_IOC) $(CLIENT_OBJ) $(DEP_LIBS)
+$(LIB_DIR)/libclFault.a: $(CLIENT_OBJ) $(DEP_LIBS)
 	ar -cvq $@ $+
 
 $(MWOBJ_DIR)/%.o: %.cxx Makefile $(CLIENT_H)

@@ -19,7 +19,7 @@ Release all: $(LIB_DIR)/libclTimer.so $(LIB_DIR)/libclTimer.a
 $(LIB_DIR)/libclTimer.so: $(CLIENT_OBJ) $(SAFPLUS_DEP_LIBS)
 	$(LINK_SO) $@  $(CLIENT_OBJ) $(SAFPLUS_LINK_LIBS) $(LINK_SO_LIBS)
 
-$(LIB_DIR)/libclTimer.a: $(CLIENT_OBJ_IOC) $(CLIENT_OBJ) $(DEP_LIBS)
+$(LIB_DIR)/libclTimer.a: $(CLIENT_OBJ) $(DEP_LIBS)
 	ar -cvq $@ $+
 
 $(MWOBJ_DIR)/%.o: %.cxx Makefile $(CLIENT_H)

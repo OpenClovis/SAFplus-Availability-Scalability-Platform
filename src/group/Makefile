@@ -20,7 +20,7 @@ Release all: $(LIB_DIR)/libclGroup.so $(LIB_DIR)/libclGroup.a $(BIN_DIR)/spgroup
 $(LIB_DIR)/libclGroup.so: $(CLIENT_OBJ) $(SAFPLUS_DEP_LIBS)
 	$(LINK_SO) $@  $(CLIENT_OBJ) $(SAFPLUS_LINK_LIBS) $(LINK_SO_LIBS)
 
-$(LIB_DIR)/libclGroup.a: $(CLIENT_OBJ_IOC) $(CLIENT_OBJ) $(DEP_LIBS)
+$(LIB_DIR)/libclGroup.a: $(CLIENT_OBJ) $(DEP_LIBS)
 	ar -cvq $@ $+
 
 $(OBJ_DIR)/%.o: bin/%.cxx Makefile $(CLIENT_H)
