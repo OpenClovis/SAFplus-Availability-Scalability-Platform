@@ -22,7 +22,7 @@
 
 LIBS_INSTALL_PATH=$PREFIX/prebuild/target/$CL_TARGET_PLATFORM/$CL_TARGET_OS/lib
 BIN_INSTALL_PATH=$PREFIX/prebuild/target/$CL_TARGET_PLATFORM/$CL_TARGET_OS/bin
-INCLUDE_PATH=$PREFIX/include
+INCLUDE_PATH=$PREFIX/prebuild/include
 
 #Use different commands for Solaris
 HOST_OS=`uname -s`
