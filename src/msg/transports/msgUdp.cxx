@@ -119,15 +119,10 @@ namespace SAFplus
       {
 	broadcastAddr = 0;
 	const char* nodeIDstr = getenv("SAFPLUS_NODE_ID");
-	if (nodeIDstr)  // OK, I have an ID from the environment, use it to figure myself out
+	if ((nodeIDstr)&&(nodeIDstr[0] != 0))  // OK, I have an ID from the environment, use it to figure myself out
 	  {
 	    config.nodeId = SAFplus::ASP_NODEADDR = boost::lexical_cast<uint>(nodeIDstr);
             assert (SAFplus::ASP_NODEADDR != 0);
-            const char* myXportAddr = clusterNodes->transportAddress(config.nodeId);
-            if (!myXportAddr) throw Error(Error::SAFPLUS_ERROR,Error::MISCONFIGURATION, "Your own node address is not defined in the cluster node list",__FILE__,__LINE__);
-            memcpy(&netAddr, myXportAddr, sizeof(in_addr_t));
-            memcpy(&basePort, myXportAddr+sizeof(in_addr_t),sizeof(uint16_t));
-            if (basePort == 0) basePort = SAFplusI::UdpTransportStartPort;
           }
         else  // Use the network interface to figure myself out.
 	  {
@@ -139,7 +134,12 @@ namespace SAFplus
             config.nodeId = SAFplus::ASP_NODEADDR = clusterNodes->idOf(&inp, sizeof(struct in_addr));
             if (!config.nodeId) throw Error(Error::SAFPLUS_ERROR,Error::MISCONFIGURATION, "Your own node address is not defined in the cluster node list",__FILE__,__LINE__);
 	  }
-
+        // Now get the network address and base port
+        const char* myXportAddr = clusterNodes->transportAddress(config.nodeId);
+        if (!myXportAddr) throw Error(Error::SAFPLUS_ERROR,Error::MISCONFIGURATION, "Your own node address is not defined in the cluster node list",__FILE__,__LINE__);	  
+        memcpy(&netAddr, myXportAddr, sizeof(in_addr_t));
+        memcpy(&basePort, myXportAddr+sizeof(in_addr_t),sizeof(uint16_t));
+        if (basePort == 0) basePort = SAFplusI::UdpTransportStartPort;
       }
 
     return config;
@@ -334,17 +334,17 @@ namespace SAFplus
         }
       else
         {
-      int retval = sendmmsg(sock, &msgvec[0], msgCount, 0);  // TODO flags
-      if (retval == -1)
-        {
-        int err = errno;
-        throw Error(Error::SYSTEM_ERROR,errno, strerror(errno),__FILE__,__LINE__);
-        }
-      else
-        {
-        assert(retval == msgCount);  // TODO, retry if all messages not sent
-        //printf("%d messages sent\n", retval);
-        }
+          int retval = sendmmsg(sock, &msgvec[0], msgCount, 0);  // TODO flags
+          if (retval == -1)
+            {
+              int err = errno;
+              throw Error(Error::SYSTEM_ERROR,errno, strerror(errno),__FILE__,__LINE__);
+            }
+          else
+            {
+              assert(retval == msgCount);  // TODO, retry if all messages not sent
+              //printf("%d messages sent\n", retval);
+            }
         }
 
       // Your send routine releases the message whenever you are ready to do so
@@ -455,21 +455,26 @@ if(setsockopt(socket, SOL_SOCKET, SO_RCVTIMEO, &tv, sizeof(tv)) < 0)
           struct sockaddr_in* srcAddr = (struct sockaddr_in*) msgs[msgIdx].msg_hdr.msg_name;
           assert(msgs[msgIdx].msg_hdr.msg_namelen == sizeof(struct sockaddr_in));
           assert(srcAddr);
-
-          if (transport->clusterNodes)  // Cloud mode
+          uint basePort = 0;
+          if (transport->clusterNodes)  // Cloud mode -- figure out the node and base port from the cluster list
             {
               int tmp = ntohl(srcAddr->sin_addr.s_addr);
               cur->node = transport->clusterNodes->idOf((void*) &tmp,sizeof(uint32_t));
+              const char* myXportAddr = transport->clusterNodes->transportAddress(cur->node);
+              assert(myXportAddr);
+              memcpy(&basePort, myXportAddr+sizeof(in_addr_t),sizeof(uint16_t));
+              if (basePort == 0) basePort = SAFplusI::UdpTransportStartPort;  // if 0 set to default
             }
           else  // LAN mode
             {
               cur->node = ntohl(srcAddr->sin_addr.s_addr) & (((Udp*)transport)->nodeMask);
+              basePort = ((Udp*) transport)->basePort;
             }
 
 #if 0
           cur->port = ntohs(srcAddr->sin_port) - SAFplusI::UdpTransportStartPort - (SAFplusI::UdpTransportNumPorts*cur->node);
 #else
-          cur->port = ntohs(srcAddr->sin_port) - ((Udp*) transport)->basePort; //SAFplusI::UdpTransportStartPort;
+          cur->port = ntohs(srcAddr->sin_port) - basePort;
 #endif
 
           MsgFragment* curFrag = cur->firstFragment;

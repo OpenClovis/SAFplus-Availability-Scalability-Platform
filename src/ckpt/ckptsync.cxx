@@ -74,7 +74,7 @@ void SAFplusI::CkptSynchronization::msgHandler(Handle from, SAFplus::MsgServer* 
     {
     case CKPT_MSG_TYPE_SYNC_REQUEST_1:
       {
-      logInfo("SYNC","MSG","Checkpoint sync request message");
+        //logInfo("SYNC","MSG","Checkpoint sync request message");
       CkptSyncRequest_1* req = (CkptSyncRequest_1*) msg;
       synchronize(req->generation, req->changeNum, req->cookie, req->response);
       } break;

@@ -144,7 +144,7 @@ int main(int argc, char* argv[])
 	{
 	  ClusterNodes cn(true);
 	  int id = 0;
-	  boost::char_separator<char> sep(",: ");
+	  boost::char_separator<char> sep(", ");
 	  boost::tokenizer< boost::char_separator<char> > tokens(nodes, sep);
 	  int wkn=1;
 	  BOOST_FOREACH (const std::string& t, tokens) 

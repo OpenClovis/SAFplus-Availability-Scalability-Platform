@@ -205,8 +205,15 @@ char* Group::capStr(uint cap, char* buf)
       GroupShmHashMap::iterator entryPtr;
       assert(gsm.groupMap);  // You did not call groupInitialize()
       entryPtr = gsm.groupMap->find(handle);
-      if (entryPtr == gsm.groupMap->end()) return false;
-      return true;
+      if (entryPtr == gsm.groupMap->end()) 
+        {
+        assert(0);  // Unknown group but Group ctor should have created it
+        throw Error(Error::SAFPLUS_ERROR,Error::NOT_IMPLEMENTED);        
+        }
+      GroupShmEntry& shm = entryPtr->second;
+      const GroupData& gd = shm.read();
+      const GroupIdentity* gi = gd.find(id);
+      return (gi != NULL);
     }
 
 #if 0

@@ -14,18 +14,24 @@ SAFPLUS_LIBS := clUtils clLog clOsal
 SAFPLUS_DEP_LIBS     := $(addsuffix .so,$(addprefix $(LIB_DIR)/lib,$(SAFPLUS_LIBS)))
 SAFPLUS_LINK_LIBS := -L$(LIB_DIR) $(addprefix -l,$(SAFPLUS_LIBS))
 
-Release all: $(LIB_DIR)/libclTimer.so $(LIB_DIR)/libclTimer.a
+Release all: $(LIB_DIR)/libclTimer.so 
+
+ifdef SAFPLUS_GEN_STATIC_LIBS
+Release all: $(LIB_DIR)/libclTimer.a
+
+
+$(LIB_DIR)/libclTimer.a: $(CLIENT_OBJ) $(DEP_LIBS)
+	ar -cvq $@ $+
+endif
 
 $(LIB_DIR)/libclTimer.so: $(CLIENT_OBJ) $(SAFPLUS_DEP_LIBS)
 	$(LINK_SO) $@  $(CLIENT_OBJ) $(SAFPLUS_LINK_LIBS) $(LINK_SO_LIBS)
 
-$(LIB_DIR)/libclTimer.a: $(CLIENT_OBJ) $(DEP_LIBS)
-	ar -cvq $@ $+
 
 $(MWOBJ_DIR)/%.o: %.cxx Makefile $(CLIENT_H)
 	$(COMPILE_CPP) $@ $<
 
 clean:
-	rm -f $(LIB_DIR)/libclTimer.so $(MWOBJ_DIR)/timer.o
+	rm -f $(LIB_DIR)/libclTimer.so $(LIB_DIR)/libclTimer.a $(MWOBJ_DIR)/timer.o
 
 include ../mk/safplus_targets.mk

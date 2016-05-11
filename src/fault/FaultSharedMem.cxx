@@ -7,6 +7,15 @@ using namespace boost::interprocess;
 
 namespace SAFplus
 {
+
+const char* c_str(FaultState fs)
+    {
+      if (fs == FaultState::STATE_UNDEFINED) return "undefined";
+      if (fs == FaultState::STATE_UP) return "up";
+      if (fs == FaultState::STATE_DOWN) return "down";
+      assert(0); // program error invalid value for fs
+    }
+
 void FaultSharedMem::init()
 {
     faultSharedMemoryObjectName = "SAFplusFault";
@@ -52,6 +61,8 @@ void FaultSharedMem::changed(void)
   {
     assert(faultHdr);
     faultHdr->lastChange = std::max(faultHdr->lastChange+1,nowMs()); // Use the current time because its useful, but ensure that the number is monotonically increasing
+    logInfo("FLT","SHM", "Fault DB changed at [%" PRIu64 "]", faultHdr->lastChange);
+
   }
 
 void FaultSharedMem::setActive(SAFplus::Handle active)

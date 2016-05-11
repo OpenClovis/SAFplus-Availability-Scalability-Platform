@@ -21,6 +21,7 @@ struct HeartbeatData
   uint16_t id;
 };
 
+const unsigned int InitialHbInterval = 3000;  // give a just started node an extra few seconds to come up
 
 void NodeMonitor::init()
 {
@@ -54,10 +55,11 @@ void NodeMonitor::msgHandler(MsgServer* svr, Message* msg, ClPtrT cookie)
     {
       hb->id = HeartbeatData::RESP;
       hb->now = nowMs();
-      lastHbRequest = timerMs();
       lastHbHandle = msg->getAddress();
+      lastHbRequest = timerMs();
       if (hb == &hbbuf) 
         {
+          logCritical("HB","NOD","Heartbeat response misalignment");
           assert(0); // TODO: copy it back, only needed if we used the temp buffer, which we should never do because this message is so small
         }
       svr->SendMsg(msg,SAFplusI::HEARTBEAT_MSG_TYPE);
@@ -68,7 +70,7 @@ void NodeMonitor::msgHandler(MsgServer* svr, Message* msg, ClPtrT cookie)
       if (hb->id == HeartbeatData::RESP_OPP) hb->now = __builtin_bswap64(hb->now);
       int64_t now = nowMs();
       int64_t timeDiff = now - hb->now;
-      //logDebug("AUD","NOD","Heartbeat response from [%d] handle [%" PRIx64 ":%" PRIx64 "] latency/time difference is [%" PRId64 " ms]",hdl.getNode(), hdl.id[0],hdl.id[1],timeDiff);
+      //logDebug("HB","NOD","Heartbeat response from [%d] handle [%" PRIx64 ":%" PRIx64 "] latency/time difference is [%" PRId64 " ms]",hdl.getNode(), hdl.id[0],hdl.id[1],timeDiff);
       lastHeard[hdl.getNode()] = timerMs();
     }
 }
@@ -103,10 +105,11 @@ void NodeMonitor::monitorThread(void)
 
   while(!quit)
     {
-      uint64_t now = timerMs();
+      int64_t now = timerMs();
 
       if (active)
         {
+          bool ka[SAFplus::MaxNodes];
           if (1)
             {
               ScopedLock<> lock(exclusion);
@@ -124,31 +127,66 @@ void NodeMonitor::monitorThread(void)
                 }
             }
 
+          for (int i=1;i<SAFplus::MaxNodes;i++)  // Start Keepaliving any nodes that the fault manager thinks are up.
+            {
+              FaultState fs = fault.getFaultState(getNodeHandle(i));
+              if (i != SAFplus::ASP_NODEADDR)  // No point in keepaliving myself
+                {
+                  if (fs == FaultState::STATE_UP)
+                    {
+                      Handle hdl = getProcessHandle(SAFplusI::AMF_IOC_PORT,i);
+                      ka[i] = true;
+                      if (lastHeard[i]==0) lastHeard[i] = timerMs() + InitialHbInterval;
+                      HeartbeatData hd;
+                      hd.id = HeartbeatData::REQ;
+                      hd.now = nowMs();
+                      //logDebug("HB","CLM","Heartbeat to handle [%" PRIx64 ":%" PRIx64 "]",hdl.id[0],hdl.id[1]);
+                      safplusMsgServer.SendMsg(hdl, (void*) &hd, sizeof(HeartbeatData), SAFplusI::HEARTBEAT_MSG_TYPE);                
+                    }
+                  else
+                    {
+                      ka[i] = false;
+                    }
+                }              
+            }
+
+          // Keepalive any nodes in the cluster group.  Every node in this group SHOULD have registered with the fault manager and be UP so this should be a big NO-OP
           for (Group::Iterator it = clusterGroup.begin();it != end; it++)
             {
               Handle hdl = it->first;  // same as gi->id
               const GroupIdentity* gi = &it->second;
-              if (hdl.getNode() != SAFplus::ASP_NODEADDR)  // No point in keepaliving myself
+              int thisNode = hdl.getNode();
+              assert(thisNode < SAFplus::MaxNodes);
+              if (thisNode != SAFplus::ASP_NODEADDR)  // No point in keepaliving myself
                 {
-                  //logDebug("AUD","NOD","Heartbeat to [%d] handle [%" PRIx64 ":%" PRIx64 "]",hdl.getNode(), hdl.id[0],hdl.id[1]);
-                  assert(hdl == gi->id);  // key should = handle in the value, if not shared memory is corrupt 
-                  HeartbeatData hd;
-                  hd.id = HeartbeatData::REQ;
-                  hd.now = nowMs();
-                  safplusMsgServer.SendMsg(hdl, (void*) &hd, sizeof(HeartbeatData), SAFplusI::HEARTBEAT_MSG_TYPE);
+                  if (ka[thisNode] == false)
+                    {
+                      logInfo("HB","CLM"," heartbeat to [%d] handle [%" PRIx64 ":%" PRIx64 "] -- in cluster group but not in fault manager",hdl.getNode(), hdl.id[0],hdl.id[1]);
+                      if (lastHeard[thisNode]==0) lastHeard[thisNode] = timerMs() + InitialHbInterval;
+                      assert(hdl == gi->id);  // key should = handle in the value, if not shared memory is corrupt 
+                      HeartbeatData hd;
+                      hd.id = HeartbeatData::REQ;
+                      hd.now = nowMs();
+                      safplusMsgServer.SendMsg(hdl, (void*) &hd, sizeof(HeartbeatData), SAFplusI::HEARTBEAT_MSG_TYPE);
+                    }
                 }
             }
         }
       if (standby)  // Let the standby ensure that the active is alive
         {
-          uint64_t now = timerMs();
+          int64_t now = timerMs();
           if ((now > lastHbRequest)&&(now - lastHbRequest > maxSilentInterval))
             {
               // TODO: Split brain avoidance.  The standby should send HB reqs to all the other nodes and count how many it can talk to.  If it is half or greater, then become active.  Otherwise, print a split brain critical message and exit
-              assert(lastHbHandle != INVALID_HDL);
+              Handle hdl;
+              if (lastHbHandle == INVALID_HDL)  // We never received a HB from the active so fail whatever the cluster manager thinks is active
+                {
+                  lastHbHandle = clusterGroup.getActive(ABORT);
+                }
+              hdl = getNodeHandle(lastHbHandle);
               // I need to special case the fault reporting of the ACTIVE, since that fault server is probably dead.
               // TODO: It is more semantically correct to send this notification to the standby fault server by looking at the fault group.  However, it will end up pointing to this node...
-              fault.notifyLocal(getNodeHandle(lastHbHandle.getNode()),AlarmState::ALARM_STATE_ASSERT,AlarmCategory::ALARM_CATEGORY_COMMUNICATIONS,AlarmSeverity::ALARM_SEVERITY_MAJOR,AlarmProbableCause::ALARM_PROB_CAUSE_RECEIVER_FAILURE);
+              fault.notifyLocal(hdl,AlarmState::ALARM_STATE_ASSERT,AlarmCategory::ALARM_CATEGORY_COMMUNICATIONS,AlarmSeverity::ALARM_SEVERITY_MAJOR,AlarmProbableCause::ALARM_PROB_CAUSE_RECEIVER_FAILURE);
             }
         }
 

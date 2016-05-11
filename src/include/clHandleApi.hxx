@@ -99,6 +99,11 @@ namespace SAFplus
       return ((id[0] != other.id[0])||(id[1]!=other.id[1]));
     }
 
+    bool operator < (const Handle& other) const
+    {
+      return((id[0] < other.id[0])||((id[0] == other.id[0])&&(id[1] < other.id[1])));
+    }
+
     //? Assign handles
     Handle& operator = (const Handle& other)
     {
@@ -184,8 +189,26 @@ namespace SAFplus
   //? <ctor>Return a handle that refers to the node.  If no argument, use this node's actual id.</ctor>
   Handle getNodeHandle(int nodeNum=0);
 
+  //? <ctor>Return a handle that refers to just the cluster/node/process (strip out the object id).</ctor>
+  inline Handle getNodeHandle(Handle hdl)
+  {
+    Handle ret;
+    ret.id[0] = hdl.id[0]&(HDL_CLUSTER_ID_MASK | HDL_NODE_ID_MASK);
+    ret.id[1] = 0;
+    return ret;
+  }
+
   //? <ctor>Return a handle that refers to the process, if no arg use this process's SAFplus port and/or this node's actual id.</ctor>
   Handle getProcessHandle(int pid=0, int nodeNum=0);
+
+  //? <ctor>Return a handle that refers to just the cluster/node/process (strip out the object id).</ctor>
+  inline Handle getProcessHandle(Handle hdl)
+  {
+    Handle ret;
+    ret.id[0] = hdl.id[0];
+    ret.id[1] = 0;
+    return ret;
+  }
 
   //? <ctor>[TODO] Return a handle that refers to a particular object in this process, node, cluster.</ctor>
   Handle getObjectHandle(void* object);
@@ -217,7 +240,7 @@ namespace SAFplus
   const WellKnownHandle TEST_LOG(3,0);   //? This handle refers to the test results log on this cluster/node.
   const WellKnownHandle LOG_STREAM_CKPT(4,0,0);  //? The checkpoint that matches log stream names to data
   const WellKnownHandle GRP_CKPT(5,0,0);         //? The checkpoint that matches group names to groups
-  const WellKnownHandle CKPT_CKPT(6,0,0);        //? The checkpoint that matches names to checkpoints
+  // const WellKnownHandle CKPT_CKPT(6,0,0);        //? The checkpoint that matches names to checkpoints
   const WellKnownHandle NAME_CKPT(7,0,0);        //? The checkpoint that matches names to arbitrary data
 
   const WellKnownHandle CLUSTER_GROUP(8,0,0);    //? This group represents all nodes (AMF instances) running in the cluster

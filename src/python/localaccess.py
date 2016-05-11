@@ -1,3 +1,4 @@
+import atexit
 import safplus
 import pdb
 
@@ -70,6 +71,7 @@ def Initialize():
   svcs = safplus.Libraries.MSG | safplus.Libraries.GRP | safplus.Libraries.MGT_ACCESS
   sic = safplus.SafplusInitializationConfiguration()
   sic.port = 51
+  atexit.register(safplus.Finalize)  # Register a clean up function so SAFplus does not assert on a dead mutex when quitting
   safplus.Initialize(svcs, sic)
   return (Commands(),{})
 

@@ -140,10 +140,10 @@ bool testSendRecv(MsgTransportPlugin_1* xp)
   // TODO fill message with data
   frag->len=maxMsgSize;
   m->setAddress(b->node, b->port);
-  printf("Sequential Send/Recv of %d bytes.  Kernel buffers must be large or hangs here!\n",maxMsgSize);
+  printf("Send/Recv of %d bytes.  Kernel buffers must be large or hangs here!\n",maxMsgSize);
   a->send(m);  // Note: since send/recv is single-threaded the full message needs to fit in kernel buffers or it will hang here
-  m = b->receive(1);
-  clTest(("recv"),m != NULL,(" "));
+  m = b->receive(1,1000);
+  clTest(("Send/Recv of %d bytes",maxMsgSize),m != NULL,(" "));
   if (m) b->msgPool->free(m);
 
   xp->deleteSocket(a);

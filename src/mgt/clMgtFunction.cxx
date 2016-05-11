@@ -18,6 +18,7 @@
  *
  */
 #include <algorithm>
+#include <set>
 #include <clSafplusMsgServer.hxx>
 #include <clMsgPortsAndTypes.hxx>
 #include <MgtMsg.pb.hxx>
@@ -196,7 +197,7 @@ namespace SAFplus
 
         // 2. Forward to retrieve from handle
         // 2.1 Collect handle from checkpoint
-        std::vector<SAFplus::Handle> processHdl;
+        std::set<SAFplus::Handle> processHdl;
         for (Checkpoint::Iterator it = mgtCheckpoint->begin(); it != mgtCheckpoint->end(); ++it)
           {
             SAFplus::Buffer *b = (*it).second.get();
@@ -204,14 +205,12 @@ namespace SAFplus
               {
                 assert(b->len() == sizeof(SAFplus::Handle));
                 SAFplus::Handle hdl = *((const SAFplus::Handle*) b->data);
-                processHdl.push_back(hdl);
+                processHdl.insert(getProcessHandle(hdl));  // Only care about the process because the RPC ends up at the MGT request handler anyway.  And by using the process handle, duplicates are removed.
               }
           }
 
         // 2.2 Issue 'get' all children for each handle (also ignore duplicate handle)
-        std::vector<SAFplus::Handle>::iterator it;
-        it = std::unique(processHdl.begin(), processHdl.end());
-        processHdl.resize(std::distance(processHdl.begin(), it));
+        std::set<SAFplus::Handle>::iterator it;
         for (it = processHdl.begin(); it != processHdl.end(); ++it)
           {
             std::string objxml;

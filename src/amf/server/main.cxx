@@ -120,26 +120,6 @@ void signalHandler(const boost::system::error_code& error, int signal_number)
 #endif
 
 
-#if 0  // No longer necessary.  We bind at the module level
-//? Connect local data to the management tree
-void bind()
-  {
-    SAFplus::Handle hdl = SAFplus::Handle::create(SAFplusI::AMF_IOC_PORT);
-    cfg.clusterList.bind(hdl, "SAFplusAmf", "Cluster");
-    cfg.nodeList.bind(hdl, "SAFplusAmf", "Node");
-    cfg.serviceGroupList.bind(hdl, "SAFplusAmf", "ServiceGroup");
-    cfg.componentList.bind(hdl, "SAFplusAmf", "Component");
-    cfg.componentServiceInstanceList.bind(hdl, "SAFplusAmf", "ComponentServiceInstance");
-    cfg.serviceInstanceList.bind(hdl, "SAFplusAmf", "ServiceInstance");
-    cfg.serviceUnitList.bind(hdl, "SAFplusAmf", "ServiceUnit");
-    cfg.applicationList.bind(hdl, "SAFplusAmf", "Application");
-    cfg.entityByNameList.bind(hdl, "SAFplusAmf", "EntityByName");
-    cfg.entityByIdList.bind(hdl, "SAFplusAmf", "EntityById");
-    cfg.healthCheckPeriod.bind(hdl, "SAFplusAmf", "healthCheckPeriod");
-    cfg.healthCheckMaxSilence.bind(hdl, "SAFplusAmf", "healthCheckMaxSilence");
-  }
-#endif
-
 class MgtMsgHandler : public SAFplus::MsgHandler
 {
   public:
@@ -150,9 +130,6 @@ class MgtMsgHandler : public SAFplus::MsgHandler
       if (mgtMsgReq.type() == Mgt::Msg::MsgMgt::CL_MGT_MSG_BIND_REQUEST)
       {
         assert(0);  // Nobody should call this because of the checkpoint
-#if 0
-          bind();
-#endif
       }
       else
       {
@@ -337,14 +314,24 @@ bool activeAudit()  // Check to make sure DB and the system state are in sync.  
 
   MgtObject::Iterator itnode;
   MgtObject::Iterator endnode = cfg.safplusAmf.nodeList.end();
-  for (itnode = cfg.safplusAmf.nodeList.begin(); itnode != endnode; itnode++)
+  int provNodeCount = 0;
+  for (itnode = cfg.safplusAmf.nodeList.begin(); itnode != endnode; itnode++,provNodeCount++)
     {
       Handle nodeHdl;
+      SAFplus::FaultState fs;
       Node* node = dynamic_cast<Node*>(itnode->second);
       try
         {
          nodeHdl = name.getHandle(node->name);
-         SAFplus::FaultState fs = fault.getFaultState(nodeHdl);
+         fs = fault.getFaultState(nodeHdl);
+         bool inClusterGroup = clusterGroup.isMember(getProcessHandle(nodeHdl.getNode(),SAFplusI::AMF_IOC_PORT));
+#if 0  // Can happen when first starting up...
+         if ((!inClusterGroup)&&(fs != FaultState::STATE_DOWN)) // stale data in the fault manager... likely from restarting safplus_amf
+           {
+           fault.notify(nodeHdl,AlarmState::ALARM_STATE_ASSERT,AlarmCategory::ALARM_CATEGORY_COMMUNICATIONS,AlarmSeverity::ALARM_SEVERITY_MAJOR,AlarmProbableCause::ALARM_PROB_CAUSE_RECEIVER_FAILURE);
+           }
+#endif
+
          if ((fs == FaultState::STATE_UP)&&(node->presenceState != PresenceState::instantiated))
            {
              node->presenceState = PresenceState::instantiated;
@@ -363,12 +350,16 @@ bool activeAudit()  // Check to make sure DB and the system state are in sync.  
         {
         Handle amfHdl = getProcessHandle(SAFplusI::AMF_IOC_PORT,nodeHdl.getNode());
         bool inCluster = clusterGroup.isMember(amfHdl);
-        logInfo("AUD","NOD","Node [%s] Id [%d] Handle [%" PRIx64 ":%" PRIx64 "] Member: [%c]",node->name.value.c_str(), nodeHdl.getNode(), nodeHdl.id[0],nodeHdl.id[1],inCluster ? 'Y':'N');
+        logInfo("AUD","NOD","Node [%s] Id [%d] Handle [%" PRIx64 ":%" PRIx64 "] Fault: [%s] Member: [%c]",node->name.value.c_str(), nodeHdl.getNode(), nodeHdl.id[0],nodeHdl.id[1],c_str(fs), inCluster ? 'Y':'N');
         }
       else
         {
           logInfo("AUD","NOD","Node [%s] is uninstantiated",node->name.value.c_str());
         }
+    }
+  if (provNodeCount==0) 
+    {
+    logError("AUD","ACT","No nodes are defined in the model");
     }
 
 
@@ -451,12 +442,14 @@ bool standbyAudit(void) // Check to make sure DB and the system state are in syn
 void becomeActive(void)
   {
     nodeMonitor.becomeActive();
+    cfg.bind(myHandle,&cfg.safplusAmf);
     activeAudit();
   }
 
 void becomeStandby(void)
   {
     nodeMonitor.becomeStandby();
+    // TODO bind cfg.bind(myHandle,&cfg.safplusAmf); to a different prefix (standbyAmf?)
     standbyAudit();
   }
 
@@ -845,11 +838,10 @@ int main(int argc, char* argv[])
   db->initializeDB("safplusAmf");
   cfg.read(db);
   initializeOperationalValues(cfg);
-  // TEMPORARY testing initialization
-  //loadAmfConfig(&cfg);
-  //cfg.safplusAmf.bind(myHandle)
 
-  cfg.bind(myHandle,&cfg.safplusAmf);
+  // TEMPORARY testing initialization (bind should happen when we become active)
+  //loadAmfConfig(&cfg);
+  //cfg.bind(myHandle,&cfg.safplusAmf);
 
 
   logServer = boost::thread(LogServer());
@@ -934,9 +926,6 @@ int main(int argc, char* argv[])
   mgtIocInstance->registerHandler(SAFplusI::CL_MGT_MSG_TYPE,&msghandle,NULL);
 
   fault.init(myHandle);
-  fault.registerEntity(nodeHandle,FaultState::STATE_UP);
-
-  nodeMonitor.init();
 
   struct sigaction newAction;
   newAction.sa_handler = sigChildHandler;
@@ -961,13 +950,36 @@ int main(int argc, char* argv[])
   //Timer readStats(statsTimeout, CL_TIMER_REPETITIVE,CL_TIMER_SEPARATE_CONTEXT,refreshComponentStats,NULL);
   //readStats.timerStart();
   compStatsRefresh = boost::thread(CompStatsRefresh());
-  
+
+  nodeMonitor.init();  // Initialize node monitor early so this node replies to heartbeats
+
+  // Ready to go.  Claim that I am up, and wait until the fault manager commits that change.  We must wait so we don't see ourselves as down!
+  // And because we set ourselves up only ONCE.  Beyond this point, the fault manager is authorative -- if it reports us down, the AMF should quit.
+  // TODO: add generations to the fault manager, to distinguish between a prior run of the AMF/node, or other entities
+  do {  // Loop because active fault manager may not be chosen yet
+    fault.registerEntity(nodeHandle, FaultState::STATE_UP);  // set this node as up
+    boost::this_thread::sleep(boost::posix_time::milliseconds(250));    
+  } while(fault.getFaultState(nodeHandle) != FaultState::STATE_UP);
+
+  do {
+    fault.registerEntity(myHandle, FaultState::STATE_UP);    // set this AMF as up
+    boost::this_thread::sleep(boost::posix_time::milliseconds(250));    
+  } while(fault.getFaultState(myHandle) != FaultState::STATE_UP);
+
 
   while(!quitting)  // Active/Standby transition loop
     {
     ScopedLock<> lock(m);
     bool changeTriggered = true;
     if (!firstTime && !amfOps.changed) changeTriggered = somethingChanged.timed_wait(m,REEVALUATION_DELAY);
+
+    if (fault.getFaultState(nodeHandle) != FaultState::STATE_UP)  // Since the fault manager is authoritative, quit it if marks this node as down.
+      {
+        logCritical("PRC","MON","Fault manager has marked this node as DOWN.  This could indicate a real issue with the node, or be a false positive due to missed heartbeat messages, etc.  Quitting.");
+        quitting = true;
+        break;
+      }
+
     amfChange |= amfOps.changed;
     amfOps.changed = false;  // reset the amf operations change marker
 

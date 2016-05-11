@@ -15,13 +15,14 @@ SAFPLUS_DEP_LIBS     := $(addsuffix .so,$(addprefix $(LIB_DIR)/lib,$(SAFPLUS_LIB
 SAFPLUS_LINK_LIBS := -L$(LIB_DIR) $(addprefix -l,$(SAFPLUS_LIBS))
 
 
-Release all: $(LIB_DIR)/libclGroup.so $(LIB_DIR)/libclGroup.a $(BIN_DIR)/spgroupd $(BIN_DIR)/safplus_group 
+Release all: $(LIB_DIR)/libclGroup.so $(BIN_DIR)/spgroupd $(BIN_DIR)/safplus_group 
+# $(LIB_DIR)/libclGroup.a 
 
 $(LIB_DIR)/libclGroup.so: $(CLIENT_OBJ) $(SAFPLUS_DEP_LIBS)
 	$(LINK_SO) $@  $(CLIENT_OBJ) $(SAFPLUS_LINK_LIBS) $(LINK_SO_LIBS)
 
-$(LIB_DIR)/libclGroup.a: $(CLIENT_OBJ) $(DEP_LIBS)
-	ar -cvq $@ $+
+#$(LIB_DIR)/libclGroup.a: $(CLIENT_OBJ) $(DEP_LIBS)
+#	ar -cvq $@ $+
 
 $(OBJ_DIR)/%.o: bin/%.cxx Makefile $(CLIENT_H)
 	$(COMPILE_CPP) $@ $<

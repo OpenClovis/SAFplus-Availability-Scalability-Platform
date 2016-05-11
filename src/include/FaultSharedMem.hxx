@@ -536,9 +536,11 @@ Specific problems (if given). (@ref ITU X.733)
   enum class FaultState
     {
       STATE_UNDEFINED = 0,  //? Unknown state
-        STATE_UP = 1,  //? Entity is working
-        STATE_DOWN  //? Entity has failed
+      STATE_UP = 1,  //? Entity is working
+      STATE_DOWN  //? Entity has failed
     };
+
+  const char* c_str(FaultState fs);
 
   enum
     {

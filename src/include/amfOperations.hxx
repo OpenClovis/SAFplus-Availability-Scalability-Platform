@@ -1,4 +1,5 @@
 #pragma once
+#include <clFaultApi.hxx>
 #include <boost/unordered_map.hpp>
 #include <SAFplusAmf/AdministrativeState.hxx>
 #include <SAFplusAmf/HighAvailabilityState.hxx>
@@ -59,22 +60,24 @@ namespace SAFplus
   class AmfOperations
     {
   public: // Don't use directly
-    Rpc::amfRpc::amfRpc_Stub* amfInternalRpc;
+      Rpc::amfRpc::amfRpc_Stub* amfInternalRpc;
 
-    Rpc::amfAppRpc::amfAppRpc_Stub* amfAppRpc;
-    uint64_t invocation;  // keeps track of the particular request being sent to the app (at the SAF level)
+      Rpc::amfAppRpc::amfAppRpc_Stub* amfAppRpc;
+      uint64_t invocation;  // keeps track of the particular request being sent to the app (at the SAF level)
       bool changed;
-    PendingWorkOperationMap pendingWorkOperations;
+      PendingWorkOperationMap pendingWorkOperations;
+      Fault fault;
 
-    AmfOperations()
-    {
-      changed = false;
-    amfInternalRpc = nullptr;
-    amfAppRpc = nullptr;
-    // Make the invocation unique per AMF to ensure that failover or restart does not reuse invocation by accident (although, would reuse really matter?)
-    invocation = (SAFplus::ASP_NODEADDR << 16) | SAFplus::iocPort;
-    invocation <<= 32;  // TODO: should checkpointed value be used?
-    }
+      AmfOperations()
+      {
+        changed = false;
+        amfInternalRpc = nullptr;
+        amfAppRpc = nullptr;
+        // Make the invocation unique per AMF to ensure that failover or restart does not reuse invocation by accident (although, would reuse really matter?)
+        invocation = (SAFplus::ASP_NODEADDR << 16) | SAFplus::iocPort;
+        invocation <<= 32;  // TODO: should checkpointed value be used?
+        //fault.init();
+      }
 
   public:  // Public API
     //? Get the current component state from the node on which it is running

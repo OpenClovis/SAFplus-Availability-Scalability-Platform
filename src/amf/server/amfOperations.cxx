@@ -238,19 +238,22 @@ namespace SAFplus
             // RPC call is not implemented -- probably code regeneration issue
             assert(0);
           }
-        logInfo("OP","CMP","Request component [%s] state from node [%s] returned [%s]", comp->name.value.c_str(), comp->serviceUnit.value->node.value->name.value.c_str(),resp.running() ? "running" : "stopped");
+        logInfo("OP","CMP","Request component [%s] pid [%d] state from node [%s (%d)] returned [%s]", comp->name.value.c_str(), pid, comp->serviceUnit.value->node.value->name.value.c_str(), amfHdl.getNode(), resp.running() ? "running" : "stopped");
 
         if (resp.running()) 
           {
           // TODO: I need to compare the process command line with my command line to make sure that my proc didn't die and another reuse the pid
           return CompStatus::Instantiated;
           }
-        else return CompStatus::Uninstantiated;
+        else 
+          {
+            return CompStatus::Uninstantiated;
+          }
         }
       }
     catch (NameException& e)
       {
-      return CompStatus::Uninstantiated;
+        return CompStatus::Uninstantiated;
       }
     catch (Error& e)
       {
@@ -260,7 +263,7 @@ namespace SAFplus
       }
     }
 
-  class StartCompResp:public SAFplus::Wakeable
+    class StartCompResp:public SAFplus::Wakeable
     {
     public:
       StartCompResp(SAFplus::Wakeable* w, SAFplusAmf::Component* comp): w(w), comp(comp) {};
@@ -576,9 +579,11 @@ namespace SAFplus
       }
     catch (SAFplus::NameException& n)
       {
-      logCritical("OPS","SRT","AMF Entity [%s] is not registered in the name service.  Cannot start processes on it.", comp->serviceUnit.value->node.value->name.value.c_str());
+      logCritical("OPS","SRT","AMF Entity [%s] is not registered in the name service.  Cannot stop processes on it.", comp->serviceUnit.value->node.value->name.value.c_str());
       comp->lastError.value = "Component's node is not registered in the name service so address cannot be determined.";
       if (&w) w.wake(1,(void*)comp);
+      // Node's name is only not there if the node has never existed.
+      comp->presenceState = PresenceState::uninstantiated;
       return;
       }
 
@@ -586,12 +591,22 @@ namespace SAFplus
       {
         Process p(comp->processId.value);
         p.signal(SIGTERM);
+        comp->presenceState = PresenceState::uninstantiated;
       }
     else  
       {
         remoteAmfHdl = getProcessHandle(SAFplusI::AMF_IOC_PORT,nodeHdl.getNode());
-
-        assert(0);  // TODO implement process stop RPC
+        FaultState fs = fault.getFaultState(remoteAmfHdl);
+        if (fs != FaultState::STATE_DOWN)
+          {
+          assert(0);  // TODO implement process stop RPC
+          }
+        else
+          {
+          comp->lastError.value = "Component's node is unavailable.";
+          }
+        comp->presenceState = PresenceState::uninstantiated;
+        if (&w) w.wake(1,(void*)comp);
       }
     }
 
@@ -700,14 +715,22 @@ namespace SAFplus
     else  // RPC call
       {
       Handle remoteAmfHdl = getProcessHandle(SAFplusI::AMF_IOC_PORT,nodeHdl.getNode());
+      FaultState fs = fault.getFaultState(remoteAmfHdl);
+      if (fs == FaultState::STATE_UP)
+        {
+          logInfo("OP","CMP","Request launch component [%s] as [%s] on node [%s]", comp->name.value.c_str(),inst->command.value.c_str(),comp->serviceUnit.value->node.value->name.value.c_str());
 
-      logInfo("OP","CMP","Request launch component [%s] as [%s] on node [%s]", comp->name.value.c_str(),inst->command.value.c_str(),comp->serviceUnit.value->node.value->name.value.c_str());
-
-      StartComponentRequest req;
-      req.set_name(comp->name.value.c_str());
-      req.set_command(inst->command.value.c_str());
-      StartCompResp* resp = new StartCompResp(&w,comp);
-      amfInternalRpc->startComponent(remoteAmfHdl,&req, &resp->response,*resp);
+          StartComponentRequest req;
+          req.set_name(comp->name.value.c_str());
+          req.set_command(inst->command.value.c_str());
+          StartCompResp* resp = new StartCompResp(&w,comp);
+          amfInternalRpc->startComponent(remoteAmfHdl,&req, &resp->response,*resp);
+        }
+      else
+        {
+          comp->lastError.value = "Component's node is not up.";
+          if (&w) w.wake(1,(void*)comp);
+        }
       }
     reportChange();
     }

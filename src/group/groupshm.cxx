@@ -293,9 +293,11 @@ void GroupServer::init()
       {
         boost::this_thread::sleep(boost::posix_time::milliseconds(250));  // TODO: should be woken via a global sem...
         // TODO this polling & searching should be replaced with explicit notification of what changed
-        if ((!quit)&&(faultChange != fault.lastChange()))  // Fault manager changed; update groups
+        uint64_t tmp = fault.lastChange();
+        if ((!quit)&&(faultChange != tmp))  // Fault manager changed; update groups
           {
-            faultChange = fault.lastChange();
+            printf ("FAULT CHANGE\n");
+            faultChange = tmp;
             //ScopedLock<Mutex> lock2(localMutex);
             //ScopedLock<ProcSem> lock(mutex);
             SAFplusI::GroupShmHashMap::iterator i;
@@ -310,8 +312,10 @@ void GroupServer::init()
                         FaultState fs = fault.getFaultState(gd.members[j].id);
                         if (fs == FaultState::STATE_DOWN)
                           {
+                            //logInfo("FLT","MSG","Removing faulted [%d.%d.%" PRIx64 "] from group", gd.members[j].id.getNode(),gd.members[j].id.getProcess(), gd.members[j].id.getIndex());
+                            printf("Removing faulted [%d.%d.%" PRIx64 "] from group", gd.members[j].id.getNode(),gd.members[j].id.getProcess(), gd.members[j].id.getIndex());
                             deregisterEntity(&ge,gd.members[j].id,true);
-                            break;  // Not going to find a double
+                            j=::SAFplusI::GroupMaxMembers;  // Not going to find a double
                           }
                       }
                   }
@@ -383,14 +387,14 @@ void GroupServer::msgHandler(Handle from, SAFplus::MsgServer* svr, ClPtrT msg, C
       } break;
     case SAFplusI::GroupMessageTypeT::MSG_ROLE_NOTIFY:
       {
-      logDebug("GMS","MSG","Role CHANGE message");
+        //logDebug("GMS","MSG","Role CHANGE message");
       handleRoleNotification(ge, rxMsg);
       } break;
     case SAFplusI::GroupMessageTypeT::MSG_ELECT_REQUEST:
       if(!(ge->read().flags & GroupData::ELECTION_IN_PROGRESS)) // If we are not already in an election, then start one.  //from.iocPhyAddress.nodeAddress != clIocLocalAddressGet())
         {
-        logDebug("GMS","MSG","Election REQUEST message");
-        handleElectionRequest(grpHandle);
+          //logDebug("GMS","MSG","Election REQUEST message");
+          handleElectionRequest(grpHandle);
         } break;
     case SAFplusI::GroupMessageTypeT::MSG_GROUP_ANNOUNCE:
       {
@@ -425,6 +429,7 @@ void GroupServer::handleElectionRequest(SAFplus::Handle grpHandle)
     if (1)
       {
       const GroupData& gd = ge->read(); 
+      logDebug("GMS","MSG","Election request for group [%" PRIx64 ":%" PRIx64 "] named [%s]",grpHandle.id[0],grpHandle.id[1],ge->name);
 
       if (gd.flags & GroupData::ELECTION_IN_PROGRESS) // If we are already in an election ignore this call
         {
@@ -621,7 +626,7 @@ void GroupServer::handleRoleNotification(GroupShmEntry* ge, SAFplusI::GroupMessa
         else data->lastChanged = temp;
 
         ge->flip();
-        logInfo("GMS","ROL","Role change announcement active [%" PRIx64 ":%" PRIx64 "] standby [%" PRIx64 ":%" PRIx64 "]", announce[0].id[0],announce[0].id[1],announce[1].id[0],announce[1].id[1]);
+        logInfo("GMS","ROL","Group [%s] [%" PRIx64 ":%" PRIx64 "] Role change announcement active [%" PRIx64 ":%" PRIx64 "] standby [%" PRIx64 ":%" PRIx64 "]", ge->name, grpHandle.id[0], grpHandle.id[1], announce[0].id[0],announce[0].id[1],announce[1].id[0],announce[1].id[1]);
 
         //isElectionRunning = false;
 

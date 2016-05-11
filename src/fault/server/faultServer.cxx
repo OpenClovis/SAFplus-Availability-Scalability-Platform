@@ -171,7 +171,9 @@ namespace SAFplus
         Handle fromHandle=rxMsg->reporter;
         //logDebug(FAULT,"MSG","Received message from node [%d] port [%d] and about [%lx.%lx] claiming state [%s]",fromHandle.getNode(),fromHandle.getPort(),faultEntity.id[0],faultEntity.id[1],strFaultEntityState[int(faultState)]);
         FaultShmHashMap::iterator entryPtr;
+
         entryPtr = fsmServer.faultMap->find(faultEntity);
+
         FaultShmEntry feMem;
         FaultShmEntry *fe=&feMem;
         //check point data
@@ -182,14 +184,18 @@ namespace SAFplus
         Buffer* val = new(vdata) Buffer(sizeof(FaultEntryData));
         FaultEntryData* tmpShrEntity = (FaultEntryData*)val->data;
         *((Handle*)key->data)=faultEntity;
+        bool created = false;
+
         if (entryPtr == fsmServer.faultMap->end())  // We don't know about the fault entity, so create it;
         {
+#if 0
             if(msgType!=SAFplus::FaultMessageType::MSG_ENTITY_JOIN && msgType!=SAFplus::FaultMessageType::MSG_ENTITY_JOIN_BROADCAST)
             {
                 logWarning(FAULT,"MSG","Fault report from [%" PRIx64 ":%" PRIx64 "] about an entity [%" PRIx64 ":%" PRIx64 "] not available in shared memory. Ignoring this message",reporterHandle.id[0],reporterHandle.id[1],faultEntity.id[0],faultEntity.id[1]);
                 return;
             }
-            logDebug(FAULT,"MSG","Fault entity not available in shared memory. Initial new fault entity");
+#endif
+            logDebug(FAULT,"MSG","Fault entity not available in shared memory. Initialize new entity");
             fe->init(faultEntity);
             tmpShrEntity->faultHdl=faultEntity;
             tmpShrEntity->dependecyNum=0;
@@ -197,6 +203,7 @@ namespace SAFplus
             {
                 tmpShrEntity->depends[i]=INVALID_HDL;
             }
+            created = true;
         }
         else
         {
@@ -216,6 +223,8 @@ namespace SAFplus
             case SAFplus::FaultMessageType::MSG_ENTITY_JOIN:
                 if(1)
                 {
+                  if (created) // This entity is unknown
+                    {
                     fe->state=faultState;
                     fe->dependecyNum=0;
                     tmpShrEntity->state=faultState;
@@ -224,6 +233,12 @@ namespace SAFplus
                     registerFaultEntity(fe,faultEntity,true);
                     logDebug(FAULT,"MSG","write to checkpoint");
                     faultCheckpoint.write(*key,*val);
+                    }
+                  else
+                    {
+                      logDebug(FAULT,"MSG","Repeated entity JOIN message for entity [%d.%d.%" PRIx64 "] state %d",faultEntity.getNode(),faultEntity.getProcess(),faultEntity.getIndex(),faultState);
+                      setFaultState(faultEntity,faultState);
+                    }
                 }
                 break;
             case SAFplus::FaultMessageType::MSG_ENTITY_LEAVE:
@@ -239,6 +254,7 @@ namespace SAFplus
                 if(1)
                 {
                   //logDebug(FAULT,"MSG","Process fault event message");
+                    if (created) registerFaultEntity(fe,faultEntity,true);
                     processFaultEvent(pluginId,eventData,faultEntity,reporterHandle);
                     logDebug("POL","AMF","Fault event data severity [%s] , cause [%s] , catagory [%s] , state [%d] ", SAFplus::strFaultSeverity[int(eventData.severity)],SAFplus::strFaultProbableCause[int(eventData.cause)],SAFplus::strFaultCategory[int(eventData.category)],eventData.alarmState);
                     FaultHistoryEntity faultHistoryEntry;

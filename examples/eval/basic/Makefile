@@ -75,8 +75,8 @@ $(APP_OBJ_DIR)/%.o: %.cxx Makefile $(SAFPLUS_MAKE_DIR)/preface.mk $(CLIENT_H)
 
 image: evalBasic.tgz
 
-evalBasic.tgz: $(SAFPLUS_MAKE_DIR)/safplus_packager.py $(APP_BIN_DIR)/basicApp $(SAFPLUS_DEP_LIBS) $(wildcard $(PLUGIN_DIR)/*.so)
-	$(SAFPLUS_MAKE_DIR)/safplus_packager.py -a $(TARGET_PLATFORM) -x "(cp setup {image_dir}/bin)" $@
+evalBasic.tgz: $(SAFPLUS_MAKE_DIR)/safplus_packager.py $(APP_BIN_DIR)/basicApp $(SAFPLUS_DEP_LIBS) $(wildcard $(PLUGIN_DIR)/*.so) $(wildcard $(BIN_DIR)/*) Makefile
+	$(SAFPLUS_MAKE_DIR)/safplus_packager.py -a $(TARGET_PLATFORM) -x "(cp setup *.xml {image_dir}/bin)" $@
 
 docker/model.xml: SAFplusAmf1Node1SG1Comp.xml
 	cp SAFplusAmf1Node1SG1Comp.xml docker/model.xml

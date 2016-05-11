@@ -47,6 +47,7 @@ namespace SAFplus
             {
             assert(faultServer);
             faultServer->setFaultState(faultEntity,FaultState::STATE_DOWN);
+            logWarning("FLT","POL","Entity DOWN [%" PRIx64 ":%" PRIx64 "] (on node [%d], port [%d]).", faultEntity.id[0], faultEntity.id[1], faultEntity.getNode(), faultEntity.getProcess());
             }
 
         // If this fault comes from an AMF and its telling me that there was a crash the trust it because the local AMF monitors its local processes.

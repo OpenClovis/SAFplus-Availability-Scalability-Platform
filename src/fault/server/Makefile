@@ -21,7 +21,14 @@ SAFPLUS_LIBS := clCkpt clName clMsg clLog clUtils clOsal clGroup clMgt clDbal
 SAFPLUS_DEP_LIBS     := $(addsuffix .so,$(addprefix $(LIB_DIR)/lib,$(SAFPLUS_LIBS)))
 SAFPLUS_LINK_LIBS := -L$(LIB_DIR) $(addprefix -l,$(SAFPLUS_LIBS))  
 
-all: $(PLUGIN_DIR)/amfFaultPolicy.so $(PLUGIN_DIR)/customFaultPolicy.so $(LIB_DIR)/libclFaultServer.so $(LIB_DIR)/libclFaultServer.a 
+all: $(PLUGIN_DIR)/amfFaultPolicy.so $(PLUGIN_DIR)/customFaultPolicy.so $(LIB_DIR)/libclFaultServer.so
+
+ifdef SAFPLUS_GEN_STATIC_LIBS
+all:  $(LIB_DIR)/libclFaultServer.a 
+
+$(LIB_DIR)/libclFaultServer.a: $(CLIENT_OBJ) $(DEP_LIBS)
+	ar -cvq $@ $+
+endif
 
 $(PLUGIN_DIR)/amfFaultPolicy.so: $(CLIENT_DEFAULT_OBJ) $(SAFPLUS_DEP_LIBS)
 	$(LINK_SO) $@  $(CLIENT_DEFAULT_OBJ) $(SAFPLUS_LINK_LIBS) $(LINK_SO_LIBS)
@@ -32,9 +39,6 @@ $(PLUGIN_DIR)/customFaultPolicy.so: $(CLIENT_CUSTOM_OBJ) $(SAFPLUS_DEP_LIBS)
 $(LIB_DIR)/libclFaultServer.so: $(CLIENT_OBJ) $(SAFPLUS_DEP_LIBS)
 	$(LINK_SO) $@  $(CLIENT_OBJ) $(SAFPLUS_LINK_LIBS) $(LINK_SO_LIBS)
 
-$(LIB_DIR)/libclFaultServer.a: $(CLIENT_OBJ) $(DEP_LIBS)
-	ar -cvq $@ $+
-
 $(MWOBJ_DIR)/%.o: %.cxx Makefile $(CLIENT_H)
 	$(COMPILE_CPP) $@ $<
 
@@ -42,6 +46,6 @@ $(OBJ_DIR)/%.o: %.cxx Makefile $(CLIENT_H)
 	$(COMPILE_CPP) $@ $<
 
 clean:
-	rm -f $(LIB_DIR)/libclFaultServer.so $(PLUGIN_DIR)/amfFaultPolicy.so $(PLUGIN_DIR)/customFaultPolicy.so $(CLIENT_OBJ)
+	rm -f $(LIB_DIR)/libclFaultServer.so $(LIB_DIR)/libclFaultServer.a $(PLUGIN_DIR)/amfFaultPolicy.so $(PLUGIN_DIR)/customFaultPolicy.so $(CLIENT_OBJ)
 
 include $(SAFPLUS_MAKE_DIR)/safplus_targets.mk

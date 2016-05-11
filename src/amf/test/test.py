@@ -33,7 +33,7 @@ class test(testcase.TestGroup):
     def test_amf4(self):
         r"""
         \testcase   AMF-FNC-TCP.TC114
-        \brief     	Availability management framework functional 1 node 1 sg 1 comp, TIPC
+        \brief     	Availability management framework functional 1 node 1 sg 1 comp, TCP
         """
         # self.progTest("{0}/bin/safplus_db -x {0}/test/SAFplusAmf1Node1SG1Comp.xml safplusAmf".format(self.dirPfx()),30)
         self.progTest("(pkill -9 safplus_amf; pkill -9 exampleSafApp; export SAFPLUS_MSG_TRANSPORT=clMsgTcp.so; cd " + self.dirPfx() + "/test; ../bin/safplus_cleanup; ../bin/safplus_cloud --add `ifconfig $SAFPLUS_BACKPLANE_INTERFACE | awk '/inet addr/{print substr($2,6)}'`; python embTest111.py)",500)

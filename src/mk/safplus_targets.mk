@@ -9,6 +9,11 @@ $(LIB_DIR)/libclLog.so:
 	$(MAKE) -C $(SAFPLUS_SRC_DIR)/log
 endif
 
+ifndef SAFPLUS_LOG_SERVER
+$(LIB_DIR)/libclLogServer.so:
+	$(MAKE) -C $(SAFPLUS_SRC_DIR)/log/server
+endif
+
 ifndef SAFPLUS_LOGREP_LIB
 $(LIB_DIR)/libclLogRep.so:
 	$(MAKE) -C $(SAFPLUS_SRC_DIR)/log/rep
@@ -94,6 +99,9 @@ endif
 
 ifndef SAFPLUS_GROUP_LIB
 $(LIB_DIR)/libclGroup.so: 
+	$(MAKE) -C $(SAFPLUS_SRC_DIR)/group
+
+$(BIN_DIR)/spgroupd $(BIN_DIR)/safplus_group: 
 	$(MAKE) -C $(SAFPLUS_SRC_DIR)/group
 endif
 
@@ -202,7 +210,7 @@ SAFplusTests := $(TEST_DIR)/testLog $(TEST_DIR)/testmgt   $(TEST_DIR)/testCkpt $
 # $(TEST_DIR)/TestSendMsg $(TEST_DIR)/TestReceiveMsg
 #  $(SAFPLUS_TARGET)/bin/splogd $(TEST_DIR)/testGroup $(TEST_DIR)/testGroupServer
 
-SAFplusServices :=  $(SAFPLUS_TARGET)/bin/splogd $(SAFPLUS_TARGET)/bin/safplus_amf $(BIN_DIR)/ckptretention
+SAFplusServices :=  $(SAFPLUS_TARGET)/bin/splogd $(SAFPLUS_TARGET)/bin/spgroupd $(SAFPLUS_TARGET)/bin/safplus_amf $(BIN_DIR)/ckptretention
 
 SAFplusTools := $(SAFplusRpcGen)
 

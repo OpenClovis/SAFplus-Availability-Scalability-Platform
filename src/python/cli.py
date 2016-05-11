@@ -732,7 +732,7 @@ def main(args):
     while 1:      
       cmd = resolver.cmdLine.input()
       resolver.execute(cmd,resolver)
-
+  safplus.Finalize()
 
 
 if __name__ == '__main__':

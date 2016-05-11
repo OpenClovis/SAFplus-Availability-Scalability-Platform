@@ -130,6 +130,12 @@ namespace SAFplus
                 destination = dest;
               }
 
+            FaultState fs = svr->fault->getFaultState(overDest);
+            if (fs==FaultState::STATE_DOWN)
+              {
+              throw Error(Error::SAFPLUS_ERROR,Error::DOES_NOT_EXIST, "Entity is down",__FILE__,__LINE__);
+              }
+
             bool retry=true;
             while (retry)
               {
@@ -165,7 +171,7 @@ namespace SAFplus
                     if (!blocker.timed_lock(SAFplusI::RpcRetryInterval,1))
                       {
                         logWarning("RPC", "REQ", "RPC reply timeout.  Waited [%d] ms",SAFplusI::RpcRetryInterval);
-                        SAFplus::Handle h = destination;
+                        SAFplus::Handle h = overDest;
                         
                         if (!svr->fault) // A fault manager wasn't installed in this message server so I can't do discovery of node/process failures
                           {
@@ -195,7 +201,7 @@ namespace SAFplus
                               }
                             else if (fs==FaultState::STATE_DOWN)
                               {
-                                   throw Error(Error::SAFPLUS_ERROR,Error::DOES_NOT_EXIST, "Fault manager has no information about destination",__FILE__,__LINE__);                          
+                                   throw Error(Error::SAFPLUS_ERROR,Error::DOES_NOT_EXIST, "Entity is down",__FILE__,__LINE__);                          
                               }
                             else 
                               {

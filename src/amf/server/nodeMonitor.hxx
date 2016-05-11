@@ -17,9 +17,9 @@ public:
 protected:
 
   SAFplus::Mutex exclusion;
-  uint64_t lastHeard[SAFplus::MaxNodes];
-  uint64_t maxSilentInterval;
-  uint64_t lastHbRequest;
+  int64_t lastHeard[SAFplus::MaxNodes];
+  int64_t maxSilentInterval;
+  int64_t lastHbRequest;
   SAFplus::Handle lastHbHandle;
   boost::thread thread;
   bool active;
