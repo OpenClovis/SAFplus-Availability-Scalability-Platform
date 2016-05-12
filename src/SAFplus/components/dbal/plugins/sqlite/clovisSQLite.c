@@ -21,8 +21,8 @@
 #include <clCommonErrors.h>
 #include <clOsalApi.h>
 #include <sqlite3.h>
-#if (SQLITE_VERSION_NUMBER < 3003013)
-#error SQLITE version number must be >= 3003013
+#if (SQLITE_VERSION_NUMBER < 3006000)
+#error SQLITE version number must be >= 3006000
 #endif
 #include <clDbalApi.h>
 #include <clDebugApi.h>

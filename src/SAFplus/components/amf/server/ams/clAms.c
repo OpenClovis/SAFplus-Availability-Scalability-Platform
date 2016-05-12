@@ -310,7 +310,7 @@ ClBoolT clAmsHasNodeJoined(const ClCharT *pNodeName)
 }
 
 #ifdef CLUSTER_STATE_VERIFIER
-#define CL_AMS_STATE_VERIFIER_RETRIES 3
+#define CL_AMS_STATE_VERIFIER_RETRIES 4
 static void *clAmsClusterStateVerifier(void *cookie)
 {
     ClRcT rc = CL_OK;
@@ -320,7 +320,6 @@ static void *clAmsClusterStateVerifier(void *cookie)
     ClIocNodeAddressT masterAddress;
     ClBoolT iocReplicast = clParseEnvBoolean("CL_ASP_IOC_REPLICAST");
 
-    /* Quit verifier task when node is going down */
     while (1)
     {
         ClUint32T i;
@@ -381,17 +380,18 @@ static void *clAmsClusterStateVerifier(void *cookie)
 
         // testing the shutting down variable and waiting for the cond need to happen atomically.
         clOsalMutexLock(&gpClCpm->cpmEoObj->eoMutex);
-        if (!gCpmShuttingDown)
-          {
-            rc = clOsalCondWait(&gpClCpm->cpmEoObj->eoCond,&gpClCpm->cpmEoObj->eoMutex,delay);
-          }
+        rc = CL_OK;
+        if (!gCpmShuttingDown) do 
+        {
+            rc = clOsalCondWait(&gpClCpm->cpmEoObj->eoCond,&gpClCpm->cpmEoObj->eoMutex,delay);            
+        } while ((!gCpmShuttingDown) && (CL_GET_ERROR_CODE(rc) !=  CL_ERR_TIMEOUT));        
         clOsalMutexUnlock(&gpClCpm->cpmEoObj->eoMutex);
        
         if (!gpClCpm)  /* Process is down! (should never happen b/c we are holding a reference) */
         {
             return NULL;
         }
-        else       
+        else /* Quit verifier task when node is going down */    
         {   
             ClEoExecutionObjT *cpmEoObj = gpClCpm->cpmEoObj;
             if (!cpmEoObj) return NULL; // should never happen... but if it does do not assert b/c we are shutting down just quit thread.
@@ -402,13 +402,15 @@ static void *clAmsClusterStateVerifier(void *cookie)
                 return NULL;
             }
         }
-
+        
+#if 0  // Bad fix, may cause very long delay if running and then we shut down
         // Workaround on interchange leader (master)
         if (CL_GET_ERROR_CODE(rc) != CL_ERR_TIMEOUT && !gCpmShuttingDown) //reset counter since master changed
         {
           memset(&checkFailed, 0, sizeof(checkFailed));
           clOsalTaskDelay(delay); // Give a delay on verifying
         }
+#endif        
     }
     
     return NULL;

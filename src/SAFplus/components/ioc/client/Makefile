@@ -48,6 +48,7 @@ ifeq ($(strip $(CHECK_INOTIFY)), )
 	EXTRA_CPPFLAGS += -DHAVE_INOTIFY
 endif
 #CPPFLAGS	   += -I$(TIPC_INCLUDE)
+# set -DCOMPAT_5 here if needed 
 EXTRA_CPPFLAGS += -D__EXPORTED_HEADERS__ -I$(TIPC_INCLUDE)
 EXTRA_CPPFLAGS += -I$(CLOVIS_ROOT)/ASP/3rdparty/ezxml/stable 
 
