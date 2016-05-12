@@ -678,13 +678,14 @@ static void cpmSigintHandler(ClInt32T signum)
 {
     gotSIG = signum;
     gCpmAppShutdown = CL_TRUE;
+#if 0    
     if (gClCpm.cpmEoObj)  /* This sighandler could be called at any time, so we better make sure we are not in the middle of cleanup */
     {        
         //gClCpm.polling = CL_FALSE;
-    clOsalCondSignal(&gClCpm.heartbeatCond);
+        // We kick out every second so no need for: clOsalCondSignal(&gClCpm.heartbeatCond);
     //clOsalCondSignal(&gClCpm.cpmEoObj->eoCond);
     }
-    
+#endif    
     
 #if 0
     /*    a sigint handler can be executed within any thread context at any time
@@ -3839,7 +3840,7 @@ ClRcT compMgrPollThread(void)
      * Re-check every 2s to enable/disable heartbeat
      * This task is less important since heartbeat disable by default
      */
-    ClTimerTimeOutT heartbeatWait = {.tsSec=2,.tsMilliSec=0};
+    ClTimerTimeOutT heartbeatWait = {.tsSec=1,.tsMilliSec=0};
     ClUint32T freq = gpClCpm->pCpmConfig->defaultFreq, cpmCount;
     ClIocNodeAddressT myOMAddress = { 0 };
     ClCntNodeHandleT hNode = 0;
@@ -4170,7 +4171,7 @@ ClBoolT cpmOrderlyShutdown(int maxTime)
           }        
     }
     curTime++;
-    
+    if ((curTime&7)==0) oldMasterAddress = 0;  // After 4 seconds, force the send of another shutdown request packet in case the prior one was lost
     } while((cpmWaitForAppShutdown(1)==CL_FALSE) && (curTime<maxTime));
     
     cpmNodeDepartureEventPublish(clAspLocalId, CL_TRUE, CL_TRUE);

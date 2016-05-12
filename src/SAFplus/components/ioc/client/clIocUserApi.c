@@ -314,15 +314,10 @@ ClRcT clIocNeighborScan(void);
 static ClRcT clIocNeighborAdd(ClIocNodeAddressT address,ClUint32T status);
 static ClIocNeighborT *clIocNeighborFind(ClIocNodeAddressT address);
 
-/*  
- * When running with asp modified ioc supporting 64k.
- */
-#undef CL_IOC_PACKET_SIZE
-#define CL_IOC_PACKET_SIZE (64000)
 
 #define longTimeDiff(tm1, tm2) ((tm2.tsSec - tm1.tsSec) * 1000 + (tm2.tsMilliSec - tm1.tsMilliSec))
 
-static ClUint32T gClMaxPayloadSize = 64000;
+static ClUint32T gClMaxPayloadSize = 64000;  // actually set during transport initialization, this initial value has no effect
 
 static ClRcT internalSendSlow(ClIocCommPortT *pIocCommPort,
                           ClBufferHandleT message, 
@@ -1137,7 +1132,7 @@ ClRcT clIocSendWithXportRelay(ClIocCommPortHandleT commPortHandle,
 #endif
 
     ClIocAddressT interimDestAddress = {{0}};
-
+    
     if (!pIocCommPort || !destAddress)
         return CL_IOC_RC(CL_ERR_NULL_POINTER);
 
