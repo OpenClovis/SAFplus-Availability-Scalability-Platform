@@ -3117,6 +3117,12 @@ static ClRcT clConfigChangeRequest(ClEoExecutionObjT *pThis,
     ClRcT rc;
     ClUint32T  configChangeType;
     rc = clBufferNBytesRead(rmdRecvMsg, (ClUint8T *)&configChangeType, &length);
+    if (rc != CL_OK)
+    {
+        clLogError(CL_LOG_EO_AREA, CL_LOG_EO_CONTEXT_CREATE, "Failed to reads bytes from the buffer. rc [0x%x]", rc);
+        clBufferDelete(&rmdRecvMsg);
+        return rc;
+    }
     switch(configChangeType)
     {
       case CL_CONFIG_TIME_ZONE:
@@ -3127,6 +3133,7 @@ static ClRcT clConfigChangeRequest(ClEoExecutionObjT *pThis,
         clLogDebug(CL_LOG_EO_AREA, CL_LOG_EO_CONTEXT_CREATE,"Undefined request");
         break;
     }
+    clBufferDelete(&rmdRecvMsg);
     return rc;
 }
 

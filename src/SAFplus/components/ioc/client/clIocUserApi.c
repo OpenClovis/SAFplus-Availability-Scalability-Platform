@@ -2397,12 +2397,18 @@ ClRcT clIocDispatch(const ClCharT *xportType, ClIocCommPortHandleT commPort,
             clOsalMutexUnlock(&pIocCommPort->unblockMutex);
             goto out;
         }
-        CL_DEBUG_PRINT(CL_DEBUG_CRITICAL, ("Dropping a received packet. "
-                                           "The packet is an invalid or a corrupted one. "
-                                           "Packet size if %d, rc = %x\n", bytes, rc));
-        goto out;
+#ifdef COMPAT_5
+        if (bytes <= (sizeHeader - 8))
+        {
+#endif
+            CL_DEBUG_PRINT(CL_DEBUG_CRITICAL, ("Dropping a received packet. "
+                                               "The packet is an invalid or a corrupted one. "
+                                               "Packet size if %d, rc = %x\n", bytes, rc));
+#ifdef COMPAT_5
+            goto out;
+        }
+#endif
     }
-
     memcpy((ClPtrT)&userHeader,(ClPtrT)buffer,sizeof(ClIocHeaderT));
     if(userHeader.version != CL_IOC_HEADER_VERSION)
     {
