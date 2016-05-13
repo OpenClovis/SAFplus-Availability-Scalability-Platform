@@ -314,10 +314,15 @@ ClRcT clIocNeighborScan(void);
 static ClRcT clIocNeighborAdd(ClIocNodeAddressT address,ClUint32T status);
 static ClIocNeighborT *clIocNeighborFind(ClIocNodeAddressT address);
 
+/*  
+ * When running with asp modified ioc supporting 64k.
+ */
+#undef CL_IOC_PACKET_SIZE
+#define CL_IOC_PACKET_SIZE (64000)
 
 #define longTimeDiff(tm1, tm2) ((tm2.tsSec - tm1.tsSec) * 1000 + (tm2.tsMilliSec - tm1.tsMilliSec))
 
-static ClUint32T gClMaxPayloadSize = 64000;  // actually set during transport initialization, this initial value has no effect
+static ClUint32T gClMaxPayloadSize = 64000;
 
 static ClRcT internalSendSlow(ClIocCommPortT *pIocCommPort,
                           ClBufferHandleT message, 
@@ -1132,7 +1137,7 @@ ClRcT clIocSendWithXportRelay(ClIocCommPortHandleT commPortHandle,
 #endif
 
     ClIocAddressT interimDestAddress = {{0}};
-    
+
     if (!pIocCommPort || !destAddress)
         return CL_IOC_RC(CL_ERR_NULL_POINTER);
 
@@ -2398,9 +2403,9 @@ ClRcT clIocDispatch(const ClCharT *xportType, ClIocCommPortHandleT commPort,
 #endif
             CL_DEBUG_PRINT(CL_DEBUG_CRITICAL, ("Dropping a received packet. "
                                                "The packet is an invalid or a corrupted one. "
-                                               "Packet size if %d, rc = %x\n", bytes, rc));
-#ifdef COMPAT_5
+                                               "Packet size is %d, rc = %x\n", bytes, rc));
             goto out;
+#ifdef COMPAT_5
         }
 #endif
     }
@@ -2803,8 +2808,8 @@ ClRcT clIocDispatchAsync(const ClCharT *xportType, ClIocPortT port, ClUint8T *bu
             CL_DEBUG_PRINT(CL_DEBUG_CRITICAL, ("Dropping a received packet. "
                                                "The packet is an invalid or a corrupted one. "
                                                "Packet size received [%d]", bytes));
-#ifdef COMPAT_5
             goto out;
+#ifdef COMPAT_5
           }
 #endif
         }
