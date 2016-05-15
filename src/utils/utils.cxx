@@ -504,7 +504,16 @@ void saNameGet(char* str,const SaNameT* name, uint_t maxLen)
     {
     // TODO: mutex lock around this, put in shared memory to make unique across the node.  The reason this is needed is for entities like checkpoint that create a sem based on the handle's id
     if (msgingPort==0) msgingPort = (iocPort != 0 ) ? iocPort : pid;
-    Handle hdl(TransientHandle,curHandleIdx,msgingPort,ASP_NODEADDR); // TODO node and clusterId
+    Handle hdl(TransientHandle,curHandleIdx,msgingPort,ASP_NODEADDR); // TODO clusterId
+    curHandleIdx += (1<<SUB_HDL_SHIFT);
+    return hdl;
+    }
+
+  Handle Handle::createPersistent(int msgingPort)
+    {
+    // TODO: mutex lock around this, put in shared memory to make unique across the node.  The reason this is needed is for entities like checkpoint that create a sem based on the handle's id
+    if (msgingPort==0) msgingPort = (iocPort != 0 ) ? iocPort : pid;
+    Handle hdl(PersistentHandle,curHandleIdx,msgingPort,ASP_NODEADDR); // TODO clusterId
     curHandleIdx += (1<<SUB_HDL_SHIFT);
     return hdl;
     }

@@ -6,6 +6,20 @@
 namespace SAFplus
   {
 
+void clUnloadPlugin(ClPluginHandle* ph)
+{
+  ClPluginFinalizeFnType fn;
+  fn =  (ClPluginFinalizeFnType) dlsym(ph->dlHandle, CL_PLUGIN_FINALIZE_FN);
+  if (fn != NULL)
+    {
+      fn();
+    }
+  ph->pluginApi = 0;  // Finalize function should clean this up
+  dlclose(ph->dlHandle);
+  ph->dlHandle  = 0;
+  SAFplusHeapFree(ph); 
+}
+
 ClPluginHandle* clLoadPlugin(uint_t pluginId, uint_t  version, const char* name)
 {
     ClPluginHandle* ph = (ClPluginHandle*) SAFplusHeapAlloc(sizeof(ClPluginHandle));

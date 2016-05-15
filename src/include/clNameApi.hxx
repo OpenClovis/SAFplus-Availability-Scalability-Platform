@@ -25,6 +25,7 @@ namespace SAFplus
   typedef boost::unordered_map <SAFplus::Handle, void*> ObjHashMap;
 
   // TODO derive from SAFplus::Error
+  //? <class> This class encompasses all exceptions thrown by the name service
   class NameException: public std::exception
   {
   protected:	
@@ -35,10 +36,12 @@ namespace SAFplus
      {
 	m_errMessage = errMessage;
      }
+     //? Append more information to the error message
      void addMsg(const char* msg)
      {
         m_errMessage += msg;
      }
+     //? Return a string describing the problem
      virtual const char* what()
      {
 	return m_errMessage.c_str();
@@ -46,7 +49,7 @@ namespace SAFplus
      virtual ~NameException() throw()
      {
      }
-  };
+  }; //? </class>
 
 
   class HandleData;
@@ -180,9 +183,9 @@ namespace SAFplus
      //? This function gets the name associated with the specified handle
      char* getName(const SAFplus::Handle& handle) throw(NameException&); 
    
-     //? Gets the handle associated with a name.  Throws exception if the name does not exist or the handle is INVALID_HDL, after timeoutMs milliseconds
+     //? Gets the handle associated with a name.  Throws exception <ref>NameException</ref> if the name does not exist or the stored handle is INVALID_HDL, after timeoutMs milliseconds
      SAFplus::Handle& getHandle(const char* name, unsigned int timeoutMs=0) throw(NameException&);
-     //? Gets the handle associated with a name.  Throws exception if the name does not exist or the handle is INVALID_HDL, after timeoutMs milliseconds
+     //? Gets the handle associated with a name.  Throws exception <ref>NameException</ref> if the name does not exist or the stored handle is INVALID_HDL, after timeoutMs milliseconds
      SAFplus::Handle& getHandle(const std::string& name, unsigned int timeoutMs=0) throw(NameException&);
    
        
@@ -211,6 +214,7 @@ namespace SAFplus
      
      virtual ~NameRegistrar();
      void init(SAFplus::Handle hdl);
+     void initLocal(SAFplus::Handle hdl);  // Initialize without replication
   }; //? </class>
 
   class HandleData

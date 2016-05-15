@@ -142,6 +142,15 @@ namespace SAFplus
       {
         return setDb(xpath, db);
       }
+      virtual ClRcT writeChanged(uint64_t firstBeat, uint64_t beat, MgtDatabase *db = nullptr, std::string xpath = "")
+      {
+        if ((lastChange > firstBeat)&&(lastChange <= beat))
+          { 
+          logDebug("MGT", "OBJ", "write [%s/%s] dataXpath [%s]", xpath.c_str(), tag.c_str(), dataXPath.c_str());
+          return setDb(xpath, db);
+          }
+        return CL_OK;
+      }
       /**
        *
        */
@@ -370,24 +379,20 @@ namespace SAFplus
   template<class T>
     ClRcT MgtProv<T>::setDb(std::string pxp, MgtDatabase *db)
     {
-      //TODO: Temporary not support because of bug
-      return CL_OK;
-#if 0
-      if (!loadDb)
-      return CL_OK;
-
+      if (!loadDb)  // Not a configuration item
+        return CL_OK;
+     
       std::string key;
       if (dataXPath.size() > 0)
         {
-          key.assign(dataXPath);
+          key = dataXPath;
         }
       else if(pxp.size() > 0)
         {
           key.assign(pxp);
           key.append(getFullXpath(false));
         }
-      else
-      key.assign(getFullXpath(true));
+      else key = getFullXpath(true);
 
       std::stringstream ss;
       ss << value;
@@ -396,8 +401,7 @@ namespace SAFplus
           db = MgtDatabase::getInstance();
         }
 
-      return db->insertRecord(key, ss.str());
-#endif
+      return db->setRecord(key, ss.str());
     }
 
   template<class T>
@@ -406,13 +410,14 @@ namespace SAFplus
       if (!loadDb)
         return CL_OK;
 
-      std::string key = getFullXpath();
+      std::string key;
       if (pxp.size() > 0)
         {
-          key = getFullXpath(false);
-          pxp.append(key);
-          key = pxp;
+          key.assign(pxp);
+          key.append(getFullXpath(false));
         }
+      else key = getFullXpath();
+
       if (db == nullptr)
         {
           db = MgtDatabase::getInstance();
@@ -428,7 +433,7 @@ namespace SAFplus
           return rc;
         }
       deXMLize(val, this, value);
-      lastChange = beat++;
+      //lastChange = beat++;
       return rc;
     }
 

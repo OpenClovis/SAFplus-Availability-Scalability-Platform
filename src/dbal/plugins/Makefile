@@ -15,7 +15,7 @@ SAFPLUS_DEP_LIBS  := $(addsuffix .so,$(addprefix $(LIB_DIR)/lib,$(SAFPLUS_LIBS))
 SAFPLUS_LINK_LIBS := -L$(LIB_DIR) $(addprefix -l,$(SAFPLUS_LIBS))
 
 # Specify the required libraries for CkptDB
-SAFPLUS_LIBS_FOR_CKPTDB := clDbal clUtils clLog clCkpt
+SAFPLUS_LIBS_FOR_CKPTDB := clName clCkpt clDbal clUtils clLog 
 # Then use these in the make rule
 SAFPLUS_DEP_LIBS_FOR_CKPTDB  := $(addsuffix .so,$(addprefix $(LIB_DIR)/lib,$(SAFPLUS_LIBS_FOR_CKPTDB)))
 SAFPLUS_LINK_LIBS_FOR_CKPTDB := -L$(LIB_DIR) $(addprefix -l,$(SAFPLUS_LIBS_FOR_CKPTDB))

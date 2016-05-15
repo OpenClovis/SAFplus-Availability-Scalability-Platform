@@ -6,6 +6,7 @@
 #include <clCommon.hxx>
 #include <clLogApi.hxx>
 #include <clDbg.hxx>
+#include <clNameApi.hxx>
 #include <boost/unordered_map.hpp>
 #include <functional>                  //std::equal_to
 #include <boost/functional/hash.hpp>   //boost::hash
@@ -24,7 +25,6 @@ typedef Handle HashMappedType;
 typedef std::pair<const ShmString, Handle> HashValueType;
 typedef allocator<HashValueType, managed_shared_memory::segment_manager> HashMemAllocator;
 typedef boost::unordered_map<HashKeyType, HashMappedType, boost::hash<HashKeyType>, std::equal_to<HashKeyType>, HashMemAllocator>  HashMap; // database name in string maps to SAFplus Handle
-
 
 class CkptPlugin: public DbalPlugin
 {
@@ -50,16 +50,18 @@ public:
 
 protected:
   virtual ClRcT close();
-  managed_shared_memory segment; // this shared memory is to manage the mapping between the database name and checkpoint handle. The reason is that user doesn't care about checkpoint handle, he only knows the database name, but to open a checkpoint, we must provide a handle. So, the underlying implementation have to manage this mapping
-  HashMap* map;
+  //managed_shared_memory segment; // this shared memory is to manage the mapping between the database name and checkpoint handle. The reason is that user doesn't care about checkpoint handle, he only knows the database name, but to open a checkpoint, we must provide a handle. So, the underlying implementation have to manage this mapping
+  //HashMap* map;
 };
 
 //static CkptPlugin api;
 
 CkptPlugin::CkptPlugin()
 {
-  segment = managed_shared_memory (open_or_create, "SAFplusDbal_DatabaseNameToHandleMapping", 65536);
-  map = segment.find_or_construct<HashMap>("HashMap")(256, boost::hash<ShmString>(), std::equal_to<ShmString>(), segment.get_allocator<HashValueType>());
+  //segment = managed_shared_memory (open_or_create, "SAFplusDbal_DatabaseNameToHandleMapping", 65536);
+  //map = segment.find_or_construct<HashMap>("HashMap")(256, boost::hash<ShmString>(), std::equal_to<ShmString>(), segment.get_allocator<HashValueType>());
+  groupInitialize();
+  nameInitializeLocal();  // Name must be initialized after the group server 
 }
 
 CkptPlugin::~CkptPlugin()
@@ -67,8 +69,10 @@ CkptPlugin::~CkptPlugin()
   close(); 
 }
 
-ClRcT CkptPlugin::open(ClDBFileT dbFile, ClDBNameT dbName, ClDBFlagT dbFlag, ClUint32T maxKeySize, ClUint32T maxRecordSize)
+ClRcT CkptPlugin::open(ClDBFileT dbFile, ClDBNameT dbName, ClDBFlagT flags, ClUint32T maxKeySize, ClUint32T maxRecordSize)
 {
+    unsigned int ckptFlags = flags >> 8;
+    ClDBFlagT dbFlag = flags & (CL_DB_MAX_FLAG-1);
     if (pDBHandle) close();
 
     ClRcT errorCode = CL_OK;
@@ -103,7 +107,19 @@ ClRcT CkptPlugin::open(ClDBFileT dbFile, ClDBNameT dbName, ClDBFlagT dbFlag, ClU
     }
 */
     //dbgDumpMap();
+    std::string dbLookup("safplus.mgt.");
+    dbLookup.append(dbName);
     Handle ckptHdl;
+    try
+      {
+      ckptHdl = name.getHandle(dbLookup);
+      }
+    catch (NameException& e)
+      {
+        ckptHdl = SAFplus::Handle::createPersistent(); 
+        name.set(dbLookup,ckptHdl,NameRegistrar::MODE_NO_CHANGE);
+      }
+#if 0
     ShmString strDBName(dbName, segment.get_allocator<ShmString>());
     HashMap::iterator contents = map->find(strDBName);
     if (contents != map->end())
@@ -115,6 +131,8 @@ ClRcT CkptPlugin::open(ClDBFileT dbFile, ClDBNameT dbName, ClDBFlagT dbFlag, ClU
       ckptHdl = SAFplus::Handle::create();      
       map->insert(HashValueType(strDBName, ckptHdl));
     }
+#endif
+    
     Checkpoint* p = NULL;
     //dbgDumpMap();
     
@@ -123,6 +141,8 @@ ClRcT CkptPlugin::open(ClDBFileT dbFile, ClDBNameT dbName, ClDBFlagT dbFlag, ClU
 
     if (dbFlag == CL_DB_CREAT)
     {
+#if 0  // Not going to work for replicated checkpoints and will break other processes that have the checkpoint open.  If we really want CREAT to delete the checkpoint, we need to write a loop that deletes all sections
+       // however this functionality (opening and deleting a database) seems useless and dangerous.
         const char* temp = "SAFplusCkpt_";
         char sharedMemFile[256];
         memcpy(sharedMemFile, temp, strlen(temp));         
@@ -131,13 +151,14 @@ ClRcT CkptPlugin::open(ClDBFileT dbFile, ClDBNameT dbName, ClDBFlagT dbFlag, ClU
         //ckptSharedMemoryObjectname.append(sharedMemFile);
         // remove the checkpoint from shared mem
         boost::interprocess::shared_memory_object::remove(sharedMemFile);
-        p = new Checkpoint(ckptHdl, Checkpoint::SHARED | Checkpoint::LOCAL);
+#endif 
+        p = new Checkpoint(ckptHdl, Checkpoint::SHARED | ckptFlags);
     }    
     else if(dbFlag == CL_DB_OPEN)
     {
         try
         {
-            p = new Checkpoint(ckptHdl, Checkpoint::EXISTING|Checkpoint::SHARED|Checkpoint::LOCAL);
+            p = new Checkpoint(ckptHdl, Checkpoint::EXISTING|Checkpoint::SHARED| ckptFlags);
         }
         catch (boost::interprocess::interprocess_exception& e)
         {
@@ -149,7 +170,7 @@ ClRcT CkptPlugin::open(ClDBFileT dbFile, ClDBNameT dbName, ClDBFlagT dbFlag, ClU
      }                       
      else if(dbFlag == CL_DB_APPEND)
      {
-        p = new Checkpoint(ckptHdl, Checkpoint::SHARED | Checkpoint::LOCAL);        
+        p = new Checkpoint(ckptHdl, Checkpoint::SHARED | ckptFlags);        
      }
     
      if (!p)
@@ -483,7 +504,7 @@ ClRcT CkptPlugin::freeKey(ClDBRecordT dbKey)
 
 void CkptPlugin::dbgDumpMap()
 {
-#if 1
+#if 0
   for(HashMap::iterator iter = map->begin(); iter != map->end(); iter++)  
   {
     logInfo("DBA","DBO","key [%s]", iter->first.c_str());

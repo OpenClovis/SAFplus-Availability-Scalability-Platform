@@ -182,7 +182,8 @@ namespace SAFplus
     Checkpoint():hdr(NULL),flags(0),sync(NULL) {}  
     ~Checkpoint();
 
-    //? Create a new checkpoint or open an existing one.  If no handle is passed, a new checkpoint will be created.  This function only needs to be called if the default constructor was used to create the object
+    //? Create a new checkpoint or open an existing one.  If no handle is passed, a new checkpoint will be created.  This function only needs to be called if the default constructor was used to create the object.
+    // If this is a replicated checkpoint, checkpoint access will be blocked until the initial synchronization is complete.
     // <arg name="flags">The flavor of checkpoint to open.  See the constants for the options.  All entities opening the checkpoint must use the same flags.</arg>
     // <arg name="retentionDuration">The checkpoint data will not be retained if there isn't any process opening it within this argument. The retention timer will start as soon as the last call to checkpoint close .</arg>
     // <arg name="size">This is the amount of shared memory that will be allocated to hold this checkpoint.  If the checkpoint already exists, this value will be ignored.</arg>
@@ -200,6 +201,13 @@ namespace SAFplus
    <returns>The data that is read [TODO: what are the release semantics of the returned buffer]</returns>
    */
     const Buffer&  read (const Buffer& key); //const;
+
+  /*? Read a section of the checkpoint table.  It is best not to hold onto Buffer references for very long; if the record is written and you are holding the Buffer reference, a new buffer will be allocated to avoid modifying your reference.  But if you are not holding it, it will be overwritten (which is more efficient). 
+   <arg name="key">The section to read [TODO: what are the release semantics of this buffer]</arg>
+   <exception name="SAFplus::Error">Raised if there is an underlying SAF read error that cannot be automatically handled</exception>
+   <returns>The data that is read [TODO: what are the release semantics of the returned buffer]</returns>
+   */
+    const Buffer&  read (const void* key, int keylen); //const;
 
    /*? Read a section of the checkpoint table, using an integer key.  It is best not to hold onto Buffer references for very long; if the record is written and you are holding the Buffer reference, a new buffer will be allocated  to avoid modifying your reference.  But if you are not holding it, it will be overwritten (which is more efficient). 
    <arg name="key">The section to read</arg>
@@ -223,13 +231,23 @@ namespace SAFplus
     const Buffer&  read (const std::string& key); // const;
 
 
-  /*? Write a section of the checkpoint table 
+  /*? Write a section of the checkpoint table.  This is the most memory and CPU efficient write function variant.
    <arg name="key">The section to write</arg>
    <arg name="value">The data to write</arg>
    <arg name="t" default="NO_TXN">[OPTIONAL, NOT IMPLEMENTED] Write this record as part of a transaction commit, rather than immediately</arg>   
    <exception name="SAFplus::Error">Raised if there is an underlying SAF read error that cannot be automatically handled</exception>   
    */ 
     void write(const Buffer& key, const Buffer& value,Transaction& t=SAFplus::NO_TXN);
+
+  /*? Write a section of the checkpoint table.
+   <arg name="key">The section to write</arg>
+   <arg name="key">The length in bytes of the key</arg>
+   <arg name="value">The data to write</arg>
+   <arg name="value">The length in bytes of the data</arg>
+   <arg name="t" default="NO_TXN">[OPTIONAL, NOT IMPLEMENTED] Write this record as part of a transaction commit, rather than immediately</arg>   
+   <exception name="SAFplus::Error">Raised if there is an underlying SAF read error that cannot be automatically handled</exception>   
+   */ 
+    void write(const void* key, int keylen, const void* value, int vallen, Transaction& t=SAFplus::NO_TXN);
  
  /*? Write a section of the checkpoint table 
    <arg name="key">The section to write</arg>
@@ -358,6 +376,7 @@ namespace SAFplus
     void dump();
     //? [DEBUGGING ONLY]: Unilaterally delete this checkpoint out of shared memory... behavior is undefined if other processes have the checkpoint open.
     static void dbgRemove(char* name);
+
     void stats();
   protected:
     friend class SAFplusI::CkptSynchronization;
@@ -376,7 +395,7 @@ namespace SAFplus
 
   protected:    
     void syncFromDisk(); // In the case that user opens a non-existing checkpoint but its data is available on disk, so this function copies data from database to checkpoint data to ensure data between them to be synchronized
-    void initDB(const char* ckptId, bool isCkptExist); // Initialize dbal and synchronize data from disk with checkpoint if any
+    void initDB(const char* ckptId, bool skipLoadFromDisk); // Initialize dbal and synchronize data from disk with checkpoint if any
     void writeCkpt(ClDBKeyHandleT key, ClUint32T keySize, ClDBRecordHandleT rec, ClUint32T recSize);
     void writeCkptData(ClDBKeyHandleT key, ClUint32T keySize, ClDBRecordHandleT rec, ClUint32T recSize);
     void writeHdrDB(int hdrKey, ClDBRecordT rec, ClUint32T recSize);

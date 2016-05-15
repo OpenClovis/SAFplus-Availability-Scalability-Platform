@@ -81,8 +81,14 @@ namespace SAFplus
 
     virtual ClRcT write(MgtDatabase* db, std::string xpt = "")
     {
-      return CL_OK;
+      return CL_OK;  // TODO: shouldn't this write?
     }
+
+    virtual ClRcT writeChanged(uint64_t firstBeat, uint64_t beat, MgtDatabase *db = nullptr, std::string parentXPath = "")
+    {
+      return CL_OK; // TODO: shouldn't this write?
+    }
+
     virtual ClRcT read(MgtDatabase *db, std::string xpt = "")
     {
       std::string key = getFullXpath();
@@ -119,7 +125,8 @@ namespace SAFplus
       MgtObject *root = this->root();
       if(ref.length() > 0)
         {
-          MgtObject *obj = root->lookUpMgtObject(typeid(T).name(), ref);
+          //MgtObject *obj = root->lookUpMgtObject(typeid(T).name(), ref);
+          MgtObject *obj = root->lookUpMgtObject("", ref);
           if (obj)
             value = (T)obj;
           else

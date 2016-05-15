@@ -180,7 +180,8 @@ namespace SAFplus
       return clusterId;
     }
 
-    static Handle create(int msgingPort=0);  //? Get a new handle. msgingPort should be the IOC port number if you want to receive messages on this handle, otherwise a unique # (pid)
+    static Handle create(int msgingPort=0);  //? Get a new handle. msgingPort should be the IOC port number if you want to receive messages on this handle, otherwise a unique # (pid).  By default, your SAFplus messaging port is used.
+    static Handle createPersistent(int msgingPort=0);  //? Get a new persistent handle. A persistent handle is not removed when the creating process fails.  msgingPort should be the IOC port number if you want to receive messages on this handle, otherwise a unique # (pid).  By default, your SAFplus messaging port is used.
     static Handle create(uint64_t id0,uint64_t id1); //? Translate 2 numbers to a valid handle (for serialization/deserialization)
     static uint64_t uniqueId(void);  //? Get a unique-in-this-process number for making your own handle
   }; 

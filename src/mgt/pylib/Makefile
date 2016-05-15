@@ -25,7 +25,7 @@ $(LIB_DIR)/pyDbal.so: $(CLIENT_PYLIB_OBJ) $(PYLIB_SRC) $(SAFPLUS_DEP_LIBS)
 $(OBJ_DIR)/%.o: %.cxx Makefile $(CLIENT_PYLIB_H)
 	$(COMPILE_CPP) $@ $(<F)
 
-$(BIN_DIR)/safplus_db: safplus_db
+$(BIN_DIR)/safplus_db: safplus_db $(LIB_DIR)/dbalpy.py $(LIB_DIR)/pyDbal.so
 	$(CP) $< $@
 
 $(LIB_DIR)/dbalpy.py: safplus_db

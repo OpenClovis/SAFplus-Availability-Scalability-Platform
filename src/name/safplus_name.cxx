@@ -11,7 +11,7 @@ int main(int argc, char* argv[])
   sic.msgQueueLen = 10;
   sic.msgThreads  = 1;
 
-  safplusInitialize( SAFplus::LibDep::NAME,sic);
+  safplusInitialize( SAFplus::LibDep::NAME | SAFplus::LibDep::LOCAL,sic);
   for (NameRegistrar::Iterator it = name.begin(); it != name.end(); it++)
     {
     HandleData& hd = it.handle();

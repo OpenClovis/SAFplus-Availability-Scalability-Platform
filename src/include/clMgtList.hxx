@@ -327,9 +327,10 @@ namespace SAFplus
 
       MgtObject* lookUpMgtObject(const std::string & classType, const std::string &ref)
       {
-        std::string type = "P";
-        type.append((typeid(*this).name()));
-        if ( type == classType && this->tag == ref)
+        //std::string type = "P";
+        //type.append((typeid(*this).name()));
+        //if ( type == classType && this->tag == ref)
+        if (this->tag == ref)
           {
             return this;
           }
@@ -621,6 +622,23 @@ namespace SAFplus
         return rc;
       }
 
+    virtual ClRcT writeChanged(uint64_t firstBeat, uint64_t beat,SAFplus::MgtDatabase *db, std::string xpath)
+      {
+        ClRcT rc = CL_OK;
+
+        if (!config) return rc;
+
+        typename Map::iterator iter;
+        for(iter = children.begin(); iter != children.end(); iter++)
+        {
+          MgtObject *obj = iter->second;
+          rc = obj->writeChanged(firstBeat,beat,db, xpath);
+          if(CL_OK != rc)
+            return rc;
+        }
+        return rc;
+      }
+
       ClRcT write(KEYTYPE key, MgtDatabase *db=nullptr, std::string xpath = "")
       {
         ClRcT rc = CL_OK;
@@ -640,6 +658,7 @@ namespace SAFplus
         return rc;
       }
   };
+
   /**
    * For backward compatible with current version of MgtList which key is std::string
    */
@@ -921,19 +940,15 @@ namespace SAFplus
 
       MgtObject* lookUpMgtObject(const std::string & classType, const std::string &ref)
       {
-        std::string type = "P";
-        type.append((typeid(*this).name()));
-        if ( type == classType)
+        //std::string type = "P";
+        //type.append((typeid(*this).name()));
+        //if ( type == classType)
+        if (1)
           { 
             if (this->tag == ref)
             {
               return this;
             }
-            typename Map::iterator obj = children.find("name");
-            if (obj != children.end())
-              {
-                printf("foo");
-              }
           }
         typename Map::iterator iter;
         for(iter = children.begin(); iter != children.end(); iter++)
@@ -1180,6 +1195,23 @@ namespace SAFplus
               return rc;
           }
           return rc;
+      }
+
+    virtual ClRcT writeChanged(uint64_t firstBeat, uint64_t beat,SAFplus::MgtDatabase *db, std::string xpath)
+      {
+        ClRcT rc = CL_OK;
+
+        if (!config) return rc;
+
+        typename Map::iterator iter;
+        for(iter = children.begin(); iter != children.end(); iter++)
+        {
+          MgtObject *obj = iter->second;
+          rc = obj->writeChanged(firstBeat,beat,db, xpath);
+          if(CL_OK != rc)
+            return rc;
+        }
+        return rc;
       }
 
      virtual void resolvePath(const char* path, std::vector<MgtObject*>* result)

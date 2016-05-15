@@ -461,6 +461,7 @@ void Group::setNotification(SAFplus::Wakeable& w)
         return;
       }
     char msgPayload[sizeof(Buffer)-1+msgLen];
+    memset(&msgPayload,0,sizeof(Buffer)-1+msgLen);
     GroupMessageProtocol *sndMessage = (GroupMessageProtocol *)&msgPayload;
     sndMessage->group = handle;
     sndMessage->messageType = msgType;
@@ -475,7 +476,7 @@ void SAFplus::Group::send(void* data, int dataLength, SAFplus::GroupMessageSendM
   {
   // TODO Use an advanced Buffer data structure to avoid copies and malloc
   int len = dataLength+sizeof(Handle);
-  char* buf = (char*) malloc(len);
+  char* buf = new char[len];
   assert(buf);
   memcpy(buf+sizeof(Handle),data,dataLength);
 
@@ -492,6 +493,8 @@ void SAFplus::Group::send(void* data, int dataLength, SAFplus::GroupMessageSendM
         memcpy(buf,&hdl,sizeof(Handle));
         groupMsgServer->SendMsg(hdl, (void *)buf, len, SAFplusI::OBJECT_MSG_TYPE);
         }
+      delete[] buf;
+      buf = NULL;
       }
       break;
     case GroupMessageSendMode::SEND_TO_ACTIVE:
@@ -531,6 +534,8 @@ void SAFplus::Group::send(void* data, int dataLength, SAFplus::GroupMessageSendM
       memcpy(buf,&dest,sizeof(Handle));
       //to.iocPhyAddress.nodeAddress = to; // CL_IOC_BROADCAST_ADDRESS;
       groupMsgServer->SendMsg(dest, (void *)buf, len, SAFplusI::OBJECT_MSG_TYPE);
+      delete [] buf;
+      buf = NULL;
     }
 
   }

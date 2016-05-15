@@ -93,11 +93,12 @@ class MgtContainer:public MgtObject
     virtual ClBoolT set(const void *pBuffer, ClUint64T buffLen, SAFplus::Transaction& t);
 
     virtual ClRcT write(MgtDatabase *db = nullptr, std::string parentXPath = "");
+    virtual ClRcT writeChanged(uint64_t firstBeat, uint64_t beat, MgtDatabase *db = nullptr, std::string parentXPath = "");
     virtual ClRcT read(MgtDatabase *db = nullptr, std::string parentXPath = "");
 
     void resolvePath(const char* path, std::vector<MgtObject*>* result);
     virtual MgtObject *findMgtObject(const std::string &xpath, std::size_t idx);  // DEPRECATED
-    MgtObject *lookUpMgtObject(const std::string & classType, const std::string &ref);
+    virtual MgtObject *lookUpMgtObject(const std::string & classType, const std::string &ref);
 
   };
 

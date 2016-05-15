@@ -784,7 +784,7 @@ void GroupServer::startElection(SAFplus::Handle grpHandle)
   {
   char msgPayload[sizeof(GroupMessageProtocol)-1];
   GroupMessageProtocol *sndMessage = (GroupMessageProtocol *)&msgPayload;
-
+  memset(msgPayload,0,sizeof(msgPayload)); // valgrind
   sndMessage->group        = grpHandle;
   sndMessage->messageType  = GroupMessageTypeT::MSG_ELECT_REQUEST;
   sndMessage->roleType     = GroupRoleNotifyTypeT::ROLE_UNDEFINED;
@@ -796,6 +796,7 @@ void GroupServer::startElection(SAFplus::Handle grpHandle)
 void GroupServer::sendHelloMessage(SAFplus::Handle grpHandle,const GroupIdentity& entityData)
   {
   char msgPayload[sizeof(GroupMessageProtocol)-1 + sizeof(GroupIdentity)];
+  memset(&msgPayload,0,sizeof(GroupMessageProtocol)-1 + sizeof(GroupIdentity));  // valgrind
   GroupMessageProtocol *sndMessage = (GroupMessageProtocol *)&msgPayload;
 
   sndMessage->group        = grpHandle;
@@ -812,6 +813,7 @@ void GroupServer::sendRoleAssignmentMessage(SAFplus::Handle grpHandle,const std:
   EntityIdentifier data[2] = { results.first, results.second };  // Is this needed or is pair packed?
 
   char msgPayload[sizeof(GroupMessageProtocol)-1 + sizeof(EntityIdentifier)*2];
+  memset(&msgPayload,0,sizeof(GroupMessageProtocol)-1 + sizeof(EntityIdentifier)*2);  // valgrind
   GroupMessageProtocol *sndMessage = (GroupMessageProtocol *)&msgPayload;
 
   sndMessage->group        = grpHandle;

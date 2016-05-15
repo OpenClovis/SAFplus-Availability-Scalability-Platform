@@ -117,6 +117,13 @@ public:
     {
       return setDb(xpath,db);
     }
+
+    virtual ClRcT writeChanged(uint64_t firstBeat, uint64_t beat,SAFplus::MgtDatabase *db, std::string xpath)
+      {
+        if ((lastChange > firstBeat)&&(lastChange <= beat)) return setDb(xpath, db);
+        return CL_OK;
+      }
+
     /**
      *
      */

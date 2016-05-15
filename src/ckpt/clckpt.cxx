@@ -137,6 +137,7 @@ void SAFplus::Checkpoint::init(const Handle& hdl, uint_t _flags, uint64_t retent
     if (flags & EXISTING)  // Try to create it first if the flags don't require that it exists.
       {
       msm = managed_shared_memory(open_only, ckptSharedMemoryObjectname.c_str());  // will raise something if it does not exist
+      isCkptExist = true;
       }
     else
       {
@@ -179,7 +180,13 @@ void SAFplus::Checkpoint::init(const Handle& hdl, uint_t _flags, uint64_t retent
       else throw;
       }
     
-    map = msm.find_or_construct<CkptHashMap>("table")  ( rows, boost::hash<CkptMapKey>(), BufferPtrContentsEqual(), msm.get_allocator<CkptMapPair>());
+    if (!isCkptExist)
+      map = msm.find_or_construct<CkptHashMap>("table")  ( rows, boost::hash<CkptMapKey>(), BufferPtrContentsEqual(), msm.get_allocator<CkptMapPair>());
+    else
+      {
+        std::pair<SAFplusI::CkptHashMap*,std::size_t> t = msm.find<CkptHashMap>("table");
+        map = t.first;
+      }
     }
   else
     {
@@ -250,6 +257,15 @@ const Buffer& SAFplus::Checkpoint::read (const Buffer& key) //const
   gate.unlock();
   return *((Buffer*) NULL);
 }
+
+const Buffer& SAFplus::Checkpoint::read (const void* key, int keylen)
+{
+  char kmem[sizeof(Buffer)-1+keylen];
+  Buffer* kb = new(kmem) Buffer(keylen);  // placement new does not need to be deleted
+  memcpy(kb->data,key,keylen);
+  return read(*kb);
+}
+
 
 const Buffer& SAFplus::Checkpoint::read (const uintcw_t key) //const
 {
@@ -329,6 +345,18 @@ void SAFplus::Checkpoint::write(const std::string& key, const std::string& value
   }
 
 bool SAFplus::Buffer::isNullT() const { return (refAndLen&NullTMask)>0; }
+
+void SAFplus::Checkpoint::write(const void* key, int keylen, const void* value, int vallen, Transaction& t)
+{
+  char kmem[sizeof(Buffer)-1+keylen];
+  Buffer* kb = new(kmem) Buffer(keylen);
+  memcpy(kb->data,key,keylen);
+  char vdata[sizeof(Buffer)-1+vallen];
+  Buffer* val = new(vdata) Buffer(vallen);
+  memcpy(val->data, value, vallen);
+  write(*kb,*val, t);
+}
+
 
 void SAFplus::Checkpoint::write(const Buffer& key, const Buffer& value,Transaction& t)
 {
@@ -638,7 +666,7 @@ bool SAFplus::Checkpoint::Iterator::operator !=(const SAFplus::Checkpoint::Itera
   return false;
 }
 
-void SAFplus::Checkpoint::initDB(const char* ckptId, bool isCkptExist)
+void SAFplus::Checkpoint::initDB(const char* ckptId, bool skipLoading)
 {
   ClRcT rc = CL_OK;
   pDbal = NULL;
@@ -658,7 +686,7 @@ void SAFplus::Checkpoint::initDB(const char* ckptId, bool isCkptExist)
   rc = pDbal->open(dbName, dbName, CL_DB_OPEN, CkptMaxKeySize, CkptMaxRecordSize);
   if (rc == CL_OK)
   {
-    if (!isCkptExist)
+    if (!skipLoading)
     {
       syncFromDisk();
     }

@@ -19,6 +19,7 @@ public:
 };
 
 typedef ClPlugin* (*ClPluginInitializeFnType)(uint_t preferredPluginVersion) ;
+typedef void (*ClPluginFinalizeFnType)(void) ;
 
 #define CL_PLUGIN_INIT_FN "clPluginInitialize"
 
@@ -37,9 +38,11 @@ typedef struct
     ClPluginInitializeFnType init;
 } ClPluginHandle;
 
-/* If name is NULL search for default names. */
+  //? Load a SAFplus-compatible plugin.  If name it null, search for compatible plugins.
 extern ClPluginHandle* clLoadPlugin(uint_t pluginId,uint_t preferredPluginVersion,const char* name);
 
+  //? Unload a plugin.  If name it null, search for compatible plugins.
+extern void clUnloadPlugin(ClPluginHandle* plugin);
 };
 
 /* You must define a plugin initialization routine that returns a structure of plugin functions and other info */

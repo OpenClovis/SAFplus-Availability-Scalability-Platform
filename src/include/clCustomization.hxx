@@ -84,10 +84,10 @@ namespace SAFplusI
   enum
     {
     CkptMinSize = 4*1024,
-    CkptDefaultSize = 64*1024,
+    CkptDefaultSize = 64*1024*1024,
 
     CkptMinRows = 2,
-    CkptDefaultRows = 256,
+    CkptDefaultRows = 16*1024,
 
     CkptSyncMsgStride = 128,   // Checkpoint sync messages will be either < this length OR have only one record.  That is, if a record is > this amount the message can be bigger.
 

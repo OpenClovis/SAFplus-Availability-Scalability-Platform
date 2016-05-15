@@ -165,7 +165,7 @@ do { \
     } \
 } while(0)
 
-/*? Run a test case
+/*? Run a test case.
 <arg name="name">A parenthesized printf-style string describing the test case</arg>
 <arg name="test">The test case code.  Most likely a function call.</arg>
 

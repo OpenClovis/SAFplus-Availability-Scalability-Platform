@@ -71,6 +71,7 @@ extern ClUint32T chassisId;
 
 // signal this condition to execute a cluster state reevaluation early
 ThreadCondition somethingChanged;
+Mutex           somethingChangedMutex;
 bool amfChange = false;  //? Set to true if the change was AMF related (process started/died or other AMF state change)
 bool grpChange = false;  //? Set to true if the change was group related
 
@@ -78,8 +79,9 @@ SAFplusAmf::SAFplusAmfModule cfg;
 //MgtModule dataModule("SAFplusAmf");
 
 const char* LogArea = "MAN";
-
+MgtDatabase *db = NULL;
 SAFplus::Fault fault;  // Fault client global variable
+
 
 enum
   {
@@ -106,6 +108,10 @@ do {
     amfChange = true;
     somethingChanged.notify_all();
 }
+
+
+
+
 #if 0
 void signalHandler(const boost::system::error_code& error, int signal_number)
 {
@@ -171,6 +177,14 @@ static unsigned int MAX_HANDLER_THREADS=10;
 boost::thread    logServer;
 boost::thread    compStatsRefresh;
 
+
+static void quitSignalHandler(int signum)
+{
+    amfChange = true;
+    quitting = true;
+    somethingChanged.notify_all();
+}
+
 struct LogServer
   {
   void operator()()
@@ -202,8 +216,7 @@ struct CompStatsRefresh
           node = tmp;
           break;
         }
-    }
-      
+    }      
 
     if (node)  // If node is NULL, my own node is not modelled
       {
@@ -440,11 +453,15 @@ bool standbyAudit(void) // Check to make sure DB and the system state are in syn
   }
 
 void becomeActive(void)
-  {
-    nodeMonitor.becomeActive();
-    cfg.bind(myHandle,&cfg.safplusAmf);
-    activeAudit();
-  }
+{
+  nodeMonitor.becomeActive();
+
+  cfg.read(db);
+  initializeOperationalValues(cfg);
+
+  cfg.bind(myHandle,&cfg.safplusAmf);
+  activeAudit();
+}
 
 void becomeStandby(void)
   {
@@ -561,84 +578,6 @@ static uint_t str2uint(const ClCharT *str)
   return atoi(str);
   }
 
-int parseArgs(int argc, char* argv[])
-  {
-  // NOTE: logs must use printf because this function is called before logs are initialized
-  ClInt32T option = 0;
-  ClInt32T nargs = 0;
-  ClRcT rc = CL_OK;
-  const ClCharT *short_options = ":c:l:m:n:p:fh";
-
-#ifndef POSIX_ONLY
-  const struct option long_options[] = {
-    {"chassis",     1, NULL, 'c'},
-    {"localslot",   1, NULL, 'l'},
-    {"nodename",    1, NULL, 'n'},
-    {"profile",     1, NULL, 'p'},
-    {"foreground",  0, NULL, 'f'},
-    {"help",        0, NULL, 'h'},
-    { NULL,         0, NULL,  0 }
-    };
-#endif
-
-
-#ifndef POSIX_ONLY
-  while((option = getopt_long(argc, argv, short_options, long_options, NULL)) != -1)
-#else
-    while((option = getopt(argc, argv, short_options)) != -1)
-#endif
-      switch(option)
-        {
-        case 'h':   
-          printUsage(argv[0]);
-          /* This is not an error */
-          exit(0);
-        case 'c':
-          chassisId = str2uint(optarg);
-          if (chassisId == UINT_MAX) 
-            {
-            printf("[%s] is not a valid chassis id.", optarg);
-            return -1;
-            }
-          break;
-        case 'l':
-        {
-        uint_t temp=0;
-        temp = str2uint(optarg);
-        if (temp == UINT_MAX)
-          {
-          printf("[%s] is not a valid slot id, ", optarg);
-          return -1;
-          }
-        SAFplus::ASP_NODEADDR = temp;
-        ++nargs;
-        } break;
-        case 'n':
-          strncpy(SAFplus::ASP_NODENAME, optarg, CL_MAX_NAME_LENGTH-1);
-          strncpy(::ASP_NODENAME, optarg, CL_MAX_NAME_LENGTH-1);
-          ++nargs;
-          break;
-#if 0            
-        case 'p':
-        {
-        strncpy(clCpmBootProfile, optarg, CL_MAX_NAME_LENGTH-1);
-        ++nargs;
-        }           
-        break;
-#endif            
-        case '?':
-          printf("Unknown option [%c]", optopt);
-          return -1;
-          break;
-        default :   
-          printf("Unknown error");
-          return -1;
-          break;
-        }
-
-  return 1;
-  }
-
 
 // Callback RPC client
 void FooDone(StartComponentResponse* response)
@@ -727,6 +666,9 @@ static ClRcT refreshComponentStats(void *unused)
     logInfo("STAT","COMP", "refresh component statistics");
     return CL_OK;
 }
+ 
+const std::string dbName("safplusAmf");
+SafplusInitializationConfiguration sic;
 
 int main(int argc, char* argv[])
   {
@@ -734,19 +676,17 @@ int main(int argc, char* argv[])
     //uint64_t t1 = std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::system_clock::now().time_since_epoch()).count();
     //uint64_t t2 = time(NULL);
 
-  Mutex m;
+    //Mutex m;
   bool firstTime=true;
   logEchoToFd = 1;  // echo logs to stdout for debugging
   logCompName = "AMF";
 
-  if (parseArgs(argc,argv)<=0) return -1;
-
-  SafplusInitializationConfiguration sic;
   sic.iocPort     = SAFplusI::AMF_IOC_PORT;
   sic.msgQueueLen = MAX_MSGS;
   sic.msgThreads  = MAX_HANDLER_THREADS;
   safplusInitialize( SAFplus::LibDep::FAULT | SAFplus::LibDep::GRP | SAFplus::LibDep::CKPT | SAFplus::LibDep::LOG, sic);
-  //timerInitialize(NULL);
+  //safplusInitialize( SAFplus::LibDep::LOG, sic);
+
   logSeverity = LOG_SEV_DEBUG;
 
   // GAS DEBUG: Normally we would get these from the environment
@@ -771,8 +711,6 @@ int main(int argc, char* argv[])
     }
 
   logAlert(LogArea,"INI","Welcome to OpenClovis SAFplus version %d.%d.%d %s %s running from %s", SAFplus::VersionMajor, SAFplus::VersionMinor, SAFplus::VersionBugfix, __DATE__, __TIME__,SAFplus::ASP_BINDIR);
-
-  //SAFplus::safplusMsgServer.init(SAFplusI::AMF_IOC_PORT, MAX_MSGS, MAX_HANDLER_THREADS);
 
   myHandle = getProcessHandle(SAFplusI::AMF_IOC_PORT,SAFplus::ASP_NODEADDR);
   // Register a mapping between this node's name and its handle.
@@ -812,6 +750,20 @@ int main(int argc, char* argv[])
 
   nameInitialize();  // Name must be initialized after the group server 
 
+  // Mgt must be inited after name if you are using Checkpoint DB
+  db = MgtDatabase::getInstance();
+  /* Initialize mgt database  */
+  DbalPlugin* plugin = db->getPlugin();
+  logInfo(LogArea,"DB", "Opening database file [%s] using plugin [%s]", "safplusAmf",plugin->type);
+
+  SAFplus::dbalPluginFlags = Checkpoint::REPLICATED;
+  logInfo(LogArea,"DB", "Opening database file [%s]", "safplusAmf");
+  db->initializeDB(dbName);
+#if 0 // moved to becomeActive
+  cfg.read(db);
+  initializeOperationalValues(cfg);
+#endif
+
   // client side
   amfRpc_Stub amfInternalRpc(channel);
 
@@ -828,23 +780,7 @@ int main(int argc, char* argv[])
 #endif
   //sleep(10000);
 
-
-  logInfo(LogArea,"NAM", "Registering this node [%s] as handle [%" PRIx64 ":%" PRIx64 "]", SAFplus::ASP_NODENAME, myHandle.id[0],myHandle.id[1]);
-  name.set(SAFplus::ASP_NODENAME,nodeHandle,NameRegistrar::MODE_NO_CHANGE);
-
-  /* Initialize mgt database  */
-  MgtDatabase *db = MgtDatabase::getInstance();
-  logInfo(LogArea,"DB", "Opening database file [%s]", "safplusAmf");
-  db->initializeDB("safplusAmf");
-  cfg.read(db);
-  initializeOperationalValues(cfg);
-
-  // TEMPORARY testing initialization (bind should happen when we become active)
-  //loadAmfConfig(&cfg);
-  //cfg.bind(myHandle,&cfg.safplusAmf);
-
-
-  logServer = boost::thread(LogServer());
+  // TMPlogServer = boost::thread(LogServer());
 
   AmfOperations amfOps;  // Must happen after messaging initialization so that we can use the node address and message port in the invocation.
   amfOps.amfInternalRpc = &amfInternalRpc;
@@ -939,6 +875,18 @@ int main(int argc, char* argv[])
         assert(0);
     }
 
+  newAction.sa_handler = quitSignalHandler;
+  sigemptyset(&newAction.sa_mask);
+  newAction.sa_flags = 0;
+
+  if (-1 == sigaction(SIGTERM, &newAction, NULL))
+    {
+        perror("sigaction for SIGCHLD failed");
+        logError("MAN","INI", "Unable to install signal handler for SIGCHLD");
+        assert(0);
+    }
+
+
 
     //boost::asio::io_service ioSvc;
   // Construct a signal set registered for process termination.
@@ -949,6 +897,10 @@ int main(int argc, char* argv[])
   //static ClTimerTimeOutT statsTimeout = { .tsSec = 10, .tsMilliSec = 0 };
   //Timer readStats(statsTimeout, CL_TIMER_REPETITIVE,CL_TIMER_SEPARATE_CONTEXT,refreshComponentStats,NULL);
   //readStats.timerStart();
+
+  logInfo(LogArea,"NAM", "Registering this node [%s] as handle [%" PRIx64 ":%" PRIx64 "]", SAFplus::ASP_NODENAME, myHandle.id[0],myHandle.id[1]);
+  name.set(SAFplus::ASP_NODENAME,nodeHandle,NameRegistrar::MODE_NO_CHANGE);
+
   compStatsRefresh = boost::thread(CompStatsRefresh());
 
   nodeMonitor.init();  // Initialize node monitor early so this node replies to heartbeats
@@ -967,11 +919,22 @@ int main(int argc, char* argv[])
   } while(fault.getFaultState(myHandle) != FaultState::STATE_UP);
 
 
+  uint64_t lastBeat = beat; 
+  uint64_t nowBeat;
+
   while(!quitting)  // Active/Standby transition loop
     {
-    ScopedLock<> lock(m);
+    ScopedLock<> lock(somethingChangedMutex);
     bool changeTriggered = true;
-    if (!firstTime && !amfOps.changed) changeTriggered = somethingChanged.timed_wait(m,REEVALUATION_DELAY);
+    nowBeat = beat;
+    if (lastBeat != nowBeat)
+      {
+      logInfo("PRC","MON","Beat advanced, writing changes");
+      cfg.writeChanged(lastBeat,nowBeat);
+      }
+    lastBeat = nowBeat;
+    beat++;
+    if (!firstTime && !amfOps.changed) changeTriggered = somethingChanged.timed_wait(somethingChangedMutex,REEVALUATION_DELAY);
 
     if (fault.getFaultState(nodeHandle) != FaultState::STATE_UP)  // Since the fault manager is authoritative, quit it if marks this node as down.
       {
@@ -1033,6 +996,7 @@ int main(int argc, char* argv[])
           logInfo("---","---","This node just became the active system controller");
           myRole = Group::IS_ACTIVE;
           becomeActive();
+          lastBeat = beat;  // Don't rewrite the changes that loading makes
           }
         }
       if (myRole != Group::IS_STANDBY)

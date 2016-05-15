@@ -364,8 +364,10 @@ class PyDBAL():
         ''' Wrapper into <SAFplus version="..."> ... </SAFplus>'''
         wrapper_safplus = ET.Element(ROOT_WRAPPER)
         wrapper_safplus.attrib['version'] = SAFPLUS_VERSION
-
-        wrapper_safplus.append(root)
+        if root:
+          wrapper_safplus.append(root)
+        else:  
+          print "Warning: empty database"
         file.write(prettify(wrapper_safplus))
         file.close()
 

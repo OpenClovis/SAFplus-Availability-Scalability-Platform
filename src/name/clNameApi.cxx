@@ -28,6 +28,19 @@ void SAFplus::nameInitialize()
     name.init(NAME_CKPT);
   }
 
+void SAFplus::nameInitializeLocal()
+  {
+    nameInitCount++;
+    if (nameInitCount > 1) return;
+    name.initLocal(NAME_CKPT);
+  }
+
+void NameRegistrar::initLocal(Handle hdl)
+  {
+  m_checkpoint.name = "safplusName";
+  m_checkpoint.init(hdl,Checkpoint::SHARED, SAFplusI::CkptRetentionDurationDefault, CkptDefaultSize, CkptDefaultRows,IGNORE);
+  }
+
 void NameRegistrar::init(Handle hdl)
   {
   m_checkpoint.name = "safplusName";

@@ -170,9 +170,10 @@ void SAFplusI::CkptSynchronization::sendUpdate(const Buffer* key,const Buffer* v
   // TODO transactions
   //int dataSize = key->objectSize() + val->objectSize();
   int bufSize = sizeof(CkptSyncMsg) + key->objectSize() + val->objectSize();  
-  char* buf = new char[bufSize];
+  char* buf = new char[bufSize];  // TODO allocate a message buffer
 
   CkptSyncMsg* hdr = (CkptSyncMsg*) buf;
+  memset(hdr,0,sizeof(CkptSyncMsg)); // valgrind
   hdr->msgType     = (CKPT_MSG_TYPE << 16) | CKPT_MSG_TYPE_UPDATE_MSG_1;
   hdr->checkpoint  = ckpt->handle();
   hdr->cookie      = syncCookie;
@@ -187,6 +188,7 @@ void SAFplusI::CkptSynchronization::sendUpdate(const Buffer* key,const Buffer* v
   assert(offset <= bufSize);
 
   group->send(buf,offset,GroupMessageSendMode::SEND_BROADCAST);
+  delete [] buf;
 #if 0
   Handle to;
   to.iocPhyAddress.nodeAddress = CL_IOC_BROADCAST_ADDRESS;

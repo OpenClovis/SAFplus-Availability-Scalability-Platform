@@ -341,6 +341,39 @@ namespace SAFplus
     return rc;
   }
 
+  ClRcT MgtContainer::writeChanged(uint64_t firstBeat, uint64_t beat, MgtDatabase *db, std::string parentXPath)
+  {
+    ClRcT rc = CL_OK;
+
+    if (!config)
+      return rc;
+
+    std::string xp;
+    if (dataXPath.size() > 0)
+      {
+        xp.assign(dataXPath);
+      }
+    else if (parentXPath.size() > 0)
+      {
+        xp.assign(parentXPath);
+        xp.append(getFullXpath(false));
+      }
+    else
+      xp.assign(getFullXpath(true));
+
+    for (MgtObjectMap::iterator it = children.begin(); it != children.end(); ++it)
+      {
+        MgtObject* child = it->second;
+        rc = child->writeChanged(firstBeat, beat, db, xp);
+        if (CL_OK != rc)
+          {
+            logDebug("MGT", "SET", "Write data failed [%x] for child [%s]. Ignored", rc, child->tag.c_str());
+            return rc;
+          }
+      }
+    return rc;
+  }
+
   ClRcT MgtContainer::write(MgtDatabase *db, std::string parentXPath)
   {
     ClRcT rc = CL_OK;
@@ -533,9 +566,10 @@ namespace SAFplus
 
   MgtObject* MgtContainer::lookUpMgtObject(const std::string & classType, const std::string &ref)
   {
-    std::string type = "P";
-    type.append((typeid(*this).name()));
-    if ( type == classType)
+    //std::string type = "P";
+    //type.append((typeid(*this).name()));
+    //if ( type == classType)
+    if (1)
       { 
         if (this->tag == ref)
           {

@@ -103,6 +103,7 @@ extern MgtIteratorBase mgtIterEnd;
     std::string tag;
     std::string listTag;
     std::string dataXPath;
+    bool allocated;
     bool loadDb;
     bool config;  // True if this object is configuration (available in the database).  False if it is statistics or status
     MgtObject *parent;
@@ -282,14 +283,18 @@ extern MgtIteratorBase mgtIterEnd;
      */
     ClRcT bind(Handle handle, const std::string& module, const std::string& route);
 
-    /** \brief persist to database. 
-     *  \param db The database to access. by default it uses the
-     *  globally defined database. 
+    /*? Persist to database. 
+     <arg name="db"> The database to access. by default it uses the globally defined database. </arg>
      */
     virtual ClRcT write(MgtDatabase *db=nullptr, std::string parentXPath = "");
-    /** \brief Load object from database. 
-     *  \param db The database to access. by default it uses the
-     *  globally defined database. 
+
+    /*? Persist to database, only those changes > firstbeat and less than or = beat
+     <arg name="db"> The database to access. by default it uses the globally defined database. </arg>
+     */
+    virtual ClRcT writeChanged(uint64_t firstBeat, uint64_t beat, MgtDatabase *db = nullptr, std::string parentXPath = "");
+
+    /*? Load object from database. 
+          <arg name="db"> The database to access. by default it uses the globally defined database. 
      */
     virtual ClRcT read(MgtDatabase *db=nullptr, std::string parentXPath = "");
 

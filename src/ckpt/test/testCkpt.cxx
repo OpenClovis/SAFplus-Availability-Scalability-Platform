@@ -295,6 +295,91 @@ void writeObjToCkpt(Checkpoint& c, const char* key, const void* obj, int objlen)
   c.write(*kb,*val);
 }
 
+#if 0
+void writeObjToCkpt(Checkpoint& c, const char* key, int keylen, const void* obj, int objlen)
+{
+  size_t keylen = strlen(key)+1; // '/0' is also counted
+  char kmem[sizeof(Buffer)-1+keylen];
+  Buffer* kb = new(kmem) Buffer(keylen);
+  memcpy(kb->data,key,keylen);
+  char vdata[sizeof(Buffer)-1+objlen];
+  Buffer* val = new(vdata) Buffer(objlen);
+  memcpy(val->data, obj, objlen);
+  c.write(*kb,*val);
+}
+#endif
+
+void test_big(Checkpoint& c, int keylimit,int datalimit, int loops)
+{
+  ClRcT rc;
+
+  // Create a bunch of records
+  for (int i=0;i<loops;i++)
+    {
+      srand(i);
+      int size = rand() % datalimit;
+      int keysize = rand() % keylimit;
+      unsigned char* buf = new unsigned char[size];
+      unsigned char* keybuf = new unsigned char[keysize];
+      assert(buf);
+      assert(keybuf);
+      
+      for (int j=0;j<keysize;j++)
+        {
+          keybuf[j] = rand() & 255;
+        }
+      for (int j=0;j<size;j++)
+        {
+          buf[j] = rand() & 255;
+        }
+
+      c.write(keybuf,keysize,buf,size);
+      delete buf;
+      delete keybuf;
+      printf("%d ", i);
+      fflush(stdout);
+    }
+  printf("\n");
+
+  // Now verify them
+  for (int i=0;i<loops;i++)
+    {
+      srand(i);
+      int size = rand() % datalimit;
+      int keysize = rand() % keylimit;
+
+      unsigned char* keybuf = new unsigned char[keysize];
+      assert(keybuf);
+
+      // recreate the key
+      for (int j=0;j<keysize;j++) keybuf[j] = rand() & 255;
+
+      unsigned char* rec;
+      ClUint32T recSz;
+
+      const Buffer& output = c.read(keybuf,keysize);
+      clTest(("Record exists"), &output != NULL, (" "));
+      if (&output)
+        {
+	unsigned char* rec = (unsigned char*) output.data;
+        int recSz = output.len();
+        clTest(("val record [%d] size", i), size == recSz, ("record size [%d], expected size [%d]",recSz,size));
+      
+        for (int j=0;j<size;j++)
+          {
+            unsigned char ch = rand() & 255;
+            clTest((" "), rec[j] == ch, ("data mismatch [%d] expected [%d]",rec[j],ch)); 
+          }
+
+        }
+      delete keybuf;
+      printf("%d ", i);
+      fflush(stdout);
+    }
+  printf("\n");
+}
+
+
 void persistentWithObjects()
 {
   clTestCaseStart(("CKP-PST-FNC.TC010: Persistent objects"));
@@ -462,6 +547,12 @@ int main(int argc, char* argv[])
     {
       Checkpoint c1(Checkpoint::SHARED | Checkpoint::LOCAL);
       clTestCase(("CKP-BAS-FNC.TC003: Wait functionality"), hdl = test_wait(c1));
+    }    
+
+    if (1)
+    {
+      Checkpoint c1(Checkpoint::SHARED | Checkpoint::LOCAL);
+      clTestCase(("CKP-BAS-FNC.TC004: Big checkpoint"), test_big(c1,1024,2048,1000));
     }    
 
     printf("\n***************\nSubsequent tests require a group server (safplus_amf), or you will hang here.\n***************\n");

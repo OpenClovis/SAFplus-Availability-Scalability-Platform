@@ -184,6 +184,7 @@ void Fault::setNotification(SAFplus::Wakeable& w)
     {
         assert(other != INVALID_HDL);  // We must always report the state of a particular entity, even if that entity is myself (i.e. reporter == other)
         FaultMessageProtocol sndMessage;
+        memset(&sndMessage,0,sizeof(FaultMessageProtocol));
         sndMessage.reporter = reporter;
         sndMessage.messageType = FaultMessageType::MSG_ENTITY_JOIN;
         sndMessage.state = state;

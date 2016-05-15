@@ -118,6 +118,12 @@ public:
     {
       return CL_OK;
     }
+
+    virtual ClRcT writeChanged(uint64_t firstBeat, uint64_t beat, MgtDatabase *db = nullptr, std::string parentXPath = "")
+    {
+      return CL_OK; // TODO: shouldn't this write?
+    }
+
     virtual ClRcT read(MgtDatabase *db, std::string xpt = "")
     {
       std::string key;
@@ -166,7 +172,8 @@ public:
           it++)
         {
           std::string ref = *it;
-          MgtObject *obj = objRoot->lookUpMgtObject(typeid(T).name(), ref);
+          //MgtObject *obj = objRoot->lookUpMgtObject(typeid(T).name(), ref);
+          MgtObject *obj = objRoot->lookUpMgtObject("", ref);
           if (obj)
           {
             value.push_back((T)obj);

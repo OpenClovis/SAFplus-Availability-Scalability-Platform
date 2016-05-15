@@ -49,6 +49,8 @@ extern "C"
 
 namespace SAFplus
 {
+  // Additional flags to be sent when opening the underlying database
+  extern unsigned int dbalPluginFlags;
 
   class MgtDatabase
   {
@@ -67,6 +69,7 @@ namespace SAFplus
   public:
     virtual ~MgtDatabase();
 
+    DbalPlugin* getPlugin() { return mDbDataHdl; }
     /**
      * \brief	Function to create/get the singleton object of the ClMgtDatabase class
      */

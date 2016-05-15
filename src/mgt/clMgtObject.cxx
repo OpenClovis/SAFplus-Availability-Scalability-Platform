@@ -35,12 +35,13 @@ using namespace std;
 
 namespace SAFplus
 {
-  MgtObject::MgtObject(const char* name):lastChange(0)
+  MgtObject::MgtObject(const char* name):lastChange(beat)
   {
     assert(name);
     tag.assign(name);
     listTag.assign(name);
     dataXPath.assign("");
+    allocated = false;
     loadDb = true;
     config = true;
     parent = nullptr;
@@ -249,6 +250,12 @@ namespace SAFplus
     return CL_OK;
   }
 
+  ClRcT MgtObject::writeChanged(uint64_t firstBeat, uint64_t beat, MgtDatabase* db, std::string xpt)
+  {
+    clDbgCodeError(CL_ERR_BAD_OPERATION, "WriteChanged operation not supported on element [%s], path [%s]", getFullXpath(true).c_str(), xpt.c_str());
+    return CL_OK;
+  }
+
   /* unmashall db to object */
   ClRcT MgtObject::read(MgtDatabase *db, std::string xpt)
   {
@@ -387,9 +394,10 @@ namespace SAFplus
   }
   MgtObject* MgtObject::lookUpMgtObject(const std::string & classType, const std::string &ref)
   {
-    std::string type = "P";
-    type.append(typeid(*this).name());
-    if(type == classType && this->tag == ref)
+    //std::string type = "P";
+    //type.append(typeid(*this).name());
+    //if(type == classType && this->tag == ref)
+    if (this->tag == ref)
       {
         return this;
       }

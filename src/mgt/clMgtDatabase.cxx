@@ -24,6 +24,8 @@
 
 namespace SAFplus
 {
+  unsigned int dbalPluginFlags = 0;
+
   static __inline__ ClUint32T getHashKeyFn(const ClCharT *keyStr)
   {
     ClUint32T cksum = SAFplus::computeCrc32((ClUint8T*) keyStr, (ClUint32T) strlen(keyStr));
@@ -51,7 +53,9 @@ namespace SAFplus
   MgtDatabase::MgtDatabase()
   {
     mInitialized = CL_FALSE;
-    mDbDataHdl = clDbalObjCreate();
+    //? <cfg name="SAFPLUS_MGT_DB">[OPTIONAL] Specifies the management database plugin</cfg>
+    char* db = getenv("SAFPLUS_MGT_DB");
+    mDbDataHdl = clDbalObjCreate(db);  // If NULL, we'll choose the default db
   }
 
   ClRcT MgtDatabase::initializeDB(const std::string &dbName, ClUint32T maxKeySize, ClUint32T maxRecordSize)
@@ -72,7 +76,8 @@ namespace SAFplus
 
     /* Open the data DB */
     dbNameData.append(dbName).append(".db");
-    rc = mDbDataHdl->open(dbNameData.c_str(), dbNameData.c_str(), CL_DB_APPEND, maxKeySize, maxRecordSize);
+    unsigned int flags = (dbalPluginFlags << 8) | CL_DB_APPEND;
+    rc = mDbDataHdl->open(dbNameData.c_str(), dbNameData.c_str(), flags, maxKeySize, maxRecordSize);
     if (CL_OK != rc)
       {
         goto exitOnError1;

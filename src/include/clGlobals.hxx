@@ -120,6 +120,7 @@ class LibSet
           DBAL = LibSet::DBAL | LibSet::OSAL | LibSet::HEAP | LibSet::TIMER | LibSet::BUFFER, //? Database adaption layer and dependencies
           MGT_ACCESS = LibSet::MGT_ACCESS | LibDep::MSG | LibDep::CKPT, //? Management client access library and dependencies
 
+          LOCAL = 0x80000000 //? This flag indicates that this service will only read local shared memory objects.  It will not become, communicate, or wait for a node representative.  To be used only for command line options that are run when the Safplus cluster is stopped.
         };
     }; //? </class>
 
@@ -127,6 +128,7 @@ class LibSet
   extern Logger* logInitialize(void) __attribute__((weak));
   extern void objectMessagerInitialize() __attribute__((weak));
   extern void nameInitialize() __attribute__((weak));
+  extern void nameInitializeLocal() __attribute__((weak));
   extern void msgServerInitialize(uint_t port, uint_t maxPendingMsgs, uint_t maxHandlerThreads)  __attribute__((weak));
   extern void msgServerFinalize() __attribute__((weak));
   extern void clMsgInitialize(void) __attribute__((weak)); 
@@ -213,8 +215,11 @@ extern "C" {
       }
 
     if((svc&LibSet::NAME)&&SAFplus::nameInitialize) 
-      { 
-      SAFplus::nameInitialize();
+      {
+        if (svc&LibDep::LOCAL)
+          SAFplus::nameInitializeLocal();
+        else
+          SAFplus::nameInitialize();
       }
 
     if ((svc&LibSet::MGT_ACCESS)&&SAFplus::mgtAccessInitialize)

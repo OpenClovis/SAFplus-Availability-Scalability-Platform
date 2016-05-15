@@ -78,8 +78,9 @@ endif
 
 
 ifndef SAFPLUS_DBAL_PYLIB
-$(LIB_DIR)/pyDbal.so:
+$(LIB_DIR)/pyDbal.so $(BIN_DIR)/safplus_db:
 	$(MAKE) -C $(SAFPLUS_SRC_DIR)/mgt/pylib
+
 endif
 
 ifndef SAFPLUS_DBAL_PLUGIN
@@ -106,7 +107,7 @@ $(BIN_DIR)/spgroupd $(BIN_DIR)/safplus_group:
 endif
 
 ifndef SAFPLUS_NAME_LIB
-$(LIB_DIR)/libclName.so: 
+$(LIB_DIR)/libclName.so $(BIN_DIR)/safplus_name: 
 	$(MAKE) -C $(SAFPLUS_SRC_DIR)/name
 endif
 
@@ -134,7 +135,7 @@ endif
 
 ifndef SAFPLUS_MSG_PLUGIN
 # .PHONY: $(LIB_DIR)/clMsgUdp.so
-$(LIB_DIR)/clMsgUdp.so: $(wildcard $(SAFPLUS_SRC_DIR)/msg/transports/*.cxx)
+$(LIB_DIR)/clMsgUdp.so $(LIB_DIR)/clMsgTcp.so $(LIB_DIR)/clMsgSctp.so $(LIB_DIR)/clMsgTipc.so: $(wildcard $(SAFPLUS_SRC_DIR)/msg/transports/*.cxx)
 	$(MAKE) -C $(SAFPLUS_SRC_DIR)/msg/transports
 endif
 
@@ -198,8 +199,8 @@ endif
 
 #SAFplusTests := $(TEST_DIR)/testLog $(TEST_DIR)/testmgt   $(TEST_DIR)/TestClient $(TEST_DIR)/TestServer $(TEST_DIR)/TestCombine $(TEST_DIR)/testCkpt $(TEST_DIR)/testGroup $(TEST_DIR)/exampleSafApp $(TEST_DIR)/testTransport $(TEST_DIR)/testMsgPerf
 
-SAFplusMsgTransports := $(LIB_DIR)/clMsgUdp.so
-SAFplusDbalPlugins := $(PLUGIN_DIR)/libclBerkeleyDB.so
+SAFplusMsgTransports := $(LIB_DIR)/clMsgUdp.so $(LIB_DIR)/clMsgTipc.so $(LIB_DIR)/clMsgSctp.so $(LIB_DIR)/clMsgTcp.so
+SAFplusDbalPlugins := $(PLUGIN_DIR)/libclBerkeleyDB.so $(PLUGIN_DIR)/libclSQLiteDB.so $(PLUGIN_DIR)/libclGDBM.so $(PLUGIN_DIR)/libclCkptDB.so
 
 # ordered by dependency
 SAFplusSOs := $(LIB_DIR)/libclUtils.so $(LIB_DIR)/libclTimer.so $(LIB_DIR)/libclLog.so $(LIB_DIR)/libclOsal.so  $(LIB_DIR)/libclCkpt.so $(LIB_DIR)/libclMsg.so $(LIB_DIR)/libclRpc.so $(LIB_DIR)/libclName.so $(LIB_DIR)/libclGroup.so $(LIB_DIR)/libclMgt.so $(LIB_DIR)/libclFault.so $(LIB_DIR)/libclDbal.so $(LIB_DIR)/libclAmf.so $(LIB_DIR)/pyDbal.so
@@ -211,6 +212,7 @@ SAFplusTests := $(TEST_DIR)/testLog $(TEST_DIR)/testmgt   $(TEST_DIR)/testCkpt $
 #  $(SAFPLUS_TARGET)/bin/splogd $(TEST_DIR)/testGroup $(TEST_DIR)/testGroupServer
 
 SAFplusServices :=  $(SAFPLUS_TARGET)/bin/splogd $(SAFPLUS_TARGET)/bin/spgroupd $(SAFPLUS_TARGET)/bin/safplus_amf $(BIN_DIR)/ckptretention
+SAFplusBin :=  $(SAFPLUS_TARGET)/bin/safplus_amf $(BIN_DIR)/safplus_db $(BIN_DIR)/safplus_name $(BIN_DIR)/safplus_cloud $(BIN_DIR)/safplus_cleanup $(BIN_DIR)/safplus_group 
 
 SAFplusTools := $(SAFplusRpcGen)
 
@@ -221,4 +223,4 @@ ThirdPartySOs :=
 Languages ?= $(LIB_DIR)/pySAFplus.so
 
 cleanSAFplus:
-	rm -rf $(SAFplusTests) $(SAFplusSOs) $(SAFplusServices) $(LIB_DIR)/* $(MWOBJ_DIR)/* $(OBJ_DIR)/* $(TEST_DIR)/*
+	rm -rf $(SAFplusBin) $(SAFplusTests) $(SAFplusSOs) $(SAFplusServices) $(LIB_DIR)/* $(MWOBJ_DIR)/* $(OBJ_DIR)/* $(TEST_DIR)/*

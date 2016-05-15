@@ -28,7 +28,7 @@ parallel: pa pb
 endif
 endif
 
-all: $(ThirdPartySOs) $(SAFplusTools) $(SAFplusSOs) $(SAFplusPlugins) $(SAFplusServices) $(SAFplusTests) $(LIB_DIR)/libmw.so $(Languages)
+all: $(ThirdPartySOs) $(SAFplusTools) $(SAFplusSOs) $(SAFplusPlugins) $(SAFplusServices) $(SAFplusBin) $(SAFplusTests) $(LIB_DIR)/libmw.so $(Languages)
 
 tools: $(SAFplusTools)
 

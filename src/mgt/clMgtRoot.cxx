@@ -789,6 +789,7 @@ namespace SAFplus
         it++)
       {
         MgtObject* mgtObject = *it;
+        printf("updating %s\n", mgtObject->tag.c_str());
         mgtObject->updateReference();
       }
   }
