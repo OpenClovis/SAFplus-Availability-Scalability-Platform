@@ -131,7 +131,6 @@ namespace SAFplus
         rpcMsgReq.set_rpctype(rpcType);
         rpcMsgReq.set_data(data);
         rpcMsgReq.SerializeToString(&request);
-        logError("MGT", "REV", "send RPC");
     }
     else
     {
@@ -139,7 +138,6 @@ namespace SAFplus
         mgtMsgReq.set_bind(pathSpec);
         mgtMsgReq.add_data(value);
         mgtMsgReq.SerializeToString(&request);
-        logError("MGT", "REV", "send MGT");
     }
     SAFplus::SafplusMsgServer* mgtIocInstance = &SAFplus::safplusMsgServer;
     try

@@ -1309,8 +1309,51 @@ namespace SAFplus
           }
 
         MgtObject* object = MgtFactory::getInstance()->create(childXpath,value);
-        addChildObject(object, value);
-        object->setChildObj(keyList, value);
+
+        // Build dataXpath to store into DB as format: /safplusAmf/Node[@name="node1"] and /safplusAmf/Node 
+        if (object)
+        {
+          std::string xpath(getFullXpath(true));
+          std::stringstream keypart;
+          keypart << "[@" << keyList << "=\"" << value <<"\"" << "]";
+          std::string dataXPath = "";
+          dataXPath.append(xpath).append(keypart.str());
+
+          addChildObject(object, value);
+          object->setChildObj(keyList, value);
+          object->dataXPath = dataXPath;
+
+          if (1) // Update childs for list: i.e /safplusAmf/Node => "[@name='node0'], [@name='node1']"
+          {
+            std::string pval;
+            std::vector<std::string> childs;
+            ret = MgtDatabase::getInstance()->getRecord(xpath, pval, &childs);
+            if (ret == CL_OK)
+            {
+              childs.push_back(keypart.str());
+              ret = MgtDatabase::getInstance()->setRecord(xpath, pval, &childs);
+              logDebug("MGT","LIST", "Append child node [%s] into [%s]", keypart.str().c_str(), xpath.c_str());
+            }
+          }
+
+          if (this->parent != nullptr) // Update childs for parent: i.e /safplusAmf => "Node[@name='node0'],Node[@name='node1']"
+          {
+            std::string parentDBKey = parent->getFullXpath();
+            std::string childDBKey="";
+            childDBKey.append(tag).append(keypart.str());
+
+            // Update childs for parentDBKey
+            std::string pval;
+            std::vector<std::string> childs;
+            ret = MgtDatabase::getInstance()->getRecord(parentDBKey, pval, &childs);
+            if (ret == CL_OK)
+            {
+              childs.push_back(childDBKey);
+              ret = MgtDatabase::getInstance()->setRecord(parentDBKey, pval, &childs);
+              logDebug("MGT","LIST", "Append child node [%s] into [%s]", childDBKey.c_str(), parentDBKey.c_str());
+            }
+          }
+        }
 
         return ret;
       }
@@ -1327,6 +1370,55 @@ namespace SAFplus
           }
 
         MgtObject *child = it->second;
+
+        logDebug("MGT","LIST", "Deleting Object [%s]", child->dataXPath.c_str());
+
+        std::string xpath(getFullXpath(true));
+        std::stringstream keypart;
+        keypart << "[@" << keyList << "=\"" << value <<"\"" << "]";
+
+        if (1) /* Update childs for list: i.e /safplusAmf/Node => "[@name='node0'], [@name='node1']" */
+        {
+          std::string pval;
+          std::vector<std::string> childs;
+          ret = MgtDatabase::getInstance()->getRecord(xpath, pval, &childs);
+          if (ret == CL_OK)
+          {
+            std::vector<std::string>::iterator delIter = std::find(childs.begin(), childs.end(), keypart.str());
+            if (delIter != childs.end())
+            {
+              childs.erase(delIter);
+              ret = MgtDatabase::getInstance()->setRecord(xpath, pval, &childs);
+              logDebug("MGT","LIST", "Remove child node [%s] of [%s]", keypart.str().c_str(), xpath.c_str());
+            }
+          }
+        }
+
+        if (this->parent != nullptr) /* Update childs for parent: i.e /safplusAmf => "Node[@name='node0'],Node[@name='node1']" */
+        {
+          std::string parentDBKey = parent->getFullXpath();
+          std::string childDBKey="";
+          childDBKey.append(tag).append(keypart.str());
+
+          /* Update childs for parentDBKey */
+          std::string pval;
+          std::vector<std::string> childs;
+          ret = MgtDatabase::getInstance()->getRecord(parentDBKey, pval, &childs);
+          if (ret == CL_OK)
+          {
+            std::vector<std::string>::iterator delIter = std::find(childs.begin(), childs.end(), childDBKey);
+            if (delIter != childs.end())
+            {
+              childs.erase(delIter);
+              ret = MgtDatabase::getInstance()->setRecord(parentDBKey, pval, &childs);
+              logDebug("MGT","LIST", "Remove child node [%s] of [%s]", childDBKey.c_str(), parentDBKey.c_str());
+            }
+          }
+        }
+
+        /* TODO: Remove the record out of database for its childs */
+
+        /* Free-ed */
         children.erase(value);
         delete child;
 
