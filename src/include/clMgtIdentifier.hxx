@@ -78,6 +78,7 @@ namespace SAFplus
      * \brief   Virtual function to validate object data
      */
     virtual ClBoolT set(void *pBuffer, ClUint64T buffLen, SAFplus::Transaction& t);
+    virtual ClRcT setObj(const std::string &value);
 
     virtual ClRcT write(MgtDatabase* db, std::string xpt = "")
     {
@@ -122,17 +123,32 @@ namespace SAFplus
     //? Resolve this reference to a pointer if it is not yet resolved.  This can happen because this object may be loaded from the database before the object it points to is created.
     void updateReference()
     {
-      MgtObject *root = this->root();
+      MgtObject *objRoot = dynamic_cast<MgtObject *>(this->root());
+      MgtObject *obj = NULL;
       if(ref.length() > 0)
         {
+          if (ref.find('/') != std::string::npos)
+            {
+              std::vector<MgtObject*> result;
+              objRoot->resolvePath(ref.c_str(),&result);
+              for (std::vector<MgtObject*>::iterator i = result.begin(); i != result.end(); ++i)
+                {
+                  obj = *i;
+                  if (obj) break;
+                }
+            }
+          else
+            {
           //MgtObject *obj = root->lookUpMgtObject(typeid(T).name(), ref);
-          MgtObject *obj = root->lookUpMgtObject("", ref);
-          if (obj)
-            value = (T)obj;
+            obj = objRoot->lookUpMgtObject("", ref);
+            }
+
+          if (obj) value = (T)obj;
           else
             {
               logWarning("MGT", "READ", "Object [%s] contains unresolved management tree reference [%s]", getFullXpath(true).c_str(), ref.c_str());
             }
+
         }
     }
 
@@ -158,6 +174,14 @@ namespace SAFplus
   {
     return CL_FALSE;
   }
+
+template<class T> ClRcT MgtIdentifier<T>::setObj(const std::string &value)
+{
+  ref = value;
+  updateReference();
+  lastChange = beat++;
+  return CL_OK;
+}
 
   template <class T>
   void MgtIdentifier<T>::toString(std::stringstream& xmlString, int depth, SerializationOptions opts)

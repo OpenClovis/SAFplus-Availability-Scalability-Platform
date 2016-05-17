@@ -125,9 +125,7 @@ namespace SAFplus
 
       virtual std::vector<std::string> *getChildNames();
 
-      /**
-       * \brief   Function to set data to database
-       */
+      // Private function to write data to database, use <ref>write</ref>
       ClRcT setDb(std::string pxp = "", MgtDatabase *db = nullptr);
 
       /**
@@ -135,13 +133,13 @@ namespace SAFplus
        */
       ClRcT getDb(std::string pxp = "", MgtDatabase *db = nullptr);
 
-      /**
-       *
-       */
+      //? Function to write data to the database.
       virtual ClRcT write(MgtDatabase *db = nullptr, std::string xpath = "")
       {
         return setDb(xpath, db);
       }
+
+      //? Function to write changed data to the database.
       virtual ClRcT writeChanged(uint64_t firstBeat, uint64_t beat, MgtDatabase *db = nullptr, std::string xpath = "")
       {
         if ((lastChange > firstBeat)&&(lastChange <= beat))
@@ -151,9 +149,8 @@ namespace SAFplus
           }
         return CL_OK;
       }
-      /**
-       *
-       */
+
+      //? Reads data from the database into this object
       virtual ClRcT read(MgtDatabase *db = nullptr, std::string xpath = "")
       {
         return getDb(xpath, db);

@@ -14,6 +14,18 @@ clean:
 cleanall:
 	rm -rf $(SAFPLUS_TARGET)
 
+cleanamfmgt:
+	(cd mgt; $(MAKE) clean)
+	(cd amf; $(MAKE) clean)
+	(cd amf/server; $(MAKE) clean)
+
+makeamfmgt:
+	(cd mgt; $(MAKE) )
+	(cd amf; $(MAKE) )
+	(cd amf/server; $(MAKE) )
+
+
+
 include ./mk/safplus_targets.mk
 
 ifdef NOT_WORKING

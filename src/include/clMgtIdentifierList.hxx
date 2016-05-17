@@ -60,12 +60,20 @@ public:
 
     virtual ~MgtIdentifierList();
 
-  virtual void toString(std::stringstream& xmlString, int depth=SAFplusI::MgtToStringRecursionDepth, SerializationOptions opts=SerializeNoOptions);
+    virtual void toString(std::stringstream& xmlString, int depth=SAFplusI::MgtToStringRecursionDepth, SerializationOptions opts=SerializeNoOptions);
 
     /**
-     * \brief   Virtual function to validate object data
+     * \brief   Virtual function to assign object data
      */
     virtual ClBoolT set(const void *pBuffer, ClUint64T buffLen, SAFplus::Transaction& t);
+
+    virtual ClRcT setObj(const std::string &value);
+
+      // Private function to write data to database, use write
+    ClRcT setDb(std::string pxp = "", MgtDatabase *db = nullptr)
+  {
+  
+  }
 
     /**
      * \brief   Virtual function to validate object data; throws transaction exception if fails
@@ -114,16 +122,24 @@ public:
       }
     }
 
-    virtual ClRcT write(MgtDatabase* db, std::string xpt = "")
+    //? Function to write data to the database.
+    virtual ClRcT write(MgtDatabase* db, std::string xpath = "")
     {
-      return CL_OK;
+      return setDb(xpath, db);
     }
 
-    virtual ClRcT writeChanged(uint64_t firstBeat, uint64_t beat, MgtDatabase *db = nullptr, std::string parentXPath = "")
+    //? Function to write changed data to the database.
+    virtual ClRcT writeChanged(uint64_t firstBeat, uint64_t beat, MgtDatabase *db = nullptr, std::string xpath = "")
     {
-      return CL_OK; // TODO: shouldn't this write?
+      if ((lastChange > firstBeat)&&(lastChange <= beat))
+          { 
+          logDebug("MGT", "OBJ", "write [%s/%s] dataXpath [%s]", xpath.c_str(), tag.c_str(), dataXPath.c_str());
+          return setDb(xpath, db);
+          }
+        return CL_OK;
     }
 
+      //? Reads data from the database into this object
     virtual ClRcT read(MgtDatabase *db, std::string xpt = "")
     {
       std::string key;
@@ -172,12 +188,22 @@ public:
           it++)
         {
           std::string ref = *it;
-          //MgtObject *obj = objRoot->lookUpMgtObject(typeid(T).name(), ref);
-          MgtObject *obj = objRoot->lookUpMgtObject("", ref);
-          if (obj)
-          {
-            value.push_back((T)obj);
-          }
+         //MgtObject *obj = objRoot->lookUpMgtObject(typeid(T).name(), ref);
+          if (ref.find('/') != std::string::npos)
+            {
+              std::vector<MgtObject*> result;
+              objRoot->resolvePath(ref.c_str(),&result);
+              for (std::vector<MgtObject*>::iterator i = result.begin(); i != result.end(); ++i)
+                {
+                  MgtObject *obj = *i;
+                  if (obj) value.push_back((T)obj);
+                }
+            }
+          else
+            {
+            MgtObject *obj = objRoot->lookUpMgtObject("", ref);
+            if (obj) value.push_back((T)obj);
+            }
         }
     }
 };
@@ -230,6 +256,16 @@ ClBoolT MgtIdentifierList<T>::set(const void *pBuffer, ClUint64T buffLen, SAFplu
 {
     return CL_FALSE;
 }
+
+template<class T> ClRcT MgtIdentifierList<T>::setObj(const std::string &value)
+{
+  refs.clear();
+  boost::split(refs, value, boost::is_any_of(", "));
+  updateReference();
+  lastChange = beat++;
+  return CL_OK;
+}
+
 
 template<class T>
 void MgtIdentifierList<T>::pushBackValue(T val)
