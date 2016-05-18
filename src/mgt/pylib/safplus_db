@@ -103,7 +103,7 @@ class PyDBAL():
             if self.suppliedData.tag_ == 'SAFplusModel':
                 self.docRoot = 'instances'
 
-            if self.docRoot:
+            if self.docRoot is not None:
                 self.suppliedData = self.suppliedData.get(self.docRoot)
 
         except IOError, e: # If the supplied data file does not exist just print a warning
@@ -364,7 +364,7 @@ class PyDBAL():
         ''' Wrapper into <SAFplus version="..."> ... </SAFplus>'''
         wrapper_safplus = ET.Element(ROOT_WRAPPER)
         wrapper_safplus.attrib['version'] = SAFPLUS_VERSION
-        if root:
+        if root is not None:
           wrapper_safplus.append(root)
         else:  
           print "Warning: empty database"
@@ -375,7 +375,7 @@ class PyDBAL():
         pyDbal.finalize()
 
     def Iterators(self, xpath=None):
-        if xpath:
+        if xpath is not None:
             try:
                 keys = pyDbal.iterators(xpath)
                 return keys
