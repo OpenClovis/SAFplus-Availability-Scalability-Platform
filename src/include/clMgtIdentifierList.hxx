@@ -107,6 +107,8 @@ public:
     // Now add the new records
     idx = 1;
     std::vector<std::string> children;
+
+    /* TODO: Should be base on refs or value??? refs is configuration but 'value' is real assignment */
     for (std::vector<std::string>::iterator i = refs.begin(); i != refs.end(); ++i, ++idx)
       {
         //typedef boost::array<char, 64> buf_t;

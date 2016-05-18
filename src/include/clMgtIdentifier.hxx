@@ -80,14 +80,51 @@ namespace SAFplus
     virtual ClBoolT set(void *pBuffer, ClUint64T buffLen, SAFplus::Transaction& t);
     virtual ClRcT setObj(const std::string &value);
 
-    virtual ClRcT write(MgtDatabase* db, std::string xpt = "")
+    // Private function to write data to database, use write
+    ClRcT setDb(std::string pxp = "", MgtDatabase *db = nullptr)
     {
-      return CL_OK;  // TODO: shouldn't this write?
+      ClRcT ret = CL_OK;
+  
+      /* DB notation:
+       *  [/safplusAmf/Component[@name="c1"]/serviceUnit] -> value : [su1]
+       */
+      if(db == nullptr)
+        {
+          db = MgtDatabase::getInstance();
+        }
+
+      std::string basekey;
+      if (pxp.size() > 0)
+        {
+        basekey = pxp;
+        basekey.append("/");
+        basekey.append(tag);
+        }
+      else if (dataXPath.size() > 0)
+         basekey = dataXPath;
+      else basekey = getFullXpath(true);
+
+      /* TODO: Should be base on 'ref' or 'value'??? ref is configuration but 'value' is real assignment */
+      db->setRecord(pxp, ref);
+
+      return ret;
     }
 
-    virtual ClRcT writeChanged(uint64_t firstBeat, uint64_t beat, MgtDatabase *db = nullptr, std::string parentXPath = "")
+    //? Function to write data to the database.
+    virtual ClRcT write(MgtDatabase* db, std::string xpath = "")
     {
-      return CL_OK; // TODO: shouldn't this write?
+      return setDb(xpath, db);
+    }
+
+    //? Function to write changed data to the database.
+    virtual ClRcT writeChanged(uint64_t firstBeat, uint64_t beat, MgtDatabase *db = nullptr, std::string xpath = "")
+    {
+      if ((lastChange > firstBeat)&&(lastChange <= beat))
+          { 
+          logDebug("MGT", "OBJ", "write [%s/%s] dataXpath [%s]", xpath.c_str(), tag.c_str(), dataXPath.c_str());
+          return setDb(xpath, db);
+          }
+        return CL_OK;
     }
 
     virtual ClRcT read(MgtDatabase *db, std::string xpt = "")
