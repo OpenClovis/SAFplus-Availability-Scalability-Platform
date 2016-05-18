@@ -26,6 +26,7 @@ namespace SAFplusTypes
         ::uint64_t getValue();
         void setValue(::uint64_t value, SAFplus::Transaction &t=SAFplus::NO_TXN);
         ::SAFplusTypes::Date& operator=(const ::SAFplusTypes::Date &date);
+        bool operator==(const ::SAFplusTypes::Date &date) const;
         friend std::ostream& operator<<(std::ostream &os, const ::SAFplusTypes::Date &date);
         friend std::istream& operator>>(std::istream &is, ::SAFplusTypes::Date &date);
         ~Date();

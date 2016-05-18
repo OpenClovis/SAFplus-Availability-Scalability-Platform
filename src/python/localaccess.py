@@ -5,8 +5,11 @@ import pdb
 mgtGet = safplus.mgtGet
 
 def isValidDirectory(path):
-  data = mgtGet(str("{d=0}"+path))
-  if not data: return False  # TODO, what about an empty list?
+  try:
+    data = mgtGet(str("{d=0}"+path))
+    if not data: return False  # TODO, what about an empty list?
+  except RuntimeError, e:
+    return False
   # print "isValidDir: ", str(data)
   # pdb.set_trace()
   return True
@@ -26,12 +29,10 @@ class Commands:
       return "/" + location
     elif self.context.curdir:
       return self.context.curdir + "/" + location
-    return location
- 
+    return location    
 
   def do_set(self, location, value):
-    """syntax: 
-        set (location) (value)  
+    """syntax: set (location) (value)  
         Sets the leaf at the specified locations to the specified value
     """
     loc = self.canonicalPath(location)
@@ -43,8 +44,7 @@ class Commands:
     return str(ret)
 
   def do_create(self,location):
-    """syntax: 
-         create (location)  
+    """syntax: create (location)  
          Creates a new object at the specified location.  The type of the object is implied by its location in the tree.
     """
     loc = self.canonicalPath(location)
@@ -53,8 +53,7 @@ class Commands:
     return ""
 
   def do_delete(self,*locations):
-    """syntax: 
-         delete (location)  
+    """syntax: delete (location)  
          deletes the object at (location) and all children
     """
     for l in locations:
@@ -74,6 +73,9 @@ def Initialize():
   atexit.register(safplus.Finalize)  # Register a clean up function so SAFplus does not assert on a dead mutex when quitting
   safplus.Initialize(svcs, sic)
   return (Commands(),{})
+
+def Finalize():
+  safplus.Finalize()
 
 def isListElem(elem,path):
   """Return the name of the list if this is an item in a list"""

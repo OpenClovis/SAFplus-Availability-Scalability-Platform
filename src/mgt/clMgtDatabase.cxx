@@ -22,15 +22,31 @@
 #include <clLogApi.hxx>
 #include <clMgtApi.hxx>
 
+#define MURMURKEY 0xc107deed
+
 namespace SAFplus
 {
   unsigned int dbalPluginFlags = 0;
 
+  typedef struct 
+  {
+    uint64_t num[2];
+  } HashKey;
+
+#if 0
   static __inline__ ClUint32T getHashKeyFn(const ClCharT *keyStr)
   {
     ClUint32T cksum = SAFplus::computeCrc32((ClUint8T*) keyStr, (ClUint32T) strlen(keyStr));
     return cksum & DBAL_DB_KEY_MASK;
   }
+#endif
+  static __inline__ HashKey getHashKeyFn(const std::string& s)
+  {
+    HashKey k;
+    murmurHash3_128 ( s.c_str(), s.length(), MURMURKEY, (void*) &k );
+    return k;
+  }
+
 
   MgtDatabase *MgtDatabase::singletonInstance = 0;
 
@@ -112,7 +128,7 @@ namespace SAFplus
     {
       ClRcT rc = CL_OK;
 
-      ClUint32T hashKey = getHashKeyFn(key.c_str());
+      HashKey hashKey = getHashKeyFn(key);
 
       Mgt::Msg::MsgMgtDb dbValue;
       dbValue.set_value(value);
@@ -130,6 +146,8 @@ namespace SAFplus
       std::string strVal;
       // Marshall data
       dbValue.SerializeToString(&strVal);
+
+      logInfo("MGT", "DBR", "Write DB record [0x%" PRIx64 "%" PRIx64 "]: [%s] -> [%s]", hashKey.num[0],hashKey.num[1], key.c_str(), value.c_str());
 
       if (overwrite)
         {
@@ -177,7 +195,7 @@ namespace SAFplus
         return CL_ERR_NOT_INITIALIZED;
       }
 
-    ClUint32T hashKey = getHashKeyFn(key.c_str());
+    HashKey hashKey = getHashKeyFn(key);
 
     rc = mDbDataHdl->getRecord((ClDBKeyT) &hashKey, sizeof(hashKey), (ClDBRecordT*) &cvalue, &dataSize);
     if (CL_OK != rc)
@@ -201,7 +219,7 @@ namespace SAFplus
         }
     }
 
-    logInfo("MGT", "DBR", "Record [0x%x]: [%s] -> [%s]", hashKey, key.c_str(), value.c_str());
+    logInfo("MGT", "DBR", "Record [0x%" PRIx64 "%" PRIx64 "]: [%s] -> [%s]", hashKey.num[0], hashKey.num[1], key.c_str(), value.c_str());
     SAFplusHeapFree(cvalue);
     return rc;
   }
@@ -215,7 +233,7 @@ namespace SAFplus
         return CL_ERR_NOT_INITIALIZED;
       }
 
-    ClUint32T hashKey = getHashKeyFn(key.c_str());
+    HashKey hashKey = getHashKeyFn(key);
 
     rc = mDbDataHdl->deleteRecord((ClDBKeyT) &hashKey, sizeof(hashKey));
 

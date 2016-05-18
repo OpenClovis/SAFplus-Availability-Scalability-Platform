@@ -23,6 +23,7 @@ class Doc:
   def __init__(self,resolver):
     self.resolver = resolver
   def append(self,data):
+    if data is None: return
     try:  # If its good XML append it, otherwise escape it and dump as text
       tree = ET.fromstring(data)
     except ET.ParseError:

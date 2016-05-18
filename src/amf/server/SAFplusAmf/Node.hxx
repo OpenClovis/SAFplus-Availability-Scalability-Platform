@@ -65,6 +65,16 @@ namespace SAFplusAmf
         SAFplus::MgtProv<std::string> disableAssignmentOn;
 
         /*
+         * This is a type of node in string that user wants to make this node can be inherted (see canBeInherited property. If canBeInherited is 'false', the value may be empty). If a node is supposed to be configured like this node, user must specify this property when creating a new node
+         */
+        SAFplus::MgtProv<std::string> userDefinedType;
+
+        /*
+         * This flag is to determine whether this node can be inherited by a new node or not. If a node is supposed to be configured like this node, user must specify user-defined node type when creating a new node
+         */
+        SAFplus::MgtProv<bool> canBeInherited;
+
+        /*
          * Service Units configured to be instantiated on this node.
          */
         SAFplus::MgtIdentifierList<::SAFplusAmf::ServiceUnit*> serviceUnits;
@@ -151,6 +161,26 @@ namespace SAFplusAmf
          * XPATH: /SAFplusAmf/safplusAmf/Node/disableAssignmentOn
          */
         void setDisableAssignmentOn(std::string disableAssignmentOnValue, SAFplus::Transaction &t=SAFplus::NO_TXN);
+
+        /*
+         * XPATH: /SAFplusAmf/safplusAmf/Node/userDefinedType
+         */
+        std::string getUserDefinedType();
+
+        /*
+         * XPATH: /SAFplusAmf/safplusAmf/Node/userDefinedType
+         */
+        void setUserDefinedType(std::string userDefinedTypeValue, SAFplus::Transaction &t=SAFplus::NO_TXN);
+
+        /*
+         * XPATH: /SAFplusAmf/safplusAmf/Node/canBeInherited
+         */
+        bool getCanBeInherited();
+
+        /*
+         * XPATH: /SAFplusAmf/safplusAmf/Node/canBeInherited
+         */
+        void setCanBeInherited(bool canBeInheritedValue, SAFplus::Transaction &t=SAFplus::NO_TXN);
 
         /*
          * XPATH: /SAFplusAmf/safplusAmf/Node/serviceUnits

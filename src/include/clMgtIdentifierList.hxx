@@ -70,9 +70,56 @@ public:
     virtual ClRcT setObj(const std::string &value);
 
       // Private function to write data to database, use write
-    ClRcT setDb(std::string pxp = "", MgtDatabase *db = nullptr)
+  ClRcT setDb(std::string pxp = "", MgtDatabase *db = nullptr)
   {
-  
+    if (!loadDb)  // Not a configuration item
+      return CL_OK;
+
+    if(db == nullptr)
+      {
+        db = MgtDatabase::getInstance();
+      }
+
+    std::string basekey;
+    if (pxp.size() > 0)
+      {
+      basekey = pxp;
+      basekey.append("/");
+      basekey.append(tag);
+      }
+    else if (dataXPath.size() > 0)
+       basekey = dataXPath;
+    else basekey = getFullXpath(true);
+
+
+    // First, delete all existing records
+    int idx;
+    int rc = CL_OK;
+    for (idx=1; rc==CL_OK; idx++) // Keep deleting as long as there are records.  This assumes that the list records are not sparse!
+      {
+        std::string key = basekey;
+        key.append("[");
+        key.append(boost::lexical_cast<std::string>(idx));
+        key.append("]");
+        rc = db->deleteRecord(key);
+      }
+
+    // Now add the new records
+    idx = 1;
+    std::vector<std::string> children;
+    for (std::vector<std::string>::iterator i = refs.begin(); i != refs.end(); ++i, ++idx)
+      {
+        //typedef boost::array<char, 64> buf_t;
+        std::string key = basekey;
+        std::string childidx = "[";
+        childidx.append(boost::lexical_cast<std::string>(idx));
+        childidx.append("]");
+        key.append(childidx);
+        db->setRecord(key, *i, nullptr);
+        children.push_back(childidx);
+      } 
+    db->setRecord(basekey,"",&children);
+    return CL_OK;    
   }
 
     /**

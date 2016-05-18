@@ -28,6 +28,7 @@ namespace SAFplus
         FaultHistoryEntity getValue();
         void setValue(FaultEventData faultData, Handle faultHdl,Handle reporter,time_t time, SAFplus::Transaction &t);
         FaultHistoryEntity& operator=(const FaultHistoryEntity &FaultHistoryEntity);
+        bool operator==(const FaultHistoryEntity &e) const;
         friend std::ostream& operator<<(std::ostream &os, const SAFplus::FaultHistoryEntity &FaultHistoryEntity);
         friend std::istream& operator>>(std::istream &is, SAFplus::FaultHistoryEntity &FaultHistoryEntity);
         ~FaultHistoryEntity();

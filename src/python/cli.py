@@ -1,5 +1,6 @@
 #!/usr/bin/env python
 import sys, os, os.path, time
+import traceback,pdb
 import argparse
 
 AVAILABLE_SERVICES = {'localaccess':None, 'netconfaccess':None}
@@ -8,6 +9,7 @@ basedir = os.path.split(os.path.realpath(__file__))[0]
 sys.path.append(os.path.abspath(os.path.join(basedir, '..', 'lib')))
 sys.path.append(os.path.abspath(os.path.join(basedir, '..', 'lib', '3rdparty')))
 
+DropToDebugger = True
 access = None
 CliName = ''
 
@@ -50,6 +52,7 @@ import xml.etree.ElementTree as ET
 
 
 try:
+  dddd
   import xmlterm
   windowed=True
 except Exception, e:
@@ -172,6 +175,28 @@ def defaultHandler(elem,resolver,context):
       resolver.add(w)
   del context.path[-1]   
   resolver.depth -= 1
+
+def nowinhelpCmdHandler(elem,resolver,context):
+  """handle help output in text mode"""
+  if not elem.find("helpCmdName") is None:
+    cmd = elem.find("helpCmdName").text
+  else:
+    cmd = ""
+
+  if not elem.find("helpBrief") is None:
+    brief = elem.find("helpBrief").text
+  else:
+    brief = ""
+
+  if not elem.find("helpDetails") is None:
+    details = elem.find("helpDetails").text
+    if details == brief: details = ""
+  else: 
+    details = ""
+  w = ("  "*resolver.depth) + cmd + ": " + brief
+  resolver.add(w)  
+  w = ("  "*(resolver.depth+1)) + details
+  resolver.add(w)  
 
 
 def defaultTextHandler(elem,resolver,context):
@@ -351,6 +376,47 @@ def uniquePortion(seriesNames):
     if sfxLen==0: sfxLen = None
     return (pfxLen,sfxLen)
 
+def getDictCommandHelp(d, prefix="",single=None):
+  ret = []
+  for (name,val) in d.items():
+    if name is None: name = "" # convert to something printable
+    hlp = []
+    if type(val) is types.DictType:
+      tmp = prefix + name + " "
+      hlp = getDictCommandHelp(val, tmp,single=single)
+    else:
+      if val[0] and (type(val[0]) == types.FunctionType or type(val[0]) == types.MethodType or type(val[0]) == types.LambdaType ):
+        if not single or single == prefix + name:
+          hlp = ["<helpCmd><helpCmdName>" + prefix + name + "</helpCmdName>"] + getFunctionHelp(val[0]) + ["</helpCmd>"]
+    ret += hlp
+  print ret
+  return ret  
+
+def getFunctionHelp(fn):
+  # TODO gather info from the arguments
+  #argspec = inspect.getargspec(fn)
+
+  if fn.__doc__:
+    brief = ""
+    doc = ""
+    tmp = fn.__doc__
+    if tmp[0] == "?":  # YaDoG style documentation
+      tmp=tmp[1:]
+    if 1:
+      bpos = tmp.find("\n")  # Finds the first of \n or .
+      bpos = tmp.find(".",0,bpos) 
+      doc = "<helpDetails>" + tmp + "</helpDetails>"
+      if bpos != -1:
+        brief = "<helpBrief>" + tmp[0:bpos] + "</helpBrief>"
+      elif len(tmp)<120: 
+        brief = "<helpBrief>" + tmp + "</helpBrief>"
+      else:
+        pass
+ 
+    return [brief,doc]  # TODO interprete and xmlize the docstring
+  else:
+    return ["<helpBrief>No help available</helpBrief>"]
+
 
 class TermController(xmlterm.XmlResolver):
   """This class customizes the XML terminal"""
@@ -360,6 +426,7 @@ class TermController(xmlterm.XmlResolver):
     self.curdir = "/"
     self.cmds.append(self)  # I provide some default commands
     self.xmlterm = None
+    self.helpdoc = None
 
   def newContext(self):
     path = self.curdir.split("/")
@@ -388,6 +455,30 @@ class TermController(xmlterm.XmlResolver):
         print "complete", c
         return c[len(s):]
     return ""
+
+  def getHelp(self,command=None):
+    ret = []
+    if command:  # Filter specific commands
+      for c in command:
+        for cmdContext in self.cmds:
+          if hasattr(cmdContext,"commands"):  # If the object has a command lookup table, then print help on it
+            ret += getDictCommandHelp(cmdContext.commands,single=c)
+          fnname = "do_" + c
+          if hasattr(cmdContext,fnname):
+            ret += [ "<helpCmd><helpCmdName>" + fnname[3:] + "</helpCmdName>"] + getFunctionHelp(getattr(cmdContext,fnname)) + ["</helpCmd>"]        
+    else: # Get all commands
+      if self.helpdoc:
+        ret.append(self.helpdoc)
+
+      for cmdContext in self.cmds:
+        if hasattr(cmdContext,"helpdoc") and cmdContext.helpdoc:   # Put the command category's help doc up
+          ret.append(cmdContext.helpdoc)
+        if hasattr(cmdContext,"commands"):  # If the object has a command lookup table, then print help on it
+          ret += getDictCommandHelp(cmdContext.commands)
+        for fnname in dir(cmdContext):    # IF the object has do_ functions print help on them.
+          if fnname.startswith("do_"):
+            ret += [ "<helpCmd><helpCmdName>" + fnname[3:] + "</helpCmdName>"] + getFunctionHelp(getattr(cmdContext,fnname)) + ["</helpCmd>"]
+    return "\n".join(ret)
 
   def bar(self,xml,xt):
     """Implement the bar graph command, which draws a bar graph"""
@@ -453,7 +544,14 @@ By default the specified location and children are shown.  Use -N to specify how
     t = os.path.normpath(os.path.join(self.curdir,rest))
     gs = "{d=%s}%s" % (depth,str(t))
     #print "getting ", gs
-    xml = access.mgtGet(gs)
+    try:
+      xml = access.mgtGet(gs)
+    except RuntimeError, e:
+      if str(e) == "Route has no implementer":
+        return "<error>Invalid path [%s]</error>" % str(t)
+      return "<error>" + str(e) + "</error>"
+    except Exception, e:
+      return "<error>" + str(e) + "</error>"
     #print xml
     return "<top>" + xml + "</top>"  # I have to wrap in an xml tag in case I get 2 top levels from mgtGet
 
@@ -675,6 +773,52 @@ By default the specified location and children are shown.  Use -N to specify how
           t = xmlterm.escape(" ".join(sp))
           xt.doc.append('<process>%s</process>' % t)  
 
+class CaptureOutput:
+  def __init__(self,resolver):
+    self.aliases = resolver.aliases
+    self.resolver=resolver
+    self.doc = []
+
+  def run(self,s):
+    self.resolver.execute(s,self)
+    return "".join(self.doc)
+
+class RunScript:
+  def __init__(self,resolver):
+    self.context = None
+    self.env = {}
+    self.env["cli"] = lambda s,resolver=resolver: CaptureOutput(resolver).run(s)
+
+  def setContext(self,context):
+    """Sets the context (environment) object so commands can access it while they are executing"""
+    self.context = context
+    self.env["display"] = lambda s,contxt=self.context: contxt.doc.append(s)
+  
+  def do_run(self, filename, *args):
+    """Run a script.  This can be either a python script (.py extension) or a shell script"""
+    try:
+      f = open(filename,"r")
+    except IOError, e:
+      self.context.doc.append("<error>" + str(e) + "</error>")
+      return ""
+
+    ext = os.path.splitext(filename)
+    self.env["argv"] = args
+    if ext[1] == ".py":
+      try:
+        exec f in self.env
+      except Exception, e:
+              if DropToDebugger:
+                type, value, tb = sys.exc_info()
+                traceback.print_exc()
+                last_frame = lambda tb=tb: last_frame(tb.tb_next) if tb.tb_next else tb
+                frame = last_frame().tb_frame
+                pdb.post_mortem()
+              # TODO: print the command's help and try to hint at the problem
+              self.context.doc.append("<error>" + str(e) + "</error>")
+              return ""
+    return ""
+        
 
 
 def main(args):
@@ -687,6 +831,8 @@ def main(args):
   if args.local and AVAILABLE_SERVICES['localaccess'] is not None:
     access = localaccess
     CliName = "SAFplus Local CLI"
+
+  scriptEnv = {}
 
   cmds,handlers = access.Initialize()
 
@@ -712,6 +858,8 @@ def main(args):
 
     resolver.tags.update(handlers)
 
+    scriptEnv["cli"] = lambda s,resolver=resolver: resolver.execute(s,resolver)
+
     resolver.depth = 0
     resolver.defaultHandler = defaultHandler
     doc = []
@@ -728,11 +876,14 @@ def main(args):
     resolver.tags["top"] = topHandler
     resolver.tags["more"] = childrenOnlyHandler  # don't show this indicator that the node has children
     resolver.tags["text"] = dumpNoTagHandler 
+    resolver.tags["helpCmd"] = nowinhelpCmdHandler
     resolver.addCmds(cmds)
+    resolver.addCmds(RunScript(resolver))
+
     while 1:      
       cmd = resolver.cmdLine.input()
       resolver.execute(cmd,resolver)
-  safplus.Finalize()
+  access.Finalize()
 
 
 if __name__ == '__main__':

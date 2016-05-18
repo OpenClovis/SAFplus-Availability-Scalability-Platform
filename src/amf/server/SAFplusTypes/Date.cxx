@@ -45,6 +45,11 @@ namespace SAFplusTypes
         return *this;
     };
 
+    bool Date::operator==(const ::SAFplusTypes::Date &date) const
+    {
+        return (value == date.value);
+    };
+
     Date::~Date()
     {
     };

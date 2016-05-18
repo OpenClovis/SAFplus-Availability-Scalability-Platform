@@ -77,9 +77,14 @@ namespace SAFplus
        */
       MgtProv<T>& operator =(const T& val)
       {
-        value = val;
-        lastChange = beat++;
-        setDb();
+        if (!(val == value))
+          {
+          value = val;
+          lastChange = beat++;
+          MgtObject *r = root();
+          r->headRev = r->headRev + 1;
+          // will be periodically flushed: setDb();
+          }
         return *this;
       }
       /**
@@ -283,10 +288,13 @@ namespace SAFplus
     {
       if (&t == &SAFplus::NO_TXN)
         {
+          if (!(val == this->value))  // This awkward predicate formulation allows T to only implement ==
+          {
           value = val;
           lastChange = beat++;
           MgtObject *r = root();
           r->headRev = r->headRev + 1;
+          }
         }
       else
         {

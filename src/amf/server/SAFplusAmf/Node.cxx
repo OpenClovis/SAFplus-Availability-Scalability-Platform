@@ -29,7 +29,7 @@ namespace SAFplusAmf
     /* Apply MGT object factory */
     MGT_REGISTER_IMPL(Node, /SAFplusAmf/safplusAmf/Node)
 
-    Node::Node(): presenceState("presenceState",::SAFplusAmf::PresenceState::uninstantiated), adminState("adminState",::SAFplusAmf::AdministrativeState::on), operState("operState"), autoRepair("autoRepair"), failFastOnInstantiationFailure("failFastOnInstantiationFailure"), failFastOnCleanupFailure("failFastOnCleanupFailure"), disableAssignmentOn("disableAssignmentOn"), serviceUnits("serviceUnits"), capacityList("capacity")
+    Node::Node(): presenceState("presenceState",::SAFplusAmf::PresenceState::uninstantiated), adminState("adminState",::SAFplusAmf::AdministrativeState::on), operState("operState"), autoRepair("autoRepair"), failFastOnInstantiationFailure("failFastOnInstantiationFailure"), failFastOnCleanupFailure("failFastOnCleanupFailure"), disableAssignmentOn("disableAssignmentOn"), userDefinedType("userDefinedType"), canBeInherited("canBeInherited"), serviceUnits("serviceUnits"), capacityList("capacity")
     {
         this->addChildObject(&presenceState, "presenceState");
         presenceState.config = false;
@@ -40,6 +40,8 @@ namespace SAFplusAmf
         this->addChildObject(&failFastOnInstantiationFailure, "failFastOnInstantiationFailure");
         this->addChildObject(&failFastOnCleanupFailure, "failFastOnCleanupFailure");
         this->addChildObject(&disableAssignmentOn, "disableAssignmentOn");
+        this->addChildObject(&userDefinedType, "userDefinedType");
+        this->addChildObject(&canBeInherited, "canBeInherited");
         this->addChildObject(&serviceUnits, "serviceUnits");
         this->addChildObject(&stats, "stats");
         stats.config = false;
@@ -52,7 +54,7 @@ namespace SAFplusAmf
         adminState = ::SAFplusAmf::AdministrativeState::on;
     };
 
-    Node::Node(const std::string& nameValue): presenceState("presenceState",::SAFplusAmf::PresenceState::uninstantiated), adminState("adminState",::SAFplusAmf::AdministrativeState::on), operState("operState"), autoRepair("autoRepair"), failFastOnInstantiationFailure("failFastOnInstantiationFailure"), failFastOnCleanupFailure("failFastOnCleanupFailure"), disableAssignmentOn("disableAssignmentOn"), serviceUnits("serviceUnits"), capacityList("capacity")
+    Node::Node(const std::string& nameValue): presenceState("presenceState",::SAFplusAmf::PresenceState::uninstantiated), adminState("adminState",::SAFplusAmf::AdministrativeState::on), operState("operState"), autoRepair("autoRepair"), failFastOnInstantiationFailure("failFastOnInstantiationFailure"), failFastOnCleanupFailure("failFastOnCleanupFailure"), disableAssignmentOn("disableAssignmentOn"), userDefinedType("userDefinedType"), canBeInherited("canBeInherited"), serviceUnits("serviceUnits"), capacityList("capacity")
     {
         this->name.value =  nameValue;
         this->addChildObject(&presenceState, "presenceState");
@@ -64,6 +66,8 @@ namespace SAFplusAmf
         this->addChildObject(&failFastOnInstantiationFailure, "failFastOnInstantiationFailure");
         this->addChildObject(&failFastOnCleanupFailure, "failFastOnCleanupFailure");
         this->addChildObject(&disableAssignmentOn, "disableAssignmentOn");
+        this->addChildObject(&userDefinedType, "userDefinedType");
+        this->addChildObject(&canBeInherited, "canBeInherited");
         this->addChildObject(&serviceUnits, "serviceUnits");
         this->addChildObject(&stats, "stats");
         stats.config = false;
@@ -82,7 +86,7 @@ namespace SAFplusAmf
 
     std::vector<std::string>* Node::getChildNames()
     {
-        std::string childNames[] = { "name", "id", "stats", "presenceState", "adminState", "operState", "capacity", "serviceUnitFailureEscalationPolicy", "autoRepair", "failFastOnInstantiationFailure", "failFastOnCleanupFailure", "disableAssignmentOn", "serviceUnits" };
+        std::string childNames[] = { "name", "id", "stats", "presenceState", "adminState", "operState", "capacity", "serviceUnitFailureEscalationPolicy", "autoRepair", "failFastOnInstantiationFailure", "failFastOnCleanupFailure", "disableAssignmentOn", "userDefinedType", "canBeInherited", "serviceUnits" };
         return new std::vector<std::string> (childNames, childNames + sizeof(childNames) / sizeof(childNames[0]));
     };
 
@@ -229,6 +233,48 @@ namespace SAFplusAmf
         else
         {
             SAFplus::SimpleTxnOperation<std::string> *opt = new SAFplus::SimpleTxnOperation<std::string>(&(disableAssignmentOn.value),disableAssignmentOnValue);
+            t.addOperation(opt);
+        }
+    };
+
+    /*
+     * XPATH: /SAFplusAmf/safplusAmf/Node/userDefinedType
+     */
+    std::string Node::getUserDefinedType()
+    {
+        return this->userDefinedType.value;
+    };
+
+    /*
+     * XPATH: /SAFplusAmf/safplusAmf/Node/userDefinedType
+     */
+    void Node::setUserDefinedType(std::string userDefinedTypeValue, SAFplus::Transaction &t)
+    {
+        if(&t == &SAFplus::NO_TXN) this->userDefinedType.value = userDefinedTypeValue;
+        else
+        {
+            SAFplus::SimpleTxnOperation<std::string> *opt = new SAFplus::SimpleTxnOperation<std::string>(&(userDefinedType.value),userDefinedTypeValue);
+            t.addOperation(opt);
+        }
+    };
+
+    /*
+     * XPATH: /SAFplusAmf/safplusAmf/Node/canBeInherited
+     */
+    bool Node::getCanBeInherited()
+    {
+        return this->canBeInherited.value;
+    };
+
+    /*
+     * XPATH: /SAFplusAmf/safplusAmf/Node/canBeInherited
+     */
+    void Node::setCanBeInherited(bool canBeInheritedValue, SAFplus::Transaction &t)
+    {
+        if(&t == &SAFplus::NO_TXN) this->canBeInherited.value = canBeInheritedValue;
+        else
+        {
+            SAFplus::SimpleTxnOperation<bool> *opt = new SAFplus::SimpleTxnOperation<bool>(&(canBeInherited.value),canBeInheritedValue);
             t.addOperation(opt);
         }
     };

@@ -34,6 +34,15 @@ std::string strprintf(const std::string& fmt_str, ...);
   //? calculate 32 bit CRC
 uint32_t computeCrc32(uint8_t *buf, register int32_t nr);
 
+  //? Calculate a 32 bit hash
+void murmurHash3_32  ( const void * key, int len, uint32_t seed, void * out );
+  //? Calculate a 128 bit hash
+  //void MurmurHash3_x86_128 ( const void * key, int len, uint32_t seed, void * out );
+  //? Calculate a 128 bit hash
+void murmurHash3_128 ( const void * key, int len, uint32_t seed, void * out );
+
+
+
 // All statements that begin with "dbg" are NO OPERATION in production code.
 #ifdef CL_DEBUG
   //? cause a core dump if x is not true and the CL_DEBUG macro is defined..  This function (and all others that begin with "dbg") will NOT core dump in production code.  However, unlike the traditional assert(), the parameter will be executed regardless of the CL_DEBUG macro.

@@ -529,6 +529,13 @@ Specific problems (if given). (@ref ITU X.733)
       severity=c.severity;
       return *this;
       }
+      bool operator==(const FaultEventData & c) const
+      {
+        return ((alarmState == c.alarmState)&&
+                (category == c.category)&&
+                (cause == c.cause)&&
+                (severity == c.severity));
+      }
 
     };
 
