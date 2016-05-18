@@ -105,7 +105,7 @@ namespace SAFplus
       else basekey = getFullXpath(true);
 
       /* TODO: Should be base on 'ref' or 'value'??? ref is configuration but 'value' is real assignment */
-      db->setRecord(pxp, ref);
+      db->setRecord(basekey, ref);
 
       return ret;
     }
