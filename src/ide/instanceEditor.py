@@ -129,6 +129,7 @@ class EntityTool(Tool):
             self.panel.updateInstDetails()
             self.panel.UpdateVirtualSize()
             self.panel.layout()
+            self.panel.loadGrayCells()
             self.panel.Refresh()
           return True
         size = None
@@ -752,11 +753,20 @@ class GridEntityLayout:
           return cell
     return None
 
+  def getAnyCell(self, pos):
+    for row in self.grid:
+      for cell in row:
+        #if isinstance(cell.row, Margin) and isinstance(cell.col, Margin):
+        #  continue
+        if inBox(pos,cell.bound):
+          return cell
+    return None
+
   def createGrayCell(self, pos, panel):
     cell = self.getCell(pos)
     if not cell:
       print 'createGrayCell: cell is null at pos: %s' % str(pos)
-      return
+      return False
     if cell.bound in panel.grayCells:
       print 'createGrayCell: clear gray cell'
       del panel.grayCells[cell.bound]
@@ -1213,13 +1223,7 @@ class Panel(scrolled.ScrolledPanel):
     def OnToolEvent(self,event):
       handled = False
       if self.tool:
-        if isinstance(self.tool, EntityTool) and self.tool.entity.et.name=="Node":
-          if self.newNodeInstOption==NEW_NODE_INST:
-            handled = self.tool.OnEditEvent(self, event)
-          else:
-            print 'OnToolEvent: action is pending...'
-        else:
-          handled = self.tool.OnEditEvent(self, event)
+        handled = self.tool.OnEditEvent(self, event)
       event.Skip(not handled)  # if you pass false, event will not be processed anymore
 
     def OnToolClick(self,event):
@@ -1261,7 +1265,7 @@ class Panel(scrolled.ScrolledPanel):
       item = self.menuNodeInstCreate.FindItemById(event.GetId())
       self.newNodeInstOption = item.GetText()
       print 'OnMenuNodeInstCreate: item [%s] selected' % self.newNodeInstOption
-      
+      self.userSelectionNode = self.getNodeInst(self.newNodeInstOption)
 
     def OnPaint(self, event):
         #dc = wx.PaintDC(self)
@@ -1289,22 +1293,27 @@ class Panel(scrolled.ScrolledPanel):
 
     def loadGrayCells(self):
       print 'enter loadGrayCells'
+      self.grayCells = {}
       tagName = "disableAssignmentOn"
-      y = ROW_MARGIN+1
+      y = ROW_MARGIN+ROW_SPACING
+      cell=None
       for e1 in self.rows:
-        x = COL_MARGIN+1
+        x = COL_MARGIN+COL_SPACING
         for e2 in self.columns:
           thisNode = e2.data["name"]
+          pos = (x,y)
+          cell = self.grid.getAnyCell(pos)
+          assert(cell)
           values = self.model.instances.get(thisNode, None)
           if values:
             sgs = values.data.get(tagName, None)
             if sgs:
               sgs = sgs.split()
               if e1.data["name"] in sgs:
-                pos = (x,y)
                 self.createGrayCell(pos, entities=None, save=False)
-          x+=COL_SPACING+COL_WIDTH
-        y+=ROW_SPACING+ROW_WIDTH
+          x=COL_SPACING+cell.bound[2]        
+        y=ROW_SPACING+cell.bound[3]        
+      print 'leave loadGrayCells'
     
     def saveGrayCell(self, added, entities):
       thisSg = ""
@@ -1404,7 +1413,7 @@ class Panel(scrolled.ScrolledPanel):
             inst = self.model.recursiveDuplicateInst(ca.contained)
             if inst.et.name == "ServiceUnit":
               inst.childOf.add(dupNode)
-              dupNode.createContainmentArrowTo(inst)              
+              dupNode.createContainmentArrowTo(inst)
           self.model.dumpInstances()
           return True
       return False
