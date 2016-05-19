@@ -263,6 +263,11 @@ def gen_asp_run_env_file(run_file, d):
     print >> f, 'ASP_MULTINODE=%s' %d['simulation']
     print >> f, 'ASP_SIMULATION=%s' %d['simulation']
     print >> f, 'BUILD_TIPC=%s' %d['build_tipc']
+    if d["ASP_UDP_USE_EXISTING_IP"] is not None:
+      print >> f, 'ASP_UDP_USE_EXISTING_IP=%s' % d['ASP_UDP_USE_EXISTING_IP']
+    if d["ASP_UDP_LINK_NAME"] is not None:
+      print >> f, 'ASP_UDP_LINK_NAME=%s' % d['ASP_UDP_LINK_NAME']
+
     f.close()
     
 def set_up_asp_config():
@@ -435,7 +440,10 @@ def set_up_asp_config():
     d['save_dir_size_max_limit'] = int(asp_getenv('ASP_SAVE_DIR_SIZE_MAX_LIMIT',
                                                   default=(2 * 1024 * 1024)))
     d['restart_asp'] = asp_getenv('ASP_RESTART_ASP', default='1')
-    
+
+    d["ASP_UDP_LINK_NAME"] =   asp_getenv('ASP_UDP_LINK_NAME', default=None)  
+    d["ASP_UDP_USE_EXISTING_IP"] =   asp_getenv('ASP_UDP_USE_EXISTING_IP', default=None)  
+
     os.putenv('ASP_LOGDIR', d['log_dir'])
     os.putenv('ASP_RUNDIR', d['run_dir'])
     os.putenv('ASP_DBDIR', d['db_dir'])

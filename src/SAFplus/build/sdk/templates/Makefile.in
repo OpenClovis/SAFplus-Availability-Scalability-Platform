@@ -68,9 +68,9 @@ ifeq ($(ASP_BUILD),1)
 	endif
 else
 	ifdef ModelOnly
-		SUBDIRS		 = $(MODEL_PATH)/app $(pluginDir) servers $(CLOVIS_ROOT)/ASP/tools
+		SUBDIRS		 = $(MODEL_PATH)/app $(pluginDir) $(CLOVIS_ROOT)/ASP/tools
     else
-		SUBDIRS		 = $(MODEL_PATH)/config $(MODEL_PATH)/app $(pluginDir) servers $(CLOVIS_ROOT)/ASP/tools
+		SUBDIRS		 = $(MODEL_PATH)/config $(MODEL_PATH)/app $(pluginDir) $(CLOVIS_ROOT)/ASP/tools
 	endif
 endif
 

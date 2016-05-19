@@ -666,6 +666,54 @@ ClRcT xportInit(const ClCharT *xportType, ClInt32T xportId, ClBoolT nodeRep)
     gClUdpXportId = xportId;
     gClBindOffset = gIocLocalBladeAddress;
     gClUdpUseExistingIp = clParseEnvBoolean("ASP_UDP_USE_EXISTING_IP");
+
+    if (nodeRep)  // Make sure that the udp mode is consistent across the cluster
+    {
+        FILE* fp = fopen("udp.mode","w");
+        if (fp)
+        {
+            if (gClUdpUseExistingIp) fputs("CLOUD",fp);
+            else fputs("LAN",fp);            
+            fclose(fp);            
+        }        
+    }
+    else
+    {
+        char fname[256];
+        char* dir = getenv("ASP_RUNDIR");
+        if (!dir) dir = ".";
+        strncpy(fname,dir,255);
+        strncat(fname,"/",255);
+        strncat(fname,"udp.mode",255);
+        //snprinf(fname,255,"%s/udp.mode",dir)
+                 
+        FILE* fp = fopen(fname,"r");
+        if (fp)
+        {
+            char line[80];
+            char* l = fgets(line,80,fp);
+            if (l)
+            {
+                if ((gClUdpUseExistingIp)&&(strncmp("CLOUD",l,5) != 0))
+                {
+                    clLogCritical("XPORT", "INIT", "This process is configured to use UDP cloud mode, but the node is in LAN mode");
+                    fputs("This process is configured to use UDP cloud mode, but the node is in LAN mode\n", stderr);
+                    return CL_ERR_INVALID_STATE;
+                }
+                else if ((!gClUdpUseExistingIp)&&(strncmp("LAN",l,3) != 0))
+                {
+                    clLogCritical("XPORT", "INIT", "This process is configured to use UDP LAN mode, but the node is in cloud mode");
+                    fputs("This process is configured to use UDP LAN mode, but the node is in cloud mode\n", stderr);
+                    return CL_ERR_INVALID_STATE;                    
+                }            
+            }
+            fclose(fp);        
+        }
+    }
+    
+    
+    
+    
     gClSimulationMode = clParseEnvBoolean("ASP_MULTINODE");
     if(gClSimulationMode)
     {
