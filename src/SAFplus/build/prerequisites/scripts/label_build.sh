@@ -26,8 +26,8 @@ echo "TARGET_OS = ${CL_TARGET_OS}"
 echo "TARGET_PLATFORM = ${CL_TARGET_PLATFORM}"
 echo "CROSS_BUILD = ${CROSS_BUILD}"
 
-if [ $ASP_BUILD = 1 -a $MODEL_BUILD = 0 ]; then
-    LABEL_FILE="${MODEL_PATH}/target/${CL_TARGET_PLATFORM}/${CL_TARGET_OS}/build_label"
+if [ $ASP_BUILD==1 -a $MODEL_BUILD==0 ]; then
+    LABEL_FILE="${ASP_TARGET}/build_label"
 else
     LABEL_FILE="${PROJECT_ROOT}/${ASP_MODEL_NAME}/target/${CL_TARGET_PLATFORM}/${CL_TARGET_OS}/build_label"
 fi

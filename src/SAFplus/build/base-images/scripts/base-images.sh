@@ -216,7 +216,20 @@ populate_image() {
     (cd $imagedir/bin; ln -s ./safplus_binlogviewer asp_binlogviewer)
     (cd $imagedir/bin; ln -s ./safplus_info aspinfo)
     (cd $imagedir/etc/init.d; ln -s ./safplus asp)
- 
+
+    #Copy asp server binaries
+    if [ $ASP_BUILD == 0 ]; then
+   	   ASP_PREBUILD_BINDIR=$ASP_INSTALLDIR/target/$CL_TARGET_PLATFORM/$CL_TARGET_OS/bin 
+   	   if [ -d $ASP_PREBUILD_BINDIR ] ; then
+	         echo "Copying SAFplus server binaries from $ASP_PREBUILD_BINDIR"
+		 ${INSTALL} $exe_flags $ASP_PREBUILD_BINDIR/* $imagedir/bin           
+   	   else
+		 echo "WARNING: the prebuild directory $ASP_PREBUILD_BINDIR does not exist!"	
+   	   fi
+    else
+	         echo "Copying SAFplus server binaries from $ASP_BINDIR"
+		 ${INSTALL} $exe_flags $ASP_BINDIR/* $imagedir/bin
+    fi 
     echo cd $imagedir ln -s etc/init.d/safplus ${ASP_MODEL_NAME}
     (cd $imagedir; ln -s etc/init.d/safplus ${ASP_MODEL_NAME})
 

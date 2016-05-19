@@ -1000,7 +1000,7 @@ ClRcT xportRecv(ClIocCommPortHandleT commPort, ClIocDispatchOptionT *pRecvOption
     struct sockaddr peerAddress;
     struct iovec ioVector;
     struct pollfd pollfd;
-    ClTimeT tm;
+    ClTimeT endTime;
     ClUint32T timeout;
     ClInt32T bytes = 0;
     ClInt32T pollStatus;
@@ -1008,13 +1008,13 @@ ClRcT xportRecv(ClIocCommPortHandleT commPort, ClIocDispatchOptionT *pRecvOption
     if(!pCommPort || !pRecvOption || !message || !pRecvParam)
     {
         rc = CL_ERR_INVALID_PARAMETER;
-        goto out;
+        return rc;
     }
 
     if(! (pCommPortPrivate = (ClIocUdpPrivateT*)clTransportPrivateDataGet(gClUdpXportId, pCommPort->portId)) )
     {
         rc = CL_ERR_NOT_EXIST;
-        goto out;
+        return rc;
     }
 
     if(!pBuffer)
@@ -1035,79 +1035,83 @@ ClRcT xportRecv(ClIocCommPortHandleT commPort, ClIocDispatchOptionT *pRecvOption
     msgHdr.msg_iovlen = 1;
     timeout = pRecvOption->timeout;
 
-    retry:
-    for(;;)
+    if (timeout == CL_IOC_TIMEOUT_FOREVER) endTime = CL_IOC_TIMEOUT_FOREVER;
+    else endTime = clOsalStopWatchTimeGet()/1000 + timeout;
+
+    rc = CL_ERR_TIMEOUT;
+    do 
     {
-        pollfd.fd = pCommPortPrivate->fd;
-        pollfd.events = POLLIN|POLLRDNORM;
-        pollfd.revents = 0;
-        tm = clOsalStopWatchTimeGet();
-        pollStatus = poll(&pollfd, 1, timeout);
-        if(pollStatus > 0) 
+        bytes = -1;
+        
+        do  // Get a packet
         {
-            if((pollfd.revents & (POLLIN|POLLRDNORM)))
+            pollfd.fd = pCommPortPrivate->fd;
+            pollfd.events = POLLIN|POLLRDNORM;
+            pollfd.revents = 0;
+
+            pollStatus = poll(&pollfd, 1, timeout);
+
+            if(pollStatus > 0) 
             {
-                recv:
-                bytes = recvmsg(pCommPortPrivate->fd, &msgHdr, 0);
-                if(bytes < 0 )
+                if((pollfd.revents & (POLLIN|POLLRDNORM)))
                 {
-                    if(errno == EINTR)
-                        goto recv;
-                    perror("Receive : ");
-                    CL_DEBUG_PRINT(CL_DEBUG_ERROR,("recv error. errno = %d\n",errno));
-                    goto out;
+                    do
+                    {                    
+                        bytes = recvmsg(pCommPortPrivate->fd, &msgHdr, 0);
+                    } while (((bytes < 0 )&&(errno == EINTR))&&(endTime > clOsalStopWatchTimeGet()/1000));
+                
+                    if(bytes < 0 )
+                    {
+                        if (errno == EINTR) rc = CL_ERR_TIMEOUT;
+                        else
+                        {                            
+                        CL_DEBUG_PRINT(CL_DEBUG_ERROR,("recv error. errno = %d %s\n",errno,strerror(errno)));
+                        return CL_ERR_LIBRARY;
+                        }                        
+                        
+                    }
                 }
-            } 
-            else 
-            {
-                CL_DEBUG_PRINT(CL_DEBUG_ERROR,("poll error. errno = %d\n", errno));
-                goto out;
+                else
+                {
+                    CL_DEBUG_PRINT(CL_DEBUG_ERROR,("poll error. errno = %d\n", errno));
+                    return CL_ERR_LIBRARY;
+                }
             }
-        } 
-        else if(pollStatus < 0 ) 
+            else if (pollStatus < 0)
+            {
+                if (errno != EINTR)
+                {                    
+                CL_DEBUG_PRINT(CL_DEBUG_ERROR,("Error in poll. errno = %d\n",errno));
+                return CL_ERR_LIBRARY;               
+                }
+                
+            }
+            else // TIMEOUT (pollStatus == 0)
+            {
+                return CL_ERR_TIMEOUT;;  // the while loop should be false anyway but hurry it along...                
+            }
+        } while ((bytes < 0) && (endTime > clOsalStopWatchTimeGet()/1000));
+        
+        if (bytes >= 0) // got a message
         {
-            if(errno == EINTR)
-                continue;
-            CL_DEBUG_PRINT(CL_DEBUG_ERROR,("Error in poll. errno = %d\n",errno));
-            goto out;
-        } 
-        else 
-        {
-            rc = CL_ERR_TIMEOUT;
-            goto out;
+            ClRcT result = clIocDispatch(gClUdpXportType, commPort, pRecvOption, pBuffer, bytes, message, pRecvParam);
+            if (CL_GET_ERROR_CODE(result) == CL_ERR_TRY_AGAIN)  // reset the timeout count
+            {
+               if (endTime != CL_IOC_TIMEOUT_FOREVER) endTime = clOsalStopWatchTimeGet()/1000 + timeout; 
+            }
+            else if (CL_GET_ERROR_CODE(result) == IOC_MSG_QUEUED)
+            {
+                endTime += 10; // If a fragment comes in, cheat a little on the end time to get another fragment
+            }
+            else // exit the loop.  We either got an error or a full message
+            {                
+                return(result);
+            }
         }
-        break;
-    }
 
-    rc = clIocDispatch(gClUdpXportType, commPort, pRecvOption, pBuffer, bytes, message, pRecvParam);
-
-    if(CL_GET_ERROR_CODE(rc) == CL_ERR_TRY_AGAIN)
-        goto retry;
-
-    if(CL_GET_ERROR_CODE(rc) == IOC_MSG_QUEUED)
-    {
-        ClUint32T elapsedTm;
-        if(timeout == CL_IOC_TIMEOUT_FOREVER)
-            goto retry;
-        elapsedTm = (clOsalStopWatchTimeGet() - tm)/1000;
-        if(elapsedTm < timeout)
-        {
-            timeout -= elapsedTm;
-            goto retry;
-        }
-        else
-        {
-            rc = CL_ERR_TIMEOUT;
-            CL_DEBUG_PRINT(CL_DEBUG_CRITICAL,("Dropping a received fragmented-packet. "
-                                              "Could not receive the complete packet within "
-                                              "the specified timeout. Packet size is %d", bytes));
-
-        }
-    }
-
-    out:
+    } while (endTime > clOsalStopWatchTimeGet()/1000 );
+    
     return rc;
-
 }
 
 static ClRcT iocUdpSend(ClIocUdpMapT *map, void *args)
