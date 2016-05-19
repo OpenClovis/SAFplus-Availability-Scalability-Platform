@@ -189,12 +189,8 @@ void dumpStreams(SAFplusLog::SAFplusLogModule* cfg)
   }
  
 
-int logServerInitialize()
+void logServerInitialize(SAFplus::MgtDatabase *db)
 {
-  /* Initialize mgt database  */
-  MgtDatabase *db = MgtDatabase::getInstance();
-  db->initializeDB("SAFplusLog");
-
   // Load logging configuration
   cfg = loadLogCfg();
   cfg->bind(safplusMsgServer.handle,cfg);

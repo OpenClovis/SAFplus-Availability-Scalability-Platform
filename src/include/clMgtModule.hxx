@@ -34,10 +34,11 @@
 #include <map>
 #include <string>
 #include <clCommon.hxx>
-#include "clMgtObject.hxx"
-#include "clMgtNotify.hxx"
-#include "clMgtContainer.hxx"
-#include "clMgtRpc.hxx"
+#include <clMgtObject.hxx>
+#include <clMgtNotify.hxx>
+#include <clMgtContainer.hxx>
+#include <clMgtRpc.hxx>
+#include <clMgtDatabase.hxx>
 
 namespace SAFplus
 {
@@ -61,6 +62,9 @@ namespace SAFplus
      * Store the list of MGT addRpc
      */
     std::map<std::string, MgtRpc*> mMgtRpcs;
+
+    // Persistent storage for this module
+    MgtDatabase* mgtDb;
 
   public:
     // REMOVED: use "tag" member of parent: std::string name;
@@ -162,6 +166,11 @@ namespace SAFplus
      * \return	If the function fails, the return value is NULL
      */
     MgtRpc *getMgtRpc(const std::string& rpcName);
+
+    //? Assign the persistent database to be used for storing everything in this module
+    void setDatabase(MgtDatabase* db) { mgtDb = db; }
+
+    virtual MgtDatabase* getDb(void);
 
     // Debugging API only:
     void dbgDumpChildren();

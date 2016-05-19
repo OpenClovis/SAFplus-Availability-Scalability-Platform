@@ -62,10 +62,8 @@ public:
 
     virtual void toString(std::stringstream& xmlString, int depth=SAFplusI::MgtToStringRecursionDepth, SerializationOptions opts=SerializeNoOptions);
 
-    /**
-     * \brief   Virtual function to assign object data
-     */
-    virtual ClBoolT set(const void *pBuffer, ClUint64T buffLen, SAFplus::Transaction& t);
+    //? Virtual function to assign object data
+    virtual bool set(const void *pBuffer, ClUint64T buffLen, SAFplus::Transaction& t);
 
     virtual ClRcT setObj(const std::string &value);
 
@@ -77,7 +75,7 @@ public:
 
     if(db == nullptr)
       {
-        db = MgtDatabase::getInstance();
+        db = getDb();
       }
 
     std::string basekey;
@@ -199,10 +197,7 @@ public:
       }
       else
         key.assign(getFullXpath(true));
-      if(db == nullptr)
-      {
-        db = MgtDatabase::getInstance();
-      }
+      if(db == nullptr) db = getDb();
       if(!db->isInitialized())
       {
         return CL_ERR_NOT_INITIALIZED;
@@ -300,10 +295,9 @@ void MgtIdentifierList<T>::toString(std::stringstream& xmlString, int depth, Ser
   xmlString << "</" << tag << ">";
 }
 
-template<class T>
-ClBoolT MgtIdentifierList<T>::set(const void *pBuffer, ClUint64T buffLen, SAFplus::Transaction& t)
+template<class T> bool MgtIdentifierList<T>::set(const void *pBuffer, ClUint64T buffLen, SAFplus::Transaction& t)
 {
-    return CL_FALSE;
+    return false;
 }
 
 template<class T> ClRcT MgtIdentifierList<T>::setObj(const std::string &value)

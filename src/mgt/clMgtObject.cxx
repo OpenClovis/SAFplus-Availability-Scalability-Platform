@@ -368,6 +368,18 @@ namespace SAFplus
   }
 #endif
 
+  bool MgtObject::set(const void *pBuffer, ClUint64T buffLen, SAFplus::Transaction& t)
+    {
+      return true;
+    }
+
+  MgtDatabase* MgtObject::getDb(void)
+  {
+    if (parent) return parent->getDb();
+    return nullptr;
+  }
+  
+
   ClRcT MgtObject::setObj(const std::string &value)
   {
     return CL_ERR_BAD_OPERATION;

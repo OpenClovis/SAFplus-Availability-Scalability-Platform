@@ -105,7 +105,7 @@ namespace SAFplus
       /**
        * \brief   Virtual function to validate object data
        */
-      virtual ClBoolT set(const void *pBuffer, ClUint64T buffLen, SAFplus::Transaction& t);
+      virtual bool set(const void *pBuffer, ClUint64T buffLen, SAFplus::Transaction& t);
       virtual void xset(const void *pBuffer, ClUint64T buffLen, SAFplus::Transaction& t);
 
       virtual bool set(const T& value, SAFplus::Transaction& t = SAFplus::NO_TXN);
@@ -310,7 +310,7 @@ namespace SAFplus
     }
 
   template<class T>
-    ClBoolT MgtProv<T>::set(const void *pBuffer, ClUint64T buffLen, SAFplus::Transaction& t)
+    bool MgtProv<T>::set(const void *pBuffer, ClUint64T buffLen, SAFplus::Transaction& t)
     {
       xmlChar *valstr, *namestr;
       int ret, nodetyp, depth;
@@ -321,14 +321,14 @@ namespace SAFplus
       xmlTextReaderPtr reader = xmlReaderForMemory((const char*) pBuffer, buffLen, nullptr, nullptr, 0);
       if (!reader)
         {
-          return CL_FALSE;
+          return false;
         }
 
       ret = xmlTextReaderRead(reader);
       if (ret <= 0)
         {
           xmlFreeTextReader(reader);
-          return CL_FALSE;
+          return false;
         }
 
       namestr = (xmlChar *) xmlTextReaderConstName(reader);
@@ -339,14 +339,14 @@ namespace SAFplus
           logDebug("MGT","PROV","Name [%s], XML [%s]",tag.c_str(),(char *)namestr);
 #endif
           xmlFreeTextReader(reader);
-          return CL_FALSE;
+          return false;
         }
 
       ret = xmlTextReaderRead(reader);
       if (ret <= 0)
         {
           xmlFreeTextReader(reader);
-          return CL_FALSE;
+          return false;
         }
 
       depth = xmlTextReaderDepth(reader);
@@ -356,7 +356,7 @@ namespace SAFplus
       if ((nodetyp != XML_TEXT_NODE) || (depth != 1))
         {
           xmlFreeTextReader(reader);
-          return CL_FALSE;
+          return false;
         }
 
       ProvOperation<T> *opt = new ProvOperation<T>;
@@ -401,10 +401,8 @@ namespace SAFplus
 
       std::stringstream ss;
       ss << value;
-      if(db == nullptr)
-        {
-          db = MgtDatabase::getInstance();
-        }
+      if(!db) db=MgtObject::getDb();
+      assert(db);
 
       return db->setRecord(key, ss.str());
     }
@@ -412,6 +410,7 @@ namespace SAFplus
   template<class T>
     ClRcT MgtProv<T>::getDb(std::string pxp, MgtDatabase *db)
     {
+      assert(db);
       if (!loadDb)
         return CL_OK;
 
@@ -422,11 +421,6 @@ namespace SAFplus
           key.append(getFullXpath(false));
         }
       else key = getFullXpath();
-
-      if (db == nullptr)
-        {
-          db = MgtDatabase::getInstance();
-        }
 
       dataXPath.assign(key);
       loadDb = true;

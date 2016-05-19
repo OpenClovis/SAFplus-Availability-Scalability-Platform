@@ -307,11 +307,7 @@ Stream* createStreamCfg(const char* nam, const char* filename, const char* locat
 
 void loadStreamConfigs()
 {
-  MgtDatabase *db = MgtDatabase::getInstance();
-  if (!db->isInitialized())
-      return;
-
-  logcfg.read(db);
+  logcfg.read();
 }
 
 /* Initialization code would load the configuration from the database rather than setting it by hand.

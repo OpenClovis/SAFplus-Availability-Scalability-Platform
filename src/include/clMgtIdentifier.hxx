@@ -88,11 +88,8 @@ namespace SAFplus
       /* DB notation:
        *  [/safplusAmf/Component[@name="c1"]/serviceUnit] -> value : [su1]
        */
-      if(db == nullptr)
-        {
-          db = MgtDatabase::getInstance();
-        }
-
+      if(db == nullptr) db = getDb();
+      if(db == nullptr) return CL_ERR_NOT_INITIALIZED;
       std::string basekey;
       if (pxp.size() > 0)
         {
@@ -137,10 +134,7 @@ namespace SAFplus
           key = xpt;
         }
 
-      if (db == nullptr)
-        {
-          db = MgtDatabase::getInstance();
-        }
+      if (db == nullptr) db = getDb();
 
       dataXPath.assign(key);
       loadDb = true;

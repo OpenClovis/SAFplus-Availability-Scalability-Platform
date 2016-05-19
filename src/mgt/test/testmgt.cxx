@@ -549,14 +549,14 @@ void testMgtClassList()
 
 void testDatabase()
 {
-  MgtDatabase *db = MgtDatabase::getInstance();
-  ClRcT rc = db->initializeDB("test",99999,99999);
+  MgtDatabase db;
+  ClRcT rc = db.initialize("test","",99999,99999);
   if(CL_OK != rc)
   {
     logDebug("MGT","TEST","FAIL: Initialize db failed %x",rc);
     return;
   }
-  logDebug("MGT","TEST","%s: Database initialized? %s",db->isInitialized()?"PASS":"FAIL",db->isInitialized()?"YES":"NO");
+  logDebug("MGT","TEST","%s: Database initialized? %s",db.isInitialized()?"PASS":"FAIL",db.isInitialized()?"YES":"NO");
   MgtList<multipleKey> stringList("mylist");
   TestListMultikeyObject testObject1("testobj1");
   TestListMultikeyObject testObject2("testobj2");
@@ -573,11 +573,11 @@ void testDatabase()
   multipleKey objKey2(2,3,"444");
   stringList.addChildObject(&testObject1,objKey1);
   stringList.addChildObject(&testObject2,objKey2);
-  stringList.write(objKey1,db);
-  stringList.write(objKey2,db);
+  stringList.write(objKey1,&db);
+  stringList.write(objKey2,&db);
   stringList.removeChildObject(objKey1);
   stringList.addChildObject(&testObject3,objKey1);
-  stringList.read(objKey1,db);
+  stringList.read(objKey1,&db);
   logDebug("MGT","TEST","----Check data-----");
   ClBoolT isPass = CL_TRUE;
   if(testObject1.key1.value != testObject3.key1.value)
@@ -602,13 +602,13 @@ void testDatabase()
   }
   if(isPass)
     logDebug("MGT","TEST","PASS: Read/Write database successfully");
-  testObject3.key3.write(db);
-  testObject2.key3.read(db);
+  testObject3.key3.write(&db);
+  testObject2.key3.read(&db);
   if(testObject3.key3.value == testObject2.key3.value)
     logDebug("MGT","TEST","PASS: Read/Write database successfully for prov");
   else
     logDebug("MGT","TEST","FAIL: Read/Write database FAILED for prov");
-  db->finalizeDB();
+  db.finalize();
 }
 
 void testLoadMultikey()

@@ -229,23 +229,17 @@ extern MgtIteratorBase mgtIterEnd;
     virtual MgtObject::Iterator multiFind(const std::string &nameSpec);
     virtual MgtObject::Iterator multiMatch(const std::string &nameSpec);
  
-    /**
-     * \brief	Get child iterator beginning
-     */
+      //? Get child iterator beginning
     virtual MgtObject::Iterator begin(void);
 
-    /**
-     * \brief	Get child iterator end
-     */
+      //? Get child iterator end
     virtual MgtObject::Iterator end(void);
 
-    /**
-     * \brief   Virtual function to validate object data
-     */
-    virtual ClBoolT set(const void *pBuffer, ClUint64T buffLen, SAFplus::Transaction& t)
-    {
-      return CL_TRUE;
-    }
+      //? Virtual function to assign object data
+    virtual bool set(const void *pBuffer, ClUint64T buffLen, SAFplus::Transaction& t);
+
+      //? Virtual function to get the persistent database associated with this element.  The default implementation is to ask the parent for the database so you only need to override this if changing the database.
+    virtual MgtDatabase* getDb(void);
 
     enum SerializationOptions
       {

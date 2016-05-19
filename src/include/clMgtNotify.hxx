@@ -79,10 +79,12 @@ public:
      */
     void sendNotification(SAFplus::Handle hdl,std::string route);
 
-    virtual ClBoolT set(const void *pBuffer, uint64_t buffLen, SAFplus::Transaction& t)
+#if 0
+    virtual bool set(const void *pBuffer, uint64_t buffLen, SAFplus::Transaction& t)
     {
-      return CL_TRUE;
+      return true;
     }
+#endif
 
 };
 };

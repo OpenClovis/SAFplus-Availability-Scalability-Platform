@@ -91,7 +91,7 @@ class PyDBAL():
         self.suppliedData = None
         self.dbName = os.path.splitext(fileName)[0]
         self.docRoot = docRoot
-        pyDbal.initialize(self.dbName, maxKeySize, maxRecordSize)
+        pyDbal.initialize(self.dbName, "", maxKeySize, maxRecordSize)
 
     """ Load cfg xml and save to binary database """
     def LoadXML(self, xmlFile = None):

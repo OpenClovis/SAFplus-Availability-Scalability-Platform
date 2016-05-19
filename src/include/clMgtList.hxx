@@ -356,7 +356,7 @@ namespace SAFplus
       /**
        * API to set list data from netconf server (XML format)
        */
-      virtual ClBoolT set(const void *pBuffer, ClUint64T buffLen, SAFplus::Transaction& t)
+      virtual bool set(const void *pBuffer, ClUint64T buffLen, SAFplus::Transaction& t)
       {
         keyMap::iterator iter;
         KEYTYPE entryKey;
@@ -375,7 +375,7 @@ namespace SAFplus
 #ifndef SAFplus7
           logError("MGT", "LIST", "Reader return null");
 #endif
-          return CL_FALSE;
+          return false;
         }
 
         /* Parse XM: */
@@ -397,7 +397,7 @@ namespace SAFplus
 #ifndef SAFplus7
                      logError("MGT","LIST","The configuration [%s] isn't for this list [%s]",(const char *)namestr,this->tag.c_str());
 #endif
-                     return CL_FALSE;
+                     return false;
                    }
                 }
                 snprintf((char *) strTemp, CL_MAX_NAME_LENGTH, "<%s>", namestr);
@@ -426,7 +426,7 @@ namespace SAFplus
                     logError("MGT", "LIST", "Setting for child failed");
 #endif
                     xmlFreeTextReader(reader);
-                    return CL_FALSE;
+                    return false;
                   }
                 }
                 else
@@ -460,7 +460,7 @@ namespace SAFplus
            ret = xmlTextReaderRead(reader);
         } while(ret);
 
-        return CL_TRUE;
+        return true;
       }
 
       //? Returns complete (from the root) XML Path of this list 
@@ -971,7 +971,7 @@ namespace SAFplus
       /**
        * API to set list data from netconf server (XML format)
        */
-      virtual ClBoolT set(const void *pBuffer, ClUint64T buffLen, SAFplus::Transaction& t)
+      virtual bool set(const void *pBuffer, ClUint64T buffLen, SAFplus::Transaction& t)
       {
         int ret, nodetyp, depth;
 
@@ -991,7 +991,7 @@ namespace SAFplus
 #ifndef SAFplus7
           logError("MGT", "LIST", "Reader return null");
 #endif
-          return CL_FALSE;
+          return false;
         }
 
         /* Parse XM: */
@@ -1013,7 +1013,7 @@ namespace SAFplus
 #ifndef SAFplus7
                     logError("MGT","LIST","The configuration [%s] isn't for this list [%s]",(const char *)namestr,this->tag.c_str());
 #endif
-                    return CL_FALSE;
+                    return false;
                   }
                }
                snprintf((char *) strTemp, CL_MAX_NAME_LENGTH, "<%s>", namestr);
@@ -1037,7 +1037,7 @@ namespace SAFplus
 #ifndef SAFplus7
                  logError("MGT","LIST","The configuration had error, no key found");
 #endif
-                 return CL_FALSE;
+                 return false;
                }
                MgtObject *entry = children[keyValue];
                if(entry != nullptr)
@@ -1048,7 +1048,7 @@ namespace SAFplus
                    logError("MGT", "LIST", "Setting for child failed");
 #endif
                    xmlFreeTextReader(reader);
-                   return CL_FALSE;
+                   return false;
                  }
                }
                /* Reset old data for new list entry */
@@ -1077,7 +1077,7 @@ namespace SAFplus
         } while(ret);
 
         /* Parent object (container) will have responsibility for commit or abort the transition */
-        return CL_TRUE;
+        return true;
       }
       /**
        * Provide full X-Path of this list *
@@ -1323,20 +1323,21 @@ namespace SAFplus
           object->setChildObj(keyList, value);
           object->dataXPath = dataXPath;
 
-          if (1) // Update childs for list: i.e /safplusAmf/Node => "[@name='node0'], [@name='node1']"
+          MgtDatabase* db = getDb();
+          if (db) // Update childs for list: i.e /safplusAmf/Node => "[@name='node0'], [@name='node1']"
           {
             std::string pval;
             std::vector<std::string> childs;
-            ret = MgtDatabase::getInstance()->getRecord(xpath, pval, &childs);
+            ret = db->getRecord(xpath, pval, &childs);
             if (ret == CL_OK)
             {
               childs.push_back(keypart.str());
-              ret = MgtDatabase::getInstance()->setRecord(xpath, pval, &childs);
+              ret = db->setRecord(xpath, pval, &childs);
               logDebug("MGT","LIST", "Append child node [%s] into [%s]", keypart.str().c_str(), xpath.c_str());
             }
           }
 
-          if (this->parent != nullptr) // Update childs for parent: i.e /safplusAmf => "Node[@name='node0'],Node[@name='node1']"
+          if ((this->parent != nullptr)&&(db)) // Update childs for parent: i.e /safplusAmf => "Node[@name='node0'],Node[@name='node1']"
           {
             std::string parentDBKey = parent->getFullXpath();
             std::string childDBKey="";
@@ -1345,11 +1346,11 @@ namespace SAFplus
             // Update childs for parentDBKey
             std::string pval;
             std::vector<std::string> childs;
-            ret = MgtDatabase::getInstance()->getRecord(parentDBKey, pval, &childs);
+            ret = db->getRecord(parentDBKey, pval, &childs);
             if (ret == CL_OK)
             {
               childs.push_back(childDBKey);
-              ret = MgtDatabase::getInstance()->setRecord(parentDBKey, pval, &childs);
+              ret = db->setRecord(parentDBKey, pval, &childs);
               logDebug("MGT","LIST", "Append child node [%s] into [%s]", childDBKey.c_str(), parentDBKey.c_str());
             }
           }
@@ -1377,24 +1378,25 @@ namespace SAFplus
         std::stringstream keypart;
         keypart << "[@" << keyList << "=\"" << value <<"\"" << "]";
 
-        if (1) /* Update childs for list: i.e /safplusAmf/Node => "[@name='node0'], [@name='node1']" */
+        MgtDatabase* db = getDb();
+        if (db) /* Update childs for list: i.e /safplusAmf/Node => "[@name='node0'], [@name='node1']" */
         {
           std::string pval;
           std::vector<std::string> childs;
-          ret = MgtDatabase::getInstance()->getRecord(xpath, pval, &childs);
+          ret = db->getRecord(xpath, pval, &childs);
           if (ret == CL_OK)
           {
             std::vector<std::string>::iterator delIter = std::find(childs.begin(), childs.end(), keypart.str());
             if (delIter != childs.end())
             {
               childs.erase(delIter);
-              ret = MgtDatabase::getInstance()->setRecord(xpath, pval, &childs);
+              ret = db->setRecord(xpath, pval, &childs);
               logDebug("MGT","LIST", "Remove child node [%s] of [%s]", keypart.str().c_str(), xpath.c_str());
             }
           }
         }
 
-        if (this->parent != nullptr) /* Update childs for parent: i.e /safplusAmf => "Node[@name='node0'],Node[@name='node1']" */
+        if (db &&(this->parent != nullptr)) /* Update childs for parent: i.e /safplusAmf => "Node[@name='node0'],Node[@name='node1']" */
         {
           std::string parentDBKey = parent->getFullXpath();
           std::string childDBKey="";
@@ -1403,14 +1405,14 @@ namespace SAFplus
           /* Update childs for parentDBKey */
           std::string pval;
           std::vector<std::string> childs;
-          ret = MgtDatabase::getInstance()->getRecord(parentDBKey, pval, &childs);
+          ret = db->getRecord(parentDBKey, pval, &childs);
           if (ret == CL_OK)
           {
             std::vector<std::string>::iterator delIter = std::find(childs.begin(), childs.end(), childDBKey);
             if (delIter != childs.end())
             {
               childs.erase(delIter);
-              ret = MgtDatabase::getInstance()->setRecord(parentDBKey, pval, &childs);
+              ret = db->setRecord(parentDBKey, pval, &childs);
               logDebug("MGT","LIST", "Remove child node [%s] of [%s]", childDBKey.c_str(), parentDBKey.c_str());
             }
           }

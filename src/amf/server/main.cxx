@@ -79,7 +79,8 @@ SAFplusAmf::SAFplusAmfModule cfg;
 //MgtModule dataModule("SAFplusAmf");
 
 const char* LogArea = "MAN";
-MgtDatabase *db = NULL;
+MgtDatabase amfDb;
+MgtDatabase logDb;
 SAFplus::Fault fault;  // Fault client global variable
 
 
@@ -190,7 +191,8 @@ struct LogServer
   void operator()()
     {
 #ifdef SAFPLUS_AMF_LOG_NODE_REPRESENTATIVE
-    logServerInitialize();
+    logDb.initialize("safplusLog");
+    logServerInitialize(&logDb);
 
     while(!quitting)
       {
@@ -456,7 +458,7 @@ void becomeActive(void)
 {
   nodeMonitor.becomeActive();
 
-  cfg.read(db);
+  cfg.read(&amfDb);
   initializeOperationalValues(cfg);
 
   cfg.bind(myHandle,&cfg.safplusAmf);
@@ -751,18 +753,12 @@ int main(int argc, char* argv[])
   nameInitialize();  // Name must be initialized after the group server 
 
   // Mgt must be inited after name if you are using Checkpoint DB
-  db = MgtDatabase::getInstance();
+  amfDb.pluginFlags = Checkpoint::REPLICATED;
+  amfDb.initialize(dbName);
+  cfg.setDatabase(&amfDb);
   /* Initialize mgt database  */
-  DbalPlugin* plugin = db->getPlugin();
-  logInfo(LogArea,"DB", "Opening database file [%s] using plugin [%s]", "safplusAmf",plugin->type);
-
-  SAFplus::dbalPluginFlags = Checkpoint::REPLICATED;
-  logInfo(LogArea,"DB", "Opening database file [%s]", "safplusAmf");
-  db->initializeDB(dbName);
-#if 0 // moved to becomeActive
-  cfg.read(db);
-  initializeOperationalValues(cfg);
-#endif
+  DbalPlugin* plugin = amfDb.getPlugin();
+  logInfo(LogArea,"DB", "Opening database file [%s] using plugin [%s]", dbName.c_str(),plugin->type);
 
   // client side
   amfRpc_Stub amfInternalRpc(channel);
@@ -930,7 +926,7 @@ int main(int argc, char* argv[])
     if (lastBeat != nowBeat)
       {
       logInfo("PRC","MON","Beat advanced, writing changes");
-      cfg.writeChanged(lastBeat,nowBeat);
+      cfg.writeChanged(lastBeat,nowBeat,&amfDb);
       }
     lastBeat = nowBeat;
     beat++;

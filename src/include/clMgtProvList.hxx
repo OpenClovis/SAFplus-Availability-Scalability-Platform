@@ -78,7 +78,7 @@ public:
     /**
      * \brief   Virtual function to validate object data
      */
-    virtual ClBoolT set(const void *pBuffer, ClUint64T buffLen, SAFplus::Transaction& t);
+    virtual bool set(const void *pBuffer, ClUint64T buffLen, SAFplus::Transaction& t);
 
     /**
      * \brief   Virtual function to validate object data; throws transaction exception if fails
@@ -109,7 +109,7 @@ public:
     /**
      * \brief   Function to get data from database
      */
-    ClRcT getDb(std::string pxp = "",MgtDatabase *db=nullptr);
+    ClRcT getDb(std::string pxp,MgtDatabase *db);
     /**
      *
      */
@@ -129,7 +129,7 @@ public:
      */
     virtual ClRcT read(MgtDatabase *db=nullptr, std::string xpath = "")
     {
-      return getDb(xpath,db);
+      return this->getDb(xpath,db);
     }
     void pushBackValue(const std::string& strVal);
 };
@@ -246,9 +246,7 @@ template<class T> void MgtProvList<T>::xset(const void *pBuffer, ClUint64T buffL
   if (!set(pBuffer,buffLen,t)) throw SAFplus::TransactionException(t);
 }
 
-template<class T>
-ClBoolT MgtProvList<T>::set(const void *pBuffer, ClUint64T buffLen,
-        SAFplus::Transaction& t)
+template<class T> bool MgtProvList<T>::set(const void *pBuffer, ClUint64T buffLen, SAFplus::Transaction& t)
 {
     const xmlChar *valstr, *namestr;
     int ret;
@@ -287,7 +285,7 @@ ClBoolT MgtProvList<T>::set(const void *pBuffer, ClUint64T buffLen,
     }
 
     if (!mOpt)
-        return CL_FALSE;
+        return false;
 
     if (addOpt)
         t.addOperation(mOpt);
@@ -316,8 +314,7 @@ std::vector<std::string> *MgtProvList<T>::getChildNames()
 }
 #endif
 
-template <class T>
-ClRcT MgtProvList<T>::setDb(std::string pxp,MgtDatabase *db)
+template <class T> ClRcT MgtProvList<T>::setDb(std::string pxp,MgtDatabase *db)
 {
     ClRcT rc = CL_OK;
 
@@ -391,8 +388,7 @@ ClRcT MgtProvList<T>::setDb(std::string pxp,MgtDatabase *db)
     return rc;
 }
 
-template <class T>
-ClRcT MgtProvList<T>::getDb(std::string pxp,MgtDatabase *db)
+template <class T> ClRcT MgtProvList<T>::getDb(std::string pxp,MgtDatabase *db)
 {
     ClRcT rc = CL_OK;
 
@@ -408,14 +404,9 @@ ClRcT MgtProvList<T>::getDb(std::string pxp,MgtDatabase *db)
     else
       key.assign(getFullXpath(true));
 
-    if(db == nullptr)
-    {
-      db = MgtDatabase::getInstance();
-    }
-    if(!db->isInitialized())
-    {
-        return CL_ERR_NOT_INITIALIZED;
-    }
+    if(db == nullptr) db = this->MgtObject::getDb();
+    if(db == nullptr) return CL_ERR_NOT_INITIALIZED;
+    if(!db->isInitialized()) return CL_ERR_NOT_INITIALIZED;
 
     std::vector<std::string> iter;
     db->iterate(key, iter);

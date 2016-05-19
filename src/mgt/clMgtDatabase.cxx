@@ -26,7 +26,6 @@
 
 namespace SAFplus
 {
-  unsigned int dbalPluginFlags = 0;
 
   typedef struct 
   {
@@ -48,8 +47,8 @@ namespace SAFplus
   }
 
 
-  MgtDatabase *MgtDatabase::singletonInstance = 0;
-
+  //MgtDatabase *MgtDatabase::singletonInstance = 0;
+#if 0
   MgtDatabase * MgtDatabase::getInstance()
   {
     return (singletonInstance ? singletonInstance : (singletonInstance = new MgtDatabase()));
@@ -60,39 +59,51 @@ namespace SAFplus
     delete singletonInstance;
     singletonInstance = 0;
   }
+#endif
 
   MgtDatabase::~MgtDatabase()
   {
-    finalizeDB();
+    finalize();
   }
 
   MgtDatabase::MgtDatabase()
   {
     mInitialized = CL_FALSE;
-    //? <cfg name="SAFPLUS_MGT_DB">[OPTIONAL] Specifies the management database plugin</cfg>
-    char* db = getenv("SAFPLUS_MGT_DB");
-    mDbDataHdl = clDbalObjCreate(db);  // If NULL, we'll choose the default db
   }
 
-  ClRcT MgtDatabase::initializeDB(const std::string &dbName, ClUint32T maxKeySize, ClUint32T maxRecordSize)
+  ClRcT MgtDatabase::initialize(const std::string &dbName, const std::string &dbPlugin, ClUint32T maxKeySize, ClUint32T maxRecordSize)
   {
     ClRcT rc = CL_OK;
     //ClDBHandleT dbDataHdl = 0; /* Database handle*/
 
-    std::string dbNameData = "";
-    std::string dbNameIdx = "";
-
+#if 0  // always should be initialized in safplusInitialize function
     /*Initialize dbal if not initialized*/
-    //rc = clDbalLibInitialize();
+    rc = clDbalLibInitialize();
     if (CL_OK != rc)
       {
         logDebug("MGT", "DBAL", "Dbal lib initialized failed [%x]", rc);
         return rc;
       }
+#endif
+
+    std::string dbNameData = "";
+    std::string dbNameIdx = "";
+
+    //? <cfg name="SAFPLUS_MGT_DB">[OPTIONAL] Specifies the management database plugin</cfg>
+    if ((&dbPlugin==nullptr)||(dbPlugin == ""))
+      {
+        char* db = getenv("SAFPLUS_MGT_DB");
+        mDbDataHdl = clDbalObjCreate(db);  // If NULL, we'll choose the default db
+      }
+    else
+      {
+        mDbDataHdl = clDbalObjCreate(dbPlugin.c_str());
+      }
+    assert(mDbDataHdl);
 
     /* Open the data DB */
     dbNameData.append(dbName).append(".db");
-    unsigned int flags = (dbalPluginFlags << 8) | CL_DB_APPEND;
+    unsigned int flags = (pluginFlags << 8) | CL_DB_APPEND;
     rc = mDbDataHdl->open(dbNameData.c_str(), dbNameData.c_str(), flags, maxKeySize, maxRecordSize);
     if (CL_OK != rc)
       {
@@ -107,7 +118,7 @@ namespace SAFplus
     return rc;
   }
 
-  ClRcT MgtDatabase::finalizeDB()
+  ClRcT MgtDatabase::finalize()
   {
     if (!mInitialized)
       {

@@ -29,6 +29,7 @@ MgtMsgHandler msghandle;
 
 int main(int argc, char* argv[])
 {
+  MgtDatabase logDb;
   SafplusInitializationConfiguration sic;
   sic.iocPort     = SAFplusI::LOG_IOC_PORT;
   sic.msgQueueLen = 25;
@@ -41,7 +42,8 @@ int main(int argc, char* argv[])
 
   safplusMsgServer.registerHandler(SAFplusI::CL_MGT_MSG_TYPE,&msghandle,NULL);
 
-  logServerInitialize();
+  logDb.initialize("safplusLog");
+  logServerInitialize(&logDb);
 
   // Log processing Loop
   while(1)

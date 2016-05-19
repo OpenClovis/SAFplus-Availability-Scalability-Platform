@@ -39,6 +39,7 @@ namespace SAFplus
   {
     // name.assign(nam);
     tag.assign(nam);
+    mgtDb = nullptr;
   }
 
   MgtModule::~MgtModule()
@@ -159,6 +160,12 @@ namespace SAFplus
     printf("%s\n", dumpStrStream.str().c_str());
     logDebug("MGT", "DUMP", "%s", dumpStrStream.str().c_str());
   }
+
+MgtDatabase* MgtModule::getDb(void)
+{
+  return mgtDb;
+}
+
 
 #if 0
   void MgtModule::resolvePath(const char* path, std::vector<MgtObject*>* result)

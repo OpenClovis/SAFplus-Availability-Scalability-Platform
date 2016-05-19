@@ -7,7 +7,7 @@ all:
 
 #? Removes all SAFplus targets and intermediate files
 clean:
-	rm -rf $(TEST_DIR)/* $(LIB_DIR)/*.a  $(LIB_DIR)/*.so $(BIN_DIR)/safplus_* $(BIN_DIR)/spgroupd $(BIN_DIR)/splogd $(PLUGIN_DIR)/*.so $(MWOBJ_DIR)/*.o $(OBJ_DIR)/*.o
+	rm -rf $(TEST_DIR)/* $(LIB_DIR)/*.a  $(LIB_DIR)/*.so $(BIN_DIR)/safplus_* $(BIN_DIR)/spgroupd $(BIN_DIR)/splogd $(PLUGIN_DIR)/*.so $(MWOBJ_DIR)/* $(OBJ_DIR)/*
 #	rm -rf $(TEST_DIR) $(LIB_DIR) $(BIN_DIR)/* $(PLUGIN_DIR) $(MWOBJ_DIR) $(OBJ_DIR)
 
 #? Removes all SAFplus and third party targets and intermediate files

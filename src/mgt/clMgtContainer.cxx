@@ -407,7 +407,7 @@ namespace SAFplus
     return rc;
   }
 
-  ClBoolT MgtContainer::set(const void *pBuffer, ClUint64T buffLen, SAFplus::Transaction& t)
+  bool MgtContainer::set(const void *pBuffer, ClUint64T buffLen, SAFplus::Transaction& t)
   {
     logDebug("MGT", "SET", "Set data [%s] for container [%s]", (const char*) pBuffer, getFullXpath(true).c_str());
     SAFplus::MgtObjectMap::iterator iter;
@@ -421,7 +421,7 @@ namespace SAFplus
     if (!reader)
       {
         logError("MGT", "CONT", "Reader return null");
-        return CL_FALSE;
+        return false;
       }
 
     /* Parse XM: */
@@ -442,7 +442,7 @@ namespace SAFplus
                     && (strcmp((const char *) namestr, this->listTag.c_str()) != 0))
                   {
                     logError("MGT", "SET", "The configuration [%s] isn't for this container [%s]", (const char *)namestr, this->tag.c_str());
-                    return CL_FALSE;
+                    return false;
                   }
               }
             else
@@ -472,7 +472,7 @@ namespace SAFplus
                         else
                           {
                             // Set failed for a child, should abort the transaction
-                            return CL_FALSE;
+                            return false;
                           }
                       }
                   }

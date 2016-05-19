@@ -52,7 +52,6 @@ namespace Mgt
 namespace SAFplus
 {
 
-
 /**
  * MgtRoot class provides APIs to setup the MGT database
  */

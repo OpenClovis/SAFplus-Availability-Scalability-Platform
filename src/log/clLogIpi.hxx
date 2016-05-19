@@ -16,6 +16,7 @@
 #include <clThreadApi.hxx>
 #include <clHandleApi.hxx>
 #include <clLogApi.hxx>
+#include <clMgtDatabase.hxx>
 
 namespace SAFplusI
 {
@@ -127,7 +128,7 @@ do                                                              \
 } while(0)
 
 
-extern int logServerInitialize();
+extern void logServerInitialize(SAFplus::MgtDatabase* db);
 extern void logServerProcessing();
 
 #endif

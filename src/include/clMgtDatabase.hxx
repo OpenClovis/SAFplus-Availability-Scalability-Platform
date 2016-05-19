@@ -50,14 +50,13 @@ extern "C"
 namespace SAFplus
 {
   // Additional flags to be sent when opening the underlying database
-  extern unsigned int dbalPluginFlags;
+  // extern unsigned int dbalPluginFlags;
 
   class MgtDatabase
   {
   protected:
-    MgtDatabase();
 
-    static MgtDatabase *singletonInstance;
+    //static MgtDatabase *singletonInstance;
 
     ClBoolT mInitialized;
     DbalPlugin* mDbDataHdl;
@@ -67,25 +66,27 @@ namespace SAFplus
     ClRcT write2DB(const std::string &key, const std::string &value, std::vector<std::string> *child = nullptr, bool overwrite = false);
 
   public:
+    unsigned int pluginFlags;
+    MgtDatabase();
     virtual ~MgtDatabase();
 
     DbalPlugin* getPlugin() { return mDbDataHdl; }
     /**
      * \brief	Function to create/get the singleton object of the ClMgtDatabase class
      */
-    static MgtDatabase *getInstance();
+    //static MgtDatabase *getInstance();
 
-    static void DestroyInstance(); // Constructor for singleton
+    //static void DestroyInstance(); // Constructor for singleton
 
     /**
      * \brief	Function to initialize Database Abstraction Layer and open a mgt database
      */
-    ClRcT initializeDB(const std::string &dbName, ClUint32T maxKeySize = MGT_DB_MAX_NUMBER_RECORD, ClUint32T maxRecordSize = MGT_DB_MAX_SIZE_RECORD);
+    ClRcT initialize(const std::string &dbName, const std::string &dbPlugin=*((std::string*) nullptr), ClUint32T maxKeySize = MGT_DB_MAX_NUMBER_RECORD, ClUint32T maxRecordSize = MGT_DB_MAX_SIZE_RECORD);
 
     /**
      * \brief	Function to finalize DBAL and close mgt database
      */
-    ClRcT finalizeDB();
+    ClRcT finalize();
 
     /**
      * \brief	Function to check if the DB is initiated or not

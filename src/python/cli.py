@@ -2,8 +2,7 @@
 import sys, os, os.path, time
 import traceback,pdb
 import argparse
-
-AVAILABLE_SERVICES = {'localaccess':None, 'netconfaccess':None}
+import ConfigParser
 
 basedir = os.path.split(os.path.realpath(__file__))[0]
 sys.path.append(os.path.abspath(os.path.join(basedir, '..', 'lib')))
@@ -13,25 +12,33 @@ DropToDebugger = True
 access = None
 CliName = ''
 
-try:
-  import localaccess
-  access = localaccess
-  CliName = "SAFplus Local CLI"
-  AVAILABLE_SERVICES['localaccess'] = 1
-except ImportError, e:
-  print e
-  pass
+# We have to parse the args before main, because the args will determine what modules are imported
+parser = argparse.ArgumentParser()
+parser.add_argument("-l", "--local", action="store_true", help=('Force local access mode'))
+parser.add_argument("-nw", "--nw", action="store_true", help=('No window -- do not start a separate window'))
+args = parser.parse_args()
 
-try:
-  import netconfaccess
-  access = netconfaccess
-  CliName = "SAFplus CLI"
-  AVAILABLE_SERVICES['netconfaccess'] = 1
-except ImportError, e:
-  print e
-  pass
+access = None
+if args.local == False:
+  try:
+    import netconfaccess
+    access = netconfaccess
+    CliName = "SAFplus CLI"
+  except ImportError, e:
+    print e    
+    pass
 
-assert (AVAILABLE_SERVICES['localaccess'] == 1 or AVAILABLE_SERVICES['netconfaccess'] == 1)
+if access is None:
+  try:
+    import localaccess
+    access = localaccess
+    CliName = "SAFplus Local CLI"
+  except ImportError, e:
+    print e
+    pass
+
+
+# assert (AVAILABLE_SERVICES['localaccess'] == 1 or AVAILABLE_SERVICES['netconfaccess'] == 1)
 
 SuNameColor = (50,160,80)
 SuNameSize = 32
@@ -50,9 +57,8 @@ import pdb
 import xml.etree.ElementTree as ET
 
 
-
 try:
-  dddd
+  if args.nw == True: raise Exception("Text mode selected on command line")
   import xmlterm
   windowed=True
 except Exception, e:
@@ -775,7 +781,10 @@ By default the specified location and children are shown.  Use -N to specify how
 
 class CaptureOutput:
   def __init__(self,resolver):
-    self.aliases = resolver.aliases
+    try: 
+      self.aliases = resolver.aliases
+    except:
+      self.aliases = {}
     self.resolver=resolver
     self.doc = []
 
@@ -783,23 +792,53 @@ class CaptureOutput:
     self.resolver.execute(s,self)
     return "".join(self.doc)
 
+class Dotter:
+    pass
+
+class CliError(Exception):
+  pass
+
 class RunScript:
   def __init__(self,resolver):
+    self.resolver = resolver
     self.context = None
+    self.raiseException = Dotter()
     self.env = {}
-    self.env["cli"] = lambda s,resolver=resolver: CaptureOutput(resolver).run(s)
+    self.cli = Dotter()
+    self.cli.run = lambda s,resolver=resolver: CaptureOutput(resolver).run(s)
+    self.cli.get = lambda s,deflt = self.raiseException, me=self: me.cliGet(s,deflt)
+    self.cli.getInt = lambda s,me=self: int(me.cliGet(s))
+    self.cli.getFloat = lambda s,me=self: float(me.cliGet(s))
+    self.cli.add = lambda cmd, me=self: self.context.addCmds(cmd)
+    self.cli.Error = CliError
+    self.env["cli"] = self.cli
+    #self.env["cli"] = lambda s,resolver=resolver: CaptureOutput(resolver).run(s)
+    #self.env["cliGet"] = lambda s,me=self: me.cliGet(s)
+    #self.env["addCliCommands"] = lambda cmd, me=self: self.context.addCmds(cmd)
+
+  def cliGet(self,s, default):
+    t = CaptureOutput(self.resolver).run("ls %s" % s)
+    try:
+      t1 = ET.fromstring(t)[0]
+    except IndexError:
+      if default is self.raiseException:
+        raise CliError("Invalid element")
+      else:
+        return default
+    return t1.text
 
   def setContext(self,context):
     """Sets the context (environment) object so commands can access it while they are executing"""
     self.context = context
-    self.env["display"] = lambda s,contxt=self.context: contxt.doc.append(s)
+    #self.env["display"] = lambda s,context=self.context: context.xmlterm.doc.append(s)
+    self.cli.display = lambda s,context=self.context: context.xmlterm.doc.append(s)
   
   def do_run(self, filename, *args):
     """Run a script.  This can be either a python script (.py extension) or a shell script"""
     try:
       f = open(filename,"r")
     except IOError, e:
-      self.context.doc.append("<error>" + str(e) + "</error>")
+      self.context.xmlterm.doc.append("<error>" + str(e) + "</error>")
       return ""
 
     ext = os.path.splitext(filename)
@@ -808,38 +847,33 @@ class RunScript:
       try:
         exec f in self.env
       except Exception, e:
-              if DropToDebugger:
-                type, value, tb = sys.exc_info()
-                traceback.print_exc()
-                last_frame = lambda tb=tb: last_frame(tb.tb_next) if tb.tb_next else tb
-                frame = last_frame().tb_frame
-                pdb.post_mortem()
+        if DropToDebugger:
+          type, value, tb = sys.exc_info()
+          traceback.print_exc()
+          last_frame = lambda tb=tb: last_frame(tb.tb_next) if tb.tb_next else tb
+          frame = last_frame().tb_frame
+          pdb.post_mortem()
               # TODO: print the command's help and try to hint at the problem
-              self.context.doc.append("<error>" + str(e) + "</error>")
-              return ""
+        self.context.xmlterm.doc.append("<error>" + str(e) + "</error>")
+        return ""
     return ""
         
 
 
-def main(args):
+def main(argLst):
   global access, CliName
-
-  parser = argparse.ArgumentParser()
-  parser.add_argument("-l", "--local", action="store_true", help=('Overwrite local access mode'))
-  args = parser.parse_args()
-
-  if args.local and AVAILABLE_SERVICES['localaccess'] is not None:
-    access = localaccess
-    CliName = "SAFplus Local CLI"
-
-  scriptEnv = {}
+  global xmlterm, windowed
 
   cmds,handlers = access.Initialize()
+
+  config = ConfigParser.SafeConfigParser()
+  config.read(".safplus_cli.cfg")  
 
   if windowed:
     os.environ["TERM"] = "XT1" # Set the term in the environment so child programs know xmlterm is running
     resolver = TermController()
     resolver.addCmds(cmds)
+    resolver.addCmds(RunScript(resolver))
     resolver.tags["ServiceUnit"] = serviceUnitListHandler
     resolver.tags["top"] = topHandler
     resolver.tags["more"] = childrenOnlyHandler  # don't show this indicator that the node has children
@@ -858,12 +892,11 @@ def main(args):
 
     resolver.tags.update(handlers)
 
-    scriptEnv["cli"] = lambda s,resolver=resolver: resolver.execute(s,resolver)
-
     resolver.depth = 0
     resolver.defaultHandler = defaultHandler
+
     doc = []
-    app = xmlterm.App(lambda parent,doc=doc,termController=resolver: xmlterm.XmlTerm(parent,doc,termController=resolver),redirect=False,size=(600,900))
+    app = xmlterm.App(config, lambda parent,doc=doc,termController=resolver: xmlterm.XmlTerm(parent,doc,resolver,config),redirect=False,size=(600,900))
     app.MainLoop()
   else:
     resolver = TermController()
@@ -892,3 +925,6 @@ if __name__ == '__main__':
 
 def Test():
   main([])
+
+def TestNW():
+  main(["--nw"])

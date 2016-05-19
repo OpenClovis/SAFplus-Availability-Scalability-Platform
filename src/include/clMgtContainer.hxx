@@ -90,7 +90,7 @@ class MgtContainer:public MgtObject
     virtual std::string strValue() {return "";}
 
     // Settings objects
-    virtual ClBoolT set(const void *pBuffer, ClUint64T buffLen, SAFplus::Transaction& t);
+    virtual bool set(const void *pBuffer, ClUint64T buffLen, SAFplus::Transaction& t);
 
     virtual ClRcT write(MgtDatabase *db = nullptr, std::string parentXPath = "");
     virtual ClRcT writeChanged(uint64_t firstBeat, uint64_t beat, MgtDatabase *db = nullptr, std::string parentXPath = "");

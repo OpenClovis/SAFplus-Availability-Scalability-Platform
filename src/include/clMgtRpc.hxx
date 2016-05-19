@@ -83,10 +83,12 @@ namespace SAFplus
      */
     ClRcT registerRpc(SAFplus::Handle handle);
 
-    virtual ClBoolT set(const void *pBuffer, ClUint64T buffLen, SAFplus::Transaction& t)
+#if 0
+    virtual bool set(const void *pBuffer, ClUint64T buffLen, SAFplus::Transaction& t)
     {
       return CL_TRUE;
     }
+#endif
   };
 };
 

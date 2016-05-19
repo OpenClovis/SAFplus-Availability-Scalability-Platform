@@ -21,6 +21,8 @@ using namespace std;
 
 using namespace SAFplus;
 
+static MgtDatabase* db=NULL;
+
 static PyObject* Read(PyObject *self, PyObject *args)
 {
     ClRcT rc = CL_OK;
@@ -35,7 +37,7 @@ static PyObject* Read(PyObject *self, PyObject *args)
 
     Py_DECREF(args);
 
-    rc = MgtDatabase::getInstance()->getRecord(key, value);
+    rc = db->getRecord(key, value);
     if (rc != CL_OK)
     {
         PyErr_SetObject(PyExc_SystemError, PyInt_FromLong(CL_GET_ERROR_CODE(rc)));
@@ -90,7 +92,7 @@ static PyObject* Create(PyObject *self, PyObject *args)
         return NULL;
     }
 
-    rc = MgtDatabase::getInstance()->insertRecord(key, value, &child);
+    rc = db->insertRecord(key, value, &child);
     if (rc != CL_OK)
     {
         PyErr_SetObject(PyExc_SystemError, PyInt_FromLong(CL_GET_ERROR_CODE(rc)));
@@ -113,7 +115,7 @@ static PyObject* Write(PyObject *self, PyObject *args)
         return NULL;
     }
 
-    rc = MgtDatabase::getInstance()->setRecord(key, value, &child);
+    rc = db->setRecord(key, value, &child);
     if (rc != CL_OK)
     {
         PyErr_SetObject(PyExc_SystemError, PyInt_FromLong(CL_GET_ERROR_CODE(rc)));
@@ -139,7 +141,7 @@ static PyObject* Iterators(PyObject *self, PyObject *args)
      */
     PyObject* lstKeys = PyList_New(0);
     std::vector<std::string> xpathIterators;
-    MgtDatabase::getInstance()->iterate(xpath, xpathIterators);
+    db->iterate(xpath, xpathIterators);
 
     if (xpathIterators.size())
     {
@@ -158,18 +160,20 @@ static PyObject* initializeDbal(PyObject *self, PyObject *args)
     ClUint32T maxKeySize = 0;
     ClUint32T maxRecordSize = 0;
     ClDBNameT dbName;
+    const char* dbPlugin;
 
     /*
      * Initialize name index and data
      * dbName.idx
      * dbName.db
      */
-    if (!PyArg_ParseTuple(args, "sii", &dbName, &maxKeySize, &maxRecordSize))
+    if (!PyArg_ParseTuple(args, "ssii", &dbName, &dbPlugin, &maxKeySize, &maxRecordSize))
     {
         return NULL;
     }
-
-    rc = MgtDatabase::getInstance()->initializeDB(dbName, maxKeySize, maxRecordSize);
+    db = new MgtDatabase();
+    assert(db);
+    rc = db->initialize(dbName, dbPlugin, maxKeySize, maxRecordSize);
 
     if (rc != CL_OK)
     {
@@ -182,7 +186,8 @@ static PyObject* initializeDbal(PyObject *self, PyObject *args)
 
 static PyObject* finalizeDbal(PyObject *self, PyObject *args)
 {
-    MgtDatabase::getInstance()->finalizeDB();
+    db->finalize();
+    delete db;
     Py_RETURN_NONE;
 }
 
