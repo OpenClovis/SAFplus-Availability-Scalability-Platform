@@ -21,7 +21,7 @@ namespace SAFplusLog
 };
 
 /* Load module configuration from database & create tracking objects */
-extern SAFplusLog::SAFplusLogModule* loadLogCfg();
+extern SAFplusLog::SAFplusLogModule* loadLogCfg(SAFplus::MgtDatabase* db);
 typedef boost::unordered_map<SAFplus::Handle, SAFplusLog::Stream*> HandleStreamMap;
 
 void addStreamObjMapping(const char* streamName, SAFplusLog::Stream* s, SAFplus::Handle strmHdl=SAFplus::INVALID_HDL);

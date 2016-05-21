@@ -41,7 +41,7 @@ using namespace SAFplusLog;
 
 MgtModule dataModule("SAFplusLog");
 
-SAFplusLog::SAFplusLogModule* cfg;
+static SAFplusLog::SAFplusLogModule* logcfg;
 extern Stream* sysStreamCfg;
 extern Stream* appStreamCfg;
 
@@ -192,18 +192,19 @@ void dumpStreams(SAFplusLog::SAFplusLogModule* cfg)
 void logServerInitialize(SAFplus::MgtDatabase *db)
 {
   // Load logging configuration
-  cfg = loadLogCfg();
-  cfg->bind(safplusMsgServer.handle,cfg);
+  
+  logcfg = loadLogCfg(db);
+  logcfg->bind(safplusMsgServer.handle,logcfg);
 
   // Initialize
   logInitializeSharedMem();
 
     // Hard code the well known streams
-  appStreamCfg = dynamic_cast<Stream*> (cfg->safplusLog.streamConfig.streamList["app"]);
-  sysStreamCfg = dynamic_cast<Stream*> (cfg->safplusLog.streamConfig.streamList["sys"]);
+  appStreamCfg = dynamic_cast<Stream*> (logcfg->safplusLog.streamConfig.streamList["app"]);
+  sysStreamCfg = dynamic_cast<Stream*> (logcfg->safplusLog.streamConfig.streamList["sys"]);
 
-  logInitializeStreams(cfg);
-  dumpStreams(cfg);  
+  logInitializeStreams(logcfg);
+  dumpStreams(logcfg);  
 
   //SAFplus::logSeverity= LOG_SEV_MAX;  // DEBUG
 
@@ -237,7 +238,7 @@ void logServerProcessing()
               if (rec->offset == 0) continue;  // Bad record
               char* msg = ((char*) base)+rec->offset;
               //printf("log: %s\n", msg);
-              postRecord(rec, msg, cfg);
+              postRecord(rec, msg, logcfg);
               // Forward logs to log subscribers
               IF_CLUSTERWIDE_LOG(logRep.logReplicate(rec, msg));
               rec->offset = 0;
@@ -253,7 +254,7 @@ void logServerProcessing()
               if (rec->offset == 0) continue;  // Bad record
               char* msg = ((char*) base)+rec->offset;
               //printf("log: %s\n", msg);
-              postRecord(rec,msg,cfg);
+              postRecord(rec,msg,logcfg);
               // Forward logs to log subscribers
               IF_CLUSTERWIDE_LOG(logRep.logReplicate(rec, msg));
               rec->offset = 0;
@@ -262,11 +263,11 @@ void logServerProcessing()
           clLogHeader->numRecords = 0; // No records left in the buffer
           clLogHeader->msgOffset = sizeof(LogBufferHeader); // All log messages consumed, so reset the offset.
           clientMutex.unlock(); // OK let the log clients back in
-          finishLogProcessing(cfg);
+          finishLogProcessing(logcfg);
         }
 
       // Wait for more records
-      if (serverSem.timed_lock(cfg->safplusLog.serverConfig.processingInterval))
+      if (serverSem.timed_lock(logcfg->safplusLog.serverConfig.processingInterval))
         {  // kicked awake
           Dbg("timed_wait TRUE\n");
         }

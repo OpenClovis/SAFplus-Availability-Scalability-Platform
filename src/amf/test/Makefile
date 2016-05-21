@@ -15,14 +15,13 @@ SAFPLUS_LIBS := clAmf clRpc clName clCkpt clGroup clTimer clMsg clLog clUtils cl
 SAFPLUS_DEP_LIBS     := $(addsuffix .so,$(addprefix $(LIB_DIR)/lib,$(SAFPLUS_LIBS)))
 SAFPLUS_LINK_LIBS := -L$(LIB_DIR) $(addprefix -l,$(SAFPLUS_LIBS))
 
-all: $(TEST_DIR)/exampleSafApp $(TEST_DIR)/exampleNonSafApp $(TEST_DIR)/embTest111.py $(MODELS_TGT)
+all: $(TEST_DIR)/exampleSafApp $(TEST_DIR)/exampleNonSafApp $(TEST_DIR)/embTest111.py $(TEST_DIR)/embDynTest.py $(MODELS_TGT)
 
 $(TEST_DIR)/%.xml: %.xml
 	cp -f $< $@
 
-$(TEST_DIR)/embTest111.py: embTest111.py
+$(TEST_DIR)/%.py: %.py
 	cp -f $< $@
-
 
 $(TEST_DIR)/exampleSafApp:  $(OBJ_DIR)/exampleSafApp.o $(SAFPLUS_DEP_LIBS)
 	$(LINK_EXE) $@ $<  $(SAFPLUS_LINK_LIBS) -lboost_filesystem $(LINK_SO_LIBS) -lprotobuf -lprotoc $(LINK_SO_LIBS)

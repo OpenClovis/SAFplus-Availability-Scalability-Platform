@@ -88,8 +88,8 @@ namespace SAFplus
     virtual ~MgtIteratorBase() 
       {
       }
-    virtual bool next();
-    virtual void del();
+    virtual bool next(); //? called to get the next element, return false if at the end -- set the current member appropriately
+    virtual void del();  //? called to delete this object
     };
 
 extern MgtIteratorBase mgtIterEnd;
@@ -104,7 +104,9 @@ extern MgtIteratorBase mgtIterEnd;
     std::string listTag;
     std::string dataXPath;
     bool allocated;
-    bool loadDb;
+    bool loadDb;  // True if this object is loaded/saved from the database.
+    bool settable; // True if the management interface can set this item.
+    bool replicated; // True if this item should be replicated
     bool config;  // True if this object is configuration (available in the database).  False if it is statistics or status
     MgtObject *parent;
     ClUint32T headRev; // Revision to check before sending
@@ -124,6 +126,7 @@ extern MgtIteratorBase mgtIterEnd;
     public:
 
       bool operator !=(const Iterator& e) const;
+      bool operator ==(const Iterator& e) const;
 
       inline bool operator++(int)
         {
@@ -138,7 +141,7 @@ extern MgtIteratorBase mgtIterEnd;
 
       ~Iterator()
         {
-        if (b) 
+          if ((b)&&(b != &mgtIterEnd))
           { 
           b->refs--; 
           if (b->refs==0) b->del();
@@ -353,6 +356,7 @@ extern MgtIteratorBase mgtIterEnd;
     deXMLize(ss.str(),context,result);
 
   }
+
   };
 
 #endif /* CLMGTOBJECT_H_ */

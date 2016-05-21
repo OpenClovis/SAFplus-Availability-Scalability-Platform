@@ -10,6 +10,24 @@ module SAFplusTypes
     description "Initial type definitions";
   }
 
+    extension settable  
+    {
+      argument "value";
+      description "Selects whether this option can be changed by the management interface.  This overrides the implicit value which is 'true' for config object and 'false' otherwise.";
+    }
+
+    extension persistent 
+    {
+      argument "value";
+      description "Selects whether this option is stored to the database.  This overrides the implicit value which is 'true' for config objects and 'false' otherwise.";
+    }
+
+    extension replicated 
+    {
+      argument "value";
+      description "Selects whether this option is replicated to the standby.  This overrides the implicit value which is 'true' for config objects and 'false' otherwise.";
+    }
+
 
     extension c-decl
     {

@@ -89,7 +89,7 @@ namespace SAFplus
     std::string dbNameData = "";
     std::string dbNameIdx = "";
 
-    //? <cfg name="SAFPLUS_MGT_DB">[OPTIONAL] Specifies the management database plugin</cfg>
+    //? <cfg name="SAFPLUS_MGT_DB_PLUGIN">[OPTIONAL] Specifies the management database plugin</cfg>
     if ((&dbPlugin==nullptr)||(dbPlugin == ""))
       {
         char* db = getenv("SAFPLUS_MGT_DB");
@@ -158,7 +158,7 @@ namespace SAFplus
       // Marshall data
       dbValue.SerializeToString(&strVal);
 
-      logInfo("MGT", "DBR", "Write DB record [0x%" PRIx64 "%" PRIx64 "]: [%s] -> [%s]", hashKey.num[0],hashKey.num[1], key.c_str(), value.c_str());
+      logInfo("MGT", "DBR", "Write DB record [0x%" PRIx64 "%" PRIx64 "]: [%s] -> [%s] children [%d]", hashKey.num[0],hashKey.num[1], key.c_str(), value.c_str(),dbValue.child_size());
 
       if (overwrite)
         {

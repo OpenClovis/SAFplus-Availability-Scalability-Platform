@@ -138,6 +138,7 @@ module SAFplusAmf
 	  description "This entity is in the process of stopping its active or standby activity.  This is a transitional state; when completed it will automatically change to idle.";
 	}
       }
+    default "idle";
     }
 
 
@@ -333,6 +334,8 @@ module SAFplusAmf
 	type boolean;
 	description "True is enabled, False is disabled.  To move from False to True a 'repair' action must occur.";
         config false;
+        default true;
+        SAFplusTypes:settable true;
       }
 
       list capacity
@@ -458,6 +461,7 @@ module SAFplusAmf
 	type uint32;
 	description "What is the optimal number of active Service Units for this Service Group?";
         SAFplusTypes:ui-commonRange "1..20";
+        default 1;
       }
       leaf preferredNumStandbyServiceUnits
       {
@@ -466,6 +470,7 @@ module SAFplusAmf
 	type uint32;
 	description "What is the optimal number of standby Service Units for this Service Group?";
         SAFplusTypes:ui-commonRange "0..20";
+        default 1;
       }
       leaf preferredNumIdleServiceUnits
       {
@@ -473,6 +478,7 @@ module SAFplusAmf
 	type uint32;
 	description "An idle service unit is running but is not assigned active or standby.  This concept is functionally equivalent to the saAmfSGNumPrefInserviceSUs since Active+Standby+Idle = Inservice";
         SAFplusTypes:ui-commonRange "0..20";
+        default 0;
       }
 
       // saAmfSGNumPrefAssignedSUs = preferredNumActiveServiceUnits + preferredNumStandbyServiceUnits so the field is unnecessary
@@ -676,6 +682,8 @@ module SAFplusAmf
 	type boolean;
 	description "True is enabled, False is disabled.  To move from False to True a 'repair' action must occur.";
         config false;
+        SAFplusTypes:settable true;
+        default true;
       }
 
       leaf readinessState
@@ -921,6 +929,7 @@ are switched over to other nodes (component service instances are not abruptly r
       default 0;
       type int32;
       config false;
+      SAFplusTypes:replicated true;
       }
 
     leaf lastError
@@ -963,10 +972,10 @@ are switched over to other nodes (component service instances are not abruptly r
 
     leaf pendingOperationExpiration
       {
-	description "When the system will give up on the pending operation, in milliseconds";
+	description "When the system will give up on the pending operation, in milliseconds since the epoch";
 	type SAFplusTypes:date;
 	config false;
-        default 30000;
+        default 0;
       }
 
 
@@ -1242,6 +1251,8 @@ are switched over to other nodes (component service instances are not abruptly r
 	type boolean;
 	description "True is enabled, False is disabled.  To move from False to True a 'repair' action must occur.";
         config false;
+        SAFplusTypes:settable true;
+        default true;
       }
 
      leaf-list assignedServiceInstances

@@ -360,10 +360,10 @@ void saNameGet(char* str,const SaNameT* name, uint_t maxLen)
     }
 
 
-  bool clParseEnvBoolean(const char* envvar)
+    bool clParseEnvBoolean(const char* envvar,bool defaultValue)
     {
     char* val = NULL;
-    bool rc = CL_FALSE;
+    bool rc = false;
 
     val = getenv(envvar);
     if (val != NULL)
@@ -371,7 +371,7 @@ void saNameGet(char* str,const SaNameT* name, uint_t maxLen)
       /* If the env var is defined as "". */
       if (strlen(val) == 0)
         {
-        rc = CL_TRUE;
+        rc = true;
         }
       else if (!strncmp(val, "1", 1) ||
         !strncasecmp(val, "yes", 3) || 
@@ -379,7 +379,7 @@ void saNameGet(char* str,const SaNameT* name, uint_t maxLen)
         !strncasecmp(val, "true", 4) ||
         !strncasecmp(val, "t", 1) )
         {
-        rc = CL_TRUE;
+        rc = true;
         }
       else if (!strncmp(val, "0", 1) ||
         !strncasecmp(val, "no", 2) || 
@@ -387,17 +387,17 @@ void saNameGet(char* str,const SaNameT* name, uint_t maxLen)
         !strncasecmp(val, "false", 5) ||
         !strncasecmp(val, "f", 1) )
         {
-        rc = CL_FALSE;
+        rc = false;
         }
       else 
         {
-        logWarning("UTL", "ENV", "Environment variable [%s] value is not understood.  Please use 'YES' or 'NO'. Assuming 'NO'", envvar);
-        rc = CL_FALSE;
+        logWarning("UTL", "ENV", "Environment variable [%s] value is not understood.  Please use 'YES' or 'NO'. Assuming the default", envvar);
+        rc = defaultValue;
         }
       }
     else
       {
-      rc = CL_FALSE;
+      rc = defaultValue;
       }
 
     return rc;

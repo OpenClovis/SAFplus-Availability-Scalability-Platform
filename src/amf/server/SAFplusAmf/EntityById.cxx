@@ -27,8 +27,14 @@ namespace SAFplusAmf
         this->config = false;
         this->addChildObject(&id, "id");
         id.config = false;
+        id.settable = false;
+        id.loadDb = false;
+        id.replicated = false;
         this->addChildObject(&entity, "entity");
         entity.config = false;
+        entity.settable = false;
+        entity.loadDb = false;
+        entity.replicated = false;
     };
 
     EntityById::EntityById(::uint16_t idValue): SAFplus::MgtContainer("EntityById"), id("id"), entity("entity")
@@ -37,8 +43,14 @@ namespace SAFplusAmf
         this->config = false;
         this->addChildObject(&id, "id");
         id.config = false;
+        id.settable = false;
+        id.loadDb = false;
+        id.replicated = false;
         this->addChildObject(&entity, "entity");
         entity.config = false;
+        entity.settable = false;
+        entity.loadDb = false;
+        entity.replicated = false;
     };
 
     EntityById::EntityById(const std::string& nameParam): SAFplus::MgtContainer("EntityById"), id("id"), entity("entity")
@@ -47,8 +59,14 @@ namespace SAFplusAmf
         this->config = false;
         this->addChildObject(&id, "id");
         id.config = false;
+        id.settable = false;
+        id.loadDb = false;
+        id.replicated = false;
         this->addChildObject(&entity, "entity");
         entity.config = false;
+        entity.settable = false;
+        entity.loadDb = false;
+        entity.replicated = false;
     };
 
     std::vector<std::string> EntityById::getKeys()

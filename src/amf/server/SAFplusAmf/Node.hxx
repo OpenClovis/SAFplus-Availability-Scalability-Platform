@@ -183,16 +183,6 @@ namespace SAFplusAmf
         void setCanBeInherited(bool canBeInheritedValue, SAFplus::Transaction &t=SAFplus::NO_TXN);
 
         /*
-         * XPATH: /SAFplusAmf/safplusAmf/Node/serviceUnits
-         */
-        std::vector<::SAFplusAmf::ServiceUnit*> getServiceUnits();
-
-        /*
-         * XPATH: /SAFplusAmf/safplusAmf/Node/serviceUnits
-         */
-        void setServiceUnits(::SAFplusAmf::ServiceUnit* serviceUnitsValue);
-
-        /*
          * XPATH: /SAFplusAmf/safplusAmf/Node/stats
          */
         SAFplusAmf::Stats* getStats();

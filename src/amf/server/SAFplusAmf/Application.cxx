@@ -32,6 +32,9 @@ namespace SAFplusAmf
         this->addChildObject(&keepTogether, "keepTogether");
         this->addChildObject(&numServiceGroups, "numServiceGroups");
         numServiceGroups.config = false;
+        numServiceGroups.settable = false;
+        numServiceGroups.loadDb = false;
+        numServiceGroups.replicated = false;
         this->tag.assign("Application");
         adminState = ::SAFplusAmf::AdministrativeState::on;
     };
@@ -44,6 +47,9 @@ namespace SAFplusAmf
         this->addChildObject(&keepTogether, "keepTogether");
         this->addChildObject(&numServiceGroups, "numServiceGroups");
         numServiceGroups.config = false;
+        numServiceGroups.settable = false;
+        numServiceGroups.loadDb = false;
+        numServiceGroups.replicated = false;
         this->tag.assign("Application");
     };
 
@@ -78,22 +84,6 @@ namespace SAFplusAmf
             SAFplus::SimpleTxnOperation<::SAFplusAmf::AdministrativeState> *opt = new SAFplus::SimpleTxnOperation<::SAFplusAmf::AdministrativeState>(&(adminState.value),adminStateValue);
             t.addOperation(opt);
         }
-    };
-
-    /*
-     * XPATH: /SAFplusAmf/safplusAmf/Application/serviceGroups
-     */
-    std::vector<::SAFplusAmf::ServiceGroup*> Application::getServiceGroups()
-    {
-        return this->serviceGroups.value;
-    };
-
-    /*
-     * XPATH: /SAFplusAmf/safplusAmf/Application/serviceGroups
-     */
-    void Application::setServiceGroups(::SAFplusAmf::ServiceGroup* serviceGroupsValue)
-    {
-        this->serviceGroups.value.push_back(serviceGroupsValue);
     };
 
     /*

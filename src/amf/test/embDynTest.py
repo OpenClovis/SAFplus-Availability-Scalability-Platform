@@ -1,10 +1,12 @@
+import pdb
 import os, sys, time,types, signal, random, datetime
 import subprocess
+
+# import safplusMgtDb
 
 if __name__ != '__main__':  # called from inside the source tree
   sys.path.append("../../python")  # Point to the python code, in source control
 
-import safplusMgtDb
 import safplus as sp
 import clTest
 import amfctrl
@@ -30,37 +32,6 @@ def procStatus(pid):
             return line.split(":",1)[1].strip().split(' ')[0]
     return None
 
-def startupAmf(tgtDir,outfile=None,infile="/dev/null"):
-    if type(outfile) is types.StringType:
-      outfile = open(outfile,"w+")
-    if type(infile) is types.StringType:
-      infile = open(infile,"r")
-    # delete the old database
-    try:
-      os.remove(tgtDir + "/bin/safplusAmf.db")
-    except OSError, e: pass # ok file does not exist
-
-    cwd = os.path.abspath(tgtDir + "/bin")
-
-    # now write the new data
-    db = safplusMgtDb.PyDBAL(cwd + "/safplusAmf") # Root of Log service start from /log ->  docRoot= "version.log_BootConfig.log"
-    db.LoadXML(modelXML)
-    db.Finalize()
-
-    # now start safplus_amf
-    bufferingSize = 64  # 4096
-    cwd = os.path.abspath(tgtDir + "/bin")
-    args = (cwd + "/safplus_amf",)
-    print "Environment is: ", os.environ
-    amf = subprocess.Popen(args,bufferingSize,executable=None, stdin=infile, stdout=outfile, stderr=outfile, preexec_fn=None, close_fds=True, shell=False, cwd=cwd, env=None, universal_newlines=False, startupinfo=None, creationflags=0)
-    print "SAFplus AMF is running pid [%d]" % amf.pid
-    time.sleep(5)
-    if amf.poll() != None:  # If some kind of config error then AMF will quit early
-      time.sleep(20)
-      pdb.set_trace()
-      raise TestFailed("AMF quit unexpectedly")
-      
-    time.sleep(10)  # TODO: without a sleep here, process is hanging waiting for mgt checkpoint gate.  I think that this process is being chosen as active replica (which should be ok) but for some reason is not working
 
 def connectToAmf():
   global SAFplusInitialized
@@ -116,24 +87,63 @@ def mgtHammer():
 class ZombieException(Exception):
   pass
 
+def AmfCreateApp(prefix, compList, nodes):
+  sg = "%sSg" % prefix
+  entities = { 
+    # "Component/dynComp0" : { "maxActiveAssignments":4, "maxStandbyAssignments":2, "serviceUnit": "dynSu0", "instantiate": { "command" : "../test/exampleSafApp dynComp", "timeout":60*1000 }},   
+    "ServiceGroup/%s" % sg : { "adminState":"off", "preferredNumActiveServiceUnits":1,"preferredNumStandbyServiceUnits":0 },
+    "ServiceInstance/%sSi" % prefix : { "serviceGroup": sg }
+  }
+
+  count = 0
+  sus = []
+  for n in nodes:
+    suname = "%sSu%d" % (prefix,count)
+    comps = []
+    for c in compList:
+      name = os.path.basename(c.split(" ")[0])
+      cname = "%s_in_%s" % (name,suname)
+      entities["Component/%s" % cname] = { "maxActiveAssignments":1, "maxStandbyAssignments":1, "serviceUnit": suname, "instantiate": { "command" : c, "timeout":15*1000 }}
+      comps.append(cname)   
+
+    entities["ServiceUnit/%s" % suname] = { "components":",".join(comps),"node":n, "serviceGroup": sg }
+    sus.append(suname)
+    count += 1
+
+  entities["ServiceGroup/%s" % sg]["serviceUnits"] = ",".join(sus)
+  pdb.set_trace()
+  amfctrl.commit(entities)
+
+  # clTest.testSuccess("")
+
+
 def main(tgtDir):
     os.environ["ASP_NODENAME"] = "node0"
-    try:
-      amfpid = int(subprocess.check_output(["pgrep","-n", "safplus_amf"]).strip())
-      status = procStatus(amfpid)
-      if status == "Z": # zombie
+
+    amfpid = int(subprocess.check_output(["pgrep","-n", "safplus_amf"]).strip())
+    status = procStatus(amfpid)
+    if status == "Z": # zombie
         raise ZombieException()
-      print "AMF is already running as process [%d]" % amfpid
-    except (subprocess.CalledProcessError,ZombieException):
-      startupAmf(tgtDir,"amfOutput.txt")  
-      time.sleep(3) # Give the AMF time to initialize shared memory segments
+    print "AMF running as process [%d]" % amfpid
+
     connectToAmf()
-    print "AMF started"
-    amfctrl.displaySgStatus("sg0")
+   
+    #amfctrl.displaySgStatus("sg0")
+    # Create this node if it is missing
+    node = sp.mgtGet("/safplusAmf/Node/node0")
+    if node == "":
+      sp.mgtCreate("/safplusAmf/Node/node0")
 
-    # mgtHammer()
+    clTest.testCase("AMF-DYN-SG.TC001: Create app",AmfCreateApp("tc001",["../test/exampleSafApp tc001"],["node0"]))
+    sp.mgtSet("/safplusAmf/ServiceGroup/tc001Sg/adminState","on")
 
-    clTest.testCase("AMF-FAL-OVR.TC001: Component fail over",AmfFailComp)
+    pdb.set_trace()
+    while 1:
+      time.sleep(1)
+      ps = sp.mgt.get("/safplusAmf/Component/exampleSafApp_in_tc001Su0/presenceState")
+      if ps == "instantiated":
+        break 
+
     clTest.finalize();
     sp.Finalize()
 
@@ -171,7 +181,6 @@ if __name__ == '__main__':  # called from the target "test" directory
   main("..")
 
 def Test():  # called from inside the source tree
-  pdb.set_trace()
   main("..")
   #sys.path.append("../../python")  # Point to the python code, in source control
   #main("../../target/i686/3.13.0-37-generic")

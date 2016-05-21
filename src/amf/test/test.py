@@ -41,7 +41,7 @@ class test(testcase.TestGroup):
 
     def test_dynamic1(self):
         r"""
-        \testcase   AMF-FNC-UDP.TC111
-        \brief     	Availability management framework functional 1 node 1 sg 1 comp, UDP
+        \testcase   AMF-DYN-UDP.TC120
+        \brief     	Availability management framework dynamic test, UDP
         """
         self.progTest("(pkill -9 safplus_amf; pkill -9 exampleSafApp; export SAFPLUS_MSG_TRANSPORT=clMsgUdp.so; cd " + self.dirPfx() + "/test; ../bin/safplus_cleanup; rm -f safplusAmf.db; python embDynTest.py)",500)

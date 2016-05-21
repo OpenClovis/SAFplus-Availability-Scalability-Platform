@@ -32,7 +32,7 @@ namespace SAFplusAmf
     /* Apply MGT object factory */
     MGT_REGISTER_IMPL(ServiceGroup, /SAFplusAmf/safplusAmf/ServiceGroup)
 
-    ServiceGroup::ServiceGroup(): adminState("adminState",::SAFplusAmf::AdministrativeState::on), autoRepair("autoRepair"), autoAdjust("autoAdjust",false), autoAdjustInterval("autoAdjustInterval"), preferredNumActiveServiceUnits("preferredNumActiveServiceUnits"), preferredNumStandbyServiceUnits("preferredNumStandbyServiceUnits"), preferredNumIdleServiceUnits("preferredNumIdleServiceUnits"), maxActiveWorkAssignments("maxActiveWorkAssignments"), maxStandbyWorkAssignments("maxStandbyWorkAssignments"), serviceUnits("serviceUnits"), serviceInstances("serviceInstances"), application("application")
+    ServiceGroup::ServiceGroup(): adminState("adminState",::SAFplusAmf::AdministrativeState::on), autoRepair("autoRepair"), autoAdjust("autoAdjust",false), autoAdjustInterval("autoAdjustInterval"), preferredNumActiveServiceUnits("preferredNumActiveServiceUnits",1), preferredNumStandbyServiceUnits("preferredNumStandbyServiceUnits",1), preferredNumIdleServiceUnits("preferredNumIdleServiceUnits",0), maxActiveWorkAssignments("maxActiveWorkAssignments"), maxStandbyWorkAssignments("maxStandbyWorkAssignments"), serviceUnits("serviceUnits"), serviceInstances("serviceInstances"), application("application")
     {
         this->addChildObject(&adminState, "adminState");
         this->addChildObject(&autoRepair, "autoRepair");
@@ -50,16 +50,28 @@ namespace SAFplusAmf
         this->addChildObject(&serviceUnitRestart, "serviceUnitRestart");
         this->addChildObject(&numAssignedServiceUnits, "numAssignedServiceUnits");
         numAssignedServiceUnits.config = false;
+        numAssignedServiceUnits.settable = false;
+        numAssignedServiceUnits.loadDb = false;
+        numAssignedServiceUnits.replicated = false;
         this->addChildObject(&numIdleServiceUnits, "numIdleServiceUnits");
         numIdleServiceUnits.config = false;
+        numIdleServiceUnits.settable = false;
+        numIdleServiceUnits.loadDb = false;
+        numIdleServiceUnits.replicated = false;
         this->addChildObject(&numSpareServiceUnits, "numSpareServiceUnits");
         numSpareServiceUnits.config = false;
+        numSpareServiceUnits.settable = false;
+        numSpareServiceUnits.loadDb = false;
+        numSpareServiceUnits.replicated = false;
         this->tag.assign("ServiceGroup");
         adminState = ::SAFplusAmf::AdministrativeState::on;
         autoAdjust = false;
+        preferredNumActiveServiceUnits = 1;
+        preferredNumStandbyServiceUnits = 1;
+        preferredNumIdleServiceUnits = 0;
     };
 
-    ServiceGroup::ServiceGroup(const std::string& nameValue): adminState("adminState",::SAFplusAmf::AdministrativeState::on), autoRepair("autoRepair"), autoAdjust("autoAdjust",false), autoAdjustInterval("autoAdjustInterval"), preferredNumActiveServiceUnits("preferredNumActiveServiceUnits"), preferredNumStandbyServiceUnits("preferredNumStandbyServiceUnits"), preferredNumIdleServiceUnits("preferredNumIdleServiceUnits"), maxActiveWorkAssignments("maxActiveWorkAssignments"), maxStandbyWorkAssignments("maxStandbyWorkAssignments"), serviceUnits("serviceUnits"), serviceInstances("serviceInstances"), application("application")
+    ServiceGroup::ServiceGroup(const std::string& nameValue): adminState("adminState",::SAFplusAmf::AdministrativeState::on), autoRepair("autoRepair"), autoAdjust("autoAdjust",false), autoAdjustInterval("autoAdjustInterval"), preferredNumActiveServiceUnits("preferredNumActiveServiceUnits",1), preferredNumStandbyServiceUnits("preferredNumStandbyServiceUnits",1), preferredNumIdleServiceUnits("preferredNumIdleServiceUnits",0), maxActiveWorkAssignments("maxActiveWorkAssignments"), maxStandbyWorkAssignments("maxStandbyWorkAssignments"), serviceUnits("serviceUnits"), serviceInstances("serviceInstances"), application("application")
     {
         this->name.value =  nameValue;
         this->addChildObject(&adminState, "adminState");
@@ -78,10 +90,19 @@ namespace SAFplusAmf
         this->addChildObject(&serviceUnitRestart, "serviceUnitRestart");
         this->addChildObject(&numAssignedServiceUnits, "numAssignedServiceUnits");
         numAssignedServiceUnits.config = false;
+        numAssignedServiceUnits.settable = false;
+        numAssignedServiceUnits.loadDb = false;
+        numAssignedServiceUnits.replicated = false;
         this->addChildObject(&numIdleServiceUnits, "numIdleServiceUnits");
         numIdleServiceUnits.config = false;
+        numIdleServiceUnits.settable = false;
+        numIdleServiceUnits.loadDb = false;
+        numIdleServiceUnits.replicated = false;
         this->addChildObject(&numSpareServiceUnits, "numSpareServiceUnits");
         numSpareServiceUnits.config = false;
+        numSpareServiceUnits.settable = false;
+        numSpareServiceUnits.loadDb = false;
+        numSpareServiceUnits.replicated = false;
         this->tag.assign("ServiceGroup");
     };
 
@@ -284,38 +305,6 @@ namespace SAFplusAmf
             SAFplus::SimpleTxnOperation<::uint32_t> *opt = new SAFplus::SimpleTxnOperation<::uint32_t>(&(maxStandbyWorkAssignments.value),maxStandbyWorkAssignmentsValue);
             t.addOperation(opt);
         }
-    };
-
-    /*
-     * XPATH: /SAFplusAmf/safplusAmf/ServiceGroup/serviceUnits
-     */
-    std::vector<::SAFplusAmf::ServiceUnit*> ServiceGroup::getServiceUnits()
-    {
-        return this->serviceUnits.value;
-    };
-
-    /*
-     * XPATH: /SAFplusAmf/safplusAmf/ServiceGroup/serviceUnits
-     */
-    void ServiceGroup::setServiceUnits(::SAFplusAmf::ServiceUnit* serviceUnitsValue)
-    {
-        this->serviceUnits.value.push_back(serviceUnitsValue);
-    };
-
-    /*
-     * XPATH: /SAFplusAmf/safplusAmf/ServiceGroup/serviceInstances
-     */
-    std::vector<::SAFplusAmf::ServiceInstance*> ServiceGroup::getServiceInstances()
-    {
-        return this->serviceInstances.value;
-    };
-
-    /*
-     * XPATH: /SAFplusAmf/safplusAmf/ServiceGroup/serviceInstances
-     */
-    void ServiceGroup::setServiceInstances(::SAFplusAmf::ServiceInstance* serviceInstancesValue)
-    {
-        this->serviceInstances.value.push_back(serviceInstancesValue);
     };
 
     /*

@@ -807,8 +807,8 @@ class RunScript:
     self.cli = Dotter()
     self.cli.run = lambda s,resolver=resolver: CaptureOutput(resolver).run(s)
     self.cli.get = lambda s,deflt = self.raiseException, me=self: me.cliGet(s,deflt)
-    self.cli.getInt = lambda s,me=self: int(me.cliGet(s))
-    self.cli.getFloat = lambda s,me=self: float(me.cliGet(s))
+    self.cli.getInt = lambda s,deflt = self.raiseException,me=self: int(me.cliGet(s,deflt))
+    self.cli.getFloat = lambda s,deflt = self.raiseException,me=self: float(me.cliGet(s,deflt))
     self.cli.add = lambda cmd, me=self: self.context.addCmds(cmd)
     self.cli.Error = CliError
     self.env["cli"] = self.cli

@@ -51,9 +51,81 @@ template<class T>
 class MgtIdentifierList: public MgtObject
 {
 public:
-    typedef std::vector<T> ContainerType;
-    std::vector<T> value;
-    std::vector<std::string> refs;
+    class Elem
+    {
+    public:
+      std::string ref;
+      bool        validValue;
+      T           value;
+      Elem():ref(),validValue(false),value() {}
+      Elem(const std::string& r):ref(r),validValue(false),value() {}
+      Elem(const T& v):ref(),validValue(true),value(v) {}
+    };
+    typedef std::vector<Elem> Container;
+    Container value;
+
+    class iterator:public SAFplus::MgtIteratorBase
+    {
+      typename Container::iterator i;
+      typename Container::iterator end;
+      virtual bool next()
+      {
+        do { 
+           ++i; 
+        } while ((i!=end)&&(i->validValue==false));
+        if (i != end)
+          {
+          current.first = i->ref;
+          current.second = i->value;
+          }
+        else
+          {
+            current.first = "";
+            current.second = nullptr;
+          }
+        return i != end;
+      }
+    public:
+      iterator(const typename Container::iterator& ini,const typename Container::iterator& e):i(ini),end(e) 
+        { 
+          if ((i != end)&&(!i->validValue)) 
+            next(); 
+          if (i != end)
+            {
+            current.first = i->ref;
+            current.second = i->value;
+            }
+          else
+            {
+            current.first = "";
+            current.second = nullptr;
+            }
+        }
+      iterator():i() {}
+    public:
+      bool operator!= (const iterator& other) const { return i != other.i; } 
+      bool operator++() { return next(); }
+      bool operator++(int) { return next(); }
+      T operator*() { return i->value; }
+
+    virtual void del()
+    {
+      delete this;
+    }
+  };
+
+
+      //? Get child iterator beginning
+  virtual MgtObject::Iterator begin(void)
+  {
+    MgtObject::Iterator it;
+    it.b = new iterator(value.begin(), value.end());
+    return it;
+  }
+
+
+  iterator listBegin() { return iterator(value.begin(),value.end()); }
+  iterator listEnd() { return iterator(value.end(),value.end()); }
 
 public:
     MgtIdentifierList(const char* name);
@@ -62,7 +134,7 @@ public:
 
     virtual void toString(std::stringstream& xmlString, int depth=SAFplusI::MgtToStringRecursionDepth, SerializationOptions opts=SerializeNoOptions);
 
-    //? Virtual function to assign object data
+  //? Virtual function to assign object data
     virtual bool set(const void *pBuffer, ClUint64T buffLen, SAFplus::Transaction& t);
 
     virtual ClRcT setObj(const std::string &value);
@@ -107,7 +179,7 @@ public:
     std::vector<std::string> children;
 
     /* TODO: Should be base on refs or value??? refs is configuration but 'value' is real assignment */
-    for (std::vector<std::string>::iterator i = refs.begin(); i != refs.end(); ++i, ++idx)
+    for (typename Container::iterator i = value.begin(); i != value.end(); ++i,++idx)
       {
         //typedef boost::array<char, 64> buf_t;
         std::string key = basekey;
@@ -115,7 +187,7 @@ public:
         childidx.append(boost::lexical_cast<std::string>(idx));
         childidx.append("]");
         key.append(childidx);
-        db->setRecord(key, *i, nullptr);
+        db->setRecord(key, i->ref, nullptr);
         children.push_back(childidx);
       } 
     db->setRecord(basekey,"",&children);
@@ -125,23 +197,23 @@ public:
     /**
      * \brief   Virtual function to validate object data; throws transaction exception if fails
      */
-    std::string toStringItemAt(T x);
+    std::string toStringItemAt(int idx);
 
     void pushBackValue(T strVal);
 
-    void push_back(T val) { value.push_back(val); }
+    void push_back(T val) { pushBackValue(val); }
 
-    typename ContainerType::iterator find(T item)
+    typename Container::iterator find(const T& item)
     {
-      typename ContainerType::iterator it;
+      typename Container::iterator it;
       for (it=value.begin(); it!=value.end(); it++)
       {
-        if (item == *it) return it;
+        if (item == it->value) return it;
       }
       return it;
     }
 
-    bool contains(T item)
+    bool contains(const T& item)
     {
       if (find(item) == value.end()) return false;
       return true;
@@ -154,19 +226,20 @@ public:
       value.clear(); 
     }
 
-    /*? Remove the first element that == item */
-    void erase(T item)
+    /*? Remove the first element that == item, returns true if an item was erased */
+    bool erase(const T& item)
     {
-      typename std::vector<T>::iterator it;
+      typename Container::iterator it;
       for (it=value.begin(); it!=value.end(); it++)
       {
         // TODO: should we also remove the equivalent index in refs?
-        if (item == *it) 
+        if (item == it->value) 
           {
           value.erase(it);
-          return;
+          return true;
           }
       }
+      return false;
     }
 
     //? Function to write data to the database.
@@ -206,13 +279,13 @@ public:
       std::vector<std::string> iter;
       db->iterate(key, iter);
 
-      refs.clear();
+      value.clear();
       for (std::vector<std::string>::iterator it=iter.begin(); it!=iter.end(); it++)
       {
-        std::string value;
-        if (db->getRecord(*it, value) == CL_OK)
-        {
-          refs.push_back(value);
+        std::string val;
+        if (db->getRecord(*it, val) == CL_OK)
+        {        
+        value.push_back(Elem(val));
         }
       }
       MgtRoot *mgtRoot = MgtRoot::getInstance();
@@ -226,31 +299,56 @@ public:
     void updateReference()
     {
       MgtObject *objRoot = dynamic_cast<MgtObject *>(this->root());
-      value.clear();
-      for ( std::vector<std::string>::iterator it = refs.begin();
-          it != refs.end();
-          it++)
+
+      for ( typename Container::iterator it = value.begin(); it != value.end(); it++)
         {
-          std::string ref = *it;
-         //MgtObject *obj = objRoot->lookUpMgtObject(typeid(T).name(), ref);
-          if (ref.find('/') != std::string::npos)
+        if (!it->validValue)
+          {
+          std::string ref = it->ref;
+          int firstSlash = ref.find('/');
+          if (firstSlash != std::string::npos)
             {
               std::vector<MgtObject*> result;
-              objRoot->resolvePath(ref.c_str(),&result);
+              if (firstSlash == 0)  // skip the first slash
+                objRoot->resolvePath(ref.c_str()+1,&result);
+              else
+                objRoot->resolvePath(ref.c_str(),&result);
               for (std::vector<MgtObject*>::iterator i = result.begin(); i != result.end(); ++i)
                 {
                   MgtObject *obj = *i;
-                  if (obj) value.push_back((T)obj);
+                  if (obj) 
+                    {
+                    it->value = dynamic_cast<T> (obj);
+                    it->validValue = true;
+                    break;
+                    } 
                 }
             }
           else
             {
             MgtObject *obj = objRoot->lookUpMgtObject("", ref);
-            if (obj) value.push_back((T)obj);
+            if (obj)  
+              { //value.push_back((T)obj);
+              it->value = dynamic_cast<T> (obj);
+              it->validValue = true;
+              }
             }
+          }
         }
     }
 };
+
+      //? Push the valid contents of this Identifier list into a vector.  Skips entities that have not been resolved.
+template<class T> std::vector<T>& operator << (std::vector<T>& lhs, const MgtIdentifierList<T>& rhs)
+  {
+      MgtIdentifierList<T>& rhsnc = (MgtIdentifierList<T>&) rhs;
+    for (typename MgtIdentifierList<T>::iterator it = rhsnc.listBegin(); rhsnc.listEnd() != it; ++it)
+      {
+      lhs.push_back(*it);
+      }
+      
+    return lhs;
+  }
 
 template<class T>
 MgtIdentifierList<T>::MgtIdentifierList(const char* name) :
@@ -264,13 +362,22 @@ MgtIdentifierList<T>::~MgtIdentifierList()
 }
 
 template<class T>
-std::string MgtIdentifierList<T>::toStringItemAt(T x)
+std::string MgtIdentifierList<T>::toStringItemAt(int idx)
 {
     std::stringstream ss;
-
-    MgtObject *obj = dynamic_cast<MgtObject *>(x);
-    if (obj)
-        ss << x->getFullXpath();
+    Elem& e = value[idx];
+    if (e.validValue)
+      {
+      MgtObject *obj = dynamic_cast<MgtObject *>(e.value);
+      if (obj)
+        ss << obj->getFullXpath();
+      else
+        ss << "?" << e.ref;
+      }
+    else
+      {
+      ss << "?" << e.ref;
+      }
 
     return ss.str();
 }
@@ -288,7 +395,7 @@ void MgtIdentifierList<T>::toString(std::stringstream& xmlString, int depth, Ser
   int len = value.size();
   for (unsigned int i = 0; i < len; i++)
     {
-      xmlString << toStringItemAt(value.at(i));
+      xmlString << toStringItemAt(i);
       if (i+1<len) xmlString << ", ";
     }
 
@@ -300,20 +407,24 @@ template<class T> bool MgtIdentifierList<T>::set(const void *pBuffer, ClUint64T 
     return false;
 }
 
-template<class T> ClRcT MgtIdentifierList<T>::setObj(const std::string &value)
+template<class T> ClRcT MgtIdentifierList<T>::setObj(const std::string &val)
 {
-  refs.clear();
-  boost::split(refs, value, boost::is_any_of(", "));
+  std::vector<std::string> refs;
+  boost::split(refs, val, boost::is_any_of(", "));
+  value.clear();
+  for(auto i = refs.begin(); i != refs.end(); i++)
+    value.push_back(Elem(*i));
+  
+  MgtRoot::getInstance()->addReference(this);
   updateReference();
   lastChange = beat++;
   return CL_OK;
 }
 
-
 template<class T>
 void MgtIdentifierList<T>::pushBackValue(T val)
 {
-    value.push_back(val);
+  value.push_back(Elem(val));
 }
 
 };

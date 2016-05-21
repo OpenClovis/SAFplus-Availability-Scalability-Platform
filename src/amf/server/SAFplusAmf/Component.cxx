@@ -31,8 +31,8 @@
 #include "CapabilityModel.hxx"
 #include "Component.hxx"
 
-using namespace SAFplusTypes;
 using namespace  std;
+using namespace ::SAFplusTypes;
 using namespace SAFplusAmf;
 
 namespace SAFplusAmf
@@ -41,37 +41,70 @@ namespace SAFplusAmf
     /* Apply MGT object factory */
     MGT_REGISTER_IMPL(Component, /SAFplusAmf/safplusAmf/Component)
 
-    Component::Component(): presenceState("presenceState",::SAFplusAmf::PresenceState::uninstantiated), capabilityModel("capabilityModel"), maxActiveAssignments("maxActiveAssignments",1), maxStandbyAssignments("maxStandbyAssignments",1), assignedWork("assignedWork"), operState("operState"), readinessState("readinessState",::SAFplusAmf::ReadinessState::outOfService), haReadinessState("haReadinessState",::SAFplusAmf::HighAvailabilityReadinessState::readyForAssignment), haState("haState"), safVersion("safVersion",std::string("B.04.01")), compCategory("compCategory"), swBundle("swBundle"), commandEnvironment("commandEnvironment"), maxInstantInstantiations("maxInstantInstantiations",1), maxDelayedInstantiations("maxDelayedInstantiations",1), numInstantiationAttempts("numInstantiationAttempts"), instantiationSuccessDuration("instantiationSuccessDuration",30000), lastInstantiation("lastInstantiation"), delayBetweenInstantiation("delayBetweenInstantiation",10000), serviceUnit("serviceUnit"), recovery("recovery"), restartable("restartable",true), proxy("proxy"), proxied("proxied"), processId("processId",0), lastError("lastError"), pendingOperation("pendingOperation"), pendingOperationExpiration("pendingOperationExpiration",Date(30000))
+    Component::Component(): presenceState("presenceState",::SAFplusAmf::PresenceState::uninstantiated), capabilityModel("capabilityModel"), maxActiveAssignments("maxActiveAssignments",1), maxStandbyAssignments("maxStandbyAssignments",1), assignedWork("assignedWork"), operState("operState",true), readinessState("readinessState",::SAFplusAmf::ReadinessState::outOfService), haReadinessState("haReadinessState",::SAFplusAmf::HighAvailabilityReadinessState::readyForAssignment), haState("haState",::SAFplusAmf::HighAvailabilityState::idle), safVersion("safVersion",std::string("B.04.01")), compCategory("compCategory"), swBundle("swBundle"), commandEnvironment("commandEnvironment"), maxInstantInstantiations("maxInstantInstantiations",1), maxDelayedInstantiations("maxDelayedInstantiations",1), numInstantiationAttempts("numInstantiationAttempts"), instantiationSuccessDuration("instantiationSuccessDuration",30000), lastInstantiation("lastInstantiation"), delayBetweenInstantiation("delayBetweenInstantiation",10000), serviceUnit("serviceUnit"), recovery("recovery"), restartable("restartable",true), proxy("proxy"), proxied("proxied"), processId("processId",0), lastError("lastError"), pendingOperation("pendingOperation"), pendingOperationExpiration("pendingOperationExpiration",Date(0))
     {
         this->addChildObject(&presenceState, "presenceState");
         presenceState.config = false;
+        presenceState.settable = false;
+        presenceState.loadDb = false;
+        presenceState.replicated = false;
         this->addChildObject(&capabilityModel, "capabilityModel");
         this->addChildObject(&maxActiveAssignments, "maxActiveAssignments");
         this->addChildObject(&maxStandbyAssignments, "maxStandbyAssignments");
         this->addChildObject(&assignedWork, "assignedWork");
         assignedWork.config = false;
+        assignedWork.settable = false;
+        assignedWork.loadDb = false;
+        assignedWork.replicated = false;
         this->addChildObject(&operState, "operState");
         operState.config = false;
+        operState.settable = true;
+        operState.loadDb = false;
+        operState.replicated = false;
         this->addChildObject(&readinessState, "readinessState");
         readinessState.config = false;
+        readinessState.settable = false;
+        readinessState.loadDb = false;
+        readinessState.replicated = false;
         this->addChildObject(&haReadinessState, "haReadinessState");
         haReadinessState.config = false;
+        haReadinessState.settable = false;
+        haReadinessState.loadDb = false;
+        haReadinessState.replicated = false;
         this->addChildObject(&haState, "haState");
         haState.config = false;
+        haState.settable = false;
+        haState.loadDb = false;
+        haState.replicated = false;
         this->addChildObject(&safVersion, "safVersion");
         safVersion.config = false;
+        safVersion.settable = false;
+        safVersion.loadDb = false;
+        safVersion.replicated = false;
         this->addChildObject(&compCategory, "compCategory");
         compCategory.config = false;
+        compCategory.settable = false;
+        compCategory.loadDb = false;
+        compCategory.replicated = false;
         this->addChildObject(&swBundle, "swBundle");
         swBundle.config = false;
+        swBundle.settable = false;
+        swBundle.loadDb = false;
+        swBundle.replicated = false;
         this->addChildObject(&commandEnvironment, "commandEnvironment");
         this->addChildObject(&maxInstantInstantiations, "maxInstantInstantiations");
         this->addChildObject(&maxDelayedInstantiations, "maxDelayedInstantiations");
         this->addChildObject(&numInstantiationAttempts, "numInstantiationAttempts");
         numInstantiationAttempts.config = false;
+        numInstantiationAttempts.settable = false;
+        numInstantiationAttempts.loadDb = false;
+        numInstantiationAttempts.replicated = false;
         this->addChildObject(&instantiationSuccessDuration, "instantiationSuccessDuration");
         this->addChildObject(&lastInstantiation, "lastInstantiation");
         lastInstantiation.config = false;
+        lastInstantiation.settable = false;
+        lastInstantiation.loadDb = false;
+        lastInstantiation.replicated = false;
         this->addChildObject(&delayBetweenInstantiation, "delayBetweenInstantiation");
         this->addChildObject(&serviceUnit, "serviceUnit");
         this->addChildObject(&recovery, "recovery");
@@ -80,30 +113,56 @@ namespace SAFplusAmf
         this->addChildObject(&proxied, "proxied");
         this->addChildObject(&processId, "processId");
         processId.config = false;
+        processId.settable = false;
+        processId.loadDb = false;
+        processId.replicated = true;
         this->addChildObject(&lastError, "lastError");
         lastError.config = false;
+        lastError.settable = false;
+        lastError.loadDb = false;
+        lastError.replicated = false;
         this->addChildObject(&pendingOperation, "pendingOperation");
         pendingOperation.config = false;
+        pendingOperation.settable = false;
+        pendingOperation.loadDb = false;
+        pendingOperation.replicated = false;
         this->addChildObject(&pendingOperationExpiration, "pendingOperationExpiration");
         pendingOperationExpiration.config = false;
+        pendingOperationExpiration.settable = false;
+        pendingOperationExpiration.loadDb = false;
+        pendingOperationExpiration.replicated = false;
         this->addChildObject(&procStats, "procStats");
         procStats.config = false;
+        procStats.settable = false;
+        procStats.loadDb = false;
+        procStats.replicated = false;
         this->addChildObject(&activeAssignments, "activeAssignments");
         activeAssignments.config = false;
+        activeAssignments.settable = false;
+        activeAssignments.loadDb = false;
+        activeAssignments.replicated = false;
         this->addChildObject(&standbyAssignments, "standbyAssignments");
         standbyAssignments.config = false;
+        standbyAssignments.settable = false;
+        standbyAssignments.loadDb = false;
+        standbyAssignments.replicated = false;
         this->addChildObject(&instantiate, "instantiate");
         this->addChildObject(&terminate, "terminate");
         this->addChildObject(&cleanup, "cleanup");
         this->addChildObject(&timeouts, "timeouts");
         this->addChildObject(&restartCount, "restartCount");
         restartCount.config = false;
+        restartCount.settable = false;
+        restartCount.loadDb = false;
+        restartCount.replicated = false;
         this->tag.assign("Component");
         presenceState = ::SAFplusAmf::PresenceState::uninstantiated;
         maxActiveAssignments = 1;
         maxStandbyAssignments = 1;
+        operState = true;
         readinessState = ::SAFplusAmf::ReadinessState::outOfService;
         haReadinessState = ::SAFplusAmf::HighAvailabilityReadinessState::readyForAssignment;
+        haState = ::SAFplusAmf::HighAvailabilityState::idle;
         safVersion = std::string("B.04.01");
         maxInstantInstantiations = 1;
         maxDelayedInstantiations = 1;
@@ -111,41 +170,74 @@ namespace SAFplusAmf
         delayBetweenInstantiation = 10000;
         restartable = true;
         processId = 0;
-        pendingOperationExpiration = Date(30000);
+        pendingOperationExpiration = Date(0);
     };
 
-    Component::Component(const std::string& nameValue): presenceState("presenceState",::SAFplusAmf::PresenceState::uninstantiated), capabilityModel("capabilityModel"), maxActiveAssignments("maxActiveAssignments",1), maxStandbyAssignments("maxStandbyAssignments",1), assignedWork("assignedWork"), operState("operState"), readinessState("readinessState",::SAFplusAmf::ReadinessState::outOfService), haReadinessState("haReadinessState",::SAFplusAmf::HighAvailabilityReadinessState::readyForAssignment), haState("haState"), safVersion("safVersion",std::string("B.04.01")), compCategory("compCategory"), swBundle("swBundle"), commandEnvironment("commandEnvironment"), maxInstantInstantiations("maxInstantInstantiations",1), maxDelayedInstantiations("maxDelayedInstantiations",1), numInstantiationAttempts("numInstantiationAttempts"), instantiationSuccessDuration("instantiationSuccessDuration",30000), lastInstantiation("lastInstantiation"), delayBetweenInstantiation("delayBetweenInstantiation",10000), serviceUnit("serviceUnit"), recovery("recovery"), restartable("restartable",true), proxy("proxy"), proxied("proxied"), processId("processId",0), lastError("lastError"), pendingOperation("pendingOperation"), pendingOperationExpiration("pendingOperationExpiration",Date(30000))
+    Component::Component(const std::string& nameValue): presenceState("presenceState",::SAFplusAmf::PresenceState::uninstantiated), capabilityModel("capabilityModel"), maxActiveAssignments("maxActiveAssignments",1), maxStandbyAssignments("maxStandbyAssignments",1), assignedWork("assignedWork"), operState("operState",true), readinessState("readinessState",::SAFplusAmf::ReadinessState::outOfService), haReadinessState("haReadinessState",::SAFplusAmf::HighAvailabilityReadinessState::readyForAssignment), haState("haState",::SAFplusAmf::HighAvailabilityState::idle), safVersion("safVersion",std::string("B.04.01")), compCategory("compCategory"), swBundle("swBundle"), commandEnvironment("commandEnvironment"), maxInstantInstantiations("maxInstantInstantiations",1), maxDelayedInstantiations("maxDelayedInstantiations",1), numInstantiationAttempts("numInstantiationAttempts"), instantiationSuccessDuration("instantiationSuccessDuration",30000), lastInstantiation("lastInstantiation"), delayBetweenInstantiation("delayBetweenInstantiation",10000), serviceUnit("serviceUnit"), recovery("recovery"), restartable("restartable",true), proxy("proxy"), proxied("proxied"), processId("processId",0), lastError("lastError"), pendingOperation("pendingOperation"), pendingOperationExpiration("pendingOperationExpiration",Date(0))
     {
         this->name.value =  nameValue;
         this->addChildObject(&presenceState, "presenceState");
         presenceState.config = false;
+        presenceState.settable = false;
+        presenceState.loadDb = false;
+        presenceState.replicated = false;
         this->addChildObject(&capabilityModel, "capabilityModel");
         this->addChildObject(&maxActiveAssignments, "maxActiveAssignments");
         this->addChildObject(&maxStandbyAssignments, "maxStandbyAssignments");
         this->addChildObject(&assignedWork, "assignedWork");
         assignedWork.config = false;
+        assignedWork.settable = false;
+        assignedWork.loadDb = false;
+        assignedWork.replicated = false;
         this->addChildObject(&operState, "operState");
         operState.config = false;
+        operState.settable = true;
+        operState.loadDb = false;
+        operState.replicated = false;
         this->addChildObject(&readinessState, "readinessState");
         readinessState.config = false;
+        readinessState.settable = false;
+        readinessState.loadDb = false;
+        readinessState.replicated = false;
         this->addChildObject(&haReadinessState, "haReadinessState");
         haReadinessState.config = false;
+        haReadinessState.settable = false;
+        haReadinessState.loadDb = false;
+        haReadinessState.replicated = false;
         this->addChildObject(&haState, "haState");
         haState.config = false;
+        haState.settable = false;
+        haState.loadDb = false;
+        haState.replicated = false;
         this->addChildObject(&safVersion, "safVersion");
         safVersion.config = false;
+        safVersion.settable = false;
+        safVersion.loadDb = false;
+        safVersion.replicated = false;
         this->addChildObject(&compCategory, "compCategory");
         compCategory.config = false;
+        compCategory.settable = false;
+        compCategory.loadDb = false;
+        compCategory.replicated = false;
         this->addChildObject(&swBundle, "swBundle");
         swBundle.config = false;
+        swBundle.settable = false;
+        swBundle.loadDb = false;
+        swBundle.replicated = false;
         this->addChildObject(&commandEnvironment, "commandEnvironment");
         this->addChildObject(&maxInstantInstantiations, "maxInstantInstantiations");
         this->addChildObject(&maxDelayedInstantiations, "maxDelayedInstantiations");
         this->addChildObject(&numInstantiationAttempts, "numInstantiationAttempts");
         numInstantiationAttempts.config = false;
+        numInstantiationAttempts.settable = false;
+        numInstantiationAttempts.loadDb = false;
+        numInstantiationAttempts.replicated = false;
         this->addChildObject(&instantiationSuccessDuration, "instantiationSuccessDuration");
         this->addChildObject(&lastInstantiation, "lastInstantiation");
         lastInstantiation.config = false;
+        lastInstantiation.settable = false;
+        lastInstantiation.loadDb = false;
+        lastInstantiation.replicated = false;
         this->addChildObject(&delayBetweenInstantiation, "delayBetweenInstantiation");
         this->addChildObject(&serviceUnit, "serviceUnit");
         this->addChildObject(&recovery, "recovery");
@@ -154,24 +246,48 @@ namespace SAFplusAmf
         this->addChildObject(&proxied, "proxied");
         this->addChildObject(&processId, "processId");
         processId.config = false;
+        processId.settable = false;
+        processId.loadDb = false;
+        processId.replicated = true;
         this->addChildObject(&lastError, "lastError");
         lastError.config = false;
+        lastError.settable = false;
+        lastError.loadDb = false;
+        lastError.replicated = false;
         this->addChildObject(&pendingOperation, "pendingOperation");
         pendingOperation.config = false;
+        pendingOperation.settable = false;
+        pendingOperation.loadDb = false;
+        pendingOperation.replicated = false;
         this->addChildObject(&pendingOperationExpiration, "pendingOperationExpiration");
         pendingOperationExpiration.config = false;
+        pendingOperationExpiration.settable = false;
+        pendingOperationExpiration.loadDb = false;
+        pendingOperationExpiration.replicated = false;
         this->addChildObject(&procStats, "procStats");
         procStats.config = false;
+        procStats.settable = false;
+        procStats.loadDb = false;
+        procStats.replicated = false;
         this->addChildObject(&activeAssignments, "activeAssignments");
         activeAssignments.config = false;
+        activeAssignments.settable = false;
+        activeAssignments.loadDb = false;
+        activeAssignments.replicated = false;
         this->addChildObject(&standbyAssignments, "standbyAssignments");
         standbyAssignments.config = false;
+        standbyAssignments.settable = false;
+        standbyAssignments.loadDb = false;
+        standbyAssignments.replicated = false;
         this->addChildObject(&instantiate, "instantiate");
         this->addChildObject(&terminate, "terminate");
         this->addChildObject(&cleanup, "cleanup");
         this->addChildObject(&timeouts, "timeouts");
         this->addChildObject(&restartCount, "restartCount");
         restartCount.config = false;
+        restartCount.settable = false;
+        restartCount.loadDb = false;
+        restartCount.replicated = false;
         this->tag.assign("Component");
     };
 
@@ -269,22 +385,6 @@ namespace SAFplusAmf
             SAFplus::SimpleTxnOperation<::uint32_t> *opt = new SAFplus::SimpleTxnOperation<::uint32_t>(&(maxStandbyAssignments.value),maxStandbyAssignmentsValue);
             t.addOperation(opt);
         }
-    };
-
-    /*
-     * XPATH: /SAFplusAmf/safplusAmf/Component/assignedWork
-     */
-    std::vector<std::string> Component::getAssignedWork()
-    {
-        return this->assignedWork.value;
-    };
-
-    /*
-     * XPATH: /SAFplusAmf/safplusAmf/Component/assignedWork
-     */
-    void Component::setAssignedWork(std::string assignedWorkValue)
-    {
-        this->assignedWork.value.push_back(assignedWorkValue);
     };
 
     /*
@@ -435,22 +535,6 @@ namespace SAFplusAmf
     };
 
     /*
-     * XPATH: /SAFplusAmf/safplusAmf/Component/commandEnvironment
-     */
-    std::vector<std::string> Component::getCommandEnvironment()
-    {
-        return this->commandEnvironment.value;
-    };
-
-    /*
-     * XPATH: /SAFplusAmf/safplusAmf/Component/commandEnvironment
-     */
-    void Component::setCommandEnvironment(std::string commandEnvironmentValue)
-    {
-        this->commandEnvironment.value.push_back(commandEnvironmentValue);
-    };
-
-    /*
      * XPATH: /SAFplusAmf/safplusAmf/Component/maxInstantInstantiations
      */
     ::uint32_t Component::getMaxInstantInstantiations()
@@ -537,7 +621,7 @@ namespace SAFplusAmf
     /*
      * XPATH: /SAFplusAmf/safplusAmf/Component/lastInstantiation
      */
-    SAFplusTypes::Date Component::getLastInstantiation()
+    ::SAFplusTypes::Date Component::getLastInstantiation()
     {
         return this->lastInstantiation.value;
     };
@@ -545,12 +629,12 @@ namespace SAFplusAmf
     /*
      * XPATH: /SAFplusAmf/safplusAmf/Component/lastInstantiation
      */
-    void Component::setLastInstantiation(SAFplusTypes::Date &lastInstantiationValue, SAFplus::Transaction &t)
+    void Component::setLastInstantiation(::SAFplusTypes::Date &lastInstantiationValue, SAFplus::Transaction &t)
     {
         if(&t == &SAFplus::NO_TXN) this->lastInstantiation.value = lastInstantiationValue;
         else
         {
-            SAFplus::SimpleTxnOperation<SAFplusTypes::Date> *opt = new SAFplus::SimpleTxnOperation<SAFplusTypes::Date>(&(lastInstantiation.value),lastInstantiationValue);
+            SAFplus::SimpleTxnOperation<::SAFplusTypes::Date> *opt = new SAFplus::SimpleTxnOperation<::SAFplusTypes::Date>(&(lastInstantiation.value),lastInstantiationValue);
             t.addOperation(opt);
         }
     };
@@ -661,22 +745,6 @@ namespace SAFplusAmf
     };
 
     /*
-     * XPATH: /SAFplusAmf/safplusAmf/Component/proxied
-     */
-    std::vector<std::string> Component::getProxied()
-    {
-        return this->proxied.value;
-    };
-
-    /*
-     * XPATH: /SAFplusAmf/safplusAmf/Component/proxied
-     */
-    void Component::setProxied(std::string proxiedValue)
-    {
-        this->proxied.value.push_back(proxiedValue);
-    };
-
-    /*
      * XPATH: /SAFplusAmf/safplusAmf/Component/processId
      */
     ::int32_t Component::getProcessId()
@@ -742,7 +810,7 @@ namespace SAFplusAmf
     /*
      * XPATH: /SAFplusAmf/safplusAmf/Component/pendingOperationExpiration
      */
-    SAFplusTypes::Date Component::getPendingOperationExpiration()
+    ::SAFplusTypes::Date Component::getPendingOperationExpiration()
     {
         return this->pendingOperationExpiration.value;
     };
@@ -750,12 +818,12 @@ namespace SAFplusAmf
     /*
      * XPATH: /SAFplusAmf/safplusAmf/Component/pendingOperationExpiration
      */
-    void Component::setPendingOperationExpiration(SAFplusTypes::Date &pendingOperationExpirationValue, SAFplus::Transaction &t)
+    void Component::setPendingOperationExpiration(::SAFplusTypes::Date &pendingOperationExpirationValue, SAFplus::Transaction &t)
     {
         if(&t == &SAFplus::NO_TXN) this->pendingOperationExpiration.value = pendingOperationExpirationValue;
         else
         {
-            SAFplus::SimpleTxnOperation<SAFplusTypes::Date> *opt = new SAFplus::SimpleTxnOperation<SAFplusTypes::Date>(&(pendingOperationExpiration.value),pendingOperationExpirationValue);
+            SAFplus::SimpleTxnOperation<::SAFplusTypes::Date> *opt = new SAFplus::SimpleTxnOperation<::SAFplusTypes::Date>(&(pendingOperationExpiration.value),pendingOperationExpirationValue);
             t.addOperation(opt);
         }
     };

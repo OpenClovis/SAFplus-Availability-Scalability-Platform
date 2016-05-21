@@ -19,16 +19,34 @@ namespace SAFplusAmf
     {
         this->addChildObject(&failures, "failures");
         failures.config = false;
+        failures.settable = false;
+        failures.loadDb = false;
+        failures.replicated = false;
         this->addChildObject(&cpuUtilization, "cpuUtilization");
         cpuUtilization.config = false;
+        cpuUtilization.settable = false;
+        cpuUtilization.loadDb = false;
+        cpuUtilization.replicated = false;
         this->addChildObject(&memUtilization, "memUtilization");
         memUtilization.config = false;
+        memUtilization.settable = false;
+        memUtilization.loadDb = false;
+        memUtilization.replicated = false;
         this->addChildObject(&pageFaults, "pageFaults");
         pageFaults.config = false;
+        pageFaults.settable = false;
+        pageFaults.loadDb = false;
+        pageFaults.replicated = false;
         this->addChildObject(&numThreads, "numThreads");
         numThreads.config = false;
+        numThreads.settable = false;
+        numThreads.loadDb = false;
+        numThreads.replicated = false;
         this->addChildObject(&residentMem, "residentMem");
         residentMem.config = false;
+        residentMem.settable = false;
+        residentMem.loadDb = false;
+        residentMem.replicated = false;
         this->tag.assign("procStats");
     };
 

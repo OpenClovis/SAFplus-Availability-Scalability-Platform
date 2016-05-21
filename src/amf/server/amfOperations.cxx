@@ -39,9 +39,11 @@ namespace SAFplus
   // Move this service group and all contained elements to the specified state.
   void setAdminState(SAFplusAmf::ServiceGroup* sg,SAFplusAmf::AdministrativeState tgt)
     {
-    SAFplus::MgtProvList<SAFplusAmf::ServiceUnit*>::ContainerType::iterator itsu;
-    SAFplus::MgtProvList<SAFplusAmf::ServiceUnit*>::ContainerType::iterator endsu = sg->serviceUnits.value.end();
-    for (itsu = sg->serviceUnits.value.begin(); itsu != endsu; itsu++)
+      //SAFplus::MgtProvList<SAFplusAmf::ServiceUnit*>::ContainerType::iterator itsu;
+    SAFplus::MgtIdentifierList<SAFplusAmf::ServiceUnit*>::iterator itsu;
+    //SAFplus::MgtProvList<SAFplusAmf::ServiceUnit*>::ContainerType::iterator endsu = sg->serviceUnits.value.end();
+    SAFplus::MgtIdentifierList<SAFplusAmf::ServiceUnit*>::iterator endsu = sg->serviceUnits.listEnd();
+    for (itsu = sg->serviceUnits.listBegin(); itsu != endsu; itsu++)
       {
       //ServiceUnit* su = dynamic_cast<ServiceUnit*>(itsu->second);
       ServiceUnit* su = dynamic_cast<ServiceUnit*>(*itsu);
@@ -345,9 +347,11 @@ namespace SAFplus
       assert(su);
 
       // Update the Service Instances: decrement assignment statistics, and remove this SU from the SI's assigned list.
-      SAFplus::MgtProvList<SAFplusAmf::ServiceInstance*>::ContainerType::iterator   it;
-      SAFplus::MgtProvList<SAFplusAmf::ServiceInstance*>::ContainerType::iterator   end = su->assignedServiceInstances.value.end();
-      for (it = su->assignedServiceInstances.value.begin(); it != end; it++)
+      // SAFplus::MgtProvList<SAFplusAmf::ServiceInstance*>::ContainerType::iterator   it;
+      //SAFplus::MgtProvList<SAFplusAmf::ServiceInstance*>::ContainerType::iterator   end = su->assignedServiceInstances.value.end();
+      SAFplus::MgtIdentifierList<SAFplusAmf::ServiceInstance*>::iterator it;
+      SAFplus::MgtIdentifierList<SAFplusAmf::ServiceInstance*>::iterator end = su->assignedServiceInstances.listEnd();
+      for (it = su->assignedServiceInstances.listBegin(); it != end; it++)
         {
           ServiceInstance* si = dynamic_cast<ServiceInstance*>(*it);
           assert(si);
@@ -376,9 +380,11 @@ namespace SAFplus
       // TODO: clear the CSI structures
 
       // Now actually remove the work from the relevant components
-      SAFplus::MgtProvList<SAFplusAmf::Component*>::ContainerType::iterator   itcomp;
-      SAFplus::MgtProvList<SAFplusAmf::Component*>::ContainerType::iterator   endcomp = su->components.value.end();
-      for (itcomp = su->components.value.begin(); itcomp != endcomp; itcomp++)
+      SAFplus::MgtIdentifierList<SAFplusAmf::Component*>::iterator itcomp;
+      SAFplus::MgtIdentifierList<SAFplusAmf::Component*>::iterator endcomp = su->components.listEnd();
+      //SAFplus::MgtProvList<SAFplusAmf::Component*>::ContainerType::iterator   itcomp;
+      //SAFplus::MgtProvList<SAFplusAmf::Component*>::ContainerType::iterator   endcomp = su->components.value.end();
+      for (itcomp = su->components.listBegin(); itcomp != endcomp; itcomp++)
         {
           Component* comp = dynamic_cast<Component*>(*itcomp);
           assert(comp);   
@@ -446,9 +452,12 @@ namespace SAFplus
     if (state == HighAvailabilityState::active) su->numActiveServiceInstances.current.value+=1;
     if (state == HighAvailabilityState::standby) su->numStandbyServiceInstances.current.value+=1;
 
-    SAFplus::MgtProvList<SAFplusAmf::Component*>::ContainerType::iterator   itcomp;
-    SAFplus::MgtProvList<SAFplusAmf::Component*>::ContainerType::iterator   endcomp = su->components.value.end();
-    for (itcomp = su->components.value.begin(); itcomp != endcomp; itcomp++)
+    //SAFplus::MgtProvList<SAFplusAmf::Component*>::ContainerType::iterator   itcomp;
+    //SAFplus::MgtProvList<SAFplusAmf::Component*>::ContainerType::iterator   endcomp = su->components.value.end();
+    SAFplus::MgtIdentifierList<SAFplusAmf::Component*>::iterator itcomp;
+    SAFplus::MgtIdentifierList<SAFplusAmf::Component*>::iterator endcomp = su->components.listEnd();
+
+    for (itcomp = su->components.listBegin(); itcomp != endcomp; itcomp++)
       {
 
       Component* comp = dynamic_cast<Component*>(*itcomp);
@@ -475,11 +484,13 @@ namespace SAFplus
       // TODO: let's add an extension to SAF in the SI which basically just says "ignore CSIs" and/or "assign all components to the same CSI".  This makes the model simpler
 
       // Let's find a CSI that we can apply to this component
-      SAFplus::MgtProvList<SAFplusAmf::ComponentServiceInstance*>::ContainerType::iterator itcsi;
-      SAFplus::MgtProvList<SAFplusAmf::ComponentServiceInstance*>::ContainerType::iterator endcsi = si->componentServiceInstances.value.end();
+      //SAFplus::MgtProvList<SAFplusAmf::ComponentServiceInstance*>::ContainerType::iterator itcsi;
+      //SAFplus::MgtProvList<SAFplusAmf::ComponentServiceInstance*>::ContainerType::iterator endcsi = si->componentServiceInstances.value.end();
+      SAFplus::MgtIdentifierList<SAFplusAmf::ComponentServiceInstance*>::iterator itcsi;
+      SAFplus::MgtIdentifierList<SAFplusAmf::ComponentServiceInstance*>::iterator endcsi = si->componentServiceInstances.listEnd();
 
       SAFplusAmf::ComponentServiceInstance* csi = NULL;
-      for (itcsi = si->componentServiceInstances.value.begin(); itcsi != endcsi; itcsi++)
+      for (itcsi = si->componentServiceInstances.listBegin(); itcsi != endcsi; itcsi++)
         {
         csi = *itcsi;
         if (!csi) continue;

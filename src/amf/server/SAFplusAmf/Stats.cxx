@@ -23,10 +23,19 @@ namespace SAFplusAmf
     {
         this->addChildObject(&upTime, "upTime");
         upTime.config = false;
+        upTime.settable = false;
+        upTime.loadDb = false;
+        upTime.replicated = false;
         this->addChildObject(&bootTime, "bootTime");
         bootTime.config = false;
+        bootTime.settable = false;
+        bootTime.loadDb = false;
+        bootTime.replicated = false;
         this->addChildObject(&load, "load");
         load.config = false;
+        load.settable = false;
+        load.loadDb = false;
+        load.replicated = false;
     };
 
     std::vector<std::string>* Stats::getChildNames()

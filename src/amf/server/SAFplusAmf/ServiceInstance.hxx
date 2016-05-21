@@ -146,36 +146,6 @@ namespace SAFplusAmf
         void setRank(::uint32_t rankValue, SAFplus::Transaction &t=SAFplus::NO_TXN);
 
         /*
-         * XPATH: /SAFplusAmf/safplusAmf/ServiceInstance/activeAssignments
-         */
-        std::vector<::SAFplusAmf::ServiceUnit*> getActiveAssignments();
-
-        /*
-         * XPATH: /SAFplusAmf/safplusAmf/ServiceInstance/activeAssignments
-         */
-        void setActiveAssignments(::SAFplusAmf::ServiceUnit* activeAssignmentsValue);
-
-        /*
-         * XPATH: /SAFplusAmf/safplusAmf/ServiceInstance/standbyAssignments
-         */
-        std::vector<::SAFplusAmf::ServiceUnit*> getStandbyAssignments();
-
-        /*
-         * XPATH: /SAFplusAmf/safplusAmf/ServiceInstance/standbyAssignments
-         */
-        void setStandbyAssignments(::SAFplusAmf::ServiceUnit* standbyAssignmentsValue);
-
-        /*
-         * XPATH: /SAFplusAmf/safplusAmf/ServiceInstance/componentServiceInstances
-         */
-        std::vector<::SAFplusAmf::ComponentServiceInstance*> getComponentServiceInstances();
-
-        /*
-         * XPATH: /SAFplusAmf/safplusAmf/ServiceInstance/componentServiceInstances
-         */
-        void setComponentServiceInstances(::SAFplusAmf::ComponentServiceInstance* componentServiceInstancesValue);
-
-        /*
          * XPATH: /SAFplusAmf/safplusAmf/ServiceInstance/serviceGroup
          */
         SAFplusAmf::ServiceGroup* getServiceGroup();

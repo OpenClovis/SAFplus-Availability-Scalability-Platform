@@ -61,7 +61,7 @@ namespace SAFplus
     }
     else
     {
-      //? This environment variable specifies which dbal plugin should be used.
+      //? <cfg name="SAFPLUS_DB_PLUGIN"> This environment variable specifies which database plugin should be used.  Application-specific variables may override this default choice </cfg>
       dbalFile = getenv("SAFPLUS_DB_PLUGIN");
     }
     if (!dbalFile)

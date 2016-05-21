@@ -774,9 +774,8 @@ int main(int argc, char* argv[])
   SAFplus::Handle hdl(TransientHandle,1,SAFplusI::AMF_IOC_PORT,SAFplus::ASP_NODEADDR);
   //service.startComponent(hdl,&req, &resp);
 #endif
-  //sleep(10000);
 
-  // TMPlogServer = boost::thread(LogServer());
+  logServer = boost::thread(LogServer());
 
   AmfOperations amfOps;  // Must happen after messaging initialization so that we can use the node address and message port in the invocation.
   amfOps.amfInternalRpc = &amfInternalRpc;

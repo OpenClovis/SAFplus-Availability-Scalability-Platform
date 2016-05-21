@@ -44,6 +44,8 @@ namespace SAFplus
     allocated = false;
     loadDb = true;
     config = true;
+    settable = true;
+    replicated = true;
     parent = nullptr;
     headRev = 1;
   }
@@ -179,6 +181,11 @@ namespace SAFplus
   MgtObject* MgtObject::deepMatch(const std::string &name)
   {
     return nullptr;
+  }
+
+  bool MgtObject::Iterator::operator ==(const MgtObject::Iterator& e) const
+  {
+    return !(*this != e);
   }
 
   bool MgtObject::Iterator::operator !=(const MgtObject::Iterator& e) const

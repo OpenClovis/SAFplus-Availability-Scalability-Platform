@@ -102,14 +102,9 @@ ClRcT SqlitePlugin::open(ClDBFileT dbFile, ClDBNameT dbName, ClDBFlagT dbFlag, C
 		enableSync = CL_TRUE;
 	}
 
-    /* Let the environment variable override the coded behaviour */
-    if (getenv("ASP_DB_SYNC"))
-    {
-        if (SAFplus::clParseEnvBoolean("ASP_DB_SYNC"))
-            enableSync = CL_TRUE;
-        else
-            enableSync = CL_FALSE;
-    }
+    /* <cfg name="SAFPLUS_DB_SYNC">Should the database sync disks upon write?  Yes, reduces performance but decreases lost data upon failure.  This environment variable will override the coded behaviour.</cfg> */
+    enableSync = SAFplus::parseEnvBoolean("SAFPLUS_DB_SYNC",enableSync);
+  
 
     pSQLiteHandle = (SQLiteDBHandle_t *)SAFplusHeapAlloc(sizeof(SQLiteDBHandle_t));
 

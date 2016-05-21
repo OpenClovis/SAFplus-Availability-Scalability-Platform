@@ -26,8 +26,14 @@ namespace SAFplusAmf
         this->config = false;
         this->addChildObject(&name, "name");
         name.config = false;
+        name.settable = false;
+        name.loadDb = false;
+        name.replicated = false;
         this->addChildObject(&entity, "entity");
         entity.config = false;
+        entity.settable = false;
+        entity.loadDb = false;
+        entity.replicated = false;
     };
 
     EntityByName::EntityByName(const std::string& nameValue): SAFplus::MgtContainer("EntityByName"), name("name"), entity("entity")
@@ -36,8 +42,14 @@ namespace SAFplusAmf
         this->config = false;
         this->addChildObject(&name, "name");
         name.config = false;
+        name.settable = false;
+        name.loadDb = false;
+        name.replicated = false;
         this->addChildObject(&entity, "entity");
         entity.config = false;
+        entity.settable = false;
+        entity.loadDb = false;
+        entity.replicated = false;
     };
 
     std::vector<std::string> EntityByName::getKeys()

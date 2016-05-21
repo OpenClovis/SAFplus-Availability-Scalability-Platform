@@ -194,26 +194,6 @@ namespace SAFplusAmf
         void setMaxStandbyWorkAssignments(::uint32_t maxStandbyWorkAssignmentsValue, SAFplus::Transaction &t=SAFplus::NO_TXN);
 
         /*
-         * XPATH: /SAFplusAmf/safplusAmf/ServiceGroup/serviceUnits
-         */
-        std::vector<::SAFplusAmf::ServiceUnit*> getServiceUnits();
-
-        /*
-         * XPATH: /SAFplusAmf/safplusAmf/ServiceGroup/serviceUnits
-         */
-        void setServiceUnits(::SAFplusAmf::ServiceUnit* serviceUnitsValue);
-
-        /*
-         * XPATH: /SAFplusAmf/safplusAmf/ServiceGroup/serviceInstances
-         */
-        std::vector<::SAFplusAmf::ServiceInstance*> getServiceInstances();
-
-        /*
-         * XPATH: /SAFplusAmf/safplusAmf/ServiceGroup/serviceInstances
-         */
-        void setServiceInstances(::SAFplusAmf::ServiceInstance* serviceInstancesValue);
-
-        /*
          * XPATH: /SAFplusAmf/safplusAmf/ServiceGroup/application
          */
         ::SAFplusAmf::Application* getApplication();

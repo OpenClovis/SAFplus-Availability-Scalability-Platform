@@ -35,46 +35,78 @@ namespace SAFplusAmf
     /* Apply MGT object factory */
     MGT_REGISTER_IMPL(ServiceUnit, /SAFplusAmf/safplusAmf/ServiceUnit)
 
-    ServiceUnit::ServiceUnit(): adminState("adminState",::SAFplusAmf::AdministrativeState::on), rank("rank",0), failover("failover"), preinstantiable("preinstantiable"), saAmfSUHostNodeOrNodeGroup("saAmfSUHostNodeOrNodeGroup"), presenceState("presenceState",::SAFplusAmf::PresenceState::uninstantiated), readinessState("readinessState",::SAFplusAmf::ReadinessState::outOfService), haReadinessState("haReadinessState",::SAFplusAmf::HighAvailabilityReadinessState::readyForAssignment), haState("haState"), operState("operState"), assignedServiceInstances("assignedServiceInstances"), components("components"), node("node"), serviceGroup("serviceGroup"), probationTime("probationTime",0)
+    ServiceUnit::ServiceUnit(): adminState("adminState",::SAFplusAmf::AdministrativeState::on), rank("rank",0), failover("failover"), preinstantiable("preinstantiable"), saAmfSUHostNodeOrNodeGroup("saAmfSUHostNodeOrNodeGroup"), presenceState("presenceState",::SAFplusAmf::PresenceState::uninstantiated), readinessState("readinessState",::SAFplusAmf::ReadinessState::outOfService), haReadinessState("haReadinessState",::SAFplusAmf::HighAvailabilityReadinessState::readyForAssignment), haState("haState",::SAFplusAmf::HighAvailabilityState::idle), operState("operState",true), assignedServiceInstances("assignedServiceInstances"), components("components"), node("node"), serviceGroup("serviceGroup"), probationTime("probationTime",0)
     {
         this->addChildObject(&adminState, "adminState");
         this->addChildObject(&rank, "rank");
         this->addChildObject(&failover, "failover");
         this->addChildObject(&preinstantiable, "preinstantiable");
         preinstantiable.config = false;
+        preinstantiable.settable = false;
+        preinstantiable.loadDb = false;
+        preinstantiable.replicated = false;
         this->addChildObject(&saAmfSUHostNodeOrNodeGroup, "saAmfSUHostNodeOrNodeGroup");
         this->addChildObject(&presenceState, "presenceState");
         presenceState.config = false;
+        presenceState.settable = false;
+        presenceState.loadDb = false;
+        presenceState.replicated = false;
         this->addChildObject(&readinessState, "readinessState");
         readinessState.config = false;
+        readinessState.settable = false;
+        readinessState.loadDb = false;
+        readinessState.replicated = false;
         this->addChildObject(&haReadinessState, "haReadinessState");
         haReadinessState.config = false;
+        haReadinessState.settable = false;
+        haReadinessState.loadDb = false;
+        haReadinessState.replicated = false;
         this->addChildObject(&haState, "haState");
         haState.config = false;
+        haState.settable = false;
+        haState.loadDb = false;
+        haState.replicated = false;
         this->addChildObject(&operState, "operState");
         operState.config = false;
+        operState.settable = true;
+        operState.loadDb = false;
+        operState.replicated = false;
         this->addChildObject(&assignedServiceInstances, "assignedServiceInstances");
         assignedServiceInstances.config = false;
+        assignedServiceInstances.settable = false;
+        assignedServiceInstances.loadDb = false;
+        assignedServiceInstances.replicated = false;
         this->addChildObject(&components, "components");
         this->addChildObject(&node, "node");
         this->addChildObject(&serviceGroup, "serviceGroup");
         this->addChildObject(&probationTime, "probationTime");
         this->addChildObject(&numActiveServiceInstances, "numActiveServiceInstances");
         numActiveServiceInstances.config = false;
+        numActiveServiceInstances.settable = false;
+        numActiveServiceInstances.loadDb = false;
+        numActiveServiceInstances.replicated = false;
         this->addChildObject(&numStandbyServiceInstances, "numStandbyServiceInstances");
         numStandbyServiceInstances.config = false;
+        numStandbyServiceInstances.settable = false;
+        numStandbyServiceInstances.loadDb = false;
+        numStandbyServiceInstances.replicated = false;
         this->addChildObject(&restartCount, "restartCount");
         restartCount.config = false;
+        restartCount.settable = false;
+        restartCount.loadDb = false;
+        restartCount.replicated = false;
         this->tag.assign("ServiceUnit");
         adminState = ::SAFplusAmf::AdministrativeState::on;
         rank = 0;
         presenceState = ::SAFplusAmf::PresenceState::uninstantiated;
         readinessState = ::SAFplusAmf::ReadinessState::outOfService;
         haReadinessState = ::SAFplusAmf::HighAvailabilityReadinessState::readyForAssignment;
+        haState = ::SAFplusAmf::HighAvailabilityState::idle;
+        operState = true;
         probationTime = 0;
     };
 
-    ServiceUnit::ServiceUnit(const std::string& nameValue): adminState("adminState",::SAFplusAmf::AdministrativeState::on), rank("rank",0), failover("failover"), preinstantiable("preinstantiable"), saAmfSUHostNodeOrNodeGroup("saAmfSUHostNodeOrNodeGroup"), presenceState("presenceState",::SAFplusAmf::PresenceState::uninstantiated), readinessState("readinessState",::SAFplusAmf::ReadinessState::outOfService), haReadinessState("haReadinessState",::SAFplusAmf::HighAvailabilityReadinessState::readyForAssignment), haState("haState"), operState("operState"), assignedServiceInstances("assignedServiceInstances"), components("components"), node("node"), serviceGroup("serviceGroup"), probationTime("probationTime",0)
+    ServiceUnit::ServiceUnit(const std::string& nameValue): adminState("adminState",::SAFplusAmf::AdministrativeState::on), rank("rank",0), failover("failover"), preinstantiable("preinstantiable"), saAmfSUHostNodeOrNodeGroup("saAmfSUHostNodeOrNodeGroup"), presenceState("presenceState",::SAFplusAmf::PresenceState::uninstantiated), readinessState("readinessState",::SAFplusAmf::ReadinessState::outOfService), haReadinessState("haReadinessState",::SAFplusAmf::HighAvailabilityReadinessState::readyForAssignment), haState("haState",::SAFplusAmf::HighAvailabilityState::idle), operState("operState",true), assignedServiceInstances("assignedServiceInstances"), components("components"), node("node"), serviceGroup("serviceGroup"), probationTime("probationTime",0)
     {
         this->name.value =  nameValue;
         this->addChildObject(&adminState, "adminState");
@@ -82,29 +114,59 @@ namespace SAFplusAmf
         this->addChildObject(&failover, "failover");
         this->addChildObject(&preinstantiable, "preinstantiable");
         preinstantiable.config = false;
+        preinstantiable.settable = false;
+        preinstantiable.loadDb = false;
+        preinstantiable.replicated = false;
         this->addChildObject(&saAmfSUHostNodeOrNodeGroup, "saAmfSUHostNodeOrNodeGroup");
         this->addChildObject(&presenceState, "presenceState");
         presenceState.config = false;
+        presenceState.settable = false;
+        presenceState.loadDb = false;
+        presenceState.replicated = false;
         this->addChildObject(&readinessState, "readinessState");
         readinessState.config = false;
+        readinessState.settable = false;
+        readinessState.loadDb = false;
+        readinessState.replicated = false;
         this->addChildObject(&haReadinessState, "haReadinessState");
         haReadinessState.config = false;
+        haReadinessState.settable = false;
+        haReadinessState.loadDb = false;
+        haReadinessState.replicated = false;
         this->addChildObject(&haState, "haState");
         haState.config = false;
+        haState.settable = false;
+        haState.loadDb = false;
+        haState.replicated = false;
         this->addChildObject(&operState, "operState");
         operState.config = false;
+        operState.settable = true;
+        operState.loadDb = false;
+        operState.replicated = false;
         this->addChildObject(&assignedServiceInstances, "assignedServiceInstances");
         assignedServiceInstances.config = false;
+        assignedServiceInstances.settable = false;
+        assignedServiceInstances.loadDb = false;
+        assignedServiceInstances.replicated = false;
         this->addChildObject(&components, "components");
         this->addChildObject(&node, "node");
         this->addChildObject(&serviceGroup, "serviceGroup");
         this->addChildObject(&probationTime, "probationTime");
         this->addChildObject(&numActiveServiceInstances, "numActiveServiceInstances");
         numActiveServiceInstances.config = false;
+        numActiveServiceInstances.settable = false;
+        numActiveServiceInstances.loadDb = false;
+        numActiveServiceInstances.replicated = false;
         this->addChildObject(&numStandbyServiceInstances, "numStandbyServiceInstances");
         numStandbyServiceInstances.config = false;
+        numStandbyServiceInstances.settable = false;
+        numStandbyServiceInstances.loadDb = false;
+        numStandbyServiceInstances.replicated = false;
         this->addChildObject(&restartCount, "restartCount");
         restartCount.config = false;
+        restartCount.settable = false;
+        restartCount.loadDb = false;
+        restartCount.replicated = false;
         this->tag.assign("ServiceUnit");
     };
 
@@ -328,38 +390,6 @@ namespace SAFplusAmf
             SAFplus::SimpleTxnOperation<bool> *opt = new SAFplus::SimpleTxnOperation<bool>(&(operState.value),operStateValue);
             t.addOperation(opt);
         }
-    };
-
-    /*
-     * XPATH: /SAFplusAmf/safplusAmf/ServiceUnit/assignedServiceInstances
-     */
-    std::vector<SAFplusAmf::ServiceInstance*> ServiceUnit::getAssignedServiceInstances()
-    {
-        return this->assignedServiceInstances.value;
-    };
-
-    /*
-     * XPATH: /SAFplusAmf/safplusAmf/ServiceUnit/assignedServiceInstances
-     */
-    void ServiceUnit::setAssignedServiceInstances(SAFplusAmf::ServiceInstance* assignedServiceInstancesValue)
-    {
-        this->assignedServiceInstances.value.push_back(assignedServiceInstancesValue);
-    };
-
-    /*
-     * XPATH: /SAFplusAmf/safplusAmf/ServiceUnit/components
-     */
-    std::vector<SAFplusAmf::Component*> ServiceUnit::getComponents()
-    {
-        return this->components.value;
-    };
-
-    /*
-     * XPATH: /SAFplusAmf/safplusAmf/ServiceUnit/components
-     */
-    void ServiceUnit::setComponents(SAFplusAmf::Component* componentsValue)
-    {
-        this->components.value.push_back(componentsValue);
     };
 
     /*

@@ -6,6 +6,22 @@ import microdom
 AmfPfx = "safplusAmf"
 SiPfx = "ServiceInstance"
 
+def commit(dct,prefix="/safplusAmf"):
+  pdb.set_trace()
+  for (name,val) in dct.items():
+    myPath = "%s/%s" % (prefix,name)
+    if type(val) is types.DictType:  # its a YANG container
+      cur = sp.mgtGet(myPath)
+      if cur == "":
+        sp.mgtCreate(myPath)
+      commit(val,myPath)
+    elif type(val) is types.InstanceType:  # another was to describe a YANG container
+      assert(0)  # TODO
+    elif type(val) is types.ListType: # a YANG list
+      assert(0)  # TODO
+    else:
+      sp.mgtSet(myPath,str(val))
+
 def csv2List(csvString):
   """Convert comma separated values to a Python list"""
   if not csvString.strip(): return []  # turn "" into [], otherwise it is ['']
@@ -156,8 +172,6 @@ def displaySgStatus(sg):
 
 def Test():
   print "PID IS: ", os.getpid()
-  pdb.set_trace()
-  # pdb.set_trace()
   global SAFplusInitialized
   if not SAFplusInitialized:
     svcs = sp.Libraries.MSG | sp.Libraries.GRP | sp.Libraries.MGT_ACCESS
@@ -168,5 +182,10 @@ def Test():
   displaySgStatus("sg0")
 
   ret = activeStandby("si")
+
+  entity = { "Component/dynComp" : { "maxActiveAssignments":4, "maxStandbyAssignments":2, "instantiate": { "command" : "../test/exampleSafApp dynComp", "timeout":60*1000 }}}
+
+  commit(entity)
+
   print "Active: %s" % str(ret[0])
   print "Standby: %s" % str(ret[1])

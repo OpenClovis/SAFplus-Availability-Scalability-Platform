@@ -100,8 +100,8 @@ void heapFree(void* buffer, const char* file, uint_t line);
   extern bool clVersionVerify (ClVersionDatabaseT *versionDatabase, SaVersionT *version);
 
   // DEPRECATED bool clIsProcessAlive(uint32_t pid); 
-  bool clParseEnvBoolean(const char* envvar);
-  inline bool parseEnvBoolean(const char* envvar) { return clParseEnvBoolean(envvar); }
+  bool clParseEnvBoolean(const char* envvar, bool defaultValue=false);
+  inline bool parseEnvBoolean(const char* envvar, bool defaultValue=false) { return clParseEnvBoolean(envvar,defaultValue); }
 
   char *clParseEnvStr(const char* envvar);
   inline char* parseEnvStr(const char* envvar) { return clParseEnvStr(envvar); }

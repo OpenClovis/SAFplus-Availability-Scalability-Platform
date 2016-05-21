@@ -122,7 +122,7 @@ namespace SAFplusAmf
         /*
          * The last time an instantiation attempt occurred
          */
-        SAFplus::MgtProv<SAFplusTypes::Date> lastInstantiation;
+        SAFplus::MgtProv<::SAFplusTypes::Date> lastInstantiation;
 
         /*
          * How long to delay between instantiation attempts
@@ -162,9 +162,9 @@ namespace SAFplusAmf
         SAFplus::MgtProv<::SAFplusAmf::PendingOperation> pendingOperation;
 
         /*
-         * When the system will give up on the pending operation, in milliseconds
+         * When the system will give up on the pending operation, in milliseconds since the epoch
          */
-        SAFplus::MgtProv<SAFplusTypes::Date> pendingOperationExpiration;
+        SAFplus::MgtProv<::SAFplusTypes::Date> pendingOperationExpiration;
         SAFplusAmf::ProcStats procStats;
         SAFplus::MgtHistoryStat<int> activeAssignments;
         SAFplus::MgtHistoryStat<int> standbyAssignments;
@@ -219,16 +219,6 @@ namespace SAFplusAmf
          * XPATH: /SAFplusAmf/safplusAmf/Component/maxStandbyAssignments
          */
         void setMaxStandbyAssignments(::uint32_t maxStandbyAssignmentsValue, SAFplus::Transaction &t=SAFplus::NO_TXN);
-
-        /*
-         * XPATH: /SAFplusAmf/safplusAmf/Component/assignedWork
-         */
-        std::vector<std::string> getAssignedWork();
-
-        /*
-         * XPATH: /SAFplusAmf/safplusAmf/Component/assignedWork
-         */
-        void setAssignedWork(std::string assignedWorkValue);
 
         /*
          * XPATH: /SAFplusAmf/safplusAmf/Component/operState
@@ -301,16 +291,6 @@ namespace SAFplusAmf
         void setSwBundle(std::string swBundleValue, SAFplus::Transaction &t=SAFplus::NO_TXN);
 
         /*
-         * XPATH: /SAFplusAmf/safplusAmf/Component/commandEnvironment
-         */
-        std::vector<std::string> getCommandEnvironment();
-
-        /*
-         * XPATH: /SAFplusAmf/safplusAmf/Component/commandEnvironment
-         */
-        void setCommandEnvironment(std::string commandEnvironmentValue);
-
-        /*
          * XPATH: /SAFplusAmf/safplusAmf/Component/maxInstantInstantiations
          */
         ::uint32_t getMaxInstantInstantiations();
@@ -353,12 +333,12 @@ namespace SAFplusAmf
         /*
          * XPATH: /SAFplusAmf/safplusAmf/Component/lastInstantiation
          */
-        SAFplusTypes::Date getLastInstantiation();
+        ::SAFplusTypes::Date getLastInstantiation();
 
         /*
          * XPATH: /SAFplusAmf/safplusAmf/Component/lastInstantiation
          */
-        void setLastInstantiation(SAFplusTypes::Date &lastInstantiationValue, SAFplus::Transaction &t=SAFplus::NO_TXN);
+        void setLastInstantiation(::SAFplusTypes::Date &lastInstantiationValue, SAFplus::Transaction &t=SAFplus::NO_TXN);
 
         /*
          * XPATH: /SAFplusAmf/safplusAmf/Component/delayBetweenInstantiation
@@ -411,16 +391,6 @@ namespace SAFplusAmf
         void setProxy(std::string proxyValue, SAFplus::Transaction &t=SAFplus::NO_TXN);
 
         /*
-         * XPATH: /SAFplusAmf/safplusAmf/Component/proxied
-         */
-        std::vector<std::string> getProxied();
-
-        /*
-         * XPATH: /SAFplusAmf/safplusAmf/Component/proxied
-         */
-        void setProxied(std::string proxiedValue);
-
-        /*
          * XPATH: /SAFplusAmf/safplusAmf/Component/processId
          */
         ::int32_t getProcessId();
@@ -453,12 +423,12 @@ namespace SAFplusAmf
         /*
          * XPATH: /SAFplusAmf/safplusAmf/Component/pendingOperationExpiration
          */
-        SAFplusTypes::Date getPendingOperationExpiration();
+        ::SAFplusTypes::Date getPendingOperationExpiration();
 
         /*
          * XPATH: /SAFplusAmf/safplusAmf/Component/pendingOperationExpiration
          */
-        void setPendingOperationExpiration(SAFplusTypes::Date &pendingOperationExpirationValue, SAFplus::Transaction &t=SAFplus::NO_TXN);
+        void setPendingOperationExpiration(::SAFplusTypes::Date &pendingOperationExpirationValue, SAFplus::Transaction &t=SAFplus::NO_TXN);
 
         /*
          * XPATH: /SAFplusAmf/safplusAmf/Component/procStats

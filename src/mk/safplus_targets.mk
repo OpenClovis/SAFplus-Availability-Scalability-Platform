@@ -135,7 +135,7 @@ endif
 
 ifndef SAFPLUS_MSG_PLUGIN
 # .PHONY: $(LIB_DIR)/clMsgUdp.so
-$(LIB_DIR)/clMsgUdp.so $(LIB_DIR)/clMsgTcp.so $(LIB_DIR)/clMsgSctp.so $(LIB_DIR)/clMsgTipc.so: $(wildcard $(SAFPLUS_SRC_DIR)/msg/transports/*.cxx)
+$(PLUGIN_DIR)/clMsgUdp.so $(PLUGIN_DIR)/clMsgTcp.so $(PLUGIN_DIR)/clMsgSctp.so $(PLUGIN_DIR)/clMsgTipc.so: $(wildcard $(SAFPLUS_SRC_DIR)/msg/transports/*.cxx)
 	$(MAKE) -C $(SAFPLUS_SRC_DIR)/msg/transports
 endif
 
@@ -199,7 +199,7 @@ endif
 
 #SAFplusTests := $(TEST_DIR)/testLog $(TEST_DIR)/testmgt   $(TEST_DIR)/TestClient $(TEST_DIR)/TestServer $(TEST_DIR)/TestCombine $(TEST_DIR)/testCkpt $(TEST_DIR)/testGroup $(TEST_DIR)/exampleSafApp $(TEST_DIR)/testTransport $(TEST_DIR)/testMsgPerf
 
-SAFplusMsgTransports := $(LIB_DIR)/clMsgUdp.so $(LIB_DIR)/clMsgTipc.so $(LIB_DIR)/clMsgSctp.so $(LIB_DIR)/clMsgTcp.so
+SAFplusMsgTransports := $(PLUGIN_DIR)/clMsgUdp.so $(PLUGIN_DIR)/clMsgTipc.so $(PLUGIN_DIR)/clMsgSctp.so $(PLUGIN_DIR)/clMsgTcp.so
 SAFplusDbalPlugins := $(PLUGIN_DIR)/libclBerkeleyDB.so $(PLUGIN_DIR)/libclSQLiteDB.so $(PLUGIN_DIR)/libclGDBM.so $(PLUGIN_DIR)/libclCkptDB.so
 
 # ordered by dependency

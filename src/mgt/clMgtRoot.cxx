@@ -586,6 +586,7 @@ namespace SAFplus
           {
             rc = (*i)->createObj(value);
             logDebug("MGT","CRET","Object [%s] created", xpath.c_str());
+            updateReference();  // Since a new object is created, update refs that might be pointed to it
             MgtRoot::sendReplyMsg(srcAddr, (void *) &rc, sizeof(ClRcT));
             /*
              * Not allow multiple objects
@@ -779,14 +780,13 @@ namespace SAFplus
 
   void MgtRoot::addReference(MgtObject* mgtObject)
   {
+    if (std::find(this->mgtReferenceList.begin(),this->mgtReferenceList.end(), mgtObject) == this->mgtReferenceList.end())
       this->mgtReferenceList.push_back(mgtObject);
   }
 
   void MgtRoot::updateReference(void)
   {
-    for(std::vector<MgtObject*>::iterator it = this->mgtReferenceList.begin();
-        it != this->mgtReferenceList.end();
-        it++)
+    for(std::vector<MgtObject*>::iterator it = this->mgtReferenceList.begin(); it != this->mgtReferenceList.end(); ++it)
       {
         MgtObject* mgtObject = *it;
         printf("updating %s\n", mgtObject->tag.c_str());

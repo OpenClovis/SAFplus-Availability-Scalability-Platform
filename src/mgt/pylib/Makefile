@@ -15,7 +15,7 @@ CLIENT_PYLIB_H   := $(wildcard *.hxx) $(wildcard $(SAFPLUS_INC_DIR)/*.h) $(wildc
 CLIENT_PYLIB_SRC := $(wildcard *.cxx)
 CLIENT_PYLIB_OBJ := $(addprefix $(OBJ_DIR)/,$(subst .cxx,.o,$(CLIENT_PYLIB_SRC)))
 
-PYLIB_SRC := $(BIN_DIR)/safplus_db $(LIB_DIR)/dbalpy.py $(LIB_DIR)/common.py $(LIB_DIR)/microdom.py $(LIB_DIR)/pyDbal.py
+PYLIB_SRC := $(LIB_DIR)/safplusMgtDb.py $(LIB_DIR)/common.py $(LIB_DIR)/microdom.py $(LIB_DIR)/pyDbal.py
 
 Release all: $(LIB_DIR)/pyDbal.so $(BIN_DIR)/safplus_db
 
@@ -25,13 +25,7 @@ $(LIB_DIR)/pyDbal.so: $(CLIENT_PYLIB_OBJ) $(PYLIB_SRC) $(SAFPLUS_DEP_LIBS)
 $(OBJ_DIR)/%.o: %.cxx Makefile $(CLIENT_PYLIB_H)
 	$(COMPILE_CPP) $@ $(<F)
 
-$(BIN_DIR)/safplus_db: safplus_db $(LIB_DIR)/dbalpy.py $(LIB_DIR)/pyDbal.so
-	$(CP) $< $@
-
-$(LIB_DIR)/dbalpy.py: safplus_db
-	$(CP) $< $@
-
-$(BIN_DIR)/%.py: %.py
+$(BIN_DIR)/safplus_db: safplus_db $(LIB_DIR)/safplusMgtDb.py $(LIB_DIR)/pyDbal.so
 	$(CP) $< $@
 
 $(LIB_DIR)/%.py: %.py

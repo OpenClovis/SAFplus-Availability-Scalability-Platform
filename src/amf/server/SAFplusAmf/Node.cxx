@@ -29,13 +29,19 @@ namespace SAFplusAmf
     /* Apply MGT object factory */
     MGT_REGISTER_IMPL(Node, /SAFplusAmf/safplusAmf/Node)
 
-    Node::Node(): presenceState("presenceState",::SAFplusAmf::PresenceState::uninstantiated), adminState("adminState",::SAFplusAmf::AdministrativeState::on), operState("operState"), autoRepair("autoRepair"), failFastOnInstantiationFailure("failFastOnInstantiationFailure"), failFastOnCleanupFailure("failFastOnCleanupFailure"), disableAssignmentOn("disableAssignmentOn"), userDefinedType("userDefinedType"), canBeInherited("canBeInherited"), serviceUnits("serviceUnits"), capacityList("capacity")
+    Node::Node(): presenceState("presenceState",::SAFplusAmf::PresenceState::uninstantiated), adminState("adminState",::SAFplusAmf::AdministrativeState::on), operState("operState",true), autoRepair("autoRepair"), failFastOnInstantiationFailure("failFastOnInstantiationFailure"), failFastOnCleanupFailure("failFastOnCleanupFailure"), disableAssignmentOn("disableAssignmentOn"), userDefinedType("userDefinedType"), canBeInherited("canBeInherited"), serviceUnits("serviceUnits"), capacityList("capacity")
     {
         this->addChildObject(&presenceState, "presenceState");
         presenceState.config = false;
+        presenceState.settable = false;
+        presenceState.loadDb = false;
+        presenceState.replicated = false;
         this->addChildObject(&adminState, "adminState");
         this->addChildObject(&operState, "operState");
         operState.config = false;
+        operState.settable = true;
+        operState.loadDb = false;
+        operState.replicated = false;
         this->addChildObject(&autoRepair, "autoRepair");
         this->addChildObject(&failFastOnInstantiationFailure, "failFastOnInstantiationFailure");
         this->addChildObject(&failFastOnCleanupFailure, "failFastOnCleanupFailure");
@@ -45,6 +51,9 @@ namespace SAFplusAmf
         this->addChildObject(&serviceUnits, "serviceUnits");
         this->addChildObject(&stats, "stats");
         stats.config = false;
+        stats.settable = false;
+        stats.loadDb = false;
+        stats.replicated = false;
         this->addChildObject(&serviceUnitFailureEscalationPolicy, "serviceUnitFailureEscalationPolicy");
         this->addChildObject(&capacityList, "capacity");
         capacityList.childXpath="/SAFplusAmf/safplusAmf/Node/capacity";
@@ -52,16 +61,23 @@ namespace SAFplusAmf
         this->tag.assign("Node");
         presenceState = ::SAFplusAmf::PresenceState::uninstantiated;
         adminState = ::SAFplusAmf::AdministrativeState::on;
+        operState = true;
     };
 
-    Node::Node(const std::string& nameValue): presenceState("presenceState",::SAFplusAmf::PresenceState::uninstantiated), adminState("adminState",::SAFplusAmf::AdministrativeState::on), operState("operState"), autoRepair("autoRepair"), failFastOnInstantiationFailure("failFastOnInstantiationFailure"), failFastOnCleanupFailure("failFastOnCleanupFailure"), disableAssignmentOn("disableAssignmentOn"), userDefinedType("userDefinedType"), canBeInherited("canBeInherited"), serviceUnits("serviceUnits"), capacityList("capacity")
+    Node::Node(const std::string& nameValue): presenceState("presenceState",::SAFplusAmf::PresenceState::uninstantiated), adminState("adminState",::SAFplusAmf::AdministrativeState::on), operState("operState",true), autoRepair("autoRepair"), failFastOnInstantiationFailure("failFastOnInstantiationFailure"), failFastOnCleanupFailure("failFastOnCleanupFailure"), disableAssignmentOn("disableAssignmentOn"), userDefinedType("userDefinedType"), canBeInherited("canBeInherited"), serviceUnits("serviceUnits"), capacityList("capacity")
     {
         this->name.value =  nameValue;
         this->addChildObject(&presenceState, "presenceState");
         presenceState.config = false;
+        presenceState.settable = false;
+        presenceState.loadDb = false;
+        presenceState.replicated = false;
         this->addChildObject(&adminState, "adminState");
         this->addChildObject(&operState, "operState");
         operState.config = false;
+        operState.settable = true;
+        operState.loadDb = false;
+        operState.replicated = false;
         this->addChildObject(&autoRepair, "autoRepair");
         this->addChildObject(&failFastOnInstantiationFailure, "failFastOnInstantiationFailure");
         this->addChildObject(&failFastOnCleanupFailure, "failFastOnCleanupFailure");
@@ -71,6 +87,9 @@ namespace SAFplusAmf
         this->addChildObject(&serviceUnits, "serviceUnits");
         this->addChildObject(&stats, "stats");
         stats.config = false;
+        stats.settable = false;
+        stats.loadDb = false;
+        stats.replicated = false;
         this->addChildObject(&serviceUnitFailureEscalationPolicy, "serviceUnitFailureEscalationPolicy");
         this->addChildObject(&capacityList, "capacity");
         capacityList.childXpath="/SAFplusAmf/safplusAmf/Node/capacity";
@@ -277,22 +296,6 @@ namespace SAFplusAmf
             SAFplus::SimpleTxnOperation<bool> *opt = new SAFplus::SimpleTxnOperation<bool>(&(canBeInherited.value),canBeInheritedValue);
             t.addOperation(opt);
         }
-    };
-
-    /*
-     * XPATH: /SAFplusAmf/safplusAmf/Node/serviceUnits
-     */
-    std::vector<::SAFplusAmf::ServiceUnit*> Node::getServiceUnits()
-    {
-        return this->serviceUnits.value;
-    };
-
-    /*
-     * XPATH: /SAFplusAmf/safplusAmf/Node/serviceUnits
-     */
-    void Node::setServiceUnits(::SAFplusAmf::ServiceUnit* serviceUnitsValue)
-    {
-        this->serviceUnits.value.push_back(serviceUnitsValue);
     };
 
     /*

@@ -410,10 +410,10 @@ namespace SAFplus
   template<class T>
     ClRcT MgtProv<T>::getDb(std::string pxp, MgtDatabase *db)
     {
-      assert(db);
       if (!loadDb)
         return CL_OK;
-
+      if (!db) db = MgtObject::getDb();
+      assert(db);
       std::string key;
       if (pxp.size() > 0)
         {
@@ -439,7 +439,7 @@ namespace SAFplus
   template<class T>
     ClRcT MgtProv<T>::setObj(const std::string &val)
     {
-      if (!config)
+      if (!settable)
         {
         logDebug("MGT","PROV","attempt to set a non-config object [%s]",tag.c_str());
         return CL_ERR_BAD_OPERATION;

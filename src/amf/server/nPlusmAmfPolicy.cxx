@@ -84,9 +84,11 @@ namespace SAFplus
   int ServiceGroupPolicyExecution::start(ServiceUnit* su,Wakeable& w)
     {
     int ret=0;
-    SAFplus::MgtProvList<SAFplusAmf::Component*>::ContainerType::iterator   itcomp;
-    SAFplus::MgtProvList<SAFplusAmf::Component*>::ContainerType::iterator   endcomp = su->components.value.end();
-    for (itcomp = su->components.value.begin(); itcomp != endcomp; itcomp++)
+    //SAFplus::MgtProvList<SAFplusAmf::Component*>::ContainerType::iterator   itcomp;
+    //SAFplus::MgtProvList<SAFplusAmf::Component*>::ContainerType::iterator   endcomp = su->components.value.end();
+    SAFplus::MgtIdentifierList<SAFplusAmf::Component*>::iterator itcomp;
+    SAFplus::MgtIdentifierList<SAFplusAmf::Component*>::iterator endcomp = su->components.listEnd();
+    for (itcomp = su->components.listBegin(); itcomp != endcomp; itcomp++)
       {
       Component* comp = dynamic_cast<Component*>(*itcomp);
       if (!comp->serviceUnit.value)
@@ -155,7 +157,8 @@ namespace SAFplus
       logInfo("N+M","STRT","Starting service group [%s]", name.c_str());
       if (1) // TODO: figure out if this Policy should control this Service group
         {
-        std::vector<SAFplusAmf::ServiceUnit*> sus(sg->serviceUnits.value.begin(),sg->serviceUnits.value.end());
+        std::vector<SAFplusAmf::ServiceUnit*> sus; //(sg->serviceUnits.value.begin(),sg->serviceUnits.value.end());
+        sus << sg->serviceUnits;
 
         // Sort the SUs by rank so we start them up in the proper order.
         boost::sort(sus,suEarliestRanking);
@@ -173,7 +176,11 @@ namespace SAFplus
         ThreadSem waitSem;
         for (itsu = sus.begin(); itsu != sus.end(); itsu++)
           {
-          if (totalStarted >= preferredTotal) break;  // we have started enough
+          if (totalStarted >= preferredTotal)
+            {
+              logInfo("N+M","STRT","Already started [%d] out of [%d] service units in service group [%s], ", totalStarted, preferredTotal, name.c_str());
+            break;  // we have started enough
+            }
           ServiceUnit* su = dynamic_cast<ServiceUnit*>(*itsu);
           // If we moved up to a new rank, we must first wait for the old rank to come up.  This is part of the definition of SU ranks
           if (su->rank.value != curRank)  
@@ -277,9 +284,11 @@ namespace SAFplus
         {
           // TODO: add a text field in the SU that describes why it is not assignable... generate a string from the component iterator and fill that field.
 
-        SAFplus::MgtProvList<SAFplusAmf::Component*>::ContainerType::iterator   itcomp;
-        SAFplus::MgtProvList<SAFplusAmf::Component*>::ContainerType::iterator   endcomp = su->components.value.end();
-        for (itcomp = su->components.value.begin(); itcomp != endcomp; itcomp++)
+          //SAFplus::MgtProvList<SAFplusAmf::Component*>::ContainerType::iterator   itcomp;
+        //SAFplus::MgtProvList<SAFplusAmf::Component*>::ContainerType::iterator   endcomp = su->components.value.end();
+        SAFplus::MgtIdentifierList<SAFplusAmf::Component*>::iterator itcomp;
+        SAFplus::MgtIdentifierList<SAFplusAmf::Component*>::iterator endcomp = su->components.listEnd();
+        for (itcomp = su->components.listBegin(); itcomp != endcomp; itcomp++)
           {
           Component* comp = dynamic_cast<Component*>(*itcomp);
           assert(comp);
@@ -326,9 +335,11 @@ namespace SAFplus
         {
           // TODO: add a text field in the SU that describes why it is not assignable... generate a string from the component iterator and fill that field.
 
-        SAFplus::MgtProvList<SAFplusAmf::Component*>::ContainerType::iterator   itcomp;
-        SAFplus::MgtProvList<SAFplusAmf::Component*>::ContainerType::iterator   endcomp = su->components.value.end();
-        for (itcomp = su->components.value.begin(); itcomp != endcomp; itcomp++)
+        SAFplus::MgtIdentifierList<SAFplusAmf::Component*>::iterator itcomp;
+        SAFplus::MgtIdentifierList<SAFplusAmf::Component*>::iterator endcomp = su->components.listEnd();
+        //SAFplus::MgtProvList<SAFplusAmf::Component*>::ContainerType::iterator   itcomp;
+        //SAFplus::MgtProvList<SAFplusAmf::Component*>::ContainerType::iterator   endcomp = su->components.value.end();
+        for (itcomp = su->components.listBegin(); itcomp != endcomp; itcomp++)
           {
           Component* comp = dynamic_cast<Component*>(*itcomp);
           assert(comp);
@@ -376,12 +387,14 @@ namespace SAFplus
       // Look for Service Units that need to be started up
       if (1)
         {
-        SAFplus::MgtProvList<SAFplusAmf::ServiceUnit*>::ContainerType::iterator itsu;
-        SAFplus::MgtProvList<SAFplusAmf::ServiceUnit*>::ContainerType::iterator endsu = sg->serviceUnits.value.end();
-        for (itsu = sg->serviceUnits.value.begin(); itsu != endsu; itsu++)
+
+        SAFplus::MgtIdentifierList<SAFplusAmf::ServiceUnit*>::iterator itsu;
+        //SAFplus::MgtIdentifierList<SAFplusAmf::ServiceUnit*>::iterator endsu = sg->serviceUnits.listEnd();
+        for (itsu = sg->serviceUnits.listBegin(); itsu != sg->serviceUnits.listEnd(); itsu++)
           {
           //ServiceUnit* su = dynamic_cast<ServiceUnit*>(itsu->second);
           ServiceUnit* su = dynamic_cast<ServiceUnit*>(*itsu);
+          assert(su);
           const std::string& suName = su->name;
 
           Node* node = su->node;
@@ -393,15 +406,17 @@ namespace SAFplus
      
           logInfo("N+M","AUDIT","Auditing service unit [%s] on [%s (%s)]: Operational State [%s] AdminState [%s] PresenceState [%s] ReadinessState [%s] HA State [%s] HA Readiness [%s] ", suName.c_str(),node ? node->name.value.c_str() : "unattached", node ? c_str(node->presenceState.value): "N/A", oper_str(su->operState.value), c_str(su->adminState.value), c_str(su->presenceState.value), c_str(su->readinessState.value), c_str(su->haState.value), c_str(su->haReadinessState.value) );
 
-          SAFplus::MgtProvList<SAFplusAmf::Component*>::ContainerType::iterator   itcomp;
-          SAFplus::MgtProvList<SAFplusAmf::Component*>::ContainerType::iterator   endcomp = su->components.value.end();
-          for (itcomp = su->components.value.begin(); itcomp != endcomp; itcomp++)
+          SAFplus::MgtIdentifierList<SAFplusAmf::Component*>::iterator itcomp;
+          SAFplus::MgtIdentifierList<SAFplusAmf::Component*>::iterator endcomp = su->components.listEnd();
+          //SAFplus::MgtProvList<SAFplusAmf::Component*>::ContainerType::iterator   itcomp;
+          //SAFplus::MgtProvList<SAFplusAmf::Component*>::ContainerType::iterator   endcomp = su->components.value.end();
+          for (itcomp = su->components.listBegin(); itcomp != endcomp; itcomp++)
             {
 	    uint64_t curTime = std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::system_clock::now().time_since_epoch()).count();
             Component* comp = dynamic_cast<Component*>(*itcomp);
             SAFplusAmf::AdministrativeState eas = effectiveAdminState(comp);
-	    logInfo("N+M","AUDIT","Auditing component [%s] on [%s.%s] pid [%d]: Operational State [%s] ReadinessState [%s] HA State [%s] HA Readiness [%s] Pending Operation [%s] (expires in: [%d ms]) instantiation attempts [%d]",comp->name.value.c_str(),node->name.value.c_str(),suName.c_str(), comp->processId.value,
-		    oper_str(comp->operState.value), c_str(comp->readinessState.value),
+	    logInfo("N+M","AUDIT","Auditing component [%s] on [%s.%s] pid [%d]: Operational State [%s] PresenceState [%s] ReadinessState [%s] HA State [%s] HA Readiness [%s] Pending Operation [%s] (expires in: [%d ms]) instantiation attempts [%d]",comp->name.value.c_str(),node ? node->name.value.c_str(): "unattached",suName.c_str(), comp->processId.value,
+		    oper_str(comp->operState.value), c_str(comp->presenceState.value), c_str(comp->readinessState.value),
 		    c_str(comp->haState.value), c_str(comp->haReadinessState.value), c_str(comp->pendingOperation.value), ((comp->pendingOperationExpiration.value.value>0) ? (int) (comp->pendingOperationExpiration.value.value - curTime): 0), comp->numInstantiationAttempts.value);
             if (comp->operState == true) // false means that the component needs repair before we will deal with it.
               {
@@ -479,11 +494,13 @@ namespace SAFplus
 
         // Sort the SUs by rank so we assign them in proper order.
         // TODO: I don't like this constant resorting... we should have a sorted list in the SG.
-        std::vector<SAFplusAmf::ServiceUnit*> sus(sg->serviceUnits.value.begin(),sg->serviceUnits.value.end());
+        std::vector<SAFplusAmf::ServiceUnit*> sus;
+        sus << sg->serviceUnits; // (sg->serviceUnits.begin(),sg->serviceUnits.end());
         boost::sort(sus,suOrder);
 
         // Go through in rank order so that the most important SIs are assigned first
-        std::vector<SAFplusAmf::ServiceInstance*> sis(sg->serviceInstances.value.begin(),sg->serviceInstances.value.end());
+        std::vector<SAFplusAmf::ServiceInstance*> sis; //(sg->serviceInstances.listBegin(),sg->serviceInstances.listEnd());
+        sis << sg->serviceInstances;
         boost::sort(sis,siEarliestRanking);
 
         std::vector<SAFplusAmf::ServiceInstance*>::iterator itsi;
@@ -500,7 +517,8 @@ namespace SAFplus
                 // Sort the SUs by rank so we promote them in proper order.
                 // TODO: I don't like this constant resorting... we should have a sorted list in the SG.
                 logInfo("N+M","AUDIT","Attempting to promote standby service instance [%s] assignment to active",si->name.value.c_str());
-                std::vector<SAFplusAmf::ServiceUnit*> standbySus(si->standbyAssignments.value.begin(),si->standbyAssignments.value.end());
+                std::vector<SAFplusAmf::ServiceUnit*> standbySus; //(si->standbyAssignments.value.begin(),si->standbyAssignments.value.end());
+                standbySus << si->standbyAssignments;
                 boost::sort(standbySus,suOrder);
                 ServiceUnit* su = findPromotableServiceUnit(standbySus,si->activeWeightList,HighAvailabilityState::active);
                 if (su)
@@ -670,7 +688,7 @@ namespace SAFplus
     comp->presenceState = PresenceState::uninstantiated;
     comp->activeAssignments = 0;
     comp->standbyAssignments = 0;
-    comp->setAssignedWork("");
+    comp->assignedWork = "";
     comp->readinessState = ReadinessState::outOfService;
     // right now, only the customer changes this; with presence uninstantiated, this comp obviously can't take an assignment: comp->haReadinessState = HighAvailabilityReadinessState::notReadyForAssignment;
     comp->haState = HighAvailabilityState::idle;
@@ -683,26 +701,35 @@ namespace SAFplus
     SAFplusAmf::ServiceGroup* sg = su->serviceGroup.value;
     
     // I need to remove any CSIs that were assigned to this component.
-    SAFplus::MgtProvList<SAFplusAmf::ServiceInstance*>::ContainerType::iterator itsi;
-    SAFplus::MgtProvList<SAFplusAmf::ServiceInstance*>::ContainerType::iterator endsi = sg->serviceInstances.value.end();
-    for (itsi = sg->serviceInstances.value.begin();itsi != endsi; itsi++)
+    //SAFplus::MgtProvList<SAFplusAmf::ServiceInstance*>::ContainerType::iterator itsi;
+    //SAFplus::MgtProvList<SAFplusAmf::ServiceInstance*>::ContainerType::iterator endsi = sg->serviceInstances.value.end();
+    SAFplus::MgtObject::Iterator itsi;
+    SAFplus::MgtObject::Iterator endsi = sg->serviceInstances.end();
+    for (itsi = sg->serviceInstances.begin();itsi != endsi; itsi++)
       {
-      ServiceInstance* si = *itsi;
+        ServiceInstance* si = dynamic_cast<ServiceInstance*> (itsi->second);
       const std::string& name = si->name;
 
-      SAFplus::MgtProvList<SAFplusAmf::ComponentServiceInstance*>::ContainerType::iterator itcsi;
-      SAFplus::MgtProvList<SAFplusAmf::ComponentServiceInstance*>::ContainerType::iterator endcsi = si->componentServiceInstances.value.end();
+      SAFplus::MgtObject::Iterator itcsi;
+      SAFplus::MgtObject::Iterator endcsi = si->componentServiceInstances.end();
+    //SAFplus::MgtProvList<SAFplusAmf::ComponentServiceInstance*>::ContainerType::iterator itcsi;
+    //SAFplus::MgtProvList<SAFplusAmf::ComponentServiceInstance*>::ContainerType::iterator endcsi = si->componentServiceInstances.value.end();
 
       SAFplusAmf::ComponentServiceInstance* csi = NULL;
       bool found = false;
 
       // Look for which CSI is assigned to the dead component and remove the assignment.
-      for (itcsi = si->componentServiceInstances.value.begin(); itcsi != endcsi; itcsi++)
+      for (itcsi = si->componentServiceInstances.begin(); itcsi != endcsi; itcsi++)
         {
-        csi = *itcsi;
+          csi = dynamic_cast<SAFplusAmf::ComponentServiceInstance*> (itcsi->second);
         if (!csi) continue;
+        found |= csi->activeComponents.erase(comp);
+        found |= csi->standbyComponents.erase(comp);
+#if 0
         if (1)
           {
+            found |= csi->activeComponents.erase(comp);
+
           std::vector<SAFplusAmf::Component*>& vec = csi->activeComponents.value;
           if (std::find(vec.begin(), vec.end(), comp) != vec.end())
             {
@@ -719,6 +746,7 @@ namespace SAFplus
             vec.erase(std::remove(vec.begin(),vec.end(), comp), vec.end());
             }
           }
+#endif
         }
       if (found) si->assignmentState = AssignmentState::partiallyAssigned;  // TODO: or it could be unassigned...
       }
@@ -741,14 +769,13 @@ namespace SAFplus
       logInfo("N+M","AUDIT","Auditing service group [%s]", name.c_str());
       if (1) // TODO: figure out if this Policy should control this Service group
         {
-        SAFplus::MgtProvList<SAFplusAmf::ServiceUnit*>::ContainerType::iterator itsu;
-        SAFplus::MgtProvList<SAFplusAmf::ServiceUnit*>::ContainerType::iterator endsu = sg->serviceUnits.value.end();
-        for (itsu = sg->serviceUnits.value.begin(); itsu != endsu; itsu++)
+        SAFplus::MgtObject::Iterator itsu = sg->serviceUnits.begin();
+        SAFplus::MgtObject::Iterator endsu = sg->serviceUnits.end();
+        for (; itsu != endsu; ++itsu)
           {
           uint readyForAssignment;
           readyForAssignment = 0;
-          //ServiceUnit* su = dynamic_cast<ServiceUnit*>(itsu->second);
-          ServiceUnit* su = dynamic_cast<ServiceUnit*>(*itsu);
+          ServiceUnit* su = dynamic_cast<ServiceUnit*>(itsu->second);
           Node* suNode = su->node.value;
           const std::string& suName = su->name;
           logInfo("N+M","AUDIT","Auditing service unit [%s]", suName.c_str());
@@ -799,12 +826,12 @@ namespace SAFplus
           for (int j = 0; j<((int)PresenceState::terminationFailed)+1;j++) presenceCounts[j] = 0;
           for (int j = 0; j<((int)HighAvailabilityState::quiescing)+1;j++) haCounts[j] = 0;
 
-          SAFplus::MgtProvList<SAFplusAmf::Component*>::ContainerType::iterator   itcomp;
-          SAFplus::MgtProvList<SAFplusAmf::Component*>::ContainerType::iterator   endcomp = su->components.value.end();
-          for (itcomp = su->components.value.begin(); itcomp != endcomp; itcomp++)
+          SAFplus::MgtObject::Iterator itcomp;
+          SAFplus::MgtObject::Iterator endcomp = su->components.end();
+          for (itcomp = su->components.begin(); itcomp != endcomp; itcomp++)
             {
             numComps++;
-            Component* comp = dynamic_cast<Component*>(*itcomp);
+            Component* comp = dynamic_cast<Component*>(itcomp->second);
             logInfo("N+M","AUDIT","Component [%s]: operState [%s]", comp->name.value.c_str(), comp->operState.value ? "enabled" : "faulted");
             if (running(comp->presenceState))  // If I think its running, let's check it out.
               {
@@ -1012,11 +1039,11 @@ namespace SAFplus
           }
         }
 
-        SAFplus::MgtProvList<SAFplusAmf::ServiceInstance*>::ContainerType::iterator itsi;
-        SAFplus::MgtProvList<SAFplusAmf::ServiceInstance*>::ContainerType::iterator endsi = sg->serviceInstances.value.end();
-        for (itsi = sg->serviceInstances.value.begin(); itsi != endsi; itsi++)
+        MgtObject::Iterator itsi;
+        MgtObject::Iterator endsi = sg->serviceInstances.end();
+        for (itsi = sg->serviceInstances.begin(); itsi != endsi; itsi++)
           {
-            SAFplusAmf::ServiceInstance* si = dynamic_cast<ServiceInstance*>(*itsi);
+            SAFplusAmf::ServiceInstance* si = dynamic_cast<ServiceInstance*>(itsi->second);
             logInfo("N+M","AUDIT","Auditing service instance [%s]", si->name.value.c_str());
 
             //si->getNumActiveAssignments()->current.value = 0;  // TODO set this correctly

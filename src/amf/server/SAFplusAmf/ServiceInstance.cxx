@@ -37,19 +37,34 @@ namespace SAFplusAmf
         this->addChildObject(&adminState, "adminState");
         this->addChildObject(&assignmentState, "assignmentState");
         assignmentState.config = false;
+        assignmentState.settable = false;
+        assignmentState.loadDb = false;
+        assignmentState.replicated = false;
         this->addChildObject(&preferredActiveAssignments, "preferredActiveAssignments");
         this->addChildObject(&preferredStandbyAssignments, "preferredStandbyAssignments");
         this->addChildObject(&rank, "rank");
         this->addChildObject(&activeAssignments, "activeAssignments");
         activeAssignments.config = false;
+        activeAssignments.settable = false;
+        activeAssignments.loadDb = false;
+        activeAssignments.replicated = false;
         this->addChildObject(&standbyAssignments, "standbyAssignments");
         standbyAssignments.config = false;
+        standbyAssignments.settable = false;
+        standbyAssignments.loadDb = false;
+        standbyAssignments.replicated = false;
         this->addChildObject(&componentServiceInstances, "componentServiceInstances");
         this->addChildObject(&serviceGroup, "serviceGroup");
         this->addChildObject(&numActiveAssignments, "numActiveAssignments");
         numActiveAssignments.config = false;
+        numActiveAssignments.settable = false;
+        numActiveAssignments.loadDb = false;
+        numActiveAssignments.replicated = false;
         this->addChildObject(&numStandbyAssignments, "numStandbyAssignments");
         numStandbyAssignments.config = false;
+        numStandbyAssignments.settable = false;
+        numStandbyAssignments.loadDb = false;
+        numStandbyAssignments.replicated = false;
         this->addChildObject(&activeWeightList, "activeWeight");
         this->addChildObject(&standbyWeightList, "standbyWeight");
         activeWeightList.childXpath="/SAFplusAmf/safplusAmf/ServiceInstance/activeWeight";
@@ -68,19 +83,34 @@ namespace SAFplusAmf
         this->addChildObject(&adminState, "adminState");
         this->addChildObject(&assignmentState, "assignmentState");
         assignmentState.config = false;
+        assignmentState.settable = false;
+        assignmentState.loadDb = false;
+        assignmentState.replicated = false;
         this->addChildObject(&preferredActiveAssignments, "preferredActiveAssignments");
         this->addChildObject(&preferredStandbyAssignments, "preferredStandbyAssignments");
         this->addChildObject(&rank, "rank");
         this->addChildObject(&activeAssignments, "activeAssignments");
         activeAssignments.config = false;
+        activeAssignments.settable = false;
+        activeAssignments.loadDb = false;
+        activeAssignments.replicated = false;
         this->addChildObject(&standbyAssignments, "standbyAssignments");
         standbyAssignments.config = false;
+        standbyAssignments.settable = false;
+        standbyAssignments.loadDb = false;
+        standbyAssignments.replicated = false;
         this->addChildObject(&componentServiceInstances, "componentServiceInstances");
         this->addChildObject(&serviceGroup, "serviceGroup");
         this->addChildObject(&numActiveAssignments, "numActiveAssignments");
         numActiveAssignments.config = false;
+        numActiveAssignments.settable = false;
+        numActiveAssignments.loadDb = false;
+        numActiveAssignments.replicated = false;
         this->addChildObject(&numStandbyAssignments, "numStandbyAssignments");
         numStandbyAssignments.config = false;
+        numStandbyAssignments.settable = false;
+        numStandbyAssignments.loadDb = false;
+        numStandbyAssignments.replicated = false;
         this->addChildObject(&activeWeightList, "activeWeight");
         this->addChildObject(&standbyWeightList, "standbyWeight");
         activeWeightList.childXpath="/SAFplusAmf/safplusAmf/ServiceInstance/activeWeight";
@@ -205,54 +235,6 @@ namespace SAFplusAmf
             SAFplus::SimpleTxnOperation<::uint32_t> *opt = new SAFplus::SimpleTxnOperation<::uint32_t>(&(rank.value),rankValue);
             t.addOperation(opt);
         }
-    };
-
-    /*
-     * XPATH: /SAFplusAmf/safplusAmf/ServiceInstance/activeAssignments
-     */
-    std::vector<::SAFplusAmf::ServiceUnit*> ServiceInstance::getActiveAssignments()
-    {
-        return this->activeAssignments.value;
-    };
-
-    /*
-     * XPATH: /SAFplusAmf/safplusAmf/ServiceInstance/activeAssignments
-     */
-    void ServiceInstance::setActiveAssignments(::SAFplusAmf::ServiceUnit* activeAssignmentsValue)
-    {
-        this->activeAssignments.value.push_back(activeAssignmentsValue);
-    };
-
-    /*
-     * XPATH: /SAFplusAmf/safplusAmf/ServiceInstance/standbyAssignments
-     */
-    std::vector<::SAFplusAmf::ServiceUnit*> ServiceInstance::getStandbyAssignments()
-    {
-        return this->standbyAssignments.value;
-    };
-
-    /*
-     * XPATH: /SAFplusAmf/safplusAmf/ServiceInstance/standbyAssignments
-     */
-    void ServiceInstance::setStandbyAssignments(::SAFplusAmf::ServiceUnit* standbyAssignmentsValue)
-    {
-        this->standbyAssignments.value.push_back(standbyAssignmentsValue);
-    };
-
-    /*
-     * XPATH: /SAFplusAmf/safplusAmf/ServiceInstance/componentServiceInstances
-     */
-    std::vector<::SAFplusAmf::ComponentServiceInstance*> ServiceInstance::getComponentServiceInstances()
-    {
-        return this->componentServiceInstances.value;
-    };
-
-    /*
-     * XPATH: /SAFplusAmf/safplusAmf/ServiceInstance/componentServiceInstances
-     */
-    void ServiceInstance::setComponentServiceInstances(::SAFplusAmf::ComponentServiceInstance* componentServiceInstancesValue)
-    {
-        this->componentServiceInstances.value.push_back(componentServiceInstancesValue);
     };
 
     /*

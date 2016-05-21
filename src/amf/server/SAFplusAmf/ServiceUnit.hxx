@@ -196,26 +196,6 @@ namespace SAFplusAmf
         void setOperState(bool operStateValue, SAFplus::Transaction &t=SAFplus::NO_TXN);
 
         /*
-         * XPATH: /SAFplusAmf/safplusAmf/ServiceUnit/assignedServiceInstances
-         */
-        std::vector<SAFplusAmf::ServiceInstance*> getAssignedServiceInstances();
-
-        /*
-         * XPATH: /SAFplusAmf/safplusAmf/ServiceUnit/assignedServiceInstances
-         */
-        void setAssignedServiceInstances(SAFplusAmf::ServiceInstance* assignedServiceInstancesValue);
-
-        /*
-         * XPATH: /SAFplusAmf/safplusAmf/ServiceUnit/components
-         */
-        std::vector<SAFplusAmf::Component*> getComponents();
-
-        /*
-         * XPATH: /SAFplusAmf/safplusAmf/ServiceUnit/components
-         */
-        void setComponents(SAFplusAmf::Component* componentsValue);
-
-        /*
          * XPATH: /SAFplusAmf/safplusAmf/ServiceUnit/node
          */
         SAFplusAmf::Node* getNode();

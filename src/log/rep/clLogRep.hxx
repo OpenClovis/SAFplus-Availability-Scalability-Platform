@@ -10,7 +10,7 @@
 #include <ServerConfig.hxx>
 #include "../server/logcfg.hxx"
 
-extern SAFplusLog::SAFplusLogModule logcfg;
+extern SAFplusLog::SAFplusLogModule logCfg;
 
 namespace SAFplus {
 

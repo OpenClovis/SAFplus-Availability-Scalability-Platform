@@ -63,16 +63,6 @@ namespace SAFplusAmf
         void setAdminState(::SAFplusAmf::AdministrativeState &adminStateValue, SAFplus::Transaction &t=SAFplus::NO_TXN);
 
         /*
-         * XPATH: /SAFplusAmf/safplusAmf/Application/serviceGroups
-         */
-        std::vector<::SAFplusAmf::ServiceGroup*> getServiceGroups();
-
-        /*
-         * XPATH: /SAFplusAmf/safplusAmf/Application/serviceGroups
-         */
-        void setServiceGroups(::SAFplusAmf::ServiceGroup* serviceGroupsValue);
-
-        /*
          * XPATH: /SAFplusAmf/safplusAmf/Application/keepTogether
          */
         bool getKeepTogether();
