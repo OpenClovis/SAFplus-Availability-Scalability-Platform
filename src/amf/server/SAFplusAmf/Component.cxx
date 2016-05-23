@@ -31,8 +31,8 @@
 #include "CapabilityModel.hxx"
 #include "Component.hxx"
 
+using namespace SAFplusTypes;
 using namespace  std;
-using namespace ::SAFplusTypes;
 using namespace SAFplusAmf;
 
 namespace SAFplusAmf
@@ -621,7 +621,7 @@ namespace SAFplusAmf
     /*
      * XPATH: /SAFplusAmf/safplusAmf/Component/lastInstantiation
      */
-    ::SAFplusTypes::Date Component::getLastInstantiation()
+    SAFplusTypes::Date Component::getLastInstantiation()
     {
         return this->lastInstantiation.value;
     };
@@ -629,12 +629,12 @@ namespace SAFplusAmf
     /*
      * XPATH: /SAFplusAmf/safplusAmf/Component/lastInstantiation
      */
-    void Component::setLastInstantiation(::SAFplusTypes::Date &lastInstantiationValue, SAFplus::Transaction &t)
+    void Component::setLastInstantiation(SAFplusTypes::Date &lastInstantiationValue, SAFplus::Transaction &t)
     {
         if(&t == &SAFplus::NO_TXN) this->lastInstantiation.value = lastInstantiationValue;
         else
         {
-            SAFplus::SimpleTxnOperation<::SAFplusTypes::Date> *opt = new SAFplus::SimpleTxnOperation<::SAFplusTypes::Date>(&(lastInstantiation.value),lastInstantiationValue);
+            SAFplus::SimpleTxnOperation<SAFplusTypes::Date> *opt = new SAFplus::SimpleTxnOperation<SAFplusTypes::Date>(&(lastInstantiation.value),lastInstantiationValue);
             t.addOperation(opt);
         }
     };
@@ -810,7 +810,7 @@ namespace SAFplusAmf
     /*
      * XPATH: /SAFplusAmf/safplusAmf/Component/pendingOperationExpiration
      */
-    ::SAFplusTypes::Date Component::getPendingOperationExpiration()
+    SAFplusTypes::Date Component::getPendingOperationExpiration()
     {
         return this->pendingOperationExpiration.value;
     };
@@ -818,12 +818,12 @@ namespace SAFplusAmf
     /*
      * XPATH: /SAFplusAmf/safplusAmf/Component/pendingOperationExpiration
      */
-    void Component::setPendingOperationExpiration(::SAFplusTypes::Date &pendingOperationExpirationValue, SAFplus::Transaction &t)
+    void Component::setPendingOperationExpiration(SAFplusTypes::Date &pendingOperationExpirationValue, SAFplus::Transaction &t)
     {
         if(&t == &SAFplus::NO_TXN) this->pendingOperationExpiration.value = pendingOperationExpirationValue;
         else
         {
-            SAFplus::SimpleTxnOperation<::SAFplusTypes::Date> *opt = new SAFplus::SimpleTxnOperation<::SAFplusTypes::Date>(&(pendingOperationExpiration.value),pendingOperationExpirationValue);
+            SAFplus::SimpleTxnOperation<SAFplusTypes::Date> *opt = new SAFplus::SimpleTxnOperation<SAFplusTypes::Date>(&(pendingOperationExpiration.value),pendingOperationExpirationValue);
             t.addOperation(opt);
         }
     };

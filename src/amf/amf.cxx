@@ -11,7 +11,7 @@
 
 namespace SAFplus
   {
-  uint_t           amfInitCount;
+  uint_t           amfInitCount=0;
   Group            clusterGroup;
   Handle           myHandle;  // This handle resolves to THIS process.
 
@@ -107,6 +107,7 @@ extern "C"
 SaAisErrorT saAmfFinalize(SaAmfHandleT amfHandle)
   {
   assert(amfHandle);
+  assert(amfInitCount==1);
   AmfSession* sess = (AmfSession*) amfHandle;
   assert(sess->structId ==  AmfSession::STRUCT_ID);
   sess->finalize=1;
@@ -121,6 +122,9 @@ SaAisErrorT saAmfFinalize(SaAmfHandleT amfHandle)
     sess->writeFd = -1;
     }
   sess->dispatchCount.blockUntil(0);
+
+  if (amfInitCount == 1)
+    safplusFinalize();
   sess->structId = 0xde1e1ed;
   delete sess;
 

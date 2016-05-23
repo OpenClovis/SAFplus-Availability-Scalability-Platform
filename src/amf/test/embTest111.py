@@ -17,7 +17,7 @@ except:
   print "First run"
   SAFplusInitialized=False
 
-class TestFailed:
+class TestFailed(Exception):
   def __init__(self,reason):
     self.why = reason
 

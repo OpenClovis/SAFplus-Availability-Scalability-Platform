@@ -34,9 +34,15 @@ def mgtGetItem(path,default=raiseException):
       else:
         return default
 
+def csv2List(csvString):
+  """Convert comma separated values to a Python list"""
+  if not csvString.strip(): return []  # turn "" into [], otherwise it is ['']
+  return [x.strip() for x in csvString.split(",")]
+
 # The API of this object mirrors that of the CLI
 mgt = Dotter()
 mgt.get = mgtGetItem
 mgt.getInt = lambda s,deflt = raiseException: int(mgtGetItem(s,deflt))
 mgt.getFloat = lambda s,deflt = raiseException: float(mgtGetItem(s,deflt))
 mgt.set = mgtSet
+mgt.getList = lambda s,deflt = raiseException: csv2List(mgtGetItem(s,deflt))

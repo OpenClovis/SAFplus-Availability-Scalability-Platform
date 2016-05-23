@@ -48,8 +48,16 @@ namespace SAFplus
             assert(faultServer);
             faultServer->setFaultState(faultEntity,FaultState::STATE_DOWN);
             logWarning("FLT","POL","Entity DOWN [%" PRIx64 ":%" PRIx64 "] (on node [%d], port [%d]).", faultEntity.id[0], faultEntity.id[1], faultEntity.getNode(), faultEntity.getProcess());
+            return true;          
             }
-
+          else if (fault.cause == SAFplus::AlarmProbableCause::ALARM_PROB_CAUSE_RECEIVER_FAILURE)  // Trust RPC timeouts reported by the AMF
+            {
+              // TODO: wait for a few timeouts
+            assert(faultServer);
+            faultServer->setFaultState(faultEntity,FaultState::STATE_DOWN);
+            logWarning("FLT","POL","Entity DOWN [%" PRIx64 ":%" PRIx64 "] (on node [%d], port [%d]).", faultEntity.id[0], faultEntity.id[1], faultEntity.getNode(), faultEntity.getProcess());  
+            return true;          
+            }
         // If this fault comes from an AMF and its telling me that there was a crash the trust it because the local AMF monitors its local processes.
           else if (fault.cause == SAFplus::AlarmProbableCause::ALARM_PROB_CAUSE_SOFTWARE_ERROR)
             {

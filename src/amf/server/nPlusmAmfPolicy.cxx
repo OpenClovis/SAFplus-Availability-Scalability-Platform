@@ -212,48 +212,6 @@ namespace SAFplus
         }
     }
 
-#if 0 
-  void NplusMPolicy::activeAudit(SAFplusAmf::SAFplusAmfModule* root)
-    {
-    logInfo("POL","N+M","Active audit");
-    assert(root);
-    SAFplusAmfModule* cfg = (SAFplusAmfModule*) root;
-
-    MgtObject::Iterator it;
-
-    for (it = cfg->serviceGroupList.begin();it != cfg->serviceGroupList.end(); it++)
-      {
-      ServiceGroup* sg = dynamic_cast<ServiceGroup*> (it->second);
-      const std::string& name = sg->name;
-
-      logInfo("N+M","AUDIT","Auditing service group [%s]", name.c_str());
-      if (1) // TODO: figure out if this Policy should control this Service group
-        {
-        MgtObject::Iterator itsu;
-        MgtObject::Iterator endsu = sg->serviceUnits.end();
-        for (itsu = sg->serviceUnits.begin(); itsu != endsu; itsu++)
-          {
-         ServiceUnit* su = dynamic_cast<ServiceUnit*>(itsu->second);
-         const std::string& suName = su->name;
-          logInfo("N+M","AUDIT","Auditing su %s", suName.c_str());
-
-          MgtObject::Iterator itcomp;
-          MgtObject::Iterator endcomp = su->components.end();
-          for (itcomp = su->components.begin(); itcomp != endcomp; itcomp++)
-            {
-            std::string compName = itcomp->first;
-            logInfo("N+M","AUDIT","Auditing comp %s ", compName.c_str());
-            Component* comp = dynamic_cast<Component*>(itcomp->second);
-            logInfo("N+M","AUDIT","Auditing component %s", comp->name.c_str());
-            amfOps->getCompState(comp);
-            }
-          }
-        }
-
-      }
-
-    }
-#endif
 
   bool running(SAFplusAmf::PresenceState p)
   {
@@ -425,6 +383,7 @@ namespace SAFplus
                 if (eas == SAFplusAmf::AdministrativeState::off)
                   {
                   logError("N+M","AUDIT","Component [%s] should be off but is instantiated", comp->name.value.c_str());
+                  amfOps->stop(comp);
                   }
                 else
                   {
@@ -507,6 +466,7 @@ namespace SAFplus
         for (itsi = sis.begin(); itsi != sis.end(); itsi++)
           {
           ServiceInstance* si = dynamic_cast<ServiceInstance*>(*itsi);
+          if (!si) continue;
           SAFplusAmf::AdministrativeState eas = effectiveAdminState(si);
 
           if (eas == AdministrativeState::on)
@@ -796,7 +756,7 @@ namespace SAFplus
             }
           
           // in service if does not need repair
-          else if ( (su->operState == true)&&(suNode->operState == true) 
+          else if ((suNode)&&(su->operState == true)&&(suNode->operState == true) 
             // and administratively on
             && (su->adminState == AdministrativeState::on) && (suNode->adminState == AdministrativeState::on) && (sg->adminState == AdministrativeState::on) 
             && (!sg->application.value || (sg->application.value->adminState == AdministrativeState::on))
@@ -845,6 +805,11 @@ namespace SAFplus
                   updateStateDueToProcessDeath(comp);
                 }
 
+              // If someone shuts off the SG or SU, then we want to reset certain fields in the component
+              if ((su->adminState == AdministrativeState::off)||(sg->adminState == AdministrativeState::off))
+                {
+                  if (comp->numInstantiationAttempts != 0) { comp->numInstantiationAttempts = 0; amfOps->reportChange(); }   // Reset the instantiation attempts to reflect the user's resetting of the app.  If we don't do this, a bunch of start/stops in a row could trigger the "maxInstantiations" timer to fault the component.
+                }
                   
               // In the instantiating case, the process may not have even been started yet.  So to detect failure, we must check both that it has reported a PID and that it is currently uninstantiated
               if ((status == CompStatus::Uninstantiated) && ((comp->processId.value > 0) || (comp->presenceState != PresenceState::instantiating)))  // database shows should be running but actually no process is there.  I should update DB.
@@ -977,6 +942,18 @@ namespace SAFplus
 
            // SAI-AIS-AMF-B.04.01.pdf sec 3.2.1.1, presence state calculation
           PresenceState ps = su->presenceState.value;
+
+          // Start by seeing if we are stopping the system...
+          AdministrativeState nodeAs = AdministrativeState::off;  // If there is no node, then it is effectively administratively off
+          if (suNode) nodeAs = suNode->adminState;
+          if ((su->adminState == AdministrativeState::off) || (nodeAs == AdministrativeState::off) || (sg->adminState == AdministrativeState::off))
+            {
+              if ((ps == PresenceState::instantiating) || (ps == PresenceState::instantiated) || (ps == PresenceState::restarting))
+                {
+                  ps = PresenceState::terminating;
+                }
+            }
+
           if (presenceCounts[(int)PresenceState::uninstantiated] == numComps)  // When all components are uninstantiated, the service unit is uninstantiated.
             {
             ps = PresenceState::uninstantiated;

@@ -18,6 +18,12 @@ namespace SAFplus
   class WorkOperationTracker
     {
     public:
+   
+    enum ExtendedState
+      {
+      TerminationState = 0xff00
+      };
+
     SAFplusAmf::Component* comp;
     SAFplusAmf::ComponentServiceInstance* csi;
     SAFplusAmf::ServiceInstance* si;

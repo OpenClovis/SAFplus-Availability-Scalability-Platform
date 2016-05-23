@@ -26,23 +26,38 @@ namespace SAFplusAmf
     public:
 
         /*
+         * How much time to give a component to gracefully shut down before faulting it, in milliseconds.
+         */
+        SAFplus::MgtProv<SaTimeT> terminate;
+
+        /*
          * How much time to give a component to gracefully finish handling its work before faulting it, in milliseconds.
          */
         SAFplus::MgtProv<SaTimeT> quiescingComplete;
 
         /*
-         * How much time to give a component to executes its work (component service instance) removal callback before faulting the component.  Specified in milliseconds.
+         * How much time to give a component to execute its work (component service instance) removal callback before faulting the component.  Specified in milliseconds.
          */
         SAFplus::MgtProv<SaTimeT> workRemoval;
 
         /*
-         * How much time to give a component to executes its work (component service instance) removal callback before faulting the component.  Specified in milliseconds.
+         * How much time to give a component to execute its work (component service instance) removal callback before faulting the component.  Specified in milliseconds.
          */
         SAFplus::MgtProv<SaTimeT> workAssignment;
 
     public:
         Timeouts();
         std::vector<std::string>* getChildNames();
+
+        /*
+         * XPATH: /SAFplusAmf/safplusAmf/Component/timeouts/terminate
+         */
+        SaTimeT getTerminate();
+
+        /*
+         * XPATH: /SAFplusAmf/safplusAmf/Component/timeouts/terminate
+         */
+        void setTerminate(SaTimeT &terminateValue, SAFplus::Transaction &txn=SAFplus::NO_TXN);
 
         /*
          * XPATH: /SAFplusAmf/safplusAmf/Component/timeouts/quiescingComplete

@@ -28,7 +28,27 @@ namespace amfAppRpc {
                                 ::SAFplus::Rpc::amfAppRpc::TerminateResponse* response)
   {
   logInfo("AMF","RPC", "terminate");
-    //TODO: put your code here 
+
+  SaNameT compName;
+  SAFplus::saNameSet(&compName,request->componentname().c_str());
+
+  // TODO: add work quiesce logic in here so AMF does not have to micromanage the termination.
+  // TODO: protect against double termination requests
+
+  // remove myself from the name server.
+  name.set(SAFplus::ASP_COMPNAME,INVALID_HDL,NameRegistrar::MODE_NO_CHANGE);
+  
+  if ((SAFplusI::amfSession)&&(SAFplusI::amfSession->callbacks.saAmfComponentTerminateCallback))
+    {
+      SAFplusI::amfSession->callbacks.saAmfComponentTerminateCallback((SaInvocationT) request->invocation(),&compName);
+    }
+  else
+    {
+      logWarning("AMF","RPC", "Terminate called but application has no handler.  Exiting...");
+      exit(0);
+    }
+
+  // No response expected.  App should simply stop
   }
 
   void amfAppRpcImpl::workOperation(const ::SAFplus::Rpc::amfAppRpc::WorkOperationRequest* request)

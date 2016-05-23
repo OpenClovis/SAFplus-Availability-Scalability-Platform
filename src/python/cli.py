@@ -798,6 +798,11 @@ class Dotter:
 class CliError(Exception):
   pass
 
+def csv2List(csvString):
+  """Convert comma separated values to a Python list"""
+  if not csvString.strip(): return []  # turn "" into [], otherwise it is ['']
+  return [x.strip() for x in csvString.split(",")]
+
 class RunScript:
   def __init__(self,resolver):
     self.resolver = resolver
@@ -809,6 +814,7 @@ class RunScript:
     self.cli.get = lambda s,deflt = self.raiseException, me=self: me.cliGet(s,deflt)
     self.cli.getInt = lambda s,deflt = self.raiseException,me=self: int(me.cliGet(s,deflt))
     self.cli.getFloat = lambda s,deflt = self.raiseException,me=self: float(me.cliGet(s,deflt))
+    self.cli.getList = lambda s,deflt = self.raiseException: csv2List(me.cliGet(s,deflt))
     self.cli.add = lambda cmd, me=self: self.context.addCmds(cmd)
     self.cli.Error = CliError
     self.env["cli"] = self.cli

@@ -806,6 +806,14 @@ module SAFplusAmf
 
       container timeouts
       {
+        leaf terminate
+        {
+	  SAFplusTypes:ui-prompt "Terminate";
+	  type SAFplusTypes:SaTimeT;
+	  default 120000; // 2 minutes
+	  description "How much time to give a component to gracefully shut down before faulting it, in milliseconds.";        
+        }
+
 	leaf quiescingComplete
 	{
 	  SAFplusTypes:alias saAmfCompQuiescingCompleteTimeout;
@@ -820,7 +828,7 @@ module SAFplusAmf
 	  SAFplusTypes:ui-prompt "Work removal";
 	  type SAFplusTypes:SaTimeT;
 	  default 120000; // 2 minutes
-	  description "How much time to give a component to executes its work (component service instance) removal callback before faulting the component.  Specified in milliseconds.";
+	  description "How much time to give a component to execute its work (component service instance) removal callback before faulting the component.  Specified in milliseconds.";
 	}
 
 	leaf workAssignment
@@ -829,7 +837,7 @@ module SAFplusAmf
 	  SAFplusTypes:ui-prompt "Work assignment";
 	  type SAFplusTypes:SaTimeT;
 	  default 120000; // 2 minutes
-	  description "How much time to give a component to executes its work (component service instance) removal callback before faulting the component.  Specified in milliseconds.";
+	  description "How much time to give a component to execute its work (component service instance) removal callback before faulting the component.  Specified in milliseconds.";
 	}
       }
 

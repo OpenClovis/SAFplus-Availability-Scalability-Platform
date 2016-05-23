@@ -122,7 +122,7 @@ namespace SAFplusAmf
         /*
          * The last time an instantiation attempt occurred
          */
-        SAFplus::MgtProv<::SAFplusTypes::Date> lastInstantiation;
+        SAFplus::MgtProv<SAFplusTypes::Date> lastInstantiation;
 
         /*
          * How long to delay between instantiation attempts
@@ -164,7 +164,7 @@ namespace SAFplusAmf
         /*
          * When the system will give up on the pending operation, in milliseconds since the epoch
          */
-        SAFplus::MgtProv<::SAFplusTypes::Date> pendingOperationExpiration;
+        SAFplus::MgtProv<SAFplusTypes::Date> pendingOperationExpiration;
         SAFplusAmf::ProcStats procStats;
         SAFplus::MgtHistoryStat<int> activeAssignments;
         SAFplus::MgtHistoryStat<int> standbyAssignments;
@@ -333,12 +333,12 @@ namespace SAFplusAmf
         /*
          * XPATH: /SAFplusAmf/safplusAmf/Component/lastInstantiation
          */
-        ::SAFplusTypes::Date getLastInstantiation();
+        SAFplusTypes::Date getLastInstantiation();
 
         /*
          * XPATH: /SAFplusAmf/safplusAmf/Component/lastInstantiation
          */
-        void setLastInstantiation(::SAFplusTypes::Date &lastInstantiationValue, SAFplus::Transaction &t=SAFplus::NO_TXN);
+        void setLastInstantiation(SAFplusTypes::Date &lastInstantiationValue, SAFplus::Transaction &t=SAFplus::NO_TXN);
 
         /*
          * XPATH: /SAFplusAmf/safplusAmf/Component/delayBetweenInstantiation
@@ -423,12 +423,12 @@ namespace SAFplusAmf
         /*
          * XPATH: /SAFplusAmf/safplusAmf/Component/pendingOperationExpiration
          */
-        ::SAFplusTypes::Date getPendingOperationExpiration();
+        SAFplusTypes::Date getPendingOperationExpiration();
 
         /*
          * XPATH: /SAFplusAmf/safplusAmf/Component/pendingOperationExpiration
          */
-        void setPendingOperationExpiration(::SAFplusTypes::Date &pendingOperationExpirationValue, SAFplus::Transaction &t=SAFplus::NO_TXN);
+        void setPendingOperationExpiration(SAFplusTypes::Date &pendingOperationExpirationValue, SAFplus::Transaction &t=SAFplus::NO_TXN);
 
         /*
          * XPATH: /SAFplusAmf/safplusAmf/Component/procStats

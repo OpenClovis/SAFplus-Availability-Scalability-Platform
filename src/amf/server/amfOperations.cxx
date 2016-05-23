@@ -148,8 +148,20 @@ namespace SAFplus
       {
       WorkOperationTracker& wat = pendingWorkOperations.at(invocation);
       logInfo("AMF","OPS","Work Operation response on component [%s] invocation [%" PRIu64 "] result [%d]",wat.comp->name.value.c_str(),invocation, result);
-
-      if ( wat.state <= (int) HighAvailabilityState::quiescing)
+      if ( wat.state == WorkOperationTracker::TerminationState)
+        {
+          if (result == SA_AIS_OK)
+          {
+            wat.comp->processId = 0;
+            // Nothing to do, we'll update the AMF state when we see the process actually down
+          }
+          else
+          {
+            wat.comp->presenceState = PresenceState::terminationFailed;
+            // TODO: call abort maybe?
+          }
+        }
+      else if ( wat.state <= (int) HighAvailabilityState::quiescing)
         {
         if (result == SA_AIS_OK)  // TODO: actually, I think I need to call into the redundancy model plugin to correctly process the result.
           {
@@ -575,9 +587,62 @@ namespace SAFplus
 
     }
 
+
+    // TODO: fixme there is no actual response because the application may quit within the callback.
+  static  SAFplus::Rpc::amfAppRpc::TerminateResponse terminateResponse;
+
   void AmfOperations::stop(SAFplusAmf::Component* comp,Wakeable& w)
     {
-      assert(0);
+    Handle hdl;
+    if (comp->capabilityModel == CapabilityModel::not_preinstantiable)  // Cannot talk to the component, just kill it
+      {
+        abort(comp,w);
+        return;
+      }
+
+    try
+      {
+        hdl = name.getHandle(comp->name);
+      }
+    catch (SAFplus::NameException& n)
+      {
+        logCritical("OPS","SRT","Component [%s] is not registered in the name service, so the AMF cannot communicate with it. Substituting kill for stop.", comp->name.value.c_str());
+        comp->lastError.value = "Component's name is not registered in the name service so address cannot be determined.";
+        abort(comp,w);
+        return;
+      }
+        
+    if (1)
+      {
+        // Mark this component with a pending operation.  This will be cleared in the WorkOperationTracker, or by timeout in auditDiscovery
+        comp->pendingOperationExpiration.value.value = nowMs() + comp->timeouts.terminate;
+        comp->pendingOperation = PendingOperation::shutdown;
+
+        SAFplus::Rpc::amfAppRpc::TerminateRequest request;
+        request.set_componentname(comp->name.value.c_str());
+        request.set_componenthandle((const char*) &hdl, sizeof(Handle)); // [libprotobuf ERROR google/protobuf/wire_format.cc:1053] String field contains invalid UTF-8 data when serializing a protocol buffer. Use the 'bytes' type if you intend to send raw bytes.
+        if ((invocation & 0xFFFFFFFF) == 0xFFFFFFFF) invocation &= 0xFFFFFFFF00000000ULL;  // Don't let increasing invocation numbers overwrite the node or port... ofc this'll never happen 4 billion invocations? :-)
+        request.set_invocation(invocation++);
+        pendingWorkOperations[request.invocation()] = WorkOperationTracker(comp,NULL,NULL,(uint32_t)WorkOperationTracker::TerminationState,0);
+
+        comp->presenceState = PresenceState::terminating;
+        try
+          {
+          amfAppRpc->terminate(hdl, &request,&terminateResponse, w);
+          }
+        catch (SAFplus::Error& e)
+          {
+            if (e.clError == Error::DOES_NOT_EXIST)
+              {
+                // OK, app terminated with out replying
+              }
+            else
+              {
+                throw;
+              }
+          }
+      }
+
     }
 
   void AmfOperations::abort(SAFplusAmf::Component* comp,Wakeable& w)
@@ -600,8 +665,16 @@ namespace SAFplus
 
     if (nodeHdl == nodeHandle)  // Handle this request locally.  This is an optimization.  The RPC call will also work locally.
       {
-        Process p(comp->processId.value);
-        p.signal(SIGTERM);
+        if (comp->processId.value)
+          {
+          Process p(comp->processId.value);
+          p.signal(SIGTERM);
+          }
+        else
+          {
+          logWarning("OPS","SRT","Cannot stop AMF Entity [%s] since it has no associated process id.  If this process still exists, it will become orphaned.", comp->serviceUnit.value->node.value->name.value.c_str());
+
+          }
         comp->presenceState = PresenceState::uninstantiated;
       }
     else  

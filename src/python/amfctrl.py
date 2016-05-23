@@ -7,7 +7,6 @@ AmfPfx = "safplusAmf"
 SiPfx = "ServiceInstance"
 
 def commit(dct,prefix="/safplusAmf"):
-  pdb.set_trace()
   for (name,val) in dct.items():
     myPath = "%s/%s" % (prefix,name)
     if type(val) is types.DictType:  # its a YANG container
@@ -26,6 +25,8 @@ def csv2List(csvString):
   """Convert comma separated values to a Python list"""
   if not csvString.strip(): return []  # turn "" into [], otherwise it is ['']
   return [x.strip() for x in csvString.split(",")]
+
+
 
 def getEntity(ent):
   """Given an entity string, or list of entity strings, load them from the AMF and convert to Python objects.  If the entity does not exist, return None"""

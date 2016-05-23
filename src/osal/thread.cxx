@@ -286,12 +286,17 @@ bool ThreadSem::timed_lock(uint64_t mSec,int amt)
 bool ThreadSem::blockUntil(uint amt,uint mSec)
   {
   ScopedLock<> lock(mutex);
+  int64_t start = timerMs();
   while (countv > amt)
     {
-    // TODO: take into account elapsed time going around the while loop more than once
     if (!cond.timed_wait(mutex,mSec)) return false;
+    int64_t diff = timerMs()-start; // take into account elapsed time going around the while loop more than once
+    if (diff > 0)  // this check avoids weird issues like integer overflow and inconsistent timerMs()
+      {
+        if (diff >= mSec) mSec -= diff;
+        else return false;
+      }
     }
-  mutex.unlock();
   }
 
   ThreadSem::~ThreadSem()

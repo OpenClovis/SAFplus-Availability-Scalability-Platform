@@ -51,7 +51,9 @@ class ExampleCommands:
                 comps.append("<error>Unresolved component: %s</error>" % compName[1:])
         else:
           sus.append("<error>Unresolved service unit: %s</error>" % suName[1:])
-
+    else:
+      cli.display("""<text size="24" fore="#108010">Invalid entity name "%s"</text>""" % element)
+      return ""
           
     cli.display(ET.tostring(sg))
     for su in sus:

@@ -1,5 +1,5 @@
 import pdb
-import os, sys, time,types, signal, random, datetime
+import os, sys, time,types, signal, random, datetime, errno
 import subprocess
 
 # import safplusMgtDb
@@ -19,7 +19,7 @@ except:
   print "First run"
   SAFplusInitialized=False
 
-class TestFailed:
+class TestFailed(Exception):
   def __init__(self,reason):
     self.why = reason
 
@@ -63,6 +63,11 @@ def AmfCreateApp(prefix, compList, nodes):
     for c in compList:
       name = os.path.basename(c.split(" ")[0])
       cname = "%s_in_%s" % (name,suname)
+      idx=1
+      while cname in comps:
+        cname = "%s_in_%s_%d" % (name,suname,idx)
+        idx+=1
+
       entities["Component/%s" % cname] = { "maxActiveAssignments":1, "maxStandbyAssignments":1, "serviceUnit": suname, "instantiate": { "command" : c, "timeout":15*1000 }}
       comps.append(cname)   
 
@@ -74,6 +79,153 @@ def AmfCreateApp(prefix, compList, nodes):
   amfctrl.commit(entities)
 
   # clTest.testSuccess("")
+
+def testCreateSingleApp():
+    clTest.testCase("AMF-DYN-SG.TC001: Create app",AmfCreateApp("tc001",["../test/exampleSafApp tc001"],["node0"]))
+    sp.mgtSet("/safplusAmf/ServiceGroup/tc001Sg/adminState","on")
+    sp.mgtSet("/safplusAmf/ServiceUnit/tc001Su0/adminState","on")
+
+    count = 0
+    compPfx = "/safplusAmf/Component/exampleSafApp_in_tc001Su0/"
+    while 1:
+      count += 1
+      time.sleep(2)
+      ps = sp.mgt.get(compPfx + "presenceState")
+      if ps == "instantiated":
+        clTest.testSuccess("AMF-DYN-SG.TC002: App is instantiated")
+        procId = 0
+        pstatus = "N/A"
+        try: # todo check process ID
+          procId = sp.mgt.getInt(compPfx + "processId")
+          pstatus = procStatus(procId)
+          if pstatus in ["R","S","D"]:
+            clTest.testSuccess("AMF-DYN-SG.TC003: Instantiated app is running")
+          else:  # Are there other valid process states?
+            clTest.testFailed("AMF-DYN-SG.TC003: Instantiated app is running","pid [%s] status [%s]" % (procId, pstatus))
+        except Exception, e:
+          clTest.testFailed("AMF-DYN-SG.TC003: Instantiated app is running","pid [%s] status [%s]" % (procId, pstatus))
+        break 
+      elif count == 5:
+        clTest.testFailed("AMF-DYN-SG.TC002: App is instantiated","comp state is [%s]" % ps)
+        raise TestFailed("app never instantiated")
+
+def testCreateNsuMcomp(prefix, numSu,numComp):
+    compLst = [ "../test/exampleSafApp %s_c%d" % (prefix,x) for x in range(0,numComp)]
+    nodeLst = ["node0"] * numSu
+    sg = prefix + "Sg"
+    clTest.testCase("AMF-DYN-SG.TC001: Create %d su %d comps" % (numSu, numComp),AmfCreateApp(prefix,compLst,nodeLst))
+    sp.mgtSet("/safplusAmf/ServiceGroup/%s/adminState" % prefix,"on")
+    for x in range(0,numComp):
+      sp.mgtSet("/safplusAmf/ServiceUnit/%sSu%d/adminState" % (prefix,x),"on")
+
+    for compNum in range(0,numComp):
+     count = 0    
+     compPfx = "/safplusAmf/Component/exampleSafApp_in_%sSu%d/" % (prefix,compNum)
+     while 1:
+      count += 1
+      time.sleep(2)
+      ps = sp.mgt.get(compPfx + "presenceState")
+      if ps == "instantiated":
+        clTest.testSuccess("AMF-DYN-SG.TC022: App is instantiated")
+        procId = 0
+        pstatus = "N/A"
+        try: # todo check process ID
+          procId = sp.mgt.getInt(compPfx + "processId")
+          pstatus = procStatus(procId)
+          if pstatus in ["R","S","D"]:
+            clTest.testSuccess("AMF-DYN-SG.TC023: Instantiated app is running")
+          else:  # Are there other valid process states?
+            clTest.testFailed("AMF-DYN-SG.TC023: Instantiated app is running","pid [%s] status [%s]" % (procId, pstatus))
+        except Exception, e:
+          clTest.testFailed("AMF-DYN-SG.TC023: Instantiated app is running","pid [%s] status [%s]" % (procId, pstatus))
+        break 
+      elif count == 5:
+        clTest.testFailed("AMF-DYN-SG.TC022: App is instantiated","comp state is [%s]" % ps)
+        raise TestFailed("app never instantiated")
+
+
+
+
+
+def waitForInstantiated(ent, loops=10):
+  count = 0
+  while count < loops:
+    count += 1
+    ps = sp.mgt.get(ent + "/presenceState")
+    if ps == "instantiated":
+      return True
+    time.sleep(2)
+  return False
+
+def waitForPresenceState(ent, state, loops=10):
+  count = 0
+  while count < loops:
+    count += 1
+    ps = sp.mgt.get(ent + "/presenceState")
+    if ps == state:
+      return True
+    time.sleep(2)
+  return False
+
+def findServiceUnitsOf(entity):
+  """give a service group or service unit, and get a list of its service units"""
+  if "ServiceGroup" in entity:
+    sus = sp.mgt.getList(entity + "/serviceUnits")
+  else: sus = [entity]
+  return sus
+
+def findComponentsOf(entity):
+  """give a service group or service unit (full entity path), and get a list of its components"""
+  if "ServiceGroup" in entity:
+    sus = sp.mgt.getList(entity + "/serviceUnits")
+  else: sus = [entity]
+
+  comps = []
+  for su in sus:
+    comps += sp.mgt.getList(su + "/components")
+  return comps
+
+def testStartStop(entPfx):
+    """This test will look at the current state and run one start/stop or stop/start cycle based on it"""
+    started = False
+    stopped = False
+    procIdList = []
+    while not (started and stopped):
+      adm = sp.mgt.get(entPfx + "/adminState")
+      if adm == "on":
+        # First check that its entirely started
+        sus = findServiceUnitsOf(entPfx)
+        for su in sus:
+          if not waitForInstantiated(su): raise TestFailed("[%s] never became uninstantiated")
+        # Including checking processIDs -- note this will ONLY work for single node tests
+        comps = findComponentsOf(entPfx)
+        for compPfx in comps:
+          procId = sp.mgt.getInt(compPfx + "/processId")
+          procIdList.append(procId)
+          pstatus = procStatus(procId)
+          if not pstatus in ["R","S","D"]:
+            raise TestFailed("Process in bad state")
+        started = True
+        # Second, turn it off
+        sp.mgtSet(entPfx + "/adminState","off")
+      elif adm == "off":
+        sus = findServiceUnitsOf(entPfx)
+        for su in sus:
+          waitForPresenceState(su,"uninstantiated")
+        if procIdList:  # If we have a bunch of process Ids from the start, lets make sure they do not exist
+          time.sleep(2)  # After the component deregisters, it can take any amount of time to actually quit.
+          try:
+            pstatus = procStatus(procId)
+            if pstatus in ["R","S","D"]:
+              raise TestFailed("Process [%d] did not stop" % procId)
+          except IOError, e:
+            if e.errno == errno.ENOENT: pass # No such file or directory -- Great! the process has already quit.
+            else: raise
+          
+        stopped = True
+        sp.mgtSet(entPfx + "/adminState","on")
+      else:
+        raise TestFailed("Cannot get adminState from [%s]. Got [%s]" % (entPfx,adm))
 
 
 def main(tgtDir):
@@ -93,21 +245,13 @@ def main(tgtDir):
     if node == "":
       sp.mgtCreate("/safplusAmf/Node/node0")
 
-    clTest.testCase("AMF-DYN-SG.TC001: Create app",AmfCreateApp("tc001",["../test/exampleSafApp tc001"],["node0"]))
-    sp.mgtSet("/safplusAmf/ServiceGroup/tc001Sg/adminState","on")
-
-    count = 0
-    while 1:
-      count += 1
-      time.sleep(1)
-      ps = sp.mgt.get("/safplusAmf/Component/exampleSafApp_in_tc001Su0/presenceState")
-      if ps == "instantiated":
-        clTest.testSuccess("AMF-DYN-SG.TC002: App is instantiated")
-        # todo check process ID
-        break 
-      elif count == 5:
-        clTest.testFailed("AMF-DYN-SG.TC002: App is instantiated","comp state is [%s]" % ps)
-        
+    if 0:
+      testCreateSingleApp()
+      for i in range(1,4): testStartStop("/safplusAmf/ServiceGroup/tc001Sg")
+      sp.mgtSet("/safplusAmf/ServiceGroup/tc001Sg/adminState","on")
+      for i in range(1,4): testStartStop("/safplusAmf/ServiceUnit/tc001Su0")
+      
+    testCreateNsuMcomp("tc020",3,3)
 
     clTest.finalize();
     sp.Finalize()

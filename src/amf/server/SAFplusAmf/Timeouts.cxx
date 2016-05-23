@@ -16,11 +16,13 @@
 namespace SAFplusAmf
   {
 
-    Timeouts::Timeouts(): SAFplus::MgtContainer("timeouts"), quiescingComplete("quiescingComplete",SaTimeT(120000)), workRemoval("workRemoval",SaTimeT(120000)), workAssignment("workAssignment",SaTimeT(120000))
+    Timeouts::Timeouts(): SAFplus::MgtContainer("timeouts"), terminate("terminate",SaTimeT(120000)), quiescingComplete("quiescingComplete",SaTimeT(120000)), workRemoval("workRemoval",SaTimeT(120000)), workAssignment("workAssignment",SaTimeT(120000))
     {
+        this->addChildObject(&terminate, "terminate");
         this->addChildObject(&quiescingComplete, "quiescingComplete");
         this->addChildObject(&workRemoval, "workRemoval");
         this->addChildObject(&workAssignment, "workAssignment");
+        terminate = SaTimeT(120000);
         quiescingComplete = SaTimeT(120000);
         workRemoval = SaTimeT(120000);
         workAssignment = SaTimeT(120000);
@@ -28,8 +30,24 @@ namespace SAFplusAmf
 
     std::vector<std::string>* Timeouts::getChildNames()
     {
-        std::string childNames[] = { "quiescingComplete", "workRemoval", "workAssignment" };
+        std::string childNames[] = { "terminate", "quiescingComplete", "workRemoval", "workAssignment" };
         return new std::vector<std::string> (childNames, childNames + sizeof(childNames) / sizeof(childNames[0]));
+    };
+
+    /*
+     * XPATH: /SAFplusAmf/safplusAmf/Component/timeouts/terminate
+     */
+    SaTimeT Timeouts::getTerminate()
+    {
+        return this->terminate.value;
+    };
+
+    /*
+     * XPATH: /SAFplusAmf/safplusAmf/Component/timeouts/terminate
+     */
+    void Timeouts::setTerminate(SaTimeT &terminateValue, SAFplus::Transaction &txn)
+    {
+        this->terminate.set(terminateValue,txn);
     };
 
     /*
