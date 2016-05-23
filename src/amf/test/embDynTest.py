@@ -44,46 +44,6 @@ def connectToAmf():
     sp.logSeverity = sp.LogSeverity.DEBUG
     
 
-def signalRandomCompInSi(si,role="active",sig=signal.SIGKILL):
-    (active, standby) = amfctrl.activeStandby(si)
-    if role == "active":
-      if not active:
-        raise TestFailed("No active was chosen")
-      suList = active
-    elif role == "standby":
-      if not standby:
-        raise TestFailed("No standby was chosen")
-      suList = standby
-    else:
-      assert(0) # Bad inputs
-  
-    # grab a random process from the active list and kill it.
-    su = random.choice(amfctrl.getEntity(suList))  # first get a random SU
-    comps = amfctrl.getEntity(amfctrl.csv2List(su.components.data_)) # then get a random comp out of it
-    comp = random.choice(comps)
-    print now() + ": Killing [%s] pid [%s]" % (comp.name.data_, str(comp.processId.data_))
-    os.kill(comp.processId.data_, sig)
-
-def waitForSiRecovery(si,maxTime=20):
-    # wait until the failover happens
-    count = 0
-    while count < maxTime:
-      (active, standby) = amfctrl.activeStandby(si)
-      if active and standby: break
-      time.sleep(1)
-      count+=1
-    if count<maxTime:
-      print now() + ": New active %s, new standby %s" % (active, standby)
-    else:
-      raise TestFailed(now() + ": Failover did not work: active %s, standby %s waited %d seconds" % (active,standby,maxTime))
-    clTest.testSuccess("work assigned")
-    return (active,standby)
-  
-
-def mgtHammer():
-  for i in range(1,10000):
-      (active, standby) = amfctrl.activeStandby("si")
-
 class ZombieException(Exception):
   pass
 
@@ -111,7 +71,6 @@ def AmfCreateApp(prefix, compList, nodes):
     count += 1
 
   entities["ServiceGroup/%s" % sg]["serviceUnits"] = ",".join(sus)
-  pdb.set_trace()
   amfctrl.commit(entities)
 
   # clTest.testSuccess("")
@@ -137,44 +96,21 @@ def main(tgtDir):
     clTest.testCase("AMF-DYN-SG.TC001: Create app",AmfCreateApp("tc001",["../test/exampleSafApp tc001"],["node0"]))
     sp.mgtSet("/safplusAmf/ServiceGroup/tc001Sg/adminState","on")
 
-    pdb.set_trace()
+    count = 0
     while 1:
+      count += 1
       time.sleep(1)
       ps = sp.mgt.get("/safplusAmf/Component/exampleSafApp_in_tc001Su0/presenceState")
       if ps == "instantiated":
+        clTest.testSuccess("AMF-DYN-SG.TC002: App is instantiated")
+        # todo check process ID
         break 
+      elif count == 5:
+        clTest.testFailed("AMF-DYN-SG.TC002: App is instantiated","comp state is [%s]" % ps)
+        
 
     clTest.finalize();
     sp.Finalize()
-
-def AmfFailComp():
-    # Make sure sg is fully up
-    (active, standby) = waitForSiRecovery("si",60)
-    if not active:
-      raise clTest.Malfunction(now() + "Initial conditions incorrect: No active was chosen")
-    if not standby:
-      raise clTest.Malfunction(now() + "Initial conditions incorrect: No standby was chosen")
-    count = 0
-    for i in range(1,5):
-      print now() +":" + str(count) + " Killing Active Component"
-      for j in range(1,3):
-        # grab a random process from the active list and kill it.
-        signalRandomCompInSi("si","active")
-        # wait for AMF to react
-        time.sleep(5)
-        waitForSiRecovery("si")
-        time.sleep(5)
-        count += 1
-      print now() + ":" + str(count) + " Killing Standby Component"
-      for j in range(1,3):
-        # grab a random process from the active list and kill it.
-        signalRandomCompInSi("si","standby")
-        # wait for AMF to react
-        time.sleep(5)
-        waitForSiRecovery("si")
-        time.sleep(5)
-        count += 1
-      amfctrl.displaySgStatus("sg0")
 
 
 if __name__ == '__main__':  # called from the target "test" directory

@@ -384,7 +384,7 @@ namespace SAFplus
   template<class T>
     ClRcT MgtProv<T>::setDb(std::string pxp, MgtDatabase *db)
     {
-      if (!loadDb)  // Not a configuration item
+      if ((!loadDb)&&(!replicated)) // Not a configuration item
         return CL_OK;
      
       std::string key;
@@ -410,7 +410,7 @@ namespace SAFplus
   template<class T>
     ClRcT MgtProv<T>::getDb(std::string pxp, MgtDatabase *db)
     {
-      if (!loadDb)
+      if ((!loadDb)&&(!replicated))
         return CL_OK;
       if (!db) db = MgtObject::getDb();
       assert(db);
