@@ -1328,13 +1328,10 @@ namespace SAFplus
           {
             std::string pval;
             std::vector<std::string> childs;
-            ret = db->getRecord(xpath, pval, &childs);
-            if (ret == CL_OK)
-            {
-              childs.push_back(keypart.str());
-              ret = db->setRecord(xpath, pval, &childs);
-              logDebug("MGT","LIST", "Append child node [%s] into [%s]", keypart.str().c_str(), xpath.c_str());
-            }
+            db->getRecord(xpath, pval, &childs);
+            childs.push_back(keypart.str());
+            db->setRecord(xpath, pval, &childs);
+            logDebug("MGT","LIST", "Append child node [%s] into [%s]", keypart.str().c_str(), xpath.c_str());
           }
 
           if ((this->parent != nullptr)&&(db)) // Update childs for parent: i.e /safplusAmf => "Node[@name='node0'],Node[@name='node1']"
@@ -1346,13 +1343,10 @@ namespace SAFplus
             // Update childs for parentDBKey
             std::string pval;
             std::vector<std::string> childs;
-            ret = db->getRecord(parentDBKey, pval, &childs);
-            if (ret == CL_OK)
-            {
-              childs.push_back(childDBKey);
-              ret = db->setRecord(parentDBKey, pval, &childs);
-              logDebug("MGT","LIST", "Append child node [%s] into [%s]", childDBKey.c_str(), parentDBKey.c_str());
-            }
+            db->getRecord(parentDBKey, pval, &childs);
+            childs.push_back(childDBKey);
+            db->setRecord(parentDBKey, pval, &childs);
+            logDebug("MGT","LIST", "Append child node [%s] into [%s]", childDBKey.c_str(), parentDBKey.c_str());
           }
         }
 
