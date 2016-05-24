@@ -226,9 +226,6 @@ populate_image() {
    	   else
 		 echo "WARNING: the prebuild directory $ASP_PREBUILD_BINDIR does not exist!"	
    	   fi
-    else
-	         echo "Copying SAFplus server binaries from $ASP_BINDIR"
-		 ${INSTALL} $exe_flags $ASP_BINDIR/* $imagedir/bin
     fi 
     echo cd $imagedir ln -s etc/init.d/safplus ${ASP_MODEL_NAME}
     (cd $imagedir; ln -s etc/init.d/safplus ${ASP_MODEL_NAME})
