@@ -247,6 +247,7 @@ namespace SAFplusI
     SAFplusI::GroupShmHeader* groupHdr;
     void init();
     void finalize();
+    ~GroupSharedMem();
     void clear(); // Remove all group's entities from shared memory
     void claim(int pid, int port); // Claim that the provided pid and port is the node representative.  Overwrites an existing claim
     void dispatcher(void);
@@ -268,6 +269,7 @@ class GroupServer:public SAFplus::MsgHandler
   {
   public:
   GroupServer();
+    ~GroupServer();
   GroupSharedMem gsm;
   SAFplus::SafplusMsgServer   *groupMsgServer;
   boost::thread faultHandler;

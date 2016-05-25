@@ -73,7 +73,9 @@ void ThreadPool::stop()
     for(ThreadHashMap::iterator iter=threadMap.begin(); iter!=threadMap.end(); iter++)
     {
       pthread_t threadId = iter->first;
-      pthread_join(threadId,NULL); // TODO: after a while we should give up and kill it
+      ThreadState& ts = iter->second;
+      if (!ts.finished)
+        pthread_join(threadId,NULL); // TODO: after a while we should give up and kill it
     }
     threadMap.clear();
   }
@@ -338,6 +340,7 @@ void ThreadPool::checkAndReleaseThread()
     if (ts.zombie)
       {
         pthread_join(threadId,NULL);  // clean up thread tracker in OS (stop zombie threads)
+        ts.finished = true;
         eraseMe = iter;        
       }
     if (!ts.working)

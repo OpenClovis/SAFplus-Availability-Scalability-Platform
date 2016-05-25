@@ -76,8 +76,9 @@ namespace SAFplus
     bool working;
     bool quitAllowed;
     bool zombie; // thread has quit and is waiting for join()
+    bool finished; 
     struct timespec idleTimestamp;
-    ThreadState(bool wk, bool qa): working(wk), quitAllowed(qa), zombie(false) {}
+    ThreadState(bool wk, bool qa): working(wk), quitAllowed(qa), zombie(false), finished(false) {}
   };
  
   typedef std::pair<const pthread_t,ThreadState> ThreadMapPair; 

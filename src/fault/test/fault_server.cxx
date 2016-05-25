@@ -1,4 +1,5 @@
 #include <clFaultApi.hxx>
+#include <clFaultServerIpi.hxx>
 #include <clGlobals.hxx>
 #include <clMsgPortsAndTypes.hxx>
 #include <clSafplusMsgServer.hxx>

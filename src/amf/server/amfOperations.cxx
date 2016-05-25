@@ -70,7 +70,7 @@ namespace SAFplus
 
     if ((!comp->serviceUnit.value)||(!comp->serviceUnit.value->node.value)||(!comp->serviceUnit.value->serviceGroup.value))  // This component is not properly hooked up to other entities; it must be off
       {
-      logInfo("N+M","AUDIT","Component [%s] entity group is not properly configured",comp->name.value.c_str());
+      logInfo("N+M","AUDIT","Component's [%s] entities are not fully connected",comp->name.value.c_str());
       return SAFplusAmf::AdministrativeState::off;
       }
     ServiceUnit* su = comp->serviceUnit.value;
@@ -683,7 +683,10 @@ namespace SAFplus
         FaultState fs = fault.getFaultState(remoteAmfHdl);
         if (fs != FaultState::STATE_DOWN)
           {
-          assert(0);  // TODO implement process stop RPC
+          StopComponentRequest req;
+          req.set_pid(comp->processId.value);
+          //req.set_name(comp->name);
+          amfInternalRpc->stopComponent(remoteAmfHdl,&req, nullptr);
           }
         else
           {

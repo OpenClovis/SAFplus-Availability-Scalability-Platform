@@ -209,6 +209,7 @@ namespace SAFplus
 template<class T> ClRcT MgtIdentifier<T>::setObj(const std::string &value)
 {
   ref = value;
+  MgtRoot::getInstance()->addReference(this);
   updateReference();
   lastChange = beat++;
   return CL_OK;
@@ -225,6 +226,8 @@ template<class T> ClRcT MgtIdentifier<T>::setObj(const std::string &value)
       MgtObject *obj = dynamic_cast<MgtObject *>(value);
       if (obj)
           xmlString << value->getFullXpath();
+      else if (!ref.empty())  // If the identifier isn't resolved, prepend a question mark...
+        xmlString << "?" << ref;
       xmlString << "</" << tag << ">";
   }
 

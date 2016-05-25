@@ -87,7 +87,7 @@ std::string getFullShmFile(const char* shmFilename)
 
 void SAFplus::Checkpoint::init(const Handle& hdl, uint_t _flags, uint64_t retentionDuration, uint_t size, uint_t rows,SAFplus::Wakeable& execSemantics)
 {
-  logInfo("CKP","INI","Opening checkpoint [%" PRIx64 ":%" PRIx64 "]",hdl.id[0],hdl.id[1]);
+  logInfo("CKP","INI","Opening checkpoint [%" PRIx64 ":%" PRIx64 "] [%s]",hdl.id[0],hdl.id[1], (_flags & REPLICATED) ? "REPLICATED": "");
   // All constructors funnel through this init routine.
   gate.init(hdl.id[1]);  // 2nd word of the handle should be unique on this node
   gate.close(); // start the gate closed so this process can't access the checkpoint.  But I can't init the gate closed, in case the init opens an existing gate, instead of creating one
@@ -379,11 +379,14 @@ void SAFplus::Checkpoint::write(const Buffer& key, const Buffer& value,Transacti
             {
               if (curval->len() == newlen) {// lengths are the same, most efficient is to just copy the new data onto the old.
                 //memcpy (curval->data,value.data,newlen);
-                *curval = value;
-                if (flags & CHANGE_ANNOTATION) curval->setChangeNum(change);
-                if (sync) sync->sendUpdate(&key,curval.get(), t);
-                hdr->lastUsed = boost::posix_time::second_clock::universal_time(); 
-                updateOperMap(contents->first.get(), INUP);
+                if (memcmp(curval->data,value.data,newlen)==0) // Only overwrite if they are not the same
+                  {
+                    *curval = value;
+                    if (flags & CHANGE_ANNOTATION) curval->setChangeNum(change);
+                    if (sync) sync->sendUpdate(&key,curval.get(), change, t);
+                    hdr->lastUsed = boost::posix_time::second_clock::universal_time(); 
+                    updateOperMap(contents->first.get(), INUP);
+                  }
                 gate.open();
                 return;
               }
@@ -398,7 +401,7 @@ void SAFplus::Checkpoint::write(const Buffer& key, const Buffer& value,Transacti
             msm.deallocate(old);  // if I'm the last owner, let this go.
           else 
             old->decRef();
-          if (sync) sync->sendUpdate(&key,v, t);  // Pass curval not the parameter because curval has the proper change number
+          if (sync) sync->sendUpdate(&key,v, change, t);  // Pass curval not the parameter because curval has the proper change number
           hdr->lastUsed = boost::posix_time::second_clock::universal_time();          
           updateOperMap(contents->first.get(), INUP);
           gate.open();          
@@ -417,7 +420,7 @@ void SAFplus::Checkpoint::write(const Buffer& key, const Buffer& value,Transacti
   SAFplusI::BufferPtr kb(k),kv(v);
   SAFplusI::CkptMapPair vt(kb,kv);
   map->insert(vt);
-  if (sync) sync->sendUpdate(&key,v, t);
+  if (sync) sync->sendUpdate(&key,v, change, t);
   hdr->lastUsed = boost::posix_time::second_clock::universal_time();
   updateOperMap(k, INUP);
   gate.open();
@@ -425,7 +428,6 @@ void SAFplus::Checkpoint::write(const Buffer& key, const Buffer& value,Transacti
 
 void SAFplus::Checkpoint::applySync(const Buffer& key, const Buffer& value,Transaction& t)
 {
-  gate.close();
   //Buffer* existing = read(key);
   uint_t newlen = value.len();
 
@@ -440,8 +442,12 @@ void SAFplus::Checkpoint::applySync(const Buffer& key, const Buffer& value,Trans
       // If this change or a later one has already been applied, skip it.
       if (curval->changeNum() >= value.changeNum())
         {
-        logInfo("TEST","GRP", "Checkpoint has more recent change [%d] vs [%d], not applying...",curval->changeNum(),value.changeNum());
-        gate.open();
+          if (curval->changeNum() == value.changeNum())  // DEBUGGING, if the change numbers are the same verify the same data
+          {
+            assert (curval->len()==value.len());
+            //TODO assert (memcmp(curval->getc(),value.getc(),curval->len())==0);
+          }
+        logInfo("CKP","SYNC", "Checkpoint has an equal or more recent change [%u] vs [%u], not applying...",curval->changeNum(),value.changeNum());
         return;
         }
 
@@ -452,7 +458,6 @@ void SAFplus::Checkpoint::applySync(const Buffer& key, const Buffer& value,Trans
             {
               if (curval->len() == newlen) {// lengths are the same, most efficient is to just copy the new data onto the old.
                 *curval = value;  // change num is copied over as part of the assignment
-                gate.open();
                 return;
               }
             }
@@ -465,7 +470,6 @@ void SAFplus::Checkpoint::applySync(const Buffer& key, const Buffer& value,Trans
             msm.deallocate(old);  // if I'm the last owner, let this go.
           else 
             old->decRef();
-          gate.open();
           return;
         }
     }
@@ -479,7 +483,6 @@ void SAFplus::Checkpoint::applySync(const Buffer& key, const Buffer& value,Trans
   SAFplusI::BufferPtr kb(k),kv(v);
   SAFplusI::CkptMapPair vt(kb,kv);
   map->insert(vt);
-  gate.open();
   // I don't update hdr->changeNum in case the replication fails.  Then I need to restart it from the original sync location, so I need to preserve that.  
 }
 
@@ -738,7 +741,7 @@ void SAFplus::Checkpoint::writeCkptData(ClDBKeyHandleT key, ClUint32T keySize, C
   SAFplusI::CkptMapPair vt(kb,kv);
   map->insert(vt);
   Transaction t=NO_TXN;
-  if (sync) sync->sendUpdate(k,v,t);
+  if (sync) sync->sendUpdate(k,v,change,t);
   hdr->lastUsed = boost::posix_time::second_clock::universal_time();
 }
 

@@ -303,7 +303,11 @@ class PyDBAL():
             #Is attribute xpath? /a/b/c@name => attr name
             attr_xpath = False 
 
-            value = str(self.Read(xpath))
+            try:
+              value = str(self.Read(xpath))
+            except SystemError, e:
+              print "Cannot read [%s], error %s" % (xpath,str(e))
+              continue
             next = iter(ElementPath.xpath_tokenizer(xpath)).next
 
             #For each leaf node on xpath

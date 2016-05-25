@@ -19,7 +19,7 @@ SERVER_OBJ := $(addprefix $(OBJ_DIR)/,$(subst .cxx,.o,$(SERVER_SRC)))
 
 
 # Specify the required libraries
-SAFPLUS_LIBS := clFault clCkpt clName clMsg  clGroup clMgt clLog clUtils clOsal clDbal
+SAFPLUS_LIBS := clFaultServer clFault clCkpt clName clMsg  clGroup clMgt clLog clUtils clOsal clDbal
 # Then use these in the make rule
 SAFPLUS_DEP_LIBS     := $(addsuffix .so,$(addprefix $(LIB_DIR)/lib,$(SAFPLUS_LIBS)))
 SAFPLUS_LINK_LIBS := -L$(LIB_DIR) $(addprefix -l,$(SAFPLUS_LIBS))

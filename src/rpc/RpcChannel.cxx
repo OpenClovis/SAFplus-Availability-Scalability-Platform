@@ -319,8 +319,8 @@ namespace SAFplus
                 msgRPCs.erase(it);
                 mutex.unlock();
 
-                rpcReqEntry->response->ParseFromString(rpcMsgRes->buffer());
-
+                if (rpcReqEntry->response) // Will be NULL if caller does not care about the response
+                  rpcReqEntry->response->ParseFromString(rpcMsgRes->buffer());
                 if (rpcReqEntry->callback != NULL)
                   {
                     rpcReqEntry->callback->wake(1, (void*) rpcReqEntry->response);

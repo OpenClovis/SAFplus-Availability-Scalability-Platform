@@ -414,7 +414,7 @@ ClRcT BerkeleyPlugin::open(ClDBFileT dbFile, ClDBNameT dbName, ClDBFlagT dbFlag,
     }
     else
     {
-        logError(CL_LOG_AREA_UNSPECIFIED, CL_LOG_CONTEXT_UNSPECIFIED,"Invalid DB flag [0x%x].  Cannot open database [%s].",dbFlag,(ClCharT*)dbFile);
+        logError(CL_LOG_AREA_UNSPECIFIED, CL_LOG_CONTEXT_UNSPECIFIED,"Invalid DB flag [0x%" PRIx64 "].  Cannot open database [%s].",dbFlag,(ClCharT*)dbFile);
         goto err_cleaup;
     }
 
@@ -977,7 +977,7 @@ ClRcT BerkeleyPlugin::openTransaction(ClDBFileT dbFile, ClDBNameT  dbName, ClDBF
     }
     else
     {
-        logError(CL_LOG_AREA_UNSPECIFIED, CL_LOG_CONTEXT_UNSPECIFIED,"Invalid DB flag [0x%x].  Cannot open database [%s].",dbFlag,(ClCharT*)dbFile);
+        logError(CL_LOG_AREA_UNSPECIFIED, CL_LOG_CONTEXT_UNSPECIFIED,"Invalid DB flag [0x%" PRIx64 "].  Cannot open database [%s].",dbFlag,(ClCharT*)dbFile);
         goto err_cleaup;
     }
 

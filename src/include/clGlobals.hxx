@@ -134,6 +134,8 @@ class LibSet
   extern void clMsgInitialize(void) __attribute__((weak)); 
   extern void mgtAccessInitialize(void) __attribute__((weak));
 
+  extern void ckptFinalize(void) __attribute__((weak));
+
 #ifdef __cplusplus
 extern "C" {
 #endif 
@@ -232,6 +234,7 @@ extern "C" {
     inline void safplusFinalize(void)
     {
       SAFplus::groupFinalize();
+      if (ckptFinalize) ckptFinalize();
       msgServerFinalize();
     }
   };

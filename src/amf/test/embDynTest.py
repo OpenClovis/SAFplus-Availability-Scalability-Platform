@@ -49,10 +49,14 @@ class ZombieException(Exception):
 
 def AmfCreateApp(prefix, compList, nodes):
   sg = "%sSg" % prefix
+  numActiveSus = (len(nodes)+1)/2
+  numStandbySus = len(nodes) -  numActiveSus
+  
   entities = { 
     # "Component/dynComp0" : { "maxActiveAssignments":4, "maxStandbyAssignments":2, "serviceUnit": "dynSu0", "instantiate": { "command" : "../test/exampleSafApp dynComp", "timeout":60*1000 }},   
-    "ServiceGroup/%s" % sg : { "adminState":"off", "preferredNumActiveServiceUnits":1,"preferredNumStandbyServiceUnits":0 },
-    "ServiceInstance/%sSi" % prefix : { "serviceGroup": sg }
+    "ServiceGroup/%s" % sg : { "adminState":"off", "preferredNumActiveServiceUnits":numActiveSus,"preferredNumStandbyServiceUnits":numStandbySus },
+    "ServiceInstance/%sSi" % prefix : { "serviceGroup": sg },
+    # "ComponentServiceInstance/%sCsi" % prefix : { "serviceInstance": "ServiceInstance/%sSi" % prefix, "name/testKey" : "testVal" }
   }
 
   count = 0
@@ -114,7 +118,8 @@ def testCreateNsuMcomp(prefix, numSu,numComp):
     nodeLst = ["node0"] * numSu
     sg = prefix + "Sg"
     clTest.testCase("AMF-DYN-SG.TC001: Create %d su %d comps" % (numSu, numComp),AmfCreateApp(prefix,compLst,nodeLst))
-    sp.mgtSet("/safplusAmf/ServiceGroup/%s/adminState" % prefix,"on")
+    time.sleep(1)
+    sp.mgtSet("/safplusAmf/ServiceGroup/%sSg/adminState" % prefix,"on")
     for x in range(0,numComp):
       sp.mgtSet("/safplusAmf/ServiceUnit/%sSu%d/adminState" % (prefix,x),"on")
 
@@ -245,13 +250,14 @@ def main(tgtDir):
     if node == "":
       sp.mgtCreate("/safplusAmf/Node/node0")
 
-    if 0:
+    if 1:
       testCreateSingleApp()
       for i in range(1,4): testStartStop("/safplusAmf/ServiceGroup/tc001Sg")
       sp.mgtSet("/safplusAmf/ServiceGroup/tc001Sg/adminState","on")
       for i in range(1,4): testStartStop("/safplusAmf/ServiceUnit/tc001Su0")
       
-    testCreateNsuMcomp("tc020",3,3)
+    if 1:
+      testCreateNsuMcomp("tc020",3,3)
 
     clTest.finalize();
     sp.Finalize()

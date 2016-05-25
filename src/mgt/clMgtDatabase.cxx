@@ -92,8 +92,8 @@ namespace SAFplus
     //? <cfg name="SAFPLUS_MGT_DB_PLUGIN">[OPTIONAL] Specifies the management database plugin</cfg>
     if ((&dbPlugin==nullptr)||(dbPlugin == ""))
       {
-        char* db = getenv("SAFPLUS_MGT_DB");
-        mDbDataHdl = clDbalObjCreate(db);  // If NULL, we'll choose the default db
+        char* dbPluginTmp = getenv("SAFPLUS_MGT_DB_PLUGIN");
+        mDbDataHdl = clDbalObjCreate(dbPluginTmp);  // If NULL, we'll choose the default db
       }
     else
       {

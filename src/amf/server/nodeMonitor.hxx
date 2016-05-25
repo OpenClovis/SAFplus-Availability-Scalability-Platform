@@ -8,7 +8,8 @@ class NodeMonitor:public SAFplus::MsgHandler
 public:
   NodeMonitor():maxSilentInterval(0), active(false), standby(false),quit(true) {};  // two step constructor
   ~NodeMonitor();
-  void init(void);
+  void initialize(void);
+  void finalize(void);
   void becomeActive(void);
   void becomeStandby(void);
   void monitorThread(void);

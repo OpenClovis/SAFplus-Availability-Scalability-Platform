@@ -23,7 +23,7 @@ struct HeartbeatData
 
 const unsigned int InitialHbInterval = 3000;  // give a just started node an extra few seconds to come up
 
-void NodeMonitor::init()
+void NodeMonitor::initialize()
 {
   lastHbHandle = INVALID_HDL;
   active = false;
@@ -37,6 +37,16 @@ void NodeMonitor::init()
   maxSilentInterval = SAFplusI::NodeSilentInterval;
   quit = false;
   thread = boost::thread(boost::ref(*this));
+}
+
+
+void NodeMonitor::finalize()
+{
+  if (!quit)
+    {
+    quit = true;
+    thread.join();
+    }
 }
 
 void NodeMonitor::msgHandler(MsgServer* svr, Message* msg, ClPtrT cookie)
@@ -90,11 +100,7 @@ void NodeMonitor::becomeStandby(void)
 
 NodeMonitor::~NodeMonitor()
 {
-  if (!quit) // If quit is false, we never initialized this object and started the thread
-    {
-    quit = true;
-    thread.join();
-    }
+  if (!quit) finalize(); // If quit is false, we never initialized this object and started the thread
 }
 
 void NodeMonitor::monitorThread(void)

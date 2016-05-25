@@ -193,7 +193,7 @@ namespace SAFplus
           if (su->node.value->presenceState == SAFplusAmf::PresenceState::instantiated)
             {
               if (su->adminState != AdministrativeState::off)
-                {
+                { // if su->presenceState != ...
                   logInfo("N+M","STRT","Starting service unit [%s]", suName.c_str());
                   waits += start(su,waitSem);  // When started, "wake" will be called on the waitSem
                   totalStarted++;
@@ -793,7 +793,12 @@ namespace SAFplus
             numComps++;
             Component* comp = dynamic_cast<Component*>(itcomp->second);
             logInfo("N+M","AUDIT","Component [%s]: operState [%s]", comp->name.value.c_str(), comp->operState.value ? "enabled" : "faulted");
-            if (running(comp->presenceState))  // If I think its running, let's check it out.
+            if (!running(comp->presenceState))
+              {
+                if (comp->processId.value) comp->processId.value=0;  // TODO: should we check the node to see if there is a process?
+                //  TODO: see if its in the name service
+              }
+            else // If I think its running, let's check it out.
               {
               CompStatus status = amfOps->getCompState(comp);
 

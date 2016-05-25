@@ -66,7 +66,8 @@ CkptPlugin::CkptPlugin()
 
 CkptPlugin::~CkptPlugin()
 { 
-  close(); 
+  close();
+  groupFinalize();
 }
 
 ClRcT CkptPlugin::open(ClDBFileT dbFile, ClDBNameT dbName, ClDBFlagT flags, ClUint32T maxKeySize, ClUint32T maxRecordSize)

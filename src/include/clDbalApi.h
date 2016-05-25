@@ -145,9 +145,11 @@ typedef ClPtrT   ClDBEngineT;
 /**
  *  Definition of database open flag type. Database can be opened in following
  *  three modes : Create, Open, Append. 
+ *
+ *  Database-specific flags may also be added to the higher order bits of this field
  */
 
-typedef ClUint8T ClDBFlagT;
+typedef uint64_t ClDBFlagT;
 
 /**
  * This DB flag is used for creating a DB. If the DB already exists then it 

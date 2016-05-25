@@ -81,9 +81,10 @@ void SAFplusI::CkptSynchronization::msgHandler(Handle from, SAFplus::MsgServer* 
 
     case CKPT_MSG_TYPE_SYNC_MSG_1:
       {
-      logInfo("SYNC","MSG","Received checkpoint sync update message");
       CkptSyncMsg* hdr = (CkptSyncMsg*) msg;
       assert((hdr->msgType>>16) == CKPT_MSG_TYPE);  // TODO: endian swap & should never assert on bad incoming message data
+      logInfo("SYNC","MSG","Received checkpoint sync update message [%d] of length [%d] for [%" PRIx64 ":%" PRIx64"].",hdr->count, (int) msglen, ckpt->hdr->handle.id[0],ckpt->hdr->handle.id[1]);
+
       // The sync cookie verifies that this synchronization message is part of THIS sync operation.  
       // Theoretically, an old sync message might be delayed and then appear from an old sync request.  The sync cookie allows us to detect and ignore those old
       // messages.  I suppose that applying them would not mess anything up, b/c they should be valid data... (except perhaps the sync message count).
@@ -98,7 +99,13 @@ void SAFplusI::CkptSynchronization::msgHandler(Handle from, SAFplus::MsgServer* 
         // sends the records in any order.  So I might be applying change 100 (say) but have not yet received changes 10-99.
         // Therefore if this process fails, I need to resynchronize starting at the original change number.  So I can't update the change # in shared memory
         // until the entire synchronization process is completed.
-        if (syncRecvCount < hdr->count) syncRecvCount = hdr->count;  // TODO... should I be assigning this or just adding one... assignment would cause a dropped packet to be not detected.
+        syncRecvCount++;
+#if 0
+        if (syncRecvCount < hdr->count)
+          {
+            syncRecvCount = hdr->count;  // TODO... should I be assigning this or just adding one... assignment would cause a dropped packet to be not detected.
+          }
+#endif
         }
 
       } break;
@@ -106,8 +113,8 @@ void SAFplusI::CkptSynchronization::msgHandler(Handle from, SAFplus::MsgServer* 
     case CKPT_MSG_TYPE_UPDATE_MSG_1:
       if (from.getNode() != SAFplus::ASP_NODEADDR) // No need to handle update messages coming from myself.
         {
-        logInfo("SYNC","MSG","Received checkpoint update message");
         unsigned int change = applySyncMsg(msg,msglen, cookie);
+        logInfo("SYNC","MSG","Received checkpoint update message for [%" PRIx64 ":%" PRIx64"].  My last change [%d] incoming [%d]", ckpt->hdr->handle.id[0],ckpt->hdr->handle.id[1],ckpt->hdr->changeNum, change);
         if (ckpt->hdr->changeNum < change) ckpt->hdr->changeNum = change;
         } break;
 
@@ -117,18 +124,28 @@ void SAFplusI::CkptSynchronization::msgHandler(Handle from, SAFplus::MsgServer* 
       if (endianSwap) {} // TODO
       // Presumably sync complete is sent last.  However other threads could still be processing the incoming messages, or the order
       // could have been mixed up in transit.  So wait for all the synchronization messages to arrive and be processed.
-      while (syncRecvCount < sc->finalCount)
+      int loop=0;
+      while ((syncRecvCount < sc->finalCount)&&(loop < 20))
         {
+        loop++;
         logInfo("SYNC","MSG","sync complete waiting for msg processing received [%d] expected [%d]...", syncRecvCount, sc->finalCount);
-        boost::this_thread::sleep(boost::posix_time::milliseconds(100));
+        boost::this_thread::sleep(boost::posix_time::milliseconds(200));
         }
-      ckpt->hdr->generation = sc->finalGeneration;
-      if (ckpt->hdr->changeNum < sc->finalChangeNum) ckpt->hdr->changeNum = sc->finalChangeNum;
-      logInfo("SYNC","MSG","Checkpoint [%" PRIx64 ":%" PRIx64 "] sync complete.  Msg count [%d]. change [%d.%d]", ckpt->hdr->handle.id[0], ckpt->hdr->handle.id[1], sc->finalCount, ckpt->hdr->generation,ckpt->hdr->changeNum);
-      atomize.lock();
-      synchronizing = false;
-      ckpt->gate.open(); // TODO: I need to open this gate during all kinds of checkpoint failure conditions, sender process death, node death, message lost.
-      atomize.unlock();
+      if (loop == 20)
+        {
+        logInfo("SYNC","MSG","Checkpoint [%" PRIx64 ":%" PRIx64 "] sync failed.  Msg count [%d]. change [%d.%d]", ckpt->hdr->handle.id[0], ckpt->hdr->handle.id[1], sc->finalCount, ckpt->hdr->generation,ckpt->hdr->changeNum);
+        syncRequestActive = INVALID_HDL; // Will trigger a resync request
+        }
+      else
+        {
+          ckpt->hdr->generation = sc->finalGeneration;
+          if (ckpt->hdr->changeNum < sc->finalChangeNum) ckpt->hdr->changeNum = sc->finalChangeNum;
+          logInfo("SYNC","MSG","Checkpoint [%" PRIx64 ":%" PRIx64 "] sync complete.  Msg count [%d].  Record count [%d]. change [%d.%d]", ckpt->hdr->handle.id[0], ckpt->hdr->handle.id[1], sc->finalCount, syncRecordCount, ckpt->hdr->generation,ckpt->hdr->changeNum);
+          atomize.lock();
+          synchronizing = false;
+          ckpt->gate.open(); // TODO: I need to open this gate during all kinds of checkpoint failure conditions, sender process death, node death, message lost.
+          atomize.unlock();
+        }
       } break;
 
     case CKPT_MSG_TYPE_SYNC_RESPONSE_1:
@@ -145,27 +162,35 @@ void SAFplusI::CkptSynchronization::msgHandler(Handle from, SAFplus::MsgServer* 
 // Apply a synchronization message received either during the initial sync operation OR during a normal sync update (happens when the checkpoint is written)
 unsigned int SAFplusI::CkptSynchronization::applySyncMsg(ClPtrT msg, ClWordT msglen, ClPtrT cookie)
 {
+  ScopedLock<> lock(atomize);
+
+  bool gated=false;
   CkptSyncMsg* hdr = (CkptSyncMsg*) msg;
   assert((hdr->msgType>>16) == CKPT_MSG_TYPE);  // TODO: endian swap & should never assert on bad incoming message data
   int curpos = sizeof(CkptSyncMsg);
   unsigned int lastChange = 0;
   int count = 0;
+
   while (curpos < msglen)
     {
+    gated = false;
+    syncRecordCount++;
     count++;
     Buffer* key = (Buffer*) (((char*)msg)+curpos);
-    curpos += sizeof(Buffer) + key->len() - 1;
+    curpos += key->objectSize();
     Buffer* val = (Buffer*) (((char*)msg)+curpos);
-    curpos += sizeof(Buffer) + val->len() - 1;
+    curpos += val->objectSize();
     if (lastChange < val->changeNum()) lastChange = val->changeNum();
-    logInfo("SYNC","APLY","part %d: change %d. key(len:%d) %x  val(len:%d) %x", count, val->changeNum(), key->len(), *((uint32_t*) key->data), val->len(), *((uint32_t*) val->data));
+    logInfo("SYNC","APLY","[%" PRIx64 ":%" PRIx64"]: part %d: change %d. key(len:%d) %x  val(len:%d) %x", ckpt->hdr->handle.id[0],ckpt->hdr->handle.id[1], count, val->changeNum(), key->len(), *((uint32_t*) key->data), val->len(), *((uint32_t*) val->data));
+    if (!synchronizing) { gated = true; ckpt->gate.close(); }  // In the initial sync case, the gate is already closed.
     ckpt->applySync(*key,*val);
+    if (gated) ckpt->gate.open();
     }
 
   return lastChange;
 }
 
-void SAFplusI::CkptSynchronization::sendUpdate(const Buffer* key,const Buffer* val,Transaction& t)
+void SAFplusI::CkptSynchronization::sendUpdate(const Buffer* key,const Buffer* val,int change, Transaction& t)
   {
   // TODO transactions
   //int dataSize = key->objectSize() + val->objectSize();
@@ -177,6 +202,7 @@ void SAFplusI::CkptSynchronization::sendUpdate(const Buffer* key,const Buffer* v
   hdr->msgType     = (CKPT_MSG_TYPE << 16) | CKPT_MSG_TYPE_UPDATE_MSG_1;
   hdr->checkpoint  = ckpt->handle();
   hdr->cookie      = syncCookie;
+  hdr->count       = change;
   int offset   = sizeof(CkptSyncMsg);
 
   memcpy(&buf[offset],(void*) key, key->objectSize());
@@ -206,7 +232,7 @@ void SAFplusI::CkptSynchronization::synchronize(unsigned int generation, unsigne
 
   //Handle to = getAddress(response);
 
-  logInfo("SYNC","MSG","Handling synchronization request from [%" PRIx64 ":%" PRIx64 "], generation [%d] change [%d] ",response.id[0],response.id[1], generation, lastChange);
+  logInfo("SYNC","MSG","Handling synchronization request from [%" PRIx64 ":%" PRIx64 "] for [%" PRIx64 ":%" PRIx64 "], generation [%d] change [%d] ",response.id[0],response.id[1], ckpt->hdr->handle.id[0],ckpt->hdr->handle.id[1], generation, lastChange);
   if (generation != ckpt->hdr->generation) 
     {
     lastChange = 0;  // if the generation is wrong, we need ALL changes.
@@ -224,8 +250,10 @@ void SAFplusI::CkptSynchronization::synchronize(unsigned int generation, unsigne
 
 
   // TODO: lock writes
+  int itemCount = 0;
   for (Checkpoint::Iterator i=ckpt->begin();i!=ckpt->end();i++)
     {
+    itemCount++;
     SAFplus::Checkpoint::KeyValuePair& item = *i;
     Buffer* key = &(*(item.first));
     Buffer* val = &(*(item.second));
@@ -239,7 +267,7 @@ void SAFplusI::CkptSynchronization::synchronize(unsigned int generation, unsigne
         {
         // TODO unlock writes
         count++;
-        logInfo("SYNC","MSG","Sending checkpoint update msg (length [%d]) to handle [%" PRIx64 ":%" PRIx64 "] type %d.  key %d %x  val len: %d %x", offset, response.id[0],response.id[1], CKPT_SYNC_MSG_TYPE, key->len(), *((uint32_t*) key->data), val->len(), *((uint32_t*) val->data));
+        logInfo("SYNC","MSG","Sending checkpoint update msg [%d] (length [%d]) to handle [%" PRIx64 ":%" PRIx64 "] type %d.", count, offset, response.id[0],response.id[1], CKPT_SYNC_MSG_TYPE);
         hdr->count = count;
         msgSvr->SendMsg(response,buf,offset,CKPT_SYNC_MSG_TYPE);
         offset = headerEnds;  // Reset the buffer
@@ -257,24 +285,30 @@ void SAFplusI::CkptSynchronization::synchronize(unsigned int generation, unsigne
         hdr = (CkptSyncMsg*) buf;
         hdr->msgType = (CKPT_MSG_TYPE << 16) | CKPT_MSG_TYPE_SYNC_MSG_1;
         hdr->checkpoint = response;
+        hdr->cookie = cookie;
         offset = headerEnds;
         }
 
-      assert(offset + key->objectSize() < bufSize);
+      logInfo("SYNC","MSG", "adding record of key length [%d] (object [%d]) val length [%d] (%d) change [%d]", key->len(), key->objectSize(), val->len(), val->objectSize(),val->changeNum());
+      assert(offset + key->objectSize() <= bufSize);
       memcpy(&buf[offset],(void*) key, key->objectSize());
       offset += key->objectSize();
 
-      assert(offset + val->objectSize() < bufSize);
+      assert(offset + val->objectSize() <= bufSize);
       memcpy(&buf[offset],(void*) val, val->objectSize());
       offset += val->objectSize();
       }
+    else
+      {
+        logDebug("SYNC","MSG", "skipping record of key length [%d] val length [%d] change [%d]", key->objectSize(), val->objectSize(),val->changeNum());      
+      }
     }
 
-  // If we have data in the message and the next kvp would be bigger than the buffer then send the message out.
+  // We have data in the message so send the last one out.
   if (offset > headerEnds)
       {
       // TODO unlock writes
-      logInfo("SYNC","MSG","Sending last checkpoint update msg");
+      logInfo("SYNC","MSG","Sending last checkpoint update msg ");
       count++;
       hdr->count = count;
       msgSvr->SendMsg(response,buf,offset,CKPT_SYNC_MSG_TYPE);
@@ -282,8 +316,10 @@ void SAFplusI::CkptSynchronization::synchronize(unsigned int generation, unsigne
       // TODO lock writes
       }
 
+  logInfo("SYNC","MSG","Iterated over [%d] items checkpoint size [%d]", itemCount, ckpt->size());
+
   CkptSyncCompleteMsg sc;
-  sc.finalCount      = count;  // TODO
+  sc.finalCount      = count;
   sc.finalGeneration = ckpt->hdr->generation;
   sc.finalChangeNum  = ckpt->hdr->changeNum;
   sc.msgType = (CKPT_MSG_TYPE << 16) | CKPT_MSG_TYPE_SYNC_COMPLETE_1;
@@ -297,6 +333,7 @@ void SAFplusI::CkptSynchronization::synchronize(unsigned int generation, unsigne
 void SAFplusI::CkptSynchronization::init(Checkpoint* c,MsgServer* pmsgSvr, SAFplus::Wakeable& execSemantics)
   {
   ckpt = c;
+  initialized = true;
   synchronizing = true;  // Checkpoint always starts out in the synchronizing state (access not allowed).  It kicks out of this state when it becomes the active replica or it is synced with the active replica.
 
   syncReplica = electSynchronizationReplica();
@@ -338,6 +375,23 @@ void SAFplusI::CkptSynchronization::init(Checkpoint* c,MsgServer* pmsgSvr, SAFpl
     }
   }
 
+SAFplusI::CkptSynchronization::~CkptSynchronization() { finalize(); }
+
+void SAFplusI::CkptSynchronization::finalize()
+{
+  if (initialized)
+    {
+      initialized = false;
+      if (synchronizing)
+        {
+          synchronizing = false;
+          syncThread.join();
+        }
+      delete group;
+      group = NULL;
+    }
+}
+
 void SAFplusI::CkptSynchronization::wake(int amt,void* cookie)
   {
   unsigned int reason = (unsigned long int) cookie;
@@ -362,9 +416,23 @@ void SAFplusI::CkptSynchronization::wake(int amt,void* cookie)
     }
   }
 
+SAFplusI::CkptSynchronization::CkptSynchronization()
+{
+  initialized = false;
+  synchronizing = false;
+  syncReplica = false;
+  ckpt = NULL;
+  group = NULL;
+  msgSvr = NULL;
+  syncMsgSize = 0;
+  syncCount = 0;
+  syncRecvCount= 0;
+  syncCookie = 0;
+}
 
 void SAFplusI::CkptSynchronization::operator()()
   {
+
   while(synchronizing)
     {
     logInfo("SYNC","TRD","checkpoint synchronization thread");
@@ -380,23 +448,28 @@ void SAFplusI::CkptSynchronization::operator()()
         boost::this_thread::sleep(boost::posix_time::milliseconds(250));
         }
       } while (active == INVALID_HDL);
-
+    
     if (active != ckpt->hdr->replicaHandle) // Only request synchronization if I am not active
       {
-      CkptSyncRequest msg;
-      msg.msgType    = (CKPT_MSG_TYPE << 16) | CKPT_MSG_TYPE_SYNC_REQUEST_1;
-      msg.generation = ckpt->hdr->generation;
-      msg.changeNum  = ckpt->hdr->changeNum;
-      msg.checkpoint = ckpt->hdr->handle;
-      msg.response   = ckpt->hdr->replicaHandle;
+        if (active != syncRequestActive)  // and the active has changed (or first time)
+          {
+            syncRequestActive = active;
+            CkptSyncRequest msg;
+            msg.msgType    = (CKPT_MSG_TYPE << 16) | CKPT_MSG_TYPE_SYNC_REQUEST_1;
+            msg.generation = ckpt->hdr->generation;
+            msg.changeNum  = ckpt->hdr->changeNum;
+            msg.checkpoint = ckpt->hdr->handle;
+            msg.response   = ckpt->hdr->replicaHandle;
 
-      syncCookie++;
-      msg.cookie = syncCookie;
-      syncCount=0;
-
-      msgSvr->SendMsg(active,&msg,sizeof(msg),CKPT_SYNC_MSG_TYPE);
-      logInfo("SYNC","TRD","Sent synchronization request message to [%d:%d] type [%d] generation [%d] change [%d] sync cookie [%x]", active.getNode(), active.getPort(),CKPT_SYNC_MSG_TYPE,msg.generation, msg.changeNum, syncCookie);
-      }
+            syncCookie++;
+            msg.cookie = syncCookie;
+            syncCount=0;
+            syncRecordCount = 0;
+            syncRecvCount = 0;
+            msgSvr->SendMsg(active,&msg,sizeof(msg),CKPT_SYNC_MSG_TYPE);
+            logInfo("SYNC","TRD","Sent synchronization request message to [%d:%d] type [%d] generation [%d] change [%d] sync cookie [%x]", active.getNode(), active.getPort(),CKPT_SYNC_MSG_TYPE,msg.generation, msg.changeNum, syncCookie);
+          }
+        }
     else 
       {
         ScopedLock<> lock(atomize);

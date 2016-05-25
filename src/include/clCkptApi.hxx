@@ -100,6 +100,13 @@ namespace SAFplus
     {
       return data;
     }
+
+    //? Get a constant pointer to the buffer's data
+    const char* getc() const
+    {
+      return data;
+    }
+
  
     //? Get the buffer's data
     operator char* ()
@@ -371,7 +378,8 @@ namespace SAFplus
     const SAFplus::Handle& handle() { return hdr->handle; } // its read only
     //? Get the name of the checkpoint
     std::string                    name;
-
+    //? Get the number of items in the checkpoint
+    int size(void) { return map->size(); }
     //? [DEBUGGING ONLY]: print out the keys and values in this checkpoint.
     void dump();
     //? [DEBUGGING ONLY]: Unilaterally delete this checkpoint out of shared memory... behavior is undefined if other processes have the checkpoint open.

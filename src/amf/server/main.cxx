@@ -198,6 +198,7 @@ struct LogServer
       {
       logServerProcessing();
       }
+    logDb.finalize();
 #endif
     }
   };
@@ -686,21 +687,14 @@ int main(int argc, char* argv[])
   sic.iocPort     = SAFplusI::AMF_IOC_PORT;
   sic.msgQueueLen = MAX_MSGS;
   sic.msgThreads  = MAX_HANDLER_THREADS;
+  logSeverity     = LOG_SEV_DEBUG;
   safplusInitialize( SAFplus::LibDep::FAULT | SAFplus::LibDep::GRP | SAFplus::LibDep::CKPT | SAFplus::LibDep::LOG, sic);
-  //safplusInitialize( SAFplus::LibDep::LOG, sic);
+  logSeverity     = LOG_SEV_DEBUG;
 
-  logSeverity = LOG_SEV_DEBUG;
-
-  // GAS DEBUG: Normally we would get these from the environment
-  // if (SAFplus::ASP_NODENAME[0] == 0) strcpy(SAFplus::ASP_NODENAME,"sc0");  // TEMPORARY initialization
   assert(SAFplus::ASP_NODENAME);
 
   // Should be loaded from the environment during safplusInitialize.  But if it does not exist in the environment, override to true for the AMF rather then false which is default for non-existent variables.
-  char* val = getenv("SAFPLUS_SYSTEM_CONTROLLER");
-  if (val == NULL) // its not defined
-    {
-    SAFplus::SYSTEM_CONTROLLER = 1;      
-    }
+  SAFplus::SYSTEM_CONTROLLER = parseEnvBoolean("SAFPLUS_SYSTEM_CONTROLLER",true);
 
   if (SAFplus::ASP_BINDIR[0]==0) // Was not set
     {
@@ -898,7 +892,7 @@ int main(int argc, char* argv[])
 
   compStatsRefresh = boost::thread(CompStatsRefresh());
 
-  nodeMonitor.init();  // Initialize node monitor early so this node replies to heartbeats
+  nodeMonitor.initialize();  // Initialize node monitor early so this node replies to heartbeats
 
   // Ready to go.  Claim that I am up, and wait until the fault manager commits that change.  We must wait so we don't see ourselves as down!
   // And because we set ourselves up only ONCE.  Beyond this point, the fault manager is authorative -- if it reports us down, the AMF should quit.
@@ -1009,6 +1003,10 @@ int main(int argc, char* argv[])
 
   //fs.notify(nodeHandle,AlarmStateT::ALARM_STATE_ASSERT, AlarmCategoryTypeT::ALARM_CATEGORY_EQUIPMENT,...);
   fault.registerEntity(nodeHandle,FaultState::STATE_DOWN);
+  nodeMonitor.finalize();
+  compStatsRefresh.join();
+  amfDb.finalize();
+  safplusFinalize();
   }
 
 

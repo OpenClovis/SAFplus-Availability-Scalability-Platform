@@ -48,19 +48,25 @@ namespace SAFplusI
     {
     public:
     SAFplus::Mutex       atomize;
+    bool                 initialized;
     bool                 synchronizing;
     bool                 syncReplica;
     SAFplus::Checkpoint* ckpt;
     SAFplus::Group*      group;  // Needs to be a pointer to break circular includes
     SAFplus::MsgServer*  msgSvr;
-    int           syncMsgSize;   // What's the preferred synchronization message size.  Messages will be < this amount OR contain only 1 key/value pair.
-    int           syncCount;
-    volatile int  syncRecvCount;
-    unsigned int  syncCookie;
-    boost::thread syncThread;
+    int                  syncMsgSize;   // What's the preferred synchronization message size.  Messages will be < this amount OR contain only 1 key/value pair.
+    int                  syncCount;
+      int                  syncRecordCount;
+    volatile int         syncRecvCount;
+    unsigned int         syncCookie;
+    boost::thread        syncThread;
+    SAFplus::Handle      syncRequestActive;  // Who did we send a sync request to?
+
 
     void init(SAFplus::Checkpoint* c,SAFplus::MsgServer* pmsgSvr=NULL,SAFplus::Wakeable& execSemantics = SAFplus::BLOCK);
-
+    void finalize();
+    CkptSynchronization();
+    ~CkptSynchronization();
     bool electSynchronizationReplica();  // Returns true if this process is the synchronization replica.
 
     void operator()();  // Thread thunk
@@ -73,7 +79,7 @@ namespace SAFplusI
     void synchronize(unsigned int generation, unsigned int lastChange, unsigned int cookie, SAFplus::Handle response);
 
     // Send an update to all replicas to keep them in sync
-    void sendUpdate(const SAFplus::Buffer* key,const SAFplus::Buffer* value, SAFplus::Transaction& t);
+    void sendUpdate(const SAFplus::Buffer* key,const SAFplus::Buffer* value, int change, SAFplus::Transaction& t);
 
     // Apply a particular received synchronization message to the checkpoint.  Returns the largest change number referenced in the message.
     unsigned int applySyncMsg(ClPtrT msg, ClWordT msglen, ClPtrT cookie);

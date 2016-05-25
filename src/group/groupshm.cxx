@@ -186,6 +186,10 @@ void GroupSharedMem::clear()
   
   }
 
+GroupSharedMem::~GroupSharedMem()
+  {
+    if (!quit) finalize();
+  }
 
 void GroupSharedMem::finalize()
   {
@@ -239,6 +243,13 @@ void GroupSharedMem::init()
     grpDispatchThread = boost::thread(runDispatcher, this);
   }
 
+GroupServer::~GroupServer()
+  {
+    quit = true;
+    if (groupMsgServer)
+      groupMsgServer->removeHandler(SAFplusI::GRP_MSG_TYPE);  //  Register the main message handler (no-op if already registered)
+    faultHandler.join();
+  }
 
 void GroupServer::init()
   {
@@ -272,7 +283,7 @@ void GroupServer::init()
       if (1) //groupMsgServer->port == groupCommunicationPort) // If my listening port is the broadcast port then I must be the node representative
         {
           //allGrpMsgHdlr.handleMap[handle] = &groupMessageHandler;  //  Register this object's message handler into the global lookup.
-          groupMsgServer->RegisterHandler(SAFplusI::GRP_MSG_TYPE, this, NULL);  //  Register the main message handler (no-op if already registered)
+          groupMsgServer->registerHandler(SAFplusI::GRP_MSG_TYPE, this, NULL);  //  Register the main message handler (no-op if already registered)
         }
       faultHandler = boost::thread(boost::ref(*this));
     }

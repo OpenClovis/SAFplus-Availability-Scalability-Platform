@@ -500,6 +500,7 @@ namespace SAFplus
     std::vector<MgtObject*> matches;
     std::string path = reqMsg.bind();
     std::string cmds;
+    std::string value;
 
     if (path[0] == '{')  // Debugging requests
     {
@@ -526,7 +527,7 @@ namespace SAFplus
     if (path[0] == '/')
       {
         resolvePath(path.c_str() + 1, &matches);
-        std::string value = reqMsg.data(0);
+        value = reqMsg.data(0);
         if (matches.size())
           {
             for (std::vector<MgtObject*>::iterator i = matches.begin(); i != matches.end(); i++)
@@ -539,7 +540,7 @@ namespace SAFplus
             rc = CL_ERR_NOT_EXIST;
           }
       }
-    logDebug("MGT","SET","Object [%s] update complete [0x%x]", path.c_str(),rc);
+    logDebug("MGT","SET","Object [%s] update [%s] complete [0x%x]", path.c_str(),value.c_str(), rc);
     MgtRoot::sendReplyMsg(srcAddr,(void *)&rc,sizeof(ClRcT));
   }
 
