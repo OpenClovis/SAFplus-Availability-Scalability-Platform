@@ -66,13 +66,19 @@ namespace amfRpc {
   void amfRpcImpl::stopComponent(const ::SAFplus::Rpc::amfRpc::StopComponentRequest* request,
                                 ::SAFplus::Rpc::amfRpc::StopComponentResponse* response)
   {
-    //TODO: put your code here 
+    //TODO: put your code here
+  }
+
+  void amfRpcImpl::nodeInfo(const ::SAFplus::Rpc::amfRpc::NodeInfoRequest* request,
+                                ::SAFplus::Rpc::amfRpc::NodeInfoResponse* response)
+  {
+    response->set_time(nowMs());
   }
 
   void amfRpcImpl::processInfo(const ::SAFplus::Rpc::amfRpc::ProcessInfoRequest* request,
                                 ::SAFplus::Rpc::amfRpc::ProcessInfoResponse* response)
   {
-    //DbgAssert(request->has_pid());
+    //TODO: put your code here
   if (!request->has_pid())  // Improperly formatted RPC call sent -- its asking for processInfo but the process is not specified
     {
       response->set_command(" ");  // indicate that the call was valid
@@ -97,7 +103,7 @@ namespace amfRpc {
   void amfRpcImpl::processFailed(const ::SAFplus::Rpc::amfRpc::ProcessFailedRequest* request,
                                 ::SAFplus::Rpc::amfRpc::ProcessFailedResponse* response)
   {
-    //TODO: put your code here 
+    //TODO: put your code here
   logInfo("OPS","SRT","Process failed notification");
   response->set_err(0);
   }
