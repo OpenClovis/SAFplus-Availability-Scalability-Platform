@@ -359,6 +359,8 @@ MgtIdentifierList<T>::MgtIdentifierList(const char* name) :
 template<class T>
 MgtIdentifierList<T>::~MgtIdentifierList()
 {
+  MgtRoot *mgtRoot = MgtRoot::getInstance();
+  mgtRoot->removeReference(this);
 }
 
 template<class T>

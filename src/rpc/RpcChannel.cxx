@@ -81,8 +81,28 @@ namespace SAFplus
             SAFplus::Handle overDest;
             ThreadSem blocker(0);
             bool isRequestWithNoResponse = false;
-            int64_t idx;
+            int64_t idx=0;
 
+            if (destination != INVALID_HDL)
+              {
+                overDest = destination;
+              }
+            else
+              {
+                overDest = dest;
+                destination = dest;
+              }
+
+            FaultState fs = svr->fault->getFaultState(overDest);
+            if (fs==FaultState::STATE_DOWN)
+              {
+              throw Error(Error::SAFPLUS_ERROR,Error::DOES_NOT_EXIST, "Entity is down",__FILE__,__LINE__);
+              }
+
+            MsgRpcEntry *rpcReqEntry = NULL;
+            std::map<uint64_t,MsgRpcEntry*>::iterator entryInMap;
+            try
+              {
             /*
              * Request with response
              */
@@ -93,7 +113,7 @@ namespace SAFplus
             else
               {
                 //Lock sending and record a RPC
-                MsgRpcEntry *rpcReqEntry = new MsgRpcEntry();
+                rpcReqEntry = new MsgRpcEntry();
                 if (1)
                   {
                     ScopedLock<Mutex> lock(mutex);
@@ -119,22 +139,6 @@ namespace SAFplus
 
             request->SerializeToString(&strMsgReq);
             rpcMsgReq.set_buffer(strMsgReq);
-
-            if (destination != INVALID_HDL)
-              {
-                overDest = destination;
-              }
-            else
-              {
-                overDest = dest;
-                destination = dest;
-              }
-
-            FaultState fs = svr->fault->getFaultState(overDest);
-            if (fs==FaultState::STATE_DOWN)
-              {
-              throw Error(Error::SAFPLUS_ERROR,Error::DOES_NOT_EXIST, "Entity is down",__FILE__,__LINE__);
-              }
 
             bool retry=true;
             while (retry)
@@ -214,6 +218,19 @@ namespace SAFplus
                     else retry = false;
                   }
                 else retry = false; // If the function is not blocking, then the app will handle any needed retries
+              }
+              }
+            catch (...)
+              {
+                if (!isRequestWithNoResponse)  // Send failed.  Clean up
+                  {
+                    ScopedLock<Mutex> lock(mutex);
+                    entryInMap = msgRPCs.find(idx);
+                    assert(entryInMap != msgRPCs.end());
+                    msgRPCs.erase(entryInMap);
+                    delete rpcReqEntry;
+                  }
+                throw;
               }
           }
 

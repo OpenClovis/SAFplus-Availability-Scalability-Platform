@@ -785,6 +785,12 @@ namespace SAFplus
       this->mgtReferenceList.push_back(mgtObject);
   }
 
+  void MgtRoot::removeReference(MgtObject* mgtObject)
+  {
+    // remove all elements in the list whose value is mgtObject
+    this->mgtReferenceList.erase(std::remove(this->mgtReferenceList.begin(), this->mgtReferenceList.end(), mgtObject), this->mgtReferenceList.end());
+  }
+
   void MgtRoot::updateReference(void)
   {
     for(std::vector<MgtObject*>::iterator it = this->mgtReferenceList.begin(); it != this->mgtReferenceList.end(); ++it)

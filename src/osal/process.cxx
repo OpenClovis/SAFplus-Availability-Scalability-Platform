@@ -147,9 +147,17 @@ namespace SAFplus
         }
       execvpe(charstrs[0], &charstrs[0], &envpchars[0]);  // if works will not return
       int err = errno;
-      char temp[200];
+      char temp[CL_MAX_NAME_LENGTH];
       SAFplus::logCompName = "SPN"; // change the log name of the child so the source of this log isn't confusing
-      logAlert("OS","PRO","Program [%s] execution failed with error [%s (%d)].  Working directory [%s]",charstrs[0], strerror(err),err, getcwd(temp,200));
+      logAlert("OS","PRO","Program [%s] execution failed with error [%s (%d)].  Working directory [%s]",charstrs[0], strerror(err),err, getcwd(temp,CL_MAX_NAME_LENGTH));
+      char fname[CL_MAX_NAME_LENGTH];
+      snprintf(fname,CL_MAX_NAME_LENGTH,"%s/%d.error",(ASP_RUNDIR[0] != 0) ? ASP_RUNDIR : ".", pid);
+      FILE* fp = fopen(fname,"w");
+      if (fp)
+        {
+          fprintf(fp,"Program [%s] execution failed with error [%s (%d)].  Working directory is [%s].", charstrs[0], strerror(err),err, getcwd(temp,CL_MAX_NAME_LENGTH));
+          fclose(fp);
+        }
       // If the error is understood, exit.  Otherwise assert
       // We need to _exit() so destructors aren't run.  We don't want to run destructors because the original process is still running
       if (err == ENOENT) _exit(err); // Expected error; user did not give a valid executable

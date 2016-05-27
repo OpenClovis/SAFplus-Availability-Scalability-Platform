@@ -945,7 +945,21 @@ int main(int argc, char* argv[])
         pid = waitpid(-1, &status, WNOHANG);
         if (pid>0)
           {
-          logWarning("PRC","MON","On this node, child process [%d] has failed", pid);
+            std::ifstream file(boost::lexical_cast<std::string>(pid) + ".error");
+            std::string error;
+            std::getline(file,error);
+            logWarning("PRC","MON","On this node, child process [%d] has failed with status [%d], it indicated: %s", pid, status,error.c_str());
+            MgtObject::Iterator itcomp;
+            MgtObject::Iterator endcomp = cfg.safplusAmf.componentList.end();
+            for (itcomp = cfg.safplusAmf.componentList.begin(); itcomp != endcomp; itcomp++)
+              {
+                Component* comp = dynamic_cast<Component*>(itcomp->second);
+                if ((comp->processId == pid)&&(comp->getServiceUnit()->getNode()->name.value == ASP_NODENAME))
+                  {
+                  comp->lastError = error;
+                  break;
+                  }
+              }            
           }
         if (pid<0)
           {

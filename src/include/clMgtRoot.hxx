@@ -164,7 +164,12 @@ public:
     //MgtObject *findMgtObject(const std::string &xpath);  // DEPRECATED
     //void resolvePath(const char* path, std::vector<MgtObject*>* result);
 
+    //? Add an entity that implements the "updateReference" virtual function to the list of entities that need to be updated when the mgt tree structure changes.  This functionality allows lazy resolution of MgtIdentifier and MgtIdentifierList.  By allowing lazy resolution, the system does not require that management changes be made in a dependency order.
     void addReference(MgtObject* mgtObject);
+    //? Remove an entity from the update list.  This functionality allows lazy resolution of MgtIdentifier and MgtIdentifierList.
+    void removeReference(MgtObject* mgtObject);
+
+    //? Called to trigger a call to "updateReference" to every element in the update list.  This functionality allows lazy resolution of MgtIdentifier and MgtIdentifierList.
     void updateReference(void);
 };
 };

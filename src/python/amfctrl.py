@@ -9,6 +9,7 @@ SiPfx = "ServiceInstance"
 def commit(dct,prefix="/safplusAmf"):
   for (name,val) in dct.items():
     myPath = "%s/%s" % (prefix,name)
+    myPath = str(myPath)  # Rip off the unicode if it has it
     if type(val) is types.DictType:  # its a YANG container
       cur = sp.mgtGet(myPath)
       if cur == "":

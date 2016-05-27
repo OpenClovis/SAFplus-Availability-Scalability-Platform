@@ -198,7 +198,10 @@ namespace SAFplus
 
   template <class T>
   MgtIdentifier<T>::~MgtIdentifier()
-  {}
+  {
+    MgtRoot *mgtRoot = MgtRoot::getInstance();
+    mgtRoot->removeReference(this);
+  }
 
   template <class T>
   ClBoolT MgtIdentifier<T>::set( void *pBuffer, ClUint64T buffLen, SAFplus::Transaction& t)

@@ -1,5 +1,5 @@
 #!/usr/bin/env python
-import sys, os, os.path, time
+import sys, os, os.path, time, types
 import traceback,pdb
 import argparse
 import ConfigParser
@@ -814,13 +814,22 @@ class RunScript:
     self.cli.get = lambda s,deflt = self.raiseException, me=self: me.cliGet(s,deflt)
     self.cli.getInt = lambda s,deflt = self.raiseException,me=self: int(me.cliGet(s,deflt))
     self.cli.getFloat = lambda s,deflt = self.raiseException,me=self: float(me.cliGet(s,deflt))
-    self.cli.getList = lambda s,deflt = self.raiseException: csv2List(me.cliGet(s,deflt))
+    self.cli.getList = lambda s,deflt = self.raiseException,me=self: csv2List(me.cliGet(s,deflt))
     self.cli.add = lambda cmd, me=self: self.context.addCmds(cmd)
+    self.cli.set = lambda s, val, me=self: me.cliSet(s,val)
     self.cli.Error = CliError
     self.env["cli"] = self.cli
     #self.env["cli"] = lambda s,resolver=resolver: CaptureOutput(resolver).run(s)
     #self.env["cliGet"] = lambda s,me=self: me.cliGet(s)
     #self.env["addCliCommands"] = lambda cmd, me=self: self.context.addCmds(cmd)
+
+  def cliSet(self,s, val):
+    t = CaptureOutput(self.resolver).run("ls %s" % s)
+    try:
+      t1 = ET.fromstring(t)[0]
+    except IndexError:
+      pdb.set_trace()
+    return True
 
   def cliGet(self,s, default):
     t = CaptureOutput(self.resolver).run("ls %s" % s)

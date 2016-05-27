@@ -1,7 +1,42 @@
 import pdb
-import types
+import types, os, sys, time,types, signal, random, datetime, errno
 import xml.etree.ElementTree as ET
+import amfctrl
 
+def AmfCreateApp(prefix, compList, nodes):
+  sg = "%sSg" % prefix
+  numActiveSus = (len(nodes)+1)/2
+  numStandbySus = len(nodes) -  numActiveSus
+  
+  entities = { 
+    # "Component/dynComp0" : { "maxActiveAssignments":4, "maxStandbyAssignments":2, "serviceUnit": "dynSu0", "instantiate": { "command" : "../test/exampleSafApp dynComp", "timeout":60*1000 }},   
+    "ServiceGroup/%s" % sg : { "adminState":"off", "preferredNumActiveServiceUnits":numActiveSus,"preferredNumStandbyServiceUnits":numStandbySus },
+    "ServiceInstance/%sSi" % prefix : { "serviceGroup": sg },
+    # "ComponentServiceInstance/%sCsi" % prefix : { "serviceInstance": "ServiceInstance/%sSi" % prefix, "name/testKey" : "testVal" }
+  }
+
+  count = 0
+  sus = []
+  for n in nodes:
+    suname = "%sSu%d" % (prefix,count)
+    comps = []
+    for c in compList:
+      name = os.path.basename(c.split(" ")[0])
+      cname = "%s_in_%s" % (name,suname)
+      idx=1
+      while cname in comps:
+        cname = "%s_in_%s_%d" % (name,suname,idx)
+        idx+=1
+
+      entities["Component/%s" % cname] = { "maxActiveAssignments":1, "maxStandbyAssignments":1, "serviceUnit": suname, "instantiate": { "command" : c, "timeout":15*1000 }}
+      comps.append(cname)   
+
+    entities["ServiceUnit/%s" % suname] = { "components":",".join(comps),"node":n, "serviceGroup": sg }
+    sus.append(suname)
+    count += 1
+
+  entities["ServiceGroup/%s" % sg]["serviceUnits"] = ",".join(sus)
+  amfctrl.commit(entities)
 
 # This section of the example defines how commands can be added to the CLI
 
@@ -9,12 +44,108 @@ class ExampleCommands:
   # Boilerplate code:  Initalization 
   def __init__(self):
     self.context = None
+    self.commands = { "show" : (self.show, None),
+                    "create" : { "app" : (self.createApp, None) },
+                    "delete" : { "app" : (self.deleteApp, None) },
+                    "start" : { "app" : (self.startApp, None) },
+                    "stop" : { "app" : (self.startApp, None) }
+    }
+
   # Boilerplate code:  The CLI calls your command class back with the CLI context.  But you won't need to use this context variable unless you are doing complex stuff...
   def setContext(self,context):
     self.context = context
 
+  def startApp(self, appPrefix):
+    sgName = "/safplusAmf/ServiceGroup/%sSg" % appPrefix
+    # TDO cli.run("set %s/operState 1" % sgName)  # reenable the comps if faulted
+    suList = cli.getList(sgName + "/serviceUnits")
+    for su in suList:
+      cli.set("%s/adminState" % su, "on")
+    cli.run("set %s/adminState on" % sgName)  # turn app on
+    return "%s started" % appPrefix
+
+  def stopApp(self, appPrefix):
+    sgName = "/safplusAmf/ServiceGroup/%sSg" % appPrefix
+    cli.run("set %s/adminState off")
+    return "%s stopped" % appPrefix
+
+  def deleteApp(self, appName):
+    sg = None
+    sus = []
+    comps = []
+    sgName = None
+    suNames = []
+    compNames = []
+    siNames = []
+    try:
+      sgName = "/safplusAmf/ServiceGroup/%s" % appName
+      sg = ET.fromstring(cli.run("ls " + sgName))
+      if len(sg) == 0: 
+        sgName = sgName + "Sg"
+        sg = ET.fromstring(cli.run("ls " + sgName))       
+      if len(sg) == 0: 
+        return None
+      else: sg=sg[0]
+    except cli.Error, e:
+      pass
+
+    if sg:
+      siNames = sg.find("serviceInstances").text
+      suNames = sg.find("serviceUnits").text
+      suNames = suNames.split(",")
+      print suNames
+      for suName in suNames:
+        if suName[0] != "?":
+          su = ET.fromstring(cli.run("ls %s" % suName))
+          if len(su) != 0:
+            su=su[0]
+            sus.append(su)
+            compNames = su.find("components").text
+            compNames = compNames.split(",")
+            for compName in compNames:
+              if compName[0] != "?":
+                comp = ET.fromstring(cli.run("ls %s" % compName))
+                if len(comp) != 0:
+                  comps.append(comp)
+    if sgName:
+      cli.run("delete " + sgName)
+      allNames = [sgName]
+      if suNames: 
+        for su in suNames: cli.run("delete " + su)
+        allNames.append(suNames)
+      if compNames: 
+        for comp in compNames: cli.run("delete " + comp)
+        allNames.append(compNames)
+      if siNames: 
+        for si in siNames: cli.run("delete " + si)
+        allNames.append(siNames)
+      return "deleted %s" % (sgName, ",".join(allNames))
+   
+
+  def createApp(self, appName, appCommandLine, *nodes):
+    """Create an application running on the specified nodes
+    Argument 1: application name prefix -- an arbitrary name given to all management elements created for this application
+    Argument 2: application command line.  If spaces are needed, enclose in quotes.
+    Argument 3: list of node names on which the application should be run
+    """
+    errors = []
+    for n in nodes:
+      nodeData = ET.fromstring(cli.run("ls /safplusAmf/Node/%s" % n))
+      if len(nodeData) == 0:
+        errors.append("Node %s does not exist." % n)
+    if errors:
+      # cli.display("""<text size="24" fore="#108010">""" + "\n".join(errors) + "</text>")
+      return "\n".join(errors)
+
+    AmfCreateApp(appName, [appCommandLine], nodes)
+    # sgName = appName + "Sg"
+    # cli.run("create /safplusAmf/ServiceGroup/%s" % sgName)
+    #cli.run("set /safplusAmf/ServiceGroup/%s/")
+
+    return "Ok"
+
   # All commands are defined as do_<command>.  So this function defines the "basicStatus" command.
-  def do_show(self,element):
+  def show(self,element):
     """Display the status of the Basic application    
     """
     # This demonstrates an API called "get" to access a single element.  This API is a wrapper around
@@ -25,7 +156,10 @@ class ExampleCommands:
     comps = []
     try:
       sg = ET.fromstring(cli.run("ls /safplusAmf/ServiceGroup/%s" % element))
-      if len(sg) == 0: sg = None  # top elem has no children
+      if len(sg) == 0: 
+        sg = ET.fromstring(cli.run("ls /safplusAmf/ServiceGroup/%sSg" % element))
+      if len(sg) == 0: 
+        return None
       else: sg=sg[0]
     except cli.Error, e:
       pass
@@ -53,7 +187,7 @@ class ExampleCommands:
           sus.append("<error>Unresolved service unit: %s</error>" % suName[1:])
     else:
       cli.display("""<text size="24" fore="#108010">Invalid entity name "%s"</text>""" % element)
-      return ""
+      return None
           
     cli.display(ET.tostring(sg))
     for su in sus:
