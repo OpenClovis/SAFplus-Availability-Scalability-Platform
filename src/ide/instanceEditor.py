@@ -1276,7 +1276,7 @@ class Panel(scrolled.ScrolledPanel):
         self.UpdateVirtualSize()
         self.render(dc)
 
-    def renderGrayCell(self, ctx):
+    def renderGrayCells(self, ctx):
       print 'enter renderGrayCell'
       for row in self.grid.grid:
         for cell in row:
@@ -1381,6 +1381,29 @@ class Panel(scrolled.ScrolledPanel):
           if userDefineType:
             userDefinedNodeTypes.append(userDefineType)
       return userDefinedNodeTypes
+
+    def updateMenuUserDefineNodeTypes(self, ent, flag):
+      userDefineType = ent.data.get("userDefinedType", None)
+      if not userDefineType or len(userDefineType)==0:
+        print 'updateMenuUserDefineNodeTypes: userDefinedType is null'
+        return
+      print 'updateMenuUserDefineNodeTypes: userDefinedType: %s' % userDefineType
+      menuItems = self.menuUserDefineNodeTypes.GetMenuItems()
+      for item in menuItems:
+        if item.GetText() == userDefineType: # the user-defined node type has been already here
+          if flag:# True is to add new user-defined node type but it exists, nothing to do
+            print 'updateMenuUserDefineNodeTypes: nothing to do'
+            return
+          else: # False is to delete an existing one from the menu
+            print 'updateMenuUserDefineNodeTypes: delete menu item: %s' % item.GetText()
+            self.menuUserDefineNodeTypes.Delete(item.Id)
+            return
+      if flag:
+        # Add the new one
+        print 'updateMenuUserDefineNodeTypes: add menu item: %s' % userDefineType
+        i = self.menuUserDefineNodeTypes.Append(wx.NewId(), userDefineType)
+        self.Bind(wx.EVT_MENU, self.OnMenuNodeInstCreate, i)
+      else: print 'updateMenuUserDefineNodeTypes: flag is false --> do nothing'
 
     def getNodeInst(self, usrDefinedType):      
       for e in self.columns:
@@ -1652,7 +1675,7 @@ class Panel(scrolled.ScrolledPanel):
               # pdb.set_trace()
               drawCurvyArrow(ctx, (st[0] + a.beginOffset[0],st[1] + a.beginOffset[1]),(end[0] + a.endOffset[0],end[1] + a.endOffset[1]),a.midpoints, linkNormalLook)
         
-        self.renderGrayCell(ctx)
+        self.renderGrayCells(ctx)
         ctx.restore()
 
         # These are non-model based transient elements that need to be drawn like selection boxes
@@ -1735,6 +1758,10 @@ class Panel(scrolled.ScrolledPanel):
           else:
             print 'instanceEditor::notifyValueChange: validator is null'
           e.recreateBitmap()
+
+          if token=="canBeInherited": #or token=="userDefinedType":
+            self.updateMenuUserDefineNodeTypes(ent, d["canBeInherited"])
+
       self.Refresh()
 
     def SetSashPosition(self, position):
