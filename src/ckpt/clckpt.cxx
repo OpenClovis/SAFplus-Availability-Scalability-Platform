@@ -379,7 +379,7 @@ void SAFplus::Checkpoint::write(const Buffer& key, const Buffer& value,Transacti
             {
               if (curval->len() == newlen) {// lengths are the same, most efficient is to just copy the new data onto the old.
                 //memcpy (curval->data,value.data,newlen);
-                if (memcmp(curval->data,value.data,newlen)==0) // Only overwrite if they are not the same
+                if (memcmp(curval->data,value.data,newlen)!=0) // Only overwrite if they are different
                   {
                     *curval = value;
                     if (flags & CHANGE_ANNOTATION) curval->setChangeNum(change);

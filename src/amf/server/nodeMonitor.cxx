@@ -3,10 +3,12 @@
 #include <clCommon.hxx>
 #include <amfRpc.hxx>
 #include "nodeMonitor.hxx"
+#include <SAFplusAmfModule.hxx>
 
 using namespace SAFplus;
 extern Group clusterGroup;
 extern SAFplus::Fault fault;
+extern SAFplusAmf::SAFplusAmfModule cfg;
 
 struct HeartbeatData
 {
@@ -34,7 +36,7 @@ void NodeMonitor::initialize()
       lastHeard[i] = 0;
     }
 
-  maxSilentInterval = SAFplusI::NodeSilentInterval;
+  //maxSilentInterval = SAFplusI::NodeSilentInterval;
   quit = false;
   thread = boost::thread(boost::ref(*this));
 }
@@ -105,14 +107,13 @@ NodeMonitor::~NodeMonitor()
 
 void NodeMonitor::monitorThread(void)
 {
-  assert(maxSilentInterval);  // You didn't call init()
+  //assert(maxSilentInterval);  // You didn't call init()
 
   Group::Iterator end = clusterGroup.end();
 
   while(!quit)
     {
       int64_t now = timerMs();
-
       if (active)
         {
           bool ka[SAFplus::MaxNodes];
@@ -123,7 +124,7 @@ void NodeMonitor::monitorThread(void)
                 {
                   if (lastHeard[i] != 0)
                     {
-                      if (now - lastHeard[i] > maxSilentInterval)
+                      if ((cfg.safplusAmf.healthCheckMaxSilence!=0) && (now - lastHeard[i] > cfg.safplusAmf.healthCheckMaxSilence))
                         {
                           fault.notify(getNodeHandle(i),AlarmState::ALARM_STATE_ASSERT,AlarmCategory::ALARM_CATEGORY_COMMUNICATIONS,AlarmSeverity::ALARM_SEVERITY_MAJOR,AlarmProbableCause::ALARM_PROB_CAUSE_RECEIVER_FAILURE);
                           lastHeard[i] = 0;  // after fault mgr notification, reset node as if its new.  If the fault mgr does not choose to kill the node, this will cause us to give the node another maxSilentInterval.
@@ -181,7 +182,7 @@ void NodeMonitor::monitorThread(void)
       if (standby)  // Let the standby ensure that the active is alive
         {
           int64_t now = timerMs();
-          if ((now > lastHbRequest)&&(now - lastHbRequest > maxSilentInterval))
+          if ((now > lastHbRequest)&&(now - lastHbRequest > cfg.safplusAmf.healthCheckMaxSilence))
             {
               // TODO: Split brain avoidance.  The standby should send HB reqs to all the other nodes and count how many it can talk to.  If it is half or greater, then become active.  Otherwise, print a split brain critical message and exit
               Handle hdl;
@@ -196,6 +197,8 @@ void NodeMonitor::monitorThread(void)
             }
         }
 
-      boost::this_thread::sleep(boost::posix_time::milliseconds(SAFplusI::NodeHeartbeatInterval)); 
+      uint64_t tmp = cfg.safplusAmf.healthCheckPeriod;
+      if (tmp == 0) tmp = 1000; // if "off" loop every second anyway so we can detect when we get turned on.
+      boost::this_thread::sleep(boost::posix_time::milliseconds(tmp)); 
     }
 }

@@ -6,7 +6,7 @@
 class NodeMonitor:public SAFplus::MsgHandler
 {
 public:
-  NodeMonitor():maxSilentInterval(0), active(false), standby(false),quit(true) {};  // two step constructor
+  NodeMonitor(): active(false), standby(false),quit(true) {};  // two step constructor
   ~NodeMonitor();
   void initialize(void);
   void finalize(void);
@@ -19,7 +19,6 @@ protected:
 
   SAFplus::Mutex exclusion;
   int64_t lastHeard[SAFplus::MaxNodes];
-  int64_t maxSilentInterval;
   int64_t lastHbRequest;
   SAFplus::Handle lastHbHandle;
   boost::thread thread;

@@ -1411,18 +1411,18 @@ are switched over to other nodes (component service instances are not abruptly r
 
     leaf healthCheckPeriod
     {
-      description "This attribute indicates the interval at which the corresponding healthcheck should be initiated (in milliseconds).";
+      description "This attribute indicates the interval at which the corresponding healthcheck should be initiated (in milliseconds).  Zero means disabled.";
       type SAFplusTypes:SaTimeT;
       SAFplusTypes:ui-prompt "AMF health check period";
-      default 0;
+      default 2000;
     }
 
     leaf healthCheckMaxSilence
     {
-      description "This attribute indicates the maximum time allowable for components to not reply to the health check (in milliseconds).  After this time passes with no response from the component, it will be faulted";
+      description "This attribute indicates the maximum time allowable for nodes to not reply to the health check (in milliseconds).  After this time passes with no response from the node, it will be faulted. 0 means disabled.";
       type SAFplusTypes:SaTimeT;
       SAFplusTypes:ui-prompt "Max health check response time";   
-      default 0; // disabled
+      default 10000;
     }
   }
  
