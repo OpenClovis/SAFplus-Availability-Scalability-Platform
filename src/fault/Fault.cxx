@@ -232,7 +232,7 @@ void Fault::setNotification(SAFplus::Wakeable& w)
 
     void Fault::sendFaultEventMessage(SAFplus::Handle faultEntity,SAFplus::FaultMessageSendMode messageMode,SAFplus::FaultMessageType msgType,SAFplus::FaultPolicy pluginId,SAFplus::FaultEventData faultData)
     {
-        logDebug(FAULT,FAULT_ENTITY,"Sending Fault Event message ... ");
+      //logDebug(FAULT,FAULT_ENTITY,"Sending Fault Event message ... ");
         FaultMessageProtocol sndMessage;
         sndMessage.reporter = reporter;
         sndMessage.messageType = msgType;
@@ -247,7 +247,7 @@ void Fault::setNotification(SAFplus::Wakeable& w)
     }
     void Fault::sendFaultEventMessage(SAFplus::Handle faultEntity,SAFplus::FaultMessageSendMode messageMode,SAFplus::FaultMessageType msgType,SAFplus::AlarmState alarmState,SAFplus::AlarmCategory category,SAFplus::AlarmSeverity severity,SAFplus::AlarmProbableCause cause,SAFplus::FaultPolicy pluginId)
     {
-        logDebug(FAULT,FAULT_ENTITY,"Sending Fault Event message ...");
+      //logDebug(FAULT,FAULT_ENTITY,"Sending Fault Event message ...");
         FaultMessageProtocol sndMessage;
         sndMessage.reporter = reporter;
         sndMessage.messageType = msgType;
@@ -294,7 +294,7 @@ void Fault::setNotification(SAFplus::Wakeable& w)
     //Sending a fault notification to fault server
     void Fault::sendFaultNotification(void* data, int dataLength, SAFplus::FaultMessageSendMode messageMode)
     {
-        logDebug(FAULT,FAULT_ENTITY,"sendFaultNotification");
+        logDebug(FAULT,FAULT_ENTITY,"Sending Fault Notification");
         Handle activeServer;
         if (faultServer==INVALID_HDL)
         {
@@ -304,7 +304,7 @@ void Fault::setNotification(SAFplus::Wakeable& w)
             if (activeServer == INVALID_HDL) 
               activeServer = faultServer = reporter;
 
-            logDebug(FAULT,FAULT_ENTITY,"Get active Fault Server [%d]", activeServer.getNode());
+            logDebug(FAULT,FAULT_ENTITY,"Active fault server is on node [%d]", activeServer.getNode());
         }
         else
         {

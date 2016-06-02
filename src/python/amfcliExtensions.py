@@ -10,9 +10,9 @@ def AmfCreateApp(prefix, compList, nodes):
   
   entities = { 
     # "Component/dynComp0" : { "maxActiveAssignments":4, "maxStandbyAssignments":2, "serviceUnit": "dynSu0", "instantiate": { "command" : "../test/exampleSafApp dynComp", "timeout":60*1000 }},   
-    "ServiceGroup/%s" % sg : { "adminState":"off", "preferredNumActiveServiceUnits":numActiveSus,"preferredNumStandbyServiceUnits":numStandbySus },
-    "ServiceInstance/%sSi" % prefix : { "serviceGroup": sg },
-    # "ComponentServiceInstance/%sCsi" % prefix : { "serviceInstance": "ServiceInstance/%sSi" % prefix, "name/testKey" : "testVal" }
+    "ServiceGroup/%s" % sg : { "adminState":"off", "preferredNumActiveServiceUnits":numActiveSus,"preferredNumStandbyServiceUnits":numStandbySus, "serviceInstances" :  "safplusAmf/ServiceInstance/%sSi" % prefix },
+    "ServiceInstance/%sSi" % prefix : { "serviceGroup": sg, "componentServiceInstances" :"safplusAmf/ComponentServiceInstance/%sCsi" % prefix },
+    "ComponentServiceInstance/%sCsi" % prefix : { "serviceInstance": "safplusAmf/ServiceInstance/%sSi" % prefix, "name/testKey" : "testVal" }
   }
 
   count = 0
@@ -48,7 +48,7 @@ class ExampleCommands:
                     "create" : { "app" : (self.createApp, None) },
                     "delete" : { "app" : (self.deleteApp, None) },
                     "start" : { "app" : (self.startApp, None) },
-                    "stop" : { "app" : (self.startApp, None) }
+                    "stop" : { "app" : (self.stopApp, None) }
     }
 
   # Boilerplate code:  The CLI calls your command class back with the CLI context.  But you won't need to use this context variable unless you are doing complex stuff...
@@ -66,7 +66,7 @@ class ExampleCommands:
 
   def stopApp(self, appPrefix):
     sgName = "/safplusAmf/ServiceGroup/%sSg" % appPrefix
-    cli.run("set %s/adminState off")
+    cli.run("set %s/adminState off" % sgName)
     return "%s stopped" % appPrefix
 
   def deleteApp(self, appName):
@@ -77,6 +77,7 @@ class ExampleCommands:
     suNames = []
     compNames = []
     siNames = []
+    csiNames = []
     try:
       sgName = "/safplusAmf/ServiceGroup/%s" % appName
       sg = ET.fromstring(cli.run("ls " + sgName))
@@ -90,9 +91,10 @@ class ExampleCommands:
       pass
 
     if sg:
-      siNames = sg.find("serviceInstances").text
-      suNames = sg.find("serviceUnits").text
-      suNames = suNames.split(",")
+      siNameText = sg.find("serviceInstances").text
+      siNames = [ str(x) for x in siNameText.split(",")]
+      suNameText = sg.find("serviceUnits").text
+      suNames = [ str(x) for x in suNameText.split(",")]
       print suNames
       for suName in suNames:
         if suName[0] != "?":
@@ -100,26 +102,41 @@ class ExampleCommands:
           if len(su) != 0:
             su=su[0]
             sus.append(su)
-            compNames = su.find("components").text
-            compNames = compNames.split(",")
-            for compName in compNames:
+            compN = su.find("components").text
+            compN = compN.split(",")
+            for compName in compN:
               if compName[0] != "?":
                 comp = ET.fromstring(cli.run("ls %s" % compName))
-                if len(comp) != 0:
-                  comps.append(comp)
+                if len(comp) != 0:  # if it is valid then add it to the delete list
+                  compNames.append(str(compName))
+      if siNames:
+       for siName in siNames:
+        if siName[0] != "?":
+          si = ET.fromstring(cli.run("ls %s" % siName))
+          if len(si) != 0:
+            si=si[0] # remove the "top"
+            csiNameStr = si.find("componentServiceInstances").text
+            tmp = [ str(x) for x in csiNameStr.split(",")]
+            csiNames += tmp
+
     if sgName:
-      cli.run("delete " + sgName)
+      cli.run("delete " + str(sgName))
       allNames = [sgName]
       if suNames: 
-        for su in suNames: cli.run("delete " + su)
-        allNames.append(suNames)
+        for su in suNames: cli.run("delete " + str(su))
+        allNames += suNames
       if compNames: 
-        for comp in compNames: cli.run("delete " + comp)
-        allNames.append(compNames)
+        for compName in compNames: cli.run("delete " + str(compName))
+        allNames += compNames
       if siNames: 
-        for si in siNames: cli.run("delete " + si)
-        allNames.append(siNames)
-      return "deleted %s" % (sgName, ",".join(allNames))
+        for si in siNames: cli.run("delete " + str(si))
+        allNames += siNames
+      if csiNames: 
+        for csi in csiNames: cli.run("delete " + str(csi))
+        allNames += csiNames
+
+      return "Deleted %s" % ", ".join(allNames)
+    return "No such application"
    
 
   def createApp(self, appName, appCommandLine, *nodes):

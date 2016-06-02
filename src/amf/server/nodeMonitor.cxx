@@ -107,12 +107,14 @@ NodeMonitor::~NodeMonitor()
 
 void NodeMonitor::monitorThread(void)
 {
+  int loopCnt=-1;
   //assert(maxSilentInterval);  // You didn't call init()
 
   Group::Iterator end = clusterGroup.end();
 
   while(!quit)
     {
+      loopCnt++;
       int64_t now = timerMs();
       if (active)
         {
@@ -182,7 +184,13 @@ void NodeMonitor::monitorThread(void)
       if (standby)  // Let the standby ensure that the active is alive
         {
           int64_t now = timerMs();
-          if ((now > lastHbRequest)&&(now - lastHbRequest > cfg.safplusAmf.healthCheckMaxSilence))
+          if (loopCnt&31==0) 
+            {
+            cfg.safplusAmf.healthCheckMaxSilence.read();  // Periodically reload from the database to get any changes.  TODO: checkpoint should notify us
+            cfg.safplusAmf.healthCheckPeriod.read();
+            }
+
+          if ((cfg.safplusAmf.healthCheckMaxSilence.value>0)&&((now > lastHbRequest)&&(now - lastHbRequest > cfg.safplusAmf.healthCheckMaxSilence)))
             {
               // TODO: Split brain avoidance.  The standby should send HB reqs to all the other nodes and count how many it can talk to.  If it is half or greater, then become active.  Otherwise, print a split brain critical message and exit
               Handle hdl;

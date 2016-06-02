@@ -43,23 +43,32 @@ class Commands:
       return ""
     return str(ret)
 
-  def do_create(self,location):
+  def do_create(self,*locations):
     """syntax: create (location)  
          Creates a new object at the specified location.  The type of the object is implied by its location in the tree.
     """
-    loc = self.canonicalPath(location)
-    print "create " + loc
-    safplus.mgtCreate(str(loc))
-    return ""
+    result = []
+    for location in locations:
+      loc = self.canonicalPath(location)
+      try:
+        safplus.mgtCreate(str(loc))
+      except RuntimeError, e:
+        result.append("<error>location [%s] error [%s]</error>" % (location, str(e)))
+    return "<top>" + "".join(result) + "</top>"
 
   def do_delete(self,*locations):
     """syntax: delete (location)  
          deletes the object at (location) and all children
     """
+    result = []
     for l in locations:
       loc = self.canonicalPath(l)
-      safplus.mgtDelete(str(loc))
-    return ""
+      try:
+        safplus.mgtDelete(str(loc))
+      except RuntimeError, e:
+        result.append("<error>location [%s] error [%s]</error>" % (location, str(e)))
+
+    return "<top>" + "".join(result) + "</top>"
 
   def setContext(self,context):
     """Sets the context (environment) object so commands can access it while they are executing"""
