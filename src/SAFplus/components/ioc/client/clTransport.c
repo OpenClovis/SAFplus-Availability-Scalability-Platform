@@ -543,34 +543,26 @@ static ClRcT clTransportDestNodeLUTUpdate(ClIocNotificationIdT notificationId, C
 {
     ClXportNodeAddrDataT *nodeConfigAddrData = NULL;
     ClNodeCacheMemberT member = {0};
-    clOsalMutexLock(&gClXportNodeAddrListMutex);
     switch (notificationId)
     {
         case CL_IOC_NODE_ARRIVAL_NOTIFICATION:
         case CL_IOC_NODE_LINK_UP_NOTIFICATION:
         case CL_IOC_COMP_ARRIVAL_NOTIFICATION:
         {
-            if (clNodeCacheMemberGetExtendedSafe(nodeAddr, &member, 5, 200) == CL_OK)
+            if (clNodeCacheMemberGetFast(nodeAddr, &member) == CL_OK)
             {
-                if (!(nodeConfigAddrData = _clXportUpdateNodeConfig(nodeAddr,
-                                                                     (const ClCharT *)member.name)))
+                clOsalMutexLock(&gClXportNodeAddrListMutex);
+                nodeConfigAddrData = _clXportUpdateNodeConfig(nodeAddr, (const ClCharT *)member.name);
+                if (!nodeConfigAddrData)
                 {
-                    clLogDebug("IOC", "LUT", "Triggering node join for node [0x%x]", nodeAddr);
                     _clSetupDestNodeLUTData();
                 }
                 else if (!nodeConfigAddrData->iocAddress)
                 {
-                    clLogDebug("IOC", "LUT", 
-                               "Update node address for node join for node [0x%x] name [%s]",
-                               nodeAddr, member.name);
                     nodeConfigAddrData->iocAddress = nodeAddr;
                     _clSetupDestNodeLUTData();
                 }
-                else
-                {
-                    clLogDebug("IOC", "LUT", "Nothing updated for node [%#x] name [%s]", 
-                               nodeAddr, member.name);
-                }
+                clOsalMutexUnlock(&gClXportNodeAddrListMutex);
             }
             break;
         }
@@ -597,7 +589,6 @@ static ClRcT clTransportDestNodeLUTUpdate(ClIocNotificationIdT notificationId, C
             break;
         }
     }
-    clOsalMutexUnlock(&gClXportNodeAddrListMutex);
     return CL_OK;
 }
 
@@ -1517,8 +1508,8 @@ ClRcT clFindTransport(ClIocNodeAddressT dstIocAddress, ClIocAddressT *rdstIocAdd
                 nodeConfigAddrData->iocAddress = dstIocAddress;
             }
             _clSetupDestNodeLUTData();
+            destNodeLUTData = _clXportDestNodeLUTMapFind(dstIocAddress);
         }
-        destNodeLUTData = _clXportDestNodeLUTMapFind(dstIocAddress);
     }
 
     if (!destNodeLUTData) 

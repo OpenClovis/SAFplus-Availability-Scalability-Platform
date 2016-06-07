@@ -317,7 +317,7 @@ def set_up_asp_config():
     
     def asp_getenv(var, default=None):
         val = os.getenv(var) or default
-        if val is None:
+        if val is None and val != default:
             fail_and_exit('The %s environment variable is not set in the %s/asp.conf file, '
                           'or the %s/asp.conf file has not been sourced.' %
                           (var, d['etc_dir'], d['etc_dir']))

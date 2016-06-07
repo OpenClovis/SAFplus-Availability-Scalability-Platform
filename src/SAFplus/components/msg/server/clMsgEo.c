@@ -188,7 +188,7 @@ static void clMsgNotificationReceiveCallback(ClIocNotificationIdT event, ClPtrT 
     {
         clMsgNodeLeftCleanup(pAddr);
     }
-    else if(event == CL_IOC_COMP_DEATH_NOTIFICATION)
+    else if(event == CL_IOC_COMP_DEATH_NOTIFICATION && pAddr->iocPhyAddress.portId > CL_IOC_RESERVED_PORTS)
     {
         clMsgCompLeftCleanup(pAddr);
     }
