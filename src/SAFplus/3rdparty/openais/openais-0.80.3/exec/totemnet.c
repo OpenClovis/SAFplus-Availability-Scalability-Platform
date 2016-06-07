@@ -592,7 +592,7 @@ static void totemnet_mcast_thread_state_constructor (
 	struct totemnet_mcast_thread_state *totemnet_mcast_thread_state =
 		(struct totemnet_mcast_thread_state *)totemnet_mcast_thread_state_in;
 	memset (totemnet_mcast_thread_state, 0,
-		sizeof (totemnet_mcast_thread_state));
+		sizeof (struct totemnet_mcast_thread_state));
 
 	rng_make_prng (128, PRNG_SOBER,
 		&totemnet_mcast_thread_state->prng_state, NULL);

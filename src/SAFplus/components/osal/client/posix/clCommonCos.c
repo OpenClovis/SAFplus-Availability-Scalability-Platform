@@ -617,7 +617,7 @@ cosPosixTaskJoin (ClOsalTaskIdT taskId)
       }
    
     CL_FUNC_EXIT();
-    return (CL_OK);
+    return (rc);
 }
 
 /**************************************************************************/
@@ -655,7 +655,7 @@ cosPosixTaskDetach (ClOsalTaskIdT taskId)
       }
    
     CL_FUNC_EXIT();
-    return (CL_OK);
+    return (rc);
 }
 
 

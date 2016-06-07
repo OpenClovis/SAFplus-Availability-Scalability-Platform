@@ -3891,13 +3891,16 @@ static ClRcT clEoIocRecvQueueProcess(ClEoExecutionObjT *pThis)
              * We are done with the tries I guess. 
              * Try a mem shrink as a last resort.
              */
-            if(maxTries)
+            else if(maxTries)
             {
                 clEoMemShrink(&shrinkOptions);
                 maxTries = 0;
                 tries = 0;
                 goto retry;
             }
+            else
+            {
+                
             /*
              * We are done now. Giving up.
              */
@@ -3907,6 +3910,8 @@ static ClRcT clEoIocRecvQueueProcess(ClEoExecutionObjT *pThis)
                        "Exiting ioc receive thread\n",CL_EO_NAME);
             CL_ASSERT(0);
             break;
+            }
+            
         }
         else if(CL_GET_ERROR_CODE(rc) == CL_ERR_TIMEOUT)
         {

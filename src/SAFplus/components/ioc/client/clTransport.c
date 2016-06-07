@@ -1563,7 +1563,10 @@ ClRcT clFindTransport(ClIocNodeAddressT dstIocAddress, ClIocAddressT *rdstIocAdd
         return CL_ERR_NOT_EXIST;
     }
 
-    ((ClIocPhysicalAddressT *)rdstIocAddress)->nodeAddress = destNodeLUTData->bridgeIocNodeAddress;
+    if (destNodeLUTData->bridgeIocNodeAddress != 0)  // GAS added check for zero because 0 bridge was causing healthcheck to be skipped during startup
+        ((ClIocPhysicalAddressT *)rdstIocAddress)->nodeAddress = destNodeLUTData->bridgeIocNodeAddress;
+    else
+        ((ClIocPhysicalAddressT *)rdstIocAddress)->nodeAddress = destNodeLUTData->destIocNodeAddress;
     *typeXport = destNodeLUTData->xportType;
     /*
      * If a preferred xport was specified and there is a mismatch for

@@ -1384,8 +1384,6 @@ ClRcT clIocSendWithXportRelay(ClIocCommPortHandleT commPortHandle,
                 userFragHeader.header.pktTime = 0;
 #endif
             ++frags;
-            if(0 && !(frags & 511))
-                sleep(1);
         }                       /* while */
         /*
          * sending the last fragment
@@ -1795,8 +1793,6 @@ ClRcT clIocSendSlow(ClIocCommPortHandleT commPortHandle,
                 userFragHeader.header.pktTime = 0;
 #endif
             ++frags;
-            if(!(frags & 511))
-                sleep(1);
             /*usleep(CL_IOC_MICRO_SLEEP_INTERVAL);*/
         }                       /* while */
         /*
@@ -2567,9 +2563,13 @@ ClRcT clIocDispatch(const ClCharT *xportType, ClIocCommPortHandleT commPort, ClI
 
         ClIocSendOptionT sendOption;
         sendOption.priority = CL_IOC_HIGH_PRIORITY;
-        sendOption.timeout = 200;
-        clIocSend(commPort, message, CL_IOC_PROTO_ICMP, &destAddress,
-                  &sendOption);
+        sendOption.timeout = 2;
+        ClRcT ret = clIocSend(commPort, message, CL_IOC_PROTO_ICMP, &destAddress, &sendOption);
+        if (ret != CL_OK)
+          {
+            clLogWarning("HB", "RPLY", "Send to %d error 0x%x", userHeader.srcAddress.iocPhyAddress.nodeAddress,ret);
+          }
+        
         /*
          * Clear the message buffer for re-use.
          */
@@ -2871,12 +2871,20 @@ ClRcT clIocDispatchAsync(const ClCharT *xportType, ClIocPortT port, ClUint8T *bu
             userHeader.srcAddress.iocPhyAddress.nodeAddress;
         destAddress.iocPhyAddress.portId = CL_IOC_CPM_PORT;
 
-        ClIocSendOptionT sendOption = {  CL_IOC_HIGH_PRIORITY,0,0,CL_IOC_PERSISTENT_MSG,200 };
+        ClIocSendOptionT sendOption = {  CL_IOC_HIGH_PRIORITY,0,0,CL_IOC_PERSISTENT_MSG,1};
         ClIocCommPortT *commPort = clIocGetPort(port);
         if(commPort)
         {
-            clIocSend((ClIocCommPortHandleT)commPort, message, CL_IOC_PROTO_ICMP, &destAddress,
-                      &sendOption);
+            ClRcT ret = clIocSend((ClIocCommPortHandleT)commPort, message, CL_IOC_PROTO_ICMP, &destAddress, &sendOption);
+            if (ret != CL_OK)
+            {
+                clLogWarning("HB", "RPLY", "Send to %d error 0x%x", userHeader.srcAddress.iocPhyAddress.nodeAddress,ret);
+            }
+        }
+        else
+        {
+            assert(0);  // should never happen
+            
         }
         rc = CL_IOC_RC(CL_ERR_TRY_AGAIN);
         goto out;

@@ -211,7 +211,7 @@ retry:
     }
 
     CL_FUNC_EXIT();
-    return (CL_OK);
+    return (rc);
 }
 
 ClRcT 

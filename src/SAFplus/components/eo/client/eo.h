@@ -27,7 +27,7 @@ extern "C"
 /*
  * Timeout in millisecs.
  */
-#define CL_EO_MEM_TIMEOUT (500)
+#define CL_EO_MEM_TIMEOUT (50)
 
 typedef enum ClEoStaticQueueElementType {
     CL_EO_ELEMENT_TYPE_WM,
