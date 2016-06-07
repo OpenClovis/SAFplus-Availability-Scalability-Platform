@@ -100,6 +100,30 @@ static void udpSyncCallback(ClIocPhysicalAddressT *srcAddr, ClPtrT arg)
     }
 }
 
+
+typedef struct
+{
+    ClIocNodeAddressT node;    
+    ClIocNotificationIdT event;    
+} NodeNotificationData;
+
+static void* threadedNodeNotification(void* data)
+{
+    NodeNotificationData* n = (NodeNotificationData* ) data;
+    clUdpNodeNotification(n->node, n->event);
+    free(n);
+    return NULL;
+}
+
+static void handleNodeNotification(ClIocNodeAddressT node, ClIocNotificationIdT event)
+{
+    NodeNotificationData* n = malloc(sizeof(NodeNotificationData));
+    n->node = node;
+    n->event = event;
+    clOsalTaskCreateDetached("node notification", CL_OSAL_SCHED_OTHER , CL_OSAL_THREAD_PRI_NOT_APPLICABLE, 0, threadedNodeNotification, (void*) n);
+}
+
+
 ClRcT clUdpNodeNotification(ClIocNodeAddressT node, ClIocNotificationIdT event)
 {
     ClRcT rc = CL_OK;
@@ -367,7 +391,8 @@ static ClRcT clUdpReceivedPacket(ClUint32T socketType, struct msghdr *pMsgHdr) {
                             clUdpAddrSet(compAddr.nodeAddress, addStr);
                         }
                     }
-                    rc = clUdpNodeNotification(compAddr.nodeAddress, id);
+                    handleNodeNotification(compAddr.nodeAddress, id);
+                    rc = CL_OK;
                 }
             }
             else
@@ -504,7 +529,7 @@ static void clUdpEventHandler(ClPtrT pArg)
 
                     do
                     {
-                      bytes = recvmsg(fd[i], &msgHdr, 0);
+                      bytes = recvmsg(fd[i], &msgHdr, MSG_DONTWAIT);
                     } while((bytes<0)&&(errno==EINTR));  /* just retry when an interrupt kicks us out of the recvmsg.  Is this correct, or should the poll handle it? */
                     
                     if (bytes < 0)  /* Error */
@@ -512,7 +537,7 @@ static void clUdpEventHandler(ClPtrT pArg)
                         if (!(recvErrors++ & 255))  /* just slow down the logging */
                         {
                             CL_DEBUG_PRINT(CL_DEBUG_ERROR,("Recvmsg failed with [%s]\n", strerror(errno)));
-                            sleep(1);  /* Is this going to cause keep-alive failure after 255 receive errors? */
+                            usleep(20000);  /* Is this going to cause keep-alive failure after 255 receive errors? */
                         }
                         if (errno == ENOTCONN) 
                         {
@@ -530,7 +555,7 @@ static void clUdpEventHandler(ClPtrT pArg)
                         }
                         continue;
                     }
-                    clUdpReceivedPacket(i, &msgHdr);
+                    clUdpReceivedPacket(i, &msgHdr);                    
                 }
                   /*
                    *  to avoid overwhelming the log files when link down

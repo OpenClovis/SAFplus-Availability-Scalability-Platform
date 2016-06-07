@@ -128,8 +128,8 @@ static ClRcT _clIocHeartBeatEntryMapAdd(ClIocHeartBeatStatusT *entry)
     if(entry->linkIndex != gIocLocalBladeAddress)
     {
         clFindTransport(entry->linkIndex, &dstSlot, &xportType);
-        if(xportType && 
-           dstSlot.iocPhyAddress.nodeAddress != entry->linkIndex)
+        if(xportType && (dstSlot.iocPhyAddress.nodeAddress != 0) &&
+           (dstSlot.iocPhyAddress.nodeAddress != entry->linkIndex))
         {
             clLogNotice("IOC", "HBT", "Skipping healthcheck for node [%d] "
                         "as it would be proxied by the bridge at slot [%d]",
@@ -199,7 +199,8 @@ static __inline__ void _clIocHeartBeatEntryMapDel(ClIocHeartBeatStatusT *entry) 
 /*
  * Got hearbeat reply from local component and peer nodes
  */
-ClRcT clIocHearBeatHealthCheckUpdate(ClIocNodeAddressT nodeAddress, ClUint32T portId, ClCharT *message) {
+ClRcT clIocHearBeatHealthCheckUpdate(ClIocNodeAddressT nodeAddress, ClUint32T portId, ClCharT *message)
+{
     ClRcT rc = CL_OK;
     if (nodeAddress == gIocLocalBladeAddress)
     {
@@ -1240,10 +1241,11 @@ ClRcT clIocHeartBeatMessageReqRep(ClIocCommPortHandleT commPort,
         goto out_delete;
     }
 
-    ClIocSendOptionT sendOption = { .priority = CL_IOC_HIGH_PRIORITY, .timeout =
-            200 };
+    ClIocSendOptionT sendOption = { .priority = CL_IOC_HIGH_PRIORITY, .timeout = 1 };
 
+    //int now = clOsalStopWatchTimeGet()/1000; // milliseconds    
     rc = clIocSend(commPort, message, reqRep, destAddress, &sendOption);
+    //clLogInfo("HB","TIM","%12d: rc %x send HB req to %d\n", now, rc, destAddress->iocPhyAddress.nodeAddress);
 
     out_delete:
     clBufferDelete(&message);

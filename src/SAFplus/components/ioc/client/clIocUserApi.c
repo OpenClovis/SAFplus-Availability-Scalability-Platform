@@ -1422,8 +1422,6 @@ ClRcT clIocSendWithXportRelay(ClIocCommPortHandleT commPortHandle,
                     userFragHeader.header.pktTime = 0;
     #endif
                 ++frags;
-                if(0 && !(frags & 511))
-                    sleep(1);
 
 #ifdef COMPAT_5
                 // This is work-around in Cloud mode to make sure fragment sent/received with right order
@@ -2744,6 +2742,8 @@ ClRcT clIocDispatch(const ClCharT *xportType, ClIocCommPortHandleT commPort,
         /*
          * Reply HeartBeat message
          */
+
+        //clLogError("HB", "RPLY", "Got HB request from %d", userHeader.srcAddress.iocPhyAddress.nodeAddress);
 #ifdef COMPAT_5
         if (!isBackward)
           {
@@ -2752,10 +2752,20 @@ ClRcT clIocDispatch(const ClCharT *xportType, ClIocCommPortHandleT commPort,
             destAddress.iocPhyAddress.nodeAddress = srcAddr.iocPhyAddress.nodeAddress;
             destAddress.iocPhyAddress.portId = CL_IOC_CPM_PORT;
 
-            ClIocSendOptionT sendOption = { .priority = CL_IOC_HIGH_PRIORITY, .timeout = 200 };
-            clIocSend(commPort, message, CL_IOC_PROTO_ICMP, &destAddress, &sendOption);
+            ClIocSendOptionT sendOption = { .priority = CL_IOC_HIGH_PRIORITY, .timeout = 2 };
+            ClRcT ret = clIocSend(commPort, message, CL_IOC_PROTO_ICMP, &destAddress, &sendOption);
+            if (ret != CL_OK)
+                {
+                    clLogWarning("HB", "RPLY", "Send to %d error 0x%x", userHeader.srcAddress.iocPhyAddress.nodeAddress,ret);
+                }
+            
 #ifdef COMPAT_5
           }
+        else
+        {
+          clLogWarning("HB", "RPLY", "Got HB request BACKWARDS from %d", userHeader.srcAddress.iocPhyAddress.nodeAddress);
+        }
+        
 #endif
         /*
          * Clear the message buffer for re-use.
@@ -3149,6 +3159,7 @@ ClRcT clIocDispatchAsync(const ClCharT *xportType, ClIocPortT port, ClUint8T *bu
         /*
          * Reply HeartBeat message
          */
+        //clLogError("HB", "RPLY", "Got HB request from %d", userHeader.srcAddress.iocPhyAddress.nodeAddress);
 #ifdef COMPAT_5
         if (!isBackward)
           {
@@ -3157,15 +3168,30 @@ ClRcT clIocDispatchAsync(const ClCharT *xportType, ClIocPortT port, ClUint8T *bu
             destAddress.iocPhyAddress.nodeAddress = userHeader.srcAddress.iocPhyAddress.nodeAddress;
             destAddress.iocPhyAddress.portId = CL_IOC_CPM_PORT;
 
-            ClIocSendOptionT sendOption = { .priority = CL_IOC_HIGH_PRIORITY,
-                                                .timeout = 200 };
+            ClIocSendOptionT sendOption = { .priority = CL_IOC_HIGH_PRIORITY, .timeout = 1 };
             ClIocCommPortT *commPort = clIocGetPort(port);
             if(commPort)
             {
-                clIocSend((ClIocCommPortHandleT) commPort, message, CL_IOC_PROTO_ICMP, &destAddress, &sendOption);
+                ClRcT ret = clIocSend((ClIocCommPortHandleT) commPort, message, CL_IOC_PROTO_ICMP, &destAddress, &sendOption);
+                if (ret != CL_OK)
+                {
+                    clLogWarning("HB", "RPLY", "Send to %d error 0x%x", userHeader.srcAddress.iocPhyAddress.nodeAddress,ret);
+                }
+                
             }
+            else
+            {
+                assert(0);  // should never happen
+                
+            }
+            
 #ifdef COMPAT_5
           }
+        else
+        {
+          clLogWarning("HB", "RPLY", "Got HB request BACKWARDS from %d", userHeader.srcAddress.iocPhyAddress.nodeAddress);
+        }
+        
 #endif
         rc = CL_IOC_RC(CL_ERR_TRY_AGAIN);
         goto out;
@@ -4345,8 +4371,6 @@ static void _iocSendFragmentCompatibleMode(ClIocCommPortT *pIocCommPort, ClBuffe
             userFragHeader.header.pktTime = 0;
 #endif
         ++frags;
-        if(0 && !(frags & 511))
-            sleep(1);
     }                       /* while */
     /*
      * sending the last fragment

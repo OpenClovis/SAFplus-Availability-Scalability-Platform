@@ -476,7 +476,7 @@ typedef enum {
         ClIocMessageOptionT msgOption;
 
 /**
- * The timeout interval in miliseconds.
+ * The timeout interval in milliseconds.
  */
         ClUint32T timeout;
 

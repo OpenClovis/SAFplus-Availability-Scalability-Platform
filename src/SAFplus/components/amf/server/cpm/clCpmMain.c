@@ -1573,7 +1573,6 @@ ClBoolT clCpmSwitchoverInline(void)
 static ClRcT clCpmInitialize(ClUint32T argc, ClCharT *argv[])
 {
     ClRcT rc = CL_OK;
-    ClUint32T cpmNativeInstalled = 0;
 
     if (NULL != gpClCpm)
     {
@@ -1724,7 +1723,6 @@ static ClRcT clCpmInitialize(ClUint32T argc, ClCharT *argv[])
     CL_CPM_CHECK_1(CL_DEBUG_ERROR, CL_CPM_LOG_1_EO_CLIENT_INST_ERR, rc, rc,
                    CL_LOG_DEBUG, CL_LOG_HANDLE_APP);
 
-    cpmNativeInstalled = 1;
 
     /*
      * Install EO protocol to get IOC notifications for component
@@ -1864,7 +1862,6 @@ ClRcT VDECL(compMgrEORegister)(ClEoDataT data,
     ClEoExecutionObjT eoObj ;
     ClEoExecutionObjT *pEOptr = &eoObj;
     ClEoExecutionObjT *tmpEOh = NULL;
-    ClIocNodeAddressT myOMAddress;
     VDECL_VER(ClCpmClientInfoIDLT, 4, 0, 0) info = {0};
     ClUint32T msgLength = 0;
 
@@ -1903,10 +1900,6 @@ ClRcT VDECL(compMgrEORegister)(ClEoDataT data,
     eoObj.appType = info.eoObj.appType;
     eoObj.maxNoClients = info.eoObj.maxNoClients;
 
-    /*
-     * Get the local OMAddress 
-     */
-    myOMAddress = clIocLocalAddressGet();
 
     pTemp =
         (ClCpmEOListNodeT *) clHeapAllocate((ClUint32T) sizeof(ClCpmEOListNodeT));
@@ -3117,7 +3110,6 @@ static void cpmMarkRecovery(ClCpmComponentT *compRef, ClUint64T instantiateCooki
 void cpmEOHBFailure(ClCpmEOListNodeT *pThis)
 {
     time_t t1;
-    ClRcT status = 0;
     ClRcT rc = CL_OK;
     ClNameT nodeName = {0};
     ClNameT compName = {0};
@@ -3162,8 +3154,6 @@ void cpmEOHBFailure(ClCpmEOListNodeT *pThis)
             CL_AMS_READINESS_STATE_OUTOFSERVICE;
 
         clOsalMutexUnlock(((ClCpmEOListNodeT *) pThis)->compRef->compMutex);
-
-        status = 1;
 
         if (((ClCpmEOListNodeT *) pThis)->eoptr->eoPort == CL_IOC_EVENT_PORT)
         {
@@ -3431,7 +3421,6 @@ void compMgrHealthFeedBack(ClRcT retCode,
                            ClBufferHandleT sendMsg,
                            ClBufferHandleT recvMsg)
 {
-    ClIocNodeAddressT myOMAddress;
     ClCpmSchedFeedBackT outBuffer;
     time_t t1;
     ClCharT buffer[CL_MAX_NAME_LENGTH] = {0};
@@ -3451,10 +3440,6 @@ void compMgrHealthFeedBack(ClRcT retCode,
             CL_CPM_CHECK_0(CL_DEBUG_ERROR, CL_LOG_MESSAGE_0_NULL_ARGUMENT,
                     CL_CPM_RC(CL_ERR_NULL_POINTER), CL_LOG_DEBUG,
                     CL_LOG_HANDLE_APP);
-        /*
-         * Get the local OMAddress 
-         */
-        myOMAddress = clIocLocalAddressGet();
 	
         /*
          * FIXME: take the semaphore 
@@ -3813,6 +3798,18 @@ ClRcT clCpmIocNotification(ClEoExecutionObjT *pThis,
     return CL_OK;
 }
 
+
+
+void stopCpmPolling(void)
+{
+    if (!gCpmShuttingDown)
+    {
+        gCpmShuttingDown = CL_TRUE;
+        sleep(2);
+    }
+}
+
+
 /**
  *  Name: compMgrPollThread 
  *
@@ -3873,6 +3870,9 @@ ClRcT compMgrPollThread(void)
     myOMAddress = clIocLocalAddressGet();
 
     clOsalMutexLock(&gpClCpm->heartbeatMutex);
+
+    atexit(stopCpmPolling);
+           
     restart_heartbeat:
     while (gpClCpm->polling && gpClCpm->enableHeartbeat == CL_TRUE)
     {
@@ -3986,13 +3986,12 @@ ClRcT compMgrPollThread(void)
                                    ("Unable to Get Node  Data %x\n", rc));
             }
             /*
-             * Periodically collect the Zoombie child processes if any 
+             * Periodically collect the Zombie child processes if any 
              */
             {
-                pid_t pid;
                 ClInt32T w;
 
-                pid = waitpid(WAIT_ANY, &w, WNOHANG);
+                waitpid(WAIT_ANY, &w, WNOHANG);
             }
         }
         /*
@@ -4147,7 +4146,6 @@ ClBoolT cpmOrderlyShutdown(int maxTime)
 {
     ClIocNodeAddressT oldMasterAddress = 0;
     ClIocNodeAddressT masterAddress;
-    ClBoolT cleanShutdownInitiated = CL_FALSE;
     int curTime=0;
     ClRcT rc;
     
@@ -4166,7 +4164,6 @@ ClBoolT cpmOrderlyShutdown(int maxTime)
  
         if (rc == CL_OK)
           {
-              cleanShutdownInitiated = CL_TRUE;
               oldMasterAddress = masterAddress;
           }        
     }

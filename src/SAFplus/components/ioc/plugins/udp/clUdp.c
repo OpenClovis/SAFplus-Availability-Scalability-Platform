@@ -1036,6 +1036,7 @@ ClRcT xportListenStop(ClIocPortT port)
     return rc;
 }
 
+
 ClRcT xportRecv(ClIocCommPortHandleT commPort, ClIocDispatchOptionT *pRecvOption,
                 ClUint8T *pBuffer, ClUint32T bufSize, 
                 ClBufferHandleT message, ClIocRecvParamT *pRecvParam)
@@ -1103,6 +1104,7 @@ ClRcT xportRecv(ClIocCommPortHandleT commPort, ClIocDispatchOptionT *pRecvOption
             {
                 if((pollfd.revents & (POLLIN|POLLRDNORM)))
                 {
+                    
                     do
                     {                    
                         bytes = recvmsg(pCommPortPrivate->fd, &msgHdr, 0);
@@ -1126,7 +1128,7 @@ ClRcT xportRecv(ClIocCommPortHandleT commPort, ClIocDispatchOptionT *pRecvOption
                 }
             }
             else if (pollStatus < 0)
-            {
+            {                
                 if (errno != EINTR)
                 {                    
                 CL_DEBUG_PRINT(CL_DEBUG_ERROR,("Error in poll. errno = %d\n",errno));
@@ -1143,6 +1145,7 @@ ClRcT xportRecv(ClIocCommPortHandleT commPort, ClIocDispatchOptionT *pRecvOption
         if (bytes >= 0) // got a message
         {
             ClRcT result = clIocDispatch(gClUdpXportType, commPort, pRecvOption, pBuffer, bytes, message, pRecvParam);
+            
             if (CL_GET_ERROR_CODE(result) == CL_ERR_TRY_AGAIN)  // reset the timeout count
             {
                if (endTime != CL_IOC_TIMEOUT_FOREVER) endTime = clOsalStopWatchTimeGet()/1000 + timeout; 

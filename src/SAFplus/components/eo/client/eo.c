@@ -91,7 +91,7 @@
 /*
  * Timeout in millisecs.
  */
-#define CL_EO_MEM_TIMEOUT (500)
+#define CL_EO_MEM_TIMEOUT (50)
 
 typedef enum ClEoStaticQueueElementType {
     CL_EO_ELEMENT_TYPE_WM,
@@ -2482,12 +2482,6 @@ ClRcT clEoWalkWithVersion(ClEoExecutionObjT *pThis, ClUint32T func,
 ClRcT clEoStateSet(ClEoExecutionObjT *pThis, ClEoStateT flags)
 {
     ClRcT rc = CL_OK;
-
-    /*
-     * ClOsalTaskIdT taskId = 0;
-     */
-    int stateUpd = 0;
-
     CL_FUNC_ENTER();
 
     /*
@@ -2523,7 +2517,6 @@ ClRcT clEoStateSet(ClEoExecutionObjT *pThis, ClEoStateT flags)
                 }
             }
             pThis->state = CL_EO_STATE_SUSPEND;
-            stateUpd = 1;
             break;
 
         case CL_EO_STATE_KILL:
@@ -2533,7 +2526,6 @@ ClRcT clEoStateSet(ClEoExecutionObjT *pThis, ClEoStateT flags)
              */
 
             pThis->state = CL_EO_STATE_KILL;
-            stateUpd = 0;
 
             /*
              * Inform Component manager regarding state change 
@@ -2557,7 +2549,6 @@ ClRcT clEoStateSet(ClEoExecutionObjT *pThis, ClEoStateT flags)
                 }
             }
             pThis->state = CL_EO_STATE_ACTIVE;
-            stateUpd = 1;
             break;
         default:
             CL_DEBUG_PRINT(CL_DEBUG_ERROR, ("\n EO: STATE NOT PROPER \n"));
@@ -3925,7 +3916,6 @@ static ClRcT clEoIocRecvQueueProcess(ClEoExecutionObjT *pThis)
         srcAddr.portId = recvParam.srcAddr.iocPhyAddress.portId;
         protoType = recvParam.protoType;
         length = recvParam.length;
-
         if (rc == CL_OK)
         {
             //clLogInfo(CL_LOG_EO_AREA, CL_LOG_EO_CONTEXT_RECV, "Packet Received. Priority %d, node %d port %d proto %d length %d",priority, srcAddr.nodeAddress,srcAddr.portId,protoType,length );
@@ -3950,7 +3940,7 @@ static ClRcT clEoIocRecvQueueProcess(ClEoExecutionObjT *pThis)
 
                 if (pdef->nonblockingHandler) /* If a nonblocking handler function is defined, then call it */
                 {
-                    rc = pdef->nonblockingHandler(pThis,eoRecvMsg,priority,protoType,length,srcAddr);
+                    rc = pdef->nonblockingHandler(pThis,eoRecvMsg,priority,protoType,length,srcAddr);                    
                 }
 
                 /** 
@@ -3973,13 +3963,11 @@ static ClRcT clEoIocRecvQueueProcess(ClEoExecutionObjT *pThis)
         {
             retCode = clBufferDelete(&eoRecvMsg);
             if (retCode != CL_OK)
-                CL_DEBUG_PRINT(CL_DEBUG_ERROR,
-                               ("EO: clBufferDelete Failed, rc=0x%x",
-                                retCode));
+                CL_DEBUG_PRINT(CL_DEBUG_ERROR, ("EO: clBufferDelete Failed, rc=0x%x", retCode));
             break;
         }
         else if(CL_GET_ERROR_CODE(rc) == CL_ERR_NO_MEMORY)
-        {
+        {            
             if (++tries <= maxTries)
             {
                 /*
@@ -3992,13 +3980,16 @@ static ClRcT clEoIocRecvQueueProcess(ClEoExecutionObjT *pThis)
              * We are done with the tries I guess. 
              * Try a mem shrink as a last resort.
              */
-            if(maxTries)
+            else if(maxTries)
             {
                 clEoMemShrink(&shrinkOptions);
                 maxTries = 0;
                 tries = 0;
                 goto retry;
             }
+            else
+            {
+                
             /*
              * We are done now. Giving up.
              */
@@ -4008,6 +3999,8 @@ static ClRcT clEoIocRecvQueueProcess(ClEoExecutionObjT *pThis)
                             "Exiting ioc receive thread\n",CL_EO_NAME));
             CL_ASSERT(0);
             break;
+            }
+            
         }
         else if(CL_GET_ERROR_CODE(rc) == CL_ERR_TIMEOUT)
         {
@@ -4018,9 +4011,7 @@ static ClRcT clEoIocRecvQueueProcess(ClEoExecutionObjT *pThis)
         {
             retry:
             retCode = clBufferDelete(&eoRecvMsg);
-            CL_DEBUG_PRINT(CL_DEBUG_TRACE,
-                           ("\n EO: clIocReceive failed EOID 0x%llx\t EO Port %x\n",
-                            pThis->eoID, pThis->eoPort));
+            clLogWarning("EO","RCV","clIocReceive failed EOID 0x%llx\t EO Port %x", pThis->eoID, pThis->eoPort);
         }
     }        
 
