@@ -18,6 +18,7 @@
 #include <clNodeCache.h>
 #include "clUdpSetup.h"
 #include "clUdpNotification.h"
+#include "clRudp.h"
 
 #define IOC_UDP_MAP_BITS (8)
 #define IOC_UDP_MAP_SIZE (1 << IOC_UDP_MAP_BITS)
@@ -399,7 +400,6 @@ static ClIocUdpMapT *iocUdpMapAdd(ClCharT *addr, ClIocNodeAddressT slot)
         clLogError("UDP", "MAP", "Socket syscall returned with error [%s] for UDP socket", strerror(errno));
         goto out_free;
     }
-
     priority = CL_UDP_DEFAULT_PRIORITY;
     if (udpPriorityChangePossible)
     {
@@ -420,7 +420,6 @@ static ClIocUdpMapT *iocUdpMapAdd(ClCharT *addr, ClIocNodeAddressT slot)
             goto out_free;
         }
     }
-
     udpMapAdd(map);
     clLogTrace("UDP", "MAP", "Loaded address [%s] with slot mapped at [%d]", addr, slot);
     goto out;
@@ -853,6 +852,7 @@ static ClRcT udpDispatchCallback(ClInt32T fd, ClInt32T events, void *cookie)
         rc = CL_ERR_LIBRARY;
         goto out;
     }
+    //TODO check socket type
 
     rc = clIocDispatchAsync(gClUdpXportType, xportPrivate->port, buffer, bytes);
 
@@ -893,7 +893,6 @@ static ClRcT __xportBind(ClIocPortT port, ClInt32T *pFd)
         clLogError("UDP", "BIND", "setsockopt for SO_REUSEADDR failed with error [%s]", strerror(errno));
         goto out_close;
     }
-
     if(bind(fd, addr, sizeof(*addr)) < 0)
     {
         clLogError("UDP", "BIND", "Bind failed with error [%s]", strerror(errno));
@@ -1035,7 +1034,6 @@ ClRcT xportListenStop(ClIocPortT port)
     clHeapFree(xportPrivate);
     return rc;
 }
-
 ClRcT xportRecv(ClIocCommPortHandleT commPort, ClIocDispatchOptionT *pRecvOption,
                 ClUint8T *pBuffer, ClUint32T bufSize, 
                 ClBufferHandleT message, ClIocRecvParamT *pRecvParam)
@@ -1072,7 +1070,6 @@ ClRcT xportRecv(ClIocCommPortHandleT commPort, ClIocDispatchOptionT *pRecvOption
     }
     
     memset(&pollfd, 0, sizeof(pollfd));
-
     memset(&msgHdr, 0, sizeof(msgHdr));
     memset(&ioVector, 0, sizeof(ioVector));
     msgHdr.msg_name = &peerAddress;
@@ -1082,10 +1079,11 @@ ClRcT xportRecv(ClIocCommPortHandleT commPort, ClIocDispatchOptionT *pRecvOption
     msgHdr.msg_iov = &ioVector;
     msgHdr.msg_iovlen = 1;
     timeout = pRecvOption->timeout;
-
+    //Create Rudp socket from udp socket
+    ClUint32T fd = pCommPortPrivate->fd;
+    rudpSocketFromUdpSocket(fd);
     if (timeout == CL_IOC_TIMEOUT_FOREVER) endTime = CL_IOC_TIMEOUT_FOREVER;
     else endTime = clOsalStopWatchTimeGet()/1000 + timeout;
-
     rc = CL_ERR_TIMEOUT;
     do 
     {
@@ -1142,18 +1140,25 @@ ClRcT xportRecv(ClIocCommPortHandleT commPort, ClIocDispatchOptionT *pRecvOption
         
         if (bytes >= 0) // got a message
         {
-            ClRcT result = clIocDispatch(gClUdpXportType, commPort, pRecvOption, pBuffer, bytes, message, pRecvParam);
-            if (CL_GET_ERROR_CODE(result) == CL_ERR_TRY_AGAIN)  // reset the timeout count
+            //check packet is reliable
+            struct sockaddr_in* sourceAddress;
+            sourceAddress = (struct sockaddr_in*)&peerAddress;
+            ClUint32T result = receiveHandlePacketNew(pCommPortPrivate->fd,pBuffer,bytes,*sourceAddress);
+            if(result ==1) // data packet or packet is not a reliable packet
             {
-               if (endTime != CL_IOC_TIMEOUT_FOREVER) endTime = clOsalStopWatchTimeGet()/1000 + timeout; 
-            }
-            else if (CL_GET_ERROR_CODE(result) == IOC_MSG_QUEUED)
-            {
-                endTime += 10; // If a fragment comes in, cheat a little on the end time to get another fragment
-            }
-            else // exit the loop.  We either got an error or a full message
-            {                
-                return(result);
+              ClRcT result = clIocDispatch(gClUdpXportType, commPort, pRecvOption, pBuffer, bytes, message, pRecvParam);
+              if (CL_GET_ERROR_CODE(result) == CL_ERR_TRY_AGAIN)  // reset the timeout count
+              {
+                 if (endTime != CL_IOC_TIMEOUT_FOREVER) endTime = clOsalStopWatchTimeGet()/1000 + timeout;
+              }
+              else if (CL_GET_ERROR_CODE(result) == IOC_MSG_QUEUED)
+              {
+                  endTime += 10; // If a fragment comes in, cheat a little on the end time to get another fragment
+              }
+              else // exit the loop.  We either got an error or a full message
+              {
+                  return(result);
+              }
             }
         }
 
@@ -1191,42 +1196,68 @@ static ClRcT iocUdpSend(ClIocUdpMapT *map, void *args)
             else CL_DEBUG_PRINT(CL_DEBUG_WARN,("Error in setting UDP message priority. errno [%d]",err));
         }
     }
-
     if(gClSimulationMode)
     {
         portOffset <<= 10;
     }
-    if(map->family == PF_INET)
+    //Reliable
+    ClIocHeaderT* header = (ClIocHeaderT*)sendArgs->iov->iov_base;
+    clLogDebug("UDP", "SEND", "check version value : seqno = %d\n isReliable %d",header->version,header->isReliable);
+    if(header->isReliable==1)
     {
-        map->__ipv4_addr.sin_port = htons(CL_TRANSPORT_BASE_PORT + sendArgs->port + portOffset);
-        destaddr = (struct sockaddr*)&map->__ipv4_addr;
-        addrlen = sizeof(struct sockaddr_in);
+      struct sockaddr_in *destaddr_in = NULL;
+      map->__ipv4_addr.sin_port = htons(CL_TRANSPORT_BASE_PORT + sendArgs->port + portOffset);
+      destaddr_in = (struct sockaddr_in*)&map->__ipv4_addr;
+      clLogDebug("UDP", "SEND", "create socket in reliable mode");
+      if(rudpSendto((rudpSocketT)(long)map->sendFd, (void*)sendArgs->iov, sendArgs->iovlen,destaddr_in,sendArgs->flags)<0)
+      {
+          clLogError("UDP", "SEND", "UDP send failed with error [%s] for addr [%s], port [0x%x:%d]",
+                     strerror(errno), map->addrstr, sendArgs->port,
+                     CL_TRANSPORT_BASE_PORT + sendArgs->port + portOffset);
+          rc = CL_ERR_LIBRARY;
+      }
+      else
+      {
+          clLogTrace("UDP", "SEND", "UDP send successful for [%d] iovs, addr [%s], port [0x%x:%d]",
+                     sendArgs->iovlen, map->addrstr, sendArgs->port,
+                      CL_TRANSPORT_BASE_PORT + sendArgs->port + portOffset);
+      }
     }
     else
     {
-        map->__ipv6_addr.sin6_port = htons(CL_TRANSPORT_BASE_PORT + sendArgs->port  + portOffset);
-        destaddr = (struct sockaddr*)&map->__ipv6_addr;
-        addrlen = sizeof(struct sockaddr_in6);
-    }
-    memset(&msghdr, 0, sizeof(msghdr));
-    msghdr.msg_name = destaddr;
-    msghdr.msg_namelen = addrlen;
-    msghdr.msg_control = (ClUint8T*)gClCmsgHdr;
-    msghdr.msg_controllen = gClCmsgHdrLen;
-    msghdr.msg_iov = sendArgs->iov;
-    msghdr.msg_iovlen = sendArgs->iovlen;
-    if(sendmsg(map->sendFd, &msghdr, sendArgs->flags) < 0)
-    {
-        clLogError("UDP", "SEND", "UDP send failed with error [%s] for addr [%s], port [0x%x:%d]",
-                   strerror(errno), map->addrstr, sendArgs->port, 
-                   CL_TRANSPORT_BASE_PORT + sendArgs->port + portOffset);
-        rc = CL_ERR_LIBRARY;
-    }
-    else
-    {
-        clLogTrace("UDP", "SEND", "UDP send successful for [%d] iovs, addr [%s], port [0x%x:%d]",
-                   sendArgs->iovlen, map->addrstr, sendArgs->port, 
-                    CL_TRANSPORT_BASE_PORT + sendArgs->port + portOffset);
+      if(map->family == PF_INET)
+      {
+          map->__ipv4_addr.sin_port = htons(CL_TRANSPORT_BASE_PORT + sendArgs->port + portOffset);
+          destaddr = (struct sockaddr*)&map->__ipv4_addr;
+          addrlen = sizeof(struct sockaddr_in);
+      }
+      else
+      {
+          map->__ipv6_addr.sin6_port = htons(CL_TRANSPORT_BASE_PORT + sendArgs->port  + portOffset);
+          destaddr = (struct sockaddr*)&map->__ipv6_addr;
+          addrlen = sizeof(struct sockaddr_in6);
+      }
+      rudpSocketFromUdpSocket(map->sendFd);
+      memset(&msghdr, 0, sizeof(msghdr));
+      msghdr.msg_name = destaddr;
+      msghdr.msg_namelen = addrlen;
+      msghdr.msg_control = (ClUint8T*)gClCmsgHdr;
+      msghdr.msg_controllen = gClCmsgHdrLen;
+      msghdr.msg_iov = sendArgs->iov;
+      msghdr.msg_iovlen = sendArgs->iovlen;
+      if(sendmsg(map->sendFd, &msghdr, sendArgs->flags) < 0)
+      {
+          clLogError("UDP", "SEND", "UDP send failed with error [%s] for addr [%s], port [0x%x:%d]",
+                     strerror(errno), map->addrstr, sendArgs->port,
+                     CL_TRANSPORT_BASE_PORT + sendArgs->port + portOffset);
+          rc = CL_ERR_LIBRARY;
+      }
+      else
+      {
+          clLogTrace("UDP", "SEND", "UDP send successful for [%d] iovs, addr [%s], port [0x%x:%d]",
+                     sendArgs->iovlen, map->addrstr, sendArgs->port,
+                     CL_TRANSPORT_BASE_PORT + sendArgs->port + portOffset);
+      }
     }
     return rc;
 }
@@ -1437,7 +1468,6 @@ ClRcT clUdpAddrGet(ClIocNodeAddressT nodeAddress, ClCharT *addrStr)
         clOsalSemUnlock(gClUdpAddrCacheSem);
         return CL_ERR_NOT_INITIALIZED;
     }
-
     memcpy(addrStr, gpClUdpAddrCache + (sizeof(ClUdpAddrCacheEntryT) * nodeAddress), INET_ADDRSTRLEN);
     clOsalSemUnlock(gClUdpAddrCacheSem);
 
@@ -1452,3 +1482,13 @@ ClRcT xportMasterAddressGet(ClIocLogicalAddressT logicalAddress, ClIocPortT port
   // Retrive from node cache
   return clNodeCacheLeaderGet(pIocNodeAddress);
 }
+
+//struct iovec *dup_iovec(struct iovec *iov, int iovlen) {
+//  struct iovec *newiov;
+//
+//  newiov = (struct iovec *) kmalloc(iovlen * sizeof(struct iovec));
+//  if (!newiov) return NULL;
+//  memcpy(newiov, iov, iovlen * sizeof(struct iovec));
+//
+//  return newiov;
+//}

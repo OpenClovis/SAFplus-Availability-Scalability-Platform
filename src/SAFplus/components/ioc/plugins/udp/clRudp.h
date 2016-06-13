@@ -1,12 +1,11 @@
-#ifndef RUDP_PROTO_H
-#define	RUDP_PROTO_H
+#ifndef CL_R_UDP_H
+#define	CL_R_UDP_H
 
 #include <clCommon.h>
 #include <clLogApi.h>
 
 
 #define RUDP_VERSION	1	/* Protocol version */
-#define RUDP_MAXPKTSIZE 1000	/* Number of data bytes that can sent in a packet, RUDP header not included */
 #define RUDP_MAXRETRANS 5	/* Max. number of retransmissions */
 #define RUDP_TIMEOUT	2000	/* Timeout for the first retransmission in milliseconds */
 #define RUDP_WINDOW	3	/* Max. number of unacknowledged packets that can be sent to the network*/
@@ -31,11 +30,16 @@
 
 #define DROP 0
 
-typedef enum {SYN_SENT = 0, OPENING, OPEN, FIN_SENT} rudp_state_t; /* RUDP States */
+typedef enum
+{
+  SYN_SENT = 0,
+  OPENING, OPEN,
+  FIN_SENT
+} rudp_state_t; /* RUDP States */
 
 typedef enum { false = 0, true } bool_t;
 
-#define RUDP_MAXPKTSIZE 1000    /* Number of data bytes that can sent in a
+#define RUDP_MAXPKTSIZE 64000    /* Number of data bytes that can sent in a
                                  * packet, RUDP header not included */
 
 /*
@@ -55,25 +59,30 @@ typedef void *rudpSocketT;
 
 
 /* RUDP packet header */
-struct rudp_hdr {
+struct rudp_hdr
+{
   ClUint16T version;
   ClUint16T type;
   ClUint32T seqno;
 }__attribute__ ((packed));
 
-struct RudpPacket {
+struct RudpPacket
+{
   struct rudp_hdr header;
   ClInt32T payloadLength;
+  ClInt32T flag;
   char payload[RUDP_MAXPKTSIZE];
 };
 
-struct data {
+struct data
+{
   void *item;
   ClInt32T len;
   struct data *next;
 };
 
-struct SenderSession {
+struct SenderSession
+{
   rudp_state_t status; /* Protocol state */
   ClUint32T seqno;
   struct RudpPacket *slidingWindow[RUDP_WINDOW];
@@ -87,13 +96,15 @@ struct SenderSession {
   ClInt32T finRetransmitAttempts;
 };
 
-struct ReceiverSession {
+struct ReceiverSession
+{
   rudp_state_t status; /* Protocol state */
   ClUint32T expected_seqno;
   bool_t sessionFinished; /* Have we received a FIN from the sender? */
 };
 
-struct session {
+struct session
+{
   struct SenderSession *sender;
   struct ReceiverSession *receiver;
   struct sockaddr_in address;
@@ -103,6 +114,7 @@ struct session {
 /* Keeps state for potentially multiple active sockets */
 struct RudpSocketList {
   rudpSocketT rsock;
+  ClInt32T socketfd;
   bool_t closeRequested;
   ClInt32T (*recvHandler)(rudpSocketT, struct sockaddr_in *, char *, ClInt32T);
   ClInt32T (*handler)(rudpSocketT, rudp_event_t, struct sockaddr_in *);
@@ -111,14 +123,16 @@ struct RudpSocketList {
 };
 
 /* Arguments for timeout callback function */
-struct TimeoutArgs {
+struct TimeoutArgs
+{
   rudpSocketT fd;
   struct RudpPacket *packet;
   struct sockaddr_in *recipient;
 };
 
 
-struct EventData {
+struct EventData
+{
   struct EventData *e_next; /* next in list */
   ClInt32T (*e_fn)(ClInt32T, void*); /* callback function */
   enum {EVENT_FD, EVENT_TIME} e_type; /* type of event */
@@ -139,7 +153,7 @@ ClInt32T rudpClose(rudpSocketT rsocket);
 /*
  * Send a datagram
  */
-ClInt32T rudpSendto(rudpSocketT rsocket, void* data, ClInt32T len,struct sockaddr_in* to);
+ClInt32T rudpSendto(rudpSocketT rsocket, void* data, ClInt32T len,struct sockaddr_in* to,ClInt32T flag);
 /*
  * Register callback function for packet receiption
  * Note: data and len arguments to callback function
@@ -159,11 +173,12 @@ ClInt32T eventFd(ClInt32T fd, ClInt32T (*callback)(ClInt32T, void*), void *callb
 ClInt32T eventLoop();
 void createSenderSession(struct RudpSocketList *socket, ClUint32T seqno, struct sockaddr_in *to, struct data **data_queue);
 void createReceiverSession(struct RudpSocketList *socket, ClUint32T seqno, struct sockaddr_in *addr);
-struct RudpPacket *createRudpPacket(ClUint16T type, ClUint32T seqno, ClInt32T len, char *payload);
 ClInt32T compareSockaddr(struct sockaddr_in *s1, struct sockaddr_in *s2);
 ClInt32T receiveCallback(ClInt32T file, void *arg);
 ClInt32T timeoutCallback(ClInt32T retry_attempts, void *args);
-ClInt32T sendPacket(bool_t is_ack, rudpSocketT rsocket, struct RudpPacket *p, struct sockaddr_in *recipient);
+ClInt32T sendPacketNew(bool_t is_ack, rudpSocketT rsocket, struct RudpPacket *p, struct sockaddr_in *recipient);
+ClInt32T receiveHandlePacketNew(ClInt32T file,ClUint8T *buffer,ClUint32T bufSize,struct sockaddr_in sender);
+void rudpSocketFromUdpSocket(int sockfd);
 
 #endif /* RUDP_PROTO_H */
 

@@ -1104,16 +1104,25 @@ static ClRcT iovecIteratorExit(IOVecIteratorT *iter)
     return CL_OK;
 }
 
+ClRcT clIocSendWithXportRelay(ClIocCommPortHandleT commPortHandle,
+                              ClBufferHandleT message, ClUint8T protoType,
+                              ClIocAddressT *originAddress, ClIocAddressT *destAddress,
+                              ClIocSendOptionT *pSendOption,
+                              ClCharT *xportType, ClBoolT proxy)
+{
+  return clIocSendWithXportReliableRelay(commPortHandle,message,protoType,originAddress,destAddress,pSendOption,xportType,proxy,0);
+}
+
 /*
  * Function : clIocSend Description : This function will take the message and
  * enqueue to IOC queues for transmission. 
  */
 
-ClRcT clIocSendWithXportRelay(ClIocCommPortHandleT commPortHandle,
+ClRcT clIocSendWithXportReliableRelay(ClIocCommPortHandleT commPortHandle,
                               ClBufferHandleT message, ClUint8T protoType,
                               ClIocAddressT *originAddress, ClIocAddressT *destAddress, 
                               ClIocSendOptionT *pSendOption,
-                              ClCharT *xportType, ClBoolT proxy)
+                              ClCharT *xportType, ClBoolT proxy, ClUint32T isReliable)
 {
     ClRcT retCode = CL_OK, rc = CL_OK;
     ClIocCommPortT *pIocCommPort = (ClIocCommPortT *)commPortHandle;
@@ -1348,6 +1357,9 @@ ClRcT clIocSendWithXportRelay(ClIocCommPortHandleT commPortHandle,
             clOsalMutexUnlock(gClIocFragMutex);
 
             userFragHeader.header.version = CL_IOC_HEADER_VERSION;
+            userFragHeader.header.type = 0;
+            userFragHeader.header.seqno = 0;
+            userFragHeader.header.isReliable = isReliable;
             userFragHeader.header.protocolType = protoType;
             userFragHeader.header.priority = priority;
             userFragHeader.header.flag = IOC_MORE_FRAG;
@@ -1498,6 +1510,9 @@ ClRcT clIocSendWithXportRelay(ClIocCommPortHandleT commPortHandle,
             userHeader.version = CL_IOC_HEADER_VERSION;
             userHeader.protocolType = protoType;
             userHeader.priority = priority;
+            userHeader.type = 0;
+            userHeader.seqno = 0;
+            userHeader.isReliable = isReliable;
             userHeader.srcAddress.iocPhyAddress.nodeAddress = htonl(originAddress->iocPhyAddress.nodeAddress);
             userHeader.srcAddress.iocPhyAddress.portId = htonl(originAddress->iocPhyAddress.portId);
             userHeader.dstAddress.iocPhyAddress.nodeAddress = htonl(((ClIocPhysicalAddressT *) destAddress)->nodeAddress);
@@ -1541,6 +1556,9 @@ ClRcT clIocSendWithXportRelay(ClIocCommPortHandleT commPortHandle,
 
             userHeader.version = CL_IOC_HEADER_VERSION;
             userHeader.protocolType = protoType;
+            userHeader.seqno = 0;
+            userHeader.isReliable = 0;
+            userHeader.type = 0;
             userHeader.priority = priority;
             userHeader.srcAddress.iocPhyAddress.nodeAddress = htonl(originAddress->iocPhyAddress.nodeAddress);
             userHeader.srcAddress.iocPhyAddress.portId = htonl(originAddress->iocPhyAddress.portId);
@@ -1802,6 +1820,10 @@ ClRcT clIocSendSlow(ClIocCommPortHandleT commPortHandle,
 
         userFragHeader.header.version = CL_IOC_HEADER_VERSION;
         userFragHeader.header.protocolType = protoType;
+        userFragHeader.header.seqno = 0;
+        userFragHeader.header.type = 0;
+        userFragHeader.header.isReliable = 0;
+
         userFragHeader.header.priority = priority;
         userFragHeader.header.flag = IOC_MORE_FRAG;
         userFragHeader.header.srcAddress.iocPhyAddress.nodeAddress = htonl(gIocLocalBladeAddress);
@@ -1948,10 +1970,12 @@ ClRcT clIocSendSlow(ClIocCommPortHandleT commPortHandle,
     else
     {
         ClIocHeaderT userHeader = { 0 };
-
         userHeader.version = CL_IOC_HEADER_VERSION;
         userHeader.protocolType = protoType;
         userHeader.priority = priority;
+        userHeader.type = 0;
+        userHeader.seqno = 0;
+        userHeader.isReliable = 0;
         userHeader.srcAddress.iocPhyAddress.nodeAddress = htonl(gIocLocalBladeAddress);
         userHeader.srcAddress.iocPhyAddress.portId = htonl(pIocCommPort->portId);
         userHeader.dstAddress.iocPhyAddress.nodeAddress = 
@@ -2417,7 +2441,6 @@ ClRcT clIocDispatch(const ClCharT *xportType, ClIocCommPortHandleT commPort,
         rc = CL_IOC_RC(CL_ERR_TRY_AGAIN);
         goto out;
     }
-
     userHeader.srcAddress.iocPhyAddress.nodeAddress = ntohl(userHeader.srcAddress.iocPhyAddress.nodeAddress);
     userHeader.srcAddress.iocPhyAddress.portId = ntohl(userHeader.srcAddress.iocPhyAddress.portId);
 
@@ -4288,7 +4311,9 @@ static void _iocSendFragmentCompatibleMode(ClIocCommPortT *pIocCommPort, ClBuffe
     userFragHeader.header.protocolType = protoType;
     userFragHeader.header.priority = priority;
     userFragHeader.header.flag = IOC_MORE_FRAG;
-
+    userFragHeader.header.type = 0;
+    userFragHeader.header.seqno = 0;
+    userFragHeader.header.isReliable = 0;
     userFragHeader.header.srcAddress.iocPhyAddress.nodeAddress = htonl(gIocLocalBladeAddress);
     userFragHeader.header.srcAddress.iocPhyAddress.portId = htonl(pIocCommPort->portId);
 

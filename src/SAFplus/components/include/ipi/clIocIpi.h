@@ -754,9 +754,17 @@ ClRcT clIocCompStatusEnable(ClIocPhysicalAddressT compAddr);
                              CL_IN ClBoolT proxy
     );
 
+
+
+    ClRcT clIocSendWithXportReliableRelay(ClIocCommPortHandleT commPortHandle,
+                                  ClBufferHandleT message, ClUint8T protoType,
+                                  ClIocAddressT *originAddress, ClIocAddressT *destAddress,
+                                  ClIocSendOptionT *pSendOption,
+                                  ClCharT *xportType, ClBoolT proxy,ClUint32T isReliable);
+
     ClRcT clIocSendWithXportRelay(ClIocCommPortHandleT commPortHandle,
                                   ClBufferHandleT message, ClUint8T protoType,
-                                  ClIocAddressT *originAddress, ClIocAddressT *destAddress, 
+                                  ClIocAddressT *originAddress, ClIocAddressT *destAddress,
                                   ClIocSendOptionT *pSendOption,
                                   ClCharT *xportType, ClBoolT proxy);
 

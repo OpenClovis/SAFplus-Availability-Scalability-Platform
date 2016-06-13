@@ -31,6 +31,8 @@ extern "C" {
 #endif
 
 #define BCAST_SOCKET_NEEDED
+#define CL_SOCKET_RELIABLE 1
+#define CL_SOCKET_NORMAL 0
 
 
 typedef struct
@@ -38,10 +40,13 @@ typedef struct
     ClUint8T version;
     ClUint8T protocolType;
     ClUint8T priority;
+    ClUint8T isReliable;
     ClUint8T flag;
     ClUint32T reserved;
     ClIocAddressT srcAddress;
     ClIocAddressT dstAddress;
+    ClUint16T type;
+    ClUint32T seqno;
 #ifdef CL_IOC_COMPRESSION
     ClTimeT       pktTime;
 #endif
