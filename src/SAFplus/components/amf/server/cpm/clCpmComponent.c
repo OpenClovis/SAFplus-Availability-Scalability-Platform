@@ -189,6 +189,35 @@ int execCommand(const char *command, ClCharT *const argv[], ClCharT *const env[]
 }
 #endif
 
+ClRcT compCleanupTimeoutGet(ClCpmComponentT* cpmComp, ClUint32T* cleanupTimeout)
+{
+    ClRcT rc = CL_OK;
+    ClAmsEntityT comp = {0};    
+    ClAmsCompT  *pcomp = NULL;
+
+    if(!cpmComp) return CL_CPM_RC(CL_ERR_INVALID_PARAMETER); 
+
+    comp.type = CL_AMS_ENTITY_TYPE_COMP;
+    clNameSet(&comp.name, cpmComp->compConfig->compName);
+    ++comp.name.length;
+
+    ClAmsEntityRefT entityRef = {{0}};
+    memcpy(&entityRef.entity, &comp, sizeof(entityRef.entity));
+    rc = clAmsEntityDbFindEntity(&gAms.db.entityDb[CL_AMS_ENTITY_TYPE_COMP],
+                                     &entityRef);
+    if(rc != CL_OK)
+    {
+       clLogWarning("COMP", "GET", "Component [%s] not found in AMS db",cpmComp->compConfig->compName);
+       *cleanupTimeout = cpmComp->compConfig->compCleanupTimeout/1000;
+    }
+    else
+    {       
+       pcomp = ( ClAmsCompT *) entityRef.ptr;
+       *cleanupTimeout = pcomp->config.timeouts.cleanup/1000;
+    }
+    return rc;
+}
+
 /*
  * Forward Declaratiion 
  */
@@ -2973,8 +3002,9 @@ ClRcT clCpmCompPreCleanupInvoke(ClCpmComponentT *comp)
  
     snprintf(envBuf, sizeof(envBuf), "ASP_COMPNAME=%s", comp->compConfig->compName);
     clLogNotice(CPM_LOG_AREA_CPM, CPM_LOG_CTX_CPM_LCM, "Invoking precleanup command [%s %s] for Component [%s]", envBuf, script, comp->compConfig->compName);
-
-    status = execCommand(script, args, envs, comp->compConfig->compCleanupTimeout / 1000);
+    ClUint32T cleanupTimeout;
+    compCleanupTimeoutGet(comp, &cleanupTimeout);    
+    status = execCommand(script, args, envs, cleanupTimeout);
     (void)status; /*unused*/
 
     out:
@@ -2999,8 +3029,9 @@ static ClRcT compCleanupInvoke(ClCpmComponentT *comp)
 
       clLogNotice(CPM_LOG_AREA_CPM, CPM_LOG_CTX_CPM_LCM, "Invoking cleanup command [%s %s %s] for Component [%s]", envBufComp, envBufFlag,
               comp->compConfig->cleanupCMD, comp->compConfig->compName);
-
-      if (execCommand(comp->compConfig->cleanupCMD, args, envs, comp->compConfig->compCleanupTimeout / 1000))
+      ClUint32T cleanupTimeout;
+      compCleanupTimeoutGet(comp, &cleanupTimeout);      
+      if (execCommand(comp->compConfig->cleanupCMD, args, envs, cleanupTimeout))
       {
         clLogError(CPM_LOG_AREA_CPM, CPM_LOG_CTX_CPM_LCM, "Cleanup command [%s %s %s] returned error [%s] for Component [%s]", envBufComp, envBufFlag,
                 comp->compConfig->cleanupCMD, strerror(errno), comp->compConfig->compName);
