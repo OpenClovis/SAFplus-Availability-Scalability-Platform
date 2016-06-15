@@ -1530,6 +1530,7 @@ SaAisErrorT saMsgMessageSendReceive(
          goto error_out_2; 
      }
     
+#if 0
     rc = clMsgQueueDestAddrGet(&tempDest, &queueAddr, &queueServerAddr);
     if (rc != CL_OK)
     {
@@ -1537,6 +1538,7 @@ SaAisErrorT saMsgMessageSendReceive(
                pDestAddress->length, pDestAddress->value, rc);
         goto error_out_2;
     }
+#endif
 
     rc = clMsgClientMessageSendReceive(&queueAddr, &queueServerAddr, (ClNameT*)&tempDest,
             &tempSendMsg, sendTime, pTempMessage, &replySentTime, timeout);
