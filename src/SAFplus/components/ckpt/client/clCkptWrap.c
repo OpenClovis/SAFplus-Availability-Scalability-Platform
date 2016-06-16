@@ -1927,6 +1927,7 @@ ClRcT clCkptSectionDelete(ClCkptHdlT               ckptHdl,
      * Send the call to the checkpoint active server.
      * Retry if the server is not not reachable.
      */
+    ClTimerTimeOutT delay = {.tsSec = 0, .tsMilliSec = 200};    
     do
     {
         tryAgain   = CL_FALSE;
@@ -1949,7 +1950,9 @@ ClRcT clCkptSectionDelete(ClCkptHdlT               ckptHdl,
             }
         }while(CL_GET_ERROR_CODE(rc) == CL_ERR_TIMEOUT && (numRetries++ < 2));                         
 
-        if(CL_GET_ERROR_CODE(rc) == CL_IOC_ERR_COMP_UNREACHABLE || CL_IOC_ERR_HOST_UNREACHABLE == CL_GET_ERROR_CODE(rc))
+        if(CL_GET_ERROR_CODE(rc) == CL_IOC_ERR_COMP_UNREACHABLE ||
+                                    CL_IOC_ERR_HOST_UNREACHABLE == CL_GET_ERROR_CODE(rc) ||
+                                    ((CL_GET_ERROR_CODE(rc) == CL_ERR_NOT_EXIST) && (CL_GET_CID(rc) == CL_CID_IOC)))
         {
             /* 
              * May be the active address has changed and this client 
@@ -1963,7 +1966,12 @@ ClRcT clCkptSectionDelete(ClCkptHdlT               ckptHdl,
             else
               hostResolutionRetries = 1000;  /* Don't retry */
         }
-    } while((CL_TRUE == tryAgain) && (hostResolutionRetries < 2));
+    } while((CL_TRUE == tryAgain) && (hostResolutionRetries < 6) && clOsalTaskDelay(delay) == CL_OK);
+    
+    if (rc != CL_OK)
+    {
+       clLogWarning("SEC", "DEL", "Delete ckpt section [%s] failed with rc [0x%x] after [%d] tries", (char*)pSectionId->id, rc, hostResolutionRetries);
+    }    
 
     /* 
      * Check for the version mismatch. 
