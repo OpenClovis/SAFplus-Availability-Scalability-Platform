@@ -1411,7 +1411,7 @@ class ASPInstaller:
                  syscall ("%s/src/SAFplus/configure --with-asp-build --with-cross-build=%s %s > build.log" % (self.PACKAGE_ROOT, b,no_tipc_build) )
              cmd = 'asp/build/%s' % b
              os.chdir (cmd)
-             os.system ('make asp-libs')
+             os.system ('make')
              os.system ('make asp-install')
 
 
