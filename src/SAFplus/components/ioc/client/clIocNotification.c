@@ -682,7 +682,10 @@ ClRcT clIocNotificationPacketRecv(ClIocCommPortHandleT commPort, ClUint8T *recvB
                                         userHeader.version, CL_IOC_HEADER_VERSION));
         return CL_IOC_RC(CL_ERR_VERSION_MISMATCH);
     }
-
+    if(userHeader.protocolType == CL_IOC_CONFIG_CHANGE_PROTO)
+    {
+       return CL_OK;
+    }
     srcAddr.nodeAddress = ntohl(userHeader.srcAddress.iocPhyAddress.nodeAddress);
     srcAddr.portId = ntohl(userHeader.srcAddress.iocPhyAddress.portId);
 
