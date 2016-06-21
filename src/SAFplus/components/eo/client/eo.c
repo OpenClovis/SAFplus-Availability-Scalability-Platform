@@ -3652,6 +3652,13 @@ static ClRcT clEoPriorityQueuesInitialize(void)
     ClInt32T index = 0 ;
     ClRcT rc = CL_OK;
     ClTimerTimeOutT monitorThreshold = { .tsSec = CL_TASKPOOL_MONITOR_INTERVAL, .tsMilliSec = 0 };
+    ClCharT *envAppShutdownTimeout = NULL;
+
+    if ((envAppShutdownTimeout = getenv("APP_SHUTDOWN_TIMEOUT")))
+    {
+      monitorThreshold.tsSec = CL_MAX(CL_TASKPOOL_MONITOR_INTERVAL, atoi(envAppShutdownTimeout));
+    }
+
     typedef struct ClEoPriorityQueueConfig
     {
         ClIocPriorityT priority;
