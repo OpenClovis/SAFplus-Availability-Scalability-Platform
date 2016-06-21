@@ -2980,8 +2980,6 @@ ClRcT clCpmCompPreCleanupInvoke(ClCpmComponentT *comp)
     ClInt32T status;
     ClCharT *const args[] = {NULL};
     ClCharT *const envs[] = {envBuf, NULL};
-    ClUint32T cleanupTimeout;
-    ClBoolT monitorDisabled = CL_FALSE;
 
     if(!comp || !comp->processId) return CL_OK;
 
@@ -3004,23 +3002,10 @@ ClRcT clCpmCompPreCleanupInvoke(ClCpmComponentT *comp)
  
     snprintf(envBuf, sizeof(envBuf), "ASP_COMPNAME=%s", comp->compConfig->compName);
     clLogNotice(CPM_LOG_AREA_CPM, CPM_LOG_CTX_CPM_LCM, "Invoking precleanup command [%s %s] for Component [%s]", envBuf, script, comp->compConfig->compName);
-
-    compCleanupTimeoutGet(comp, &cleanupTimeout);
-
-    /* temporarily disable the monitor task's threshold */
-    if (cleanupTimeout * 2 >= CL_TASKPOOL_MONITOR_INTERVAL)
-    {
-      monitorDisabled = CL_TRUE;
-      clTaskPoolMonitorDisable();
-    }
-
+    ClUint32T cleanupTimeout;
+    compCleanupTimeoutGet(comp, &cleanupTimeout);    
     status = execCommand(script, args, envs, cleanupTimeout);
     (void)status; /*unused*/
-
-    if (monitorDisabled)
-    {
-      clTaskPoolMonitorEnable();
-    }
 
     out:
     return rc;
@@ -3029,8 +3014,6 @@ ClRcT clCpmCompPreCleanupInvoke(ClCpmComponentT *comp)
 static ClRcT compCleanupInvoke(ClCpmComponentT *comp)
 {
     ClRcT rc = CL_OK;
-    ClUint32T cleanupTimeout;
-    ClBoolT monitorDisabled = CL_FALSE;
 
     if(!comp->processId) return CL_OK;
 
@@ -3046,28 +3029,14 @@ static ClRcT compCleanupInvoke(ClCpmComponentT *comp)
 
       clLogNotice(CPM_LOG_AREA_CPM, CPM_LOG_CTX_CPM_LCM, "Invoking cleanup command [%s %s %s] for Component [%s]", envBufComp, envBufFlag,
               comp->compConfig->cleanupCMD, comp->compConfig->compName);
-
-      compCleanupTimeoutGet(comp, &cleanupTimeout);
-
-      /* temporarily disable the monitor task's threshold */
-      if (cleanupTimeout * 2 >= CL_TASKPOOL_MONITOR_INTERVAL)
-      {
-        monitorDisabled = CL_TRUE;
-        clTaskPoolMonitorDisable();
-      }
-
+      ClUint32T cleanupTimeout;
+      compCleanupTimeoutGet(comp, &cleanupTimeout);      
       if (execCommand(comp->compConfig->cleanupCMD, args, envs, cleanupTimeout))
       {
         clLogError(CPM_LOG_AREA_CPM, CPM_LOG_CTX_CPM_LCM, "Cleanup command [%s %s %s] returned error [%s] for Component [%s]", envBufComp, envBufFlag,
                 comp->compConfig->cleanupCMD, strerror(errno), comp->compConfig->compName);
         rc = CL_CPM_RC(CL_ERR_LIBRARY);
       }
-
-      if (monitorDisabled)
-      {
-        clTaskPoolMonitorEnable();
-      }
-
     }
     /*
      * Issue an unconditional sigkill incase cleanup didn't terminate 
