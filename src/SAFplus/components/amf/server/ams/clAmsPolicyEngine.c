@@ -2738,6 +2738,44 @@ clAmsPeNodeHasLeftClusterCallback_Step2(
     return CL_OK;
 }
 
+/* 
+ * Is SU having a terminate timer running
+ */
+static ClBoolT clAmsSuTimerTerminateCount(CL_IN       ClAmsSUT        *su)
+{
+    ClAmsEntityRefT *entityRef;
+    for ( entityRef = clAmsEntityListGetLast(&su->config.compList);
+          entityRef != (ClAmsEntityRefT *) NULL;
+          entityRef = clAmsEntityListGetPrevious(&su->config.compList, entityRef) )
+    {
+        ClAmsCompT *sucomp = (ClAmsCompT *) entityRef->ptr;
+        if (sucomp && clAmsEntityTimerIsRunning((ClAmsEntityT *) sucomp, CL_AMS_COMP_TIMER_TERMINATE))
+        {
+            return CL_TRUE;
+        }
+    }
+    return CL_FALSE;
+}
+
+/* 
+ * Is Node having a terminate timer running
+ */
+static ClBoolT clAmsNodeTimerTerminateCount(CL_IN   ClAmsNodeT *node)
+{
+  ClAmsEntityRefT *entityRef;
+  for ( entityRef = clAmsEntityListGetFirst(&node->config.suList);
+        entityRef != (ClAmsEntityRefT *) NULL;
+        entityRef = clAmsEntityListGetNext(&node->config.suList,entityRef) )
+  {
+      ClAmsSUT *su = (ClAmsSUT *) entityRef->ptr;
+      if (su && clAmsSuTimerTerminateCount(su))
+      {
+          return CL_TRUE;
+      }
+  }
+  return CL_FALSE;
+}
+
 /*
  * clAmsPeNodeIsLeavingCluster
  * ---------------------------
@@ -2769,6 +2807,14 @@ clAmsPeNodeIsLeavingCluster(
     {
         AMS_ENTITY_LOG (node, CL_AMS_MGMT_SUB_AREA_MSG, CL_DEBUG_TRACE,
             ("Node [%s] is not a cluster member. Ignoring 'node is leaving' request..\n",
+            node->config.entity.name.value));
+        return CL_AMS_RC(CL_ERR_NOT_EXIST);
+    }
+
+    if ((node->status.isClusterMember == CL_AMS_NODE_IS_LEAVING_CLUSTER) && clAmsNodeTimerTerminateCount(node))
+    {
+        AMS_ENTITY_LOG (node, CL_AMS_MGMT_SUB_AREA_MSG, CL_DEBUG_TRACE,
+            ("Node [%s] is terminating. Ignoring 'node is leaving' request..\n",
             node->config.entity.name.value));
         return CL_AMS_RC(CL_ERR_NOT_EXIST);
     }
