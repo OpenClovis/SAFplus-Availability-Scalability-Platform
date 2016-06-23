@@ -30,7 +30,7 @@ static ClBoolT udpPriorityChangePossible = CL_TRUE;  /* Don't attempt to change 
 static struct hashStruct *gIocUdpMap[IOC_UDP_MAP_SIZE];
 static CL_LIST_HEAD_DECLARE(gIocUdpMapList);
 extern ClIocNodeAddressT gIocLocalBladeAddress;
-static ClPluginHelperVirtualIpAddressT gVirtualIp;
+ClPluginHelperVirtualIpAddressT gVirtualIp;
 ClBoolT gClUdpUseExistingIp = CL_FALSE;
 static ClBoolT gUdpInit = CL_FALSE;
 ClBoolT gClSimulationMode = CL_FALSE;
@@ -40,6 +40,9 @@ ClInt32T gClSockType = SOCK_DGRAM;
 ClInt32T gClCmsgHdrLen;
 struct cmsghdr *gClCmsgHdr;
 static ClUint32T gClBindOffset;
+
+extern ClIocAddrMapT *gClMcastPeers;
+extern ClUint32T gClNumMcastPeers;
 
 typedef struct ClUdpAddrCacheEntry
 {
@@ -503,12 +506,41 @@ static ClRcT _clUdpMapUpdateNotification(ClIocNotificationT *notification, ClPtr
             {
                 clUdpAddrGet(nodeAddress, addStr);
                 iocUdpMapAdd(addStr, nodeAddress);
+
+                ClUint32T i = 0;
+                /* If specific peer address, mark it as up */
+                for (i = 0; i < gClNumMcastPeers; ++i)
+                {
+                    if (!strcmp(addStr, gClMcastPeers[i].addrstr))
+                    {
+                      /* This is static peer IP address */
+                      gClMcastPeers[i].status = CL_IOC_NODE_UP;
+                      break;
+                    }
+                }
             }
             break;
         case CL_IOC_NODE_LEAVE_NOTIFICATION:
         case CL_IOC_NODE_LINK_DOWN_NOTIFICATION:
             if (nodeAddress != gIocLocalBladeAddress)
             {
+              ClUint32T i = 0;
+              ClBoolT isPeerAddr = CL_FALSE;
+              clUdpAddrGet(nodeAddress, addStr);
+
+              /* If specific peer address, mark it as down */
+              for (i = 0; i < gClNumMcastPeers; ++i)
+              {
+                  if (!strcmp(addStr, gClMcastPeers[i].addrstr))
+                  {
+                    /* This is static peer IP address */
+                    gClMcastPeers[i].status = CL_IOC_NODE_DOWN;
+                    isPeerAddr = CL_TRUE;
+                    break;
+                  }
+              }
+
+              if (!isPeerAddr)
                 clIocUdpMapDel(nodeAddress);
             }
             break;
