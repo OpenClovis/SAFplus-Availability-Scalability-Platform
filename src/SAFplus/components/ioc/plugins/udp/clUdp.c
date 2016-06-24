@@ -296,6 +296,7 @@ ClRcT clUdpMapWalk(ClRcT (*callback)(ClIocUdpMapT *map, void *cookie), void *coo
     ClUint32T numEntries = 0, i;
     static ClUint32T growMask = 7;
 
+    clOsalMutexLock(&gXportCtrl.mutex);
     /*
      * Accumulate the map first and then send all lockless. This would be faster
      * then playing lock/unlock futex wait/wakeup games.
@@ -1286,6 +1287,7 @@ ClRcT xportSend(ClIocPortT port, ClUint32T priority, ClIocAddressT *address,
     case CL_IOC_BROADCAST_ADDRESS_TYPE:
     bcast_send:
         sendArgs.port = address->iocPhyAddress.portId;
+        clOsalMutexUnlock(&gXportCtrl.mutex);
         rc = clUdpMapWalk(iocUdpSend, &sendArgs, 0);
         goto out;
         /*
