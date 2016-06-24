@@ -45,8 +45,6 @@
 #include <clCpmApi.h>
 #include <clAmfPluginApi.h>
 #include <clNodeCache.h>
-#include <clPluginHelper.h>
-#include <clTimerApi.h>
 
 #define CL_UDP_HANDLER_MAX_SOCKETS            2
 #define UDP_CLUSTER_SYNC_WAIT_TIME 2 /* in seconds*/
@@ -76,15 +74,10 @@ static ClCharT eventHandlerInited = 0;
 static struct cmsghdr *gClMcastCmsgHdr;
 static ClInt32T gClMcastCmsgHdrLen;
 static ClInt32T gClMcastPort, gClMcastNotifPort;
+static ClIocAddrMapT *gClMcastPeers;
+static ClUint32T gClNumMcastPeers;
 static ClBoolT gClMcastSupport;
 static int gFd = -1;
-
-ClIocAddrMapT *gClMcastPeers;
-ClUint32T gClNumMcastPeers;
-static ClTimerHandleT gUdpDiscoveryTimer = CL_HANDLE_INVALID_VALUE;
-
-/* UDP local address */
-extern ClPluginHelperVirtualIpAddressT gVirtualIp;
 
 static ClRcT udpEventSubscribe(ClBoolT pollThread);
 
@@ -104,18 +97,6 @@ static void udpSyncCallback(ClIocPhysicalAddressT *srcAddr, ClPtrT arg)
         clIocCompStatusSet(*srcAddr, CL_IOC_NODE_UP);
         clIocUdpMapAdd((struct sockaddr*)arg, srcAddr->nodeAddress, addStr);
         clUdpAddrSet(srcAddr->nodeAddress, addStr);
-
-        ClUint32T i = 0;
-        /* If specific peer address, mark it as up */
-        for (i = 0; i < gClNumMcastPeers; ++i)
-        {
-            if (!strcmp(addStr, gClMcastPeers[i].addrstr))
-            {
-              /* This is static peer IP address */
-              gClMcastPeers[i].status = CL_IOC_NODE_UP;
-              break;
-            }
-        }
     }
 }
 
@@ -173,26 +154,7 @@ ClRcT clUdpNodeNotification(ClIocNodeAddressT node, ClIocNotificationIdT event)
         }
         else
         {
-            ClUint32T i = 0;
-            ClCharT addStr[INET_ADDRSTRLEN] = {0};
-            ClBoolT isPeerAddr = CL_FALSE;
-
-            clUdpAddrGet(node, addStr);
-
-            /* If specific peer address, mark it as down */
-            for (i = 0; i < gClNumMcastPeers; ++i)
-            {
-                if (!strcmp(addStr, gClMcastPeers[i].addrstr))
-                {
-                  /* This is static peer IP address */
-                  gClMcastPeers[i].status = CL_IOC_NODE_DOWN;
-                  isPeerAddr = CL_TRUE;
-                  break;
-                }
-            }
-
-            if (!isPeerAddr)
-              clIocUdpMapDel(node); /*remove entry from the map*/
+            clIocUdpMapDel(node); /*remove entry from the map*/
         }
     }
 
@@ -278,12 +240,10 @@ ClRcT clUdpNotifyPeer(ClIocUdpMapT *map, void *args)
             clLogError("UDP", "PEER", "sendmsg failed with error [%s] for destination [%s]", strerror(errno), map->addrstr);
             rc = CL_ERR_NO_RESOURCE;
         }
-#if 0 //for debugging
         else
         {
-            clLogTrace("UDP", "PEER", "Notification [%d] sent to node [%s], port [%d]", htonl(pNotification->id), map->addrstr, mcastNotifPort);
+            clLogDebug("UDP", "PEER", "Notification [%d] sent to node [%s], port [%d]", htonl(pNotification->id), map->addrstr, mcastNotifPort);
         }
-#endif
     }
     return rc;
 }
@@ -304,7 +264,7 @@ ClRcT clIocPeerList(ClIocUdpMapT *map, void *args)
     /* Filter out multicast address and specific peer address */
     for (i = 0; i < gClNumMcastPeers; ++i)
     {
-        if (!strcmp(map->addrstr, gClMcastPeers[i].addrstr) && gClMcastPeers[i].status)
+        if (!strcmp(map->addrstr, gClMcastPeers[i].addrstr))
         {
             found = CL_TRUE;
             break;
@@ -914,12 +874,10 @@ ClRcT clUdpNotify(ClIocNodeAddressT nodeAddress, ClUint32T portId, ClIocNotifica
             rc = CL_ERR_NO_RESOURCE;
             goto out;
         }
-#if 0 //for debugging
         else
         {
-            clLogTrace("UDP", "NOTIF", "Notification [%d] sent to node [%s], port [%d]", notifyId, gClMcastPeers[i].addrstr, mcastNotifPort);
+            clLogDebug("UDP", "NOTIF", "Notification [%d] sent to node [%s], port [%d]", notifyId, gClMcastPeers[i].addrstr, mcastNotifPort);
         }
-#endif
     }
 
     /* Sending to socket 0 for handling */
@@ -929,32 +887,6 @@ ClRcT clUdpNotify(ClIocNodeAddressT nodeAddress, ClUint32T portId, ClIocNotifica
     return rc;
 }
 
-/* Sending discovery packets every 2 seconds */
-static ClRcT clUdpDiscoverPeers(void)
-{
-  ClUint32T i = 0;
-  ClBoolT clusterSync;
-
-  clusterSync = CL_TRUE;
-
-    /* If specific peer address, mark it as down */
-    for (i = 0; i < gClNumMcastPeers; ++i)
-    {
-        if (strcmp(gClMcastPeers[i].addrstr, gVirtualIp.ip) && !gClMcastPeers[i].status)
-        {
-          clusterSync = CL_FALSE;
-          break;
-        }
-    }
-
-    if (!clusterSync)
-    {
-      clUdpNotify(gIocLocalBladeAddress, CL_IOC_XPORT_PORT, CL_IOC_NODE_DISCOVER_NOTIFICATION);
-      clUdpNotify(gIocLocalBladeAddress, CL_IOC_XPORT_PORT, CL_IOC_NODE_ARRIVAL_NOTIFICATION);
-    }
-
-  return CL_OK;
-}
 
 static ClRcT udpDiscoverPeers(void)
 {
@@ -979,7 +911,6 @@ static ClRcT udpDiscoverPeers(void)
 ClRcT clUdpEventHandlerInitialize(void)
 {
     ClRcT rc;
-    ClTimerTimeOutT timeOut = { .tsSec = UDP_CLUSTER_SYNC_WAIT_TIME, .tsMilliSec = 0 };
 
     allLocalComps = CL_IOC_ADDRESS_FORM(CL_IOC_INTRANODE_ADDRESS_TYPE, gIocLocalBladeAddress, CL_IOC_BROADCAST_ADDRESS);
 
@@ -1023,10 +954,6 @@ ClRcT clUdpEventHandlerInitialize(void)
 
     udpDiscoverPeers(); /* shouldn't return till cluster sync interval */
 
-    /* Multiple send discovery packets */
-    rc = clTimerCreateAndStart(timeOut, CL_TIMER_REPETITIVE, CL_TIMER_SEPARATE_CONTEXT, (ClTimerCallBackT)clUdpDiscoverPeers, (void *) NULL,
-        &gUdpDiscoveryTimer);
-
     /* I need to tell everyone that I went down in case the keep-alive hasn't kicked in yet */
     if (gClNodeRepresentative)
     {
@@ -1051,12 +978,6 @@ ClRcT clUdpEventHandlerFinalize(void) {
 
     eventHandlerInited = 0;
     clIocNotificationFinalize();
-
-    /* Close discovery task */
-    if(gUdpDiscoveryTimer != CL_HANDLE_INVALID_VALUE)
-    {
-        clTimerDelete(&gUdpDiscoveryTimer);
-    }
 
     /* Closing only the data socket so the the event socket can get the event of this and it will comeout of the recview thread */
 

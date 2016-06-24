@@ -35,9 +35,6 @@ typedef struct ClIocAddrMap
         struct sockaddr_in sin_addr;
         struct sockaddr_in6 sin6_addr;
     } _addr;
-
-    /* status of peer address: up/down */
-    ClUint8T status;
 }ClIocAddrMapT;
 
 /*
