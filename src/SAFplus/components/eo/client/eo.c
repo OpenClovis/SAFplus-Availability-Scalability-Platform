@@ -3106,8 +3106,9 @@ static ClRcT clConfigChangeRequest(ClEoExecutionObjT *pThis,
                                ClUint32T length, ClIocPhysicalAddressT srcAddr)
 {
     ClRcT rc;
-    ClUint32T  configChangeType;
-    rc = clBufferNBytesRead(rmdRecvMsg, (ClUint8T *)&configChangeType, &length);
+    ClConfigChange configChangeType;
+    ClUint32T msgLength = sizeof(configChangeType);
+    rc = clBufferNBytesRead(rmdRecvMsg, (ClUint8T *)&configChangeType, &msgLength);
     if (rc != CL_OK)
     {
         clLogError(CL_LOG_EO_AREA, CL_LOG_EO_CONTEXT_CREATE, "Failed to reads bytes from the buffer. rc [0x%x]", rc);
