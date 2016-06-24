@@ -668,7 +668,13 @@ static ClRcT clUdpGetNodeIpAddress(const ClCharT *xportType, const ClCharT *devI
         {
             rc = clPluginHelperDevToIpAddress(devIf, hostAddress);
             if (rc == CL_OK) clLogInfo("UDP","INI","Use existing IP address [%s] as this nodes transport address.", hostAddress);
-            else clLogError("UDP","INI","Configured to use an existing IP address for message transport.  But address lookup failed on device [%s] error [0x%x]", devIf, rc);
+            else
+            {
+                clLogCritical("UDP","INI","Configured to use an existing IP address for message transport.  But address lookup failed on device [%s] error [0x%x]", devIf, rc);
+                // Not a good idea to continue with the wrong address.  Exit here.
+                printf("IP address lookup failed on configured ethernet device [%s]. Exiting\n", devIf);                
+                exit(1);
+            }            
         }
         
         if (rc != CL_OK)
