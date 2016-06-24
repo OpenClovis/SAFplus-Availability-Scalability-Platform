@@ -184,8 +184,13 @@ ClRcT clNodeBackwardCacheInitialize(ClBoolT createFlag)
         clLogError("IOC", "CACHE", "Segment initialize error. Rc = [%#x]", rc);
     }
 
-    CL_ASSERT(gpClNodeBackwardCache != NULL);
-
+    if (gpClNodeBackwardCache == NULL)
+    {
+        printf("Cluster is not available.\n");
+        exit(1);
+    }
+    
+    
     clIocSetNodeCompat(gIocLocalBladeAddress, 0x0);
 
     if (createFlag == CL_TRUE)
