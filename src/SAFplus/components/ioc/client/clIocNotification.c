@@ -62,9 +62,9 @@ ClRcT clIocNotificationDeregister(ClIocNotificationRegisterCallbackT callback)
     if(entry)
     {
         clListDel(&entry->list);
+        clHeapFree(entry);
     }
     clOsalMutexUnlock(&gIocNotificationRegisterLock);
-    if(entry) clHeapFree(entry);
     return CL_OK;
 }
 

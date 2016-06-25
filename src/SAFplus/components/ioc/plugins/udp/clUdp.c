@@ -41,8 +41,7 @@ ClInt32T gClCmsgHdrLen;
 struct cmsghdr *gClCmsgHdr;
 static ClUint32T gClBindOffset;
 
-extern ClIocAddrMapT *gClMcastPeers;
-extern ClUint32T gClNumMcastPeers;
+extern ClBoolT mcastPeerAddr(ClCharT *addStr, ClUint8T status);
 
 typedef struct ClUdpAddrCacheEntry
 {
@@ -507,40 +506,27 @@ static ClRcT _clUdpMapUpdateNotification(ClIocNotificationT *notification, ClPtr
             {
                 clUdpAddrGet(nodeAddress, addStr);
                 iocUdpMapAdd(addStr, nodeAddress);
-
-                ClUint32T i = 0;
-                /* If specific peer address, mark it as up */
-                for (i = 0; i < gClNumMcastPeers; ++i)
-                {
-                    if (!strcmp(addStr, gClMcastPeers[i].addrstr))
-                    {
-                      /* This is static peer IP address */
-                      gClMcastPeers[i].status = CL_IOC_NODE_UP;
-                      break;
-                    }
-                }
             }
+
+            clOsalMutexUnlock(&gXportCtrl.mutex);
+            /* If specific peer address, mark it as up */
+            mcastPeerAddr(addStr, CL_IOC_NODE_UP);
+            clOsalMutexLock(&gXportCtrl.mutex);
+
             break;
         case CL_IOC_NODE_LEAVE_NOTIFICATION:
         case CL_IOC_NODE_LINK_DOWN_NOTIFICATION:
             if (nodeAddress != gIocLocalBladeAddress)
             {
-              ClUint32T i = 0;
               ClBoolT isPeerAddr = CL_FALSE;
               clUdpAddrGet(nodeAddress, addStr);
 
+              clOsalMutexUnlock(&gXportCtrl.mutex);
               /* If specific peer address, mark it as down */
-              for (i = 0; i < gClNumMcastPeers; ++i)
-              {
-                  if (!strcmp(addStr, gClMcastPeers[i].addrstr))
-                  {
-                    /* This is static peer IP address */
-                    gClMcastPeers[i].status = CL_IOC_NODE_DOWN;
-                    isPeerAddr = CL_TRUE;
-                    break;
-                  }
-              }
+              isPeerAddr = mcastPeerAddr(addStr, CL_IOC_NODE_DOWN);
+              clOsalMutexLock(&gXportCtrl.mutex);
 
+              /* If non-specific peer address, remove it */
               if (!isPeerAddr)
                 clIocUdpMapDel(nodeAddress);
             }
