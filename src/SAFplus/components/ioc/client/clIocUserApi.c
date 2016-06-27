@@ -4430,11 +4430,18 @@ ClRcT clConfigChange(ClConfigChange requestType)
 {
     ClRcT rc = CL_OK;
     ClBufferHandleT message = 0;
-    clBufferCreate(&message);
     ClEoExecutionObjT *eoObj = NULL;
-    clEoMyEoObjectGet(&eoObj);
     ClConfigChange configChangeType = requestType;
     ClUint64T allComps = CL_IOC_ADDRESS_FORM(CL_IOC_INTRANODE_ADDRESS_TYPE, gIocLocalBladeAddress, CL_IOC_BROADCAST_ADDRESS);
+
+    rc = clEoMyEoObjectGet(&eoObj);
+    if (!eoObj)
+      return rc;
+
+    rc = clBufferCreate(&message);
+    if (rc != CL_OK)
+      return rc;
+
     rc = clBufferNBytesWrite(message, (ClUint8T *) &configChangeType, sizeof(ClConfigChange));
     if (rc != CL_OK)
     {

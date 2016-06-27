@@ -438,6 +438,7 @@ ClRcT clRmdObjInit(ClRmdObjHandleT *p)
 }
 ClRcT clRmdObjClose(ClRmdObjHandleT p)
 {
+#if 0 // Don't know why safplus_amf process hang at clOsalMutexLock(pRmdObject->semaForRecvHashTable)
     ClRcT retCode = CL_OK;
     ClRmdObjT *pRmdObject = NULL;
 
@@ -456,7 +457,7 @@ ClRcT clRmdObjClose(ClRmdObjHandleT p)
      * Avoid deleting the mutexes so its still valid in case any context is abusing the terminate
      * and initiating or not quitting the rmd sends.
      */
-#if 0
+
     retCode = clOsalMutexDelete(pRmdObject->semaForRecvHashTable);
 
     if (CL_OK != retCode)
@@ -470,7 +471,6 @@ ClRcT clRmdObjClose(ClRmdObjHandleT p)
     {
         RMD_DBG1((" RMD Send mutex delete failed\n"));
     }
-#endif
 
     clOsalMutexLock(pRmdObject->semaForRecvHashTable);
     retCode = clCntDelete(pRmdObject->rcvRecContainerHandle);
@@ -499,7 +499,6 @@ ClRcT clRmdObjClose(ClRmdObjHandleT p)
     }
     pRmdObject->responseCntxtDbHdl = 0;
 
-#if 0
     /*
      * Don't release the rmd context to respect abusers or initiators of rmd send outside
      * terminate callback contexts.

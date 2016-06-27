@@ -96,6 +96,8 @@ static ClRcT udpEventSubscribe(ClBoolT pollThread);
 /* Check and update peer address status */
 ClBoolT mcastPeerAddr(ClCharT *addStr, ClUint8T status);
 
+extern ClBoolT gClNodeRepresentative;
+
 static void udpSyncCallback(ClIocPhysicalAddressT *srcAddr, ClPtrT arg)
 {
     if(srcAddr->nodeAddress != gIocLocalBladeAddress)
@@ -234,6 +236,7 @@ ClRcT clUdpNotifyPeer(ClIocUdpMapT *map, void *args)
 
         }
     }
+    clOsalMutexLock(&gIocEventHandlerSendLock);
 
     /* Filter out multicast address and specific peer address */
     for (i = 0; i < gClNumMcastPeers; ++i)
@@ -241,9 +244,11 @@ ClRcT clUdpNotifyPeer(ClIocUdpMapT *map, void *args)
         if (!strcmp(map->addrstr, gClMcastPeers[i].addrstr))
         {
             /* This is static peer IP address */
+            clOsalMutexUnlock(&gIocEventHandlerSendLock);
             return rc;
         }
     }
+    clOsalMutexUnlock(&gIocEventHandlerSendLock);
 
     struct iovec ioVector[1];
     memset(ioVector,  0, sizeof(ioVector));
@@ -309,6 +314,7 @@ ClRcT clIocPeerList(ClIocUdpMapT *map, void *args)
     ClUint32T i = 0;
     ClBoolT found = CL_FALSE;
 
+    clOsalMutexLock(&gIocEventHandlerSendLock);
     /* Filter out multicast address and specific peer address */
     for (i = 0; i < gClNumMcastPeers; ++i)
     {
@@ -318,6 +324,7 @@ ClRcT clIocPeerList(ClIocUdpMapT *map, void *args)
             break;
         }
     }
+    clOsalMutexUnlock(&gIocEventHandlerSendLock);
 
     if (map->slot == gIocLocalBladeAddress || found)
     {
@@ -852,7 +859,7 @@ ClRcT clUdpNotify(ClIocNodeAddressT nodeAddress, ClUint32T portId, ClIocNotifica
     ClUint32T i;
     static ClUint32T nodeVersion = CL_VERSION_CODE(5, 0, 0);
 
-    if( (rc = udpMcastSetup() ) != CL_OK)
+    if( !gClNodeRepresentative && (rc = udpMcastSetup() ) != CL_OK)
         return rc;
 
     if(gFd < 0)
@@ -881,6 +888,7 @@ ClRcT clUdpNotify(ClIocNodeAddressT nodeAddress, ClUint32T portId, ClIocNotifica
     ioVector[0].iov_base = (ClPtrT) &notification;
     ioVector[0].iov_len = sizeof(notification);
 
+    clOsalMutexLock(&gIocEventHandlerSendLock);
     for(i = 0; i < gClNumMcastPeers; ++i)
     {
         struct msghdr msg;
@@ -919,6 +927,7 @@ ClRcT clUdpNotify(ClIocNodeAddressT nodeAddress, ClUint32T portId, ClIocNotifica
         msg.msg_controllen = gClMcastCmsgHdrLen;
         msg.msg_flags = 0;
 
+        clOsalMutexUnlock(&gIocEventHandlerSendLock);
         if (sendmsg(gFd, &msg, 0) < 0)
         {
             clLogError(
@@ -935,8 +944,10 @@ ClRcT clUdpNotify(ClIocNodeAddressT nodeAddress, ClUint32T portId, ClIocNotifica
             clLogTrace("UDP", "NOTIF", "Notification [%d] sent to node [%s], port [%d]", notifyId, gClMcastPeers[i].addrstr, mcastNotifPort);
         }
 #endif
+        clOsalMutexLock(&gIocEventHandlerSendLock);
     }
-
+    clOsalMutexUnlock(&gIocEventHandlerSendLock);
+    
     /* Sending to socket 0 for handling */
     clUdpMapWalk(clUdpNotifyPeer, &notification, 0);
 
@@ -1042,6 +1053,8 @@ static ClRcT clUdpDiscoverPeers(void)
 
   clusterSync = CL_TRUE;
 
+  clOsalMutexLock(&gIocEventHandlerSendLock);
+
   /* If specific peer address, mark it as down */
   for(i = 0; i < gClNumMcastPeers; ++i)
   {
@@ -1052,11 +1065,13 @@ static ClRcT clUdpDiscoverPeers(void)
     }
   }
 
-    if (!clusterSync)
-    {
-      notifyLink(gIocLocalBladeAddress, CL_IOC_XPORT_PORT, CL_IOC_NODE_DISCOVER_NOTIFICATION);
-      notifyLink(gIocLocalBladeAddress, CL_IOC_XPORT_PORT, CL_IOC_NODE_ARRIVAL_NOTIFICATION);
-    }
+  if (!clusterSync && clIocHeartBeatIsRunning())
+  {
+    notifyLink(gIocLocalBladeAddress, CL_IOC_XPORT_PORT, CL_IOC_NODE_DISCOVER_NOTIFICATION);
+    notifyLink(gIocLocalBladeAddress, CL_IOC_XPORT_PORT, CL_IOC_NODE_ARRIVAL_NOTIFICATION);
+  }
+
+  clOsalMutexUnlock(&gIocEventHandlerSendLock);
 
   return CL_OK;
 }
@@ -1066,13 +1081,11 @@ static ClRcT udpDiscoverPeers(void)
     ClRcT rc = CL_ERR_UNSPECIFIED;
     //static ClTaskPoolHandleT task;
     //static ClTimerTimeOutT delay;
-    clOsalMutexLock(&gIocEventHandlerSendLock);
     /*
      * We could send multiple discovery packets to avoid loss or to play it safe. 
      * But not required for now ...
      */
     rc = clUdpNotify(gIocLocalBladeAddress, CL_IOC_XPORT_PORT, CL_IOC_NODE_DISCOVER_NOTIFICATION);
-    clOsalMutexUnlock(&gIocEventHandlerSendLock);
     if (rc == CL_OK)
     {
         sleep(UDP_CLUSTER_SYNC_WAIT_TIME);
@@ -1224,6 +1237,7 @@ ClRcT clUdpEventHandlerInitialize(void)
     udpDiscoverPeers(); /* shouldn't return till cluster sync interval */
 
     if (clCpmIsSC())
+      /* Multiple send discovery packets */
       rc = _gmsClusterTrackInit();
 
     /* I need to tell everyone that I went down in case the keep-alive hasn't kicked in yet */
@@ -1256,13 +1270,14 @@ ClRcT clUdpEventHandlerFinalize(void) {
         clGmsFinalize(gGmsCallbackHandle);
     }
 
-    /* Close discovery task */
+    /* Closing only the data socket so the the event socket can get the event of this and it will comeout of the recview thread */
     if(gUdpDiscoveryTimer != CL_HANDLE_INVALID_VALUE)
     {
         clTimerDelete(&gUdpDiscoveryTimer);
         gUdpDiscoveryTimer = CL_HANDLE_INVALID_VALUE;
     }
 
+    clOsalMutexLock(&gIocEventHandlerSendLock);
     /*
      * Cleanup multicast peer addresses
      */
@@ -1273,9 +1288,6 @@ ClRcT clUdpEventHandlerFinalize(void) {
         gClNumMcastPeers = 0;
     }
 
-    /* Closing only the data socket so the the event socket can get the event of this and it will comeout of the recview thread */
-
-    clOsalMutexLock(&gIocEventHandlerSendLock);
     close(handlerFd[1]);
     numHandlers = numHandlers - 1;
     handlerFd[1] = -1;

@@ -504,31 +504,35 @@ static ClRcT _clUdpMapUpdateNotification(ClIocNotificationT *notification, ClPtr
         case CL_IOC_NODE_LINK_UP_NOTIFICATION:
             if (!(map = iocUdpMapFind(nodeAddress)))
             {
+                clOsalMutexUnlock(&gXportCtrl.mutex);
                 clUdpAddrGet(nodeAddress, addStr);
+
+                if (gClNodeRepresentative)
+                {
+                  /* If specific peer address, mark it as up */
+                  mcastPeerAddr(addStr, CL_IOC_NODE_UP);
+                }
+
+                clOsalMutexLock(&gXportCtrl.mutex);
                 iocUdpMapAdd(addStr, nodeAddress);
             }
-
-            clOsalMutexUnlock(&gXportCtrl.mutex);
-            /* If specific peer address, mark it as up */
-            mcastPeerAddr(addStr, CL_IOC_NODE_UP);
-            clOsalMutexLock(&gXportCtrl.mutex);
-
             break;
         case CL_IOC_NODE_LEAVE_NOTIFICATION:
         case CL_IOC_NODE_LINK_DOWN_NOTIFICATION:
             if (nodeAddress != gIocLocalBladeAddress)
             {
-              ClBoolT isPeerAddr = CL_FALSE;
+              clOsalMutexUnlock(&gXportCtrl.mutex);
+
               clUdpAddrGet(nodeAddress, addStr);
 
-              clOsalMutexUnlock(&gXportCtrl.mutex);
-              /* If specific peer address, mark it as down */
-              isPeerAddr = mcastPeerAddr(addStr, CL_IOC_NODE_DOWN);
-              clOsalMutexLock(&gXportCtrl.mutex);
+              if (gClNodeRepresentative)
+              {
+                /* If specific peer address, mark it as down */
+                mcastPeerAddr(addStr, CL_IOC_NODE_DOWN);
+              }
 
-              /* If non-specific peer address, remove it */
-              if (!isPeerAddr)
-                clIocUdpMapDel(nodeAddress);
+              clOsalMutexLock(&gXportCtrl.mutex);
+              clIocUdpMapDel(nodeAddress);
             }
             break;
         default:
@@ -1289,7 +1293,9 @@ ClRcT xportSend(ClIocPortT port, ClUint32T priority, ClIocAddressT *address,
         map = iocUdpMapFind(address->iocPhyAddress.nodeAddress);
         if(!map)
         {
+            clOsalMutexUnlock(&gXportCtrl.mutex);
             clUdpAddrGet(address->iocPhyAddress.nodeAddress, addStr);
+            clOsalMutexLock(&gXportCtrl.mutex);
             map = iocUdpMapAdd(addStr, address->iocPhyAddress.nodeAddress);
             if(!map)
             {
@@ -1325,7 +1331,9 @@ ClRcT xportSend(ClIocPortT port, ClUint32T priority, ClIocAddressT *address,
         break;
 
     case CL_IOC_INTRANODE_ADDRESS_TYPE:
+        clOsalMutexUnlock(&gXportCtrl.mutex);
         clIocNodeCompsGet(clIocLocalAddressGet(), buff);
+        clOsalMutexLock(&gXportCtrl.mutex);
         map = iocUdpMapFind(clIocLocalAddressGet());
         if (map)
         {
