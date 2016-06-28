@@ -87,6 +87,7 @@ static ClTimerHandleT gGmsInitHandleTimer = CL_HANDLE_INVALID_VALUE;
 static ClGmsHandleT gGmsCallbackHandle = CL_HANDLE_INVALID_VALUE;
 
 static ClTimerHandleT gUdpDiscoveryTimer = CL_HANDLE_INVALID_VALUE;
+static ClOsalTaskIdT eventHandlerThread=0;
 
 /* UDP local address */
 extern ClPluginHelperVirtualIpAddressT gVirtualIp;
@@ -557,7 +558,7 @@ static void clUdpEventHandler(ClPtrT pArg)
     };
     ClInt32T pollStatus;
     ClInt32T bytes;
-    ClUint32T timeout = CL_IOC_TIMEOUT_FOREVER;
+    ClUint32T timeout = 1000; //CL_IOC_TIMEOUT_FOREVER;
     ClUint32T recvErrors = 0;
 
     retry: 
@@ -580,7 +581,7 @@ static void clUdpEventHandler(ClPtrT pArg)
     while (threadContFlag)
     {
         pollStatus = poll(pollfds, numHandlers, timeout);
-        if (pollStatus > 0)
+        if ((pollStatus > 0)&&(threadContFlag))
         {
             for (i = 0; i < numHandlers; i++)
             {
@@ -826,6 +827,7 @@ static ClInt32T clUdpSubscriptionSocketCreate(void)
     return -1;
 }
 
+
 static ClRcT udpEventSubscribe(ClBoolT pollThread)
 {
     ClRcT retCode = CL_OK;
@@ -837,7 +839,8 @@ static ClRcT udpEventSubscribe(ClBoolT pollThread)
 
     if (pollThread)
     {
-        retCode = clOsalTaskCreateDetached(pTaskName, CL_OSAL_SCHED_OTHER, CL_OSAL_THREAD_PRI_NOT_APPLICABLE, 0, (void* (*)(void*)) &clUdpEventHandler, NULL);
+        assert(eventHandlerThread==0);
+        retCode = clOsalTaskCreateAttached(pTaskName, CL_OSAL_SCHED_OTHER, CL_OSAL_THREAD_PRI_NOT_APPLICABLE, 0, (void* (*)(void*)) &clUdpEventHandler, NULL, &eventHandlerThread);
         if (retCode != CL_OK)
         {
             clLogError(
@@ -1261,6 +1264,10 @@ ClRcT clUdpEventHandlerFinalize(void) {
     /* If service was never initialized, don't finalize */
     if (!eventHandlerInited)
         return CL_OK;
+    eventHandlerInited = 0;    
+    /* stop the clUdpEventHandler thread */
+    threadContFlag = CL_FALSE;
+    if (eventHandlerThread) clOsalTaskJoin(eventHandlerThread);
 
     eventHandlerInited = 0;
     clIocNotificationFinalize();
