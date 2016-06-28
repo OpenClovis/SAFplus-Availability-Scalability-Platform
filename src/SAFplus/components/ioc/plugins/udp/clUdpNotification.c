@@ -114,10 +114,12 @@ static void udpSyncCallback(ClIocPhysicalAddressT *srcAddr, ClPtrT arg)
          */
         clIocCompStatusSet(*srcAddr, CL_IOC_NODE_UP);
         clIocUdpMapAdd((struct sockaddr*)arg, srcAddr->nodeAddress, addStr);
-        clUdpAddrSet(srcAddr->nodeAddress, addStr);
-
-        /* If specific peer address, mark it as up */
-        mcastPeerAddr(addStr, CL_IOC_NODE_UP);
+        ClRcT rc = clUdpAddrSet(srcAddr->nodeAddress, addStr);
+        if (rc == CL_OK)
+        {
+          /* If specific peer address, mark it as up */
+          mcastPeerAddr(addStr, CL_IOC_NODE_UP);
+        }
     }
 }
 
@@ -177,10 +179,12 @@ ClRcT clUdpNodeNotification(ClIocNodeAddressT node, ClIocNotificationIdT event)
         {
             ClCharT addStr[INET_ADDRSTRLEN] = {0};
             ClBoolT isPeerAddr = CL_FALSE;
-            clUdpAddrGet(node, addStr);
-
-            /* If specific peer address, mark it as down */
-            isPeerAddr = mcastPeerAddr(addStr, CL_IOC_NODE_DOWN);
+            ClRcT rc = clUdpAddrGet(node, addStr);
+            if (rc == CL_OK)
+            {
+              /* If specific peer address, mark it as down */
+              isPeerAddr = mcastPeerAddr(addStr, CL_IOC_NODE_DOWN);
+            }
 
             if (!isPeerAddr)
               clIocUdpMapDel(node); /*remove entry from the map*/
@@ -1075,6 +1079,19 @@ static ClRcT clUdpDiscoverPeers(void)
   }
 
   clOsalMutexUnlock(&gIocEventHandlerSendLock);
+
+  // Dynamic peer addresses updating
+  if (clIocHeartBeatIsRunning())
+  {
+    ClUint32T temp;
+    clTransportMcastSupported(&temp);
+    if (temp != gClNumMcastPeers)
+    {
+      clOsalMutexLock(&gIocEventHandlerSendLock);
+      udpMcastSetup();
+      clOsalMutexUnlock(&gIocEventHandlerSendLock);
+    }
+  }
 
   return CL_OK;
 }

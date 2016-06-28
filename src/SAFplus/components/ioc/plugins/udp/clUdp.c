@@ -276,6 +276,9 @@ ClRcT clIocUdpMapDel(ClIocNodeAddressT slot)
 {
     ClRcT rc = CL_OK;
     ClIocUdpMapT *map = NULL;
+
+    clOsalMutexLock(&gXportCtrl.mutex);
+
     if((map = iocUdpMapFind(slot)))
     {
         udpMapDel(map);
@@ -283,6 +286,8 @@ ClRcT clIocUdpMapDel(ClIocNodeAddressT slot)
         free(map);
     }
     else rc = CL_ERR_NOT_EXIST;
+
+    clOsalMutexUnlock(&gXportCtrl.mutex);
     return rc;
 }
 
@@ -496,49 +501,48 @@ static ClRcT _clUdpMapUpdateNotification(ClIocNotificationT *notification, ClPtr
     ClCharT addStr[INET_ADDRSTRLEN] = {0};
     ClIocNotificationIdT notificationId = ntohl(notification->id);
     ClIocNodeAddressT nodeAddress = ntohl(notification->nodeAddress.iocPhyAddress.nodeAddress);
-    clOsalMutexLock(&gXportCtrl.mutex);
     switch (notificationId) 
     {
         case CL_IOC_COMP_ARRIVAL_NOTIFICATION:
         case CL_IOC_NODE_ARRIVAL_NOTIFICATION:
         case CL_IOC_NODE_LINK_UP_NOTIFICATION:
+        {
+            clOsalMutexLock(&gXportCtrl.mutex);
             if (!(map = iocUdpMapFind(nodeAddress)))
             {
                 clOsalMutexUnlock(&gXportCtrl.mutex);
-                clUdpAddrGet(nodeAddress, addStr);
+                ClRcT rc = clUdpAddrGet(nodeAddress, addStr);
+                if (rc != CL_OK)
+                  goto out;
 
-                if (gClNodeRepresentative)
-                {
-                  /* If specific peer address, mark it as up */
-                  mcastPeerAddr(addStr, CL_IOC_NODE_UP);
-                }
+                /* If specific peer address, mark it as up */
+                mcastPeerAddr(addStr, CL_IOC_NODE_UP);
 
                 clOsalMutexLock(&gXportCtrl.mutex);
                 iocUdpMapAdd(addStr, nodeAddress);
             }
-            break;
+            clOsalMutexUnlock(&gXportCtrl.mutex);
+          }
+          break;
         case CL_IOC_NODE_LEAVE_NOTIFICATION:
         case CL_IOC_NODE_LINK_DOWN_NOTIFICATION:
             if (nodeAddress != gIocLocalBladeAddress)
             {
-              clOsalMutexUnlock(&gXportCtrl.mutex);
-
-              clUdpAddrGet(nodeAddress, addStr);
-
-              if (gClNodeRepresentative)
+              ClRcT rc = clUdpAddrGet(nodeAddress, addStr);
+              ClBoolT isPeerAddr = CL_FALSE;
+              if (rc == CL_OK)
               {
                 /* If specific peer address, mark it as down */
-                mcastPeerAddr(addStr, CL_IOC_NODE_DOWN);
+                isPeerAddr = mcastPeerAddr(addStr, CL_IOC_NODE_DOWN);
               }
-
-              clOsalMutexLock(&gXportCtrl.mutex);
-              clIocUdpMapDel(nodeAddress);
+              if (!isPeerAddr)
+                clIocUdpMapDel(nodeAddress); /*remove entry from the map*/
             }
             break;
         default:
             break;
     }
-    clOsalMutexUnlock(&gXportCtrl.mutex);
+    out:
     return CL_OK;
 }
 
