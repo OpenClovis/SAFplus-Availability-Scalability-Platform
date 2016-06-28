@@ -1009,7 +1009,7 @@ ClRcT notifyLink(ClIocNodeAddressT nodeAddress, ClUint32T portId, ClIocNotificat
             }
         }
 
-        if (!strcmp(gClMcastPeers[i].addrstr, gVirtualIp.ip))
+        if (!strcmp(gClMcastPeers[i].addrstr, gVirtualIp.ip) || gClMcastPeers[i].status)
             continue;
 
         if(gClMcastPeers[i].family == PF_INET)
