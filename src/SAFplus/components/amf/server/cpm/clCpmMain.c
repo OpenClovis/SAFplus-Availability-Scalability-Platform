@@ -879,6 +879,16 @@ static ClRcT cpmKillComponent(ClCntNodeHandleT key,
                        comp->compConfig->compName,
                        comp->processId);
 
+            /* Marked COR and EVENT service down, then skip component event publishing */
+            if (!strcmp(comp->compConfig->compName, gpClCpm->corServerName))
+                gpClCpm->corUp = 0;
+            else if (!strcmp(comp->compConfig->compName, gpClCpm->eventServerName))
+            {
+                gpClCpm->emUp = 0;
+                /* Waiting events done publishing */
+                sleep(1);
+            }
+
             kill(comp->processId, SIGKILL);
         }
     }
