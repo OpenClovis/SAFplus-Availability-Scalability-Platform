@@ -461,9 +461,7 @@ ClRcT VDECL_VER(clCkptMasterCkptOpen, 4, 0, 0)(ClVersionT       *pVersion,
                 clHandleDestroy(gCkptSvr->masterInfo.clientDBHdl, clientHdl);
                 clLogDebug("CKP","MSTR","Deleted client handle [%llx]", clientHdl);
                 
-                clCntAllNodesForKeyDelete(
-                                          gCkptSvr->masterInfo.nameXlationDBHdl,
-                                          (ClCntKeyHandleT)&lookup);
+                clCntAllNodesForKeyDelete(gCkptSvr->masterInfo.nameXlationDBHdl, (ClCntKeyHandleT)&lookup);
                 clHandleDestroy(gCkptSvr->masterInfo.masterDBHdl,masterHdl);
                 CKPT_UNLOCK(gCkptSvr->masterInfo.ckptMasterDBSem);
                 return rc;
@@ -473,8 +471,12 @@ ClRcT VDECL_VER(clCkptMasterCkptOpen, 4, 0, 0)(ClVersionT       *pVersion,
              * Update the backup/deputy/secondary master.
              */
             {
-                ckptIdlHandleUpdate( CL_IOC_BROADCAST_ADDRESS,
-                                     gCkptSvr->ckptIdlHdl,0);
+                ckptIdlHandleUpdate( CL_IOC_BROADCAST_ADDRESS, gCkptSvr->ckptIdlHdl,0);
+
+                // Not happy about this delay, but we seem to get an invalid handle error when the client tries to open so I think there is a race between the IdlHandleUpdate and this async call
+                ClTimerTimeOutT delay = {.tsSec=0,.tsMilliSec=500};  
+                clOsalTaskDelay(delay);
+                
                 VDECL_VER(clCkptDeputyCkptCreateClientAsync, 4, 0, 0)(gCkptSvr->ckptIdlHdl,
                                                                       masterHdl, clientHdl,
                                                                       pName, pCreateAttr,

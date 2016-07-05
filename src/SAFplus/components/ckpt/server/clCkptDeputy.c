@@ -1424,11 +1424,8 @@ VDECL_VER(clCkptDeputyCkptOpen, 4, 0, 0)(ClHandleT         storedDBHdl,
         return CL_OK;
     }
 
-    rc = clHandleCheckout(gCkptSvr->masterInfo.masterDBHdl, 
-            storedDBHdl,(void **) &pStoredData);  
-    CKPT_ERR_CHECK(CL_CKPT_SVR,CL_DEBUG_ERROR,
-            ("Master DB creation failed rc[0x %x]\n",rc),
-            rc);
+    rc = clHandleCheckout(gCkptSvr->masterInfo.masterDBHdl, storedDBHdl,(void **) &pStoredData);  
+    CKPT_ERR_CHECK(CL_CKPT_SVR,CL_DEBUG_ERROR, ("Master DB handle [%#llX:%#llX] checkout failed rc[0x %x]\n",(ClHandleT) gCkptSvr->masterInfo.masterDBHdl, storedDBHdl, rc), rc);
             
     /* 
      * Create the client handle.Add the info.

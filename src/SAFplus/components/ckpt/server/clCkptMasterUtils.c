@@ -425,13 +425,11 @@ _ckptMasterPeerListHdlsAdd(ClHandleT            clientHdl,
         pPeerInfo->replicaCount++;
     }
 
-    pNodeListInfo         = (CkptNodeListInfoT *)clHeapCalloc(1,
-            sizeof(CkptNodeListInfoT));
+    pNodeListInfo = (CkptNodeListInfoT *)clHeapCalloc(1, sizeof(CkptNodeListInfoT));
     if(pNodeListInfo == NULL)
     {
         rc = CL_CKPT_ERR_NO_MEMORY;
-        CKPT_ERR_CHECK(CL_CKPT_SVR,CL_DEBUG_ERROR,
-                ("Failed to allocate the memory rc[0x %x]\n", rc), rc);
+        CKPT_ERR_CHECK(CL_CKPT_SVR,CL_DEBUG_ERROR, ("Failed to allocate the memory rc[0x %x]\n", rc), rc);
     }
     pNodeListInfo->clientHdl  = clientHdl;
     pNodeListInfo->appPortNum = portId;
