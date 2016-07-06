@@ -1526,6 +1526,8 @@ static ClBoolT clCkptHandleTypicalErrors(ClRcT rc, ClCkptHdlT ckptHdl,ClIocNodeA
 {
     ClRcT retCode;
     if(  (CL_GET_ERROR_CODE(rc) == CL_IOC_ERR_COMP_UNREACHABLE) ||
+         (CL_GET_ERROR_CODE(rc) == CL_ERR_TIMEOUT) ||
+         (CL_GET_ERROR_CODE(rc) == CL_ERR_TRY_AGAIN) ||
          (CL_IOC_ERR_HOST_UNREACHABLE == CL_GET_ERROR_CODE(rc)) || 
          (rc == CL_CKPT_ERR_NOT_EXIST && nodeAddr && *nodeAddr == CL_CKPT_UNINIT_VALUE)
          ||

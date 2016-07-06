@@ -8086,7 +8086,7 @@ clAmsPeSUSwitchoverCallback(
      * The quiesced SIs need to be reassigned and SG specific actions taken.
      */
 
-    if ( su->status.numQuiescedSIs && node->status.isClusterMember == CL_AMS_NODE_IS_CLUSTER_MEMBER)
+    if ( su->status.numQuiescedSIs) // && node->status.isClusterMember == CL_AMS_NODE_IS_CLUSTER_MEMBER)
     {
         ClAmsSUT *activeSU =  NULL;
         ClBoolT reassignWork = CL_FALSE;
