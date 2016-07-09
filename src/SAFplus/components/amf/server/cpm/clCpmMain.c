@@ -4212,7 +4212,7 @@ ClBoolT cpmWaitForAppShutdown(int maxTime)
         {
             rc = clCntNodeUserDataGet(gpClCpm->compTable, hNode, (ClCntDataHandleT *) &comp);
             //clOsalMutexLock(comp->compMutex);
-            if ((comp->compConfig->isAspComp == 0) && (comp->compOperState == CL_AMS_OPER_STATE_ENABLED))
+            if ((comp->compConfig->isAspComp == 0) && (comp->compOperState == CL_AMS_OPER_STATE_ENABLED) && !comp->compTerminated)
             {
                 //clOsalMutexUnlock(comp->compMutex);
                 keepWaiting = 1;

@@ -722,6 +722,10 @@ clAmsCkptInitialize(
     {
         gClAmsCkptFrequency = atoi(freq);
     }
+    else
+    {
+      gClAmsCkptFrequency = 1;  /* set it to default 1 second delay */
+    }
 #ifdef QNX_BUILD
     if(!gClAmsCkptFrequency)
     {

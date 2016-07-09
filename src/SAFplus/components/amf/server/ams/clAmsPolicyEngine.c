@@ -2739,9 +2739,9 @@ clAmsPeNodeHasLeftClusterCallback_Step2(
 }
 
 /* 
- * Is SU having a terminate timer running
+ * Is SU having a terminate/csiremove timer running
  */
-static ClBoolT clAmsSuTimerTerminateCount(CL_IN       ClAmsSUT        *su)
+static ClBoolT clAmsSuTimerIsRunningCount(CL_IN       ClAmsSUT        *su)
 {
     ClAmsEntityRefT *entityRef;
     for ( entityRef = clAmsEntityListGetLast(&su->config.compList);
@@ -2749,7 +2749,7 @@ static ClBoolT clAmsSuTimerTerminateCount(CL_IN       ClAmsSUT        *su)
           entityRef = clAmsEntityListGetPrevious(&su->config.compList, entityRef) )
     {
         ClAmsCompT *sucomp = (ClAmsCompT *) entityRef->ptr;
-        if (sucomp && clAmsEntityTimerIsRunning((ClAmsEntityT *) sucomp, CL_AMS_COMP_TIMER_TERMINATE))
+        if (sucomp && (clAmsEntityTimerIsRunning((ClAmsEntityT *) sucomp, CL_AMS_COMP_TIMER_TERMINATE) || clAmsEntityTimerIsRunning((ClAmsEntityT *) sucomp, CL_AMS_COMP_TIMER_CSIREMOVE)))
         {
             return CL_TRUE;
         }
@@ -2758,9 +2758,9 @@ static ClBoolT clAmsSuTimerTerminateCount(CL_IN       ClAmsSUT        *su)
 }
 
 /* 
- * Is Node having a terminate timer running
+ * Is Node having a terminate/csiremove timer running
  */
-static ClBoolT clAmsNodeTimerTerminateCount(CL_IN   ClAmsNodeT *node)
+static ClBoolT clAmsNodeTimerIsRunningCount(CL_IN   ClAmsNodeT *node)
 {
   ClAmsEntityRefT *entityRef;
   for ( entityRef = clAmsEntityListGetFirst(&node->config.suList);
@@ -2768,7 +2768,7 @@ static ClBoolT clAmsNodeTimerTerminateCount(CL_IN   ClAmsNodeT *node)
         entityRef = clAmsEntityListGetNext(&node->config.suList,entityRef) )
   {
       ClAmsSUT *su = (ClAmsSUT *) entityRef->ptr;
-      if (su && clAmsSuTimerTerminateCount(su))
+      if (su && clAmsSuTimerIsRunningCount(su))
       {
           return CL_TRUE;
       }
@@ -2811,10 +2811,10 @@ clAmsPeNodeIsLeavingCluster(
         return CL_AMS_RC(CL_ERR_NOT_EXIST);
     }
 
-    if ((node->status.isClusterMember == CL_AMS_NODE_IS_LEAVING_CLUSTER) && clAmsNodeTimerTerminateCount(node))
+    if ((node->status.isClusterMember == CL_AMS_NODE_IS_LEAVING_CLUSTER) && (clAmsNodeTimerIsRunningCount(node) || clAmsInvocationsPendingForNode(node)))
     {
         AMS_ENTITY_LOG (node, CL_AMS_MGMT_SUB_AREA_MSG, CL_DEBUG_TRACE,
-            ("Node [%s] is terminating. Ignoring 'node is leaving' request..\n",
+            ("Node [%s] is leaving cluster. Ignoring 'node is leaving' request..\n",
             node->config.entity.name.value));
         return CL_AMS_RC(CL_ERR_NOT_EXIST);
     }
