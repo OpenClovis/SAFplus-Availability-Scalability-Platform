@@ -3596,7 +3596,7 @@ static ClRcT __iocReassembleTimer(void *key)
         goto out_unlock;
     }
 
-    clLogTrace("FRAG", "RECV", "Running the reassembly timer for sender node [%#x:%#x] with length [%d] bytes", 
+    clLogWarning("FRAG", "RECV", "Packet reassembly timeout for packet from node [%#x:%#x] with length [%d] bytes", 
                node->timerKey->key.sendAddr.nodeAddress, 
                node->timerKey->key.sendAddr.portId, node->currentLength);
     while( (fragHead = clRbTreeMin(&node->reassembleTree) ) )
@@ -4094,7 +4094,7 @@ static ClRcT __iocFragmentCallbackCompat(ClPtrT job, ClBufferHandleT message, Cl
             /*
              * we update the expected length.
              */
-            clLogTrace("FRAG", "RECV", "Out of order last fragment received for offset [%d], len [%d] bytes, "
+            clLogWarning("FRAG", "RECV", "Out of order last fragment received for offset [%d], len [%d] bytes, "
                        "current length [%d] bytes",
                        fragmentNode->fragOffset, fragmentNode->fragLength, node->currentLength);
             node->expectedLength = fragmentNode->fragOffset + fragmentNode->fragLength;

@@ -992,8 +992,6 @@ ClRcT cpmProcessOrderlyShutdown(ClIocNodeAddressT iocAddress)
         gCpmShuttingDown = CL_TRUE;
         startShutdownTimer(iocAddress);
     }
-
-    cpmNodeDepartureEventPublish(iocAddress, CL_TRUE, CL_TRUE);
     
     /* For Cpm\L and standby CPM/G 
      * Check if need to ask master for departure, if so
