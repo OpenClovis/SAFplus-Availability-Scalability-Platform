@@ -1424,14 +1424,27 @@ VDECL_VER(clCkptDeputyCkptOpen, 4, 0, 0)(ClHandleT         storedDBHdl,
         return CL_OK;
     }
 
-    rc = clHandleCheckout(gCkptSvr->masterInfo.masterDBHdl, storedDBHdl,(void **) &pStoredData);  
+    int retries = 0;    
+    do
+    {
+        retries++;
+        rc = clHandleCheckout(gCkptSvr->masterInfo.masterDBHdl, storedDBHdl,(void **) &pStoredData);
+        if (rc != CL_OK)
+        {
+            clLogDebug(CL_CKPT_AREA_DEPUTY, CL_CKPT_CTX_DEP_SYNCUP, "Master DB handle [%#llX:%#llX] checkout failed rc[0x %x]. Retrying...\n",(ClHandleT) gCkptSvr->masterInfo.masterDBHdl, storedDBHdl, rc);
+            
+            ClTimerTimeOutT t = { 0, 150 };                  
+            clOsalTaskDelay (t);
+        }   
+    } while((rc != CL_OK)&&(retries < 5));
+    
     CKPT_ERR_CHECK(CL_CKPT_SVR,CL_DEBUG_ERROR, ("Master DB handle [%#llX:%#llX] checkout failed rc[0x %x]\n",(ClHandleT) gCkptSvr->masterInfo.masterDBHdl, storedDBHdl, rc), rc);
+    
             
     /* 
      * Create the client handle.Add the info.
      */
-    if (CL_OK != (rc = _ckptClientHdlInfoFill(storedDBHdl, clientHdl,
-                                            CL_CKPT_SOURCE_DEPUTY)))
+    if (CL_OK != (rc = _ckptClientHdlInfoFill(storedDBHdl, clientHdl, CL_CKPT_SOURCE_DEPUTY)))
     {
         clLogDebug(CL_CKPT_AREA_DEPUTY, CL_CKPT_CTX_DEP_SYNCUP, "Checkpoint open on deputy failed for clientHdl[%#llX] rc[0x %x]",
             clientHdl, rc);

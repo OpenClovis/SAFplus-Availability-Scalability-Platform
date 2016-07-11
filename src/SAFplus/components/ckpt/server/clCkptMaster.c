@@ -474,7 +474,7 @@ ClRcT VDECL_VER(clCkptMasterCkptOpen, 4, 0, 0)(ClVersionT       *pVersion,
                 ckptIdlHandleUpdate( CL_IOC_BROADCAST_ADDRESS, gCkptSvr->ckptIdlHdl,0);
 
                 // Not happy about this delay, but we seem to get an invalid handle error when the client tries to open so I think there is a race between the IdlHandleUpdate and this async call
-                ClTimerTimeOutT delay = {.tsSec=0,.tsMilliSec=500};  
+                ClTimerTimeOutT delay = {.tsSec=0,.tsMilliSec=250};  
                 clOsalTaskDelay(delay);
                 
                 VDECL_VER(clCkptDeputyCkptCreateClientAsync, 4, 0, 0)(gCkptSvr->ckptIdlHdl,
@@ -635,10 +635,13 @@ ClRcT VDECL_VER(clCkptMasterCkptOpen, 4, 0, 0)(ClVersionT       *pVersion,
         {
             clLogDebug(CL_CKPT_AREA_MASTER, CL_CKPT_CTX_CKPT_OPEN, "Updating deputy for checkpoint [%.*s] clientHdl [%#llX] MasterHdl [%#llX]", pName->length,pName->value,clientHdl, storedDBHdl);
             ckptIdlHandleUpdate( CL_IOC_BROADCAST_ADDRESS, gCkptSvr->ckptIdlHdl,0);
+            ClTimerTimeOutT t = { 0, 250 };
+            clOsalTaskDelay (t);
             VDECL_VER(clCkptDeputyCkptOpenClientAsync, 4, 0, 0)(gCkptSvr->ckptIdlHdl,
                                                                 storedDBHdl, clientHdl, localAddr,
                                                                 localPort, &ckptVersion,
                                                                 NULL,NULL);
+
         }    
         /* 
          *  Inform about application Info to all the replicas of this checkpoint
