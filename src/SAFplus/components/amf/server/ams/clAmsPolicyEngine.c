@@ -8138,6 +8138,19 @@ clAmsPeSUSwitchoverCallback(
                su->status.siList.numEntities)
             {
                 ClAmsEntityRemoveOpT activeRemoveOp = {{0}};
+                if (sg->config.redundancyModel == CL_AMS_SG_REDUNDANCY_MODEL_TWO_N && activeSU->status.numActiveSIs == 1)
+                {
+                  rc = clAmsEntityOpGet(&activeSU->config.entity, &activeSU->status.entity, CL_AMS_ENTITY_OP_ACTIVE_REMOVE_MPLUSN, (void**) &activeRemoveOp, NULL);
+                  if (rc == CL_OK)
+                  {
+                    /*
+                     * Replay pending active removes against this entity.
+                     */
+                    clAmsPeEntityOpReplay(&activeSU->config.entity, &activeSU->status.entity, CL_AMS_ENTITY_OP_ACTIVE_REMOVE_MPLUSN, CL_FALSE);
+                    return CL_OK;
+                  }
+                }
+
                 memcpy(&activeRemoveOp.entity, &su->config.entity, sizeof(activeRemoveOp.entity));
                 activeRemoveOp.sisRemoved = su->status.siList.numEntities;
                 activeRemoveOp.switchoverMode = switchoverMode;

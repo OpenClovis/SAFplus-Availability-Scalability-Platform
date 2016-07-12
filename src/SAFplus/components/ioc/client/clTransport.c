@@ -2997,7 +2997,7 @@ static __inline__ void transportFree(ClTransportLayerT *xport)
 ClRcT clTransportLayerGmsFinalize(void)
 {
     ClRcT rc = CL_OK;
-    if(gXportHandleGms)
+    if(gGmsInitDone)
     {
         gGmsInitDone = CL_FALSE;
         rc = clGmsFinalize(gXportHandleGms);
