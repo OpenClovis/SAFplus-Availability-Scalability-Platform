@@ -90,6 +90,10 @@ ClRcT ckptMasterDatabaseSyncup(ClIocNodeAddressT dest)
     CKPT_ERR_CHECK(CL_CKPT_SVR,CL_DEBUG_ERROR,
             ("Ckpt: Failed to update the Idl handle rc[0x %x]\n", rc), rc);
 
+    int retries=0;
+    do
+    {
+        retries++;
     /*
      * Request the metadata and the related info from the deputy.
      */
@@ -104,8 +108,16 @@ ClRcT ckptMasterDatabaseSyncup(ClIocNodeAddressT dest)
                 &pPeerListInfo,
                 &clntHdlCount,
                 &pClientDBInfo);
-    CKPT_ERR_CHECK(CL_CKPT_SVR,CL_DEBUG_ERROR,
-            ("Ckpt: Failed to get the data from Master rc[0x %x]\n", rc), rc);
+    if (rc != CL_OK)
+    {
+        clLogDebug(CL_CKPT_AREA_DEPUTY, CL_CKPT_CTX_DEP_SYNCUP,"Did not get checkpoint data from master rc[0x %x]. retrying...", rc);
+        ClTimerTimeOutT t = { 0, 50*retries };
+        clOsalTaskDelay (t);
+    }
+    
+    } while ((retries < 10)&&(rc != CL_OK));
+     
+    CKPT_ERR_CHECK(CL_CKPT_SVR,CL_DEBUG_CRITICAL, ("Failed to get the data from Master rc[0x %x]", rc), rc);
             
     /*
      * Populate All data structures in deputy.
@@ -1431,14 +1443,18 @@ VDECL_VER(clCkptDeputyCkptOpen, 4, 0, 0)(ClHandleT         storedDBHdl,
         rc = clHandleCheckout(gCkptSvr->masterInfo.masterDBHdl, storedDBHdl,(void **) &pStoredData);
         if (rc != CL_OK)
         {
-            clLogDebug(CL_CKPT_AREA_DEPUTY, CL_CKPT_CTX_DEP_SYNCUP, "Master DB handle [%#llX:%#llX] checkout failed rc[0x %x]. Retrying...\n",(ClHandleT) gCkptSvr->masterInfo.masterDBHdl, storedDBHdl, rc);
+            clLogDebug(CL_CKPT_AREA_DEPUTY, CL_CKPT_CTX_DEP_SYNCUP, "Checkpoint DB handle [%#llX:%#llX] checkout failed rc[0x %x]. Retrying...",(ClHandleT) gCkptSvr->masterInfo.masterDBHdl, storedDBHdl, rc);
             
             ClTimerTimeOutT t = { 0, 150 };                  
             clOsalTaskDelay (t);
         }   
     } while((rc != CL_OK)&&(retries < 5));
     
-    CKPT_ERR_CHECK(CL_CKPT_SVR,CL_DEBUG_ERROR, ("Master DB handle [%#llX:%#llX] checkout failed rc[0x %x]\n",(ClHandleT) gCkptSvr->masterInfo.masterDBHdl, storedDBHdl, rc), rc);
+    CKPT_ERR_CHECK(CL_CKPT_SVR,CL_DEBUG_ERROR, ("Checkpoint DB handle [%#llX:%#llX] checkout failed rc[0x %x]",(ClHandleT) gCkptSvr->masterInfo.masterDBHdl, storedDBHdl, rc), rc);
+    if (rc == CL_OK)
+    {
+      clLogDebug(CL_CKPT_AREA_DEPUTY, CL_CKPT_CTX_DEP_SYNCUP, "Checkpoint DB handle [%#llX:%#llX] checkout succeeded.",(ClHandleT) gCkptSvr->masterInfo.masterDBHdl, storedDBHdl);
+    }
     
             
     /* 
