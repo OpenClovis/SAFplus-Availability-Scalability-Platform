@@ -347,7 +347,7 @@ cosSysvSemIdGet(ClUint8T* pName, ClOsalSemIdT* pSemId)
     ClUint32T key = 0;
     ClInt32T semId = -1;
     ClUint32T len = 0;
-    ClUint32T count = 0;
+    ClUint32T count = 1;
     ClUint32T retCode = CL_OK;
     int       err;
 
