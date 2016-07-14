@@ -24,6 +24,7 @@
 #include <clHandleApi.h>
 #include <clDebugApi.h>
 #include <clIocApi.h>
+#include <clOsalErrors.h>
 
 extern ClIocNodeAddressT gIocLocalBladeAddress;
 
@@ -51,20 +52,35 @@ ClRcT clCachedCkptClientInitialize(ClCachedCkptClientSvcInfoT *serviceInfo,
     ClRcT            rc            = CL_OK;
     ClUint32T        shmSize       = clCachedCkptShmSizeGet(cachSize);
     ClCharT cacheName[CL_MAX_NAME_LENGTH];
+    ClUint32T retries = 0;
 
     serviceInfo->cachSize = shmSize;
 
     snprintf(cacheName, sizeof(cacheName), "%s_%d", ckptName->value, gIocLocalBladeAddress);
 
-    rc = clOsalSemIdGet((ClUint8T*)cacheName, &serviceInfo->cacheSem);
+    do
+    {
+      if (retries > 0)
+        usleep(500000); // Waiting semaphore created at SAF services/node representative
+
+      rc = clOsalSemIdGet((ClUint8T*)cacheName, &serviceInfo->cacheSem);
+    } while (CL_OK != rc && CL_GET_ERROR_CODE(rc) == CL_OSAL_ERR_OS_ERROR && retries++<5);
+
     if( CL_OK != rc )
     {
         clLogError("CCK", "INIT_CLIENT", "Failed to get SemId. error code [0x%x].", rc);
         goto out_1;
     }
 
-    rc = clOsalShmOpen(cacheName , CL_CACHED_CKPT_SHM_OPEN_FLAGS,
-                       CL_CACHED_CKPT_SHM_MODE, &serviceInfo->fd);
+    retries = 0;
+    do
+    {
+      if (retries > 0)
+        usleep(500000); // Waiting shared memory created at SAF services/node representative
+
+      rc = clOsalShmOpen(cacheName , CL_CACHED_CKPT_SHM_OPEN_FLAGS, CL_CACHED_CKPT_SHM_MODE, &serviceInfo->fd);
+    } while (CL_OK != rc && CL_GET_ERROR_CODE(rc) == CL_OSAL_ERR_OS_ERROR && retries++<5);
+
     if( CL_OK != rc )
     {
         clLogError("CCK", "INIT_CLIENT", "Failed to open shared memory for cached checkpoint. error code [0x%x].", rc);
@@ -356,7 +372,6 @@ ClRcT clCachedCkptInitialize(ClCachedCkptSvcInfoT *serviceInfo,
     SaVersionT			ckptVersion = {'B', 0x01, 0x01};
     ClTimerTimeOutT		delay = {.tsSec = 0, .tsMilliSec = 500};
     ClInt32T			tries = 0;
-    ClCharT cacheName[CL_MAX_NAME_LENGTH];
     ClUint32T                   shmSize = clCachedCkptShmSizeGet(cachSize);
 
     serviceInfo->cachSize = shmSize;
@@ -367,14 +382,15 @@ ClRcT clCachedCkptInitialize(ClCachedCkptSvcInfoT *serviceInfo,
         return CL_ERR_ALREADY_EXIST;
     }
 
-    snprintf(cacheName, sizeof(cacheName), "%s_%d", ckptName->value, gIocLocalBladeAddress);
+    snprintf(serviceInfo->cacheName, sizeof(serviceInfo->cacheName), "%s_%d", ckptName->value, gIocLocalBladeAddress);
 
-    rc = clOsalSemCreate((ClUint8T*)cacheName, 1, &serviceInfo->cacheSem);
+    clOsalShmUnlink(serviceInfo->cacheName);
+    rc = clOsalSemCreate((ClUint8T*)serviceInfo->cacheName, 1, &serviceInfo->cacheSem);
     if(rc != CL_OK)
     {
         ClOsalSemIdT semId = 0;
 
-        if(clOsalSemIdGet((ClUint8T*)cacheName, &semId) != CL_OK)
+        if(clOsalSemIdGet((ClUint8T*)serviceInfo->cacheName, &semId) != CL_OK)
         {
             clLogError("CCK", "INI", "cache semaphore creation error while fetching semaphore id");
             goto out1;
@@ -386,16 +402,16 @@ ClRcT clCachedCkptInitialize(ClCachedCkptSvcInfoT *serviceInfo,
             goto out1;
         }
 
-        rc = clOsalSemCreate((ClUint8T*)cacheName, 1, &serviceInfo->cacheSem);
+        rc = clOsalSemCreate((ClUint8T*)serviceInfo->cacheName, 1, &serviceInfo->cacheSem);
     }
 
     /* Create shm */
 
-    rc = clOsalShmOpen((ClCharT *)cacheName, CL_CACHED_CKPT_SHM_EXCL_CREATE_FLAGS,
+    rc = clOsalShmOpen((ClCharT *)serviceInfo->cacheName, CL_CACHED_CKPT_SHM_EXCL_CREATE_FLAGS,
                        CL_CACHED_CKPT_SHM_MODE, &serviceInfo->fd);
     if( CL_ERR_ALREADY_EXIST == CL_GET_ERROR_CODE(rc) )
     {
-        rc = clOsalShmOpen((ClCharT *)cacheName, CL_CACHED_CKPT_SHM_OPEN_FLAGS,
+        rc = clOsalShmOpen((ClCharT *)serviceInfo->cacheName, CL_CACHED_CKPT_SHM_OPEN_FLAGS,
                            CL_CACHED_CKPT_SHM_MODE, &serviceInfo->fd);
         if( CL_OK != rc )
         {
@@ -481,6 +497,7 @@ ClRcT clCachedCkptInitialize(ClCachedCkptSvcInfoT *serviceInfo,
         serviceInfo->ckptSvcHandle =  CL_HANDLE_INVALID_VALUE;
     }
     out2:
+    clOsalShmUnlink(serviceInfo->cacheName);
     clOsalSemDelete(serviceInfo->cacheSem);
     out1:
     return rc;
@@ -503,7 +520,8 @@ ClRcT clCachedCkptFinalize(ClCachedCkptSvcInfoT *serviceInfo)
     rc = clOsalShmClose(&serviceInfo->fd);
     if(rc != CL_OK)
         clLogError("CCK", "FIN", "clOsalShmClose(): error code [0x%x].", rc);
-    
+
+    clOsalShmUnlink(serviceInfo->cacheName);
     rc = clOsalSemDelete(serviceInfo->cacheSem);
     if(rc != CL_OK)
         clLogError("CCK", "FIN", "Failed to destroy cache lock. error code [0x%x].", rc);

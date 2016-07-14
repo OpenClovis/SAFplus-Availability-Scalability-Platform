@@ -349,8 +349,9 @@ cosSysvSemIdGet(ClUint8T* pName, ClOsalSemIdT* pSemId)
     ClUint32T len = 0;
     ClUint32T count = 1;
     ClUint32T retCode = CL_OK;
+#if 0
     int       err;
-
+#endif
     nullChkRet(pSemId);
     nullChkRet(pName);
 
@@ -367,6 +368,8 @@ cosSysvSemIdGet(ClUint8T* pName, ClOsalSemIdT* pSemId)
     CL_ASSERT(retCode == CL_OK); /* There is no possible error except for pName == NULL, which I've already checked, so don't check the retCode */
 
     semId = semget ((key_t)key, (int)count, 0660);
+
+#if 0 /* User should explicit calling via cosSysvSemCreate API */
     err   = errno;
     
     if(semId == -1)
@@ -381,6 +384,7 @@ cosSysvSemIdGet(ClUint8T* pName, ClOsalSemIdT* pSemId)
           }
         }
     }
+#endif
 
     sysErrnoChkRet(semId);
 

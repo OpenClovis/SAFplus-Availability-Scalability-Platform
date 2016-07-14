@@ -121,6 +121,12 @@ typedef struct {
      * Shared buffer.
      */
     ClUint8T *cache;
+
+    /**
+     * Cache shared memory name
+     */
+    ClCharT cacheName[CL_MAX_NAME_LENGTH];
+
 }ClCachedCkptSvcInfoT;
 
 /*******************************************************************************/

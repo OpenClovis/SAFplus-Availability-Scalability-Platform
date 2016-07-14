@@ -59,7 +59,7 @@ do {                                                                    \
     if(gClMsgInit == CL_FALSE)                                       \
     {                                                                   \
         ClRcT rc = CL_MSG_RC(CL_ERR_NOT_INITIALIZED);                   \
-        clLogError("MSG", "ERR", "Message client or server is not yet initialized. Please try after some time. error code [0x%x].", rc); \
+        clLogWarning("MSG", "ERR", "Message client or server is not yet initialized. Please try after some time."); \
         return rc;                                                      \
     }                                                                   \
 } while(0)

@@ -691,8 +691,12 @@ ClRcT xportSend(ClIocPortT port, ClUint32T tempPriority, ClIocAddressT *pIocAddr
                 goto retry;
             }
         }
-        clLogDebug("TIPC", "SEND", "Error : Failed at sendmsg. errno = %d\n",errno);
-        rc = CL_ERR_UNSPECIFIED;
+        clLogDebug("TIPC", "SEND", "Error : Failed at sendmsg. errno = %d, system error %s\n",errno, strerror(errno));
+
+        if (errno == EHOSTUNREACH || errno == EHOSTDOWN)
+          rc = CL_IOC_ERR_HOST_UNREACHABLE;
+        else
+          rc = CL_ERR_UNSPECIFIED;
     }
 
     out:
