@@ -861,6 +861,12 @@ ClRcT _cpmNodeDepartureAllowed(ClNameT *nodeName,
                      "Dequeueing CM message failed, error [%#x]",
                      rc);
     }
+
+    if (!gpClCpm->pCpmLocalInfo || !gpClCpm->pCpmConfig)
+    {
+       /* the the cpm had been finalized, do not need to further process */
+       return CL_OK;
+    }
     
     if (!strcmp(nodeName->value, gpClCpm->pCpmLocalInfo->nodeName) && CL_CPM_IS_ACTIVE())
     {
