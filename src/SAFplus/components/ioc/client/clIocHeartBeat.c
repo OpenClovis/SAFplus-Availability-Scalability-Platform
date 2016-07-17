@@ -931,20 +931,6 @@ static ClRcT iocCompFastNotifyCallback(ClIocPhysicalAddressT *compAddr,
 {
     if(status == CL_IOC_NODE_DOWN)
     {
-        if (compAddr->nodeAddress == gIocLocalBladeAddress)
-        {
-            clOsalMutexLock(&gIocHeartBeatLocalTableLock);
-            ClIocHeartBeatStatusT *hbStatus = _clIocHeartBeatLocalMapFind(compAddr->portId);
-            if (hbStatus)
-            {
-                _clIocHeartBeatEntryMapDel(hbStatus);
-            }
-            clOsalMutexUnlock(&gIocHeartBeatLocalTableLock);
-            if(hbStatus)
-            {
-                clHeapFree(hbStatus);
-            }
-        }
         clTransportNotificationClose(NULL, gIocLocalBladeAddress, 
                                      compAddr->portId, CL_IOC_COMP_DEATH_NOTIFICATION);
     }
@@ -969,14 +955,12 @@ static ClRcT HeartBeatPluginDefault(ClUint32T interval, ClUint32T retires) {
         {
             clTransportNotifyFinalize();
         }
-#if 0
         else
         {
             clLogNotice("IOC", "HBT", 
                         "Heartbeat set to fast failure detection for local components");
             goto out;
         }
-#endif
     }
 
     ClTimerTimeOutT timeOut = { .tsSec = interval
@@ -997,7 +981,7 @@ static ClRcT HeartBeatPluginDefault(ClUint32T interval, ClUint32T retires) {
             (ClTimerCallBackT) _clIocHeartBeatCompsSend, (void *) NULL,
             &gHeartBeatLocalTimer);
 
-    /* out: */
+    out:
     return rc;
 }
 
