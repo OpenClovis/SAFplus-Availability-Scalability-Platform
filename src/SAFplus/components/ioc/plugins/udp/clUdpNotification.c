@@ -97,7 +97,7 @@ static ClRcT udpEventSubscribe(ClBoolT pollThread);
 /* Check and update peer address status */
 ClBoolT mcastPeerAddr(ClCharT *addStr, ClUint8T status);
 
-extern ClBoolT gClNodeRepresentative;
+extern ClBoolT gIsNodeRepresentative;
 
 static void udpSyncCallback(ClIocPhysicalAddressT *srcAddr, ClPtrT arg)
 {
@@ -866,7 +866,7 @@ ClRcT clUdpNotify(ClIocNodeAddressT nodeAddress, ClUint32T portId, ClIocNotifica
     ClUint32T i;
     static ClUint32T nodeVersion = CL_VERSION_CODE(5, 0, 0);
 
-    if( !gClNodeRepresentative && (rc = udpMcastSetup() ) != CL_OK)
+    if( !gIsNodeRepresentative && (rc = udpMcastSetup() ) != CL_OK)
         return rc;
 
     if(gFd < 0)
@@ -1261,7 +1261,7 @@ ClRcT clUdpEventHandlerInitialize(void)
       rc = _gmsClusterTrackInit();
 
     /* I need to tell everyone that I went down in case the keep-alive hasn't kicked in yet */
-    if (gClNodeRepresentative)
+    if (gIsNodeRepresentative)
     {
         /* clUdpNotify(gIocLocalBladeAddress, CL_IOC_XPORT_PORT, CL_IOC_NODE_LEAVE_NOTIFICATION);
            sleep(1); */

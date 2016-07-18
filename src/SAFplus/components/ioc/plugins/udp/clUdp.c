@@ -34,7 +34,6 @@ ClPluginHelperVirtualIpAddressT gVirtualIp;
 ClBoolT gClUdpUseExistingIp = CL_FALSE;
 static ClBoolT gUdpInit = CL_FALSE;
 ClBoolT gClSimulationMode = CL_FALSE;
-ClBoolT gClNodeRepresentative = CL_FALSE;
 ClInt32T gClProtocol = IPPROTO_UDP;
 ClInt32T gClSockType = SOCK_DGRAM;
 ClInt32T gClCmsgHdrLen;
@@ -695,7 +694,6 @@ ClRcT xportInit(const ClCharT *xportType, ClInt32T xportId, ClBoolT nodeRep)
         gClUdpXportType[0] = 0;
         strncat(gClUdpXportType, xportType, sizeof(gClUdpXportType)-1);
     }
-    gClNodeRepresentative = nodeRep;
     gClUdpXportId = xportId;
     gClBindOffset = gIocLocalBladeAddress;
     gClUdpUseExistingIp = clParseEnvBoolean("ASP_UDP_USE_EXISTING_IP");

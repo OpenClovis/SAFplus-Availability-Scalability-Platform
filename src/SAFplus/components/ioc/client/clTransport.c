@@ -549,7 +549,7 @@ static ClRcT clTransportDestNodeLUTUpdate(ClIocNotificationIdT notificationId, C
         case CL_IOC_NODE_LINK_UP_NOTIFICATION:
         case CL_IOC_COMP_ARRIVAL_NOTIFICATION:
         {
-            if (clNodeCacheMemberGetSafe(nodeAddr, &member) == CL_OK)
+            if (clNodeCacheMemberGetFast(nodeAddr, &member) == CL_OK)
             {
                 clOsalMutexLock(&gClXportNodeAddrListMutex);
                 nodeConfigAddrData = _clXportUpdateNodeConfig(nodeAddr, (const ClCharT *)member.name);
@@ -1498,23 +1498,23 @@ ClRcT clFindTransport(ClIocNodeAddressT dstIocAddress, ClIocAddressT *rdstIocAdd
     if(!typeXport) return CL_ERR_INVALID_PARAMETER;
     preferredXport = *typeXport;
 
-    if (clNodeCacheMemberGetSafe(dstIocAddress, &member) == CL_OK)
+    clOsalMutexLock(&gClXportNodeAddrListMutex);
+    if (!(destNodeLUTData = _clXportDestNodeLUTMapFind(dstIocAddress)))
     {
-      clOsalMutexLock(&gClXportNodeAddrListMutex);
-      if(!(destNodeLUTData = _clXportDestNodeLUTMapFind(dstIocAddress)))
+      if (clNodeCacheMemberGetFast(dstIocAddress, &member) == CL_OK)
       {
-        if((nodeConfigAddrData = _clXportUpdateNodeConfig(dstIocAddress, (const ClCharT*)member.name)))
+        if ((nodeConfigAddrData = _clXportUpdateNodeConfig(dstIocAddress, (const ClCharT*) member.name)))
         {
           nodeConfigAddrData->iocAddress = dstIocAddress;
         }
         _clSetupDestNodeLUTData();
         destNodeLUTData = _clXportDestNodeLUTMapFind(dstIocAddress);
       }
-      clOsalMutexUnlock(&gClXportNodeAddrListMutex);
     }
 
     if (!destNodeLUTData) 
     {
+        clOsalMutexUnlock(&gClXportNodeAddrListMutex);
         if(preferredXport)
         {
             *typeXport = preferredXport;
@@ -1530,8 +1530,6 @@ ClRcT clFindTransport(ClIocNodeAddressT dstIocAddress, ClIocAddressT *rdstIocAdd
         }
         return CL_ERR_NOT_EXIST;
     }
-
-    clOsalMutexLock(&gClXportNodeAddrListMutex);
 
     if (destNodeLUTData->bridgeIocNodeAddress != 0)  // GAS added check for zero because 0 bridge was causing healthcheck to be skipped during startup
         ((ClIocPhysicalAddressT *)rdstIocAddress)->nodeAddress = destNodeLUTData->bridgeIocNodeAddress;
@@ -3102,7 +3100,7 @@ ClBoolT clTransportBridgeEnabled(ClIocNodeAddressT node)
     if(node == gIocLocalBladeAddress)
         return gLocalNodeBridge;
     ClNodeCacheMemberT member = {0};
-    if (clNodeCacheMemberGetSafe(node, &member) == CL_OK)
+    if (clNodeCacheMemberGetFast(node, &member) == CL_OK)
     {
       clOsalMutexLock(&gClXportNodeAddrListMutex);
       nodeAddrConfig = _clXportNodeAddrMapFind((const ClCharT*)member.name);
