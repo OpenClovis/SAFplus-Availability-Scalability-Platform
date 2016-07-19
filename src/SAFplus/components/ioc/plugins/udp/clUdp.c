@@ -1343,7 +1343,7 @@ ClRcT xportSend(ClIocPortT port, ClUint32T priority, ClIocAddressT *address,
             clOsalMutexUnlock(&gXportCtrl.mutex);
             for (i=0; i< CL_IOC_MAX_COMP_PORT; i++)
             {
-                if (i != port && (buff[i>>3] & (1 << (i&7))))
+                if (i != port && i != CL_IOC_XPORT_PORT && (buff[i>>3] & (1 << (i&7))))
                 {
                     sendArgs.port = i;
                     ClRcT retCode = iocUdpSend(&addrMap, &sendArgs);
