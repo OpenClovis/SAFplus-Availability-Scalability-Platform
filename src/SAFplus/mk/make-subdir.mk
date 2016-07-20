@@ -146,7 +146,7 @@ ifeq ("$(GCC_MAJOR_VERSION_MIN_RANGE)", "1")
 endif
 
 ifeq ("$(GCC_MAJOR_VERSION_MAX_RANGE)", "1")
-    SPECIAL_CFLAGS = -Wno-error=unused-but-set-variable -Wno-error=unused-result
+    SPECIAL_CFLAGS = -Wno-error=unused-but-set-variable -Wno-error=unused-result -D__FUNCTION__=__func__
     SPECIAL_LDFLAGS =,--no-as-needed
 endif
 

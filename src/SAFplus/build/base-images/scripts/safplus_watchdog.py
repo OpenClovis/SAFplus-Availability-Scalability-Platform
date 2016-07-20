@@ -213,6 +213,7 @@ def redirect_file():
 
 def configWatchdogLog():
     logging.basicConfig(filename='%s/amf_watchdog.log' % asp.get_asp_log_dir(), format='%(levelname)s %(asctime)s.%(msecs)d %(message)s', level=logging.DEBUG, datefmt='%a %d %b %Y %H:%M:%S')
+    os.chmod('%s/amf_watchdog.log' % asp.get_asp_log_dir(), 0644);
     global fileLogger
     fileLogger = logging.getLogger()
 
