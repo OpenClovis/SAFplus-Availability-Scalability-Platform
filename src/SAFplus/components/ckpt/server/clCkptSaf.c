@@ -3950,6 +3950,11 @@ ClRcT  VDECL_VER(clCkptReplicaNotify, 4, 0, 0)(ClVersionT        *pVersion,
                    rc);
         goto exitOnError;
     }
+
+    int retry=0;    
+    do 
+    {
+        retry++;
     /*
      * make call to active server to pull the info 
      */
@@ -3959,14 +3964,24 @@ ClRcT  VDECL_VER(clCkptReplicaNotify, 4, 0, 0)(ClVersionT        *pVersion,
                                                                gCkptSvr->localAddr,
                                                                &ckptInfo);
     if(CL_RMD_VERSION_ERROR(rc))
-    {
+      {
         scaleDown = CL_TRUE;
         rc = VDECL_VER(clCkptRemSvrCkptInfoGetClientSync, 4, 0, 0)(gCkptSvr->ckptIdlHdl,
                                                                    pVersion,
                                                                    ckptActHdl,
                                                                    gCkptSvr->localAddr,
                                                                    &ckptInfoBase);
-    }
+      }
+    if (rc!=CL_OK)
+      {
+          ClTimerTimeOutT delay;
+          delay.tsSec=0;
+          delay.tsMilliSec=100*retry;
+          clOsalTaskDelay(delay);
+      }
+    
+    } while((retry < 5)&&(rc != CL_OK));
+     
     /*
      * Verison mismatch check.
      */
@@ -4627,7 +4642,7 @@ VDECL_VER(clCkptReplicaAppInfoNotify, 4, 0, 0)(ClCkptHdlT  ckptHdl,
      * Retrieve the data associated with the active handle.
      */
     rc = ckptSvrHdlCheckout(gCkptSvr->ckptHdl,ckptHdl,(void **)&pCkpt);
-    CKPT_ERR_CHECK_BEFORE_HDL_CHK(CL_CKPT_SVR,CL_DEBUG_ERROR, ("Handle [%#llx] checkout failed from database [%lu (%p)].  rc[0x %x]\n", ckptHdl, clHandleGetDatabaseId(gCkptSvr->ckptHdl),gCkptSvr->ckptHdl, rc), rc);
+    CKPT_ERR_CHECK_BEFORE_HDL_CHK(CL_CKPT_SVR,CL_DEBUG_ERROR, ("Handle [%#llx] checkout failed from database [%lu (%p)].  rc[0x %x]", ckptHdl, clHandleGetDatabaseId(gCkptSvr->ckptHdl),gCkptSvr->ckptHdl, rc), rc);
     /*
      * Lock the checkpoint's mutex.
      */

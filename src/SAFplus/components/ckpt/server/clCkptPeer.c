@@ -1579,8 +1579,7 @@ ClRcT VDECL_VER(clCkptRemSvrCkptInfoGet, 5, 0, 0)(ClVersionT         *pVersion,
     rc = clVersionVerify(&gCkptSvr->versionDatabase,pVersion);
     if( CL_OK != rc)
     {
-        clLogDebug(CL_CKPT_AREA_PEER, CL_CKPT_CTX_REPL_UPDATE, 
-                   "Ckpt version is not proper");
+        clLogDebug(CL_CKPT_AREA_PEER, CL_CKPT_CTX_REPL_UPDATE, "Ckpt version is not correct");
         /*
          * IDL will not pack the inout variable,if rc is not CL_OK
          */
@@ -1630,8 +1629,7 @@ ClRcT VDECL_VER(clCkptRemSvrCkptInfoGet, 5, 0, 0)(ClVersionT         *pVersion,
      */
     rc = _ckptCheckpointInfoPack(pCkpt, pCkptInfo->pCpInfo, pCkptInfo->pDpInfo);
 
-    CKPT_ERR_CHECK(CL_CKPT_SVR,CL_DEBUG_ERROR,
-            ("Fail: Handle checkout [0x %x]\n", rc), rc);
+    CKPT_ERR_CHECK(CL_CKPT_SVR,CL_DEBUG_ERROR, ("Fail: Handle checkout [0x %x]\n", rc), rc);
 
     pCkptInfo->ckptHdl = ckptHdl;
 

@@ -41,7 +41,9 @@ extern "C" {
 /* Routine to Log a checkpoint error */
 void clCkptLogError(ClUint32T   logLvl, 
                     ClRcT       retCode, 
-                    ClUint32T   libCode);
+                    ClUint32T   libCode,
+                    const char* file,
+                    unsigned int line);
                     
 /**====================================**/
 /**     C O N S T A N T S              **/
@@ -73,7 +75,7 @@ void clCkptLogError(ClUint32T   logLvl,
 {\
     if(rc != CL_OK)\
     {\
-        clCkptLogError(logLvl, rc, libCode);\
+        clCkptLogError(logLvl, rc, libCode,__FILE__,__LINE__);  \
         CL_DEBUG_PRINT(logLvl, message);\
         goto exitOnError;\
     }\
@@ -83,7 +85,7 @@ void clCkptLogError(ClUint32T   logLvl,
 {\
     if(rc != CL_OK)\
     {\
-        clCkptLogError(logLvl, rc, libCode);\
+        clCkptLogError(logLvl, rc, libCode,__FILE__,__LINE__);  \
         CL_DEBUG_PRINT(logLvl, message);\
         goto exitOnErrorBeforeHdlCheckout;\
     }\

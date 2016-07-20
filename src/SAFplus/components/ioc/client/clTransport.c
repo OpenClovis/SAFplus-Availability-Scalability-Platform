@@ -698,9 +698,9 @@ static void addTransport(const ClCharT *type, const ClCharT *plugin)
 static ClInt32T listenerEventFind(ClXportCtrlT *xportCtrl, ClInt32T fd, ClInt32T index)
 {
     register ClInt32T i;
-    if(index >= 0 && index < xportCtrl->numfds && xportCtrl->pollfds[index].fd == fd)
+    if(index >= 0 && index < xportCtrl->numfds && xportCtrl->pollfds[index].fd == fd)  // quickly look where is was previously
         return index;
-    for(i = 0; i < xportCtrl->numfds; ++i)
+    for(i = 0; i < xportCtrl->numfds; ++i)  // ok look everywhere
     {
         if(xportCtrl->pollfds[i].fd == fd) return i;
     }
@@ -746,10 +746,11 @@ static ClRcT listenerEventRegister(ClXportCtrlT *xportCtrl,
     struct epoll_event epoll_event = {0};
     ClInt32T err;
     ClRcT rc = CL_ERR_ALREADY_EXIST;
+    clOsalMutexLock(&xportCtrl->mutex);
     if(listenerEventFind(xportCtrl, listener->fd, -1) >= 0)
     {
         clLogError("EVENT", "REGISTER", "Listener at fd [%d] already exists", listener->fd);
-        goto out;
+        goto out_unlock;
     }
     if(!events)
         events = EPOLLPRI | EPOLLIN;
@@ -758,16 +759,13 @@ static ClRcT listenerEventRegister(ClXportCtrlT *xportCtrl,
     eventData->fd = listener->fd;
     eventData->index = xportCtrl->numfds;
     rc = CL_ERR_LIBRARY;
-    clOsalMutexLock(&xportCtrl->mutex);
     err = epoll_ctl(xportCtrl->eventFd, EPOLL_CTL_ADD, listener->fd, &epoll_event);
     if(err < 0)
     {
-        clLogError("EVENT", "REGISTER", "epoll_ctl add returned with error [%s] for fd [%d]",
-                   strerror(errno), listener->fd);
+        clLogError("EVENT", "REGISTER", "epoll_ctl add returned with error [%s] for fd [%d]", strerror(errno), listener->fd);
         goto out_unlock;
     }
-    xportCtrl->pollfds = realloc(xportCtrl->pollfds, sizeof(*xportCtrl->pollfds) * 
-                                         (xportCtrl->numfds + 1));
+    xportCtrl->pollfds = realloc(xportCtrl->pollfds, sizeof(*xportCtrl->pollfds) * (xportCtrl->numfds + 1));
     CL_ASSERT(xportCtrl->pollfds != NULL);
     event.fd = listener->fd;
     event.events = events;
@@ -782,7 +780,6 @@ static ClRcT listenerEventRegister(ClXportCtrlT *xportCtrl,
     
     out_unlock:
     clOsalMutexUnlock(&xportCtrl->mutex);
-    out:
     return rc;
 }
 
@@ -792,6 +789,8 @@ static ClRcT listenerEventDeregister(ClXportCtrlT *xportCtrl, ClXportListenerT *
     ClInt32T index = 0;
     ClInt32T err;
     ClRcT rc = CL_ERR_LIBRARY;
+    clOsalMutexLock(&xportCtrl->mutex);
+
     err = epoll_ctl(xportCtrl->eventFd, EPOLL_CTL_DEL, listener->fd, &epoll_event);
     if(err < 0)
     {
@@ -808,6 +807,8 @@ static ClRcT listenerEventDeregister(ClXportCtrlT *xportCtrl, ClXportListenerT *
     clListDel(&listener->list);
     rc = CL_OK;
     out:
+    clOsalMutexUnlock(&xportCtrl->mutex);
+
     return rc;
 }
 
@@ -883,7 +884,6 @@ static ClRcT transportListener(ClPtrT ctxt)
         }
         if(!XPORT_LISTENER_ACTIVE(xportCtrl))
             break;
-        clOsalMutexUnlock(&xportCtrl->mutex);
         if(epoll_cur_fds < epoll_fds)
         {
             epoll_events = realloc(epoll_events, sizeof(*epoll_events) * epoll_fds);
@@ -891,8 +891,11 @@ static ClRcT transportListener(ClPtrT ctxt)
             epoll_cur_fds = epoll_fds;
         }
         memset(epoll_events, 0, sizeof(*epoll_events) * epoll_fds);
+
+        clOsalMutexUnlock(&xportCtrl->mutex);
         ret = epoll_wait(xportCtrl->eventFd, epoll_events, epoll_fds, -1);
         clOsalMutexLock(&xportCtrl->mutex);
+
         if (!XPORT_LISTENER_ACTIVE(xportCtrl)) break;  /* if thread is quitting take a shortcut out of the processing loop */
         if(ret <= 0)
             continue;
@@ -906,13 +909,16 @@ static ClRcT transportListener(ClPtrT ctxt)
             index = listenerEventFind(xportCtrl, data->fd, data->index);
             if(index < 0)
             {
-                clLogWarning("XPORT", "LISTENER", "Listener not found for fd [%d] registered at index [%d]", 
-                             data->fd, data->index);
+                clLogWarning("XPORT", "LISTENER", "Listener not found for fd [%d] registered at index [%d]", data->fd, data->index);
                 continue;
             }
             memcpy(&event, xportCtrl->pollfds+index, sizeof(event));
             if( !(epoll_events[i].events & event.events) )
+            {
+                clLogWarning("XPORT", "LISTENER", "Skipping event for fd [%d] registered at index [%d], received event mask [%x] looking for [%x]", data->fd, data->index,epoll_events[i].events, event.events);
                 continue;
+            }
+            
             clOsalMutexUnlock(&xportCtrl->mutex);
             if(event.dispatch)
                 event.dispatch(event.fd, epoll_events[i].events, event.cookie);

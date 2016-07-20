@@ -1079,6 +1079,7 @@ static ClRcT cpmBmSetLevel(cpmBMT *bmTable, ClUint32T bootLevel)
             while (cpmBmTable->currentBootLevel != cpmBmTable->maxBootLevel)
             {
                 rc = cpmBmStartNextLevel(cpmBmTable);
+                if (gCpmAppShutdown || gCpmShuttingDown) return  CL_ERR_FAILED_OPERATION;
                 if (rc == CL_OK)
                     ;
                 else
@@ -1094,6 +1095,7 @@ static ClRcT cpmBmSetLevel(cpmBMT *bmTable, ClUint32T bootLevel)
             while (cpmBmTable->currentBootLevel != bootLevel)
             {
                 rc = cpmBmStartNextLevel(cpmBmTable);
+                if (gCpmAppShutdown || gCpmShuttingDown) return  CL_ERR_FAILED_OPERATION;
                 if (rc == CL_OK)
                 {
                     clLogWrite(CL_LOG_HANDLE_APP, CL_LOG_INFORMATIONAL, NULL,
@@ -1114,6 +1116,7 @@ static ClRcT cpmBmSetLevel(cpmBMT *bmTable, ClUint32T bootLevel)
         while (cpmBmTable->currentBootLevel != bootLevel)
         {
             rc = cpmBmStopCurrentLevel(cpmBmTable);
+            if (gCpmAppShutdown || gCpmShuttingDown) return  CL_ERR_FAILED_OPERATION;
             if (rc != CL_OK)
             {
                 CL_CPM_CHECK_2(CL_DEBUG_ERROR,

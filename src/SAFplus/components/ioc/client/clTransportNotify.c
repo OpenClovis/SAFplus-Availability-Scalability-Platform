@@ -193,7 +193,7 @@ static void __compNotify(ClInt32T wd, const ClCharT *compName, ClIocNotification
 static ClRcT transportNotifyCallback(ClInt32T fd, ClInt32T events, void *unused)
 {
     ClCharT buff[ 16 * (sizeof(struct inotify_event) + FILENAME_MAX) ];
-    ClInt32T bytes;
+    int bytes;
     ClCharT *iter = buff;
     struct inotify_event *event;
     if(!(events & EPOLLIN))
@@ -202,19 +202,29 @@ static ClRcT transportNotifyCallback(ClInt32T fd, ClInt32T events, void *unused)
     while(bytes >= (ClInt32T)sizeof(struct inotify_event))
     {
         event = (struct inotify_event*)iter;
+        clLogDebug("XPORT", "NOTIFY", "inotify event: watch desc [%d] mask [%x] cookie [%d] length [%d] name [%s] ", event->wd, event->mask, event->cookie, event->len, (event->len) ? event->name: "no name");
         if((event->mask & IN_CREATE))
         {
-            __compNotify(event->wd, event->len ? event->name : NULL,
-                               CL_IOC_COMP_ARRIVAL_NOTIFICATION);
+            __compNotify(event->wd, event->len ? event->name : NULL, CL_IOC_COMP_ARRIVAL_NOTIFICATION);
         }
         else if ((event->mask & IN_CLOSE_NOWRITE))
         {
-            __compNotify(event->wd, event->len ? event->name : NULL,
-                               CL_IOC_COMP_DEATH_NOTIFICATION);
+            __compNotify(event->wd, event->len ? event->name : NULL, CL_IOC_COMP_DEATH_NOTIFICATION);
         }
+        else
+        {
+            clLogError("XPORT", "NOTIFY", "Unknown inotify event: watch desc [%d] mask [%x] cookie [%d] length [%d] name [%s] ", event->wd, event->mask, event->cookie, event->len, (event->len) ? event->name : "no name");
+        }
+        
         iter = iter + sizeof(struct inotify_event) + event->len;
         bytes -= (sizeof(struct inotify_event) + event->len);
     }
+    if (bytes)
+    {
+        clLogCritical("XPORT", "NOTIFY", "Left over inotify bytes [%d]", bytes);
+        assert(bytes == 0);
+    }
+    
     return CL_OK;
 }
 

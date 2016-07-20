@@ -19,6 +19,7 @@
 #include <clEoApi.h>
 #include <clXdrApi.h>
 #include <clHandleApi.h>
+#include <clLogApi.h>
 #include "ckptEockptServerActivePeerClient.h"
 extern ClIdlClntT gIdlClnt;
 
@@ -729,6 +730,7 @@ ClRcT clCkptRemSvrCkptInfoGetClientSync_5_0_0(CL_IN ClIdlHandleT handle, CL_INOU
     rc = clHandleCheckout(gIdlClnt.idlDbHdl,handle,(void **)&pHandleObj);
     if( rc != CL_OK )
     {
+        clLogInfo("CKP","---","Client Sync error.  Handle [0x%llx] error [%x]", handle, rc);
         return rc ;
     }
     if (CL_IDL_ADDRESSTYPE_IOC == pHandleObj->address.addressType)
@@ -744,6 +746,7 @@ ClRcT clCkptRemSvrCkptInfoGetClientSync_5_0_0(CL_IN ClIdlHandleT handle, CL_INOU
                                         (ClUint64T*)&address);
         if (CL_OK != rc)
         {
+            clLogInfo("CKP","---","Client Sync error, in NameToObjectReferenceGet. error [%x]", rc);
             return rc;
         }
     }

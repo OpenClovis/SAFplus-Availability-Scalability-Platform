@@ -103,6 +103,26 @@ do                                                              \
                   __VA_ARGS__);                                 \
 } while(0)
 
+#define clLogFL(file,line,severity, area, context, ...)         \
+do                                                              \
+{                                                               \
+    const ClCharT  *pArea    = CL_LOG_AREA_UNSPECIFIED;         \
+    const ClCharT  *pContext = CL_LOG_CONTEXT_UNSPECIFIED;      \
+    if( NULL != area )                                          \
+    {                                                           \
+        pArea = area;                                           \
+    }                                                           \
+    if( NULL != context )                                       \
+    {                                                           \
+        pContext = context;                                     \
+    }                                                           \
+    clLogMsgWrite(CL_LOG_HANDLE_SYS, (ClLogSeverityT)severity,  \
+                  CL_LOG_DEFAULT_SYS_SERVICE_ID,                \
+                  pArea, pContext, file, line,                  \
+                  __VA_ARGS__);                                 \
+} while(0)    
+
+    
 #define clLogDeferred(severity, area, context, ...)                     \
 do                                                                      \
 {                                                                       \

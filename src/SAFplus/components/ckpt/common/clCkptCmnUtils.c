@@ -54,7 +54,9 @@ ClUint32T gClCkptRmdDefaultTimeout = CKPT_RMD_DFLT_TIMEOUT;
  
 void clCkptLogError(ClUint32T   logLvl, 
                     ClRcT       retCode, 
-                    ClUint32T   libCode)
+                    ClUint32T   libCode,
+                    const char* file,
+                    unsigned int line)
 {
     ClLogSeverityT severity = logLvl;
     ClCharT        *libName = "clAspCkptLib";
@@ -71,9 +73,9 @@ void clCkptLogError(ClUint32T   logLvl,
     switch(CL_GET_ERROR_CODE(retCode))
     {
     case CL_ERR_NO_MEMORY :
-            clLogWrite(CL_LOG_HANDLE_APP, severity, 
-                    libName,CL_LOG_MESSAGE_0_MEMORY_ALLOCATION_FAILED);
-            break;       
+        clLogFL(file,line,severity, NULL, NULL, CL_LOG_MESSAGE_0_MEMORY_ALLOCATION_FAILED); 
+        //clLogWrite(CL_LOG_HANDLE_APP, severity, libName,CL_LOG_MESSAGE_0_MEMORY_ALLOCATION_FAILED);
+        break;       
     case CL_ERR_NULL_POINTER:
             clLogWrite(CL_LOG_HANDLE_APP, severity, 
                     libName,CL_LOG_MESSAGE_0_NULL_ARGUMENT);
