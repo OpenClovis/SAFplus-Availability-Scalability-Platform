@@ -382,7 +382,8 @@ module SAFplusAmf
        {
          type string;
 	     description "A list of service group name separated by space to indicate that the cell in the node by this SG array is disabled, no assignment is performed";
-	     SAFplusTypes:ui-prompt "Assignment disabled on the cell";
+	     /*SAFplusTypes:ui-prompt "Assignment disabled on the cell";*/
+         config false;
        }
 
       leaf userDefinedType
@@ -396,7 +397,7 @@ module SAFplusAmf
        {
          type boolean;
 	     description "This flag is to determine whether this node can be inherited by a new node or not. If a node is supposed to be configured like this node, user must specify user-defined node type when creating a new node";
-	     SAFplusTypes:ui-prompt "Can be inherited by a new node";
+	     SAFplusTypes:ui-prompt "This node can be inherited by a new node";
        }
 
     leaf-list serviceUnits

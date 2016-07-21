@@ -119,6 +119,7 @@ class SAFplusFrame(wx.Frame):
     def loadProject(self, prj):
       if not prj: return
       self.currentActivePrj = prj
+      self.project.currentActiveProject = prj
       self.tab.Unbind(wx.aui.EVT_AUINOTEBOOK_PAGE_CHANGED) # need to unbind to not catch page delete event b/c we only want to catch page selection event
       if not self.model:
         self.cleanupTabs()

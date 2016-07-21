@@ -220,6 +220,7 @@ class ProjectTreeCtrl(wx.TreeCtrl):
 class ProjectTreePanel(wx.Panel):
   def __init__(self, parent,guiPlaces):
         self.parent = parent
+        self.currentActiveProject = None
         # Use the WANTS_CHARS style so the panel doesn't eat the Return key.
         wx.Panel.__init__(self, parent, -1, style=wx.WANTS_CHARS)
         self.Bind(wx.EVT_SIZE, self.OnSize)
@@ -401,10 +402,12 @@ class ProjectTreePanel(wx.Panel):
 
   def OnSave(self,event):
     saved = []
-    for p in self.projects:
-      prj = self.tree.GetPyData(p)
-      prj.save()
-      saved.append(prj.name)
+    self.currentActiveProject.save() 
+    saved.append(self.currentActiveProject.name)
+    #for p in self.projects:
+    #  prj = self.tree.GetPyData(p)
+    #  prj.save()
+    #  saved.append(prj.name)
     self.guiPlaces.statusbar.SetStatusText("Projects %s saved." % ", ".join(saved),0);
 
   def OnSaveAs(self, event):
