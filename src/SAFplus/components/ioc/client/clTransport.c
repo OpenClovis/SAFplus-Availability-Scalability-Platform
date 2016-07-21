@@ -789,7 +789,6 @@ static ClRcT listenerEventDeregister(ClXportCtrlT *xportCtrl, ClXportListenerT *
     ClInt32T index = 0;
     ClInt32T err;
     ClRcT rc = CL_ERR_LIBRARY;
-    clOsalMutexLock(&xportCtrl->mutex);
 
     err = epoll_ctl(xportCtrl->eventFd, EPOLL_CTL_DEL, listener->fd, &epoll_event);
     if(err < 0)
@@ -807,8 +806,6 @@ static ClRcT listenerEventDeregister(ClXportCtrlT *xportCtrl, ClXportListenerT *
     clListDel(&listener->list);
     rc = CL_OK;
     out:
-    clOsalMutexUnlock(&xportCtrl->mutex);
-
     return rc;
 }
 
