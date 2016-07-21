@@ -1378,32 +1378,31 @@ class Panel(scrolled.ScrolledPanel):
         canBeInherited = bool(values.data.get("canBeInherited", None))
         if canBeInherited:
           userDefineType = values.data.get("userDefinedType", None)
-          if userDefineType:
+          if userDefineType and len(userDefineType)>0:
             userDefinedNodeTypes.append(userDefineType)
       return userDefinedNodeTypes
 
-    def updateMenuUserDefineNodeTypes(self, ent, flag):
+    def updateMenuUserDefineNodeTypes(self, ent, oldValue=None,flag=None):
       userDefineType = ent.data.get("userDefinedType", None)
-      if not userDefineType or len(userDefineType)==0:
-        print 'updateMenuUserDefineNodeTypes: userDefinedType is null'
-        return
       print 'updateMenuUserDefineNodeTypes: userDefinedType: %s' % userDefineType
+      if not flag:
+        flag = ent.data.get("canBeInherited", None)
       menuItems = self.menuUserDefineNodeTypes.GetMenuItems()
       for item in menuItems:
         if item.GetText() == userDefineType: # the user-defined node type has been already here
-          if flag:# True is to add new user-defined node type but it exists, nothing to do
-            print 'updateMenuUserDefineNodeTypes: nothing to do'
+          if flag:# True is to add new user-defined node type but it exists, nothing to do            
             return
-          else: # False is to delete an existing one from the menu
-            print 'updateMenuUserDefineNodeTypes: delete menu item: %s' % item.GetText()
+          else: # False is to delete an existing one from the menu            
             self.menuUserDefineNodeTypes.Delete(item.Id)
             return
+        elif oldValue and item.GetText()==oldValue:
+          self.menuUserDefineNodeTypes.Delete(item.Id)
+          break
       if flag:
         # Add the new one
-        print 'updateMenuUserDefineNodeTypes: add menu item: %s' % userDefineType
-        i = self.menuUserDefineNodeTypes.Append(wx.NewId(), userDefineType)
-        self.Bind(wx.EVT_MENU, self.OnMenuNodeInstCreate, i)
-      else: print 'updateMenuUserDefineNodeTypes: flag is false --> do nothing'
+        if userDefineType and len(userDefineType)>0:
+          i = self.menuUserDefineNodeTypes.Append(wx.NewId(), userDefineType)
+          self.Bind(wx.EVT_MENU, self.OnMenuNodeInstCreate, i)
 
     def getNodeInst(self, usrDefinedType):      
       for e in self.columns:
@@ -1759,8 +1758,8 @@ class Panel(scrolled.ScrolledPanel):
             print 'instanceEditor::notifyValueChange: validator is null'
           e.recreateBitmap()
 
-          if token=="canBeInherited": #or token=="userDefinedType":
-            self.updateMenuUserDefineNodeTypes(ent, d["canBeInherited"])
+          if token=="canBeInherited":
+            self.updateMenuUserDefineNodeTypes(ent=ent, oldValue=None, flag=d["canBeInherited"])
 
       self.Refresh()
 

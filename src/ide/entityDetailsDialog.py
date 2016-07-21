@@ -265,6 +265,9 @@ class Panel(scrolled.ScrolledPanel):
         global thePanel
         scrolled.ScrolledPanel.__init__(self, parent, style = wx.TAB_TRAVERSAL|wx.SUNKEN_BORDER)
         
+        self.usrDefinedNodeTypeCtrls = {}
+        
+
         #? Set to True if you want to only show the config items, set to false if you want to show config and runtime items
         self.configOnly = True
 
@@ -403,6 +406,15 @@ class Panel(scrolled.ScrolledPanel):
 
     def OnUnfocus(self,event):
       # TODO: got wrong entity value change
+      id = event.GetId()
+      if id in self.usrDefinedNodeTypeCtrls:
+        idx = id - TEXT_ENTRY_ID
+        obj = self.lookup[idx]
+        query = obj[1]
+        unfocusTreeItem = obj[4]
+        entity = self.tree.GetPyData(unfocusTreeItem)
+        if share.instancePanel:
+          share.instancePanel.updateMenuUserDefineNodeTypes(entity, self.usrDefinedNodeTypeCtrls[id])
       return
       id = event.GetId()
       if id>=TEXT_ENTRY_ID and id < TEXT_ENTRY_ID+self.numElements:
@@ -431,6 +443,9 @@ class Panel(scrolled.ScrolledPanel):
         idx = id - TEXT_ENTRY_ID
         obj = self.lookup[idx]
         self.treeItemSelected = obj[4]
+        query = obj[1]
+        if id in self.usrDefinedNodeTypeCtrls:
+          self.usrDefinedNodeTypeCtrls[id] = query.GetValue()
 
         if self.treeItemSelected:
           self.tree.SelectItem(self.treeItemSelected)
@@ -531,12 +546,14 @@ class Panel(scrolled.ScrolledPanel):
       else:
         # TODO do any of these need to be displayed?
         query = None
+      if 'userDefinedType' in item:
+        self.usrDefinedNodeTypeCtrls[id] = ""
       return query
 
     def findEntityRecursive(self, ent, parent = None):
       # get root if on item
       if not parent:
-          parent = self.tree.GetRootItem()
+        parent = self.tree.GetRootItem()
 
       if (self.tree.GetPyData(parent) == ent):
         return parent
