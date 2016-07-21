@@ -39,6 +39,7 @@ typedef struct ClIocUdpMap
     ClBoolT bridge;
     int family;
     int sendFd;
+    int sendReliableFd;
     union
     {
         struct sockaddr_in sin_addr;

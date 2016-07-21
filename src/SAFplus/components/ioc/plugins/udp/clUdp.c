@@ -31,7 +31,7 @@ static ClBoolT udpPriorityChangePossible = CL_TRUE;  /* Don't attempt to change 
 static struct hashStruct *gIocUdpMap[IOC_UDP_MAP_SIZE];
 static CL_LIST_HEAD_DECLARE(gIocUdpMapList);
 extern ClIocNodeAddressT gIocLocalBladeAddress;
-static ClPluginHelperVirtualIpAddressT gVirtualIp;
+ClPluginHelperVirtualIpAddressT gVirtualIp;
 ClBoolT gClUdpUseExistingIp = CL_FALSE;
 static ClBoolT gUdpInit = CL_FALSE;
 ClBoolT gClSimulationMode = CL_FALSE;
@@ -41,6 +41,9 @@ ClInt32T gClSockType = SOCK_DGRAM;
 ClInt32T gClCmsgHdrLen;
 struct cmsghdr *gClCmsgHdr;
 static ClUint32T gClBindOffset;
+# define CL_IOC_REL_PORT                          0x0020
+
+extern ClBoolT mcastPeerAddr(ClCharT *addStr, ClUint8T status);
 
 typedef struct ClUdpAddrCacheEntry
 {
@@ -275,6 +278,9 @@ ClRcT clIocUdpMapDel(ClIocNodeAddressT slot)
 {
     ClRcT rc = CL_OK;
     ClIocUdpMapT *map = NULL;
+
+    clOsalMutexLock(&gXportCtrl.mutex);
+
     if((map = iocUdpMapFind(slot)))
     {
         udpMapDel(map);
@@ -282,6 +288,8 @@ ClRcT clIocUdpMapDel(ClIocNodeAddressT slot)
         free(map);
     }
     else rc = CL_ERR_NOT_EXIST;
+
+    clOsalMutexUnlock(&gXportCtrl.mutex);
     return rc;
 }
 
@@ -297,6 +305,7 @@ ClRcT clUdpMapWalk(ClRcT (*callback)(ClIocUdpMapT *map, void *cookie), void *coo
     ClUint32T numEntries = 0, i;
     static ClUint32T growMask = 7;
 
+    clOsalMutexLock(&gXportCtrl.mutex);
     /*
      * Accumulate the map first and then send all lockless. This would be faster
      * then playing lock/unlock futex wait/wakeup games.
@@ -400,6 +409,12 @@ static ClIocUdpMapT *iocUdpMapAdd(ClCharT *addr, ClIocNodeAddressT slot)
         clLogError("UDP", "MAP", "Socket syscall returned with error [%s] for UDP socket", strerror(errno));
         goto out_free;
     }
+    map->sendReliableFd = socket(map->family, gClSockType, gClProtocol);
+    if(map->sendReliableFd < 0)
+    {
+        clLogError("UDP", "MAP", "Socket syscall returned with error [%s] for UDP Reliabe socket", strerror(errno));
+        goto out_free;
+    }
     priority = CL_UDP_DEFAULT_PRIORITY;
     if (udpPriorityChangePossible)
     {
@@ -420,6 +435,7 @@ static ClIocUdpMapT *iocUdpMapAdd(ClCharT *addr, ClIocNodeAddressT slot)
             goto out_free;
         }
     }
+
     udpMapAdd(map);
     clLogTrace("UDP", "MAP", "Loaded address [%s] with slot mapped at [%d]", addr, slot);
     goto out;
@@ -492,29 +508,48 @@ static ClRcT _clUdpMapUpdateNotification(ClIocNotificationT *notification, ClPtr
     ClCharT addStr[INET_ADDRSTRLEN] = {0};
     ClIocNotificationIdT notificationId = ntohl(notification->id);
     ClIocNodeAddressT nodeAddress = ntohl(notification->nodeAddress.iocPhyAddress.nodeAddress);
-    clOsalMutexLock(&gXportCtrl.mutex);
     switch (notificationId) 
     {
         case CL_IOC_COMP_ARRIVAL_NOTIFICATION:
         case CL_IOC_NODE_ARRIVAL_NOTIFICATION:
         case CL_IOC_NODE_LINK_UP_NOTIFICATION:
+        {
+            clOsalMutexLock(&gXportCtrl.mutex);
             if (!(map = iocUdpMapFind(nodeAddress)))
             {
-                clUdpAddrGet(nodeAddress, addStr);
+                clOsalMutexUnlock(&gXportCtrl.mutex);
+                ClRcT rc = clUdpAddrGet(nodeAddress, addStr);
+                if (rc != CL_OK)
+                  goto out;
+
+                /* If specific peer address, mark it as up */
+                mcastPeerAddr(addStr, CL_IOC_NODE_UP);
+
+                clOsalMutexLock(&gXportCtrl.mutex);
                 iocUdpMapAdd(addStr, nodeAddress);
             }
-            break;
+            clOsalMutexUnlock(&gXportCtrl.mutex);
+          }
+          break;
         case CL_IOC_NODE_LEAVE_NOTIFICATION:
         case CL_IOC_NODE_LINK_DOWN_NOTIFICATION:
             if (nodeAddress != gIocLocalBladeAddress)
             {
-                clIocUdpMapDel(nodeAddress);
+              ClRcT rc = clUdpAddrGet(nodeAddress, addStr);
+              ClBoolT isPeerAddr = CL_FALSE;
+              if (rc == CL_OK)
+              {
+                /* If specific peer address, mark it as down */
+                isPeerAddr = mcastPeerAddr(addStr, CL_IOC_NODE_DOWN);
+              }
+              if (!isPeerAddr)
+                clIocUdpMapDel(nodeAddress); /*remove entry from the map*/
             }
             break;
         default:
             break;
     }
-    clOsalMutexUnlock(&gXportCtrl.mutex);
+    out:
     return CL_OK;
 }
 
@@ -634,7 +669,13 @@ static ClRcT clUdpGetNodeIpAddress(const ClCharT *xportType, const ClCharT *devI
         {
             rc = clPluginHelperDevToIpAddress(devIf, hostAddress);
             if (rc == CL_OK) clLogInfo("UDP","INI","Use existing IP address [%s] as this nodes transport address.", hostAddress);
-            else clLogError("UDP","INI","Configured to use an existing IP address for message transport.  But address lookup failed on device [%s] error [0x%x]", devIf, rc);
+            else
+            {
+                clLogCritical("UDP","INI","Configured to use an existing IP address for message transport.  But address lookup failed on device [%s] error [0x%x]", devIf, rc);
+                // Not a good idea to continue with the wrong address.  Exit here.
+                printf("IP address lookup failed on configured ethernet device [%s]. Exiting\n", devIf);                
+                exit(1);
+            }            
         }
         
         if (rc != CL_OK)
@@ -810,8 +851,7 @@ ClRcT xportFinalize(ClInt32T xportId, ClBoolT nodeRep)
     }
     return CL_OK;
 }
-
-static ClRcT udpDispatchCallback(ClInt32T fd, ClInt32T events, void *cookie)
+static ClRcT udpReliableDispatchCallback(ClInt32T fd, ClInt32T events, void *cookie)
 {
     ClRcT rc = CL_OK;
     ClIocUdpPrivateT *xportPrivate = cookie;
@@ -854,6 +894,55 @@ static ClRcT udpDispatchCallback(ClInt32T fd, ClInt32T events, void *cookie)
     }
     //TODO check socket type
 
+    struct sockaddr_in* sourceAddress;
+    sourceAddress = (struct sockaddr_in*)&peerAddress;
+    receiveHandlePacketNew(fd,buffer,bytes,*sourceAddress);
+    out:
+    return rc;
+}
+
+static ClRcT udpDispatchCallback(ClInt32T fd, ClInt32T events, void *cookie)
+{
+    ClRcT rc = CL_OK;
+    ClIocUdpPrivateT *xportPrivate = cookie;
+    ClUint8T buffer[0xffff+1];
+    struct msghdr msgHdr;
+    struct sockaddr peerAddress;
+    struct iovec ioVector[1];
+    ClInt32T bytes;
+
+    if(!xportPrivate)
+    {
+        CL_DEBUG_PRINT(CL_DEBUG_ERROR,("No private data\n"));
+        rc = CL_IOC_RC(CL_ERR_INVALID_HANDLE);
+        goto out;
+    }
+
+    memset(&msgHdr, 0, sizeof(msgHdr));
+    memset(ioVector, 0, sizeof(ioVector));
+    msgHdr.msg_name = &peerAddress;
+    msgHdr.msg_namelen = sizeof(peerAddress);
+    msgHdr.msg_control = (ClUint8T*)gClCmsgHdr;
+    msgHdr.msg_controllen = gClCmsgHdrLen;
+    ioVector[0].iov_base = (ClPtrT)buffer;
+    ioVector[0].iov_len = sizeof(buffer);
+    msgHdr.msg_iov = ioVector;
+    msgHdr.msg_iovlen = sizeof(ioVector)/sizeof(ioVector[0]);
+    /*
+     * need to check returned payload should not be greater than asked
+     */
+    recv:
+    bytes = recvmsg(fd, &msgHdr, 0);
+    if(bytes < 0 )
+    {
+        if(errno == EINTR)
+            goto recv;
+        perror("Receive : ");
+        CL_DEBUG_PRINT(CL_DEBUG_ERROR,("recv error. errno = %d\n",errno));
+        rc = CL_ERR_LIBRARY;
+        goto out;
+    }
+
     rc = clIocDispatchAsync(gClUdpXportType, xportPrivate->port, buffer, bytes);
 
     out:
@@ -893,6 +982,7 @@ static ClRcT __xportBind(ClIocPortT port, ClInt32T *pFd)
         clLogError("UDP", "BIND", "setsockopt for SO_REUSEADDR failed with error [%s]", strerror(errno));
         goto out_close;
     }
+
     if(bind(fd, addr, sizeof(*addr)) < 0)
     {
         clLogError("UDP", "BIND", "Bind failed with error [%s]", strerror(errno));
@@ -909,6 +999,61 @@ static ClRcT __xportBind(ClIocPortT port, ClInt32T *pFd)
     }
 
     *pFd = fd;
+    rc = CL_OK;
+    goto out;
+
+    out_close:
+    close(fd);
+
+    out:
+    return rc;
+}
+
+static ClRcT __xportReliableBind(ClIocPortT port, ClInt32T pFd)
+{
+    ClRcT rc = CL_ERR_LIBRARY;
+    struct sockaddr_in6 ipv6_addr;
+    struct sockaddr_in ipv4_addr;
+    struct sockaddr *addr = (struct sockaddr*)&ipv4_addr;
+    int fd = -1;
+    int flag = 1;
+
+    switch(gXportCtrl.family)
+    {
+    case PF_INET6:
+        addr = (struct sockaddr*)&ipv6_addr;
+        ipv6_addr.sin6_addr = in6addr_any;
+        ipv6_addr.sin6_port = htons(port + CL_TRANSPORT_BASE_PORT + gClBindOffset);
+        ipv6_addr.sin6_family = PF_INET6;
+        break;
+    case PF_INET:
+    default:
+        ipv4_addr.sin_addr.s_addr = htonl(INADDR_ANY);
+        ipv4_addr.sin_port = htons(port + CL_TRANSPORT_BASE_PORT + gClBindOffset);
+        ipv4_addr.sin_family = PF_INET;
+        break;
+    }
+    if(pFd < 0)
+        goto out;
+    if(setsockopt(pFd, SOL_SOCKET, SO_REUSEADDR, &flag, sizeof(flag)) < 0)
+    {
+        clLogError("UDPRELIABLE", "BIND", "setsockopt for SO_REUSEADDR failed with error [%s]", strerror(errno));
+        goto out_close;
+    }
+    if(bind(pFd, addr, sizeof(*addr)) < 0)
+    {
+        clLogError("UDPRELIABLE", "BIND", "Bind failed with error [%s]", strerror(errno));
+        goto out_close;
+    }
+    if(gClCmsgHdr)
+    {
+        if(listen(fd, CL_IOC_MAX_NODES) < 0)
+        {
+            clLogError("UDPRELIABLE", "LISTEN", "Listen failed on socket with error [%s]",
+                       strerror(errno));
+            goto out_close;
+        }
+    }
     rc = CL_OK;
     goto out;
 
@@ -1018,6 +1163,62 @@ ClRcT xportListen(ClIocPortT port)
     return rc;
 }
 
+ClRcT xportReliableListen(ClIocPortT port,ClInt32T fd)
+{
+    ClRcT rc = CL_OK;
+    ClIocUdpPrivateT *xportPrivate = NULL;
+    void *xportPrivateLast = NULL;
+    clLogError("UDPRELIABLE", "LISTENER", "Listen on  port [%#x]", port);
+    if(!port)
+    {
+        return CL_ERR_INVALID_PARAMETER;
+    }
+    xportPrivate = (ClIocUdpPrivateT*) clTransportPrivateDataGet(gClUdpXportId, port);
+    if(!xportPrivate)
+    {
+        rc = __xportReliableBind(port, fd);
+        if(rc != CL_OK)
+        {
+            clLogError("UDPRELIABLE", "LISTENER", "Bind failed for port [%#x] with error [%#x]", port, rc);
+            goto out;
+        }
+        xportPrivate = clHeapCalloc(1, sizeof(*xportPrivate));
+        CL_ASSERT(xportPrivate != NULL);
+        xportPrivate->port = port;
+        xportPrivate->fd = fd;
+    }
+    else
+    {
+        xportPrivateLast = xportPrivate;
+    }
+    rc = clTransportListenerRegister(xportPrivate->fd, udpReliableDispatchCallback, (void*)xportPrivate);
+    if(rc != CL_OK)
+    {
+        clLogError("UDPRELIABLE", "LISTENER", "Register failed for port [%#x] with error [%#x]", port, rc);
+        goto out_free;
+    }
+    else
+    {
+        clLogError("UDPRELIABLE", "LISTENER", "Register successful for port [%#x] [%d]", port,xportPrivate->fd);
+    }
+    if(!xportPrivateLast)
+    {
+        clTransportPrivateDataSet(gClUdpXportId, port, (void*)xportPrivate, NULL);
+    }
+
+    goto out;
+
+    out_free:
+    if(!xportPrivateLast)
+    {
+        close(xportPrivate->fd);
+        clHeapFree(xportPrivate);
+    }
+
+    out:
+    return rc;
+}
+
 ClRcT xportListenStop(ClIocPortT port)
 {
     ClIocUdpPrivateT *xportPrivate = NULL;
@@ -1034,6 +1235,8 @@ ClRcT xportListenStop(ClIocPortT port)
     clHeapFree(xportPrivate);
     return rc;
 }
+
+
 ClRcT xportRecv(ClIocCommPortHandleT commPort, ClIocDispatchOptionT *pRecvOption,
                 ClUint8T *pBuffer, ClUint32T bufSize, 
                 ClBufferHandleT message, ClIocRecvParamT *pRecvParam)
@@ -1070,6 +1273,7 @@ ClRcT xportRecv(ClIocCommPortHandleT commPort, ClIocDispatchOptionT *pRecvOption
     }
     
     memset(&pollfd, 0, sizeof(pollfd));
+
     memset(&msgHdr, 0, sizeof(msgHdr));
     memset(&ioVector, 0, sizeof(ioVector));
     msgHdr.msg_name = &peerAddress;
@@ -1079,11 +1283,9 @@ ClRcT xportRecv(ClIocCommPortHandleT commPort, ClIocDispatchOptionT *pRecvOption
     msgHdr.msg_iov = &ioVector;
     msgHdr.msg_iovlen = 1;
     timeout = pRecvOption->timeout;
-    //Create Rudp socket from udp socket
-    ClUint32T fd = pCommPortPrivate->fd;
-    rudpSocketFromUdpSocket(fd);
     if (timeout == CL_IOC_TIMEOUT_FOREVER) endTime = CL_IOC_TIMEOUT_FOREVER;
     else endTime = clOsalStopWatchTimeGet()/1000 + timeout;
+
     rc = CL_ERR_TIMEOUT;
     do 
     {
@@ -1101,6 +1303,7 @@ ClRcT xportRecv(ClIocCommPortHandleT commPort, ClIocDispatchOptionT *pRecvOption
             {
                 if((pollfd.revents & (POLLIN|POLLRDNORM)))
                 {
+                    
                     do
                     {                    
                         bytes = recvmsg(pCommPortPrivate->fd, &msgHdr, 0);
@@ -1124,7 +1327,7 @@ ClRcT xportRecv(ClIocCommPortHandleT commPort, ClIocDispatchOptionT *pRecvOption
                 }
             }
             else if (pollStatus < 0)
-            {
+            {                
                 if (errno != EINTR)
                 {                    
                 CL_DEBUG_PRINT(CL_DEBUG_ERROR,("Error in poll. errno = %d\n",errno));
@@ -1140,12 +1343,13 @@ ClRcT xportRecv(ClIocCommPortHandleT commPort, ClIocDispatchOptionT *pRecvOption
         
         if (bytes >= 0) // got a message
         {
-            //check packet is reliable
             struct sockaddr_in* sourceAddress;
             sourceAddress = (struct sockaddr_in*)&peerAddress;
             ClUint32T result = receiveHandlePacketNew(pCommPortPrivate->fd,pBuffer,bytes,*sourceAddress);
             if(result ==1) // data packet or packet is not a reliable packet
             {
+              ClUint32T fd = pCommPortPrivate->fd;
+              rudpSocketFromUdpSocket(fd);
               ClRcT result = clIocDispatch(gClUdpXportType, commPort, pRecvOption, pBuffer, bytes, message, pRecvParam);
               if (CL_GET_ERROR_CODE(result) == CL_ERR_TRY_AGAIN)  // reset the timeout count
               {
@@ -1196,48 +1400,46 @@ static ClRcT iocUdpSend(ClIocUdpMapT *map, void *args)
             else CL_DEBUG_PRINT(CL_DEBUG_WARN,("Error in setting UDP message priority. errno [%d]",err));
         }
     }
+
     if(gClSimulationMode)
     {
         portOffset <<= 10;
     }
     //Reliable
     ClIocHeaderT* header = (ClIocHeaderT*)sendArgs->iov->iov_base;
-    clLogDebug("UDP", "SEND", "check version value : seqno = %d\n isReliable %d",header->version,header->isReliable);
     if(header->isReliable==1)
     {
+      clLogDebug("UDPRELIABLE", "SEND", "Sending packet in reliable mode");
       struct sockaddr_in *destaddr_in = NULL;
       map->__ipv4_addr.sin_port = htons(CL_TRANSPORT_BASE_PORT + sendArgs->port + portOffset);
       destaddr_in = (struct sockaddr_in*)&map->__ipv4_addr;
-      clLogDebug("UDP", "SEND", "create socket in reliable mode");
-      if(rudpSendto((rudpSocketT)(long)map->sendFd, (void*)sendArgs->iov, sendArgs->iovlen,destaddr_in,sendArgs->flags)<0)
+      clLogDebug("UDPRELIABLE", "SEND", "Create reliable socket if not available");
+      if(rudpSocketFromUdpSocket(map->sendReliableFd)==0)
       {
-          clLogError("UDP", "SEND", "UDP send failed with error [%s] for addr [%s], port [0x%x:%d]",
+          xportReliableListen(CL_IOC_REL_PORT,map->sendReliableFd);
+      }
+      if(rudpSendto((rudpSocketT)(long)map->sendReliableFd, (void*)sendArgs->iov, sendArgs->iovlen,destaddr_in,sendArgs->flags)<0)
+      {
+          clLogError("UDPRELIABLE", "SEND", "UDP send failed with error [%s] for addr [%s], port [0x%x:%d]",
                      strerror(errno), map->addrstr, sendArgs->port,
                      CL_TRANSPORT_BASE_PORT + sendArgs->port + portOffset);
           rc = CL_ERR_LIBRARY;
-      }
-      else
-      {
-          clLogTrace("UDP", "SEND", "UDP send successful for [%d] iovs, addr [%s], port [0x%x:%d]",
-                     sendArgs->iovlen, map->addrstr, sendArgs->port,
-                      CL_TRANSPORT_BASE_PORT + sendArgs->port + portOffset);
       }
     }
     else
     {
       if(map->family == PF_INET)
       {
-          map->__ipv4_addr.sin_port = htons(CL_TRANSPORT_BASE_PORT + sendArgs->port + portOffset);
-          destaddr = (struct sockaddr*)&map->__ipv4_addr;
-          addrlen = sizeof(struct sockaddr_in);
+        map->__ipv4_addr.sin_port = htons(CL_TRANSPORT_BASE_PORT + sendArgs->port + portOffset);
+        destaddr = (struct sockaddr*)&map->__ipv4_addr;
+        addrlen = sizeof(struct sockaddr_in);
       }
       else
       {
-          map->__ipv6_addr.sin6_port = htons(CL_TRANSPORT_BASE_PORT + sendArgs->port  + portOffset);
-          destaddr = (struct sockaddr*)&map->__ipv6_addr;
-          addrlen = sizeof(struct sockaddr_in6);
+        map->__ipv6_addr.sin6_port = htons(CL_TRANSPORT_BASE_PORT + sendArgs->port  + portOffset);
+        destaddr = (struct sockaddr*)&map->__ipv6_addr;
+        addrlen = sizeof(struct sockaddr_in6);
       }
-      rudpSocketFromUdpSocket(map->sendFd);
       memset(&msghdr, 0, sizeof(msghdr));
       msghdr.msg_name = destaddr;
       msghdr.msg_namelen = addrlen;
@@ -1247,16 +1449,16 @@ static ClRcT iocUdpSend(ClIocUdpMapT *map, void *args)
       msghdr.msg_iovlen = sendArgs->iovlen;
       if(sendmsg(map->sendFd, &msghdr, sendArgs->flags) < 0)
       {
-          clLogError("UDP", "SEND", "UDP send failed with error [%s] for addr [%s], port [0x%x:%d]",
-                     strerror(errno), map->addrstr, sendArgs->port,
-                     CL_TRANSPORT_BASE_PORT + sendArgs->port + portOffset);
-          rc = CL_ERR_LIBRARY;
+        clLogError("UDP", "SEND", "UDP send failed with error [%s] for addr [%s], port [0x%x:%d]",
+                   strerror(errno), map->addrstr, sendArgs->port, 
+                   CL_TRANSPORT_BASE_PORT + sendArgs->port + portOffset);
+        rc = CL_ERR_LIBRARY;
       }
       else
       {
-          clLogTrace("UDP", "SEND", "UDP send successful for [%d] iovs, addr [%s], port [0x%x:%d]",
-                     sendArgs->iovlen, map->addrstr, sendArgs->port,
-                     CL_TRANSPORT_BASE_PORT + sendArgs->port + portOffset);
+        clLogTrace("UDP", "SEND", "UDP send successful for [%d] iovs, addr [%s], port [0x%x:%d]",
+                   sendArgs->iovlen, map->addrstr, sendArgs->port, 
+                    CL_TRANSPORT_BASE_PORT + sendArgs->port + portOffset);
       }
     }
     return rc;
@@ -1292,7 +1494,9 @@ ClRcT xportSend(ClIocPortT port, ClUint32T priority, ClIocAddressT *address,
         map = iocUdpMapFind(address->iocPhyAddress.nodeAddress);
         if(!map)
         {
+            clOsalMutexUnlock(&gXportCtrl.mutex);
             clUdpAddrGet(address->iocPhyAddress.nodeAddress, addStr);
+            clOsalMutexLock(&gXportCtrl.mutex);
             map = iocUdpMapAdd(addStr, address->iocPhyAddress.nodeAddress);
             if(!map)
             {
@@ -1314,6 +1518,7 @@ ClRcT xportSend(ClIocPortT port, ClUint32T priority, ClIocAddressT *address,
     case CL_IOC_BROADCAST_ADDRESS_TYPE:
     bcast_send:
         sendArgs.port = address->iocPhyAddress.portId;
+        clOsalMutexUnlock(&gXportCtrl.mutex);
         rc = clUdpMapWalk(iocUdpSend, &sendArgs, 0);
         goto out;
         /*
@@ -1327,7 +1532,9 @@ ClRcT xportSend(ClIocPortT port, ClUint32T priority, ClIocAddressT *address,
         break;
 
     case CL_IOC_INTRANODE_ADDRESS_TYPE:
+        clOsalMutexUnlock(&gXportCtrl.mutex);
         clIocNodeCompsGet(clIocLocalAddressGet(), buff);
+        clOsalMutexLock(&gXportCtrl.mutex);
         map = iocUdpMapFind(clIocLocalAddressGet());
         if (map)
         {
@@ -1468,6 +1675,7 @@ ClRcT clUdpAddrGet(ClIocNodeAddressT nodeAddress, ClCharT *addrStr)
         clOsalSemUnlock(gClUdpAddrCacheSem);
         return CL_ERR_NOT_INITIALIZED;
     }
+
     memcpy(addrStr, gpClUdpAddrCache + (sizeof(ClUdpAddrCacheEntryT) * nodeAddress), INET_ADDRSTRLEN);
     clOsalSemUnlock(gClUdpAddrCacheSem);
 
@@ -1482,13 +1690,3 @@ ClRcT xportMasterAddressGet(ClIocLogicalAddressT logicalAddress, ClIocPortT port
   // Retrive from node cache
   return clNodeCacheLeaderGet(pIocNodeAddress);
 }
-
-//struct iovec *dup_iovec(struct iovec *iov, int iovlen) {
-//  struct iovec *newiov;
-//
-//  newiov = (struct iovec *) kmalloc(iovlen * sizeof(struct iovec));
-//  if (!newiov) return NULL;
-//  memcpy(newiov, iov, iovlen * sizeof(struct iovec));
-//
-//  return newiov;
-//}

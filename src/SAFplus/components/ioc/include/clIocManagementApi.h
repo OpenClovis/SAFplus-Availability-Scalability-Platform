@@ -137,6 +137,7 @@ ClRcT clIocHeartBeatPause(void);
 
 ClRcT clIocHeartBeatUnpause(void);
 
+ClBoolT clIocHeartBeatIsRunning(void);
 const ClCharT *clIocHeartBeatStatusGet(void);
 
 # ifdef __cplusplus

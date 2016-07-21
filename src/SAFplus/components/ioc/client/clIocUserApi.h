@@ -42,11 +42,12 @@ typedef struct
     ClUint8T priority;
     ClUint8T isReliable;
     ClUint8T flag;
+    ClUint16T type;
+    ClUint32T seqno;
     ClUint32T reserved;
     ClIocAddressT srcAddress;
     ClIocAddressT dstAddress;
-    ClUint16T type;
-    ClUint32T seqno;
+
 #ifdef CL_IOC_COMPRESSION
     ClTimeT       pktTime;
 #endif

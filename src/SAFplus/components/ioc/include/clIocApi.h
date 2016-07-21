@@ -1001,6 +1001,14 @@ typedef enum {
     CL_IN ClIocSendOptionT * pSendOption
     );
 
+    ClRcT clIocSendReliable(
+    CL_IN ClIocCommPortHandleT commPortHandle,
+    CL_IN ClBufferHandleT message,
+    CL_IN ClUint8T protoType,
+    CL_IN ClIocAddressT * pDestAddr,
+    CL_IN ClIocSendOptionT * pSendOption
+    );
+
 
 
 /**
@@ -1059,6 +1067,12 @@ typedef enum {
 
 
     ClRcT clIocReceive(
+    CL_IN ClIocCommPortHandleT commPortHdl,
+    CL_IN ClIocRecvOptionT * pRecvOption,
+    CL_OUT ClBufferHandleT userMsg,
+    CL_OUT ClIocRecvParamT * pRecvParam
+    );
+    ClRcT clIocReceiveReliable(
     CL_IN ClIocCommPortHandleT commPortHdl,
     CL_IN ClIocRecvOptionT * pRecvOption,
     CL_OUT ClBufferHandleT userMsg,

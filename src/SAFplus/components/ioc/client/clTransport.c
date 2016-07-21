@@ -543,34 +543,26 @@ static ClRcT clTransportDestNodeLUTUpdate(ClIocNotificationIdT notificationId, C
 {
     ClXportNodeAddrDataT *nodeConfigAddrData = NULL;
     ClNodeCacheMemberT member = {0};
-    clOsalMutexLock(&gClXportNodeAddrListMutex);
     switch (notificationId)
     {
         case CL_IOC_NODE_ARRIVAL_NOTIFICATION:
         case CL_IOC_NODE_LINK_UP_NOTIFICATION:
         case CL_IOC_COMP_ARRIVAL_NOTIFICATION:
         {
-            if (clNodeCacheMemberGetExtendedSafe(nodeAddr, &member, 5, 200) == CL_OK)
+            if (clNodeCacheMemberGetSafe(nodeAddr, &member) == CL_OK)
             {
-                if (!(nodeConfigAddrData = _clXportUpdateNodeConfig(nodeAddr,
-                                                                     (const ClCharT *)member.name)))
+                clOsalMutexLock(&gClXportNodeAddrListMutex);
+                nodeConfigAddrData = _clXportUpdateNodeConfig(nodeAddr, (const ClCharT *)member.name);
+                if (!nodeConfigAddrData)
                 {
-                    clLogDebug("IOC", "LUT", "Triggering node join for node [0x%x]", nodeAddr);
                     _clSetupDestNodeLUTData();
                 }
                 else if (!nodeConfigAddrData->iocAddress)
                 {
-                    clLogDebug("IOC", "LUT", 
-                               "Update node address for node join for node [0x%x] name [%s]",
-                               nodeAddr, member.name);
                     nodeConfigAddrData->iocAddress = nodeAddr;
                     _clSetupDestNodeLUTData();
                 }
-                else
-                {
-                    clLogDebug("IOC", "LUT", "Nothing updated for node [%#x] name [%s]", 
-                               nodeAddr, member.name);
-                }
+                clOsalMutexUnlock(&gClXportNodeAddrListMutex);
             }
             break;
         }
@@ -597,7 +589,6 @@ static ClRcT clTransportDestNodeLUTUpdate(ClIocNotificationIdT notificationId, C
             break;
         }
     }
-    clOsalMutexUnlock(&gClXportNodeAddrListMutex);
     return CL_OK;
 }
 
@@ -1449,6 +1440,7 @@ static ClRcT _iocMcastPeerAdd(const ClCharT *addr)
       map->family = PF_INET;
       map->_addr.sin_addr.sin_family = PF_INET;
       map->_addr.sin_addr.sin_port = htons(gClTransportMcastPort);
+      map->status = CL_IOC_NODE_DOWN;
       if (inet_pton(PF_INET, addr, (void*) &map->_addr.sin_addr.sin_addr) != 1)
       {
         map->family = PF_INET6;
@@ -1506,24 +1498,23 @@ ClRcT clFindTransport(ClIocNodeAddressT dstIocAddress, ClIocAddressT *rdstIocAdd
     if(!typeXport) return CL_ERR_INVALID_PARAMETER;
     preferredXport = *typeXport;
 
-    clOsalMutexLock(&gClXportNodeAddrListMutex);
-    if (! (destNodeLUTData = _clXportDestNodeLUTMapFind(dstIocAddress) ) )
+    if (clNodeCacheMemberGetSafe(dstIocAddress, &member) == CL_OK)
     {
-        if (clNodeCacheMemberGetFast(dstIocAddress, &member) == CL_OK)
+      clOsalMutexLock(&gClXportNodeAddrListMutex);
+      if(!(destNodeLUTData = _clXportDestNodeLUTMapFind(dstIocAddress)))
+      {
+        if((nodeConfigAddrData = _clXportUpdateNodeConfig(dstIocAddress, (const ClCharT*)member.name)))
         {
-            if ((nodeConfigAddrData = _clXportUpdateNodeConfig(dstIocAddress,
-                                                               (const ClCharT*)member.name)))
-            {
-                nodeConfigAddrData->iocAddress = dstIocAddress;
-            }
-            _clSetupDestNodeLUTData();
+          nodeConfigAddrData->iocAddress = dstIocAddress;
         }
+        _clSetupDestNodeLUTData();
         destNodeLUTData = _clXportDestNodeLUTMapFind(dstIocAddress);
+      }
+      clOsalMutexUnlock(&gClXportNodeAddrListMutex);
     }
 
     if (!destNodeLUTData) 
     {
-        clOsalMutexUnlock(&gClXportNodeAddrListMutex);
         if(preferredXport)
         {
             *typeXport = preferredXport;
@@ -1540,7 +1531,12 @@ ClRcT clFindTransport(ClIocNodeAddressT dstIocAddress, ClIocAddressT *rdstIocAdd
         return CL_ERR_NOT_EXIST;
     }
 
-    ((ClIocPhysicalAddressT *)rdstIocAddress)->nodeAddress = destNodeLUTData->bridgeIocNodeAddress;
+    clOsalMutexLock(&gClXportNodeAddrListMutex);
+
+    if (destNodeLUTData->bridgeIocNodeAddress != 0)  // GAS added check for zero because 0 bridge was causing healthcheck to be skipped during startup
+        ((ClIocPhysicalAddressT *)rdstIocAddress)->nodeAddress = destNodeLUTData->bridgeIocNodeAddress;
+    else
+        ((ClIocPhysicalAddressT *)rdstIocAddress)->nodeAddress = destNodeLUTData->destIocNodeAddress;
     *typeXport = destNodeLUTData->xportType;
     /*
      * If a preferred xport was specified and there is a mismatch for
@@ -3003,6 +2999,7 @@ ClRcT clTransportLayerGmsFinalize(void)
     ClRcT rc = CL_OK;
     if(gXportHandleGms)
     {
+        gGmsInitDone = CL_FALSE;
         rc = clGmsFinalize(gXportHandleGms);
         gXportHandleGms = CL_HANDLE_INVALID_VALUE;
     }
@@ -3036,6 +3033,8 @@ ClRcT clTransportLayerFinalize(void)
         clListDel(&xport->xportList);
         transportFree(xport);
     }
+
+    clTransportLayerGmsFinalize();
 
     /*
      * Cleanup multicast peer addresses node cache
@@ -3102,15 +3101,15 @@ ClBoolT clTransportBridgeEnabled(ClIocNodeAddressT node)
     ClBoolT bridge = CL_FALSE;
     if(node == gIocLocalBladeAddress)
         return gLocalNodeBridge;
-    clOsalMutexLock(&gClXportNodeAddrListMutex);
     ClNodeCacheMemberT member = {0};
-    if (clNodeCacheMemberGetFast(node, &member) == CL_OK)
+    if (clNodeCacheMemberGetSafe(node, &member) == CL_OK)
     {
-        nodeAddrConfig = _clXportNodeAddrMapFind((const ClCharT*) member.name);
-    }
-    if(nodeAddrConfig)
+      clOsalMutexLock(&gClXportNodeAddrListMutex);
+      nodeAddrConfig = _clXportNodeAddrMapFind((const ClCharT*)member.name);
+      if(nodeAddrConfig)
         bridge = nodeAddrConfig->bridge;
-    clOsalMutexUnlock(&gClXportNodeAddrListMutex);
+      clOsalMutexUnlock(&gClXportNodeAddrListMutex);
+    }
     return bridge;
 }
 

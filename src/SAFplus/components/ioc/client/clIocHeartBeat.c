@@ -128,8 +128,8 @@ static ClRcT _clIocHeartBeatEntryMapAdd(ClIocHeartBeatStatusT *entry)
     if(entry->linkIndex != gIocLocalBladeAddress)
     {
         clFindTransport(entry->linkIndex, &dstSlot, &xportType);
-        if(xportType && 
-           dstSlot.iocPhyAddress.nodeAddress != entry->linkIndex)
+        if(xportType && (dstSlot.iocPhyAddress.nodeAddress != 0) &&
+           (dstSlot.iocPhyAddress.nodeAddress != entry->linkIndex))
         {
             clLogNotice("IOC", "HBT", "Skipping healthcheck for node [%d] "
                         "as it would be proxied by the bridge at slot [%d]",
@@ -199,7 +199,8 @@ static __inline__ void _clIocHeartBeatEntryMapDel(ClIocHeartBeatStatusT *entry) 
 /*
  * Got hearbeat reply from local component and peer nodes
  */
-ClRcT clIocHearBeatHealthCheckUpdate(ClIocNodeAddressT nodeAddress, ClUint32T portId, ClCharT *message) {
+ClRcT clIocHearBeatHealthCheckUpdate(ClIocNodeAddressT nodeAddress, ClUint32T portId, ClCharT *message)
+{
     ClRcT rc = CL_OK;
     if (nodeAddress == gIocLocalBladeAddress)
     {
@@ -208,14 +209,6 @@ ClRcT clIocHearBeatHealthCheckUpdate(ClIocNodeAddressT nodeAddress, ClUint32T po
                         sizeof(CL_IOC_HB_EXIT_MESSAGE)))
         {
             CL_IOC_HB_CLEAR_STATUS_ACTIVE();
-            if(gHeartBeatTimer != CL_HANDLE_INVALID_VALUE)
-            {
-                clTimerDelete(&gHeartBeatTimer);
-            }
-            if (gHeartBeatLocalTimer != CL_HANDLE_INVALID_VALUE)
-            {
-                clTimerDelete(&gHeartBeatLocalTimer);
-            }
             return rc;
         }
         clOsalMutexLock(&gIocHeartBeatLocalTableLock);
@@ -738,21 +731,22 @@ ClRcT clIocHeartBeatStart()
     if(rc != CL_OK)
     {
         clLogError("IOC", "HBT", "Failed to get the number of neighbors in ASP system. error code [0x%x].", rc);
-        goto out;
+        return rc;
     }
 
     pNodes = (ClIocNodeAddressT *)clHeapAllocate(sizeof(ClIocNodeAddressT) * numNodes);
     if(pNodes == NULL)
     {
         clLogError("IOC", "HBT", "Failed to allocate [%zd] bytes of memory. error code [0x%x].", sizeof(ClIocNodeAddressT) * numNodes, rc);
-        goto out;
+        return rc;
     }
 
     rc = clIocNeighborListGet(&numNodes, pNodes);
     if(rc != CL_OK)
     {
         clLogError("IOC", "HBT", "Failed to get the neighbor node addresses. error code [0x%x].", rc);
-        goto out;
+        clHeapFree(pNodes);
+        return rc;
     }
 
     clOsalMutexLock(&gIocHeartBeatTableLock);
@@ -776,6 +770,7 @@ ClRcT clIocHeartBeatStart()
 
     clOsalMutexUnlock(&gIocHeartBeatTableLock);
 
+    clHeapFree(pNodes);
     clLogDebug("IOC", "HBT", "Starting heartbeat on node [%d] with [%d] peers",
                gIocLocalBladeAddress, numNodes > 1 ? numNodes - 1 : 0);
 
@@ -784,10 +779,6 @@ ClRcT clIocHeartBeatStart()
             (ClTimerCallBackT) _clIocHeartBeatSend, (void *) NULL,
             &gHeartBeatTimer);
 
-    clHeapFree(pNodes);
-    rc = CL_OK;
-
-    out:
     return rc;
 }
 
@@ -1139,6 +1130,11 @@ ClRcT clIocHeartBeatUnpause(void)
     return CL_OK;
 }
 
+ClBoolT clIocHeartBeatIsRunning(void)
+{
+  return (CL_IOC_HB_STATUS_ACTIVE());
+}
+
 /*
  * Active/paused/inactive: returns constant (.rodata)
  */
@@ -1240,10 +1236,11 @@ ClRcT clIocHeartBeatMessageReqRep(ClIocCommPortHandleT commPort,
         goto out_delete;
     }
 
-    ClIocSendOptionT sendOption = { .priority = CL_IOC_HIGH_PRIORITY, .timeout =
-            200 };
+    ClIocSendOptionT sendOption = { .priority = CL_IOC_HIGH_PRIORITY, .timeout = 1 };
 
+    //int now = clOsalStopWatchTimeGet()/1000; // milliseconds    
     rc = clIocSend(commPort, message, reqRep, destAddress, &sendOption);
+    //clLogInfo("HB","TIM","%12d: rc %x send HB req to %d\n", now, rc, destAddress->iocPhyAddress.nodeAddress);
 
     out_delete:
     clBufferDelete(&message);

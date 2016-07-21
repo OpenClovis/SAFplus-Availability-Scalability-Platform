@@ -1113,6 +1113,15 @@ ClRcT clIocSendWithXportRelay(ClIocCommPortHandleT commPortHandle,
   return clIocSendWithXportReliableRelay(commPortHandle,message,protoType,originAddress,destAddress,pSendOption,xportType,proxy,0);
 }
 
+ClRcT clIocSendWithXportRelayReliable(ClIocCommPortHandleT commPortHandle,
+                              ClBufferHandleT message, ClUint8T protoType,
+                              ClIocAddressT *originAddress, ClIocAddressT *destAddress,
+                              ClIocSendOptionT *pSendOption,
+                              ClCharT *xportType, ClBoolT proxy)
+{
+  return clIocSendWithXportReliableRelay(commPortHandle,message,protoType,originAddress,destAddress,pSendOption,xportType,proxy,1);
+}
+
 /*
  * Function : clIocSend Description : This function will take the message and
  * enqueue to IOC queues for transmission. 
@@ -1629,6 +1638,14 @@ ClRcT clIocSendWithRelay(ClIocCommPortHandleT commPortHandle,
                                    srcAddress, destAddress, pSendOption, 
                                    NULL, CL_FALSE);
 }
+ClRcT clIocSendReliable(ClIocCommPortHandleT commPortHandle,
+                ClBufferHandleT message, ClUint8T protoType,
+                ClIocAddressT *destAddress, ClIocSendOptionT *pSendOption)
+{
+    return clIocSendWithXportRelayReliable(commPortHandle, message, protoType,
+                                   NULL, destAddress, pSendOption, NULL, CL_FALSE);
+}
+
 
 ClRcT clIocSend(ClIocCommPortHandleT commPortHandle,
                 ClBufferHandleT message, ClUint8T protoType,

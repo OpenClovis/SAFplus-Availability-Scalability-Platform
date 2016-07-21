@@ -131,16 +131,16 @@ struct TimeoutArgs
 };
 
 
-struct EventData
-{
-  struct EventData *e_next; /* next in list */
-  ClInt32T (*e_fn)(ClInt32T, void*); /* callback function */
-  enum {EVENT_FD, EVENT_TIME} e_type; /* type of event */
-  ClInt32T e_fd; /* File descriptor */
-  struct timeval e_time; /* Timeout */
-  void *e_arg; /* function argument */
-  char e_string[32]; /* string for identification/debugging */
-};
+//struct EventData
+//{
+//  struct EventData *e_next; /* next in list */
+//  ClInt32T (*e_fn)(ClInt32T, void*); /* callback function */
+//  enum {EVENT_FD, EVENT_TIME} e_type; /* type of event */
+//  ClInt32T e_fd; /* File descriptor */
+//  struct timeval e_time; /* Timeout */
+//  void *e_arg; /* function argument */
+//  char e_string[32]; /* string for identification/debugging */
+//};
 
 /*
  * Socket creation
@@ -163,14 +163,14 @@ ClInt32T rudpRecvfromHandler(rudpSocketT rsocket,ClInt32T (*handler)(rudpSocketT
 /*
  * Register callback handler for event notifications
  */
-ClInt32T rudpEventHandler(rudpSocketT rsocket,ClInt32T (*handler)(rudpSocketT,rudp_event_t, struct sockaddr_in *));
-
-ClInt32T eventTimeout(struct timeval timer,ClInt32T (*callback)(ClInt32T, void*), void *callback_arg, char *idstr);
-ClInt32T event_periodic(ClInt32T secs,ClInt32T (*callback)(ClInt32T, void*),void *callback_arg,char *idstr);
-ClInt32T eventTimeoutDelete(ClInt32T (*callback)(ClInt32T, void*), void *callback_arg);
-ClInt32T eventFdDelete(ClInt32T (*callback)(ClInt32T, void*), void *callback_arg);
-ClInt32T eventFd(ClInt32T fd, ClInt32T (*callback)(ClInt32T, void*), void *callback_arg,char *idstr);
-ClInt32T eventLoop();
+//ClInt32T rudpEventHandler(rudpSocketT rsocket,ClInt32T (*handler)(rudpSocketT,rudp_event_t, struct sockaddr_in *));
+//
+//ClInt32T eventTimeout(struct timeval timer,ClInt32T (*callback)(ClInt32T, void*), void *callback_arg, char *idstr);
+//ClInt32T event_periodic(ClInt32T secs,ClInt32T (*callback)(ClInt32T, void*),void *callback_arg,char *idstr);
+//ClInt32T eventTimeoutDelete(ClInt32T (*callback)(ClInt32T, void*), void *callback_arg);
+//ClInt32T eventFdDelete(ClInt32T (*callback)(ClInt32T, void*), void *callback_arg);
+//ClInt32T eventFd(ClInt32T fd, ClInt32T (*callback)(ClInt32T, void*), void *callback_arg,char *idstr);
+//ClInt32T eventLoop();
 void createSenderSession(struct RudpSocketList *socket, ClUint32T seqno, struct sockaddr_in *to, struct data **data_queue);
 void createReceiverSession(struct RudpSocketList *socket, ClUint32T seqno, struct sockaddr_in *addr);
 ClInt32T compareSockaddr(struct sockaddr_in *s1, struct sockaddr_in *s2);
@@ -178,7 +178,7 @@ ClInt32T receiveCallback(ClInt32T file, void *arg);
 ClInt32T timeoutCallback(ClInt32T retry_attempts, void *args);
 ClInt32T sendPacketNew(bool_t is_ack, rudpSocketT rsocket, struct RudpPacket *p, struct sockaddr_in *recipient);
 ClInt32T receiveHandlePacketNew(ClInt32T file,ClUint8T *buffer,ClUint32T bufSize,struct sockaddr_in sender);
-void rudpSocketFromUdpSocket(int sockfd);
+int rudpSocketFromUdpSocket(int sockfd);
 
 #endif /* RUDP_PROTO_H */
 
