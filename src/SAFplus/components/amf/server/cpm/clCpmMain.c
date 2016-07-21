@@ -879,6 +879,8 @@ static ClRcT cpmKillComponent(ClCntNodeHandleT key,
                        comp->compConfig->compName,
                        comp->processId);
 
+            comp->compTerminated = CL_TRUE;
+
             /* Marked COR and EVENT service down, then skip component event publishing */
             if (!strcmp(comp->compConfig->compName, gpClCpm->corServerName))
                 gpClCpm->corUp = 0;
