@@ -450,6 +450,7 @@ ClRcT clCachedCkptInitialize(ClCachedCkptSvcInfoT *serviceInfo,
             do
             {
                 rc = clCkptInitialize(&ckptSvcHandle, NULL, (ClVersionT *)&ckptVersion);
+                clLogNotice("CCK", "INI", "Try [%d] of [100] to initialize checkpoint service rc[0x%x]", tries, rc);
             } while(rc != CL_OK && tries++ < 100 && clOsalTaskDelay(delay) == CL_OK);
 
             if(rc != CL_OK)
@@ -461,6 +462,7 @@ ClRcT clCachedCkptInitialize(ClCachedCkptSvcInfoT *serviceInfo,
             serviceInfo->ckptSvcHandle = ckptSvcHandle;
         }
 
+        tries = 0;
         /* Create the checkpoint for read and write. */
         do
         {
@@ -470,6 +472,7 @@ ClRcT clCachedCkptInitialize(ClCachedCkptSvcInfoT *serviceInfo,
                                       openFlags,
                                       0L,
                                       &ckptHandle);
+            clLogNotice("CCK", "INI", "Try [%d] of [10] to open checkpoint service rc=[0x%x]", tries, rc);
         } while(rc != CL_OK && tries++ < 10 && clOsalTaskDelay(delay) == CL_OK);
 
         if(rc != CL_OK)
@@ -977,6 +980,7 @@ ClRcT clCachedCkptSynch(ClCachedCkptSvcInfoT *serviceInfo, ClBoolT isEmpty)
             sectionData.data = copyData;
             sectionData.dataSize = ioVector.readSize - sizeof(ClIocAddressT);
 
+            clLogDebug("CCK", "SYNC", "Cache ckpt section [%s] re-created.", sectionData.sectionName.value);
             if (isEmpty)
                 clCacheEntryAdd(serviceInfo, (ClCachedCkptDataT *)&sectionData);
             else

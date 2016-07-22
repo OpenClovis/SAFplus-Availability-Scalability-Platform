@@ -1145,7 +1145,7 @@ ClRcT  VDECL_VER(clCkptRemSvrCkptInfoSync, 5, 0, 0)(ClVersionT  *pVersion,
                     pDpInfo->pSection->pData); 
 
             /* Its ok if the section already exists */
-            if (CL_CKPT_ERR_ALREADY_EXIST == CL_GET_ERROR_CODE(rc)) rc = CL_OK;
+            if (CL_ERR_ALREADY_EXIST == CL_GET_ERROR_CODE(rc)) rc = CL_OK;
             else
               {
                 if ( CL_OK != rc )
@@ -2073,7 +2073,7 @@ ClRcT _ckptReplicaInfoUpdate(ClHandleT   ckptHdl, VDECL_VER(CkptInfoT, 5, 0, 0) 
                 rc = clCkptSectionChkNAdd(ckptHdl, pCkpt, &pSection->secId, 
                                           pSection->expiryTime, pSection->size, 
                                           pSection->pData);
-                if( CL_CKPT_ERR_ALREADY_EXIST == CL_GET_ERROR_CODE(rc) )
+                if( CL_ERR_ALREADY_EXIST == CL_GET_ERROR_CODE(rc) )
                 {
                     clLogDebug(CL_CKPT_AREA_PEER,CL_CKPT_CTX_CKPT_OPEN,"Ckpt [%.*s] Section [%.*s] already exists",pCkpt->ckptName.length,pCkpt->ckptName.value,pSection->secId.idLen,pSection->secId.id);
                     rc = CL_OK;

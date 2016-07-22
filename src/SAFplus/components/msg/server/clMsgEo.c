@@ -212,6 +212,8 @@ static void *clMsgCachedCkptInitAsync(void *pParam)
         goto error_out_1;
     }
 
+    clLogNotice("MSG", "INI", "MSG server is fully up");
+
     gClMsgInit = CL_TRUE;
 
     return NULL;

@@ -3944,9 +3944,10 @@ clCkptAppInfoReplicaNotify(CkptMasterDBEntryT  *pMasterData,
              rc);
             return rc;
         }
-        clLogDebug(CL_CKPT_AREA_MASTER, CL_CKPT_CTX_CKPT_OPEN, 
-                   "Updating application info [%d:%d] on replica addr [%d]", 
-                    appAddr, appPortId, peerAddr); 
+
+        clLogDebug(CL_CKPT_AREA_MASTER, CL_CKPT_CTX_CKPT_OPEN, "Updating application info [%d:%d] on replica addr [%d] (handle [%#llx])",
+            appAddr, appPortId, peerAddr, masterHdl);
+
         rc = VDECL_VER(clCkptReplicaAppInfoNotifyClientAsync, 4, 0, 0)(gCkptSvr->ckptIdlHdl, 
                                                    masterHdl, appAddr,
                                                    appPortId, NULL, NULL);
