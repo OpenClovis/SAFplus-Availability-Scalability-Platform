@@ -364,7 +364,7 @@ class ProjectTreePanel(wx.Panel):
   def OnLoad(self,event):
     dlg = wx.FileDialog(
             self, message="Choose a file",
-            defaultDir=os.getcwd(), 
+            defaultDir=common.getMostRecentPrjDir(),
             defaultFile="",
             wildcard=PROJECT_WILDCARD,
             style=wx.OPEN | wx.CHANGE_DIR  # | wx.MULTIPLE
@@ -388,12 +388,12 @@ class ProjectTreePanel(wx.Panel):
     dlg.ShowModal()
     if dlg.what == "OK":
       print 'handling ok clicked'                   
-      log.write('You selected %d files: %s; datamodel: %s' % (len(dlg.path),str(dlg.path), dlg.datamodel.GetValue()))       
-      if not self.fillDataModel(dlg.datamodel.GetValue(), dlg.prjDir+os.sep+"SAFplusAmf.yang"):
+      log.write('You selected %d files: %s; datamodel: %s' % (len(dlg.path),str(dlg.path), dlg.datamodel.GetTextCtrlValue()))       
+      if not self.fillDataModel(dlg.datamodel.GetTextCtrlValue(), dlg.prjDir+os.sep+"SAFplusAmf.yang"):
         return
       project = Project()
       project.projectFilename = dlg.path
-      project.new(dlg.datamodel.GetValue())
+      project.new(dlg.datamodel.GetTextCtrlValue())
       self.populateGui(project, self.root)
       evt = ProjectNewEvent(EVT_PROJECT_NEW.evtType[0])
       wx.PostEvent(self.parent,evt)
@@ -448,22 +448,18 @@ class NewPrjDialog(wx.Dialog):
         prjlocation_sizer = wx.BoxSizer(wx.HORIZONTAL)
         prj_location_lbl = wx.StaticText(self, label="Location", size=(100,25))
         prjlocation_sizer.Add(prj_location_lbl, 0, wx.ALL|wx.CENTER, 5)
-        self.prjLocationName = wx.TextCtrl(self, size=(200, 25))
-        self.prjLocationName.SetValue(common.getMostRecentPrjDir())
-        prjlocation_sizer.Add(self.prjLocationName, 0, wx.ALL, 5)
-        prj_location_btn = wx.Button(self, label="Browse")
-        prj_location_btn.Bind(wx.EVT_BUTTON, self.onBrowse)
-        prjlocation_sizer.Add(prj_location_btn, 0, wx.ALL, 5)
+        
+        self.prjLocation = wx.DirPickerCtrl(self, message="Choose a project location", style=wx.DIRP_DEFAULT_STYLE|wx.DIRP_USE_TEXTCTRL,size=(300,25)) 
+        self.prjLocation.SetPath(common.getMostRecentPrjDir())
+        prjlocation_sizer.Add(self.prjLocation, 0, wx.ALL, 5)
  
         datamodel_sizer = wx.BoxSizer(wx.HORIZONTAL)
  
         datamodel_lbl = wx.StaticText(self, label="Data model", size=(100,25))
         datamodel_sizer.Add(datamodel_lbl, 0, wx.ALL|wx.CENTER, 5)
-        self.datamodel = wx.TextCtrl(self, size=(200, 25))
+        
+        self.datamodel = wx.FilePickerCtrl(self, message="Choose a file", style=wx.FLP_DEFAULT_STYLE|wx.FLP_USE_TEXTCTRL,  wildcard="Data model (*.yang)|*.yang", size=(300,25))
         datamodel_sizer.Add(self.datamodel, 0, wx.ALL, 5)
-        select_btn = wx.Button(self, label="Browse")
-        select_btn.Bind(wx.EVT_BUTTON, self.onSelect)
-        datamodel_sizer.Add(select_btn, 0, wx.ALL, 5)
  
         main_sizer = wx.BoxSizer(wx.VERTICAL)
         main_sizer.Add(prjname_sizer, 0, wx.ALL, 5)
@@ -494,19 +490,21 @@ class NewPrjDialog(wx.Dialog):
               msgBox.ShowModal()
               msgBox.Destroy()
               return     
-           self.prjDir = self.prjLocationName.GetValue()+os.sep
-           if not self.prjLocationName.GetValue() or not os.path.exists(self.prjDir):
+
+           self.prjDir = self.prjLocation.GetTextCtrlValue()+os.sep
+           if not self.prjLocation.GetTextCtrlValue() or not os.path.exists(self.prjDir):
               msgBox = wx.MessageDialog(self, "Project location is missing or does not exist. Please choose a location for the new project", style=wx.OK|wx.CENTRE)
               msgBox.ShowModal()
               msgBox.Destroy()
               return
-           t = self.datamodel.GetValue()
+
+           t = self.datamodel.GetTextCtrlValue()
            if not t or not os.path.exists(t) or not re.search('.yang$', t):
               msgBox = wx.MessageDialog(self, "Data model is missing or does not exist. Please choose a valid data model for the new project", style=wx.OK|wx.CENTRE)
               msgBox.ShowModal()
               msgBox.Destroy()
               return           
-           #self.path = os.getcwd()+os.sep+prjName                      
+              
            pos = prjName.rfind('.spp')
            if pos<0:
               self.prjDir+=prjName
@@ -524,31 +522,7 @@ class NewPrjDialog(wx.Dialog):
         self.what = what
         self.Close()
     
-    def onSelect(self, event):
-        print 'about to select'
-        dlg = wx.FileDialog(
-            self, message="Choose a file",
-            defaultDir=os.getcwd(), 
-            defaultFile="",
-            wildcard="Data model (*.yang)|*.yang",
-            style=wx.OPEN | wx.CHANGE_DIR
-            )
-        if dlg.ShowModal() == wx.ID_OK:
-            path = dlg.GetPath()
-            print 'You selected %d files: %s' % (len(path),str(path))
-            self.datamodel.SetValue(path)
-
-    def onBrowse(self, event):
-        print 'about to browse project location'        
-        dlg = wx.DirDialog(
-            self, message="Choose a project location",
-            defaultPath=common.getMostRecentPrjDir(),             
-            style=wx.DD_DEFAULT_STYLE | wx.DD_CHANGE_DIR
-            )
-        if dlg.ShowModal() == wx.ID_OK:
-            path = dlg.GetPath()
-            print 'You selected %d path: %s' % (len(path),str(path))
-            self.prjLocationName.SetValue(path)
+    
 
 class SaveAsDialog(wx.Dialog):
     """
@@ -570,12 +544,11 @@ class SaveAsDialog(wx.Dialog):
         prjlocation_sizer = wx.BoxSizer(wx.HORIZONTAL)
         prj_location_lbl = wx.StaticText(self, label="Location", size=(100,25))
         prjlocation_sizer.Add(prj_location_lbl, 0, wx.ALL|wx.CENTER, 5)
-        self.prjLocationName = wx.TextCtrl(self, size=(200, 25))
-        self.prjLocationName.SetValue(common.getMostRecentPrjDir())
-        prjlocation_sizer.Add(self.prjLocationName, 0, wx.ALL, 5)
-        prj_location_btn = wx.Button(self, label="Browse")
-        prj_location_btn.Bind(wx.EVT_BUTTON, self.onBrowse)
-        prjlocation_sizer.Add(prj_location_btn, 0, wx.ALL, 5)
+        
+        self.prjLocation = wx.DirPickerCtrl(self, message="Choose a project location", style=wx.DIRP_DEFAULT_STYLE|wx.DIRP_USE_TEXTCTRL,size=(300,25)) 
+        self.prjLocation.SetPath(common.getMostRecentPrjDir())
+        prjlocation_sizer.Add(self.prjLocation, 0, wx.ALL, 5)
+
  
         main_sizer = wx.BoxSizer(wx.VERTICAL)
         main_sizer.Add(prjname_sizer, 0, wx.ALL, 5)
@@ -605,8 +578,9 @@ class SaveAsDialog(wx.Dialog):
               msgBox.ShowModal()
               msgBox.Destroy()
               return     
-           self.prjDir = self.prjLocationName.GetValue()+os.sep
-           if not self.prjLocationName.GetValue() or not os.path.exists(self.prjDir):
+
+           self.prjDir = self.prjLocation.GetTextCtrlValue()+os.sep
+           if not self.prjLocation.GetTextCtrlValue() or not os.path.exists(self.prjDir):
               msgBox = wx.MessageDialog(self, "Project location is missing or does not exist. Please choose a location for the new project", style=wx.OK|wx.CENTRE)
               msgBox.ShowModal()
               msgBox.Destroy()
@@ -626,7 +600,7 @@ class SaveAsDialog(wx.Dialog):
               msgBox.Destroy()
               return
         self.what = what
-        self.Close()    
+        self.Close()
 
     def onBrowse(self, event):
         print 'about to browse project location'        
