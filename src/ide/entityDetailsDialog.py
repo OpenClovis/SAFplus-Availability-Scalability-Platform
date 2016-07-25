@@ -548,6 +548,9 @@ class Panel(scrolled.ScrolledPanel):
         query = None
       if 'userDefinedType' in item:
         self.usrDefinedNodeTypeCtrls[id] = ""
+      elif 'disableAssignmentOn' in item:
+        query.SetEditable(False)
+
       return query
 
     def findEntityRecursive(self, ent, parent = None):

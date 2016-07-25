@@ -1436,7 +1436,6 @@ class Panel(scrolled.ScrolledPanel):
             if inst.et.name == "ServiceUnit":
               inst.childOf.add(dupNode)
               dupNode.createContainmentArrowTo(inst)
-          self.model.dumpInstances()
           return True
       return False
 

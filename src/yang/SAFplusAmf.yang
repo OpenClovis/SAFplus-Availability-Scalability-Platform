@@ -382,8 +382,7 @@ module SAFplusAmf
        {
          type string;
 	     description "A list of service group name separated by space to indicate that the cell in the node by this SG array is disabled, no assignment is performed";
-	     /*SAFplusTypes:ui-prompt "Assignment disabled on the cell";*/
-         config false;
+	     SAFplusTypes:ui-prompt "Assignment disabled on the cell";         
        }
 
       leaf userDefinedType
