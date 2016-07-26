@@ -217,7 +217,10 @@ static ClRcT clUdpAddrCacheInitialize(ClBoolT createFlag)
         clLogError("NODE", "CACHE", "Segment initialize returned [%#x]", rc);
     }
 
-    CL_ASSERT(gpClUdpAddrCache != NULL);
+    if (gpClUdpAddrCache == NULL)
+    {
+        exit(1);
+    }
 
     if (createFlag == CL_TRUE)
     {
