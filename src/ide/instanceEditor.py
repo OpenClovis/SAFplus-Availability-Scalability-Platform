@@ -1347,6 +1347,24 @@ class Panel(scrolled.ScrolledPanel):
             if added:
               values.data[tagName] = thisSg            
           break
+
+    def removeGrayCells(self, e):
+      if e.entity.et.name != "ServiceGroup" and e.entity.et.name != "Node":
+        return
+      y = ROW_MARGIN+ROW_SPACING
+      cell=None
+      for e1 in self.rows:        
+        x = COL_MARGIN+COL_SPACING
+        for e2 in self.columns:          
+          pos = (x,y)
+          cell = self.grid.getAnyCell(pos)
+          assert(cell)
+          if e1==e or e2==e:
+            print 'removeGrayCells: remove gray cell at pos: : %s' % str(pos)
+            if cell.bound in self.grayCells:
+              del self.grayCells[cell.bound]
+          x=COL_SPACING+cell.bound[2]        
+        y=ROW_SPACING+cell.bound[3]
  
     def setSUAssignment(self, inst):
       su = None
@@ -1776,6 +1794,7 @@ class Panel(scrolled.ScrolledPanel):
     def deleteEntities(self, ents):
       #remove columns/rows
       for ent in ents:
+        self.removeGrayCells(ent)
         try:
           self.columns.remove(ent);
         except:
