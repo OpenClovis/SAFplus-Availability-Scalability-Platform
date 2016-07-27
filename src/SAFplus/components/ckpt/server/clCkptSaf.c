@@ -747,8 +747,8 @@ clCkptSectionChkNAdd(ClCkptHdlT  ckptHdl,
         rc = CL_CKPT_ERR_ALREADY_EXIST;
         clLogDebug(CL_CKPT_AREA_ACTIVE, CL_CKPT_CTX_CKPT_OPEN, 
                 "Section [%.*s] of ckpt [%.*s] already exists", 
-                pCkpt->ckptName.length, pCkpt->ckptName.value, 
-                pKey->scnId.idLen, pKey->scnId.id);
+                pKey->scnId.idLen, pKey->scnId.id,
+                pCkpt->ckptName.length, pCkpt->ckptName.value);
         goto dataFreeNExit;
     }
     if( pCkpt->pDpInfo->maxScns <= pCkpt->pDpInfo->numScns )
