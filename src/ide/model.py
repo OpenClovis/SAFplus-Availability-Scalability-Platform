@@ -71,20 +71,22 @@ instantiated  <instances>     instances                         instances     (e
       if self.instances.get(items):
         self.deleteInstance(self.instances[items])
 
-    if isinstance(items,entity.Instance): self.deleteInstance(items)
+    if isinstance(items,entity.Instance):
+      if share.instancePanel:
+        share.instancePanel.deleteEntities([items], False)
+      self.deleteInstance(items)
     elif isinstance(items, entity.Entity): 
       self.deleteEntity(items)
       entname = items.data["name"]
       insToDelete = []
       for name,e in self.instances.items():
         if e.entity.data["name"] == entname:
-          insToDelete.append(name)
-          if share.instanceDetailsPanel:
-            # delete instance details from the dialog also
-            share.instanceDetailsPanel.deleteTreeItemEntities([e])
+          insToDelete.append(e)
+      if share.instancePanel:
+        share.instancePanel.deleteEntities(insToDelete, False)
       for i in insToDelete:
-          # delete instances and its related instances (instances have relationship with it)
-          self.deleteInstance(self.instances[i])
+        # delete instances and its related instances (instances have relationship with it)
+        self.deleteInstance(i)
 
   def deleteEntity(self,entity):
     """Delete this instance of Entity from the model"""

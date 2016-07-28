@@ -1363,8 +1363,9 @@ class Panel(scrolled.ScrolledPanel):
             print 'removeGrayCells: remove gray cell at pos: : %s' % str(pos)
             if cell.bound in self.grayCells:
               del self.grayCells[cell.bound]
-          x=COL_SPACING+cell.bound[2]        
-        y=ROW_SPACING+cell.bound[3]
+          x=COL_SPACING+cell.bound[2]
+        if cell:
+          y=ROW_SPACING+cell.bound[3]
  
     def setSUAssignment(self, inst):
       su = None
@@ -1791,7 +1792,7 @@ class Panel(scrolled.ScrolledPanel):
           self.GetParent().SetSashPosition(position)
         self.GetParent().UpdateSize()
 
-    def deleteEntities(self, ents):
+    def deleteEntities(self, ents, deleteFromModel=True):
       #remove columns/rows
       for ent in ents:
         self.removeGrayCells(ent)
@@ -1807,8 +1808,9 @@ class Panel(scrolled.ScrolledPanel):
 
       if share.instanceDetailsPanel:
         share.instanceDetailsPanel.deleteTreeItemEntities(ents)
-
-      self.model.delete(ents)
+     
+      if deleteFromModel:
+        self.model.delete(ents)
       self.Refresh()
       self.layout()
 

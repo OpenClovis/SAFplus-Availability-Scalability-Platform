@@ -396,7 +396,7 @@ module SAFplusAmf
        {
          type boolean;
 	     description "This flag is to determine whether this node can be inherited by a new node or not. If a node is supposed to be configured like this node, user must specify user-defined node type when creating a new node";
-	     SAFplusTypes:ui-prompt "This node can be inherited by a new node";
+	     SAFplusTypes:ui-prompt "Can be inherited by a new node";
        }
 
     leaf-list serviceUnits

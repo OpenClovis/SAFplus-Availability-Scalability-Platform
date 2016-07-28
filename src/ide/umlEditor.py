@@ -552,12 +552,12 @@ class SelectTool(Tool):
       
       if event.GetEventType() == wx.EVT_KEY_DOWN.typeId and (event.GetKeyCode() ==  wx.WXK_DELETE or event.GetKeyCode() ==  wx.WXK_NUMPAD_DELETE):
         if self.touching:
-          self.panel.model.delete(self.touching)
+          self.panel.deleteEntities(self.touching)
           self.touching.clear()
         elif self.selected:
-          self.panel.model.delete(self.selected)
+          self.panel.deleteEntities(self.selected)
           self.selected.clear()
-        panel.Refresh()
+        #panel.Refresh()
         return True # I consumed this event
       else:
         return False # Give this key to someone else

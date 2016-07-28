@@ -669,11 +669,11 @@ class Panel(scrolled.ScrolledPanel):
                     self.deleteTreeItemEntities(set([a.contained]), tmpList)
 
             # Cascade delete csi/component entity instance
-            if not ent in tmpList:
-              try:
-                self.model.delete(ent)
-              except:
-                pass
+            #if not ent in tmpList:
+            #  try:
+            #    self.model.delete(ent)
+            #  except:
+            #    pass
             # delete associated items with this entity from self.lookup dict
             self.deleteEntFromLookup(ent)
             self.tree.Delete(treeItem)
