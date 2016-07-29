@@ -444,16 +444,20 @@ class LinkTool(Tool):
             self.err = FadingX(panel,pos,1)
           else:
             self.endEntity = entities.pop()
-            if not self.startEntity.canContain(self.endEntity):
+            rc = self.startEntity.canContain(self.endEntity)
+            if rc != RLS_OK:
               panel.statusBar.SetStatusText("Relationship is not allowed.  Most likely %s entities cannot contain %s entities.  Or maybe you've exceeded the number of containments allowed" % (self.startEntity.et.name, self.endEntity.et.name),0);
-              self.err = FadingX(panel,pos,1)
-            elif not self.endEntity.canBeContained(self.startEntity):
-              panel.statusBar.SetStatusText("Relationship is not allowed.  Most likely %s entities can only be contained by one %s entity."  % (self.endEntity.et.name, self.startEntity.et.name),0);
-              self.err = FadingX(panel,pos,1)
+              if rc!=RLS_ERR_EXISTS:
+                self.err = FadingX(panel,pos,1)
             else:
-              # Add the arrow into the model.  the arrow's location is relative to the objects it connects
-              ca = ContainmentArrow(self.startEntity, (line[0][0]-self.startEntity.pos[0],line[0][1] - self.startEntity.pos[1]), self.endEntity, (line[1][0]-self.endEntity.pos[0],line[1][1]-self.endEntity.pos[1]), [line[2]] if len(line)>1 else None)
-              self.startEntity.containmentArrows.append(ca)
+              rc = self.endEntity.canBeContained(self.startEntity)
+              if rc != RLS_OK:
+                panel.statusBar.SetStatusText("Relationship is not allowed.  Most likely %s entities can only be contained by one %s entity."  % (self.endEntity.et.name, self.startEntity.et.name),0);
+                self.err = FadingX(panel,pos,1)
+              else:
+                # Add the arrow into the model.  the arrow's location is relative to the objects it connects
+                ca = ContainmentArrow(self.startEntity, (line[0][0]-self.startEntity.pos[0],line[0][1] - self.startEntity.pos[1]), self.endEntity, (line[1][0]-self.endEntity.pos[0],line[1][1]-self.endEntity.pos[1]), [line[2]] if len(line)>1 else None)
+                self.startEntity.containmentArrows.append(ca)
 
     return ret
     
@@ -907,6 +911,9 @@ class Panel(scrolled.ScrolledPanel):
       bitmap = svg.SvgFile("remove.svg").bmp(tsize, { }, (222,222,222,wx.ALPHA_OPAQUE))
       self.toolBar.AddRadioTool(DELETE_BUTTON, bitmap, wx.NullBitmap, shortHelp="Delete entity/entities", longHelp="Select one or many entities. Click entity to delete.")
       self.idLookup[DELETE_BUTTON] = DeleteTool(self)
+      
+      # setting the default tool
+      self.tool = self.idLookup[CONNECT_BUTTON]
 
     def deleteTools(self):   
       self.toolBar.DeletePendingEvents()
@@ -962,7 +969,6 @@ class Panel(scrolled.ScrolledPanel):
           self.tool = None
 
         if tool:
-
           tool.OnSelect(self,event)
           self.tool = tool
       except KeyError, e:

@@ -34,7 +34,7 @@ import share
 ENTITY_TYPE_BUTTON_START = wx.NewId()
 SAVE_BUTTON = wx.NewId()
 ZOOM_BUTTON = wx.NewId()
-CONNECT_BUTTON = wx.NewId()
+#CONNECT_BUTTON = wx.NewId()
 SELECT_BUTTON = wx.NewId()
 CODEGEN_BUTTON = wx.NewId()
 CODEGEN_LANG_C = wx.NewId()
@@ -49,7 +49,7 @@ def reassignCommonToolIds():
   global ENTITY_TYPE_BUTTON_START
   global SAVE_BUTTON
   global ZOOM_BUTTON
-  global CONNECT_BUTTON
+  #global CONNECT_BUTTON
   global SELECT_BUTTON
   global CODEGEN_BUTTON
   global CODEGEN_LANG_C
@@ -60,7 +60,7 @@ def reassignCommonToolIds():
   ENTITY_TYPE_BUTTON_START = wx.NewId()
   SAVE_BUTTON = wx.NewId()
   ZOOM_BUTTON = wx.NewId()
-  CONNECT_BUTTON = wx.NewId()
+  #CONNECT_BUTTON = wx.NewId()
   SELECT_BUTTON = wx.NewId()
   CODEGEN_BUTTON = wx.NewId()
   CODEGEN_LANG_C = wx.NewId()
@@ -950,8 +950,8 @@ class Panel(scrolled.ScrolledPanel):
       # Add the umlEditor's standard tools
       self.toolBar.AddSeparator()
       bitmap = svg.SvgFile("connect.svg").bmp(tsize, { }, (222,222,222,wx.ALPHA_OPAQUE))
-      self.toolBar.AddRadioTool(CONNECT_BUTTON, bitmap, wx.NullBitmap, shortHelp="connect", longHelp="Draw relationships between entities")
-      self.idLookup[CONNECT_BUTTON] = LinkTool(self)
+      #self.toolBar.AddRadioTool(CONNECT_BUTTON, bitmap, wx.NullBitmap, shortHelp="connect", longHelp="Draw relationships between entities")
+      #self.idLookup[CONNECT_BUTTON] = LinkTool(self)
 
       bitmap = svg.SvgFile("pointer.svg").bmp(tsize, { }, (222,222,222,wx.ALPHA_OPAQUE))
       self.toolBar.AddRadioTool(SELECT_BUTTON, bitmap, wx.NullBitmap, shortHelp="select", longHelp="Select one or many entities.  Click entity to edit details.  Double click to expand/contract.")
@@ -963,7 +963,10 @@ class Panel(scrolled.ScrolledPanel):
 
       bitmap = svg.SvgFile("remove.svg").bmp(tsize, { }, (222,222,222,wx.ALPHA_OPAQUE))
       self.toolBar.AddRadioTool(DELETE_BUTTON, bitmap, wx.NullBitmap, shortHelp="Delete entity/entities", longHelp="Select one or many entities. Click entity to delete.")
-      self.idLookup[DELETE_BUTTON] = DeleteTool(self)    
+      self.idLookup[DELETE_BUTTON] = DeleteTool(self)
+
+      # setting the default tool
+      self.tool = self.idLookup[SELECT_BUTTON]
 
       #add event handler for menu generate code
       fileMenu = self.guiPlaces.menu.get("File",None)

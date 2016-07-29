@@ -4,9 +4,14 @@ from types import *
 import common
 import svg
 import copy
+import share
 
 nameIdx = {
 }
+
+RLS_OK = 0              # Relationship is allowed
+RLS_ERR_EXISTS = 1      # Relationship already exists
+RLS_ERR_NOT_ALLOWED = 2 # Relationship is not allowed
 
 def NameCreator(typ, etname=None):
   """Create a unique name by using the type and an instance number"""
@@ -28,6 +33,16 @@ def EntityTypeSortOrder(a,b):
     return -1
   return cmp(a[1].get("order",10000),b[1].get("order",10001))
   
+
+def isRelationshipExist(ent):
+  if not share.umlEditorPanel:
+    assert(False)
+  for name,e in share.umlEditorPanel.model.entities.items():
+    if ent==e:
+      continue
+    if any(ent==ca.contained for ca in e.containmentArrows):
+      return True
+  return False
 
 class EntityType:
   """This defines the concept, for example 'Service Group'"""
@@ -105,16 +120,56 @@ class Entity:
     self.bmp  = self.et.iconSvg.instantiate(self.size,self.data)
 
   def canContain(self, entity):
-    """Return true if this entity can contain the passed entity"""
+    """Return RLS_OK if this entity can contain the passed entity; 
+       return RLS_ERR_EXISTS if the entity has alread added to the relationship or reach the max of ordinality
+       return RLS_ERR_NOT_ALLOWED if the relationship is not allowed """
     # TODO: check the entitytype relationship
     # TODO: make sure that the ordinality is correct (i.e. if self can only contain one entity, make sure that currently self is containing no of them)
-    return True
+    # Rules: Node --> SU --> Comp
+    #        SG --> SI --> CSI
+    #        SG --> SU 
+    #        Cluster --> Application --> SG
+    #        Cluster --> Node
+
+    if any(entity==ca.contained for ca in self.containmentArrows):
+      return RLS_ERR_EXISTS    
+   
+    if self.et.name=="Cluster" and entity.et.name=="Application":
+      if isRelationshipExist(entity):
+        return RLS_ERR_EXISTS
+      return RLS_OK
+    if self.et.name=="Cluster" and entity.et.name=="Node":
+      if isRelationshipExist(entity):
+        return RLS_ERR_EXISTS
+      return RLS_OK      
+    if self.et.name=="Application" and entity.et.name=="ServiceGroup":
+      if isRelationshipExist(entity):
+        return RLS_ERR_EXISTS
+      return RLS_OK
+    if self.et.name=="Node" and entity.et.name=="ServiceUnit":
+      if isRelationshipExist(entity):
+        return RLS_ERR_EXISTS
+      return RLS_OK
+    if self.et.name=="ServiceUnit" and entity.et.name=="Component":      
+      if isRelationshipExist(entity):
+        return RLS_ERR_EXISTS
+      return RLS_OK
+    if self.et.name=="ServiceGroup" and (entity.et.name=="ServiceInstance" or entity.et.name=="ServiceUnit"):
+      if isRelationshipExist(entity):
+        return RLS_ERR_EXISTS
+      return RLS_OK
+    if self.et.name=="ServiceInstance" and entity.et.name=="ComponentServiceInstance":
+      if isRelationshipExist(entity):
+        return RLS_ERR_EXISTS
+      return RLS_OK
+    return RLS_ERR_NOT_ALLOWED
 
   def canBeContained(self, entity):
     """Return true if this entity can be contained by the passed entity"""
     # TODO: check the entitytype relationship
     # TODO: make sure that the ordinality is correct (i.e. if self can only be contained by one entity, make sure that currently self is contained by no entity)
-    return True
+    # if canContain() returns RLS_OK, this means the relationship is satisfied, so, it's not necessary to test canBeContained
+    return RLS_OK
 
   def createContainmentArrowTo(self,entity):
     """Creates a containment arrow to the supplied entity.  Essentially, this creates a containment relationship because the arrow defines the relationship"""
