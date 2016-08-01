@@ -21,11 +21,54 @@ bool_t rngSeeded = false;
 struct RudpSocketList *socketListHead = NULL;
 ClOsalMutexT socketListMutex;
 
+ClRcT
+clCheckRetransCallback(void *pData)
+{
+  ClRcT 		 rc		    = CL_OK;
+  struct session * currentSession=(struct session*)pData;
+  clOsalMutexLock(&currentSession->senderMutex);
+  if(currentSession->sender->slidingWindow[0]!=NULL)
+  {
+    int index;
+    struct timeval currentTime;
+    gettimeofday(&currentTime, NULL);
+    for(index = 0; index < RUDP_WINDOW; index++)
+    {
+      long sec = ((currentTime.tv_sec * 1000000 + currentTime.tv_usec)- (currentSession->sender->slidingWindow[index]->sendTime.tv_sec * 1000000 + currentSession->sender->slidingWindow[index]->sendTime.tv_usec))/1000;
+      if(sec<RUDP_TIMEOUT)
+      {
+	clLogTrace("UDPRELIABLE", "SEND","sec  : [%ld]",sec);
+	clOsalMutexUnlock(&currentSession->senderMutex);
+	return CL_OK;
+      }
+      if(currentSession->sender->retransmissionAttempts[index] >= RUDP_MAXRETRANS)
+      {
+	//TODO handle socket failue
+	clLogTrace("UDPRELIABLE", "SEND","retransmission Exceed RUDP_MAXRETRANS");
+      }
+      else
+      {
+	clLogTrace("UDPRELIABLE", "SEND","retransmission packet seqno [%d] timeout [%ld] to dest[%s:%d] using socket [%d]",currentSession->sender->slidingWindow[index]->header.seqno,sec,inet_ntoa(currentSession->address.sin_addr), ntohs(currentSession->address.sin_port),currentSession->socketfd);
+	currentSession->sender->retransmissionAttempts[index]++;
+	currentSession->sender->slidingWindow[index]->sendTime.tv_sec=currentTime.tv_sec;
+	currentSession->sender->slidingWindow[index]->sendTime.tv_usec=currentTime.tv_usec;
+	sendPacketNew(false, (rudpSocketT)(long)currentSession->socketfd, currentSession->sender->slidingWindow[index], &currentSession->address);
+      }
+    }
+  }
+  else
+  {
+    clLogTrace("UDPRELIABLE", "SEND", "retransmission on fd [%d] : no packet in sliding windows",currentSession->socketfd);
+  }
+  clOsalMutexUnlock(&currentSession->senderMutex);
+  return rc;
+}
+
 
 /* Creates a new sender session and appends it to the socket's session list */
 void createSenderSession(struct RudpSocketList *socket, ClUint32T seqno, struct sockaddr_in *to, struct data **dataQueue)
 {
-  clLogTrace("UDPRELIABLE", "SEND", "create sender session");
+  //clLogTrace("UDPRELIABLE", "SEND", "create sender session");
   struct session *newSession = malloc(sizeof(struct session));
   if(newSession == NULL)
   {
@@ -35,6 +78,8 @@ void createSenderSession(struct RudpSocketList *socket, ClUint32T seqno, struct 
   newSession->address = *to;
   newSession->next = NULL;
   newSession->receiver = NULL;
+  newSession->socketfd = socket->socketfd;
+  clOsalMutexInit(&newSession->senderMutex);
   struct SenderSession * newSenderSession = malloc(sizeof(struct SenderSession));
   if(newSenderSession == NULL)
   {
@@ -43,7 +88,9 @@ void createSenderSession(struct RudpSocketList *socket, ClUint32T seqno, struct 
   }
   newSenderSession->status = SYN_SENT;
   newSenderSession->seqno = seqno;
+  newSenderSession->dataQueueCount=0;
   newSenderSession->sessionFinished = false;
+
   /* Add data to the new session's queue */
   newSenderSession->dataQueue = *dataQueue;
   newSession->sender=newSenderSession;
@@ -57,6 +104,18 @@ void createSenderSession(struct RudpSocketList *socket, ClUint32T seqno, struct 
   }
   newSenderSession->synRetransmitAttempts = 0;
   newSenderSession->finRetransmitAttempts = 0;
+  newSenderSession->gRetransTimer=0;
+  ClTimerTimeOutT  timeout = {0, 500};
+  ClRcT rc = CL_OK;
+  clLogTrace("UDPRELIABLE", "SEND", "Create and start timer");
+  rc= clTimerCreateAndStart(timeout, CL_TIMER_REPETITIVE,
+			     CL_TIMER_SEPARATE_CONTEXT,
+			     clCheckRetransCallback,
+			     (void*)newSession, &newSenderSession->gRetransTimer);
+  if(rc != CL_OK)
+  {
+      clLogError("UDPRELIABLE", "SEND", "Failed to create a timer for session. error code [0x%x].",rc);
+  }
 
   if(socket->sessionsListHead == NULL)
   {
@@ -79,7 +138,7 @@ void createSenderSession(struct RudpSocketList *socket, ClUint32T seqno, struct 
 /* Creates a new receiver session and appends it to the socket's session list */
 void createReceiverSession(struct RudpSocketList *socket, ClUint32T seqno, struct sockaddr_in *addr)
 {
-  clLogTrace("UDPRELIABLE", "RECV","Create receive sesion for socket");
+  //clLogTrace("UDPRELIABLE", "RECV","Create receive sesion for socket");
   struct session *newSession = malloc(sizeof(struct session));
   if(newSession == NULL)
   {
@@ -128,59 +187,61 @@ void createReceiverSession(struct RudpSocketList *socket, ClUint32T seqno, struc
   //  struct RudpPacket *packet = malloc(sizeof(struct RudpPacket));
   //  if(packet == NULL)
   //  {
-  //    clLogDebug("IOC", "RELIABLE", "createRudpPacket: Error allocating memory for packet\n");
-  //    return NULL;
+  //	clLogDebug("IOC", "RELIABLE", "createRudpPacket: Error allocating memory for packet\n");
+  //	return NULL;
   //  }
   //  packet->header = header;
   //  packet->flag=flag;
   //  packet->payloadLength = len;
   //  memset(&packet->payload, 0, RUDP_MAXPKTSIZE);
   //  if(payload != NULL)
-  //    memcpy(&packet->payload, payload, len);
+  //	memcpy(&packet->payload, payload, len);
   //
   //  return packet;
   //}
 
 struct RudpPacket *createRudpPacketNew(ClUint16T type, ClUint32T seqno, ClInt32T len, char *payload,ClInt32T flag)
 {
-  clLogTrace("UDPRELIABLE","PACKET","Create UPD Packet");
   struct rudp_hdr header;
   header.version = RUDP_VERSION;
   header.type = type;
   header.seqno = seqno;
   struct RudpPacket *packet = malloc(sizeof(struct RudpPacket));
+  ClIocHeaderT* iocHeader=NULL;
   if(packet == NULL)
   {
     clLogError("UDPRELIABLE","PACKET", "createRudpPacket: Error allocating memory for packet\n");
     return NULL;
   }
+  struct timeval currentTime;
+  gettimeofday(&currentTime, NULL);
+  packet->sendTime.tv_sec=currentTime.tv_sec;
+  packet->sendTime.tv_usec=currentTime.tv_usec;
   packet->payloadLength=len;
   struct iovec *iov=NULL;
   if(type==1)
   {
-    if(payload==NULL)
+    memset(&packet->payload, 0, RUDP_MAXPKTSIZE);
+    if(payload != NULL)
     {
-      clLogTrace("UDPRELIABLE","PACKET","Payload is null");
+      memcpy(&packet->payload, payload, len);
     }
     else
     {
-      clLogTrace("UDPRELIABLE","PACKET","Create DATA packet");
+      clLogTrace("UDPRELIABLE","PACKET","createRudpPacketNew : Data is NULL");
+      return NULL;
     }
-    iov =(struct iovec *)payload;
-    ClIocHeaderT* iocHeader = (ClIocHeaderT*)iov->iov_base;
+    iov =(struct iovec *)packet->payload;
+    iocHeader = (ClIocHeaderT*)iov->iov_base;
     int length= iov->iov_len;
     iocHeader->seqno=seqno;
-    iocHeader->type=type;
-    memset(&packet->payload, 0, RUDP_MAXPKTSIZE);
-    clLogTrace("UDPRELIABLE","PACKET","memcopy payload to packet with length [%d]",length);
-    if(payload != NULL)
-      memcpy(&packet->payload, payload, length);
-    clLogTrace("UDPRELIABLE","PACKET","Create DATA packet with length [%d]",length);
-    packet->payloadLength = len;
+    iocHeader->type=1;
+    //clLogTrace("UDPRELIABLE","PACKET","Create DATA packet size [%d] for seqno [%d] done",length,iocHeader->seqno);
+    packet->payloadLength = length;
   }
   else
   {
-      clLogTrace("UDPRELIABLE", "PACKET","Create control packet \n");
+      //clLogTrace("UDPRELIABLE", "PACKET","Create control packet \n");
   }
   packet->header = header;
   packet->flag=flag;
@@ -210,11 +271,11 @@ ClInt32T compareSockaddr(struct sockaddr_in *s1, struct sockaddr_in *s2)
 //    struct RudpSocketList *curr = socketListHead;
 //    while(curr->next != NULL)
 //    {
-//      if(curr->socketfd==sockfd)
-//      {
-//        clOsalMutexUnlock(&socketListMutex);
-//        return CL_TRUE;
-//      }
+//	if(curr->socketfd==sockfd)
+//	{
+//	  clOsalMutexUnlock(&socketListMutex);
+//	  return CL_TRUE;
+//	}
 //    }
 //  }
 //  clOsalMutexUnlock(&socketListMutex);
@@ -223,7 +284,7 @@ ClInt32T compareSockaddr(struct sockaddr_in *s1, struct sockaddr_in *s2)
 
 int rudpSocketFromUdpSocket(int sockfd)
 {
-  clLogTrace("UDPRELIABLE", "SOCKET", "Create reliable UDP socket from UDP socket\n");
+  //clLogTrace("UDPRELIABLE", "SOCKET", "Create reliable UDP socket from UDP socket\n");
   if(rngSeeded == false)
   {
     srand(time(NULL));
@@ -234,15 +295,17 @@ int rudpSocketFromUdpSocket(int sockfd)
     return -1;
   }
   clOsalMutexLock(&socketListMutex);
-
+  struct RudpSocketList *newSocket;
   if(socketListHead == NULL)
   {
+    newSocket= malloc(sizeof(struct RudpSocketList));
+    //clLogTrace("UDPRELIABLE", "SOCKET", "socketListHead is null");
     rudpSocketT socket = (rudpSocketT) (long) sockfd;
     /* Create new socket and add to list of sockets */
-    struct RudpSocketList *newSocket = malloc(sizeof(struct RudpSocketList));
     if(newSocket == NULL)
     {
       clLogError("UDPRELIABLE", "SOCKET", "rudpSocket: Error allocating memory for socket list");
+      clOsalMutexUnlock(&socketListMutex);
       return -1;
     }
     newSocket->socketfd=sockfd;
@@ -256,22 +319,32 @@ int rudpSocketFromUdpSocket(int sockfd)
   }
   else
   {
+    //clLogTrace("UDPRELIABLE", "SOCKET", "socketListHead is not null");
     struct RudpSocketList *currentSocket = socketListHead;
+    //clLogTrace("UDPRELIABLE", "SOCKET", "check the first socket [%d]",currentSocket->socketfd);
+    if(currentSocket->socketfd==sockfd)
+    {
+      clOsalMutexUnlock(&socketListMutex);
+      //clLogTrace("UDPRELIABLE", "SOCKET", "Socket is already exists 1. Return...");
+      return 1;
+    }
     while(currentSocket->next != NULL)
     {
+      clLogTrace("UDPRELIABLE", "SOCKET", "check socket [%d]...",currentSocket->socketfd);
       if(currentSocket->socketfd==sockfd)
       {
-        clOsalMutexUnlock(&socketListMutex);
-        clLogTrace("UDPRELIABLE", "SOCKET", "Socket is already exists. Return...");
-        return 1;
+	clOsalMutexUnlock(&socketListMutex);
+	clLogTrace("UDPRELIABLE", "SOCKET", "Socket is already exists . Return...");
+	return 1;
       }
       currentSocket = currentSocket->next;
     }
     rudpSocketT socket = (rudpSocketT) (long) sockfd;
     /* Create new socket and add to list of sockets */
-    struct RudpSocketList *newSocket = malloc(sizeof(struct RudpSocketList));
+    newSocket= malloc(sizeof(struct RudpSocketList));
     if(newSocket == NULL)
     {
+      clOsalMutexUnlock(&socketListMutex);
       clLogError("UDPRELIABLE", "SOCKET","RudpSocket: Error allocating memory for socket list");
       return -1;
     }
@@ -285,7 +358,7 @@ int rudpSocketFromUdpSocket(int sockfd)
     currentSocket->next = newSocket;
   }
   clOsalMutexUnlock(&socketListMutex);
-  clLogTrace("UDPRELIABLE", "SOCKET", "Create reliable UDP socket from UDP socket successful");
+  //clLogTrace("UDPRELIABLE", "SOCKET", "Create reliable UDP socket from UDP socket successful with socket [%d]",newSocket->socketfd);
   return 0;
 }
 
@@ -348,7 +421,7 @@ ClInt32T rudpRecvfromHandler(rudpSocketT rsocket, ClInt32T(*handler)( rudpSocket
 
 ClInt32T rudpSendto(rudpSocketT rsocket, void* data , ClInt32T len, struct sockaddr_in* to,ClInt32T flag)
 {
-  clLogTrace("UDPRELIABLE","SEND","Sending reliable paket...");
+  //clLogTrace("UDPRELIABLE","SEND","Sending reliable paket with length [%d]...",len);
   if(len < 0 || len > RUDP_MAXPKTSIZE)
   {
     clLogError("UDPRELIABLE","SEND", "rudpSendto Error: attempting to send with invalid max packet size\n");
@@ -366,7 +439,10 @@ ClInt32T rudpSendto(rudpSocketT rsocket, void* data , ClInt32T len, struct socka
       clLogError("UDPRELIABLE","SEND", "rudpSendto Error: attempting to send to an invalid address\n");
     return -1;
   }
-
+  if(data==NULL)
+  {
+      clLogError("UDPRELIABLE","SEND", "rudpSendto Error: Data is null\n");
+  }
   bool_t newSessionCreated = true;
   ClUint32T seqno = 0;
   if(socketListHead == NULL)
@@ -381,7 +457,7 @@ ClInt32T rudpSendto(rudpSocketT rsocket, void* data , ClInt32T len, struct socka
     {
       if(curr_socket->rsock == rsocket)
       {
-        break;
+	break;
       }
       curr_socket = curr_socket->next;
     }
@@ -391,101 +467,130 @@ ClInt32T rudpSendto(rudpSocketT rsocket, void* data , ClInt32T len, struct socka
       struct data *data_item = malloc(sizeof(struct data));
       if(data_item == NULL)
       {
-        clLogDebug("UDPRELIABLE","SEND", "rudpSendto: Error allocating data queue\n");
-        return -1;
+	clLogDebug("UDPRELIABLE","SEND", "rudpSendto: Error allocating data queue\n");
+	return -1;
       }
       data_item->item = malloc(len);
       if(data_item->item == NULL)
       {
-        clLogDebug("UDPRELIABLE","SEND", "rudpSendto: Error allocating data queue item\n");
-        return -1;
+	clLogDebug("UDPRELIABLE","SEND", "rudpSendto: Error allocating data queue item\n");
+	return -1;
       }
       memcpy(data_item->item, data, len);
       data_item->len = len;
       data_item->next = NULL;
       if(curr_socket->sessionsListHead == NULL)
       {
-        clLogTrace("UDPRELIABLE","SEND", "No session in current socket. Create sender socket. Add data to data queue");
-        seqno = rand();
-        createSenderSession(curr_socket, seqno, to, &data_item);
+	clLogTrace("UDPRELIABLE","SEND", "No session in current socket. Create sender session. Add data to data queue");
+	seqno = rand();
+	createSenderSession(curr_socket, seqno, to, &data_item);
       }
       else
       {
-        bool_t session_found = false;
-        struct session *currSession = curr_socket->sessionsListHead;
-        while(currSession != NULL)
-        {
-          clLogTrace("UDPRELIABLE","SEND", "Finding session for destination address...");
-          if(compareSockaddr(&currSession->address, to) == 1)
-          {
-            bool_t data_is_queued = false;
-            bool_t we_must_queue = true;
-            if(currSession->sender == NULL)
-            {
-              clLogTrace("UDPRELIABLE","SEND", "Sender session is null. Send a sync paket ");
-              seqno = rand()%65535;
-              createSenderSession(curr_socket, seqno, to, &data_item);
-              struct RudpPacket *p = createRudpPacketNew(RUDP_SYN, seqno, 0, NULL ,0);
-              sendPacketNew(false, rsocket, p, to);
-              free(p);
-              newSessionCreated = false; /* Dont send the SYN twice */
-              break;
-            }
-            if(currSession->sender->dataQueue != NULL)
-            {
-              clLogTrace("UDPRELIABLE","SEND", "Data is queued in sender session");
-              data_is_queued = true;
-            }
-            if(currSession->sender->status == OPEN && !data_is_queued)
-            {
-              clLogTrace("UDPRELIABLE","SEND", "Data queue is empty . Send Data packet");
-              ClInt32T i;
-              for(i = 0; i < RUDP_WINDOW; i++)
-              {
-                if(currSession->sender->slidingWindow[i] == NULL)
-                {
-                  clLogDebug("IOC", "RELIABLE", "Debug 8\n");
-                  currSession->sender->seqno = currSession->sender->seqno + 1;
-                  struct RudpPacket *datap = createRudpPacketNew(RUDP_DATA, currSession->sender->seqno, len, data,flag);
-                  currSession->sender->slidingWindow[i] = datap;
-                  currSession->sender->retransmissionAttempts[i] = 0;
-                  sendPacketNew(false, rsocket, datap, to);
-                  we_must_queue = false;
-                  break;
-                }
-              }
-            }
-            if(we_must_queue == true)
-            {
-              clLogTrace("UDPRELIABLE","SEND", "Don't send the packet. Add to data queue");
-              if(currSession->sender->dataQueue == NULL)
-              {
-                /* First entry in the data queue */
-                currSession->sender->dataQueue = data_item;
-              }
-              else
-              {
-                /* Add to end of data queue */
-                struct data *curr_data = currSession->sender->dataQueue;
-                while(curr_data->next != NULL)
-                {
-                   curr_data = curr_data->next;
-                }
-                curr_data->next = data_item;
-              }
-              clLogTrace("UDPRELIABLE","SEND", "Packet is added to data queue");
-            }
-            session_found = true;
-            //newSessionCreated = false;
-            break;
-          }
-          currSession = currSession->next;
-        }
-        if(!session_found)
-        {
-          seqno = rand()%65535;
-          createSenderSession(curr_socket, seqno, to, &data_item);
-        }
+	bool_t session_found = false;
+	struct session *currSession = curr_socket->sessionsListHead;
+	while(currSession != NULL)
+	{
+	  //clLogTrace("UDPRELIABLE","SEND", "Finding session for destination address...");
+	  if(compareSockaddr(&currSession->address, to) == 1)
+	  {
+	    clOsalMutexLock(&currSession->senderMutex);
+	    //clLogTrace("UDPRELIABLE","SEND", "lock send");
+	    bool_t data_is_queued = false;
+	    bool_t we_must_queue = true;
+	    if(currSession->sender == NULL)
+	    {
+	      clLogTrace("UDPRELIABLE","SEND", "Sender session is null. Send a sync paket ");
+	      seqno = rand();
+	      createSenderSession(curr_socket, seqno, to, &data_item);
+	      struct RudpPacket *p = createRudpPacketNew(RUDP_SYN, seqno, 0, NULL ,0);
+	      sendPacketNew(false, rsocket, p, to);
+	      free(p);
+	      newSessionCreated = false; /* Dont send the SYN twice */
+	      break;
+	    }
+	    if(currSession->sender->dataQueue != NULL)
+	    {
+	      //clLogTrace("UDPRELIABLE","SEND", "Data is queued in sender session");
+	      data_is_queued = true;
+	    }
+	    if(currSession->sender->status == OPEN && !data_is_queued)
+	    {
+	      clLogTrace("UDPRELIABLE","SEND", "Data queue is empty . Send Data packet");
+	      ClInt32T i;
+	      for(i = 0; i < RUDP_WINDOW; i++)
+	      {
+		if(currSession->sender->slidingWindow[i] == NULL)
+		{
+		  //clLogDebug("IOC", "RELIABLE", "Debug 8\n");
+		  currSession->sender->seqno = currSession->sender->seqno + 1;
+		  struct RudpPacket *datap = createRudpPacketNew(RUDP_DATA, currSession->sender->seqno, len, data,flag);
+		  currSession->sender->slidingWindow[i] = datap;
+		  currSession->sender->retransmissionAttempts[i] = 0;
+		  sendPacketNew(false, rsocket, datap, to);
+		  we_must_queue = false;
+		  break;
+		}
+	      }
+	    }
+	    if(we_must_queue == true)
+	    {
+	      clLogTrace("UDPRELIABLE","SEND", "Don't send the packet. Add to data queue [%d]",currSession->sender->dataQueueCount);
+	      if(currSession->sender->dataQueue == NULL)
+	      {
+		/* First entry in the data queue */
+		currSession->sender->dataQueue = data_item;
+	      }
+	      else
+	      {
+		/* Add to end of data queue */
+		struct data *curr_data = currSession->sender->dataQueue;
+		while(curr_data->next != NULL)
+		{
+		   curr_data = curr_data->next;
+		}
+		curr_data->next = data_item;
+	      }
+	      currSession->sender->dataQueueCount++;
+	      if(currSession->sender->slidingWindow[0] == NULL)
+	      {
+		  clLogTrace("UDPRELIABLE","SEND", "Fix don't send");
+		  currSession->sender->seqno = currSession->sender->seqno + 1;
+		  ClUint32T seqno = currSession->sender->seqno;
+		  ClInt32T len = currSession->sender->dataQueue->len;
+		  char *payload = currSession->sender->dataQueue->item;
+		  struct RudpPacket *datap = createRudpPacketNew(RUDP_DATA, seqno, len, payload,0);
+		  currSession->sender->slidingWindow[0] = datap;
+		  currSession->sender->retransmissionAttempts[0] = 0;
+		  struct data *temp = currSession->sender->dataQueue;
+		  currSession->sender->dataQueue = currSession->sender->dataQueue->next;
+		  free(temp->item);
+		  free(temp);
+		  sendPacketNew(false, rsocket, datap,&currSession->address);
+	      }
+	      //clLogTrace("UDPRELIABLE","SEND", "Packet is added to data queue");
+	    }
+	    session_found = true;
+	    newSessionCreated = false;
+	    clOsalMutexUnlock(&currSession->senderMutex);
+	    if(we_must_queue == true)
+	    {
+		do
+		{
+		  usleep(20000);
+		}while(currSession->sender->dataQueueCount>10);
+		clLogTrace("UDPRELIABLE","SEND", "queue count [%d]",currSession->sender->dataQueueCount++);
+	    }
+	    //clLogTrace("UDPRELIABLE","SEND", "unlock send");
+	    break;
+	  }
+	  currSession = currSession->next;
+	}
+	if(!session_found)
+	{
+	  seqno = rand();
+	  createSenderSession(curr_socket, seqno, to, &data_item);
+	}
       }
     }
     else
@@ -508,6 +613,11 @@ ClInt32T rudpSendto(rudpSocketT rsocket, void* data , ClInt32T len, struct socka
 
 ClInt32T sendPacketNew(bool_t is_ack, rudpSocketT rsocket, struct RudpPacket *p, struct sockaddr_in *recipient)
 {
+  if(p==NULL)
+  {
+      clLogTrace("UDPRELIABLE","SEND", "Packet is NULL\n");
+
+  }
   char type[5];
   short t = p->header.type;
   if(t == 1)
@@ -521,12 +631,9 @@ ClInt32T sendPacketNew(bool_t is_ack, rudpSocketT rsocket, struct RudpPacket *p,
   else
     strcpy(type, "BAD");
 
-  clLogDebug("UDPRELIABLE","SEND", "Sending %s packet to %s:%d seq number=%u on socket=%d\n", type, inet_ntoa(recipient->sin_addr), ntohs(recipient->sin_port),
-      p->header.seqno, (ClInt32T) (long) rsocket);
-
-  if(DROP != 0 && rand() % DROP == 1)
+  if(DROP != 0 && p->header.seqno % DROP == 0)
   {
-    clLogError("UDPRELIABLE","SEND", "Dropped\n");
+    clLogError("UDPRELIABLE","SEND", "Dropped seqno %d\n",p->header.seqno);
   }
   else
   {
@@ -541,12 +648,18 @@ ClInt32T sendPacketNew(bool_t is_ack, rudpSocketT rsocket, struct RudpPacket *p,
     if(t==1)
     {
       msghdr.msg_iov = (void*)p->payload;
-      msghdr.msg_iovlen = p->payloadLength;
-      clLogTrace("UDPRELIABLE","SEND", "sendPacket: Send packet with Data length %d ", p->payloadLength);
+      msghdr.msg_iovlen = 1;
+      //clLogTrace("UDPRELIABLE","SEND", "sendPacket: Send packet with Data length %d ", p->payloadLength);
+      ClIocHeaderT* iocHeader=NULL;
+      struct iovec *iov=NULL;
+      iov =(struct iovec *)msghdr.msg_iov;
+      iocHeader = (ClIocHeaderT*)iov->iov_base;
+      clLogDebug("UDPRELIABLE","SEND", "Sending %s packet to %s:%d seq number=%u on socket=%d\n validation info (%d %d )", type, inet_ntoa(recipient->sin_addr), ntohs(recipient->sin_port),
+	  p->header.seqno, (ClInt32T) (long) rsocket,iocHeader->seqno,iocHeader->type);
     }
     else
     {
-      clLogTrace("UDPRELIABLE","SEND", "sendPacket: Send control packet with type %d",t);
+      //clLogTrace("UDPRELIABLE","SEND", "sendPacket: Send control packet with type %d",t);
       userHeader.version = CL_IOC_HEADER_VERSION;
       userHeader.protocolType = 0;
       userHeader.priority = 0;
@@ -559,100 +672,14 @@ ClInt32T sendPacketNew(bool_t is_ack, rudpSocketT rsocket, struct RudpPacket *p,
       msghdr.msg_iov = (void*)&controlMessage;
       msghdr.msg_iovlen = 1;
     }
-    int length = msghdr.msg_iov->iov_len;
     if(sendmsg((ClInt32T)(long)rsocket, &msghdr, p->flag) < 0)
     {
-        clLogError("UDPRELIABLE","SEND", "UDP send failed with error");
+	clLogError("UDPRELIABLE","SEND", "UDP send failed ");
     }
     else
     {
-        clLogTrace("UDPRELIABLE","SEND", "UDP send [%d] byte successful using socket [%ld] ",length,(long)rsocket);
+	clLogTrace("UDPRELIABLE","SEND", "UDP send using socket ... [%ld] ",(long)rsocket);
     }
-  }
-  if(!is_ack)
-  {
-    /* Set a timeout event if the packet isn't an ACK */
-      clLogTrace("UDPRELIABLE","SEND", "Set time out event for this packet");
-//    struct TimeoutArgs *timeargs = malloc(sizeof(struct TimeoutArgs));
-//    if(timeargs == NULL)
-//    {
-//      clLogError("UDPRELIABLE","SEND", "sendPacket: Error allocating timeout args\n");
-//      return -1;
-//    }
-//    timeargs->packet = malloc(sizeof(struct RudpPacket));
-//    if(timeargs->packet == NULL)
-//    {
-//      clLogError("UDPRELIABLE","SEND", "sendPacket: Error allocating timeout args packet\n");
-//      return -1;
-//    }
-//    timeargs->recipient = malloc(sizeof(struct sockaddr_in));
-//    if(timeargs->packet == NULL)
-//    {
-//      clLogError("UDPRELIABLE","SEND", "sendPacket: Error allocating timeout args recipient\n");
-//      return -1;
-//    }
-//    timeargs->fd = rsocket;
-//    memcpy(timeargs->packet, p, sizeof(struct RudpPacket));
-//    memcpy(timeargs->recipient, recipient, sizeof(struct sockaddr_in));
-//
-//    struct timeval currentTime;
-//    gettimeofday(&currentTime, NULL);
-//    struct timeval delay;
-//    delay.tv_sec = RUDP_TIMEOUT / 1000;
-//    delay.tv_usec = 0;
-//    struct timeval timeout_time;
-//    timeradd(&currentTime, &delay, &timeout_time);
-//
-//    struct RudpSocketList *curr_socket = socketListHead;
-//    while(curr_socket != NULL)
-//    {
-//      if(curr_socket->rsock == timeargs->fd)
-//      {
-//        break;
-//      }
-//      curr_socket = curr_socket->next;
-//    }
-//    if(curr_socket->rsock == timeargs->fd)
-//    {
-//      bool_t session_found = false;
-//      /* Check if we already have a session for this peer */
-//      struct session *currSession = curr_socket->sessionsListHead;
-//      while(currSession != NULL)
-//      {
-//        if(compareSockaddr(&currSession->address, timeargs->recipient) == 1)
-//        {
-//          /* Found an existing session */
-//          session_found = true;
-//          break;
-//        }
-//        currSession = currSession->next;
-//      }
-//      if(session_found)
-//      {
-//        if(timeargs->packet->header.type == RUDP_SYN)
-//        {
-//          currSession->sender->synTimeout = timeargs;
-//        }
-//        else if(timeargs->packet->header.type == RUDP_FIN)
-//        {
-//          currSession->sender->finTimeout = timeargs;
-//        }
-//        else if(timeargs->packet->header.type == RUDP_DATA)
-//        {
-//          ClInt32T i;
-//          ClInt32T index = 0;
-//          for(i = 0; i < RUDP_WINDOW; i++)
-//          {
-//            if(currSession->sender->slidingWindow[i] != NULL && currSession->sender->slidingWindow[i]->header.seqno == timeargs->packet->header.seqno)
-//            {
-//              index = i;
-//            }
-//          }
-//          currSession->sender->dataTimeout[index] = timeargs;
-//        }
-//      }
-//    }
-//    eventTimeout(timeout_time, timeoutCallback, timeargs, "timeoutCallback");
   }
   return 0;
 }
@@ -668,9 +695,13 @@ ClInt32T receiveHandlePacketNew(ClInt32T file,ClUint8T *buffer,ClUint32T bufSize
   }
   else
   {
-    clLogTrace("UDPRELIABLE","RECV","Received message inreliable mode with userHeader.type = %d, %d",userHeader.type, bufSize);
+    clLogTrace("UDPRELIABLE","RECV","Received message inreliable mode with userHeader.type = [%d], [%d] length = %d",userHeader.type, userHeader.seqno, bufSize);
+    if(userHeader.type==4)
+    {
+      clLogTrace("UDPRELIABLE","RECV","Received message SYN inreliable mode. create socket ");
+      rudpSocketFromUdpSocket(file);
+    }
   }
-  rudpSocketFromUdpSocket(file);
   char type[5];
   short t = userHeader.type;
   if(t == 1)
@@ -695,13 +726,12 @@ ClInt32T receiveHandlePacketNew(ClInt32T file,ClUint8T *buffer,ClUint32T bufSize
   else
   {
     /* We have sockets to check */
-    clOsalMutexLock(&socketListMutex);
     struct RudpSocketList *curr_socket = socketListHead;
     while(curr_socket != NULL)
     {
       if((ClInt32T) (long) curr_socket->rsock == file)
       {
-        break;
+	break;
       }
       curr_socket = curr_socket->next;
     }
@@ -710,402 +740,394 @@ ClInt32T receiveHandlePacketNew(ClInt32T file,ClUint8T *buffer,ClUint32T bufSize
       /* We found the correct socket, now see if a session already exists for this peer */
       if(curr_socket->sessionsListHead == NULL)
       {
-        /* The list is empty, so we check if the sender has initiated the protocol properly (by sending a SYN) */
-        if(userHeader.type == RUDP_SYN)
-        {
-          /* SYN Received. Create a new session at the head of the list */
-          clLogTrace("UDPRELIABLE","RECV","Process SYN packet . Create Session and send ACK");
-          ClUint32T seqno = userHeader.seqno + 1;
-          createReceiverSession(curr_socket, seqno, &sender);
-          /* Respond with an ACK */
-          struct RudpPacket *p = createRudpPacketNew(RUDP_ACK, seqno, 0, NULL,0);
-          sendPacketNew(true, (rudpSocketT) (long) file, p, &sender);
-          free(p);
-        }
-        else
-        {
-          /* No sessions exist and we got a non-SYN, so ignore it */
-        }
+	/* The list is empty, so we check if the sender has initiated the protocol properly (by sending a SYN) */
+	if(userHeader.type == RUDP_SYN)
+	{
+	  /* SYN Received. Create a new session at the head of the list */
+	  clLogTrace("UDPRELIABLE","RECV","Process SYN packet . Create Session and send ACK");
+	  ClUint32T seqno = userHeader.seqno + 1;
+	  createReceiverSession(curr_socket, seqno, &sender);
+	  /* Respond with an ACK */
+	  struct RudpPacket *p = createRudpPacketNew(RUDP_ACK, seqno, 0, NULL,0);
+	  sendPacketNew(true, (rudpSocketT) (long) file, p, &sender);
+	  free(p);
+	}
+	else
+	{
+	  /* No sessions exist and we got a non-SYN, so ignore it */
+	}
       }
       else
       {
-        /* Some sessions exist to be checked */
-        bool_t session_found = false;
-        struct session *currSession = curr_socket->sessionsListHead;
-        while(currSession != NULL)
-        {
-          if(compareSockaddr(&currSession->address, &sender) == 1)
-          {
-            /* Found an existing session */
-            session_found = true;
-            break;
-          }
-          currSession = currSession->next;
-        }
-        if(session_found == false)
-        {
-          /* No session was found for this peer */
-          if(userHeader.type == RUDP_SYN)
-          {
-            /* SYN Received. Send an ACK and create a new session */
-            clLogTrace("UDPRELIABLE","RECV","Handle SYN packet . Create Session and send ACK");
-            ClUint32T seqno = userHeader.seqno + 1;
-            createReceiverSession(curr_socket, seqno, &sender);
-            struct RudpPacket *p = createRudpPacketNew(RUDP_ACK, seqno, 0, NULL,0);
-            sendPacketNew(true, (rudpSocketT) (long) file, p, &sender);
-            free(p);
-          }
-          else
-          {
-            /* Session does not exist and non-SYN received - ignore it */
-          }
-        }
-        else
-        {
-          if(userHeader.type == RUDP_SYN)
-          {
-            clLogTrace("UDPRELIABLE","RECV","Handle SYN packet.");
-            if(currSession->receiver == NULL || currSession->receiver->status == OPENING)
-            {
-              /* Create a new receiver session and ACK the SYN*/
-              struct ReceiverSession *newReceiverSession = malloc(sizeof(struct ReceiverSession));
-              if(newReceiverSession == NULL)
-              {
-                clLogTrace("UDPRELIABLE","RECV", "receiveCallback: Error allocating receiver session\n");
-                clOsalMutexUnlock(&socketListMutex);
-                return -1;
-              }
-              newReceiverSession->expected_seqno = userHeader.seqno + 1;
-              newReceiverSession->status = OPENING;
-              newReceiverSession->sessionFinished = false;
-              currSession->receiver = newReceiverSession;
-              ClUint32T seqno = currSession->receiver->expected_seqno;
-              struct RudpPacket *p = createRudpPacketNew(RUDP_ACK, seqno, 0, NULL,0);
-              sendPacketNew(true, (rudpSocketT) (long) file, p, &sender);
-              free(p);
-            }
-            else
-            {
-              /* Received a SYN when there is already an active receiver session, so we ignore it */
-              clOsalMutexUnlock(&socketListMutex);
-              return 0;
-            }
-          }
-          if(userHeader.type == RUDP_ACK)
-          {
-            clLogTrace("UDPRELIABLE","RECV", "handle ACK packet");
-            ClUint32T ack_sqn = userHeader.seqno;
-            if(currSession->sender->status == SYN_SENT)
-            {
-               clLogTrace("UDPRELIABLE","RECV", "This an ACK for a SYN. Sender status SYN_SENT");
-              /* This an ACK for a SYN */
-              ClUint32T syn_sqn = currSession->sender->seqno;
-              if((ack_sqn - 1) == syn_sqn)
-              {
-                 clLogTrace("UDPRELIABLE","RECV","Update sender status to OPEN");
-                /* Delete the retransmission timeout */
-//                eventTimeoutDelete(timeoutCallback, currSession->sender->synTimeout);
-//                struct TimeoutArgs *t = (struct TimeoutArgs *) currSession->sender->synTimeout;
-//                free(t->packet);
-//                free(t->recipient);
-//                free(t);
-                currSession->sender->status = OPEN;
-                while(currSession->sender->dataQueue != NULL)
-                {
-                  /* Check if the window is already full */
-                  clLogTrace("UDPRELIABLE","RECV","Data queue is not empty. Check if the window is already full");
-                  if(currSession->sender->slidingWindow[RUDP_WINDOW - 1] != NULL)
-                  {
-                    clLogTrace("UDPRELIABLE","RECV","the window is already full . Exit");
-                    break;
-                  }
-                  else
-                  {
-                    ClInt32T index;
-                    ClInt32T i;
-                    /* Find the first unused window slot */
-                    for(i = RUDP_WINDOW - 1; i >= 0; i--)
-                    {
-                      if(currSession->sender->slidingWindow[i] == NULL)
-                      {
-                        index = i;
-                      }
-                    }
-                    clLogTrace("UDPRELIABLE","RECV","Send packet, add to window and remove from queue");
-                    /* Send packet, add to window and remove from queue */
-                    ClUint32T seqno = ++syn_sqn;
-                    ClInt32T len = currSession->sender->dataQueue->len;
-                    char *payload = currSession->sender->dataQueue->item;
-                    struct RudpPacket *datap = createRudpPacketNew(RUDP_DATA, seqno, len, payload,0);
-                    currSession->sender->seqno += 1;
-                    currSession->sender->slidingWindow[index] = datap;
-                    currSession->sender->retransmissionAttempts[index] = 0;
-                    struct data *temp = currSession->sender->dataQueue;
-                    currSession->sender->dataQueue = currSession->sender->dataQueue->next;
-                    free(temp->item);
-                    free(temp);
-                    sendPacketNew(false, (rudpSocketT) (long) file, datap, &sender);
-                    clLogTrace("UDPRELIABLE","RECV","Send packet done");
+	/* Some sessions exist to be checked */
+	bool_t session_found = false;
+	struct session *currSession = curr_socket->sessionsListHead;
+	while(currSession != NULL)
+	{
+	  if(compareSockaddr(&currSession->address, &sender) == 1)
+	  {
+	    /* Found an existing session */
+	    session_found = true;
+	    break;
+	  }
+	  currSession = currSession->next;
+	}
+	if(session_found == false)
+	{
+	  /* No session was found for this peer */
+	  if(userHeader.type == RUDP_SYN)
+	  {
+	    /* SYN Received. Send an ACK and create a new session */
+	    clLogTrace("UDPRELIABLE","RECV","Handle SYN packet . Create Session and send ACK");
+	    ClUint32T seqno = userHeader.seqno + 1;
+	    createReceiverSession(curr_socket, seqno, &sender);
+	    struct RudpPacket *p = createRudpPacketNew(RUDP_ACK, seqno, 0, NULL,0);
+	    sendPacketNew(true, (rudpSocketT) (long) file, p, &sender);
+	    free(p);
+	  }
+	  else
+	  {
+	    /* Session does not exist and non-SYN received - ignore it */
+	  }
+	}
+	else
+	{
+	  clOsalMutexLock(&currSession->senderMutex);
+	  //clLogTrace("UDPRELIABLE","SEND", "lock receive");
+	  if(userHeader.type == RUDP_SYN)
+	  {
+	    clLogTrace("UDPRELIABLE","RECV","Handle SYN packet.");
+	    if(currSession->receiver == NULL || currSession->receiver->status == OPENING)
+	    {
+	      /* Create a new receiver session and ACK the SYN*/
+	      struct ReceiverSession *newReceiverSession = malloc(sizeof(struct ReceiverSession));
+	      if(newReceiverSession == NULL)
+	      {
+		clLogTrace("UDPRELIABLE","RECV", "receiveCallback: Error allocating receiver session\n");
+		return -1;
+	      }
+	      newReceiverSession->expected_seqno = userHeader.seqno + 1;
+	      newReceiverSession->status = OPENING;
+	      newReceiverSession->sessionFinished = false;
+	      currSession->receiver = newReceiverSession;
+	      ClUint32T seqno = currSession->receiver->expected_seqno;
+	      struct RudpPacket *p = createRudpPacketNew(RUDP_ACK, seqno, 0, NULL,0);
+	      sendPacketNew(true, (rudpSocketT) (long) file, p, &sender);
+	      free(p);
+	    }
+	    else
+	    {
+	      /* Received a SYN when there is already an active receiver session, so we ignore it */
+	      clOsalMutexUnlock(&currSession->senderMutex);
+	      clLogTrace("UDPRELIABLE","SEND", "unlock receive");
+	      return 0;
+	    }
+	  }
+	  if(userHeader.type == RUDP_ACK)
+	  {
+	    //clLogTrace("UDPRELIABLE","RECV", "handle ACK packet");
+	    ClUint32T ack_sqn = userHeader.seqno;
+	    if(currSession->sender->status == SYN_SENT)
+	    {
+	       clLogTrace("UDPRELIABLE","RECV", "This an ACK for a SYN. Sender status SYN_SENT");
+	      /* This an ACK for a SYN */
+	      ClUint32T syn_sqn = currSession->sender->seqno;
+	      if((ack_sqn - 1) == syn_sqn)
+	      {
+		 clLogTrace("UDPRELIABLE","RECV","Update sender status to OPEN");
+		/* Delete the retransmission timeout */
+		currSession->sender->status = OPEN;
+		while(currSession->sender->dataQueue != NULL)
+		{
+		  /* Check if the window is already full */
+		  //clLogTrace("UDPRELIABLE","RECV","Data queue is not empty. Check if the window is already full");
+		  if(currSession->sender->slidingWindow[RUDP_WINDOW - 1] != NULL)
+		  {
+		    clLogTrace("UDPRELIABLE","RECV","the window is already full . Exit");
+		    break;
+		  }
+		  else
+		  {
+		    ClInt32T index=0;
+		    ClInt32T i;
+		    /* Find the first unused window slot */
+		    for(i = RUDP_WINDOW - 1; i >= 0; i--)
+		    {
+		      if(currSession->sender->slidingWindow[i] == NULL)
+		      {
+			index = i;
+		      }
+		    }
+		    clLogTrace("UDPRELIABLE","RECV","Send packet, add to window and remove from queue");
+		    /* Send packet, add to window and remove from queue */
+		    ClUint32T seqno = ++syn_sqn;
+		    struct RudpPacket *datap = createRudpPacketNew(RUDP_DATA, seqno, currSession->sender->dataQueue->len, currSession->sender->dataQueue->item,0);
+		    currSession->sender->seqno += 1;
+		    currSession->sender->slidingWindow[index] = datap;
+		    currSession->sender->retransmissionAttempts[index] = 0;
+		    struct data *temp = currSession->sender->dataQueue;
+		    currSession->sender->dataQueue = currSession->sender->dataQueue->next;
+		    free(temp->item);
+		    free(temp);
+		    currSession->sender->dataQueueCount--;
+		    sendPacketNew(false, (rudpSocketT) (long) file, datap, &sender);
+		  }
+		}
+	      }
+	    }
+	    else if(currSession->sender->status == OPEN)
+	    {
+	      //clLogTrace("UDPRELIABLE","RECV","This is ACK for Data");
+	      if(currSession->sender->slidingWindow[0] != NULL)
+	      {
+		clLogTrace("UDPRELIABLE","RECV","This is ACK for Data for seqno [%d] [%d]",userHeader.seqno-1,currSession->sender->slidingWindow[0]->header.seqno);
+		if(currSession->sender->slidingWindow[0]->header.seqno <= (userHeader.seqno - 1))
+		{
+		  while(currSession->sender->slidingWindow[0]->header.seqno <= (userHeader.seqno - 1))
+		  {
+		  /* Correct ACK received. Remove the first window item and shift the rest left */
+		    clLogTrace("UDPRELIABLE","RECV","remove packet with seqno [%d] in slidingWindow",currSession->sender->slidingWindow[0]->header.seqno);
+		    free(currSession->sender->slidingWindow[0]);
+		    ClInt32T i;
+		    if(RUDP_WINDOW == 1)
+		    {
+		      currSession->sender->slidingWindow[0] = NULL;
+		      currSession->sender->retransmissionAttempts[0] = 0;
+		      currSession->sender->dataTimeout[0] = NULL;
+		    }
+		    else
+		    {
+		      //clLogTrace("UDPRELIABLE","RECV","remove packet with seqno [%d] in slidingWindow",userHeader.seqno);
+		      for(i = 0; i < RUDP_WINDOW - 1; i++)
+		      {
+			currSession->sender->slidingWindow[i] = currSession->sender->slidingWindow[i + 1];
+			currSession->sender->retransmissionAttempts[i] = currSession->sender->retransmissionAttempts[i + 1];
+			currSession->sender->dataTimeout[i] = currSession->sender->dataTimeout[i + 1];
+			if(i == RUDP_WINDOW - 2)
+			{
+			  currSession->sender->slidingWindow[i + 1] = NULL;
+			  currSession->sender->retransmissionAttempts[i + 1] = 0;
+			  currSession->sender->dataTimeout[i + 1] = NULL;
+			}
+		      }
+		    }
+		    if(currSession->sender->slidingWindow[0]==NULL)
+		    {
+			break;
+		    }
+		  }
+		  while(currSession->sender->dataQueue != NULL)
+		  {
+		    if(currSession->sender->slidingWindow[RUDP_WINDOW - 1] != NULL)
+		    {
+		      clLogTrace("UDPRELIABLE","RECV","sliding windows is full break");
+		      break;
+		    }
+		    else
+		    {
+		      ClInt32T index=0;
+		      ClInt32T i;
+		      /* Find the first unused window slot */
+		      for(i = RUDP_WINDOW - 1; i >= 0; i--)
+		      {
+			if(currSession->sender->slidingWindow[i] == NULL)
+			{
+			  index = i;
+			}
+		      }
+		      clLogTrace("UDPRELIABLE","RECV","sliding windows is not full. Sending package in queue at windows [%d]",index);
+		      /* Send packet, add to window and remove from queue */
+		      currSession->sender->seqno = currSession->sender->seqno + 1;
+		      ClUint32T seqno = currSession->sender->seqno;
+		      struct RudpPacket *datap = createRudpPacketNew(RUDP_DATA, seqno, currSession->sender->dataQueue->len, currSession->sender->dataQueue->item,0);
+		      sendPacketNew(false, (rudpSocketT) (long) file, datap, &sender);
+		      currSession->sender->slidingWindow[index] = datap;
+		      currSession->sender->retransmissionAttempts[index] = 0;
+		      struct data *temp = currSession->sender->dataQueue;
+		      currSession->sender->dataQueue = currSession->sender->dataQueue->next;
+		      free(temp->item);
+		      free(temp);
+		      currSession->sender->dataQueueCount--;
+		    }
+		  }
+		  if(curr_socket->closeRequested)
+		  {
+		    /* Can the socket be closed? */
+		    struct session *headSessions = curr_socket->sessionsListHead;
+		    while(headSessions != NULL)
+		    {
+		      if(headSessions->sender->sessionFinished == false)
+		      {
+			if(headSessions->sender->dataQueue == NULL && headSessions->sender->slidingWindow[0] == NULL && headSessions->sender->status == OPEN)
+			{
+			  headSessions->sender->seqno += 1;
+			  struct RudpPacket *p = createRudpPacketNew(RUDP_FIN, headSessions->sender->seqno, 0, NULL,0);
+			  sendPacketNew(false, (rudpSocketT) (long) file, p, &headSessions->address);
+			  free(p);
+			  headSessions->sender->status = FIN_SENT;
+			}
+		      }
+		      headSessions = headSessions->next;
+		    }
+		  }
+		}
+		else
+		{
+		  clLogTrace("UDPRELIABLE","RECV","This is ACK for Data for seqno [%d] [%d]. Invalid ACK. ignore",userHeader.seqno,currSession->sender->slidingWindow[0]->header.seqno);
+		}
+	      }
+	    }
+	    else if(currSession->sender->status == FIN_SENT)
+	    {
+	      /* Handle ACK for FIN */
+	      if((currSession->sender->seqno + 1) == userHeader.seqno)
+	      {
+		currSession->sender->sessionFinished = true;
+		if(curr_socket->closeRequested)
+		{
+		  /* See if we can close the socket */
+		  struct session *headSessions = curr_socket->sessionsListHead;
+		  bool_t all_done = true;
+		  while(headSessions != NULL)
+		  {
+		    if(headSessions->sender->sessionFinished == false)
+		    {
+		      all_done = false;
+		    }
+		    else if(headSessions->receiver != NULL && headSessions->receiver->sessionFinished == false)
+		    {
+		      all_done = false;
+		    }
+		    else
+		    {
+		      free(headSessions->sender);
+		      if(headSessions->receiver)
+		      {
+			free(headSessions->receiver);
+		      }
+		    }
+		    struct session *temp = headSessions;
+		    headSessions = headSessions->next;
+		    free(temp);
+		  }
+		  if(all_done)
+		  {
+		    if(curr_socket->handler != NULL)
+		    {
+		      curr_socket->handler((rudpSocketT) (long) file, RUDP_EVENT_CLOSED, &sender);
+		      close(file);
+		      free(curr_socket);
+		    }
+		  }
+		}
+	      }
+	      else
+	      {
+		/* Received incorrect ACK for FIN - ignore it */
+	      }
+	    }
+	  }
+	  else if(userHeader.type == RUDP_DATA)
+	  {
+	    /* Handle DATA packet. If the receiver is OPENING, it can transition to OPEN */
+	    if(currSession->receiver->status == OPENING)
+	    {
+	      if(userHeader.seqno == currSession->receiver->expected_seqno)
+	      {
+		currSession->receiver->status = OPEN;
+		clLogTrace("UDPRELIABLE","RECV","receive status is OPENING. Update receive status");
+	      }
+	      else
+	      {
+		  clLogTrace("UDPRELIABLE","RECV","receive status is OPENING. Invalid seqno");
+	      }
+	    }
 
-                  }
-                }
-              }
-            }
-            else if(currSession->sender->status == OPEN)
-            {
-              clLogTrace("UDPRELIABLE","RECV","This is ACK for Data");
-              if(currSession->sender->slidingWindow[0] != NULL)
-              {
-                if(currSession->sender->slidingWindow[0]->header.seqno == (userHeader.seqno - 1))
-                {
-                  /* Correct ACK received. Remove the first window item and shift the rest left */
-                  clLogTrace("UDPRELIABLE","RECV","This is ACK for Data for seqno [%d]",userHeader.seqno);
-//                  eventTimeoutDelete(timeoutCallback, currSession->sender->dataTimeout[0]);
-//                  struct TimeoutArgs *args = (struct TimeoutArgs *) currSession->sender->dataTimeout[0];
-//                  clLogDebug("IOC", "RELIABLE", "free package [%d]",args->packet->header.seqno);
-//                  free(args->packet);
-//                  free(args->recipient);
-//                  free(args);
-//                  free(currSession->sender->slidingWindow[0]);
-                  ClInt32T i;
-                  if(RUDP_WINDOW == 1)
-                  {
-                    currSession->sender->slidingWindow[0] = NULL;
-                    currSession->sender->retransmissionAttempts[0] = 0;
-                    currSession->sender->dataTimeout[0] = NULL;
-                  }
-                  else
-                  {
-                    clLogTrace("UDPRELIABLE","RECV","remove packet with seqno [%d] in slidingWindow",userHeader.seqno);
-                    for(i = 0; i < RUDP_WINDOW - 1; i++)
-                    {
-                      currSession->sender->slidingWindow[i] = currSession->sender->slidingWindow[i + 1];
-                      currSession->sender->retransmissionAttempts[i] = currSession->sender->retransmissionAttempts[i + 1];
-                      currSession->sender->dataTimeout[i] = currSession->sender->dataTimeout[i + 1];
-                      if(i == RUDP_WINDOW - 2)
-                      {
-                        currSession->sender->slidingWindow[i + 1] = NULL;
-                        currSession->sender->retransmissionAttempts[i + 1] = 0;
-                        currSession->sender->dataTimeout[i + 1] = NULL;
-                      }
-                    }
-                  }
-                  while(currSession->sender->dataQueue != NULL)
-                  {
-                    if(currSession->sender->slidingWindow[RUDP_WINDOW - 1] != NULL)
-                    {
-                      break;
-                    }
-                    else
-                    {
-                      ClInt32T index;
-                      ClInt32T i;
-                      /* Find the first unused window slot */
-                      for(i = RUDP_WINDOW - 1; i >= 0; i--)
-                      {
-                        if(currSession->sender->slidingWindow[i] == NULL)
-                        {
-                          index = i;
-                        }
-                      }
-                      /* Send packet, add to window and remove from queue */
-                      currSession->sender->seqno = currSession->sender->seqno + 1;
-                      ClUint32T seqno = currSession->sender->seqno;
-                      ClInt32T len = currSession->sender->dataQueue->len;
-                      char *payload = currSession->sender->dataQueue->item;
-                      struct RudpPacket *datap = createRudpPacketNew(RUDP_DATA, seqno, len, payload,0);
-                      currSession->sender->slidingWindow[index] = datap;
-                      currSession->sender->retransmissionAttempts[index] = 0;
-                      struct data *temp = currSession->sender->dataQueue;
-                      currSession->sender->dataQueue = currSession->sender->dataQueue->next;
-                      free(temp->item);
-                      free(temp);
-                      sendPacketNew(false, (rudpSocketT) (long) file, datap, &sender);
-                    }
-                  }
-                  if(curr_socket->closeRequested)
-                  {
-                    /* Can the socket be closed? */
-                    struct session *headSessions = curr_socket->sessionsListHead;
-                    while(headSessions != NULL)
-                    {
-                      if(headSessions->sender->sessionFinished == false)
-                      {
-                        if(headSessions->sender->dataQueue == NULL && headSessions->sender->slidingWindow[0] == NULL && headSessions->sender->status == OPEN)
-                        {
-                          headSessions->sender->seqno += 1;
-                          struct RudpPacket *p = createRudpPacketNew(RUDP_FIN, headSessions->sender->seqno, 0, NULL,0);
-                          sendPacketNew(false, (rudpSocketT) (long) file, p, &headSessions->address);
-                          free(p);
-                          headSessions->sender->status = FIN_SENT;
-                        }
-                      }
-                      headSessions = headSessions->next;
-                    }
-                  }
-                }
-                else
-                {
-                  clLogTrace("UDPRELIABLE","RECV","This is ACK for Data for seqno [%d] . Invalid ACK",userHeader.seqno);
-                }
-              }
-            }
-            else if(currSession->sender->status == FIN_SENT)
-            {
-              /* Handle ACK for FIN */
-              if((currSession->sender->seqno + 1) == userHeader.seqno)
-              {
-//                eventTimeoutDelete(timeoutCallback, currSession->sender->finTimeout);
-//                struct TimeoutArgs *t = currSession->sender->finTimeout;
-//                free(t->packet);
-//                free(t->recipient);
-//                free(t);
-                currSession->sender->sessionFinished = true;
-                if(curr_socket->closeRequested)
-                {
-                  /* See if we can close the socket */
-                  struct session *headSessions = curr_socket->sessionsListHead;
-                  bool_t all_done = true;
-                  while(headSessions != NULL)
-                  {
-                    if(headSessions->sender->sessionFinished == false)
-                    {
-                      all_done = false;
-                    }
-                    else if(headSessions->receiver != NULL && headSessions->receiver->sessionFinished == false)
-                    {
-                      all_done = false;
-                    }
-                    else
-                    {
-                      free(headSessions->sender);
-                      if(headSessions->receiver)
-                      {
-                        free(headSessions->receiver);
-                      }
-                    }
-                    struct session *temp = headSessions;
-                    headSessions = headSessions->next;
-                    free(temp);
-                  }
-                  if(all_done)
-                  {
-                    if(curr_socket->handler != NULL)
-                    {
-                      curr_socket->handler((rudpSocketT) (long) file, RUDP_EVENT_CLOSED, &sender);
-                      close(file);
-                      free(curr_socket);
-                    }
-                  }
-                }
-              }
-              else
-              {
-                /* Received incorrect ACK for FIN - ignore it */
-              }
-            }
-          }
-          else if(userHeader.type == RUDP_DATA)
-          {
-            /* Handle DATA packet. If the receiver is OPENING, it can transition to OPEN */
-            clLogTrace("UDPRELIABLE","RECV","This is DATA packet");
-            if(currSession->receiver->status == OPENING)
-            {
-              if(userHeader.seqno == currSession->receiver->expected_seqno)
-              {
-                currSession->receiver->status = OPEN;
-                clLogTrace("UDPRELIABLE","RECV","receive status is OPENING. Update receive status");
-              }
-              else
-              {
-                  clLogTrace("UDPRELIABLE","RECV","receive status is OPENING. Invalid seqno");
-              }
-            }
+	    if(userHeader.seqno == currSession->receiver->expected_seqno)
+	    {
+	      /* Sequence numbers match - ACK the data */
+	      ClUint32T seqno = userHeader.seqno + 1;
+	      currSession->receiver->expected_seqno = seqno;
+	      struct RudpPacket *p = createRudpPacketNew(RUDP_ACK, seqno, 0, NULL,0);
+	      sendPacketNew(true, (rudpSocketT) (long) file, p, &sender);
+	      free(p);
+	      /* Pass the data up to the application */
+	      return 1;
+	    }
+	    /* Handle the case where an ACK was lost */
+	    else if(SEQ_GEQ(userHeader.seqno, (currSession->receiver->expected_seqno - RUDP_WINDOW))
+		&& SEQ_LT(userHeader.seqno, currSession->receiver->expected_seqno))
+	    {
+	      clLogTrace("UDPRELIABLE","RECV","Handle ACK loss [%d]",userHeader.seqno);
+	      ClUint32T seqno = userHeader.seqno + 1;
+	      struct RudpPacket *p = createRudpPacketNew(RUDP_ACK, seqno, 0, NULL,0);
+	      sendPacketNew(true, (rudpSocketT) (long) file, p, &sender);
+	      free(p);
+	    }
+	    //clOsalMutexUnlock(&currSession->receiver->receiverMutex);
+	  }
+	  else if(userHeader.type == RUDP_FIN)
+	  {
+	    if(currSession->receiver->status == OPEN)
+	    {
+	      if(userHeader.seqno == currSession->receiver->expected_seqno)
+	      {
+		/* If the FIN is correct, we can ACK it */
+		ClUint32T seqno = currSession->receiver->expected_seqno + 1;
+		struct RudpPacket *p = createRudpPacketNew(RUDP_ACK, seqno, 0, NULL,0);
+		sendPacketNew(true, (rudpSocketT) (long) file, p, &sender);
+		free(p);
+		currSession->receiver->sessionFinished = true;
 
-            if(userHeader.seqno == currSession->receiver->expected_seqno)
-            {
-              /* Sequence numbers match - ACK the data */
-              clLogTrace("UDPRELIABLE","RECV","receive status is OPENING. Update receive status");
-              ClUint32T seqno = userHeader.seqno + 1;
-              currSession->receiver->expected_seqno = seqno;
-              struct RudpPacket *p = createRudpPacketNew(RUDP_ACK, seqno, 0, NULL,0);
-              sendPacketNew(true, (rudpSocketT) (long) file, p, &sender);
-              free(p);
-              /* Pass the data up to the application */
-              clOsalMutexUnlock(&socketListMutex);
-              return 1;
-            }
-            /* Handle the case where an ACK was lost */
-            else if(SEQ_GEQ(userHeader.seqno, (currSession->receiver->expected_seqno - RUDP_WINDOW))
-                && SEQ_LT(userHeader.seqno, currSession->receiver->expected_seqno))
-            {
-              ClUint32T seqno = userHeader.seqno + 1;
-              struct RudpPacket *p = createRudpPacketNew(RUDP_ACK, seqno, 0, NULL,0);
-              sendPacketNew(true, (rudpSocketT) (long) file, p, &sender);
-              free(p);
-            }
-          }
-          else if(userHeader.type == RUDP_FIN)
-          {
-            if(currSession->receiver->status == OPEN)
-            {
-              if(userHeader.seqno == currSession->receiver->expected_seqno)
-              {
-                /* If the FIN is correct, we can ACK it */
-                ClUint32T seqno = currSession->receiver->expected_seqno + 1;
-                struct RudpPacket *p = createRudpPacketNew(RUDP_ACK, seqno, 0, NULL,0);
-                sendPacketNew(true, (rudpSocketT) (long) file, p, &sender);
-                free(p);
-                currSession->receiver->sessionFinished = true;
-
-                if(curr_socket->closeRequested)
-                {
-                  /* Can we close the socket now? */
-                  struct session *headSessions = curr_socket->sessionsListHead;
-                  ClInt32T all_done = true;
-                  while(headSessions != NULL)
-                  {
-                    if(headSessions->sender->sessionFinished == false)
-                    {
-                      all_done = false;
-                    }
-                    else if(headSessions->receiver != NULL && headSessions->receiver->sessionFinished == false)
-                    {
-                      all_done = false;
-                    }
-                    else
-                    {
-                      free(headSessions->sender);
-                      if(headSessions->receiver)
-                      {
-                        free(headSessions->receiver);
-                      }
-                    }
-                    struct session *temp = headSessions;
-                    headSessions = headSessions->next;
-                    free(temp);
-                  }
-                  if(all_done)
-                  {
-                    if(curr_socket->handler != NULL)
-                    {
-                      curr_socket->handler((rudpSocketT) (long) file, RUDP_EVENT_CLOSED, &sender);
-                      close(file);
-                      free(curr_socket);
-                    }
-                  }
-                }
-              }
-              else
-              {
-                /* FIN received with incorrect sequence number - ignore it */
-              }
-            }
-          }
-        }
+		if(curr_socket->closeRequested)
+		{
+		  /* Can we close the socket now? */
+		  struct session *headSessions = curr_socket->sessionsListHead;
+		  ClInt32T all_done = true;
+		  while(headSessions != NULL)
+		  {
+		    if(headSessions->sender->sessionFinished == false)
+		    {
+		      all_done = false;
+		    }
+		    else if(headSessions->receiver != NULL && headSessions->receiver->sessionFinished == false)
+		    {
+		      all_done = false;
+		    }
+		    else
+		    {
+		      free(headSessions->sender);
+		      if(headSessions->receiver)
+		      {
+			free(headSessions->receiver);
+		      }
+		    }
+		    struct session *temp = headSessions;
+		    headSessions = headSessions->next;
+		    free(temp);
+		  }
+		  if(all_done)
+		  {
+		    if(curr_socket->handler != NULL)
+		    {
+		      curr_socket->handler((rudpSocketT) (long) file, RUDP_EVENT_CLOSED, &sender);
+		      close(file);
+		      free(curr_socket);
+		    }
+		  }
+		}
+	      }
+	      else
+	      {
+		/* FIN received with incorrect sequence number - ignore it */
+	      }
+	    }
+	  }
+	  clOsalMutexUnlock(&currSession->senderMutex);
+	  clLogTrace("UDPRELIABLE","SEND", "unlock receiver");
+	}
       }
     }
   }
-  clOsalMutexUnlock(&socketListMutex);
   return 0;
 }

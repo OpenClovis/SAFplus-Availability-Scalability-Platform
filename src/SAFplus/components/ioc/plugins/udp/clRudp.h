@@ -7,8 +7,8 @@
 
 #define RUDP_VERSION	1	/* Protocol version */
 #define RUDP_MAXRETRANS 5	/* Max. number of retransmissions */
-#define RUDP_TIMEOUT	2000	/* Timeout for the first retransmission in milliseconds */
-#define RUDP_WINDOW	3	/* Max. number of unacknowledged packets that can be sent to the network*/
+#define RUDP_TIMEOUT	1000	/* Timeout for the first retransmission in milliseconds */
+#define RUDP_WINDOW	6	/* Max. number of unacknowledged packets that can be sent to the network*/
 
 /* Packet types */
 
@@ -28,7 +28,7 @@
 #define	SEQ_GT(a,b)	((short)((a)-(b)) > 0)
 #define	SEQ_GEQ(a,b)	((short)((a)-(b)) >= 0)
 
-#define DROP 0
+#define DROP 100
 
 typedef enum
 {
@@ -71,6 +71,7 @@ struct RudpPacket
   struct rudp_hdr header;
   ClInt32T payloadLength;
   ClInt32T flag;
+  struct timeval sendTime;
   char payload[RUDP_MAXPKTSIZE];
 };
 
@@ -88,12 +89,15 @@ struct SenderSession
   struct RudpPacket *slidingWindow[RUDP_WINDOW];
   ClInt32T retransmissionAttempts[RUDP_WINDOW];
   struct data *dataQueue; /* Queue of unsent data */
+  ClInt32T dataQueueCount;
   bool_t sessionFinished; /* Has the FIN we sent been ACKed? */
   void *synTimeout; /* Argument pointer used to delete SYN timeout event */
   void *finTimeout; /* Argument pointer used to delete FIN timeout event */
   void *dataTimeout[RUDP_WINDOW]; /* Argument pointers used to delete DATA timeout events */
   ClInt32T synRetransmitAttempts;
   ClInt32T finRetransmitAttempts;
+  //ClOsalMutexT senderMutex;
+  ClTimerHandleT gRetransTimer;
 };
 
 struct ReceiverSession
@@ -101,6 +105,8 @@ struct ReceiverSession
   rudp_state_t status; /* Protocol state */
   ClUint32T expected_seqno;
   bool_t sessionFinished; /* Have we received a FIN from the sender? */
+  ClOsalMutexT receiverMutex;
+
 };
 
 struct session
@@ -109,6 +115,8 @@ struct session
   struct ReceiverSession *receiver;
   struct sockaddr_in address;
   struct session *next;
+  ClInt32T socketfd;
+  ClOsalMutexT senderMutex;
 };
 
 /* Keeps state for potentially multiple active sockets */

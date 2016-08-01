@@ -42,6 +42,7 @@ ClInt32T gClCmsgHdrLen;
 struct cmsghdr *gClCmsgHdr;
 static ClUint32T gClBindOffset;
 # define CL_IOC_REL_PORT                          0x0020
+ClRcT xportReliableListen(ClIocPortT port,ClInt32T fd);
 
 extern ClBoolT mcastPeerAddr(ClCharT *addStr, ClUint8T status);
 
@@ -414,6 +415,11 @@ static ClIocUdpMapT *iocUdpMapAdd(ClCharT *addr, ClIocNodeAddressT slot)
     {
         clLogError("UDP", "MAP", "Socket syscall returned with error [%s] for UDP Reliabe socket", strerror(errno));
         goto out_free;
+    }
+    clLogDebug("UDPRELIABLE", "SEND", "Create reliable socket if not available for address [%s]",addr);
+    if(rudpSocketFromUdpSocket(map->sendReliableFd)==0)
+    {
+        xportReliableListen(CL_IOC_REL_PORT,map->sendReliableFd);
     }
     priority = CL_UDP_DEFAULT_PRIORITY;
     if (udpPriorityChangePossible)
@@ -1168,14 +1174,15 @@ ClRcT xportReliableListen(ClIocPortT port,ClInt32T fd)
     ClRcT rc = CL_OK;
     ClIocUdpPrivateT *xportPrivate = NULL;
     void *xportPrivateLast = NULL;
-    clLogError("UDPRELIABLE", "LISTENER", "Listen on  port [%#x]", port);
+    clLogTrace("UDPRELIABLE", "LISTENER", "Listen on  port [%#x]", port);
     if(!port)
     {
         return CL_ERR_INVALID_PARAMETER;
     }
-    xportPrivate = (ClIocUdpPrivateT*) clTransportPrivateDataGet(gClUdpXportId, port);
+    xportPrivate = (ClIocUdpPrivateT*) clTransportPrivateDataGet(fd, port);
     if(!xportPrivate)
     {
+        clLogTrace("UDPRELIABLE", "LISTENER", "create xport private for [socket : %d], [port : %d]", fd, port);
         rc = __xportReliableBind(port, fd);
         if(rc != CL_OK)
         {
@@ -1348,8 +1355,8 @@ ClRcT xportRecv(ClIocCommPortHandleT commPort, ClIocDispatchOptionT *pRecvOption
             ClUint32T result = receiveHandlePacketNew(pCommPortPrivate->fd,pBuffer,bytes,*sourceAddress);
             if(result ==1) // data packet or packet is not a reliable packet
             {
-              ClUint32T fd = pCommPortPrivate->fd;
-              rudpSocketFromUdpSocket(fd);
+//              ClUint32T fd = pCommPortPrivate->fd;
+//              rudpSocketFromUdpSocket(fd);
               ClRcT result = clIocDispatch(gClUdpXportType, commPort, pRecvOption, pBuffer, bytes, message, pRecvParam);
               if (CL_GET_ERROR_CODE(result) == CL_ERR_TRY_AGAIN)  // reset the timeout count
               {
@@ -1413,12 +1420,7 @@ static ClRcT iocUdpSend(ClIocUdpMapT *map, void *args)
       struct sockaddr_in *destaddr_in = NULL;
       map->__ipv4_addr.sin_port = htons(CL_TRANSPORT_BASE_PORT + sendArgs->port + portOffset);
       destaddr_in = (struct sockaddr_in*)&map->__ipv4_addr;
-      clLogDebug("UDPRELIABLE", "SEND", "Create reliable socket if not available");
-      if(rudpSocketFromUdpSocket(map->sendReliableFd)==0)
-      {
-          xportReliableListen(CL_IOC_REL_PORT,map->sendReliableFd);
-      }
-      if(rudpSendto((rudpSocketT)(long)map->sendReliableFd, (void*)sendArgs->iov, sendArgs->iovlen,destaddr_in,sendArgs->flags)<0)
+      if(rudpSendto((rudpSocketT)(long)map->sendReliableFd, (void*)sendArgs->iov, sendArgs->iov->iov_len,destaddr_in,sendArgs->flags)<0)
       {
           clLogError("UDPRELIABLE", "SEND", "UDP send failed with error [%s] for addr [%s], port [0x%x:%d]",
                      strerror(errno), map->addrstr, sendArgs->port,
