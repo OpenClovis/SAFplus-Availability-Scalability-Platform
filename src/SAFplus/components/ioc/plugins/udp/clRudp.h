@@ -28,7 +28,6 @@
 #define	SEQ_GT(a,b)	((short)((a)-(b)) > 0)
 #define	SEQ_GEQ(a,b)	((short)((a)-(b)) >= 0)
 
-#define DROP 100
 
 typedef enum
 {
@@ -72,7 +71,7 @@ struct RudpPacket
   ClInt32T payloadLength;
   ClInt32T flag;
   struct timeval sendTime;
-  char payload[RUDP_MAXPKTSIZE];
+  void* payload;
 };
 
 struct data

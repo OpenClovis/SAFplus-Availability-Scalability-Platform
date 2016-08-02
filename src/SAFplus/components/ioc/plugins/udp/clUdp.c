@@ -1420,7 +1420,7 @@ static ClRcT iocUdpSend(ClIocUdpMapT *map, void *args)
       struct sockaddr_in *destaddr_in = NULL;
       map->__ipv4_addr.sin_port = htons(CL_TRANSPORT_BASE_PORT + sendArgs->port + portOffset);
       destaddr_in = (struct sockaddr_in*)&map->__ipv4_addr;
-      if(rudpSendto((rudpSocketT)(long)map->sendReliableFd, (void*)sendArgs->iov, sendArgs->iov->iov_len,destaddr_in,sendArgs->flags)<0)
+      if(rudpSendto((rudpSocketT)(long)map->sendReliableFd, (void*)sendArgs->iov->iov_base, sendArgs->iov->iov_len,destaddr_in,sendArgs->flags)<0)
       {
           clLogError("UDPRELIABLE", "SEND", "UDP send failed with error [%s] for addr [%s], port [0x%x:%d]",
                      strerror(errno), map->addrstr, sendArgs->port,
