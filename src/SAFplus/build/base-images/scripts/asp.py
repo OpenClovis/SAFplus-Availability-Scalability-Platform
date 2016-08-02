@@ -390,7 +390,7 @@ def set_up_asp_config():
 
     def get_tipc_config_cmd():
         #Prefer to use TIPC utilities on system
-        if os.path.exists('/sbin/tipc'):
+        if is_tipc_tool_exist():
             return '/sbin/tipc'
 
         cmd = 'tipc-config > /dev/null 2>&1'
@@ -476,7 +476,7 @@ def init_log():
     logger.setLevel(logging.DEBUG)
 
     console = logging.StreamHandler(sys.stdout)
-    console.setLevel(logging.DEBUG)
+    console.setLevel(logging.INFO)
 
     formatter = logging.Formatter('%(levelname)s '
                                   '%(message)s')
@@ -692,6 +692,9 @@ def set_ld_library_paths():
 
     os.putenv('LD_LIBRARY_PATH', v)
 
+def is_tipc_tool_exist():
+    return os.path.exists('/sbin/tipc')
+
 def config_tipc_module():
     if not is_tipc_build():
         return
@@ -702,11 +705,11 @@ def config_tipc_module():
     log.info('num of bearer : %d ...' %num)
     tipcCfg = os.getenv('CL_TIPC_CFG_PARAMS')
 
-    if os.path.exists('/sbin/tipc'):
+    if is_tipc_tool_exist():
         cmd = '%s node set netid %s'%(get_asp_tipc_config_cmd(), tipc_netid)
         log.debug('TIPC command is [%s]'%cmd)
         ret, output, signal, core = system(cmd)
-    
+
         cmd = '%s node set address 1.1.%s'%(get_asp_tipc_config_cmd(), node_addr)
         log.debug('TIPC command is [%s]'%cmd)
         ret, output, signal, core = system(cmd)
@@ -716,7 +719,13 @@ def config_tipc_module():
             log.debug('enable bearer name : %s ...' %cmd)
             ret, output, signal, core = system(cmd)
 
-        # TODO: customize tipcCfg
+            # Customize tipcCfg: support to change tolerance/window on bearers
+            if len(tipcCfg) > 0:
+                tipcCfgs = tipcCfg.split(',')
+                for ccfg in tipcCfgs:
+                    cmd = "%s bearer set %s media eth device %s "%(get_asp_tipc_config_cmd(), ccfg.strip(), link_name[x])
+                    log.debug('TIPC command is [%s]' %cmd)
+                    ret, output, signal, core = system(cmd)
 
     else:
         if tipcCfg is None: tipcCfg = ""    
@@ -792,7 +801,7 @@ def unload_tipc_module():
     num,link_name = getMultiLink()
     for x in range(0,num):
         cmd = ''
-        if os.path.exists('/sbin/tipc'):
+        if is_tipc_tool_exist():
             cmd = '%s bearer disable media eth device %s' %(get_asp_tipc_config_cmd(), link_name[x])
         else:
             cmd = '%s -bd=eth:%s' %(get_asp_tipc_config_cmd(), link_name[x])
@@ -848,7 +857,7 @@ def load_config_tipc_module():
 
         tipc_config_cmd = get_asp_tipc_config_cmd()
         
-        if os.path.exists('/sbin/tipc'):
+        if is_tipc_tool_exist():
             bearers = Popen('%s bearer list' %tipc_config_cmd)
             if not bearers or len(bearers) < 1:
                 return False
@@ -864,7 +873,7 @@ def load_config_tipc_module():
         tipc_config_cmd = get_asp_tipc_config_cmd()
         
         tipc_addr = ''
-        if os.path.exists('/sbin/tipc'):
+        if is_tipc_tool_exist():
             tipc_addr = Popen('%s node get address' % tipc_config_cmd)[0]
             tipc_addr = tipc_addr.strip()[1:-1]
         else:
@@ -878,7 +887,7 @@ def load_config_tipc_module():
             return False
 
         tipc_netid = ''
-        if os.path.exists('/sbin/tipc'):
+        if is_tipc_tool_exist():
             tipc_netid = Popen('%s node get netid' % tipc_config_cmd)[0]
             tipc_netid = tipc_netid.strip()
         else:
@@ -892,7 +901,7 @@ def load_config_tipc_module():
             return False
 
         num,link_name= getMultiLink()
-        if os.path.exists('/sbin/tipc'):
+        if is_tipc_tool_exist():
             bearers = Popen('%s bearer list' %tipc_config_cmd)
             if not bearers or len(bearers) < 1:
                 return False
