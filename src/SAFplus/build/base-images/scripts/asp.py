@@ -704,15 +704,24 @@ def config_tipc_module():
     num,link_name = getMultiLink()
     log.info('num of bearer : %d ...' %num)
     tipcCfg = os.getenv('CL_TIPC_CFG_PARAMS')
+    if tipcCfg is None: tipcCfg = ""
 
     if is_tipc_tool_exist():
         cmd = '%s node set netid %s'%(get_asp_tipc_config_cmd(), tipc_netid)
-        log.debug('TIPC command is [%s]'%cmd)
+        log.debug('Configure TIPC netid: %s'%cmd)
         ret, output, signal, core = system(cmd)
+        if ret:
+            msg = ''.join(['Failed to configure the tipc netid. ',
+                           'Executed \'%s\'.' %cmd])
+            fail_and_exit(msg)
 
         cmd = '%s node set address 1.1.%s'%(get_asp_tipc_config_cmd(), node_addr)
-        log.debug('TIPC command is [%s]'%cmd)
+        log.debug('Configure TIPC node address: %s'%cmd)
         ret, output, signal, core = system(cmd)
+        if ret:
+            msg = ''.join(['Failed to configure the tipc node address. ',
+                           'Executed \'%s\'.' %cmd])
+            fail_and_exit(msg)
 
         for x in range(0,num):
             cmd = '%s bearer enable media eth device %s' %(get_asp_tipc_config_cmd(),link_name[x])
@@ -724,11 +733,10 @@ def config_tipc_module():
                 tipcCfgs = tipcCfg.split(',')
                 for ccfg in tipcCfgs:
                     cmd = "%s bearer set %s media eth device %s "%(get_asp_tipc_config_cmd(), ccfg.strip(), link_name[x])
-                    log.debug('TIPC command is [%s]' %cmd)
+                    log.info('Configure tipc bearer: %s' %cmd)
                     ret, output, signal, core = system(cmd)
 
     else:
-        if tipcCfg is None: tipcCfg = ""    
         cmd = '%s -netid=%s -addr=1.1.%s -be=eth:%s' % (get_asp_tipc_config_cmd(), tipc_netid, node_addr, link_name[0])
         log.debug('TIPC command is [%s]' % cmd)
         ret, output, signal, core = system(cmd)
