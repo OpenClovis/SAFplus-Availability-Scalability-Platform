@@ -207,15 +207,12 @@ DEPLOY		= $(CLOVIS_ROOT)/build/scripts/deploy.sh
 ################################################################################
 ARFLAGS		= -r
 TOP_LDFLAGS     = -g -lpthread
-ifeq ($(COMPNAME),dbal)
-TOP_CFLAGS      = -c -Wall -D_GNU_SOURCE
+ifeq ($(WIND_VER),0)
+    TOP_CFLAGS  = -c -Wall -D_GNU_SOURCE
 else
-    ifeq ($(WIND_VER),0)
-        TOP_CFLAGS  = -c -Wall -D_GNU_SOURCE
-    else
-        TOP_CFLAGS  = -c -Wall -D_GNU_SOURCE $(SPECIAL_CFLAGS)
-    endif
+    TOP_CFLAGS  = -c -Wall -D_GNU_SOURCE $(SPECIAL_CFLAGS)
 endif
+
 ifeq ($(BUILD_WARNINGS),1)
 TOP_CFLAGS     += -Wcomment -Wnonnull \
                   -Wswitch-default -Wswitch-enum -Wextra \
