@@ -38,7 +38,7 @@ typedef enum
 
 typedef enum { false = 0, true } bool_t;
 
-#define RUDP_MAXPKTSIZE 64000    /* Number of data bytes that can sent in a
+#define RUDP_MAXPKTSIZE 65000    /* Number of data bytes that can sent in a
                                  * packet, RUDP header not included */
 
 /*
@@ -160,7 +160,7 @@ ClInt32T rudpClose(rudpSocketT rsocket);
 /*
  * Send a datagram
  */
-ClInt32T rudpSendto(rudpSocketT rsocket, void* data, ClInt32T len,struct sockaddr_in* to,ClInt32T flag);
+ClInt32T rudpSendto(rudpSocketT rsocket, struct iovec* data, ClInt32T ioveclen,struct sockaddr_in* to,ClInt32T flag);
 /*
  * Register callback function for packet receiption
  * Note: data and len arguments to callback function
