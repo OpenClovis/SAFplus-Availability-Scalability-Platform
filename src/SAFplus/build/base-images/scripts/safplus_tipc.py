@@ -288,6 +288,9 @@ def get_physical_slot():
     return slot            
 
 def get_tipc_config_cmd():
+    #Prefer to use TIPC utilities on system
+    if is_tipc_tool_exist():
+        return '/sbin/tipc'
 
     cmd = 'tipc-config > /dev/null 2>&1'
     tipc_config_cmd = 'tipc-config'
@@ -323,6 +326,9 @@ def has_tipc_plugin():
 
 def is_tipc_build(): return bool(int(safplus.safplus_getenv('BUILD_TIPC', default='1')))
 
+def is_tipc_tool_exist():
+    return os.path.exists('/sbin/tipc')
+
 def config_tipc_module():
     if not is_tipc_build():
         log.warning('Transport protocol : UDP only')
@@ -332,54 +338,92 @@ def config_tipc_module():
     num,link_name = getMultiLink()
     log.info('num of bearer : %d ...' %(num))
     tipcCfg = os.getenv('CL_TIPC_CFG_PARAMS')
-    if tipcCfg is None: tipcCfg = ""    
-    cmd = '%s -netid=%s -addr=1.1.%s %s -be=eth:%s' % (get_tipc_config_cmd(), tipc_netid, node_addr, tipcCfg, link_name[0])
-    log.debug('TIPC command is [%s]' % cmd)
-    ret, output, signal, core = system(cmd)
-    if ret:
-        output_buf = ''.join(output)
-        if 'unable to enable bearer' in output_buf:
-            msg = ''.join(['Failed to configure the tipc module. ',
-                           
-                           'System is configured to use %s, but tipc '
-                           'cannot use this interface. ' % link_name,
-                           
-                           'Does it exist? To change the interface, '
-                           'edit the LINK_NAME and linkName fields in '
-                           '%s/asp.conf and %s/clGmsConfig.xml.' %\
-                           (safplus.SAFPLUS_ETC_DIR, safplus.SAFPLUS_ETC_DIR)])
-            
-            # Try to remove the tipc module if we failed to configure tipc.
-            # Otherwise it will work in the next run, but only in "local" mode.
-            num,link_name = getMultiLink()    
-            cmd = 'tipc-config -bd=eth:%s' %(link_name[0])
+    if tipcCfg is None: tipcCfg = ""
+
+    if is_tipc_tool_exist():
+        cmd = '%s node set netid %s'%(get_tipc_config_cmd(), tipc_netid)
+        log.debug('Configure TIPC netid: %s'%cmd)
+        ret, output, signal, core = system(cmd)
+        if ret:
+            msg = ''.join(['Failed to configure the tipc netid. ',
+                           'Executed \'%s\'.' %cmd])
+            safplus.fail_and_exit(msg)
+
+        cmd = '%s node set address 1.1.%s'%(get_tipc_config_cmd(), node_addr)
+        log.debug('Configure TIPC node address: %s'%cmd)
+        ret, output, signal, core = system(cmd)
+        if ret:
+            msg = ''.join(['Failed to configure the tipc node address. ',
+                           'Executed \'%s\'.' %cmd])
+            safplus.fail_and_exit(msg)
+
+        for x in range(0,num):
+            cmd = '%s bearer enable media eth device %s' %(get_tipc_config_cmd(),link_name[x])
+            log.debug('enable bearer name : %s ...' %cmd)
             ret, output, signal, core = system(cmd)
-            system("rmmod tipc")  
-            safplus.fail_and_exit(msg)
 
-        elif 'TIPC module not installed' in output_buf:
-            msg = ''.join(['Failed to configure the tipc module. ',                           
-                           'The tipc kernel module is not loaded. ',                           
-                           'Use \'lsmod | grep tipc\' to see that '
-                           'it is not loaded.'])
-            safplus.fail_and_exit(msg)
+            # Customize tipcCfg: support to change tolerance/window on bearers
+            if len(tipcCfg) > 0:
+                tipcCfgs = tipcCfg.split(',')
+                for ccfg in tipcCfgs:
+                    cmd = "%s bearer set %s media eth device %s "%(get_tipc_config_cmd(), ccfg.strip(), link_name[x])
+                    log.info('Configure tipc bearer: %s' %cmd)
+                    ret, output, signal, core = system(cmd)
 
-        else:
-            msg1 = ''.join(['Failed to configure the tipc module. ',                           
-                            'Executed \'%s\'. ' % cmd,                           
-                            'Received unknown tipc-config error: %s' % output_buf])
+    else:
+        cmd = '%s -netid=%s -addr=1.1.%s -be=eth:%s' % (get_tipc_config_cmd(), tipc_netid, node_addr, link_name[0])
+        log.debug('TIPC command is [%s]' % cmd)
+        ret, output, signal, core = system(cmd)
+        if ret:
+            output_buf = ''.join(output)
+            if 'unable to enable bearer' in output_buf:
+                msg = ''.join(['Failed to configure the tipc module. ',
+                               
+                               'System is configured to use %s, but tipc '
+                               'cannot use this interface. ' % link_name,
+                               
+                               'Does it exist? To change the interface, '
+                               'edit the LINK_NAME and linkName fields in '
+                               '%s/asp.conf and %s/clGmsConfig.xml.' %\
+                               (safplus.SAFPLUS_ETC_DIR, safplus.SAFPLUS_ETC_DIR)])
+                
+                # Try to remove the tipc module if we failed to configure tipc.
+                # Otherwise it will work in the next run, but only in "local" mode.
+                num,link_name = getMultiLink()    
+                cmd = 'tipc-config -bd=eth:%s' %(link_name[0])
+                ret, output, signal, core = system(cmd)
+                system("rmmod tipc")  
+                safplus.fail_and_exit(msg)
 
-            msg2 = '\n'.join(['Please check that: ',                             
-                              '1. The tipc kernel module is loaded. '
-                              '(lsmod | grep tipc)',                              
-                              '2. The tipc-config command is in your $PATH.',                              
-                              '3. Values for TIPC_NETID, DEFAULT_NODEADDR '
-                              'and LINK_NAME are correct in %s/asp.conf.' % safplus.SAFPLUS_ETC_DIR])
-            safplus.fail_and_exit(msg1 + msg2)
-    for x in range(1,num) :       
-        cmd = '%s -be=eth:%s' % (get_tipc_config_cmd(),link_name[x])
-        log.debug('enable bearer name : %s ...' %(cmd))
-        ret, output, signal, core = system(cmd)        
+            elif 'TIPC module not installed' in output_buf:
+                msg = ''.join(['Failed to configure the tipc module. ',                           
+                               'The tipc kernel module is not loaded. ',                           
+                               'Use \'lsmod | grep tipc\' to see that '
+                               'it is not loaded.'])
+                safplus.fail_and_exit(msg)
+
+            else:
+                msg1 = ''.join(['Failed to configure the tipc module. ',                           
+                                'Executed \'%s\'. ' % cmd,                           
+                                'Received unknown tipc-config error: %s' % output_buf])
+
+                msg2 = '\n'.join(['Please check that: ',                             
+                                  '1. The tipc kernel module is loaded. '
+                                  '(lsmod | grep tipc)',                              
+                                  '2. The tipc-config command is in your $PATH.',                              
+                                  '3. Values for TIPC_NETID, DEFAULT_NODEADDR '
+                                  'and LINK_NAME are correct in %s/asp.conf.' % safplus.SAFPLUS_ETC_DIR])
+                safplus.fail_and_exit(msg1 + msg2)
+        elif len(tipcCfg) > 0:
+            cmd = 'tipc-config %s' % (tipcCfg)
+            ret, output, signal, core = system(cmd)
+            if ret:
+                log.warning('Could not set TIPC configuration parameters')
+
+        for x in range(1,num) :       
+            cmd = '%s -be=eth:%s' % (get_tipc_config_cmd(),link_name[x])
+            log.debug('enable bearer name : %s ...' %(cmd))
+            ret, output, signal, core = system(cmd)        
 
 def unload_tipc_module():
     if not is_tipc_build():
@@ -387,8 +431,13 @@ def unload_tipc_module():
 
     log.info('Unloading TIPC ...')
     num,link_name = getMultiLink()
-    for x in range(0,num) :
-        cmd = 'tipc-config -bd=eth:%s' %(link_name[x])
+    for x in range(0,num):
+        cmd = ''
+        if is_tipc_tool_exist():
+            cmd = '%s bearer disable media eth device %s' %(get_tipc_config_cmd(), link_name[x])
+        else:
+            cmd = 'tipc-config -bd=eth:%s' %(link_name[x])
+
         log.debug('disable bearer :%s ...' %(cmd))
         ret, output, signal, core = system(cmd)
     cmd = safplus.unload_tipc_cmd()
@@ -435,39 +484,64 @@ def load_config_tipc_module():
         if not is_tipc_loaded():
             return False
 
-        tipc_config_cmd = get_tipc_config_cmd()        
-        bearers = Popen('%s -b' % tipc_config_cmd)
-        bearers = [e[:-1] for e in bearers[1:] if e != 'No active bearers\n']
-        if not bearers:
-            return False
+        tipc_config_cmd = get_tipc_config_cmd()
+
+        if is_tipc_tool_exist():
+            bearers = Popen('%s bearer list' %tipc_config_cmd)
+            if not bearers or len(bearers) < 1:
+                return False
+        else:
+            bearers = Popen('%s -b' % tipc_config_cmd)
+            bearers = [e[:-1] for e in bearers[1:] if e != 'No active bearers\n']
+            if not bearers:
+                return False
 
         return True
 
     def is_tipc_properly_configured():
         tipc_config_cmd = get_tipc_config_cmd()
-        
-        tipc_addr = Popen('%s -addr' % tipc_config_cmd)[0]
-        tipc_addr = tipc_addr.split(':')[1].strip()[1:-1]
+
+        tipc_addr = ''
+        if is_tipc_tool_exist():
+            tipc_addr = Popen('%s node get address' % tipc_config_cmd)[0]
+            tipc_addr = tipc_addr.strip()[1:-1]
+        else:
+            tipc_addr = Popen('%s -addr' % tipc_config_cmd)[0]
+            tipc_addr = tipc_addr.split(':')[1].strip()[1:-1]
 
         if tipc_addr != '1.1.%s' % safplus.get_safplus_node_addr():
             log.debug('System configured TIPC address : %s, user configured TIPC address : %s' % (tipc_addr, '1.1.%s' % safplus.get_safplus_node_addr()))
             return False
 
-        tipc_netid = Popen('%s -netid' % tipc_config_cmd)[0]
-        tipc_netid = tipc_netid.split(':')[1].strip()
+        tipc_netid = ''
+        if is_tipc_tool_exist():
+            tipc_netid = Popen('%s node get netid' % tipc_config_cmd)[0]
+            tipc_netid = tipc_netid.strip()
+        else:
+            tipc_netid = Popen('%s -netid' % tipc_config_cmd)[0]
+            tipc_netid = tipc_netid.split(':')[1].strip()
 
         if tipc_netid != get_safplus_tipc_netid():
             log.debug('System configured netid : %s, user configured netid : %s' % (tipc_netid, get_safplus_tipc_netid()))
             return False
 
-        bearers = Popen('%s -b' % tipc_config_cmd)
-        bearers = [e[:-1] for e in bearers[1:]]
         num,link_name= getMultiLink()
-        tipc_bearer = 'eth:%s' % link_name[0]
-
-        if tipc_bearer not in bearers:
-            log.debug('Configured bearer %s not in bearer list %s' % (tipc_bearer, bearers))
-            return False
+        if is_tipc_tool_exist():
+            bearers = Popen('%s bearer list' %tipc_config_cmd)
+            if not bearers or len(bearers) < 1:
+                return False
+            bearers = [e.strip().split(':')[1] for e in bearers]
+            for x in range(0,num):
+                if link_name[x] not in bearers:
+                    log.debug('Configured bearer %s not in bearer list %s' % (tipc_bearer, bearers))
+                return False
+        else:
+            bearers = Popen('%s -b' % tipc_config_cmd)
+            bearers = [e[:-1] for e in bearers[1:]]
+            tipc_bearer = 'eth:%s' % link_name[0]
+            if tipc_bearer not in bearers:
+                log.debug('Configured bearer %s not in bearer list %s' % (tipc_bearer, bearers))
+                return False
 
         return True
 
