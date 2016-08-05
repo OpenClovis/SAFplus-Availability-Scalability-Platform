@@ -44,6 +44,8 @@ extern ClRcT cpmCompAppendInstantiateCommand(ClCharT *compName,
                                              ClCharT *instantiateCommand,
                                              ClInt32T maxSize);
 
+extern FILE *cpmTouchFile(const ClCharT *fileName);
+
 #ifdef __cplusplus
 }
 #endif

@@ -1273,3 +1273,23 @@ ClRcT cpmCompAppendInstantiateCommand(ClCharT *compName,
     
     return rc;
 }
+
+FILE *cpmTouchFile(const ClCharT *fileName)
+{
+  ClCharT buf[256] = { 0 };
+  ClCharT fname[CL_MAX_NAME_LENGTH] = { 0 };
+  ClCharT *aspRunDir = NULL;
+
+  aspRunDir = getenv("ASP_RUNDIR");
+  if (aspRunDir)
+  {
+    strncpy(buf, aspRunDir, CL_MAX_NAME_LENGTH - 1);
+  }
+  else
+  {
+    if (!getcwd(buf, sizeof(buf)))
+      buf[0] = 0;
+  }
+  snprintf(fname, CL_MAX_NAME_LENGTH - 1, "%s/%s", buf, fileName);
+  return fopen(fname, "w");
+}

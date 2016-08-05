@@ -90,6 +90,7 @@
 #include <clTimeServer.h>
 #include <clAmfPluginApi.h>
 #include <clNodeCache.h>
+#include <clCpmMgmt.h>
 /*
  * XDR header files 
  */
@@ -1111,7 +1112,7 @@ static ClRcT clCpmFinalize(void)
 
     if(!gClSigTermPending || !gClSigTermRestart)
     {
-        FILE *fptr = fopen(CL_CPM_SAFPLUS_STOP_FILE, "w");
+        FILE *fptr = cpmTouchFile(CL_CPM_SAFPLUS_STOP_FILE);
         if(fptr) fclose(fptr);
     }
 
@@ -2702,7 +2703,7 @@ void cpmReset(ClTimerTimeOutT *pDelay, const ClCharT *pPersonality)
     if(pDelay) clOsalTaskDelay(*pDelay);
     clLogCritical(CPM_LOG_AREA_CPM, CPM_LOG_CTX_CPM_CPM,
                   "CPM [%s] going for node reboot", pPersonality);
-    fptr = fopen(CL_CPM_REBOOT_FILE, "w");
+    fptr = cpmTouchFile(CL_CPM_REBOOT_FILE);
     if(!fptr)
     {
         clLogError(CPM_LOG_AREA_CPM, CPM_LOG_CTX_CPM_CPM,
