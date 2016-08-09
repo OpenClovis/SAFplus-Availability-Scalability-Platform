@@ -69,6 +69,7 @@ namespace SAFplus
   MgtDatabase::MgtDatabase()
   {
     mInitialized = CL_FALSE;
+    pluginFlags = 0;
   }
 
   ClRcT MgtDatabase::initialize(const std::string &dbName, const std::string &dbPlugin, ClUint32T maxKeySize, ClUint32T maxRecordSize)

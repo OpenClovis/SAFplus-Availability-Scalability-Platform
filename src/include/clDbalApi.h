@@ -165,7 +165,7 @@ typedef uint64_t ClDBFlagT;
 
 /**
  * This DB flag is used for opening a DB in APPEND mode. Data inserted to the DB 
- * would be appended to the existing DB (if there is any).
+ * would be appended to the existing DB (if there is any).  DB is created if it does not exist.
  */
 #define CL_DB_APPEND    0x4
 
