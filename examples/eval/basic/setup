@@ -7,7 +7,7 @@ sysctl -w net.core.rmem_max=20485760
 sysctl -w net.core.rmem_default=20485760
 sysctl -w net.core.wmem_default=20485760
 
-# set this node's name as specified in the XML
+# set this node's name as specified in the XML model
 export ASP_NODENAME=node0
 
 # excessive logging can cause expect's input buffer to fill up, hanging the app on stdout
@@ -19,3 +19,6 @@ export SAFPLUS_BACKPLANE_INTERFACE=eth0
 
 # Set up the cloud network addresses (if using cloud mode)
 #../bin/safplus_cloud --add 127.0.0.1
+
+# Set up the management database to use the SAFplus checkpointing service
+export SAFPLUS_MGT_DB_PLUGIN=libclCkptDB.so
