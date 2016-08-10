@@ -4,10 +4,15 @@ cd /root/evalBasic/bin
 env > /root/startupenv.txt
 source ./setup
 
+if [ -z "$SAFPLUS_CLOUD_NODES" ]; then
+echo "LAN mode"
+else
 ./safplus_cloud --reload
 ./safplus_cloud --add "$SAFPLUS_IP" --id "$SAFPLUS_NODE_ID"
+fi
 
 # exec ./safplus_amf > /root/amfOutput.txt
+./safplus_db -x model.xml safplusAmf
 ./safplus_amf > /root/amfOutput.txt &
 exec /usr/sbin/sshd -D
 
