@@ -1280,13 +1280,13 @@ class Panel(scrolled.ScrolledPanel):
         self.render(dc)
 
     def renderGrayCells(self, ctx):
-      print 'enter renderGrayCell'
+      #print 'enter renderGrayCell'
       for row in self.grid.grid:
         for cell in row:
           grayBmp = self.grayCells.get(cell.bound, None)
           if grayBmp:
             pos = (cell.bound[0],cell.bound[1])            
-            print 'render gray cell at (%d,%d), size: %s; bound (%d,%d,%d,%d)' %(pos[0], pos[1], str(cell.graySize), cell.bound[0],cell.bound[1], cell.bound[2], cell.bound[3])
+            #print 'render gray cell at (%d,%d), size: %s; bound (%d,%d,%d,%d)' %(pos[0], pos[1], str(cell.graySize), cell.bound[0],cell.bound[1], cell.bound[2], cell.bound[3])
             svg.blit(ctx,grayBmp,pos, (1.0,1.0), 0.0)
 
     def createGrayCell(self, pos, entities=None, save=True):

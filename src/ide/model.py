@@ -591,8 +591,7 @@ instantiated  <instances>     instances                         instances     (e
   def addContainmenArrow(self, inst, newinst):
     if inst.et.name=="ServiceUnit":
       newinst.childOf = set()
-      for e in filter(lambda entInt: entInt.et.name=="ServiceGroup", self.instances.values()):
-        self.dumpContainmentArrow(e.containmentArrows)
+      for e in filter(lambda entInt: entInt.et.name=="ServiceGroup", self.instances.values()):        
         for ca in e.containmentArrows:
           if ca.contained==inst:
             newinst.childOf.add(e)
