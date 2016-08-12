@@ -74,6 +74,10 @@ namespace SAFplus
     }
   }
 
+  ClRcT MgtModule::registerRpc(Handle handle, MgtRpc* obj)
+  {
+      MgtRoot::getInstance()->registerRpc(handle, obj);
+  }
 
   ClRcT MgtModule::addMgtObject(MgtObject *mgtObject, const std::string& route)
   {

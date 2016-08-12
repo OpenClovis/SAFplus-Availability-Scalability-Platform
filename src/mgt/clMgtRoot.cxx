@@ -94,7 +94,24 @@ namespace SAFplus
       {
         assert(0);
       }
+  }
 
+  void MgtRoot::registerRpc(Handle handle,MgtRpc* obj)
+  {
+    addChildObject(obj,obj->tag);
+    std::string path = obj->getFullXpath();
+    try
+    {
+      char handleData[sizeof(Buffer) - 1 + sizeof(Handle)];
+      Buffer* val = new (handleData) Buffer(sizeof(Handle));
+      *((Handle*) val->data) = handle;
+      // Add to checkpoint
+      mgtCheckpoint->write(path.c_str(), *val);
+    }
+    catch (Error &e)
+      {
+        assert(0);
+      }
     logInfo("MGT", "LOAD", "Bound xpath [%s] to local object", path.c_str());
   }
 
@@ -297,45 +314,45 @@ namespace SAFplus
     return rc;
   }
 
-  ClRcT MgtRoot::registerRpc(SAFplus::Handle handle,const std::string module,const std::string rpcName)
-  {
-    ClRcT rc = CL_OK;
-#if 0 //TODO: stored this handle into checkpoint
-    Mgt::Msg::MsgBind bindData;
-    MsgMgt mgtMsgReq;
-    string strBind;
-
-
-    Mgt::Msg::Handle *hdl = bindData.mutable_handle();
-    hdl->set_id0(handle.id[0]);
-    hdl->set_id1(handle.id[1]);
-    bindData.set_module(module.c_str(),CL_MAX_NAME_LENGTH - 1);
-    bindData.set_route(rpcName.c_str(),MGT_MAX_ATTR_STR_LEN - 1);
-    bindData.SerializeToString(&strBind);
-    /* Send bind data to the server */
-    mgtMsgReq.set_type(Mgt::Msg::MsgMgt::CL_MGT_MSG_BIND);
-    mgtMsgReq.set_bind(strBind);
-
-    // TODO: Who do I send this message to?  I think it should go to the active Mgt server?  Or broadcast to both Mgt servers?
-    //ClIocAddressT allNodeReps;
-    //allNodeReps.iocPhyAddress.nodeAddress = 0x1;//GAS: using broadcast CL_IOC_BROADCAST_ADDRESS = 0xffffffff
-    //allNodeReps.iocPhyAddress.portId = SAFplusI::MGT_IOC_PORT;
-    try
-    {
-      string output;
-      SAFplus::SafplusMsgServer* mgtIocInstance = &safplusMsgServer;
-      mgtMsgReq.SerializeToString(&output);
-      int size = output.size();
-      mgtIocInstance->SendMsg(getProcessHandle(SAFplusI::MGT_IOC_PORT,Handle::AllNodes), (void *)output.c_str(), size, SAFplusI::CL_MGT_MSG_TYPE);
-    }
-    catch (SAFplus::Error &ex)
-    {
-      rc = ex.clError;
-      logDebug("ROOT","RPC","Failed to send rpc registration");
-    }
-#endif
-    return rc;
-  }
+//  ClRcT MgtRoot::registerRpc(SAFplus::Handle handle,const std::string module,const std::string rpcName)
+//  {
+//    ClRcT rc = CL_OK;
+//#if 0 //TODO: stored this handle into checkpoint
+//    Mgt::Msg::MsgBind bindData;
+//    MsgMgt mgtMsgReq;
+//    string strBind;
+//
+//
+//    Mgt::Msg::Handle *hdl = bindData.mutable_handle();
+//    hdl->set_id0(handle.id[0]);
+//    hdl->set_id1(handle.id[1]);
+//    bindData.set_module(module.c_str(),CL_MAX_NAME_LENGTH - 1);
+//    bindData.set_route(rpcName.c_str(),MGT_MAX_ATTR_STR_LEN - 1);
+//    bindData.SerializeToString(&strBind);
+//    /* Send bind data to the server */
+//    mgtMsgReq.set_type(Mgt::Msg::MsgMgt::CL_MGT_MSG_BIND);
+//    mgtMsgReq.set_bind(strBind);
+//
+//    // TODO: Who do I send this message to?  I think it should go to the active Mgt server?  Or broadcast to both Mgt servers?
+//    //ClIocAddressT allNodeReps;
+//    //allNodeReps.iocPhyAddress.nodeAddress = 0x1;//GAS: using broadcast CL_IOC_BROADCAST_ADDRESS = 0xffffffff
+//    //allNodeReps.iocPhyAddress.portId = SAFplusI::MGT_IOC_PORT;
+//    try
+//    {
+//      string output;
+//      SAFplus::SafplusMsgServer* mgtIocInstance = &safplusMsgServer;
+//      mgtMsgReq.SerializeToString(&output);
+//      int size = output.size();
+//      mgtIocInstance->SendMsg(getProcessHandle(SAFplusI::MGT_IOC_PORT,Handle::AllNodes), (void *)output.c_str(), size, SAFplusI::CL_MGT_MSG_TYPE);
+//    }
+//    catch (SAFplus::Error &ex)
+//    {
+//      rc = ex.clError;
+//      logDebug("ROOT","RPC","Failed to send rpc registration");
+//    }
+//#endif
+//    return rc;
+//  }
 
 #if 0
   void MgtRoot::resolvePath(const char* path, std::vector<MgtObject*>* result)
@@ -640,6 +657,9 @@ namespace SAFplus
       cmds.append(" ");  // Right now I just assume everything in there is a custom logging string
       path = path.substr(end+1);
     }
+    ClBoolT rc;
+    //Todo Remove this hard code
+    path = reqMsg.bind();
     if (path[0] == '/')
     {
       resolvePath(path.c_str() + 1, &matches);
@@ -651,6 +671,10 @@ namespace SAFplus
           MgtRpc *rpc = dynamic_cast<MgtRpc*> (*i);
           if (rpc)
           {
+            if(data!="")
+            {
+              rpc->setInParams((void*)data.c_str(),data.length());
+            }
             switch (reqMsg.rpctype())
             {
               case Mgt::Msg::MsgRpc::CL_MGT_RPC_VALIDATE:
@@ -748,10 +772,18 @@ namespace SAFplus
   void MgtRoot::MgtMessageHandler::msgHandler(SAFplus::Handle from, SAFplus::MsgServer* svr, ClPtrT msg, ClWordT msglen, ClPtrT cookie)
   {
     //Check message is rpc ???
+    logDebug("MGT","DEL","receive new  message ");
     Mgt::Msg::MsgMgt mgtMsgReq;
-    if(mgtMsgReq.ParseFromArray(msg, msglen))
+    Mgt::Msg::MsgRpc mgtRpcReq;
+    if(mgtRpcReq.ParseFromArray(msg, msglen))
     {
-      logDebug("MGT","DEL","process MGT message");
+      logDebug("MGT","DEL","process RPC message");
+      mRoot->clMgtMsgRPCHandler(from,mgtRpcReq);
+    }
+    else
+    {
+      mgtMsgReq.ParseFromArray(msg, msglen);
+      logDebug("MGT","DEL","process MGT message [%d]",mgtMsgReq.type());
       switch(mgtMsgReq.type())
       {
         case Mgt::Msg::MsgMgt::CL_MGT_MSG_XGET:
@@ -769,13 +801,6 @@ namespace SAFplus
         default:
           break;
       }
-    }
-    else
-    {
-      logDebug("MGT","DEL","process RPC message");
-      Mgt::Msg::MsgRpc mgtRpcReq;
-      mgtRpcReq.ParseFromArray(msg, msglen);
-      mRoot->clMgtMsgRPCHandler(from,mgtRpcReq);
     }
   }
 

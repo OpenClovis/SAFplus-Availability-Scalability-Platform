@@ -106,7 +106,7 @@ namespace SAFplus
 
   }
 
-  SAFplus::MsgReply *mgtRpcRequest(SAFplus::Handle src, MsgMgt_MgtMsgType reqType, const std::string& pathSpec, const std::string& value = "", Mgt::Msg::MsgRpc::MgtRpcType rpcType= Mgt::Msg::MsgRpc::CL_MGT_RPC_INVOKE)
+  SAFplus::MsgReply *mgtRpcRequest(SAFplus::Handle src, MsgMgt_MgtMsgType reqType, const std::string& pathSpec, const std::string& value = "", Mgt::Msg::MsgRpc::MgtRpcType rpcType=Mgt::Msg::MsgRpc::CL_MGT_RPC_VALIDATE)
   {
     SAFplus::MsgReply *msgReply = NULL;
     uint retryDuration = SAFplusI::MsgSafplusSendReplyRetryInterval;
@@ -122,14 +122,10 @@ namespace SAFplus
     MsgRpc rpcMsgReq;
     if(reqType==Mgt::Msg::MsgMgt::CL_MGT_MSG_RPC)
     {
-        std::string request;
-        std::string data = pathSpec;
-        if (value.length() > 0)
-        {
-          data += "," + value;
-        }
+        std::string data = value;
         rpcMsgReq.set_rpctype(rpcType);
         rpcMsgReq.set_data(data);
+        rpcMsgReq.set_bind(pathSpec);
         rpcMsgReq.SerializeToString(&request);
     }
     else
@@ -138,6 +134,7 @@ namespace SAFplus
         mgtMsgReq.set_bind(pathSpec);
         mgtMsgReq.add_data(value);
         mgtMsgReq.SerializeToString(&request);
+        logError("MGT", "REV", "send MGT [%d] [%s] [%s]",reqType,pathSpec.c_str(),value.c_str());
     }
     SAFplus::SafplusMsgServer* mgtIocInstance = &SAFplus::safplusMsgServer;
     try
@@ -159,6 +156,7 @@ namespace SAFplus
   {
     std::string output = "";
     MsgGeneral rxMsg;
+    logError("MGT", "REV", "mgtget call");
     SAFplus::MsgReply *msgReply = mgtRpcRequest(src, Mgt::Msg::MsgMgt::CL_MGT_MSG_XGET, pathSpec);
     if (msgReply != NULL)
     {
@@ -297,10 +295,10 @@ namespace SAFplus
   }
 
 
-  ClRcT mgtRpc(SAFplus::Handle src,Mgt::Msg::MsgRpc::MgtRpcType mgtRpcType,const std::string& pathSpec, const std::string& attribute)
+  ClRcT mgtRpc(SAFplus::Handle src,Mgt::Msg::MsgRpc::MgtRpcType mgtRpcType,const std::string& pathSpec,const std::string& request)
   {
     ClRcT ret = CL_OK;
-    SAFplus::MsgReply *msgReply = mgtRpcRequest(src, Mgt::Msg::MsgMgt::CL_MGT_MSG_RPC, pathSpec, attribute,mgtRpcType);
+    SAFplus::MsgReply *msgReply = mgtRpcRequest(src, Mgt::Msg::MsgMgt::CL_MGT_MSG_RPC, pathSpec, request,mgtRpcType);
     if (msgReply == NULL)
       {
         ret = CL_ERR_IGNORE_REQUEST;
@@ -312,7 +310,7 @@ namespace SAFplus
     return ret;
   }
 
-  ClRcT mgtRpc(Mgt::Msg::MsgRpc::MgtRpcType mgtRpcType,const std::string& pathSpec, const std::string& attribute)
+  ClRcT mgtRpc(Mgt::Msg::MsgRpc::MgtRpcType mgtRpcType,const std::string& pathSpec, const std::string& request)
   {
     ClRcT ret = CL_OK;
     std::vector<MgtObject*> matches;
@@ -324,6 +322,11 @@ namespace SAFplus
         for(std::vector<MgtObject*>::iterator i = matches.begin(); i != matches.end(); i++)
           {
             MgtRpc *rpc = dynamic_cast<MgtRpc*> (*i);
+            if(request!="")
+            {
+              logDebug("MGT","RPC","set rpc input parameter");
+              rpc->setInParams((void*)request.c_str(),request.length());
+            }
             switch (mgtRpcType)
             {
               case Mgt::Msg::MsgRpc::CL_MGT_RPC_VALIDATE:
@@ -345,10 +348,11 @@ namespace SAFplus
         Handle hdl = getMgtHandle(pathSpec, ret);
         if (ret == CL_OK && INVALID_HDL != hdl)
         {
-          ret = mgtRpc(hdl,mgtRpcType, pathSpec, attribute);
+          ret = mgtRpc(hdl,mgtRpcType, pathSpec, request);
         }
         else
           {
+            ret = CL_OK;
             logError("MGT", "REV", "Route [%s] has no implementer", pathSpec.c_str());
             throw Error(Error::SAFPLUS_ERROR,Error::DOES_NOT_EXIST,"Route has no implementer",__FILE__,__LINE__);
           }
@@ -516,7 +520,7 @@ namespace SAFplus
        return boost::lexical_cast<double>(val);
 
       }
-     //? Get information from the management subsystem -- removes the XML and casts
+     //? Get information from the management subsystem -- removes the XML and casts	
      std::string mgtGetString(const std::string& pathSpec)
      {
        std::string result = mgtGet(pathSpec);

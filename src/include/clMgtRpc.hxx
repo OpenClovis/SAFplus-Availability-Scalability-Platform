@@ -52,6 +52,11 @@ namespace SAFplus
     {
 
     }
+    virtual void toString(std::stringstream& xmlString, int depth=SAFplusI::MgtToStringRecursionDepth,SerializationOptions opts=SerializeNoOptions)
+    {
+
+    }
+
     /**
      * Function to add input parameter
      */

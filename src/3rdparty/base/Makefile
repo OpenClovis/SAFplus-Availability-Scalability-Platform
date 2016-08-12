@@ -66,7 +66,7 @@ Xenv:=
 #   + make
 #   + make install
 
-PROTOBUF_VER=v2.5.0
+PROTOBUF_VER=v2.6.1
 
 NETSNMP=net-snmp
 NETSNMP_VER=5.4.4

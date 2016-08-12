@@ -36,7 +36,7 @@ namespace SAFplus
     ErrorMsg.assign("");
     mInParams.tag.assign("input");
     mOutParams.tag.assign("output");
-    this->config = false;
+    this->config = true;
   }
 
   MgtRpc::~MgtRpc()
@@ -87,7 +87,8 @@ namespace SAFplus
         return CL_ERR_NOT_EXIST;
       }
 
-    return MgtRoot::getInstance()->registerRpc(handle,Module, tag);
+//    return MgtRoot::getInstance()->registerRpc(handle,Module, tag);
+      return 0;
   }
 
 }

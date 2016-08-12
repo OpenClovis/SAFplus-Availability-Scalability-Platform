@@ -22,7 +22,8 @@ Release all: MgtMsg.pb.hxx $(LIB_DIR)/libclMgt.so
 
 MgtMsg.pb.hxx: $(PROTOBUFVER)/MgtMsg.pb.hxx
 	rm $@
-	ln -s $(PROTOBUFVER)/$@ $@
+	ln -sf $(PROTOBUFVER)/$@ $@
+#	ln -sf $(PROTOBUFVER)/$@ $(PROTOBUFVER)/../../include/$@
 
 $(LIB_DIR)/libclMgt.so: $(CLIENT_OBJ) $(SAFPLUS_DEP_LIBS)
 	$(LINK_SO) $@ $(CLIENT_OBJ) $(LINK_SO_LIBS) $(SAFPLUS_LINK_LIBS) $(PROTOBUF_LINK) $(XML2_LINK)

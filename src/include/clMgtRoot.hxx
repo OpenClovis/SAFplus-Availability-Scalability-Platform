@@ -122,7 +122,8 @@ public:
      */
     ClRcT bindMgtObject(Handle handle, SAFplus::MgtObject *object, const std::string& module, const std::string& route);
     void bind(Handle handle,MgtObject* obj);
-    void registerRpc(Handle handle,MgtRpc* rpc);
+    void registerRpc(Handle handle,MgtRpc* obj);
+
 
 
     /**
@@ -133,7 +134,7 @@ public:
      * \return  CL_ERR_NOT_EXIST        MGT module does not exist
      * \return  CL_ERR_ALREADY_EXIST    RPC already exists
      */
-    ClRcT registerRpc(SAFplus::Handle handle,const std::string module, const std::string rpcName);
+//    ClRcT registerRpc(SAFplus::Handle handle,const std::string module, const std::string rpcName);
     /**
      * Mgt message handlers
      */
