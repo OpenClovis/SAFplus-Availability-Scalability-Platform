@@ -37,11 +37,19 @@ def EntityTypeSortOrder(a,b):
 def isRelationshipExist(ent):
   if not share.umlEditorPanel:
     assert(False)
+  count=0
   for name,e in share.umlEditorPanel.model.entities.items():
     if ent==e:
       continue
-    if any(ent==ca.contained for ca in e.containmentArrows):
-      return True
+    if ent.et.name != "ServiceUnit":
+      if any(ent==ca.contained for ca in e.containmentArrows):
+        return True
+    else:
+      for ca in e.containmentArrows:
+        if ent==ca.contained:
+          count+=1
+      if count==2:
+        return True
   return False
 
 class EntityType:

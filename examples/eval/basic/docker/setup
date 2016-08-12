@@ -13,7 +13,7 @@ export ASP_NODENAME=${ASP_NODENAME-node0}
 # set the node ID to 1 if it is not already defined
 export SAFPLUS_NODE_ID=${SAFPLUS_NODE_ID-1}
 # force cloud mode for containers, since they don't broadcast -- you should have defined this variable to be the SCs though
-export SAFPLUS_CLOUD_NODES=${SAFPLUS_CLOUD_NODES-1}
+#export SAFPLUS_CLOUD_NODES=${SAFPLUS_CLOUD_NODES-1}
 
 # excessive logging can cause expect's input buffer to fill up, hanging the app on stdout
 export CL_LOG_SEVERITY=DEBUG
@@ -22,5 +22,6 @@ export CL_LOG_CODE_LOCATION_ENABLE=1
 # To use UDP broadcasts on the loopback interface I need to enable a broadcast address
 export SAFPLUS_BACKPLANE_INTERFACE=eth0
 export ASP_BINDIR=/root/evalBasic/bin
+export SAFPLUS_MGT_DB_PLUGIN=libclCkptDB.so
 # Set up the cloud network addresses (if using cloud mode)
 export SAFPLUS_IP=($(ifconfig "$SAFPLUS_BACKPLANE_INTERFACE" | awk '/inet addr/{print substr($2,6)}'))
