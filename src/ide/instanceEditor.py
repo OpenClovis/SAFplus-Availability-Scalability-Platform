@@ -717,7 +717,7 @@ class GridEntityLayout:
         x += 1
       y += 1
 
-  def reposition(self,instance, panel):
+  def reposition(self,instance, panel, sg=None):
     """Move an instance somewhere else -- its physical movement may change its parent relationships"""
     pos = instance.pos
     for row in self.grid:
@@ -725,10 +725,13 @@ class GridEntityLayout:
         # print cell.bound
 
         # Not allow put at cell (0,0)
-        if isinstance(cell.row, Margin) and isinstance(cell.col, Margin):
+        if isinstance(cell.row, Margin) or isinstance(cell.col, Margin):
           continue
         # not allow to put at "disabled" (gray) cell
         if cell.bound in panel.grayCells:
+          continue
+
+        if sg and cell.row != sg:
           continue
 
         if inBox(pos,cell.bound):
@@ -1379,16 +1382,19 @@ class Panel(scrolled.ScrolledPanel):
       if not su:
         print 'setSUAssignment: SU is not found. Nothing to do'
         return
-      y = ROW_MARGIN+1
+      y = ROW_MARGIN+ROW_SPACING
       for e1 in self.rows:        
-        x = COL_MARGIN+1
+        x = COL_MARGIN+COL_SPACING
         for e2 in self.columns:
           su.pos = (x,y)
-          ok = self.grid.reposition(su, self)
+          ok = self.grid.reposition(su, self, inst)
           if ok:
             return
-          x+=COL_SPACING+COL_WIDTH
-        y+=ROW_SPACING+ROW_WIDTH
+          cell = self.grid.getAnyCell(su.pos)
+          assert(cell)
+          x=COL_SPACING+cell.bound[2]
+        if cell:
+          y=ROW_SPACING+cell.bound[3]
 
     def getUserDefinedNodeTypes(self):
       userDefinedNodeTypes = []     
