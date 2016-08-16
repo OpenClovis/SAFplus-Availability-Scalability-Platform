@@ -808,8 +808,6 @@ clGmsClusterJoinHandler(
         return CL_ERR_NULL_POINTER;
     }
 
-    CL_GMS_VERIFY_CLIENT_VERSION( req , res );
-
     /* if the server is not in a servicable state then ask the client to retry
      *  again after some time */
     if (0 == (ClInt32T)_clGmsIsReadyToServe())
@@ -817,6 +815,8 @@ clGmsClusterJoinHandler(
         res->rc = CL_GMS_RC(CL_ERR_TRY_AGAIN);
         return rc;
     }
+
+    CL_GMS_VERIFY_CLIENT_VERSION( req , res );
 
     clLogMultiline(DBG,CLM,NA,
             "Received Cluster join request from [%d:%d] for [nodeId = %d]",
@@ -934,8 +934,6 @@ clGmsClusterLeaveHandler(
         return CL_ERR_NULL_POINTER;
     }
 
-    CL_GMS_VERIFY_CLIENT_VERSION( req , res );
-
     /* if the server is not in a servicable state then ask the client to retry
      *  again after some time */
     if (0 == (ClInt32T)_clGmsIsReadyToServe())
@@ -943,6 +941,8 @@ clGmsClusterLeaveHandler(
         res->rc = CL_GMS_RC(CL_ERR_TRY_AGAIN);
         return rc;
     }
+
+    CL_GMS_VERIFY_CLIENT_VERSION( req , res );
 
     clLogNotice("CLUSTER", "LEAVE", "Received Cluster Leave request for node [%d], sync flag [%s]", req->nodeId, req->sync ? "yes" : "no");
 

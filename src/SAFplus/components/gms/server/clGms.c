@@ -157,6 +157,12 @@ _clGmsServiceInitialize ( const int argc  , char* const argv[] )
     clGmsCsCreate( &joinCs );
     clGmsCsCreate( &groupJoinCs );
 
+    /* Initialize the version compatibility database */
+    gmsGlobalInfo.config.versionsSupported.versionCount =
+        sizeof(versions_supported)/sizeof(ClVersionT);
+    gmsGlobalInfo.config.versionsSupported.versionsSupported=
+        versions_supported;
+
     do
     {
         /* Initialize checkpoint metadata */
@@ -181,14 +187,6 @@ _clGmsServiceInitialize ( const int argc  , char* const argv[] )
             gmsGlobalInfo.config.thisNodeInfo.gmsVersion.releaseCode,
             gmsGlobalInfo.config.thisNodeInfo.gmsVersion.majorVersion,
             gmsGlobalInfo.config.thisNodeInfo.gmsVersion.minorVersion);
-
-
-
-    /* Initialize the version compatibility database */
-    gmsGlobalInfo.config.versionsSupported.versionCount = 
-        sizeof(versions_supported)/sizeof(ClVersionT);
-    gmsGlobalInfo.config.versionsSupported.versionsSupported=
-        versions_supported;
 
     /*
      * Starts the GMS engine and calls in to the openais code and starts
