@@ -514,6 +514,12 @@ instantiated  <instances>     instances                         instances     (e
     addtl = []
     for e in entities:
       name=entity.NameCreator(e.data["name"])  # Let's see if the instance is already here before we recreate it.
+      while True:        
+        ei = self.instances.get(name,None)  
+        if ei: # if this instance exists, try to get another name
+          name=entity.NameCreator(e.data['name'], name)
+        else:
+          break
       newEnt = e.duplicate(name, not recursive)  # if we don't want recursive duplication, then dup the containment arrows.
       if recursive:  # otherwise dup the containment arrows and the objects they point to
         for ca in e.containmentArrows:

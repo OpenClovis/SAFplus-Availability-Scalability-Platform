@@ -677,6 +677,21 @@ class Panel(scrolled.ScrolledPanel):
             # delete associated items with this entity from self.lookup dict
             self.deleteEntFromLookup(ent)
             self.tree.Delete(treeItem)
+   
+    def addTreeItems(self, newEnts):
+      if newEnts[0].et.name in ("ServiceInstance", "ServiceUnit"):
+        for e in newEnts:
+          self.createTreeItemEntity(e.data["name"], e)
+      else:  
+        for i in newEnts[0].childOf:
+          treeItem = self.findEntityRecursive(i)
+          if treeItem:
+            for ca in i.containmentArrows:
+              child = ca.contained
+              self.createTreeItemEntity(child.data["name"], child, treeItem)
+          else:
+            print '[%s] doesn exist in tree' % i.data['name']
+          
 
     # Create controls for an entity
     def createTreeItemEntity(self, name, ent, parentItem = None):

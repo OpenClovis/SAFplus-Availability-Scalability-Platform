@@ -528,8 +528,11 @@ class SelectTool(Tool):
         i.createContainmentArrowTo(newEnt)
 
     # Put all childs instances into hyperlisttree
+    #if share.instanceDetailsPanel:
+    #  share.instanceDetailsPanel._createTreeEntities()
     if share.instanceDetailsPanel:
-      share.instanceDetailsPanel._createTreeEntities()
+      share.instanceDetailsPanel.addTreeItems(newEnts) 
+      
 
     self.panel.layout()
 
