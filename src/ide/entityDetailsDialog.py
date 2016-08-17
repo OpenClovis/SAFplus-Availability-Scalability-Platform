@@ -616,7 +616,7 @@ class Panel(scrolled.ScrolledPanel):
       self.tree.AddColumn("Col 2")
       self.tree.AddColumn("Col 3")
       self.tree.SetMainColumn(0) # the one with the tree in it...
-      self.tree.SetColumnWidth(0, 185)
+      self.tree.SetColumnWidth(0, 305)
       self.tree.SetColumnWidth(1, 35)
       self.tree.SetColumnWidth(2, 50)
       self.tree.SetColumnWidth(3, 225)
