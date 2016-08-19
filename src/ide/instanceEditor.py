@@ -938,12 +938,14 @@ class Panel(scrolled.ScrolledPanel):
     def addCommonTools(self):
       tsize = self.toolBar.GetToolBitmapSize()
       if 0: # Save is handled at the project level
-        bitmap = svg.SvgFile("save_as.svg").bmp(tsize, { }, (222,222,222,wx.ALPHA_OPAQUE))
+        bitmap = svg.SvgFile("save_as.svg").bmp(tsize, { }, BAR_GREY)
         self.toolBar.AddTool(SAVE_BUTTON, bitmap, wx.NullBitmap, shortHelpString="save", longHelpString="Save model as...")
         self.idLookup[SAVE_BUTTON] = SaveTool(self)
 
-      bitmap = svg.SvgFile("generate.svg").bmp(tsize, { }, (222,222,222,wx.ALPHA_OPAQUE))
-      self.toolBar.AddTool(CODEGEN_BUTTON, bitmap, wx.NullBitmap, shortHelpString="Generate Source Code", longHelpString="Generate source code ...")
+      s = svg.SvgFile("generate.svg")
+      bitmap = s.bmp(tsize, { }, BAR_GREY)
+      bitmapDisabled = s.disabledButton(tsize)
+      self.toolBar.AddTool(CODEGEN_BUTTON, bitmap, bitmapDisabled, shortHelpString="Generate Source Code", longHelpString="Generate source code ...")
       # add the generate menu item
       menuFile = self.guiPlaces.menu.get("File",None)
       gen = menuFile.Insert(6, CODEGEN_BUTTON, "&Generate code\tAlt-G", "Generate source code ...")
@@ -955,20 +957,28 @@ class Panel(scrolled.ScrolledPanel):
 
       # Add the umlEditor's standard tools
       self.toolBar.AddSeparator()
-      bitmap = svg.SvgFile("connect.svg").bmp(tsize, { }, (222,222,222,wx.ALPHA_OPAQUE))
+      
+     
+      #bitmap = svg.SvgFile("connect.svg").bmp(tsize, { }, (222,222,222,wx.ALPHA_OPAQUE))
       #self.toolBar.AddRadioTool(CONNECT_BUTTON, bitmap, wx.NullBitmap, shortHelp="connect", longHelp="Draw relationships between entities")
       #self.idLookup[CONNECT_BUTTON] = LinkTool(self)
 
-      bitmap = svg.SvgFile("pointer.svg").bmp(tsize, { }, (222,222,222,wx.ALPHA_OPAQUE))
-      self.toolBar.AddRadioTool(SELECT_BUTTON, bitmap, wx.NullBitmap, shortHelp="select", longHelp="Select one or many entities.  Click entity to edit details.  Double click to expand/contract.")
+      s = svg.SvgFile("pointer.svg")
+      bitmap = s.bmp(tsize, { }, BAR_GREY)
+      bitmapDisabled = s.disabledButton(tsize)
+      self.toolBar.AddRadioTool(SELECT_BUTTON, bitmap, bitmapDisabled, shortHelp="select", longHelp="Select one or many entities.  Click entity to edit details.  Double click to expand/contract.")
       self.idLookup[SELECT_BUTTON] = SelectTool(self)
 
-      bitmap = svg.SvgFile("zoom.svg").bmp(tsize, { }, (222,222,222,wx.ALPHA_OPAQUE))
-      self.toolBar.AddRadioTool(ZOOM_BUTTON, bitmap, wx.NullBitmap, shortHelp="zoom", longHelp="Left click (+) to zoom in. Right click (-) to zoom out.")
+      s = svg.SvgFile("zoom.svg")
+      bitmap = s.bmp(tsize, { }, BAR_GREY)
+      bitmapDisabled = s.disabledButton(tsize)
+      self.toolBar.AddRadioTool(ZOOM_BUTTON, bitmap, bitmapDisabled, shortHelp="zoom", longHelp="Left click (+) to zoom in. Right click (-) to zoom out.")
       self.idLookup[ZOOM_BUTTON] = ZoomTool(self)
 
-      bitmap = svg.SvgFile("remove.svg").bmp(tsize, { }, (222,222,222,wx.ALPHA_OPAQUE))
-      self.toolBar.AddRadioTool(DELETE_BUTTON, bitmap, wx.NullBitmap, shortHelp="Delete entity/entities", longHelp="Select one or many entities. Click entity to delete.")
+      s = svg.SvgFile("remove.svg")
+      bitmap = s.bmp(tsize, { }, BAR_GREY)
+      bitmapDisabled = s.disabledButton(tsize)
+      self.toolBar.AddRadioTool(DELETE_BUTTON, bitmap, bitmapDisabled, shortHelp="Delete entity/entities", longHelp="Select one or many entities. Click entity to delete.")
       self.idLookup[DELETE_BUTTON] = DeleteTool(self)
 
       # setting the default tool
@@ -1097,10 +1107,11 @@ class Panel(scrolled.ScrolledPanel):
         if placement:
           buttonIdx = wx.NewId()
           buttonSvg = e[1].buttonSvg if hasattr(e[1],"buttonSvg") else et.buttonSvg
-          bitmap = buttonSvg.bmp(tsize, { "name":e[0] }, (222,222,222,wx.ALPHA_OPAQUE))  # Use the first 3 letters of the name as the button text if nothing
+          bitmapDisabled = buttonSvg.disabledButton()
+          bitmap = buttonSvg.bmp(tsize, { "name":e[0] }, BAR_GREY)  # Use the first 3 letters of the name as the button text if nothing
           shortHelp = e[1].data.get("shortHelp",et.data.get("help",None)) 
           longHelp = e[1].data.get("help",et.data.get("help",None))
-          self.toolBar.AddRadioLabelTool(buttonIdx, e[0], bitmap, shortHelp=shortHelp, longHelp=longHelp)
+          self.toolBar.AddRadioLabelTool(buttonIdx, e[0], bitmap, disabledBitmap, shortHelp=shortHelp, longHelp=longHelp)
           #self.toolBar.AddRadioTool(buttonIdx, bitmap, wx.NullBitmap, shortHelp=et[0], longHelp=longHelp,clientData=et)
           self.idLookup[buttonIdx] = EntityTool(self,e[1])  # register this button so when its clicked we know about it
           #buttonIdx+=1

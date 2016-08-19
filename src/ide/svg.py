@@ -81,6 +81,11 @@ class Svg:
     del dc
     return bitmap 
 
+  def image(self,size=None, subst=None,bkcol=None):
+    """Convert this SVG into a wxImage object"""
+    bmp = self.bmp(size, subst, bkcol)
+    return bmp.ConvertToImage()
+
   def instantiate(self, size=None, subst=None):
     (hdl,size,scale) = self.prep(size,subst)
     image = cairo.ImageSurface(cairo.FORMAT_ARGB32,size[0],size[1])
@@ -91,6 +96,14 @@ class Svg:
     hdl.render_cairo(cr)
     del hdl
     return image
+
+  def disabledButton(self,size, xform = {}, bkcol=common.DISABLED_GREY):
+    """Return a bitmap of the passed svg object but disabled"""
+    im = self.image(size, xform, bkcol)
+    im = im.Blur(1)
+    im = im.ConvertToGreyscale()
+    bmp = wx.BitmapFromImage(im)
+    return bmp
 
 def blit(ctx, bmp, location, scale=(1,1), rotate=0):
   ctx.save()

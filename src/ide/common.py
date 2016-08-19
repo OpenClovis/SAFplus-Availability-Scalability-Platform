@@ -4,8 +4,15 @@ import os
 import re
 import types
 import pwd
+import wx
 userWorkspace = None
 programDirectory = None
+
+# the background color of toobars.  I have to use opaque -- transparent actually just turns black
+BAR_GREY = (210,210,210,wx.ALPHA_OPAQUE)
+DISABLED_GREY = (160,160,160,wx.ALPHA_OPAQUE)
+
+
 
 class Log():
   def write(self,string):
@@ -48,6 +55,7 @@ class FilesystemOutput(Output):
     f.close()
 
 class GuiPlaces:
+  """This class identifies all the important services/locations in the GUI so that entities can use these services"""
   def __init__(self,frame, menubar, toolbar, statusbar, menu, projectTree):
     self.frame = frame
     self.menubar = menubar

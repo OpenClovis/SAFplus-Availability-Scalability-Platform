@@ -845,7 +845,7 @@ class Panel(scrolled.ScrolledPanel):
     
     def addEntityTools(self):
       """Iterate through all the entity types, adding them as tools"""
-      print 'addEntityTools'
+      # print 'addEntityTools'
       tsize = self.toolBar.GetToolBitmapSize()
 
       sortedEt = self.model.entityTypes.items()  # Do this so the buttons always appear in the same order
@@ -855,11 +855,12 @@ class Panel(scrolled.ScrolledPanel):
       for et in sortedEt:
         buttonIdx = wx.NewId()
         name = et[0]
-        bitmap = et[1].buttonSvg.bmp(tsize, { "name":name[0:3] }, (222,222,222,wx.ALPHA_OPAQUE))  # Use the first 3 letters of the name as the button text if nothing
+        bitmap = et[1].buttonSvg.bmp(tsize, { "name":name[0:3] }, BAR_GREY)  # Use the first 3 letters of the name as the button text if nothing
+        bitmapDisabled = et[1].buttonSvg.disabledButton(tsize)
         shortHelp = et[1].data.get("shortHelp",None)
         longHelp = et[1].data.get("help",None)
         #self.toolBar.AddLabelTool(11, et[0], bitmap, shortHelp=shortHelp, longHelp=longHelp)
-        self.toolBar.AddRadioTool(buttonIdx, bitmap, wx.NullBitmap, shortHelp=et[0], longHelp=longHelp,clientData=et)
+        self.toolBar.AddRadioTool(buttonIdx, bitmap, bitmapDisabled, shortHelp=et[0], longHelp=longHelp,clientData=et)
         self.idLookup[buttonIdx] = EntityTypeTool(self,et[1])  # register this button so when its clicked we know about it
         #buttonIdx+=1
         if menu: # If there's a menu for these entity tools, then add the object to the menu as well
@@ -896,20 +897,29 @@ class Panel(scrolled.ScrolledPanel):
 
       # Add the umlEditor's standard tools
       self.toolBar.AddSeparator()
-      bitmap = svg.SvgFile("connect.svg").bmp(tsize, { }, (222,222,222,wx.ALPHA_OPAQUE))
-      self.toolBar.AddRadioTool(CONNECT_BUTTON, bitmap, wx.NullBitmap, shortHelp="connect", longHelp="Draw relationships between entities")
+
+      s = svg.SvgFile("connect.svg")
+      bitmapDisabled = s.disabledButton(tsize)
+      bitmap = s.bmp(tsize, { }, BAR_GREY)
+      self.toolBar.AddRadioTool(CONNECT_BUTTON, bitmap, bitmapDisabled, shortHelp="connect", longHelp="Draw relationships between entities")
       self.idLookup[CONNECT_BUTTON] = LinkTool(self)
 
-      bitmap = svg.SvgFile("pointer.svg").bmp(tsize, { }, (222,222,222,wx.ALPHA_OPAQUE))
-      self.toolBar.AddRadioTool(SELECT_BUTTON, bitmap, wx.NullBitmap, shortHelp="select", longHelp="Select one or many entities.  Click entity to edit details.  Double click to expand/contract.")
+      s = svg.SvgFile("pointer.svg")
+      bitmapDisabled = s.disabledButton(tsize)
+      bitmap = s.bmp(tsize, { }, BAR_GREY)
+      self.toolBar.AddRadioTool(SELECT_BUTTON, bitmap, bitmapDisabled, shortHelp="select", longHelp="Select one or many entities.  Click entity to edit details.  Double click to expand/contract.")
       self.idLookup[SELECT_BUTTON] = SelectTool(self)
 
-      bitmap = svg.SvgFile("zoom.svg").bmp(tsize, { }, (222,222,222,wx.ALPHA_OPAQUE))
-      self.toolBar.AddRadioTool(ZOOM_BUTTON, bitmap, wx.NullBitmap, shortHelp="zoom", longHelp="Left click (+) to zoom in. Right click (-) to zoom out.")
+      s = svg.SvgFile("zoom.svg")
+      bitmapDisabled = s.disabledButton(tsize)
+      bitmap = s.bmp(tsize, { }, BAR_GREY)
+      self.toolBar.AddRadioTool(ZOOM_BUTTON, bitmap, bitmapDisabled, shortHelp="zoom", longHelp="Left click (+) to zoom in. Right click (-) to zoom out.")
       self.idLookup[ZOOM_BUTTON] = ZoomTool(self)
 
-      bitmap = svg.SvgFile("remove.svg").bmp(tsize, { }, (222,222,222,wx.ALPHA_OPAQUE))
-      self.toolBar.AddRadioTool(DELETE_BUTTON, bitmap, wx.NullBitmap, shortHelp="Delete entity/entities", longHelp="Select one or many entities. Click entity to delete.")
+      s = svg.SvgFile("remove.svg")
+      bitmapDisabled = s.disabledButton(tsize)
+      bitmap = s.bmp(tsize, { }, BAR_GREY)
+      self.toolBar.AddRadioTool(DELETE_BUTTON, bitmap, bitmapDisabled, shortHelp="Delete entity/entities", longHelp="Select one or many entities. Click entity to delete.")
       self.idLookup[DELETE_BUTTON] = DeleteTool(self)
       
       # setting the default tool
