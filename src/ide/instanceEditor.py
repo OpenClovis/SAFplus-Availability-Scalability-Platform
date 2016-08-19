@@ -1584,18 +1584,19 @@ class Panel(scrolled.ScrolledPanel):
       
 
     def layout(self):
+        """place all the objects in their appropriate locations"""
         rowSet = set(self.rows)
         columnSet = set(self.columns)
         self.renderArrow = {}  # We will recalculate which arrows need rendering
-
         colCount = len(self.columns)
         panelSize = self.GetVirtualSize()
+        scaledExtents = (panelSize.x/self.scale,panelSize.y/self.scale)
         x = COL_MARGIN
         self.renderOrder = []
         for i in self.columns:
           width = max(COL_WIDTH,i.size[0])  # Pick the minimum width or the user's adjustment, whichever is bigger
           i.pos = (x,0)
-          size = (width,panelSize.y)
+          size = (width,scaledExtents[1])
           if size != i.size:
             i.size = size
             i.recreateBitmap()
@@ -1607,17 +1608,17 @@ class Panel(scrolled.ScrolledPanel):
         for i in self.rows:
           width = max(ROW_WIDTH,i.size[1])  # Pick the minimum width or the user's adjustment, whichever is bigger
           i.pos = (0,y)
-          size = (panelSize.x,width)
+          size = (scaledExtents[0],width)
           if size != i.size:
             i.size = size
             i.recreateBitmap()
           y+=width+ROW_SPACING
           self.renderOrder.append(i)
         
-        rows = [Margin((0,0),(panelSize[0],ROW_MARGIN))]
+        rows = [Margin((0,0),(panelSize[0]/self.scale,ROW_MARGIN))]
         rows += self.rows
  
-        cols = [Margin((0,0),(COL_MARGIN,panelSize[1]))]
+        cols = [Margin((0,0),(COL_MARGIN,panelSize[1]/self.scale))]
         cols += self.columns
 
         self.grid = GridEntityLayout(rows, cols)  # Create a 2 dimensional array of sets of objects
@@ -1701,10 +1702,13 @@ class Panel(scrolled.ScrolledPanel):
               for a in e.containmentArrows:
                 childs.append(a.contained)
 
-              bound = e.pos + (e.pos[0]+e.size[0], e.pos[1]+e.size[1]-30)
+              # make children's Y size be smaller then the parent by 30 at the bottom
+              bound = e.pos + (e.pos[0]+e.size[0], e.pos[1]+max(5,e.size[1]-(30.0/e.scale[1])))
               for ch,place in zip(childs,partition(len(childs), bound)):
                 ch.pos = (place[0]- 5,place[1] - (bound[3] - bound[1])/5) #
                 tmp = ((place[2]-place[0])+10, (place[3]-place[1])+(bound[3] - bound[1])/5+5) # (min(cell.bound[2]-30,64),min(cell.bound[3]-30,64))
+                if tmp[0]<3: tmp[0]=3
+                if tmp[1]<3: tmp[1]=3
                 if tmp != ch.size:
                   ch.size = tmp
                   ch.recreateBitmap()

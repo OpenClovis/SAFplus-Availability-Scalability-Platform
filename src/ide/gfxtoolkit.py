@@ -138,16 +138,18 @@ def drawCurvyArrow(ctx, startPos,endPos,middlePos,cust):
       ctx.restore()
 
 def drawIntersectRect(ctx, rect):
-  ctx.save()
-  ctx.set_font_size(12)
-  ctx.select_font_face("Georgia", cairo.FONT_SLANT_NORMAL, cairo.FONT_WEIGHT_BOLD)
-  text = "AMF Configuration"
-  xbearing, ybearing, width, height, xadvance, yadvance = (ctx.text_extents(text))
-  ctx.move_to(rect.x + 4 + (rect.width-8)/2  - width/2, rect.y + (rect.height-8)/2)
-  ctx.set_source_rgba(.3, .2, 0.3, .4)
-  ctx.show_text(text)
-  ctx.fill()
-  ctx.restore()
+  if 0: # account for scaling
+    ctx.save()
+    ctx.set_font_size(12)
+    ctx.select_font_face("Georgia", cairo.FONT_SLANT_NORMAL, cairo.FONT_WEIGHT_BOLD)
+    text = "AMF Configuration"
+    xbearing, ybearing, width, height, xadvance, yadvance = (ctx.text_extents(text))
+    if width < rect.width-8:
+      ctx.move_to(rect.x + 4 + (rect.width-8)/2  - width/2, rect.y + (rect.height-8)/2)
+      ctx.set_source_rgba(.3, .2, 0.3, .4)
+      ctx.show_text(text)
+    ctx.fill()
+    ctx.restore()
 
 class BoxGesture(Gesture):
   """Creates a greyed box that changes as the mouse is dragged that can be used to size or select something"""

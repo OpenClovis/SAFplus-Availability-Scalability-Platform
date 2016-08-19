@@ -88,7 +88,12 @@ class Svg:
 
   def instantiate(self, size=None, subst=None):
     (hdl,size,scale) = self.prep(size,subst)
-    image = cairo.ImageSurface(cairo.FORMAT_ARGB32,size[0],size[1])
+    try:
+      image = cairo.ImageSurface(cairo.FORMAT_ARGB32,size[0],size[1])
+    except cairo.Error, e:
+      print str(e)
+      print size
+      pdb.set_trace()
     cr = cairo.Context(image)
     cr.set_source_rgba(0,0,0,0)
     cr.paint()

@@ -18,6 +18,8 @@ def lineRectIntersect(lineIn,lineOut, rectUL, rectLR):
 
 def boxIntersect(pos1, size1, pos2, size2):
   """Calculate the largest box inside BOTH boxes.  NOTE: returns x,y,x1,y1, NOT x,y,size"""
+  assert(size1 >=0)
+  assert(size2 >=0)
   ret = (max(pos1[0],pos2[0]),max(pos1[1],pos2[1]),min(pos1[0]+size1[0],pos2[0]+size2[0]),min(pos1[1]+size1[1],pos2[1]+size2[1]))
   # ret is now the box x,y,x1,y1
   # TODO convert to pos, size?
