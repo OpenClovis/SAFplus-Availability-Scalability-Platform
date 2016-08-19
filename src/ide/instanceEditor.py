@@ -390,7 +390,7 @@ class SelectTool(Tool):
              if e.et.name in panel.columnTypes:
                panel.repositionColumn(e,pos)
              else:
-               panel.grid.reposition(e, panel)
+               panel.grid.reposition(e, panel,pos=pos)
           self.touching = set()
           panel.layout()
           panel.Refresh()
@@ -720,16 +720,22 @@ class GridEntityLayout:
         x += 1
       y += 1
 
-  def reposition(self,instance, panel, sg=None):
+  def reposition(self,instance, panel, sg=None, pos = None):
     """Move an instance somewhere else -- its physical movement may change its parent relationships"""
-    pos = instance.pos
+    if not pos: pos = instance.pos
     for row in self.grid:
       for cell in row:
         # print cell.bound
 
-        # Not allow put at cell (0,0)
-        if isinstance(cell.row, Margin) or isinstance(cell.col, Margin):
+        # Not allowed to put at cell (0,0)
+        if isinstance(cell.row, Margin) and isinstance(cell.col, Margin):
           continue
+        # Not allowed put the cell in the Node but outside any SG
+        if isinstance(cell.row, Margin):
+          continue
+
+        # It IS allowed to put the cell in a SG but not in any node!
+
         # not allow to put at "disabled" (gray) cell
         if cell.bound in panel.grayCells:
           continue
@@ -872,6 +878,7 @@ class Panel(scrolled.ScrolledPanel):
       # Ordering of instances in the GUI display, from the upper left
       self.columns = []
       self.rows = []
+      self.grid = None
 
       self.intersects = []
 
@@ -1107,7 +1114,7 @@ class Panel(scrolled.ScrolledPanel):
         if placement:
           buttonIdx = wx.NewId()
           buttonSvg = e[1].buttonSvg if hasattr(e[1],"buttonSvg") else et.buttonSvg
-          bitmapDisabled = buttonSvg.disabledButton()
+          disabledBitmap = buttonSvg.disabledButton(tsize)
           bitmap = buttonSvg.bmp(tsize, { "name":e[0] }, BAR_GREY)  # Use the first 3 letters of the name as the button text if nothing
           shortHelp = e[1].data.get("shortHelp",et.data.get("help",None)) 
           longHelp = e[1].data.get("help",et.data.get("help",None))
@@ -1298,7 +1305,8 @@ class Panel(scrolled.ScrolledPanel):
 
     def renderGrayCells(self, ctx):
       #print 'enter renderGrayCell'
-      for row in self.grid.grid:
+      if self.grid:
+       for row in self.grid.grid:
         for cell in row:
           grayBmp = self.grayCells.get(cell.bound, None)
           if grayBmp:
@@ -1331,8 +1339,11 @@ class Panel(scrolled.ScrolledPanel):
               sgs = sgs.split()
               if e1.data["name"] in sgs:
                 self.createGrayCell(pos, entities=None, save=False)
-          x=COL_SPACING+cell.bound[2]        
-        y=ROW_SPACING+cell.bound[3]        
+          x=COL_SPACING+cell.bound[2]
+        if cell:
+          y=ROW_SPACING+cell.bound[3]
+        else:
+          y=ROW_SPACING
       print 'leave loadGrayCells'
     
     def saveGrayCell(self, added, entities):
@@ -1399,6 +1410,7 @@ class Panel(scrolled.ScrolledPanel):
       y = ROW_MARGIN+ROW_SPACING
       for e1 in self.rows:        
         x = COL_MARGIN+COL_SPACING
+        cell = None
         for e2 in self.columns:
           su.pos = (x,y)
           ok = self.grid.reposition(su, self, inst)
@@ -1520,8 +1532,10 @@ class Panel(scrolled.ScrolledPanel):
         self.setSUAssignment(inst)
         #self.layout()
         self.Refresh()
-      if entity.et.name == "Node":
-        self.updateNodeTypeMenu()
+
+#  Function does not exist
+#      if entity.et.name == "Node":
+#        self.updateNodeTypeMenu()
       return True 
 
     def GetBoundingBox(self):

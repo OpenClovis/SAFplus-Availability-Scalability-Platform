@@ -437,28 +437,29 @@ class NewPrjDialog(wx.Dialog):
     def __init__(self):
         """Constructor"""
         wx.Dialog.__init__(self, None, title="New project", size=(430,240))
-         
+        LabelSize = (100,25) 
+        EntrySize = (300,25)
         prjname_sizer = wx.BoxSizer(wx.HORIZONTAL)
  
-        prj_lbl = wx.StaticText(self, label="Project name", size=(100,25))
+        prj_lbl = wx.StaticText(self, label="Project name", size=LabelSize)
         prjname_sizer.Add(prj_lbl, 0, wx.ALL|wx.CENTER, 5)
-        self.prjName = wx.TextCtrl(self)
-        prjname_sizer.Add(self.prjName, 0, wx.ALL, 5)
+        self.prjName = wx.TextCtrl(self,size=EntrySize)
+        prjname_sizer.Add(self.prjName, 10, wx.ALL | wx.EXPAND, 5)
 
         prjlocation_sizer = wx.BoxSizer(wx.HORIZONTAL)
-        prj_location_lbl = wx.StaticText(self, label="Location", size=(100,25))
+        prj_location_lbl = wx.StaticText(self, label="Location", size=LabelSize)
         prjlocation_sizer.Add(prj_location_lbl, 0, wx.ALL|wx.CENTER, 5)
         
-        self.prjLocation = wx.DirPickerCtrl(self, message="Choose a project location", style=wx.DIRP_DEFAULT_STYLE|wx.DIRP_USE_TEXTCTRL,size=(300,25)) 
+        self.prjLocation = wx.DirPickerCtrl(self, message="Choose a project location", style=wx.DIRP_DEFAULT_STYLE|wx.DIRP_USE_TEXTCTRL,size=EntrySize) 
         self.prjLocation.SetPath(common.getMostRecentPrjDir())
         prjlocation_sizer.Add(self.prjLocation, 0, wx.ALL, 5)
  
         datamodel_sizer = wx.BoxSizer(wx.HORIZONTAL)
- 
-        datamodel_lbl = wx.StaticText(self, label="Data model", size=(100,25))
+        datamodel_lbl = wx.StaticText(self, label="Data model", size=LabelSize)
         datamodel_sizer.Add(datamodel_lbl, 0, wx.ALL|wx.CENTER, 5)
         
-        self.datamodel = wx.FilePickerCtrl(self, message="Choose a file", style=wx.FLP_DEFAULT_STYLE|wx.FLP_USE_TEXTCTRL,  wildcard="Data model (*.yang)|*.yang", size=(300,25))
+        defaultModel = common.fileResolver("SAFplusAmf.yang")
+        self.datamodel = wx.FilePickerCtrl(self, message="Choose a file", path="SAFplusAmf.yang", style=wx.FLP_DEFAULT_STYLE|wx.FLP_USE_TEXTCTRL,  wildcard="Data model (*.yang)|*.yang", size=EntrySize)
         datamodel_sizer.Add(self.datamodel, 0, wx.ALL, 5)
  
         main_sizer = wx.BoxSizer(wx.VERTICAL)
@@ -478,6 +479,8 @@ class NewPrjDialog(wx.Dialog):
         main_sizer.Add(btn_sizer, 0, wx.ALL|wx.CENTER, 5)
 
         self.SetSizer(main_sizer)
+        main_sizer.Layout()
+        prjname_sizer.Layout()
  
     #----------------------------------------------------------------------
     def onBtnHandler(self, event):
