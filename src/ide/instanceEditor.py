@@ -327,6 +327,7 @@ class SelectTool(Tool):
   def OnEditEvent(self,panel, event):
     ret = False
     pos = panel.CalcUnscrolledPosition(event.GetPositionTuple())
+    scale = self.panel.scale
     if isinstance(event,wx.MouseEvent):
       if event.ButtonDown(wx.MOUSE_BTN_LEFT):  # Select
         self.mouseDownPos = pos 
@@ -370,7 +371,7 @@ class SelectTool(Tool):
       if event.Dragging():
         # if you are touching anything, then drag everything
         if self.touching and self.dragPos:
-          delta = (pos[0]-self.dragPos[0], pos[1] - self.dragPos[1])
+          delta = ((pos[0]-self.dragPos[0])/scale, (pos[1] - self.dragPos[1])/scale)
           # TODO deal with scaling and rotation in delta
           if delta[0] != 0 or delta[1] != 0:
             for e in self.selected:
@@ -386,11 +387,11 @@ class SelectTool(Tool):
           # Ignore moving component and csi
           for e in filter(lambda e: not e.et.name in (self.panel.ignoreEntities), self.selected):
              if e.et.name in panel.rowTypes:
-               panel.repositionRow(e,pos)
+               panel.repositionRow(e,(pos[0]/scale,pos[1]/scale))
              if e.et.name in panel.columnTypes:
-               panel.repositionColumn(e,pos)
+               panel.repositionColumn(e,(pos[0]/scale,pos[1]/scale))
              else:
-               panel.grid.reposition(e, panel,pos=pos)
+               panel.grid.reposition(e, panel,pos=(pos[0]/scale,pos[1]/scale))
           self.touching = set()
           panel.layout()
           panel.Refresh()
