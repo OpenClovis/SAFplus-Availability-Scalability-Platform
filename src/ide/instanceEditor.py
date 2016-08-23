@@ -776,7 +776,8 @@ class GridEntityLayout:
     return None
 
   def createGrayCell(self, pos, panel):
-    cell = self.getCell(pos)
+    scale = panel.scale
+    cell = self.getCell((pos[0]/scale,pos[1]/scale))
     if not cell:
       print 'createGrayCell: cell is null at pos: %s' % str(pos)
       return False
@@ -785,9 +786,9 @@ class GridEntityLayout:
       del panel.grayCells[cell.bound]
       return False # return False: clear the gray from the cell
     tmp = svg.SvgFile("gray.svg")    
-    print 'createGrayCell: pos (%d,%d); bound(%d,%d,%d,%d)' % (pos[0],pos[1],cell.bound[0],cell.bound[1],cell.bound[2],cell.bound[3])    
+    print 'createGrayCell: pos (%d,%d); bound(%d,%d,%d,%d)' % (pos[0]/scale,pos[1]/scale,cell.bound[0],cell.bound[1],cell.bound[2],cell.bound[3])    
     cell.graySize = (cell.bound[2]-cell.bound[0],cell.bound[3]-cell.bound[1])
-    cell.grayPos = (cell.bound[0],cell.bound[1])
+    cell.grayPos = (cell.bound[0]/scale,cell.bound[1]/scale)
     cell.grayBmp = tmp.instantiate((cell.graySize[0]+delta_x,cell.graySize[1]+delta_y))
     panel.grayCells[cell.bound] = cell.grayBmp
 
