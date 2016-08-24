@@ -34,6 +34,7 @@ import share
 ENTITY_TYPE_BUTTON_START = wx.NewId()
 SAVE_BUTTON = wx.NewId()
 ZOOM_BUTTON = wx.NewId()
+COPY_BUTTON = wx.NewId()
 #CONNECT_BUTTON = wx.NewId()
 SELECT_BUTTON = wx.NewId()
 CODEGEN_BUTTON = wx.NewId()
@@ -61,6 +62,7 @@ def reassignCommonToolIds():
   SAVE_BUTTON = wx.NewId()
   ZOOM_BUTTON = wx.NewId()
   #CONNECT_BUTTON = wx.NewId()
+  COPY_BUTTON = wx.NewId()
   SELECT_BUTTON = wx.NewId()
   CODEGEN_BUTTON = wx.NewId()
   CODEGEN_LANG_C = wx.NewId()
@@ -338,6 +340,7 @@ class SelectTool(Tool):
           panel.statusBar.SetStatusText(self.defaultStatusText,0);
           self.touching = set()
           self.boxSel.start(panel,pos)
+          panel.selectedEntities = None
           return False
     
         # Remove the background entities; you can't move them
@@ -355,6 +358,11 @@ class SelectTool(Tool):
         else:
           self.entities = rcent
         print "Touching %s" % ", ".join([ e.data["name"] for e in self.entities])
+        
+        if all(e.et.name in ("Component", "ComponentServiceInstance", "ServiceUnit", "ServiceInstance") for e in self.entities):
+          panel.selectedEntities = self.entities
+        else:
+          panel.selectedEntities = None
 
         panel.statusBar.SetStatusText("Touching %s" % ", ".join([ e.data["name"] for e in self.entities]),0);
 
@@ -537,6 +545,36 @@ class SelectTool(Tool):
 
     self.panel.layout()
 
+
+class CopyTool(Tool):
+  def __init__(self, panel):
+    self.panel = panel
+    self.defaultStatusText = "Click anywhere in the editor to copy the selected instance"
+
+  def OnSelect(self, panel,event):
+    panel.statusBar.SetStatusText(self.defaultStatusText,0);
+    return True
+
+  def OnUnselect(self,panel,event):
+    pass
+
+  def OnEditEvent(self,panel, event):
+    if isinstance(event,wx.MouseEvent):
+      if event.ButtonDown(wx.MOUSE_BTN_LEFT):
+        ents = panel.selectedEntities    
+        selectTool = panel.idLookup[SELECT_BUTTON]   
+        if ents and selectTool:
+          if len(ents) == 1:
+            ent = (next(iter(ents)))
+          else:
+            ents = sorted(ents, key=lambda ent: selectTool.entOrder.index(ent.et.name))        
+            ent = ents[0]
+          print 'copy instance [%s]' % ent.data['name']
+          selectTool.cloneInstances([ent])
+          panel.Refresh()
+          #panel.selectedEntities = None         
+        else:
+          panel.statusBar.SetStatusText("Please select an instance to copy first",0);
 
 class ZoomTool(Tool):
   def __init__(self, panel):
@@ -888,6 +926,8 @@ class Panel(scrolled.ScrolledPanel):
 
       self.grayCells = {}
 
+      self.selectedEntities = None
+
       self.userSelectionNode = None
       self.menuNodeInstCreate = wx.Menu()
       self.newNodeInstOption = None
@@ -984,6 +1024,12 @@ class Panel(scrolled.ScrolledPanel):
       self.toolBar.AddRadioTool(ZOOM_BUTTON, bitmap, bitmapDisabled, shortHelp="zoom", longHelp="Left click (+) to zoom in. Right click (-) to zoom out.")
       self.idLookup[ZOOM_BUTTON] = ZoomTool(self)
 
+      s = svg.SvgFile("copy.svg")
+      bitmap = s.bmp(tsize, { }, BAR_GREY)
+      bitmapDisabled = s.disabledButton(tsize)
+      self.toolBar.AddRadioTool(COPY_BUTTON, bitmap, bitmapDisabled, shortHelp="copy", longHelp="Select an instance, then click this button to copy it")
+      self.idLookup[COPY_BUTTON] = CopyTool(self)
+
       s = svg.SvgFile("remove.svg")
       bitmap = s.bmp(tsize, { }, BAR_GREY)
       bitmapDisabled = s.disabledButton(tsize)
@@ -1053,6 +1099,8 @@ class Panel(scrolled.ScrolledPanel):
       self.addButtons = {}
      
       self.grayCells = {}
+
+      self.selectedEntities = None
 
       # Building flatten instance from model.xml
       for entInstance in self.model.instances.values():
