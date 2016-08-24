@@ -10,6 +10,8 @@ from collections import namedtuple
 # wxversion.select("2.8")
 import wx
 import wx.aui
+#import wx.lib.fancytext as fancytext
+from wx.html import HtmlWindow
 
 import instanceEditor
 import entityDetailsDialog
@@ -66,7 +68,8 @@ class SAFplusFrame(wx.Frame):
         self.project = ProjectTreePanel(self.prjSplitter,self.guiPlaces)
         self.Bind(wx.EVT_TREE_ITEM_ACTIVATED, self.onPrjTreeActivated, self.project.tree) # handle an event when user double-clicks on a project at the tree on the left to switch views to it or to set it active
         self.tab = wx.aui.AuiNotebook(self.prjSplitter)
-        self.help = wx.TextCtrl(self.tab, -1, "test", style=wx.TE_MULTILINE)
+        self.help = HtmlWindow(self.tab, -1)
+        self.help.LoadFile("intro.html")
         self.tab.AddPage(self.help, "Welcome")        
         self.Bind(wx.aui.EVT_AUINOTEBOOK_PAGE_CLOSE, self.onPageClosing, self.tab) # handle tab page close
         self.prjSplitter.SplitVertically(self.project,self.tab,200)
@@ -80,13 +83,27 @@ class SAFplusFrame(wx.Frame):
         self.recentPrjMenu = wx.Menu()
         self.menu.AppendMenu(wx.NewId(), "Recent", self.recentPrjMenu, "Recent projects")
         self.loadRecentProjects()
+        self.Bind(wx.EVT_CLOSE, self.OnCloseFrame)
+
+        if 0:  # For development, periodically load the html so we can easily see changes
+          self.timer = wx.Timer(self)
+          self.Bind(wx.EVT_TIMER, self.update, self.timer)
+          self.timer.Start(1000)
+
+    def update(self, event):
+        self.help.LoadFile("intro.html")
+        
+
+    def OnCloseFrame(self,event):
+      print "Closing application"
+      self.Destroy()
 
     def cleanupTabs(self):
       """remove all editor window tabs"""
       # while 1:
         #w = self.tab.GetPage(0)
         #if not w: break
-      while self.tab.DeletePage(0): pass
+      while self.tab.DeletePage(1): pass  # 1 because I don't want to clean up the help tab
 
     def cleanupTools(self):
       self.tb.DeletePendingEvents()      
@@ -390,7 +407,7 @@ class SAFplusApp(wx.App):
     def OnInit(self):
       self.frame = SAFplusFrame(None, "SAFplus IDE")
       self.SetTopWindow(self.frame)
-
+      self.SetExitOnFrameDelete(True)
       print "Print statements go to this stdout window by default."
       self.frame.Show(True)
       return True

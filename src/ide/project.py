@@ -386,6 +386,7 @@ class ProjectTreePanel(wx.Panel):
   def OnNew(self,event):
     dlg = NewPrjDialog()
     dlg.ShowModal()
+    dlg.Destroy()
     if dlg.what == "OK":
       print 'handling ok clicked'                   
       log.write('You selected %d files: %s; datamodel: %s' % (len(dlg.path),str(dlg.path), dlg.datamodel.GetTextCtrlValue()))       
