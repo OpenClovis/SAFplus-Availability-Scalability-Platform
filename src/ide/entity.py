@@ -109,12 +109,16 @@ class Entity:
     if name:
       NameCreator(entityType.name)
 
-  def duplicate(self,name=None, dupContainmentArrows=False):
+
+
+  def duplicate(self,name=None, dupContainmentArrows=False, dupChildOf=True):
     newEnt = copy.copy(self)
     newEnt.data = copy.deepcopy(self.data)
     newEnt.data["name"] = NameCreator(self.et.name) if name is None else name
     newEnt.bmp  = self.et.iconSvg.instantiate(self.size,newEnt.data)
     newEnt.pos = (newEnt.pos[0] + 20, newEnt.pos[1] + 20)
+    if newEnt.et.name in ('Component', 'ComponentServiceInstance') and not dupChildOf:
+      newEnt.childOf = set()
     newEnt.containmentArrows = []
     if dupContainmentArrows:
       for ca in self.containmentArrows:
