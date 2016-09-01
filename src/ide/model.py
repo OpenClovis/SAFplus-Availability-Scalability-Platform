@@ -507,23 +507,40 @@ instantiated  <instances>     instances                         instances     (e
       entityParentKey = "%sType"%e.et.name
       if instance.child_.has_key(entityParentKey): instance.delChild(entityParentKey)
       instance.addChild(microdom.MicroDom({"tag_":entityParentKey},[entityParentVal],""))
+  
+  def duplicate(self,entities,recursive=False, flag=False):
+    """Duplicate a set of entities or instances and potentially all of their children. The last argument 'flag' indicates that
+       this is the copy of ServiceUnit or ServiceInstance, otherwise, Component or ComponentServiceInstance. It is the one of 
+       the criteria that childOf attribute of the entity/instance can be duplicated or not. Suppose that you want to copy
+       ServiceUnit or ServiceInstance, its parents have to be duplicated, of course, however, when its children is duplicated
+       (Component or ComponentServiceInstance), their parents cannot be duplicated. For example, supposing there is SU1->Comp1, 
+       SG1->SU1, Node1->SU1 (Comp1 is a child of SU1; SU1 is a child of SG1 and Node1). SU1 is copied, suppose SU11 is a copy of SU1. 
+       As a result, SU11 should be a child of SG1 and Node1 but Comp11 (is a copy of Comp1) should only be a child of SU11, NOT SU1. 
+       But another example, if only Comp1 is copied and Comp11 is a copy of Comp1, so, its parent should be duplicated, too.
+       In this case, Comp11 should be a child of SU1, too (because Comp1 is copied inside SU1)
+       This fix (with a fix at duplicate() function in entity.py gains this purpose"""
 
-  def duplicate(self,entities,recursive=False):
-    """Duplicate a set of entities or instances and potentially all of their children"""
     ret = []
     addtl = []
     for e in entities:
       name=entity.NameCreator(e.data["name"])  # Let's see if the instance is already here before we recreate it.
-      while True:        
+      while True:
         ei = self.instances.get(name,None)  
         if ei: # if this instance exists, try to get another name
           name=entity.NameCreator(e.data['name'], name)
         else:
           break
-      newEnt = e.duplicate(name, not recursive)  # if we don't want recursive duplication, then dup the containment arrows.
+      if e.et.name in ('ServiceUnit', 'ServiceInstance'):
+        dupChildOf = True
+      else:
+        if flag:
+          dupChildOf = False
+        else:
+          dupChildOf = True
+      newEnt = e.duplicate(name, not recursive, dupChildOf=dupChildOf)  # if we don't want recursive duplication, then dup the containment arrows.      
       if recursive:  # otherwise dup the containment arrows and the objects they point to
         for ca in e.containmentArrows:
-          (contained,xtra) = self.duplicate([ca.contained],recursive)
+          (contained,xtra) = self.duplicate([ca.contained],recursive,flag=True)
           assert(len(contained)==1)  # It must be 1 because we only asked to duplicate one entity
           contained = contained[0]
           contained.childOf.add(newEnt)

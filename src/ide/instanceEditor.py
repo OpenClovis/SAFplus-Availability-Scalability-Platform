@@ -526,10 +526,10 @@ class SelectTool(Tool):
     if self.selectMultiple:
       # TODO: take all entities?
       print "Copy selected instances: %s" % ", ".join([ e.data["name"] for e in ents])
-      (newEnts,addtl) = self.panel.model.duplicate(ents,recursive=True)
+      (newEnts,addtl) = self.panel.model.duplicate(ents,recursive=True, flag=False)
     else:
       # Duplicate first order entity
-      (newEnts,addtl) = self.panel.model.duplicate([ents[0]], recursive=True)
+      (newEnts,addtl) = self.panel.model.duplicate([ents[0]], recursive=True, flag=False)
 
     # Create ca for new intance component/csi
     for i in filter(lambda ent: isinstance(ent, Entity),  ents[0].childOf):
@@ -654,6 +654,7 @@ class ZoomTool(Tool):
 
       # Update scale for panel
       self.panel.scale = self.scale
+      self.panel.layout()
       self.panel.Refresh()
 
       # TODO: scroll wrong??? 
