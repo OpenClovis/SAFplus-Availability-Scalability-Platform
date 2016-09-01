@@ -654,6 +654,7 @@ class ZoomTool(Tool):
 
       # Update scale for panel
       self.panel.scale = self.scale
+      self.panel.layout()
       self.panel.Refresh()
 
       # TODO: scroll wrong??? 
