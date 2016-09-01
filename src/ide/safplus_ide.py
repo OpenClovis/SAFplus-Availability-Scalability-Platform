@@ -193,6 +193,8 @@ class SAFplusFrame(wx.Frame):
       self.tab.SetSelection(0) # open uml model view by default
       # append to recent projects repository and update the menu
       self.updateRecentProject(prj)
+      if self.currentActivePrj.dataModelPlugin:
+        self.currentActivePrj.dataModelPlugin.init(t, self.guiPlaces)
       
     def OnProjectNew(self,evt):
       """Called when a new project is created"""
@@ -221,6 +223,8 @@ class SAFplusFrame(wx.Frame):
       self.tab.AddPage(t.instance, prj.name + " Instantiation")
       t.details = entityDetailsDialog.Panel(self.tab,self.guiPlaces, t.model,isDetailInstance=True)
       self.tab.AddPage(t.details, prj.name + " Instance Details")
+      if self.prj.dataModelPlugin:
+        self.prj.dataModelPlugin.init(t, self.guiPlaces)
 
     def OnTimeToClose(self, evt):
       """Event handler for the button click"""
@@ -241,6 +245,7 @@ class SAFplusFrame(wx.Frame):
         self.recentPrjMenu.Bind(wx.EVT_MENU, self.onRecentPrjMenu, id=itemId)
 
     def updateRecentProject(self, prj):
+      """Updates the recent project list with the passed project"""
       common.addRecentPrj(prj.projectFilename)
       menuItems = self.recentPrjMenu.GetMenuItems()
       #if len(menuItems)>0 and menuItems[0].GetItemLabelText()==prj.projectFilename:

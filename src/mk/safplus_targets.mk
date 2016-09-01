@@ -118,7 +118,7 @@ $(LIB_DIR)/libclMsg.so: $(wildcard $(SAFPLUS_SRC_DIR)/msg/*.cxx) $(wildcard $(SA
 endif
 
 ifndef SAFPLUS_FAULT_LIB
-$(LIB_DIR)/libclFault.so: $(SAFPLUS_SRC_DIR)/mgt/MgtMsg.pb.hxx $(wildcard $(SAFPLUS_SRC_DIR)/fault/*.cxx) $(wildcard $(SAFPLUS_SRC_DIR)/include/*.hxx) 
+$(LIB_DIR)/libclFault.so: $(SAFPLUS_SRC_DIR)/include/MgtMsg.pb.hxx $(wildcard $(SAFPLUS_SRC_DIR)/fault/*.cxx) $(wildcard $(SAFPLUS_SRC_DIR)/include/*.hxx) 
 	$(MAKE) -C $(SAFPLUS_SRC_DIR)/fault
 endif
 

@@ -69,11 +69,11 @@ class EntityType:
     self.buttonSvg =  svg.Svg(f.read(),(32,32))
     f.close()
 
-  def createEntity(self,pos, size=None,children=False):
+  def createEntity(self,pos, size=None,children=False,**kwargs):
     """Create an entity of this type, located a pos of the specified size.  If children is true, create the entire logical group """
     if not size:
       size = self.iconSvg.size
-    ret = Entity(self, pos,size)
+    ret = Entity(self, pos,size,**kwargs)
     return ret
  
 

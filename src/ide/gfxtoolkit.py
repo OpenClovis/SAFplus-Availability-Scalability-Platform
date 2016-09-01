@@ -52,6 +52,161 @@ class Tool:
   def render(self,ctx):
     pass
 
+class BoxGesture(Gesture):
+  """Creates a greyed box that changes as the mouse is dragged that can be used to size or select something"""
+  def __init__(self):
+    Gesture.__init__(self)
+    self.rect = None
+    pass
+
+  def start(self,panel,pos):
+    self.active  = True
+    self.downPos = pos
+    self.panel   = panel
+    self.rect    = (pos[0],pos[1],pos[0],pos[1])
+
+  def change(self,panel, event):
+    #pos = event.GetPositionTuple()
+    pos = panel.CalcUnscrolledPosition(event.GetPositionTuple())
+    assert(self.active)
+    self.rect=(min(self.downPos[0],pos[0]),min(self.downPos[1],pos[1]),max(self.downPos[0],pos[0]),max(self.downPos[1],pos[1]))
+    print "selecting", self.rect
+    panel.drawers.add(self)
+    panel.Refresh()
+
+  def finish(self, panel, pos):
+    print "finish"
+    self.active = False
+    panel.drawers.discard(self)
+    panel.Refresh()
+    return self.rect    
+
+  def render(self, ctx):
+    if self.rect:
+      t = self.rect
+      ctx.set_line_width(2)
+      ctx.move_to(t[0],t[1])
+      ctx.line_to(t[0],t[3])
+      ctx.line_to(t[2],t[3])
+      ctx.line_to(t[2],t[1])
+      ctx.line_to(t[0],t[1])
+      ctx.close_path()
+      ctx.set_source_rgba(.3, .2, 0.3, .4)
+      ctx.stroke_preserve()
+      ctx.set_source_rgba(.5, .3, 0.5, .05)
+      ctx.fill()
+
+class LineGesture(Gesture):
+  """Creates a grey line that changes as the mouse is dragged that can be used connect things"""
+  def __init__(self,circleRadius=5,color=(0,0,0,.9)):
+    Gesture.__init__(self)
+    self.color = color
+    self.circleRadius = circleRadius
+    self.downPos = self.curPos = None
+
+  def start(self,panel,pos):
+    self.active  = True
+    self.downPos = self.curPos = pos
+    self.panel   = panel
+    panel.drawers.add(self)
+
+  def change(self,panel, event):
+    #self.curPos = event.GetPositionTuple()
+    self.curPos = panel.CalcUnscrolledPosition(event.GetPositionTuple())
+    assert(self.active)
+    panel.Refresh()
+
+  def finish(self, panel, pos):
+    self.active = False
+    panel.drawers.discard(self)
+    panel.Refresh()
+    return (self.downPos,self.curPos)
+
+  def render(self, ctx):
+    if self.downPos:      
+      ctx.set_source_rgba(*self.color)
+      ctx.set_line_width(6)
+      ctx.move_to(*self.downPos)
+      ctx.line_to(*self.curPos)
+      ctx.close_path()
+      ctx.stroke()
+      if 1:
+        ctx.arc(self.downPos[0],self.downPos[1], self.circleRadius, 0, 2*3.141592637);
+        ctx.close_path()
+        ctx.stroke_preserve()
+        ctx.set_source_rgba(self.color[0],self.color[1],self.color[2],self.color[3])
+        ctx.fill()
+
+class LazyLineGesture(Gesture,wx.Timer):
+  """Creates a grey line that changes as the mouse is dragged that can be used connect things.  This class adds additional eye-candy -- when you drag the line quickly it resists the motion as if it was in water and curves!  The curve slowly straightens back into a line.
+  """
+  def __init__(self,color=(0,0,0,.9),circleRadius=5,linethickness=4,arrowlen=15, arrowangle=PI/8):
+    Gesture.__init__(self)
+    wx.Timer.__init__(self)
+    self.cust = dot.Dot()
+    
+    self.cust.color = color
+    self.cust.buttonRadius = circleRadius
+    self.cust.lineThickness = linethickness
+    self.cust.arrowLength = arrowlen
+    self.cust.arrowAngle = arrowangle
+
+    self.downPos = self.curPos = None
+    self.center = None
+
+    self.frameInterval = 10   # Targeted milliseconds between frame redraws
+    self.frameAverage = self.frameInterval  # Actual (measured) milliseconds between redraws
+    self.lastFrame = None  # When the last Notify occurred
+
+    self.settleTime = 250.0  # How long in milliseconds should the line take to straighten
+
+  def Notify(self):
+    realCenter=((self.curPos[0]+self.downPos[0])/2.0,(self.curPos[1]+self.downPos[1])/2.0)
+    centerVector = ((realCenter[0]-self.center[0])/(self.settleTime/self.frameInterval),(realCenter[1]-self.center[1])/(self.settleTime/self.frameInterval))
+    self.center = (self.center[0]+centerVector[0],self.center[1]+centerVector[1])  # move the center that way.
+    self.panel.Refresh()
+
+    # This code adjusts the animation speed by examining the frame rate
+    tmp = time.time()*1000
+    elapsed = (tmp - self.lastFrame)  # In milliseconds
+    self.frameAverage = (self.frameAverage*19.0 + elapsed)/20.0  # averaging the frames
+
+    if self.frameAverage > self.frameInterval*1.2 or self.frameAverage < self.frameInterval*.8:
+      # Actual frame interval is different than what the code was hoping for, so adjust the code accordingly
+      self.frameInterval = int(self.frameAverage)
+      self.Stop()
+      self.Start(self.frameInterval)
+    self.lastFrame = tmp
+    #print tmp, self.frameInterval, self.frameAverage
+
+  def start(self,panel,pos):
+    self.active  = True
+    self.center = self.downPos = self.curPos = pos
+    self.panel   = panel
+    self.timer = wx.Timer(self)
+    self.lastFrame = time.time()*1000
+    wx.Timer.Start(self,self.frameInterval)
+    panel.drawers.add(self)
+
+  def change(self,panel, event):
+    #self.curPos = event.GetPositionTuple()
+    self.curPos = panel.CalcUnscrolledPosition(event.GetPositionTuple())
+    assert(self.active)
+    panel.Refresh()
+
+  def finish(self, panel, pos):
+    self.active = False
+    panel.drawers.discard(self)
+    panel.Refresh()
+    self.Stop()
+    self.timer = None
+    return (self.downPos,self.curPos,self.center)
+
+  def render(self, ctx):
+    if self.downPos:   
+      drawCurvyArrow(ctx, self.downPos,self.curPos,[self.center],self.cust)
+
+
 class FadingX(wx.Timer):
   """Creates a grey line that changes as the mouse is dragged that can be used connect things"""
   def __init__(self,panel,pos,time=3):

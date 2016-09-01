@@ -331,7 +331,9 @@ void testGroup(MsgSocket* src, MsgSocket* sink,Handle dest,const char* desc)
   testChunkingPerf(src, sink,dest,100, 50 , 1 , 5000 * repeat,desc);
   testChunkingPerf(src, sink,dest,1000, 50, 1 , 2000 * repeat,desc);
   testChunkingPerf(src, sink,dest,10000, 50, 1 , 1000 * repeat,desc);
-  testChunkingPerf(src, sink,dest,50000, 50 , 1 , 1000 * repeat,desc);
+  testChunkingPerf(src, sink,dest,50000, 50 , 1 , 500 * repeat,desc);
+#endif
+#if 0
   if (src->cap.maxMsgSize > 130000) testChunkingPerf(src, sink,dest,130000, 50 , 1 , 100 * repeat,desc);
 
   // high perf RPC: This test simulates a server being hit by tons of small RPC calls

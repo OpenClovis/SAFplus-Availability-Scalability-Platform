@@ -30,6 +30,7 @@ class Project(microdom.MicroDom):
     self.dirty = False
     self._safplusModel = None
     self.datamodel = None
+    self.dataModelPlugin = None
     self.name = ""    
     self.prjXmlData = None
     if filename: self.load(filename)
@@ -54,6 +55,7 @@ class Project(microdom.MicroDom):
     md = microdom.LoadFile(filename)
     microdom.MicroDom.__init__(self,md.attributes_, md.children_, md.data_)    
     # TODO validate the structure of the microdom tree
+    self.loadPlugin()
 
   def setSAFplusModel(self,mdl):
     self._safplusModel = mdl
@@ -72,6 +74,7 @@ class Project(microdom.MicroDom):
     self.createModelXml()
     md = microdom.LoadFile(self.projectFilename)
     microdom.MicroDom.__init__(self,md.attributes_, md.children_, md.data_)
+    self.loadPlugin()
 
   def saveAs(self, fromProject):    
     self.name = os.path.splitext(os.path.basename(self.projectFilename))[0]
@@ -107,6 +110,14 @@ class Project(microdom.MicroDom):
         if not os.path.exists(dstpath):
           os.mkdir(dstpath)
     self.updatePrjXml(fromProject)
+
+  def loadPlugin(self):
+    """Loads the data model plugin if one exists"""
+    modulename = self.datamodel.data_.split(".")[0]
+    try:
+      self.dataModelPlugin = __import__(modulename)
+    except ImportError, e:
+      print "Warning: No custom code for this data model.  Tried to import %s" % modulename
 
   def createPrjXml(self):
     dom = xml.dom.minidom.Document()
@@ -428,6 +439,7 @@ class ProjectTreePanel(wx.Panel):
   def OnSize(self, event):
         w,h = self.GetClientSizeTuple()
         self.tree.SetDimensions(0, 0, w, h) 
+
 
 class NewPrjDialog(wx.Dialog):
     """
