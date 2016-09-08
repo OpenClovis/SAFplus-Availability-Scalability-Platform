@@ -1204,10 +1204,11 @@ class Panel(scrolled.ScrolledPanel):
           tsize = self.toolBar.GetToolBitmapSize()
           buttonIdx = wx.NewId()
           buttonSvg = ent.buttonSvg if hasattr(ent,"buttonSvg") else ent.et.buttonSvg
-          bitmap = buttonSvg.bmp(tsize, { "name":name }, (222,222,222,wx.ALPHA_OPAQUE))  # Use the first 3 letters of the name as the button text if nothing
+          bitmap = buttonSvg.bmp(tsize, { "name":name }, BAR_GREY)  # Use the first 3 letters of the name as the button text if nothing
+          disabledBmp = buttonSvg.disabledButton(tsize)
           shortHelp = ent.data.get("shortHelp",ent.et.data.get("help",None)) 
           longHelp = ent.data.get("help",ent.et.data.get("help",None))
-          self.toolBar.AddRadioLabelTool(buttonIdx, name, bitmap, shortHelp=shortHelp, longHelp=longHelp)
+          self.toolBar.AddRadioLabelTool(buttonIdx, name, bitmap, disabledBmp, shortHelp=shortHelp, longHelp=longHelp)
           #print 'instanceEditor::addEntityTools: e[0]:%s;e[1].data[name]:%s' % (e[0], e[1].data["name"])
           #self.toolBar.AddRadioTool(buttonIdx, bitmap, wx.NullBitmap, shortHelp=et[0], longHelp=longHelp,clientData=et)
           self.toolBar.EnableTool(buttonIdx, False)          
