@@ -20,7 +20,7 @@
 
 #include <clCommon.hxx>
 #include <clMgtRoot.hxx>
-#include <clMgtCommon.hxx>
+#include <clMgtBaseCommon.hxx>
 #include <clMgtObject.hxx>
 #include <clMgtDatabase.hxx>
 

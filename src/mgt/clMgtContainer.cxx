@@ -1,5 +1,5 @@
 #include <boost/algorithm/string.hpp>
-#include <clMgtCommon.hxx>
+#include <clMgtBaseCommon.hxx>
 #include <clMgtContainer.hxx>
 #include <clMgtRoot.hxx>
 #include <clMgtProv.hxx>

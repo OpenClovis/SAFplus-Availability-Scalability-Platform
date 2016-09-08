@@ -38,7 +38,7 @@
 #include <sstream>
 #include <vector>
 
-#include <clMgtCommon.hxx>
+#include <clMgtBaseCommon.hxx>
 #include <clMgtObject.hxx>
 
 namespace SAFplus

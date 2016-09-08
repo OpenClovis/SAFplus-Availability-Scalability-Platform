@@ -34,7 +34,7 @@
 #include <typeinfo>
 #include <iostream>
 
-#include <clMgtCommon.hxx>
+#include <clMgtBaseCommon.hxx>
 #include "clMgtObject.hxx"
 #include "clMgtDatabase.hxx"
 #include "clLogApi.hxx"

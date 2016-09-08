@@ -34,7 +34,7 @@
 #include <string>
 #include <vector>
 
-#include <clMgtCommon.hxx>
+#include <clMgtBaseCommon.hxx>
 #include "clLogApi.hxx"
 #include "clMgtObject.hxx"
 #include "MgtFactory.hxx"
