@@ -34,14 +34,7 @@
 #include <typeinfo>
 #include <iostream>
 
-extern "C"
-{
-#include <libxml/xmlreader.h>
-#include <libxml/xmlmemory.h>
-#include <libxml/parser.h>
-#include <libxml/xmlstring.h>
-} /* end extern 'C' */
-
+#include <clMgtCommon.hxx>
 #include "clMgtObject.hxx"
 #include "clMgtDatabase.hxx"
 #include "clLogApi.hxx"

@@ -34,21 +34,12 @@
 #include <string>
 #include <vector>
 
+#include <clMgtCommon.hxx>
 #include "clLogApi.hxx"
 #include "clMgtObject.hxx"
 #include "MgtFactory.hxx"
 #include <boost/algorithm/string.hpp>
 #include <boost/container/map.hpp>
-
-extern "C"
-{
-  #include <libxml/xmlreader.h>
-  #include <libxml/xmlmemory.h>
-  #include <libxml/parser.h>
-  #include <libxml/xmlstring.h>
-  //#include <clCommon.h>
-  //#include <clCommonErrors.h>
-} /* end extern 'C' */
 
 namespace SAFplus
 {

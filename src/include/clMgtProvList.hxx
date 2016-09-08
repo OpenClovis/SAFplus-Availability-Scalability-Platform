@@ -31,8 +31,6 @@
 #ifndef CLMGTPROVLIST_HXX_
 #define CLMGTPROVLIST_HXX_
 
-#include "clMgtObject.hxx"
-
 #include <typeinfo>
 #include <iostream>
 #include <iterator>
@@ -40,14 +38,8 @@
 #include <sstream>
 #include <vector>
 
-extern "C"
-{
-#include <libxml/xmlreader.h>
-#include <libxml/xmlmemory.h>
-#include <libxml/parser.h>
-#include <libxml/xmlstring.h>
-} /* end extern 'C' */
-
+#include <clMgtCommon.hxx>
+#include <clMgtObject.hxx>
 
 namespace SAFplus
 {
