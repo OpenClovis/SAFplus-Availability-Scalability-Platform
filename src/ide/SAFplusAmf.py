@@ -3,21 +3,33 @@ from gfxtoolkit import *
 from entity import *
 import share
 import types
+import umlEditor
+
+class WizardDialog(wx.Dialog):
+
+    def __init__(self,title):
+        """Constructor"""
+        wx.Dialog.__init__(self, None, title="SAF Application Wizard", size=(430,340))
+        self.LabelSize = (100,25) 
+        self.EntrySize = (300,25)
+        self.main_sizer = wx.BoxSizer(wx.VERTICAL)
 
   
-
-class SAFWizardDialog(wx.Dialog):
-    """Class to define SAF application wizard dialog"""
-
     def createRow(self,label, ctrl=None):
       """Generates a GUI row consisting of a horizontal sizer, text description and control"""
       sizer = wx.BoxSizer(wx.HORIZONTAL)
       if label is not None:
         label = wx.StaticText(self, label=label, size=self.LabelSize)
-        sizer.Add(label, 0, wx.ALL|wx.CENTER, 5)
+        if ctrl == 0: 
+          print label
+          sizer.Add(label, 3, wx.ALL| wx.EXPAND, 5)
+        else:
+          sizer.Add(label, 0, wx.ALL|wx.CENTER, 5)
       if ctrl is None:
         ctrl = wx.TextCtrl(self,size=self.EntrySize)
         sizer.Add(ctrl, 10, wx.ALL | wx.EXPAND, 5)
+      elif ctrl == 0:
+        pass
       elif type(ctrl) is types.ListType:
         if isinstance(ctrl[0], wx.Control):  # Its an object, assume that its a wx control
           for c in ctrl:
@@ -31,12 +43,12 @@ class SAFWizardDialog(wx.Dialog):
 
       return(sizer,ctrl)
  
+class SAFWizardDialog(WizardDialog):
+    """Class to define SAF application wizard dialog"""
+
     def __init__(self):
         """Constructor"""
-        wx.Dialog.__init__(self, None, title="SAF Application Wizard", size=(430,340))
-        self.LabelSize = (100,25) 
-        self.EntrySize = (300,25)
-
+        WizardDialog.__init__(self,"SAF Application Generator")
         gelems = []
         gelems.append(self.createRow("Service Group name"))
         self.nameGui = gelems[0][1]
@@ -59,14 +71,15 @@ class SAFWizardDialog(wx.Dialog):
         cancelBtn.Bind(wx.EVT_BUTTON, self.onBtnHandler)
         gelems.append(self.createRow(None,[OK_btn,cancelBtn]))
 
-        main_sizer = wx.BoxSizer(wx.VERTICAL)
+        
         for (sizer, ctrl) in gelems:
-          main_sizer.Add(sizer, 0, wx.ALL, 5)
+          self.main_sizer.Add(sizer, 0, wx.ALL, 5)
 
-        self.SetSizer(main_sizer)
-        main_sizer.Layout()
+        self.SetSizer(self.main_sizer)
+        self.main_sizer.Layout()
         for (sizer, ctrl) in gelems:
           sizer.Layout()
+        self.main_sizer.Fit(self)
         
     def onBtnHandler(self, event):
         what = event.GetEventObject().GetLabel()
@@ -76,38 +89,20 @@ class SAFWizardDialog(wx.Dialog):
         self.Close()
 
 
-class NPNPWizardDialog(wx.Dialog):
+class NPNPWizardDialog(WizardDialog):
     """Class to define SAF application wizard dialog"""
-
-    def createRow(self,label, ctrl=None):
-      """Generates a GUI row consisting of a horizontal sizer, text description and control"""
-      sizer = wx.BoxSizer(wx.HORIZONTAL)
-      if label is not None:
-        label = wx.StaticText(self, label=label, size=self.LabelSize)
-        sizer.Add(label, 0, wx.ALL|wx.CENTER, 5)
-      if ctrl is None:
-        ctrl = wx.TextCtrl(self,size=self.EntrySize)
-        sizer.Add(ctrl, 10, wx.ALL | wx.EXPAND, 5)
-      elif type(ctrl) is types.ListType:
-        if isinstance(ctrl[0], wx.Control):  # Its an object, assume that its a wx control
-          for c in ctrl:
-            sizer.Add(c, 10, wx.ALL | wx.EXPAND, 5)
-        else:
-          ctrlValues = ctrl
-          ctrl = wx.ComboBox(self,-1,value=ctrlValues[0],pos=None,size=None,choices=ctrlValues,style=wx.CB_DROPDOWN)
-          sizer.Add(ctrl, 10, wx.ALL | wx.EXPAND, 5)
-      else:
-        sizer.Add(ctrl, 10, wx.ALL | wx.EXPAND, 5)
-
-      return(sizer,ctrl)
  
     def __init__(self):
         """Constructor"""
-        wx.Dialog.__init__(self, None, title="Non-SAF Application Wizard", size=(430,340))
-        self.LabelSize = (100,25) 
-        self.EntrySize = (300,25)
+        WizardDialog.__init__(self, "Non-SAF Application Generator")
 
         gelems = []
+
+        info = self.createRow("This dialog creates the expected UML entities for 3rd-party applications.  Define groups of apps that you want to fail over together.",0)
+        info2 = self.createRow("To define several separate failure groups, open this wizard multiple times.",0)
+        self.main_sizer.Add(info[0], 5, wx.ALL|wx.EXPAND,5)
+        self.main_sizer.Add(info2[0], 5, wx.ALL|wx.EXPAND,5)
+        self.main_sizer.Add(wx.StaticLine(self,), 0, wx.ALL|wx.EXPAND, 5)
         gelems.append(self.createRow("Service Group name"))
         self.nameGui = gelems[0][1]
 
@@ -121,15 +116,18 @@ class NPNPWizardDialog(wx.Dialog):
         cancelBtn.Bind(wx.EVT_BUTTON, self.onBtnHandler)
         gelems.append(self.createRow(None,[OK_btn,cancelBtn]))
 
-        main_sizer = wx.BoxSizer(wx.VERTICAL)
+        
         for (sizer, ctrl) in gelems:
-          main_sizer.Add(sizer, 0, wx.ALL, 5)
+          self.main_sizer.Add(sizer, 0, wx.ALL, 5)
 
-        self.SetSizer(main_sizer)
-        main_sizer.Layout()
+        self.SetSizer(self.main_sizer)
+        self.main_sizer.Layout()
+        info[0].Layout()
+        info2[0].Layout()
         for (sizer, ctrl) in gelems:
           sizer.Layout()
-        
+        self.main_sizer.Fit(self)
+    
     def onBtnHandler(self, event):
         what = event.GetEventObject().GetLabel()
         print 'about to %s' % what  
@@ -219,6 +217,17 @@ class Extensions:
           share.umlEditorPanel.entities[ent.data["name"]] = ent
           share.umlEditorPanel.Refresh() 
 
+      toolBar = self.guiPlaces.toolbar
+      unClickAllTools(toolBar)
+      toolBar.ToggleTool(umlEditor.SELECT_BUTTON, True)  # Turn on the tool we need
+
+      seltool = share.umlEditorPanel.selectTool
+      seltool.OnSelect(share.umlEditorPanel,None)
+      seltool.selected = set(newEntities)
+      seltool.touching = set(newEntities)
+      share.umlEditorPanel.tool = seltool
+      
+
   def OnNPNPWizardMenu(self,event):
     dlg = NPNPWizardDialog()
     dlg.what = None
@@ -279,7 +288,15 @@ class Extensions:
           share.umlEditorPanel.entities[ent.data["name"]] = ent
           share.umlEditorPanel.Refresh() 
 
-    pass
+      toolBar = self.guiPlaces.toolbar
+      unClickAllTools(toolBar)
+      toolBar.ToggleTool(umlEditor.SELECT_BUTTON, True)  # Turn on the tool we need
+
+      seltool = share.umlEditorPanel.selectTool
+      seltool.OnSelect(share.umlEditorPanel,None)
+      seltool.selected = set(newEntities)
+      seltool.touching = set(newEntities)
+      share.umlEditorPanel.tool = seltool
 
 ext = None
 

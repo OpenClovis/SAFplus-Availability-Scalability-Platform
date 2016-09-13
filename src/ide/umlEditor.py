@@ -233,7 +233,7 @@ class SelectTool(Tool):
 
         # If you touch something else, your touching set changes.  But if you touch something in your current touch group then nothing changes
         # This enables behavior like selecting a group of entities and then dragging them (without using the ctrl key)
-        if not entities.issubset(self.touching) or (len(self.touching) != len(entities)):
+        if not elemsInSet(entities,self.selected):
           self.touching = set(entities)
           self.selected = self.touching.copy()
         # If the control key is down, then add to the currently selected group, otherwise replace it.
@@ -256,7 +256,7 @@ class SelectTool(Tool):
         else:  # touching nothing, this is a selection rectangle
           self.boxSel.change(panel,event)
 
-      if event.ButtonUp(wx.MOUSE_BTN_LEFT):
+      elif event.ButtonUp(wx.MOUSE_BTN_LEFT):
         # TODO: Move the data in this entity to the configuration editing sidebar, and expand it if its minimized.
         
         # Or find everything inside a selection box
@@ -268,13 +268,19 @@ class SelectTool(Tool):
             self.selected = self.selected.union(self.touching)
           else: 
             self.selected = self.touching
-          panel.Refresh()
-        
+          panel.Refresh()        
       elif event.ButtonDClick(wx.MOUSE_BTN_LEFT):
         entity = panel.findEntitiesAt(pos)
         if not entity: return False
-    if isinstance(event,wx.KeyEvent):
-      
+      # in pointer mode scroll wheel zooms
+      elif event.GetWheelRotation() > 0:
+        self.panel.scale *= 1.1
+        panel.Refresh()  
+      elif event.GetWheelRotation() < 0:
+        self.panel.scale *= .9
+        panel.Refresh()
+
+    if isinstance(event,wx.KeyEvent):      
       if event.GetEventType() == wx.EVT_KEY_DOWN.typeId and (event.GetKeyCode() ==  wx.WXK_DELETE or event.GetKeyCode() ==  wx.WXK_NUMPAD_DELETE):
         if self.touching:
           self.panel.deleteEntities(self.touching)
@@ -356,11 +362,11 @@ class ZoomTool(Tool):
         if (self.scale - self.scaleRange) > self.minScale:
           scale -= self.scaleRange
 
-      elif event.ControlDown(): 
-        if event.GetWheelRotation() > 0:
+      #elif event.ControlDown(): 
+      if event.GetWheelRotation() > 0:
           if (self.scale + self.scaleRange) < self.maxScale:
             scale += self.scaleRange
-        elif event.GetWheelRotation() < 0:
+      elif event.GetWheelRotation() < 0:
           if (self.scale - self.scaleRange) > self.minScale:
             scale -= self.scaleRange
 
@@ -629,7 +635,7 @@ class Panel(scrolled.ScrolledPanel):
       bitmapDisabled = s.disabledButton(tsize)
       bitmap = s.bmp(tsize, { }, BAR_GREY)
       self.toolBar.AddRadioTool(SELECT_BUTTON, bitmap, bitmapDisabled, shortHelp="select", longHelp="Select one or many entities.  Click entity to edit details.  Double click to expand/contract.")
-      self.idLookup[SELECT_BUTTON] = SelectTool(self)
+      self.idLookup[SELECT_BUTTON] = self.selectTool = SelectTool(self)
 
       s = svg.SvgFile("zoom.svg")
       bitmapDisabled = s.disabledButton(tsize)

@@ -12,6 +12,16 @@ import dot
 import time
 from types import *
 
+def unClickAllTools(toolbar):
+  idx = 0
+  while 1:  # turn all selected tools off
+    try:
+      t = toolBar.GetToolByPos(idx)
+    except: break # index exceeded
+    if t.IsToggled(): t.Toggle()
+    idx +=1
+  
+
 class Gesture:
   """A gesture is a combination of activities by the user that combine to form a single action.  For example: drag and drop, drag box.
      Gestures are defined by a particular sequence of mouse actions, but the meaning (the intended result) of those actions is not defined in the gesture.  The effect of actions is defined in the tool.

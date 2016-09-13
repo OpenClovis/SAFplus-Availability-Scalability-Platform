@@ -12,8 +12,6 @@ programDirectory = None
 BAR_GREY = (210,210,210,wx.ALPHA_OPAQUE)
 DISABLED_GREY = (160,160,160,wx.ALPHA_OPAQUE)
 
-
-
 class Log():
   def write(self,string):
     print string
@@ -63,6 +61,13 @@ class GuiPlaces:
     self.statusbar = statusbar
     self.menu = menu
     self.prjTree = projectTree
+
+def elemsInSet(lst, st):
+  ret = []
+  for l in lst:
+    if l in st:
+      ret.append(l)
+  return ret
 
 def str2Tuple(s):
   return tuple(float(x) for x in re.findall("[0-9\.]+",s))
