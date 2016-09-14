@@ -69,6 +69,11 @@ def elemsInSet(lst, st):
       ret.append(l)
   return ret
 
+def splitByThisAndWhitespace(deliminators, s):
+  for delim in deliminators:
+    s = s.replace(delim, ' ')
+  return s.split()
+
 def str2Tuple(s):
   return tuple(float(x) for x in re.findall("[0-9\.]+",s))
 

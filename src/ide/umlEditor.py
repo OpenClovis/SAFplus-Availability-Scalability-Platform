@@ -104,6 +104,12 @@ class EntityTypeTool(Tool):
         if size[0] < 15 or size[1] < 15:  # its so small it was probably an accidental drag rather then a deliberate sizing
           size = None
         ret = self.CreateNewInstance(panel,(rect[0],rect[1]),size)
+      # in pointer mode scroll wheel zooms
+      elif event.GetWheelRotation() > 0:
+        panel.SetScale(panel.scale*1.1,pos)
+      elif event.GetWheelRotation() < 0:
+        panel.SetScale(panel.scale*.9,pos)
+
     return ret
     
   def CreateNewInstance(self,panel,position,size=None):
@@ -208,14 +214,15 @@ class SelectTool(Tool):
     pass
 
   def render(self,ctx):
-    # Draw mini rectangle at left right top bottom corner
+    # Draw mini rectangle at top left corner
     if self.selected:
       for e in self.selected:
-        pos = (e.pos[0] * share.umlEditorPanel.scale,e.pos[1] * share.umlEditorPanel.scale) 
-        ctx.set_line_width(2)
-        ctx.rectangle(pos[0], pos[1], 10,10)
-        ctx.set_source_rgba(0, 0, 1, 1)
-        ctx.fill()
+        if self.panel.entities.has_key(e.data["name"]):  # Don't show if its deleted.
+          pos = (e.pos[0] * share.umlEditorPanel.scale,e.pos[1] * share.umlEditorPanel.scale) 
+          ctx.set_line_width(2)
+          ctx.rectangle(pos[0], pos[1], 10,10)
+          ctx.set_source_rgba(0, 0, 1, 1)
+          ctx.fill()
 
   def OnEditEvent(self,panel, event):
     pos = panel.CalcUnscrolledPosition(event.GetPositionTuple())
@@ -231,24 +238,25 @@ class SelectTool(Tool):
         print "Touching %s" % ", ".join([ e.data["name"] for e in entities])
         panel.statusBar.SetStatusText("Touching %s" % ", ".join([ e.data["name"] for e in entities]),0);
 
-        # If you touch something else, your touching set changes.  But if you touch something in your current touch group then nothing changes
-        # This enables behavior like selecting a group of entities and then dragging them (without using the ctrl key)
-        if not elemsInSet(entities,self.selected):
-          self.touching = set(entities)
-          self.selected = self.touching.copy()
+        self.touching = set(entities)
         # If the control key is down, then add to the currently selected group, otherwise replace it.
         if event.ControlDown():
           self.selected = self.selected.union(self.touching)
-        else: self.selected = self.touching.copy()
+          panel.Refresh()
+        else:
+          # If you touch something else, your touching set changes.  But if you touch something in your current touch group then nothing changes
+          # This enables behavior like selecting a group of entities and then dragging them (without using the ctrl key)
+          if not elemsInSet(entities,self.selected):
+            self.selected = self.touching.copy()
+            panel.Refresh()
         if event.LeftDClick():
           self.updateSelected()
         return True
       if event.Dragging():
         # if you are touching anything, then drag everything
         if self.touching and self.dragPos:
-          delta = (pos[0]-self.dragPos[0], pos[1] - self.dragPos[1])
-          # TODO deal with scaling and rotation in delta
-          if delta[0] != 0 and delta[1] != 0:
+          delta = ((pos[0]-self.dragPos[0])/self.panel.scale, (pos[1] - self.dragPos[1])/self.panel.scale)
+          if delta[0] != 0 or delta[1] != 0:
             for e in self.selected:
               e.pos = (e.pos[0] + delta[0], e.pos[1] + delta[1])  # move all the touching objects by the amount the mouse moved
           self.dragPos = pos
@@ -274,11 +282,9 @@ class SelectTool(Tool):
         if not entity: return False
       # in pointer mode scroll wheel zooms
       elif event.GetWheelRotation() > 0:
-        self.panel.scale *= 1.1
-        panel.Refresh()  
+        panel.SetScale(panel.scale*1.1,pos)
       elif event.GetWheelRotation() < 0:
-        self.panel.scale *= .9
-        panel.Refresh()
+        panel.SetScale(panel.scale*.9,pos)
 
     if isinstance(event,wx.KeyEvent):      
       if event.GetEventType() == wx.EVT_KEY_DOWN.typeId and (event.GetKeyCode() ==  wx.WXK_DELETE or event.GetKeyCode() ==  wx.WXK_NUMPAD_DELETE):
@@ -312,7 +318,7 @@ class ZoomTool(Tool):
     self.rect = None       # Will be something if a rectangle selection is being used
     #self.downPos = None    # Where the left mouse button was pressed
     self.boxSel = BoxGesture()
-    self.scale = 1
+    #self.scale = 1
     self.scaleRange = 0.2
     self.minScale = 0.2
     self.maxScale = 10
@@ -320,7 +326,7 @@ class ZoomTool(Tool):
 
   def OnSelect(self, panel,event):
     panel.statusBar.SetStatusText(self.defaultStatusText,0);
-    zoomImg =  self.ScaleBitmap(self.handBmp, 16*self.scale, 25*self.scale)
+    zoomImg =  self.ScaleBitmap(self.handBmp, 16*self.panel.scale, 25*self.panel.scale)
     cursor = wx.CursorFromImage(zoomImg)
     self.panel.SetCursor(cursor)
 
@@ -335,7 +341,7 @@ class ZoomTool(Tool):
 
   def OnEditEvent(self,panel, event):
     pos = panel.CalcUnscrolledPosition(event.GetPositionTuple())
-    scale = self.scale
+    scale = self.panel.scale
     if isinstance(event, wx.MouseEvent):
       if event.ButtonDown(wx.MOUSE_BTN_LEFT) or event.ButtonDown(wx.MOUSE_BTN_RIGHT):  # Select
         self.boxSel.start(panel,pos)
@@ -349,7 +355,7 @@ class ZoomTool(Tool):
         pos[0] = rect[0] + delta[0]/2
         pos[1] = rect[1] + delta[1]/2
 
-        if (self.scale + self.scaleRange) < self.maxScale:
+        if (scale + self.scaleRange) < self.maxScale:
           scale += self.scaleRange
 
       elif event.ButtonUp(wx.MOUSE_BTN_RIGHT):
@@ -359,44 +365,44 @@ class ZoomTool(Tool):
         pos[0] = rect[0] + delta[0]/2
         pos[1] = rect[1] + delta[1]/2
 
-        if (self.scale - self.scaleRange) > self.minScale:
+        if (scale - self.scaleRange) > self.minScale:
           scale -= self.scaleRange
 
       #elif event.ControlDown(): 
       if event.GetWheelRotation() > 0:
-          if (self.scale + self.scaleRange) < self.maxScale:
+          if (scale + self.scaleRange) < self.maxScale:
             scale += self.scaleRange
       elif event.GetWheelRotation() < 0:
-          if (self.scale - self.scaleRange) > self.minScale:
+          if (scale - self.scaleRange) > self.minScale:
             scale -= self.scaleRange
 
     if isinstance(event, wx.KeyEvent):
       if event.ControlDown(): 
         if event.GetKeyCode() == wx.WXK_NUMPAD_ADD:
-          if (self.scale + self.scaleRange) < self.maxScale:
+          if (scale + self.scaleRange) < self.maxScale:
             scale += self.scaleRange
         elif event.GetKeyCode() == wx.WXK_NUMPAD_SUBTRACT:
-          if (self.scale - self.scaleRange) > self.minScale:
+          if (scale - self.scaleRange) > self.minScale:
             scale -= self.scaleRange
         elif event.GetKeyCode() == wx.WXK_NUMPAD0:
           scale = 1
 
     self.SetScale(scale, pos)
 
-  def SetScale(self, scale, pos):
-    if scale != self.scale:
-      self.scale = scale
+  def SetScale(self, newscale, pos):
+    if newscale != self.panel.scale:
 
       # Update scale for panel
-      self.panel.scale = self.scale
-      self.panel.Refresh()
+      self.panel.scale = newscale
 
       # TODO: scroll wrong??? 
       scrollx, scrolly = self.panel.GetScrollPixelsPerUnit();
       size = self.panel.GetClientSize()
-      self.panel.Scroll((pos[0]*self.scale - size.x/2)/scrollx, (pos[1]*self.scale - size.y/2)/scrolly)
+      self.panel.Scroll((pos[0]*newscale - size.x/2)/scrollx, (pos[1]*newscale - size.y/2)/scrolly)  # multiply by scale because I am converting from scaled to screen coordinates
 
-      zoomImg =  self.ScaleBitmap(self.handBmp, 16*self.scale, 25*self.scale)
+      self.panel.Refresh()
+
+      zoomImg =  self.ScaleBitmap(self.handBmp, 16*newscale, 16*newscale)
       cursor = wx.CursorFromImage(zoomImg)
       self.panel.SetCursor(cursor)
 
@@ -404,6 +410,7 @@ class ZoomTool(Tool):
       image = wx.ImageFromBitmap(bitmap)
       image = image.Scale(width, height, wx.IMAGE_QUALITY_HIGH)
       return image
+
 
 class SaveTool(Tool):
   def __init__(self, panel):
@@ -540,6 +547,18 @@ class Panel(scrolled.ScrolledPanel):
       for t in toolEvents:
         self.Bind(t, self.OnToolEvent)
       self.toolIds = [CONNECT_BUTTON,SELECT_BUTTON,ZOOM_BUTTON,DELETE_BUTTON]
+
+    def SetScale(self, newscale, pos):
+      if newscale != self.scale:
+
+        # Update scale for panel
+        self.scale = newscale
+        # TODO: scroll wrong??? 
+        scrollx, scrolly = self.GetScrollPixelsPerUnit();
+        size = self.GetClientSize()
+        self.Scroll((pos[0]*newscale - size.x/2)/scrollx, (pos[1]*newscale - size.y/2)/scrolly)  # multiply by scale because I am converting from scaled to screen coordinates
+        self.Refresh()
+
 
     def resetDataMembers(self):
       self.location = (0,0)
@@ -761,8 +780,8 @@ class Panel(scrolled.ScrolledPanel):
         # Now draw the graph
         ctx.save()
         # First position the screen's view port into the larger document
-        ctx.translate(*self.location)
-        ctx.rotate(self.rotate)
+        ctx.translate(self.location[0],self.location[1])
+        # ctx.rotate(self.rotate)
         ctx.scale(self.scale, self.scale)
         # Now draw the links
         # Now draw the entites

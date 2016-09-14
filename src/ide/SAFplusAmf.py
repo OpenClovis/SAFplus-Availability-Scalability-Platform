@@ -1,6 +1,7 @@
 from gfxmath import *
 from gfxtoolkit import *
 from entity import *
+from common import *
 import share
 import types
 import umlEditor
@@ -57,8 +58,12 @@ class SAFWizardDialog(WizardDialog):
         self.redGui = tmp[1]
         gelems.append(tmp)
 
-        tmp = self.createRow("Number of processes",[ str(x) for x in range(1,20)])
+        tmp = self.createRow("Number of processes",[ str(x) for x in range(1,100)])
         self.nProc = tmp[1]
+        gelems.append(tmp)
+
+        tmp = self.createRow("Process names (space or comma separated)")
+        self.procNames = tmp[1]
         gelems.append(tmp)
 
         self.wrkGui = wx.CheckBox(self,-1,"")
@@ -106,8 +111,12 @@ class NPNPWizardDialog(WizardDialog):
         gelems.append(self.createRow("Service Group name"))
         self.nameGui = gelems[0][1]
 
-        tmp = self.createRow("Number of processes",[ str(x) for x in range(1,20)])
+        tmp = self.createRow("Number of processes",[ str(x) for x in range(1,100)])
         self.nProc = tmp[1]
+        gelems.append(tmp)
+
+        tmp = self.createRow("Process names (space or comma separated)")
+        self.procNames = tmp[1]
         gelems.append(tmp)
 
         OK_btn = wx.Button(self, label="OK")
@@ -189,14 +198,22 @@ class Extensions:
       nProc = int(dlg.nProc.GetValue())
       pos = position
 
+      procNameStr = dlg.procNames.GetValue()
+      procNames = splitByThisAndWhitespace(",", procNameStr)
 
-      for n in range(0,nProc):
-        comp = self.model.model.entityTypes["Component"].createEntity(pos, size,name=name + "Comp" + str(n))
+      for n in max(len(procNames), range(1,nProc+1)):
+        if procNames:
+          compName = procNames[0]
+          del procNames[0]
+        else:
+          compName = name + "Comp" + str(n)
+
+        comp = self.model.model.entityTypes["Component"].createEntity(pos, size,name=compName)
         ca = ContainmentArrow(SU, (50,50), comp, (100,50), None)
         SU.containmentArrows.append(ca)
 
         if createWork:
-          CSI = self.model.model.entityTypes["ComponentServiceInstance"].createEntity((pos[0] + 60, pos[1] + 60), size,name=name + "CSI" + str(n))
+          CSI = self.model.model.entityTypes["ComponentServiceInstance"].createEntity((pos[0] + 60, pos[1] + 60), size,name=compName + "CSI")
           ca = ContainmentArrow(SI, (50,50), CSI, (100,50), None)
           SI.containmentArrows.append(ca)
           ca = ContainmentArrow(CSI, (50,50), comp, (100,50), None)
@@ -260,14 +277,22 @@ class Extensions:
       nProc = int(dlg.nProc.GetValue())
       pos = position
 
+      procNameStr = dlg.procNames.GetValue()
+      procNames = splitByThisAndWhitespace(",", procNameStr)
 
-      for n in range(0,nProc):
-        comp = self.model.model.entityTypes["Component"].createEntity(pos, size,name=name + "Comp" + str(n))
+      for n in max(len(procNames), range(1,nProc+1)):
+        if procNames:
+          compName = procNames[0]
+          del procNames[0]
+        else:
+          compName = name + "Comp" + str(n)
+
+        comp = self.model.model.entityTypes["Component"].createEntity(pos, size,name=compName)
         ca = ContainmentArrow(SU, (50,50), comp, (100,50), None)
         SU.containmentArrows.append(ca)
 
         if createWork:
-          CSI = self.model.model.entityTypes["ComponentServiceInstance"].createEntity((pos[0] + 60, pos[1] + 60), size,name=name + "CSI" + str(n))
+          CSI = self.model.model.entityTypes["ComponentServiceInstance"].createEntity((pos[0] + 60, pos[1] + 60), size,name=compName + "CSI")
           ca = ContainmentArrow(SI, (50,50), CSI, (100,50), None)
           SI.containmentArrows.append(ca)
           ca = ContainmentArrow(CSI, (50,50), comp, (100,50), None)
