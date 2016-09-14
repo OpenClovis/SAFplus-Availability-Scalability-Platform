@@ -11,6 +11,7 @@ CLIENT_OBJ = $(addprefix $(MWOBJ_DIR)/, $(subst .cc,.o, $(subst .cxx,.o,$(notdir
 Release all: SAFplusPBExt.pb.hxx $(SAFPLUS_TOOL_TARGET)/bin/protoc-gen-rpc $(LIB_DIR)/libclRpc.so
 
 SAFplusPBExt.pb.hxx: $(PROTOBUFVER)/SAFplusPBExt.pb.h
+	rm -f $@
 	ln -s $(PROTOBUFVER)/SAFplusPBExt.pb.h $@
 
 $(LIB_DIR)/libclRpc.so: $(CLIENT_OBJ)

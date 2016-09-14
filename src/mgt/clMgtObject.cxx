@@ -20,16 +20,9 @@
 
 #include <clCommon.hxx>
 #include <clMgtRoot.hxx>
+#include <clMgtBaseCommon.hxx>
 #include <clMgtObject.hxx>
 #include <clMgtDatabase.hxx>
-
-extern "C"
-{
-#include <libxml/xmlreader.h>
-#include <libxml/xmlmemory.h>
-#include <libxml/parser.h>
-#include <libxml/xmlstring.h>
-} /* end extern 'C' */
 
 using namespace std;
 

@@ -1,13 +1,5 @@
-
-extern "C"
-{
-#include <libxml/xmlreader.h>
-#include <libxml/xmlmemory.h>
-#include <libxml/parser.h>
-#include <libxml/xmlstring.h>
-} /* end extern 'C' */
-
 #include <boost/algorithm/string.hpp>
+#include <clMgtBaseCommon.hxx>
 #include <clMgtContainer.hxx>
 #include <clMgtRoot.hxx>
 #include <clMgtProv.hxx>
