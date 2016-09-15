@@ -124,6 +124,16 @@ instantiated  <instances>     instances                         instances     (e
       e = ideEntities[0].getElementsByTagName(entname)
       if e:
         ideEntities[0].delChild(e[0])
+      # delete entity in containment arrows if any
+      name = "containmentArrows"
+      caTags = ideEntities[0].getElementsByTagName(name)
+      if caTags:
+        name = "_"+entname
+        for caTag in caTags:
+          t = caTag.getElementsByTagName(name)
+          if t:            
+            caTag.delChild(t[0])
+      
 
   def deleteInstance(self,inst):
     self.recursiveDeleteInstance(inst)
@@ -222,7 +232,8 @@ instantiated  <instances>     instances                         instances     (e
               contained = self.entities.get(link,None)
               if contained:
                 # TODO: look the positions up in the GUI section of the xml file
-                ca = entity.ContainmentArrow(eo,(0,0),contained,(0,0),[])
+                (beginOffset, endOffset, midpoints) = self.getContainmemtArrowPos(ideEntities, eo, contained)
+                ca = entity.ContainmentArrow(eo,beginOffset,contained,endOffset,midpoints)
                 eo.containmentArrows.append(ca)
               else:  # target of the link is missing, so drop the link as well.  This could happen if the user manually edits the XML
                 # TODO: create some kind of warning/audit log in share.py that we can post messages to.
@@ -277,6 +288,30 @@ instantiated  <instances>     instances                         instances     (e
             else:  # target of the link is missing, so drop the link as well.  This could happen if the user manually edits the XML
               # TODO: create some kind of warning/audit log in share.py that we can post messages to.
               pass
+
+
+  def getContainmemtArrowPos(self, ideEntities, container, contained):
+    name = container.data["name"]    
+    containerTags = ideEntities.getElementsByTagName(name)
+    if not containerTags:
+      return ((0,0), (0,0), [])
+    containerTag = containerTags[0]
+    name = "containmentArrows"
+    caTags = containerTag.getElementsByTagName(name)
+    if caTags:
+      containedEntName = "_"+contained.data["name"]
+      for caTag in caTags:
+        t = caTag.getElementsByTagName(containedEntName)
+        if t:
+          t = t[0]
+          beginOffset = common.str2Tuple(t["beginOffset"].data_)
+          endOffset = common.str2Tuple(t["endOffset"].data_)
+          if t["midpoints"] and t["midpoints"].data_:
+            midPoints = [common.str2Tuple(t["midpoints"].data_)]
+          else:
+            midPoints = None
+          return (beginOffset, endOffset, midPoints)      
+    return ((0,0), (0,0), [])
 
   def makeUpAScreenPosition(self):
     return (random.randint(0,800),random.randint(0,800))
@@ -418,7 +453,7 @@ instantiated  <instances>     instances                         instances     (e
         tmp.append(arrow.contained.data["name"])
         contains[arrow.contained.et.name] = tmp
         # TODO: write the containment arrow IDE specific information to the IDE area of the model xml
-
+        self.writeContainmentArrow(ideEntity, arrow)
       # Now erase the missing linkages from the microdom
       for (key, val) in self.entityTypes.items():   # Look through all the children for a key that corresponds to the name of an entityType (+ s), eg: "ServiceGroups"
           if not contains.has_key(key): # Element is an entity type but no linkages
@@ -508,6 +543,37 @@ instantiated  <instances>     instances                         instances     (e
       if instance.child_.has_key(entityParentKey): instance.delChild(entityParentKey)
       instance.addChild(microdom.MicroDom({"tag_":entityParentKey},[entityParentVal],""))
   
+  def createChild(self, parent, childName):
+    name = childName
+    childTag = parent.getElementsByTagName(name)
+    if childTag:
+      childTag = childTag[0]
+    else:
+      childTag = microdom.MicroDom({"tag_":name},[],[])
+      parent.addChild(childTag)
+    return childTag
+
+  def writeContainmentArrow(self, ideEntity, arrow):
+    # create <containmentArrows> inside <entity>
+    name = "containmentArrows"
+    caTag = self.createChild(ideEntity, name)
+    # create <containedEntity> inside <containmentArrows> 
+    name = "_"+arrow.contained.data["name"]
+    containedEntTag = self.createChild(caTag, name)
+    t = containedEntTag
+    # create <beginOffset> inside <containedEntity> 
+    name = "beginOffset"
+    t[name] = str(arrow.beginOffset)
+    # create <endOffset> inside <containedEntity> 
+    name = "endOffset"
+    t[name] = str(arrow.endOffset)
+    # create <midpoints> inside <containedEntity>
+    name = "midpoints"
+    if arrow.midpoints:
+      t[name] = str(tuple(arrow.midpoints[0]))
+    else:
+      t[name] = ""
+
   def duplicate(self,entities,recursive=False, flag=False):
     """Duplicate a set of entities or instances and potentially all of their children. The last argument 'flag' indicates that
        this is the copy of ServiceUnit or ServiceInstance, otherwise, Component or ComponentServiceInstance. It is the one of 
