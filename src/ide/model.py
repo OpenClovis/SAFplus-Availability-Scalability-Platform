@@ -288,7 +288,8 @@ instantiated  <instances>     instances                         instances     (e
             else:  # target of the link is missing, so drop the link as well.  This could happen if the user manually edits the XML
               # TODO: create some kind of warning/audit log in share.py that we can post messages to.
               pass
-
+    
+    entity.updateNamelyDict(self)
 
   def getContainmemtArrowPos(self, ideEntities, container, contained):
     name = container.data["name"]    
@@ -322,7 +323,6 @@ instantiated  <instances>     instances                         instances     (e
     f = open(filename,"w")
     f.write(self.xmlify())
     f.close()
-    
 
   def loadModules(self):
     """Load the modules specified in the model"""

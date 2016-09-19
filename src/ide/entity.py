@@ -33,6 +33,14 @@ def EntityTypeSortOrder(a,b):
     return -1
   return cmp(a[1].get("order",10000),b[1].get("order",10001))
   
+def updateNamelyDict(model):
+  global nameIdx
+  nameIdx = {}
+  for (name,e) in model.entities.items():
+    NameCreator(e.et.name)
+  for (name,i) in model.instances.items():
+    NameCreator(i.entity.data["name"], name)
+
 
 def isRelationshipExist(ent):
   if not share.umlEditorPanel:
@@ -41,7 +49,7 @@ def isRelationshipExist(ent):
   for name,e in share.umlEditorPanel.model.entities.items():
     if ent==e:
       continue
-    if ent.et.name != "ServiceUnit":
+    if ent.et.name != "ServiceUnit" and ent.et.name != "Component":
       if any(ent==ca.contained for ca in e.containmentArrows):
         return True
     else:
@@ -171,6 +179,10 @@ class Entity:
         return RLS_ERR_EXISTS
       return RLS_OK
     if self.et.name=="ServiceInstance" and entity.et.name=="ComponentServiceInstance":
+      if isRelationshipExist(entity):
+        return RLS_ERR_EXISTS
+      return RLS_OK
+    if self.et.name=="ComponentServiceInstance" and entity.et.name=="Component":
       if isRelationshipExist(entity):
         return RLS_ERR_EXISTS
       return RLS_OK
