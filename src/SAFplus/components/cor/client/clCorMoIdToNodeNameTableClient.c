@@ -76,13 +76,11 @@ ClRcT clCorNodeNameToMoIdGet(ClNameT nodeName,
      * In anticipation of calls from AMS context.
      */
     if(nodeName.length > strlen(nodeName.value))
-        nodeName.length = strlen(nodeName.value);
-	tab.nodeName = nodeName;
-	tab.op = COR_NODE_NAME_TO_MOID_GET;
-
-	size = sizeof(corClientMoIdToNodeNameT);
-	
-	COR_CALL_RMD_WITHOUT_ATMOST_ONCE(COR_MOID_TO_NODE_NAME_TABLE_OP,
+      nodeName.length = strlen(nodeName.value);
+    tab.nodeName = nodeName;
+    tab.op = COR_NODE_NAME_TO_MOID_GET;
+    size = sizeof(corClientMoIdToNodeNameT);
+    COR_CALL_RMD_WITHOUT_ATMOST_ONCE(COR_MOID_TO_NODE_NAME_TABLE_OP,
                                      VDECL_VER(clXdrMarshallcorClientMoIdToNodeNameT, 4, 0, 0),
                                      &tab, 
                                      sizeof(corClientMoIdToNodeNameT ),
@@ -91,7 +89,7 @@ ClRcT clCorNodeNameToMoIdGet(ClNameT nodeName,
                                      &size,
                                      rc);
 
-	if(CL_OK != rc)
+    if(CL_OK != rc)
     {
 		CL_COR_RETURN_ERROR(CL_DEBUG_ERROR, "\nFailed to get moId from the server\n", rc);
     }

@@ -1,3 +1,4 @@
+
 /*
  * Copyright (C) 2002-2012 OpenClovis Solutions Inc.  All Rights Reserved.
  *
@@ -84,7 +85,9 @@ typedef enum {
     CL_STATUS_UP   = 1,
 } ClStatusT;
 
-
+#if defined(__STDC__) && __STDC_VERSION__ >= 199901L
+#define __FUNCTION__ __func__
+#endif
 
 /** Mininum macro */
 #define CL_MIN(a,b) ( (a) < (b) ? (a) : (b) )

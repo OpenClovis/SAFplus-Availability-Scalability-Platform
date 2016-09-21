@@ -747,8 +747,8 @@ clCkptSectionChkNAdd(ClCkptHdlT  ckptHdl,
         rc = CL_CKPT_ERR_ALREADY_EXIST;
         clLogDebug(CL_CKPT_AREA_ACTIVE, CL_CKPT_CTX_CKPT_OPEN, 
                 "Section [%.*s] of ckpt [%.*s] already exists", 
-                pKey->scnId.idLen, pKey->scnId.id,
-                pCkpt->ckptName.length, pCkpt->ckptName.value);
+                pCkpt->ckptName.length, pCkpt->ckptName.value, 
+                pKey->scnId.idLen, pKey->scnId.id);
         goto dataFreeNExit;
     }
     if( pCkpt->pDpInfo->maxScns <= pCkpt->pDpInfo->numScns )
@@ -842,7 +842,11 @@ clCkptSectionChkNAdd(ClCkptHdlT  ckptHdl,
                pCkpt->ckptName.value);
     return CL_OK;
 dataFreeNExit:
-    if( NULL != pSec->pData ) clHeapFree(pSec->pData); pSec->pData = NULL;
+    if( NULL != pSec->pData ) 
+    {
+          clHeapFree(pSec->pData);
+          pSec->pData = NULL;
+    }
     clHeapFree(pSec);
 keyFreeNExit:
     clHeapFree(pKey);
@@ -1139,7 +1143,7 @@ ClRcT VDECL_VER(_ckptSectionCreate, 4, 0, 0)(ClCkptHdlT         ckptHdl,
         }   
     }
 exitOnError:
-    if( pSecCreateAttr->sectionId->id != NULL)
+    if( pSecCreateAttr->sectionId != NULL)
     {
         clHeapFree(pSecCreateAttr->sectionId->id);
     }
@@ -1175,7 +1179,7 @@ clCkptSecFindNDelete(CkptT             *pCkpt,
     pKey->scnId.idLen = pSecId->idLen;
     rc = clCksm32bitCompute(pKey->scnId.id, pKey->scnId.idLen, &cksum);
     if( CL_OK != rc )
-    {        
+    {
         clLogError(CL_CKPT_AREA_ACTIVE, CL_CKPT_CTX_CKPT_OPEN, 
                    "Failed to find cksum while finding section [%.*s]",
                    pKey->scnId.idLen, pKey->scnId.id);
@@ -1194,7 +1198,7 @@ clCkptSecFindNDelete(CkptT             *pCkpt,
         if( CL_GET_ERROR_CODE(rc) == CL_ERR_NOT_EXIST )
         {
             rc = CL_CKPT_ERR_NOT_EXIST;
-        }     
+        }
     }
 
     clHeapFree(pKey);
@@ -1244,8 +1248,9 @@ ClRcT VDECL_VER(_ckptSectionDelete, 4, 0, 0)( ClCkptHdlT 	    ckptHdl,
     rc = clCkptSectionLevelDelete(ckptHdl, pCkpt, pSecId, srcClient);
     if( CL_OK != rc )
     {
-        clLogWarning(CL_CKPT_AREA_ACTIVE, CL_CKPT_CTX_CKPT_OPEN, "Failed to delete the section [%.*s] rc [0x%x]", pSecId->idLen, pSecId->id,
-                     rc);
+        clLogError(CL_CKPT_AREA_ACTIVE, CL_CKPT_CTX_CKPT_OPEN, 
+                "Failed to delete the section [%.*s]", 
+                pSecId->idLen, pSecId->id);
     }
     CKPT_UNLOCK(pCkpt->ckptMutex);
 
@@ -2495,15 +2500,15 @@ clCkptDefaultSectionInfoGet(CkptT         *pCkpt,
     rc = clCntDataForKeyGet(pCkpt->pDpInfo->secHashTbl, (ClCntKeyHandleT)
                             &key, (ClCntDataHandleT *) ppSec);
     if( CL_OK != rc )
-    {        
+    {
         clLogError(CL_CKPT_AREA_ACTIVE, CL_CKPT_CTX_CKPT_OPEN, 
                    "Section [%.*s] doesnot exist in ckpt [%.*s]",
                    key.scnId.idLen, key.scnId.id, pCkpt->ckptName.length,
-                   pCkpt->ckptName.value);        
+                   pCkpt->ckptName.value);
         if( CL_GET_ERROR_CODE(rc) == CL_ERR_NOT_EXIST )
         {
             rc = CL_CKPT_ERR_NOT_EXIST;
-        }        
+        }
     }
     clHeapFree(key.scnId.id);
         
@@ -3964,14 +3969,14 @@ ClRcT  VDECL_VER(clCkptReplicaNotify, 4, 0, 0)(ClVersionT        *pVersion,
                                                                gCkptSvr->localAddr,
                                                                &ckptInfo);
     if(CL_RMD_VERSION_ERROR(rc))
-      {
+    {
         scaleDown = CL_TRUE;
         rc = VDECL_VER(clCkptRemSvrCkptInfoGetClientSync, 4, 0, 0)(gCkptSvr->ckptIdlHdl,
                                                                    pVersion,
                                                                    ckptActHdl,
                                                                    gCkptSvr->localAddr,
                                                                    &ckptInfoBase);
-      }
+    }
     if (rc!=CL_OK)
       {
           ClTimerTimeOutT delay;

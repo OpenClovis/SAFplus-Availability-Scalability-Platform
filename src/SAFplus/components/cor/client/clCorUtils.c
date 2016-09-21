@@ -97,28 +97,28 @@ ClRcT clCorOmClassNameFromInfoModelGet(ClCorClassTypeT moClass, ClCorServiceIdT 
 		goto HandleError;
     opCode = COR_MO_TO_OM_CLASS_UTIL_OP;
     if((rc = clXdrMarshallClInt32T(&opCode, inMessageHandle, 0)))
-        goto HandleError;
-	if((clXdrMarshallClInt32T((void *)&moClass, inMessageHandle, 0)) != CL_OK) 
-		goto HandleError;
-	if((VDECL_VER(clXdrMarshallClCorServiceIdT, 4, 0, 0)((void *)&svcId, inMessageHandle, 0)) != CL_OK)
-		goto HandleError;
+      goto HandleError;
+    if((clXdrMarshallClInt32T((void *)&moClass, inMessageHandle, 0)) != CL_OK)
+      goto HandleError;
+    if((VDECL_VER(clXdrMarshallClCorServiceIdT, 4, 0, 0)((void *)&svcId, inMessageHandle, 0)) != CL_OK)
+      goto HandleError;
 	
     rc = clBufferCreate(&outMessageHandle);
-	if(rc != CL_OK)
-		goto HandleError;
+    if(rc != CL_OK)
+      goto HandleError;
 
     COR_CALL_RMD_SYNC_WITH_MSG(COR_UTIL_EXTENDED_OP, inMessageHandle, outMessageHandle, rc);
 
-	if(rc != CL_OK)
-		goto HandleError;
+    if(rc != CL_OK)
+      goto HandleError;
 
 	/* Message was successfully delivered. Got back the OM class. */
 
-	if(CL_OK != clXdrUnmarshallClInt32T(outMessageHandle, (ClUint8T*)pOmClass))
-		goto HandleError;
+    if(CL_OK != clXdrUnmarshallClInt32T(outMessageHandle, (ClUint8T*)pOmClass))
+      goto HandleError;
     
     if(CL_OK != clXdrUnmarshallClNameT(outMessageHandle, &className))
-        goto HandleError;
+      goto HandleError;
 
     strncpy(pClassName, (const ClCharT*)className.value, CL_MIN(className.length, maxClassSize));
     pClassName[CL_MIN(className.length, maxClassSize)] = 0;
