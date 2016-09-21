@@ -2806,9 +2806,8 @@ ClRcT clIocDispatchAsync(const ClCharT *xportType, ClIocPortT port, ClUint8T *bu
 
     rc = clBufferCreate(&message);
     if(rc != CL_OK)
-        goto out;
-
-        if(bytes <= sizeHeader)
+      goto out;
+    if(bytes <= sizeHeader)
         {
 #ifdef COMPAT_5
           if (bytes <= (sizeHeader - 8))
