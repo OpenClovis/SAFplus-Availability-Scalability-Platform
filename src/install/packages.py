@@ -441,6 +441,7 @@ class OS:
         sqlite.name          = 'sqlite'
         sqlite.version       = '3.6.23'
         sqlite.pkg_name      = 'sqlite-3.6.23.tar.gz'
+        sqlite.ver_test_cmd  = "sqlite3 -version | awk '{print $1;}'"
 
         log = self.log_string_for_dep(sqlite.name)
 
@@ -450,7 +451,7 @@ class OS:
                           'tar zxf %s' % sqlite.pkg_name,
                           'rm -f %s' % sqlite.pkg_name,
                           'cd sqlite-*',
-                          './configure --disable-tcl --prefix=$PREFIX' + log, 
+                          './configure --prefix=$PREFIX' + log, 
                           'make' + log,
                           'make install' + log]
 
