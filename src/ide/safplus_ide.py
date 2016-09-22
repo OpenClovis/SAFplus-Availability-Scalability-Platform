@@ -56,6 +56,8 @@ class SAFplusFrame(wx.Frame):
         self.menuBar.Append(self.menuWindows, "&Windows")
         self.menuBar.Append(self.menuHelp, "&Help")
 
+        self.menuHelp.Bind(wx.EVT_MENU_OPEN, self.onHelpMenu)
+
         self.SetMenuBar(self.menuBar)
 
         self.sb = self.CreateStatusBar()
@@ -146,13 +148,13 @@ class SAFplusFrame(wx.Frame):
         modelFile = os.path.join(prj.directory(), prj.model.children()[0].strip())
         t.model.load(modelFile)
         t.uml = umlEditor.Panel(self.tab,self.guiPlaces, t.model)
-        self.tab.AddPage(t.uml, self.getCurrentPageText(0))
+        self.tab.InsertPage(0, t.uml, self.getCurrentPageText(0))
         t.modelDetails = entityDetailsDialog.Panel(self.tab,self.guiPlaces, t.model,isDetailInstance=False)
-        self.tab.AddPage(t.modelDetails, self.getCurrentPageText(1), select=True)
+        self.tab.InsertPage(1, t.modelDetails, self.getCurrentPageText(1))
         t.instance = instanceEditor.Panel(self.tab,self.guiPlaces, t.model)
-        self.tab.AddPage(t.instance, self.getCurrentPageText(2))
+        self.tab.InsertPage(2, t.instance, self.getCurrentPageText(2))
         t.instanceDetails = entityDetailsDialog.Panel(self.tab,self.guiPlaces, t.model,isDetailInstance=True)
-        self.tab.AddPage(t.instanceDetails, self.getCurrentPageText(3))
+        self.tab.InsertPage(3, t.instanceDetails, self.getCurrentPageText(3))
       else:
         print 'OnProjectLoaded: model is not None'
         self.cleanupTools()
@@ -342,8 +344,12 @@ class SAFplusFrame(wx.Frame):
       elif pageText == self.getCurrentPageText(2):
         t.instance.deleteMyTools()
         pageIdx = 2
+      elif pageText == self.getCurrentPageText(3):        
+        pageIdx = 3
       else:
-        pageIdx = 3 
+        pageIdx = -1
+      if pageIdx==-1:
+        return
       print 'insert menu item id [%d] text [%s]' % (pageIdx, pageText)
       self.menuWindows.Append(pageIdx, pageText)
       self.menuWindows.Bind(wx.EVT_MENU, self.onWindowsMenu, id=pageIdx)
@@ -383,6 +389,17 @@ class SAFplusFrame(wx.Frame):
       self.tab.InsertPage(pageIdx, page, pageText)
       self.menuWindows.Delete(idx)
       self.tab.SetSelection(pageIdx)
+
+    def onHelpMenu(self, evt):
+      if self.help:
+        n = self.tab.GetPageCount()
+        self.tab.SetSelection(n-1)
+      else:
+        self.help = HtmlWindow(self.tab, -1)
+        self.help.LoadFile("intro.html")
+        n = self.tab.GetPageCount()
+        self.tab.InsertPage(n, self.help, "Welcome")       
+        self.tab.SetSelection(n)
 
     def deleteWindowsMenuItem(self, text):
       menuItems = self.menuWindows.GetMenuItems()
