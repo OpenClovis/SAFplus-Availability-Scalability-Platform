@@ -168,18 +168,19 @@ def handleList(s,count):
 def createList(s, upper=None):
   """A list could be an array of data defined in yang."""
   result = {}
-  result[s.arg] = []
+  arg = upper.arg if upper else s.arg
+  result[arg] = []
   listItem = {}
   for c in s.substmts:
     if c.keyword == "leaf":
-      listItem[upper.arg if upper else c.arg]={'type':getArg(c,"type"), 'help':getArg(upper if upper else s,"description", None)}
+      listItem[c.arg]={'type':getArg(c,"type"), 'help':getArg(upper if upper else s,"description", None)}
     else:      
       if c.keyword == "uses":
         if hasattr(c, 'i_grouping'):
           grouping_node = c.i_grouping
           if grouping_node is not None:
             return createList(grouping_node, s)
-  result[s.arg].append(listItem)
+  result[arg].append(listItem)
   return result
 
 def createObject(s,result=None):
