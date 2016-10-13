@@ -59,6 +59,7 @@ Gui2Obj=namedtuple('Gui2Obj','fielddef widget lock help item entity')
 LOCK_BUTTON_ID = 3482
 HELP_BUTTON_ID = 4523
 TEXT_ENTRY_ID = 7598
+EDIT_BUTTON_ID = 11121
 
 StandaloneDev = False
 
@@ -458,6 +459,11 @@ class Panel(scrolled.ScrolledPanel):
       elif id>=HELP_BUTTON_ID and id < TEXT_ENTRY_ID:
         idx = id - HELP_BUTTON_ID
         return
+      elif id>=EDIT_BUTTON_ID:
+        idx = id - EDIT_BUTTON_ID
+        print 'button with id [%d] clicked' % id
+        # TODO: open dialog for user to input list of data
+        return
       else:
         print "unknown button! %d" % id
         return
@@ -542,7 +548,9 @@ class Panel(scrolled.ScrolledPanel):
         # Bind to handle event on change
         self.BuildChangeEvent(query)
         query.SetName(nameCtrl)
-
+      elif type(typeData) is ListType:
+        #handling list type here: creating a button that opens a dialog for user to enter the list of data
+        query = wx.Button(self.tree.GetMainWindow(), id, "Edit...")
       else:
         # TODO do any of these need to be displayed?
         query = None
@@ -810,6 +818,55 @@ class Panel(scrolled.ScrolledPanel):
             self.row+=1
 
           self.tree.SetPyData(child, ent)
+        elif type(item[1]) is ListType: # handling yang list type
+          if 0:#ent.isContainer(item[1]):
+            child = self.tree.AppendItem(treeItem, s)
+            self.createChildControls(child, ent, item[1].items(), values.get(item[0], None), nameCtrl="%s_%s"%(nameCtrl, name))
+          else:
+            query = self.createControl(self.row + EDIT_BUTTON_ID, item, None, nameCtrl="%s_%s"%(nameCtrl, name))
+            if not query: continue  # If this piece of data has no control, it is not user editable
+
+            #Create tree item
+            s = name
+            child = self.tree.AppendItem(treeItem, s)            
+            # Now create the lock/unlock button
+            b = wx.BitmapButton(self, self.row + LOCK_BUTTON_ID, self.unlockedBmp,style = wx.NO_BORDER )
+            b.SetToolTipString("If unlocked, instances can change this field")
+            
+            if ent.instanceLocked.get(name, False):  # Set its initial state
+              b.SetBitmap(self.lockedBmp);
+              b.SetBitmapSelected(self.unlockedBmp)
+
+              # Not allow to change this value from instance
+              query.Enable(isinstance(ent,entity.Instance) == False)
+            else:
+              b.SetBitmap(self.unlockedBmp);
+              b.SetBitmapSelected(self.lockedBmp)
+
+            b.SetBitmapSelected(self.lockedBmp)
+
+            # Devide from entity type, not allow to 'Lock' this from instance
+            b.Enable(isinstance(ent,entity.Instance) == False)
+
+            # Next add the extended help button
+            h = None
+            t = item[1][0].itervalues().next()
+            if t.has_key("help"):
+              h = wx.BitmapButton(self, self.row + HELP_BUTTON_ID, self.helpBmp,style = wx.NO_BORDER )
+              if t["help"]:
+                h.SetToolTipString(t["help"])
+            #else: 
+            #  h = wx.StaticText(self,-1,"")  # Need a placeholder or gridbag sizer screws up
+
+            #Add control into tree item
+            if h:
+              self.tree.SetItemWindow(child, h, 1)
+
+            self.tree.SetItemWindow(child, query, 3)
+            self.tree.SetItemWindow(child, b, 2)
+            # self.tree.SetItemBackgroundColor(child,wx.Color(50,50,50))
+            self.lookup[self.row] = Gui2Obj(item,query,b,h,child,ent)
+            self.row+=1
 
     def OnPaint(self, evt):
         if self.IsDoubleBuffered():

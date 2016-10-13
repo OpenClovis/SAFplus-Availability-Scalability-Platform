@@ -165,6 +165,23 @@ def handleList(s,count):
     result[st.arg] = { "help" : getArg(s,"description",None), "containsOrdinality": "N", "containedOrdinality": ordinality } # this is a list so I clearly can contain many of these.
   return result
 
+def createList(s, upper=None):
+  """A list could be an array of data defined in yang."""
+  result = {}
+  result[s.arg] = []
+  listItem = {}
+  for c in s.substmts:
+    if c.keyword == "leaf":
+      listItem[upper.arg if upper else c.arg]={'type':getArg(c,"type"), 'help':getArg(upper if upper else s,"description", None)}
+    else:      
+      if c.keyword == "uses":
+        if hasattr(c, 'i_grouping'):
+          grouping_node = c.i_grouping
+          if grouping_node is not None:
+            return createList(grouping_node, s)
+  result[s.arg].append(listItem)
+  return result
+
 def createObject(s,result=None):
   if result is None: result = {}
   count = 0
@@ -179,8 +196,8 @@ def createObject(s,result=None):
       elif c.keyword == "leaf-list":  # Leaf-list can indicate a one to many containment relationship        
         result.setdefault("contains",{}).update(handleList(c,count))
       elif c.keyword == "list":
-        # result.update(handleList(c,count))
-        pass  # TODO
+        #result.update(handleList(c,count))
+        result.update(createList(c))
       elif c.keyword == "container":
         d = {}
         result[c.arg] = createObject(c,d)
