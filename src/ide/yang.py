@@ -165,21 +165,23 @@ def handleList(s,count):
     result[st.arg] = { "help" : getArg(s,"description",None), "containsOrdinality": "N", "containedOrdinality": ordinality } # this is a list so I clearly can contain many of these.
   return result
 
-def createList(s, upper=None):
-  """A list could be an array of data defined in yang."""
+def createList(s, key=None,upper=None):
+  """A list could be defining a UML relationship so let's look inside for the appropriate UI extensions."""
   result = {}
   arg = upper.arg if upper else s.arg
   result[arg] = []
   listItem = {}
   for c in s.substmts:
-    if c.keyword == "leaf":
-      listItem[c.arg]={'type':getArg(c,"type"), 'help':getArg(upper if upper else s,"description", None)}
+    if not key and c.keyword == "key":
+      key = c.arg
+    elif c.keyword == "leaf":
+      listItem[c.arg]={'type':getArg(c,"type"), 'help':getArg(upper if upper else s,"description", None), 'key': 'yes' if c.arg==key else None}
     else:      
       if c.keyword == "uses":
         if hasattr(c, 'i_grouping'):
           grouping_node = c.i_grouping
           if grouping_node is not None:
-            return createList(grouping_node, s)
+            return createList(grouping_node, key, s)
   result[arg].append(listItem)
   return result
 

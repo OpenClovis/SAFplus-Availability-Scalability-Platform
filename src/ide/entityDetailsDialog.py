@@ -6,6 +6,7 @@ import wx
 #from wx.py import  version
 import math
 import svg
+import wx.grid
 try:
     import wx.lib.wxcairo
     import cairo
@@ -460,9 +461,16 @@ class Panel(scrolled.ScrolledPanel):
         idx = id - HELP_BUTTON_ID
         return
       elif id>=EDIT_BUTTON_ID:
-        idx = id - EDIT_BUTTON_ID
+        self.idx = id - EDIT_BUTTON_ID
         print 'button with id [%d] clicked' % id
         # TODO: open dialog for user to input list of data
+        dlg = DataEntryDialog(self)
+        dlg.ShowModal()
+        if dlg.what == "OK":
+          print 'handling ok clicked'          
+          obj = self.lookup[self.idx]
+          ent = obj[5]
+          #print 'ent data:%s' % str(ent.data)
         return
       else:
         print "unknown button! %d" % id
@@ -905,6 +913,66 @@ class Panel(scrolled.ScrolledPanel):
       self.treeItemSelected = None
       self.lookup.clear()      
       self._createTreeEntities()
+
+
+class DataEntryDialog(wx.Dialog):
+    """
+    Class to define a new dialog in which user input list of key/values
+    """
+ 
+    #----------------------------------------------------------------------
+    def __init__(self, parent):
+        """Constructor"""
+        wx.Dialog.__init__(self, parent, title="Data entry dialog", size=(430,300))
+         
+        # Create a wxGrid object
+        self.grid = wx.grid.Grid(self, -1, size=(500, 200))        
+        obj = parent.lookup[parent.idx]
+        assert(obj)
+        item = obj[0][1]
+        assert(len(item)==1) # only one item in list is supported, this means list in list is not supported
+        self.nCols = len(item[0])
+        self.nRows = 100
+        # Then we call CreateGrid to set the dimensions of the grid
+        self.grid.CreateGrid(self.nRows, self.nCols)
+        j = 0
+        for i in item[0].items():
+          self.grid.SetColLabelValue(j, i[0])
+          if j==0:
+            self.grid.SetColSize(0, 100)
+          else:
+            self.grid.SetColSize(1,330)
+          if i[1].get('type', None) in YangIntegerTypes:
+            cellEditor = wx.grid.GridCellNumberEditor()
+          else:
+            cellEditor = wx.grid.GridCellTextEditor()
+          for row in range(0, self.nRows):
+            self.grid.SetCellEditor(row,j,cellEditor)
+          j+=1
+        
+        self.grid.SetRowLabelSize(0)
+        
+        main_sizer = wx.BoxSizer(wx.VERTICAL)
+        main_sizer.Add(self.grid, 0, wx.ALL, 5)
+
+        OK_btn = wx.Button(self, label="OK")
+        OK_btn.Bind(wx.EVT_BUTTON, self.onBtnHandler)
+        cancel_btn = wx.Button(self, label="Cancel")
+        cancel_btn.Bind(wx.EVT_BUTTON, self.onBtnHandler)
+        btn_sizer = wx.BoxSizer(wx.HORIZONTAL)
+        btn_sizer.Add(OK_btn, 0, wx.ALL|wx.CENTER, 5)
+        btn_sizer.Add(cancel_btn, 0, wx.ALL|wx.CENTER, 5)
+        main_sizer.Add(btn_sizer, 0, wx.ALL|wx.CENTER, 5)
+       
+        self.SetSizer(main_sizer)
+ 
+    #----------------------------------------------------------------------
+    def onBtnHandler(self, event):
+        what = event.GetEventObject().GetLabel()
+        print 'about to %s' % what                
+        self.what = what
+        self.Close()
+    
 
 def Test():
   global StandaloneDev
