@@ -254,6 +254,8 @@ class Entity:
               self.updateDataFields({}, typeChildsDict, data[name])
             else:
               data[name] = ""
+      elif type(metadata) == ListType:
+        data[name] = []
     #self.data = new
   
   def createInstance(self,pos, size=None,children=False, name=None, parent=None):

@@ -166,7 +166,7 @@ def handleList(s,count):
   return result
 
 def createList(s, key=None,upper=None):
-  """A list could be defining a UML relationship so let's look inside for the appropriate UI extensions."""
+  """A list could be an array of data defined in yang."""
   result = {}
   arg = upper.arg if upper else s.arg
   result[arg] = []
