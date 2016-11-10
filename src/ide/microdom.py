@@ -184,6 +184,11 @@ class MicroDom:
         tmp = MicroDom({"tag_":i[0]}, [],[])
         tmp.update(i[1])
         self.addChild(tmp)
+      elif type(i[1]) == ListType:
+        for elem in i[1]:
+          tmp = MicroDom({"tag_":i[0]}, [],[])
+          tmp.update(elem)
+          self.addChild(tmp)
       else: self.addChild(MicroDom({"tag_":i[0]}, [i[1]],i[1]))
 
   def get(self,item,d=None):

@@ -467,10 +467,8 @@ class Panel(scrolled.ScrolledPanel):
         dlg = DataEntryDialog(self)
         dlg.ShowModal()
         if dlg.what == "OK":
-          print 'handling ok clicked'          
-          obj = self.lookup[self.idx]
-          ent = obj[5]
-          #print 'ent data:%s' % str(ent.data)
+          print 'handling ok clicked'
+          dlg.save()
         return
       else:
         print "unknown button! %d" % id
@@ -924,13 +922,16 @@ class DataEntryDialog(wx.Dialog):
     def __init__(self, parent):
         """Constructor"""
         wx.Dialog.__init__(self, parent, title="Data entry dialog", size=(430,300))
-         
+        self.key = 0
         # Create a wxGrid object
-        self.grid = wx.grid.Grid(self, -1, size=(500, 200))        
+        self.grid = wx.grid.Grid(self, -1, size=(500, 200))
         obj = parent.lookup[parent.idx]
         assert(obj)
         item = obj[0][1]
         assert(len(item)==1) # only one item in list is supported, this means list in list is not supported
+        itemName = obj[0][0]
+        ent = obj[5] # get the associated entity
+        self.data = ent.data.get(itemName, None)
         self.nCols = len(item[0])
         self.nRows = 100
         # Then we call CreateGrid to set the dimensions of the grid
@@ -948,10 +949,23 @@ class DataEntryDialog(wx.Dialog):
             cellEditor = wx.grid.GridCellTextEditor()
           for row in range(0, self.nRows):
             self.grid.SetCellEditor(row,j,cellEditor)
+          #get the key field
+          key = i[1].get("key", None)
+          if key and key=='yes':
+            self.key = j
           j+=1
-        
+
         self.grid.SetRowLabelSize(0)
-        
+        # fill the data if any
+        if len(self.data)>0:
+          row = 0
+          for grp in self.data:
+            col = 0
+            for it in grp.items():
+              self.grid.SetCellValue(row, col, it[1])
+              col+=1
+            row+=1
+
         main_sizer = wx.BoxSizer(wx.VERTICAL)
         main_sizer.Add(self.grid, 0, wx.ALL, 5)
 
@@ -965,6 +979,19 @@ class DataEntryDialog(wx.Dialog):
         main_sizer.Add(btn_sizer, 0, wx.ALL|wx.CENTER, 5)
        
         self.SetSizer(main_sizer)
+
+    def save(self):
+        del self.data[:]
+        for r in range(0, self.nRows):
+          d = {}
+          for c in range(0, self.nCols):
+            text = self.grid.GetCellValue(r,c).encode('ascii')
+            if c == self.key and len(text)==0:
+              break
+            d[self.grid.GetColLabelValue(c).encode('ascii')] = text
+          if len(d)>0:
+            self.data.append(d)
+          r+=1
  
     #----------------------------------------------------------------------
     def onBtnHandler(self, event):

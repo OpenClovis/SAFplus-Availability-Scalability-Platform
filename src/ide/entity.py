@@ -255,8 +255,26 @@ class Entity:
             else:
               data[name] = ""
       elif type(metadata) == ListType:
-        data[name] = []
-    #self.data = new
+        if dataDict and dataDict.has_key(name):
+          dataTags = dataDict.getElementsByTagName(name)
+          if dataTags:
+            lst = []
+            for item in metadata[0].items():
+              lst.append(item[0])
+            l = []
+            for dt in dataTags:
+              d = {}
+              for i in range(0,len(lst)):
+                if dt.has_key(lst[i]):
+                  k = dt[lst[i]].data_
+                  d[lst[i]] = k
+              if len(d)>0:
+                l.append(d)
+            data[name] = l
+          else:
+            data[name]=[]
+        else:
+          data[name]=[]
   
   def createInstance(self,pos, size=None,children=False, name=None, parent=None):
     """Create an entity of this type"""
