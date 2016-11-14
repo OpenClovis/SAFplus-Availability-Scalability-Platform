@@ -138,8 +138,8 @@ getInstance(ClCharT *word, ClInt32T *inst)
                 return 0;
             }
             else 
-                *inst = corAtoI(&word[j+1]);
-                word[j]= '\0';
+              *inst = corAtoI(&word[j+1]);
+            word[j]= '\0';
             return 0;
         }
     }

@@ -153,8 +153,8 @@ void clAlarmUtilPayloadListFree(CL_IN ClAlarmUtilPayLoadListT   *pPayloadList)
     {
 	    for(payLoadcount = 0; payLoadcount < pPayloadList->numPayLoadEnteries; payLoadcount++)
 	    {
-            if ( (pPayloadList->pPayload + payLoadcount == NULL))
-                continue;
+                if ( (pPayloadList->pPayload + payLoadcount == NULL))
+                  continue;
 	        clCorMoIdFree(pPayloadList->pPayload[payLoadcount].pMoId);
 	        for(tlvCount = 0; tlvCount < pPayloadList->pPayload[payLoadcount].numTlvs; tlvCount++ )
 	        {

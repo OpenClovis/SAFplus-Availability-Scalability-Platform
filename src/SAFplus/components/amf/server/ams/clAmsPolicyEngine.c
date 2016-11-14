@@ -2776,6 +2776,39 @@ static ClBoolT clAmsNodeTimerIsRunningCount(CL_IN   ClAmsNodeT *node)
   return CL_FALSE;
 }
 
+ClBoolT clAmsCheckSURemoveOp(ClAmsSUT *su)
+{
+    ClRcT rc = CL_OK;
+    ClAmsSUReassignOpT *reassignEntry = NULL;
+    if(!su) return CL_FALSE;
+    rc = clAmsEntityOpGet(&su->config.entity, &su->status.entity,
+                          CL_AMS_ENTITY_OP_ACTIVE_REMOVE_REF_MPLUSN,
+                          (void**)&reassignEntry, NULL);
+    if(rc != CL_OK || !reassignEntry)
+        return CL_FALSE;
+    return CL_TRUE;
+}
+
+ClUint32T clAmsRemoveOpPendingForNode(ClAmsNodeT *node)
+{
+    ClAmsEntityRefT *ref = NULL;
+    AMS_ENTITY_LOG (node, CL_AMS_MGMT_SUB_AREA_MSG, CL_DEBUG_TRACE,("Check remove op pending for node [%s] \n",node->config.entity.name.value));
+    for(ref = clAmsEntityListGetFirst(&node->config.suList);
+        ref != NULL;
+        ref = clAmsEntityListGetNext(&node->config.suList, ref))
+    {
+        ClAmsSUT *su = (ClAmsSUT*)ref->ptr;
+        if(clAmsCheckSURemoveOp(su))
+        {
+            AMS_ENTITY_LOG (node, CL_AMS_MGMT_SUB_AREA_MSG, CL_DEBUG_TRACE,("Node [%s] has pending SU [%s] \n",node->config.entity.name.value,su->config.entity.name.value));
+            return CL_TRUE;
+        }
+    }
+    return CL_FALSE;
+}
+
+
+
 /*
  * clAmsPeNodeIsLeavingCluster
  * ---------------------------
@@ -2811,7 +2844,7 @@ clAmsPeNodeIsLeavingCluster(
         return CL_AMS_RC(CL_ERR_NOT_EXIST);
     }
 
-    if ((node->status.isClusterMember == CL_AMS_NODE_IS_LEAVING_CLUSTER) && (clAmsNodeTimerIsRunningCount(node) || clAmsInvocationsPendingForNode(node)))
+    if ((node->status.isClusterMember == CL_AMS_NODE_IS_LEAVING_CLUSTER) && (clAmsNodeTimerIsRunningCount(node) || clAmsInvocationsPendingForNode(node) || clAmsRemoveOpPendingForNode(node)))
     {
         AMS_ENTITY_LOG (node, CL_AMS_MGMT_SUB_AREA_MSG, CL_DEBUG_TRACE,
             ("Node [%s] is leaving cluster. Ignoring 'node is leaving' request..\n",

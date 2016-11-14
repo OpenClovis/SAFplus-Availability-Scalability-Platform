@@ -998,6 +998,8 @@ ClRcT clCpmComponentPIDGetBySlot(ClIocNodeAddressT slot, const ClNameT *compName
     ClRcT rc = CL_OK;
     ClUint32T tempPid = 0;
     ClUint32T size = sizeof(ClUint32T);
+    ClUint32T timeOut = 0;
+    ClUint32T maxRetries = 0;
 
     if (compName == NULL || pid == NULL)
     {
@@ -1009,10 +1011,17 @@ ClRcT clCpmComponentPIDGetBySlot(ClIocNodeAddressT slot, const ClNameT *compName
 
     if(!slot) slot = clIocLocalAddressGet();
 
+    if (slot == clIocLocalAddressGet())
+    {
+      // Overwrite default timeout and retries value
+      timeOut = 5000; //5 seconds
+      maxRetries = 2;
+    }
+
     rc = clCpmClientRMDSyncNew(slot, CPM_COMPONENT_PID_GET,
                                (ClUint8T *) compName, sizeof(ClNameT),
                                (ClUint8T *) &tempPid, &size,
-                               CL_RMD_CALL_NEED_REPLY, 0, 0, 0,
+                               CL_RMD_CALL_NEED_REPLY, timeOut, maxRetries, 0,
                                clXdrMarshallClNameT,
                                clXdrUnmarshallClUint32T);
     if (rc != CL_OK)

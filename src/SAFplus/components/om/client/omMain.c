@@ -673,7 +673,7 @@ omClassEntryReload (ClCharT *pClassName, ClOmClassTypeT classId)
      * First check if the class id entry is already present in the om class id table.
      */
     if(clCntNodeFind(ghOmClassHashTbl, (ClCntKeyHandleT)(ClWordT)classId, &nodeHandle) == CL_OK)
-        return CL_OK;
+      return CL_OK;
 
 	/* Add this class entry into the OM class lookup table */
 	rc = clCntNodeFind(ghOmClassNameHashTbl, (ClCntKeyHandleT)pClassName, &nodeHandle);

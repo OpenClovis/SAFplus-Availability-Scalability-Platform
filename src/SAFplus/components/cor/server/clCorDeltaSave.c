@@ -103,19 +103,17 @@ static ClInt32T clCorDeltaSaveTableKeyCompare(ClCntKeyHandleT key1,
 	entry_y = (ClCorDeltaSaveKeyT *)key2;
 
     if(entry_x->moId.depth != entry_y->moId.depth)
-        return entry_x->moId.depth - entry_y->moId.depth;
+      return entry_x->moId.depth - entry_y->moId.depth;
 
     if(entry_x->flag != entry_y->flag)
-        return entry_x->flag - entry_y->flag;
-
-	if(clCorMoIdCompare(&entry_x->moId, &entry_y->moId) == 0)
-	{
-		if(clCorAttrPathCompare(&entry_x->attrPath, &entry_y->attrPath) == 0)
-			return 0;
-		else
-			return 1;
-	}
-
+      return entry_x->flag - entry_y->flag;
+    if(clCorMoIdCompare(&entry_x->moId, &entry_y->moId) == 0)
+    {
+        if(clCorAttrPathCompare(&entry_x->attrPath, &entry_y->attrPath) == 0)
+          return 0;
+        else
+          return 1;
+    }
     return 1;
 }
 
@@ -997,11 +995,10 @@ clCorDeltaDbAttrPathOp(ClCorMOIdT moId,
 	ClCorDeltaSaveKeyT *buf = clHeapAllocate(sizeof(ClCorDeltaSaveKeyT));	
 	
     if(!buf)
-        return CL_COR_SET_RC(CL_ERR_NO_MEMORY);
-
-	buf->moId = moId;
-	clCorAttrPathInitialize(&buf->attrPath);
-	buf->flag = flag;
+      return CL_COR_SET_RC(CL_ERR_NO_MEMORY);
+    buf->moId = moId;
+    clCorAttrPathInitialize(&buf->attrPath);
+    buf->flag = flag;
 
     clCorMoIdToMoClassPathGet(&moId, &moClsPath);
     if ((rc = corMOTreeClassGet (&moClsPath, moId.svcId, &classId)) != CL_OK)

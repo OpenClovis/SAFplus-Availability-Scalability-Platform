@@ -1756,10 +1756,11 @@ ClRcT clCkptSectionCreate(
             rc = VDECL_VER(_ckptSectionCreateClientSync, 4, 0, 0)( ckptIdlHdl, ckptActHdl,
                     CL_TRUE, pSecCreateAttr, (ClUint8T *)pData,
                     dataSize, &version,&index);
-            if((numRetries > 0) && 
+            if(((numRetries > 0) || (maxRetry > 0)) &&
                (CL_GET_ERROR_CODE(rc) == CL_ERR_ALREADY_EXIST))
             {
                 rc = CL_OK;
+                goto exitOnError;
             }
         }while(CL_GET_ERROR_CODE(rc) == CL_ERR_TIMEOUT && (numRetries++ < 2));                         
         tryAgain = clCkptHandleTypicalErrors(rc, ckptHdl,&nodeAddr);

@@ -147,7 +147,7 @@ int execCommand(const ClCharT *command, ClCharT * const argv[], ClCharT * const 
       {
         if (waittime < timeout)
         {
-          sleep(1);
+          usleep(1000);
           waittime++;
         }
         else
@@ -208,12 +208,12 @@ ClRcT compCleanupTimeoutGet(ClCpmComponentT* cpmComp, ClUint32T* cleanupTimeout)
     if(rc != CL_OK)
     {
        clLogWarning("COMP", "GET", "Component [%s] not found in AMS db",cpmComp->compConfig->compName);
-       *cleanupTimeout = cpmComp->compConfig->compCleanupTimeout/1000;
+       *cleanupTimeout = cpmComp->compConfig->compCleanupTimeout; // in miliseconds
     }
     else
     {       
        pcomp = ( ClAmsCompT *) entityRef.ptr;
-       *cleanupTimeout = pcomp->config.timeouts.cleanup/1000;
+       *cleanupTimeout = pcomp->config.timeouts.cleanup; // in miliseconds
     }
     return rc;
 }

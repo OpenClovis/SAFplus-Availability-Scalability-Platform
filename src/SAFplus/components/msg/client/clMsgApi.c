@@ -1312,7 +1312,7 @@ get_message:
         if(pQInfo->numThreadsBlocked == 0)
         {
             rc = CL_MSG_RC(CL_ERR_INTERRUPT);
-            clLogInfo("MSG", "RCV", "[%s] is unblocked/cancled by the application. error code [0x%x].",__FUNCTION__, rc);
+            clLogInfo("MSG", "RCV", "[%s] is unblocked/canceled by the application. error code [0x%x].",__FUNCTION__, rc);
             goto error_out_1;
         }
         pQInfo->numThreadsBlocked--;

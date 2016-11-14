@@ -797,7 +797,8 @@ retryCheck:
       tries = 0;
 retry:
         rc = clCkptSectionDelete(serviceInfo->ckptHandle, (ClCkptSectionIdT *)&ckptSectionId);
-        if (CL_ERR_TRY_AGAIN == CL_GET_ERROR_CODE(rc))
+        if (CL_ERR_TRY_AGAIN == CL_GET_ERROR_CODE(rc) || CL_GET_ERROR_CODE(rc) == CL_IOC_ERR_COMP_UNREACHABLE
+            || CL_IOC_ERR_HOST_UNREACHABLE == CL_GET_ERROR_CODE(rc) || (CL_GET_CID(rc) == CL_CID_IOC && CL_GET_ERROR_CODE(rc) == CL_ERR_NOT_EXIST))
         {
             if ((++tries < 5) && (clOsalTaskDelay(delay) == CL_OK))
             {
@@ -980,7 +981,7 @@ ClRcT clCachedCkptSynch(ClCachedCkptSvcInfoT *serviceInfo, ClBoolT isEmpty)
             sectionData.data = copyData;
             sectionData.dataSize = ioVector.readSize - sizeof(ClIocAddressT);
 
-            clLogDebug("CCK", "SYNC", "Cache ckpt section [%s] re-created.", sectionData.sectionName.value);
+            clLogDebug("CCK", "SYNC", "Cache ckpt section [%s] replicated successfully.", sectionData.sectionName.value);
             if (isEmpty)
                 clCacheEntryAdd(serviceInfo, (ClCachedCkptDataT *)&sectionData);
             else

@@ -441,6 +441,7 @@ class OS:
         sqlite.name          = 'sqlite'
         sqlite.version       = '3.6.23'
         sqlite.pkg_name      = 'sqlite-3.6.23.tar.gz'
+        sqlite.ver_test_cmd  = "sqlite3 -version | awk '{print $1;}'"
 
         log = self.log_string_for_dep(sqlite.name)
 
@@ -450,7 +451,7 @@ class OS:
                           'tar zxf %s' % sqlite.pkg_name,
                           'rm -f %s' % sqlite.pkg_name,
                           'cd sqlite-*',
-                          './configure --disable-tcl --prefix=$PREFIX' + log, 
+                          './configure --prefix=$PREFIX' + log, 
                           'make' + log,
                           'make install' + log]
 
@@ -847,6 +848,42 @@ class Debian7(OS):
         for name in deps:
             D = objects.RepoDep(name)
             self.pre_dep_list.append(D)
+# ------------------------------------------------------------------------------
+class Debian9(OS):
+    
+    def pre_init(self):
+        self.name = 'Debian'
+        self.apt = True
+    
+    def load_preinstall_deps(self):
+        
+        deps =  ['build-essential',
+                 'linux-headers-' + self.kernelVerString,
+                 'gettext',
+                 'openhpi',
+                 'uuid-dev',
+                 'bison',
+                 'flex',
+                 'gawk',
+                 'libglib2.0-dev',
+                 'libgdbm-dev',
+                 'libdb5.3-dev',
+                 'libsqlite3-0',
+                 'libsqlite3-dev',
+                 'e2fsprogs',
+                 'libperl-dev',
+                 'libltdl3-dev',
+                 'e2fslibs-dev',
+                 'unzip',
+                 'libsnmp-dev',
+                 'zlib1g-dev',
+                 'psmisc',
+                 'ed']
+
+        for name in deps:
+            D = objects.RepoDep(name)
+            self.pre_dep_list.append(D)
+
 
 # ------------------------------------------------------------------------------
 class Mint(Ubuntu):
@@ -928,9 +965,11 @@ def determine_os():
                 fh = open('/etc/debian_version')
                 fdata = fh.read().lower()
                 fh.close()
+                if 'stretch' in fdata: return Debian9()
                 if cmp_version(fdata, "7.0") >= 0:
+                    print "For Debian OS 7"
                     return Debian7()
-                else:
+                else:               
                     return Debian()
             except:
                 return Debian()

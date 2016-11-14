@@ -187,8 +187,8 @@ clAlarmMoPathInstanceGet(char *word, ClInt32T *inst)
        }
                                                                                                                                                              
       /* go past '.' to get the inst.*/
-      if((word[j] == '.'))
-       j++;
+       if((word[j] == '.'))
+         j++;
        while(1)
        {
           if (word[j] && (word[j] != '\\'))

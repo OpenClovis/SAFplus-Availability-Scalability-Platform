@@ -1232,22 +1232,17 @@ ClRcT clCorNIClassAdd(char *name, ClCorClassTypeT key)
 {
     ClRcT   rc = CL_OK;
     if (NULL == name) 
-        return CL_COR_SET_RC(CL_COR_ERR_NULL_PTR);
-
-        ClIocNodeAddressT   sdAddr = 0;
-        corNiOpInf_t     entry;
-        ClUint32T          size =  sizeof(corNiOpInf_t);
-
-        memset(&entry, '\0', size);
-
-		CL_COR_VERSION_SET(entry.version);
-        entry.classId = key;
-        entry.op = COR_NI_OP_CLASS_NAME_SET;
-
-        strcpy(entry.name, name);
-        CL_CPM_MASTER_ADDRESS_GET(&sdAddr );
-	
-        COR_CALL_RMD_WITH_DEST(sdAddr,
+      return CL_COR_SET_RC(CL_COR_ERR_NULL_PTR);
+    ClIocNodeAddressT   sdAddr = 0;
+    corNiOpInf_t     entry;
+    ClUint32T          size =  sizeof(corNiOpInf_t);
+    memset(&entry, '\0', size);
+    CL_COR_VERSION_SET(entry.version);
+    entry.classId = key;
+    entry.op = COR_NI_OP_CLASS_NAME_SET;
+    strcpy(entry.name, name);
+    CL_CPM_MASTER_ADDRESS_GET(&sdAddr );
+    COR_CALL_RMD_WITH_DEST(sdAddr,
                                COR_EO_NI_OP,
                                VDECL_VER(clXdrMarshallcorNiOpInf_t, 4, 0, 0),
                                (ClUint8T *)&entry,
@@ -1274,21 +1269,18 @@ ClRcT clCorNIAttrAdd(ClCorClassTypeT  classId, ClCorAttrIdT  attrId, char *name)
 {
     ClRcT   rc = CL_OK;
     if (NULL == name) 
-        return CL_COR_SET_RC(CL_COR_ERR_NULL_PTR);
-
-        ClIocNodeAddressT   sdAddr = 0;
-        corNiOpInf_t        entry;
-        ClUint32T          size =  sizeof(corNiOpInf_t);
-
-        memset(&entry, '\0', size);
-		CL_COR_VERSION_SET(entry.version);
-        entry.classId = classId;
-        entry.attrId  = attrId; 
-        entry.op = COR_NI_OP_ATTR_NAME_SET;
-        strcpy(entry.name, name);
-        CL_CPM_MASTER_ADDRESS_GET(&sdAddr );
- 
-        COR_CALL_RMD_WITH_DEST(sdAddr,
+      return CL_COR_SET_RC(CL_COR_ERR_NULL_PTR);
+    ClIocNodeAddressT   sdAddr = 0;
+    corNiOpInf_t        entry;
+    ClUint32T          size =  sizeof(corNiOpInf_t);
+    memset(&entry, '\0', size);
+    CL_COR_VERSION_SET(entry.version);
+    entry.classId = classId;
+    entry.attrId  = attrId;
+    entry.op = COR_NI_OP_ATTR_NAME_SET;
+    strcpy(entry.name, name);
+    CL_CPM_MASTER_ADDRESS_GET(&sdAddr );
+    COR_CALL_RMD_WITH_DEST(sdAddr,
                                COR_EO_NI_OP,
                                VDECL_VER(clXdrMarshallcorNiOpInf_t, 4, 0, 0),
                                (ClUint8T *)&entry,
@@ -1388,8 +1380,8 @@ ClRcT clCorNIClassIdGet(char *name, ClCorClassTypeT *pClassId)
 {
     ClRcT   rc = CL_OK;
 
-    if ((NULL == name)  || (NULL ==pClassId))
-        return CL_COR_SET_RC(CL_COR_ERR_NULL_PTR);
+    if ((NULL == name)||(NULL ==pClassId))
+      return CL_COR_SET_RC(CL_COR_ERR_NULL_PTR);
 
     ClIocNodeAddressT   sdAddr = 0;
     corNiOpInf_t        entry;
@@ -1432,7 +1424,7 @@ ClRcT clCorNIClassNameGet(ClCorClassTypeT key, char *name )
 {
     ClRcT   rc = CL_OK;
     if (NULL == name) 
-        return CL_COR_SET_RC(CL_COR_ERR_NULL_PTR);
+      return CL_COR_SET_RC(CL_COR_ERR_NULL_PTR);
  
     ClIocNodeAddressT   sdAddr = 0;
     corNiOpInf_t        entry;
@@ -1476,21 +1468,18 @@ ClRcT clCorNIAttrIdGet(ClCorClassTypeT classId, char *name,  ClCorAttrIdT  *attr
 {
     ClRcT   rc = CL_OK;
     if (NULL == name) 
-        return CL_COR_SET_RC(CL_COR_ERR_NULL_PTR);
+      return CL_COR_SET_RC(CL_COR_ERR_NULL_PTR);
+    ClIocNodeAddressT   sdAddr = 0;
+    corNiOpInf_t        entry;
+    ClUint32T          size =  sizeof(ClCorAttrIdT);
+    memset(&entry, '\0', sizeof(corNiOpInf_t));
+    CL_COR_VERSION_SET(entry.version);
+    entry.classId = classId;
+    entry.op = COR_NI_OP_ATTR_ID_GET;
+    strcpy(entry.name, name);
+    CL_CPM_MASTER_ADDRESS_GET(&sdAddr );
 
-        ClIocNodeAddressT   sdAddr = 0;
-        corNiOpInf_t        entry;
-        ClUint32T          size =  sizeof(ClCorAttrIdT);
-
-        memset(&entry, '\0', sizeof(corNiOpInf_t));
-		CL_COR_VERSION_SET(entry.version);
-        entry.classId = classId;
-        entry.op = COR_NI_OP_ATTR_ID_GET;
-        strcpy(entry.name, name);
-
-        CL_CPM_MASTER_ADDRESS_GET(&sdAddr );
-
-        COR_CALL_RMD_WITH_DEST(sdAddr,
+    COR_CALL_RMD_WITH_DEST(sdAddr,
                                COR_EO_NI_OP,
                                VDECL_VER(clXdrMarshallcorNiOpInf_t, 4, 0, 0),
                                (ClUint8T *)&entry,
@@ -1519,8 +1508,7 @@ ClRcT clCorNIAttrNameGet(ClCorClassTypeT classId, ClCorAttrIdT  attrId, char *na
 {
     ClRcT   rc = CL_OK;
     if (NULL == name) 
-        return CL_COR_SET_RC(CL_COR_ERR_NULL_PTR);
-
+      return CL_COR_SET_RC(CL_COR_ERR_NULL_PTR);
     ClIocNodeAddressT   sdAddr = 0;
     corNiOpInf_t        entry;
     ClUint32T          size =  sizeof(entry.name);
