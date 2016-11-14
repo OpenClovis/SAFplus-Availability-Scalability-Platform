@@ -3232,7 +3232,10 @@ static ClRcT _iocMcastAddrCacheInitialize(ClBoolT createFlag)
         clLogError("MCAST", "CACHE", "Segment initialize returned [%#x]", rc);
     }
 
-    CL_ASSERT(gClMcastAddrCache != NULL);
+    if (gClMcastAddrCache == NULL)
+    {
+        exit(1);
+    }
 
     if (createFlag == CL_TRUE)
     {
