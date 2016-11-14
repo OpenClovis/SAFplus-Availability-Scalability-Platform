@@ -1116,7 +1116,7 @@ static ClRcT cpmBmSetLevel(cpmBMT *bmTable, ClUint32T bootLevel)
         while (cpmBmTable->currentBootLevel != bootLevel)
         {
             rc = cpmBmStopCurrentLevel(cpmBmTable);
-            if (gCpmAppShutdown || gCpmShuttingDown) return  CL_ERR_FAILED_OPERATION;
+            // let the shutdown proceed: if (gCpmAppShutdown || gCpmShuttingDown) return  CL_ERR_FAILED_OPERATION;
             if (rc != CL_OK)
             {
                 CL_CPM_CHECK_2(CL_DEBUG_ERROR,
@@ -1658,6 +1658,8 @@ static ClRcT cpmBmStopCurrentLevel(cpmBMT *cpmBmTable)
 
     ClTimerTimeOutT timeOut = { 0, 0 };
 
+    CL_DEBUG_PRINT(CL_DEBUG_INFO, ("Stopping run level [%d]\n",cpmBmTable->currentBootLevel));
+
     if (cpmBmTable->currentBootLevel == CL_CPM_BOOT_LEVEL_0)
     {
         rc = CL_CPM_RC(CL_ERR_INVALID_STATE);
@@ -1822,12 +1824,15 @@ static ClRcT cpmBmStopCurrentLevel(cpmBMT *cpmBmTable)
     else
     {
         rc = CL_CPM_RC(CL_CPM_ERR_OPERATION_FAILED);
-        CL_CPM_CHECK_1(CL_DEBUG_ERROR, CL_CPM_LOG_1_BM_MIN_LEVEL_ERR, rc, rc,
-                       CL_LOG_DEBUG, CL_LOG_HANDLE_APP);
+        CL_CPM_CHECK_1(CL_DEBUG_ERROR, CL_CPM_LOG_1_BM_MIN_LEVEL_ERR, rc, rc, CL_LOG_DEBUG, CL_LOG_HANDLE_APP);
     }
+
+    CL_DEBUG_PRINT(CL_DEBUG_INFO, ("Finished stopping run level [%d]\n",cpmBmTable->currentBootLevel));
 
     return CL_OK;
 
   failure:
+    CL_DEBUG_PRINT(CL_DEBUG_INFO, ("Failed to stop run level [%d] error [0x%x]\n",cpmBmTable->currentBootLevel,rc));
+
     return rc;
 }

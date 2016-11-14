@@ -3050,7 +3050,7 @@ static ClRcT compCleanupInvoke(ClCpmComponentT *comp)
     }
     else
     {
-        clLogInfo(CPM_LOG_AREA_CPM, CPM_LOG_CTX_CPM_LCM, "Sending SIGKILL signal to component [%s]with process id[%d]", comp->compConfig->compName, comp->processId);
+        clLogInfo(CPM_LOG_AREA_CPM, CPM_LOG_CTX_CPM_LCM, "Sending SIGKILL signal to component [%s] with process id[%d]", comp->compConfig->compName, comp->processId);
         kill(comp->processId, SIGKILL);
     }
 
