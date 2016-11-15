@@ -195,7 +195,7 @@ clSnmpclockTableHandler(
 
     if(!requests || !reqinfo)
     {
-        clLog(CL_LOG_ERROR, CL_SNMP_AREA, CL_SNMP_GEN_OP_COTX, gErrList[SNMP_ERR_GENERR]);
+        clLog(CL_LOG_ERROR, CL_SNMP_AREA, CL_SNMP_GEN_OP_COTX, "%s",gErrList[SNMP_ERR_GENERR]);
         return SNMP_ERR_GENERR;
     }
 
@@ -248,14 +248,14 @@ clSnmpclockTableHandler(
 
         if(!(table_info->indexes))
         {
-            clLog(CL_LOG_ERROR, CL_SNMP_AREA, CL_SNMP_GEN_OP_COTX, gErrList[SNMP_ERR_GENERR]);
+            clLog(CL_LOG_ERROR, CL_SNMP_AREA, CL_SNMP_GEN_OP_COTX, "%s",gErrList[SNMP_ERR_GENERR]);
             return SNMP_ERR_GENERR;
         }
 
         index = table_info->indexes;
         if(index->val_len > sizeof(long))
         {
-            clLog(CL_LOG_ERROR, CL_SNMP_AREA, CL_SNMP_GEN_OP_COTX, gErrList[SNMP_ERR_GENERR]);
+            clLog(CL_LOG_ERROR, CL_SNMP_AREA, CL_SNMP_GEN_OP_COTX, "%s",gErrList[SNMP_ERR_GENERR]);
             /* Index value length exceeds specified limit. */
             return SNMP_ERR_GENERR;
         }
@@ -806,7 +806,7 @@ clSnmptimeSetTableHandler(
 
     if(!requests || !reqinfo)
     {
-        clLog(CL_LOG_ERROR, CL_SNMP_AREA, CL_SNMP_GEN_OP_COTX, gErrList[SNMP_ERR_GENERR]);
+        clLog(CL_LOG_ERROR, CL_SNMP_AREA, CL_SNMP_GEN_OP_COTX, "%s",gErrList[SNMP_ERR_GENERR]);
         return SNMP_ERR_GENERR;
     }
 
@@ -859,14 +859,14 @@ clSnmptimeSetTableHandler(
 
         if(!(table_info->indexes))
         {
-            clLog(CL_LOG_ERROR, CL_SNMP_AREA, CL_SNMP_GEN_OP_COTX, gErrList[SNMP_ERR_GENERR]);
+            clLog(CL_LOG_ERROR, CL_SNMP_AREA, CL_SNMP_GEN_OP_COTX, "%s",gErrList[SNMP_ERR_GENERR]);
             return SNMP_ERR_GENERR;
         }
 
         index = table_info->indexes;
         if(index->val_len > sizeof(long))
         {
-            clLog(CL_LOG_ERROR, CL_SNMP_AREA, CL_SNMP_GEN_OP_COTX, gErrList[SNMP_ERR_GENERR]);
+            clLog(CL_LOG_ERROR, CL_SNMP_AREA, CL_SNMP_GEN_OP_COTX, "%s",gErrList[SNMP_ERR_GENERR]);
             /* Index value length exceeds specified limit. */
             return SNMP_ERR_GENERR;
         }
@@ -1313,7 +1313,7 @@ clSnmpnameTableHandler(
 
     if(!requests || !reqinfo)
     {
-        clLog(CL_LOG_ERROR, CL_SNMP_AREA, CL_SNMP_GEN_OP_COTX, gErrList[SNMP_ERR_GENERR]);
+        clLog(CL_LOG_ERROR, CL_SNMP_AREA, CL_SNMP_GEN_OP_COTX, "%s",gErrList[SNMP_ERR_GENERR]);
         return SNMP_ERR_GENERR;
     }
 
@@ -1366,14 +1366,14 @@ clSnmpnameTableHandler(
 
         if(!(table_info->indexes))
         {
-            clLog(CL_LOG_ERROR, CL_SNMP_AREA, CL_SNMP_GEN_OP_COTX, gErrList[SNMP_ERR_GENERR]);
+            clLog(CL_LOG_ERROR, CL_SNMP_AREA, CL_SNMP_GEN_OP_COTX, "%s",gErrList[SNMP_ERR_GENERR]);
             return SNMP_ERR_GENERR;
         }
 
         index = table_info->indexes;
         if(index->val_len > sizeof(unsigned long))
         {
-            clLog(CL_LOG_ERROR, CL_SNMP_AREA, CL_SNMP_GEN_OP_COTX, gErrList[SNMP_ERR_GENERR]);
+            clLog(CL_LOG_ERROR, CL_SNMP_AREA, CL_SNMP_GEN_OP_COTX, "%s",gErrList[SNMP_ERR_GENERR]);
             /* Index value length exceeds specified limit. */
             return SNMP_ERR_GENERR;
         }
@@ -1525,7 +1525,7 @@ clSnmpnameTableHandler(
                                 break;
                             /** not a legal enum value.  return an error */
                             default:
-                                clLog(CL_LOG_ERROR, CL_SNMP_AREA, CL_SNMP_GEN_OP_COTX, gErrList[SNMP_ERR_WRONGVALUE]);
+                                clLog(CL_LOG_ERROR, CL_SNMP_AREA, CL_SNMP_GEN_OP_COTX, "%s",gErrList[SNMP_ERR_WRONGVALUE]);
                                 netsnmp_request_set_error(request, SNMP_ERR_WRONGVALUE); /* Set error */
                                 return SNMP_ERR_WRONGVALUE;
                         }

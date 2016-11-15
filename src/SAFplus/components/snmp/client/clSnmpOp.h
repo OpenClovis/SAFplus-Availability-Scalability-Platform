@@ -65,9 +65,7 @@ typedef struct ClSnpOper
     do{                                                              \
         _rc = clOsalMutexLock(mutex);                                \
             if(_rc != CL_OK ){                                       \
-                clLogError("MTX", "LCK",                               \
-                        "Locking mutex failed [0x%x]",              \
-                         _rc);                                      \
+                //clLogError("MTX", "LCK","Locking mutex failed [0x%x]",_rc); \
                 CL_ASSERT(_rc == CL_OK );                            \
             }                                                        \
     }while(0);                                                       \
@@ -78,9 +76,7 @@ typedef struct ClSnpOper
     do{                                                              \
         _rc = clOsalMutexUnlock(mutex);                              \
             if(_rc != CL_OK ){                                       \
-                clLogError("MTX", "UNL",                               \
-                        "Unlocking mutex failed [0x%x]",			 \
-                         _rc);                                      \
+                //clLogError("MTX", "UNL", "Unlocking mutex failed [0x%x]", _rc); \
                 CL_ASSERT(_rc == CL_OK );                            \
             }                                                        \
     }while(0);                                                       \

@@ -159,7 +159,7 @@ enum
         {                                                               \
             snprintf(__str,256,CL_DEBUG_SP y);                          \
             clLogConsole((ClLogSeverityT)x, CL_LOG_AREA_UNSPECIFIED, CL_LOG_CONTEXT_UNSPECIFIED, \
-                  __str);                                               \
+                         "%s", __str);                                   \
         }                                                               \
         if (1)                                                          \
         {                                                               \

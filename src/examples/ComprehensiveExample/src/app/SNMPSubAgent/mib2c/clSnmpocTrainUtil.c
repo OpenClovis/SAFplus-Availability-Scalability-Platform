@@ -21,12 +21,12 @@ ClRcT clSnmpalarmTrapIndexGet(ClUint32T objectType, ClCorMOIdPtrT pMoId, ClAlarm
 
     if(NULL == pMoId)
     {
-        CL_DEBUG_PRINT(CL_DEBUG_ERROR,("moId is passed as NULL"));
+        clLogError(CL_SNMP_AREA, CL_SNMP_GEN_OP_COTX,"moId is passed as NULL");
         return CL_ERR_NULL_POINTER;
     }
     if(NULL == pTlvList)
     {
-        CL_DEBUG_PRINT(CL_DEBUG_ERROR,("pTlvList is passed as NULL"));
+        clLogError(CL_SNMP_AREA, CL_SNMP_GEN_OP_COTX,"pTlvList is passed as NULL");
         return CL_ERR_NULL_POINTER;
     }
 
@@ -61,7 +61,7 @@ ClRcT clSnmpclockTableIndexTlvGet(ClPtrT pIndexInfo, ClAlarmUtilTlvInfoPtrT pTlv
 
     if(!pIndexInfo || !pTlvList)
     {
-        CL_DEBUG_PRINT(CL_DEBUG_ERROR, ("NULL arguments received!"));
+        clLogError(CL_SNMP_AREA, CL_SNMP_GEN_OP_COTX,"NULL arguments received!");
         return CL_ERR_NULL_POINTER;
     }
     pTlvList->pTlv = (ClAlarmUtilTlvT *) clHeapAllocate (1 * sizeof (ClAlarmUtilTlvT));
@@ -94,7 +94,7 @@ ClRcT clSnmpnameTableIndexTlvGet(ClPtrT pIndexInfo, ClAlarmUtilTlvInfoPtrT pTlvL
 
     if(!pIndexInfo || !pTlvList)
     {
-        CL_DEBUG_PRINT(CL_DEBUG_ERROR, ("NULL arguments received!"));
+        clLogError(CL_SNMP_AREA, CL_SNMP_GEN_OP_COTX,"NULL arguments received!");
         return CL_ERR_NULL_POINTER;
     }
     pTlvList->pTlv = (ClAlarmUtilTlvT *) clHeapAllocate (1 * sizeof (ClAlarmUtilTlvT));

@@ -314,9 +314,9 @@ ClUint32T clGetTable ( ClSNMPRequestInfoT* reqInfo,
         else
             *pErrCode = opInfo.varInfo[0].errId;
 
-        CL_DEBUG_PRINT(CL_DEBUG_ERROR,
-                ("clMedOperationExecute returned error. error code = %x, error id = %d",
-                 errorCode, opInfo.varInfo[0].errId));
+        clLogError("SNP","MED",
+                "clMedOperationExecute returned error. error code = %x, error id = %d",
+                 errorCode, opInfo.varInfo[0].errId);
     }
     clHeapFree (tempVarInfo);
     return (errorCode);
@@ -460,6 +460,7 @@ ClUint32T clSnmpJobTableAttrAdd(
     ClInt32T arrIndex = 0;
     ClRcT    rc = CL_OK;
 
+    CL_ASSERT(1);
     clSnmpMutexLock(gOper.mtx);
     
     gOper.opInfo.varInfo = (ClMedVarBindT *) clHeapRealloc(gOper.opInfo.varInfo, 
@@ -725,7 +726,7 @@ ClRcT clSnmpTableIndexCorAttrIdInit(ClUint32T numOfIndices, ClUint8T * pIndexOid
 
     if(pIndexOidList == NULL || pTableIndexCorAttrIdList == NULL)
     {
-        CL_DEBUG_PRINT(CL_DEBUG_ERROR, ("NULL arguments received!"));
+        //CL_DEBUG_PRINT(CL_DEBUG_ERROR, ("NULL arguments received!"));
         return CL_ERR_NULL_POINTER;
     }
 
@@ -739,8 +740,7 @@ ClRcT clSnmpTableIndexCorAttrIdInit(ClUint32T numOfIndices, ClUint8T * pIndexOid
         rc = clMedTgtIdGet(gMedSnmpHdl, &indexId, &pTgtId);
         if(rc != CL_OK || pTgtId == NULL)
         {
-            CL_DEBUG_PRINT(CL_DEBUG_ERROR,
-                    ("clMedTgtIdGet returned error rc = 0x%x", (ClUint32T)rc));
+            //CL_DEBUG_PRINT(CL_DEBUG_ERROR, ("clMedTgtIdGet returned error rc = 0x%x", (ClUint32T)rc));
             return rc;
         }
 
@@ -774,9 +774,9 @@ ClRcT clSnmpTableIndexCorAttrIdInit(ClUint32T numOfIndices, ClUint8T * pIndexOid
 
     if(index < numOfIndices)
     {
-        CL_DEBUG_PRINT(CL_DEBUG_ERROR,
-                ("Failed processing all indices in table! Total indices = %d, Processed indices = %d",
-                 numOfIndices, index));
+        clLogError("SNP","MED",
+                "Failed processing all indices in table! Total indices = %d, Processed indices = %d",
+                 numOfIndices, index);
         return 1; /* FIXME: Return proper error value. */
     }
     return CL_OK;

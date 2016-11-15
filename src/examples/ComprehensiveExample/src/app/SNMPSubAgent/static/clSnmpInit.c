@@ -128,7 +128,7 @@ ClRcT initMMSnmpOpCodeTranslations ()
         retVal = clMedOperationCodeTranslationAdd (gMedSnmpHdl, agntOpCode, &tgtOpCode, 1);
         if (retVal != CL_OK)
         {
-            CL_DEBUG_PRINT (CL_DEBUG_ERROR, ("init_MMSnmpOpCodeTranslations MM OP code translation addition failed\n"));
+            //CL_DEBUG_PRINT (CL_DEBUG_ERROR, ("init_MMSnmpOpCodeTranslations MM OP code translation addition failed\n"));
             clLogWrite(CL_LOG_HANDLE_APP, CL_LOG_ERROR, "INT", CL_SNMP_LOG_1_OPCODE_INSERT_FAILED, retVal);
         }
     }
@@ -153,7 +153,7 @@ ClRcT initMMSnmpIdTranslations ()
                 &corIdentifier, 1);
         if (retVal != CL_OK)
         {
-            CL_DEBUG_PRINT (CL_DEBUG_ERROR, ("init_MMSnmpIdTranslations MM ID translation addition failed\n"));
+            //CL_DEBUG_PRINT (CL_DEBUG_ERROR, ("init_MMSnmpIdTranslations MM ID translation addition failed\n"));
             clLogWrite(CL_LOG_HANDLE_APP, CL_LOG_ERROR, "INT", CL_SNMP_LOG_1_ID_XLN_INSERT_FAILED, retVal);
         }
     }
@@ -169,7 +169,7 @@ ClRcT initMMSnmpIdTranslations ()
                 &corIdentifier, 1);
         if (retVal != CL_OK)
         {
-            CL_DEBUG_PRINT (CL_DEBUG_ERROR, ("init_MMSnmpIdTranslations MM ID instance translation addition failed\n"));
+            //CL_DEBUG_PRINT (CL_DEBUG_ERROR, ("init_MMSnmpIdTranslations MM ID instance translation addition failed\n"));
             clLogWrite(CL_LOG_HANDLE_APP, CL_LOG_ERROR, "INT", CL_SNMP_LOG_1_ID_XLN_INSERT_FAILED, retVal);
         }
     }
@@ -191,7 +191,7 @@ ClRcT initMMSnmpErrCodeTranslations()
     }
     if (retVal != CL_OK)
     {
-        CL_DEBUG_PRINT (CL_DEBUG_ERROR, ("init_MMSnmpErrCodeTranslations  MM errorcode translation addition failed\n"));
+        //CL_DEBUG_PRINT (CL_DEBUG_ERROR, ("init_MMSnmpErrCodeTranslations  MM errorcode translation addition failed\n"));
         clLogWrite(CL_LOG_HANDLE_APP, CL_LOG_ERROR, "INT", CL_SNMP_LOG_1_ERROR_ID_XLN_INSERT_FAILED, retVal);
     }
     return (retVal);
@@ -210,7 +210,7 @@ ClRcT initMM (void)
                     CL_CNT_UNIQUE_KEY,
                     &gClSnmpOidContainerHandle) ) != CL_OK)
     {
-        CL_DEBUG_PRINT(CL_DEBUG_ERROR, ("Could not create container Lib for oidContainer. %d", retCode));
+        clLogError("SNMP","INIT","Could not create container Lib for oidContainer. %d", retCode);
         exit(1);
     }
     while(appOidInfo[count].oid != NULL)
@@ -223,25 +223,25 @@ ClRcT initMM (void)
     if ((retCode = clMedInitialize (&gMedSnmpHdl, clSnmpNotifyHandler, snmpInstXlator, 
                     snmpInstCompare)) != CL_OK)
     {
-        CL_DEBUG_PRINT (CL_DEBUG_ERROR, ("initMM Unable to initialize the   mediation component for CLI!\n"));
+        //CL_DEBUG_PRINT (CL_DEBUG_ERROR, ("initMM Unable to initialize the   mediation component for CLI!\n"));
         clLogWrite(CL_LOG_HANDLE_APP, CL_LOG_ALERT, "INT", CL_LOG_MESSAGE_2_LIBRARY_INIT_FAILED, "mediation"); 
         return retCode;
     }
     if ((retCode = initMMSnmpOpCodeTranslations ()) != CL_OK)
     {
-        CL_DEBUG_PRINT (CL_DEBUG_ERROR, ("initMM Unable to add the opcode  translations in MM!\n"));
+        //CL_DEBUG_PRINT (CL_DEBUG_ERROR, ("initMM Unable to add the opcode  translations in MM!\n"));
         clLogWrite(CL_LOG_HANDLE_APP, CL_LOG_ALERT, "INT", CL_SNMP_LOG_1_OPCODE_INSERT_FAILED, retCode);
         return retCode;
     }
     if ((retCode = initMMSnmpIdTranslations ()) != CL_OK)
     {
-        CL_DEBUG_PRINT (CL_DEBUG_ERROR, ("initMM Unable to add the Id        translations in MM!\n"));
+        //CL_DEBUG_PRINT (CL_DEBUG_ERROR, ("initMM Unable to add the Id        translations in MM!\n"));
         clLogWrite(CL_LOG_HANDLE_APP, CL_LOG_ALERT, "INT", CL_SNMP_LOG_1_ID_XLN_INSERT_FAILED, retCode);
         return retCode;
     }
     if ((retCode = initMMSnmpErrCodeTranslations ()) != CL_OK)
     {
-        CL_DEBUG_PRINT (CL_DEBUG_ERROR, ("initMM Unable to add the error  code translations in MM!\n"));
+        //CL_DEBUG_PRINT (CL_DEBUG_ERROR, ("initMM Unable to add the error  code translations in MM!\n"));
         clLogWrite(CL_LOG_HANDLE_APP, CL_LOG_ALERT, "INT", CL_SNMP_LOG_1_ERROR_ID_XLN_INSERT_FAILED, retCode);
         return retCode;
     }
@@ -260,8 +260,8 @@ ClRcT clSnmpNotifyHandler (ClCorMOIdPtrT pMoId,        /**< Handle to ClCorMOId 
 
     if (pMoId == NULL)
     {
-        CL_DEBUG_PRINT (CL_DEBUG_ERROR, ("NULL pointer to ClCorMOId!\n"));
-        clLogWrite(CL_LOG_HANDLE_APP, CL_LOG_ERROR, "INT", CL_LOG_MESSAGE_0_NULL_ARGUMENT);
+        //CL_DEBUG_PRINT (CL_DEBUG_ERROR, ("NULL pointer to ClCorMOId!\n"));
+        clLogWrite(CL_LOG_HANDLE_APP, CL_LOG_ERROR, "INT", "%s",CL_LOG_MESSAGE_0_NULL_ARGUMENT);
         return (CL_ERR_NULL_POINTER);
     }
     memset(pTrapOid, 0, CL_SNMP_MAX_STR_LEN);
@@ -272,7 +272,7 @@ ClRcT clSnmpNotifyHandler (ClCorMOIdPtrT pMoId,        /**< Handle to ClCorMOId 
         rc = clSnmpAppNotifyHandler(pTrapOid, pData, dataLen, pTrapDes);
         if(CL_OK != rc)
         {
-            CL_DEBUG_PRINT(CL_DEBUG_ERROR, ("clSnmpAppNotifyHandler failed. rc = [0x%x]", rc));
+            clLogError("SNP","INT","clSnmpAppNotifyHandler failed. rc = [0x%x]", rc);
             return rc;
         }
     }
@@ -300,8 +300,8 @@ ClRcT snmpInstXlator (const struct ClMedAgentId *pAgntId,
 
     if (hmoId == NULL)
     {
-        CL_DEBUG_PRINT (CL_DEBUG_ERROR, ("snmpInstXlator NULL pointer to ClCorMOId!\n"));
-        clLogWrite(CL_LOG_HANDLE_APP, CL_LOG_ERROR, "INT", CL_LOG_MESSAGE_0_NULL_ARGUMENT);
+        //CL_DEBUG_PRINT (CL_DEBUG_ERROR, ("snmpInstXlator NULL pointer to ClCorMOId!\n"));
+        clLogWrite(CL_LOG_HANDLE_APP, CL_LOG_ERROR, "INT", "%s",CL_LOG_MESSAGE_0_NULL_ARGUMENT);
         return (CL_ERR_NULL_POINTER);
     }
     tableId = 0;
@@ -311,14 +311,13 @@ ClRcT snmpInstXlator (const struct ClMedAgentId *pAgntId,
         if(CL_OK != (rc = clCntNodeUserDataGet(gClSnmpOidContainerHandle,
                         nodeHandle, (ClCntDataHandleT*)&pOidInfo) ) )
         {
-            CL_DEBUG_PRINT(CL_DEBUG_ERROR, ("Could not find node for oid %s. RC = 0x%x",(ClCharT *) pAgntId->id, rc) );
+            //CL_DEBUG_PRINT(CL_DEBUG_ERROR, ("Could not find node for oid %s. RC = 0x%x",(ClCharT *) pAgntId->id, rc) );
             return rc;
         }
     }
     else
     {
-        CL_DEBUG_PRINT(CL_DEBUG_ERROR,
-                ("clCntNodeFind returned error rc = 0x%x", (ClUint32T)rc));
+        //CL_DEBUG_PRINT(CL_DEBUG_ERROR, ("clCntNodeFind returned error rc = 0x%x", (ClUint32T)rc));
         return rc;
     }
 
@@ -335,7 +334,7 @@ ClRcT snmpInstXlator (const struct ClMedAgentId *pAgntId,
 
         if(rc != CL_OK)
         {
-            CL_DEBUG_PRINT(CL_DEBUG_ERROR, ("InstXlator returned error! rc = 0x%x", rc));
+            //CL_DEBUG_PRINT(CL_DEBUG_ERROR, ("InstXlator returned error! rc = 0x%x", rc));
             return rc;
         }
 
@@ -343,14 +342,13 @@ ClRcT snmpInstXlator (const struct ClMedAgentId *pAgntId,
         {
             if(pOidInfo->fpTblIndexCorAttrGet == NULL)
             {
-                CL_DEBUG_PRINT(CL_DEBUG_ERROR,
-                        ("NULL callback to get COR attributes for table indices!"));
+                //CL_DEBUG_PRINT(CL_DEBUG_ERROR,("NULL callback to get COR attributes for table indices!"));
                 return CL_ERR_NULL_POINTER;
             }
             rc = pOidInfo->fpTblIndexCorAttrGet(*pRetInstData, pCorAttrValueDescList);
             if(rc != CL_OK)
             {
-                CL_DEBUG_PRINT(CL_DEBUG_ERROR, ("TblIndexCorAttrGet returned error! rc = 0x%x", rc));
+                //CL_DEBUG_PRINT(CL_DEBUG_ERROR, ("TblIndexCorAttrGet returned error! rc = 0x%x", rc));
                 return rc;
             }
         }
@@ -387,13 +385,13 @@ ClInt32T  snmpInstCompare (ClCntKeyHandleT key1,
     if(CL_OK != (rc = clCntNodeFind(gClSnmpOidContainerHandle,
                     (ClCntKeyHandleT)reqInfo1->oid, &nodeHandle) ) )
     {
-        CL_DEBUG_PRINT(CL_DEBUG_ERROR, ("Could not find node for oid %s. RC = 0x%x",(ClCharT *) reqInfo1->oid, rc) );
+        clLogError("SNP","INT","Could not find node for oid %s. RC = 0x%x",(ClCharT *) reqInfo1->oid, rc );
         return rc;
     }
     if(CL_OK != (rc = clCntNodeUserDataGet(gClSnmpOidContainerHandle,
                     nodeHandle, (ClCntDataHandleT*)&pOidInfo) ) )
     {
-        CL_DEBUG_PRINT(CL_DEBUG_ERROR, ("Could not get data for oid %s. RC = 0x%x",(ClCharT *) reqInfo2->oid, rc) );
+        clLogError("SNP","INT","Could not get data for oid %s. RC = 0x%x",(ClCharT *) reqInfo2->oid, rc );
         return rc;
     }
     retVal = pOidInfo->fpInstCompare(key1, key2);
@@ -432,7 +430,7 @@ ClInt32T clSnmpOidToAlarmIdGet(ClCharT* pTrapOid, ClUint32T *pProbableCause,
 
     if (!pTrapOid || !pProbableCause || !pSpecificProblem || !pMoId)
     {
-        CL_DEBUG_PRINT(CL_DEBUG_ERROR, ("%s(): Invalid Parameters!\r\n", __FUNCTION__));
+        //CL_DEBUG_PRINT(CL_DEBUG_ERROR, ("%s(): Invalid Parameters!\r\n", __FUNCTION__));
         return CL_ERR_INVALID_PARAMETER;
     }
 
@@ -484,7 +482,7 @@ ClRcT clSnmpOidAdd(ClSnmpOidInfoT *pTable)
                     (ClCntDataHandleT)pTable,
                     NULL) ) )
     {
-        CL_DEBUG_PRINT(CL_DEBUG_ERROR, ("Could not add data in oid list") );
+        clLogError("SNP","INT","Could not add data in oid list");
     }
     return rc;
 }
@@ -516,7 +514,7 @@ ClRcT clSnmpAppNotifyHandler(CL_IN ClCharT* pTrapOid, CL_IN ClCharT* pData, ClUi
 
     if(NULL == pTrapOid)
     {
-        CL_DEBUG_PRINT( CL_DEBUG_ERROR,("pTrapOid is passed as NULL.") );
+        //CL_DEBUG_PRINT( CL_DEBUG_ERROR,("pTrapOid is passed as NULL.") );
         return CL_ERR_NULL_POINTER;
     }
     /*Find out which trap is required for this event notification.*/
@@ -530,7 +528,7 @@ ClRcT clSnmpAppNotifyHandler(CL_IN ClCharT* pTrapOid, CL_IN ClCharT* pData, ClUi
     }
     if(clSnmpAppCallback[index].pTrapOid == NULL)
     {
-        CL_DEBUG_PRINT(CL_DEBUG_INFO, ("No callback registered for the alarm for trapOid %s.\n",pTrapOid) );
+        //CL_DEBUG_PRINT(CL_DEBUG_INFO, ("No callback registered for the alarm for trapOid %s.\n",pTrapOid) );
         return CL_ERR_NOT_EXIST;
     }
 
@@ -545,12 +543,12 @@ ClRcT clSnmpAppNotifyHandler(CL_IN ClCharT* pTrapOid, CL_IN ClCharT* pData, ClUi
                     pAlarmHandleInfo->alarmInfo.len, &pAlarmPayLoadList);
             if(CL_OK != rc)
             {
-                CL_DEBUG_PRINT(CL_DEBUG_ERROR, ("Could not extract alarm payload. rc = [0x%x]", rc) );
+                //CL_DEBUG_PRINT(CL_DEBUG_ERROR, ("Could not extract alarm payload. rc = [0x%x]", rc) );
                 return rc;
             }
             if(NULL == pAlarmPayLoadList)
             {
-                CL_DEBUG_PRINT(CL_DEBUG_ERROR, ("pAlarmPayLoadList is returned as NULL."));
+                //CL_DEBUG_PRINT(CL_DEBUG_ERROR, ("pAlarmPayLoadList is returned as NULL."));
                 return CL_ERR_NULL_POINTER;
             }
 
@@ -562,7 +560,7 @@ ClRcT clSnmpAppNotifyHandler(CL_IN ClCharT* pTrapOid, CL_IN ClCharT* pData, ClUi
             trapPayloadList.pPayLoad = (ClTrapPayLoadT *)clHeapAllocate(numIndexEntryInTable * sizeof(ClTrapPayLoadT) );
             if(NULL == trapPayloadList.pPayLoad)
             {
-                CL_DEBUG_PRINT(CL_DEBUG_ERROR, ("Could not allocate memory of size %zd",numIndexEntryInTable * sizeof(ClTrapPayLoadT)) );
+                //CL_DEBUG_PRINT(CL_DEBUG_ERROR, ("Could not allocate memory of size %zd",numIndexEntryInTable * sizeof(ClTrapPayLoadT)) );
                 return CL_ERR_NULL_POINTER;
             }
 
@@ -584,7 +582,7 @@ ClRcT clSnmpAppNotifyHandler(CL_IN ClCharT* pTrapOid, CL_IN ClCharT* pData, ClUi
                             pAlarmPayLoadList->pPayload[count].pMoId, &indexTlvInfo);
                     if(CL_OK != rc)
                     {
-                        CL_DEBUG_PRINT( CL_DEBUG_ERROR, ("moId to index get failed. rc = [0x%x]",rc) );
+                        //CL_DEBUG_PRINT( CL_DEBUG_ERROR, ("moId to index get failed. rc = [0x%x]",rc) );
                         return rc;
                     }
 
@@ -611,7 +609,7 @@ ClRcT clSnmpAppNotifyHandler(CL_IN ClCharT* pTrapOid, CL_IN ClCharT* pData, ClUi
                         pObjOid = (ClUint32T *)clHeapRealloc(pObjOid, oidLen);
                         if(NULL == pObjOid)
                         {
-                            CL_DEBUG_PRINT(CL_DEBUG_ERROR, ("Could not allocate memory of size %d\n",oidLen) );
+                            //CL_DEBUG_PRINT(CL_DEBUG_ERROR, ("Could not allocate memory of size %d\n",oidLen) );
                             return CL_ERR_NO_MEMORY;
                         }
                         allocatedOidLen = oidLen;
@@ -619,14 +617,14 @@ ClRcT clSnmpAppNotifyHandler(CL_IN ClCharT* pTrapOid, CL_IN ClCharT* pData, ClUi
                     rc = clSnmpIndexToOidGet(&indexTlvInfo, pObjOid);
                     if(CL_OK != rc)
                     {
-                        CL_DEBUG_PRINT(CL_DEBUG_ERROR, ("Could not get oid format for tlv. rc = [0x%x]",rc));
+                        //CL_DEBUG_PRINT(CL_DEBUG_ERROR, ("Could not get oid format for tlv. rc = [0x%x]",rc));
                         return rc;
                     }
                     /*Form a structure of type trapPayLoad from this*/
                     rc = clSnmpTrapPayloadGet((pAlarmPayLoadList->pPayload[count].pTlv + indexCount), oidLen, pObjOid, &trapPayloadList);
                     if(CL_OK != rc)
                     {
-                        CL_DEBUG_PRINT(CL_DEBUG_ERROR, ("Could not get trap payload from trap oid rc = [0x%x]",rc));
+                        //CL_DEBUG_PRINT(CL_DEBUG_ERROR, ("Could not get trap payload from trap oid rc = [0x%x]",rc));
                         return rc;
                     }
                     /*Sachin : this has internal pointers so need to freed carefully.*/
@@ -688,12 +686,12 @@ ClRcT clSnmpIndexToOidGet(CL_IN ClAlarmUtilTlvInfoPtrT pIndexTlvInfo, CL_OUT ClU
 
     if(NULL == pIndexTlvInfo)
     {
-        CL_DEBUG_PRINT( CL_DEBUG_ERROR,("index TLV is passed as NULL") );
+        //CL_DEBUG_PRINT( CL_DEBUG_ERROR,("index TLV is passed as NULL") );
         return CL_ERR_NULL_POINTER;
     }
     if(pIndexTlvInfo->numTlvs > 0 && NULL == pObjOid)
     {
-        CL_DEBUG_PRINT( CL_DEBUG_ERROR,("pObjOid is passed as NULL") );
+        //CL_DEBUG_PRINT( CL_DEBUG_ERROR,("pObjOid is passed as NULL") );
         return CL_ERR_NULL_POINTER;
     }
 
@@ -754,7 +752,7 @@ ClRcT clSnmpTrapPayloadGet(CL_IN ClAlarmUtilTlvPtrT pTlv,
         (ClUint32T *)clHeapAllocate(oidLen);
     if(NULL == pTrapPayloadList->pPayLoad[pTrapPayloadList->numTrapPayloadEntry].objOid)
     {
-        CL_DEBUG_PRINT(CL_DEBUG_ERROR, ("Could not allocate memory of size %d",oidLen));
+        //CL_DEBUG_PRINT(CL_DEBUG_ERROR, ("Could not allocate memory of size %d",oidLen));
         return CL_ERR_NULL_POINTER;
     }
     memcpy(pTrapPayloadList->pPayLoad[pTrapPayloadList->numTrapPayloadEntry].objOid, pObjOid, oidLen);
@@ -776,14 +774,14 @@ ClInt32T dumpOidInfo()
     if (clCntFirstNodeGet(gClSnmpOidContainerHandle, &currentNode) != CL_OK)
     {
         CL_FUNC_EXIT();
-        CL_DEBUG_PRINT(CL_DEBUG_ERROR, ("No Instance translation  found "));
+        //CL_DEBUG_PRINT(CL_DEBUG_ERROR, ("No Instance translation  found "));
         return CL_MED_SET_RC(CL_MED_ERR_NO_INSTANCE);
     }
     if (CL_OK != (rc = clCntNodeUserDataGet(gClSnmpOidContainerHandle,
                     currentNode, (ClCntDataHandleT*)&pOidInfo)))
     {
         CL_FUNC_EXIT();
-        CL_DEBUG_PRINT(CL_DEBUG_ERROR, ("No Instance translation  found "));
+        //CL_DEBUG_PRINT(CL_DEBUG_ERROR, ("No Instance translation  found "));
         return CL_MED_SET_RC(CL_MED_ERR_NO_INSTANCE);
     }
     while(clCntNextNodeGet(gClSnmpOidContainerHandle, currentNode, &nextNode) == CL_OK)
@@ -793,7 +791,7 @@ ClInt32T dumpOidInfo()
                         (ClCntDataHandleT*)&pOidInfo)))
         {
             CL_FUNC_EXIT();
-            CL_DEBUG_PRINT(CL_DEBUG_ERROR, ("No Instance translation  found "));
+            //CL_DEBUG_PRINT(CL_DEBUG_ERROR, ("No Instance translation  found "));
             return CL_MED_SET_RC(CL_MED_ERR_NO_INSTANCE);
         }
         currentNode = nextNode;

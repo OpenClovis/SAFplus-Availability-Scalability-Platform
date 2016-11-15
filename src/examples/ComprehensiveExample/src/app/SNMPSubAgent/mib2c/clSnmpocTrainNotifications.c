@@ -26,8 +26,7 @@ void clSnmpSendalarmTrapTrap(ClTrapPayLoadListT   *pTrapPayLoadList)
     clLogDebug("SNM", "NTF", "Inside trap handler");
     if(pTrapPayLoadList == NULL)
     {
-        CL_DEBUG_PRINT(CL_DEBUG_ERROR,
-                      ("NULL arguments received!"));
+        //CL_DEBUG_PRINT(CL_DEBUG_ERROR,("NULL arguments received!"));
         return;
     }
     if(1 != pTrapPayLoadList->numTrapPayloadEntry)
@@ -52,7 +51,7 @@ void clSnmpSendalarmTrapTrap(ClTrapPayLoadListT   *pTrapPayLoadList)
 
     if(clockIdOid == NULL)
     {
-        CL_DEBUG_PRINT(CL_DEBUG_ERROR, ("Memory allocation failed for clockIdOid, size = %d", oidLen));
+        //CL_DEBUG_PRINT(CL_DEBUG_ERROR, ("Memory allocation failed for clockIdOid, size = %d", oidLen));
         return;
     }
 

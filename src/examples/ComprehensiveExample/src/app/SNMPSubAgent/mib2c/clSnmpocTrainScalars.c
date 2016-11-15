@@ -104,7 +104,7 @@ clSnmpclockRunningStatusHandler(netsnmp_mib_handler *handler,
 
         default:
             /* we should never get here, so this is a really bad error */
-            CL_DEBUG_PRINT(CL_DEBUG_ERROR, ("unknown mode (%d) in clSnmpclockRunningStatusHandler\n", reqinfo->mode) );
+            clLogError("SUB","SCL","unknown mode (%d) in clSnmpclockRunningStatusHandler\n", reqinfo->mode);
             return SNMP_ERR_GENERR;
     }
 
@@ -172,7 +172,7 @@ clSnmpclockRedStatusHandler(netsnmp_mib_handler *handler,
 
         default:
             /* we should never get here, so this is a really bad error */
-            CL_DEBUG_PRINT(CL_DEBUG_ERROR, ("unknown mode (%d) in clSnmpclockRedStatusHandler\n", reqinfo->mode) );
+            clLogError("SUB","SCL","unknown mode (%d) in clSnmpclockRedStatusHandler", reqinfo->mode );
             return SNMP_ERR_GENERR;
     }
 
