@@ -61,6 +61,7 @@ LOCK_BUTTON_ID = 3482
 HELP_BUTTON_ID = 4523
 TEXT_ENTRY_ID = 7598
 EDIT_BUTTON_ID = 11121
+GRID_ID = wx.NewId()
 
 StandaloneDev = False
 
@@ -923,8 +924,9 @@ class DataEntryDialog(wx.Dialog):
         """Constructor"""
         wx.Dialog.__init__(self, parent, title="Data entry dialog", size=(430,300))
         self.key = 0
+        self.deleteKeyDown = False
         # Create a wxGrid object
-        self.grid = wx.grid.Grid(self, -1, size=(500, 200))
+        self.grid = wx.grid.Grid(self, GRID_ID, size=(500, 200))
         obj = parent.lookup[parent.idx]
         assert(obj)
         item = obj[0][1]
@@ -962,7 +964,7 @@ class DataEntryDialog(wx.Dialog):
           for grp in self.data:
             col = 0
             for it in grp.items():
-              self.grid.SetCellValue(row, col, it[1])
+              self.grid.SetCellValue(row, col, str(it[1]))
               col+=1
             row+=1
 
@@ -980,6 +982,64 @@ class DataEntryDialog(wx.Dialog):
        
         self.SetSizer(main_sizer)
 
+        self.Bind(wx.grid.EVT_GRID_CMD_CELL_CHANGED, self.OnGridCellChanged, id=GRID_ID)
+        self.Bind(wx.grid.EVT_GRID_CMD_EDITOR_CREATED, self.OnCellEdit, id=GRID_ID)
+
+    def OnGridCellChanged(self, evt):
+        curRow = evt.GetRow()
+        curCol = evt.GetCol()
+        print 'grid changed: curRow [%d]; old value [%s]; new value [%s]' % (curRow, evt.GetString(), self.grid.GetCellValue(curRow,curCol))
+        # Workaround: showing message box in wx grid always make wx python sends CELL_CHANGED event twice
+        # so, we need to unbind the event first. After handling for the event finishes, rebind it
+        self.Unbind(wx.grid.EVT_GRID_CMD_CELL_CHANGED, id=GRID_ID)
+        if evt.GetCol()==self.key:
+          oldValue = evt.GetString()
+          newValue = self.grid.GetCellValue(curRow, self.key).encode('ascii')
+          # check if the new value is duplicated
+          for row in range(0,self.nRows):
+            temp = self.grid.GetCellValue(row, self.key).encode('ascii')
+            if row!=curRow and len(temp)>0 and temp==newValue:
+              wx.MessageBox("Duplicated key value", "Error", wx.OK|wx.CENTER, self)
+              evt.Veto()
+              break
+        # workaround: because CellNumberEditor always set value 0 by default for cells whose value is deleted,
+        # so we must workaround to set it to empty after user deletes it
+        cellEditor = self.grid.GetCellEditor(curRow,curCol)
+        if isinstance(cellEditor, wx.grid.GridCellNumberEditor):
+          if self.deleteKeyDown:
+            #print 'handling empty content of the cell (%d,%d)' % (curRow, curCol)
+            if self.grid.GetCellValue(curRow, curCol)=='0':
+              #print 'set cell() empty (%d,%d)' % (curRow, curCol)
+              self.grid.SetCellValue(curRow, curCol,"")
+              self.deleteKeyDown = False
+        self.Bind(wx.grid.EVT_GRID_CMD_CELL_CHANGED, self.OnGridCellChanged, id=GRID_ID)
+
+    #----------------------------------------------------------------------
+    def OnCellEdit(self, event):
+        '''
+        When cell is edited, get a handle on the editor widget
+        and bind it to EVT_KEY_DOWN
+        '''
+        editor = event.GetControl()
+        editor.Bind(wx.EVT_KEY_DOWN, self.OnEditorKey)
+        event.Skip()
+
+    #----------------------------------------------------------------------
+    def OnEditorKey(self, event):
+        '''
+        Handler for the wx.grid's cell editor widget's keystrokes. Checks for specific
+        keystrokes, such as arrow up or arrow down, and responds accordingly. Allows
+        all other key strokes to pass through the handler.
+        '''
+        keycode = event.GetKeyCode()
+        if keycode == wx.WXK_BACK or keycode == wx.WXK_DELETE:
+          print 'you pressed the delete key'
+          self.deleteKeyDown = True
+        else:
+          self.deleteKeyDown = False
+        event.Skip()
+
+
     def save(self):
         del self.data[:]
         for r in range(0, self.nRows):
@@ -991,7 +1051,6 @@ class DataEntryDialog(wx.Dialog):
             d[self.grid.GetColLabelValue(c).encode('ascii')] = text
           if len(d)>0:
             self.data.append(d)
-          r+=1
  
     #----------------------------------------------------------------------
     def onBtnHandler(self, event):
