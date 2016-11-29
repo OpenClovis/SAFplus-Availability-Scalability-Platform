@@ -336,6 +336,8 @@ class SAFplusFrame(wx.Frame):
       pageText = self.tab.GetPageText(idx)
       print 'page [%s] idx [%d] closing' % (pageText, idx)
       t = self.model
+      if not t:
+        return
       if pageText == self.getCurrentPageText(0):
         t.uml.deleteMyTools()        
         pageIdx = 0

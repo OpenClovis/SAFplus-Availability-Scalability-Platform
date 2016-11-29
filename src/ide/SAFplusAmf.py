@@ -8,19 +8,19 @@ import umlEditor
 
 class WizardDialog(wx.Dialog):
 
-    def __init__(self,title):
+    def __init__(self,title, size=(430,340)):
         """Constructor"""
-        wx.Dialog.__init__(self, None, title="SAF Application Wizard", size=(430,340))
+        wx.Dialog.__init__(self, None, title="SAF Application Wizard", size=size)
         self.LabelSize = (100,25) 
         self.EntrySize = (300,25)
         self.main_sizer = wx.BoxSizer(wx.VERTICAL)
 
   
-    def createRow(self,label, ctrl=None):
+    def createRow(self,label, ctrl=None, size=None):
       """Generates a GUI row consisting of a horizontal sizer, text description and control"""
       sizer = wx.BoxSizer(wx.HORIZONTAL)
       if label is not None:
-        label = wx.StaticText(self, label=label, size=self.LabelSize)
+        label = wx.StaticText(self, label=label, size=size if size else self.LabelSize)
         if ctrl == 0: 
           print label
           sizer.Add(label, 3, wx.ALL| wx.EXPAND, 5)
@@ -62,7 +62,7 @@ class SAFWizardDialog(WizardDialog):
         self.nProc = tmp[1]
         gelems.append(tmp)
 
-        tmp = self.createRow("Process names (space or comma separated)")
+        tmp = self.createRow("Process names (space or comma separated)", size=(100,75))
         self.procNames = tmp[1]
         gelems.append(tmp)
 
@@ -78,7 +78,10 @@ class SAFWizardDialog(WizardDialog):
 
         
         for (sizer, ctrl) in gelems:
-          self.main_sizer.Add(sizer, 0, wx.ALL, 5)
+          if type(ctrl) is types.ListType and isinstance(ctrl[0], wx.Button):
+            self.main_sizer.Add(sizer, 0, wx.ALL|wx.CENTER, 5)
+          else:
+            self.main_sizer.Add(sizer, 0, wx.ALL, 5)
 
         self.SetSizer(self.main_sizer)
         self.main_sizer.Layout()
@@ -99,12 +102,12 @@ class NPNPWizardDialog(WizardDialog):
  
     def __init__(self):
         """Constructor"""
-        WizardDialog.__init__(self, "Non-SAF Application Generator")
+        WizardDialog.__init__(self, "Non-SAF Application Generator", size=(430,400))
 
         gelems = []
 
-        info = self.createRow("This dialog creates the expected UML entities for 3rd-party applications.  Define groups of apps that you want to fail over together.",0)
-        info2 = self.createRow("To define several separate failure groups, open this wizard multiple times.",0)
+        info = self.createRow("This dialog creates the expected UML entities for 3rd-party applications.  Define groups of apps that you want to fail over together.",0,size=(100,50))
+        info2 = self.createRow("To define several separate failure groups, open this wizard multiple times.",0, size=(100,45))
         self.main_sizer.Add(info[0], 5, wx.ALL|wx.EXPAND,5)
         self.main_sizer.Add(info2[0], 5, wx.ALL|wx.EXPAND,5)
         self.main_sizer.Add(wx.StaticLine(self,), 0, wx.ALL|wx.EXPAND, 5)
@@ -115,7 +118,7 @@ class NPNPWizardDialog(WizardDialog):
         self.nProc = tmp[1]
         gelems.append(tmp)
 
-        tmp = self.createRow("Process names (space or comma separated)")
+        tmp = self.createRow("Process names (space or comma separated)", size=(100,75))
         self.procNames = tmp[1]
         gelems.append(tmp)
 
@@ -127,7 +130,10 @@ class NPNPWizardDialog(WizardDialog):
 
         
         for (sizer, ctrl) in gelems:
-          self.main_sizer.Add(sizer, 0, wx.ALL, 5)
+          if type(ctrl) is types.ListType and isinstance(ctrl[0], wx.Button):
+            self.main_sizer.Add(sizer, 0, wx.ALL|wx.CENTER, 5)
+          else:
+            self.main_sizer.Add(sizer, 0, wx.ALL, 5)
 
         self.SetSizer(self.main_sizer)
         self.main_sizer.Layout()
