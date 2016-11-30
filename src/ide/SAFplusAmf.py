@@ -100,18 +100,26 @@ class SAFWizardDialog(WizardDialog):
         self.Close()
 
     def validate(self):
-        if len(self.nameGui.GetValue())==0:
-          wx.MessageBox("Invalid text input", "Validator", wx.OK|wx.ICON_EXCLAMATION, self)
+        if len(self.nameGui.GetValue().strip())==0:
+          wx.MessageBox("Service Group name can not be empty", "Validator", wx.OK|wx.ICON_EXCLAMATION, self)
           self.nameGui.SetFocus()
           return False
-        if len(self.procNames.GetValue())==0:
-          wx.MessageBox("Invalid text input", "Validator", wx.OK|wx.ICON_EXCLAMATION, self)
+        if len(self.procNames.GetValue().strip())==0:
+          wx.MessageBox("Process names can not be empty", "Validator", wx.OK|wx.ICON_EXCLAMATION, self)
           self.procNames.SetFocus()
           return False
         if not self.nProc.GetValue().isdigit():
-          wx.MessageBox("Invalid number input", "Validator", wx.OK|wx.ICON_EXCLAMATION, self)
+          wx.MessageBox("Number of processes can not be string", "Validator", wx.OK|wx.ICON_EXCLAMATION, self)
           self.nProc.SetFocus()
           return False
+        procNameStr = self.procNames.GetValue()
+        self.procNameList = splitByThisAndWhitespace(",", procNameStr)
+        temp = set(self.procNameList)
+        if len(self.procNameList) != len(temp):
+          wx.MessageBox("Process names can not be duplicated", "Validator", wx.OK|wx.ICON_EXCLAMATION, self)
+          self.procNames.SetFocus()
+          return False
+
         return True
 
 class NPNPWizardDialog(WizardDialog):
@@ -171,18 +179,26 @@ class NPNPWizardDialog(WizardDialog):
         self.Close()
 
     def validate(self):
-        if len(self.nameGui.GetValue())==0:
-          wx.MessageBox("Invalid text input", "Validator", wx.OK|wx.ICON_EXCLAMATION, self)
+        if len(self.nameGui.GetValue().strip())==0:
+          wx.MessageBox("Service Group name can not be empty", "Validator", wx.OK|wx.ICON_EXCLAMATION, self)
           self.nameGui.SetFocus()
           return False
-        if len(self.procNames.GetValue())==0:
-          wx.MessageBox("Invalid text input", "Validator", wx.OK|wx.ICON_EXCLAMATION, self)
+        if len(self.procNames.GetValue().strip())==0:
+          wx.MessageBox("Process names can not be empty", "Validator", wx.OK|wx.ICON_EXCLAMATION, self)
           self.procNames.SetFocus()
           return False
         if not self.nProc.GetValue().isdigit():
-          wx.MessageBox("Invalid number input", "Validator", wx.OK|wx.ICON_EXCLAMATION, self)
+          wx.MessageBox("Number of processes can not be string", "Validator", wx.OK|wx.ICON_EXCLAMATION, self)
           self.nProc.SetFocus()
           return False
+        procNameStr = self.procNames.GetValue()
+        self.procNameList = splitByThisAndWhitespace(",", procNameStr)
+        temp = set(self.procNameList)
+        if len(self.procNameList) != len(temp):
+          wx.MessageBox("Process names can not be duplicated", "Validator", wx.OK|wx.ICON_EXCLAMATION, self)
+          self.procNames.SetFocus()
+          return False
+
         return True
 
 
@@ -236,8 +252,7 @@ class Extensions:
       nProc = int(dlg.nProc.GetValue())
       pos = position
 
-      procNameStr = dlg.procNames.GetValue()
-      procNames = splitByThisAndWhitespace(",", procNameStr)
+      procNames = dlg.procNameList
 
       for n in max(len(procNames), range(1,nProc+1)):
         if procNames:
@@ -315,8 +330,7 @@ class Extensions:
       nProc = int(dlg.nProc.GetValue())
       pos = position
 
-      procNameStr = dlg.procNames.GetValue()
-      procNames = splitByThisAndWhitespace(",", procNameStr)
+      procNames = dlg.procNameList
 
       for n in max(len(procNames), range(1,nProc+1)):
         if procNames:
