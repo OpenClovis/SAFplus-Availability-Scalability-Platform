@@ -94,8 +94,25 @@ class SAFWizardDialog(WizardDialog):
         print 'about to %s' % what  
         # if (what == "OK"):
         self.what = what
+        if self.what == "OK":
+          if not self.validate():
+            return
         self.Close()
 
+    def validate(self):
+        if len(self.nameGui.GetValue())==0:
+          wx.MessageBox("Invalid text input", "Validator", wx.OK|wx.ICON_EXCLAMATION, self)
+          self.nameGui.SetFocus()
+          return False
+        if len(self.procNames.GetValue())==0:
+          wx.MessageBox("Invalid text input", "Validator", wx.OK|wx.ICON_EXCLAMATION, self)
+          self.procNames.SetFocus()
+          return False
+        if not self.nProc.GetValue().isdigit():
+          wx.MessageBox("Invalid number input", "Validator", wx.OK|wx.ICON_EXCLAMATION, self)
+          self.nProc.SetFocus()
+          return False
+        return True
 
 class NPNPWizardDialog(WizardDialog):
     """Class to define SAF application wizard dialog"""
@@ -148,10 +165,25 @@ class NPNPWizardDialog(WizardDialog):
         print 'about to %s' % what  
         # if (what == "OK"):
         self.what = what
+        if self.what == "OK":
+          if not self.validate():
+            return
         self.Close()
 
-
-
+    def validate(self):
+        if len(self.nameGui.GetValue())==0:
+          wx.MessageBox("Invalid text input", "Validator", wx.OK|wx.ICON_EXCLAMATION, self)
+          self.nameGui.SetFocus()
+          return False
+        if len(self.procNames.GetValue())==0:
+          wx.MessageBox("Invalid text input", "Validator", wx.OK|wx.ICON_EXCLAMATION, self)
+          self.procNames.SetFocus()
+          return False
+        if not self.nProc.GetValue().isdigit():
+          wx.MessageBox("Invalid number input", "Validator", wx.OK|wx.ICON_EXCLAMATION, self)
+          self.nProc.SetFocus()
+          return False
+        return True
 
 
 LevelStep = 150
