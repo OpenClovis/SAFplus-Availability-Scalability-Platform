@@ -256,7 +256,10 @@ class Entity:
               data[name] = ""
       elif type(metadata) == ListType:
         if dataDict and dataDict.has_key(name):
-          dataTags = dataDict.getElementsByTagName(name)
+          if isinstance(dataDict, microdom.MicroDom):
+            dataTags = dataDict.getElementsByTagName(name)
+          else:
+            dataTags = dataDict.get(name, None)
           if dataTags:
             lst = []
             for item in metadata[0].items():
@@ -266,7 +269,10 @@ class Entity:
               d = {}
               for i in range(0,len(lst)):
                 if dt.has_key(lst[i]):
-                  k = dt[lst[i]].data_
+                  try:
+                    k = dt[lst[i]].data_
+                  except AttributeError, e:  # Could be string NOT an xml tag
+                    k = dt[lst[i]]
                   d[lst[i]] = k
               if len(d)>0:
                 l.append(d)
