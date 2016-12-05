@@ -150,14 +150,14 @@ instantiated  <instances>     instances                         instances     (e
       for (name, e) in self.instances.items():
         if name==entname:          
           del self.instances[name]
-      for (name,e) in self.instances.items():
-        e.containmentArrows[:] = [ x for x in e.containmentArrows if x.contained != inst]      
       return
     for ca in inst.containmentArrows:
       self.recursiveDeleteInstance(ca.contained)
     del inst.containmentArrows[:]
     self.deleteInstanceFromMicrodom(entname)
     del self.instances[entname]
+    for (name,e) in self.instances.items():
+      e.containmentArrows[:] = [ x for x in e.containmentArrows if x.contained != inst]
 
   def connect(self,container, contained):
     """Connects 2 instances together.  Returns the containment arrow instance"""
@@ -639,16 +639,18 @@ instantiated  <instances>     instances                         instances     (e
       # 2 ways recursive:
       #   1. SG -> SI -> CSI
       #   2. Node -> SU -> Component
-      if depth<=MAX_RECURSIVE_INSTANTIATION_DEPTH:
-        for ca in ent.containmentArrows:
-          (ch, xtra) = self.recursiveInstantiation(ca.contained,instances, depth)
-          ch.childOf.add(ei)
-          cai = copy.copy(ca)
-          cai.container = ei
-          cai.contained = ch
-          ei.containmentArrows.append(cai)
-          children.append(ch)
-
+      if ent.et.name != "ComponentServiceInstance":
+        if depth<=MAX_RECURSIVE_INSTANTIATION_DEPTH:
+          for ca in ent.containmentArrows:
+            (ch, xtra) = self.recursiveInstantiation(ca.contained,instances, depth)
+            ch.childOf.add(ei)
+            cai = copy.copy(ca)
+            cai.container = ei
+            cai.contained = ch
+            ei.containmentArrows.append(cai)
+            children.append(ch)
+      else:
+        print 'model::recursiveInstantiation: do not create recursive instance for [%s], type [%s]' % (name, ent.et.name)
       return (ei, instances)
 
   def recursiveDuplicateInst(self,inst,instances=None, depth=1):
