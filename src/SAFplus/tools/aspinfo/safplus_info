@@ -2221,7 +2221,7 @@ def main(argv):
             
     if len(args):
         t = ' '.join(args)
-        cmds = t.split(";")
+        cmds = t.split(",")
         for c in cmds:
           cli.onecmd(c)
         sys.exit(_exit_code)
