@@ -784,6 +784,11 @@ class GridEntityLayout:
         if sg and cell.row != sg:
           continue
 
+        # Does not allow si to be moved to node
+        if instance.et.name=="ServiceInstance" and not isinstance(cell.col, Margin) and cell.col.et.name=="Node":
+          print 'cannot move SIs/CSIs to Nodes'
+          continue
+
         if inBox(pos,cell.bound):
           # Remove the containment arrows (if they exist)
           for i in instance.childOf:  
