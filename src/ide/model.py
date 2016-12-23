@@ -145,19 +145,20 @@ instantiated  <instances>     instances                         instances     (e
 
   def recursiveDeleteInstance(self,inst):
     entname = inst.data["name"]    
-    if len(inst.containmentArrows)==0:
-      self.deleteInstanceFromMicrodom(entname)
-      for (name, e) in self.instances.items():
-        if name==entname:          
-          del self.instances[name]
-      return
+    #if len(inst.containmentArrows)==0:
+    #  self.deleteInstanceFromMicrodom(entname)
+    #  for (name, e) in self.instances.items():
+    #    if name==entname:
+    #      del self.instances[name]
+    #  return
     for ca in inst.containmentArrows:
       self.recursiveDeleteInstance(ca.contained)
-    del inst.containmentArrows[:]
+    if len(inst.containmentArrows)>0:
+      del inst.containmentArrows[:]
     self.deleteInstanceFromMicrodom(entname)
     del self.instances[entname]
     for (name,e) in self.instances.items():
-      e.containmentArrows[:] = [ x for x in e.containmentArrows if x.contained != inst]
+      e.containmentArrows = [ x for x in e.containmentArrows if x.contained != inst]
 
   def connect(self,container, contained):
     """Connects 2 instances together.  Returns the containment arrow instance"""

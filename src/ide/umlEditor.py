@@ -208,6 +208,8 @@ class SelectTool(Tool):
 
   def OnSelect(self, panel,event):
     panel.statusBar.SetStatusText(self.defaultStatusText,0);
+    self.touching.clear()
+    self.selected.clear()
     return True
 
   def OnUnselect(self,panel,event):
@@ -225,6 +227,7 @@ class SelectTool(Tool):
           ctx.fill()
 
   def OnEditEvent(self,panel, event):
+    panel.drawSelectionBox = True
     pos = panel.CalcUnscrolledPosition(event.GetPositionTuple())
     if isinstance(event,wx.MouseEvent):
       if event.ButtonDown(wx.MOUSE_BTN_LEFT) or event.LeftDClick():  # Select
@@ -242,15 +245,16 @@ class SelectTool(Tool):
         # If the control key is down, then add to the currently selected group, otherwise replace it.
         if event.ControlDown():
           self.selected = self.selected.union(self.touching)
-          panel.Refresh()
+          #panel.Refresh()
         else:
           # If you touch something else, your touching set changes.  But if you touch something in your current touch group then nothing changes
           # This enables behavior like selecting a group of entities and then dragging them (without using the ctrl key)
           if not elemsInSet(entities,self.selected):
             self.selected = self.touching.copy()
-            panel.Refresh()
+            #panel.Refresh()
         if event.LeftDClick():
           self.updateSelected()
+        panel.Refresh()
         return True
       if event.Dragging():
         # if you are touching anything, then drag everything
@@ -290,10 +294,12 @@ class SelectTool(Tool):
       if event.GetEventType() == wx.EVT_KEY_DOWN.typeId and (event.GetKeyCode() ==  wx.WXK_DELETE or event.GetKeyCode() ==  wx.WXK_NUMPAD_DELETE):
         if self.touching:
           self.panel.deleteEntities(self.touching)
-          self.touching.clear()
+          #self.touching.clear()
         elif self.selected:
           self.panel.deleteEntities(self.selected)
-          self.selected.clear()
+          #self.selected.clear()
+        self.touching.clear()
+        self.selected.clear()
         #panel.Refresh()
         return True # I consumed this event
       else:
@@ -520,7 +526,7 @@ class Panel(scrolled.ScrolledPanel):
 
       # Buttons and other IDs that are registered may need to be looked up to turn the ID back into a python object
       self.idLookup={}  
-
+      self.drawSelectionBox = False
       # The list of entities that exist in this model, extracted from the model for easy display
       self.entities = self.model.entities
       # TODO load entities from the model
@@ -565,6 +571,7 @@ class Panel(scrolled.ScrolledPanel):
       self.rotate = 0.0
       self.scale = 1.0
       self.tool = None
+      self.drawSelectionBox = False
       #self.entityToolIds = []
 
     def setModelData(self, model):
@@ -720,6 +727,10 @@ class Panel(scrolled.ScrolledPanel):
       print "Tool Clicked %d %s %s" % (id, str(co), str(cd))
       try:
         tool = self.idLookup[id]
+        if not isinstance(tool, SelectTool) and self.drawSelectionBox:
+          self.drawSelectionBox = False
+          self.Refresh()
+
         if self.tool:
           self.tool.OnUnselect(self,event)
           self.tool = None
@@ -800,7 +811,10 @@ class Panel(scrolled.ScrolledPanel):
           e.render(ctx)
 
         for idx in self.idLookup:
-          self.idLookup[idx].render(ctx)
+          tool = self.idLookup[idx]
+          if isinstance(tool, SelectTool) and not self.drawSelectionBox:
+            continue
+          tool.render(ctx)
 
     def findEntitiesAt(self,pos):
       """Returns the entity located at the passed position """
@@ -860,6 +874,7 @@ class Panel(scrolled.ScrolledPanel):
       self.Refresh()
 
     def deleteEntities(self, ents):
+      self.drawSelectionBox = False
       if share.instancePanel:
         share.instancePanel.deleteEntityTool(ents)
       if share.detailsPanel:

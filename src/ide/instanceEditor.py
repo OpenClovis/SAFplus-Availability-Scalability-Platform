@@ -311,6 +311,8 @@ class SelectTool(Tool):
 
   def OnSelect(self, panel,event):
     panel.statusBar.SetStatusText(self.defaultStatusText,0);
+    self.touching.clear()
+    self.selected.clear()
     return True
 
   def OnUnselect(self,panel,event):
@@ -327,6 +329,7 @@ class SelectTool(Tool):
         ctx.fill()
 
   def OnEditEvent(self,panel, event):
+    panel.drawSelectionBox = True
     ret = False
     pos = panel.CalcUnscrolledPosition(event.GetPositionTuple())
     scale = self.panel.scale
@@ -469,10 +472,12 @@ class SelectTool(Tool):
         if event.GetKeyCode() ==  wx.WXK_DELETE or event.GetKeyCode() ==  wx.WXK_NUMPAD_DELETE:
           if self.touching:
             self.deleteEntities(self.touching)
-            self.touching.clear()
+            #self.touching.clear()
           elif self.selected:
             self.deleteEntities(self.selected)
-            self.selected.clear()
+            #self.selected.clear()
+          self.touching.clear()
+          self.selected.clear()
           self.panel.Refresh()
           ret=True # I consumed this event
         elif event.ControlDown() and character ==  'V':
@@ -784,6 +789,11 @@ class GridEntityLayout:
         if sg and cell.row != sg:
           continue
 
+        # Does not allow si to be moved to node
+        if instance.et.name=="ServiceInstance" and not isinstance(cell.col, Margin) and cell.col.et.name=="Node":
+          print 'cannot move SIs/CSIs to Nodes'
+          continue
+
         if inBox(pos,cell.bound):
           # Remove the containment arrows (if they exist)
           for i in instance.childOf:  
@@ -945,7 +955,7 @@ class Panel(scrolled.ScrolledPanel):
         self.toolBar = wx.ToolBar(self,-1)
         self.toolBar.SetToolBitmapSize((24,24))
 
-     
+      self.drawSelectionBox = False
 
       # example of adding a standard button
       #new_bmp =  wx.ArtProvider.GetBitmap(wx.ART_NEW, wx.ART_TOOLBAR, tsize)
@@ -1313,6 +1323,10 @@ class Panel(scrolled.ScrolledPanel):
       print "Tool Clicked %d %s %s" % (id, str(co), str(cd))
       try:
         tool = self.idLookup[id]
+        if (isinstance(self.tool, SelectTool) or isinstance(self.tool, CopyTool)) and not isinstance(tool, CopyTool) and self.drawSelectionBox:
+          self.drawSelectionBox = False
+          self.Refresh()
+          self.selectedEntities = None
         if self.tool:
           self.tool.OnUnselect(self,event)
           self.tool = None
@@ -1794,7 +1808,10 @@ class Panel(scrolled.ScrolledPanel):
           e.render(ctx)
 
         for idx in self.idLookup:
-          self.idLookup[idx].render(ctx)
+          tool = self.idLookup[idx]
+          if isinstance(tool, SelectTool) and not self.drawSelectionBox:
+            continue
+          tool.render(ctx)
 
         for rect in self.intersects:
           drawIntersectRect(ctx, rect)
@@ -1888,6 +1905,8 @@ class Panel(scrolled.ScrolledPanel):
 
     def deleteEntities(self, ents, deleteFromModel=True):
       #remove columns/rows
+      self.drawSelectionBox = False
+      self.selectedEntities = None
       for ent in ents:
         self.removeGrayCells(ent)
         try:
