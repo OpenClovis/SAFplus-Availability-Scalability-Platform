@@ -103,14 +103,16 @@ namespace SAFplus
     assert(mDbDataHdl);
 
     /* Open the data DB */
+    pluginFlags = 0;
     dbNameData.append(dbName).append(".db");
     unsigned int flags = (pluginFlags << 8) | CL_DB_APPEND;
     rc = mDbDataHdl->open(dbNameData.c_str(), dbNameData.c_str(), flags, maxKeySize, maxRecordSize);
     if (CL_OK != rc)
       {
+    	logInfo("MGT", "DBR", "Opening database false");
         goto exitOnError1;
       }
-
+    logInfo("MGT", "DBR", "Opening database Ok");
     //mDbDataHdl = dbDataHdl;
     mInitialized = CL_TRUE;
     return rc;
