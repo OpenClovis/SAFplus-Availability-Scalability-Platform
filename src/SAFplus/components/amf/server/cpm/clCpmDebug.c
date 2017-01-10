@@ -408,10 +408,15 @@ ClRcT cpmDebugRegister(void)
         return rc;
     }
 
-    return clDebugRegister(cpmSCDebugFuncList,
+    return clDebugRegisterConstBuf(cpmSCDebugFuncList,
                            sizeof(cpmSCDebugFuncList) /
-                           sizeof(cpmSCDebugFuncList[0]), 
+                           sizeof(cpmSCDebugFuncList[0]),
                            &gCpmDebugReg);
+
+    //return clDebugRegister(cpmSCDebugFuncList,
+     //                      sizeof(cpmSCDebugFuncList) /
+      //                     sizeof(cpmSCDebugFuncList[0]), 
+       //                    &gCpmDebugReg);
 }
 
 ClRcT cpmDebugDeregister()

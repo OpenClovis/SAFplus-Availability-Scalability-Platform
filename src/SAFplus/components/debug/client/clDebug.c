@@ -838,6 +838,7 @@ ClRcT clDebugRegister(ClDebugFuncEntryT  *funcArray,
         return CL_DEBUG_RC(CL_ERR_NO_MEMORY);
     }
 
+    pDebugObj->iOwn = 0;
     for (i = 0; i < funcArrayLen; i++)
     {
          pFuncGroup->pFuncDescList[i] = funcArray[i];
@@ -852,6 +853,90 @@ ClRcT clDebugRegister(ClDebugFuncEntryT  *funcArray,
 
     return CL_OK;
 }
+
+//################### START ###################################
+ClRcT clDebugRegisterConstBuf(ClDebugFuncEntryT  *funcArray,
+                      ClUint32T          funcArrayLen,
+                      ClHandleT          *phDebugReg)/* - by user - needs to be exposed*/
+{
+    ClRcT              rc          = CL_OK;
+    ClDebugObjT        *pDebugObj  = NULL;
+    //ClUint32T          i           = 0;
+    ClEoExecutionObjT  *pEoObj     = NULL;
+    ClDebugFuncGroupT  *pFuncGroup = NULL;
+    
+    if ((0 == funcArrayLen) || (NULL == funcArray))
+    {
+        clLogWrite(CL_LOG_HANDLE_APP,CL_LOG_WARNING,CL_DEBUG_LIB_CLIENT,
+                   CL_LOG_MESSAGE_1_INVALID_PARAMETER,"Arguments are Invalid");
+        return CL_DEBUG_RC(CL_ERR_INVALID_PARAMETER);
+    }
+
+    rc = clEoMyEoObjectGet(&pEoObj);
+    if (CL_OK != rc)
+    {
+        CL_DEBUG_PRINT(CL_DEBUG_ERROR, ("clEoMyEoObjectGet(): rc[0x %x]",
+                    rc));
+        return rc;
+    }
+    rc = clEoPrivateDataGet( pEoObj,
+                             CL_EO_DEBUG_OBJECT_COOKIE_ID,
+                             (void**) &pDebugObj);
+    if (CL_OK != rc)
+    {
+        return rc;
+    }
+
+     /* Detecting dupilcate entries are there or not */
+    rc = clDebugDuplicateCommandDetect(pDebugObj, funcArray, funcArrayLen);
+    if( CL_OK != rc )
+    {
+        return rc;
+    }
+    rc = clHandleCreate(pDebugObj->hDebugFnDB, sizeof(ClDebugFuncGroupT), phDebugReg);
+    if( CL_OK != rc )
+    {
+        CL_DEBUG_PRINT(CL_DEBUG_ERROR, ("clHandleCreate(): rc[0x %x]", rc));
+        return rc;
+    }
+
+    rc = clHandleCheckout(pDebugObj->hDebugFnDB, *phDebugReg,
+                          (void **) &pFuncGroup);
+    if( CL_OK != rc )
+    {
+        CL_DEBUG_PRINT(CL_DEBUG_ERROR, ("clHandleCheckout(): rc[0x %x]", rc));
+        clHandleDestroy(pDebugObj->hDebugFnDB, *phDebugReg);
+        return rc;
+    }
+
+   //pFuncGroup->pFuncDescList = clHeapAllocate(sizeof(ClDebugFuncEntryT) * funcArrayLen);
+    pFuncGroup->pFuncDescList = funcArray;
+    if (NULL == pFuncGroup->pFuncDescList)
+    {
+        clLogWrite(CL_LOG_HANDLE_APP,CL_LOG_CRITICAL,CL_DEBUG_LIB_CLIENT,
+                   CL_LOG_MESSAGE_0_MEMORY_ALLOCATION_FAILED);
+        clHandleCheckin(pDebugObj->hDebugFnDB, *phDebugReg);
+        clHandleDestroy(pDebugObj->hDebugFnDB, *phDebugReg);
+        return CL_DEBUG_RC(CL_ERR_NO_MEMORY);
+    }
+    pDebugObj->iOwn = 0;
+
+    //for (i = 0; i < funcArrayLen; i++)
+    //{
+     //    pFuncGroup->pFuncDescList[i] = funcArray[i];
+    //}
+
+    pFuncGroup->numFunc = funcArrayLen;
+    pDebugObj->numFunc += pFuncGroup->numFunc;
+    if( CL_OK != (rc = clHandleCheckin(pDebugObj->hDebugFnDB, *phDebugReg)))
+    {
+        CL_DEBUG_PRINT(CL_DEBUG_ERROR, ("clHandleCheckin(): rc[0x %x]", rc));
+    }
+    return CL_OK;
+}
+
+//################### END   ###################################
+
 
 ClRcT clDebugDeregister(ClHandleT  hReg)
 {
@@ -884,6 +969,7 @@ ClRcT clDebugDeregister(ClHandleT  hReg)
     }
     pDebugObj->numFunc -= pFuncGroup->numFunc;
 
+    if(pDebugObj->iOwn)
     clHeapFree(pFuncGroup->pFuncDescList);
 
     if( CL_OK != (rc = clHandleCheckin(pDebugObj->hDebugFnDB, hReg)))

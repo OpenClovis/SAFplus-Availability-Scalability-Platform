@@ -446,6 +446,10 @@ ClRcT clDebugRegister(CL_IN  ClDebugFuncEntryT  *funcArray,
                       CL_IN  ClUint32T          funcArrayLen, 
                       CL_OUT ClHandleT          *phDebugReg);
 
+ClRcT clDebugRegisterConstBuf(CL_IN  ClDebugFuncEntryT  *funcArray,
+                      CL_IN  ClUint32T          funcArrayLen,
+                      CL_OUT ClHandleT          *phDebugReg);
+
 
 
 /**

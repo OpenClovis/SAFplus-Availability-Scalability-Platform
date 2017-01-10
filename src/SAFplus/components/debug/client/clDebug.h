@@ -81,6 +81,8 @@ typedef struct ClDebugObjT
  * Prompt for the component.
  */
     ClCharT        compPrompt[CL_DEBUG_COMP_PROMPT_LEN];
+
+    ClBoolT        iOwn;
 } ClDebugObjT;
 
 typedef struct
