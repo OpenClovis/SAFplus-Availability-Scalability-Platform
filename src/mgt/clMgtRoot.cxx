@@ -627,14 +627,14 @@ namespace SAFplus
     std::string path, cmds;
     std::string attrs = "";
     std::string data = reqMsg.data();
-
-    std::vector<std::string> strs;
+    path = reqMsg.bind();
+    /*std::vector<std::string> strs;
     boost::split(strs, data, boost::is_any_of(","));
     path = strs[0];
     if (strs.size() > 0)
     {
       attrs = data.substr(path.length() + 1);
-    }
+    }*/
 
     if (path[0] == '{')  // Debugging requests
     {
@@ -659,7 +659,6 @@ namespace SAFplus
     }
     ClBoolT rc;
     //Todo Remove this hard code
-    path = reqMsg.bind();
     if (path[0] == '/')
     {
       resolvePath(path.c_str() + 1, &matches);

@@ -395,6 +395,11 @@ namespace SAFplus
       std::stringstream ss;
       ss << value;
       if(!db) db=MgtObject::getDb();
+      //this function will implement later
+      if(db == nullptr)
+      {
+    	  return CL_OK;
+      }
       assert(db);
 
       return db->setRecord(key, ss.str());
