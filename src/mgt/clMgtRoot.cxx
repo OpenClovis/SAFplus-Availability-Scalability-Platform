@@ -626,6 +626,8 @@ namespace SAFplus
     std::vector<MgtObject*> matches;
     std::string path, cmds;
     std::string attrs = "";
+    ClRcT rcRet = CL_OK;
+    ClBoolT rc = CL_TRUE;
     std::string data = reqMsg.data();
     path = reqMsg.bind();
     /*std::vector<std::string> strs;
@@ -657,12 +659,10 @@ namespace SAFplus
       cmds.append(" ");  // Right now I just assume everything in there is a custom logging string
       path = path.substr(end+1);
     }
-    ClBoolT rc;
     //Todo Remove this hard code
     if (path[0] == '/')
     {
       resolvePath(path.c_str() + 1, &matches);
-      ClBoolT rc;
       if (matches.size())
       {
         for (std::vector<MgtObject*>::iterator i = matches.begin(); i != matches.end(); i++)
@@ -688,12 +688,13 @@ namespace SAFplus
               default:
                 break;
             }
-            MgtRoot::sendReplyMsg(srcAddr, (void *) &rc, sizeof(ClRcT));
+            if(rc == CL_FALSE) rcRet = CL_ERR_NOT_EXIST;
+            MgtRoot::sendReplyMsg(srcAddr, (void *) &rcRet, sizeof(ClRcT));
             return;
           }
           else
           {
-            rc = CL_ERR_NOT_EXIST;
+            rcRet = CL_ERR_NOT_EXIST;
           }
         }
       }
