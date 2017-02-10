@@ -884,6 +884,45 @@ class Debian9(OS):
             D = objects.RepoDep(name)
             self.pre_dep_list.append(D)
 
+# ------------------------------------------------------------------------------
+class Debian8(OS):
+    
+    def pre_init(self):
+        self.name = 'Debian'
+        self.apt = True
+    
+    def load_preinstall_deps(self):
+        
+        deps =  ['build-essential',
+                 'linux-headers-' + self.kernelVerString,
+                 'gettext',
+                 'openhpi',
+                 'uuid-dev',
+                 'bison',
+                 'flex',
+                 'gawk',
+                 'libglib2.0-dev',
+                 'libgdbm-dev',
+                 'libdb5.3-dev',
+                 'libsqlite3-0',
+                 'libsqlite3-dev',
+                 'e2fsprogs',
+                 'libperl-dev',
+                 'libltdl3-dev',
+                 'e2fslibs-dev',
+                 'unzip',
+                 'libsnmp-dev',
+                 'zlib1g-dev',
+                 'psmisc',
+                 'ed']
+
+        for name in deps:
+            D = objects.RepoDep(name)
+            self.pre_dep_list.append(D)
+
+
+
+
 
 # ------------------------------------------------------------------------------
 class Mint(Ubuntu):
@@ -966,6 +1005,7 @@ def determine_os():
                 fdata = fh.read().lower()
                 fh.close()
                 if 'stretch' in fdata: return Debian9()
+                if '8.' in fdata: return Debian8()
                 if cmp_version(fdata, "7.0") >= 0:
                     print "For Debian OS 7"
                     return Debian7()
