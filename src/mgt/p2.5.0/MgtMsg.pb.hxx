@@ -75,7 +75,12 @@ enum MsgMgt_MgtMsgType {
   MsgMgt_MgtMsgType_CL_MGT_MSG_XGET = 8,
   MsgMgt_MgtMsgType_CL_MGT_MSG_XSET = 9,
   MsgMgt_MgtMsgType_CL_MGT_MSG_CREATE = 10,
-  MsgMgt_MgtMsgType_CL_MGT_MSG_DELETE = 11
+  MsgMgt_MgtMsgType_CL_MGT_MSG_DELETE = 11,
+  MsgMgt_MgtMsgType_CL_MGT_MSG_REST_POST = 12,
+  MsgMgt_MgtMsgType_CL_MGT_MSG_REST_PUT = 13,
+  MsgMgt_MgtMsgType_CL_MGT_MSG_REST_DELETE = 14,
+  MsgMgt_MgtMsgType_CL_MGT_MSG_REST_PATCH = 15,
+  MsgMgt_MgtMsgType_CL_MGT_MSG_REST_GET = 16
 };
 bool MsgMgt_MgtMsgType_IsValid(int value);
 const MsgMgt_MgtMsgType MsgMgt_MgtMsgType_MgtMsgType_MIN = MsgMgt_MgtMsgType_CL_MGT_MSG_UNUSED;
@@ -678,6 +683,11 @@ class MsgMgt : public ::google::protobuf::Message {
   static const MgtMsgType CL_MGT_MSG_XSET = MsgMgt_MgtMsgType_CL_MGT_MSG_XSET;
   static const MgtMsgType CL_MGT_MSG_CREATE = MsgMgt_MgtMsgType_CL_MGT_MSG_CREATE;
   static const MgtMsgType CL_MGT_MSG_DELETE = MsgMgt_MgtMsgType_CL_MGT_MSG_DELETE;
+  static const MgtMsgType CL_MGT_MSG_REST_POST = MsgMgt_MgtMsgType_CL_MGT_MSG_REST_POST;
+  static const MgtMsgType CL_MGT_MSG_REST_PUT = MsgMgt_MgtMsgType_CL_MGT_MSG_REST_PUT;
+  static const MgtMsgType CL_MGT_MSG_REST_DELETE = MsgMgt_MgtMsgType_CL_MGT_MSG_REST_DELETE;
+  static const MgtMsgType CL_MGT_MSG_REST_PATCH = MsgMgt_MgtMsgType_CL_MGT_MSG_REST_PATCH;
+  static const MgtMsgType CL_MGT_MSG_REST_GET = MsgMgt_MgtMsgType_CL_MGT_MSG_REST_GET;
   static inline bool MgtMsgType_IsValid(int value) {
     return MsgMgt_MgtMsgType_IsValid(value);
   }

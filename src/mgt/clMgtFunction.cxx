@@ -540,6 +540,37 @@ namespace SAFplus
 }
 
 
+//create a data resource or invoke an operation resource
+std::string mgtRestconf_POST(SAFplus::Handle src, const std::string& data)
+{
+	// TODO
+}
+
+//delete the target resource
+std::string mgtRestconf_DELETE(SAFplus::Handle src, const std::string& data)
+{
+	// TODO
+}
+
+//provide an extensible framework for resource patching mechanisms
+std::string mgtRestconf_PATCH(SAFplus::Handle src, const std::string& data)
+{
+	// TODO
+}
+
+//create or replace the target resource.
+std::string mgtRestconf_PUT(SAFplus::Handle src, const std::string& data)
+{
+	// TODO
+}
+
+//retrieve data and meta-data for a resource
+std::string mgtRestconf_GET(SAFplus::Handle src, const std::string& data)
+{
+    // TODO
+}
+
+
 extern "C" void dbgDumpMgtBindings()
 {
   // 2. Forward to retrieve from handle
@@ -557,3 +588,5 @@ extern "C" void dbgDumpMgtBindings()
 	}
     }
 }
+
+

@@ -798,6 +798,21 @@ namespace SAFplus
         case Mgt::Msg::MsgMgt::CL_MGT_MSG_DELETE:
           mRoot->clMgtMsgDeleteHandler(from,mgtMsgReq);
           break;
+        case Mgt::Msg::MsgMgt::CL_MGT_MSG_REST_PUT:
+          mRoot->clMgtMsgRestPutHandler(from,mgtMsgReq);
+          break;
+        case Mgt::Msg::MsgMgt::CL_MGT_MSG_REST_POST:
+          mRoot->clMgtMsgRestPostHandler(from,mgtMsgReq);
+          break;
+        case Mgt::Msg::MsgMgt::CL_MGT_MSG_REST_PATCH:
+          mRoot->clMgtMsgRestPatchHandler(from,mgtMsgReq);
+          break;
+        case Mgt::Msg::MsgMgt::CL_MGT_MSG_REST_GET:
+          mRoot->clMgtMsgRestGetHandler(from,mgtMsgReq);
+          break;
+        case Mgt::Msg::MsgMgt::CL_MGT_MSG_REST_DELETE:
+          mRoot->clMgtMsgRestDeleteHandler(from,mgtMsgReq);
+          break;
         default:
           break;
       }
@@ -825,5 +840,27 @@ namespace SAFplus
         mgtObject->updateReference();
       }
   }
+
+  void MgtRoot::clMgtMsgRestGetHandler(SAFplus::Handle srcAddr, Mgt::Msg::MsgMgt& reqMsg)
+  {
+
+  }
+  void MgtRoot::clMgtMsgRestDeleteHandler(SAFplus::Handle srcAddr, Mgt::Msg::MsgMgt& reqMsg)
+  {
+
+  }
+  void MgtRoot::clMgtMsgRestPutHandler(SAFplus::Handle srcAddr, Mgt::Msg::MsgMgt& reqMsg)
+  {
+
+  }
+  void MgtRoot::clMgtMsgRestPatchHandler(SAFplus::Handle srcAddr, Mgt::Msg::MsgMgt& reqMsg)
+  {
+
+  }
+  void MgtRoot::clMgtMsgRestPostHandler(SAFplus::Handle srcAddr, Mgt::Msg::MsgMgt& reqMsg)
+  {
+
+  }
+
 
 };

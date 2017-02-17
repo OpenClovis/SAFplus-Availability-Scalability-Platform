@@ -71,6 +71,27 @@ namespace SAFplus
      //? Delete a new management entity (if allowed). For example, you may create new elements in YANG lists.  This call will look up the path in the Management checkpoint and forward the request to the appropriately bound process handle.
      ClRcT mgtDelete(const std::string& pathSpec);
 
+     //Restconf-Function
+
+     //create a data resource or invoke an operation resource
+     std::string mgtRestconf_POST(SAFplus::Handle src, const std::string& data);
+
+     //delete the target resource
+     std::string mgtRestconf_DELETE(SAFplus::Handle src, const std::string& data);
+
+     //provide an extensible framework for resource patching mechanisms
+     std::string mgtRestconf_PATCH(SAFplus::Handle src, const std::string& data);
+
+     //create or replace the target resource.
+     std::string mgtRestconf_PUT(SAFplus::Handle src, const std::string& data);
+
+     //retrieve data and meta-data for a resource
+     std::string mgtRestconf_GET(SAFplus::Handle src, const std::string& data);
+
+
+
+
+
 }
 //? </section>
 
