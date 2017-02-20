@@ -250,7 +250,7 @@ ClRcT clTransportNotifyOpen(ClIocPortT port)
     if(!compName) compName = "COMPNAME";
     snprintf(pathname, sizeof(pathname), "%s/%s_%d", transportNotifyLocGet(), compName, port);
     unlink(pathname);
-    fd = open(pathname, O_CREAT | O_RDONLY, 0777);
+    fd = open(pathname, O_CREAT | O_RDONLY | O_CLOEXEC, 0777);
     if(fd < 0)
     {
         clLogError("XPORT", "NOTIFY", "Xport notify open for path [%s] failed with [%s]",
