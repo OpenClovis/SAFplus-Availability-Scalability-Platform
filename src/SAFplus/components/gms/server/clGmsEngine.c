@@ -575,11 +575,12 @@ computeLeaderDeputyWithHighestCredential (
         if (currentNode->memberActive && (currentNode->credential != CL_GMS_INELIGIBLE_CREDENTIALS))
         {
             eligibleNodes[noOfEligibleNodes] = currentNode;
-
+			clLog(CL_LOG_DEBUG,CLM,NA, "Node [%.*s:%d] credential [%d].  Details: is leader [%d] is preferred [%d] set by cli [%d]",currentNode->nodeName.length,currentNode->nodeName.value, currentNode->nodeId, currentNode->credential,currentNode->isCurrentLeader,currentNode->isPreferredLeader,currentNode->leaderPreferenceSet);
             currentNode->credential += CL_IOC_MAX_NODES * currentNode->isPreferredLeader;
-            /* if leader preference set in the CLI, then double-dog prefer it :-) */
-            currentNode->credential += CL_IOC_MAX_NODES * ( currentNode->isPreferredLeader && currentNode->leaderPreferenceSet);
-
+            /* if leader preference set in the CLI, then double-dog prefer it :-) 
+             * Fix for the cli leaderElect to change leader in the test case HA-CPM-TCB.TC002 of the model amsTestGeneric*/
+            currentNode->credential += 4*CL_IOC_MAX_NODES * ( currentNode->isPreferredLeader && currentNode->leaderPreferenceSet);
+			
             /* Current leaders are boosted above all others */
             if (currentNode->isCurrentLeader || currentNode->nodeId == currentLeader)
             {
