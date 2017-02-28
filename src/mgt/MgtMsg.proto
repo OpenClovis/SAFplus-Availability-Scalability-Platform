@@ -58,11 +58,12 @@ message MsgMgt
     CL_MGT_MSG_XSET = 9;
     CL_MGT_MSG_CREATE = 10;
     CL_MGT_MSG_DELETE = 11;
-    CL_MGT_MSG_REST_POST = 12,
-    CL_MGT_MSG_REST_PUT = 13,
-    CL_MGT_MSG_REST_DELETE = 14,
-    CL_MGT_MSG_REST_PATCH = 15,
-    CL_MGT_MSG_REST_GET = 16
+    CL_MGT_MSG_REST_RPC = 12;
+    CL_MGT_MSG_REST_GET = 13;
+    CL_MGT_MSG_REST_PUT = 14;
+    CL_MGT_MSG_REST_PATCH = 15;
+    CL_MGT_MSG_REST_POST = 16;
+    CL_MGT_MSG_REST_DELETE = 17;
   }
   required MgtMsgType type = 1; //internal using
   required bytes bind = 2;

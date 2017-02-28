@@ -52,10 +52,6 @@ namespace SAFplus
 
      ClRcT mgtRpc(SAFplus::Handle src,Mgt::Msg::MsgRpc::MgtRpcType mgtRpcType,const std::string& pathSpec,const std::string& request);
      ClRcT mgtRpc(Mgt::Msg::MsgRpc::MgtRpcType mgtRpcType,const std::string& pathSpec, const std::string& request);
-     //? Make a management remote procedure call (RPC).  
-     ClRcT mgtRpc(Mgt::Msg::MsgRpc::MgtRpcType mgtRpcType,const std::string& pathSpec, const std::string& attribute);
-     ClRcT mgtRpc(SAFplus::Handle src,Mgt::Msg::MsgRpc::MgtRpcType mgtRpcType,const std::string& pathSpec, const std::string& attribute);
-
      //? Set a management entity to a specific value -- this call will send the request directly to the process specified by the supplied handle
      ClRcT mgtSet(SAFplus::Handle src, const std::string& pathSpec, const std::string& value);
      //? Set a management entity to a specific value -- this call will look up the path in the Management checkpoint and forward the request to the appropriately bound process handle
@@ -72,25 +68,28 @@ namespace SAFplus
      ClRcT mgtDelete(const std::string& pathSpec);
 
      //Restconf-Function
-
-     //create a data resource or invoke an operation resource
-     std::string mgtRestconf_POST(SAFplus::Handle src, const std::string& data);
-
-     //delete the target resource
-     std::string mgtRestconf_DELETE(SAFplus::Handle src, const std::string& data);
-
-     //provide an extensible framework for resource patching mechanisms
-     std::string mgtRestconf_PATCH(SAFplus::Handle src, const std::string& data);
-
-     //create or replace the target resource.
-     std::string mgtRestconf_PUT(SAFplus::Handle src, const std::string& data);
-
      //retrieve data and meta-data for a resource
-     std::string mgtRestconf_GET(SAFplus::Handle src, const std::string& data);
-
-
-
-
+     std::string mgtRestGet(const std::string& pathSpec, const std::string& value = "");
+     //retrieve data and meta-data for a resource -- this call will send the request directly to the process specified by the supplied handle
+     std::string mgtRestGet(SAFplus::Handle src, const std::string& pathSpec, const std::string& value = "");
+     ClRcT mgtRestRpc(SAFplus::Handle src, const std::string& pathSpec,const std::string& value = "");
+     ClRcT mgtRestRpc(const std::string& pathSpec, const std::string& value = "");
+     //Set a management entity to a specific value -- this call will send the request directly to the process specified by the supplied handle
+     ClRcT mgtRestPut(SAFplus::Handle src, const std::string& pathSpec, const std::string& value = "");
+     //Set a management entity to a specific value -- this call will look up the path in the Management checkpoint and forward the request to the appropriately bound process handle
+     ClRcT mgtRestPut(const std::string& pathSpec, const std::string& value = "");
+     //Update a new management entity (if allowed). For example, you may create new elements in YANG lists.  The entity's fields will be created with default values (or zero).  You may then use <ref>mgtSet()</ref> to set the field values.  This call will send the request directly to the process specified by the supplied handle.
+     ClRcT mgtRestPatch(SAFplus::Handle src, const std::string& pathSpec, const std::string& value = "");
+     //Update a new management entity (if allowed). For example, you may create new elements in YANG lists.  The entity's fields will be created with default values (or zero).  You may then use <ref>mgtSet()</ref> to set the field values.  This call will look up the path in the Management checkpoint and forward the request to the appropriately bound process handle.
+     ClRcT mgtRestPatch(const std::string& pathSpec, const std::string& value = "");
+     //Create a new management entity (if allowed). For example, you may create new elements in YANG lists.  The entity's fields will be created with default values (or zero).  You may then use <ref>mgtSet()</ref> to set the field values.  This call will send the request directly to the process specified by the supplied handle.
+     ClRcT mgtRestPost(SAFplus::Handle src, const std::string& pathSpec, const std::string& value = "");
+     //Create a new management entity (if allowed). For example, you may create new elements in YANG lists.  The entity's fields will be created with default values (or zero).  You may then use <ref>mgtSet()</ref> to set the field values.  This call will look up the path in the Management checkpoint and forward the request to the appropriately bound process handle.
+     ClRcT mgtRestPost(const std::string& pathSpec, const std::string& value = "");
+     //Delete a new management entity (if allowed). For example, you may create new elements in YANG lists.  This call will send the request directly to the process specified by the supplied handle
+     ClRcT mgtRestDelete(SAFplus::Handle src, const std::string& pathSpec, const std::string& value = "");
+     //Delete a new management entity (if allowed). For example, you may create new elements in YANG lists.  This call will look up the path in the Management checkpoint and forward the request to the appropriately bound process handle.
+     ClRcT mgtRestDelete(const std::string& pathSpec, const std::string& value = "");
 
 }
 //? </section>

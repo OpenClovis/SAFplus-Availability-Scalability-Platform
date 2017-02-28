@@ -304,7 +304,7 @@ extern MgtIteratorBase mgtIterEnd;
 
     virtual MgtObject *findMgtObject(const std::string &xpath, std::size_t idx);
     virtual ClRcT setObj(const std::string &value);
-    virtual ClRcT createObj(const std::string &value);
+    virtual ClRcT createObj(const std::string &value,const bool& isCreated = true);
     virtual ClRcT deleteObj(const std::string &value);
     virtual ClRcT setChildObj(const std::string &childName, const std::string &value);
     virtual ClRcT setChildObj(const std::map<std::string,std::string> &keyList);

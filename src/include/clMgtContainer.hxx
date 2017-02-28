@@ -91,7 +91,8 @@ class MgtContainer:public MgtObject
 
     // Settings objects
     virtual bool set(const void *pBuffer, ClUint64T buffLen, SAFplus::Transaction& t);
-
+    //Override the clMgtObject 
+    virtual ClRcT deleteObj(const std::string &value);
     virtual ClRcT write(MgtDatabase *db = nullptr, std::string parentXPath = "");
     virtual ClRcT writeChanged(uint64_t firstBeat, uint64_t beat, MgtDatabase *db = nullptr, std::string parentXPath = "");
     virtual ClRcT read(MgtDatabase *db = nullptr, std::string parentXPath = "");

@@ -25,7 +25,7 @@
 #include <inttypes.h>
 #include <csignal>
 #include <boost/algorithm/string.hpp>
-
+#include <clMgtBaseCommon.hxx>
 #include "MgtMsg.pb.hxx"
 
 #ifdef __cplusplus
@@ -299,7 +299,7 @@ namespace SAFplus
 
   ClRcT MgtRoot::sendReplyMsg(Handle dest, void* payload, uint payloadlen)
   {
-    ClRcT rc = CL_OK;
+    ClRcT rcRet = CL_OK;
     try
     {
       SAFplus::SafplusMsgServer* mgtIocInstance = &safplusMsgServer;
@@ -308,10 +308,10 @@ namespace SAFplus
     }
     catch (SAFplus::Error &ex)
     {
-      rc = ex.clError;
+      rcRet = ex.clError;
       logDebug("MGT","MSG","Failed to send reply");
     }
-    return rc;
+    return rcRet;
   }
 
 //  ClRcT MgtRoot::registerRpc(SAFplus::Handle handle,const std::string module,const std::string rpcName)
@@ -513,7 +513,7 @@ namespace SAFplus
 
   void MgtRoot::clMgtMsgXSetHandler(SAFplus::Handle srcAddr, Mgt::Msg::MsgMgt& reqMsg)
   {
-    ClRcT rc = CL_OK;
+    ClRcT rcRet = CL_OK;
     std::vector<MgtObject*> matches;
     std::string path = reqMsg.bind();
     std::string cmds;
@@ -549,21 +549,21 @@ namespace SAFplus
           {
             for (std::vector<MgtObject*>::iterator i = matches.begin(); i != matches.end(); i++)
               {
-                rc |= (*i)->setObj(value);
+                rcRet |= (*i)->setObj(value);
               }
           }
         else
           {
-            rc = CL_ERR_NOT_EXIST;
+            rcRet = CL_ERR_NOT_EXIST;
           }
       }
-    logDebug("MGT","SET","Object [%s] update [%s] complete [0x%x]", path.c_str(),value.c_str(), rc);
-    MgtRoot::sendReplyMsg(srcAddr,(void *)&rc,sizeof(ClRcT));
+    logDebug("MGT","SET","Object [%s] update [%s] complete [0x%x]", path.c_str(),value.c_str(), rcRet);
+    MgtRoot::sendReplyMsg(srcAddr,(void *)&rcRet,sizeof(ClRcT));
   }
 
   void MgtRoot::clMgtMsgCreateHandler(SAFplus::Handle srcAddr, Mgt::Msg::MsgMgt& reqMsg)
   {
-    ClRcT rc = CL_OK;
+    ClRcT rcRet = CL_OK;
     std::string xpath = reqMsg.bind();
     std::size_t idx = xpath.find_last_of("/");
     std::vector<MgtObject*> matches;
@@ -602,10 +602,10 @@ namespace SAFplus
       {
         for (std::vector<MgtObject*>::iterator i = matches.begin(); i != matches.end(); i++)
           {
-            rc = (*i)->createObj(value);
+        	rcRet = (*i)->createObj(value);
             logDebug("MGT","CRET","Object [%s] created", xpath.c_str());
             updateReference();  // Since a new object is created, update refs that might be pointed to it
-            MgtRoot::sendReplyMsg(srcAddr, (void *) &rc, sizeof(ClRcT));
+            MgtRoot::sendReplyMsg(srcAddr, (void *) &rcRet, sizeof(ClRcT));
             /*
              * Not allow multiple objects
              */
@@ -614,11 +614,11 @@ namespace SAFplus
       }
       else
         {
-          rc = CL_ERR_NOT_EXIST;
+    	  rcRet = CL_ERR_NOT_EXIST;
         }
     }
-    logDebug("MGT","CRET","Creating object [%s] failed, errorCode [0x%x]", xpath.c_str(), rc);
-    MgtRoot::sendReplyMsg(srcAddr, (void *) &rc, sizeof(ClRcT));
+    logDebug("MGT","CRET","Creating object [%s] failed, errorCode [0x%x]", xpath.c_str(), rcRet);
+    MgtRoot::sendReplyMsg(srcAddr, (void *) &rcRet, sizeof(ClRcT));
   }
 
   void MgtRoot::clMgtMsgRPCHandler(SAFplus::Handle srcAddr, Mgt::Msg::MsgRpc& reqMsg)
@@ -688,7 +688,7 @@ namespace SAFplus
               default:
                 break;
             }
-            if(rc == CL_FALSE) rcRet = CL_ERR_NOT_EXIST;
+            if(CL_FALSE == rc) rcRet = CL_ERR_NOT_EXIST;
             MgtRoot::sendReplyMsg(srcAddr, (void *) &rcRet, sizeof(ClRcT));
             return;
           }
@@ -705,7 +705,7 @@ namespace SAFplus
 
   void MgtRoot::clMgtMsgDeleteHandler(SAFplus::Handle srcAddr, Mgt::Msg::MsgMgt& reqMsg)
   {
-    ClRcT rc = CL_OK;
+    ClRcT rcRet = CL_OK;
     std::string xpath = reqMsg.bind();
     std::size_t idx = xpath.find_last_of("/");
     std::vector<MgtObject*> matches;
@@ -743,9 +743,9 @@ namespace SAFplus
       {
         for (std::vector<MgtObject*>::iterator i = matches.begin(); i != matches.end(); i++)
           {
-            rc = (*i)->deleteObj(value);
+        	rcRet = (*i)->deleteObj(value);
             logDebug("MGT","DEL","Object [%s] got deleted",xpath.c_str());
-            MgtRoot::sendReplyMsg(srcAddr, (void *) &rc, sizeof(ClRcT));
+            MgtRoot::sendReplyMsg(srcAddr, (void *) &rcRet, sizeof(ClRcT));
             /*
              * Not allow multiple objects
              */
@@ -754,11 +754,11 @@ namespace SAFplus
       }
       else
         {
-          rc = CL_ERR_NOT_EXIST;
+          rcRet = CL_ERR_NOT_EXIST;
         }
     }
-    logDebug("MGT","DEL","Deleting object [%s] got failure, errorCode [0x%x]", xpath.c_str(), rc);
-    MgtRoot::sendReplyMsg(srcAddr, (void *) &rc, sizeof(ClRcT));
+    logDebug("MGT","DEL","Deleting object [%s] got failure, errorCode [0x%x]", xpath.c_str(), rcRet);
+    MgtRoot::sendReplyMsg(srcAddr, (void *) &rcRet, sizeof(ClRcT));
   }
 
   MgtRoot::MgtMessageHandler::MgtMessageHandler()
@@ -798,17 +798,17 @@ namespace SAFplus
         case Mgt::Msg::MsgMgt::CL_MGT_MSG_DELETE:
           mRoot->clMgtMsgDeleteHandler(from,mgtMsgReq);
           break;
+        case Mgt::Msg::MsgMgt::CL_MGT_MSG_REST_GET:
+          mRoot->clMgtMsgRestGetHandler(from,mgtMsgReq);
+          break;
         case Mgt::Msg::MsgMgt::CL_MGT_MSG_REST_PUT:
           mRoot->clMgtMsgRestPutHandler(from,mgtMsgReq);
-          break;
-        case Mgt::Msg::MsgMgt::CL_MGT_MSG_REST_POST:
-          mRoot->clMgtMsgRestPostHandler(from,mgtMsgReq);
           break;
         case Mgt::Msg::MsgMgt::CL_MGT_MSG_REST_PATCH:
           mRoot->clMgtMsgRestPatchHandler(from,mgtMsgReq);
           break;
-        case Mgt::Msg::MsgMgt::CL_MGT_MSG_REST_GET:
-          mRoot->clMgtMsgRestGetHandler(from,mgtMsgReq);
+	case Mgt::Msg::MsgMgt::CL_MGT_MSG_REST_POST:
+          mRoot->clMgtMsgRestPostHandler(from,mgtMsgReq);
           break;
         case Mgt::Msg::MsgMgt::CL_MGT_MSG_REST_DELETE:
           mRoot->clMgtMsgRestDeleteHandler(from,mgtMsgReq);
@@ -843,24 +843,313 @@ namespace SAFplus
 
   void MgtRoot::clMgtMsgRestGetHandler(SAFplus::Handle srcAddr, Mgt::Msg::MsgMgt& reqMsg)
   {
-
+    clMgtMsgXGetHandler(srcAddr, reqMsg);  
   }
-  void MgtRoot::clMgtMsgRestDeleteHandler(SAFplus::Handle srcAddr, Mgt::Msg::MsgMgt& reqMsg)
-  {
 
-  }
   void MgtRoot::clMgtMsgRestPutHandler(SAFplus::Handle srcAddr, Mgt::Msg::MsgMgt& reqMsg)
   {
+    ClRcT rcRet = CL_OK;
+    std::vector<MgtObject*> matches;
+    std::string path = reqMsg.bind();
+    std::string cmds;
+    std::string value;
+    std::size_t idx = path.find_last_of("/");
+    assert(idx != std::string::npos);  // All the xpaths should have at least one / (they should BEGIN with a /)
+    path = path.substr(0, idx);//get parent
 
+    if (path[0] == '{')  // Debugging requests
+    {
+      int end = path.find_first_of("}");
+      cmds = path.substr(1,end-1);
+      vector<string> strs;
+      boost::split(strs,cmds,boost::is_any_of(","));
+      for (auto cmd: strs)
+        {
+          if (cmd[0] == 'b')
+            {
+              std::raise(SIGINT);
+            }
+          else if (cmd[0] == 'p')
+            {
+              clDbgPause();
+            }
+        }
+      // TODO: parse the non-xml requests (depth, pause thread, break thread, log custom string)
+      cmds.append(" ");  // Right now I just assume everything in there is a custom logging string
+      path = path.substr(end+1);
+    }
+
+    if (path[0] == '/')
+      {
+        resolvePath(path.c_str() + 1, &matches);
+        value = reqMsg.data(0);
+        if (matches.size())
+          {
+            for (std::vector<MgtObject*>::iterator i = matches.begin(); i != matches.end(); i++)
+              {
+            	//parser here
+            	rcRet = (*i)->createObj(value,false);
+              }
+          }
+        else
+          {
+        		rcRet = CL_ERR_NOT_EXIST;
+          }
+      }
+    logDebug("MGT","RESTPUT","Object [%s] update [%s] complete [0x%x]", path.c_str(),value.c_str(), rcRet);
+    MgtRoot::sendReplyMsg(srcAddr,(void *)&rcRet,sizeof(ClRcT));
   }
+
   void MgtRoot::clMgtMsgRestPatchHandler(SAFplus::Handle srcAddr, Mgt::Msg::MsgMgt& reqMsg)
   {
+    ClRcT rcRet = CL_OK;
+    std::vector<MgtObject*> matches;
+    std::string path = reqMsg.bind();
+    std::string cmds;
+    std::string value;
 
+    if (path[0] == '{')  // Debugging requests
+    {
+      int end = path.find_first_of("}");
+      cmds = path.substr(1,end-1);
+      vector<string> strs;
+      boost::split(strs,cmds,boost::is_any_of(","));
+      for (auto cmd: strs)
+        {
+          if (cmd[0] == 'b')
+            {
+              std::raise(SIGINT);
+            }
+          else if (cmd[0] == 'p')
+            {
+              clDbgPause();
+            }
+        }
+      // TODO: parse the non-xml requests (depth, pause thread, break thread, log custom string)
+      cmds.append(" ");  // Right now I just assume everything in there is a custom logging string
+      path = path.substr(end+1);
+    }
+
+    if (path[0] == '/')
+      {
+        resolvePath(path.c_str() + 1, &matches);
+        value = reqMsg.data(0);
+        if (matches.size())
+          {
+        	  //get bulk data path
+        	  xmlParser xmlObj(value);
+        	  std::string basePath(path);
+        	  basePath.erase(0,1);//delete first /
+        	  std::size_t idx = basePath.find_last_of("/");
+        	  assert(idx != std::string::npos);  // All the xpaths should have at least one / (they should BEGIN with a /)
+        	  basePath = basePath.substr(0, idx);//get parent
+        	  std::map<std::string, std::string> mapPath = xmlObj.getChildPathValues("data",basePath);
+
+        	  for (std::map<std::string, std::string>::iterator it = mapPath.begin(); it != mapPath.end(); ++it)
+        	  		 {
+        	  			  try{
+        	  				matches.clear();
+
+        	  				resolvePath((*it).first.c_str(), &matches);
+        	  				if (matches.size())
+        					{
+        					  for(std::vector<MgtObject*>::iterator i = matches.begin(); i != matches.end(); i++)
+        						{
+        						  rcRet = (*i)->setObj((*it).second);
+        						}
+        					}
+        	  			  }catch(...)
+        	  			  {
+        	  				  rcRet = CL_ERR_NOT_EXIST;
+        	  				  break;
+        	  			  }
+        	  		 }//for
+          }
+        else
+          {
+            rcRet = CL_ERR_NOT_EXIST;
+          }
+      }
+    logDebug("MGT","RESTPATCH","Object [%s] update [%s] complete [0x%x]", path.c_str(),value.c_str(), rcRet);
+    MgtRoot::sendReplyMsg(srcAddr,(void *)&rcRet,sizeof(ClRcT));
   }
+
+
   void MgtRoot::clMgtMsgRestPostHandler(SAFplus::Handle srcAddr, Mgt::Msg::MsgMgt& reqMsg)
   {
+    ClRcT rcRet = CL_OK;
+    std::vector<MgtObject*> matches;
+    std::string path = reqMsg.bind();
+    std::string cmds;
+    std::string value;
 
+    if (path[0] == '{')  // Debugging requests
+    {
+      int end = path.find_first_of("}");
+      cmds = path.substr(1,end-1);
+      vector<string> strs;
+      boost::split(strs,cmds,boost::is_any_of(","));
+      for (auto cmd: strs)
+        {
+          if (cmd[0] == 'b')
+            {
+              std::raise(SIGINT);
+            }
+          else if (cmd[0] == 'p')
+            {
+              clDbgPause();
+            }
+        }
+      // TODO: parse the non-xml requests (depth, pause thread, break thread, log custom string)
+      cmds.append(" ");  // Right now I just assume everything in there is a custom logging string
+      path = path.substr(end+1);
+    }
+
+    if (path[0] == '/')
+      {
+        resolvePath(path.c_str() + 1, &matches);
+        value = reqMsg.data(0);
+        if (matches.size())
+          {
+            for (std::vector<MgtObject*>::iterator i = matches.begin(); i != matches.end(); i++)
+              {
+            	  rcRet = (*i)->createObj(value);
+              }//for
+          }
+        else
+          {
+        	rcRet = CL_ERR_NOT_EXIST;
+          }
+      }
+    logDebug("MGT","RESTPOST","Object [%s] update [%s] complete [0x%x]", path.c_str(),value.c_str(), rcRet);
+    MgtRoot::sendReplyMsg(srcAddr,(void *)&rcRet,sizeof(ClRcT));
   }
 
+  void MgtRoot::clMgtMsgRestRPCHandler(SAFplus::Handle srcAddr, Mgt::Msg::MsgRpc& reqMsg)
+  {
+    std::vector<MgtObject*> matches;
+    std::string path, cmds;
+    std::string attrs = "";
+    ClRcT rcRet = CL_OK;
+    std::string data = reqMsg.data();
+    path = reqMsg.bind();
+    /*std::vector<std::string> strs;
+    boost::split(strs, data, boost::is_any_of(","));
+    path = strs[0];
+    if (strs.size() > 0)
+    {
+      attrs = data.substr(path.length() + 1);
+    }*/
 
+    if (path[0] == '{')  // Debugging requests
+    {
+      int end = path.find_first_of("}");
+      cmds = path.substr(1,end-1);
+      vector<string> strs;
+      boost::split(strs, cmds, boost::is_any_of(","));
+      for (auto cmd: strs)
+      {
+        if (cmd[0] == 'b')
+        {
+          std::raise(SIGINT);
+        }
+        else if (cmd[0] == 'p')
+        {
+          clDbgPause();
+        }
+      }
+      // TODO: parse the non-xml requests (depth, pause thread, break thread, log custom string)
+      cmds.append(" ");  // Right now I just assume everything in there is a custom logging string
+      path = path.substr(end+1);
+    }
+    //Todo Remove this hard code
+    if (path[0] == '/')
+    {
+      resolvePath(path.c_str() + 1, &matches);
+      if (matches.size())
+      {
+        for (std::vector<MgtObject*>::iterator i = matches.begin(); i != matches.end(); i++)
+        {
+          MgtRpc *rpc = dynamic_cast<MgtRpc*> (*i);
+          if (rpc)
+          {
+            if(data!="")
+            {
+              rpc->setInParams((void*)data.c_str(),data.length());
+            }
+            ClBoolT rc = rpc->validate();
+			if(CL_TRUE == rc) rc = rpc->invoke();
+			if(CL_TRUE == rc) rc = rpc->postReply();
+			if(CL_FALSE == rc) rcRet = CL_ERR_NOT_EXIST;
+            MgtRoot::sendReplyMsg(srcAddr, (void *) &rcRet, sizeof(ClRcT));
+            return;
+          }
+          else
+          {
+            rcRet = CL_ERR_NOT_EXIST;
+          }
+        }
+      }
+    }
+    //logDebug("MGT","SET","Object [%s] update complete [0x%x]", path.c_str(),rc);
+    //MgtRoot::sendReplyMsg(srcAddr,(void *)&rc,sizeof(ClRcT));
+  }
+
+  void MgtRoot::clMgtMsgRestDeleteHandler(SAFplus::Handle srcAddr, Mgt::Msg::MsgMgt& reqMsg)
+  {
+    ClRcT rcRet = CL_OK;
+    std::string xpath = reqMsg.bind();
+    std::size_t idx = xpath.find_last_of("/");
+    std::vector<MgtObject*> matches;
+    std::string cmds;
+
+    if (xpath[0] == '{')  // Debugging requests
+    {
+      int end = xpath.find_first_of("}");
+      cmds = xpath.substr(1,end-1);
+      vector<string> strs;
+      boost::split(strs,cmds,boost::is_any_of(","));
+      for (auto cmd: strs)
+        {
+          if (cmd[0] == 'b')
+            {
+              std::raise(SIGINT);
+            }
+          else if (cmd[0] == 'p')
+            {
+              clDbgPause();
+            }
+        }
+      // TODO: parse the non-xml requests (depth, pause thread, break thread, log custom string)
+      cmds.append(" ");  // Right now I just assume everything in there is a custom logging string
+      xpath = xpath.substr(end+1);
+    }
+
+    if (idx != std::string::npos)
+    {
+      std::string path = xpath.substr(0, idx);
+      std::string value = xpath.substr(idx + 1);
+      std::cout<<"path:"<<path<<",value:"<<value<<","<<__FUNCTION__<<","<<__FILE__<<__LINE__<<std::endl;
+      resolvePath(path.c_str() + 1, &matches);
+      if (matches.size())
+      {
+        for (std::vector<MgtObject*>::iterator i = matches.begin(); i != matches.end(); i++)
+          {
+            rcRet = (*i)->deleteObj(value);
+            logDebug("MGT","RESTDEL","Object [%s] got deleted",xpath.c_str());
+            MgtRoot::sendReplyMsg(srcAddr, (void *) &rcRet, sizeof(ClRcT));
+            /*
+             * Not allow multiple objects
+             */
+            return;
+          }
+      }
+      else
+        {
+          rcRet = CL_ERR_NOT_EXIST;
+        }
+    }
+    logDebug("MGT","RESTDEL","Deleting object [%s] got failure, errorCode [0x%x]", xpath.c_str(), rcRet);
+    MgtRoot::sendReplyMsg(srcAddr, (void *) &rcRet, sizeof(ClRcT));
+  }
 };

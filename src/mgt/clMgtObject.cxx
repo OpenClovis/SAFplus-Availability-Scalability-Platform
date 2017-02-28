@@ -382,10 +382,11 @@ namespace SAFplus
 
   ClRcT MgtObject::setObj(const std::string &value)
   {
+	  std::cout<<"DANGLE:MgtObject::setObj"<<CL_ERR_BAD_OPERATION<<std::endl;
     return CL_ERR_BAD_OPERATION;
   }
 
-  ClRcT MgtObject::createObj(const std::string &value)
+  ClRcT MgtObject::createObj(const std::string &value,const bool&isCreated)
   {
     return CL_ERR_BAD_OPERATION;
   }

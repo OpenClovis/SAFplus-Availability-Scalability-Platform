@@ -233,17 +233,21 @@ void protobuf_AddDesc_MgtMsg_2eproto() {
     "GT_RPC_VALIDATE\020\001\022\025\n\021CL_MGT_RPC_INVOKE\020\002"
     "\022\030\n\024CL_MGT_RPC_POSTREPLY\020\003\"\031\n\tMsgSetGet\022"
     "\014\n\004data\030\002 \001(\t\"\032\n\nMsgGeneral\022\014\n\004data\030\001 \003("
-    "\014\"\351\002\n\006MsgMgt\022(\n\004type\030\001 \002(\0162\032.Mgt.Msg.Msg"
+    "\014\"\205\004\n\006MsgMgt\022(\n\004type\030\001 \002(\0162\032.Mgt.Msg.Msg"
     "Mgt.MgtMsgType\022\014\n\004bind\030\002 \002(\014\022\014\n\004data\030\003 \003"
-    "(\014\"\230\002\n\nMgtMsgType\022\025\n\021CL_MGT_MSG_UNUSED\020\000"
+    "(\014\"\264\003\n\nMgtMsgType\022\025\n\021CL_MGT_MSG_UNUSED\020\000"
     "\022\023\n\017CL_MGT_MSG_BIND\020\001\022\022\n\016CL_MGT_MSG_GET\020"
     "\002\022\022\n\016CL_MGT_MSG_SET\020\003\022\022\n\016CL_MGT_MSG_RPC\020"
     "\004\022\027\n\023CL_MGT_MSG_BIND_RPC\020\005\022\024\n\020CL_MGT_MSG"
     "_NOTIF\020\006\022\033\n\027CL_MGT_MSG_BIND_REQUEST\020\007\022\023\n"
     "\017CL_MGT_MSG_XGET\020\010\022\023\n\017CL_MGT_MSG_XSET\020\t\022"
     "\025\n\021CL_MGT_MSG_CREATE\020\n\022\025\n\021CL_MGT_MSG_DEL"
-    "ETE\020\013\"7\n\010MsgMgtDb\022\r\n\005xpath\030\001 \002(\t\022\r\n\005valu"
-    "e\030\002 \002(\t\022\r\n\005child\030\003 \003(\t", 782);
+    "ETE\020\013\022\027\n\023CL_MGT_MSG_REST_RPC\020\014\022\027\n\023CL_MGT"
+    "_MSG_REST_GET\020\r\022\027\n\023CL_MGT_MSG_REST_PUT\020\016"
+    "\022\031\n\025CL_MGT_MSG_REST_PATCH\020\017\022\030\n\024CL_MGT_MS"
+    "G_REST_POST\020\020\022\032\n\026CL_MGT_MSG_REST_DELETE\020"
+    "\021\"7\n\010MsgMgtDb\022\r\n\005xpath\030\001 \002(\t\022\r\n\005value\030\002 "
+    "\002(\t\022\r\n\005child\030\003 \003(\t", 938);
   ::google::protobuf::MessageFactory::InternalRegisterGeneratedFile(
     "MgtMsg.proto", &protobuf_RegisterTypes);
   Handle::default_instance_ = new Handle();
@@ -1635,6 +1639,12 @@ bool MsgMgt_MgtMsgType_IsValid(int value) {
     case 9:
     case 10:
     case 11:
+    case 12:
+    case 13:
+    case 14:
+    case 15:
+    case 16:
+    case 17:
       return true;
     default:
       return false;
@@ -1654,12 +1664,12 @@ const MsgMgt_MgtMsgType MsgMgt::CL_MGT_MSG_XGET;
 const MsgMgt_MgtMsgType MsgMgt::CL_MGT_MSG_XSET;
 const MsgMgt_MgtMsgType MsgMgt::CL_MGT_MSG_CREATE;
 const MsgMgt_MgtMsgType MsgMgt::CL_MGT_MSG_DELETE;
-const MsgMgt_MgtMsgType MsgMgt::CL_MGT_MSG_REST_POST;
-const MsgMgt_MgtMsgType MsgMgt::CL_MGT_MSG_REST_PUT;
-const MsgMgt_MgtMsgType MsgMgt::CL_MGT_MSG_REST_DELETE;
-const MsgMgt_MgtMsgType MsgMgt::CL_MGT_MSG_REST_PATCH;
+const MsgMgt_MgtMsgType MsgMgt::CL_MGT_MSG_REST_RPC;
 const MsgMgt_MgtMsgType MsgMgt::CL_MGT_MSG_REST_GET;
-
+const MsgMgt_MgtMsgType MsgMgt::CL_MGT_MSG_REST_PUT;
+const MsgMgt_MgtMsgType MsgMgt::CL_MGT_MSG_REST_PATCH;
+const MsgMgt_MgtMsgType MsgMgt::CL_MGT_MSG_REST_POST;
+const MsgMgt_MgtMsgType MsgMgt::CL_MGT_MSG_REST_DELETE;
 const MsgMgt_MgtMsgType MsgMgt::MgtMsgType_MIN;
 const MsgMgt_MgtMsgType MsgMgt::MgtMsgType_MAX;
 const int MsgMgt::MgtMsgType_ARRAYSIZE;

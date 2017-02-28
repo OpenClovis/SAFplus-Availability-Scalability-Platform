@@ -194,9 +194,14 @@ namespace SAFplus
   ClRcT MgtContainer::removeChildObject(const std::string& objectName)
   {
     ClRcT rc = CL_OK;
-
-    children.erase(objectName);
-
+    std::map<std::string, MgtObject*>::iterator itr = children.find(objectName);
+    if (itr != children.end())
+    {
+        // found it - delete it
+        //delete itr->second;
+    	//will enable when object is available
+        children.erase(itr);
+    }
     return rc;
   }
 
@@ -496,6 +501,15 @@ namespace SAFplus
     while (ret);
 
     return true;
+  }
+ ClRcT MgtContainer::deleteObj(const std::string &value)
+  {
+	  logDebug("MGT", "OBJ","call deleteObj with value[%s] file %s line %d",value.c_str(),__FILE__,__LINE__);
+	  if(nullptr != this->find(value))
+	  {
+		  return this->removeChildObject(value);
+	  }
+	  return CL_ERR_NOT_EXIST;
   }
 
   MgtObject *MgtContainer::findMgtObject(const std::string &xpath, std::size_t idx)
