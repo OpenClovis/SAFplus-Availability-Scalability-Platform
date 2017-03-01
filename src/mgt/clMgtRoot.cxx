@@ -630,35 +630,6 @@ namespace SAFplus
     ClBoolT rc = CL_TRUE;
     std::string data = reqMsg.data();
     path = reqMsg.bind();
-    /*std::vector<std::string> strs;
-    boost::split(strs, data, boost::is_any_of(","));
-    path = strs[0];
-    if (strs.size() > 0)
-    {
-      attrs = data.substr(path.length() + 1);
-    }*/
-
-    if (path[0] == '{')  // Debugging requests
-    {
-      int end = path.find_first_of("}");
-      cmds = path.substr(1,end-1);
-      vector<string> strs;
-      boost::split(strs, cmds, boost::is_any_of(","));
-      for (auto cmd: strs)
-      {
-        if (cmd[0] == 'b')
-        {
-          std::raise(SIGINT);
-        }
-        else if (cmd[0] == 'p')
-        {
-          clDbgPause();
-        }
-      }
-      // TODO: parse the non-xml requests (depth, pause thread, break thread, log custom string)
-      cmds.append(" ");  // Right now I just assume everything in there is a custom logging string
-      path = path.substr(end+1);
-    }
     //Todo Remove this hard code
     if (path[0] == '/')
     {
@@ -709,30 +680,6 @@ namespace SAFplus
     std::string xpath = reqMsg.bind();
     std::size_t idx = xpath.find_last_of("/");
     std::vector<MgtObject*> matches;
-    std::string cmds;
-
-    if (xpath[0] == '{')  // Debugging requests
-    {
-      int end = xpath.find_first_of("}");
-      cmds = xpath.substr(1,end-1);
-      vector<string> strs;
-      boost::split(strs,cmds,boost::is_any_of(","));
-      for (auto cmd: strs)
-        {
-          if (cmd[0] == 'b')
-            {
-              std::raise(SIGINT);
-            }
-          else if (cmd[0] == 'p')
-            {
-              clDbgPause();
-            }
-        }
-      // TODO: parse the non-xml requests (depth, pause thread, break thread, log custom string)
-      cmds.append(" ");  // Right now I just assume everything in there is a custom logging string
-      xpath = xpath.substr(end+1);
-    }
-
     if (idx != std::string::npos)
     {
       std::string path = xpath.substr(0, idx);
@@ -846,39 +793,16 @@ namespace SAFplus
     clMgtMsgXGetHandler(srcAddr, reqMsg);  
   }
 
+  void MGtRoot::clMgtMsgDebugHandle(std::string &path)
+  {
+      //TODO optimize source code : process debug request
+  }
   void MgtRoot::clMgtMsgRestPutHandler(SAFplus::Handle srcAddr, Mgt::Msg::MsgMgt& reqMsg)
   {
     ClRcT rcRet = CL_OK;
     std::vector<MgtObject*> matches;
     std::string path = reqMsg.bind();
-    std::string cmds;
     std::string value;
-    std::size_t idx = path.find_last_of("/");
-    assert(idx != std::string::npos);  // All the xpaths should have at least one / (they should BEGIN with a /)
-    path = path.substr(0, idx);//get parent
-
-    if (path[0] == '{')  // Debugging requests
-    {
-      int end = path.find_first_of("}");
-      cmds = path.substr(1,end-1);
-      vector<string> strs;
-      boost::split(strs,cmds,boost::is_any_of(","));
-      for (auto cmd: strs)
-        {
-          if (cmd[0] == 'b')
-            {
-              std::raise(SIGINT);
-            }
-          else if (cmd[0] == 'p')
-            {
-              clDbgPause();
-            }
-        }
-      // TODO: parse the non-xml requests (depth, pause thread, break thread, log custom string)
-      cmds.append(" ");  // Right now I just assume everything in there is a custom logging string
-      path = path.substr(end+1);
-    }
-
     if (path[0] == '/')
       {
         resolvePath(path.c_str() + 1, &matches);
@@ -905,31 +829,7 @@ namespace SAFplus
     ClRcT rcRet = CL_OK;
     std::vector<MgtObject*> matches;
     std::string path = reqMsg.bind();
-    std::string cmds;
     std::string value;
-
-    if (path[0] == '{')  // Debugging requests
-    {
-      int end = path.find_first_of("}");
-      cmds = path.substr(1,end-1);
-      vector<string> strs;
-      boost::split(strs,cmds,boost::is_any_of(","));
-      for (auto cmd: strs)
-        {
-          if (cmd[0] == 'b')
-            {
-              std::raise(SIGINT);
-            }
-          else if (cmd[0] == 'p')
-            {
-              clDbgPause();
-            }
-        }
-      // TODO: parse the non-xml requests (depth, pause thread, break thread, log custom string)
-      cmds.append(" ");  // Right now I just assume everything in there is a custom logging string
-      path = path.substr(end+1);
-    }
-
     if (path[0] == '/')
       {
         resolvePath(path.c_str() + 1, &matches);
@@ -980,31 +880,7 @@ namespace SAFplus
     ClRcT rcRet = CL_OK;
     std::vector<MgtObject*> matches;
     std::string path = reqMsg.bind();
-    std::string cmds;
     std::string value;
-
-    if (path[0] == '{')  // Debugging requests
-    {
-      int end = path.find_first_of("}");
-      cmds = path.substr(1,end-1);
-      vector<string> strs;
-      boost::split(strs,cmds,boost::is_any_of(","));
-      for (auto cmd: strs)
-        {
-          if (cmd[0] == 'b')
-            {
-              std::raise(SIGINT);
-            }
-          else if (cmd[0] == 'p')
-            {
-              clDbgPause();
-            }
-        }
-      // TODO: parse the non-xml requests (depth, pause thread, break thread, log custom string)
-      cmds.append(" ");  // Right now I just assume everything in there is a custom logging string
-      path = path.substr(end+1);
-    }
-
     if (path[0] == '/')
       {
         resolvePath(path.c_str() + 1, &matches);
@@ -1033,36 +909,6 @@ namespace SAFplus
     ClRcT rcRet = CL_OK;
     std::string data = reqMsg.data();
     path = reqMsg.bind();
-    /*std::vector<std::string> strs;
-    boost::split(strs, data, boost::is_any_of(","));
-    path = strs[0];
-    if (strs.size() > 0)
-    {
-      attrs = data.substr(path.length() + 1);
-    }*/
-
-    if (path[0] == '{')  // Debugging requests
-    {
-      int end = path.find_first_of("}");
-      cmds = path.substr(1,end-1);
-      vector<string> strs;
-      boost::split(strs, cmds, boost::is_any_of(","));
-      for (auto cmd: strs)
-      {
-        if (cmd[0] == 'b')
-        {
-          std::raise(SIGINT);
-        }
-        else if (cmd[0] == 'p')
-        {
-          clDbgPause();
-        }
-      }
-      // TODO: parse the non-xml requests (depth, pause thread, break thread, log custom string)
-      cmds.append(" ");  // Right now I just assume everything in there is a custom logging string
-      path = path.substr(end+1);
-    }
-    //Todo Remove this hard code
     if (path[0] == '/')
     {
       resolvePath(path.c_str() + 1, &matches);
@@ -1091,8 +937,6 @@ namespace SAFplus
         }
       }
     }
-    //logDebug("MGT","SET","Object [%s] update complete [0x%x]", path.c_str(),rc);
-    //MgtRoot::sendReplyMsg(srcAddr,(void *)&rc,sizeof(ClRcT));
   }
 
   void MgtRoot::clMgtMsgRestDeleteHandler(SAFplus::Handle srcAddr, Mgt::Msg::MsgMgt& reqMsg)
@@ -1101,30 +945,6 @@ namespace SAFplus
     std::string xpath = reqMsg.bind();
     std::size_t idx = xpath.find_last_of("/");
     std::vector<MgtObject*> matches;
-    std::string cmds;
-
-    if (xpath[0] == '{')  // Debugging requests
-    {
-      int end = xpath.find_first_of("}");
-      cmds = xpath.substr(1,end-1);
-      vector<string> strs;
-      boost::split(strs,cmds,boost::is_any_of(","));
-      for (auto cmd: strs)
-        {
-          if (cmd[0] == 'b')
-            {
-              std::raise(SIGINT);
-            }
-          else if (cmd[0] == 'p')
-            {
-              clDbgPause();
-            }
-        }
-      // TODO: parse the non-xml requests (depth, pause thread, break thread, log custom string)
-      cmds.append(" ");  // Right now I just assume everything in there is a custom logging string
-      xpath = xpath.substr(end+1);
-    }
-
     if (idx != std::string::npos)
     {
       std::string path = xpath.substr(0, idx);
