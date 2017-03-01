@@ -65,6 +65,11 @@ namespace SAFplus
     return (name == spec); // TODO, add wildcard matching (* and ?)
   }
 
+  bool MgtObject::isAllocated()
+  {
+    return allocated; 
+  }
+
   MgtObject::Iterator MgtObject::begin(void)
   {
     return MgtObject::Iterator();

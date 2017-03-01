@@ -602,7 +602,8 @@ namespace SAFplus
       {
         for (std::vector<MgtObject*>::iterator i = matches.begin(); i != matches.end(); i++)
           {
-        	rcRet = (*i)->createObj(value);
+            //set allocated to true    
+            rcRet = (*i)->createObj(value);
             logDebug("MGT","CRET","Object [%s] created", xpath.c_str());
             updateReference();  // Since a new object is created, update refs that might be pointed to it
             MgtRoot::sendReplyMsg(srcAddr, (void *) &rcRet, sizeof(ClRcT));
@@ -793,10 +794,6 @@ namespace SAFplus
     clMgtMsgXGetHandler(srcAddr, reqMsg);  
   }
 
-  void MGtRoot::clMgtMsgDebugHandle(std::string &path)
-  {
-      //TODO optimize source code : process debug request
-  }
   void MgtRoot::clMgtMsgRestPutHandler(SAFplus::Handle srcAddr, Mgt::Msg::MsgMgt& reqMsg)
   {
     ClRcT rcRet = CL_OK;
@@ -844,7 +841,6 @@ namespace SAFplus
         	  assert(idx != std::string::npos);  // All the xpaths should have at least one / (they should BEGIN with a /)
         	  basePath = basePath.substr(0, idx);//get parent
         	  std::map<std::string, std::string> mapPath = xmlObj.getChildPathValues("data",basePath);
-
         	  for (std::map<std::string, std::string>::iterator it = mapPath.begin(); it != mapPath.end(); ++it)
         	  		 {
         	  			  try{
@@ -922,11 +918,11 @@ namespace SAFplus
             if(data!="")
             {
               rpc->setInParams((void*)data.c_str(),data.length());
-            }
+            }      
             ClBoolT rc = rpc->validate();
-			if(CL_TRUE == rc) rc = rpc->invoke();
-			if(CL_TRUE == rc) rc = rpc->postReply();
-			if(CL_FALSE == rc) rcRet = CL_ERR_NOT_EXIST;
+            if(CL_TRUE == rc) rc = rpc->invoke();
+            if(CL_TRUE == rc) rc = rpc->postReply();
+            if(CL_FALSE == rc) rcRet = CL_ERR_NOT_EXIST;
             MgtRoot::sendReplyMsg(srcAddr, (void *) &rcRet, sizeof(ClRcT));
             return;
           }
@@ -955,6 +951,7 @@ namespace SAFplus
       {
         for (std::vector<MgtObject*>::iterator i = matches.begin(); i != matches.end(); i++)
           {
+            //check object is delete or not using isAllocated in MgtObject
             rcRet = (*i)->deleteObj(value);
             logDebug("MGT","RESTDEL","Object [%s] got deleted",xpath.c_str());
             MgtRoot::sendReplyMsg(srcAddr, (void *) &rcRet, sizeof(ClRcT));

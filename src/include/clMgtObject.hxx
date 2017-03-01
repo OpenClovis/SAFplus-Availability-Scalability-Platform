@@ -222,6 +222,7 @@ extern MgtIteratorBase mgtIterEnd;
       virtual void resolvePath(const char* path, std::vector<MgtObject*>* result);
       //? returns true if this object matches the passed specification
       virtual bool match(const std::string& nameSpec);
+      virtual bool isAllocated();
 
     /**
      * \brief	Find children whos name fits the name specification
