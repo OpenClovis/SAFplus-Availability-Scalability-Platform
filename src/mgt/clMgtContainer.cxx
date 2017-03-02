@@ -10,6 +10,17 @@ namespace SAFplus
 
   MgtContainer::~MgtContainer()
   {
+    for( Map::iterator it = children.begin(); it != children.end(); ++it)
+	  {
+		  if(nullptr != it->second)
+		  {
+			if(it->second->isAllocated())
+			{
+				std::cout<<"call destructor object:~MgtContainer():"<<it->second->tag<<std::endl;
+				delete it->second;
+			}
+		  }
+	  }	
   }
 
   MgtObject* MgtContainer::deepFind(const std::string &s)
@@ -193,14 +204,18 @@ namespace SAFplus
 
   ClRcT MgtContainer::removeChildObject(const std::string& objectName)
   {
-    ClRcT rc = CL_OK;
+    ClRcT rc = CL_ERR_NOT_EXIST;
     std::map<std::string, MgtObject*>::iterator itr = children.find(objectName);
     if (itr != children.end())
     {
         // found it - delete it
-        //delete itr->second;
+        if(itr->second->isAllocated())
+		{
+        	delete itr->second;
+		}
     	//will enable when object is available
         children.erase(itr);
+        rc = CL_OK;
     }
     return rc;
   }

@@ -761,6 +761,9 @@ namespace SAFplus
         case Mgt::Msg::MsgMgt::CL_MGT_MSG_REST_DELETE:
           mRoot->clMgtMsgRestDeleteHandler(from,mgtMsgReq);
           break;
+        case Mgt::Msg::MsgMgt::CL_MGT_MSG_REST_RPC:
+		  mRoot->clMgtMsgRestRPCHandler(from,mgtMsgReq);
+		  break;
         default:
           break;
       }
@@ -800,6 +803,11 @@ namespace SAFplus
     std::vector<MgtObject*> matches;
     std::string path = reqMsg.bind();
     std::string value;
+    std::size_t idx = path.find_last_of("/");
+    if (idx != std::string::npos)
+    {
+      path = path.substr(0, idx);
+    }
     if (path[0] == '/')
       {
         resolvePath(path.c_str() + 1, &matches);
@@ -897,42 +905,47 @@ namespace SAFplus
     MgtRoot::sendReplyMsg(srcAddr,(void *)&rcRet,sizeof(ClRcT));
   }
 
-  void MgtRoot::clMgtMsgRestRPCHandler(SAFplus::Handle srcAddr, Mgt::Msg::MsgRpc& reqMsg)
+  void MgtRoot::clMgtMsgRestRPCHandler(SAFplus::Handle srcAddr, Mgt::Msg::MsgMgt& reqMsg)
   {
-    std::vector<MgtObject*> matches;
-    std::string path, cmds;
-    std::string attrs = "";
-    ClRcT rcRet = CL_OK;
-    std::string data = reqMsg.data();
-    path = reqMsg.bind();
-    if (path[0] == '/')
-    {
-      resolvePath(path.c_str() + 1, &matches);
-      if (matches.size())
-      {
-        for (std::vector<MgtObject*>::iterator i = matches.begin(); i != matches.end(); i++)
-        {
-          MgtRpc *rpc = dynamic_cast<MgtRpc*> (*i);
-          if (rpc)
-          {
-            if(data!="")
-            {
-              rpc->setInParams((void*)data.c_str(),data.length());
-            }      
-            ClBoolT rc = rpc->validate();
-            if(CL_TRUE == rc) rc = rpc->invoke();
-            if(CL_TRUE == rc) rc = rpc->postReply();
-            if(CL_FALSE == rc) rcRet = CL_ERR_NOT_EXIST;
-            MgtRoot::sendReplyMsg(srcAddr, (void *) &rcRet, sizeof(ClRcT));
-            return;
-          }
-          else
-          {
-            rcRet = CL_ERR_NOT_EXIST;
-          }
-        }
-      }
-    }
+	ClRcT rcRet = CL_OK;
+	std::vector<MgtObject*> matches;
+	std::string path = reqMsg.bind();
+	std::string data;
+	
+	if (path[0] == '/')
+	  {
+		resolvePath(path.c_str() + 1, &matches);
+		data = reqMsg.data(0);
+		//std::cout<<"clMgtMsgRestRPCHandler:data:"<<data<<std::endl;
+		if (matches.size())
+		  {
+			for (std::vector<MgtObject*>::iterator i = matches.begin(); i != matches.end(); i++)
+			{
+			  MgtRpc *rpc = dynamic_cast<MgtRpc*> (*i);
+			  if (rpc)
+			  {
+				if(data.length() > 0)
+				{
+				  rpc->setInParams((void*)data.c_str(),data.length());
+				}
+				ClBoolT rc = rpc->validate();
+				if(CL_TRUE == rc) rc = rpc->invoke();
+				if(CL_TRUE == rc) rc = rpc->postReply();
+				if(CL_FALSE == rc) rcRet = CL_ERR_NOT_EXIST;
+				MgtRoot::sendReplyMsg(srcAddr, (void *) &rcRet, sizeof(ClRcT));
+				return;
+			  }
+			  else
+			  {
+				rcRet = CL_ERR_NOT_EXIST;
+			  }
+			}//for
+		  }//if matches.size
+		else
+		  {
+				rcRet = CL_ERR_NOT_EXIST;
+		  }
+	  }
   }
 
   void MgtRoot::clMgtMsgRestDeleteHandler(SAFplus::Handle srcAddr, Mgt::Msg::MsgMgt& reqMsg)
@@ -945,7 +958,6 @@ namespace SAFplus
     {
       std::string path = xpath.substr(0, idx);
       std::string value = xpath.substr(idx + 1);
-      std::cout<<"path:"<<path<<",value:"<<value<<","<<__FUNCTION__<<","<<__FILE__<<__LINE__<<std::endl;
       resolvePath(path.c_str() + 1, &matches);
       if (matches.size())
       {

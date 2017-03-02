@@ -152,7 +152,7 @@ public:
     void clMgtMsgRestPatchHandler(SAFplus::Handle srcAddr, Mgt::Msg::MsgMgt& mgtMsgReq);
     void clMgtMsgRestPostHandler(SAFplus::Handle srcAddr, Mgt::Msg::MsgMgt& mgtMsgReq);
     void clMgtMsgRestDeleteHandler(SAFplus::Handle srcAddr, Mgt::Msg::MsgMgt& mgtMsgReq);
-    void clMgtMsgRestRPCHandler(SAFplus::Handle srcAddr, Mgt::Msg::MsgRpc& reqMsg);
+    void clMgtMsgRestRPCHandler(SAFplus::Handle srcAddr,  Mgt::Msg::MsgMgt& mgtMsgReq);
     class MgtMessageHandler:public SAFplus::MsgHandler
     {
       public:

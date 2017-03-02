@@ -165,23 +165,12 @@ namespace SAFplus
 		}
 	}
 	MsgMgt mgtMsgReq;
-	MsgRpc rpcMsgReq;
-	if(reqType == Mgt::Msg::MsgMgt::CL_MGT_MSG_REST_RPC)
-	{
-		std::string data = value;
-		rpcMsgReq.set_rpctype(rpcType);
-		rpcMsgReq.set_data(data);
-		rpcMsgReq.set_bind(pathSpec);
-		rpcMsgReq.SerializeToString(&request);
-	}
-	else
-	{
-		mgtMsgReq.set_type(reqType);
-		mgtMsgReq.set_bind(pathSpec);
-		mgtMsgReq.add_data(value);
-		mgtMsgReq.SerializeToString(&request);
-		logError("MGT", "REV", "send MGT [%d] [%s] [%s]",reqType,pathSpec.c_str(),value.c_str());
-	}
+	mgtMsgReq.set_type(reqType);
+	mgtMsgReq.set_bind(pathSpec);
+	mgtMsgReq.add_data(value);
+	mgtMsgReq.SerializeToString(&request);
+	logError("MGT", "REV", "send MGT [%d] [%s] [%s]",reqType,pathSpec.c_str(),value.c_str());
+	
 	SAFplus::SafplusMsgServer* mgtIocInstance = &SAFplus::safplusMsgServer;
 	try
 	{
@@ -778,9 +767,7 @@ ClRcT mgtRestPut(const std::string& pathSpec, const std::string& value)
 			  logError("MGT", "REV", "Route [%s] has no implementer", pathSpec.c_str());
 			  throw Error(Error::SAFPLUS_ERROR,Error::DOES_NOT_EXIST,"Route has no implementer",__FILE__,__LINE__);
 			}
-
     }
-
   return rcRet;
 }
 
