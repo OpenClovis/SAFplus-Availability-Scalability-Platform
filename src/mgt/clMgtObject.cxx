@@ -396,6 +396,19 @@ namespace SAFplus
     return CL_ERR_BAD_OPERATION;
   }
 
+  ClRcT MgtObject::putObj(const std::string &value)
+  {
+    return CL_ERR_BAD_OPERATION;
+  }
+  ClRcT MgtObject::postObj(const std::string &value)
+  {
+    return CL_ERR_BAD_OPERATION;
+  }
+  ClRcT MgtObject::patchObj(const std::string &value)
+  {
+    return CL_ERR_BAD_OPERATION;
+  }
+
   ClRcT MgtObject::deleteObj(const std::string &value)
   {
     return CL_ERR_BAD_OPERATION;
