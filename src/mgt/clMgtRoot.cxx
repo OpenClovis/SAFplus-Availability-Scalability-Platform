@@ -709,276 +709,255 @@ namespace SAFplus
     MgtRoot::sendReplyMsg(srcAddr, (void *) &rcRet, sizeof(ClRcT));
   }
 
-  MgtRoot::MgtMessageHandler::MgtMessageHandler()
-  {
+MgtRoot::MgtMessageHandler::MgtMessageHandler()
+{
 
-  }
-  void MgtRoot::MgtMessageHandler::init(MgtRoot *mroot)
+}
+void MgtRoot::MgtMessageHandler::init(MgtRoot *mroot)
+{
+  mRoot = mroot;
+}
+void MgtRoot::MgtMessageHandler::msgHandler(SAFplus::Handle from, SAFplus::MsgServer* svr, ClPtrT msg, ClWordT msglen, ClPtrT cookie)
+{
+  //Check message is rpc ???
+  logDebug("MGT", "REST", "receive new  message ");
+  Mgt::Msg::MsgMgt mgtMsgReq;
+  Mgt::Msg::MsgRpc mgtRpcReq;
+  if (mgtRpcReq.ParseFromArray(msg, msglen))
   {
-    mRoot = mroot;
+    logDebug("MGT", "RPC", "process RPC message");
+    mRoot->clMgtMsgRPCHandler(from, mgtRpcReq);
   }
-  void MgtRoot::MgtMessageHandler::msgHandler(SAFplus::Handle from, SAFplus::MsgServer* svr, ClPtrT msg, ClWordT msglen, ClPtrT cookie)
+  else
   {
-    //Check message is rpc ???
-    logDebug("MGT","DEL","receive new  message ");
-    Mgt::Msg::MsgMgt mgtMsgReq;
-    Mgt::Msg::MsgRpc mgtRpcReq;
-    if(mgtRpcReq.ParseFromArray(msg, msglen))
+    mgtMsgReq.ParseFromArray(msg, msglen);
+    logDebug("MGT", "REST", "process MGT message [%d]", mgtMsgReq.type());
+    switch (mgtMsgReq.type()) {
+      case Mgt::Msg::MsgMgt::CL_MGT_MSG_XGET:
+        mRoot->clMgtMsgXGetHandler(from, mgtMsgReq);
+        break;
+      case Mgt::Msg::MsgMgt::CL_MGT_MSG_XSET:
+        mRoot->clMgtMsgXSetHandler(from, mgtMsgReq);
+        break;
+      case Mgt::Msg::MsgMgt::CL_MGT_MSG_CREATE:
+        mRoot->clMgtMsgCreateHandler(from, mgtMsgReq);
+        break;
+      case Mgt::Msg::MsgMgt::CL_MGT_MSG_DELETE:
+        mRoot->clMgtMsgDeleteHandler(from, mgtMsgReq);
+        break;
+      case Mgt::Msg::MsgMgt::CL_MGT_MSG_REST_GET:
+        mRoot->clMgtMsgRestGetHandler(from, mgtMsgReq);
+        break;
+      case Mgt::Msg::MsgMgt::CL_MGT_MSG_REST_PUT:
+        mRoot->clMgtMsgRestPutHandler(from, mgtMsgReq);
+        break;
+      case Mgt::Msg::MsgMgt::CL_MGT_MSG_REST_PATCH:
+        mRoot->clMgtMsgRestPatchHandler(from, mgtMsgReq);
+        break;
+      case Mgt::Msg::MsgMgt::CL_MGT_MSG_REST_POST:
+        mRoot->clMgtMsgRestPostHandler(from, mgtMsgReq);
+        break;
+      case Mgt::Msg::MsgMgt::CL_MGT_MSG_REST_DELETE:
+        mRoot->clMgtMsgRestDeleteHandler(from, mgtMsgReq);
+        break;
+      case Mgt::Msg::MsgMgt::CL_MGT_MSG_REST_RPC:
+        mRoot->clMgtMsgRestRPCHandler(from, mgtMsgReq);
+        break;
+      default:
+        break;
+    }
+  }
+}
+
+void MgtRoot::addReference(MgtObject* mgtObject)
+{
+  if (std::find(this->mgtReferenceList.begin(), this->mgtReferenceList.end(), mgtObject) == this->mgtReferenceList.end()) this->mgtReferenceList.push_back(mgtObject);
+}
+
+void MgtRoot::removeReference(MgtObject* mgtObject)
+{
+  // remove all elements in the list whose value is mgtObject
+  this->mgtReferenceList.erase(std::remove(this->mgtReferenceList.begin(), this->mgtReferenceList.end(), mgtObject), this->mgtReferenceList.end());
+}
+
+void MgtRoot::updateReference(void)
+{
+  for (std::vector<MgtObject*>::iterator it = this->mgtReferenceList.begin(); it != this->mgtReferenceList.end(); ++it)
+  {
+    MgtObject* mgtObject = *it;
+    printf("updating %s\n", mgtObject->tag.c_str());
+    mgtObject->updateReference();
+  }
+}
+
+void MgtRoot::clMgtMsgRestGetHandler(SAFplus::Handle srcAddr, Mgt::Msg::MsgMgt& reqMsg)
+{
+  clMgtMsgXGetHandler(srcAddr, reqMsg);
+}
+
+void MgtRoot::clMgtMsgRestPutHandler(SAFplus::Handle srcAddr, Mgt::Msg::MsgMgt& reqMsg)
+{
+  ClRcT rcRet = CL_OK;
+  std::vector<MgtObject*> matches;
+  std::string path = reqMsg.bind();
+  std::string value;
+  std::size_t idx = path.find_last_of("/");
+  if (idx != std::string::npos)
+  {
+    path = path.substr(0, idx);
+  }
+  if (path[0] == '/')
+  {
+    resolvePath(path.c_str() + 1, &matches);
+    value = reqMsg.data(0);
+    if (matches.size())
     {
-      logDebug("MGT","DEL","process RPC message");
-      mRoot->clMgtMsgRPCHandler(from,mgtRpcReq);
+      for (std::vector<MgtObject*>::iterator it = matches.begin(); it != matches.end(); it++)
+      {
+        //parser here
+        rcRet = (*it)->putObj(value);
+      }
     }
     else
     {
-      mgtMsgReq.ParseFromArray(msg, msglen);
-      logDebug("MGT","DEL","process MGT message [%d]",mgtMsgReq.type());
-      switch(mgtMsgReq.type())
-      {
-        case Mgt::Msg::MsgMgt::CL_MGT_MSG_XGET:
-          mRoot->clMgtMsgXGetHandler(from,mgtMsgReq);
-          break;
-        case Mgt::Msg::MsgMgt::CL_MGT_MSG_XSET:
-          mRoot->clMgtMsgXSetHandler(from,mgtMsgReq);
-          break;
-        case Mgt::Msg::MsgMgt::CL_MGT_MSG_CREATE:
-          mRoot->clMgtMsgCreateHandler(from,mgtMsgReq);
-          break;
-        case Mgt::Msg::MsgMgt::CL_MGT_MSG_DELETE:
-          mRoot->clMgtMsgDeleteHandler(from,mgtMsgReq);
-          break;
-        case Mgt::Msg::MsgMgt::CL_MGT_MSG_REST_GET:
-          mRoot->clMgtMsgRestGetHandler(from,mgtMsgReq);
-          break;
-        case Mgt::Msg::MsgMgt::CL_MGT_MSG_REST_PUT:
-          mRoot->clMgtMsgRestPutHandler(from,mgtMsgReq);
-          break;
-        case Mgt::Msg::MsgMgt::CL_MGT_MSG_REST_PATCH:
-          mRoot->clMgtMsgRestPatchHandler(from,mgtMsgReq);
-          break;
-	case Mgt::Msg::MsgMgt::CL_MGT_MSG_REST_POST:
-          mRoot->clMgtMsgRestPostHandler(from,mgtMsgReq);
-          break;
-        case Mgt::Msg::MsgMgt::CL_MGT_MSG_REST_DELETE:
-          mRoot->clMgtMsgRestDeleteHandler(from,mgtMsgReq);
-          break;
-        case Mgt::Msg::MsgMgt::CL_MGT_MSG_REST_RPC:
-		  mRoot->clMgtMsgRestRPCHandler(from,mgtMsgReq);
-		  break;
-        default:
-          break;
-      }
+      rcRet = CL_ERR_NOT_EXIST;
     }
   }
+  logDebug("MGT", "PUT", "Object [%s] update [%s] complete [0x%x]", path.c_str(), value.c_str(), rcRet);
+  MgtRoot::sendReplyMsg(srcAddr, (void *) &rcRet, sizeof(ClRcT));
+}
 
-  void MgtRoot::addReference(MgtObject* mgtObject)
+void MgtRoot::clMgtMsgRestPatchHandler(SAFplus::Handle srcAddr, Mgt::Msg::MsgMgt& reqMsg)
+{
+  ClRcT rcRet = CL_OK;
+  std::vector<MgtObject*> matches;
+  std::string path = reqMsg.bind();
+  std::string value;
+  std::size_t idx = path.find_last_of("/");
+  if (idx != std::string::npos)
   {
-    if (std::find(this->mgtReferenceList.begin(),this->mgtReferenceList.end(), mgtObject) == this->mgtReferenceList.end())
-      this->mgtReferenceList.push_back(mgtObject);
+    path = path.substr(0, idx);
   }
-
-  void MgtRoot::removeReference(MgtObject* mgtObject)
+  if (path[0] == '/')
   {
-    // remove all elements in the list whose value is mgtObject
-    this->mgtReferenceList.erase(std::remove(this->mgtReferenceList.begin(), this->mgtReferenceList.end(), mgtObject), this->mgtReferenceList.end());
-  }
-
-  void MgtRoot::updateReference(void)
-  {
-    for(std::vector<MgtObject*>::iterator it = this->mgtReferenceList.begin(); it != this->mgtReferenceList.end(); ++it)
-      {
-        MgtObject* mgtObject = *it;
-        printf("updating %s\n", mgtObject->tag.c_str());
-        mgtObject->updateReference();
-      }
-  }
-
-  void MgtRoot::clMgtMsgRestGetHandler(SAFplus::Handle srcAddr, Mgt::Msg::MsgMgt& reqMsg)
-  {
-    clMgtMsgXGetHandler(srcAddr, reqMsg);  
-  }
-
-  void MgtRoot::clMgtMsgRestPutHandler(SAFplus::Handle srcAddr, Mgt::Msg::MsgMgt& reqMsg)
-  {
-    ClRcT rcRet = CL_OK;
-    std::vector<MgtObject*> matches;
-    std::string path = reqMsg.bind();
-    std::string value;
-    std::size_t idx = path.find_last_of("/");
-    if (idx != std::string::npos)
+    resolvePath(path.c_str() + 1, &matches);
+    value = reqMsg.data(0);
+    if (matches.size())
     {
-      path = path.substr(0, idx);
+      for (std::vector<MgtObject*>::iterator it = matches.begin(); it != matches.end(); it++)
+      {
+        rcRet = (*it)->patchObj(value);
+      }    //for
     }
-    if (path[0] == '/')
-      {
-        resolvePath(path.c_str() + 1, &matches);
-        value = reqMsg.data(0);
-        if (matches.size())
-          {
-            for (std::vector<MgtObject*>::iterator i = matches.begin(); i != matches.end(); i++)
-              {
-            	//parser here
-            	rcRet = (*i)->createObj(value,false);
-              }
-          }
-        else
-          {
-        		rcRet = CL_ERR_NOT_EXIST;
-          }
-      }
-    logDebug("MGT","RESTPUT","Object [%s] update [%s] complete [0x%x]", path.c_str(),value.c_str(), rcRet);
-    MgtRoot::sendReplyMsg(srcAddr,(void *)&rcRet,sizeof(ClRcT));
-  }
-
-  void MgtRoot::clMgtMsgRestPatchHandler(SAFplus::Handle srcAddr, Mgt::Msg::MsgMgt& reqMsg)
-  {
-    ClRcT rcRet = CL_OK;
-    std::vector<MgtObject*> matches;
-    std::string path = reqMsg.bind();
-    std::string value;
-    if (path[0] == '/')
-      {
-        resolvePath(path.c_str() + 1, &matches);
-        value = reqMsg.data(0);
-        if (matches.size())
-          {
-        	  //get bulk data path
-        	  xmlParser xmlObj(value);
-        	  std::string basePath(path);
-        	  basePath.erase(0,1);//delete first /
-        	  std::size_t idx = basePath.find_last_of("/");
-        	  assert(idx != std::string::npos);  // All the xpaths should have at least one / (they should BEGIN with a /)
-        	  basePath = basePath.substr(0, idx);//get parent
-        	  std::map<std::string, std::string> mapPath = xmlObj.getChildPathValues("data",basePath);
-        	  for (std::map<std::string, std::string>::iterator it = mapPath.begin(); it != mapPath.end(); ++it)
-        	  		 {
-        	  			  try{
-        	  				matches.clear();
-
-        	  				resolvePath((*it).first.c_str(), &matches);
-        	  				if (matches.size())
-        					{
-        					  for(std::vector<MgtObject*>::iterator i = matches.begin(); i != matches.end(); i++)
-        						{
-        						  rcRet = (*i)->setObj((*it).second);
-        						}
-        					}
-        	  			  }catch(...)
-        	  			  {
-        	  				  rcRet = CL_ERR_NOT_EXIST;
-        	  				  break;
-        	  			  }
-        	  		 }//for
-          }
-        else
-          {
-            rcRet = CL_ERR_NOT_EXIST;
-          }
-      }
-    logDebug("MGT","RESTPATCH","Object [%s] update [%s] complete [0x%x]", path.c_str(),value.c_str(), rcRet);
-    MgtRoot::sendReplyMsg(srcAddr,(void *)&rcRet,sizeof(ClRcT));
-  }
-
-
-  void MgtRoot::clMgtMsgRestPostHandler(SAFplus::Handle srcAddr, Mgt::Msg::MsgMgt& reqMsg)
-  {
-    ClRcT rcRet = CL_OK;
-    std::vector<MgtObject*> matches;
-    std::string path = reqMsg.bind();
-    std::string value;
-    if (path[0] == '/')
-      {
-        resolvePath(path.c_str() + 1, &matches);
-        value = reqMsg.data(0);
-        if (matches.size())
-          {
-            for (std::vector<MgtObject*>::iterator i = matches.begin(); i != matches.end(); i++)
-              {
-            	  rcRet = (*i)->createObj(value);
-              }//for
-          }
-        else
-          {
-        	rcRet = CL_ERR_NOT_EXIST;
-          }
-      }
-    logDebug("MGT","RESTPOST","Object [%s] update [%s] complete [0x%x]", path.c_str(),value.c_str(), rcRet);
-    MgtRoot::sendReplyMsg(srcAddr,(void *)&rcRet,sizeof(ClRcT));
-  }
-
-  void MgtRoot::clMgtMsgRestRPCHandler(SAFplus::Handle srcAddr, Mgt::Msg::MsgMgt& reqMsg)
-  {
-	ClRcT rcRet = CL_OK;
-	std::vector<MgtObject*> matches;
-	std::string path = reqMsg.bind();
-	std::string data;
-	
-	if (path[0] == '/')
-	  {
-		resolvePath(path.c_str() + 1, &matches);
-		data = reqMsg.data(0);
-		//std::cout<<"clMgtMsgRestRPCHandler:data:"<<data<<std::endl;
-		if (matches.size())
-		  {
-			for (std::vector<MgtObject*>::iterator i = matches.begin(); i != matches.end(); i++)
-			{
-			  MgtRpc *rpc = dynamic_cast<MgtRpc*> (*i);
-			  if (rpc)
-			  {
-				if(data.length() > 0)
-				{
-				  rpc->setInParams((void*)data.c_str(),data.length());
-				}
-				ClBoolT rc = rpc->validate();
-				if(CL_TRUE == rc) rc = rpc->invoke();
-				if(CL_TRUE == rc) rc = rpc->postReply();
-				if(CL_FALSE == rc) rcRet = CL_ERR_NOT_EXIST;
-				MgtRoot::sendReplyMsg(srcAddr, (void *) &rcRet, sizeof(ClRcT));
-				return;
-			  }
-			  else
-			  {
-				rcRet = CL_ERR_NOT_EXIST;
-			  }
-			}//for
-		  }//if matches.size
-		else
-		  {
-				rcRet = CL_ERR_NOT_EXIST;
-		  }
-	  }
-  }
-
-  void MgtRoot::clMgtMsgRestDeleteHandler(SAFplus::Handle srcAddr, Mgt::Msg::MsgMgt& reqMsg)
-  {
-    ClRcT rcRet = CL_OK;
-    std::string xpath = reqMsg.bind();
-    std::size_t idx = xpath.find_last_of("/");
-    std::vector<MgtObject*> matches;
-    if (idx != std::string::npos)
+    else
     {
-      std::string path = xpath.substr(0, idx);
-      std::string value = xpath.substr(idx + 1);
-      resolvePath(path.c_str() + 1, &matches);
-      if (matches.size())
+      rcRet = CL_ERR_NOT_EXIST;
+    }
+  }
+  logDebug("MGT", "PATCH", "Object [%s] update [%s] complete [0x%x]", path.c_str(), value.c_str(), rcRet);
+  MgtRoot::sendReplyMsg(srcAddr, (void *) &rcRet, sizeof(ClRcT));
+}
+
+void MgtRoot::clMgtMsgRestPostHandler(SAFplus::Handle srcAddr, Mgt::Msg::MsgMgt& reqMsg)
+{
+  ClRcT rcRet = CL_OK;
+  std::vector<MgtObject*> matches;
+  std::string path = reqMsg.bind();
+  std::string value;
+
+  if (path[0] == '/')
+  {
+    resolvePath(path.c_str() + 1, &matches);
+    value = reqMsg.data(0);
+    if (matches.size())
+    {
+      for (std::vector<MgtObject*>::iterator it = matches.begin(); it != matches.end(); it++)
       {
-        for (std::vector<MgtObject*>::iterator i = matches.begin(); i != matches.end(); i++)
+        rcRet = (*it)->postObj(value);
+      }    //for
+    }
+    else
+    {
+      rcRet = CL_ERR_NOT_EXIST;
+    }
+  }
+  logDebug("MGT", "POST", "Object [%s] update [%s] complete [0x%x]", path.c_str(), value.c_str(), rcRet);
+  MgtRoot::sendReplyMsg(srcAddr, (void *) &rcRet, sizeof(ClRcT));
+}
+
+void MgtRoot::clMgtMsgRestRPCHandler(SAFplus::Handle srcAddr, Mgt::Msg::MsgMgt& reqMsg)
+{
+  ClRcT rcRet = CL_OK;
+  std::vector<MgtObject*> matches;
+  std::string path = reqMsg.bind();
+  std::string data;
+
+  if (path[0] == '/')
+  {
+    resolvePath(path.c_str() + 1, &matches);
+    data = reqMsg.data(0);
+    if (matches.size())
+    {
+      for (std::vector<MgtObject*>::iterator i = matches.begin(); i != matches.end(); i++)
+      {
+        MgtRpc *rpc = dynamic_cast<MgtRpc*>(*i);
+        if (rpc)
+        {
+          if (data.length() > 0)
           {
-            //check object is delete or not using isAllocated in MgtObject
-            rcRet = (*i)->deleteObj(value);
-            logDebug("MGT","RESTDEL","Object [%s] got deleted",xpath.c_str());
-            MgtRoot::sendReplyMsg(srcAddr, (void *) &rcRet, sizeof(ClRcT));
-            /*
-             * Not allow multiple objects
-             */
-            return;
+            rpc->setInParams((void*) data.c_str(), data.length());
           }
-      }
-      else
+          ClBoolT rc = rpc->validate();
+          if (CL_TRUE == rc) rc = rpc->invoke();
+          if (CL_TRUE == rc) rc = rpc->postReply();
+          if (CL_FALSE == rc) rcRet = CL_ERR_NOT_EXIST;
+          MgtRoot::sendReplyMsg(srcAddr, (void *) &rcRet, sizeof(ClRcT));
+          return;
+        }
+        else
         {
           rcRet = CL_ERR_NOT_EXIST;
         }
+      }    //for
+    }    //if matches.size
+    else
+    {
+      rcRet = CL_ERR_NOT_EXIST;
     }
-    logDebug("MGT","RESTDEL","Deleting object [%s] got failure, errorCode [0x%x]", xpath.c_str(), rcRet);
-    MgtRoot::sendReplyMsg(srcAddr, (void *) &rcRet, sizeof(ClRcT));
   }
+}
+
+void MgtRoot::clMgtMsgRestDeleteHandler(SAFplus::Handle srcAddr, Mgt::Msg::MsgMgt& reqMsg)
+{
+  ClRcT rcRet = CL_OK;
+  std::string xpath = reqMsg.bind();
+  std::size_t idx = xpath.find_last_of("/");
+  std::vector<MgtObject*> matches;
+  if (idx != std::string::npos)
+  {
+    std::string path = xpath.substr(0, idx);
+    std::string value = xpath.substr(idx + 1);
+    resolvePath(path.c_str() + 1, &matches);
+    if (matches.size())
+    {
+      for (std::vector<MgtObject*>::iterator it = matches.begin(); it != matches.end(); it++)
+      {
+        //check object is delete or not using isAllocated in MgtObject
+        rcRet = (*it)->deleteObj(value);
+        logDebug("MGT", "DEL", "Object [%s] got deleted", xpath.c_str());
+        MgtRoot::sendReplyMsg(srcAddr, (void *) &rcRet, sizeof(ClRcT));
+        /*
+         * Not allow multiple objects
+         */
+        return;
+      }
+    }
+    else
+    {
+      rcRet = CL_ERR_NOT_EXIST;
+    }
+  }
+  logDebug("MGT", "DEL", "Deleting object [%s] got failure, errorCode [0x%x]", xpath.c_str(), rcRet);
+  MgtRoot::sendReplyMsg(srcAddr, (void *) &rcRet, sizeof(ClRcT));
+}
 };

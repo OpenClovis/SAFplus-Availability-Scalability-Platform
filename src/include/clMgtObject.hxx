@@ -52,7 +52,7 @@ namespace SAFplus
       MgtError(const char* error): Error(error)
       {
       }
-    
+
     };
 
   // this management node is not a leaf but you tried to assign it data
@@ -68,7 +68,7 @@ namespace SAFplus
   class SerializationError:public MgtError
     {
     public:
-      SerializationError(const char* error):MgtError(error) 
+      SerializationError(const char* error):MgtError(error)
       {
       }
     };
@@ -85,7 +85,7 @@ namespace SAFplus
       return next();
       }
 
-    virtual ~MgtIteratorBase() 
+    virtual ~MgtIteratorBase()
       {
       }
     virtual bool next(); //? called to get the next element, return false if at the end -- set the current member appropriately
@@ -142,8 +142,8 @@ extern MgtIteratorBase mgtIterEnd;
       ~Iterator()
         {
           if ((b)&&(b != &mgtIterEnd))
-          { 
-          b->refs--; 
+          {
+          b->refs--;
           if (b->refs==0) b->del();
           }
         b = nullptr;
@@ -212,12 +212,12 @@ extern MgtIteratorBase mgtIterEnd;
      * \return	If the function succeeds, the return value is a MGT object
      * \return	If the function fails, the return value is NULL
      */
-      MgtObject *getChildObject(const std::string& objectName) 
+      MgtObject *getChildObject(const std::string& objectName)
       {
       return find(objectName);
       }
 
-    
+
       //? fills result with all management objects that match the provided path.
       virtual void resolvePath(const char* path, std::vector<MgtObject*>* result);
       //? returns true if this object matches the passed specification
@@ -232,7 +232,7 @@ extern MgtIteratorBase mgtIterEnd;
 
     virtual MgtObject::Iterator multiFind(const std::string &nameSpec);
     virtual MgtObject::Iterator multiMatch(const std::string &nameSpec);
- 
+
       //? Get child iterator beginning
     virtual MgtObject::Iterator begin(void);
 
@@ -251,7 +251,7 @@ extern MgtIteratorBase mgtIterEnd;
         SerializeNameAttribute=1, // Add name="foo" to tag, for example <tag> becomes <tag name="foo">
         SerializePathAttribute=2, // Add path="/full/route/to/object/foo" to tag, for example <tag> becomes <tag name="/SAFplusAmf/Component/c0">
         SerializeListKeyAttribute=4, // Add path="/full/route/to/object/foo" to tag, for example <tag> becomes <tag name="/SAFplusAmf/Component/c0">
-        SerializeFormatted=8,     // Pretty print 
+        SerializeFormatted=8,     // Pretty print
         SerializeOnePath=16
       };
 
@@ -281,7 +281,7 @@ extern MgtIteratorBase mgtIterEnd;
      */
     ClRcT bind(Handle handle, const std::string& module, const std::string& route);
 
-    /*? Persist to database. 
+    /*? Persist to database.
      <arg name="db"> The database to access. by default it uses the globally defined database. </arg>
      */
     virtual ClRcT write(MgtDatabase *db=nullptr, std::string parentXPath = "");
@@ -291,8 +291,8 @@ extern MgtIteratorBase mgtIterEnd;
      */
     virtual ClRcT writeChanged(uint64_t firstBeat, uint64_t beat, MgtDatabase *db = nullptr, std::string parentXPath = "");
 
-    /*? Load object from database. 
-          <arg name="db"> The database to access. by default it uses the globally defined database. 
+    /*? Load object from database.
+          <arg name="db"> The database to access. by default it uses the globally defined database.
      */
     virtual ClRcT read(MgtDatabase *db=nullptr, std::string parentXPath = "");
 
@@ -305,7 +305,7 @@ extern MgtIteratorBase mgtIterEnd;
 
     virtual MgtObject *findMgtObject(const std::string &xpath, std::size_t idx);
     virtual ClRcT setObj(const std::string &value);
-    virtual ClRcT createObj(const std::string &value,const bool& isCreated = true);
+    virtual ClRcT createObj(const std::string &value);
     virtual ClRcT putObj(const std::string &value);
     virtual ClRcT postObj(const std::string &value);
     virtual ClRcT patchObj(const std::string &value);
@@ -351,7 +351,7 @@ extern MgtIteratorBase mgtIterEnd;
     ss << strVal;
     // If you need to write a deXMLize for your custom type, you will
     // get  this inscrutiable error: cannot bind std::basic_istream<char> lvalue to std::basic_istream<char>&& 
-    ss >> result;  
+    ss >> result;
     }
   template<typename T> inline void deXMLize(const char* strVal,MgtObject* context, bool& result) // throw(SerializationError)
   {

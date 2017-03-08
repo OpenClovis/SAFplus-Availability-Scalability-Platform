@@ -67,7 +67,7 @@ namespace SAFplus
 
   bool MgtObject::isAllocated()
   {
-    return allocated; 
+    return allocated;
   }
 
   MgtObject::Iterator MgtObject::begin(void)
@@ -387,11 +387,10 @@ namespace SAFplus
 
   ClRcT MgtObject::setObj(const std::string &value)
   {
-	  std::cout<<"DANGLE:MgtObject::setObj"<<CL_ERR_BAD_OPERATION<<std::endl;
     return CL_ERR_BAD_OPERATION;
   }
 
-  ClRcT MgtObject::createObj(const std::string &value,const bool&isCreated)
+  ClRcT MgtObject::createObj(const std::string &value)
   {
     return CL_ERR_BAD_OPERATION;
   }
@@ -429,15 +428,15 @@ namespace SAFplus
     //type.append(typeid(*this).name());
     //if(type == classType && this->tag == ref)
     if (this->tag == ref)
-      {
-        return this;
-      }
+    {
+      return this;
+    }
     return nullptr;
   }
 
   void MgtObject::updateReference(void)
   {
-    return ;
+    return;
   }
 
   void MgtObject::setPrefix(const std::string &xp)

@@ -36,8 +36,8 @@
 #include <clMgtObject.hxx>
 
 namespace SAFplus
-  {
-  typedef std::map<std::string, MgtObject* > MgtObjectMap;
+{
+  typedef std::map<std::string,MgtObject*> MgtObjectMap;
 
 class MgtContainer:public MgtObject
   {
@@ -75,6 +75,7 @@ class MgtContainer:public MgtObject
     virtual ClRcT addChildObject(MgtObject *mgtObject, const std::string& objectName=*((std::string*)nullptr));
     virtual ClRcT addChildObject(MgtObject *mgtObject, const char* objectName);
     virtual ClRcT removeChildObject(const std::string& objectName);
+    virtual void removeAllChildren();    
     virtual ClRcT setChildObj(const std::string &childName, const std::string &value);
     virtual ClRcT setChildObj(const std::map<std::string,std::string> &keyList);
 
