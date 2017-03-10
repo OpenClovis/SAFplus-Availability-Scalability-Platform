@@ -37,7 +37,15 @@
 
 namespace SAFplus
 {
+
+
+  template <typename T>
+  T* new_class()
+  {
+    return new T;
+  }  
   typedef std::map<std::string,MgtObject*> MgtObjectMap;
+
 
 class MgtContainer:public MgtObject
   {
@@ -103,7 +111,7 @@ class MgtContainer:public MgtObject
     virtual MgtObject *lookUpMgtObject(const std::string & classType, const std::string &ref);
 
   };
-
+  typedef std::function<MgtContainer*()> creationFunction;
 }
 
 #endif
