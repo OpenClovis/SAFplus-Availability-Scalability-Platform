@@ -189,7 +189,7 @@ def redirect_file():
     MAXFD = 1024
 
     os.chdir(WORKDIR)
-    os.umask(UMASK)
+    #os.umask(UMASK)
 
     import resource
     maxfd = resource.getrlimit(resource.RLIMIT_NOFILE)[1]
