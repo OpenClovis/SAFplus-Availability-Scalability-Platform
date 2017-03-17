@@ -3,6 +3,8 @@ include ../../mk/preface.mk
 # --- 0 --- Install required tools:
 
 # sudo apt-get install curl autotools
+# sudo apt-get install python-dev
+# sudo apt-get install bzip2-dev
 
 # --- 1 --- Choose your installation directory
 
