@@ -234,6 +234,7 @@ namespace SAFplus
             if (it->second->isAllocated())
             {
               delete it->second;
+              it->second = nullptr;
             }
           }
           children.erase(it);
@@ -828,6 +829,7 @@ namespace SAFplus
             if (it->second->isAllocated())
             {
               delete it->second;
+              it->second = nullptr;
             }
           }
           children.erase(it);
@@ -1393,6 +1395,7 @@ namespace SAFplus
         }
 
         MgtObject *child = it->second;
+        if(nullptr == child) return ret;
 
         logDebug("MGT", "LIST", "Deleting Object [%s]", child->dataXPath.c_str());
 
@@ -1443,12 +1446,13 @@ namespace SAFplus
         /* TODO: Remove the record out of database for its childs */
 
         /* Free-ed */
-        children.erase(value);
         child->removeAllChildren();
         if (child->isAllocated())
         {
           delete child;
+          child = nullptr;
         }
+        children.erase(value);
         return ret;
       }
   };

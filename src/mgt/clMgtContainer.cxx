@@ -200,6 +200,7 @@ namespace SAFplus
       if (itr->second->isAllocated())
       {
         delete itr->second;
+        itr->second = nullptr;
       }
       //will enable when object is available
       children.erase(itr);
@@ -216,8 +217,8 @@ namespace SAFplus
         it->second->removeAllChildren();
         if (it->second->isAllocated())
         {
-          std::cout << "call removeAllChildren:" << it->second->tag << std::endl;
           delete it->second;
+          it->second = nullptr;
         }
       }
       children.erase(it);
