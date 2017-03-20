@@ -630,6 +630,7 @@ module SAFplusAmf
 
 	}
         SAFplusTypes:ui-prompt "Capability:";
+        default x_active_or_y_standby;
       }
 
       leaf maxActiveAssignments
@@ -897,6 +898,7 @@ are switched over to other nodes (component service instances are not abruptly r
 	  }
 	    
 	}
+        default NoRecommendation;
 
       }
 
