@@ -71,7 +71,7 @@ class SAFplusFrame(wx.Frame):
         self.Bind(wx.EVT_TREE_ITEM_ACTIVATED, self.onPrjTreeActivated, self.project.tree) # handle an event when user double-clicks on a project at the tree on the left to switch views to it or to set it active
         self.tab = wx.aui.AuiNotebook(self.prjSplitter)
         self.help = HtmlWindow(self.tab, -1)
-        self.help.LoadFile("intro.html")
+        self.help.LoadFile("resources/intro.html")
         self.tab.AddPage(self.help, "Welcome")        
         self.Bind(wx.aui.EVT_AUINOTEBOOK_PAGE_CLOSE, self.onPageClosing, self.tab) # handle tab page close
         self.prjSplitter.SplitVertically(self.project,self.tab,200)
