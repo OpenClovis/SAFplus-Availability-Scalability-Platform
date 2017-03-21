@@ -2,6 +2,7 @@ from string import Template
 import os, types
 import time
 from types import *
+import inspect
 
 import common
 
@@ -29,7 +30,7 @@ class TemplateMgr:
 templateMgr = TemplateMgr()
 
 #TODO: Get relative directiry with model.xml
-TemplatePath = "codegen/templates/"
+TemplatePath = ""
 
 makeBinApp = """
 $(BIN_DIR)/%s:
@@ -38,11 +39,18 @@ $(BIN_DIR)/%s:
 
 cleanApp = """	$(MAKE) SAFPLUS_SRC_DIR=$(SAFPLUS_SRC_DIR) -C %s clean """
 
+# the safplus directory (full path)
+safplusDir=''
 
 def topMakefile(output, srcDir,dirNames):
-
+    global safplusDir
+    thisDir=os.path.dirname(os.path.abspath(inspect.getfile(inspect.currentframe())))
+    global TemplatePath
+    TemplatePath = thisDir+'/codegen/templates/'
+    safplusDir=thisDir+'/../..'
     mkSubdirTmpl = templateMgr.loadPyTemplate(TemplatePath + "Makefile.subdir.ts")
     makeSubsDict = {}
+    makeSubsDict['safplusDir'] = "SAFPLUS_DIR=%s" % safplusDir
     makeSubsDict['subdirs'] = " ".join(["$(BIN_DIR)/%s" % c for c in dirNames])
     makeSubsDict['labelApps'] = "\n".join([makeBinApp % (c,c) for c in dirNames])
     makeSubsDict['cleanupApps'] = "\n".join([cleanApp % c for c in dirNames])

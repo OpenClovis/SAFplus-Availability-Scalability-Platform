@@ -1,4 +1,5 @@
 S7 := 1
+${safplusDir}
 ifneq ($(wildcard $(SAFPLUS_DIR)/src/mk/preface.mk),) 
     SAFPLUS_MAKE_DIR ?= $(SAFPLUS_DIR)/src/mk/
 else

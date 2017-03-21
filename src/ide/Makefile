@@ -12,6 +12,7 @@ PYTHON_OBJECTS := $(addprefix $(IDE_DIR)/,$(subst .py,.pyc,$(PYTHON_FILES)))
 
 ide: $(PYTHON_OBJECTS) $(BIN_DIR)/safplus_ide $(IDE_DIR)/SAFplusAmf.yang
 	cp -rLf resources $(IDE_DIR)
+	cp -rLf codegen $(IDE_DIR)
 
 $(IDE_DIR)/SAFplusAmf.yang: $(SAFPLUS_SRC_DIR)/yang/SAFplusAmf.yang
 	cp -f $< $@
