@@ -226,7 +226,7 @@ namespace SAFplus
        */
       void removeAllChildren()
       {
-        for (typename Map::iterator it = children.begin(); it != children.end(); ++it)
+        for (typename Map::iterator it = children.begin(); it != children.end();)
         {
           if (nullptr != it->second)
           {
@@ -237,8 +237,8 @@ namespace SAFplus
               it->second = nullptr;
             }
           }
+          it = children.erase(it);
         }
-        children.clear();
       }
       /**
        * API to iterate thought objects in the list
@@ -821,7 +821,7 @@ namespace SAFplus
        */
       void removeAllChildren()
       {
-        for (typename Map::iterator it = children.begin(); it != children.end(); ++it)
+        for (typename Map::iterator it = children.begin(); it != children.end();)
         {
           if (nullptr != it->second)
           {
@@ -832,8 +832,8 @@ namespace SAFplus
               it->second = nullptr;
             }
           }
+          it = children.erase(it);
         }
-        children.clear();
       }
       /**
        * API to iterate thought objects in the list
