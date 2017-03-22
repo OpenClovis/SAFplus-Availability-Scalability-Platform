@@ -237,8 +237,8 @@ namespace SAFplus
               it->second = nullptr;
             }
           }
-          children.erase(it);
         }
+        children.clear();
       }
       /**
        * API to iterate thought objects in the list
