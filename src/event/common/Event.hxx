@@ -8,20 +8,21 @@
 #ifndef EVENT_HXX_
 #define EVENT_HXX_
 
-namespace SAFplus {
-
-class Event
+namespace SAFplus
 {
-public:
-	Event();
-	virtual ~Event();
-	SAFplus::Handle eventClientHandle;
-	Event(SAFplus::Handle handle)
-	{
-		eventClientHandle=handle;
-	}
-    ClRcT clEventInitialize(SAFplus::Handle pEvtHandle,const ClEventCallbacksT * pEvtCallbacks);
-};
+
+    class Event
+    {
+        public:
+            Event();
+            virtual
+            ~Event();
+            SAFplus::Handle eventClientHandle;
+            Event(SAFplus::Handle handle)
+            {
+                eventClientHandle = handle;
+            }
+    };
 
 } /* namespace SAFplus */
 #endif /* EVENT_HXX_ */
