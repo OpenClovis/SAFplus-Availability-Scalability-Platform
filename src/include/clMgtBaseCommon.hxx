@@ -31,7 +31,7 @@ static std::string json2xmlnoheader(std::stringstream& strJson)
   ptree pt;
   read_json(strJson,pt);
   std::stringstream ss;
-  write_xml_element(ss,boost::property_tree::ptree::key_type(),pt,-1,boost::property_tree::xml_writer_settings<boost::property_tree::ptree::key_type::value_type>());
+  write_xml_element(ss,boost::property_tree::ptree::key_type(),pt,-1,boost::property_tree::xml_writer_settings<boost::property_tree::ptree::key_type>());
   return ss.str();
 }
 static std::string json2xml(std::stringstream& strJson)
@@ -125,7 +125,7 @@ class xmlParser
     {
       ptree noderoot = pt.get_child(tagName);
       std::stringstream ss;
-      write_xml_element(ss,ptree::key_type(),noderoot,-1,xml_writer_settings<ptree::key_type::value_type>());
+      write_xml_element(ss,ptree::key_type(),noderoot,-1,xml_writer_settings<ptree::key_type>());
       return ss.str();
     }
   std::vector<std::string> getChildNames(const std::string& tagName)

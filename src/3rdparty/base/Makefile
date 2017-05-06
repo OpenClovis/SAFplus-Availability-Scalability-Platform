@@ -105,7 +105,7 @@ LIBXML2_VER=2.9.0
 LIBXML2_PKG=$(LIBXML2)-$(LIBXML2_VER).tar.gz
 
 BOOST=boost
-BOOST_VER=1.62.0
+BOOST_VER=1.57.0
 BOOST_PKG=$(BOOST)_$(subst .,_,$(BOOST_VER)).tar.gz
 BOOST_FLAVOR=link=shared runtime-link=shared variant=debug threading=multi --without-python --without-iostreams --without-mpi --without-context
 

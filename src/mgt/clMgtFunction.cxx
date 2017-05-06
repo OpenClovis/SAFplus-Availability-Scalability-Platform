@@ -134,7 +134,7 @@ namespace SAFplus
         mgtMsgReq.set_bind(pathSpec);
         mgtMsgReq.add_data(value);
         mgtMsgReq.SerializeToString(&request);
-        logError("MGT", "REV", "send MGT [%d] [%s] [%s]",reqType,pathSpec.c_str(),value.c_str());
+        logDebug("MGT", "REV", "send MGT requestType[%d] path[%s] value[%s]", reqType, pathSpec.c_str(), value.c_str());
     }
     SAFplus::SafplusMsgServer* mgtIocInstance = &SAFplus::safplusMsgServer;
     try
@@ -169,7 +169,7 @@ namespace SAFplus
     mgtMsgReq.set_bind(pathSpec);
     mgtMsgReq.add_data(value);
     mgtMsgReq.SerializeToString(&request);
-    logError("MGT", "REV", "send MGT [%d] [%s] [%s]", reqType, pathSpec.c_str(), value.c_str());
+    logDebug("MGT", "REV", "send MGT requestType[%d] path[%s] value[%s]", reqType, pathSpec.c_str(), value.c_str());
 
     SAFplus::SafplusMsgServer* mgtIocInstance = &SAFplus::safplusMsgServer;
     try
@@ -191,7 +191,7 @@ namespace SAFplus
   {
     std::string output = "";
     MsgGeneral rxMsg;
-    logError("MGT", "REV", "mgtget call");
+    logDebug("MGT", "REV", "mgtget call");
     SAFplus::MsgReply *msgReply = mgtRpcRequest(src, Mgt::Msg::MsgMgt::CL_MGT_MSG_XGET, pathSpec);
     if (msgReply != NULL)
     {
