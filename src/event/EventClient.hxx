@@ -9,50 +9,12 @@
 #define EVENTCLIENT_HXX_
 
 #include <string>
+#include "../EventCommon.hxx"
 
 namespace SAFplus
 {
 
-    enum class EventMessageType
-    {
-        EVENT_CHANNEL_CREATE = 1, EVENT_CHANNEL_SUBSCRIBER, EVENT_CHANNEL_UNSUBSCRIBER, EVENT_CHANNEL_PUBLISHER, EVENT_CHANNEL_CLOSE, EVENT_CHANNEL_UNLINK, EVENT_UNDEFINED
-    };
-
-    enum class EventChannelScope
-    {
-        EVENT_LOCAL_CHANNEL = 1, EVENT_GLOBAL_CHANNEL
-    };
-
-    class EventData
-    {
-
-    }
-
-    class EventMessageProtocol
-    {
-        public:
-            SAFplus::EventMessageType messageType;
-            EventChannelScope scope;
-            SAFplus::Handle clientHandle;
-            std::string channelName;
-            char                  data[1]; //Not really 1, it will be place on larger memory
-
-            EventMessageProtocol()
-            {
-                messageType = SAFplus::EventMessageType::EVENT_UNDEFINED;
-                scope = SAFplus::EventChannelScope::EVENT_LOCAL_CHANNEL;
-                clientHandle = SAFplus::INVALID_HDL;
-            }
-            void init(SAFplus::Handle handle, std::string evtChannelName, EventChannelScope evtScope,EventMessageType msgType)
-            {
-                clientHandle=handle;
-                messageType = msgType;
-                scope = evtScope;
-                channelName = evtChannelName;
-            }
-    };
-
-    class EventClient
+       class EventClient
     {
         public:
             SAFplus::Handle clientHandle;             // handle for identify a event client

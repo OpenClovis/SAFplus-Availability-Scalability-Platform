@@ -13,33 +13,36 @@ using namespace boost::intrusive;
 
 namespace SAFplus {
 
-class SubscriberCkpt
+class EventSubscriber
+{
+public:
+    EventChannelUser usr;
+    EventSubscriber(SAFplus::Handle evtClient, std::string name)
+    {
+        usr.evtHandle=evtClient;
+        usr.userName=name;
+    }
+
+};
+
+class EventPublisher
 {
 public:
     boost::intrusive::list_member_hook<> m_memberHook;
+    EventChannelUser usr;
 };
 
 class EventChannelUser
 {
 public:
+    std::string userName;
     SAFplus::Handle evtHandle;   /* The handle of client */
-    boost::intrusive::list_member_hook<> m_memberHook;
 };
 
 
-typedef list<SubscriberCkpt, member_hook<SubscriberCkpt, list_member_hook<>, &SubscriberCkpt::m_memberHook>> SubscriberCkptList;
-typedef list<EventChannelUser, member_hook<EventChannelUser, list_member_hook<>, &EventChannelUser::m_memberHook>> EventChannelUserList;
+typedef list<EventSubscriber, member_hook<EventSubscriber, list_member_hook<>, &EventSubscriber::m_memberHook>> EventSubscriberList;
+typedef list<EventPublisher, member_hook<EventPublisher, list_member_hook<>, &EventSubscriber::m_memberHook>> EventPublisherList;
 
-
-typedef struct EvtChannelDB
-{
-	SAFplus::Mutex channelLevelMutex;   /* Mutex will protect channelId level */
-	EventChannelUserList evtChannelUserInfo;    /* List of users who are opened event channel */
-    SubscriberCkptList subsCkptMsg;  /* To hold the msg buffer for Check Pointing Subscriber Info */
-    int subscriberRefCount;   /* No of users opened this channel for subscription purpose */
-    int publisherRefCount;    /* No of users opened this channel for publishing purpose */
-    int channelScope;  /* channel scope */
-} EventChannelDB;
 
 class EventChannel
 {
@@ -48,11 +51,19 @@ public:
     SAFplus::Handle evtChannelHandle;   /* The handle created in clEventInitialize */
     ClNameT evtChannelName;
     EvtChannelDB channelDb;
+    EventChannelScope scope;
+    SAFplus::Mutex channelLevelMutex;   /* Mutex will protect channelId level */
+    EventSubscriberList eventSubs;  /* To hold the msg buffer for Check Pointing Subscriber Info */
+    EventPublisherList eventPubs;
+    int subscriberRefCount;   /* No of users opened this channel for subscription purpose */
+    int publisherRefCount;    /* No of users opened this channel for publishing purpose */
+
 	EventChannel();
 	virtual ~EventChannel();
-	void initChannelDB();
-	void addChannelSubs();
-	void deleteChannelSubs();
+	void addChannelSub(EventSubscriber sub);
+    void addChannelPub(EventPublisher pub);
+	void deleteChannelSub(SAFplus::Handle subHandle);
+	void deleteChannelPub(SAFplus::Handle pubHandle);
 
 };
 
