@@ -9,7 +9,39 @@
 #define EVENTSERVER_HXX_
 
 
-#include <EventChannel.hxx>
+#include <../common/EventChannel.hxx>
+#include <../common/EventCommon.hxx>
+#include <EventCkpt.hxx>
+#include <clGroupApi.hxx>
+#include <string>
+#include "clMsgHandler.hxx"
+#include "clMsgServer.hxx"
+#include <clCommon.hxx>
+#include <clMsgPortsAndTypes.hxx>
+#include <FaultSharedMem.hxx>
+#include <clHandleApi.hxx>
+#include <boost/functional/hash.hpp>
+#include <boost/interprocess/managed_shared_memory.hpp>
+#include <boost/interprocess/allocators/allocator.hpp>
+#include <boost/interprocess/errors.hpp>
+#include <boost/foreach.hpp>
+#include <boost/unordered_map.hpp>
+#include <functional>
+#include <boost/functional/hash.hpp>
+#include <boost/thread.hpp>
+#include <boost/date_time/posix_time/posix_time.hpp>
+#include <boost/asio/ip/address.hpp>
+#include <boost/filesystem/operations.hpp>
+#include <boost/filesystem/path.hpp>
+#include <boost/foreach.hpp>
+#include <boost/unordered_map.hpp>
+#include <clCustomization.hxx>
+#include <clNameApi.hxx>
+#include <clMsgPortsAndTypes.hxx>
+#include <clHandleApi.hxx>
+#include <time.h>
+
+
 
 namespace SAFplus
 {
@@ -36,7 +68,6 @@ public:
 	virtual ~EventServer();
 	void initialize();
     void wake(int amt,void* cookie=NULL);
-    EventChannel  getChannelbyName(std::string channelName, EventChannelScope &scope);
     virtual void msgHandler(SAFplus::Handle from, SAFplus::MsgServer* svr, ClPtrT msg, ClWordT msglen, ClPtrT cookie);
     bool eventloadGlobalchannel();
     bool eventloadLocalchannel();

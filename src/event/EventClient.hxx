@@ -9,33 +9,69 @@
 #define EVENTCLIENT_HXX_
 
 #include <string>
-#include "../EventCommon.hxx"
+#include "common/EventCommon.hxx"
+#include "clMsgHandler.hxx"
+#include "clMsgServer.hxx"
+#include <clCommon.hxx>
+#include <clMsgPortsAndTypes.hxx>
+#include <FaultSharedMem.hxx>
+#include <clHandleApi.hxx>
+#include <boost/functional/hash.hpp>
+#include <boost/interprocess/managed_shared_memory.hpp>
+#include <boost/interprocess/allocators/allocator.hpp>
+#include <boost/interprocess/errors.hpp>
+#include <boost/foreach.hpp>
+#include <boost/unordered_map.hpp>
+#include <functional>
+#include <boost/functional/hash.hpp>
+#include <boost/thread.hpp>
+#include <boost/date_time/posix_time/posix_time.hpp>
+#include <boost/asio/ip/address.hpp>
+#include <boost/filesystem/operations.hpp>
+#include <boost/filesystem/path.hpp>
+#include <boost/foreach.hpp>
+#include <boost/unordered_map.hpp>
+#include <clCommon.hxx>
+#include <clCustomization.hxx>
+#include <clNameApi.hxx>
+#include <clMsgPortsAndTypes.hxx>
+#include <clHandleApi.hxx>
+#include <time.h>
 
 namespace SAFplus
 {
-
-       class EventClient
+    class EventClient:public SAFplus::MsgHandler,public SAFplus::Wakeable
     {
         public:
-            SAFplus::Handle clientHandle;             // handle for identify a event client
-            SAFplus::SafplusMsgServer* eventMsgServer;       // safplus message for send event message to event server
-            SAFplus::Wakeable* wakeable;             // Wakeable object for change notification
-            SAFplus::Handle severHandle;             // handle for identify a event server
+            Handle clientHandle;             // handle for identify a event client
+            SAFplus::SafplusMsgServer *eventMsgServer;       // safplus message for send event message to event server
+            Wakeable* wakeable;             // Wakeable object for change notification
+            Handle severHandle;             // handle for identify a event server
+
             EventClient()
             {
                 clientHandle = INVALID_HDL;
                 severHandle = INVALID_HDL;
                 eventMsgServer = NULL;
                 wakeable = NULL;
-            }
+            };
             virtual ~EventClient();
-            ClRcT eventInitialize(clientHandle evtHandle, ClEventCallbacksT * pEvtCallbacks);
+
+            void  sendEventMessage(void* data, int dataLength);
+            ClRcT eventInitialize(Handle evtHandle);
             ClRcT eventChannelOpen(std::string evtChannelName, EventChannelScope scope, SAFplus::Handle &channelHandle);
-            ClRcT eventChannelClose(SAFplus::Handle channelHandle);
+            ClRcT eventChannelClose(std::string evtChannelName);
             ClRcT eventChannelUnlink(std::string evtChannelName);
             ClRcT eventPublish(const void *pEventData, int eventDataSize, std::string channelName);
             ClRcT eventPublish(const void *pEventData, int eventDataSize, SAFplus::Handle handle);
+            void sendEventMessage(void* data, int dataLength,Handle destHandle = INVALID_HDL);
+
+
+
+
     };
 
-} /* namespace SAFplus */
+
+}
 #endif /* EVENTCLIENT_HXX_ */
+

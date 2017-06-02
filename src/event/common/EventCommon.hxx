@@ -18,13 +18,8 @@ enum class EventMessageType
 
     enum class EventChannelScope
     {
-        EVENT_LOCAL_CHANNEL = 1, EVENT_GLOBAL_CHANNEL
+        EVENT_LOCAL_CHANNEL = 1, EVENT_GLOBAL_CHANNEL, EVENT_UNDEFINE
     };
-
-    class EventData
-    {
-
-    }
 
     class EventMessageProtocol
     {
@@ -47,6 +42,7 @@ enum class EventMessageType
                 messageType = msgType;
                 scope = evtScope;
                 channelName = evtChannelName;
+                data[0]=0;
             }
     };
 

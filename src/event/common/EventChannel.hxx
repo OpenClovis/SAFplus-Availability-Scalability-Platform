@@ -8,14 +8,31 @@
 #ifndef EVENTCHANNEL_HXX_
 #define EVENTCHANNEL_HXX_
 #include <boost/intrusive/list.hpp>
+#include <string>
+#include <clCommon.hxx>
+#include <clThreadApi.hxx>
+#include "../common/EventCommon.hxx"
+
+
+
+
 
 using namespace boost::intrusive;
 
 namespace SAFplus {
 
+class EventChannelUser
+{
+public:
+    std::string userName;
+    SAFplus::Handle evtHandle;   /* The handle of client */
+};
+
+
 class EventSubscriber
 {
 public:
+    boost::intrusive::list_member_hook<> m_memberHook;
     EventChannelUser usr;
     EventSubscriber(SAFplus::Handle evtClient, std::string name)
     {
@@ -32,16 +49,9 @@ public:
     EventChannelUser usr;
 };
 
-class EventChannelUser
-{
-public:
-    std::string userName;
-    SAFplus::Handle evtHandle;   /* The handle of client */
-};
-
 
 typedef list<EventSubscriber, member_hook<EventSubscriber, list_member_hook<>, &EventSubscriber::m_memberHook>> EventSubscriberList;
-typedef list<EventPublisher, member_hook<EventPublisher, list_member_hook<>, &EventSubscriber::m_memberHook>> EventPublisherList;
+typedef list<EventPublisher, member_hook<EventPublisher, list_member_hook<>, &EventPublisher::m_memberHook>> EventPublisherList;
 
 
 class EventChannel
@@ -49,8 +59,7 @@ class EventChannel
 public:
     boost::intrusive::list_member_hook<> m_memberHook;
     SAFplus::Handle evtChannelHandle;   /* The handle created in clEventInitialize */
-    ClNameT evtChannelName;
-    EvtChannelDB channelDb;
+    std::string evtChannelName;
     EventChannelScope scope;
     SAFplus::Mutex channelLevelMutex;   /* Mutex will protect channelId level */
     EventSubscriberList eventSubs;  /* To hold the msg buffer for Check Pointing Subscriber Info */

@@ -25,7 +25,7 @@
 
 namespace SAFplus
 {
-    SafplusMsgServer safplusMsgServer;
+  SafplusMsgServer safplusMsgServer;
   int msgServerInitCount=0;
 
   void msgServerFinalize()

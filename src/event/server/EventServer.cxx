@@ -52,7 +52,7 @@ namespace SAFplus
         activeServer=group.getActive();
 
         logDebug("EVT","SERVER", "Initialize event checkpoint");
-        evtCkpt.eventCkptInit();
+        this->evtCkpt.eventCkptInit();
 
 
         //TODO:Dump data from  checkpoint in to channel list
@@ -69,6 +69,7 @@ namespace SAFplus
         //read data from checkpoint to local channel
         if(!eventloadLocalchannel())
         {
+            logError("EVT","SERVER", "Cannot load data from checkpoint to local channel list");
             return;
         }
     }
@@ -84,36 +85,18 @@ namespace SAFplus
         }
     }
 
-    EventChannel* EventServer::getChannelbyName(std::string channelName)
-    {
-        localChannelListLock.lock();
-        for (EventChannelList::iterator iter = localChannelList.begin(); iter != localChannelList.end(); iter++)
-        {
-            EventChannel &s = *iter;
-            int cmp = compareChannel(s.evtChannelName, channelName);
-            if (cmp == 0)
-            {
-                localChannelListLock.unlock();
-                return s;
-            }
-        }
-        localChannelListLock.unlock();
-        return NULL;
-    }
-
-
     void EventServer::msgHandler(SAFplus::Handle from, SAFplus::MsgServer* svr, ClPtrT msg, ClWordT msglen, ClPtrT cookie)
     {
         if (msg == NULL)
         {
-            logError(FAULT, "MSG", "Received NULL message. Ignored fault message");
+            logError("EVT", "MSG", "Received NULL message. Ignored fault message");
             return;
         }
         EventMessageProtocol *rxMsg = (EventMessageProtocol *) msg;
-        EventMessageProtocol msgType = rxMsg->messageType;
+        EventMessageType msgType = rxMsg->messageType;
         switch (msgType)
         {
-            case SAFplus::EventMessageType::EVENT_CHANNEL_CREATE:
+            case EventMessageType::EVENT_CHANNEL_CREATE:
                 if (1)
                 {
                     EventChannelScope scope = rxMsg->scope;
@@ -122,7 +105,7 @@ namespace SAFplus
                     channel->scope = rxMsg->scope;
                     channel->subscriberRefCount=0;
                     //TODO
-                    if (scope == SAFplus::EventChannelScope::EVENT_LOCAL_CHANNEL)
+                    if (scope == EventChannelScope::EVENT_LOCAL_CHANNEL)
                     {
                         localChannelListLock.lock();
                         localChannelList.push_back(*channel);
@@ -145,154 +128,171 @@ namespace SAFplus
                     }
                 }
                 break;
-            case SAFplus::EventMessageType::EVENT_CHANNEL_SUBSCRIBER:
+            case EventMessageType::EVENT_CHANNEL_SUBSCRIBER:
                 if (1)
                 {
                     //Find channel in local list
+                    bool isGlobal=false;
                     localChannelListLock.lock();
-                    if (localChannelList.empty())
+                    if (!localChannelList.empty())
                     {
-                        localChannelListLock.unlock();
-                        return;
-                    }
-
-                    if(severHandle==activeServer)
-
-                    if (scope == SAFplus::EventChannelScope::EVENT_LOCAL_CHANNEL)
-                    {
-                        //TODO : find channel in local list
-                        // Add handle to subscriber list
-
-                        if (localChannelList.empty())
-                        {
-                            localChannelListLock.unlock();
-                            return;
-                        }
                         for (EventChannelList::iterator iter = localChannelList.begin(); iter != localChannelList.end(); iter++)
                         {
                             EventChannel &s = *iter;
-                            int cmp = compareChannel(s.evtChannelName, channelName);
+                            int cmp = compareChannel(s.evtChannelName, rxMsg->channelName);
                             if (cmp == 0)
                             {
-                                EventSubscriber *sub=new EventSubscriber();
-                                s.addChannelSubs(*sub);
-                                s.addChannelSubs(*sub);
+                                EventSubscriber *sub=new EventSubscriber(rxMsg->clientHandle,rxMsg->channelName);
+                                s.addChannelSub(*sub);
                                 s.subscriberRefCount+=1;
                                 localChannelListLock.unlock();
                                 return ;
                             }
                         }
-                        localChannelListLock.unlock();
+                    }
+                    localChannelListLock.unlock();
+                    globalChannelListLock.lock();
+                    if(activeServer==severHandle)
+                    {
+                        if (!globalChannelList.empty())
+                        {
+                            for (EventChannelList::iterator iter = globalChannelList.begin(); iter != globalChannelList.end(); iter++)
+                            {
+                                EventChannel &s = *iter;
+                                int cmp = compareChannel(s.evtChannelName, rxMsg->channelName);
+                                if (cmp == 0)
+                                {
+                                    EventSubscriber *sub=new EventSubscriber(rxMsg->clientHandle,rxMsg->channelName);
+                                    s.addChannelSub(*sub);
+                                    s.subscriberRefCount+=1;
+                                    globalChannelListLock.unlock();
+                                    return ;
+                                }
+                            }
+                        }
                     }
                     else
                     {
-                        if (severHandle==activeServer)
-                        {
-                            //TODO : find channel in local list
-                            // Add handle to subscriber list
-                            globalChannelListLock.lock();
-                            if (globalChannelList.empty())
-                            {
-                                globalChannelListLock.unlock();
-                                return;
-                            }
-                            else
-                            {
-                                for (EventChannelList::iterator iter = globalChannelList.begin(); iter != localChannelList.end(); iter++)
-                                {
-                                    EventChannel &s = *iter;
-                                    int cmp = compareChannel(s.evtChannelName, channelName);
-                                    if (cmp == 0)
-                                    {
-                                        EventSubscriber *sub=new EventSubscriber();
-                                        s.addChannelSubs(*sub);
-                                        globalChannelListLock.unlock();
-                                        return ;
-                                    }
-                                }
-                                globalChannelListLock.unlock();
-                                return;
-                            }
-                        }
-                        else
-                        {
-                            //TODO send to system controller.
-                        }
+                        //send to active server
+                        return;
                     }
+                    globalChannelListLock.unlock();
+                    // channel not exist
                 }
                 break;
-            case SAFplus::EventMessageType::EVENT_CHANNEL_UNSUBSCRIBER:
+            case EventMessageType::EVENT_CHANNEL_UNSUBSCRIBER:
                 if (1)
                 {
-                    if (scope == SAFplus::EventChannelScope::EVENT_LOCAL_CHANNEL)
+                    //Find channel in local list
+                    bool isGlobal=false;
+                    localChannelListLock.lock();
+                    if (!localChannelList.empty())
                     {
-                        //TODO : find channel in local list
-                        // Remove handle to subscriber list
-                        //TODO : find channel in local list
-                        // Add handle to subscriber list
-                        localChannelListLock.lock();
-                        if (localChannelList.empty())
-                        {
-                            localChannelListLock.unlock();
-                            return;
-                        }
                         for (EventChannelList::iterator iter = localChannelList.begin(); iter != localChannelList.end(); iter++)
                         {
                             EventChannel &s = *iter;
-                            int cmp = compareChannel(s.evtChannelName, channelName);
+                            int cmp = compareChannel(s.evtChannelName, rxMsg->channelName);
                             if (cmp == 0)
                             {
-                                s.deleteChannelSubs(rxMsg->clientHandle);
+                                s.deleteChannelSub(rxMsg->clientHandle);
+                                s.subscriberRefCount-=1;
                                 localChannelListLock.unlock();
                                 return ;
                             }
                         }
-                        localChannelListLock.unlock();
-
-                    } else
-                    {
-                        //TODO : find channel in local list
-                        // Remove handle to subscriber list
                     }
+                    localChannelListLock.unlock();
+                    globalChannelListLock.lock();
 
+                    if(activeServer==severHandle)
+                    {
+                        if (!globalChannelList.empty())
+                        {
+                            for (EventChannelList::iterator iter = globalChannelList.begin(); iter != globalChannelList.end(); iter++)
+                            {
+                                EventChannel &s = *iter;
+                                int cmp = compareChannel(s.evtChannelName, rxMsg->channelName);
+                                if (cmp == 0)
+                                {
+                                    s.deleteChannelSub(rxMsg->clientHandle);
+                                    s.subscriberRefCount-=1;
+                                    globalChannelListLock.unlock();
+                                    return ;
+                                }
+                            }
+                        }
+                    }
+                    else
+                    {
+                        //send to active server
+                        return;
+                    }
+                    // channel not exist
+                    globalChannelListLock.unlock();
                 }
                 break;
-            case SAFplus::EventMessageType::EVENT_CHANNEL_PUBLISHER:
+            case EventMessageType::EVENT_CHANNEL_PUBLISHER:
                 if (1)
                 {
-                    if (scope == SAFplus::EventChannelScope::EVENT_LOCAL_CHANNEL)
+                    //Find channel in local list
+                    bool isGlobal=false;
+                    localChannelListLock.lock();
+                    if (!localChannelList.empty())
                     {
-                        //TODO : find channel in local list
-                        // send event to all subscriber
-                    } else
-                    {
-                        //TODO : find channel in local list
-                        // send event to all active event server ???
+                        for (EventChannelList::iterator iter = localChannelList.begin(); iter != localChannelList.end(); iter++)
+                        {
+                            EventChannel &s = *iter;
+                            int cmp = compareChannel(s.evtChannelName, rxMsg->channelName);
+                            if (cmp == 0)
+                            {
+                                //TODO publish event
+                                localChannelListLock.unlock();
+                                return ;
+                            }
+                        }
                     }
+                    localChannelListLock.unlock();
+                    globalChannelListLock.lock();
+                    if(activeServer==severHandle)
+                    {
+                        if (!globalChannelList.empty())
+                        {
+                            for (EventChannelList::iterator iter = globalChannelList.begin(); iter != globalChannelList.end(); iter++)
+                            {
+                                EventChannel &s = *iter;
+                                int cmp = compareChannel(s.evtChannelName, rxMsg->channelName);
+                                if (cmp == 0)
+                                {
+                                    //TODO publish event
+                                    globalChannelListLock.unlock();
+                                    return ;
+                                }
+                            }
+                        }
+                    }
+                    else
+                    {
+                        //send to active server
+                        return;
+                    }
+                    globalChannelListLock.unlock();
+                    // channel not exist
 
                 }
                 break;
-            case SAFplus::EventMessageType::EVENT_CHANNEL_CLOSE:
+            case EventMessageType::EVENT_CHANNEL_CLOSE:
                 if (1)
                 {
-                    if (scope == SAFplus::EventChannelScope::EVENT_LOCAL_CHANNEL)
-                    {
-                        //TODO : find channel in local list
-                        // send event to all subscriber
-                    } else
-                    {
-                        //TODO : find channel in local list
-                        // send event to all active event server ???
-                    }
+
                 }
                 break;
-            case SAFplus::EventMessageType::EVENT_CHANNEL_UNLINK:
+            case EventMessageType::EVENT_CHANNEL_UNLINK:
                 if (1)
                 {
                 }
                 break;
             default:
-                logDebug("EVENT", "MSG", "Unknown message type [%d] from node [%d]", rxMsg->messageType, clientHandle.getNode());
+                logDebug("EVENT", "MSG", "Unknown message type [%d] from node [%d]", rxMsg->messageType, from.getNode());
                 break;
         }
     }

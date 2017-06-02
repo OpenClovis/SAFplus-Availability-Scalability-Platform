@@ -7,6 +7,7 @@
 
 #include "EventClient.hxx"
 #include "common/EventChannel.hxx"
+#include "clCommon6.h"
 #include <clLogApi.hxx>
 #include <clCommon.hxx>
 #include <clMsgPortsAndTypes.hxx>
@@ -34,6 +35,7 @@
 #include <clObjectMessager.hxx>
 #include <time.h>
 
+
 namespace SAFplus
 {
 
@@ -42,13 +44,14 @@ namespace SAFplus
         // TODO Auto-generated destructor stub
     }
 
-    void EventClient::eventInitialize(clientHandle evtHandle, ClEventCallbacksT * pEvtCallbacks)
+    ClRcT EventClient::eventInitialize(Handle evtHandle)
     {
         clientHandle = evtHandle;
         if (!eventMsgServer)
         {
             eventMsgServer = &safplusMsgServer;
         }
+        return CL_OK;
     }
 
     ClRcT EventClient::eventChannelOpen(std::string evtChannelName, EventChannelScope scope, SAFplus::Handle &channelHandle)
@@ -56,8 +59,8 @@ namespace SAFplus
 
         EventMessageProtocol sndMessage;
         memset(&sndMessage,0,sizeof(EventMessageProtocol));
-        sndMessage.init(clientHandle,evtChannelName,scope,SAFplus::EventMessageType::EVENT_CHANNEL_CREATE);
-        sendEventMessage((void *)&sndMessage,sizeof(EventMessageProtocol),scope);
+        sndMessage.init(clientHandle,evtChannelName,scope,EventMessageType::EVENT_CHANNEL_CREATE);
+        sendEventMessage((void *)&sndMessage,sizeof(EventMessageProtocol));
         return CL_OK;
     }
 
@@ -65,8 +68,8 @@ namespace SAFplus
     {
         EventMessageProtocol sndMessage;
         memset(&sndMessage,0,sizeof(EventMessageProtocol));
-        sndMessage.init(clientHandle,evtChannelName,scope,SAFplus::EventMessageType::EVENT_CHANNEL_CLOSE);
-        sendEventMessage((void *)&sndMessage,sizeof(EventMessageProtocol),scope);
+        sndMessage.init(clientHandle,evtChannelName,EventChannelScope::EVENT_UNDEFINE,EventMessageType::EVENT_CHANNEL_CLOSE);
+        sendEventMessage((void *)&sndMessage,sizeof(EventMessageProtocol));
         return CL_OK;
     }
 
@@ -74,8 +77,8 @@ namespace SAFplus
     {
         EventMessageProtocol sndMessage;
         memset(&sndMessage,0,sizeof(EventMessageProtocol));
-        sndMessage.init(clientHandle,evtChannelName,scope,SAFplus::EventMessageType::EVENT_CHANNEL_UNLINK);
-        sendEventMessage((void *)&sndMessage,sizeof(EventMessageProtocol),scope);
+        sndMessage.init(clientHandle,evtChannelName,EventChannelScope::EVENT_UNDEFINE,EventMessageType::EVENT_CHANNEL_UNLINK);
+        sendEventMessage((void *)&sndMessage,sizeof(EventMessageProtocol));
         return CL_OK;
     }
 
@@ -84,9 +87,9 @@ namespace SAFplus
         char msgPayload[sizeof(EventMessageProtocol)-1 + eventDataSize];
         memset(&msgPayload,0,sizeof(EventMessageProtocol)-1 + eventDataSize);  // valgrind
         EventMessageProtocol *sndMessage = (EventMessageProtocol *)&msgPayload;
-        sndMessage.init(clientHandle,evtChannelName,scope,SAFplus::EventMessageType::EVENT_CHANNEL_PUBLISHER);
+        sndMessage->init(clientHandle,channelName,EventChannelScope::EVENT_UNDEFINE,EventMessageType::EVENT_CHANNEL_PUBLISHER);
         memcpy(sndMessage->data,(const void*) pEventData,eventDataSize);
-        sendEventMessage((void *)&sndMessage,sizeof(EventMessageProtocol),scope);
+        sendEventMessage((void *)sndMessage,sizeof(EventMessageProtocol)+eventDataSize);
         return CL_OK;
 
     }
@@ -96,46 +99,30 @@ namespace SAFplus
         return CL_OK;
     }
 
-    void EventClient::sendEventMessage(void* data, int dataLength, SAFplus::EventChannelScope eventScope)
+    void EventClient::sendEventMessage(void* data, int dataLength,Handle destHandle)
     {
-        logDebug(FAULT, FAULT_ENTITY, "Sending Event Message");
-        Handle activeServer;
-        if (severHandle == INVALID_HDL)
+        logDebug("EVT", "EVENT_ENTITY", "Sending Event Message");
+        Handle destination;
+        if (destHandle == INVALID_HDL)
         {
-            logError(EVENT, EVENT_ENTITY, "No active server... Return");
-            return;
+        	destination = destHandle;
+        	if (destHandle == INVALID_HDL)
+        	{
+        		logError("EVT", "EVENT_ENTITY", "No active server... Return");
+        		return;
+        	}
         }
         else
         {
-            activeServer = severHandle;
+        	destination = severHandle;
         }
-        switch (eventScope)
+        logDebug("EVENT", "EVENT_ENTITY", "Send Event message to local Event Server");
+        try
         {
-            case SAFplus::EventChannelScope::EVENT_LOCAL_CHANNEL:
-            {
-                logDebug(EVENT, EVENT_ENTITY, "Send Event message to local Event Server");
-                try
-                {
-                    Handle hdl = getProcessHandle(SAFplusI::EVENT_IOC_PORT);
-                    eventMsgServer->SendMsg(hdl, (void *) data, dataLength, SAFplusI::EVENT_MSG_TYPE);
-                } catch (...) // SAFplus::Error &e)
-                {
-                    logDebug(EVENT, EVENT_ENTITY, "Failed to send.");
-                }
-                break;
-            }
-            case SAFplus::EventChannelScope::EVENT_GLOBAL_CHANNEL:
-            {
-                logDebug(FAULT, EVENT_ENTITY, "Send  Event message to active Fault Server  : node Id [%d]", activeServer.getNode());
-                try
-                {
-                    eventMsgServer->SendMsg(activeServer, (void *) data, dataLength, SAFplusI::EVENT_MSG_TYPE);
-                } catch (...)
-                {
-                    logDebug(EVENT, "MSG", "Failed to send.");
-                }
-                break;
-            }
+            eventMsgServer->SendMsg(destination, (void *) data, dataLength, SAFplusI::EVENT_MSG_TYPE);
+        } catch (...) // SAFplus::Error &e)
+        {
+            logDebug("EVT", "EVENT_ENTITY", "Failed to send.");
         }
     }
 } /* namespace SAFplus */

@@ -248,7 +248,7 @@ namespace SAFplus
   const WellKnownHandle FAULT_GROUP(9,0,0);      //? This group represents the fault managers
   const WellKnownHandle FAULT_CKPT(10,0,0);      //? This checkpoint is how fault synchronizes data
   const WellKnownHandle MGT_GROUP(11,0,0);       //? This group represents all mgt clients (object implementers)
-  const WellKnownHandle MGT_GROUP(11,0,0);       //? This group represents all mgt clients (object implementers)
+  //const WellKnownHandle MGT_GROUP(11,0,0);       //? This group represents all mgt clients (object implementers)
   const WellKnownHandle EVENT_GROUP(14,0,0);       //? This group represents all event
 
 

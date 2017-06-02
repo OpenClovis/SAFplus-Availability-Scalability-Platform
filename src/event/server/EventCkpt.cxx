@@ -22,8 +22,8 @@ namespace SAFplus
 
     ClRcT EventCkpt::eventCkptInit(void)
     {
-        eventCkpt.init(EVENT_CKPT,Checkpoint::SHARED | Checkpoint::REPLICATED, SAFplusI::CkptRetentionDurationDefault, 1024*1024, SAFplusI::CkptDefaultRows);
-        eventCkpt.name = "SAFplus_Event";
+    	m_checkpoint.init(EVENT_CKPT,Checkpoint::SHARED | Checkpoint::REPLICATED, SAFplusI::CkptRetentionDurationDefault, 1024*1024, SAFplusI::CkptDefaultRows);
+    	m_checkpoint.name = "SAFplus_Event";
         return CL_OK ;
     }
 
@@ -34,102 +34,51 @@ namespace SAFplus
             return CL_TRUE;
     }
 
-    ClRcT EventCkpt::eventCkptSubsDSCreate(std::string *pChannelName,  SAFplus::EventChannelScope channelScope)
+    ClRcT EventCkpt::eventCkptSubsDSCreate(std::string *pChannelName,  EventChannelScope channelScope)
     {
             return CL_TRUE;
     }
 
-    ClRcT EventCkpt::eventCkptSubsDSDelete(std::string, SAFplus::EventChannelScope channelScope)
+    ClRcT EventCkpt::eventCkptSubsDSDelete(std::string, EventChannelScope channelScope)
     {
             return CL_TRUE;
     }
 
-    ClRcT EventCkpt::eventCkptCheckPointAll(void)
-    {
-                return CL_TRUE;
-    }
-
-    ClRcT EventCkpt::eventCkptUserInfoCheckPoint(void)
-    {
-                return CL_TRUE;
-    }
-
-    ClRcT EventCkpt::eventCkptECHInfoCheckPoint(void)
-    {
-                return CL_TRUE;
-    }
-
-    ClRcT EventCkpt::eventCkptSubsInfoCheckPoint(void)
-    {
-                return CL_TRUE;
-    }
-
-    ClRcT EventCkpt::eventCkptReconstruct(void)
-    {
-                return CL_TRUE;
-    }
-
-    ClRcT EventCkpt::eventCkptCheckPointInitialize()
-    {
-                return CL_TRUE;
-    }
-
-    ClRcT EventCkpt::eventCkptCheckPointFinalize()
-    {
-                return CL_TRUE;
-    }
-
-    ClRcT EventCkpt::eventCkptCheckPointChannelOpen(EventMessageProtocol *message, int length)
+    ClRcT EventCkpt::eventCkptCheckPointChannelOpen(EventMessageProtocol* message, int length)
     {
         size_t valLen = length;
         char vdata[sizeof(Buffer)-1+valLen];
         Buffer* val = new(vdata) Buffer(valLen);
         memcpy(val->data, message, valLen);
-        eventCkpt.write(message->channelName,*val);
+        m_checkpoint.write(message->channelName,*val);
         return CL_TRUE;
     }
 
     ClRcT EventCkpt::eventCkptCheckPointChannelClose(std::string channelName)
     {
-        m_checkpoint.remove(name);
+        m_checkpoint.remove(channelName);
         return CL_TRUE;
     }
 
-    ClRcT EventCkpt::eventCkptCheckPointSubscribe(EventMessageProtocol message)
+    ClRcT EventCkpt::eventCkptCheckPointSubscribe(EventMessageProtocol* message , int length)
     {
         size_t valLen = length;
         char vdata[sizeof(Buffer)-1+valLen];
         Buffer* val = new(vdata) Buffer(valLen);
         memcpy(val->data, message, valLen);
-        eventCkpt.write(name,*val);
+        m_checkpoint.write(message->channelName,*val);
         return CL_TRUE;
     }
 
-    ClRcT EventCkpt::eventCkptCheckPointUnsubscribe(EventMessageProtocol message)
+    ClRcT EventCkpt::eventCkptCheckPointUnsubscribe(EventMessageProtocol* message , int length)
     {
         size_t valLen = length;
         char vdata[sizeof(Buffer)-1+valLen];
         Buffer* val = new(vdata) Buffer(valLen);
         memcpy(val->data, message, valLen);
-        eventCkpt.write(name,*val);
+        m_checkpoint.write(message->channelName,*val);
         return CL_TRUE;
     }
-
-    ClRcT EventCkpt::eventCkptUserInfoRead()
-    {
-                return CL_TRUE;
-    }
-
-    ClRcT EventCkpt::eventCkptECHInfoRead()
-    {
-                return CL_TRUE;
-    }
-
-    ClRcT EventCkpt::eventCkptSubsInfoRead()
-    {
-                return CL_TRUE;
-    }
-
 
 } /* namespace SAFplus */
 
