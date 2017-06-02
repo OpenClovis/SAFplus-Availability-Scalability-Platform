@@ -64,7 +64,7 @@ public:
     SAFplus::Group group; //? event sever group
     EventCkpt evtCkpt;
 
-	EventServer();
+    EventServer();
 	virtual ~EventServer();
 	void initialize();
     void wake(int amt,void* cookie=NULL);

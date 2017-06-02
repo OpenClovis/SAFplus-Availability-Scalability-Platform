@@ -14,7 +14,7 @@ namespace SAFplus
     EventServer::EventServer()
     {
         // TODO Auto-generated constructor stub
-
+    	initialize();
     }
 
     EventServer::~EventServer()
@@ -46,18 +46,15 @@ namespace SAFplus
         numberOfLocalChannel=0;
         group.init(EVENT_GROUP);
         group.setNotification(*this);
-
-        logDebug("EVT","SERVER", "Register event group");
+        logDebug("EVT","SERVER", "Register event server [] to event group");
         group.registerEntity(severHandle, SAFplus::ASP_NODEADDR,NULL,0,Group::ACCEPT_STANDBY | Group::ACCEPT_ACTIVE | Group::STICKY);
         activeServer=group.getActive();
-
         logDebug("EVT","SERVER", "Initialize event checkpoint");
         this->evtCkpt.eventCkptInit();
-
-
         //TODO:Dump data from  checkpoint in to channel list
         if(activeServer==severHandle)
         {
+        	logDebug("EVT","SERVER", "this is active event server");
             //read data from checkpoint to global channel
             logDebug("EVT","SERVER", "Load data from checkpoint to global channel list");
             if(!eventloadGlobalchannel())
@@ -99,6 +96,7 @@ namespace SAFplus
             case EventMessageType::EVENT_CHANNEL_CREATE:
                 if (1)
                 {
+                    logDebug("EVT", "MSG", "Received event channel create message.");
                     EventChannelScope scope = rxMsg->scope;
                     EventChannel *channel = new EventChannel();
                     channel->evtChannelName = rxMsg->channelName;
@@ -107,6 +105,7 @@ namespace SAFplus
                     //TODO
                     if (scope == EventChannelScope::EVENT_LOCAL_CHANNEL)
                     {
+                    	logDebug("EVT", "MSG", "Add to local channel list");
                         localChannelListLock.lock();
                         localChannelList.push_back(*channel);
                         numberOfLocalChannel+=1;
@@ -116,6 +115,7 @@ namespace SAFplus
                     {
                         if (severHandle==activeServer)
                         {
+                        	logDebug("EVT", "MSG", "Add to global channel list");
                             globalChannelListLock.lock();
                             globalChannelList.push_back(*channel);
                             numberOfGlobalChannel+=1;
@@ -124,6 +124,7 @@ namespace SAFplus
                         else
                         {
                             //TODO Send to system controller node
+                        	logDebug("EVT", "MSG", "forward to active event server");
                         }
                     }
                 }
@@ -132,6 +133,7 @@ namespace SAFplus
                 if (1)
                 {
                     //Find channel in local list
+                    logDebug("EVT", "MSG", "Received event channel subs message.");
                     bool isGlobal=false;
                     localChannelListLock.lock();
                     if (!localChannelList.empty())
@@ -145,6 +147,7 @@ namespace SAFplus
                                 EventSubscriber *sub=new EventSubscriber(rxMsg->clientHandle,rxMsg->channelName);
                                 s.addChannelSub(*sub);
                                 s.subscriberRefCount+=1;
+                                logDebug("EVT", "MSG", "Add subs to local event channel [%s]",rxMsg->channelName);
                                 localChannelListLock.unlock();
                                 return ;
                             }
@@ -165,6 +168,7 @@ namespace SAFplus
                                     EventSubscriber *sub=new EventSubscriber(rxMsg->clientHandle,rxMsg->channelName);
                                     s.addChannelSub(*sub);
                                     s.subscriberRefCount+=1;
+                                    logDebug("EVT", "MSG", "Add subs to global event channel [%s]",rxMsg->channelName);
                                     globalChannelListLock.unlock();
                                     return ;
                                 }
@@ -174,6 +178,7 @@ namespace SAFplus
                     else
                     {
                         //send to active server
+                    	logDebug("EVT", "MSG", "Forward to active server");
                         return;
                     }
                     globalChannelListLock.unlock();
@@ -183,6 +188,7 @@ namespace SAFplus
             case EventMessageType::EVENT_CHANNEL_UNSUBSCRIBER:
                 if (1)
                 {
+                    logDebug("EVT", "MSG", "Received event channel unSubs create message.");
                     //Find channel in local list
                     bool isGlobal=false;
                     localChannelListLock.lock();
@@ -196,6 +202,7 @@ namespace SAFplus
                             {
                                 s.deleteChannelSub(rxMsg->clientHandle);
                                 s.subscriberRefCount-=1;
+                                logDebug("EVT", "MSG", "remove subs from local event channel [%s]",rxMsg->channelName);
                                 localChannelListLock.unlock();
                                 return ;
                             }
@@ -216,6 +223,7 @@ namespace SAFplus
                                 {
                                     s.deleteChannelSub(rxMsg->clientHandle);
                                     s.subscriberRefCount-=1;
+                                    logDebug("EVT", "MSG", "remove subs from global event channel [%s]",rxMsg->channelName);
                                     globalChannelListLock.unlock();
                                     return ;
                                 }
@@ -225,6 +233,8 @@ namespace SAFplus
                     else
                     {
                         //send to active server
+                    	logDebug("EVT", "MSG", "Forward to active server");
+
                         return;
                     }
                     // channel not exist
@@ -235,6 +245,7 @@ namespace SAFplus
                 if (1)
                 {
                     //Find channel in local list
+                    logDebug("EVT", "MSG", "Received event  message.");
                     bool isGlobal=false;
                     localChannelListLock.lock();
                     if (!localChannelList.empty())
@@ -246,6 +257,7 @@ namespace SAFplus
                             if (cmp == 0)
                             {
                                 //TODO publish event
+                            	logDebug("EVT", "MSG", "sending message to all suns of  local event channel [%s]",rxMsg->channelName);
                                 localChannelListLock.unlock();
                                 return ;
                             }
@@ -264,6 +276,7 @@ namespace SAFplus
                                 if (cmp == 0)
                                 {
                                     //TODO publish event
+                                	logDebug("EVT", "MSG", "sending message to all suns of  global event channel [%s]",rxMsg->channelName);
                                     globalChannelListLock.unlock();
                                     return ;
                                 }
@@ -273,6 +286,7 @@ namespace SAFplus
                     else
                     {
                         //send to active server
+                    	logDebug("EVT", "MSG", "Forward to active server");
                         return;
                     }
                     globalChannelListLock.unlock();
@@ -283,12 +297,14 @@ namespace SAFplus
             case EventMessageType::EVENT_CHANNEL_CLOSE:
                 if (1)
                 {
+                    logDebug("EVT", "MSG", "Received event channel close message.");
 
                 }
                 break;
             case EventMessageType::EVENT_CHANNEL_UNLINK:
                 if (1)
                 {
+                    logDebug("EVT", "MSG", "Received event channel unlink message.");
                 }
                 break;
             default:

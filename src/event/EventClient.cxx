@@ -46,6 +46,7 @@ namespace SAFplus
 
     ClRcT EventClient::eventInitialize(Handle evtHandle)
     {
+    	logDebug("EVT", "EVENT_ENTITY", "Initialize event Entity");
         clientHandle = evtHandle;
         if (!eventMsgServer)
         {
@@ -56,48 +57,47 @@ namespace SAFplus
 
     ClRcT EventClient::eventChannelOpen(std::string evtChannelName, EventChannelScope scope, SAFplus::Handle &channelHandle)
     {
-
+    	logDebug("EVT", "EVENT_ENTITY", "Close an event channel");
         EventMessageProtocol sndMessage;
         memset(&sndMessage,0,sizeof(EventMessageProtocol));
         sndMessage.init(clientHandle,evtChannelName,scope,EventMessageType::EVENT_CHANNEL_CREATE);
-        sendEventMessage((void *)&sndMessage,sizeof(EventMessageProtocol));
+        sendEventMessage((void *)&sndMessage,sizeof(EventMessageProtocol),INVALID_HDL);
         return CL_OK;
     }
 
     ClRcT EventClient::eventChannelClose(std::string evtChannelName)
     {
+    	logDebug("EVT", "EVENT_ENTITY", "Close an event channel");
         EventMessageProtocol sndMessage;
         memset(&sndMessage,0,sizeof(EventMessageProtocol));
         sndMessage.init(clientHandle,evtChannelName,EventChannelScope::EVENT_UNDEFINE,EventMessageType::EVENT_CHANNEL_CLOSE);
-        sendEventMessage((void *)&sndMessage,sizeof(EventMessageProtocol));
+        sendEventMessage((void *)&sndMessage,sizeof(EventMessageProtocol),INVALID_HDL);
         return CL_OK;
     }
 
     ClRcT EventClient::eventChannelUnlink(std::string evtChannelName)
     {
+    	logDebug("EVT", "EVENT_ENTITY", "Unlink an event channel");
         EventMessageProtocol sndMessage;
         memset(&sndMessage,0,sizeof(EventMessageProtocol));
         sndMessage.init(clientHandle,evtChannelName,EventChannelScope::EVENT_UNDEFINE,EventMessageType::EVENT_CHANNEL_UNLINK);
-        sendEventMessage((void *)&sndMessage,sizeof(EventMessageProtocol));
+        sendEventMessage((void *)&sndMessage,sizeof(EventMessageProtocol),INVALID_HDL);
         return CL_OK;
     }
 
     ClRcT EventClient::eventPublish(const void *pEventData, int eventDataSize, std::string channelName)
     {
+        logDebug("EVT", "EVENT_ENTITY", "Publish an event");
         char msgPayload[sizeof(EventMessageProtocol)-1 + eventDataSize];
         memset(&msgPayload,0,sizeof(EventMessageProtocol)-1 + eventDataSize);  // valgrind
         EventMessageProtocol *sndMessage = (EventMessageProtocol *)&msgPayload;
         sndMessage->init(clientHandle,channelName,EventChannelScope::EVENT_UNDEFINE,EventMessageType::EVENT_CHANNEL_PUBLISHER);
         memcpy(sndMessage->data,(const void*) pEventData,eventDataSize);
-        sendEventMessage((void *)sndMessage,sizeof(EventMessageProtocol)+eventDataSize);
+        sendEventMessage((void *)sndMessage,sizeof(EventMessageProtocol)+eventDataSize,INVALID_HDL);
         return CL_OK;
 
     }
 
-    ClRcT EventClient::eventPublish(const void *pEventData, int eventDataSize, SAFplus::Handle handle)
-    {
-        return CL_OK;
-    }
 
     void EventClient::sendEventMessage(void* data, int dataLength,Handle destHandle)
     {

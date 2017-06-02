@@ -35,6 +35,6 @@ $(OBJ_DIR)/%.o: %.cxx Makefile $(CLIENT_H)
 	$(COMPILE_CPP) $@ $<
 
 clean:
-	rm -f $(LIB_DIR)/libclFault.so $(LIB_DIR)/libclFault.a $(PLUGIN_DIR)/amfFaultPolicy.so $(PLUGIN_DIR)/customFaultPolicy.so $(CLIENT_OBJ)
+	rm -f $(LIB_DIR)/libclEvent.so 
 
 include $(SAFPLUS_MAKE_DIR)/safplus_targets.mk
