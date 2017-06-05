@@ -13,7 +13,7 @@
 
 enum class EventMessageType
     {
-        EVENT_CHANNEL_CREATE = 1, EVENT_CHANNEL_SUBSCRIBER, EVENT_CHANNEL_UNSUBSCRIBER, EVENT_CHANNEL_PUBLISHER, EVENT_CHANNEL_CLOSE, EVENT_CHANNEL_UNLINK, EVENT_UNDEFINED
+        EVENT_CHANNEL_CREATE = 1, EVENT_CHANNEL_SUBSCRIBER, EVENT_CHANNEL_UNSUBSCRIBER, EVENT_CHANNEL_PUBLISHER, EVENT_CHANNEL_CLOSE, EVENT_CHANNEL_UNLINK, EVENT_PUBLISH, EVENT_UNDEFINED
     };
 
     enum class EventChannelScope
@@ -27,7 +27,7 @@ enum class EventMessageType
             EventMessageType messageType;
             EventChannelScope scope;
             SAFplus::Handle clientHandle;
-            std::string channelName;
+            char* channelName;
             char                  data[1]; //Not really 1, it will be place on larger memory
 
             EventMessageProtocol()
@@ -35,8 +35,9 @@ enum class EventMessageType
                 messageType = EventMessageType::EVENT_UNDEFINED;
                 scope = EventChannelScope::EVENT_LOCAL_CHANNEL;
                 clientHandle = SAFplus::INVALID_HDL;
+                channelName= NULL;
             }
-            void init(SAFplus::Handle handle, std::string evtChannelName, EventChannelScope evtScope,EventMessageType msgType)
+            void init(SAFplus::Handle handle, char* evtChannelName, EventChannelScope evtScope,EventMessageType msgType)
             {
                 clientHandle=handle;
                 messageType = msgType;

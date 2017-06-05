@@ -7,18 +7,17 @@
 
 #include "Event.hxx"
 
-namespace SAFplus
+using namespace SAFplusI;
+using namespace SAFplus;
+
+Event::Event()
 {
+	// TODO Auto-generated constructor stub
 
-    Event::Event()
-    {
-        // TODO Auto-generated constructor stub
+}
 
-    }
+Event::~Event()
+{
+	// TODO Auto-generated destructor stub
+}
 
-    Event::~Event()
-    {
-        // TODO Auto-generated destructor stub
-    }
-
-} /* namespace SAFplus */

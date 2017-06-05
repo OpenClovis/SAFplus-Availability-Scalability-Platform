@@ -40,36 +40,36 @@
 
 namespace SAFplus
 {
-    class EventClient:public SAFplus::MsgHandler,public SAFplus::Wakeable
-    {
-        public:
-            Handle clientHandle;             // handle for identify a event client
-            SAFplus::SafplusMsgServer *eventMsgServer;       // safplus message for send event message to event server
-            Wakeable* wakeable;             // Wakeable object for change notification
-            Handle severHandle;             // handle for identify a event server
+class EventClient:public SAFplus::MsgHandler,public SAFplus::Wakeable
+{
+public:
+	Handle clientHandle;             // handle for identify a event client
+	SAFplus::SafplusMsgServer *eventMsgServer;       // safplus message for send event message to event server
+	Wakeable* wakeable;             // Wakeable object for change notification
+	Handle severHandle;             // handle for identify a event server
 
-            EventClient()
-            {
-                clientHandle = INVALID_HDL;
-                severHandle = INVALID_HDL;
-                eventMsgServer = NULL;
-                wakeable = NULL;
-            };
-            virtual ~EventClient();
+	EventClient()
+	{
+		clientHandle = INVALID_HDL;
+		severHandle = INVALID_HDL;
+		eventMsgServer = NULL;
+		wakeable = NULL;
+	};
+	virtual ~EventClient();
 
-            void  sendEventMessage(void* data, int dataLength);
-            ClRcT eventInitialize(Handle evtHandle);
-            ClRcT eventChannelOpen(std::string evtChannelName, EventChannelScope scope, SAFplus::Handle &channelHandle);
-            ClRcT eventChannelClose(std::string evtChannelName);
-            ClRcT eventChannelUnlink(std::string evtChannelName);
-            ClRcT eventPublish(const void *pEventData, int eventDataSize, std::string channelName);
-            ClRcT eventPublish(const void *pEventData, int eventDataSize, SAFplus::Handle handle);
-            void sendEventMessage(void* data, int dataLength,Handle destHandle = INVALID_HDL);
-
-
+	void  sendEventMessage(void* data, int dataLength);
+	ClRcT eventInitialize(Handle evtHandle);
+	ClRcT eventChannelOpen(char* evtChannelName, EventChannelScope scope, SAFplus::Handle &channelHandle);
+	ClRcT eventChannelClose(char* evtChannelName);
+	ClRcT eventChannelUnlink(char* evtChannelName);
+	ClRcT eventPublish(const void *pEventData, int eventDataSize, char* channelName);
+	ClRcT eventPublish(const void *pEventData, int eventDataSize, SAFplus::Handle handle);
+	void sendEventMessage(void* data, int dataLength,Handle destHandle = INVALID_HDL);
 
 
-    };
+
+
+};
 
 
 }

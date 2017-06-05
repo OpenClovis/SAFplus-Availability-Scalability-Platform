@@ -7,7 +7,8 @@
 
 #include "EventChannel.hxx"
 
-namespace SAFplus {
+using namespace SAFplusI;
+using namespace SAFplus;
 
 EventChannel::EventChannel() {
 	// TODO Auto-generated constructor stub
@@ -28,13 +29,7 @@ void EventChannel::addChannelPub(EventPublisher pub)
     this->eventPubs.push_back(pub);
 }
 
-struct eventChannel_delete_disposer
-{
-  void operator()(EventChannel *delete_this)
-  {
-    delete delete_this;
-  }
-};
+
 
 struct eventSub_delete_disposer
 {
@@ -87,5 +82,3 @@ void EventChannel::deleteChannelPub(SAFplus::Handle pubHandle)
     }
 
 }
-
-} /* namespace SAFplus */

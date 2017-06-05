@@ -24,7 +24,7 @@ namespace SAFplus {
 class EventChannelUser
 {
 public:
-    std::string userName;
+    char* userName;
     SAFplus::Handle evtHandle;   /* The handle of client */
 };
 
@@ -34,7 +34,7 @@ class EventSubscriber
 public:
     boost::intrusive::list_member_hook<> m_memberHook;
     EventChannelUser usr;
-    EventSubscriber(SAFplus::Handle evtClient, std::string name)
+    EventSubscriber(SAFplus::Handle evtClient, char* name)
     {
         usr.evtHandle=evtClient;
         usr.userName=name;
@@ -59,7 +59,7 @@ class EventChannel
 public:
     boost::intrusive::list_member_hook<> m_memberHook;
     SAFplus::Handle evtChannelHandle;   /* The handle created in clEventInitialize */
-    std::string evtChannelName;
+    char* evtChannelName;
     EventChannelScope scope;
     SAFplus::Mutex channelLevelMutex;   /* Mutex will protect channelId level */
     EventSubscriberList eventSubs;  /* To hold the msg buffer for Check Pointing Subscriber Info */
