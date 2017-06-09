@@ -218,6 +218,8 @@ clAmsPeRemoteProxiedSUsForNode(ClAmsNodeT *node,
                                ClListHeadT *proxiedSUList);
 
 static ClRcT clAmsPeSUSwitchoverPrologue(ClAmsSUT *su, ClUint32T error, ClUint32T switchoverMode);
+static ClUint32T clAmsSURestartingCompCount(CL_IN       ClAmsSUT        *su);
+static ClBoolT clAmsSUHasRestartingComp(CL_IN       ClAmsSUT        *su);
 
 /******************************************************************************
  * Cluster Functions
@@ -6070,8 +6072,20 @@ ClRcT clAmsPeSUInstantiate(CL_IN       ClAmsSUT        *su)
         ("Instantiating SU [%s] in Presence State [%s]\n",
          su->config.entity.name.value,
          CL_AMS_STRING_P_STATE(su->status.presenceState)) ); 
-
-    su->status.numInstantiatedComp = 0;
+    // in relation to bug 348: need to check condition to reset the number of instantiated components
+    int numRestartingComps = clAmsSURestartingCompCount(su);
+    if (su->status.recovery == CL_AMS_RECOVERY_SU_RESTART && su->status.presenceState != CL_AMS_PRESENCE_STATE_UNINSTANTIATED && su->status.numInstantiatedComp && numRestartingComps)
+    {
+       AMS_ENTITY_LOG(su, CL_AMS_MGMT_SUB_AREA_MSG, CL_DEBUG_TRACE,
+        ("Set numInstantiatedComp = [%d] of SU [%s]\n",
+         numRestartingComps,
+         su->config.entity.name.value));
+       su->status.numInstantiatedComp = numRestartingComps;
+    }
+    else
+    {
+       su->status.numInstantiatedComp = 0;
+    }
 
     if ( su->status.presenceState != CL_AMS_PRESENCE_STATE_RESTARTING )
     {
@@ -6782,6 +6796,19 @@ ClRcT clAmsPeSUCleanup(CL_IN   ClAmsSUT    *su)
     {
         return clAmsPeSUCleanupCallback(su, CL_OK);
     }
+    // fix bug 348
+    else if (count == su->config.compList.numEntities)
+    {
+        if (su->status.recovery == CL_AMS_RECOVERY_SU_RESTART && su->status.presenceState != CL_AMS_PRESENCE_STATE_UNINSTANTIATED && su->status.numInstantiatedComp && clAmsSUHasRestartingComp(su))
+        {
+           AMS_ENTITY_LOG(su, CL_AMS_MGMT_SUB_AREA_MSG, CL_DEBUG_INFO,
+               ("SU [%s] has presence state [%s], number of instantiated comps [%d] and has at least one comp restarting needs to instantiate all its components",
+                 su->config.entity.name.value,
+                 CL_AMS_STRING_P_STATE(su->status.presenceState),
+                 su->status.numInstantiatedComp));
+           AMS_CALL ( clAmsPeSUCleanupCallback(su, CL_OK) );
+        }
+    }
 
     return CL_OK;
 }
@@ -6808,6 +6835,29 @@ static ClUint32T clAmsSURestartingCompCount(CL_IN       ClAmsSUT        *su)
     }
 
     return restartCompCount;
+}
+
+static ClBoolT clAmsSUHasRestartingComp(CL_IN       ClAmsSUT        *su)
+{
+    ClAmsEntityRefT *entityRef;
+
+    if (!su)
+        return CL_FALSE;
+
+    for ( entityRef = clAmsEntityListGetLast(&su->config.compList);
+          entityRef != (ClAmsEntityRefT *) NULL;
+          entityRef = clAmsEntityListGetPrevious(&su->config.compList, entityRef) )
+    {
+        ClAmsCompT *sucomp = (ClAmsCompT *) entityRef->ptr;
+
+        if (sucomp)
+        {
+            if ( sucomp->status.presenceState == CL_AMS_PRESENCE_STATE_RESTARTING )
+                return CL_TRUE;
+        }
+    }
+
+    return CL_FALSE;
 }
 
 /*
