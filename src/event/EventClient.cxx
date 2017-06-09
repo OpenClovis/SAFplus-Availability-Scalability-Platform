@@ -52,6 +52,11 @@ ClRcT EventClient::eventInitialize(Handle evtHandle)
 	{
 		eventMsgServer = &safplusMsgServer;
 	}
+	logDebug("EVT","EVT_SERVER","Register event message server");
+	if (1)
+	{
+		eventMsgServer->RegisterHandler(SAFplusI::EVENT_MSG_TYPE, this, NULL);  //  Register the main message handler (no-op if already registered)
+	}
 	return CL_OK;
 }
 
@@ -61,7 +66,7 @@ ClRcT EventClient::eventChannelOpen(char* evtChannelName, EventChannelScope scop
 	EventMessageProtocol sndMessage;
 	memset(&sndMessage,0,sizeof(EventMessageProtocol));
 	sndMessage.init(clientHandle,evtChannelName,scope,EventMessageType::EVENT_CHANNEL_CREATE);
-	sendEventMessage((void *)&sndMessage,sizeof(EventMessageProtocol),INVALID_HDL);
+	sendEventMessage((void *)&sndMessage,sizeof(EventMessageProtocol)+ strlen(evtChannelName),INVALID_HDL);
 	return CL_OK;
 }
 
@@ -71,7 +76,7 @@ ClRcT EventClient::eventChannelClose(char* evtChannelName)
 	EventMessageProtocol sndMessage;
 	memset(&sndMessage,0,sizeof(EventMessageProtocol));
 	sndMessage.init(clientHandle,evtChannelName,EventChannelScope::EVENT_UNDEFINE,EventMessageType::EVENT_CHANNEL_CLOSE);
-	sendEventMessage((void *)&sndMessage,sizeof(EventMessageProtocol),INVALID_HDL);
+	sendEventMessage((void *)&sndMessage,sizeof(EventMessageProtocol)+ strlen(evtChannelName),INVALID_HDL);
 	return CL_OK;
 }
 
@@ -81,7 +86,7 @@ ClRcT EventClient::eventChannelUnlink(char* evtChannelName)
 	EventMessageProtocol sndMessage;
 	memset(&sndMessage,0,sizeof(EventMessageProtocol));
 	sndMessage.init(clientHandle,evtChannelName,EventChannelScope::EVENT_UNDEFINE,EventMessageType::EVENT_CHANNEL_UNLINK);
-	sendEventMessage((void *)&sndMessage,sizeof(EventMessageProtocol),INVALID_HDL);
+	sendEventMessage((void *)&sndMessage,sizeof(EventMessageProtocol)+ strlen(evtChannelName),INVALID_HDL);
 	return CL_OK;
 }
 
@@ -91,9 +96,9 @@ ClRcT EventClient::eventPublish(const void *pEventData, int eventDataSize, char*
 	char msgPayload[sizeof(EventMessageProtocol)-1 + eventDataSize];
 	memset(&msgPayload,0,sizeof(EventMessageProtocol)-1 + eventDataSize);  // valgrind
 	EventMessageProtocol *sndMessage = (EventMessageProtocol *)&msgPayload;
-	sndMessage->init(clientHandle,channelName,EventChannelScope::EVENT_UNDEFINE,EventMessageType::EVENT_PUBLISH);
+	sndMessage->init(clientHandle,channelName,EventChannelScope::EVENT_UNDEFINE,EventMessageType::EVENT_PUBLISH,eventDataSize);
 	memcpy(sndMessage->data,(const void*) pEventData,eventDataSize);
-	sendEventMessage((void *)sndMessage,sizeof(EventMessageProtocol)+eventDataSize,INVALID_HDL);
+	sendEventMessage((void *)sndMessage,sizeof(EventMessageProtocol)+eventDataSize + strlen(channelName),INVALID_HDL);
 	return CL_OK;
 
 }
@@ -123,6 +128,29 @@ void EventClient::sendEventMessage(void* data, int dataLength,Handle destHandle)
 	} catch (...) // SAFplus::Error &e)
 	{
 		logDebug("EVT", "EVENT_ENTITY", "Failed to send.");
+	}
+}
+
+void EventClient::msgHandler(SAFplus::Handle from, SAFplus::MsgServer* svr, ClPtrT msg, ClWordT msglen, ClPtrT cookie)
+{
+	if (msg == NULL)
+	{
+		logError("EVT", "MSG", "Received NULL message. Ignored fault message");
+		return;
+	}
+	EventMessageProtocol *rxMsg = (EventMessageProtocol *) msg;
+	EventMessageType msgType = rxMsg->messageType;
+	switch (msgType)
+	{
+	case EventMessageType::EVENT_PUBLISH:
+		if (1)
+		{
+			logDebug("EVT", "MSG", "Received event publish message from node [%d]", rxMsg->clientHandle.getNode());
+		}
+		break;
+	default:
+		logDebug("EVENT", "MSG", "Unknown message type [%d] from node [%d]", rxMsg->messageType, from.getNode());
+		break;
 	}
 }
 

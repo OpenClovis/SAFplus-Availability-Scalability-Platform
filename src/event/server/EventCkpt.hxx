@@ -16,6 +16,26 @@
 namespace SAFplus
 {
 
+
+class EventKey
+{
+public:
+	char* channelName;
+	Handle evtClient;
+	EventMessageType type;
+};
+
+inline std::size_t hash_value(EventKey const& h)
+{
+
+  std::size_t seed = 0;
+  boost::hash_combine(seed,h.channelName);
+  boost::hash_combine(seed,h.evtClient.getNode());
+  boost::hash_combine(seed,h.evtClient.getPort());
+  boost::hash_combine(seed,h.type);
+  return seed;
+}
+
 class EventCkpt
 {
 public:
@@ -28,7 +48,7 @@ public:
 	ClRcT eventCkptSubsDSCreate(char* *pChannelName,  EventChannelScope channelScope);
 	ClRcT eventCkptSubsDSDelete(char*, EventChannelScope channelScope);
 	ClRcT eventCkptCheckPointChannelOpen(EventMessageProtocol* message, int length);
-	ClRcT eventCkptCheckPointChannelClose(char* channelName);
+	ClRcT eventCkptCheckPointChannelClose(EventMessageProtocol* message, int length);
 	ClRcT eventCkptCheckPointSubscribe(EventMessageProtocol* message , int length);
 	ClRcT eventCkptCheckPointUnsubscribe(EventMessageProtocol* message , int length);
 

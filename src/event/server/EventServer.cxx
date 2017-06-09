@@ -37,7 +37,7 @@ void EventServer::wake(int amt,void* cookie)
 	activeServer = g->getActive();
 }
 
-bool EventServer::eventloadGlobalchannel()
+bool EventServer::eventloadchannelFromCheckpoint()
 {
 	logInfo("EVT","DUMP","---------------------------------");
 	SAFplus::Checkpoint::Iterator ibegin = evtCkpt.m_checkpoint.begin();
@@ -53,22 +53,39 @@ bool EventServer::eventloadGlobalchannel()
 		if (curval)
 		{
 			EventMessageProtocol *data = (EventMessageProtocol *) curval->data;
-			//			if (data->structIdAndEndian != STRID && data->structIdAndEndian != STRIDEN) // Arbitrary data in this case
-			//			{
-			//				logInfo("NAME","DUMP","Arbitrary data [%s]", curval->data);
-			//			}
-			//			else
-			//			{
-			//				//process global data
-			//			}
-		}
+			int length = data->dataLength;
+			EventMessageType msgType = data->messageType;
+			switch (msgType)
+			{
+			case EventMessageType::EVENT_CHANNEL_CREATE:
+				if (1)
+				{
+					eventChannelCreateHandle(data);
+				}
+				break;
+			case EventMessageType::EVENT_CHANNEL_SUBSCRIBER:
+				if (1)
+				{
+					eventChannelSubsHandle(data);
+				}
+				break;
+			case EventMessageType::EVENT_CHANNEL_UNSUBSCRIBER:
+				if (1)
+				{
+					eventChannelUnSubsHandle(data);
+				}
+				break;
+			case EventMessageType::EVENT_PUBLISH:
+				if (1)
+				{
+					eventpublish(data,0);
+				}
+				break;
+			default:
+				break;
+			}		}
 	}
 	logInfo("EVT","DUMP","---------------------------------");
-
-	return true ;
-}
-bool EventServer::eventloadLocalchannel()
-{
 	return true ;
 }
 
@@ -83,7 +100,12 @@ void EventServer::initialize()
 	logDebug("EVT","SERVER", "Register event server [] to event group");
 	group.registerEntity(severHandle, SAFplus::ASP_NODEADDR,NULL,0,Group::ACCEPT_STANDBY | Group::ACCEPT_ACTIVE | Group::STICKY);
 	activeServer=group.getActive();
+	if(1)
+	{
+		eventMsgServer->RegisterHandler(SAFplusI::EVENT_MSG_TYPE, this, NULL);  //  Register the main message handler (no-op if already registered)
+	}
 	logDebug("EVT","SERVER", "Initialize event checkpoint");
+	this->evtCkpt.eventCkptInit();
 	this->evtCkpt.eventCkptInit();
 	//TODO:Dump data from  checkpoint in to channel list
 	if(activeServer==severHandle)
@@ -91,23 +113,17 @@ void EventServer::initialize()
 		logDebug("EVT","SERVER", "this is active event server");
 		//read data from checkpoint to global channel
 		logDebug("EVT","SERVER", "Load data from checkpoint to global channel list");
-		if(!eventloadGlobalchannel())
+		if(!eventloadchannelFromCheckpoint())
 		{
 			logError("EVT","SERVER", "Cannot load data from checkpoint to global channel list");
 			return;
 		}
 	}
-	//read data from checkpoint to local channel
-	if(!eventloadLocalchannel())
-	{
-		logError("EVT","SERVER", "Cannot load data from checkpoint to local channel list");
-		return;
-	}
 }
 
 int compareChannel(char* name1, char* name2)
 {
-	if (name1 == name2)
+	if (strcmp(name1,name2))
 	{
 		return 0;
 	} else
@@ -130,6 +146,7 @@ void EventServer::eventChannelCreateHandle(EventMessageProtocol *rxMsg)
 		localChannelListLock.lock();
 		localChannelList.push_back(*channel);
 		numberOfLocalChannel+=1;
+		evtCkpt.eventCkptCheckPointChannelOpen(rxMsg,0);
 		localChannelListLock.unlock();
 
 	} else
@@ -139,6 +156,7 @@ void EventServer::eventChannelCreateHandle(EventMessageProtocol *rxMsg)
 			logDebug("EVT", "MSG", "Add to global channel list");
 			globalChannelListLock.lock();
 			globalChannelList.push_back(*channel);
+			evtCkpt.eventCkptCheckPointChannelOpen(rxMsg,0);
 			numberOfGlobalChannel+=1;
 			globalChannelListLock.unlock();
 		}
@@ -167,6 +185,7 @@ void EventServer::eventChannelSubsHandle(EventMessageProtocol *rxMsg)
 				EventSubscriber *sub=new EventSubscriber(rxMsg->clientHandle,rxMsg->channelName);
 				s.addChannelSub(*sub);
 				s.subscriberRefCount+=1;
+				evtCkpt.eventCkptCheckPointSubscribe(rxMsg,0);
 				logDebug("EVT", "MSG", "Add subs to local event channel [%s]",rxMsg->channelName);
 				localChannelListLock.unlock();
 				return ;
@@ -188,6 +207,7 @@ void EventServer::eventChannelSubsHandle(EventMessageProtocol *rxMsg)
 					EventSubscriber *sub=new EventSubscriber(rxMsg->clientHandle,rxMsg->channelName);
 					s.addChannelSub(*sub);
 					s.subscriberRefCount+=1;
+					evtCkpt.eventCkptCheckPointSubscribe(rxMsg,0);
 					logDebug("EVT", "MSG", "Add subs to global event channel [%s]",rxMsg->channelName);
 					globalChannelListLock.unlock();
 					return ;
@@ -338,6 +358,14 @@ void EventServer::eventpublish(EventMessageProtocol *rxMsg,ClWordT msglen)
 			{
 				//TODO publish event
 				logDebug("EVT", "MSG", "sending message to all suns of  local event channel [%s]",rxMsg->channelName);
+				for (EventSubscriberList::iterator iterSub = s.eventSubs.begin(); iterSub != s.eventSubs.end(); iterSub++)
+				{
+					EventSubscriber &evtSub = *iterSub;
+					Handle sub = evtSub.usr.evtHandle;
+					//send message to sub
+					this->sendEventServerMessage((void*)rxMsg, msglen,sub);
+				}
+
 				localChannelListLock.unlock();
 				return ;
 			}
@@ -437,5 +465,17 @@ void EventServer::msgHandler(SAFplus::Handle from, SAFplus::MsgServer* svr, ClPt
 	default:
 		logDebug("EVENT", "MSG", "Unknown message type [%d] from node [%d]", rxMsg->messageType, from.getNode());
 		break;
+	}
+}
+
+void EventServer::sendEventServerMessage(void* data, int dataLength,Handle destHandle)
+{
+	logDebug("EVENT", "EVENT_ENTITY", "Send Event message to local Event Server");
+	try
+	{
+		eventMsgServer->SendMsg(destHandle, (void *) data, dataLength, SAFplusI::EVENT_MSG_TYPE);
+	} catch (...) // SAFplus::Error &e)
+	{
+		logDebug("EVT", "EVENT_ENTITY", "Failed to send.");
 	}
 }

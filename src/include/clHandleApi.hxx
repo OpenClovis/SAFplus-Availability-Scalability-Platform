@@ -248,12 +248,14 @@ namespace SAFplus
   const WellKnownHandle FAULT_GROUP(9,0,0);      //? This group represents the fault managers
   const WellKnownHandle FAULT_CKPT(10,0,0);      //? This checkpoint is how fault synchronizes data
   const WellKnownHandle MGT_GROUP(11,0,0);       //? This group represents all mgt clients (object implementers)
-  //const WellKnownHandle MGT_GROUP(11,0,0);       //? This group represents all mgt clients (object implementers)
+  const WellKnownHandle MGT_CKPT(15,0,0);       //? This group represents all mgt clients (object implementers)
   const WellKnownHandle EVENT_GROUP(14,0,0);       //? This group represents all event
 
 
   const WellKnownHandle CLOUD_DISCOVERY_GROUP(12,0,0); //? This group represents all nodes in the cloud
   const WellKnownHandle EVENT_CKPT(13,0,0);       //? The checkpoint that matches MGT object to arbitrary data
+
+
  
   //? Return a new handle that uses a "well known" id but is qualified by a specific node and port.  By convention, this handle will be used for the entity that implements a well known service on a particular node
   inline Handle wellKnownEntity(const WellKnownHandle& h, int port, int node,uint_t clusterId=0)

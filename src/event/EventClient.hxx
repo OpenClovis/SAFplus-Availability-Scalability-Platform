@@ -65,6 +65,8 @@ public:
 	ClRcT eventPublish(const void *pEventData, int eventDataSize, char* channelName);
 	ClRcT eventPublish(const void *pEventData, int eventDataSize, SAFplus::Handle handle);
 	void sendEventMessage(void* data, int dataLength,Handle destHandle = INVALID_HDL);
+    virtual void msgHandler(SAFplus::Handle from, SAFplus::MsgServer* svr, ClPtrT msg, ClWordT msglen, ClPtrT cookie);
+
 
 
 

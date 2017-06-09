@@ -27,8 +27,10 @@ enum class EventMessageType
             EventMessageType messageType;
             EventChannelScope scope;
             SAFplus::Handle clientHandle;
+            int dataLength;
             char* channelName;
             char                  data[1]; //Not really 1, it will be place on larger memory
+
 
             EventMessageProtocol()
             {
@@ -36,14 +38,16 @@ enum class EventMessageType
                 scope = EventChannelScope::EVENT_LOCAL_CHANNEL;
                 clientHandle = SAFplus::INVALID_HDL;
                 channelName= NULL;
+                dataLength=0;
             }
-            void init(SAFplus::Handle handle, char* evtChannelName, EventChannelScope evtScope,EventMessageType msgType)
+            void init(SAFplus::Handle handle, char* evtChannelName, EventChannelScope evtScope,EventMessageType msgType,int length=0)
             {
                 clientHandle=handle;
                 messageType = msgType;
                 scope = evtScope;
                 channelName = evtChannelName;
                 data[0]=0;
+                dataLength=length;
             }
     };
 

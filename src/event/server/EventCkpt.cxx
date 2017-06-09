@@ -22,52 +22,65 @@ EventCkpt::~EventCkpt()
 
 ClRcT EventCkpt::eventCkptInit(void)
 {
-	m_checkpoint.init(EVENT_CKPT,Checkpoint::SHARED | Checkpoint::REPLICATED, SAFplusI::CkptRetentionDurationDefault, 1024*1024, SAFplusI::CkptDefaultRows);
+	m_checkpoint.init(SAFplus::EVENT_CKPT,Checkpoint::SHARED | Checkpoint::REPLICATED, SAFplusI::CkptRetentionDurationDefault, 1024*1024, SAFplusI::CkptDefaultRows);
 	m_checkpoint.name = "SAFplus_Event";
 	return CL_OK ;
 }
-
-
 
 ClRcT EventCkpt::eventCkptExit(void)
 {
 	return CL_TRUE;
 }
 
-
 ClRcT EventCkpt::eventCkptCheckPointChannelOpen(EventMessageProtocol* message, int length)
 {
-	size_t valLen = length;
-	char vdata[sizeof(Buffer)-1+valLen];
-	Buffer* val = new(vdata) Buffer(valLen);
-	memcpy(val->data, message, valLen);
-	m_checkpoint.write(message->channelName,*val);
+	char vdata[sizeof(Buffer)-1+length];
+	Buffer* val = new(vdata) Buffer(length);
+	memcpy(val->data, message, length);
+	EventKey keyData;
+	keyData.channelName=message->channelName;
+	keyData.evtClient=INVALID_HDL;
+	keyData.type=message->messageType;
+	const uintcw_t key = hash_value(keyData);
+	m_checkpoint.write(key,*val);
 	return CL_TRUE;
 }
 
-ClRcT EventCkpt::eventCkptCheckPointChannelClose(char* channelName)
+ClRcT EventCkpt::eventCkptCheckPointChannelClose(EventMessageProtocol* message , int length)
 {
-	m_checkpoint.remove(channelName);
+	EventKey keyData;
+	keyData.channelName=message->channelName;
+	keyData.evtClient=INVALID_HDL;
+	keyData.type=message->messageType;
+	const uintcw_t key = hash_value(keyData);
+	m_checkpoint.remove(key);
 	return CL_TRUE;
 }
 
 ClRcT EventCkpt::eventCkptCheckPointSubscribe(EventMessageProtocol* message , int length)
 {
-	size_t valLen = length;
-	char vdata[sizeof(Buffer)-1+valLen];
-	Buffer* val = new(vdata) Buffer(valLen);
-	memcpy(val->data, message, valLen);
-	m_checkpoint.write(message->channelName,*val);
+	char vdata[sizeof(Buffer)-1+length];
+	Buffer* val = new(vdata) Buffer(length);
+	memcpy(val->data, message, length);
+
+	EventKey keyData;
+	keyData.channelName=message->channelName;
+	keyData.evtClient=INVALID_HDL;
+	keyData.type=message->messageType;
+	const uintcw_t key = hash_value(keyData);
+
+	m_checkpoint.write(key,*val);
 	return CL_TRUE;
 }
 
 ClRcT EventCkpt::eventCkptCheckPointUnsubscribe(EventMessageProtocol* message , int length)
 {
-	size_t valLen = length;
-	char vdata[sizeof(Buffer)-1+valLen];
-	Buffer* val = new(vdata) Buffer(valLen);
-	memcpy(val->data, message, valLen);
-	m_checkpoint.write(message->channelName,*val);
+	EventKey keyData;
+	keyData.channelName=message->channelName;
+	keyData.evtClient=INVALID_HDL;
+	keyData.type=message->messageType;
+	const uintcw_t key = hash_value(keyData);
+	m_checkpoint.remove(key);
 	return CL_TRUE;
 }
 

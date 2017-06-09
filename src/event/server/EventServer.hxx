@@ -74,8 +74,8 @@ public:
     void eventChannelSubsHandle(EventMessageProtocol *rxMsg);
     void eventChannelUnSubsHandle(EventMessageProtocol *rxMsg);
     void eventpublish(EventMessageProtocol *rxMsg,ClWordT msglen);
-    bool eventloadGlobalchannel();
-    bool eventloadLocalchannel();
+    bool eventloadchannelFromCheckpoint();
+    void sendEventServerMessage(void* data, int dataLength,Handle destHandle);
 
 };
 
