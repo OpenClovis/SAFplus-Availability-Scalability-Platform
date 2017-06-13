@@ -62,7 +62,7 @@ ClRcT EventClient::eventInitialize(Handle evtHandle)
 
 ClRcT EventClient::eventChannelOpen(char* evtChannelName, EventChannelScope scope, SAFplus::Handle &channelHandle)
 {
-	logDebug("EVT", "EVENT_ENTITY", "Close an event channel");
+	logDebug("EVT", "EVENT_ENTITY", "Create event channel [%s]",evtChannelName);
 	EventMessageProtocol sndMessage;
 	memset(&sndMessage,0,sizeof(EventMessageProtocol));
 	sndMessage.init(clientHandle,evtChannelName,scope,EventMessageType::EVENT_CHANNEL_CREATE);
@@ -72,7 +72,7 @@ ClRcT EventClient::eventChannelOpen(char* evtChannelName, EventChannelScope scop
 
 ClRcT EventClient::eventChannelClose(char* evtChannelName)
 {
-	logDebug("EVT", "EVENT_ENTITY", "Close an event channel");
+	logDebug("EVT", "EVENT_ENTITY", "Close event channel[%s]",evtChannelName);
 	EventMessageProtocol sndMessage;
 	memset(&sndMessage,0,sizeof(EventMessageProtocol));
 	sndMessage.init(clientHandle,evtChannelName,EventChannelScope::EVENT_UNDEFINE,EventMessageType::EVENT_CHANNEL_CLOSE);
@@ -82,7 +82,7 @@ ClRcT EventClient::eventChannelClose(char* evtChannelName)
 
 ClRcT EventClient::eventChannelUnlink(char* evtChannelName)
 {
-	logDebug("EVT", "EVENT_ENTITY", "Unlink an event channel");
+	logDebug("EVT", "EVENT_ENTITY", "Unlink event channel [%s]",evtChannelName);
 	EventMessageProtocol sndMessage;
 	memset(&sndMessage,0,sizeof(EventMessageProtocol));
 	sndMessage.init(clientHandle,evtChannelName,EventChannelScope::EVENT_UNDEFINE,EventMessageType::EVENT_CHANNEL_UNLINK);
@@ -90,9 +90,29 @@ ClRcT EventClient::eventChannelUnlink(char* evtChannelName)
 	return CL_OK;
 }
 
+ClRcT EventClient::eventChannelSubscriber(char* evtChannelName)
+{
+	logDebug("EVT", "EVENT_ENTITY", "subscriber to  event channel [%s]",evtChannelName);
+	EventMessageProtocol sndMessage;
+	memset(&sndMessage,0,sizeof(EventMessageProtocol));
+	sndMessage.init(clientHandle,evtChannelName,EventChannelScope::EVENT_UNDEFINE,EventMessageType::EVENT_CHANNEL_SUBSCRIBER);
+	sendEventMessage((void *)&sndMessage,sizeof(EventMessageProtocol)+ strlen(evtChannelName),INVALID_HDL);
+	return CL_OK;
+}
+
+ClRcT EventClient::eventChannelPublish(char* evtChannelName)
+{
+	logDebug("EVT", "EVENT_ENTITY", "publish to event channel [%s]",evtChannelName);
+	EventMessageProtocol sndMessage;
+	memset(&sndMessage,0,sizeof(EventMessageProtocol));
+	sndMessage.init(clientHandle,evtChannelName,EventChannelScope::EVENT_UNDEFINE,EventMessageType::EVENT_CHANNEL_PUBLISHER);
+	sendEventMessage((void *)&sndMessage,sizeof(EventMessageProtocol)+ strlen(evtChannelName),INVALID_HDL);
+	return CL_OK;
+}
+
 ClRcT EventClient::eventPublish(const void *pEventData, int eventDataSize, char* channelName)
 {
-	logDebug("EVT", "EVENT_ENTITY", "Publish an event");
+	logDebug("EVT", "EVENT_ENTITY", "Publish an event to channel [%s]",channelName);
 	char msgPayload[sizeof(EventMessageProtocol)-1 + eventDataSize];
 	memset(&msgPayload,0,sizeof(EventMessageProtocol)-1 + eventDataSize);  // valgrind
 	EventMessageProtocol *sndMessage = (EventMessageProtocol *)&msgPayload;
@@ -129,6 +149,7 @@ void EventClient::sendEventMessage(void* data, int dataLength,Handle destHandle)
 	{
 		logDebug("EVT", "EVENT_ENTITY", "Failed to send.");
 	}
+	logDebug("EVENT", "EVENT_ENTITY", "Send Event message successful");
 }
 
 void EventClient::msgHandler(SAFplus::Handle from, SAFplus::MsgServer* svr, ClPtrT msg, ClWordT msglen, ClPtrT cookie)

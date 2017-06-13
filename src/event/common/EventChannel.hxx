@@ -47,6 +47,11 @@ class EventPublisher
 public:
     boost::intrusive::list_member_hook<> m_memberHook;
     EventChannelUser usr;
+    EventPublisher(SAFplus::Handle evtClient, char* name)
+    {
+        usr.evtHandle=evtClient;
+        usr.userName=name;
+    }
 };
 
 

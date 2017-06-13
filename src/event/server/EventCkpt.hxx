@@ -49,8 +49,8 @@ public:
 	ClRcT eventCkptSubsDSDelete(char*, EventChannelScope channelScope);
 	ClRcT eventCkptCheckPointChannelOpen(EventMessageProtocol* message, int length);
 	ClRcT eventCkptCheckPointChannelClose(EventMessageProtocol* message, int length);
-	ClRcT eventCkptCheckPointSubscribe(EventMessageProtocol* message , int length);
-	ClRcT eventCkptCheckPointUnsubscribe(EventMessageProtocol* message , int length);
+	ClRcT eventCkptCheckPointSubscribeOrPublish(EventMessageProtocol* message , int length);
+	ClRcT eventCkptCheckPointUnsubscribeOrUnpublish(EventMessageProtocol* message , int length);
 
 };
 

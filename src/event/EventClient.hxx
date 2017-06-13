@@ -58,13 +58,20 @@ public:
 	virtual ~EventClient();
 
 	void  sendEventMessage(void* data, int dataLength);
+	//Initialize an event client
 	ClRcT eventInitialize(Handle evtHandle);
+	//Create an event channel
 	ClRcT eventChannelOpen(char* evtChannelName, EventChannelScope scope, SAFplus::Handle &channelHandle);
+	//Close an event channel
 	ClRcT eventChannelClose(char* evtChannelName);
 	ClRcT eventChannelUnlink(char* evtChannelName);
+	//Publish an event to event channel
 	ClRcT eventPublish(const void *pEventData, int eventDataSize, char* channelName);
-	ClRcT eventPublish(const void *pEventData, int eventDataSize, SAFplus::Handle handle);
+	//Send event message to event server or active event server
 	void sendEventMessage(void* data, int dataLength,Handle destHandle = INVALID_HDL);
+	ClRcT eventChannelSubscriber(char* evtChannelName);
+	ClRcT eventChannelPublish(char* evtChannelName);
+
     virtual void msgHandler(SAFplus::Handle from, SAFplus::MsgServer* svr, ClPtrT msg, ClWordT msglen, ClPtrT cookie);
 
 

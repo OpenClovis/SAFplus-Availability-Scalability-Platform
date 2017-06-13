@@ -57,7 +57,7 @@ ClRcT EventCkpt::eventCkptCheckPointChannelClose(EventMessageProtocol* message ,
 	return CL_TRUE;
 }
 
-ClRcT EventCkpt::eventCkptCheckPointSubscribe(EventMessageProtocol* message , int length)
+ClRcT EventCkpt::eventCkptCheckPointSubscribeOrPublish(EventMessageProtocol* message , int length)
 {
 	char vdata[sizeof(Buffer)-1+length];
 	Buffer* val = new(vdata) Buffer(length);
@@ -73,7 +73,7 @@ ClRcT EventCkpt::eventCkptCheckPointSubscribe(EventMessageProtocol* message , in
 	return CL_TRUE;
 }
 
-ClRcT EventCkpt::eventCkptCheckPointUnsubscribe(EventMessageProtocol* message , int length)
+ClRcT EventCkpt::eventCkptCheckPointUnsubscribeOrUnpublish(EventMessageProtocol* message , int length)
 {
 	EventKey keyData;
 	keyData.channelName=message->channelName;
@@ -83,6 +83,8 @@ ClRcT EventCkpt::eventCkptCheckPointUnsubscribe(EventMessageProtocol* message , 
 	m_checkpoint.remove(key);
 	return CL_TRUE;
 }
+
+
 
 
 

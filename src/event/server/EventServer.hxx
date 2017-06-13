@@ -69,11 +69,12 @@ public:
 	void initialize();
     void wake(int amt,void* cookie=NULL);
     virtual void msgHandler(SAFplus::Handle from, SAFplus::MsgServer* svr, ClPtrT msg, ClWordT msglen, ClPtrT cookie);
-    void eventChannelCreateHandle(EventMessageProtocol *rxMsg);
-    void eventChannelCloseHandle(EventMessageProtocol *rxMsg);
-    void eventChannelSubsHandle(EventMessageProtocol *rxMsg);
-    void eventChannelUnSubsHandle(EventMessageProtocol *rxMsg);
-    void eventpublish(EventMessageProtocol *rxMsg,ClWordT msglen);
+    void eventChannelCreateHandle(EventMessageProtocol *rxMsg,int length);
+    void eventChannelCloseHandle(EventMessageProtocol *rxMsg,int length);
+    void eventChannelSubsHandle(EventMessageProtocol *rxMsg,int length);
+    void eventChannelPubHandle(EventMessageProtocol *rxMsg,int length);
+    void eventChannelUnSubsHandle(EventMessageProtocol *rxMsg,int length);
+    void eventPublishHandle(EventMessageProtocol *rxMsg,ClWordT msglen);
     bool eventloadchannelFromCheckpoint();
     void sendEventServerMessage(void* data, int dataLength,Handle destHandle);
 
