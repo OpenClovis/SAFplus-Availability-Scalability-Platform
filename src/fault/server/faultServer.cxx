@@ -256,7 +256,7 @@ namespace SAFplus
                   //logDebug(FAULT,"MSG","Process fault event message");
                     if (created) registerFaultEntity(fe,faultEntity,true);
                     processFaultEvent(pluginId,eventData,faultEntity,reporterHandle);
-                    logDebug("POL","AMF","Fault event data severity [%s] , cause [%s] , catagory [%s] , state [%d] ", SAFplus::strFaultSeverity[int(eventData.severity)],SAFplus::strFaultProbableCause[int(eventData.cause)],SAFplus::strFaultCategory[int(eventData.category)],eventData.alarmState);
+                    logDebug("POL","AMF","Fault event data severity [%s] , cause [%s] , catagory [%s] , state [%d] ", SAFplus::strFaultSeverity[int(eventData.severity)],SAFplus::strFaultProbableCause[int(eventData.cause)],SAFplus::strFaultCategory[int(eventData.category)],eventData.state);
                     FaultHistoryEntity faultHistoryEntry;
                     time_t now;
                     time(&now);
@@ -273,7 +273,7 @@ namespace SAFplus
 //                        FaultMessageProtocol sndMessage;
 //                        sndMessage.reporter = reporterHandle;
 //                        sndMessage.messageType = SAFplus::FaultMessageType::MSG_ENTITY_FAULT_BROADCAST;
-//                        sndMessage.data.alarmState= eventData.alarmState;
+//                        sndMessage.data.state= eventData.state;
 //                        sndMessage.data.category=eventData.category;
 //                        sndMessage.data.cause=eventData.cause;
 //                        sndMessage.data.severity=eventData.severity;
@@ -548,7 +548,7 @@ namespace SAFplus
         sndMessage.messageType = FaultMessageType::MSG_ENTITY_JOIN_BROADCAST;
         sndMessage.state = state;
         sndMessage.faultEntity = handle;
-        sndMessage.data.init(SAFplus::AlarmState::ALARM_STATE_INVALID,SAFplus::AlarmCategory::ALARM_CATEGORY_INVALID,SAFplus::AlarmSeverity::ALARM_SEVERITY_INVALID,SAFplus::AlarmProbableCause::ALARM_ID_INVALID);
+        sndMessage.data.init(AlarmState::INVALID,AlarmCategory::INVALID,AlarmSeverity::INVALID,AlarmProbableCause::INVALID);
         sndMessage.pluginId=SAFplus::FaultPolicy::Undefined;
         sndMessage.syncData[0]=0;
         sendFaultNotificationToGroup((void *)&sndMessage,sizeof(FaultMessageProtocol));
@@ -563,7 +563,7 @@ namespace SAFplus
         sndMessage.messageType = FaultMessageType::MSG_ENTITY_STATE_CHANGE_BROADCAST;
         sndMessage.state = state;
         sndMessage.faultEntity = handle;
-        sndMessage.data.init(SAFplus::AlarmState::ALARM_STATE_INVALID,SAFplus::AlarmCategory::ALARM_CATEGORY_INVALID,SAFplus::AlarmSeverity::ALARM_SEVERITY_INVALID,SAFplus::AlarmProbableCause::ALARM_ID_INVALID);
+        sndMessage.data.init(AlarmState::INVALID,AlarmCategory::INVALID,AlarmSeverity::INVALID,AlarmProbableCause::INVALID);
         sndMessage.pluginId=SAFplus::FaultPolicy::Undefined;
         sndMessage.syncData[0]=0;
         sendFaultNotificationToGroup((void *)&sndMessage,sizeof(FaultMessageProtocol));
@@ -578,7 +578,7 @@ namespace SAFplus
         sndMessage.messageType = FaultMessageType::MSG_ENTITY_LEAVE_BROADCAST;
         sndMessage.state = FaultState::STATE_UP; // TODO: wouldn't state be down or undefined?
         sndMessage.faultEntity=handle;
-        sndMessage.data.init(SAFplus::AlarmState::ALARM_STATE_INVALID,SAFplus::AlarmCategory::ALARM_CATEGORY_INVALID,SAFplus::AlarmSeverity::ALARM_SEVERITY_INVALID,SAFplus::AlarmProbableCause::ALARM_ID_INVALID);
+        sndMessage.data.init(AlarmState::INVALID,AlarmCategory::INVALID,AlarmSeverity::INVALID,AlarmProbableCause::INVALID);
         sndMessage.pluginId=SAFplus::FaultPolicy::Undefined;
         sndMessage.syncData[0]=0;
         sendFaultNotificationToGroup((void *)&sndMessage,sizeof(FaultMessageProtocol));

@@ -1,0 +1,93 @@
+//  To generate code use: pyang -f y2cpp alarm.yang --y2cpp-output alarmtype --y2cpp-sdkdir ../../../src
+
+module SAFplusAlarm
+{
+namespace "http://www.openclovis.org/ns/amf";
+  prefix "SAFplusAlarm";
+  import SAFplusTypes { prefix "SAFplusTypes"; }
+  
+  organization
+        "OpenClovis Solutions, Inc";
+   
+  contact
+        "Andrew Stone <stone@openclovis.com>";
+
+  description
+        "Configuration and Statistics for the SAFplus Availability Management Service.  This document is released under the GNU 	General Public License V2.0 or OpenClovis Commerical license.";
+
+  revision 2017-05-15 
+    {
+        description "Initial description";
+        reference "Note, some of the description text is sourced from the Service Availability Forum Application Interface 		Specification document https://tools.ietf.org/html/draft-vallin-alarm-yang-module-00.";
+    }
+
+ 
+
+    typedef alarm-severity  {
+       type enumeration {
+         enum INVALID {
+           value 0;
+           description
+             "Indicates that the severity level could not be
+              determined. This level SHOULD be avoided.";
+         }
+         enum CLEAR {
+           value 1;
+           description
+             "The Cleared severity level indicates the clearing of one or more previously reported alarms. This
+              alarm clears all alarms for this managed object that have the same Alarm type, Probable cause and
+              Specific problems (if given). (@ref ITU X.733)ot be
+              determined. This level SHOULD be avoided.";
+         }
+	 enum WARNING {
+           value 2;
+           description
+             "The 'warning' severity level indicates the detection of
+              a potential or impending service affecting fault, before
+              any significant effects have been felt. Action should be
+              taken to further diagnose (if necessary) and correct the
+              problem in order to prevent it from becoming a more
+              serious service affecting fault.";
+         }
+         enum MINOR {
+           value 3;
+           description
+             "The 'minor' severity level indicates the existence of a
+              non-service affecting fault condition and that corrective
+              action should be taken in order to prevent a more serious
+              (for example, service affecting) fault. Such a severity
+              can be reported, for example, when the detected alarm
+              condition is not currently degrading the capacity of the
+              resource.";
+         }
+         
+         enum MAJOR {
+           value 4;
+           description
+             "The 'major' severity level indicates that a service
+              affecting condition has developed and an urgent
+              corrective action is required. Such a severity can be
+              reported, for example, when there is a severe
+              degradation in the capability of the resource
+              and its full capability must be restored.";
+         }
+         enum CRITICAL {
+           value 5;
+           description
+             "The 'critical' severity level indicates that a service
+              affecting condition has occurred and an immediate
+              corrective action is required. Such a severity can be
+              reported, for example, when a resource becomes totally
+              out of service and its capability must be restored.";
+         }
+       }
+       description
+         "The severity level of the alarm.";
+       reference
+         "ITU Recommendation X.733, 'Information Technology - Open
+            Systems Interconnection - System Management: Alarm Reporting
+            Function', 1992";
+     }
+    
+}
+

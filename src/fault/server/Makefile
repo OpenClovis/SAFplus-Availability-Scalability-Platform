@@ -2,7 +2,7 @@ S7 := 1
 SAFPLUS_FAULT_SERVER := 1
 include ../../mk/preface.mk
 
-CPP_FLAGS += -I$(BOOST_DIR) -I. $(SAFPLUS_MGT_INC_FLAGS)
+CPP_FLAGS += -I$(BOOST_DIR) -I. $(SAFPLUS_MGT_INC_FLAGS) -I../../alarm/server/SAFplusAlarm
 
 CLIENT_H := $(wildcard *.hxx) $(wildcard $(SAFPLUS_INC_DIR)/*.hxx)
 CLIENT_SRC := FaultSharedMem.cxx faultServer.cxx FaultHistoryEntity.cxx FaultStatistic.cxx

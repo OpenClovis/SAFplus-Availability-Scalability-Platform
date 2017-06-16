@@ -69,7 +69,7 @@ void testAllFeature()
     logInfo("FLT","CLT","Get current fault state after updated in shared memory [%s]", strFaultEntityState[int(state)]);
     sleep(10);
     FaultEventData faultData;
-    faultData.alarmState=SAFplus::AlarmState::ALARM_STATE_INVALID;
+    faultData.state=SAFplus::AlarmState::ALARM_STATE_INVALID;
     faultData.category=SAFplus::AlarmCategory::ALARM_CATEGORY_COMMUNICATIONS;
     faultData.cause=SAFplus::AlarmProbableCause::ALARM_PROB_CAUSE_PROCESSOR_PROBLEM;
     faultData.severity=SAFplus::AlarmSeverity::ALARM_SEVERITY_MINOR;
@@ -93,7 +93,7 @@ void tressTest(int eventNum)
     for (int i = 0; i < eventNum; i ++)
     {
         FaultEventData faultData;
-        faultData.alarmState=SAFplus::AlarmState::ALARM_STATE_INVALID;
+        faultData.state=SAFplus::AlarmState::ALARM_STATE_INVALID;
         faultData.category=SAFplus::AlarmCategory::ALARM_CATEGORY_COMMUNICATIONS;
         faultData.cause=SAFplus::AlarmProbableCause::ALARM_PROB_CAUSE_PROCESSOR_PROBLEM;
         faultData.severity=SAFplus::AlarmSeverity::ALARM_SEVERITY_MINOR;

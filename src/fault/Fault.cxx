@@ -189,7 +189,7 @@ void Fault::setNotification(SAFplus::Wakeable& w)
         sndMessage.messageType = FaultMessageType::MSG_ENTITY_JOIN;
         sndMessage.state = state;
         sndMessage.faultEntity=other;
-        sndMessage.data.init(SAFplus::AlarmState::ALARM_STATE_INVALID,SAFplus::AlarmCategory::ALARM_CATEGORY_INVALID,SAFplus::AlarmSeverity::ALARM_SEVERITY_INVALID,SAFplus::AlarmProbableCause::ALARM_ID_INVALID);
+        sndMessage.data.init(AlarmState::INVALID,AlarmCategory::INVALID,AlarmSeverity::INVALID,AlarmProbableCause::INVALID);
         sndMessage.pluginId=SAFplus::FaultPolicy::Undefined;
         sndMessage.syncData[0]=0;
         sendFaultNotification((void *)&sndMessage,sizeof(FaultMessageProtocol),FaultMessageSendMode::SEND_BROADCAST);
@@ -203,7 +203,7 @@ void Fault::setNotification(SAFplus::Wakeable& w)
         sndMessage.messageType = FaultMessageType::MSG_ENTITY_STATE_CHANGE;
         sndMessage.state = state;
         sndMessage.faultEntity=other;
-        sndMessage.data.init(SAFplus::AlarmState::ALARM_STATE_INVALID,SAFplus::AlarmCategory::ALARM_CATEGORY_INVALID,SAFplus::AlarmSeverity::ALARM_SEVERITY_INVALID,SAFplus::AlarmProbableCause::ALARM_ID_INVALID);
+        sndMessage.data.init(AlarmState::INVALID,AlarmCategory::INVALID,AlarmSeverity::INVALID,AlarmProbableCause::INVALID);
         sndMessage.pluginId=SAFplus::FaultPolicy::Undefined;
         sndMessage.syncData[0]=0;
         sendFaultNotification((void *)&sndMessage,sizeof(FaultMessageProtocol),FaultMessageSendMode::SEND_BROADCAST);
@@ -223,7 +223,7 @@ void Fault::setNotification(SAFplus::Wakeable& w)
         sndMessage.messageType = FaultMessageType::MSG_ENTITY_LEAVE;
         sndMessage.state = FaultState::STATE_UP;
         sndMessage.faultEntity=faultEntity;
-        sndMessage.data.init(SAFplus::AlarmState::ALARM_STATE_INVALID,SAFplus::AlarmCategory::ALARM_CATEGORY_INVALID,SAFplus::AlarmSeverity::ALARM_SEVERITY_INVALID,SAFplus::AlarmProbableCause::ALARM_ID_INVALID);
+        sndMessage.data.init(AlarmState::INVALID,AlarmCategory::INVALID,AlarmSeverity::INVALID,AlarmProbableCause::INVALID);
         sndMessage.pluginId=SAFplus::FaultPolicy::Undefined;
         sndMessage.syncData[0]=0;
         logDebug(FAULT,FAULT_ENTITY,"Deregister fault entity : Node [%d], Process [%d] , Message Type [%d]", reporter.getNode(), reporter.getProcess(),(int) sndMessage.messageType);
@@ -236,7 +236,7 @@ void Fault::setNotification(SAFplus::Wakeable& w)
         FaultMessageProtocol sndMessage;
         sndMessage.reporter = reporter;
         sndMessage.messageType = msgType;
-        sndMessage.data.alarmState= faultData.alarmState;
+        sndMessage.data.state= faultData.state;
         sndMessage.data.category=faultData.category;
         sndMessage.data.cause=faultData.cause;
         sndMessage.data.severity=faultData.severity;
@@ -245,13 +245,13 @@ void Fault::setNotification(SAFplus::Wakeable& w)
         sndMessage.syncData[0]=0;
         sendFaultNotification((void *)&sndMessage,sizeof(FaultMessageProtocol),messageMode);
     }
-    void Fault::sendFaultEventMessage(SAFplus::Handle faultEntity,SAFplus::FaultMessageSendMode messageMode,SAFplus::FaultMessageType msgType,SAFplus::AlarmState alarmState,SAFplus::AlarmCategory category,SAFplus::AlarmSeverity severity,SAFplus::AlarmProbableCause cause,SAFplus::FaultPolicy pluginId)
+    void Fault::sendFaultEventMessage(SAFplus::Handle faultEntity,SAFplus::FaultMessageSendMode messageMode,SAFplus::FaultMessageType msgType,AlarmState state,AlarmCategory category,AlarmSeverity severity,AlarmProbableCause cause,SAFplus::FaultPolicy pluginId)
     {
       //logDebug(FAULT,FAULT_ENTITY,"Sending Fault Event message ...");
         FaultMessageProtocol sndMessage;
         sndMessage.reporter = reporter;
         sndMessage.messageType = msgType;
-        sndMessage.data.alarmState= alarmState;
+        sndMessage.data.state= state;
         sndMessage.data.category=category;
         sndMessage.data.cause=cause;
         sndMessage.data.severity=severity;
@@ -261,16 +261,16 @@ void Fault::setNotification(SAFplus::Wakeable& w)
         sendFaultNotification((void *)&sndMessage,sizeof(FaultMessageProtocol),messageMode);
     }
 
-    void Fault::notify(SAFplus::Handle faultEntity,SAFplus::AlarmState alarmState,SAFplus::AlarmCategory category,SAFplus::AlarmSeverity severity,SAFplus::AlarmProbableCause cause,SAFplus::FaultPolicy pluginId)
+    void Fault::notify(SAFplus::Handle faultEntity,AlarmState state,AlarmCategory category,AlarmSeverity severity,AlarmProbableCause cause,SAFplus::FaultPolicy pluginId)
     {
       assert(faultEntity != INVALID_HDL);
-      sendFaultEventMessage(faultEntity,FaultMessageSendMode::SEND_BROADCAST,SAFplus::FaultMessageType::MSG_ENTITY_FAULT,alarmState,category,severity,cause,pluginId);
+      sendFaultEventMessage(faultEntity,FaultMessageSendMode::SEND_BROADCAST,SAFplus::FaultMessageType::MSG_ENTITY_FAULT,state,category,severity,cause,pluginId);
     }
 
-    void Fault::notifyLocal(SAFplus::Handle faultEntity,SAFplus::AlarmState alarmState,SAFplus::AlarmCategory category,SAFplus::AlarmSeverity severity,SAFplus::AlarmProbableCause cause,SAFplus::FaultPolicy pluginId)
+    void Fault::notifyLocal(SAFplus::Handle faultEntity,AlarmState state,AlarmCategory category,AlarmSeverity severity,AlarmProbableCause cause,SAFplus::FaultPolicy pluginId)
     {
       assert(faultEntity != INVALID_HDL);
-      sendFaultEventMessage(faultEntity,FaultMessageSendMode::SEND_TO_LOCAL_SERVER,SAFplus::FaultMessageType::MSG_ENTITY_FAULT,alarmState,category,severity,cause,pluginId);
+      sendFaultEventMessage(faultEntity,FaultMessageSendMode::SEND_TO_LOCAL_SERVER,SAFplus::FaultMessageType::MSG_ENTITY_FAULT,state,category,severity,cause,pluginId);
     }
 
     void Fault::notify(SAFplus::Handle faultEntity,SAFplus::FaultEventData faultData,SAFplus::FaultPolicy pluginId)
@@ -285,10 +285,10 @@ void Fault::setNotification(SAFplus::Wakeable& w)
       sendFaultEventMessage(reporter,FaultMessageSendMode::SEND_BROADCAST,SAFplus::FaultMessageType::MSG_ENTITY_FAULT,pluginId,faultData);
     }
 
-    void Fault::notifyNoResponse(SAFplus::Handle faultEntity,SAFplus::AlarmSeverity severity)
+    void Fault::notifyNoResponse(SAFplus::Handle faultEntity,AlarmSeverity severity)
     {
       assert(faultEntity != INVALID_HDL);
-      sendFaultEventMessage(faultEntity,FaultMessageSendMode::SEND_BROADCAST,SAFplus::FaultMessageType::MSG_ENTITY_FAULT,AlarmState::ALARM_STATE_ASSERT,AlarmCategory::ALARM_CATEGORY_COMMUNICATIONS,severity,SAFplus::AlarmProbableCause::ALARM_PROB_CAUSE_RECEIVER_FAILURE,FaultPolicy::Undefined);
+      sendFaultEventMessage(faultEntity,FaultMessageSendMode::SEND_BROADCAST,SAFplus::FaultMessageType::MSG_ENTITY_FAULT,AlarmState::ASSERT,AlarmCategory::COMMUNICATIONS,severity,AlarmProbableCause::RECEIVER_FAILURE,FaultPolicy::Undefined);
     }
 
     //Sending a fault notification to fault server

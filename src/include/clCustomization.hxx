@@ -10,6 +10,9 @@
 //? Indicates that the AMF will act as the one-per-node fault manager, rather than using a standalone safplus_fault process
 #define SAFPLUS_AMF_FAULT_NODE_REPRESENTATIVE
 
+//? Indicates that the AMF will act as the one-per-node alarm manager, rather than using a standalone safplus_fault process
+#define SAFPLUS_AMF_ALARM_NODE_REPRESENTATIVE
+
 //? Indicates that the AMF will act as the one-per-node log server, rather than using a standalone safplus_log process
 #define SAFPLUS_AMF_LOG_NODE_REPRESENTATIVE
 
@@ -101,7 +104,13 @@ namespace SAFplusI
     FaultSharedMemSize = 4 * 1024*1024,
     FaultMaxMembers    = 1024,   // Maximum number of fault entity
     };
-
+  /* ALARM */
+    enum
+      {
+      MAX_ALARM_SIZE = 64,
+      MAX_ALARM_RULE_DEPENDENCIES = 4,
+      AlarmMaxMembers    = 1024*1024,   // Maximum number of alarm entity
+      };
   /* MGT */
   enum
     {

@@ -2,7 +2,7 @@ S7 := 1
 SAFPLUS_GROUP_LIB := 1
 include ../mk/preface.mk
 
-CPP_FLAGS += -I$(BOOST_DIR) -I. -I.. -I../include
+CPP_FLAGS += -I$(BOOST_DIR) -I. -I.. -I../include -I../alarm/server/SAFplusAlarm
 
 CLIENT_H := $(wildcard *.hxx) $(wildcard $(SAFPLUS_INC_DIR)/*.hxx)
 CLIENT_SRC := $(wildcard *.cxx)

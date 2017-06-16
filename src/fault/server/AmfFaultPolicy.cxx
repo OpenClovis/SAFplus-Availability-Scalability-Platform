@@ -43,14 +43,14 @@ namespace SAFplus
         // If this fault comes from an AMF
       if (faultReporter.getPort() == SAFplusI::AMF_IOC_PORT)
         {
-          if ((faultEntity.getPort() == 0)&&(fault.cause == SAFplus::AlarmProbableCause::ALARM_PROB_CAUSE_RECEIVER_FAILURE))  // port==0 means that this fault concerns the whole node, its a Keep-alive failure
+          if ((faultEntity.getPort() == 0)&&(fault.cause == AlarmProbableCause::RECEIVER_FAILURE))  // port==0 means that this fault concerns the whole node, its a Keep-alive failure
             {
             assert(faultServer);
             faultServer->setFaultState(faultEntity,FaultState::STATE_DOWN);
             logWarning("FLT","POL","Entity DOWN [%" PRIx64 ":%" PRIx64 "] (on node [%d], port [%d]).", faultEntity.id[0], faultEntity.id[1], faultEntity.getNode(), faultEntity.getProcess());
             return true;          
             }
-          else if (fault.cause == SAFplus::AlarmProbableCause::ALARM_PROB_CAUSE_RECEIVER_FAILURE)  // Trust RPC timeouts reported by the AMF
+          else if (fault.cause == AlarmProbableCause::RECEIVER_FAILURE)  // Trust RPC timeouts reported by the AMF
             {
               // TODO: wait for a few timeouts
             assert(faultServer);
@@ -59,9 +59,9 @@ namespace SAFplus
             return true;          
             }
         // If this fault comes from an AMF and its telling me that there was a crash the trust it because the local AMF monitors its local processes.
-          else if (fault.cause == SAFplus::AlarmProbableCause::ALARM_PROB_CAUSE_SOFTWARE_ERROR)
+          else if (fault.cause == AlarmProbableCause::SOFTWARE_ERROR)
             {
-            if (fault.alarmState == SAFplus::AlarmState::ALARM_STATE_ASSERT)
+            if (fault.state == AlarmState::ASSERT)
               {
                 assert(faultServer);
                 faultServer->setFaultState(faultEntity,FaultState::STATE_DOWN);
@@ -69,7 +69,7 @@ namespace SAFplus
                 return true;
               }
             
-            if (fault.alarmState == SAFplus::AlarmState::ALARM_STATE_CLEAR)
+            if (fault.state == AlarmState::CLEAR)
               {  // Probably never going to happen.  Program will die and AMF will start a new one, reregistering the handle
               logInfo("FLT","POL","Entity UP [%" PRIx64 ":%" PRIx64 "] (on node [%d], port [%d]).", faultEntity.id[0], faultEntity.id[1], faultEntity.getNode(), faultEntity.getProcess());
               faultServer->setFaultState(faultEntity,FaultState::STATE_UP);

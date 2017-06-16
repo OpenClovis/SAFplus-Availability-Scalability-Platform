@@ -2,7 +2,7 @@ S7 := 1
 SAFPLUS_RPC_LIB := 1
 include ../mk/preface.mk
 
-CPP_FLAGS += -I./$(PROTOBUFVER)
+CPP_FLAGS += -I./$(PROTOBUFVER) -I../alarm/server/SAFplusAlarm
 
 CLIENT_H := $(wildcard *.hxx) $(wildcard $(SAFPLUS_INC_DIR)/*.h) $(wildcard $(SAFPLUS_INC_DIR)/*.hxx)
 CLIENT_SRC = $(wildcard *.cxx) $(wildcard $(PROTOBUFVER)/*.cc)

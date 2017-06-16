@@ -24,6 +24,7 @@
 #include <clNameApi.hxx>
 #include <clFaultApi.hxx>
 #include <clFaultServerIpi.hxx>
+#include <clAlarmServerApi.hxx>
 #include <clMsgPortsAndTypes.hxx>
 #include <clProcessStats.hxx>
 #include <clNodeStats.hxx>
@@ -743,7 +744,10 @@ int main(int argc, char* argv[])
   SAFplus::FaultServer fs;
   fs.init();
 #endif
-
+#ifdef SAFPLUS_AMF_ALARM_NODE_REPRESENTATIVE
+  SAFplus::AlarmServer as;
+  as.initialize();
+#endif
   nameInitialize();  // Name must be initialized after the group server 
 
   // Mgt must be inited after name if you are using Checkpoint DB

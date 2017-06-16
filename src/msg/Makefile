@@ -3,7 +3,7 @@ SAFPLUS_MSG_LIB := 1
 
 include ../mk/preface.mk
 
-CPP_FLAGS += -I$(BOOST_DIR) -I. -I../../protoc
+CPP_FLAGS += -I$(BOOST_DIR) -I. -I../../protoc -I../alarm/server/SAFplusAlarm
 
 CLIENT_H := $(wildcard *.hxx) $(wildcard ../../include7/*.hxx) $(wildcard ../../ioc/client/*.h) $(wildcard ../../ioc/common/*.h)
 CLIENT_SRC := $(wildcard *.cxx)
