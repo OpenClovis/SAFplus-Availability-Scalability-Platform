@@ -24,6 +24,7 @@
 #include <clNameApi.hxx>
 #include <clFaultApi.hxx>
 #include <clFaultServerIpi.hxx>
+#include <EventServer.hxx>
 #include <clMsgPortsAndTypes.hxx>
 #include <clProcessStats.hxx>
 #include <clNodeStats.hxx>
@@ -875,7 +876,9 @@ int main(int argc, char* argv[])
         assert(0);
     }
 
-
+  logInfo("AMF","EVT", "Initialize event server");
+  EventServer evtSever;
+  evtSever.initialize();
 
     //boost::asio::io_service ioSvc;
   // Construct a signal set registered for process termination.

@@ -9,7 +9,7 @@
 #define EVENTCLIENT_HXX_
 
 #include <string>
-#include "common/EventCommon.hxx"
+#include "EventCommon.hxx"
 #include "clMsgHandler.hxx"
 #include "clMsgServer.hxx"
 #include <clCommon.hxx>
@@ -55,22 +55,31 @@ public:
 		eventMsgServer = NULL;
 		wakeable = NULL;
 	};
+
+	EventClient(Handle evtHandle)
+	{
+		clientHandle = evtHandle;
+		severHandle = INVALID_HDL;
+		eventMsgServer = NULL;
+		wakeable = NULL;
+	};
 	virtual ~EventClient();
 
 	void  sendEventMessage(void* data, int dataLength);
 	//Initialize an event client
 	ClRcT eventInitialize(Handle evtHandle);
 	//Create an event channel
-	ClRcT eventChannelOpen(char* evtChannelName, EventChannelScope scope, SAFplus::Handle &channelHandle);
+	ClRcT eventChannelOpen(std::string evtChannelName, EventChannelScope scope);
 	//Close an event channel
-	ClRcT eventChannelClose(char* evtChannelName);
-	ClRcT eventChannelUnlink(char* evtChannelName);
+	ClRcT eventChannelClose(std::string evtChannelName);
+	ClRcT eventChannelUnlink(std::string evtChannelName);
 	//Publish an event to event channel
-	ClRcT eventPublish(const void *pEventData, int eventDataSize, char* channelName);
+	ClRcT eventPublish(const void *pEventData, int eventDataSize, std::string channelName);
 	//Send event message to event server or active event server
 	void sendEventMessage(void* data, int dataLength,Handle destHandle = INVALID_HDL);
-	ClRcT eventChannelSubscriber(char* evtChannelName);
-	ClRcT eventChannelPublish(char* evtChannelName);
+	ClRcT eventChannelSubscriber(std::string evtChannelName);
+	ClRcT eventChannelPublish(std::string evtChannelName);
+	void wake(int amt,void* cookie);
 
     virtual void msgHandler(SAFplus::Handle from, SAFplus::MsgServer* svr, ClPtrT msg, ClWordT msglen, ClPtrT cookie);
 

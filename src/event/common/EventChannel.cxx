@@ -19,14 +19,14 @@ EventChannel::~EventChannel() {
 	// TODO Auto-generated destructor stub
 }
 
-void EventChannel::addChannelSub(EventSubscriber sub)
+void EventChannel::addChannelSub(EventSubscriber * sub)
 {
-    this->eventSubs.push_back(sub);
+    this->eventSubs.push_back(*sub);
 }
 
-void EventChannel::addChannelPub(EventPublisher pub)
+void EventChannel::addChannelPub(EventPublisher* pub)
 {
-    this->eventPubs.push_back(pub);
+    this->eventPubs.push_back(*pub);
 }
 
 
@@ -59,7 +59,7 @@ void EventChannel::deleteChannelSub(SAFplus::Handle subHandle)
         EventSubscriber &evtSub = *iter;
         if(evtSub.usr.evtHandle==subHandle)
         {
-            eventSubs.erase_and_dispose(it, eventSub_delete_disposer());
+            eventSubs.erase_and_dispose(iter, eventSub_delete_disposer());
         }
     }
 
@@ -77,7 +77,7 @@ void EventChannel::deleteChannelPub(SAFplus::Handle pubHandle)
         EventPublisher &evtPub = *iter;
         if(evtPub.usr.evtHandle==pubHandle)
         {
-            eventPubs.erase_and_dispose(it, eventPub_delete_disposer());
+            eventPubs.erase_and_dispose(iter, eventPub_delete_disposer());
         }
     }
 

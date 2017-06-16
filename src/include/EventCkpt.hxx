@@ -7,8 +7,8 @@
 
 #ifndef EVENTCKPT_HXX_
 #define EVENTCKPT_HXX_
-#include "../common/EventChannel.hxx"
-#include "../common/EventCommon.hxx"
+#include "EventChannel.hxx"
+#include "EventCommon.hxx"
 #include "clCkptApi.hxx"
 #include <string>
 #include <clCommon.hxx>
@@ -20,7 +20,7 @@ namespace SAFplus
 class EventKey
 {
 public:
-	char* channelName;
+	uintcw_t channelId;
 	Handle evtClient;
 	EventMessageType type;
 };
@@ -29,7 +29,7 @@ inline std::size_t hash_value(EventKey const& h)
 {
 
   std::size_t seed = 0;
-  boost::hash_combine(seed,h.channelName);
+  boost::hash_combine(seed,h.channelId);
   boost::hash_combine(seed,h.evtClient.getNode());
   boost::hash_combine(seed,h.evtClient.getPort());
   boost::hash_combine(seed,h.type);

@@ -9,8 +9,8 @@
 #define EVENTSERVER_HXX_
 
 
-#include <../common/EventChannel.hxx>
-#include <../common/EventCommon.hxx>
+#include <EventChannel.hxx>
+#include <EventCommon.hxx>
 #include <EventCkpt.hxx>
 #include <clGroupApi.hxx>
 #include <string>
@@ -75,6 +75,9 @@ public:
     void eventChannelPubHandle(EventMessageProtocol *rxMsg,int length);
     void eventChannelUnSubsHandle(EventMessageProtocol *rxMsg,int length);
     void eventPublishHandle(EventMessageProtocol *rxMsg,ClWordT msglen);
+    bool isLocalChannel(uintcw_t channelId);
+    bool isGlobalChannel(uintcw_t channelId);
+    void createChannel(EventMessageProtocol *rxMsg,bool isSub,bool isPub,int length);
     bool eventloadchannelFromCheckpoint();
     void sendEventServerMessage(void* data, int dataLength,Handle destHandle);
 

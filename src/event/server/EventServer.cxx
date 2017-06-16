@@ -6,14 +6,14 @@
  */
 
 #include "EventServer.hxx"
-#include "../common/EventCommon.hxx"
+#include "EventCommon.hxx"
 #include "clCkptApi.hxx"
 #include <clLogApi.hxx>
 #include <clThreadApi.hxx>
 #include <clCommon.hxx>
 #include <clCustomization.hxx>
 #include <clGlobals.hxx>
-
+#include <clObjectMessager.hxx>
 
 using namespace SAFplusI;
 using namespace SAFplus;
@@ -22,7 +22,7 @@ using namespace SAFplus;
 EventServer::EventServer()
 {
 	// TODO Auto-generated constructor stub
-	initialize();
+	//initialize();
 }
 
 EventServer::~EventServer()
@@ -47,7 +47,7 @@ bool EventServer::eventloadchannelFromCheckpoint()
 		BufferPtr curkey = iter->first;
 		if (curkey)
 		{
-			logInfo("EVT","DUMP","channel name [%s]", curkey->data);
+			logInfo("EVT","DUMP","channel id [%ld]", curkey->data);
 		}
 		BufferPtr& curval = iter->second;
 		if (curval)
@@ -97,15 +97,18 @@ void EventServer::initialize()
 	numberOfLocalChannel=0;
 	group.init(EVENT_GROUP);
 	group.setNotification(*this);
-	logDebug("EVT","SERVER", "Register event server [] to event group");
+	SAFplus::objectMessager.insert(severHandle,this);
+	logDebug("EVT","SERVER", "Register event server [%d] to event group",severHandle.getNode());
 	group.registerEntity(severHandle, SAFplus::ASP_NODEADDR,NULL,0,Group::ACCEPT_STANDBY | Group::ACCEPT_ACTIVE | Group::STICKY);
 	activeServer=group.getActive();
+	eventMsgServer = &safplusMsgServer;
 	if(1)
 	{
+		logDebug("EVT","SERVER", "Register event message server");
 		eventMsgServer->RegisterHandler(SAFplusI::EVENT_MSG_TYPE, this, NULL);  //  Register the main message handler (no-op if already registered)
+		logDebug("EVT","SERVER", "Register event message server with type EVENT_MSG_TYPE ");
 	}
 	logDebug("EVT","SERVER", "Initialize event checkpoint");
-	this->evtCkpt.eventCkptInit();
 	this->evtCkpt.eventCkptInit();
 	//TODO:Dump data from  checkpoint in to channel list
 	if(activeServer==severHandle)
@@ -113,184 +116,199 @@ void EventServer::initialize()
 		logDebug("EVT","SERVER", "this is active event server");
 		//read data from checkpoint to global channel
 		logDebug("EVT","SERVER", "Load data from checkpoint to global channel list");
-		if(!eventloadchannelFromCheckpoint())
-		{
-			logError("EVT","SERVER", "Cannot load data from checkpoint to global channel list");
-			return;
-		}
+		//		if(!eventloadchannelFromCheckpoint())
+		//		{
+		//			logError("EVT","SERVER", "Cannot load data from checkpoint to global channel list");
+		//			return;
+		//		}
 	}
 }
 
-int compareChannel(char* name1, char* name2)
+int compareChannel(uint64_t id1, uint64_t id2)
 {
-	if (strcmp(name1,name2))
+	if (id1==id2)
 	{
 		return 0;
-	} else
+	}
+	else
 	{
 		return -1;
 	}
 }
-void EventServer::eventChannelCreateHandle(EventMessageProtocol *rxMsg,int length)
+
+bool EventServer::isLocalChannel(uintcw_t channelId)
 {
-	logDebug("EVT", "MSG", "Received event channel create message.");
-	EventChannelScope scope = rxMsg->scope;
-	EventChannel *channel = new EventChannel();
-	channel->evtChannelName = rxMsg->channelName;
-	channel->scope = rxMsg->scope;
-	channel->subscriberRefCount=0;
-	//TODO
-	if (scope == EventChannelScope::EVENT_LOCAL_CHANNEL)
-	{
-		logDebug("EVT", "MSG", "Add to local channel list");
-		localChannelListLock.lock();
-		localChannelList.push_back(*channel);
-		numberOfLocalChannel+=1;
-		evtCkpt.eventCkptCheckPointChannelOpen(rxMsg,0);
-		localChannelListLock.unlock();
-
-	} else
-	{
-		if (severHandle==activeServer)
-		{
-			logDebug("EVT", "MSG", "Add to global channel list");
-			globalChannelListLock.lock();
-			globalChannelList.push_back(*channel);
-			evtCkpt.eventCkptCheckPointChannelOpen(rxMsg,0);
-			numberOfGlobalChannel+=1;
-			globalChannelListLock.unlock();
-		}
-		else
-		{
-			//TODO Send to system controller node
-			logDebug("EVT", "MSG", "forward to active event server");
-			sendEventServerMessage((void*)rxMsg,length,activeServer);
-			globalChannelListLock.unlock();
-
-			//sendEventServerMessage(rxMsg)
-		}
-	}
-}
-
-void EventServer::eventChannelSubsHandle(EventMessageProtocol *rxMsg,int length)
-{
-	//Find channel in local list
-	logDebug("EVT", "MSG", "Received event channel subs message.");
-	bool isGlobal=false;
-	localChannelListLock.lock();
 	if (!localChannelList.empty())
 	{
 		for (EventChannelList::iterator iter = localChannelList.begin(); iter != localChannelList.end(); iter++)
 		{
 			EventChannel &s = *iter;
-			int cmp = compareChannel(s.evtChannelName, rxMsg->channelName);
+			int cmp = compareChannel(s.evtChannelId, channelId);
 			if (cmp == 0)
 			{
-				EventSubscriber *sub=new EventSubscriber(rxMsg->clientHandle,rxMsg->channelName);
-				s.addChannelSub(*sub);
-				s.subscriberRefCount+=1;
-				evtCkpt.eventCkptCheckPointSubscribeOrPublish(rxMsg,0);
-				logDebug("EVT", "MSG", "Add subs to local event channel [%s]",rxMsg->channelName);
-				localChannelListLock.unlock();
-				return ;
-			}
-		}
-	}
-	localChannelListLock.unlock();
-	globalChannelListLock.lock();
-	if(activeServer==severHandle)
-	{
-		if (!globalChannelList.empty())
-		{
-			for (EventChannelList::iterator iter = globalChannelList.begin(); iter != globalChannelList.end(); iter++)
-			{
-				EventChannel &s = *iter;
-				int cmp = compareChannel(s.evtChannelName, rxMsg->channelName);
-				if (cmp == 0)
-				{
-					EventSubscriber *sub=new EventSubscriber(rxMsg->clientHandle,rxMsg->channelName);
-					s.addChannelSub(*sub);
-					s.subscriberRefCount+=1;
-					evtCkpt.eventCkptCheckPointSubscribeOrPublish(rxMsg,0);
-					logDebug("EVT", "MSG", "Add subs to global event channel [%s]",rxMsg->channelName);
-					globalChannelListLock.unlock();
-					return ;
-				}
+				logDebug("EVT", "MSG", "channel Id [%d] is already exist in local list");
+				return true;
 			}
 		}
 	}
 	else
 	{
-		//send to active server
-		logDebug("EVT", "MSG", "Forward to active server");
-		sendEventServerMessage((void*)rxMsg,length,activeServer);
-		globalChannelListLock.unlock();
-		return;
+		logDebug("EVT", "MSG", "local list is empty");
+
 	}
-	globalChannelListLock.unlock();
-	// channel not exist
+	logDebug("EVT", "MSG", "channel Id [%ld] is not in local list",channelId);
+	return false;
+}
+
+bool EventServer::isGlobalChannel(uintcw_t channelId)
+{
+	if (!globalChannelList.empty())
+	{
+		for (EventChannelList::iterator iter = globalChannelList.begin(); iter != globalChannelList.end(); iter++)
+		{
+			EventChannel &s = *iter;
+			int cmp = compareChannel(s.evtChannelId, channelId);
+			if (cmp == 0)
+			{
+				logDebug("EVT", "MSG", "channel Id [%ld] is already exist in global list");
+				return true;
+			}
+		}
+	}
+	else
+	{
+		logDebug("EVT", "MSG", "global list is empty");
+	}
+	logDebug("EVT", "MSG", "channel Id [%ld] is not in global list",channelId);
+	return false;
+}
+
+void EventServer::createChannel(EventMessageProtocol *rxMsg,bool isSub,bool isPub,int length)
+{
+	EventChannel *channel = new EventChannel();
+	channel->scope = rxMsg->scope;
+	channel->subscriberRefCount=0;
+	logDebug("EVT", "MSG", "debug 0");
+	channel->evtChannelId = rxMsg->eventChannelId;
+	if(channel->scope==EventChannelScope::EVENT_LOCAL_CHANNEL)
+	{
+		if(!isLocalChannel(channel->evtChannelId))
+		{
+			logDebug("EVT", "MSG", "Add channel with Id[%ld] to local channel list",channel->evtChannelId);
+			localChannelListLock.lock();
+			localChannelList.push_back(*channel);
+			numberOfLocalChannel+=1;
+			localChannelListLock.unlock();
+		}
+		else
+		{
+			logDebug("EVT", "MSG", "Channel is Exist");
+		}
+
+		localChannelListLock.lock();
+		for (EventChannelList::iterator iter = localChannelList.begin(); iter != localChannelList.end(); iter++)
+		{
+			EventChannel &s = *iter;
+			int cmp = compareChannel(s.evtChannelId, channel->evtChannelId);
+			if (cmp == 0)
+			{
+				if(isSub)
+				{
+					logDebug("EVT", "MSG", "Add event client to local channel list subscriber");
+					EventSubscriber *sub=new EventSubscriber(rxMsg->clientHandle,rxMsg->eventChannelId);
+					s.addChannelSub(*sub);
+					s.subscriberRefCount+=1;
+				}
+				if(isPub)
+				{
+					EventPublisher *pub=new EventPublisher(rxMsg->clientHandle,rxMsg->eventChannelId);
+					s.addChannelPub(*pub);
+					s.publisherRefCount+=1;
+				}
+				//evtCkpt.eventCkptCheckPointSubscribeOrPublish(rxMsg,0);
+				logDebug("EVT", "MSG", "Open channel with channel Id [%ld] successful",rxMsg->eventChannelId);
+				localChannelListLock.unlock();
+				return ;
+			}
+		}
+		localChannelListLock.unlock();
+
+
+	}
+	else
+	{
+		if(activeServer==severHandle)
+		{
+
+			if(!isGlobalChannel(channel->evtChannelId))
+			{
+				logDebug("EVT", "MSG", "Add channel with Id[%ld] to global channel list",channel->evtChannelId);
+				globalChannelListLock.lock();
+				globalChannelList.push_back(*channel);
+				//logDebug("EVT", "MSG", "write request message to checkpoint");
+				//evtCkpt.eventCkptCheckPointChannelOpen(rxMsg,0);
+				numberOfGlobalChannel+=1;
+				globalChannelListLock.unlock();
+
+			}
+			else
+			{
+				logDebug("EVT", "MSG", "Channel is Exist");
+			}
+			globalChannelListLock.lock();
+			for (EventChannelList::iterator iter = globalChannelList.begin(); iter != globalChannelList.end(); iter++)
+			{
+				EventChannel &s = *iter;
+				int cmp = compareChannel(s.evtChannelId, rxMsg->eventChannelId);
+				if (cmp == 0)
+				{
+					if(isSub)
+					{
+						EventSubscriber *sub=new EventSubscriber(rxMsg->clientHandle,rxMsg->eventChannelId);
+						s.addChannelSub(*sub);
+						s.subscriberRefCount+=1;
+					}
+					if(isPub)
+					{
+						EventPublisher *pub=new EventPublisher(rxMsg->clientHandle,rxMsg->eventChannelId);
+						s.addChannelPub(*pub);
+						s.publisherRefCount+=1;
+					}
+					//evtCkpt.eventCkptCheckPointSubscribeOrPublish(rxMsg,0);
+					logDebug("EVT", "MSG", "Open channel with channel Id [%ld] successful",rxMsg->eventChannelId);
+					globalChannelListLock.unlock();
+					return ;
+				}
+			}
+			globalChannelListLock.unlock();
+		}
+		else
+		{
+			logDebug("EVT", "MSG", "forward to active event server");
+			sendEventServerMessage((void*)rxMsg,length,activeServer);
+		}
+	}
+}
+
+void EventServer::eventChannelCreateHandle(EventMessageProtocol *rxMsg,int length)
+{
+	logDebug("EVT", "MSG", "Received event channel create message with length : [%d].",length);
+	createChannel(rxMsg,true,true,length);
+}
+
+void EventServer::eventChannelSubsHandle(EventMessageProtocol *rxMsg,int length)
+{
+	logDebug("EVT", "MSG", "Received event channel create for sub message with length : [%d].",length);
+	createChannel(rxMsg,true,false,length);
 }
 
 
 void EventServer::eventChannelPubHandle(EventMessageProtocol *rxMsg,int length)
 {
 	//Find channel in local list
-	logDebug("EVT", "MSG", "Received event channel publish message.");
-	bool isGlobal=false;
-	localChannelListLock.lock();
-	if (!localChannelList.empty())
-	{
-		for (EventChannelList::iterator iter = localChannelList.begin(); iter != localChannelList.end(); iter++)
-		{
-			EventChannel &s = *iter;
-			int cmp = compareChannel(s.evtChannelName, rxMsg->channelName);
-			if (cmp == 0)
-			{
-				EventPublisher *pub=new EventPublisher(rxMsg->clientHandle,rxMsg->channelName);
-				s.addChannelPub(*pub);
-				s.publisherRefCount+=1;
-				//TODO change to checkpoint publish
-				evtCkpt.eventCkptCheckPointSubscribeOrPublish(rxMsg,0);
-				logDebug("EVT", "MSG", "Add publish to local event channel [%s]",rxMsg->channelName);
-				localChannelListLock.unlock();
-				return ;
-			}
-		}
-	}
-	localChannelListLock.unlock();
-	globalChannelListLock.lock();
-	if(activeServer==severHandle)
-	{
-		if (!globalChannelList.empty())
-		{
-			for (EventChannelList::iterator iter = globalChannelList.begin(); iter != globalChannelList.end(); iter++)
-			{
-				EventChannel &s = *iter;
-				int cmp = compareChannel(s.evtChannelName, rxMsg->channelName);
-				if (cmp == 0)
-				{
-					EventPublisher *pub=new EventPublisher(rxMsg->clientHandle,rxMsg->channelName);
-					s.addChannelPub(*pub);
-					s.publisherRefCount+=1;
-					//TODO change to checkpoint publish
-					evtCkpt.eventCkptCheckPointSubscribeOrPublish(rxMsg,0);
-					logDebug("EVT", "MSG", "Add publish to global event channel [%s]",rxMsg->channelName);
-					globalChannelListLock.unlock();
-					return ;
-				}
-			}
-		}
-	}
-	else
-	{
-		//send to active server
-		logDebug("EVT", "MSG", "Forward to active server");
-		sendEventServerMessage((void*)rxMsg,length,activeServer);
-		globalChannelListLock.unlock();
-		return;
-	}
-	globalChannelListLock.unlock();
-	// channel not exist
+	logDebug("EVT", "MSG", "Received event channel create for publish message with length : [%d].",length);
+	createChannel(rxMsg,false,true,length);
+
 }
 
 void EventServer::eventChannelUnSubsHandle(EventMessageProtocol *rxMsg,int length)
@@ -304,12 +322,12 @@ void EventServer::eventChannelUnSubsHandle(EventMessageProtocol *rxMsg,int lengt
 		for (EventChannelList::iterator iter = localChannelList.begin(); iter != localChannelList.end(); iter++)
 		{
 			EventChannel &s = *iter;
-			int cmp = compareChannel(s.evtChannelName, rxMsg->channelName);
+			int cmp = compareChannel(s.evtChannelId, rxMsg->eventChannelId);
 			if (cmp == 0)
 			{
 				s.deleteChannelSub(rxMsg->clientHandle);
 				s.subscriberRefCount-=1;
-				logDebug("EVT", "MSG", "remove subs from local event channel [%s]",rxMsg->channelName);
+				logDebug("EVT", "MSG", "remove subs from local event channel [%ld]",rxMsg->eventChannelId);
 				localChannelListLock.unlock();
 				return ;
 			}
@@ -317,7 +335,6 @@ void EventServer::eventChannelUnSubsHandle(EventMessageProtocol *rxMsg,int lengt
 	}
 	localChannelListLock.unlock();
 	globalChannelListLock.lock();
-
 	if(activeServer==severHandle)
 	{
 		if (!globalChannelList.empty())
@@ -325,12 +342,12 @@ void EventServer::eventChannelUnSubsHandle(EventMessageProtocol *rxMsg,int lengt
 			for (EventChannelList::iterator iter = globalChannelList.begin(); iter != globalChannelList.end(); iter++)
 			{
 				EventChannel &s = *iter;
-				int cmp = compareChannel(s.evtChannelName, rxMsg->channelName);
+				int cmp = compareChannel(s.evtChannelId, rxMsg->eventChannelId);
 				if (cmp == 0)
 				{
 					s.deleteChannelSub(rxMsg->clientHandle);
 					s.subscriberRefCount-=1;
-					logDebug("EVT", "MSG", "remove subs from global event channel [%s]",rxMsg->channelName);
+					logDebug("EVT", "MSG", "remove subs from global event channel [%ld]",rxMsg->eventChannelId);
 					globalChannelListLock.unlock();
 					return ;
 				}
@@ -368,11 +385,11 @@ void EventServer::eventChannelCloseHandle(EventMessageProtocol *rxMsg,int length
 		for (EventChannelList::iterator iter = localChannelList.begin(); iter != localChannelList.end(); iter++)
 		{
 			EventChannel &s = *iter;
-			int cmp = compareChannel(s.evtChannelName, rxMsg->channelName);
+			int cmp = compareChannel(s.evtChannelId, rxMsg->eventChannelId);
 			if (cmp == 0)
 			{
 				//TODO
-				logDebug("EVT", "MSG", "remove all subs from local event channel [%s]",rxMsg->channelName);
+				logDebug("EVT", "MSG", "remove all subs from local event channel [%ld]",rxMsg->eventChannelId);
 				localChannelList.erase_and_dispose(iter,eventChannel_delete_disposer());
 				localChannelListLock.unlock();
 				return ;
@@ -389,10 +406,10 @@ void EventServer::eventChannelCloseHandle(EventMessageProtocol *rxMsg,int length
 			for (EventChannelList::iterator iter = globalChannelList.begin(); iter != globalChannelList.end(); iter++)
 			{
 				EventChannel &s = *iter;
-				int cmp = compareChannel(s.evtChannelName, rxMsg->channelName);
+				int cmp = compareChannel(s.evtChannelId, rxMsg->eventChannelId);
 				if (cmp == 0)
 				{
-					logDebug("EVT", "MSG", "remove all subs from global event channel [%s]",rxMsg->channelName);
+					logDebug("EVT", "MSG", "remove all subs from global event channel [%ld]",rxMsg->eventChannelId);
 					localChannelList.erase_and_dispose(iter,eventChannel_delete_disposer());
 					globalChannelListLock.unlock();
 					return ;
@@ -423,11 +440,11 @@ void EventServer::eventPublishHandle(EventMessageProtocol *rxMsg,ClWordT msglen)
 		for (EventChannelList::iterator iter = localChannelList.begin(); iter != localChannelList.end(); iter++)
 		{
 			EventChannel &s = *iter;
-			int cmp = compareChannel(s.evtChannelName, rxMsg->channelName);
+			int cmp = compareChannel(s.evtChannelId, rxMsg->eventChannelId);
 			if (cmp == 0)
 			{
 				//TODO publish event
-				logDebug("EVT", "MSG", "sending message to all suns of  local event channel [%s]",rxMsg->channelName);
+				logDebug("EVT", "MSG", "sending message to all suns of  local event channel [%ld]",rxMsg->eventChannelId);
 				for (EventSubscriberList::iterator iterSub = s.eventSubs.begin(); iterSub != s.eventSubs.end(); iterSub++)
 				{
 					EventSubscriber &evtSub = *iterSub;
@@ -450,11 +467,11 @@ void EventServer::eventPublishHandle(EventMessageProtocol *rxMsg,ClWordT msglen)
 			for (EventChannelList::iterator iter = globalChannelList.begin(); iter != globalChannelList.end(); iter++)
 			{
 				EventChannel &s = *iter;
-				int cmp = compareChannel(s.evtChannelName, rxMsg->channelName);
+				int cmp = compareChannel(s.evtChannelId, rxMsg->eventChannelId);
 				if (cmp == 0)
 				{
 					//TODO publish event
-					logDebug("EVT", "MSG", "sending message to all suns of  global event channel [%s]",rxMsg->channelName);
+					logDebug("EVT", "MSG", "sending message to all suns of  global event channel [%ld]",rxMsg->eventChannelId);
 					globalChannelListLock.unlock();
 					return ;
 				}

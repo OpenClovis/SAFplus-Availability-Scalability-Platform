@@ -38,7 +38,7 @@ ClRcT EventCkpt::eventCkptCheckPointChannelOpen(EventMessageProtocol* message, i
 	Buffer* val = new(vdata) Buffer(length);
 	memcpy(val->data, message, length);
 	EventKey keyData;
-	keyData.channelName=message->channelName;
+	keyData.channelId=message->eventChannelId;
 	keyData.evtClient=INVALID_HDL;
 	keyData.type=message->messageType;
 	const uintcw_t key = hash_value(keyData);
@@ -49,7 +49,7 @@ ClRcT EventCkpt::eventCkptCheckPointChannelOpen(EventMessageProtocol* message, i
 ClRcT EventCkpt::eventCkptCheckPointChannelClose(EventMessageProtocol* message , int length)
 {
 	EventKey keyData;
-	keyData.channelName=message->channelName;
+	keyData.channelId=message->eventChannelId;
 	keyData.evtClient=INVALID_HDL;
 	keyData.type=message->messageType;
 	const uintcw_t key = hash_value(keyData);
@@ -64,11 +64,10 @@ ClRcT EventCkpt::eventCkptCheckPointSubscribeOrPublish(EventMessageProtocol* mes
 	memcpy(val->data, message, length);
 
 	EventKey keyData;
-	keyData.channelName=message->channelName;
+	keyData.channelId=message->eventChannelId;
 	keyData.evtClient=INVALID_HDL;
 	keyData.type=message->messageType;
 	const uintcw_t key = hash_value(keyData);
-
 	m_checkpoint.write(key,*val);
 	return CL_TRUE;
 }
@@ -76,7 +75,7 @@ ClRcT EventCkpt::eventCkptCheckPointSubscribeOrPublish(EventMessageProtocol* mes
 ClRcT EventCkpt::eventCkptCheckPointUnsubscribeOrUnpublish(EventMessageProtocol* message , int length)
 {
 	EventKey keyData;
-	keyData.channelName=message->channelName;
+	keyData.channelId=message->eventChannelId;
 	keyData.evtClient=INVALID_HDL;
 	keyData.type=message->messageType;
 	const uintcw_t key = hash_value(keyData);

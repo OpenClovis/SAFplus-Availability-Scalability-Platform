@@ -21,31 +21,29 @@ enum class EventMessageType
         EVENT_LOCAL_CHANNEL = 1, EVENT_GLOBAL_CHANNEL, EVENT_UNDEFINE
     };
 
+
     class EventMessageProtocol
     {
         public:
             EventMessageType messageType;
             EventChannelScope scope;
             SAFplus::Handle clientHandle;
+            uintcw_t eventChannelId;
             int dataLength;
-            char* channelName;
             char                  data[1]; //Not really 1, it will be place on larger memory
-
-
             EventMessageProtocol()
             {
                 messageType = EventMessageType::EVENT_UNDEFINED;
                 scope = EventChannelScope::EVENT_LOCAL_CHANNEL;
                 clientHandle = SAFplus::INVALID_HDL;
-                channelName= NULL;
                 dataLength=0;
             }
-            void init(SAFplus::Handle handle, char* evtChannelName, EventChannelScope evtScope,EventMessageType msgType,int length=0)
+            void init(SAFplus::Handle handle, uintcw_t evtChannelId, EventChannelScope evtScope,EventMessageType msgType,int length=0)
             {
                 clientHandle=handle;
                 messageType = msgType;
                 scope = evtScope;
-                channelName = evtChannelName;
+                eventChannelId =evtChannelId;
                 data[0]=0;
                 dataLength=length;
             }
