@@ -19,6 +19,7 @@
 #include <boost/algorithm/string.hpp>
 #include <boost/property_tree/ptree.hpp>
 #include <boost/property_tree/xml_parser.hpp>
+#include <clObjectMessager.hxx>
 #include <AlarmMessageType.hxx>
 #include <clAlarmServerApi.hxx>
 #include <AlarmMessageProtocol.hxx>
@@ -36,28 +37,30 @@ initialize();
 }
 void AlarmServer::initialize()
 {
-	handleAlarmServer = Handle::create();  // This is the handle for this specific alarm server
-    logDebug(ALARM_SERVER,ALARM_ENTITY,"SAFplus::objectMessager.insert(handleAlarmServer,this)");
-	alarmMsgServer = &safplusMsgServer;
-	group.init(ALARM_GROUP);
-	group.setNotification(*this);
-	logDebug(ALARM_SERVER,ALARM_ENTITY, "Register alarm server [] to event group");
-	group.registerEntity(handleAlarmServer, SAFplus::ASP_NODEADDR,NULL,0,Group::ACCEPT_STANDBY | Group::ACCEPT_ACTIVE | Group::STICKY);
-	activeServer=group.getActive();
-	logDebug(ALARM_SERVER,ALARM_ENTITY, "Initialize alarm checkpoint");
-	data.initialize();
-	//TODO:Dump data from  checkpoint in to data storage object
-	if(activeServer != handleAlarmServer)
-	{
-		//read data from checkpoint to global channel
-		logDebug(ALARM_SERVER,ALARM_ENTITY, "Load data from checkpoint to data");
-		data.loadAlarmProfile();
-		data.loadAlarmData();
-	}
-    // the handleAlarmServer.handle is going to be a process handle.
-	logDebug(ALARM_SERVER,ALARM_ENTITY,"Register alarm message server");
-    alarmMsgServer->RegisterHandler(SAFplusI::ALARM_MSG_TYPE, this, NULL);  //  Register the main message handler (no-op if already registered)
+  handleAlarmServer = Handle::create();  // This is the handle for this specific alarm server
+  logDebug(ALARM_SERVER,ALARM_ENTITY,"SAFplus::objectMessager.insert(handleAlarmServer,this)");
+  group.init(ALARM_GROUP);
+  group.setNotification(*this);
+  SAFplus::objectMessager.insert(handleAlarmServer,this);
+  alarmMsgServer = &safplusMsgServer;
+  logDebug(ALARM_SERVER,ALARM_ENTITY, "Register alarm server to alarm group");
+  group.registerEntity(handleAlarmServer, SAFplus::ASP_NODEADDR,NULL,0,Group::ACCEPT_STANDBY | Group::ACCEPT_ACTIVE | Group::STICKY);
+  activeServer = group.getActive();
+  // the handleAlarmServer.handle is going to be a process handle.
+  logDebug(ALARM_SERVER,ALARM_ENTITY,"Register alarm message server");
+  alarmMsgServer->RegisterHandler(SAFplusI::ALARM_MSG_TYPE, this, NULL);  //  Register the main message handler (no-op if already registered)
+  assert(activeServer != INVALID_HDL);  // It can't be invalid because I am available to be active.
+  logDebug(ALARM_SERVER,ALARM_ENTITY, "Initialize alarm checkpoint");
+  data.initialize();
+  //TODO:Dump data from  checkpoint in to data storage object
+  if(activeServer == handleAlarmServer)
+  {
+     //read data from checkpoint to global channel
+     logDebug(ALARM_SERVER,ALARM_ENTITY, "Load data from checkpoint to data");
+     data.loadAlarmProfile();
+     data.loadAlarmData();
   }
+}
 
 void AlarmServer::msgHandler(SAFplus::Handle from, SAFplus::MsgServer* srv, ClPtrT msg, ClWordT msglen, ClPtrT cookie)
 {
