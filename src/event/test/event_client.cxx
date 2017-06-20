@@ -17,7 +17,7 @@ SAFplus::Handle me;
 EventClient fc;
 
 void testAllFeature();
-#define EVENT_CLIENT_PID 200
+#define EVENT_CLIENT_PID 50
 
 int main(int argc, char* argv[])
 {
@@ -46,18 +46,46 @@ int main(int argc, char* argv[])
 
 void testAllFeature()
 {
-    logInfo("FLT","CLT","********************Open local channel *********************");
+
     std::string localChannel = "testLocalchannel";
     std::string globalChannel = "testGlobalchannel";
     std::string localChannel1 = "testLocalchannel";
+    const void* testEventData = "this is the test event";
 
+    logInfo("FLT","CLT","********************Open local channel *********************");
 	fc.eventChannelOpen(localChannel,EventChannelScope::EVENT_LOCAL_CHANNEL);
 	sleep(1);
 	logInfo("FLT","CLT","********************Open global channel *********************");
 	fc.eventChannelOpen(globalChannel,EventChannelScope::EVENT_GLOBAL_CHANNEL);
 	sleep(1);
+    logInfo("FLT","CLT","********************Open local channel (test duplicate *********************");
+	fc.eventChannelOpen(localChannel,EventChannelScope::EVENT_LOCAL_CHANNEL);
+	sleep(1);
+	logInfo("FLT","CLT","********************close local channel *********************");
+    fc.eventChannelClose(localChannel,EventChannelScope::EVENT_LOCAL_CHANNEL);
+	sleep(1);
     logInfo("FLT","CLT","********************Open local channel *********************");
 	fc.eventChannelOpen(localChannel,EventChannelScope::EVENT_LOCAL_CHANNEL);
 	sleep(1);
+	logInfo("FLT","CLT","********************Unsubscriber local channel *********************");
+    fc.eventChannelUnSubscriber(localChannel,EventChannelScope::EVENT_LOCAL_CHANNEL);
+	sleep(1);
+	logInfo("FLT","CLT","********************Subscriber local channel *********************");
+	fc.eventChannelSubscriber(localChannel,EventChannelScope::EVENT_LOCAL_CHANNEL);
+	sleep(1);
+
+	logInfo("FLT","CLT","********************Subscriber local channel *********************");
+	fc.eventPublish(testEventData,22,localChannel,EventChannelScope::EVENT_LOCAL_CHANNEL);
+	sleep(1);
+
+    while(1)
+    {
+    	sleep(1);
+    }
+
+
+
+
+
 }
 

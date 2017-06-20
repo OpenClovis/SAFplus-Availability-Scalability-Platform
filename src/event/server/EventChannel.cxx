@@ -24,7 +24,7 @@ void EventChannel::addChannelSub(EventSubscriber& sub)
 {
 	if(this->eventSubs.empty())
 	{
-		logInfo("EVT","SUB","add event client handle [%d,%d] to subscriber list",sub.usr.evtHandle.getNode(),sub.usr.evtHandle.getPort());
+		logDebug("EVT","SUB","Add Subscriber[%d,%d] to subscriber list",sub.usr.evtHandle.getNode(),sub.usr.evtHandle.getPort());
 		this->eventSubs.push_back(sub);
 	}
 	else
@@ -34,10 +34,9 @@ void EventChannel::addChannelSub(EventSubscriber& sub)
 			EventSubscriber &s = *iter;
 			if(s.usr.evtHandle==sub.usr.evtHandle)
 			{
-				logInfo("EVT","SUB","add event client handle [%d,%d] is already exist in subscriber list",sub.usr.evtHandle.getNode(),sub.usr.evtHandle.getPort());				return;
+				logInfo("EVT","SUB","Subscriber[%d,%d] is already exist in subscriber list",sub.usr.evtHandle.getNode(),sub.usr.evtHandle.getPort());				return;
 			}
 		}
-		logInfo("EVT","SUB","add event client handle [%d,%d] to subscriber list",sub.usr.evtHandle.getNode(),sub.usr.evtHandle.getPort());
 		this->eventSubs.push_back(sub);
 	}
 }
@@ -46,7 +45,7 @@ void EventChannel::addChannelPub(EventPublisher& pub)
 {
 	if(this->eventPubs.empty())
 	{
-		logInfo("EVT","SUB","add event client handle [%d,%d] to publisher list",pub.usr.evtHandle.getNode(),pub.usr.evtHandle.getPort());
+		logDebug("EVT","SUB","Add Publisher[%d,%d] to publisher list",pub.usr.evtHandle.getNode(),pub.usr.evtHandle.getPort());
 		this->eventPubs.push_back(pub);
 	}
 	else
@@ -56,11 +55,10 @@ void EventChannel::addChannelPub(EventPublisher& pub)
 			EventPublisher &s = *iter;
 			if(s.usr.evtHandle==pub.usr.evtHandle)
 			{
-				logInfo("EVT","SUB","add event client handle [%d,%d] is already exist in publisher list",pub.usr.evtHandle.getNode(),pub.usr.evtHandle.getPort());
+				logInfo("EVT","SUB","Publisher[%d,%d] is already exist in publisher list",pub.usr.evtHandle.getNode(),pub.usr.evtHandle.getPort());
 				return;
 			}
 		}
-		logInfo("EVT","SUB","add event client handle [%d,%d] to subscriber list",pub.usr.evtHandle.getNode(),pub.usr.evtHandle.getPort());
 		this->eventPubs.push_back(pub);
 	}
 }
@@ -88,6 +86,7 @@ void EventChannel::deleteChannelSub(SAFplus::Handle subHandle)
     //TODO delete all sub with sub handle
     if(eventSubs.empty())
     {
+    	logDebug("EVT", "MSG", "Event subscriber list is empty");
         return;
     }
     for (EventSubscriberList::iterator iter = eventSubs.begin(); iter != eventSubs.end(); iter++)
@@ -95,10 +94,12 @@ void EventChannel::deleteChannelSub(SAFplus::Handle subHandle)
         EventSubscriber &evtSub = *iter;
         if(evtSub.usr.evtHandle==subHandle)
         {
+        	logDebug("EVT", "MSG", "Remove Subscriber[%d:%d] ...",subHandle.getNode(),subHandle.getPort());
             eventSubs.erase_and_dispose(iter, eventSub_delete_disposer());
+            return;
         }
     }
-
+	logDebug("EVT", "MSG", "No Subscriber found ...");
 }
 
 void EventChannel::deleteChannelPub(SAFplus::Handle pubHandle)

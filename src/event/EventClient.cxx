@@ -74,53 +74,63 @@ ClRcT EventClient::eventChannelOpen(std::string evtChannelName, EventChannelScop
 	return CL_OK;
 }
 
-ClRcT EventClient::eventChannelClose(std::string evtChannelName)
+ClRcT EventClient::eventChannelClose(std::string evtChannelName, EventChannelScope scope)
 {
 	logDebug("EVT", "EVENT_ENTITY", "Close event channel[%s]",evtChannelName.c_str());
 	EventMessageProtocol sndMessage;
 	memset(&sndMessage,0,sizeof(EventMessageProtocol));
-	sndMessage.init(clientHandle,static_cast<uintcw_t>(channelNameToId(evtChannelName)),EventChannelScope::EVENT_UNDEFINE,EventMessageType::EVENT_CHANNEL_CLOSE);
+	sndMessage.init(clientHandle,static_cast<uintcw_t>(channelNameToId(evtChannelName)),scope,EventMessageType::EVENT_CHANNEL_CLOSE);
 	sendEventMessage((void *)&sndMessage,sizeof(EventMessageProtocol),INVALID_HDL);
 	return CL_OK;
 }
 
-ClRcT EventClient::eventChannelUnlink(std::string evtChannelName)
+ClRcT EventClient::eventChannelUnlink(std::string evtChannelName, EventChannelScope scope)
 {
 	logDebug("EVT", "EVENT_ENTITY", "Unlink event channel [%s]",evtChannelName.c_str());
 	EventMessageProtocol sndMessage;
 	memset(&sndMessage,0,sizeof(EventMessageProtocol));
-	sndMessage.init(clientHandle,static_cast<uintcw_t>(channelNameToId(evtChannelName)),EventChannelScope::EVENT_UNDEFINE,EventMessageType::EVENT_CHANNEL_UNLINK);
+	sndMessage.init(clientHandle,static_cast<uintcw_t>(channelNameToId(evtChannelName)),scope,EventMessageType::EVENT_CHANNEL_UNLINK);
 	sendEventMessage((void *)&sndMessage,sizeof(EventMessageProtocol),INVALID_HDL);
 	return CL_OK;
 }
 
-ClRcT EventClient::eventChannelSubscriber(std::string evtChannelName)
+ClRcT EventClient::eventChannelSubscriber(std::string evtChannelName, EventChannelScope scope)
 {
 	logDebug("EVT", "EVENT_ENTITY", "subscriber to  event channel [%s]",evtChannelName.c_str());
 	EventMessageProtocol sndMessage;
 	memset(&sndMessage,0,sizeof(EventMessageProtocol));
-	sndMessage.init(clientHandle,static_cast<uintcw_t>(channelNameToId(evtChannelName)),EventChannelScope::EVENT_UNDEFINE,EventMessageType::EVENT_CHANNEL_SUBSCRIBER);
+	sndMessage.init(clientHandle,static_cast<uintcw_t>(channelNameToId(evtChannelName)),scope,EventMessageType::EVENT_CHANNEL_SUBSCRIBER);
 	sendEventMessage((void *)&sndMessage,sizeof(EventMessageProtocol),INVALID_HDL);
 	return CL_OK;
 }
 
-ClRcT EventClient::eventChannelPublish(std::string evtChannelName)
+ClRcT EventClient::eventChannelUnSubscriber(std::string evtChannelName, EventChannelScope scope)
+{
+	logDebug("EVT", "EVENT_ENTITY", "subscriber to  event channel [%s]",evtChannelName.c_str());
+	EventMessageProtocol sndMessage;
+	memset(&sndMessage,0,sizeof(EventMessageProtocol));
+	sndMessage.init(clientHandle,static_cast<uintcw_t>(channelNameToId(evtChannelName)),scope,EventMessageType::EVENT_CHANNEL_UNSUBSCRIBER);
+	sendEventMessage((void *)&sndMessage,sizeof(EventMessageProtocol),INVALID_HDL);
+	return CL_OK;
+}
+
+ClRcT EventClient::eventChannelPublish(std::string evtChannelName, EventChannelScope scope)
 {
 	logDebug("EVT", "EVENT_ENTITY", "publish to event channel [%s]",evtChannelName.c_str());
 	EventMessageProtocol sndMessage;
 	memset(&sndMessage,0,sizeof(EventMessageProtocol));
-	sndMessage.init(clientHandle,static_cast<uintcw_t>(channelNameToId(evtChannelName)),EventChannelScope::EVENT_UNDEFINE,EventMessageType::EVENT_CHANNEL_PUBLISHER);
+	sndMessage.init(clientHandle,static_cast<uintcw_t>(channelNameToId(evtChannelName)),scope,EventMessageType::EVENT_CHANNEL_PUBLISHER);
 	sendEventMessage((void *)&sndMessage,sizeof(EventMessageProtocol),INVALID_HDL);
 	return CL_OK;
 }
 
-ClRcT EventClient::eventPublish(const void *pEventData, int eventDataSize, std::string channelName)
+ClRcT EventClient::eventPublish(const void* pEventData, int eventDataSize, std::string channelName,EventChannelScope scope)
 {
 	logDebug("EVT", "EVENT_ENTITY", "Publish an event to channel [%s]",channelName.c_str());
 	char msgPayload[sizeof(EventMessageProtocol)-1 + eventDataSize];
 	memset(&msgPayload,0,sizeof(EventMessageProtocol)-1 + eventDataSize);  // valgrind
 	EventMessageProtocol *sndMessage = (EventMessageProtocol *)&msgPayload;
-	sndMessage->init(clientHandle,static_cast<uintcw_t>(channelNameToId(channelName)),EventChannelScope::EVENT_UNDEFINE,EventMessageType::EVENT_PUBLISH,eventDataSize);
+	sndMessage->init(clientHandle,static_cast<uintcw_t>(channelNameToId(channelName)),scope,EventMessageType::EVENT_PUBLISH,eventDataSize);
 	memcpy(sndMessage->data,(const void*) pEventData,eventDataSize);
 	sendEventMessage((void *)sndMessage,sizeof(EventMessageProtocol)+eventDataSize ,INVALID_HDL);
 	return CL_OK;
@@ -165,12 +175,15 @@ void EventClient::msgHandler(SAFplus::Handle from, SAFplus::MsgServer* svr, ClPt
 	}
 	EventMessageProtocol *rxMsg = (EventMessageProtocol *) msg;
 	EventMessageType msgType = rxMsg->messageType;
+	logDebug("EVT", "MSG", "Received event message from node[%d:%d] with length [%d] data length [%d]", from.getNode(),from.getPort(),msglen,rxMsg->dataLength);
 	switch (msgType)
 	{
 	case EventMessageType::EVENT_PUBLISH:
 		if (1)
 		{
-			logDebug("EVT", "MSG", "Received event publish message from node [%d]", rxMsg->clientHandle.getNode());
+			char* data = (char*)malloc(rxMsg->dataLength);
+		    memcpy(data,rxMsg->data,rxMsg->dataLength);
+			logDebug("EVT", "MSG", "Event data [%s]", data);
 		}
 		break;
 	default:

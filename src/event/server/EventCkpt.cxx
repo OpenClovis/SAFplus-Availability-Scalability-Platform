@@ -41,7 +41,7 @@ ClRcT EventCkpt::eventCkptCheckPointChannelOpen(EventMessageProtocol* message, i
 	keyData.channelId=message->eventChannelId;
 	keyData.evtClient=INVALID_HDL;
 	keyData.type=message->messageType;
-	const uintcw_t key = hash_value(keyData);
+	const uintcw_t key = static_cast<uintcw_t>(hash_value(keyData));
 	m_checkpoint.write(key,*val);
 	return CL_TRUE;
 }
@@ -52,7 +52,7 @@ ClRcT EventCkpt::eventCkptCheckPointChannelClose(EventMessageProtocol* message ,
 	keyData.channelId=message->eventChannelId;
 	keyData.evtClient=INVALID_HDL;
 	keyData.type=message->messageType;
-	const uintcw_t key = hash_value(keyData);
+	const uintcw_t key = static_cast<uintcw_t>(hash_value(keyData));
 	m_checkpoint.remove(key);
 	return CL_TRUE;
 }
@@ -62,7 +62,6 @@ ClRcT EventCkpt::eventCkptCheckPointSubscribeOrPublish(EventMessageProtocol* mes
 	char vdata[sizeof(Buffer)-1+length];
 	Buffer* val = new(vdata) Buffer(length);
 	memcpy(val->data, message, length);
-
 	EventKey keyData;
 	keyData.channelId=message->eventChannelId;
 	keyData.evtClient=INVALID_HDL;

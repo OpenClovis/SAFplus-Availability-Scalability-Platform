@@ -68,19 +68,22 @@ public:
 	void  sendEventMessage(void* data, int dataLength);
 	//Initialize an event client
 	ClRcT eventInitialize(Handle evtHandle);
-	//Create an event channel
+	//Create an event channel for pub and subs
 	ClRcT eventChannelOpen(std::string evtChannelName, EventChannelScope scope);
 	//Close an event channel
-	ClRcT eventChannelClose(std::string evtChannelName);
-	ClRcT eventChannelUnlink(std::string evtChannelName);
+	ClRcT eventChannelClose(std::string evtChannelName, EventChannelScope scope);
+	ClRcT eventChannelUnlink(std::string evtChannelName, EventChannelScope scope);
 	//Publish an event to event channel
-	ClRcT eventPublish(const void *pEventData, int eventDataSize, std::string channelName);
+	ClRcT eventPublish(const void *pEventData, int eventDataSize, std::string channelName,EventChannelScope scope);
 	//Send event message to event server or active event server
 	void sendEventMessage(void* data, int dataLength,Handle destHandle = INVALID_HDL);
-	ClRcT eventChannelSubscriber(std::string evtChannelName);
-	ClRcT eventChannelPublish(std::string evtChannelName);
+	//Subscriber an event channel
+	ClRcT eventChannelSubscriber(std::string evtChannelName, EventChannelScope scope);
+	//Subscriber an event channel
+	ClRcT eventChannelUnSubscriber(std::string evtChannelName, EventChannelScope scope);
+	//Publish an event channel
+	ClRcT eventChannelPublish(std::string evtChannelName, EventChannelScope scope);
 	void wake(int amt,void* cookie);
-
     virtual void msgHandler(SAFplus::Handle from, SAFplus::MsgServer* svr, ClPtrT msg, ClWordT msglen, ClPtrT cookie);
 
 

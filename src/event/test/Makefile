@@ -9,7 +9,7 @@ CPP_FLAGS += -I$(SAFPLUS_MGT_INC_FLAGS) -I.
 CLIENT_H := $(wildcard *.hxx) $(wildcard $(SAFPLUS_INC_DIR)/*.hxx)
 
 
-CLIENT_SRC := event_client.cxx
+CLIENT_SRC := event_client.cxx event_client_2.cxx
 CLIENT_OBJ := $(addprefix $(OBJ_DIR)/,$(subst .cxx,.o,$(CLIENT_SRC)))
 
 
@@ -22,9 +22,12 @@ SAFPLUS_LINK_LIBS := -L$(LIB_DIR) $(addprefix -l,$(SAFPLUS_LIBS))
 LINK_STD_LIBS := $(XML2_LINK) $(LINK_STD_LIBS)
 # -lstdc++ -lm
 
-all: $(TEST_DIR)/event_client
+all: $(TEST_DIR)/event_client $(TEST_DIR)/event_client_2
 
 $(TEST_DIR)/event_client: $(OBJ_DIR)/event_client.o $(SAFPLUS_DEP_LIBS)
+	$(LINK_EXE) $@ $+ $(LINK_LIBS) $(SAFPLUS_LINK_LIBS) $(LINK_STD_LIBS) 
+	
+$(TEST_DIR)/event_client_2: $(OBJ_DIR)/event_client_2.o $(SAFPLUS_DEP_LIBS)
 	$(LINK_EXE) $@ $+ $(LINK_LIBS) $(SAFPLUS_LINK_LIBS) $(LINK_STD_LIBS) 
 
 
@@ -33,6 +36,6 @@ $(OBJ_DIR)/%.o: %.cxx $(CLIENT_H)
 
 
 clean:
-	rm -f $(OBJ_DIR)/event_client.o
+	rm -f $(OBJ_DIR)/event_client.o $(OBJ_DIR)/event_client_2.o
 
 include $(SAFPLUS_MAKE_DIR)/safplus_targets.mk

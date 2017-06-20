@@ -33,6 +33,6 @@ $(OBJ_DIR)/%.o: %.cxx Makefile $(CLIENT_H)
 	$(COMPILE_CPP) $@ $<
 
 clean:
-	rm -f $(LIB_DIR)/libclEventServer.so
+	rm -f $(LIB_DIR)/libclEventServer.so $(LIB_DIR)/libclEventServer.a
 
 include $(SAFPLUS_MAKE_DIR)/safplus_targets.mk
