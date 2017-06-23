@@ -14,9 +14,16 @@
 #include <clCustomization.hxx>
 #include <clGlobals.hxx>
 #include <clObjectMessager.hxx>
+#include <inttypes.h>
+#include<boost/iostreams/stream_buffer.hpp>
+#include<boost/iostreams/stream.hpp>
+
 
 using namespace SAFplusI;
 using namespace SAFplus;
+using namespace Rpc;
+using namespace rpcEvent;
+
 
 
 EventServer::EventServer()
@@ -37,60 +44,61 @@ void EventServer::wake(int amt,void* cookie)
 	activeServer = g->getActive();
 }
 
-bool EventServer::eventloadchannelFromCheckpoint()
-{
-	logInfo("EVT","DUMP","---------------------------------");
-	SAFplus::Checkpoint::Iterator ibegin = evtCkpt.m_checkpoint.begin();
-	SAFplus::Checkpoint::Iterator iend = evtCkpt.m_checkpoint.end();
-	for(SAFplus::Checkpoint::Iterator iter = ibegin; iter != iend; iter++)
-	{
-		BufferPtr curkey = iter->first;
-		if (curkey)
-		{
-			logInfo("EVT","DUMP","channel id [%ld]", curkey->data);
-		}
-		BufferPtr& curval = iter->second;
-		if (curval)
-		{
-			EventMessageProtocol *data = (EventMessageProtocol *) curval->data;
-			int length = data->dataLength;
-			EventMessageType msgType = data->messageType;
-			switch (msgType)
-			{
-			case EventMessageType::EVENT_CHANNEL_CREATE:
-				if (1)
-				{
-					eventChannelCreateHandle(data,0);
-				}
-				break;
-			case EventMessageType::EVENT_CHANNEL_SUBSCRIBER:
-				if (1)
-				{
-					eventChannelSubsHandle(data,0);
-				}
-				break;
-			case EventMessageType::EVENT_CHANNEL_UNSUBSCRIBER:
-				if (1)
-				{
-					eventChannelUnSubsHandle(data,0);
-				}
-				break;
-			case EventMessageType::EVENT_PUBLISH:
-				if (1)
-				{
-					eventPublishHandle(data,0);
-				}
-				break;
-			default:
-				break;
-			}		}
-	}
-	logInfo("EVT","DUMP","---------------------------------");
-	return true ;
-}
+//bool EventServer::eventloadchannelFromCheckpoint()
+//{
+//	logInfo("EVT","DUMP","---------------------------------");
+//	SAFplus::Checkpoint::Iterator ibegin = evtCkpt.m_checkpoint.begin();
+//	SAFplus::Checkpoint::Iterator iend = evtCkpt.m_checkpoint.end();
+//	for(SAFplus::Checkpoint::Iterator iter = ibegin; iter != iend; iter++)
+//	{
+//		BufferPtr curkey = iter->first;
+//		if (curkey)
+//		{
+//			logInfo("EVT","DUMP","channel id [%ld]", curkey->data);
+//		}
+//		BufferPtr& curval = iter->second;
+//		if (curval)
+//		{
+//			EventMessageProtocol *data = (EventMessageProtocol *) curval->data;
+//			int length = data->dataLength;
+//			EventMessageType msgType = data->messageType;
+//			switch (msgType)
+//			{
+//			case EventMessageType::EVENT_CHANNEL_CREATE:
+//				if (1)
+//				{
+//					eventChannelCreateHandle(data,0);
+//				}
+//				break;
+//			case EventMessageType::EVENT_CHANNEL_SUBSCRIBER:
+//				if (1)
+//				{
+//					eventChannelSubsHandle(data,0);
+//				}
+//				break;
+//			case EventMessageType::EVENT_CHANNEL_UNSUBSCRIBER:
+//				if (1)
+//				{
+//					eventChannelUnSubsHandle(data,0);
+//				}
+//				break;
+//			case EventMessageType::EVENT_PUBLISH:
+//				if (1)
+//				{
+//					eventPublishHandle(data,0);
+//				}
+//				break;
+//			default:
+//				break;
+//			}		}
+//	}
+//	logInfo("EVT","DUMP","---------------------------------");
+//	return true ;
+//}
 
 void EventServer::initialize()
 {
+
 	logDebug("EVT","SERVER", "Initialize Event Server");
 	severHandle = Handle::create();  // This is the handle for this specific fault server
 	numberOfGlobalChannel=0;
@@ -98,15 +106,21 @@ void EventServer::initialize()
 	group.init(EVENT_GROUP);
 	group.setNotification(*this);
 	SAFplus::objectMessager.insert(severHandle,this);
+
 	logDebug("EVT","SERVER", "Register event server [%d] to event group",severHandle.getNode());
 	group.registerEntity(severHandle, SAFplus::ASP_NODEADDR,NULL,0,Group::ACCEPT_STANDBY | Group::ACCEPT_ACTIVE | Group::STICKY);
 	activeServer=group.getActive();
 	eventMsgServer = &safplusMsgServer;
 	if(1)
 	{
+#ifdef USE_MSG
 		logDebug("EVT","SERVER", "Register event message server");
 		eventMsgServer->RegisterHandler(SAFplusI::EVENT_MSG_TYPE, this, NULL);  //  Register the main message handler (no-op if already registered)
 		logDebug("EVT","SERVER", "Register event message server with type EVENT_MSG_TYPE ");
+#endif
+		logDebug("EVT","SERVER", "Register rpc stub for Event");
+		SAFplus::Rpc::RpcChannel *channel = new SAFplus::Rpc::RpcChannel(eventMsgServer, this);
+		channel->setMsgType(EVENT_REQ_HANDLER_TYPE, EVENT_REPLY_HANDLER_TYPE);
 	}
 	logDebug("EVT","SERVER", "Initialize event checkpoint");
 	this->evtCkpt.eventCkptInit();
@@ -135,7 +149,6 @@ int compareChannel(uint64_t id1, uint64_t id2)
 		return -1;
 	}
 }
-
 bool EventServer::isLocalChannel(uintcw_t channelId)
 {
 	if (!localChannelList.empty())
@@ -182,6 +195,10 @@ bool EventServer::isGlobalChannel(uintcw_t channelId)
 	logDebug("EVT", "MSG", "channel Id [%ld] is not in global list",channelId);
 	return false;
 }
+
+
+#ifdef USE_MSG
+
 
 void EventServer::createChannel(EventMessageProtocol *rxMsg,bool isSub,bool isPub,int length)
 {
@@ -379,14 +396,6 @@ void EventServer::eventChannelUnSubsHandle(EventMessageProtocol *rxMsg,int lengt
 	}
 }
 
-struct eventChannel_delete_disposer
-{
-	void operator()(EventChannel *delete_this)
-	{
-		delete delete_this;
-	}
-};
-
 void EventServer::eventChannelCloseHandle(EventMessageProtocol *rxMsg,int length)
 {
 	logDebug("EVT", "MSG", "Process event message with type EVENT_CHANNEL_CLOSE");
@@ -470,9 +479,6 @@ void EventServer::eventPublishHandle(EventMessageProtocol *rxMsg,ClWordT msglen)
 					EventSubscriber &evtSub = *iterSub;
 					Handle sub = evtSub.usr.evtHandle;
 					//send message to sub
-					char* data = (char*)malloc(rxMsg->dataLength);
-				    memcpy(data,rxMsg->data,rxMsg->dataLength);
-					logDebug("EVT", "MSG", "Event data [%s]", data);
 					this->sendEventServerMessage((void*)rxMsg, msglen,sub);
 				}
 
@@ -574,6 +580,20 @@ void EventServer::msgHandler(SAFplus::Handle from, SAFplus::MsgServer* svr, ClPt
 	}
 }
 
+#endif
+
+struct eventChannel_delete_disposer
+{
+	void operator()(EventChannel *delete_this)
+	{
+		delete delete_this;
+	}
+};
+
+
+//======================================================For RPC call=========================================================
+
+
 void EventServer::sendEventServerMessage(void* data, int dataLength,Handle destHandle)
 {
 	logDebug("EVENT", "EVENT_ENTITY", "Send Event message to [%d,%d]",destHandle.getNode(),destHandle.getPort());
@@ -586,3 +606,547 @@ void EventServer::sendEventServerMessage(void* data, int dataLength,Handle destH
 		logDebug("EVT", "EVENT_ENTITY", "Failed to send.");
 	}
 }
+
+void EventServer::eventGetActiveServer(const ::SAFplus::Rpc::rpcEvent::NO_REQUEST* request,
+		::SAFplus::Rpc::rpcEvent::eventGetActiveServerResponse* response)
+{
+	//TODO: put your code here
+	logDebug("EVT", "EVENT_ENTITY", "Receive event get active server ...");
+	SAFplus::Rpc::rpcEvent::Handle *hdl = response->mutable_activeserver();
+	hdl->set_id0(activeServer.id[0]);
+	hdl->set_id1(activeServer.id[1]);
+	logDebug("EVT", "EVENT_ENTITY", "Active Server is [%d,%d] ",activeServer.getNode(),activeServer.getPort());
+}
+
+void EventServer::eventChannelRpcMethod(const ::SAFplus::Rpc::rpcEvent::eventChannelRequest* request,
+		::SAFplus::Rpc::rpcEvent::eventRequestResponse* response)
+{
+	//TODO: put your code here
+	logDebug("EVT", "EVENT_ENTITY", "Receive event channel request RPC");
+	SAFplus::Handle evtClient;
+	evtClient.id[0]=request->clienthandle().id0();
+	evtClient.id[1]=request->clienthandle().id1();
+	EventMessageType msgType = EventMessageType(request->type());
+	logDebug("EVT", "MSG", "********** Received event message from client [%d:%d] **********", evtClient.getNode(),evtClient.getPort());
+	try
+	{
+		switch (msgType)
+
+		{
+		case EventMessageType::EVENT_CHANNEL_CREATE:
+			if (1)
+			{
+				eventChannelCreateHandleRpc(request);
+			}
+			break;
+		case EventMessageType::EVENT_CHANNEL_SUBSCRIBER:
+			if (1)
+			{
+				eventChannelSubsHandleRpc(request);
+			}
+			break;
+		case EventMessageType::EVENT_CHANNEL_UNSUBSCRIBER:
+			if (1)
+			{
+				eventChannelUnSubsHandleRpc(request);
+			}
+			break;
+		case EventMessageType::EVENT_CHANNEL_PUBLISHER:
+			if (1)
+			{
+				eventChannelPubHandleRpc(request);
+			}
+			break;
+		case EventMessageType::EVENT_CHANNEL_CLOSE:
+			if (1)
+			{
+				eventChannelCloseHandleRpc(request);
+			}
+			break;
+		case EventMessageType::EVENT_CHANNEL_UNLINK:
+			if (1)
+			{
+				logDebug("EVT", "MSG", "Received event channel unlink message from node [%d]", evtClient.getNode());
+			}
+			break;
+		default:
+			logDebug("EVENT", "MSG", "Unknown message type ... ", request->type(), evtClient.getNode());
+			break;
+		}
+	}
+	catch(SAFplus::Error& e)
+	{
+		response->set_errstr(e.errStr);
+		response->set_saerror(int(e.saError));
+	}
+}
+
+void EventServer::eventPublishRpcMethod(const ::SAFplus::Rpc::rpcEvent::eventPublishRequest* request,
+		::SAFplus::Rpc::rpcEvent::eventRequestResponse* response)
+{
+	//TODO: put your code here
+	logDebug("EVT", "EVENT_ENTITY", "Receive event publish request RPC");
+	SAFplus::Handle evtClient;
+	evtClient.id[0]=request->clienthandle().id0();
+	evtClient.id[1]=request->clienthandle().id1();
+	EventMessageType msgType = EventMessageType(request->type());
+	logDebug("EVT", "MSG", "********** Received event message from client [%d:%d] **********", evtClient.getNode(),evtClient.getPort());
+	try
+	{
+		eventPublishHandleRpc(request);
+	}
+	catch(SAFplus::Error& e)
+	{
+		response->set_errstr(e.errStr);
+		response->set_saerror(int(e.saError));
+	}
+}
+
+
+void EventServer::createChannelRpc(const eventChannelRequest *request,bool isSub,bool isPub)
+{
+	EventChannel *channel = new EventChannel();
+	channel->scope = EventChannelScope(request->scope());
+	channel->subscriberRefCount=0;
+	channel->evtChannelId = request->channelid();
+	SAFplus::Handle evtClient;
+	evtClient.id[0]=request->clienthandle().id0();
+	evtClient.id[1]=request->clienthandle().id1();
+
+	if(channel->scope==EventChannelScope::EVENT_LOCAL_CHANNEL)
+	{
+		if(!isLocalChannel(channel->evtChannelId))
+		{
+			logDebug("EVT", "MSG", "Add channel[%ld] to local channel list",channel->evtChannelId);
+			localChannelListLock.lock();
+			localChannelList.push_back(*channel);
+			numberOfLocalChannel+=1;
+			logDebug("EVT", "MSG", "Write request message to checkpoint");
+			//evtCkpt.eventCkptCheckPointChannelOpen(request,0);
+			localChannelListLock.unlock();
+		}
+		else
+		{
+			logDebug("EVT", "MSG", "Channel is Exist");
+			if(isSub==false&&isPub==false)
+			{
+				throw SAFplus::Error(Error::ErrorFamily::SAFPLUS_ERROR, Error::EXISTS,"Channel is Exist", __FILE__, __LINE__);
+			}
+
+		}
+
+		localChannelListLock.lock();
+		for (EventChannelList::iterator iter = localChannelList.begin(); iter != localChannelList.end(); iter++)
+		{
+			EventChannel &s = *iter;
+			int cmp = compareChannel(s.evtChannelId, channel->evtChannelId);
+			if (cmp == 0)
+			{
+				if(isSub)
+				{
+					logDebug("EVT", "MSG", "Register subscriber[%d,%d]",evtClient.getNode(),evtClient.getPort());
+					EventSubscriber *sub=new EventSubscriber(evtClient,request->channelid());
+					try
+					{
+						s.addChannelSub(*sub);
+					}
+					catch(SAFplus::Error& e)
+					{
+						throw(e);
+					}
+					s.subscriberRefCount+=1;
+				}
+				if(isPub)
+				{
+					logDebug("EVT", "MSG", "Register publisher[%d,%d]",evtClient.getNode(),evtClient.getPort());
+					EventPublisher *pub=new EventPublisher(evtClient,request->channelid());
+					try
+					{
+						s.addChannelPub(*pub);
+					}
+					catch(SAFplus::Error& e)
+					{
+						throw(e);
+					}
+					s.publisherRefCount+=1;
+				}
+				//evtCkpt.eventCkptCheckPointSubscribeOrPublish(request,0);
+				logDebug("EVT", "MSG", "Open channel channel[%ld] successful",request->channelid());
+				localChannelListLock.unlock();
+				return ;
+			}
+		}
+		localChannelListLock.unlock();
+
+
+	}
+	else
+	{
+		if(activeServer==severHandle)
+		{
+
+			if(!isGlobalChannel(channel->evtChannelId))
+			{
+				logDebug("EVT", "MSG", "Add channel[%ld] to global channel list",channel->evtChannelId);
+				globalChannelListLock.lock();
+				globalChannelList.push_back(*channel);
+				//logDebug("EVT", "MSG", "write request message to checkpoint");
+				//evtCkpt.eventCkptCheckPointChannelOpen(request,0);
+				numberOfGlobalChannel+=1;
+				globalChannelListLock.unlock();
+
+			}
+			else
+			{
+				logDebug("EVT", "MSG", "Channel is Exist");
+				if(isSub==false&&isPub==false)
+				{
+					throw SAFplus::Error(Error::ErrorFamily::SAFPLUS_ERROR, Error::EXISTS,"Channel is Exist", __FILE__, __LINE__);
+				}
+			}
+			globalChannelListLock.lock();
+			for (EventChannelList::iterator iter = globalChannelList.begin(); iter != globalChannelList.end(); iter++)
+			{
+				EventChannel &s = *iter;
+				int cmp = compareChannel(s.evtChannelId, request->channelid());
+				if (cmp == 0)
+				{
+					if(isSub)
+					{
+						logDebug("EVT", "MSG", "Register subscriber[%d,%d]",evtClient.getNode(),evtClient.getPort());
+						EventSubscriber *sub=new EventSubscriber(evtClient,request->channelid());
+						try
+						{
+							s.addChannelSub(*sub);
+						}
+						catch(SAFplus::Error& e)
+						{
+							throw(e);
+						}
+						s.subscriberRefCount+=1;
+					}
+					if(isPub)
+					{
+						logDebug("EVT", "MSG", "Register publisher[%d,%d]",evtClient.getNode(),evtClient.getPort());
+						EventPublisher *pub=new EventPublisher(evtClient,request->channelid());
+						try
+						{
+							s.addChannelPub(*pub);
+						}
+						catch(SAFplus::Error& e)
+						{
+							throw(e);
+						}
+						s.publisherRefCount+=1;
+					}
+					//evtCkpt.eventCkptCheckPointSubscribeOrPublish(request,0);
+					logDebug("EVT", "MSG", "Open channel with channel[%ld] successful",request->channelid());
+					globalChannelListLock.unlock();
+					return ;
+				}
+			}
+			globalChannelListLock.unlock();
+		}
+		else
+		{
+			logDebug("EVT", "MSG", "forward to active event server");
+			//sendEventServerMessage((void*)request,length,activeServer);
+		}
+	}
+}
+
+
+
+
+void EventServer::eventChannelCreateHandleRpc(const eventChannelRequest *request)
+{
+	SAFplus::Handle evtClient;
+	evtClient.id[0]=request->clienthandle().id0();
+	evtClient.id[1]=request->clienthandle().id1();
+	logDebug("EVT", "MSG", "Process event message with type EVENT_CHANNEL_CREATE");
+	logDebug("EVT", "MSG", "Channel[%ld] -- Event handle [%d,%d]",request->channelid(),evtClient.getNode(),evtClient.getPort());
+	try
+	{
+		createChannelRpc(request,true,true);
+	}
+	catch(SAFplus::Error& e)
+	{
+		throw(e);
+
+	}
+}
+
+void EventServer::eventChannelSubsHandleRpc(const eventChannelRequest *request)
+{
+	SAFplus::Handle evtClient;
+	evtClient.id[0]=request->clienthandle().id0();
+	evtClient.id[1]=request->clienthandle().id1();
+	logDebug("EVT", "MSG", "Process event message with type EVENT_CHANNEL_SUBSCRIBER");
+	logDebug("EVT", "MSG", "Channel[%ld] -- Event handle [%d,%d]",request->channelid(),evtClient.getNode(),evtClient.getPort());
+	try
+	{
+		createChannelRpc(request,true,false);
+	}
+	catch(SAFplus::Error& e)
+	{
+		throw(e);
+
+	}
+}
+
+
+void EventServer::eventChannelPubHandleRpc(const eventChannelRequest *request)
+{
+	//Find channel in local list
+	SAFplus::Handle evtClient;
+	evtClient.id[0]=request->clienthandle().id0();
+	evtClient.id[1]=request->clienthandle().id1();
+	logDebug("EVT", "MSG", "Process event message with type EVENT_CHANNEL_PUBLISHER");
+	logDebug("EVT", "MSG", "Channel[%ld] -- Event handle [%d,%d]",request->channelid(),evtClient.getNode(),evtClient.getPort());
+	try
+	{
+		createChannelRpc(request,false,true);
+	}
+	catch(SAFplus::Error& e)
+	{
+		throw(e);
+
+	}
+}
+
+void EventServer::eventChannelUnSubsHandleRpc(const eventChannelRequest *request)
+{
+	logDebug("EVT", "MSG", "Process event message with type EVENT_CHANNEL_UNSUBSCRIBER");
+	SAFplus::Handle evtClient;
+	evtClient.id[0]=request->clienthandle().id0();
+	evtClient.id[1]=request->clienthandle().id1();
+	logDebug("EVT", "MSG", "Channel[%ld] -- Event handle [%d,%d]",request->channelid(),evtClient.getNode(),evtClient.getPort());
+	//Find channel in local list
+	if(EventChannelScope(request->scope())==EventChannelScope::EVENT_LOCAL_CHANNEL)
+	{
+		localChannelListLock.lock();
+		if (!localChannelList.empty())
+		{
+			for (EventChannelList::iterator iter = localChannelList.begin(); iter != localChannelList.end(); iter++)
+			{
+				EventChannel &s = *iter;
+				int cmp = compareChannel(s.evtChannelId, request->channelid());
+				if (cmp == 0)
+				{
+					s.deleteChannelSub(evtClient);
+					s.subscriberRefCount-=1;
+					logDebug("EVT", "MSG", "Removed subscriber from local event channel[%ld]",request->channelid());
+					localChannelListLock.unlock();
+					return ;
+				}
+			}
+		}
+		localChannelListLock.unlock();
+		throw SAFplus::Error(Error::ErrorFamily::SAFPLUS_ERROR, Error::DOES_NOT_EXIST,"Subscriber doesn't exist", __FILE__, __LINE__);
+
+
+	}
+	if(EventChannelScope(request->scope())==EventChannelScope::EVENT_LOCAL_CHANNEL)
+	{
+		globalChannelListLock.lock();
+		if(activeServer==severHandle)
+		{
+			if (!globalChannelList.empty())
+			{
+				for (EventChannelList::iterator iter = globalChannelList.begin(); iter != globalChannelList.end(); iter++)
+				{
+					EventChannel &s = *iter;
+					int cmp = compareChannel(s.evtChannelId, request->channelid());
+					if (cmp == 0)
+					{
+						s.deleteChannelSub(evtClient);
+						s.subscriberRefCount-=1;
+						logDebug("EVT", "MSG", "Removed subs from global event channel[%ld]",request->channelid());
+						globalChannelListLock.unlock();
+						return ;
+					}
+				}
+			}
+		}
+		else
+		{
+
+			logDebug("EVT", "MSG", "Global event request ... Ignore");
+			globalChannelListLock.unlock();
+			throw SAFplus::Error(Error::ErrorFamily::SAFPLUS_ERROR, Error::NOT_IMPLEMENTED,"Cannot process global request", __FILE__, __LINE__);
+			return;
+		}
+		// channel not exist
+		globalChannelListLock.unlock();
+		throw SAFplus::Error(Error::ErrorFamily::SAFPLUS_ERROR, Error::DOES_NOT_EXIST,"Subscriber doesn't exist", __FILE__, __LINE__);
+
+	}
+}
+
+
+void EventServer::eventChannelCloseHandleRpc(const eventChannelRequest *request)
+{
+	logDebug("EVT", "MSG", "Process event message with type EVENT_CHANNEL_CLOSE");
+	SAFplus::Handle evtClient;
+	evtClient.id[0]=request->clienthandle().id0();
+	evtClient.id[1]=request->clienthandle().id1();
+	logDebug("EVT", "MSG", "Channel[%ld] -- Event handle [%d,%d]",request->channelid(),evtClient.getNode(),evtClient.getPort());
+	//Find channel in local list
+	if(EventChannelScope(request->scope())==EventChannelScope::EVENT_LOCAL_CHANNEL)
+	{
+		localChannelListLock.lock();
+		if (!localChannelList.empty())
+		{
+			for (EventChannelList::iterator iter = localChannelList.begin(); iter != localChannelList.end(); iter++)
+			{
+				EventChannel &s = *iter;
+				int cmp = compareChannel(s.evtChannelId, request->channelid());
+				if (cmp == 0)
+				{
+					//TODO
+					logDebug("EVT", "MSG", "Remove all subscriber...");
+					localChannelList.erase_and_dispose(iter,eventChannel_delete_disposer());
+					localChannelListLock.unlock();
+					return ;
+				}
+			}
+
+		}
+		localChannelListLock.unlock();
+		throw SAFplus::Error(Error::ErrorFamily::SAFPLUS_ERROR, Error::DOES_NOT_EXIST,"Channel doesn't exist", __FILE__, __LINE__);
+	}
+	if(EventChannelScope(request->scope())==EventChannelScope::EVENT_GLOBAL_CHANNEL)
+	{
+		globalChannelListLock.lock();
+		if(activeServer==severHandle)
+		{
+			if (!globalChannelList.empty())
+			{
+				for (EventChannelList::iterator iter = globalChannelList.begin(); iter != globalChannelList.end(); iter++)
+				{
+					EventChannel &s = *iter;
+					int cmp = compareChannel(s.evtChannelId, request->channelid());
+					if (cmp == 0)
+					{
+						logDebug("EVT", "MSG", "Remove all subscriber... ");
+						localChannelList.erase_and_dispose(iter,eventChannel_delete_disposer());
+						globalChannelListLock.unlock();
+						return ;
+					}
+				}
+			}
+		}
+		else
+		{
+			logDebug("EVT", "MSG", "Global event request ... Ignore");
+			globalChannelListLock.unlock();
+			throw SAFplus::Error(Error::ErrorFamily::SAFPLUS_ERROR, Error::NOT_IMPLEMENTED,"Cannot process global request", __FILE__, __LINE__);
+			return;
+		}
+		// channel not exist
+		globalChannelListLock.unlock();
+		throw SAFplus::Error(Error::ErrorFamily::SAFPLUS_ERROR, Error::DOES_NOT_EXIST,"Channel doesn't exist", __FILE__, __LINE__);
+	}
+	logDebug("EVT", "MSG", "Channel[%ld] is removed",request->channelid());
+
+}
+
+void EventServer::eventPublishHandleRpc(const eventPublishRequest *request)
+{
+	//Find channel in local list
+	logDebug("EVT", "MSG", "Process event message.");
+	SAFplus::Handle evtClient;
+	evtClient.id[0]=request->clienthandle().id0();
+	evtClient.id[1]=request->clienthandle().id1();
+	bool isGlobal=false;
+	if(EventChannelScope(request->scope())==EventChannelScope::EVENT_LOCAL_CHANNEL)
+	{
+		localChannelListLock.lock();
+		if (!localChannelList.empty())
+		{
+			for (EventChannelList::iterator iter = localChannelList.begin(); iter != localChannelList.end(); iter++)
+			{
+				EventChannel &s = *iter;
+				int cmp = compareChannel(s.evtChannelId, request->channelid());
+				if (cmp == 0)
+				{
+					//TODO publish event
+					logDebug("EVT", "MSG", "Sending message to all subscriber of channel[%ld]",request->channelid());
+					for (EventSubscriberList::iterator iterSub = s.eventSubs.begin(); iterSub != s.eventSubs.end(); iterSub++)
+					{
+						EventSubscriber &evtSub = *iterSub;
+						Handle sub = evtSub.usr.evtHandle;
+						//send message to sub
+						try
+						{
+							MsgPool& pool = this->eventMsgServer->getMsgPool();
+							Message* msg = pool.allocMsg();
+							msg->setAddress(sub);
+							if (1)
+							{
+								boost::iostreams::stream<MessageOStream>  mos(msg);
+								request->SerializeToOstream(&mos);
+							}
+							eventMsgServer->SendMsg(msg, SAFplusI::EVENT_MSG_TYPE);
+						}
+						catch (Error &e)
+						{
+							logError("RPC", "REQ", "Serialization Error: %s", e.what());
+						}
+					}
+
+					localChannelListLock.unlock();
+					return ;
+				}
+			}
+		}
+		localChannelListLock.unlock();
+		throw SAFplus::Error(Error::ErrorFamily::SAFPLUS_ERROR, Error::DOES_NOT_EXIST,"Channel doesn't exist", __FILE__, __LINE__);
+
+	}
+	if(EventChannelScope(request->scope())==EventChannelScope::EVENT_GLOBAL_CHANNEL)
+	{
+		globalChannelListLock.lock();
+
+		if(activeServer==severHandle)
+		{
+			if (!globalChannelList.empty())
+			{
+				for (EventChannelList::iterator iter = globalChannelList.begin(); iter != globalChannelList.end(); iter++)
+				{
+					EventChannel &s = *iter;
+					int cmp = compareChannel(s.evtChannelId, request->channelid());
+					if (cmp == 0)
+					{
+						//TODO publish event
+						logDebug("EVT", "MSG", "Sending message to all subscriber of channel[%ld]",request->channelid());
+						globalChannelListLock.unlock();
+						return ;
+					}
+				}
+			}
+		}
+		else
+		{
+			logDebug("EVT", "MSG", "Global event request ... Ignore");
+			globalChannelListLock.unlock();
+			throw SAFplus::Error(Error::ErrorFamily::SAFPLUS_ERROR, Error::NOT_IMPLEMENTED,"Cannot process global request", __FILE__, __LINE__);
+			return;
+		}
+		globalChannelListLock.unlock();
+		throw SAFplus::Error(Error::ErrorFamily::SAFPLUS_ERROR, Error::DOES_NOT_EXIST,"Channel doesn't exist", __FILE__, __LINE__);
+	}
+	// channel not exist
+
+}
+
+
+
+
+
+
+
+
+
+
+

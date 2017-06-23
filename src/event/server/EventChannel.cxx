@@ -35,6 +35,8 @@ void EventChannel::addChannelSub(EventSubscriber& sub)
 			if(s.usr.evtHandle==sub.usr.evtHandle)
 			{
 				logInfo("EVT","SUB","Subscriber[%d,%d] is already exist in subscriber list",sub.usr.evtHandle.getNode(),sub.usr.evtHandle.getPort());				return;
+				throw SAFplus::Error(Error::ErrorFamily::SAFPLUS_ERROR, Error::EXISTS,"Subscriber is already exist", __FILE__, __LINE__);
+				return;
 			}
 		}
 		this->eventSubs.push_back(sub);
@@ -56,6 +58,7 @@ void EventChannel::addChannelPub(EventPublisher& pub)
 			if(s.usr.evtHandle==pub.usr.evtHandle)
 			{
 				logInfo("EVT","SUB","Publisher[%d,%d] is already exist in publisher list",pub.usr.evtHandle.getNode(),pub.usr.evtHandle.getPort());
+				throw SAFplus::Error(Error::ErrorFamily::SAFPLUS_ERROR, Error::EXISTS,"Publisher is already exist", __FILE__, __LINE__);
 				return;
 			}
 		}

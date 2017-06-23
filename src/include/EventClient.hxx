@@ -37,16 +37,26 @@
 #include <clMsgPortsAndTypes.hxx>
 #include <clHandleApi.hxx>
 #include <time.h>
+#include "clRpcChannel.hxx"
+#include "rpcEvent.hxx"
 
 namespace SAFplus
 {
+
+
+typedef void (*EventCallbackFunction)(uintcw_t,EventChannelScope,const std::string,int); // function pointer type
+
 class EventClient:public SAFplus::MsgHandler,public SAFplus::Wakeable
 {
 public:
 	Handle clientHandle;             // handle for identify a event client
 	SAFplus::SafplusMsgServer *eventMsgServer;       // safplus message for send event message to event server
 	Wakeable* wakeable;             // Wakeable object for change notification
-	Handle severHandle;             // handle for identify a event server
+	SAFplus::Handle severHandle;             // handle for identify a event server
+	EventCallbackFunction evtCallbacks;
+	SAFplus::Rpc::RpcChannel * channel;
+	SAFplus::Rpc::rpcEvent::rpcEvent_Stub *service;
+
 
 	EventClient()
 	{
@@ -54,6 +64,7 @@ public:
 		severHandle = INVALID_HDL;
 		eventMsgServer = NULL;
 		wakeable = NULL;
+		evtCallbacks=NULL;
 	};
 
 	EventClient(Handle evtHandle)
@@ -62,33 +73,71 @@ public:
 		severHandle = INVALID_HDL;
 		eventMsgServer = NULL;
 		wakeable = NULL;
+		evtCallbacks=NULL;
 	};
 	virtual ~EventClient();
+	uintcw_t eventChannelIdByName(std::string evtChannelName);
 
-	void  sendEventMessage(void* data, int dataLength);
+//	void  sendEventMessage(void* data, int dataLength);
+//	//Create an event channel for pub and subs
+//	ClRcT eventChannelOpen(std::string evtChannelName, EventChannelScope scope);
+//	//Close an event channel
+//	ClRcT eventChannelClose(std::string evtChannelName, EventChannelScope scope);
+//	//unlink channel event
+//	ClRcT eventChannelUnlink(std::string evtChannelName, EventChannelScope scope);
+//	//Publish an event to event channel
+//	ClRcT eventPublish(const void *pEventData, int eventDataSize, std::string evtChannelName,EventChannelScope scope);
+//	//Subscriber an event channel
+//	ClRcT eventChannelSubscriber(std::string evtChannelName, EventChannelScope scope);
+//	//Subscriber an event channel
+//	ClRcT eventChannelUnSubscriber(std::string evtChannelName, EventChannelScope scope);
+//	//Publish an event channel
+//	ClRcT eventChannelPublish(std::string evtChannelName, EventChannelScope scope);
+//
+//	//Create an event channel for pub and subs
+//	ClRcT eventChannelOpen(uintcw_t evtChannelId, EventChannelScope scope);
+//	//Close an event channel
+//	ClRcT eventChannelClose(uintcw_t evtChannelId, EventChannelScope scope);
+//	//unlink channel event
+//	ClRcT eventChannelUnlink(uintcw_t evtChannelId, EventChannelScope scope);
+//	//Publish an event to event channel
+//	ClRcT eventPublish(const void *pEventData, int eventDataSize, uintcw_t evtChannelId,EventChannelScope scope);
+//	//Subscriber an event channel
+//	ClRcT eventChannelSubscriber(uintcw_t evtChannelId, EventChannelScope scope);
+//	//Subscriber an event channel
+//	ClRcT eventChannelUnSubscriber(uintcw_t evtChannelId, EventChannelScope scope);
+//	//Publish an event channel
+//	ClRcT eventChannelPublish(uintcw_t evtChannelId, EventChannelScope scope);
+
+
 	//Initialize an event client
-	ClRcT eventInitialize(Handle evtHandle);
-	//Create an event channel for pub and subs
-	ClRcT eventChannelOpen(std::string evtChannelName, EventChannelScope scope);
-	//Close an event channel
-	ClRcT eventChannelClose(std::string evtChannelName, EventChannelScope scope);
-	ClRcT eventChannelUnlink(std::string evtChannelName, EventChannelScope scope);
-	//Publish an event to event channel
-	ClRcT eventPublish(const void *pEventData, int eventDataSize, std::string channelName,EventChannelScope scope);
+	void eventInitialize(Handle evtHandle,EventCallbackFunction func);
+
+	void wake(int amt,void* cookie);
 	//Send event message to event server or active event server
 	void sendEventMessage(void* data, int dataLength,Handle destHandle = INVALID_HDL);
+	//handle event message
+    //virtual void msgHandler(SAFplus::Handle from, SAFplus::MsgServer* svr, ClPtrT msg, ClWordT msglen, ClPtrT cookie);
+    virtual void msgHandler(MsgServer* svr, Message* msgHead, ClPtrT cookie);
+
+
+    //Event using RPC
+    ClRcT eventChannelRpc(std::string evtChannelName, EventChannelScope scope,EventMessageType type);
+	//Create an event channel for pub and subs
+	ClRcT eventChannelOpenRpc(std::string evtChannelName, EventChannelScope scope);
+	//Close an event channel
+	ClRcT eventChannelCloseRpc(std::string evtChannelName, EventChannelScope scope);
+	//unlink channel event
+	ClRcT eventChannelUnlinkRpc(std::string evtChannelName, EventChannelScope scope);
+	//Publish an event to event channel
+	ClRcT eventPublishRpc(const void *pEventData, int eventDataSize, std::string evtChannelName,EventChannelScope scope);
 	//Subscriber an event channel
-	ClRcT eventChannelSubscriber(std::string evtChannelName, EventChannelScope scope);
+	ClRcT eventChannelSubscriberRpc(std::string evtChannelName, EventChannelScope scope);
 	//Subscriber an event channel
-	ClRcT eventChannelUnSubscriber(std::string evtChannelName, EventChannelScope scope);
+	ClRcT eventChannelUnSubscriberRpc(std::string evtChannelName, EventChannelScope scope);
 	//Publish an event channel
-	ClRcT eventChannelPublish(std::string evtChannelName, EventChannelScope scope);
-	void wake(int amt,void* cookie);
-    virtual void msgHandler(SAFplus::Handle from, SAFplus::MsgServer* svr, ClPtrT msg, ClWordT msglen, ClPtrT cookie);
-
-
-
-
+	ClRcT eventChannelPublishRpc(std::string evtChannelName, EventChannelScope scope);
+	ClRcT eventPublishRpc(std::string evtChannelName, EventChannelScope scope,EventMessageType type,const std::string data);
 
 };
 
