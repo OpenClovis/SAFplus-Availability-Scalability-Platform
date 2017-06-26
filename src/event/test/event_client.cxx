@@ -19,10 +19,10 @@ EventClient fc;
 void testAllFeature();
 #define EVENT_CLIENT_PID 50
 
-void eventCallback(uintcw_t channelId,EventChannelScope scope,void* data,int length)
+void eventCallback(uintcw_t channelId,EventChannelScope scope,std::string data,int length)
 {
 	logDebug("EVT", "MSG", "Receive event from event channel with id [%ld]", channelId);
-	logDebug("EVT", "MSG", "Event data [%s]", static_cast<std::string*>(data));
+	logDebug("EVT", "MSG", "Event data [%s]", data.c_str());
 
 }
 int main(int argc, char* argv[])
@@ -38,7 +38,7 @@ int main(int argc, char* argv[])
 	me = getProcessHandle(EVENT_CLIENT_PID,SAFplus::ASP_NODEADDR);
 	//eventEntityHandle = getProcessHandle(FAULT_ENTITY_PID,SAFplus::ASP_NODEADDR);
 	logInfo("FLT","CLT","********************Initial event client*********************");
-	fc.eventInitialize(me,&eventCallback);
+	fc.eventInitialize(me,eventCallback);
 	//fc.registerFault();
 	testAllFeature();
 	sleep(1);
@@ -56,32 +56,64 @@ void testAllFeature()
 	std::string localChannel = "testLocalchannel";
 	std::string globalChannel = "testGlobalchannel";
 	std::string localChannel1 = "testLocalchannel";
-	const void* testEventData = "this is the test event";
+	std::string testEventData = "this is the test event";
 
-	logInfo("FLT","CLT","********************Open local channel *********************");
-	fc.eventChannelOpenRpc(localChannel,EventChannelScope::EVENT_LOCAL_CHANNEL);
-	sleep(1);
-	logInfo("FLT","CLT","********************Open global channel *********************");
-	fc.eventChannelOpenRpc(globalChannel,EventChannelScope::EVENT_GLOBAL_CHANNEL);
-	sleep(1);
-	logInfo("FLT","CLT","********************Open local channel (test duplicate *********************");
-	fc.eventChannelOpenRpc(localChannel,EventChannelScope::EVENT_LOCAL_CHANNEL);
-	sleep(1);
-	logInfo("FLT","CLT","********************close local channel *********************");
-	fc.eventChannelCloseRpc(localChannel,EventChannelScope::EVENT_LOCAL_CHANNEL);
-	sleep(1);
-	logInfo("FLT","CLT","********************Open local channel *********************");
-	fc.eventChannelOpenRpc(localChannel,EventChannelScope::EVENT_LOCAL_CHANNEL);
-	sleep(1);
-	logInfo("FLT","CLT","********************Unsubscriber local channel *********************");
-	fc.eventChannelUnSubscriberRpc(localChannel,EventChannelScope::EVENT_LOCAL_CHANNEL);
-	sleep(1);
-	logInfo("FLT","CLT","********************Subscriber local channel *********************");
-	fc.eventChannelSubscriberRpc(localChannel,EventChannelScope::EVENT_LOCAL_CHANNEL);
+	logInfo("FLT","CLT","********************Test Open local channel *********************");
+	fc.eventChannelOpen(localChannel,EventChannelScope::EVENT_LOCAL_CHANNEL);
 	sleep(1);
 
+	logInfo("FLT","CLT","********************Test Open global channel *********************");
+	fc.eventChannelOpen(globalChannel,EventChannelScope::EVENT_GLOBAL_CHANNEL);
+	sleep(1);
+
+	logInfo("FLT","CLT","********************Test Open local channel (duplicate) *********************");
+	fc.eventChannelOpen(localChannel,EventChannelScope::EVENT_LOCAL_CHANNEL);
+	sleep(1);
+
+	logInfo("FLT","CLT","********************Test Open global channel (duplicate) *********************");
+	fc.eventChannelOpen(globalChannel,EventChannelScope::EVENT_GLOBAL_CHANNEL);
+	sleep(1);
+
+	logInfo("FLT","CLT","********************Test subscriber local channel *********************");
+	fc.eventChannelSubscriber(localChannel,EventChannelScope::EVENT_LOCAL_CHANNEL);
+	sleep(1);
+
+	logInfo("FLT","CLT","********************Test subscriber local channel (Duplicate) *********************");
+	fc.eventChannelSubscriber(localChannel,EventChannelScope::EVENT_LOCAL_CHANNEL);
+	sleep(1);
+
+	//	logInfo("FLT","CLT","********************Test publish local channel without publisher *********************");
+	//	fc.eventChannelSubscriberRpc(localChannel,EventChannelScope::EVENT_LOCAL_CHANNEL);
+	//	sleep(1);
+
+	logInfo("FLT","CLT","********************Test publisher local channel *********************");
+	fc.eventChannelPublish(localChannel,EventChannelScope::EVENT_LOCAL_CHANNEL);
+	sleep(1);
+
+	logInfo("FLT","CLT","********************Test publisher local channel (Duplicate) *********************");
+	fc.eventChannelPublish(localChannel,EventChannelScope::EVENT_LOCAL_CHANNEL);
+	sleep(1);
+
+	logInfo("FLT","CLT","********************Test public event local channel *********************");
+	fc.eventPublish(testEventData,22,localChannel,EventChannelScope::EVENT_LOCAL_CHANNEL);
+	sleep(1);
+
+	logInfo("FLT","CLT","********************Test unSubscriber local channel *********************");
+	fc.eventChannelUnSubscriber(localChannel,EventChannelScope::EVENT_LOCAL_CHANNEL);
+	sleep(1);
+
+	logInfo("FLT","CLT","********************Test unSubscriber local channel (Duplicate) *********************");
+	fc.eventChannelUnSubscriber(localChannel,EventChannelScope::EVENT_LOCAL_CHANNEL);
+	sleep(1);
+
+	logInfo("FLT","CLT","********************Test close local channel *********************");
+	fc.eventChannelClose(localChannel,EventChannelScope::EVENT_LOCAL_CHANNEL);
+	sleep(1);
+	logInfo("FLT","CLT","********************Test Reopen local channel *********************");
+	fc.eventChannelOpen(localChannel,EventChannelScope::EVENT_LOCAL_CHANNEL);
+	sleep(1);
 	logInfo("FLT","CLT","********************Subscriber local channel *********************");
-	fc.eventPublishRpc(testEventData,22,localChannel,EventChannelScope::EVENT_LOCAL_CHANNEL);
+	fc.eventChannelSubscriber(localChannel,EventChannelScope::EVENT_LOCAL_CHANNEL);
 	sleep(1);
 
 	while(1)

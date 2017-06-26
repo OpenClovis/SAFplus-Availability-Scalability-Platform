@@ -44,7 +44,7 @@ namespace SAFplus
 {
 
 
-typedef void (*EventCallbackFunction)(uintcw_t,EventChannelScope,const std::string,int); // function pointer type
+typedef void (*EventCallbackFunction)(uintcw_t,EventChannelScope,std::string,int); // function pointer type
 
 class EventClient:public SAFplus::MsgHandler,public SAFplus::Wakeable
 {
@@ -122,21 +122,22 @@ public:
 
 
     //Event using RPC
-    ClRcT eventChannelRpc(std::string evtChannelName, EventChannelScope scope,EventMessageType type);
+
 	//Create an event channel for pub and subs
-	ClRcT eventChannelOpenRpc(std::string evtChannelName, EventChannelScope scope);
+	ClRcT eventChannelOpen(std::string evtChannelName, EventChannelScope scope);
 	//Close an event channel
-	ClRcT eventChannelCloseRpc(std::string evtChannelName, EventChannelScope scope);
+	ClRcT eventChannelClose(std::string evtChannelName, EventChannelScope scope);
 	//unlink channel event
-	ClRcT eventChannelUnlinkRpc(std::string evtChannelName, EventChannelScope scope);
+	ClRcT eventChannelUnlink(std::string evtChannelName, EventChannelScope scope);
 	//Publish an event to event channel
-	ClRcT eventPublishRpc(const void *pEventData, int eventDataSize, std::string evtChannelName,EventChannelScope scope);
+	ClRcT eventPublish(std::string pEventData, int eventDataSize, std::string evtChannelName,EventChannelScope scope);
 	//Subscriber an event channel
-	ClRcT eventChannelSubscriberRpc(std::string evtChannelName, EventChannelScope scope);
+	ClRcT eventChannelSubscriber(std::string evtChannelName, EventChannelScope scope);
 	//Subscriber an event channel
-	ClRcT eventChannelUnSubscriberRpc(std::string evtChannelName, EventChannelScope scope);
+	ClRcT eventChannelUnSubscriber(std::string evtChannelName, EventChannelScope scope);
 	//Publish an event channel
-	ClRcT eventChannelPublishRpc(std::string evtChannelName, EventChannelScope scope);
+	ClRcT eventChannelPublish(std::string evtChannelName, EventChannelScope scope);
+	ClRcT eventChannelRpc(std::string evtChannelName, EventChannelScope scope,EventMessageType type);
 	ClRcT eventPublishRpc(std::string evtChannelName, EventChannelScope scope,EventMessageType type,const std::string data);
 
 };
