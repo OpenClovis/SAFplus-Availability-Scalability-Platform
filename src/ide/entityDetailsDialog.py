@@ -817,6 +817,11 @@ class Panel(scrolled.ScrolledPanel):
             #Add control into tree item
             if h:
               self.tree.SetItemWindow(child, h, 1)
+            if self.isDetailInstance and ent.et.name=="Component":
+              parentItemText = self.tree.GetItemText(treeItem)
+              if parentItemText=="instantiate" and name=="command" and isinstance(query,wx.TextCtrl) and query.GetValue().strip()=="":
+                query.SetValue(ent.entity.data["name"])
+                values[item[0]]=query.GetValue()
 
             self.tree.SetItemWindow(child, query, 3)
             self.tree.SetItemWindow(child, b, 2)
