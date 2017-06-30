@@ -82,9 +82,9 @@ void testAllFeature()
 	fc.eventChannelSubscriber(localChannel,EventChannelScope::EVENT_LOCAL_CHANNEL);
 	sleep(1);
 
-	//	logInfo("FLT","CLT","********************Test publish local channel without publisher *********************");
-	//	fc.eventChannelSubscriberRpc(localChannel,EventChannelScope::EVENT_LOCAL_CHANNEL);
-	//	sleep(1);
+	logInfo("FLT","CLT","********************Test publish local channel without publisher *********************");
+	fc.eventPublish(testEventData,22,localChannel,EventChannelScope::EVENT_LOCAL_CHANNEL);
+	sleep(1);
 
 	logInfo("FLT","CLT","********************Test publisher local channel *********************");
 	fc.eventChannelPublish(localChannel,EventChannelScope::EVENT_LOCAL_CHANNEL);

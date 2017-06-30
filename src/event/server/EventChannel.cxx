@@ -89,7 +89,7 @@ struct eventPub_delete_disposer
 void EventChannel::deleteChannelSub(SAFplus::Handle subHandle)
 {
     //TODO delete all sub with sub handle
-    if(eventSubs.empty())
+    if(this->eventPubs.empty())
     {
     	logDebug("EVT", "MSG", "Event subscriber list is empty");
 		throw SAFplus::Error(Error::ErrorFamily::SAFPLUS_ERROR, Error::DOES_NOT_EXIST,"Subscriber doesn't exist", __FILE__, __LINE__);

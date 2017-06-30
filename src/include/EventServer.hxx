@@ -80,6 +80,7 @@ public:
 //	void eventChannelUnSubsHandle(EventMessageProtocol *rxMsg,int length);
 //	void eventPublishHandle(EventMessageProtocol *rxMsg,ClWordT msglen);
 //	void createChannel(EventMessageProtocol *rxMsg,bool isSub,bool isPub,int length);
+	bool isPublisher(EventChannel& s , Handle clientHandle);
 	bool isLocalChannel(uintcw_t channelId);
 	bool isGlobalChannel(uintcw_t channelId);
 	void sendEventServerMessage(void* data, int dataLength,Handle destHandle);

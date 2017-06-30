@@ -97,6 +97,11 @@ ClRcT EventClient::eventPublishRpc(std::string evtChannelName, EventChannelScope
 	if(scope==EventChannelScope::EVENT_LOCAL_CHANNEL)
 	{
 		service->eventPublishRpcMethod(severHandle,&openRequest,&openRequestRes);
+		if(openRequestRes.saerror()!=0)
+		{
+			logDebug("EVT", "EVENT_ENTITY", "Error : %s ... ",openRequestRes.errstr().c_str());
+			return openRequestRes.saerror();
+		}
 	}
 	else
 	{
@@ -110,6 +115,11 @@ ClRcT EventClient::eventPublishRpc(std::string evtChannelName, EventChannelScope
 		serverAddress.id[1]=response.activeserver().id1();
 		logDebug("EVT", "EVENT_ENTITY", "Active Sever Address : [%d,%d]",serverAddress.getNode(),serverAddress.getPort());
 		service->eventPublishRpcMethod(serverAddress,&openRequest,&openRequestRes,SAFplus::BLOCK);
+		if(openRequestRes.saerror()!=0)
+		{
+			logDebug("EVT", "EVENT_ENTITY", "Error : %s ... ",openRequestRes.errstr().c_str());
+			return openRequestRes.saerror();
+		}
 	}
 	return CL_OK;
 }

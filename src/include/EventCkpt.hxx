@@ -12,10 +12,11 @@
 #include "clCkptApi.hxx"
 #include <string>
 #include <clCommon.hxx>
+#include <rpcEvent.hxx>
+
 
 namespace SAFplus
 {
-
 
 class EventKey
 {
@@ -47,10 +48,10 @@ public:
 	ClRcT eventCkptExit(void);
 	ClRcT eventCkptSubsDSCreate(char* *pChannelName,  EventChannelScope channelScope);
 	ClRcT eventCkptSubsDSDelete(char*, EventChannelScope channelScope);
-	ClRcT eventCkptCheckPointChannelOpen(EventMessageProtocol* message, int length);
-	ClRcT eventCkptCheckPointChannelClose(EventMessageProtocol* message, int length);
-	ClRcT eventCkptCheckPointSubscribeOrPublish(EventMessageProtocol* message , int length);
-	ClRcT eventCkptCheckPointUnsubscribeOrUnpublish(EventMessageProtocol* message , int length);
+	ClRcT eventCkptCheckPointChannelOpen(const SAFplus::Rpc::rpcEvent::eventChannelRequest* request);
+	ClRcT eventCkptCheckPointChannelClose(const SAFplus::Rpc::rpcEvent::eventChannelRequest* request);
+	ClRcT eventCkptCheckPointSubscribeOrPublish(const SAFplus::Rpc::rpcEvent::eventChannelRequest* request);
+	ClRcT eventCkptCheckPointUnsubscribeOrUnpublish(const SAFplus::Rpc::rpcEvent::eventChannelRequest* request);
 
 };
 
