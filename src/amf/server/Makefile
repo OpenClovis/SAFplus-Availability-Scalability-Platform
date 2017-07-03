@@ -12,7 +12,7 @@ CPP_FLAGS += -I$(BOOST_DIR)  -I. -I..  -I../rpc -I./amfRpc/$(PROTOBUFVER) -I../a
 LINK_SO_LIBS += -lprotobuf -lprotoc $(XML2_LINK)
 
 # Specify the required libraries
-SAFPLUS_LIBS := clLogServer clLogRep clRpc clMgt clName clFaultServer clEventServer clFault clCkpt clGroup clTimer clMsg clUtils clLog clDbal clOsal
+SAFPLUS_LIBS := clLogServer clLogRep clRpc clMgt clName clFaultServer clEventServer clEvent clFault clCkpt clGroup clTimer clMsg clUtils clLog clDbal clOsal
 # Then use these in the make rule
 SAFPLUS_DEP_LIBS     := $(addsuffix .so,$(addprefix $(LIB_DIR)/lib,$(SAFPLUS_LIBS)))
 SAFPLUS_LINK_LIBS := -L$(LIB_DIR) $(addprefix -l,$(SAFPLUS_LIBS))

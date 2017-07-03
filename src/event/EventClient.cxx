@@ -67,7 +67,8 @@ void EventClient::eventInitialize(Handle evtHandle,EventCallbackFunction func)
 	//For Rpc
 	logDebug("EVT", "EVENT_ENTITY", "Initialize event Rpc client");
 	channel = new SAFplus::Rpc::RpcChannel(eventMsgServer, severHandle);
-	channel->setMsgType(EVENT_REQ_HANDLER_TYPE,EVENT_REPLY_HANDLER_TYPE);
+	channel->setMsgReplyType(EVENT_REPLY_HANDLER_TYPE);
+	channel->msgSendType=EVENT_REQ_HANDLER_TYPE;
 	service = new SAFplus::Rpc::rpcEvent::rpcEvent_Stub(channel);
 	return ;
 }

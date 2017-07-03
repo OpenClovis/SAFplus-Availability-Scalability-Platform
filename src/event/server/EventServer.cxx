@@ -132,7 +132,9 @@ void EventServer::initialize()
 		logDebug("EVT", "SERVER", "Register rpc stub for Event");
 		SAFplus::Rpc::RpcChannel *channel = new SAFplus::Rpc::RpcChannel(
 				eventMsgServer, this);
-		channel->setMsgType(EVENT_REQ_HANDLER_TYPE, EVENT_REPLY_HANDLER_TYPE);
+		channel->setMsgSendType(EVENT_REQ_HANDLER_TYPE);
+		channel->msgReplyType=EVENT_REPLY_HANDLER_TYPE;
+
 	}
 	logDebug("EVT", "SERVER", "Initialize event checkpoint");
 	this->evtCkpt.eventCkptInit();
