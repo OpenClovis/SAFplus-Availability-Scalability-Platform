@@ -454,9 +454,7 @@ void EventServer::createChannelRpc(const eventChannelRequest *request,
 
 			if (!isGlobalChannel(channel->evtChannelId))
 			{
-				logDebug("EVT", "MSG",
-						"Add channel[%ld] to global channel list",
-						channel->evtChannelId);
+				logDebug("EVT", "MSG","Add channel[%ld] to global channel list",channel->evtChannelId);
 				globalChannelListLock.lock();
 				globalChannelList.push_back(*channel);
 				//logDebug("EVT", "MSG", "write request message to checkpoint");
@@ -883,6 +881,31 @@ void EventServer::eventPublishHandleRpc(const eventPublishRequest *request)
 						logDebug("EVT", "MSG",
 								"Sending message to all subscriber of channel[%ld]",
 								request->channelid());
+						for (EventSubscriberList::iterator iterSub =
+								s.eventSubs.begin(); iterSub != s.eventSubs.end();
+								iterSub++)
+						{
+							EventSubscriber &evtSub = *iterSub;
+							Handle sub = evtSub.usr.evtHandle;
+							//send message to sub
+							try
+							{
+								MsgPool& pool = this->eventMsgServer->getMsgPool();
+								Message* msg = pool.allocMsg();
+								msg->setAddress(sub);
+								if (1)
+								{
+									boost::iostreams::stream<MessageOStream> mos(
+											msg);
+									request->SerializeToOstream(&mos);
+								}
+								eventMsgServer->SendMsg(msg,SAFplusI::EVENT_MSG_TYPE);
+							} catch (Error &e)
+							{
+								logError("RPC", "REQ", "Serialization Error: %s",
+										e.what());
+							}
+						}
 						globalChannelListLock.unlock();
 						return;
 					}
