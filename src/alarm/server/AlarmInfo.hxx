@@ -39,35 +39,38 @@ namespace SAFplus
 {
 class AlarmInfo
 {
-  public:
-	AlarmInfo();
-	AlarmInfo& operator=(const AlarmInfo& other);
-	bool operator==(const AlarmInfo& other) const;
-	std::string toString() const;
-	// list of other name of this resource
-    std::vector<std::string> vectAltResource;
-    // last time changed
-    boost::posix_time::ptime           statusChangeTime;
-    // severity of alarm
-    AlarmSeverity severity;
-    // last alarm text
-    std::string strText;
-    // last operator
-    std::string strOperator;
-    // last operator text
-    std::string strOperatorText;
-    // operator action time.
-    boost::posix_time::ptime           operatorActionTime;
-    // * Specific-Problem of the alarm. This field adds further refinement
-    // * to the probable cause specified while raising the alarm.
-    AlarmSpecificProblem specificProblem;
-    //alarm status
-    AlarmState state;
-    std::shared_ptr<Timer> sharedAssertTimer;
-    std::shared_ptr<Timer> sharedClearTimer;
-    //AlarmData* pAlarmData;
-    std::shared_ptr<AlarmData> sharedAlarmData;
-
+public:
+  AlarmInfo();
+  AlarmInfo& operator=(const AlarmInfo& other);
+  bool operator==(const AlarmInfo& other) const;
+  std::string toString() const;
+  char resourceId[SAFplusI::MAX_RESOURCE_NAME_SIZE];
+  //alarm cagegory type
+  AlarmCategory category;
+  //alarm probalbe  cause
+  AlarmProbableCause probCause;
+  //list of other name of this resource
+  std::vector<std::string> vectAltResource;
+  //last time changed
+  boost::posix_time::ptime statusChangeTime;
+  //severity of alarm
+  AlarmSeverity severity;
+  //last alarm text
+  char strText[SAFplusI::MAX_TEXT_SIZE];
+  //last operator
+  char strOperator[SAFplusI::MAX_TEXT_SIZE];
+  //last operator text
+  char strOperatorText[SAFplusI::MAX_TEXT_SIZE];
+  //operator action time.
+  boost::posix_time::ptime operatorActionTime;
+  //Specific-Problem of the alarm. This field adds further refinement
+  //to the probable cause specified while raising the alarm.
+  AlarmSpecificProblem specificProblem;
+  AlarmState state;
+  std::shared_ptr<Timer> sharedAssertTimer;
+  std::shared_ptr<Timer> sharedClearTimer;
+  std::shared_ptr<AlarmData> sharedAlarmData;
+  BITMAP64 afterSoakingBitmap;
 };
 }
 #endif /* ALARMINFO_H_HEADER_INCLUDED_A6DEC96B */

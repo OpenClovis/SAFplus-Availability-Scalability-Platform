@@ -24,7 +24,7 @@
 #include <boost/asio.hpp>
 #include <boost/date_time/posix_time/posix_time.hpp>
 #include <boost/unordered_map.hpp>
-
+#include <EventClient.hxx>
 #include <clMsgApi.hxx>
 #include <clGlobals.hxx>
 #include <clLogApi.hxx>
@@ -32,17 +32,16 @@
 #include <MgtMsg.pb.hxx>
 #include <AlarmData.hxx>
 #include <AlarmProfile.hxx>
-#include <AlarmProfileInfo.hxx>
 #include <AlarmUtils.hxx>
-//#include <EventClient.hxx>
+
 using namespace boost::asio;
 using namespace SAFplusAlarm;
-
+extern AlarmComponentResAlarms appAlarms[];
+extern std::string myresourceId;
+extern void eventCallback(uintcw_t channelId,EventChannelScope scope,std::string data,int length);
 namespace SAFplus
 {
 // This class contains Alarm Client related APIs
-
-
 
 class Alarm
 {
@@ -54,13 +53,13 @@ class Alarm
     // Param:
     // clientHandle: input handle of client Alarm
     // Return: ClRcT
-    void init(const SAFplus::Handle& clientHandle, SAFplus::Wakeable& wake = SAFplus::BLOCK);
+    void initialize(const SAFplus::Handle& handleClient,SAFplus::Wakeable& wake = SAFplus::BLOCK);
 
     // constructor
     // Param:
     // clientHandle: input client alarm handle  
     // serverHandle: input: server alarm handle
-    Alarm(const SAFplus::Handle& clientHandle, const SAFplus::Handle& serverHandle);
+    Alarm(const SAFplus::Handle& handleClient, const SAFplus::Handle& handleServer);
 
     // raise Alarm
     // Param:
@@ -76,7 +75,7 @@ class Alarm
     // param:
     //   input: pointer to callback function
     //   return: ClRcT
-    ClRcT subscribe(EventCallback* pEvtCallback);
+    ClRcT subscriber();
 
     //  This function is used to unsubscribe for the event published by the alarm server on the channel CL_ALARM_EVENT_CHANNEL. After this function is called, the callback registered by the function Subscribe will not be called any further on the event publish. This function will finalize the event handle and will close the event channel opened by calling Subscribe().
     // return: ClRcT
@@ -104,7 +103,7 @@ class Alarm
     // handle alarm server
     SAFplus::Handle handleAlarmServer;
     //event client
-    //SAFplus::Event eventClient;
+    SAFplus::EventClient eventClient;
 };
 }
 

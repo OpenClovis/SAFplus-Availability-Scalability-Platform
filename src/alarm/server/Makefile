@@ -15,7 +15,7 @@ CPP_FLAGS += -ISAFplusAlarm -I.. -I../../event -I../../include -I../common -I../
 
 
 # Specify the required libraries
-SAFPLUS_LIBS := clName clMsg clLog clUtils clOsal clFault SAFplusAlarm
+SAFPLUS_LIBS := clRpc clName clMsg clLog clEvent clUtils clOsal clFault SAFplusAlarm
 # Then use these in the make rule
 SAFPLUS_DEP_LIBS     := $(addsuffix .so,$(addprefix $(LIB_DIR)/lib,$(SAFPLUS_LIBS)))
 SAFPLUS_LINK_LIBS := -L$(LIB_DIR) $(addprefix -l,$(SAFPLUS_LIBS))  
@@ -23,7 +23,7 @@ SAFPLUS_LINK_LIBS := -L$(LIB_DIR) $(addprefix -l,$(SAFPLUS_LIBS))
 all: $(LIB_DIR)/libclAlarmServer.so
 
 ifdef SAFPLUS_GEN_STATIC_LIBS
-all:  $(LIB_DIR)/libclAlarmServer.a 
+all: $(LIB_DIR)/libclAlarmServer.a 
 
 $(LIB_DIR)/libclAlarmServer.a: $(SERVER_OBJ) $(DEP_LIBS)
 	ar -cvq $@ $+

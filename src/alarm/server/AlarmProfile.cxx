@@ -23,42 +23,42 @@ using namespace SAFplusAlarm;
 namespace SAFplus
 {
 AlarmProfile::AlarmProfile()
-	{
-    	    category = AlarmCategory::INVALID;
-    	    probCause = AlarmProbableCause::INVALID;
-    	    severity = AlarmSeverity::INVALID;
-    	    isSend = false;
-    	    intAssertSoakingTime = 0;
-    	    intClearSoakingTime = 0;
-    	    generationRule = nullptr;
-    	    suppressionRule = nullptr;
-    	    specificProblem = 0;
-	}
-AlarmProfile::AlarmProfile(const AlarmCategory& acategory,const AlarmProbableCause& aprobCause,const AlarmSeverity& aseverity,const bool& aisSend,const int& aassertSoakingTime,
-			const int& aclearSoakingTime,AlarmRuleInfo* agenerationRule,AlarmRuleInfo* asuppressionRule,const AlarmSpecificProblem aspecificProblem)
-	{
-		category = acategory;
-		probCause = aprobCause;
-		severity = aseverity;
-		isSend = aisSend;
-		intAssertSoakingTime = aassertSoakingTime;
-		intClearSoakingTime = aclearSoakingTime;
-		generationRule = agenerationRule;
-		suppressionRule = asuppressionRule;
-		specificProblem = aspecificProblem;
-	}
-	AlarmProfile AlarmProfile::operator=(const AlarmProfile& other)
-	{
-		category = other.category;
-		probCause = other.probCause;
-		severity = other.severity;
-		isSend = other.isSend;
-		intAssertSoakingTime = other.intAssertSoakingTime;
-		intClearSoakingTime = other.intClearSoakingTime;
-		generationRule = other.generationRule;
-		suppressionRule = other.suppressionRule;
-		specificProblem = other.specificProblem;
-		return *this;
-	}
+{
+  category = AlarmCategory::INVALID;
+  probCause = AlarmProbableCause::INVALID;
+  severity = AlarmSeverity::INVALID;
+  isSend = false;
+  intAssertSoakingTime = 0;
+  intClearSoakingTime = 0;
+  generationRule = nullptr;
+  suppressionRule = nullptr;
+  specificProblem = 0;
+}
+AlarmProfile::AlarmProfile(const AlarmCategory& acategory, const AlarmProbableCause& aprobCause, const AlarmSeverity& aseverity, const bool& aisSend, const int& aassertSoakingTime, const int& aclearSoakingTime, AlarmRuleInfo* agenerationRule, AlarmRuleInfo* asuppressionRule,
+    const AlarmSpecificProblem aspecificProblem)
+{
+  category = acategory;
+  probCause = aprobCause;
+  severity = aseverity;
+  isSend = aisSend;
+  intAssertSoakingTime = aassertSoakingTime;
+  intClearSoakingTime = aclearSoakingTime;
+  generationRule = agenerationRule;
+  suppressionRule = asuppressionRule;
+  specificProblem = aspecificProblem;
+}
+AlarmProfile AlarmProfile::operator=(const AlarmProfile& other)
+{
+  category = other.category;
+  probCause = other.probCause;
+  severity = other.severity;
+  isSend = other.isSend;
+  intAssertSoakingTime = other.intAssertSoakingTime;
+  intClearSoakingTime = other.intClearSoakingTime;
+  generationRule = other.generationRule;
+  suppressionRule = other.suppressionRule;
+  specificProblem = other.specificProblem;
+  return *this;
+}
 
 }

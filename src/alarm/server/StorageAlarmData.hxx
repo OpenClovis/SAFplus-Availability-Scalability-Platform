@@ -22,6 +22,8 @@
 #include <string>
 #include <clCustomization.hxx>
 #include <AlarmUtils.hxx>
+#include <thread>
+#include <mutex>
 
 using namespace SAFplusAlarm;
 
@@ -30,33 +32,34 @@ namespace SAFplus
 // this class to contain data on AlarmClient server side
 class StorageAlarmData
 {
-  public:
-	 StorageAlarmData();
-	 void initialize();
-	 bool findAlarmInfo(const AlarmKey& key,AlarmInfo& alarmInfo);
-	 std::vector<AlarmKey> getKeysAlarmInfo(const std::string& resourceId);
-	 void updateAlarmInfo(const AlarmKey& key,const AlarmInfo& alarmInfo);
-	 void removeAlarmInfo(const AlarmKey& key);
-	 bool findAlarmProfileInfo(const AlarmKey& key,AlarmProfileInfo& alarmProfileInfo);
-	 void updateAlarmProfileInfo(const AlarmKey& key,const AlarmProfileInfo& alarmProfileInfo);
-	 void removeAlarmProfileInfo(const AlarmKey& key);
-	 void loadAlarmProfile();
-	 void loadAlarmData();
-	 void updateSummary();
-	 void printAllData();
-	 bool isUpdate;
-	 // list of summary
-	 std::vector<Summary> vectSummary;
-  private:
-	 MAPALARMPROFILEINFO m_ProfileInfoData;
-	 MAPMAPALARMINFO m_mapAlarmInfoData;
-	 SAFplus::Checkpoint m_checkpointProfile;
-	 SAFplus::Checkpoint m_checkpointAlarm;
-	 //last update time
-	 boost::posix_time::ptime     lastUpdateAlarmData;
-	 boost::posix_time::ptime     lastUpdateSummary;
+public:
+  StorageAlarmData();
+  void initialize();
+  bool findAlarmInfo(const AlarmKey& key, AlarmInfo& alarmInfo);
+  std::vector<AlarmKey> getKeysAlarmInfo(const std::string& resourceId);
+  void updateAlarmInfo(AlarmInfo& alarmInfo);
+  void removeAlarmInfo(const AlarmKey& key);
+  bool findAlarmProfileData(const AlarmKey& key, AlarmProfileData& alarmProfileData);
+  void updateAlarmProfileData(const AlarmProfileData& alarmProfileData);
+  void removeAlarmProfileData(const AlarmKey& key);
+  void loadAlarmProfile();
+  void loadAlarmData();
+  void updateSummary();
+  void printAllData();
+  bool isUpdate;
+  // list of summary
+  std::vector<Summary> vectSummary;
+private:
+  std::mutex mtxAlarmData;
+  std::mutex mtxProfileData;
+  MAPALARMPROFILEINFO m_ProfileInfoData;
+  MAPMAPALARMINFO m_mapAlarmInfoData;
+  SAFplus::Checkpoint m_checkpointProfile;
+  SAFplus::Checkpoint m_checkpointAlarm;
+  //last update time
+  boost::posix_time::ptime lastUpdateAlarmData;
+  boost::posix_time::ptime lastUpdateSummary;
 };
 }
-
 
 #endif /* STORAGE_ALARM_DATA_HXX_HEADER_INCLUDED */

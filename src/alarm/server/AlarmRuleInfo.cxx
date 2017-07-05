@@ -23,30 +23,30 @@ using namespace SAFplus;
 
 AlarmRuleInfo::AlarmRuleInfo()
 {
-	relation = AlarmRuleRelation::INVALID;
+  relation = AlarmRuleRelation::INVALID;
 }
-AlarmRuleInfo::AlarmRuleInfo(const AlarmRuleRelation& arelation,const AlarmRuleEntry* arrAlarmRuleEntry)
+AlarmRuleInfo::AlarmRuleInfo(const AlarmRuleRelation& arelation, const AlarmRuleEntry* arrAlarmRuleEntry)
 {
-	relation = arelation;
-	vectAlarmRelation.clear();
-	if(NULL != arrAlarmRuleEntry)
-	{
-		for(int i = 0;i < SAFplusI::MAX_ALARM_RULE_DEPENDENCIES;i++)
-		{
-			if(AlarmProbableCause::INVALID != arrAlarmRuleEntry[i].probCause)
-			{
-				vectAlarmRelation.push_back(arrAlarmRuleEntry[i]);
-			}
-		}
-	}
+  relation = arelation;
+  vectAlarmRelation.clear();
+  if (NULL != arrAlarmRuleEntry)
+  {
+    for (int i = 0; i < SAFplusI::MAX_ALARM_RULE_DEPENDENCIES; i++)
+    {
+      if (AlarmProbableCause::INVALID != arrAlarmRuleEntry[i].probCause)
+      {
+        vectAlarmRelation.push_back(arrAlarmRuleEntry[i]);
+      }
+    }
+  }
 }
-AlarmRuleInfo::AlarmRuleInfo(const AlarmRuleRelation& arelation,std::vector<AlarmRuleEntry> avectAlarmRelation)
+AlarmRuleInfo::AlarmRuleInfo(const AlarmRuleRelation& arelation, std::vector<AlarmRuleEntry> avectAlarmRelation)
 {
-	relation = arelation;
-	vectAlarmRelation = avectAlarmRelation;
+  relation = arelation;
+  vectAlarmRelation = avectAlarmRelation;
 }
 AlarmRuleInfo AlarmRuleInfo::operator=(const AlarmRuleInfo& other)
 {
-	relation = other.relation;
-	vectAlarmRelation = other.vectAlarmRelation;
+  relation = other.relation;
+  vectAlarmRelation = other.vectAlarmRelation;
 }

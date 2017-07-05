@@ -4,7 +4,7 @@ include ../mk/preface.mk
 
 MGT_SRC_DIR ?= $(SAFPLUS_SRC_DIR)/../../mgt
 
-CPP_FLAGS += -I$(BOOST_DIR) -I. $(SAFPLUS_MGT_INC_FLAGS)
+CPP_FLAGS += -I$(BOOST_DIR) -I. $(SAFPLUS_MGT_INC_FLAGS) -I../alarm/server/SAFplusAlarm
 
 CLIENT_H := $(wildcard *.hxx) $(wildcard $(SAFPLUS_INC_DIR)/*.hxx)
 CLIENT_SRC := EventClient.cxx

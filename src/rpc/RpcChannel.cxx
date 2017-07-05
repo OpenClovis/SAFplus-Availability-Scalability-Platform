@@ -64,6 +64,17 @@ namespace SAFplus
               if(msgReplyType) svr->RegisterHandler(msgReplyType, this, NULL);
 
               }  // Set the protocol type for underlying transports that require one.
+      void RpcChannel::setMsgSendType(ClWordT send)
+              {
+              msgSendType = send;
+              if(msgSendType)  svr->RegisterHandler(msgSendType, this, NULL);
+              }  // Set the protocol type for underlying transports that require one.
+      void RpcChannel::setMsgReplyType(ClWordT reply)
+              {
+              msgReplyType = reply;
+              if(msgReplyType) svr->RegisterHandler(msgReplyType, this, NULL);
+              }  // Set the protocol type for underlying transports that require one.
+
 
         RpcChannel::~RpcChannel()
           {
@@ -289,6 +300,7 @@ namespace SAFplus
             response_pb->SerializeToString(&strMsgRes);
             rpcMsgRes.set_buffer(strMsgRes);
 
+#ifdef CHECK_LOCAL_SERVICE
             //Check local service
             if (iocReq.getNode() == dest.getNode()
                 && iocReq.getPort() == dest.getPort())
@@ -297,6 +309,7 @@ namespace SAFplus
               }
             else //remote
               {
+#endif
                 //Sending reply to remote
                 try
                   {
@@ -318,10 +331,13 @@ namespace SAFplus
                   {
                     logError("RPC", "REQ", "%s", e.what());
                   }
+#ifdef CHECK_LOCAL_SERVICE
               }
+#endif
             delete request_pb;
             delete response_pb;
           }
+
 
         /*
          * Client side: handle response message
@@ -353,7 +369,6 @@ namespace SAFplus
                 mutex.unlock();
                 logWarning("RPC", "RSP","RPC response [%d] has no request tracker", (unsigned int) rpcMsgRes->id());
               }
-
           }
 
         /*

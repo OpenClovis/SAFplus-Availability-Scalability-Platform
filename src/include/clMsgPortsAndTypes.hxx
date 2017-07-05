@@ -22,7 +22,7 @@ namespace SAFplusI
     FAULT_IOC_PORT = 5,
 #endif
 
-#ifdef SAFPLUS_AMF_FAULT_NODE_REPRESENTATIVE  // If the AMF is handling the event server functionality, then the GMS port will be the same as the AMF port
+#ifdef SAFPLUS_AMF_EVENT_NODE_REPRESENTATIVE  // If the AMF is handling the event server functionality, then the GMS port will be the same as the AMF port
     EVENT_IOC_PORT = AMF_IOC_PORT,
 #else  // otherwise give it a unique port
     EVENT_IOC_PORT = 6,
@@ -51,9 +51,13 @@ namespace SAFplusI
     AMF_APP_REPLY_HANDLER_TYPE = 22,
     FAULT_MSG_TYPE = 23,
     EVENT_MSG_TYPE = 24,
-    ALARM_MSG_TYPE = 25,
+    EVENT_REQ_HANDLER_TYPE = 25,
+    EVENT_REPLY_HANDLER_TYPE = 26,
+
+
     // TODO: possibly misused:
-    CL_IOC_SAF_MSG_REPLY_PROTO = 26
+    CL_IOC_SAF_MSG_REPLY_PROTO = 27,
+    ALARM_MSG_TYPE = 28
 
     };
   }

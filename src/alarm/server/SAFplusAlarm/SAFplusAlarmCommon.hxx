@@ -9,10 +9,11 @@
 #define ALARM_CKPT_NAME "ALARM_CKPT"
 #define PROFILE "PROFILE"
 #define ALARMINFO "ALARMINFO"
+#define ALARM_CHANNEL "ALARM_CHANNEL_NAME"
 
 namespace SAFplusAlarm
 {
 typedef int AlarmSpecificProblem;
-typedef long long BITMAP64;
+typedef unsigned long long BITMAP64;
 }
 #endif

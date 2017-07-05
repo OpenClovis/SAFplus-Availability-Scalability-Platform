@@ -2,14 +2,14 @@ S7 := 1
 SAFPLUS_EVENT_SERVER := 1
 include ../../mk/preface.mk
 
-CPP_FLAGS += -I$(BOOST_DIR) -I. $(SAFPLUS_MGT_INC_FLAGS)
+CPP_FLAGS += -I$(BOOST_DIR) -I. $(SAFPLUS_MGT_INC_FLAGS) -I$(PROTOBUFVER) -I$(PROTOBUFVER)/stubs -I../../alarm/server/SAFplusAlarm
 
 CLIENT_H := $(wildcard *.hxx) $(wildcard $(SAFPLUS_INC_DIR)/*.hxx)
-CLIENT_SRC := EventServer.cxx EventCkpt.cxx 
-CLIENT_OBJ := $(addprefix $(MWOBJ_DIR)/,$(subst .cxx,.o,$(CLIENT_SRC)))
+CLIENT_SRC := rpcEvent.cxx rpcEvent.pb.cxx EventServer.cxx EventCkpt.cxx EventChannel.cxx  
+CLIENT_OBJ := $(addprefix $(MWOBJ_DIR)/,$(subst .cxx,.o,$(notdir $(CLIENT_SRC))))
 
 # Specify the required libraries
-SAFPLUS_LIBS := clCkpt clName clMsg clLog clUtils clOsal clGroup clMgt clDbal
+SAFPLUS_LIBS := clRpc clCkpt clName clMsg clLog clUtils clOsal clGroup clMgt clDbal
 # Then use these in the make rule
 SAFPLUS_DEP_LIBS     := $(addsuffix .so,$(addprefix $(LIB_DIR)/lib,$(SAFPLUS_LIBS)))
 SAFPLUS_LINK_LIBS := -L$(LIB_DIR) $(addprefix -l,$(SAFPLUS_LIBS))  
@@ -31,8 +31,12 @@ $(MWOBJ_DIR)/%.o: %.cxx Makefile $(CLIENT_H)
 
 $(OBJ_DIR)/%.o: %.cxx Makefile $(CLIENT_H)
 	$(COMPILE_CPP) $@ $<
-
+	
+gen:
+	mkdir -p ./$(PROTOBUFVER)/stubs
+	$(call SAFPLUS_RPC_GEN,rpcEvent,stubs)
+	
 clean:
-	rm -f $(LIB_DIR)/libclEventServer.so
+	rm -f $(LIB_DIR)/libclEventServer.so $(LIB_DIR)/libclEventServer.a $(MWOBJ_DIR)/Event* $(MWOBJ_DIR)/rpcEvent*
 
 include $(SAFPLUS_MAKE_DIR)/safplus_targets.mk

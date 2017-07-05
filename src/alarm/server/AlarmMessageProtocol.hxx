@@ -20,26 +20,31 @@
 #ifndef ALARM_MESSAGE_PROTOCOL_HXX_HEADER_INCLUDED
 #define ALARM_MESSAGE_PROTOCOL_HXX_HEADER_INCLUDED
 #include <AlarmMessageType.hxx>
+#include <clCustomization.hxx>
 #include <AlarmData.hxx>
-#include <AlarmUtils.hxx>
+#include <AlarmProfileData.hxx>
 using namespace SAFplusAlarm;
 using namespace SAFplus;
 namespace SAFplus
 {
-
+union uniondata
+{
+  uniondata()
+  {
+  }
+  AlarmData alarmData;
+  AlarmProfileData alarmProfileData;
+};
 // alarm message protocol
 class AlarmMessageProtocol
 {
-  public:
-    // alarm message type
-    AlarmMessageType messageType;
-    // alarm data
-    AlarmData alarmData;
-    // alarm proifle
-    MAPALARMPROFILEINFO alarmProfileData;
-    //std::vector<AlarmProfileInfo> vectProfiles;
+public:
+  AlarmMessageProtocol();
+  AlarmMessageProtocol(const AlarmMessageProtocol& other);
+  AlarmMessageProtocol& operator=(const AlarmMessageProtocol& other);
+  AlarmMessageType messageType;
+  uniondata data;
 };
 }
-
 
 #endif /* ALARM_MESSAGE_PROTOCOL_HXX_HEADER_INCLUDED */

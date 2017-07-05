@@ -25,6 +25,7 @@
 #include <clFaultApi.hxx>
 #include <clFaultServerIpi.hxx>
 #include <clAlarmServerApi.hxx>
+#include <EventServer.hxx>
 #include <clMsgPortsAndTypes.hxx>
 #include <clProcessStats.hxx>
 #include <clNodeStats.hxx>
@@ -744,10 +745,7 @@ int main(int argc, char* argv[])
   SAFplus::FaultServer fs;
   fs.init();
 #endif
-#ifdef SAFPLUS_AMF_ALARM_NODE_REPRESENTATIVE
-  SAFplus::AlarmServer as;
-  as.initialize();
-#endif
+
   nameInitialize();  // Name must be initialized after the group server 
 
   // Mgt must be inited after name if you are using Checkpoint DB
@@ -879,7 +877,15 @@ int main(int argc, char* argv[])
         assert(0);
     }
 
-
+  logInfo("AMF","EVT", "Initialize event server");
+  EventServer evtSever;
+  evtSever.initialize();
+  logInfo("AMF","EVT", "Before Initialize alarm server");
+  //sleep(20);
+ #ifdef SAFPLUS_AMF_ALARM_NODE_REPRESENTATIVE
+   SAFplus::AlarmServer alarmServer;
+   alarmServer.initialize();
+ #endif
 
     //boost::asio::io_service ioSvc;
   // Construct a signal set registered for process termination.

@@ -21,4 +21,34 @@
 
 namespace SAFplus
 {
+
+AlarmMessageProtocol::AlarmMessageProtocol()
+{
+  new (&data) uniondata();
+}
+AlarmMessageProtocol::AlarmMessageProtocol(const AlarmMessageProtocol& other)
+{
+  messageType = other.messageType;
+  if (SAFplusAlarm::AlarmMessageType::MSG_ENTITY_ALARM == other.messageType)
+  {
+    data.alarmData = other.data.alarmData;
+  }
+  else
+  {
+    data.alarmProfileData = other.data.alarmProfileData;
+  }
+}
+AlarmMessageProtocol& AlarmMessageProtocol::operator=(const AlarmMessageProtocol& other)
+{
+  messageType = other.messageType;
+  if (SAFplusAlarm::AlarmMessageType::MSG_ENTITY_ALARM == other.messageType)
+  {
+    data.alarmData = other.data.alarmData;
+  }
+  else
+  {
+    data.alarmProfileData = other.data.alarmProfileData;
+  }
+  return *this;
+}
 }

@@ -19,7 +19,6 @@
 
 #ifndef ALARMPROFILE_H_HEADER_INCLUDED_A6DE96AF
 #define ALARMPROFILE_H_HEADER_INCLUDED_A6DE96AF
-//#include <SAFplusAlarmCommon.hxx>
 #include <AlarmRuleInfo.hxx>
 #include <AlarmCategory.hxx>
 #include <AlarmSeverity.hxx>
@@ -33,29 +32,29 @@ namespace SAFplus
 
 class AlarmProfile
 {
-  public:
-	AlarmProfile();
-	AlarmProfile(const AlarmCategory& acategory,const AlarmProbableCause& aprobCause,const AlarmSeverity& aseverity,const bool& aisSend,const int& aassertSoakingTime,
-			const int& aclearSoakingTime,AlarmRuleInfo* agenerationRule,AlarmRuleInfo* asuppressionRule,const AlarmSpecificProblem aspecificProblem);
-    AlarmProfile operator=(const AlarmProfile& other);
-	// alarm category
-    AlarmCategory category;
-    //severity
-    AlarmSeverity severity;
-    // alarm probable cause
-    AlarmProbableCause probCause;
-    //send to fault manager or not
-    bool isSend;
-    // period to wait for assert soaking time
-    int intAssertSoakingTime;
-    // period to wait for clear soaking time
-    int intClearSoakingTime;
-    // rule for generate
-    AlarmRuleInfo *generationRule;
-    // rule for suppression
-    AlarmRuleInfo *suppressionRule;
-    // specific problem
-    AlarmSpecificProblem specificProblem;
+public:
+  AlarmProfile();
+  AlarmProfile(const AlarmCategory& acategory, const AlarmProbableCause& aprobCause, const AlarmSeverity& aseverity, const bool& aisSend, const int& aassertSoakingTime, const int& aclearSoakingTime, AlarmRuleInfo* agenerationRule, AlarmRuleInfo* asuppressionRule,
+      const AlarmSpecificProblem aspecificProblem);
+  AlarmProfile operator=(const AlarmProfile& other);
+  // alarm category
+  AlarmCategory category;
+  //severity
+  AlarmSeverity severity;
+  // alarm probable cause
+  AlarmProbableCause probCause;
+  //send to fault manager or not
+  bool isSend;
+  // period to wait for assert soaking time
+  int intAssertSoakingTime;
+  // period to wait for clear soaking time
+  int intClearSoakingTime;
+  // rule for generate
+  AlarmRuleInfo *generationRule;
+  // rule for suppression
+  AlarmRuleInfo *suppressionRule;
+  // specific problem
+  AlarmSpecificProblem specificProblem;
 };
 
 }

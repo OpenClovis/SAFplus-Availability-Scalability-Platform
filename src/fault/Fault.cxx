@@ -41,7 +41,7 @@ namespace SAFplus
 {
   typedef boost::unordered_map<SAFplus::FaultPolicy,ClPluginHandle*> FaultPolicyMap;
 
-  const char* strFaultCategory[]={
+  /*const char* strFaultCategory[]={
       "CL_ALARM_CATEGORY_UNKNOWN",
       "CL_ALARM_CATEGORY_COMMUNICATIONS",
       "CL_ALARM_CATEGORY_QUALITY_OF_SERVICE",
@@ -58,13 +58,10 @@ namespace SAFplus
       "CL_ALARM_SEVERITY_WARNING",
       "CL_ALARM_SEVERITY_INDETERMINATE",
       "CL_ALARM_SEVERITY_CLEAR"
-  };
+  };*/
 
-  const char* strFaultProbableCause[]={
+  /*const char* strFaultProbableCause[]={
       "CL_ALARM_PROB_CAUSE_UNKNOWN",
-      /**
-       * Probable cause for Communication related alarms
-       */
       "CL_ALARM_PROB_CAUSE_LOSS_OF_SIGNAL",
       "CL_ALARM_PROB_CAUSE_LOSS_OF_FRAME",
       "CL_ALARM_PROB_CAUSE_FRAMING_ERROR",
@@ -79,7 +76,7 @@ namespace SAFplus
       /**
        * Probable cause for Quality of Service related alarms
        */
-      "CL_ALARM_PROB_CAUSE_RESPONSE_TIME_EXCESSIVE",
+      /*"CL_ALARM_PROB_CAUSE_RESPONSE_TIME_EXCESSIVE",
       "CL_ALARM_PROB_CAUSE_QUEUE_SIZE_EXCEEDED",
       "CL_ALARM_PROB_CAUSE_BANDWIDTH_REDUCED",
       "CL_ALARM_PROB_CAUSE_RETRANSMISSION_RATE_EXCESSIVE",
@@ -90,7 +87,7 @@ namespace SAFplus
       /**
        * Probable cause for Processing Error related alarms
        */
-      "CL_ALARM_PROB_CAUSE_STORAGE_CAPACITY_PROBLEM",
+      /*"CL_ALARM_PROB_CAUSE_STORAGE_CAPACITY_PROBLEM",
       "CL_ALARM_PROB_CAUSE_VERSION_MISMATCH",
       "CL_ALARM_PROB_CAUSE_CORRUPT_DATA",
       "CL_ALARM_PROB_CAUSE_CPU_CYCLES_LIMIT_EXCEEDED",
@@ -105,7 +102,7 @@ namespace SAFplus
       /**
        * Probable cause for Equipment related alarms
        */
-      "CL_ALARM_PROB_CAUSE_POWER_PROBLEM",
+      /*"CL_ALARM_PROB_CAUSE_POWER_PROBLEM",
       "CL_ALARM_PROB_CAUSE_TIMING_PROBLEM",
       "CL_ALARM_PROB_CAUSE_PROCESSOR_PROBLEM",
       "CL_ALARM_PROB_CAUSE_DATASET_OR_MODEM_ERROR",
@@ -122,7 +119,7 @@ namespace SAFplus
       /**
        * Probable cause for Environmental related alarms
        */
-      "CL_ALARM_PROB_CAUSE_TEMPERATURE_UNACCEPTABLE",
+      /*"CL_ALARM_PROB_CAUSE_TEMPERATURE_UNACCEPTABLE",
       "CL_ALARM_PROB_CAUSE_HUMIDITY_UNACCEPTABLE",
       "CL_ALARM_PROB_CAUSE_HEATING_OR_VENTILATION_OR_COOLING_SYSTEM_PROBLEM",
       "CL_ALARM_PROB_CAUSE_FIRE_DETECTED",
@@ -134,7 +131,7 @@ namespace SAFplus
       "CL_ALARM_PROB_CAUSE_MATERIAL_SUPPLY_EXHAUSTED",
       "CL_ALARM_PROB_CAUSE_PUMP_FAILURE",
       "CL_ALARM_PROB_CAUSE_ENCLOSURE_DOOR_OPEN"
-  };
+  };*/
 
   const char* strFaultMsgType[]=
   {

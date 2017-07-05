@@ -25,18 +25,22 @@
 #include <clGlobals.hxx>
 #include <clLogApi.hxx>
 #include <clMsgApi.hxx>
+#include <boost/lockfree/spsc_queue.hpp>
+#include <boost/atomic.hpp>
+#include <boost/thread.hpp>
+#include <EventClient.hxx>
 #include <StorageAlarmData.hxx>
 #include <AlarmData.hxx>
 #include <AlarmProfile.hxx>
-#include <clAlarmApi.hxx>
+#include <AlarmMessageProtocol.hxx>
 #include <clFaultApi.hxx>
 #include <AlarmUtils.hxx>
-//#include <Event.hxx>
+
 using namespace SAFplusAlarm;
 namespace SAFplus
 {
 // Since the AMF (safplus_amf process) includes a alarm server instance, this alarm server class is only used by applications in a no AMF deployment
-//Alarm Server control 2 roles: Alarm Server(operator,administrator,manage alarm application,fault manager) and Alarm Client
+// Alarm Server control 2 roles: Alarm Server(operator,administrator,manage alarm application,fault manager) and Alarm Client
 // Alarm server check handmasking,send to alarm application,fault management
 // Alarm client such as clearing,soaking,check generate rule,suppression rule,assert state
 
@@ -66,49 +70,40 @@ class AlarmServer:public SAFplus::MsgHandler,public SAFplus::Wakeable
     ~AlarmServer();
     // purge rpc for alarm
     static void purgeRpcRequest(const AlarmFilter& inputFilter);
-
-
     // delete alarms on data storage
     static void deleteRpcRequest(const AlarmFilter& inputFilter);
-    // Query alarm data
-    // Param:
-    // resourceid: input alarm object id
-    // listAlarmInfo: output list of AlarmInfo
-    // Return: ClRcT
-    //ClRcT queryAlarmInfo(const std::string& resourceid,std::list<AlarmInfo>& listAlarmInfo);
     // Proccess alarm
      static void processAssertAlarmData(const AlarmData& alarmData);
      static void processClearAlarmData(const AlarmData& alarmData);
-     static bool alarmConditionCheck(const AlarmData& alarmData);
-     static void processAffectedAlarmData(const AlarmData& alarmData);
+     static bool alarmConditionCheck(const AlarmInfo& alarmInfo);
+     static void processAffectedAlarm(const AlarmKey& key,const bool& isSet = true);
+     static void processPublishAlarmData(const AlarmData& alarmData);
      static ClRcT processAlarmDataCallBack(void* apAlarmData);
      static void processAlarmData(const AlarmData& alarmData);
-     static bool checkHandMasking(const AlarmData& alarmData);
-     void createAlarmProfile(const std::string& resourceId, const MAPALARMPROFILEINFO& mapAlarmProfileInfo);
+     static void processData();
+     static bool checkHandMasking(const AlarmInfo& alarmInfo);
+     static void createAlarmProfileData(const AlarmProfileData& alarmProfileData);
      void wake(int amt,void* cookie);
-     void deleteAlarmProfile(const std::string& resourceId, const MAPALARMPROFILEINFO& mapAlarmProfileInfo);
+     static void deleteAlarmProfileData(const AlarmProfileData& alarmProfileData);
      static StorageAlarmData data;
+     static boost::atomic<bool> isDataAvailable;
+     static boost::lockfree::spsc_queue<AlarmMessageProtocol, boost::lockfree::capacity<1024> > spsc_queue;
+     static boost::thread threadProcess;
+     static SAFplus::EventClient eventClient;
+     static boost::mutex g_queue_mutex;
   private:
      static bool checkHandMasking(const std::vector<std::string>& paths);
      void loadAlarmProfile();
   protected:
-    //alarm server data
-    // alarm server reporter
     SAFplus::Handle handleAlarmServer;
     // alarm message server
     SAFplus::SafplusMsgServer* alarmMsgServer;
     // Alarm client
-    SAFplus::Alarm alarmClient;
     //object fault client
     SAFplus::Fault faultClient;
     // object event client
     SAFplus::Group group;
-    //SAFplus::EventClient eventClient;
     SAFplus::Handle activeServer;
-    //alarm client data
-    //map to store soaking clearing time
-
-    //map to store soaking clearing time timer
 };
 }
 

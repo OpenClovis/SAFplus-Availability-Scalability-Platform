@@ -85,6 +85,9 @@ namespace SAFplus
             void HandleResponse(SAFplus::Rpc::RpcMessage *msg);
 
             void setMsgType(ClWordT send, ClWordT reply); //? Set the SAFplus protocol type for underlying transports that require one.  See <ref type="file">clMsgPortsAndTypes.hxx</ref>.
+            void setMsgSendType(ClWordT send);
+            void setMsgReplyType(ClWordT reply);
+
           public:
             ClWordT msgSendType;
             ClWordT msgReplyType;

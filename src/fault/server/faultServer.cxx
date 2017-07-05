@@ -256,7 +256,10 @@ namespace SAFplus
                   //logDebug(FAULT,"MSG","Process fault event message");
                     if (created) registerFaultEntity(fe,faultEntity,true);
                     processFaultEvent(pluginId,eventData,faultEntity,reporterHandle);
-                    logDebug("POL","AMF","Fault event data severity [%s] , cause [%s] , catagory [%s] , state [%d] ", SAFplus::strFaultSeverity[int(eventData.severity)],SAFplus::strFaultProbableCause[int(eventData.cause)],SAFplus::strFaultCategory[int(eventData.category)],eventData.state);
+                    std::ostringstream oss;
+                    oss <<"severity ["<<eventData.severity<<"] , cause ["<<eventData.cause<<"] , category ["<<eventData.category<<"] , state ["<<eventData.state<<"]";
+                    //logDebug("POL","AMF","Fault event data severity [%s] , cause [%s] , catagory [%s] , state [%d] ", SAFplus::strFaultSeverity[int(eventData.severity)],SAFplus::strFaultProbableCause[int(eventData.cause)],SAFplus::strFaultCategory[int(eventData.category)],eventData.state);
+                    logDebug("POL","AMF","Fault event data %s", oss.str().c_str());
                     FaultHistoryEntity faultHistoryEntry;
                     time_t now;
                     time(&now);
