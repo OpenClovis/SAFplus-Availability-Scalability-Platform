@@ -195,13 +195,6 @@ class eventChannelRequest : public ::google::protobuf::Message {
   inline ::SAFplus::Rpc::rpcEvent::Handle* release_clienthandle();
   inline void set_allocated_clienthandle(::SAFplus::Rpc::rpcEvent::Handle* clienthandle);
 
-  // required uint64 channelId = 2;
-  inline bool has_channelid() const;
-  inline void clear_channelid();
-  static const int kChannelIdFieldNumber = 2;
-  inline ::google::protobuf::uint64 channelid() const;
-  inline void set_channelid(::google::protobuf::uint64 value);
-
   // required string channelName = 3;
   inline bool has_channelname() const;
   inline void clear_channelname();
@@ -233,8 +226,6 @@ class eventChannelRequest : public ::google::protobuf::Message {
  private:
   inline void set_has_clienthandle();
   inline void clear_has_clienthandle();
-  inline void set_has_channelid();
-  inline void clear_has_channelid();
   inline void set_has_channelname();
   inline void clear_has_channelname();
   inline void set_has_scope();
@@ -249,7 +240,6 @@ class eventChannelRequest : public ::google::protobuf::Message {
   ::google::protobuf::uint32 _has_bits_[1];
   mutable int _cached_size_;
   ::SAFplus::Rpc::rpcEvent::Handle* clienthandle_;
-  ::google::protobuf::uint64 channelid_;
   ::std::string* channelname_;
   ::google::protobuf::int32 scope_;
   ::google::protobuf::int32 type_;
@@ -324,13 +314,6 @@ class eventPublishRequest : public ::google::protobuf::Message {
   inline ::SAFplus::Rpc::rpcEvent::Handle* release_clienthandle();
   inline void set_allocated_clienthandle(::SAFplus::Rpc::rpcEvent::Handle* clienthandle);
 
-  // required uint64 channelId = 2;
-  inline bool has_channelid() const;
-  inline void clear_channelid();
-  static const int kChannelIdFieldNumber = 2;
-  inline ::google::protobuf::uint64 channelid() const;
-  inline void set_channelid(::google::protobuf::uint64 value);
-
   // required string channelName = 3;
   inline bool has_channelname() const;
   inline void clear_channelname();
@@ -374,8 +357,6 @@ class eventPublishRequest : public ::google::protobuf::Message {
  private:
   inline void set_has_clienthandle();
   inline void clear_has_clienthandle();
-  inline void set_has_channelid();
-  inline void clear_has_channelid();
   inline void set_has_channelname();
   inline void clear_has_channelname();
   inline void set_has_scope();
@@ -392,7 +373,6 @@ class eventPublishRequest : public ::google::protobuf::Message {
   ::google::protobuf::uint32 _has_bits_[1];
   mutable int _cached_size_;
   ::SAFplus::Rpc::rpcEvent::Handle* clienthandle_;
-  ::google::protobuf::uint64 channelid_;
   ::std::string* channelname_;
   ::google::protobuf::int32 scope_;
   ::google::protobuf::int32 type_;
@@ -754,39 +734,15 @@ inline void eventChannelRequest::set_allocated_clienthandle(::SAFplus::Rpc::rpcE
   // @@protoc_insertion_point(field_set_allocated:SAFplus.Rpc.rpcEvent.eventChannelRequest.clientHandle)
 }
 
-// required uint64 channelId = 2;
-inline bool eventChannelRequest::has_channelid() const {
-  return (_has_bits_[0] & 0x00000002u) != 0;
-}
-inline void eventChannelRequest::set_has_channelid() {
-  _has_bits_[0] |= 0x00000002u;
-}
-inline void eventChannelRequest::clear_has_channelid() {
-  _has_bits_[0] &= ~0x00000002u;
-}
-inline void eventChannelRequest::clear_channelid() {
-  channelid_ = GOOGLE_ULONGLONG(0);
-  clear_has_channelid();
-}
-inline ::google::protobuf::uint64 eventChannelRequest::channelid() const {
-  // @@protoc_insertion_point(field_get:SAFplus.Rpc.rpcEvent.eventChannelRequest.channelId)
-  return channelid_;
-}
-inline void eventChannelRequest::set_channelid(::google::protobuf::uint64 value) {
-  set_has_channelid();
-  channelid_ = value;
-  // @@protoc_insertion_point(field_set:SAFplus.Rpc.rpcEvent.eventChannelRequest.channelId)
-}
-
 // required string channelName = 3;
 inline bool eventChannelRequest::has_channelname() const {
-  return (_has_bits_[0] & 0x00000004u) != 0;
+  return (_has_bits_[0] & 0x00000002u) != 0;
 }
 inline void eventChannelRequest::set_has_channelname() {
-  _has_bits_[0] |= 0x00000004u;
+  _has_bits_[0] |= 0x00000002u;
 }
 inline void eventChannelRequest::clear_has_channelname() {
-  _has_bits_[0] &= ~0x00000004u;
+  _has_bits_[0] &= ~0x00000002u;
 }
 inline void eventChannelRequest::clear_channelname() {
   if (channelname_ != &::google::protobuf::internal::GetEmptyStringAlreadyInited()) {
@@ -856,13 +812,13 @@ inline void eventChannelRequest::set_allocated_channelname(::std::string* channe
 
 // required int32 scope = 4;
 inline bool eventChannelRequest::has_scope() const {
-  return (_has_bits_[0] & 0x00000008u) != 0;
+  return (_has_bits_[0] & 0x00000004u) != 0;
 }
 inline void eventChannelRequest::set_has_scope() {
-  _has_bits_[0] |= 0x00000008u;
+  _has_bits_[0] |= 0x00000004u;
 }
 inline void eventChannelRequest::clear_has_scope() {
-  _has_bits_[0] &= ~0x00000008u;
+  _has_bits_[0] &= ~0x00000004u;
 }
 inline void eventChannelRequest::clear_scope() {
   scope_ = 0;
@@ -880,13 +836,13 @@ inline void eventChannelRequest::set_scope(::google::protobuf::int32 value) {
 
 // required int32 type = 5;
 inline bool eventChannelRequest::has_type() const {
-  return (_has_bits_[0] & 0x00000010u) != 0;
+  return (_has_bits_[0] & 0x00000008u) != 0;
 }
 inline void eventChannelRequest::set_has_type() {
-  _has_bits_[0] |= 0x00000010u;
+  _has_bits_[0] |= 0x00000008u;
 }
 inline void eventChannelRequest::clear_has_type() {
-  _has_bits_[0] &= ~0x00000010u;
+  _has_bits_[0] &= ~0x00000008u;
 }
 inline void eventChannelRequest::clear_type() {
   type_ = 0;
@@ -947,39 +903,15 @@ inline void eventPublishRequest::set_allocated_clienthandle(::SAFplus::Rpc::rpcE
   // @@protoc_insertion_point(field_set_allocated:SAFplus.Rpc.rpcEvent.eventPublishRequest.clientHandle)
 }
 
-// required uint64 channelId = 2;
-inline bool eventPublishRequest::has_channelid() const {
-  return (_has_bits_[0] & 0x00000002u) != 0;
-}
-inline void eventPublishRequest::set_has_channelid() {
-  _has_bits_[0] |= 0x00000002u;
-}
-inline void eventPublishRequest::clear_has_channelid() {
-  _has_bits_[0] &= ~0x00000002u;
-}
-inline void eventPublishRequest::clear_channelid() {
-  channelid_ = GOOGLE_ULONGLONG(0);
-  clear_has_channelid();
-}
-inline ::google::protobuf::uint64 eventPublishRequest::channelid() const {
-  // @@protoc_insertion_point(field_get:SAFplus.Rpc.rpcEvent.eventPublishRequest.channelId)
-  return channelid_;
-}
-inline void eventPublishRequest::set_channelid(::google::protobuf::uint64 value) {
-  set_has_channelid();
-  channelid_ = value;
-  // @@protoc_insertion_point(field_set:SAFplus.Rpc.rpcEvent.eventPublishRequest.channelId)
-}
-
 // required string channelName = 3;
 inline bool eventPublishRequest::has_channelname() const {
-  return (_has_bits_[0] & 0x00000004u) != 0;
+  return (_has_bits_[0] & 0x00000002u) != 0;
 }
 inline void eventPublishRequest::set_has_channelname() {
-  _has_bits_[0] |= 0x00000004u;
+  _has_bits_[0] |= 0x00000002u;
 }
 inline void eventPublishRequest::clear_has_channelname() {
-  _has_bits_[0] &= ~0x00000004u;
+  _has_bits_[0] &= ~0x00000002u;
 }
 inline void eventPublishRequest::clear_channelname() {
   if (channelname_ != &::google::protobuf::internal::GetEmptyStringAlreadyInited()) {
@@ -1049,13 +981,13 @@ inline void eventPublishRequest::set_allocated_channelname(::std::string* channe
 
 // required int32 scope = 4;
 inline bool eventPublishRequest::has_scope() const {
-  return (_has_bits_[0] & 0x00000008u) != 0;
+  return (_has_bits_[0] & 0x00000004u) != 0;
 }
 inline void eventPublishRequest::set_has_scope() {
-  _has_bits_[0] |= 0x00000008u;
+  _has_bits_[0] |= 0x00000004u;
 }
 inline void eventPublishRequest::clear_has_scope() {
-  _has_bits_[0] &= ~0x00000008u;
+  _has_bits_[0] &= ~0x00000004u;
 }
 inline void eventPublishRequest::clear_scope() {
   scope_ = 0;
@@ -1073,13 +1005,13 @@ inline void eventPublishRequest::set_scope(::google::protobuf::int32 value) {
 
 // required int32 type = 5;
 inline bool eventPublishRequest::has_type() const {
-  return (_has_bits_[0] & 0x00000010u) != 0;
+  return (_has_bits_[0] & 0x00000008u) != 0;
 }
 inline void eventPublishRequest::set_has_type() {
-  _has_bits_[0] |= 0x00000010u;
+  _has_bits_[0] |= 0x00000008u;
 }
 inline void eventPublishRequest::clear_has_type() {
-  _has_bits_[0] &= ~0x00000010u;
+  _has_bits_[0] &= ~0x00000008u;
 }
 inline void eventPublishRequest::clear_type() {
   type_ = 0;
@@ -1097,13 +1029,13 @@ inline void eventPublishRequest::set_type(::google::protobuf::int32 value) {
 
 // required string data = 6;
 inline bool eventPublishRequest::has_data() const {
-  return (_has_bits_[0] & 0x00000020u) != 0;
+  return (_has_bits_[0] & 0x00000010u) != 0;
 }
 inline void eventPublishRequest::set_has_data() {
-  _has_bits_[0] |= 0x00000020u;
+  _has_bits_[0] |= 0x00000010u;
 }
 inline void eventPublishRequest::clear_has_data() {
-  _has_bits_[0] &= ~0x00000020u;
+  _has_bits_[0] &= ~0x00000010u;
 }
 inline void eventPublishRequest::clear_data() {
   if (data_ != &::google::protobuf::internal::GetEmptyStringAlreadyInited()) {

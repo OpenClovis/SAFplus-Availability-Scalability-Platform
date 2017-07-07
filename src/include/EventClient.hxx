@@ -44,7 +44,7 @@ namespace SAFplus
 {
 
 
-typedef void (*EventCallbackFunction)(uintcw_t,EventChannelScope,std::string,int); // function pointer type
+typedef void (*EventCallbackFunction)(std::string,EventChannelScope,std::string,int); // function pointer type
 
 class EventClient:public SAFplus::MsgHandler,public SAFplus::Wakeable
 {

@@ -21,7 +21,7 @@ namespace SAFplus
 class EventKey
 {
 public:
-	uintcw_t channelId;
+	std::string channelName;
 	Handle evtClient;
 	EventMessageType type;
 };
@@ -30,7 +30,7 @@ inline std::size_t hash_value(EventKey const& h)
 {
 
   std::size_t seed = 0;
-  boost::hash_combine(seed,h.channelId);
+  boost::hash_combine(seed,h.channelName);
   boost::hash_combine(seed,h.evtClient.getNode());
   boost::hash_combine(seed,h.evtClient.getPort());
   boost::hash_combine(seed,h.type);

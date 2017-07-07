@@ -19,10 +19,10 @@ EventClient fc;
 void testAllFeature();
 #define EVENT_CLIENT_PID 55
 
-void eventCallback(uintcw_t channelId,EventChannelScope scope,std::string data,int length)
+void eventCallback(std::string channelName,EventChannelScope scope,std::string data,int length)
 {
-	logDebug("EVT", "MSG", "Receive event from event channel with id [%ld]", channelId);
-	logDebug("EVT", "MSG", "Event data [%s]",data.c_str());
+	logDebug("EVT", "MSG", "Receive event from event channel with name [%s]", channelName.c_str());
+	logDebug("EVT", "MSG", "Event data [%s]", data.c_str());
 
 }
 

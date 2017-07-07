@@ -67,9 +67,8 @@ void protobuf_AssignDesc_rpcEvent_2eproto() {
       ::google::protobuf::MessageFactory::generated_factory(),
       sizeof(Handle));
   eventChannelRequest_descriptor_ = file->message_type(1);
-  static const int eventChannelRequest_offsets_[5] = {
+  static const int eventChannelRequest_offsets_[4] = {
     GOOGLE_PROTOBUF_GENERATED_MESSAGE_FIELD_OFFSET(eventChannelRequest, clienthandle_),
-    GOOGLE_PROTOBUF_GENERATED_MESSAGE_FIELD_OFFSET(eventChannelRequest, channelid_),
     GOOGLE_PROTOBUF_GENERATED_MESSAGE_FIELD_OFFSET(eventChannelRequest, channelname_),
     GOOGLE_PROTOBUF_GENERATED_MESSAGE_FIELD_OFFSET(eventChannelRequest, scope_),
     GOOGLE_PROTOBUF_GENERATED_MESSAGE_FIELD_OFFSET(eventChannelRequest, type_),
@@ -86,9 +85,8 @@ void protobuf_AssignDesc_rpcEvent_2eproto() {
       ::google::protobuf::MessageFactory::generated_factory(),
       sizeof(eventChannelRequest));
   eventPublishRequest_descriptor_ = file->message_type(2);
-  static const int eventPublishRequest_offsets_[6] = {
+  static const int eventPublishRequest_offsets_[5] = {
     GOOGLE_PROTOBUF_GENERATED_MESSAGE_FIELD_OFFSET(eventPublishRequest, clienthandle_),
-    GOOGLE_PROTOBUF_GENERATED_MESSAGE_FIELD_OFFSET(eventPublishRequest, channelid_),
     GOOGLE_PROTOBUF_GENERATED_MESSAGE_FIELD_OFFSET(eventPublishRequest, channelname_),
     GOOGLE_PROTOBUF_GENERATED_MESSAGE_FIELD_OFFSET(eventPublishRequest, scope_),
     GOOGLE_PROTOBUF_GENERATED_MESSAGE_FIELD_OFFSET(eventPublishRequest, type_),
@@ -201,29 +199,28 @@ void protobuf_AddDesc_rpcEvent_2eproto() {
 
   ::google::protobuf::DescriptorPool::InternalAddGeneratedFile(
     "\n\016rpcEvent.proto\022\024SAFplus.Rpc.rpcEvent\"\""
-    "\n\006Handle\022\013\n\003id0\030\001 \002(\006\022\013\n\003id1\030\002 \002(\006\"\231\001\n\023e"
+    "\n\006Handle\022\013\n\003id0\030\001 \002(\006\022\013\n\003id1\030\002 \002(\006\"\206\001\n\023e"
     "ventChannelRequest\0222\n\014clientHandle\030\001 \002(\013"
-    "2\034.SAFplus.Rpc.rpcEvent.Handle\022\021\n\tchanne"
-    "lId\030\002 \002(\004\022\023\n\013channelName\030\003 \002(\t\022\r\n\005scope\030"
-    "\004 \002(\005\022\014\n\004type\030\005 \002(\005*\t\010\350\007\020\200\200\200\200\002\"\247\001\n\023event"
-    "PublishRequest\0222\n\014clientHandle\030\001 \002(\0132\034.S"
-    "AFplus.Rpc.rpcEvent.Handle\022\021\n\tchannelId\030"
-    "\002 \002(\004\022\023\n\013channelName\030\003 \002(\t\022\r\n\005scope\030\004 \002("
-    "\005\022\014\n\004type\030\005 \002(\005\022\014\n\004data\030\006 \002(\t*\t\010\350\007\020\200\200\200\200\002"
-    "\"B\n\024eventRequestResponse\022\017\n\007saError\030\001 \001("
-    "\005\022\016\n\006errStr\030\002 \001(\t*\t\010\350\007\020\200\200\200\200\002\"]\n\034eventGet"
-    "ActiveServerResponse\0222\n\014activeServer\030\001 \002"
-    "(\0132\034.SAFplus.Rpc.rpcEvent.Handle*\t\010\350\007\020\200\200"
-    "\200\200\002\"\014\n\nNO_REQUEST2\330\002\n\010rpcEvent\022n\n\025eventC"
-    "hannelRpcMethod\022).SAFplus.Rpc.rpcEvent.e"
-    "ventChannelRequest\032*.SAFplus.Rpc.rpcEven"
-    "t.eventRequestResponse\022n\n\025eventPublishRp"
-    "cMethod\022).SAFplus.Rpc.rpcEvent.eventPubl"
-    "ishRequest\032*.SAFplus.Rpc.rpcEvent.eventR"
-    "equestResponse\022l\n\024eventGetActiveServer\022 "
-    ".SAFplus.Rpc.rpcEvent.NO_REQUEST\0322.SAFpl"
-    "us.Rpc.rpcEvent.eventGetActiveServerResp"
-    "onseB\t\200\001\000\210\001\000\220\001\001", 935);
+    "2\034.SAFplus.Rpc.rpcEvent.Handle\022\023\n\013channe"
+    "lName\030\003 \002(\t\022\r\n\005scope\030\004 \002(\005\022\014\n\004type\030\005 \002(\005"
+    "*\t\010\350\007\020\200\200\200\200\002\"\224\001\n\023eventPublishRequest\0222\n\014c"
+    "lientHandle\030\001 \002(\0132\034.SAFplus.Rpc.rpcEvent"
+    ".Handle\022\023\n\013channelName\030\003 \002(\t\022\r\n\005scope\030\004 "
+    "\002(\005\022\014\n\004type\030\005 \002(\005\022\014\n\004data\030\006 \002(\t*\t\010\350\007\020\200\200\200"
+    "\200\002\"B\n\024eventRequestResponse\022\017\n\007saError\030\001 "
+    "\001(\005\022\016\n\006errStr\030\002 \001(\t*\t\010\350\007\020\200\200\200\200\002\"]\n\034eventG"
+    "etActiveServerResponse\0222\n\014activeServer\030\001"
+    " \002(\0132\034.SAFplus.Rpc.rpcEvent.Handle*\t\010\350\007\020"
+    "\200\200\200\200\002\"\014\n\nNO_REQUEST2\330\002\n\010rpcEvent\022n\n\025even"
+    "tChannelRpcMethod\022).SAFplus.Rpc.rpcEvent"
+    ".eventChannelRequest\032*.SAFplus.Rpc.rpcEv"
+    "ent.eventRequestResponse\022n\n\025eventPublish"
+    "RpcMethod\022).SAFplus.Rpc.rpcEvent.eventPu"
+    "blishRequest\032*.SAFplus.Rpc.rpcEvent.even"
+    "tRequestResponse\022l\n\024eventGetActiveServer"
+    "\022 .SAFplus.Rpc.rpcEvent.NO_REQUEST\0322.SAF"
+    "plus.Rpc.rpcEvent.eventGetActiveServerRe"
+    "sponseB\t\200\001\000\210\001\000\220\001\001", 897);
   ::google::protobuf::MessageFactory::InternalRegisterGeneratedFile(
     "rpcEvent.proto", &protobuf_RegisterTypes);
   Handle::default_instance_ = new Handle();
@@ -523,7 +520,6 @@ void Handle::Swap(Handle* other) {
 
 #ifndef _MSC_VER
 const int eventChannelRequest::kClientHandleFieldNumber;
-const int eventChannelRequest::kChannelIdFieldNumber;
 const int eventChannelRequest::kChannelNameFieldNumber;
 const int eventChannelRequest::kScopeFieldNumber;
 const int eventChannelRequest::kTypeFieldNumber;
@@ -550,7 +546,6 @@ void eventChannelRequest::SharedCtor() {
   ::google::protobuf::internal::GetEmptyString();
   _cached_size_ = 0;
   clienthandle_ = NULL;
-  channelid_ = GOOGLE_ULONGLONG(0);
   channelname_ = const_cast< ::std::string*>(&::google::protobuf::internal::GetEmptyStringAlreadyInited());
   scope_ = 0;
   type_ = 0;
@@ -604,12 +599,11 @@ void eventChannelRequest::Clear() {
     ::memset(&first, 0, n);                                \
   } while (0)
 
-  if (_has_bits_[0 / 32] & 31) {
+  if (_has_bits_[0 / 32] & 15) {
     ZR_(scope_, type_);
     if (has_clienthandle()) {
       if (clienthandle_ != NULL) clienthandle_->::SAFplus::Rpc::rpcEvent::Handle::Clear();
     }
-    channelid_ = GOOGLE_ULONGLONG(0);
     if (has_channelname()) {
       if (channelname_ != &::google::protobuf::internal::GetEmptyStringAlreadyInited()) {
         channelname_->clear();
@@ -639,21 +633,6 @@ bool eventChannelRequest::MergePartialFromCodedStream(
         if (tag == 10) {
           DO_(::google::protobuf::internal::WireFormatLite::ReadMessageNoVirtual(
                input, mutable_clienthandle()));
-        } else {
-          goto handle_unusual;
-        }
-        if (input->ExpectTag(16)) goto parse_channelId;
-        break;
-      }
-
-      // required uint64 channelId = 2;
-      case 2: {
-        if (tag == 16) {
-         parse_channelId:
-          DO_((::google::protobuf::internal::WireFormatLite::ReadPrimitive<
-                   ::google::protobuf::uint64, ::google::protobuf::internal::WireFormatLite::TYPE_UINT64>(
-                 input, &channelid_)));
-          set_has_channelid();
         } else {
           goto handle_unusual;
         }
@@ -744,11 +723,6 @@ void eventChannelRequest::SerializeWithCachedSizes(
       1, this->clienthandle(), output);
   }
 
-  // required uint64 channelId = 2;
-  if (has_channelid()) {
-    ::google::protobuf::internal::WireFormatLite::WriteUInt64(2, this->channelid(), output);
-  }
-
   // required string channelName = 3;
   if (has_channelname()) {
     ::google::protobuf::internal::WireFormat::VerifyUTF8StringNamedField(
@@ -788,11 +762,6 @@ void eventChannelRequest::SerializeWithCachedSizes(
     target = ::google::protobuf::internal::WireFormatLite::
       WriteMessageNoVirtualToArray(
         1, this->clienthandle(), target);
-  }
-
-  // required uint64 channelId = 2;
-  if (has_channelid()) {
-    target = ::google::protobuf::internal::WireFormatLite::WriteUInt64ToArray(2, this->channelid(), target);
   }
 
   // required string channelName = 3;
@@ -837,13 +806,6 @@ int eventChannelRequest::ByteSize() const {
       total_size += 1 +
         ::google::protobuf::internal::WireFormatLite::MessageSizeNoVirtual(
           this->clienthandle());
-    }
-
-    // required uint64 channelId = 2;
-    if (has_channelid()) {
-      total_size += 1 +
-        ::google::protobuf::internal::WireFormatLite::UInt64Size(
-          this->channelid());
     }
 
     // required string channelName = 3;
@@ -899,9 +861,6 @@ void eventChannelRequest::MergeFrom(const eventChannelRequest& from) {
     if (from.has_clienthandle()) {
       mutable_clienthandle()->::SAFplus::Rpc::rpcEvent::Handle::MergeFrom(from.clienthandle());
     }
-    if (from.has_channelid()) {
-      set_channelid(from.channelid());
-    }
     if (from.has_channelname()) {
       set_channelname(from.channelname());
     }
@@ -929,7 +888,7 @@ void eventChannelRequest::CopyFrom(const eventChannelRequest& from) {
 }
 
 bool eventChannelRequest::IsInitialized() const {
-  if ((_has_bits_[0] & 0x0000001f) != 0x0000001f) return false;
+  if ((_has_bits_[0] & 0x0000000f) != 0x0000000f) return false;
 
   if (has_clienthandle()) {
     if (!this->clienthandle().IsInitialized()) return false;
@@ -941,7 +900,6 @@ bool eventChannelRequest::IsInitialized() const {
 void eventChannelRequest::Swap(eventChannelRequest* other) {
   if (other != this) {
     std::swap(clienthandle_, other->clienthandle_);
-    std::swap(channelid_, other->channelid_);
     std::swap(channelname_, other->channelname_);
     std::swap(scope_, other->scope_);
     std::swap(type_, other->type_);
@@ -965,7 +923,6 @@ void eventChannelRequest::Swap(eventChannelRequest* other) {
 
 #ifndef _MSC_VER
 const int eventPublishRequest::kClientHandleFieldNumber;
-const int eventPublishRequest::kChannelIdFieldNumber;
 const int eventPublishRequest::kChannelNameFieldNumber;
 const int eventPublishRequest::kScopeFieldNumber;
 const int eventPublishRequest::kTypeFieldNumber;
@@ -993,7 +950,6 @@ void eventPublishRequest::SharedCtor() {
   ::google::protobuf::internal::GetEmptyString();
   _cached_size_ = 0;
   clienthandle_ = NULL;
-  channelid_ = GOOGLE_ULONGLONG(0);
   channelname_ = const_cast< ::std::string*>(&::google::protobuf::internal::GetEmptyStringAlreadyInited());
   scope_ = 0;
   type_ = 0;
@@ -1051,12 +1007,11 @@ void eventPublishRequest::Clear() {
     ::memset(&first, 0, n);                                \
   } while (0)
 
-  if (_has_bits_[0 / 32] & 63) {
+  if (_has_bits_[0 / 32] & 31) {
     ZR_(scope_, type_);
     if (has_clienthandle()) {
       if (clienthandle_ != NULL) clienthandle_->::SAFplus::Rpc::rpcEvent::Handle::Clear();
     }
-    channelid_ = GOOGLE_ULONGLONG(0);
     if (has_channelname()) {
       if (channelname_ != &::google::protobuf::internal::GetEmptyStringAlreadyInited()) {
         channelname_->clear();
@@ -1091,21 +1046,6 @@ bool eventPublishRequest::MergePartialFromCodedStream(
         if (tag == 10) {
           DO_(::google::protobuf::internal::WireFormatLite::ReadMessageNoVirtual(
                input, mutable_clienthandle()));
-        } else {
-          goto handle_unusual;
-        }
-        if (input->ExpectTag(16)) goto parse_channelId;
-        break;
-      }
-
-      // required uint64 channelId = 2;
-      case 2: {
-        if (tag == 16) {
-         parse_channelId:
-          DO_((::google::protobuf::internal::WireFormatLite::ReadPrimitive<
-                   ::google::protobuf::uint64, ::google::protobuf::internal::WireFormatLite::TYPE_UINT64>(
-                 input, &channelid_)));
-          set_has_channelid();
         } else {
           goto handle_unusual;
         }
@@ -1213,11 +1153,6 @@ void eventPublishRequest::SerializeWithCachedSizes(
       1, this->clienthandle(), output);
   }
 
-  // required uint64 channelId = 2;
-  if (has_channelid()) {
-    ::google::protobuf::internal::WireFormatLite::WriteUInt64(2, this->channelid(), output);
-  }
-
   // required string channelName = 3;
   if (has_channelname()) {
     ::google::protobuf::internal::WireFormat::VerifyUTF8StringNamedField(
@@ -1267,11 +1202,6 @@ void eventPublishRequest::SerializeWithCachedSizes(
     target = ::google::protobuf::internal::WireFormatLite::
       WriteMessageNoVirtualToArray(
         1, this->clienthandle(), target);
-  }
-
-  // required uint64 channelId = 2;
-  if (has_channelid()) {
-    target = ::google::protobuf::internal::WireFormatLite::WriteUInt64ToArray(2, this->channelid(), target);
   }
 
   // required string channelName = 3;
@@ -1327,13 +1257,6 @@ int eventPublishRequest::ByteSize() const {
       total_size += 1 +
         ::google::protobuf::internal::WireFormatLite::MessageSizeNoVirtual(
           this->clienthandle());
-    }
-
-    // required uint64 channelId = 2;
-    if (has_channelid()) {
-      total_size += 1 +
-        ::google::protobuf::internal::WireFormatLite::UInt64Size(
-          this->channelid());
     }
 
     // required string channelName = 3;
@@ -1396,9 +1319,6 @@ void eventPublishRequest::MergeFrom(const eventPublishRequest& from) {
     if (from.has_clienthandle()) {
       mutable_clienthandle()->::SAFplus::Rpc::rpcEvent::Handle::MergeFrom(from.clienthandle());
     }
-    if (from.has_channelid()) {
-      set_channelid(from.channelid());
-    }
     if (from.has_channelname()) {
       set_channelname(from.channelname());
     }
@@ -1429,7 +1349,7 @@ void eventPublishRequest::CopyFrom(const eventPublishRequest& from) {
 }
 
 bool eventPublishRequest::IsInitialized() const {
-  if ((_has_bits_[0] & 0x0000003f) != 0x0000003f) return false;
+  if ((_has_bits_[0] & 0x0000001f) != 0x0000001f) return false;
 
   if (has_clienthandle()) {
     if (!this->clienthandle().IsInitialized()) return false;
@@ -1441,7 +1361,6 @@ bool eventPublishRequest::IsInitialized() const {
 void eventPublishRequest::Swap(eventPublishRequest* other) {
   if (other != this) {
     std::swap(clienthandle_, other->clienthandle_);
-    std::swap(channelid_, other->channelid_);
     std::swap(channelname_, other->channelname_);
     std::swap(scope_, other->scope_);
     std::swap(type_, other->type_);

@@ -40,7 +40,7 @@ ClRcT EventCkpt::eventCkptCheckPointChannelOpen(const SAFplus::Rpc::rpcEvent::ev
 	Buffer* val = new(vdata) Buffer(request->ByteSize());
 	memcpy(val->data, request, request->ByteSize());
 	EventKey keyData;
-	keyData.channelId=request->channelid();
+	keyData.channelName=request->channelname();
 	keyData.evtClient=INVALID_HDL;
 	keyData.type=EventMessageType::EVENT_CHANNEL_CREATE;
 	const uintcw_t key = static_cast<uintcw_t>(hash_value(keyData));
@@ -51,7 +51,7 @@ ClRcT EventCkpt::eventCkptCheckPointChannelOpen(const SAFplus::Rpc::rpcEvent::ev
 ClRcT EventCkpt::eventCkptCheckPointChannelClose(const SAFplus::Rpc::rpcEvent::eventChannelRequest* request)
 {
 	EventKey keyData;
-	keyData.channelId=request->channelid();;
+	keyData.channelName=request->channelname();
 	keyData.evtClient=INVALID_HDL;
 	keyData.type=EventMessageType(request->type());
 	const uintcw_t key = static_cast<uintcw_t>(hash_value(keyData));
@@ -65,7 +65,7 @@ ClRcT EventCkpt::eventCkptCheckPointSubscribeOrPublish(const SAFplus::Rpc::rpcEv
 	Buffer* val = new(vdata) Buffer(request->ByteSize());
 	memcpy(val->data, request, request->ByteSize());
 	EventKey keyData;
-	keyData.channelId=request->channelid();
+	keyData.channelName=request->channelname();
 	keyData.evtClient=INVALID_HDL;
 	keyData.type=EventMessageType(request->type());
 	const uintcw_t key = hash_value(keyData);
@@ -76,7 +76,7 @@ ClRcT EventCkpt::eventCkptCheckPointSubscribeOrPublish(const SAFplus::Rpc::rpcEv
 ClRcT EventCkpt::eventCkptCheckPointUnsubscribeOrUnpublish(const SAFplus::Rpc::rpcEvent::eventChannelRequest* request)
 {
 	EventKey keyData;
-	keyData.channelId=request->type();
+	keyData.channelName=request->channelname();
 	keyData.evtClient=INVALID_HDL;
 	keyData.type=EventMessageType(request->type());
 	const uintcw_t key = hash_value(keyData);
