@@ -39,7 +39,7 @@ class AlarmData
 public:
   AlarmData();
   AlarmData(const AlarmData& other);
-  AlarmData(const char* inresourceId, const AlarmProbableCause& inprobCause, const AlarmSpecificProblem& inspecificProblem, const AlarmCategory& incategory, const AlarmSeverity& inseverity, const AlarmState& instate);
+  AlarmData(const char* inresourceId, const AlarmCategory& incategory, const AlarmProbableCause& inprobCause, const AlarmSpecificProblem& inspecificProblem, const AlarmSeverity& inseverity, const AlarmState& instate);
   AlarmData& operator=(const AlarmData& other);
   bool operator==(const AlarmData& other) const;
 

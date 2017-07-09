@@ -33,12 +33,15 @@
 #include <AlarmData.hxx>
 #include <AlarmProfile.hxx>
 #include <AlarmUtils.hxx>
+#include <clRpcChannel.hxx>
+#include <rpcAlarm.hxx>
 
 using namespace boost::asio;
 using namespace SAFplusAlarm;
 extern AlarmComponentResAlarms appAlarms[];
 extern std::string myresourceId;
-extern void eventCallback(uintcw_t channelId,EventChannelScope scope,std::string data,int length);
+extern void eventCallback(const std::string& channelId,const EventChannelScope& scope,const std::string& data,const int& length);
+void alarmCallback(const std::string& channelId,const EventChannelScope& scope,const std::string& data,const int& length);
 namespace SAFplus
 {
 // This class contains Alarm Client related APIs
@@ -54,12 +57,6 @@ class Alarm
     // clientHandle: input handle of client Alarm
     // Return: ClRcT
     void initialize(const SAFplus::Handle& handleClient,SAFplus::Wakeable& wake = SAFplus::BLOCK);
-
-    // constructor
-    // Param:
-    // clientHandle: input client alarm handle  
-    // serverHandle: input: server alarm handle
-    Alarm(const SAFplus::Handle& handleClient, const SAFplus::Handle& handleServer);
 
     // raise Alarm
     // Param:
@@ -92,8 +89,9 @@ class Alarm
     // return ClRcT result
     ClRcT raiseAlarm(const std::string& resourceId,const AlarmCategory& category, const AlarmProbableCause& probCause,
         const AlarmSeverity& severity, const AlarmSpecificProblem& specificProblem,const AlarmState& state);
+    static SAFplus::Handle activeServerAddress;
+
   private:
-    ClRcT sendAlarmNotification(const void* data, const int& dataLength);
     // handle for identify a alarm entity
     SAFplus::Handle handleClientAlarm;
     // safplus message for send alarm notification to alarm server
@@ -104,6 +102,8 @@ class Alarm
     SAFplus::Handle handleAlarmServer;
     //event client
     SAFplus::EventClient eventClient;
+    SAFplus::Rpc::RpcChannel * channel;
+    SAFplus::Rpc::rpcAlarm::rpcAlarm_Stub *service;
 };
 }
 

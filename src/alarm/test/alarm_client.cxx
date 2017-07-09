@@ -41,10 +41,10 @@ void test_Assert_Clear_Soaking_Time_Suppression_OR_09();
 void test_Assert_Clear_Soaking_Time_Suppression_AND_10();
 #define ALARM_CLIENT_PID 50
 
-void eventCallback(uintcw_t channelId, EventChannelScope scope, std::string data, int length)
+void eventCallback(const std::string& channelName,const EventChannelScope& scope,const std::string& data,const int& length)
 {
   logDebug("EVT", "MSG", "***********************************************************");
-  logDebug("EVT", "MSG", "app Receive event from event channel with id [%ld]", channelId);
+  logDebug("EVT", "MSG", "app Receive event from event channel with id [%s]", channelName.c_str());
   logDebug("EVT", "MSG", "app Event data [%s]", data.c_str());
   logDebug("EVT", "MSG", "***********************************************************");
 }
@@ -277,6 +277,10 @@ void testAllFeature()
   raiseAlarm_Assert();
   sleep(20);
   raiseAlarm_Clear();
+  //not suppress
+  raiseAlarm_Assert(1);
+  sleep(20);
+  raiseAlarm_Clear(1);
   //tc1
   test_Assert_Soaking_Time();
   //tc2

@@ -35,7 +35,7 @@ class AlarmProfile
 public:
   AlarmProfile();
   AlarmProfile(const AlarmCategory& acategory, const AlarmProbableCause& aprobCause, const AlarmSeverity& aseverity, const bool& aisSend, const int& aassertSoakingTime, const int& aclearSoakingTime, AlarmRuleInfo* agenerationRule, AlarmRuleInfo* asuppressionRule,
-      const AlarmSpecificProblem aspecificProblem);
+      const AlarmSpecificProblem aspecificProblem,const bool& aisSuppressChild);
   AlarmProfile operator=(const AlarmProfile& other);
   // alarm category
   AlarmCategory category;
@@ -55,6 +55,7 @@ public:
   AlarmRuleInfo *suppressionRule;
   // specific problem
   AlarmSpecificProblem specificProblem;
+  bool isSuppressChild;
 };
 
 }

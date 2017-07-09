@@ -2,7 +2,7 @@ S7 := 1
 SAFPLUS_ALARM_SERVER := 1
 include ../../mk/preface.mk
 
-CPP_FLAGS += -I$(BOOST_DIR) -I. $(SAFPLUS_MGT_INC_FLAGS)
+CPP_FLAGS += -I$(BOOST_DIR) -I. $(SAFPLUS_MGT_INC_FLAGS)  -I$(PROTOBUFVER)
 
 SERVER_H := $(wildcard *.hxx) $(wildcard $(SAFPLUS_INC_DIR)/*.hxx)
 SERVER_SRC := $(wildcard *.cxx)
@@ -35,7 +35,10 @@ $(LIB_DIR)/libclAlarmServer.so: $(SERVER_OBJ) $(SAFPLUS_DEP_LIBS)
 $(MWOBJ_DIR)/%.o: %.cxx Makefile $(SERVER_H)
 	$(COMPILE_CPP) $@ $<
 
-
+gen:
+	mkdir -p ./$(PROTOBUFVER)/stubs
+	$(call SAFPLUS_RPC_GEN,rpcEvent,stubs)
+	
 clean:
 	rm -f $(LIB_DIR)/libclAlarmServer.so $(LIB_DIR)/libclAlarmServer.a $(MWOBJ_DIR)/*.o
 

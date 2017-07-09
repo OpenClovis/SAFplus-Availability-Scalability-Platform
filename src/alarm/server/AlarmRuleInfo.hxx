@@ -29,29 +29,29 @@ using namespace SAFplus;
 
 namespace SAFplus
 {
-struct AlarmRuleEntry{
-	AlarmProbableCause probCause;
-	AlarmSpecificProblem specificProblem;
-	AlarmRuleEntry (const AlarmProbableCause aprobCause,const AlarmSpecificProblem& aspecificProblem)
-	{
-		probCause = aprobCause;
-		specificProblem = aspecificProblem;
-	}
+struct AlarmRuleEntry
+{
+  AlarmProbableCause probCause;
+  AlarmSpecificProblem specificProblem;
+  AlarmRuleEntry(const AlarmProbableCause aprobCause, const AlarmSpecificProblem& aspecificProblem)
+  {
+    probCause = aprobCause;
+    specificProblem = aspecificProblem;
+  }
 };
 // contain relation between rule and list of rule
 class AlarmRuleInfo
 {
-  public:
-	AlarmRuleInfo();
-	AlarmRuleInfo(const AlarmRuleRelation& arelation,const AlarmRuleEntry* arrAlarmRuleEntry);
-	AlarmRuleInfo(const AlarmRuleRelation& arelation,std::vector<AlarmRuleEntry> vectAlarmRelation);
-	AlarmRuleInfo operator=(const AlarmRuleInfo& other);
-    // rule relation
-    AlarmRuleRelation relation;
-    // list of alarm key
-    std::vector<AlarmRuleEntry> vectAlarmRelation;
+public:
+  AlarmRuleInfo();
+  AlarmRuleInfo(const AlarmRuleRelation& arelation, const AlarmRuleEntry* arrAlarmRuleEntry);
+  AlarmRuleInfo(const AlarmRuleRelation& arelation, std::vector<AlarmRuleEntry> vectAlarmRelation);
+  AlarmRuleInfo operator=(const AlarmRuleInfo& other);
+  // rule relation
+  AlarmRuleRelation relation;
+  // list of alarm key
+  std::vector<AlarmRuleEntry> vectAlarmRelation;
 };
 }
-
 
 #endif /* ALARMRULEINFO_HXX_HEADER_INCLUDED_A6DE837C */

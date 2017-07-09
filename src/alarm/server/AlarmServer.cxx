@@ -22,22 +22,19 @@
 #include <clObjectMessager.hxx>
 #include <AlarmMessageType.hxx>
 #include <clAlarmServerApi.hxx>
-#include <Timer.hxx>
+
 
 using namespace SAFplusAlarm;
 
 namespace SAFplus
 {
 StorageAlarmData AlarmServer::data;
-boost::atomic<bool> AlarmServer::isDataAvailable;
-boost::lockfree::spsc_queue<AlarmMessageProtocol, boost::lockfree::capacity<1024> > AlarmServer::spsc_queue;
-boost::thread AlarmServer::threadProcess;
-boost::mutex AlarmServer::g_queue_mutex;
+boost::mutex AlarmServer::g_data_mutex;
 SAFplus::EventClient AlarmServer::eventClient;
 
 AlarmServer::AlarmServer()
 {
-  isDataAvailable = false;
+  channel = nullptr;
 }
 void AlarmServer::initialize()
 {
@@ -57,42 +54,29 @@ void AlarmServer::initialize()
   logDebug(ALARM_SERVER, ALARM_ENTITY, "SAFplus::objectMessager.insert(handleAlarmServer,this)");
   group.registerEntity(handleAlarmServer, SAFplus::ASP_NODEADDR, NULL, 0, Group::ACCEPT_STANDBY | Group::ACCEPT_ACTIVE | Group::STICKY);
   activeServer = group.getActive();
-  logDebug(ALARM_SERVER, ALARM_ENTITY, "Register alarm message server");
-  alarmMsgServer->RegisterHandler(SAFplusI::ALARM_MSG_TYPE, this, NULL); //  Register the main message handler (no-op if already registered)
+  //logDebug(ALARM_SERVER, ALARM_ENTITY, "Register alarm message server");
+  //alarmMsgServer->RegisterHandler(SAFplusI::ALARM_MSG_TYPE, this, NULL); //  Register the main message handler (no-op if already registered)
+  logDebug(ALARM_SERVER, ALARM_ENTITY, "Register rpc stub for Alarm");
+  channel = new SAFplus::Rpc::RpcChannel(alarmMsgServer, this);
+  if(nullptr == channel)
+  {
+    logError(ALARM_SERVER, ALARM_ENTITY, "channel is nullptr");
+    return;
+  }
+  channel->setMsgSendType(SAFplusI::ALARM_REQ_HANDLER_TYPE);
+  channel->msgReplyType = SAFplusI::ALARM_REPLY_HANDLER_TYPE;
   assert(activeServer != INVALID_HDL); // It can't be invalid because I am available to be active.
   logDebug(ALARM_SERVER, ALARM_ENTITY, "Initialize alarm checkpoint");
   data.initialize();
+  logDebug(ALARM_SERVER, ALARM_ENTITY, "Initialize event client on server");
   eventClient.eventInitialize(handleAlarmServer, nullptr);
   eventClient.eventChannelOpen(ALARM_CHANNEL, EventChannelScope::EVENT_GLOBAL_CHANNEL);
   eventClient.eventChannelPublish(ALARM_CHANNEL, EventChannelScope::EVENT_GLOBAL_CHANNEL);
-  //TODO:Dump data from  checkpoint in to data storage object
-  if (activeServer == handleAlarmServer)
-  {
-    //read data from checkpoint to global channel
-    logDebug(ALARM_SERVER, ALARM_ENTITY, "Load data from checkpoint to data");
-    //data.loadAlarmProfile();
-    //data.loadAlarmData();
-  }
+  //active address
+  eventClient.eventChannelOpen(ALARM_CHANNEL_ADDRESS_CHANGE, EventChannelScope::EVENT_GLOBAL_CHANNEL);
+  eventClient.eventChannelPublish(ALARM_CHANNEL_ADDRESS_CHANGE, EventChannelScope::EVENT_GLOBAL_CHANNEL);
 }
 
-void AlarmServer::msgHandler(SAFplus::Handle from, SAFplus::MsgServer* srv, ClPtrT msg, ClWordT msglen, ClPtrT cookie)
-{
-  if (msg == NULL)
-  {
-    logError(ALARM, "MSG", "Received NULL message. Ignored alarm message");
-    return;
-  }
-  const AlarmMessageProtocol*rxMsg = (SAFplus::AlarmMessageProtocol*) msg;
-  logDebug(ALARM_SERVER, "MSG", "msgHandler:Received message type[%d]", rxMsg->messageType);
-  boost::lock_guard < boost::mutex > lock { g_queue_mutex };
-  spsc_queue.push(*rxMsg);
-  if (!isDataAvailable)
-  {
-    isDataAvailable = true;
-    threadProcess = boost::thread(AlarmServer::processData);
-    threadProcess.detach();
-  }
-}
 
 ClRcT AlarmServer::publishAlarm(const AlarmData& alarmData)
 {
@@ -102,12 +86,28 @@ ClRcT AlarmServer::publishAlarm(const AlarmData& alarmData)
   std::stringstream ss;
   ss << alarmData;
   eventClient.eventPublish(ss.str(), ss.str().length(), ALARM_CHANNEL, EventChannelScope::EVENT_GLOBAL_CHANNEL);
+  AlarmKey key(alarmData.resourceId, alarmData.category, alarmData.probCause);
+  AlarmProfileData alarmProfile;
+  if (!data.findAlarmProfileData(key, alarmProfile))
+  {
+    logError(ALARM_SERVER, ALARMINFO, "Profile not found [%s]", key.toString().c_str());
+    return false;
+  }
+  if(alarmProfile.isSend)
+  {
+    logDebug(ALARM_SERVER, "MSG", "YOU IMPLEMENT SEND FAULT to MANAGEMENT [%s]", alarmData.toString().c_str());
+  }
 }
 
 AlarmServer::~AlarmServer()
 {
-  isDataAvailable = false;
   eventClient.eventChannelClose(ALARM_CHANNEL, EventChannelScope::EVENT_GLOBAL_CHANNEL);
+  eventClient.eventChannelClose(ALARM_CHANNEL_ADDRESS_CHANGE, EventChannelScope::EVENT_GLOBAL_CHANNEL);
+  if(nullptr != channel)
+  {
+    delete channel;
+    channel = nullptr;
+  }
 }
 
 void AlarmServer::purgeRpcRequest(const AlarmFilter& inputFilter)
@@ -146,7 +146,7 @@ bool AlarmServer::alarmConditionCheck(const AlarmInfo& alarmInfo)
   {
     isConditionMatch = true;
   }
-  logDebug(ALARM_SERVER, ALARMINFO, "Generate Rule [%s] isConditionMatch[%d]", alarmInfo.toString().c_str());
+  logDebug(ALARM_SERVER, ALARMINFO, "Generate Rule [%s] isConditionMatch[%d]", alarmInfo.toString().c_str(),isConditionMatch);
   if (!isConditionMatch) return isConditionMatch;
   //check suppression rule
   alarmResult = alarmProfile.suppressionRuleBitmap & alarmInfo.afterSoakingBitmap;
@@ -227,20 +227,23 @@ void AlarmServer::processPublishAlarmData(const AlarmData& alarmData)
   {
     //generate alarm
     alarmInfo.state = alarmData.state;
-    if (!checkHandMasking(alarmInfo))
+    if(AlarmState::ASSERT == alarmData.state)
     {
-      if (AlarmState::ASSERT == alarmData.state)
+      if (!checkHandMasking(alarmInfo))
       {
-        publishAlarm(alarmData);
+        if (AlarmState::ASSERT == alarmData.state)
+        {
+          publishAlarm(alarmData);
+        }
+        else
+        {
+          logDebug(ALARM_SERVER, ALARMINFO, "Status clear for [%s]", alarmData.toString().c_str());
+        }
       }
       else
       {
-        logDebug(ALARM_SERVER, ALARMINFO, "Status clear for [%s]", alarmData.toString().c_str());
+        logDebug(ALARM_SERVER, ALARMINFO, "checkHandMasking not passed for [%s]", alarmData.toString().c_str());
       }
-    }
-    else
-    {
-      logDebug(ALARM_SERVER, ALARMINFO, "checkHandMasking not passed for [%s]", alarmData.toString().c_str());
     }
     data.isUpdate = true;
     data.updateAlarmInfo(alarmInfo);
@@ -256,31 +259,6 @@ ClRcT AlarmServer::processAlarmDataCallBack(void* apAlarmData)
   if (AlarmState::ASSERT == pAlarmData->state) processAssertAlarmData(alarmData);
   else processClearAlarmData(alarmData);
   return CL_OK;
-}
-void AlarmServer::processData()
-{
-  static AlarmMessageProtocol messageProtocol;
-  //process sequential
-  boost::lock_guard < boost::mutex > lock { g_queue_mutex };
-  while (isDataAvailable && spsc_queue.pop(messageProtocol))
-  {
-    switch (messageProtocol.messageType)
-    {
-    case SAFplusAlarm::AlarmMessageType::MSG_ENTITY_ALARM:
-      processAlarmData(messageProtocol.data.alarmData);
-      break;
-    case SAFplusAlarm::AlarmMessageType::MSG_CREATE_PROFILE_ALARM:
-      createAlarmProfileData(messageProtocol.data.alarmProfileData);
-      break;
-    case SAFplusAlarm::AlarmMessageType::MSG_DELETE_PROFILE_ALARM:
-      deleteAlarmProfileData(messageProtocol.data.alarmProfileData);
-      break;
-    default:
-      logDebug(ALARM_SERVER, "MSG", "Unknown message type [%d]", messageProtocol.messageType);
-      break;
-    } //switch
-  } //while
-  isDataAvailable = false;
 }
 void AlarmServer::processAlarmData(const AlarmData& alarmData)
 {
@@ -391,7 +369,12 @@ bool AlarmServer::checkHandMasking(const AlarmInfo& aalarmInfo)
         }
         else
         {
-          if (AlarmState::ASSERT == alarmInfo.state) return true;
+          AlarmProfileData localProfileData;
+          if (data.findAlarmProfileData(key, localProfileData))
+          {
+            std::cout<<key.toString()<<"issupress:"<<localProfileData.isSuppressChild<<std::endl;
+            if ((AlarmState::ASSERT == alarmInfo.state)&& localProfileData.isSuppressChild) return true;
+          }
         }
       }
     }
@@ -405,42 +388,87 @@ bool AlarmServer::checkHandMasking(const AlarmInfo& aalarmInfo)
 void AlarmServer::wake(int amt, void* cookie)
 {
   Group* g = (Group*) cookie;
-  logDebug(ALARM_SERVER,ALARMINFO, "Group [%" PRIx64 ":%" PRIx64 "] changed", g->handle.id[0],g->handle.id[1]);
-  activeServer = g->getActive();
-}
-void AlarmServer::createAlarmProfileData(const AlarmProfileData& alarmProfileData)
-{
-  AlarmProfileData localProfileData;
-  data.isUpdate = true;
-  AlarmKey key(alarmProfileData.resourceId, alarmProfileData.category, alarmProfileData.probCause);
-  if (!data.findAlarmProfileData(key, localProfileData))
+  logDebug(ALARM_SERVER, ALARMINFO, "Group [%" PRIx64 ":%" PRIx64 "] changed",g->handle.id[0], g->handle.id[1]);
+  if (activeServer != g->getActive())
   {
-    data.updateAlarmProfileData(alarmProfileData);
-    //convert get key only
-    AlarmInfo alarmInfo;
-    copyKey(alarmProfileData, alarmInfo);
-    data.isUpdate = true;
-    alarmInfo.afterSoakingBitmap = alarmProfileData.generationRuleBitmap;
-    if (!data.findAlarmInfo(key, alarmInfo))
+    if (handleAlarmServer == g->getActive())
     {
-      data.updateAlarmInfo(alarmInfo); //alarm info auto
+      //TODO Load global data from checkpoint
+      //data.loadAlarmProfile();
+      //data.loadAlarmData();
     }
-    else
-    {
-      logDebug(ALARM_SERVER, PROFILE, "Alarm Info found [%s]", alarmInfo.toString().c_str());
-    }
-    logDebug(ALARM_SERVER, PROFILE, "Create alarm profile [%s]", alarmProfileData.toString().c_str());
-  }
-  else
-  {
-    logDebug(ALARM_SERVER, PROFILE, "Alarm profile [%s] is existed.", alarmProfileData.toString().c_str());
+    activeServer = g->getActive();
+    std::stringstream ss;
+    ss<<activeServer.id[0]<<" "<<activeServer.id[1];
+    //eventClient.eventPublish(ss.str(), ss.str().length(), ALARM_CHANNEL_ADDRESS_CHANGE, EventChannelScope::EVENT_GLOBAL_CHANNEL);
   }
 }
-void AlarmServer::deleteAlarmProfileData(const AlarmProfileData& alarmProfileData)
+int count = 0;
+void AlarmServer::alarmCreateRpcMethod(const ::SAFplus::Rpc::rpcAlarm::alarmProfileCreateRequest* request,
+                           ::SAFplus::Rpc::rpcAlarm::alarmResponse* response)
 {
-  AlarmKey key(alarmProfileData.resourceId, alarmProfileData.category, alarmProfileData.probCause);
+   AlarmProfileData localProfileData;
+   AlarmKey key(request->resourceid(),(AlarmCategory)request->category(),(AlarmProbableCause)request->probcause());
+   logDebug(ALARM_SERVER, PROFILE,"********** Received create profile message from client key [%s] **********",key.toString().c_str());
+   response->set_saerror(CL_OK);
+   std::cout<<"DANGLE:alarmCreateRpcMethod:"<<count++<<std::endl;
+   if(AlarmCategory::INVALID == (AlarmCategory)request->category())
+   {
+     logDebug(ALARM_SERVER, PROFILE,"********** Received invalid profile message from client key [%s] **********",key.toString().c_str());
+     response->set_saerror(CL_NO);
+     return;
+   }
+   if (!data.findAlarmProfileData(key, localProfileData))
+   {
+     boost::lock_guard < boost::mutex > lock { g_data_mutex };
+     std::cout<<"CreateProfile:isSuppress:"<<request->issuppresschild()<<std::endl;
+     AlarmProfileData alarmProfileData(request->resourceid(), (AlarmCategory)request->category(), (AlarmProbableCause)request->probcause(), (AlarmSpecificProblem)request->specificproblem(),request->issend(),request->intassertsoakingtime(),request->intclearsoakingtime(),(AlarmRuleRelation)request->genrulerelation(),
+         (BITMAP64)request->generationrulebitmap(),(AlarmRuleRelation)request->supprulerelation(),(BITMAP64)request->suppressionrulebitmap(),request->intindex(),(BITMAP64)request->affectedbitmap(),request->issuppresschild());
+     data.isUpdate = true;
+     data.updateAlarmProfileData(alarmProfileData);
+     //convert get key only
+     AlarmInfo alarmInfo;
+     copyKey(alarmProfileData, alarmInfo);
+     data.isUpdate = true;
+     alarmInfo.afterSoakingBitmap = alarmProfileData.generationRuleBitmap;
+     if (!data.findAlarmInfo(key, alarmInfo))
+     {
+       data.updateAlarmInfo(alarmInfo); //alarm info auto
+     }
+     else
+     {
+       logDebug(ALARM_SERVER, PROFILE, "Alarm Info found [%s]", key.toString().c_str());
+       response->set_saerror(CL_ERR_ALREADY_EXIST);
+       response->set_errstr("Alarm Info found!");
+     }
+     logDebug(ALARM_SERVER, PROFILE, "Create alarm profile [%s]", key.toString().c_str());
+   }
+   else
+   {
+     logDebug(ALARM_SERVER, PROFILE, "Alarm profile [%s] is existed.", key.toString().c_str());
+     response->set_saerror(CL_ERR_ALREADY_EXIST);
+     response->set_errstr("Alarm profile found!");
+   }
+}
+void AlarmServer::alarmDeleteRpcMethod(const ::SAFplus::Rpc::rpcAlarm::alarmProfileDeleteRequest* request,
+                   ::SAFplus::Rpc::rpcAlarm::alarmResponse* response)
+{
+  AlarmKey key(request->resourceid(),(AlarmCategory)request->category(), (AlarmProbableCause)request->probcause());
+  boost::lock_guard < boost::mutex > lock { g_data_mutex };
   data.removeAlarmProfileData(key);
   data.removeAlarmInfo(key);
-  logDebug(ALARM_SERVER, PROFILE, "Delete alarm profile [%s]", alarmProfileData.toString().c_str());
+  response->set_saerror(CL_OK);
+  logDebug(ALARM_SERVER, PROFILE, "Delete alarm profile [%s]", key.toString().c_str());
+}
+void AlarmServer::alarmRaiseRpcMethod(const ::SAFplus::Rpc::rpcAlarm::alarmDataRequest* request,
+                   ::SAFplus::Rpc::rpcAlarm::alarmResponse* response)
+{
+  boost::lock_guard < boost::mutex > lock { g_data_mutex };
+  AlarmData alarmData(request->resourceid().c_str(),(AlarmCategory)request->category(),
+      (AlarmProbableCause)request->probcause(),(AlarmSpecificProblem)request->specificproblem(),
+      (AlarmSeverity)request->severity(),(AlarmState)request->state());
+  processAlarmData(alarmData);
+  response->set_saerror(CL_OK);
+  logDebug(ALARM_SERVER, ALARMINFO, "Raise alarm [%s]", alarmData.toString().c_str());
 }
 }

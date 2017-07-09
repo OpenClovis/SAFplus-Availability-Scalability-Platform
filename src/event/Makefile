@@ -35,7 +35,8 @@ $(MWOBJ_DIR)/%.o: %.cxx Makefile $(CLIENT_H)
 
 $(OBJ_DIR)/%.o: %.cxx Makefile $(CLIENT_H)
 	$(COMPILE_CPP) $@ $<
-
+	
+	
 clean:
 	rm -f $(LIB_DIR)/libclEvent.so $(LIB_DIR)/libclEvent.a 
 

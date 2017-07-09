@@ -20,15 +20,35 @@
 #include <clMsgPortsAndTypes.hxx>
 #include <clCustomization.hxx>
 #include <AlarmMessageType.hxx>
-#include <AlarmMessageProtocol.hxx>
 #include <clAlarmApi.hxx>
 
-#include <clNameApi.hxx>
 
 using namespace std;
 
 namespace SAFplus
 {
+SAFplus::Handle Alarm::activeServerAddress;
+
+void alarmCallback(const std::string& channelId,const EventChannelScope& scope,const std::string& data,const int& length)
+{
+  //if
+  if(channelId.compare(ALARM_CHANNEL_ADDRESS_CHANGE) == 0)//notitfy address changed
+  {
+    std::stringstream is(data);
+    is >> Alarm::activeServerAddress.id[0];
+    is >> Alarm::activeServerAddress.id[1];
+  }else
+  {
+    eventCallback(channelId,scope,data,length);
+  }
+}
+//For alarm using rpc
+
+void rpcDone(SAFplus::Rpc::rpcAlarm::alarmResponse* response)
+{
+  logDebug(ALARM, ALARM_ENTITY, "Alarm request Done");
+}
+
 Alarm::Alarm()
 {
 }
@@ -45,17 +65,17 @@ void Alarm::initialize(const SAFplus::Handle& handleClient, SAFplus::Wakeable& w
   eventClient.eventInitialize(handleClientAlarm, &eventCallback);
   eventClient.eventChannelOpen(ALARM_CHANNEL, EventChannelScope::EVENT_GLOBAL_CHANNEL);
   eventClient.eventChannelPublish(ALARM_CHANNEL, EventChannelScope::EVENT_GLOBAL_CHANNEL);
-}
-
-Alarm::Alarm(const SAFplus::Handle& handleClient, const SAFplus::Handle& handleServer)
-{
-  wakeable = NULL;
-  handleClientAlarm = handleClient;
-  handleAlarmServer = handleServer;
-  if (!alarmMsgServer)
-  {
-    alarmMsgServer = &safplusMsgServer;
-  }
+  //active server address notify
+  eventClient.eventChannelOpen(ALARM_CHANNEL_ADDRESS_CHANGE, EventChannelScope::EVENT_GLOBAL_CHANNEL);
+  eventClient.eventChannelPublish(ALARM_CHANNEL_ADDRESS_CHANGE, EventChannelScope::EVENT_GLOBAL_CHANNEL);
+  eventClient.eventChannelSubscriber(ALARM_CHANNEL_ADDRESS_CHANGE, EventChannelScope::EVENT_GLOBAL_CHANNEL);
+  //For Rpc
+  logDebug(ALARM, ALARM_ENTITY, "Initialize alarm Rpc client");
+  channel = new SAFplus::Rpc::RpcChannel(alarmMsgServer, handleAlarmServer);
+  activeServerAddress = handleAlarmServer;
+  channel->setMsgReplyType(SAFplusI::ALARM_REPLY_HANDLER_TYPE);
+  channel->msgSendType = SAFplusI::ALARM_REQ_HANDLER_TYPE;
+  service = new SAFplus::Rpc::rpcAlarm::rpcAlarm_Stub(channel);
 }
 
 ClRcT Alarm::raiseAlarm(const AlarmData& alarmData)
@@ -91,8 +111,8 @@ ClRcT Alarm::createAlarmProfile()
     }
     if (nullptr != appAlarms[indexApp].MoAlarms)
     {
-      while (nullptr != appAlarms[indexApp].MoAlarms)
-      {
+      //while (nullptr != appAlarms[indexApp].MoAlarms)
+      //{
         MAPALARMPROFILEINFO alarmProfileData;
         while (indexProfile < SAFplusI::MAX_ALARM_SIZE)
         {
@@ -102,6 +122,7 @@ ClRcT Alarm::createAlarmProfile()
             break;
           }
           AlarmKey key(appAlarms[indexApp].resourceId, appAlarms[indexApp].MoAlarms[indexProfile].category, appAlarms[indexApp].MoAlarms[indexProfile].probCause);
+          std::cout<<"DANGLE:create alarm profile:"<<indexProfile<<key.toString()<<std::endl;
           AlarmProfileData profileData;
           memset(profileData.resourceId, 0, SAFplusI::MAX_RESOURCE_NAME_SIZE);
           strcpy(profileData.resourceId, appAlarms[indexApp].resourceId.c_str());
@@ -111,7 +132,7 @@ ClRcT Alarm::createAlarmProfile()
           profileData.specificProblem = appAlarms[indexApp].MoAlarms[indexProfile].specificProblem;
           profileData.intAssertSoakingTime = appAlarms[indexApp].MoAlarms[indexProfile].intAssertSoakingTime;
           profileData.intClearSoakingTime = appAlarms[indexApp].MoAlarms[indexProfile].intClearSoakingTime;
-          //profileInfo.intPollTime = appAlarms[index].MoAlarms[j].intPollTime;
+          profileData.isSuppressChild = appAlarms[indexApp].MoAlarms[indexProfile].isSuppressChild;
           if (NULL != appAlarms[indexApp].MoAlarms[indexProfile].generationRule)
           {
             profileData.genRuleRelation = appAlarms[indexApp].MoAlarms[indexProfile].generationRule->relation;
@@ -160,16 +181,33 @@ ClRcT Alarm::createAlarmProfile()
           }
           indexProfile++;
         } //while
-          //send a map profile to server
+        //send a map profile to server
         for (const MAPALARMPROFILEINFO::value_type& it : alarmProfileData)
         {
-          AlarmMessageProtocol sndMessage;
-          sndMessage.messageType = AlarmMessageType::MSG_CREATE_PROFILE_ALARM;
-          sndMessage.data.alarmProfileData = it.second;
-          sendAlarmNotification((void *) &sndMessage, sizeof(AlarmMessageProtocol));
-        }
-        break;
-      } //while
+          SAFplus::Rpc::rpcAlarm::alarmProfileCreateRequest openRequest;
+          SAFplus::Rpc::rpcAlarm::alarmResponse openRequestRes;
+          openRequest.set_resourceid(it.second.resourceId);
+          openRequest.set_category((int)it.second.category);
+          openRequest.set_probcause((int)it.second.probCause);
+          openRequest.set_specificproblem((int)it.second.specificProblem);
+          openRequest.set_issend(it.second.isSend);
+          openRequest.set_intassertsoakingtime((int)it.second.intAssertSoakingTime);
+          openRequest.set_intclearsoakingtime((int)it.second.intClearSoakingTime);
+          openRequest.set_generationrulebitmap(it.second.generationRuleBitmap);
+          openRequest.set_genrulerelation((int)it.second.genRuleRelation);
+          openRequest.set_suppressionrulebitmap(it.second.suppressionRuleBitmap);
+          openRequest.set_supprulerelation((int)it.second.suppRuleRelation);
+          openRequest.set_intindex((int)it.second.intIndex);
+          openRequest.set_affectedbitmap(it.second.affectedBitmap);
+          openRequest.set_issuppresschild(it.second.isSuppressChild);
+          service->alarmCreateRpcMethod(activeServerAddress,&openRequest,&openRequestRes,SAFplus::BLOCK);
+          if(CL_OK != openRequestRes.saerror())
+          {
+            logDebug(ALARM, ALARM_ENTITY, "Error : %s ... ",openRequestRes.errstr().c_str());
+            return openRequestRes.saerror();
+          }
+        }//for
+      //} //while
     } //if
   } //if
   return CL_OK;
@@ -177,41 +215,23 @@ ClRcT Alarm::createAlarmProfile()
 
 ClRcT Alarm::raiseAlarm(const std::string& resourceId, const AlarmCategory& category, const AlarmProbableCause& probCause, const AlarmSeverity& severity, const AlarmSpecificProblem& specificProblem, const AlarmState& state)
 {
-  AlarmMessageProtocol sndMessage;
-  sndMessage.messageType = AlarmMessageType::MSG_ENTITY_ALARM;
-  memset(sndMessage.data.alarmData.resourceId, 0, SAFplusI::MAX_RESOURCE_NAME_SIZE);
-  strcpy(sndMessage.data.alarmData.resourceId, resourceId.c_str());
-  sndMessage.data.alarmData.category = category;
-  sndMessage.data.alarmData.probCause = probCause;
-  sndMessage.data.alarmData.severity = severity;
-  sndMessage.data.alarmData.specificProblem = specificProblem;
-  sndMessage.data.alarmData.state = state;
-  sndMessage.data.alarmData.syncData[0] = 0;
-  return sendAlarmNotification((void *) &sndMessage, sizeof(AlarmMessageProtocol));
-}
-
-//Sending a Alarm notification to Alarm server
-ClRcT Alarm::sendAlarmNotification(const void* data, const int& dataLength)
-{
-  logDebug(ALARM, ALARM_ENTITY, "Sending Alarm Notification");
-  if (handleAlarmServer == INVALID_HDL)
+  SAFplus::Rpc::rpcAlarm::alarmDataRequest openRequest;
+  SAFplus::Rpc::rpcAlarm::alarmResponse openRequestRes;
+  openRequest.set_resourceid(resourceId);
+  openRequest.set_category((int)category);
+  openRequest.set_probcause((int)probCause);
+  openRequest.set_specificproblem((int)specificProblem);
+  openRequest.set_severity((int)severity);
+  openRequest.set_state((int)state);
+  openRequest.set_syncdata(" ");//temporary
+  service->alarmRaiseRpcMethod(activeServerAddress,&openRequest,&openRequestRes,SAFplus::BLOCK);
+  if(CL_OK != openRequestRes.saerror())
   {
-    logError(ALARM, ALARM_ENTITY, "Alarm Server is not initialized");
-    return CL_NO;
-  }
-  //will update node address active SC
-  logDebug(ALARM, ALARM_ENTITY, "Send Alarm Notification to active Alarm Server  : node Id [%d]", handleAlarmServer.getNode());
-  try
-  {
-    alarmMsgServer->SendMsg(handleAlarmServer, (void *) data, dataLength, SAFplusI::ALARM_MSG_TYPE);
-  }
-  catch (...)
-  {
-    logDebug(ALARM, ALARM_ENTITY, "Failed to send message to alarm server.");
-    return CL_NO;
+    logDebug(ALARM, ALARM_ENTITY, "Error : %s ... ",openRequestRes.errstr().c_str());
+    return openRequestRes.saerror();
   }
   return CL_OK;
-} //function
+}
 
 ClRcT Alarm::deleteAlarmProfile()
 {
@@ -231,17 +251,20 @@ ClRcT Alarm::deleteAlarmProfile()
     {
       while (nullptr != appAlarms[indexApp].MoAlarms)
       {
-        AlarmMessageProtocol sndMessage;
-        sndMessage.messageType = AlarmMessageType::MSG_DELETE_PROFILE_ALARM;
-        memset(sndMessage.data.alarmProfileData.resourceId, 0, SAFplusI::MAX_RESOURCE_NAME_SIZE);
-        strcpy(sndMessage.data.alarmProfileData.resourceId, appAlarms[indexApp].resourceId.c_str());
-        sndMessage.data.alarmProfileData.category = appAlarms[indexApp].MoAlarms[indexProfile].category;
-        sndMessage.data.alarmProfileData.probCause = appAlarms[indexApp].MoAlarms[indexProfile].probCause;
-        sendAlarmNotification((void *) &sndMessage, sizeof(AlarmMessageProtocol));
         if (AlarmCategory::INVALID == appAlarms[indexApp].MoAlarms[indexProfile].category)
         {
           logDebug(ALARM, ALARM_ENTITY, "Profile size is %d", indexProfile);
           break;
+        }
+        SAFplus::Rpc::rpcAlarm::alarmProfileDeleteRequest openRequest;
+        SAFplus::Rpc::rpcAlarm::alarmResponse openRequestRes;
+        openRequest.set_resourceid(appAlarms[indexApp].resourceId);
+        openRequest.set_category((int)appAlarms[indexApp].MoAlarms[indexProfile].category);
+        openRequest.set_probcause((int)appAlarms[indexApp].MoAlarms[indexProfile].probCause);
+        service->alarmDeleteRpcMethod(activeServerAddress,&openRequest,&openRequestRes,SAFplus::BLOCK);
+        if(CL_OK != openRequestRes.saerror())
+        {
+          logDebug(ALARM, ALARM_ENTITY, "Error : %s ... ",openRequestRes.errstr().c_str());
         }
         indexProfile++;
       } //while
@@ -251,6 +274,19 @@ ClRcT Alarm::deleteAlarmProfile()
 }
 Alarm::~Alarm()
 {
+  if(nullptr != channel)
+  {
+    delete channel;
+    channel = nullptr;
+  }
+  if(nullptr != service)
+  {
+    delete service;
+    service = nullptr;
+  }
   eventClient.eventChannelClose(ALARM_CHANNEL, EventChannelScope::EVENT_GLOBAL_CHANNEL);
+  //addresss
+  eventClient.eventChannelUnSubscriber(ALARM_CHANNEL_ADDRESS_CHANGE, EventChannelScope::EVENT_GLOBAL_CHANNEL);
+  eventClient.eventChannelClose(ALARM_CHANNEL_ADDRESS_CHANGE, EventChannelScope::EVENT_GLOBAL_CHANNEL);
 }
 } //namespace

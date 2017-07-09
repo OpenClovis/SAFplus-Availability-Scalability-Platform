@@ -21,7 +21,7 @@ public:
   //constructor
   AlarmProfileData();
   AlarmProfileData(const std::string& inresourceId, const AlarmCategory& incategory, const AlarmProbableCause& inprobCause, const AlarmSpecificProblem& aspecificProblem, const bool& aisSend, const int& aintAssertSoakingTime, const int& aintClearSoakingTime, const AlarmRuleRelation& agenRuleRelation,
-      const BITMAP64& agenerationRuleBitmap, const AlarmRuleRelation& asuppRuleRelation, const BITMAP64 asuppressionRuleBitmap, const int& aintIndex, const BITMAP64 aaffectedBitmap);
+      const BITMAP64& agenerationRuleBitmap, const AlarmRuleRelation& asuppRuleRelation, const BITMAP64& asuppressionRuleBitmap, const int& aintIndex, const BITMAP64& aaffectedBitmap,const bool& aisSuppressChild);
   AlarmProfileData operator=(const AlarmProfileData& other);
   bool operator==(const AlarmProfileData& other);
   std::string toString() const;
@@ -45,6 +45,7 @@ public:
   AlarmRuleRelation suppRuleRelation;
   int intIndex;
   BITMAP64 affectedBitmap;
+  bool isSuppressChild;
 
 };
 }

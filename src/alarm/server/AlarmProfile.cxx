@@ -33,9 +33,10 @@ AlarmProfile::AlarmProfile()
   generationRule = nullptr;
   suppressionRule = nullptr;
   specificProblem = 0;
+  isSuppressChild = true;
 }
 AlarmProfile::AlarmProfile(const AlarmCategory& acategory, const AlarmProbableCause& aprobCause, const AlarmSeverity& aseverity, const bool& aisSend, const int& aassertSoakingTime, const int& aclearSoakingTime, AlarmRuleInfo* agenerationRule, AlarmRuleInfo* asuppressionRule,
-    const AlarmSpecificProblem aspecificProblem)
+    const AlarmSpecificProblem aspecificProblem,const bool& aisSuppressChild)
 {
   category = acategory;
   probCause = aprobCause;
@@ -46,6 +47,7 @@ AlarmProfile::AlarmProfile(const AlarmCategory& acategory, const AlarmProbableCa
   generationRule = agenerationRule;
   suppressionRule = asuppressionRule;
   specificProblem = aspecificProblem;
+  isSuppressChild = aisSuppressChild;
 }
 AlarmProfile AlarmProfile::operator=(const AlarmProfile& other)
 {
@@ -58,6 +60,7 @@ AlarmProfile AlarmProfile::operator=(const AlarmProfile& other)
   generationRule = other.generationRule;
   suppressionRule = other.suppressionRule;
   specificProblem = other.specificProblem;
+  isSuppressChild = other.isSuppressChild;
   return *this;
 }
 

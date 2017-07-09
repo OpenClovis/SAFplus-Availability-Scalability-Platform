@@ -30,10 +30,10 @@ void raiseAlarm_Assert_Clear();
 void raiseAlarm_Assert(const int indexProfile = 0, const AlarmSeverity& severity = AlarmSeverity::MINOR);
 void raiseAlarm_Clear(const int indexProfile = 0, const AlarmSeverity& severity = AlarmSeverity::MINOR);
 #define ALARM_CLIENT_PID 51
-void eventCallback(uintcw_t channelId, EventChannelScope scope, std::string data, int length)
+void eventCallback(const std::string& channelName,const EventChannelScope& scope,const std::string& data,const int& length)
 {
   logDebug("EVT", "MSG", "***********************************************************");
-  logDebug("EVT", "MSG", "app Receive event from event channel with id [%ld]", channelId);
+  logDebug("EVT", "MSG", "app Receive event from event channel with id [%s]", channelName.c_str());
   logDebug("EVT", "MSG", "app Event data [%s]", data.c_str());
   logDebug("EVT", "MSG", "***********************************************************");
 }
@@ -148,13 +148,15 @@ void raiseAlarm_Assert_Clear_Assert_Assert()
 }
 void testAllFeature()
 {
-  //raiseAlarm_Assert_Clear();
+  //test hand masking
+  sleep(5);
   raiseAlarm_Assert();
   sleep(5);
   raiseAlarm_Clear();
-  //raiseAlarm_Assert_Assert();
-  //raiseAlarm_Assert_Clear_Assert();
-  //raiseAlarm_Assert_Clear_Assert_Assert();
+  sleep(20);
+  raiseAlarm_Assert(1);
+  sleep(5);
+  raiseAlarm_Clear(1);
 }
 
 void tressTest(int eventNum)

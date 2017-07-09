@@ -28,13 +28,14 @@
 #include <boost/lockfree/spsc_queue.hpp>
 #include <boost/atomic.hpp>
 #include <boost/thread.hpp>
+#include <clMsgPortsAndTypes.hxx>
 #include <EventClient.hxx>
 #include <StorageAlarmData.hxx>
 #include <AlarmData.hxx>
 #include <AlarmProfile.hxx>
-#include <AlarmMessageProtocol.hxx>
 #include <clFaultApi.hxx>
 #include <AlarmUtils.hxx>
+#include <rpcAlarm.hxx>
 
 using namespace SAFplusAlarm;
 namespace SAFplus
@@ -44,7 +45,7 @@ namespace SAFplus
 // Alarm server check handmasking,send to alarm application,fault management
 // Alarm client such as clearing,soaking,check generate rule,suppression rule,assert state
 
-class AlarmServer:public SAFplus::MsgHandler,public SAFplus::Wakeable
+class AlarmServer:public SAFplus::MsgHandler,public SAFplus::Wakeable,public SAFplus::Rpc::rpcAlarm::rpcAlarm
 {
   public:
     // default constructor
@@ -61,38 +62,42 @@ class AlarmServer:public SAFplus::MsgHandler,public SAFplus::Wakeable
     // msglen: input length of message
     // pcookie: input cookie
     // Return: ClRcT
-    virtual void msgHandler(SAFplus::Handle from, SAFplus::MsgServer* psrv, ClPtrT pmsg, ClWordT msglen, ClPtrT pcookie);
+    //virtual void msgHandler(SAFplus::Handle from, SAFplus::MsgServer* psrv, ClPtrT pmsg, ClWordT msglen, ClPtrT pcookie);
 
     // send alarm to application management
     // Return: ClRcT
     static ClRcT publishAlarm(const AlarmData& alarmData);
     // destructor
-    ~AlarmServer();
+    virtual ~AlarmServer();
     // purge rpc for alarm
-    static void purgeRpcRequest(const AlarmFilter& inputFilter);
+    void purgeRpcRequest(const AlarmFilter& inputFilter);
     // delete alarms on data storage
-    static void deleteRpcRequest(const AlarmFilter& inputFilter);
+    void deleteRpcRequest(const AlarmFilter& inputFilter);
     // Proccess alarm
-     static void processAssertAlarmData(const AlarmData& alarmData);
-     static void processClearAlarmData(const AlarmData& alarmData);
-     static bool alarmConditionCheck(const AlarmInfo& alarmInfo);
-     static void processAffectedAlarm(const AlarmKey& key,const bool& isSet = true);
-     static void processPublishAlarmData(const AlarmData& alarmData);
-     static ClRcT processAlarmDataCallBack(void* apAlarmData);
-     static void processAlarmData(const AlarmData& alarmData);
-     static void processData();
-     static bool checkHandMasking(const AlarmInfo& alarmInfo);
-     static void createAlarmProfileData(const AlarmProfileData& alarmProfileData);
+    static void processAssertAlarmData(const AlarmData& alarmData);
+    static void processClearAlarmData(const AlarmData& alarmData);
+    static bool alarmConditionCheck(const AlarmInfo& alarmInfo);
+    static void processAffectedAlarm(const AlarmKey& key,const bool& isSet = true);
+    static void processPublishAlarmData(const AlarmData& alarmData);
+    static ClRcT processAlarmDataCallBack(void* apAlarmData);
+    void processAlarmData(const AlarmData& alarmData);
+     //void processData();
+    static bool checkHandMasking(const AlarmInfo& alarmInfo);
+     //static void createAlarmProfileData(const AlarmProfileData& alarmProfileData);
      void wake(int amt,void* cookie);
-     static void deleteAlarmProfileData(const AlarmProfileData& alarmProfileData);
+     //static void deleteAlarmProfileData(const AlarmProfileData& alarmProfileData);
      static StorageAlarmData data;
-     static boost::atomic<bool> isDataAvailable;
-     static boost::lockfree::spsc_queue<AlarmMessageProtocol, boost::lockfree::capacity<1024> > spsc_queue;
-     static boost::thread threadProcess;
      static SAFplus::EventClient eventClient;
-     static boost::mutex g_queue_mutex;
+     static boost::mutex g_data_mutex;
+     SAFplus::Rpc::RpcChannel *channel;
+     void alarmCreateRpcMethod(const ::SAFplus::Rpc::rpcAlarm::alarmProfileCreateRequest* request,
+                           ::SAFplus::Rpc::rpcAlarm::alarmResponse* response);
+     void alarmDeleteRpcMethod(const ::SAFplus::Rpc::rpcAlarm::alarmProfileDeleteRequest* request,
+                         ::SAFplus::Rpc::rpcAlarm::alarmResponse* response);
+     void alarmRaiseRpcMethod(const ::SAFplus::Rpc::rpcAlarm::alarmDataRequest* request,
+                         ::SAFplus::Rpc::rpcAlarm::alarmResponse* response);
   private:
-     static bool checkHandMasking(const std::vector<std::string>& paths);
+     bool checkHandMasking(const std::vector<std::string>& paths);
      void loadAlarmProfile();
   protected:
     SAFplus::Handle handleAlarmServer;

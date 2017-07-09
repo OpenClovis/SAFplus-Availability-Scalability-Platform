@@ -19,7 +19,6 @@ message Handle
 
 message eventChannelRequest {
   required Handle clientHandle =1 ;
-  required uint64 channelId = 2;
   required string channelName = 3;
   required int32 scope = 4;
   required int32 type = 5;
@@ -28,7 +27,6 @@ message eventChannelRequest {
 
 message eventPublishRequest {
   required Handle clientHandle =1 ;
-  required uint64 channelId = 2;
   required string channelName = 3;
   required int32 scope = 4;
   required int32 type = 5;

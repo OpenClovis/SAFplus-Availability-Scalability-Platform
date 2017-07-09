@@ -32,16 +32,16 @@ AlarmProfileData::AlarmProfileData()
   specificProblem = 0;
   intAssertSoakingTime = 0;
   intClearSoakingTime = 0;
-  //intPollTime = 0;
   generationRuleBitmap = 0;
   genRuleRelation = AlarmRuleRelation::INVALID;
   suppressionRuleBitmap = 0;
   suppRuleRelation = AlarmRuleRelation::INVALID;
   intIndex = 0;
   affectedBitmap = 0;
+  isSuppressChild = true;
 }
 AlarmProfileData::AlarmProfileData(const std::string& inresourceId, const AlarmCategory& incategory, const AlarmProbableCause& inprobCause, const AlarmSpecificProblem& aspecificProblem, const bool& aisSend, const int& aintAssertSoakingTime, const int& aintClearSoakingTime,
-    const AlarmRuleRelation& agenRuleRelation, const BITMAP64& agenerationRuleBitmap, const AlarmRuleRelation& asuppRuleRelation, const BITMAP64 asuppressionRuleBitmap, const int& aintIndex, const BITMAP64 aaffectedBitmap)
+    const AlarmRuleRelation& agenRuleRelation, const BITMAP64& agenerationRuleBitmap, const AlarmRuleRelation& asuppRuleRelation, const BITMAP64& asuppressionRuleBitmap, const int& aintIndex, const BITMAP64& aaffectedBitmap,const bool& aisSuppressChild)
 {
   memset(resourceId, 0, SAFplusI::MAX_RESOURCE_NAME_SIZE);
   strcpy(resourceId, inresourceId.c_str());
@@ -57,6 +57,7 @@ AlarmProfileData::AlarmProfileData(const std::string& inresourceId, const AlarmC
   suppressionRuleBitmap = asuppressionRuleBitmap;
   intIndex = aintIndex;
   affectedBitmap = aaffectedBitmap;
+  isSuppressChild = aisSuppressChild;
 }
 AlarmProfileData AlarmProfileData::operator=(const AlarmProfileData& other)
 {
@@ -75,19 +76,21 @@ AlarmProfileData AlarmProfileData::operator=(const AlarmProfileData& other)
   suppRuleRelation = other.suppRuleRelation;
   intIndex = other.intIndex;
   affectedBitmap = other.affectedBitmap;
+  isSuppressChild = other.isSuppressChild;
 }
 bool AlarmProfileData::operator==(const AlarmProfileData& other)
 {
   return ((strcmp(resourceId, other.resourceId) == 0) && (category == other.category) && (probCause == other.probCause) && (isSend == other.isSend) && (specificProblem == other.specificProblem) && (intAssertSoakingTime == other.intAssertSoakingTime)
       && (intClearSoakingTime == other.intClearSoakingTime) && (generationRuleBitmap == other.generationRuleBitmap) && (genRuleRelation == other.genRuleRelation) && (suppressionRuleBitmap == other.suppressionRuleBitmap)
-      && (suppRuleRelation == other.suppRuleRelation) && (intIndex == other.intIndex) && (affectedBitmap == other.affectedBitmap));
+      && (suppRuleRelation == other.suppRuleRelation) && (intIndex == other.intIndex) && (affectedBitmap == other.affectedBitmap) && (isSuppressChild == other.isSuppressChild));
 
 }
 std::string AlarmProfileData::toString() const
 {
   std::ostringstream oss;
   oss << "resourceId:[" << resourceId << "] category:[" << category << "] probCause:[" << probCause << "] specificProblem:[" << specificProblem << "] intAssertSoakingTime:[" << intAssertSoakingTime << "] intClearSoakingTime:[" << intClearSoakingTime/*<<"] intPollTime:["<<intPollTime*/
-      << "] genRuleRelation:[" << genRuleRelation << "] generateRuleBitmap:[" << generationRuleBitmap << "] suppRuleRelation:[" << suppRuleRelation << "] suppressionRuleBitmap:[" << suppressionRuleBitmap << "] affectedBitmap:[" << affectedBitmap << "] intIndex:[" << intIndex << "]";
+      << "] genRuleRelation:[" << genRuleRelation << "] generateRuleBitmap:[" << generationRuleBitmap << "] suppRuleRelation:[" << suppRuleRelation << "] suppressionRuleBitmap:[" << suppressionRuleBitmap << "] affectedBitmap:[" << affectedBitmap
+      << "] intIndex:[" << intIndex <<"] isSuppressChild:["<<isSuppressChild<<"]";
   return oss.str();
 }
 }

@@ -1,0 +1,65 @@
+/* 
+ * Copyright (C) 2002-2014 OpenClovis Solutions Inc.  All Rights Reserved.
+ */
+ 
+
+syntax = "proto2";
+package SAFplus.Rpc.rpcAlarm;
+
+
+option cc_generic_services = false;
+option py_generic_services = false;
+option java_generic_services = false;
+
+message Handle
+{
+  required fixed64 id0 = 1;
+  required fixed64 id1 = 2;
+}
+
+message alarmProfileCreateRequest {
+  required string resourceId =1 ;
+  required uint32 category = 2;
+  required uint32 probCause = 3;
+  required uint32 specificProblem = 4;
+  required bool isSend = 5;
+  required int32 intAssertSoakingTime = 6;
+  required int32 intClearSoakingTime = 7;
+  required fixed64 generationRuleBitmap = 8;
+  required uint32 genRuleRelation = 9;
+  required fixed64 suppressionRuleBitmap = 10;
+  required uint32 suppRuleRelation = 11;
+  required int32 intIndex = 12;
+  required fixed64 affectedBitmap = 13;
+  required bool isSuppressChild = 14;
+}
+message alarmProfileDeleteRequest {
+  required string resourceId =1 ;
+  required uint32 category = 2;
+  required uint32 probCause = 3;
+}
+message alarmDataRequest {
+  required string resourceId =1 ;
+  required uint32 category = 2;
+  required uint32 probCause = 3;
+  required uint32 specificProblem = 4;
+  required uint32 severity = 5;
+  required uint32 state = 6;
+  required string syncData = 7;
+}
+
+message alarmResponse 
+{
+  optional int32 saError = 1;
+  optional string errStr = 2;
+}
+
+message NO_REQUEST 
+{
+}
+service rpcAlarm {
+  rpc alarmCreateRpcMethod(alarmProfileCreateRequest) returns(alarmResponse);
+  rpc alarmDeleteRpcMethod(alarmProfileDeleteRequest) returns(alarmResponse);
+  rpc alarmRaiseRpcMethod(alarmDataRequest) returns(alarmResponse);
+}
+

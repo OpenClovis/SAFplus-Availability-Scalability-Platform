@@ -81,8 +81,8 @@ public:
 //	void eventPublishHandle(EventMessageProtocol *rxMsg,ClWordT msglen);
 //	void createChannel(EventMessageProtocol *rxMsg,bool isSub,bool isPub,int length);
 	bool isPublisher(EventChannel& s , Handle clientHandle);
-	bool isLocalChannel(uintcw_t channelId);
-	bool isGlobalChannel(uintcw_t channelId);
+	bool isLocalChannel(std::string  channelName);
+	bool isGlobalChannel(std::string  channelName);
 	void sendEventServerMessage(void* data, int dataLength,Handle destHandle);
 	bool eventloadchannelFromCheckpoint();
 	//RPC call

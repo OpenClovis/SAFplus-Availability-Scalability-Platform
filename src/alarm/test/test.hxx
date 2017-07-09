@@ -66,7 +66,8 @@ AlarmProfile ManagedResource0AlmProfile [] =
       0,
       Rule,
       NULL,
-      0
+      0,
+      true
     },
     {
     	AlarmCategory::COMMUNICATIONS,//1
@@ -77,7 +78,8 @@ AlarmProfile ManagedResource0AlmProfile [] =
       0,
       Rule,
       NULL,
-      0
+      0,
+      false
     },
     {
     	AlarmCategory::COMMUNICATIONS,//2
@@ -88,7 +90,8 @@ AlarmProfile ManagedResource0AlmProfile [] =
       10000,
       Rule,
       NULL,
-      0
+      0,
+      true
     },
     {
     	AlarmCategory::COMMUNICATIONS,//3
@@ -99,7 +102,8 @@ AlarmProfile ManagedResource0AlmProfile [] =
       10000,
       Rule,
       NULL,
-      0
+      0,
+      true
     },
     {
     	AlarmCategory::COMMUNICATIONS,//4
@@ -110,7 +114,8 @@ AlarmProfile ManagedResource0AlmProfile [] =
       10000,
       Rule,
       NULL,
-      0
+      0,
+      true
     },
     {
     	AlarmCategory::COMMUNICATIONS,//5
@@ -121,7 +126,8 @@ AlarmProfile ManagedResource0AlmProfile [] =
       5000,
       Rule1,
       NULL,
-      0
+      0,
+      true
     },
     {
     	AlarmCategory::COMMUNICATIONS,//6
@@ -132,7 +138,8 @@ AlarmProfile ManagedResource0AlmProfile [] =
       10000,
       Rule1,
       SuppRule,
-      0
+      0,
+      true
     },
     {
     	AlarmCategory::COMMUNICATIONS,//7
@@ -143,9 +150,10 @@ AlarmProfile ManagedResource0AlmProfile [] =
       10000,
       Rule1,
       SuppRule1,
-      0
+      0,
+      true
     },
-    {AlarmCategory::INVALID,AlarmProbableCause::INVALID,AlarmSeverity::INVALID,false,0,0,NULL,NULL,0}
+    {AlarmCategory::INVALID,AlarmProbableCause::INVALID,AlarmSeverity::INVALID,false,0,0,NULL,NULL,0,false}
 };
 
 AlarmComponentResAlarms appAlarms [] =

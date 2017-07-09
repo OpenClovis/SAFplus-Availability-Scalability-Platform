@@ -6,8 +6,9 @@
 #include <google/protobuf/stubs/common.h>
 #include <google/protobuf/stubs/once.h>
 #include <clRpcService.hxx>
-#include <clRpcApi.hxx>
 #include "rpcEvent.pb.hxx"
+#include <clRpcApi.hxx>
+
 
 //namespace SAFplus {
 //  namespace Rpc {

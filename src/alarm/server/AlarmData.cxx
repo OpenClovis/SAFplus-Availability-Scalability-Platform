@@ -26,9 +26,9 @@ namespace SAFplus
 AlarmData::AlarmData()
 {
   resourceId[0] = 0;
+  category = AlarmCategory::INVALID;
   probCause = AlarmProbableCause::INVALID;
   specificProblem = 0;
-  category = AlarmCategory::INVALID;
   severity = AlarmSeverity::INVALID;
   state = AlarmState::INVALID;
   syncData[0] = 0;
@@ -37,13 +37,13 @@ AlarmData::AlarmData(const AlarmData& other)
 {
   *this = other;
 }
-AlarmData::AlarmData(const char* inresourceId, const AlarmProbableCause& inprobCause, const AlarmSpecificProblem& inspecificProblem, const AlarmCategory& incategory, const AlarmSeverity& inseverity, const AlarmState& instate)
+AlarmData::AlarmData(const char* inresourceId, const AlarmCategory& incategory, const AlarmProbableCause& inprobCause, const AlarmSpecificProblem& inspecificProblem, const AlarmSeverity& inseverity, const AlarmState& instate)
 {
   memset(resourceId, 0, sizeof(resourceId));
   strcpy(resourceId, inresourceId);
+  category = incategory;
   probCause = inprobCause;
   specificProblem = inspecificProblem;
-  category = incategory;
   severity = inseverity;
   state = instate;
   syncData[0] = 0;
@@ -52,16 +52,16 @@ AlarmData& AlarmData::operator=(const AlarmData& other)
 {
   memset(resourceId, 0, sizeof(resourceId));
   strcpy(resourceId, other.resourceId);
+  category = other.category;
   probCause = other.probCause;
   specificProblem = other.specificProblem;
-  category = other.category;
   severity = other.severity;
   state = other.state;
   syncData[0] = other.syncData[0];
 }
 bool AlarmData::operator==(const AlarmData& other) const
 {
-  return ((strcmp(resourceId, other.resourceId) == 0) && (probCause == other.probCause) && (specificProblem == other.specificProblem) && (category == other.category) && (severity == other.severity) && (state == other.state) && (syncData[0] == other.syncData[0]));
+  return ((strcmp(resourceId, other.resourceId) == 0) && (category == other.category) && (probCause == other.probCause) && (specificProblem == other.specificProblem) && (severity == other.severity) && (state == other.state) && (syncData[0] == other.syncData[0]));
 }
 std::string AlarmData::toString() const
 {

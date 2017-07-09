@@ -23,29 +23,29 @@ namespace SAFplus
 {
 Summary::Summary()
 {
-	severity = AlarmSeverity::INVALID;
-	intTotal = 0;
-	intCleared = 0;
-	intClearedNotClosed = 0;
-	intClearedClosed = 0;
-	intNotClearedClosed = 0;
-	intNotClearedNotClosed = 0;
+  severity = AlarmSeverity::INVALID;
+  intTotal = 0;
+  intCleared = 0;
+  intClearedNotClosed = 0;
+  intClearedClosed = 0;
+  intNotClearedClosed = 0;
+  intNotClearedNotClosed = 0;
 }
 Summary::Summary(const AlarmSeverity aseverity)
 {
-	severity = aseverity;
-	intTotal = 0;
-	intCleared = 0;
-	intClearedNotClosed = 0;
-	intClearedClosed = 0;
-	intNotClearedClosed = 0;
-	intNotClearedNotClosed = 0;
+  severity = aseverity;
+  intTotal = 0;
+  intCleared = 0;
+  intClearedNotClosed = 0;
+  intClearedClosed = 0;
+  intNotClearedClosed = 0;
+  intNotClearedNotClosed = 0;
 }
 std::string Summary::toString() const
 {
-	std::ostringstream oss;
-	oss<<"severity:["<<severity<<"] intTotal:["<<intTotal<<"] intCleared:["<<intCleared<<"] intClearedNotClosed:["<<intClearedNotClosed
-	   <<"] intClearedClosed:["<<intClearedClosed<<"] intNotClearedClosed:["<<intNotClearedClosed<<"] intNotClearedNotClosed:["<<intNotClearedNotClosed<<"]";
-    return oss.str();
+  std::ostringstream oss;
+  oss << "severity:[" << severity << "] intTotal:[" << intTotal << "] intCleared:[" << intCleared << "] intClearedNotClosed:[" << intClearedNotClosed << "] intClearedClosed:[" << intClearedClosed << "] intNotClearedClosed:[" << intNotClearedClosed << "] intNotClearedNotClosed:["
+      << intNotClearedNotClosed << "]";
+  return oss.str();
 }
 }

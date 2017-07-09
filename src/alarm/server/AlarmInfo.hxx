@@ -23,11 +23,9 @@
 #include <sstream>
 #include <boost/date_time/posix_time/posix_time.hpp>
 #include <AlarmData.hxx>
-//#include <AlarmUtils.hxx>
 #include <SAFplusAlarmCommon.hxx>
 #include <AlarmSeverity.hxx>
 #include <AlarmState.hxx>
-
 #include <Timer.hxx>
 
 using namespace std;
