@@ -2,7 +2,7 @@ S7 := 1
 SAFPLUS_ALARM_SERVER := 1
 include ../../mk/preface.mk
 
-CPP_FLAGS += -I$(BOOST_DIR) -I. $(SAFPLUS_MGT_INC_FLAGS)  -I$(PROTOBUFVER)
+CPP_FLAGS += -I$(BOOST_DIR) -I. $(SAFPLUS_MGT_INC_FLAGS)
 
 SERVER_H := $(wildcard *.hxx) $(wildcard $(SAFPLUS_INC_DIR)/*.hxx)
 SERVER_SRC := $(wildcard *.cxx)

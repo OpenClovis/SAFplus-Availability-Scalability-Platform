@@ -74,11 +74,10 @@ class AlarmServer:public SAFplus::MsgHandler,public SAFplus::Wakeable,public SAF
     // delete alarms on data storage
     void deleteRpcRequest(const AlarmFilter& inputFilter);
     // Proccess alarm
-    static void processAssertAlarmData(const AlarmData& alarmData);
-    static void processClearAlarmData(const AlarmData& alarmData);
     static bool alarmConditionCheck(const AlarmInfo& alarmInfo);
     static void processAffectedAlarm(const AlarmKey& key,const bool& isSet = true);
     static void processPublishAlarmData(const AlarmData& alarmData);
+    static void processSummaryAlarmData(const AlarmData& alarmData,const bool& isSeverityChanged = true);
     static ClRcT processAlarmDataCallBack(void* apAlarmData);
     void processAlarmData(const AlarmData& alarmData);
      //void processData();
@@ -88,6 +87,8 @@ class AlarmServer:public SAFplus::MsgHandler,public SAFplus::Wakeable,public SAF
      //static void deleteAlarmProfileData(const AlarmProfileData& alarmProfileData);
      static StorageAlarmData data;
      static SAFplus::EventClient eventClient;
+     //object fault client
+     static SAFplus::Fault faultClient;
      static boost::mutex g_data_mutex;
      SAFplus::Rpc::RpcChannel *channel;
      void alarmCreateRpcMethod(const ::SAFplus::Rpc::rpcAlarm::alarmProfileCreateRequest* request,
@@ -104,8 +105,6 @@ class AlarmServer:public SAFplus::MsgHandler,public SAFplus::Wakeable,public SAF
     // alarm message server
     SAFplus::SafplusMsgServer* alarmMsgServer;
     // Alarm client
-    //object fault client
-    SAFplus::Fault faultClient;
     // object event client
     SAFplus::Group group;
     SAFplus::Handle activeServer;

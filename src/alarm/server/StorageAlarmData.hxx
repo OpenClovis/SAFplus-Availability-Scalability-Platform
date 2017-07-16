@@ -20,6 +20,7 @@
 #ifndef STORAGE_ALARM_DATA_HXX_HEADER_INCLUDED
 #define STORAGE_ALARM_DATA_HXX_HEADER_INCLUDED
 #include <string>
+#include <sstream>
 #include <clCustomization.hxx>
 #include <AlarmUtils.hxx>
 #include <thread>
@@ -44,8 +45,11 @@ public:
   void removeAlarmProfileData(const AlarmKey& key);
   void loadAlarmProfile();
   void loadAlarmData();
-  void updateSummary();
-  void printAllData();
+  void accumulateSummary(const AlarmSeverity& severity,const AlarmState& state,const bool& isIncrease = true);
+  void changeSummary(const AlarmSeverity& fromSeverity, const AlarmSeverity& toSeverity);
+  void printSummary();
+  void printProfile();
+  void printAlarm();
   bool isUpdate;
   // list of summary
   std::vector<Summary> vectSummary;

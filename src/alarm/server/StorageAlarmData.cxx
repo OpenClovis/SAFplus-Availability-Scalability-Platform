@@ -135,23 +135,50 @@ void StorageAlarmData::removeAlarmProfileData(const AlarmKey& key)
   m_ProfileInfoData.erase(seedLevel1);
   m_checkpointProfile.remove(seedLevel1);
 }
-void StorageAlarmData::printAllData()
+void StorageAlarmData::printSummary()
 {
+  std::ostringstream os;
+  os<<"*****************Summary****************\n";
   for (Summary& summary : vectSummary)
   {
-    logInfo(ALARM_SERVER, "DUMP", "Summary [%s]", summary.toString().c_str());
+    os << summary.toString().c_str()<<"\n";
   }
+  logInfo(ALARM_SERVER, "DUMP", "\n%s", os.str().c_str());
+}
+void StorageAlarmData::printProfile()
+{
+  std::ostringstream os;
+  os << "*****************Profile****************\n";
   for (const MAPALARMPROFILEINFO::value_type& it : m_ProfileInfoData)
   {
-    logInfo(ALARM_SERVER, "DUMP", "key name [%d]", it.first);
-    logInfo(ALARM_SERVER, "DUMP", "profile [%s]", it.second.toString().c_str());
+    os<<"key name ["<<it.first<<"]\n";
+    os<<it.second.toString().c_str()<<"\n";
+  }//for
+  logInfo(ALARM_SERVER, "DUMP", "\n%s", os.str().c_str());
+}
+void StorageAlarmData::printAlarm()
+{
+  std::ostringstream os;
+  int count = 0;
+  os<<"*******************Alarm****************\n";
+  for (const MAPALARMPROFILEINFO::value_type& it : m_ProfileInfoData)
+  {
+    count++;
+    os<<"key name ["<<it.first<<"]\n";
     AlarmInfo alarmInfo;
     AlarmKey key(it.second.resourceId, it.second.category, it.second.probCause);
     if (findAlarmInfo(key, alarmInfo))
     {
-      logInfo(ALARM_SERVER, "DUMP", "alarm info [%s]", alarmInfo.toString().c_str());
+      os << alarmInfo.toString().c_str()<<"\n";
+    }
+    if((count%3 == 0) && (count > 0))
+    {
+      logInfo(ALARM_SERVER, "DUMP", "%s", os.str().c_str());
+      os.str("");
+      os.clear();//clear
     }
   }
+  logInfo(ALARM_SERVER, "DUMP", "%s", os.str().c_str());
 }
 std::vector<AlarmKey> StorageAlarmData::getKeysAlarmInfo(const std::string& resourceId)
 {
@@ -172,36 +199,54 @@ std::vector<AlarmKey> StorageAlarmData::getKeysAlarmInfo(const std::string& reso
   }
   return vectKeys;
 }
-void StorageAlarmData::updateSummary()
-{
-  if (lastUpdateSummary < lastUpdateAlarmData)
-  {
-    lastUpdateSummary = lastUpdateAlarmData;
-    for (Summary& summary : vectSummary)
-    {
-      summary.intTotal = 0;
-      summary.intCleared = 0;
-      summary.intClearedNotClosed = 0;
-      summary.intClearedClosed = 0;
-      summary.intNotClearedClosed = 0;
-      summary.intNotClearedNotClosed = 0;
-    } //for
 
-    for (const MAPMAPALARMINFO::value_type& it : m_mapAlarmInfoData)
+void StorageAlarmData::accumulateSummary(const AlarmSeverity& severity,const AlarmState& state,const bool& isIncrease)
+{
+  for (Summary& summary : vectSummary)
+  {
+    if (severity == summary.severity)
     {
-      for (const MAPALARMINFO::value_type& itAlarmInfo : it.second)
+      if(AlarmState::ASSERT == state)
       {
-        for (Summary& summary : vectSummary)
+        if(isIncrease) summary.intTotal++;
+        else
         {
-          if (itAlarmInfo.second.severity == summary.severity)
-          {
-            summary.intTotal++;
-            if (AlarmState::CLEAR == itAlarmInfo.second.state) summary.intCleared++;
-          }
-        } //for
-      } //for
-    } //for
-  } //if
+          summary.intTotal--;
+        }
+      }else if(AlarmState::CLEAR == state)
+      {
+        if(isIncrease)
+        {
+          summary.intCleared++;
+        }
+        else summary.intCleared--;
+      }
+    }
+  } //for
+}
+//must be state assert
+void StorageAlarmData::changeSummary(const AlarmSeverity& fromSeverity, const AlarmSeverity& toSeverity)
+{
+  for (Summary& summary : vectSummary)
+  {
+    if (fromSeverity == summary.severity)
+    {
+      summary.intTotal--;
+    }else if (toSeverity == summary.severity)
+    {
+      summary.intTotal++;
+    }
+    /*else if(AlarmState::CLEAR == state)
+    {
+      if (fromSeverity == summary.severity)
+      {
+        summary.intCleared--;
+      }else if (toSeverity == summary.severity)
+      {
+        summary.intCleared++;
+      }
+    }*/
+  } //for
 }
 void StorageAlarmData::loadAlarmProfile()
 {

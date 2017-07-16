@@ -64,6 +64,8 @@ public:
   //Specific-Problem of the alarm. This field adds further refinement
   //to the probable cause specified while raising the alarm.
   AlarmSpecificProblem specificProblem;
+  //current state, include soaking time,clear soaking time
+  AlarmState currentState;
   AlarmState state;
   std::shared_ptr<Timer> sharedAssertTimer;
   std::shared_ptr<Timer> sharedClearTimer;

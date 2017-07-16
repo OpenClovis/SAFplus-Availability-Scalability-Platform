@@ -63,12 +63,6 @@ void Alarm::initialize(const SAFplus::Handle& handleClient, SAFplus::Wakeable& w
     alarmMsgServer = &safplusMsgServer;
   }
   eventClient.eventInitialize(handleClientAlarm, &eventCallback);
-  eventClient.eventChannelOpen(ALARM_CHANNEL, EventChannelScope::EVENT_GLOBAL_CHANNEL);
-  eventClient.eventChannelPublish(ALARM_CHANNEL, EventChannelScope::EVENT_GLOBAL_CHANNEL);
-  //active server address notify
-  eventClient.eventChannelOpen(ALARM_CHANNEL_ADDRESS_CHANGE, EventChannelScope::EVENT_GLOBAL_CHANNEL);
-  eventClient.eventChannelPublish(ALARM_CHANNEL_ADDRESS_CHANGE, EventChannelScope::EVENT_GLOBAL_CHANNEL);
-  eventClient.eventChannelSubscriber(ALARM_CHANNEL_ADDRESS_CHANGE, EventChannelScope::EVENT_GLOBAL_CHANNEL);
   //For Rpc
   logDebug(ALARM, ALARM_ENTITY, "Initialize alarm Rpc client");
   channel = new SAFplus::Rpc::RpcChannel(alarmMsgServer, handleAlarmServer);
@@ -122,7 +116,6 @@ ClRcT Alarm::createAlarmProfile()
             break;
           }
           AlarmKey key(appAlarms[indexApp].resourceId, appAlarms[indexApp].MoAlarms[indexProfile].category, appAlarms[indexApp].MoAlarms[indexProfile].probCause);
-          std::cout<<"DANGLE:create alarm profile:"<<indexProfile<<key.toString()<<std::endl;
           AlarmProfileData profileData;
           memset(profileData.resourceId, 0, SAFplusI::MAX_RESOURCE_NAME_SIZE);
           strcpy(profileData.resourceId, appAlarms[indexApp].resourceId.c_str());
@@ -249,7 +242,7 @@ ClRcT Alarm::deleteAlarmProfile()
     }
     if (nullptr != appAlarms[indexApp].MoAlarms)
     {
-      while (nullptr != appAlarms[indexApp].MoAlarms)
+      while (true)
       {
         if (AlarmCategory::INVALID == appAlarms[indexApp].MoAlarms[indexProfile].category)
         {
@@ -284,9 +277,5 @@ Alarm::~Alarm()
     delete service;
     service = nullptr;
   }
-  eventClient.eventChannelClose(ALARM_CHANNEL, EventChannelScope::EVENT_GLOBAL_CHANNEL);
-  //addresss
-  eventClient.eventChannelUnSubscriber(ALARM_CHANNEL_ADDRESS_CHANGE, EventChannelScope::EVENT_GLOBAL_CHANNEL);
-  eventClient.eventChannelClose(ALARM_CHANNEL_ADDRESS_CHANGE, EventChannelScope::EVENT_GLOBAL_CHANNEL);
-}
+ }
 } //namespace

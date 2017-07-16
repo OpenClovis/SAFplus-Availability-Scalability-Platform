@@ -32,7 +32,8 @@ AlarmInfo::AlarmInfo()
   memset(strText, 0, SAFplusI::MAX_TEXT_SIZE);
   memset(strOperator, 0, SAFplusI::MAX_TEXT_SIZE);
   memset(strOperatorText, 0, SAFplusI::MAX_TEXT_SIZE);
-  state = AlarmState::CLEAR;
+  state = AlarmState::INVALID;
+  currentState = AlarmState::INVALID;
   afterSoakingBitmap = 0;
   sharedAssertTimer = nullptr;
   sharedClearTimer = nullptr;
@@ -56,6 +57,7 @@ AlarmInfo& AlarmInfo::operator=(const AlarmInfo& other)
   strcpy(strOperatorText, other.strOperatorText);
   operatorActionTime = other.operatorActionTime;
   state = other.state;
+  currentState = other.currentState;
   afterSoakingBitmap = other.afterSoakingBitmap;
   sharedAssertTimer = other.sharedAssertTimer;
   sharedClearTimer = other.sharedClearTimer;
@@ -64,7 +66,7 @@ AlarmInfo& AlarmInfo::operator=(const AlarmInfo& other)
 bool AlarmInfo::operator==(const AlarmInfo& other) const
 {
   return ((strcmp(resourceId, other.resourceId) == 0) && (category == other.category) && (probCause == other.probCause) && (statusChangeTime == other.statusChangeTime) && (severity == other.severity) && (vectAltResource == other.vectAltResource) && (strcmp(strText, other.strText) == 0)
-      && (strcmp(strOperator, other.strOperator) == 0) && (strcmp(strOperatorText, other.strOperatorText) == 0) && (operatorActionTime == other.operatorActionTime) && (state == other.state) && (afterSoakingBitmap == other.afterSoakingBitmap));
+      && (strcmp(strOperator, other.strOperator) == 0) && (strcmp(strOperatorText, other.strOperatorText) == 0) && (operatorActionTime == other.operatorActionTime) && (state == other.state) &&(currentState == other.currentState) && (afterSoakingBitmap == other.afterSoakingBitmap));
 }
 
 std::string AlarmInfo::toString() const
@@ -83,7 +85,7 @@ std::string AlarmInfo::toString() const
     }
     oss << "]";
   }
-  oss << " Text:[" << strText << "] lastOperator:[" << strOperator << "] operatorText:[" << strOperatorText << "] operatorActionTime:[" << operatorActionTime << "] state:[" << state << "]" << " afterSoakingBitmap:[" << afterSoakingBitmap << "]";
+  oss << " Text:[" << strText << "] lastOperator:[" << strOperator << "] operatorText:[" << strOperatorText << "] operatorActionTime:[" << operatorActionTime << "] state:[" << state << "]"<< " currentState:["<<currentState<<"]" << " afterSoakingBitmap:[" << afterSoakingBitmap << "]";
   return oss.str();
 }
 }

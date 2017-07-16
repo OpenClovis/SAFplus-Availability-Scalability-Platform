@@ -61,7 +61,7 @@ AlarmProfile ManagedResource0AlmProfile [] =
     	AlarmCategory::COMMUNICATIONS,//0
     	AlarmProbableCause::LOSS_OF_SIGNAL,
       AlarmSeverity::MAJOR,
-      false,//send to fault management
+      true,//send to fault management
       0,
       0,
       Rule,
@@ -73,7 +73,7 @@ AlarmProfile ManagedResource0AlmProfile [] =
     	AlarmCategory::COMMUNICATIONS,//1
     	AlarmProbableCause::LOSS_OF_FRAME,
     	AlarmSeverity::MAJOR,
-      true,
+      false,
       10000,
       0,
       Rule,
