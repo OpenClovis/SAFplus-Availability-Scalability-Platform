@@ -25,6 +25,7 @@
 #include <clFaultApi.hxx>
 #include <clFaultServerIpi.hxx>
 #include <EventServer.hxx>
+#include <EventClient.hxx>
 #include <clMsgPortsAndTypes.hxx>
 #include <clProcessStats.hxx>
 #include <clNodeStats.hxx>
@@ -674,6 +675,12 @@ static ClRcT refreshComponentStats(void *unused)
 const std::string dbName("safplusAmf");
 SafplusInitializationConfiguration sic;
 
+void eventCallback(std::string channelName,EventChannelScope scope,std::string data,int length)
+{
+	logDebug("EVT", "MSG", "Receive event from event channel with name [%s]", channelName.c_str());
+	logDebug("EVT", "MSG", "Event data [%s]", data.c_str());
+}
+
 int main(int argc, char* argv[])
   {
 
@@ -876,9 +883,6 @@ int main(int argc, char* argv[])
         assert(0);
     }
 
-  logInfo("AMF","EVT", "Initialize event server");
-  EventServer evtSever;
-  evtSever.initialize();
 
     //boost::asio::io_service ioSvc;
   // Construct a signal set registered for process termination.
@@ -909,6 +913,20 @@ int main(int argc, char* argv[])
     fault.registerEntity(myHandle, FaultState::STATE_UP);    // set this AMF as up
     boost::this_thread::sleep(boost::posix_time::milliseconds(250));    
   } while(fault.getFaultState(myHandle) != FaultState::STATE_UP);
+
+
+  logInfo("AMF","EVT", "Initialize event server");
+  EventServer evtSever;
+  evtSever.initialize();
+
+  //test event client
+  sleep(2);
+  EventClient fc;
+  fc.eventInitialize(myHandle,eventCallback);
+  std::string globalChannel = "testGlobalchannel";
+  logInfo("FLT","CLT","********************Test Open global channel *********************");
+  fc.eventChannelOpen(globalChannel,EventChannelScope::EVENT_GLOBAL_CHANNEL);
+  sleep(1);
 
 
   uint64_t lastBeat = beat; 

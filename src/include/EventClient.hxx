@@ -39,13 +39,14 @@
 #include <time.h>
 #include "clRpcChannel.hxx"
 #include "rpcEvent.hxx"
+#include "EventSharedMem.hxx"
+
 
 namespace SAFplus
 {
 
 
 typedef void (*EventCallbackFunction)(std::string,EventChannelScope,std::string,int); // function pointer type
-
 class EventClient:public SAFplus::MsgHandler,public SAFplus::Wakeable
 {
 public:
@@ -56,6 +57,7 @@ public:
 	EventCallbackFunction evtCallbacks;
 	SAFplus::Rpc::RpcChannel * channel;
 	SAFplus::Rpc::rpcEvent::rpcEvent_Stub *service;
+	EventSharedMem esm;
 
 
 	EventClient()
