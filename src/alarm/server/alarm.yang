@@ -108,6 +108,29 @@ namespace "http://www.openclovis.org/ns/amf";
             Function', 1992";
      }
 
+    typedef timer-type  {
+       type enumeration {
+         enum INVALID {
+           value 0;
+           description
+             "Indicates that timer could not be
+              determined. This level SHOULD be avoided.";
+         }
+         enum ASSERT {
+           value 1;
+           description
+             "ASSERT Timer Status";
+         }
+	     enum CLEAR {
+           value 2;
+           description
+             "CLEAR Timer Status";
+         }
+         }
+       description
+         "The alarm timer type.";
+     }
+
     typedef operator-state  {
        type enumeration {
          enum NONE {

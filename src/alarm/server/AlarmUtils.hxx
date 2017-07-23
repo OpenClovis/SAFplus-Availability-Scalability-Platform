@@ -16,6 +16,7 @@
 #include <AlarmData.hxx>
 #include <AlarmProfile.hxx>
 #include <AlarmInfo.hxx>
+#include <AlarmTimerInfo.hxx>
 #include <AlarmProfileData.hxx>
 #include <AlarmState.hxx>
 #include <AlarmProbableCause.hxx>
@@ -146,6 +147,7 @@ inline std::size_t hash_value(const AlarmKey2 &key)
 }
 typedef boost::unordered_map<std::size_t, AlarmProfileData> MAPALARMPROFILEINFO;
 typedef boost::unordered_map<std::size_t, AlarmInfo> MAPALARMINFO;
+typedef boost::unordered_map<std::size_t, AlarmTimerInfo> MAPALARMTIMERINFO;
 typedef boost::unordered_map<std::size_t, MAPALARMINFO> MAPMAPALARMINFO;
 typedef std::function<void(void*)> EventCallback1;
 

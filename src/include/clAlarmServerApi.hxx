@@ -36,6 +36,7 @@
 #include <clFaultApi.hxx>
 #include <AlarmUtils.hxx>
 #include <rpcAlarm.hxx>
+#include <EventSharedMem.hxx>
 
 using namespace SAFplusAlarm;
 namespace SAFplus
@@ -80,26 +81,23 @@ class AlarmServer:public SAFplus::MsgHandler,public SAFplus::Wakeable,public SAF
     static void processSummaryAlarmData(const AlarmData& alarmData,const bool& isSeverityChanged = true);
     static ClRcT processAlarmDataCallBack(void* apAlarmData);
     void processAlarmData(const AlarmData& alarmData);
-     //void processData();
     static bool checkHandMasking(const AlarmInfo& alarmInfo);
-     //static void createAlarmProfileData(const AlarmProfileData& alarmProfileData);
-     void wake(int amt,void* cookie);
-     //static void deleteAlarmProfileData(const AlarmProfileData& alarmProfileData);
-     static StorageAlarmData data;
-     static SAFplus::EventClient eventClient;
-     //object fault client
-     static SAFplus::Fault faultClient;
-     static boost::mutex g_data_mutex;
-     SAFplus::Rpc::RpcChannel *channel;
-     void alarmCreateRpcMethod(const ::SAFplus::Rpc::rpcAlarm::alarmProfileCreateRequest* request,
-                           ::SAFplus::Rpc::rpcAlarm::alarmResponse* response);
-     void alarmDeleteRpcMethod(const ::SAFplus::Rpc::rpcAlarm::alarmProfileDeleteRequest* request,
+    void wake(int amt,void* cookie);
+    static StorageAlarmData data;
+    static SAFplus::EventClient eventClient;
+    //object fault client
+    static SAFplus::Fault faultClient;
+    static SAFplus::Handle activeServer;
+    static boost::mutex g_data_mutex;
+    void alarmCreateRpcMethod(const ::SAFplus::Rpc::rpcAlarm::alarmProfileCreateRequest* request,
                          ::SAFplus::Rpc::rpcAlarm::alarmResponse* response);
-     void alarmRaiseRpcMethod(const ::SAFplus::Rpc::rpcAlarm::alarmDataRequest* request,
-                         ::SAFplus::Rpc::rpcAlarm::alarmResponse* response);
+    void alarmDeleteRpcMethod(const ::SAFplus::Rpc::rpcAlarm::alarmProfileDeleteRequest* request,
+                       ::SAFplus::Rpc::rpcAlarm::alarmResponse* response);
+    void alarmRaiseRpcMethod(const ::SAFplus::Rpc::rpcAlarm::alarmDataRequest* request,
+                       ::SAFplus::Rpc::rpcAlarm::alarmResponse* response);
   private:
-     bool checkHandMasking(const std::vector<std::string>& paths);
-     void loadAlarmProfile();
+    bool checkHandMasking(const std::vector<std::string>& paths);
+    void loadAlarmProfile();
   protected:
     SAFplus::Handle handleAlarmServer;
     // alarm message server
@@ -107,7 +105,9 @@ class AlarmServer:public SAFplus::MsgHandler,public SAFplus::Wakeable,public SAF
     // Alarm client
     // object event client
     SAFplus::Group group;
-    SAFplus::Handle activeServer;
+    SAFplus::Rpc::RpcChannel * channel;
+    //SAFplus::Rpc::rpcAlarm::rpcAlarm_Stub *service;
+    EventSharedMem esm;
 };
 }
 

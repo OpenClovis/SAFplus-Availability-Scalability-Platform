@@ -113,6 +113,15 @@ namespace SAFplusI
       MAX_ALARM_RULE_DEPENDENCIES = 4,
       AlarmMaxMembers    = 1024*1024,   // Maximum number of alarm entity
       };
+
+  enum
+    {
+    MAX_EVENT_BUFFER_SIZE = 1024*1024,
+    MAX_EVENT_DEPENDENCIES = 5,
+    EventSharedMemSize = 4 * 1024*1024,
+    EventMaxMembers    = 1024,   // Maximum number of fault entity
+    };
+
   /* MGT */
   enum
     {

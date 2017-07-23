@@ -156,11 +156,11 @@ AlarmProfile ManagedResource0AlmProfile [] =
     {AlarmCategory::INVALID,AlarmProbableCause::INVALID,AlarmSeverity::INVALID,false,0,0,NULL,NULL,0,false}
 };
 
-AlarmComponentResAlarms appAlarms [] =
+/*AlarmComponentResAlarms appAlarms [] =
 {
     {"resourcetest", 100, ManagedResource0AlmProfile},
 
     {"",0,NULL}
 };
-std::string myresourceId = "resourcetest";
+std::string myresourceId = "resourcetest";*/
 #endif

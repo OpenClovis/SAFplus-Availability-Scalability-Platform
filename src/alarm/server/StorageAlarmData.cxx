@@ -36,6 +36,26 @@ StorageAlarmData::StorageAlarmData()
   vectSummary.push_back(summaryMajor);
   vectSummary.push_back(summaryCritical);
 }
+StorageAlarmData::~StorageAlarmData()
+{
+  //delete map timer
+  std::ostringstream os;
+  int count = 0;
+  os<<"*******************StorageAlarmData****************\n";
+  std::lock_guard < std::mutex > lock(mtxAlarmData);
+  for (MAPALARMTIMERINFO::value_type& it : m_AlarmTimerInfoData)
+  {
+    if(nullptr != it.second.sharedTimer)
+    {
+      it.second.sharedTimer->timerStop();
+      delete it.second.sharedTimer;
+      it.second.sharedTimer = nullptr;
+      delete it.second.sharedAlarmData;
+      it.second.sharedAlarmData = nullptr;
+    }
+    m_AlarmTimerInfoData.erase(it.first);
+  }
+}
 void StorageAlarmData::initialize(void)
 {
   m_checkpointProfile.init(SAFplus::ALARM_PROFILE_CKPT, Checkpoint::SHARED | Checkpoint::REPLICATED, SAFplusI::CkptRetentionDurationDefault, 1024 * 1024, SAFplusI::CkptDefaultRows);
@@ -45,6 +65,46 @@ void StorageAlarmData::initialize(void)
   isUpdate = false;
   //restore alarm
 }
+bool StorageAlarmData::findAlarmTimerInfo(const AlarmKey& key, AlarmTimerInfo& alarmTimerInfo)
+{
+  std::size_t seedLevel1 = hash_value(key);
+  boost::unordered_map<std::size_t, AlarmTimerInfo>::iterator itinfo = m_AlarmTimerInfoData.find(seedLevel1);
+  if (itinfo != m_AlarmTimerInfoData.end())
+  {
+    alarmTimerInfo = itinfo->second;
+    return true;
+  }
+  return false;
+}
+void StorageAlarmData::updateAlarmTimerInfo(const AlarmKey& key, AlarmTimerInfo& alarmTimerInfo)
+{
+  std::size_t seedLevel1 = hash_value(key);
+  m_AlarmTimerInfoData[seedLevel1] = alarmTimerInfo;
+}
+
+void StorageAlarmData::removeAlarmTimerInfo(const AlarmKey& key,const bool& isStop)
+{
+  std::lock_guard < std::mutex > lock(mtxAlarmData);
+  std::size_t seedLevel1 = hash_value(key);
+  if(!isStop)
+  {
+    if(nullptr != m_AlarmTimerInfoData[seedLevel1].sharedTimer)
+      {
+        if(!m_AlarmTimerInfoData[seedLevel1].sharedTimer->timerIsStopped())
+        {
+          m_AlarmTimerInfoData[seedLevel1].sharedTimer->timerStop();
+        }
+        m_AlarmTimerInfoData[seedLevel1].sharedTimer = nullptr;
+      }
+  }
+  if(nullptr != m_AlarmTimerInfoData[seedLevel1].sharedAlarmData)
+  {
+    delete m_AlarmTimerInfoData[seedLevel1].sharedAlarmData;
+    m_AlarmTimerInfoData[seedLevel1].sharedAlarmData = nullptr;
+  }
+  m_AlarmTimerInfoData.erase(seedLevel1);
+}
+
 bool StorageAlarmData::findAlarmInfo(const AlarmKey& key, AlarmInfo& alarmInfo)
 {
   std::size_t seedLevel0 = hash_value(key.tuple.get<0>());
@@ -56,12 +116,12 @@ bool StorageAlarmData::findAlarmInfo(const AlarmKey& key, AlarmInfo& alarmInfo)
   std::size_t seedLevel1 = hash_value(key);
   MAPALARMINFO mapAlarmInfo = itmap->second;
   boost::unordered_map<std::size_t, AlarmInfo>::iterator itinfo = mapAlarmInfo.find(seedLevel1);
-  if (itinfo == mapAlarmInfo.end())
+  if (itinfo != mapAlarmInfo.end())
   {
-    return false;
+    alarmInfo = itinfo->second;
+    return true;
   }
-  alarmInfo = m_mapAlarmInfoData[seedLevel0][seedLevel1];
-  return true;
+  return false;
 }
 void StorageAlarmData::updateAlarmInfo(AlarmInfo& alarmInfo)
 {
@@ -87,16 +147,6 @@ void StorageAlarmData::removeAlarmInfo(const AlarmKey& key)
   std::lock_guard < std::mutex > lock(mtxAlarmData);
   std::size_t seedLevel0 = hash_value(key.tuple.get<0>());
   std::size_t seedLevel1 = hash_value(key);
-  if (nullptr != m_mapAlarmInfoData[seedLevel0][seedLevel1].sharedAssertTimer)
-  {
-    m_mapAlarmInfoData[seedLevel0][seedLevel1].sharedAssertTimer->timerStop();
-    m_mapAlarmInfoData[seedLevel0][seedLevel1].sharedAssertTimer = nullptr;
-  }
-  if (nullptr != m_mapAlarmInfoData[seedLevel0][seedLevel1].sharedAssertTimer)
-  {
-    m_mapAlarmInfoData[seedLevel0][seedLevel1].sharedClearTimer->timerStop();
-    m_mapAlarmInfoData[seedLevel0][seedLevel1].sharedClearTimer = nullptr;
-  }
   m_mapAlarmInfoData[seedLevel0].erase(seedLevel1);
   m_checkpointAlarm.remove(seedLevel1);
 }
@@ -236,24 +286,13 @@ void StorageAlarmData::changeSummary(const AlarmSeverity& fromSeverity, const Al
     {
       summary.intTotal++;
     }
-    /*else if(AlarmState::CLEAR == state)
-    {
-      if (fromSeverity == summary.severity)
-      {
-        summary.intCleared--;
-      }else if (toSeverity == summary.severity)
-      {
-        summary.intCleared++;
-      }
-    }*/
   } //for
 }
 void StorageAlarmData::loadAlarmProfile()
 {
   logInfo(ALARM, "DUMP", "loadAlarmProfile---------------------------------");
-  SAFplus::Checkpoint::Iterator ibegin = m_checkpointProfile.begin();
-  SAFplus::Checkpoint::Iterator iend = m_checkpointProfile.end();
-  for (SAFplus::Checkpoint::Iterator iter = ibegin; iter != iend; iter++)
+  std::lock_guard < std::mutex > lock(mtxProfileData);
+  for (SAFplus::Checkpoint::Iterator iter = m_checkpointProfile.begin(); iter != m_checkpointProfile.end(); iter++)
   {
     BufferPtr curkey = iter->first;
     if (curkey)
@@ -272,9 +311,8 @@ void StorageAlarmData::loadAlarmProfile()
 void StorageAlarmData::loadAlarmData()
 {
   logInfo(ALARM, "DUMP", "loadAlarmData---------------------------------");
-  SAFplus::Checkpoint::Iterator ibegin = m_checkpointAlarm.begin();
-  SAFplus::Checkpoint::Iterator iend = m_checkpointAlarm.end();
-  for (SAFplus::Checkpoint::Iterator iter = ibegin; iter != iend; iter++)
+  std::lock_guard < std::mutex > lock(mtxAlarmData);
+  for (SAFplus::Checkpoint::Iterator iter = m_checkpointAlarm.begin(); iter != m_checkpointAlarm.end(); iter++)
   {
     BufferPtr curkey = iter->first;
     if (curkey)
@@ -285,11 +323,9 @@ void StorageAlarmData::loadAlarmData()
     if (curval)
     {
       AlarmInfo *data = (AlarmInfo*) curval->data;
-      data->sharedAssertTimer = nullptr; //this can not restore
-      data->sharedClearTimer = nullptr; //this can not restore
-      data->sharedAlarmData = nullptr; //this can not restore
       std::string resourceId = data->resourceId;
       AlarmKey key(data->resourceId, data->category, data->probCause);
+      std::cout<<"before:put map:"<<std::endl;
       m_mapAlarmInfoData[hash_value(key.tuple.get<0>())][hash_value(key)] = *data;
     }
   }

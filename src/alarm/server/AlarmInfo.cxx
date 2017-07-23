@@ -35,9 +35,7 @@ AlarmInfo::AlarmInfo()
   state = AlarmState::INVALID;
   currentState = AlarmState::INVALID;
   afterSoakingBitmap = 0;
-  sharedAssertTimer = nullptr;
-  sharedClearTimer = nullptr;
-  sharedAlarmData = nullptr;
+  timerType = TimerType::INVALID;
 }
 
 AlarmInfo& AlarmInfo::operator=(const AlarmInfo& other)
@@ -58,15 +56,14 @@ AlarmInfo& AlarmInfo::operator=(const AlarmInfo& other)
   operatorActionTime = other.operatorActionTime;
   state = other.state;
   currentState = other.currentState;
+  timerType = other.timerType;
+  startTimer = other.startTimer;
   afterSoakingBitmap = other.afterSoakingBitmap;
-  sharedAssertTimer = other.sharedAssertTimer;
-  sharedClearTimer = other.sharedClearTimer;
-  sharedAlarmData = other.sharedAlarmData;
 }
 bool AlarmInfo::operator==(const AlarmInfo& other) const
 {
   return ((strcmp(resourceId, other.resourceId) == 0) && (category == other.category) && (probCause == other.probCause) && (statusChangeTime == other.statusChangeTime) && (severity == other.severity) && (vectAltResource == other.vectAltResource) && (strcmp(strText, other.strText) == 0)
-      && (strcmp(strOperator, other.strOperator) == 0) && (strcmp(strOperatorText, other.strOperatorText) == 0) && (operatorActionTime == other.operatorActionTime) && (state == other.state) &&(currentState == other.currentState) && (afterSoakingBitmap == other.afterSoakingBitmap));
+      && (strcmp(strOperator, other.strOperator) == 0) && (strcmp(strOperatorText, other.strOperatorText) == 0) && (operatorActionTime == other.operatorActionTime) && (state == other.state) && (currentState == other.currentState) && (startTimer == other.startTimer) &&(timerType == other.timerType) && (afterSoakingBitmap == other.afterSoakingBitmap));
 }
 
 std::string AlarmInfo::toString() const
@@ -85,7 +82,7 @@ std::string AlarmInfo::toString() const
     }
     oss << "]";
   }
-  oss << " Text:[" << strText << "] lastOperator:[" << strOperator << "] operatorText:[" << strOperatorText << "] operatorActionTime:[" << operatorActionTime << "] state:[" << state << "]"<< " currentState:["<<currentState<<"]" << " afterSoakingBitmap:[" << afterSoakingBitmap << "]";
+  oss << " Text:[" << strText << "] lastOperator:[" << strOperator << "] operatorText:[" << strOperatorText << "] operatorActionTime:[" << operatorActionTime << "] state:[" << state << "]"<< " currentState:["<<currentState<<"]"<<"] timerType:["<<timerType<< "] startTimer:["<<startTimer<<"] afterSoakingBitmap:[" << afterSoakingBitmap << "]";
   return oss.str();
 }
 }

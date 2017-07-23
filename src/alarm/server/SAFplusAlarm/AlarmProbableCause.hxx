@@ -9,6 +9,7 @@
 #define ALARMPROBABLECAUSE_HXX_
 
 #include "MgtEnumType.hxx"
+#include "SAFplusAlarmCommon.hxx"
 #include <iostream>
 
 namespace SAFplusAlarm

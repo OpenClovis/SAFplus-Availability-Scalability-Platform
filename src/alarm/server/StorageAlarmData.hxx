@@ -35,11 +35,17 @@ class StorageAlarmData
 {
 public:
   StorageAlarmData();
+  ~StorageAlarmData();
   void initialize();
-  bool findAlarmInfo(const AlarmKey& key, AlarmInfo& alarmInfo);
   std::vector<AlarmKey> getKeysAlarmInfo(const std::string& resourceId);
+  bool findAlarmInfo(const AlarmKey& key, AlarmInfo& alarmInfo);
   void updateAlarmInfo(AlarmInfo& alarmInfo);
   void removeAlarmInfo(const AlarmKey& key);
+
+  bool findAlarmTimerInfo(const AlarmKey& key, AlarmTimerInfo& alarmTimerInfo);
+  void updateAlarmTimerInfo(const AlarmKey& key, AlarmTimerInfo& alarmTimerInfo);
+  void removeAlarmTimerInfo(const AlarmKey& key,const bool& isStop = true);
+
   bool findAlarmProfileData(const AlarmKey& key, AlarmProfileData& alarmProfileData);
   void updateAlarmProfileData(const AlarmProfileData& alarmProfileData);
   void removeAlarmProfileData(const AlarmKey& key);
@@ -51,6 +57,7 @@ public:
   void printProfile();
   void printAlarm();
   bool isUpdate;
+  MAPALARMTIMERINFO m_AlarmTimerInfoData;
   // list of summary
   std::vector<Summary> vectSummary;
 private:

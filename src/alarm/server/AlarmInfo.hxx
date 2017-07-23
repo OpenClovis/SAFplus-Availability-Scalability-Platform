@@ -26,7 +26,8 @@
 #include <SAFplusAlarmCommon.hxx>
 #include <AlarmSeverity.hxx>
 #include <AlarmState.hxx>
-#include <Timer.hxx>
+#include <TimerType.hxx>
+
 
 using namespace std;
 using namespace boost::posix_time;
@@ -67,9 +68,8 @@ public:
   //current state, include soaking time,clear soaking time
   AlarmState currentState;
   AlarmState state;
-  std::shared_ptr<Timer> sharedAssertTimer;
-  std::shared_ptr<Timer> sharedClearTimer;
-  std::shared_ptr<AlarmData> sharedAlarmData;
+  TimerType timerType;
+  boost::posix_time::ptime startTimer;
   BITMAP64 afterSoakingBitmap;
 };
 }

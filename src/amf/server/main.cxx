@@ -877,15 +877,6 @@ int main(int argc, char* argv[])
         assert(0);
     }
 
-  logInfo("AMF","EVT", "Initialize event server");
-  EventServer evtSever;
-  evtSever.initialize();
-  logInfo("AMF","EVT", "Before Initialize alarm server");
-  //sleep(20);
- #ifdef SAFPLUS_AMF_ALARM_NODE_REPRESENTATIVE
-   SAFplus::AlarmServer alarmServer;
-   alarmServer.initialize();
- #endif
 
     //boost::asio::io_service ioSvc;
   // Construct a signal set registered for process termination.
@@ -917,6 +908,15 @@ int main(int argc, char* argv[])
     boost::this_thread::sleep(boost::posix_time::milliseconds(250));    
   } while(fault.getFaultState(myHandle) != FaultState::STATE_UP);
 
+
+  logInfo("AMF","EVT", "Initialize event server");
+  EventServer evtSever;
+  evtSever.initialize();
+ #ifdef SAFPLUS_AMF_ALARM_NODE_REPRESENTATIVE
+   logInfo("AMF","EVT", "Before Initialize alarm server");
+   SAFplus::AlarmServer alarmServer;
+   alarmServer.initialize();
+ #endif
 
   uint64_t lastBeat = beat; 
   uint64_t nowBeat;

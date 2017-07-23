@@ -5,7 +5,7 @@ include ../../mk/preface.mk
 CPP_FLAGS += -I$(BOOST_DIR) -I. $(SAFPLUS_MGT_INC_FLAGS) -I$(PROTOBUFVER) -I$(PROTOBUFVER)/stubs -I../../alarm/server/SAFplusAlarm
 
 CLIENT_H := $(wildcard *.hxx) $(wildcard $(SAFPLUS_INC_DIR)/*.hxx)
-CLIENT_SRC := rpcEvent.cxx rpcEvent.pb.cxx EventServer.cxx EventCkpt.cxx EventChannel.cxx  
+CLIENT_SRC := rpcEvent.cxx rpcEvent.pb.cxx EventServer.cxx EventCkpt.cxx EventChannel.cxx EventSharedMem.cxx
 CLIENT_OBJ := $(addprefix $(MWOBJ_DIR)/,$(subst .cxx,.o,$(notdir $(CLIENT_SRC))))
 
 # Specify the required libraries

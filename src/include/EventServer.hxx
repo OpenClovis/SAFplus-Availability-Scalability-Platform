@@ -37,6 +37,7 @@
 #include <boost/unordered_map.hpp>
 #include <clCustomization.hxx>
 #include <clNameApi.hxx>
+#include <EventSharedMem.hxx>
 #include <clMsgPortsAndTypes.hxx>
 #include <clHandleApi.hxx>
 #include <time.h>
@@ -52,6 +53,7 @@ class EventServer:public SAFplus::MsgHandler,public SAFplus::Wakeable, public SA
 
 public:
 	SAFplus::Handle                   severHandle;             // handle for identify a event client
+	EventSharedMem esmServer;
 	SAFplus::SafplusMsgServer*        eventMsgServer;       // safplus message for send event message to event server
 	SAFplus::Wakeable*                wakeable;             // Wakeable object for change notification
 	SAFplus::Handle activeServer;

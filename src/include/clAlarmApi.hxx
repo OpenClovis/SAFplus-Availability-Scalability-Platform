@@ -35,13 +35,13 @@
 #include <AlarmUtils.hxx>
 #include <clRpcChannel.hxx>
 #include <rpcAlarm.hxx>
+#include <EventSharedMem.hxx>
 
 using namespace boost::asio;
 using namespace SAFplusAlarm;
 extern AlarmComponentResAlarms appAlarms[];
 extern std::string myresourceId;
 extern void eventCallback(const std::string& channelId,const EventChannelScope& scope,const std::string& data,const int& length);
-void alarmCallback(const std::string& channelId,const EventChannelScope& scope,const std::string& data,const int& length);
 namespace SAFplus
 {
 // This class contains Alarm Client related APIs
@@ -89,7 +89,6 @@ class Alarm
     // return ClRcT result
     ClRcT raiseAlarm(const std::string& resourceId,const AlarmCategory& category, const AlarmProbableCause& probCause,
         const AlarmSeverity& severity, const AlarmSpecificProblem& specificProblem,const AlarmState& state);
-    static SAFplus::Handle activeServerAddress;
 
   private:
     // handle for identify a alarm entity
@@ -104,6 +103,8 @@ class Alarm
     SAFplus::EventClient eventClient;
     SAFplus::Rpc::RpcChannel * channel;
     SAFplus::Rpc::rpcAlarm::rpcAlarm_Stub *service;
+    EventSharedMem esm;
+    SAFplus::Handle activeServer;
 };
 }
 
