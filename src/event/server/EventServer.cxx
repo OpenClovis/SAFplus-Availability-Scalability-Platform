@@ -65,49 +65,55 @@ bool EventServer::eventloadchannelFromCheckpoint()
 			SAFplus::Checkpoint::KeyValuePair& item = *iter;
 			int key = ((eventKey*) (*item.first).data)->id;
 			int length = ((eventKey*) (*item.first).data)->length;
-			request.ParseFromArray(curval->data,length);
+			request.ParseFromArray(curval->data, length);
 			logDebug("NAME", "GET", "Get object for key [%ld]", key);
 			logDebug("NAME", "GET", "Data length [%d]", length);
 			logDebug("NAME", "GET", "Get object: Name [%s]", request.channelname().c_str());
 			logDebug("NAME", "GET", "Get object: Scope [%d]", request.scope());
 			logDebug("NAME", "GET", "Get object: Type [%d]", request.type());
-
 			EventMessageType msgType = EventMessageType(request.type());
-			switch (msgType)
+
+			try
 			{
-			case EventMessageType::EVENT_CHANNEL_CREATE:
-				if (1)
+				switch (msgType)
 				{
-					eventChannelCreateHandleRpc(&request);
+				case EventMessageType::EVENT_CHANNEL_CREATE:
+					if (1)
+					{
+						eventChannelCreateHandleRpc(&request);
+					}
+					break;
+				case EventMessageType::EVENT_CHANNEL_SUBSCRIBER:
+					if (1)
+					{
+						eventChannelSubsHandleRpc(&request);
+					}
+					break;
+				case EventMessageType::EVENT_CHANNEL_UNSUBSCRIBER:
+					if (1)
+					{
+						eventChannelUnSubsHandleRpc(&request);
+					}
+					break;
+				case EventMessageType::EVENT_CHANNEL_PUBLISHER:
+					if (1)
+					{
+						eventChannelPubHandleRpc(&request);
+					}
+					break;
+				case EventMessageType::EVENT_CHANNEL_CLOSE:
+					if (1)
+					{
+						eventChannelCloseHandleRpc(&request);
+					}
+					break;
+				default:
+					logDebug("EVENT", "MSG", "Unknown message type ... ", request.type());
+					break;
 				}
-				break;
-			case EventMessageType::EVENT_CHANNEL_SUBSCRIBER:
-				if (1)
-				{
-					eventChannelSubsHandleRpc(&request);
-				}
-				break;
-			case EventMessageType::EVENT_CHANNEL_UNSUBSCRIBER:
-				if (1)
-				{
-					eventChannelUnSubsHandleRpc(&request);
-				}
-				break;
-			case EventMessageType::EVENT_CHANNEL_PUBLISHER:
-				if (1)
-				{
-					eventChannelPubHandleRpc(&request);
-				}
-				break;
-			case EventMessageType::EVENT_CHANNEL_CLOSE:
-				if (1)
-				{
-					eventChannelCloseHandleRpc(&request);
-				}
-				break;
-			default:
-				logDebug("EVENT", "MSG", "Unknown message type ... ", request.type());
-				break;
+			} catch (SAFplus::Error& e)
+			{
+				logDebug("EVT", "MSG", "ERROR : %s , [%d]", e.errStr, e.clError);
 			}
 		}
 	}
