@@ -62,10 +62,12 @@ bool EventServer::eventloadchannelFromCheckpoint()
 		if (curval)
 		{
 			SAFplus::Rpc::rpcEvent::eventChannelRequest request;
-			std::string requestring(curval->data);
-			request.ParseFromString(requestring);
-			logDebug("NAME", "GET", "Get object for key [%ld]", curkey->data);
-			logDebug("NAME", "GET", "Data length [%d]", requestring.length());
+			SAFplus::Checkpoint::KeyValuePair& item = *iter;
+			int key = ((eventKey*) (*item.first).data)->id;
+			int length = ((eventKey*) (*item.first).data)->length;
+			request.ParseFromArray(curval->data,length);
+			logDebug("NAME", "GET", "Get object for key [%ld]", key);
+			logDebug("NAME", "GET", "Data length [%d]", length);
 			logDebug("NAME", "GET", "Get object: Name [%s]", request.channelname().c_str());
 			logDebug("NAME", "GET", "Get object: Scope [%d]", request.scope());
 			logDebug("NAME", "GET", "Get object: Type [%d]", request.type());
@@ -112,7 +114,6 @@ bool EventServer::eventloadchannelFromCheckpoint()
 	return true;
 }
 
-
 void EventServer::initialize()
 {
 
@@ -120,7 +121,7 @@ void EventServer::initialize()
 	severHandle = Handle::create(); // This is the handle for this specific fault server
 	numberOfGlobalChannel = 0;
 	numberOfLocalChannel = 0;
-    esmServer.init();
+	esmServer.init();
 	logDebug("EVT", "SERVER", "Initialize event checkpoint");
 	this->evtCkpt.eventCkptInit();
 	group.init(EVENT_GROUP);
@@ -427,7 +428,7 @@ void EventServer::createChannelRpc(const eventChannelRequest *request, bool isSu
 				logDebug("EVT", "MSG", "Add channel[%s] to global channel list", channel->channelName.c_str());
 				globalChannelListLock.lock();
 				globalChannelList.push_back(*channel);
-				logDebug("EVT", "MSG", "write request message to checkpoint with length %d",request->ByteSize());
+				logDebug("EVT", "MSG", "write request message to checkpoint with length %d", request->ByteSize());
 				evtCkpt.eventCkptCheckPointChannelOpen(request);
 				numberOfGlobalChannel += 1;
 				globalChannelListLock.unlock();
@@ -462,7 +463,7 @@ void EventServer::createChannelRpc(const eventChannelRequest *request, bool isSu
 							globalChannelListLock.unlock();
 							throw(e);
 						}
-						logDebug("EVT", "MSG", "write request message to checkpoint with length %d",request->ByteSize());
+						logDebug("EVT", "MSG", "write request message to checkpoint with length %d", request->ByteSize());
 						evtCkpt.eventCkptCheckPointSubscribeOrPublish(request);
 						s.subscriberRefCount += 1;
 					}
@@ -478,7 +479,7 @@ void EventServer::createChannelRpc(const eventChannelRequest *request, bool isSu
 							globalChannelListLock.unlock();
 							throw(e);
 						}
-						logDebug("EVT", "MSG", "write request message to checkpoint with length %d",request->ByteSize());
+						logDebug("EVT", "MSG", "write request message to checkpoint with length %d", request->ByteSize());
 						evtCkpt.eventCkptCheckPointSubscribeOrPublish(request);
 						s.publisherRefCount += 1;
 					}
