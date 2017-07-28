@@ -42,11 +42,18 @@ void EventServer::wake(int amt, void* cookie)
 		if (severHandle == g->getActive())
 		{
 			//TODO Load global channel from checkpoint
+			logInfo("EVT", "DUMP", "Set Active server and load data ");
+			activeServer = g->getActive();
+			esmServer.setActive(activeServer);
 			eventloadchannelFromCheckpoint();
 		}
-		logInfo("EVT", "DUMP", "Set Active server");
-		activeServer = g->getActive();
-		esmServer.setActive(activeServer);
+		else
+		{
+			logInfo("EVT", "DUMP", "Set Active server");
+			activeServer = g->getActive();
+			esmServer.setActive(activeServer);
+		}
+
 	}
 }
 
