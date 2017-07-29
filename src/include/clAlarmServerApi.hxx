@@ -106,7 +106,6 @@ class AlarmServer:public SAFplus::MsgHandler,public SAFplus::Wakeable,public SAF
     // object event client
     SAFplus::Group group;
     SAFplus::Rpc::RpcChannel * channel;
-    //SAFplus::Rpc::rpcAlarm::rpcAlarm_Stub *service;
     EventSharedMem esm;
 };
 }

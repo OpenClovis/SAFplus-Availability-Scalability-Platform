@@ -45,6 +45,17 @@ AlarmData::AlarmData(const AlarmData& other)
   state = other.state;
   syncData[0] = other.syncData[0];
 }
+AlarmData::AlarmData(const AlarmInfo& info)
+{
+  memset(resourceId, 0, sizeof(resourceId));
+  strcpy(resourceId, info.resourceId);
+  category = info.category;
+  probCause = info.probCause;
+  specificProblem = info.specificProblem;
+  severity = info.severity;
+  state = info.currentState;
+  syncData[0] = ' ';
+}
 AlarmData::AlarmData(const char* inresourceId, const AlarmCategory& incategory, const AlarmProbableCause& inprobCause, const AlarmSpecificProblem& inspecificProblem, const AlarmSeverity& inseverity, const AlarmState& instate)
 {
   memset(resourceId, 0, sizeof(resourceId));

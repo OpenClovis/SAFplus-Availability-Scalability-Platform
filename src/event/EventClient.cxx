@@ -49,7 +49,7 @@ void EventClient::eventInitialize(Handle evtHandle, EventCallbackFunction func)
 {
 	logDebug("EVT", "EVENT_ENTITY", "Initialize event Entity");
 	clientHandle = evtHandle;
-	esm.init();
+	esm.init(false);
 	if (!eventMsgServer)
 	{
 		eventMsgServer = &safplusMsgServer;

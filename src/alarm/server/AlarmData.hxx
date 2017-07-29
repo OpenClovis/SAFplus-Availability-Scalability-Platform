@@ -26,6 +26,7 @@
 #include <AlarmSeverity.hxx>
 #include <AlarmMessageType.hxx>
 #include <AlarmState.hxx>
+#include <AlarmInfo.hxx>
 
 using namespace std;
 using namespace SAFplusAlarm;
@@ -39,6 +40,7 @@ class AlarmData
 public:
   AlarmData();
   AlarmData(const AlarmData& other);
+  AlarmData(const AlarmInfo& info);
   AlarmData(const char* inresourceId, const AlarmCategory& incategory, const AlarmProbableCause& inprobCause, const AlarmSpecificProblem& inspecificProblem, const AlarmSeverity& inseverity, const AlarmState& instate);
   AlarmData& operator=(const AlarmData& other);
   bool operator==(const AlarmData& other) const;

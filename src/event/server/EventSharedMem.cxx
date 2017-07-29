@@ -6,18 +6,28 @@ using namespace boost::interprocess;
 
 namespace SAFplus
 {
-void EventSharedMem::init()
+void EventSharedMem::init(const bool& isServer)
 {
 	logDebug("AAA","AAA", "db1");
-
-	logDebug("AAA","AAA", "db2");
-	eventMsm = boost::interprocess::managed_shared_memory(boost::interprocess::open_or_create, eventSharedMemoryObjectName.c_str(), SAFplusI::EventSharedMemSize);
+	if(isServer)
+	{
+	  eventMsm = boost::interprocess::managed_shared_memory(boost::interprocess::open_or_create, eventSharedMemoryObjectName.c_str(), SAFplusI::EventSharedMemSize);
+	}else
+	{
+	  eventMsm = boost::interprocess::managed_shared_memory(boost::interprocess::open_only, eventSharedMemoryObjectName.c_str());
+	}
 	try
 	{
-		eventHdr = (SAFplus::EventShmHeader*) eventMsm.construct < SAFplus::EventShmHeader > ("header")();                                 // Ok it created one so initialize
-		eventHdr->activeEventServer = INVALID_HDL;
-		eventHdr->structId = 65000; // Initialize this last.  It indicates that the header is properly initialized (and acts as a structure version number)
-		eventHdr->lastChange = nowMs();
+	  if(isServer)
+	  {
+	    eventHdr = (SAFplus::EventShmHeader*) eventMsm.construct < SAFplus::EventShmHeader > ("header")();                                 // Ok it created one so initialize
+            eventHdr->activeEventServer = INVALID_HDL;
+            eventHdr->structId = 65000; // Initialize this last.  It indicates that the header is properly initialized (and acts as a structure version number)
+            eventHdr->lastChange = nowMs();
+	  }else
+	  {
+	    eventHdr = (SAFplus::EventShmHeader*) eventMsm.find < SAFplus::EventShmHeader > ("header").first;
+	  }
 	} catch (interprocess_exception &e)
 	{
 		if (e.get_error_code() == already_exists_error)
@@ -43,10 +53,10 @@ void EventSharedMem::init()
 			throw;
 	}
 }
-void EventSharedMem::init(const std::string& objectName)
+void EventSharedMem::initWithName(const std::string& objectName,const bool& isServer)
 {
   eventSharedMemoryObjectName = objectName;
-  init();
+  init(isServer);
 }
 SAFplus::Handle EventSharedMem::getActive()
 {

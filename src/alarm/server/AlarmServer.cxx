@@ -54,13 +54,8 @@ void AlarmServer::initialize()
   logDebug(ALARM_SERVER, ALARM_ENTITY, "SAFplus::objectMessager.insert(handleAlarmServer,this)");
   SAFplus::objectMessager.insert(handleAlarmServer, this);
   alarmMsgServer = &safplusMsgServer;
-  esm.init(ALARM_SHARED_MEM_NAME);
+  esm.initWithName(ALARM_SHARED_MEM_NAME);
   group.registerEntity(handleAlarmServer, SAFplus::ASP_NODEADDR, NULL, 0, Group::ACCEPT_STANDBY | Group::ACCEPT_ACTIVE | Group::STICKY);
-  activeServer = group.getActive();
-  assert(activeServer != INVALID_HDL); // It can't be invalid because I am available to be active.
-  //connect to other server
-  esm.setActive(activeServer);
-  logDebug(ALARM_SERVER, ALARM_ENTITY, "Register rpc stub for Alarm");
   channel = new SAFplus::Rpc::RpcChannel(alarmMsgServer, this);
   if(nullptr == channel)
   {
@@ -69,26 +64,28 @@ void AlarmServer::initialize()
   }
   channel->setMsgSendType(SAFplusI::ALARM_REQ_HANDLER_TYPE);
   channel->setMsgReplyType(SAFplusI::ALARM_REPLY_HANDLER_TYPE);
+  activeServer = group.getActive();
+  logDebug(ALARM_SERVER, ALARMINFO, "initialize:DANGLE:activeServer:Group [%" PRIx64 ":%" PRIx64 "] changed",activeServer.id[0], activeServer.id[1]);
+  assert(activeServer != INVALID_HDL); // It can't be invalid because I am available to be active.
+  //connect to other server
+  esm.setActive(activeServer);
+  logDebug(ALARM_SERVER, ALARM_ENTITY, "Register rpc stub for Alarm");
   logInfo(ALARM_SERVER, ALARM_ENTITY,"Initialize fault client on server");
   faultInitialize();
-  faultClient.init(activeServer,INVALID_HDL,activeServer.getPort(),BLOCK);
-
+  faultClient.init(handleAlarmServer,INVALID_HDL,handleAlarmServer.getPort(),BLOCK);
   logDebug(ALARM_SERVER, ALARM_ENTITY, "Initialize alarm checkpoint");
   data.initialize();
   logDebug(ALARM_SERVER, ALARM_ENTITY, "Initialize event client on server");
   //event client
   eventClient.eventInitialize(handleAlarmServer, nullptr);
-  if(handleAlarmServer == activeServer)
-  {
-    eventClient.eventChannelOpen(ALARM_CHANNEL, EventChannelScope::EVENT_GLOBAL_CHANNEL);
-    eventClient.eventChannelPublish(ALARM_CHANNEL, EventChannelScope::EVENT_GLOBAL_CHANNEL);
-  }
+  eventClient.eventChannelOpen(ALARM_CHANNEL, EventChannelScope::EVENT_GLOBAL_CHANNEL);
+  eventClient.eventChannelPublish(ALARM_CHANNEL, EventChannelScope::EVENT_GLOBAL_CHANNEL);
 }
 
 void AlarmServer::wake(int amt, void* cookie)
 {
   Group* g = (Group*) cookie;
-  if (activeServer != g->getActive())
+  if(activeServer != g->getActive())
   {
     activeServer = g->getActive();
     esm.setActive(activeServer);
@@ -98,14 +95,17 @@ void AlarmServer::wake(int amt, void* cookie)
       logDebug(ALARM_SERVER, ALARMINFO,"Become active then load data");
       data.loadAlarmProfile();
       data.loadAlarmData();
+      data.loadAlarmSummary();
     }
-    logDebug(ALARM_SERVER, ALARMINFO, "Group [%" PRIx64 ":%" PRIx64 "] changed",activeServer.id[0], activeServer.id[1]);
   }
+
+  logDebug(ALARM_SERVER, ALARMINFO, "DANGLE:wake Group [%" PRIx64 ":%" PRIx64 "] changed",activeServer.id[0], activeServer.id[1]);
 }
 
 void AlarmServer::alarmCreateRpcMethod(const ::SAFplus::Rpc::rpcAlarm::alarmProfileCreateRequest* request,
                            ::SAFplus::Rpc::rpcAlarm::alarmResponse* response)
 {
+   boost::lock_guard < boost::mutex > lock { g_data_mutex };
    AlarmProfileData localProfileData;
    AlarmKey key(request->resourceid(),(AlarmCategory)request->category(),(AlarmProbableCause)request->probcause());
    logDebug(ALARM_SERVER, PROFILE,"alarmCreateRpcMethod message from client key [%s]",key.toString().c_str());
@@ -122,7 +122,6 @@ void AlarmServer::alarmCreateRpcMethod(const ::SAFplus::Rpc::rpcAlarm::alarmProf
      response->set_saerror(CL_ERR_ALREADY_EXIST);
      response->set_errstr("Alarm profile is existed!");
    }
-   boost::lock_guard < boost::mutex > lock { g_data_mutex };
    AlarmProfileData alarmProfileData(request->resourceid(), (AlarmCategory)request->category(), (AlarmProbableCause)request->probcause(), (AlarmSpecificProblem)request->specificproblem(),request->issend(),request->intassertsoakingtime(),request->intclearsoakingtime(),(AlarmRuleRelation)request->genrulerelation(),
        (BITMAP64)request->generationrulebitmap(),(AlarmRuleRelation)request->supprulerelation(),(BITMAP64)request->suppressionrulebitmap(),request->intindex(),(BITMAP64)request->affectedbitmap(),request->issuppresschild());
    data.isUpdate = true;
@@ -160,11 +159,11 @@ void AlarmServer::alarmRaiseRpcMethod(const ::SAFplus::Rpc::rpcAlarm::alarmDataR
 void AlarmServer::alarmDeleteRpcMethod(const ::SAFplus::Rpc::rpcAlarm::alarmProfileDeleteRequest* request,
                    ::SAFplus::Rpc::rpcAlarm::alarmResponse* response)
 {
+  boost::lock_guard < boost::mutex > lock { g_data_mutex };
   AlarmKey key(request->resourceid(),(AlarmCategory)request->category(), (AlarmProbableCause)request->probcause());
   logDebug(ALARM_SERVER, PROFILE, "alarmDeleteRpcMethod [%s]", key.toString().c_str());
-  boost::lock_guard < boost::mutex > lock { g_data_mutex };
-  data.removeAlarmProfileData(key);
   data.removeAlarmInfo(key);
+  data.removeAlarmProfileData(key);
   response->set_saerror(CL_OK);
 }
 
@@ -172,7 +171,7 @@ AlarmServer::~AlarmServer()
 {
   if(handleAlarmServer == activeServer)
   {
-    eventClient.eventChannelClose(ALARM_CHANNEL, EventChannelScope::EVENT_GLOBAL_CHANNEL);
+    eventClient.eventChannelClose(ALARM_CHANNEL, EventChannelScope::EVENT_GLOBAL_CHANNEL);//the last active server so close it
   }
   if(nullptr != channel)
   {
@@ -300,14 +299,16 @@ void AlarmServer::processAlarmData(const AlarmData& alarmData)
     {
       AlarmTimerInfo alarmTimer;
       std::size_t seedLevel1 = hash_value(key);
-      if (!data.findAlarmTimerInfo(key, alarmTimer))
+      if (data.findAlarmTimerInfo(key, alarmTimer))
       {
-        logError(ALARM_SERVER, ALARMINFO, "Alarm Timer not found [%s]", key.toString().c_str());
-        return;
-      }
-      if (nullptr != alarmTimer.sharedTimer)
+        if (nullptr != alarmTimer.sharedTimer)
+        {
+          data.removeAlarmTimerInfo(key,false);
+          processAffectedAlarm(key); //after soaking
+        }
+      }else
       {
-        data.removeAlarmTimerInfo(key,false);
+        logError(ALARM_SERVER, ALARMINFO, "Alarm Timer not found [%s]", key.toString().c_str());//lost time due to switch over
         processAffectedAlarm(key); //after soaking
       }
     }
@@ -329,11 +330,10 @@ void AlarmServer::processAlarmData(const AlarmData& alarmData)
     }
     else
     {
-      data.isUpdate = true;
       alarmInfo.timerType = TimerType::INVALID;
+      data.isUpdate = true;
       isNeedCall = true;
     }
-
   } //else
   data.updateAlarmInfo(alarmInfo);
   if (isNeedCall)
@@ -530,9 +530,7 @@ ClRcT AlarmServer::publishAlarm(const AlarmData& alarmData)
   logDebug(ALARM_SERVER, "MSG", "**************************************************");
   std::stringstream ss;
   ss << alarmData;
-  logDebug(ALARM_SERVER, "MSG","DANGLE: before publish");
   eventClient.eventPublish(ss.str(), ss.str().length(), ALARM_CHANNEL, EventChannelScope::EVENT_GLOBAL_CHANNEL);
-  logDebug(ALARM_SERVER, "MSG","DANGLE: after publish");
   AlarmKey key(alarmData.resourceId, alarmData.category, alarmData.probCause);
   AlarmProfileData alarmProfile;
   if (!data.findAlarmProfileData(key, alarmProfile))
@@ -548,7 +546,7 @@ ClRcT AlarmServer::publishAlarm(const AlarmData& alarmData)
     faultData.category=alarmData.category;
     faultData.cause=alarmData.probCause;
     faultData.severity=alarmData.severity;
-    faultClient.notify(activeServer,faultData,FaultPolicy::AMF);
+    faultClient.notify(faultData,FaultPolicy::AMF);
   }
 }
 }

@@ -257,7 +257,7 @@ namespace SAFplus
   const WellKnownHandle ALARM_CKPT(16,0,0);       //? The checkpoint that matches ALARM object to arbitrary data
   const WellKnownHandle ALARM_PROFILE_CKPT(17,0,0);       //? The checkpoint that matches ALARM PROFILE object to arbitrary data
   const WellKnownHandle ALARM_GROUP(18,0,0);       //? This group represents all ALARM
- 
+  const WellKnownHandle ALARM_SUMMARY(19,0,0);       //? The checkpoint that matches ALARM SUMMARY object to arbitrary data
   //? Return a new handle that uses a "well known" id but is qualified by a specific node and port.  By convention, this handle will be used for the entity that implements a well known service on a particular node
   inline Handle wellKnownEntity(const WellKnownHandle& h, int port, int node,uint_t clusterId=0)
   {

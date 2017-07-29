@@ -42,8 +42,8 @@ public:
 	EventShmHeader* eventHdr;
 	std::string eventSharedMemoryObjectName = "SAFplusEvent";
 	//SAFplus::Mutex  localMutex;
-	void init(void);
-	void init(const std::string& objectName);
+	void init(const bool& isServer = true);
+	void initWithName(const std::string& objectName,const bool& isServer = true);
 	void setActive(SAFplus::Handle active);
 	SAFplus::Handle getActive();
 	void clear();

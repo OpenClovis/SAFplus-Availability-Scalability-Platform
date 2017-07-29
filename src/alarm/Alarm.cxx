@@ -16,7 +16,8 @@
 //  * For more  information, see  the file  COPYING provided with this
 //  * material.
 //  */
-
+#include <chrono>
+#include <thread>
 #include <clMsgPortsAndTypes.hxx>
 #include <clCustomization.hxx>
 #include <AlarmMessageType.hxx>
@@ -46,8 +47,7 @@ void Alarm::initialize(const SAFplus::Handle& handleClient, SAFplus::Wakeable& w
   {
     alarmMsgServer = &safplusMsgServer;
   }
-  esm.init(ALARM_SHARED_MEM_NAME);
-  sleep(1);
+  esm.initWithName(ALARM_SHARED_MEM_NAME,false);
   eventClient.eventInitialize(handleClientAlarm, &eventCallback);
   //For Rpc
   logDebug(ALARM, ALARM_ENTITY, "Initialize alarm Rpc client");
@@ -176,10 +176,17 @@ ClRcT Alarm::createAlarmProfile()
         openRequest.set_intindex((int)it.second.intIndex);
         openRequest.set_affectedbitmap(it.second.affectedBitmap);
         openRequest.set_issuppresschild(it.second.isSuppressChild);
-        activeServer = esm.getActive();
-        logInfo(ALARM, ALARM_ENTITY, "createAlarmProfile to active server [%" PRIx64 ":%" PRIx64 "]",activeServer.id[0], activeServer.id[1]);
-        assert(activeServer != INVALID_HDL);
-        service->alarmCreateRpcMethod(activeServer,&openRequest,&openRequestRes,SAFplus::BLOCK);
+       try
+        {
+          activeServer = esm.getActive();
+          logInfo(ALARM, ALARM_ENTITY, "createAlarmProfile to active server [%" PRIx64 ":%" PRIx64 "]",activeServer.id[0], activeServer.id[1]);
+          assert(activeServer != INVALID_HDL);
+          service->alarmCreateRpcMethod(activeServer,&openRequest,&openRequestRes,SAFplus::BLOCK);
+        }catch(Error& error)
+        {
+          logError(ALARM, ALARM_ENTITY, "%s",error.what());
+          return CL_ERR_INVALID_HANDLE;
+        }
         if(CL_OK != openRequestRes.saerror())
         {
           logError(ALARM, ALARM_ENTITY, "Error : %s ... ",openRequestRes.errstr().c_str());
@@ -202,10 +209,23 @@ ClRcT Alarm::raiseAlarm(const std::string& resourceId, const AlarmCategory& cate
   openRequest.set_severity((int)severity);
   openRequest.set_state((int)state);
   openRequest.set_syncdata(" ");//temporary
-  activeServer = esm.getActive();
-  logInfo(ALARM, ALARM_ENTITY, "raiseAlarm to active server [%" PRIx64 ":%" PRIx64 "]",activeServer.id[0], activeServer.id[1]);
-  assert(activeServer != INVALID_HDL);
-  service->alarmRaiseRpcMethod(activeServer,&openRequest,&openRequestRes,SAFplus::BLOCK);
+  if(activeServer != esm.getActive())
+  {
+    activeServer = esm.getActive();
+    assert(activeServer != INVALID_HDL);
+    logInfo(ALARM, ALARM_ENTITY, "raiseAlarm to active server [%" PRIx64 ":%" PRIx64 "] changed",activeServer.id[0], activeServer.id[1]);
+  }else
+  {
+    logInfo(ALARM, ALARM_ENTITY, "raiseAlarm to active server [%" PRIx64 ":%" PRIx64 "]",activeServer.id[0], activeServer.id[1]);
+  }
+  try
+  {
+    service->alarmRaiseRpcMethod(activeServer,&openRequest,&openRequestRes,SAFplus::BLOCK);
+  }catch(Error& error)
+  {
+    logError(ALARM, ALARM_ENTITY, "%s",error.what());
+    return CL_ERR_INVALID_HANDLE;
+  }
   if(CL_OK != openRequestRes.saerror())
   {
     logError(ALARM, ALARM_ENTITY, "Error : %s ... ",openRequestRes.errstr().c_str());
@@ -242,10 +262,17 @@ ClRcT Alarm::deleteAlarmProfile()
         openRequest.set_resourceid(appAlarms[indexApp].resourceId);
         openRequest.set_category((int)appAlarms[indexApp].MoAlarms[indexProfile].category);
         openRequest.set_probcause((int)appAlarms[indexApp].MoAlarms[indexProfile].probCause);
-        activeServer = esm.getActive();
-        logInfo(ALARM, ALARM_ENTITY, "deleteAlarmProfile to active server [%" PRIx64 ":%" PRIx64 "]",activeServer.id[0], activeServer.id[1]);
-        assert(activeServer != INVALID_HDL);
-        service->alarmDeleteRpcMethod(activeServer,&openRequest,&openRequestRes,SAFplus::BLOCK);
+        try
+        {
+          activeServer = esm.getActive();
+          assert(activeServer != INVALID_HDL);
+          logInfo(ALARM, ALARM_ENTITY, "deleteAlarmProfile to active server [%" PRIx64 ":%" PRIx64 "]",activeServer.id[0], activeServer.id[1]);
+          service->alarmDeleteRpcMethod(activeServer,&openRequest,&openRequestRes,SAFplus::BLOCK);
+        }catch(Error& error)
+        {
+          logError(ALARM, ALARM_ENTITY, "%s",error.what());
+          return CL_ERR_INVALID_HANDLE;
+        }
         if(CL_OK != openRequestRes.saerror())
         {
           logError(ALARM, ALARM_ENTITY, "Error : %s ... ",openRequestRes.errstr().c_str());

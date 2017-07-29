@@ -22,9 +22,12 @@
 #include <vector>
 #include <sstream>
 #include <boost/date_time/posix_time/posix_time.hpp>
-#include <AlarmData.hxx>
 #include <SAFplusAlarmCommon.hxx>
+#include <clCustomization.hxx>
+#include <AlarmCategory.hxx>
+#include <AlarmProbableCause.hxx>
 #include <AlarmSeverity.hxx>
+#include <AlarmMessageType.hxx>
 #include <AlarmState.hxx>
 #include <TimerType.hxx>
 

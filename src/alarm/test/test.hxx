@@ -2,12 +2,19 @@
 #define TEST_HXX
 #include <clAlarmApi.hxx>
 
+AlarmRuleEntry alarmRuleEntry2[]=
+                  {{AlarmProbableCause::STORAGE_CAPACITY_PROBLEM,0},
+									{AlarmProbableCause::VERSION_MISMATCH,0},
+									{AlarmProbableCause::CORRUPT_DATA,0},
+									{AlarmProbableCause::CPU_CYCLES_LIMIT_EXCEEDED,0},
+									{AlarmProbableCause::INVALID,0}};
 AlarmRuleEntry alarmRuleEntry[]=
                   {{AlarmProbableCause::LOSS_OF_SIGNAL,0},
-									{AlarmProbableCause::LOSS_OF_FRAME,0},
-									{AlarmProbableCause::FRAMING_ERROR,0},
-									{AlarmProbableCause::LOCAL_NODE_TRANSMISSION_ERROR,0},
-									{AlarmProbableCause::INVALID,0}};
+                  {AlarmProbableCause::LOSS_OF_FRAME,0},
+                  {AlarmProbableCause::FRAMING_ERROR,0},
+                  {AlarmProbableCause::LOCAL_NODE_TRANSMISSION_ERROR,0},
+                  {AlarmProbableCause::INVALID,0}};
+
 AlarmRuleEntry alarmRuleEntry1[]=
                   {{AlarmProbableCause::REMOTE_NODE_TRANSMISSION_ERROR,0},
 									{AlarmProbableCause::CALL_ESTABLISHMENT_ERROR,0},
@@ -34,6 +41,12 @@ AlarmRuleInfo Rule[]=
 									{AlarmRuleRelation::LOGICAL_AND,alarmRuleEntry},
 									{AlarmRuleRelation::LOGICAL_AND,alarmRuleEntry},
 									{AlarmRuleRelation::INVALID,NULL}};
+AlarmRuleInfo Rule2[]=
+                  {{AlarmRuleRelation::LOGICAL_AND,alarmRuleEntry2},
+                  {AlarmRuleRelation::LOGICAL_AND,alarmRuleEntry2},
+                  {AlarmRuleRelation::LOGICAL_AND,alarmRuleEntry2},
+                  {AlarmRuleRelation::LOGICAL_AND,alarmRuleEntry2},
+                  {AlarmRuleRelation::INVALID,NULL}};
 AlarmRuleInfo Rule1[]=
                   {{AlarmRuleRelation::LOGICAL_OR,alarmRuleEntry1},
                   {AlarmRuleRelation::LOGICAL_OR,alarmRuleEntry1},
@@ -153,14 +166,32 @@ AlarmProfile ManagedResource0AlmProfile [] =
       0,
       true
     },
+    {
+      AlarmCategory::COMMUNICATIONS,//8
+      AlarmProbableCause::STORAGE_CAPACITY_PROBLEM,
+      AlarmSeverity::MAJOR,
+      false,
+      40000,
+      0,
+      Rule2,
+      NULL,
+      0,
+      false
+    },
+    {
+      AlarmCategory::COMMUNICATIONS,//9
+      AlarmProbableCause::VERSION_MISMATCH,
+      AlarmSeverity::MAJOR,
+      true,
+      0,
+      40000,
+      Rule2,
+      NULL,
+      0,
+      true
+    },
     {AlarmCategory::INVALID,AlarmProbableCause::INVALID,AlarmSeverity::INVALID,false,0,0,NULL,NULL,0,false}
 };
 
-/*AlarmComponentResAlarms appAlarms [] =
-{
-    {"resourcetest", 100, ManagedResource0AlmProfile},
-
-    {"",0,NULL}
-};
-std::string myresourceId = "resourcetest";*/
+const int RETRY = 5;
 #endif

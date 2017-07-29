@@ -18,7 +18,14 @@
 namespace SAFplus
 {
 
-class EventKey
+class eventKey
+{
+public:
+	int length;
+	int id;
+};
+
+class EventKeyId
 {
 public:
 	std::string channelName;
@@ -26,7 +33,7 @@ public:
 	EventMessageType type;
 };
 
-inline std::size_t hash_value(EventKey const& h)
+inline std::size_t hash_value(EventKeyId const& h)
 {
 
   std::size_t seed = 0;

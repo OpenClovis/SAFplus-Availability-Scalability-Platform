@@ -51,6 +51,7 @@ public:
   void removeAlarmProfileData(const AlarmKey& key);
   void loadAlarmProfile();
   void loadAlarmData();
+  void loadAlarmSummary();
   void accumulateSummary(const AlarmSeverity& severity,const AlarmState& state,const bool& isIncrease = true);
   void changeSummary(const AlarmSeverity& fromSeverity, const AlarmSeverity& toSeverity);
   void printSummary();
@@ -61,12 +62,11 @@ public:
   // list of summary
   std::vector<Summary> vectSummary;
 private:
-  std::mutex mtxAlarmData;
-  std::mutex mtxProfileData;
   MAPALARMPROFILEINFO m_ProfileInfoData;
   MAPMAPALARMINFO m_mapAlarmInfoData;
   SAFplus::Checkpoint m_checkpointProfile;
   SAFplus::Checkpoint m_checkpointAlarm;
+  SAFplus::Checkpoint m_checkpointSummary;
   //last update time
   boost::posix_time::ptime lastUpdateAlarmData;
   boost::posix_time::ptime lastUpdateSummary;
