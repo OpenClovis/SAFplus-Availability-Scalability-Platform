@@ -192,6 +192,4 @@ AlarmProfile ManagedResource0AlmProfile [] =
     },
     {AlarmCategory::INVALID,AlarmProbableCause::INVALID,AlarmSeverity::INVALID,false,0,0,NULL,NULL,0,false}
 };
-
-const int RETRY = 5;
 #endif

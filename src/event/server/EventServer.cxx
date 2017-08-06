@@ -36,7 +36,6 @@ void EventServer::wake(int amt, void* cookie)
 {
 	Group* g = (Group*) cookie;
 	logDebug("EVT", "SERVER", "Group [%" PRIx64 ":%" PRIx64 "] changed", g->handle.id[0], g->handle.id[1]);
-	sleep(1);
 	if (activeServer != g->getActive())
 	{
 		if (severHandle == g->getActive())

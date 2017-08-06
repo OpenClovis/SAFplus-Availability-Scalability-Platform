@@ -69,7 +69,6 @@ private:
   SAFplus::Checkpoint m_checkpointSummary;
   //last update time
   boost::posix_time::ptime lastUpdateAlarmData;
-  boost::posix_time::ptime lastUpdateSummary;
 };
 }
 

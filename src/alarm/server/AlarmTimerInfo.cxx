@@ -25,64 +25,52 @@ namespace SAFplus
 {
 AlarmTimerInfo::AlarmTimerInfo()
 {
-  sharedTimer = nullptr;
-  sharedAlarmData = nullptr;
+  pTimer = nullptr;
+  pAlarmData = nullptr;
 }
 AlarmTimerInfo::AlarmTimerInfo(const AlarmTimerInfo& other)
 {
-  if(nullptr != sharedTimer)
+  if(nullptr != pTimer)
   {
-    delete sharedTimer;
+    delete pTimer;
   }
-  sharedTimer = other.sharedTimer;
-  if(nullptr != sharedAlarmData)
+  pTimer = other.pTimer;
+  if(nullptr != pAlarmData)
   {
-    delete sharedAlarmData;
+    delete pAlarmData;
   }
-  sharedAlarmData = other.sharedAlarmData;
+  pAlarmData = other.pAlarmData;
 }
 AlarmTimerInfo& AlarmTimerInfo::operator=(const AlarmTimerInfo& other)
 {
-  if(nullptr != sharedTimer)
+  if(nullptr != pTimer)
   {
-    delete sharedTimer;
+    delete pTimer;
   }
-  if(nullptr != sharedAlarmData)
+  if(nullptr != pAlarmData)
   {
-    delete sharedAlarmData;
+    delete pAlarmData;
   }
-  sharedTimer = other.sharedTimer;
-  sharedAlarmData = other.sharedAlarmData;
+  pTimer = other.pTimer;
+  pAlarmData = other.pAlarmData;
 }
 bool AlarmTimerInfo::operator==(const AlarmTimerInfo& other) const
 {
-  return ((nullptr != sharedTimer)&&(nullptr != sharedAlarmData)&&(sharedTimer == other.sharedTimer)&&(sharedAlarmData != other.sharedAlarmData));
-}
-AlarmTimerInfo::~AlarmTimerInfo()
-{
-  /*if(nullptr != sharedTimer)
-  {
-    sharedTimer->timerStop();
-  }
-  if(nullptr != sharedAlarmData)
-  {
-    sharedAlarmData = nullptr;
-  }*/
-  std::cout<<"call ~AlarmTimerInfo"<<std::endl;
+  return ((nullptr != pTimer)&&(nullptr != pAlarmData)&&(pTimer == other.pTimer)&&(pAlarmData != other.pAlarmData));
 }
 
 std::string AlarmTimerInfo::toString() const
 {
   std::ostringstream oss;
-  if(nullptr != sharedTimer)
+  if(nullptr != pTimer)
   {
     oss <"Timer: Valid";
   }else{
     oss <<"Timer: Invalid";
   }
-  if(nullptr != sharedAlarmData)
+  if(nullptr != pAlarmData)
   {
-    oss<<sharedAlarmData->toString();
+    oss<<pAlarmData->toString();
   }else
   {
     oss<<"Data: Invalid";

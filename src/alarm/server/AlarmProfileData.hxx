@@ -43,8 +43,8 @@ public:
   //suppression rule
   BITMAP64 suppressionRuleBitmap;
   AlarmRuleRelation suppRuleRelation;
-  int intIndex;
   BITMAP64 affectedBitmap;
+  int intIndex;
   bool isSuppressChild;
 
 };

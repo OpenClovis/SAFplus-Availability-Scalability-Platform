@@ -45,13 +45,13 @@ StorageAlarmData::~StorageAlarmData()
   os<<"*******************StorageAlarmData****************\n";
   for (MAPALARMTIMERINFO::value_type& it : m_AlarmTimerInfoData)
   {
-    if(nullptr != it.second.sharedTimer)
+    if(nullptr != it.second.pTimer)
     {
-      it.second.sharedTimer->timerStop();
-      delete it.second.sharedTimer;
-      it.second.sharedTimer = nullptr;
-      delete it.second.sharedAlarmData;
-      it.second.sharedAlarmData = nullptr;
+      it.second.pTimer->timerStop();
+      delete it.second.pTimer;
+      it.second.pTimer = nullptr;
+      delete it.second.pAlarmData;
+      it.second.pAlarmData = nullptr;
     }
     m_AlarmTimerInfoData.erase(it.first);
   }
@@ -89,19 +89,19 @@ void StorageAlarmData::removeAlarmTimerInfo(const AlarmKey& key,const bool& isSt
   std::size_t seedLevel1 = hash_value(key);
   if(!isStop)
   {
-    if(nullptr != m_AlarmTimerInfoData[seedLevel1].sharedTimer)
+    if(nullptr != m_AlarmTimerInfoData[seedLevel1].pTimer)
       {
-        if(!m_AlarmTimerInfoData[seedLevel1].sharedTimer->timerIsStopped())
+        if(!m_AlarmTimerInfoData[seedLevel1].pTimer->timerIsStopped())
         {
-          m_AlarmTimerInfoData[seedLevel1].sharedTimer->timerStop();
+          m_AlarmTimerInfoData[seedLevel1].pTimer->timerStop();
         }
-        m_AlarmTimerInfoData[seedLevel1].sharedTimer = nullptr;
+        m_AlarmTimerInfoData[seedLevel1].pTimer = nullptr;
       }
   }
-  if(nullptr != m_AlarmTimerInfoData[seedLevel1].sharedAlarmData)
+  if(nullptr != m_AlarmTimerInfoData[seedLevel1].pAlarmData)
   {
-    delete m_AlarmTimerInfoData[seedLevel1].sharedAlarmData;
-    m_AlarmTimerInfoData[seedLevel1].sharedAlarmData = nullptr;
+    delete m_AlarmTimerInfoData[seedLevel1].pAlarmData;
+    m_AlarmTimerInfoData[seedLevel1].pAlarmData = nullptr;
   }
   m_AlarmTimerInfoData.erase(seedLevel1);
 }
@@ -369,9 +369,9 @@ void StorageAlarmData::loadAlarmData()
         if(timeOut.tsMilliSec > 0)
         {
           AlarmTimerInfo alarmTimer;
-          alarmTimer.sharedAlarmData = new AlarmData(*data);
-          alarmTimer.sharedTimer = new Timer (timeOut, TIMER_ONE_SHOT, TimerContextT::TIMER_SEPARATE_CONTEXT, &AlarmServer::processAlarmDataCallBack, alarmTimer.sharedAlarmData);
-          alarmTimer.sharedTimer->timerStart(); //leak pointer
+          alarmTimer.pAlarmData = new AlarmData(*data);
+          alarmTimer.pTimer = new Timer (timeOut, TIMER_ONE_SHOT, TimerContextT::TIMER_SEPARATE_CONTEXT, &AlarmServer::processAlarmDataCallBack, alarmTimer.pAlarmData);
+          alarmTimer.pTimer->timerStart(); //leak pointer
           logDebug(ALARM_SERVER, "DUMP", "Start Assert Timer");
           updateAlarmTimerInfo(key,alarmTimer);
         }

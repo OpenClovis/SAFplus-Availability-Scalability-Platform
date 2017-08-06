@@ -75,15 +75,9 @@ void raiseAlarm_Assert(const int indexProfile, const AlarmSeverity& severity)
   std::ostringstream os;
   os<<"index:"<<indexProfile<<" "<<appAlarms[indexApp].MoAlarms[indexProfile].probCause<<" "<< severity;
   logInfo(ALARM, ALARM_ENTITY, "raiseAlarm_Assert:%s %s",appAlarms[indexApp].resourceId.c_str(),os.str().c_str());
-  int retry = 0;
-  while(retry < RETRY)
+  if(CL_ERR_INVALID_HANDLE == alarmClient.raiseAlarm(appAlarms[indexApp].resourceId.c_str(), appAlarms[indexApp].MoAlarms[indexProfile].category, appAlarms[indexApp].MoAlarms[indexProfile].probCause, severity, 0, AlarmState::ASSERT))
   {
-    if(CL_ERR_INVALID_HANDLE == alarmClient.raiseAlarm(appAlarms[indexApp].resourceId.c_str(), appAlarms[indexApp].MoAlarms[indexProfile].category, appAlarms[indexApp].MoAlarms[indexProfile].probCause, severity, 0, AlarmState::ASSERT))
-    {
-      retry++;
-      std::cout<<"Server is not stable send back assert!retry:"<<retry<<std::endl;
-      std::this_thread::sleep_for(std::chrono::milliseconds(500));
-    }else break;
+    logInfo(ALARM, ALARM_ENTITY,"Server is not stable!");
   }
 }
 void raiseAlarm_Clear(const int indexProfile, const AlarmSeverity& severity)
@@ -92,15 +86,9 @@ void raiseAlarm_Clear(const int indexProfile, const AlarmSeverity& severity)
   std::ostringstream os;
   os<<"index:"<<indexProfile<<" "<<appAlarms[indexApp].MoAlarms[indexProfile].probCause<<" "<< severity;
   logInfo(ALARM, ALARM_ENTITY, "raiseAlarm_Clear:%s %s",appAlarms[indexApp].resourceId.c_str(),os.str().c_str());
-  int retry = 0;
-  while(retry < RETRY)
+  if(CL_ERR_INVALID_HANDLE == alarmClient.raiseAlarm(appAlarms[indexApp].resourceId.c_str(), appAlarms[indexApp].MoAlarms[indexProfile].category, appAlarms[indexApp].MoAlarms[indexProfile].probCause, severity, 0, AlarmState::CLEAR))
   {
-    if(CL_ERR_INVALID_HANDLE == alarmClient.raiseAlarm(appAlarms[indexApp].resourceId.c_str(), appAlarms[indexApp].MoAlarms[indexProfile].category, appAlarms[indexApp].MoAlarms[indexProfile].probCause, severity, 0, AlarmState::CLEAR))
-    {
-      retry++;
-      std::cout<<"Server is not stable send back clear!retry:"<<retry<<std::endl;
-      std::this_thread::sleep_for(std::chrono::milliseconds(500));
-    }else break;
+    logInfo(ALARM, ALARM_ENTITY,"Server is not stable!");
   }
 }
 

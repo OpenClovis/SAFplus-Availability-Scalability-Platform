@@ -47,7 +47,7 @@ void Alarm::initialize(const SAFplus::Handle& handleClient, SAFplus::Wakeable& w
   {
     alarmMsgServer = &safplusMsgServer;
   }
-  esm.initWithName(ALARM_SHARED_MEM_NAME,false);
+  alarmSharedMemory.initWithName(ALARM_SHARED_MEM_NAME,false);
   eventClient.eventInitialize(handleClientAlarm, &eventCallback);
   //For Rpc
   logDebug(ALARM, ALARM_ENTITY, "Initialize alarm Rpc client");
@@ -178,7 +178,7 @@ ClRcT Alarm::createAlarmProfile()
         openRequest.set_issuppresschild(it.second.isSuppressChild);
        try
         {
-          activeServer = esm.getActive();
+          activeServer = alarmSharedMemory.getActive();
           logInfo(ALARM, ALARM_ENTITY, "createAlarmProfile to active server [%" PRIx64 ":%" PRIx64 "]",activeServer.id[0], activeServer.id[1]);
           assert(activeServer != INVALID_HDL);
           service->alarmCreateRpcMethod(activeServer,&openRequest,&openRequestRes,SAFplus::BLOCK);
@@ -209,9 +209,9 @@ ClRcT Alarm::raiseAlarm(const std::string& resourceId, const AlarmCategory& cate
   openRequest.set_severity((int)severity);
   openRequest.set_state((int)state);
   openRequest.set_syncdata(" ");//temporary
-  if(activeServer != esm.getActive())
+  if(activeServer != alarmSharedMemory.getActive())
   {
-    activeServer = esm.getActive();
+    activeServer = alarmSharedMemory.getActive();
     assert(activeServer != INVALID_HDL);
     logInfo(ALARM, ALARM_ENTITY, "raiseAlarm to active server [%" PRIx64 ":%" PRIx64 "] changed",activeServer.id[0], activeServer.id[1]);
   }else
@@ -264,7 +264,7 @@ ClRcT Alarm::deleteAlarmProfile()
         openRequest.set_probcause((int)appAlarms[indexApp].MoAlarms[indexProfile].probCause);
         try
         {
-          activeServer = esm.getActive();
+          activeServer = alarmSharedMemory.getActive();
           assert(activeServer != INVALID_HDL);
           logInfo(ALARM, ALARM_ENTITY, "deleteAlarmProfile to active server [%" PRIx64 ":%" PRIx64 "]",activeServer.id[0], activeServer.id[1]);
           service->alarmDeleteRpcMethod(activeServer,&openRequest,&openRequestRes,SAFplus::BLOCK);

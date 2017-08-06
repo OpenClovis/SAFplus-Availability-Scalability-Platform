@@ -39,11 +39,8 @@ public:
   AlarmTimerInfo(const AlarmTimerInfo& other);
   bool operator==(const AlarmTimerInfo& other) const;
   std::string toString() const;
-  ~AlarmTimerInfo();
-  //std::shared_ptr<Timer> sharedTimer;
-  Timer*sharedTimer;
-  //std::shared_ptr<AlarmData> sharedAlarmData;
-  AlarmData* sharedAlarmData;
+  Timer*pTimer;
+  AlarmData* pAlarmData;
 };
 }
 #endif /* ALARMTIMERINFO_H_HEADER_INCLUDED_A6DEC96B */

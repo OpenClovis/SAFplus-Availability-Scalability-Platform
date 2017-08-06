@@ -29,9 +29,7 @@ AlarmInfo::AlarmInfo()
   category = AlarmCategory::INVALID;
   probCause = AlarmProbableCause::INVALID;
   severity = AlarmSeverity::INVALID;
-  memset(strText, 0, SAFplusI::MAX_TEXT_SIZE);
-  memset(strOperator, 0, SAFplusI::MAX_TEXT_SIZE);
-  memset(strOperatorText, 0, SAFplusI::MAX_TEXT_SIZE);
+  memset(syncData, 0, 1);
   state = AlarmState::INVALID;
   currentState = AlarmState::INVALID;
   afterSoakingBitmap = 0;
@@ -47,13 +45,7 @@ AlarmInfo& AlarmInfo::operator=(const AlarmInfo& other)
   statusChangeTime = other.statusChangeTime;
   severity = other.severity;
   vectAltResource = other.vectAltResource;
-  memset(strText, 0, SAFplusI::MAX_TEXT_SIZE);
-  memset(strOperator, 0, SAFplusI::MAX_TEXT_SIZE);
-  memset(strOperatorText, 0, SAFplusI::MAX_TEXT_SIZE);
-  strcpy(strText, other.strText);
-  strcpy(strOperator, other.strOperator);
-  strcpy(strOperatorText, other.strOperatorText);
-  operatorActionTime = other.operatorActionTime;
+  memset(syncData, 0, 1);
   state = other.state;
   currentState = other.currentState;
   timerType = other.timerType;
@@ -62,8 +54,8 @@ AlarmInfo& AlarmInfo::operator=(const AlarmInfo& other)
 }
 bool AlarmInfo::operator==(const AlarmInfo& other) const
 {
-  return ((strcmp(resourceId, other.resourceId) == 0) && (category == other.category) && (probCause == other.probCause) && (statusChangeTime == other.statusChangeTime) && (severity == other.severity) && (vectAltResource == other.vectAltResource) && (strcmp(strText, other.strText) == 0)
-      && (strcmp(strOperator, other.strOperator) == 0) && (strcmp(strOperatorText, other.strOperatorText) == 0) && (operatorActionTime == other.operatorActionTime) && (state == other.state) && (currentState == other.currentState) && (startTimer == other.startTimer) &&(timerType == other.timerType) && (afterSoakingBitmap == other.afterSoakingBitmap));
+  return ((strcmp(resourceId, other.resourceId) == 0) && (category == other.category) && (probCause == other.probCause) && (statusChangeTime == other.statusChangeTime) && (severity == other.severity) && (vectAltResource == other.vectAltResource) && (strcmp(syncData, other.syncData) == 0)
+      && (state == other.state) && (currentState == other.currentState) && (startTimer == other.startTimer) &&(timerType == other.timerType)&&(afterSoakingBitmap == other.afterSoakingBitmap));
 }
 
 std::string AlarmInfo::toString() const
@@ -82,7 +74,7 @@ std::string AlarmInfo::toString() const
     }
     oss << "]";
   }
-  oss << " Text:[" << strText << "] lastOperator:[" << strOperator << "] operatorText:[" << strOperatorText << "] operatorActionTime:[" << operatorActionTime << "] state:[" << state << "]"<< " currentState:["<<currentState<<"]"<<"] timerType:["<<timerType<< "] startTimer:["<<startTimer<<"] afterSoakingBitmap:[" << afterSoakingBitmap << "]";
+  oss << " syncData:[" << syncData <<"] state:[" << state << "]"<< " currentState:["<<currentState<<"]"<<"] timerType:["<<timerType<< "] startTimer:["<<startTimer<< "] afterSoakingBitmap:"<<afterSoakingBitmap<<"]";
   return oss.str();
 }
 }

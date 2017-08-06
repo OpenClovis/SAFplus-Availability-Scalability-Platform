@@ -51,20 +51,14 @@ public:
   AlarmCategory category;
   //alarm probalbe  cause
   AlarmProbableCause probCause;
-  //list of other name of this resource
+  //vector of other name of this resource
   std::vector<std::string> vectAltResource;
   //last time changed
   boost::posix_time::ptime statusChangeTime;
   //severity of alarm
   AlarmSeverity severity;
-  //last alarm text
-  char strText[SAFplusI::MAX_TEXT_SIZE];
-  //last operator
-  char strOperator[SAFplusI::MAX_TEXT_SIZE];
-  //last operator text
-  char strOperatorText[SAFplusI::MAX_TEXT_SIZE];
-  //operator action time.
-  boost::posix_time::ptime operatorActionTime;
+  //alarm data
+  char syncData[1];
   //Specific-Problem of the alarm. This field adds further refinement
   //to the probable cause specified while raising the alarm.
   AlarmSpecificProblem specificProblem;
@@ -73,6 +67,7 @@ public:
   AlarmState state;
   TimerType timerType;
   boost::posix_time::ptime startTimer;
+  //after soaking bitmap
   BITMAP64 afterSoakingBitmap;
 };
 }

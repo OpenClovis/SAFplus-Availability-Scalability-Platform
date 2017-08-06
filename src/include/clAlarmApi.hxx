@@ -51,33 +51,34 @@ class Alarm
   public:
     // constructor
     Alarm();
-
     // Initialize a alarm entity with handle and comport information
     // Param:
     // clientHandle: input handle of client Alarm
-    // Return: ClRcT
+    // Return: none
     void initialize(const SAFplus::Handle& handleClient,SAFplus::Wakeable& wake = SAFplus::BLOCK);
-
     // raise Alarm
     // Param:
-    // std:string resourceId: resource id
-    // AlarmCategoryId category: category
-    // AlarmSeverity severity: severity alarm
-    // std::string alarmText: text of alarm
+    // AlarmData alarmData: data
     // return: ClRcT
     ClRcT raiseAlarm(const AlarmData& alarmData);
-
-    // This function is used to subscribe for the events published by the alarm server. This function takes the function pointer as parameter which would be called whenever the event is published by the alarm server on the event channel CL_ALARM_EVENT_CHANNEL. After receiving the event the callback function would be called after filling the alarm information in the AlarmHandleInfo structure.The
-    // event subscription done via this function can be unsubscribed using the UnSubscribe().
-    // param:
-    //   input: pointer to callback function
-    //   return: ClRcT
+    // raise Alarm
+    // Param:
+    // resourceId: resource name
+    // category: type
+    // probCause: cause id
+    // severity: severity id
+    // specificProblem: specific code
+    // state: ASSERT/CLEAR
+    // return: ClRcT
+    ClRcT raiseAlarm(const std::string& resourceId,const AlarmCategory& category, const AlarmProbableCause& probCause,
+        const AlarmSeverity& severity, const AlarmSpecificProblem& specificProblem,const AlarmState& state);
+    // This function is used to subscribe for the events published by the alarm server.
+    // Param: none
+    // return: ClRcT
     ClRcT subscriber();
-
-    //  This function is used to unsubscribe for the event published by the alarm server on the channel CL_ALARM_EVENT_CHANNEL. After this function is called, the callback registered by the function Subscribe will not be called any further on the event publish. This function will finalize the event handle and will close the event channel opened by calling Subscribe().
+    // This function is used to unsubscribe for the event published by the alarm server.
     // return: ClRcT
     ClRcT unSubscriber();
-
     // createAlarmProfile
     // Return: ClRcT
     ClRcT createAlarmProfile();
@@ -86,9 +87,6 @@ class Alarm
     ClRcT deleteAlarmProfile();
     // destructor
     ~Alarm();
-    // return ClRcT result
-    ClRcT raiseAlarm(const std::string& resourceId,const AlarmCategory& category, const AlarmProbableCause& probCause,
-        const AlarmSeverity& severity, const AlarmSpecificProblem& specificProblem,const AlarmState& state);
 
   private:
     // handle for identify a alarm entity
@@ -101,9 +99,13 @@ class Alarm
     SAFplus::Handle handleAlarmServer;
     //event client
     SAFplus::EventClient eventClient;
+    //channel
     SAFplus::Rpc::RpcChannel * channel;
+    //service
     SAFplus::Rpc::rpcAlarm::rpcAlarm_Stub *service;
-    EventSharedMem esm;
+    //shared memory
+    EventSharedMem alarmSharedMemory;
+    //active server address
     SAFplus::Handle activeServer;
 };
 }

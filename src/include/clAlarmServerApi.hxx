@@ -43,70 +43,106 @@ namespace SAFplus
 {
 // Since the AMF (safplus_amf process) includes a alarm server instance, this alarm server class is only used by applications in a no AMF deployment
 // Alarm Server control 2 roles: Alarm Server(operator,administrator,manage alarm application,fault manager) and Alarm Client
-// Alarm server check handmasking,send to alarm application,fault management
-// Alarm client such as clearing,soaking,check generate rule,suppression rule,assert state
+// Alarm server check clearing,soaking,check generate rule,suppression rule,handmasking,send to alarm application,fault management
 
 class AlarmServer:public SAFplus::MsgHandler,public SAFplus::Wakeable,public SAFplus::Rpc::rpcAlarm::rpcAlarm
 {
   public:
     // default constructor
     AlarmServer();
-
     // init server
     void initialize();
-
-    // handle all message send to/out server
-    // Param:
-    // from: input from address
-    // psrv: input message service
-    // pmsg: input message body
-    // msglen: input length of message
-    // pcookie: input cookie
-    // Return: ClRcT
-    //virtual void msgHandler(SAFplus::Handle from, SAFplus::MsgServer* psrv, ClPtrT pmsg, ClWordT msglen, ClPtrT pcookie);
-
     // send alarm to application management
+    // Param:
+    // alarmData: input alarm data send to application
     // Return: ClRcT
     static ClRcT publishAlarm(const AlarmData& alarmData);
     // destructor
     virtual ~AlarmServer();
-    // purge rpc for alarm
-    void purgeRpcRequest(const AlarmFilter& inputFilter);
-    // delete alarms on data storage
-    void deleteRpcRequest(const AlarmFilter& inputFilter);
-    // Proccess alarm
+    // check condition of alarm
+    // Param:
+    // alarmInfo: input alarm information
+    // Return: true/false
     static bool alarmConditionCheck(const AlarmInfo& alarmInfo);
+    // process affected of this alarm
+    // Param:
+    // key: check for this key
+    // isSet: true: after soaking,false: under soaking
+    // Return: none
     static void processAffectedAlarm(const AlarmKey& key,const bool& isSet = true);
+    // process publish for this alarm
+    // Param:
+    // alarmData: input alarm data to process
+    // Return: none
     static void processPublishAlarmData(const AlarmData& alarmData);
-    static void processSummaryAlarmData(const AlarmData& alarmData,const bool& isSeverityChanged = true);
+    // process alarm data after assert/clear soaking time
+    // Param:
+    // apAlarmData: input alarm data to process
+    // Return: ClRcT
     static ClRcT processAlarmDataCallBack(void* apAlarmData);
+    // process alarm data from client
+    // Param:
+    // apAlarmData: input alarm data to process
+    // Return: none
     void processAlarmData(const AlarmData& alarmData);
+    // process handmasking to check does the parent resource was already assert or not
+    // Param:
+    // alarmInfo: input alarm information to process
+    // Return: true/false
     static bool checkHandMasking(const AlarmInfo& alarmInfo);
-    void wake(int amt,void* cookie);
-    static StorageAlarmData data;
-    static SAFplus::EventClient eventClient;
-    //object fault client
-    static SAFplus::Fault faultClient;
-    static SAFplus::Handle activeServer;
-    static boost::mutex g_data_mutex;
+    // this function is call when the active address changed
+    // Param:
+    // pgroup: input group
+    // Return: none
+    void wake(int amt,void* pgroup);
+    // create profile for alarm
+    // Param:
+    // alarmProfileCreateRequest: input request profile
+    // alarmResponse: input response result
+    // Return: none
     void alarmCreateRpcMethod(const ::SAFplus::Rpc::rpcAlarm::alarmProfileCreateRequest* request,
                          ::SAFplus::Rpc::rpcAlarm::alarmResponse* response);
+    // delete profile for alarm
+    // Param:
+    // alarmProfileDeleteRequest: input request profile
+    // alarmResponse: input response result
+    // Return: none
     void alarmDeleteRpcMethod(const ::SAFplus::Rpc::rpcAlarm::alarmProfileDeleteRequest* request,
                        ::SAFplus::Rpc::rpcAlarm::alarmResponse* response);
+    // raise for alarm
+    // Param:
+    // alarmDataRequest: input request alarm data
+    // alarmResponse: input response result
+    // Return: none
     void alarmRaiseRpcMethod(const ::SAFplus::Rpc::rpcAlarm::alarmDataRequest* request,
                        ::SAFplus::Rpc::rpcAlarm::alarmResponse* response);
+    // store all alarm data
+    static StorageAlarmData data;
+    // event client to publish to other client
+    static SAFplus::EventClient eventClient;
+    // fault connection to send to fault manager
+    static SAFplus::Fault faultClient;
+    // current active address server
+    static SAFplus::Handle activeServer;
+    // mutex for data to make consistent
+    static boost::mutex g_data_mutex;
   private:
+    // check handMasking
+    // Param:
+    // paths: input vector of paths
+    // Return: true: is masked, false: not masked
     bool checkHandMasking(const std::vector<std::string>& paths);
-    void loadAlarmProfile();
   protected:
+    //address server
     SAFplus::Handle handleAlarmServer;
     // alarm message server
     SAFplus::SafplusMsgServer* alarmMsgServer;
-    // Alarm client
-    // object event client
+    // group alarm
     SAFplus::Group group;
+    //rpc channel
     SAFplus::Rpc::RpcChannel * channel;
-    EventSharedMem esm;
+    //alarm shared memory
+    EventSharedMem alarmSharedMemory;
 };
 }
 

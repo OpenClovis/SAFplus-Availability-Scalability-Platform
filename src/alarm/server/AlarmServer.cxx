@@ -42,20 +42,27 @@ void AlarmServer::initialize()
 {
   ClRcT rc;
   logDebug(ALARM_SERVER, ALARM_ENTITY, "Initialize Alarm Server");
-  handleAlarmServer = Handle::create(); // This is the handle for this specific alarm server
-  logDebug(ALARM_SERVER, ALARM_ENTITY, "Register Alarm Server to Alarm Group");
-  group.init(ALARM_GROUP);
   if ((rc = timerInitialize(NULL)) != CL_OK)
   {
     logError(ALARM_SERVER, ALARM_ENTITY, "Initialize Timer failed [%d]", rc);
     return;
   }
+  alarmSharedMemory.initWithName(ALARM_SHARED_MEM_NAME);
+  handleAlarmServer = Handle::create(); // This is the handle for this specific alarm server
+  logDebug(ALARM_SERVER, ALARM_ENTITY, "Initialize alarm checkpoint");
+  data.initialize();
+  logDebug(ALARM_SERVER, ALARM_ENTITY, "Register Alarm Server to Alarm Group");
+  group.init(ALARM_GROUP);
   group.setNotification(*this);
   logDebug(ALARM_SERVER, ALARM_ENTITY, "SAFplus::objectMessager.insert(handleAlarmServer,this)");
   SAFplus::objectMessager.insert(handleAlarmServer, this);
   alarmMsgServer = &safplusMsgServer;
-  esm.initWithName(ALARM_SHARED_MEM_NAME);
   group.registerEntity(handleAlarmServer, SAFplus::ASP_NODEADDR, NULL, 0, Group::ACCEPT_STANDBY | Group::ACCEPT_ACTIVE | Group::STICKY);
+  activeServer = group.getActive();
+  assert(activeServer != INVALID_HDL); // It can't be invalid because I am available to be active.
+  //set active server
+  alarmSharedMemory.setActive(activeServer);
+  logDebug(ALARM_SERVER, ALARM_ENTITY, "Register rpc stub for Alarm");
   channel = new SAFplus::Rpc::RpcChannel(alarmMsgServer, this);
   if(nullptr == channel)
   {
@@ -64,17 +71,9 @@ void AlarmServer::initialize()
   }
   channel->setMsgSendType(SAFplusI::ALARM_REQ_HANDLER_TYPE);
   channel->setMsgReplyType(SAFplusI::ALARM_REPLY_HANDLER_TYPE);
-  activeServer = group.getActive();
-  logDebug(ALARM_SERVER, ALARMINFO, "initialize:DANGLE:activeServer:Group [%" PRIx64 ":%" PRIx64 "] changed",activeServer.id[0], activeServer.id[1]);
-  assert(activeServer != INVALID_HDL); // It can't be invalid because I am available to be active.
-  //connect to other server
-  esm.setActive(activeServer);
-  logDebug(ALARM_SERVER, ALARM_ENTITY, "Register rpc stub for Alarm");
   logInfo(ALARM_SERVER, ALARM_ENTITY,"Initialize fault client on server");
   faultInitialize();
   faultClient.init(handleAlarmServer,INVALID_HDL,handleAlarmServer.getPort(),BLOCK);
-  logDebug(ALARM_SERVER, ALARM_ENTITY, "Initialize alarm checkpoint");
-  data.initialize();
   logDebug(ALARM_SERVER, ALARM_ENTITY, "Initialize event client on server");
   //event client
   eventClient.eventInitialize(handleAlarmServer, nullptr);
@@ -82,13 +81,13 @@ void AlarmServer::initialize()
   eventClient.eventChannelPublish(ALARM_CHANNEL, EventChannelScope::EVENT_GLOBAL_CHANNEL);
 }
 
-void AlarmServer::wake(int amt, void* cookie)
+void AlarmServer::wake(int amt, void* pgroup)
 {
-  Group* g = (Group*) cookie;
+  Group* g = (Group*) pgroup;
   if(activeServer != g->getActive())
   {
     activeServer = g->getActive();
-    esm.setActive(activeServer);
+    alarmSharedMemory.setActive(activeServer);
     if (handleAlarmServer == activeServer)//active
     {
       //TODO Load global data from checkpoint
@@ -152,9 +151,13 @@ void AlarmServer::alarmRaiseRpcMethod(const ::SAFplus::Rpc::rpcAlarm::alarmDataR
           (AlarmProbableCause)request->probcause(),(AlarmSpecificProblem)request->specificproblem(),
           (AlarmSeverity)request->severity(),(AlarmState)request->state());
   logDebug(ALARM_SERVER, ALARMINFO, "alarmRaiseRpcMethod [%s]", alarmData.toString().c_str());
-  processAlarmData(alarmData);
+  try
+  {
+    processAlarmData(alarmData);
+  }catch(...)
+  {
+  }
   response->set_saerror(CL_OK);
-
 }
 void AlarmServer::alarmDeleteRpcMethod(const ::SAFplus::Rpc::rpcAlarm::alarmProfileDeleteRequest* request,
                    ::SAFplus::Rpc::rpcAlarm::alarmResponse* response)
@@ -181,15 +184,6 @@ AlarmServer::~AlarmServer()
   //finalize timer
   timerFinalize();
 }
-
-void AlarmServer::purgeRpcRequest(const AlarmFilter& inputFilter)
-{
-}
-
-void AlarmServer::deleteRpcRequest(const AlarmFilter& inputFilter)
-{
-}
-
 void AlarmServer::processAlarmData(const AlarmData& alarmData)
 {
   AlarmKey key(alarmData.resourceId, alarmData.category, alarmData.probCause);
@@ -276,9 +270,9 @@ void AlarmServer::processAlarmData(const AlarmData& alarmData)
         timeOut.tsMilliSec = alarmProfile.intAssertSoakingTime;
         processAffectedAlarm(key, false); //false under soaking
         AlarmTimerInfo alarmTimer;
-        alarmTimer.sharedAlarmData = new AlarmData(alarmData);
-        alarmTimer.sharedTimer = new Timer (timeOut, TIMER_ONE_SHOT, TimerContextT::TIMER_SEPARATE_CONTEXT, &AlarmServer::processAlarmDataCallBack, alarmTimer.sharedAlarmData);
-        alarmTimer.sharedTimer->timerStart(); //leak pointer
+        alarmTimer.pAlarmData = new AlarmData(alarmData);
+        alarmTimer.pTimer = new Timer (timeOut, TIMER_ONE_SHOT, TimerContextT::TIMER_SEPARATE_CONTEXT, &AlarmServer::processAlarmDataCallBack, alarmTimer.pAlarmData);
+        alarmTimer.pTimer->timerStart(); //leak pointer
         logDebug(ALARM_SERVER, ALARMINFO, "Start Assert Timer");
         data.updateAlarmTimerInfo(key,alarmTimer);
         alarmInfo.startTimer = boost::posix_time::second_clock::local_time();
@@ -301,7 +295,7 @@ void AlarmServer::processAlarmData(const AlarmData& alarmData)
       std::size_t seedLevel1 = hash_value(key);
       if (data.findAlarmTimerInfo(key, alarmTimer))
       {
-        if (nullptr != alarmTimer.sharedTimer)
+        if (nullptr != alarmTimer.pTimer)
         {
           data.removeAlarmTimerInfo(key,false);
           processAffectedAlarm(key); //after soaking
@@ -319,10 +313,10 @@ void AlarmServer::processAlarmData(const AlarmData& alarmData)
       timeOut.tsMilliSec = alarmProfile.intClearSoakingTime;
       processAffectedAlarm(key, false); //false under soaking
       AlarmTimerInfo alarmTimer;
-      alarmTimer.sharedAlarmData = new AlarmData (alarmData);
-      alarmTimer.sharedTimer = new  Timer (timeOut, TIMER_ONE_SHOT, TimerContextT::TIMER_SEPARATE_CONTEXT, &AlarmServer::processAlarmDataCallBack, alarmTimer.sharedAlarmData);
+      alarmTimer.pAlarmData = new AlarmData (alarmData);
+      alarmTimer.pTimer = new  Timer (timeOut, TIMER_ONE_SHOT, TimerContextT::TIMER_SEPARATE_CONTEXT, &AlarmServer::processAlarmDataCallBack, alarmTimer.pAlarmData);
       logDebug(ALARM_SERVER, ALARMINFO, "Start Clear Timer");
-      alarmTimer.sharedTimer->timerStart(); //leak pointer
+      alarmTimer.pTimer->timerStart(); //leak pointer
       data.updateAlarmTimerInfo(key,alarmTimer);
       alarmInfo.timerType = TimerType::CLEAR;
       alarmInfo.startTimer = boost::posix_time::second_clock::local_time();
@@ -530,7 +524,13 @@ ClRcT AlarmServer::publishAlarm(const AlarmData& alarmData)
   logDebug(ALARM_SERVER, "MSG", "**************************************************");
   std::stringstream ss;
   ss << alarmData;
-  eventClient.eventPublish(ss.str(), ss.str().length(), ALARM_CHANNEL, EventChannelScope::EVENT_GLOBAL_CHANNEL);
+  try
+  {
+    eventClient.eventPublish(ss.str(), ss.str().length(), ALARM_CHANNEL, EventChannelScope::EVENT_GLOBAL_CHANNEL);
+  }catch(...)
+  {
+    logError(ALARM_SERVER, ALARMINFO, "Public alarm failed for [%s]", alarmData.toString().c_str());
+  }
   AlarmKey key(alarmData.resourceId, alarmData.category, alarmData.probCause);
   AlarmProfileData alarmProfile;
   if (!data.findAlarmProfileData(key, alarmProfile))

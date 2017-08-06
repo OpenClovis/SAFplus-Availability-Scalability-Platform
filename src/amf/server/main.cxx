@@ -912,11 +912,11 @@ int main(int argc, char* argv[])
   logInfo("AMF","EVT", "Initialize event server");
   EventServer evtSever;
   evtSever.initialize();
- #ifdef SAFPLUS_AMF_ALARM_NODE_REPRESENTATIVE
-   logInfo("AMF","EVT", "Before Initialize alarm server");
-   SAFplus::AlarmServer alarmServer;
-   alarmServer.initialize();
- #endif
+  #ifdef SAFPLUS_AMF_ALARM_NODE_REPRESENTATIVE
+  logInfo("AMF","EVT", "Initialize alarm server");
+  SAFplus::AlarmServer alarmServer;
+  alarmServer.initialize();
+  #endif
 
   uint64_t lastBeat = beat; 
   uint64_t nowBeat;
