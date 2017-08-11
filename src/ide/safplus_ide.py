@@ -93,7 +93,7 @@ class SAFplusFrame(wx.Frame):
           self.timer.Start(1000)
 
     def update(self, event):
-        self.help.LoadFile("intro.html")
+        self.help.LoadFile("resources/intro.html")
         
 
     def OnCloseFrame(self,event):
@@ -398,7 +398,7 @@ class SAFplusFrame(wx.Frame):
         self.tab.SetSelection(n-1)
       else:
         self.help = HtmlWindow(self.tab, -1)
-        self.help.LoadFile("intro.html")
+        self.help.LoadFile("resources/intro.html")
         n = self.tab.GetPageCount()
         self.tab.InsertPage(n, self.help, "Welcome")       
         self.tab.SetSelection(n)
