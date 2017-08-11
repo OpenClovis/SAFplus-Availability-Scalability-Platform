@@ -134,12 +134,19 @@ void ThreadPool::run(Wakeable* wk, void* arg)
 void ThreadPool::enqueue(Poolable* p)
 {
   logTrace("THRPOOL","ENQ", "ThreadPool::enqueue enter");
+  bool startNewThread = false;
+  mutex.lock();
   if ((numIdleThreads == 0) && (numCurrentThreads <= maxThreads))
   {
+    mutex.unlock();
     logDebug("THRPOOL","ENQ", "Creating a new thread to execute job because all current threads are busy.  Current num threads [%d], max allowed [%d]", numCurrentThreads, maxThreads);
     startThread();
+    startNewThread = true;
   }
-  mutex.lock();
+  if (startNewThread)
+  {
+    mutex.lock();
+  }
   poolableList.push_back(*p);
   cond.notify_one();
   mutex.unlock();
@@ -223,11 +230,12 @@ void ThreadPool::runTask(void* arg)
 
     tp->mutex.lock();
     tp->numIdleThreads--;
-    tp->mutex.unlock();
-
     ts.working = true;
+    tp->mutex.unlock();
     tp->immediatelyRun(p);
+    tp->mutex.lock();
     ts.working = false;
+    tp->mutex.unlock();
     int ret = clock_gettime(CLOCK_MONOTONIC, &ts.idleTimestamp);
     assert(ret==0);
     tp->mutex.lock();
@@ -238,6 +246,7 @@ void ThreadPool::runTask(void* arg)
   // We can't remove this thread from the map from inside the thread, or join() won't be called and the thread will zombie
   //tp->threadMap.erase(contents); // Remove this thread element from the map and exit
   tp->numCurrentThreads--;
+  tp->numIdleThreads--;
   ts.zombie = true;
   tp->mutex.unlock();
   logTrace("THRPOOL","RUNTSK", "exit runTask");
@@ -246,9 +255,9 @@ void ThreadPool::runTask(void* arg)
 
 void ThreadPool::startThread()
 {
-  mutex.lock();
   logTrace("THR","POOL", "startThread enter");
   pthread_t thid;
+  mutex.lock();
   pthread_create(&thid, NULL, (void* (*) (void*)) runTask, this);
   // If we detach, we can't join to make sure it is cleaned up: pthread_detach(thid);
   numIdleThreads++;
