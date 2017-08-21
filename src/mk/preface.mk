@@ -144,7 +144,7 @@ NOOP := $(shell mkdir -p $(OBJ_DIR))
 NOOP := $(shell mkdir -p $(SAFPLUS_TOOL_TARGET)/bin)
 endif
 
-PKG_CONFIG_PATH ?= /lib/pkgconfig:$(INSTALL_DIR)/lib/pkgconfig
+PKG_CONFIG_PATH ?= /lib/pkgconfig:$(SAFPLUS_TARGET)/install/lib/pkgconfig
 LOCAL_PKG_CONFIG_PATH ?= /lib/pkgconfig:$(LOCAL_INSTALL_DIR)/lib/pkgconfig
 PKG_CONFIG ?= PKG_CONFIG_PATH=$(PKG_CONFIG_PATH) pkg-config
 
@@ -175,6 +175,7 @@ DISTRIBUTION_LIB = 0
 BOOST_INC_DIR ?= $(INSTALL_DIR)/include
 # $(shell (cd $(SAFPLUS_SRC_DIR)/../../boost; pwd))
 BOOST_LIB_DIR ?= $(INSTALL_DIR)/lib
+LOCAL_PROTOBUF_LINK = -L$(INSTALL_DIR)/lib -lprotobuf -lprotoc
 else
 DISTRIBUTION_LIB = 1
 BOOST_INC_DIR = $(SYSTEM_INC_DIR)
@@ -189,11 +190,14 @@ GPERFTOOLS_LINK :=
 endif
 
 # Determine protobuf location
-
+ifeq ($(strip $(USE_DIST_LIB)),0)
+PROTOBUF_LIB_DIR := $(SAFPLUS_TARGET)/install/lib
+else
 ifeq ($(TARGET_PLATFORM),i686-linux-gnu)  # Nasty hardcoding because g++ -dumpmachine uses i686- but linux directory structure uses i386-
 PROTOBUF_LIB_DIR ?= /usr/lib/i386-linux-gnu
 else
 PROTOBUF_LIB_DIR ?= /usr/lib/$(TARGET_PLATFORM)
+endif
 endif
 
 ifeq ($(LOCAL_TARGET_PLATFORM),i686-linux-gnu)  # Nasty hardcoding because g++ -dumpmachine uses i686- but linux directory structure uses i386-

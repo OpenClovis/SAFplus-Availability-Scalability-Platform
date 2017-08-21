@@ -18,7 +18,9 @@ SAFPLUS_DEP_LIBS     := $(addsuffix .so,$(addprefix $(LIB_DIR)/lib,$(SAFPLUS_LIB
 SAFPLUS_LINK_LIBS := -L$(LIB_DIR) $(addprefix -l,$(SAFPLUS_LIBS))  
 
 
-Release all: MgtMsg.pb.hxx $(LIB_DIR)/libclMgt.so
+Release all: MgtMsgPbHeader $(LIB_DIR)/libclMgt.so
+
+MgtMsgPbHeader: MgtMsg.pb.hxx
 
 MgtMsg.pb.hxx: $(PROTOBUFVER)/MgtMsg.pb.hxx
 	rm -f $@
@@ -39,7 +41,7 @@ $(MWOBJ_DIR)/%.o: %.cc Makefile $(CLIENT_H)
 $(PROTOBUFVER)/MgtMsg.pb.hxx:
 	@mkdir -p $(PROTOBUFVER)
 	$(PROTOC) -I../3rdparty -I. --cpp_out=./$(PROTOBUFVER) MgtMsg.proto
-	$(SAFplusRpcGen) -I../3rdparty -I. --rpc_out=./$(PROTOBUFVER) --rpc_opts=rename=true MgtMsg.proto
+	export LD_LIBRARY_PATH=$(INSTALL_DIR)/lib; $(SAFplusRpcGen) -I../3rdparty -I. --rpc_out=./$(PROTOBUFVER) --rpc_opts=rename=true MgtMsg.proto
 
 
 gen:  $(PROTOBUFVER)/MgtMsg.pb.hxx MgtMsg.pb.hxx 

@@ -120,6 +120,8 @@ endif
 ifndef SAFPLUS_FAULT_LIB
 $(LIB_DIR)/libclFault.so: $(SAFPLUS_SRC_DIR)/include/MgtMsg.pb.hxx $(wildcard $(SAFPLUS_SRC_DIR)/fault/*.cxx) $(wildcard $(SAFPLUS_SRC_DIR)/include/*.hxx) 
 	$(MAKE) -C $(SAFPLUS_SRC_DIR)/fault
+$(SAFPLUS_SRC_DIR)/include/MgtMsg.pb.hxx: 
+	make -C $(SAFPLUS_SRC_DIR)/mgt MgtMsgPbHeader
 endif
 
 ifndef SAFPLUS_FAULT_SERVER

@@ -329,7 +329,7 @@ ifneq ($(Xtarget),)
 	echo "using gcc : cross : $(COMPILER) ;" > ~/user-config.jam
 	(cd $(BOOST)_$(subst .,_,$(BOOST_VER)); $(Xenv); ./b2 $(BOOST_FLAVOR) --prefix=$(InstDir) toolset=gcc-cross install)
 else
-	(cd $(BOOST)_$(subst .,_,$(BOOST_VER)); $(Xenv); ./b2 install)
+	(cd $(BOOST)_$(subst .,_,$(BOOST_VER)); $(Xenv); ./b2 --prefix=$(InstDir) install)
 endif
 
 $(BOOST_PKG):
