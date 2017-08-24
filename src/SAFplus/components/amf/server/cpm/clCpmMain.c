@@ -666,6 +666,21 @@ static ClRcT cpmAllocate(void)
         }
         clLogNotice("VALGRIND", "DELAY", "DELAY configured is [%d] secs", cpmValgrindTimeout);
     }
+    else if((str = clParseEnvStr("ASP_SANITIZER_BUILD")))
+    {
+        ClInt32T sanitizerEnabled = (ClInt32T)strtoul(str, &str, 10);
+        if (sanitizerEnabled==1)
+        {
+            cpmValgrindTimeout = CPM_VALGRIND_DEFAULT_DELAY;
+            if ((str = clParseEnvStr("ASP_SANITIZER_DELAY")))
+            {
+                cpmValgrindTimeout = (ClInt32T)strtoul(str, &str, 10);
+                if(*str || cpmValgrindTimeout < 0) /*invalid delay*/
+                    cpmValgrindTimeout = CPM_VALGRIND_DEFAULT_DELAY;
+            }
+            clLogNotice("SANITIZER", "DELAY", "DELAY configured is [%d] secs", cpmValgrindTimeout);
+        }
+    }
         
     return CL_OK;
 
