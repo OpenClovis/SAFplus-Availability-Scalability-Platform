@@ -5,12 +5,12 @@
    apt-get install git   
    apt-get install autoconf
    apt-get install libpython2.7-dev
+   apt-get install pkg-config
 
-   Use one of folowing methods to build:
+   Use one of folowing options to build:
 
    1. If you are using your linux distributions' 3rdparty libraries and if the following 3rdparties are not installed, please run:
-   sudo apt-get install libxml2-dev libboost1.55-all-dev libprotoc-dev libsnmp-dev libdb-dev libgdbm-dev libsqlite3-dev protobuf-compiler libpython2.7-dev
-
+   sudo apt-get install libxml2-dev libboost1.55-all-dev libprotoc-dev libsnmp-dev libdb-dev libgdbm-dev libsqlite3-dev protobuf-compiler
    Next, build the source:
     cd $(SAFPLUS_DIR)/src
     make
