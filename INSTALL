@@ -1,0 +1,25 @@
+   SAFplus 7 installation guide
+   ----------------------------
+   Run the following installations if they're not installed:
+
+   apt-get install git   
+   apt-get install autoconf
+   apt-get install libpython2.7-dev
+
+   Use one of folowing methods to build:
+
+   1. If you are using your linux distributions' 3rdparty libraries and if the following 3rdparties are not installed, please run:
+   sudo apt-get install libxml2-dev libboost1.55-all-dev libprotoc-dev libsnmp-dev libdb-dev libgdbm-dev libsqlite3-dev protobuf-compiler libpython2.7-dev
+
+   Next, build the source:
+    cd $(SAFPLUS_DIR)/src
+    make
+
+   2. If you don't want to install those 3rdparties on your computer, follow steps below:
+   2.1. Build 3rd-party libraries   
+    cd 3rdparty
+    make USE_DIST_LIB=0
+
+   2.2. Next, build the source:
+    cd $(SAFPLUS_DIR)/src    
+    make USE_DIST_LIB=0
