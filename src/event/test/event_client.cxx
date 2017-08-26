@@ -79,4 +79,3 @@ void testAllFeature()
   fc.eventChannelClose(globalChannel1,EventChannelScope::EVENT_GLOBAL_CHANNEL);
   sleep(1);
  }
-

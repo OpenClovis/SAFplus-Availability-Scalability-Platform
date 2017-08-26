@@ -96,9 +96,11 @@ void AlarmServer::wake(int amt, void* pgroup)
       data.loadAlarmData();
       data.loadAlarmSummary();
     }
+    logDebug(ALARM_SERVER, ALARMINFO, "Group [%" PRIx64 ":%" PRIx64 "] changed",activeServer.id[0], activeServer.id[1]);
+  }else
+  {
+    logDebug(ALARM_SERVER, ALARMINFO, "Group [%" PRIx64 ":%" PRIx64 "] not changed",activeServer.id[0], activeServer.id[1]);
   }
-
-  logDebug(ALARM_SERVER, ALARMINFO, "DANGLE:wake Group [%" PRIx64 ":%" PRIx64 "] changed",activeServer.id[0], activeServer.id[1]);
 }
 
 void AlarmServer::alarmCreateRpcMethod(const ::SAFplus::Rpc::rpcAlarm::alarmProfileCreateRequest* request,
@@ -273,7 +275,7 @@ void AlarmServer::processAlarmData(const AlarmData& alarmData)
         alarmTimer.pAlarmData = new AlarmData(alarmData);
         alarmTimer.pTimer = new Timer (timeOut, TIMER_ONE_SHOT, TimerContextT::TIMER_SEPARATE_CONTEXT, &AlarmServer::processAlarmDataCallBack, alarmTimer.pAlarmData);
         alarmTimer.pTimer->timerStart(); //leak pointer
-        logDebug(ALARM_SERVER, ALARMINFO, "Start Assert Timer");
+        logDebug(ALARM_SERVER, ALARMINFO, "Start Assert Timer %d ms",alarmInfo.startTimer);
         data.updateAlarmTimerInfo(key,alarmTimer);
         alarmInfo.startTimer = boost::posix_time::second_clock::local_time();
         alarmInfo.timerType = TimerType::ASSERT;
@@ -315,7 +317,7 @@ void AlarmServer::processAlarmData(const AlarmData& alarmData)
       AlarmTimerInfo alarmTimer;
       alarmTimer.pAlarmData = new AlarmData (alarmData);
       alarmTimer.pTimer = new  Timer (timeOut, TIMER_ONE_SHOT, TimerContextT::TIMER_SEPARATE_CONTEXT, &AlarmServer::processAlarmDataCallBack, alarmTimer.pAlarmData);
-      logDebug(ALARM_SERVER, ALARMINFO, "Start Clear Timer");
+      logDebug(ALARM_SERVER, ALARMINFO, "Start Clear Timer [%d] ms",alarmInfo.startTimer);
       alarmTimer.pTimer->timerStart(); //leak pointer
       data.updateAlarmTimerInfo(key,alarmTimer);
       alarmInfo.timerType = TimerType::CLEAR;

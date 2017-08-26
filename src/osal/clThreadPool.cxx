@@ -238,6 +238,7 @@ void ThreadPool::runTask(void* arg)
   // We can't remove this thread from the map from inside the thread, or join() won't be called and the thread will zombie
   //tp->threadMap.erase(contents); // Remove this thread element from the map and exit
   tp->numCurrentThreads--;
+  tp->numIdleThreads--;
   ts.zombie = true;
   tp->mutex.unlock();
   logTrace("THRPOOL","RUNTSK", "exit runTask");
@@ -295,7 +296,7 @@ WakeableHelper* ThreadPool::allocWakeableHelper(Wakeable* wk, void* arg)
 
 void ThreadPool::deleteWakeableHelper(WakeableHelper* wh)
   {
-  mutex.lock();
+    mutex.lock();
     if (unusedWakeableHelperList == nullptr)
     {
       wh->next = nullptr;
@@ -372,7 +373,6 @@ void ThreadPool::checkAndReleaseThread()
   }
   if (nRunningThreads<numCurrentThreads)
     cond.notify_all();
-  //printf("Leave checkAndReleaseThread()\n");
 }
 
 ThreadPool::~ThreadPool()

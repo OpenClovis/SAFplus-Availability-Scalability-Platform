@@ -111,7 +111,6 @@ namespace SAFplusI
       MAX_RESOURCE_NAME_SIZE = 255,
       MAX_TEXT_SIZE = 255,
       MAX_ALARM_RULE_DEPENDENCIES = 4,
-      AlarmMaxMembers    = 1024*1024,   // Maximum number of alarm entity
       };
 
   enum

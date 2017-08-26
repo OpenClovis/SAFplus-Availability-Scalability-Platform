@@ -372,7 +372,13 @@ void StorageAlarmData::loadAlarmData()
           alarmTimer.pAlarmData = new AlarmData(*data);
           alarmTimer.pTimer = new Timer (timeOut, TIMER_ONE_SHOT, TimerContextT::TIMER_SEPARATE_CONTEXT, &AlarmServer::processAlarmDataCallBack, alarmTimer.pAlarmData);
           alarmTimer.pTimer->timerStart(); //leak pointer
-          logDebug(ALARM_SERVER, "DUMP", "Start Assert Timer");
+          if(TimerType::ASSERT == data->timerType)
+          {
+            logDebug(ALARM_SERVER, "DUMP", "Start Assert Timer remain[%d] ms",timeOut.tsMilliSec);
+          }else
+          {
+            logDebug(ALARM_SERVER, "DUMP", "Start Clear Timer remain[%d] ms",timeOut.tsMilliSec);
+          }
           updateAlarmTimerInfo(key,alarmTimer);
         }
       }

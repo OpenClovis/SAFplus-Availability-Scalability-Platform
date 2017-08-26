@@ -22,7 +22,7 @@ class eventKey
 {
 public:
 	int length;
-	int id;
+	uintcw_t id;
 };
 
 class EventKeyId
