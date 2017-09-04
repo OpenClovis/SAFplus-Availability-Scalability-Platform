@@ -149,7 +149,7 @@ typedef boost::unordered_map<std::size_t, AlarmProfileData> MAPALARMPROFILEINFO;
 typedef boost::unordered_map<std::size_t, AlarmInfo> MAPALARMINFO;
 typedef boost::unordered_map<std::size_t, AlarmTimerInfo> MAPALARMTIMERINFO;
 typedef boost::unordered_map<std::size_t, MAPALARMINFO> MAPMAPALARMINFO;
-typedef std::function<void(void*)> EventCallback1;
+
 
 std::string formResourceId(const std::vector<std::string>& paths, const int& intSize);
 std::vector<std::string> convertResourceId2vector(const std::string& resourceId);

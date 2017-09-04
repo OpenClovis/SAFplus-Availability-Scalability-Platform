@@ -74,8 +74,8 @@ int main(int argc, char* argv[])
   logInfo("FLT", "CLT", "********************Initial alarm client*********************");
   alarmClient.initialize(alarmClientHandle);
   alarmClient.createAlarmProfile();
-  sleep(1);
   alarmClient.subscriber();
+  sleep(1);
   testSummary();
   unit_test_Raise_Alarm();
   alarmClient.unSubscriber();

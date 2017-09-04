@@ -174,6 +174,7 @@ ClRcT EventClient::eventChannelRpc(std::string evtChannelName, EventChannelScope
 
 	} catch (...)
 	{
+	  logDebug("EVT", "EVENT_ENTITY", "Error : Exception on client");
 		throw;
 	}
 	return CL_OK;
@@ -229,7 +230,13 @@ ClRcT EventClient::eventChannelPublish(std::string evtChannelName, EventChannelS
 	eventChannelRpc(evtChannelName, scope, EventMessageType::EVENT_CHANNEL_PUBLISHER);
 	return CL_OK;
 }
-
+//Publish an event channel
+ClRcT EventClient::eventChannelUnPublish(std::string evtChannelName, EventChannelScope scope)
+{
+  logDebug("EVT", "EVENT_ENTITY", "Unpublisher to event channel [%s]", evtChannelName.c_str());
+  eventChannelRpc(evtChannelName, scope, EventMessageType::EVENT_CHANNEL_UNPUBLISHER);
+  return CL_OK;
+}
 void EventClient::msgHandler(MsgServer* svr, Message* msgHead, ClPtrT cookie)
 {
 	Message* msg = msgHead;

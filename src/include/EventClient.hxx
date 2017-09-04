@@ -139,6 +139,7 @@ public:
 	ClRcT eventChannelUnSubscriber(std::string evtChannelName, EventChannelScope scope);
 	//Publish an event channel
 	ClRcT eventChannelPublish(std::string evtChannelName, EventChannelScope scope);
+	ClRcT eventChannelUnPublish(std::string evtChannelName, EventChannelScope scope);
 	ClRcT eventChannelRpc(std::string evtChannelName, EventChannelScope scope,EventMessageType type);
 	ClRcT eventPublishRpc(std::string evtChannelName, EventChannelScope scope,EventMessageType type,const std::string data);
 

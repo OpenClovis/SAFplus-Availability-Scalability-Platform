@@ -98,6 +98,7 @@ public:
 	void eventChannelCloseHandleRpc(const SAFplus::Rpc::rpcEvent::eventChannelRequest *request);
 	void eventChannelSubsHandleRpc(const SAFplus::Rpc::rpcEvent::eventChannelRequest *request);
 	void eventChannelPubHandleRpc(const SAFplus::Rpc::rpcEvent::eventChannelRequest *request);
+	void eventChannelUnPubHandleRpc(const SAFplus::Rpc::rpcEvent::eventChannelRequest *request);
 	void eventChannelUnSubsHandleRpc(const SAFplus::Rpc::rpcEvent::eventChannelRequest *request);
 	void eventPublishHandleRpc(const SAFplus::Rpc::rpcEvent::eventPublishRequest *request);
 	void createChannelRpc(const SAFplus::Rpc::rpcEvent::eventChannelRequest *request,bool isSub,bool isPub);

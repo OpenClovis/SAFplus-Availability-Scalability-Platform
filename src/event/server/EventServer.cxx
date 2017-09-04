@@ -109,6 +109,12 @@ bool EventServer::eventloadchannelFromCheckpoint()
             eventChannelPubHandleRpc(&request);
           }
           break;
+        case EventMessageType::EVENT_CHANNEL_UNPUBLISHER:
+          if (1)
+          {
+            eventChannelUnPubHandleRpc(&request);
+          }
+          break;
         case EventMessageType::EVENT_CHANNEL_CLOSE:
           if (1)
           {
@@ -304,6 +310,12 @@ void EventServer::eventChannelRpcMethod(const ::SAFplus::Rpc::rpcEvent::eventCha
       if (1)
       {
         eventChannelPubHandleRpc(request);
+      }
+      break;
+    case EventMessageType::EVENT_CHANNEL_UNPUBLISHER:
+      if (1)
+      {
+        eventChannelUnPubHandleRpc(request);
       }
       break;
     case EventMessageType::EVENT_CHANNEL_CLOSE:
@@ -561,7 +573,93 @@ void EventServer::eventChannelPubHandleRpc(const eventChannelRequest *request)
 
   }
 }
+void EventServer::eventChannelUnPubHandleRpc(const eventChannelRequest *request)
+{
+  logDebug("EVT", "MSG", "Process event message with type EVENT_CHANNEL_UNPUBLISHER");
+  SAFplus::Handle evtClient;
+  evtClient.id[0] = request->clienthandle().id0();
+  evtClient.id[1] = request->clienthandle().id1();
+  logDebug("EVT", "MSG", "Channel[%s] -- Event handle [%d,%d]", request->channelname().c_str(), evtClient.getNode(), evtClient.getPort());
+  //Find channel in local list
+  if (EventChannelScope(request->scope()) == EventChannelScope::EVENT_LOCAL_CHANNEL)
+  {
+    localChannelListLock.lock();
+    if (!localChannelList.empty())
+    {
+      for (EventChannelList::iterator iter = localChannelList.begin(); iter != localChannelList.end(); iter++)
+      {
+        EventChannel &s = *iter;
+        int cmp = compareChannel(s.channelName, request->channelname());
+        if (cmp == 0)
+        {
+          try
+          {
+            s.deleteChannelPub(evtClient);
+          } catch (SAFplus::Error& e)
+          {
+            localChannelListLock.unlock();
+            throw(e);
+          }
+          s.publisherRefCount -= 1;
+          logDebug("EVT", "MSG", "Removed publisher from local event channel[%s]", request->channelname().c_str());
+          localChannelListLock.unlock();
+          return;
+        }
+      }
+    }
+    localChannelListLock.unlock();
+    throw SAFplus::Error(Error::ErrorFamily::SAFPLUS_ERROR, Error::DOES_NOT_EXIST, "Subscriber doesn't exist",
+    __FILE__,
+    __LINE__);
+  }
+  if (EventChannelScope(request->scope()) == EventChannelScope::EVENT_GLOBAL_CHANNEL)
+  {
+    globalChannelListLock.lock();
+    if (activeServer == severHandle)
+    {
+      if (!globalChannelList.empty())
+      {
+        for (EventChannelList::iterator iter = globalChannelList.begin(); iter != globalChannelList.end(); iter++)
+        {
+          EventChannel &s = *iter;
+          int cmp = compareChannel(s.channelName, request->channelname());
+          if (cmp == 0)
+          {
+            try
+            {
+              s.deleteChannelPub(evtClient);
+            } catch (SAFplus::Error& e)
+            {
+              localChannelListLock.unlock();
+              throw(e);
+            }
+            s.publisherRefCount -= 1;
+            evtCkpt.eventCkptCheckPointUnsubscribeOrUnpublish(request);
+            logDebug("EVT", "MSG", "Removed publisher from global event channel[%s]", request->channelname().c_str());
+            globalChannelListLock.unlock();
+            return;
+          }
+        }
+      }
+    }
+    else
+    {
 
+      logDebug("EVT", "MSG", "Global event request ... Ignore");
+      globalChannelListLock.unlock();
+      throw SAFplus::Error(Error::ErrorFamily::SAFPLUS_ERROR, Error::NOT_IMPLEMENTED, "Cannot process global request",
+      __FILE__,
+      __LINE__);
+      return;
+    }
+    // channel not exist
+    globalChannelListLock.unlock();
+    throw SAFplus::Error(Error::ErrorFamily::SAFPLUS_ERROR, Error::DOES_NOT_EXIST, "Publisher doesn't exist",
+    __FILE__,
+    __LINE__);
+
+  }
+}
 void EventServer::eventChannelUnSubsHandleRpc(const eventChannelRequest *request)
 {
   logDebug("EVT", "MSG", "Process event message with type EVENT_CHANNEL_UNSUBSCRIBER");

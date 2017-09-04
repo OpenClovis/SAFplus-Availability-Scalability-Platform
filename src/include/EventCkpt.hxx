@@ -38,8 +38,8 @@ inline std::size_t hash_value(EventKeyId const& h)
 
   std::size_t seed = 0;
   boost::hash_combine(seed,h.channelName);
-  boost::hash_combine(seed,h.evtClient.getNode());
-  boost::hash_combine(seed,h.evtClient.getPort());
+  boost::hash_combine(seed,h.evtClient.id[0]);
+  boost::hash_combine(seed,h.evtClient.id[1]);
   boost::hash_combine(seed,h.type);
   return seed;
 }

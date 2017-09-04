@@ -149,6 +149,10 @@ void StorageAlarmData::removeAlarmInfo(const AlarmKey& key)
   removeAlarmTimerInfo(key,false);
   m_mapAlarmInfoData[seedLevel0].erase(seedLevel1);
   m_checkpointAlarm.remove(seedLevel1);
+  if(m_mapAlarmInfoData[seedLevel0].size() == 0)
+  {
+    m_mapAlarmInfoData.erase(seedLevel0);
+  }
 }
 bool StorageAlarmData::findAlarmProfileData(const AlarmKey& key, AlarmProfileData& alarmProfileData)
 {
@@ -163,18 +167,14 @@ bool StorageAlarmData::findAlarmProfileData(const AlarmKey& key, AlarmProfileDat
 }
 void StorageAlarmData::updateAlarmProfileData(const AlarmProfileData& alarmProfileData)
 {
-  if (isUpdate)
-  {
-    AlarmKey key(alarmProfileData.resourceId, alarmProfileData.category, alarmProfileData.probCause);
-    std::size_t seedLevel1 = hash_value(key);
-    m_ProfileInfoData[seedLevel1] = alarmProfileData;
-    size_t valLen = sizeof(AlarmProfileData);
-    char vdata[sizeof(Buffer) - 1 + valLen];
-    Buffer* val = new (vdata) Buffer(valLen);
-    memcpy(val->data, &alarmProfileData, valLen);
-    m_checkpointProfile.write(seedLevel1, *val);
-    isUpdate = false;
-  }
+  AlarmKey key(alarmProfileData.resourceId, alarmProfileData.category, alarmProfileData.probCause);
+  std::size_t seedLevel1 = hash_value(key);
+  m_ProfileInfoData[seedLevel1] = alarmProfileData;
+  size_t valLen = sizeof(AlarmProfileData);
+  char vdata[sizeof(Buffer) - 1 + valLen];
+  Buffer* val = new (vdata) Buffer(valLen);
+  memcpy(val->data, &alarmProfileData, valLen);
+  m_checkpointProfile.write(seedLevel1, *val);
 }
 
 void StorageAlarmData::removeAlarmProfileData(const AlarmKey& key)
