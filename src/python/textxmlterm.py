@@ -108,6 +108,7 @@ class XmlResolver:
         
 
   def executeOne(self,sp,xmlterm):
+        fn_name = "do_" + sp[0]
         for cmdClass in self.cmds:
           if hasattr(cmdClass,"commands"):
             (fns,args,kwargs) = self.bindCmd(cmdClass.commands,sp)
@@ -122,7 +123,9 @@ class XmlResolver:
                   if output:  # Commands will return "" if they have no output
                     xmlterm.doc.append(output)
                   return
-          fn_name = "do_" + sp[0]
+              if fn_name=="do_connect": # it has been handled at handleRpc function of Command object
+                return
+
           if hasattr(cmdClass,fn_name):
             try:
               # print "executing:", str(cmdClass.__class__), fn_name
