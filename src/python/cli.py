@@ -911,7 +911,7 @@ def main(argLst):
     resolver.defaultHandler = defaultHandler
 
     doc = []
-    app = xmlterm.App(config, lambda parent,doc=doc,termController=resolver: xmlterm.XmlTerm(parent,doc,resolver,config),redirect=False,size=(600,900))
+    app = xmlterm.App(lambda parent,doc=doc,resolver=resolver: xmlterm.XmlTerm(parent,doc,resolver,config),redirect=False,size=(600,900))
     app.MainLoop()
   else:
     resolver = TermController()
