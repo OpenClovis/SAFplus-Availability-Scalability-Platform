@@ -1,4 +1,4 @@
-import pdb, sys, traceback
+import pdb, sys, traceback,re
 import types
 from xml.sax.saxutils import escape,unescape
 import xml.etree.ElementTree as ET
@@ -96,14 +96,15 @@ class XmlResolver:
 #   try:
     cmdList = textLine.split(";")
     while cmdList:
-      text = cmdList.pop(0) 
-      sp = text.split()
+      text = cmdList.pop(0)
+      pattern = re.compile(r'''((?:[^\s"']|'[^']*')+)''')
+      sp = pattern.split(text)[1::2]
       if sp:
         alias = xmlterm.aliases.get(sp[0],None)
         if alias: # Rewrite text with the alias and resplit
           sp[0] = alias
           text = " ".join(sp)
-          sp = text.split()
+          sp = pattern.split(text)[1::2]
         self.executeOne(sp,xmlterm)
         
 
