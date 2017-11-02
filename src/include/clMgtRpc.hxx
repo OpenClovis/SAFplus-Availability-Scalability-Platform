@@ -76,9 +76,9 @@ namespace SAFplus
     void getOutParams(std::string *pBuff);
 
 
-    virtual ClBoolT validate() = 0;
-    virtual ClBoolT invoke() = 0;
-    virtual ClBoolT postReply() = 0;
+    virtual ClRcT  validate() = 0;
+    virtual ClRcT  invoke() = 0;
+    virtual ClRcT  postReply() = 0;
 
     /**
      * \brief   Function to register a Rpc to the server
