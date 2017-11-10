@@ -87,7 +87,7 @@ GLIB_VER=2.28.5
 GLIB_PKG=$(GLIB)-$(GLIB_VER).tar.gz
 
 ZLIB=zlib
-ZLIB_VER=1.2.8
+ZLIB_VER=1.2.11
 ZLIB_PKG=$(ZLIB)-$(ZLIB_VER).tar.gz
 
 DBUS=dbus
@@ -135,6 +135,19 @@ else
   Xenv:=echo
 endif
 
+GDBM=gdbm
+GDBM_VER=1.13
+GDBM_PKG=$(GDBM)-$(GDBM_VER).tar.gz
+
+BERKELEY=db
+BERKELEY_VER=6.2.32
+BERKELEY_PKG=$(BERKELEY)-$(BERKELEY_VER).tar.gz
+
+SQLITE=sqlite-autoconf
+SQLITE_VER=3210000
+SQLITE_PKG=$(SQLITE)-$(SQLITE_VER).tar.gz
+
+
 #$(warning InstDir: $(InstDir))
 #$(warning Xtarget: $(Xtarget))
 #$(warning Xenv: $(Xenv))
@@ -172,11 +185,11 @@ else
 XconfNETSNMP_PKG:=
 endif
 
-libs: $(InstDir) protobufs $(LIBXML2) $(BOOST) 
+libs: $(InstDir) $(ZLIB) $(GDBM) $(BERKELEY) $(SQLITE) protobufs $(LIBXML2) $(BOOST) 
 	echo building libs
 
 # $(NETSNMP)  $(OPENHPI) $(OPENHPISUBAGENT)
-all: $(InstDir) protobufs $(LIBXML2) $(BOOST)
+all: $(InstDir) $(ZLIB) $(GDBM) $(BERKELEY) $(SQLITE) rotobufs $(LIBXML2) $(BOOST)
 
 wipe:
 	rm -rf $(LIBXML2)-$(LIBXML2_VER)
@@ -293,6 +306,33 @@ $(ZLIB): $(ZLIB_PKG)
 $(ZLIB_PKG):
 	wget http://zlib.net/$(ZLIB)-$(ZLIB_VER).tar.gz
 
+$(GDBM): $(GDBM_PKG) 
+	(tar xvfz $<  > /dev/null)
+	(cd $(GDBM)-$(GDBM_VER); $(Xenv); $(Xargs) ./configure --prefix=$(InstDir))
+	(cd $(GDBM)-$(GDBM_VER); $(Xenv); make)
+	(cd $(GDBM)-$(GDBM_VER); $(Xenv); make install)
+
+$(GDBM_PKG):
+	wget ftp://ftp.gnu.org/gnu/gdbm/$(GDBM)-$(GDBM_VER).tar.gz
+
+$(BERKELEY): $(BERKELEY_PKG) 
+	(tar xvfz $<  > /dev/null)
+	(cd $(BERKELEY)-$(BERKELEY_VER); $(Xenv); $(Xargs) ./dist/configure --prefix=$(InstDir))
+	(cd $(BERKELEY)-$(BERKELEY_VER); $(Xenv); make)
+	(cd $(BERKELEY)-$(BERKELEY_VER); $(Xenv); make install)
+
+$(BERKELEY_PKG):
+	wget http://download.oracle.com/berkeley-db/$(BERKELEY)-$(BERKELEY_VER).tar.gz
+
+$(SQLITE): $(SQLITE_PKG) 
+	(tar xvfz $<  > /dev/null)
+	(cd $(SQLITE)-$(SQLITE_VER); $(Xenv); $(Xargs) ./configure --prefix=$(InstDir))
+	(cd $(SQLITE)-$(SQLITE_VER); $(Xenv); make)
+	(cd $(SQLITE)-$(SQLITE_VER); $(Xenv); make install)
+
+$(SQLITE_PKG):
+	wget https://sqlite.org/2017/$(SQLITE)-$(SQLITE_VER).tar.gz
+
 $(DBUS): $(DBUS_PKG) $(EXPAT)
 	(tar xvfz $<  > /dev/null)
 	(cd $(DBUS)-$(DBUS_VER); $(Xenv); $(Xargs) ./configure --prefix=$(InstDir) $(Xconfigure) $(XconfDBUS_PKG))
@@ -334,4 +374,5 @@ endif
 
 $(BOOST_PKG):
 	wget http://sourceforge.net/projects/boost/files/$(BOOST)/$(BOOST_VER)/$(BOOST_PKG)
+
 
