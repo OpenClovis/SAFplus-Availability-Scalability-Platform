@@ -261,6 +261,10 @@ extern "C" {
 
 #define CL_ERR_IGNORE_REQUEST          0x28
 
+/** define created */
+#define CL_CREATE          0x29
+/** define modify */
+#define CL_MODIFY          0x30
 
 /** 
  * 2^8-1, the max for common errors

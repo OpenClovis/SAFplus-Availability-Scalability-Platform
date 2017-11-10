@@ -37,6 +37,11 @@
 
 namespace SAFplus
   {
+  template <typename T>
+  T* new_class()
+  {
+    return new T;
+  }
   typedef std::map<std::string, MgtObject* > MgtObjectMap;
 
 class MgtContainer:public MgtObject
@@ -75,6 +80,7 @@ class MgtContainer:public MgtObject
     virtual ClRcT addChildObject(MgtObject *mgtObject, const std::string& objectName=*((std::string*)nullptr));
     virtual ClRcT addChildObject(MgtObject *mgtObject, const char* objectName);
     virtual ClRcT removeChildObject(const std::string& objectName);
+    virtual void removeAllChildren();
     virtual ClRcT setChildObj(const std::string &childName, const std::string &value);
     virtual ClRcT setChildObj(const std::map<std::string,std::string> &keyList);
 
@@ -91,7 +97,8 @@ class MgtContainer:public MgtObject
 
     // Settings objects
     virtual bool set(const void *pBuffer, ClUint64T buffLen, SAFplus::Transaction& t);
-
+    //Override the clMgtObject
+    virtual ClRcT deleteObj(const std::string &value);
     virtual ClRcT write(MgtDatabase *db = nullptr, std::string parentXPath = "");
     virtual ClRcT writeChanged(uint64_t firstBeat, uint64_t beat, MgtDatabase *db = nullptr, std::string parentXPath = "");
     virtual ClRcT read(MgtDatabase *db = nullptr, std::string parentXPath = "");
@@ -101,7 +108,7 @@ class MgtContainer:public MgtObject
     virtual MgtObject *lookUpMgtObject(const std::string & classType, const std::string &ref);
 
   };
-
+  typedef std::function<MgtContainer*()> creationFunction;
 }
 
 #endif

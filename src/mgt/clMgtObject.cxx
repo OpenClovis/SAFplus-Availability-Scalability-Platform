@@ -65,6 +65,11 @@ namespace SAFplus
     return (name == spec); // TODO, add wildcard matching (* and ?)
   }
 
+  bool MgtObject::isAllocated()
+  {
+    return allocated;
+  }
+
   MgtObject::Iterator MgtObject::begin(void)
   {
     return MgtObject::Iterator();
@@ -410,15 +415,15 @@ namespace SAFplus
     //type.append(typeid(*this).name());
     //if(type == classType && this->tag == ref)
     if (this->tag == ref)
-      {
-        return this;
-      }
+    {
+      return this;
+    }
     return nullptr;
   }
 
   void MgtObject::updateReference(void)
   {
-    return ;
+    return;
   }
 
   void MgtObject::setPrefix(const std::string &xp)

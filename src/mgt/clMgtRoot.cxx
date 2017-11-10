@@ -688,7 +688,7 @@ namespace SAFplus
               default:
                 break;
             }
-            if(rc == CL_FALSE) rcRet = CL_ERR_NOT_EXIST;
+            if(CL_FALSE == rc) rcRet = CL_ERR_NOT_EXIST;
             MgtRoot::sendReplyMsg(srcAddr, (void *) &rcRet, sizeof(ClRcT));
             return;
           }

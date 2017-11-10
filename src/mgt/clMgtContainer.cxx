@@ -10,19 +10,18 @@ namespace SAFplus
 
   MgtContainer::~MgtContainer()
   {
+    removeAllChildren();
   }
 
   MgtObject* MgtContainer::deepFind(const std::string &s)
   {
     for (MgtObjectMap::iterator it = children.begin(); it != children.end(); it++)
-      {
-        MgtObject* obj = (MgtObject*) it->second;
-        if (it->first == s)
-          return obj;
-        obj = obj->deepFind(s);
-        if (obj)
-          return obj;
-      }
+    {
+      MgtObject* obj = (MgtObject*) it->second;
+      if (it->first == s) return obj;
+      obj = obj->deepFind(s);
+      if (obj) return obj;
+    }
     return nullptr;
   }
 
@@ -32,18 +31,18 @@ namespace SAFplus
     Map::iterator bgn = children.begin();
     Map::iterator end = children.end();
     if (bgn == end) // Handle the empty map case
-      {
-        ret.b = &mgtIterEnd;
-      }
+    {
+      ret.b = &mgtIterEnd;
+    }
     else
-      {
-        HiddenIterator* h = new HiddenIterator();
-        h->it = bgn;
-        h->end = end;
-        h->current.first = h->it->first;
-        h->current.second = h->it->second;
-        ret.b = h;
-      }
+    {
+      HiddenIterator* h = new HiddenIterator();
+      h->it = bgn;
+      h->end = end;
+      h->current.first = h->it->first;
+      h->current.second = h->it->second;
+      ret.b = h;
+    }
 
     return ret;
 
@@ -53,17 +52,17 @@ namespace SAFplus
   {
     it++;
     if (it == end)
-      {
-        current.first = "";
-        current.second = nullptr;
-        return false;
-      }
+    {
+      current.first = "";
+      current.second = nullptr;
+      return false;
+    }
     else
-      {
-        current.first = it->first;
-        current.second = it->second;
-        return true;
-      }
+    {
+      current.first = it->first;
+      current.second = it->second;
+      return true;
+    }
   }
 
   void MgtContainer::HiddenIterator::del()
@@ -94,36 +93,37 @@ namespace SAFplus
     else childName = p.substr(0,idx);
        
     if (childName.find_first_of("|") != std::string::npos)  // This means both, that is //root/foo|bar/child ->  //root/foo/child and //root/bar/child
-         {
-         std::vector<std::string> words;
-         boost::split(words, childName, boost::is_any_of("|"), boost::token_compress_on);
-         for (std::vector<std::string>::iterator i = words.begin(); i != words.end(); i++)
-           {
-             std::string tmp = *i;
-             if (idx != std::string::npos) tmp.append(&path[idx]);
-             resolvePath(tmp.c_str(),result);
-           }
-         }
+      {
+        std::vector<std::string> words;
+        boost::split(words, childName, boost::is_any_of("|"), boost::token_compress_on);
+        for (std::vector<std::string>::iterator i = words.begin(); i != words.end(); i++)
+          {
+            std::string tmp = *i;
+            if (idx != std::string::npos) tmp.append(&path[idx]);
+            resolvePath(tmp.c_str(), result);
+          }
+      }
     else if ((idx2 = childName.find("[")) != std::string::npos)
       {  // First find the list object, then inside the list find the element indexed
-        
-        std::string listName = childName.substr(0,idx2);
+
+        std::string listName = childName.substr(0, idx2);
+
         typename Map::iterator lst = children.find(listName);  // TODO check list name for wildcard
         if (lst != children.end())
           {
             MgtObject *child = lst->second;
-            child->resolvePath(path+idx2, result);
+            child->resolvePath(path + idx2, result);
           }
 #if 0
-            for (MgtObjectMap::iterator it = children.begin(); it != children.end(); it++)
-        {
-          if (it->second->match(childName))
-            {
-            MgtObject *child = it->second;
-            if (idx == std::string::npos) result->push_back(child);
-            else child->resolvePath(&path[idx+1], result);
-            }
-        }
+        for (MgtObjectMap::iterator it = children.begin(); it != children.end(); it++)
+          {
+            if (it->second->match(childName))
+              {
+                MgtObject *child = it->second;
+                if (idx == std::string::npos) result->push_back(child);
+                else child->resolvePath(&path[idx+1], result);
+              }
+          }
 #endif
       }
     else if (childName.find_first_of("*[(])?") != std::string::npos)
@@ -154,15 +154,13 @@ namespace SAFplus
   MgtObject* MgtContainer::deepMatch(const std::string &s)
   {
     for (MgtObjectMap::iterator it = children.begin(); it != children.end(); it++)
-      {
-        MgtObject* ret;
-        MgtObject* obj = (MgtObject*) it->second;
-        if (match(it->first, s))
-          return obj;
-        ret = obj->deepMatch(s);
-        if (ret)
-          return ret;
-      }
+    {
+      MgtObject* ret;
+      MgtObject* obj = (MgtObject*) it->second;
+      if (match(it->first, s)) return obj;
+      ret = obj->deepMatch(s);
+      if (ret) return ret;
+    }
     return nullptr;
   }
 
@@ -170,10 +168,10 @@ namespace SAFplus
   {
     MgtObjectMap::iterator it = children.find(s);
     if (it != children.end())
-      {
-        MgtObject* obj = (MgtObject*) it->second;
-        return obj;
-      }
+    {
+      MgtObject* obj = (MgtObject*) it->second;
+      return obj;
+    }
     return nullptr;
   }
 
@@ -193,13 +191,39 @@ namespace SAFplus
 
   ClRcT MgtContainer::removeChildObject(const std::string& objectName)
   {
-    ClRcT rc = CL_OK;
-
-    children.erase(objectName);
-
+    ClRcT rc = CL_ERR_NOT_EXIST;
+    std::map<std::string,MgtObject*>::iterator itr = children.find(objectName);
+    if (itr != children.end())
+    {
+      // found it - delete it
+      itr->second->removeAllChildren();
+      if (itr->second->isAllocated())
+      {
+        delete itr->second;
+        itr->second = nullptr;
+      }
+      //will enable when object is available
+      children.erase(itr);
+      rc = CL_OK;
+    }
     return rc;
   }
-
+  void MgtContainer::removeAllChildren()
+  {
+    for (Map::iterator it = children.begin(); it != children.end(); ++it)
+    {
+      if (nullptr != it->second)
+      {
+        it->second->removeAllChildren();
+        if (it->second->isAllocated())
+        {
+          delete it->second;
+          it->second = nullptr;
+        }
+      }
+      children.erase(it);
+    }
+  }
   ClRcT MgtContainer::addChildObject(MgtObject *mgtObject, const char* objectName)
   {
     std::string name(objectName);
@@ -215,9 +239,9 @@ namespace SAFplus
     if (name == nullptr)
       name = &mgtObject->tag;
     if (mgtObject->tag.size() == 0)  // Unnamed: so assign it the passed name
-      {
-        mgtObject->tag = objectName;
-      }
+    {
+      mgtObject->tag = objectName;
+    }
 
     // The first place you hook it in is the "main" one, the rest are sym links.
     if (!mgtObject->parent)
@@ -227,7 +251,7 @@ namespace SAFplus
     return rc;
   }
 
-  void MgtContainer::toString(std::stringstream& xmlString,int depth, MgtObject::SerializationOptions opts)
+  void MgtContainer::toString(std::stringstream& xmlString, int depth, MgtObject::SerializationOptions opts)
   {
     bool openTagList = false;
     std::string closer;
@@ -240,13 +264,13 @@ namespace SAFplus
         if (objType && strstr(objType->name(), "MgtList"))  // If my parent is a list I need to use a different tag format 
           {
             xmlString << '<' << parent->tag;
-            if (opts&MgtObject::SerializationOptions::SerializeListKeyAttribute) xmlString << " listkey=\"" << tag << "\"";
+            if (opts & MgtObject::SerializationOptions::SerializeListKeyAttribute) xmlString << " listkey=\"" << tag << "\"";
             closer = parent->tag;
           }
         else
           {
-          xmlString << '<' << tag;
-          closer = tag;
+            xmlString << '<' << tag;
+            closer = tag;
           }
         if (opts & MgtObject::SerializeNameAttribute)
           xmlString << " name=" << "\"" << getFullXpath(false) << "\"";
@@ -260,7 +284,7 @@ namespace SAFplus
     if (depth) for (MgtObjectMap::iterator it = children.begin(); it != children.end(); ++it)
       {
         MgtObject *child = it->second;
-        child->toString(xmlString,depth-1, newopts);
+        child->toString(xmlString, depth - 1, newopts);
       }
     if (openTagList)
       {
@@ -318,12 +342,12 @@ namespace SAFplus
               }
             else
               {
-                logInfo("MGT", "READ", "Read [%s/%s] OK", xp.c_str(),child->tag.c_str());
+                logInfo("MGT", "READ", "Read [%s/%s] OK", xp.c_str(), child->tag.c_str());
               }
           }
         else
           {
-            logInfo("MGT", "READ", "skipping nonconfig object [%s/%s]", xp.c_str(),child->tag.c_str());
+            logInfo("MGT", "READ", "skipping nonconfig object [%s/%s]", xp.c_str(), child->tag.c_str());
             // TODO: Initialize the MgtObject to its configured default.           
           }
       }
@@ -497,6 +521,14 @@ namespace SAFplus
 
     return true;
   }
+  ClRcT MgtContainer::deleteObj(const std::string &value)
+  {
+    if (nullptr != this->find(value))
+      {
+        return this->removeChildObject(value);
+      }
+    return CL_ERR_NOT_EXIST;
+  }
 
   MgtObject *MgtContainer::findMgtObject(const std::string &xpath, std::size_t idx)
   {
@@ -532,10 +564,10 @@ namespace SAFplus
 
     typename Map::iterator it = children.find(childName);
     if (it == children.end())
-      {
-        ret = CL_ERR_DOESNT_EXIST;
-        return ret;
-      }
+    {
+      ret = CL_ERR_DOESNT_EXIST;
+      return ret;
+    }
 
     MgtObject *child = it->second;
     child->setObj(value);
@@ -547,15 +579,15 @@ namespace SAFplus
   ClRcT MgtContainer::setChildObj(const std::map<std::string,std::string> &keyList)
   {
     for (std::map<std::string,std::string>::const_iterator it = keyList.begin(); it != keyList.end(); it++)
+    {
+      Map::iterator keyChild = children.find(it->first);
+      if (keyChild != children.end())
       {
-        Map::iterator keyChild = children.find(it->first);
-        if( keyChild != children.end() )
-          {
-            MgtObject *child = keyChild->second;
-            child->setObj(it->second);
-            child->loadDb = false;
-          }
+        MgtObject *child = keyChild->second;
+        child->setObj(it->second);
+        child->loadDb = false;
       }
+    }
     return CL_OK;
   }
 
@@ -565,31 +597,29 @@ namespace SAFplus
     //type.append((typeid(*this).name()));
     //if ( type == classType)
     if (1)
-      { 
-        if (this->tag == ref)
-          {
-            return this;
-          }
-        typename Map::iterator obj = children.find("name");
-        if (obj != children.end())
-          {
-            SAFplus::MgtProv<std::string>* node = dynamic_cast<SAFplus::MgtProv<std::string>*>(obj->second);
-            if (node && node->value == ref)
-              {
-                return this;
-              }
-          }
+    {
+      if (this->tag == ref)
+      {
+        return this;
       }
- 
+      typename Map::iterator obj = children.find("name");
+      if (obj != children.end())
+      {
+        SAFplus::MgtProv<std::string>* node = dynamic_cast<SAFplus::MgtProv<std::string>*>(obj->second);
+        if (node && node->value == ref)
+        {
+          return this;
+        }
+      }
+    }
 
     typename Map::iterator iter;
     for (MgtObjectMap::iterator it = children.begin(); it != children.end(); it++)
-      {
-        MgtObject* obj = (MgtObject*) it->second;
-        MgtObject*found = obj->lookUpMgtObject(classType, ref);
-        if (found)
-          return found;
-      }
+    {
+      MgtObject* obj = (MgtObject*) it->second;
+      MgtObject*found = obj->lookUpMgtObject(classType, ref);
+      if (found) return found;
+    }
     return nullptr;
   }
 

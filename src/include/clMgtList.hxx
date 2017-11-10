@@ -204,15 +204,39 @@ namespace SAFplus
         {
           mgtObject->parent = nullptr;
         }
+        mgtObject->removeAllChildren();
         children.erase(objectKey);
         return CL_OK;
+      }
+      /**
+       * API to delete entry from the list
+       */
+      virtual ClRcT deleteObj(const KEYTYPE &value)
+      {
+        if (nullptr != this->find(keyTypeToString(value)))
+        {
+          return this->removeChildObject(value);
+        }
+        return CL_ERR_NOT_EXIST;
       }
       /**
        * API to remove all entries from the list
        */
       void removeAllChildren()
       {
-        children.clear();
+        for (typename Map::iterator it = children.begin(); it != children.end();)
+        {
+          if (nullptr != it->second)
+          {
+            it->second->removeAllChildren();
+            if (it->second->isAllocated())
+            {
+              delete it->second;
+              it->second = nullptr;
+            }
+          }
+          it = children.erase(it);
+        }
       }
       /**
        * API to iterate thought objects in the list
@@ -290,7 +314,7 @@ namespace SAFplus
           xmlString << " name=" << "\"" << getFullXpath(false) << "\"";
         if (opts & MgtObject::SerializePathAttribute)
           xmlString << " path=" << "\"" << getFullXpath(true) << "\"";
-        xmlString << '>';                
+        xmlString << '>';
 
         MgtObject::SerializationOptions newopts = opts;
         if (opts & MgtObject::SerializeOnePath) newopts = (MgtObject::SerializationOptions) (newopts & ~MgtObject::SerializePathAttribute);
@@ -750,7 +774,10 @@ namespace SAFplus
       /**
        * MgtList destructor
        */
-      virtual ~MgtList(){ }
+      virtual ~MgtList()
+      {
+        removeAllChildren();
+      }
       /**
        * API to detect whether an entry is exist in the current list (based on its name)
        */
@@ -799,7 +826,19 @@ namespace SAFplus
        */
       void removeAllChildren()
       {
-        children.clear();
+        for (typename Map::iterator it = children.begin(); it != children.end();)
+        {
+          if (nullptr != it->second)
+          {
+            it->second->removeAllChildren();
+            if (it->second->isAllocated())
+            {
+              delete it->second;
+              it->second = nullptr;
+            }
+          }
+          it = children.erase(it);
+        }
       }
       /**
        * API to iterate thought objects in the list
@@ -1299,11 +1338,12 @@ namespace SAFplus
             return ret;
           }
 
-        MgtObject* object = MgtFactory::getInstance()->create(childXpath,value);
+        MgtObject* object = MgtFactory::getInstance()->create(childXpath, value);
 
         // Build dataXpath to store into DB as format: /safplusAmf/Node[@name="node1"] and /safplusAmf/Node 
         if (object)
         {
+          object->allocated = true;
           std::string xpath(getFullXpath(true));
           std::stringstream keypart;
           keypart << "[@" << keyList << "=\"" << value <<"\"" << "]";
@@ -1356,6 +1396,7 @@ namespace SAFplus
           }
 
         MgtObject *child = it->second;
+        if(nullptr == child) return ret;
 
         logDebug("MGT","LIST", "Deleting Object [%s]", child->dataXPath.c_str());
 
@@ -1406,9 +1447,13 @@ namespace SAFplus
         /* TODO: Remove the record out of database for its childs */
 
         /* Free-ed */
+        child->removeAllChildren();
+        if (child->isAllocated())
+        {
+          delete child;
+          child = nullptr;
+        }
         children.erase(value);
-        delete child;
-
         return ret;
       }
   };
