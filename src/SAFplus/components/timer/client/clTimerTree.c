@@ -443,12 +443,13 @@ static __inline__ ClInt16T timerAddCallbackTask(ClTimerT *pTimer)
 {
     ClInt16T nextFreeIndex = 0;
     ClInt16T curFreeIndex = 0;
-    if( (curFreeIndex = pTimer->freeCallbackTaskIndex) < 0 )
+    curFreeIndex = pTimer->freeCallbackTaskIndex;
+    if (curFreeIndex < 0 || curFreeIndex >= CL_TIMER_MAX_PARALLEL_TASKS-1)
     {
         clLogWarning("CALLBACK", "ADD", "Unable to store task id for timer [%p] as current [%d] parallel instances "
                      "of the same running timer exceeds [%d] supported. Timer delete on this timer might deadlock "
-                     "if issued from the timer callback context", (ClPtrT)pTimer, pTimer->timerRefCnt,
-                     CL_TIMER_MAX_PARALLEL_TASKS);
+                     "if issued from the timer callback context. Current free index [%d]", (ClPtrT)pTimer, pTimer->timerRefCnt,
+                     CL_TIMER_MAX_PARALLEL_TASKS, curFreeIndex);
         return -1;
     }
     nextFreeIndex = pTimer->freeCallbackTaskIndexPool[curFreeIndex];
@@ -460,11 +461,18 @@ static __inline__ ClInt16T timerAddCallbackTask(ClTimerT *pTimer)
 
 static __inline__ void timerDelCallbackTask(ClTimerT *pTimer, ClInt16T freeIndex)
 {
-    if(freeIndex >= 0)
+    if (freeIndex >= 0 && freeIndex < CL_TIMER_MAX_PARALLEL_TASKS-1)
     {
         pTimer->callbackTaskIds[freeIndex] = 0;
         pTimer->freeCallbackTaskIndexPool[freeIndex] = pTimer->freeCallbackTaskIndex;
         pTimer->freeCallbackTaskIndex = freeIndex;
+    }
+    else
+    {
+        clLogWarning("CALLBACK", "DEL", "Unable to delete task id for timer [%p] as current [%d] parallel instances "
+                     "of the same running timer exceeds [%d] supported. Timer delete on this timer might deadlock "
+                     "if issued from the timer callback context. Current free index [%d]", (ClPtrT)pTimer, pTimer->timerRefCnt,
+                     CL_TIMER_MAX_PARALLEL_TASKS, freeIndex);
     }
 }
 
@@ -1211,6 +1219,8 @@ static ClRcT clTimerRun(void)
 
     while ( (iter = clRbTreeMin(root)) )
     {
+        if (iter->flags & CL_RBTREE_DELETED)
+            break;
         ClTimerT *pTimer = NULL; 
         ClTimerCallBackT timerCallback;
         ClPtrT timerData;
