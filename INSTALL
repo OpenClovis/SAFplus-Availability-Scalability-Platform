@@ -2,10 +2,11 @@
    ----------------------------
    Run the following installations if they're not installed:
 
-   apt-get install git   
+   apt-get install git
    apt-get install autoconf
-   apt-get install libpython2.7-dev
+   apt-get install libpython-dev
    apt-get install pkg-config
+   apt-get install libtool
 
    Use one of folowing options to build:
 
@@ -23,3 +24,4 @@
    2.2. Next, build the source:
     cd $(SAFPLUS_DIR)/src    
     make USE_DIST_LIB=0
+

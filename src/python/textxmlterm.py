@@ -8,6 +8,10 @@ DropToDebugger=True
 def FancyText(unused,string,size=0,fore=0, back=0):
   return string
 
+class CommandBadArgException(Exception):
+  pass
+
+
 class CmdLine:
   def __init__(self,resolver):
     self.resolver = resolver
