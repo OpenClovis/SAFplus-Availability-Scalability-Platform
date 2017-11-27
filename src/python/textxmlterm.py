@@ -2,6 +2,10 @@ import pdb, sys, traceback,re
 import types
 from xml.sax.saxutils import escape,unescape
 import xml.etree.ElementTree as ET
+try:
+  import readline
+except:
+  pass
 
 DropToDebugger=True
 
