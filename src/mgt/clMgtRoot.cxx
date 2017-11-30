@@ -627,7 +627,7 @@ namespace SAFplus
     std::string path, cmds;
     std::string attrs = "";
     ClRcT rcRet = CL_OK;
-    ClBoolT rc = CL_TRUE;
+    //ClBoolT rc = CL_TRUE;
     std::string data = reqMsg.data();
     path = reqMsg.bind();
     /*std::vector<std::string> strs;
@@ -677,20 +677,20 @@ namespace SAFplus
             switch (reqMsg.rpctype())
             {
               case Mgt::Msg::MsgRpc::CL_MGT_RPC_VALIDATE:
-                rc = rpc->validate();
+                rcRet = rpc->validate();
                 break;
               case Mgt::Msg::MsgRpc::CL_MGT_RPC_INVOKE:
-                rc = rpc->invoke();
+                rcRet = rpc->invoke();
                 break;
               case Mgt::Msg::MsgRpc::CL_MGT_RPC_POSTREPLY:
-                rc = rpc->postReply();
+                rcRet = rpc->postReply();
                 break;
               default:
                 break;
             }
-            if(CL_FALSE == rc) rcRet = CL_ERR_NOT_EXIST;
-            MgtRoot::sendReplyMsg(srcAddr, (void *) &rcRet, sizeof(ClRcT));
-            return;
+            //if(CL_FALSE == rc) rcRet = CL_ERR_NOT_EXIST;
+            //MgtRoot::sendReplyMsg(srcAddr, (void *) &rcRet, sizeof(ClRcT));
+            //return;
           }
           else
           {
@@ -699,8 +699,8 @@ namespace SAFplus
         }
       }
     }
-    //logDebug("MGT","SET","Object [%s] update complete [0x%x]", path.c_str(),rc);
-    //MgtRoot::sendReplyMsg(srcAddr,(void *)&rc,sizeof(ClRcT));
+    logDebug("MGT","SET","Object [%s] rpc complete [0x%x]", path.c_str(),rcRet);
+    MgtRoot::sendReplyMsg(srcAddr,(void *)&rcRet,sizeof(ClRcT));
   }
 
   void MgtRoot::clMgtMsgDeleteHandler(SAFplus::Handle srcAddr, Mgt::Msg::MsgMgt& reqMsg)
