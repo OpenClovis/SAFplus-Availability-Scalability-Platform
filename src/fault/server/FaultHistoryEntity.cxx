@@ -29,7 +29,10 @@ namespace SAFplus
     {
       return ((this->faultData == e.faultData)&&( this->faultHdl == e.faultHdl) && (this->time == e.time) && (this->reporter==e.reporter));
     }
-
+    bool FaultHistoryEntity::operator<(const FaultHistoryEntity &e) const
+    {
+      return (this->time < e.time);
+    }
     void FaultHistoryEntity::setValue(FaultEventData faultData, Handle faultHdl,Handle reporter,time_t time, SAFplus::Transaction &t)
     {
         if(&t == &SAFplus::NO_TXN)
