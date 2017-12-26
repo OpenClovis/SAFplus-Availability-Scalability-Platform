@@ -1,0 +1,189 @@
+module SAFplusLog 
+{
+
+  namespace "http://www.openclovis.org/ns/log";
+  prefix "SAFplusLog";
+  import SAFplusTypes { prefix "SAFplusTypes"; }
+  organization
+    "OpenClovis Solutions, Inc";
+
+  contact
+    "Andrew Stone <stone@openclovis.com>";
+
+  description
+    "Configuration and Statistics for the SAFplus Logging Service";
+
+  revision 2014-02-03 
+    {
+      description "Initial description";
+      reference "";
+    }
+    
+  grouping StreamAttributes 
+  {
+
+    description "Configurable attributes relating to the log stream";
+
+    leaf name 
+    {
+      type string;
+      description "Name of the stream";
+    }
+
+    leaf fileName 
+    {
+      type string;
+      description "Output file name";
+    }
+        
+    leaf replicate 
+    {
+      type enumeration 
+      {
+        enum NONE { description "No replication of this log stream"; value 0; }
+        enum SYSTEM_CONTROLLERS { description "Replicate to the system controllers"; value 1;}
+        enum APPLICATIONS { description "Replicate to interested applications"; value 2; }
+        enum ANY { description "Replicate to the both system controllers and interested applications"; value 3; }
+      }
+	
+      description "Replicate this log to other nodes/processes";
+    }
+
+    leaf fileLocation 
+    {
+      type string;
+      description "Node and directory where the file is to be output";
+    }
+
+    leaf fileUnitSize 
+    {
+      type uint64;
+      description "Maximum size of a log file";
+    }
+
+    leaf recordSize 
+    {
+      type uint64;
+      description "Maximum size of a single log record";
+    }
+
+    leaf fileFullAction 
+    {
+      type enumeration 
+      {
+        enum ROTATE 
+        {
+          description "Creates a new file <name>0N for the new logs.  Up to maximumFilesRotated files are allowed.";
+        }
+        enum WRAP 
+        {
+          description "Restart at the beginning of this log file overwriting the older logs";
+        }
+        enum HALT 
+        {
+          description "Stop logging to this file";
+        }
+      }
+      description "Action to take when the log file is full";
+    }
+
+    leaf maximumFilesRotated 
+    {
+      type uint32;
+      description "If fileFullAction is ROTATE, this field indicates the number of files to rotate.";
+    }
+
+    leaf flushFreq 
+    {
+      type uint32;
+      description "When this number of logs are available in shared memory, the log server is triggered to output them.  This field controls how often logs are posted during heavy log use.";
+    }
+
+    leaf flushInterval 
+    {
+      type uint64;
+      description "The log server wakes up every flushInterval ms and outputs all logs in shared memory.  This field therefore defines the maximum age of unposted logs during light log use.";
+    }
+
+    leaf syslog 
+    {
+      type boolean;
+    default "false";
+    description "Should these logs be output to syslog";
+    }
+        
+    leaf streamScope 
+    {
+      type enumeration 
+      {
+        enum GLOBAL 
+        {
+          description "This log stream is available on all nodes in the cluster";
+        }
+        enum LOCAL 
+        {
+          description "This log stream is only available on this node in the cluster.  Opening the log stream on more than one node will result in multiple log streams with the same name, one on each node that opens it.";
+        }
+      }
+      description "Is this log stream available across the entire cluster, or just available on the node?";
+    }
+        
+  }
+
+  container safplusLog
+  {
+    container serverConfig
+    {
+      leaf maximumStreams 
+      {
+        type uint32;
+        description "Maximum number of log streams that can exist";
+      }
+        
+      leaf maximumComponents 
+      {
+        type uint32;
+        description "";
+      }
+      leaf maximumSharedMemoryPages 
+      {
+        type uint32;
+        description "Maximum size of shared memory to hold logs from all log streams";
+      }
+      leaf maximumRecordsInPacket 
+      {
+        type uint32;
+        description "When logs are forwarded to another node, this specifies the maximum number of logs placed in a single message.";
+      }
+      leaf processingInterval 
+      {
+        type uint64;
+        description "The log server wakes up every processingInterval ms and outputs all logs in shared memory.  This field therefore defines the maximum age of unposted logs during light log use.";
+      }
+        
+      description "Logging server configuration data";
+    }
+
+    container streamConfig
+    {
+      list stream 
+      {
+        key "name";
+        uses StreamAttributes;
+        container streamStatistics 
+        {
+          description "Statistics relating to the log stream";
+        
+          container numLogs 
+          {
+          SAFplusTypes:c-existing "SAFplus::MgtHistoryStat<int>"; 
+            uses SAFplusTypes:intStatistic;
+            description "Number of logs issued to this stream per unit time";
+          }
+        }
+        description "Configuration and statistics for a particular log stream";
+      }
+      description "All log streams defined in the system";
+    }
+  }
+}
