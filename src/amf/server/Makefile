@@ -38,7 +38,7 @@ POLICY_ENV_OBJ := $(subst .cxx,.o,$(notdir $(POLICY_ENV_SRC)))
 POLICY_ENV_OBJ := $(addprefix $(OBJ_DIR)/amfsvr/,$(POLICY_ENV_OBJ))
 
 
-Release all: $(PLUGIN_DIR)/customAmfPolicy.so $(PLUGIN_DIR)/nPlusmAmfPolicy.so  $(SAFPLUS_TARGET)/bin/safplus_amf $(SAFPLUS_TARGET)/share/netconf/modules/openclovis/SAFplusAmf.yang $(SAFPLUS_TARGET)/share/netconf/modules/openclovis/SAFplusTypes.yang
+Release all: $(PLUGIN_DIR)/customAmfPolicy.so $(PLUGIN_DIR)/nPlusmAmfPolicy.so  $(SAFPLUS_TARGET)/bin/safplus_amf $(SAFPLUS_TARGET)/share/netconf/modules/openclovis/SAFplusAmf.yang $(SAFPLUS_TARGET)/share/netconf/modules/openclovis/SAFplusTypes.yang $(SAFPLUS_TARGET)/share/modules/openclovis/safplusLog.yang
 
 $(SAFPLUS_TARGET)/share/netconf/modules/openclovis/SAFplusAmf.yang: $(SAFPLUS_SRC_DIR)/yang/SAFplusAmf.yang
 	@mkdir -p $(SAFPLUS_TARGET)/share/netconf/modules/openclovis
@@ -48,6 +48,9 @@ $(SAFPLUS_TARGET)/share/netconf/modules/openclovis/SAFplusTypes.yang: $(SAFPLUS_
 	@mkdir -p $(SAFPLUS_TARGET)/share/netconf/modules/openclovis
 	cp -rf $< $@
 
+$(SAFPLUS_TARGET)/share/modules/openclovis/safplusLog.yang: $(SAFPLUS_SRC_DIR)/yang/safplusLog.yang
+	@mkdir -p $(SAFPLUS_TARGET)/share/modules/openclovis
+	cp -rf $< $@
 
 # Shared library providing functions needed by the policy library & SAFplus AMF.
 $(POLICY_ENV_LIB): $(POLICY_ENV_OBJ) $(SAFPLUS_DEP_LIBS)
