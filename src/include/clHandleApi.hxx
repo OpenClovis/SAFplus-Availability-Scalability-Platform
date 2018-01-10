@@ -26,6 +26,7 @@ namespace SAFplus
   #define HDL_NODE_ID_SHIFT            32
 
   #define SUB_HDL_SHIFT                8  // Non-pointer handles can have "well-known" subhandle offsets.  For example, if a checkpoint handle is 0x56, its associated group can always be handle 0x5601 (offset 1 from the base handle).  To accomplish this, "base" handles are incremented by 256 when issued
+  #define MGTSERVERHANDLENAME          "mgtServerHandle"
 
   //?  Defines the format and semantics of the handle.
   typedef  enum 
@@ -97,6 +98,11 @@ namespace SAFplus
     bool operator != (const Handle& other) const
     {
       return ((id[0] != other.id[0])||(id[1]!=other.id[1]));
+    }
+
+    bool operator < (const Handle& other) const
+    {
+      return((id[0] < other.id[0])||((id[0] == other.id[0])&&(id[1] < other.id[1])));
     }
 
     //? Assign handles

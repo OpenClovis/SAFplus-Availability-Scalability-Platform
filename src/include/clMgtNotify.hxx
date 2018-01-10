@@ -59,6 +59,11 @@ public:
     {
 
     }
+    virtual void toString(std::stringstream& xmlString, int depth=SAFplusI::MgtToStringRecursionDepth,SerializationOptions opts=SerializeNoOptions)
+    {
+
+    }
+
     /**
      * Function add a leaf to the notification
      */
@@ -77,7 +82,7 @@ public:
     /**
      * Function to send notification to the netconf server
      */
-    void sendNotification(SAFplus::Handle hdl,std::string route);
+    void sendNotification(const SAFplus::Handle& handle,const std::string& route);
 
     virtual ClBoolT set(const void *pBuffer, uint64_t buffLen, SAFplus::Transaction& t)
     {

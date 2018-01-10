@@ -25,8 +25,9 @@
 #include "MgtMsg.pb.hxx"
 
 #include <clLogApi.hxx>
-
+#include <clMgtFunction.hxx>
 using namespace std;
+using namespace Mgt::Msg;
 
 namespace SAFplus
 {
@@ -54,8 +55,9 @@ namespace SAFplus
     *value = mLeafList[leaf];
   }
 
-  void MgtNotify::sendNotification(SAFplus::Handle myHandle,std::string route)
+  void MgtNotify::sendNotification(const SAFplus::Handle& handle,const std::string& route)
   {
+    ClRcT retCode;
     if (!strcmp(Module.c_str(), ""))
     {
       logError("MGT", "NTF", "Cannot send Notification [%s]", tag.c_str());
@@ -69,8 +71,8 @@ namespace SAFplus
     bindData.set_module(this->Module);
     bindData.set_route(route);
     Mgt::Msg::Handle *hdl = bindData.mutable_handle();
-    hdl->set_id0(myHandle.id[0]);
-    hdl->set_id1(myHandle.id[1]);
+    hdl->set_id0(handle.id[0]);
+    hdl->set_id1(handle.id[1]);
 
     char strTemp[CL_MAX_NAME_LENGTH];
     snprintf((char *) strTemp, CL_MAX_NAME_LENGTH, "<%s>", this->tag.c_str());
@@ -112,11 +114,12 @@ namespace SAFplus
 
     try
     {
-      mgtIocInstance->SendMsg(SAFplus::getProcessHandle(SAFplusI::MGT_IOC_PORT,Handle::AllNodes),(void *) msgRequestStr.c_str(), msgRequestStr.size(), SAFplusI::CL_MGT_MSG_TYPE);
+       SAFplus::Handle mgtHandle = SAFplus::getMgtHandle(MGTSERVERHANDLENAME,retCode);
+       mgtIocInstance->SendMsg(mgtHandle,(void *) msgRequestStr.c_str(), msgRequestStr.size(), SAFplusI::CL_MGT_MSG_NOTIFY_BINDDATA_TYPE);
     }
     catch(SAFplus::Error &ex)
     {
-      logDebug("MGT","NTF","Send notification failed!");
+       logDebug("MGT","NTF","Send notification failed!");
     }
   }
 }
