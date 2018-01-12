@@ -241,7 +241,7 @@ class ProjectTreePanel(wx.Panel):
 
         self.tree = ProjectTreeCtrl(self, tID, wx.DefaultPosition, wx.DefaultSize,
                                wx.TR_HAS_BUTTONS
-                               | wx.TR_EDIT_LABELS
+                               #| wx.TR_EDIT_LABELS
                                | wx.TR_MULTIPLE
                                | wx.TR_HIDE_ROOT
                                )

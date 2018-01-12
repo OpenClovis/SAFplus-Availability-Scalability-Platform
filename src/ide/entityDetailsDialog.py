@@ -499,7 +499,7 @@ class Panel(scrolled.ScrolledPanel):
           query = wx.CheckBox(self.tree.GetMainWindow(),id,"")
           checked = bool(value)
           query.SetValue(checked)
-        elif typeData["type"] in YangIntegerTypes:
+        elif typeData["type"] in YangIntegerTypes or typeData["type"]=="SAFplusTypes:SaTimeT":
           v = 0
           try:
             v = int(value)
@@ -532,7 +532,7 @@ class Panel(scrolled.ScrolledPanel):
           choices = [x[0] for x in vals]
           if not value in choices:  # OOPS!  Either initial case or the datatype was changed
               value = choices[0]  # so set the value to the first one TODO: set to default one
-          query = wx.ComboBox(self.tree.GetMainWindow(),id,value=value,choices=[x[0] for x in vals])
+          query = wx.ComboBox(self.tree.GetMainWindow(),id,value=value,choices=[x[0] for x in vals],style=wx.CB_READONLY)
 
         elif self.model.dataTypes.has_key(typeData["type"]):
           typ = self.model.dataTypes[typeData["type"]]
@@ -542,7 +542,7 @@ class Panel(scrolled.ScrolledPanel):
             choices = [x[0] for x in vals]
             if not value in choices:  # OOPS!  Either initial case or the datatype was changed
               value = choices[0]  # so set the value to the first one TODO: set to default one
-            query = wx.ComboBox(self.tree.GetMainWindow(),id,value=value,choices=[x[0] for x in vals])
+            query = wx.ComboBox(self.tree.GetMainWindow(),id,value=value,choices=[x[0] for x in vals],style=wx.CB_READONLY)
           else:
             # TODO other datatypes 
             query  = wx.TextCtrl(self.tree.GetMainWindow(), id, value,style = wx.BORDER_SIMPLE)
