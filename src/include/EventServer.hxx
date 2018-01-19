@@ -72,16 +72,6 @@ public:
 	virtual ~EventServer();
 	void initialize();
 	void wake(int amt,void* cookie=NULL);
-
-
-//	virtual void msgHandler(SAFplus::Handle from, SAFplus::MsgServer* svr, ClPtrT msg, ClWordT msglen, ClPtrT cookie);
-//	void eventChannelCreateHandle(EventMessageProtocol *rxMsg,int length);
-//	void eventChannelCloseHandle(EventMessageProtocol *rxMsg,int length);
-//	void eventChannelSubsHandle(EventMessageProtocol *rxMsg,int length);
-//	void eventChannelPubHandle(EventMessageProtocol *rxMsg,int length);
-//	void eventChannelUnSubsHandle(EventMessageProtocol *rxMsg,int length);
-//	void eventPublishHandle(EventMessageProtocol *rxMsg,ClWordT msglen);
-//	void createChannel(EventMessageProtocol *rxMsg,bool isSub,bool isPub,int length);
 	bool isPublisher(EventChannel& s , Handle clientHandle);
 	bool isLocalChannel(std::string  channelName);
 	bool isGlobalChannel(std::string  channelName);

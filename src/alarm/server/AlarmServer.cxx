@@ -77,8 +77,11 @@ void AlarmServer::initialize()
   logDebug(ALARM_SERVER, ALARM_ENTITY, "Initialize event client on server");
   //event client
   eventClient.eventInitialize(handleAlarmServer, nullptr);
-  eventClient.eventChannelOpen(ALARM_CHANNEL, EventChannelScope::EVENT_GLOBAL_CHANNEL);
-  eventClient.eventChannelPublish(ALARM_CHANNEL, EventChannelScope::EVENT_GLOBAL_CHANNEL);
+  if( handleAlarmServer == activeServer )
+  {
+    eventClient.eventChannelOpen(ALARM_CHANNEL, EventChannelScope::EVENT_GLOBAL_CHANNEL);
+    eventClient.eventChannelPublish(ALARM_CHANNEL, EventChannelScope::EVENT_GLOBAL_CHANNEL);
+  }
 }
 
 void AlarmServer::wake(int amt, void* pgroup)

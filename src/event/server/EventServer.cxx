@@ -65,18 +65,13 @@ bool EventServer::eventloadchannelFromCheckpoint()
   {
     BufferPtr curkey = iter->first;
     BufferPtr& curval = iter->second;
-    if((curkey->objectSize()+1) != (sizeof(eventKey)+sizeof(Buffer)))//data alignment
-    {
-      //filter rubbish when startup checkpoint of event
-      logDebug("NAME", "GET","size currentkey:%d,size of realkey:%d",curkey->objectSize()+1,sizeof(eventKey)+sizeof(Buffer));
-      continue;
-    }
+    //SAFplus::Checkpoint::KeyValuePair& item = *iter;
+    //char* ckey = (char*)curkey->data;
+    eventKey key((char*)curkey->data);
     if (curval)
     {
       SAFplus::Rpc::rpcEvent::eventChannelRequest request;
-      request.ParseFromArray(curval->data, ((eventKey*)curkey->data)->length);
-      std::string eventMessage;
-      request.SerializeToString(&eventMessage);
+      request.ParseFromArray(curval->data, key.length);
       logDebug("NAME", "GET", "Get object: Name [%s]", request.channelname().c_str());
       logDebug("NAME", "GET", "Get object: Scope [%d]", request.scope());
       logDebug("NAME", "GET", "Get object: Type [%d]", request.type());
@@ -528,7 +523,7 @@ void EventServer::eventChannelCreateHandleRpc(const eventChannelRequest *request
   evtClient.id[0] = request->clienthandle().id0();
   evtClient.id[1] = request->clienthandle().id1();
   logDebug("EVT", "MSG", "Process event message with type EVENT_CHANNEL_CREATE");
-  logDebug("EVT", "MSG", "Channel[%s] -- Event handle [%d,%d]", request->channelname().c_str(), evtClient.getNode(), evtClient.getPort());
+  logDebug("EVT", "MSG", "Channel[%s] -- handle [%" PRIx64 ":%" PRIx64 "]", request->channelname().c_str(), evtClient.id[0], evtClient.id[1]);
   try
   {
     createChannelRpc(request, false, false);

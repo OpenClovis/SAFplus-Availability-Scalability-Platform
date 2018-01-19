@@ -37,94 +37,68 @@ ClRcT EventCkpt::eventCkptExit(void)
 
 ClRcT EventCkpt::eventCkptCheckPointChannelOpen(const SAFplus::Rpc::rpcEvent::eventChannelRequest* request)
 {
-  char handleKey[sizeof(Buffer) -1 +sizeof(eventKey)];
-  Buffer* key = new(handleKey) Buffer(sizeof(eventKey));
+  EventKeyId keyData;
   std::string eventMessage;
   request->SerializeToString(&eventMessage);
-  EventKeyId keyData;
   keyData.channelName = request->channelname();
-  keyData.evtClient = INVALID_HDL;
+  keyData.evtClient.id[0] = request->clienthandle().id0();
+  keyData.evtClient.id[1] = request->clienthandle().id1();
   keyData.type = EventMessageType::EVENT_CHANNEL_CREATE;
   char vdata[sizeof(Buffer) + eventMessage.length()];
   Buffer* val = new (vdata) Buffer(eventMessage.length());
   memcpy(val->data,eventMessage.c_str(),eventMessage.length());
-  logDebug("EVT", "CKPT", "write eventCkptCheckPointChannel request  to checkpoint with key %ld", key);
-  ((eventKey*)key->data)->id= static_cast<uintcw_t>(hash_value(keyData));
-  ((eventKey*)key->data)->length= eventMessage.length();
-  m_checkpoint.write(*key, *val);
+  eventKey key(hash_value(keyData),eventMessage.length());
+  m_checkpoint.write(key.str(), *val);
   return CL_TRUE;
 }
 
 ClRcT EventCkpt::eventCkptCheckPointChannelClose(const SAFplus::Rpc::rpcEvent::eventChannelRequest* request)
 {
-  char handleKey[sizeof(Buffer) -1 + sizeof(eventKey)];
-  Buffer* key = new(handleKey) Buffer(sizeof(eventKey));
+  EventKeyId keyData;
   std::string eventMessage;
   request->SerializeToString(&eventMessage);
-  EventKeyId keyData;
   keyData.channelName = request->channelname();
-  keyData.evtClient = INVALID_HDL;
+  keyData.evtClient.id[0] = request->clienthandle().id0();
+  keyData.evtClient.id[1] = request->clienthandle().id1();
   keyData.type = EventMessageType::EVENT_CHANNEL_CREATE;
-  logDebug("EVT", "CKPT", "remove eventCkptCheckPointChannel request  to checkpoint with key %d,  length %d", request->ByteSize(), key);
-  ((eventKey*)key->data)->id= static_cast<uintcw_t>(hash_value(keyData));
-  ((eventKey*)key->data)->length= eventMessage.length();
-  m_checkpoint.remove(*key);
+  eventKey key(hash_value(keyData),eventMessage.length());
+  m_checkpoint.remove(key.str());
   return CL_TRUE;
 }
 
 ClRcT EventCkpt::eventCkptCheckPointSubscribeOrPublish(const SAFplus::Rpc::rpcEvent::eventChannelRequest* request)
 {
-  char handleKey[sizeof(Buffer) -1 + sizeof(eventKey)];
-  Buffer* key = new(handleKey) Buffer(sizeof(eventKey));
+  EventKeyId keyData;
   std::string eventMessage;
   request->SerializeToString(&eventMessage);
   char vdata[sizeof(Buffer)+ eventMessage.length()];
   Buffer* val = new (vdata) Buffer(request->ByteSize());
   memcpy(val->data, eventMessage.c_str(), eventMessage.length());
-  EventKeyId keyData;
   keyData.channelName = request->channelname();
-  if(EventMessageType::EVENT_CHANNEL_PUBLISHER == EventMessageType(request->type()))
-  {
-    keyData.evtClient = INVALID_HDL;
-  }else
-  {
-    keyData.evtClient.id[0] = request->clienthandle().id0();
-    keyData.evtClient.id[1] = request->clienthandle().id1();
-  }
+  keyData.evtClient.id[0] = request->clienthandle().id0();
+  keyData.evtClient.id[1] = request->clienthandle().id1();
   keyData.type = EventMessageType(request->type());
-  ((eventKey*)key->data)->id= static_cast<uintcw_t>(hash_value(keyData));
-  ((eventKey*)key->data)->length= eventMessage.length();
-  m_checkpoint.write(*key, *val);
+  eventKey key(hash_value(keyData),eventMessage.length());
+  m_checkpoint.write(key.str(), *val);
   return CL_TRUE;
 }
 
 ClRcT EventCkpt::eventCkptCheckPointUnsubscribeOrUnpublish(const SAFplus::Rpc::rpcEvent::eventChannelRequest* request)
 {
-  char handleKey[sizeof(Buffer) -1 + sizeof(eventKey)];
-  Buffer* key = new(handleKey) Buffer(sizeof(eventKey));
+  EventKeyId keyData;
   std::string eventMessage;
   request->SerializeToString(&eventMessage);
-  EventKeyId keyData;
   keyData.channelName = request->channelname();
+  keyData.evtClient.id[0] = request->clienthandle().id0();
+  keyData.evtClient.id[1] = request->clienthandle().id1();
   if(EventMessageType::EVENT_CHANNEL_UNPUBLISHER == EventMessageType(request->type()))
   {
-    keyData.evtClient = INVALID_HDL;
-  }else
-  {
-    keyData.evtClient.id[0] = request->clienthandle().id0();
-    keyData.evtClient.id[1] = request->clienthandle().id1();
+     keyData.type = EventMessageType::EVENT_CHANNEL_PUBLISHER;
+  }else{
+     keyData.type = EventMessageType::EVENT_CHANNEL_SUBSCRIBER;
   }
-  //keyData.type = EventMessageType(request->type());
-  if(EventMessageType::EVENT_CHANNEL_UNSUBSCRIBER == EventMessageType(request->type()))
-  {
-    keyData.type = EventMessageType::EVENT_CHANNEL_SUBSCRIBER;
-  }else if(EventMessageType::EVENT_CHANNEL_UNPUBLISHER == EventMessageType(request->type()))
-  {
-    keyData.type = EventMessageType::EVENT_CHANNEL_PUBLISHER;
-  }
-  ((eventKey*)key->data)->id = static_cast<uintcw_t>(hash_value(keyData));
-  ((eventKey*)key->data)->length = eventMessage.length();
-  m_checkpoint.remove(*key);
+  eventKey key(hash_value(keyData),eventMessage.length());
+  m_checkpoint.remove(key.str());
   return CL_TRUE;
 }
 

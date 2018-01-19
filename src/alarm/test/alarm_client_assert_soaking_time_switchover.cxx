@@ -99,6 +99,7 @@ void test_assert_soaking_time_switchover()
   //alarm assert soaking time, switch over and raise alarm,then clear
   g_isCallBack=false;
   raiseAlarm_Assert(8);
+  logInfo(ALARM,ALARM_ENTITY,"It is ready to switch safplus_amf(close it!)");
   sleep(41);
   clTest(("TCtest_assert_soaking_time_switchover:expect alarm raised for raiseAlarm_Assert()"),g_isCallBack==true , ("g_isCallBack is %d", g_isCallBack));
   raiseAlarm_Clear(8);

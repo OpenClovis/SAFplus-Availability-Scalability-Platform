@@ -13,7 +13,7 @@
 #include <string>
 #include <clCommon.hxx>
 #include <rpcEvent.hxx>
-
+#include <sstream>
 
 namespace SAFplus
 {
@@ -21,8 +21,31 @@ namespace SAFplus
 class eventKey
 {
 public:
-	int length;
-	uintcw_t id;
+  std::size_t id;
+  int length;
+
+  eventKey()
+  {
+     id = 0;
+     length = 0;
+  }
+  eventKey(const size_t& iid,const int& ilength)
+  {
+     id = iid;
+     length = ilength;
+  }
+  eventKey(const std::string& str)
+  {
+     std::istringstream iss(str);
+     iss >> id;
+     iss >> length;
+  }
+  std::string str()
+  {
+     std::ostringstream oss;
+     oss << id <<" "<< length;
+     return oss.str();
+  }
 };
 
 class EventKeyId

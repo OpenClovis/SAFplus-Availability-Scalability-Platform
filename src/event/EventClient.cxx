@@ -105,15 +105,9 @@ ClRcT EventClient::eventPublishRpc(std::string evtChannelName, EventChannelScope
 		{
 			//TODO
 			logDebug("EVT", "EVENT_ENTITY", "Get active server address ... ");
-//			SAFplus::Rpc::rpcEvent::NO_REQUEST request;
-//			SAFplus::Rpc::rpcEvent::eventGetActiveServerResponse response;
-//			service->eventGetActiveServer(severHandle, &request, &response);
-//			SAFplus::Handle serverAddress;
-//			serverAddress.id[0] = response.activeserver().id0();
-//			serverAddress.id[1] = response.activeserver().id1();
 			SAFplus::Handle serverAddress;
 			serverAddress=esm.getActive();
-			logDebug("EVT", "EVENT_ENTITY", "Active Sever Address : [%d,%d]", serverAddress.getNode(), serverAddress.getPort());
+			logDebug("EVT", "EVENT_ENTITY", "Active Server Address : [%d,%d]", serverAddress.getNode(), serverAddress.getPort());
 			service->eventPublishRpcMethod(serverAddress, &openRequest, &openRequestRes, SAFplus::BLOCK);
 			if (openRequestRes.saerror() != 0)
 			{
@@ -155,14 +149,9 @@ ClRcT EventClient::eventChannelRpc(std::string evtChannelName, EventChannelScope
 		{
 			//TODO
 			logDebug("EVT", "EVENT_ENTITY", "Get active server address ... ");
-//			SAFplus::Rpc::rpcEvent::NO_REQUEST request;
-//			SAFplus::Rpc::rpcEvent::eventGetActiveServerResponse response;
-//			service->eventGetActiveServer(severHandle, &request, &response, SAFplus::BLOCK);
-//			serverAddress.id[0] = response.activeserver().id0();
-//			serverAddress.id[1] = response.activeserver().id1();
 			SAFplus::Handle serverAddress;
 			serverAddress=esm.getActive();
-			logDebug("EVT", "EVENT_ENTITY", "Active Sever Address : [%d,%d]", serverAddress.getNode(), serverAddress.getPort());
+			logDebug("EVT", "EVENT_ENTITY", "Active Server Address : [%d,%d]", serverAddress.getNode(), serverAddress.getPort());
 			service->eventChannelRpcMethod(serverAddress, &openRequest, &openRequestRes, SAFplus::BLOCK);
 			logDebug("EVT", "EVENT_ENTITY", "Return code [%d] ... ", openRequestRes.saerror());
 			if (openRequestRes.saerror() != 0)
