@@ -73,9 +73,9 @@ public:
 	void initialize();
 	void wake(int amt,void* cookie=NULL);
 	bool isPublisher(EventChannel& s , Handle clientHandle);
-	bool isLocalChannel(std::string  channelName);
-	bool isGlobalChannel(std::string  channelName);
-	void sendEventServerMessage(void* data, int dataLength,Handle destHandle);
+	bool isLocalChannel(const std::string&  channelName);
+	bool isGlobalChannel(const std::string&  channelName);
+	void sendEventServerMessage(const void* data,const int& dataLength,const Handle& destHandle);
 	bool eventloadchannelFromCheckpoint();
 	//RPC call
 	void eventChannelRpcMethod(const ::SAFplus::Rpc::rpcEvent::eventChannelRequest* request,
@@ -91,9 +91,7 @@ public:
 	void eventChannelUnPubHandleRpc(const SAFplus::Rpc::rpcEvent::eventChannelRequest *request);
 	void eventChannelUnSubsHandleRpc(const SAFplus::Rpc::rpcEvent::eventChannelRequest *request);
 	void eventPublishHandleRpc(const SAFplus::Rpc::rpcEvent::eventPublishRequest *request);
-	void createChannelRpc(const SAFplus::Rpc::rpcEvent::eventChannelRequest *request,bool isSub,bool isPub);
-
-
+	void createChannelRpc(const SAFplus::Rpc::rpcEvent::eventChannelRequest *request,const bool& isCreate = true,const bool& isSub = true,const bool& isPub = true,const bool& isWrite = true);
 };
 
 } /* namespace SAFplus */

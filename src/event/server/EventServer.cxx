@@ -65,9 +65,7 @@ bool EventServer::eventloadchannelFromCheckpoint()
   {
     BufferPtr curkey = iter->first;
     BufferPtr& curval = iter->second;
-    //SAFplus::Checkpoint::KeyValuePair& item = *iter;
-    //char* ckey = (char*)curkey->data;
-    eventKey key((char*)curkey->data);
+    eventKey key((char*) curkey->data);
     if (curval)
     {
       SAFplus::Rpc::rpcEvent::eventChannelRequest request;
@@ -83,37 +81,19 @@ bool EventServer::eventloadchannelFromCheckpoint()
         case EventMessageType::EVENT_CHANNEL_CREATE:
           if (1)
           {
-            eventChannelCreateHandleRpc(&request);
+            createChannelRpc(&request, true, false, false, false);
           }
           break;
         case EventMessageType::EVENT_CHANNEL_SUBSCRIBER:
           if (1)
           {
-            eventChannelSubsHandleRpc(&request);
-          }
-          break;
-        case EventMessageType::EVENT_CHANNEL_UNSUBSCRIBER:
-          if (1)
-          {
-            eventChannelUnSubsHandleRpc(&request);
+            createChannelRpc(&request, true, true, false, false);//include create channel
           }
           break;
         case EventMessageType::EVENT_CHANNEL_PUBLISHER:
           if (1)
           {
-            eventChannelPubHandleRpc(&request);
-          }
-          break;
-        case EventMessageType::EVENT_CHANNEL_UNPUBLISHER:
-          if (1)
-          {
-            eventChannelUnPubHandleRpc(&request);
-          }
-          break;
-        case EventMessageType::EVENT_CHANNEL_CLOSE:
-          if (1)
-          {
-            eventChannelCloseHandleRpc(&request);
+            createChannelRpc(&request, true, false, true, false);//include create channel
           }
           break;
         default:
@@ -160,7 +140,7 @@ void EventServer::initialize()
   }
 }
 
-int compareChannel(std::string id1, std::string id2)
+int compareChannel(const std::string& id1, const std::string& id2)
 {
   if (id1 == id2)
   {
@@ -190,7 +170,7 @@ bool EventServer::isPublisher(EventChannel& s, Handle clientHandle)
   return false;
 }
 
-bool EventServer::isLocalChannel(std::string channelName)
+bool EventServer::isLocalChannel(const std::string& channelName)
 {
   if (!localChannelList.empty())
   {
@@ -214,7 +194,7 @@ bool EventServer::isLocalChannel(std::string channelName)
   return false;
 }
 
-bool EventServer::isGlobalChannel(std::string channelName)
+bool EventServer::isGlobalChannel(const std::string& channelName)
 {
   if (!globalChannelList.empty())
   {
@@ -245,7 +225,7 @@ struct eventChannel_delete_disposer
   }
 };
 
-void EventServer::sendEventServerMessage(void* data, int dataLength, Handle destHandle)
+void EventServer::sendEventServerMessage(const void* data, const int& dataLength, const Handle& destHandle)
 {
   logDebug("EVENT", "EVENT_ENTITY", "Send Event message to [%d,%d]", destHandle.getNode(), destHandle.getPort());
   try
@@ -354,7 +334,7 @@ void EventServer::eventPublishRpcMethod(const ::SAFplus::Rpc::rpcEvent::eventPub
   {
     response->set_errstr(e.errStr);
     response->set_saerror(int(e.clError));
-  }catch(...)
+  } catch (...)
   {
     response->set_errstr("Unknown error!");
     response->set_saerror(CL_NO);
@@ -363,7 +343,7 @@ void EventServer::eventPublishRpcMethod(const ::SAFplus::Rpc::rpcEvent::eventPub
 
 }
 
-void EventServer::createChannelRpc(const eventChannelRequest *request, bool isSub, bool isPub)
+void EventServer::createChannelRpc(const eventChannelRequest *request, const bool& isCreate, const bool& isSub, const bool& isPub, const bool& isWrite)
 {
   EventChannel *channel = new EventChannel();
   channel->scope = EventChannelScope(request->scope());
@@ -375,26 +355,27 @@ void EventServer::createChannelRpc(const eventChannelRequest *request, bool isSu
 
   if (channel->scope == EventChannelScope::EVENT_LOCAL_CHANNEL)
   {
-    if (!isLocalChannel(channel->channelName))
+    if (isCreate)
     {
-      logDebug("EVT", "MSG", "Add channel[%s] to local channel list", channel->channelName.c_str());
-      localChannelListLock.lock();
-      localChannelList.push_back(*channel);
-      numberOfLocalChannel += 1;
-      logDebug("EVT", "MSG", "Write request message to checkpoint");
-      localChannelListLock.unlock();
-    }
-    else
-    {
-      logDebug("EVT", "MSG", "Channel is Exist");
-      if (isSub == false && isPub == false)
+      if (!isLocalChannel(channel->channelName))
       {
-        logDebug("EVT", "MSG", "Ignore request....");
-        throw SAFplus::Error(Error::ErrorFamily::SAFPLUS_ERROR, Error::EXISTS, "Channel is Exist", __FILE__,
-        __LINE__);
+        logDebug("EVT", "MSG", "Add channel[%s] to local channel list", channel->channelName.c_str());
+        localChannelListLock.lock();
+        localChannelList.push_back(*channel);
+        numberOfLocalChannel += 1;
+        logDebug("EVT", "MSG", "Write request message to checkpoint");
+        localChannelListLock.unlock();
+      }
+      else
+      {
+        logDebug("EVT", "MSG", "Channel is Exist");
+        if (isSub == false && isPub == false)
+        {
+          logDebug("EVT", "MSG", "Ignore request....");
+          throw SAFplus::Error(Error::ErrorFamily::SAFPLUS_ERROR, Error::EXISTS, "Channel is Exist", __FILE__, __LINE__);
+        }
       }
     }
-
     localChannelListLock.lock();
     for (EventChannelList::iterator iter = localChannelList.begin(); iter != localChannelList.end(); iter++)
     {
@@ -441,26 +422,25 @@ void EventServer::createChannelRpc(const eventChannelRequest *request, bool isSu
   {
     if (activeServer == severHandle)
     {
-
-      if (!isGlobalChannel(channel->channelName))
+      if (isCreate)
       {
-        logDebug("EVT", "MSG", "Add channel[%s] to global channel list", channel->channelName.c_str());
-        globalChannelListLock.lock();
-        globalChannelList.push_back(*channel);
-        logDebug("EVT", "MSG", "write request message to checkpoint with length %d", request->ByteSize());
-        evtCkpt.eventCkptCheckPointChannelOpen(request);
-        numberOfGlobalChannel += 1;
-        globalChannelListLock.unlock();
-
-      }
-      else
-      {
-        logDebug("EVT", "MSG", "Channel is Exist");
-        if (isSub == false && isPub == false)
+        if (!isGlobalChannel(channel->channelName))
         {
-          throw SAFplus::Error(Error::ErrorFamily::SAFPLUS_ERROR, Error::EXISTS, "Channel is Exist",
-          __FILE__,
-          __LINE__);
+          logDebug("EVT", "MSG", "Add channel[%s] to global channel list", channel->channelName.c_str());
+          globalChannelListLock.lock();
+          globalChannelList.push_back(*channel);
+          logDebug("EVT", "MSG", "write request message to checkpoint with length %d", request->ByteSize());
+          if (isWrite) evtCkpt.eventCkptCheckPointChannelOpen(request);
+          numberOfGlobalChannel += 1;
+          globalChannelListLock.unlock();
+        }
+        else
+        {
+          logDebug("EVT", "MSG", "Channel is Exist");
+          if (isSub == false && isPub == false)
+          {
+            throw SAFplus::Error(Error::ErrorFamily::SAFPLUS_ERROR, Error::EXISTS, "Channel is Exist", __FILE__, __LINE__);
+          }
         }
       }
       globalChannelListLock.lock();
@@ -483,7 +463,7 @@ void EventServer::createChannelRpc(const eventChannelRequest *request, bool isSu
               throw(e);
             }
             logDebug("EVT", "MSG", "write request message to checkpoint with length %d", request->ByteSize());
-            evtCkpt.eventCkptCheckPointSubscribeOrPublish(request);
+            if (isWrite) evtCkpt.eventCkptCheckPointSubscribeOrPublish(request);
             s.subscriberRefCount += 1;
           }
           if (isPub)
@@ -499,10 +479,9 @@ void EventServer::createChannelRpc(const eventChannelRequest *request, bool isSu
               throw(e);
             }
             logDebug("EVT", "MSG", "write request message to checkpoint with length %d", request->ByteSize());
-            evtCkpt.eventCkptCheckPointSubscribeOrPublish(request);
+            if (isWrite) evtCkpt.eventCkptCheckPointSubscribeOrPublish(request);
             s.publisherRefCount += 1;
           }
-          //evtCkpt.eventCkptCheckPointSubscribeOrPublish(request,0);
           globalChannelListLock.unlock();
           return;
         }
@@ -512,7 +491,6 @@ void EventServer::createChannelRpc(const eventChannelRequest *request, bool isSu
     else
     {
       logDebug("EVT", "MSG", "forward to active event server");
-      //sendEventServerMessage((void*)request,length,activeServer);
     }
   }
 }
@@ -526,7 +504,7 @@ void EventServer::eventChannelCreateHandleRpc(const eventChannelRequest *request
   logDebug("EVT", "MSG", "Channel[%s] -- handle [%" PRIx64 ":%" PRIx64 "]", request->channelname().c_str(), evtClient.id[0], evtClient.id[1]);
   try
   {
-    createChannelRpc(request, false, false);
+    createChannelRpc(request, true, false, false, true);
   } catch (SAFplus::Error& e)
   {
     throw(e);
@@ -543,7 +521,7 @@ void EventServer::eventChannelSubsHandleRpc(const eventChannelRequest *request)
   logDebug("EVT", "MSG", "Channel[%s] -- Event handle [%d,%d]", request->channelname().c_str(), evtClient.getNode(), evtClient.getPort());
   try
   {
-    createChannelRpc(request, true, false);
+    createChannelRpc(request, false, true, false, true);
   } catch (SAFplus::Error& e)
   {
     throw(e);
@@ -561,7 +539,7 @@ void EventServer::eventChannelPubHandleRpc(const eventChannelRequest *request)
   logDebug("EVT", "MSG", "Channel[%s] -- Event handle [%d,%d]", request->channelname().c_str(), evtClient.getNode(), evtClient.getPort());
   try
   {
-    createChannelRpc(request, false, true);
+    createChannelRpc(request, false, false, true, true);
   } catch (SAFplus::Error& e)
   {
     throw(e);
@@ -603,9 +581,7 @@ void EventServer::eventChannelUnPubHandleRpc(const eventChannelRequest *request)
       }
     }
     localChannelListLock.unlock();
-    throw SAFplus::Error(Error::ErrorFamily::SAFPLUS_ERROR, Error::DOES_NOT_EXIST, "Subscriber doesn't exist",
-    __FILE__,
-    __LINE__);
+    throw SAFplus::Error(Error::ErrorFamily::SAFPLUS_ERROR, Error::DOES_NOT_EXIST, "Subscriber doesn't exist", __FILE__, __LINE__);
   }
   if (EventChannelScope(request->scope()) == EventChannelScope::EVENT_GLOBAL_CHANNEL)
   {
@@ -642,16 +618,12 @@ void EventServer::eventChannelUnPubHandleRpc(const eventChannelRequest *request)
 
       logDebug("EVT", "MSG", "Global event request ... Ignore");
       globalChannelListLock.unlock();
-      throw SAFplus::Error(Error::ErrorFamily::SAFPLUS_ERROR, Error::NOT_IMPLEMENTED, "Cannot process global request",
-      __FILE__,
-      __LINE__);
+      throw SAFplus::Error(Error::ErrorFamily::SAFPLUS_ERROR, Error::NOT_IMPLEMENTED, "Cannot process global request", __FILE__, __LINE__);
       return;
     }
     // channel not exist
     globalChannelListLock.unlock();
-    throw SAFplus::Error(Error::ErrorFamily::SAFPLUS_ERROR, Error::DOES_NOT_EXIST, "Publisher doesn't exist",
-    __FILE__,
-    __LINE__);
+    throw SAFplus::Error(Error::ErrorFamily::SAFPLUS_ERROR, Error::DOES_NOT_EXIST, "Publisher doesn't exist", __FILE__, __LINE__);
 
   }
 }
@@ -690,9 +662,7 @@ void EventServer::eventChannelUnSubsHandleRpc(const eventChannelRequest *request
       }
     }
     localChannelListLock.unlock();
-    throw SAFplus::Error(Error::ErrorFamily::SAFPLUS_ERROR, Error::DOES_NOT_EXIST, "Subscriber doesn't exist",
-    __FILE__,
-    __LINE__);
+    throw SAFplus::Error(Error::ErrorFamily::SAFPLUS_ERROR, Error::DOES_NOT_EXIST, "Subscriber doesn't exist", __FILE__, __LINE__);
   }
   if (EventChannelScope(request->scope()) == EventChannelScope::EVENT_GLOBAL_CHANNEL)
   {
@@ -729,16 +699,12 @@ void EventServer::eventChannelUnSubsHandleRpc(const eventChannelRequest *request
 
       logDebug("EVT", "MSG", "Global event request ... Ignore");
       globalChannelListLock.unlock();
-      throw SAFplus::Error(Error::ErrorFamily::SAFPLUS_ERROR, Error::NOT_IMPLEMENTED, "Cannot process global request",
-      __FILE__,
-      __LINE__);
+      throw SAFplus::Error(Error::ErrorFamily::SAFPLUS_ERROR, Error::NOT_IMPLEMENTED, "Cannot process global request", __FILE__, __LINE__);
       return;
     }
     // channel not exist
     globalChannelListLock.unlock();
-    throw SAFplus::Error(Error::ErrorFamily::SAFPLUS_ERROR, Error::DOES_NOT_EXIST, "Subscriber doesn't exist",
-    __FILE__,
-    __LINE__);
+    throw SAFplus::Error(Error::ErrorFamily::SAFPLUS_ERROR, Error::DOES_NOT_EXIST, "Subscriber doesn't exist", __FILE__, __LINE__);
 
   }
 }
@@ -773,9 +739,7 @@ void EventServer::eventChannelCloseHandleRpc(const eventChannelRequest *request)
 
     }
     localChannelListLock.unlock();
-    throw SAFplus::Error(Error::ErrorFamily::SAFPLUS_ERROR, Error::DOES_NOT_EXIST, "Channel doesn't exist",
-    __FILE__,
-    __LINE__);
+    throw SAFplus::Error(Error::ErrorFamily::SAFPLUS_ERROR, Error::DOES_NOT_EXIST, "Channel doesn't exist", __FILE__, __LINE__);
   }
   if (EventChannelScope(request->scope()) == EventChannelScope::EVENT_GLOBAL_CHANNEL)
   {
@@ -802,16 +766,12 @@ void EventServer::eventChannelCloseHandleRpc(const eventChannelRequest *request)
     {
       logDebug("EVT", "MSG", "Global event request ... Ignore");
       globalChannelListLock.unlock();
-      throw SAFplus::Error(Error::ErrorFamily::SAFPLUS_ERROR, Error::NOT_IMPLEMENTED, "Cannot process global request",
-      __FILE__,
-      __LINE__);
+      throw SAFplus::Error(Error::ErrorFamily::SAFPLUS_ERROR, Error::NOT_IMPLEMENTED, "Cannot process global request", __FILE__, __LINE__);
       return;
     }
     // channel not exist
     globalChannelListLock.unlock();
-    throw SAFplus::Error(Error::ErrorFamily::SAFPLUS_ERROR, Error::DOES_NOT_EXIST, "Channel doesn't exist",
-    __FILE__,
-    __LINE__);
+    throw SAFplus::Error(Error::ErrorFamily::SAFPLUS_ERROR, Error::DOES_NOT_EXIST, "Channel doesn't exist", __FILE__, __LINE__);
   }
   logDebug("EVT", "MSG", "Channel[%s] is removed", request->channelname().c_str());
 
@@ -819,31 +779,29 @@ void EventServer::eventChannelCloseHandleRpc(const eventChannelRequest *request)
 
 void EventServer::eventPublishHandleRpc(const eventPublishRequest *request)
 {
-	//Find channel in local list
-	logDebug("EVT", "MSG", "Process event message.");
-	SAFplus::Handle evtClient;
-	evtClient.id[0] = request->clienthandle().id0();
-	evtClient.id[1] = request->clienthandle().id1();
-	bool isGlobal = false;
-	if (EventChannelScope(request->scope()) == EventChannelScope::EVENT_LOCAL_CHANNEL)
-	{
-		localChannelListLock.lock();
-		if (!localChannelList.empty())
-		{
-			for (EventChannelList::iterator iter = localChannelList.begin(); iter != localChannelList.end(); iter++)
-			{
-				EventChannel &s = *iter;
-				int cmp = compareChannel(s.channelName, request->channelname());
-				if (cmp == 0)
-				{
-					// Check the client in publisher list
-					if (!isPublisher(s, evtClient))
-					{
-						localChannelListLock.unlock();
-						logDebug("EVT", "MSG", "EvtClient is not registered as publisher.");
-						throw SAFplus::Error(Error::ErrorFamily::SAFPLUS_ERROR, Error::DOES_NOT_EXIST, "EvtClient is not registered as publisher",
-						__FILE__,
-						__LINE__);
+  //Find channel in local list
+  logDebug("EVT", "MSG", "Process event message.");
+  SAFplus::Handle evtClient;
+  evtClient.id[0] = request->clienthandle().id0();
+  evtClient.id[1] = request->clienthandle().id1();
+  bool isGlobal = false;
+  if (EventChannelScope(request->scope()) == EventChannelScope::EVENT_LOCAL_CHANNEL)
+  {
+    localChannelListLock.lock();
+    if (!localChannelList.empty())
+    {
+      for (EventChannelList::iterator iter = localChannelList.begin(); iter != localChannelList.end(); iter++)
+      {
+        EventChannel &s = *iter;
+        int cmp = compareChannel(s.channelName, request->channelname());
+        if (cmp == 0)
+        {
+          // Check the client in publisher list
+          if (!isPublisher(s, evtClient))
+          {
+            localChannelListLock.unlock();
+            logDebug("EVT", "MSG", "EvtClient is not registered as publisher.");
+            throw SAFplus::Error(Error::ErrorFamily::SAFPLUS_ERROR, Error::DOES_NOT_EXIST, "EvtClient is not registered as publisher", __FILE__, __LINE__);
 
           }
           //TODO publish event
@@ -860,7 +818,7 @@ void EventServer::eventPublishHandleRpc(const eventPublishRequest *request)
               msg->setAddress(sub);
               if (1)
               {
-                boost::iostreams::stream<MessageOStream> mos(msg);
+                boost::iostreams::stream < MessageOStream > mos(msg);
                 request->SerializeToOstream(&mos);
               }
               eventMsgServer->SendMsg(msg, SAFplusI::EVENT_MSG_TYPE);
@@ -876,9 +834,7 @@ void EventServer::eventPublishHandleRpc(const eventPublishRequest *request)
       }
     }
     localChannelListLock.unlock();
-    throw SAFplus::Error(Error::ErrorFamily::SAFPLUS_ERROR, Error::DOES_NOT_EXIST, "Channel doesn't exist",
-    __FILE__,
-    __LINE__);
+    throw SAFplus::Error(Error::ErrorFamily::SAFPLUS_ERROR, Error::DOES_NOT_EXIST, "Channel doesn't exist", __FILE__, __LINE__);
 
   }
   if (EventChannelScope(request->scope()) == EventChannelScope::EVENT_GLOBAL_CHANNEL)
@@ -909,7 +865,7 @@ void EventServer::eventPublishHandleRpc(const eventPublishRequest *request)
                 msg->setAddress(sub);
                 if (1)
                 {
-                  boost::iostreams::stream<MessageOStream> mos(msg);
+                  boost::iostreams::stream < MessageOStream > mos(msg);
                   request->SerializeToOstream(&mos);
                 }
                 eventMsgServer->SendMsg(msg, SAFplusI::EVENT_MSG_TYPE);
@@ -928,18 +884,13 @@ void EventServer::eventPublishHandleRpc(const eventPublishRequest *request)
     {
       logDebug("EVT", "MSG", "Global event request ... Ignore");
       globalChannelListLock.unlock();
-      throw SAFplus::Error(Error::ErrorFamily::SAFPLUS_ERROR, Error::NOT_IMPLEMENTED, "Cannot process global request",
-      __FILE__,
-      __LINE__);
+      throw SAFplus::Error(Error::ErrorFamily::SAFPLUS_ERROR, Error::NOT_IMPLEMENTED, "Cannot process global request", __FILE__, __LINE__);
       return;
     }
     globalChannelListLock.unlock();
-    throw SAFplus::Error(Error::ErrorFamily::SAFPLUS_ERROR, Error::DOES_NOT_EXIST, "Channel doesn't exist",
-    __FILE__,
-    __LINE__);
+    throw SAFplus::Error(Error::ErrorFamily::SAFPLUS_ERROR, Error::DOES_NOT_EXIST, "Channel doesn't exist", __FILE__, __LINE__);
   }
   // channel not exist
 
 }
-
 
