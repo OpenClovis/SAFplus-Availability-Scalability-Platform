@@ -59,6 +59,7 @@ void EventServer::wake(int amt, void* cookie)
 bool EventServer::eventloadchannelFromCheckpoint()
 {
   logInfo("EVT", "DUMP","eventloadchannelFromCheckpoint");
+  std::vector<SAFplus::Rpc::rpcEvent::eventChannelRequest> restoreRequests;
   Checkpoint::Iterator ibegin = evtCkpt.m_checkpoint.begin();
   Checkpoint::Iterator iend = evtCkpt.m_checkpoint.end();
   for (Checkpoint::Iterator iter = ibegin; iter != iend; iter++)
@@ -85,16 +86,8 @@ bool EventServer::eventloadchannelFromCheckpoint()
           }
           break;
         case EventMessageType::EVENT_CHANNEL_SUBSCRIBER:
-          if (1)
-          {
-            createChannelRpc(&request, true, true, false, false);//include create channel
-          }
-          break;
         case EventMessageType::EVENT_CHANNEL_PUBLISHER:
-          if (1)
-          {
-            createChannelRpc(&request, true, false, true, false);//include create channel
-          }
+          restoreRequests.push_back(request);
           break;
         default:
           logDebug("EVENT", "MSG", "Unknown message type ... ", request.type());
@@ -105,6 +98,35 @@ bool EventServer::eventloadchannelFromCheckpoint()
         logDebug("EVT", "MSG", "ERROR : %s , [%d]", e.errStr, e.clError);
       }
     }
+  }
+  //process the left request
+  while(!restoreRequests.empty())
+  {
+    try
+      {
+        SAFplus::Rpc::rpcEvent::eventChannelRequest request;
+        request = restoreRequests.back();
+        restoreRequests.pop_back();
+        EventMessageType msgType = EventMessageType(request.type());
+        switch (msgType)
+        {
+        case EventMessageType::EVENT_CHANNEL_SUBSCRIBER:
+          if (1)
+          {
+            createChannelRpc(&request, false, true, false, false);
+          }
+          break;
+        case EventMessageType::EVENT_CHANNEL_PUBLISHER:
+          if (1)
+          {
+            createChannelRpc(&request, false, false, true, false);
+          }
+          break;
+        }
+      } catch (SAFplus::Error& e)
+      {
+        logDebug("EVT", "MSG", "ERROR : %s , [%d]", e.errStr, e.clError);
+      }
   }
   return true;
 }
