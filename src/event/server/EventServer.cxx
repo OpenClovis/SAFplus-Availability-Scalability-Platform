@@ -82,7 +82,7 @@ bool EventServer::eventloadchannelFromCheckpoint()
         case EventMessageType::EVENT_CHANNEL_CREATE:
           if (1)
           {
-            createChannelRpc(&request, true, false, false, false);
+            createChannelRpc(&request, CREATEMASK);
           }
           break;
         case EventMessageType::EVENT_CHANNEL_SUBSCRIBER:
@@ -113,13 +113,13 @@ bool EventServer::eventloadchannelFromCheckpoint()
         case EventMessageType::EVENT_CHANNEL_SUBSCRIBER:
           if (1)
           {
-            createChannelRpc(&request, false, true, false, false);
+            createChannelRpc(&request, SUBMASK);
           }
           break;
         case EventMessageType::EVENT_CHANNEL_PUBLISHER:
           if (1)
           {
-            createChannelRpc(&request, false, false, true, false);
+            createChannelRpc(&request, PUBMASK);
           }
           break;
         }
@@ -365,7 +365,7 @@ void EventServer::eventPublishRpcMethod(const ::SAFplus::Rpc::rpcEvent::eventPub
 
 }
 
-void EventServer::createChannelRpc(const eventChannelRequest *request, const bool& isCreate, const bool& isSub, const bool& isPub, const bool& isWrite)
+void EventServer::createChannelRpc(const eventChannelRequest *request, const unsigned short& flags)
 {
   EventChannel *channel = new EventChannel();
   channel->scope = EventChannelScope(request->scope());
@@ -377,7 +377,7 @@ void EventServer::createChannelRpc(const eventChannelRequest *request, const boo
 
   if (channel->scope == EventChannelScope::EVENT_LOCAL_CHANNEL)
   {
-    if (isCreate)
+    if (flags & CREATEMASK)
     {
       if (!isLocalChannel(channel->channelName))
       {
@@ -391,7 +391,7 @@ void EventServer::createChannelRpc(const eventChannelRequest *request, const boo
       else
       {
         logDebug("EVT", "MSG", "Channel is Exist");
-        if (isSub == false && isPub == false)
+        if (!(flags & SUBMASK) && !(flags & PUBMASK))
         {
           logDebug("EVT", "MSG", "Ignore request....");
           throw SAFplus::Error(Error::ErrorFamily::SAFPLUS_ERROR, Error::EXISTS, "Channel is Exist", __FILE__, __LINE__);
@@ -405,7 +405,7 @@ void EventServer::createChannelRpc(const eventChannelRequest *request, const boo
       int cmp = compareChannel(s.channelName, channel->channelName);
       if (cmp == 0)
       {
-        if (isSub)
+        if (flags & SUBMASK)
         {
           logDebug("EVT", "MSG", "Register subscriber[%d,%d]", evtClient.getNode(), evtClient.getPort());
           EventSubscriber *sub = new EventSubscriber(evtClient, request->channelname());
@@ -419,7 +419,7 @@ void EventServer::createChannelRpc(const eventChannelRequest *request, const boo
           }
           s.subscriberRefCount += 1;
         }
-        if (isPub)
+        if (flags & PUBMASK)
         {
           logDebug("EVT", "MSG", "Register publisher[%d,%d]", evtClient.getNode(), evtClient.getPort());
           EventPublisher *pub = new EventPublisher(evtClient, request->channelname());
@@ -444,7 +444,7 @@ void EventServer::createChannelRpc(const eventChannelRequest *request, const boo
   {
     if (activeServer == severHandle)
     {
-      if (isCreate)
+      if (flags & CREATEMASK)
       {
         if (!isGlobalChannel(channel->channelName))
         {
@@ -452,14 +452,14 @@ void EventServer::createChannelRpc(const eventChannelRequest *request, const boo
           globalChannelListLock.lock();
           globalChannelList.push_back(*channel);
           logDebug("EVT", "MSG", "write request message to checkpoint with length %d", request->ByteSize());
-          if (isWrite) evtCkpt.eventCkptCheckPointChannelOpen(request);
+          if (flags & WRITEMASK) evtCkpt.eventCkptCheckPointChannelOpen(request);
           numberOfGlobalChannel += 1;
           globalChannelListLock.unlock();
         }
         else
         {
           logDebug("EVT", "MSG", "Channel is Exist");
-          if (isSub == false && isPub == false)
+          if (!(flags & SUBMASK) && !(flags & PUBMASK))
           {
             throw SAFplus::Error(Error::ErrorFamily::SAFPLUS_ERROR, Error::EXISTS, "Channel is Exist", __FILE__, __LINE__);
           }
@@ -472,7 +472,7 @@ void EventServer::createChannelRpc(const eventChannelRequest *request, const boo
         int cmp = compareChannel(s.channelName, request->channelname());
         if (cmp == 0)
         {
-          if (isSub)
+          if (flags & SUBMASK)
           {
             logDebug("EVT", "MSG", "Register subscriber[%d,%d] for global channel", evtClient.getNode(), evtClient.getPort());
             EventSubscriber *sub = new EventSubscriber(evtClient, request->channelname());
@@ -485,10 +485,10 @@ void EventServer::createChannelRpc(const eventChannelRequest *request, const boo
               throw(e);
             }
             logDebug("EVT", "MSG", "write request message to checkpoint with length %d", request->ByteSize());
-            if (isWrite) evtCkpt.eventCkptCheckPointSubscribeOrPublish(request);
+            if (flags & WRITEMASK) evtCkpt.eventCkptCheckPointSubscribeOrPublish(request);
             s.subscriberRefCount += 1;
           }
-          if (isPub)
+          if (flags & PUBMASK)
           {
             logDebug("EVT", "MSG", "Register publisher[%d,%d]", evtClient.getNode(), evtClient.getPort());
             EventPublisher *pub = new EventPublisher(evtClient, request->channelname());
@@ -501,7 +501,7 @@ void EventServer::createChannelRpc(const eventChannelRequest *request, const boo
               throw(e);
             }
             logDebug("EVT", "MSG", "write request message to checkpoint with length %d", request->ByteSize());
-            if (isWrite) evtCkpt.eventCkptCheckPointSubscribeOrPublish(request);
+            if (flags & WRITEMASK) evtCkpt.eventCkptCheckPointSubscribeOrPublish(request);
             s.publisherRefCount += 1;
           }
           globalChannelListLock.unlock();
@@ -526,7 +526,7 @@ void EventServer::eventChannelCreateHandleRpc(const eventChannelRequest *request
   logDebug("EVT", "MSG", "Channel[%s] -- handle [%" PRIx64 ":%" PRIx64 "]", request->channelname().c_str(), evtClient.id[0], evtClient.id[1]);
   try
   {
-    createChannelRpc(request, true, false, false, true);
+    createChannelRpc(request, CREATEMASK|WRITEMASK);
   } catch (SAFplus::Error& e)
   {
     throw(e);
@@ -543,7 +543,7 @@ void EventServer::eventChannelSubsHandleRpc(const eventChannelRequest *request)
   logDebug("EVT", "MSG", "Channel[%s] -- Event handle [%d,%d]", request->channelname().c_str(), evtClient.getNode(), evtClient.getPort());
   try
   {
-    createChannelRpc(request, false, true, false, true);
+    createChannelRpc(request, SUBMASK|WRITEMASK);
   } catch (SAFplus::Error& e)
   {
     throw(e);
@@ -561,7 +561,7 @@ void EventServer::eventChannelPubHandleRpc(const eventChannelRequest *request)
   logDebug("EVT", "MSG", "Channel[%s] -- Event handle [%d,%d]", request->channelname().c_str(), evtClient.getNode(), evtClient.getPort());
   try
   {
-    createChannelRpc(request, false, false, true, true);
+    createChannelRpc(request, PUBMASK|WRITEMASK);
   } catch (SAFplus::Error& e)
   {
     throw(e);

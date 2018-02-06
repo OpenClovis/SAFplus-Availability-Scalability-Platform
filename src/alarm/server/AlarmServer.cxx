@@ -278,9 +278,9 @@ void AlarmServer::processAlarmData(const AlarmData& alarmData)
         alarmTimer.pAlarmData = new AlarmData(alarmData);
         alarmTimer.pTimer = new Timer (timeOut, TIMER_ONE_SHOT, TimerContextT::TIMER_SEPARATE_CONTEXT, &AlarmServer::processAlarmDataCallBack, alarmTimer.pAlarmData);
         alarmTimer.pTimer->timerStart(); //leak pointer
-        logDebug(ALARM_SERVER, ALARMINFO, "Start Assert Timer %d ms",alarmInfo.startTimer);
         data.updateAlarmTimerInfo(key,alarmTimer);
         alarmInfo.startTimer = boost::posix_time::second_clock::local_time();
+        logDebug(ALARM_SERVER, ALARMINFO, "Start Assert Timer %ld ms",alarmInfo.startTimer);
         alarmInfo.timerType = TimerType::ASSERT;
         data.isUpdate = true;
       }

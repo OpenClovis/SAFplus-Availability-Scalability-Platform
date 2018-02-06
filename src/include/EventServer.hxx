@@ -47,6 +47,10 @@
 
 namespace SAFplus
 {
+const unsigned short WRITEMASK   = 0x1;
+const unsigned short CREATEMASK  = 0x2;
+const unsigned short SUBMASK     = 0x4;
+const unsigned short PUBMASK     = 0x8;
 
 class EventServer:public SAFplus::MsgHandler,public SAFplus::Wakeable, public SAFplus::Rpc::rpcEvent::rpcEvent
 {
@@ -91,7 +95,7 @@ public:
 	void eventChannelUnPubHandleRpc(const SAFplus::Rpc::rpcEvent::eventChannelRequest *request);
 	void eventChannelUnSubsHandleRpc(const SAFplus::Rpc::rpcEvent::eventChannelRequest *request);
 	void eventPublishHandleRpc(const SAFplus::Rpc::rpcEvent::eventPublishRequest *request);
-	void createChannelRpc(const SAFplus::Rpc::rpcEvent::eventChannelRequest *request,const bool& isCreate = true,const bool& isSub = true,const bool& isPub = true,const bool& isWrite = true);
+	void createChannelRpc(const SAFplus::Rpc::rpcEvent::eventChannelRequest *request,const unsigned short& flags);
 };
 
 } /* namespace SAFplus */
