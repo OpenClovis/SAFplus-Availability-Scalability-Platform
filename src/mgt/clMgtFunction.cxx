@@ -113,7 +113,8 @@ namespace SAFplus
     std::string request;
     if (pathSpec[0]=='{')
       {
-        if ((pathSpec[1] == 'b')||(pathSpec[1] == 'p')) // Commands a break (to gdb) or pause on the server side processing this RPC, so we'll wait forever before retrying
+        // Commands a break (to gdb) or pause on the server side processing this RPC, so we'll wait forever before retrying
+        if ((pathSpec[1] == 'b')||(pathSpec[1] == 'p')) 
           {
             retryDuration = 1000*1000*1000;
           }
@@ -295,28 +296,30 @@ namespace SAFplus
   }
 
 
-  ClRcT mgtRpc(SAFplus::Handle src,Mgt::Msg::MsgRpc::MgtRpcType mgtRpcType,const std::string& pathSpec,const std::string& request)
+  std::string mgtRpc(SAFplus::Handle src,Mgt::Msg::MsgRpc::MgtRpcType mgtRpcType,const std::string& pathSpec,const std::string& request)
   {
-    ClRcT ret = CL_OK;
+    std::string output = "";
+    MsgGeneral rxMsg;
     SAFplus::MsgReply *msgReply = mgtRpcRequest(src, Mgt::Msg::MsgMgt::CL_MGT_MSG_RPC, pathSpec, request,mgtRpcType);
     if (msgReply == NULL)
       {
-        ret = CL_ERR_IGNORE_REQUEST;
+        output = "";
       }
     else
       {
-        memcpy(&ret, msgReply->buffer, sizeof(ClRcT));
+        logDebug("MGT", "REV", "Receive message size %d", strlen(msgReply->buffer));
+        rxMsg.ParseFromArray(msgReply->buffer, strlen(msgReply->buffer));
+        output=msgReply->buffer;
       }
-    return ret;
+    return output;
   }
 
-  ClRcT mgtRpc(Mgt::Msg::MsgRpc::MgtRpcType mgtRpcType,const std::string& pathSpec, const std::string& request)
+  std::string mgtRpc(Mgt::Msg::MsgRpc::MgtRpcType mgtRpcType,const std::string& pathSpec, const std::string& request)
   {
+    std::string output = "";
     ClRcT ret = CL_OK;
-    std::vector<MgtObject*> matches;
-
+    std::vector<MgtObject*> matches,resultMatches;
     lookupObjects(pathSpec, &matches);
-
     if (matches.size())
       {
         for(std::vector<MgtObject*>::iterator i = matches.begin(); i != matches.end(); i++)
@@ -341,6 +344,9 @@ namespace SAFplus
               default:
                 break;
             }
+            std::string objxml;
+            rpc->getOutParams(&objxml);
+            output.append(objxml);
           }
       }
     else  // Object Implementer not found. Broadcast message to get data
@@ -348,16 +354,16 @@ namespace SAFplus
         Handle hdl = getMgtHandle(pathSpec, ret);
         if (ret == CL_OK && INVALID_HDL != hdl)
         {
-          ret = mgtRpc(hdl,mgtRpcType, pathSpec, request);
+          output = mgtRpc(hdl,mgtRpcType, pathSpec, request);
         }
         else
-          {
-            ret = CL_OK;
-            logError("MGT", "REV", "Route [%s] has no implementer", pathSpec.c_str());
-            throw Error(Error::SAFPLUS_ERROR,Error::DOES_NOT_EXIST,"Route has no implementer",__FILE__,__LINE__);
-          }
-      }
-    return ret;
+        {
+          ret = CL_OK;
+          logError("MGT", "REV", "Route [%s] has no implementer", pathSpec.c_str());
+          throw Error(Error::SAFPLUS_ERROR,Error::DOES_NOT_EXIST,"Route has no implementer",__FILE__,__LINE__);
+        }
+    }
+    return output;
   }
 
 
