@@ -33,13 +33,10 @@
 
 #include <string>
 #include <vector>
-
 #include <clMgtBaseCommon.hxx>
 #include "clLogApi.hxx"
 #include "clMgtObject.hxx"
 #include "MgtFactory.hxx"
-#include <boost/algorithm/string.hpp>
-#include <boost/container/map.hpp>
 
 namespace SAFplus
 {
