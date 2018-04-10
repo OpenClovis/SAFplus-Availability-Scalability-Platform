@@ -158,6 +158,8 @@ class XmlResolver:
           exit(0)
         elif sp[0] == 'alias' or sp[0] == '!alias':  # Make one command become another
           xmlterm.aliases[sp[1]] = " ".join(sp[2:])
+	elif sp[0] == 'rpc' or sp[0] == '!rpc':
+	  return
         else:
           print "Unknown command [%s]" % sp
 
