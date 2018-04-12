@@ -434,7 +434,7 @@ namespace SAFplus
     xmlChar *valstr, *namestr;
 
     char strTemp[CL_MAX_NAME_LENGTH] = { 0 };
-    string strChildData;
+    std::string strChildData;
 
     xmlTextReaderPtr reader = xmlReaderForMemory((const char*) pBuffer, buffLen, nullptr, nullptr, 0);
     if (!reader)

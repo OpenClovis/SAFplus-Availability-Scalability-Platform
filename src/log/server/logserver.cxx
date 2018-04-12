@@ -20,7 +20,6 @@ using namespace std;
 
 #include <boost/date_time/posix_time/posix_time.hpp>
 #include <boost/filesystem.hpp>
-#include <boost/container/map.hpp>
 #include <boost/lexical_cast.hpp>
 #include <clGlobals.hxx>
 #include <Replicate.hxx>

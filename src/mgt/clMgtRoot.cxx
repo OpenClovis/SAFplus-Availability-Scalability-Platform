@@ -663,22 +663,18 @@ namespace SAFplus
           {
             if(data!="")
             {
-              logDebug("MGT","RPC","Set RPC Input param");
-              rpc->setInParams((void*)data.c_str(),data.length());            
+              rpc->setInParams((void*)data.c_str(),data.length());
             }
             switch (reqMsg.rpctype())
             {
               case Mgt::Msg::MsgRpc::CL_MGT_RPC_VALIDATE:
-                logDebug("MGT","RPC","call rpc validate");
                 rcRet = rpc->validate();
                 break;
               case Mgt::Msg::MsgRpc::CL_MGT_RPC_INVOKE:
-                logDebug("MGT","RPC","call rpc invoke");
                 rcRet = rpc->invoke();
                 break;
               case Mgt::Msg::MsgRpc::CL_MGT_RPC_POSTREPLY:
-                logDebug("MGT","RPC","call rpc postReply");
-                rcRet = rpc->postReply();             
+                rcRet = rpc->postReply();
                 break;
               default:
                 break;

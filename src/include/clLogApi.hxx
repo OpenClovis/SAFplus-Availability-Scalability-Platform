@@ -1,6 +1,7 @@
 #ifndef clLogApi_hpp
 #define clLogApi_hpp
 #include <clHandleApi.hxx>
+#include <clCommon6.h>
 
 #ifdef __GNUC__
 #define CL_DEPRECATED __attribute__((__deprecated__))
@@ -103,6 +104,46 @@ typedef enum
     LOG_SEV_MAX = LOG_SEV_DEBUG9 //? The highest number but lowest in importance log severity level.
   } LogSeverity;
 
+  static const ClCharT* logSeverityStrGet(const SAFplus::LogSeverity& severity)
+  {
+    if( severity == LOG_SEV_EMERGENCY )
+        {
+            return "EMRGN";
+        }
+        else if( severity == LOG_SEV_ALERT )
+        {
+            return "ALERT";
+        }
+        else if( severity == LOG_SEV_CRITICAL )
+        {
+            return "CRITIC";
+        }
+        else if( severity == LOG_SEV_ERROR )
+        {
+            return "ERROR";
+        }
+        else if( severity == LOG_SEV_WARNING )
+        {
+            return "WARN";
+        }
+        else if( severity == LOG_SEV_NOTICE )
+        {
+            return "NOTICE";
+        }
+        else if( severity == LOG_SEV_INFO )
+        {
+            return "INFO";
+        }
+        else if( severity == LOG_SEV_DEBUG )
+        {
+            return "DEBUG";
+        }
+        else if( severity == LOG_SEV_TRACE )
+        {
+            return "TRACE";
+        }
+        return "DEBUG";
+  }
   //? Parse log severity from a string.  The string can either be one of the enums or an integer.
   LogSeverity logSeverityGet(const char *pSevValue);
 

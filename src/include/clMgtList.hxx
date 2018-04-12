@@ -54,7 +54,7 @@ namespace SAFplus
       /**
        * Store the list of entries which KEYTYPE class is the key of list
        */
-        typedef boost::container::map<KEYTYPE, MgtObject*> Map;
+        typedef std::map<KEYTYPE, MgtObject*> Map;
         Map children;
         /**
          * An internal iterator
@@ -678,7 +678,7 @@ namespace SAFplus
   class MgtList<std::string> : public MgtObject
   {
     protected:
-      typedef boost::container::map<std::string, MgtObject*> Map;
+      typedef std::map<std::string, MgtObject*> Map;
       Map children;
       /**
        * An internal iterator

@@ -30,7 +30,6 @@ static ClVersionDatabaseT gLogClntVersionDb = {
     gLogClntVersionsSupported
 };
 
-static const ClCharT* logSeverityStrGet(SAFplus::LogSeverity severity);
 
 Logger* SAFplus::logInitialize()
 {
@@ -107,46 +106,6 @@ void SAFplusI::writeToSharedMem(Handle streamHdl,LogSeverity severity, char* msg
   clientMutex.unlock();
 }
 
-static const ClCharT* logSeverityStrGet(LogSeverity severity)
-{
-  if( severity == LOG_SEV_EMERGENCY )
-    {
-        return "EMRGN";
-    }
-    else if( severity == LOG_SEV_ALERT )
-    {
-        return "ALERT";
-    }
-    else if( severity == LOG_SEV_CRITICAL )
-    {
-        return "CRITIC";
-    }
-    else if( severity == LOG_SEV_ERROR )
-    {
-        return "ERROR";
-    }
-    else if( severity == LOG_SEV_WARNING )
-    {
-        return "WARN";
-    }
-    else if( severity == LOG_SEV_NOTICE )
-    {
-        return "NOTICE";
-    }
-    else if( severity == LOG_SEV_INFO )
-    {
-        return "INFO";
-    }
-    else if( severity == LOG_SEV_DEBUG )
-    {
-        return "DEBUG";
-    }
-    else if( severity == LOG_SEV_TRACE )
-    {
-        return "TRACE";
-    }
-    return "DEBUG";
-}
 
 void SAFplus::logMsgWrite(Handle streamHdl, LogSeverity  severity, uint_t serviceId, const char *pArea, const char  *pContext, const char *pFileName, uint_t lineNum, const char *pFmtStr,...)
 {

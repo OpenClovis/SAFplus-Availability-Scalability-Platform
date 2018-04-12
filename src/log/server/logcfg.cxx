@@ -1,13 +1,12 @@
 
+#include <boost/filesystem.hpp>
+#include <string>
+#include <boost/lexical_cast.hpp>
 #include "logcfg.hxx"
 #include <clNameApi.hxx>
 #include <Replicate.hxx>
 #include <clLogIpi.hxx>
 #include <syslog.h>
-#include <boost/container/map.hpp>
-#include <boost/filesystem.hpp>
-#include <string>
-#include <boost/lexical_cast.hpp>
 
 #include <ServerConfig.hxx>
 #include <StreamConfig.hxx>
@@ -23,7 +22,7 @@ using namespace SAFplusLog;
 using namespace SAFplus;
 namespace fs = boost::filesystem;
 
-typedef boost::container::multimap<std::time_t, fs::path> file_result_set_t;
+typedef std::multimap<std::time_t, fs::path> file_result_set_t;
 
 #if 0
 LogCfg::LogCfg():MgtContainer("SAFplusLog")
@@ -86,7 +85,7 @@ int getFileIdx(std::string filePath, std::string fileName)
 void streamRotationInit(Stream* s)
 {
     file_result_set_t file_result_set;
-    string fpath = s->fileLocation.value;
+    std::string fpath = s->fileLocation.value;
     if (fpath[0] != '/')  // If the location begins with a /, it is an absolute directory.  
     { // If it is a relative directory, prepend ASP_LOGDIR
       Dbg("path [%s] is invalid. Trying to use ASP_LOGDIR or current directory\n", fpath.c_str());

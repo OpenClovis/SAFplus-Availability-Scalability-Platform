@@ -102,15 +102,15 @@ namespace SAFplus
         std::string val;
         int pt = nameSpec.find_first_of("=]");        
         std::string key = nameSpec.substr(1,pt-1);
-        if (pt != string::npos)
+        if (pt != std::string::npos)
           {
             int valst = nameSpec.find_first_of("'\"",pt);  // Find the first quote
-            if (valst != string::npos)
+            if (valst != std::string::npos)
               {
                 char term = nameSpec[valst];  // get what quote char is being used
                 valst+=1;
                 int valend = nameSpec.find(term,valst);
-                if (valend != string::npos)
+                if (valend != std::string::npos)
                   {
                     val = nameSpec.substr(valst, valend-valst);
                   }

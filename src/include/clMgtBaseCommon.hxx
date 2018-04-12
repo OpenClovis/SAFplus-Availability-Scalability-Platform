@@ -1,4 +1,5 @@
 #pragma once
+
 #ifndef CL_MGT_BASE_COMMON_H_
 #define CL_MGT_BASE_COMMON_H_
 #ifdef __cplusplus
@@ -23,10 +24,10 @@ extern "C"
 #include <boost/property_tree/ptree.hpp>
 #include <boost/algorithm/string.hpp>
 #include <boost/algorithm/string/replace.hpp>
-#include <boost/container/map.hpp>
 
 using namespace boost::property_tree;
 
+enum NCOPERATION {Create = 0,Merge,Replace,Delete};
 static std::string xml2json(std::stringstream& strXml);
 static std::string json2xmlnoheader(std::stringstream& strJson);
 static std::string json2xml(std::stringstream& strJson);
@@ -74,7 +75,6 @@ public:
   std::map<std::string, std::string> getChildNameValues(const std::string& tagName);
   int getLevel();
   void getLevel(const ptree& ppt,const int& inLevel, int& outLevel);
-  //std::string getValue(const std::string& tagName) const;
   template <class T> T getValue(const std::string& tagName) const
   {
     return pt.get <T> (tagName);
@@ -90,7 +90,49 @@ public:
     return retVec;
   }
 };
-template<typename T> static std::string path2xml(const std::string& strPath,const T& Value)
+template<typename T> static std::string path2xml(const std::string& strPath,const T& Value,const std::string& strNameSpace,const NCOPERATION& oper = NCOPERATION::Create, const bool& isEncode = true)
+{
+  std::vector<std::string> results;
+  std::stringstream ss;
+  boost::split(results, strPath, [](char c)
+      { return c == '\\';});
+  for (auto it = results.cbegin(); it != results.cend(); ++it)
+  {
+    if(std::next(it) == results.cend())
+    {
+      if(NCOPERATION::Create == oper)
+      {
+        ss<<"<"<<*it<<" operation=\"create\""<<">";
+      } else
+      {
+        ss<<"<"<<*it<<" operation=\"delete\""<<">";
+      }
+    }else if(it == results.cbegin())
+    {
+        ss<<"<"<<*it<<" "<<strNameSpace<<">";
+    }
+    else
+    {
+      ss<<"<"<<*it<<">";
+    }
+
+  }
+  if(isEncode && (strcmp(typeid(T).name(),"string") == 0))
+  {
+    std::stringstream ssvalue;
+    ssvalue<<Value;
+    ss<<encodexml(ssvalue.str());//put value
+  } else
+  {
+    ss <<Value;
+  }
+  for (auto it = results.rbegin(); it != results.rend();it++ )
+  {
+    ss<<"</"<<*it<<">";
+  }
+  return ss.str();
+}
+template<typename T> static std::string path2xml(const std::string& strPath,const T& Value, const bool& isEncode = true)
 {
   std::vector<std::string> results;
   std::stringstream ss;
@@ -100,7 +142,7 @@ template<typename T> static std::string path2xml(const std::string& strPath,cons
   {
     ss<<"<"<<*it<<">";
   }
-  if(strcmp(typeid(T).name(),"string") == 0)
+  if(isEncode && (strcmp(typeid(T).name(),"string") == 0))
   {
     std::stringstream ssvalue;
     ssvalue<<Value;
