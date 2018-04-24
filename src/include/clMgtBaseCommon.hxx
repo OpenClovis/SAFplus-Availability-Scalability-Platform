@@ -94,28 +94,30 @@ template<typename T> static std::string path2xml(const std::string& strPath,cons
 {
   std::vector<std::string> results;
   std::stringstream ss;
-  boost::split(results, strPath, [](char c)
-      { return c == '\\';});
-  for (auto it = results.cbegin(); it != results.cend(); ++it)
+  if(strPath.length() > 0)
   {
-    if(std::next(it) == results.cend())
+    boost::split(results, strPath, [](char c)
+        { return c == '\\';});
+    for (auto it = results.cbegin(); it != results.cend(); ++it)
     {
-      if(NCOPERATION::Create == oper)
+      if(std::next(it) == results.cend())
       {
-        ss<<"<"<<*it<<" operation=\"create\""<<">";
-      } else
+        if(NCOPERATION::Create == oper)
+        {
+          ss<<"<"<<*it<<" operation=\"create\""<<">";
+        } else
+        {
+          ss<<"<"<<*it<<" operation=\"delete\""<<">";
+        }
+      } else if(it == results.cbegin())
       {
-        ss<<"<"<<*it<<" operation=\"delete\""<<">";
-      }
-    }else if(it == results.cbegin())
-    {
         ss<<"<"<<*it<<" "<<strNameSpace<<">";
+      }
+      else
+      {
+        ss<<"<"<<*it<<">";
+      }
     }
-    else
-    {
-      ss<<"<"<<*it<<">";
-    }
-
   }
   if(isEncode && (strcmp(typeid(T).name(),"string") == 0))
   {

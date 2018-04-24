@@ -780,18 +780,18 @@ namespace SAFplus
   void MgtRoot::MgtMessageHandler::msgHandler(SAFplus::Handle from, SAFplus::MsgServer* svr, ClPtrT msg, ClWordT msglen, ClPtrT cookie)
   {
     //Check message is rpc ???
-    logDebug("MGT","DEL","receive new  message ");
+    logDebug("MGT","MSG","receive new  message ");
     Mgt::Msg::MsgMgt mgtMsgReq;
     Mgt::Msg::MsgRpc mgtRpcReq;
     if(mgtRpcReq.ParseFromArray(msg, msglen))
     {
-      logDebug("MGT","DEL","process RPC message");
+      logDebug("MGT","MSG","process RPC message");
       mRoot->clMgtMsgRPCHandler(from,mgtRpcReq);
     }
     else
     {
       mgtMsgReq.ParseFromArray(msg, msglen);
-      logDebug("MGT","DEL","process MGT message [%d]",mgtMsgReq.type());
+      logDebug("MGT","MSG","process MGT message [%d]",mgtMsgReq.type());
       switch(mgtMsgReq.type())
       {
         case Mgt::Msg::MsgMgt::CL_MGT_MSG_XGET:

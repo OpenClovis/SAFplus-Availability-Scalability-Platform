@@ -143,14 +143,15 @@ std::map<std::string, std::string> xmlParser::getChildNameValues(const std::stri
   try
   {
     ptree noderoot = pt.get_child(tagName);
-    BOOST_FOREACH(ptree::value_type &vs,noderoot){
-    retMap.insert(std::pair<std::string, std::string>(vs.first,vs.second.data()));
+    BOOST_FOREACH(ptree::value_type &vs,noderoot)
+    {
+      retMap.insert(std::pair<std::string, std::string>(vs.first,vs.second.data()));
+    }
   }
-}
-catch(...)
-{
-  return retMap;
-}
+  catch(...)
+  {
+    return retMap;
+  }
   return retMap;
 }
 int xmlParser::getLevel()
