@@ -248,7 +248,15 @@ template<typename T> static std::string path2xml(const std::string& strPath,cons
       }
     }
   }
-  ss<<Value;
+  if(isEncode && (strcmp(typeid(T).name(),"string") == 0))
+  {
+    std::stringstream ssvalue;
+    ssvalue<<Value;
+    ss<<encodexml(ssvalue.str());//put value
+  } else
+  {
+    ss <<Value;
+  }
   for (auto it = results.rbegin(); it != results.rend();it++ )
   {
     ss<<"</"<<*it<<">";
@@ -271,10 +279,18 @@ template<typename T> static std::string path2xml(const std::string& strPath, con
   {
     ss<<"<"<<*it<<">";
   }
-  ss<<Value;
+  if(isEncode && (strcmp(typeid(T).name(),"string") == 0))
+  {
+     std::stringstream ssvalue;
+     ssvalue<<Value;
+     ss<<encodexml(ssvalue.str());//put value
+  } else
+  {
+     ss <<Value;
+  }
   for (auto it = results.rbegin(); it != results.rend(); it++)
   {
-    ss<<"</"<<*it<<">";
+     ss<<"</"<<*it<<">";
   }
   return ss.str();
 }
