@@ -2,6 +2,10 @@ import pdb, sys, traceback,re
 import types
 from xml.sax.saxutils import escape,unescape
 import xml.etree.ElementTree as ET
+#thai
+import clicompletion
+#import netconfaccess
+
 try:
   import readline
 except:
@@ -23,9 +27,10 @@ class CmdLine:
   def setPrompt(self):
     self.resolver.path = self.resolver.curdir.split("/")
     
-  def input(self):
+  def input(self,resolve, address ):
     self.prompt = self.resolver.curdir + "> "
-    return raw_input(self.prompt)
+    clicompletion.main(resolve, address)
+    #return raw_input(self.prompt)
 
 class Doc:
   def __init__(self,resolver):
