@@ -11,12 +11,11 @@ sys.path.append(os.path.abspath(os.path.join(basedir, '..', 'lib', '3rdparty')))
 DropToDebugger = True
 access = None
 CliName = ''
-address = ''
+
 # We have to parse the args before main, because the args will determine what modules are imported
 parser = argparse.ArgumentParser()
 parser.add_argument("-l", "--local", action="store_true", help=('Force local access mode'))
 parser.add_argument("-nw", "--nw", action="store_true", help=('No window -- do not start a separate window'))
-parser.add_argument("-a", "--addr", action="store", dest = 'address', help=('tab-completion server address'))
 args = parser.parse_args()
 
 access = None
@@ -38,14 +37,6 @@ if access is None:
     print e
     pass
 
-address = args.address
-#print 'address = ', address
-try:
-  import socket
-  socket.inet_aton(address)
-except socket.error:
-  print e
-  sys.exit(2)
 
 # assert (AVAILABLE_SERVICES['localaccess'] == 1 or AVAILABLE_SERVICES['netconfaccess'] == 1)
 
@@ -936,10 +927,10 @@ def main(argLst):
     resolver.tags["helpCmd"] = nowinhelpCmdHandler
     resolver.addCmds(cmds)
     resolver.addCmds(RunScript(resolver))
-    
-    while 1:
-      cmd = resolver.cmdLine.input(resolver, address)
-      #resolver.execute(cmd,resolver)
+
+    while 1:      
+      cmd = resolver.cmdLine.input()
+      resolver.execute(cmd,resolver)
   access.Finalize()
 
 
