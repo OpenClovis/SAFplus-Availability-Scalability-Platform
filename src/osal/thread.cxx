@@ -328,7 +328,7 @@ enum
   
   void ProcGate::init(unsigned int key, int initialValue)
     {
-    locked = false;
+    //locked = false;
     if (initialValue != 0) initialValue = 1;  // Make it boolean
     uint_t retry;
     uint_t flags = 0666;
@@ -387,7 +387,7 @@ enum
     void ProcGate::wake(int amt,void* cookie) { open(); }
     void ProcGate::lock(int amt)   // This is not exclusive -- multiple entities can hold the lock at the same time.
       {
-        assert(!locked);  // A recursive lock when the gate closes between lock calls will deadlock
+        //assert(!locked);  // A recursive lock when the gate closes between lock calls will deadlock
       // Block until the gate is open (= zero), then this lock will increment the semaphore
       struct sembuf sembuf[] = {{GateSem, 0,SEM_NO_FLAG},{LockSem, (short int)(1*amt),SEM_UNDO }};  // semadj -= amt
       int error;
@@ -400,11 +400,11 @@ enum
           int err = errno;
           assert(errno);  // Sem does not exist, or you don't have permissions.  Did you remember to initialize the service?
         }
-      locked=true;
+      //locked=true;
       }
   void ProcGate::unlock(int amt)
       {
-        assert(locked);
+        //assert(locked);
         struct sembuf sembuf = {LockSem, (short int)(-1*amt),SEM_UNDO };  // semadj += amt: "undo"ing this operation actually undoes the lock() resulting in a zero adjustment if the process then fails.
       int err;
       do
@@ -416,7 +416,7 @@ enum
           int err = errno;
           assert(err<0);
         }
-      locked=false;
+      //locked=false;
       }
 
     bool ProcGate::try_lock(int amt)

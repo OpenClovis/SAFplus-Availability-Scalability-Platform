@@ -57,7 +57,7 @@ namespace SAFplus
   {
   protected:
     int semId;
-    bool locked;
+    //bool locked;
   public:
     //? <ctor> Default constructor, constructs an invalid ProcGate.  You must call <ref>init()</ref></ctor>
     ProcGate() { semId = -1; }
