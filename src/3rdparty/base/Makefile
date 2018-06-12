@@ -373,6 +373,6 @@ else
 endif
 
 $(BOOST_PKG):
-	wget http://sourceforge.net/projects/boost/files/$(BOOST)/$(BOOST_VER)/$(BOOST_PKG)
+	wget --no-check-certificate http://sourceforge.net/projects/boost/files/$(BOOST)/$(BOOST_VER)/$(BOOST_PKG)
 
 
