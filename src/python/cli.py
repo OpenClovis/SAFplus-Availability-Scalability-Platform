@@ -5,7 +5,7 @@ import argparse
 import ConfigParser
 
 #command completion
-import utils, readline
+import clicompletion, readline
 
 basedir = os.path.split(os.path.realpath(__file__))[0]
 sys.path.append(os.path.abspath(os.path.join(basedir, '..', 'lib')))
@@ -456,9 +456,7 @@ class TermController(xmlterm.XmlResolver):
 
   def completion(self,text, state):
     """Return the best command line completion candidate, given that the user already typed the string s""" 
-    return utils.processCompletion(text, state, readline.get_line_buffer(), self.curdir)
-    
-      
+    return clicompletion.processCompletion(text, state, readline.get_line_buffer(), self.curdir)
 
   def getHelp(self,command=None):
     ret = []
