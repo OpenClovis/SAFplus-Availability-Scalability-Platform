@@ -7,7 +7,7 @@ try:
 except:
   pass
 
-DropToDebugger=True
+DropToDebugger=False
 
 def FancyText(unused,string,size=0,fore=0, back=0):
   return string
