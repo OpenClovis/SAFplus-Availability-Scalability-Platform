@@ -4,6 +4,9 @@ import traceback,pdb
 import argparse
 import ConfigParser
 
+#command completion
+import clicompletion, readline
+
 basedir = os.path.split(os.path.realpath(__file__))[0]
 sys.path.append(os.path.abspath(os.path.join(basedir, '..', 'lib')))
 sys.path.append(os.path.abspath(os.path.join(basedir, '..', 'lib', '3rdparty')))
@@ -451,16 +454,9 @@ class TermController(xmlterm.XmlResolver):
     """Clone this controller for sub-documents"""
     return TermController()
 
-  def completion(self,s):
-    """Return the best command line completion candidate, given that the user already typed the string s"""
-    if not s:
-      return ""
-    cmds=["!time ", "!echo ", "alias ", "!alias ", "!name","cd","get" ]
-    for c in cmds:
-      if c.startswith(s):
-        print "complete", c
-        return c[len(s):]
-    return ""
+  def completion(self,text, state):
+    """Return the best command line completion candidate, given that the user already typed the string s""" 
+    return clicompletion.processCompletion(text, state, readline.get_line_buffer(), self.curdir)
 
   def getHelp(self,command=None):
     ret = []

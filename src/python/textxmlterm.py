@@ -25,6 +25,9 @@ class CmdLine:
     
   def input(self):
     self.prompt = self.resolver.curdir + "> "
+    readline.parse_and_bind("tab:complete")
+    readline.set_completer_delims("")
+    readline.set_completer(self.resolver.completion)
     return raw_input(self.prompt)
 
 class Doc:
