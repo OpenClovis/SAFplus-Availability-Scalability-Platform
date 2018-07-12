@@ -456,7 +456,7 @@ class TermController(xmlterm.XmlResolver):
 
   def completion(self,text, state):
     """Return the best command line completion candidate, given that the user already typed the string s""" 
-    return clicompletion.processCompletion(text, state, readline.get_line_buffer(), self.curdir)
+    return clicompletion.process_completion(text, state, readline.get_line_buffer(), self.curdir)
 
   def getHelp(self,command=None):
     ret = []
