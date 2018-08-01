@@ -1008,7 +1008,7 @@ def determine_os():
                 fh = open('/etc/debian_version')
                 fdata = fh.read().lower()
                 fh.close()
-                if 'stretch' in fdata: return Debian9()
+                if 'stretch' in fdata or '9.' in fdata: return Debian9()
                 if '8.' in fdata: return Debian8()
                 if cmp_version(fdata, "7.0") >= 0:
                     print "For Debian OS 7"
