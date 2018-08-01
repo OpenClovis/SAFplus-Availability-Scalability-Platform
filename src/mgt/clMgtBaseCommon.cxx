@@ -84,10 +84,16 @@ ptree xmlParser::getNode(const std::string& tagName)
 
 std::string xmlParser::getXMLChild(const std::string& tagName)
 {
-  ptree noderoot = pt.get_child(tagName);
-  std::stringstream ss;
-  write_xml_element(ss, ptree::key_type(), noderoot, -1, xml_writer_settings<ptree::key_type>());
-  return ss.str();
+  try
+  {
+    ptree noderoot = pt.get_child(tagName);
+    std::stringstream ss;
+    write_xml_element(ss, ptree::key_type(), noderoot, -1, xml_writer_settings<ptree::key_type>());
+    return ss.str();
+  }catch(...)
+  {
+    return "";
+  }
 }
 std::vector<std::string> xmlParser::getChildNames(const std::string& tagName)
 {

@@ -147,6 +147,7 @@ public:
     void clMgtMsgCreateHandler(SAFplus::Handle srcAddr, Mgt::Msg::MsgMgt& mgtMsgReq);
     void clMgtMsgDeleteHandler(SAFplus::Handle srcAddr, Mgt::Msg::MsgMgt& mgtMsgReq);
     void clMgtMsgRPCHandler(SAFplus::Handle srcAddr, Mgt::Msg::MsgRpc& reqMsg);
+    void clMgtMsgActionHandler(SAFplus::Handle srcAddr, Mgt::Msg::MsgRpc& reqMsg);
     void clMgtMsgRestGetHandler(SAFplus::Handle srcAddr, Mgt::Msg::MsgMgt& reqMsg);
     void clMgtMsgRestDeleteHandler(SAFplus::Handle srcAddr, Mgt::Msg::MsgMgt& reqMsg);
     void clMgtMsgRestPutHandler(SAFplus::Handle srcAddr, Mgt::Msg::MsgMgt& reqMsg);

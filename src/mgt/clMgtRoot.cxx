@@ -98,7 +98,7 @@ namespace SAFplus
 
   void MgtRoot::registerRpc(Handle handle,MgtRpc* obj)
   {
-    addChildObject(obj,obj->tag);
+    addChildObject(obj, obj->tag);
     std::string path = obj->getFullXpath();
     try
     {
@@ -707,10 +707,79 @@ namespace SAFplus
         }
       }
     }
-    //logDebug("MGT","SET","Object [%s] rpc complete [0x%x]", path.c_str(),rcRet);
-    //MgtRoot::sendReplyMsg(srcAddr,(void *)&rcRet,sizeof(ClRcT));
   }
+  void MgtRoot::clMgtMsgActionHandler(SAFplus::Handle srcAddr, Mgt::Msg::MsgRpc& reqMsg)
+  {
+    std::vector<MgtObject*> matches;
+    std::string path, cmds;
+    std::string attrs = "";
+    ClRcT rcRet = CL_OK;
+    std::string data = reqMsg.data();
+    std::string strObjectPath = reqMsg.objectpath();
+    path = reqMsg.bind();
+    //Todo Remove this hard code
+    if (path[0] == '/')
+    {
+      resolvePath(path.c_str() + 1, &matches);
+      if (matches.size())
+      {
+        for (std::vector<MgtObject*>::iterator i = matches.begin(); i != matches.end(); i++)
+        {
+          MgtAction *rpc = dynamic_cast<MgtAction*> (*i);
+          if (rpc)
+          {
+            if(data!="")
+            {
+              rpc->setInParams((void*)data.c_str(),data.length());
+            }
+            if(strObjectPath!="")
+            {
+              rpc->setObjectPath(strObjectPath);
+            }
+            switch (reqMsg.rpctype())
+            {
+              case Mgt::Msg::MsgRpc::CL_MGT_RPC_VALIDATE:
+                rcRet = rpc->validate();
+                break;
+              case Mgt::Msg::MsgRpc::CL_MGT_RPC_INVOKE:
+                rcRet = rpc->invoke();
+                break;
+              case Mgt::Msg::MsgRpc::CL_MGT_RPC_POSTREPLY:
+                rcRet = rpc->postReply();
+                break;
+              default:
+                break;
+            }
+            if (rcRet==CL_OK)
+            {
+              std::string output="";
+              std::string objxml;
+              rpc->getOutParams(&objxml);
+              output.append(objxml);
+              MgtRoot::sendReplyMsg(srcAddr, (void *) output.c_str(), output.size());
+              logDebug("MGT", "REV", "Return value is [%s] , size [%d]", output.c_str(),output.size());
+              return;
+            }
+            else
+            {
+              std::string output="false";
 
+              MgtRoot::sendReplyMsg(srcAddr, (void *) output.c_str(), output.size());
+              logDebug("MGT", "REV", "Return value is [%s] , size [%d]", output.c_str(),output.size());
+              return;
+            }
+          }
+          else
+          {
+              std::string output="false";
+              MgtRoot::sendReplyMsg(srcAddr, (void *) output.c_str(), output.size());
+              logDebug("MGT", "REV", "Return value is [%s] , size [%d] ", output.c_str(),output.size());
+              return;
+          }
+        }
+      }
+    }
+  }
   void MgtRoot::clMgtMsgDeleteHandler(SAFplus::Handle srcAddr, Mgt::Msg::MsgMgt& reqMsg)
   {
     ClRcT rc = CL_OK;
@@ -785,8 +854,16 @@ namespace SAFplus
     Mgt::Msg::MsgRpc mgtRpcReq;
     if(mgtRpcReq.ParseFromArray(msg, msglen))
     {
-      logDebug("MGT","MSG","process RPC message");
-      mRoot->clMgtMsgRPCHandler(from,mgtRpcReq);
+      if(mgtRpcReq.isrpc())
+      {
+         logDebug("MGT","MSG","process RPC message");
+         mRoot->clMgtMsgRPCHandler(from,mgtRpcReq);
+      }
+      else
+      {
+         logDebug("MGT","MSG","process Action message");
+         mRoot->clMgtMsgActionHandler(from,mgtRpcReq);
+      }
     }
     else
     {

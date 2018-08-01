@@ -106,7 +106,7 @@ namespace SAFplus
 
   }
 
-  SAFplus::MsgReply *mgtRpcRequest(SAFplus::Handle src, MsgMgt_MgtMsgType reqType, const std::string& pathSpec, const std::string& value = "", Mgt::Msg::MsgRpc::MgtRpcType rpcType=Mgt::Msg::MsgRpc::CL_MGT_RPC_VALIDATE)
+  SAFplus::MsgReply *mgtRpcRequest(SAFplus::Handle src, MsgMgt_MgtMsgType reqType, const std::string& pathSpec, const std::string& value = "", Mgt::Msg::MsgRpc::MgtRpcType rpcType=Mgt::Msg::MsgRpc::CL_MGT_RPC_VALIDATE,const std::string& objectPath="")
   {
     SAFplus::MsgReply *msgReply = NULL;
     uint retryDuration = SAFplusI::MsgSafplusSendReplyRetryInterval;
@@ -121,12 +121,22 @@ namespace SAFplus
       }
     MsgMgt mgtMsgReq;
     MsgRpc rpcMsgReq;
-    if(reqType==Mgt::Msg::MsgMgt::CL_MGT_MSG_RPC)
+    if(reqType==Mgt::Msg::MsgMgt::CL_MGT_MSG_RPC||reqType==Mgt::Msg::MsgMgt::CL_MGT_MSG_ACTION)
     {
         std::string data = value;
         rpcMsgReq.set_rpctype(rpcType);
         rpcMsgReq.set_data(data);
         rpcMsgReq.set_bind(pathSpec);
+        if(reqType==Mgt::Msg::MsgMgt::CL_MGT_MSG_ACTION)
+        {
+          rpcMsgReq.set_isrpc(false);
+          rpcMsgReq.set_objectpath(objectPath);
+        }
+        else
+        {
+          rpcMsgReq.set_isrpc(true);
+        }
+        logDebug("MGT", "REV", "send RPC requestType[%d] path[%s] value[%s]", reqType, pathSpec.c_str(), value.c_str());
         rpcMsgReq.SerializeToString(&request);
     }
     else
@@ -300,7 +310,7 @@ namespace SAFplus
   {
     std::string output = "";
     MsgGeneral rxMsg;
-    SAFplus::MsgReply *msgReply = mgtRpcRequest(src, Mgt::Msg::MsgMgt::CL_MGT_MSG_RPC, pathSpec, request,mgtRpcType);
+    SAFplus::MsgReply *msgReply = mgtRpcRequest(src, Mgt::Msg::MsgMgt::CL_MGT_MSG_RPC, pathSpec, request, mgtRpcType);
     if (msgReply == NULL)
       {
         output = "";
@@ -366,6 +376,75 @@ namespace SAFplus
     return output;
   }
 
+  std::string mgtAction(SAFplus::Handle src,Mgt::Msg::MsgRpc::MgtRpcType mgtRpcType,const std::string& pathSpec,const std::string& request,const std::string& objectPath)
+  {
+    std::string output = "";
+    MsgGeneral rxMsg;
+    SAFplus::MsgReply *msgReply = mgtRpcRequest(src, Mgt::Msg::MsgMgt::CL_MGT_MSG_ACTION, pathSpec, request, mgtRpcType, objectPath);
+    if (msgReply == NULL)
+      {
+        output = "";
+      }
+    else
+      {
+        logDebug("MGT", "REV", "Receive message size %d", strlen(msgReply->buffer));
+        rxMsg.ParseFromArray(msgReply->buffer, strlen(msgReply->buffer));
+        output=msgReply->buffer;
+      }
+    return output;
+  }
+
+  std::string mgtAction(Mgt::Msg::MsgRpc::MgtRpcType mgtRpcType,const std::string& pathSpec, const std::string& request,const std::string& objectPath)
+  {
+    std::string output = "";
+    ClRcT ret = CL_OK;
+    std::vector<MgtObject*> matches,resultMatches;
+    lookupObjects(pathSpec, &matches);
+    if (matches.size())
+      {
+        for(std::vector<MgtObject*>::iterator i = matches.begin(); i != matches.end(); i++)
+          {
+            MgtRpc *rpc = dynamic_cast<MgtAction*> (*i);
+            if(request!="")
+            {
+              logDebug("MGT","ACTION","set action input parameter");
+              rpc->setInParams((void*)request.c_str(),request.length());
+            }
+            switch (mgtRpcType)
+            {
+              case Mgt::Msg::MsgRpc::CL_MGT_RPC_VALIDATE:
+                ret = rpc->validate();
+                break;
+              case Mgt::Msg::MsgRpc::CL_MGT_RPC_INVOKE:
+                ret = rpc->invoke();
+                break;
+              case Mgt::Msg::MsgRpc::CL_MGT_RPC_POSTREPLY:
+                ret = rpc->postReply();
+                break;
+              default:
+                break;
+            }
+            std::string objxml;
+            rpc->getOutParams(&objxml);
+            output.append(objxml);
+          }
+      }
+    else  // Object Implementer not found. Broadcast message to get data
+      {
+        Handle hdl = getMgtHandle(pathSpec, ret);
+        if (ret == CL_OK && INVALID_HDL != hdl)
+        {
+          output = mgtAction(hdl,mgtRpcType, pathSpec, request, objectPath);
+        }
+        else
+        {
+          ret = CL_OK;
+          logError("MGT", "REV", "Route [%s] has no implementer", pathSpec.c_str());
+          throw Error(Error::SAFPLUS_ERROR,Error::DOES_NOT_EXIST,"Route has no implementer",__FILE__,__LINE__);
+        }
+    }
+    return output;
+  }
 
   ClRcT mgtCreate(SAFplus::Handle src, const std::string& pathSpec)
   {

@@ -28,9 +28,11 @@ message MsgRpc
     CL_MGT_RPC_INVOKE = 2;
     CL_MGT_RPC_POSTREPLY = 3;
   }
-  required MgtRpcType rpctype = 1;
-  optional string data = 2;
-  required bytes bind = 3;
+  required bool isrpc = 1 [default = true];
+  required MgtRpcType rpctype = 2;
+  optional string data = 3;
+  required bytes bind = 4;
+  optional bytes objectpath = 5;
 }
 
 message MsgSetGet 
@@ -58,11 +60,12 @@ message MsgMgt
     CL_MGT_MSG_XSET = 9;
     CL_MGT_MSG_CREATE = 10;
     CL_MGT_MSG_DELETE = 11;
-    CL_MGT_MSG_REST_POST = 12,
-    CL_MGT_MSG_REST_PUT = 13,
-    CL_MGT_MSG_REST_DELETE = 14,
-    CL_MGT_MSG_REST_PATCH = 15,
-    CL_MGT_MSG_REST_GET = 16
+    CL_MGT_MSG_REST_POST = 12;
+    CL_MGT_MSG_REST_PUT = 13;
+    CL_MGT_MSG_REST_DELETE = 14;
+    CL_MGT_MSG_REST_PATCH = 15;
+    CL_MGT_MSG_REST_GET = 16;
+    CL_MGT_MSG_ACTION = 17;
   }
   required MgtMsgType type = 1; //internal using
   required bytes bind = 2;

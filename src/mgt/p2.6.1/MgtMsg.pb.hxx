@@ -80,12 +80,12 @@ enum MsgMgt_MgtMsgType {
   MsgMgt_MgtMsgType_CL_MGT_MSG_REST_PUT = 13,
   MsgMgt_MgtMsgType_CL_MGT_MSG_REST_DELETE = 14,
   MsgMgt_MgtMsgType_CL_MGT_MSG_REST_PATCH = 15,
-  MsgMgt_MgtMsgType_CL_MGT_MSG_REST_GET = 16
-
+  MsgMgt_MgtMsgType_CL_MGT_MSG_REST_GET = 16,
+  MsgMgt_MgtMsgType_CL_MGT_MSG_ACTION = 17
 };
 bool MsgMgt_MgtMsgType_IsValid(int value);
 const MsgMgt_MgtMsgType MsgMgt_MgtMsgType_MgtMsgType_MIN = MsgMgt_MgtMsgType_CL_MGT_MSG_UNUSED;
-const MsgMgt_MgtMsgType MsgMgt_MgtMsgType_MgtMsgType_MAX = MsgMgt_MgtMsgType_CL_MGT_MSG_DELETE;
+const MsgMgt_MgtMsgType MsgMgt_MgtMsgType_MgtMsgType_MAX = MsgMgt_MgtMsgType_CL_MGT_MSG_ACTION;
 const int MsgMgt_MgtMsgType_MgtMsgType_ARRAYSIZE = MsgMgt_MgtMsgType_MgtMsgType_MAX + 1;
 
 const ::google::protobuf::EnumDescriptor* MsgMgt_MgtMsgType_descriptor();
@@ -378,17 +378,24 @@ class MsgRpc : public ::google::protobuf::Message {
 
   // accessors -------------------------------------------------------
 
-  // required .Mgt.Msg.MsgRpc.MgtRpcType rpctype = 1;
+  // required bool isrpc = 1 [default = true];
+  inline bool has_isrpc() const;
+  inline void clear_isrpc();
+  static const int kIsrpcFieldNumber = 1;
+  inline bool isrpc() const;
+  inline void set_isrpc(bool value);
+
+  // required .Mgt.Msg.MsgRpc.MgtRpcType rpctype = 2;
   inline bool has_rpctype() const;
   inline void clear_rpctype();
-  static const int kRpctypeFieldNumber = 1;
+  static const int kRpctypeFieldNumber = 2;
   inline ::Mgt::Msg::MsgRpc_MgtRpcType rpctype() const;
   inline void set_rpctype(::Mgt::Msg::MsgRpc_MgtRpcType value);
 
-  // optional string data = 2;
+  // optional string data = 3;
   inline bool has_data() const;
   inline void clear_data();
-  static const int kDataFieldNumber = 2;
+  static const int kDataFieldNumber = 3;
   inline const ::std::string& data() const;
   inline void set_data(const ::std::string& value);
   inline void set_data(const char* value);
@@ -397,10 +404,10 @@ class MsgRpc : public ::google::protobuf::Message {
   inline ::std::string* release_data();
   inline void set_allocated_data(::std::string* data);
 
-  // required bytes bind = 3;
+  // required bytes bind = 4;
   inline bool has_bind() const;
   inline void clear_bind();
-  static const int kBindFieldNumber = 3;
+  static const int kBindFieldNumber = 4;
   inline const ::std::string& bind() const;
   inline void set_bind(const ::std::string& value);
   inline void set_bind(const char* value);
@@ -409,22 +416,40 @@ class MsgRpc : public ::google::protobuf::Message {
   inline ::std::string* release_bind();
   inline void set_allocated_bind(::std::string* bind);
 
+  // optional bytes objectpath = 5;
+  inline bool has_objectpath() const;
+  inline void clear_objectpath();
+  static const int kObjectpathFieldNumber = 5;
+  inline const ::std::string& objectpath() const;
+  inline void set_objectpath(const ::std::string& value);
+  inline void set_objectpath(const char* value);
+  inline void set_objectpath(const void* value, size_t size);
+  inline ::std::string* mutable_objectpath();
+  inline ::std::string* release_objectpath();
+  inline void set_allocated_objectpath(::std::string* objectpath);
+
   // @@protoc_insertion_point(class_scope:Mgt.Msg.MsgRpc)
  private:
+  inline void set_has_isrpc();
+  inline void clear_has_isrpc();
   inline void set_has_rpctype();
   inline void clear_has_rpctype();
   inline void set_has_data();
   inline void clear_has_data();
   inline void set_has_bind();
   inline void clear_has_bind();
+  inline void set_has_objectpath();
+  inline void clear_has_objectpath();
 
   ::google::protobuf::UnknownFieldSet _unknown_fields_;
 
   ::google::protobuf::uint32 _has_bits_[1];
   mutable int _cached_size_;
+  bool isrpc_;
+  int rpctype_;
   ::std::string* data_;
   ::std::string* bind_;
-  int rpctype_;
+  ::std::string* objectpath_;
   friend void  protobuf_AddDesc_MgtMsg_2eproto();
   friend void protobuf_AssignDesc_MgtMsg_2eproto();
   friend void protobuf_ShutdownFile_MgtMsg_2eproto();
@@ -673,6 +698,7 @@ class MsgMgt : public ::google::protobuf::Message {
   static const MgtMsgType CL_MGT_MSG_REST_DELETE = MsgMgt_MgtMsgType_CL_MGT_MSG_REST_DELETE;
   static const MgtMsgType CL_MGT_MSG_REST_PATCH = MsgMgt_MgtMsgType_CL_MGT_MSG_REST_PATCH;
   static const MgtMsgType CL_MGT_MSG_REST_GET = MsgMgt_MgtMsgType_CL_MGT_MSG_REST_GET;
+  static const MgtMsgType CL_MGT_MSG_ACTION = MsgMgt_MgtMsgType_CL_MGT_MSG_ACTION;
   static inline bool MgtMsgType_IsValid(int value) {
     return MsgMgt_MgtMsgType_IsValid(value);
   }
@@ -1124,15 +1150,39 @@ inline void MsgBind::set_allocated_route(::std::string* route) {
 
 // MsgRpc
 
-// required .Mgt.Msg.MsgRpc.MgtRpcType rpctype = 1;
-inline bool MsgRpc::has_rpctype() const {
+// required bool isrpc = 1 [default = true];
+inline bool MsgRpc::has_isrpc() const {
   return (_has_bits_[0] & 0x00000001u) != 0;
 }
-inline void MsgRpc::set_has_rpctype() {
+inline void MsgRpc::set_has_isrpc() {
   _has_bits_[0] |= 0x00000001u;
 }
-inline void MsgRpc::clear_has_rpctype() {
+inline void MsgRpc::clear_has_isrpc() {
   _has_bits_[0] &= ~0x00000001u;
+}
+inline void MsgRpc::clear_isrpc() {
+  isrpc_ = true;
+  clear_has_isrpc();
+}
+inline bool MsgRpc::isrpc() const {
+  // @@protoc_insertion_point(field_get:Mgt.Msg.MsgRpc.isrpc)
+  return isrpc_;
+}
+inline void MsgRpc::set_isrpc(bool value) {
+  set_has_isrpc();
+  isrpc_ = value;
+  // @@protoc_insertion_point(field_set:Mgt.Msg.MsgRpc.isrpc)
+}
+
+// required .Mgt.Msg.MsgRpc.MgtRpcType rpctype = 2;
+inline bool MsgRpc::has_rpctype() const {
+  return (_has_bits_[0] & 0x00000002u) != 0;
+}
+inline void MsgRpc::set_has_rpctype() {
+  _has_bits_[0] |= 0x00000002u;
+}
+inline void MsgRpc::clear_has_rpctype() {
+  _has_bits_[0] &= ~0x00000002u;
 }
 inline void MsgRpc::clear_rpctype() {
   rpctype_ = 1;
@@ -1149,15 +1199,15 @@ inline void MsgRpc::set_rpctype(::Mgt::Msg::MsgRpc_MgtRpcType value) {
   // @@protoc_insertion_point(field_set:Mgt.Msg.MsgRpc.rpctype)
 }
 
-// optional string data = 2;
+// optional string data = 3;
 inline bool MsgRpc::has_data() const {
-  return (_has_bits_[0] & 0x00000002u) != 0;
+  return (_has_bits_[0] & 0x00000004u) != 0;
 }
 inline void MsgRpc::set_has_data() {
-  _has_bits_[0] |= 0x00000002u;
+  _has_bits_[0] |= 0x00000004u;
 }
 inline void MsgRpc::clear_has_data() {
-  _has_bits_[0] &= ~0x00000002u;
+  _has_bits_[0] &= ~0x00000004u;
 }
 inline void MsgRpc::clear_data() {
   if (data_ != &::google::protobuf::internal::GetEmptyStringAlreadyInited()) {
@@ -1225,15 +1275,15 @@ inline void MsgRpc::set_allocated_data(::std::string* data) {
   // @@protoc_insertion_point(field_set_allocated:Mgt.Msg.MsgRpc.data)
 }
 
-// required bytes bind = 3;
+// required bytes bind = 4;
 inline bool MsgRpc::has_bind() const {
-  return (_has_bits_[0] & 0x00000004u) != 0;
+  return (_has_bits_[0] & 0x00000008u) != 0;
 }
 inline void MsgRpc::set_has_bind() {
-  _has_bits_[0] |= 0x00000004u;
+  _has_bits_[0] |= 0x00000008u;
 }
 inline void MsgRpc::clear_has_bind() {
-  _has_bits_[0] &= ~0x00000004u;
+  _has_bits_[0] &= ~0x00000008u;
 }
 inline void MsgRpc::clear_bind() {
   if (bind_ != &::google::protobuf::internal::GetEmptyStringAlreadyInited()) {
@@ -1299,6 +1349,82 @@ inline void MsgRpc::set_allocated_bind(::std::string* bind) {
     bind_ = const_cast< ::std::string*>(&::google::protobuf::internal::GetEmptyStringAlreadyInited());
   }
   // @@protoc_insertion_point(field_set_allocated:Mgt.Msg.MsgRpc.bind)
+}
+
+// optional bytes objectpath = 5;
+inline bool MsgRpc::has_objectpath() const {
+  return (_has_bits_[0] & 0x00000010u) != 0;
+}
+inline void MsgRpc::set_has_objectpath() {
+  _has_bits_[0] |= 0x00000010u;
+}
+inline void MsgRpc::clear_has_objectpath() {
+  _has_bits_[0] &= ~0x00000010u;
+}
+inline void MsgRpc::clear_objectpath() {
+  if (objectpath_ != &::google::protobuf::internal::GetEmptyStringAlreadyInited()) {
+    objectpath_->clear();
+  }
+  clear_has_objectpath();
+}
+inline const ::std::string& MsgRpc::objectpath() const {
+  // @@protoc_insertion_point(field_get:Mgt.Msg.MsgRpc.objectpath)
+  return *objectpath_;
+}
+inline void MsgRpc::set_objectpath(const ::std::string& value) {
+  set_has_objectpath();
+  if (objectpath_ == &::google::protobuf::internal::GetEmptyStringAlreadyInited()) {
+    objectpath_ = new ::std::string;
+  }
+  objectpath_->assign(value);
+  // @@protoc_insertion_point(field_set:Mgt.Msg.MsgRpc.objectpath)
+}
+inline void MsgRpc::set_objectpath(const char* value) {
+  set_has_objectpath();
+  if (objectpath_ == &::google::protobuf::internal::GetEmptyStringAlreadyInited()) {
+    objectpath_ = new ::std::string;
+  }
+  objectpath_->assign(value);
+  // @@protoc_insertion_point(field_set_char:Mgt.Msg.MsgRpc.objectpath)
+}
+inline void MsgRpc::set_objectpath(const void* value, size_t size) {
+  set_has_objectpath();
+  if (objectpath_ == &::google::protobuf::internal::GetEmptyStringAlreadyInited()) {
+    objectpath_ = new ::std::string;
+  }
+  objectpath_->assign(reinterpret_cast<const char*>(value), size);
+  // @@protoc_insertion_point(field_set_pointer:Mgt.Msg.MsgRpc.objectpath)
+}
+inline ::std::string* MsgRpc::mutable_objectpath() {
+  set_has_objectpath();
+  if (objectpath_ == &::google::protobuf::internal::GetEmptyStringAlreadyInited()) {
+    objectpath_ = new ::std::string;
+  }
+  // @@protoc_insertion_point(field_mutable:Mgt.Msg.MsgRpc.objectpath)
+  return objectpath_;
+}
+inline ::std::string* MsgRpc::release_objectpath() {
+  clear_has_objectpath();
+  if (objectpath_ == &::google::protobuf::internal::GetEmptyStringAlreadyInited()) {
+    return NULL;
+  } else {
+    ::std::string* temp = objectpath_;
+    objectpath_ = const_cast< ::std::string*>(&::google::protobuf::internal::GetEmptyStringAlreadyInited());
+    return temp;
+  }
+}
+inline void MsgRpc::set_allocated_objectpath(::std::string* objectpath) {
+  if (objectpath_ != &::google::protobuf::internal::GetEmptyStringAlreadyInited()) {
+    delete objectpath_;
+  }
+  if (objectpath) {
+    set_has_objectpath();
+    objectpath_ = objectpath;
+  } else {
+    clear_has_objectpath();
+    objectpath_ = const_cast< ::std::string*>(&::google::protobuf::internal::GetEmptyStringAlreadyInited());
+  }
+  // @@protoc_insertion_point(field_set_allocated:Mgt.Msg.MsgRpc.objectpath)
 }
 
 // -------------------------------------------------------------------

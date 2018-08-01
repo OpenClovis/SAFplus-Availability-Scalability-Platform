@@ -52,10 +52,9 @@ namespace SAFplus
 
      std::string mgtRpc(SAFplus::Handle src,Mgt::Msg::MsgRpc::MgtRpcType mgtRpcType,const std::string& pathSpec,const std::string& request);
      std::string mgtRpc(Mgt::Msg::MsgRpc::MgtRpcType mgtRpcType,const std::string& pathSpec, const std::string& request);
-     //? Make a management remote procedure call (RPC).  
-     std::string mgtRpc(Mgt::Msg::MsgRpc::MgtRpcType mgtRpcType,const std::string& pathSpec, const std::string& attribute);
-     std::string mgtRpc(SAFplus::Handle src,Mgt::Msg::MsgRpc::MgtRpcType mgtRpcType,const std::string& pathSpec, const std::string& attribute);
-
+     std::string mgtAction(SAFplus::Handle src,Mgt::Msg::MsgRpc::MgtRpcType mgtRpcType,const std::string& pathSpec,const std::string& request,const std::string& objectPath= "");
+     std::string mgtAction(Mgt::Msg::MsgRpc::MgtRpcType mgtRpcType,const std::string& pathSpec, const std::string& request,const std::string& objectPath="");
+     //? Make a management remote procedure call (RPC).
      //? Set a management entity to a specific value -- this call will send the request directly to the process specified by the supplied handle
      ClRcT mgtSet(SAFplus::Handle src, const std::string& pathSpec, const std::string& value);
      //? Set a management entity to a specific value -- this call will look up the path in the Management checkpoint and forward the request to the appropriately bound process handle

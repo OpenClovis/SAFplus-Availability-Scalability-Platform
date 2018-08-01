@@ -88,10 +88,12 @@ void protobuf_AssignDesc_MgtMsg_2eproto() {
       ::google::protobuf::MessageFactory::generated_factory(),
       sizeof(MsgBind));
   MsgRpc_descriptor_ = file->message_type(2);
-  static const int MsgRpc_offsets_[3] = {
+  static const int MsgRpc_offsets_[5] = {
+    GOOGLE_PROTOBUF_GENERATED_MESSAGE_FIELD_OFFSET(MsgRpc, isrpc_),
     GOOGLE_PROTOBUF_GENERATED_MESSAGE_FIELD_OFFSET(MsgRpc, rpctype_),
     GOOGLE_PROTOBUF_GENERATED_MESSAGE_FIELD_OFFSET(MsgRpc, data_),
     GOOGLE_PROTOBUF_GENERATED_MESSAGE_FIELD_OFFSET(MsgRpc, bind_),
+    GOOGLE_PROTOBUF_GENERATED_MESSAGE_FIELD_OFFSET(MsgRpc, objectpath_),
   };
   MsgRpc_reflection_ =
     new ::google::protobuf::internal::GeneratedMessageReflection(
@@ -227,23 +229,28 @@ void protobuf_AddDesc_MgtMsg_2eproto() {
     "\n\014MgtMsg.proto\022\007Mgt.Msg\"\"\n\006Handle\022\013\n\003id0"
     "\030\001 \002(\006\022\013\n\003id1\030\002 \002(\006\"I\n\007MsgBind\022\037\n\006handle"
     "\030\001 \002(\0132\017.Mgt.Msg.Handle\022\016\n\006module\030\002 \002(\t\022"
-    "\r\n\005route\030\003 \002(\t\"\251\001\n\006MsgRpc\022+\n\007rpctype\030\001 \002"
-    "(\0162\032.Mgt.Msg.MsgRpc.MgtRpcType\022\014\n\004data\030\002"
-    " \001(\t\022\014\n\004bind\030\003 \002(\014\"V\n\nMgtRpcType\022\027\n\023CL_M"
-    "GT_RPC_VALIDATE\020\001\022\025\n\021CL_MGT_RPC_INVOKE\020\002"
-    "\022\030\n\024CL_MGT_RPC_POSTREPLY\020\003\"\031\n\tMsgSetGet\022"
-    "\014\n\004data\030\002 \001(\t\"\032\n\nMsgGeneral\022\014\n\004data\030\001 \003("
-    "\014\"\351\002\n\006MsgMgt\022(\n\004type\030\001 \002(\0162\032.Mgt.Msg.Msg"
-    "Mgt.MgtMsgType\022\014\n\004bind\030\002 \002(\014\022\014\n\004data\030\003 \003"
-    "(\014\"\230\002\n\nMgtMsgType\022\025\n\021CL_MGT_MSG_UNUSED\020\000"
-    "\022\023\n\017CL_MGT_MSG_BIND\020\001\022\022\n\016CL_MGT_MSG_GET\020"
-    "\002\022\022\n\016CL_MGT_MSG_SET\020\003\022\022\n\016CL_MGT_MSG_RPC\020"
-    "\004\022\027\n\023CL_MGT_MSG_BIND_RPC\020\005\022\024\n\020CL_MGT_MSG"
-    "_NOTIF\020\006\022\033\n\027CL_MGT_MSG_BIND_REQUEST\020\007\022\023\n"
-    "\017CL_MGT_MSG_XGET\020\010\022\023\n\017CL_MGT_MSG_XSET\020\t\022"
-    "\025\n\021CL_MGT_MSG_CREATE\020\n\022\025\n\021CL_MGT_MSG_DEL"
-    "ETE\020\013\"7\n\010MsgMgtDb\022\r\n\005xpath\030\001 \002(\t\022\r\n\005valu"
-    "e\030\002 \002(\t\022\r\n\005child\030\003 \003(\t", 782);
+    "\r\n\005route\030\003 \002(\t\"\322\001\n\006MsgRpc\022\023\n\005isrpc\030\001 \002(\010"
+    ":\004true\022+\n\007rpctype\030\002 \002(\0162\032.Mgt.Msg.MsgRpc"
+    ".MgtRpcType\022\014\n\004data\030\003 \001(\t\022\014\n\004bind\030\004 \002(\014\022"
+    "\022\n\nobjectpath\030\005 \001(\014\"V\n\nMgtRpcType\022\027\n\023CL_"
+    "MGT_RPC_VALIDATE\020\001\022\025\n\021CL_MGT_RPC_INVOKE\020"
+    "\002\022\030\n\024CL_MGT_RPC_POSTREPLY\020\003\"\031\n\tMsgSetGet"
+    "\022\014\n\004data\030\002 \001(\t\"\032\n\nMsgGeneral\022\014\n\004data\030\001 \003"
+    "(\014\"\203\004\n\006MsgMgt\022(\n\004type\030\001 \002(\0162\032.Mgt.Msg.Ms"
+    "gMgt.MgtMsgType\022\014\n\004bind\030\002 \002(\014\022\014\n\004data\030\003 "
+    "\003(\014\"\262\003\n\nMgtMsgType\022\025\n\021CL_MGT_MSG_UNUSED\020"
+    "\000\022\023\n\017CL_MGT_MSG_BIND\020\001\022\022\n\016CL_MGT_MSG_GET"
+    "\020\002\022\022\n\016CL_MGT_MSG_SET\020\003\022\022\n\016CL_MGT_MSG_RPC"
+    "\020\004\022\027\n\023CL_MGT_MSG_BIND_RPC\020\005\022\024\n\020CL_MGT_MS"
+    "G_NOTIF\020\006\022\033\n\027CL_MGT_MSG_BIND_REQUEST\020\007\022\023"
+    "\n\017CL_MGT_MSG_XGET\020\010\022\023\n\017CL_MGT_MSG_XSET\020\t"
+    "\022\025\n\021CL_MGT_MSG_CREATE\020\n\022\025\n\021CL_MGT_MSG_DE"
+    "LETE\020\013\022\030\n\024CL_MGT_MSG_REST_POST\020\014\022\027\n\023CL_M"
+    "GT_MSG_REST_PUT\020\r\022\032\n\026CL_MGT_MSG_REST_DEL"
+    "ETE\020\016\022\031\n\025CL_MGT_MSG_REST_PATCH\020\017\022\027\n\023CL_M"
+    "GT_MSG_REST_GET\020\020\022\025\n\021CL_MGT_MSG_ACTION\020\021"
+    "\"7\n\010MsgMgtDb\022\r\n\005xpath\030\001 \002(\t\022\r\n\005value\030\002 \002"
+    "(\t\022\r\n\005child\030\003 \003(\t", 977);
   ::google::protobuf::MessageFactory::InternalRegisterGeneratedFile(
     "MgtMsg.proto", &protobuf_RegisterTypes);
   Handle::default_instance_ = new Handle();
@@ -919,9 +926,11 @@ const MsgRpc_MgtRpcType MsgRpc::MgtRpcType_MAX;
 const int MsgRpc::MgtRpcType_ARRAYSIZE;
 #endif  // _MSC_VER
 #ifndef _MSC_VER
+const int MsgRpc::kIsrpcFieldNumber;
 const int MsgRpc::kRpctypeFieldNumber;
 const int MsgRpc::kDataFieldNumber;
 const int MsgRpc::kBindFieldNumber;
+const int MsgRpc::kObjectpathFieldNumber;
 #endif  // !_MSC_VER
 
 MsgRpc::MsgRpc()
@@ -943,9 +952,11 @@ MsgRpc::MsgRpc(const MsgRpc& from)
 void MsgRpc::SharedCtor() {
   ::google::protobuf::internal::GetEmptyString();
   _cached_size_ = 0;
+  isrpc_ = true;
   rpctype_ = 1;
   data_ = const_cast< ::std::string*>(&::google::protobuf::internal::GetEmptyStringAlreadyInited());
   bind_ = const_cast< ::std::string*>(&::google::protobuf::internal::GetEmptyStringAlreadyInited());
+  objectpath_ = const_cast< ::std::string*>(&::google::protobuf::internal::GetEmptyStringAlreadyInited());
   ::memset(_has_bits_, 0, sizeof(_has_bits_));
 }
 
@@ -960,6 +971,9 @@ void MsgRpc::SharedDtor() {
   }
   if (bind_ != &::google::protobuf::internal::GetEmptyStringAlreadyInited()) {
     delete bind_;
+  }
+  if (objectpath_ != &::google::protobuf::internal::GetEmptyStringAlreadyInited()) {
+    delete objectpath_;
   }
   if (this != default_instance_) {
   }
@@ -987,7 +1001,8 @@ MsgRpc* MsgRpc::New() const {
 }
 
 void MsgRpc::Clear() {
-  if (_has_bits_[0 / 32] & 7) {
+  if (_has_bits_[0 / 32] & 31) {
+    isrpc_ = true;
     rpctype_ = 1;
     if (has_data()) {
       if (data_ != &::google::protobuf::internal::GetEmptyStringAlreadyInited()) {
@@ -997,6 +1012,11 @@ void MsgRpc::Clear() {
     if (has_bind()) {
       if (bind_ != &::google::protobuf::internal::GetEmptyStringAlreadyInited()) {
         bind_->clear();
+      }
+    }
+    if (has_objectpath()) {
+      if (objectpath_ != &::google::protobuf::internal::GetEmptyStringAlreadyInited()) {
+        objectpath_->clear();
       }
     }
   }
@@ -1014,9 +1034,24 @@ bool MsgRpc::MergePartialFromCodedStream(
     tag = p.first;
     if (!p.second) goto handle_unusual;
     switch (::google::protobuf::internal::WireFormatLite::GetTagFieldNumber(tag)) {
-      // required .Mgt.Msg.MsgRpc.MgtRpcType rpctype = 1;
+      // required bool isrpc = 1 [default = true];
       case 1: {
         if (tag == 8) {
+          DO_((::google::protobuf::internal::WireFormatLite::ReadPrimitive<
+                   bool, ::google::protobuf::internal::WireFormatLite::TYPE_BOOL>(
+                 input, &isrpc_)));
+          set_has_isrpc();
+        } else {
+          goto handle_unusual;
+        }
+        if (input->ExpectTag(16)) goto parse_rpctype;
+        break;
+      }
+
+      // required .Mgt.Msg.MsgRpc.MgtRpcType rpctype = 2;
+      case 2: {
+        if (tag == 16) {
+         parse_rpctype:
           int value;
           DO_((::google::protobuf::internal::WireFormatLite::ReadPrimitive<
                    int, ::google::protobuf::internal::WireFormatLite::TYPE_ENUM>(
@@ -1024,18 +1059,18 @@ bool MsgRpc::MergePartialFromCodedStream(
           if (::Mgt::Msg::MsgRpc_MgtRpcType_IsValid(value)) {
             set_rpctype(static_cast< ::Mgt::Msg::MsgRpc_MgtRpcType >(value));
           } else {
-            mutable_unknown_fields()->AddVarint(1, value);
+            mutable_unknown_fields()->AddVarint(2, value);
           }
         } else {
           goto handle_unusual;
         }
-        if (input->ExpectTag(18)) goto parse_data;
+        if (input->ExpectTag(26)) goto parse_data;
         break;
       }
 
-      // optional string data = 2;
-      case 2: {
-        if (tag == 18) {
+      // optional string data = 3;
+      case 3: {
+        if (tag == 26) {
          parse_data:
           DO_(::google::protobuf::internal::WireFormatLite::ReadString(
                 input, this->mutable_data()));
@@ -1046,16 +1081,29 @@ bool MsgRpc::MergePartialFromCodedStream(
         } else {
           goto handle_unusual;
         }
-        if (input->ExpectTag(26)) goto parse_bind;
+        if (input->ExpectTag(34)) goto parse_bind;
         break;
       }
 
-      // required bytes bind = 3;
-      case 3: {
-        if (tag == 26) {
+      // required bytes bind = 4;
+      case 4: {
+        if (tag == 34) {
          parse_bind:
           DO_(::google::protobuf::internal::WireFormatLite::ReadBytes(
                 input, this->mutable_bind()));
+        } else {
+          goto handle_unusual;
+        }
+        if (input->ExpectTag(42)) goto parse_objectpath;
+        break;
+      }
+
+      // optional bytes objectpath = 5;
+      case 5: {
+        if (tag == 42) {
+         parse_objectpath:
+          DO_(::google::protobuf::internal::WireFormatLite::ReadBytes(
+                input, this->mutable_objectpath()));
         } else {
           goto handle_unusual;
         }
@@ -1088,26 +1136,37 @@ failure:
 void MsgRpc::SerializeWithCachedSizes(
     ::google::protobuf::io::CodedOutputStream* output) const {
   // @@protoc_insertion_point(serialize_start:Mgt.Msg.MsgRpc)
-  // required .Mgt.Msg.MsgRpc.MgtRpcType rpctype = 1;
-  if (has_rpctype()) {
-    ::google::protobuf::internal::WireFormatLite::WriteEnum(
-      1, this->rpctype(), output);
+  // required bool isrpc = 1 [default = true];
+  if (has_isrpc()) {
+    ::google::protobuf::internal::WireFormatLite::WriteBool(1, this->isrpc(), output);
   }
 
-  // optional string data = 2;
+  // required .Mgt.Msg.MsgRpc.MgtRpcType rpctype = 2;
+  if (has_rpctype()) {
+    ::google::protobuf::internal::WireFormatLite::WriteEnum(
+      2, this->rpctype(), output);
+  }
+
+  // optional string data = 3;
   if (has_data()) {
     ::google::protobuf::internal::WireFormat::VerifyUTF8StringNamedField(
       this->data().data(), this->data().length(),
       ::google::protobuf::internal::WireFormat::SERIALIZE,
       "data");
     ::google::protobuf::internal::WireFormatLite::WriteStringMaybeAliased(
-      2, this->data(), output);
+      3, this->data(), output);
   }
 
-  // required bytes bind = 3;
+  // required bytes bind = 4;
   if (has_bind()) {
     ::google::protobuf::internal::WireFormatLite::WriteBytesMaybeAliased(
-      3, this->bind(), output);
+      4, this->bind(), output);
+  }
+
+  // optional bytes objectpath = 5;
+  if (has_objectpath()) {
+    ::google::protobuf::internal::WireFormatLite::WriteBytesMaybeAliased(
+      5, this->objectpath(), output);
   }
 
   if (!unknown_fields().empty()) {
@@ -1120,13 +1179,18 @@ void MsgRpc::SerializeWithCachedSizes(
 ::google::protobuf::uint8* MsgRpc::SerializeWithCachedSizesToArray(
     ::google::protobuf::uint8* target) const {
   // @@protoc_insertion_point(serialize_to_array_start:Mgt.Msg.MsgRpc)
-  // required .Mgt.Msg.MsgRpc.MgtRpcType rpctype = 1;
-  if (has_rpctype()) {
-    target = ::google::protobuf::internal::WireFormatLite::WriteEnumToArray(
-      1, this->rpctype(), target);
+  // required bool isrpc = 1 [default = true];
+  if (has_isrpc()) {
+    target = ::google::protobuf::internal::WireFormatLite::WriteBoolToArray(1, this->isrpc(), target);
   }
 
-  // optional string data = 2;
+  // required .Mgt.Msg.MsgRpc.MgtRpcType rpctype = 2;
+  if (has_rpctype()) {
+    target = ::google::protobuf::internal::WireFormatLite::WriteEnumToArray(
+      2, this->rpctype(), target);
+  }
+
+  // optional string data = 3;
   if (has_data()) {
     ::google::protobuf::internal::WireFormat::VerifyUTF8StringNamedField(
       this->data().data(), this->data().length(),
@@ -1134,14 +1198,21 @@ void MsgRpc::SerializeWithCachedSizes(
       "data");
     target =
       ::google::protobuf::internal::WireFormatLite::WriteStringToArray(
-        2, this->data(), target);
+        3, this->data(), target);
   }
 
-  // required bytes bind = 3;
+  // required bytes bind = 4;
   if (has_bind()) {
     target =
       ::google::protobuf::internal::WireFormatLite::WriteBytesToArray(
-        3, this->bind(), target);
+        4, this->bind(), target);
+  }
+
+  // optional bytes objectpath = 5;
+  if (has_objectpath()) {
+    target =
+      ::google::protobuf::internal::WireFormatLite::WriteBytesToArray(
+        5, this->objectpath(), target);
   }
 
   if (!unknown_fields().empty()) {
@@ -1156,24 +1227,36 @@ int MsgRpc::ByteSize() const {
   int total_size = 0;
 
   if (_has_bits_[0 / 32] & (0xffu << (0 % 32))) {
-    // required .Mgt.Msg.MsgRpc.MgtRpcType rpctype = 1;
+    // required bool isrpc = 1 [default = true];
+    if (has_isrpc()) {
+      total_size += 1 + 1;
+    }
+
+    // required .Mgt.Msg.MsgRpc.MgtRpcType rpctype = 2;
     if (has_rpctype()) {
       total_size += 1 +
         ::google::protobuf::internal::WireFormatLite::EnumSize(this->rpctype());
     }
 
-    // optional string data = 2;
+    // optional string data = 3;
     if (has_data()) {
       total_size += 1 +
         ::google::protobuf::internal::WireFormatLite::StringSize(
           this->data());
     }
 
-    // required bytes bind = 3;
+    // required bytes bind = 4;
     if (has_bind()) {
       total_size += 1 +
         ::google::protobuf::internal::WireFormatLite::BytesSize(
           this->bind());
+    }
+
+    // optional bytes objectpath = 5;
+    if (has_objectpath()) {
+      total_size += 1 +
+        ::google::protobuf::internal::WireFormatLite::BytesSize(
+          this->objectpath());
     }
 
   }
@@ -1203,6 +1286,9 @@ void MsgRpc::MergeFrom(const ::google::protobuf::Message& from) {
 void MsgRpc::MergeFrom(const MsgRpc& from) {
   GOOGLE_CHECK_NE(&from, this);
   if (from._has_bits_[0 / 32] & (0xffu << (0 % 32))) {
+    if (from.has_isrpc()) {
+      set_isrpc(from.isrpc());
+    }
     if (from.has_rpctype()) {
       set_rpctype(from.rpctype());
     }
@@ -1211,6 +1297,9 @@ void MsgRpc::MergeFrom(const MsgRpc& from) {
     }
     if (from.has_bind()) {
       set_bind(from.bind());
+    }
+    if (from.has_objectpath()) {
+      set_objectpath(from.objectpath());
     }
   }
   mutable_unknown_fields()->MergeFrom(from.unknown_fields());
@@ -1229,16 +1318,18 @@ void MsgRpc::CopyFrom(const MsgRpc& from) {
 }
 
 bool MsgRpc::IsInitialized() const {
-  if ((_has_bits_[0] & 0x00000005) != 0x00000005) return false;
+  if ((_has_bits_[0] & 0x0000000b) != 0x0000000b) return false;
 
   return true;
 }
 
 void MsgRpc::Swap(MsgRpc* other) {
   if (other != this) {
+    std::swap(isrpc_, other->isrpc_);
     std::swap(rpctype_, other->rpctype_);
     std::swap(data_, other->data_);
     std::swap(bind_, other->bind_);
+    std::swap(objectpath_, other->objectpath_);
     std::swap(_has_bits_[0], other->_has_bits_[0]);
     _unknown_fields_.Swap(&other->_unknown_fields_);
     std::swap(_cached_size_, other->_cached_size_);
@@ -1735,6 +1826,12 @@ bool MsgMgt_MgtMsgType_IsValid(int value) {
     case 9:
     case 10:
     case 11:
+    case 12:
+    case 13:
+    case 14:
+    case 15:
+    case 16:
+    case 17:
       return true;
     default:
       return false;
@@ -1759,6 +1856,7 @@ const MsgMgt_MgtMsgType MsgMgt::CL_MGT_MSG_REST_PUT;
 const MsgMgt_MgtMsgType MsgMgt::CL_MGT_MSG_REST_DELETE;
 const MsgMgt_MgtMsgType MsgMgt::CL_MGT_MSG_REST_PATCH;
 const MsgMgt_MgtMsgType MsgMgt::CL_MGT_MSG_REST_GET;
+const MsgMgt_MgtMsgType MsgMgt::CL_MGT_MSG_ACTION;
 const MsgMgt_MgtMsgType MsgMgt::MgtMsgType_MIN;
 const MsgMgt_MgtMsgType MsgMgt::MgtMsgType_MAX;
 const int MsgMgt::MgtMsgType_ARRAYSIZE;

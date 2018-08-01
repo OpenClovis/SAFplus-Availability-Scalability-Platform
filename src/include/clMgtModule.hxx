@@ -38,6 +38,7 @@
 #include <clMgtNotify.hxx>
 #include <clMgtContainer.hxx>
 #include <clMgtRpc.hxx>
+#include <clMgtAction.hxx>
 #include <clMgtDatabase.hxx>
 
 namespace SAFplus
