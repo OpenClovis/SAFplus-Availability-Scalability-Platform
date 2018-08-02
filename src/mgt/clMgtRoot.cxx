@@ -740,7 +740,7 @@ namespace SAFplus
             }
             else
             {
-              logDebug("MGT", "REV", "Parent Object is NULL");
+              logDebug("MGT", "REV", "path Parent Object %s is NULL",strObjectPath.c_str());
             }
             switch (reqMsg.rpctype())
             {
