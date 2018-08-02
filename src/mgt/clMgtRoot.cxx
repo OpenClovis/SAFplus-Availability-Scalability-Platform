@@ -710,7 +710,7 @@ namespace SAFplus
   }
   void MgtRoot::clMgtMsgActionHandler(SAFplus::Handle srcAddr, Mgt::Msg::MsgRpc& reqMsg)
   {
-    std::vector<MgtObject*> matches;
+    std::vector<MgtObject*> matches,parentMatches;
     std::string path, cmds;
     std::string attrs = "";
     ClRcT rcRet = CL_OK;
@@ -732,9 +732,15 @@ namespace SAFplus
             {
               rpc->setInParams((void*)data.c_str(),data.length());
             }
-            if(strObjectPath!="")
+            resolvePath(strObjectPath.c_str() + 1, &parentMatches);
+            if(parentMatches.size() > 0)
             {
-              rpc->setObjectPath(strObjectPath);
+              logDebug("MGT", "REV", "set Parent Object:%s",strObjectPath.c_str());
+              rpc->setObjectParent(parentMatches[0]);
+            }
+            else
+            {
+              logDebug("MGT", "REV", "Parent Object is NULL");
             }
             switch (reqMsg.rpctype())
             {

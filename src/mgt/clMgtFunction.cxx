@@ -398,17 +398,27 @@ namespace SAFplus
   {
     std::string output = "";
     ClRcT ret = CL_OK;
-    std::vector<MgtObject*> matches,resultMatches;
+    std::vector<MgtObject*> matches,parentMatches;
     lookupObjects(pathSpec, &matches);
     if (matches.size())
       {
         for(std::vector<MgtObject*>::iterator i = matches.begin(); i != matches.end(); i++)
           {
-            MgtRpc *rpc = dynamic_cast<MgtAction*> (*i);
+            MgtAction *rpc = dynamic_cast<MgtAction*> (*i);
             if(request!="")
             {
               logDebug("MGT","ACTION","set action input parameter");
               rpc->setInParams((void*)request.c_str(),request.length());
+            }
+            lookupObjects(objectPath, &parentMatches);
+            if(parentMatches.size() > 0)
+            {
+              logDebug("MGT","ACTION","set parent Action");
+              rpc->setObjectParent(parentMatches[0]);
+            }
+            else
+            {
+              logDebug("MGT", "REV", "Parent Action is NULL");
             }
             switch (mgtRpcType)
             {
