@@ -775,13 +775,13 @@ def unload_tipc_module():
     cmd = sys_asp['unload_tipc_cmd']
     ret, output, signal, core = system(cmd)
     if ret:
-        if 'not found' in ''.join(output):
-            cmd2 = 'rmmod tipc'
-            ret, output2, signal, core = system(cmd2)
-            if ret:
-                log.warning('Failed to remove TIPC module: attempted: %s and %s,'
-                            ' output was: %s and %s' %\
-                            (cmd, cmd2, output, output2))
+        cmd2 = 'rmmod tipc'
+        time.sleep(0.1)
+        ret, output2, signal, core = system(cmd2)
+        if ret:
+            log.warning('Failed to remove TIPC module: attempted: %s and %s,'
+                        ' output was: %s and %s' %\
+                        (cmd, cmd2, output, output2))
 
 def load_tipc_module():
     if not is_tipc_build():
