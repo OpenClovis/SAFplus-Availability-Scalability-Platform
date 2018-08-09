@@ -24,6 +24,7 @@ import re
 import xml.dom.minidom
 import glob
 import commands
+import errno
 
 AmfName = "safplus_amf"
 
