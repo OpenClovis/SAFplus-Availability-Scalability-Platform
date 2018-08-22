@@ -322,10 +322,10 @@ class OS:
         
         JRE = objects.BuildDep()
         JRE.name           = 'JRE'
-        JRE.version        = '1.7.0'
-        JRE.pkg_name       = 'jre-7u65-linux-i586.tar.gz'
+        JRE.version        = '1.8.0'
+        JRE.pkg_name       = 'jre-8u181-linux-i586.tar.gz'
         if self.bit == 64:
-            JRE.pkg_name       = 'jre-7u65-linux-x64.tar.gz'
+            JRE.pkg_name       = 'jre-8u181-linux-x64.tar.gz'
         
         log = self.log_string_for_dep(JRE.name)
        
