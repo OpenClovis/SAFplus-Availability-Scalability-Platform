@@ -59,6 +59,9 @@ xmlParser::xmlParser(const std::string& strValue)
     pt.clear();
     read_xml(sstrContent, pt);
   }
+  catch(std::runtime_error const&  ex)
+  {
+  }
   catch (...)
   {
   }
@@ -71,6 +74,9 @@ void xmlParser::setContent(const std::string& strValue)
     sstrContent << strValue;
     pt.clear();
     read_xml(sstrContent, pt);
+  }
+  catch(std::runtime_error const&  ex)
+  {
   }
   catch (...)
   {
@@ -90,7 +96,12 @@ std::string xmlParser::getXMLChild(const std::string& tagName)
     std::stringstream ss;
     write_xml_element(ss, ptree::key_type(), noderoot, -1, xml_writer_settings<ptree::key_type>());
     return ss.str();
-  }catch(...)
+  }
+  catch(std::runtime_error const&  ex)
+  {
+    return "";
+  }
+  catch(...)
   {
     return "";
   }
@@ -104,6 +115,10 @@ std::vector<std::string> xmlParser::getChildNames(const std::string& tagName)
     BOOST_FOREACH(ptree::value_type &vs,noderoot){
     retVec.push_back(vs.first);
   }
+}
+catch(std::runtime_error const&  ex)
+{
+  return retVec;
 }
 catch(...)
 {
@@ -123,6 +138,10 @@ std::vector<std::string> xmlParser::getChildNames()
       retVec.push_back(it->first);
     }
   }
+  catch(std::runtime_error const&  ex)
+  {
+     return retVec;
+  }
   catch (...)
   {
     return retVec;
@@ -136,6 +155,10 @@ std::map<std::string, std::string> xmlParser::getChildPathValues(const std::stri
   {
     ptree noderoot = pt.get_child(tagName);
     parse_tree(noderoot, basePath, retMap);
+  }
+  catch(std::runtime_error const&  ex)
+  {
+     return retMap;
   }
   catch (...)
   {
@@ -153,6 +176,10 @@ std::map<std::string, std::string> xmlParser::getChildNameValues(const std::stri
     {
       retMap.insert(std::pair<std::string, std::string>(vs.first,vs.second.data()));
     }
+  }
+  catch(std::runtime_error const&  ex)
+  {
+     return retMap;
   }
   catch(...)
   {
