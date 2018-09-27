@@ -821,12 +821,14 @@ def unload_tipc_module():
         ret, output, signal, core = system(cmd)
     cmd = sys_asp['unload_tipc_cmd']
     ret, output, signal, core = system(cmd)
-    if ret:
-        cmd2 = 'rmmod tipc'
+    count = 600  #waiting for max 1 minutes but expect it is not long as that time,because application will sooner dead and release tipc
+    cmd2 = 'rmmod tipc'
+    while (ret > 0)&(count > 0):
         time.sleep(0.1)
         ret, output2, signal, core = system(cmd2)
-        if ret:
-            log.warning('Failed to remove TIPC module: attempted: %s and %s, output was: %s and %s' % (cmd, cmd2, output, output2))
+        count -= 1
+    if ret:
+        log.warning('Failed to remove TIPC module: attempted: %s and %s, output was: %s and %s' % (cmd, cmd2, output, output2))
 
 def load_tipc_module():
     if not is_tipc_build():
