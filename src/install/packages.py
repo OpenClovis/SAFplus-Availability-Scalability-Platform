@@ -215,7 +215,9 @@ class OS:
         netsnmp.version        = '5.4.2'    
         netsnmp.pkg_name       = 'net-snmp-5.4.2.tar.gz'
         
-        netsnmp.ver_test_cmd   = EXPORT +' && net-snmp-config --version 2>/dev/null'
+        # force to install net-snmp from source (in 3rdparty) so that the SNMP subagent model can be built as well as
+        # snmpd to be installed by disabling the command below
+        #netsnmp.ver_test_cmd   = EXPORT +' && net-snmp-config --version 2>/dev/null'
         
         log = self.log_string_for_dep(netsnmp.name)
         
