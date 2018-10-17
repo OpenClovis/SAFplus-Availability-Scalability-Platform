@@ -1,0 +1,4 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<alarm:alarmInformation xmlns:alarm="alarm.ecore">
+  <AlarmProfile rdn="190987874" alarmID="alarmTrap" Category="CL_ALARM_CATEGORY_COMMUNICATIONS" ProbableCause="CL_ALARM_PROB_CAUSE_LOSS_OF_SIGNAL" SpecificProblem="0" Severity="CL_ALARM_SEVERITY_MAJOR" AssertSoakingTime="0" ClearSoakingTime="0" IsAlarmPolled="false" Description="&quot;Alarm raised if that is option chosen&quot;" OID=".1.3.6.1.4.1.103.5.1"/>
+</alarm:alarmInformation>

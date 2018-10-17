@@ -1,0 +1,85 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<clSlotInfo:BootConfig xmlns:clSlotInfo="map.ecore">
+  <slots>
+    <slot slotNumber="1">
+      <classTypes>
+        <classType name="sc"/>
+      </classTypes>
+    </slot>
+    <slot slotNumber="2">
+      <classTypes>
+        <classType name="sc"/>
+      </classTypes>
+    </slot>
+    <slot slotNumber="3">
+      <classTypes>
+        <classType name="sc"/>
+      </classTypes>
+    </slot>
+    <slot slotNumber="4">
+      <classTypes>
+        <classType name="sc"/>
+      </classTypes>
+    </slot>
+    <slot slotNumber="5">
+      <classTypes>
+        <classType name="sc"/>
+      </classTypes>
+    </slot>
+    <slot slotNumber="6">
+      <classTypes>
+        <classType name="sc"/>
+      </classTypes>
+    </slot>
+    <slot slotNumber="7">
+      <classTypes>
+        <classType name="sc"/>
+      </classTypes>
+    </slot>
+    <slot slotNumber="8">
+      <classTypes>
+        <classType name="sc"/>
+      </classTypes>
+    </slot>
+    <slot slotNumber="9">
+      <classTypes>
+        <classType name="sc"/>
+      </classTypes>
+    </slot>
+    <slot slotNumber="10">
+      <classTypes>
+        <classType name="sc"/>
+      </classTypes>
+    </slot>
+    <slot slotNumber="11">
+      <classTypes>
+        <classType name="sc"/>
+      </classTypes>
+    </slot>
+    <slot slotNumber="12">
+      <classTypes>
+        <classType name="sc"/>
+      </classTypes>
+    </slot>
+    <slot slotNumber="13">
+      <classTypes>
+        <classType name="sc"/>
+      </classTypes>
+    </slot>
+    <slot slotNumber="14">
+      <classTypes>
+        <classType name="sc"/>
+      </classTypes>
+    </slot>
+    <slot slotNumber="15">
+      <classTypes>
+        <classType name="sc"/>
+      </classTypes>
+    </slot>
+    <slot slotNumber="16">
+      <classTypes>
+        <classType name="sc"/>
+      </classTypes>
+    </slot>
+  </slots>
+</clSlotInfo:BootConfig>

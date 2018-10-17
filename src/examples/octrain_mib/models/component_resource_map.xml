@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<modelMap:mapInformation xmlns:modelMap="modelMapping.ecore" sourceModel="component_model" targetModel="resource_model">
+  <link linkType="associatedResource">
+    <linkDetail linkSource="alarm_clock">
+      <linkTarget>clockStatus</linkTarget>
+      <linkTarget>clockTable</linkTarget>
+      <linkTarget>timeSetTable</linkTarget>
+    </linkDetail>
+  </link>
+</modelMap:mapInformation>

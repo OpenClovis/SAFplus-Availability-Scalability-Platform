@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<CompileConfigs:ComponentsInfo xmlns:CompileConfigs="Comps.ecore">
+  <COR savetype="CL_COR_DELTA_SAVE"/>
+  <FM localProbationPeriod="10">
+    <localSeqTableEntry Category="com" EscalationLevel="Level1" Function="foo1" IsExtern="false" Severity="MN"/>
+  </FM>
+  <NS maxentries="256" maxglobalcontexts="10" maxlocalcontexts="2"/>
+  <RMD maxretries="8"/>
+  <PM>
+    <appConfigInterval applicationName="alarm_clock" value="3000"/>
+    <appConfigInterval applicationName="snmp_subagent" value="3000"/>
+    <compConfigInterval componentName="alarm_clockI0" type="alarm_clock" value="0"/>
+    <compConfigInterval componentName="alarm_clockI1" type="alarm_clock" value="0"/>
+    <compConfigInterval componentName="snmp_subagenCSII0" type="snmp_subagent" value="0"/>
+  </PM>
+</CompileConfigs:ComponentsInfo>

@@ -1,0 +1,82 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<openClovisAsp>
+  <version v0="4.0.0">
+    <amfConfig xmlns="cpmconfig.ecore" version="B.01.01">
+      <cpmConfigs>
+        <cpmConfig cpmType="GLOBAL" nodeType="sc">
+          <bootConfigs>
+            <bootConfig defaultBootLevel="5" maxBootLevel="6" name="default"/>
+          </bootConfigs>
+          <aspServiceUnits>
+            <aspServiceUnit name="gmsSU"/>
+            <aspServiceUnit name="eventSU"/>
+            <aspServiceUnit name="ckptSU"/>
+            <aspServiceUnit name="corSU"/>
+            <aspServiceUnit name="txnSU"/>
+            <aspServiceUnit name="oampSU"/>
+            <aspServiceUnit name="logSU"/>
+            <aspServiceUnit name="nameSU"/>
+            <aspServiceUnit name="msgSU"/>
+          </aspServiceUnits>
+        </cpmConfig>
+      </cpmConfigs>
+      <nodeInstances>
+        <nodeInstance name="scI0" nodeMoId="\Chassis:0\sc:0" type="sc">
+          <serviceUnitInstances>
+            <serviceUnitInstance name="alarm_clockSUI0" rank="0" type="alarm_clockSU">
+              <componentInstances>
+                <componentInstance name="alarm_clockI0" type="alarm_clock"/>
+              </componentInstances>
+            </serviceUnitInstance>
+            <serviceUnitInstance name="alarm_clockSUI1" rank="0" type="alarm_clockSU">
+              <componentInstances>
+                <componentInstance name="alarm_clockI1" type="alarm_clock"/>
+              </componentInstances>
+            </serviceUnitInstance>
+            <serviceUnitInstance name="snmp_subagenSUI0" rank="0" type="snmp_SU">
+              <componentInstances>
+                <componentInstance name="snmp_subagenCSII0" type="snmp_subagent"/>
+              </componentInstances>
+            </serviceUnitInstance>
+          </serviceUnitInstances>
+          <dependencies node=""/>
+        </nodeInstance>
+      </nodeInstances>
+      <serviceGroups>
+        <serviceGroup name="alarm_clockSGI0" type="alarm_clockSG">
+          <serviceInstances>
+            <serviceInstance name="alarm_clockSII0" type="alarm_clockSI">
+              <componentServiceInstances>
+                <componentServiceInstance name="alarm_clockCSII0" type="alarm_clockCSI">
+                  <dependencies componentServiceInstance=""/>
+                </componentServiceInstance>
+              </componentServiceInstances>
+              <dependencies serviceInstance=""/>
+              <prefferedServiceUnits prefferedServiceUnit=""/>
+            </serviceInstance>
+          </serviceInstances>
+          <associatedServiceUnits>
+            <associatedServiceUnit>alarm_clockSUI0</associatedServiceUnit>
+            <associatedServiceUnit>alarm_clockSUI1</associatedServiceUnit>
+          </associatedServiceUnits>
+        </serviceGroup>
+        <serviceGroup name="snmp_subagentSGI0" type="snmp_SG">
+          <serviceInstances>
+            <serviceInstance name="snmp_subagentSII0" type="snmp_SI">
+              <componentServiceInstances>
+                <componentServiceInstance name="snmp_subagentCSII0" type="snmp_CSI">
+                  <dependencies componentServiceInstance=""/>
+                </componentServiceInstance>
+              </componentServiceInstances>
+              <dependencies serviceInstance=""/>
+              <prefferedServiceUnits prefferedServiceUnit=""/>
+            </serviceInstance>
+          </serviceInstances>
+          <associatedServiceUnits>
+            <associatedServiceUnit>snmp_subagenSUI0</associatedServiceUnit>
+          </associatedServiceUnits>
+        </serviceGroup>
+      </serviceGroups>
+    </amfConfig>
+  </version>
+</openClovisAsp>

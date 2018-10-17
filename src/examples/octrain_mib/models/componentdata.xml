@@ -1,0 +1,58 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<component:componentInformation xmlns:component="component.ecore">
+  <cluster name="Cluster" rdn="java.lang.Object@1dd1752">
+    <contains target="sc"/>
+  </cluster>
+  <node name="sc" rdn="1214850053" id="0" classType="CL_AMS_NODE_CLASS_B" subClassType=" " isSwappable="CL_TRUE" isRestartable="CL_TRUE" isASPAware="CL_TRUE" suFailoverDuration="10000" suFailoverCountMax="10" Realizes="" adminState="CL_AMS_ADMIN_STATE_UNLOCKED" autoRepair="CL_TRUE">
+    <contains target="alarm_clockSU"/>
+    <contains target="snmp_SU"/>
+  </node>
+  <serviceUnit name="alarm_clockSU" rdn="322505366" adminState="CL_AMS_ADMIN_STATE_UNLOCKED" isPreinstantiable="CL_TRUE" isRestartable="CL_TRUE" isContainerSU="CL_TRUE">
+    <contains target="alarm_clock"/>
+  </serviceUnit>
+  <serviceUnit name="snmp_SU" rdn="java.lang.Object@47ffa248" adminState="CL_AMS_ADMIN_STATE_UNLOCKED" isPreinstantiable="CL_TRUE" isRestartable="CL_TRUE" isContainerSU="CL_TRUE">
+    <contains target="snmp_subagent"/>
+  </serviceUnit>
+  <safComponent name="alarm_clock" capabilityModel="CL_AMS_COMP_CAP_X_ACTIVE_OR_Y_STANDBY" property="CL_AMS_SA_AWARE" processRel="CL_CPM_COMP_SINGLE_PROCESS" instantiateCommand="alarm_clock" commandLineArgument="" environmentVariable="" terminateCommand="" cleanupCommand="" rdn="1334378672" isRestartable="CL_TRUE" nodeRebootCleanupFail="CL_TRUE" instantiateLevel="1" instantiateDelay="5000" numMaxInstantiate="1" numMaxInstantiateWithDelay="1" numMaxTerminate="1" numMaxAmStart="1" numMaxAmStop="1" numMaxActiveCSIs="1" numMaxStandbyCSIs="1" recoveryOnTimeout="CL_AMS_RECOVERY_NO_RECOMMENDATION" amStartCommand="" amStopCommand="" is3rdpartyComponent="false" isSNMPSubAgent="false" isBuildCPP="false">
+    <csiTypes>
+      <csiType name="alarm_clockCSI"/>
+    </csiTypes>
+    <timeouts instantiateTimeout="30000" terminateTimeout="30000" cleanupTimeout="30000" amStartTimeout="30000" amStopTimeout="30000" csiSetTimeout="30000" csiRemoveTimeout="30000" quiescingCompleteTimeout="30000" proxiedCompInstantiateTimeout="30000" proxiedCompCleanupTimeout="30000"/>
+    <healthCheck period="30000" maxDuration="60000"/>
+    <eoProperties eoName="alarm_clock_EO" threadPriority="PRIORITY_MEDIUM" threadCount="2" iocPortNumber="0" mainThreadUsagePolicy="CL_EO_USE_THREAD_FOR_RECV" maxNoClients="0">
+      <aspLib COR="CL_TRUE" CM="CL_FALSE" NameService="CL_TRUE" LOG="CL_TRUE" Trace="CL_FALSE" Diagnostics="CL_FALSE" Transaction="CL_TRUE" OampRtParser="CL_TRUE" Prov="CL_TRUE" Alarm="CL_FALSE" Debug="CL_TRUE" OSAL="CL_TRUE" Timer="CL_TRUE" Buffer="CL_TRUE" IOC="CL_TRUE" RMD="CL_TRUE" EO="CL_TRUE" OM="CL_TRUE" HAL="CL_FALSE" DBAL="CL_FALSE" Fault="CL_FALSE"/>
+      <libs/>
+    </eoProperties>
+  </safComponent>
+  <safComponent name="snmp_subagent" capabilityModel="CL_AMS_COMP_CAP_ONE_ACTIVE" property="CL_AMS_SA_AWARE" processRel="CL_CPM_COMP_SINGLE_PROCESS" instantiateCommand="snmp_subagent" commandLineArgument="" environmentVariable="" terminateCommand="" cleanupCommand="" rdn="java.lang.Object@74c04377" isRestartable="CL_TRUE" nodeRebootCleanupFail="CL_TRUE" instantiateLevel="1" instantiateDelay="5000" numMaxInstantiate="1" numMaxInstantiateWithDelay="1" numMaxTerminate="1" numMaxAmStart="1" numMaxAmStop="1" numMaxActiveCSIs="1" numMaxStandbyCSIs="0" recoveryOnTimeout="CL_AMS_RECOVERY_COMP_RESTART" amStartCommand="" amStopCommand="" is3rdpartyComponent="false" isSNMPSubAgent="true" isBuildCPP="false">
+    <csiTypes>
+      <csiType name="snmp_CSI"/>
+    </csiTypes>
+    <timeouts instantiateTimeout="30000" terminateTimeout="30000" cleanupTimeout="30000" amStartTimeout="30000" amStopTimeout="30000" csiSetTimeout="30000" csiRemoveTimeout="30000" quiescingCompleteTimeout="30000" proxiedCompInstantiateTimeout="30000" proxiedCompCleanupTimeout="30000"/>
+    <healthCheck period="30000" maxDuration="60000"/>
+    <eoProperties eoName="snmp_subagent_EO" threadPriority="PRIORITY_MEDIUM" threadCount="2" iocPortNumber="0" mainThreadUsagePolicy="CL_EO_USE_THREAD_FOR_RECV" maxNoClients="0">
+      <aspLib COR="CL_TRUE" CM="CL_FALSE" NameService="CL_TRUE" LOG="CL_TRUE" Trace="CL_FALSE" Diagnostics="CL_FALSE" Transaction="CL_TRUE" OampRtParser="CL_TRUE" Prov="CL_FALSE" Alarm="CL_FALSE" Debug="CL_TRUE" OSAL="CL_TRUE" Timer="CL_TRUE" Buffer="CL_TRUE" IOC="CL_TRUE" RMD="CL_TRUE" EO="CL_TRUE" OM="CL_FALSE" HAL="CL_FALSE" DBAL="CL_FALSE" Fault="CL_FALSE"/>
+      <libs/>
+    </eoProperties>
+  </safComponent>
+  <serviceGroup name="alarm_clockSG" rdn="1533854532" redundancyModel="CL_AMS_SG_REDUNDANCY_MODEL_TWO_N" failbackOption="CL_FALSE" restartDuration="10000" numPrefActiveSUs="1" numPrefStandbySUs="1" numPrefInserviceSUs="2" numPrefAssignedSUs="2" numPrefActiveSUsPerSI="1" maxActiveSIsPerSU="1" maxStandbySIsPerSU="1" compRestartDuration="10000" compRestartCountMax="1" suRestartDuration="10000" suRestartCountMax="1" failoverDuration="300000" maxFailovers="0" adminState="CL_AMS_ADMIN_STATE_UNLOCKED" loadingStrategy="CL_AMS_SG_LOADING_STRATEGY_LEAST_SI_PER_SU" numComponents="0" autoRepair="CL_FALSE" isCollocationAllowed="CL_TRUE" alphaFactor="100" betaFactor="0" autoAdjust="CL_FALSE" autoAdjustProbation="10000" reductionProcedure="CL_FALSE">
+    <associatedTo target="alarm_clockSU"/>
+    <associatedTo target="alarm_clockSI"/>
+  </serviceGroup>
+  <serviceGroup name="snmp_SG" rdn="java.lang.Object@33a3e5db" redundancyModel="CL_AMS_SG_REDUNDANCY_MODEL_NO_REDUNDANCY" failbackOption="CL_FALSE" restartDuration="10000" numPrefActiveSUs="1" numPrefStandbySUs="0" numPrefInserviceSUs="1" numPrefAssignedSUs="1" numPrefActiveSUsPerSI="1" maxActiveSIsPerSU="1" maxStandbySIsPerSU="0" compRestartDuration="10000" compRestartCountMax="1" suRestartDuration="10000" suRestartCountMax="1" failoverDuration="300000" maxFailovers="0" adminState="CL_AMS_ADMIN_STATE_UNLOCKED" loadingStrategy="CL_AMS_SG_LOADING_STRATEGY_LEAST_SI_PER_SU" numComponents="0" autoRepair="CL_TRUE" isCollocationAllowed="CL_TRUE" alphaFactor="100" betaFactor="0" autoAdjust="CL_FALSE" autoAdjustProbation="10000" reductionProcedure="CL_FALSE">
+    <associatedTo target="snmp_SU"/>
+    <associatedTo target="snmp_SI"/>
+  </serviceGroup>
+  <serviceInstance name="alarm_clockSI" rdn="2036431933" rank="0" numCSIs="1" numStandbyAssignments="1" adminState="CL_AMS_ADMIN_STATE_UNLOCKED">
+    <contains target="alarm_clockCSI"/>
+  </serviceInstance>
+  <serviceInstance name="snmp_SI" rdn="java.lang.Object@248d2cec" rank="0" numCSIs="1" numStandbyAssignments="0" adminState="CL_AMS_ADMIN_STATE_UNLOCKED">
+    <contains target="snmp_CSI"/>
+  </serviceInstance>
+  <componentServiceInstance name="alarm_clockCSI" rdn="354980344" rank="0">
+    <associatedTo target="alarm_clock"/>
+  </componentServiceInstance>
+  <componentServiceInstance name="snmp_CSI" rdn="java.lang.Object@57167ccb" rank="0">
+    <associatedTo target="snmp_subagent"/>
+  </componentServiceInstance>
+</component:componentInformation>

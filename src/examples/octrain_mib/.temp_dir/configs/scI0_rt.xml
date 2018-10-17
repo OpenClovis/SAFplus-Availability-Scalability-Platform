@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<compInstances xmlns="cpmconfig.ecore">
+  <compInst compName="alarm_clockI0">
+    <resource autoCreate="true" moID="\Chassis:0\clockStatus:0" primaryOI="false"/>
+    <resource autoCreate="true" moID="\Chassis:0\clockTable:0" primaryOI="false"/>
+    <resource autoCreate="true" moID="\Chassis:0\timeSetTable:0" primaryOI="false"/>
+  </compInst>
+  <compInst compName="alarm_clockI1">
+    <resource autoCreate="false" moID="\Chassis:0\clockStatus:0" primaryOI="false"/>
+    <resource autoCreate="false" moID="\Chassis:0\clockTable:0" primaryOI="false"/>
+    <resource autoCreate="false" moID="\Chassis:0\timeSetTable:0" primaryOI="false"/>
+  </compInst>
+  <compInst compName="snmp_subagenCSII0"/>
+</compInstances>

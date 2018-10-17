@@ -1,0 +1,57 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<resource:resourceInformation xmlns:resource="resource.ecore">
+  <chassisResource rdn="0" name="Chassis" maxInstances="1" numSlots="16">
+    <contains target="sc" sourceMultiplicity="1" targetMultiplicity="1"/>
+    <contains target="clockStatus" sourceMultiplicity="1" targetMultiplicity="1"/>
+    <contains target="clockTable" sourceMultiplicity="1" targetMultiplicity="1"/>
+    <contains target="timeSetTable" sourceMultiplicity="1" targetMultiplicity="1"/>
+    <contains target="nameTable" sourceMultiplicity="1" targetMultiplicity="1"/>
+  </chassisResource>
+  <nodeHardwareResource rdn="337875491" name="sc" documentation="" maxInstances="2" deviceObject="">
+    <alarmManagement isEnabled="false" pollingInterval="100"/>
+    <provisioning isEnabled="false"/>
+  </nodeHardwareResource>
+  <mibResource rdn="1839348795" name="clockStatus" documentation="" maxInstances="1" mibName="clock.mib" isScalar="true">
+    <alarmManagement isEnabled="false" pollingInterval="100"/>
+    <provisioning isEnabled="true">
+      <attribute name="clockRunningStatus" dataType="INTEGER" multiplicity="1" minValue="0" maxValue="1" defaultValue="0" rdn="1356749871" type="RUNTIME" access="READWRITE" persistency="false" caching="false" isImported="true" OID="1.3.6.1.4.1.103.1.1" writable="false" initialized="false"/>
+      <attribute name="clockRedStatus" dataType="INTEGER" multiplicity="1" minValue="0" maxValue="1" defaultValue="0" rdn="465761413" type="RUNTIME" access="READWRITE" persistency="false" caching="false" isImported="true" OID="1.3.6.1.4.1.103.1.2" writable="false" initialized="false"/>
+    </provisioning>
+    <pm isEnabled="false"/>
+  </mibResource>
+  <mibResource rdn="2084383253" name="clockTable" documentation="" maxInstances="0" mibName="clock.mib" isScalar="false">
+    <alarmManagement isEnabled="false" pollingInterval="100"/>
+    <provisioning isEnabled="true">
+      <attribute name="clockRow" dataType="INTEGER" multiplicity="1" minValue="0" maxValue="256" defaultValue="0" rdn="1726587401" type="CONFIG" access="READWRITE" persistency="true" caching="true" isImported="true" OID="1.3.6.1.4.1.103.2.1.1.1" writable="true" initialized="false"/>
+      <attribute name="clockId" dataType="INTEGER" multiplicity="1" minValue="-2147483648" maxValue="2147483647" defaultValue="-2147483648" rdn="1930514755" type="CONFIG" access="READWRITE" persistency="true" caching="true" isImported="true" OID="1.3.6.1.4.1.103.2.1.1.2" writable="true" initialized="false"/>
+      <attribute name="clockHour" dataType="INTEGER" multiplicity="1" minValue="0" maxValue="23" defaultValue="0" rdn="876645523" type="RUNTIME" access="READWRITE" persistency="false" caching="false" isImported="true" OID="1.3.6.1.4.1.103.2.1.1.3" writable="false" initialized="false"/>
+      <attribute name="clockMinute" dataType="INTEGER" multiplicity="1" minValue="0" maxValue="59" defaultValue="0" rdn="710726384" type="RUNTIME" access="READWRITE" persistency="false" caching="false" isImported="true" OID="1.3.6.1.4.1.103.2.1.1.4" writable="false" initialized="false"/>
+      <attribute name="clockSecond" dataType="INTEGER" multiplicity="1" minValue="0" maxValue="59" defaultValue="0" rdn="17744984" type="RUNTIME" access="READWRITE" persistency="false" caching="false" isImported="true" OID="1.3.6.1.4.1.103.2.1.1.5" writable="false" initialized="false"/>
+      <attribute name="alarmHour" dataType="INTEGER" multiplicity="1" minValue="0" maxValue="23" defaultValue="0" rdn="2020345459" type="CONFIG" access="READWRITE" persistency="true" caching="true" isImported="true" OID="1.3.6.1.4.1.103.2.1.1.6" writable="true" initialized="false"/>
+      <attribute name="alarmMinute" dataType="INTEGER" multiplicity="1" minValue="0" maxValue="59" defaultValue="0" rdn="1215838713" type="CONFIG" access="READWRITE" persistency="false" caching="true" isImported="true" OID="1.3.6.1.4.1.103.2.1.1.7" writable="true" initialized="false"/>
+      <attribute name="alarmReaction" dataType="INTEGER" multiplicity="1" minValue="0" maxValue="1" defaultValue="0" rdn="75475284" type="CONFIG" access="READWRITE" persistency="true" caching="true" isImported="true" OID="1.3.6.1.4.1.103.2.1.1.8" writable="true" initialized="false"/>
+      <attribute name="alarmSet" dataType="INTEGER" multiplicity="1" minValue="0" maxValue="1" defaultValue="0" rdn="1940164999" type="CONFIG" access="READWRITE" persistency="true" caching="true" isImported="true" OID="1.3.6.1.4.1.103.2.1.1.9" writable="true" initialized="false"/>
+    </provisioning>
+    <pm isEnabled="false"/>
+  </mibResource>
+  <mibResource rdn="1658656106" name="timeSetTable" documentation="" maxInstances="0" mibName="clock.mib" isScalar="false">
+    <alarmManagement isEnabled="false" pollingInterval="100"/>
+    <provisioning isEnabled="true">
+      <attribute name="timeSetRow" dataType="INTEGER" multiplicity="1" minValue="0" maxValue="256" defaultValue="0" rdn="462501228" type="CONFIG" access="READWRITE" persistency="true" caching="true" isImported="true" OID="1.3.6.1.4.1.103.3.1.1.1" writable="true" initialized="false"/>
+      <attribute name="timeSetHour" dataType="INTEGER" multiplicity="1" minValue="0" maxValue="23" defaultValue="0" rdn="1290708784" type="CONFIG" access="READWRITE" persistency="true" caching="true" isImported="true" OID="1.3.6.1.4.1.103.3.1.1.2" writable="true" initialized="false"/>
+      <attribute name="timeSetMinute" dataType="INTEGER" multiplicity="1" minValue="0" maxValue="59" defaultValue="0" rdn="1032586013" type="CONFIG" access="READWRITE" persistency="true" caching="true" isImported="true" OID="1.3.6.1.4.1.103.3.1.1.3" writable="true" initialized="false"/>
+      <attribute name="timeSetSecond" dataType="INTEGER" multiplicity="1" minValue="0" maxValue="59" defaultValue="0" rdn="938485635" type="CONFIG" access="READWRITE" persistency="true" caching="true" isImported="true" OID="1.3.6.1.4.1.103.3.1.1.4" writable="true" initialized="false"/>
+    </provisioning>
+    <pm isEnabled="false"/>
+  </mibResource>
+  <mibResource rdn="481737448" name="nameTable" documentation="" maxInstances="0" mibName="clock.mib" isScalar="false">
+    <alarmManagement isEnabled="false" pollingInterval="100"/>
+    <provisioning isEnabled="true">
+      <attribute name="nodeAdd" dataType="Uint32" multiplicity="1" minValue="0" maxValue="4294967295" defaultValue="0" rdn="1107281544" type="CONFIG" access="READWRITE" persistency="true" caching="true" isImported="true" OID="1.3.6.1.4.1.103.4.1.1.1" writable="true" initialized="true"/>
+      <attribute name="nodeName" dataType="DisplayString" multiplicity="255" minValue="0" maxValue="0" defaultValue="0" rdn="1996827915" type="CONFIG" access="READWRITE" persistency="true" caching="true" isImported="true" OID="1.3.6.1.4.1.103.4.1.1.2" writable="true" initialized="false"/>
+      <attribute name="nodeIp" dataType="IpAddress" multiplicity="1" minValue="0" maxValue="0" defaultValue="0" rdn="273180625" type="CONFIG" access="READWRITE" persistency="true" caching="true" isImported="true" OID="1.3.6.1.4.1.103.4.1.1.3" writable="true" initialized="false"/>
+      <attribute name="nodeCreate" dataType="Int32" multiplicity="1" minValue="-2147483648" maxValue="2147483647" defaultValue="-2147483648" rdn="964751050" type="CONFIG" access="READWRITE" persistency="true" caching="true" isImported="true" OID="1.3.6.1.4.1.103.4.1.1.4" writable="true" initialized="false"/>
+    </provisioning>
+    <pm isEnabled="false"/>
+  </mibResource>
+</resource:resourceInformation>
