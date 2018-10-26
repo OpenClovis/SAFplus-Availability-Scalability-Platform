@@ -1,0 +1,134 @@
+<section name="NET-SNMP SUBAGENT">
+  <example order="2" name="Basic snmpSubagent Tutorial">
+    <html>
+      <h2>SNMP Subagent tutorial and Example</h2>
+      <p><brief>
+This example covers the basic use of the NET-SNMP Subagent in 6.0.
+When complete, you will have defined and created a snmpSubagent model and utilize all features from NET-SNMP.
+These programs include the master agent run on the server, snmpSubagent connecting to master agent; user can
+use snmp commands such as snmpget, snmpset, snmpwalk... to access to the agent.</brief></p>
+
+      <p>Let's follow the steps below to create a snmpSubagent model and use it.  The sample model is located in the <a href="https://github.com/OpenClovis/SAFplus-Availability-Scalability-Platform/tree/6.0/src/examples/snmpSubagent/octrain_mib">examples/snmpSubagent/octrain_mib directory</a>.  We will learn how to create a such model.  After that, we will compile this application (you should compile from source since not every line is shown in this tutorial) and run it.
+</p>
+    </html>
+
+    <html>
+      <h2>Creating model</h2>
+      <p>
+Create a Clovis project
+      </p>
+      <img src="img/snmpSampleModel.png"/>
+      <p>
+The model after created look like
+      </p>
+      <img src="img/componentEditor1.png"/>
+      <p>
+Importing MIB and modify the imported attributes: from menu Clovis > Import Mib Objects... Note that the mib file used in this example is located in <a href="https://github.com/OpenClovis/SAFplus-Availability-Scalability-Platform/tree/6.0/src/examples/ComprehensiveExample/mib/clock.mib">examples/ComprehensiveExample/mib/clock.mib</a>
+      </p>
+      <img src="img/mibImported.png"/>
+      <p>
+Then click "Import". The Resource Editor looks like
+      </p>
+      <img src="img/ResourceEditor1.png"/>
+      <p>
+Double click on any resource to see the objects definition. You can change some columns which are allowed to change such as Multiplicity, Initialized...
+      </p>
+      <img src="img/mibObjDefinition.png"/>
+      <p>
+Open the Component Editor, clone all entities except node (sc this case) and cluster by selecting them, then press CTRL-C and CTRL-V. We'll have the cloned entities on the right 
+      </p>
+      <img src="img/componentEditor2.png"/>
+      <p>
+We'll change the attributes of the cloned entities
+      </p>
+      <table border="0">
+       <tr>
+         <td rowspan="2">
+           <img src="img/snmpSG.png"/>
+         </td>
+         <td>
+           <img src="img/snmpSI.png"/>
+         </td>
+       </tr>
+       <tr>
+         <td>
+           <img src="img/snmpCSI.png"/>
+         </td>
+       </tr>
+      <tr>
+         <td>
+           <img src="img/snmpComp.png"/>
+         </td>
+         <td>
+           <img src="img/snmpSU.png"/>
+         </td>
+       </tr>
+      </table>
+     <p>
+Add relationship from node (sc this case) to snmp_SU
+     </p>
+     <img src="img/compEditor3.png"/>
+     <p>
+Next, specify the path to the imported mib file by right-clicking at the snmpSubagent component > Sub Agent Properties...
+     </p>
+     <img src="img/SubagentProp.png"/>
+     <p>
+Associate resource from alarm_clock component to the imported mib objects by right-clicking at the alarm_clock component > Associate Resources...
+     </p>
+      <table border="0">        
+      <tr>
+         <td>
+           <img src="img/AssociateResources1.png"/>
+         </td>
+         <td>
+           <img src="img/AssociateResource2.png"/>
+         </td>
+       </tr>
+      </table>
+    <p>
+Create node instance for both alarm_clock and snmpSubagent and assign resources for alarm clock: 
+    </p>
+    <table border="0">        
+      <tr>
+         <td>
+           <img src="img/alarm_clock0_rsc.png"/>
+         </td>
+         <td>
+           <img src="img/alarm_clock0_rsc_details.png"/>
+         </td>
+       </tr>
+      <tr>
+         <td>
+           <img src="img/alarm_clock1_rsc.png"/>
+         </td>
+         <td>
+           <img src="img/alarm_clock1_rsc_details.png"/>
+         </td>
+       </tr>
+      </table>
+     <p>
+Now, you have created the model, next generate source codes from the model by clicking Project > Generate Source which will generate both clovis application code and snmp code from the imported mib file. Then build the model and make images.
+     </p>
+     <p>
+      <h3>Running</h3>
+      <p>
+Deploy the image on a node and start it. After starting, the running model should look like
+      </p>
+      <img src="img/snmp_forest.png"/>
+      <p>
+Now, you can access the mib objects by using snmp commands. Prior to being able to do it, you have to copy the imported mib file (clock.mib) to the share/snmp/mibs in safplus sandbox (image deployment directory) and export 2 environment variables:
+      <ul>
+        <li>export MIBDIRS=safplus_sandbox_dir/share/snmp/mibs
+        <li>export MIBS=ALL
+      </ul>
+      You can see all the required mib files in the example:      
+      </p>
+      <img src="img/mibfiles.png"/>
+      <p>
+      Now, all is set. You can use snmp commmands, for example:
+      </p>
+      <img src="img/snmp_commands.png"/>
+
+    </html>
+  </example>
+</section>
