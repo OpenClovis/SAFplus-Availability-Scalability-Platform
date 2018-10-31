@@ -107,6 +107,8 @@ static ClVersionDatabaseT clCpmServerToServerVersionDb =
 
 typedef ClRcT (*funcArray[]) (void);
 
+extern ClBoolT gNodeShutdownReq;
+
 ClRcT CL_CPM_CALL_RMD_SYNC(ClIocNodeAddressT destAddr,
                            ClIocPortT eoPort,
                            ClUint32T fcnId,
@@ -948,7 +950,8 @@ ClRcT VDECL(cpmProcNodeShutDownReq)(ClEoDataT data,
     ClRcT   rc = CL_OK;
    
     rc = clXdrUnmarshallClUint32T(inMsgHandle, &iocAddress);
-    if(rc != CL_OK) return rc;        
+    if(rc != CL_OK) return rc;
+    gNodeShutdownReq = CL_TRUE;
     rc = cpmProcessOrderlyShutdown(iocAddress);
     return rc;
 }

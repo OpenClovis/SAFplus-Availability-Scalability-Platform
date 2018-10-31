@@ -140,7 +140,7 @@ pthread_cond_t condMain = PTHREAD_COND_INITIALIZER;
 
 extern ClBoolT gCpmShuttingDown;
 extern ClBoolT gCpmAppShutdown;
-
+ClBoolT gNodeShutdownReq = CL_FALSE;
 /**
  * Global variables.
  */
@@ -1150,7 +1150,7 @@ static ClRcT clCpmFinalize(void)
         clOsalMutexUnlock(&gpClCpm->cpmShutdownMutex);
     }
 
-    if(!gClAspRestart)
+    if(!gClAspRestart || gNodeShutdownReq)
     {
         clLogDebug("AMF","FIN","clCpmFinalize(): write safplus_restart_disable and shut down the node...");
         FILE *fptr = fopen(CL_CPM_RESTART_DISABLE_FILE, "w");
