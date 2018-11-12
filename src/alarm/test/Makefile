@@ -17,7 +17,7 @@ SAFPLUS_LINK_LIBS := -L$(LIB_DIR) $(addprefix -l,$(SAFPLUS_LIBS))
 LINK_STD_LIBS := $(XML2_LINK) $(LINK_STD_LIBS)
 # -lstdc++ -lm
 
-all: $(TEST_DIR)/alarm_client $(TEST_DIR)/alarm_client1 $(TEST_DIR)/alarm_client2 $(TEST_DIR)/alarm_client3 $(TEST_DIR)/alarm_client_child $(TEST_DIR)/alarm_client_parent $(TEST_DIR)/alarm_client_assert_soaking_time_switchover $(TEST_DIR)/alarm_client_clear_soaking_time_switchover $(TEST_DIR)/alarm_server
+all: $(TEST_DIR)/alarm_client $(TEST_DIR)/alarm_client_subscriber $(TEST_DIR)/alarm_client1 $(TEST_DIR)/alarm_client2 $(TEST_DIR)/alarm_client3 $(TEST_DIR)/alarm_client_child $(TEST_DIR)/alarm_client_parent $(TEST_DIR)/alarm_client_assert_soaking_time_switchover $(TEST_DIR)/alarm_client_clear_soaking_time_switchover $(TEST_DIR)/alarm_server
 
 $(TEST_DIR)/alarm_client: $(OBJ_DIR)/alarm_client.o $(SAFPLUS_DEP_LIBS)
 	$(LINK_EXE) $@ $+ $(LINK_LIBS) $(SAFPLUS_LINK_LIBS) $(LINK_STD_LIBS)
@@ -32,6 +32,9 @@ $(TEST_DIR)/alarm_client3: $(OBJ_DIR)/alarm_client3.o $(SAFPLUS_DEP_LIBS)
 	$(LINK_EXE) $@ $+ $(LINK_LIBS) $(SAFPLUS_LINK_LIBS) $(LINK_STD_LIBS)
 	 	 
 $(TEST_DIR)/alarm_client_child: $(OBJ_DIR)/alarm_client_child.o $(SAFPLUS_DEP_LIBS)
+	$(LINK_EXE) $@ $+ $(LINK_LIBS) $(SAFPLUS_LINK_LIBS) $(LINK_STD_LIBS)
+
+$(TEST_DIR)/alarm_client_subscriber: $(OBJ_DIR)/alarm_client_subscriber.o $(SAFPLUS_DEP_LIBS)
 	$(LINK_EXE) $@ $+ $(LINK_LIBS) $(SAFPLUS_LINK_LIBS) $(LINK_STD_LIBS)
 
 $(TEST_DIR)/alarm_client_parent: $(OBJ_DIR)/alarm_client_parent.o $(SAFPLUS_DEP_LIBS)
