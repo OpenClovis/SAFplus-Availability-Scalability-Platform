@@ -1443,17 +1443,17 @@ VDECL_VER(clCkptDeputyCkptOpen, 4, 0, 0)(ClHandleT         storedDBHdl,
         rc = clHandleCheckout(gCkptSvr->masterInfo.masterDBHdl, storedDBHdl,(void **) &pStoredData);
         if (rc != CL_OK)
         {
-            clLogDebug(CL_CKPT_AREA_DEPUTY, CL_CKPT_CTX_DEP_SYNCUP, "Checkpoint DB handle [%#llX:%#llX] checkout failed rc[0x %x]. Retrying...",(ClHandleT) gCkptSvr->masterInfo.masterDBHdl, storedDBHdl, rc);
+            clLogDebug(CL_CKPT_AREA_DEPUTY, CL_CKPT_CTX_DEP_SYNCUP, "Checkpoint DB handle [%#llX:%#llX] checkout failed rc[0x %x]. Retrying...",*((ClHandleT*) gCkptSvr->masterInfo.masterDBHdl), storedDBHdl, rc);
             
             ClTimerTimeOutT t = { 0, 150 };                  
             clOsalTaskDelay (t);
         }   
     } while((rc != CL_OK)&&(retries < 5));
     
-    CKPT_ERR_CHECK(CL_CKPT_SVR,CL_DEBUG_ERROR, ("Checkpoint DB handle [%#llX:%#llX] checkout failed rc[0x %x]",(ClHandleT) gCkptSvr->masterInfo.masterDBHdl, storedDBHdl, rc), rc);
+    CKPT_ERR_CHECK(CL_CKPT_SVR,CL_DEBUG_ERROR, ("Checkpoint DB handle [%#llX:%#llX] checkout failed rc[0x %x]",*((ClHandleT*) gCkptSvr->masterInfo.masterDBHdl), storedDBHdl, rc), rc);
     if (rc == CL_OK)
     {
-      clLogDebug(CL_CKPT_AREA_DEPUTY, CL_CKPT_CTX_DEP_SYNCUP, "Checkpoint DB handle [%#llX:%#llX] checkout succeeded.",(ClHandleT) gCkptSvr->masterInfo.masterDBHdl, storedDBHdl);
+      clLogDebug(CL_CKPT_AREA_DEPUTY, CL_CKPT_CTX_DEP_SYNCUP, "Checkpoint DB handle [%#llX:%#llX] checkout succeeded.",*((ClHandleT*) gCkptSvr->masterInfo.masterDBHdl), storedDBHdl);
     }
     
             

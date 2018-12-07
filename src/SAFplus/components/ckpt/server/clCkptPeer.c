@@ -1873,7 +1873,7 @@ ClRcT _ckptReplicaInfoUpdate(ClHandleT   ckptHdl, VDECL_VER(CkptInfoT, 5, 0, 0) 
      */
     CKPT_NULL_CHECK(pCkptInfo->pName);
 
-    clLogDebug(CL_CKPT_AREA_PEER, CL_CKPT_CTX_REPL_UPDATE, "Replicating the checkpoint [%.*s] onto this node [%d] with handle [%#llx:%#llX]", pCkptInfo->pName->length, pCkptInfo->pName->value, gCkptSvr->localAddr,(long long unsigned int) gCkptSvr->ckptHdl, ckptHdl);
+    clLogDebug(CL_CKPT_AREA_PEER, CL_CKPT_CTX_REPL_UPDATE, "Replicating the checkpoint [%.*s] onto this node [%d] with handle [%#llx:%#llX]", pCkptInfo->pName->length, pCkptInfo->pName->value, gCkptSvr->localAddr,*((long long unsigned int*) gCkptSvr->ckptHdl), ckptHdl);
     /*
      * Add the active handle to the list of handles.
      */
