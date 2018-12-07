@@ -1999,6 +1999,10 @@ fi
 
 if [ $CROSS_FLAG == 1 ] ;then
 
+    if [ -n $TARGET ]; then
+       TARGET=$CROSS_BUILD
+    fi
+
     # Check if build toolchain specified exists or not
     if [ ! -d $BUILD_TOOLS_DIR/$CROSS_BUILD ] ;then
         { { echo "$as_me:$LINENO: error:
