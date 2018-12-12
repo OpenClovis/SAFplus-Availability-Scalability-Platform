@@ -2144,7 +2144,10 @@ echo "$as_me: error:
     else
         export NET_SNMP_CONFIG=$BUILD_TOOLS_DIR/$CROSS_BUILD/bin/net-snmp-config
     fi
-    if [ ! -f $NET_SNMP_CONFIG ]; then
+    if [ ! -f $NET_SNMP_CONFIG ]; then  
+        net_snmp_config_path=$(find $CL_BUILDTOOLS/$CROSS_BUILD -name net-snmp-config|sed 's|/[^/]*$||')
+        echo $net_snmp_config_path
+        export PATH=$net_snmp_config_path:$PATH
         export NET_SNMP_CONFIG=net-snmp-config
     fi
     export KERNEL_SOURCE=$BUILD_TOOLS_DIR/$CROSS_BUILD/src/$KERNEL
