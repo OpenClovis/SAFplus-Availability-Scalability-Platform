@@ -2136,13 +2136,16 @@ echo "$as_me: error:
         echo "          Please detar 3rdparty-base at $(dirname $buildtool_dir)."
     fi
 
-    export PKG_CONFIG_PATH=$BUILD_TOOLS_DIR/$CROSS_BUILD/local/lib/pkgconfig:$BUILD_TOOLS_DIR/$CROSS_BUILD/lib/pkgconfig
+    export PKG_CONFIG_PATH=$PKG_CONFIG_PATH:$BUILD_TOOLS_DIR/$CROSS_BUILD/local/lib/pkgconfig:$BUILD_TOOLS_DIR/$CROSS_BUILD/lib/pkgconfig
     if [ -f $BUILD_TOOLS_DIR/$CROSS_BUILD/local/bin/net-snmp-config ]; then
         export NET_SNMP_CONFIG=$BUILD_TOOLS_DIR/$CROSS_BUILD/local/bin/net-snmp-config
     elif [ -f $BUILD_TOOLS_DIR/$CROSS_BUILD/target/bin/net-snmp-config ]; then
         export NET_SNMP_CONFIG=$BUILD_TOOLS_DIR/$CROSS_BUILD/target/bin/net-snmp-config
     else
         export NET_SNMP_CONFIG=$BUILD_TOOLS_DIR/$CROSS_BUILD/bin/net-snmp-config
+    fi
+    if [ ! -f $NET_SNMP_CONFIG ]; then
+        export NET_SNMP_CONFIG=net-snmp-config
     fi
     export KERNEL_SOURCE=$BUILD_TOOLS_DIR/$CROSS_BUILD/src/$KERNEL
 
