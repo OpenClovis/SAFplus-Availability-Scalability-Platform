@@ -2146,6 +2146,12 @@ echo "$as_me: error:
     fi
     export KERNEL_SOURCE=$BUILD_TOOLS_DIR/$CROSS_BUILD/src/$KERNEL
 
+    if [ -f $BUILD_TOOLS_DIR/$CROSS_BUILD/config.mk ]; then
+        source $BUILD_TOOLS_DIR/$CROSS_BUILD/config.mk
+    else
+        echo "ERROR: $BUILD_TOOLS_DIR/$CROSS_BUILD/config.mk does not exist. Please create it"
+        exit 1
+    fi
     CL_TARGET_PLATFORM=$ARCH
 
     if [ -n "$BIN_MODE" ]; then
