@@ -2072,11 +2072,51 @@ echo "$as_me: error:
         export AR=$BUILD_TOOLS_DIR/$CROSS_BUILD/bin/$TARGET-$CPU-$ROOTFS-ar
         export RANLIB=$BUILD_TOOLS_DIR/$CROSS_BUILD/bin/$TARGET-$CPU-$ROOTFS-ranlib
     else
-        export CC=$BUILD_TOOLS_DIR/$CROSS_BUILD/bin/$TARGET-gcc
-        export CXX=$BUILD_TOOLS_DIR/$CROSS_BUILD/bin/$TARGET-g++
-        LD=$BUILD_TOOLS_DIR/$CROSS_BUILD/bin/$TARGET-ld
-        AR=$BUILD_TOOLS_DIR/$CROSS_BUILD/bin/$TARGET-ar
-        RANLIB=$BUILD_TOOLS_DIR/$CROSS_BUILD/bin/$TARGET-ranlib
+        gcc_path=`find -L $BUILD_TOOLS_DIR/$CROSS_BUILD -name "*-gcc" | head -n 1`
+        if [ -n "$gcc_path" -a "$gcc_path" != "" ]; then
+            export CC=$gcc_path
+        else
+            echo "ERROR: gcc compiler for this toolchain not found, please reinstall the toolchain"
+            exit 1
+        fi
+        cxx_path=`find -L $BUILD_TOOLS_DIR/$CROSS_BUILD -name "*-g++" | head -n 1`
+        if [ -n "$cxx_path" -a "$cxx_path" != "" ]; then
+            export CXX=$cxx_path
+        else
+            echo "ERROR: g++ compiler for this toolchain not found, please reinstall the toolchain"
+            exit 1
+        fi
+        ld_path=`find -L $BUILD_TOOLS_DIR/$CROSS_BUILD -name "*-ld" | head -n 1`
+        if [ -n "$ld_path" -a "$ld_path" != "" ]; then
+            LD=$ld_path
+        else
+            echo "ERROR: ld linker for this toolchain not found, please reinstall the toolchain"
+            exit 1
+        fi
+        ar_path=`find -L $BUILD_TOOLS_DIR/$CROSS_BUILD -name "*-ar" | head -n 1`
+        if [ -n "$ar_path" -a "$ar_path" != "" ]; then
+            AR=$ar_path
+        else
+            echo "ERROR: ar for this toolchain not found, please reinstall the toolchain"
+            exit 1
+        fi
+        ranlib_path=`find -L $BUILD_TOOLS_DIR/$CROSS_BUILD -name "*-ranlib" | head -n 1`
+        if [ -n "$ranlib_path" -a "$ranlib_path" != "" ]; then
+            RANLIB=$ranlib_path
+        else
+            echo "ERROR: ranlib for this toolchain not found, please reinstall the toolchain"
+            exit 1
+        fi
+        #export CC=$BUILD_TOOLS_DIR/$CROSS_BUILD/bin/$TARGET-gcc
+        #export CXX=$BUILD_TOOLS_DIR/$CROSS_BUILD/bin/$TARGET-g++
+        #LD=$BUILD_TOOLS_DIR/$CROSS_BUILD/bin/$TARGET-ld
+        #AR=$BUILD_TOOLS_DIR/$CROSS_BUILD/bin/$TARGET-ar
+        #RANLIB=$BUILD_TOOLS_DIR/$CROSS_BUILD/bin/$TARGET-ranlib
+        echo "CC=$CC"
+        echo "CXX=$CXX"
+        echo "LD=$LD"
+        echo "AR=$AR"
+        echo "RANLIB=$RANLIB"
     fi
     GCC=$CC
 
