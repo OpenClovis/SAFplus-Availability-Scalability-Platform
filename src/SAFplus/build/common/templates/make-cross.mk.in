@@ -293,13 +293,17 @@ else
        endif
       else
        ifeq ($(CL_BINMODE),32)
-        CC       = env ARCH=$(ARCH) \
+        ifndef CC
+          CC       = env ARCH=$(ARCH) \
                    CROSS_COMPILE=$(BUILDTOOLS_PATH)/bin/ \
                    $(BUILDTOOLS_PATH)/bin/$(TARGET)-gcc -m32
+        endif
        else
-        CC       = env ARCH=$(ARCH) \
-                   CROSS_COMPILE=$(BUILDTOOLS_PATH)/bin/ \
-                   $(BUILDTOOLS_PATH)/bin/$(TARGET)-gcc
+        ifndef CC
+          CC       = env ARCH=$(ARCH) \
+                     CROSS_COMPILE=$(BUILDTOOLS_PATH)/bin/ \
+                     $(BUILDTOOLS_PATH)/bin/$(TARGET)-gcc
+        endif
        endif
       endif
     endif
@@ -360,21 +364,29 @@ else
                    $(BUILDTOOLS_PATH)/bin/$(CPU)-ld $(LDFLAGS)
   else
    ifeq ($(CL_BINMODE),32)
-    CXX	    	 = env ARCH=$(ARCH) \
+    ifndef CXX
+      CXX	    	 = env ARCH=$(ARCH) \
                    CROSS_COMPILE=$(BUILDTOOLS_PATH)/bin/ \
                    $(BUILDTOOLS_PATH)/bin/$(TARGET)-g++ -m32
+    endif
    else
-    CXX	    	 = env ARCH=$(ARCH) \
-                   CROSS_COMPILE=$(BUILDTOOLS_PATH)/bin/ \
-                   $(BUILDTOOLS_PATH)/bin/$(TARGET)-g++
+    ifndef CXX
+      CXX	    	 = env ARCH=$(ARCH) \
+                     CROSS_COMPILE=$(BUILDTOOLS_PATH)/bin/ \
+                     $(BUILDTOOLS_PATH)/bin/$(TARGET)-g++
+    endif
    endif
     GCC          = $(CC)
-    AR           = env ARCH=$(ARCH) \
-                   CROSS_COMPILE=$(BUILDTOOLS_PATH)/bin/ \
-                   $(BUILDTOOLS_PATH)/bin/$(TARGET)-ar
-    LD           = env ARCH=$(ARCH) \
+    ifndef AR
+      AR           = env ARCH=$(ARCH) \
+                     CROSS_COMPILE=$(BUILDTOOLS_PATH)/bin/ \
+                     $(BUILDTOOLS_PATH)/bin/$(TARGET)-ar
+    endif
+    ifndef LD
+      LD           = env ARCH=$(ARCH) \
                    CROSS_COMPILE=$(BUILDTOOLS_PATH)/bin/ \
                    $(BUILDTOOLS_PATH)/bin/$(TARGET)-ld $(LDFLAGS)
+    endif
   endif
 endif
 
