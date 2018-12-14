@@ -386,6 +386,8 @@ else
       LD           = env ARCH=$(ARCH) \
                    CROSS_COMPILE=$(BUILDTOOLS_PATH)/bin/ \
                    $(BUILDTOOLS_PATH)/bin/$(TARGET)-ld $(LDFLAGS)
+    else
+      LD += $(LDFLAGS)
     endif
   endif
 endif
