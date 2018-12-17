@@ -1999,7 +1999,7 @@ fi
 
 if [ $CROSS_FLAG == 1 ] ;then
 
-    if [ -n $TARGET ]; then
+    if [ -z $TARGET ]; then
        TARGET=$CROSS_BUILD
     fi
 
