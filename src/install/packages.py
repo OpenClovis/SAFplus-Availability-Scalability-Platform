@@ -212,8 +212,8 @@ class OS:
         
         netsnmp = objects.BuildDep()
         netsnmp.name           = 'net-snmp'
-        netsnmp.version        = '5.4.2'    
-        netsnmp.pkg_name       = 'net-snmp-5.4.2.tar.gz'
+        netsnmp.version        = '5.8'
+        netsnmp.pkg_name       = 'net-snmp-5.8.tar.gz'
         
         # force to install net-snmp from source (in 3rdparty) so that the SNMP subagent model can be built as well as
         # snmpd to be installed by disabling the command below
