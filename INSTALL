@@ -18,7 +18,7 @@
 
    2. If you don't want to install those 3rdparties on your computer, follow steps below:
    2.1. Build 3rd-party libraries   
-    cd 3rdparty
+    cd $(SAFPLUS_DIR)/src/3rdparty/base
     make USE_DIST_LIB=0
 
    2.2. Next, build the source:

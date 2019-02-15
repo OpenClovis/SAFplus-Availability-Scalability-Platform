@@ -204,7 +204,7 @@ namespace SAFplus
   template<class T>
   ClRcT MgtProvList<T>::removeChildObject(const T& val)
   {
-    typename std::vector<T>::const_iterator retpos = std::find(value.begin(), value.end(), val);
+    typename std::vector<T>::iterator retpos = std::find(value.begin(), value.end(), val);
     if (retpos != value.end())
     {
       value.erase(retpos);
