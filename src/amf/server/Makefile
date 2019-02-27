@@ -38,7 +38,7 @@ POLICY_ENV_OBJ := $(subst .cxx,.o,$(notdir $(POLICY_ENV_SRC)))
 POLICY_ENV_OBJ := $(addprefix $(OBJ_DIR)/amfsvr/,$(POLICY_ENV_OBJ))
 
 
-Release all: $(PLUGIN_DIR)/customAmfPolicy.so $(PLUGIN_DIR)/nPlusmAmfPolicy.so  $(SAFPLUS_TARGET)/bin/safplus_amf $(SAFPLUS_TARGET)/share/netconf/modules/openclovis/SAFplusAmf.yang $(SAFPLUS_TARGET)/share/netconf/modules/openclovis/SAFplusTypes.yang $(SAFPLUS_TARGET)/share/modules/openclovis/safplusLog.yang
+Release all: $(PLUGIN_DIR)/customAmfPolicy.so $(PLUGIN_DIR)/nPlusmAmfPolicy.so  $(SAFPLUS_TARGET)/bin/safplus_amf $(SAFPLUS_TARGET)/share/netconf/modules/openclovis/SAFplusAmf.yang $(SAFPLUS_TARGET)/share/netconf/modules/openclovis/SAFplusTypes.yang $(SAFPLUS_TARGET)/share/modules/openclovis/safplusLog.yang scripts
 
 $(SAFPLUS_TARGET)/share/netconf/modules/openclovis/SAFplusAmf.yang: $(SAFPLUS_SRC_DIR)/yang/SAFplusAmf.yang
 	@mkdir -p $(SAFPLUS_TARGET)/share/netconf/modules/openclovis
@@ -138,6 +138,8 @@ cleangen:
 
 #	(cd ENTITYSTATETCMIB && find . -type f -not -name "*Common.hxx" -not -name "*Base.cxx" | xargs rm)
 
+scripts:
+	cp -f amf_start $(SAFPLUS_TARGET)/bin
 
 clean:
 	rm -f $(OBJ_DIR)/amfsvr/*.o $(SAFPLUS_TARGET)/bin/safplus_amf $(POLICY_ENV_LIB) $(SAFPLUS_TARGET)/bin/customAmfPolicy.so $(SAFPLUS_TARGET)/bin/nPlusmAmfPolicy.so

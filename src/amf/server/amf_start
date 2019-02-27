@@ -1,0 +1,4 @@
+#!/bin/bash
+rm -rf /dev/shm/SAFplus*
+exec ./safplus_amf
+exit 0
