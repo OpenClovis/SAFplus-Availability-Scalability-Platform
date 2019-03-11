@@ -548,7 +548,8 @@ void loadAmfPluginsAt(const char* soPath, AmfOperations& amfOps,Fault& fault)
 
         }
       }
-    }  
+    }
+    fault.loadFaultPolicyEnv();
   }
 
 
@@ -751,6 +752,8 @@ int main(int argc, char* argv[])
   amfDb.initialize(dbName);
   cfg.setDatabase(&amfDb);
   /* Initialize mgt database  */
+  SaTimeT healthCheckMaxSilence = (SaTimeT)1500;
+  cfg.safplusAmf.setHealthCheckMaxSilence(healthCheckMaxSilence);
   DbalPlugin* plugin = amfDb.getPlugin();
   logInfo(LogArea,"DB", "Opening database file [%s] using plugin [%s]", dbName.c_str(),plugin->type);
 

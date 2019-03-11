@@ -14,6 +14,7 @@ class Fault
 {
 public:
 
+    SAFplus::FaultPolicy     	      faultPolicy;
     SAFplus::Handle                   reporter;             // handle for identify a fault entity
     SAFplus::SafplusMsgServer*        faultMsgServer;       // safplus message for send fault notification to fault server
     SAFplus::Wakeable*                wakeable;             // Wakeable object for change notification
@@ -24,6 +25,7 @@ public:
     //? <ctor>Default 2-phase constructor.  You must call init(...) before using this class</ctor>
     Fault() 
     {
+	faultPolicy = SAFplus::FaultPolicy::Undefined;
         faultServer = INVALID_HDL;
         reporter=INVALID_HDL;
         faultMsgServer=NULL;
@@ -77,6 +79,9 @@ public:
     void setNotification(SAFplus::Wakeable& w);  //? call w.wake when there is a fault state change.  Pass what happened into the wakeable.  There can be only one registered notification per Fault object.
     uint64_t lastChange(); //?  Return the time of the last change to this group in monotonically increasing system ticks.
 
+    void setFaultPolicy(SAFplus::FaultPolicy faultPolicy);
+    SAFplus::FaultPolicy getFaultPolicy();
+    void loadFaultPolicyEnv();
     protected:
     // send a fault entity to fault server
     void sendFaultEventMessage(SAFplus::Handle faultEntity,SAFplus::FaultMessageSendMode messageMode,SAFplus::FaultMessageType msgType,SAFplus::AlarmState alarmState,SAFplus::AlarmCategory category,SAFplus::AlarmSeverity severity,SAFplus::AlarmProbableCause cause,FaultPolicy pluginId);

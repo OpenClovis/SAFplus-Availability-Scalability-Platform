@@ -107,7 +107,7 @@ extern "C" ClPlugin* clPluginInitialize(uint_t preferredPluginVersion)
     // Initialize the pluginData structure
     SAFplus::api.pluginId         = FAULT_POLICY_PLUGIN_ID;
     SAFplus::api.pluginVersion    = FAULT_POLICY_PLUGIN_VER;
-    SAFplus::api.policyId = SAFplus::FaultPolicy::Custom;
+    SAFplus::api.policyId = SAFplus::FaultPolicy::AMF;
     // return it
     return (ClPlugin*) &SAFplus::api;
 }

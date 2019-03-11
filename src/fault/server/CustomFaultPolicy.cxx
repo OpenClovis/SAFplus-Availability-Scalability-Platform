@@ -21,6 +21,7 @@ namespace SAFplus
 
     CustomFaultPolicy::CustomFaultPolicy()
     {
+	policyId = FaultPolicy::Custom;
     }
     CustomFaultPolicy::~CustomFaultPolicy()
     {
@@ -61,7 +62,7 @@ extern "C" ClPlugin* clPluginInitialize(uint_t preferredPluginVersion)
   // Initialize the pluginData structure
   SAFplus::api.pluginId         = SAFplus::FAULT_POLICY_PLUGIN_ID;
   SAFplus::api.pluginVersion    = SAFplus::FAULT_POLICY_PLUGIN_VER;
-  SAFplus::api.policyId = SAFplus::FaultPolicy::AMF;
+  SAFplus::api.policyId = SAFplus::FaultPolicy::Custom;
   // return it
   return (ClPlugin*) &SAFplus::api;
 }

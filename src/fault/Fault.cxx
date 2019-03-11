@@ -467,5 +467,31 @@ void Fault::setNotification(SAFplus::Wakeable& w)
         return rc;
     }
 #endif
+    void Fault::setFaultPolicy(SAFplus::FaultPolicy fp)
+    {
+        faultPolicy = fp;
+    }
+    SAFplus::FaultPolicy Fault::getFaultPolicy()
+    {
+        return faultPolicy;
+    }
 
+    void Fault::loadFaultPolicyEnv()
+    {
+        char *faultPolicyStr = parseEnvStr("FAULT_POLICY");
+        SAFplus::FaultPolicy fp = SAFplus::FaultPolicy::Undefined;
+
+        if (!faultPolicyStr || strcmp(faultPolicyStr, "AMF") == 0)
+        {
+            fp = SAFplus::FaultPolicy::AMF;
+        }
+        else if (strcmp(faultPolicyStr, "Custom") == 0)
+        {
+            fp = SAFplus::FaultPolicy::Custom;
+        }
+        if (faultPolicy == SAFplus::FaultPolicy::Undefined || faultPolicy != fp)
+        {
+            setFaultPolicy(fp);
+        }
+    }
 };
