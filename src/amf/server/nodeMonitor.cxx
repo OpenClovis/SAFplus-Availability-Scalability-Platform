@@ -116,6 +116,7 @@ void NodeMonitor::monitorThread(void)
     {
       loopCnt++;
       int64_t now = timerMs();
+      fault.loadFaultPolicyEnv();
       if (active)
         {
           bool ka[SAFplus::MaxNodes];
@@ -128,7 +129,7 @@ void NodeMonitor::monitorThread(void)
                     {
                       if ((cfg.safplusAmf.healthCheckMaxSilence!=0) && (now - lastHeard[i] > cfg.safplusAmf.healthCheckMaxSilence))
                         {
-                          fault.notify(getNodeHandle(i),AlarmState::ASSERT,AlarmCategory::COMMUNICATIONS,AlarmSeverity::MAJOR,AlarmProbableCause::RECEIVER_FAILURE);
+                          fault.notify(getNodeHandle(i),AlarmState::ASSERT,AlarmCategory::COMMUNICATIONS,AlarmSeverity::MAJOR,AlarmProbableCause::RECEIVER_FAILURE, fault.getFaultPolicy());
                           lastHeard[i] = 0;  // after fault mgr notification, reset node as if its new.  If the fault mgr does not choose to kill the node, this will cause us to give the node another maxSilentInterval.
                           // DEBUG only trigger once boost::this_thread::sleep(boost::posix_time::milliseconds(1000000 + SAFplusI::NodeHeartbeatInterval)); 
                         }
@@ -201,7 +202,7 @@ void NodeMonitor::monitorThread(void)
               hdl = getNodeHandle(lastHbHandle);
               // I need to special case the fault reporting of the ACTIVE, since that fault server is probably dead.
               // TODO: It is more semantically correct to send this notification to the standby fault server by looking at the fault group.  However, it will end up pointing to this node...
-              fault.notifyLocal(hdl,AlarmState::ASSERT,AlarmCategory::COMMUNICATIONS,AlarmSeverity::MAJOR,AlarmProbableCause::RECEIVER_FAILURE);
+              fault.notifyLocal(hdl,AlarmState::ASSERT,AlarmCategory::COMMUNICATIONS,AlarmSeverity::MAJOR,AlarmProbableCause::RECEIVER_FAILURE, fault.getFaultPolicy());
             }
         }
 
