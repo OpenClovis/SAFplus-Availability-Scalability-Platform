@@ -82,7 +82,7 @@ const char* LogArea = "MAN";
 MgtDatabase amfDb;
 MgtDatabase logDb;
 SAFplus::Fault fault;  // Fault client global variable
-
+bool initOperValues = false;
 
 enum
   {
@@ -999,6 +999,10 @@ int main(int argc, char* argv[])
         {
         if (activeStandbyPairs.first == myHandle)  // I just became active
           {
+          if (myRole == 0)// if my previous HA state is NOT STANDBY or ACTIVE, do init operational values
+            {
+            initOperValues = true;
+            }
           logInfo("---","---","This node just became the active system controller");
           myRole = Group::IS_ACTIVE;
           becomeActive();
@@ -1011,6 +1015,7 @@ int main(int argc, char* argv[])
           {
           CL_ASSERT(myRole != Group::IS_ACTIVE);  // Fall back from active to standby is not allowed
           logInfo("---","---","This node just became standby system controller");
+          initOperValues = false;
           myRole = Group::IS_STANDBY;
           becomeStandby();
           }
@@ -1037,7 +1042,11 @@ void initializeOperationalValues(SAFplusAmf::SAFplusAmfModule& cfg)
       const std::string& name = sg->name;
     }
 #endif
-
+  if (!initOperValues) {
+     logInfo("MAIN","INIT","This is not the first time node started. The next time, these will be loaded from database");
+     return;
+  }
+  logInfo("MAIN","INIT","intializing default values");
   MgtObject::Iterator itsu;
   MgtObject::Iterator endsu = cfg.safplusAmf.serviceUnitList.end();
 

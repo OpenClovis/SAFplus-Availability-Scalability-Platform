@@ -296,7 +296,8 @@ namespace SAFplus
         }
       else if (comp)
         {
-        comp->processId.value = response.pid();
+        logInfo("---","---","set comp [%s] pid=%d",comp->name.value.c_str(), response.pid());
+        comp->processId = response.pid();
 
        if ( comp->capabilityModel == CapabilityModel::not_preinstantiable)
           {

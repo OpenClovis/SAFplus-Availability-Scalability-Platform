@@ -103,7 +103,8 @@ namespace SAFplus
     assert(mDbDataHdl);
 
     /* Open the data DB */
-    pluginFlags = 0;
+    // Do not overwrite the flags passed by an user outsite
+    //pluginFlags = 0;
     dbNameData.append(dbName).append(".db");
     unsigned int flags = (pluginFlags << 8) | CL_DB_APPEND;
     rc = mDbDataHdl->open(dbNameData.c_str(), dbNameData.c_str(), flags, maxKeySize, maxRecordSize);
