@@ -44,10 +44,11 @@ namespace SAFplusAmf
     Component::Component(): presenceState("presenceState",::SAFplusAmf::PresenceState::uninstantiated), capabilityModel("capabilityModel"), maxActiveAssignments("maxActiveAssignments",1), maxStandbyAssignments("maxStandbyAssignments",1), assignedWork("assignedWork"), operState("operState",true), readinessState("readinessState",::SAFplusAmf::ReadinessState::outOfService), haReadinessState("haReadinessState",::SAFplusAmf::HighAvailabilityReadinessState::readyForAssignment), haState("haState",::SAFplusAmf::HighAvailabilityState::idle), safVersion("safVersion",std::string("B.04.01")), compCategory("compCategory"), swBundle("swBundle"), commandEnvironment("commandEnvironment"), maxInstantInstantiations("maxInstantInstantiations",1), maxDelayedInstantiations("maxDelayedInstantiations",1), numInstantiationAttempts("numInstantiationAttempts"), instantiationSuccessDuration("instantiationSuccessDuration",30000), lastInstantiation("lastInstantiation"), delayBetweenInstantiation("delayBetweenInstantiation",10000), serviceUnit("serviceUnit"), recovery("recovery"), restartable("restartable",true), proxy("proxy"), proxied("proxied"), processId("processId",0), lastError("lastError"), pendingOperation("pendingOperation"), pendingOperationExpiration("pendingOperationExpiration",Date(0))
     {
         this->addChildObject(&presenceState, "presenceState");
-        presenceState.config = false;
-        presenceState.settable = false;
-        presenceState.loadDb = false;
-        presenceState.replicated = false;
+        // We allow presenceState to be stored and read to/from database to do the failover, comment the followings:
+        //presenceState.config = true;
+        //presenceState.settable = true;
+        //presenceState.loadDb = true;
+        //presenceState.replicated = true;
         this->addChildObject(&capabilityModel, "capabilityModel");
         this->addChildObject(&maxActiveAssignments, "maxActiveAssignments");
         this->addChildObject(&maxStandbyAssignments, "maxStandbyAssignments");
@@ -112,10 +113,11 @@ namespace SAFplusAmf
         this->addChildObject(&proxy, "proxy");
         this->addChildObject(&proxied, "proxied");
         this->addChildObject(&processId, "processId");
-        processId.config = false;
-        processId.settable = false;
-        processId.loadDb = false;
-        processId.replicated = true;
+        // We allow processId to be stored and read to/from database to do the failover, comment the followings:
+        //processId.config = true;
+        //processId.settable = true;
+        //processId.loadDb = true;
+        //processId.replicated = true;
         this->addChildObject(&lastError, "lastError");
         lastError.config = false;
         lastError.settable = false;
@@ -177,10 +179,11 @@ namespace SAFplusAmf
     {
         this->name.value =  nameValue;
         this->addChildObject(&presenceState, "presenceState");
-        presenceState.config = false;
-        presenceState.settable = false;
-        presenceState.loadDb = false;
-        presenceState.replicated = false;
+        // We allow presenceState to be stored and read to/from database to do the failover, comment the followings:
+        //presenceState.config = false;
+        //presenceState.settable = false;
+        //presenceState.loadDb = false;
+        //presenceState.replicated = false;
         this->addChildObject(&capabilityModel, "capabilityModel");
         this->addChildObject(&maxActiveAssignments, "maxActiveAssignments");
         this->addChildObject(&maxStandbyAssignments, "maxStandbyAssignments");
@@ -245,10 +248,11 @@ namespace SAFplusAmf
         this->addChildObject(&proxy, "proxy");
         this->addChildObject(&proxied, "proxied");
         this->addChildObject(&processId, "processId");
-        processId.config = false;
-        processId.settable = false;
-        processId.loadDb = false;
-        processId.replicated = true;
+        // We allow processId to be stored and read to/from database to do the failover, comment the followings:
+        //processId.config = false;
+        //processId.settable = false;
+        //processId.loadDb = false;
+        //processId.replicated = true;
         this->addChildObject(&lastError, "lastError");
         lastError.config = false;
         lastError.settable = false;
