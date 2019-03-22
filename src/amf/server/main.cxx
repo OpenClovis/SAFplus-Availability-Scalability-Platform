@@ -890,7 +890,7 @@ int main(int argc, char* argv[])
   //Timer readStats(statsTimeout, CL_TIMER_REPETITIVE,CL_TIMER_SEPARATE_CONTEXT,refreshComponentStats,NULL);
   //readStats.timerStart();
 
-  logInfo(LogArea,"NAM", "Registering this node [%s] as handle [%" PRIx64 ":%" PRIx64 "]", SAFplus::ASP_NODENAME, myHandle.id[0],myHandle.id[1]);
+  logInfo(LogArea,"NAM", "Registering this node [%s] as handle [%" PRIx64 ":%" PRIx64 "]", SAFplus::ASP_NODENAME, nodeHandle.id[0],nodeHandle.id[1]);
   name.set(SAFplus::ASP_NODENAME,nodeHandle,NameRegistrar::MODE_NO_CHANGE);
 
   compStatsRefresh = boost::thread(CompStatsRefresh());

@@ -205,7 +205,7 @@ SaAisErrorT saAmfComponentRegister(SaAmfHandleT amfHandle,const SaNameT *compNam
       }
 
     // TODO: read the name and log a warning if it is not INVALID_HDL
-
+    logInfo("AMF","INI","Registering component name [%s] as handle [%" PRIx64 ":%" PRIx64 "]", SAFplus::ASP_COMPNAME, myHandle.id[0],myHandle.id[1]);
     name.set(SAFplus::ASP_COMPNAME,myHandle,NameRegistrar::MODE_NO_CHANGE);
     name.setLocalObject(myHandle,(void*) amfHandle);
     name.setLocalObject(SAFplus::ASP_COMPNAME,(void*) amfHandle);
@@ -217,6 +217,7 @@ SaAisErrorT saAmfComponentRegister(SaAmfHandleT amfHandle,const SaNameT *compNam
 SaAisErrorT saAmfComponentUnregister(SaAmfHandleT amfHandle, const SaNameT *compName, const SaNameT *proxyCompName)
   {
   // Maybe send a message to AMF telling it that I am no longer the component, for now just remove the name from the name server
+  logInfo("AMF","INI","Unregistering component name [%s] as invalid handle", SAFplus::ASP_COMPNAME);
   name.set(SAFplus::ASP_COMPNAME,INVALID_HDL,NameRegistrar::MODE_NO_CHANGE);
   return SA_AIS_OK;
   }
