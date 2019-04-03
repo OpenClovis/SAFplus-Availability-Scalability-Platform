@@ -229,7 +229,6 @@ void NodeMonitor::monitorThread(void)
               fault.notifyLocal(hdl,AlarmState::ASSERT,AlarmCategory::COMMUNICATIONS,AlarmSeverity::MAJOR,AlarmProbableCause::RECEIVER_FAILURE, fault.getFaultPolicy());
             }
         }
-
       uint64_t tmp = cfg.safplusAmf.healthCheckPeriod;
       if (tmp == 0) tmp = 1000; // if "off" loop every second anyway so we can detect when we get turned on.
       boost::this_thread::sleep(boost::posix_time::milliseconds(tmp)); 

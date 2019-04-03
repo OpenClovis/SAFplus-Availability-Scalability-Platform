@@ -308,7 +308,8 @@ namespace SAFplus
       //  <arg name="dataLength">Length of the data to be sent</arg>
       //  <arg name="messageMode">Who to send this message to?  Everyone, the active, the standby or any member in a round robin fashion?</arg>
       void send(void* data, int dataLength, SAFplus::GroupMessageSendMode messageMode);
-
+      void broadcastRole(EntityIdentifier active,EntityIdentifier standby,bool forcing);
+      void sendMemberReJoinMessage(SAFplusI::GroupRoleNotifyTypeT roleType);
     protected:
       // Functions that send various announcement messages
       void sendGroupAnnounceMessage();
@@ -316,7 +317,7 @@ namespace SAFplus
       void fillAndSendMessage(void* data, SAFplusI::GroupMessageTypeT msgType,SAFplus::GroupMessageSendMode msgSendMode, SAFplusI::GroupRoleNotifyTypeT roleType, bool forcing=false);
       void sendNotification(void* data, int dataLength, SAFplus::GroupMessageSendMode messageMode);
  
-      void sendMemberJoinMessage();     
+      void sendMemberJoinMessage(SAFplusI::GroupRoleNotifyTypeT roleType=(SAFplusI::GroupRoleNotifyTypeT)2); 
 
       int                               groupCommunicationPort; // Communication port
       SAFplus::SafplusMsgServer*        groupMsgServer;
