@@ -646,9 +646,8 @@ namespace SAFplus
     {
       if (fsmServer.updateFaultHandleState(handle, state))  // If there was a change
         {
-
-        // If the state is DOWN, then mark all children of nodes or processes as also DOWN
-        if (state == FaultState::STATE_DOWN)
+        // If the state is DOWN or UP, then mark all children of nodes or processes as also DOWN or UP
+        if (state == FaultState::STATE_DOWN || state == FaultState::STATE_UP)
           {
             fsmServer.setChildFaults(handle, state);
           }

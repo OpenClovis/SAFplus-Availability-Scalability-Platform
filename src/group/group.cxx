@@ -318,7 +318,7 @@ void Group::setNotification(SAFplus::Wakeable& w)
           else
             {
             if (gi->credentials != credentials) notify = true;
-            if (gi->capabilities&(~(Group::IS_ACTIVE | Group::IS_STANDBY)) != capabilities) notify = true; 
+            if (gi->capabilities&(~(Group::IS_ACTIVE | Group::IS_STANDBY)) != capabilities) notify = true;
             // TODO if data changed, notify = true
             }
           }
@@ -348,10 +348,6 @@ void Group::setNotification(SAFplus::Wakeable& w)
     }
 #endif
 
-    void SAFplus::Group::sendMemberJoinMessage()
-    {
-        fillAndSendMessage((void *)&myInformation,GroupMessageTypeT::MSG_ENTITY_JOIN,GroupMessageSendMode::SEND_BROADCAST,GroupRoleNotifyTypeT::ROLE_UNDEFINED);
-    }
 /**
  * API to deregister an entity from the group
  */
@@ -431,7 +427,18 @@ void Group::setNotification(SAFplus::Wakeable& w)
     sndMessage.data[0] = 0;
     sendNotification((void *)&sndMessage,sizeof(GroupMessageProtocol),GroupMessageSendMode::SEND_BROADCAST);
     }
-
+  void SAFplus::Group::broadcastRole(EntityIdentifier active,EntityIdentifier standby,bool forcing)
+   {
+	sendRoleMessage(active,standby,forcing);
+   }
+  void SAFplus::Group::sendMemberJoinMessage(SAFplusI::GroupRoleNotifyTypeT roleType)
+  {
+    fillAndSendMessage((void *)&myInformation,GroupMessageTypeT::MSG_ENTITY_JOIN,GroupMessageSendMode::SEND_BROADCAST,roleType);
+  }
+  void SAFplus::Group::sendMemberReJoinMessage(SAFplusI::GroupRoleNotifyTypeT roleType)
+  {
+   sendMemberJoinMessage(roleType);
+  }
 
 
 /**
