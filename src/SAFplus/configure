@@ -7470,11 +7470,15 @@ if [ $BUILD_TIPC = 1 ]; then
         if [ $TARGET_QNX = 1 ]; then
             TIPC_INCLUDE=/opt/clovis/buildtools/$CROSS_BUILD/include
         else
-	        if [ $KERNEL_PATCH_VERSION -lt 15 ]; then
-            	TIPC_INC_DIR=include/net/tipc
-	        else
-            	TIPC_INC_DIR=include
-	        fi
+               if [ -d $KERNEL_SOURCE/include/generated ]; then # It's actual not an inclusion for tipc, it's for CONFIG_HZ instead
+                   TIPC_INC_DIR=include/generated
+               else
+                  if [ $KERNEL_PATCH_VERSION -lt 15 ]; then
+                      TIPC_INC_DIR=include/net/tipc
+                  else
+                      TIPC_INC_DIR=include
+	          fi
+               fi
 
 	        if [ $CROSS_FLAG = 0 ]; then
             	if [ -f $TOOLCHAIN_DIR/modules/tipc.ko ]; then
