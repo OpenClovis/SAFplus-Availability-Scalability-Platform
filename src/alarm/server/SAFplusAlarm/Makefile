@@ -1,4 +1,5 @@
 S7 := 1
+SAFPLUS_ALARM_SERVER := 1
 ifeq ($(SAFPLUS_SRC_DIR),)
 $(error You must run this as a submake or define the SAFPLUS_SRC_DIR environment variable)
 endif

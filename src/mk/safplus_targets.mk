@@ -117,6 +117,8 @@ $(LIB_DIR)/libclMsg.so: $(wildcard $(SAFPLUS_SRC_DIR)/msg/*.cxx) $(wildcard $(SA
 	$(MAKE) -C $(SAFPLUS_SRC_DIR)/msg
 endif
 
+
+
 ifndef SAFPLUS_FAULT_LIB
 $(LIB_DIR)/libclFault.so: $(SAFPLUS_SRC_DIR)/include/MgtMsg.pb.hxx $(wildcard $(SAFPLUS_SRC_DIR)/fault/*.cxx) $(wildcard $(SAFPLUS_SRC_DIR)/include/*.hxx) 
 	$(MAKE) -C $(SAFPLUS_SRC_DIR)/fault
@@ -127,6 +129,37 @@ $(LIB_DIR)/libclFaultServer.so $(PLUGIN_DIR)/AmfFaultPolicy.so $(PLUGIN_DIR)/Cus
 	$(MAKE) -C $(SAFPLUS_SRC_DIR)/fault/server
 endif
 
+ifndef SAFPLUS_EVENT_LIB
+$(LIB_DIR)/libclEvent.so: $(SAFPLUS_SRC_DIR)/include/MgtMsg.pb.hxx $(wildcard $(SAFPLUS_SRC_DIR)/event/*.cxx) $(wildcard $(SAFPLUS_SRC_DIR)/include/*.hxx)
+	$(MAKE) -C $(SAFPLUS_SRC_DIR)/event
+endif
+
+ifndef SAFPLUS_EVENT_SERVER
+$(LIB_DIR)/libclEventServer.so : $(wildcard $(SAFPLUS_SRC_DIR)/event/server/*.cxx) $(wildcard $(SAFPLUS_SRC_DIR)/include/*.hxx)
+	$(MAKE) -C $(SAFPLUS_SRC_DIR)/event/server
+endif
+
+ifndef SAFPLUS_ALARM_LIB
+$(LIB_DIR)/libclAlarm.so: $(SAFPLUS_SRC_DIR)/include/MgtMsg.pb.hxx $(wildcard $(SAFPLUS_SRC_DIR)/alarm/*.cxx) $(wildcard $(SAFPLUS_SRC_DIR)/include/*.hxx)
+	$(MAKE) -C $(SAFPLUS_SRC_DIR)/alarm
+endif
+
+ifndef SAFPLUS_ALARM_SERVER
+$(LIB_DIR)/libSAFplusAlarm.so : $(wildcard $(SAFPLUS_SRC_DIR)/alarm/server/SAFplusAlarm/*.cxx) $(wildcard $(SAFPLUS_SRC_DIR)/include/*.hxx)
+	$(MAKE) -C $(SAFPLUS_SRC_DIR)/alarm/server/SAFplusAlarm
+$(LIB_DIR)/libclAlarmServer.so : $(wildcard $(SAFPLUS_SRC_DIR)/alarm/server/*.cxx) $(wildcard $(SAFPLUS_SRC_DIR)/include/*.hxx)
+	$(MAKE) -C $(SAFPLUS_SRC_DIR)/alarm/server
+endif
+
+ifndef SAFPLUS_ALARM_TEST
+$(TEST_DIR)/alarm_client $(TEST_DIR)/alarm_client_subscriber $(TEST_DIR)/alarm_client1 $(TEST_DIR)/alarm_client2 $(TEST_DIR)/alarm_client3 $(TEST_DIR)/alarm_client_child $(TEST_DIR)/alarm_client_parent $(TEST_DIR)/alarm_client_assert_soaking_time_switchover $(TEST_DIR)/alarm_client_clear_soaking_time_switchover $(TEST_DIR)/alarm_server:
+	$(MAKE) -C $(SAFPLUS_SRC_DIR)/alarm/test
+endif
+
+ifndef SAFPLUS_EVENT_TEST
+$(TEST_DIR)/event_client_global $(TEST_DIR)/event_client_local:
+	$(MAKE) -C $(SAFPLUS_SRC_DIR)/event/test
+endif
 
 ifndef SAFPLUS_AMF_LIB
 $(LIB_DIR)/libclAmf.so: $(wildcard $(SAFPLUS_SRC_DIR)/amf/*.cxx)
@@ -203,10 +236,10 @@ SAFplusMsgTransports := $(PLUGIN_DIR)/clMsgUdp.so $(PLUGIN_DIR)/clMsgTipc.so $(P
 SAFplusDbalPlugins := $(PLUGIN_DIR)/libclBerkeleyDB.so $(PLUGIN_DIR)/libclSQLiteDB.so $(PLUGIN_DIR)/libclGDBM.so $(PLUGIN_DIR)/libclCkptDB.so
 
 # ordered by dependency
-SAFplusSOs := $(LIB_DIR)/libclUtils.so $(LIB_DIR)/libclTimer.so $(LIB_DIR)/libclLog.so $(LIB_DIR)/libclOsal.so  $(LIB_DIR)/libclCkpt.so $(LIB_DIR)/libclMsg.so $(LIB_DIR)/libclRpc.so $(LIB_DIR)/libclName.so $(LIB_DIR)/libclGroup.so $(LIB_DIR)/libclMgt.so $(LIB_DIR)/libclFault.so $(LIB_DIR)/libclDbal.so $(LIB_DIR)/libclAmf.so $(LIB_DIR)/pyDbal.so
+SAFplusSOs := $(LIB_DIR)/libclUtils.so $(LIB_DIR)/libclTimer.so $(LIB_DIR)/libclLog.so $(LIB_DIR)/libclOsal.so  $(LIB_DIR)/libclCkpt.so $(LIB_DIR)/libclMsg.so $(LIB_DIR)/libclRpc.so $(LIB_DIR)/libclName.so $(LIB_DIR)/libclGroup.so $(LIB_DIR)/libclMgt.so $(LIB_DIR)/libclFault.so $(LIB_DIR)/libclEvent.so $(LIB_DIR)/libSAFplusAlarm.so  $(LIB_DIR)/libclAlarm.so $(LIB_DIR)/libclDbal.so $(LIB_DIR)/libclAmf.so $(LIB_DIR)/pyDbal.so
 
 
-SAFplusTests := $(TEST_DIR)/testLog $(TEST_DIR)/testmgt   $(TEST_DIR)/testCkpt $(TEST_DIR)/testGroup $(TEST_DIR)/exampleSafApp $(TEST_DIR)/testTransport $(TEST_DIR)/testMsgPerf
+SAFplusTests := $(TEST_DIR)/testLog $(TEST_DIR)/testmgt   $(TEST_DIR)/testCkpt $(TEST_DIR)/testGroup $(TEST_DIR)/exampleSafApp $(TEST_DIR)/testTransport $(TEST_DIR)/testMsgPerf $(TEST_DIR)/alarm_client $(TEST_DIR)/alarm_client_subscriber $(TEST_DIR)/alarm_client1 $(TEST_DIR)/alarm_client2 $(TEST_DIR)/alarm_client3 $(TEST_DIR)/alarm_client_child $(TEST_DIR)/alarm_client_parent $(TEST_DIR)/alarm_client_assert_soaking_time_switchover $(TEST_DIR)/alarm_client_clear_soaking_time_switchover $(TEST_DIR)/alarm_server $(TEST_DIR)/event_client_global $(TEST_DIR)/event_client_local
 
 # $(TEST_DIR)/TestSendMsg $(TEST_DIR)/TestReceiveMsg
 #  $(SAFPLUS_TARGET)/bin/splogd $(TEST_DIR)/testGroup $(TEST_DIR)/testGroupServer
