@@ -830,6 +830,7 @@ namespace SAFplus
                     {
                     logWarning("N+M","AUDIT","Component [%s] is marked as running with uninstantiated state and no name registration (no handle).  It may have died at startup.", comp->name.value.c_str());
                     }
+                amfOps->cleanup(comp);
                 updateStateDueToProcessDeath(comp);
                 }
               else if (comp->presenceState == PresenceState::instantiating)  // If the component is in the instantiating state, look for it to register with the AMF

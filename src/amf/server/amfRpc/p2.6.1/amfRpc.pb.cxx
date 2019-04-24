@@ -34,6 +34,12 @@ const ::google::protobuf::internal::GeneratedMessageReflection*
 const ::google::protobuf::Descriptor* StopComponentResponse_descriptor_ = NULL;
 const ::google::protobuf::internal::GeneratedMessageReflection*
   StopComponentResponse_reflection_ = NULL;
+const ::google::protobuf::Descriptor* CleanupComponentRequest_descriptor_ = NULL;
+const ::google::protobuf::internal::GeneratedMessageReflection*
+  CleanupComponentRequest_reflection_ = NULL;
+const ::google::protobuf::Descriptor* CleanupComponentResponse_descriptor_ = NULL;
+const ::google::protobuf::internal::GeneratedMessageReflection*
+  CleanupComponentResponse_reflection_ = NULL;
 const ::google::protobuf::Descriptor* NodeInfoRequest_descriptor_ = NULL;
 const ::google::protobuf::internal::GeneratedMessageReflection*
   NodeInfoRequest_reflection_ = NULL;
@@ -124,7 +130,40 @@ void protobuf_AssignDesc_amfRpc_2eproto() {
       ::google::protobuf::DescriptorPool::generated_pool(),
       ::google::protobuf::MessageFactory::generated_factory(),
       sizeof(StopComponentResponse));
-  NodeInfoRequest_descriptor_ = file->message_type(4);
+  CleanupComponentRequest_descriptor_ = file->message_type(4);
+  static const int CleanupComponentRequest_offsets_[4] = {
+    GOOGLE_PROTOBUF_GENERATED_MESSAGE_FIELD_OFFSET(CleanupComponentRequest, name_),
+    GOOGLE_PROTOBUF_GENERATED_MESSAGE_FIELD_OFFSET(CleanupComponentRequest, pid_),
+    GOOGLE_PROTOBUF_GENERATED_MESSAGE_FIELD_OFFSET(CleanupComponentRequest, timeout_),
+    GOOGLE_PROTOBUF_GENERATED_MESSAGE_FIELD_OFFSET(CleanupComponentRequest, command_),
+  };
+  CleanupComponentRequest_reflection_ =
+    new ::google::protobuf::internal::GeneratedMessageReflection(
+      CleanupComponentRequest_descriptor_,
+      CleanupComponentRequest::default_instance_,
+      CleanupComponentRequest_offsets_,
+      GOOGLE_PROTOBUF_GENERATED_MESSAGE_FIELD_OFFSET(CleanupComponentRequest, _has_bits_[0]),
+      GOOGLE_PROTOBUF_GENERATED_MESSAGE_FIELD_OFFSET(CleanupComponentRequest, _unknown_fields_),
+      GOOGLE_PROTOBUF_GENERATED_MESSAGE_FIELD_OFFSET(CleanupComponentRequest, _extensions_),
+      ::google::protobuf::DescriptorPool::generated_pool(),
+      ::google::protobuf::MessageFactory::generated_factory(),
+      sizeof(CleanupComponentRequest));
+  CleanupComponentResponse_descriptor_ = file->message_type(5);
+  static const int CleanupComponentResponse_offsets_[1] = {
+    GOOGLE_PROTOBUF_GENERATED_MESSAGE_FIELD_OFFSET(CleanupComponentResponse, err_),
+  };
+  CleanupComponentResponse_reflection_ =
+    new ::google::protobuf::internal::GeneratedMessageReflection(
+      CleanupComponentResponse_descriptor_,
+      CleanupComponentResponse::default_instance_,
+      CleanupComponentResponse_offsets_,
+      GOOGLE_PROTOBUF_GENERATED_MESSAGE_FIELD_OFFSET(CleanupComponentResponse, _has_bits_[0]),
+      GOOGLE_PROTOBUF_GENERATED_MESSAGE_FIELD_OFFSET(CleanupComponentResponse, _unknown_fields_),
+      GOOGLE_PROTOBUF_GENERATED_MESSAGE_FIELD_OFFSET(CleanupComponentResponse, _extensions_),
+      ::google::protobuf::DescriptorPool::generated_pool(),
+      ::google::protobuf::MessageFactory::generated_factory(),
+      sizeof(CleanupComponentResponse));
+  NodeInfoRequest_descriptor_ = file->message_type(6);
   static const int NodeInfoRequest_offsets_[1] = {
     GOOGLE_PROTOBUF_GENERATED_MESSAGE_FIELD_OFFSET(NodeInfoRequest, time_),
   };
@@ -139,7 +178,7 @@ void protobuf_AssignDesc_amfRpc_2eproto() {
       ::google::protobuf::DescriptorPool::generated_pool(),
       ::google::protobuf::MessageFactory::generated_factory(),
       sizeof(NodeInfoRequest));
-  NodeInfoResponse_descriptor_ = file->message_type(5);
+  NodeInfoResponse_descriptor_ = file->message_type(7);
   static const int NodeInfoResponse_offsets_[1] = {
     GOOGLE_PROTOBUF_GENERATED_MESSAGE_FIELD_OFFSET(NodeInfoResponse, time_),
   };
@@ -154,7 +193,7 @@ void protobuf_AssignDesc_amfRpc_2eproto() {
       ::google::protobuf::DescriptorPool::generated_pool(),
       ::google::protobuf::MessageFactory::generated_factory(),
       sizeof(NodeInfoResponse));
-  ProcessInfoRequest_descriptor_ = file->message_type(6);
+  ProcessInfoRequest_descriptor_ = file->message_type(8);
   static const int ProcessInfoRequest_offsets_[1] = {
     GOOGLE_PROTOBUF_GENERATED_MESSAGE_FIELD_OFFSET(ProcessInfoRequest, pid_),
   };
@@ -169,7 +208,7 @@ void protobuf_AssignDesc_amfRpc_2eproto() {
       ::google::protobuf::DescriptorPool::generated_pool(),
       ::google::protobuf::MessageFactory::generated_factory(),
       sizeof(ProcessInfoRequest));
-  ProcessInfoResponse_descriptor_ = file->message_type(7);
+  ProcessInfoResponse_descriptor_ = file->message_type(9);
   static const int ProcessInfoResponse_offsets_[2] = {
     GOOGLE_PROTOBUF_GENERATED_MESSAGE_FIELD_OFFSET(ProcessInfoResponse, running_),
     GOOGLE_PROTOBUF_GENERATED_MESSAGE_FIELD_OFFSET(ProcessInfoResponse, command_),
@@ -185,7 +224,7 @@ void protobuf_AssignDesc_amfRpc_2eproto() {
       ::google::protobuf::DescriptorPool::generated_pool(),
       ::google::protobuf::MessageFactory::generated_factory(),
       sizeof(ProcessInfoResponse));
-  ProcessFailedRequest_descriptor_ = file->message_type(8);
+  ProcessFailedRequest_descriptor_ = file->message_type(10);
   static const int ProcessFailedRequest_offsets_[1] = {
     GOOGLE_PROTOBUF_GENERATED_MESSAGE_FIELD_OFFSET(ProcessFailedRequest, pid_),
   };
@@ -200,7 +239,7 @@ void protobuf_AssignDesc_amfRpc_2eproto() {
       ::google::protobuf::DescriptorPool::generated_pool(),
       ::google::protobuf::MessageFactory::generated_factory(),
       sizeof(ProcessFailedRequest));
-  ProcessFailedResponse_descriptor_ = file->message_type(9);
+  ProcessFailedResponse_descriptor_ = file->message_type(11);
   static const int ProcessFailedResponse_offsets_[1] = {
     GOOGLE_PROTOBUF_GENERATED_MESSAGE_FIELD_OFFSET(ProcessFailedResponse, err_),
   };
@@ -236,6 +275,10 @@ void protobuf_RegisterTypes(const ::std::string&) {
   ::google::protobuf::MessageFactory::InternalRegisterGeneratedMessage(
     StopComponentResponse_descriptor_, &StopComponentResponse::default_instance());
   ::google::protobuf::MessageFactory::InternalRegisterGeneratedMessage(
+    CleanupComponentRequest_descriptor_, &CleanupComponentRequest::default_instance());
+  ::google::protobuf::MessageFactory::InternalRegisterGeneratedMessage(
+    CleanupComponentResponse_descriptor_, &CleanupComponentResponse::default_instance());
+  ::google::protobuf::MessageFactory::InternalRegisterGeneratedMessage(
     NodeInfoRequest_descriptor_, &NodeInfoRequest::default_instance());
   ::google::protobuf::MessageFactory::InternalRegisterGeneratedMessage(
     NodeInfoResponse_descriptor_, &NodeInfoResponse::default_instance());
@@ -260,6 +303,10 @@ void protobuf_ShutdownFile_amfRpc_2eproto() {
   delete StopComponentRequest_reflection_;
   delete StopComponentResponse::default_instance_;
   delete StopComponentResponse_reflection_;
+  delete CleanupComponentRequest::default_instance_;
+  delete CleanupComponentRequest_reflection_;
+  delete CleanupComponentResponse::default_instance_;
+  delete CleanupComponentResponse_reflection_;
   delete NodeInfoRequest::default_instance_;
   delete NodeInfoRequest_reflection_;
   delete NodeInfoResponse::default_instance_;
@@ -289,33 +336,41 @@ void protobuf_AddDesc_amfRpc_2eproto() {
     "\022\013\n\003pid\030\002 \001(\021*\t\010\350\007\020\200\200\200\200\002\".\n\024StopComponen"
     "tRequest\022\013\n\003pid\030\001 \001(\021*\t\010\350\007\020\200\200\200\200\002\"/\n\025Stop"
     "ComponentResponse\022\013\n\003err\030\001 \001(\021*\t\010\350\007\020\200\200\200\200"
-    "\002\"*\n\017NodeInfoRequest\022\014\n\004time\030\001 \001(\007*\t\010\350\007\020"
-    "\200\200\200\200\002\"+\n\020NodeInfoResponse\022\014\n\004time\030\001 \001(\007*"
-    "\t\010\350\007\020\200\200\200\200\002\",\n\022ProcessInfoRequest\022\013\n\003pid\030"
-    "\001 \001(\021*\t\010\350\007\020\200\200\200\200\002\"B\n\023ProcessInfoResponse\022"
-    "\017\n\007running\030\001 \001(\010\022\017\n\007command\030\002 \001(\t*\t\010\350\007\020\200"
-    "\200\200\200\002\".\n\024ProcessFailedRequest\022\013\n\003pid\030\001 \001("
-    "\021*\t\010\350\007\020\200\200\200\200\002\"/\n\025ProcessFailedResponse\022\013\n"
-    "\003err\030\001 \001(\021*\t\010\350\007\020\200\200\200\200\0022\364\003\n\006amfRpc\022g\n\016star"
-    "tComponent\022).SAFplus.Rpc.amfRpc.StartCom"
-    "ponentRequest\032*.SAFplus.Rpc.amfRpc.Start"
-    "ComponentResponse\022d\n\rstopComponent\022(.SAF"
-    "plus.Rpc.amfRpc.StopComponentRequest\032).S"
-    "AFplus.Rpc.amfRpc.StopComponentResponse\022"
-    "U\n\010nodeInfo\022#.SAFplus.Rpc.amfRpc.NodeInf"
-    "oRequest\032$.SAFplus.Rpc.amfRpc.NodeInfoRe"
-    "sponse\022^\n\013processInfo\022&.SAFplus.Rpc.amfR"
-    "pc.ProcessInfoRequest\032\'.SAFplus.Rpc.amfR"
-    "pc.ProcessInfoResponse\022d\n\rprocessFailed\022"
-    "(.SAFplus.Rpc.amfRpc.ProcessFailedReques"
-    "t\032).SAFplus.Rpc.amfRpc.ProcessFailedResp"
-    "onseB\t\200\001\000\210\001\000\220\001\001", 1095);
+    "\002\"a\n\027CleanupComponentRequest\022\014\n\004name\030\001 \001"
+    "(\t\022\013\n\003pid\030\002 \001(\021\022\017\n\007timeout\030\003 \001(\007\022\017\n\007comm"
+    "and\030\004 \001(\t*\t\010\350\007\020\200\200\200\200\002\"2\n\030CleanupComponent"
+    "Response\022\013\n\003err\030\001 \001(\021*\t\010\350\007\020\200\200\200\200\002\"*\n\017Node"
+    "InfoRequest\022\014\n\004time\030\001 \001(\004*\t\010\350\007\020\200\200\200\200\002\"+\n\020"
+    "NodeInfoResponse\022\014\n\004time\030\001 \001(\004*\t\010\350\007\020\200\200\200\200"
+    "\002\",\n\022ProcessInfoRequest\022\013\n\003pid\030\001 \001(\021*\t\010\350"
+    "\007\020\200\200\200\200\002\"B\n\023ProcessInfoResponse\022\017\n\007runnin"
+    "g\030\001 \001(\010\022\017\n\007command\030\002 \001(\t*\t\010\350\007\020\200\200\200\200\002\".\n\024P"
+    "rocessFailedRequest\022\013\n\003pid\030\001 \001(\021*\t\010\350\007\020\200\200"
+    "\200\200\002\"/\n\025ProcessFailedResponse\022\013\n\003err\030\001 \001("
+    "\021*\t\010\350\007\020\200\200\200\200\0022\343\004\n\006amfRpc\022g\n\016startComponen"
+    "t\022).SAFplus.Rpc.amfRpc.StartComponentReq"
+    "uest\032*.SAFplus.Rpc.amfRpc.StartComponent"
+    "Response\022d\n\rstopComponent\022(.SAFplus.Rpc."
+    "amfRpc.StopComponentRequest\032).SAFplus.Rp"
+    "c.amfRpc.StopComponentResponse\022m\n\020cleanu"
+    "pComponent\022+.SAFplus.Rpc.amfRpc.CleanupC"
+    "omponentRequest\032,.SAFplus.Rpc.amfRpc.Cle"
+    "anupComponentResponse\022U\n\010nodeInfo\022#.SAFp"
+    "lus.Rpc.amfRpc.NodeInfoRequest\032$.SAFplus"
+    ".Rpc.amfRpc.NodeInfoResponse\022^\n\013processI"
+    "nfo\022&.SAFplus.Rpc.amfRpc.ProcessInfoRequ"
+    "est\032\'.SAFplus.Rpc.amfRpc.ProcessInfoResp"
+    "onse\022d\n\rprocessFailed\022(.SAFplus.Rpc.amfR"
+    "pc.ProcessFailedRequest\032).SAFplus.Rpc.am"
+    "fRpc.ProcessFailedResponseB\t\200\001\000\210\001\000\220\001\001", 1357);
   ::google::protobuf::MessageFactory::InternalRegisterGeneratedFile(
     "amfRpc.proto", &protobuf_RegisterTypes);
   StartComponentRequest::default_instance_ = new StartComponentRequest();
   StartComponentResponse::default_instance_ = new StartComponentResponse();
   StopComponentRequest::default_instance_ = new StopComponentRequest();
   StopComponentResponse::default_instance_ = new StopComponentResponse();
+  CleanupComponentRequest::default_instance_ = new CleanupComponentRequest();
+  CleanupComponentResponse::default_instance_ = new CleanupComponentResponse();
   NodeInfoRequest::default_instance_ = new NodeInfoRequest();
   NodeInfoResponse::default_instance_ = new NodeInfoResponse();
   ProcessInfoRequest::default_instance_ = new ProcessInfoRequest();
@@ -326,6 +381,8 @@ void protobuf_AddDesc_amfRpc_2eproto() {
   StartComponentResponse::default_instance_->InitAsDefaultInstance();
   StopComponentRequest::default_instance_->InitAsDefaultInstance();
   StopComponentResponse::default_instance_->InitAsDefaultInstance();
+  CleanupComponentRequest::default_instance_->InitAsDefaultInstance();
+  CleanupComponentResponse::default_instance_->InitAsDefaultInstance();
   NodeInfoRequest::default_instance_->InitAsDefaultInstance();
   NodeInfoResponse::default_instance_->InitAsDefaultInstance();
   ProcessInfoRequest::default_instance_->InitAsDefaultInstance();
@@ -1436,6 +1493,659 @@ void StopComponentResponse::Swap(StopComponentResponse* other) {
   ::google::protobuf::Metadata metadata;
   metadata.descriptor = StopComponentResponse_descriptor_;
   metadata.reflection = StopComponentResponse_reflection_;
+  return metadata;
+}
+
+
+// ===================================================================
+
+#ifndef _MSC_VER
+const int CleanupComponentRequest::kNameFieldNumber;
+const int CleanupComponentRequest::kPidFieldNumber;
+const int CleanupComponentRequest::kTimeoutFieldNumber;
+const int CleanupComponentRequest::kCommandFieldNumber;
+#endif  // !_MSC_VER
+
+CleanupComponentRequest::CleanupComponentRequest()
+  : ::google::protobuf::Message() {
+  SharedCtor();
+  // @@protoc_insertion_point(constructor:SAFplus.Rpc.amfRpc.CleanupComponentRequest)
+}
+
+void CleanupComponentRequest::InitAsDefaultInstance() {
+}
+
+CleanupComponentRequest::CleanupComponentRequest(const CleanupComponentRequest& from)
+  : ::google::protobuf::Message() {
+  SharedCtor();
+  MergeFrom(from);
+  // @@protoc_insertion_point(copy_constructor:SAFplus.Rpc.amfRpc.CleanupComponentRequest)
+}
+
+void CleanupComponentRequest::SharedCtor() {
+  ::google::protobuf::internal::GetEmptyString();
+  _cached_size_ = 0;
+  name_ = const_cast< ::std::string*>(&::google::protobuf::internal::GetEmptyStringAlreadyInited());
+  pid_ = 0;
+  timeout_ = 0u;
+  command_ = const_cast< ::std::string*>(&::google::protobuf::internal::GetEmptyStringAlreadyInited());
+  ::memset(_has_bits_, 0, sizeof(_has_bits_));
+}
+
+CleanupComponentRequest::~CleanupComponentRequest() {
+  // @@protoc_insertion_point(destructor:SAFplus.Rpc.amfRpc.CleanupComponentRequest)
+  SharedDtor();
+}
+
+void CleanupComponentRequest::SharedDtor() {
+  if (name_ != &::google::protobuf::internal::GetEmptyStringAlreadyInited()) {
+    delete name_;
+  }
+  if (command_ != &::google::protobuf::internal::GetEmptyStringAlreadyInited()) {
+    delete command_;
+  }
+  if (this != default_instance_) {
+  }
+}
+
+void CleanupComponentRequest::SetCachedSize(int size) const {
+  GOOGLE_SAFE_CONCURRENT_WRITES_BEGIN();
+  _cached_size_ = size;
+  GOOGLE_SAFE_CONCURRENT_WRITES_END();
+}
+const ::google::protobuf::Descriptor* CleanupComponentRequest::descriptor() {
+  protobuf_AssignDescriptorsOnce();
+  return CleanupComponentRequest_descriptor_;
+}
+
+const CleanupComponentRequest& CleanupComponentRequest::default_instance() {
+  if (default_instance_ == NULL) protobuf_AddDesc_amfRpc_2eproto();
+  return *default_instance_;
+}
+
+CleanupComponentRequest* CleanupComponentRequest::default_instance_ = NULL;
+
+CleanupComponentRequest* CleanupComponentRequest::New() const {
+  return new CleanupComponentRequest;
+}
+
+void CleanupComponentRequest::Clear() {
+  _extensions_.Clear();
+#define OFFSET_OF_FIELD_(f) (reinterpret_cast<char*>(      \
+  &reinterpret_cast<CleanupComponentRequest*>(16)->f) - \
+   reinterpret_cast<char*>(16))
+
+#define ZR_(first, last) do {                              \
+    size_t f = OFFSET_OF_FIELD_(first);                    \
+    size_t n = OFFSET_OF_FIELD_(last) - f + sizeof(last);  \
+    ::memset(&first, 0, n);                                \
+  } while (0)
+
+  if (_has_bits_[0 / 32] & 15) {
+    ZR_(pid_, timeout_);
+    if (has_name()) {
+      if (name_ != &::google::protobuf::internal::GetEmptyStringAlreadyInited()) {
+        name_->clear();
+      }
+    }
+    if (has_command()) {
+      if (command_ != &::google::protobuf::internal::GetEmptyStringAlreadyInited()) {
+        command_->clear();
+      }
+    }
+  }
+
+#undef OFFSET_OF_FIELD_
+#undef ZR_
+
+  ::memset(_has_bits_, 0, sizeof(_has_bits_));
+  mutable_unknown_fields()->Clear();
+}
+
+bool CleanupComponentRequest::MergePartialFromCodedStream(
+    ::google::protobuf::io::CodedInputStream* input) {
+#define DO_(EXPRESSION) if (!(EXPRESSION)) goto failure
+  ::google::protobuf::uint32 tag;
+  // @@protoc_insertion_point(parse_start:SAFplus.Rpc.amfRpc.CleanupComponentRequest)
+  for (;;) {
+    ::std::pair< ::google::protobuf::uint32, bool> p = input->ReadTagWithCutoff(127);
+    tag = p.first;
+    if (!p.second) goto handle_unusual;
+    switch (::google::protobuf::internal::WireFormatLite::GetTagFieldNumber(tag)) {
+      // optional string name = 1;
+      case 1: {
+        if (tag == 10) {
+          DO_(::google::protobuf::internal::WireFormatLite::ReadString(
+                input, this->mutable_name()));
+          ::google::protobuf::internal::WireFormat::VerifyUTF8StringNamedField(
+            this->name().data(), this->name().length(),
+            ::google::protobuf::internal::WireFormat::PARSE,
+            "name");
+        } else {
+          goto handle_unusual;
+        }
+        if (input->ExpectTag(16)) goto parse_pid;
+        break;
+      }
+
+      // optional sint32 pid = 2;
+      case 2: {
+        if (tag == 16) {
+         parse_pid:
+          DO_((::google::protobuf::internal::WireFormatLite::ReadPrimitive<
+                   ::google::protobuf::int32, ::google::protobuf::internal::WireFormatLite::TYPE_SINT32>(
+                 input, &pid_)));
+          set_has_pid();
+        } else {
+          goto handle_unusual;
+        }
+        if (input->ExpectTag(29)) goto parse_timeout;
+        break;
+      }
+
+      // optional fixed32 timeout = 3;
+      case 3: {
+        if (tag == 29) {
+         parse_timeout:
+          DO_((::google::protobuf::internal::WireFormatLite::ReadPrimitive<
+                   ::google::protobuf::uint32, ::google::protobuf::internal::WireFormatLite::TYPE_FIXED32>(
+                 input, &timeout_)));
+          set_has_timeout();
+        } else {
+          goto handle_unusual;
+        }
+        if (input->ExpectTag(34)) goto parse_command;
+        break;
+      }
+
+      // optional string command = 4;
+      case 4: {
+        if (tag == 34) {
+         parse_command:
+          DO_(::google::protobuf::internal::WireFormatLite::ReadString(
+                input, this->mutable_command()));
+          ::google::protobuf::internal::WireFormat::VerifyUTF8StringNamedField(
+            this->command().data(), this->command().length(),
+            ::google::protobuf::internal::WireFormat::PARSE,
+            "command");
+        } else {
+          goto handle_unusual;
+        }
+        if (input->ExpectAtEnd()) goto success;
+        break;
+      }
+
+      default: {
+      handle_unusual:
+        if (tag == 0 ||
+            ::google::protobuf::internal::WireFormatLite::GetTagWireType(tag) ==
+            ::google::protobuf::internal::WireFormatLite::WIRETYPE_END_GROUP) {
+          goto success;
+        }
+        if ((8000u <= tag)) {
+          DO_(_extensions_.ParseField(tag, input, default_instance_,
+                                      mutable_unknown_fields()));
+          continue;
+        }
+        DO_(::google::protobuf::internal::WireFormat::SkipField(
+              input, tag, mutable_unknown_fields()));
+        break;
+      }
+    }
+  }
+success:
+  // @@protoc_insertion_point(parse_success:SAFplus.Rpc.amfRpc.CleanupComponentRequest)
+  return true;
+failure:
+  // @@protoc_insertion_point(parse_failure:SAFplus.Rpc.amfRpc.CleanupComponentRequest)
+  return false;
+#undef DO_
+}
+
+void CleanupComponentRequest::SerializeWithCachedSizes(
+    ::google::protobuf::io::CodedOutputStream* output) const {
+  // @@protoc_insertion_point(serialize_start:SAFplus.Rpc.amfRpc.CleanupComponentRequest)
+  // optional string name = 1;
+  if (has_name()) {
+    ::google::protobuf::internal::WireFormat::VerifyUTF8StringNamedField(
+      this->name().data(), this->name().length(),
+      ::google::protobuf::internal::WireFormat::SERIALIZE,
+      "name");
+    ::google::protobuf::internal::WireFormatLite::WriteStringMaybeAliased(
+      1, this->name(), output);
+  }
+
+  // optional sint32 pid = 2;
+  if (has_pid()) {
+    ::google::protobuf::internal::WireFormatLite::WriteSInt32(2, this->pid(), output);
+  }
+
+  // optional fixed32 timeout = 3;
+  if (has_timeout()) {
+    ::google::protobuf::internal::WireFormatLite::WriteFixed32(3, this->timeout(), output);
+  }
+
+  // optional string command = 4;
+  if (has_command()) {
+    ::google::protobuf::internal::WireFormat::VerifyUTF8StringNamedField(
+      this->command().data(), this->command().length(),
+      ::google::protobuf::internal::WireFormat::SERIALIZE,
+      "command");
+    ::google::protobuf::internal::WireFormatLite::WriteStringMaybeAliased(
+      4, this->command(), output);
+  }
+
+  // Extension range [1000, 536870912)
+  _extensions_.SerializeWithCachedSizes(
+      1000, 536870912, output);
+
+  if (!unknown_fields().empty()) {
+    ::google::protobuf::internal::WireFormat::SerializeUnknownFields(
+        unknown_fields(), output);
+  }
+  // @@protoc_insertion_point(serialize_end:SAFplus.Rpc.amfRpc.CleanupComponentRequest)
+}
+
+::google::protobuf::uint8* CleanupComponentRequest::SerializeWithCachedSizesToArray(
+    ::google::protobuf::uint8* target) const {
+  // @@protoc_insertion_point(serialize_to_array_start:SAFplus.Rpc.amfRpc.CleanupComponentRequest)
+  // optional string name = 1;
+  if (has_name()) {
+    ::google::protobuf::internal::WireFormat::VerifyUTF8StringNamedField(
+      this->name().data(), this->name().length(),
+      ::google::protobuf::internal::WireFormat::SERIALIZE,
+      "name");
+    target =
+      ::google::protobuf::internal::WireFormatLite::WriteStringToArray(
+        1, this->name(), target);
+  }
+
+  // optional sint32 pid = 2;
+  if (has_pid()) {
+    target = ::google::protobuf::internal::WireFormatLite::WriteSInt32ToArray(2, this->pid(), target);
+  }
+
+  // optional fixed32 timeout = 3;
+  if (has_timeout()) {
+    target = ::google::protobuf::internal::WireFormatLite::WriteFixed32ToArray(3, this->timeout(), target);
+  }
+
+  // optional string command = 4;
+  if (has_command()) {
+    ::google::protobuf::internal::WireFormat::VerifyUTF8StringNamedField(
+      this->command().data(), this->command().length(),
+      ::google::protobuf::internal::WireFormat::SERIALIZE,
+      "command");
+    target =
+      ::google::protobuf::internal::WireFormatLite::WriteStringToArray(
+        4, this->command(), target);
+  }
+
+  // Extension range [1000, 536870912)
+  target = _extensions_.SerializeWithCachedSizesToArray(
+      1000, 536870912, target);
+
+  if (!unknown_fields().empty()) {
+    target = ::google::protobuf::internal::WireFormat::SerializeUnknownFieldsToArray(
+        unknown_fields(), target);
+  }
+  // @@protoc_insertion_point(serialize_to_array_end:SAFplus.Rpc.amfRpc.CleanupComponentRequest)
+  return target;
+}
+
+int CleanupComponentRequest::ByteSize() const {
+  int total_size = 0;
+
+  if (_has_bits_[0 / 32] & (0xffu << (0 % 32))) {
+    // optional string name = 1;
+    if (has_name()) {
+      total_size += 1 +
+        ::google::protobuf::internal::WireFormatLite::StringSize(
+          this->name());
+    }
+
+    // optional sint32 pid = 2;
+    if (has_pid()) {
+      total_size += 1 +
+        ::google::protobuf::internal::WireFormatLite::SInt32Size(
+          this->pid());
+    }
+
+    // optional fixed32 timeout = 3;
+    if (has_timeout()) {
+      total_size += 1 + 4;
+    }
+
+    // optional string command = 4;
+    if (has_command()) {
+      total_size += 1 +
+        ::google::protobuf::internal::WireFormatLite::StringSize(
+          this->command());
+    }
+
+  }
+  total_size += _extensions_.ByteSize();
+
+  if (!unknown_fields().empty()) {
+    total_size +=
+      ::google::protobuf::internal::WireFormat::ComputeUnknownFieldsSize(
+        unknown_fields());
+  }
+  GOOGLE_SAFE_CONCURRENT_WRITES_BEGIN();
+  _cached_size_ = total_size;
+  GOOGLE_SAFE_CONCURRENT_WRITES_END();
+  return total_size;
+}
+
+void CleanupComponentRequest::MergeFrom(const ::google::protobuf::Message& from) {
+  GOOGLE_CHECK_NE(&from, this);
+  const CleanupComponentRequest* source =
+    ::google::protobuf::internal::dynamic_cast_if_available<const CleanupComponentRequest*>(
+      &from);
+  if (source == NULL) {
+    ::google::protobuf::internal::ReflectionOps::Merge(from, this);
+  } else {
+    MergeFrom(*source);
+  }
+}
+
+void CleanupComponentRequest::MergeFrom(const CleanupComponentRequest& from) {
+  GOOGLE_CHECK_NE(&from, this);
+  if (from._has_bits_[0 / 32] & (0xffu << (0 % 32))) {
+    if (from.has_name()) {
+      set_name(from.name());
+    }
+    if (from.has_pid()) {
+      set_pid(from.pid());
+    }
+    if (from.has_timeout()) {
+      set_timeout(from.timeout());
+    }
+    if (from.has_command()) {
+      set_command(from.command());
+    }
+  }
+  _extensions_.MergeFrom(from._extensions_);
+  mutable_unknown_fields()->MergeFrom(from.unknown_fields());
+}
+
+void CleanupComponentRequest::CopyFrom(const ::google::protobuf::Message& from) {
+  if (&from == this) return;
+  Clear();
+  MergeFrom(from);
+}
+
+void CleanupComponentRequest::CopyFrom(const CleanupComponentRequest& from) {
+  if (&from == this) return;
+  Clear();
+  MergeFrom(from);
+}
+
+bool CleanupComponentRequest::IsInitialized() const {
+
+
+  if (!_extensions_.IsInitialized()) return false;  return true;
+}
+
+void CleanupComponentRequest::Swap(CleanupComponentRequest* other) {
+  if (other != this) {
+    std::swap(name_, other->name_);
+    std::swap(pid_, other->pid_);
+    std::swap(timeout_, other->timeout_);
+    std::swap(command_, other->command_);
+    std::swap(_has_bits_[0], other->_has_bits_[0]);
+    _unknown_fields_.Swap(&other->_unknown_fields_);
+    std::swap(_cached_size_, other->_cached_size_);
+    _extensions_.Swap(&other->_extensions_);
+  }
+}
+
+::google::protobuf::Metadata CleanupComponentRequest::GetMetadata() const {
+  protobuf_AssignDescriptorsOnce();
+  ::google::protobuf::Metadata metadata;
+  metadata.descriptor = CleanupComponentRequest_descriptor_;
+  metadata.reflection = CleanupComponentRequest_reflection_;
+  return metadata;
+}
+
+
+// ===================================================================
+
+#ifndef _MSC_VER
+const int CleanupComponentResponse::kErrFieldNumber;
+#endif  // !_MSC_VER
+
+CleanupComponentResponse::CleanupComponentResponse()
+  : ::google::protobuf::Message() {
+  SharedCtor();
+  // @@protoc_insertion_point(constructor:SAFplus.Rpc.amfRpc.CleanupComponentResponse)
+}
+
+void CleanupComponentResponse::InitAsDefaultInstance() {
+}
+
+CleanupComponentResponse::CleanupComponentResponse(const CleanupComponentResponse& from)
+  : ::google::protobuf::Message() {
+  SharedCtor();
+  MergeFrom(from);
+  // @@protoc_insertion_point(copy_constructor:SAFplus.Rpc.amfRpc.CleanupComponentResponse)
+}
+
+void CleanupComponentResponse::SharedCtor() {
+  _cached_size_ = 0;
+  err_ = 0;
+  ::memset(_has_bits_, 0, sizeof(_has_bits_));
+}
+
+CleanupComponentResponse::~CleanupComponentResponse() {
+  // @@protoc_insertion_point(destructor:SAFplus.Rpc.amfRpc.CleanupComponentResponse)
+  SharedDtor();
+}
+
+void CleanupComponentResponse::SharedDtor() {
+  if (this != default_instance_) {
+  }
+}
+
+void CleanupComponentResponse::SetCachedSize(int size) const {
+  GOOGLE_SAFE_CONCURRENT_WRITES_BEGIN();
+  _cached_size_ = size;
+  GOOGLE_SAFE_CONCURRENT_WRITES_END();
+}
+const ::google::protobuf::Descriptor* CleanupComponentResponse::descriptor() {
+  protobuf_AssignDescriptorsOnce();
+  return CleanupComponentResponse_descriptor_;
+}
+
+const CleanupComponentResponse& CleanupComponentResponse::default_instance() {
+  if (default_instance_ == NULL) protobuf_AddDesc_amfRpc_2eproto();
+  return *default_instance_;
+}
+
+CleanupComponentResponse* CleanupComponentResponse::default_instance_ = NULL;
+
+CleanupComponentResponse* CleanupComponentResponse::New() const {
+  return new CleanupComponentResponse;
+}
+
+void CleanupComponentResponse::Clear() {
+  _extensions_.Clear();
+  err_ = 0;
+  ::memset(_has_bits_, 0, sizeof(_has_bits_));
+  mutable_unknown_fields()->Clear();
+}
+
+bool CleanupComponentResponse::MergePartialFromCodedStream(
+    ::google::protobuf::io::CodedInputStream* input) {
+#define DO_(EXPRESSION) if (!(EXPRESSION)) goto failure
+  ::google::protobuf::uint32 tag;
+  // @@protoc_insertion_point(parse_start:SAFplus.Rpc.amfRpc.CleanupComponentResponse)
+  for (;;) {
+    ::std::pair< ::google::protobuf::uint32, bool> p = input->ReadTagWithCutoff(127);
+    tag = p.first;
+    if (!p.second) goto handle_unusual;
+    switch (::google::protobuf::internal::WireFormatLite::GetTagFieldNumber(tag)) {
+      // optional sint32 err = 1;
+      case 1: {
+        if (tag == 8) {
+          DO_((::google::protobuf::internal::WireFormatLite::ReadPrimitive<
+                   ::google::protobuf::int32, ::google::protobuf::internal::WireFormatLite::TYPE_SINT32>(
+                 input, &err_)));
+          set_has_err();
+        } else {
+          goto handle_unusual;
+        }
+        if (input->ExpectAtEnd()) goto success;
+        break;
+      }
+
+      default: {
+      handle_unusual:
+        if (tag == 0 ||
+            ::google::protobuf::internal::WireFormatLite::GetTagWireType(tag) ==
+            ::google::protobuf::internal::WireFormatLite::WIRETYPE_END_GROUP) {
+          goto success;
+        }
+        if ((8000u <= tag)) {
+          DO_(_extensions_.ParseField(tag, input, default_instance_,
+                                      mutable_unknown_fields()));
+          continue;
+        }
+        DO_(::google::protobuf::internal::WireFormat::SkipField(
+              input, tag, mutable_unknown_fields()));
+        break;
+      }
+    }
+  }
+success:
+  // @@protoc_insertion_point(parse_success:SAFplus.Rpc.amfRpc.CleanupComponentResponse)
+  return true;
+failure:
+  // @@protoc_insertion_point(parse_failure:SAFplus.Rpc.amfRpc.CleanupComponentResponse)
+  return false;
+#undef DO_
+}
+
+void CleanupComponentResponse::SerializeWithCachedSizes(
+    ::google::protobuf::io::CodedOutputStream* output) const {
+  // @@protoc_insertion_point(serialize_start:SAFplus.Rpc.amfRpc.CleanupComponentResponse)
+  // optional sint32 err = 1;
+  if (has_err()) {
+    ::google::protobuf::internal::WireFormatLite::WriteSInt32(1, this->err(), output);
+  }
+
+  // Extension range [1000, 536870912)
+  _extensions_.SerializeWithCachedSizes(
+      1000, 536870912, output);
+
+  if (!unknown_fields().empty()) {
+    ::google::protobuf::internal::WireFormat::SerializeUnknownFields(
+        unknown_fields(), output);
+  }
+  // @@protoc_insertion_point(serialize_end:SAFplus.Rpc.amfRpc.CleanupComponentResponse)
+}
+
+::google::protobuf::uint8* CleanupComponentResponse::SerializeWithCachedSizesToArray(
+    ::google::protobuf::uint8* target) const {
+  // @@protoc_insertion_point(serialize_to_array_start:SAFplus.Rpc.amfRpc.CleanupComponentResponse)
+  // optional sint32 err = 1;
+  if (has_err()) {
+    target = ::google::protobuf::internal::WireFormatLite::WriteSInt32ToArray(1, this->err(), target);
+  }
+
+  // Extension range [1000, 536870912)
+  target = _extensions_.SerializeWithCachedSizesToArray(
+      1000, 536870912, target);
+
+  if (!unknown_fields().empty()) {
+    target = ::google::protobuf::internal::WireFormat::SerializeUnknownFieldsToArray(
+        unknown_fields(), target);
+  }
+  // @@protoc_insertion_point(serialize_to_array_end:SAFplus.Rpc.amfRpc.CleanupComponentResponse)
+  return target;
+}
+
+int CleanupComponentResponse::ByteSize() const {
+  int total_size = 0;
+
+  if (_has_bits_[0 / 32] & (0xffu << (0 % 32))) {
+    // optional sint32 err = 1;
+    if (has_err()) {
+      total_size += 1 +
+        ::google::protobuf::internal::WireFormatLite::SInt32Size(
+          this->err());
+    }
+
+  }
+  total_size += _extensions_.ByteSize();
+
+  if (!unknown_fields().empty()) {
+    total_size +=
+      ::google::protobuf::internal::WireFormat::ComputeUnknownFieldsSize(
+        unknown_fields());
+  }
+  GOOGLE_SAFE_CONCURRENT_WRITES_BEGIN();
+  _cached_size_ = total_size;
+  GOOGLE_SAFE_CONCURRENT_WRITES_END();
+  return total_size;
+}
+
+void CleanupComponentResponse::MergeFrom(const ::google::protobuf::Message& from) {
+  GOOGLE_CHECK_NE(&from, this);
+  const CleanupComponentResponse* source =
+    ::google::protobuf::internal::dynamic_cast_if_available<const CleanupComponentResponse*>(
+      &from);
+  if (source == NULL) {
+    ::google::protobuf::internal::ReflectionOps::Merge(from, this);
+  } else {
+    MergeFrom(*source);
+  }
+}
+
+void CleanupComponentResponse::MergeFrom(const CleanupComponentResponse& from) {
+  GOOGLE_CHECK_NE(&from, this);
+  if (from._has_bits_[0 / 32] & (0xffu << (0 % 32))) {
+    if (from.has_err()) {
+      set_err(from.err());
+    }
+  }
+  _extensions_.MergeFrom(from._extensions_);
+  mutable_unknown_fields()->MergeFrom(from.unknown_fields());
+}
+
+void CleanupComponentResponse::CopyFrom(const ::google::protobuf::Message& from) {
+  if (&from == this) return;
+  Clear();
+  MergeFrom(from);
+}
+
+void CleanupComponentResponse::CopyFrom(const CleanupComponentResponse& from) {
+  if (&from == this) return;
+  Clear();
+  MergeFrom(from);
+}
+
+bool CleanupComponentResponse::IsInitialized() const {
+
+
+  if (!_extensions_.IsInitialized()) return false;  return true;
+}
+
+void CleanupComponentResponse::Swap(CleanupComponentResponse* other) {
+  if (other != this) {
+    std::swap(err_, other->err_);
+    std::swap(_has_bits_[0], other->_has_bits_[0]);
+    _unknown_fields_.Swap(&other->_unknown_fields_);
+    std::swap(_cached_size_, other->_cached_size_);
+    _extensions_.Swap(&other->_extensions_);
+  }
+}
+
+::google::protobuf::Metadata CleanupComponentResponse::GetMetadata() const {
+  protobuf_AssignDescriptorsOnce();
+  ::google::protobuf::Metadata metadata;
+  metadata.descriptor = CleanupComponentResponse_descriptor_;
+  metadata.reflection = CleanupComponentResponse_reflection_;
   return metadata;
 }
 

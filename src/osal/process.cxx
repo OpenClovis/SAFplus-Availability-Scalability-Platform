@@ -4,6 +4,7 @@
 #include <string>
 #include <sys/types.h>  // for kill()
 #include <signal.h>  // for kill()
+#include <sys/wait.h>
 #include <clProcessApi.hxx>
 
 extern char **environ;
@@ -168,6 +169,112 @@ namespace SAFplus
     // In the parent
     return Process(pid);
     }
+
+  int executeProgramWithTimeout(const std::string& command, const std::vector<std::string>& env, ClUint64T timeout, uint_t flags)
+      {
+      ClInt32T pid = -1;
+      ClInt32T sid = -1;
+      int status;
+      std::istringstream ss(command);
+      std::string arg;
+      std::vector<std::string> v1;
+      std::vector<char*> charstrs;
+      while (ss >> arg)
+        {
+        v1.push_back(arg);
+        charstrs.push_back(const_cast<char*>(v1.back().c_str()));
+        }
+      charstrs.push_back(0);  // need terminating null pointer
+
+
+      /*
+       * Setting variable environment for process
+       */
+      std::vector<char*> envpchars;
+      if(flags & Process::InheritEnvironment)
+          {
+          /* Set the process group id to its own pid */
+          for (char** envvar = environ; *envvar != 0; envvar++)
+            {
+            envpchars.push_back(*envvar);
+            }
+
+          }
+       for (int i=0;i<env.size(); i++)
+        {
+          envpchars.push_back(const_cast<char*>(env[i].c_str()));
+        }
+      envpchars.push_back(0);
+
+      pid = fork();
+
+      if(pid < 0)
+      {
+        throw ProcessError(ProcessError::PROCESS_FORK_FAILURE);
+      }
+
+      if(0 == pid) // In the new process
+      {
+        SAFplus::pid = pid = getpid();  // Set the global pid variable briefly in case there are logs before spawning
+
+        if(flags & Process::CreateNewSession)
+          {
+          sid = setsid ();
+          }
+        if(flags & Process::CreateNewGroup)
+          {
+          /* Set the process group id to its own pid */
+          setpgid (pid, 0);
+          }
+        execvpe(charstrs[0], &charstrs[0], &envpchars[0]);  // if works will not return
+        logError("PRO","EXEC","Program [%s] execution failed with error [%s (%d)]", charstrs[0], strerror(errno),errno);
+        _exit(EXIT_FAILURE);
+      }
+      else
+      {
+         /* This is the parent process.  Wait for the child to complete.  */
+    	 ClUint32T waittime = 0;
+    	 pid_t wpid;
+    	 do
+    	 {
+    	    wpid = waitpid(pid, &status, WNOHANG);
+    	    if (wpid == 0)
+    	    {
+    	       if (waittime < timeout)
+    	       {
+    	          usleep(1000);
+    	          waittime++;
+    	       }
+    	       else
+    	       {
+    	          // Kill if timeout happened
+    	          kill(pid, SIGKILL);
+    	       }
+    	     }
+    	   }
+    	   while (wpid == 0 && waittime <= timeout);
+
+    	   if (status == -1) /* system command failed */
+    	   {
+    	        //TODO:
+    	   }
+    	   else if (WEXITSTATUS(status) == 127) /* system command could not find your script */
+    	   {
+    	       status = -1;
+    	   }
+    	   else if (WEXITSTATUS(status)) /* user script failed */
+    	   {
+    	      status = -1;
+    	   }
+    	   else
+    	   {
+    	      // successful
+    	      status = 0;
+    	   }
+      }
+      return status;
+
+      }
 
 ProcessList::ProcessList()
 {

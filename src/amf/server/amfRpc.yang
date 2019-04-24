@@ -71,6 +71,41 @@ module amfRpc
       
   }
   
+  rpc cleanupComponent
+  {
+    input
+    {
+      leaf name
+      {
+        //description "AMF Component name";
+        type string;
+      }
+      leaf pid
+      {
+        //description "The process id of the component";
+        type int32;
+      }
+      leaf timeout
+      {
+        type uint64;
+      }
+      leaf command
+      {
+        //description "Command line including parameters";
+        type string;
+      }
+    }
+
+    output
+    {
+      leaf err
+      {
+        //description "0 on success, or the errno if cleanup script of the component could not be executed";
+        type int32;
+      }
+    }
+  }
+
   rpc nodeInfo
     {
       // description "This RPC call is also used to see if the node is available"

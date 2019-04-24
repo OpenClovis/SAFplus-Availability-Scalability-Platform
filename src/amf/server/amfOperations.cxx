@@ -317,6 +317,25 @@ namespace SAFplus
       }
     };
 
+  class CleanupCompResp:public SAFplus::Wakeable
+    {
+    public:
+      CleanupCompResp(SAFplus::Wakeable* w, SAFplusAmf::Component* comp): w(w), comp(comp) {};
+      virtual ~CleanupCompResp(){};
+      SAFplus::Rpc::amfRpc::CleanupComponentResponse response;
+      SAFplusAmf::Component* comp;
+      SAFplus::Wakeable* w;
+
+      void wake(int amt,void* cookie=NULL)
+      {
+      if (response.err() != 0)
+        {
+        comp->lastError.value = strprintf("Process spawn for cleaning up failure [%s:%d]", strerror(response.err()));
+        }
+      if (w) w->wake(1,comp);
+      delete this;
+      }
+    };
 
   class WorkOperationResponseHandler:public SAFplus::Wakeable
     {
@@ -822,6 +841,72 @@ namespace SAFplus
       }
     reportChange();
     }
+
+
+ void AmfOperations::cleanup(SAFplusAmf::Component* comp,Wakeable& w)
+ {
+    SAFplusAmf::Cleanup* cleanup = comp->getCleanup();
+    if (!cleanup || cleanup->command.value.length()==0)  // no configuration
+      {
+      logInfo("OPS","CLE","Component [%s] has improper configuration (no cleanup information). Cannot clean", comp->name.value.c_str());
+      return;
+      }
+    Handle nodeHdl;
+    Handle remoteAmfHdl;
+    try
+    {
+      nodeHdl = name.getHandle(comp->serviceUnit.value->node.value->name);
+    }
+    catch (SAFplus::NameException& n)
+    {
+      logCritical("OPS","CLE","AMF Entity [%s] is not registered in the name service.  Cannot cleanup it.", comp->serviceUnit.value->node.value->name.value.c_str());
+      comp->lastError.value = "Component's node is not registered in the name service so address cannot be determined.";
+      if (&w) w.wake(1,(void*)comp);
+      // Node's name is only not there if the node has never existed.
+      comp->presenceState = PresenceState::uninstantiated;
+      return;
+    }
+   if (nodeHdl == nodeHandle)  // Handle this request locally.  This is an optimization.  The RPC call will also work locally.
+   {
+      std::vector<std::string> newEnv = comp->commandEnvironment.value;
+      std::string strCompName("ASP_COMPNAME=");
+      strCompName.append(comp->name);
+      newEnv.push_back(strCompName);
+
+      logDebug("OPS","CLE","Cleaning up Component [%s] as [%s] locally", comp->name.value.c_str(),cleanup->command.value.c_str());
+      int status = executeProgramWithTimeout(cleanup->command.value, newEnv,cleanup->timeout.value,Process::InheritEnvironment);
+
+      if (comp->processId.value>0)
+      {
+         logDebug("OPS", "CLE", "Sending SIGKILL signal to component [%s] with process id [%d]", comp->name.value.c_str(), comp->processId.value);
+         kill(comp->processId.value, SIGKILL);
+      }
+
+      if (&w) w.wake(1,(void*)comp);
+      }
+    else  // RPC call
+    {
+      Handle remoteAmfHdl = getProcessHandle(SAFplusI::AMF_IOC_PORT,nodeHdl.getNode());
+      FaultState fs = fault.getFaultState(remoteAmfHdl);
+      if (fs == FaultState::STATE_UP)
+      {
+          logInfo("OP","CLE","Request cleanup component [%s] as [%s] on node [%s]", comp->name.value.c_str(),cleanup->command.value.c_str(),comp->serviceUnit.value->node.value->name.value.c_str());
+
+          CleanupComponentRequest req;
+          req.set_name(comp->name.value.c_str());
+          req.set_command(cleanup->command.value.c_str());
+          req.set_pid(comp->processId.value);
+          req.set_timeout(cleanup->timeout.value);
+          CleanupCompResp* resp = new CleanupCompResp(&w,comp);
+          amfInternalRpc->cleanupComponent(remoteAmfHdl,&req, &resp->response,*resp);
+     }
+     else
+     {
+         comp->lastError.value = "Component's node is not up.";
+         if (&w) w.wake(1,(void*)comp);
+     }
+    }
+  }
 
   void AmfOperations::start(SAFplusAmf::ServiceGroup* sg,Wakeable& w)
     {

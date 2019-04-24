@@ -40,6 +40,8 @@ class StartComponentRequest;
 class StartComponentResponse;
 class StopComponentRequest;
 class StopComponentResponse;
+class CleanupComponentRequest;
+class CleanupComponentResponse;
 class NodeInfoRequest;
 class NodeInfoResponse;
 class ProcessInfoRequest;
@@ -404,6 +406,210 @@ class StopComponentResponse : public ::google::protobuf::Message {
 
   void InitAsDefaultInstance();
   static StopComponentResponse* default_instance_;
+};
+// -------------------------------------------------------------------
+
+class CleanupComponentRequest : public ::google::protobuf::Message {
+ public:
+  CleanupComponentRequest();
+  virtual ~CleanupComponentRequest();
+
+  CleanupComponentRequest(const CleanupComponentRequest& from);
+
+  inline CleanupComponentRequest& operator=(const CleanupComponentRequest& from) {
+    CopyFrom(from);
+    return *this;
+  }
+
+  inline const ::google::protobuf::UnknownFieldSet& unknown_fields() const {
+    return _unknown_fields_;
+  }
+
+  inline ::google::protobuf::UnknownFieldSet* mutable_unknown_fields() {
+    return &_unknown_fields_;
+  }
+
+  static const ::google::protobuf::Descriptor* descriptor();
+  static const CleanupComponentRequest& default_instance();
+
+  void Swap(CleanupComponentRequest* other);
+
+  // implements Message ----------------------------------------------
+
+  CleanupComponentRequest* New() const;
+  void CopyFrom(const ::google::protobuf::Message& from);
+  void MergeFrom(const ::google::protobuf::Message& from);
+  void CopyFrom(const CleanupComponentRequest& from);
+  void MergeFrom(const CleanupComponentRequest& from);
+  void Clear();
+  bool IsInitialized() const;
+
+  int ByteSize() const;
+  bool MergePartialFromCodedStream(
+      ::google::protobuf::io::CodedInputStream* input);
+  void SerializeWithCachedSizes(
+      ::google::protobuf::io::CodedOutputStream* output) const;
+  ::google::protobuf::uint8* SerializeWithCachedSizesToArray(::google::protobuf::uint8* output) const;
+  int GetCachedSize() const { return _cached_size_; }
+  private:
+  void SharedCtor();
+  void SharedDtor();
+  void SetCachedSize(int size) const;
+  public:
+  ::google::protobuf::Metadata GetMetadata() const;
+
+  // nested types ----------------------------------------------------
+
+  // accessors -------------------------------------------------------
+
+  // optional string name = 1;
+  inline bool has_name() const;
+  inline void clear_name();
+  static const int kNameFieldNumber = 1;
+  inline const ::std::string& name() const;
+  inline void set_name(const ::std::string& value);
+  inline void set_name(const char* value);
+  inline void set_name(const char* value, size_t size);
+  inline ::std::string* mutable_name();
+  inline ::std::string* release_name();
+  inline void set_allocated_name(::std::string* name);
+
+  // optional sint32 pid = 2;
+  inline bool has_pid() const;
+  inline void clear_pid();
+  static const int kPidFieldNumber = 2;
+  inline ::google::protobuf::int32 pid() const;
+  inline void set_pid(::google::protobuf::int32 value);
+
+  // optional fixed32 timeout = 3;
+  inline bool has_timeout() const;
+  inline void clear_timeout();
+  static const int kTimeoutFieldNumber = 3;
+  inline ::google::protobuf::uint32 timeout() const;
+  inline void set_timeout(::google::protobuf::uint32 value);
+
+  // optional string command = 4;
+  inline bool has_command() const;
+  inline void clear_command();
+  static const int kCommandFieldNumber = 4;
+  inline const ::std::string& command() const;
+  inline void set_command(const ::std::string& value);
+  inline void set_command(const char* value);
+  inline void set_command(const char* value, size_t size);
+  inline ::std::string* mutable_command();
+  inline ::std::string* release_command();
+  inline void set_allocated_command(::std::string* command);
+
+  GOOGLE_PROTOBUF_EXTENSION_ACCESSORS(CleanupComponentRequest)
+  // @@protoc_insertion_point(class_scope:SAFplus.Rpc.amfRpc.CleanupComponentRequest)
+ private:
+  inline void set_has_name();
+  inline void clear_has_name();
+  inline void set_has_pid();
+  inline void clear_has_pid();
+  inline void set_has_timeout();
+  inline void clear_has_timeout();
+  inline void set_has_command();
+  inline void clear_has_command();
+
+  ::google::protobuf::internal::ExtensionSet _extensions_;
+
+  ::google::protobuf::UnknownFieldSet _unknown_fields_;
+
+  ::google::protobuf::uint32 _has_bits_[1];
+  mutable int _cached_size_;
+  ::std::string* name_;
+  ::google::protobuf::int32 pid_;
+  ::google::protobuf::uint32 timeout_;
+  ::std::string* command_;
+  friend void  protobuf_AddDesc_amfRpc_2eproto();
+  friend void protobuf_AssignDesc_amfRpc_2eproto();
+  friend void protobuf_ShutdownFile_amfRpc_2eproto();
+
+  void InitAsDefaultInstance();
+  static CleanupComponentRequest* default_instance_;
+};
+// -------------------------------------------------------------------
+
+class CleanupComponentResponse : public ::google::protobuf::Message {
+ public:
+  CleanupComponentResponse();
+  virtual ~CleanupComponentResponse();
+
+  CleanupComponentResponse(const CleanupComponentResponse& from);
+
+  inline CleanupComponentResponse& operator=(const CleanupComponentResponse& from) {
+    CopyFrom(from);
+    return *this;
+  }
+
+  inline const ::google::protobuf::UnknownFieldSet& unknown_fields() const {
+    return _unknown_fields_;
+  }
+
+  inline ::google::protobuf::UnknownFieldSet* mutable_unknown_fields() {
+    return &_unknown_fields_;
+  }
+
+  static const ::google::protobuf::Descriptor* descriptor();
+  static const CleanupComponentResponse& default_instance();
+
+  void Swap(CleanupComponentResponse* other);
+
+  // implements Message ----------------------------------------------
+
+  CleanupComponentResponse* New() const;
+  void CopyFrom(const ::google::protobuf::Message& from);
+  void MergeFrom(const ::google::protobuf::Message& from);
+  void CopyFrom(const CleanupComponentResponse& from);
+  void MergeFrom(const CleanupComponentResponse& from);
+  void Clear();
+  bool IsInitialized() const;
+
+  int ByteSize() const;
+  bool MergePartialFromCodedStream(
+      ::google::protobuf::io::CodedInputStream* input);
+  void SerializeWithCachedSizes(
+      ::google::protobuf::io::CodedOutputStream* output) const;
+  ::google::protobuf::uint8* SerializeWithCachedSizesToArray(::google::protobuf::uint8* output) const;
+  int GetCachedSize() const { return _cached_size_; }
+  private:
+  void SharedCtor();
+  void SharedDtor();
+  void SetCachedSize(int size) const;
+  public:
+  ::google::protobuf::Metadata GetMetadata() const;
+
+  // nested types ----------------------------------------------------
+
+  // accessors -------------------------------------------------------
+
+  // optional sint32 err = 1;
+  inline bool has_err() const;
+  inline void clear_err();
+  static const int kErrFieldNumber = 1;
+  inline ::google::protobuf::int32 err() const;
+  inline void set_err(::google::protobuf::int32 value);
+
+  GOOGLE_PROTOBUF_EXTENSION_ACCESSORS(CleanupComponentResponse)
+  // @@protoc_insertion_point(class_scope:SAFplus.Rpc.amfRpc.CleanupComponentResponse)
+ private:
+  inline void set_has_err();
+  inline void clear_has_err();
+
+  ::google::protobuf::internal::ExtensionSet _extensions_;
+
+  ::google::protobuf::UnknownFieldSet _unknown_fields_;
+
+  ::google::protobuf::uint32 _has_bits_[1];
+  mutable int _cached_size_;
+  ::google::protobuf::int32 err_;
+  friend void  protobuf_AddDesc_amfRpc_2eproto();
+  friend void protobuf_AssignDesc_amfRpc_2eproto();
+  friend void protobuf_ShutdownFile_amfRpc_2eproto();
+
+  void InitAsDefaultInstance();
+  static CleanupComponentResponse* default_instance_;
 };
 // -------------------------------------------------------------------
 
@@ -1177,6 +1383,238 @@ inline void StopComponentResponse::set_err(::google::protobuf::int32 value) {
   set_has_err();
   err_ = value;
   // @@protoc_insertion_point(field_set:SAFplus.Rpc.amfRpc.StopComponentResponse.err)
+}
+
+// -------------------------------------------------------------------
+
+// CleanupComponentRequest
+
+// optional string name = 1;
+inline bool CleanupComponentRequest::has_name() const {
+  return (_has_bits_[0] & 0x00000001u) != 0;
+}
+inline void CleanupComponentRequest::set_has_name() {
+  _has_bits_[0] |= 0x00000001u;
+}
+inline void CleanupComponentRequest::clear_has_name() {
+  _has_bits_[0] &= ~0x00000001u;
+}
+inline void CleanupComponentRequest::clear_name() {
+  if (name_ != &::google::protobuf::internal::GetEmptyStringAlreadyInited()) {
+    name_->clear();
+  }
+  clear_has_name();
+}
+inline const ::std::string& CleanupComponentRequest::name() const {
+  // @@protoc_insertion_point(field_get:SAFplus.Rpc.amfRpc.CleanupComponentRequest.name)
+  return *name_;
+}
+inline void CleanupComponentRequest::set_name(const ::std::string& value) {
+  set_has_name();
+  if (name_ == &::google::protobuf::internal::GetEmptyStringAlreadyInited()) {
+    name_ = new ::std::string;
+  }
+  name_->assign(value);
+  // @@protoc_insertion_point(field_set:SAFplus.Rpc.amfRpc.CleanupComponentRequest.name)
+}
+inline void CleanupComponentRequest::set_name(const char* value) {
+  set_has_name();
+  if (name_ == &::google::protobuf::internal::GetEmptyStringAlreadyInited()) {
+    name_ = new ::std::string;
+  }
+  name_->assign(value);
+  // @@protoc_insertion_point(field_set_char:SAFplus.Rpc.amfRpc.CleanupComponentRequest.name)
+}
+inline void CleanupComponentRequest::set_name(const char* value, size_t size) {
+  set_has_name();
+  if (name_ == &::google::protobuf::internal::GetEmptyStringAlreadyInited()) {
+    name_ = new ::std::string;
+  }
+  name_->assign(reinterpret_cast<const char*>(value), size);
+  // @@protoc_insertion_point(field_set_pointer:SAFplus.Rpc.amfRpc.CleanupComponentRequest.name)
+}
+inline ::std::string* CleanupComponentRequest::mutable_name() {
+  set_has_name();
+  if (name_ == &::google::protobuf::internal::GetEmptyStringAlreadyInited()) {
+    name_ = new ::std::string;
+  }
+  // @@protoc_insertion_point(field_mutable:SAFplus.Rpc.amfRpc.CleanupComponentRequest.name)
+  return name_;
+}
+inline ::std::string* CleanupComponentRequest::release_name() {
+  clear_has_name();
+  if (name_ == &::google::protobuf::internal::GetEmptyStringAlreadyInited()) {
+    return NULL;
+  } else {
+    ::std::string* temp = name_;
+    name_ = const_cast< ::std::string*>(&::google::protobuf::internal::GetEmptyStringAlreadyInited());
+    return temp;
+  }
+}
+inline void CleanupComponentRequest::set_allocated_name(::std::string* name) {
+  if (name_ != &::google::protobuf::internal::GetEmptyStringAlreadyInited()) {
+    delete name_;
+  }
+  if (name) {
+    set_has_name();
+    name_ = name;
+  } else {
+    clear_has_name();
+    name_ = const_cast< ::std::string*>(&::google::protobuf::internal::GetEmptyStringAlreadyInited());
+  }
+  // @@protoc_insertion_point(field_set_allocated:SAFplus.Rpc.amfRpc.CleanupComponentRequest.name)
+}
+
+// optional sint32 pid = 2;
+inline bool CleanupComponentRequest::has_pid() const {
+  return (_has_bits_[0] & 0x00000002u) != 0;
+}
+inline void CleanupComponentRequest::set_has_pid() {
+  _has_bits_[0] |= 0x00000002u;
+}
+inline void CleanupComponentRequest::clear_has_pid() {
+  _has_bits_[0] &= ~0x00000002u;
+}
+inline void CleanupComponentRequest::clear_pid() {
+  pid_ = 0;
+  clear_has_pid();
+}
+inline ::google::protobuf::int32 CleanupComponentRequest::pid() const {
+  // @@protoc_insertion_point(field_get:SAFplus.Rpc.amfRpc.CleanupComponentRequest.pid)
+  return pid_;
+}
+inline void CleanupComponentRequest::set_pid(::google::protobuf::int32 value) {
+  set_has_pid();
+  pid_ = value;
+  // @@protoc_insertion_point(field_set:SAFplus.Rpc.amfRpc.CleanupComponentRequest.pid)
+}
+
+// optional fixed32 timeout = 3;
+inline bool CleanupComponentRequest::has_timeout() const {
+  return (_has_bits_[0] & 0x00000004u) != 0;
+}
+inline void CleanupComponentRequest::set_has_timeout() {
+  _has_bits_[0] |= 0x00000004u;
+}
+inline void CleanupComponentRequest::clear_has_timeout() {
+  _has_bits_[0] &= ~0x00000004u;
+}
+inline void CleanupComponentRequest::clear_timeout() {
+  timeout_ = 0u;
+  clear_has_timeout();
+}
+inline ::google::protobuf::uint32 CleanupComponentRequest::timeout() const {
+  // @@protoc_insertion_point(field_get:SAFplus.Rpc.amfRpc.CleanupComponentRequest.timeout)
+  return timeout_;
+}
+inline void CleanupComponentRequest::set_timeout(::google::protobuf::uint32 value) {
+  set_has_timeout();
+  timeout_ = value;
+  // @@protoc_insertion_point(field_set:SAFplus.Rpc.amfRpc.CleanupComponentRequest.timeout)
+}
+
+// optional string command = 4;
+inline bool CleanupComponentRequest::has_command() const {
+  return (_has_bits_[0] & 0x00000008u) != 0;
+}
+inline void CleanupComponentRequest::set_has_command() {
+  _has_bits_[0] |= 0x00000008u;
+}
+inline void CleanupComponentRequest::clear_has_command() {
+  _has_bits_[0] &= ~0x00000008u;
+}
+inline void CleanupComponentRequest::clear_command() {
+  if (command_ != &::google::protobuf::internal::GetEmptyStringAlreadyInited()) {
+    command_->clear();
+  }
+  clear_has_command();
+}
+inline const ::std::string& CleanupComponentRequest::command() const {
+  // @@protoc_insertion_point(field_get:SAFplus.Rpc.amfRpc.CleanupComponentRequest.command)
+  return *command_;
+}
+inline void CleanupComponentRequest::set_command(const ::std::string& value) {
+  set_has_command();
+  if (command_ == &::google::protobuf::internal::GetEmptyStringAlreadyInited()) {
+    command_ = new ::std::string;
+  }
+  command_->assign(value);
+  // @@protoc_insertion_point(field_set:SAFplus.Rpc.amfRpc.CleanupComponentRequest.command)
+}
+inline void CleanupComponentRequest::set_command(const char* value) {
+  set_has_command();
+  if (command_ == &::google::protobuf::internal::GetEmptyStringAlreadyInited()) {
+    command_ = new ::std::string;
+  }
+  command_->assign(value);
+  // @@protoc_insertion_point(field_set_char:SAFplus.Rpc.amfRpc.CleanupComponentRequest.command)
+}
+inline void CleanupComponentRequest::set_command(const char* value, size_t size) {
+  set_has_command();
+  if (command_ == &::google::protobuf::internal::GetEmptyStringAlreadyInited()) {
+    command_ = new ::std::string;
+  }
+  command_->assign(reinterpret_cast<const char*>(value), size);
+  // @@protoc_insertion_point(field_set_pointer:SAFplus.Rpc.amfRpc.CleanupComponentRequest.command)
+}
+inline ::std::string* CleanupComponentRequest::mutable_command() {
+  set_has_command();
+  if (command_ == &::google::protobuf::internal::GetEmptyStringAlreadyInited()) {
+    command_ = new ::std::string;
+  }
+  // @@protoc_insertion_point(field_mutable:SAFplus.Rpc.amfRpc.CleanupComponentRequest.command)
+  return command_;
+}
+inline ::std::string* CleanupComponentRequest::release_command() {
+  clear_has_command();
+  if (command_ == &::google::protobuf::internal::GetEmptyStringAlreadyInited()) {
+    return NULL;
+  } else {
+    ::std::string* temp = command_;
+    command_ = const_cast< ::std::string*>(&::google::protobuf::internal::GetEmptyStringAlreadyInited());
+    return temp;
+  }
+}
+inline void CleanupComponentRequest::set_allocated_command(::std::string* command) {
+  if (command_ != &::google::protobuf::internal::GetEmptyStringAlreadyInited()) {
+    delete command_;
+  }
+  if (command) {
+    set_has_command();
+    command_ = command;
+  } else {
+    clear_has_command();
+    command_ = const_cast< ::std::string*>(&::google::protobuf::internal::GetEmptyStringAlreadyInited());
+  }
+  // @@protoc_insertion_point(field_set_allocated:SAFplus.Rpc.amfRpc.CleanupComponentRequest.command)
+}
+
+// -------------------------------------------------------------------
+
+// CleanupComponentResponse
+
+// optional sint32 err = 1;
+inline bool CleanupComponentResponse::has_err() const {
+  return (_has_bits_[0] & 0x00000001u) != 0;
+}
+inline void CleanupComponentResponse::set_has_err() {
+  _has_bits_[0] |= 0x00000001u;
+}
+inline void CleanupComponentResponse::clear_has_err() {
+  _has_bits_[0] &= ~0x00000001u;
+}
+inline void CleanupComponentResponse::clear_err() {
+  err_ = 0;
+  clear_has_err();
+}
+inline ::google::protobuf::int32 CleanupComponentResponse::err() const {
+  // @@protoc_insertion_point(field_get:SAFplus.Rpc.amfRpc.CleanupComponentResponse.err)
+  return err_;
+}
+inline void CleanupComponentResponse::set_err(::google::protobuf::int32 value) {
+  set_has_err();
+  err_ = value;
+  // @@protoc_insertion_point(field_set:SAFplus.Rpc.amfRpc.CleanupComponentResponse.err)
 }
 
 // -------------------------------------------------------------------
