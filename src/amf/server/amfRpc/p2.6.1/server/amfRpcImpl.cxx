@@ -69,6 +69,12 @@ namespace amfRpc {
     //TODO: put your code here
   }
 
+  void amfRpcImpl::cleanupComponent(const ::SAFplus::Rpc::amfRpc::CleanupComponentRequest* request,
+                                ::SAFplus::Rpc::amfRpc::CleanupComponentResponse* response)
+  {
+    //TODO: put your code here
+  }
+
   void amfRpcImpl::nodeInfo(const ::SAFplus::Rpc::amfRpc::NodeInfoRequest* request,
                                 ::SAFplus::Rpc::amfRpc::NodeInfoResponse* response)
   {

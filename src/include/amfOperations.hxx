@@ -93,6 +93,7 @@ extern EventClient evtClient;
     void start(SAFplusAmf::Component* comp,Wakeable& w = *((Wakeable*)nullptr));
     void abort(SAFplusAmf::Component* comp,Wakeable& w = *((Wakeable*)nullptr));  // Stops a component via a signal (without removing work)
     void stop(SAFplusAmf::Component* comp,Wakeable& w = *((Wakeable*)nullptr));  // Stops a component via terminate RPC
+    void cleanup(SAFplusAmf::Component* comp,Wakeable& w = *((Wakeable*)nullptr));  // Stops a component via terminate RPC
 
     void assignWork(SAFplusAmf::ServiceUnit* su, SAFplusAmf::ServiceInstance* si, SAFplusAmf::HighAvailabilityState state,Wakeable& w = *((Wakeable*)nullptr));
     void removeWork(SAFplusAmf::ServiceInstance* si,Wakeable& w = *((Wakeable*)nullptr));

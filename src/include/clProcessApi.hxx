@@ -59,6 +59,15 @@ namespace SAFplus
      */
   Process executeProgram(const std::string& command, const std::vector<std::string>& env,uint_t flags=0);
 
+  /*? Execute a program with timeout
+          <arg name='command'>The command-line to run the program.  May contain space-separated arguments</arg>
+          <arg name='env'>Environment variables to set before starting the new program</arg>
+          <arg name='timeout'>Timeout variables to set before starting the new program. The parent process waits for child to exit within the timeout</arg>
+          <arg name='flags'>Flags that control various process creation options: NoFlags, CreateNewSession, CreateNewGroup, InheritEnvironment</arg>
+          The function returns the status code after executing the command
+       */
+  int executeProgramWithTimeout(const std::string& command, const std::vector<std::string>& env,ClUint64T timeout, uint_t flags=0);
+
 
   class ProcessList
   {

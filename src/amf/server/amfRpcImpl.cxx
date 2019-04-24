@@ -69,6 +69,37 @@ namespace amfRpc {
     //TODO: put your code here 
   }
 
+  void amfRpcImpl::cleanupComponent(const ::SAFplus::Rpc::amfRpc::CleanupComponentRequest* request,
+                                ::SAFplus::Rpc::amfRpc::CleanupComponentResponse* response)
+  {
+
+  std::vector<std::string> env;
+  std::string strCompName("ASP_COMPNAME=");
+  strCompName.append(request->name());
+  env.push_back(strCompName);
+  try
+  {
+    logDebug("OPS","CLE","Cleaning up Component [%s] as [%s]", request->name().c_str(),request->command().c_str());
+    int status = executeProgramWithTimeout(request->command().c_str(), env,request->timeout(), Process::InheritEnvironment);
+    response->set_err(status);
+    if (status)
+      {
+        logError("OPS", "CLE", "Cleanup command [%s] returned error [%d] for Component [%s]", request->command().c_str(), status, request->name().c_str());
+      }
+    if (request->pid()>0)
+    {
+       logDebug("OPS", "CLE", "Sending SIGKILL signal to component [%s] with process id [%d]", request->name().c_str(), request->pid());
+       kill(request->pid(), SIGKILL);
+    }
+  }
+  catch (ProcessError& e)
+  {
+    logInfo("OPS","SRT","Failed to cleanup Component [%s] as [%s] with error [%s:%d]", request->name().c_str(),request->command().c_str(),strerror(e.osError),e.osError);
+    response->set_err(e.osError);
+  }
+ }
+
+
   void amfRpcImpl::nodeInfo(const ::SAFplus::Rpc::amfRpc::NodeInfoRequest* request,
                                 ::SAFplus::Rpc::amfRpc::NodeInfoResponse* response)
   {
