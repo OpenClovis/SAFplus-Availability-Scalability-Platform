@@ -12,11 +12,13 @@ import wx
 import wx.aui
 #import wx.lib.fancytext as fancytext
 from wx.html import HtmlWindow
+import sys
+import wx.lib.agw.ultimatelistctrl as ULC
 
 import instanceEditor
 import entityDetailsDialog
 import umlEditor
-from project import Project, ProjectTreePanel, EVT_PROJECT_LOADED, EVT_PROJECT_NEW, PROJECT_SAVE, PROJECT_SAVE_AS
+from project import Project, ProjectTreePanel, EVT_PROJECT_LOADED, EVT_PROJECT_NEW, PROJECT_SAVE, PROJECT_SAVE_AS, PROJECT_VALIDATE
 import common
 import model
 
@@ -27,11 +29,13 @@ class SAFplusFrame(wx.Frame):
     def __init__(self, parent, title):
         wx.Frame.__init__(self, parent, -1, title, pos=(150, 150), size=(800, 600))
         self.model = None
+        self.problems = None
         self.currentActivePrj = None # indicating that this the current project which is active
        # Create the menubar
         self.menuBar = wx.MenuBar()
         # and a menu 
         self.menu = wx.Menu()
+        self.menuProject = wx.Menu()
         self.menuModelling = wx.Menu()
         self.menuInstantiation = wx.Menu()
         self.menuWindows = wx.Menu()
@@ -51,6 +55,7 @@ class SAFplusFrame(wx.Frame):
 
         # and put the menu on the menubar
         self.menuBar.Append(self.menu, "&File")
+        self.menuBar.Append(self.menuProject, "&Project")
         self.menuBar.Append(self.menuModelling, "&Modelling")
         self.menuBar.Append(self.menuInstantiation, "&Instantiation")
         self.menuBar.Append(self.menuWindows, "&Windows")
@@ -62,35 +67,55 @@ class SAFplusFrame(wx.Frame):
 
         self.sb = self.CreateStatusBar()
         
-        self.guiPlaces = common.GuiPlaces(self,self.menuBar, self.tb, self.sb, { "File": self.menu, "Modelling":self.menuModelling, "Instantiation":self.menuInstantiation, "Windows": self.menuWindows, "Help": self.menuHelp }, None)
+        self.guiPlaces = common.GuiPlaces(self,self.menuBar, self.tb, self.sb, { "File": self.menu, "Project": self.menuProject, "Modelling":self.menuModelling, "Instantiation":self.menuInstantiation, "Windows": self.menuWindows, "Help": self.menuHelp }, None)
 
         # Now create the Panel to put the other controls on.
         panel = self.panel = None # panelFactory(self,menuBar,tb,sb) # wx.Panel(self)
-        self.prjSplitter = wx.SplitterWindow(self, style=wx.SP_3D)
+        self.prjSplitter2 = wx.SplitterWindow(self, style=wx.SP_3D)
+        self.prjSplitter = wx.SplitterWindow(self.prjSplitter2, style=wx.SP_3D)
         self.project = ProjectTreePanel(self.prjSplitter,self.guiPlaces)
         self.Bind(wx.EVT_TREE_ITEM_ACTIVATED, self.onPrjTreeActivated, self.project.tree) # handle an event when user double-clicks on a project at the tree on the left to switch views to it or to set it active
         self.tab = wx.aui.AuiNotebook(self.prjSplitter)
+        
+        # Create panel that contain model problems
+        self.infoPanel = wx.aui.AuiNotebook(self.prjSplitter2)
+
         self.help = HtmlWindow(self.tab, -1)
         self.help.LoadFile("resources/intro.html")
         self.tab.AddPage(self.help, "Welcome")        
         self.Bind(wx.aui.EVT_AUINOTEBOOK_PAGE_CLOSE, self.onPageClosing, self.tab) # handle tab page close
-        self.prjSplitter.SplitVertically(self.project,self.tab,200)
+        self.prjSplitter2.SplitHorizontally(self.prjSplitter, self.infoPanel, 400)
+        self.prjSplitter.SplitVertically(self.project, self.tab, 200)
         # And also use a sizer to manage the size of the panel such
         # that it fills the frame
         self.sizer = wx.BoxSizer()
-        self.sizer.Add(self.prjSplitter, 1, wx.EXPAND)
+        self.sizer.Add(self.prjSplitter2, 1, wx.EXPAND)
         self.SetSizer(self.sizer)        
         # add recent projects menu items
         self.menu.AppendSeparator()
         self.recentPrjMenu = wx.Menu()
         self.menu.AppendMenu(wx.NewId(), "Recent", self.recentPrjMenu, "Recent projects")
         self.loadRecentProjects()
+        self.loadInfoPanel()
         self.Bind(wx.EVT_CLOSE, self.OnCloseFrame)
-
         if 0:  # For development, periodically load the html so we can easily see changes
           self.timer = wx.Timer(self)
           self.Bind(wx.EVT_TIMER, self.update, self.timer)
           self.timer.Start(1000)
+
+    def loadInfoPanel(self):
+        self.modelProblems = ULC.UltimateListCtrl(self, wx.ID_ANY, agwStyle=ULC.ULC_AUTOARRANGE | ULC.ULC_REPORT | ULC.ULC_VRULES | ULC.ULC_HRULES | ULC.ULC_SINGLE_SEL | ULC.ULC_HAS_VARIABLE_ROW_HEIGHT)
+        self.modelProblems.InsertColumn(0, "Severity Level")
+        # self.modelProblems.InsertColumn(1, "Problem Number")
+        self.modelProblems.InsertColumn(1, "Message")
+        # self.modelProblems.InsertColumn(3, "Source")
+        self.modelProblems.InsertColumn(2, "Location")
+        self.modelProblems.SetColumnWidth(0, 150)
+        self.modelProblems.SetColumnWidth(1, 500)
+        self.modelProblems.SetColumnWidth(2, 150)
+        # self.modelProblems.SetColumnWidth(3, 100)
+        # self.modelProblems.SetColumnWidth(4, 100)
+        self.infoPanel.AddPage(self.modelProblems, "Model Problems")
 
     def update(self, event):
         self.help.LoadFile("intro.html")
@@ -162,6 +187,7 @@ class SAFplusFrame(wx.Frame):
         t = self.model
         prj.setSAFplusModel(t.model)
         modelFile = os.path.join(prj.directory(), prj.model.children()[0].strip())
+        print "model file: %s" % modelFile
         t.model.init()
         t.model.load(modelFile)
         if t.uml:
@@ -268,6 +294,7 @@ class SAFplusFrame(wx.Frame):
       self.loadProject(prj)
       self.menu.Enable(PROJECT_SAVE, True)
       self.menu.Enable(PROJECT_SAVE_AS, True)
+      self.menuProject.Enable(PROJECT_VALIDATE, True)
 
     def onPrjTreeActivated(self, evt):
       """ handle an event when user double-clicks on an item at the tree on the left to switch views to it or to set it active """

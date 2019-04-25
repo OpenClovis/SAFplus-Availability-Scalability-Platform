@@ -586,9 +586,9 @@ class Panel(scrolled.ScrolledPanel):
     def showEntity(self,ent):
       #if self.entity == ent: return  # Its already being shown
       self.entity = ent
-
       # Collapse all tree items
-      self.CollapseAll()
+      self.CollapseAll(ent)
+
       treeItem = self.createTreeItemEntity(ent.data["name"], ent)
       if not self.tree.IsExpanded(treeItem):
         self.tree.Expand(treeItem)
@@ -602,12 +602,22 @@ class Panel(scrolled.ScrolledPanel):
       self.treeItemSelected = event.GetItem()
       event.Skip()
 
-    def CollapseAll(self):
+    def CollapseAll(self, ent):
       #self.tree.SelectAll()
       #for item in filter(lambda item: item != self.treeRoot, self.tree.GetSelections()):
       #  self.tree.Collapse(item)
       #self.tree.UnselectAll()
-      self.tree.Unselect()
+      # self.tree.Unselect()
+
+      # collapse all item
+      itemsCollapse = None
+      if "entity.Entity" in str(ent):
+        itemsCollapse = self.model.entities.items()
+      elif "entity.Instance" in str(ent):
+        itemsCollapse = self.model.instances.items()
+      for (name, es) in itemsCollapse:
+        item = self.createTreeItemEntity(es.data["name"], es)
+        self.tree.Collapse(item)
 
     # Create controls for all entities
     def _createTreeEntities(self):

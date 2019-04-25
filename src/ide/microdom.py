@@ -163,7 +163,7 @@ class MicroDom:
     if type(child) is ListType:
       for c in child:
         self.delChild(c)
-    if type(child) is StringType:
+    if (type(child) is StringType) or (isinstance(child, unicode)):
       tag = child
     else:
       tag = child.tag_

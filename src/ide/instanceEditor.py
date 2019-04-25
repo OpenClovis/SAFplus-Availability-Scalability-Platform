@@ -361,7 +361,6 @@ class SelectTool(Tool):
         else:
           self.entities = rcent
         print "Touching %s" % ", ".join([ e.data["name"] for e in self.entities])
-        
         if all(e.et.name in ("Component", "ComponentServiceInstance", "ServiceUnit", "ServiceInstance") for e in self.entities):
           panel.selectedEntities = self.entities
         else:
@@ -446,7 +445,6 @@ class SelectTool(Tool):
         entities = panel.findEntitiesAt(pos)
         if not entities: return False
         self.showEntity(entities)
-
       elif event.ButtonDown(wx.MOUSE_BTN_RIGHT):
         entities = panel.findEntitiesAt(pos)
         if not entities: return False
@@ -1311,6 +1309,18 @@ class Panel(scrolled.ScrolledPanel):
       self.OnToolClick(event)
 
     def OnToolEvent(self,event):
+      # Set tool is SelectTool after press ESC button
+      if isinstance(event, wx.KeyEvent):
+        if wx.WXK_ESCAPE == event.GetUnicodeKey():
+          self.toolBar.ToggleTool(SELECT_BUTTON, True)
+          tool = self.idLookup[SELECT_BUTTON]
+          if self.tool:
+            if isinstance(self.tool, EntityTool) and self.tool.entity.et.name=="Node":
+              self.newNodeInstOption = None
+          if tool:
+            tool.OnSelect(self,event)
+            self.tool = tool
+
       handled = False
       if self.tool:
         handled = self.tool.OnEditEvent(self, event)
@@ -1490,7 +1500,7 @@ class Panel(scrolled.ScrolledPanel):
           y=ROW_SPACING+cell.bound[3]
 
     def getUserDefinedNodeTypes(self):
-      userDefinedNodeTypes = []     
+      userDefinedNodeTypes = []
       for e in self.columns:
         thisNode = e.data["name"]
         values = self.model.instances.get(thisNode, None)
@@ -1525,7 +1535,7 @@ class Panel(scrolled.ScrolledPanel):
           i = self.menuUserDefineNodeTypes.Append(wx.NewId(), userDefineType)
           self.Bind(wx.EVT_MENU, self.OnMenuNodeInstCreate, i)
 
-    def getNodeInst(self, usrDefinedType):      
+    def getNodeInst(self, usrDefinedType):
       for e in self.columns:
         thisNode = e.data["name"]
         values = self.model.instances.get(thisNode, None)
@@ -1903,6 +1913,30 @@ class Panel(scrolled.ScrolledPanel):
           self.GetParent().SetSashPosition(position)
         self.GetParent().UpdateSize()
 
+    def updateDefineNodeTypes(self, ents):
+      """Update define node type after intances is deleted """
+      for ent in ents:
+        itemId = None
+        cntIntance = 0
+        cntViableType = 0
+        userDefineType = ent.data.get("userDefinedType", None)
+        if userDefineType is not None:
+          for (name, e) in self.model.instances.items():
+            if e.data.get("userDefinedType", None) == userDefineType:
+              if e.data.get("canBeInherited", None):
+                cntIntance += 1
+          if ent.data.get("canBeInherited", None):
+            menuItems = self.menuUserDefineNodeTypes.GetMenuItems()
+            for item in menuItems:
+              if item.GetText() == userDefineType: # the user-defined node type has been already here
+                itemId = item.Id
+                cntViableType += 1
+
+          if cntIntance >= 2 and cntViableType == 1:
+            pass
+          elif itemId is not None:
+            self.menuUserDefineNodeTypes.Delete(itemId)
+
     def deleteEntities(self, ents, deleteFromModel=True):
       #remove columns/rows
       self.drawSelectionBox = False
@@ -1923,6 +1957,7 @@ class Panel(scrolled.ScrolledPanel):
         share.instanceDetailsPanel.deleteTreeItemEntities(ents)
      
       if deleteFromModel:
+        self.updateDefineNodeTypes(ents)
         self.model.delete(ents)
       self.Refresh()
       self.layout()
