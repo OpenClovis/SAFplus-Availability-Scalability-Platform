@@ -710,6 +710,18 @@ class Panel(scrolled.ScrolledPanel):
         self.toolBar.EnableTool(toolId, enable)
 
     def OnToolEvent(self,event):      
+      # Reset to SelectTool after press ESC button
+      if isinstance(event, wx.KeyEvent):
+        if wx.WXK_ESCAPE == event.GetUnicodeKey():
+          self.toolBar.ToggleTool(SELECT_BUTTON, True)
+          tool = self.idLookup[SELECT_BUTTON]
+          if self.tool:
+            self.tool.OnUnselect(self,event)
+            self.tool = None
+          if tool:
+            tool.OnSelect(self,event)
+            self.tool = tool
+
       handled = False
       if self.tool:
         handled = self.tool.OnEditEvent(self, event)

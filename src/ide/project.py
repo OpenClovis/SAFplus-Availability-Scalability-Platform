@@ -14,12 +14,22 @@ from common import log
 import re
 import ntpath
 import common
+import sys
+import share
+import pexpect
+import wx.aui as aui
+import wx.lib.scrolledpanel as scrolled
+from distutils.dir_util import copy_tree
 
 PROJECT_LOAD = wx.NewId()
 PROJECT_SAVE = wx.NewId()
 PROJECT_SAVE_AS = wx.NewId()
 
 PROJECT_WILDCARD = "SAFplus Project (*.spp)|*.spp|All files (*.*)|*.*"
+
+PROJECT_VALIDATE = wx.NewId()
+MAKE_IMAGES      = wx.NewId() 
+IMAGES_DEPLOY    = wx.NewId()
 
 ProjectLoadedEvent, EVT_PROJECT_LOADED = wx.lib.newevent.NewCommandEvent()  # Must be a command event so it propagates
 ProjectNewEvent, EVT_PROJECT_NEW = wx.lib.newevent.NewCommandEvent()
@@ -239,6 +249,40 @@ class ProjectTreePanel(wx.Panel):
         self.guiPlaces = guiPlaces
         self.projects = []
 
+        self.problems = []
+
+        self.entitiesRelation = {
+          "ServiceGroup"            :["ServiceInstance", "ServiceUnit"],
+          "ServiceInstance"         :["ComponentServiceInstance"],
+          "ComponentServiceInstance":["Component"],
+          "Component"               :None,
+          "Cluster"                 :["Node"],
+          "Node"                    :["ServiceUnit"],
+          "ServiceUnit"             :["Component"]
+        }
+
+        self.entitiesParent = {
+          "ServiceGroup"            : None,
+          "ServiceInstance"         :["ServiceGroup"],
+          "ComponentServiceInstance":["ServiceInstance"],
+          "Component"               :["ComponentServiceInstance", "ServiceUnit"],
+          "Cluster"                 :None,
+          "Node"                    :["Cluster"],
+          "ServiceUnit"             :["Node", "ServiceGroup"]
+        }
+
+        self.warn = "WARNNING"
+        self.error = "ERROR"
+        self.info = "INFOMATION"
+        self.instantiation = "Instantiation"
+        self.modelling   = "Modelling"
+
+        self.color = {
+          self.error: wx.Colour(255, 0, 0),
+          self.warn: wx.Colour(0, 0, 255),
+          self.info: wx.Colour(0, 0, 255)
+        }
+
         self.tree = ProjectTreeCtrl(self, tID, wx.DefaultPosition, wx.DefaultSize,
                                wx.TR_HAS_BUTTONS
                                #| wx.TR_EDIT_LABELS
@@ -265,12 +309,24 @@ class ProjectTreePanel(wx.Panel):
         self.fileMenu.Enable(PROJECT_SAVE_AS, False)
         
 
-        # bind the menu event to an event handler
+        # bind the menu event to an event handlerfff
         self.fileMenu.Bind(wx.EVT_MENU, self.OnNew, id=wx.ID_NEW)
         self.fileMenu.Bind(wx.EVT_MENU, self.OnLoad, id=PROJECT_LOAD)
         self.fileMenu.Bind(wx.EVT_MENU, self.OnSave, id=PROJECT_SAVE)
         self.fileMenu.Bind(wx.EVT_MENU, self.OnSaveAs, id=PROJECT_SAVE_AS)
-        
+
+        #
+        self.menuProject = guiPlaces.menu["Project"]
+        self.menuProject.Append(PROJECT_VALIDATE, "Validate Project", "Validate Project")
+        self.menuProject.Append(MAKE_IMAGES, "Make Image(s)...", "Make Image(s)...")
+        self.menuProject.Append(IMAGES_DEPLOY, "Deploy Image(s)...", "Deploy Image(s)...")
+        self.menuProject.Enable(PROJECT_VALIDATE, False)
+        self.menuProject.Enable(MAKE_IMAGES, True)
+        self.menuProject.Enable(IMAGES_DEPLOY, True)
+        self.menuProject.Bind(wx.EVT_MENU, self.OnValidate, id=PROJECT_VALIDATE)
+        self.menuProject.Bind(wx.EVT_MENU, self.OnMakeImages, id=MAKE_IMAGES)
+        self.menuProject.Bind(wx.EVT_MENU, self.OnDeploy, id=IMAGES_DEPLOY)
+
         # wx 2.8 compatibility
         wx.EVT_MENU(guiPlaces.frame, wx.ID_NEW, self.OnNew)
         wx.EVT_MENU(guiPlaces.frame, PROJECT_LOAD, self.OnLoad)
@@ -393,6 +449,7 @@ class ProjectTreePanel(wx.Panel):
       wx.PostEvent(self.parent,evt)
       self.fileMenu.Enable(PROJECT_SAVE, True)
       self.fileMenu.Enable(PROJECT_SAVE_AS, True) 
+      self.menuProject.Enable(PROJECT_VALIDATE, True)
 
   def OnNew(self,event):
     dlg = NewPrjDialog()
@@ -411,6 +468,7 @@ class ProjectTreePanel(wx.Panel):
       wx.PostEvent(self.parent,evt)
       self.fileMenu.Enable(PROJECT_SAVE, True)
       self.fileMenu.Enable(PROJECT_SAVE_AS, True)
+      self.menuProject.Enable(PROJECT_VALIDATE, True)
 
   def OnSave(self,event):
     saved = []
@@ -440,7 +498,703 @@ class ProjectTreePanel(wx.Panel):
         w,h = self.GetClientSizeTuple()
         self.tree.SetDimensions(0, 0, w, h) 
 
+  def OnValidate(self, event):
+    # Clear old problems
+    del self.problems[:]
 
+    if share.detailsPanel is None:
+      return
+    share.detailsPanel.model.updateMicrodom()
+
+    self.validateComponentModel()
+    # Validate components relation ship
+    self.parseComponentRelationships()
+
+    self.validateNodeProfiles()
+    # Validate intances 
+    self.validateAmfConfig()
+
+    # Validate configuration data
+    self.validateDataConfig()
+
+    # Update all problems on modal problems tag
+    self.updateModalProblems()
+
+  def validateAmfConfig(self):
+    self.validateNodeIntances()
+    self.validateServiceGroups()
+
+  def updateProblems(self, level="", msg="", source=""):
+    msgInfo = self.getMessageInfo(level, msg, source)
+    self.problems.append(msgInfo)
+
+  def validateDataConfig(self):
+    '''
+    @summary    : Validation data config on modelling and intances
+    @param      : NA
+    @return     : NA
+    '''
+    #TODO
+    pass
+
+  def validateNodeProfiles(self):
+    '''
+    @summary    : This function validation node/service child intance
+    @param      : NA
+    @return     : NA
+    '''
+    instances = share.detailsPanel.model.data.getElementsByTagName("instances")[0]
+    
+    # Validate Node child intance
+    nNodeIntance = 0
+    for (name,e) in share.detailsPanel.model.instances.items():
+      if e.data['entityType'] == "Node":
+        nNodeIntance += 1
+        nSUIntance = 0
+        for arrow in e.containmentArrows:
+          if arrow.contained.data['entityType'] == "ServiceUnit":
+            nSUIntance += 1
+        if nSUIntance == 0:
+          msg = "Node instance (%s) does not have any ServiceUnit instances defined" % name
+          self.updateProblems(self.warn, msg, self.instantiation)
+
+      if e.data['entityType'] == "ServiceUnit":
+        nComponent = 0
+        for arrow in e.containmentArrows:
+          if arrow.contained.data['entityType'] == "Component":
+            nComponent += 1
+        if nComponent == 0:
+          msg = "ServiceUnit instance (%s) does not have any Component instances defined" % name
+          self.updateProblems(self.warn, msg, self.instantiation)
+
+    if nNodeIntance == 0:
+      msg = "There are no Node instances defined in AMF Configuration"
+      self.updateProblems(self.warn, msg, self.instantiation)
+      
+    # Validate ServiceGroup child intance
+    nServiceGroup = 0
+    for (name,e) in share.detailsPanel.model.instances.items():
+      if e.data['entityType'] == "ServiceGroup":
+        nServiceGroup += 1
+        nSI = 0
+        for arrow in e.containmentArrows:
+          if arrow.contained.data['entityType'] == "ServiceInstance":
+            nSI += 1
+        if nSI == 0:
+          msg = "ServiceGroup instance (%s) does not have any ServiceInstance defined" % name
+          self.updateProblems(self.warn, msg, self.instantiation)
+
+      if e.data['entityType'] == "ServiceInstance":
+        nCSI = 0
+        for arrow in e.containmentArrows:
+          if arrow.contained.data['entityType'] == "ComponentServiceInstance":
+            nCSI += 1
+        if nCSI == 0:
+          msg = "SI (%s) does not have any ComponentServiceInstance defined" % name
+          self.updateProblems(self.warn, msg, self.instantiation)
+
+
+
+    if nServiceGroup == 0:
+      msg = "There are no ServiceGroup instances defined in AMF Configuration"
+      self.updateProblems(self.warn, msg, self.instantiation)
+
+  def validateComponentModel(self):
+    cntCluster = 0
+    for (name, e) in share.detailsPanel.model.entities.items():
+      if e.data['entityType'] == "Cluster":
+        cntCluster += 1
+
+    if cntCluster == 0:
+      msg = "Model should contain at least one Cluster"
+      self.updateProblems(self.error, msg, self.modelling)
+    elif cntCluster > 1:
+      msg = "Model should not contain more than one Cluster"
+      self.updateProblems(self.error, msg, self.modelling)
+    else:
+      pass
+    
+    print "self.problems: %s" % self.problems
+
+  def validateNodeIntances(self):
+    '''
+    @summary    : This function validation node intance
+    @param      : NA
+    @return     : NA
+    '''
+    nodeNameList = []
+    suNameList = []
+    cNameList = []
+
+    for (name, e) in share.detailsPanel.model.entities.items():
+      if e.data['entityType'] == "Node":
+        nodeNameList.append(name)
+      if e.data['entityType'] == "ServiceUnit":
+        suNameList.append(name)
+      if e.data['entityType'] == "Component":
+        cNameList.append(name)
+
+    instances = share.detailsPanel.model.data.getElementsByTagName("instances")[0]
+
+    for (name,e) in share.detailsPanel.model.instances.items():
+      # validate AMF configuration has valid Node
+      if e.data['entityType'] == "Node":
+        instance = instances.findOneByChild("name",name)
+        nodeTypeName = instance.child_.get("NodeType").children_[0]
+        print "nodeTypeName: %s" % nodeTypeName
+        if nodeTypeName not in nodeNameList:
+          msg = "AMF configuration has invalid Node " + str(nodeTypeName)
+          self.updateProblems(self.error, msg, self.instantiation)
+
+        # validate AMF configuration has valid SI
+        for arrow in e.containmentArrows:
+          print "arrow.contained.data: %s" % arrow.contained.data
+          if arrow.contained.data['entityType'] == "ServiceUnit":
+            suName = arrow.contained.data['name']
+            instance = instances.findOneByChild("name",suName)
+            suType = instance.child_.get("ServiceUnitType").children_[0]
+            print "suType: %s" % suType
+            if suType not in suNameList:
+              msg = "AMF configuration has invalid SU " + str(suName)
+              self.updateProblems(self.error, msg, self.instantiation)
+
+            # validate AMF configuration has valid CSI
+            for (nameEntity,entity) in share.detailsPanel.model.instances.items():
+              if entity.data['entityType'] == "ServiceUnit" and nameEntity == suName:
+                for arrowSu in entity.containmentArrows:
+                   if arrowSu.contained.data['entityType'] == "Component":
+                     cName = arrowSu.contained.data['name']
+                     instance = instances.findOneByChild("name",cName)
+                     cType = instance.child_.get("ComponentType").children_[0]
+                     print "cType: %s" % cType
+                     if cType not in cNameList:
+                        msg = "AMF configuration has invalid Component " + str(cName)
+                        self.updateProblems(self.error, msg, self.instantiation)
+
+  def validateServiceGroups(self):
+    '''
+    @summary    : This function validation service group
+    @param      : NA
+    @return     : NA
+    '''
+    sgNameList = []
+    siNameList = []
+    csiNameList = []
+
+    for (name, e) in share.detailsPanel.model.entities.items():
+      if e.data['entityType'] == "ServiceInstance":
+        siNameList.append(name)
+      elif e.data['entityType'] == "ComponentServiceInstance":
+        csiNameList.append(name)
+      elif e.data['entityType'] == "ServiceGroup":
+        sgNameList.append(name)
+
+    instances = share.detailsPanel.model.data.getElementsByTagName("instances")[0]
+
+    for (name,e) in share.detailsPanel.model.instances.items():
+
+      # validate AMF configuration has valid SG
+      if e.data['entityType'] == "ServiceGroup":
+        instance = instances.findOneByChild("name",name)
+        sgName = instance.child_.get("ServiceGroupType").children_[0]
+        if sgName not in sgNameList:
+          msg = "AMF configuration has invalid SG " + str(sgName)
+          self.updateProblems(self.error, msg, self.instantiation)
+
+        # validate AMF configuration has valid SI
+        for arrow in e.containmentArrows:
+          if arrow.contained.data['entityType'] == "ServiceInstance":
+            siName = arrow.contained.data['name']
+            instance = instances.findOneByChild("name",siName)
+            siType = instance.child_.get("ServiceInstanceType").children_[0]
+            if siType not in siNameList:
+              msg = "AMF configuration has invalid SI " + str(siName)
+              self.updateProblems(self.error, msg, self.instantiation)
+
+            # validate AMF configuration has valid CSI
+            for (nameEntity,entity) in share.detailsPanel.model.instances.items():
+              if entity.data['entityType'] == "ServiceInstance" and nameEntity == siName:
+                for arrowSi in entity.containmentArrows:
+                   if arrowSi.contained.data['entityType'] == "ComponentServiceInstance":
+                     csiName = arrowSi.contained.data['name']
+                     instance = instances.findOneByChild("name",csiName)
+                     csiType = instance.child_.get("ComponentServiceInstanceType").children_[0]
+                     if csiType not in csiNameList:
+                        msg = "AMF configuration has invalid CSI " + str(siName)
+                        self.updateProblems(self.error, msg, self.instantiation)
+ 
+  def parseComponentRelationships(self):
+    '''
+    @summary    : Validation entity has valid child and parent in modelling screen
+    @param      : NA
+    @return     : NA
+    '''
+    for (name, e) in share.detailsPanel.model.entities.items():
+      eType = e.data["entityType"]
+      self.validateParentOfComponent(name, eType)
+      if self.entitiesRelation[eType] is not None:
+
+        for link in self.entitiesRelation[eType]:
+          result = False
+          for arrow in e.containmentArrows:
+            if arrow.contained.data["entityType"] == link:
+              result = True
+          if result is False:
+            msg = "%s is not associated to any of the %ss" % (e.data["name"], link)
+            self.updateProblems(self.error, msg, self.modelling)
+
+  def validateParentOfComponent(self, cName, eType):
+    '''
+    @summary    : Validation entity has valid parent
+    @param      : cName 
+    @param      : eType 
+    @return     : NA
+    '''
+    if self.entitiesParent[eType] is not None:
+      for pType in self.entitiesParent[eType]:
+
+        found = False
+        for (name, e) in share.detailsPanel.model.entities.items():
+
+          if e.data["entityType"] == pType:
+            for arrow in e.containmentArrows:
+              if arrow.contained.data["entityType"] == eType and arrow.contained.data["name"] == cName:
+                found = True
+                break
+          if found:
+            break
+
+        if found is False:
+          msg = "%s is not associated to any of the %s" % (cName, pType)
+          self.updateProblems(self.error, msg, self.modelling)
+
+  def getMessageInfo(self, level="", msg="", source=""):
+    '''
+    @summary    : Validation entity has valid parent
+    @param      : level - failed level ERROR/WARN/INFOMATION
+    @param      : msg - problem message
+    @return     : problem - dict
+    '''
+    problem = {}
+    problem["level"] = level
+    # problem["number"] = number
+    problem["msg"] = msg
+    problem["source"] = source
+    return problem
+
+  def updateModalProblems(self):
+    '''
+    @summary    : Update problems view
+    @param      : NA
+    @param      : NA
+    @return     : NA
+    '''
+    # sort problem by level
+    problems = sorted(self.problems, key = lambda i: i['level']) 
+
+    self.guiPlaces.frame.modelProblems.DeleteAllItems()
+    for problem in problems:
+      index = self.guiPlaces.frame.modelProblems.InsertStringItem(sys.maxsize, problem['level'])
+      self.guiPlaces.frame.modelProblems.SetItemTextColour(index, self.color[problem['level']])
+      # self.guiPlaces.frame.modelProblems.SetStringItem(index, 1, problem['number'])
+      self.guiPlaces.frame.modelProblems.SetStringItem(index, 1, problem['msg'])
+      self.guiPlaces.frame.modelProblems.SetStringItem(index, 2, problem['source'])
+
+  def OnDeploy(self, event):
+    dlg = DeployDialog(self)
+    dlg.ShowModal()
+    dlg.Destroy()
+
+  def OnMakeImages(self, event):
+    dlg = MakeImages(self)
+    dlg.ShowModal()
+    dlg.Destroy
+
+class DeployDialog(wx.Dialog):
+    """
+    Class to define deploy images dialog
+    """
+    def __init__(self, parent):
+      """Constructor"""
+      wx.Dialog.__init__(self, None, title="Deployment Details", size=(600,450))
+
+      self.parent = parent
+      self.SetBackgroundColour('#F2F1EF')
+      LabelSize = (100,25) 
+      EntrySize = (300,25)
+
+      horizontalBox0 = wx.BoxSizer(wx.HORIZONTAL)
+      label = wx.StaticText(self, label="Please provide valid infomation to deploy image", size=(400, 25))
+      label.SetForegroundColour((0,0,0)) 
+      horizontalBox0.Add(label, 0, wx.ALL|wx.CENTER, border=5)
+
+      horizontalBox1 = wx.BoxSizer(wx.HORIZONTAL)
+      hostName = wx.StaticText(self, label="Target address", size=LabelSize)
+      horizontalBox1.Add(hostName, 0, wx.ALL|wx.CENTER, 5)
+      self.host = wx.TextCtrl(self,size=EntrySize)
+      self.host.Bind(wx.EVT_TEXT, self.onTargetAdressChange)
+      horizontalBox1.Add(self.host, 10, wx.ALL | wx.EXPAND, 5)
+
+      horizontalBox2 = wx.BoxSizer(wx.HORIZONTAL)
+      hostName = wx.StaticText(self, label="User name", size=LabelSize)
+      horizontalBox2.Add(hostName, 0, wx.ALL|wx.CENTER, 5)
+      self.user = wx.TextCtrl(self,size=EntrySize)
+      self.user.Bind(wx.EVT_TEXT, self.onUserNameChange)
+      horizontalBox2.Add(self.user, 10, wx.ALL | wx.EXPAND, 5)
+
+      horizontalBox3 = wx.BoxSizer(wx.HORIZONTAL)
+      hostName = wx.StaticText(self, label="Password", size=LabelSize)
+      horizontalBox3.Add(hostName, 0, wx.ALL|wx.CENTER, 5)
+      self.password = wx.TextCtrl(self,size=EntrySize, style=wx.TE_PASSWORD)
+      self.password.Bind(wx.EVT_TEXT, self.onPasswordChange)
+      horizontalBox3.Add(self.password, 10, wx.ALL | wx.EXPAND, 5)
+
+      horizontalBox4 = wx.BoxSizer(wx.HORIZONTAL)
+      hostName = wx.StaticText(self, label="Target location", size=LabelSize)
+      horizontalBox4.Add(hostName, 0, wx.ALL|wx.CENTER, 5)
+      self.targetLocation = wx.TextCtrl(self,size=EntrySize)
+      self.targetLocation.Bind(wx.EVT_TEXT, self.onTargetLocationChange)
+      horizontalBox4.Add(self.targetLocation, 10, wx.ALL | wx.EXPAND, 5)
+
+      vBox = wx.BoxSizer(wx.VERTICAL)
+      vBox.Add(horizontalBox0, 0, wx.ALL, 5)
+      vBox.Add(horizontalBox1, 0, wx.ALL, 5)
+      vBox.Add(horizontalBox2, 0, wx.ALL, 5)
+      vBox.Add(horizontalBox3, 0, wx.ALL, 5)
+      vBox.Add(horizontalBox4, 0, wx.ALL, 5)
+
+      restore_btn = wx.Button(self, label="Restore Defaults")
+      restore_btn.Bind(wx.EVT_BUTTON, self.onClickRestoreDefaultBtn)
+      deploy_btn = wx.Button(self, label="Deploy")
+      deploy_btn.Bind(wx.EVT_BUTTON, self.onDeployImageHandler)
+
+      btn_sizer = wx.BoxSizer(wx.HORIZONTAL)
+      btn_sizer.Add(restore_btn, 0, wx.ALL|wx.CENTER, 5)
+      btn_sizer.Add(deploy_btn, 0, wx.ALL|wx.CENTER, 5)  
+      vBox.Add(btn_sizer, 0, wx.TOP|wx.ALIGN_RIGHT, 5)
+
+      cancel_btn = wx.Button(self, label="Cancel")
+      cancel_btn.Bind(wx.EVT_BUTTON, self.onClickCancelBtn)
+      deployAll_btn = wx.Button(self, label="Deploy All")
+      deployAll_btn.Bind(wx.EVT_BUTTON, self.onClickDeployAllImageBtn)
+
+      btn_sizer2 = wx.BoxSizer(wx.HORIZONTAL)
+      btn_sizer2.Add(cancel_btn, 0, wx.ALL|wx.CENTER, 5)
+      btn_sizer2.Add(deployAll_btn, 0, wx.ALL|wx.CENTER, 5)  
+
+      self.nodeList = wx.ListView(self, wx.ID_ANY, (0,0), (185,350), style=wx.LC_EDIT_LABELS | wx.LC_REPORT |wx.SUNKEN_BORDER)#, style=wx.LC_REPORT|wx.SUNKEN_BORDER|wx.LC_SINGLE_SEL|wx.LC_VRULES|wx.LC_HRULES)
+      self.nodeList.InsertColumn(0, "Nodes")
+      self.nodeList.SetColumnWidth(0, 185)
+      self.nodeList.Bind(wx.EVT_LIST_ITEM_FOCUSED, self.onSelectNodeChange)
+
+      hBox = wx.BoxSizer(wx.HORIZONTAL)
+      hBox.Add(self.nodeList, 0, wx.ALL, 5)
+      hBox.Add(vBox, 0, wx.ALL, 5)
+
+      vBox1 = wx.BoxSizer(wx.VERTICAL)
+      vBox1.Add(hBox, 0, wx.ALL|wx.CENTER, 5)
+      vBox1.Add(btn_sizer2, 0, wx.ALL|wx.ALIGN_RIGHT, 5)
+
+      self.SetSizer(vBox1)
+      vBox1.Layout()
+
+      self.deployInfos = {}
+
+      self.initDeploymentInfo()
+
+      self.Bind(wx.EVT_CLOSE, self.onDialogClose)
+
+      self.infoChange = False
+
+    def initDeploymentInfo(self):
+      nodeIntances = []
+      try:
+        for (name, e) in share.detailsPanel.model.instances.items():
+          if e.data['entityType'] == "Node":
+            # self.nodeList.InsertStringItem(sys.maxsize, name)
+            nodeIntances.append(name)
+        targetInfo = microdom.LoadFile("target.xml").pretty()
+
+        dom = xml.dom.minidom.parseString(targetInfo)
+        md = microdom.LoadMiniDom(dom.childNodes[0])
+      except:
+        pass
+
+      nodeIntances = sorted(nodeIntances)
+      self.curNode = nodeIntances[0]
+
+      for img in nodeIntances:
+        image = {}
+        try:
+          image['targetAdress'] = str(md[img].targetAdress.data_).strip()
+          image['userName'] = str(md[img].userName.data_).strip()
+          image['password'] = str(md[img].password.data_).strip()
+          image['targetLocation'] = str(md[img].targetLocation.data_).strip()
+        except:
+          image['targetAdress'] = ""
+          image['userName'] = ""
+          image['password'] = ""
+          image['targetLocation'] = ""
+          self.infoChange = True
+        self.nodeList.InsertStringItem(sys.maxsize, img)
+        self.deployInfos[img] = image
+
+      self.updateDeployInfoCurNode()
+
+    def updateDeployInfoCurNode(self):
+      # Set old config for current Node
+      self.host.SetValue(self.deployInfos[self.curNode]['targetAdress'])
+      self.user.SetValue(self.deployInfos[self.curNode]['userName'])
+      self.password.SetValue(self.deployInfos[self.curNode]['password'])
+      self.targetLocation.SetValue(self.deployInfos[self.curNode]['targetLocation'])
+
+    def onTargetAdressChange(self, event):
+      self.deployInfos[self.curNode]['targetAdress'] = self.host.GetValue()
+      self.infoChange = True
+
+    def onUserNameChange(self, event):
+      self.deployInfos[self.curNode]['userName'] = self.user.GetValue()
+      self.infoChange = True
+
+    def onPasswordChange(self, event):
+      self.deployInfos[self.curNode]['password'] = self.password.GetValue()
+      self.infoChange = True
+
+    def onTargetLocationChange(self, event):
+      self.deployInfos[self.curNode]['targetLocation'] = self.targetLocation.GetValue()
+      self.infoChange = True
+
+    def onSaveAllDeploymentInfo(self):
+      md = microdom.MicroDom({"tag_":"Nodes"},[],[])
+      md.update(self.deployInfos)
+      f = open("target.xml","w")
+      f.write(md.pretty())
+      f.close()
+
+    def onClickCancelBtn(self, event):
+      self.Close()
+
+    def onClickDeployAllImageBtn(self, event):
+      prjPath, name = os.path.split(self.parent.currentActiveProject.projectFilename)
+      for key in self.deployInfos:
+        #TODO update srcImage
+        srcImage = prjPath + '/images/' + key
+        if os.path.isdir(srcImage):
+          self.deploymentSingleImage(self.deployInfos[key], srcImage)
+        else:
+          print "Image don't exist"   
+
+    def deploymentSingleImage(self, info, srcImage):
+      if (info['targetAdress'] == "") or (info['userName'] == "") or (info['password'] == "") or (info['targetLocation'] == ""):
+        print "Invalid infomation to deploy image"
+        return False
+      cmd = 'scp -r %s %s@%s:~/%s' % (srcImage, info['userName'], info['targetAdress'], info['targetLocation'])
+      print cmd
+      try:
+        child = pexpect.spawn("%s" % cmd)
+        child.expect('assword:*')
+        child.sendline('%s' % info['password'])
+        while child.isalive():
+          time.sleep(1)
+        time.sleep(2)
+        print "Deploy image successfuly"
+      except:
+        print "Error while deploy image"
+
+    
+    def onClickRestoreDefaultBtn(self, event):
+      self.host.SetValue("")
+      self.user.SetValue("")
+      self.password.SetValue("")
+      self.targetLocation.SetValue("")
+
+    def onDeployImageHandler(self, event):
+      #TODO update 
+      prjPath, name = os.path.split(self.parent.currentActiveProject.projectFilename)
+      srcImage = prjPath + '/images/' + self.curNode
+
+      # srcImage = "/home/tuyen.nguyen/Desktop/tmp"
+      if os.path.isdir(srcImage):
+        img = self.deployInfos[self.curNode]
+        self.deploymentSingleImage(img, srcImage)
+
+    def onSelectNodeChange(self, event):
+      item = self.nodeList.GetFocusedItem()
+      if item == -1:
+        return None
+      self.curNode = self.nodeList.GetItemText(item)
+      self.updateDeployInfoCurNode()
+
+    def onDialogClose(self, event):
+      if self.infoChange:
+        self.onSaveAllDeploymentInfo()
+      self.Destroy()
+
+class MakeImages(wx.Dialog):
+    """
+    Class define makeimages dialog
+    """
+    def __init__(self, parent):
+      wx.Dialog.__init__(self, None, title="Make Images Configuration", size=(455, 480))
+      self.parent = parent
+      mainBox = wx.BoxSizer(wx.VERTICAL)
+      labelTitle = wx.StaticText(self, label="Config make image setting",size=(455,25))
+      bookStyle = aui.AUI_NB_DEFAULT_STYLE
+      bookStyle &= ~(aui.AUI_NB_CLOSE_ON_ACTIVE_TAB)
+      self.configPanel = wx.aui.AuiNotebook(self, style=bookStyle, size=(436, 341))
+      self.general = GeneralPage(self)
+      self.configPanel.AddPage(self.general, "General")
+
+      cancel_btn = wx.Button(self, label="Cancel")
+      cancel_btn.Bind(wx.EVT_BUTTON, self.onClickCancelBtn)
+      ok_btn = wx.Button(self, label="Ok")
+      ok_btn.Bind(wx.EVT_BUTTON, self.onClickOkBtn)
+
+      btn_sizer = wx.BoxSizer(wx.HORIZONTAL)
+      btn_sizer.Add(cancel_btn, 0, wx.ALL|wx.CENTER, 5)
+      btn_sizer.Add(ok_btn, 0, wx.ALL|wx.CENTER, 5)  
+
+        
+      mainBox.Add(labelTitle, 0, wx.TOP|wx.LEFT, 20)
+      mainBox.Add(self.configPanel, 0, wx.ALL|wx.CENTER, 5)
+      mainBox.Add(btn_sizer, 0, wx.TOP|wx.ALIGN_RIGHT,5)
+
+      self.SetSizer(mainBox)
+      mainBox.Layout()
+      
+    def onClickOkBtn(self, event):
+      self.general.getAllRawConf()
+      self.general.saveAllImgConfig()
+      prjPath, name = os.path.split(self.parent.currentActiveProject.projectFilename)
+      self.general.makeImages(prjPath)
+      self.Close()
+
+    def onClickCancelBtn(self, event):
+      self.Close()
+
+class RawInfo(wx.Panel):
+  """
+  Class to define general page
+  """
+  def __init__(self, parent, node):
+    """Constructor"""
+    wx.Panel.__init__(self, parent, size=(415, 25))
+    hBox = wx.BoxSizer(wx.HORIZONTAL)
+
+    self.txtName = wx.StaticText(self, label=node['name'], size=(130,25))
+    s = [str(i) for i in range (1,17)]
+    self.num = wx.ComboBox(self, choices = s, size=(110,25))
+    self.num.SetValue(node['slot'])
+    self.net = wx.TextCtrl(self, size=(150,25))
+    self.net.SetValue(node['netInterface'])
+
+    hBox.Add(self.txtName, 0, wx.ALL|wx.CENTER, border=5, )
+    hBox.Add(self.num, 0, wx.ALL|wx.CENTER, border=5)
+    hBox.Add(self.net, 0, wx.ALL|wx.CENTER, border=5)
+
+    self.SetSizer(hBox)
+    hBox.Layout()
+
+  def getNodeName(self):
+    return self.txtName.GetLabelText()
+
+  def getSlotValue(self):
+    return self.num.GetValue()
+
+  def getNetInterfaceValue(self):
+    return self.net.GetValue()
+
+class GeneralPage(scrolled.ScrolledPanel):
+  """
+  Class to define general page
+  """
+  #----------------------------------------------------------------------
+  def __init__(self, parent):
+    """Constructor"""
+    scrolled.ScrolledPanel.__init__(self, parent, style = wx.TAB_TRAVERSAL|wx.SUNKEN_BORDER, size=(425,310))
+
+    self.SetupScrolling(True, True)
+    self.SetScrollRate(10, 10)
+    self.SetBackgroundColour('#F2F1EF')
+
+    hBox = wx.BoxSizer(wx.HORIZONTAL)
+    intanceName = wx.StaticText(self, label="Node Instance", size=(130,25))
+    slotNum = wx.StaticText(self, label="Slot Number", size=(110,25))
+    netInterface = wx.StaticText(self, label="Network Interface", size=(150,25))
+    hBox.Add(intanceName, 0, wx.ALL|wx.ALIGN_TOP, 5)
+    hBox.Add(slotNum, 0, wx.ALL|wx.ALIGN_TOP, 5)
+    hBox.Add(netInterface, 0, wx.ALL|wx.ALIGN_TOP, 5)
+
+    mainBox = wx.BoxSizer(wx.VERTICAL)
+    mainBox.Add(hBox, 0, wx.ALL|wx.ALIGN_TOP, 5)
+
+    nodeIntances = []
+    self.imagesConfig = {}
+    try:
+      for (name, e) in share.detailsPanel.model.instances.items():
+        if e.data['entityType'] == "Node":
+          nodeIntances.append(name)
+
+      targetInfo = microdom.LoadFile("imagesConfig.xml").pretty()
+
+      dom = xml.dom.minidom.parseString(targetInfo)
+      md = microdom.LoadMiniDom(dom.childNodes[0])
+    except:
+      pass
+
+    for img in nodeIntances:
+      image = {}
+      image['name'] = img
+      try:
+        image['slot'] = str(md[img].slot.data_).strip()
+        image['netInterface'] = str(md[img].netInterface.data_).strip()
+      except:
+        image['slot'] = ""
+        image['netInterface'] = ""
+        self.infoChange = True
+      self.imagesConfig[img] = image
+
+    self.listRawConf = []
+    for name in sorted(self.imagesConfig.keys()):
+      raw = RawInfo(self, self.imagesConfig[name])
+      self.listRawConf.append(raw)
+      mainBox.Add(raw, 0, wx.ALL|wx.TOP, 5)
+
+    self.SetSizer(mainBox)
+    mainBox.Layout()
+
+  def getAllRawConf(self):
+    for raw in self.listRawConf:
+      self.imagesConfig[raw.getNodeName()]['slot'] = raw.getSlotValue()
+      self.imagesConfig[raw.getNodeName()]['netInterface'] = raw.getNetInterfaceValue()
+      # print "Slot value: %s" % raw.getSlotValue()
+      # print "Net interface value: %s" % raw.getNetInterfaceValue()
+    print "Var config:%s" % self.imagesConfig
+
+  def saveAllImgConfig(self):
+    md = microdom.MicroDom({"tag_":"Nodes"},[],[])
+    md.update(self.imagesConfig)
+    f = open("imagesConfig.xml","w")
+    f.write(md.pretty())
+    f.close()
+
+  def makeImages(self, prjPath):
+    baseImage = prjPath + '/images/Base'
+    if os.path.isdir(baseImage):
+      for img in self.imagesConfig:
+        tarGet = prjPath + '/images/' + img
+        copy_tree(baseImage, tarGet)
+        self.updateImageConfig(tarGet, self.imagesConfig[img])
+
+  def updateImageConfig(self, tarGet, imgConf):
+    fConf = tarGet + '/bin/setup'
+    s = open(fConf).read()
+    s = s.replace('ASP_NODENAME=node0', 'ASP_NODENAME=%s' % imgConf['name'] )
+    s = s.replace('SAFPLUS_BACKPLANE_INTERFACE=eth0', 'SAFPLUS_BACKPLANE_INTERFACE=%s' % imgConf['netInterface'] )
+    f = open(fConf, 'w')
+    f.write(s)
+    f.close()
+      
 class NewPrjDialog(wx.Dialog):
     """
     Class to define new prj dialog
