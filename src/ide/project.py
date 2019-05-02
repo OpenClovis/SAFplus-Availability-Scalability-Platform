@@ -20,6 +20,7 @@ import pexpect
 import wx.aui as aui
 import wx.lib.scrolledpanel as scrolled
 from distutils.dir_util import copy_tree
+import subprocess
 
 PROJECT_LOAD = wx.NewId()
 PROJECT_SAVE = wx.NewId()
@@ -28,6 +29,7 @@ PROJECT_SAVE_AS = wx.NewId()
 PROJECT_WILDCARD = "SAFplus Project (*.spp)|*.spp|All files (*.*)|*.*"
 
 PROJECT_VALIDATE = wx.NewId()
+PROJECT_BUILD = wx.NewId()
 MAKE_IMAGES      = wx.NewId() 
 IMAGES_DEPLOY    = wx.NewId()
 
@@ -320,12 +322,16 @@ class ProjectTreePanel(wx.Panel):
         self.menuProject.Append(PROJECT_VALIDATE, "Validate Project", "Validate Project")
         self.menuProject.Append(MAKE_IMAGES, "Make Image(s)...", "Make Image(s)...")
         self.menuProject.Append(IMAGES_DEPLOY, "Deploy Image(s)...", "Deploy Image(s)...")
+        self.menuProject.Append(PROJECT_BUILD, "Build Project", "Build Project")
+
         self.menuProject.Enable(PROJECT_VALIDATE, False)
-        self.menuProject.Enable(MAKE_IMAGES, True)
-        self.menuProject.Enable(IMAGES_DEPLOY, True)
+        self.menuProject.Enable(MAKE_IMAGES, False)
+        self.menuProject.Enable(IMAGES_DEPLOY, False)
+        self.menuProject.Enable(PROJECT_BUILD, False)
         self.menuProject.Bind(wx.EVT_MENU, self.OnValidate, id=PROJECT_VALIDATE)
         self.menuProject.Bind(wx.EVT_MENU, self.OnMakeImages, id=MAKE_IMAGES)
         self.menuProject.Bind(wx.EVT_MENU, self.OnDeploy, id=IMAGES_DEPLOY)
+        self.menuProject.Bind(wx.EVT_MENU, self.OnBuild, id=PROJECT_BUILD)
 
         # wx 2.8 compatibility
         wx.EVT_MENU(guiPlaces.frame, wx.ID_NEW, self.OnNew)
@@ -519,6 +525,10 @@ class ProjectTreePanel(wx.Panel):
 
     # Update all problems on modal problems tag
     self.updateModalProblems()
+
+  def getPrjPath(self):
+    prjPath, name = os.path.split(self.currentActiveProject.projectFilename)
+    return prjPath
 
   def validateAmfConfig(self):
     self.validateNodeIntances()
@@ -805,6 +815,11 @@ class ProjectTreePanel(wx.Panel):
     dlg.ShowModal()
     dlg.Destroy()
 
+  def OnBuild(self, event):
+    prjPath, name = os.path.split(self.currentActiveProject.projectFilename)
+    srcPath = prjPath + '/src'
+    os.system('cd %s; make' % srcPath)
+
   def OnMakeImages(self, event):
     dlg = MakeImages(self)
     dlg.ShowModal()
@@ -913,7 +928,7 @@ class DeployDialog(wx.Dialog):
           if e.data['entityType'] == "Node":
             # self.nodeList.InsertStringItem(sys.maxsize, name)
             nodeIntances.append(name)
-        targetInfo = microdom.LoadFile("target.xml").pretty()
+        targetInfo = microdom.LoadFile("%s/target.xml" % self.parent.getPrjPath()).pretty()
 
         dom = xml.dom.minidom.parseString(targetInfo)
         md = microdom.LoadMiniDom(dom.childNodes[0])
@@ -967,7 +982,7 @@ class DeployDialog(wx.Dialog):
     def onSaveAllDeploymentInfo(self):
       md = microdom.MicroDom({"tag_":"Nodes"},[],[])
       md.update(self.deployInfos)
-      f = open("target.xml","w")
+      f = open("%s/target.xml" % self.parent.getPrjPath(),"w")
       f.write(md.pretty())
       f.close()
 
@@ -982,7 +997,7 @@ class DeployDialog(wx.Dialog):
         if os.path.isdir(srcImage):
           self.deploymentSingleImage(self.deployInfos[key], srcImage)
         else:
-          print "Image don't exist"   
+          print "Image don't exist - fail"   
 
     def deploymentSingleImage(self, info, srcImage):
       if (info['targetAdress'] == "") or (info['userName'] == "") or (info['password'] == "") or (info['targetLocation'] == ""):
@@ -994,10 +1009,15 @@ class DeployDialog(wx.Dialog):
         child = pexpect.spawn("%s" % cmd)
         child.expect('assword:*')
         child.sendline('%s' % info['password'])
-        while child.isalive():
+        cnt = 0
+        timeout = 60
+        while child.isalive() and cnt < timeout :
+          cnt += 1
           time.sleep(1)
-        time.sleep(2)
-        print "Deploy image successfuly"
+        if cnt < timeout:
+          print "Deploy image successfuly"
+        else:
+          print "Deploy image longer than %s(s) - fail" % timeout
       except:
         print "Error while deploy image"
 
@@ -1017,6 +1037,8 @@ class DeployDialog(wx.Dialog):
       if os.path.isdir(srcImage):
         img = self.deployInfos[self.curNode]
         self.deploymentSingleImage(img, srcImage)
+      else:
+        print "Image don't exist - fail"
 
     def onSelectNodeChange(self, event):
       item = self.nodeList.GetFocusedItem()
@@ -1112,7 +1134,7 @@ class GeneralPage(scrolled.ScrolledPanel):
   def __init__(self, parent):
     """Constructor"""
     scrolled.ScrolledPanel.__init__(self, parent, style = wx.TAB_TRAVERSAL|wx.SUNKEN_BORDER, size=(425,310))
-
+    self.parent = parent
     self.SetupScrolling(True, True)
     self.SetScrollRate(10, 10)
     self.SetBackgroundColour('#F2F1EF')
@@ -1135,7 +1157,7 @@ class GeneralPage(scrolled.ScrolledPanel):
         if e.data['entityType'] == "Node":
           nodeIntances.append(name)
 
-      targetInfo = microdom.LoadFile("imagesConfig.xml").pretty()
+      targetInfo = microdom.LoadFile("%s/imagesConfig.xml" % self.parent.parent.getPrjPath()).pretty()
 
       dom = xml.dom.minidom.parseString(targetInfo)
       md = microdom.LoadMiniDom(dom.childNodes[0])
@@ -1174,17 +1196,33 @@ class GeneralPage(scrolled.ScrolledPanel):
   def saveAllImgConfig(self):
     md = microdom.MicroDom({"tag_":"Nodes"},[],[])
     md.update(self.imagesConfig)
-    f = open("imagesConfig.xml","w")
+    f = open("%s/imagesConfig.xml" % self.parent.parent.getPrjPath(),"w")
     f.write(md.pretty())
     f.close()
 
   def makeImages(self, prjPath):
-    baseImage = prjPath + '/images/Base'
+    tarGet = str(subprocess.check_output(['g++','-dumpmachine'])).strip()
+    baseImage = prjPath + '/images/%s' % tarGet
+    owd = os.getcwd()
+
+    os.chdir('../mk')
+    tool = os.path.abspath("safplus_packager.py")
+
+    os.chdir('%s' % prjPath)
+    os.system('python %s -a %s %s.tgz' % (tool, tarGet, tarGet))
+    os.system('cp *.xml %s/bin' % baseImage)
+    print 'python %s -a %s' % (tool, tarGet)
+
+    os.chdir(owd)
+    os.system('cp resources/setup %s/bin' % baseImage)
+    os.system('rm -rf images')
     if os.path.isdir(baseImage):
       for img in self.imagesConfig:
-        tarGet = prjPath + '/images/' + img
-        copy_tree(baseImage, tarGet)
-        self.updateImageConfig(tarGet, self.imagesConfig[img])
+        tarImg = prjPath + '/images/' + img
+        # copy_tree(baseImage, tarImg)
+        os.system('cp -r %s %s' % (baseImage, tarImg))
+        os.system('cd %s/images/; tar -zcvf %s.tar.gz %s' % (prjPath, img, img))
+        self.updateImageConfig(tarImg, self.imagesConfig[img])
 
   def updateImageConfig(self, tarGet, imgConf):
     fConf = tarGet + '/bin/setup'
