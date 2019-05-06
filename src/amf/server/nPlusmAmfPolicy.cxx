@@ -499,8 +499,10 @@ namespace SAFplus
         // TODO: I don't like this constant resorting... we should have a sorted list in the SG.
         std::vector<SAFplusAmf::ServiceUnit*> sus;
         sus << sg->serviceUnits; // (sg->serviceUnits.begin(),sg->serviceUnits.end());
-        boost::sort(sus,suOrder);
-
+        if (sg->autoAdjust) // SU active assignment based on its rank is only applied when the flag autoAdjust is on
+        {
+          boost::sort(sus,suOrder);
+        }
         // Go through in rank order so that the most important SIs are assigned first
         std::vector<SAFplusAmf::ServiceInstance*> sis; //(sg->serviceInstances.listBegin(),sg->serviceInstances.listEnd());
         sis << sg->serviceInstances;
