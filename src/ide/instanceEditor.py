@@ -693,7 +693,7 @@ class GenerateTool(Tool):
       # add these files to the "source" part of the project tab and update the project xml file
       #print files
       parentFrame = self.panel.guiPlaces.frame
-      parentFrame.project.updateTreeItem(parentFrame.currentActivePrj, "source", files)
+      parentFrame.project.updateTreeItem(parentFrame.currentActivePrj, "src", files)
  
     return False
 

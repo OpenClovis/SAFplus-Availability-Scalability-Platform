@@ -5,6 +5,7 @@ import math
 import time
 from types import *
 from collections import namedtuple
+import re
 
 # import wxversion
 # wxversion.select("2.8")
@@ -99,6 +100,9 @@ class SAFplusFrame(wx.Frame):
         self.loadRecentProjects()
         self.loadInfoPanel()
         self.Bind(wx.EVT_CLOSE, self.OnCloseFrame)
+
+        self.openFile = {}
+
         if 0:  # For development, periodically load the html so we can easily see changes
           self.timer = wx.Timer(self)
           self.Bind(wx.EVT_TIMER, self.update, self.timer)
@@ -315,7 +319,25 @@ class SAFplusFrame(wx.Frame):
             return
           else:
             self.loadProject(prj)
-        else: pass #TODO : handling other tree item clicked e.g. c++ source or others
+        else: 
+          # for create, update status of edit page
+          path = self.project.getFullPath(item)
+          if os.path.isfile(path):
+            
+            if path in self.openFile.keys():
+              if "DELETED Page object" in str(self.openFile[path]):
+                del self.openFile[path]
+
+            if not (path in self.openFile.keys()):
+              fileName = str(self.project.tree.GetItemText(item))
+              p = Page(self, path)
+              self.tab.AddPage(p, fileName)
+              self.openFile[path] = p
+
+            pageIndex = self.tab.GetPageIndex(self.openFile[path])
+            self.tab.SetSelection(pageIndex)
+          
+          pass #TODO : handling other tree item clicked e.g. c++ source or others
 
     def onPageChanged(self, evt):
       page = self.tab.GetPageText(evt.GetSelection())
@@ -467,6 +489,56 @@ class SAFplusApp(wx.App):
       self.frame.Show(True)
       return True
 
+class Page(wx.Panel):
+  """
+  Class to define general page
+  """
+  def __init__(self, parent, pathFile):
+    """Constructor"""
+    wx.Panel.__init__(self, parent)
+    self.control = wx.TextCtrl(self, 1, style=wx.TE_MULTILINE)
+    self.sizer=wx.BoxSizer(wx.VERTICAL)
+    self.sizer.Add(self.control,1,wx.EXPAND)
+    self.SetSizer(self.sizer)
+    self.sizer.Fit(self)
+    self.pathFile = pathFile
+    self.parent = parent
+
+    filehandle=open(pathFile,'r')
+    self.control.SetValue(filehandle.read())
+    filehandle.close()
+
+    self.control.Bind(wx.EVT_TEXT, self.onEditChange)
+
+  def onSave(self):
+    '''
+    @summary    : save file content and remove * character
+    '''
+    label = ''
+    index = 0
+    try:
+      index = self.parent.tab.GetSelection()
+      label = self.parent.tab.GetPageText(index)
+    except:
+      pass
+
+    if '*' in label:
+      label = re.sub("\*", "", label)
+      self.parent.tab.SetPageText(index, label)
+      data = self.control.GetValue()
+
+      f=open(self.pathFile,'w')
+      f.write(data)
+      f.close()
+
+  def onEditChange(self, event):
+    '''
+    @summary    : add character '*' if file content is change
+    '''
+    index = self.parent.tab.GetPageIndex(self)
+    label = self.parent.tab.GetPageText(index)
+    if not ('*' in label):
+      self.parent.tab.SetPageText(index, "*%s" % label)
 
 def go():
   global app

@@ -45,6 +45,7 @@ class Project(microdom.MicroDom):
     self.dataModelPlugin = None
     self.name = ""    
     self.prjXmlData = None
+    self.fileProject = filename
     if filename: self.load(filename)
     pass
 
@@ -148,7 +149,7 @@ class Project(microdom.MicroDom):
     modelText = dom.createTextNode(self.modelFilename())
     modelElem.appendChild(modelText)
 
-    sourceElem = dom.createElement("source")
+    sourceElem = dom.createElement("src")
     safplusPrjElem.appendChild(sourceElem)
     #sourceText = dom.createTextNode(self.sourceFilename()+" "+self.headerFilename())
     #sourceElem.appendChild(sourceText)
@@ -197,7 +198,7 @@ class Project(microdom.MicroDom):
 
   def updatePrjXmlSource(self, srcFiles):
     self.loadModel()
-    sources = self.prjXmlData.getElementsByTagName("source")    
+    sources = self.prjXmlData.getElementsByTagName("src")    
     #data="" 
     #for f in srcFiles:
     #  data+=f
@@ -217,7 +218,7 @@ class Project(microdom.MicroDom):
       newModel.append(m.replace(fromProject.modelFilename(), self.modelFilename()))
     model[0].children_ = newModel    
     # update sources
-    sources = self.prjXmlData.getElementsByTagName("source")    
+    sources = self.prjXmlData.getElementsByTagName("src")    
     newSrc = []
     for src in sources[0].children_:
       newSrc.append(src.replace(fromProject.directory(), self.directory()))
@@ -278,6 +279,7 @@ class ProjectTreePanel(wx.Panel):
         self.info = "INFOMATION"
         self.instantiation = "Instantiation"
         self.modelling   = "Modelling"
+        self.pathProject = None
 
         self.color = {
           self.error: wx.Colour(255, 0, 0),
@@ -385,34 +387,107 @@ class ProjectTreePanel(wx.Panel):
      return True          
 
   def populateGui(self,project,tree):
-     p = project.projectFilename
-     projName = os.path.basename(p)
+
+     il = wx.ImageList(15,15)
+     self.dirIcon = il.Add(wx.ArtProvider.GetBitmap(wx.ART_FOLDER, wx.ART_OTHER, (15,15)))
+     self.fldropenidx = il.Add(wx.ArtProvider.GetBitmap(wx.ART_FILE_OPEN,   wx.ART_OTHER, (15,15)))
+     self.fileIcon = il.Add(wx.ArtProvider.GetBitmap(wx.ART_NORMAL_FILE, wx.ART_OTHER, (15,15)))
+    
+     self.tree.AssignImageList(il)
+
+     self.pathProject = project.projectFilename
+     projName = os.path.basename(self.pathProject)
+     projName = os.path.splitext(projName)[0]
      prjT = self.tree.AppendItem(self.root, projName)
+     self.setIconForItem(prjT)
      self.projects.append(prjT)
      self.tree.SetPyData(prjT, project)
-     dmT = self.tree.AppendItem(prjT, "datamodel")
+
+    #  dmT = self.tree.AppendItem(prjT, "datamodel")
      for ch in project.datamodel.children():
        for c in ch.split():
          c = c.strip()
-         fileT = self.tree.AppendItem(dmT, c)
-         self.tree.SetPyData(fileT, (project,c))  # TODO more descriptive PY data   
-     mdlT = self.tree.AppendItem(prjT, "model")
+         fileT = self.tree.AppendItem(prjT, c)
+         self.tree.SetPyData(fileT, (project,c))  # TODO more descriptive PY data 
+         self.setIconForItem(fileT)
+    #  mdlT = self.tree.AppendItem(prjT, "model")
      
      for ch in project.model.children():
        for c in ch.split():
          c = c.strip()
-         fileT = self.tree.AppendItem(mdlT,c)
+         fileT = self.tree.AppendItem(prjT,c)
          self.tree.SetPyData(fileT, (project,c))  # TODO more descriptive PY data   
-     srcT = self.tree.AppendItem(prjT, "source")
+         self.setIconForItem(fileT)
+     srcT = self.tree.AppendItem(prjT, "src")
+     self.setIconForItem(srcT, typeDir=True)
      
-     for ch in project.source.children():
+     for ch in project.src.children():
        for c in ch.split():
          c = c.strip()
-         fileT = self.tree.AppendItem(srcT,c)
+         l = c.split('src/')[1]
+         branchs = l.split('/')
+         root = srcT
+
+         pToBranch = "%s/src" % projName
+         for branch in branchs:
+           pToBranch += '/%s' % branch
+          #  pToBranch = re.search( '%s/.*%s' % (projName,branch), c).group()
+           item = self.getItemByLabel(self.tree, pToBranch, self.tree.GetRootItem())
+           if item.IsOk():
+             root = item
+           else:
+             current = self.tree.AppendItem(root, branch)
+             self.setIconForItem(current)
+             root = current
+    #      fileT = self.tree.AppendItem(srcT,c)
          self.tree.SetPyData(fileT, (project,c))  # TODO more descriptive PY data   
+
+  def setIconForItem(self, item, typeFile=False, typeDir=False):
+    path = self.getFullPath(item)
+
+    if os.path.isfile(path) or typeFile:
+      self.tree.SetItemImage(item, self.fileIcon, wx.TreeItemIcon_Normal)
+    if os.path.isdir(path) or typeDir:
+      self.tree.SetItemImage(item, self.dirIcon, wx.TreeItemIcon_Normal)
+      self.tree.SetItemImage(item, self.fldropenidx,wx.TreeItemIcon_Expanded)
  
-     # TODO: add children under subdirectories    
+  def getItemByLabel(self, tree, label, root):
+      item, cookie = tree.GetFirstChild(root)
+
+      while item.IsOk():
+          text = self.getPathTree(item)
+          if text is not None:
+            if text.lower() == label.lower():
+                return item
+
+          if tree.ItemHasChildren(item):
+              match = self.getItemByLabel(tree, label, item)
+              if match.IsOk():
+                  return match
+          item, cookie = tree.GetNextChild(root, cookie)
+
+      return wx.TreeItemId()
+
+  def getPathTree(self, item):
+    root = self.tree.GetRootItem()
+    path = self.tree.GetItemText(item)
+
+    while True:
+        item = self.tree.GetItemParent(item)
+        if item==root:
+            break
+        path = self.tree.GetItemText(item) + '/' + path
+    return path
+    
+  def getFullPath(self, item):
+    path = re.sub(self.getPrjName(), "", self.getPrjPath())
+    path = path + self.getPathTree(item)
+
+    return path
+
   def updateTreeItem(self, project, itemText, srcFiles):
+     projName = os.path.basename(project.projectFilename)
+     projName = os.path.splitext(projName)[0]
      (child, cookie) = self.tree.GetFirstChild(self.root)
      while child.IsOk():
        p = self.tree.GetItemPyData(child)
@@ -430,8 +505,25 @@ class ProjectTreePanel(wx.Panel):
         self.tree.DeleteChildren(c)
         project.updatePrjXmlSource(srcFiles)
         for f in srcFiles:
-           fileT = self.tree.AppendItem(c,f)
-           self.tree.SetPyData(fileT, (project.name,f))         
+          f = f.strip()
+          l = f.split('src/')[1]
+          branchs = l.split('/')
+          root = c
+
+          pToBranch = "%s/src" % projName
+          for branch in branchs:
+            pToBranch += '/%s' % branch
+            # pToBranch = re.search( '%s/.*%s' % (projName,branch), f).group()
+
+            item = self.getItemByLabel(self.tree, pToBranch, self.tree.GetRootItem())
+            if item.IsOk():
+              root = item
+            else:
+              current = self.tree.AppendItem(root, branch)
+              self.setIconForItem(current)
+              root = current
+          #  fileT = self.tree.AppendItem(c,f)
+          #  self.tree.SetPyData(fileT, (project.name,f))         
 
 
   def OnLoad(self,event):
@@ -486,6 +578,11 @@ class ProjectTreePanel(wx.Panel):
     #  saved.append(prj.name)
     self.guiPlaces.statusbar.SetStatusText("Projects %s saved." % ", ".join(saved),0);
 
+    index = self.guiPlaces.frame.tab.GetSelection()
+    curPage = self.guiPlaces.frame.tab.GetPage(index)
+    if curPage in self.guiPlaces.frame.openFile.values():
+      curPage.onSave()
+
   def OnSaveAs(self, event):
     dlg = SaveAsDialog()
     dlg.ShowModal()
@@ -527,8 +624,12 @@ class ProjectTreePanel(wx.Panel):
     self.updateModalProblems()
 
   def getPrjPath(self):
-    prjPath, name = os.path.split(self.currentActiveProject.projectFilename)
+    prjPath, name = os.path.split(self.pathProject)
     return prjPath
+
+  def getPrjName(self):
+    prjPath, name = os.path.split(self.pathProject)
+    return os.path.splitext(name)[0]
 
   def validateAmfConfig(self):
     self.validateNodeIntances()
