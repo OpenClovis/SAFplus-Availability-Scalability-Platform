@@ -21,6 +21,7 @@ import wx.aui as aui
 import wx.lib.scrolledpanel as scrolled
 from distutils.dir_util import copy_tree
 import subprocess
+import webbrowser
 
 PROJECT_LOAD = wx.NewId()
 PROJECT_SAVE = wx.NewId()
@@ -32,6 +33,8 @@ PROJECT_VALIDATE = wx.NewId()
 PROJECT_BUILD = wx.NewId()
 MAKE_IMAGES      = wx.NewId() 
 IMAGES_DEPLOY    = wx.NewId()
+HELP_CONTENTS    = wx.NewId()
+HELP_ABOUT       = wx.NewId()
 
 ProjectLoadedEvent, EVT_PROJECT_LOADED = wx.lib.newevent.NewCommandEvent()  # Must be a command event so it propagates
 ProjectNewEvent, EVT_PROJECT_NEW = wx.lib.newevent.NewCommandEvent()
@@ -334,6 +337,14 @@ class ProjectTreePanel(wx.Panel):
         self.menuProject.Bind(wx.EVT_MENU, self.OnMakeImages, id=MAKE_IMAGES)
         self.menuProject.Bind(wx.EVT_MENU, self.OnDeploy, id=IMAGES_DEPLOY)
         self.menuProject.Bind(wx.EVT_MENU, self.OnBuild, id=PROJECT_BUILD)
+
+        self.menuHelp = guiPlaces.menu["Help"]
+        self.menuHelp.Append(HELP_CONTENTS, "Help Contents", "Help Contents")
+        self.menuHelp.Append(HELP_ABOUT, "About", "About")
+        self.menuHelp.Enable(HELP_CONTENTS, True)
+        self.menuHelp.Enable(HELP_ABOUT, True)
+        self.menuHelp.Bind(wx.EVT_MENU, self.OnHelpConents, id=HELP_CONTENTS)
+        self.menuHelp.Bind(wx.EVT_MENU, self.OnHelpAbout, id=HELP_ABOUT)
 
         # wx 2.8 compatibility
         wx.EVT_MENU(guiPlaces.frame, wx.ID_NEW, self.OnNew)
@@ -925,6 +936,49 @@ class ProjectTreePanel(wx.Panel):
     dlg = MakeImages(self)
     dlg.ShowModal()
     dlg.Destroy
+
+  def OnHelpConents(self, event):
+    '''
+    @summary    : Open help contents
+    '''
+    webbrowser.open('http://safplus7.openclovis.com/')
+
+  def OnHelpAbout(self, event):
+    '''
+    @summary    : Show safplus information
+    '''
+    self.dlg = wx.Dialog(None, title="Deployment Details", size=(350,220))
+    vBox = wx.BoxSizer(wx.VERTICAL)
+    hBox = wx.BoxSizer(wx.HORIZONTAL)
+    text = wx.StaticText(self.dlg, label="OpenClovis IDE")
+    text2 = wx.StaticText(self.dlg, label="Version: 7.0")
+    text3 = wx.StaticText(self.dlg, label="Build: 1.0")
+    self.dlg.SetBackgroundColour('#FFFFFF')
+
+    okBtn = wx.Button(self.dlg, label="OK")
+    okBtn.Bind(wx.EVT_BUTTON, self.onClickOkCloseBtn)
+
+    img = wx.EmptyImage(35, 35)
+    imageCtrl = wx.StaticBitmap(self.dlg, wx.ID_ANY, wx.BitmapFromImage(img))
+    imgPath = "resources/images/ClovisLogo_32_32.gif"
+    img = wx.Image(imgPath, wx.BITMAP_TYPE_ANY)
+
+    img = img.Scale(35,35)
+    imageCtrl.SetBitmap(wx.BitmapFromImage(img))
+
+    hBox.Add(imageCtrl, 0, wx.ALL|wx.CENTER, 5)
+    hBox.Add(text, 0, wx.ALL|wx.CENTER, 5)
+    vBox.Add(hBox, 0, wx.ALL|wx.ALIGN_LEFT, 5)
+    vBox.Add(text2, 0, wx.LEFT, 50)
+    vBox.Add(text3, 0, wx.LEFT, 50)
+    vBox.Add(okBtn, 0, wx.TOP|wx.ALIGN_RIGHT, 65)
+
+    self.dlg.SetSizer(vBox)
+    self.dlg.ShowModal()
+    self.dlg.Destroy()
+
+  def onClickOkCloseBtn(self, event):
+    self.dlg.Close()
 
 class DeployDialog(wx.Dialog):
     """
