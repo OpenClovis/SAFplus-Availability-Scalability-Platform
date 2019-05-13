@@ -1,11 +1,13 @@
 #include <clFaultApi.hxx>
 #include <clGroupApi.hxx>
+#include <clGroupIpi.hxx>
 #include <clCommon.hxx>
 #include <amfRpc.hxx>
 #include "nodeMonitor.hxx"
 #include <SAFplusAmfModule.hxx>
 
 using namespace SAFplus;
+using namespace SAFplusI;
 extern Group clusterGroup;
 extern SAFplus::Fault fault;
 extern SAFplusAmf::SAFplusAmfModule cfg;
@@ -120,6 +122,28 @@ void NodeMonitor::monitorThread(void)
       if (active)
         {
           bool ka[SAFplus::MaxNodes];
+	  Handle currentHandle = getProcessHandle(SAFplusI::AMF_IOC_PORT,SAFplus::ASP_NODEADDR);
+          Handle activeHandle = clusterGroup.getActive(ABORT);
+          Handle standbyHandle = clusterGroup.getStandby(ABORT);
+	  Handle nodeHandle = getNodeHandle(SAFplus::ASP_NODEADDR);
+	  /*
+	  when the old active is disconnected, the new active must broadcast its role.
+	  */
+	  if(fault.getFaultState(standbyHandle) == FaultState::STATE_UNDEFINED)
+	  {
+	    clusterGroup.broadcastRole(activeHandle,standbyHandle,true);
+	  }
+	  /*
+	  when the old active reconnect, it will find out that it is not active anymore.
+	  After it receive role message broadcasting from the new active, currentHandle (itself) does not resemble activeHandle.
+	  So it needs to send a message to rejoin group with standby role.
+	  */
+	  if(currentHandle!= activeHandle)
+	  {
+            clusterGroup.sendMemberReJoinMessage(GroupRoleNotifyTypeT::ROLE_STANDBY);
+            fault.registerEntity(nodeHandle, FaultState::STATE_UP);
+            fault.registerEntity(currentHandle, FaultState::STATE_UP);
+	  }
           if (1)
             {
               ScopedLock<> lock(exclusion);
