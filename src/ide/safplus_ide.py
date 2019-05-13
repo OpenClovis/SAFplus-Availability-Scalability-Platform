@@ -20,7 +20,7 @@ import instanceEditor
 import entityDetailsDialog
 import umlEditor
 from project import Project, ProjectTreePanel, EVT_PROJECT_LOADED, EVT_PROJECT_NEW, PROJECT_SAVE, PROJECT_SAVE_AS, PROJECT_VALIDATE, \
-                    PROJECT_BUILD, MAKE_IMAGES, IMAGES_DEPLOY
+                    PROJECT_BUILD, PROJECT_CLEAN, MAKE_IMAGES, IMAGES_DEPLOY
 import common
 import model
 
@@ -301,6 +301,7 @@ class SAFplusFrame(wx.Frame):
       self.menu.Enable(PROJECT_SAVE_AS, True)
       self.menuProject.Enable(PROJECT_VALIDATE, True)
       self.menuProject.Enable(PROJECT_BUILD, True)
+      self.menuProject.Enable(PROJECT_CLEAN, True)
       self.menuProject.Enable(MAKE_IMAGES, True)
       self.menuProject.Enable(IMAGES_DEPLOY, True)
 

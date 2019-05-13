@@ -31,6 +31,7 @@ PROJECT_WILDCARD = "SAFplus Project (*.spp)|*.spp|All files (*.*)|*.*"
 
 PROJECT_VALIDATE = wx.NewId()
 PROJECT_BUILD = wx.NewId()
+PROJECT_CLEAN = wx.NewId()
 MAKE_IMAGES      = wx.NewId() 
 IMAGES_DEPLOY    = wx.NewId()
 HELP_CONTENTS    = wx.NewId()
@@ -324,19 +325,22 @@ class ProjectTreePanel(wx.Panel):
 
         #
         self.menuProject = guiPlaces.menu["Project"]
+        self.menuProject.Append(PROJECT_BUILD, "Build Project", "Build Project")
+        self.menuProject.Append(PROJECT_CLEAN, "Clean...", "Clean...")
         self.menuProject.Append(PROJECT_VALIDATE, "Validate Project", "Validate Project")
         self.menuProject.Append(MAKE_IMAGES, "Make Image(s)...", "Make Image(s)...")
         self.menuProject.Append(IMAGES_DEPLOY, "Deploy Image(s)...", "Deploy Image(s)...")
-        self.menuProject.Append(PROJECT_BUILD, "Build Project", "Build Project")
 
         self.menuProject.Enable(PROJECT_VALIDATE, False)
         self.menuProject.Enable(MAKE_IMAGES, False)
         self.menuProject.Enable(IMAGES_DEPLOY, False)
         self.menuProject.Enable(PROJECT_BUILD, False)
+        self.menuProject.Enable(PROJECT_CLEAN, False)
         self.menuProject.Bind(wx.EVT_MENU, self.OnValidate, id=PROJECT_VALIDATE)
         self.menuProject.Bind(wx.EVT_MENU, self.OnMakeImages, id=MAKE_IMAGES)
         self.menuProject.Bind(wx.EVT_MENU, self.OnDeploy, id=IMAGES_DEPLOY)
         self.menuProject.Bind(wx.EVT_MENU, self.OnBuild, id=PROJECT_BUILD)
+        self.menuProject.Bind(wx.EVT_MENU, self.OnClean, id=PROJECT_CLEAN)
 
         self.menuHelp = guiPlaces.menu["Help"]
         self.menuHelp.Append(HELP_CONTENTS, "Help Contents", "Help Contents")
@@ -931,6 +935,11 @@ class ProjectTreePanel(wx.Panel):
     prjPath, name = os.path.split(self.currentActiveProject.projectFilename)
     srcPath = prjPath + '/src'
     os.system('cd %s; make' % srcPath)
+
+  def OnClean(self, event):
+    prjPath, name = os.path.split(self.currentActiveProject.projectFilename)
+    srcPath = prjPath + '/src'
+    os.system('cd %s; make clean' % srcPath)
 
   def OnMakeImages(self, event):
     dlg = MakeImages(self)
