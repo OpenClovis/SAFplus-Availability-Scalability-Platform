@@ -34,6 +34,8 @@ PROJECT_BUILD = wx.NewId()
 PROJECT_CLEAN = wx.NewId()
 MAKE_IMAGES      = wx.NewId() 
 IMAGES_DEPLOY    = wx.NewId()
+PROJECT_PROPERTIES = wx.NewId()
+
 HELP_CONTENTS    = wx.NewId()
 HELP_ABOUT       = wx.NewId()
 
@@ -257,6 +259,8 @@ class ProjectTreePanel(wx.Panel):
         self.projects = []
 
         self.problems = []
+        self.prjProperties = {}
+        self.getPrjProperties()
 
         self.entitiesRelation = {
           "ServiceGroup"            :["ServiceInstance", "ServiceUnit"],
@@ -330,17 +334,20 @@ class ProjectTreePanel(wx.Panel):
         self.menuProject.Append(PROJECT_VALIDATE, "Validate Project", "Validate Project")
         self.menuProject.Append(MAKE_IMAGES, "Make Image(s)...", "Make Image(s)...")
         self.menuProject.Append(IMAGES_DEPLOY, "Deploy Image(s)...", "Deploy Image(s)...")
+        self.menuProject.Append(PROJECT_PROPERTIES, "Properties", "Properties")
 
         self.menuProject.Enable(PROJECT_VALIDATE, False)
         self.menuProject.Enable(MAKE_IMAGES, False)
         self.menuProject.Enable(IMAGES_DEPLOY, False)
         self.menuProject.Enable(PROJECT_BUILD, False)
         self.menuProject.Enable(PROJECT_CLEAN, False)
+        self.menuProject.Enable(PROJECT_PROPERTIES, False)
         self.menuProject.Bind(wx.EVT_MENU, self.OnValidate, id=PROJECT_VALIDATE)
         self.menuProject.Bind(wx.EVT_MENU, self.OnMakeImages, id=MAKE_IMAGES)
         self.menuProject.Bind(wx.EVT_MENU, self.OnDeploy, id=IMAGES_DEPLOY)
         self.menuProject.Bind(wx.EVT_MENU, self.OnBuild, id=PROJECT_BUILD)
         self.menuProject.Bind(wx.EVT_MENU, self.OnClean, id=PROJECT_CLEAN)
+        self.menuProject.Bind(wx.EVT_MENU, self.OnProperties, id=PROJECT_PROPERTIES)
 
         self.menuHelp = guiPlaces.menu["Help"]
         self.menuHelp.Append(HELP_CONTENTS, "Help Contents", "Help Contents")
@@ -582,6 +589,8 @@ class ProjectTreePanel(wx.Panel):
       self.fileMenu.Enable(PROJECT_SAVE, True)
       self.fileMenu.Enable(PROJECT_SAVE_AS, True)
       self.menuProject.Enable(PROJECT_VALIDATE, True)
+
+      os.system('mkdir -p %s/configs' % self.getPrjPath())
 
   def OnSave(self,event):
     saved = []
@@ -941,10 +950,15 @@ class ProjectTreePanel(wx.Panel):
     srcPath = prjPath + '/src'
     os.system('cd %s; make clean' % srcPath)
 
+  def OnProperties(self, event):
+    properties = PropertiesDialog(self)
+    properties.ShowModal()
+    properties.Destroy()
+
   def OnMakeImages(self, event):
     dlg = MakeImages(self)
     dlg.ShowModal()
-    dlg.Destroy
+    dlg.Destroy()
 
   def OnHelpConents(self, event):
     '''
@@ -987,7 +1001,145 @@ class ProjectTreePanel(wx.Panel):
     self.dlg.Destroy()
 
   def onClickOkCloseBtn(self, event):
+    '''
+    @summary    : Close safplus information
+    '''
     self.dlg.Close()
+
+  def getPrjProperties(self):
+    '''
+    @summary    : Get project properties to prjProperties varent
+    '''
+    try:
+      targetInfo = microdom.LoadFile("%s/configs/prjProperties.xml" % self.getPrjPath()).pretty()
+
+      dom = xml.dom.minidom.parseString(targetInfo)
+      md = microdom.LoadMiniDom(dom.childNodes[0])
+    except:
+      pass
+
+    item = {}
+    try:
+      item['backupMode'] = str(md.backupMode.data_).strip()
+      item['backupNumber'] = str(md.backupNumber.data_).strip()
+    except:
+      item['backupMode'] = "prompt"
+      item['backupNumber'] = "5"
+      self.propsChange = True
+
+    self.prjProperties = item
+
+  def savePrjProperties(self):
+    '''
+    @summary    : Save properties to xml file
+    '''
+    md = microdom.MicroDom({"tag_":"prjProperties"},[],[])
+    md.update(self.prjProperties)
+    f = open("%s/configs/prjProperties.xml" % self.getPrjPath(),"w")
+    f.write(md.pretty())
+    f.close()
+
+class PropertiesDialog(wx.Dialog):
+    """
+    Class to define Properties dialog
+    """
+    def __init__(self, parent):
+      """Constructor"""
+      text = "Properties for %s" % parent.getPrjName()
+      wx.Dialog.__init__(self, None, title=text, size=(668,535))
+
+      self.parent = parent
+      self.SetBackgroundColour('#F2F1EF')
+     
+      hBox = wx.BoxSizer(wx.HORIZONTAL)
+      vBox = wx.BoxSizer(wx.VERTICAL)
+      listProperties = ['Clovis Project System']
+      self.properties = wx.ListBox(self, wx.ID_ANY, (0,0), (224,454), choices = listProperties, style=wx.LC_EDIT_LABELS | wx.LC_REPORT |wx.SUNKEN_BORDER)
+      self.properties.Bind(wx.EVT_LISTBOX, self.onSelectChange)
+      vBox1 = wx.BoxSizer(wx.VERTICAL)
+
+      label1 = wx.StaticText(self, label="Clovis System Project", size=(200,25))
+      font = wx.Font(11, wx.DEFAULT, wx.NORMAL, wx.BOLD)
+      label1.SetFont(font)
+
+      self.okBtn = wx.Button(self, label="OK")
+      self.okBtn.Bind(wx.EVT_BUTTON, self.onClickOkBtn)
+      cancelBtn = wx.Button(self, label="Cancel")
+      cancelBtn.Bind(wx.EVT_BUTTON, self.onClickCancelBtn)
+
+      self.systemProject = SystemProject(self)
+      self.parent.getPrjProperties()
+      self.systemProject.mBackup.SetValue(str(self.parent.prjProperties['backupMode']).strip())
+      self.systemProject.nBackup.SetValue(str(self.parent.prjProperties['backupNumber']).strip())
+
+      vBox1.Add(label1, 0, wx.ALL, 10)
+      vBox1.Add(self.systemProject, 0, wx.ALL, 0)
+      hBox.Add(self.properties, 0, wx.ALL, 0)
+      hBox.Add(vBox1, 0, wx.ALL, 0)
+
+      hBox2 = wx.BoxSizer(wx.HORIZONTAL)
+      hBox2.Add(cancelBtn, 0, wx.ALL|wx.CENTER, 0)
+      hBox2.Add(self.okBtn, 0, wx.ALL, 10)
+
+      vBox.Add(hBox, 0, wx.ALL, 0)
+      vBox.Add(hBox2, 0, wx.ALL|wx.ALIGN_RIGHT, 0)
+      self.SetSizer(vBox)
+   
+    def onSelectChange(self, event):
+      pass
+
+    def onClickOkBtn(self, event):
+      '''
+      @summary    : get properties and save to xml file
+      '''
+      self.parent.prjProperties['backupMode'] = self.systemProject.mBackup.GetValue()
+      self.parent.prjProperties['backupNumber'] = self.systemProject.nBackup.GetValue()
+
+      self.parent.savePrjProperties()
+      self.Close()
+
+    def onClickCancelBtn(self, event):
+      self.Close()
+
+class SystemProject(wx.Panel):
+    def __init__(self, parent):
+      self.parent = parent
+      wx.Panel.__init__(self, parent, -1, style=wx.WANTS_CHARS)
+      vBox = wx.BoxSizer(wx.VERTICAL)
+      hBox1 = wx.BoxSizer(wx.HORIZONTAL)
+      label1 = wx.StaticText(self, label="Source Backup Mode")
+      s = ["prompt", "always", "never"]
+      self.mBackup = wx.ComboBox(self, choices = s, size=(290,25), style=wx.CB_READONLY)
+      hBox1.Add(label1, 0, wx.ALL|wx.ALIGN_LEFT, 5)
+      hBox1.Add(self.mBackup, 0, wx.ALL|wx.ALIGN_RIGHT, 5)
+
+      hBox2 = wx.BoxSizer(wx.HORIZONTAL)
+      label2 = wx.StaticText(self, label="Number of Backups")
+      self.nBackup = wx.TextCtrl(self, size=(290,25))
+
+      hBox2.Add(label2, 0, wx.ALL|wx.ALIGN_LEFT, 5)
+      hBox2.Add(self.nBackup, 0, wx.ALL|wx.ALIGN_RIGHT, 5)
+
+      vBox.Add(hBox1, 0, wx.ALL, 0)
+      vBox.Add(hBox2, 0, wx.ALL, 0)
+      self.SetSizer(vBox)
+      self.nBackup.Bind(wx.EVT_TEXT, self.onTextChange)
+
+    def onTextChange(self, event):
+      '''
+      @summary    : Validate backup number
+      '''
+      number = str(self.nBackup.GetValue()).strip()
+      try: 
+        int(number)
+      except ValueError:
+        self.parent.okBtn.Disable()
+        return
+      if int(number) >= 1 and int(number) < 100:
+        self.parent.okBtn.Enable()
+      else:
+        self.parent.okBtn.Disable()
+        
 
 class DeployDialog(wx.Dialog):
     """
@@ -1092,7 +1244,7 @@ class DeployDialog(wx.Dialog):
           if e.data['entityType'] == "Node":
             # self.nodeList.InsertStringItem(sys.maxsize, name)
             nodeIntances.append(name)
-        targetInfo = microdom.LoadFile("%s/target.xml" % self.parent.getPrjPath()).pretty()
+        targetInfo = microdom.LoadFile("%s/configs/target.xml" % self.parent.getPrjPath()).pretty()
 
         dom = xml.dom.minidom.parseString(targetInfo)
         md = microdom.LoadMiniDom(dom.childNodes[0])
@@ -1146,7 +1298,7 @@ class DeployDialog(wx.Dialog):
     def onSaveAllDeploymentInfo(self):
       md = microdom.MicroDom({"tag_":"Nodes"},[],[])
       md.update(self.deployInfos)
-      f = open("%s/target.xml" % self.parent.getPrjPath(),"w")
+      f = open("%s/configs/target.xml" % self.parent.getPrjPath(),"w")
       f.write(md.pretty())
       f.close()
 
@@ -1156,7 +1308,6 @@ class DeployDialog(wx.Dialog):
     def onClickDeployAllImageBtn(self, event):
       prjPath, name = os.path.split(self.parent.currentActiveProject.projectFilename)
       for key in self.deployInfos:
-        #TODO update srcImage
         srcImage = prjPath + '/images/' + key
         if os.path.isdir(srcImage):
           self.deploymentSingleImage(self.deployInfos[key], srcImage)
@@ -1269,7 +1420,7 @@ class RawInfo(wx.Panel):
 
     self.txtName = wx.StaticText(self, label=node['name'], size=(130,25))
     s = [str(i) for i in range (1,17)]
-    self.num = wx.ComboBox(self, choices = s, size=(110,25))
+    self.num = wx.ComboBox(self, choices = s, size=(110,25), style=wx.CB_READONLY)
     self.num.SetValue(node['slot'])
     self.net = wx.TextCtrl(self, size=(150,25))
     self.net.SetValue(node['netInterface'])
@@ -1321,7 +1472,7 @@ class GeneralPage(scrolled.ScrolledPanel):
         if e.data['entityType'] == "Node":
           nodeIntances.append(name)
 
-      targetInfo = microdom.LoadFile("%s/imagesConfig.xml" % self.parent.parent.getPrjPath()).pretty()
+      targetInfo = microdom.LoadFile("%s/configs/imagesConfig.xml" % self.parent.parent.getPrjPath()).pretty()
 
       dom = xml.dom.minidom.parseString(targetInfo)
       md = microdom.LoadMiniDom(dom.childNodes[0])
@@ -1360,7 +1511,7 @@ class GeneralPage(scrolled.ScrolledPanel):
   def saveAllImgConfig(self):
     md = microdom.MicroDom({"tag_":"Nodes"},[],[])
     md.update(self.imagesConfig)
-    f = open("%s/imagesConfig.xml" % self.parent.parent.getPrjPath(),"w")
+    f = open("%s/configs/imagesConfig.xml" % self.parent.parent.getPrjPath(),"w")
     f.write(md.pretty())
     f.close()
 
