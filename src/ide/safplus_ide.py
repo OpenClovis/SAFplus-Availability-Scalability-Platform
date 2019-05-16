@@ -20,7 +20,7 @@ import instanceEditor
 import entityDetailsDialog
 import umlEditor
 from project import Project, ProjectTreePanel, EVT_PROJECT_LOADED, EVT_PROJECT_NEW, PROJECT_SAVE, PROJECT_SAVE_AS, PROJECT_VALIDATE, \
-                    PROJECT_BUILD, PROJECT_CLEAN, MAKE_IMAGES, IMAGES_DEPLOY
+                    PROJECT_BUILD, PROJECT_CLEAN, MAKE_IMAGES, IMAGES_DEPLOY, PROJECT_PROPERTIES
 import common
 import model
 
@@ -80,7 +80,9 @@ class SAFplusFrame(wx.Frame):
         self.tab = wx.aui.AuiNotebook(self.prjSplitter)
         
         # Create panel that contain model problems
-        self.infoPanel = wx.aui.AuiNotebook(self.prjSplitter2)
+        bookStyle = wx.aui.AUI_NB_DEFAULT_STYLE
+        bookStyle &= ~(wx.aui.AUI_NB_CLOSE_ON_ACTIVE_TAB)
+        self.infoPanel = wx.aui.AuiNotebook(self.prjSplitter2, style=bookStyle)
 
         self.help = HtmlWindow(self.tab, -1)
         self.help.LoadFile("resources/intro.html")
@@ -304,6 +306,7 @@ class SAFplusFrame(wx.Frame):
       self.menuProject.Enable(PROJECT_CLEAN, True)
       self.menuProject.Enable(MAKE_IMAGES, True)
       self.menuProject.Enable(IMAGES_DEPLOY, True)
+      self.menuProject.Enable(PROJECT_PROPERTIES, True)
 
     def onPrjTreeActivated(self, evt):
       """ handle an event when user double-clicks on an item at the tree on the left to switch views to it or to set it active """

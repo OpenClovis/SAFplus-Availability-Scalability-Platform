@@ -17,6 +17,7 @@ import wx.lib.scrolledpanel as scrolled
 #from wx.py import  version
 from string import Template
 import types
+import subprocess
 
 import dot
 from common import *
@@ -687,16 +688,107 @@ class GenerateTool(Tool):
 
   def OnSelect(self, panel, event):
     if event.GetId() == CODEGEN_BUTTON:
+      parentFrame = self.panel.guiPlaces.frame
+      if parentFrame.project.prjProperties['backupMode'] == "prompt":
+        self.openBackupDialog()
+      elif parentFrame.project.prjProperties['backupMode'] == "always":
+        self.executeBackupSource()
+
       # code gen must be per-component -- not generation of one type of application
       files = panel.model.generateSource(self.panel.model.directory())
       self.panel.statusBar.SetStatusText("Code generation complete")
       # add these files to the "source" part of the project tab and update the project xml file
       #print files
-      parentFrame = self.panel.guiPlaces.frame
+      # parentFrame = self.panel.guiPlaces.frame
       parentFrame.project.updateTreeItem(parentFrame.currentActivePrj, "src", files)
  
     return False
 
+  def openBackupDialog(self):
+    '''
+    @summary    : Show dialog for backup option
+    '''
+    self.dlg = wx.Dialog(None, title="Backup Configuration?", size=(620,320))
+    vBox = wx.BoxSizer(wx.VERTICAL)
+    hBox = wx.BoxSizer(wx.HORIZONTAL)
+    lablel1 = wx.StaticText(self.dlg, label="Source and configuration files exist in directory:")
+    lablel2 = wx.StaticText(self.dlg, label="path1")
+    lablel3 = wx.StaticText(self.dlg, label="Before generating code would you like to backup these files to the directory:")
+    lablel4 = wx.StaticText(self.dlg, label="path2")
+    self.checkBox = wx.CheckBox(self.dlg, id=wx.ID_ANY, label="Never show this dialog again")
+    self.checkBox.Bind(wx.EVT_CHECKBOX, self.onChecked) 
+    lablel5 = wx.StaticText(self.dlg, label="(Dialog can be reenable through Project Properties)")
+
+    noBtn = wx.Button(self.dlg, label="No")
+    noBtn.Bind(wx.EVT_BUTTON, self.onClickBackupNoBtn)
+    cancelBtn = wx.Button(self.dlg, label="Cancel")
+    cancelBtn.Bind(wx.EVT_BUTTON, self.onClickBackupCancelBtn)
+    yesBtn = wx.Button(self.dlg, label="Yes")
+    yesBtn.Bind(wx.EVT_BUTTON, self.onClickBackupYesBtn)
+
+    vBox.Add(lablel1, 0, wx.ALL, 5)
+    vBox.Add(lablel2, 0, wx.ALL|wx.LEFT, 15)
+    vBox.Add(lablel3, 0, wx.ALL, 5)
+    vBox.Add(lablel4, 0, wx.ALL|wx.LEFT, 15)
+    vBox.Add(self.checkBox, 0, wx.ALL, 5)
+    vBox.Add(lablel5, 0, wx.ALL, 5)
+
+    hBox.Add(noBtn, 0, wx.CENTER, 0)
+    hBox.Add(cancelBtn, 0, wx.CENTER, 0)
+    hBox.Add(yesBtn, 0, wx.CENTER|wx.RIGHT, 15)
+    vBox.Add(hBox, 0, wx.TOP|wx.ALIGN_RIGHT, 30)
+
+    self.dlg.SetSizer(vBox)
+    self.dlg.ShowModal()
+
+  def onClickBackupNoBtn(self, event):
+    '''
+    @summary    : don't backup code resource
+    '''
+    if self.checkBox.GetValue():
+      parentFrame = self.panel.guiPlaces.frame
+      parentFrame.project.prjProperties['backupMode'] = "never"
+      parentFrame.project.savePrjProperties()
+    self.dlg.Close()
+  
+  def onClickBackupCancelBtn(self, event):
+    '''
+    @summary    : cancel backup dialog
+    '''
+    self.dlg.Close()
+
+  def onClickBackupYesBtn(self, event):
+    '''
+    @summary    : backup code resource
+    '''
+    if self.checkBox.GetValue():
+      parentFrame = self.panel.guiPlaces.frame
+      parentFrame.project.prjProperties['backupMode'] = "always"
+      parentFrame.project.savePrjProperties()
+    self.executeBackupSource()
+    self.dlg.Close()
+
+  def onChecked(self, event):
+    pass
+
+  def executeBackupSource(self):
+    '''
+    @summary    : execute backup code resource and keep backup number  
+    '''
+    parentFrame = self.panel.guiPlaces.frame
+    backupDir = "%s/src.bak" % parentFrame.project.getPrjPath()
+    if not os.path.isdir(backupDir):
+      os.system("mkdir -p %s" % backupDir)
+
+    tarGet = str(subprocess.check_output(['date','+%d_%m_%Y-%H_%M_%S'])).strip()
+    os.system("cd %s; tar -zcvf %s.tar.gz ../src" % (backupDir,  tarGet))
+
+    files = os.popen("cd %s;ls *.tar.gz -lt | awk '{print $9}'" % backupDir).read()
+    n = 1
+    for f in files.split():
+      if n > int(parentFrame.project.prjProperties['backupNumber']):
+        os.system("rm -f %s/%s" % (backupDir, f))
+      n += 1
 
 # Global of this panel for debug purposes only.  DO NOT USE IN CODE
 dbgPanel = None
