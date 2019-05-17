@@ -1073,7 +1073,10 @@ ClRcT _clIocSetHeartBeatConfig()
                         "HBT",
                         "Unable to find the heartbeat method in plugin : %s", dlerror());
                 *(void**) &gClHeartBeatPlugin = HeartBeatPluginDefault;
-                dlclose(gClPluginHandle);
+                if (!clParseEnvBoolean("ASP_ASAN_LSAN_ENABLED"))
+                {
+                    dlclose(gClPluginHandle);
+                }
                 gClPluginHandle = NULL;
             }
         }
@@ -1177,7 +1180,10 @@ ClRcT clIocHeartBeatFinalize(ClBoolT nodeRep) {
         }
         if(gClPluginHandle)
         {
-            dlclose(gClPluginHandle);
+            if (!clParseEnvBoolean("ASP_ASAN_LSAN_ENABLED"))
+            {
+                dlclose(gClPluginHandle);
+            }
         }
         register ClListHeadT *iter;
         clOsalMutexLock(&gIocHeartBeatTableLock);

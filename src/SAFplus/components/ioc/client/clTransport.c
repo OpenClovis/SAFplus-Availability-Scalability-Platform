@@ -2991,7 +2991,13 @@ static __inline__ void transportFree(ClTransportLayerT *xport)
 {
     if(xport->xportType) clHeapFree(xport->xportType);
     if(xport->xportPlugin) clHeapFree(xport->xportPlugin);
-    if(xport->xportPluginHandle) dlclose(xport->xportPluginHandle);
+    if(xport->xportPluginHandle)
+    {
+        if (!clParseEnvBoolean("ASP_ASAN_LSAN_ENABLED"))
+        {
+            dlclose(xport->xportPluginHandle);
+        }
+    }
     clHeapFree(xport);
 }
 

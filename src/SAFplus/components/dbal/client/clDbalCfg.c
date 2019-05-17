@@ -112,7 +112,7 @@ clDbalLibInitialize(void)
                                ("Error in finding the symbol 'clDbalInterface' in shared library '%s': [%s]",
                                 libName, err));
 
-                if(0 != dlclose(gDlHandle))
+                if((!clParseEnvBoolean("ASP_ASAN_LSAN_ENABLED")) && (0 != dlclose(gDlHandle)))
                 {
                     CL_DEBUG_PRINT(CL_DEBUG_ERROR,
                                    ("Error while unloading DBAL shared library!"));
@@ -124,7 +124,10 @@ clDbalLibInitialize(void)
             if (rc != CL_OK)
             {
                 clLogError("DBA", "INI", "Failed to initialize the Dbal library. rc [0x%x]", rc);
-                dlclose(gDlHandle);
+                if (!clParseEnvBoolean("ASP_ASAN_LSAN_ENABLED"))
+                {
+                    dlclose(gDlHandle);
+                }
                 goto out;
             }
         }
@@ -162,7 +165,7 @@ clDbalLibFinalize(void)
 #if !defined(WITH_PURIFY) && !defined(WITH_STATIC)
     if(CL_TRUE == gDlOpen)
     {
-        if(0 != dlclose(gDlHandle))
+        if((!clParseEnvBoolean("ASP_ASAN_LSAN_ENABLED")) && (0 != dlclose(gDlHandle)))
         {
             CL_DEBUG_PRINT(CL_DEBUG_ERROR,
                     ("Error while unloading DBAL shared library!"));
