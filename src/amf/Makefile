@@ -1,7 +1,7 @@
 S7 := 1
 SAFPLUS_AMF_LIB:=1  # Identify what is being built, so safplus_targets does not override
 include ../mk/preface.mk
-
+CPP_FLAGS += -I../alarm/server/SAFplusAlarm
 CLIENT_H := $(wildcard $(SAFPLUS_INC_DIR)/*.hpp) $(wildcard $(SAFPLUS_INC_DIR)/*.hxx) $(wildcard amfAppRpc/$(PROTOBUFVER)/*.hxx) $(wildcard amfAppRpc/$(PROTOBUFVER)/*.h)
 CLIENT_SRC := $(wildcard *.cxx) $(notdir $(wildcard amfAppRpc/$(PROTOBUFVER)/*.cxx)) $(notdir $(wildcard amfAppRpc/$(PROTOBUFVER)/*.cc))
 CLIENT_OBJ := $(addprefix $(MWOBJ_DIR)/,$(subst .cc,.o,$(subst .cxx,.o,$(CLIENT_SRC))))

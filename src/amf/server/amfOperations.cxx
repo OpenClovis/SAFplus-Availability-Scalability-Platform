@@ -13,7 +13,7 @@
 #include <clOsalApi.hxx>
 #include <clAmfPolicyPlugin.hxx>
 #include <clAmfIpi.hxx>
-
+#include <clAmfNotification.hxx>
 #include <SAFplusAmf/Component.hxx>
 #include <SAFplusAmf/ComponentServiceInstance.hxx>
 #include <SAFplusAmf/ServiceUnit.hxx>
@@ -28,7 +28,7 @@ using namespace SAFplus::Rpc::amfRpc;
 extern Handle           nodeHandle; //? The handle associated with this node
 namespace SAFplus
   {
-
+EventClient evtClient;
     WorkOperationTracker::WorkOperationTracker(SAFplusAmf::Component* c,SAFplusAmf::ComponentServiceInstance* cwork,SAFplusAmf::ServiceInstance* work,uint statep, uint targetp)
     {
     comp = c; csi = cwork; si=work; state = statep; target = targetp;
@@ -166,8 +166,13 @@ namespace SAFplus
         if (result == SA_AIS_OK)  // TODO: actually, I think I need to call into the redundancy model plugin to correctly process the result.
           {
           assert(wat.comp->pendingOperation == PendingOperation::workAssignment);  // No one should be issuing another operation until this one is aborted
-
-          wat.comp->haState = (SAFplusAmf::HighAvailabilityState) wat.state; // TODO: won't work with multiple assignments of active and standby, for example
+	if(!(wat.comp->haState == (SAFplusAmf::HighAvailabilityState) wat.state))
+	{
+	std::string pEventData = createEventNotification(wat.comp->name.value, "highAvaiabilityState", c_str(wat.comp->haState.value), c_str((SAFplusAmf::HighAvailabilityState) wat.state));
+	//logInfo("AMF", "OPS", "pEventData : %s", pEventData.c_str());
+	evtClient.eventPublish(pEventData,pEventData.length(), CL_CPM_EVENT_CHANNEL_NAME, EventChannelScope::EVENT_GLOBAL_CHANNEL);
+        wat.comp->haState = (SAFplusAmf::HighAvailabilityState) wat.state; // TODO: won't work with multiple assignments of active and standby, for example
+	}
           // if (wat.si->assignmentState = AssignmentState::fullyAssigned;  // TODO: for now just make the SI happy to see something work
 
           // pending operation completed.  Clear it out

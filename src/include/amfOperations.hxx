@@ -3,6 +3,7 @@
 #include <boost/unordered_map.hpp>
 #include <SAFplusAmf/AdministrativeState.hxx>
 #include <SAFplusAmf/HighAvailabilityState.hxx>
+#include <EventClient.hxx>
 namespace SAFplusAmf
   {
   class Component;
@@ -14,7 +15,7 @@ namespace SAFplusAmf
 
 namespace SAFplus
   {
-
+extern EventClient evtClient;
   class WorkOperationTracker
     {
     public:

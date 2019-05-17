@@ -21,6 +21,7 @@ endif
 
 include $(SAFPLUS_MAKE_DIR)/preface.mk
 
+CPP_FLAGS += -I../../../src/alarm/server/SAFplusAlarm
 
 # always return empty string: TMP2 := $(strip $(wildcard $(THIS_DIR)/../../../mk/preface.mk))
 TMP2 := $(strip $(shell ls $(THIS_DIR)/../../../src/mk/preface.mk))
@@ -47,7 +48,7 @@ MODELS := $(wildcard *.xml)
 MODELS_TGT := $(addprefix $(TEST_DIR)/,$(MODELS))
 
 # Specify the required libraries
-SAFPLUS_LIBS := clAmf clRpc clName clCkpt clGroup clMsg clLog clUtils clTimer clOsal clFault clDbal
+SAFPLUS_LIBS := clAmf clRpc clName clCkpt clGroup clMsg clLog clUtils clTimer clOsal clFault clDbal clEvent clEventServer
 # Then use these in the make rule
 ifeq ($(BUILD_SAFPLUS),1)  # If I do not want to build SAFplus then don't put the libs in the dependency line
 SAFPLUS_DEP_LIBS     := $(addsuffix .so,$(addprefix $(LIB_DIR)/lib,$(SAFPLUS_LIBS)))

@@ -10,14 +10,16 @@
 
 #include <SAFplusAmfModule.hxx>
 #include <ServiceGroup.hxx>
-
+#include <clAmfNotification.hxx>
+#include <amfOperations.hxx>
 using namespace std;
 using namespace SAFplus;
 using namespace SAFplusAmf;
 
 namespace SAFplus
   {
- 
+ EventClient evtClient;
+ Handle hdl;
   const char* oper_str(bool val) { if (val) return "enabled"; else return "disabled"; }
 
   class NplusMPolicy:public ClAmfPolicyPlugin_1
@@ -56,6 +58,8 @@ namespace SAFplus
 
   NplusMPolicy::~NplusMPolicy()
     {
+	evtClient.eventChannelClose(CL_AMS_EVENT_CHANNEL_NAME, EventChannelScope::EVENT_GLOBAL_CHANNEL);
+	evtClient.eventChannelClose(CL_CPM_EVENT_CHANNEL_NAME, EventChannelScope::EVENT_GLOBAL_CHANNEL);
     }
 
   void ServiceGroupPolicyExecution::wake(int amt,void* cookie)
@@ -223,9 +227,16 @@ namespace SAFplus
   }
 
   void NplusMPolicy::activeAudit(SAFplusAmf::SAFplusAmfModule* root)
-    {
-    auditDiscovery(root);
-    auditOperation(root);
+    {		
+	if(hdl.id[0] == 0 && hdl.id[1] == 0)
+	{
+	  hdl = Handle::create();
+	  evtClient.eventInitialize(hdl,nullptr);
+	  evtClient.eventChannelOpen(CL_AMS_EVENT_CHANNEL_NAME, EventChannelScope::EVENT_GLOBAL_CHANNEL);
+	  evtClient.eventChannelOpen(CL_CPM_EVENT_CHANNEL_NAME, EventChannelScope::EVENT_GLOBAL_CHANNEL);
+	}
+	auditDiscovery(root);
+	auditOperation(root);
     }
 
   ServiceUnit* findAssignableServiceUnit(std::vector<SAFplusAmf::ServiceUnit*>& candidates,SAFplusAmf::ServiceInstance* si, HighAvailabilityState tgtState)
@@ -773,8 +784,10 @@ namespace SAFplus
           if (rs != su->readinessState.value)
             {
             logInfo("N+M","AUDIT","Readiness state of Service Unit [%s] changed from [%s] to [%s]", su->name.value.c_str(),c_str(su->readinessState),c_str(rs));
-            su->readinessState.value = rs;
             amfOps->reportChange();
+            std::string pEventData = createEventNotification(su->name.value, "readinessState", c_str(su->readinessState), c_str(rs));
+	    su->readinessState.value = rs;
+            evtClient.eventPublish(pEventData,pEventData.length(), CL_AMS_EVENT_CHANNEL_NAME, EventChannelScope::EVENT_GLOBAL_CHANNEL);
             // TODO event?
             }
 
@@ -848,6 +861,9 @@ namespace SAFplus
                 
                       if (compHandle != INVALID_HDL) // TODO: what other things do we need to do for registration?
                         {
+			  logInfo("N+M", "DSC", "update comp presenceState from PresenceState::instantiating to [%s]",c_str(PresenceState::instantiated));
+			std::string pEventData = createEventNotification(comp->name.value, "presentState", c_str(comp->presenceState), c_str(PresenceState::instantiated));
+			evtClient.eventPublish(pEventData,pEventData.length(), CL_CPM_EVENT_CHANNEL_NAME, EventChannelScope::EVENT_GLOBAL_CHANNEL);
                           comp->presenceState = PresenceState::instantiated;
                           fault->registerEntity(compHandle ,FaultState::STATE_UP);
                         }
@@ -886,19 +902,26 @@ namespace SAFplus
               }
 
             // SAI-AIS-AMF-B.04.01.pdf sec 3.2.2.3
+	    SAFplusAmf::ReadinessState changedReadinessStateComp = comp->readinessState.value;
             if ((comp->operState == false) || (su->readinessState == SAFplusAmf::ReadinessState::outOfService))
               {
-              comp->readinessState = SAFplusAmf::ReadinessState::outOfService;
+              changedReadinessStateComp = SAFplusAmf::ReadinessState::outOfService;
               }
             if ((comp->operState == true) && (su->readinessState == SAFplusAmf::ReadinessState::inService))
               {
-              comp->readinessState = SAFplusAmf::ReadinessState::inService;
+              changedReadinessStateComp = SAFplusAmf::ReadinessState::inService;
               }
             if ((comp->operState == true) && (su->readinessState == SAFplusAmf::ReadinessState::stopping))
               {
-              comp->readinessState = SAFplusAmf::ReadinessState::stopping;
+              changedReadinessStateComp = SAFplusAmf::ReadinessState::stopping;
               }
-
+		if(changedReadinessStateComp != comp->readinessState)
+		{
+			std::string pEventData = createEventNotification(comp->name.value, "readinessState", c_str(comp->readinessState), c_str(changedReadinessStateComp));
+			comp->readinessState = changedReadinessStateComp;
+			evtClient.eventPublish(pEventData,pEventData.length(), CL_CPM_EVENT_CHANNEL_NAME, EventChannelScope::EVENT_GLOBAL_CHANNEL);
+		}
+	
             // From the point of view of the Service Unit, a non_preinstantiable component is always "instantiated" (ready for work assignment), because the act of assigning active work is what instantiates it
             if (comp->capabilityModel == CapabilityModel::not_preinstantiable) 
               {
@@ -938,9 +961,10 @@ namespace SAFplus
             {
             // high availability state changed.
 	      logInfo("N+M","AUDIT","High Availability state of Service Unit [%s] changed from [%s (%d)] to [%s (%d)]", su->name.value.c_str(),c_str(su->haState.value),(int) su->haState.value, c_str(ha), (int) ha);
+	      std::string pEventData = createEventNotification(su->name.value, "highAvailabilityState", c_str(su->haState.value), c_str(ha));
             su->haState = ha;
             amfOps->reportChange();
-
+            evtClient.eventPublish(pEventData,pEventData.length(), CL_AMS_EVENT_CHANNEL_NAME, EventChannelScope::EVENT_GLOBAL_CHANNEL);
             // TODO: Event?
             }
 
@@ -992,9 +1016,10 @@ namespace SAFplus
             {
             // Presence state changed.
 	      logInfo("N+M","AUDIT","Presence state of Service Unit [%s] changed from [%s (%d)] to [%s (%d)]", su->name.value.c_str(),c_str(su->presenceState.value),(int) su->presenceState.value, c_str(ps), (int) ps);
+	      std::string pEventData = createEventNotification(su->name.value, "presentState", c_str(su->presenceState.value), c_str(ps));
             su->presenceState.value = ps;
             amfOps->reportChange();
-
+            evtClient.eventPublish(pEventData,pEventData.length(), CL_AMS_EVENT_CHANNEL_NAME, EventChannelScope::EVENT_GLOBAL_CHANNEL);
             // TODO: Event?
             }
 

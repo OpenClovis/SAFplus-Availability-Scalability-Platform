@@ -3,6 +3,7 @@
 #include <saAmf.h>
 #include <clNameApi.hxx>
 #include <safplus.hxx>
+#include <clAmfNotification.hxx>
 #include <boost/thread/thread.hpp> 
 
 //#define clprintf(sev,...) appLog(SAFplus::APP_LOG, sev, 0, "APP", "MAIN", __VA_ARGS__)
@@ -39,7 +40,13 @@ void dispatchLoop(void);
 void printCSI(SaAmfCSIDescriptorT csiDescriptor, SaAmfHAStateT haState);
 int  errorExit(SaAisErrorT rc);
 
-
+void eventCallback(const std::string& channelName,const EventChannelScope& scope,const std::string& data,const int& length)
+{
+  clprintf (SAFplus::LOG_SEV_INFO, "***********************************************************");
+  clprintf (SAFplus::LOG_SEV_INFO, "app Event channel[%s] data [%s]",channelName.c_str(), data.c_str());
+  clprintf (SAFplus::LOG_SEV_INFO, "***********************************************************");
+  //g_isCallBack = true;
+}
 /* This simple helper function just prints an error and quits */
 int errorExit(SaAisErrorT rc)
 {
@@ -77,7 +84,9 @@ int main(int argc, char *argv[])
     //SAFplus::logSeverity = SAFplus::LOG_SEV_DEBUG;
 
     /* Do any application specific initialization here. */
-    
+#if 0
+   clAmfClientNotificationInitialize(myHandle,&eventCallback);
+#endif
     /* Block on AMF dispatch file descriptor for callbacks.
        When this function returns its time to quit. */
     dispatchLoop();
