@@ -648,11 +648,19 @@ class ProjectTreePanel(wx.Panel):
     self.updateModalProblems()
 
   def getPrjPath(self):
-    prjPath, name = os.path.split(self.pathProject)
+    try:
+      prjPath, name = os.path.split(self.currentActiveProject.projectFilename)
+    except:
+      prjPath, name = os.path.split(self.pathProject)
+
     return prjPath
 
   def getPrjName(self):
-    prjPath, name = os.path.split(self.pathProject)
+    try:
+      prjPath, name = os.path.split(self.currentActiveProject.projectFilename)
+    except:
+      prjPath, name = os.path.split(self.pathProject)
+
     return os.path.splitext(name)[0]
 
   def validateAmfConfig(self):
