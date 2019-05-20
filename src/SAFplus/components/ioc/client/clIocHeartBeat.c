@@ -1073,7 +1073,7 @@ ClRcT _clIocSetHeartBeatConfig()
                         "HBT",
                         "Unable to find the heartbeat method in plugin : %s", dlerror());
                 *(void**) &gClHeartBeatPlugin = HeartBeatPluginDefault;
-                if (!clParseEnvBoolean("ASP_ASAN_LSAN_ENABLED"))
+                if (!clParseEnvBoolean("ASP_SANITIZER_BUILD"))
                 {
                     dlclose(gClPluginHandle);
                 }
@@ -1180,7 +1180,7 @@ ClRcT clIocHeartBeatFinalize(ClBoolT nodeRep) {
         }
         if(gClPluginHandle)
         {
-            if (!clParseEnvBoolean("ASP_ASAN_LSAN_ENABLED"))
+            if (!clParseEnvBoolean("ASP_SANITIZER_BUILD"))
             {
                 dlclose(gClPluginHandle);
             }

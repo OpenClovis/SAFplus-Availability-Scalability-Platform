@@ -2993,7 +2993,7 @@ static __inline__ void transportFree(ClTransportLayerT *xport)
     if(xport->xportPlugin) clHeapFree(xport->xportPlugin);
     if(xport->xportPluginHandle)
     {
-        if (!clParseEnvBoolean("ASP_ASAN_LSAN_ENABLED"))
+        if (!clParseEnvBoolean("ASP_SANITIZER_BUILD"))
         {
             dlclose(xport->xportPluginHandle);
         }

@@ -666,10 +666,10 @@ static ClRcT cpmAllocate(void)
         }
         clLogNotice("VALGRIND", "DELAY", "DELAY configured is [%d] secs", cpmValgrindTimeout);
     }
-    else if((str = clParseEnvStr("ASP_SANITIZER_BUILD")))
+    else
     {
-        ClInt32T sanitizerEnabled = (ClInt32T)strtoul(str, &str, 10);
-        if (sanitizerEnabled==1)
+        ClBoolT sanitizerEnabled = clParseEnvBoolean("ASP_SANITIZER_BUILD");
+        if (sanitizerEnabled)
         {
             cpmValgrindTimeout = CPM_VALGRIND_DEFAULT_DELAY;
             if ((str = clParseEnvStr("ASP_SANITIZER_DELAY")))
