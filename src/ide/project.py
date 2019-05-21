@@ -572,6 +572,11 @@ class ProjectTreePanel(wx.Panel):
       self.fileMenu.Enable(PROJECT_SAVE, True)
       self.fileMenu.Enable(PROJECT_SAVE_AS, True) 
       self.menuProject.Enable(PROJECT_VALIDATE, True)
+      self.menuProject.Enable(PROJECT_BUILD, True)
+      self.menuProject.Enable(PROJECT_CLEAN, True)
+      self.menuProject.Enable(MAKE_IMAGES, True)
+      self.menuProject.Enable(IMAGES_DEPLOY, True)
+      self.menuProject.Enable(PROJECT_PROPERTIES, True)
 
   def OnNew(self,event):
     dlg = NewPrjDialog()
@@ -591,6 +596,11 @@ class ProjectTreePanel(wx.Panel):
       self.fileMenu.Enable(PROJECT_SAVE, True)
       self.fileMenu.Enable(PROJECT_SAVE_AS, True)
       self.menuProject.Enable(PROJECT_VALIDATE, True)
+      self.menuProject.Enable(PROJECT_BUILD, True)
+      self.menuProject.Enable(PROJECT_CLEAN, True)
+      self.menuProject.Enable(MAKE_IMAGES, True)
+      self.menuProject.Enable(IMAGES_DEPLOY, True)
+      self.menuProject.Enable(PROJECT_PROPERTIES, True)
 
       os.system('mkdir -p %s/configs' % self.getPrjPath())
 
