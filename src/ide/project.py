@@ -263,6 +263,7 @@ class ProjectTreePanel(wx.Panel):
         self.getPrjProperties()
 
         self.entitiesRelation = {
+          "Application"             : None, #Skip validation for Application entity
           "ServiceGroup"            :["ServiceInstance", "ServiceUnit"],
           "ServiceInstance"         :["ComponentServiceInstance"],
           "ComponentServiceInstance":["Component"],
@@ -273,6 +274,7 @@ class ProjectTreePanel(wx.Panel):
         }
 
         self.entitiesParent = {
+          "Application"             : None, #Skip validation for Application entity
           "ServiceGroup"            : None,
           "ServiceInstance"         :["ServiceGroup"],
           "ComponentServiceInstance":["ServiceInstance"],
@@ -285,8 +287,8 @@ class ProjectTreePanel(wx.Panel):
         self.warn = "WARNNING"
         self.error = "ERROR"
         self.info = "INFOMATION"
-        self.instantiation = "Instantiation"
-        self.modelling   = "Modelling"
+        self.instantiation = ""
+        self.modelling   = ""
         self.pathProject = None
 
         self.color = {
@@ -631,18 +633,25 @@ class ProjectTreePanel(wx.Panel):
 
     if share.detailsPanel is None:
       return
+
+    self.modelling = "%s Modelling" % self.getPrjName()
+    self.instantiation = "%s Instantiation" % self.getPrjName()
+
     share.detailsPanel.model.updateMicrodom()
 
-    self.validateComponentModel()
-    # Validate components relation ship
-    self.parseComponentRelationships()
+    try:
+      self.validateComponentModel()
+      # Validate components relation ship
+      self.parseComponentRelationships()
 
-    self.validateNodeProfiles()
-    # Validate intances 
-    self.validateAmfConfig()
+      self.validateNodeProfiles()
+      # Validate intances 
+      self.validateAmfConfig()
 
-    # Validate configuration data
-    self.validateDataConfig()
+      # Validate configuration data
+      self.validateDataConfig()
+    except Exception, e:
+      self.updateProblems(self.error, "%s exception occur while validate model\n (%s)" % (str(Exception),str(e)), "")
 
     # Update all problems on modal problems tag
     self.updateModalProblems()

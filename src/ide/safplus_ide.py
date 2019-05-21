@@ -29,7 +29,7 @@ class SAFplusFrame(wx.Frame):
     Frame for the SAFplus UML editor
     """
     def __init__(self, parent, title):
-        wx.Frame.__init__(self, parent, -1, title, pos=(150, 150), size=(800, 600))
+        wx.Frame.__init__(self, parent, -1, title, pos=(150, 150), size=(1160, 850))
         self.model = None
         self.problems = None
         self.currentActivePrj = None # indicating that this the current project which is active
@@ -88,7 +88,7 @@ class SAFplusFrame(wx.Frame):
         self.help.LoadFile("resources/intro.html")
         self.tab.AddPage(self.help, "Welcome")        
         self.Bind(wx.aui.EVT_AUINOTEBOOK_PAGE_CLOSE, self.onPageClosing, self.tab) # handle tab page close
-        self.prjSplitter2.SplitHorizontally(self.prjSplitter, self.infoPanel, 400)
+        self.prjSplitter2.SplitHorizontally(self.prjSplitter, self.infoPanel, 640)
         self.prjSplitter.SplitVertically(self.project, self.tab, 200)
         # And also use a sizer to manage the size of the panel such
         # that it fills the frame
@@ -117,9 +117,9 @@ class SAFplusFrame(wx.Frame):
         self.modelProblems.InsertColumn(1, "Message")
         # self.modelProblems.InsertColumn(3, "Source")
         self.modelProblems.InsertColumn(2, "Location")
-        self.modelProblems.SetColumnWidth(0, 150)
-        self.modelProblems.SetColumnWidth(1, 500)
-        self.modelProblems.SetColumnWidth(2, 150)
+        self.modelProblems.SetColumnWidth(0, 250)
+        self.modelProblems.SetColumnWidth(1, 560)
+        self.modelProblems.SetColumnWidth(2, 350)
         # self.modelProblems.SetColumnWidth(3, 100)
         # self.modelProblems.SetColumnWidth(4, 100)
         self.infoPanel.AddPage(self.modelProblems, "Model Problems")
