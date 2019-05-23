@@ -20,7 +20,7 @@ import instanceEditor
 import entityDetailsDialog
 import umlEditor
 from project import Project, ProjectTreePanel, EVT_PROJECT_LOADED, EVT_PROJECT_NEW, PROJECT_SAVE, PROJECT_SAVE_AS, PROJECT_VALIDATE, \
-                    PROJECT_BUILD, PROJECT_CLEAN, MAKE_IMAGES, IMAGES_DEPLOY, PROJECT_PROPERTIES
+                    PROJECT_BUILD, PROJECT_CLEAN, MAKE_IMAGES, IMAGES_DEPLOY, PROJECT_PROPERTIES, PROJECT_CLEAR_DATA
 import common
 import model
 
@@ -307,6 +307,7 @@ class SAFplusFrame(wx.Frame):
       self.menuProject.Enable(MAKE_IMAGES, True)
       self.menuProject.Enable(IMAGES_DEPLOY, True)
       self.menuProject.Enable(PROJECT_PROPERTIES, True)
+      self.menuProject.Enable(PROJECT_CLEAR_DATA, True)
 
     def onPrjTreeActivated(self, evt):
       """ handle an event when user double-clicks on an item at the tree on the left to switch views to it or to set it active """

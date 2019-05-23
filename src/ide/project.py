@@ -35,6 +35,7 @@ PROJECT_CLEAN = wx.NewId()
 MAKE_IMAGES      = wx.NewId() 
 IMAGES_DEPLOY    = wx.NewId()
 PROJECT_PROPERTIES = wx.NewId()
+PROJECT_CLEAR_DATA = wx.NewId()
 
 HELP_CONTENTS    = wx.NewId()
 HELP_ABOUT       = wx.NewId()
@@ -337,6 +338,7 @@ class ProjectTreePanel(wx.Panel):
         self.menuProject.Append(MAKE_IMAGES, "Make Image(s)...", "Make Image(s)...")
         self.menuProject.Append(IMAGES_DEPLOY, "Deploy Image(s)...", "Deploy Image(s)...")
         self.menuProject.Append(PROJECT_PROPERTIES, "Properties", "Properties")
+        self.menuProject.Append(PROJECT_CLEAR_DATA, "Clear project data", "Clear project data")
 
         self.menuProject.Enable(PROJECT_VALIDATE, False)
         self.menuProject.Enable(MAKE_IMAGES, False)
@@ -344,12 +346,14 @@ class ProjectTreePanel(wx.Panel):
         self.menuProject.Enable(PROJECT_BUILD, False)
         self.menuProject.Enable(PROJECT_CLEAN, False)
         self.menuProject.Enable(PROJECT_PROPERTIES, False)
+        self.menuProject.Enable(PROJECT_CLEAR_DATA, False)
         self.menuProject.Bind(wx.EVT_MENU, self.OnValidate, id=PROJECT_VALIDATE)
         self.menuProject.Bind(wx.EVT_MENU, self.OnMakeImages, id=MAKE_IMAGES)
         self.menuProject.Bind(wx.EVT_MENU, self.OnDeploy, id=IMAGES_DEPLOY)
         self.menuProject.Bind(wx.EVT_MENU, self.OnBuild, id=PROJECT_BUILD)
         self.menuProject.Bind(wx.EVT_MENU, self.OnClean, id=PROJECT_CLEAN)
         self.menuProject.Bind(wx.EVT_MENU, self.OnProperties, id=PROJECT_PROPERTIES)
+        self.menuProject.Bind(wx.EVT_MENU, self.OnClearProjectData, id=PROJECT_CLEAR_DATA)
 
         self.menuHelp = guiPlaces.menu["Help"]
         self.menuHelp.Append(HELP_CONTENTS, "Help Contents", "Help Contents")
@@ -577,6 +581,7 @@ class ProjectTreePanel(wx.Panel):
       self.menuProject.Enable(MAKE_IMAGES, True)
       self.menuProject.Enable(IMAGES_DEPLOY, True)
       self.menuProject.Enable(PROJECT_PROPERTIES, True)
+      self.menuProject.Enable(PROJECT_CLEAR_DATA, True)
 
   def OnNew(self,event):
     dlg = NewPrjDialog()
@@ -601,6 +606,7 @@ class ProjectTreePanel(wx.Panel):
       self.menuProject.Enable(MAKE_IMAGES, True)
       self.menuProject.Enable(IMAGES_DEPLOY, True)
       self.menuProject.Enable(PROJECT_PROPERTIES, True)
+      self.menuProject.Enable(PROJECT_CLEAR_DATA, True)
 
       os.system('mkdir -p %s/configs' % self.getPrjPath())
 
@@ -982,6 +988,11 @@ class ProjectTreePanel(wx.Panel):
     properties.ShowModal()
     properties.Destroy()
 
+  def OnClearProjectData(self, event):
+    dlg = ClearProjectData(self)
+    dlg.ShowModal()
+    dlg.Destroy()
+
   def OnMakeImages(self, event):
     dlg = MakeImages(self)
     dlg.ShowModal()
@@ -1065,6 +1076,77 @@ class ProjectTreePanel(wx.Panel):
     f = open("%s/configs/prjProperties.xml" % self.getPrjPath(),"w")
     f.write(md.pretty())
     f.close()
+
+class ClearProjectData(wx.Dialog):
+    """
+    Class clear project data & config
+    """
+    def __init__(self, parent):
+      """Constructor"""
+      wx.Dialog.__init__(self, None, title="Clear project data", size=(513,479))
+      self.parent = parent
+      self.SetBackgroundColour('#F2F1EF')
+
+      vBox = wx.BoxSizer(wx.VERTICAL)
+
+      self.deploy = wx.CheckBox(self, id=wx.ID_ANY, size=(400,30), label="Clear deploy infomation")
+      self.deploy.SetValue(True)
+      self.properties = wx.CheckBox(self, id=wx.ID_ANY, size=(400,30), label="Clear project properties")
+      self.properties.SetValue(True)
+      self.imageCfg = wx.CheckBox(self, id=wx.ID_ANY, size=(400,30), label="Clear image configuration")
+      self.imageCfg.SetValue(True)
+      self.imageFile = wx.CheckBox(self, id=wx.ID_ANY, size=(400,30), label="Remove images file")
+      self.imageFile.SetValue(True)
+      self.srcBak = wx.CheckBox(self, id=wx.ID_ANY, size=(400,30), label="Remove backup resource")
+      self.srcBak.SetValue(True)
+
+      vBox.Add(self.deploy, 0, wx.ALL|wx.ALIGN_CENTER, 5)
+      vBox.Add(self.properties, 0, wx.ALL|wx.ALIGN_CENTER, 5)
+      vBox.Add(self.imageCfg, 0, wx.ALL|wx.ALIGN_CENTER, 5)
+      vBox.Add(self.imageFile, 0, wx.ALL|wx.ALIGN_CENTER, 5)
+      vBox.Add(self.srcBak, 0, wx.ALL|wx.ALIGN_CENTER, 5)
+
+      hBox = wx.BoxSizer(wx.HORIZONTAL)
+
+      CancelBtn = wx.Button(self, label="Cancel")
+      CancelBtn.Bind(wx.EVT_BUTTON, self.onClickCancelBtn)
+      ClearBtn = wx.Button(self, label="Clear data")
+      ClearBtn.Bind(wx.EVT_BUTTON, self.onClickClearBtn)
+
+      hBox.Add(CancelBtn, 0, wx.RIGHT, 15)
+      hBox.Add(ClearBtn, 0, wx.RIGHT, 20)
+
+      vBox.Add(hBox, 0, wx.TOP|wx.ALIGN_RIGHT, 190)
+
+      self.SetSizer(vBox)
+
+    def onClickCancelBtn(self, event):
+      self.Close()
+
+    def onClickClearBtn(self, event):
+      path = self.parent.getPrjPath()
+      if self.deploy.GetValue():
+        f = "%s/configs/target.xml" % path
+        if os.path.isfile(f):
+          os.system("rm -f %s" % f)
+
+      if self.properties.GetValue():
+        f = "%s/configs/prjProperties.xml" % path
+        if os.path.isfile(f):
+          os.system("rm -f %s" % f)
+
+      if self.imageCfg.GetValue():
+        f = "%s/configs/imagesConfig.xml" % path
+        if os.path.isfile(f):
+          os.system("rm -f %s" % f)
+
+      if self.imageFile.GetValue():
+        os.system("rm -rf %s/images" % path)
+
+      if self.srcBak.GetValue():
+        os.system("rm -f %s/src.bak/*.tar.gz" % path)
+
+      self.Close()
 
 class PropertiesDialog(wx.Dialog):
     """
@@ -1342,21 +1424,42 @@ class DeployDialog(wx.Dialog):
           print "Image don't exist - fail"   
 
     def deploymentSingleImage(self, info, srcImage):
+      print "Image deploy: %s" % srcImage
       if (info['targetAdress'] == "") or (info['userName'] == "") or (info['password'] == "") or (info['targetLocation'] == ""):
         print "Invalid infomation to deploy image"
         return False
-      cmd = 'scp -r %s %s@%s:~/%s' % (srcImage, info['userName'], info['targetAdress'], info['targetLocation'])
+
+      isHostKnown = False
+      try:
+        hotKnown = str(subprocess.check_output(['ssh-keygen','-F', '%s' % info['targetAdress']])).strip()
+        if "found:" in hotKnown:
+          isHostKnown = True
+      except:
+          isHostKnown = False
+
+      cmd = 'scp %s.tar.gz %s@%s:~/%s' % (srcImage, info['userName'], info['targetAdress'], info['targetLocation'])
       print cmd
       try:
         child = pexpect.spawn("%s" % cmd)
+
+        if not isHostKnown:
+          child.expect('connecting (yes/no)*')
+          child.sendline('yes')
         child.expect('assword:*')
         child.sendline('%s' % info['password'])
+
         cnt = 0
         timeout = 60
         while child.isalive() and cnt < timeout :
           cnt += 1
           time.sleep(1)
         if cnt < timeout:
+          fName = "%s.tar.gz" % str(srcImage).split('/')[-1] 
+          remoteCommand = "cd %s; tar -xzvf %s" % (info['targetLocation'], fName)
+          cmd = "ssh %s@%s '%s'" % (info['userName'], info['targetAdress'], remoteCommand)
+          child_1 = pexpect.spawn("%s" % cmd)
+          child_1.expect('assword:*')
+          child_1.sendline('%s' % info['password'])
           print "Deploy image successfuly"
         else:
           print "Deploy image longer than %s(s) - fail" % timeout
