@@ -22,7 +22,7 @@ using namespace SAFplusI;
 using namespace SAFplus;
 using namespace Rpc;
 using namespace rpcEvent;
-
+Fault EventServer::faultClient;
 EventServer::EventServer()
 {
   // TODO Auto-generated constructor stub
@@ -156,6 +156,9 @@ void EventServer::initialize()
     channel->setMsgSendType(EVENT_REQ_HANDLER_TYPE);
     channel->msgReplyType = EVENT_REPLY_HANDLER_TYPE;
   }
+  faultInitialize();
+  logDebug("EVT", "SERVER", "Initialize fault client on event server ");
+  faultClient.init(severHandle,INVALID_HDL,severHandle.getPort(),BLOCK);
   if (activeServer == severHandle)
   {
     eventloadchannelFromCheckpoint();

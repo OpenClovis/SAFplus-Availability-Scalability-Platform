@@ -42,6 +42,7 @@
 #include <clHandleApi.hxx>
 #include <time.h>
 #include <rpcEvent.hxx>
+#include <clFaultApi.hxx>
 
 
 
@@ -71,6 +72,8 @@ public:
 	SAFplus::Group group; //? event sever group
 	EventCkpt evtCkpt;
 	SAFplus::Rpc::RpcChannel *channel;
+	// fault connection to send to fault manager
+    static SAFplus::Fault faultClient;
 
 	EventServer();
 	virtual ~EventServer();
