@@ -1173,6 +1173,11 @@ namespace SAFplus
             std::string strKey = (*it).substr(xpath.length());
             std::size_t posEquals = strKey.find("=");
             std::string keyValue = strKey.substr(posEquals+2, strKey.length() - posEquals - 4);
+            if (children.find(keyValue) != children.end())
+            {
+              logDebug("HUNG2","---","object of [%s] was created, skip it", keyValue.c_str());
+              continue;
+            }
 
             dataXPath.assign(*it);
 

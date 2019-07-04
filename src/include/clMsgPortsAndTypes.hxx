@@ -46,9 +46,10 @@ namespace SAFplusI
     AMF_APP_REPLY_HANDLER_TYPE = 22,
     FAULT_MSG_TYPE = 23,
     EVENT_MSG_TYPE = 24,
-
+    AMF_MGMT_REQ_HANDLER_TYPE = 25,
+    AMF_MGMT_REPLY_HANDLER_TYPE = 26,    
     // TODO: possibly misused:
-    CL_IOC_SAF_MSG_REPLY_PROTO = 25
+    CL_IOC_SAF_MSG_REPLY_PROTO = 27
 
     };
   }

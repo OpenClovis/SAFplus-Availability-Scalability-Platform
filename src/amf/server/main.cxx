@@ -40,6 +40,8 @@
 #include <amfAppRpc.hxx>
 #include "amfAppRpcImplAmfSide.hxx"
 
+#include <amfMgmtRpc.hxx>
+
 #include "nodeMonitor.hxx"
 
 #define USE_GRP
@@ -786,6 +788,15 @@ int main(int argc, char* argv[])
 
   amfOps.amfAppRpc = &amfAppRpc;
 
+  //--------setup rpc for amfMgmtApi-------------------
+  SAFplus::Rpc::amfMgmtRpc::amfMgmtRpcImpl mgmtRpc;
+  SAFplus::Rpc::RpcChannel amfMgmtRpcChannel(&safplusMsgServer, myHandle);
+  amfMgmtRpcChannel.setMsgType(AMF_MGMT_REQ_HANDLER_TYPE, AMF_MGMT_REPLY_HANDLER_TYPE);
+  amfMgmtRpcChannel.service = &mgmtRpc;  // The AMF needs to receive saAmfResponse calls from the clients so it needs to act as a "server".
+  SAFplus::Rpc::amfMgmtRpc::amfMgmtRpc_Stub amfMgmtRpc(&amfMgmtRpcChannel);
+
+  //---------------------------------------------------
+
   loadAmfPlugins(amfOps,fault);
 
 #ifdef USE_GRP
@@ -1006,7 +1017,8 @@ int main(int argc, char* argv[])
           logInfo("---","---","This node just became the active system controller");
           myRole = Group::IS_ACTIVE;
           becomeActive();
-          lastBeat = beat;  // Don't rewrite the changes that loading makes
+          name.set(AMF_MASTER_HANDLE,myHandle,NameRegistrar::MODE_NO_CHANGE);
+          lastBeat = beat;  // Don't rewrite the changes that loading makes          
           }
         }
       if (myRole != Group::IS_STANDBY)

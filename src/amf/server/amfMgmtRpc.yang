@@ -1,0 +1,1290 @@
+module amfMgmtRpc
+{
+
+  namespace "http://www.openclovis.org/ns/amfAppRpc";
+  prefix "amfMmgtRpc";
+  //import SAFplusTypes { prefix "SAFplusTypes"; }
+
+  organization
+    "OpenClovis Solutions, Inc";
+
+  contact
+    "Hung Ta <hung.ta@openclovis.com>";
+
+  description
+    "AMF management client APIs";
+
+  revision 2019-05-22 
+  {
+    description "Initial description";
+    reference "SAI-AIS-AMF-B.04.01.pdf";
+  }
+
+  typedef AdministrativeState
+    {
+      type enumeration
+      {
+        enum off
+          {
+            description "SA-Forum 'lockedInstantiation': the administrator has prevented the service unit from being instantiated by the Availability Management Framework.";
+	    value 0; 
+	  }
+        enum idle 
+	{ 
+	  value 1;
+	  description "SA-Forum 'locked': the administrator has prevented the service unit from taking service instance assignments.";
+	}
+        enum on
+	{ 
+	  value 2;
+	  description "SA-Forum 'unlocked': the service unit has not been directly prohibited from taking service instance assignments by the administrator.";
+	}
+      }
+      default "on";  
+    }
+
+  typedef SaTimeT
+    {
+      type uint64;
+      description "A representation of a time interval, specified in milliseconds";
+    }
+  
+  grouping EscalationPolicy
+    {
+      leaf maximum
+      {
+	type uint64;
+	description "The maximum number of events that can occur within that time period before escalation occurs.  A value of 0 will escalate the event right away.";	
+        default 0;
+      }
+      leaf duration
+      {
+	type SaTimeT;
+	description "The time period (in milliseconds) involved.";
+        default 0;
+      }
+    }
+
+  grouping execution
+    {
+      leaf command
+      {
+	type string;
+	default "";
+      }
+      leaf timeout
+      {
+	type uint64;
+	default 120000;
+      }
+    }
+
+  grouping NodeConfig {
+    leaf name {
+      type string;
+    }
+    leaf adminState
+      {
+        type AdministrativeState;
+	description "Does the operator want this entity to be off, idle, or in service?";
+      }
+    container serviceUnitFailureEscalationPolicy
+      {
+	uses EscalationPolicy;
+	description "The maximum Service Unit failure rate allowed before this node is faulted";
+      }
+
+      leaf autoRepair
+      {
+	type boolean;
+	description "Automatically attempt to bring this entity back into a healthy state if its operational state becomes disabled.";
+      }
+      leaf failFastOnInstantiationFailure
+      {
+	type boolean;
+	description "If a component fails to instantiate on this node after potentially multiple attempts (as configured in the component) the AMF will reboot this node if this field is true";
+      }
+      leaf failFastOnCleanupFailure
+      {
+	type boolean;
+	description "If a component's cleanup script fails on this node after potentially multiple attempts (as configured in the component) the AMF will reboot this node if this field is true";
+      }
+    leaf-list serviceUnits
+      {       
+        type string;       
+      }
+   }
+
+   grouping ServiceGroupConfig {
+    leaf name {
+      type string;
+    }
+    leaf adminState
+      {
+        type AdministrativeState;
+	description "Does the operator want this entity to be off, idle, or in service?";
+      }
+
+      // saAmfSGType { type string; }
+      // saAmfSGSuHostNodeGroup { type string; }
+
+      leaf autoRepair
+      {
+	type boolean;
+	description "Automatically attempt to bring this entity back into a healthy state if its operational state becomes disabled.  A 'false' value will cause the system to wait for operator intervention (via the repair API) before attempting to restart this entity.";
+      }
+
+      leaf autoAdjust
+      {
+	type boolean;
+        default false;
+        description "Match this service group as closely as possible to the preferred high availability configuration.  For example, if the preferred active comes online, 'fail-back' to it.  Another example is if a new work assignment is provisioned, the system could remove an existing standby assignment so the new active can be provisioned.";
+      }
+      leaf autoAdjustInterval
+      {
+	type SaTimeT;
+	description "The time between checks to see if adjustment is needed.";
+      }
+
+      leaf preferredNumActiveServiceUnits
+      {
+	type uint32;
+	description "What is the optimal number of active Service Units for this Service Group?";        
+        default 1;
+      }
+      leaf preferredNumStandbyServiceUnits
+      {
+	type uint32;
+	description "What is the optimal number of standby Service Units for this Service Group?";
+        default 1;
+      }
+      leaf preferredNumIdleServiceUnits
+      {
+	type uint32;
+	description "An idle service unit is running but is not assigned active or standby.  This concept is functionally equivalent to the saAmfSGNumPrefInserviceSUs since Active+Standby+Idle = Inservice";       
+        default 0;
+      }
+
+      // saAmfSGNumPrefAssignedSUs = preferredNumActiveServiceUnits + preferredNumStandbyServiceUnits so the field is unnecessary
+      
+      leaf maxActiveWorkAssignments
+      {
+	type uint32;
+	description "The maximum number of active work assignments that can be placed on a single service unit (and therefore component/process) simultaneously.";
+      }
+      leaf maxStandbyWorkAssignments
+      {
+	type uint32;
+	description "The maximum number of standby work assignments that can be placed on a single service unit (and therefore component/process) simultaneously.";
+      }
+
+      // TODO: think about moving this into the ocmponent
+      container componentRestart
+      {
+	uses EscalationPolicy;
+	description "";
+      }
+
+      container serviceUnitRestart
+      {	
+	uses EscalationPolicy;
+	description "";
+      }
+      leaf-list serviceUnits
+      {       
+        type string;
+      }
+     leaf-list serviceInstances
+      {
+        type string;
+      }
+  }
+
+
+  grouping ComponentConfig {
+    leaf name {
+      type string;
+    }
+  leaf capabilityModel {
+    type enumeration
+	{
+	  enum x_active_and_y_standby;	 
+	  enum x_active_or_y_standby;	  
+	  enum not_preinstantiable;	  	         
+        }
+       default x_active_or_y_standby;         
+  }
+  leaf maxActiveAssignments
+      {
+	type uint32;
+	default 1;
+	description "Maximum number of active work assignments this component can handle.";       
+      }
+
+      leaf maxStandbyAssignments
+      {
+	type uint32;
+	default 1;
+	description "Maximum number of standby work assignments this component can handle.";
+      }
+  
+  leaf-list commandEnvironment
+      {
+	type string;	
+      }
+  container instantiate
+      {
+	uses execution;	
+      }
+  container terminate
+      {
+	uses execution;
+      }   
+   container cleanup
+      {
+	uses execution;
+	description "Optional: This will be run after the component stops for any reason (terminate or fault) so long as the node (machine) is still running.";
+      }
+   leaf maxInstantInstantiations
+      {
+	type uint32;
+	default 1;
+	description "How many times to attempt to instantiate this entity without delay.  If the number of instantiation attempts exceeds both this and the max delayed instantiations field, the fault will be elevated to the Service Unit level.";	
+      }
+
+      leaf maxDelayedInstantiations
+      {
+	type uint32;
+	default 1;
+	description "How many times to attempt to instantiate this entity after an initial delay.  If the number of instantiation attempts exceeds both this and the max instant instantiations field, the fault will be elevated to the Service Unit level.";	
+      }
+   leaf instantiationSuccessDuration
+      {
+	type uint32;
+	config true;
+	description "If this component remains instantiated for this length of time (in milliseconds), the component is deemed to be successfully instantiated and the numInstantiationAttempts field is zeroed.";
+        default 30000; // 30 second default
+      }
+   leaf delayBetweenInstantiation
+      {	
+	type uint32;
+	default 10000;
+	description "How long to delay between instantiation attempts";	
+      }
+
+      container timeouts
+      {
+        leaf terminate
+        {
+	  type SaTimeT;
+	  default 120000; // 2 minutes
+	  description "How much time to give a component to gracefully shut down before faulting it, in milliseconds.";        
+        }
+
+	leaf quiescingComplete
+	{
+	  type SaTimeT;
+	  default 120000; // 2 minutes
+	  description "How much time to give a component to gracefully finish handling its work before faulting it, in milliseconds.";
+	}
+	leaf workRemoval
+	{
+	  type SaTimeT;
+	  default 120000; // 2 minutes
+	  description "How much time to give a component to execute its work (component service instance) removal callback before faulting the component.  Specified in milliseconds.";
+	}
+
+	leaf workAssignment
+	{
+	  type SaTimeT;
+	  default 120000; // 2 minutes
+	  description "How much time to give a component to execute its work (component service instance) removal callback before faulting the component.  Specified in milliseconds.";
+	}
+      }
+
+     leaf serviceUnit
+     {
+        type string;
+     }
+
+      leaf recovery
+      {
+	type enumeration
+	{
+	  enum NoRecommendation { value 1; }
+	  enum Restart 
+	  { 
+	    value 2; 
+	    description "The erroneous component should be terminated and reinstantiated.";
+	  }
+	  enum Failover 
+	  { 
+	    value 3; 
+	    description "Depending on the redundancy model used, either the component or the service unit containing the component should fail over to another node.";
+	  }
+	  enum NodeSwitchover 
+	  { 
+	    value 4; 
+	    description "Service instances containing component service instances assigned to the failed component are failed over while other service instances
+are switched over to other nodes (component service instances are not abruptly removed; instead, they are brought to the quiesced state before being removed).";
+	  }
+	  enum NodeFailover 
+	  { 
+	    value 5; 
+	    description "No service instance should be assigned to service units on that node. All service instances assigned to service units contained in the node are failed over to other nodes (by an abrupt termination of all node-local components).";
+	  }
+	  enum NodeFailfast
+	  {
+	    value 6;
+	    description "The node should be rebooted using a low-level interface.";
+	  }
+	  enum ClusterReset
+	  {
+	    value 7;
+	    description "The cluster should be reset. In order to execute this function, the Availability Management Framework reboots all nodes that are part of the cluster by using a low level interface without trying to terminate the components individually.  All AMF nodes are first terminated before any of the AMF nodes starts to instantiate again.";
+	  }
+	  enum ApplicationRestart
+	  {
+	    value 8;
+	    description "The application should be completely terminated and then started again by first terminating all of its service units and then starting them again, ensuring that during the termination phase of the restart procedure service instances of the application are not reassigned.";
+	  }
+	  enum ContainerRestart
+	  {
+	    value 9;
+	    description "Terminate all contained components and the container component abruptly and then instantiate them again.";
+	  }
+	    
+	}
+        default NoRecommendation;
+
+      }
+
+      leaf restartable
+      {
+	type boolean;
+	default true;
+	description "Set to true if this component can be restarted on failure, without this event registering as a fault";
+      }  
+  }
+
+  grouping ComponentServiceInstanceConfig {
+    leaf name {
+      type string;
+    }
+    leaf-list dependencies
+      {	
+        type string;        
+      }
+
+      list data
+      {
+        key "name";
+        leaf name
+	{
+	  type string;
+	}
+        leaf val
+	{
+	  type string;
+	}
+        description "Arbitrary data that defines the work needed to be done.";
+      }
+
+     // Parent pointer
+     leaf serviceInstance
+     {
+        type string;        
+     }
+  }
+
+  grouping ServiceInstanceConfig {
+    leaf name {
+      type string;
+    }
+    leaf adminState
+      {
+        type AdministrativeState;
+	description "Does the operator want this entity to be off, idle, or in service?";
+      }
+    leaf preferredActiveAssignments
+      {
+        type uint32;
+	description "What is the optimal number of Service Units that should be given an active assignment for this work?  Note that the SA-Forum requires this field to be 1 for 2N, N+M, N-Way, and no redundancy models (see SAI-AIS-AMF-B.04.01@3.2.3.2 table 11).  However SAFplus allows this field to be set to any value for these models.";
+        default 1;
+      }
+
+      leaf preferredStandbyAssignments
+      {
+        type uint32;
+	description "What is the optimal number of Service Units that should be given a standby assignment for this work?  Note that the SA-Forum requires this field to be 1 for 2N, and N+M, redundancy models (see SAI-AIS-AMF-B.04.01@3.2.3.2 table 11).  However SAFplus allows this field to be set to any value for these models.  This field must be 0 for N-Way Active and No-redundancy models since these models do not have standby apps.";
+        default 1;
+      }
+      
+      leaf rank
+      {
+	type uint32;
+	description "Lower rank is instantiated before higher; but rank 0 means 'don't care'.  This field indicates priority but does not guarantee ordering. That is, it is NOT true that all rank 1 entities will be finished before rank 2 is initiated (use dependencies for that).";
+      }
+    leaf-list componentServiceInstances
+      {       
+        type string;       
+      }
+
+     // Parent pointers
+     leaf serviceGroup
+     {
+        type string;        
+     }
+  }
+
+  grouping ServiceUnitConfig {
+    leaf name {
+      type string;
+    }
+    leaf adminState
+      {
+        type AdministrativeState;
+	description "Does the operator want this entity to be off, idle, or in service?";
+      }
+      // skipped saAmfSUType
+
+      leaf rank
+      {
+	type uint32 {
+        range "0..1024";	
+	}
+        default 0;
+	description "Lower rank is instantiated before higher; but rank 0 means 'don't care'.  This field indicates priority but does not guarantee ordering. That is, it is NOT true that all rank 1 entities will be finished before rank 2 is instantiated (use dependencies for that).";
+      }
+
+      leaf failover
+      {
+	type boolean;
+	description "TODO";
+      }
+    leaf-list components
+     {
+        type string;
+     }
+
+     // Parent pointers
+     leaf node
+     {
+        type string;
+     }
+
+     leaf serviceGroup
+     {
+        type string;
+     }
+
+     leaf probationTime
+      {
+	type uint32 {
+          range "0..1000000";
+	}
+	default 0;
+	description "Once this Service Unit is instantiated, how long should I wait before trusting that it is working properly?  Work will not be assigned until after this period.";	
+      }     
+  }
+
+  rpc initialize {     
+     /*input {
+      leaf pid
+      {
+        //description "The process id of the invoking application";
+        type int32;
+      }
+      leaf nodeId
+      {
+        //description "The node id to which the invoking application belongs";
+        type int32;
+      }
+     }*/     
+     input {
+       leaf-list amfMgmtHandle
+	{
+	  type binary
+          { 
+	    length 16;  // 2 64-bit words 
+	  }
+	}
+     }
+     output {
+       leaf err {
+        type int32;
+       }
+     }
+   }
+
+  rpc finalize {     
+     input {
+       leaf-list amfMgmtHandle
+	{
+	  type binary
+          { 
+	    length 16;  // 2 64-bit words 
+	  }
+	}
+     }
+     output {
+       leaf err {
+        type int32;
+       }
+     }
+   }
+  
+  rpc commit {     
+     input {
+       leaf-list amfMgmtHandle
+	{
+	  type binary
+          { 
+	    length 16;  // 2 64-bit words 
+	  }
+	}
+     }
+     output {
+       leaf err {
+        type int32;
+       }
+     }
+   }
+
+  rpc createComponent {
+     input {
+       leaf-list amfMgmtHandle
+	{
+	  type binary
+          { 
+	    length 16;  // 2 64-bit words 
+	  }
+	}
+       uses ComponentConfig;
+     }
+     output {
+       leaf err {
+        type int32;
+       }
+     }
+   }
+   rpc updateComponent {
+     input {
+       leaf-list amfMgmtHandle
+	{
+	  type binary
+          { 
+	    length 16;  // 2 64-bit words 
+	  }
+	}
+       uses ComponentConfig;
+     }
+     output {
+       leaf err {
+        type int32;
+       }
+     }
+   }
+   rpc deleteComponent {
+     input {
+       leaf-list amfMgmtHandle
+	{
+	  type binary
+          { 
+	    length 16;  // 2 64-bit words 
+	  }
+	}
+       leaf name {
+         type string;
+       }  
+     }
+     output {
+       leaf err {
+        type int32;
+       }
+     }
+   }
+   
+   rpc createSG {
+     input {
+       leaf-list amfMgmtHandle
+	{
+	  type binary
+          { 
+	    length 16;  // 2 64-bit words 
+	  }
+	}
+       uses ServiceGroupConfig;
+     }
+     output {
+       leaf err {
+        type int32;
+       }
+     }
+   }
+   rpc updateSG {
+     input {
+       leaf-list amfMgmtHandle
+	{
+	  type binary
+          { 
+	    length 16;  // 2 64-bit words 
+	  }
+	}
+       uses ServiceGroupConfig;
+     }
+     output {
+       leaf err {
+        type int32;
+       }
+     }
+   }
+   rpc deleteSG {
+     input {
+       leaf-list amfMgmtHandle
+	{
+	  type binary
+          { 
+	    length 16;  // 2 64-bit words 
+	  }
+	}
+       leaf name {
+         type string;
+       }  
+     }
+     output {
+       leaf err {
+        type int32;
+       }
+     }
+   }
+
+   rpc createNode {
+     input {
+       leaf-list amfMgmtHandle
+	{
+	  type binary
+          { 
+	    length 16;  // 2 64-bit words 
+	  }
+	}
+       uses NodeConfig;
+     }
+     output {
+       leaf err {
+        type int32;
+       }
+     }
+   }
+   rpc updateNode {
+     input {
+       leaf-list amfMgmtHandle
+	{
+	  type binary
+          { 
+	    length 16;  // 2 64-bit words 
+	  }
+	}
+       uses NodeConfig;
+     }
+     output {
+       leaf err {
+        type int32;
+       }
+     }
+   }
+   rpc deleteNode {
+     input {
+       leaf-list amfMgmtHandle
+	{
+	  type binary
+          { 
+	    length 16;  // 2 64-bit words 
+	  }
+	}
+       leaf name {
+         type string;
+       }  
+     }
+     output {
+       leaf err {
+        type int32;
+       }
+     }
+   }
+
+   rpc createSU {
+     input {
+       leaf-list amfMgmtHandle
+	{
+	  type binary
+          { 
+	    length 16;  // 2 64-bit words 
+	  }
+	}
+       uses ServiceUnitConfig;
+     }
+     output {
+       leaf err {
+        type int32;
+       }
+     }
+   }
+   rpc updateSU {
+     input {
+       leaf-list amfMgmtHandle
+	{
+	  type binary
+          { 
+	    length 16;  // 2 64-bit words 
+	  }
+	}
+       uses ServiceUnitConfig;
+     }
+     output {
+       leaf err {
+        type int32;
+       }
+     }
+   }
+   rpc deleteSU {
+     input {
+       leaf-list amfMgmtHandle
+	{
+	  type binary
+          { 
+	    length 16;  // 2 64-bit words 
+	  }
+	}
+       leaf name {
+         type string;
+       }  
+     }
+     output {
+       leaf err {
+        type int32;
+       }
+     }
+   }
+
+   rpc createSI {
+     input {
+       leaf-list amfMgmtHandle
+	{
+	  type binary
+          { 
+	    length 16;  // 2 64-bit words 
+	  }
+	}
+       uses ServiceInstanceConfig;
+     }
+     output {
+       leaf err {
+        type int32;
+       }
+     }
+   }
+   rpc updateSI {
+     input {
+       leaf-list amfMgmtHandle
+	{
+	  type binary
+          { 
+	    length 16;  // 2 64-bit words 
+	  }
+	}
+       uses ServiceInstanceConfig;
+     }
+     output {
+       leaf err {
+        type int32;
+       }
+     }
+   }
+   rpc deleteSI {
+     input {
+       leaf-list amfMgmtHandle
+	{
+	  type binary
+          { 
+	    length 16;  // 2 64-bit words 
+	  }
+	}
+       leaf name {
+         type string;
+       }  
+     }
+     output {
+       leaf err {
+        type int32;
+       }
+     }
+   }
+
+   rpc createCSI {
+     input {
+       leaf-list amfMgmtHandle
+	{
+	  type binary
+          { 
+	    length 16;  // 2 64-bit words 
+	  }
+	}
+       uses ComponentServiceInstanceConfig;
+     }
+     output {
+       leaf err {
+        type int32;
+       }
+     }
+   }
+   rpc updateCSI {
+     input {
+       leaf-list amfMgmtHandle
+	{
+	  type binary
+          { 
+	    length 16;  // 2 64-bit words 
+	  }
+	}
+       uses ComponentServiceInstanceConfig;
+     }
+     output {
+       leaf err {
+        type int32;
+       }
+     }
+   }
+   rpc deleteCSI {
+     input {
+       leaf-list amfMgmtHandle
+	{
+	  type binary
+          { 
+	    length 16;  // 2 64-bit words 
+	  }
+	}
+       leaf name {
+         type string;
+       }  
+     }
+     output {
+       leaf err {
+        type int32;
+       }
+     }
+   }
+
+   rpc deleteCSINVP {
+     input {
+       leaf-list amfMgmtHandle
+	{
+	  type binary
+          { 
+	    length 16;  // 2 64-bit words 
+	  }
+	}    
+       leaf name {
+         type string;
+       }
+      list data
+      {
+        key "name";
+        leaf name
+	{
+	  type string;
+	}
+        leaf val
+	{
+	  type string;
+	}
+        description "Arbitrary data that defines the work needed to be done.";
+      }
+     }
+     output {
+       leaf err {
+        type int32;
+       }
+     }
+   }
+
+   rpc deleteNodeSUList {
+     input {
+       leaf-list amfMgmtHandle
+	{
+	  type binary
+          { 
+	    length 16;  // 2 64-bit words 
+	  }
+	}
+       leaf nodeName {
+         type string;
+       }
+       leaf-list suList {
+         type string;
+       }
+     }
+     output {
+       leaf err {
+         type int32;
+       }
+     }
+   }
+ 
+   rpc deleteSGSUList {
+     input {
+       leaf-list amfMgmtHandle
+	{
+	  type binary
+          { 
+	    length 16;  // 2 64-bit words 
+	  }
+	}
+       leaf sgName {
+         type string;
+       }
+       leaf-list suList {
+         type string;
+       }
+     }
+     output {
+       leaf err {
+         type int32;
+       }
+     }
+   }
+
+   rpc deleteSGSIList {
+     input {
+       leaf-list amfMgmtHandle
+	{
+	  type binary
+          { 
+	    length 16;  // 2 64-bit words 
+	  }
+	}
+       leaf sgName {
+         type string;
+       }
+       leaf-list siList {
+         type string;
+       }
+     }
+     output {
+       leaf err {
+         type int32;
+       }
+     }
+   }
+   rpc deleteSUCompList {
+     input {
+       leaf-list amfMgmtHandle
+	{
+	  type binary
+          { 
+	    length 16;  // 2 64-bit words 
+	  }
+	}
+       leaf suName {
+         type string;
+       }
+       leaf-list compList {
+         type string;
+       }
+     }
+     output {
+       leaf err {
+         type int32;
+       }
+     }
+   }
+   rpc deleteSICSIList {
+     input {
+       leaf-list amfMgmtHandle
+	{
+	  type binary
+          { 
+	    length 16;  // 2 64-bit words 
+	  }
+	}
+       leaf siName {
+         type string;
+       }
+       leaf-list csiList {
+         type string;
+       }
+     }
+     output {
+       leaf err {
+         type int32;
+       }
+     }
+   }
+   rpc lockNodeAssignment {
+     input {
+       leaf-list amfMgmtHandle
+	{
+	  type binary
+          { 
+	    length 16;  // 2 64-bit words 
+	  }
+	}
+       leaf nodeName {
+         type string;
+       }       
+     }
+     output {
+       leaf err {
+         type int32;
+       }
+     }
+   }
+   rpc lockSGAssignment {
+     input {
+       leaf-list amfMgmtHandle
+	{
+	  type binary
+          { 
+	    length 16;  // 2 64-bit words 
+	  }
+	}
+       leaf sgName {
+         type string;
+       }       
+     }
+     output {
+       leaf err {
+         type int32;
+       }
+     }
+   }
+   rpc lockSUAssignment {
+     input {
+       leaf-list amfMgmtHandle
+	{
+	  type binary
+          { 
+	    length 16;  // 2 64-bit words 
+	  }
+	}
+       leaf suName {
+         type string;
+       }       
+     }
+     output {
+       leaf err {
+         type int32;
+       }
+     }
+   }
+   rpc lockSIAssignment {
+     input {
+       leaf-list amfMgmtHandle
+	{
+	  type binary
+          { 
+	    length 16;  // 2 64-bit words 
+	  }
+	}
+       leaf siName {
+         type string;
+       }       
+     }
+     output {
+       leaf err {
+         type int32;
+       }
+     }
+   }
+   rpc lockNodeInstantiation {
+     input {
+       leaf-list amfMgmtHandle
+	{
+	  type binary
+          { 
+	    length 16;  // 2 64-bit words 
+	  }
+	}
+       leaf nodeName {
+         type string;
+       }       
+     }
+     output {
+       leaf err {
+         type int32;
+       }
+     }
+   }
+   rpc lockSGInstantiation {
+     input {
+       leaf-list amfMgmtHandle
+	{
+	  type binary
+          { 
+	    length 16;  // 2 64-bit words 
+	  }
+	}
+       leaf sgName {
+         type string;
+       }       
+     }
+     output {
+       leaf err {
+         type int32;
+       }
+     }
+   }
+   rpc lockSUInstantiation {
+     input {
+       leaf-list amfMgmtHandle
+	{
+	  type binary
+          { 
+	    length 16;  // 2 64-bit words 
+	  }
+	}
+       leaf suName {
+         type string;
+       }       
+     }
+     output {
+       leaf err {
+         type int32;
+       }
+     }
+   }
+   rpc unlockNode {
+     input {
+       leaf-list amfMgmtHandle
+	{
+	  type binary
+          { 
+	    length 16;  // 2 64-bit words 
+	  }
+	}
+       leaf nodeName {
+         type string;
+       }       
+     }
+     output {
+       leaf err {
+         type int32;
+       }
+     }
+   }
+   rpc unlockSG {
+     input {
+       leaf-list amfMgmtHandle
+	{
+	  type binary
+          { 
+	    length 16;  // 2 64-bit words 
+	  }
+	}
+       leaf sgName {
+         type string;
+       }       
+     }
+     output {
+       leaf err {
+         type int32;
+       }
+     }
+   }
+   rpc unlockSU {
+     input {
+       leaf-list amfMgmtHandle
+	{
+	  type binary
+          { 
+	    length 16;  // 2 64-bit words 
+	  }
+	}
+       leaf suName {
+         type string;
+       }       
+     }
+     output {
+       leaf err {
+         type int32;
+       }
+     }
+   }
+   rpc unlockSI {
+     input {
+       leaf-list amfMgmtHandle
+	{
+	  type binary
+          { 
+	    length 16;  // 2 64-bit words 
+	  }
+	}
+       leaf siName {
+         type string;
+       }       
+     }
+     output {
+       leaf err {
+         type int32;
+       }
+     }
+   }
+   rpc repairNode {
+     input {
+       leaf-list amfMgmtHandle
+	{
+	  type binary
+          { 
+	    length 16;  // 2 64-bit words 
+	  }
+	}
+       leaf nodeName {
+         type string;
+       }       
+     }
+     output {
+       leaf err {
+         type int32;
+       }
+     }
+   }
+   rpc repairComponent {
+     input {
+       leaf-list amfMgmtHandle
+	{
+	  type binary
+          { 
+	    length 16;  // 2 64-bit words 
+	  }
+	}
+       leaf compName {
+         type string;
+       }       
+     }
+     output {
+       leaf err {
+         type int32;
+       }
+     }
+   }
+   rpc repairSU {
+     input {
+       leaf-list amfMgmtHandle
+	{
+	  type binary
+          { 
+	    length 16;  // 2 64-bit words 
+	  }
+	}
+       leaf suName {
+         type string;
+       }       
+     }
+     output {
+       leaf err {
+         type int32;
+       }
+     }
+   }
+}
+

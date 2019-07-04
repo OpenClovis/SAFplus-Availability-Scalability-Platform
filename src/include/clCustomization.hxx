@@ -16,6 +16,8 @@
 //? Define this if you want the logging system to be cluster wide.  Comment it out to make the logging system local to the node.
 #define SAFPLUS_CLUSTERWIDE_LOG
 
+#define AMF_MASTER_HANDLE "AmfMasterHandle"
+
 namespace SAFplus
   {
     enum
