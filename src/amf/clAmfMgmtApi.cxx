@@ -11,16 +11,16 @@ using namespace SAFplusI;
 
 namespace SAFplus
 {
-  extern Handle myHandle;
-  SAFplus::Rpc::RpcChannel *amfRpcChannel=NULL;
-  SAFplus::Rpc::amfMgmtRpc::amfMgmtRpc_Stub *amfMgmtRpc=NULL;
-  ClBoolT gAmfMgmtInitialized = CL_FALSE;
-  ClBoolT rpcInitialized = CL_FALSE;
+extern Handle myHandle;
+SAFplus::Rpc::RpcChannel *amfMgmtRpcChannel=NULL;
+SAFplus::Rpc::amfMgmtRpc::amfMgmtRpc_Stub *amfMgmtRpc=NULL;
+ClBoolT gAmfMgmtInitialized = CL_FALSE;
+ClBoolT rpcInitialized = CL_FALSE;
 void rpcInit()
 {
-  amfRpcChannel=new SAFplus::Rpc::RpcChannel(&safplusMsgServer, NULL);
-  amfRpcChannel->setMsgType(AMF_MGMT_REQ_HANDLER_TYPE,AMF_MGMT_REPLY_HANDLER_TYPE);
-  amfMgmtRpc=new SAFplus::Rpc::amfMgmtRpc::amfMgmtRpc_Stub(amfRpcChannel);
+  amfMgmtRpcChannel=new SAFplus::Rpc::RpcChannel(&safplusMsgServer, NULL);
+  amfMgmtRpcChannel->setMsgType(AMF_MGMT_REQ_HANDLER_TYPE,AMF_MGMT_REPLY_HANDLER_TYPE);
+  amfMgmtRpc=new SAFplus::Rpc::amfMgmtRpc::amfMgmtRpc_Stub(amfMgmtRpcChannel);
   rpcInitialized = CL_TRUE;
 }
 

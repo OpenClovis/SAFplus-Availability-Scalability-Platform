@@ -41,7 +41,7 @@ const int AMF_MGMT_OP_SG_CREATE                    = 4;
 const int AMF_MGMT_OP_SG_UPDATE                    = 5;
 const int AMF_MGMT_OP_SG_DELETE                    = 6;
 const int AMF_MGMT_OP_NODE_CREATE                  = 7;
-const int  AMF_MGMT_OP_NODE_UPDATE                 = 8;
+const int AMF_MGMT_OP_NODE_UPDATE                  = 8;
 const int AMF_MGMT_OP_NODE_DELETE                  = 9;
 const int AMF_MGMT_OP_SU_CREATE                    = 10; 
 const int AMF_MGMT_OP_SU_UPDATE                    = 11;
@@ -400,7 +400,7 @@ namespace amfMgmtRpc {
     response->set_err(rc);
 #endif    
     const ComponentConfig& comp = request->componentconfig();
-    logDebug("MGMT","RPC","enter [%s] with param comp name [%s]",__FUNCTION__,comp.name().c_str());
+    logTrace("MGMT","RPC","enter [%s] with param comp name [%s]",__FUNCTION__,comp.name().c_str());
     DbalPlugin* pd = NULL;
     ClRcT rc = getDbalObj(request->amfmgmthandle().Get(0).c_str(), &pd);
     if (rc == CL_OK)
@@ -415,10 +415,11 @@ namespace amfMgmtRpc {
     response->set_err(rc);
   }
 
-#if 0
+
   void amfMgmtRpcImpl::updateComponent(const ::SAFplus::Rpc::amfMgmtRpc::UpdateComponentRequest* request,
                                 ::SAFplus::Rpc::amfMgmtRpc::UpdateComponentResponse* response)
   {
+    #if 0
     const ComponentConfig& comp = request->componentconfig();
     logInfo("MGMT","RPC", "server is processing updateComponent name [%s]", comp.name().c_str());
     SAFplusAmf::CapabilityModel cm = static_cast<SAFplusAmf::CapabilityModel>(comp.capabilitymodel());
@@ -431,8 +432,9 @@ namespace amfMgmtRpc {
     logDebug("MGMT","---","read the DB");
     cfg.read(&amfDb);
     response->set_err(rc);
+    #endif
   }
-#endif
+
 
 
   void amfMgmtRpcImpl::deleteComponent(const ::SAFplus::Rpc::amfMgmtRpc::DeleteComponentRequest* request,
