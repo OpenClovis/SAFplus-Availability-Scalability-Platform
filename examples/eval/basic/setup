@@ -9,7 +9,7 @@ sysctl -w net.core.wmem_default=20485760
 
 # set this node's name as specified in the XML model
 export ASP_NODENAME=node0
-
+export ASP_PREFERRED_CLUSTER_LEADER_NODENAME=node0
 # excessive logging can cause expect's input buffer to fill up, hanging the app on stdout
 export CL_LOG_SEVERITY=INFO
 export CL_LOG_CODE_LOCATION_ENABLE=1

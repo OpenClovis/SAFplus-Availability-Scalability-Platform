@@ -32,7 +32,7 @@ The storage service can provide a client library so applications can access the 
 #include <clMsgPortsAndTypes.hxx>
 //#include <clGroupIpi.hxx>
 //#include <clCpmApi.h>
-
+using namespace std;
 namespace SAFplusI
 {
   class GroupMessageProtocol;
@@ -41,6 +41,12 @@ namespace SAFplusI
   enum class GroupMessageSendModeT;
   class GroupSharedMem;
 };
+
+enum
+  {
+  NODENAME_LEN = 16*8,              // Make sure it is a multiple of 64 bits
+  };
+
 
 namespace SAFplus
 {
@@ -66,12 +72,14 @@ namespace SAFplus
     uint64_t credentials;  //? Set by the user; highest credential wins the election
     uint capabilities; //? Can this entity be active or standby, etc?  Bitfield defined by enums in <ref>Group</ref>
     uint dataLen; //? How much additional info is included by this entity
+    char nodeName[NODENAME_LEN]; 
     GroupIdentity& operator=(const GroupIdentity & c)
     {
       id            = c.id;
       credentials   = c.credentials;
       capabilities  = c.capabilities;
       dataLen       = c.dataLen;
+      strcpy(nodeName,c.nodeName);
       return *this;
     }
     GroupIdentity() //? <ctor>Default two-phase constructor.  Call <ref>init()</ref></ctor>
@@ -80,14 +88,16 @@ namespace SAFplus
       credentials = 0;
       capabilities = 0;
       dataLen = 0;
+      nodeName[0] = '\0';
     }
     //? Initialize this object.  See member fields for documentation of the arguments.
-    void init(EntityIdentifier me,uint64_t creds,uint caps,uint datasz=0)
+    void init(EntityIdentifier me,uint64_t creds,uint caps, const char* nodeNameStr,uint datasz=0)
     {
       id = me;
       credentials = creds;
       capabilities = caps;
       dataLen = datasz;
+      strcpy(nodeName, nodeNameStr);
     }
     //? <ctor>Initialize this object.  See member fields for documentation of the arguments.</ctor>
     GroupIdentity(EntityIdentifier me,uint64_t credentials,uint datalen,uint capabilities)
@@ -96,6 +106,7 @@ namespace SAFplus
       this->credentials = credentials;
       this->capabilities = capabilities;
       this->dataLen = datalen;
+      nodeName[0] = '\0';
     }
 
     //? Change this entity's info if the configured values are different.  Return whether changes needed to be made.
@@ -210,18 +221,19 @@ namespace SAFplus
       // <arg name="credentials">A number that must be unique across all members of the group.  Highest credential wins the election.</arg>
       // <arg name="capabilities">Whether this entity can become active/standby and IS this entity currently active/standby (latter should always be 0, Group will elect).</arg>
       // <arg name="data, dataLength">A group member can provide some arbitrary data that other group members can see.  Pass via a buffer and a length.  This data will be copied so you may free it when this function returns.</arg>
-      void registerEntity(EntityIdentifier me, uint64_t credentials, const void* data, int dataLength, uint capabilities) 
+      void registerEntity(EntityIdentifier me, uint64_t credentials, const void* data, int dataLength, uint capabilities, const string& nodeName="") 
         {
        // [not implemented args] <arg name="needNotify: Callback whenever group membership changes?</arg>
         assert(myInformation.id == INVALID_HDL);  // You can only register 1 entity per group object
         myInformation.id = me;
         myInformation.credentials = credentials;
         myInformation.capabilities = capabilities;
-        _registerEntity(me, credentials, data, dataLength, capabilities);
+        strcpy(myInformation.nodeName, nodeName.c_str());
+        _registerEntity(me, credentials, data, dataLength, capabilities,nodeName);
         }
 
       // common internal registration function that handles both application registrations and remote announcements.
-      void _registerEntity(EntityIdentifier me, uint64_t credentials, const void* data, int dataLength, uint capabilities);
+      void _registerEntity(EntityIdentifier me, uint64_t credentials, const void* data, int dataLength, uint capabilities,const string& nodeName="");
 
       //? Stop being a member of the group.  You can still use this object to list members, etc.
       // <arg name="me">[OPTIONAL: default is last entity to register] What entity should be deregistered.  If me=INVALID_HDL, use the group identifier the last call to "register" was called with.</arg>

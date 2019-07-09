@@ -88,7 +88,6 @@ bool initOperValues = false;
 
 enum
   {
-  NODENAME_LEN = 16*8,              // Make sure it is a multiple of 64 bits
   SC_ELECTION_BIT = 1<<8,           // This bit is set in the credential if the node is a system controller, making SCs preferred 
   STARTUP_ELECTION_DELAY_MS = 2000,  // Wait for 5 seconds during startup if nobody is active so that other nodes can arrive, making the initial election not dependent on small timing issues. 
 
@@ -460,7 +459,6 @@ bool standbyAudit(void) // Check to make sure DB and the system state are in syn
 void becomeActive(void)
 {
   nodeMonitor.becomeActive();
-
   cfg.read(&amfDb);
   initializeOperationalValues(cfg);
 
@@ -821,12 +819,10 @@ int main(int argc, char* argv[])
   clusterGroupData.nodeAddr = SAFplus::ASP_NODEADDR;
   clusterGroupData.nodeMgtHandle = INVALID_HDL;
   strncpy(clusterGroupData.nodeName,SAFplus::ASP_NODENAME,NODENAME_LEN);
-  // TODO: clusterGroupData.backplaneIp = 
-  clusterGroup.registerEntity(myHandle, credential, (void*) &clusterGroupData, sizeof(ClusterGroupData),capabilities);
+  clusterGroup.registerEntity(myHandle, credential, (void*) &clusterGroupData, sizeof(ClusterGroupData),capabilities,SAFplus::ASP_NODENAME);
 //  MgtFunction::registerEntity(myHandle);
 #endif
   logInfo("AMF","HDL", "I AM [%" PRIx64 ":%" PRIx64 "]", myHandle.id[0],myHandle.id[1]);
-
   std::pair<EntityIdentifier,EntityIdentifier> activeStandbyPairs;
 #ifdef USE_GRP
   activeStandbyPairs = clusterGroup.getRoles();

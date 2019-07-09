@@ -52,7 +52,9 @@ namespace SAFplus
   bool SYSTEM_CONTROLLER = CL_FALSE; 
 /** Variable to check if the current node is a SC capable node.  Loaded from the same-named environment variable.  */
   bool ASP_SC_PROMOTE = CL_FALSE;
-
+  
+/** */ 
+  char ASP_PREFERRED_CLUSTER_LEADER_NODENAME[CL_MAX_NAME_LENGTH] ="";
   SaVersionT safVersion = { 'B',4,1 };
   pid_t      pid = 0;
   uint_t iocPort = 0;
@@ -178,8 +180,8 @@ namespace SAFplus
       }
     if (1)  /* Optional environment variables */
       {       
-      const char* envvars[] = { "ASP_APP_BINDIR", 0 };  /* This won't be defined if the AMF is run */
-      char* storage[] = { ASP_APP_BINDIR, 0 };
+      const char* envvars[] = { "ASP_APP_BINDIR", "ASP_PREFERRED_CLUSTER_LEADER_NODENAME", 0 };  /* This won't be defined if the AMF is run */
+      char* storage[] = { ASP_APP_BINDIR, ASP_PREFERRED_CLUSTER_LEADER_NODENAME, 0 };
     
       for (i=0; envvars[i] != 0; i++)
         {

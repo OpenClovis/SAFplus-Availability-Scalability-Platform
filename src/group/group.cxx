@@ -294,7 +294,7 @@ void Group::setNotification(SAFplus::Wakeable& w)
 /**
  * API to register an entity to the group
  */
-  void SAFplus::Group::_registerEntity(EntityIdentifier me, uint64_t credentials, const void* data, int dataLength, uint capabilities)
+  void SAFplus::Group::_registerEntity(EntityIdentifier me, uint64_t credentials, const void* data, int dataLength, uint capabilities, const string& nodeName)
     {
     bool notify = false;
     if (1)
@@ -329,7 +329,8 @@ void Group::setNotification(SAFplus::Wakeable& w)
         gi.id = me;
         gi.credentials = credentials;
         gi.capabilities = capabilities;
-        gi.dataLen = 0;   //  TODO: data 
+        gi.dataLen = 0;   //  TODO: data
+        strcpy(gi.nodeName, nodeName.c_str());
         fillAndSendMessage((void *)&gi,GroupMessageTypeT::MSG_ENTITY_JOIN,GroupMessageSendMode::SEND_BROADCAST,GroupRoleNotifyTypeT::ROLE_UNDEFINED);
         }
       }

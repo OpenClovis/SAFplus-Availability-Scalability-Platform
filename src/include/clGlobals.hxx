@@ -43,6 +43,7 @@ namespace SAFplus
     //? Dir where persistent db files are to be stored. Loaded from the same-named environment variable.
   extern char ASP_DBDIR[CL_MAX_NAME_LENGTH];
 
+  extern char ASP_PREFERRED_CLUSTER_LEADER_NODENAME[CL_MAX_NAME_LENGTH];
 
   
     //? Variable to check if the current node is a system controller node.  Loaded from the same-named environment variable.

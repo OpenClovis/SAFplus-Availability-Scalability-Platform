@@ -22,7 +22,6 @@ namespace SAFplusI
 
 //ClRcT groupIocNotificationCallback(ClIocNotificationT *notification, ClPtrT cookie);
 char groupSharedMemoryObjectName[256] = {0};
-
 GroupServer::GroupServer()
  { 
  quit = false;
@@ -45,7 +44,6 @@ void GroupSharedMem::registerGroupObject(Group* grp)
     {
     lastChange[grp->handle].first = grp->lastChange();
     }
-
   lastChange[grp->handle].second.push_back(grp);
   }
 
@@ -81,7 +79,7 @@ void GroupSharedMem::dispatcher()
       
         GroupChangeMap::iterator val = lastChange.find(grpHdl);  // Get our local last change
         if (val != lastChange.end()) // I am interested in changes in this group
-          {
+        {
           if (gd.lastChanged != val->second.first)
             {
             val->second.first = gd.lastChanged;  // Ok will process all the callbacks for this change so set my local change count to the current one
@@ -299,7 +297,6 @@ void GroupServer::init()
   {
     uint64_t faultChange=0;
     SAFplus::Fault fault;
-
     while(!quit)
       {
         boost::this_thread::sleep(boost::posix_time::milliseconds(250));  // TODO: should be woken via a global sem...
@@ -307,7 +304,7 @@ void GroupServer::init()
         uint64_t tmp = fault.lastChange();
         if ((!quit)&&(faultChange != tmp))  // Fault manager changed; update groups
           {
-            printf ("FAULT CHANGE\n");
+            logInfo ("FLT", "MSG", "FAULT CHANGE ");
             faultChange = tmp;
             //ScopedLock<Mutex> lock2(localMutex);
             //ScopedLock<ProcSem> lock(mutex);
@@ -323,8 +320,8 @@ void GroupServer::init()
                         FaultState fs = fault.getFaultState(gd.members[j].id);
                         if (fs == FaultState::STATE_DOWN)
                           {
-                            //logInfo("FLT","MSG","Removing faulted [%d.%d.%" PRIx64 "] from group", gd.members[j].id.getNode(),gd.members[j].id.getProcess(), gd.members[j].id.getIndex());
-                            printf("Removing faulted [%d.%d.%" PRIx64 "] from group", gd.members[j].id.getNode(),gd.members[j].id.getProcess(), gd.members[j].id.getIndex());
+			    logInfo("FLT","MSG","Removing faulted [%d.%d.%" PRIx64 "] from group", gd.members[j].id.getNode(),gd.members[j].id.getProcess(), gd.members[j].id.getIndex());
+                            //printf("Removing faulted [%d.%d.%" PRIx64 "] from group", gd.members[j].id.getNode(),gd.members[j].id.getProcess(), gd.members[j].id.getIndex());
                             deregisterEntity(&ge,gd.members[j].id,true);
                             j=::SAFplusI::GroupMaxMembers;  // Not going to find a double
                           }
@@ -380,7 +377,7 @@ void GroupServer::msgHandler(Handle from, SAFplus::MsgServer* svr, ClPtrT msg, C
         {
         logDebug("GMS","MSG","Entity JOIN message");
         GroupIdentity *rxGrp = (GroupIdentity *)rxMsg->data;
-        registerEntity(ge, rxGrp->id, rxGrp->credentials, NULL, rxGrp->dataLen, rxGrp->capabilities, false);
+        registerEntity(ge, rxGrp->id, rxGrp->credentials, NULL, rxGrp->dataLen, rxGrp->capabilities, false, rxGrp->nodeName);
         } break;
     case SAFplusI::GroupMessageTypeT::MSG_HELLO:
       if(fromNode != SAFplus::ASP_NODEADDR)
@@ -524,7 +521,7 @@ void GroupServer::handleElectionRequest(SAFplus::Handle grpHandle)
       }
     }
   }
-
+#define PREFERRED_ELECTION_MODIFIER 0x9000000ULL
 #define ACTIVE_ELECTION_MODIFIER 0x8000000ULL
 #define STANDBY_ELECTION_MODIFIER 0x4000000ULL
 
@@ -549,9 +546,13 @@ std::pair<EntityIdentifier,EntityIdentifier> GroupServer::_electRoles(const Grou
     // Prefer existing active/standby for the role rather than other nodes -- stops "failback"
     if ((curCapabilities & SAFplus::Group::IS_ACTIVE)&&(curCapabilities & SAFplus::Group::STICKY)) curCredentials |= ACTIVE_ELECTION_MODIFIER;
     if ((curCapabilities & SAFplus::Group::IS_STANDBY)&&(curCapabilities & SAFplus::Group::STICKY)) curCredentials |= STANDBY_ELECTION_MODIFIER;
-    logInfo("GRP","ELC", "Member [%" PRIx64 ":%" PRIx64 "], capabilities: (%s) 0x%x, credentials: %" PRIu64,curEntity.id[0],curEntity.id[1],Group::capStr(curCapabilities,tempStr), curCapabilities, curCredentials);
+    
 
-
+    if(strcmp(SAFplus::ASP_PREFERRED_CLUSTER_LEADER_NODENAME, gi.nodeName) ==0)
+    {
+	curCredentials |=PREFERRED_ELECTION_MODIFIER;
+    }
+	logInfo("GRP","ELC", "Member [%" PRIx64 ":%" PRIx64 "], capabilities: (%s) 0x%x, credentials: %" PRIu64,curEntity.id[0],curEntity.id[1],Group::capStr(curCapabilities,tempStr), curCapabilities, curCredentials);
     // Obviously the anything that can accept the standby role must be able to be active too.
     // But it is possible to not be able to accept the standby role (transition directly to active).
     if ((curCapabilities & (SAFplus::Group::ACCEPT_ACTIVE |  SAFplus::Group::ACCEPT_STANDBY)) != 0)
@@ -730,7 +731,7 @@ ClRcT groupIocNotificationCallback(ClIocNotificationT *notification, ClPtrT cook
 /**
  * Register an entity to the group
  */
-void GroupServer::registerEntity(GroupShmEntry* grp, EntityIdentifier me, uint64_t credentials, const void* data, int dataLength, uint capabilities,bool needNotify)
+void GroupServer::registerEntity(GroupShmEntry* grp, EntityIdentifier me, uint64_t credentials, const void* data, int dataLength, uint capabilities,bool needNotify,const string& nodeName)
   {
   bool dirty = false;
   if (1)
@@ -762,7 +763,7 @@ void GroupServer::registerEntity(GroupShmEntry* grp, EntityIdentifier me, uint64
         }
       data->numMembers++;
       gi = &data->members[i];
-      gi->init(me,credentials,capabilities);
+      gi->init(me,credentials,capabilities, nodeName.c_str());
       dirty = true;
       }
 

@@ -355,7 +355,7 @@ void SAFplusI::CkptSynchronization::init(Checkpoint* c,MsgServer* pmsgSvr, SAFpl
     if (ckpt->name.size()) group->setName(ckpt->name.c_str());
     group->setNotification(*this);
     // The credential is most importantly the change number (so the latest changes becomes the master) and then the node number) 
-    group->registerEntity(ckpt->hdr->replicaHandle,(ckpt->hdr->changeNum<<SAFplus::Log2MaxNodes) | SAFplus::ASP_NODEADDR,Group::ACCEPT_STANDBY | Group::ACCEPT_ACTIVE | Group::STICKY);
+    group->registerEntity(ckpt->hdr->replicaHandle,(ckpt->hdr->changeNum<<SAFplus::Log2MaxNodes) | SAFplus::ASP_NODEADDR,NULL,0,Group::ACCEPT_STANDBY | Group::ACCEPT_ACTIVE | Group::STICKY, SAFplus::ASP_NODENAME);
 
     logInfo("SYNC","TRD","Checkpoint is registered on [%d:%d] type [%d]", msgSvr->handle.getNode(),msgSvr->handle.getPort(),CKPT_SYNC_MSG_TYPE);
 

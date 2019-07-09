@@ -285,7 +285,7 @@ class GroupServer:public SAFplus::MsgHandler
   bool electNodeRepresentative();
 
   void init();
-  void registerEntity (GroupShmEntry* grp, SAFplus::Handle me, uint64_t credentials, const void* data, int dataLength, uint capabilities,bool needNotify);
+  void registerEntity (GroupShmEntry* grp, SAFplus::Handle me, uint64_t credentials, const void* data, int dataLength, uint capabilities,bool needNotify,const string& nodeName = "");
   void deregisterEntity (GroupShmEntry* grp, SAFplus::Handle me,bool needNotify);
   void _deregister (GroupShmEntry* grp, unsigned int node, unsigned int port=0);
 

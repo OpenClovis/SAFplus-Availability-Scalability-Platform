@@ -146,7 +146,7 @@ void EventServer::initialize()
   SAFplus::objectMessager.insert(severHandle, this);
   eventMsgServer = &safplusMsgServer;
   logDebug("EVT", "SERVER", "Register event server [%d] to event group", severHandle.getNode());
-  group.registerEntity(severHandle, SAFplus::ASP_NODEADDR, NULL, 0, Group::ACCEPT_STANDBY | Group::ACCEPT_ACTIVE | Group::STICKY);
+  group.registerEntity(severHandle, SAFplus::ASP_NODEADDR, NULL, 0, Group::ACCEPT_STANDBY | Group::ACCEPT_ACTIVE | Group::STICKY, SAFplus::ASP_NODENAME);
   activeServer = group.getActive();
   esmServer.setActive(activeServer);
   if (1)

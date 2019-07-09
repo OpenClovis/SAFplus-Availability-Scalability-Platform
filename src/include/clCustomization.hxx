@@ -77,7 +77,7 @@ namespace SAFplusI
   /* GROUP */
   enum
     {
-    GroupSharedMemSize = 4 * 1024*1024,
+    GroupSharedMemSize = 5 * 1024*1024,
     GroupMax           = 1024,  // Maximum number of groups
     GroupMaxMembers    = 1024,   // Maximum number of members in a group
     GroupElectionTimeMs = 3000  // Default Group election time in milliseconds

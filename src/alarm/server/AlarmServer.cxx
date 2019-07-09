@@ -54,10 +54,9 @@ void AlarmServer::initialize()
   logDebug(ALARM_SERVER, ALARM_ENTITY, "Register Alarm Server to Alarm Group");
   group.init(ALARM_GROUP);
   group.setNotification(*this);
-  logDebug(ALARM_SERVER, ALARM_ENTITY, "SAFplus::objectMessager.insert(handleAlarmServer,this)");
   SAFplus::objectMessager.insert(handleAlarmServer, this);
   alarmMsgServer = &safplusMsgServer;
-  group.registerEntity(handleAlarmServer, SAFplus::ASP_NODEADDR, NULL, 0, Group::ACCEPT_STANDBY | Group::ACCEPT_ACTIVE | Group::STICKY);
+  group.registerEntity(handleAlarmServer, SAFplus::ASP_NODEADDR, NULL, 0, Group::ACCEPT_STANDBY | Group::ACCEPT_ACTIVE | Group::STICKY, SAFplus::ASP_NODENAME);
   activeServer = group.getActive();
   assert(activeServer != INVALID_HDL); // It can't be invalid because I am available to be active.
   //set active server

@@ -116,7 +116,7 @@ namespace SAFplus
 
         // the faultMsgServer.handle is going to be a process handle. faultServerHandle also points to this process (its essentially a superset of the faultMsgServer.handle which == getProcessHandle(SAFplusI::FAULT_IOC_PORT,SAFplus::ASP_NODEADDR) btw).  So let's use that one.
         faultInfo.iocFaultServer = faultServerHandle;
-        group.registerEntity(faultServerHandle, SAFplus::ASP_NODEADDR,NULL,0,Group::ACCEPT_STANDBY | Group::ACCEPT_ACTIVE | Group::STICKY);
+        group.registerEntity(faultServerHandle, SAFplus::ASP_NODEADDR,NULL,0,Group::ACCEPT_STANDBY | Group::ACCEPT_ACTIVE | Group::STICKY, SAFplus::ASP_NODENAME);
         SAFplus::Handle activeMember = group.getActive();
         assert(activeMember != INVALID_HDL);  // It can't be invalid because I am available to be active.
         logDebug(FAULT,FAULT_SERVER,"Fault Server active address : nodeAddress [%d] - port [%d]",activeMember.getNode(),activeMember.getPort());
