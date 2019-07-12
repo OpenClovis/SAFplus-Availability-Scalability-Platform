@@ -3,11 +3,14 @@
 #include <SafplusAmf.hxx>
 #include <SAFplusAmfModule.hxx>
 #include <CapabilityModel.hxx>
+#include <Recovery.hxx>
 #include <clDbalBase.hxx>
 #include <clHandleApi.hxx>
 #include <boost/unordered_map.hpp>
 
 #define DBAL_PLUGIN_NAME "libclSQLiteDB.so"
+
+#define B2S(b) b?std::string("True"):std::string("False")
 
 #define MGMT_CALL(fn)                                                    \
 do {                                                                    \
@@ -213,10 +216,10 @@ namespace amfMgmtRpc {
     return CL_OK;
   }
 
-  ClRcT handleCompCommit(const ComponentConfig& comp)
+  ClRcT compCommit(const ComponentConfig& comp)
   {
     ClRcT rc = CL_OK;
-    logInfo("MGMT","RPC", "server is processing createComponent name [%s]", comp.name().c_str());
+    logTrace("MGMT","RPC", "server is processing component create/update commit name [%s]", comp.name().c_str());
     if (comp.name().length()==0)
     {
       return CL_ERR_INVALID_PARAMETER;      
@@ -231,7 +234,133 @@ namespace amfMgmtRpc {
       ssCm>>strCm;
       MGMT_CALL(updateEntityFromDatabase("/safplusAmf/Component",comp.name(),"capabilityModel",strCm));
     }
-    //TO BE continued...
+    if (comp.has_maxactiveassignments())
+    {
+      uint32_t maxActiveAssignments  = comp.maxactiveassignments();
+      char temp[10];
+      snprintf(temp, 9, "%d", maxActiveAssignments);
+      std::string strMaxActiveAssignments = temp;
+      MGMT_CALL(updateEntityFromDatabase("/safplusAmf/Component",comp.name(),"maxActiveAssignments",strMaxActiveAssignments));
+    }
+    if (comp.has_maxstandbyassignments())
+    {
+      uint32_t maxStandbyAssignments  = comp.maxstandbyassignments();
+      char temp[10];
+      snprintf(temp, 9, "%d", maxStandbyAssignments);
+      std::string strMaxStandbyAssignments = temp;
+      MGMT_CALL(updateEntityFromDatabase("/safplusAmf/Component",comp.name(),"maxStandbyAssignments",strMaxStandbyAssignments));
+    }
+    int cmdEnvSize = 0;
+    if ((cmdEnvSize=comp.commandenvironment_size())>0)
+    {
+      std::string value;
+      std::vector<std::string> cmdEnvs;
+      for (int i=0;i<cmdEnvSize;i++)
+      {
+         cmdEnvs.push_back(comp.commandenvironment(i));
+      }
+      MGMT_CALL(updateEntityFromDatabase("/safplusAmf/Component",comp.name(),"commandEnvironment",value,&cmdEnvs));
+    }
+    if (comp.has_instantiate())
+    {
+      if (comp.instantiate().has_execution())
+      {        
+        const Execution& exe = comp.instantiate().execution();
+        if (exe.has_command() && exe.has_timeout())
+        {
+          const std::string& cmd = exe.command();
+          uint64_t timeout = exe.timeout();
+          char temp[20];
+          snprintf(temp, 19, "%" PRIx64, timeout);
+          std::string strTimeout = temp;
+          std::vector<std::string> instantiates;
+          instantiates.push_back(cmd);
+          instantiates.push_back(strTimeout);
+          std::string value;
+          MGMT_CALL(updateEntityFromDatabase("/safplusAmf/Component",comp.name(),"instantiate",value,&instantiates));
+        }
+      }
+    }
+    if (comp.has_terminate())
+    {
+      if (comp.terminate().has_execution())
+      {        
+        const Execution& exe = comp.terminate().execution();
+        if (exe.has_command() && exe.has_timeout())
+        {
+          const std::string& cmd = exe.command();
+          uint64_t timeout = exe.timeout();
+          char temp[20];
+          snprintf(temp, 19, "%" PRIx64, timeout);
+          std::string strTimeout = temp;
+          std::vector<std::string> terminates;
+          terminates.push_back(cmd);
+          terminates.push_back(strTimeout);
+          std::string value;
+          MGMT_CALL(updateEntityFromDatabase("/safplusAmf/Component",comp.name(),"terminate",value,&terminates));
+        }
+      }
+    }
+    if (comp.has_cleanup())
+    {
+      if (comp.cleanup().has_execution())
+      {        
+        const Execution& exe = comp.cleanup().execution();
+        if (exe.has_command() && exe.has_timeout())
+        {
+          const std::string& cmd = exe.command();
+          uint64_t timeout = exe.timeout();
+          char temp[20];
+          snprintf(temp, 19, "%" PRIx64, timeout);
+          std::string strTimeout = temp;
+          std::vector<std::string> cleanups;
+          cleanups.push_back(cmd);
+          cleanups.push_back(strTimeout);
+          std::string value;
+          MGMT_CALL(updateEntityFromDatabase("/safplusAmf/Component",comp.name(),"cleanup",value,&cleanups));
+        }
+      }
+    }
+    if (comp.has_maxinstantinstantiations())
+    {
+      int maxInstantiations  = comp.maxinstantinstantiations();
+      char temp[10];
+      snprintf(temp, 9, "%d", maxInstantiations);
+      std::string strMaxInstantiations = temp;
+      MGMT_CALL(updateEntityFromDatabase("/safplusAmf/Component",comp.name(),"maxInstantInstantiations",strMaxInstantiations));
+    }
+    if (comp.has_serviceunit())
+    {
+      const std::string& su  = comp.serviceunit();
+      MGMT_CALL(updateEntityFromDatabase("/safplusAmf/Component",comp.name(),"serviceUnit",su));
+    }
+    if (comp.has_recovery())
+    {
+      SAFplusAmf::Recovery recovery = static_cast<SAFplusAmf::Recovery>(comp.recovery());
+      std::stringstream ssRecovery;
+      ssRecovery<<recovery;
+      std::string strRecovery;
+      ssRecovery>>strRecovery;
+      MGMT_CALL(updateEntityFromDatabase("/safplusAmf/Component",comp.name(),"recovery",strRecovery));
+    }
+    if (comp.has_restartable())
+    {
+      bool restartable = comp.restartable();
+      MGMT_CALL(updateEntityFromDatabase("/safplusAmf/Component",comp.name(),"restartable",B2S(restartable)));
+    }
+    return rc;
+  }
+
+  ClRcT compDeleteCommit(const std::string& compName)
+  {
+    ClRcT rc = CL_OK;
+    logTrace("MGMT","RPC", "server is processing component delete commit name [%s]", compName.c_str());
+    if (compName.length()==0)
+    {
+      return CL_ERR_INVALID_PARAMETER;      
+    }
+    rc = cfg.deleteObj(compName);
+    logTrace("MGMT","RPC", "deleting comp name [%s] return [0x%x]", compName.c_str(),rc);
     return rc;
   }
 
@@ -249,11 +378,29 @@ namespace amfMgmtRpc {
         strRequestData.assign(recData, dataSize);
         request.ParseFromString(strRequestData);
         const ComponentConfig& comp = request.componentconfig();
-        rc = handleCompCommit(comp);
+        rc = compCommit(comp);
         break;
       }
     case AMF_MGMT_OP_COMPONENT_UPDATE:
+      {
+        UpdateComponentRequest request;
+        std::string strRequestData;
+        strRequestData.assign(recData, dataSize);
+        request.ParseFromString(strRequestData);
+        const ComponentConfig& comp = request.componentconfig();
+        rc = compCommit(comp);
+        break;
+      }
     case AMF_MGMT_OP_COMPONENT_DELETE:
+      {
+        DeleteComponentRequest request;
+        std::string strRequestData;
+        strRequestData.assign(recData, dataSize);
+        request.ParseFromString(strRequestData);
+        //const std& comp = request.componentconfig();
+        rc = compDeleteCommit(request.name());
+        break;
+      }
     case AMF_MGMT_OP_SG_CREATE:
     case AMF_MGMT_OP_SG_UPDATE:
     case AMF_MGMT_OP_SG_DELETE:
@@ -419,20 +566,20 @@ namespace amfMgmtRpc {
   void amfMgmtRpcImpl::updateComponent(const ::SAFplus::Rpc::amfMgmtRpc::UpdateComponentRequest* request,
                                 ::SAFplus::Rpc::amfMgmtRpc::UpdateComponentResponse* response)
   {
-    #if 0
     const ComponentConfig& comp = request->componentconfig();
-    logInfo("MGMT","RPC", "server is processing updateComponent name [%s]", comp.name().c_str());
-    SAFplusAmf::CapabilityModel cm = static_cast<SAFplusAmf::CapabilityModel>(comp.capabilitymodel());
-    //logInfo("HUNG","--","capabilityModel [%d]", (int)cm);
-    std::stringstream ssCm;
-    ssCm<<cm;
-    std::string strCm;
-    ssCm>>strCm;
-    ClRcT rc = updateEntityFromDatabase("/safplusAmf/Component",comp.name(),"capabilityModel",strCm);
-    logDebug("MGMT","---","read the DB");
-    cfg.read(&amfDb);
+    logTrace("MGMT","RPC","enter [%s] with param comp name [%s]",__FUNCTION__,comp.name().c_str());
+    DbalPlugin* pd = NULL;
+    ClRcT rc = getDbalObj(request->amfmgmthandle().Get(0).c_str(), &pd);
+    if (rc == CL_OK)
+    {
+      std::string strMsgReq;      
+      request->SerializeToString(&strMsgReq);
+      rc = pd->insertRecord(ClDBKeyT(&AMF_MGMT_OP_COMPONENT_UPDATE),
+                           (ClUint32T)sizeof(AMF_MGMT_OP_COMPONENT_UPDATE),
+                           (ClDBRecordT)strMsgReq.c_str(),
+                           (ClUint32T)strMsgReq.length());      
+    } 
     response->set_err(rc);
-    #endif
   }
 
 
@@ -440,7 +587,20 @@ namespace amfMgmtRpc {
   void amfMgmtRpcImpl::deleteComponent(const ::SAFplus::Rpc::amfMgmtRpc::DeleteComponentRequest* request,
                                 ::SAFplus::Rpc::amfMgmtRpc::DeleteComponentResponse* response)
   {
-    //TODO: put your code here
+    const std::string& compName = request->name();
+    logTrace("MGMT","RPC","enter [%s] with param comp name [%s]",__FUNCTION__,compName.c_str());
+    DbalPlugin* pd = NULL;
+    ClRcT rc = getDbalObj(request->amfmgmthandle().Get(0).c_str(), &pd);
+    if (rc == CL_OK)
+    {
+      std::string strMsgReq;      
+      request->SerializeToString(&strMsgReq);
+      rc = pd->insertRecord(ClDBKeyT(&AMF_MGMT_OP_COMPONENT_DELETE),
+                           (ClUint32T)sizeof(AMF_MGMT_OP_COMPONENT_DELETE),
+                           (ClDBRecordT)strMsgReq.c_str(),
+                           (ClUint32T)strMsgReq.length());      
+    } 
+    response->set_err(rc);
   }
 
   void amfMgmtRpcImpl::createSG(const ::SAFplus::Rpc::amfMgmtRpc::CreateSGRequest* request,

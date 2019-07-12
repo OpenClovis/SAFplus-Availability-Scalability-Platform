@@ -83,7 +83,6 @@ ClRcT amfMgmtComponentCreate(const Handle& mgmtHandle,SAFplus::Rpc::amfMgmtRpc::
    return rc;
 }
 
-#if 0
 ClRcT amfMgmtComponentConfigSet(const Handle& mgmtHandle,SAFplus::Rpc::amfMgmtRpc::ComponentConfig* comp)
 {
    if (!gAmfMgmtInitialized)
@@ -91,14 +90,14 @@ ClRcT amfMgmtComponentConfigSet(const Handle& mgmtHandle,SAFplus::Rpc::amfMgmtRp
      return CL_ERR_NOT_INITIALIZED;
    }
    ClRcT rc;
-   SAFplus::Rpc::amfMgmtRpc::CreateComponentRequest request;
+   SAFplus::Rpc::amfMgmtRpc::UpdateComponentRequest request;
    request.add_amfmgmthandle((const char*) &mgmtHandle, sizeof(Handle));
    request.set_allocated_componentconfig(comp);   
    try
     {
       Handle& remoteAmfHdl = name.getHandle(AMF_MASTER_HANDLE, 2000);
-      SAFplus::Rpc::amfMgmtRpc::CreateComponentResponse resp;
-      amfMgmtRpc->createComponent(remoteAmfHdl,&request,&resp);
+      SAFplus::Rpc::amfMgmtRpc::UpdateComponentResponse resp;
+      amfMgmtRpc->updateComponent(remoteAmfHdl,&request,&resp);
       rc = (ClRcT)resp.err();
     }
    catch(NameException& ex)
@@ -108,7 +107,32 @@ ClRcT amfMgmtComponentConfigSet(const Handle& mgmtHandle,SAFplus::Rpc::amfMgmtRp
     }
    return rc;
 }
-#endif
+
+
+ClRcT amfMgmtComponentDelete(const Handle& mgmtHandle,const std::string& compName)
+{
+   if (!gAmfMgmtInitialized)
+   {
+     return CL_ERR_NOT_INITIALIZED;
+   }
+   ClRcT rc;
+   SAFplus::Rpc::amfMgmtRpc::DeleteComponentRequest request;
+   request.add_amfmgmthandle((const char*) &mgmtHandle, sizeof(Handle));
+   request.set_name(compName);   
+   try
+    {
+      Handle& remoteAmfHdl = name.getHandle(AMF_MASTER_HANDLE, 2000);
+      SAFplus::Rpc::amfMgmtRpc::DeleteComponentResponse resp;
+      amfMgmtRpc->deleteComponent(remoteAmfHdl,&request,&resp);
+      rc = (ClRcT)resp.err();
+    }
+   catch(NameException& ex)
+    {
+      logError("MGMT","INI","getHandle got exception [%s]", ex.what());
+      rc = CL_ERR_NOT_EXIST;
+    }
+   return rc;
+}
 
 ClRcT amfMgmtCommit(const Handle& amfMgmtHandle)
 {
