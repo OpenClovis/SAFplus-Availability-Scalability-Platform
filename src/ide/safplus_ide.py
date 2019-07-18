@@ -169,6 +169,7 @@ class SAFplusFrame(wx.Frame):
 
     def loadProject(self, prj):
       if not prj: return
+      self.project.currentProjectPath = prj.projectFilename
       self.currentActivePrj = prj
       self.project.currentActiveProject = prj
       self.tab.Unbind(wx.aui.EVT_AUINOTEBOOK_PAGE_CHANGED) # need to unbind to not catch page delete event b/c we only want to catch page selection event
@@ -326,7 +327,7 @@ class SAFplusFrame(wx.Frame):
             self.loadProject(prj)
         else: 
           # for create, update status of edit page
-          path = self.project.getFullPath(item)
+          path = self.project.getItemAbsolutePath(item)
           if os.path.isfile(path):
             
             if path in self.openFile.keys():
