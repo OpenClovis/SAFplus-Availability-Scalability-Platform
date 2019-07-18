@@ -290,7 +290,7 @@ class ProjectTreePanel(wx.Panel):
         self.info = "INFOMATION"
         self.instantiation = ""
         self.modelling   = ""
-        self.pathProject = None
+        self.currentProjectPath = None
 
         self.color = {
           self.error: wx.Colour(255, 0, 0),
@@ -423,22 +423,19 @@ class ProjectTreePanel(wx.Panel):
     
      self.tree.AssignImageList(il)
 
-     self.pathProject = project.projectFilename
-     projName = os.path.basename(self.pathProject)
+     self.currentProjectPath = project.projectFilename
+     projName = os.path.basename(self.currentProjectPath)
      projName = os.path.splitext(projName)[0]
      prjT = self.tree.AppendItem(self.root, projName)
      self.setIconForItem(prjT)
      self.projects.append(prjT)
      self.tree.SetPyData(prjT, project)
-
-    #  dmT = self.tree.AppendItem(prjT, "datamodel")
      for ch in project.datamodel.children():
        for c in ch.split():
          c = c.strip()
          fileT = self.tree.AppendItem(prjT, c)
          self.tree.SetPyData(fileT, (project,c))  # TODO more descriptive PY data 
          self.setIconForItem(fileT)
-    #  mdlT = self.tree.AppendItem(prjT, "model")
      
      for ch in project.model.children():
        for c in ch.split():
@@ -448,6 +445,7 @@ class ProjectTreePanel(wx.Panel):
          self.setIconForItem(fileT)
      srcT = self.tree.AppendItem(prjT, "src")
      self.setIconForItem(srcT, typeDir=True)
+     self.tree.SetPyData(srcT, (project,"src"))
      
      for ch in project.src.children():
        for c in ch.split():
@@ -459,16 +457,14 @@ class ProjectTreePanel(wx.Panel):
          pToBranch = "%s/src" % projName
          for branch in branchs:
            pToBranch += '/%s' % branch
-          #  pToBranch = re.search( '%s/.*%s' % (projName,branch), c).group()
            item = self.getItemByLabel(self.tree, pToBranch, self.tree.GetRootItem())
            if item.IsOk():
              root = item
            else:
-             current = self.tree.AppendItem(root, branch)
-             self.setIconForItem(current)
-             root = current
-    #      fileT = self.tree.AppendItem(srcT,c)
-         self.tree.SetPyData(fileT, (project,c))  # TODO more descriptive PY data   
+             itemID = self.tree.AppendItem(root, branch)
+             self.setIconForItem(itemID)
+             root = itemID
+             self.tree.SetPyData(itemID, (project,branch))  # TODO more descriptive PY data   
 
   def setIconForItem(self, item, typeFile=False, typeDir=False):
     path = self.getFullPath(item)
@@ -485,7 +481,7 @@ class ProjectTreePanel(wx.Panel):
       while item.IsOk():
           text = self.getPathTree(item)
           if text is not None:
-            if text.lower() == label.lower():
+            if text == label:
                 return item
 
           if tree.ItemHasChildren(item):
@@ -508,7 +504,21 @@ class ProjectTreePanel(wx.Panel):
     return path
     
   def getFullPath(self, item):
-    path = re.sub(self.getPrjName(), "", self.getPrjPath())
+    prjPath = self.getPrjPath()
+    path = prjPath[0:(len(prjPath)-len(self.getPrjName()))]
+    path = path + self.getPathTree(item)
+
+    return path
+
+  def getItemAbsolutePath(self, item):
+    itemID = self.tree.GetSelections()
+    if itemID:
+      itemID = itemID[0]
+    else:
+      itemID = self.tree.GetFirstVisibleItem()
+    result = self.tree.GetPyData(itemID)
+    prjPath = result[0].directory()
+    path = prjPath[0:(len(prjPath)-len(result[0].name))]
     path = path + self.getPathTree(item)
 
     return path
@@ -673,19 +683,11 @@ class ProjectTreePanel(wx.Panel):
     self.updateModalProblems()
 
   def getPrjPath(self):
-    try:
-      prjPath, name = os.path.split(self.currentActiveProject.projectFilename)
-    except:
-      prjPath, name = os.path.split(self.pathProject)
-
+    prjPath, name = os.path.split(self.currentProjectPath)
     return prjPath
 
   def getPrjName(self):
-    try:
-      prjPath, name = os.path.split(self.currentActiveProject.projectFilename)
-    except:
-      prjPath, name = os.path.split(self.pathProject)
-
+    prjPath, name = os.path.split(self.currentProjectPath)
     return os.path.splitext(name)[0]
 
   def validateAmfConfig(self):
