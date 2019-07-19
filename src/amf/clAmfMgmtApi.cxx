@@ -134,6 +134,32 @@ ClRcT amfMgmtComponentDelete(const Handle& mgmtHandle,const std::string& compNam
    return rc;
 }
 
+
+ClRcT amfMgmtServiceUnitConfigSet(const Handle& mgmtHandle,SAFplus::Rpc::amfMgmtRpc::ServiceUnitConfig* su)
+{
+   if (!gAmfMgmtInitialized)
+   {
+     return CL_ERR_NOT_INITIALIZED;
+   }
+   ClRcT rc;
+   SAFplus::Rpc::amfMgmtRpc::UpdateSURequest request;
+   request.add_amfmgmthandle((const char*) &mgmtHandle, sizeof(Handle));
+   request.set_allocated_serviceunitconfig(su);   
+   try
+    {
+      Handle& remoteAmfHdl = name.getHandle(AMF_MASTER_HANDLE, 2000);
+      SAFplus::Rpc::amfMgmtRpc::UpdateSUResponse resp;
+      amfMgmtRpc->updateSU(remoteAmfHdl,&request,&resp);
+      rc = (ClRcT)resp.err();
+    }
+   catch(NameException& ex)
+    {
+      logError("MGMT","INI","getHandle got exception [%s]", ex.what());
+      rc = CL_ERR_NOT_EXIST;
+    }
+   return rc;
+}
+
 ClRcT amfMgmtCommit(const Handle& amfMgmtHandle)
 {
    if (!gAmfMgmtInitialized)

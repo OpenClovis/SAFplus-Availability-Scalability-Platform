@@ -162,9 +162,10 @@ namespace amfMgmtRpc {
        {
           return CL_ERR_ALREADY_EXIST;
        }
-       std::string entname = entityName;
-       entname.insert(0,"[@name=\"");
-       entname.append("\"]");
+       // adding: /safplusAmf/ServiceUnit[@name="suname"]
+       std::string entname = entityName; //su0
+       entname.insert(0,"[@name=\""); // [@name="su0
+       entname.append("\"]"); // [@name="su0"]
        child.push_back(entname);
        rc = amfDb.setRecord(xpath,val,&child);
        logTrace("MGMT","---", "set record rc=[0x%x]", rc);
@@ -177,11 +178,11 @@ namespace amfMgmtRpc {
   ClRcT updateEntityFromDatabase(const char* xpath, const std::string& entityName, const char* tagName, const std::string& value, std::vector<std::string>* child=nullptr)
   {
     // check if the xpath exists in the DB
-    logTrace("MGMT","---", "enter [%s] with params [%s] [%s] [%s]",__FUNCTION__, xpath, entityName.c_str(), value.c_str());
+    logDebug("MGMT","---", "enter [%s] with params [%s] [%s] [%s]",__FUNCTION__, xpath, entityName.c_str(), value.c_str());
     //std::string val;
     //std::vector<std::string>child;
     std::string strXpath(xpath);
-    ClRcT rc = CL_OK;//amfDb.getRecord(strXpath,val,&child);
+    ClRcT rc = CL_OK;// = amfDb.getRecord(strXpath,val,&child);
     //logInfo("HUNG","---", "get record rc=[0x%x]", rc);
     if (rc == CL_OK)
     {
@@ -197,7 +198,118 @@ namespace amfMgmtRpc {
        strXpath.append("\"]/");
        strXpath.append(tagName);
        rc = amfDb.setRecord(strXpath,value,child);
-       logTrace("MGMT","---", "set record with xpath [%s], value [%s]  rc=[0x%x]", strXpath.c_str(), value.c_str(), rc);
+       logDebug("MGMT","---", "set record with xpath [%s], value [%s]  rc=[0x%x]", strXpath.c_str(), value.c_str(), rc);
+    }
+    
+    return rc;
+  }
+
+  ClRcT updateEntityAsListTypeFromDatabase(const char* xpath, const std::string& entityName, const char* tagName, const std::vector<std::string>& values)//, const std::vector<std::string>* child=nullptr)
+  {
+    // check if the xpath exists in the DB
+    logDebug("MGMT","---", "enter [%s] with params [%s] [%s]",__FUNCTION__, xpath, entityName.c_str());
+    std::string val;
+    std::vector<std::string>child;
+    std::string strXpath(xpath);
+    strXpath.append("[@name=\"");
+    strXpath.append(entityName);
+    strXpath.append("\"]/");
+    strXpath.append(tagName);
+    std::string bkXpath = strXpath;
+    ClRcT rc = amfDb.getRecord(strXpath,val,&child);    
+    if (rc == CL_OK)
+    {
+       // /safplusAmf/Node[@name="node0"]/serviceUnits ->  childs: [[1],[2]]
+       int nextIdx = 0;
+       std::vector<std::string> newValues;
+       std::vector<std::string>::const_iterator it = values.begin();
+       int count=0;
+       for (;it != values.end();it++)
+       {
+         std::vector<std::string>::iterator it2 = child.begin();
+         for (;it2 != child.end();it2++)
+         {         
+           //strXpath.append("[");
+           //strXpath.append(*it);
+           //strXpath.append("]");
+           strXpath.append(*it2);
+           logDebug("MGMT","UDT.LIST", "getting record for key [%s]",strXpath.c_str());
+           std::vector<std::string> v;
+           rc = amfDb.getRecord(strXpath,val,&v); //result: [/safplusAmf/Node[@name="node0"]/serviceUnits[1]] -> [su0] children [0]
+           if (rc==CL_OK)
+           {
+             if ((*it).compare(val)!=0)
+             {
+               count++;
+             }
+           }
+         }
+         if (count==(int)child.size())
+         {
+           newValues.push_back(*it);
+         }
+       }
+       it = newValues.begin(); 
+       if (it != newValues.end())
+       {
+         std::string lastIdx = *(child.end()-1);
+         int i = lastIdx.find("[");
+         assert(i>=0 && i<lastIdx.length());
+         std::string strIdx = lastIdx.substr(i+1, lastIdx.length()-1-(i+1));
+         nextIdx = atoi(strIdx.c_str());
+         int j = ++nextIdx;
+         logDebug("MGMT","UDT.LIST", "next index for key [%s] is [%d]",bkXpath.c_str(),nextIdx);
+         for(;it!=newValues.end();it++)
+         {
+           char temp[5];
+           snprintf(temp,4,"[%d]",nextIdx++);                      
+           logDebug("MGMT","UDT.LIST", "appending [%s] to children [%d] of [%s]",temp, (int)child.size(), bkXpath.c_str());
+           child.push_back(std::string(temp));           
+         }
+         rc = amfDb.setRecord(bkXpath,std::string(),&child);
+         logDebug("MGMT","UDT.LIST", "setting record with xpath [%s], value [], children [%d] rc=[0x%x]", bkXpath.c_str(), (int)child.size(), rc);
+         if (rc!=CL_OK)
+         {
+           logError("MGMT","UDT.LIST", "first stage: updating list for xpath [%s], entity [%s], tag name [%s] failed rc = [0x%x]", xpath, entityName.c_str(), tagName, rc);
+           return rc;
+         }
+         for(it = newValues.begin(); it!=newValues.end();it++)
+         {
+           char temp[5];
+           snprintf(temp,4,"[%d]",j++);
+           std::string key = bkXpath;
+           key.append(std::string(temp));
+           rc = amfDb.setRecord(key,*it);
+           logDebug("MGMT","UDT.LIST", "setting record with xpath [%s], value [%s]  rc=[0x%x]", key.c_str(), (*it).c_str(), rc);
+           if (rc!=CL_OK)
+           {
+             logError("MGMT","UDT.LIST", "last stage: updating list for xpath [%s], entity [%s], tag name [%s] failed rc = [0x%x]", xpath, entityName.c_str(), tagName, rc);
+             return rc;
+           }
+         }
+       }
+       
+       /*std::vector<std::string>::iterator it;
+       it = std::find(child.begin(),child.end(),entityName);
+       if (it != child.end())
+       {
+          return CL_ERR_ALREADY_EXIST;
+       }*/
+       //std::string entname = entityName;
+       //strXpath.append("[@name=\"");
+       //strXpath.append(entityName);
+       //strXpath.append("\"]/");
+       //strXpath.append(tagName);
+       //rc = amfDb.setRecord(strXpath,value,child);
+       //logDebug("MGMT","---", "set record with xpath [%s], value [%s]  rc=[0x%x]", strXpath.c_str(), value.c_str(), rc);
+    }
+    else if (rc == CL_ERR_NOT_EXIST) // Does not exist
+    {
+       
+    }
+    else
+    {
+       logWarning("MGMT","UDT.LIST", "getting record for [%s] got unknown error code [0x%x]", strXpath.c_str(), rc);
     }
     return rc;
   }
@@ -224,7 +336,11 @@ namespace amfMgmtRpc {
     {
       return CL_ERR_INVALID_PARAMETER;      
     }
-    MGMT_CALL(addEntityToDatabase("/safplusAmf/Component",comp.name()));
+    rc = addEntityToDatabase("/safplusAmf/Component",comp.name());
+    if (rc == CL_ERR_ALREADY_EXIST)
+    {
+       logNotice("MGMT","SU.COMMIT","xpath for entity [%s] already exists", comp.name().c_str());
+    }
     if (comp.has_capabilitymodel())
     {
       SAFplusAmf::CapabilityModel cm = static_cast<SAFplusAmf::CapabilityModel>(comp.capabilitymodel());
@@ -263,21 +379,29 @@ namespace amfMgmtRpc {
     }
     if (comp.has_instantiate())
     {
+      logDebug("XXX","---","has instantiate");
       if (comp.instantiate().has_execution())
-      {        
+      {
+        logDebug("XXX","---","has execution");
         const Execution& exe = comp.instantiate().execution();
         if (exe.has_command() && exe.has_timeout())
         {
+          logDebug("XXX","---","has command and timeout");
           const std::string& cmd = exe.command();
           uint64_t timeout = exe.timeout();
+          logDebug("XXX","---","original timeout [%" PRId64 "]", timeout);
           char temp[20];
-          snprintf(temp, 19, "%" PRIx64, timeout);
+          snprintf(temp, 19, "%" PRId64, timeout);
+          logDebug("XXX","---","original 2 timeout [%s]", temp);
           std::string strTimeout = temp;
-          std::vector<std::string> instantiates;
-          instantiates.push_back(cmd);
-          instantiates.push_back(strTimeout);
+          std::vector<std::string> v;
+          v.push_back(std::string("command"));
+          v.push_back(std::string("timeout"));
+          logDebug("XXX","---","cmd [%s], timeout [%s]", cmd.c_str(),strTimeout.c_str());
           std::string value;
-          MGMT_CALL(updateEntityFromDatabase("/safplusAmf/Component",comp.name(),"instantiate",value,&instantiates));
+          MGMT_CALL(updateEntityFromDatabase("/safplusAmf/Component",comp.name(),"instantiate",value,&v));          
+          MGMT_CALL(updateEntityFromDatabase("/safplusAmf/Component",comp.name(),"instantiate/command",cmd));
+          MGMT_CALL(updateEntityFromDatabase("/safplusAmf/Component",comp.name(),"instantiate/timeout",strTimeout));
         }
       }
     }
@@ -364,6 +488,34 @@ namespace amfMgmtRpc {
     return rc;
   }
 
+  ClRcT suCommit(const ServiceUnitConfig& su)
+  {
+    ClRcT rc = CL_OK;
+    logDebug("MGMT","RPC", "server is processing su create/update commit name [%s]", su.name().c_str());
+    if (su.name().length()==0)
+    {
+      return CL_ERR_INVALID_PARAMETER;      
+    }
+    rc = addEntityToDatabase("/safplusAmf/ServiceUnit", su.name());
+    if (rc == CL_ERR_ALREADY_EXIST)
+    {
+       logNotice("MGMT","SU.COMMIT","xpath for entity [%s] already exists", su.name().c_str());
+    }
+    int compsSize = 0;
+    if ((compsSize=su.components_size())>0)
+    {
+      //std::string value;
+      std::vector<std::string> comps;
+      for (int i=0;i<compsSize;i++)
+      {
+         comps.push_back(su.components(i));
+      }
+      MGMT_CALL(updateEntityAsListTypeFromDatabase("/safplusAmf/ServiceUnit",su.name(),"components",comps));
+    }
+    else
+      logDebug("MGMT","SU.COMMIT","components list not found");
+  }
+
   ClRcT handleCommit(const ClUint32T *recKey, ClUint32T keySize, const ClCharT *recData, ClUint32T dataSize)
   {
     int op = 0;
@@ -409,6 +561,15 @@ namespace amfMgmtRpc {
     case AMF_MGMT_OP_NODE_DELETE:
     case AMF_MGMT_OP_SU_CREATE:
     case AMF_MGMT_OP_SU_UPDATE:
+      {
+        UpdateSURequest request;
+        std::string strRequestData;
+        strRequestData.assign(recData, dataSize);
+        request.ParseFromString(strRequestData);
+        const ServiceUnitConfig& su = request.serviceunitconfig();
+        rc = suCommit(su);
+        break;
+      }
     case AMF_MGMT_OP_SU_DELETE:
     case AMF_MGMT_OP_SI_CREATE:
     case AMF_MGMT_OP_SI_UPDATE:
@@ -547,7 +708,7 @@ namespace amfMgmtRpc {
     response->set_err(rc);
 #endif    
     const ComponentConfig& comp = request->componentconfig();
-    logTrace("MGMT","RPC","enter [%s] with param comp name [%s]",__FUNCTION__,comp.name().c_str());
+    logDebug("MGMT","RPC","enter [%s] with param comp name [%s], timeout [%" PRIx64 "]",__FUNCTION__,comp.name().c_str(), comp.instantiate().execution().timeout());
     DbalPlugin* pd = NULL;
     ClRcT rc = getDbalObj(request->amfmgmthandle().Get(0).c_str(), &pd);
     if (rc == CL_OK)
@@ -648,7 +809,20 @@ namespace amfMgmtRpc {
   void amfMgmtRpcImpl::updateSU(const ::SAFplus::Rpc::amfMgmtRpc::UpdateSURequest* request,
                                 ::SAFplus::Rpc::amfMgmtRpc::UpdateSUResponse* response)
   {
-    //TODO: put your code here
+    const ServiceUnitConfig& su = request->serviceunitconfig();
+    logDebug("MGMT","RPC","enter [%s] with param su name [%s]",__FUNCTION__,su.name().c_str());
+    DbalPlugin* pd = NULL;
+    ClRcT rc = getDbalObj(request->amfmgmthandle().Get(0).c_str(), &pd);
+    if (rc == CL_OK)
+    {
+      std::string strMsgReq;      
+      request->SerializeToString(&strMsgReq);
+      rc = pd->insertRecord(ClDBKeyT(&AMF_MGMT_OP_SU_UPDATE),
+                           (ClUint32T)sizeof(AMF_MGMT_OP_SU_UPDATE),
+                           (ClDBRecordT)strMsgReq.c_str(),
+                           (ClUint32T)strMsgReq.length());      
+    } 
+    response->set_err(rc);  
   }
 
   void amfMgmtRpcImpl::deleteSU(const ::SAFplus::Rpc::amfMgmtRpc::DeleteSURequest* request,

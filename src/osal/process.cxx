@@ -97,6 +97,7 @@ namespace SAFplus
 
     std::istringstream ss(command);
     std::string arg;
+#if 0 // the code is not going to work in some linux distro versions e.g. ubuntu 16.04
     std::vector<std::string> v1;
     std::vector<char*> charstrs;
     while (ss >> arg)
@@ -125,6 +126,43 @@ namespace SAFplus
         envpchars.push_back(const_cast<char*>(env[i].c_str()));
       }
     envpchars.push_back(0);
+#endif
+
+    int n = CL_MAX_NAME_LENGTH; // maximum arguments for a function
+    char* args[CL_MAX_NAME_LENGTH];
+    int i=0;
+    for(;i<n;i++)
+    {
+      args[i] = new char[CL_MAX_NAME_LENGTH];
+    }
+    i=0;
+    while (ss >> arg)
+    {
+      strcpy(args[i++],arg.c_str());      
+    }
+    args[i]=(char*)0;
+
+    char* envs[CL_MAX_NAME_LENGTH];
+    if(flags & Process::InheritEnvironment)
+    {
+        for(i=0;i<n;i++)
+        {
+          envs[i] = new char[CL_MAX_NAME_LENGTH];
+        }
+        i=0;
+        /* Set the process group id to its own pid */
+        for (char** envvar = environ; *envvar != 0; envvar++)
+        {
+          strcpy(envs[i++],*envvar);
+          logInfo("PROC","EXE","envs[%d]=%s",i-1,envs[i-1]);
+        }
+     }
+     for (int j=0;j<env.size(); j++)
+      {
+        strcpy(envs[i++],env[j].c_str());
+        logInfo("PROC","EXE","2. envs[%d]=%s",i-1,envs[i-1]);
+      }
+    envs[i]=(char*)0;
 
     pid = fork();
 
@@ -146,17 +184,20 @@ namespace SAFplus
         /* Set the process group id to its own pid */
         setpgid (pid, 0);
         }
+#if 0
       execvpe(charstrs[0], &charstrs[0], &envpchars[0]);  // if works will not return
+#endif
+      execvpe(args[0], args, envs);  // if works will not return
       int err = errno;
       char temp[CL_MAX_NAME_LENGTH];
       SAFplus::logCompName = "SPN"; // change the log name of the child so the source of this log isn't confusing
-      logAlert("OS","PRO","Program [%s] execution failed with error [%s (%d)].  Working directory [%s]",charstrs[0], strerror(err),err, getcwd(temp,CL_MAX_NAME_LENGTH));
+      logAlert("OS","PRO","Program [%s] execution failed with error [%s (%d)].  Working directory [%s]",args[0], strerror(err),err, getcwd(temp,CL_MAX_NAME_LENGTH));
       char fname[CL_MAX_NAME_LENGTH];
       snprintf(fname,CL_MAX_NAME_LENGTH,"%s/%d.error",(ASP_RUNDIR[0] != 0) ? ASP_RUNDIR : ".", pid);
       FILE* fp = fopen(fname,"w");
       if (fp)
         {
-          fprintf(fp,"Program [%s] execution failed with error [%s (%d)].  Working directory is [%s].", charstrs[0], strerror(err),err, getcwd(temp,CL_MAX_NAME_LENGTH));
+          fprintf(fp,"Program [%s] execution failed with error [%s (%d)].  Working directory is [%s].", args[0], strerror(err),err, getcwd(temp,CL_MAX_NAME_LENGTH));
           fclose(fp);
         }
       // If the error is understood, exit.  Otherwise assert
@@ -177,6 +218,7 @@ namespace SAFplus
       int status;
       std::istringstream ss(command);
       std::string arg;
+#if 0 // the code is not going to work in some linux distro versions e.g. ubuntu 16.04
       std::vector<std::string> v1;
       std::vector<char*> charstrs;
       while (ss >> arg)
@@ -205,7 +247,40 @@ namespace SAFplus
           envpchars.push_back(const_cast<char*>(env[i].c_str()));
         }
       envpchars.push_back(0);
+#endif
+      int n = CL_MAX_NAME_LENGTH; // maximum arguments for a function
+      char* args[CL_MAX_NAME_LENGTH];
+      int i=0;
+      for(;i<n;i++)
+      {
+        args[i] = new char[CL_MAX_NAME_LENGTH];
+      }
+      i=0;
+      while (ss >> arg)
+      {
+        strcpy(args[i++],arg.c_str());      
+      }
+      args[i]=(char*)0;
 
+      char* envs[CL_MAX_NAME_LENGTH];
+      if(flags & Process::InheritEnvironment)
+      {
+        for(i=0;i<n;i++)
+        {
+          envs[i] = new char[CL_MAX_NAME_LENGTH];
+        }
+        i=0;
+        /* Set the process group id to its own pid */
+        for (char** envvar = environ; *envvar != 0; envvar++)
+        {
+          strcpy(envs[i++],*envvar);          
+        }
+      }
+      for (int j=0;j<env.size(); j++)
+      {
+        strcpy(envs[i++],env[j].c_str());        
+      }
+      envs[i]=(char*)0;
       pid = fork();
 
       if(pid < 0)
@@ -226,8 +301,8 @@ namespace SAFplus
           /* Set the process group id to its own pid */
           setpgid (pid, 0);
           }
-        execvpe(charstrs[0], &charstrs[0], &envpchars[0]);  // if works will not return
-        logError("PRO","EXEC","Program [%s] execution failed with error [%s (%d)]", charstrs[0], strerror(errno),errno);
+        execvpe(args[0], args, envs);  // if works will not return
+        logError("PRO","EXEC","Program [%s] execution failed with error [%s (%d)]", args[0], strerror(errno),errno);
         _exit(EXIT_FAILURE);
       }
       else
