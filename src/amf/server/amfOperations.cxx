@@ -454,7 +454,7 @@ namespace SAFplus
                       comp->pendingOperation = PendingOperation::workRemoval;
 
                       request.set_componentname(comp->name.value.c_str());
-                      request.set_componenthandle(0,(const char*) &hdl, sizeof(Handle)); // [libprotobuf ERROR google/protobuf/wire_format.cc:1053] String field contains invalid UTF-8 data when serializing a protocol buffer. Use the 'bytes' type if you intend to send raw bytes.
+                      request.add_componenthandle((const char*) &hdl, sizeof(Handle)); // [libprotobuf ERROR google/protobuf/wire_format.cc:1053] String field contains invalid UTF-8 data when serializing a protocol buffer. Use the 'bytes' type if you intend to send raw bytes.
                       request.set_operation((uint32_t)SAFplusI::AMF_HA_OPERATION_REMOVE);
                       request.set_target(SA_AMF_CSI_TARGET_ALL);
                       if ((invocation & 0xFFFFFFFF) == 0xFFFFFFFF) invocation &= 0xFFFFFFFF00000000ULL;  // Don't let increasing invocation numbers overwrite the node or port... ofc this'll never happen 4 billion invocations? :-)
