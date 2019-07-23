@@ -811,19 +811,16 @@ class ProjectTreePanel(wx.Panel):
       if e.data['entityType'] == "Node":
         instance = instances.findOneByChild("name",name)
         nodeTypeName = instance.child_.get("NodeType").children_[0]
-        print "nodeTypeName: %s" % nodeTypeName
         if nodeTypeName not in nodeNameList:
           msg = "AMF configuration has invalid Node " + str(nodeTypeName)
           self.updateProblems(self.error, msg, self.instantiation)
 
         # validate AMF configuration has valid SI
         for arrow in e.containmentArrows:
-          print "arrow.contained.data: %s" % arrow.contained.data
           if arrow.contained.data['entityType'] == "ServiceUnit":
             suName = arrow.contained.data['name']
             instance = instances.findOneByChild("name",suName)
             suType = instance.child_.get("ServiceUnitType").children_[0]
-            print "suType: %s" % suType
             if suType not in suNameList:
               msg = "AMF configuration has invalid SU " + str(suName)
               self.updateProblems(self.error, msg, self.instantiation)
@@ -836,7 +833,6 @@ class ProjectTreePanel(wx.Panel):
                      cName = arrowSu.contained.data['name']
                      instance = instances.findOneByChild("name",cName)
                      cType = instance.child_.get("ComponentType").children_[0]
-                     print "cType: %s" % cType
                      if cType not in cNameList:
                         msg = "AMF configuration has invalid Component " + str(cName)
                         self.updateProblems(self.error, msg, self.instantiation)
@@ -971,9 +967,14 @@ class ProjectTreePanel(wx.Panel):
       self.guiPlaces.frame.modelProblems.SetStringItem(index, 2, problem['source'])
 
   def OnDeploy(self, event):
-    dlg = DeployDialog(self)
-    dlg.ShowModal()
-    dlg.Destroy()
+    if not share.detailsPanel.model.instances:
+      msg = "Please create images for this project using 'Make image(s)' obtion and try again."
+      cap = "Deploy images errors for %s" % self.getPrjName()
+      self.showDialogError(cap, msg)
+    else:
+      dlg = DeployDialog(self)
+      dlg.ShowModal()
+      dlg.Destroy()
 
   def OnBuild(self, event):
     prjPath, name = os.path.split(self.currentActiveProject.projectFilename)
@@ -996,9 +997,19 @@ class ProjectTreePanel(wx.Panel):
     dlg.Destroy()
 
   def OnMakeImages(self, event):
-    dlg = MakeImages(self)
-    dlg.ShowModal()
-    dlg.Destroy()
+    if not share.detailsPanel.model.instances:
+      msg = "Project has not been built. Please build the project and try again."
+      cap = "Build images errors for %s" % self.getPrjName()
+      self.showDialogError(cap, msg)
+    else:
+      dlg = MakeImages(self)
+      dlg.ShowModal()
+      dlg.Destroy()
+
+  def showDialogError(self, cap, msg):
+    dialog = wx.MessageDialog(None, message=msg, caption=cap, style=wx.ICON_ERROR | wx.OK)
+    dialog.ShowModal()
+    dialog.Destroy()
 
   def OnHelpConents(self, event):
     '''
@@ -1417,18 +1428,18 @@ class DeployDialog(wx.Dialog):
       self.Close()
 
     def onClickDeployAllImageBtn(self, event):
-      prjPath, name = os.path.split(self.parent.currentActiveProject.projectFilename)
+      prjPath = self.parent.getPrjPath()
       for key in self.deployInfos:
         srcImage = prjPath + '/images/' + key
-        if os.path.isdir(srcImage):
+        if os.path.isfile(srcImage + '.tar.gz'):
           self.deploymentSingleImage(self.deployInfos[key], srcImage)
         else:
-          print "Image don't exist - fail"   
+          print "Deploy failure, image don't exist."   
 
     def deploymentSingleImage(self, info, srcImage):
       print "Image deploy: %s" % srcImage
       if (info['targetAdress'] == "") or (info['userName'] == "") or (info['password'] == "") or (info['targetLocation'] == ""):
-        print "Invalid infomation to deploy image"
+        print "Invalid deployment infomation"
         return False
 
       isHostKnown = False
@@ -1468,7 +1479,6 @@ class DeployDialog(wx.Dialog):
       except:
         print "Error while deploy image"
 
-    
     def onClickRestoreDefaultBtn(self, event):
       self.host.SetValue("")
       self.user.SetValue("")
@@ -1476,16 +1486,13 @@ class DeployDialog(wx.Dialog):
       self.targetLocation.SetValue("")
 
     def onDeployImageHandler(self, event):
-      #TODO update 
-      prjPath, name = os.path.split(self.parent.currentActiveProject.projectFilename)
-      srcImage = prjPath + '/images/' + self.curNode
+      srcImage = self.parent.getPrjPath() + '/images/' + self.curNode
 
-      # srcImage = "/home/tuyen.nguyen/Desktop/tmp"
-      if os.path.isdir(srcImage):
+      if os.path.isfile(srcImage + '.tar.gz'):
         img = self.deployInfos[self.curNode]
         self.deploymentSingleImage(img, srcImage)
       else:
-        print "Image don't exist - fail"
+        print "Image don't exist - deploy failure"
 
     def onSelectNodeChange(self, event):
       item = self.nodeList.GetFocusedItem()
@@ -1534,7 +1541,7 @@ class MakeImages(wx.Dialog):
     def onClickOkBtn(self, event):
       self.general.getAllRawConf()
       self.general.saveAllImgConfig()
-      prjPath, name = os.path.split(self.parent.currentActiveProject.projectFilename)
+      prjPath = self.parent.getPrjPath()
       self.general.makeImages(prjPath)
       self.Close()
 
