@@ -4,6 +4,7 @@
 #include <SAFplusAmfModule.hxx>
 #include <CapabilityModel.hxx>
 #include <Recovery.hxx>
+#include <AdministrativeState.hxx>
 #include <clDbalBase.hxx>
 #include <clHandleApi.hxx>
 #include <boost/unordered_map.hpp>
@@ -223,7 +224,7 @@ namespace amfMgmtRpc {
     {  
        std::vector<std::string> newValues;
        // / normally, safplusAmf/Node[@name="node0"]/serviceUnits ->  childs: [[1],[2]]
-       if (child.size()==0 && val.length()<=0) // there is only one value of the list e.gsafplusAmf/ServiceUnit[@name="su1"]/components -> [] children [0] 
+       if (child.size()==0 && val.length()<=0) // there is only one value of the list e.g.safplusAmf/ServiceUnit[@name="su1"]/components -> [] children [0] 
        {
           if (values.size()==1)
           {
@@ -475,13 +476,13 @@ namespace amfMgmtRpc {
   ClRcT compDeleteCommit(const std::string& compName)
   {
     ClRcT rc = CL_OK;
-    logTrace("MGMT","RPC", "server is processing component delete commit name [%s]", compName.c_str());
+    logDebug("MGMT","RPC", "server is processing component delete commit name [%s]", compName.c_str());
     if (compName.length()==0)
     {
       return CL_ERR_INVALID_PARAMETER;      
     }
-    rc = cfg.deleteObj(compName);
-    logTrace("MGMT","RPC", "deleting comp name [%s] return [0x%x]", compName.c_str(),rc);
+    rc = cfg.safplusAmf.componentList.deleteObj(compName);
+    logDebug("MGMT","RPC", "deleting comp name [%s] return [0x%x]", compName.c_str(),rc);
     return rc;
   }
 
@@ -498,6 +499,28 @@ namespace amfMgmtRpc {
     {
        logNotice("MGMT","SU.COMMIT","xpath for entity [%s] already exists", su.name().c_str());
     }
+    if (su.has_adminstate())
+    {
+      SAFplusAmf::AdministrativeState as = static_cast<SAFplusAmf::AdministrativeState>(su.adminstate());
+      std::stringstream ssAs;
+      ssAs<<as;
+      std::string strAs;
+      ssAs>>strAs;
+      MGMT_CALL(updateEntityFromDatabase("/safplusAmf/ServiceUnit",su.name(),"adminState",strAs));
+    }
+    if (su.has_rank())
+    {
+      uint32_t rank  = su.rank();
+      char temp[10];
+      snprintf(temp, 9, "%d", rank);
+      std::string strRank = temp;
+      MGMT_CALL(updateEntityFromDatabase("/safplusAmf/ServiceUnit",su.name(),"rank",strRank));
+    }
+    if (su.has_failover())
+    {
+      bool failover = su.failover();
+      MGMT_CALL(updateEntityFromDatabase("/safplusAmf/ServiceUnit",su.name(),"failover",B2S(failover)));
+    }    
     int compsSize = 0;
     if ((compsSize=su.components_size())>0)
     {
@@ -509,9 +532,38 @@ namespace amfMgmtRpc {
       }
       MGMT_CALL(updateEntityAsListTypeFromDatabase("/safplusAmf/ServiceUnit",su.name(),"components",comps));
     }
-    else
-      logDebug("MGMT","SU.COMMIT","components list not found");
+    if (su.has_node())
+    {
+      const std::string& node  = su.node();
+      MGMT_CALL(updateEntityFromDatabase("/safplusAmf/ServiceUnit",su.name(),"node",node));
+    }
+    if (su.has_servicegroup())
+    {
+      const std::string& sg  = su.servicegroup();
+      MGMT_CALL(updateEntityFromDatabase("/safplusAmf/ServiceUnit",su.name(),"serviceGroup",sg));
+    }
+    if (su.has_probationtime())
+    {
+      int pt  = su.probationtime();
+      char temp[10];
+      snprintf(temp, 9, "%d", pt);
+      std::string strPt = temp;
+      MGMT_CALL(updateEntityFromDatabase("/safplusAmf/ServiceUnit",su.name(),"probationTime",strPt));
+    }   
 
+    return rc;
+  }
+
+  ClRcT suDeleteCommit(const std::string& suName)
+  {
+    ClRcT rc = CL_OK;
+    logTrace("MGMT","RPC", "server is processing su delete commit name [%s]", suName.c_str());
+    if (suName.length()==0)
+    {
+      return CL_ERR_INVALID_PARAMETER;      
+    }
+    rc = cfg.safplusAmf.serviceUnitList.deleteObj(suName);
+    logDebug("MGMT","RPC", "deleting su name [%s] returns [0x%x]", suName.c_str(),rc);
     return rc;
   }
 
@@ -559,6 +611,16 @@ namespace amfMgmtRpc {
     case AMF_MGMT_OP_NODE_UPDATE:
     case AMF_MGMT_OP_NODE_DELETE:
     case AMF_MGMT_OP_SU_CREATE:
+      {
+        CreateSURequest request;
+        std::string strRequestData;
+        strRequestData.assign((ClCharT*)recData, dataSize);
+        request.ParseFromString(strRequestData);
+        const ServiceUnitConfig& su = request.serviceunitconfig();
+        logDebug("MGMT","COMMIT","handleCommit op [%d], entity [%s]", op, su.name().c_str());
+        rc = suCommit(su);
+        break;
+      }
     case AMF_MGMT_OP_SU_UPDATE:
       {        
         UpdateSURequest request;
@@ -571,6 +633,15 @@ namespace amfMgmtRpc {
         break;
       }
     case AMF_MGMT_OP_SU_DELETE:
+      {
+        DeleteSURequest request;
+        std::string strRequestData;
+        strRequestData.assign((ClCharT*)recData, dataSize);
+        request.ParseFromString(strRequestData);        
+        logDebug("MGMT","COMMIT","handleCommit op [%d], entity [%s]", op, request.name().c_str());
+        rc = suDeleteCommit(request.name());
+        break;
+      }
     case AMF_MGMT_OP_SI_CREATE:
     case AMF_MGMT_OP_SI_UPDATE:
     case AMF_MGMT_OP_SI_DELETE:
@@ -693,6 +764,10 @@ namespace amfMgmtRpc {
         rc = CL_OK;
       }      
     }
+    else
+    {
+      logError("MGMT","COMMIT","no Dbal object found for the specified amfMgmtHandle");
+    }
     response->set_err(rc);
   }
 
@@ -753,7 +828,7 @@ namespace amfMgmtRpc {
                                 ::SAFplus::Rpc::amfMgmtRpc::DeleteComponentResponse* response)
   {
     const std::string& compName = request->name();
-    logTrace("MGMT","RPC","enter [%s] with param comp name [%s]",__FUNCTION__,compName.c_str());
+    logDebug("MGMT","RPC","enter [%s] with param comp name [%s]",__FUNCTION__,compName.c_str());
     DbalPlugin* pd = NULL;
     ClRcT rc = getDbalObj(request->amfmgmthandle().Get(0).c_str(), &pd);
     if (rc == CL_OK)
@@ -807,7 +882,21 @@ namespace amfMgmtRpc {
   void amfMgmtRpcImpl::createSU(const ::SAFplus::Rpc::amfMgmtRpc::CreateSURequest* request,
                                 ::SAFplus::Rpc::amfMgmtRpc::CreateSUResponse* response)
   {
-    //TODO: put your code here
+    const ServiceUnitConfig& su = request->serviceunitconfig();
+    logDebug("MGMT","RPC","enter [%s] with param su name [%s]",__FUNCTION__,su.name().c_str());
+    DbalPlugin* pd = NULL;
+    ClRcT rc = getDbalObj(request->amfmgmthandle().Get(0).c_str(), &pd);
+    if (rc == CL_OK)
+    {
+      std::string strMsgReq;      
+      request->SerializeToString(&strMsgReq);
+      rc = pd->insertRecord(ClDBKeyT(&AMF_MGMT_OP_SU_CREATE),
+                           (ClUint32T)sizeof(AMF_MGMT_OP_SU_CREATE),
+                           (ClDBRecordT)strMsgReq.c_str(),
+                           (ClUint32T)strMsgReq.length());      
+      logDebug("MGMT","RPC","[%s] insertRecord returns [0x%x]",__FUNCTION__, rc);
+    } 
+    response->set_err(rc);
   }
 
   void amfMgmtRpcImpl::updateSU(const ::SAFplus::Rpc::amfMgmtRpc::UpdateSURequest* request,
@@ -833,7 +922,21 @@ namespace amfMgmtRpc {
   void amfMgmtRpcImpl::deleteSU(const ::SAFplus::Rpc::amfMgmtRpc::DeleteSURequest* request,
                                 ::SAFplus::Rpc::amfMgmtRpc::DeleteSUResponse* response)
   {
-    //TODO: put your code here
+    const std::string& suName = request->name();
+    logDebug("MGMT","RPC","enter [%s] with param su name [%s]",__FUNCTION__,suName.c_str());
+    DbalPlugin* pd = NULL;
+    ClRcT rc = getDbalObj(request->amfmgmthandle().Get(0).c_str(), &pd);
+    if (rc == CL_OK)
+    {
+      std::string strMsgReq;      
+      request->SerializeToString(&strMsgReq);
+      rc = pd->insertRecord(ClDBKeyT(&AMF_MGMT_OP_SU_DELETE),
+                           (ClUint32T)sizeof(AMF_MGMT_OP_SU_DELETE),
+                           (ClDBRecordT)strMsgReq.c_str(),
+                           (ClUint32T)strMsgReq.length());      
+      logDebug("MGMT","RPC","[%s] insertRecord returns [0x%x]",__FUNCTION__, rc);
+    } 
+    response->set_err(rc);
   }
 
   void amfMgmtRpcImpl::createSI(const ::SAFplus::Rpc::amfMgmtRpc::CreateSIRequest* request,
