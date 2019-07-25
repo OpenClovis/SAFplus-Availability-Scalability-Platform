@@ -219,7 +219,11 @@ namespace amfMgmtRpc {
     strXpath.append("\"]/");
     strXpath.append(tagName);
     std::string bkXpath = strXpath;
-    ClRcT rc = amfDb.getRecord(strXpath,val,&child);    
+    ClRcT rc = amfDb.getRecord(strXpath,val,&child);
+    if (CL_GET_ERROR_CODE(rc)==CL_ERR_NOT_EXIST) // not existing, create it
+    {
+      rc = updateEntityFromDatabase(xpath, entityName, tagName, val);
+    }
     if (rc == CL_OK)
     {  
        std::vector<std::string> newValues;
@@ -241,11 +245,11 @@ namespace amfMgmtRpc {
        std::vector<std::string>::const_iterator it = values.begin();
        int count=0;
        for (;it != values.end();it++)
-       {         
+       {
          std::vector<std::string>::iterator it2 = child.begin();
          for (;it2 != child.end();it2++)
-         {
-           strXpath.append(*it2);           
+         {           
+           strXpath.append(*it2);
            std::vector<std::string> v;
            rc = amfDb.getRecord(strXpath,val,&v); //result: [/safplusAmf/Node[@name="node0"]/serviceUnits[1]] -> [su0] children [0]
            logDebug("MGMT","UDT.LIST", "getting record for key [%s]: val [%s], rc [0x%x]",strXpath.c_str(), val.c_str(),rc);
@@ -256,6 +260,7 @@ namespace amfMgmtRpc {
                count++;
              }
            }
+           strXpath = bkXpath;
          }
          if (count==(int)child.size())
          {
@@ -306,10 +311,10 @@ namespace amfMgmtRpc {
          }
        }       
     }
-    else if (rc == CL_ERR_NOT_EXIST) // Does not exist
+    /*else if (rc == CL_ERR_NOT_EXIST) // Does not exist
     {
        
-    }
+    }*/
     else
     {
        logWarning("MGMT","UDT.LIST", "getting record for [%s] got unknown error code [0x%x]", strXpath.c_str(), rc);
@@ -554,13 +559,240 @@ namespace amfMgmtRpc {
     return rc;
   }
 
+  ClRcT sgCommit(const ServiceGroupConfig& sg)
+  {
+    ClRcT rc = CL_OK;
+    logDebug("MGMT","RPC", "server is processing sg create/update commit name [%s]", sg.name().c_str());
+    if (sg.name().length()==0)
+    {
+      return CL_ERR_INVALID_PARAMETER;      
+    }
+    rc = addEntityToDatabase("/safplusAmf/ServiceGroup", sg.name());
+    if (rc == CL_ERR_ALREADY_EXIST)
+    {
+       logNotice("MGMT","SG.COMMIT","xpath for entity [%s] already exists", sg.name().c_str());
+    }
+    if (sg.has_adminstate())
+    {
+      SAFplusAmf::AdministrativeState as = static_cast<SAFplusAmf::AdministrativeState>(sg.adminstate());
+      std::stringstream ssAs;
+      ssAs<<as;
+      std::string strAs;
+      ssAs>>strAs;
+      MGMT_CALL(updateEntityFromDatabase("/safplusAmf/ServiceGroup",sg.name(),"adminState",strAs));
+    }    
+    if (sg.has_autorepair())
+    {
+      bool autoRepair = sg.autorepair();
+      MGMT_CALL(updateEntityFromDatabase("/safplusAmf/ServiceGroup",sg.name(),"autoRepair",B2S(autoRepair)));
+    }  
+    if (sg.has_autoadjust())
+    {
+      bool autoAdj = sg.autoadjust();
+      MGMT_CALL(updateEntityFromDatabase("/safplusAmf/ServiceGroup",sg.name(),"autoAdjust",B2S(autoAdj)));
+    }
+    if (sg.has_autoadjustinterval())
+    {
+      SaTimeT autoAdjInterval  = sg.autoadjustinterval();
+      char temp[20];
+      snprintf(temp, 19, "%" PRId64, autoAdjInterval.uint64());
+      std::string strAutoAdjInterval = temp;
+      MGMT_CALL(updateEntityFromDatabase("/safplusAmf/ServiceGroup",sg.name(),"autoAdjustInterval",strAutoAdjInterval));
+    }
+    if (sg.has_preferrednumactiveserviceunits())
+    {
+      uint32_t pnasu = sg.preferrednumactiveserviceunits();
+      char temp[10];
+      snprintf(temp, 9, "%ul", pnasu);
+      std::string strPnasu = temp;
+      MGMT_CALL(updateEntityFromDatabase("/safplusAmf/ServiceGroup",sg.name(),"preferredNumActiveServiceUnits",strPnasu));
+    }
+    if (sg.has_preferrednumstandbyserviceunits())
+    {
+      uint32_t pnssu = sg.preferrednumstandbyserviceunits();
+      char temp[10];
+      snprintf(temp, 9, "%ul", pnssu);
+      std::string strPnssu = temp;
+      MGMT_CALL(updateEntityFromDatabase("/safplusAmf/ServiceGroup",sg.name(),"preferredNumStandbyServiceUnits",strPnssu));
+    }
+    if (sg.has_preferrednumidleserviceunits())
+    {
+      uint32_t pnisu = sg.preferrednumidleserviceunits();
+      char temp[10];
+      snprintf(temp, 9, "%ul", pnisu);
+      std::string strPnisu = temp;
+      MGMT_CALL(updateEntityFromDatabase("/safplusAmf/ServiceGroup",sg.name(),"preferredNumIdleServiceUnits",strPnisu));
+    }
+    if (sg.has_maxactiveworkassignments())
+    {
+      uint32_t mawa = sg.maxactiveworkassignments();
+      char temp[10];
+      snprintf(temp, 9, "%ul", mawa);
+      std::string strMawa = temp;
+      MGMT_CALL(updateEntityFromDatabase("/safplusAmf/ServiceGroup",sg.name(),"maxActiveWorkAssignments",strMawa));
+    }
+    if (sg.has_maxstandbyworkassignments())
+    {
+      uint32_t mswa = sg.maxstandbyworkassignments();
+      char temp[10];
+      snprintf(temp, 9, "%ul", mswa);
+      std::string strMswa = temp;
+      MGMT_CALL(updateEntityFromDatabase("/safplusAmf/ServiceGroup",sg.name(),"maxStandbyWorkAssignments",strMswa));
+    }
+    if (sg.has_componentrestart())
+    {      
+      if (sg.componentrestart().has_escalationpolicy())
+      {
+        const EscalationPolicy& ep = sg.componentrestart().escalationpolicy();
+        if (ep.has_maximum() && ep.has_duration())
+        {
+          uint64_t max = ep.maximum();
+          SaTimeT duration = ep.duration();
+          char temp[20];
+          snprintf(temp, 19, "%" PRId64, max);
+          std::string strMax = temp;
+          snprintf(temp, 19, "%" PRId64, duration.uint64());
+          std::string strDuration = temp;
+          std::vector<std::string> v;
+          v.push_back(std::string("maximum"));
+          v.push_back(std::string("duration"));
+          std::string value;
+          MGMT_CALL(updateEntityFromDatabase("/safplusAmf/ServiceGroup",sg.name(),"componentRestart",value,&v));          
+          MGMT_CALL(updateEntityFromDatabase("/safplusAmf/ServiceGroup",sg.name(),"componentRestart/maximum",strMax));
+          MGMT_CALL(updateEntityFromDatabase("/safplusAmf/ServiceGroup",sg.name(),"componentRestart/duration",strDuration));
+        }
+      }
+    }
+    if (sg.has_serviceunitrestart())
+    {      
+      if (sg.serviceunitrestart().has_escalationpolicy())
+      {
+        const EscalationPolicy& sur = sg.serviceunitrestart().escalationpolicy();
+        if (sur.has_maximum() && sur.has_duration())
+        {
+          uint64_t max = sur.maximum();
+          SaTimeT duration = sur.duration();
+          char temp[20];
+          snprintf(temp, 19, "%" PRId64, max);
+          std::string strMax = temp;
+          snprintf(temp, 19, "%" PRId64, duration.uint64());
+          std::string strDuration = temp;
+          std::vector<std::string> v;
+          v.push_back(std::string("maximum"));
+          v.push_back(std::string("duration"));
+          std::string value;
+          MGMT_CALL(updateEntityFromDatabase("/safplusAmf/ServiceGroup",sg.name(),"serviceUnitRestart",value,&v));
+          MGMT_CALL(updateEntityFromDatabase("/safplusAmf/ServiceGroup",sg.name(),"serviceUnitRestart/maximum",strMax));
+          MGMT_CALL(updateEntityFromDatabase("/safplusAmf/ServiceGroup",sg.name(),"serviceUnitRestart/duration",strDuration));
+        }
+      }
+    }
+    int susSize = 0;
+    if ((susSize=sg.serviceunits_size())>0)
+    {
+      std::vector<std::string> sus;
+      for (int i=0;i<susSize;i++)
+      {
+         sus.push_back(sg.serviceunits(i));
+      }
+      MGMT_CALL(updateEntityAsListTypeFromDatabase("/safplusAmf/ServiceGroup",sg.name(),"serviceUnits",sus));
+    }
+    int sisSize = 0;
+    if ((sisSize=sg.serviceinstances_size())>0)
+    {
+      std::vector<std::string> sis;
+      for (int i=0;i<sisSize;i++)
+      {
+         sis.push_back(sg.serviceinstances(i));
+      }
+      MGMT_CALL(updateEntityAsListTypeFromDatabase("/safplusAmf/ServiceGroup",sg.name(),"serviceInstances",sis));
+    }    
+
+    return rc;
+  }
+
+  ClRcT nodeCommit(const NodeConfig& node)
+  {
+    ClRcT rc = CL_OK;
+    logDebug("MGMT","RPC", "server is processing node create/update commit name [%s]", node.name().c_str());
+    if (node.name().length()==0)
+    {
+      return CL_ERR_INVALID_PARAMETER;      
+    }
+    rc = addEntityToDatabase("/safplusAmf/Node", node.name());
+    if (rc == CL_ERR_ALREADY_EXIST)
+    {
+       logNotice("MGMT","NODE.COMMIT","xpath for entity [%s] already exists", node.name().c_str());
+    }
+    if (node.has_adminstate())
+    {
+      SAFplusAmf::AdministrativeState as = static_cast<SAFplusAmf::AdministrativeState>(node.adminstate());
+      std::stringstream ssAs;
+      ssAs<<as;
+      std::string strAs;
+      ssAs>>strAs;
+      MGMT_CALL(updateEntityFromDatabase("/safplusAmf/Node",node.name(),"adminState",strAs));
+    }    
+    if (node.has_autorepair())
+    {
+      bool autoRepair = node.autorepair();
+      MGMT_CALL(updateEntityFromDatabase("/safplusAmf/Node",node.name(),"autoRepair",B2S(autoRepair)));
+    }  
+    if (node.has_failfastoninstantiationfailure())
+    {
+      bool ffoif = node.failfastoninstantiationfailure();
+      MGMT_CALL(updateEntityFromDatabase("/safplusAmf/Node",node.name(),"failFastOnInstantiationFailure",B2S(ffoif)));
+    }
+    if (node.has_failfastoncleanupfailure())
+    {
+      bool ffocf = node.failfastoncleanupfailure();
+      MGMT_CALL(updateEntityFromDatabase("/safplusAmf/Node",node.name(),"failFastOnCleanupFailure",B2S(ffocf)));
+    }    
+    if (node.has_serviceunitfailureescalationpolicy())
+    {
+      if (node.serviceunitfailureescalationpolicy().has_escalationpolicy())
+      {
+        const EscalationPolicy& ep = node.serviceunitfailureescalationpolicy().escalationpolicy();
+        if (ep.has_maximum() && ep.has_duration())
+        {
+          uint64_t max = ep.maximum();
+          SaTimeT duration = ep.duration();
+          char temp[20];
+          snprintf(temp, 19, "%" PRId64, max);
+          std::string strMax = temp;
+          snprintf(temp, 19, "%" PRId64, duration.uint64());
+          std::string strDuration = temp;
+          std::vector<std::string> v;
+          v.push_back(std::string("maximum"));
+          v.push_back(std::string("duration"));
+          std::string value;
+          MGMT_CALL(updateEntityFromDatabase("/safplusAmf/Node",node.name(),"serviceUnitFailureEscalationPolicy",value,&v));          
+          MGMT_CALL(updateEntityFromDatabase("/safplusAmf/Node",node.name(),"serviceUnitFailureEscalationPolicy/maximum",strMax));
+          MGMT_CALL(updateEntityFromDatabase("/safplusAmf/Node",node.name(),"serviceUnitFailureEscalationPolicy/duration",strDuration));
+        }
+      }
+    }
+    int susSize = 0;
+    if ((susSize=node.serviceunits_size())>0)
+    {
+      std::vector<std::string> sus;
+      for (int i=0;i<susSize;i++)
+      {
+         sus.push_back(node.serviceunits(i));
+      }
+      MGMT_CALL(updateEntityAsListTypeFromDatabase("/safplusAmf/Node",node.name(),"serviceUnits",sus));
+    }    
+
+    return rc;
+  }
+
   ClRcT suDeleteCommit(const std::string& suName)
   {
     ClRcT rc = CL_OK;
     logTrace("MGMT","RPC", "server is processing su delete commit name [%s]", suName.c_str());
     if (suName.length()==0)
     {
-      return CL_ERR_INVALID_PARAMETER;      
+      return CL_ERR_INVALID_PARAMETER;
     }
     rc = cfg.safplusAmf.serviceUnitList.deleteObj(suName);
     logDebug("MGMT","RPC", "deleting su name [%s] returns [0x%x]", suName.c_str(),rc);
@@ -605,10 +837,33 @@ namespace amfMgmtRpc {
         break;
       }
     case AMF_MGMT_OP_SG_CREATE:
+      {
+        
+      }
     case AMF_MGMT_OP_SG_UPDATE:
+      {
+        UpdateSGRequest request;
+        std::string strRequestData;
+        strRequestData.assign((ClCharT*)recData, dataSize);
+        request.ParseFromString(strRequestData);
+        const ServiceGroupConfig& sg = request.servicegroupconfig();
+        logDebug("MGMT","COMMIT","handleCommit op [%d], entity [%s]", op, sg.name().c_str());
+        rc = sgCommit(sg);
+        break;
+      }
     case AMF_MGMT_OP_SG_DELETE:
     case AMF_MGMT_OP_NODE_CREATE:
     case AMF_MGMT_OP_NODE_UPDATE:
+      {
+        UpdateNodeRequest request;
+        std::string strRequestData;
+        strRequestData.assign((ClCharT*)recData, dataSize);
+        request.ParseFromString(strRequestData);
+        const NodeConfig& node = request.nodeconfig();
+        logDebug("MGMT","COMMIT","handleCommit op [%d], entity [%s]", op, node.name().c_str());
+        rc = nodeCommit(node);
+        break;
+      }
     case AMF_MGMT_OP_NODE_DELETE:
     case AMF_MGMT_OP_SU_CREATE:
       {
@@ -852,7 +1107,20 @@ namespace amfMgmtRpc {
   void amfMgmtRpcImpl::updateSG(const ::SAFplus::Rpc::amfMgmtRpc::UpdateSGRequest* request,
                                 ::SAFplus::Rpc::amfMgmtRpc::UpdateSGResponse* response)
   {
-    //TODO: put your code here
+    const ServiceGroupConfig& sg = request->servicegroupconfig();
+    logDebug("MGMT","RPC","enter [%s] with param sg name [%s]",__FUNCTION__,sg.name().c_str());
+    DbalPlugin* pd = NULL;
+    ClRcT rc = getDbalObj(request->amfmgmthandle().Get(0).c_str(), &pd);
+    if (rc == CL_OK)
+    {
+      std::string strMsgReq;      
+      request->SerializeToString(&strMsgReq);
+      rc = pd->insertRecord(ClDBKeyT(&AMF_MGMT_OP_SG_UPDATE),
+                           (ClUint32T)sizeof(AMF_MGMT_OP_SG_UPDATE),
+                           (ClDBRecordT)strMsgReq.c_str(),
+                           (ClUint32T)strMsgReq.length());      
+      logDebug("MGMT","RPC","[%s] insertRecord returns [0x%x]",__FUNCTION__, rc);
+    }
   }
 
   void amfMgmtRpcImpl::deleteSG(const ::SAFplus::Rpc::amfMgmtRpc::DeleteSGRequest* request,
@@ -870,7 +1138,20 @@ namespace amfMgmtRpc {
   void amfMgmtRpcImpl::updateNode(const ::SAFplus::Rpc::amfMgmtRpc::UpdateNodeRequest* request,
                                 ::SAFplus::Rpc::amfMgmtRpc::UpdateNodeResponse* response)
   {
-    //TODO: put your code here
+    const NodeConfig& node = request->nodeconfig();
+    logDebug("MGMT","RPC","enter [%s] with param node name [%s]",__FUNCTION__,node.name().c_str());
+    DbalPlugin* pd = NULL;
+    ClRcT rc = getDbalObj(request->amfmgmthandle().Get(0).c_str(), &pd);
+    if (rc == CL_OK)
+    {
+      std::string strMsgReq;      
+      request->SerializeToString(&strMsgReq);
+      rc = pd->insertRecord(ClDBKeyT(&AMF_MGMT_OP_NODE_UPDATE),
+                           (ClUint32T)sizeof(AMF_MGMT_OP_NODE_UPDATE),
+                           (ClDBRecordT)strMsgReq.c_str(),
+                           (ClUint32T)strMsgReq.length());      
+      logDebug("MGMT","RPC","[%s] insertRecord returns [0x%x]",__FUNCTION__, rc);
+    }
   }
 
   void amfMgmtRpcImpl::deleteNode(const ::SAFplus::Rpc::amfMgmtRpc::DeleteNodeRequest* request,
