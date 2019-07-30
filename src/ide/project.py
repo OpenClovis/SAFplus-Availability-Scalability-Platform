@@ -551,7 +551,6 @@ class ProjectTreePanel(wx.Panel):
           pToBranch = "%s/src" % projName
           for branch in branchs:
             pToBranch += '/%s' % branch
-            # pToBranch = re.search( '%s/.*%s' % (projName,branch), f).group()
 
             item = self.getItemByLabel(self.tree, pToBranch, self.tree.GetRootItem())
             if item.IsOk():
@@ -560,9 +559,7 @@ class ProjectTreePanel(wx.Panel):
               current = self.tree.AppendItem(root, branch)
               self.setIconForItem(current)
               root = current
-          #  fileT = self.tree.AppendItem(c,f)
-          #  self.tree.SetPyData(fileT, (project.name,f))         
-
+              self.tree.SetPyData(current, (project,branch))         
 
   def OnLoad(self,event):
     dlg = wx.FileDialog(
