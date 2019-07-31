@@ -37,6 +37,9 @@ typedef std::pair<const SAFplus::Handle,SAFplus::DbalPlugin*> DbalMapPair;
 typedef boost::unordered_map <SAFplus::Handle, SAFplus::DbalPlugin*> DbalHashMap;
 DbalHashMap amfMgmtMap;
 
+typedef std::pair<const std::string,const std::string> KeyValueMapPair;
+typedef boost::unordered_map <const std::string, const std::string> KeyValueHashMap;
+
 // RPC Operation IDs
 const int AMF_MGMT_OP_COMPONENT_CREATE             = 1;
 const int AMF_MGMT_OP_COMPONENT_UPDATE             = 2;
@@ -205,6 +208,55 @@ namespace amfMgmtRpc {
     return rc;
   }
 
+  ClRcT updateEntityFromDatabase(const char* xpath, const std::string& entityName, const char* tagName1, const char* tagName2, const KeyValueHashMap& kvm)
+  {
+    logDebug("MGMT","---", "enter [%s] with params [%s] [%s] [%s] [%s]",__FUNCTION__, xpath, entityName.c_str(), tagName1, tagName2);
+    /*/safplusAmf/ComponentServiceInstance[@name="csi"]/data[@name="testKey"] ->  childs: [val]
+      /safplusAmf/ComponentServiceInstance[@name="csi"]/data[@name="testKey"]/val -> [testVal] children [0]
+      /safplusAmf/ComponentServiceInstance[@name="csi"]/data[@name="testKey2"] ->  childs: [val]
+      /safplusAmf/ComponentServiceInstance[@name="csi"]/data[@name="testKey2"]/val -> [testVal2] children [0]
+
+       params:
+         xpath = /safplusAmf/ComponentServiceInstance
+         entityName = csi
+         tagName1 = data
+         tagName2 = val
+         kvm (key/val map): testKey->testVal ; testkey2->testVal2 ...
+    */
+    if (kvm.size()==0)
+    {
+      logError("MGMT","UPT.ENT","key value hash map is empty");
+      return CL_ERR_INVALID_PARAMETER;
+    }
+    std::string strXpath(xpath);
+    ClRcT rc = CL_OK;
+    strXpath.append("[@name=\"");
+    strXpath.append(entityName);
+    strXpath.append("\"]/");
+    strXpath.append(tagName1); // /safplusAmf/ComponentServiceInstance[@name="csi"]/data   
+    KeyValueHashMap::const_iterator it = kvm.begin();    
+    std::vector<std::string>child;
+    child.push_back(std::string(tagName2));
+    std::string value;
+    for (;it!=kvm.end();it++)
+    {
+       const std::string& key = it->first;
+       const std::string& val = it->second;
+       std::string tempXpath = strXpath;
+       tempXpath.append("[@name=\"");
+       tempXpath.append(key);
+       tempXpath.append("\"]"); // /safplusAmf/ComponentServiceInstance[@name="csi"]/data[@name="testKey2"]
+       MGMT_CALL(amfDb.setRecord(tempXpath,value,&child));
+       logDebug("MGMT","---", "set record with xpath [%s], value [%s], child [%s]  rc=[0x%x]", tempXpath.c_str(), value.c_str(), tagName2, rc);
+       tempXpath.append("/");
+       tempXpath.append(tagName2); // /safplusAmf/ComponentServiceInstance[@name="csi"]/data[@name="testKey2"]/val
+       MGMT_CALL(amfDb.setRecord(tempXpath,val));
+       logDebug("MGMT","---", "set record with xpath [%s], value [%s]  rc=[0x%x]", tempXpath.c_str(), value.c_str(), rc);       
+    }
+    
+    return rc;
+  }
+
   ClRcT updateEntityAsListTypeFromDatabase(const char* xpath, const std::string& entityName, const char* tagName, const std::vector<std::string>& values)//, const std::vector<std::string>* child=nullptr)
   {
     // check if the xpath exists in the DB
@@ -340,7 +392,7 @@ namespace amfMgmtRpc {
   ClRcT compCommit(const ComponentConfig& comp)
   {
     ClRcT rc = CL_OK;
-    logTrace("MGMT","RPC", "server is processing component create/update commit name [%s]", comp.name().c_str());
+    logDebug("MGMT","RPC", "server is processing [%s] for entity [%s]", __FUNCTION__, comp.name().c_str());
     if (comp.name().length()==0)
     {
       return CL_ERR_INVALID_PARAMETER;      
@@ -481,7 +533,7 @@ namespace amfMgmtRpc {
   ClRcT compDeleteCommit(const std::string& compName)
   {
     ClRcT rc = CL_OK;
-    logDebug("MGMT","RPC", "server is processing component delete commit name [%s]", compName.c_str());
+    logDebug("MGMT","RPC", "server is processing [%s] for entity [%s]", __FUNCTION__, compName.c_str());
     if (compName.length()==0)
     {
       return CL_ERR_INVALID_PARAMETER;      
@@ -494,7 +546,7 @@ namespace amfMgmtRpc {
   ClRcT suCommit(const ServiceUnitConfig& su)
   {
     ClRcT rc = CL_OK;
-    logDebug("MGMT","RPC", "server is processing su create/update commit name [%s]", su.name().c_str());
+    logDebug("MGMT","RPC", "server is processing [%s] for entity [%s]", __FUNCTION__, su.name().c_str());
     if (su.name().length()==0)
     {
       return CL_ERR_INVALID_PARAMETER;      
@@ -562,7 +614,7 @@ namespace amfMgmtRpc {
   ClRcT sgCommit(const ServiceGroupConfig& sg)
   {
     ClRcT rc = CL_OK;
-    logDebug("MGMT","RPC", "server is processing sg create/update commit name [%s]", sg.name().c_str());
+    logDebug("MGMT","RPC", "server is processing [%s] for entity [%s]", __FUNCTION__, sg.name().c_str());
     if (sg.name().length()==0)
     {
       return CL_ERR_INVALID_PARAMETER;      
@@ -714,7 +766,7 @@ namespace amfMgmtRpc {
   ClRcT nodeCommit(const NodeConfig& node)
   {
     ClRcT rc = CL_OK;
-    logDebug("MGMT","RPC", "server is processing node create/update commit name [%s]", node.name().c_str());
+    logDebug("MGMT","RPC", "server is processing [%s] for entity [%s]", __FUNCTION__, node.name().c_str());
     if (node.name().length()==0)
     {
       return CL_ERR_INVALID_PARAMETER;      
@@ -789,13 +841,173 @@ namespace amfMgmtRpc {
   ClRcT suDeleteCommit(const std::string& suName)
   {
     ClRcT rc = CL_OK;
-    logTrace("MGMT","RPC", "server is processing su delete commit name [%s]", suName.c_str());
+    logDebug("MGMT","RPC", "server is processing [%s] for entity [%s]", __FUNCTION__, suName.c_str());
     if (suName.length()==0)
     {
       return CL_ERR_INVALID_PARAMETER;
     }
     rc = cfg.safplusAmf.serviceUnitList.deleteObj(suName);
     logDebug("MGMT","RPC", "deleting su name [%s] returns [0x%x]", suName.c_str(),rc);
+    return rc;
+  }
+
+  ClRcT sgDeleteCommit(const std::string& sgName)
+  {
+    ClRcT rc = CL_OK;
+    logDebug("MGMT","RPC", "server is processing [%s] for entity [%s]", __FUNCTION__, sgName.c_str());
+    if (sgName.length()==0)
+    {
+      return CL_ERR_INVALID_PARAMETER;      
+    }
+    rc = cfg.safplusAmf.serviceGroupList.deleteObj(sgName);
+    logDebug("MGMT","RPC", "deleting comp name [%s] return [0x%x]", sgName.c_str(),rc);
+    return rc;
+  }
+
+  ClRcT nodeDeleteCommit(const std::string& nodeName)
+  {
+    ClRcT rc = CL_OK;
+    logDebug("MGMT","RPC", "server is processing [%s] for entity [%s]", __FUNCTION__, nodeName.c_str());
+    if (nodeName.length()==0)
+    {
+      return CL_ERR_INVALID_PARAMETER;      
+    }
+    rc = cfg.safplusAmf.nodeList.deleteObj(nodeName);
+    logDebug("MGMT","RPC", "deleting node name [%s] return [0x%x]", nodeName.c_str(),rc);
+    return rc;
+  }
+
+  ClRcT siCommit(const ServiceInstanceConfig& si)
+  {
+    ClRcT rc = CL_OK;
+    logDebug("MGMT","RPC", "server is processing [%s] for entity [%s]", __FUNCTION__, si.name().c_str());
+    if (si.name().length()==0)
+    {
+      return CL_ERR_INVALID_PARAMETER;      
+    }
+    rc = addEntityToDatabase("/safplusAmf/ServiceInstance", si.name());
+    if (rc == CL_ERR_ALREADY_EXIST)
+    {
+       logNotice("MGMT","SG.COMMIT","xpath for entity [%s] already exists", si.name().c_str());
+    }
+    if (si.has_adminstate())
+    {
+      SAFplusAmf::AdministrativeState as = static_cast<SAFplusAmf::AdministrativeState>(si.adminstate());
+      std::stringstream ssAs;
+      ssAs<<as;
+      std::string strAs;
+      ssAs>>strAs;
+      MGMT_CALL(updateEntityFromDatabase("/safplusAmf/ServiceInstance",si.name(),"adminState",strAs));
+    }    
+    if (si.has_preferredactiveassignments())
+    {
+      uint32_t paa = si.preferredactiveassignments();
+      char temp[10];
+      snprintf(temp, 9, "%ul", paa);
+      std::string strPaa = temp;
+      MGMT_CALL(updateEntityFromDatabase("/safplusAmf/ServiceInstance",si.name(),"preferredActiveAssignments",strPaa));
+    }
+    if (si.has_preferredstandbyassignments())
+    {
+      uint32_t psa = si.preferredstandbyassignments();
+      char temp[10];
+      snprintf(temp, 9, "%ul", psa);
+      std::string strPsa = temp;
+      MGMT_CALL(updateEntityFromDatabase("/safplusAmf/ServiceInstance",si.name(),"preferredStandbyAssignments",strPsa));
+    }
+    if (si.has_rank())
+    {
+      uint32_t rank = si.rank();
+      char temp[10];
+      snprintf(temp, 9, "%ul", rank);
+      std::string strRank = temp;
+      MGMT_CALL(updateEntityFromDatabase("/safplusAmf/ServiceInstance",si.name(),"rank",strRank));
+    }
+    int csiSize = 0;
+    if ((csiSize=si.componentserviceinstances_size())>0)
+    {
+      std::vector<std::string> csis;
+      for (int i=0;i<csiSize;i++)
+      {
+         csis.push_back(si.componentserviceinstances(i));
+      }
+      MGMT_CALL(updateEntityAsListTypeFromDatabase("/safplusAmf/ServiceInstance",si.name(),"componentServiceInstances",csis));
+    }        
+    if (si.has_servicegroup())
+    {
+      const std::string& sg = si.servicegroup();
+      MGMT_CALL(updateEntityFromDatabase("/safplusAmf/ServiceInstance",si.name(),"serviceGroup",sg));
+    }
+
+    return rc;
+  }
+
+  ClRcT siDeleteCommit(const std::string& siName)
+  {
+    ClRcT rc = CL_OK;
+    logDebug("MGMT","RPC", "server is processing [%s] for entity [%s]", __FUNCTION__, siName.c_str());
+    if (siName.length()==0)
+    {
+      return CL_ERR_INVALID_PARAMETER;      
+    }
+    rc = cfg.safplusAmf.serviceInstanceList.deleteObj(siName);
+    logDebug("MGMT","RPC", "deleting node name [%s] return [0x%x]", siName.c_str(),rc);
+    return rc;
+  }
+
+  ClRcT csiCommit(const ComponentServiceInstanceConfig& csi)
+  {
+    ClRcT rc = CL_OK;
+    logDebug("MGMT","RPC", "server is processing [%s] for entity [%s]", __FUNCTION__, csi.name().c_str());
+    if (csi.name().length()==0)
+    {
+      return CL_ERR_INVALID_PARAMETER;      
+    }
+    rc = addEntityToDatabase("/safplusAmf/ComponentServiceInstance", csi.name());
+    if (rc == CL_ERR_ALREADY_EXIST)
+    {
+       logNotice("MGMT","SG.COMMIT","xpath for entity [%s] already exists", csi.name().c_str());
+    }
+    int depSize = 0;
+    if ((depSize=csi.dependencies_size())>0)
+    {
+      std::vector<std::string> deps;
+      for (int i=0;i<depSize;i++)
+      {
+         deps.push_back(csi.dependencies(i));
+      }
+      MGMT_CALL(updateEntityAsListTypeFromDatabase("/safplusAmf/ComponentServiceInstance",csi.name(),"dependencies",deps));
+    }
+    int dataSize = 0;
+    if ((dataSize=csi.data_size())>0)
+    {
+      KeyValueHashMap data;
+      for (int i=0;i<dataSize;i++)
+      {
+         KeyValueMapPair kvp(csi.data(i).name(),csi.data(i).val());
+         data.insert(kvp);         
+      }
+      MGMT_CALL(updateEntityFromDatabase("/safplusAmf/ComponentServiceInstance", csi.name(), "data", "val", data));
+    }           
+    if (csi.has_serviceinstance())
+    {
+      const std::string& si = csi.serviceinstance();
+      MGMT_CALL(updateEntityFromDatabase("/safplusAmf/ComponentServiceInstance",csi.name(),"serviceInstance",si));
+    }
+
+    return rc;
+  }
+
+  ClRcT csiDeleteCommit(const std::string& siName)
+  {
+    ClRcT rc = CL_OK;
+    logDebug("MGMT","RPC", "server is processing [%s] for entity [%s]", __FUNCTION__, siName.c_str());
+    if (siName.length()==0)
+    {
+      return CL_ERR_INVALID_PARAMETER;      
+    }
+    rc = cfg.safplusAmf.componentServiceInstanceList.deleteObj(siName);
+    logDebug("MGMT","RPC", "deleting node name [%s] return [0x%x]", siName.c_str(),rc);
     return rc;
   }
 
@@ -838,7 +1050,14 @@ namespace amfMgmtRpc {
       }
     case AMF_MGMT_OP_SG_CREATE:
       {
-        
+        CreateSGRequest request;
+        std::string strRequestData;
+        strRequestData.assign((ClCharT*)recData, dataSize);
+        request.ParseFromString(strRequestData);
+        const ServiceGroupConfig& sg = request.servicegroupconfig();
+        logDebug("MGMT","COMMIT","handleCommit op [%d], entity [%s]", op, sg.name().c_str());
+        rc = sgCommit(sg);
+        break;
       }
     case AMF_MGMT_OP_SG_UPDATE:
       {
@@ -852,7 +1071,25 @@ namespace amfMgmtRpc {
         break;
       }
     case AMF_MGMT_OP_SG_DELETE:
+      {
+        DeleteSGRequest request;
+        std::string strRequestData;
+        strRequestData.assign((ClCharT*)recData, dataSize);
+        request.ParseFromString(strRequestData);
+        rc = sgDeleteCommit(request.name());
+        break;
+      }
     case AMF_MGMT_OP_NODE_CREATE:
+      {
+        CreateNodeRequest request;
+        std::string strRequestData;
+        strRequestData.assign((ClCharT*)recData, dataSize);
+        request.ParseFromString(strRequestData);
+        const NodeConfig& node = request.nodeconfig();
+        logDebug("MGMT","COMMIT","handleCommit op [%d], entity [%s]", op, node.name().c_str());
+        rc = nodeCommit(node);
+        break;
+      }
     case AMF_MGMT_OP_NODE_UPDATE:
       {
         UpdateNodeRequest request;
@@ -865,6 +1102,14 @@ namespace amfMgmtRpc {
         break;
       }
     case AMF_MGMT_OP_NODE_DELETE:
+      {
+        DeleteNodeRequest request;
+        std::string strRequestData;
+        strRequestData.assign((ClCharT*)recData, dataSize);
+        request.ParseFromString(strRequestData);
+        rc = nodeDeleteCommit(request.name());
+        break;
+      }
     case AMF_MGMT_OP_SU_CREATE:
       {
         CreateSURequest request;
@@ -898,11 +1143,69 @@ namespace amfMgmtRpc {
         break;
       }
     case AMF_MGMT_OP_SI_CREATE:
+      {
+        CreateSIRequest request;
+        std::string strRequestData;
+        strRequestData.assign((ClCharT*)recData, dataSize);
+        request.ParseFromString(strRequestData);
+        const ServiceInstanceConfig& si = request.serviceinstanceconfig();
+        logDebug("MGMT","COMMIT","handleCommit op [%d], entity [%s]", op, si.name().c_str());
+        rc = siCommit(si);
+        break;
+      }
     case AMF_MGMT_OP_SI_UPDATE:
+      {
+        UpdateSIRequest request;
+        std::string strRequestData;
+        strRequestData.assign((ClCharT*)recData, dataSize);
+        request.ParseFromString(strRequestData);
+        const ServiceInstanceConfig& si = request.serviceinstanceconfig();
+        logDebug("MGMT","COMMIT","handleCommit op [%d], entity [%s]", op, si.name().c_str());
+        rc = siCommit(si);
+        break;
+      }
     case AMF_MGMT_OP_SI_DELETE:
+      {
+        DeleteSIRequest request;
+        std::string strRequestData;
+        strRequestData.assign((ClCharT*)recData, dataSize);
+        request.ParseFromString(strRequestData);
+        logDebug("MGMT","COMMIT","handleCommit op [%d], entity [%s]", op, request.name().c_str());
+        rc = siDeleteCommit(request.name());
+        break;
+      }
     case AMF_MGMT_OP_CSI_CREATE:
+      {
+        CreateCSIRequest request;
+        std::string strRequestData;
+        strRequestData.assign((ClCharT*)recData, dataSize);
+        request.ParseFromString(strRequestData);
+        const ComponentServiceInstanceConfig& csi = request.componentserviceinstanceconfig();
+        logDebug("MGMT","COMMIT","handleCommit op [%d], entity [%s]", op, csi.name().c_str());
+        rc = csiCommit(csi);
+        break;
+      }
     case AMF_MGMT_OP_CSI_UPDATE:
+      {
+        UpdateCSIRequest request;
+        std::string strRequestData;
+        strRequestData.assign((ClCharT*)recData, dataSize);
+        request.ParseFromString(strRequestData);
+        const ComponentServiceInstanceConfig& csi = request.componentserviceinstanceconfig();
+        logDebug("MGMT","COMMIT","handleCommit op [%d], entity [%s]", op, csi.name().c_str());
+        rc = csiCommit(csi);
+        break;
+      }      
     case AMF_MGMT_OP_CSI_DELETE:
+      {
+        DeleteCSIRequest request;
+        std::string strRequestData;
+        strRequestData.assign((ClCharT*)recData, dataSize);
+        request.ParseFromString(strRequestData);        
+        logDebug("MGMT","COMMIT","handleCommit op [%d], entity [%s]", op, request.name().c_str());
+        rc = csiDeleteCommit(request.name());
+        break;
+      }
     case AMF_MGMT_OP_CSI_NVP_DELETE:
     case AMF_MGMT_OP_NODE_SU_LIST_DELETE:
     case AMF_MGMT_OP_SG_SU_LIST_DELETE:
@@ -1101,7 +1404,20 @@ namespace amfMgmtRpc {
   void amfMgmtRpcImpl::createSG(const ::SAFplus::Rpc::amfMgmtRpc::CreateSGRequest* request,
                                 ::SAFplus::Rpc::amfMgmtRpc::CreateSGResponse* response)
   {
-    //TODO: put your code here
+    const ServiceGroupConfig& sg = request->servicegroupconfig();
+    logDebug("MGMT","RPC","enter [%s] with param sg name [%s]",__FUNCTION__,sg.name().c_str());
+    DbalPlugin* pd = NULL;
+    ClRcT rc = getDbalObj(request->amfmgmthandle().Get(0).c_str(), &pd);
+    if (rc == CL_OK)
+    {
+      std::string strMsgReq;      
+      request->SerializeToString(&strMsgReq);
+      rc = pd->insertRecord(ClDBKeyT(&AMF_MGMT_OP_SG_CREATE),
+                           (ClUint32T)sizeof(AMF_MGMT_OP_SG_CREATE),
+                           (ClDBRecordT)strMsgReq.c_str(),
+                           (ClUint32T)strMsgReq.length());      
+      logDebug("MGMT","RPC","[%s] insertRecord returns [0x%x]",__FUNCTION__, rc);
+    }
   }
 
   void amfMgmtRpcImpl::updateSG(const ::SAFplus::Rpc::amfMgmtRpc::UpdateSGRequest* request,
@@ -1126,13 +1442,39 @@ namespace amfMgmtRpc {
   void amfMgmtRpcImpl::deleteSG(const ::SAFplus::Rpc::amfMgmtRpc::DeleteSGRequest* request,
                                 ::SAFplus::Rpc::amfMgmtRpc::DeleteSGResponse* response)
   {
-    //TODO: put your code here
+    const std::string& sgName = request->name();
+    logDebug("MGMT","RPC","enter [%s] with param sg name [%s]",__FUNCTION__,sgName.c_str());
+    DbalPlugin* pd = NULL;
+    ClRcT rc = getDbalObj(request->amfmgmthandle().Get(0).c_str(), &pd);
+    if (rc == CL_OK)
+    {
+      std::string strMsgReq;      
+      request->SerializeToString(&strMsgReq);
+      rc = pd->insertRecord(ClDBKeyT(&AMF_MGMT_OP_SG_DELETE),
+                           (ClUint32T)sizeof(AMF_MGMT_OP_SG_DELETE),
+                           (ClDBRecordT)strMsgReq.c_str(),
+                           (ClUint32T)strMsgReq.length());      
+      logDebug("MGMT","RPC","[%s] insertRecord returns [0x%x]",__FUNCTION__, rc);
+    }
   }
 
   void amfMgmtRpcImpl::createNode(const ::SAFplus::Rpc::amfMgmtRpc::CreateNodeRequest* request,
                                 ::SAFplus::Rpc::amfMgmtRpc::CreateNodeResponse* response)
   {
-    //TODO: put your code here
+    const NodeConfig& node = request->nodeconfig();
+    logDebug("MGMT","RPC","enter [%s] with param node name [%s]",__FUNCTION__,node.name().c_str());
+    DbalPlugin* pd = NULL;
+    ClRcT rc = getDbalObj(request->amfmgmthandle().Get(0).c_str(), &pd);
+    if (rc == CL_OK)
+    {
+      std::string strMsgReq;      
+      request->SerializeToString(&strMsgReq);
+      rc = pd->insertRecord(ClDBKeyT(&AMF_MGMT_OP_NODE_CREATE),
+                           (ClUint32T)sizeof(AMF_MGMT_OP_NODE_CREATE),
+                           (ClDBRecordT)strMsgReq.c_str(),
+                           (ClUint32T)strMsgReq.length());      
+      logDebug("MGMT","RPC","[%s] insertRecord returns [0x%x]",__FUNCTION__, rc);
+    }
   }
 
   void amfMgmtRpcImpl::updateNode(const ::SAFplus::Rpc::amfMgmtRpc::UpdateNodeRequest* request,
@@ -1157,7 +1499,20 @@ namespace amfMgmtRpc {
   void amfMgmtRpcImpl::deleteNode(const ::SAFplus::Rpc::amfMgmtRpc::DeleteNodeRequest* request,
                                 ::SAFplus::Rpc::amfMgmtRpc::DeleteNodeResponse* response)
   {
-    //TODO: put your code here
+    const std::string& nodeName = request->name();
+    logDebug("MGMT","RPC","enter [%s] with param node name [%s]",__FUNCTION__,nodeName.c_str());
+    DbalPlugin* pd = NULL;
+    ClRcT rc = getDbalObj(request->amfmgmthandle().Get(0).c_str(), &pd);
+    if (rc == CL_OK)
+    {
+      std::string strMsgReq;      
+      request->SerializeToString(&strMsgReq);
+      rc = pd->insertRecord(ClDBKeyT(&AMF_MGMT_OP_NODE_DELETE),
+                           (ClUint32T)sizeof(AMF_MGMT_OP_NODE_DELETE),
+                           (ClDBRecordT)strMsgReq.c_str(),
+                           (ClUint32T)strMsgReq.length());      
+      logDebug("MGMT","RPC","[%s] insertRecord returns [0x%x]",__FUNCTION__, rc);
+    }
   }
 
   void amfMgmtRpcImpl::createSU(const ::SAFplus::Rpc::amfMgmtRpc::CreateSURequest* request,
@@ -1223,37 +1578,121 @@ namespace amfMgmtRpc {
   void amfMgmtRpcImpl::createSI(const ::SAFplus::Rpc::amfMgmtRpc::CreateSIRequest* request,
                                 ::SAFplus::Rpc::amfMgmtRpc::CreateSIResponse* response)
   {
-    //TODO: put your code here
+    const ServiceInstanceConfig& si = request->serviceinstanceconfig();
+    logDebug("MGMT","RPC","enter [%s] with param si name [%s]",__FUNCTION__,si.name().c_str());
+    DbalPlugin* pd = NULL;
+    ClRcT rc = getDbalObj(request->amfmgmthandle().Get(0).c_str(), &pd);
+    if (rc == CL_OK)
+    {
+      std::string strMsgReq;      
+      request->SerializeToString(&strMsgReq);
+      rc = pd->insertRecord(ClDBKeyT(&AMF_MGMT_OP_SI_CREATE),
+                           (ClUint32T)sizeof(AMF_MGMT_OP_SI_CREATE),
+                           (ClDBRecordT)strMsgReq.c_str(),
+                           (ClUint32T)strMsgReq.length());      
+      logDebug("MGMT","RPC","[%s] insertRecord returns [0x%x]",__FUNCTION__, rc);
+    } 
+    response->set_err(rc);
   }
 
   void amfMgmtRpcImpl::updateSI(const ::SAFplus::Rpc::amfMgmtRpc::UpdateSIRequest* request,
                                 ::SAFplus::Rpc::amfMgmtRpc::UpdateSIResponse* response)
   {
-    //TODO: put your code here
+    const ServiceInstanceConfig& si = request->serviceinstanceconfig();
+    logDebug("MGMT","RPC","enter [%s] with param si name [%s]",__FUNCTION__,si.name().c_str());
+    DbalPlugin* pd = NULL;
+    ClRcT rc = getDbalObj(request->amfmgmthandle().Get(0).c_str(), &pd);
+    if (rc == CL_OK)
+    {
+      std::string strMsgReq;      
+      request->SerializeToString(&strMsgReq);
+      rc = pd->insertRecord(ClDBKeyT(&AMF_MGMT_OP_SI_UPDATE),
+                           (ClUint32T)sizeof(AMF_MGMT_OP_SI_UPDATE),
+                           (ClDBRecordT)strMsgReq.c_str(),
+                           (ClUint32T)strMsgReq.length());      
+      logDebug("MGMT","RPC","[%s] insertRecord returns [0x%x]",__FUNCTION__, rc);
+    } 
+    response->set_err(rc);
   }
 
   void amfMgmtRpcImpl::deleteSI(const ::SAFplus::Rpc::amfMgmtRpc::DeleteSIRequest* request,
                                 ::SAFplus::Rpc::amfMgmtRpc::DeleteSIResponse* response)
   {
-    //TODO: put your code here
+    const std::string& siName = request->name();
+    logDebug("MGMT","RPC","enter [%s] with param si name [%s]",__FUNCTION__,siName.c_str());
+    DbalPlugin* pd = NULL;
+    ClRcT rc = getDbalObj(request->amfmgmthandle().Get(0).c_str(), &pd);
+    if (rc == CL_OK)
+    {
+      std::string strMsgReq;      
+      request->SerializeToString(&strMsgReq);
+      rc = pd->insertRecord(ClDBKeyT(&AMF_MGMT_OP_SI_DELETE),
+                           (ClUint32T)sizeof(AMF_MGMT_OP_SI_DELETE),
+                           (ClDBRecordT)strMsgReq.c_str(),
+                           (ClUint32T)strMsgReq.length());      
+      logDebug("MGMT","RPC","[%s] insertRecord returns [0x%x]",__FUNCTION__, rc);
+    } 
+    response->set_err(rc);
   }
 
   void amfMgmtRpcImpl::createCSI(const ::SAFplus::Rpc::amfMgmtRpc::CreateCSIRequest* request,
                                 ::SAFplus::Rpc::amfMgmtRpc::CreateCSIResponse* response)
   {
-    //TODO: put your code here
+    const ComponentServiceInstanceConfig& csi = request->componentserviceinstanceconfig();
+    logDebug("MGMT","RPC","enter [%s] with param csi name [%s]",__FUNCTION__,csi.name().c_str());
+    DbalPlugin* pd = NULL;
+    ClRcT rc = getDbalObj(request->amfmgmthandle().Get(0).c_str(), &pd);
+    if (rc == CL_OK)
+    {
+      std::string strMsgReq;      
+      request->SerializeToString(&strMsgReq);
+      rc = pd->insertRecord(ClDBKeyT(&AMF_MGMT_OP_CSI_CREATE),
+                           (ClUint32T)sizeof(AMF_MGMT_OP_CSI_CREATE),
+                           (ClDBRecordT)strMsgReq.c_str(),
+                           (ClUint32T)strMsgReq.length());      
+      logDebug("MGMT","RPC","[%s] insertRecord returns [0x%x]",__FUNCTION__, rc);
+    } 
+    response->set_err(rc);
   }
 
   void amfMgmtRpcImpl::updateCSI(const ::SAFplus::Rpc::amfMgmtRpc::UpdateCSIRequest* request,
                                 ::SAFplus::Rpc::amfMgmtRpc::UpdateCSIResponse* response)
   {
-    //TODO: put your code here
+    const ComponentServiceInstanceConfig& csi = request->componentserviceinstanceconfig();
+    logDebug("MGMT","RPC","enter [%s] with param csi name [%s]",__FUNCTION__,csi.name().c_str());
+    DbalPlugin* pd = NULL;
+    ClRcT rc = getDbalObj(request->amfmgmthandle().Get(0).c_str(), &pd);
+    if (rc == CL_OK)
+    {
+      std::string strMsgReq;      
+      request->SerializeToString(&strMsgReq);
+      rc = pd->insertRecord(ClDBKeyT(&AMF_MGMT_OP_CSI_UPDATE),
+                           (ClUint32T)sizeof(AMF_MGMT_OP_CSI_UPDATE),
+                           (ClDBRecordT)strMsgReq.c_str(),
+                           (ClUint32T)strMsgReq.length());      
+      logDebug("MGMT","RPC","[%s] insertRecord returns [0x%x]",__FUNCTION__, rc);
+    } 
+    response->set_err(rc);
   }
 
   void amfMgmtRpcImpl::deleteCSI(const ::SAFplus::Rpc::amfMgmtRpc::DeleteCSIRequest* request,
                                 ::SAFplus::Rpc::amfMgmtRpc::DeleteCSIResponse* response)
   {
-    //TODO: put your code here
+    const std::string& csiName = request->name();
+    logDebug("MGMT","RPC","enter [%s] with param csi name [%s]",__FUNCTION__,csiName.c_str());
+    DbalPlugin* pd = NULL;
+    ClRcT rc = getDbalObj(request->amfmgmthandle().Get(0).c_str(), &pd);
+    if (rc == CL_OK)
+    {
+      std::string strMsgReq;      
+      request->SerializeToString(&strMsgReq);
+      rc = pd->insertRecord(ClDBKeyT(&AMF_MGMT_OP_CSI_DELETE),
+                           (ClUint32T)sizeof(AMF_MGMT_OP_CSI_DELETE),
+                           (ClDBRecordT)strMsgReq.c_str(),
+                           (ClUint32T)strMsgReq.length());      
+      logDebug("MGMT","RPC","[%s] insertRecord returns [0x%x]",__FUNCTION__, rc);
+    } 
+    response->set_err(rc);
   }
 
   void amfMgmtRpcImpl::deleteCSINVP(const ::SAFplus::Rpc::amfMgmtRpc::DeleteCSINVPRequest* request,
