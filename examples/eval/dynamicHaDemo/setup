@@ -1,0 +1,25 @@
+#!/bin/bash
+export LD_LIBRARY_PATH=`pwd`/../lib:`pwd`/../plugin:$LD_LIBRARY_PATH
+export PYTHONPATH=`pwd`/../lib:`pwd`/../bin:`pwd`/../test:$PYTHONPATH
+
+sysctl -w net.core.wmem_max=20485760
+sysctl -w net.core.rmem_max=20485760
+sysctl -w net.core.rmem_default=20485760
+sysctl -w net.core.wmem_default=20485760
+
+# set this node's name as specified in the XML model
+export ASP_NODENAME=node0
+
+# excessive logging can cause expect's input buffer to fill up, hanging the app on stdout
+export CL_LOG_SEVERITY=DEBUG
+export CL_LOG_CODE_LOCATION_ENABLE=1
+
+# To use UDP broadcasts on the loopback interface I need to enable a broadcast address
+export SAFPLUS_BACKPLANE_INTERFACE=enp0s8
+
+# Set up the cloud network addresses (if using cloud mode)
+#../bin/safplus_cloud --add 127.0.0.1
+
+# Set up the management database to use the SAFplus checkpointing service
+export SAFPLUS_MGT_DB_PLUGIN=libclCkptDB.so
+export SAFPLUS_DB_PLUGIN=libclSQLiteDB.so
