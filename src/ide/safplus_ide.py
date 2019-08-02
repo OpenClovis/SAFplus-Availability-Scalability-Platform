@@ -11,6 +11,7 @@ import re
 # wxversion.select("2.8")
 import wx
 import wx.aui
+import wx.stc as stc
 #import wx.lib.fancytext as fancytext
 from wx.html import HtmlWindow
 import sys
@@ -502,19 +503,80 @@ class Page(wx.Panel):
   def __init__(self, parent, pathFile):
     """Constructor"""
     wx.Panel.__init__(self, parent)
-    self.control = wx.TextCtrl(self, 1, style=wx.TE_MULTILINE)
-    self.sizer=wx.BoxSizer(wx.VERTICAL)
+    self.control = stc.StyledTextCtrl(self)
+    self.setLexer(pathFile)
+    self.sizer = wx.BoxSizer(wx.VERTICAL)
     self.sizer.Add(self.control,1,wx.EXPAND)
     self.SetSizer(self.sizer)
     self.sizer.Fit(self)
+
     self.pathFile = pathFile
     self.parent = parent
 
-    filehandle=open(pathFile,'r')
-    self.control.SetValue(filehandle.read())
-    filehandle.close()
+    f = open(pathFile,'r')
+    self.control.ChangeValue(f.read())
+    f.close()
 
-    self.control.Bind(wx.EVT_TEXT, self.onEditChange)
+    self.control.Bind(stc.EVT_STC_CHANGE, self.onEditChange)
+
+  def setLexer(self, filePath):
+    '''
+    @summary    : support for syntax styling for c, cxx, cpp, xml, Makefile.
+    '''
+    faces = { 'times': 'Times',
+              'mono' : 'Droid Sans Mono',
+              'cNew' : 'Courier New',
+              'helv' : 'Arial',
+              'other': 'new century schoolbook',
+              'size' : 10.5,
+              'size2': 10,
+             }
+
+    # Global settings
+    self.control.SetCaretLineVisible(True)
+    self.control.SetCaretLineBackground(wx.Colour(0xF3,0xF3,0xF3))
+    self.control.SetMarginWidth(1, 45) # set the width for line number
+    self.control.SetMarginType(1,stc.STC_MARGIN_NUMBER)
+    self.control.SetMarginWidth(2, 12)
+    self.control.StyleSetSpec(stc.STC_STYLE_DEFAULT, "face:%(mono)s,size:%(size)d" % faces)
+    self.control.StyleSetSpec(stc.STC_STYLE_LINENUMBER, "fore:#000000,back:#FFFFFF,face:%(mono)s,size:%(size2)d" % faces)
+    self.control.SetTabWidth(4)
+
+    filename, fileExtention = os.path.splitext(filePath)
+    filename = os.path.splitext(os.path.basename(filePath))[0]
+    if filename == "Makefile":
+      self.control.SetLexer(stc.STC_LEX_MAKEFILE)
+      self.control.StyleSetSpec(stc.STC_MAKE_COMMENT, "fore:#800000,bold,size:%(size)d" % faces)
+      self.control.StyleSetSpec(stc.STC_MAKE_IDENTIFIER, "fore:#008000,bold,size:%(size)d" % faces)
+      self.control.StyleSetSpec(stc.STC_MAKE_OPERATOR, "fore:#9a6e3a,bold,size:%(size)d" % faces)
+      self.control.StyleSetSpec(stc.STC_MAKE_TARGET, "fore:#990055,bold,size:%(size)d" % faces)
+    elif fileExtention == ".py":
+      self.control.SetLexer(stc.STC_LEX_PYTHON)
+      self.control.StyleSetSpec(stc.STC_P_COMMENTLINE, "fore:#2a00ff,size:%(size)d" % faces)
+      self.control.StyleSetSpec(stc.STC_P_STRING, "fore:#d804d8,size:%(size)d" % faces)
+    elif fileExtention == ".cpp" or fileExtention == ".h" or fileExtention == ".cxx":
+      self.control.SetLexer(stc.STC_LEX_CPP)
+      self.control.StyleSetSpec( stc.STC_C_COMMENT, "fore:#3f7f5f,bold,size:%(size)d" % faces)
+      self.control.StyleSetSpec( stc.STC_C_COMMENTLINE, "fore:#3f7f5f,bold,size:%(size)d" % faces)
+      self.control.StyleSetSpec( stc.STC_C_NUMBER, "fore:#09885a,bold,size:%(size)d" % faces)
+      self.control.StyleSetSpec( stc.STC_C_OPERATOR, "fore:#000000,bold,size:%(size)d" % faces)
+      self.control.StyleSetSpec( stc.STC_C_PREPROCESSOR, "fore:#7f0055,bold,size:%(size)d" % faces)
+      self.control.StyleSetSpec( stc.STC_C_STRING, "fore:#2a00ff,bold,size:%(size)d" % faces)
+      self.control.StyleSetSpec( stc.STC_C_CHARACTER, "fore:#2a00ff,bold,size:%(size)d" % faces)
+      self.control.StyleSetSpec( stc.STC_C_IDENTIFIER, "fore:#000000,bold,size:%(size)d" % faces)
+      self.control.StyleSetSpec( stc.STC_C_COMMENTDOC, "fore:#3f7f5f,bold,size:%(size)d" % faces)
+      self.control.StyleSetSpec( stc.STC_C_COMMENTDOCKEYWORD, "fore:#3f7f5f,bold,size:%(size)d" % faces)
+      self.control.StyleSetSpec( stc.STC_C_COMMENTDOCKEYWORDERROR, "fore:#3f7f5f,bold,size:%(size)d" % faces)
+      self.control.StyleSetSpec( stc.STC_C_COMMENTLINEDOC, "fore:#3f7f5f,bold,size:%(size)d" % faces)
+    elif fileExtention == ".xml":
+      self.control.SetLexer(stc.STC_LEX_XML)
+      self.control.StyleSetSpec(stc.STC_H_DEFAULT, "fore:#000000,face:%(helv)s,size:%(size)d" % faces)
+      self.control.StyleSetSpec(stc.STC_H_NUMBER, "fore:#007F7F,size:%(size)d" % faces)
+      self.control.StyleSetSpec(stc.STC_H_TAG, "fore:#007F7F,bold,size:%(size)d" % faces)
+      self.control.StyleSetSpec(stc.STC_H_VALUE, "fore:#7F0000,size:%(size)d" % faces)
+      self.control.StyleSetSpec(stc.STC_H_COMMENT, "fore:#2a00ff,size:%(size)d" % faces)
+      self.control.StyleSetSpec(stc.STC_H_SINGLESTRING, "fore:#d804d8,size:%(size)d" % faces)
+      self.control.StyleSetSpec(stc.STC_H_ATTRIBUTE, "fore:#2f60b6,size:%(size)d" % faces)
 
   def onSave(self):
     '''
@@ -544,7 +606,10 @@ class Page(wx.Panel):
     index = self.parent.tab.GetPageIndex(self)
     label = self.parent.tab.GetPageText(index)
     if not ('*' in label):
-      self.parent.tab.SetPageText(index, "*%s" % label)
+      f = open(self.pathFile,'r')
+      if self.control.GetValue() != f.read():
+        self.parent.tab.SetPageText(index, "*%s" % label)
+      f.close()
 
 def go():
   global app
