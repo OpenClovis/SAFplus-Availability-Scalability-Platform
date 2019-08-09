@@ -1,3 +1,6 @@
+# Scintilla-based text editor implemented in Python + wxPython.
+# Source https://github.com/fogleman/TextEditor
+
 import pickle
 import defaults
 import util

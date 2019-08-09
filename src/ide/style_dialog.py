@@ -1,6 +1,6 @@
-# Original:
 # Scintilla-based text editor implemented in Python + wxPython.
 # Source https://github.com/fogleman/TextEditor
+
 import wx
 import wx.aui as aui
 import wx.stc as stc
