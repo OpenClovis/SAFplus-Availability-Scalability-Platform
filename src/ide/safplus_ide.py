@@ -6,6 +6,8 @@ import time
 from types import *
 from collections import namedtuple
 import re
+import control
+import styles
 
 # import wxversion
 # wxversion.select("2.8")
@@ -31,6 +33,7 @@ class SAFplusFrame(wx.Frame):
     """
     def __init__(self, parent, title):
         wx.Frame.__init__(self, parent, -1, title, pos=(150, 150), size=(1160, 850))
+        self.style_manager = styles.StyleManager()
         self.model = None
         self.problems = None
         self.currentActivePrj = None # indicating that this the current project which is active
@@ -503,80 +506,39 @@ class Page(wx.Panel):
   def __init__(self, parent, pathFile):
     """Constructor"""
     wx.Panel.__init__(self, parent)
-    self.control = stc.StyledTextCtrl(self)
-    self.setLexer(pathFile)
+    self.control = control.EditorControl(self, wx.BORDER_NONE, pathFile)
+    self.SEARCH_ID = wx.NewId()
+    self.REPLACE_ID = wx.NewId()
+    self.Bind(wx.EVT_MENU, self.onKeyCombo, id=self.SEARCH_ID)
+    self.Bind(wx.EVT_MENU, self.onKeyCombo, id=self.REPLACE_ID)
+    entries = [wx.AcceleratorEntry() for i in xrange(2)]
+    entries[0].Set(wx.ACCEL_CTRL, ord('F'), self.SEARCH_ID)
+    entries[1].Set(wx.ACCEL_CTRL, ord('H'), self.REPLACE_ID)
+    accel_tbl = wx.AcceleratorTable(entries)
+    self.SetAcceleratorTable(accel_tbl)
+    
     self.sizer = wx.BoxSizer(wx.VERTICAL)
     self.sizer.Add(self.control,1,wx.EXPAND)
     self.SetSizer(self.sizer)
     self.sizer.Fit(self)
-
     self.pathFile = pathFile
     self.parent = parent
-
-    f = open(pathFile,'r')
-    self.control.ChangeValue(f.read())
-    f.close()
-
     self.control.Bind(stc.EVT_STC_CHANGE, self.onEditChange)
 
-  def setLexer(self, filePath):
+  def onKeyCombo(self, event):
     '''
-    @summary    : support for syntax styling for c, cxx, cpp, xml, Makefile.
+    @summary    : search/replace text
     '''
-    faces = { 'times': 'Times',
-              'mono' : 'Droid Sans Mono',
-              'cNew' : 'Courier New',
-              'helv' : 'Arial',
-              'other': 'new century schoolbook',
-              'size' : 10.5,
-              'size2': 10,
-             }
+    data = wx.FindReplaceData(flags=0)
+    data.SetFindString(self.control.GetSelectedText())
+    if event.GetId() == self.REPLACE_ID:
+      fStyle = wx.FR_REPLACEDIALOG
+    elif event.GetId() == self.SEARCH_ID:
+      fStyle = 0
 
-    # Global settings
-    self.control.SetCaretLineVisible(True)
-    self.control.SetCaretLineBackground(wx.Colour(0xF3,0xF3,0xF3))
-    self.control.SetMarginWidth(1, 45) # set the width for line number
-    self.control.SetMarginType(1,stc.STC_MARGIN_NUMBER)
-    self.control.SetMarginWidth(2, 12)
-    self.control.StyleSetSpec(stc.STC_STYLE_DEFAULT, "face:%(mono)s,size:%(size)d" % faces)
-    self.control.StyleSetSpec(stc.STC_STYLE_LINENUMBER, "fore:#000000,back:#FFFFFF,face:%(mono)s,size:%(size2)d" % faces)
-    self.control.SetTabWidth(4)
-
-    filename, fileExtention = os.path.splitext(filePath)
-    filename = os.path.splitext(os.path.basename(filePath))[0]
-    if filename == "Makefile":
-      self.control.SetLexer(stc.STC_LEX_MAKEFILE)
-      self.control.StyleSetSpec(stc.STC_MAKE_COMMENT, "fore:#800000,bold,size:%(size)d" % faces)
-      self.control.StyleSetSpec(stc.STC_MAKE_IDENTIFIER, "fore:#008000,bold,size:%(size)d" % faces)
-      self.control.StyleSetSpec(stc.STC_MAKE_OPERATOR, "fore:#9a6e3a,bold,size:%(size)d" % faces)
-      self.control.StyleSetSpec(stc.STC_MAKE_TARGET, "fore:#990055,bold,size:%(size)d" % faces)
-    elif fileExtention == ".py":
-      self.control.SetLexer(stc.STC_LEX_PYTHON)
-      self.control.StyleSetSpec(stc.STC_P_COMMENTLINE, "fore:#2a00ff,size:%(size)d" % faces)
-      self.control.StyleSetSpec(stc.STC_P_STRING, "fore:#d804d8,size:%(size)d" % faces)
-    elif fileExtention == ".cpp" or fileExtention == ".h" or fileExtention == ".cxx":
-      self.control.SetLexer(stc.STC_LEX_CPP)
-      self.control.StyleSetSpec( stc.STC_C_COMMENT, "fore:#3f7f5f,bold,size:%(size)d" % faces)
-      self.control.StyleSetSpec( stc.STC_C_COMMENTLINE, "fore:#3f7f5f,bold,size:%(size)d" % faces)
-      self.control.StyleSetSpec( stc.STC_C_NUMBER, "fore:#09885a,bold,size:%(size)d" % faces)
-      self.control.StyleSetSpec( stc.STC_C_OPERATOR, "fore:#000000,bold,size:%(size)d" % faces)
-      self.control.StyleSetSpec( stc.STC_C_PREPROCESSOR, "fore:#7f0055,bold,size:%(size)d" % faces)
-      self.control.StyleSetSpec( stc.STC_C_STRING, "fore:#2a00ff,bold,size:%(size)d" % faces)
-      self.control.StyleSetSpec( stc.STC_C_CHARACTER, "fore:#2a00ff,bold,size:%(size)d" % faces)
-      self.control.StyleSetSpec( stc.STC_C_IDENTIFIER, "fore:#000000,bold,size:%(size)d" % faces)
-      self.control.StyleSetSpec( stc.STC_C_COMMENTDOC, "fore:#3f7f5f,bold,size:%(size)d" % faces)
-      self.control.StyleSetSpec( stc.STC_C_COMMENTDOCKEYWORD, "fore:#3f7f5f,bold,size:%(size)d" % faces)
-      self.control.StyleSetSpec( stc.STC_C_COMMENTDOCKEYWORDERROR, "fore:#3f7f5f,bold,size:%(size)d" % faces)
-      self.control.StyleSetSpec( stc.STC_C_COMMENTLINEDOC, "fore:#3f7f5f,bold,size:%(size)d" % faces)
-    elif fileExtention == ".xml":
-      self.control.SetLexer(stc.STC_LEX_XML)
-      self.control.StyleSetSpec(stc.STC_H_DEFAULT, "fore:#000000,face:%(helv)s,size:%(size)d" % faces)
-      self.control.StyleSetSpec(stc.STC_H_NUMBER, "fore:#007F7F,size:%(size)d" % faces)
-      self.control.StyleSetSpec(stc.STC_H_TAG, "fore:#007F7F,bold,size:%(size)d" % faces)
-      self.control.StyleSetSpec(stc.STC_H_VALUE, "fore:#7F0000,size:%(size)d" % faces)
-      self.control.StyleSetSpec(stc.STC_H_COMMENT, "fore:#2a00ff,size:%(size)d" % faces)
-      self.control.StyleSetSpec(stc.STC_H_SINGLESTRING, "fore:#d804d8,size:%(size)d" % faces)
-      self.control.StyleSetSpec(stc.STC_H_ATTRIBUTE, "fore:#2f60b6,size:%(size)d" % faces)
+    dlg = FindReplaceDialog(self, data, "", fStyle)
+    dlg.ShowModal()
+    dlg.Destroy()
 
   def onSave(self):
     '''
@@ -610,6 +572,67 @@ class Page(wx.Panel):
       if self.control.GetValue() != f.read():
         self.parent.tab.SetPageText(index, "*%s" % label)
       f.close()
+  
+class FindReplaceDialog(wx.FindReplaceDialog):
+    """
+    Class to define FindReplaceDialog dialog
+    """
+    def __init__(self, parent, d, t, s):
+      """Constructor"""
+      wx.FindReplaceDialog.__init__(self, parent, data=d, title=t, style=s)
+      self.parent = parent
+      self.control = self.parent.control
+      self.Bind(wx.EVT_FIND, self.find)
+      self.Bind(wx.EVT_FIND_NEXT, self.findNext)
+      self.Bind(wx.EVT_FIND_REPLACE, self.findReplace)
+      self.Bind(wx.EVT_FIND_REPLACE_ALL, self.findReplaceAll)
+      self.Bind(wx.EVT_FIND_CLOSE, self.findClose)
+
+    def find(self, event):
+      '''
+      @summary    : call for first click on find button
+      '''
+      self.findNext(event)
+
+    def findNext(self, event):
+      '''
+      @summary    : click on find button from second time
+      '''
+      text = self.GetData().GetFindString()
+      flags = self.GetData().GetFlags()
+      previous = not (flags & 0x1)
+      wrap = True
+      if text and self.control:
+          self.control.find(text, previous, wrap, flags, False)
+
+    def findReplace(self, event):
+      '''
+      @summary    : This method implement replace text
+      '''
+      flags = self.GetData().GetFlags()
+      selection = self.control.GetSelectedText()
+      a, b = self.control.GetSelection()
+      replacement = self.GetData().GetReplaceString()
+      if selection:
+        self.control.ReplaceSelection(replacement)
+      if not (flags & 0x1):
+        self.control.SetSelection(a, a)
+      self.find(event)
+
+    def findReplaceAll(self, event):
+      '''
+      @summary    : This method implement replace all text
+      '''
+      text = self.GetData().GetFindString()
+      flags = self.GetData().GetFlags() & 0x6
+      replacement = self.GetData().GetReplaceString()
+      self.control.replace_all(text, replacement, flags, False)
+
+    def findClose(self, event):
+      '''
+      @summary    : Close search/replace dialog
+      '''
+      self.Destroy()
 
 def go():
   global app
