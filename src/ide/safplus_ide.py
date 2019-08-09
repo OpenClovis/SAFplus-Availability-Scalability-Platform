@@ -33,7 +33,6 @@ class SAFplusFrame(wx.Frame):
     """
     def __init__(self, parent, title):
         wx.Frame.__init__(self, parent, -1, title, pos=(150, 150), size=(1160, 850))
-        self.style_manager = styles.StyleManager()
         self.model = None
         self.problems = None
         self.currentActivePrj = None # indicating that this the current project which is active
@@ -396,6 +395,11 @@ class SAFplusFrame(wx.Frame):
     def onPageClosing(self, evt):
       print 'page closing event launched'
       idx = evt.GetSelection()
+      if idx >= 0:
+        page = self.tab.GetPage(idx)
+        if page.__class__.__name__ == "Page":
+          page.control.confirm_close(False)
+          return
       pageText = self.tab.GetPageText(idx)
       print 'page [%s] idx [%d] closing' % (pageText, idx)
       t = self.model
@@ -506,6 +510,7 @@ class Page(wx.Panel):
   def __init__(self, parent, pathFile):
     """Constructor"""
     wx.Panel.__init__(self, parent)
+    self.style_manager = styles.StyleManager()
     self.control = control.EditorControl(self, wx.BORDER_NONE, pathFile)
     self.SEARCH_ID = wx.NewId()
     self.REPLACE_ID = wx.NewId()
@@ -516,7 +521,7 @@ class Page(wx.Panel):
     entries[1].Set(wx.ACCEL_CTRL, ord('H'), self.REPLACE_ID)
     accel_tbl = wx.AcceleratorTable(entries)
     self.SetAcceleratorTable(accel_tbl)
-    
+
     self.sizer = wx.BoxSizer(wx.VERTICAL)
     self.sizer.Add(self.control,1,wx.EXPAND)
     self.SetSizer(self.sizer)
@@ -544,6 +549,7 @@ class Page(wx.Panel):
     '''
     @summary    : save file content and remove * character
     '''
+    self.control.edited = False
     label = ''
     index = 0
     try:
@@ -567,12 +573,13 @@ class Page(wx.Panel):
     '''
     index = self.parent.tab.GetPageIndex(self)
     label = self.parent.tab.GetPageText(index)
+    self.control.edited = True
     if not ('*' in label):
       f = open(self.pathFile,'r')
       if self.control.GetValue() != f.read():
         self.parent.tab.SetPageText(index, "*%s" % label)
       f.close()
-  
+
 class FindReplaceDialog(wx.FindReplaceDialog):
     """
     Class to define FindReplaceDialog dialog

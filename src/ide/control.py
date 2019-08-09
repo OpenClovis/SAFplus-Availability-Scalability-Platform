@@ -57,9 +57,10 @@ class EditorControl(stc.StyledTextCtrl):
             wx.PostEvent(self, EditorEvent(EVT_EDITOR_STATUS_CHANGED, self))
     edited = property(get_edited, set_edited)
     def get_frame(self):
-        notebook = self.GetParent()
-        frame = notebook.GetParent()
-        return frame
+        # notebook = self.GetParent()
+        # frame = notebook.GetParent()
+        # return frame
+        return self.GetParent()
     def confirm_close(self, can_veto=True):
         if self.edited and settings.CONFIRM_CLOSE_WITH_EDITS:
             frame = self.get_frame()
@@ -71,7 +72,7 @@ class EditorControl(stc.StyledTextCtrl):
             dialog = wx.MessageDialog(frame, 'Save changes to file "%s"?' % name, 'Save Changes?', style)
             result = dialog.ShowModal()
             if result == wx.ID_YES:
-                frame.save(self)
+                frame.onSave()
             elif result == wx.ID_CANCEL:
                 return False
         return True
@@ -191,6 +192,8 @@ class EditorControl(stc.StyledTextCtrl):
         manager = self.get_frame().style_manager
         if path:
             pre, ext = os.path.splitext(path)
+            if not ext:
+                ext = str(pre).split('/')[-1]
             language = manager.get_language(ext)
         else:
             language = None
