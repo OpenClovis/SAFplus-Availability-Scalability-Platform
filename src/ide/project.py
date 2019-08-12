@@ -29,6 +29,19 @@ PROJECT_SAVE_AS = wx.NewId()
 
 PROJECT_WILDCARD = "SAFplus Project (*.spp)|*.spp|All files (*.*)|*.*"
 
+EDIT_UNDO         = wx.NewId()
+EDIT_REDO         = wx.NewId()
+EDIT_CUT          = wx.NewId()
+EDIT_COPY        = wx.NewId()
+EDIT_PATSE        = wx.NewId()
+EDIT_FIND         = wx.NewId()
+EDIT_REPLACE      = wx.NewId()
+EDIT_TOGGLE_LINE_COMMENT  = wx.NewId()
+EDIT_TOGGLE_BLOCK_COMMENT = wx.NewId()
+EDIT_SORT                 = wx.NewId()
+EDIT_LOWERCASE            = wx.NewId()
+EDIT_UPPERCASE            = wx.NewId()
+
 PROJECT_VALIDATE = wx.NewId()
 PROJECT_BUILD = wx.NewId()
 PROJECT_CLEAN = wx.NewId()
@@ -322,13 +335,43 @@ class ProjectTreePanel(wx.Panel):
         self.fileMenu.Enable(PROJECT_SAVE, False)
         self.fileMenu.Append(PROJECT_SAVE_AS, "Save As...\tAlt-a", "Save As")
         self.fileMenu.Enable(PROJECT_SAVE_AS, False)
-        
 
         # bind the menu event to an event handlerfff
         self.fileMenu.Bind(wx.EVT_MENU, self.OnNew, id=wx.ID_NEW)
         self.fileMenu.Bind(wx.EVT_MENU, self.OnLoad, id=PROJECT_LOAD)
         self.fileMenu.Bind(wx.EVT_MENU, self.OnSave, id=PROJECT_SAVE)
         self.fileMenu.Bind(wx.EVT_MENU, self.OnSaveAs, id=PROJECT_SAVE_AS)
+
+        # Insert edit tool into the GUI
+        self.editMenu = guiPlaces.menu["Edit"]
+        self.editMenu.Append(EDIT_UNDO, "&Undo\tCtrl-z", "Undo")
+        self.editMenu.Append(EDIT_REDO, "&Redo\tCtrl-y", "Redo")
+        self.editMenu.AppendSeparator()
+        self.editMenu.Append(EDIT_CUT,  "&Cut\tCtrl-x",  "Cut")
+        self.editMenu.Append(EDIT_COPY,"&Coppy\tCtrl-c","Coppy")
+        self.editMenu.Append(EDIT_PATSE, "&Patse\tCtrl-v", "Paste")
+        self.editMenu.AppendSeparator()
+        self.editMenu.Append(EDIT_FIND, "&Find\tCtrl-f", "Find")
+        self.editMenu.Append(EDIT_REPLACE, "&Replace\tCtrl-h", "Replace")
+        self.editMenu.AppendSeparator()
+        self.editMenu.Append(EDIT_TOGGLE_LINE_COMMENT, "&Toggle Line Comment\tCtrl-/", "")
+        # self.editMenu.Append(EDIT_TOGGLE_BLOCK_COMMENT, "&Toggle Block Comment\tCtrl-y", "")
+        self.editMenu.AppendSeparator()
+        self.editMenu.Append(EDIT_SORT, "&Sort", "Sort")
+        self.editMenu.Append(EDIT_LOWERCASE, "&Lowercase", "Lowercase")
+        self.editMenu.Append(EDIT_UPPERCASE, "&Uppercase", "Uppercase")
+
+        self.editMenu.Bind(wx.EVT_MENU, self.onUndo, id=EDIT_UNDO)
+        self.editMenu.Bind(wx.EVT_MENU, self.onRedo, id=EDIT_REDO)
+        self.editMenu.Bind(wx.EVT_MENU, self.onCut, id=EDIT_CUT)
+        self.editMenu.Bind(wx.EVT_MENU, self.onCopy, id=EDIT_COPY)
+        self.editMenu.Bind(wx.EVT_MENU, self.onPaste, id=EDIT_PATSE)
+        self.editMenu.Bind(wx.EVT_MENU, self.onFind, id=EDIT_FIND)
+        self.editMenu.Bind(wx.EVT_MENU, self.onReplace, id=EDIT_REPLACE)
+        self.editMenu.Bind(wx.EVT_MENU, self.onToggleLineComment, id=EDIT_TOGGLE_LINE_COMMENT)
+        self.editMenu.Bind(wx.EVT_MENU, self.onSort, id=EDIT_SORT)
+        self.editMenu.Bind(wx.EVT_MENU, self.onLowercase, id=EDIT_LOWERCASE)
+        self.editMenu.Bind(wx.EVT_MENU, self.onUppercase, id=EDIT_UPPERCASE)
 
         #
         self.menuProject = guiPlaces.menu["Project"]
@@ -629,8 +672,8 @@ class ProjectTreePanel(wx.Panel):
 
     index = self.guiPlaces.frame.tab.GetSelection()
     curPage = self.guiPlaces.frame.tab.GetPage(index)
-    if curPage in self.guiPlaces.frame.openFile.values():
-      curPage.onSave()
+    if curPage.__class__.__name__ == "Page":
+      curPage.onSave(None)
 
   def OnSaveAs(self, event):
     dlg = SaveAsDialog()
@@ -698,8 +741,6 @@ class ProjectTreePanel(wx.Panel):
   def validateDataConfig(self):
     '''
     @summary    : Validation data config on modelling and intances
-    @param      : NA
-    @return     : NA
     '''
     #TODO
     pass
@@ -707,8 +748,6 @@ class ProjectTreePanel(wx.Panel):
   def validateNodeProfiles(self):
     '''
     @summary    : This function validation node/service child intance
-    @param      : NA
-    @return     : NA
     '''
     instances = share.detailsPanel.model.data.getElementsByTagName("instances")[0]
     
@@ -786,8 +825,6 @@ class ProjectTreePanel(wx.Panel):
   def validateNodeIntances(self):
     '''
     @summary    : This function validation node intance
-    @param      : NA
-    @return     : NA
     '''
     nodeNameList = []
     suNameList = []
@@ -837,8 +874,6 @@ class ProjectTreePanel(wx.Panel):
   def validateServiceGroups(self):
     '''
     @summary    : This function validation service group
-    @param      : NA
-    @return     : NA
     '''
     sgNameList = []
     siNameList = []
@@ -889,8 +924,6 @@ class ProjectTreePanel(wx.Panel):
   def parseComponentRelationships(self):
     '''
     @summary    : Validation entity has valid child and parent in modelling screen
-    @param      : NA
-    @return     : NA
     '''
     for (name, e) in share.detailsPanel.model.entities.items():
       eType = e.data["entityType"]
@@ -909,9 +942,6 @@ class ProjectTreePanel(wx.Panel):
   def validateParentOfComponent(self, cName, eType):
     '''
     @summary    : Validation entity has valid parent
-    @param      : cName 
-    @param      : eType 
-    @return     : NA
     '''
     if self.entitiesParent[eType] is not None:
       for pType in self.entitiesParent[eType]:
@@ -934,9 +964,6 @@ class ProjectTreePanel(wx.Panel):
   def getMessageInfo(self, level="", msg="", source=""):
     '''
     @summary    : Validation entity has valid parent
-    @param      : level - failed level ERROR/WARN/INFOMATION
-    @param      : msg - problem message
-    @return     : problem - dict
     '''
     problem = {}
     problem["level"] = level
@@ -948,9 +975,6 @@ class ProjectTreePanel(wx.Panel):
   def updateModalProblems(self):
     '''
     @summary    : Update problems view
-    @param      : NA
-    @param      : NA
-    @return     : NA
     '''
     # sort problem by level
     problems = sorted(self.problems, key = lambda i: i['level']) 
@@ -1087,6 +1111,76 @@ class ProjectTreePanel(wx.Panel):
     f.write(md.pretty())
     f.close()
 
+  def getPage(self):
+    index = self.guiPlaces.frame.tab.GetSelection()
+    Page = self.guiPlaces.frame.tab.GetPage(index)
+    if Page.__class__.__name__ == "Page":
+      return Page
+
+    return False
+    
+  def onUndo(self, event):
+    if self.getPage():
+      self.getPage().control.Undo()
+
+  def onRedo(self, event):
+    if self.getPage():
+      self.getPage().control.Redo()
+
+  def onCut(self, event):
+    if self.getPage():
+      self.getPage().control.Cut()
+
+  def onCopy(self, event):
+    if self.getPage():
+      self.getPage().control.Copy()
+
+  def onPaste(self, event):
+    if self.getPage():
+      self.getPage().control.Paste()
+
+  def onFind(self, event):
+    '''
+    @summary    : open find dialog
+    '''
+    if self.getPage():
+      self.getPage().Find()
+
+  def onReplace(self, event):
+    '''
+    @summary    : open replace dialog for find/replace
+    '''
+    if self.getPage():
+      self.getPage().Replace()
+
+  def onToggleLineComment(self, event):
+    '''
+    @summary    : Toggle Line Comment
+    '''
+    if self.getPage():
+      self.getPage().control.toggle_comment()
+
+  def onSort(self, event):
+    '''
+    @summary    : sort selected line text in text view
+    '''
+    if self.getPage():
+      self.getPage().control.sort()
+
+  def onLowercase(self, event):
+    '''
+    @summary    : convert selected text to lowercase
+    '''
+    if self.getPage():
+      self.getPage().control.lower()
+
+  def onUppercase(self, event):
+    '''
+    @summary    : convert selected text to uppercase
+    '''
+    if self.getPage():
+      self.getPage().control.upper()
+    
 class ClearProjectData(wx.Dialog):
     """
     Class clear project data & config
