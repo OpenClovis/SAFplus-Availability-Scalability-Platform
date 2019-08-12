@@ -277,9 +277,14 @@ class EditorControl(stc.StyledTextCtrl):
         start, end = self.LineFromPosition(a), self.LineFromPosition(b)
         if self.PositionFromLine(end) == b:
             end -= 1
+        linesComment = True
         for line in range(start, end+1):
             text = self.GetLine(line)
-            if text.startswith(comment):
+            if not text.startswith(comment):
+                linesComment = False
+        for line in range(start, end+1):
+            text = self.GetLine(line)
+            if linesComment:
                 text = text[len(comment):]
             else:
                 text = comment + text
