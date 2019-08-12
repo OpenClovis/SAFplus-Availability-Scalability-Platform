@@ -40,6 +40,7 @@ class SAFplusFrame(wx.Frame):
         self.menuBar = wx.MenuBar()
         # and a menu 
         self.menu = wx.Menu()
+        self.menuEdit = wx.Menu()
         self.menuProject = wx.Menu()
         self.menuModelling = wx.Menu()
         self.menuInstantiation = wx.Menu()
@@ -60,6 +61,7 @@ class SAFplusFrame(wx.Frame):
 
         # and put the menu on the menubar
         self.menuBar.Append(self.menu, "&File")
+        self.menuBar.Append(self.menuEdit, "&Edit")
         self.menuBar.Append(self.menuProject, "&Project")
         self.menuBar.Append(self.menuModelling, "&Modelling")
         self.menuBar.Append(self.menuInstantiation, "&Instantiation")
@@ -72,7 +74,8 @@ class SAFplusFrame(wx.Frame):
 
         self.sb = self.CreateStatusBar()
         
-        self.guiPlaces = common.GuiPlaces(self,self.menuBar, self.tb, self.sb, { "File": self.menu, "Project": self.menuProject, "Modelling":self.menuModelling, "Instantiation":self.menuInstantiation, "Windows": self.menuWindows, "Help": self.menuHelp }, None)
+        self.guiPlaces = common.GuiPlaces(self,self.menuBar, self.tb, self.sb, { "File": self.menu, "Edit": self.menuEdit,
+            "Project": self.menuProject, "Modelling":self.menuModelling, "Instantiation":self.menuInstantiation, "Windows": self.menuWindows, "Help": self.menuHelp }, None)
 
         # Now create the Panel to put the other controls on.
         panel = self.panel = None # panelFactory(self,menuBar,tb,sb) # wx.Panel(self)
@@ -512,15 +515,11 @@ class Page(wx.Panel):
     wx.Panel.__init__(self, parent)
     self.style_manager = styles.StyleManager()
     self.control = control.EditorControl(self, wx.BORDER_NONE, pathFile)
-    self.SEARCH_ID = wx.NewId()
-    self.REPLACE_ID = wx.NewId()
-    self.Bind(wx.EVT_MENU, self.onKeyCombo, id=self.SEARCH_ID)
-    self.Bind(wx.EVT_MENU, self.onKeyCombo, id=self.REPLACE_ID)
-    entries = [wx.AcceleratorEntry() for i in xrange(2)]
-    entries[0].Set(wx.ACCEL_CTRL, ord('F'), self.SEARCH_ID)
-    entries[1].Set(wx.ACCEL_CTRL, ord('H'), self.REPLACE_ID)
-    accel_tbl = wx.AcceleratorTable(entries)
-    self.SetAcceleratorTable(accel_tbl)
+
+    SAVE_ID = wx.NewId()
+    self.Bind(wx.EVT_MENU, self.onSave, id=SAVE_ID)
+    accelTbl = wx.AcceleratorTable([(wx.ACCEL_CTRL, ord('S'), SAVE_ID)])
+    self.SetAcceleratorTable(accelTbl)
 
     self.sizer = wx.BoxSizer(wx.VERTICAL)
     self.sizer.Add(self.control,1,wx.EXPAND)
@@ -530,22 +529,23 @@ class Page(wx.Panel):
     self.parent = parent
     self.control.Bind(stc.EVT_STC_CHANGE, self.onEditChange)
 
-  def onKeyCombo(self, event):
+  def Find(self):
+    self.onKeyCombo(0)
+
+  def Replace(self):
+    self.onKeyCombo(wx.FR_REPLACEDIALOG)
+
+  def onKeyCombo(self, fStyle):
     '''
     @summary    : search/replace text
     '''
     data = wx.FindReplaceData(flags=0)
     data.SetFindString(self.control.GetSelectedText())
-    if event.GetId() == self.REPLACE_ID:
-      fStyle = wx.FR_REPLACEDIALOG
-    elif event.GetId() == self.SEARCH_ID:
-      fStyle = 0
-
     dlg = FindReplaceDialog(self, data, "", fStyle)
     dlg.ShowModal()
     dlg.Destroy()
 
-  def onSave(self):
+  def onSave(self, event):
     '''
     @summary    : save file content and remove * character
     '''
