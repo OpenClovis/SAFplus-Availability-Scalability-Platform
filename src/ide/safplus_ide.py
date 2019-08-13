@@ -23,7 +23,7 @@ import instanceEditor
 import entityDetailsDialog
 import umlEditor
 from project import Project, ProjectTreePanel, EVT_PROJECT_LOADED, EVT_PROJECT_NEW, PROJECT_SAVE, PROJECT_SAVE_AS, PROJECT_VALIDATE, \
-                    PROJECT_BUILD, PROJECT_CLEAN, MAKE_IMAGES, IMAGES_DEPLOY, PROJECT_PROPERTIES, PROJECT_CLEAR_DATA
+                    PROJECT_BUILD, PROJECT_CLEAN, MAKE_IMAGES, IMAGES_DEPLOY, PROJECT_PROPERTIES, TOOL_CLEAR_PROJECT_DATA
 import common
 import model
 
@@ -45,6 +45,7 @@ class SAFplusFrame(wx.Frame):
         self.menuModelling = wx.Menu()
         self.menuInstantiation = wx.Menu()
         self.menuWindows = wx.Menu()
+        self.menuTools = wx.Menu()
         self.menuHelp = wx.Menu()
         # and a toolbar
         self.tb = self.CreateToolBar()
@@ -66,6 +67,7 @@ class SAFplusFrame(wx.Frame):
         self.menuBar.Append(self.menuModelling, "&Modelling")
         self.menuBar.Append(self.menuInstantiation, "&Instantiation")
         self.menuBar.Append(self.menuWindows, "&Windows")
+        self.menuBar.Append(self.menuTools, "&Tools")
         self.menuBar.Append(self.menuHelp, "&Help")
 
         self.menuHelp.Bind(wx.EVT_MENU_OPEN, self.onHelpMenu)
@@ -75,7 +77,8 @@ class SAFplusFrame(wx.Frame):
         self.sb = self.CreateStatusBar()
         
         self.guiPlaces = common.GuiPlaces(self,self.menuBar, self.tb, self.sb, { "File": self.menu, "Edit": self.menuEdit,
-            "Project": self.menuProject, "Modelling":self.menuModelling, "Instantiation":self.menuInstantiation, "Windows": self.menuWindows, "Help": self.menuHelp }, None)
+            "Project": self.menuProject, "Modelling":self.menuModelling, "Instantiation":self.menuInstantiation, "Windows": self.menuWindows, 
+            "Tools": self.menuTools, "Help": self.menuHelp }, None)
 
         # Now create the Panel to put the other controls on.
         panel = self.panel = None # panelFactory(self,menuBar,tb,sb) # wx.Panel(self)
@@ -314,7 +317,7 @@ class SAFplusFrame(wx.Frame):
       self.menuProject.Enable(MAKE_IMAGES, True)
       self.menuProject.Enable(IMAGES_DEPLOY, True)
       self.menuProject.Enable(PROJECT_PROPERTIES, True)
-      self.menuProject.Enable(PROJECT_CLEAR_DATA, True)
+      self.menuTools.Enable(TOOL_CLEAR_PROJECT_DATA, True)
 
     def onPrjTreeActivated(self, evt):
       """ handle an event when user double-clicks on an item at the tree on the left to switch views to it or to set it active """
@@ -540,6 +543,7 @@ class Page(wx.Panel):
     @summary    : search/replace text
     '''
     data = wx.FindReplaceData(flags=0)
+    data.SetFlags(1)
     data.SetFindString(self.control.GetSelectedText())
     dlg = FindReplaceDialog(self, data, "", fStyle)
     dlg.ShowModal()

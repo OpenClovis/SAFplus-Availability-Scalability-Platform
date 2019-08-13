@@ -22,6 +22,8 @@ import wx.lib.scrolledpanel as scrolled
 from distutils.dir_util import copy_tree
 import subprocess
 import webbrowser
+import style_dialog
+import styles
 
 PROJECT_LOAD = wx.NewId()
 PROJECT_SAVE = wx.NewId()
@@ -48,7 +50,9 @@ PROJECT_CLEAN = wx.NewId()
 MAKE_IMAGES      = wx.NewId() 
 IMAGES_DEPLOY    = wx.NewId()
 PROJECT_PROPERTIES = wx.NewId()
-PROJECT_CLEAR_DATA = wx.NewId()
+
+TOOL_FONT_COLOR  = wx.NewId()
+TOOL_CLEAR_PROJECT_DATA = wx.NewId()
 
 HELP_CONTENTS    = wx.NewId()
 HELP_ABOUT       = wx.NewId()
@@ -304,6 +308,7 @@ class ProjectTreePanel(wx.Panel):
         self.instantiation = ""
         self.modelling   = ""
         self.currentProjectPath = None
+        self.styleManager = styles.StyleManager()
 
         self.color = {
           self.error: wx.Colour(255, 0, 0),
@@ -354,7 +359,7 @@ class ProjectTreePanel(wx.Panel):
         self.editMenu.Append(EDIT_FIND, "&Find\tCtrl-f", "Find")
         self.editMenu.Append(EDIT_REPLACE, "&Replace\tCtrl-h", "Replace")
         self.editMenu.AppendSeparator()
-        self.editMenu.Append(EDIT_TOGGLE_LINE_COMMENT, "&Toggle Line Comment\tCtrl-/", "")
+        self.editMenu.Append(EDIT_TOGGLE_LINE_COMMENT, "&Toggle Line Comment\tCtrl-.", "")
         # self.editMenu.Append(EDIT_TOGGLE_BLOCK_COMMENT, "&Toggle Block Comment\tCtrl-y", "")
         self.editMenu.AppendSeparator()
         self.editMenu.Append(EDIT_SORT, "&Sort", "Sort")
@@ -377,11 +382,13 @@ class ProjectTreePanel(wx.Panel):
         self.menuProject = guiPlaces.menu["Project"]
         self.menuProject.Append(PROJECT_BUILD, "Build Project", "Build Project")
         self.menuProject.Append(PROJECT_CLEAN, "Clean...", "Clean...")
+        self.menuProject.AppendSeparator()
         self.menuProject.Append(PROJECT_VALIDATE, "Validate Project", "Validate Project")
         self.menuProject.Append(MAKE_IMAGES, "Make Image(s)...", "Make Image(s)...")
         self.menuProject.Append(IMAGES_DEPLOY, "Deploy Image(s)...", "Deploy Image(s)...")
+        self.menuProject.AppendSeparator()
         self.menuProject.Append(PROJECT_PROPERTIES, "Properties", "Properties")
-        self.menuProject.Append(PROJECT_CLEAR_DATA, "Clear project data", "Clear project data")
+        # self.menuProject.Append(PROJECT_CLEAR_DATA, "Clear project data", "Clear project data")
 
         self.menuProject.Enable(PROJECT_VALIDATE, False)
         self.menuProject.Enable(MAKE_IMAGES, False)
@@ -389,14 +396,21 @@ class ProjectTreePanel(wx.Panel):
         self.menuProject.Enable(PROJECT_BUILD, False)
         self.menuProject.Enable(PROJECT_CLEAN, False)
         self.menuProject.Enable(PROJECT_PROPERTIES, False)
-        self.menuProject.Enable(PROJECT_CLEAR_DATA, False)
+        # self.menuProject.Enable(PROJECT_CLEAR_DATA, False)
         self.menuProject.Bind(wx.EVT_MENU, self.OnValidate, id=PROJECT_VALIDATE)
         self.menuProject.Bind(wx.EVT_MENU, self.OnMakeImages, id=MAKE_IMAGES)
         self.menuProject.Bind(wx.EVT_MENU, self.OnDeploy, id=IMAGES_DEPLOY)
         self.menuProject.Bind(wx.EVT_MENU, self.OnBuild, id=PROJECT_BUILD)
         self.menuProject.Bind(wx.EVT_MENU, self.OnClean, id=PROJECT_CLEAN)
         self.menuProject.Bind(wx.EVT_MENU, self.OnProperties, id=PROJECT_PROPERTIES)
-        self.menuProject.Bind(wx.EVT_MENU, self.OnClearProjectData, id=PROJECT_CLEAR_DATA)
+        # self.menuProject.Bind(wx.EVT_MENU, self.OnClearProjectData, id=PROJECT_CLEAR_DATA)
+
+        self.menuTools = guiPlaces.menu["Tools"]
+        self.menuTools.Append(TOOL_FONT_COLOR, "Fonts & Colors", "")
+        self.menuTools.Append(TOOL_CLEAR_PROJECT_DATA, "Clear project data", "")
+        self.menuTools.Bind(wx.EVT_MENU, self.OnSettingFontColor, id=TOOL_FONT_COLOR)
+        self.menuTools.Bind(wx.EVT_MENU, self.OnClearProjectData, id=TOOL_CLEAR_PROJECT_DATA)
+        self.menuTools.Enable(TOOL_CLEAR_PROJECT_DATA, False)
 
         self.menuHelp = guiPlaces.menu["Help"]
         self.menuHelp.Append(HELP_CONTENTS, "Help Contents", "Help Contents")
@@ -631,7 +645,7 @@ class ProjectTreePanel(wx.Panel):
       self.menuProject.Enable(MAKE_IMAGES, True)
       self.menuProject.Enable(IMAGES_DEPLOY, True)
       self.menuProject.Enable(PROJECT_PROPERTIES, True)
-      self.menuProject.Enable(PROJECT_CLEAR_DATA, True)
+      self.menuTools.Enable(TOOL_CLEAR_PROJECT_DATA, True)
 
   def OnNew(self,event):
     dlg = NewPrjDialog()
@@ -656,7 +670,7 @@ class ProjectTreePanel(wx.Panel):
       self.menuProject.Enable(MAKE_IMAGES, True)
       self.menuProject.Enable(IMAGES_DEPLOY, True)
       self.menuProject.Enable(PROJECT_PROPERTIES, True)
-      self.menuProject.Enable(PROJECT_CLEAR_DATA, True)
+      self.menuTools.Enable(TOOL_CLEAR_PROJECT_DATA, True)
 
       os.system('mkdir -p %s/configs' % self.getPrjPath())
 
@@ -1032,6 +1046,19 @@ class ProjectTreePanel(wx.Panel):
     dialog.ShowModal()
     dialog.Destroy()
 
+  def OnSettingFontColor(self, event):
+    dlg = style_dialog.StyleDialog(self, self.styleManager)
+    dlg.Bind(style_dialog.EVT_STYLE_CHANGED, self.onStyleChanged)
+    dlg.Centre()
+    dlg.ShowModal()
+
+  def onStyleChanged(self, event):
+    n = self.guiPlaces.frame.tab.GetPageCount()
+    for index in range(n):
+      Page = self.guiPlaces.frame.tab.GetPage(index)
+      if Page.__class__.__name__ == "Page":
+        Page.detect_language()
+
   def OnHelpConents(self, event):
     '''
     @summary    : Open help contents
@@ -1202,7 +1229,7 @@ class ClearProjectData(wx.Dialog):
       self.imageFile = wx.CheckBox(self, id=wx.ID_ANY, size=(400,30), label="Remove images file")
       self.imageFile.SetValue(True)
       self.srcBak = wx.CheckBox(self, id=wx.ID_ANY, size=(400,30), label="Remove backup resource")
-      self.srcBak.SetValue(True)
+      self.srcBak.SetValue(False)
 
       vBox.Add(self.deploy, 0, wx.ALL|wx.ALIGN_CENTER, 5)
       vBox.Add(self.properties, 0, wx.ALL|wx.ALIGN_CENTER, 5)
