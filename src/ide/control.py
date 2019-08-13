@@ -271,6 +271,9 @@ class EditorControl(stc.StyledTextCtrl):
             return
         comment = self.language.line_comment
         if not comment:
+            comment = self.language.block_comment
+            if comment[0] != '' and comment[1] != '':
+                self.toggle_block_comment(comment)
             return
         self.BeginUndoAction()
         a, b = self.GetSelection()
@@ -288,10 +291,39 @@ class EditorControl(stc.StyledTextCtrl):
                 text = text[len(comment):]
             else:
                 text = comment + text
-            a, b = self.PositionFromLine(line), self.PositionFromLine(line+1)
-            self.SetSelection(a, b)
-            self.ReplaceSelection(text)
-        a, b = self.PositionFromLine(start), self.PositionFromLine(end+1)
+            self.replace_selection(line, text)
+        l = len(text) - 1
+        a, b = self.PositionFromLine(start), self.PositionFromLine(end) + l
+        self.SetSelection(a, b)
+        self.EndUndoAction()
+    def replace_selection(self, line, text):
+        a, b = self.PositionFromLine(line), self.PositionFromLine(line+1)
+        self.SetSelection(a, b)
+        self.ReplaceSelection(text)
+    def toggle_block_comment(self, comment):
+        self.BeginUndoAction()
+        a, b = self.GetSelection()
+        start, end = self.LineFromPosition(a), self.LineFromPosition(b)
+        text_start = self.GetLine(start)
+        text_end = self.GetLine(end)
+        if not text_start.startswith(comment[0]) or not text_end.endswith(comment[1] + '\n'):
+            if start != end:
+                text_start = comment[0] + text_start
+                text_end = text_end[:-1] + comment[1] + '\n'
+            else:
+                text_start = comment[0] + text_start[:-1] + comment[1] + '\n'
+        else:
+            if start != end:
+                text_start = text_start[len(comment[0]):]
+                text_end = text_end[:-len(comment[1])-1] + '\n'
+            else:
+                text_start = text_start[len(comment[0]):-len(comment[1])-1] + '\n'
+        l = len(text_start) - 1
+        self.replace_selection(start, text_start)
+        if start != end:
+            self.replace_selection(end, text_end)
+            l = len(text_end) - 1
+        a, b = self.PositionFromLine(start), self.PositionFromLine(end) + l
         self.SetSelection(a, b)
         self.EndUndoAction()
     def word_wrap(self):
