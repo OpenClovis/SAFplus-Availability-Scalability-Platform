@@ -549,18 +549,17 @@ class Page(wx.Panel):
     dlg.ShowModal()
     dlg.Destroy()
 
-  def onSave(self, event):
+  def onSave(self, event, index = -1):
     '''
     @summary    : save file content and remove * character
     '''
     self.control.edited = False
     label = ''
-    index = 0
-    try:
+    if index == -1:
       index = self.parent.tab.GetSelection()
       label = self.parent.tab.GetPageText(index)
-    except:
-      pass
+    else:
+      label = self.parent.tab.GetPageText(index)
 
     if '*' in label:
       label = re.sub("\*", "", label)

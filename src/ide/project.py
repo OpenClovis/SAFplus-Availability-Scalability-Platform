@@ -28,6 +28,7 @@ import styles
 PROJECT_LOAD = wx.NewId()
 PROJECT_SAVE = wx.NewId()
 PROJECT_SAVE_AS = wx.NewId()
+PROJECT_SAVE_ALL = wx.NewId()
 
 PROJECT_WILDCARD = "SAFplus Project (*.spp)|*.spp|All files (*.*)|*.*"
 
@@ -336,16 +337,21 @@ class ProjectTreePanel(wx.Panel):
         self.fileMenu = guiPlaces.menu["File"]
         self.fileMenu.Append(wx.ID_NEW, "&New\tAlt-n", "New Project")
         self.fileMenu.Append(PROJECT_LOAD, "L&oad\tAlt-l", "Load Project")
+        self.fileMenu.AppendSeparator()
         self.fileMenu.Append(PROJECT_SAVE, "S&ave\tAlt-s", "Save Project")
-        self.fileMenu.Enable(PROJECT_SAVE, False)
         self.fileMenu.Append(PROJECT_SAVE_AS, "Save As...\tAlt-a", "Save As")
+        self.fileMenu.Append(PROJECT_SAVE_ALL, "Save All", "")
+        self.fileMenu.AppendSeparator()
+        self.fileMenu.Enable(PROJECT_SAVE, False)
         self.fileMenu.Enable(PROJECT_SAVE_AS, False)
+        # self.fileMenu.Enable(PROJECT_SAVE_ALL, False)
 
         # bind the menu event to an event handlerfff
         self.fileMenu.Bind(wx.EVT_MENU, self.OnNew, id=wx.ID_NEW)
         self.fileMenu.Bind(wx.EVT_MENU, self.OnLoad, id=PROJECT_LOAD)
         self.fileMenu.Bind(wx.EVT_MENU, self.OnSave, id=PROJECT_SAVE)
         self.fileMenu.Bind(wx.EVT_MENU, self.OnSaveAs, id=PROJECT_SAVE_AS)
+        self.fileMenu.Bind(wx.EVT_MENU, self.OnSaveAll, id=PROJECT_SAVE_ALL)
 
         # Insert edit tool into the GUI
         self.editMenu = guiPlaces.menu["Edit"]
@@ -702,6 +708,19 @@ class ProjectTreePanel(wx.Panel):
       currentActivePrj = self.latest()
       project.saveAs(currentActivePrj)
       self.guiPlaces.statusbar.SetStatusText("Saving as completed",0);
+  
+  def OnSaveAll(self, event):
+    if self.currentActiveProject:
+      saved = []
+      self.currentActiveProject.save() 
+      saved.append(self.currentActiveProject.name)
+      self.guiPlaces.statusbar.SetStatusText("Projects %s saved." % ", ".join(saved),0)
+
+    n = self.guiPlaces.frame.tab.GetPageCount()
+    for index in range(n):
+      Page = self.guiPlaces.frame.tab.GetPage(index)
+      if Page.__class__.__name__ == "Page":
+        Page.onSave(None, index)
 
   def OnSize(self, event):
         w,h = self.GetClientSizeTuple()
