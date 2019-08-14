@@ -1099,7 +1099,7 @@ class Panel(scrolled.ScrolledPanel):
       self.toolBar.AddTool(CODEGEN_BUTTON, bitmap, bitmapDisabled, shortHelpString="Generate Source Code", longHelpString="Generate source code ...")
       # add the generate menu item
       menuFile = self.guiPlaces.menu.get("File",None)
-      gen = menuFile.Insert(6, CODEGEN_BUTTON, "&Generate code\tAlt-G", "Generate source code ...")
+      gen = menuFile.Insert(9, CODEGEN_BUTTON, "&Generate code\tAlt-G", "Generate source code ...")
       gen.Enable(False)
      
       idMnuGenerateCode = [CODEGEN_BUTTON, CODEGEN_LANG_C, CODEGEN_LANG_CPP, CODEGEN_LANG_PYTHON, CODEGEN_LANG_JAVA]
