@@ -122,16 +122,14 @@ class SAFplusFrame(wx.Frame):
     def loadInfoPanel(self):
         self.modelProblems = ULC.UltimateListCtrl(self, wx.ID_ANY, agwStyle=ULC.ULC_AUTOARRANGE | ULC.ULC_REPORT | ULC.ULC_VRULES | ULC.ULC_HRULES | ULC.ULC_SINGLE_SEL | ULC.ULC_HAS_VARIABLE_ROW_HEIGHT)
         self.modelProblems.InsertColumn(0, "Severity Level")
-        # self.modelProblems.InsertColumn(1, "Problem Number")
         self.modelProblems.InsertColumn(1, "Message")
-        # self.modelProblems.InsertColumn(3, "Source")
         self.modelProblems.InsertColumn(2, "Location")
         self.modelProblems.SetColumnWidth(0, 250)
         self.modelProblems.SetColumnWidth(1, 560)
         self.modelProblems.SetColumnWidth(2, 350)
-        # self.modelProblems.SetColumnWidth(3, 100)
-        # self.modelProblems.SetColumnWidth(4, 100)
         self.infoPanel.AddPage(self.modelProblems, "Model Problems")
+        self.console = wx.TextCtrl(self, style=wx.TE_MULTILINE|wx.TE_READONLY)
+        self.infoPanel.AddPage(self.console, "Console")
 
     def update(self, event):
         self.help.LoadFile("resources/intro.html")
