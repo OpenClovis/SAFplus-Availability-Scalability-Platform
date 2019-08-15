@@ -1030,15 +1030,42 @@ class ProjectTreePanel(wx.Panel):
       dlg.ShowModal()
       dlg.Destroy()
 
+  def log_console_info(self, text):
+    console = self.guiPlaces.frame.console
+    console.AppendText(text)
+
+  def log_console_error(self, text):
+    console = self.guiPlaces.frame.console
+    # console.SetDefaultStyle(wx.TextAttr(colText=wx.Colour(0x96,0x0d,0x0d)))
+    console.AppendText(text)
+    # console.SetDefaultStyle(wx.TextAttr(wx.BLACK))
+
+  def execute(self, command, enable_log=True):
+    '''
+    @summary    : Implement command in subprocess and get output while process running
+    '''
+    p = subprocess.Popen(command, shell=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+    if enable_log:
+      while True:
+        out = p.stdout.readline()
+        if not out:
+            break
+        self.log_console_info(out)
+      while True:
+        out = p.stderr.readline()
+        if not out:
+            break
+        self.log_console_error(out)
+
   def OnBuild(self, event):
     prjPath, name = os.path.split(self.currentActiveProject.projectFilename)
     srcPath = prjPath + '/src'
-    os.system('cd %s; make' % srcPath)
+    self.execute('cd %s; make' % srcPath)
 
   def OnClean(self, event):
     prjPath, name = os.path.split(self.currentActiveProject.projectFilename)
     srcPath = prjPath + '/src'
-    os.system('cd %s; make clean' % srcPath)
+    self.execute('cd %s; make clean' % srcPath)
 
   def OnProperties(self, event):
     properties = PropertiesDialog(self)
@@ -1571,7 +1598,14 @@ class DeployDialog(wx.Dialog):
         if os.path.isfile(srcImage + '.tar.gz'):
           self.deploymentSingleImage(self.deployInfos[key], srcImage)
         else:
-          print "Deploy failure, image don't exist."   
+          print "Deploy failure, image don't exist."
+
+    def waitingForProcessCompleted(self, child, timeout=90):
+      cnt = 0
+      while child.isalive() and cnt < timeout :
+        cnt += 1
+        time.sleep(1)
+      return (not child.isalive())
 
     def deploymentSingleImage(self, info, srcImage):
       print "Image deploy: %s" % srcImage
@@ -1598,21 +1632,19 @@ class DeployDialog(wx.Dialog):
         child.expect('assword:*')
         child.sendline('%s' % info['password'])
 
-        cnt = 0
-        timeout = 60
-        while child.isalive() and cnt < timeout :
-          cnt += 1
-          time.sleep(1)
-        if cnt < timeout:
+        if self.waitingForProcessCompleted(child):
           fName = "%s.tar.gz" % str(srcImage).split('/')[-1] 
           remoteCommand = "cd %s; tar -xzvf %s" % (info['targetLocation'], fName)
           cmd = "ssh %s@%s '%s'" % (info['userName'], info['targetAdress'], remoteCommand)
           child_1 = pexpect.spawn("%s" % cmd)
           child_1.expect('assword:*')
           child_1.sendline('%s' % info['password'])
-          print "Deploy image successfuly"
+          if not self.waitingForProcessCompleted(child_1):
+            print "Deploy image successfuly"
+          else:
+            print "Deploy image on host failure"
         else:
-          print "Deploy image longer than %s(s) - fail" % timeout
+          print "Copy image to host failure"
       except:
         print "Error while deploy image"
 
@@ -1800,9 +1832,10 @@ class GeneralPage(scrolled.ScrolledPanel):
     tool = os.path.abspath("safplus_packager.py")
 
     os.chdir('%s' % prjPath)
-    os.system('python %s -a %s %s.tgz' % (tool, tarGet, tarGet))
+    cmd = 'python %s -a %s %s.tgz' % (tool, tarGet, tarGet)
+    parent = self.parent.parent
+    parent.execute('cd %s;%s' % (prjPath, cmd))
     os.system('cp *.xml %s/bin' % baseImage)
-    print 'python %s -a %s' % (tool, tarGet)
 
     os.chdir(owd)
     os.system('cp resources/setup %s/bin' % baseImage)
@@ -1810,9 +1843,13 @@ class GeneralPage(scrolled.ScrolledPanel):
     if os.path.isdir(baseImage):
       for img in self.imagesConfig:
         tarImg = prjPath + '/images/' + img
-        # copy_tree(baseImage, tarImg)
-        os.system('cp -r %s %s' % (baseImage, tarImg))
-        os.system('cd %s/images/; tar -zcvf %s.tar.gz %s' % (prjPath, img, img))
+        parent.log_console_info("Building %s...\n" % tarImg)
+        cmd = 'cp -r %s %s' % (baseImage, tarImg)
+        parent.execute(cmd, False)
+        parent.log_console_info("Creating tarball: %s.tar.gz\n" % tarImg)
+        cmd = 'cd %s/images/; tar -zcvf %s.tar.gz %s' % (prjPath, img, img)
+        parent.execute(cmd, False)
+        parent.log_console_info("Blade specific tarballs created.\n")
         self.updateImageConfig(tarImg, self.imagesConfig[img])
 
   def updateImageConfig(self, tarGet, imgConf):
