@@ -4,6 +4,7 @@ import pdb
 import math
 import time
 from types import *
+import threading
 
 import wx
 import  wx.lib.newevent
@@ -24,6 +25,8 @@ import subprocess
 import webbrowser
 import style_dialog
 import styles
+sys.path.append(os.path.join(os.getcwd(), "dialog"))
+from progressdialog import ProgressDialog
 
 PROJECT_LOAD = wx.NewId()
 PROJECT_SAVE = wx.NewId()
@@ -310,6 +313,9 @@ class ProjectTreePanel(wx.Panel):
         self.modelling   = ""
         self.currentProjectPath = None
         self.styleManager = styles.StyleManager()
+        self.currentImagesConfig = {}
+        self.cancelProgress = False
+        self.currentProcessCommand = None
 
         self.color = {
           self.error: wx.Colour(255, 0, 0),
@@ -1040,22 +1046,43 @@ class ProjectTreePanel(wx.Panel):
     console.AppendText(text)
     # console.SetDefaultStyle(wx.TextAttr(wx.BLACK))
 
+  def log_info(self, text):
+    wx.CallAfter(self.log_console_info, text)
+
+  def log_error(self, text):
+    wx.CallAfter(self.log_console_error, text)
+
   def execute(self, command, enable_log=True):
     '''
     @summary    : Implement command in subprocess and get output while process running
     '''
+    if self.cancelProgress:
+      return False
+    self.currentProcessCommand = command
     p = subprocess.Popen(command, shell=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
     if enable_log:
       while True:
         out = p.stdout.readline()
-        if not out:
+        if not out and p.poll() != None:
             break
-        self.log_console_info(out)
+        self.log_info(out)
       while True:
         out = p.stderr.readline()
-        if not out:
+        if not out and p.poll() != None:
             break
-        self.log_console_error(out)
+        self.log_error(out)
+    # user press cancel button while process is running
+    if self.cancelProgress:
+      self.log_info("\nBuild cancelled.\n")
+      return False
+    return True
+
+  def stopCurrentProcess(self):
+    cmd = "kill -9 $(ps aux| grep '%s' |  awk '{print $2}')" % self.currentProcessCommand
+    os.system(cmd)
+      
+  def setCancelProgress(self, status):
+    self.cancelProgress = status
 
   def OnBuild(self, event):
     prjPath, name = os.path.split(self.currentActiveProject.projectFilename)
@@ -1086,6 +1113,50 @@ class ProjectTreePanel(wx.Panel):
       dlg = MakeImages(self)
       dlg.ShowModal()
       dlg.Destroy()
+      prjPath = self.getPrjPath()
+      self.thread1 = threading.Thread(target = self.makeImages, args = (prjPath, ))
+      self.thread1.start()
+      self.progressDialog = ProgressDialog(self, self.thread1)
+
+  def makeImages(self, prjPath):
+    tarGet = str(subprocess.check_output(['g++','-dumpmachine'])).strip()
+    baseImage = prjPath + '/images/%s' % tarGet
+    owd = os.getcwd()
+    os.chdir('../mk')
+    tool = os.path.abspath("safplus_packager.py")
+    os.chdir('%s' % prjPath)
+    cmd = 'python %s -a %s %s.tgz' % (tool, tarGet, tarGet)
+    self.log_info("Generating image...")
+    if not self.execute('%s' % cmd):
+      os.chdir(owd)
+      return False
+    os.system('cp *.xml %s/bin' % baseImage)
+    os.chdir(owd)
+    os.system('cp resources/setup %s/bin' % baseImage)
+    os.system('rm -rf images')
+    if os.path.isdir(baseImage):
+      for img in self.currentImagesConfig:
+        tarImg = prjPath + '/images/' + img
+        self.log_info("Building %s...\n" % tarImg)
+        cmd = 'cp -r %s %s' % (baseImage, tarImg)
+        if not self.execute(cmd, False):
+          return False
+        self.log_info("Creating tarball: %s.tar.gz\n" % tarImg)
+        cmd = 'cd %s/images/; tar -zcvf %s.tar.gz %s' % (prjPath, img, img)
+        if not self.execute(cmd, False):
+          return False
+        self.log_info("Blade specific tarballs created.\n")
+        time.sleep(0.5)
+        self.updateImageConfig(tarImg, self.currentImagesConfig[img])
+
+  def updateImageConfig(self, tarGet, imgConf):
+    fConf = tarGet + '/bin/setup'
+    s = open(fConf).read()
+    s = s.replace('ASP_NODENAME=node0', 'ASP_NODENAME=%s' % imgConf['name'] )
+    s = s.replace('SAFPLUS_BACKPLANE_INTERFACE=eth0', 'SAFPLUS_BACKPLANE_INTERFACE=%s' % imgConf['netInterface'] )
+    f = open(fConf, 'w')
+    f.write(s)
+    f.close()
 
   def showDialogError(self, cap, msg):
     dialog = wx.MessageDialog(None, message=msg, caption=cap, style=wx.ICON_ERROR | wx.OK)
@@ -1710,8 +1781,9 @@ class MakeImages(wx.Dialog):
     def onClickOkBtn(self, event):
       self.general.getAllRawConf()
       self.general.saveAllImgConfig()
-      prjPath = self.parent.getPrjPath()
-      self.general.makeImages(prjPath)
+      self.parent.currentImagesConfig = self.general.imagesConfig
+      # prjPath = self.parent.getPrjPath()
+      # self.general.makeImages(prjPath)
       self.Close()
 
     def onClickCancelBtn(self, event):
@@ -1821,44 +1893,6 @@ class GeneralPage(scrolled.ScrolledPanel):
     md.update(self.imagesConfig)
     f = open("%s/configs/imagesConfig.xml" % self.parent.parent.getPrjPath(),"w")
     f.write(md.pretty())
-    f.close()
-
-  def makeImages(self, prjPath):
-    tarGet = str(subprocess.check_output(['g++','-dumpmachine'])).strip()
-    baseImage = prjPath + '/images/%s' % tarGet
-    owd = os.getcwd()
-
-    os.chdir('../mk')
-    tool = os.path.abspath("safplus_packager.py")
-
-    os.chdir('%s' % prjPath)
-    cmd = 'python %s -a %s %s.tgz' % (tool, tarGet, tarGet)
-    parent = self.parent.parent
-    parent.execute('cd %s;%s' % (prjPath, cmd))
-    os.system('cp *.xml %s/bin' % baseImage)
-
-    os.chdir(owd)
-    os.system('cp resources/setup %s/bin' % baseImage)
-    os.system('rm -rf images')
-    if os.path.isdir(baseImage):
-      for img in self.imagesConfig:
-        tarImg = prjPath + '/images/' + img
-        parent.log_console_info("Building %s...\n" % tarImg)
-        cmd = 'cp -r %s %s' % (baseImage, tarImg)
-        parent.execute(cmd, False)
-        parent.log_console_info("Creating tarball: %s.tar.gz\n" % tarImg)
-        cmd = 'cd %s/images/; tar -zcvf %s.tar.gz %s' % (prjPath, img, img)
-        parent.execute(cmd, False)
-        parent.log_console_info("Blade specific tarballs created.\n")
-        self.updateImageConfig(tarImg, self.imagesConfig[img])
-
-  def updateImageConfig(self, tarGet, imgConf):
-    fConf = tarGet + '/bin/setup'
-    s = open(fConf).read()
-    s = s.replace('ASP_NODENAME=node0', 'ASP_NODENAME=%s' % imgConf['name'] )
-    s = s.replace('SAFPLUS_BACKPLANE_INTERFACE=eth0', 'SAFPLUS_BACKPLANE_INTERFACE=%s' % imgConf['netInterface'] )
-    f = open(fConf, 'w')
-    f.write(s)
     f.close()
       
 class NewPrjDialog(wx.Dialog):
