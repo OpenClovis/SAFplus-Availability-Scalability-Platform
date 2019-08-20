@@ -316,6 +316,7 @@ class ProjectTreePanel(wx.Panel):
         self.currentImagesConfig = {}
         self.cancelProgress = False
         self.currentProcessCommand = None
+        self.currentProcess = None
 
         self.color = {
           self.error: wx.Colour(255, 0, 0),
@@ -1059,16 +1060,16 @@ class ProjectTreePanel(wx.Panel):
     if self.cancelProgress:
       return False
     self.currentProcessCommand = command
-    p = subprocess.Popen(command, shell=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+    self.currentProcess = subprocess.Popen(command, shell=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
     if enable_log:
       while True:
-        out = p.stdout.readline()
-        if not out and p.poll() != None:
+        out = self.currentProcess.stdout.readline()
+        if not out and self.currentProcess.poll() != None:
             break
         self.log_info(out)
       while True:
-        out = p.stderr.readline()
-        if not out and p.poll() != None:
+        out = self.currentProcess.stderr.readline()
+        if not out and self.currentProcess.poll() != None:
             break
         self.log_error(out)
     # user press cancel button while process is running
@@ -1078,8 +1079,19 @@ class ProjectTreePanel(wx.Panel):
     return True
 
   def stopCurrentProcess(self):
-    cmd = "kill -9 $(ps aux| grep '%s' |  awk '{print $2}')" % self.currentProcessCommand
-    os.system(cmd)
+    '''
+    @summary    : found and cancel childs process
+    '''
+    cmd = "ps --forest -o pid -g $(ps -o sid= -p %s)" % self.currentProcess.pid
+    processChild = os.popen(cmd).read()
+    start = False
+    for p in processChild.split('\n'):
+      pid = p.strip()
+      if pid == str(self.currentProcess.pid):
+        start = True
+      if start and pid:
+        cmd = "kill -9 %s" % pid
+        subprocess.Popen(cmd, shell=True, stderr=subprocess.PIPE)
       
   def setCancelProgress(self, status):
     self.cancelProgress = status
@@ -1087,12 +1099,14 @@ class ProjectTreePanel(wx.Panel):
   def OnBuild(self, event):
     prjPath, name = os.path.split(self.currentActiveProject.projectFilename)
     srcPath = prjPath + '/src'
-    self.execute('cd %s; make' % srcPath)
+    cmd = 'cd %s; make' % srcPath
+    self.runningLongProcess(self.execute, (cmd, ))
 
   def OnClean(self, event):
     prjPath, name = os.path.split(self.currentActiveProject.projectFilename)
     srcPath = prjPath + '/src'
-    self.execute('cd %s; make clean' % srcPath)
+    cmd = 'cd %s; make clean' % srcPath
+    self.runningLongProcess(self.execute, (cmd, ))
 
   def OnProperties(self, event):
     properties = PropertiesDialog(self)
@@ -1111,12 +1125,18 @@ class ProjectTreePanel(wx.Panel):
       self.showDialogError(cap, msg)
     else:
       dlg = MakeImages(self)
-      dlg.ShowModal()
+      result = dlg.ShowModal()
       dlg.Destroy()
-      prjPath = self.getPrjPath()
-      self.thread1 = threading.Thread(target = self.makeImages, args = (prjPath, ))
-      self.thread1.start()
-      self.progressDialog = ProgressDialog(self, self.thread1)
+      if result:
+        self.runningLongProcess(self.makeImages, (self.getPrjPath(), ))
+
+  def runningLongProcess(self, func, parram):
+    self.guiPlaces.frame.setCurrentTabInfoByText("Console")
+    runningThread = threading.Thread(target = func, args = parram)
+    runningThread.start()
+    progressDialog = ProgressDialog(self, runningThread)
+    progressDialog.ShowModal()
+    progressDialog.Destroy()
 
   def makeImages(self, prjPath):
     tarGet = str(subprocess.check_output(['g++','-dumpmachine'])).strip()
@@ -1710,7 +1730,7 @@ class DeployDialog(wx.Dialog):
           child_1 = pexpect.spawn("%s" % cmd)
           child_1.expect('assword:*')
           child_1.sendline('%s' % info['password'])
-          if not self.waitingForProcessCompleted(child_1):
+          if self.waitingForProcessCompleted(child_1):
             print "Deploy image successfuly"
           else:
             print "Deploy image on host failure"
@@ -1770,6 +1790,7 @@ class MakeImages(wx.Dialog):
       btn_sizer.Add(cancel_btn, 0, wx.ALL|wx.CENTER, 5)
       btn_sizer.Add(ok_btn, 0, wx.ALL|wx.CENTER, 5)  
 
+      self.Bind(wx.EVT_CLOSE, self.onClickCancelBtn)
         
       mainBox.Add(labelTitle, 0, wx.TOP|wx.LEFT, 20)
       mainBox.Add(self.configPanel, 0, wx.ALL|wx.CENTER, 5)
@@ -1782,12 +1803,10 @@ class MakeImages(wx.Dialog):
       self.general.getAllRawConf()
       self.general.saveAllImgConfig()
       self.parent.currentImagesConfig = self.general.imagesConfig
-      # prjPath = self.parent.getPrjPath()
-      # self.general.makeImages(prjPath)
-      self.Close()
+      self.EndModal(True)
 
     def onClickCancelBtn(self, event):
-      self.Close()
+      self.EndModal(False)
 
 class RawInfo(wx.Panel):
   """
