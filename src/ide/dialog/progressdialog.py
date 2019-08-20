@@ -1,5 +1,4 @@
 import wx
-from threading import *
 
 class ProgressDialog(wx.Dialog):
     def __init__(self, parent, currentRunningThread):
@@ -9,7 +8,7 @@ class ProgressDialog(wx.Dialog):
         self.thread = currentRunningThread
         self.panel = wx.Panel(self,wx.ID_ANY)
         self.gauge = wx.Gauge(self.panel,size=(582,20),pos=(12,80), style=wx.GA_HORIZONTAL)
-        self.livelabel = wx.StaticText(self.panel, label="Operation in progress...", pos=(12,20))
+        self.textLabel = wx.StaticText(self.panel, label="Operation in progress...", pos=(12,20))
         self.cancelButton =wx.Button(self.panel, size=(105,27), label="Cancel", pos=(490,155))
         self.cancelButton.Bind(wx.EVT_BUTTON, self.OnQuit)
         self.Bind(wx.EVT_CLOSE, self.OnQuit)
@@ -25,8 +24,8 @@ class ProgressDialog(wx.Dialog):
         if self.thread.isAlive():
           x = int(self.gauge.GetValue())
           if x >= 500:
-              x = 0
-          x+=self.step
+            x = 0
+          x += self.step
           self.gauge.SetValue(x)
         else:
           self.OnQuit(None)
@@ -35,7 +34,7 @@ class ProgressDialog(wx.Dialog):
         if self.thread.isAlive():
           self.parent.setCancelProgress(True)
           self.parent.stopCurrentProcess()
-          
+          self.thread.join()
         self.timer.Stop()
         self.Destroy()
 

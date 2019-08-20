@@ -131,6 +131,14 @@ class SAFplusFrame(wx.Frame):
         self.console = wx.TextCtrl(self, style=wx.TE_MULTILINE|wx.TE_READONLY)
         self.infoPanel.AddPage(self.console, "Console")
 
+    def setCurrentTabInfoByText(self, text):
+        n = self.infoPanel.GetPageCount()
+        for index in range(n):
+          if self.infoPanel.GetPageText(index) == text:
+            self.infoPanel.SetSelection(index)
+            return True
+        return False
+
     def update(self, event):
         self.help.LoadFile("intro.html")
         
