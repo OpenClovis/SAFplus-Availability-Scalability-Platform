@@ -48,6 +48,8 @@ EDIT_SORT                 = wx.NewId()
 EDIT_LOWERCASE            = wx.NewId()
 EDIT_UPPERCASE            = wx.NewId()
 
+GO_TO_LINE       = wx.NewId()
+
 PROJECT_VALIDATE = wx.NewId()
 PROJECT_BUILD = wx.NewId()
 PROJECT_CLEAN = wx.NewId()
@@ -391,6 +393,9 @@ class ProjectTreePanel(wx.Panel):
         self.editMenu.Bind(wx.EVT_MENU, self.onLowercase, id=EDIT_LOWERCASE)
         self.editMenu.Bind(wx.EVT_MENU, self.onUppercase, id=EDIT_UPPERCASE)
 
+        self.editMenu = guiPlaces.menu["Go"]
+        self.editMenu.Append(GO_TO_LINE, "&Goto Line...\tCtrl-g", "")
+        self.editMenu.Bind(wx.EVT_MENU, self.onGoToLine, id=GO_TO_LINE)
         #
         self.menuProject = guiPlaces.menu["Project"]
         self.menuProject.Append(PROJECT_BUILD, "Build Project", "Build Project")
@@ -1047,11 +1052,23 @@ class ProjectTreePanel(wx.Panel):
     console.AppendText(text)
     # console.SetDefaultStyle(wx.TextAttr(wx.BLACK))
 
+  def log_console_error_2(self, text):
+    console = self.guiPlaces.frame.console
+    console.SetDefaultStyle(wx.TextAttr(colText=wx.Colour(0x96,0x0d,0x0d)))
+    console.AppendText(text)
+    console.SetDefaultStyle(wx.TextAttr(wx.BLACK))
+
   def log_info(self, text):
+    text = str(text).strip() + '\n'
     wx.CallAfter(self.log_console_info, text)
 
   def log_error(self, text):
+    text = str(text).strip() + '\n'
     wx.CallAfter(self.log_console_error, text)
+
+  def log_error_2(self, text):
+    text = str(text).strip() + '\n'
+    wx.CallAfter(self.log_console_error_2, text)
 
   def execute(self, command, enable_log=True):
     '''
@@ -1275,75 +1292,90 @@ class ProjectTreePanel(wx.Panel):
     f.write(md.pretty())
     f.close()
 
-  def getPage(self):
-    index = self.guiPlaces.frame.tab.GetSelection()
-    Page = self.guiPlaces.frame.tab.GetPage(index)
-    if Page.__class__.__name__ == "Page":
-      return Page
+  def getPageControl(self):
+    currentPage = self.guiPlaces.frame.tab.GetCurrentPage()
+    if currentPage.__class__.__name__ == "Page":
+      return currentPage
 
     return False
     
   def onUndo(self, event):
-    if self.getPage():
-      self.getPage().control.Undo()
+    pageControl = self.getPageControl()
+    if pageControl:
+      pageControl.control.Undo()
 
   def onRedo(self, event):
-    if self.getPage():
-      self.getPage().control.Redo()
+    pageControl = self.getPageControl()
+    if pageControl:
+      pageControl.control.Redo()
 
   def onCut(self, event):
-    if self.getPage():
-      self.getPage().control.Cut()
+    pageControl = self.getPageControl()
+    if pageControl:
+      pageControl.control.Cut()
 
   def onCopy(self, event):
-    if self.getPage():
-      self.getPage().control.Copy()
+    pageControl = self.getPageControl()
+    if pageControl:
+      pageControl.control.Copy()
 
   def onPaste(self, event):
-    if self.getPage():
-      self.getPage().control.Paste()
+    pageControl = self.getPageControl()
+    if pageControl:
+      pageControl.control.Paste()
 
   def onFind(self, event):
     '''
     @summary    : open find dialog
     '''
-    if self.getPage():
-      self.getPage().Find()
+    pageControl = self.getPageControl()
+    if pageControl:
+      pageControl.Find()
 
   def onReplace(self, event):
     '''
     @summary    : open replace dialog for find/replace
     '''
-    if self.getPage():
-      self.getPage().Replace()
+    pageControl = self.getPageControl()
+    if pageControl:
+      pageControl.Replace()
 
   def onToggleLineComment(self, event):
     '''
     @summary    : Toggle Line Comment
     '''
-    if self.getPage():
-      self.getPage().control.toggle_comment()
+    pageControl = self.getPageControl()
+    if pageControl:
+      pageControl.control.toggle_comment()
 
   def onSort(self, event):
     '''
     @summary    : sort selected line text in text view
     '''
-    if self.getPage():
-      self.getPage().control.sort()
+    pageControl = self.getPageControl()
+    if pageControl:
+      pageControl.control.sort()
 
   def onLowercase(self, event):
     '''
     @summary    : convert selected text to lowercase
     '''
-    if self.getPage():
-      self.getPage().control.lower()
+    pageControl = self.getPageControl()
+    if pageControl:
+      pageControl.control.lower()
 
   def onUppercase(self, event):
     '''
     @summary    : convert selected text to uppercase
     '''
-    if self.getPage():
-      self.getPage().control.upper()
+    pageControl = self.getPageControl()
+    if pageControl:
+      pageControl.control.upper()
+
+  def onGoToLine(self, event):
+    pageControl = self.getPageControl()
+    if pageControl:
+      pageControl.onGoToLine()
     
 class ClearProjectData(wx.Dialog):
     """
@@ -1524,7 +1556,7 @@ class DeployDialog(wx.Dialog):
     """
     def __init__(self, parent):
       """Constructor"""
-      wx.Dialog.__init__(self, None, title="Deployment Details", size=(600,450))
+      wx.Dialog.__init__(self, parent, title="Deployment Details", size=(600,450))
 
       self.parent = parent
       self.SetBackgroundColour('#F2F1EF')
@@ -1683,13 +1715,16 @@ class DeployDialog(wx.Dialog):
       self.Close()
 
     def onClickDeployAllImageBtn(self, event):
+      self.parent.runningLongProcess(self.deployAllImage, ())
+
+    def deployAllImage(self):
       prjPath = self.parent.getPrjPath()
       for key in self.deployInfos:
         srcImage = prjPath + '/images/' + key
         if os.path.isfile(srcImage + '.tar.gz'):
           self.deploymentSingleImage(self.deployInfos[key], srcImage)
         else:
-          print "Deploy failure, image don't exist."
+          self.parent.log_error_2("Image %s.tar.gz don't exist.\nDeploy failure" % srcImage)
 
     def waitingForProcessCompleted(self, child, timeout=90):
       cnt = 0
@@ -1699,9 +1734,10 @@ class DeployDialog(wx.Dialog):
       return (not child.isalive())
 
     def deploymentSingleImage(self, info, srcImage):
-      print "Image deploy: %s" % srcImage
+      # print "Image deploy: %s" % srcImage
+      self.parent.log_info("Image deploy: %s" % srcImage)
       if (info['targetAdress'] == "") or (info['userName'] == "") or (info['password'] == "") or (info['targetLocation'] == ""):
-        print "Invalid deployment infomation"
+        self.parent.log_error_2("Invalid deployment infomation")
         return False
 
       isHostKnown = False
@@ -1713,9 +1749,10 @@ class DeployDialog(wx.Dialog):
           isHostKnown = False
 
       cmd = 'scp %s.tar.gz %s@%s:~/%s' % (srcImage, info['userName'], info['targetAdress'], info['targetLocation'])
-      print cmd
+      # print cmd
       try:
         child = pexpect.spawn("%s" % cmd)
+        self.parent.currentProcess = child
 
         if not isHostKnown:
           child.expect('connecting (yes/no)*')
@@ -1728,16 +1765,18 @@ class DeployDialog(wx.Dialog):
           remoteCommand = "cd %s; tar -xzvf %s" % (info['targetLocation'], fName)
           cmd = "ssh %s@%s '%s'" % (info['userName'], info['targetAdress'], remoteCommand)
           child_1 = pexpect.spawn("%s" % cmd)
+          self.parent.currentProcess = child_1
           child_1.expect('assword:*')
           child_1.sendline('%s' % info['password'])
           if self.waitingForProcessCompleted(child_1):
-            print "Deploy image successfuly"
+            self.parent.log_info("Deploy image successfuly")
           else:
-            print "Deploy image on host failure"
+            self.parent.log_error_2("Deploy image on host failure")
         else:
-          print "Copy image to host failure"
-      except:
-        print "Error while deploy image"
+          self.parent.log_error_2("Copy image to host failure")
+      except Exception as e:
+        self.parent.log_error_2("Exception occured while deploying image")
+        self.parent.log_error_2(e.message)
 
     def onClickRestoreDefaultBtn(self, event):
       self.host.SetValue("")
@@ -1750,9 +1789,10 @@ class DeployDialog(wx.Dialog):
 
       if os.path.isfile(srcImage + '.tar.gz'):
         img = self.deployInfos[self.curNode]
-        self.deploymentSingleImage(img, srcImage)
+        self.parent.runningLongProcess(self.deploymentSingleImage, (img, srcImage, ))
       else:
-        print "Image don't exist - deploy failure"
+        self.parent.guiPlaces.frame.setCurrentTabInfoByText("Console")
+        self.parent.log_error_2("Image %s.tar.gz don't exist.\nDeploy failure" % srcImage)
 
     def onSelectNodeChange(self, event):
       item = self.nodeList.GetFocusedItem()
