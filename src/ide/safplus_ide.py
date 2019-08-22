@@ -41,6 +41,7 @@ class SAFplusFrame(wx.Frame):
         # and a menu 
         self.menu = wx.Menu()
         self.menuEdit = wx.Menu()
+        self.menuGo = wx.Menu()
         self.menuProject = wx.Menu()
         self.menuModelling = wx.Menu()
         self.menuInstantiation = wx.Menu()
@@ -63,6 +64,7 @@ class SAFplusFrame(wx.Frame):
         # and put the menu on the menubar
         self.menuBar.Append(self.menu, "&File")
         self.menuBar.Append(self.menuEdit, "&Edit")
+        self.menuBar.Append(self.menuGo, "&Go")
         self.menuBar.Append(self.menuProject, "&Project")
         self.menuBar.Append(self.menuModelling, "&Modelling")
         self.menuBar.Append(self.menuInstantiation, "&Instantiation")
@@ -78,7 +80,7 @@ class SAFplusFrame(wx.Frame):
         
         self.guiPlaces = common.GuiPlaces(self,self.menuBar, self.tb, self.sb, { "File": self.menu, "Edit": self.menuEdit,
             "Project": self.menuProject, "Modelling":self.menuModelling, "Instantiation":self.menuInstantiation, "Windows": self.menuWindows, 
-            "Tools": self.menuTools, "Help": self.menuHelp }, None)
+            "Tools": self.menuTools, "Help": self.menuHelp, "Go" : self.menuGo }, None)
 
         # Now create the Panel to put the other controls on.
         panel = self.panel = None # panelFactory(self,menuBar,tb,sb) # wx.Panel(self)
@@ -589,6 +591,12 @@ class Page(wx.Panel):
         self.parent.tab.SetPageText(index, "*%s" % label)
       f.close()
 
+  def onGoToLine(self):
+    lineMax = self.control.GetLineCount()
+    dlg = GoToLine(self, lineMax)
+    dlg.ShowModal()
+    dlg.Destroy()
+
 class FindReplaceDialog(wx.FindReplaceDialog):
     """
     Class to define FindReplaceDialog dialog
@@ -649,6 +657,47 @@ class FindReplaceDialog(wx.FindReplaceDialog):
       @summary    : Close search/replace dialog
       '''
       self.Destroy()
+
+class GoToLine(wx.Dialog):
+    """
+    Class to define GoToLine dialog
+    """
+    def __init__(self, parent, lineMax):
+      """Constructor"""
+      wx.Dialog.__init__(self, None, wx.ID_ANY, "Goto Line",size= (336,165), style=wx.DEFAULT_DIALOG_STYLE)
+      self.parent = parent
+      self.panel = wx.Panel(self, wx.ID_ANY)
+      sizeLabel = (296,27)
+      text = "Line (1 - %s):" % lineMax
+      self.currentInfo = wx.StaticText(self.panel, label=text, size=sizeLabel, pos =(20,10))
+      self.lineColumn = wx.TextCtrl(self.panel, size=sizeLabel, pos=(20,42))
+      self.line = wx.StaticLine(self.panel, size=(296,1), pos=(20, 84))
+      self.btn = wx.Button(self.panel, label="OK", size=(82,27), pos =(234,100))
+      self.btn.Bind(wx.EVT_BUTTON, self.onClicked)
+      # self.lineColumn.Bind(wx.EVT_KILL_FOCUS, self.onKillFocus)
+      self.lineColumn.Bind(wx.EVT_TEXT, self.onTextChange)
+      print "window size", self.GetSize()
+
+    def onClicked(self, event):
+      self.Close()
+
+    def onTextChange(self, event):
+      value = self.lineColumn.GetValue().strip()
+      self.lineColumn.SetSelection(-1, -1)
+      control = self.parent.control
+      try:
+        print "value", value
+        value = int(value)
+        max = control.GetLineCount()
+        if value > 0 and value <= max:
+            pos = control.PositionFromLine(value-1)
+            control.SetSelection(pos, pos)
+            control.EnsureCaretVisible()
+      except:
+        pass
+
+    def onKillFocus(self, event):
+      self.Close()
 
 def go():
   global app
