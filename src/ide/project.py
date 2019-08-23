@@ -37,8 +37,9 @@ PROJECT_WILDCARD = "SAFplus Project (*.spp)|*.spp|All files (*.*)|*.*"
 
 EDIT_UNDO         = wx.NewId()
 EDIT_REDO         = wx.NewId()
+EDIT_RELOAD       = wx.NewId()
 EDIT_CUT          = wx.NewId()
-EDIT_COPY        = wx.NewId()
+EDIT_COPY         = wx.NewId()
 EDIT_PATSE        = wx.NewId()
 EDIT_FIND         = wx.NewId()
 EDIT_REPLACE      = wx.NewId()
@@ -366,6 +367,7 @@ class ProjectTreePanel(wx.Panel):
         self.editMenu = guiPlaces.menu["Edit"]
         self.editMenu.Append(EDIT_UNDO, "&Undo\tCtrl-z", "Undo")
         self.editMenu.Append(EDIT_REDO, "&Redo\tCtrl-y", "Redo")
+        self.editMenu.Append(EDIT_RELOAD, "&Redo\tCtrl-r", "Reload")
         self.editMenu.AppendSeparator()
         self.editMenu.Append(EDIT_CUT,  "&Cut\tCtrl-x",  "Cut")
         self.editMenu.Append(EDIT_COPY,"&Coppy\tCtrl-c","Coppy")
@@ -383,6 +385,7 @@ class ProjectTreePanel(wx.Panel):
 
         self.editMenu.Bind(wx.EVT_MENU, self.onUndo, id=EDIT_UNDO)
         self.editMenu.Bind(wx.EVT_MENU, self.onRedo, id=EDIT_REDO)
+        self.editMenu.Bind(wx.EVT_MENU, self.onReload, id=EDIT_RELOAD)
         self.editMenu.Bind(wx.EVT_MENU, self.onCut, id=EDIT_CUT)
         self.editMenu.Bind(wx.EVT_MENU, self.onCopy, id=EDIT_COPY)
         self.editMenu.Bind(wx.EVT_MENU, self.onPaste, id=EDIT_PATSE)
@@ -1308,6 +1311,11 @@ class ProjectTreePanel(wx.Panel):
     pageControl = self.getPageControl()
     if pageControl:
       pageControl.control.Redo()
+
+  def onReload(self, event):
+    pageControl = self.getPageControl()
+    if pageControl:
+      pageControl.reloadFile()
 
   def onCut(self, event):
     pageControl = self.getPageControl()

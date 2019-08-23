@@ -72,7 +72,7 @@ class EditorControl(stc.StyledTextCtrl):
             dialog = wx.MessageDialog(frame, 'Save changes to file "%s"?' % name, 'Save Changes?', style)
             result = dialog.ShowModal()
             if result == wx.ID_YES:
-                frame.onSave()
+                frame.onSave(None)
             elif result == wx.ID_CANCEL:
                 return False
         return True
@@ -147,13 +147,14 @@ class EditorControl(stc.StyledTextCtrl):
     def check_stat(self):
         stat = self.get_stat()
         return stat == self._stat
-    def open_file(self, path):
+    def open_file(self, path, emptyUndoBuffer=True):
         file = None
         try:
             file = open(path, 'r')
             text = file.read()
             self.SetText(text)
-            self.EmptyUndoBuffer()
+            if emptyUndoBuffer:
+                self.EmptyUndoBuffer()
             self.edited = False
             self.file_path = path
         except IOError:
@@ -184,9 +185,9 @@ class EditorControl(stc.StyledTextCtrl):
             self.mark_stat()
             self.detect_language()
         return False
-    def reload_file(self):
+    def reload_file(self, emptyUndoBuffer=True):
         if self.file_path:
-            self.open_file(self.file_path)
+            self.open_file(self.file_path, emptyUndoBuffer)
     def detect_language(self):
         path = self.file_path
         manager = self.get_frame().style_manager
