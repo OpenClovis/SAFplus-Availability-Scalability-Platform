@@ -536,9 +536,13 @@ class Page(wx.Panel):
     self.sizer.Add(self.control,1,wx.EXPAND)
     self.SetSizer(self.sizer)
     self.sizer.Fit(self)
+    self.isReloadFile = False
     self.pathFile = pathFile
     self.parent = parent
     self.control.Bind(stc.EVT_STC_CHANGE, self.onEditChange)
+    self.timer = wx.Timer(self)
+    self.Bind(wx.EVT_TIMER, self.onTimer, self.timer)
+    self.timer.Start(1000)
 
   def Find(self):
     self.onKeyCombo(0)
@@ -561,22 +565,46 @@ class Page(wx.Panel):
     '''
     @summary    : save file content and remove * character
     '''
-    self.control.edited = False
     label = ''
     if index == -1:
       index = self.parent.tab.GetSelection()
-      label = self.parent.tab.GetPageText(index)
-    else:
-      label = self.parent.tab.GetPageText(index)
+    label = self.parent.tab.GetPageText(index)
 
     if '*' in label:
       label = re.sub("\*", "", label)
       self.parent.tab.SetPageText(index, label)
-      data = self.control.GetValue()
+      self.control.save_file()
 
-      f=open(self.pathFile,'w')
-      f.write(data)
-      f.close()
+  def onTimer(self, event):
+    # if self.parent.tab.GetCurrentPage() != self:
+    #   return
+    filestat = os.stat(self.pathFile)
+    date = time.localtime((filestat.st_mtime))
+    lastModified = time.mktime(date)
+    currentTime = time.time()
+    diff = currentTime - lastModified
+    if diff > 1.5:
+      return
+    index = self.parent.tab.GetPageIndex(self)
+    label = self.parent.tab.GetPageText(index)
+    if not ('*' in label):
+      try:
+        file = open(self.pathFile, 'r')
+        if self.control.GetValue() != file.read():
+          self.isReloadFile = True
+          self.control.reload_file(False)
+          self.isReloadFile = False
+      finally:
+        if file:
+          file.close()
+
+  def reloadFile(self):
+    self.control.reload_file(False)
+    index = self.parent.tab.GetSelection()
+    label = self.parent.tab.GetPageText(index)
+    if '*' in label:
+      label = re.sub("\*", "", label)
+      self.parent.tab.SetPageText(index, label)
 
   def onEditChange(self, event):
     '''
@@ -584,12 +612,15 @@ class Page(wx.Panel):
     '''
     index = self.parent.tab.GetPageIndex(self)
     label = self.parent.tab.GetPageText(index)
-    self.control.edited = True
-    if not ('*' in label):
-      f = open(self.pathFile,'r')
-      if self.control.GetValue() != f.read():
-        self.parent.tab.SetPageText(index, "*%s" % label)
-      f.close()
+    if not ('*' in label) and (not self.isReloadFile):
+      self.control.edited = True
+      try:
+        file = open(self.pathFile,'r')
+        if self.control.GetValue() != file.read():
+          self.parent.tab.SetPageText(index, "*%s" % label)
+      finally:
+        if file:
+          file.close()
 
   def onGoToLine(self):
     lineMax = self.control.GetLineCount()
