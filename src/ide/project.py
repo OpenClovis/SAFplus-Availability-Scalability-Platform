@@ -5,6 +5,7 @@ import math
 import time
 from types import *
 import threading
+import paramiko
 
 import wx
 import  wx.lib.newevent
@@ -1734,54 +1735,41 @@ class DeployDialog(wx.Dialog):
         else:
           self.parent.log_error_2("Image %s.tar.gz don't exist.\nDeploy failure" % srcImage)
 
-    def waitingForProcessCompleted(self, child, timeout=90):
-      cnt = 0
-      while child.isalive() and cnt < timeout :
-        cnt += 1
-        time.sleep(1)
-      return (not child.isalive())
+    def waitForCompletedAndVerifyResult(self, stdout, stderr):
+      result = True
+      while True:
+        out = stdout.readline()
+        if not out:
+          break
+      while True:
+        out = stderr.readline()
+        if not out:
+          break
+        result = False
+        self.parent.log_error_2(out)
+      return result
 
     def deploymentSingleImage(self, info, srcImage):
-      # print "Image deploy: %s" % srcImage
-      self.parent.log_info("Image deploy: %s" % srcImage)
+      self.parent.log_info("Start deploy image: %s" % srcImage)
       if (info['targetAdress'] == "") or (info['userName'] == "") or (info['password'] == "") or (info['targetLocation'] == ""):
         self.parent.log_error_2("Invalid deployment infomation")
         return False
-
-      isHostKnown = False
       try:
-        hotKnown = str(subprocess.check_output(['ssh-keygen','-F', '%s' % info['targetAdress']])).strip()
-        if "found:" in hotKnown:
-          isHostKnown = True
-      except:
-          isHostKnown = False
-
-      cmd = 'scp %s.tar.gz %s@%s:~/%s' % (srcImage, info['userName'], info['targetAdress'], info['targetLocation'])
-      # print cmd
-      try:
-        child = pexpect.spawn("%s" % cmd)
-        self.parent.currentProcess = child
-
-        if not isHostKnown:
-          child.expect('connecting (yes/no)*')
-          child.sendline('yes')
-        child.expect('assword:*')
-        child.sendline('%s' % info['password'])
-
-        if self.waitingForProcessCompleted(child):
-          fName = "%s.tar.gz" % str(srcImage).split('/')[-1] 
-          remoteCommand = "cd %s; tar -xzvf %s" % (info['targetLocation'], fName)
-          cmd = "ssh %s@%s '%s'" % (info['userName'], info['targetAdress'], remoteCommand)
-          child_1 = pexpect.spawn("%s" % cmd)
-          self.parent.currentProcess = child_1
-          child_1.expect('assword:*')
-          child_1.sendline('%s' % info['password'])
-          if self.waitingForProcessCompleted(child_1):
-            self.parent.log_info("Deploy image successfuly")
-          else:
-            self.parent.log_error_2("Deploy image on host failure")
+        remoteClient = paramiko.SSHClient() 
+        remoteClient.set_missing_host_key_policy(paramiko.AutoAddPolicy())
+        self.parent.log_info("Connecting to host...")
+        remoteClient.connect(hostname=info['targetAdress'], username=info['userName'], password=info['password'])
+        sftp = remoteClient.open_sftp()
+        fileName = str(srcImage).split('/')[-1] + ".tar.gz"
+        localpath = srcImage + ".tar.gz"
+        remotepath = info['targetLocation'] + "/" + fileName
+        self.parent.log_info("Deploying image to host...")
+        sftp.put(localpath, remotepath)
+        stdin, stdout, stderr = remoteClient.exec_command('cd %s;tar -xzvf %s' % (info['targetLocation'],fileName))
+        if self.waitForCompletedAndVerifyResult(stdout, stderr):
+          self.parent.log_info("Deploy image successfuly")
         else:
-          self.parent.log_error_2("Copy image to host failure")
+          self.parent.log_error_2("Deploy image failure")
       except Exception as e:
         self.parent.log_error_2("Exception occured while deploying image")
         self.parent.log_error_2(e.message)

@@ -699,15 +699,13 @@ class GoToLine(wx.Dialog):
       self.parent = parent
       self.panel = wx.Panel(self, wx.ID_ANY)
       sizeLabel = (296,27)
-      text = "Line (1 - %s):" % lineMax
+      text = "Line (1 - %s)" % lineMax
       self.currentInfo = wx.StaticText(self.panel, label=text, size=sizeLabel, pos =(20,10))
       self.lineColumn = wx.TextCtrl(self.panel, size=sizeLabel, pos=(20,42))
       self.line = wx.StaticLine(self.panel, size=(296,1), pos=(20, 84))
       self.btn = wx.Button(self.panel, label="OK", size=(82,27), pos =(234,100))
       self.btn.Bind(wx.EVT_BUTTON, self.onClicked)
-      # self.lineColumn.Bind(wx.EVT_KILL_FOCUS, self.onKillFocus)
       self.lineColumn.Bind(wx.EVT_TEXT, self.onTextChange)
-      print "window size", self.GetSize()
 
     def onClicked(self, event):
       self.Close()
@@ -717,7 +715,6 @@ class GoToLine(wx.Dialog):
       self.lineColumn.SetSelection(-1, -1)
       control = self.parent.control
       try:
-        print "value", value
         value = int(value)
         max = control.GetLineCount()
         if value > 0 and value <= max:
@@ -726,9 +723,6 @@ class GoToLine(wx.Dialog):
             control.EnsureCaretVisible()
       except:
         pass
-
-    def onKillFocus(self, event):
-      self.Close()
 
 def go():
   global app
