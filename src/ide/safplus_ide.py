@@ -576,11 +576,7 @@ class Page(wx.Panel):
       self.control.save_file()
 
   def onTimer(self, event):
-    # if self.parent.tab.GetCurrentPage() != self:
-    #   return
-    filestat = os.stat(self.pathFile)
-    date = time.localtime((filestat.st_mtime))
-    lastModified = time.mktime(date)
+    lastModified = os.path.getmtime(self.pathFile)
     currentTime = time.time()
     diff = currentTime - lastModified
     if diff > 1.5:

@@ -6,6 +6,8 @@ import time
 from types import *
 import threading
 import paramiko
+import pickle
+from cryptography.fernet import Fernet
 
 import wx
 import  wx.lib.newevent
@@ -1648,37 +1650,71 @@ class DeployDialog(wx.Dialog):
       vBox1.Layout()
 
       self.deployInfos = {}
-
+      self.key = self.getKey()
       self.initDeploymentInfo()
-
       self.Bind(wx.EVT_CLOSE, self.onDialogClose)
-
       self.infoChange = False
+
+    def getKey(self):
+      home = os.path.expanduser("~")
+      path = home + "/.clovis/ide"
+      pathFile = path + "/key"
+      if os.path.isfile(pathFile):
+        try:
+          file = open(pathFile, 'rb')
+          p = pickle.Unpickler(file)
+          key = str(p.load())
+          file.close()
+          if len(key) == 44 and key[-1] == '=':
+            return key
+        except:
+          pass
+      key = Fernet.generate_key()
+      if not os.path.isdir(path):
+        os.mkdir(path, 0x755);
+      try:
+        file = open(pathFile, 'wb')
+        p = pickle.Pickler(file, -1)
+        p.dump(key)
+        file.close()
+      except:
+        pass
+      return key
+
+    def unciphered(self, text):
+      cipherSuite = Fernet(self.key)
+      uncipheredText = cipherSuite.decrypt(text)
+      return uncipheredText
+
+    def ciphered(self, text):
+      cipherSuite = Fernet(self.key)
+      cipheredText = cipherSuite.encrypt(str(text).encode())
+      return cipheredText
 
     def initDeploymentInfo(self):
       nodeIntances = []
       try:
         for (name, e) in share.detailsPanel.model.instances.items():
           if e.data['entityType'] == "Node":
-            # self.nodeList.InsertStringItem(sys.maxsize, name)
             nodeIntances.append(name)
-        targetInfo = microdom.LoadFile("%s/configs/target.xml" % self.parent.getPrjPath()).pretty()
-
-        dom = xml.dom.minidom.parseString(targetInfo)
-        md = microdom.LoadMiniDom(dom.childNodes[0])
+        file = open("%s/configs/target.xml" % self.parent.getPrjPath(), 'rb')
+        p = pickle.Unpickler(file)
+        md = p.load()
       except:
         pass
-
+      finally:
+        if file:
+          file.close()
       nodeIntances = sorted(nodeIntances)
       self.curNode = nodeIntances[0]
 
       for img in nodeIntances:
         image = {}
         try:
-          image['targetAdress'] = str(md[img].targetAdress.data_).strip()
-          image['userName'] = str(md[img].userName.data_).strip()
-          image['password'] = str(md[img].password.data_).strip()
-          image['targetLocation'] = str(md[img].targetLocation.data_).strip()
+          image['targetAdress'] = self.unciphered(md[img]['targetAdress'])
+          image['userName'] = self.unciphered(md[img]['userName'])
+          image['password'] = self.unciphered(md[img]['password'])
+          image['targetLocation'] = self.unciphered(md[img]['targetLocation'])
         except:
           image['targetAdress'] = ""
           image['userName'] = ""
@@ -1713,12 +1749,28 @@ class DeployDialog(wx.Dialog):
       self.deployInfos[self.curNode]['targetLocation'] = self.targetLocation.GetValue()
       self.infoChange = True
 
+    def getCipheredConfigData(self):
+      cipheredConfig = {}
+      for img in self.deployInfos:
+        image = {}
+        image['targetAdress'] = self.ciphered(self.deployInfos[img]['targetAdress'])
+        image['userName'] = self.ciphered(self.deployInfos[img]['userName'])
+        image['password'] = self.ciphered(self.deployInfos[img]['password'])
+        image['targetLocation'] = self.ciphered(self.deployInfos[img]['targetLocation'])
+        cipheredConfig[img] = image
+      return cipheredConfig
+
     def onSaveAllDeploymentInfo(self):
-      md = microdom.MicroDom({"tag_":"Nodes"},[],[])
-      md.update(self.deployInfos)
-      f = open("%s/configs/target.xml" % self.parent.getPrjPath(),"w")
-      f.write(md.pretty())
-      f.close()
+      try:
+        file = open("%s/configs/target.xml" % self.parent.getPrjPath(),"wb")
+        p = pickle.Pickler(file, -1)
+        cipheredConfig = self.getCipheredConfigData()
+        p.dump(cipheredConfig)
+      except:
+        pass
+      finally:
+        if file:
+          file.close()
 
     def onClickCancelBtn(self, event):
       self.Close()
