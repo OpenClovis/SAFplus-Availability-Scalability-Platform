@@ -140,6 +140,11 @@ namespace SAFplusAmf
          * The component listed here is this component's proxy.
          */
         SAFplus::MgtProv<std::string> proxy;
+        
+        //proxy-proxied support feature
+        SAFplus::MgtProv<std::string> csiType;
+        SAFplus::MgtProv<std::string> proxyCSIType;
+        //End proxy-proxied support feature
 
         /*
          * This component is the proxy for the components listed here.

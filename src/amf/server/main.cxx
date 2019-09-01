@@ -1093,6 +1093,41 @@ void initializeOperationalValues(SAFplusAmf::SAFplusAmfModule& cfg)
       comp->pendingOperation =  PendingOperation::none;
       comp->pendingOperationExpiration.value.value = 0;
       comp->restartCount = 0;
+      
+      
+      if (1)
+    {
+      MgtObject::Iterator it;
+      MgtObject::Iterator endit = cfg.safplusAmf.componentServiceInstanceList.end();
+      
+      for (it = cfg.safplusAmf.componentServiceInstanceList.begin(); it != endit; it++)
+        {
+          ComponentServiceInstance* elem = dynamic_cast<ComponentServiceInstance*>(it->second);
+          // Nothing to initialize
+          //proxy-proxied support feature
+          logInfo("MAIN","INIT","initializeOperationalValues comp->compCategory : %d",comp->compCategory.value);
+          if((comp->compCategory.value & SA_AMF_COMP_PROXIED))//proxied component
+          {
+			  if(comp->proxyCSIType.value.length() != 0)
+			  {
+				  if(comp->proxyCSIType.value.compare(elem->type.value) == 0)
+				  {
+					  logInfo("MAIN","INIT","initializeOperationalValues elem->isProxyCSI.value = true;");
+					  elem->isProxyCSI.value = true;
+				  }
+			  }
+			  else
+			  {
+				  
+			  }
+		  }
+		  else
+		  {
+			  //TODO: maybe check something else in future
+		  }
+        }
+    }
+    //End proxy-proxied support feature
     }
 
   MgtObject::Iterator itnode;

@@ -136,6 +136,50 @@ namespace SAFplus
         continue;
         }
 
+		//proxy-proxied support feature
+      //TODO: if comp is proxied, then check proxy comps are initiated if not, defer this instantiation. Proxied comp will be instantiated later when we assign proxy comp csi and we will check proxy csi for proxied comp and instantiate proxied comp.
+       //proxy-proxied support feature
+      if((comp->compCategory & SA_AMF_COMP_PROXIED))
+      {
+		  //comp->presenceState.value  = PresenceState::instantiating;
+		  if(comp->proxy.value.length() == 0 )
+		  {
+			  logInfo("N+M", "AUDIT", "Component [%s] has no proxy. Before Deferring instantiation, presence state change from [%s] to [%s]", comp->name.value.c_str(), c_str(comp->presenceState.value),c_str(PresenceState::instantiating));
+			  comp->presenceState.value  = PresenceState::instantiating;
+			  comp->numInstantiationAttempts.value++;
+			  comp->lastInstantiation.value.value = std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::system_clock::now().time_since_epoch()).count();
+			  logInfo("N+M", "AUDIT", "Component [%s] has no proxy. Deferring instantiation", comp->name.value.c_str());
+			  continue;
+		  }
+		  else
+		  {
+			  logInfo("N+M", "AUDIT", "Component [%s] has proxy [%s]",comp->name.value.c_str(),comp->proxy.value.c_str());
+		  }
+		  
+		  /*else
+		  {
+			  SAFplus::MgtObject::Iterator it;
+			  SAFplus::MgtObject::Iterator end = su->components.end();
+			  Component* proxy;
+			  for(it = su->components.begin(); it != end; it++)
+			  {
+				  proxy = dynamic_cast<Component*>(it->second);
+				  if(proxy->name.value.compare(comp->name.value) == 0)
+				  {
+					  break;
+				  }
+			  }
+			  if(it != end)
+			  {
+				  if(proxy->readinessState.value == SAFplusAmf::ReadinessState::inService)
+				  {
+					  
+				  }
+			  }
+		  }*/
+	  }
+      //End proxy-proxied support feature
+     
       logInfo("N+M","STRT","Starting component [%s]", comp->name.value.c_str());
       try
         {
@@ -312,6 +356,8 @@ namespace SAFplus
           {
           Component* comp = dynamic_cast<Component*>(*itcomp);
           assert(comp);
+          logInfo("N+M","STRT","findPromotableServiceUnit Component [%s] compCategory [%d]", comp->name.value.c_str(),comp->compCategory.value);
+          if((comp->compCategory & SA_AMF_COMP_PROXIED))continue;//proxy-proxied support feature
           if ((comp->operState.value == true) && (comp->readinessState.value == ReadinessState::inService) && (comp->haReadinessState == HighAvailabilityReadinessState::readyForAssignment) && (comp->haState != HighAvailabilityState::quiescing) && (comp->pendingOperation == PendingOperation::none))
             {
               // Check # of assignments against the maximum.
@@ -793,6 +839,7 @@ namespace SAFplus
 
 
           int numComps = 0;
+          int numProxiedComps = 0;////proxy-proxied support feature
           // count up the presence state of each component so I can infer the presence state of the SU
           int presenceCounts[((int)PresenceState::terminationFailed)+1];
           int haCounts[((int)HighAvailabilityState::quiescing)+1];
@@ -805,6 +852,7 @@ namespace SAFplus
             {
             numComps++;
             Component* comp = dynamic_cast<Component*>(itcomp->second);
+            if((comp->compCategory & SA_AMF_COMP_PROXIED)) ++numProxiedComps;//proxy-proxied support feature
             logInfo("N+M","AUDIT","Component [%s]: operState [%s]", comp->name.value.c_str(), comp->operState.value ? "enabled" : "faulted");
             if (!running(comp->presenceState))
               {
@@ -830,7 +878,7 @@ namespace SAFplus
                 }
                   
               // In the instantiating case, the process may not have even been started yet.  So to detect failure, we must check both that it has reported a PID and that it is currently uninstantiated
-              if ((status == CompStatus::Uninstantiated) && ((comp->processId.value > 0) || (comp->presenceState != PresenceState::instantiating)))  // database shows should be running but actually no process is there.  I should update DB.
+              if ((status == CompStatus::Uninstantiated) && ((comp->processId.value > 0) || (comp->presenceState != PresenceState::instantiating)) && !(comp->compCategory & SA_AMF_COMP_PROXIED))  // database shows should be running but actually no process is there.  I should update DB.
                 {
                   try
                     {
@@ -947,11 +995,13 @@ namespace SAFplus
             {
               ha = HighAvailabilityState::quiescing;
             }
-          else if (haCounts[(int)HighAvailabilityState::active] == numComps)  // If all components have an active assignment, SU is active
+            //proxy-proxied support feature
+          else if (haCounts[(int)HighAvailabilityState::active] >= (numComps - numProxiedComps))  // If all components have an active assignment, SU is active
             {
               ha = HighAvailabilityState::active;
             }
-          else if (haCounts[(int)HighAvailabilityState::standby] == numComps)  // If all components have a standby assignment, SU is standby
+            //proxy-proxied support feature
+          else if (haCounts[(int)HighAvailabilityState::standby] >= (numComps - numProxiedComps ))  // If all components have a standby assignment, SU is standby
             {
               ha = HighAvailabilityState::standby;
             }
@@ -991,7 +1041,8 @@ namespace SAFplus
             {
             ps = PresenceState::instantiating;
             }
-          else if (presenceCounts[(int)PresenceState::instantiated] == numComps) // When all pre-instantiable components of a service unit enter the instantiated state, the service unit becomes instantiated
+            //proxy-proxied support feature
+          else if (presenceCounts[(int)PresenceState::instantiated] >= (numComps - numProxiedComps)) // When all pre-instantiable components of a service unit enter the instantiated state, the service unit becomes instantiated
             {
             ps = PresenceState::instantiated;
             }
@@ -1007,7 +1058,7 @@ namespace SAFplus
             {
             ps = PresenceState::terminationFailed;
             }
-          else if (presenceCounts[(int)PresenceState::restarting] == numComps) // When all components enter the restarting state, the service unit become restarting.  However, if only some components are restarting, the service unit is still instantiated.
+          else if (presenceCounts[(int)PresenceState::restarting] >= (numComps - numProxiedComps)) // When all components enter the restarting state, the service unit become restarting.  However, if only some components are restarting, the service unit is still instantiated.
             {
             ps = PresenceState::restarting;
             }
@@ -1026,7 +1077,7 @@ namespace SAFplus
 
           // Now address SU's haReadinessState.  AMF B04.01 states that the haReadiness state should be per SU/SI combination.  It is the ability of this SU to accept a particular piece of work.  At this point I am going to reject this as unnecessary complexity and have a single haReadinessState per SU.  Having work that cannot be applied to particular SUs is problematic because the AMF has no way (other than guessing) to determine which work can be assigned to which SU.  If work can't be assigned to a SU, it should not be in that SG in the first place (create a separate SG for that work).
           HighAvailabilityReadinessState hrs; // = su->haReadinessState;
-          if (readyForAssignment == numComps) hrs = HighAvailabilityReadinessState::readyForAssignment;
+          if (readyForAssignment >= (numComps - numProxiedComps)) hrs = HighAvailabilityReadinessState::readyForAssignment;
           else hrs = HighAvailabilityReadinessState::notReadyForAssignment;
           if (hrs != su->haReadinessState)
             {
@@ -1056,8 +1107,13 @@ namespace SAFplus
             //si->getNumActiveAssignments()->current.value = 0;  // TODO set this correctly
             //si->getNumStandbyAssignments()->current.value = 0; // TODO set this correctly
 
-            AssignmentState as = si->assignmentState;
+            AssignmentState as;
           //if (wat.si->assignmentState = AssignmentState::fullyAssigned;  // TODO: for now just make the SI happy to see something work
+          if ((si->numActiveAssignments.current.value == 0)||(si->numStandbyAssignments.current.value == 0)) as = AssignmentState::partiallyAssigned;
+          if ((si->numActiveAssignments.current.value == 0)&&(si->numStandbyAssignments.current.value == 0)) as = AssignmentState::unassigned;
+          uint32_t numActiveAssignments = (uint32_t)si->getNumActiveAssignments()->current.value;
+          uint32_t numStandbyAssignments = (uint32_t)si->getNumStandbyAssignments()->current.value;
+          if( si->preferredActiveAssignments == numActiveAssignments && si->preferredStandbyAssignments == numStandbyAssignments) as = AssignmentState::fullyAssigned;
 
             if (as != si->assignmentState)
               {

@@ -178,6 +178,115 @@ EventClient evtClient;
           // pending operation completed.  Clear it out
           wat.comp->pendingOperationExpiration.value.value = 0;
           wat.comp->pendingOperation = PendingOperation::none;
+           //proxy-proxied support feature
+          if((wat.comp->compCategory & SA_AMF_COMP_PROXIED)){} //wat.comp->processId = proxied_pid;
+          logInfo("MAIN","INIT","AmfOperations::workOperationResponse wat.csi [%s] wat.csi->isProxyCSI.value [%d] wat.comp[%s] pid[%d] ",wat.csi->name.value.c_str(),wat.csi->isProxyCSI.value,wat.comp->name.value.c_str(),wat.comp->processId.value);
+          if(wat.csi->isProxyCSI.value)
+          {
+			  //assert(SAFplusI::amfSession);
+			  ServiceUnit* su = wat.comp->getServiceUnit();
+			  SAFplus::MgtIdentifierList<SAFplusAmf::Component*>::iterator itcomp;
+			  SAFplus::MgtIdentifierList<SAFplusAmf::Component*>::iterator endcomp = su->components.listEnd();
+			  for(itcomp = su->components.listBegin(); itcomp != endcomp; itcomp++)
+			  {
+				  Component* comp= dynamic_cast<SAFplusAmf::Component*> (*itcomp);
+				  if(!(comp->proxyCSIType.value.compare(wat.csi->type.value)))
+				  {
+					  if(wat.state == (int)HighAvailabilityState::active)
+					  {
+						  PresenceState suPsState, compPsState;
+						  bool compUp, compNotUp, compNotDown, suUp, suDown;
+						  //TODO: register wat.comp for proxiedComp
+						  wat.comp->proxied.pushBackValue(comp->name.value);
+						  comp->proxy = wat.comp->name.value;
+						  compPsState = comp->presenceState.value;
+						  suPsState = su->presenceState.value;
+						  
+						  logInfo("WORK", "RESPONSE", "comp [%s] : PresencState[%s] comp->proxy [%s]",comp->name.value.c_str(), c_str(compPsState),comp->proxy.value.c_str());
+						  logInfo("WORK", "RESPONSE", "SU [%s] : PresencState[%s]", su->name.value.c_str(), c_str(suPsState));
+						  
+						  compUp = (compPsState == PresenceState::instantiated);
+						  compNotUp = (compPsState == PresenceState::instantiating) || (compPsState == PresenceState::uninstantiated) ||(compPsState == PresenceState::restarting);
+						  compNotDown = (compPsState == PresenceState::instantiated) || (compPsState == PresenceState::restarting) || (compPsState == PresenceState::terminating);
+						  suUp = (suPsState == PresenceState::instantiated) || (suPsState == PresenceState::instantiating) || (suPsState == PresenceState::restarting);
+						  suDown = (suPsState == PresenceState::uninstantiated) || (suPsState == PresenceState::terminating);
+						  //instantiate proxy comp
+						  logInfo("WORK", "RESPONSE", "workOperationResponse compUp[%d], compNotUp[%d], compNotDown[%d], suUp[%d], suDown[%d]", compUp, compNotUp, compNotDown, suUp, suDown);
+						  if((comp->compCategory.value & SA_AMF_COMP_PROXIED))
+						  {
+							  if(suUp && compNotUp)
+							  {
+								   std::vector<std::string> newEnv = comp->commandEnvironment.value;
+								 
+								  Handle hdl;
+								  if (comp->capabilityModel != CapabilityModel::not_preinstantiable)  // If the component is preinstantiable, it better be instantiated by now (work would not be assigned if it wasn't)
+									{
+									  try
+										{
+										  hdl = name.getHandle(comp->proxy);
+										}
+									  catch (SAFplus::NameException& n)
+										{
+										  logCritical("OPS","SRT","Component [%s] is not registered in the name service.  Cannot control it.", comp->name.value.c_str());
+										  comp->lastError.value = "Component's name is not registered in the name service so address cannot be determined.";
+										  assert(0);
+										  break; // TODO: right now go to the next component, however assignment should not occur on ANY components if all components are not accessible. 
+										}
+									}
+								  SAFplus::Rpc::amfAppRpc::WorkOperationRequest request;
+								  request.set_componentname(comp->name.value.c_str());
+								  
+								  request.add_componenthandle((const char*) &hdl, sizeof(Handle)); // [libprotobuf ERROR google/protobuf/wire_format.cc:1053] String field contains invalid UTF-8 data when serializing a protocol buffer. Use the 'bytes' type if you intend to send raw bytes.
+								  /*if (request.componenthandle().size() != 1)
+								  {
+									  Handle hdl1 ,hdl2;
+									  memcpy(&hdl1,request.componenthandle().Get(0).c_str(),sizeof(Handle));
+									  memcpy(&hdl2,request.componenthandle().Get(1).c_str(),sizeof(Handle));
+								  logWarning("AMF","RPC","AmfOperations::workOperationResponse component handle  size = %d : handle1[%s], handle2[%s]",request.componenthandle().size(),request.componenthandle().Get(0).c_str(),request.componenthandle().Get(1).c_str());
+								  logInfo("AMF","RPC","AmfOperations::workOperationResponse component [%s] handle1[%" PRIx64 ":%" PRIx64 "] , handle2[%" PRIx64 ":%" PRIx64 "] ",request.componentname().c_str(),hdl1.id[0],hdl1.id[1],hdl2.id[0],hdl2.id[1]);
+								  
+								  //return;  
+								  }*/
+								  request.set_operation((uint32_t)wat.state);
+								  request.set_target(SA_AMF_PROXIED_INST_CB);
+								  if ((invocation & 0xFFFFFFFF) == 0xFFFFFFFF) invocation &= 0xFFFFFFFF00000000ULL;  // Don't let increasing invocation numbers overwrite the node or port... ofc this'll never happen 4 billion invocations? :-)
+								  request.set_invocation(++invocation);
+								  SAFplusAmf::ComponentServiceInstance* csi = NULL;
+								  SAFplus::MgtIdentifierList<SAFplusAmf::ComponentServiceInstance*>::iterator itcsi;
+								  SAFplus::MgtIdentifierList<SAFplusAmf::ComponentServiceInstance*>::iterator endcsi = wat.si->componentServiceInstances.listEnd();
+								  for (itcsi = wat.si->componentServiceInstances.listBegin(); itcsi != endcsi; itcsi++)
+									{
+										csi = *itcsi;
+										if (!csi) continue;
+										//proxy-proxied support feature
+										if(!(csi->type.value.compare(comp->csiType.value))) break;
+										//End proxy-proxied support feature
+										// TODO: figure out number of assignments allowed if (csi->getComponent()) continue;  // We can't assign a CSI to > 1 component.
+										// TODO validate CSI dependencies are assigned
+										//break;  // We found one!
+									}
+									logInfo("WORK", "RESPONSE", "workOperationResponse Comp [%s] presenceState [%s] csi [%s] csi->activeComponents.value.push_back(comp);", comp->name.value.c_str(), c_str(comp->presenceState.value), csi->name.value.c_str()); 
+									csi->activeComponents.value.push_back(comp);  // Mark this CSI assigned to this component
+									comp->presenceState.value = PresenceState::instantiated; 
+									comp->pendingOperationExpiration.value.value = nowMs() + comp->timeouts.workAssignment;
+									comp->pendingOperation = PendingOperation::workAssignment;
+									//if(proxied_pid)comp->processId = proxied_pid;
+									logInfo("WORK", "RESPONSE", "workOperationResponse Comp [%s] PID [%d] presenceState [%s] ", comp->name.value.c_str(),comp->processId.value, c_str(comp->presenceState.value)); 
+								  pendingWorkOperations[request.invocation()] = WorkOperationTracker(comp,csi,wat.si,(uint32_t)wat.state,SA_AMF_CSI_ADD_ONE);
+								  amfAppRpc->workOperation(hdl, &request);
+								  //Process p = executeProgram(inst->command.value, newEnv,Process::InheritEnvironment);
+								  
+								  //amfOps->start(comp);
+								  //portAllocator.assignPort(port, p.pid);
+								  //comp->processId.value = p.pid;
+							  }
+						  }
+					  }
+				  }
+			  }
+			  
+		  }
+		  //End proxy-proxied support feature
           }
         }
       else // work removal
@@ -480,15 +589,33 @@ EventClient evtClient;
 
       Component* comp = dynamic_cast<Component*>(*itcomp);
       assert(comp);
-
+      //proxy-proxied support feature
       assert(comp->pendingOperation == PendingOperation::none);  // We should not be adding work to a component if something else is happening to it.
-
+      if((comp->compCategory & SA_AMF_COMP_PROXIED) && (comp->proxy.value.empty()))
+        {
+			//TODO:maybe checking pending operation or reverse something as number active/standby assignments of si if any
+			logInfo("OPS","SRT","Component [%s] cannot be assigned work", comp->name.value.c_str());
+			continue;
+		}
+		if((comp->compCategory & SA_AMF_COMP_PROXIED) && !(comp->proxy.value.empty()))
+		{
+			logInfo("OPS","SRT","Component [%s] with proxy [%s] can be assigned work", comp->name.value.c_str(),comp->proxy.value.c_str());
+		}
+	  //End proxy-proxied support feature
       Handle hdl;
       if (comp->capabilityModel != CapabilityModel::not_preinstantiable)  // If the component is preinstantiable, it better be instantiated by now (work would not be assigned if it wasn't)
         {
           try
             {
-              hdl = name.getHandle(comp->name);
+				if((comp->compCategory & SA_AMF_COMP_SA_AWARE))
+				{
+					hdl = name.getHandle(comp->name);
+				}
+				else if ((comp->compCategory & SA_AMF_COMP_PROXIED))
+				{
+					hdl = name.getHandle(comp->proxy);
+				}
+              //logInfo("OPS","SRT","name.getHandle(comp->name) Component [%s] hdl[%" PRIx64 ":%" PRIx64 "] with proxy [%s] can be assigned work", comp->name.value.c_str(),hdl.id[0],hdl.id[1],comp->proxy.value.c_str());
             }
           catch (SAFplus::NameException& n)
             {
@@ -510,15 +637,23 @@ EventClient evtClient;
       SAFplusAmf::ComponentServiceInstance* csi = NULL;
       for (itcsi = si->componentServiceInstances.listBegin(); itcsi != endcsi; itcsi++)
         {
-        csi = *itcsi;
-        if (!csi) continue;
-        // TODO: figure out number of assignments allowed if (csi->getComponent()) continue;  // We can't assign a CSI to > 1 component.
-        // TODO validate CSI dependencies are assigned
-        break;  // We found one!
+			csi = *itcsi;
+			if (!csi) continue;
+            //proxy-proxied support feature
+			if(!(csi->type.value.compare(comp->proxyCSIType.value)) || !(csi->type.value.compare(comp->csiType.value))) break;
+		    //End proxy-proxied support feature
+		    // TODO: figure out number of assignments allowed if (csi->getComponent()) continue;  // We can't assign a CSI to > 1 component.
+		    // TODO validate CSI dependencies are assigned
+		    //break;  // We found one!
         }
 
       if (itcsi != endcsi)  // We found an assignable CSI and it is the variable "csi"
         {
+		if((comp->compCategory & SA_AMF_COMP_PROXIED))
+		{
+			logInfo("OPS","SRT","no need to assign Component [%s] csi", comp->name.value.c_str());
+			continue;
+		}
         logInfo("OPS","SRT","Component [%s] handle [%" PRIx64 ":%" PRIx64 "] is being assigned [%s] work", comp->name.value.c_str(),hdl.id[0],hdl.id[1], c_str(state));
         if (comp->capabilityModel == CapabilityModel::not_preinstantiable)
           {
@@ -532,7 +667,9 @@ EventClient evtClient;
             comp->pendingOperation = PendingOperation::workAssignment;
 
             request.set_componentname(comp->name.value.c_str());
-            request.add_componenthandle((const char*) &hdl, sizeof(Handle)); // [libprotobuf ERROR google/protobuf/wire_format.cc:1053] String field contains invalid UTF-8 data when serializing a protocol buffer. Use the 'bytes' type if you intend to send raw bytes.
+
+             request.add_componenthandle((const char*) &hdl, sizeof(Handle)); // [libprotobuf ERROR google/protobuf/wire_format.cc:1053] String field contains invalid UTF-8 data when serializing a protocol buffer. Use the 'bytes' type if you intend to send raw bytes.
+
             request.set_operation((uint32_t)state);
             request.set_target(SA_AMF_CSI_ADD_ONE);
             if ((invocation & 0xFFFFFFFF) == 0xFFFFFFFF) invocation &= 0xFFFFFFFF00000000ULL;  // Don't let increasing invocation numbers overwrite the node or port... ofc this'll never happen 4 billion invocations? :-)
@@ -782,16 +919,28 @@ EventClient evtClient;
       strNodeName.append(SAFplus::ASP_NODENAME);
       strNodeAddr.append(std::to_string(SAFplus::ASP_NODEADDR));
       int port = portAllocator.allocPort();
-      strPort.append(std::to_string(port));
-      newEnv.push_back(strCompName);
-      newEnv.push_back(strNodeName);
-      newEnv.push_back(strNodeAddr);
-      newEnv.push_back(strPort);
+      Process p(0);
+      if (!(comp->compCategory & SA_AMF_COMP_PROXIED))
+      {
+		  std::string strCompName("ASP_COMPNAME=");
+		  std::string strNodeName("ASP_NODENAME=");
+		  std::string strNodeAddr("ASP_NODEADDR=");
+		  std::string strPort("SAFPLUS_RECOMMENDED_MSG_PORT=");
 
-      Process p = executeProgram(inst->command.value, newEnv,Process::InheritEnvironment);
-      portAllocator.assignPort(port, p.pid);
-      comp->processId.value = p.pid;
-
+		  strCompName.append(comp->name);
+		  strNodeName.append(SAFplus::ASP_NODENAME);
+		  strNodeAddr.append(std::to_string(SAFplus::ASP_NODEADDR));
+		  
+		  strPort.append(std::to_string(port));
+		  newEnv.push_back(strCompName);
+		  newEnv.push_back(strNodeName);
+		  newEnv.push_back(strNodeAddr);
+		  newEnv.push_back(strPort);
+		  p = executeProgram(inst->command.value, newEnv,Process::InheritEnvironment);
+          portAllocator.assignPort(port, p.pid);
+          comp->processId.value = p.pid;
+	  }
+	  
       // I need to set the handle because the process itself will not do so.
       if ( comp->capabilityModel == CapabilityModel::not_preinstantiable)
         {

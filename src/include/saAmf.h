@@ -136,6 +136,7 @@ typedef enum {
 #define SA_AMF_CSI_ADD_ONE 0X1
 #define SA_AMF_CSI_TARGET_ONE 0X2
 #define SA_AMF_CSI_TARGET_ALL 0X4
+#define SA_AMF_PROXIED_INST_CB 0X5 //proxy-proxied support feature
 
 typedef SaUint32T SaAmfCSIFlagsT;
 

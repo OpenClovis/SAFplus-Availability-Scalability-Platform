@@ -81,7 +81,15 @@ namespace amfAppRpc {
               assert(0);
             }
         }
-      if (tgt != SAFplusI::AMF_CSI_REMOVE_ONE)
+        //proxy-proxied support feature
+
+        if(tgt == SA_AMF_PROXIED_INST_CB && SAFplusI::amfSession->callbacks.saAmfProxiedComponentInstantiateCallback)
+        {
+			logInfo("AMF","RPC","amfAppRpcImpl::workOperation SAFplusI::amfSession->callbacks.saAmfProxiedComponentInstantiateCallback");
+			SAFplusI::amfSession->callbacks.saAmfProxiedComponentInstantiateCallback((SaInvocationT) request->invocation(),&compName);
+		}
+		//End proxy-proxied support feature
+      else if (tgt != SAFplusI::AMF_CSI_REMOVE_ONE)
         {
         SaAmfCSIDescriptorT csiDescriptor;  // TODO
         csiDescriptor.csiFlags = tgt;

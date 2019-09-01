@@ -56,6 +56,18 @@ namespace SAFplusAmf
          * Arbitrary data that defines the work needed to be done.
          */
         SAFplus::MgtList<std::string> dataList;
+        
+        //proxy-proxied support feature
+        /*
+         * the kind of work is assigned for proxied component
+         */
+        SAFplus::MgtProv<std::string> type;
+        
+        /*
+         * check whether csi is proxy or not
+         */ 
+        SAFplus::MgtProv<bool> isProxyCSI;
+        //End proxy-proxied support feature
 
     public:
         ComponentServiceInstance();

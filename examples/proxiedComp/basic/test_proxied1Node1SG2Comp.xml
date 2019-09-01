@@ -1,0 +1,126 @@
+<safplusAmf>
+    <Cluster name="1">
+      <adminState>on</adminState>
+      <startupAssignmentDelay>1000</startupAssignmentDelay>
+    </Cluster>
+
+    <Node name="node0">
+      <adminState>on</adminState>
+      <autoRepair>true</autoRepair>
+      <failFastOnCleanupFailure>false</failFastOnCleanupFailure>
+      <failFastOnInstantiationFailure>false</failFastOnInstantiationFailure>
+      <serviceUnits>su0</serviceUnits>
+
+    </Node>
+
+    <ServiceGroup name="sg0">
+      <adminState>on</adminState>
+      <autoAdjust>false</autoAdjust>
+      <autoAdjustInterval>0</autoAdjustInterval>
+      <autoRepair>true</autoRepair>
+      <maxActiveWorkAssignments>1</maxActiveWorkAssignments>
+      <maxStandbyWorkAssignments>1</maxStandbyWorkAssignments>
+      <preferredNumActiveServiceUnits>1</preferredNumActiveServiceUnits>
+      <preferredNumIdleServiceUnits>1</preferredNumIdleServiceUnits>
+      <preferredNumStandbyServiceUnits>1</preferredNumStandbyServiceUnits>
+      <serviceInstances>si</serviceInstances>
+      <serviceUnits>su0</serviceUnits>
+
+    </ServiceGroup>
+    <ServiceUnit name="su0">
+      <adminState>on</adminState>
+      <rank>0</rank>
+      <failover>true</failover>
+      <components>c0</components>
+      <components>c1</components>
+      <serviceGroup>sg0</serviceGroup>
+      <node>node0</node>
+    </ServiceUnit>
+
+
+    <ServiceInstance name="si">
+      <adminState>on</adminState>
+
+      <componentServiceInstances>proxyCSII0</componentServiceInstances>
+      <componentServiceInstances>proxiedCSII0</componentServiceInstances>
+
+      <preferredActiveAssignments>1</preferredActiveAssignments>
+      <preferredStandbyAssignments>1</preferredStandbyAssignments>
+      <rank>0</rank>
+      <serviceGroup>sg0</serviceGroup>
+    </ServiceInstance>
+
+    <Component name="c0">
+
+		<csiType>proxyCSI</csiType>
+	
+      <capabilityModel>x_active_or_y_standby</capabilityModel>
+      <compCategory>1</compCategory>
+      <delayBetweenInstantiation>10000</delayBetweenInstantiation>
+      <instantiate>
+        <command>./basicApp c0</command>
+        <timeout>30000</timeout>
+      </instantiate>
+      <instantiationSuccessDuration>60000</instantiationSuccessDuration>
+      <maxActiveAssignments>1</maxActiveAssignments>
+      <maxDelayedInstantiations>100</maxDelayedInstantiations>
+      <maxInstantInstantiations>100</maxInstantInstantiations>
+      <maxStandbyAssignments>1</maxStandbyAssignments>
+      <proxy />
+      <recovery>Restart</recovery>
+      <restartable>true</restartable>
+      <safVersion>B.01.01</safVersion>
+      <serviceUnit>su0</serviceUnit>
+      <swBundle>testBundle.tgz</swBundle>
+      <commandEnvironment>TEST_ENV=1</commandEnvironment>
+      <commandEnvironment>TEST_ENV=2</commandEnvironment>
+    </Component>
+    <Component name="c1">
+      <capabilityModel>x_active_or_y_standby</capabilityModel>
+      <compCategory>4</compCategory>
+      <delayBetweenInstantiation>5000</delayBetweenInstantiation>
+      <instantiate>
+        <command>hello_world</command>
+        <timeout>30000</timeout>
+      </instantiate>
+      <instantiationSuccessDuration>60000</instantiationSuccessDuration>
+      <maxActiveAssignments>1</maxActiveAssignments>
+      <maxDelayedInstantiations>100</maxDelayedInstantiations>
+      <maxInstantInstantiations>0</maxInstantInstantiations>
+      <maxStandbyAssignments>1</maxStandbyAssignments>
+      <proxy />
+
+      <csiType>proxiedCSI</csiType>
+      <proxyCSIType>proxyCSI</proxyCSIType>
+
+      <recovery>Restart</recovery>
+      <restartable>true</restartable>
+      <safVersion>B.01.01</safVersion>
+      <serviceUnit>su0</serviceUnit>
+      <swBundle>testBundle.tgz</swBundle>
+      <commandEnvironment>TEST_ENV=3</commandEnvironment>
+      <commandEnvironment>TEST_ENV=4</commandEnvironment>
+    </Component>
+
+    <ComponentServiceInstance name="proxyCSII0">
+		<type>proxyCSI</type>
+      <serviceInstance>si</serviceInstance>
+      <data name="testKey">
+        <val>testVal</val>
+      </data>
+      <data name="testKey2">
+        <val>testVal2</val>
+      </data>
+    </ComponentServiceInstance>
+    <ComponentServiceInstance name="proxiedCSII0" >
+		<type>proxiedCSI</type>
+      <serviceInstance>si</serviceInstance>
+      <data name="proxied_testKey">
+        <val>testVal</val>
+      </data>
+      <data name="proxied_testKey2">
+        <val>testVal2</val>
+      </data>
+    </ComponentServiceInstance>
+
+</safplusAmf>

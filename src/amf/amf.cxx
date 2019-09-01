@@ -183,6 +183,8 @@ SaAisErrorT saAmfDispatch(SaAmfHandleT amfHandle, SaDispatchFlagsT dispatchFlags
 
 SaAisErrorT saAmfComponentRegister(SaAmfHandleT amfHandle,const SaNameT *compName,const SaNameT *proxyCompName)
   {
+	  if(proxyCompName == 0)
+	  {
   // Compare compName with ASP_COMPNAME if ASP_COMPNAME!=0.  If they are not equal, big problem AMF thinks it is starting a different comp than the app.
     if ((compName != 0) && (SAFplus::ASP_COMPNAME[0]!=0) && (strncmp((const char*) compName->value,SAFplus::ASP_COMPNAME,std::min((unsigned int) SA_MAX_NAME_LENGTH,(unsigned int) sizeof(SAFplus::ASP_COMPNAME)))!=0))
     {
@@ -210,6 +212,14 @@ SaAisErrorT saAmfComponentRegister(SaAmfHandleT amfHandle,const SaNameT *compNam
     name.setLocalObject(myHandle,(void*) amfHandle);
     name.setLocalObject(SAFplus::ASP_COMPNAME,(void*) amfHandle);
     }
+   }
+   else//compName is proxied component, proxyCompName is proxy component
+   {
+	   //register proxied component when
+	   //char* proxiedCompName =  (char*)compName->value;
+	  //name.set(proxiedCompName,myHandle,NameRegistrar::MODE_NO_CHANGE);
+	   
+   }
 
   return SA_AIS_OK;
   }
