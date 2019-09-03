@@ -310,8 +310,7 @@ ClBoolT clAmsHasNodeJoined(const ClCharT *pNodeName)
 }
 
 #ifdef CLUSTER_STATE_VERIFIER
-//#define CL_AMS_STATE_VERIFIER_RETRIES 4
-
+#define CL_AMS_STATE_VERIFIER_RETRIES 4
 static void *clAmsClusterStateVerifier(void *cookie)
 {
     ClRcT rc = CL_OK;
@@ -320,12 +319,6 @@ static void *clAmsClusterStateVerifier(void *cookie)
     ClIocNodeAddressT localAddress = clIocLocalAddressGet();
     ClIocNodeAddressT masterAddress;
     ClBoolT iocReplicast = clParseEnvBoolean("CL_ASP_IOC_REPLICAST");
-    ClBoolT linkDelayAdded = clParseEnvBoolean("CL_QDISC_NETEM_DELAY_ADD");
-    ClUint32T stateVerifierRetries = 4;
-    if (linkDelayAdded)
-    {
-        stateVerifierRetries = 9;
-    }
 
     while (1)
     {
@@ -346,7 +339,7 @@ static void *clAmsClusterStateVerifier(void *cookie)
                     if (!clAmsHasNodeJoined(ncInfo.name))
                     {
                         /* It takes some time for a node to come up after TIPC registers, so don't kill the node until it has failed multiple times */
-                        if (checkFailed[i] >= stateVerifierRetries)
+                        if (checkFailed[i] >= CL_AMS_STATE_VERIFIER_RETRIES)
                         {
                             clLogAlert("AMS", "INI","Node [%s] in slot [%d] discovered by messaging layer but has not registered with AMF. Resetting it",ncInfo.name, i);
                             ClIocAddressT allNodeReps;                           

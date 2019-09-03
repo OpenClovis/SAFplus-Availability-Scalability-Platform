@@ -175,20 +175,13 @@ cl_ams_call_rmd_ver(
     rmd_options.retries = 1;
     rmd_flags = CL_RMD_CALL_ATMOST_ONCE | CL_RMD_CALL_NEED_REPLY;
 
-    ClBoolT linkDelayAdded = clParseEnvBoolean("CL_QDISC_NETEM_DELAY_ADD");
-    ClUint32T maxRetries = 5;
-    if (linkDelayAdded)
-    {
-        maxRetries = 10;
-    }
-
     /*
      * FIXME: This now uses the physical address, instead of a logical
      * address.
      */
     do
     {
-        rc = clCpmMasterAddressGetExtended( &dest_addr.iocPhyAddress.nodeAddress, maxRetries, NULL);
+        rc = clCpmMasterAddressGetExtended( &dest_addr.iocPhyAddress.nodeAddress, 5, NULL);
         if (rc == CL_OK)
           {
             rc = clRmdWithMsgVer(dest_addr, &version, fn_id, in_buffer, out_buffer, rmd_flags, &rmd_options, NULL);
@@ -197,7 +190,7 @@ cl_ams_call_rmd_ver(
         delay.tsSec = tries/2;
     } while(
             ((CL_GET_ERROR_CODE(rc) == CL_IOC_ERR_HOST_UNREACHABLE) || (CL_GET_ERROR_CODE(rc) == CL_IOC_ERR_COMP_UNREACHABLE) || CL_GET_ERROR_CODE(rc)==CL_ERR_TIMEOUT)
-            && (tries < maxRetries) && (clOsalTaskDelay(delay) == CL_OK));
+            && (tries < 5) && (clOsalTaskDelay(delay) == CL_OK));
 
     if(rc != CL_OK) goto exitfn;
 #else
