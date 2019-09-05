@@ -56,9 +56,9 @@ namespace SAFplus
       };
 
     //? <ctor> Default constructor, constructs a zero length buffer</ctor>
-    Buffer() { refAndLen=0;}
+    Buffer() { refAndLen=0; change = 0xff;}
     //? <ctor> Default constructor, constructs a buffer that reports its length as _len.  But you must 'place' this object on enough memory.</ctor>
-    Buffer(uint_t _len) { refAndLen = (1UL<<RefShift) | (_len&LenMask); }
+    Buffer(uint_t _len) { refAndLen = (1UL<<RefShift) | (_len&LenMask); change = 0xff;}
     //? Return the length of the buffer
     uint_t len() const { return refAndLen&LenMask; }
     //? Return the length of this object and the following buffer combined.
