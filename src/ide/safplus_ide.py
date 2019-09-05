@@ -576,7 +576,9 @@ class Page(wx.Panel):
       self.control.save_file()
 
   def onTimer(self, event):
-    lastModified = os.path.getmtime(self.pathFile)
+    if not os.path.isfile(self.control.file_path):
+      return
+    lastModified = os.path.getmtime(self.control.file_path)
     currentTime = time.time()
     diff = currentTime - lastModified
     if diff > 1.5:
@@ -585,7 +587,7 @@ class Page(wx.Panel):
     label = self.parent.tab.GetPageText(index)
     if not ('*' in label):
       try:
-        file = open(self.pathFile, 'r')
+        file = open(self.control.file_path, 'r')
         if self.control.GetValue() != file.read():
           self.isReloadFile = True
           self.control.reload_file(False)
@@ -611,7 +613,7 @@ class Page(wx.Panel):
     if not ('*' in label) and (not self.isReloadFile):
       self.control.edited = True
       try:
-        file = open(self.pathFile,'r')
+        file = open(self.control.file_path,'r')
         if self.control.GetValue() != file.read():
           self.parent.tab.SetPageText(index, "*%s" % label)
       finally:

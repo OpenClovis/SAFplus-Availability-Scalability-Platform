@@ -8,6 +8,8 @@ import threading
 import paramiko
 import pickle
 from cryptography.fernet import Fernet
+import shutil
+import string
 
 import wx
 import  wx.lib.newevent
@@ -220,7 +222,7 @@ class Project(microdom.MicroDom):
     data = microdom.LoadMiniDom(dom.childNodes[0])
     f = open(self.directory()+os.sep+self.modelFilename(),"w")
     f.write(data.pretty())
-    f.close()  
+    f.close()
 
   def loadModel(self):
     if not self.prjXmlData:
@@ -274,6 +276,42 @@ class ProjectTreeCtrl(wx.TreeCtrl):
       if t1 == t2: return 0
       return 1
 
+class RenameDialog(wx.Dialog):
+    """
+    Class to define RenameDialog
+    """
+    def __init__(self, parent, fileName):
+        """Constructor"""
+        wx.Dialog.__init__(self, None, wx.ID_ANY, fileName[2],size= (336,165), style=wx.DEFAULT_DIALOG_STYLE)
+        self.parent = parent
+        self.fileName = fileName
+        self.panel = wx.Panel(self, wx.ID_ANY)
+        sizeLabel = (296,27)
+        self.currentInfo = wx.StaticText(self.panel, label=fileName[1], size=sizeLabel, pos =(20,10))
+        self.lineColumn = wx.TextCtrl(self.panel, size=sizeLabel, pos=(20,42))
+        self.lineColumn.SetValue(fileName[0])
+        self.line = wx.StaticLine(self.panel, size=(296,1), pos=(20, 84))
+        self.okBtn = wx.Button(self.panel, label="OK", size=(82,27), pos =(234,100))
+        self.cancelBtn = wx.Button(self.panel, label="Cancel", size=(82,27), pos =(134,100))
+        self.okBtn.Bind(wx.EVT_BUTTON, self.onOkClicked)
+        self.cancelBtn.Bind(wx.EVT_BUTTON, self.onCancelClicked)
+        self.lineColumn.Bind(wx.EVT_TEXT, self.onTextChange)
+    def onOkClicked(self, event):
+        self.fileName[0] = self.lineColumn.GetValue().strip()
+        self.EndModal(True)
+    def onCancelClicked(self, event):
+        self.EndModal(False)
+    def onTextChange(self, event):
+        newName = self.lineColumn.GetValue()
+        for c in newName:
+          if c in string.whitespace:
+            self.okBtn.Enable(False)
+            return
+        path = os.path.join(self.fileName[3], newName)
+        if os.path.isfile(path) or os.path.isdir(path):
+          self.okBtn.Enable(False)
+          return
+        self.okBtn.Enable(True)
 
 class ProjectTreePanel(wx.Panel):
   def __init__(self, parent,guiPlaces):
@@ -336,7 +374,7 @@ class ProjectTreePanel(wx.Panel):
                                | wx.TR_MULTIPLE
                                | wx.TR_HIDE_ROOT
                                )
-
+        self.tree.Bind(wx.EVT_TREE_ITEM_RIGHT_CLICK, self.OnShowPopup)
         isz = (16,16)
         il = wx.ImageList(isz[0], isz[1])
         fldridx     = il.Add(wx.ArtProvider_GetBitmap(wx.ART_FOLDER,      wx.ART_OTHER, isz))
@@ -449,6 +487,120 @@ class ProjectTreePanel(wx.Panel):
         wx.EVT_MENU(guiPlaces.frame, PROJECT_LOAD, self.OnLoad)
         wx.EVT_MENU(guiPlaces.frame, PROJECT_SAVE, self.OnSave)
         wx.EVT_MENU(guiPlaces.frame, PROJECT_SAVE_AS, self.OnSaveAs)
+  def OnShowPopup(self, event):
+    self.popupmenu = wx.Menu()
+    itemPath = self.getFullPath(self.tree.GetFocusedItem())
+    if os.path.isdir(itemPath):
+      menus = ["New File", "New Folder", "Rename", "Delete"]
+    elif os.path.isfile(itemPath):
+      menus = ["Rename", "Delete"]
+    else: 
+      menus = ["Rename", "Delete"]
+    for text in menus:
+        item = self.popupmenu.Append(-1, text)
+        self.Bind(wx.EVT_MENU, self.onSelectContext)
+    self.PopupMenu(self.popupmenu, event.GetPoint())
+    self.popupmenu.Destroy()
+
+  def reverseReplace(self, st, old, new, occur):
+    li = st.rsplit(old, occur)
+    return new.join(li)
+
+  def showDialog(self, dlgInfo):
+    dlg = RenameDialog(self, dlgInfo)
+    result = dlg.ShowModal()
+    dlg.Destroy()
+    return result
+
+  def deleteSingleItem(self, file):
+    frame = self.guiPlaces.frame
+    if file in frame.openFile.keys():
+      page = frame.openFile[file]
+      index = frame.tab.GetPageIndex(page)
+      if index != -1:
+        frame.tab.DeletePage(index)
+      del frame.openFile[file]
+
+  def deleteTreeRecursion(self, path):
+    for file in self.getDirFiles(path): 
+      if os.path.isfile(file):
+        self.deleteSingleItem(file)
+      elif os.path.isdir(file):
+          self.deleteTreeRecursion(file)
+
+  def renameTreeRecursion(self, path, oldPath, newPath):
+    for file in self.getDirFiles(path):
+      if os.path.isfile(file):
+        frame = self.guiPlaces.frame
+        if file in frame.openFile.keys():
+          page = frame.openFile[file]
+          p = page.control.file_path.replace(oldPath, newPath, 1)
+          frame.openFile[p] = frame.openFile.pop(file)
+          page.control.file_path = p
+      elif os.path.isdir(file):
+        self.renameTreeRecursion(file, oldPath, newPath)
+
+  def onSelectContext(self, event):
+    item = self.popupmenu.FindItemById(event.GetId())
+    text = item.GetText()
+    selectItem = self.tree.GetFocusedItem()
+    itemText = self.tree.GetItemText(selectItem)
+    itemPath = self.getFullPath(selectItem)
+    if text == "Delete":
+      style = wx.OK | wx.CANCEL | wx.ICON_QUESTION
+      dialog = wx.MessageDialog(self, "Are you sure you want to delete '%s' from the system ?" % itemText, 'Delete Resources', style)
+      result = dialog.ShowModal()
+      if result != wx.ID_OK:
+        return
+      if os.path.isfile(itemPath):
+        self.deleteSingleItem(itemPath)
+        os.remove(itemPath)
+      elif os.path.isdir(itemPath):
+        self.deleteTreeRecursion(itemPath)
+        shutil.rmtree(itemPath)
+      self.tree.Delete(selectItem)
+    elif text == "Rename":
+      parentPath = self.reverseReplace(itemPath, '/'+ itemText,"", 1)
+      dlgInfo = [itemText, "New name", "Rename Resource", parentPath]
+      if not self.showDialog(dlgInfo):
+        return
+      self.tree.SetItemText(selectItem, dlgInfo[0])
+      newPath = self.reverseReplace(itemPath, itemText, dlgInfo[0], 1)
+      if os.path.isfile(itemPath):
+        frame = self.guiPlaces.frame
+        if itemPath in frame.openFile.keys():
+          page = frame.openFile[itemPath]
+          index = frame.tab.GetPageIndex(page)
+          if index != -1:
+            label = frame.tab.GetPageText(index)
+            label = label.replace(itemText, dlgInfo[0], 1)
+            frame.tab.SetPageText(index, label)
+          frame.openFile[newPath] = frame.openFile.pop(itemPath)
+          frame.openFile[newPath].control.file_path = newPath
+      elif os.path.isdir(itemPath):
+        self.renameTreeRecursion(itemPath, itemPath, newPath)
+      os.rename(itemPath, newPath)
+    elif text == "New File":
+      dlgInfo = ["", "File name", "New File", itemPath]
+      if not self.showDialog(dlgInfo):
+        return
+      itemId = self.tree.AppendItem(selectItem, dlgInfo[0])
+      pyData = self.tree.GetPyData(selectItem)
+      self.tree.SetPyData(itemId, pyData)
+      path = os.path.join(itemPath, dlgInfo[0])
+      itemTree = path.replace(self.getPrjPath() + '/', "", 1)
+      open(path,'a').close()
+      self.setIconForItem(itemId, typeFile=True)
+    elif text == "New Folder":
+      dlgInfo = ["", "Folder name", "New Folder", itemPath]
+      if not self.showDialog(dlgInfo):
+        return
+      itemId = self.tree.AppendItem(selectItem, dlgInfo[0])
+      pyData = self.tree.GetPyData(selectItem)
+      self.tree.SetPyData(itemId, pyData)
+      self.setIconForItem(itemId, typeDir=True)
+      path = os.path.join(itemPath, dlgInfo[0])
+      os.mkdir(path)
 
   def active(self):
     i = self.tree.GetSelections()
@@ -495,64 +647,55 @@ class ProjectTreePanel(wx.Panel):
         f.close()
      return True          
 
-  def populateGui(self,project,tree):
+  def getDirFiles(self, path):
+    dirs = [os.path.join(path, f) for f in os.listdir(path) if os.path.isdir(os.path.join(path, f))]
+    files = [os.path.join(path, f) for f in os.listdir(path) if os.path.isfile(os.path.join(path, f))]
+    if len(dirs) > 1:
+      dirs.sort()
+    if len(files) > 1:
+      files.sort()
+    dirFiles = dirs + files
+    return dirFiles
 
-     il = wx.ImageList(15,15)
-     self.dirIcon = il.Add(wx.ArtProvider.GetBitmap(wx.ART_FOLDER, wx.ART_OTHER, (15,15)))
-     self.fldropenidx = il.Add(wx.ArtProvider.GetBitmap(wx.ART_FILE_OPEN,   wx.ART_OTHER, (15,15)))
-     self.fileIcon = il.Add(wx.ArtProvider.GetBitmap(wx.ART_NORMAL_FILE, wx.ART_OTHER, (15,15)))
-    
-     self.tree.AssignImageList(il)
+  def getFileName(self, path):
+    return path.split('/')[-1]
 
-     self.currentProjectPath = project.projectFilename
-     projName = os.path.basename(self.currentProjectPath)
-     projName = os.path.splitext(projName)[0]
-     prjT = self.tree.AppendItem(self.root, projName)
-     self.setIconForItem(prjT)
-     self.projects.append(prjT)
-     self.tree.SetPyData(prjT, project)
-     for ch in project.datamodel.children():
-       for c in ch.split():
-         c = c.strip()
-         fileT = self.tree.AppendItem(prjT, c)
-         self.tree.SetPyData(fileT, (project,c))  # TODO more descriptive PY data 
-         self.setIconForItem(fileT)
-     
-     for ch in project.model.children():
-       for c in ch.split():
-         c = c.strip()
-         fileT = self.tree.AppendItem(prjT,c)
-         self.tree.SetPyData(fileT, (project,c))  # TODO more descriptive PY data   
-         self.setIconForItem(fileT)
-     srcT = self.tree.AppendItem(prjT, "src")
-     self.setIconForItem(srcT, typeDir=True)
-     self.tree.SetPyData(srcT, (project,"src"))
-     
-     for ch in project.src.children():
-       for c in ch.split():
-         c = c.strip()
-         l = c.split('src/')[1]
-         branchs = l.split('/')
-         root = srcT
+  def buildTreeRecursion(self, path, parentId, project):
+    for file in self.getDirFiles(path): 
+        id = self.tree.AppendItem(parentId, self.getFileName(file))
+        self.tree.SetPyData(id, (project, self.getFileName(file)))
+        if os.path.isfile(file):
+          self.setIconForItem(id, typeFile=True)
+        elif os.path.isdir(file):
+            self.setIconForItem(id, typeDir=True)
+            self.buildTreeRecursion(file, id, project)
 
-         pToBranch = "%s/src" % projName
-         for branch in branchs:
-           pToBranch += '/%s' % branch
-           item = self.getItemByLabel(self.tree, pToBranch, self.tree.GetRootItem())
-           if item.IsOk():
-             root = item
-           else:
-             itemID = self.tree.AppendItem(root, branch)
-             self.setIconForItem(itemID)
-             root = itemID
-             self.tree.SetPyData(itemID, (project,branch))  # TODO more descriptive PY data   
+  def populateGui(self, project, tree):
+    il = wx.ImageList(15,15)
+    self.dirIcon = il.Add(wx.ArtProvider.GetBitmap(wx.ART_FOLDER, wx.ART_OTHER, (15,15)))
+    self.fldropenidx = il.Add(wx.ArtProvider.GetBitmap(wx.ART_FILE_OPEN,   wx.ART_OTHER, (15,15)))
+    self.fileIcon = il.Add(wx.ArtProvider.GetBitmap(wx.ART_NORMAL_FILE, wx.ART_OTHER, (15,15)))
+    self.tree.AssignImageList(il)
+    self.currentProjectPath = project.projectFilename
+    projName = os.path.basename(self.currentProjectPath)
+    projName = os.path.splitext(projName)[0]
+    prjT = self.tree.AppendItem(self.root, projName)
+    self.projects.append(prjT)
+    self.tree.SetPyData(prjT, project)
+    self.setIconForItem(prjT, typeDir=True)
+    srcDir = os.path.join(self.getPrjPath(), "src")
+    if not os.path.isdir(srcDir):
+      os.mkdir(srcDir)
+    self.buildTreeRecursion(self.getPrjPath(), prjT, project)
 
   def setIconForItem(self, item, typeFile=False, typeDir=False):
-    path = self.getFullPath(item)
+    path = ""
+    if not typeFile or not typeDir:
+      path = self.getFullPath(item)
 
     if os.path.isfile(path) or typeFile:
       self.tree.SetItemImage(item, self.fileIcon, wx.TreeItemIcon_Normal)
-    if os.path.isdir(path) or typeDir:
+    elif os.path.isdir(path) or typeDir:
       self.tree.SetItemImage(item, self.dirIcon, wx.TreeItemIcon_Normal)
       self.tree.SetItemImage(item, self.fldropenidx,wx.TreeItemIcon_Expanded)
  
@@ -605,42 +748,28 @@ class ProjectTreePanel(wx.Panel):
     return path
 
   def updateTreeItem(self, project, itemText, srcFiles):
-     projName = os.path.basename(project.projectFilename)
-     projName = os.path.splitext(projName)[0]
-     (child, cookie) = self.tree.GetFirstChild(self.root)
-     while child.IsOk():
-       p = self.tree.GetItemPyData(child)
-       if p.name == project.name:
-         break
-       (child, cookie) = self.tree.GetNextChild(self.root, cookie)
-     if child.IsOk():
-        (c, cookie) = self.tree.GetFirstChild(child)
-        while (c.IsOk()):           
-           print 'updateTreeItem: child explored [%s]' % self.tree.GetItemText(c)
-           if self.tree.GetItemText(c) == itemText:
-              break
-           (c, cookie) = self.tree.GetNextChild(child, cookie)
-     if c.IsOk():
+    projName = os.path.basename(project.projectFilename)
+    projName = os.path.splitext(projName)[0]
+    (child, cookie) = self.tree.GetFirstChild(self.root)
+    while child.IsOk():
+      p = self.tree.GetItemPyData(child)
+      if p.name == project.name:
+        break
+      (child, cookie) = self.tree.GetNextChild(self.root, cookie)
+    if child.IsOk():
+      (c, cookie) = self.tree.GetFirstChild(child)
+      while (c.IsOk()):           
+          print 'updateTreeItem: child explored [%s]' % self.tree.GetItemText(c)
+          if self.tree.GetItemText(c) == itemText:
+            break
+          (c, cookie) = self.tree.GetNextChild(child, cookie)
+      if c.IsOk():
         self.tree.DeleteChildren(c)
         project.updatePrjXmlSource(srcFiles)
-        for f in srcFiles:
-          f = f.strip()
-          l = f.split('src/')[1]
-          branchs = l.split('/')
-          root = c
-
-          pToBranch = "%s/src" % projName
-          for branch in branchs:
-            pToBranch += '/%s' % branch
-
-            item = self.getItemByLabel(self.tree, pToBranch, self.tree.GetRootItem())
-            if item.IsOk():
-              root = item
-            else:
-              current = self.tree.AppendItem(root, branch)
-              self.setIconForItem(current)
-              root = current
-              self.tree.SetPyData(current, (project,branch))         
+        path = os.path.join(self.getPrjPath(), "src")
+        print "self.getPrjPath()", self.getPrjPath()
+        print "path", path
+        self.buildTreeRecursion(path, c, project)   
 
   def OnLoad(self,event):
     dlg = wx.FileDialog(
@@ -1154,6 +1283,7 @@ class ProjectTreePanel(wx.Panel):
         self.runningLongProcess(self.makeImages, (self.getPrjPath(), ))
 
   def runningLongProcess(self, func, parram):
+    self.guiPlaces.frame.console.SetValue('')
     self.guiPlaces.frame.setCurrentTabInfoByText("Console")
     runningThread = threading.Thread(target = func, args = parram)
     runningThread.start()
@@ -1186,7 +1316,8 @@ class ProjectTreePanel(wx.Panel):
           return False
         self.log_info("Creating tarball: %s.tar.gz\n" % tarImg)
         cmd = 'cd %s/images/; tar -zcvf %s.tar.gz %s' % (prjPath, img, img)
-        if not self.execute(cmd, False):
+        time.sleep(0.5)
+        if not self.execute(cmd, True):
           return False
         self.log_info("Blade specific tarballs created.\n")
         time.sleep(0.5)
