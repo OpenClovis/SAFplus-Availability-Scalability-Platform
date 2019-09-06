@@ -498,9 +498,9 @@ class ProjectTreePanel(wx.Panel):
     self.popupmenu = wx.Menu()
     itemPath = self.getFullPath(self.tree.GetFocusedItem())
     if os.path.isdir(itemPath):
-      menus = ["New File", "New Folder", "Rename", "Delete"]
+      menus = ["New File", "New Folder", "Open Containing Folder", "Rename", "Delete"]
     elif os.path.isfile(itemPath):
-      menus = ["Rename", "Delete"]
+      menus = ["Open Containing Folder", "Rename", "Delete"]
     else: 
       menus = ["Rename", "Delete"]
     for text in menus:
@@ -611,6 +611,9 @@ class ProjectTreePanel(wx.Panel):
       pyData = self.tree.GetPyData(selectedItem)
       self.tree.SetPyData(itemId, pyData)
       self.setIconForItem(itemId, typeDir=True)
+    elif text == "Open Containing Folder":
+      parentPath = self.reverseReplace(itemPath, '/'+ itemText,"", 1)
+      webbrowser.open(parentPath)
 
   def active(self):
     i = self.tree.GetSelections()
