@@ -268,13 +268,19 @@ class ProjectTreeCtrl(wx.TreeCtrl):
     self.parent = parent
     wx.TreeCtrl.__init__(self, parent, id, pos, size, style)
 
-    def OnCompareItems(self, item1, item2):
-      t1 = self.GetItemText(item1)
-      t2 = self.GetItemText(item2)
-      self.log.write('compare: ' + t1 + ' <> ' + t2 + '\n')
-      if t1 < t2: return -1
-      if t1 == t2: return 0
-      return 1
+  def OnCompareItems(self, item1, item2):
+    t1 = self.GetItemText(item1)
+    t2 = self.GetItemText(item2)
+    # self.log.write('compare: ' + t1 + ' <> ' + t2 + '\n')
+    item1IsDir = os.path.isdir(self.parent.getFullPath(item1))
+    item2IsDir = os.path.isdir(self.parent.getFullPath(item2))
+    if item1IsDir and not item2IsDir:
+        return -1
+    elif not item1IsDir and item2IsDir:
+        return 1
+    if t1 < t2: return -1
+    if t1 == t2: return 0
+    return 1
 
 class RenameDialog(wx.Dialog):
     """
@@ -296,6 +302,7 @@ class RenameDialog(wx.Dialog):
         self.okBtn.Bind(wx.EVT_BUTTON, self.onOkClicked)
         self.cancelBtn.Bind(wx.EVT_BUTTON, self.onCancelClicked)
         self.lineColumn.Bind(wx.EVT_TEXT, self.onTextChange)
+        self.okBtn.Enable(False)
     def onOkClicked(self, event):
         self.fileName[0] = self.lineColumn.GetValue().strip()
         self.EndModal(True)
@@ -543,9 +550,9 @@ class ProjectTreePanel(wx.Panel):
   def onSelectContext(self, event):
     item = self.popupmenu.FindItemById(event.GetId())
     text = item.GetText()
-    selectItem = self.tree.GetFocusedItem()
-    itemText = self.tree.GetItemText(selectItem)
-    itemPath = self.getFullPath(selectItem)
+    selectedItem = self.tree.GetFocusedItem()
+    itemText = self.tree.GetItemText(selectedItem)
+    itemPath = self.getFullPath(selectedItem)
     if text == "Delete":
       style = wx.OK | wx.CANCEL | wx.ICON_QUESTION
       dialog = wx.MessageDialog(self, "Are you sure you want to delete '%s' from the system ?" % itemText, 'Delete Resources', style)
@@ -558,13 +565,13 @@ class ProjectTreePanel(wx.Panel):
       elif os.path.isdir(itemPath):
         self.deleteTreeRecursion(itemPath)
         shutil.rmtree(itemPath)
-      self.tree.Delete(selectItem)
+      self.tree.Delete(selectedItem)
     elif text == "Rename":
       parentPath = self.reverseReplace(itemPath, '/'+ itemText,"", 1)
       dlgInfo = [itemText, "New name", "Rename Resource", parentPath]
       if not self.showDialog(dlgInfo):
         return
-      self.tree.SetItemText(selectItem, dlgInfo[0])
+      self.tree.SetItemText(selectedItem, dlgInfo[0])
       newPath = self.reverseReplace(itemPath, itemText, dlgInfo[0], 1)
       if os.path.isfile(itemPath):
         frame = self.guiPlaces.frame
@@ -580,27 +587,30 @@ class ProjectTreePanel(wx.Panel):
       elif os.path.isdir(itemPath):
         self.renameTreeRecursion(itemPath, itemPath, newPath)
       os.rename(itemPath, newPath)
+      parentItem = self.tree.GetItemParent(selectedItem)
+      self.tree.SortChildren(parentItem)
     elif text == "New File":
       dlgInfo = ["", "File name", "New File", itemPath]
       if not self.showDialog(dlgInfo):
         return
-      itemId = self.tree.AppendItem(selectItem, dlgInfo[0])
-      pyData = self.tree.GetPyData(selectItem)
-      self.tree.SetPyData(itemId, pyData)
       path = os.path.join(itemPath, dlgInfo[0])
-      itemTree = path.replace(self.getPrjPath() + '/', "", 1)
       open(path,'a').close()
+      itemId = self.tree.PrependItem(selectedItem, dlgInfo[0])
+      self.tree.SortChildren(selectedItem)
+      pyData = self.tree.GetPyData(selectedItem)
+      self.tree.SetPyData(itemId, pyData)
       self.setIconForItem(itemId, typeFile=True)
     elif text == "New Folder":
       dlgInfo = ["", "Folder name", "New Folder", itemPath]
       if not self.showDialog(dlgInfo):
         return
-      itemId = self.tree.AppendItem(selectItem, dlgInfo[0])
-      pyData = self.tree.GetPyData(selectItem)
-      self.tree.SetPyData(itemId, pyData)
-      self.setIconForItem(itemId, typeDir=True)
       path = os.path.join(itemPath, dlgInfo[0])
       os.mkdir(path)
+      itemId = self.tree.PrependItem(selectedItem, dlgInfo[0])
+      self.tree.SortChildren(selectedItem)
+      pyData = self.tree.GetPyData(selectedItem)
+      self.tree.SetPyData(itemId, pyData)
+      self.setIconForItem(itemId, typeDir=True)
 
   def active(self):
     i = self.tree.GetSelections()
@@ -701,13 +711,11 @@ class ProjectTreePanel(wx.Panel):
  
   def getItemByLabel(self, tree, label, root):
       item, cookie = tree.GetFirstChild(root)
-
       while item.IsOk():
           text = self.getPathTree(item)
           if text is not None:
             if text == label:
                 return item
-
           if tree.ItemHasChildren(item):
               match = self.getItemByLabel(tree, label, item)
               if match.IsOk():
