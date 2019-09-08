@@ -142,41 +142,49 @@ namespace SAFplus
       if((comp->compCategory & SA_AMF_COMP_PROXIED))
       {
 		  //comp->presenceState.value  = PresenceState::instantiating;
-		  if(comp->proxy.value.length() == 0 )
+		  if(!comp->serviceUnit.value->node.value->name.value.compare(SAFplus::ASP_NODENAME))
 		  {
-			  logInfo("N+M", "AUDIT", "Component [%s] has no proxy. Before Deferring instantiation, presence state change from [%s] to [%s]", comp->name.value.c_str(), c_str(comp->presenceState.value),c_str(PresenceState::instantiating));
-			  comp->presenceState.value  = PresenceState::instantiating;
-			  comp->numInstantiationAttempts.value++;
-			  comp->lastInstantiation.value.value = std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::system_clock::now().time_since_epoch()).count();
-			  logInfo("N+M", "AUDIT", "Component [%s] has no proxy. Deferring instantiation", comp->name.value.c_str());
+			  if(comp->proxy.value.length() == 0 )
+			  {
+				  logInfo("N+M", "AUDIT", "Component [%s] has no proxy. Before Deferring instantiation, presence state change from [%s] to [%s]", comp->name.value.c_str(), c_str(comp->presenceState.value),c_str(PresenceState::instantiating));
+				  comp->presenceState.value  = PresenceState::instantiating;
+				  comp->numInstantiationAttempts.value++;
+				  comp->lastInstantiation.value.value = std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::system_clock::now().time_since_epoch()).count();
+				  logInfo("N+M", "AUDIT", "Component [%s] has no proxy. Deferring instantiation", comp->name.value.c_str());\
+				  continue;
+			  }
+			  else
+			  {
+				  logInfo("N+M", "AUDIT", "Component [%s] has proxy [%s]",comp->name.value.c_str(),comp->proxy.value.c_str());
+			  }
+		  
+			  /*else
+			  {
+				  SAFplus::MgtObject::Iterator it;
+				  SAFplus::MgtObject::Iterator end = su->components.end();
+				  Component* proxy;
+				  for(it = su->components.begin(); it != end; it++)
+				  {
+					  proxy = dynamic_cast<Component*>(it->second);
+					  if(proxy->name.value.compare(comp->name.value) == 0)
+					  {
+						  break;
+					  }
+				  }
+				  if(it != end)
+				  {
+					  if(proxy->readinessState.value == SAFplusAmf::ReadinessState::inService)
+					  {
+						  
+					  }
+				  }
+			  }*/
+	      }
+	      else //do nothing with proxied component in standby node
+	      {
+			  logInfo("N+M","STRT","No need to start proxied component [%s] in standby node [%s]", comp->name.value.c_str(), comp->serviceUnit.value->node.value->name.value.c_str());
 			  continue;
 		  }
-		  else
-		  {
-			  logInfo("N+M", "AUDIT", "Component [%s] has proxy [%s]",comp->name.value.c_str(),comp->proxy.value.c_str());
-		  }
-		  
-		  /*else
-		  {
-			  SAFplus::MgtObject::Iterator it;
-			  SAFplus::MgtObject::Iterator end = su->components.end();
-			  Component* proxy;
-			  for(it = su->components.begin(); it != end; it++)
-			  {
-				  proxy = dynamic_cast<Component*>(it->second);
-				  if(proxy->name.value.compare(comp->name.value) == 0)
-				  {
-					  break;
-				  }
-			  }
-			  if(it != end)
-			  {
-				  if(proxy->readinessState.value == SAFplusAmf::ReadinessState::inService)
-				  {
-					  
-				  }
-			  }
-		  }*/
 	  }
       //End proxy-proxied support feature
      
@@ -305,6 +313,11 @@ namespace SAFplus
           {
           Component* comp = dynamic_cast<Component*>(*itcomp);
           assert(comp);
+          if(comp->compCategory & SA_AMF_COMP_PROXIED) 
+          {
+			  logInfo("N+M","STRT","no need to check proxied comps in service unit");
+			  continue;
+		  }
           if (comp->operState.value == false) { assignable = false; break; }
           if (comp->capabilityModel == CapabilityModel::not_preinstantiable)  // If the component is not preinstantiable, there are basically no requirements on it to be assignable -- it doesn't even have to be running.
             {
@@ -850,10 +863,20 @@ namespace SAFplus
           SAFplus::MgtObject::Iterator endcomp = su->components.end();
           for (itcomp = su->components.begin(); itcomp != endcomp; itcomp++)
             {
-            numComps++;
+			
             Component* comp = dynamic_cast<Component*>(itcomp->second);
-            if((comp->compCategory & SA_AMF_COMP_PROXIED)) ++numProxiedComps;//proxy-proxied support feature
-            logInfo("N+M","AUDIT","Component [%s]: operState [%s]", comp->name.value.c_str(), comp->operState.value ? "enabled" : "faulted");
+            if((comp->compCategory & SA_AMF_COMP_PROXIED) && (comp->serviceUnit.value->node.value->name.value.compare(SAFplus::ASP_NODENAME)))
+			{
+				logInfo("N+M","AUDIT","Component [%s]: comp->compCategory & SA_AMF_COMP_PROXIED = [%d] \n\t comp->serviceUnit.value->node.value->name.value.compare(SAFplus::ASP_NODENAME) = [%d] \n\t numComps [%d]", comp->name.value.c_str(), comp->compCategory & SA_AMF_COMP_PROXIED, comp->serviceUnit.value->node.value->name.value.compare(SAFplus::ASP_NODENAME),numComps);
+				continue;
+				//exclude the case that external components are in the standby nodes.
+				
+				
+			}
+			numComps++;
+            if((comp->compCategory & SA_AMF_COMP_PROXIED) && !comp->serviceUnit.value->node.value->name.value.compare(SAFplus::ASP_NODENAME)) ++numProxiedComps;//proxy-proxied support feature
+            
+            logInfo("N+M","AUDIT","Component [%s]: operState [%s] SAFplus::ASP_NODENAME [%s] node [%s] numComps [%d] numProxiedComps [%d]", comp->name.value.c_str(), comp->operState.value ? "enabled" : "faulted",SAFplus::ASP_NODENAME, comp->serviceUnit.value->node.value->name.value.c_str(),numComps,numProxiedComps);
             if (!running(comp->presenceState))
               {
                 if (comp->processId.value) comp->processId.value=0;  // TODO: should we check the node to see if there is a process?
