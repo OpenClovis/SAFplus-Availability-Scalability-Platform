@@ -37,6 +37,7 @@ class SAFplusFrame(wx.Frame):
         self.problems = None
         self.currentActivePrj = None # indicating that this the current project which is active
        # Create the menubar
+        self.style_manager = styles.StyleManager()
         self.menuBar = wx.MenuBar()
         # and a menu 
         self.menu = wx.Menu()
@@ -86,7 +87,7 @@ class SAFplusFrame(wx.Frame):
         panel = self.panel = None # panelFactory(self,menuBar,tb,sb) # wx.Panel(self)
         self.prjSplitter2 = wx.SplitterWindow(self, style=wx.SP_3D)
         self.prjSplitter = wx.SplitterWindow(self.prjSplitter2, style=wx.SP_3D)
-        self.project = ProjectTreePanel(self.prjSplitter,self.guiPlaces)
+        self.project = ProjectTreePanel(self.prjSplitter,self.guiPlaces, self)
         self.Bind(wx.EVT_TREE_ITEM_ACTIVATED, self.onPrjTreeActivated, self.project.tree) # handle an event when user double-clicks on a project at the tree on the left to switch views to it or to set it active
         self.tab = wx.aui.AuiNotebook(self.prjSplitter)
         
@@ -524,7 +525,7 @@ class Page(wx.Panel):
   def __init__(self, parent, pathFile):
     """Constructor"""
     wx.Panel.__init__(self, parent)
-    self.style_manager = styles.StyleManager()
+    self.parent = parent
     self.control = control.EditorControl(self, wx.BORDER_NONE, pathFile)
 
     SAVE_ID = wx.NewId()
@@ -538,7 +539,6 @@ class Page(wx.Panel):
     self.sizer.Fit(self)
     self.isReloadFile = False
     self.pathFile = pathFile
-    self.parent = parent
     self.control.Bind(stc.EVT_STC_CHANGE, self.onEditChange)
     self.timer = wx.Timer(self)
     self.Bind(wx.EVT_TIMER, self.onTimer, self.timer)

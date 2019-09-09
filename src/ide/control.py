@@ -190,7 +190,7 @@ class EditorControl(stc.StyledTextCtrl):
             self.open_file(self.file_path, emptyUndoBuffer)
     def detect_language(self):
         path = self.file_path
-        manager = self.get_frame().style_manager
+        manager = self.get_frame().parent.style_manager
         if path:
             pre, ext = os.path.splitext(path)
             if not ext:

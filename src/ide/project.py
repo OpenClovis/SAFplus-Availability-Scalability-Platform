@@ -321,8 +321,8 @@ class RenameDialog(wx.Dialog):
         self.okBtn.Enable(True)
 
 class ProjectTreePanel(wx.Panel):
-  def __init__(self, parent,guiPlaces):
-        self.parent = parent
+  def __init__(self, parent,guiPlaces,baseClass):
+        self.parent = baseClass
         self.currentActiveProject = None
         # Use the WANTS_CHARS style so the panel doesn't eat the Return key.
         wx.Panel.__init__(self, parent, -1, style=wx.WANTS_CHARS)
@@ -363,7 +363,6 @@ class ProjectTreePanel(wx.Panel):
         self.instantiation = ""
         self.modelling   = ""
         self.currentProjectPath = None
-        self.styleManager = styles.StyleManager()
         self.currentImagesConfig = {}
         self.cancelProgress = False
         self.currentProcessCommand = None
@@ -584,6 +583,7 @@ class ProjectTreePanel(wx.Panel):
             frame.tab.SetPageText(index, label)
           frame.openFile[newPath] = frame.openFile.pop(itemPath)
           frame.openFile[newPath].control.file_path = newPath
+          frame.openFile[newPath].control.detect_language()
       elif os.path.isdir(itemPath):
         self.renameTreeRecursion(itemPath, itemPath, newPath)
       os.rename(itemPath, newPath)
@@ -676,7 +676,8 @@ class ProjectTreePanel(wx.Panel):
   def buildTreeRecursion(self, path, parentId, project):
     for file in self.getDirFiles(path): 
         id = self.tree.AppendItem(parentId, self.getFileName(file))
-        self.tree.SetPyData(id, (project, self.getFileName(file)))
+        self.tree.SetPyData(id, project)
+        # self.tree.SetPyData(id, (project, self.getFileName(file)))
         if os.path.isfile(file):
           self.setIconForItem(id, typeFile=True)
         elif os.path.isdir(file):
@@ -690,11 +691,16 @@ class ProjectTreePanel(wx.Panel):
     self.fileIcon = il.Add(wx.ArtProvider.GetBitmap(wx.ART_NORMAL_FILE, wx.ART_OTHER, (15,15)))
     self.tree.AssignImageList(il)
     self.currentProjectPath = project.projectFilename
-    projName = os.path.basename(self.currentProjectPath)
-    projName = os.path.splitext(projName)[0]
-    prjT = self.tree.AppendItem(self.root, projName)
+    prjPath = self.getPrjPath()
+    rootName = prjPath.split('/')[-1]
+    # projName = os.path.basename(self.currentProjectPath)
+
+    # projName = os.path.splitext(projName)[0]
+    # print "projName", projName
+    prjT = self.tree.AppendItem(self.root, rootName)
     self.projects.append(prjT)
     self.tree.SetPyData(prjT, project)
+    # self.tree.SetPyData(prjT, (project, projName))
     self.setIconForItem(prjT, typeDir=True)
     srcDir = os.path.join(self.getPrjPath(), "src")
     if not os.path.isdir(srcDir):
@@ -740,20 +746,17 @@ class ProjectTreePanel(wx.Panel):
     
   def getFullPath(self, item):
     prjPath = self.getPrjPath()
-    path = prjPath[0:(len(prjPath)-len(self.getPrjName()))]
+    rootName = prjPath.split('/')[-1]
+    path = prjPath[0:(len(prjPath)-len(rootName))]
     path = path + self.getPathTree(item)
 
     return path
 
   def getItemAbsolutePath(self, item):
-    itemID = self.tree.GetSelections()
-    if itemID:
-      itemID = itemID[0]
-    else:
-      itemID = self.tree.GetFirstVisibleItem()
-    result = self.tree.GetPyData(itemID)
-    prjPath = result[0].directory()
-    path = prjPath[0:(len(prjPath)-len(result[0].name))]
+    result = self.tree.GetPyData(item)
+    prjPath = result.directory()
+    rootName = prjPath.split('/')[-1]
+    path = prjPath[0:(len(prjPath)-len(rootName))]
     path = path + self.getPathTree(item)
 
     return path
@@ -1349,7 +1352,7 @@ class ProjectTreePanel(wx.Panel):
     dialog.Destroy()
 
   def OnSettingFontColor(self, event):
-    dlg = style_dialog.StyleDialog(self, self.styleManager)
+    dlg = style_dialog.StyleDialog(self, self.parent.style_manager)
     dlg.Bind(style_dialog.EVT_STYLE_CHANGED, self.onStyleChanged)
     dlg.Centre()
     dlg.ShowModal()
@@ -1359,7 +1362,7 @@ class ProjectTreePanel(wx.Panel):
     for index in range(n):
       Page = self.guiPlaces.frame.tab.GetPage(index)
       if Page.__class__.__name__ == "Page":
-        Page.detect_language()
+        Page.control.detect_language()
 
   def OnHelpConents(self, event):
     '''
@@ -2133,9 +2136,6 @@ class GeneralPage(scrolled.ScrolledPanel):
     for raw in self.listRawConf:
       self.imagesConfig[raw.getNodeName()]['slot'] = raw.getSlotValue()
       self.imagesConfig[raw.getNodeName()]['netInterface'] = raw.getNetInterfaceValue()
-      # print "Slot value: %s" % raw.getSlotValue()
-      # print "Net interface value: %s" % raw.getNetInterfaceValue()
-    print "Var config:%s" % self.imagesConfig
 
   def saveAllImgConfig(self):
     md = microdom.MicroDom({"tag_":"Nodes"},[],[])
