@@ -443,7 +443,7 @@ def create_languages(base_style):
     style = Style(base_style, name='XML Base Style')
     xml = Language(
         name='XML',
-        extensions=['xml'],
+        extensions=['xml', 'spp'],
         lexer=stc.STC_LEX_XML,
         base_style=style,
         styles=[
