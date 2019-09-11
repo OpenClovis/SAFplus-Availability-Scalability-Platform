@@ -31,4 +31,6 @@ ClRcT amfMgmtComponentServiceInstanceCreate(const Handle& mgmtHandle, SAFplus::R
 ClRcT amfMgmtComponentServiceInstanceConfigSet(const Handle& mgmtHandle, SAFplus::Rpc::amfMgmtRpc::ComponentServiceInstanceConfig* csi);
 ClRcT amfMgmtComponentServiceInstanceDelete(const Handle& mgmtHandle, const std::string& csiName);
 
+ClRcT amfMgmtCSINVPDelete(const Handle& mgmtHandle, const std::string& csiName);
+
 }

@@ -508,6 +508,31 @@ ClRcT amfMgmtComponentServiceInstanceDelete(const Handle& mgmtHandle, const std:
    return rc;
 }
 
+ClRcT amfMgmtCSINVPDelete(const Handle& mgmtHandle, const std::string& csiName)
+{
+  if (!gAmfMgmtInitialized)
+   {
+     return CL_ERR_NOT_INITIALIZED;
+   }
+   ClRcT rc;
+   SAFplus::Rpc::amfMgmtRpc::DeleteCSINVPRequest request;
+   request.add_amfmgmthandle((const char*) &mgmtHandle, sizeof(Handle));
+   request.set_name(csiName);
+   try
+    {
+      Handle& remoteAmfHdl = name.getHandle(AMF_MASTER_HANDLE, 2000);
+      SAFplus::Rpc::amfMgmtRpc::DeleteCSINVPResponse resp;
+      amfMgmtRpc->deleteCSINVP(remoteAmfHdl,&request,&resp);
+      rc = (ClRcT)resp.err();
+    }
+   catch(NameException& ex)
+    {
+      logError("MGMT","INI","getHandle got exception [%s]", ex.what());
+      rc = CL_ERR_NOT_EXIST;
+    }
+   return rc;
+}
+
 ClRcT amfMgmtCommit(const Handle& amfMgmtHandle)
 {
    if (!gAmfMgmtInitialized)

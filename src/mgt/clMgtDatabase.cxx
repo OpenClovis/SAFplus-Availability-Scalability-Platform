@@ -113,7 +113,7 @@ namespace SAFplus
     	logInfo("MGT", "DBR", "Opening database false");
         goto exitOnError1;
       }
-    logInfo("MGT", "DBR", "Opening database Ok");
+    logInfo("MGT", "DBR", "Opening database [%s] Ok", dbNameData.c_str());
     //mDbDataHdl = dbDataHdl;
     mInitialized = CL_TRUE;
     return rc;

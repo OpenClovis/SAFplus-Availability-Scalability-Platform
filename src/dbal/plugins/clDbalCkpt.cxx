@@ -138,7 +138,7 @@ ClRcT CkptPlugin::open(ClDBFileT dbFile, ClDBNameT dbName, ClDBFlagT flags, ClUi
     //dbgDumpMap();
     
 
-    logTrace("DBA", "DBO", "Opening the Database : [%s]", dbName);
+    logInfo("DBA", "DBO", "Opening the Database : [%s], handle [%" PRIx64 ":%" PRIx64 "]", dbName, ckptHdl.id[0],ckptHdl.id[1]);
 
     if (dbFlag == CL_DB_CREAT)
     {
@@ -256,6 +256,7 @@ ClRcT CkptPlugin::replaceRecord(ClDBKeyT dbKey, ClUint32T keySize, ClDBRecordT d
     memcpy(writtenRec->data, dbRec, recSize);
     key->setNullT(true);
     writtenRec->setNullT(true);
+    logTrace("DBA", "ADD", "writing record with change num [%d]", writtenRec->changeNum());
     p->write(*key,*writtenRec);     
 
     
