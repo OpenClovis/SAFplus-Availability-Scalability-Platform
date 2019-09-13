@@ -1393,6 +1393,7 @@ namespace SAFplus
         typename Map::iterator it = children.find(value);
         if (it == children.end())
           {
+            logDebug("MGT","LIST","entity [%s] doesn't exist in the map", value.c_str());
             ret = CL_ERR_DOESNT_EXIST;
             return ret;
           }
@@ -1411,6 +1412,7 @@ namespace SAFplus
         {
           std::string pval;
           std::vector<std::string> childs;
+          logDebug("MGT","LIST","getting record of xpath [%s]", xpath.c_str());
           ret = db->getRecord(xpath, pval, &childs);
           if (ret == CL_OK)
           {
@@ -1421,8 +1423,14 @@ namespace SAFplus
               ret = db->setRecord(xpath, pval, &childs);
               logDebug("MGT","LIST", "Remove child node [%s] of [%s]", keypart.str().c_str(), xpath.c_str());
             }
+            else
+              logDebug("MGT","LIST", "Removing child node [%s] of [%s] failed", keypart.str().c_str(), xpath.c_str());
           }
+          else
+            logDebug("MGT","LIST","get record of xpath [%s] failed 0x%x", xpath.c_str(), ret);
         }
+        else
+          logDebug("MGT","LIST", "db object is null");
 
         if (db &&(this->parent != nullptr)) /* Update childs for parent: i.e /safplusAmf => "Node[@name='node0'],Node[@name='node1']" */
         {
@@ -1433,6 +1441,7 @@ namespace SAFplus
           /* Update childs for parentDBKey */
           std::string pval;
           std::vector<std::string> childs;
+          logDebug("MGT","LIST","getting record of xpath [%s]", parentDBKey.c_str());
           ret = db->getRecord(parentDBKey, pval, &childs);
           if (ret == CL_OK)
           {
@@ -1443,10 +1452,135 @@ namespace SAFplus
               ret = db->setRecord(parentDBKey, pval, &childs);
               logDebug("MGT","LIST", "Remove child node [%s] of [%s]", childDBKey.c_str(), parentDBKey.c_str());
             }
+            else
+              logDebug("MGT","LIST", "Removing child node [%s] of [%s] failed", childDBKey.c_str(), parentDBKey.c_str());
           }
+          else
+            logDebug("MGT","LIST","get record of xpath [%s] failed 0x%x", parentDBKey.c_str(), ret);
         }
+        else
+          logDebug("MGT","LIST", "db object is null");
 
         /* TODO: Remove the record out of database for its childs */
+
+        /* Free-ed */
+        child->removeAllChildren();
+        if (child->isAllocated())
+        {
+          delete child;
+          child = nullptr;
+        }
+        children.erase(value);
+        return ret;
+      }
+      //  deleteObj("/safplusAmf/ComponentServiceInstance", csi.name(), "data", "val", "testKey")
+      ClRcT deleteObj(const char* xpath, const std::string& entityName, const char* tagName, const char* tagName2, const std::string& value)
+      {
+        ClRcT ret = CL_OK;
+
+        typename Map::iterator it = children.find(value);
+        if (it == children.end())
+          {
+            logDebug("MGT","LIST","entity [%s] doesn't exist in the map", value.c_str());
+            ret = CL_ERR_DOESNT_EXIST;
+            return ret;
+          }
+
+        MgtObject *child = it->second;
+        if(nullptr == child) return ret;
+
+        logDebug("MGT","LIST", "Deleting Object [%s]", child->dataXPath.c_str());        
+        std::string strXpath(xpath); // /safplusAmf/ComponentServiceInstance
+        strXpath.append("[@name=\""); // /safplusAmf/ComponentServiceInstance[@name="
+        strXpath.append(entityName); // /safplusAmf/ComponentServiceInstance[@name="csi
+        strXpath.append("\"]"); // /safplusAmf/ComponentServiceInstance[@name="csi"]
+
+        MgtDatabase* db = getDb();
+        if (db) /* Update childs for list: i.e /safplusAmf/ComponentServiceInstance[@name="csi"]/data => "[@name='testKey'], [@name='testKey2']" */
+        {
+          std::stringstream keypart;
+          keypart << "[@" << keyList << "=\"" << value <<"\"" << "]";
+          std::string strXpath1 = strXpath; // /safplusAmf/ComponentServiceInstance[@name="csi"]
+          strXpath1.append(tagName); // /safplusAmf/ComponentServiceInstance[@name="csi"]data
+          strXpath1.insert(strXpath.length(),"/"); // /safplusAmf/ComponentServiceInstance[@name="csi"]/data
+          std::string pval;
+          std::vector<std::string> childs;
+          logDebug("MGT","LIST","getting record of xpath [%s]", strXpath1.c_str());
+          ret = db->getRecord(strXpath1, pval, &childs);
+          if (ret == CL_OK)
+          {
+            std::vector<std::string>::iterator delIter = std::find(childs.begin(), childs.end(), keypart.str());
+            if (delIter != childs.end())
+            {
+              childs.erase(delIter);
+              ret = db->setRecord(strXpath1, pval, &childs);
+              ret = db->deleteRecord(strXpath1);
+              logDebug("MGT","LIST", "Remove child node [%s] of [%s], rc [0x%x]", keypart.str().c_str(), strXpath1.c_str(), ret);
+            }
+            else
+              logDebug("MGT","LIST", "Removing child node [%s] of [%s] failed", keypart.str().c_str(), strXpath1.c_str());
+          }
+          else
+            logDebug("MGT","LIST","get record of xpath [%s] failed 0x%x", strXpath1.c_str(), ret);
+        }
+        else
+          logDebug("MGT","LIST", "db object is null");
+        
+        if (db &&(this->parent != nullptr)) /* Update childs for parent: i.e /safplusAmf/ComponentServiceInstance[@name='csi'] => "data[@name='testKey'], data[@name='testKey2']" */
+        {
+          std::stringstream keypart;
+          keypart << tagName << "[@" << keyList << "=\"" << value <<"\"" << "]";
+          std::string strXpath1 = strXpath; // /safplusAmf/ComponentServiceInstance[@name="csi"]
+          std::string pval;
+          std::vector<std::string> childs;
+          logDebug("MGT","LIST","getting record of xpath [%s]", strXpath1.c_str());
+          ret = db->getRecord(strXpath1, pval, &childs);
+          if (ret == CL_OK)
+          {
+            std::vector<std::string>::iterator delIter = std::find(childs.begin(), childs.end(), keypart.str());
+            if (delIter != childs.end())
+            {
+              childs.erase(delIter);
+              ret = db->setRecord(strXpath1, pval, &childs);
+              logDebug("MGT","LIST", "Remove child node [%s] of [%s]", keypart.str().c_str(), strXpath1.c_str());
+            }
+            else
+              logDebug("MGT","LIST", "Removing child node [%s] of [%s] failed", keypart.str().c_str(), strXpath1.c_str());
+          }
+          else
+            logDebug("MGT","LIST","get record of xpath [%s] failed 0x%x", strXpath1.c_str(), ret);
+        }
+
+        if (db &&(this->parent != nullptr)) /* Update childs for parent: i.e /safplusAmf/ComponentServiceInstance[@name="csi"]/data[@name="testKey"] => "val" */
+        {
+          std::stringstream keypart;
+          keypart << tagName << "[@" << keyList << "=\"" << value <<"\"" << "]";
+          std::string strXpath1 = strXpath; // /safplusAmf/ComponentServiceInstance[@name="csi"]         
+          strXpath1.append(keypart.str()); // /safplusAmf/ComponentServiceInstance[@name="csi"]data[@name="testKey"]
+          strXpath1.insert(strXpath.length(),"/"); // /safplusAmf/ComponentServiceInstance[@name="csi"]/data[@name="testKey"]
+          std::string pval;
+          std::vector<std::string> childs;
+          logDebug("MGT","LIST","getting record of xpath [%s]", strXpath1.c_str());
+          ret = db->getRecord(strXpath1, pval, &childs);
+          if (ret == CL_OK)
+          {
+            std::vector<std::string>::iterator delIter = std::find(childs.begin(), childs.end(), std::string(tagName2));
+            if (delIter != childs.end())
+            {
+              childs.erase(delIter);
+              ret = db->setRecord(strXpath1, pval, &childs);
+              ret = db->deleteRecord(strXpath1);
+              strXpath1.append("/"); // /safplusAmf/ComponentServiceInstance[@name="csi"]/data[@name="testKey"]/
+              strXpath1.append(tagName2); // /safplusAmf/ComponentServiceInstance[@name="csi"]/data[@name="testKey"]/val
+              ret = db->deleteRecord(strXpath1);
+              logDebug("MGT","LIST", "Remove child node [%s] of [%s] rc [0x%x]", tagName2, strXpath1.c_str(),ret);
+            }
+            else
+              logDebug("MGT","LIST", "Removing child node [%s] of [%s] failed", tagName2, strXpath1.c_str());
+          }
+          else
+            logDebug("MGT","LIST","get record of xpath [%s] failed 0x%x", strXpath1.c_str(), ret);
+        }        
 
         /* Free-ed */
         child->removeAllChildren();

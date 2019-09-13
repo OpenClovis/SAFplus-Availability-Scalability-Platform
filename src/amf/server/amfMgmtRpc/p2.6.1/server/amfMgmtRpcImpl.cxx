@@ -498,9 +498,9 @@ namespace amfMgmtRpc {
        tempXpath.insert(0,strXpath1); // /safplusAmf/ComponentServiceInstance[@name="csi"]data[@name="testKey2"]
        tempXpath.insert(strXpath1.length(),"/"); // /safplusAmf/ComponentServiceInstance[@name="csi"]/data[@name="testKey2"]
        children.clear();
-       rc = amfDb.getRecord(tempXpath,value,&children);
-       if (rc == CL_OK)
-       {          
+       amfDb.getRecord(tempXpath,value,&children);
+       //if (rc == CL_OK)
+       //{          
           it = std::find(children.begin(),children.end(),strTagName2);
           if (it != children.end())
           {
@@ -511,13 +511,13 @@ namespace amfMgmtRpc {
              children.push_back(strTagName2);
              MGMT_CALL(amfDb.setRecord(tempXpath,value,&children));
           }
-       }
+       /*}
        else
        {
           logDebug("MGMT","UDT.ENT", "get record with xpath [%s], rc=[0x%x]", tempXpath.c_str(), rc);
           children.push_back(strTagName2);
           MGMT_CALL(amfDb.setRecord(tempXpath,value,&children));
-       }       
+       }*/       
        tempXpath.append("/"); // /safplusAmf/ComponentServiceInstance[@name="csi"]/data[@name="testKey2"]
        tempXpath.append(tagName2); // /safplusAmf/ComponentServiceInstance[@name="csi"]/data[@name="testKey2"]/val
        rc = amfDb.setRecord(tempXpath,val);
@@ -1304,7 +1304,6 @@ namespace amfMgmtRpc {
        logError("MGMT","RPC", "csi object with name [%s] doesn't exist", csiName.c_str());
        return CL_ERR_NOT_EXIST;
     }
-#if 1
     SAFplus::MgtList<std::string>::Iterator it;
     //Store keys of data KVP list
     std::vector<std::string> keys;
@@ -1317,14 +1316,18 @@ namespace amfMgmtRpc {
     std::vector<std::string>::iterator itKey;
     for (itKey = keys.begin(); itKey != keys.end(); itKey++)
     {
-      rc = csi->dataList.deleteObj(*itKey);
+      rc = csi->dataList.deleteObj("/safplusAmf/ComponentServiceInstance",csiName,"data","val",*itKey);
       logDebug("MGMT","RPC", "deleting kvp key name [%s] of csi [%s] return [0x%x]", (*itKey).c_str(),csiName.c_str(),rc);
       if (rc != CL_OK)
       {
         break;
       }
     }
-#endif
+    if (keys.size() == 0)
+    {
+      logInfo("MGMT","RPC", "no KVP found for csi [%s]", csiName.c_str());
+      rc = CL_ERR_NOT_EXIST;
+    }
 #if 0
     std::string data = "data";
     rc = csi->deleteObj(data);

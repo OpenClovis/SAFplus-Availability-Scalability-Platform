@@ -251,6 +251,7 @@ namespace SAFplus
     HashKey hashKey = getHashKeyFn(key);
 
     rc = mDbDataHdl->deleteRecord((ClDBKeyT) &hashKey, sizeof(hashKey));
+    logInfo("MGT", "DBR", "Deleted record [0x%" PRIx64 "%" PRIx64 "]: [%s] rc [0x%x]", hashKey.num[0], hashKey.num[1], key.c_str(), rc);
 
     return rc;
   }

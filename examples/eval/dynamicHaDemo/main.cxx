@@ -7,6 +7,7 @@
 #include <boost/thread/thread.hpp> 
 #include <clAmfMgmtApi.hxx>
 #include <clHandleApi.hxx>
+#include <map>
 
 //#define clprintf(sev,...) appLog(SAFplus::APP_LOG, sev, 0, "APP", "MAIN", __VA_ARGS__)
 #define clprintf(sev,...) SAFplus::logMsgWrite(SAFplus::APP_LOG, sev, 0, "APP", "MAIN", __FILE__, __LINE__, __VA_ARGS__)
@@ -247,6 +248,39 @@ ClRcT deleteComponent(const SAFplus::Handle& mgmtHandle)
   return rc;
 }
 
+ClRcT deleteCSINVP(const SAFplus::Handle& mgmtHandle, const char* csiName)
+{
+  clprintf(SAFplus::LOG_SEV_INFO,"Basic HA app: Test deleting CSI NVP (Name Value Pair)");
+  std::string strCsiName(csiName);
+  ClRcT rc = SAFplus::amfMgmtCSINVPDelete(mgmtHandle, strCsiName);
+  clprintf(SAFplus::LOG_SEV_INFO,"Basic HA app: amfMgmtCSINVPDelete returns [0x%x]", rc);
+  return rc;
+}
+
+ClRcT addComponentServiceInstanceNVP(const SAFplus::Handle& mgmtHandle, const char* csiName, const std::map<std::string,std::string>& nvpMap)
+{
+  clprintf(SAFplus::LOG_SEV_INFO,"Basic HA app: Test creating new csi");
+  if (nvpMap.size()==0)
+  {
+    logInfo("APP","","an empty NVP. Do nothing");
+    return CL_ERR_INVALID_PARAMETER;
+  }
+  SAFplus::Rpc::amfMgmtRpc::ComponentServiceInstanceConfig* csi = new SAFplus::Rpc::amfMgmtRpc::ComponentServiceInstanceConfig();
+  csi->set_name(csiName);  
+  int i=0;
+  for (std::map<std::string,std::string>::const_iterator it=nvpMap.begin();it!=nvpMap.end();it++)
+  {
+    csi->add_data();
+    Data* data = csi->mutable_data(i);
+    data->set_name(it->first);
+    data->set_val(it->second);
+    i++;
+  }  
+  ClRcT rc = SAFplus::amfMgmtComponentServiceInstanceCreate(mgmtHandle,csi);
+  clprintf(SAFplus::LOG_SEV_INFO,"Basic HA app: Test creating new csi returns [0x%x]", rc);
+  return rc;
+}
+
 #if 0
 void* standbyLoop(void* arg)
 {
@@ -281,40 +315,33 @@ void* standbyLoop(void* arg)
 ClRcT dynamicModelUpdate()
 {
   ClRcT rc = CL_OK;
-#if 0
+
   SAFplus::Handle mgmtHandle;    
   FN_CALL(SAFplus::amfMgmtInitialize(mgmtHandle));
-  /*if (rc != CL_OK)
-  {
-    clprintf(SAFplus::LOG_SEV_ERROR,"Basic HA app: amfMgmtInitialize error rc [0x%x]", rc);
-    return rc;
-  } */
-  FN_CALL(addNewComponent(mgmtHandle, "./basicApp", "c12", "newsu");
-  /*if (rc == CL_OK)
-  {
-    rc = SAFplus::amfMgmtCommit(mgmtHandle);
-    clprintf(SAFplus::LOG_SEV_INFO,"Basic HA app: commit returns [0x%x]", rc);
-  }*/
-  if (rc == CL_OK)
-  {
-    rc = addNewServiceUnit(mgmtHandle,"newsu", "c12", "sg0", "node1");  
-  }
-  if (rc == CL_OK)
-  {
-    rc = updateServiceGroup(mgmtHandle,"sg0", "newsu");
-  }
-  if (rc == CL_OK)
-  {
-    rc = updateNode(mgmtHandle,"node1", "newsu");
-  }
-  if (rc == CL_OK)
-  {
-    rc = SAFplus::amfMgmtCommit(mgmtHandle);
-    clprintf(SAFplus::LOG_SEV_INFO,"Basic HA app: commit returns [0x%x]", rc);
-  }
+  //FN_CALL(amfMgmtComponentDelete(mgmtHandle,std::string("c0")));
+  FN_CALL(deleteCSINVP(mgmtHandle,"csi"));
+#if 0
+  FN_CALL(addNewComponent(mgmtHandle, "./basicApp", "c12", "newsu"));  
+  FN_CALL(addNewServiceUnit(mgmtHandle,"newsu", "c12", "sg0", "node1"));
+  FN_CALL(updateServiceGroup(mgmtHandle,"sg0", "newsu"));
+  FN_CALL(updateNode(mgmtHandle,"node1", "newsu"));
+#endif
+  rc = SAFplus::amfMgmtCommit(mgmtHandle);
+  clprintf(SAFplus::LOG_SEV_INFO,"Basic HA app: commit returns [0x%x]", rc);
+
+  std::map<std::string,std::string> nvp;
+  nvp[std::string("name")] = std::string("jack");
+  nvp[std::string("addr")] = std::string("US");
+  nvp[std::string("gender")] = std::string("male");
+  nvp[std::string("age")] = std::string("30");
+  nvp[std::string("job")] = std::string("programmer");
+  rc = addComponentServiceInstanceNVP(mgmtHandle,"csi",nvp);
+  clprintf(SAFplus::LOG_SEV_INFO,"Basic HA app: addComponentServiceInstanceNVP returns [0x%x]", rc);
+  rc = SAFplus::amfMgmtCommit(mgmtHandle);
+  clprintf(SAFplus::LOG_SEV_INFO,"Basic HA app: commit returns [0x%x]", rc);  
   rc = SAFplus::amfMgmtFinalize(mgmtHandle);
   clprintf(SAFplus::LOG_SEV_INFO,"Basic HA app: finalize returns [0x%x]", rc);
-#endif
+
   return rc;
 }
 
@@ -517,7 +544,7 @@ void safAssignWork(SaInvocationT       invocation,
              */
             pthread_t thr;
             char* mode = new char[10];
-            strcpy(mode,"create");
+            strcpy(mode,"update");
             pthread_create(&thr,NULL,standbyLoop, mode);
             saAmfResponse(amfHandle, invocation, SA_AIS_OK); 
 #if 0
