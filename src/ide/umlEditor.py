@@ -444,6 +444,27 @@ class DeleteTool(Tool):
   def OnSelect(self, panel,event):
     return False
 
+  def getDistance(self, pos_1, pos_2):
+    vector = (pos_2[0] - pos_1[0], pos_2[1] - pos_1[1])
+    return math.sqrt(vector[0]**2 + vector[1]**2)
+
+  def wireDelete(self, pos):
+    '''
+    @summary    : detect wire by pos then delete wire(s)/connect(s)
+    '''
+    pos = convertToRealPos(pos, self.panel.scale)
+    for (name, e) in share.detailsPanel.model.entities.items():
+      for arrow in e.containmentArrows:
+        st = arrow.container.pos
+        end = arrow.contained.pos
+        pos_1 = (st[0] + arrow.beginOffset[0], st[1] + arrow.beginOffset[1])
+        pos_2 = (end[0] + arrow.endOffset[0], end[1] + arrow.endOffset[1])
+        l = self.getDistance(pos_1, pos_2)
+        l1 = self.getDistance(pos_1, pos)
+        l2 = self.getDistance(pos_2, pos)
+        if math.fabs(l1+l2-l) < 0.08:
+          e.containmentArrows.remove(arrow)
+
   def OnEditEvent(self,panel,event):
     pos = panel.CalcUnscrolledPosition(event.GetPositionTuple())
     if isinstance(event, wx.MouseEvent):
@@ -452,6 +473,7 @@ class DeleteTool(Tool):
         entities = panel.findEntitiesAt(pos)
         self.dragPos = pos
         if not entities:
+          self.wireDelete(pos)
           self.touching = set()
           self.boxSel.start(panel,pos)
           return False

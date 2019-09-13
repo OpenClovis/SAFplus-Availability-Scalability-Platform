@@ -253,8 +253,9 @@ class FadingX(wx.Timer):
 
 def drawCurvyArrow(ctx, startPos,endPos,middlePos,cust):
       if type(cust) is DictType: cust = dot.Dot(cust)
-      if not middlePos:
-        middlePos = [((startPos[0]+endPos[0])/2,(startPos[1]+endPos[1])/2)]
+      # if not middlePos:
+      middlePos = [((startPos[0]+endPos[0])/2,(startPos[1]+endPos[1])/2)]
+
       ctx.save()
       ctx.set_source_rgba(*cust.color)
       ctx.set_line_width(cust.lineThickness)
