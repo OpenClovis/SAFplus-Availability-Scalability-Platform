@@ -173,11 +173,7 @@ EventClient evtClient;
 	evtClient.eventPublish(pEventData,pEventData.length(), CL_CPM_EVENT_CHANNEL_NAME, EventChannelScope::EVENT_GLOBAL_CHANNEL);
         wat.comp->haState = (SAFplusAmf::HighAvailabilityState) wat.state; // TODO: won't work with multiple assignments of active and standby, for example
 	}
-          // if (wat.si->assignmentState = AssignmentState::fullyAssigned;  // TODO: for now just make the SI happy to see something work
 
-          // pending operation completed.  Clear it out
-          wat.comp->pendingOperationExpiration.value.value = 0;
-          wat.comp->pendingOperation = PendingOperation::none;
            //proxy-proxied support feature
           if((wat.comp->compCategory & SA_AMF_COMP_PROXIED)){} //wat.comp->processId = proxied_pid;
           logInfo("MAIN","INIT","AmfOperations::workOperationResponse wat.csi [%s] wat.csi->isProxyCSI.value [%d] wat.comp[%s] pid[%d] ",wat.csi->name.value.c_str(),wat.csi->isProxyCSI.value,wat.comp->name.value.c_str(),wat.comp->processId.value);
@@ -237,16 +233,6 @@ EventClient evtClient;
 								  request.set_componentname(comp->name.value.c_str());
 								  
 								  request.add_componenthandle((const char*) &hdl, sizeof(Handle)); // [libprotobuf ERROR google/protobuf/wire_format.cc:1053] String field contains invalid UTF-8 data when serializing a protocol buffer. Use the 'bytes' type if you intend to send raw bytes.
-								  /*if (request.componenthandle().size() != 1)
-								  {
-									  Handle hdl1 ,hdl2;
-									  memcpy(&hdl1,request.componenthandle().Get(0).c_str(),sizeof(Handle));
-									  memcpy(&hdl2,request.componenthandle().Get(1).c_str(),sizeof(Handle));
-								  logWarning("AMF","RPC","AmfOperations::workOperationResponse component handle  size = %d : handle1[%s], handle2[%s]",request.componenthandle().size(),request.componenthandle().Get(0).c_str(),request.componenthandle().Get(1).c_str());
-								  logInfo("AMF","RPC","AmfOperations::workOperationResponse component [%s] handle1[%" PRIx64 ":%" PRIx64 "] , handle2[%" PRIx64 ":%" PRIx64 "] ",request.componentname().c_str(),hdl1.id[0],hdl1.id[1],hdl2.id[0],hdl2.id[1]);
-								  
-								  //return;  
-								  }*/
 								  request.set_operation((uint32_t)wat.state);
 								  request.set_target(SA_AMF_PROXIED_INST_CB);
 								  if ((invocation & 0xFFFFFFFF) == 0xFFFFFFFF) invocation &= 0xFFFFFFFF00000000ULL;  // Don't let increasing invocation numbers overwrite the node or port... ofc this'll never happen 4 billion invocations? :-)
@@ -267,18 +253,15 @@ EventClient evtClient;
 									}
 									logInfo("WORK", "RESPONSE", "workOperationResponse Comp [%s] presenceState [%s] csi [%s] csi->activeComponents.value.push_back(comp);", comp->name.value.c_str(), c_str(comp->presenceState.value), csi->name.value.c_str()); 
 									csi->activeComponents.value.push_back(comp);  // Mark this CSI assigned to this component
-									comp->presenceState.value = PresenceState::instantiated; 
+									comp->presenceState.value = PresenceState::instantiated;
+									comp->numInstantiationAttempts.value++;
+									comp->lastInstantiation.value.value = std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::system_clock::now().time_since_epoch()).count();
 									comp->pendingOperationExpiration.value.value = nowMs() + comp->timeouts.workAssignment;
 									comp->pendingOperation = PendingOperation::workAssignment;
 									//if(proxied_pid)comp->processId = proxied_pid;
 									logInfo("WORK", "RESPONSE", "workOperationResponse Comp [%s] PID [%d] presenceState [%s] ", comp->name.value.c_str(),comp->processId.value, c_str(comp->presenceState.value)); 
 								  pendingWorkOperations[request.invocation()] = WorkOperationTracker(comp,csi,wat.si,(uint32_t)wat.state,SA_AMF_CSI_ADD_ONE);
 								  amfAppRpc->workOperation(hdl, &request);
-								  //Process p = executeProgram(inst->command.value, newEnv,Process::InheritEnvironment);
-								  
-								  //amfOps->start(comp);
-								  //portAllocator.assignPort(port, p.pid);
-								  //comp->processId.value = p.pid;
 							  }
 						  }
 					  }
@@ -287,6 +270,11 @@ EventClient evtClient;
 			  
 		  }
 		  //End proxy-proxied support feature
+		  // if (wat.si->assignmentState = AssignmentState::fullyAssigned;  // TODO: for now just make the SI happy to see something work
+
+          // pending operation completed.  Clear it out
+          wat.comp->pendingOperationExpiration.value.value = 0;
+          wat.comp->pendingOperation = PendingOperation::none;
           }
         }
       else // work removal
@@ -591,15 +579,11 @@ EventClient evtClient;
       assert(comp);
       //proxy-proxied support feature
       assert(comp->pendingOperation == PendingOperation::none);  // We should not be adding work to a component if something else is happening to it.
-      if((comp->compCategory & SA_AMF_COMP_PROXIED) && (comp->proxy.value.empty()))
+      if((comp->compCategory & SA_AMF_COMP_PROXIED))
         {
 			//TODO:maybe checking pending operation or reverse something as number active/standby assignments of si if any
-			logInfo("OPS","SRT","Component [%s] cannot be assigned work", comp->name.value.c_str());
+			logInfo("OPS","SRT","No need to assign proxied component [%s] work", comp->name.value.c_str());
 			continue;
-		}
-		if((comp->compCategory & SA_AMF_COMP_PROXIED) && !(comp->proxy.value.empty()))
-		{
-			logInfo("OPS","SRT","Component [%s] with proxy [%s] can be assigned work", comp->name.value.c_str(),comp->proxy.value.c_str());
 		}
 	  //End proxy-proxied support feature
       Handle hdl;
@@ -611,10 +595,10 @@ EventClient evtClient;
 				{
 					hdl = name.getHandle(comp->name);
 				}
-				else if ((comp->compCategory & SA_AMF_COMP_PROXIED))
+				/*else if ((comp->compCategory & SA_AMF_COMP_PROXIED))
 				{
 					hdl = name.getHandle(comp->proxy);
-				}
+				}*/
               //logInfo("OPS","SRT","name.getHandle(comp->name) Component [%s] hdl[%" PRIx64 ":%" PRIx64 "] with proxy [%s] can be assigned work", comp->name.value.c_str(),hdl.id[0],hdl.id[1],comp->proxy.value.c_str());
             }
           catch (SAFplus::NameException& n)

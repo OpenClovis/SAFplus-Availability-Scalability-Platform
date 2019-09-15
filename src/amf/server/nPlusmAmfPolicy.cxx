@@ -146,45 +146,19 @@ namespace SAFplus
 		  {
 			  if(comp->proxy.value.length() == 0 )
 			  {
-				  logInfo("N+M", "AUDIT", "Component [%s] has no proxy. Before Deferring instantiation, presence state change from [%s] to [%s]", comp->name.value.c_str(), c_str(comp->presenceState.value),c_str(PresenceState::instantiating));
-				  comp->presenceState.value  = PresenceState::instantiating;
-				  comp->numInstantiationAttempts.value++;
-				  comp->lastInstantiation.value.value = std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::system_clock::now().time_since_epoch()).count();
-				  logInfo("N+M", "AUDIT", "Component [%s] has no proxy. Deferring instantiation", comp->name.value.c_str());\
-				  continue;
+				  logInfo("N+M", "AUDIT", "Component [%s] has no proxy. Deferring instantiation numInstantiationAttempts[%d] maxInstantInstantiations[%d] maxDelayedInstantiations[%d]", comp->name.value.c_str(),comp->numInstantiationAttempts.value, comp->maxInstantInstantiations.value ,comp->maxDelayedInstantiations.value);
+				  //continue;
 			  }
 			  else
 			  {
 				  logInfo("N+M", "AUDIT", "Component [%s] has proxy [%s]",comp->name.value.c_str(),comp->proxy.value.c_str());
 			  }
-		  
-			  /*else
-			  {
-				  SAFplus::MgtObject::Iterator it;
-				  SAFplus::MgtObject::Iterator end = su->components.end();
-				  Component* proxy;
-				  for(it = su->components.begin(); it != end; it++)
-				  {
-					  proxy = dynamic_cast<Component*>(it->second);
-					  if(proxy->name.value.compare(comp->name.value) == 0)
-					  {
-						  break;
-					  }
-				  }
-				  if(it != end)
-				  {
-					  if(proxy->readinessState.value == SAFplusAmf::ReadinessState::inService)
-					  {
-						  
-					  }
-				  }
-			  }*/
 	      }
 	      else //do nothing with proxied component in standby node
 	      {
 			  logInfo("N+M","STRT","No need to start proxied component [%s] in standby node [%s]", comp->name.value.c_str(), comp->serviceUnit.value->node.value->name.value.c_str());
-			  continue;
 		  }
+		  continue;
 	  }
       //End proxy-proxied support feature
      
@@ -932,7 +906,7 @@ namespace SAFplus
                 
                       if (compHandle != INVALID_HDL) // TODO: what other things do we need to do for registration?
                         {
-			  logInfo("N+M", "DSC", "update comp presenceState from PresenceState::instantiating to [%s]",c_str(PresenceState::instantiated));
+			  logInfo("N+M", "DSC", "update comp [%s] presenceState from [%s] to [%s]", comp->name.value.c_str(), c_str(comp->presenceState.value),c_str(PresenceState::instantiated));
 			std::string pEventData = createEventNotification(comp->name.value, "presentState", c_str(comp->presenceState), c_str(PresenceState::instantiated));
 			evtClient.eventPublish(pEventData,pEventData.length(), CL_CPM_EVENT_CHANNEL_NAME, EventChannelScope::EVENT_GLOBAL_CHANNEL);
                           comp->presenceState = PresenceState::instantiated;
@@ -1003,9 +977,13 @@ namespace SAFplus
             else
               {
                 assert(((int)comp->presenceState.value <= ((int)PresenceState::terminationFailed))&&((int)comp->presenceState.value >= ((int)PresenceState::uninstantiated)));
-                presenceCounts[(int)comp->presenceState.value]++;
                 assert(((int)comp->haState.value <= (int)HighAvailabilityState::quiescing)&&((int)comp->haState.value >= (int)HighAvailabilityState::active));
-                haCounts[(int)comp->haState.value]++;
+                if(!(comp->compCategory & SA_AMF_COMP_PROXIED) && !(comp->compCategory& SA_AMF_COMP_PROXIED_NPI))
+                {
+					presenceCounts[(int)comp->presenceState.value]++;
+					haCounts[(int)comp->haState.value]++;
+				}
+                
               }
             //amfOps->reportChange();
             }

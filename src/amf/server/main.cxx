@@ -966,6 +966,29 @@ int main(int argc, char* argv[])
                 if ((comp->processId == pid)&&(comp->getServiceUnit()->getNode()->name.value == ASP_NODENAME))
                   {
                   comp->lastError = error;
+                  for (itcomp = cfg.safplusAmf.componentList.begin(); itcomp != endcomp; itcomp++)
+                  {
+					  Component* tmpComp = dynamic_cast<Component*>(itcomp->second);
+					  if(!(tmpComp->proxy.value.compare(comp->name.value)))
+					  {
+						  tmpComp->presenceState=PresenceState::uninstantiated;
+						  tmpComp->activeAssignments = 0;
+						  tmpComp->standbyAssignments = 0;
+						  tmpComp->operState = true;  // Not faulted: We can try to turn this on.
+						  tmpComp->readinessState = ReadinessState::outOfService;
+						  tmpComp->presenceState = PresenceState::uninstantiated;
+						  tmpComp->haReadinessState = HighAvailabilityReadinessState::readyForAssignment;
+						  tmpComp->haState = HighAvailabilityState::idle;
+						  tmpComp->numInstantiationAttempts = 0;
+						  tmpComp->lastInstantiation.value.value = 0;
+						  tmpComp->processId = 0;
+						  tmpComp->pendingOperation =  PendingOperation::none;
+						  tmpComp->pendingOperationExpiration.value.value = 0;
+						  tmpComp->restartCount = 0;
+						  tmpComp->proxy.value.clear();
+						  comp->proxied.removeChildObject(tmpComp->name.value);
+					  }
+				  }
                   break;
                   }
               }            

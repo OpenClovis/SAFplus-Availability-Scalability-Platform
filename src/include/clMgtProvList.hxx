@@ -37,6 +37,7 @@
 #include <fstream>
 #include <sstream>
 #include <vector>
+#include <algorithm>
 
 #include <clMgtBaseCommon.hxx>
 #include <clMgtObject.hxx>
@@ -124,6 +125,10 @@ public:
       return this->getDb(xpath,db);
     }
     void pushBackValue(const std::string& strVal);
+    /**
+     * API to remove child from the leaf list
+     */
+    virtual ClRcT removeChildObject(const T& val);
 };
 
 template <class T>
@@ -294,6 +299,21 @@ void MgtProvList<T>::pushBackValue(const std::string& strVal)
 
     value.push_back(val);
 }
+
+/**
+   * API to remove child from the leaf list
+   */
+  template<class T>
+  ClRcT MgtProvList<T>::removeChildObject(const T& val)
+  {
+    typename std::vector<T>::iterator retpos = std::find(value.begin(), value.end(), val);
+    if (retpos != value.end())
+    {
+      value.erase(retpos);
+      return CL_OK;
+    } else return CL_ERR_NOT_EXIST;
+
+  }
 
 #if 0
 /*
