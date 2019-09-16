@@ -83,6 +83,9 @@ namespace SAFplusI
 
     // Apply a particular received synchronization message to the checkpoint.  Returns the largest change number referenced in the message.
     unsigned int applySyncMsg(ClPtrT msg, ClWordT msglen, ClPtrT cookie);
+
+    // Apply a particular received delete message to the checkpoint
+    void applyDeleteMsg(ClPtrT msg, ClWordT msglen, ClPtrT cookie);
     };
 
     enum
