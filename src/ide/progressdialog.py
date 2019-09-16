@@ -22,19 +22,19 @@ class ProgressDialog(wx.Dialog):
 
     def OnTimer(self, evt):
         if self.thread.isAlive():
-          x = int(self.gauge.GetValue())
-          if x >= 500:
-            x = 0
-          x += self.step
-          self.gauge.SetValue(x)
+            x = int(self.gauge.GetValue())
+            if x >= 500:
+                x = 0
+            x += self.step
+            self.gauge.SetValue(x)
         else:
-          self.OnQuit(None)
+            self.OnQuit(None)
 
     def OnQuit(self, event):
         if self.thread.isAlive():
-          self.parent.setCancelProgress(True)
-          self.parent.stopCurrentProcess()
-          self.thread.join()
+            self.parent.setCancelProgress(True)
+            self.parent.stopCurrentProcess()
+            self.thread.join()
         self.timer.Stop()
         self.Destroy()
 

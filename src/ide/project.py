@@ -30,7 +30,6 @@ import subprocess
 import webbrowser
 import style_dialog
 import styles
-sys.path.append(os.path.join(os.getcwd(), "dialog"))
 from progressdialog import ProgressDialog
 
 PROJECT_LOAD = wx.NewId()
