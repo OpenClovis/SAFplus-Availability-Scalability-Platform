@@ -322,6 +322,9 @@ namespace SAFplus
     /* During replication, changes are received from the remote checkpoint.  This API applies these changes */
     void applySync(const Buffer& key, const Buffer& value,Transaction& t=SAFplus::NO_TXN);
 
+    /* During deletion of checkpoint data , messages are received from the remote checkpoint.  This API applies these changes */
+    void applyDelete(const Buffer& key, const Buffer& value,Transaction& t=SAFplus::NO_TXN);
+
     /* temporarily disallow/allow synchronization */
     // NOT USED: void syncLock() { gate.lock(); }
     // NOT USED: void syncUnlock() { gate.unlock(); }

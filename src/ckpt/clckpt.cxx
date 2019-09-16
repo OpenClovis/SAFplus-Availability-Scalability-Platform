@@ -486,7 +486,35 @@ void SAFplus::Checkpoint::applySync(const Buffer& key, const Buffer& value,Trans
   // I don't update hdr->changeNum in case the replication fails.  Then I need to restart it from the original sync location, so I need to preserve that.  
 }
 
+void SAFplus::Checkpoint::applyDelete(const Buffer& key, const Buffer& value,Transaction& t)
+{
+  //gate.lock();
+  CkptHashMap::iterator contents = map->find(SAFplusI::BufferPtr((Buffer*)&key));
 
+  if (contents != map->end())
+    {
+      SAFplusI::BufferPtr value = contents->second;  // remove the value
+      SAFplusI::BufferPtr curkey   = contents->first;  // remove the key
+
+      map->erase(curkey);
+
+      SAFplus::Buffer* val = value.get();
+      if (val->ref()==1)
+        msm.deallocate(val);  // if I'm the last owner, let this go.
+      else
+        val->decRef();
+
+      val = curkey.get();
+      if (val->ref()==1)
+        /*if (flags&PERSISTENT)
+          operMap[val] = DEL; // Defer deallocate later after flush() or Checkpoint destructor
+        else*/
+          msm.deallocate(val); // if I'm the last owner, let this go.
+      else
+        val->decRef();
+    }
+  //gate.unlock();
+}
 
 void SAFplus::Checkpoint::remove (const uintcw_t key,Transaction& t)
 {
@@ -526,20 +554,27 @@ void SAFplus::Checkpoint::remove(const Buffer& key,Transaction& t)
       SAFplusI::BufferPtr curkey   = contents->first;  // remove the key
 
       map->erase(curkey);
-      
+
       SAFplus::Buffer* val = value.get();
+
+      if (sync)
+      {
+        SAFplus::Buffer* key = curkey.get();
+        sync->sendUpdate(key,val,0,t);
+      }
+
       if (val->ref()==1) 
         msm.deallocate(val);  // if I'm the last owner, let this go.
       else 
         val->decRef();	     
 
       val = curkey.get();
-      if (val->ref()==1)         
+      if (val->ref()==1)
         if (flags&PERSISTENT)
           operMap[val] = DEL; // Defer deallocate later after flush() or Checkpoint destructor
         else
-          msm.deallocate(val); // if I'm the last owner, let this go. 
-      else 
+          msm.deallocate(val); // if I'm the last owner, let this go.
+      else
         val->decRef();
     }
   gate.unlock();

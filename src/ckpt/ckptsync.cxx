@@ -118,6 +118,13 @@ void SAFplusI::CkptSynchronization::msgHandler(Handle from, SAFplus::MsgServer* 
         if (ckpt->hdr->changeNum < change) ckpt->hdr->changeNum = change;
         } break;
 
+    case CKPT_MSG_TYPE_DELETE_MSG_1:
+      if (from.getNode() != SAFplus::ASP_NODEADDR) // No need to handle update messages coming from myself.
+        {
+        applyDeleteMsg(msg,msglen, cookie);
+        logInfo("SYNC","MSG","Received checkpoint delete message for [%" PRIx64 ":%" PRIx64"].", ckpt->hdr->handle.id[0],ckpt->hdr->handle.id[1]);
+        } break;
+
     case CKPT_MSG_TYPE_SYNC_COMPLETE_1:
       {
       CkptSyncCompleteMsg* sc = (CkptSyncCompleteMsg*) msg;
@@ -190,6 +197,32 @@ unsigned int SAFplusI::CkptSynchronization::applySyncMsg(ClPtrT msg, ClWordT msg
   return lastChange;
 }
 
+void SAFplusI::CkptSynchronization::applyDeleteMsg(ClPtrT msg, ClWordT msglen, ClPtrT cookie)
+{
+  ScopedLock<> lock(atomize);
+
+  bool gated=false;
+  CkptSyncMsg* hdr = (CkptSyncMsg*) msg;
+  assert((hdr->msgType>>16) == CKPT_MSG_TYPE);  // TODO: endian swap & should never assert on bad incoming message data
+  int curpos = sizeof(CkptSyncMsg);
+  int count = 0;
+
+  while (curpos < msglen)
+    {
+    gated = false;
+    syncRecordCount++;
+    count++;
+    Buffer* key = (Buffer*) (((char*)msg)+curpos);
+    curpos += key->objectSize();
+    Buffer* val = (Buffer*) (((char*)msg)+curpos);
+    curpos += val->objectSize();
+    logInfo("DEL","APLY","[%" PRIx64 ":%" PRIx64"]: part %d: key(len:%d) %x  val(len:%d) %x", ckpt->hdr->handle.id[0],ckpt->hdr->handle.id[1], count, key->len(), *((uint32_t*) key->data), val->len(), *((uint32_t*) val->data));
+    if (!synchronizing) { gated = true; ckpt->gate.close(); }  // In the initial sync case, the gate is already closed.
+    ckpt->applyDelete(*key,*val);
+    if (gated) ckpt->gate.open();
+    }
+}
+
 void SAFplusI::CkptSynchronization::sendUpdate(const Buffer* key,const Buffer* val,int change, Transaction& t)
   {
   // TODO transactions
@@ -199,7 +232,14 @@ void SAFplusI::CkptSynchronization::sendUpdate(const Buffer* key,const Buffer* v
 
   CkptSyncMsg* hdr = (CkptSyncMsg*) buf;
   memset(hdr,0,sizeof(CkptSyncMsg)); // valgrind
-  hdr->msgType     = (CKPT_MSG_TYPE << 16) | CKPT_MSG_TYPE_UPDATE_MSG_1;
+  if (change)
+  {
+    hdr->msgType     = (CKPT_MSG_TYPE << 16) | CKPT_MSG_TYPE_UPDATE_MSG_1;
+  }
+  else  // deleting ckpt data doesn't take change
+  {
+    hdr->msgType     = (CKPT_MSG_TYPE << 16) | CKPT_MSG_TYPE_DELETE_MSG_1;
+  }
   hdr->checkpoint  = ckpt->handle();
   hdr->cookie      = syncCookie;
   hdr->count       = change;
@@ -222,7 +262,6 @@ void SAFplusI::CkptSynchronization::sendUpdate(const Buffer* key,const Buffer* v
   msgSvr->SendMsg(to,buf,offset,CKPT_SYNC_MSG_TYPE);
 #endif
   }
-
 
 // Bring some other replica into sync with this one.
 void SAFplusI::CkptSynchronization::synchronize(unsigned int generation, unsigned int lastChange, unsigned int cookie, Handle response)

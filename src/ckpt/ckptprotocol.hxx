@@ -16,7 +16,10 @@ namespace SAFplusI
 
   CKPT_MSG_TYPE_UPDATE_MSG_1 = 0x200,
 
+  CKPT_MSG_TYPE_DELETE_MSG_1 = 0x201,
+
   CKPT_MSG_TYPE_ERROR_RESPONSE_1 = 0x800,
+
   };
 
   class CkptMsgHdr
