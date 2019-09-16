@@ -436,6 +436,7 @@ class DeleteTool(Tool):
   def __init__(self, panel):
     self.panel = panel
     self.touching = set()  # This is everything that the cursor is currently touching
+    self.wireCheck = False
     self.rect = None       # Will be something if a rectangle selection is being used
     self.boxSel = BoxGesture()
     self.entOrder = ["Component", "ComponentServiceInstance", "ServiceUnit", "ServiceInstance", "Node", "ServiceGroup"] # Select layer entity by order: Component->csi->su->si->node->sg
@@ -452,8 +453,9 @@ class DeleteTool(Tool):
     '''
     @summary    : detect wire by pos then delete wire(s)/connect(s)
     '''
+    model = share.detailsPanel.model
     pos = convertToRealPos(pos, self.panel.scale)
-    for (name, e) in share.detailsPanel.model.entities.items():
+    for (name, e) in model.entities.items():
       for arrow in e.containmentArrows:
         st = arrow.container.pos
         end = arrow.contained.pos
@@ -464,6 +466,7 @@ class DeleteTool(Tool):
         l2 = self.getDistance(pos_2, pos)
         if math.fabs(l1+l2-l) < 0.08:
           e.containmentArrows.remove(arrow)
+          model.deleteWireFromMicrodom(name, arrow.contained.data['name'])
 
   def OnEditEvent(self,panel,event):
     pos = panel.CalcUnscrolledPosition(event.GetPositionTuple())
@@ -473,11 +476,11 @@ class DeleteTool(Tool):
         entities = panel.findEntitiesAt(pos)
         self.dragPos = pos
         if not entities:
-          self.wireDelete(pos)
+          self.wireCheck = True
           self.touching = set()
           self.boxSel.start(panel,pos)
           return False
-
+        self.wireCheck = False
         # If you touch something else, your touching set changes.  But if you touch something in your current touch group then nothing changes
         # This enables behavior like selecting a group of entities and then dragging them (without using the ctrl key)
         if not entities.issubset(self.touching) or (len(self.touching) != len(entities)):
@@ -485,6 +488,7 @@ class DeleteTool(Tool):
 
       if event.Dragging():
           # Touching nothing, this is a selection rectangle
+          self.wireCheck = False
           self.boxSel.change(panel,event)
   
       if event.ButtonUp(wx.MOUSE_BTN_LEFT):
@@ -502,6 +506,8 @@ class DeleteTool(Tool):
           print "Delete(s): %s" % ", ".join([ e.data["name"] for e in self.touching])
           self.deleteEntities(self.touching)
           self.touching.clear()
+        elif self.wireCheck:
+          self.wireDelete(pos)
         panel.Refresh()
 
   def deleteEntities(self, ents):

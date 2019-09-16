@@ -134,7 +134,18 @@ instantiated  <instances>     instances                         instances     (e
           if t:            
             caTag.delChild(t[0])
       
-
+  def deleteWireFromMicrodom(self, containerName, containedName):
+    ideEntities = self.data.getElementsByTagName("ide_entity_info")
+    if ideEntities:
+        e = ideEntities[0].getElementsByTagName(containerName)
+        if e:
+          arrows = e[0].getElementsByTagName("containmentArrows")
+          if arrows:
+            name = "_" + containedName
+            t = arrows[0].getElementsByTagName(name)
+            if t:
+              arrows[0].delChild(t[0])      
+    
   def deleteInstance(self,inst):
     self.recursiveDeleteInstance(inst)
     
