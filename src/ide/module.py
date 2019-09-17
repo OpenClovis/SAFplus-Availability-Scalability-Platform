@@ -19,11 +19,11 @@ def DataTypeSortOrder(a,b):
 class ModuleChangedHandler(watchdog.events.FileSystemEventHandler):
   def __init__(self):
     self.files = {}
-  def on_modified(self,event):
-    if type(event) == watchdog.events.FileModifiedEvent:
-      print "file modified";
-      tmp = self.files.get(event.src_path, None)
-      if tmp: tmp.onModuleChanged()
+  # def on_modified(self,event):
+  #   if type(event) == watchdog.events.FileModifiedEvent:
+  #     print "file modified";
+  #     tmp = self.files.get(event.src_path, None)
+  #     if tmp: tmp.onModuleChanged()
 
 class Module:
   def __init__(self, filename):
