@@ -1815,7 +1815,7 @@ class DeployDialog(wx.Dialog):
           pass
       key = Fernet.generate_key()
       if not os.path.isdir(path):
-        os.mkdir(path, 0x755);
+        os.mkdir(path);
       try:
         file = open(pathFile, 'wb')
         p = pickle.Pickler(file, -1)
@@ -1837,6 +1837,7 @@ class DeployDialog(wx.Dialog):
 
     def initDeploymentInfo(self):
       nodeIntances = []
+      file = None
       try:
         for (name, e) in share.detailsPanel.model.instances.items():
           if e.data['entityType'] == "Node":
@@ -1905,6 +1906,7 @@ class DeployDialog(wx.Dialog):
       return cipheredConfig
 
     def onSaveAllDeploymentInfo(self):
+      file = None
       try:
         file = open("%s/configs/target.xml" % self.parent.getPrjPath(),"wb")
         p = pickle.Pickler(file, -1)
