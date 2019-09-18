@@ -11,6 +11,7 @@
 #include <clHandleApi.hxx>
 #include <boost/unordered_map.hpp>
 #include <iostream>
+#include <map>
 
 #define DBAL_PLUGIN_NAME "libclSQLiteDB.so"
 
@@ -677,8 +678,7 @@ namespace amfMgmtRpc {
        if (child.size()==0 && val.length()<=0) // there is only one value of the list e.g.safplusAmf/ServiceUnit[@name="su1"]/components -> [] children [0] 
        {          
          logError("MGMT","DEL.LIST", "value of xpath [%s] is empty, rc=[0x%x]", bkXpath.c_str(), rc);
-         return rc;
-        
+         return rc;        
        }
        else if(child.size()==0 && val.length()>0) // there is only one value of the list e.g. safplusAmf/ServiceUnit[@name="su1"]/components -> [c1] children [0]
        {
@@ -699,6 +699,7 @@ namespace amfMgmtRpc {
          // in this case, val = "", child = [[1],[2],[3],...]         
          it = child.begin();
          int count=0;
+         std::map<std::string,std::string> map;
          for (;it != child.end();it++)
          {           
            strXpath.append(*it); //safplusAmf/ServiceUnit[@name="su1"]/components[1]
@@ -710,28 +711,43 @@ namespace amfMgmtRpc {
              if (std::find(values.begin(),values.end(),value)!=values.end())
              {
                valuesToDelete.push_back(value);
+               logDebug("MGMT","DEL.LIST", "deleting record for xpath [%s]",strXpath.c_str());
                MGMT_CALL(amfDb.deleteRecord(strXpath));
-               count++;
-               if (count == values.size()) break;
-             }
-           }
+               count++;               
+               //if (count == values.size()) break;
+             }             
+           }           
            strXpath = bkXpath;
+           map[*it] = value;
          }
          for(it=valuesToDelete.begin();it!=valuesToDelete.end();it++)
          {
-           std::vector<std::string>::iterator it2 = std::find(child.begin(),child.end(),*it);
-           if (it2 != child.end())
+           for (std::map<std::string,std::string>::iterator itmap = map.begin(); itmap!=map.end();itmap++)
            {
-              child.erase(it2);
-           }
+             if (itmap->second.compare(*it)==0)
+             {             
+               const std::string& sVal = itmap->first;
+               //logDebug("MGMT","DEL.LIST", "test if erasing [%s]-->[%s] out of child of [%s]",(*it).c_str(), sVal.c_str(),bkXpath.c_str());
+               std::vector<std::string>::iterator it2 = std::find(child.begin(),child.end(),sVal);
+               if (it2 != child.end())
+               {
+                 logDebug("MGMT","DEL.LIST", "erasing [%s] out of child of [%s]",(*it2).c_str(), bkXpath.c_str());
+                 child.erase(it2);
+               }
+               break;
+             }
+           }           
          }
          if (child.size()>1)
          {
+           logDebug("MGMT","DEL.LIST", "setting record for xpath [%s], val [%s], child [%d]",bkXpath.c_str(), val.c_str(), (int)child.size());
            rc = amfDb.setRecord(bkXpath, val, &child);
          }
          else if (child.size()==1)
-         {        
-           rc = amfDb.setRecord(bkXpath, *(child.begin()));
+         {
+           std::string& sVal = map[*(child.begin())];
+           logDebug("MGMT","DEL.LIST", "setting record for xpath [%s], val [%s], child [0]",bkXpath.c_str(), sVal.c_str());
+           rc = amfDb.setRecord(bkXpath, sVal);
          }
          else
          {
@@ -764,12 +780,15 @@ namespace amfMgmtRpc {
        std::stringstream ss;
        val="";
        for (it=valuesToDelete.begin();it!=valuesToDelete.end();it++)
-       {
-         ss.str("");
+       {         
          ss << "/safplusAmf/" << linkedEntity << "[@name=\"" << *it << "\"]/" << entityType;
+         //logDebug("MGMT","DEL.LIST", "seting record for xpath [%s], val [%s]", ss.str().c_str(), val.c_str());
          rc = amfDb.setRecord(ss.str(), val); //set empty
-         logDebug("MGMT","DEL.LIST", "seting record for xpath [%s]: val [%s], rc [0x%x]",ss.str().c_str(), val.c_str(),rc);
-         if (rc != CL_OK) break;
+         logDebug("MGMT","DEL.LIST", "seting record for xpath [%s]: val [%s], rc [0x%x]",ss.str().c_str(), val.c_str(),rc);         
+         if (rc != CL_OK) 
+           break;
+         else 
+           ss.str("");
        }
     }
     /*else if (rc == CL_ERR_NOT_EXIST) // Does not exist
