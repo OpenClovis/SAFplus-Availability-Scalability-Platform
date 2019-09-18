@@ -533,6 +533,36 @@ ClRcT amfMgmtCSINVPDelete(const Handle& mgmtHandle, const std::string& csiName)
    return rc;
 }
 
+ClRcT amfMgmtNodeSUListDelete(const Handle& mgmtHandle, const std::string& nodeName, const std::vector<std::string>& suNames)
+{
+  if (!gAmfMgmtInitialized)
+   {
+     return CL_ERR_NOT_INITIALIZED;
+   }
+   ClRcT rc;
+   SAFplus::Rpc::amfMgmtRpc::DeleteNodeSUListRequest request;
+   request.add_amfmgmthandle((const char*) &mgmtHandle, sizeof(Handle));
+   request.set_nodename(nodeName);
+   std::vector<std::string>::const_iterator it = suNames.begin();
+   for(; it!=suNames.end();it++)
+   {
+     request.add_sulist(*it);
+   }
+   try
+    {
+      Handle& remoteAmfHdl = name.getHandle(AMF_MASTER_HANDLE, 2000);
+      SAFplus::Rpc::amfMgmtRpc::DeleteNodeSUListResponse resp;
+      amfMgmtRpc->deleteNodeSUList(remoteAmfHdl,&request,&resp);
+      rc = (ClRcT)resp.err();
+    }
+   catch(NameException& ex)
+    {
+      logError("MGMT","INI","getHandle got exception [%s]", ex.what());
+      rc = CL_ERR_NOT_EXIST;
+    }
+   return rc;
+}
+
 ClRcT amfMgmtCommit(const Handle& amfMgmtHandle)
 {
    if (!gAmfMgmtInitialized)
@@ -541,7 +571,7 @@ ClRcT amfMgmtCommit(const Handle& amfMgmtHandle)
    }
    ClRcT rc;
    SAFplus::Rpc::amfMgmtRpc::CommitRequest request;
-   request.add_amfmgmthandle((const char*) &amfMgmtHandle, sizeof(Handle));   
+   request.add_amfmgmthandle((const char*) &amfMgmtHandle, sizeof(Handle));
    try
     {
       Handle& remoteAmfHdl = name.getHandle(AMF_MASTER_HANDLE, 2000);

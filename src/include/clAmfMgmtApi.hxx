@@ -1,6 +1,8 @@
 #include <amfMgmtRpc.pb.hxx>
 #include <clCommon6.h>
 #include <clHandleApi.hxx>
+//#include <vector>
+
 namespace SAFplus {
 
 ClRcT amfMgmtInitialize(Handle& amfMgmtHandle);
@@ -32,5 +34,7 @@ ClRcT amfMgmtComponentServiceInstanceConfigSet(const Handle& mgmtHandle, SAFplus
 ClRcT amfMgmtComponentServiceInstanceDelete(const Handle& mgmtHandle, const std::string& csiName);
 
 ClRcT amfMgmtCSINVPDelete(const Handle& mgmtHandle, const std::string& csiName);
+
+ClRcT amfMgmtNodeSUListDelete(const Handle& mgmtHandle, const std::string& nodeName, const std::vector<std::string>& suNames);
 
 }

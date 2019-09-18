@@ -10,6 +10,7 @@
 #include <clDbalBase.hxx>
 #include <clHandleApi.hxx>
 #include <boost/unordered_map.hpp>
+#include <iostream>
 
 #define DBAL_PLUGIN_NAME "libclSQLiteDB.so"
 
@@ -41,6 +42,8 @@ DbalHashMap amfMgmtMap;
 
 typedef std::pair<const std::string,const std::string> KeyValueMapPair;
 typedef boost::unordered_map <const std::string, const std::string> KeyValueHashMap;
+
+static unsigned short inc = 0; //increament number of operation number
 
 // RPC Operation IDs
 const int AMF_MGMT_OP_COMPONENT_CREATE             = 1;
@@ -499,25 +502,16 @@ namespace amfMgmtRpc {
        tempXpath.insert(strXpath1.length(),"/"); // /safplusAmf/ComponentServiceInstance[@name="csi"]/data[@name="testKey2"]
        children.clear();
        amfDb.getRecord(tempXpath,value,&children);
-       //if (rc == CL_OK)
-       //{          
-          it = std::find(children.begin(),children.end(),strTagName2);
-          if (it != children.end())
-          {
-             logInfo("MGMT","UDT.ENT","child [%s] is already assigned to xpath [%s]", tagName2, tempXpath.c_str());
-          }
-          else
-          {
-             children.push_back(strTagName2);
-             MGMT_CALL(amfDb.setRecord(tempXpath,value,&children));
-          }
-       /*}
+       it = std::find(children.begin(),children.end(),strTagName2);
+       if (it != children.end())
+       {
+          logInfo("MGMT","UDT.ENT","child [%s] is already assigned to xpath [%s]", tagName2, tempXpath.c_str());
+       }
        else
        {
-          logDebug("MGMT","UDT.ENT", "get record with xpath [%s], rc=[0x%x]", tempXpath.c_str(), rc);
           children.push_back(strTagName2);
           MGMT_CALL(amfDb.setRecord(tempXpath,value,&children));
-       }*/       
+       }
        tempXpath.append("/"); // /safplusAmf/ComponentServiceInstance[@name="csi"]/data[@name="testKey2"]
        tempXpath.append(tagName2); // /safplusAmf/ComponentServiceInstance[@name="csi"]/data[@name="testKey2"]/val
        rc = amfDb.setRecord(tempXpath,val);
@@ -648,6 +642,143 @@ namespace amfMgmtRpc {
     else
     {
        logWarning("MGMT","UDT.LIST", "getting record for [%s] got unknown error code [0x%x]", strXpath.c_str(), rc);
+    }
+    return rc;
+  }
+  
+  /*
+  function deleteEntityAsListTypeFromDatabase:
+     params:
+       xpath: /safplusAmf/Node
+       entityName: node0
+       entityType: {"node","serviceUnit","serviceInstance","componentServiceInstance","component"}
+  */
+  ClRcT deleteEntityAsListTypeFromDatabase(const char* xpath, const std::string& entityName, const char* entityType, const char* tagName, const std::vector<std::string>& values)//, const std::vector<std::string>* child=nullptr)
+  {
+    // check if the xpath exists in the DB
+    logDebug("MGMT","---", "enter [%s] with params [%s] [%s]",__FUNCTION__, xpath, entityName.c_str());
+    if (values.size()==0) return CL_ERR_INVALID_PARAMETER;
+      
+    std::string val;
+    std::vector<std::string>child;
+    std::string strXpath(xpath);
+    strXpath.append("[@name=\"");
+    strXpath.append(entityName);
+    strXpath.append("\"]/");
+    strXpath.append(tagName);
+    std::string bkXpath = strXpath;    
+    ClRcT rc = amfDb.getRecord(strXpath,val,&child);
+    if (rc == CL_OK)
+    {  
+       std::string value;
+       std::vector<std::string> valuesToDelete;
+       std::vector<std::string>::iterator it;
+       // / normally, safplusAmf/Node[@name="node0"]/serviceUnits ->  childs: [[1],[2]]
+       if (child.size()==0 && val.length()<=0) // there is only one value of the list e.g.safplusAmf/ServiceUnit[@name="su1"]/components -> [] children [0] 
+       {          
+         logError("MGMT","DEL.LIST", "value of xpath [%s] is empty, rc=[0x%x]", bkXpath.c_str(), rc);
+         return rc;
+        
+       }
+       else if(child.size()==0 && val.length()>0) // there is only one value of the list e.g. safplusAmf/ServiceUnit[@name="su1"]/components -> [c1] children [0]
+       {
+          if (std::find(values.begin(),values.end(),val)!=values.end())
+          {            
+            rc = amfDb.setRecord(bkXpath, value);
+            logDebug("MGMT","DEL.LIST", "set record with xpath [%s], value [%s], children [0] rc=[0x%x]", bkXpath.c_str(), val.c_str(), rc);
+            if (rc == CL_OK) valuesToDelete.push_back(val);
+          }
+          else
+          {
+            logWarning("MGMT","DEL.LIST", "there is no any value matched for xpath [%s]-->value [%s]", bkXpath.c_str(), val.c_str());
+            return CL_ERR_INVALID_PARAMETER;
+          }
+       }
+       else
+       {
+         // in this case, val = "", child = [[1],[2],[3],...]         
+         it = child.begin();
+         int count=0;
+         for (;it != child.end();it++)
+         {           
+           strXpath.append(*it); //safplusAmf/ServiceUnit[@name="su1"]/components[1]
+           std::vector<std::string> v;
+           rc = amfDb.getRecord(strXpath,value,&v); //result: safplusAmf/ServiceUnit[@name="su1"]/components[1] -> [c0] children [0]
+           logDebug("MGMT","DEL.LIST", "getting record for key [%s]: val [%s], rc [0x%x]",strXpath.c_str(), value.c_str(),rc);
+           if (rc==CL_OK)
+           {
+             if (std::find(values.begin(),values.end(),value)!=values.end())
+             {
+               valuesToDelete.push_back(value);
+               MGMT_CALL(amfDb.deleteRecord(strXpath));
+               count++;
+               if (count == values.size()) break;
+             }
+           }
+           strXpath = bkXpath;
+         }
+         for(it=valuesToDelete.begin();it!=valuesToDelete.end();it++)
+         {
+           std::vector<std::string>::iterator it2 = std::find(child.begin(),child.end(),*it);
+           if (it2 != child.end())
+           {
+              child.erase(it2);
+           }
+         }
+         if (child.size()>1)
+         {
+           rc = amfDb.setRecord(bkXpath, val, &child);
+         }
+         else if (child.size()==1)
+         {        
+           rc = amfDb.setRecord(bkXpath, *(child.begin()));
+         }
+         else
+         {
+           logDebug("MGMT","DEL.LIST", "there is no value to delete for xpath [%s]", bkXpath.c_str());
+           if (count == 0) rc = CL_ERR_INVALID_PARAMETER;
+         }
+       }
+       /* Next steps: remove the link between tagName and entity:
+          MGMT_CALL(deleteEntityAsListTypeFromDatabase("/safplusAmf/Node",nodeName,"node", "serviceUnits",[su0,su1]));
+          /safplusAmf/Node[@name='node0']/serviceUnits --> su0,su1
+          ==> need to remove link ServiceUnit to Node: /safplusAmf/ServiceUnit[@name='su0']/node --> node0
+                                                       /safplusAmf/ServiceUnit[@name='su1']/node --> node0
+
+       */
+       if (rc != CL_OK) return rc;
+       std::string linkedEntity;
+       if (!strcmp(tagName,"serviceUnits"))
+         linkedEntity = "ServiceUnit";
+       else if (!strcmp(tagName,"serviceInstances"))
+         linkedEntity = "ServiceInstance";
+       else if (!strcmp(tagName,"componentServiceInstances"))
+         linkedEntity = "ComponentServiceInstance";
+       else if (!strcmp(tagName,"components"))
+         linkedEntity = "Component";
+       else
+       {
+         logError("MGMT","DEL.LIST", "unknown tagName [%s]", tagName);
+         return CL_ERR_INVALID_PARAMETER;
+       }
+       std::stringstream ss;
+       val="";
+       for (it=valuesToDelete.begin();it!=valuesToDelete.end();it++)
+       {
+         ss.str("");
+         ss << "/safplusAmf/" << linkedEntity << "[@name=\"" << *it << "\"]/" << entityType;
+         rc = amfDb.setRecord(ss.str(), val); //set empty
+         logDebug("MGMT","DEL.LIST", "seting record for xpath [%s]: val [%s], rc [0x%x]",ss.str().c_str(), val.c_str(),rc);
+         if (rc != CL_OK) break;
+       }
+    }
+    /*else if (rc == CL_ERR_NOT_EXIST) // Does not exist
+    {
+       
+    }*/
+    else
+    {
+       logError("MGMT","DEL.LIST", "getting record for [%s] got error code [0x%x]", strXpath.c_str(), rc);
     }
     return rc;
   }
@@ -1336,12 +1467,39 @@ namespace amfMgmtRpc {
     return rc;
   }
 
+  ClRcT nodeSUListDeleteCommit(const DeleteNodeSUListRequest& request)
+  {
+    const std::string& nodeName = request.nodename();
+    logDebug("MGMT","RPC", "server is processing [%s] for entity [%s]", __FUNCTION__, nodeName.c_str());
+    if (nodeName.length()==0)
+    {
+      return CL_ERR_INVALID_PARAMETER;      
+    }
+    ClRcT rc = CL_OK;
+    int suSize = 0;
+    if ((suSize=request.sulist_size())>0)
+    {
+      std::vector<std::string> sus;
+      for (int i=0;i<suSize;i++)
+      {
+         sus.push_back(request.sulist(i));
+      }
+      MGMT_CALL(deleteEntityAsListTypeFromDatabase("/safplusAmf/Node",nodeName,"node","serviceUnits",sus));
+    }
+    else
+    {
+      logError("MGMT","RPC", "su list is empty for delete su list of node [%s]", nodeName.c_str());
+      rc = CL_ERR_INVALID_PARAMETER;
+    }
+    return rc;
+  }
+
   ClRcT handleCommit(const ClDBKeyHandleT recKey, ClUint32T keySize, const ClDBRecordHandleT recData, ClUint32T dataSize)
   {
     int op = 0;
     ClRcT rc = CL_OK;
     memcpy(&op, recKey, keySize);
-    switch (op)
+    switch (op>>16)
     {
     case AMF_MGMT_OP_COMPONENT_CREATE:
       {
@@ -1542,6 +1700,15 @@ namespace amfMgmtRpc {
         break;
       }
     case AMF_MGMT_OP_NODE_SU_LIST_DELETE:
+      {
+        DeleteNodeSUListRequest request;
+        std::string strRequestData;
+        strRequestData.assign((ClCharT*)recData, dataSize);
+        request.ParseFromString(strRequestData);        
+        logDebug("MGMT","COMMIT","handleCommit op [%d], entity [%s]", op, request.nodename().c_str());
+        rc = nodeSUListDeleteCommit(request);
+        break;
+      }
     case AMF_MGMT_OP_SG_SU_LIST_DELETE:
     case AMF_MGMT_OP_SG_SI_LIST_DELETE:
     case AMF_MGMT_OP_SU_COMP_LIST_DELETE:
@@ -1561,7 +1728,7 @@ namespace amfMgmtRpc {
     case AMF_MGMT_OP_COMP_REPAIR:
     case AMF_MGMT_OP_SU_REPAIR:
     default:
-      logError("MGMT","RPC","invalid rpc operation [%d]",op);
+      logError("MGMT","RPC","invalid rpc operation [%d]",op>>16);
       break;
     }
     return rc;
@@ -1599,6 +1766,7 @@ namespace amfMgmtRpc {
       logDebug("MGMT","RPC", "adding handle [%" PRIx64 ":%" PRIx64 "] and Dbal object to map", hdl.id[0],hdl.id[1]);
       DbalMapPair kv(hdl,p);
       amfMgmtMap.insert(kv);
+      inc = 1;
     }
     response->set_err(rc);
   }
@@ -1666,12 +1834,13 @@ namespace amfMgmtRpc {
     }
     if (rc2 != CL_OK)
     {
-      response->set_err(rc2);
+      response->set_err(rc2);      
     }
     else
     {
       response->set_err(rc);
     }
+    if (rc == CL_OK && rc2 == CL_OK) inc = 1;
   }
 
   void amfMgmtRpcImpl::createComponent(const ::SAFplus::Rpc::amfMgmtRpc::CreateComponentRequest* request,
@@ -1695,12 +1864,14 @@ namespace amfMgmtRpc {
     ClRcT rc = getDbalObj(request->amfmgmthandle().Get(0).c_str(), &pd);
     if (rc == CL_OK)
     {
-      std::string strMsgReq;      
+      std::string strMsgReq;
       request->SerializeToString(&strMsgReq);
-      rc = pd->insertRecord(ClDBKeyT(&AMF_MGMT_OP_COMPONENT_CREATE),
-                           (ClUint32T)sizeof(AMF_MGMT_OP_COMPONENT_CREATE),
+      int opId = (AMF_MGMT_OP_COMPONENT_CREATE<<16)|inc++;
+      rc = pd->insertRecord(ClDBKeyT(&opId),
+                           (ClUint32T)sizeof(opId),
                            (ClDBRecordT)strMsgReq.c_str(),
-                           (ClUint32T)strMsgReq.length());      
+                           (ClUint32T)strMsgReq.length());
+      logDebug("MGMT","RPC","[%s] insertRecord with key [%d], inc [%d] returns [0x%x]",__FUNCTION__, opId, inc-1, rc);
     } 
     response->set_err(rc);
   }
@@ -1717,10 +1888,12 @@ namespace amfMgmtRpc {
     {
       std::string strMsgReq;      
       request->SerializeToString(&strMsgReq);
-      rc = pd->insertRecord(ClDBKeyT(&AMF_MGMT_OP_COMPONENT_UPDATE),
-                           (ClUint32T)sizeof(AMF_MGMT_OP_COMPONENT_UPDATE),
+      int opId = (AMF_MGMT_OP_COMPONENT_UPDATE<<16)|inc++;
+      rc = pd->insertRecord(ClDBKeyT(&opId),
+                           (ClUint32T)sizeof(opId),
                            (ClDBRecordT)strMsgReq.c_str(),
-                           (ClUint32T)strMsgReq.length());      
+                           (ClUint32T)strMsgReq.length());
+      logDebug("MGMT","RPC","[%s] insertRecord with key [%d], inc [%d] returns [0x%x]",__FUNCTION__, opId, inc-1, rc);
     } 
     response->set_err(rc);
   }
@@ -1738,10 +1911,12 @@ namespace amfMgmtRpc {
     {
       std::string strMsgReq;      
       request->SerializeToString(&strMsgReq);
-      rc = pd->insertRecord(ClDBKeyT(&AMF_MGMT_OP_COMPONENT_DELETE),
-                           (ClUint32T)sizeof(AMF_MGMT_OP_COMPONENT_DELETE),
+      int opId = (AMF_MGMT_OP_COMPONENT_DELETE<<16)|inc++;
+      rc = pd->insertRecord(ClDBKeyT(&opId),
+                           (ClUint32T)sizeof(opId),
                            (ClDBRecordT)strMsgReq.c_str(),
-                           (ClUint32T)strMsgReq.length());      
+                           (ClUint32T)strMsgReq.length());
+      logDebug("MGMT","RPC","[%s] insertRecord with key [%d], inc [%d] returns [0x%x]",__FUNCTION__, opId, inc-1, rc);      
     } 
     response->set_err(rc);
   }
@@ -1757,11 +1932,12 @@ namespace amfMgmtRpc {
     {
       std::string strMsgReq;      
       request->SerializeToString(&strMsgReq);
-      rc = pd->insertRecord(ClDBKeyT(&AMF_MGMT_OP_SG_CREATE),
-                           (ClUint32T)sizeof(AMF_MGMT_OP_SG_CREATE),
+      int opId = (AMF_MGMT_OP_SG_CREATE<<16)|inc++;
+      rc = pd->insertRecord(ClDBKeyT(&opId),
+                           (ClUint32T)sizeof(opId),
                            (ClDBRecordT)strMsgReq.c_str(),
                            (ClUint32T)strMsgReq.length());      
-      logDebug("MGMT","RPC","[%s] insertRecord returns [0x%x]",__FUNCTION__, rc);
+      logDebug("MGMT","RPC","[%s] insertRecord with key [%d], inc [%d] returns [0x%x]",__FUNCTION__, opId, inc-1, rc);
     }
   }
 
@@ -1776,11 +1952,12 @@ namespace amfMgmtRpc {
     {
       std::string strMsgReq;      
       request->SerializeToString(&strMsgReq);
-      rc = pd->insertRecord(ClDBKeyT(&AMF_MGMT_OP_SG_UPDATE),
-                           (ClUint32T)sizeof(AMF_MGMT_OP_SG_UPDATE),
+      int opId = (AMF_MGMT_OP_SG_UPDATE<<16)|inc++;
+      rc = pd->insertRecord(ClDBKeyT(&opId),
+                           (ClUint32T)sizeof(opId),
                            (ClDBRecordT)strMsgReq.c_str(),
                            (ClUint32T)strMsgReq.length());      
-      logDebug("MGMT","RPC","[%s] insertRecord returns [0x%x]",__FUNCTION__, rc);
+      logDebug("MGMT","RPC","[%s] insertRecord with key [%d], inc [%d] returns [0x%x]",__FUNCTION__, opId, inc-1, rc);
     }
   }
 
@@ -1795,11 +1972,12 @@ namespace amfMgmtRpc {
     {
       std::string strMsgReq;      
       request->SerializeToString(&strMsgReq);
-      rc = pd->insertRecord(ClDBKeyT(&AMF_MGMT_OP_SG_DELETE),
-                           (ClUint32T)sizeof(AMF_MGMT_OP_SG_DELETE),
+      int opId = (AMF_MGMT_OP_SG_DELETE<<16)|inc++;
+      rc = pd->insertRecord(ClDBKeyT(&opId),
+                           (ClUint32T)sizeof(opId),
                            (ClDBRecordT)strMsgReq.c_str(),
                            (ClUint32T)strMsgReq.length());      
-      logDebug("MGMT","RPC","[%s] insertRecord returns [0x%x]",__FUNCTION__, rc);
+      logDebug("MGMT","RPC","[%s] insertRecord with key [%d], inc [%d] returns [0x%x]",__FUNCTION__, opId, inc-1, rc);
     }
   }
 
@@ -1814,11 +1992,12 @@ namespace amfMgmtRpc {
     {
       std::string strMsgReq;      
       request->SerializeToString(&strMsgReq);
-      rc = pd->insertRecord(ClDBKeyT(&AMF_MGMT_OP_NODE_CREATE),
-                           (ClUint32T)sizeof(AMF_MGMT_OP_NODE_CREATE),
+      int opId = (AMF_MGMT_OP_NODE_CREATE<<16)|inc++;
+      rc = pd->insertRecord(ClDBKeyT(&opId),
+                           (ClUint32T)sizeof(opId),
                            (ClDBRecordT)strMsgReq.c_str(),
                            (ClUint32T)strMsgReq.length());      
-      logDebug("MGMT","RPC","[%s] insertRecord returns [0x%x]",__FUNCTION__, rc);
+      logDebug("MGMT","RPC","[%s] insertRecord with key [%d], inc [%d] returns [0x%x]",__FUNCTION__, opId, inc-1, rc);
     }
   }
 
@@ -1833,11 +2012,12 @@ namespace amfMgmtRpc {
     {
       std::string strMsgReq;      
       request->SerializeToString(&strMsgReq);
-      rc = pd->insertRecord(ClDBKeyT(&AMF_MGMT_OP_NODE_UPDATE),
-                           (ClUint32T)sizeof(AMF_MGMT_OP_NODE_UPDATE),
+      int opId = (AMF_MGMT_OP_NODE_UPDATE<<16)|inc++;
+      rc = pd->insertRecord(ClDBKeyT(&opId),
+                           (ClUint32T)sizeof(opId),
                            (ClDBRecordT)strMsgReq.c_str(),
                            (ClUint32T)strMsgReq.length());      
-      logDebug("MGMT","RPC","[%s] insertRecord returns [0x%x]",__FUNCTION__, rc);
+      logDebug("MGMT","RPC","[%s] insertRecord with key [%d], inc [%d] returns [0x%x]",__FUNCTION__, opId, inc-1, rc);
     }
   }
 
@@ -1852,11 +2032,12 @@ namespace amfMgmtRpc {
     {
       std::string strMsgReq;      
       request->SerializeToString(&strMsgReq);
-      rc = pd->insertRecord(ClDBKeyT(&AMF_MGMT_OP_NODE_DELETE),
-                           (ClUint32T)sizeof(AMF_MGMT_OP_NODE_DELETE),
+      int opId = (AMF_MGMT_OP_NODE_DELETE<<16)|inc++;
+      rc = pd->insertRecord(ClDBKeyT(&opId),
+                           (ClUint32T)sizeof(opId),
                            (ClDBRecordT)strMsgReq.c_str(),
                            (ClUint32T)strMsgReq.length());      
-      logDebug("MGMT","RPC","[%s] insertRecord returns [0x%x]",__FUNCTION__, rc);
+      logDebug("MGMT","RPC","[%s] insertRecord with key [%d], inc [%d] returns [0x%x]",__FUNCTION__, opId, inc-1, rc);
     }
   }
 
@@ -1871,11 +2052,12 @@ namespace amfMgmtRpc {
     {
       std::string strMsgReq;      
       request->SerializeToString(&strMsgReq);
-      rc = pd->insertRecord(ClDBKeyT(&AMF_MGMT_OP_SU_CREATE),
-                           (ClUint32T)sizeof(AMF_MGMT_OP_SU_CREATE),
+      int opId = (AMF_MGMT_OP_SU_CREATE<<16)|inc++;
+      rc = pd->insertRecord(ClDBKeyT(&opId),
+                           (ClUint32T)sizeof(opId),
                            (ClDBRecordT)strMsgReq.c_str(),
                            (ClUint32T)strMsgReq.length());      
-      logDebug("MGMT","RPC","[%s] insertRecord returns [0x%x]",__FUNCTION__, rc);
+      logDebug("MGMT","RPC","[%s] insertRecord with key [%d], inc [%d] returns [0x%x]",__FUNCTION__, opId, inc-1, rc);
     } 
     response->set_err(rc);
   }
@@ -1891,11 +2073,12 @@ namespace amfMgmtRpc {
     {
       std::string strMsgReq;      
       request->SerializeToString(&strMsgReq);
-      rc = pd->insertRecord(ClDBKeyT(&AMF_MGMT_OP_SU_UPDATE),
-                           (ClUint32T)sizeof(AMF_MGMT_OP_SU_UPDATE),
+      int opId = (AMF_MGMT_OP_SU_UPDATE<<16)|inc++;
+      rc = pd->insertRecord(ClDBKeyT(&opId),
+                           (ClUint32T)sizeof(opId),
                            (ClDBRecordT)strMsgReq.c_str(),
                            (ClUint32T)strMsgReq.length());      
-      logDebug("MGMT","RPC","[%s] insertRecord returns [0x%x]",__FUNCTION__, rc);
+      logDebug("MGMT","RPC","[%s] insertRecord with key [%d], inc [%d] returns [0x%x]",__FUNCTION__, opId, inc-1, rc);
     } 
     response->set_err(rc);  
   }
@@ -1911,11 +2094,12 @@ namespace amfMgmtRpc {
     {
       std::string strMsgReq;      
       request->SerializeToString(&strMsgReq);
-      rc = pd->insertRecord(ClDBKeyT(&AMF_MGMT_OP_SU_DELETE),
-                           (ClUint32T)sizeof(AMF_MGMT_OP_SU_DELETE),
+      int opId = (AMF_MGMT_OP_SU_DELETE<<16)|inc++;
+      rc = pd->insertRecord(ClDBKeyT(&opId),
+                           (ClUint32T)sizeof(opId),
                            (ClDBRecordT)strMsgReq.c_str(),
                            (ClUint32T)strMsgReq.length());      
-      logDebug("MGMT","RPC","[%s] insertRecord returns [0x%x]",__FUNCTION__, rc);
+      logDebug("MGMT","RPC","[%s] insertRecord with key [%d], inc [%d] returns [0x%x]",__FUNCTION__, opId, inc-1, rc);
     } 
     response->set_err(rc);
   }
@@ -1931,11 +2115,12 @@ namespace amfMgmtRpc {
     {
       std::string strMsgReq;      
       request->SerializeToString(&strMsgReq);
-      rc = pd->insertRecord(ClDBKeyT(&AMF_MGMT_OP_SI_CREATE),
-                           (ClUint32T)sizeof(AMF_MGMT_OP_SI_CREATE),
+      int opId = (AMF_MGMT_OP_SI_CREATE<<16)|inc++;
+      rc = pd->insertRecord(ClDBKeyT(&opId),
+                           (ClUint32T)sizeof(opId),
                            (ClDBRecordT)strMsgReq.c_str(),
                            (ClUint32T)strMsgReq.length());      
-      logDebug("MGMT","RPC","[%s] insertRecord returns [0x%x]",__FUNCTION__, rc);
+      logDebug("MGMT","RPC","[%s] insertRecord with key [%d], inc [%d] returns [0x%x]",__FUNCTION__, opId, inc-1, rc);
     } 
     response->set_err(rc);
   }
@@ -1951,11 +2136,12 @@ namespace amfMgmtRpc {
     {
       std::string strMsgReq;      
       request->SerializeToString(&strMsgReq);
-      rc = pd->insertRecord(ClDBKeyT(&AMF_MGMT_OP_SI_UPDATE),
-                           (ClUint32T)sizeof(AMF_MGMT_OP_SI_UPDATE),
+      int opId = (AMF_MGMT_OP_SI_UPDATE<<16)|inc++;
+      rc = pd->insertRecord(ClDBKeyT(&opId),
+                           (ClUint32T)sizeof(opId),
                            (ClDBRecordT)strMsgReq.c_str(),
                            (ClUint32T)strMsgReq.length());      
-      logDebug("MGMT","RPC","[%s] insertRecord returns [0x%x]",__FUNCTION__, rc);
+      logDebug("MGMT","RPC","[%s] insertRecord with key [%d], inc [%d] returns [0x%x]",__FUNCTION__, opId, inc-1, rc);
     } 
     response->set_err(rc);
   }
@@ -1971,11 +2157,12 @@ namespace amfMgmtRpc {
     {
       std::string strMsgReq;      
       request->SerializeToString(&strMsgReq);
-      rc = pd->insertRecord(ClDBKeyT(&AMF_MGMT_OP_SI_DELETE),
-                           (ClUint32T)sizeof(AMF_MGMT_OP_SI_DELETE),
+      int opId = (AMF_MGMT_OP_SI_DELETE<<16)|inc++;
+      rc = pd->insertRecord(ClDBKeyT(&opId),
+                           (ClUint32T)sizeof(opId),
                            (ClDBRecordT)strMsgReq.c_str(),
                            (ClUint32T)strMsgReq.length());      
-      logDebug("MGMT","RPC","[%s] insertRecord returns [0x%x]",__FUNCTION__, rc);
+      logDebug("MGMT","RPC","[%s] insertRecord with key [%d], inc [%d] returns [0x%x]",__FUNCTION__, opId, inc-1, rc);
     } 
     response->set_err(rc);
   }
@@ -1991,11 +2178,12 @@ namespace amfMgmtRpc {
     {
       std::string strMsgReq;      
       request->SerializeToString(&strMsgReq);
-      rc = pd->insertRecord(ClDBKeyT(&AMF_MGMT_OP_CSI_CREATE),
-                           (ClUint32T)sizeof(AMF_MGMT_OP_CSI_CREATE),
+      int opId = (AMF_MGMT_OP_CSI_CREATE<<16)|inc++;
+      rc = pd->insertRecord(ClDBKeyT(&opId),
+                           (ClUint32T)sizeof(opId),
                            (ClDBRecordT)strMsgReq.c_str(),
                            (ClUint32T)strMsgReq.length());      
-      logDebug("MGMT","RPC","[%s] insertRecord returns [0x%x]",__FUNCTION__, rc);
+      logDebug("MGMT","RPC","[%s] insertRecord with key [%d], inc [%d] returns [0x%x]",__FUNCTION__, opId, inc-1, rc);
     } 
     response->set_err(rc);
   }
@@ -2011,11 +2199,12 @@ namespace amfMgmtRpc {
     {
       std::string strMsgReq;      
       request->SerializeToString(&strMsgReq);
-      rc = pd->insertRecord(ClDBKeyT(&AMF_MGMT_OP_CSI_UPDATE),
-                           (ClUint32T)sizeof(AMF_MGMT_OP_CSI_UPDATE),
+      int opId = (AMF_MGMT_OP_CSI_UPDATE<<16)|inc++;
+      rc = pd->insertRecord(ClDBKeyT(&opId),
+                           (ClUint32T)sizeof(opId),
                            (ClDBRecordT)strMsgReq.c_str(),
                            (ClUint32T)strMsgReq.length());      
-      logDebug("MGMT","RPC","[%s] insertRecord returns [0x%x]",__FUNCTION__, rc);
+      logDebug("MGMT","RPC","[%s] insertRecord with key [%d], inc [%d] returns [0x%x]",__FUNCTION__, opId, inc-1, rc);
     } 
     response->set_err(rc);
   }
@@ -2031,11 +2220,12 @@ namespace amfMgmtRpc {
     {
       std::string strMsgReq;      
       request->SerializeToString(&strMsgReq);
-      rc = pd->insertRecord(ClDBKeyT(&AMF_MGMT_OP_CSI_DELETE),
-                           (ClUint32T)sizeof(AMF_MGMT_OP_CSI_DELETE),
+      int opId = (AMF_MGMT_OP_CSI_DELETE<<16)|inc++;
+      rc = pd->insertRecord(ClDBKeyT(&opId),
+                           (ClUint32T)sizeof(opId),
                            (ClDBRecordT)strMsgReq.c_str(),
                            (ClUint32T)strMsgReq.length());      
-      logDebug("MGMT","RPC","[%s] insertRecord returns [0x%x]",__FUNCTION__, rc);
+      logDebug("MGMT","RPC","[%s] insertRecord with key [%d], inc [%d] returns [0x%x]",__FUNCTION__, opId, inc-1, rc);
     } 
     response->set_err(rc);
   }
@@ -2051,11 +2241,12 @@ namespace amfMgmtRpc {
     {
       std::string strMsgReq;
       request->SerializeToString(&strMsgReq);
-      rc = pd->insertRecord(ClDBKeyT(&AMF_MGMT_OP_CSI_NVP_DELETE),
-                           (ClUint32T)sizeof(AMF_MGMT_OP_CSI_NVP_DELETE),
+      int opId = (AMF_MGMT_OP_CSI_NVP_DELETE<<16)|inc++;
+      rc = pd->insertRecord(ClDBKeyT(&opId),
+                           (ClUint32T)sizeof(opId),
                            (ClDBRecordT)strMsgReq.c_str(),
                            (ClUint32T)strMsgReq.length());
-      logDebug("MGMT","RPC","[%s] insertRecord returns [0x%x]",__FUNCTION__, rc);
+      logDebug("MGMT","RPC","[%s] insertRecord with key [%d], inc [%d] returns [0x%x]",__FUNCTION__, opId, inc-1, rc);
     }
     response->set_err(rc);
   }
@@ -2063,31 +2254,106 @@ namespace amfMgmtRpc {
   void amfMgmtRpcImpl::deleteNodeSUList(const ::SAFplus::Rpc::amfMgmtRpc::DeleteNodeSUListRequest* request,
                                 ::SAFplus::Rpc::amfMgmtRpc::DeleteNodeSUListResponse* response)
   {
-    //TODO: put your code here
+    const std::string& nodeName = request->nodename();
+    logDebug("MGMT","RPC","enter [%s] with param node name [%s]",__FUNCTION__,nodeName.c_str());
+    DbalPlugin* pd = NULL;
+    ClRcT rc = getDbalObj(request->amfmgmthandle().Get(0).c_str(), &pd);
+    if (rc == CL_OK)
+    {
+      std::string strMsgReq;
+      request->SerializeToString(&strMsgReq);
+      int opId = (AMF_MGMT_OP_NODE_SU_LIST_DELETE<<16)|inc++;      
+      rc = pd->insertRecord(ClDBKeyT(&opId),
+                           (ClUint32T)sizeof(opId),
+                           (ClDBRecordT)strMsgReq.c_str(),
+                           (ClUint32T)strMsgReq.length());
+      logDebug("MGMT","RPC","[%s] insertRecord with key [%d], inc [%d] returns [0x%x]",__FUNCTION__, opId, inc-1, rc);
+    }
+    response->set_err(rc);
   }
 
   void amfMgmtRpcImpl::deleteSGSUList(const ::SAFplus::Rpc::amfMgmtRpc::DeleteSGSUListRequest* request,
                                 ::SAFplus::Rpc::amfMgmtRpc::DeleteSGSUListResponse* response)
   {
-    //TODO: put your code here
+    const std::string& sgName = request->sgname();
+    logDebug("MGMT","RPC","enter [%s] with param sg name [%s]",__FUNCTION__,sgName.c_str());
+    DbalPlugin* pd = NULL;
+    ClRcT rc = getDbalObj(request->amfmgmthandle().Get(0).c_str(), &pd);
+    if (rc == CL_OK)
+    {
+      std::string strMsgReq;
+      request->SerializeToString(&strMsgReq);
+      int opId = (AMF_MGMT_OP_SG_SU_LIST_DELETE<<16)|inc++;
+      rc = pd->insertRecord(ClDBKeyT(&opId),
+                           (ClUint32T)sizeof(opId),
+                           (ClDBRecordT)strMsgReq.c_str(),
+                           (ClUint32T)strMsgReq.length());
+      logDebug("MGMT","RPC","[%s] insertRecord with key [%d], inc [%d] returns [0x%x]",__FUNCTION__, opId, inc-1, rc);
+    }
+    response->set_err(rc);
   }
 
   void amfMgmtRpcImpl::deleteSGSIList(const ::SAFplus::Rpc::amfMgmtRpc::DeleteSGSIListRequest* request,
                                 ::SAFplus::Rpc::amfMgmtRpc::DeleteSGSIListResponse* response)
   {
-    //TODO: put your code here
+    const std::string& sgName = request->sgname();
+    logDebug("MGMT","RPC","enter [%s] with param sg name [%s]",__FUNCTION__,sgName.c_str());
+    DbalPlugin* pd = NULL;
+    ClRcT rc = getDbalObj(request->amfmgmthandle().Get(0).c_str(), &pd);
+    if (rc == CL_OK)
+    {
+      std::string strMsgReq;
+      request->SerializeToString(&strMsgReq);
+      int opId = (AMF_MGMT_OP_SG_SI_LIST_DELETE<<16)|inc++;
+      rc = pd->insertRecord(ClDBKeyT(&opId),
+                           (ClUint32T)sizeof(opId),
+                           (ClDBRecordT)strMsgReq.c_str(),
+                           (ClUint32T)strMsgReq.length());
+      logDebug("MGMT","RPC","[%s] insertRecord with key [%d], inc [%d] returns [0x%x]",__FUNCTION__, opId, inc-1, rc);
+    }
+    response->set_err(rc);
   }
 
   void amfMgmtRpcImpl::deleteSUCompList(const ::SAFplus::Rpc::amfMgmtRpc::DeleteSUCompListRequest* request,
                                 ::SAFplus::Rpc::amfMgmtRpc::DeleteSUCompListResponse* response)
   {
-    //TODO: put your code here
+    const std::string& suName = request->suname();
+    logDebug("MGMT","RPC","enter [%s] with param su name [%s]",__FUNCTION__,suName.c_str());
+    DbalPlugin* pd = NULL;
+    ClRcT rc = getDbalObj(request->amfmgmthandle().Get(0).c_str(), &pd);
+    if (rc == CL_OK)
+    {
+      std::string strMsgReq;
+      request->SerializeToString(&strMsgReq);
+      int opId = (AMF_MGMT_OP_SU_COMP_LIST_DELETE<<16)|inc++;
+      rc = pd->insertRecord(ClDBKeyT(&opId),
+                           (ClUint32T)sizeof(opId),
+                           (ClDBRecordT)strMsgReq.c_str(),
+                           (ClUint32T)strMsgReq.length());
+      logDebug("MGMT","RPC","[%s] insertRecord with key [%d], inc [%d] returns [0x%x]",__FUNCTION__, opId, inc-1, rc);
+    }
+    response->set_err(rc);
   }
 
   void amfMgmtRpcImpl::deleteSICSIList(const ::SAFplus::Rpc::amfMgmtRpc::DeleteSICSIListRequest* request,
                                 ::SAFplus::Rpc::amfMgmtRpc::DeleteSICSIListResponse* response)
   {
-    //TODO: put your code here
+    const std::string& siName = request->siname();
+    logDebug("MGMT","RPC","enter [%s] with param si name [%s]",__FUNCTION__,siName.c_str());
+    DbalPlugin* pd = NULL;
+    ClRcT rc = getDbalObj(request->amfmgmthandle().Get(0).c_str(), &pd);
+    if (rc == CL_OK)
+    {
+      std::string strMsgReq;
+      request->SerializeToString(&strMsgReq);
+      int opId = (AMF_MGMT_OP_SI_CSI_LIST_DELETE<<16)|inc++;
+      rc = pd->insertRecord(ClDBKeyT(&opId),
+                           (ClUint32T)sizeof(opId),
+                           (ClDBRecordT)strMsgReq.c_str(),
+                           (ClUint32T)strMsgReq.length());
+      logDebug("MGMT","RPC","[%s] insertRecord with key [%d], inc [%d] returns [0x%x]",__FUNCTION__, opId, inc-1, rc);
+    }
+    response->set_err(rc);
   }
 
   void amfMgmtRpcImpl::lockNodeAssignment(const ::SAFplus::Rpc::amfMgmtRpc::LockNodeAssignmentRequest* request,
