@@ -235,8 +235,8 @@ EventClient evtClient;
 								  request.add_componenthandle((const char*) &hdl, sizeof(Handle)); // [libprotobuf ERROR google/protobuf/wire_format.cc:1053] String field contains invalid UTF-8 data when serializing a protocol buffer. Use the 'bytes' type if you intend to send raw bytes.
 								  request.set_operation((uint32_t)wat.state);
 								  request.set_target(SA_AMF_PROXIED_INST_CB);
-								  if ((invocation & 0xFFFFFFFF) == 0xFFFFFFFF) invocation &= 0xFFFFFFFF00000000ULL;  // Don't let increasing invocation numbers overwrite the node or port... ofc this'll never happen 4 billion invocations? :-)
-								  request.set_invocation(++invocation);
+								  if ((this->invocation & 0xFFFFFFFF) == 0xFFFFFFFF) this->invocation &= 0xFFFFFFFF00000000ULL;  // Don't let increasing invocation numbers overwrite the node or port... ofc this'll never happen 4 billion invocations? :-)
+								  request.set_invocation(this->invocation++);
 								  SAFplusAmf::ComponentServiceInstance* csi = NULL;
 								  SAFplus::MgtIdentifierList<SAFplusAmf::ComponentServiceInstance*>::iterator itcsi;
 								  SAFplus::MgtIdentifierList<SAFplusAmf::ComponentServiceInstance*>::iterator endcsi = wat.si->componentServiceInstances.listEnd();
@@ -252,13 +252,12 @@ EventClient evtClient;
 										//break;  // We found one!
 									}
 									logInfo("WORK", "RESPONSE", "workOperationResponse Comp [%s] presenceState [%s] csi [%s] csi->activeComponents.value.push_back(comp);", comp->name.value.c_str(), c_str(comp->presenceState.value), csi->name.value.c_str()); 
-									csi->activeComponents.value.push_back(comp);  // Mark this CSI assigned to this component
+									//csi->activeComponents.value.push_back(comp);  // Mark this CSI assigned to this component
 									comp->presenceState.value = PresenceState::instantiated;
 									comp->numInstantiationAttempts.value++;
 									comp->lastInstantiation.value.value = std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::system_clock::now().time_since_epoch()).count();
 									comp->pendingOperationExpiration.value.value = nowMs() + comp->timeouts.workAssignment;
 									comp->pendingOperation = PendingOperation::workAssignment;
-									//if(proxied_pid)comp->processId = proxied_pid;
 									logInfo("WORK", "RESPONSE", "workOperationResponse Comp [%s] PID [%d] presenceState [%s] ", comp->name.value.c_str(),comp->processId.value, c_str(comp->presenceState.value)); 
 								  pendingWorkOperations[request.invocation()] = WorkOperationTracker(comp,csi,wat.si,(uint32_t)wat.state,SA_AMF_CSI_ADD_ONE);
 								  amfAppRpc->workOperation(hdl, &request);
