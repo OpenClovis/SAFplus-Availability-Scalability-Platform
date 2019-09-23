@@ -1305,6 +1305,7 @@ class ProjectTreePanel(wx.Panel):
     progressDialog.Destroy()
 
   def makeImages(self, prjPath):
+    os.system('rm -rf images/*')
     tarGet = str(subprocess.check_output(['g++','-dumpmachine'])).strip()
     baseImage = prjPath + '/images/%s' % tarGet
     owd = os.getcwd()
@@ -1318,8 +1319,6 @@ class ProjectTreePanel(wx.Panel):
       return False
     os.system('cp *.xml %s/bin' % baseImage)
     os.chdir(owd)
-    os.system('cp resources/setup %s/bin' % baseImage)
-    os.system('rm -rf images')
     if os.path.isdir(baseImage):
       for img in self.currentImagesConfig:
         tarImg = prjPath + '/images/' + img
@@ -1327,14 +1326,14 @@ class ProjectTreePanel(wx.Panel):
         cmd = 'cp -r %s %s' % (baseImage, tarImg)
         if not self.execute(cmd, False):
           return False
+	time.sleep(0.5)
+	os.system('cp resources/setup %s/bin' % tarImg)
+	self.updateImageConfig(tarImg, self.currentImagesConfig[img])
         self.log_info("Creating tarball: %s.tar.gz\n" % tarImg)
         cmd = 'cd %s/images/; tar -zcvf %s.tar.gz %s' % (prjPath, img, img)
-        time.sleep(0.5)
         if not self.execute(cmd, True):
           return False
         self.log_info("Blade specific tarballs created.\n")
-        time.sleep(0.5)
-        self.updateImageConfig(tarImg, self.currentImagesConfig[img])
 
   def updateImageConfig(self, tarGet, imgConf):
     fConf = tarGet + '/bin/setup'
