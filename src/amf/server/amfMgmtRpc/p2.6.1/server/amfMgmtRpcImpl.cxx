@@ -3,15 +3,19 @@
 #include <SafplusAmf.hxx>
 #include <Data.hxx>
 #include <ComponentServiceInstance.hxx>
+#include <Component.hxx>
+//#include <EntityId.hxx>
 #include <SAFplusAmfModule.hxx>
 #include <CapabilityModel.hxx>
 #include <Recovery.hxx>
 #include <AdministrativeState.hxx>
+#include <amfOperations.hxx>
 #include <clDbalBase.hxx>
 #include <clHandleApi.hxx>
 #include <boost/unordered_map.hpp>
 #include <iostream>
 #include <map>
+#include <typeinfo>
 
 #define DBAL_PLUGIN_NAME "libclSQLiteDB.so"
 
@@ -47,6 +51,7 @@ typedef boost::unordered_map <const std::string, const std::string> KeyValueHash
 static unsigned short inc = 0; //increament number of operation number
 
 // RPC Operation IDs
+/*
 const int AMF_MGMT_OP_COMPONENT_CREATE             = 1;
 const int AMF_MGMT_OP_COMPONENT_UPDATE             = 2;
 const int AMF_MGMT_OP_COMPONENT_DELETE             = 3;
@@ -85,8 +90,8 @@ const int AMF_MGMT_OP_SI_UNLOCK                    = 35;
 const int AMF_MGMT_OP_NODE_REPAIR                  = 36;
 const int AMF_MGMT_OP_COMP_REPAIR                  = 37;
 const int AMF_MGMT_OP_SU_REPAIR                    = 38;
+*/
 
-/*
 enum RpcOperation
 {
   AMF_MGMT_OP_COMPONENT_CREATE = 1,
@@ -128,7 +133,6 @@ enum RpcOperation
   AMF_MGMT_OP_COMP_REPAIR,
   AMF_MGMT_OP_SU_REPAIR,
 };
-*/
 
 
 namespace SAFplus {
@@ -1513,6 +1517,114 @@ namespace amfMgmtRpc {
     return rc;
   }
 
+  ClRcT sgSUListDeleteCommit(const DeleteSGSUListRequest& request)
+  {
+    const std::string& sgName = request.sgname();
+    logDebug("MGMT","RPC", "server is processing [%s] for entity [%s]", __FUNCTION__, sgName.c_str());
+    if (sgName.length()==0)
+    {
+      return CL_ERR_INVALID_PARAMETER;      
+    }
+    ClRcT rc = CL_OK;
+    int suSize = 0;
+    if ((suSize=request.sulist_size())>0)
+    {
+      std::vector<std::string> sus;
+      for (int i=0;i<suSize;i++)
+      {
+         sus.push_back(request.sulist(i));
+      }
+      MGMT_CALL(deleteEntityAsListTypeFromDatabase("/safplusAmf/ServiceGroup",sgName,"serviceGroup","serviceUnits",sus));
+    }
+    else
+    {
+      logError("MGMT","RPC", "su list is empty for delete su list of node [%s]", sgName.c_str());
+      rc = CL_ERR_INVALID_PARAMETER;
+    }
+    return rc;
+  }
+
+  ClRcT sgSIListDeleteCommit(const DeleteSGSIListRequest& request)
+  {
+    const std::string& sgName = request.sgname();
+    logDebug("MGMT","RPC", "server is processing [%s] for entity [%s]", __FUNCTION__, sgName.c_str());
+    if (sgName.length()==0)
+    {
+      return CL_ERR_INVALID_PARAMETER;      
+    }
+    ClRcT rc = CL_OK;
+    int siSize = 0;
+    if ((siSize=request.silist_size())>0)
+    {
+      std::vector<std::string> sis;
+      for (int i=0;i<siSize;i++)
+      {
+         sis.push_back(request.silist(i));
+      }
+      MGMT_CALL(deleteEntityAsListTypeFromDatabase("/safplusAmf/ServiceGroup",sgName,"serviceGroup","serviceInstances",sis));
+    }
+    else
+    {
+      logError("MGMT","RPC", "su list is empty for delete su list of node [%s]", sgName.c_str());
+      rc = CL_ERR_INVALID_PARAMETER;
+    }
+    return rc;
+  }
+
+  ClRcT suCompListDeleteCommit(const DeleteSUCompListRequest& request)
+  {
+    const std::string& suName = request.suname();
+    logDebug("MGMT","RPC", "server is processing [%s] for entity [%s]", __FUNCTION__, suName.c_str());
+    if (suName.length()==0)
+    {
+      return CL_ERR_INVALID_PARAMETER;      
+    }
+    ClRcT rc = CL_OK;
+    int compSize = 0;
+    if ((compSize=request.complist_size())>0)
+    {
+      std::vector<std::string> comps;
+      for (int i=0;i<compSize;i++)
+      {
+         comps.push_back(request.complist(i));
+      }
+      MGMT_CALL(deleteEntityAsListTypeFromDatabase("/safplusAmf/ServiceUnit",suName,"serviceUnit","components",comps));
+    }
+    else
+    {
+      logError("MGMT","RPC", "su list is empty for delete su list of node [%s]", suName.c_str());
+      rc = CL_ERR_INVALID_PARAMETER;
+    }
+    return rc;
+  }
+
+  ClRcT siCSIListDeleteCommit(const DeleteSICSIListRequest& request)
+  {
+    const std::string& siName = request.siname();
+    logDebug("MGMT","RPC", "server is processing [%s] for entity [%s]", __FUNCTION__, siName.c_str());
+    if (siName.length()==0)
+    {
+      return CL_ERR_INVALID_PARAMETER;      
+    }
+    ClRcT rc = CL_OK;
+    int csiSize = 0;
+    if ((csiSize=request.csilist_size())>0)
+    {
+      std::vector<std::string> csi;
+      for (int i=0;i<csiSize;i++)
+      {
+         csi.push_back(request.csilist(i));
+      }
+      MGMT_CALL(deleteEntityAsListTypeFromDatabase("/safplusAmf/ServiceInstance",siName,"serviceInstance","componentServiceInstances",csi));
+    }
+    else
+    {
+      logError("MGMT","RPC", "su list is empty for delete su list of node [%s]", siName.c_str());
+      rc = CL_ERR_INVALID_PARAMETER;
+    }
+    return rc;
+  }
+
   ClRcT handleCommit(const ClDBKeyHandleT recKey, ClUint32T keySize, const ClDBRecordHandleT recData, ClUint32T dataSize)
   {
     int op = 0;
@@ -1729,9 +1841,45 @@ namespace amfMgmtRpc {
         break;
       }
     case AMF_MGMT_OP_SG_SU_LIST_DELETE:
+      {
+        DeleteSGSUListRequest request;
+        std::string strRequestData;
+        strRequestData.assign((ClCharT*)recData, dataSize);
+        request.ParseFromString(strRequestData);        
+        logDebug("MGMT","COMMIT","handleCommit op [%d], entity [%s]", op, request.sgname().c_str());
+        rc = sgSUListDeleteCommit(request);
+        break;
+      }
     case AMF_MGMT_OP_SG_SI_LIST_DELETE:
+      {
+        DeleteSGSIListRequest request;
+        std::string strRequestData;
+        strRequestData.assign((ClCharT*)recData, dataSize);
+        request.ParseFromString(strRequestData);        
+        logDebug("MGMT","COMMIT","handleCommit op [%d], entity [%s]", op, request.sgname().c_str());
+        rc = sgSIListDeleteCommit(request);
+        break;
+      }
     case AMF_MGMT_OP_SU_COMP_LIST_DELETE:
+      {
+        DeleteSUCompListRequest request;
+        std::string strRequestData;
+        strRequestData.assign((ClCharT*)recData, dataSize);
+        request.ParseFromString(strRequestData);        
+        logDebug("MGMT","COMMIT","handleCommit op [%d], entity [%s]", op, request.suname().c_str());
+        rc = suCompListDeleteCommit(request);
+        break;
+      }
     case AMF_MGMT_OP_SI_CSI_LIST_DELETE:
+      {
+        DeleteSICSIListRequest request;
+        std::string strRequestData;
+        strRequestData.assign((ClCharT*)recData, dataSize);
+        request.ParseFromString(strRequestData);        
+        logDebug("MGMT","COMMIT","handleCommit op [%d], entity [%s]", op, request.siname().c_str());
+        rc = siCSIListDeleteCommit(request);
+        break;
+      }
     case AMF_MGMT_OP_NODE_LOCK_ASSIGNMENT:
     case AMF_MGMT_OP_SG_LOCK_ASSIGNMENT:
     case AMF_MGMT_OP_SU_LOCK_ASSIGNMENT:
@@ -1862,6 +2010,633 @@ namespace amfMgmtRpc {
     if (rc == CL_OK && rc2 == CL_OK) inc = 1;
   }
 
+  ClRcT validateAdminState(int opId, SAFplusAmf::EntityId* containingEntity, const ::google::protobuf::RepeatedPtrField< ::std::string>& list)
+  {
+    ClRcT rc = CL_OK;
+    switch (opId>>16)
+    {
+    case AMF_MGMT_OP_NODE_SU_LIST_DELETE:
+      {
+        SAFplusAmf::Node* node = dynamic_cast<SAFplusAmf::Node*>(containingEntity);
+        for (int i=0;i<list.size();i++)
+        {
+          const std::string& suName = list.Get(i);
+          SAFplusAmf::ServiceUnit* su = dynamic_cast<SAFplusAmf::ServiceUnit*>(cfg.safplusAmf.serviceUnitList[suName]);
+          if (su == NULL) return CL_ERR_NOT_EXIST;
+          if (node->serviceUnits.contains(su) == false) return CL_ERR_INVALID_PARAMETER;
+          if (SAFplus::effectiveAdminState(su) != SAFplusAmf::AdministrativeState::off) return CL_ERR_INVALID_STATE;
+        }
+        break;
+      }
+#if 1
+    case AMF_MGMT_OP_SG_SU_LIST_DELETE:
+      {
+        SAFplusAmf::ServiceGroup* sg = dynamic_cast<SAFplusAmf::ServiceGroup*>(containingEntity);
+        for (int i=0;i<list.size();i++)
+        {
+          const std::string& suName = list.Get(i);
+          SAFplusAmf::ServiceUnit* su = dynamic_cast<SAFplusAmf::ServiceUnit*>(cfg.safplusAmf.serviceUnitList[suName]);
+          if (su == NULL) return CL_ERR_NOT_EXIST;
+          if (sg->serviceUnits.contains(su) == false) return CL_ERR_INVALID_PARAMETER;
+          if (SAFplus::effectiveAdminState(su) != SAFplusAmf::AdministrativeState::off) return CL_ERR_INVALID_STATE;
+        }
+        break;
+      }
+    case AMF_MGMT_OP_SG_SI_LIST_DELETE:
+      {
+        SAFplusAmf::ServiceGroup* sg = dynamic_cast<SAFplusAmf::ServiceGroup*>(containingEntity);
+        for (int i=0;i<list.size();i++)
+        {
+          const std::string& siName = list.Get(i);
+          SAFplusAmf::ServiceInstance* si = dynamic_cast<SAFplusAmf::ServiceInstance*>(cfg.safplusAmf.serviceInstanceList[siName]);
+          if (si == NULL) return CL_ERR_NOT_EXIST;
+          if (sg->serviceInstances.contains(si) == false) return CL_ERR_INVALID_PARAMETER;
+          if (SAFplus::effectiveAdminState(si) != SAFplusAmf::AdministrativeState::off) return CL_ERR_INVALID_STATE;
+        }
+        break;
+      }
+    case AMF_MGMT_OP_SU_COMP_LIST_DELETE:
+      {
+        SAFplusAmf::ServiceUnit* su = dynamic_cast<SAFplusAmf::ServiceUnit*>(containingEntity);
+        for (int i=0;i<list.size();i++)
+        {
+          const std::string& compName = list.Get(i);
+          SAFplusAmf::Component* comp = dynamic_cast<SAFplusAmf::Component*>(cfg.safplusAmf.componentList[compName]);
+          if (comp == NULL) return CL_ERR_NOT_EXIST;
+          if (su->components.contains(comp) == false) return CL_ERR_INVALID_PARAMETER;
+          if (SAFplus::effectiveAdminState(comp) != SAFplusAmf::AdministrativeState::off) return CL_ERR_INVALID_STATE;
+        }
+        break;
+      }
+    case AMF_MGMT_OP_SI_CSI_LIST_DELETE:
+      {
+        SAFplusAmf::ServiceInstance* si = dynamic_cast<SAFplusAmf::ServiceInstance*>(containingEntity);
+        for (int i=0;i<list.size();i++)
+        {
+          const std::string& csiName = list.Get(i);
+          SAFplusAmf::ComponentServiceInstance* csi = dynamic_cast<SAFplusAmf::ComponentServiceInstance*>(cfg.safplusAmf.componentServiceInstanceList[csiName]);
+          if (csi == NULL) return CL_ERR_NOT_EXIST;
+          if (si->componentServiceInstances.contains(csi) == false) return CL_ERR_INVALID_PARAMETER;
+          if (SAFplus::effectiveAdminState(csi) != SAFplusAmf::AdministrativeState::off) return CL_ERR_INVALID_STATE;
+        }
+        break;
+      }
+#endif
+    }
+    return rc;
+  }
+
+  ClRcT validateOperation(int opId, const ::google::protobuf::Message* msg)
+  {
+    ClRcT rc = CL_OK;
+    switch (opId>>16)
+    {
+    case AMF_MGMT_OP_COMPONENT_CREATE:
+      {
+        const CreateComponentRequest* request = dynamic_cast<const CreateComponentRequest*>(msg);
+        if (!request)
+        {
+          logError("MGMT","VALIDATE.OP","invalid protobuf message passed, expected [CreateComponentRequest], actual [%s]", typeid(*msg).name());
+          rc = CL_ERR_UNSPECIFIED;
+          break;
+        }
+        const ComponentConfig& comp = request->componentconfig();
+        if (dynamic_cast<SAFplusAmf::Component*>(cfg.safplusAmf.componentList[comp.name()]) != NULL)
+        {
+          logError("MGMT","VALIDATE.OP","component with name [%s] already exists", comp.name().c_str());
+          rc = CL_ERR_ALREADY_EXIST;
+        }
+        break;
+      }
+
+    case AMF_MGMT_OP_COMPONENT_UPDATE:
+      {
+        const UpdateComponentRequest* request = dynamic_cast<const UpdateComponentRequest*>(msg);
+        if (!request)
+        {
+          logError("MGMT","VALIDATE.OP","invalid protobuf message passed, expected [UpdateComponentRequest], actual [%s]", typeid(*msg).name());
+          rc = CL_ERR_UNSPECIFIED;
+          break;
+        }
+        const ComponentConfig& comp = request->componentconfig();
+        SAFplusAmf::Component* safComp = dynamic_cast<SAFplusAmf::Component*>(cfg.safplusAmf.componentList[comp.name()]);
+        if (safComp == NULL)
+        {
+          logError("MGMT","VALIDATE.OP","component with name [%s] doesn't exist, cannot update it", comp.name().c_str());
+          rc = CL_ERR_NOT_EXIST;
+          break;
+        }
+        
+        if (SAFplus::effectiveAdminState(safComp) != SAFplusAmf::AdministrativeState::off)
+        {
+          rc = CL_ERR_INVALID_STATE;
+        }
+        break;
+      }
+
+    case AMF_MGMT_OP_COMPONENT_DELETE:
+      {
+        const DeleteComponentRequest* request = dynamic_cast<const DeleteComponentRequest*>(msg);
+        if (!request)
+        {
+          logError("MGMT","VALIDATE.OP","invalid protobuf message passed, expected [DeleteComponentRequest], actual [%s]", typeid(*msg).name());
+          rc = CL_ERR_UNSPECIFIED;
+          break;
+        }
+        const std::string& compName = request->name();
+        SAFplusAmf::Component* safComp = dynamic_cast<SAFplusAmf::Component*>(cfg.safplusAmf.componentList[compName]);
+        if (safComp == NULL)
+        {
+          logError("MGMT","VALIDATE.OP","component with name [%s] doesn't exist, cannot delete it", compName.c_str());
+          rc = CL_ERR_NOT_EXIST;
+          break;
+        }
+        
+        if (SAFplus::effectiveAdminState(safComp) != SAFplusAmf::AdministrativeState::off)
+        {
+          rc = CL_ERR_INVALID_STATE;
+        }
+        break;
+      }
+
+    case AMF_MGMT_OP_SG_CREATE:
+      {
+        const CreateSGRequest* request = dynamic_cast<const CreateSGRequest*>(msg);
+        if (!request)
+        {
+          logError("MGMT","VALIDATE.OP","invalid protobuf message passed, expected [CreateSGRequest], actual [%s]", typeid(*msg).name());
+          rc = CL_ERR_UNSPECIFIED;
+          break;
+        }
+        const ServiceGroupConfig& sg = request->servicegroupconfig();
+        if (dynamic_cast<SAFplusAmf::ServiceGroup*>(cfg.safplusAmf.serviceGroupList[sg.name()]) != NULL)
+        {
+          logError("MGMT","VALIDATE.OP","sg with name [%s] already exists", sg.name().c_str());
+          rc = CL_ERR_ALREADY_EXIST;
+        }
+        break;
+      }
+
+    case AMF_MGMT_OP_SG_UPDATE:
+      {
+        const UpdateSGRequest* request = dynamic_cast<const UpdateSGRequest*>(msg);
+        if (!request)
+        {
+          logError("MGMT","VALIDATE.OP","invalid protobuf message passed, expected [UpdateSGRequest], actual [%s]", typeid(*msg).name());
+          rc = CL_ERR_UNSPECIFIED;
+          break;
+        }
+        const ServiceGroupConfig& sg = request->servicegroupconfig();
+        SAFplusAmf::ServiceGroup* safSg = dynamic_cast<SAFplusAmf::ServiceGroup*>(cfg.safplusAmf.serviceGroupList[sg.name()]);
+        if (safSg == NULL)
+        {
+          logError("MGMT","VALIDATE.OP","sg with name [%s] doesn't exist, cannot update it", sg.name().c_str());
+          rc = CL_ERR_NOT_EXIST;
+          break;
+
+        }
+        if (SAFplus::effectiveAdminState(safSg) != SAFplusAmf::AdministrativeState::off)
+        {
+          rc = CL_ERR_INVALID_STATE;
+        }
+        break;
+      }
+    case AMF_MGMT_OP_SG_DELETE:
+      {
+        const DeleteSGRequest* request = dynamic_cast<const DeleteSGRequest*>(msg);
+        if (!request)
+        {
+          logError("MGMT","VALIDATE.OP","invalid protobuf message passed, expected [DeleteSGRequest], actual [%s]", typeid(*msg).name());
+          rc = CL_ERR_UNSPECIFIED;
+          break;
+        }
+        const std::string& sgName = request->name();
+        SAFplusAmf::ServiceGroup* safSg = dynamic_cast<SAFplusAmf::ServiceGroup*>(cfg.safplusAmf.serviceGroupList[sgName]);
+        if (safSg == NULL)
+        {
+          logError("MGMT","VALIDATE.OP","sg with name [%s] doesn't exist, cannot delete it", sgName.c_str());
+          rc = CL_ERR_NOT_EXIST;
+          break;
+        }
+        
+        if (SAFplus::effectiveAdminState(safSg) != SAFplusAmf::AdministrativeState::off)
+        {
+          rc = CL_ERR_INVALID_STATE;
+        }
+        break;
+      }
+
+    case AMF_MGMT_OP_NODE_CREATE:
+      {
+        const CreateNodeRequest* request = dynamic_cast<const CreateNodeRequest*>(msg);
+        if (!request)
+        {
+          logError("MGMT","VALIDATE.OP","invalid protobuf message passed, expected [CreateNodeRequest], actual [%s]", typeid(*msg).name());
+          rc = CL_ERR_UNSPECIFIED;
+          break;
+        }
+        const NodeConfig& node = request->nodeconfig();
+        if (dynamic_cast<SAFplusAmf::Node*>(cfg.safplusAmf.nodeList[node.name()]) != NULL)
+        {
+          logError("MGMT","VALIDATE.OP","Node with name [%s] already exists", node.name().c_str());
+          rc = CL_ERR_ALREADY_EXIST;
+        }
+        break;
+      }
+    case AMF_MGMT_OP_NODE_UPDATE:
+      {
+        const UpdateNodeRequest* request = dynamic_cast<const UpdateNodeRequest*>(msg);
+        if (!request)
+        {
+          logError("MGMT","VALIDATE.OP","invalid protobuf message passed, expected [UpdateNodeRequest], actual [%s]", typeid(*msg).name());
+          rc = CL_ERR_UNSPECIFIED;
+          break;
+        }
+        const NodeConfig& node = request->nodeconfig();
+        SAFplusAmf::Node* safNode = dynamic_cast<SAFplusAmf::Node*>(cfg.safplusAmf.nodeList[node.name()]);
+        if (safNode == NULL)
+        {
+          logError("MGMT","VALIDATE.OP","node with name [%s] doesn't exist, cannot update it", node.name().c_str());
+          rc = CL_ERR_NOT_EXIST;         
+        }
+        break;
+      }
+    case AMF_MGMT_OP_NODE_DELETE:
+      {
+        const DeleteNodeRequest* request = dynamic_cast<const DeleteNodeRequest*>(msg);
+        if (!request)
+        {
+          logError("MGMT","VALIDATE.OP","invalid protobuf message passed, expected [DeleteNodeRequest], actual [%s]", typeid(*msg).name());
+          rc = CL_ERR_UNSPECIFIED;
+          break;
+        }
+        const std::string& nodeName = request->name();
+        SAFplusAmf::Node* safNode = dynamic_cast<SAFplusAmf::Node*>(cfg.safplusAmf.nodeList[nodeName]);
+        if (safNode == NULL)
+        {
+          logError("MGMT","VALIDATE.OP","node with name [%s] doesn't exist, cannot update it", nodeName.c_str());
+          rc = CL_ERR_NOT_EXIST;
+          break;
+        }
+        if (safNode->adminState != SAFplusAmf::AdministrativeState::off)
+        {
+          rc = CL_ERR_INVALID_STATE;
+        }
+        break;
+      }
+
+    case AMF_MGMT_OP_SU_CREATE:
+      {
+        const CreateSURequest* request = dynamic_cast<const CreateSURequest*>(msg);
+        if (!request)
+        {
+          logError("MGMT","VALIDATE.OP","invalid protobuf message passed, expected [CreateSURequest], actual [%s]", typeid(*msg).name());
+          rc = CL_ERR_UNSPECIFIED;
+          break;
+        }
+        const ServiceUnitConfig& su = request->serviceunitconfig();
+        if (dynamic_cast<SAFplusAmf::ServiceUnit*>(cfg.safplusAmf.serviceUnitList[su.name()]) != NULL)
+        {
+          logError("MGMT","VALIDATE.OP","su with name [%s] already exists", su.name().c_str());
+          rc = CL_ERR_ALREADY_EXIST;
+        }
+        break;
+      }
+    case AMF_MGMT_OP_SU_UPDATE:
+      {
+        const UpdateSURequest* request = dynamic_cast<const UpdateSURequest*>(msg);
+        if (!request)
+        {
+          logError("MGMT","VALIDATE.OP","invalid protobuf message passed, expected [UpdateSURequest], actual [%s]", typeid(*msg).name());
+          rc = CL_ERR_UNSPECIFIED;
+          break;
+        }
+        const ServiceUnitConfig& su = request->serviceunitconfig();
+        SAFplusAmf::ServiceUnit* safSu = dynamic_cast<SAFplusAmf::ServiceUnit*>(cfg.safplusAmf.serviceUnitList[su.name()]);
+        if (safSu == NULL)
+        {
+          logError("MGMT","VALIDATE.OP","su with name [%s] doesn't exist, cannot update it", su.name().c_str());
+          rc = CL_ERR_NOT_EXIST;         
+        }
+        if (SAFplus::effectiveAdminState(safSu) != SAFplusAmf::AdministrativeState::off)
+        {
+          rc = CL_ERR_INVALID_STATE;
+        }
+        break;
+      }
+    case AMF_MGMT_OP_SU_DELETE:
+      {
+        const DeleteSURequest* request = dynamic_cast<const DeleteSURequest*>(msg);
+        if (!request)
+        {
+          logError("MGMT","VALIDATE.OP","invalid protobuf message passed, expected [DeleteSURequest], actual [%s]", typeid(*msg).name());
+          rc = CL_ERR_UNSPECIFIED;
+          break;
+        }
+        const std::string& suName = request->name();
+        SAFplusAmf::ServiceUnit* safSu = dynamic_cast<SAFplusAmf::ServiceUnit*>(cfg.safplusAmf.serviceUnitList[suName]);
+        if (safSu == NULL)
+        {
+          logError("MGMT","VALIDATE.OP","su with name [%s] doesn't exist, cannot update it", suName.c_str());
+          rc = CL_ERR_NOT_EXIST;
+          break;
+        }
+        if (SAFplus::effectiveAdminState(safSu) != SAFplusAmf::AdministrativeState::off)
+        {
+          rc = CL_ERR_INVALID_STATE;
+        }
+        break;
+      }
+
+    case AMF_MGMT_OP_SI_CREATE:
+      {
+        const CreateSIRequest* request = dynamic_cast<const CreateSIRequest*>(msg);
+        if (!request)
+        {
+          logError("MGMT","VALIDATE.OP","invalid protobuf message passed, expected [CreateSIRequest], actual [%s]", typeid(*msg).name());
+          rc = CL_ERR_UNSPECIFIED;
+          break;
+        }
+        const ServiceInstanceConfig& si = request->serviceinstanceconfig();
+        if (dynamic_cast<SAFplusAmf::ServiceInstance*>(cfg.safplusAmf.serviceInstanceList[si.name()]) != NULL)
+        {
+          logError("MGMT","VALIDATE.OP","si with name [%s] already exists", si.name().c_str());
+          rc = CL_ERR_ALREADY_EXIST;
+        }
+        break;
+      }
+    case AMF_MGMT_OP_SI_UPDATE:
+      {
+        const UpdateSIRequest* request = dynamic_cast<const UpdateSIRequest*>(msg);
+        if (!request)
+        {
+          logError("MGMT","VALIDATE.OP","invalid protobuf message passed, expected [UpdateSIRequest], actual [%s]", typeid(*msg).name());
+          rc = CL_ERR_UNSPECIFIED;
+          break;
+        }
+        const ServiceInstanceConfig& si = request->serviceinstanceconfig();
+        SAFplusAmf::ServiceInstance* safSi = dynamic_cast<SAFplusAmf::ServiceInstance*>(cfg.safplusAmf.serviceInstanceList[si.name()]);
+        if (safSi == NULL)
+        {
+          logError("MGMT","VALIDATE.OP","si with name [%s] doesn't exist, cannot update it", si.name().c_str());
+          rc = CL_ERR_NOT_EXIST;         
+        }
+        if (SAFplus::effectiveAdminState(safSi) != SAFplusAmf::AdministrativeState::off)
+        {
+          rc = CL_ERR_INVALID_STATE;
+        }
+        break;
+      }
+    case AMF_MGMT_OP_SI_DELETE:
+      {
+        const DeleteSIRequest* request = dynamic_cast<const DeleteSIRequest*>(msg);
+        if (!request)
+        {
+          logError("MGMT","VALIDATE.OP","invalid protobuf message passed, expected [DeleteSIRequest], actual [%s]", typeid(*msg).name());
+          rc = CL_ERR_UNSPECIFIED;
+          break;
+        }
+        const std::string& siName = request->name();
+        SAFplusAmf::ServiceInstance* safSi = dynamic_cast<SAFplusAmf::ServiceInstance*>(cfg.safplusAmf.serviceInstanceList[siName]);
+        if (safSi == NULL)
+        {
+          logError("MGMT","VALIDATE.OP","si with name [%s] doesn't exist, cannot update it", siName.c_str());
+          rc = CL_ERR_NOT_EXIST;
+          break;
+        }
+        if (SAFplus::effectiveAdminState(safSi) != SAFplusAmf::AdministrativeState::off)
+        {
+          rc = CL_ERR_INVALID_STATE;
+        }
+        break;
+      }
+    case AMF_MGMT_OP_CSI_CREATE:
+      {
+        const CreateCSIRequest* request = dynamic_cast<const CreateCSIRequest*>(msg);
+        if (!request)
+        {
+          logError("MGMT","VALIDATE.OP","invalid protobuf message passed, expected [CreateCSIRequest], actual [%s]", typeid(*msg).name());
+          rc = CL_ERR_UNSPECIFIED;
+          break;
+        }
+        const ComponentServiceInstanceConfig& csi = request->componentserviceinstanceconfig();
+        if (dynamic_cast<SAFplusAmf::ComponentServiceInstance*>(cfg.safplusAmf.componentServiceInstanceList[csi.name()]) != NULL)
+        {
+          logError("MGMT","VALIDATE.OP","csi with name [%s] already exists", csi.name().c_str());
+          rc = CL_ERR_ALREADY_EXIST;
+        }
+        break;
+      }
+    case AMF_MGMT_OP_CSI_UPDATE:
+      {
+        const UpdateCSIRequest* request = dynamic_cast<const UpdateCSIRequest*>(msg);
+        if (!request)
+        {
+          logError("MGMT","VALIDATE.OP","invalid protobuf message passed, expected [UpdateCSIRequest], actual [%s]", typeid(*msg).name());
+          rc = CL_ERR_UNSPECIFIED;
+          break;
+        }
+        const ComponentServiceInstanceConfig& csi = request->componentserviceinstanceconfig();
+        SAFplusAmf::ComponentServiceInstance* safCsi = dynamic_cast<SAFplusAmf::ComponentServiceInstance*>(cfg.safplusAmf.componentServiceInstanceList[csi.name()]);
+        if (safCsi == NULL)
+        {
+          logError("MGMT","VALIDATE.OP","csi with name [%s] doesn't exist, cannot update it", csi.name().c_str());
+          rc = CL_ERR_NOT_EXIST;
+          break;         
+        }
+        if (SAFplus::effectiveAdminState(safCsi) != SAFplusAmf::AdministrativeState::off)
+        {
+          rc = CL_ERR_INVALID_STATE;
+        }
+        break;
+      }      
+    case AMF_MGMT_OP_CSI_DELETE:
+      {
+        const DeleteCSIRequest* request = dynamic_cast<const DeleteCSIRequest*>(msg);
+        if (!request)
+        {
+          logError("MGMT","VALIDATE.OP","invalid protobuf message passed, expected [DeleteCSIRequest], actual [%s]", typeid(*msg).name());
+          rc = CL_ERR_UNSPECIFIED;
+          break;
+        }
+        const std::string& csiName = request->name();
+        SAFplusAmf::ComponentServiceInstance* safCsi = dynamic_cast<SAFplusAmf::ComponentServiceInstance*>(cfg.safplusAmf.componentServiceInstanceList[csiName]);
+        if (safCsi == NULL)
+        {
+          logError("MGMT","VALIDATE.OP","csi with name [%s] doesn't exist, cannot update it", csiName.c_str());
+          rc = CL_ERR_NOT_EXIST;
+          break;
+        }
+        if (SAFplus::effectiveAdminState(safCsi) != SAFplusAmf::AdministrativeState::off)
+        {
+          rc = CL_ERR_INVALID_STATE;
+        }
+        break;
+      }
+
+    case AMF_MGMT_OP_CSI_NVP_DELETE:
+      {
+        const DeleteCSINVPRequest* request = dynamic_cast<const DeleteCSINVPRequest*>(msg);
+        if (!request)
+        {
+          logError("MGMT","VALIDATE.OP","invalid protobuf message passed, expected [DeleteCSINVPRequest], actual [%s]", typeid(*msg).name());
+          rc = CL_ERR_UNSPECIFIED;
+          break;
+        }
+        const std::string& csiName = request->name();
+        SAFplusAmf::ComponentServiceInstance* safCsi = dynamic_cast<SAFplusAmf::ComponentServiceInstance*>(cfg.safplusAmf.componentServiceInstanceList[csiName]);
+        if (safCsi == NULL)
+        {
+          logError("MGMT","VALIDATE.OP","csi with name [%s] doesn't exist, cannot update it", csiName.c_str());
+          rc = CL_ERR_NOT_EXIST;
+        }
+        break;
+      }
+
+    case AMF_MGMT_OP_NODE_SU_LIST_DELETE:
+      {
+        const DeleteNodeSUListRequest* request = dynamic_cast<const DeleteNodeSUListRequest*>(msg);
+        if (!request)
+        {
+          logError("MGMT","VALIDATE.OP","invalid protobuf message passed, expected [DeleteNodeSUListRequest], actual [%s]", typeid(*msg).name());
+          rc = CL_ERR_UNSPECIFIED;
+          break;
+        }
+        const std::string& nodeName = request->nodename();
+        SAFplusAmf::Node* safNode = dynamic_cast<SAFplusAmf::Node*>(cfg.safplusAmf.nodeList[nodeName]);
+        if (safNode == NULL)
+        {
+          logError("MGMT","VALIDATE.OP","node with name [%s] doesn't exist, cannot update it", nodeName.c_str());
+          rc = CL_ERR_NOT_EXIST;
+          break;
+        }
+        if (safNode->adminState != SAFplusAmf::AdministrativeState::off)
+        {
+          rc = CL_ERR_INVALID_STATE;
+        }
+        rc = validateAdminState(opId, safNode, request->sulist());
+        break;
+      }
+
+    case AMF_MGMT_OP_SG_SU_LIST_DELETE:
+      {
+        const DeleteSGSUListRequest* request = dynamic_cast<const DeleteSGSUListRequest*>(msg);
+        if (!request)
+        {
+          logError("MGMT","VALIDATE.OP","invalid protobuf message passed, expected [DeleteSGSUListRequest], actual [%s]", typeid(*msg).name());
+          rc = CL_ERR_UNSPECIFIED;
+          break;
+        }
+        const std::string& sgName = request->sgname();
+        SAFplusAmf::ServiceGroup* safSg = dynamic_cast<SAFplusAmf::ServiceGroup*>(cfg.safplusAmf.serviceGroupList[sgName]);
+        if (safSg == NULL)
+        {
+          logError("MGMT","VALIDATE.OP","sg with name [%s] doesn't exist, cannot update it", sgName.c_str());
+          rc = CL_ERR_NOT_EXIST;
+          break;
+        }
+        if (SAFplus::effectiveAdminState(safSg) != SAFplusAmf::AdministrativeState::off)
+        {
+          rc = CL_ERR_INVALID_STATE;
+        }
+        rc = validateAdminState(opId, safSg, request->sulist());
+        break;
+      }
+    case AMF_MGMT_OP_SG_SI_LIST_DELETE:
+      {
+        const DeleteSGSIListRequest* request = dynamic_cast<const DeleteSGSIListRequest*>(msg);
+        if (!request)
+        {
+          logError("MGMT","VALIDATE.OP","invalid protobuf message passed, expected [DeleteSGSIListRequest], actual [%s]", typeid(*msg).name());
+          rc = CL_ERR_UNSPECIFIED;
+          break;
+        }
+        const std::string& sgName = request->sgname();
+        SAFplusAmf::ServiceGroup* safSg = dynamic_cast<SAFplusAmf::ServiceGroup*>(cfg.safplusAmf.serviceGroupList[sgName]);
+        if (safSg == NULL)
+        {
+          logError("MGMT","VALIDATE.OP","sg with name [%s] doesn't exist, cannot update it", sgName.c_str());
+          rc = CL_ERR_NOT_EXIST;
+          break;
+        }
+        if (SAFplus::effectiveAdminState(safSg) != SAFplusAmf::AdministrativeState::off)
+        {
+          rc = CL_ERR_INVALID_STATE;
+        }
+        rc = validateAdminState(opId, safSg, request->silist());
+        break;
+      }
+    case AMF_MGMT_OP_SU_COMP_LIST_DELETE:
+      {
+        const DeleteSUCompListRequest* request = dynamic_cast<const DeleteSUCompListRequest*>(msg);
+        if (!request)
+        {
+          logError("MGMT","VALIDATE.OP","invalid protobuf message passed, expected [DeleteSUCompListRequest], actual [%s]", typeid(*msg).name());
+          rc = CL_ERR_UNSPECIFIED;
+          break;
+        }
+        const std::string& suName = request->suname();
+        SAFplusAmf::ServiceUnit* safSu = dynamic_cast<SAFplusAmf::ServiceUnit*>(cfg.safplusAmf.serviceUnitList[suName]);
+        if (safSu == NULL)
+        {
+          logError("MGMT","VALIDATE.OP","su with name [%s] doesn't exist, cannot update it", suName.c_str());
+          rc = CL_ERR_NOT_EXIST;
+          break;
+        }
+        if (SAFplus::effectiveAdminState(safSu) != SAFplusAmf::AdministrativeState::off)
+        {
+          rc = CL_ERR_INVALID_STATE;
+        }
+        rc = validateAdminState(opId, safSu, request->complist());
+        break;
+      }
+    case AMF_MGMT_OP_SI_CSI_LIST_DELETE:
+      {
+        const DeleteSICSIListRequest* request = dynamic_cast<const DeleteSICSIListRequest*>(msg);
+        if (!request)
+        {
+          logError("MGMT","VALIDATE.OP","invalid protobuf message passed, expected [DeleteSICSIListRequest], actual [%s]", typeid(*msg).name());
+          rc = CL_ERR_UNSPECIFIED;
+          break;
+        }
+        const std::string& siName = request->siname();
+        SAFplusAmf::ServiceInstance* safSi = dynamic_cast<SAFplusAmf::ServiceInstance*>(cfg.safplusAmf.serviceInstanceList[siName]);
+        if (safSi == NULL)
+        {
+          logError("MGMT","VALIDATE.OP","si with name [%s] doesn't exist, cannot update it", siName.c_str());
+          rc = CL_ERR_NOT_EXIST;
+          break;
+        }
+        if (SAFplus::effectiveAdminState(safSi) != SAFplusAmf::AdministrativeState::off)
+        {
+          rc = CL_ERR_INVALID_STATE;
+        }
+        rc = validateAdminState(opId, safSi, request->csilist());
+        break;
+      }
+#if 1
+    case AMF_MGMT_OP_NODE_LOCK_ASSIGNMENT:
+    case AMF_MGMT_OP_SG_LOCK_ASSIGNMENT:
+    case AMF_MGMT_OP_SU_LOCK_ASSIGNMENT:
+    case AMF_MGMT_OP_SI_LOCK_ASSIGNMENT:
+    case AMF_MGMT_OP_NODE_LOCK_INSTANTIATION:
+    case AMF_MGMT_OP_SG_LOCK_INSTANTIATION:
+    case AMF_MGMT_OP_SU_LOCK_INSTANTIATION:
+    case AMF_MGMT_OP_NODE_UNLOCK:
+    case AMF_MGMT_OP_SG_UNLOCK:
+    case AMF_MGMT_OP_SU_UNLOCK:
+    case AMF_MGMT_OP_SI_UNLOCK:
+    case AMF_MGMT_OP_NODE_REPAIR:
+    case AMF_MGMT_OP_COMP_REPAIR:
+    case AMF_MGMT_OP_SU_REPAIR:
+#endif
+    default:
+      logError("MGMT","RPC","invalid rpc operation [%d]",opId>>16);
+      break;
+    }
+    return rc;
+  }
+
   void amfMgmtRpcImpl::createComponent(const ::SAFplus::Rpc::amfMgmtRpc::CreateComponentRequest* request,
                                 ::SAFplus::Rpc::amfMgmtRpc::CreateComponentResponse* response)
   {     
@@ -1879,13 +2654,19 @@ namespace amfMgmtRpc {
 #endif    
     const ComponentConfig& comp = request->componentconfig();
     logDebug("MGMT","RPC","enter [%s] with param comp name [%s], timeout [%" PRId64 "]",__FUNCTION__,comp.name().c_str(), comp.instantiate().execution().timeout());
+    int opId = (AMF_MGMT_OP_COMPONENT_CREATE<<16)|inc++;
+    ClRcT rc = validateOperation(opId, request);
+    if (rc != CL_OK)
+    {
+      response->set_err(rc);
+      return;
+    }
     DbalPlugin* pd = NULL;
-    ClRcT rc = getDbalObj(request->amfmgmthandle().Get(0).c_str(), &pd);
+    rc = getDbalObj(request->amfmgmthandle().Get(0).c_str(), &pd);
     if (rc == CL_OK)
     {
       std::string strMsgReq;
-      request->SerializeToString(&strMsgReq);
-      int opId = (AMF_MGMT_OP_COMPONENT_CREATE<<16)|inc++;
+      request->SerializeToString(&strMsgReq);      
       rc = pd->insertRecord(ClDBKeyT(&opId),
                            (ClUint32T)sizeof(opId),
                            (ClDBRecordT)strMsgReq.c_str(),
@@ -1901,13 +2682,19 @@ namespace amfMgmtRpc {
   {
     const ComponentConfig& comp = request->componentconfig();
     logTrace("MGMT","RPC","enter [%s] with param comp name [%s]",__FUNCTION__,comp.name().c_str());
+    int opId = (AMF_MGMT_OP_COMPONENT_UPDATE<<16)|inc++;
+    ClRcT rc = validateOperation(opId, request);
+    if (rc != CL_OK)
+    {
+      response->set_err(rc);
+      return;
+    }
     DbalPlugin* pd = NULL;
-    ClRcT rc = getDbalObj(request->amfmgmthandle().Get(0).c_str(), &pd);
+    rc = getDbalObj(request->amfmgmthandle().Get(0).c_str(), &pd);
     if (rc == CL_OK)
     {
       std::string strMsgReq;      
-      request->SerializeToString(&strMsgReq);
-      int opId = (AMF_MGMT_OP_COMPONENT_UPDATE<<16)|inc++;
+      request->SerializeToString(&strMsgReq);      
       rc = pd->insertRecord(ClDBKeyT(&opId),
                            (ClUint32T)sizeof(opId),
                            (ClDBRecordT)strMsgReq.c_str(),
@@ -1924,13 +2711,19 @@ namespace amfMgmtRpc {
   {
     const std::string& compName = request->name();
     logDebug("MGMT","RPC","enter [%s] with param comp name [%s]",__FUNCTION__,compName.c_str());
+    int opId = (AMF_MGMT_OP_COMPONENT_DELETE<<16)|inc++;
+    ClRcT rc = validateOperation(opId, request);
+    if (rc != CL_OK)
+    {
+      response->set_err(rc);
+      return;
+    }
     DbalPlugin* pd = NULL;
-    ClRcT rc = getDbalObj(request->amfmgmthandle().Get(0).c_str(), &pd);
+    rc = getDbalObj(request->amfmgmthandle().Get(0).c_str(), &pd);
     if (rc == CL_OK)
     {
       std::string strMsgReq;      
-      request->SerializeToString(&strMsgReq);
-      int opId = (AMF_MGMT_OP_COMPONENT_DELETE<<16)|inc++;
+      request->SerializeToString(&strMsgReq);      
       rc = pd->insertRecord(ClDBKeyT(&opId),
                            (ClUint32T)sizeof(opId),
                            (ClDBRecordT)strMsgReq.c_str(),
@@ -1945,13 +2738,19 @@ namespace amfMgmtRpc {
   {
     const ServiceGroupConfig& sg = request->servicegroupconfig();
     logDebug("MGMT","RPC","enter [%s] with param sg name [%s]",__FUNCTION__,sg.name().c_str());
+    int opId = (AMF_MGMT_OP_SG_CREATE<<16)|inc++;
+    ClRcT rc = validateOperation(opId, request);
+    if (rc != CL_OK)
+    {
+      response->set_err(rc);
+      return;
+    }
     DbalPlugin* pd = NULL;
-    ClRcT rc = getDbalObj(request->amfmgmthandle().Get(0).c_str(), &pd);
+    rc = getDbalObj(request->amfmgmthandle().Get(0).c_str(), &pd);
     if (rc == CL_OK)
     {
       std::string strMsgReq;      
-      request->SerializeToString(&strMsgReq);
-      int opId = (AMF_MGMT_OP_SG_CREATE<<16)|inc++;
+      request->SerializeToString(&strMsgReq);      
       rc = pd->insertRecord(ClDBKeyT(&opId),
                            (ClUint32T)sizeof(opId),
                            (ClDBRecordT)strMsgReq.c_str(),
@@ -1965,13 +2764,19 @@ namespace amfMgmtRpc {
   {
     const ServiceGroupConfig& sg = request->servicegroupconfig();
     logDebug("MGMT","RPC","enter [%s] with param sg name [%s]",__FUNCTION__,sg.name().c_str());
+    int opId = (AMF_MGMT_OP_SG_UPDATE<<16)|inc++;
+    ClRcT rc = validateOperation(opId, request);
+    if (rc != CL_OK)
+    {
+      response->set_err(rc);
+      return;
+    }
     DbalPlugin* pd = NULL;
-    ClRcT rc = getDbalObj(request->amfmgmthandle().Get(0).c_str(), &pd);
+    rc = getDbalObj(request->amfmgmthandle().Get(0).c_str(), &pd);
     if (rc == CL_OK)
     {
       std::string strMsgReq;      
-      request->SerializeToString(&strMsgReq);
-      int opId = (AMF_MGMT_OP_SG_UPDATE<<16)|inc++;
+      request->SerializeToString(&strMsgReq);      
       rc = pd->insertRecord(ClDBKeyT(&opId),
                            (ClUint32T)sizeof(opId),
                            (ClDBRecordT)strMsgReq.c_str(),
@@ -1985,13 +2790,20 @@ namespace amfMgmtRpc {
   {
     const std::string& sgName = request->name();
     logDebug("MGMT","RPC","enter [%s] with param sg name [%s]",__FUNCTION__,sgName.c_str());
+    int opId = (AMF_MGMT_OP_SG_DELETE<<16)|inc++;
+    ClRcT rc = validateOperation(opId, request);
+    if (rc != CL_OK)
+    {
+      response->set_err(rc);
+      return;
+    }
     DbalPlugin* pd = NULL;
-    ClRcT rc = getDbalObj(request->amfmgmthandle().Get(0).c_str(), &pd);
+    rc = getDbalObj(request->amfmgmthandle().Get(0).c_str(), &pd);
     if (rc == CL_OK)
     {
       std::string strMsgReq;      
       request->SerializeToString(&strMsgReq);
-      int opId = (AMF_MGMT_OP_SG_DELETE<<16)|inc++;
+      
       rc = pd->insertRecord(ClDBKeyT(&opId),
                            (ClUint32T)sizeof(opId),
                            (ClDBRecordT)strMsgReq.c_str(),
@@ -2005,13 +2817,20 @@ namespace amfMgmtRpc {
   {
     const NodeConfig& node = request->nodeconfig();
     logDebug("MGMT","RPC","enter [%s] with param node name [%s]",__FUNCTION__,node.name().c_str());
+    int opId = (AMF_MGMT_OP_NODE_CREATE<<16)|inc++;
+    ClRcT rc = validateOperation(opId, request);
+    if (rc != CL_OK)
+    {
+      response->set_err(rc);
+      return;
+    }
     DbalPlugin* pd = NULL;
-    ClRcT rc = getDbalObj(request->amfmgmthandle().Get(0).c_str(), &pd);
+    rc = getDbalObj(request->amfmgmthandle().Get(0).c_str(), &pd);
     if (rc == CL_OK)
     {
       std::string strMsgReq;      
       request->SerializeToString(&strMsgReq);
-      int opId = (AMF_MGMT_OP_NODE_CREATE<<16)|inc++;
+      
       rc = pd->insertRecord(ClDBKeyT(&opId),
                            (ClUint32T)sizeof(opId),
                            (ClDBRecordT)strMsgReq.c_str(),
@@ -2025,13 +2844,19 @@ namespace amfMgmtRpc {
   {
     const NodeConfig& node = request->nodeconfig();
     logDebug("MGMT","RPC","enter [%s] with param node name [%s]",__FUNCTION__,node.name().c_str());
+    int opId = (AMF_MGMT_OP_NODE_UPDATE<<16)|inc++;
+    ClRcT rc = validateOperation(opId, request);
+    if (rc != CL_OK)
+    {
+      response->set_err(rc);
+      return;
+    }
     DbalPlugin* pd = NULL;
-    ClRcT rc = getDbalObj(request->amfmgmthandle().Get(0).c_str(), &pd);
+    rc = getDbalObj(request->amfmgmthandle().Get(0).c_str(), &pd);
     if (rc == CL_OK)
     {
       std::string strMsgReq;      
-      request->SerializeToString(&strMsgReq);
-      int opId = (AMF_MGMT_OP_NODE_UPDATE<<16)|inc++;
+      request->SerializeToString(&strMsgReq);      
       rc = pd->insertRecord(ClDBKeyT(&opId),
                            (ClUint32T)sizeof(opId),
                            (ClDBRecordT)strMsgReq.c_str(),
@@ -2045,13 +2870,19 @@ namespace amfMgmtRpc {
   {
     const std::string& nodeName = request->name();
     logDebug("MGMT","RPC","enter [%s] with param node name [%s]",__FUNCTION__,nodeName.c_str());
+    int opId = (AMF_MGMT_OP_NODE_DELETE<<16)|inc++;
+    ClRcT rc = validateOperation(opId, request);
+    if (rc != CL_OK)
+    {
+      response->set_err(rc);
+      return;
+    }
     DbalPlugin* pd = NULL;
-    ClRcT rc = getDbalObj(request->amfmgmthandle().Get(0).c_str(), &pd);
+    rc = getDbalObj(request->amfmgmthandle().Get(0).c_str(), &pd);
     if (rc == CL_OK)
     {
       std::string strMsgReq;      
-      request->SerializeToString(&strMsgReq);
-      int opId = (AMF_MGMT_OP_NODE_DELETE<<16)|inc++;
+      request->SerializeToString(&strMsgReq);      
       rc = pd->insertRecord(ClDBKeyT(&opId),
                            (ClUint32T)sizeof(opId),
                            (ClDBRecordT)strMsgReq.c_str(),
@@ -2065,13 +2896,19 @@ namespace amfMgmtRpc {
   {
     const ServiceUnitConfig& su = request->serviceunitconfig();
     logDebug("MGMT","RPC","enter [%s] with param su name [%s]",__FUNCTION__,su.name().c_str());
+    int opId = (AMF_MGMT_OP_SU_CREATE<<16)|inc++;
+    ClRcT rc = validateOperation(opId, request);
+    if (rc != CL_OK)
+    {
+      response->set_err(rc);
+      return;
+    }
     DbalPlugin* pd = NULL;
-    ClRcT rc = getDbalObj(request->amfmgmthandle().Get(0).c_str(), &pd);
+    rc = getDbalObj(request->amfmgmthandle().Get(0).c_str(), &pd);
     if (rc == CL_OK)
     {
       std::string strMsgReq;      
-      request->SerializeToString(&strMsgReq);
-      int opId = (AMF_MGMT_OP_SU_CREATE<<16)|inc++;
+      request->SerializeToString(&strMsgReq);      
       rc = pd->insertRecord(ClDBKeyT(&opId),
                            (ClUint32T)sizeof(opId),
                            (ClDBRecordT)strMsgReq.c_str(),
@@ -2086,13 +2923,19 @@ namespace amfMgmtRpc {
   {
     const ServiceUnitConfig& su = request->serviceunitconfig();
     logDebug("MGMT","RPC","enter [%s] with param su name [%s]",__FUNCTION__,su.name().c_str());
+    int opId = (AMF_MGMT_OP_SU_UPDATE<<16)|inc++;
+    ClRcT rc = validateOperation(opId, request);
+    if (rc != CL_OK)
+    {
+      response->set_err(rc);
+      return;
+    }
     DbalPlugin* pd = NULL;
-    ClRcT rc = getDbalObj(request->amfmgmthandle().Get(0).c_str(), &pd);
+    rc = getDbalObj(request->amfmgmthandle().Get(0).c_str(), &pd);
     if (rc == CL_OK)
     {
       std::string strMsgReq;      
-      request->SerializeToString(&strMsgReq);
-      int opId = (AMF_MGMT_OP_SU_UPDATE<<16)|inc++;
+      request->SerializeToString(&strMsgReq);      
       rc = pd->insertRecord(ClDBKeyT(&opId),
                            (ClUint32T)sizeof(opId),
                            (ClDBRecordT)strMsgReq.c_str(),
@@ -2107,13 +2950,19 @@ namespace amfMgmtRpc {
   {
     const std::string& suName = request->name();
     logDebug("MGMT","RPC","enter [%s] with param su name [%s]",__FUNCTION__,suName.c_str());
+    int opId = (AMF_MGMT_OP_SU_DELETE<<16)|inc++;
+    ClRcT rc = validateOperation(opId, request);
+    if (rc != CL_OK)
+    {
+      response->set_err(rc);
+      return;
+    }
     DbalPlugin* pd = NULL;
-    ClRcT rc = getDbalObj(request->amfmgmthandle().Get(0).c_str(), &pd);
+    rc = getDbalObj(request->amfmgmthandle().Get(0).c_str(), &pd);
     if (rc == CL_OK)
     {
       std::string strMsgReq;      
-      request->SerializeToString(&strMsgReq);
-      int opId = (AMF_MGMT_OP_SU_DELETE<<16)|inc++;
+      request->SerializeToString(&strMsgReq);      
       rc = pd->insertRecord(ClDBKeyT(&opId),
                            (ClUint32T)sizeof(opId),
                            (ClDBRecordT)strMsgReq.c_str(),
@@ -2128,13 +2977,19 @@ namespace amfMgmtRpc {
   {
     const ServiceInstanceConfig& si = request->serviceinstanceconfig();
     logDebug("MGMT","RPC","enter [%s] with param si name [%s]",__FUNCTION__,si.name().c_str());
+    int opId = (AMF_MGMT_OP_SI_CREATE<<16)|inc++;
+    ClRcT rc = validateOperation(opId, request);
+    if (rc != CL_OK)
+    {
+      response->set_err(rc);
+      return;
+    }
     DbalPlugin* pd = NULL;
-    ClRcT rc = getDbalObj(request->amfmgmthandle().Get(0).c_str(), &pd);
+    rc = getDbalObj(request->amfmgmthandle().Get(0).c_str(), &pd);
     if (rc == CL_OK)
     {
       std::string strMsgReq;      
-      request->SerializeToString(&strMsgReq);
-      int opId = (AMF_MGMT_OP_SI_CREATE<<16)|inc++;
+      request->SerializeToString(&strMsgReq);      
       rc = pd->insertRecord(ClDBKeyT(&opId),
                            (ClUint32T)sizeof(opId),
                            (ClDBRecordT)strMsgReq.c_str(),
@@ -2149,13 +3004,19 @@ namespace amfMgmtRpc {
   {
     const ServiceInstanceConfig& si = request->serviceinstanceconfig();
     logDebug("MGMT","RPC","enter [%s] with param si name [%s]",__FUNCTION__,si.name().c_str());
+    int opId = (AMF_MGMT_OP_SI_UPDATE<<16)|inc++;
+    ClRcT rc = validateOperation(opId, request);
+    if (rc != CL_OK)
+    {
+      response->set_err(rc);
+      return;
+    }
     DbalPlugin* pd = NULL;
-    ClRcT rc = getDbalObj(request->amfmgmthandle().Get(0).c_str(), &pd);
+    rc = getDbalObj(request->amfmgmthandle().Get(0).c_str(), &pd);
     if (rc == CL_OK)
     {
       std::string strMsgReq;      
-      request->SerializeToString(&strMsgReq);
-      int opId = (AMF_MGMT_OP_SI_UPDATE<<16)|inc++;
+      request->SerializeToString(&strMsgReq);      
       rc = pd->insertRecord(ClDBKeyT(&opId),
                            (ClUint32T)sizeof(opId),
                            (ClDBRecordT)strMsgReq.c_str(),
@@ -2170,13 +3031,19 @@ namespace amfMgmtRpc {
   {
     const std::string& siName = request->name();
     logDebug("MGMT","RPC","enter [%s] with param si name [%s]",__FUNCTION__,siName.c_str());
+    int opId = (AMF_MGMT_OP_SI_DELETE<<16)|inc++;
+    ClRcT rc = validateOperation(opId, request);
+    if (rc != CL_OK)
+    {
+      response->set_err(rc);
+      return;
+    }
     DbalPlugin* pd = NULL;
-    ClRcT rc = getDbalObj(request->amfmgmthandle().Get(0).c_str(), &pd);
+    rc = getDbalObj(request->amfmgmthandle().Get(0).c_str(), &pd);
     if (rc == CL_OK)
     {
       std::string strMsgReq;      
-      request->SerializeToString(&strMsgReq);
-      int opId = (AMF_MGMT_OP_SI_DELETE<<16)|inc++;
+      request->SerializeToString(&strMsgReq);      
       rc = pd->insertRecord(ClDBKeyT(&opId),
                            (ClUint32T)sizeof(opId),
                            (ClDBRecordT)strMsgReq.c_str(),
@@ -2191,13 +3058,19 @@ namespace amfMgmtRpc {
   {
     const ComponentServiceInstanceConfig& csi = request->componentserviceinstanceconfig();
     logDebug("MGMT","RPC","enter [%s] with param csi name [%s]",__FUNCTION__,csi.name().c_str());
+    int opId = (AMF_MGMT_OP_CSI_CREATE<<16)|inc++;
+    ClRcT rc = validateOperation(opId, request);
+    if (rc != CL_OK)
+    {
+      response->set_err(rc);
+      return;
+    }
     DbalPlugin* pd = NULL;
-    ClRcT rc = getDbalObj(request->amfmgmthandle().Get(0).c_str(), &pd);
+    rc = getDbalObj(request->amfmgmthandle().Get(0).c_str(), &pd);
     if (rc == CL_OK)
     {
       std::string strMsgReq;      
-      request->SerializeToString(&strMsgReq);
-      int opId = (AMF_MGMT_OP_CSI_CREATE<<16)|inc++;
+      request->SerializeToString(&strMsgReq);      
       rc = pd->insertRecord(ClDBKeyT(&opId),
                            (ClUint32T)sizeof(opId),
                            (ClDBRecordT)strMsgReq.c_str(),
@@ -2212,13 +3085,19 @@ namespace amfMgmtRpc {
   {
     const ComponentServiceInstanceConfig& csi = request->componentserviceinstanceconfig();
     logDebug("MGMT","RPC","enter [%s] with param csi name [%s]",__FUNCTION__,csi.name().c_str());
+    int opId = (AMF_MGMT_OP_CSI_UPDATE<<16)|inc++;
+    ClRcT rc = validateOperation(opId, request);
+    if (rc != CL_OK)
+    {
+      response->set_err(rc);
+      return;
+    }
     DbalPlugin* pd = NULL;
-    ClRcT rc = getDbalObj(request->amfmgmthandle().Get(0).c_str(), &pd);
+    rc = getDbalObj(request->amfmgmthandle().Get(0).c_str(), &pd);
     if (rc == CL_OK)
     {
       std::string strMsgReq;      
-      request->SerializeToString(&strMsgReq);
-      int opId = (AMF_MGMT_OP_CSI_UPDATE<<16)|inc++;
+      request->SerializeToString(&strMsgReq);      
       rc = pd->insertRecord(ClDBKeyT(&opId),
                            (ClUint32T)sizeof(opId),
                            (ClDBRecordT)strMsgReq.c_str(),
@@ -2233,13 +3112,19 @@ namespace amfMgmtRpc {
   {
     const std::string& csiName = request->name();
     logDebug("MGMT","RPC","enter [%s] with param csi name [%s]",__FUNCTION__,csiName.c_str());
+    int opId = (AMF_MGMT_OP_CSI_DELETE<<16)|inc++;
+    ClRcT rc = validateOperation(opId, request);
+    if (rc != CL_OK)
+    {
+      response->set_err(rc);
+      return;
+    }
     DbalPlugin* pd = NULL;
-    ClRcT rc = getDbalObj(request->amfmgmthandle().Get(0).c_str(), &pd);
+    rc = getDbalObj(request->amfmgmthandle().Get(0).c_str(), &pd);
     if (rc == CL_OK)
     {
       std::string strMsgReq;      
-      request->SerializeToString(&strMsgReq);
-      int opId = (AMF_MGMT_OP_CSI_DELETE<<16)|inc++;
+      request->SerializeToString(&strMsgReq);      
       rc = pd->insertRecord(ClDBKeyT(&opId),
                            (ClUint32T)sizeof(opId),
                            (ClDBRecordT)strMsgReq.c_str(),
@@ -2254,13 +3139,19 @@ namespace amfMgmtRpc {
   {
     const std::string& csiName = request->name();
     logDebug("MGMT","RPC","enter [%s] with param csi name [%s]",__FUNCTION__,csiName.c_str());
+    int opId = (AMF_MGMT_OP_CSI_NVP_DELETE<<16)|inc++;
+    ClRcT rc = validateOperation(opId, request);
+    if (rc != CL_OK)
+    {
+      response->set_err(rc);
+      return;
+    }
     DbalPlugin* pd = NULL;
-    ClRcT rc = getDbalObj(request->amfmgmthandle().Get(0).c_str(), &pd);
+    rc = getDbalObj(request->amfmgmthandle().Get(0).c_str(), &pd);
     if (rc == CL_OK)
     {
       std::string strMsgReq;
-      request->SerializeToString(&strMsgReq);
-      int opId = (AMF_MGMT_OP_CSI_NVP_DELETE<<16)|inc++;
+      request->SerializeToString(&strMsgReq);      
       rc = pd->insertRecord(ClDBKeyT(&opId),
                            (ClUint32T)sizeof(opId),
                            (ClDBRecordT)strMsgReq.c_str(),
@@ -2275,13 +3166,19 @@ namespace amfMgmtRpc {
   {
     const std::string& nodeName = request->nodename();
     logDebug("MGMT","RPC","enter [%s] with param node name [%s]",__FUNCTION__,nodeName.c_str());
+    int opId = (AMF_MGMT_OP_NODE_SU_LIST_DELETE<<16)|inc++; 
+    ClRcT rc = validateOperation(opId, request);
+    if (rc != CL_OK)
+    {
+      response->set_err(rc);
+      return;
+    }
     DbalPlugin* pd = NULL;
-    ClRcT rc = getDbalObj(request->amfmgmthandle().Get(0).c_str(), &pd);
+    rc = getDbalObj(request->amfmgmthandle().Get(0).c_str(), &pd);
     if (rc == CL_OK)
     {
       std::string strMsgReq;
-      request->SerializeToString(&strMsgReq);
-      int opId = (AMF_MGMT_OP_NODE_SU_LIST_DELETE<<16)|inc++;      
+      request->SerializeToString(&strMsgReq);           
       rc = pd->insertRecord(ClDBKeyT(&opId),
                            (ClUint32T)sizeof(opId),
                            (ClDBRecordT)strMsgReq.c_str(),
@@ -2296,13 +3193,19 @@ namespace amfMgmtRpc {
   {
     const std::string& sgName = request->sgname();
     logDebug("MGMT","RPC","enter [%s] with param sg name [%s]",__FUNCTION__,sgName.c_str());
+    int opId = (AMF_MGMT_OP_SG_SU_LIST_DELETE<<16)|inc++;
+    ClRcT rc = validateOperation(opId, request);
+    if (rc != CL_OK)
+    {
+      response->set_err(rc);
+      return;
+    }
     DbalPlugin* pd = NULL;
-    ClRcT rc = getDbalObj(request->amfmgmthandle().Get(0).c_str(), &pd);
+    rc = getDbalObj(request->amfmgmthandle().Get(0).c_str(), &pd);
     if (rc == CL_OK)
     {
       std::string strMsgReq;
-      request->SerializeToString(&strMsgReq);
-      int opId = (AMF_MGMT_OP_SG_SU_LIST_DELETE<<16)|inc++;
+      request->SerializeToString(&strMsgReq);      
       rc = pd->insertRecord(ClDBKeyT(&opId),
                            (ClUint32T)sizeof(opId),
                            (ClDBRecordT)strMsgReq.c_str(),
@@ -2317,13 +3220,19 @@ namespace amfMgmtRpc {
   {
     const std::string& sgName = request->sgname();
     logDebug("MGMT","RPC","enter [%s] with param sg name [%s]",__FUNCTION__,sgName.c_str());
+    int opId = (AMF_MGMT_OP_SG_SI_LIST_DELETE<<16)|inc++;
+    ClRcT rc = validateOperation(opId, request);
+    if (rc != CL_OK)
+    {
+      response->set_err(rc);
+      return;
+    }
     DbalPlugin* pd = NULL;
-    ClRcT rc = getDbalObj(request->amfmgmthandle().Get(0).c_str(), &pd);
+    rc = getDbalObj(request->amfmgmthandle().Get(0).c_str(), &pd);
     if (rc == CL_OK)
     {
       std::string strMsgReq;
-      request->SerializeToString(&strMsgReq);
-      int opId = (AMF_MGMT_OP_SG_SI_LIST_DELETE<<16)|inc++;
+      request->SerializeToString(&strMsgReq);      
       rc = pd->insertRecord(ClDBKeyT(&opId),
                            (ClUint32T)sizeof(opId),
                            (ClDBRecordT)strMsgReq.c_str(),
@@ -2338,13 +3247,19 @@ namespace amfMgmtRpc {
   {
     const std::string& suName = request->suname();
     logDebug("MGMT","RPC","enter [%s] with param su name [%s]",__FUNCTION__,suName.c_str());
+    int opId = (AMF_MGMT_OP_SU_COMP_LIST_DELETE<<16)|inc++;
+    ClRcT rc = validateOperation(opId, request);
+    if (rc != CL_OK)
+    {
+      response->set_err(rc);
+      return;
+    }
     DbalPlugin* pd = NULL;
-    ClRcT rc = getDbalObj(request->amfmgmthandle().Get(0).c_str(), &pd);
+    rc = getDbalObj(request->amfmgmthandle().Get(0).c_str(), &pd);
     if (rc == CL_OK)
     {
       std::string strMsgReq;
-      request->SerializeToString(&strMsgReq);
-      int opId = (AMF_MGMT_OP_SU_COMP_LIST_DELETE<<16)|inc++;
+      request->SerializeToString(&strMsgReq);      
       rc = pd->insertRecord(ClDBKeyT(&opId),
                            (ClUint32T)sizeof(opId),
                            (ClDBRecordT)strMsgReq.c_str(),
@@ -2359,13 +3274,19 @@ namespace amfMgmtRpc {
   {
     const std::string& siName = request->siname();
     logDebug("MGMT","RPC","enter [%s] with param si name [%s]",__FUNCTION__,siName.c_str());
+    int opId = (AMF_MGMT_OP_SI_CSI_LIST_DELETE<<16)|inc++;
+    ClRcT rc = validateOperation(opId, request);
+    if (rc != CL_OK)
+    {
+      response->set_err(rc);
+      return;
+    }
     DbalPlugin* pd = NULL;
-    ClRcT rc = getDbalObj(request->amfmgmthandle().Get(0).c_str(), &pd);
+    rc = getDbalObj(request->amfmgmthandle().Get(0).c_str(), &pd);
     if (rc == CL_OK)
     {
       std::string strMsgReq;
-      request->SerializeToString(&strMsgReq);
-      int opId = (AMF_MGMT_OP_SI_CSI_LIST_DELETE<<16)|inc++;
+      request->SerializeToString(&strMsgReq);      
       rc = pd->insertRecord(ClDBKeyT(&opId),
                            (ClUint32T)sizeof(opId),
                            (ClDBRecordT)strMsgReq.c_str(),

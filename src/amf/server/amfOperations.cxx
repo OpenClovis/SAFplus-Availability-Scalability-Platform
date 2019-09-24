@@ -133,9 +133,19 @@ namespace SAFplus
         
     // If its not off or idle, it must be on
     return SAFplusAmf::AdministrativeState::on;
-    }
+    }    
 
-    bool ClAmfPolicyPlugin_1::initialize(SAFplus::AmfOperations* amfOperations,SAFplus::Fault* faultp)
+  SAFplusAmf::AdministrativeState effectiveAdminState(SAFplusAmf::ComponentServiceInstance* csi)
+  {    
+    ServiceInstance* si = csi->serviceInstance.value;
+
+    SAFplusAmf::AdministrativeState ret;
+    ret = effectiveAdminState(si);
+
+    return ret;  
+  }
+
+  bool ClAmfPolicyPlugin_1::initialize(SAFplus::AmfOperations* amfOperations,SAFplus::Fault* faultp)
     {
     amfOps = amfOperations;
     fault  = faultp;
