@@ -413,7 +413,7 @@ class ProjectTreePanel(wx.Panel):
         self.editMenu = guiPlaces.menu["Edit"]
         self.editMenu.Append(EDIT_UNDO, "&Undo\tCtrl-z", "Undo")
         self.editMenu.Append(EDIT_REDO, "&Redo\tCtrl-y", "Redo")
-        self.editMenu.Append(EDIT_RELOAD, "&Redo\tCtrl-r", "Reload")
+        self.editMenu.Append(EDIT_RELOAD, "&Reload\tCtrl-r", "Reload")
         self.editMenu.AppendSeparator()
         self.editMenu.Append(EDIT_CUT,  "&Cut\tCtrl-x",  "Cut")
         self.editMenu.Append(EDIT_COPY,"&Coppy\tCtrl-c","Coppy")
@@ -1326,13 +1326,14 @@ class ProjectTreePanel(wx.Panel):
         cmd = 'cp -r %s %s' % (baseImage, tarImg)
         if not self.execute(cmd, False):
           return False
-	time.sleep(0.5)
-	os.system('cp resources/setup %s/bin' % tarImg)
-	self.updateImageConfig(tarImg, self.currentImagesConfig[img])
+        time.sleep(1)
+        os.system('cp resources/setup %s/bin' % tarImg)
+        self.updateImageConfig(tarImg, self.currentImagesConfig[img])
         self.log_info("Creating tarball: %s.tar.gz\n" % tarImg)
         cmd = 'cd %s/images/; tar -zcvf %s.tar.gz %s' % (prjPath, img, img)
         if not self.execute(cmd, True):
           return False
+        time.sleep(0.5)
         self.log_info("Blade specific tarballs created.\n")
 
   def updateImageConfig(self, tarGet, imgConf):
