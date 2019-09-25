@@ -1961,7 +1961,7 @@ namespace amfMgmtRpc {
   {
     logDebug("MGMT","COMMIT","server is processing [%s]", __FUNCTION__);
     DbalPlugin* pd = NULL;
-    ClRcT rc2 = CL_OK;
+    ClRcT rc2 = CL_ERR_NOT_EXIST;
     ClRcT rc = getDbalObj(request->amfmgmthandle().Get(0).c_str(), &pd);
     if (rc == CL_OK)
     {
@@ -2051,7 +2051,7 @@ namespace amfMgmtRpc {
           SAFplusAmf::ServiceInstance* si = dynamic_cast<SAFplusAmf::ServiceInstance*>(cfg.safplusAmf.serviceInstanceList[siName]);
           if (si == NULL) return CL_ERR_NOT_EXIST;
           if (sg->serviceInstances.contains(si) == false) return CL_ERR_INVALID_PARAMETER;
-          if (SAFplus::effectiveAdminState(si) != SAFplusAmf::AdministrativeState::off) return CL_ERR_INVALID_STATE;
+          if (SAFplus::effectiveAdminState(si) != SAFplusAmf::AdministrativeState::idle) return CL_ERR_INVALID_STATE;
         }
         break;
       }
@@ -2077,7 +2077,7 @@ namespace amfMgmtRpc {
           SAFplusAmf::ComponentServiceInstance* csi = dynamic_cast<SAFplusAmf::ComponentServiceInstance*>(cfg.safplusAmf.componentServiceInstanceList[csiName]);
           if (csi == NULL) return CL_ERR_NOT_EXIST;
           if (si->componentServiceInstances.contains(csi) == false) return CL_ERR_INVALID_PARAMETER;
-          if (SAFplus::effectiveAdminState(csi) != SAFplusAmf::AdministrativeState::off) return CL_ERR_INVALID_STATE;
+          if (SAFplus::effectiveAdminState(csi) != SAFplusAmf::AdministrativeState::idle) return CL_ERR_INVALID_STATE;
         }
         break;
       }
@@ -2404,7 +2404,7 @@ namespace amfMgmtRpc {
           rc = CL_ERR_NOT_EXIST;
           break;
         }
-        if (SAFplus::effectiveAdminState(safSi) != SAFplusAmf::AdministrativeState::off)
+        if (SAFplus::effectiveAdminState(safSi) != SAFplusAmf::AdministrativeState::idle)
         {
           rc = CL_ERR_INVALID_STATE;
         }
@@ -2444,7 +2444,7 @@ namespace amfMgmtRpc {
           rc = CL_ERR_NOT_EXIST;
           break;         
         }
-        if (SAFplus::effectiveAdminState(safCsi) != SAFplusAmf::AdministrativeState::off)
+        if (SAFplus::effectiveAdminState(safCsi) != SAFplusAmf::AdministrativeState::idle)
         {
           rc = CL_ERR_INVALID_STATE;
         }
@@ -2510,10 +2510,12 @@ namespace amfMgmtRpc {
           rc = CL_ERR_NOT_EXIST;
           break;
         }
+#if 0  // does it need to check the admin state of the containing entity?
         if (safNode->adminState != SAFplusAmf::AdministrativeState::off)
         {
           rc = CL_ERR_INVALID_STATE;
         }
+#endif
         rc = validateAdminState(opId, safNode, request->sulist());
         break;
       }
@@ -2535,10 +2537,12 @@ namespace amfMgmtRpc {
           rc = CL_ERR_NOT_EXIST;
           break;
         }
+#if 0  // does it need to check the admin state of the containing entity?
         if (SAFplus::effectiveAdminState(safSg) != SAFplusAmf::AdministrativeState::off)
         {
           rc = CL_ERR_INVALID_STATE;
         }
+#endif
         rc = validateAdminState(opId, safSg, request->sulist());
         break;
       }
@@ -2559,10 +2563,12 @@ namespace amfMgmtRpc {
           rc = CL_ERR_NOT_EXIST;
           break;
         }
+#if 0  // does it need to check the admin state of the containing entity?
         if (SAFplus::effectiveAdminState(safSg) != SAFplusAmf::AdministrativeState::off)
         {
           rc = CL_ERR_INVALID_STATE;
         }
+#endif
         rc = validateAdminState(opId, safSg, request->silist());
         break;
       }
@@ -2583,10 +2589,12 @@ namespace amfMgmtRpc {
           rc = CL_ERR_NOT_EXIST;
           break;
         }
+#if 0  // does it need to check the admin state of the containing entity?
         if (SAFplus::effectiveAdminState(safSu) != SAFplusAmf::AdministrativeState::off)
         {
           rc = CL_ERR_INVALID_STATE;
         }
+#endif
         rc = validateAdminState(opId, safSu, request->complist());
         break;
       }
@@ -2607,14 +2615,16 @@ namespace amfMgmtRpc {
           rc = CL_ERR_NOT_EXIST;
           break;
         }
+#if 0  // does it need to check the admin state of the containing entity?
         if (SAFplus::effectiveAdminState(safSi) != SAFplusAmf::AdministrativeState::off)
         {
           rc = CL_ERR_INVALID_STATE;
         }
+#endif
         rc = validateAdminState(opId, safSi, request->csilist());
         break;
       }
-#if 1
+#if 0
     case AMF_MGMT_OP_NODE_LOCK_ASSIGNMENT:
     case AMF_MGMT_OP_SG_LOCK_ASSIGNMENT:
     case AMF_MGMT_OP_SU_LOCK_ASSIGNMENT:
@@ -3299,85 +3309,431 @@ namespace amfMgmtRpc {
   void amfMgmtRpcImpl::lockNodeAssignment(const ::SAFplus::Rpc::amfMgmtRpc::LockNodeAssignmentRequest* request,
                                 ::SAFplus::Rpc::amfMgmtRpc::LockNodeAssignmentResponse* response)
   {
-    //TODO: put your code here
+    const std::string& nodeName = request->nodename();
+    logDebug("MGMT","RPC","enter [%s] with param node name [%s]",__FUNCTION__,nodeName.c_str());
+    ClRcT rc = CL_OK;
+#ifdef HANDLE_VALIDATE
+    DbalPlugin* pd = NULL;
+    rc = getDbalObj(request->amfmgmthandle().Get(0).c_str(), &pd);
+    if (rc != CL_OK)
+    {
+      logDebug("MGMT","RPC","invalid handle, rc [0x%x", rc);
+      response->set_err(rc);
+      return;
+    }
+#endif
+    SAFplusAmf::Node* node = dynamic_cast<SAFplusAmf::Node*>(cfg.safplusAmf.nodeList[nodeName]);
+    if (node == NULL)
+    {
+      logDebug("MGMT","RPC","node object is null for its name [%s]", nodeName.c_str());
+      rc = CL_ERR_UNSPECIFIED;
+    }
+    else
+    {
+      rc = SAFplus::setAdminState(node, SAFplusAmf::AdministrativeState::idle,true);
+    }
+    response->set_err(rc);
   }
 
   void amfMgmtRpcImpl::lockSGAssignment(const ::SAFplus::Rpc::amfMgmtRpc::LockSGAssignmentRequest* request,
                                 ::SAFplus::Rpc::amfMgmtRpc::LockSGAssignmentResponse* response)
   {
-    //TODO: put your code here
+    const std::string& sgName = request->sgname();
+    logDebug("MGMT","RPC","enter [%s] with param sg name [%s]",__FUNCTION__,sgName.c_str());
+    ClRcT rc = CL_OK;
+#ifdef HANDLE_VALIDATE
+    DbalPlugin* pd = NULL;
+    rc = getDbalObj(request->amfmgmthandle().Get(0).c_str(), &pd);
+    if (rc != CL_OK)
+    {
+      logDebug("MGMT","RPC","invalid handle, rc [0x%x", rc);
+      response->set_err(rc);
+      return;
+    }
+#endif
+    SAFplusAmf::ServiceGroup* sg = dynamic_cast<SAFplusAmf::ServiceGroup*>(cfg.safplusAmf.serviceGroupList[sgName]);
+    if (sg == NULL)
+    {
+      logDebug("MGMT","RPC","sg object is null for its name [%s]", sgName.c_str());
+      rc = CL_ERR_UNSPECIFIED;
+    }
+    else
+    {
+      rc = SAFplus::setAdminState(sg, SAFplusAmf::AdministrativeState::idle,true);
+    }
+    response->set_err(rc);
   }
 
   void amfMgmtRpcImpl::lockSUAssignment(const ::SAFplus::Rpc::amfMgmtRpc::LockSUAssignmentRequest* request,
                                 ::SAFplus::Rpc::amfMgmtRpc::LockSUAssignmentResponse* response)
   {
-    //TODO: put your code here
+    const std::string& suName = request->suname();
+    logDebug("MGMT","RPC","enter [%s] with param su name [%s]",__FUNCTION__,suName.c_str());
+    ClRcT rc = CL_OK;
+#ifdef HANDLE_VALIDATE
+    DbalPlugin* pd = NULL;
+    rc = getDbalObj(request->amfmgmthandle().Get(0).c_str(), &pd);
+    if (rc != CL_OK)
+    {
+      logDebug("MGMT","RPC","invalid handle, rc [0x%x", rc);
+      response->set_err(rc);
+      return;
+    }
+#endif
+    SAFplusAmf::ServiceUnit* su = dynamic_cast<SAFplusAmf::ServiceUnit*>(cfg.safplusAmf.serviceUnitList[suName]);
+    if (su == NULL)
+    {
+      logDebug("MGMT","RPC","su object is null for its name [%s]", suName.c_str());
+      rc = CL_ERR_UNSPECIFIED;
+    }
+    else
+    {
+      rc = SAFplus::setAdminState(su,SAFplusAmf::AdministrativeState::idle,true);
+    }
+    
+    response->set_err(rc);
   }
 
   void amfMgmtRpcImpl::lockSIAssignment(const ::SAFplus::Rpc::amfMgmtRpc::LockSIAssignmentRequest* request,
                                 ::SAFplus::Rpc::amfMgmtRpc::LockSIAssignmentResponse* response)
   {
-    //TODO: put your code here
+    const std::string& siName = request->siname();
+    logDebug("MGMT","RPC","enter [%s] with param si name [%s]",__FUNCTION__,siName.c_str());
+    ClRcT rc = CL_OK;
+#ifdef HANDLE_VALIDATE
+    DbalPlugin* pd = NULL;
+    rc = getDbalObj(request->amfmgmthandle().Get(0).c_str(), &pd);
+    if (rc != CL_OK)
+    {
+      logDebug("MGMT","RPC","invalid handle, rc [0x%x", rc);
+      response->set_err(rc);
+      return;
+    }
+#endif
+    SAFplusAmf::ServiceInstance* si = dynamic_cast<SAFplusAmf::ServiceInstance*>(cfg.safplusAmf.serviceInstanceList[siName]);
+    if (si == NULL)
+    {
+      logDebug("MGMT","RPC","si object is null for its name [%s]", siName.c_str());
+      rc = CL_ERR_UNSPECIFIED;
+    }
+    else
+    {
+      rc = SAFplus::setAdminState(si,SAFplusAmf::AdministrativeState::idle,true);
+    }
+
+    response->set_err(rc);
   }
 
   void amfMgmtRpcImpl::lockNodeInstantiation(const ::SAFplus::Rpc::amfMgmtRpc::LockNodeInstantiationRequest* request,
                                 ::SAFplus::Rpc::amfMgmtRpc::LockNodeInstantiationResponse* response)
   {
-    //TODO: put your code here
+    const std::string& nodeName = request->nodename();
+    logDebug("MGMT","RPC","enter [%s] with param node name [%s]",__FUNCTION__,nodeName.c_str());
+    ClRcT rc = CL_OK;
+#ifdef HANDLE_VALIDATE
+    DbalPlugin* pd = NULL;
+    rc = getDbalObj(request->amfmgmthandle().Get(0).c_str(), &pd);
+    if (rc != CL_OK)
+    {
+      logDebug("MGMT","RPC","invalid handle, rc [0x%x", rc);
+      response->set_err(rc);
+      return;
+    }
+#endif
+    SAFplusAmf::Node* node = dynamic_cast<SAFplusAmf::Node*>(cfg.safplusAmf.nodeList[nodeName]);
+    if (node == NULL)
+    {
+      logDebug("MGMT","RPC","node object is null for its name [%s]", nodeName.c_str());
+      rc = CL_ERR_UNSPECIFIED;
+    }
+    else
+    {
+      rc = SAFplus::setAdminState(node, SAFplusAmf::AdministrativeState::off,true);
+    }
+
+    response->set_err(rc);
   }
 
   void amfMgmtRpcImpl::lockSGInstantiation(const ::SAFplus::Rpc::amfMgmtRpc::LockSGInstantiationRequest* request,
                                 ::SAFplus::Rpc::amfMgmtRpc::LockSGInstantiationResponse* response)
   {
-    //TODO: put your code here
+    const std::string& sgName = request->sgname();
+    logDebug("MGMT","RPC","enter [%s] with param sg name [%s]",__FUNCTION__,sgName.c_str());
+    ClRcT rc = CL_OK;
+#ifdef HANDLE_VALIDATE
+    DbalPlugin* pd = NULL;
+    rc = getDbalObj(request->amfmgmthandle().Get(0).c_str(), &pd);
+    if (rc != CL_OK)
+    {
+      logDebug("MGMT","RPC","invalid handle, rc [0x%x", rc);
+      response->set_err(rc);
+      return;
+    }
+#endif
+    SAFplusAmf::ServiceGroup* sg = dynamic_cast<SAFplusAmf::ServiceGroup*>(cfg.safplusAmf.serviceGroupList[sgName]);
+    if (sg == NULL)
+    {
+      logDebug("MGMT","RPC","sg object is null for its name [%s]", sgName.c_str());
+      rc = CL_ERR_UNSPECIFIED;
+    }
+    else
+    {
+      rc = SAFplus::setAdminState(sg, SAFplusAmf::AdministrativeState::off,true);
+    }
+
+    response->set_err(rc);
   }
 
   void amfMgmtRpcImpl::lockSUInstantiation(const ::SAFplus::Rpc::amfMgmtRpc::LockSUInstantiationRequest* request,
                                 ::SAFplus::Rpc::amfMgmtRpc::LockSUInstantiationResponse* response)
   {
-    //TODO: put your code here
+    const std::string& suName = request->suname();
+    logDebug("MGMT","RPC","enter [%s] with param su name [%s]",__FUNCTION__,suName.c_str());
+    ClRcT rc = CL_OK;
+#ifdef HANDLE_VALIDATE
+    DbalPlugin* pd = NULL;
+    rc = getDbalObj(request->amfmgmthandle().Get(0).c_str(), &pd);
+    if (rc != CL_OK)
+    {
+      logDebug("MGMT","RPC","invalid handle, rc [0x%x", rc);
+      response->set_err(rc);
+      return;
+    }
+#endif
+    SAFplusAmf::ServiceUnit* su = dynamic_cast<SAFplusAmf::ServiceUnit*>(cfg.safplusAmf.serviceUnitList[suName]);
+    if (su == NULL)
+    {
+      logDebug("MGMT","RPC","su object is null for its name [%s]", suName.c_str());
+      rc = CL_ERR_UNSPECIFIED;
+    }
+    else
+    {
+      SAFplus::setAdminState(su,SAFplusAmf::AdministrativeState::off,true);
+      //logInfo("MGMT","RPC","setting service unit [%s] to admin state [%s] ==> writting changes to DB",suName.c_str(),c_str(SAFplusAmf::AdministrativeState::off));
+      //su->write(); // write immedidately rather than waiting for AMF to write, which is too late to reflect the changes
+    }
+    response->set_err(rc);
   }
 
   void amfMgmtRpcImpl::unlockNode(const ::SAFplus::Rpc::amfMgmtRpc::UnlockNodeRequest* request,
                                 ::SAFplus::Rpc::amfMgmtRpc::UnlockNodeResponse* response)
   {
-    //TODO: put your code here
+    const std::string& nodeName = request->nodename();
+    logDebug("MGMT","RPC","enter [%s] with param node name [%s]",__FUNCTION__,nodeName.c_str());
+    ClRcT rc = CL_OK;
+#ifdef HANDLE_VALIDATE
+    DbalPlugin* pd = NULL;
+    rc = getDbalObj(request->amfmgmthandle().Get(0).c_str(), &pd);
+    if (rc != CL_OK)
+    {
+      logDebug("MGMT","RPC","invalid handle, rc [0x%x", rc);
+      response->set_err(rc);
+      return;
+    }
+#endif
+    SAFplusAmf::Node* node = dynamic_cast<SAFplusAmf::Node*>(cfg.safplusAmf.nodeList[nodeName]);
+    if (node == NULL)
+    {
+      logDebug("MGMT","RPC","node object is null for its name [%s]", nodeName.c_str());
+      rc = CL_ERR_UNSPECIFIED;
+    }
+    else
+    {
+      rc = SAFplus::setAdminState(node, SAFplusAmf::AdministrativeState::on,true);
+    }
+    response->set_err(rc);
   }
 
   void amfMgmtRpcImpl::unlockSG(const ::SAFplus::Rpc::amfMgmtRpc::UnlockSGRequest* request,
                                 ::SAFplus::Rpc::amfMgmtRpc::UnlockSGResponse* response)
   {
-    //TODO: put your code here
+    const std::string& sgName = request->sgname();
+    logDebug("MGMT","RPC","enter [%s] with param sg name [%s]",__FUNCTION__,sgName.c_str());
+    ClRcT rc = CL_OK;
+#ifdef HANDLE_VALIDATE
+    DbalPlugin* pd = NULL;
+    rc = getDbalObj(request->amfmgmthandle().Get(0).c_str(), &pd);
+    if (rc != CL_OK)
+    {
+      logDebug("MGMT","RPC","invalid handle, rc [0x%x", rc);
+      response->set_err(rc);
+      return;
+    }
+#endif
+    SAFplusAmf::ServiceGroup* sg = dynamic_cast<SAFplusAmf::ServiceGroup*>(cfg.safplusAmf.serviceGroupList[sgName]);
+    if (sg == NULL)
+    {
+      logDebug("MGMT","RPC","sg object is null for its name [%s]", sgName.c_str());
+      rc = CL_ERR_UNSPECIFIED;
+    }
+    else
+    {
+      rc = SAFplus::setAdminState(sg, SAFplusAmf::AdministrativeState::on,true);
+    }
+    response->set_err(rc);
   }
 
   void amfMgmtRpcImpl::unlockSU(const ::SAFplus::Rpc::amfMgmtRpc::UnlockSURequest* request,
                                 ::SAFplus::Rpc::amfMgmtRpc::UnlockSUResponse* response)
   {
-    //TODO: put your code here
+    const std::string& suName = request->suname();
+    logDebug("MGMT","RPC","enter [%s] with param su name [%s]",__FUNCTION__,suName.c_str());
+    ClRcT rc = CL_OK;
+#ifdef HANDLE_VALIDATE
+    DbalPlugin* pd = NULL;
+    rc = getDbalObj(request->amfmgmthandle().Get(0).c_str(), &pd);
+    if (rc != CL_OK)
+    {
+      logDebug("MGMT","RPC","invalid handle, rc [0x%x", rc);
+      response->set_err(rc);
+      return;
+    }
+#endif
+    SAFplusAmf::ServiceUnit* su = dynamic_cast<SAFplusAmf::ServiceUnit*>(cfg.safplusAmf.serviceUnitList[suName]);
+    if (su == NULL)
+    {
+      logDebug("MGMT","RPC","su object is null for its name [%s]", suName.c_str());
+      rc = CL_ERR_UNSPECIFIED;
+    }
+    else
+    {
+      rc = SAFplus::setAdminState(su,SAFplusAmf::AdministrativeState::on,true);
+    }
+    response->set_err(rc);
   }
 
   void amfMgmtRpcImpl::unlockSI(const ::SAFplus::Rpc::amfMgmtRpc::UnlockSIRequest* request,
                                 ::SAFplus::Rpc::amfMgmtRpc::UnlockSIResponse* response)
   {
-    //TODO: put your code here
+    const std::string& siName = request->siname();
+    logDebug("MGMT","RPC","enter [%s] with param si name [%s]",__FUNCTION__,siName.c_str());
+    ClRcT rc = CL_OK;
+#ifdef HANDLE_VALIDATE
+    DbalPlugin* pd = NULL;
+    rc = getDbalObj(request->amfmgmthandle().Get(0).c_str(), &pd);
+    if (rc != CL_OK)
+    {
+      logDebug("MGMT","RPC","invalid handle, rc [0x%x", rc);
+      response->set_err(rc);
+      return;
+    }
+#endif
+    SAFplusAmf::ServiceInstance* si = dynamic_cast<SAFplusAmf::ServiceInstance*>(cfg.safplusAmf.serviceInstanceList[siName]);
+    if (si == NULL)
+    {
+      logDebug("MGMT","RPC","si object is null for its name [%s]", siName.c_str());
+      rc = CL_ERR_UNSPECIFIED;
+    }
+    else
+    {
+      rc = SAFplus::setAdminState(si,SAFplusAmf::AdministrativeState::on,true);
+    }
+    response->set_err(rc);
   }
 
   void amfMgmtRpcImpl::repairNode(const ::SAFplus::Rpc::amfMgmtRpc::RepairNodeRequest* request,
                                 ::SAFplus::Rpc::amfMgmtRpc::RepairNodeResponse* response)
   {
-    //TODO: put your code here
+    const std::string& nodeName = request->nodename();
+    logDebug("MGMT","RPC","enter [%s] with param node name [%s]",__FUNCTION__,nodeName.c_str());
+    ClRcT rc = CL_OK;
+#ifdef HANDLE_VALIDATE
+    DbalPlugin* pd = NULL;
+    rc = getDbalObj(request->amfmgmthandle().Get(0).c_str(), &pd);
+    if (rc != CL_OK)
+    {
+      logDebug("MGMT","RPC","invalid handle, rc [0x%x", rc);
+      response->set_err(rc);
+      return;
+    }
+#endif
+    SAFplusAmf::Node* node = dynamic_cast<SAFplusAmf::Node*>(cfg.safplusAmf.nodeList[nodeName]);
+    if (node == NULL)
+    {
+      logDebug("MGMT","RPC","node object is null for its name [%s]", nodeName.c_str());
+      rc = CL_ERR_UNSPECIFIED;
+    }
+    else
+    {
+      if (node->operState.value == false)
+      {       
+        node->operState = true;
+        logDebug("MGMT","RPC","node [%s] is repaired", nodeName.c_str());
+      }
+      else
+        logDebug("MGMT","RPC","node [%s] does not need repairing", nodeName.c_str());
+    }
+    response->set_err(rc);
   }
 
   void amfMgmtRpcImpl::repairComponent(const ::SAFplus::Rpc::amfMgmtRpc::RepairComponentRequest* request,
                                 ::SAFplus::Rpc::amfMgmtRpc::RepairComponentResponse* response)
   {
-    //TODO: put your code here
+    const std::string& compName = request->compname();
+    logDebug("MGMT","RPC","enter [%s] with param comp name [%s]",__FUNCTION__,compName.c_str());
+    ClRcT rc = CL_OK;
+#ifdef HANDLE_VALIDATE
+    DbalPlugin* pd = NULL;
+    rc = getDbalObj(request->amfmgmthandle().Get(0).c_str(), &pd);
+    if (rc != CL_OK)
+    {
+      logDebug("MGMT","RPC","invalid handle, rc [0x%x", rc);
+      response->set_err(rc);
+      return;
+    }
+#endif
+    SAFplusAmf::Component* comp = dynamic_cast<SAFplusAmf::Component*>(cfg.safplusAmf.componentList[compName]);
+    if (comp == NULL)
+    {
+      logDebug("MGMT","RPC","comp object is null for its name [%s]", compName.c_str());
+      rc = CL_ERR_UNSPECIFIED;
+    }
+    else
+    {
+      if (comp->operState.value == false)
+      {       
+        comp->operState = true;
+        logDebug("MGMT","RPC","comp [%s] is repaired", compName.c_str());
+      }
+      else
+        logDebug("MGMT","RPC","comp [%s] does not need repairing", compName.c_str());
+    }
+    response->set_err(rc);
   }
 
   void amfMgmtRpcImpl::repairSU(const ::SAFplus::Rpc::amfMgmtRpc::RepairSURequest* request,
                                 ::SAFplus::Rpc::amfMgmtRpc::RepairSUResponse* response)
   {
-    //TODO: put your code here
+    const std::string& suName = request->suname();
+    logDebug("MGMT","RPC","enter [%s] with param su name [%s]",__FUNCTION__,suName.c_str());
+    ClRcT rc = CL_OK;
+#ifdef HANDLE_VALIDATE
+    DbalPlugin* pd = NULL;
+    rc = getDbalObj(request->amfmgmthandle().Get(0).c_str(), &pd);
+    if (rc != CL_OK)
+    {
+      logDebug("MGMT","RPC","invalid handle, rc [0x%x", rc);
+      response->set_err(rc);
+      return;
+    }
+#endif
+    SAFplusAmf::ServiceUnit* su = dynamic_cast<SAFplusAmf::ServiceUnit*>(cfg.safplusAmf.serviceUnitList[suName]);
+    if (su == NULL)
+    {
+      logDebug("MGMT","RPC","su object is null for its name [%s]", suName.c_str());
+      rc = CL_ERR_UNSPECIFIED;
+    }
+    else
+    {
+      if (su->operState.value == false)
+      {       
+        su->operState = true;
+        logDebug("MGMT","RPC","su [%s] is repaired", suName.c_str());
+      }
+      else
+        logDebug("MGMT","RPC","su [%s] does not need repairing", suName.c_str());
+    }
+    response->set_err(rc);
   }
 
 }  // namespace amfMgmtRpc

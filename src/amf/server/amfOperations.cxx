@@ -37,9 +37,10 @@ namespace SAFplus
 
 
   // Move this service group and all contained elements to the specified state.
-  void setAdminState(SAFplusAmf::ServiceGroup* sg,SAFplusAmf::AdministrativeState tgt)
+  ClRcT setAdminState(SAFplusAmf::ServiceGroup* sg,SAFplusAmf::AdministrativeState tgt, bool writeChanges)
     {
       //SAFplus::MgtProvList<SAFplusAmf::ServiceUnit*>::ContainerType::iterator itsu;
+    ClRcT rc = CL_OK;
     SAFplus::MgtIdentifierList<SAFplusAmf::ServiceUnit*>::iterator itsu;
     //SAFplus::MgtProvList<SAFplusAmf::ServiceUnit*>::ContainerType::iterator endsu = sg->serviceUnits.value.end();
     SAFplus::MgtIdentifierList<SAFplusAmf::ServiceUnit*>::iterator endsu = sg->serviceUnits.listEnd();
@@ -50,17 +51,108 @@ namespace SAFplus
       const std::string& suName = su->name;
       if (su->adminState.value != tgt)
         {
+          logInfo("N+M","AUDIT","Setting service unit [%s] to admin state [%s]",suName.c_str(),c_str(tgt));
+          if (writeChanges)
+            su->adminState.value = tgt; // do not change the beat, so, the AMF will not write changes again
+          else
+            su->adminState = tgt; // DO change the beat, so, the AMF will write changes next time
+        // TODO: transactional and event
+        }       
+      }
+    if (sg->adminState.value != tgt)
+     {
+       logInfo("N+M","AUDIT","Setting service group [%s] to admin state [%s]",sg->name.value.c_str(),c_str(tgt));
+       if (writeChanges)
+         sg->adminState.value = tgt; // do not change the beat, so, the AMF will not write changes again
+       else
+         sg->adminState = tgt; // DO change the beat, so, the AMF will write changes next time
+     }
+     else
+       rc = CL_ERR_INVALID_STATE;
+
+    if (rc == CL_OK && writeChanges)
+      sg->adminState.write();
+
+    return rc;
+
+    }   
+
+    // Move this node and all contained elements to the specified state.
+  ClRcT setAdminState(SAFplusAmf::Node* node,SAFplusAmf::AdministrativeState tgt, bool writeChanges)
+  {
+    ClRcT rc = CL_OK;
+    SAFplus::MgtIdentifierList<SAFplusAmf::ServiceUnit*>::iterator itsu;
+    SAFplus::MgtIdentifierList<SAFplusAmf::ServiceUnit*>::iterator endsu = node->serviceUnits.listEnd();
+    for (itsu = node->serviceUnits.listBegin(); itsu != endsu; itsu++)
+      {
+      ServiceUnit* su = dynamic_cast<ServiceUnit*>(*itsu);
+      const std::string& suName = su->name;
+      if (su->adminState.value != tgt)
+        {
         logInfo("N+M","AUDIT","Setting service unit [%s] to admin state [%s]",suName.c_str(),c_str(tgt));
-        su->adminState.value = tgt;
+        if (writeChanges)
+          su->adminState.value = tgt;
+        else
+          su->adminState = tgt;
         // TODO: transactional and event
         }
       }
-      if (sg->adminState.value != tgt)
-        {
-        logInfo("N+M","AUDIT","Setting service group [%s] to admin state [%s]",sg->name.value.c_str(),c_str(tgt));
-        sg->adminState.value = tgt;
-        }
+    if (node->adminState.value != tgt)
+    {
+      logInfo("N+M","AUDIT","Setting node [%s] to admin state [%s]",node->name.value.c_str(),c_str(tgt));
+      if (writeChanges)
+        node->adminState.value = tgt;
+      else
+        node->adminState = tgt;
     }
+    else
+      rc = CL_ERR_INVALID_STATE;
+
+    if (rc == CL_OK && writeChanges)
+      node->adminState.write();
+
+    return rc;
+  }
+
+  ClRcT setAdminState(SAFplusAmf::ServiceUnit* su,SAFplusAmf::AdministrativeState tgt, bool writeChanges)
+  {
+    ClRcT rc = CL_OK;    
+    if (su->adminState.value != tgt)
+    {
+      logInfo("N+M","AUDIT","Setting su [%s] to admin state [%s]",su->name.value.c_str(),c_str(tgt));
+      if (writeChanges)
+        su->adminState.value = tgt;
+      else
+        su->adminState = tgt;
+    }   
+    else
+      rc = CL_ERR_INVALID_STATE;
+
+    if (rc == CL_OK && writeChanges)
+      su->adminState.write();
+
+    return rc;
+  }
+  
+  ClRcT setAdminState(SAFplusAmf::ServiceInstance* si,SAFplusAmf::AdministrativeState tgt, bool writeChanges)
+  {
+    ClRcT rc = CL_OK;    
+    if (si->adminState.value != tgt)
+    {
+      logInfo("N+M","AUDIT","Setting si [%s] to admin state [%s]",si->name.value.c_str(),c_str(tgt));
+      if (writeChanges)
+        si->adminState.value = tgt;
+      else
+        si->adminState = tgt;
+    }
+    else
+      rc = CL_ERR_INVALID_STATE;
+
+    if (rc == CL_OK && writeChanges)
+      si->adminState.write();
+
+    return rc;
+  }
 
   // The effective administrative state is calculated by looking at the admin state of the containers: SU, SG, node, and application.  If any contain a "more restrictive" state, then this component inherits the more restrictive state.  The states from most to least restrictive is off, idle, on.  The Application object is optional.
   SAFplusAmf::AdministrativeState effectiveAdminState(SAFplusAmf::Component* comp)

@@ -61,8 +61,10 @@ namespace SAFplus
   SAFplusAmf::AdministrativeState effectiveAdminState(SAFplusAmf::ServiceGroup* sg);
   SAFplusAmf::AdministrativeState effectiveAdminState(SAFplusAmf::ServiceInstance* si);
   SAFplusAmf::AdministrativeState effectiveAdminState(SAFplusAmf::ComponentServiceInstance* csi);
-  void setAdminState(SAFplusAmf::ServiceGroup* sg,SAFplusAmf::AdministrativeState tgt);
-
+  ClRcT setAdminState(SAFplusAmf::ServiceGroup* sg,SAFplusAmf::AdministrativeState tgt, bool writeChanges=false);
+  ClRcT setAdminState(SAFplusAmf::Node* node,SAFplusAmf::AdministrativeState tgt, bool writeChanges=false);
+  ClRcT setAdminState(SAFplusAmf::ServiceUnit* su,SAFplusAmf::AdministrativeState tgt, bool writeChanges=false);
+  ClRcT setAdminState(SAFplusAmf::ServiceInstance* si,SAFplusAmf::AdministrativeState tgt, bool writeChanges=false);
 
   class AmfOperations
     {

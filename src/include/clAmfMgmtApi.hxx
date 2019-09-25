@@ -34,7 +34,25 @@ ClRcT amfMgmtComponentServiceInstanceConfigSet(const Handle& mgmtHandle, SAFplus
 ClRcT amfMgmtComponentServiceInstanceDelete(const Handle& mgmtHandle, const std::string& csiName);
 
 ClRcT amfMgmtCSINVPDelete(const Handle& mgmtHandle, const std::string& csiName);
-
 ClRcT amfMgmtNodeSUListDelete(const Handle& mgmtHandle, const std::string& nodeName, const std::vector<std::string>& suNames);
+ClRcT amfMgmtSGSUListDelete(const Handle& mgmtHandle, const std::string& sgName, const std::vector<std::string>& suNames);
+ClRcT amfMgmtSGSIListDelete(const Handle& mgmtHandle, const std::string& sgName, const std::vector<std::string>& siNames);
+ClRcT amfMgmtSUCompListDelete(const Handle& mgmtHandle, const std::string& suName, const std::vector<std::string>& compNames);
+ClRcT amfMgmtSICSIListDelete(const Handle& mgmtHandle, const std::string& siName, const std::vector<std::string>& csiNames);
+
+ClRcT amfMgmtNodeLockAssignment(const Handle& mgmtHandle, const std::string& nodeName);
+ClRcT amfMgmtSGLockAssignment(const Handle& mgmtHandle, const std::string& sgName);
+ClRcT amfMgmtSULockAssignment(const Handle& mgmtHandle, const std::string& suName);
+ClRcT amfMgmtSILockAssignment(const Handle& mgmtHandle, const std::string& siName);
+ClRcT amfMgmtNodeLockInstantiation(const Handle& mgmtHandle, const std::string& nodeName);
+ClRcT amfMgmtSGLockInstantiation(const Handle& mgmtHandle, const std::string& sgName);
+ClRcT amfMgmtSULockInstantiation(const Handle& mgmtHandle, const std::string& suName);
+ClRcT amfMgmtNodeUnlock(const Handle& mgmtHandle, const std::string& nodeName);
+ClRcT amfMgmtSGUnlock(const Handle& mgmtHandle, const std::string& sgName);
+ClRcT amfMgmtSUUnlock(const Handle& mgmtHandle, const std::string& suName);
+ClRcT amfMgmtSIUnlock(const Handle& mgmtHandle, const std::string& siName);
+ClRcT amfMgmtNodeRepair(const Handle& mgmtHandle, const std::string& nodeName);
+ClRcT amfMgmtCompRepair(const Handle& mgmtHandle, const std::string& compName);
+ClRcT amfMgmtSURepair(const Handle& mgmtHandle, const std::string& suName);
 
 }
