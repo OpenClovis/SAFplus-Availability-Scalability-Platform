@@ -1239,7 +1239,6 @@ class ProjectTreePanel(wx.Panel):
         self.log_error(out)
     # user press cancel button while process is running
     if self.cancelProgress:
-      self.log_info("\nBuild cancelled.\n")
       return False
     return True
 
@@ -1247,17 +1246,23 @@ class ProjectTreePanel(wx.Panel):
     '''
     @summary    : found and cancel childs process
     '''
-    cmd = "ps --forest -o pid -g $(ps -o sid= -p %s)" % self.currentProcess.pid
-    processChild = os.popen(cmd).read()
-    start = False
-    for p in processChild.split('\n'):
-      pid = p.strip()
-      if pid == str(self.currentProcess.pid):
-        start = True
-      if start and pid:
-        cmd = "kill -9 %s" % pid
-        subprocess.Popen(cmd, shell=True, stderr=subprocess.PIPE)
-      
+    self.log_info("Build cancelled.")
+    if not self.currentProcess:
+      return
+    elif isinstance(self.currentProcess, paramiko.SSHClient):
+      self.currentProcess.close()
+    else:
+      cmd = "ps --forest -o pid -g $(ps -o sid= -p %s)" % self.currentProcess.pid
+      processChild = os.popen(cmd).read()
+      start = False
+      for p in processChild.split('\n'):
+        pid = p.strip()
+        if pid == str(self.currentProcess.pid):
+          start = True
+        if start and pid:
+          cmd = "kill -9 %s" % pid
+          subprocess.Popen(cmd, shell=True, stderr=subprocess.PIPE)
+
   def setCancelProgress(self, status):
     self.cancelProgress = status
 
@@ -1952,8 +1957,10 @@ class DeployDialog(wx.Dialog):
       if (info['targetAdress'] == "") or (info['userName'] == "") or (info['password'] == "") or (info['targetLocation'] == ""):
         self.parent.log_error_2("Invalid deployment infomation")
         return False
+      remoteClient = None
       try:
-        remoteClient = paramiko.SSHClient() 
+        remoteClient = paramiko.SSHClient()
+        self.parent.currentProcess = remoteClient
         remoteClient.set_missing_host_key_policy(paramiko.AutoAddPolicy())
         self.parent.log_info("Connecting to host...")
         remoteClient.connect(hostname=info['targetAdress'], username=info['userName'], password=info['password'])
@@ -1971,6 +1978,9 @@ class DeployDialog(wx.Dialog):
       except Exception as e:
         self.parent.log_error_2("Exception occured while deploying image")
         self.parent.log_error_2(e.message)
+      finally:
+        if remoteClient:
+          remoteClient.close()
 
     def onClickRestoreDefaultBtn(self, event):
       self.host.SetValue("")
