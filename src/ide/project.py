@@ -1192,18 +1192,16 @@ class ProjectTreePanel(wx.Panel):
 
   def log_console_info(self, text):
     console = self.guiPlaces.frame.console
-    console.AppendText(text)
+    asctime = time.strftime('%H:%M:%S', time.localtime())
+    textformat = "%s INFO: %s" % (asctime, text)
+    console.AppendText(textformat)
 
   def log_console_error(self, text):
     console = self.guiPlaces.frame.console
-    # console.SetDefaultStyle(wx.TextAttr(colText=wx.Colour(0x96,0x0d,0x0d)))
-    console.AppendText(text)
-    # console.SetDefaultStyle(wx.TextAttr(wx.BLACK))
-
-  def log_console_error_2(self, text):
-    console = self.guiPlaces.frame.console
     console.SetDefaultStyle(wx.TextAttr(colText=wx.Colour(0x96,0x0d,0x0d)))
-    console.AppendText(text)
+    asctime = time.strftime('%H:%M:%S', time.localtime())
+    textformat = "%s ERROR: %s" % (asctime, text)
+    console.AppendText(textformat)
     console.SetDefaultStyle(wx.TextAttr(wx.BLACK))
 
   def log_info(self, text):
@@ -1214,10 +1212,6 @@ class ProjectTreePanel(wx.Panel):
     text = str(text).strip() + '\n'
     wx.CallAfter(self.log_console_error, text)
 
-  def log_error_2(self, text):
-    text = str(text).strip() + '\n'
-    wx.CallAfter(self.log_console_error_2, text)
-
   def execute(self, command, enable_log=True):
     '''
     @summary    : Implement command in subprocess and get output while process running
@@ -1226,16 +1220,17 @@ class ProjectTreePanel(wx.Panel):
       return False
     self.currentProcessCommand = command
     self.currentProcess = subprocess.Popen(command, shell=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
-    if enable_log:
-      while True:
-        out = self.currentProcess.stdout.readline()
-        if not out and self.currentProcess.poll() != None:
-            break
+    while True:
+      out = self.currentProcess.stdout.readline()
+      if not out and self.currentProcess.poll() != None:
+          break
+      if enable_log:
         self.log_info(out)
-      while True:
-        out = self.currentProcess.stderr.readline()
-        if not out and self.currentProcess.poll() != None:
-            break
+    while True:
+      out = self.currentProcess.stderr.readline()
+      if not out and self.currentProcess.poll() != None:
+          break
+      if enable_log:
         self.log_error(out)
     # user press cancel button while process is running
     if self.cancelProgress:
@@ -1315,7 +1310,7 @@ class ProjectTreePanel(wx.Panel):
     baseImage = prjPath + '/images/%s' % tarGet
     owd = os.getcwd()
     os.chdir('../mk')
-    tool = os.path.abspath("safplus_packager.py")
+    tool = os.path.abspath("safplus_packager_ide.py")
     os.chdir('%s' % prjPath)
     cmd = 'python %s -a %s %s.tgz' % (tool, tarGet, tarGet)
     self.log_info("Generating image...")
@@ -1331,14 +1326,12 @@ class ProjectTreePanel(wx.Panel):
         cmd = 'cp -r %s %s' % (baseImage, tarImg)
         if not self.execute(cmd, False):
           return False
-        time.sleep(1)
         os.system('cp resources/setup %s/bin' % tarImg)
         self.updateImageConfig(tarImg, self.currentImagesConfig[img])
         self.log_info("Creating tarball: %s.tar.gz\n" % tarImg)
         cmd = 'cd %s/images/; tar -zcvf %s.tar.gz %s' % (prjPath, img, img)
-        if not self.execute(cmd, True):
+        if not self.execute(cmd, False):
           return False
-        time.sleep(0.5)
         self.log_info("Blade specific tarballs created.\n")
 
   def updateImageConfig(self, tarGet, imgConf):
@@ -1936,7 +1929,8 @@ class DeployDialog(wx.Dialog):
         if os.path.isfile(srcImage + '.tar.gz'):
           self.deploymentSingleImage(self.deployInfos[key], srcImage)
         else:
-          self.parent.log_error_2("Image %s.tar.gz don't exist.\nDeploy failure" % srcImage)
+          self.parent.log_error("Image %s.tar.gz don't exist." % srcImage)
+          self.parent.log_error("Deploy failure")
 
     def waitForCompletedAndVerifyResult(self, stdout, stderr):
       result = True
@@ -1949,13 +1943,13 @@ class DeployDialog(wx.Dialog):
         if not out:
           break
         result = False
-        self.parent.log_error_2(out)
+        self.parent.log_error(out)
       return result
 
     def deploymentSingleImage(self, info, srcImage):
       self.parent.log_info("Start deploy image: %s" % srcImage)
       if (info['targetAdress'] == "") or (info['userName'] == "") or (info['password'] == "") or (info['targetLocation'] == ""):
-        self.parent.log_error_2("Invalid deployment infomation")
+        self.parent.log_error("Invalid deployment infomation")
         return False
       remoteClient = None
       try:
@@ -1974,10 +1968,10 @@ class DeployDialog(wx.Dialog):
         if self.waitForCompletedAndVerifyResult(stdout, stderr):
           self.parent.log_info("Deploy image successfuly")
         else:
-          self.parent.log_error_2("Deploy image failure")
+          self.parent.log_error("Deploy image failure")
       except Exception as e:
-        self.parent.log_error_2("Exception occured while deploying image")
-        self.parent.log_error_2(e.message)
+        self.parent.log_error("Exception occured while deploying image")
+        self.parent.log_error(e.message)
       finally:
         if remoteClient:
           remoteClient.close()
@@ -1996,7 +1990,8 @@ class DeployDialog(wx.Dialog):
         self.parent.runningLongProcess(self.deploymentSingleImage, (img, srcImage, ))
       else:
         self.parent.guiPlaces.frame.setCurrentTabInfoByText("Console")
-        self.parent.log_error_2("Image %s.tar.gz don't exist.\nDeploy failure" % srcImage)
+        self.parent.log_error("Image %s.tar.gz don't exist.\nDeploy failure" % srcImage)
+        self.parent.log_error("Deploy failure")
 
     def onSelectNodeChange(self, event):
       item = self.nodeList.GetFocusedItem()
