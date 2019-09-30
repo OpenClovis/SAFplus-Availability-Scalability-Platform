@@ -3508,7 +3508,7 @@ namespace amfMgmtRpc {
     }
     else
     {
-      SAFplus::setAdminState(su,SAFplusAmf::AdministrativeState::off,true);
+      rc = SAFplus::setAdminState(su,SAFplusAmf::AdministrativeState::off,true);
       //logInfo("MGMT","RPC","setting service unit [%s] to admin state [%s] ==> writting changes to DB",suName.c_str(),c_str(SAFplusAmf::AdministrativeState::off));
       //su->write(); // write immedidately rather than waiting for AMF to write, which is too late to reflect the changes
     }
@@ -3657,11 +3657,15 @@ namespace amfMgmtRpc {
     {
       if (node->operState.value == false)
       {       
-        node->operState = true;
-        logDebug("MGMT","RPC","node [%s] is repaired", nodeName.c_str());
+        node->operState.value = true;
+        node->operState.write(); // write to DB to prevent amf reload it from DB with the old value
+        logInfo("MGMT","RPC","node [%s] is repaired", nodeName.c_str());
       }
       else
+      {
+        rc = CL_ERR_INVALID_STATE;
         logDebug("MGMT","RPC","node [%s] does not need repairing", nodeName.c_str());
+      }
     }
     response->set_err(rc);
   }
@@ -3692,11 +3696,15 @@ namespace amfMgmtRpc {
     {
       if (comp->operState.value == false)
       {       
-        comp->operState = true;
-        logDebug("MGMT","RPC","comp [%s] is repaired", compName.c_str());
+        comp->operState.value = true;
+        comp->operState.write(); // write to DB to prevent amf reload it from DB with the old value
+        logInfo("MGMT","RPC","comp [%s] is repaired", compName.c_str());      
       }
       else
+      {
+        rc = CL_ERR_INVALID_STATE;
         logDebug("MGMT","RPC","comp [%s] does not need repairing", compName.c_str());
+      }
     }
     response->set_err(rc);
   }
@@ -3727,11 +3735,15 @@ namespace amfMgmtRpc {
     {
       if (su->operState.value == false)
       {       
-        su->operState = true;
-        logDebug("MGMT","RPC","su [%s] is repaired", suName.c_str());
+        su->operState.value = true;
+        su->operState.write(); // write to DB to prevent amf reload it from DB with the old value
+        logInfo("MGMT","RPC","su [%s] is repaired", suName.c_str());
       }
       else
+      {
+        rc = CL_ERR_INVALID_STATE;
         logDebug("MGMT","RPC","su [%s] does not need repairing", suName.c_str());
+      }
     }
     response->set_err(rc);
   }

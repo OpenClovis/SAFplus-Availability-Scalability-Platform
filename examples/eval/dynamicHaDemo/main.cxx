@@ -5,6 +5,7 @@
 #include <clNameApi.hxx>
 #include <safplus.hxx>
 #include <boost/thread/thread.hpp> 
+#include <sys/stat.h>
 #include <clAmfMgmtApi.hxx>
 #include <clHandleApi.hxx>
 #include <map>
@@ -57,7 +58,7 @@ void initializeAmf(void);
 void dispatchLoop(void);
 void printCSI(SaAmfCSIDescriptorT csiDescriptor, SaAmfHAStateT haState);
 int  errorExit(SaAisErrorT rc);
-
+void* activeLoop(void* arg);
 
 /* This simple helper function just prints an error and quits */
 int errorExit(SaAisErrorT rc)
@@ -74,6 +75,11 @@ namespace SAFplus
 };
 
 using namespace SAFplus::Rpc::amfMgmtRpc;
+bool fileExists(const char* file)
+{
+  struct stat buf;
+  return (stat(file,&buf)==0);
+}
 
 /*
       <Node name="node0">
@@ -262,7 +268,7 @@ ClRcT addComponentServiceInstanceNVP(const SAFplus::Handle& mgmtHandle, const ch
   clprintf(SAFplus::LOG_SEV_INFO,"Basic HA app: Test creating new csi");
   if (nvpMap.size()==0)
   {
-    logInfo("APP","","an empty NVP. Do nothing");
+    logInfo("APP","ADD.NVP","an empty NVP. Do nothing");
     return CL_ERR_INVALID_PARAMETER;
   }
   SAFplus::Rpc::amfMgmtRpc::ComponentServiceInstanceConfig* csi = new SAFplus::Rpc::amfMgmtRpc::ComponentServiceInstanceConfig();
@@ -278,6 +284,20 @@ ClRcT addComponentServiceInstanceNVP(const SAFplus::Handle& mgmtHandle, const ch
   }  
   ClRcT rc = SAFplus::amfMgmtComponentServiceInstanceCreate(mgmtHandle,csi);
   clprintf(SAFplus::LOG_SEV_INFO,"Basic HA app: Test creating new csi returns [0x%x]", rc);
+  return rc;
+}
+
+ClRcT deleteNodeSUList(const SAFplus::Handle& mgmtHandle, const char* nodeName, const char* suNames[], int suNamesLen)
+{
+  std::string strNodeName(nodeName);
+  std::vector<std::string> suNameList;
+  for(int i=0;i<suNamesLen;i++)
+  {
+    std::string s = suNames[i];
+    suNameList.push_back(s);
+  }
+  ClRcT rc = SAFplus::amfMgmtNodeSUListDelete(mgmtHandle,strNodeName, suNameList);
+  clprintf(SAFplus::LOG_SEV_INFO,"Basic HA app: Test nodeSUListDelete returns [0x%x]", rc);
   return rc;
 }
 
@@ -319,16 +339,28 @@ ClRcT dynamicModelUpdate()
   SAFplus::Handle mgmtHandle;    
   FN_CALL(SAFplus::amfMgmtInitialize(mgmtHandle));
   //FN_CALL(amfMgmtComponentDelete(mgmtHandle,std::string("c0")));
-  FN_CALL(deleteCSINVP(mgmtHandle,"csi"));
+  //FN_CALL(deleteCSINVP(mgmtHandle,"csi"));
 #if 0
   FN_CALL(addNewComponent(mgmtHandle, "./basicApp", "c12", "newsu"));  
   FN_CALL(addNewServiceUnit(mgmtHandle,"newsu", "c12", "sg0", "node1"));
   FN_CALL(updateServiceGroup(mgmtHandle,"sg0", "newsu"));
   FN_CALL(updateNode(mgmtHandle,"node1", "newsu"));
 #endif
-  rc = SAFplus::amfMgmtCommit(mgmtHandle);
+  const char* invalidSuNames[] = {"su9","su8"};
+  deleteNodeSUList(mgmtHandle,"node1", invalidSuNames, 2);
+  const char* s1[] = {"su1"};
+  deleteNodeSUList(mgmtHandle,"node0", s1, 1);
+  rc = amfMgmtSULockInstantiation(mgmtHandle, std::string("su1"));
+  clprintf(SAFplus::LOG_SEV_INFO,"Basic HA app: su lock_i returns [0x%x]", rc);  
+  const char* s2[] = {"su1"};
+  deleteNodeSUList(mgmtHandle,"node1", s2, 1);
+  const char* s3[] = {"su1","su0","su2"};
+  deleteNodeSUList(mgmtHandle,"node0", s3, 3);    
+  rc = SAFplus::amfMgmtCommit(mgmtHandle);  
   clprintf(SAFplus::LOG_SEV_INFO,"Basic HA app: commit returns [0x%x]", rc);
-
+  //rc = amfMgmtSUUnlock(mgmtHandle, std::string("su1"));
+  //clprintf(SAFplus::LOG_SEV_INFO,"Basic HA app: su unlock returns [0x%x]", rc);
+#if 0
   std::map<std::string,std::string> nvp;
   nvp[std::string("name")] = std::string("jack");
   nvp[std::string("addr")] = std::string("US");
@@ -339,6 +371,7 @@ ClRcT dynamicModelUpdate()
   clprintf(SAFplus::LOG_SEV_INFO,"Basic HA app: addComponentServiceInstanceNVP returns [0x%x]", rc);
   rc = SAFplus::amfMgmtCommit(mgmtHandle);
   clprintf(SAFplus::LOG_SEV_INFO,"Basic HA app: commit returns [0x%x]", rc);  
+#endif
   rc = SAFplus::amfMgmtFinalize(mgmtHandle);
   clprintf(SAFplus::LOG_SEV_INFO,"Basic HA app: finalize returns [0x%x]", rc);
 
@@ -359,7 +392,7 @@ ClRcT dynamicModelCreate()
   FN_CALL(addNewServiceGroup(mgmtHandle, "newsg","newsu","newsi"));
   FN_CALL(addNewServiceInstance(mgmtHandle, "newsi","newsg","newcsi"));
   FN_CALL(addNewComponentServiceInstance(mgmtHandle, "newcsi","newsi"));
-  FN_CALL(addNewServiceUnit(mgmtHandle, "newsu","newcomp","newsg", "node1"));
+  FN_CALL(addNewServiceUnit(mgmtHandle, "newsu","newcomp","newsg", "node0"));
   FN_CALL(addNewComponent(mgmtHandle, "./basicApp", "newcomp", "newsu"));
 
   /*if (rc == CL_OK)
@@ -384,6 +417,7 @@ ClRcT dynamicModelCreate()
     rc = SAFplus::amfMgmtCommit(mgmtHandle);
     clprintf(SAFplus::LOG_SEV_INFO,"Basic HA app: dynamicModelCreate commit returns [0x%x]", rc);
   }
+
   rc = SAFplus::amfMgmtFinalize(mgmtHandle);
   clprintf(SAFplus::LOG_SEV_INFO,"Basic HA app: dynamicModelCreate finalize returns [0x%x]", rc);
   return rc;
@@ -405,6 +439,54 @@ void* standbyLoop(void* arg)
     logNotice("APP", "---", "invalid argument for standby loop, the mode is [%s]", mode);
   }
   delete (char*)arg;
+  return NULL;
+}
+
+void* activeLoop(void* arg)
+{
+  //SAFplus::Handle dummy;
+  SAFplus::Handle mgmtHandle;
+  ClRcT rc = CL_OK;
+  rc = SAFplus::amfMgmtInitialize(mgmtHandle);
+  if (rc!=CL_OK) return NULL;
+  while (true)
+  {
+    //const char* repairComp = getenv("REPAIR_COMP");
+    bool compRepaired = false;
+    bool suRepaired = false;
+    if (compRepaired==false && fileExists("/home/clovis/repair_comp"))
+    {
+      clprintf(SAFplus::LOG_SEV_DEBUG, "call amfMgmtCompRepair");
+      rc = amfMgmtCompRepair(mgmtHandle, std::string("c1"));
+      if (rc == CL_OK) compRepaired = true;
+      else
+        clprintf(SAFplus::LOG_SEV_ERROR, "amfMgmtCompRepair fail, rc = 0x%x",rc);
+      //if (rc == CL_OK) break;
+    }
+    else
+      clprintf(SAFplus::LOG_SEV_INFO, "no file /home/clovis/repair_comp exists");
+
+    //const char* repairSu = getenv("REPAIR_SU");    
+    if (suRepaired==false && fileExists("/home/clovis/repair_su"))
+    {
+      clprintf(SAFplus::LOG_SEV_DEBUG, "call amfMgmtSURepair");
+      ClRcT rc = amfMgmtSURepair(mgmtHandle, std::string("su1"));
+      if (rc == CL_OK) suRepaired = true;
+      else clprintf(SAFplus::LOG_SEV_ERROR, "amfMgmtSURepair fail, rc = 0x%x",rc);
+      //if (rc == CL_OK) break;
+      rc = amfMgmtSUUnlock(mgmtHandle, std::string("su1"));
+      clprintf(SAFplus::LOG_SEV_ERROR, "amfMgmtSUUnlock, rc = 0x%x",rc);
+    }
+    else
+      clprintf(SAFplus::LOG_SEV_INFO, "no file /home/clovis/repair_su exists");
+    //const char* startRepairOver = getenv("START_REPAIR_OVER");
+    if (fileExists("/home/clovis/start_repair_over"))
+    {
+      clprintf(SAFplus::LOG_SEV_INFO, "start repair over");
+      suRepaired = compRepaired = false;
+    }
+    sleep(1);
+  }
   return NULL;
 }
 
@@ -516,9 +598,15 @@ void safAssignWork(SaInvocationT       invocation,
             pthread_t thr;
             clprintf(SAFplus::LOG_SEV_INFO,"Basic HA app: ACTIVE state requested; activating service");
             running = 1;
-            //pthread_create(&thr,NULL,activeLoop,NULL);
-
-
+            pthread_create(&thr,NULL,activeLoop,NULL);
+            /*if (memcmp(compName->value,"c0",compName->length)==0)
+            {
+              char* mode = new char[10];
+              strcpy(mode,"create");
+              pthread_create(&thr,NULL,standbyLoop, mode);
+            }
+            else
+              clprintf(SAFplus::LOG_SEV_INFO,"Basic HA app: compName [%.*s], length [%d] is not equal to [su0]",compName->length,compName->value,compName->length);*/
             /* The AMF times the interval between the assignment and acceptance
                of the work (the time interval is configurable).
                So it is important to call this saAmfResponse function ASAP.
