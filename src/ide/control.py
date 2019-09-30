@@ -42,7 +42,7 @@ class EditorControl(stc.StyledTextCtrl):
         self.Bind(stc.EVT_STC_CHARADDED, self.on_charadded)
         self.Bind(stc.EVT_STC_MARGINCLICK, self.on_marginclick)
         self.Bind(stc.EVT_STC_MACRORECORD, self.on_macrorecord)
-        self.Bind(wx.EVT_RIGHT_UP, self.on_right_up)
+        # self.Bind(wx.EVT_RIGHT_UP, self.on_right_up)
     def get_name(self):
         if self.file_path:
             pre, name = os.path.split(self.file_path)

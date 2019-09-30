@@ -417,7 +417,7 @@ class ProjectTreePanel(wx.Panel):
         self.editMenu.Append(EDIT_RELOAD, "&Reload\tCtrl-r", "Reload")
         self.editMenu.AppendSeparator()
         self.editMenu.Append(EDIT_CUT,  "&Cut\tCtrl-x",  "Cut")
-        self.editMenu.Append(EDIT_COPY,"&Coppy\tCtrl-c","Coppy")
+        self.editMenu.Append(EDIT_COPY,"&Copy\tCtrl-c","Copy")
         self.editMenu.Append(EDIT_PATSE, "&Patse\tCtrl-v", "Paste")
         self.editMenu.AppendSeparator()
         self.editMenu.Append(EDIT_FIND, "&Find\tCtrl-f", "Find")
