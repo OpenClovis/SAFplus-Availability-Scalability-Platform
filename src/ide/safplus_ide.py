@@ -8,6 +8,7 @@ from collections import namedtuple
 import re
 import control
 import styles
+import text
 
 # import wxversion
 # wxversion.select("2.8")
@@ -130,9 +131,9 @@ class SAFplusFrame(wx.Frame):
         self.modelProblems.SetColumnWidth(0, 250)
         self.modelProblems.SetColumnWidth(1, 560)
         self.modelProblems.SetColumnWidth(2, 350)
-        self.infoPanel.AddPage(self.modelProblems, "Model Problems")
+        self.infoPanel.AddPage(self.modelProblems, text.model_problem)
         self.console = wx.TextCtrl(self, style=wx.TE_MULTILINE|wx.TE_READONLY)
-        self.infoPanel.AddPage(self.console, "Console")
+        self.infoPanel.AddPage(self.console, text.console)
 
     def setCurrentTabInfoByText(self, text):
         n = self.infoPanel.GetPageCount()

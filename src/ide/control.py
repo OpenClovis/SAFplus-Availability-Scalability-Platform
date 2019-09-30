@@ -159,6 +159,9 @@ class EditorControl(stc.StyledTextCtrl):
             self.file_path = path
         except IOError:
             self.SetText('')
+        except UnicodeDecodeError:
+            self.SetText("Unable to View or Edit binary file !")
+            self.SetEditable(False)
         finally:
             if file:
                 file.close()

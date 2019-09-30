@@ -830,7 +830,7 @@ class Panel(scrolled.ScrolledPanel):
             if self.isDetailInstance and ent.et.name=="Component":
               parentItemText = self.tree.GetItemText(treeItem)
               if parentItemText=="instantiate" and name=="command" and isinstance(query,wx.TextCtrl) and query.GetValue().strip()=="":
-                query.SetValue( './' + ent.entity.data["name"])
+                query.SetValue('./' + ent.entity.data["name"])
                 values[item[0]]=query.GetValue()
 
             self.tree.SetItemWindow(child, query, 3)

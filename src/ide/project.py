@@ -31,6 +31,7 @@ import webbrowser
 import style_dialog
 import styles
 from progressdialog import ProgressDialog
+import text
 
 PROJECT_LOAD = wx.NewId()
 PROJECT_SAVE = wx.NewId()
@@ -887,6 +888,7 @@ class ProjectTreePanel(wx.Panel):
         self.tree.SetDimensions(0, 0, w, h) 
 
   def OnValidate(self, event):
+    self.guiPlaces.frame.setCurrentTabInfoByText(text.model_problem)
     # Clear old problems
     del self.problems[:]
 
@@ -1012,8 +1014,6 @@ class ProjectTreePanel(wx.Panel):
       self.updateProblems(self.error, msg, self.modelling)
     else:
       pass
-    
-    print "self.problems: %s" % self.problems
 
   def validateNodeIntances(self):
     '''
@@ -1297,7 +1297,7 @@ class ProjectTreePanel(wx.Panel):
 
   def runningLongProcess(self, func, parram):
     self.guiPlaces.frame.console.SetValue('')
-    self.guiPlaces.frame.setCurrentTabInfoByText("Console")
+    self.guiPlaces.frame.setCurrentTabInfoByText(text.console)
     runningThread = threading.Thread(target = func, args = parram)
     runningThread.start()
     progressDialog = ProgressDialog(self, runningThread)
@@ -1989,7 +1989,7 @@ class DeployDialog(wx.Dialog):
         img = self.deployInfos[self.curNode]
         self.parent.runningLongProcess(self.deploymentSingleImage, (img, srcImage, ))
       else:
-        self.parent.guiPlaces.frame.setCurrentTabInfoByText("Console")
+        self.parent.guiPlaces.frame.setCurrentTabInfoByText(text.console)
         self.parent.log_error("Image %s.tar.gz don't exist.\nDeploy failure" % srcImage)
         self.parent.log_error("Deploy failure")
 
