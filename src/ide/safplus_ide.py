@@ -8,7 +8,7 @@ from collections import namedtuple
 import re
 import control
 import styles
-import text
+import texts
 
 # import wxversion
 # wxversion.select("2.8")
@@ -131,9 +131,9 @@ class SAFplusFrame(wx.Frame):
         self.modelProblems.SetColumnWidth(0, 250)
         self.modelProblems.SetColumnWidth(1, 560)
         self.modelProblems.SetColumnWidth(2, 350)
-        self.infoPanel.AddPage(self.modelProblems, text.model_problem)
+        self.infoPanel.AddPage(self.modelProblems, texts.model_problems)
         self.console = wx.TextCtrl(self, style=wx.TE_MULTILINE|wx.TE_READONLY)
-        self.infoPanel.AddPage(self.console, text.console)
+        self.infoPanel.AddPage(self.console, texts.console)
 
     def setCurrentTabInfoByText(self, text):
         n = self.infoPanel.GetPageCount()
@@ -415,6 +415,7 @@ class SAFplusFrame(wx.Frame):
         page = self.tab.GetPage(idx)
         if page.__class__.__name__ == "Page":
           page.control.confirm_close(False)
+          del self.openFile[page.control.file_path]
           return
       pageText = self.tab.GetPageText(idx)
       print 'page [%s] idx [%d] closing' % (pageText, idx)

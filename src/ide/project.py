@@ -31,7 +31,7 @@ import webbrowser
 import style_dialog
 import styles
 from progressdialog import ProgressDialog
-import text
+import texts
 
 PROJECT_LOAD = wx.NewId()
 PROJECT_SAVE = wx.NewId()
@@ -57,6 +57,8 @@ EDIT_UPPERCASE            = wx.NewId()
 GO_TO_LINE       = wx.NewId()
 
 PROJECT_VALIDATE = wx.NewId()
+PROJECT_OPEN     = wx.NewId()
+PROJECT_CLOSE    = wx.NewId()
 PROJECT_BUILD = wx.NewId()
 PROJECT_CLEAN = wx.NewId()
 MAKE_IMAGES      = wx.NewId() 
@@ -448,6 +450,9 @@ class ProjectTreePanel(wx.Panel):
         self.editMenu.Bind(wx.EVT_MENU, self.onGoToLine, id=GO_TO_LINE)
         #
         self.menuProject = guiPlaces.menu["Project"]
+        self.menuProject.Append(PROJECT_OPEN, "Open Project", "Open Project")
+        self.menuProject.Append(PROJECT_CLOSE, "Close Project", "Close Project")
+        self.menuProject.AppendSeparator()
         self.menuProject.Append(PROJECT_BUILD, "Build Project", "Build Project")
         self.menuProject.Append(PROJECT_CLEAN, "Clean...", "Clean...")
         self.menuProject.AppendSeparator()
@@ -458,6 +463,7 @@ class ProjectTreePanel(wx.Panel):
         self.menuProject.Append(PROJECT_PROPERTIES, "Properties", "Properties")
         # self.menuProject.Append(PROJECT_CLEAR_DATA, "Clear project data", "Clear project data")
 
+        # self.menuProject.Enable(PROJECT_CLOSE, False)
         self.menuProject.Enable(PROJECT_VALIDATE, False)
         self.menuProject.Enable(MAKE_IMAGES, False)
         self.menuProject.Enable(IMAGES_DEPLOY, False)
@@ -465,6 +471,8 @@ class ProjectTreePanel(wx.Panel):
         self.menuProject.Enable(PROJECT_CLEAN, False)
         self.menuProject.Enable(PROJECT_PROPERTIES, False)
         # self.menuProject.Enable(PROJECT_CLEAR_DATA, False)
+        self.menuProject.Bind(wx.EVT_MENU, self.OnLoad, id=PROJECT_OPEN)
+        self.menuProject.Bind(wx.EVT_MENU, self.OnCloseProject, id=PROJECT_CLOSE)
         self.menuProject.Bind(wx.EVT_MENU, self.OnValidate, id=PROJECT_VALIDATE)
         self.menuProject.Bind(wx.EVT_MENU, self.OnMakeImages, id=MAKE_IMAGES)
         self.menuProject.Bind(wx.EVT_MENU, self.OnDeploy, id=IMAGES_DEPLOY)
@@ -621,7 +629,8 @@ class ProjectTreePanel(wx.Panel):
       i = i[0]
     else:
       i = self.tree.GetFirstVisibleItem()
-
+    if not i.IsOk():
+      return None
     project = self.tree.GetItemPyData(i)
     if type(project) is TupleType: project = project[0]
       
@@ -721,17 +730,17 @@ class ProjectTreePanel(wx.Panel):
   def getItemByLabel(self, tree, label, root):
       item, cookie = tree.GetFirstChild(root)
       while item.IsOk():
-          text = self.getPathTree(item)
-          if text is not None:
+          text = self.getFullPath(item)
+          if text:
             if text == label:
                 return item
-          if tree.ItemHasChildren(item):
-              match = self.getItemByLabel(tree, label, item)
-              if match.IsOk():
-                  return match
+          # if tree.ItemHasChildren(item):
+          #     match = self.getItemByLabel(tree, label, item)
+          #     if match.IsOk():
+          #         return match
           item, cookie = tree.GetNextChild(root, cookie)
 
-      return wx.TreeItemId()
+      return None
 
   def getPathTree(self, item):
     root = self.tree.GetRootItem()
@@ -884,36 +893,60 @@ class ProjectTreePanel(wx.Panel):
         Page.onSave(None, index)
 
   def OnSize(self, event):
-        w,h = self.GetClientSizeTuple()
-        self.tree.SetDimensions(0, 0, w, h) 
+    w,h = self.GetClientSizeTuple()
+    self.tree.SetDimensions(0, 0, w, h)
+     
+  def removePageByObj(self, page):
+    try:
+      index = self.guiPlaces.frame.tab.GetPageIndex(page)
+      if index != -1:
+        self.guiPlaces.frame.tab.DeletePage(index)
+    except:
+      pass
+
+  def OnCloseProject(self, event):
+    prj = self.active()
+    if not prj:
+      return
+    path = self.getPrjPath()
+    self.deleteTreeRecursion(path)
+    item = self.getItemByLabel(self.tree, path, self.tree.GetRootItem())
+    if not item:
+      return
+    self.tree.Delete(item)
+    frame = self.guiPlaces.frame
+    prj = self.active()
+    if prj:
+      frame.loadProject(prj)
+      pageText = frame.getCurrentPageText(0)
+      self.guiPlaces.frame.enableTools(pageText)
+    else:
+      model = self.guiPlaces.frame.model
+      self.removePageByObj(self.guiPlaces.frame.help)
+      self.removePageByObj(model.instanceDetails)
+      self.removePageByObj(model.instance)
+      self.removePageByObj(model.modelDetails)
+      self.removePageByObj(model.uml)
+      frame.cleanupTools()
+      frame.cleanupMenus()
 
   def OnValidate(self, event):
-    self.guiPlaces.frame.setCurrentTabInfoByText(text.model_problem)
+    self.guiPlaces.frame.setCurrentTabInfoByText(texts.model_problems)
     # Clear old problems
     del self.problems[:]
-
     if share.detailsPanel is None:
       return
-
     self.modelling = "%s Modelling" % self.getPrjName()
     self.instantiation = "%s Instantiation" % self.getPrjName()
-
     share.detailsPanel.model.updateMicrodom()
-
     try:
       self.validateComponentModel()
-      # Validate components relation ship
       self.parseComponentRelationships()
-
       self.validateNodeProfiles()
-      # Validate intances 
       self.validateAmfConfig()
-
-      # Validate configuration data
       self.validateDataConfig()
     except Exception, e:
       self.updateProblems(self.error, "%s exception occur while validate model\n (%s)" % (str(Exception),str(e)), "")
-
     # Update all problems on modal problems tag
     self.updateModalProblems()
 
@@ -1297,7 +1330,7 @@ class ProjectTreePanel(wx.Panel):
 
   def runningLongProcess(self, func, parram):
     self.guiPlaces.frame.console.SetValue('')
-    self.guiPlaces.frame.setCurrentTabInfoByText(text.console)
+    self.guiPlaces.frame.setCurrentTabInfoByText(texts.console)
     runningThread = threading.Thread(target = func, args = parram)
     runningThread.start()
     progressDialog = ProgressDialog(self, runningThread)
@@ -1542,7 +1575,7 @@ class ClearProjectData(wx.Dialog):
 
       vBox = wx.BoxSizer(wx.VERTICAL)
 
-      self.deploy = wx.CheckBox(self, id=wx.ID_ANY, size=(400,30), label="Clear deploy infomation")
+      self.deploy = wx.CheckBox(self, id=wx.ID_ANY, size=(400,30), label="Clear targets infomation")
       self.deploy.SetValue(True)
       self.properties = wx.CheckBox(self, id=wx.ID_ANY, size=(400,30), label="Clear project properties")
       self.properties.SetValue(True)
@@ -1794,8 +1827,6 @@ class DeployDialog(wx.Dialog):
       self.deployInfos = {}
       self.key = self.getKey()
       self.initDeploymentInfo()
-      self.Bind(wx.EVT_CLOSE, self.onDialogClose)
-      self.infoChange = False
 
     def getKey(self):
       home = os.path.expanduser("~")
@@ -1813,7 +1844,7 @@ class DeployDialog(wx.Dialog):
           pass
       key = Fernet.generate_key()
       if not os.path.isdir(path):
-        os.mkdir(path);
+        os.makedirs(path)
       try:
         file = open(pathFile, 'wb')
         p = pickle.Pickler(file, -1)
@@ -1863,7 +1894,6 @@ class DeployDialog(wx.Dialog):
           image['userName'] = ""
           image['password'] = ""
           image['targetLocation'] = ""
-          self.infoChange = True
         self.nodeList.InsertStringItem(sys.maxsize, img)
         self.deployInfos[img] = image
 
@@ -1878,19 +1908,19 @@ class DeployDialog(wx.Dialog):
 
     def onTargetAdressChange(self, event):
       self.deployInfos[self.curNode]['targetAdress'] = self.host.GetValue()
-      self.infoChange = True
+      self.onSaveAllDeploymentInfo()
 
     def onUserNameChange(self, event):
       self.deployInfos[self.curNode]['userName'] = self.user.GetValue()
-      self.infoChange = True
+      self.onSaveAllDeploymentInfo()
 
     def onPasswordChange(self, event):
       self.deployInfos[self.curNode]['password'] = self.password.GetValue()
-      self.infoChange = True
+      self.onSaveAllDeploymentInfo()
 
     def onTargetLocationChange(self, event):
       self.deployInfos[self.curNode]['targetLocation'] = self.targetLocation.GetValue()
-      self.infoChange = True
+      self.onSaveAllDeploymentInfo()
 
     def getCipheredConfigData(self):
       cipheredConfig = {}
@@ -1920,6 +1950,7 @@ class DeployDialog(wx.Dialog):
       self.Close()
 
     def onClickDeployAllImageBtn(self, event):
+      self.Close()
       self.parent.runningLongProcess(self.deployAllImage, ())
 
     def deployAllImage(self):
@@ -1971,7 +2002,8 @@ class DeployDialog(wx.Dialog):
           self.parent.log_error("Deploy image failure")
       except Exception as e:
         self.parent.log_error("Exception occured while deploying image")
-        self.parent.log_error(e.message)
+        if e.message:
+          self.parent.log_error(e.message)
       finally:
         if remoteClient:
           remoteClient.close()
@@ -1984,7 +2016,6 @@ class DeployDialog(wx.Dialog):
 
     def onDeployImageHandler(self, event):
       srcImage = self.parent.getPrjPath() + '/images/' + self.curNode
-
       if os.path.isfile(srcImage + '.tar.gz'):
         img = self.deployInfos[self.curNode]
         self.parent.runningLongProcess(self.deploymentSingleImage, (img, srcImage, ))
@@ -1999,11 +2030,6 @@ class DeployDialog(wx.Dialog):
         return None
       self.curNode = self.nodeList.GetItemText(item)
       self.updateDeployInfoCurNode()
-
-    def onDialogClose(self, event):
-      if self.infoChange:
-        self.onSaveAllDeploymentInfo()
-      self.Destroy()
 
 class MakeImages(wx.Dialog):
     """
@@ -2126,7 +2152,6 @@ class GeneralPage(scrolled.ScrolledPanel):
       except:
         image['slot'] = ""
         image['netInterface'] = ""
-        self.infoChange = True
       self.imagesConfig[img] = image
 
     self.listRawConf = []
