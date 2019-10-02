@@ -718,7 +718,19 @@ module SAFplusAmf
       {
 	type uint32;
         description "Information about the type of component, as defined in sec 7.4.8 of AMF-B.04.01.  This is C type: SaAmfCompCategoryT, and its value is set based on other configuration (namely the component capabilities and whether a proxy is defined)";
-        config false;
+        //config false;
+      }
+
+      leaf csiType
+      {
+      description "type of csi assigned for component";
+      type string;
+
+      }
+      leaf proxyCSIType
+      {
+      description "type of proxy csi";
+      type string;
       }
 
       leaf swBundle
@@ -1013,6 +1025,11 @@ are switched over to other nodes (component service instances are not abruptly r
 	description "";
         type instance-identifier;
         SAFplusTypes:c-type "::SAFplusAmf::ComponentServiceInstance*";
+      }
+
+      leaf type
+      {
+      type string;
       }
 
       list data

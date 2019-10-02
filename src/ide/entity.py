@@ -56,7 +56,7 @@ def isRelationshipExist(ent):
       for ca in e.containmentArrows:
         if ent==ca.contained:
           count+=1
-      if count==2:
+      if count==3:
         return True
   return False
 
@@ -186,6 +186,12 @@ class Entity:
       if isRelationshipExist(entity):
         return RLS_ERR_EXISTS
       return RLS_OK
+    #proxied support feature
+    if self.et.name=="Component" and entity.et.name=="Component":
+      if isRelationshipExist(entity):
+        return RLS_ERR_EXISTS
+      return RLS_OK
+    #end proxied support feature
     return RLS_ERR_NOT_ALLOWED
 
   def canBeContained(self, entity):

@@ -69,8 +69,70 @@ def convertToRealPos(pos, scale):
   else:
     return round(pos/scale)
 
+def checkStartEntity(startEnt):
+  data=None
+  for (name, e) in share.umlEditorPanel.entities.items():
+    if startEnt == e and startEnt.data["name"]==name:
+      data = e.data
+      break
+      #print 'umlEditor.py, LinkTool.OnEditEvent, d[csiType] :', d["type"]
       
+  if startEnt.et.name=="ComponentServiceInstance":
+    if data["type"]==None:
+      #must set csiType for csi before draw arrow from csi to comp
+      return RLS_ERR_NOT_ALLOWED
+  if startEnt.et.name=="Component":
+    if data["csiType"]==None:
+      return RLS_ERR_NOT_ALLOWED
+  return RLS_OK
 
+def getLookUpList():
+  if share.instanceDetailsPanel.row!=0:
+    #using share.instanceDetailsPanel
+    #print 'umlEditor.py, LinkTool.OnEditEvent, share.instanceDetailsPanel!=None share.instanceDetailsPanel.row=%d' % share.instanceDetailsPanel.row
+    return share.instanceDetailsPanel.lookup
+  elif share.detailsPanel.row!=0:
+    #using share.detailsPanel
+    #print 'umlEditor.py, LinkTool.OnEditEvent, share.detailsPanel!=None share.detailsPanel.row=%d',share.detailsPanel.row
+    return share.detailsPanel.lookup
+
+def updateComponentDetails(startEnt, endEnt):
+  lookupList=getLookUpList()
+  if endEnt.et.name=="Component":
+    escape=0
+    itemsOfStartEntFromDB = [k for (k,v) in lookupList.items() if v[5] == startEnt]
+    itemsOfEndEntFromDB = [k for (k,v) in lookupList.items() if v[5] == endEnt]
+    typeStr=''
+    if startEnt.et.name=="ComponentServiceInstance":
+      for k in itemsOfStartEntFromDB:
+        if lookupList[k][5].et.name==startEnt.et.name and lookupList[k][5].data["name"]==startEnt.data["name"] and lookupList[k][0]!=None and lookupList[k][0][0]=="type":
+          typeStr=lookupList[k][1].GetValue()
+          break
+      for k in itemsOfEndEntFromDB:
+        if lookupList[k][5].et.name==endEnt.et.name and lookupList[k][5].data["name"]==endEnt.data["name"] and lookupList[k][0]!=None:
+          if lookupList[k][0][0]=="csiType":
+            lookupList[k][1].SetValue(typeStr)
+            escape+=1
+          if lookupList[k][0][0]=="compCategory" and lookupList[k][1].GetValue()=="0":
+            lookupList[k][1].SetValue("1")
+            escape+=1
+          if escape==2:
+            break
+    elif startEnt.et.name=="Component":#endEnt is proxied comp, startEnt is proxy comp
+      for k in itemsOfStartEntFromDB:
+        if lookupList[k][5].et.name==startEnt.et.name and lookupList[k][5].data["name"]==startEnt.data["name"] and lookupList[k][0]!=None and lookupList[k][0][0]=="csiType":
+          typeStr=lookupList[k][1].GetValue()
+          break
+      for k in itemsOfEndEntFromDB:
+        if lookupList[k][5].et.name==endEnt.et.name and lookupList[k][5].data["name"]==endEnt.data["name"] and lookupList[k][0]!=None:
+          if lookupList[k][0][0]=="proxyCSIType":
+            lookupList[k][1].SetValue(typeStr)
+            escape+=1
+          if lookupList[k][0][0]=="compCategory"and lookupList[k][1].GetValue()!="4":
+            lookupList[k][1].SetValue("4")
+            escape+=1
+          if escape==2:
+            break
 
 class EntityTypeTool(Tool):
   def __init__(self, panel,entityType):
@@ -146,6 +208,7 @@ class LinkTool(Tool):
     #pos = event.GetPositionTuple()
     pos = panel.CalcUnscrolledPosition(event.GetPositionTuple())
     ret = False
+    csiType = ""
     if isinstance(event,wx.MouseEvent):
       if event.ButtonDown(wx.MOUSE_BTN_LEFT):  # Select
         entities = panel.findEntitiesAt(pos)
@@ -171,6 +234,13 @@ class LinkTool(Tool):
             self.err = FadingX(panel,pos,1)
           else:
             self.endEntity = entities.pop()
+            #check self.startEntity is csi and validate whether its csi type is set or not
+            #if not force user to set csi type
+            if self.endEntity.et.name=="Component":
+              ret = checkStartEntity(self.startEntity)
+              if ret==RLS_ERR_NOT_ALLOWED:
+                return ret
+            #end support proxied
             rc = self.startEntity.canContain(self.endEntity)
             if rc != RLS_OK:
               panel.statusBar.SetStatusText("Relationship is not allowed.  Most likely %s entities cannot contain %s entities.  Or maybe you've exceeded the number of containments allowed" % (self.startEntity.et.name, self.endEntity.et.name),0);
@@ -184,8 +254,11 @@ class LinkTool(Tool):
               else:
                 # Add the arrow into the model.  the arrow's location is relative to the objects it connects
                 ca = ContainmentArrow(self.startEntity, (line[0][0]-self.startEntity.pos[0],line[0][1] - self.startEntity.pos[1]), self.endEntity, (line[1][0]-self.endEntity.pos[0],line[1][1]-self.endEntity.pos[1]), [line[2]] if len(line)>1 else None)
-                self.startEntity.containmentArrows.append(ca)
-
+                if self.endEntity.et.name!=self.startEntity.et.name:#currently dont create containment arrow between proxy-proxied comps
+                  self.startEntity.containmentArrows.append(ca)
+                #TODO proxied support
+                #after create connection arrow from csi or comp to comp successfully, update model details for comp
+                updateComponentDetails(self.startEntity,self.endEntity)
     return ret
     
   def CreateNewInstance(self,panel,position,size=None):

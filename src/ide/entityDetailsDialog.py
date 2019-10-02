@@ -114,6 +114,9 @@ class SliderCustom(wx.PyControl):
   def GetValue(self):
     return self.sliderText.GetValue()
 
+  def SetValue(self, val):
+	self.sliderText.SetValue(val)
+
   def GetName(self):
     return self.sliderText.GetName()
 
