@@ -940,6 +940,25 @@ namespace amfMgmtRpc {
       std::string strMaxInstantiations = temp;
       MGMT_CALL(updateEntityFromDatabase("/safplusAmf/Component",comp.name(),"maxInstantInstantiations",strMaxInstantiations));
     }
+   
+    if (comp.has_instantiationsuccessduration())
+    {
+      int isd  = comp.instantiationsuccessduration();
+      char temp[10];
+      snprintf(temp, 9, "%d", isd);
+      std::string strIsd = temp;
+      MGMT_CALL(updateEntityFromDatabase("/safplusAmf/Component",comp.name(),"instantiationSuccessDuration",strIsd));
+    }
+
+    if (comp.has_delaybetweeninstantiation())
+    {
+      int dbi  = comp.delaybetweeninstantiation();
+      char temp[10];
+      snprintf(temp, 9, "%d", dbi);
+      std::string strDbi = temp;
+      MGMT_CALL(updateEntityFromDatabase("/safplusAmf/Component",comp.name(),"delayBetweenInstantiation",strDbi));
+    }
+   
     if (comp.has_serviceunit())
     {
       const std::string& su  = comp.serviceunit();
@@ -972,6 +991,62 @@ namespace amfMgmtRpc {
     }
     rc = cfg.safplusAmf.componentList.deleteObj(compName);
     logDebug("MGMT","RPC", "deleting comp name [%s] return [0x%x]", compName.c_str(),rc);
+    return rc;
+  }
+
+  ClRcT fillCompConfig(const SAFplusAmf::Component* comp,ComponentConfig* compConfig)
+  {
+    ClRcT rc = CL_OK;
+    logDebug("MGMT","RPC", "server is processing [%s] for entity [%s]", __FUNCTION__, comp->name.value.c_str());
+
+    compConfig->set_name(comp->name.value);
+    
+    compConfig->set_capabilitymodel(static_cast<::SAFplus::Rpc::amfMgmtRpc::CapabilityModel>(comp->capabilityModel.value));
+
+    compConfig->set_maxactiveassignments(comp->maxActiveAssignments.value);
+
+    compConfig->set_maxstandbyassignments(comp->maxStandbyAssignments.value);
+
+    const std::vector<std::string>& cmdEnv = comp->commandEnvironment.value;
+    for(std::vector<std::string>::const_iterator it = cmdEnv.begin();it!=cmdEnv.end();it++)
+    {
+      compConfig->add_commandenvironment(*it);
+    }
+
+    Instantiate* instantiate = new Instantiate();
+    Execution* exe = new Execution();
+    exe->set_command(comp->instantiate.command.value);
+    exe->set_timeout(comp->instantiate.timeout.value);
+    instantiate->set_allocated_execution(exe);
+    compConfig->set_allocated_instantiate(instantiate);
+
+    Terminate* terminate = new Terminate();
+    Execution* ter_exe = new Execution();
+    ter_exe->set_command(comp->terminate.command.value);
+    ter_exe->set_timeout(comp->terminate.timeout.value);
+    terminate->set_allocated_execution(ter_exe);
+    compConfig->set_allocated_terminate(terminate);
+
+    Cleanup* cleanup = new Cleanup();
+    Execution* cleanup_exe = new Execution();
+    cleanup_exe->set_command(comp->cleanup.command.value);
+    cleanup_exe->set_timeout(comp->cleanup.timeout.value);
+    cleanup->set_allocated_execution(cleanup_exe);
+    compConfig->set_allocated_cleanup(cleanup);
+
+    compConfig->set_maxinstantinstantiations(comp->maxInstantInstantiations.value);
+
+    compConfig->set_instantiationsuccessduration(comp->instantiationSuccessDuration.value);
+
+    compConfig->set_delaybetweeninstantiation(comp->delayBetweenInstantiation.value);
+
+    compConfig->set_serviceunit(comp->serviceUnit.value->name.value);
+    std::stringstream ss;
+    ss<<comp->recovery.value;
+    compConfig->set_recovery(static_cast<::SAFplus::Rpc::amfMgmtRpc::Recovery>(comp->recovery.value));
+
+    compConfig->set_restartable(comp->restartable.value);
+
     return rc;
   }
 
@@ -1038,8 +1113,31 @@ namespace amfMgmtRpc {
       snprintf(temp, 9, "%d", pt);
       std::string strPt = temp;
       MGMT_CALL(updateEntityFromDatabase("/safplusAmf/ServiceUnit",su.name(),"probationTime",strPt));
-    }   
+    }
+    return rc;
+  }
 
+  ClRcT fillSuConfig(const SAFplusAmf::ServiceUnit* su, ServiceUnitConfig* suConfig)
+  {
+    ClRcT rc = CL_OK;
+    logDebug("MGMT","RPC", "server is processing [%s] for entity [%s]", __FUNCTION__, su->name.value.c_str());
+    suConfig->set_name(su->name.value);
+    suConfig->set_adminstate(static_cast<SAFplus::Rpc::amfMgmtRpc::AdministrativeState>(su->adminState.value));
+    suConfig->set_rank(su->rank.value);
+    suConfig->set_failover(su->failover.value);
+
+    SAFplus::MgtIdentifierList<SAFplusAmf::Component*>::iterator itcomp = const_cast<SAFplusAmf::ServiceUnit*>(su)->components.listBegin();
+    SAFplus::MgtIdentifierList<SAFplusAmf::Component*>::iterator itend = const_cast<SAFplusAmf::ServiceUnit*>(su)->components.listEnd();
+    for (; itcomp != itend; itcomp++)
+    {      
+      SAFplusAmf::Component* comp = dynamic_cast<SAFplusAmf::Component*>(*itcomp);
+      suConfig->add_components(comp->name.value);
+    }
+
+    suConfig->set_node(su->node.value->name.value);
+    suConfig->set_servicegroup(su->serviceGroup.value->name.value);
+    suConfig->set_probationtime(su->probationTime.value);   
+    
     return rc;
   }
 
@@ -1195,6 +1293,62 @@ namespace amfMgmtRpc {
     return rc;
   }
 
+  ClRcT fillSgConfig(const SAFplusAmf::ServiceGroup* sg, ServiceGroupConfig* sgConfig)
+  {
+    ClRcT rc = CL_OK;
+    logDebug("MGMT","RPC", "server is processing [%s] for entity [%s]", __FUNCTION__, sg->name.value.c_str());
+    sgConfig->set_name(sg->name.value);
+    sgConfig->set_adminstate(static_cast<SAFplus::Rpc::amfMgmtRpc::AdministrativeState>(sg->adminState.value));
+    sgConfig->set_autorepair(sg->autoRepair.value);
+    sgConfig->set_autorepair(sg->autoAdjust.value);
+
+    SaTimeT* adi = new SaTimeT();
+    adi->set_uint64(sg->autoAdjustInterval.value);    
+    sgConfig->set_allocated_autoadjustinterval(adi);
+
+    sgConfig->set_preferrednumactiveserviceunits(sg->preferredNumActiveServiceUnits.value);
+    sgConfig->set_preferrednumstandbyserviceunits(sg->preferredNumStandbyServiceUnits.value);
+    sgConfig->set_preferrednumidleserviceunits(sg->preferredNumIdleServiceUnits.value);
+    sgConfig->set_maxactiveworkassignments(sg->maxActiveWorkAssignments.value);
+    sgConfig->set_maxstandbyworkassignments(sg->maxStandbyWorkAssignments.value);
+
+    ComponentRestart* compRestart = new ComponentRestart();
+    EscalationPolicy* ep = new EscalationPolicy();
+    ep->set_maximum(sg->componentRestart.maximum.value);
+    SaTimeT* duration = new SaTimeT();
+    duration->set_uint64(sg->componentRestart.duration.value);
+    ep->set_allocated_duration(duration);
+    compRestart->set_allocated_escalationpolicy(ep);
+    sgConfig->set_allocated_componentrestart(compRestart);
+    
+    ServiceUnitRestart* suRestart = new ServiceUnitRestart();
+    EscalationPolicy* ep2 = new EscalationPolicy();
+    ep2->set_maximum(sg->serviceUnitRestart.maximum.value);
+    SaTimeT* dur = new SaTimeT();
+    dur->set_uint64(sg->serviceUnitRestart.duration.value);
+    ep2->set_allocated_duration(dur);
+    suRestart->set_allocated_escalationpolicy(ep2);
+    sgConfig->set_allocated_serviceunitrestart(suRestart);
+            
+    SAFplus::MgtIdentifierList<SAFplusAmf::ServiceUnit*>::iterator itsu = const_cast<SAFplusAmf::ServiceGroup*>(sg)->serviceUnits.listBegin();
+    SAFplus::MgtIdentifierList<SAFplusAmf::ServiceUnit*>::iterator itend = const_cast<SAFplusAmf::ServiceGroup*>(sg)->serviceUnits.listEnd();
+    for (; itsu != itend; itsu++)
+    {      
+      SAFplusAmf::ServiceUnit* su = dynamic_cast<SAFplusAmf::ServiceUnit*>(*itsu);
+      sgConfig->add_serviceunits(su->name.value);
+    }
+
+    SAFplus::MgtIdentifierList<SAFplusAmf::ServiceInstance*>::iterator itsi = const_cast<SAFplusAmf::ServiceGroup*>(sg)->serviceInstances.listBegin();
+    SAFplus::MgtIdentifierList<SAFplusAmf::ServiceInstance*>::iterator itend2 = const_cast<SAFplusAmf::ServiceGroup*>(sg)->serviceInstances.listEnd();
+    for (; itsi != itend2; itsi++)
+    {      
+      SAFplusAmf::ServiceInstance* si = dynamic_cast<SAFplusAmf::ServiceInstance*>(*itsi);
+      sgConfig->add_serviceinstances(si->name.value);
+    }
+   
+    return rc;
+  }
+
   ClRcT nodeCommit(const NodeConfig& node)
   {
     ClRcT rc = CL_OK;
@@ -1265,7 +1419,40 @@ namespace amfMgmtRpc {
          sus.push_back(node.serviceunits(i));
       }
       MGMT_CALL(updateEntityAsListTypeFromDatabase("/safplusAmf/Node",node.name(),"serviceUnits",sus));
-    }    
+    }
+
+    return rc;
+  }
+
+  ClRcT fillNodeConfig(const SAFplusAmf::Node* node, NodeConfig* nodeConfig)
+  {
+    ClRcT rc = CL_OK;
+    logDebug("MGMT","RPC", "server is processing [%s] for entity [%s]", __FUNCTION__, node->name.value.c_str());
+    nodeConfig->set_name(node->name.value);
+    nodeConfig->set_adminstate(static_cast<SAFplus::Rpc::amfMgmtRpc::AdministrativeState>(node->adminState.value));
+    
+    nodeConfig->set_autorepair(node->autoRepair.value);
+    
+    nodeConfig->set_failfastoninstantiationfailure(node->failFastOnInstantiationFailure.value);
+
+    nodeConfig->set_failfastoncleanupfailure(node->failFastOnCleanupFailure.value);
+    
+    ServiceUnitFailureEscalationPolicy* sufeop = new ServiceUnitFailureEscalationPolicy();
+    EscalationPolicy* ep = new EscalationPolicy();
+    ep->set_maximum(node->serviceUnitFailureEscalationPolicy.maximum.value);
+    SaTimeT* duration = new SaTimeT();
+    duration->set_uint64(node->serviceUnitFailureEscalationPolicy.duration.value);
+    ep->set_allocated_duration(duration);
+    sufeop->set_allocated_escalationpolicy(ep);
+    nodeConfig->set_allocated_serviceunitfailureescalationpolicy(sufeop);
+    
+    SAFplus::MgtIdentifierList<SAFplusAmf::ServiceUnit*>::iterator itsu = const_cast<SAFplusAmf::Node*>(node)->serviceUnits.listBegin();
+    SAFplus::MgtIdentifierList<SAFplusAmf::ServiceUnit*>::iterator itend = const_cast<SAFplusAmf::Node*>(node)->serviceUnits.listEnd();
+    for (; itsu != itend; itsu++)
+    {      
+      SAFplusAmf::ServiceUnit* su = dynamic_cast<SAFplusAmf::ServiceUnit*>(*itsu);
+      nodeConfig->add_serviceunits(su->name.value);
+    }
 
     return rc;
   }
@@ -1374,6 +1561,29 @@ namespace amfMgmtRpc {
     return rc;
   }
 
+  ClRcT fillSiConfig(const SAFplusAmf::ServiceInstance* si, ServiceInstanceConfig* siConfig)
+  {
+    ClRcT rc = CL_OK;
+    logDebug("MGMT","RPC", "server is processing [%s] for entity [%s]", __FUNCTION__, si->name.value.c_str());
+    siConfig->set_name(si->name.value);
+    siConfig->set_adminstate(static_cast<SAFplus::Rpc::amfMgmtRpc::AdministrativeState>(si->adminState.value));
+    siConfig->set_preferredactiveassignments(si->preferredActiveAssignments.value);
+    siConfig->set_preferredstandbyassignments(si->preferredStandbyAssignments.value);
+    siConfig->set_rank(si->rank.value);
+
+    SAFplus::MgtIdentifierList<SAFplusAmf::ComponentServiceInstance*>::iterator itcsi = const_cast<SAFplusAmf::ServiceInstance*>(si)->componentServiceInstances.listBegin();
+    SAFplus::MgtIdentifierList<SAFplusAmf::ComponentServiceInstance*>::iterator itend = const_cast<SAFplusAmf::ServiceInstance*>(si)->componentServiceInstances.listEnd();
+    for (; itcsi != itend; itcsi++)
+    {      
+      SAFplusAmf::ComponentServiceInstance* csi = dynamic_cast<SAFplusAmf::ComponentServiceInstance*>(*itcsi);
+      siConfig->add_componentserviceinstances(csi->name.value);
+    }
+        
+    siConfig->set_servicegroup(si->serviceGroup.value->name.value);   
+
+    return rc;
+  }
+
   ClRcT siDeleteCommit(const std::string& siName)
   {
     ClRcT rc = CL_OK;
@@ -1426,6 +1636,39 @@ namespace amfMgmtRpc {
       const std::string& si = csi.serviceinstance();
       MGMT_CALL(updateEntityFromDatabase("/safplusAmf/ComponentServiceInstance",csi.name(),"serviceInstance",si));
     }
+
+    return rc;
+  }
+
+  ClRcT fillCsiConfig(const SAFplusAmf::ComponentServiceInstance* csi, ComponentServiceInstanceConfig* csiConfig)
+  {
+    ClRcT rc = CL_OK;
+    logDebug("MGMT","RPC", "server is processing [%s] for entity [%s]", __FUNCTION__, csi->name.value.c_str());
+    csiConfig->set_name(csi->name.value);
+    SAFplus::MgtIdentifierList<SAFplusAmf::ComponentServiceInstance*>::iterator itcsiDep = const_cast<SAFplusAmf::ComponentServiceInstance*>(csi)->dependencies.listBegin();
+    SAFplus::MgtIdentifierList<SAFplusAmf::ComponentServiceInstance*>::iterator itend = const_cast<SAFplusAmf::ComponentServiceInstance*>(csi)->dependencies.listEnd();
+    for (; itcsiDep != itend; itcsiDep++)
+    {      
+      SAFplusAmf::ComponentServiceInstance* csiDep = dynamic_cast<SAFplusAmf::ComponentServiceInstance*>(*itcsiDep);
+      csiConfig->add_dependencies(csiDep->name.value);
+    }
+    
+    SAFplus::MgtList<std::string>::Iterator it = const_cast<SAFplusAmf::ComponentServiceInstance*>(csi)->dataList.begin();
+    SAFplus::MgtList<std::string>::Iterator itdataend = const_cast<SAFplusAmf::ComponentServiceInstance*>(csi)->dataList.end();
+    int i=0;
+    for (; it != itdataend; it++)
+    {
+      logDebug("MGMT","RPC","[%s] key [%s]", __FUNCTION__, it->first.c_str());
+      SAFplus::MgtObject *obj = it->second;
+      SAFplusAmf::Data* kv =  dynamic_cast<SAFplusAmf::Data*>(obj); 
+      csiConfig->add_data();
+      Data* data = csiConfig->mutable_data(i);
+      data->set_name(kv->name);
+      data->set_val(kv->val);
+      i++;
+    }
+    
+    csiConfig->set_serviceinstance(csi->serviceInstance.value->name.value);
 
     return rc;
   }
@@ -3743,6 +3986,180 @@ namespace amfMgmtRpc {
       {
         rc = CL_ERR_INVALID_STATE;
         logDebug("MGMT","RPC","su [%s] does not need repairing", suName.c_str());
+      }
+    }
+    response->set_err(rc);
+  }
+
+  void amfMgmtRpcImpl::getComponentConfig(const ::SAFplus::Rpc::amfMgmtRpc::GetComponentConfigRequest* request,
+                                ::SAFplus::Rpc::amfMgmtRpc::GetComponentConfigResponse* response)
+  {
+    const std::string& compName = request->compname();
+    logDebug("MGMT","RPC","enter [%s] with param comp name [%s]",__FUNCTION__,compName.c_str());
+    ClRcT rc = CL_OK;
+    SAFplusAmf::Component* comp = dynamic_cast<SAFplusAmf::Component*>(cfg.safplusAmf.componentList[compName]);
+    if (comp == NULL)
+    {
+      logDebug("MGMT","RPC","comp object is null for its name [%s]", compName.c_str());
+      rc = CL_ERR_UNSPECIFIED;
+    }
+    else
+    {
+      ComponentConfig* compConfig = new ComponentConfig();
+      if (compConfig == NULL)
+      {
+        logError("MGMT","RPC","No memory");
+        rc = CL_ERR_NO_MEMORY;
+      }
+      else
+      {
+        rc = fillCompConfig(comp,compConfig);        
+        response->set_allocated_componentconfig(compConfig);
+      }
+    }
+    response->set_err(rc);
+  }
+
+  void amfMgmtRpcImpl::getNodeConfig(const ::SAFplus::Rpc::amfMgmtRpc::GetNodeConfigRequest* request,
+                                ::SAFplus::Rpc::amfMgmtRpc::GetNodeConfigResponse* response)
+  {
+    const std::string& nodeName = request->nodename();
+    logDebug("MGMT","RPC","enter [%s] with param node name [%s]",__FUNCTION__,nodeName.c_str());
+    ClRcT rc = CL_OK;
+    SAFplusAmf::Node* node = dynamic_cast<SAFplusAmf::Node*>(cfg.safplusAmf.nodeList[nodeName]);
+    if (node == NULL)
+    {
+      logDebug("MGMT","RPC","node object is null for its name [%s]", nodeName.c_str());
+      rc = CL_ERR_UNSPECIFIED;
+    }
+    else
+    {
+      NodeConfig* nodeConfig = new NodeConfig();
+      if (nodeConfig == NULL)
+      {
+        logError("MGMT","RPC","No memory");
+        rc = CL_ERR_NO_MEMORY;
+      }
+      else
+      {
+        rc = fillNodeConfig(node,nodeConfig);
+        response->set_allocated_nodeconfig(nodeConfig);        
+      }
+    }
+    response->set_err(rc);
+  }
+
+  void amfMgmtRpcImpl::getSGConfig(const ::SAFplus::Rpc::amfMgmtRpc::GetSGConfigRequest* request,
+                                ::SAFplus::Rpc::amfMgmtRpc::GetSGConfigResponse* response)
+  {
+    const std::string& sgName = request->sgname();
+    logDebug("MGMT","RPC","enter [%s] with param name [%s]",__FUNCTION__,sgName.c_str());
+    ClRcT rc = CL_OK;
+    SAFplusAmf::ServiceGroup* sg = dynamic_cast<SAFplusAmf::ServiceGroup*>(cfg.safplusAmf.serviceGroupList[sgName]);
+    if (sg == NULL)
+    {
+      logDebug("MGMT","RPC","object is null for its name [%s]", sgName.c_str());
+      rc = CL_ERR_UNSPECIFIED;
+    }
+    else
+    {
+      ServiceGroupConfig* sgConfig = new ServiceGroupConfig();
+      if (sgConfig == NULL)
+      {
+        logError("MGMT","RPC","No memory");
+        rc = CL_ERR_NO_MEMORY;
+      }
+      else
+      {
+        rc = fillSgConfig(sg,sgConfig);
+        response->set_allocated_servicegroupconfig(sgConfig);        
+      }
+    }
+    response->set_err(rc);
+  }
+
+  void amfMgmtRpcImpl::getSUConfig(const ::SAFplus::Rpc::amfMgmtRpc::GetSUConfigRequest* request,
+                                ::SAFplus::Rpc::amfMgmtRpc::GetSUConfigResponse* response)
+  {
+    const std::string& suName = request->suname();
+    logDebug("MGMT","RPC","enter [%s] with param name [%s]",__FUNCTION__,suName.c_str());
+    ClRcT rc = CL_OK;
+    SAFplusAmf::ServiceUnit* su = dynamic_cast<SAFplusAmf::ServiceUnit*>(cfg.safplusAmf.serviceUnitList[suName]);
+    if (su == NULL)
+    {
+      logDebug("MGMT","RPC","object is null for its name [%s]", suName.c_str());
+      rc = CL_ERR_UNSPECIFIED;
+    }
+    else
+    {
+      ServiceUnitConfig* suConfig = new ServiceUnitConfig();
+      if (suConfig == NULL)
+      {
+        logError("MGMT","RPC","No memory");
+        rc = CL_ERR_NO_MEMORY;
+      }
+      else
+      {
+        rc = fillSuConfig(su,suConfig);
+        response->set_allocated_serviceunitconfig(suConfig);        
+      }
+    }
+    response->set_err(rc);
+  }
+ 
+  void amfMgmtRpcImpl::getSIConfig(const ::SAFplus::Rpc::amfMgmtRpc::GetSIConfigRequest* request,
+                                ::SAFplus::Rpc::amfMgmtRpc::GetSIConfigResponse* response)
+  {
+    const std::string& siName = request->siname();
+    logDebug("MGMT","RPC","enter [%s] with param name [%s]",__FUNCTION__,siName.c_str());
+    ClRcT rc = CL_OK;
+    SAFplusAmf::ServiceInstance* si = dynamic_cast<SAFplusAmf::ServiceInstance*>(cfg.safplusAmf.serviceInstanceList[siName]);
+    if (si == NULL)
+    {
+      logDebug("MGMT","RPC","object is null for its name [%s]", siName.c_str());
+      rc = CL_ERR_UNSPECIFIED;
+    }
+    else
+    {
+      ServiceInstanceConfig* siConfig = new ServiceInstanceConfig();
+      if (siConfig == NULL)
+      {
+        logError("MGMT","RPC","No memory");
+        rc = CL_ERR_NO_MEMORY;
+      }
+      else
+      {
+        rc = fillSiConfig(si,siConfig);
+        response->set_allocated_serviceinstanceconfig(siConfig);        
+      }
+    }
+    response->set_err(rc);
+  }
+
+  void amfMgmtRpcImpl::getCSIConfig(const ::SAFplus::Rpc::amfMgmtRpc::GetCSIConfigRequest* request,
+                                ::SAFplus::Rpc::amfMgmtRpc::GetCSIConfigResponse* response)
+  {
+    const std::string& csiName = request->csiname();
+    logDebug("MGMT","RPC","enter [%s] with param name [%s]",__FUNCTION__,csiName.c_str());
+    ClRcT rc = CL_OK;
+    SAFplusAmf::ComponentServiceInstance* csi = dynamic_cast<SAFplusAmf::ComponentServiceInstance*>(cfg.safplusAmf.componentServiceInstanceList[csiName]);
+    if (csi == NULL)
+    {
+      logDebug("MGMT","RPC","object is null for its name [%s]", csiName.c_str());
+      rc = CL_ERR_UNSPECIFIED;
+    }
+    else
+    {
+      ComponentServiceInstanceConfig* csiConfig = new ComponentServiceInstanceConfig();
+      if (csiConfig == NULL)
+      {
+        logError("MGMT","RPC","No memory");
+        rc = CL_ERR_NO_MEMORY;
+      }
+      else
+      {
+        rc = fillCsiConfig(csi,csiConfig);
+        response->set_allocated_componentserviceinstanceconfig(csiConfig);        
       }
     }
     response->set_err(rc);

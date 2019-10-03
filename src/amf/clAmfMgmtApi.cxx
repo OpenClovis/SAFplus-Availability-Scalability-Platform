@@ -1113,4 +1113,184 @@ ClRcT amfMgmtFinalize(const Handle& amfMgmtHandle)
   return rc; 
 }
 
+ClRcT amfMgmtComponentGetConfig(const Handle& mgmtHandle,const std::string& compName, SAFplus::Rpc::amfMgmtRpc::ComponentConfig** compConfig)
+{   
+   if (!gAmfMgmtInitialized)
+   {
+     return CL_ERR_NOT_INITIALIZED;
+   }
+   ClRcT rc;
+   SAFplus::Rpc::amfMgmtRpc::GetComponentConfigRequest request;
+   request.add_amfmgmthandle((const char*) &mgmtHandle, sizeof(Handle));
+   request.set_compname(compName);
+   try
+    {
+      Handle& remoteAmfHdl = name.getHandle(AMF_MASTER_HANDLE, 2000);
+      SAFplus::Rpc::amfMgmtRpc::GetComponentConfigResponse resp; 
+      amfMgmtRpc->getComponentConfig(remoteAmfHdl,&request,&resp);
+      rc = (ClRcT)resp.err();
+      logInfo("MGMT.CLI","COMP.GET.CONFIG","getComponentConfig [0x%x]", rc);
+      if (rc == CL_OK)
+      {
+        *compConfig = resp.release_componentconfig();
+      }
+    }
+   catch(NameException& ex)
+    {
+      logError("MGMT","INI","getHandle got exception [%s]", ex.what());
+      rc = CL_ERR_NOT_EXIST;
+    } 
+   return rc;
+}
+
+ClRcT amfMgmtNodeGetConfig(const Handle& mgmtHandle,const std::string& nodeName, SAFplus::Rpc::amfMgmtRpc::NodeConfig** nodeConfig)
+{
+   if (!gAmfMgmtInitialized)
+   {
+     return CL_ERR_NOT_INITIALIZED;
+   }
+   ClRcT rc;
+   SAFplus::Rpc::amfMgmtRpc::GetNodeConfigRequest request;
+   request.add_amfmgmthandle((const char*) &mgmtHandle, sizeof(Handle));
+   request.set_nodename(nodeName);
+   try
+    {
+      Handle& remoteAmfHdl = name.getHandle(AMF_MASTER_HANDLE, 2000);
+      SAFplus::Rpc::amfMgmtRpc::GetNodeConfigResponse resp; 
+      amfMgmtRpc->getNodeConfig(remoteAmfHdl,&request,&resp);
+      rc = (ClRcT)resp.err();
+      logInfo("MGMT.CLI","GET.CFG","getNodeConfig [0x%x]", rc);
+      if (rc == CL_OK)
+      {
+        *nodeConfig = resp.release_nodeconfig();
+      }
+    }
+   catch(NameException& ex)
+    {
+      logError("MGMT","INI","getHandle got exception [%s]", ex.what());
+      rc = CL_ERR_NOT_EXIST;
+    } 
+   return rc;
+}
+
+ClRcT amfMgmtSGGetConfig(const Handle& mgmtHandle,const std::string& sgName, SAFplus::Rpc::amfMgmtRpc::ServiceGroupConfig** sgConfig)
+{
+   if (!gAmfMgmtInitialized)
+   {
+     return CL_ERR_NOT_INITIALIZED;
+   }
+   ClRcT rc;
+   SAFplus::Rpc::amfMgmtRpc::GetSGConfigRequest request;
+   request.add_amfmgmthandle((const char*) &mgmtHandle, sizeof(Handle));
+   request.set_sgname(sgName);
+   try
+    {
+      Handle& remoteAmfHdl = name.getHandle(AMF_MASTER_HANDLE, 2000);
+      SAFplus::Rpc::amfMgmtRpc::GetSGConfigResponse resp; 
+      amfMgmtRpc->getSGConfig(remoteAmfHdl,&request,&resp);
+      rc = (ClRcT)resp.err();
+      logInfo("MGMT.CLI","GET.CFG","getSGConfig [0x%x]", rc);
+      if (rc == CL_OK)
+      {
+        *sgConfig = resp.release_servicegroupconfig();
+      }
+    }
+   catch(NameException& ex)
+    {
+      logError("MGMT","INI","getHandle got exception [%s]", ex.what());
+      rc = CL_ERR_NOT_EXIST;
+    } 
+   return rc;
+}
+
+ClRcT amfMgmtSUGetConfig(const Handle& mgmtHandle,const std::string& suName, SAFplus::Rpc::amfMgmtRpc::ServiceUnitConfig** suConfig)
+{
+   if (!gAmfMgmtInitialized)
+   {
+     return CL_ERR_NOT_INITIALIZED;
+   }
+   ClRcT rc;
+   SAFplus::Rpc::amfMgmtRpc::GetSUConfigRequest request;
+   request.add_amfmgmthandle((const char*) &mgmtHandle, sizeof(Handle));
+   request.set_suname(suName);
+   try
+    {
+      Handle& remoteAmfHdl = name.getHandle(AMF_MASTER_HANDLE, 2000);
+      SAFplus::Rpc::amfMgmtRpc::GetSUConfigResponse resp; 
+      amfMgmtRpc->getSUConfig(remoteAmfHdl,&request,&resp);
+      rc = (ClRcT)resp.err();
+      logInfo("MGMT.CLI","GET.CFG","getSUConfig [0x%x]", rc);
+      if (rc == CL_OK)
+      {
+        *suConfig = resp.release_serviceunitconfig();
+      }
+    }
+   catch(NameException& ex)
+    {
+      logError("MGMT","INI","getHandle got exception [%s]", ex.what());
+      rc = CL_ERR_NOT_EXIST;
+    } 
+   return rc;
+}
+
+ClRcT amfMgmtSIGetConfig(const Handle& mgmtHandle,const std::string& siName, SAFplus::Rpc::amfMgmtRpc::ServiceInstanceConfig** siConfig)
+{
+   if (!gAmfMgmtInitialized)
+   {
+     return CL_ERR_NOT_INITIALIZED;
+   }
+   ClRcT rc;
+   SAFplus::Rpc::amfMgmtRpc::GetSIConfigRequest request;
+   request.add_amfmgmthandle((const char*) &mgmtHandle, sizeof(Handle));
+   request.set_siname(siName);
+   try
+    {
+      Handle& remoteAmfHdl = name.getHandle(AMF_MASTER_HANDLE, 2000);
+      SAFplus::Rpc::amfMgmtRpc::GetSIConfigResponse resp; 
+      amfMgmtRpc->getSIConfig(remoteAmfHdl,&request,&resp);
+      rc = (ClRcT)resp.err();
+      logInfo("MGMT.CLI","GET.CFG","getSIConfig [0x%x]", rc);
+      if (rc == CL_OK)
+      {
+        *siConfig = resp.release_serviceinstanceconfig();
+      }
+    }
+   catch(NameException& ex)
+    {
+      logError("MGMT","INI","getHandle got exception [%s]", ex.what());
+      rc = CL_ERR_NOT_EXIST;
+    } 
+   return rc;
+}
+
+ClRcT amfMgmtCSIGetConfig(const Handle& mgmtHandle,const std::string& csiName, SAFplus::Rpc::amfMgmtRpc::ComponentServiceInstanceConfig** csiConfig)
+{
+   if (!gAmfMgmtInitialized)
+   {
+     return CL_ERR_NOT_INITIALIZED;
+   }
+   ClRcT rc;
+   SAFplus::Rpc::amfMgmtRpc::GetCSIConfigRequest request;
+   request.add_amfmgmthandle((const char*) &mgmtHandle, sizeof(Handle));
+   request.set_csiname(csiName);
+   try
+    {
+      Handle& remoteAmfHdl = name.getHandle(AMF_MASTER_HANDLE, 2000);
+      SAFplus::Rpc::amfMgmtRpc::GetCSIConfigResponse resp; 
+      amfMgmtRpc->getCSIConfig(remoteAmfHdl,&request,&resp);
+      rc = (ClRcT)resp.err();
+      logInfo("MGMT.CLI","GET.CFG","getCSIConfig [0x%x]", rc);
+      if (rc == CL_OK)
+      {
+        *csiConfig = resp.release_componentserviceinstanceconfig();
+      }
+    }
+   catch(NameException& ex)
+    {
+      logError("MGMT","INI","getHandle got exception [%s]", ex.what());
+      rc = CL_ERR_NOT_EXIST;
+    } 
+   return rc;
+}
+
 }

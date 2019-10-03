@@ -290,6 +290,42 @@ void amfMgmtRpc::repairSU(const ::SAFplus::Rpc::amfMgmtRpc::RepairSURequest*,
   logError("RPC","SVR","Method repairSU() not implemented.");
 }
 
+void amfMgmtRpc::getComponentConfig(const ::SAFplus::Rpc::amfMgmtRpc::GetComponentConfigRequest*,
+                         ::SAFplus::Rpc::amfMgmtRpc::GetComponentConfigResponse*)
+{
+  logError("RPC","SVR","Method getComponentConfig() not implemented.");
+}
+
+void amfMgmtRpc::getNodeConfig(const ::SAFplus::Rpc::amfMgmtRpc::GetNodeConfigRequest*,
+                         ::SAFplus::Rpc::amfMgmtRpc::GetNodeConfigResponse*)
+{
+  logError("RPC","SVR","Method getNodeConfig() not implemented.");
+}
+
+void amfMgmtRpc::getSUConfig(const ::SAFplus::Rpc::amfMgmtRpc::GetSUConfigRequest*,
+                         ::SAFplus::Rpc::amfMgmtRpc::GetSUConfigResponse*)
+{
+  logError("RPC","SVR","Method getSUConfig() not implemented.");
+}
+
+void amfMgmtRpc::getSGConfig(const ::SAFplus::Rpc::amfMgmtRpc::GetSGConfigRequest*,
+                         ::SAFplus::Rpc::amfMgmtRpc::GetSGConfigResponse*)
+{
+  logError("RPC","SVR","Method getSGConfig() not implemented.");
+}
+
+void amfMgmtRpc::getSIConfig(const ::SAFplus::Rpc::amfMgmtRpc::GetSIConfigRequest*,
+                         ::SAFplus::Rpc::amfMgmtRpc::GetSIConfigResponse*)
+{
+  logError("RPC","SVR","Method getSIConfig() not implemented.");
+}
+
+void amfMgmtRpc::getCSIConfig(const ::SAFplus::Rpc::amfMgmtRpc::GetCSIConfigRequest*,
+                         ::SAFplus::Rpc::amfMgmtRpc::GetCSIConfigResponse*)
+{
+  logError("RPC","SVR","Method getCSIConfig() not implemented.");
+}
+
 void amfMgmtRpc::initialize(SAFplus::Handle destination,
                      const ::SAFplus::Rpc::amfMgmtRpc::InitializeRequest* request,
                      ::SAFplus::Rpc::amfMgmtRpc::InitializeResponse* response,
@@ -618,6 +654,54 @@ void amfMgmtRpc::repairSU(SAFplus::Handle destination,
   logError("RPC","SVR","Method repairSU() not implemented.");
 }
 
+void amfMgmtRpc::getComponentConfig(SAFplus::Handle destination,
+                     const ::SAFplus::Rpc::amfMgmtRpc::GetComponentConfigRequest* request,
+                     ::SAFplus::Rpc::amfMgmtRpc::GetComponentConfigResponse* response,
+                     SAFplus::Wakeable& wakeable)
+{
+  logError("RPC","SVR","Method getComponentConfig() not implemented.");
+}
+
+void amfMgmtRpc::getNodeConfig(SAFplus::Handle destination,
+                     const ::SAFplus::Rpc::amfMgmtRpc::GetNodeConfigRequest* request,
+                     ::SAFplus::Rpc::amfMgmtRpc::GetNodeConfigResponse* response,
+                     SAFplus::Wakeable& wakeable)
+{
+  logError("RPC","SVR","Method getNodeConfig() not implemented.");
+}
+
+void amfMgmtRpc::getSUConfig(SAFplus::Handle destination,
+                     const ::SAFplus::Rpc::amfMgmtRpc::GetSUConfigRequest* request,
+                     ::SAFplus::Rpc::amfMgmtRpc::GetSUConfigResponse* response,
+                     SAFplus::Wakeable& wakeable)
+{
+  logError("RPC","SVR","Method getSUConfig() not implemented.");
+}
+
+void amfMgmtRpc::getSGConfig(SAFplus::Handle destination,
+                     const ::SAFplus::Rpc::amfMgmtRpc::GetSGConfigRequest* request,
+                     ::SAFplus::Rpc::amfMgmtRpc::GetSGConfigResponse* response,
+                     SAFplus::Wakeable& wakeable)
+{
+  logError("RPC","SVR","Method getSGConfig() not implemented.");
+}
+
+void amfMgmtRpc::getSIConfig(SAFplus::Handle destination,
+                     const ::SAFplus::Rpc::amfMgmtRpc::GetSIConfigRequest* request,
+                     ::SAFplus::Rpc::amfMgmtRpc::GetSIConfigResponse* response,
+                     SAFplus::Wakeable& wakeable)
+{
+  logError("RPC","SVR","Method getSIConfig() not implemented.");
+}
+
+void amfMgmtRpc::getCSIConfig(SAFplus::Handle destination,
+                     const ::SAFplus::Rpc::amfMgmtRpc::GetCSIConfigRequest* request,
+                     ::SAFplus::Rpc::amfMgmtRpc::GetCSIConfigResponse* response,
+                     SAFplus::Wakeable& wakeable)
+{
+  logError("RPC","SVR","Method getCSIConfig() not implemented.");
+}
+
 void amfMgmtRpc::CallMethod(const ::google::protobuf::MethodDescriptor* method,
                              SAFplus::Handle destination,
                              const ::google::protobuf::Message* request,
@@ -789,6 +873,30 @@ void amfMgmtRpc::CallMethod(const ::google::protobuf::MethodDescriptor* method,
       repairSU(::google::protobuf::down_cast<const ::SAFplus::Rpc::amfMgmtRpc::RepairSURequest*>(request),
              ::google::protobuf::down_cast< ::SAFplus::Rpc::amfMgmtRpc::RepairSUResponse*>(response));
       break;
+    case 41:
+      getComponentConfig(::google::protobuf::down_cast<const ::SAFplus::Rpc::amfMgmtRpc::GetComponentConfigRequest*>(request),
+             ::google::protobuf::down_cast< ::SAFplus::Rpc::amfMgmtRpc::GetComponentConfigResponse*>(response));
+      break;
+    case 42:
+      getNodeConfig(::google::protobuf::down_cast<const ::SAFplus::Rpc::amfMgmtRpc::GetNodeConfigRequest*>(request),
+             ::google::protobuf::down_cast< ::SAFplus::Rpc::amfMgmtRpc::GetNodeConfigResponse*>(response));
+      break;
+    case 43:
+      getSUConfig(::google::protobuf::down_cast<const ::SAFplus::Rpc::amfMgmtRpc::GetSUConfigRequest*>(request),
+             ::google::protobuf::down_cast< ::SAFplus::Rpc::amfMgmtRpc::GetSUConfigResponse*>(response));
+      break;
+    case 44:
+      getSGConfig(::google::protobuf::down_cast<const ::SAFplus::Rpc::amfMgmtRpc::GetSGConfigRequest*>(request),
+             ::google::protobuf::down_cast< ::SAFplus::Rpc::amfMgmtRpc::GetSGConfigResponse*>(response));
+      break;
+    case 45:
+      getSIConfig(::google::protobuf::down_cast<const ::SAFplus::Rpc::amfMgmtRpc::GetSIConfigRequest*>(request),
+             ::google::protobuf::down_cast< ::SAFplus::Rpc::amfMgmtRpc::GetSIConfigResponse*>(response));
+      break;
+    case 46:
+      getCSIConfig(::google::protobuf::down_cast<const ::SAFplus::Rpc::amfMgmtRpc::GetCSIConfigRequest*>(request),
+             ::google::protobuf::down_cast< ::SAFplus::Rpc::amfMgmtRpc::GetCSIConfigResponse*>(response));
+      break;
     default:
       GOOGLE_LOG(FATAL) << "Bad method index; this should never happen.";
       break;
@@ -881,6 +989,18 @@ const ::google::protobuf::Message& amfMgmtRpc::GetRequestPrototype(
       return ::SAFplus::Rpc::amfMgmtRpc::RepairComponentRequest::default_instance();
     case 40:
       return ::SAFplus::Rpc::amfMgmtRpc::RepairSURequest::default_instance();
+    case 41:
+      return ::SAFplus::Rpc::amfMgmtRpc::GetComponentConfigRequest::default_instance();
+    case 42:
+      return ::SAFplus::Rpc::amfMgmtRpc::GetNodeConfigRequest::default_instance();
+    case 43:
+      return ::SAFplus::Rpc::amfMgmtRpc::GetSUConfigRequest::default_instance();
+    case 44:
+      return ::SAFplus::Rpc::amfMgmtRpc::GetSGConfigRequest::default_instance();
+    case 45:
+      return ::SAFplus::Rpc::amfMgmtRpc::GetSIConfigRequest::default_instance();
+    case 46:
+      return ::SAFplus::Rpc::amfMgmtRpc::GetCSIConfigRequest::default_instance();
     default:
       GOOGLE_LOG(FATAL) << "Bad method index; this should never happen.";
       return *reinterpret_cast< ::google::protobuf::Message*>(NULL);
@@ -973,6 +1093,18 @@ const ::google::protobuf::Message& amfMgmtRpc::GetResponsePrototype(
       return ::SAFplus::Rpc::amfMgmtRpc::RepairComponentResponse::default_instance();
     case 40:
       return ::SAFplus::Rpc::amfMgmtRpc::RepairSUResponse::default_instance();
+    case 41:
+      return ::SAFplus::Rpc::amfMgmtRpc::GetComponentConfigResponse::default_instance();
+    case 42:
+      return ::SAFplus::Rpc::amfMgmtRpc::GetNodeConfigResponse::default_instance();
+    case 43:
+      return ::SAFplus::Rpc::amfMgmtRpc::GetSUConfigResponse::default_instance();
+    case 44:
+      return ::SAFplus::Rpc::amfMgmtRpc::GetSGConfigResponse::default_instance();
+    case 45:
+      return ::SAFplus::Rpc::amfMgmtRpc::GetSIConfigResponse::default_instance();
+    case 46:
+      return ::SAFplus::Rpc::amfMgmtRpc::GetCSIConfigResponse::default_instance();
     default:
       GOOGLE_LOG(FATAL) << "Bad method index; this should never happen.";
       return *reinterpret_cast< ::google::protobuf::Message*>(NULL);
@@ -1235,6 +1367,42 @@ void amfMgmtRpc_Stub::repairSU(SAFplus::Handle dest,
                               ::SAFplus::Rpc::amfMgmtRpc::RepairSUResponse* response,
                               SAFplus::Wakeable& wakeable) {
   channel_->CallMethod(descriptor()->method(40), dest, request, response, wakeable);
+}
+void amfMgmtRpc_Stub::getComponentConfig(SAFplus::Handle dest,
+                              const ::SAFplus::Rpc::amfMgmtRpc::GetComponentConfigRequest* request,
+                              ::SAFplus::Rpc::amfMgmtRpc::GetComponentConfigResponse* response,
+                              SAFplus::Wakeable& wakeable) {
+  channel_->CallMethod(descriptor()->method(41), dest, request, response, wakeable);
+}
+void amfMgmtRpc_Stub::getNodeConfig(SAFplus::Handle dest,
+                              const ::SAFplus::Rpc::amfMgmtRpc::GetNodeConfigRequest* request,
+                              ::SAFplus::Rpc::amfMgmtRpc::GetNodeConfigResponse* response,
+                              SAFplus::Wakeable& wakeable) {
+  channel_->CallMethod(descriptor()->method(42), dest, request, response, wakeable);
+}
+void amfMgmtRpc_Stub::getSUConfig(SAFplus::Handle dest,
+                              const ::SAFplus::Rpc::amfMgmtRpc::GetSUConfigRequest* request,
+                              ::SAFplus::Rpc::amfMgmtRpc::GetSUConfigResponse* response,
+                              SAFplus::Wakeable& wakeable) {
+  channel_->CallMethod(descriptor()->method(43), dest, request, response, wakeable);
+}
+void amfMgmtRpc_Stub::getSGConfig(SAFplus::Handle dest,
+                              const ::SAFplus::Rpc::amfMgmtRpc::GetSGConfigRequest* request,
+                              ::SAFplus::Rpc::amfMgmtRpc::GetSGConfigResponse* response,
+                              SAFplus::Wakeable& wakeable) {
+  channel_->CallMethod(descriptor()->method(44), dest, request, response, wakeable);
+}
+void amfMgmtRpc_Stub::getSIConfig(SAFplus::Handle dest,
+                              const ::SAFplus::Rpc::amfMgmtRpc::GetSIConfigRequest* request,
+                              ::SAFplus::Rpc::amfMgmtRpc::GetSIConfigResponse* response,
+                              SAFplus::Wakeable& wakeable) {
+  channel_->CallMethod(descriptor()->method(45), dest, request, response, wakeable);
+}
+void amfMgmtRpc_Stub::getCSIConfig(SAFplus::Handle dest,
+                              const ::SAFplus::Rpc::amfMgmtRpc::GetCSIConfigRequest* request,
+                              ::SAFplus::Rpc::amfMgmtRpc::GetCSIConfigResponse* response,
+                              SAFplus::Wakeable& wakeable) {
+  channel_->CallMethod(descriptor()->method(46), dest, request, response, wakeable);
 }
 
 }  // namespace amfMgmtRpc

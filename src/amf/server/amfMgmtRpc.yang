@@ -1286,5 +1286,131 @@ are switched over to other nodes (component service instances are not abruptly r
        }
      }
    }
+
+   rpc getComponentConfig {
+     input {
+       leaf-list amfMgmtHandle
+	{
+	  type binary
+          { 
+	    length 16;  // 2 64-bit words 
+	  }
+	}
+        leaf compName {
+         type string;
+        }
+     }
+     output {
+       uses ComponentConfig;
+       leaf err {
+        type int32;
+       }       
+     }
+   }
+
+   rpc getNodeConfig {
+     input {
+       leaf-list amfMgmtHandle
+	{
+	  type binary
+          { 
+	    length 16;  // 2 64-bit words 
+	  }
+	}
+        leaf nodeName {
+         type string;
+        }
+     }
+     output {
+       uses NodeConfig;
+       leaf err {
+        type int32;
+       }       
+     }
+   }
+
+   rpc getSUConfig {
+     input {
+       leaf-list amfMgmtHandle
+	{
+	  type binary
+          { 
+	    length 16;  // 2 64-bit words 
+	  }
+	}
+        leaf suName {
+         type string;
+        }
+     }
+     output {
+       uses ServiceUnitConfig;
+       leaf err {
+        type int32;
+       }       
+     }
+   }
+
+   rpc getSGConfig {
+     input {
+       leaf-list amfMgmtHandle
+	{
+	  type binary
+          { 
+	    length 16;  // 2 64-bit words 
+	  }
+	}
+        leaf sgName {
+         type string;
+        }
+     }
+     output {
+       uses ServiceGroupConfig;
+       leaf err {
+        type int32;
+       }       
+     }
+   }
+
+   rpc getSIConfig {
+     input {
+       leaf-list amfMgmtHandle
+	{
+	  type binary
+          { 
+	    length 16;  // 2 64-bit words 
+	  }
+	}
+        leaf siName {
+         type string;
+        }
+     }
+     output {
+       uses ServiceInstanceConfig;
+       leaf err {
+        type int32;
+       }       
+     }
+   }
+
+   rpc getCSIConfig {
+     input {
+       leaf-list amfMgmtHandle
+	{
+	  type binary
+          { 
+	    length 16;  // 2 64-bit words 
+	  }
+	}
+        leaf csiName {
+         type string;
+        }
+     }
+     output {
+       uses ComponentServiceInstanceConfig;
+       leaf err {
+        type int32;
+       }       
+     }
+   }
 }
 

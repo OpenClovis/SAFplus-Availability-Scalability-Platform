@@ -55,4 +55,13 @@ ClRcT amfMgmtNodeRepair(const Handle& mgmtHandle, const std::string& nodeName);
 ClRcT amfMgmtCompRepair(const Handle& mgmtHandle, const std::string& compName);
 ClRcT amfMgmtSURepair(const Handle& mgmtHandle, const std::string& suName);
 
+ClRcT amfMgmtComponentGetConfig(const Handle& mgmtHandle,const std::string& compName, SAFplus::Rpc::amfMgmtRpc::ComponentConfig** compConfig);
+ClRcT amfMgmtNodeGetConfig(const Handle& mgmtHandle,const std::string& nodeName, SAFplus::Rpc::amfMgmtRpc::NodeConfig** nodeConfig);
+ClRcT amfMgmtSGGetConfig(const Handle& mgmtHandle,const std::string& sgName, SAFplus::Rpc::amfMgmtRpc::ServiceGroupConfig** sgConfig);
+ClRcT amfMgmtSUGetConfig(const Handle& mgmtHandle,const std::string& suName, SAFplus::Rpc::amfMgmtRpc::ServiceUnitConfig** suConfig);
+ClRcT amfMgmtSIGetConfig(const Handle& mgmtHandle,const std::string& siName, SAFplus::Rpc::amfMgmtRpc::ServiceInstanceConfig** siConfig);
+ClRcT amfMgmtCSIGetConfig(const Handle& mgmtHandle,const std::string& csiName, SAFplus::Rpc::amfMgmtRpc::ComponentServiceInstanceConfig** csiConfig);
+      
+      
+
 }
