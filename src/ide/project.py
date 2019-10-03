@@ -922,7 +922,6 @@ class ProjectTreePanel(wx.Panel):
       self.guiPlaces.frame.enableTools(pageText)
     else:
       model = self.guiPlaces.frame.model
-      self.removePageByObj(self.guiPlaces.frame.help)
       self.removePageByObj(model.instanceDetails)
       self.removePageByObj(model.instance)
       self.removePageByObj(model.modelDetails)

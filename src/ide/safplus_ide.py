@@ -188,6 +188,7 @@ class SAFplusFrame(wx.Frame):
 
     def loadProject(self, prj):
       if not prj: return
+      index = 0
       self.project.currentProjectPath = prj.projectFilename
       self.currentActivePrj = prj
       self.project.currentActiveProject = prj
@@ -224,7 +225,12 @@ class SAFplusFrame(wx.Frame):
           t.uml.refresh()
         else:
           t.uml = umlEditor.Panel(self.tab,self.guiPlaces, t.model)
-          self.tab.InsertPage(0, t.uml, self.getCurrentPageText(0), select=True)        
+          self.tab.InsertPage(0, t.uml, self.getCurrentPageText(0), select=True)
+        if t.modelDetails:
+          t.modelDetails.refresh()
+        else:
+          t.modelDetails = entityDetailsDialog.Panel(self.tab,self.guiPlaces, t.model,isDetailInstance=False)
+          self.tab.InsertPage(1, t.modelDetails, self.getCurrentPageText(1))
         if t.instance:
           t.instance.setModelData(t.model)
           t.instance.refresh()
@@ -238,14 +244,12 @@ class SAFplusFrame(wx.Frame):
         else:
           t.instanceDetails = entityDetailsDialog.Panel(self.tab,self.guiPlaces, t.model,isDetailInstance=True)
           self.tab.InsertPage(3, t.instanceDetails, self.getCurrentPageText(3))
-        if t.modelDetails:
-          t.modelDetails.refresh()
-        else:
-          t.modelDetails = entityDetailsDialog.Panel(self.tab,self.guiPlaces, t.model,isDetailInstance=False)
-          self.tab.InsertPage(1, t.modelDetails, self.getCurrentPageText(1))
-        self.setPagesText()
+        index = self.setPagesText(t.uml, self.getCurrentPageText(0))
+        self.setPagesText(t.modelDetails, self.getCurrentPageText(1))
+        self.setPagesText(t.instance, self.getCurrentPageText(2))
+        self.setPagesText(t.instanceDetails, self.getCurrentPageText(3))
       self.tab.Bind(wx.aui.EVT_AUINOTEBOOK_PAGE_CHANGED, self.onPageChanged) # bind to catch page selection event
-      self.tab.SetSelection(0) # open uml model view by default
+      self.tab.SetSelection(index) # open uml model view by default
       # append to recent projects repository and update the menu
       self.updateRecentProject(prj)
       if self.currentActivePrj.dataModelPlugin:
@@ -286,11 +290,10 @@ class SAFplusFrame(wx.Frame):
       print "Quitting..."
       self.Close()
    
-    def setPagesText(self):
-      self.tab.SetPageText(0, self.getCurrentPageText(0))
-      self.tab.SetPageText(1, self.getCurrentPageText(1))
-      self.tab.SetPageText(2, self.getCurrentPageText(2))
-      self.tab.SetPageText(3, self.getCurrentPageText(3))
+    def setPagesText(self, page, text):
+      index = self.tab.GetPageIndex(page)
+      self.tab.SetPageText(index, text)
+      return index
 
     def loadRecentProjects(self):
       recentPrjs = common.getRecentPrjs()
