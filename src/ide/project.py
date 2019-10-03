@@ -481,6 +481,12 @@ class ProjectTreePanel(wx.Panel):
         self.menuProject.Bind(wx.EVT_MENU, self.OnProperties, id=PROJECT_PROPERTIES)
         # self.menuProject.Bind(wx.EVT_MENU, self.OnClearProjectData, id=PROJECT_CLEAR_DATA)
 
+        self.menuWindows = guiPlaces.menu["Windows"]
+        self.menuWindows.Append(wx.NewId(), texts.modelling, "")
+        self.menuWindows.Append(wx.NewId(), texts.model_details, "")
+        self.menuWindows.Append(wx.NewId(), texts.instantiation, "")
+        self.menuWindows.Append(wx.NewId(), texts.instance_details, "")
+
         self.menuTools = guiPlaces.menu["Tools"]
         self.menuTools.Append(TOOL_FONT_COLOR, "Fonts & Colors", "")
         self.menuTools.Append(TOOL_CLEAR_PROJECT_DATA, "Clear project data", "")
@@ -927,7 +933,7 @@ class ProjectTreePanel(wx.Panel):
       self.removePageByObj(model.modelDetails)
       self.removePageByObj(model.uml)
       frame.cleanupTools()
-      frame.cleanupMenus()
+      # frame.cleanupMenus()
 
   def OnValidate(self, event):
     self.guiPlaces.frame.setCurrentTabInfoByText(texts.model_problems)

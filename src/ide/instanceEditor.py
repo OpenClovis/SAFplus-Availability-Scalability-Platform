@@ -500,7 +500,9 @@ class SelectTool(Tool):
     parentFrame = share.instancePanel.guiPlaces.frame
     if share.instanceDetailsPanel:
       share.instanceDetailsPanel.showEntity(ent)
-      parentFrame.tab.SetSelection(3)
+      index = parentFrame.tab.GetPageIndex(share.instanceDetailsPanel)
+      parentFrame.tab.SetSelection(index)
+      # parentFrame.tab.SetSelection(3)
     else:
       parentFrame.insertPage(3)
       share.instanceDetailsPanel.showEntity(ent)

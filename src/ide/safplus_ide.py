@@ -75,6 +75,7 @@ class SAFplusFrame(wx.Frame):
         self.menuBar.Append(self.menuHelp, "&Help")
 
         self.menuHelp.Bind(wx.EVT_MENU_OPEN, self.onHelpMenu)
+        self.menuWindows.Bind(wx.EVT_MENU, self.onWindowsMenu)
 
         self.SetMenuBar(self.menuBar)
 
@@ -169,9 +170,9 @@ class SAFplusFrame(wx.Frame):
       menuItems = self.menuInstantiation.GetMenuItems()
       for item in menuItems:
         self.menuInstantiation.Delete(item.Id)      
-      menuItems = self.menuWindows.GetMenuItems()
-      for item in menuItems:
-        self.menuWindows.Delete(item.Id)
+      # menuItems = self.menuWindows.GetMenuItems()
+      # for item in menuItems:
+      #   self.menuWindows.Delete(item.Id)
 
     def OnProjectLoaded(self,evt):
       """Called when a project is loaded in the project tree"""
@@ -433,25 +434,40 @@ class SAFplusFrame(wx.Frame):
       elif pageText == self.getCurrentPageText(2):
         t.instance.deleteMyTools()
         pageIdx = 2
-      elif pageText == self.getCurrentPageText(3):        
-        pageIdx = 3
-      else:
-        pageIdx = -1
-      if pageIdx==-1:
-        return
-      print 'insert menu item id [%d] text [%s]' % (pageIdx, pageText)
-      self.menuWindows.Append(pageIdx, pageText)
-      self.menuWindows.Bind(wx.EVT_MENU, self.onWindowsMenu, id=pageIdx)
-      #evt.Veto()   
-      #self.tab.RemovePage(idx)
+      # elif pageText == self.getCurrentPageText(3):        
+      #   pageIdx = 3
+      # else:
+      #   pageIdx = -1
+      # if pageIdx==-1:
+      #   return
+      # print 'insert menu item id [%d] text [%s]' % (pageIdx, pageText)
+      # self.menuWindows.Append(pageIdx, pageText)
+      # self.menuWindows.Bind(wx.EVT_MENU, self.onWindowsMenu, id=pageIdx)
+      #evt.Veto()
+      # self.tab.RemovePage(idx)
 
     def onWindowsMenu(self, evt):
+      if not self.project.active():
+        return
       print 'onWindowsMenu launched'
       idx = evt.GetId()
       pageText = self.menuWindows.GetLabel(idx)
       print 'menu item [%s] idx [%d] clicked' % (pageText, idx)
       t = self.model
-      if pageText == self.getCurrentPageText(0):
+      index = -1
+      if pageText == texts.modelling and t.uml:
+        index = self.tab.GetPageIndex(t.uml)
+      elif pageText == texts.model_details and t.modelDetails:
+        index = self.tab.GetPageIndex(t.modelDetails)
+      elif pageText == texts.instantiation and t.instance:
+        index = self.tab.GetPageIndex(t.instance)
+      elif pageText == texts.instance_details and t.instanceDetails:
+        index = self.tab.GetPageIndex(t.instanceDetails)
+      if index != -1:
+        self.tab.SetSelection(index)
+        return True
+
+      if pageText == texts.modelling:
         if t.instance:
           t.instance.deleteTools()
         else:
@@ -459,24 +475,25 @@ class SAFplusFrame(wx.Frame):
         page = t.uml = umlEditor.Panel(self.tab,self.guiPlaces, t.model)
         if t.instance:
           t.instance.addTools()
-        pageIdx = 0  
-      elif pageText == self.getCurrentPageText(1):
+        textId = pageIdx = 0  
+      elif pageText == texts.model_details:
         page = t.modelDetails = entityDetailsDialog.Panel(self.tab,self.guiPlaces, t.model,isDetailInstance=False)
-        pageIdx = 1 if t.uml else 0               
-      elif pageText == self.getCurrentPageText(2):
+        textId = pageIdx = 1 #if t.uml else 0               
+      elif pageText == texts.instantiation:
         page = t.instance = instanceEditor.Panel(self.tab,self.guiPlaces, t.model)
         if t.uml and t.modelDetails:
           pageIdx = 2
         elif (t.uml and not t.modelDetails) or (not t.uml and t.modelDetails):
           pageIdx = 1
         else:
-          pageIdx = 0
+          pageIdx = 2
+        textId = 2
       else:
         page = t.instanceDetails = entityDetailsDialog.Panel(self.tab,self.guiPlaces, t.model,isDetailInstance=True)
-        pageIdx = 3
-      print 'insert page id [%d] text [%s]' % (pageIdx, pageText)
-      self.tab.InsertPage(pageIdx, page, pageText)
-      self.menuWindows.Delete(idx)
+        textId = pageIdx = 3
+      text = self.getCurrentPageText(textId)
+      print 'insert page id [%d] text [%s]' % (pageIdx, text)
+      self.tab.InsertPage(pageIdx, page, text)
       self.tab.SetSelection(pageIdx)
 
     def onHelpMenu(self, evt):

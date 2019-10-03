@@ -1,2 +1,6 @@
-console       = "Console" 
-model_problems = "Model Problems"
+console         = "Console" 
+model_problems  = "Model Problems"
+modelling       = "Modelling"
+model_details   = "Model Details"
+instantiation   = "Instantiation"
+instance_details = "Instance Details"

@@ -312,7 +312,8 @@ class SelectTool(Tool):
       parentFrame = share.umlEditorPanel.guiPlaces.frame
       if share.detailsPanel:
         share.detailsPanel.showEntity(next(iter(self.selected)))
-        parentFrame.tab.SetSelection(1)
+        index = parentFrame.tab.GetPageIndex(share.detailsPanel)
+        parentFrame.tab.SetSelection(index)
       else:
         parentFrame.insertPage(1)
         share.detailsPanel.showEntity(next(iter(self.selected)))    
