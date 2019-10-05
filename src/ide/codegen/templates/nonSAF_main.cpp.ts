@@ -50,6 +50,11 @@ void safRemoveWork(SaInvocationT  invocation,
                    const SaNameT  *compName,
                    const SaNameT  *csiName,
                    SaAmfCSIFlagsT csiFlags);
+//proxy-proxied support feature
+void safProxiedCompInstantiate(SaInvocationT invocation, const SaNameT *compName);
+void safProxiedCompCleanup();
+//End proxy-proxied support feature
+                
 
 /* Utility functions */
 void initializeAmf(void);
@@ -292,6 +297,33 @@ void safRemoveWork(SaInvocationT  invocation,
     saAmfResponse(amfHandle, invocation, SA_AIS_OK);
 }
 
+/*
+ * safProxiedCompInstantiate 
+ */
+void safProxiedCompInstantiate(SaInvocationT invocation, const SaNameT *proxiedCompName)
+{
+	SaAisErrorT         rc = SA_AIS_OK;
+	if ( (rc = saAmfComponentNameGet(amfHandle, &appName)) != SA_AIS_OK)
+    {
+    if (rc == SA_AIS_ERR_UNAVAILABLE)  // This component was not run by the AMF.  You must tell us what the component name is.
+      {
+      logInfo("APP","MAIN","Application NOT started by AMF");
+      SAFplus::saNameSet(&appName, DEFAULT_APP_NAME);
+      }
+    }
+
+  if ( (rc = saAmfComponentRegister(amfHandle, proxiedCompName, &appName)) != SA_AIS_OK) 
+    errorExit(rc);
+  saAmfResponse(amfHandle, invocation, SA_AIS_OK);
+}
+
+void safProxiedCompCleanup(SaInvocationT invocation, const SaNameT *proxiedCompName)
+{
+	logInfo("APP","MAIN","safProxiedCompCleanup : proxied compName [%s]", proxiedCompName->value);
+	saAmfResponse(amfHandle, invocation, SA_AIS_OK);
+}
+
+//? <excerpt id="AMFBasicInitializeAmf">
 void initializeAmf(void)
   {
   SaAmfCallbacksT     callbacks;
@@ -302,9 +334,8 @@ void initializeAmf(void)
   callbacks.saAmfCSISetCallback               = safAssignWork;
   callbacks.saAmfCSIRemoveCallback            = safRemoveWork;
   callbacks.saAmfProtectionGroupTrackCallback = NULL;
-  callbacks.saAmfProxiedComponentInstantiateCallback = NULL;
-  callbacks.saAmfProxiedComponentCleanupCallback = NULL;
-
+  callbacks.saAmfProxiedComponentInstantiateCallback = safProxiedCompInstantiate;
+  callbacks.saAmfProxiedComponentCleanupCallback = safProxiedCompCleanup;
   /* Initialize AMF client library. */
   if ( (rc = saAmfInitialize(&amfHandle, &callbacks, &SAFplus::safVersion)) != SA_AIS_OK)
     errorExit(rc);

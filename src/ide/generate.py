@@ -59,7 +59,8 @@ def topMakefile(output, srcDir,dirNames):
     return [srcDir + os.sep + "Makefile"]
 
 
-def cpp(output, srcDir, comp,ts_comp):
+#def cpp(output, srcDir, comp,ts_comp):
+def cpp(output, srcDir, comp,ts_comp, proxyProxied):#proxy-proxied feature
     # Create main
     compName = str(comp.data["name"])
 
@@ -70,18 +71,34 @@ def cpp(output, srcDir, comp,ts_comp):
       ts_comp['instantiate_command'] = comp.data["instantiate"]["command"].split()[0]
     except:
       pass
+    #proxy-proxied feature
+    if len(proxyProxied)!=0:
+      if compName in proxyProxied.keys():
+        #proxy case
+        cpptmpl = templateMgr.loadPyTemplate(TemplatePath + "nonSAF_main.cpp.ts")
+        s = cpptmpl.safe_substitute(**ts_comp)
+        output.write(srcDir + os.sep + compName + os.sep + "main.cxx", s)
+        tmpl = templateMgr.loadPyTemplate(TemplatePath + "Makefile.cpp.ts")
+        s = tmpl.safe_substitute(**ts_comp)
+        output.write(srcDir + os.sep + compName + os.sep + "Makefile", s)
+        return [srcDir + os.sep + compName + os.sep + "Makefile",srcDir + os.sep + compName + os.sep + "main.cxx"]
+      elif compName in [x for v in proxyProxied.values() for x in v]:
+        #proxied case
+        tmpl = templateMgr.loadPyTemplate(TemplatePath + "Makefile.cpp.ts")
+        s = tmpl.safe_substitute(**ts_comp)
+        output.write(srcDir + os.sep + compName + os.sep + "Makefile", s)
+        return [srcDir + os.sep + compName + os.sep + "Makefile"]
+    else:
+      #SA comp
+      cpptmpl = templateMgr.loadPyTemplate(TemplatePath + "main.cpp.ts")
+      s = cpptmpl.safe_substitute(**ts_comp)
+      output.write(srcDir + os.sep + compName + os.sep + "main.cxx", s)
 
-    cpptmpl = templateMgr.loadPyTemplate(TemplatePath + "main.cpp.ts")
-
-    s = cpptmpl.safe_substitute(**ts_comp)
-    output.write(srcDir + os.sep + compName + os.sep + "main.cxx", s)
-  
-    # Create Makefile
-    tmpl = templateMgr.loadPyTemplate(TemplatePath + "Makefile.cpp.ts")
-    s = tmpl.safe_substitute(**ts_comp)
-    output.write(srcDir + os.sep + compName + os.sep + "Makefile", s)
-    return [srcDir + os.sep + compName + os.sep + "Makefile",srcDir + os.sep + compName + os.sep + "main.cxx"]
-
+      # Create Makefile
+      tmpl = templateMgr.loadPyTemplate(TemplatePath + "Makefile.cpp.ts")
+      s = tmpl.safe_substitute(**ts_comp)
+      output.write(srcDir + os.sep + compName + os.sep + "Makefile", s)
+      return [srcDir + os.sep + compName + os.sep + "Makefile",srcDir + os.sep + compName + os.sep + "main.cxx"]
 
 def c(output, srcDir, comp,ts_comp):
     #? TODO:

@@ -185,11 +185,21 @@ instantiated  <instances>     instances                         instances     (e
     output = common.FilesystemOutput()
     comps = filter(lambda entity: entity.et.name == 'Component', self.entities.values())
     srcDir = os.sep.join([srcDir, "src"])
-    files = []  
+    files = []
     files += generate.topMakefile(output, srcDir,[c.data["name"] for c in comps])
-
+    #begin proxy-proxied feature
+    proxyProxied={}
+    proxiedComps = filter(lambda entity: entity.data["compCategory"] == '4' , comps )
+    proxyComps = filter(lambda entity: entity.data["compCategory"] == '1' , comps )
+    for proxy in proxyComps:
+      for proxied in proxiedComps:
+        if proxy.data['csiType']==proxied.data['proxyCSIType']:
+          if proxy.data['csiType'] not in proxyProxied.keys():
+             proxyProxied[proxy.data['name']]=[]#create tuple for the first time
+          proxyProxied[proxy.data['name']].append(proxied.data['name'])
+    #end proxy-proxied feature
     for c in comps:
-      files += generate.cpp(output, srcDir, c, c.data)
+      files += generate.cpp(output, srcDir, c, c.data, proxyProxied)#proxy-proxied feature
     return files
 
 
