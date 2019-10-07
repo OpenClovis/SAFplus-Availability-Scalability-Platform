@@ -160,7 +160,7 @@ class EditorControl(stc.StyledTextCtrl):
         except IOError:
             self.SetText('')
         except UnicodeDecodeError:
-            self.SetText("Unable to View or Edit binary file !")
+            self.SetText("The file will not be displayed in the editor because it is either binary or use unsupported text encoding.")
             self.SetEditable(False)
         finally:
             if file:

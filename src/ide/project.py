@@ -335,7 +335,7 @@ class ProjectTreePanel(wx.Panel):
 
         self.problems = []
         self.prjProperties = {}
-        self.getPrjProperties()
+        # self.getPrjProperties()
 
         self.entitiesRelation = {
           "Application"             : None, #Skip validation for Application entity
@@ -776,7 +776,7 @@ class ProjectTreePanel(wx.Panel):
 
     return path
 
-  def updateTreeItem(self, project, itemText, srcFiles):
+  def updateTreeItem(self, project, itemText, srcFiles=None):
     projName = os.path.basename(project.projectFilename)
     projName = os.path.splitext(projName)[0]
     (child, cookie) = self.tree.GetFirstChild(self.root)
@@ -792,13 +792,17 @@ class ProjectTreePanel(wx.Panel):
           if self.tree.GetItemText(c) == itemText:
             break
           (c, cookie) = self.tree.GetNextChild(child, cookie)
-      if c.IsOk():
-        self.tree.DeleteChildren(c)
+      path = os.path.join(self.getPrjPath(), itemText)
+      if not c.IsOk():
+        if not os.path.isdir(path):
+          os.mkdir(path)
+        c = self.tree.PrependItem(child, itemText)
+        self.setIconForItem(c, typeDir=True)
+        self.tree.SortChildren(child)
+      self.tree.DeleteChildren(c)
+      if itemText == texts.src:
         project.updatePrjXmlSource(srcFiles)
-        path = os.path.join(self.getPrjPath(), "src")
-        print "self.getPrjPath()", self.getPrjPath()
-        print "path", path
-        self.buildTreeRecursion(path, c, project)   
+      self.buildTreeRecursion(path, c, project)   
 
   def OnLoad(self,event):
     dlg = wx.FileDialog(
@@ -1227,6 +1231,7 @@ class ProjectTreePanel(wx.Panel):
       dlg = DeployDialog(self)
       dlg.ShowModal()
       dlg.Destroy()
+      self.updateTreeItem(self.currentActiveProject, texts.configs)
 
   def log_console_info(self, text):
     console = self.guiPlaces.frame.console
@@ -1315,6 +1320,7 @@ class ProjectTreePanel(wx.Panel):
     properties = PropertiesDialog(self)
     properties.ShowModal()
     properties.Destroy()
+    self.updateTreeItem(self.currentActiveProject, texts.configs)
 
   def OnClearProjectData(self, event):
     dlg = ClearProjectData(self)
@@ -1332,6 +1338,8 @@ class ProjectTreePanel(wx.Panel):
       dlg.Destroy()
       if result:
         self.runningLongProcess(self.makeImages, (self.getPrjPath(), ))
+      self.updateTreeItem(self.currentActiveProject, texts.images)
+      self.updateTreeItem(self.currentActiveProject, texts.configs)
 
   def runningLongProcess(self, func, parram):
     self.guiPlaces.frame.console.SetValue('')
@@ -1619,23 +1627,31 @@ class ClearProjectData(wx.Dialog):
       if self.deploy.GetValue():
         f = "%s/configs/target.xml" % path
         if os.path.isfile(f):
-          os.system("rm -f %s" % f)
+          os.system('echo "" > %s' % f)
 
       if self.properties.GetValue():
         f = "%s/configs/prjProperties.xml" % path
         if os.path.isfile(f):
-          os.system("rm -f %s" % f)
+          os.system('echo "" > %s' % f)
 
       if self.imageCfg.GetValue():
         f = "%s/configs/imagesConfig.xml" % path
         if os.path.isfile(f):
-          os.system("rm -f %s" % f)
+          os.system('echo "" > %s' % f)
 
       if self.imageFile.GetValue():
-        os.system("rm -rf %s/images" % path)
+        dir_images = os.path.join(path, texts.images)
+        if os.path.isdir(dir_images):
+          if len(os.listdir(dir_images)):
+            os.system("rm -rf %s/*" % dir_images)
+            self.parent.updateTreeItem(self.parent.currentActiveProject, texts.images)
 
       if self.srcBak.GetValue():
-        os.system("rm -f %s/src.bak/*.tar.gz" % path)
+        dir_bak = os.path.join(path, texts.src_bak)
+        if os.path.isdir(dir_bak):
+          if len(os.listdir(dir_bak)):
+            os.system("rm -f %s/*.tar.gz" % dir_bak)
+            self.parent.updateTreeItem(self.parent.currentActiveProject, texts.src_bak)
 
       self.Close()
 

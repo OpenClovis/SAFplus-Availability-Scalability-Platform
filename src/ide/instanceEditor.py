@@ -31,6 +31,7 @@ from gfxtoolkit import *
 from entity import Entity
 
 import share
+import texts
  
 ENTITY_TYPE_BUTTON_START = wx.NewId()
 SAVE_BUTTON = wx.NewId()
@@ -691,19 +692,24 @@ class GenerateTool(Tool):
   def OnSelect(self, panel, event):
     if event.GetId() == CODEGEN_BUTTON:
       parentFrame = self.panel.guiPlaces.frame
+      parentFrame.project.getPrjProperties()
+      src_bak = False
       if parentFrame.project.prjProperties['backupMode'] == "prompt":
-        self.openBackupDialog()
+        result = self.openBackupDialog()
+        if not result: return
+        elif result == 2: src_bak = True
       elif parentFrame.project.prjProperties['backupMode'] == "always":
         self.executeBackupSource()
-
+        src_bak = True
       # code gen must be per-component -- not generation of one type of application
       files = panel.model.generateSource(self.panel.model.directory())
       self.panel.statusBar.SetStatusText("Code generation complete")
       # add these files to the "source" part of the project tab and update the project xml file
       #print files
       # parentFrame = self.panel.guiPlaces.frame
-      parentFrame.project.updateTreeItem(parentFrame.currentActivePrj, "src", files)
- 
+      parentFrame.project.updateTreeItem(parentFrame.currentActivePrj, texts.src, files)
+      if src_bak:
+        parentFrame.project.updateTreeItem(parentFrame.currentActivePrj, texts.src_bak)
     return False
 
   def openBackupDialog(self):
@@ -741,7 +747,8 @@ class GenerateTool(Tool):
     vBox.Add(hBox, 0, wx.TOP|wx.ALIGN_RIGHT, 30)
 
     self.dlg.SetSizer(vBox)
-    self.dlg.ShowModal()
+    result = self.dlg.ShowModal()
+    return result
 
   def onClickBackupNoBtn(self, event):
     '''
@@ -751,13 +758,15 @@ class GenerateTool(Tool):
       parentFrame = self.panel.guiPlaces.frame
       parentFrame.project.prjProperties['backupMode'] = "never"
       parentFrame.project.savePrjProperties()
-    self.dlg.Close()
+    self.dlg.EndModal(1)
+    # self.dlg.Close()
   
   def onClickBackupCancelBtn(self, event):
     '''
     @summary    : cancel backup dialog
     '''
-    self.dlg.Close()
+    self.dlg.EndModal(0)
+    # self.dlg.Close()
 
   def onClickBackupYesBtn(self, event):
     '''
@@ -768,7 +777,8 @@ class GenerateTool(Tool):
       parentFrame.project.prjProperties['backupMode'] = "always"
       parentFrame.project.savePrjProperties()
     self.executeBackupSource()
-    self.dlg.Close()
+    self.dlg.EndModal(2)
+    # self.dlg.Close()
 
   def onChecked(self, event):
     pass
