@@ -509,9 +509,14 @@ class ProjectTreePanel(wx.Panel):
         wx.EVT_MENU(guiPlaces.frame, PROJECT_SAVE_AS, self.OnSaveAs)
   def OnShowPopup(self, event):
     self.popupmenu = wx.Menu()
-    itemPath = self.getFullPath(self.tree.GetFocusedItem())
+    selectItem = self.tree.GetFocusedItem()
+    itemPath = self.getFullPath(selectItem)
     if os.path.isdir(itemPath):
-      menus = ["New File", "New Folder", "Open Containing Folder", "Rename", "Delete"]
+      prjPath = self.tree.GetPyData(selectItem).directory()
+      if itemPath == prjPath:
+        menus = ["Close Project", "New File", "New Folder", "Open Containing Folder", "Rename", "Delete"]
+      else:
+        menus = ["New File", "New Folder", "Open Containing Folder", "Rename", "Delete"]
     elif os.path.isfile(itemPath):
       menus = ["Open Containing Folder", "Rename", "Delete"]
     else: 
@@ -628,6 +633,8 @@ class ProjectTreePanel(wx.Panel):
     elif text == "Open Containing Folder":
       parentPath = self.reverseReplace(itemPath, '/'+ itemText,"", 1)
       webbrowser.open(parentPath)
+    elif text == "Close Project":
+      self.OnCloseProject(None)
 
   def active(self):
     i = self.tree.GetSelections()
@@ -918,16 +925,22 @@ class ProjectTreePanel(wx.Panel):
     prj = self.active()
     if not prj:
       return
-    path = self.getPrjPath()
-    self.deleteTreeRecursion(path)
-    item = self.getItemByLabel(self.tree, path, self.tree.GetRootItem())
-    if not item:
+    selectItem = self.tree.GetFocusedItem()
+    itemPath = self.getFullPath(selectItem)
+    if os.path.isdir(itemPath):
+      prjPath = self.tree.GetPyData(selectItem).directory()
+    else: return
+    if itemPath != prjPath: return
+    self.deleteTreeRecursion(itemPath)
+    if self.currentActiveProject != self.tree.GetPyData(selectItem):
+      self.tree.Delete(selectItem)
       return
-    self.tree.Delete(item)
+    self.tree.Delete(selectItem)
     frame = self.guiPlaces.frame
     prj = self.active()
     if prj:
       frame.loadProject(prj)
+      self.tree.SetFocusedItem(self.tree.GetFirstVisibleItem())
       pageText = frame.getCurrentPageText(0)
       self.guiPlaces.frame.enableTools(pageText)
     else:
