@@ -250,7 +250,10 @@ class SAFplusFrame(wx.Frame):
         self.setPagesText(t.instance, self.getCurrentPageText(2))
         self.setPagesText(t.instanceDetails, self.getCurrentPageText(3))
       self.tab.Bind(wx.aui.EVT_AUINOTEBOOK_PAGE_CHANGED, self.onPageChanged) # bind to catch page selection event
-      self.tab.SetSelection(index) # open uml model view by default
+      if self.tab.GetCurrentPage() == t.uml:
+        self.enableTools(self.getCurrentPageText(0))
+      else:
+        self.tab.SetSelection(index) # open uml model view by default
       # append to recent projects repository and update the menu
       self.updateRecentProject(prj)
       if self.currentActivePrj.dataModelPlugin:

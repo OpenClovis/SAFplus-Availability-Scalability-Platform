@@ -514,7 +514,7 @@ class ProjectTreePanel(wx.Panel):
     if os.path.isdir(itemPath):
       prjPath = self.tree.GetPyData(selectItem).directory()
       if itemPath == prjPath:
-        menus = ["Close Project", "New File", "New Folder", "Open Containing Folder", "Rename", "Delete"]
+        menus = ["New File", "New Folder", "Open Containing Folder", "Rename", "Delete", "Close Project"]
       else:
         menus = ["New File", "New Folder", "Open Containing Folder", "Rename", "Delete"]
     elif os.path.isfile(itemPath):
@@ -953,6 +953,7 @@ class ProjectTreePanel(wx.Panel):
       # frame.cleanupMenus()
 
   def OnValidate(self, event):
+    if not self.tree.GetFirstVisibleItem().IsOk(): return
     self.guiPlaces.frame.setCurrentTabInfoByText(texts.model_problems)
     # Clear old problems
     del self.problems[:]
@@ -1236,6 +1237,7 @@ class ProjectTreePanel(wx.Panel):
       self.guiPlaces.frame.modelProblems.SetStringItem(index, 2, problem['source'])
 
   def OnDeploy(self, event):
+    if not self.tree.GetFirstVisibleItem().IsOk(): return
     if not share.detailsPanel.model.instances:
       msg = "Please create images for this project using 'Make image(s)' obtion and try again."
       cap = "Deploy images errors for %s" % self.getPrjName()
@@ -1318,18 +1320,21 @@ class ProjectTreePanel(wx.Panel):
     self.cancelProgress = status
 
   def OnBuild(self, event):
+    if not self.tree.GetFirstVisibleItem().IsOk(): return
     prjPath, name = os.path.split(self.currentActiveProject.projectFilename)
     srcPath = prjPath + '/src'
     cmd = 'cd %s; make' % srcPath
     self.runningLongProcess(self.execute, (cmd, ))
 
   def OnClean(self, event):
+    if not self.tree.GetFirstVisibleItem().IsOk(): return
     prjPath, name = os.path.split(self.currentActiveProject.projectFilename)
     srcPath = prjPath + '/src'
     cmd = 'cd %s; make clean' % srcPath
     self.runningLongProcess(self.execute, (cmd, ))
 
   def OnProperties(self, event):
+    if not self.tree.GetFirstVisibleItem().IsOk(): return
     properties = PropertiesDialog(self)
     properties.ShowModal()
     properties.Destroy()
@@ -1341,6 +1346,7 @@ class ProjectTreePanel(wx.Panel):
     dlg.Destroy()
 
   def OnMakeImages(self, event):
+    if not self.tree.GetFirstVisibleItem().IsOk(): return
     if not share.detailsPanel.model.instances:
       msg = "Project has not been built. Please build the project and try again."
       cap = "Build images errors for %s" % self.getPrjName()
