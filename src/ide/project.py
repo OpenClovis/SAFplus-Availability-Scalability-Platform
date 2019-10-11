@@ -1624,18 +1624,18 @@ class ClearProjectData(wx.Dialog):
       vBox.Add(self.imageFile, 0, wx.ALL|wx.ALIGN_CENTER, 5)
       vBox.Add(self.srcBak, 0, wx.ALL|wx.ALIGN_CENTER, 5)
 
-      hBox = wx.BoxSizer(wx.HORIZONTAL)
+      line = wx.StaticLine(self, size=(513,1))
+      vBox.Add(line, 1, wx.TOP, 180)
 
       CancelBtn = wx.Button(self, label="Cancel")
       CancelBtn.Bind(wx.EVT_BUTTON, self.onClickCancelBtn)
       ClearBtn = wx.Button(self, label="Clear data")
       ClearBtn.Bind(wx.EVT_BUTTON, self.onClickClearBtn)
 
-      hBox.Add(CancelBtn, 0, wx.RIGHT, 15)
-      hBox.Add(ClearBtn, 0, wx.RIGHT, 20)
-
-      vBox.Add(hBox, 0, wx.TOP|wx.ALIGN_RIGHT, 190)
-
+      hBox = wx.BoxSizer(wx.HORIZONTAL)
+      hBox.Add(CancelBtn, 0, wx.LEFT, 300)
+      hBox.Add(ClearBtn, 0, wx.LEFT, 10)
+      vBox.Add(hBox, 0, wx.ALL, 15)
       self.SetSizer(vBox)
 
     def onClickCancelBtn(self, event):
@@ -1713,8 +1713,8 @@ class PropertiesDialog(wx.Dialog):
       hBox.Add(vBox1, 0, wx.ALL, 0)
 
       hBox2 = wx.BoxSizer(wx.HORIZONTAL)
-      hBox2.Add(cancelBtn, 0, wx.ALL|wx.CENTER, 0)
-      hBox2.Add(self.okBtn, 0, wx.ALL, 10)
+      hBox2.Add(self.okBtn, 0, wx.ALL|wx.CENTER, 0)
+      hBox2.Add(cancelBtn, 0, wx.ALL, 10)
 
       vBox.Add(hBox, 0, wx.ALL, 0)
       vBox.Add(hBox2, 0, wx.ALL|wx.ALIGN_RIGHT, 0)
@@ -1996,6 +1996,8 @@ class DeployDialog(wx.Dialog):
       prjPath = self.parent.getPrjPath()
       for key in self.deployInfos:
         srcImage = prjPath + '/images/' + key
+        if self.parent.cancelProgress:
+          break
         if os.path.isfile(srcImage + '.tar.gz'):
           self.deploymentSingleImage(self.deployInfos[key], srcImage)
         else:
@@ -2059,7 +2061,7 @@ class DeployDialog(wx.Dialog):
         img = self.deployInfos[self.curNode]
         self.parent.runningLongProcess(self.deploymentSingleImage, (img, srcImage, ))
       else:
-        self.parent.guiPlaces.frame.setCurrentTabInfoByText(text.console)
+        self.parent.guiPlaces.frame.setCurrentTabInfoByText(texts.console)
         self.parent.log_error("Image %s.tar.gz don't exist.\nDeploy failure" % srcImage)
         self.parent.log_error("Deploy failure")
 
@@ -2078,7 +2080,7 @@ class MakeImages(wx.Dialog):
       wx.Dialog.__init__(self, None, title="Make Images Configuration", size=(455, 480))
       self.parent = parent
       mainBox = wx.BoxSizer(wx.VERTICAL)
-      labelTitle = wx.StaticText(self, label="Config make image setting",size=(455,25))
+      labelTitle = wx.StaticText(self, label="Config make images settings",size=(455,25))
       bookStyle = aui.AUI_NB_DEFAULT_STYLE
       bookStyle &= ~(aui.AUI_NB_CLOSE_ON_ACTIVE_TAB)
       self.configPanel = wx.aui.AuiNotebook(self, style=bookStyle, size=(436, 341))
@@ -2091,8 +2093,8 @@ class MakeImages(wx.Dialog):
       ok_btn.Bind(wx.EVT_BUTTON, self.onClickOkBtn)
 
       btn_sizer = wx.BoxSizer(wx.HORIZONTAL)
-      btn_sizer.Add(cancel_btn, 0, wx.ALL|wx.CENTER, 5)
-      btn_sizer.Add(ok_btn, 0, wx.ALL|wx.CENTER, 5)  
+      btn_sizer.Add(ok_btn, 0, wx.ALL|wx.CENTER, 5)
+      btn_sizer.Add(cancel_btn, 0, wx.ALL|wx.CENTER, 5)  
 
       self.Bind(wx.EVT_CLOSE, self.onClickCancelBtn)
         
