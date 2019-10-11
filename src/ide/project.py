@@ -1786,14 +1786,13 @@ class DeployDialog(wx.Dialog):
 
       self.parent = parent
       self.SetBackgroundColour('#F2F1EF')
-      LabelSize = (100,25) 
+      LabelSize = (120,25) 
       EntrySize = (300,25)
 
       horizontalBox0 = wx.BoxSizer(wx.HORIZONTAL)
       label = wx.StaticText(self, label="Please provide valid infomation to deploy image", size=(400, 25))
       label.SetForegroundColour((0,0,0)) 
       horizontalBox0.Add(label, 0, wx.ALL|wx.CENTER, border=5)
-
       horizontalBox1 = wx.BoxSizer(wx.HORIZONTAL)
       hostName = wx.StaticText(self, label="Target address", size=LabelSize)
       horizontalBox1.Add(hostName, 0, wx.ALL|wx.CENTER, 5)
@@ -1835,9 +1834,9 @@ class DeployDialog(wx.Dialog):
       deploy_btn.Bind(wx.EVT_BUTTON, self.onDeployImageHandler)
 
       btn_sizer = wx.BoxSizer(wx.HORIZONTAL)
-      btn_sizer.Add(restore_btn, 0, wx.ALL|wx.CENTER, 5)
-      btn_sizer.Add(deploy_btn, 0, wx.ALL|wx.CENTER, 5)  
-      vBox.Add(btn_sizer, 0, wx.TOP|wx.ALIGN_RIGHT, 5)
+      btn_sizer.Add(restore_btn, 0, wx.CENTER|wx.LEFT, 142)
+      btn_sizer.Add(deploy_btn, 0, wx.CENTER|wx.LEFT, 10)
+      vBox.Add(btn_sizer, 1, wx.TOP, 15)
 
       cancel_btn = wx.Button(self, label="Cancel")
       cancel_btn.Bind(wx.EVT_BUTTON, self.onClickCancelBtn)
@@ -1845,8 +1844,8 @@ class DeployDialog(wx.Dialog):
       deployAll_btn.Bind(wx.EVT_BUTTON, self.onClickDeployAllImageBtn)
 
       btn_sizer2 = wx.BoxSizer(wx.HORIZONTAL)
-      btn_sizer2.Add(cancel_btn, 0, wx.ALL|wx.CENTER, 5)
-      btn_sizer2.Add(deployAll_btn, 0, wx.ALL|wx.CENTER, 5)  
+      btn_sizer2.Add(deployAll_btn, 0, wx.ALL|wx.CENTER, 5)
+      btn_sizer2.Add(cancel_btn, 0, wx.ALL|wx.CENTER, 5)  
 
       self.nodeList = wx.ListView(self, wx.ID_ANY, (0,0), (185,350), style=wx.LC_EDIT_LABELS | wx.LC_REPORT |wx.SUNKEN_BORDER)#, style=wx.LC_REPORT|wx.SUNKEN_BORDER|wx.LC_SINGLE_SEL|wx.LC_VRULES|wx.LC_HRULES)
       self.nodeList.InsertColumn(0, "Nodes")
@@ -1857,13 +1856,13 @@ class DeployDialog(wx.Dialog):
       hBox.Add(self.nodeList, 0, wx.ALL, 5)
       hBox.Add(vBox, 0, wx.ALL, 5)
 
+      line = wx.StaticLine(self, size=(600,1), style=wx.LI_HORIZONTAL)
       vBox1 = wx.BoxSizer(wx.VERTICAL)
       vBox1.Add(hBox, 0, wx.ALL|wx.CENTER, 5)
+      vBox1.Add(line, 0, wx.ALIGN_TOP, 0)
       vBox1.Add(btn_sizer2, 0, wx.ALL|wx.ALIGN_RIGHT, 5)
-
       self.SetSizer(vBox1)
       vBox1.Layout()
-
       self.deployInfos = {}
       self.key = self.getKey()
       self.initDeploymentInfo()
