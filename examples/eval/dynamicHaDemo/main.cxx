@@ -213,7 +213,7 @@ ClRcT updateServiceUnit(const SAFplus::Handle& mgmtHandle, const char* suName, c
 
 ClRcT addNewComponent(const SAFplus::Handle& mgmtHandle, const char* binary, const char* compName, const char* suName)
 {
-  clprintf(SAFplus::LOG_SEV_INFO,"Basic HA app: Test creating component c99");
+  clprintf(SAFplus::LOG_SEV_INFO,"Basic HA app: Test creating component [%s]",compName);
   SAFplus::Rpc::amfMgmtRpc::ComponentConfig* comp = new SAFplus::Rpc::amfMgmtRpc::ComponentConfig();
   comp->set_name(compName);
   comp->set_capabilitymodel(SAFplus::Rpc::amfMgmtRpc::CapabilityModel_x_active_or_y_standby);
@@ -281,8 +281,8 @@ ClRcT addComponentServiceInstanceNVP(const SAFplus::Handle& mgmtHandle, const ch
     data->set_name(it->first);
     data->set_val(it->second);
     i++;
-  }  
-  ClRcT rc = SAFplus::amfMgmtComponentServiceInstanceCreate(mgmtHandle,csi);
+  }
+  ClRcT rc = SAFplus::amfMgmtComponentServiceInstanceConfigSet(mgmtHandle,csi);
   clprintf(SAFplus::LOG_SEV_INFO,"Basic HA app: Test creating new csi returns [0x%x]", rc);
   return rc;
 }
@@ -416,11 +416,65 @@ ClRcT dynamicModelCreate()
   {
     rc = SAFplus::amfMgmtCommit(mgmtHandle);
     clprintf(SAFplus::LOG_SEV_INFO,"Basic HA app: dynamicModelCreate commit returns [0x%x]", rc);
-  }
-
+  }  
   rc = SAFplus::amfMgmtFinalize(mgmtHandle);
   clprintf(SAFplus::LOG_SEV_INFO,"Basic HA app: dynamicModelCreate finalize returns [0x%x]", rc);
   return rc;
+}
+
+ClRcT entitiesGetConfig()
+{
+  SAFplus::Handle mgmtHandle;
+  ClRcT rc = CL_OK;
+  FN_CALL(SAFplus::amfMgmtInitialize(mgmtHandle));
+  // get component configurations
+  SAFplus::Rpc::amfMgmtRpc::ComponentConfig* compConfig = NULL;
+  rc = amfMgmtComponentGetConfig(mgmtHandle,std::string("c0"),&compConfig);
+  clprintf(SAFplus::LOG_SEV_INFO,"amfMgmtComponentGetConfig [0x%x]", rc);
+  if (rc == CL_OK)
+  {
+    // print some component's attributes
+    clprintf(SAFplus::LOG_SEV_INFO,"information about component [%s]", compConfig->name().c_str());
+    clprintf(SAFplus::LOG_SEV_INFO,"delaybetweeninstantiation [%u]", compConfig->delaybetweeninstantiation());
+    clprintf(SAFplus::LOG_SEV_INFO,"instantiationsuccessduration [%u]", compConfig->instantiationsuccessduration());
+    clprintf(SAFplus::LOG_SEV_INFO,"maxActiveAssignments [%u]", compConfig->maxactiveassignments());
+    clprintf(SAFplus::LOG_SEV_INFO,"maxStandbyAssignments [%u]", compConfig->maxstandbyassignments());
+    clprintf(SAFplus::LOG_SEV_INFO,"recovery [%d]", compConfig->recovery());
+    // Release resources
+    SAFplus::Rpc::amfMgmtRpc::Instantiate* instantiate = compConfig->release_instantiate();
+    SAFplus::Rpc::amfMgmtRpc::Execution* exe = instantiate->release_execution();
+    delete exe;
+    delete instantiate;
+    SAFplus::Rpc::amfMgmtRpc::Terminate* terminate = compConfig->release_terminate();
+    SAFplus::Rpc::amfMgmtRpc::Execution* ter_exe = terminate->release_execution();
+    delete ter_exe;
+    delete terminate;
+    SAFplus::Rpc::amfMgmtRpc::Cleanup* cleanup = compConfig->release_cleanup();
+    SAFplus::Rpc::amfMgmtRpc::Execution* cleanup_exe = cleanup->release_execution();
+    delete cleanup_exe;
+    delete cleanup;
+    delete compConfig;
+  }
+  // get csi configurations
+  SAFplus::Rpc::amfMgmtRpc::ComponentServiceInstanceConfig* csiConfig = NULL;
+  rc = amfMgmtCSIGetConfig(mgmtHandle,std::string("csi"),&csiConfig);
+  clprintf(SAFplus::LOG_SEV_INFO,"amfMgmtCSIGetConfig [0x%x]", rc);
+  if (rc == CL_OK)
+  {
+    // print some csi's attributes
+    clprintf(SAFplus::LOG_SEV_INFO,"information about csi [%s]", csiConfig->name().c_str());
+    clprintf(SAFplus::LOG_SEV_INFO,"data list:");
+    for (int i=0;i<csiConfig->data_size();i++)
+      {
+         clprintf(SAFplus::LOG_SEV_INFO,"key: [%s], val: [%s]", csiConfig->data(i).name().c_str(),csiConfig->data(i).val().c_str());
+      }
+    clprintf(SAFplus::LOG_SEV_INFO,"service instance [%s]", csiConfig->serviceinstance().c_str());
+    // Release resources
+    delete csiConfig;
+  }
+
+  rc = SAFplus::amfMgmtFinalize(mgmtHandle);
+  clprintf(SAFplus::LOG_SEV_INFO,"Basic HA app: finalize returns [0x%x]", rc);
 }
 
 void* standbyLoop(void* arg)
@@ -433,6 +487,10 @@ void* standbyLoop(void* arg)
   else if (strcmp(mode,"update")==0)
   {
     dynamicModelUpdate();
+  }
+  else if (strcmp(mode,"query")==0)
+  {
+    entitiesGetConfig();
   }
   else
   {
@@ -598,7 +656,7 @@ void safAssignWork(SaInvocationT       invocation,
             pthread_t thr;
             clprintf(SAFplus::LOG_SEV_INFO,"Basic HA app: ACTIVE state requested; activating service");
             running = 1;
-            pthread_create(&thr,NULL,activeLoop,NULL);
+            //pthread_create(&thr,NULL,activeLoop,NULL);
             /*if (memcmp(compName->value,"c0",compName->length)==0)
             {
               char* mode = new char[10];
@@ -632,7 +690,7 @@ void safAssignWork(SaInvocationT       invocation,
              */
             pthread_t thr;
             char* mode = new char[10];
-            strcpy(mode,"update");
+            strcpy(mode,"create");
             pthread_create(&thr,NULL,standbyLoop, mode);
             saAmfResponse(amfHandle, invocation, SA_AIS_OK); 
 #if 0
