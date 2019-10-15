@@ -461,16 +461,12 @@ class ProjectTreePanel(wx.Panel):
         self.menuProject.Append(IMAGES_DEPLOY, "Deploy Image(s)...", "Deploy Image(s)...")
         self.menuProject.AppendSeparator()
         self.menuProject.Append(PROJECT_PROPERTIES, "Properties", "Properties")
-        # self.menuProject.Append(PROJECT_CLEAR_DATA, "Clear project data", "Clear project data")
-
-        # self.menuProject.Enable(PROJECT_CLOSE, False)
         self.menuProject.Enable(PROJECT_VALIDATE, False)
         self.menuProject.Enable(MAKE_IMAGES, False)
         self.menuProject.Enable(IMAGES_DEPLOY, False)
         self.menuProject.Enable(PROJECT_BUILD, False)
         self.menuProject.Enable(PROJECT_CLEAN, False)
         self.menuProject.Enable(PROJECT_PROPERTIES, False)
-        # self.menuProject.Enable(PROJECT_CLEAR_DATA, False)
         self.menuProject.Bind(wx.EVT_MENU, self.OnLoad, id=PROJECT_OPEN)
         self.menuProject.Bind(wx.EVT_MENU, self.OnCloseProject, id=PROJECT_CLOSE)
         self.menuProject.Bind(wx.EVT_MENU, self.OnValidate, id=PROJECT_VALIDATE)
@@ -479,7 +475,6 @@ class ProjectTreePanel(wx.Panel):
         self.menuProject.Bind(wx.EVT_MENU, self.OnBuild, id=PROJECT_BUILD)
         self.menuProject.Bind(wx.EVT_MENU, self.OnClean, id=PROJECT_CLEAN)
         self.menuProject.Bind(wx.EVT_MENU, self.OnProperties, id=PROJECT_PROPERTIES)
-        # self.menuProject.Bind(wx.EVT_MENU, self.OnClearProjectData, id=PROJECT_CLEAR_DATA)
 
         self.menuWindows = guiPlaces.menu["Windows"]
         self.menuWindows.Append(wx.NewId(), texts.modelling, "")
@@ -514,7 +509,7 @@ class ProjectTreePanel(wx.Panel):
     if os.path.isdir(itemPath):
       prjPath = self.tree.GetPyData(selectItem).directory()
       if itemPath == prjPath:
-        menus = ["New File", "New Folder", "Open Containing Folder", "Rename", "Delete", "Close Project"]
+        menus = ["New File", "New Folder", "Open Containing Folder", "Rename", "Close Project"]
       else:
         menus = ["New File", "New Folder", "Open Containing Folder", "Rename", "Delete"]
     elif os.path.isfile(itemPath):
@@ -2228,6 +2223,7 @@ class NewPrjDialog(wx.Dialog):
         LabelSize = (100,25) 
         EntrySize = (300,25)
         prjname_sizer = wx.BoxSizer(wx.HORIZONTAL)
+        self.what = None
  
         prj_lbl = wx.StaticText(self, label="Project name", size=LabelSize)
         prjname_sizer.Add(prj_lbl, 0, wx.ALL|wx.CENTER, 5)
