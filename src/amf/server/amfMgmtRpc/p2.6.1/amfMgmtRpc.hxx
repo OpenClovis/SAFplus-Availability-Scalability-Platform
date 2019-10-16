@@ -126,6 +126,18 @@ class amfMgmtRpc : public SAFplus::Rpc::RpcService {
                        ::SAFplus::Rpc::amfMgmtRpc::GetSIConfigResponse* response);
   virtual void getCSIConfig(const ::SAFplus::Rpc::amfMgmtRpc::GetCSIConfigRequest* request,
                        ::SAFplus::Rpc::amfMgmtRpc::GetCSIConfigResponse* response);
+  virtual void getComponentStatus(const ::SAFplus::Rpc::amfMgmtRpc::GetComponentStatusRequest* request,
+                       ::SAFplus::Rpc::amfMgmtRpc::GetComponentStatusResponse* response);
+  virtual void getNodeStatus(const ::SAFplus::Rpc::amfMgmtRpc::GetNodeStatusRequest* request,
+                       ::SAFplus::Rpc::amfMgmtRpc::GetNodeStatusResponse* response);
+  virtual void getSUStatus(const ::SAFplus::Rpc::amfMgmtRpc::GetSUStatusRequest* request,
+                       ::SAFplus::Rpc::amfMgmtRpc::GetSUStatusResponse* response);
+  virtual void getSGStatus(const ::SAFplus::Rpc::amfMgmtRpc::GetSGStatusRequest* request,
+                       ::SAFplus::Rpc::amfMgmtRpc::GetSGStatusResponse* response);
+  virtual void getSIStatus(const ::SAFplus::Rpc::amfMgmtRpc::GetSIStatusRequest* request,
+                       ::SAFplus::Rpc::amfMgmtRpc::GetSIStatusResponse* response);
+  virtual void getCSIStatus(const ::SAFplus::Rpc::amfMgmtRpc::GetCSIStatusRequest* request,
+                       ::SAFplus::Rpc::amfMgmtRpc::GetCSIStatusResponse* response);
 
   // implements amfMgmtRpc ------------------------------------------
   virtual void initialize(SAFplus::Handle destination,
@@ -315,6 +327,30 @@ class amfMgmtRpc : public SAFplus::Rpc::RpcService {
   virtual void getCSIConfig(SAFplus::Handle destination,
                        const ::SAFplus::Rpc::amfMgmtRpc::GetCSIConfigRequest* request,
                        ::SAFplus::Rpc::amfMgmtRpc::GetCSIConfigResponse* response,
+                       SAFplus::Wakeable& wakeable = *((SAFplus::Wakeable*)nullptr));
+  virtual void getComponentStatus(SAFplus::Handle destination,
+                       const ::SAFplus::Rpc::amfMgmtRpc::GetComponentStatusRequest* request,
+                       ::SAFplus::Rpc::amfMgmtRpc::GetComponentStatusResponse* response,
+                       SAFplus::Wakeable& wakeable = *((SAFplus::Wakeable*)nullptr));
+  virtual void getNodeStatus(SAFplus::Handle destination,
+                       const ::SAFplus::Rpc::amfMgmtRpc::GetNodeStatusRequest* request,
+                       ::SAFplus::Rpc::amfMgmtRpc::GetNodeStatusResponse* response,
+                       SAFplus::Wakeable& wakeable = *((SAFplus::Wakeable*)nullptr));
+  virtual void getSUStatus(SAFplus::Handle destination,
+                       const ::SAFplus::Rpc::amfMgmtRpc::GetSUStatusRequest* request,
+                       ::SAFplus::Rpc::amfMgmtRpc::GetSUStatusResponse* response,
+                       SAFplus::Wakeable& wakeable = *((SAFplus::Wakeable*)nullptr));
+  virtual void getSGStatus(SAFplus::Handle destination,
+                       const ::SAFplus::Rpc::amfMgmtRpc::GetSGStatusRequest* request,
+                       ::SAFplus::Rpc::amfMgmtRpc::GetSGStatusResponse* response,
+                       SAFplus::Wakeable& wakeable = *((SAFplus::Wakeable*)nullptr));
+  virtual void getSIStatus(SAFplus::Handle destination,
+                       const ::SAFplus::Rpc::amfMgmtRpc::GetSIStatusRequest* request,
+                       ::SAFplus::Rpc::amfMgmtRpc::GetSIStatusResponse* response,
+                       SAFplus::Wakeable& wakeable = *((SAFplus::Wakeable*)nullptr));
+  virtual void getCSIStatus(SAFplus::Handle destination,
+                       const ::SAFplus::Rpc::amfMgmtRpc::GetCSIStatusRequest* request,
+                       ::SAFplus::Rpc::amfMgmtRpc::GetCSIStatusResponse* response,
                        SAFplus::Wakeable& wakeable = *((SAFplus::Wakeable*)nullptr));
 
 
@@ -532,6 +568,30 @@ class amfMgmtRpc_Stub : public amfMgmtRpc {
                        const ::SAFplus::Rpc::amfMgmtRpc::GetCSIConfigRequest* request,
                        ::SAFplus::Rpc::amfMgmtRpc::GetCSIConfigResponse* response,
                        SAFplus::Wakeable& wakeable = *((SAFplus::Wakeable*)nullptr));
+  void getComponentStatus(SAFplus::Handle destination,
+                       const ::SAFplus::Rpc::amfMgmtRpc::GetComponentStatusRequest* request,
+                       ::SAFplus::Rpc::amfMgmtRpc::GetComponentStatusResponse* response,
+                       SAFplus::Wakeable& wakeable = *((SAFplus::Wakeable*)nullptr));
+  void getNodeStatus(SAFplus::Handle destination,
+                       const ::SAFplus::Rpc::amfMgmtRpc::GetNodeStatusRequest* request,
+                       ::SAFplus::Rpc::amfMgmtRpc::GetNodeStatusResponse* response,
+                       SAFplus::Wakeable& wakeable = *((SAFplus::Wakeable*)nullptr));
+  void getSUStatus(SAFplus::Handle destination,
+                       const ::SAFplus::Rpc::amfMgmtRpc::GetSUStatusRequest* request,
+                       ::SAFplus::Rpc::amfMgmtRpc::GetSUStatusResponse* response,
+                       SAFplus::Wakeable& wakeable = *((SAFplus::Wakeable*)nullptr));
+  void getSGStatus(SAFplus::Handle destination,
+                       const ::SAFplus::Rpc::amfMgmtRpc::GetSGStatusRequest* request,
+                       ::SAFplus::Rpc::amfMgmtRpc::GetSGStatusResponse* response,
+                       SAFplus::Wakeable& wakeable = *((SAFplus::Wakeable*)nullptr));
+  void getSIStatus(SAFplus::Handle destination,
+                       const ::SAFplus::Rpc::amfMgmtRpc::GetSIStatusRequest* request,
+                       ::SAFplus::Rpc::amfMgmtRpc::GetSIStatusResponse* response,
+                       SAFplus::Wakeable& wakeable = *((SAFplus::Wakeable*)nullptr));
+  void getCSIStatus(SAFplus::Handle destination,
+                       const ::SAFplus::Rpc::amfMgmtRpc::GetCSIStatusRequest* request,
+                       ::SAFplus::Rpc::amfMgmtRpc::GetCSIStatusResponse* response,
+                       SAFplus::Wakeable& wakeable = *((SAFplus::Wakeable*)nullptr));
  private:
   SAFplus::Rpc::RpcChannel* channel_;
   bool owns_channel_;
@@ -639,6 +699,18 @@ class amfMgmtRpcImpl : public amfMgmtRpc {
                        ::SAFplus::Rpc::amfMgmtRpc::GetSIConfigResponse* response);
   void getCSIConfig(const ::SAFplus::Rpc::amfMgmtRpc::GetCSIConfigRequest* request,
                        ::SAFplus::Rpc::amfMgmtRpc::GetCSIConfigResponse* response);
+  void getComponentStatus(const ::SAFplus::Rpc::amfMgmtRpc::GetComponentStatusRequest* request,
+                       ::SAFplus::Rpc::amfMgmtRpc::GetComponentStatusResponse* response);
+  void getNodeStatus(const ::SAFplus::Rpc::amfMgmtRpc::GetNodeStatusRequest* request,
+                       ::SAFplus::Rpc::amfMgmtRpc::GetNodeStatusResponse* response);
+  void getSUStatus(const ::SAFplus::Rpc::amfMgmtRpc::GetSUStatusRequest* request,
+                       ::SAFplus::Rpc::amfMgmtRpc::GetSUStatusResponse* response);
+  void getSGStatus(const ::SAFplus::Rpc::amfMgmtRpc::GetSGStatusRequest* request,
+                       ::SAFplus::Rpc::amfMgmtRpc::GetSGStatusResponse* response);
+  void getSIStatus(const ::SAFplus::Rpc::amfMgmtRpc::GetSIStatusRequest* request,
+                       ::SAFplus::Rpc::amfMgmtRpc::GetSIStatusResponse* response);
+  void getCSIStatus(const ::SAFplus::Rpc::amfMgmtRpc::GetCSIStatusRequest* request,
+                       ::SAFplus::Rpc::amfMgmtRpc::GetCSIStatusResponse* response);
 };
 
 }  // namespace amfMgmtRpc

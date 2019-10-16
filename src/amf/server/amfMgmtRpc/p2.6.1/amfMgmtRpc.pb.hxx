@@ -38,6 +38,16 @@ void protobuf_AssignDesc_amfMgmtRpc_2eproto();
 void protobuf_ShutdownFile_amfMgmtRpc_2eproto();
 
 class SaTimeT;
+class Date;
+class IntStatistic;
+class DecStatistic;
+class Failures;
+class CpuUtilization;
+class MemUtilization;
+class PageFaults;
+class NumThreads;
+class ResidentMem;
+class ProcessStats;
 class EscalationPolicy;
 class Execution;
 class ServiceUnitFailureEscalationPolicy;
@@ -54,6 +64,35 @@ class Data;
 class ComponentServiceInstanceConfig;
 class ServiceInstanceConfig;
 class ServiceUnitConfig;
+class User;
+class LowPriorityUser;
+class IoWait;
+class SysTime;
+class IntTime;
+class SoftIrqs;
+class Idle;
+class ContextSwitches;
+class ProcessCount;
+class ProcessStarts;
+class Load;
+class Stats;
+class NodeStatus;
+class NumAssignedServiceUnits;
+class NumIdleServiceUnits;
+class NumSpareServiceUnits;
+class ServiceGroupStatus;
+class ProcStats;
+class ActiveAssignments;
+class StandbyAssignments;
+class RestartCount;
+class ComponentStatus;
+class ComponentServiceInstanceStatus;
+class NumActiveAssignments;
+class NumStandbyAssignments;
+class ServiceInstanceStatus;
+class NumActiveServiceInstances;
+class NumStandbyServiceInstances;
+class ServiceUnitStatus;
 class InitializeRequest;
 class InitializeResponse;
 class FinalizeRequest;
@@ -148,7 +187,105 @@ class GetSIConfigRequest;
 class GetSIConfigResponse;
 class GetCSIConfigRequest;
 class GetCSIConfigResponse;
+class GetComponentStatusRequest;
+class GetComponentStatusResponse;
+class GetNodeStatusRequest;
+class GetNodeStatusResponse;
+class GetSUStatusRequest;
+class GetSUStatusResponse;
+class GetSGStatusRequest;
+class GetSGStatusResponse;
+class GetSIStatusRequest;
+class GetSIStatusResponse;
+class GetCSIStatusRequest;
+class GetCSIStatusResponse;
 
+enum PresenceState {
+  PresenceState_uninstantiated = 0,
+  PresenceState_instantiating = 1,
+  PresenceState_instantiated = 2,
+  PresenceState_terminating = 3,
+  PresenceState_restarting = 4,
+  PresenceState_instantiationFailed = 5,
+  PresenceState_terminationFailed = 6
+};
+bool PresenceState_IsValid(int value);
+const PresenceState PresenceState_MIN = PresenceState_uninstantiated;
+const PresenceState PresenceState_MAX = PresenceState_terminationFailed;
+const int PresenceState_ARRAYSIZE = PresenceState_MAX + 1;
+
+const ::google::protobuf::EnumDescriptor* PresenceState_descriptor();
+inline const ::std::string& PresenceState_Name(PresenceState value) {
+  return ::google::protobuf::internal::NameOfEnum(
+    PresenceState_descriptor(), value);
+}
+inline bool PresenceState_Parse(
+    const ::std::string& name, PresenceState* value) {
+  return ::google::protobuf::internal::ParseNamedEnum<PresenceState>(
+    PresenceState_descriptor(), name, value);
+}
+enum ReadinessState {
+  ReadinessState_outOfService = 0,
+  ReadinessState_inService = 1,
+  ReadinessState_stopping = 2
+};
+bool ReadinessState_IsValid(int value);
+const ReadinessState ReadinessState_MIN = ReadinessState_outOfService;
+const ReadinessState ReadinessState_MAX = ReadinessState_stopping;
+const int ReadinessState_ARRAYSIZE = ReadinessState_MAX + 1;
+
+const ::google::protobuf::EnumDescriptor* ReadinessState_descriptor();
+inline const ::std::string& ReadinessState_Name(ReadinessState value) {
+  return ::google::protobuf::internal::NameOfEnum(
+    ReadinessState_descriptor(), value);
+}
+inline bool ReadinessState_Parse(
+    const ::std::string& name, ReadinessState* value) {
+  return ::google::protobuf::internal::ParseNamedEnum<ReadinessState>(
+    ReadinessState_descriptor(), name, value);
+}
+enum HighAvailabilityReadinessState {
+  HighAvailabilityReadinessState_readyForAssignment = 0,
+  HighAvailabilityReadinessState_readyForActiveDegraded = 1,
+  HighAvailabilityReadinessState_notReadyForActive = 2,
+  HighAvailabilityReadinessState_notReadyForAssignment = 3
+};
+bool HighAvailabilityReadinessState_IsValid(int value);
+const HighAvailabilityReadinessState HighAvailabilityReadinessState_MIN = HighAvailabilityReadinessState_readyForAssignment;
+const HighAvailabilityReadinessState HighAvailabilityReadinessState_MAX = HighAvailabilityReadinessState_notReadyForAssignment;
+const int HighAvailabilityReadinessState_ARRAYSIZE = HighAvailabilityReadinessState_MAX + 1;
+
+const ::google::protobuf::EnumDescriptor* HighAvailabilityReadinessState_descriptor();
+inline const ::std::string& HighAvailabilityReadinessState_Name(HighAvailabilityReadinessState value) {
+  return ::google::protobuf::internal::NameOfEnum(
+    HighAvailabilityReadinessState_descriptor(), value);
+}
+inline bool HighAvailabilityReadinessState_Parse(
+    const ::std::string& name, HighAvailabilityReadinessState* value) {
+  return ::google::protobuf::internal::ParseNamedEnum<HighAvailabilityReadinessState>(
+    HighAvailabilityReadinessState_descriptor(), name, value);
+}
+enum HighAvailabilityState {
+  HighAvailabilityState_active = 1,
+  HighAvailabilityState_standby = 2,
+  HighAvailabilityState_idle = 3,
+  HighAvailabilityState_quiescing = 4
+};
+bool HighAvailabilityState_IsValid(int value);
+const HighAvailabilityState HighAvailabilityState_MIN = HighAvailabilityState_active;
+const HighAvailabilityState HighAvailabilityState_MAX = HighAvailabilityState_quiescing;
+const int HighAvailabilityState_ARRAYSIZE = HighAvailabilityState_MAX + 1;
+
+const ::google::protobuf::EnumDescriptor* HighAvailabilityState_descriptor();
+inline const ::std::string& HighAvailabilityState_Name(HighAvailabilityState value) {
+  return ::google::protobuf::internal::NameOfEnum(
+    HighAvailabilityState_descriptor(), value);
+}
+inline bool HighAvailabilityState_Parse(
+    const ::std::string& name, HighAvailabilityState* value) {
+  return ::google::protobuf::internal::ParseNamedEnum<HighAvailabilityState>(
+    HighAvailabilityState_descriptor(), name, value);
+}
 enum AdministrativeState {
   AdministrativeState_off = 0,
   AdministrativeState_idle = 1,
@@ -168,6 +305,29 @@ inline bool AdministrativeState_Parse(
     const ::std::string& name, AdministrativeState* value) {
   return ::google::protobuf::internal::ParseNamedEnum<AdministrativeState>(
     AdministrativeState_descriptor(), name, value);
+}
+enum ProcessState {
+  ProcessState_Running = 0,
+  ProcessState_Sleeping = 1,
+  ProcessState_WaitingForDisk = 2,
+  ProcessState_Zombie = 3,
+  ProcessState_Stopped = 4,
+  ProcessState_TracingStop = 5
+};
+bool ProcessState_IsValid(int value);
+const ProcessState ProcessState_MIN = ProcessState_Running;
+const ProcessState ProcessState_MAX = ProcessState_TracingStop;
+const int ProcessState_ARRAYSIZE = ProcessState_MAX + 1;
+
+const ::google::protobuf::EnumDescriptor* ProcessState_descriptor();
+inline const ::std::string& ProcessState_Name(ProcessState value) {
+  return ::google::protobuf::internal::NameOfEnum(
+    ProcessState_descriptor(), value);
+}
+inline bool ProcessState_Parse(
+    const ::std::string& name, ProcessState* value) {
+  return ::google::protobuf::internal::ParseNamedEnum<ProcessState>(
+    ProcessState_descriptor(), name, value);
 }
 enum CapabilityModel {
   CapabilityModel_x_active_and_y_standby = 0,
@@ -214,6 +374,48 @@ inline bool Recovery_Parse(
     const ::std::string& name, Recovery* value) {
   return ::google::protobuf::internal::ParseNamedEnum<Recovery>(
     Recovery_descriptor(), name, value);
+}
+enum PendingOperation {
+  PendingOperation_none = 0,
+  PendingOperation_instantiation = 1,
+  PendingOperation_shutdown = 2,
+  PendingOperation_workAssignment = 3,
+  PendingOperation_workRemoval = 4
+};
+bool PendingOperation_IsValid(int value);
+const PendingOperation PendingOperation_MIN = PendingOperation_none;
+const PendingOperation PendingOperation_MAX = PendingOperation_workRemoval;
+const int PendingOperation_ARRAYSIZE = PendingOperation_MAX + 1;
+
+const ::google::protobuf::EnumDescriptor* PendingOperation_descriptor();
+inline const ::std::string& PendingOperation_Name(PendingOperation value) {
+  return ::google::protobuf::internal::NameOfEnum(
+    PendingOperation_descriptor(), value);
+}
+inline bool PendingOperation_Parse(
+    const ::std::string& name, PendingOperation* value) {
+  return ::google::protobuf::internal::ParseNamedEnum<PendingOperation>(
+    PendingOperation_descriptor(), name, value);
+}
+enum AssignmentState {
+  AssignmentState_unassigned = 0,
+  AssignmentState_fullyAssigned = 1,
+  AssignmentState_partiallyAssigned = 2
+};
+bool AssignmentState_IsValid(int value);
+const AssignmentState AssignmentState_MIN = AssignmentState_unassigned;
+const AssignmentState AssignmentState_MAX = AssignmentState_partiallyAssigned;
+const int AssignmentState_ARRAYSIZE = AssignmentState_MAX + 1;
+
+const ::google::protobuf::EnumDescriptor* AssignmentState_descriptor();
+inline const ::std::string& AssignmentState_Name(AssignmentState value) {
+  return ::google::protobuf::internal::NameOfEnum(
+    AssignmentState_descriptor(), value);
+}
+inline bool AssignmentState_Parse(
+    const ::std::string& name, AssignmentState* value) {
+  return ::google::protobuf::internal::ParseNamedEnum<AssignmentState>(
+    AssignmentState_descriptor(), name, value);
 }
 // ===================================================================
 
@@ -296,6 +498,1120 @@ class SaTimeT : public ::google::protobuf::Message {
 
   void InitAsDefaultInstance();
   static SaTimeT* default_instance_;
+};
+// -------------------------------------------------------------------
+
+class Date : public ::google::protobuf::Message {
+ public:
+  Date();
+  virtual ~Date();
+
+  Date(const Date& from);
+
+  inline Date& operator=(const Date& from) {
+    CopyFrom(from);
+    return *this;
+  }
+
+  inline const ::google::protobuf::UnknownFieldSet& unknown_fields() const {
+    return _unknown_fields_;
+  }
+
+  inline ::google::protobuf::UnknownFieldSet* mutable_unknown_fields() {
+    return &_unknown_fields_;
+  }
+
+  static const ::google::protobuf::Descriptor* descriptor();
+  static const Date& default_instance();
+
+  void Swap(Date* other);
+
+  // implements Message ----------------------------------------------
+
+  Date* New() const;
+  void CopyFrom(const ::google::protobuf::Message& from);
+  void MergeFrom(const ::google::protobuf::Message& from);
+  void CopyFrom(const Date& from);
+  void MergeFrom(const Date& from);
+  void Clear();
+  bool IsInitialized() const;
+
+  int ByteSize() const;
+  bool MergePartialFromCodedStream(
+      ::google::protobuf::io::CodedInputStream* input);
+  void SerializeWithCachedSizes(
+      ::google::protobuf::io::CodedOutputStream* output) const;
+  ::google::protobuf::uint8* SerializeWithCachedSizesToArray(::google::protobuf::uint8* output) const;
+  int GetCachedSize() const { return _cached_size_; }
+  private:
+  void SharedCtor();
+  void SharedDtor();
+  void SetCachedSize(int size) const;
+  public:
+  ::google::protobuf::Metadata GetMetadata() const;
+
+  // nested types ----------------------------------------------------
+
+  // accessors -------------------------------------------------------
+
+  // required uint64 uint64 = 1;
+  inline bool has_uint64() const;
+  inline void clear_uint64();
+  static const int kUint64FieldNumber = 1;
+  inline ::google::protobuf::uint64 uint64() const;
+  inline void set_uint64(::google::protobuf::uint64 value);
+
+  GOOGLE_PROTOBUF_EXTENSION_ACCESSORS(Date)
+  // @@protoc_insertion_point(class_scope:SAFplus.Rpc.amfMgmtRpc.Date)
+ private:
+  inline void set_has_uint64();
+  inline void clear_has_uint64();
+
+  ::google::protobuf::internal::ExtensionSet _extensions_;
+
+  ::google::protobuf::UnknownFieldSet _unknown_fields_;
+
+  ::google::protobuf::uint32 _has_bits_[1];
+  mutable int _cached_size_;
+  ::google::protobuf::uint64 uint64_;
+  friend void  protobuf_AddDesc_amfMgmtRpc_2eproto();
+  friend void protobuf_AssignDesc_amfMgmtRpc_2eproto();
+  friend void protobuf_ShutdownFile_amfMgmtRpc_2eproto();
+
+  void InitAsDefaultInstance();
+  static Date* default_instance_;
+};
+// -------------------------------------------------------------------
+
+class IntStatistic : public ::google::protobuf::Message {
+ public:
+  IntStatistic();
+  virtual ~IntStatistic();
+
+  IntStatistic(const IntStatistic& from);
+
+  inline IntStatistic& operator=(const IntStatistic& from) {
+    CopyFrom(from);
+    return *this;
+  }
+
+  inline const ::google::protobuf::UnknownFieldSet& unknown_fields() const {
+    return _unknown_fields_;
+  }
+
+  inline ::google::protobuf::UnknownFieldSet* mutable_unknown_fields() {
+    return &_unknown_fields_;
+  }
+
+  static const ::google::protobuf::Descriptor* descriptor();
+  static const IntStatistic& default_instance();
+
+  void Swap(IntStatistic* other);
+
+  // implements Message ----------------------------------------------
+
+  IntStatistic* New() const;
+  void CopyFrom(const ::google::protobuf::Message& from);
+  void MergeFrom(const ::google::protobuf::Message& from);
+  void CopyFrom(const IntStatistic& from);
+  void MergeFrom(const IntStatistic& from);
+  void Clear();
+  bool IsInitialized() const;
+
+  int ByteSize() const;
+  bool MergePartialFromCodedStream(
+      ::google::protobuf::io::CodedInputStream* input);
+  void SerializeWithCachedSizes(
+      ::google::protobuf::io::CodedOutputStream* output) const;
+  ::google::protobuf::uint8* SerializeWithCachedSizesToArray(::google::protobuf::uint8* output) const;
+  int GetCachedSize() const { return _cached_size_; }
+  private:
+  void SharedCtor();
+  void SharedDtor();
+  void SetCachedSize(int size) const;
+  public:
+  ::google::protobuf::Metadata GetMetadata() const;
+
+  // nested types ----------------------------------------------------
+
+  // accessors -------------------------------------------------------
+
+  // optional uint64 current = 1;
+  inline bool has_current() const;
+  inline void clear_current();
+  static const int kCurrentFieldNumber = 1;
+  inline ::google::protobuf::uint64 current() const;
+  inline void set_current(::google::protobuf::uint64 value);
+
+  // optional string history10sec = 2;
+  inline bool has_history10sec() const;
+  inline void clear_history10sec();
+  static const int kHistory10SecFieldNumber = 2;
+  inline const ::std::string& history10sec() const;
+  inline void set_history10sec(const ::std::string& value);
+  inline void set_history10sec(const char* value);
+  inline void set_history10sec(const char* value, size_t size);
+  inline ::std::string* mutable_history10sec();
+  inline ::std::string* release_history10sec();
+  inline void set_allocated_history10sec(::std::string* history10sec);
+
+  // optional string history1min = 3;
+  inline bool has_history1min() const;
+  inline void clear_history1min();
+  static const int kHistory1MinFieldNumber = 3;
+  inline const ::std::string& history1min() const;
+  inline void set_history1min(const ::std::string& value);
+  inline void set_history1min(const char* value);
+  inline void set_history1min(const char* value, size_t size);
+  inline ::std::string* mutable_history1min();
+  inline ::std::string* release_history1min();
+  inline void set_allocated_history1min(::std::string* history1min);
+
+  // optional string history10min = 4;
+  inline bool has_history10min() const;
+  inline void clear_history10min();
+  static const int kHistory10MinFieldNumber = 4;
+  inline const ::std::string& history10min() const;
+  inline void set_history10min(const ::std::string& value);
+  inline void set_history10min(const char* value);
+  inline void set_history10min(const char* value, size_t size);
+  inline ::std::string* mutable_history10min();
+  inline ::std::string* release_history10min();
+  inline void set_allocated_history10min(::std::string* history10min);
+
+  // optional string history1hour = 5;
+  inline bool has_history1hour() const;
+  inline void clear_history1hour();
+  static const int kHistory1HourFieldNumber = 5;
+  inline const ::std::string& history1hour() const;
+  inline void set_history1hour(const ::std::string& value);
+  inline void set_history1hour(const char* value);
+  inline void set_history1hour(const char* value, size_t size);
+  inline ::std::string* mutable_history1hour();
+  inline ::std::string* release_history1hour();
+  inline void set_allocated_history1hour(::std::string* history1hour);
+
+  // optional string history1day = 6;
+  inline bool has_history1day() const;
+  inline void clear_history1day();
+  static const int kHistory1DayFieldNumber = 6;
+  inline const ::std::string& history1day() const;
+  inline void set_history1day(const ::std::string& value);
+  inline void set_history1day(const char* value);
+  inline void set_history1day(const char* value, size_t size);
+  inline ::std::string* mutable_history1day();
+  inline ::std::string* release_history1day();
+  inline void set_allocated_history1day(::std::string* history1day);
+
+  // optional string history1week = 7;
+  inline bool has_history1week() const;
+  inline void clear_history1week();
+  static const int kHistory1WeekFieldNumber = 7;
+  inline const ::std::string& history1week() const;
+  inline void set_history1week(const ::std::string& value);
+  inline void set_history1week(const char* value);
+  inline void set_history1week(const char* value, size_t size);
+  inline ::std::string* mutable_history1week();
+  inline ::std::string* release_history1week();
+  inline void set_allocated_history1week(::std::string* history1week);
+
+  // optional string history4weeks = 8;
+  inline bool has_history4weeks() const;
+  inline void clear_history4weeks();
+  static const int kHistory4WeeksFieldNumber = 8;
+  inline const ::std::string& history4weeks() const;
+  inline void set_history4weeks(const ::std::string& value);
+  inline void set_history4weeks(const char* value);
+  inline void set_history4weeks(const char* value, size_t size);
+  inline ::std::string* mutable_history4weeks();
+  inline ::std::string* release_history4weeks();
+  inline void set_allocated_history4weeks(::std::string* history4weeks);
+
+  GOOGLE_PROTOBUF_EXTENSION_ACCESSORS(IntStatistic)
+  // @@protoc_insertion_point(class_scope:SAFplus.Rpc.amfMgmtRpc.IntStatistic)
+ private:
+  inline void set_has_current();
+  inline void clear_has_current();
+  inline void set_has_history10sec();
+  inline void clear_has_history10sec();
+  inline void set_has_history1min();
+  inline void clear_has_history1min();
+  inline void set_has_history10min();
+  inline void clear_has_history10min();
+  inline void set_has_history1hour();
+  inline void clear_has_history1hour();
+  inline void set_has_history1day();
+  inline void clear_has_history1day();
+  inline void set_has_history1week();
+  inline void clear_has_history1week();
+  inline void set_has_history4weeks();
+  inline void clear_has_history4weeks();
+
+  ::google::protobuf::internal::ExtensionSet _extensions_;
+
+  ::google::protobuf::UnknownFieldSet _unknown_fields_;
+
+  ::google::protobuf::uint32 _has_bits_[1];
+  mutable int _cached_size_;
+  ::google::protobuf::uint64 current_;
+  ::std::string* history10sec_;
+  ::std::string* history1min_;
+  ::std::string* history10min_;
+  ::std::string* history1hour_;
+  ::std::string* history1day_;
+  ::std::string* history1week_;
+  ::std::string* history4weeks_;
+  friend void  protobuf_AddDesc_amfMgmtRpc_2eproto();
+  friend void protobuf_AssignDesc_amfMgmtRpc_2eproto();
+  friend void protobuf_ShutdownFile_amfMgmtRpc_2eproto();
+
+  void InitAsDefaultInstance();
+  static IntStatistic* default_instance_;
+};
+// -------------------------------------------------------------------
+
+class DecStatistic : public ::google::protobuf::Message {
+ public:
+  DecStatistic();
+  virtual ~DecStatistic();
+
+  DecStatistic(const DecStatistic& from);
+
+  inline DecStatistic& operator=(const DecStatistic& from) {
+    CopyFrom(from);
+    return *this;
+  }
+
+  inline const ::google::protobuf::UnknownFieldSet& unknown_fields() const {
+    return _unknown_fields_;
+  }
+
+  inline ::google::protobuf::UnknownFieldSet* mutable_unknown_fields() {
+    return &_unknown_fields_;
+  }
+
+  static const ::google::protobuf::Descriptor* descriptor();
+  static const DecStatistic& default_instance();
+
+  void Swap(DecStatistic* other);
+
+  // implements Message ----------------------------------------------
+
+  DecStatistic* New() const;
+  void CopyFrom(const ::google::protobuf::Message& from);
+  void MergeFrom(const ::google::protobuf::Message& from);
+  void CopyFrom(const DecStatistic& from);
+  void MergeFrom(const DecStatistic& from);
+  void Clear();
+  bool IsInitialized() const;
+
+  int ByteSize() const;
+  bool MergePartialFromCodedStream(
+      ::google::protobuf::io::CodedInputStream* input);
+  void SerializeWithCachedSizes(
+      ::google::protobuf::io::CodedOutputStream* output) const;
+  ::google::protobuf::uint8* SerializeWithCachedSizesToArray(::google::protobuf::uint8* output) const;
+  int GetCachedSize() const { return _cached_size_; }
+  private:
+  void SharedCtor();
+  void SharedDtor();
+  void SetCachedSize(int size) const;
+  public:
+  ::google::protobuf::Metadata GetMetadata() const;
+
+  // nested types ----------------------------------------------------
+
+  // accessors -------------------------------------------------------
+
+  // optional sfixed64 current = 1;
+  inline bool has_current() const;
+  inline void clear_current();
+  static const int kCurrentFieldNumber = 1;
+  inline ::google::protobuf::int64 current() const;
+  inline void set_current(::google::protobuf::int64 value);
+
+  // optional string history10sec = 2;
+  inline bool has_history10sec() const;
+  inline void clear_history10sec();
+  static const int kHistory10SecFieldNumber = 2;
+  inline const ::std::string& history10sec() const;
+  inline void set_history10sec(const ::std::string& value);
+  inline void set_history10sec(const char* value);
+  inline void set_history10sec(const char* value, size_t size);
+  inline ::std::string* mutable_history10sec();
+  inline ::std::string* release_history10sec();
+  inline void set_allocated_history10sec(::std::string* history10sec);
+
+  // optional string history1min = 3;
+  inline bool has_history1min() const;
+  inline void clear_history1min();
+  static const int kHistory1MinFieldNumber = 3;
+  inline const ::std::string& history1min() const;
+  inline void set_history1min(const ::std::string& value);
+  inline void set_history1min(const char* value);
+  inline void set_history1min(const char* value, size_t size);
+  inline ::std::string* mutable_history1min();
+  inline ::std::string* release_history1min();
+  inline void set_allocated_history1min(::std::string* history1min);
+
+  // optional string history10min = 4;
+  inline bool has_history10min() const;
+  inline void clear_history10min();
+  static const int kHistory10MinFieldNumber = 4;
+  inline const ::std::string& history10min() const;
+  inline void set_history10min(const ::std::string& value);
+  inline void set_history10min(const char* value);
+  inline void set_history10min(const char* value, size_t size);
+  inline ::std::string* mutable_history10min();
+  inline ::std::string* release_history10min();
+  inline void set_allocated_history10min(::std::string* history10min);
+
+  // optional string history1hour = 5;
+  inline bool has_history1hour() const;
+  inline void clear_history1hour();
+  static const int kHistory1HourFieldNumber = 5;
+  inline const ::std::string& history1hour() const;
+  inline void set_history1hour(const ::std::string& value);
+  inline void set_history1hour(const char* value);
+  inline void set_history1hour(const char* value, size_t size);
+  inline ::std::string* mutable_history1hour();
+  inline ::std::string* release_history1hour();
+  inline void set_allocated_history1hour(::std::string* history1hour);
+
+  // optional string history1day = 6;
+  inline bool has_history1day() const;
+  inline void clear_history1day();
+  static const int kHistory1DayFieldNumber = 6;
+  inline const ::std::string& history1day() const;
+  inline void set_history1day(const ::std::string& value);
+  inline void set_history1day(const char* value);
+  inline void set_history1day(const char* value, size_t size);
+  inline ::std::string* mutable_history1day();
+  inline ::std::string* release_history1day();
+  inline void set_allocated_history1day(::std::string* history1day);
+
+  // optional string history1week = 7;
+  inline bool has_history1week() const;
+  inline void clear_history1week();
+  static const int kHistory1WeekFieldNumber = 7;
+  inline const ::std::string& history1week() const;
+  inline void set_history1week(const ::std::string& value);
+  inline void set_history1week(const char* value);
+  inline void set_history1week(const char* value, size_t size);
+  inline ::std::string* mutable_history1week();
+  inline ::std::string* release_history1week();
+  inline void set_allocated_history1week(::std::string* history1week);
+
+  // optional string history4weeks = 8;
+  inline bool has_history4weeks() const;
+  inline void clear_history4weeks();
+  static const int kHistory4WeeksFieldNumber = 8;
+  inline const ::std::string& history4weeks() const;
+  inline void set_history4weeks(const ::std::string& value);
+  inline void set_history4weeks(const char* value);
+  inline void set_history4weeks(const char* value, size_t size);
+  inline ::std::string* mutable_history4weeks();
+  inline ::std::string* release_history4weeks();
+  inline void set_allocated_history4weeks(::std::string* history4weeks);
+
+  GOOGLE_PROTOBUF_EXTENSION_ACCESSORS(DecStatistic)
+  // @@protoc_insertion_point(class_scope:SAFplus.Rpc.amfMgmtRpc.DecStatistic)
+ private:
+  inline void set_has_current();
+  inline void clear_has_current();
+  inline void set_has_history10sec();
+  inline void clear_has_history10sec();
+  inline void set_has_history1min();
+  inline void clear_has_history1min();
+  inline void set_has_history10min();
+  inline void clear_has_history10min();
+  inline void set_has_history1hour();
+  inline void clear_has_history1hour();
+  inline void set_has_history1day();
+  inline void clear_has_history1day();
+  inline void set_has_history1week();
+  inline void clear_has_history1week();
+  inline void set_has_history4weeks();
+  inline void clear_has_history4weeks();
+
+  ::google::protobuf::internal::ExtensionSet _extensions_;
+
+  ::google::protobuf::UnknownFieldSet _unknown_fields_;
+
+  ::google::protobuf::uint32 _has_bits_[1];
+  mutable int _cached_size_;
+  ::google::protobuf::int64 current_;
+  ::std::string* history10sec_;
+  ::std::string* history1min_;
+  ::std::string* history10min_;
+  ::std::string* history1hour_;
+  ::std::string* history1day_;
+  ::std::string* history1week_;
+  ::std::string* history4weeks_;
+  friend void  protobuf_AddDesc_amfMgmtRpc_2eproto();
+  friend void protobuf_AssignDesc_amfMgmtRpc_2eproto();
+  friend void protobuf_ShutdownFile_amfMgmtRpc_2eproto();
+
+  void InitAsDefaultInstance();
+  static DecStatistic* default_instance_;
+};
+// -------------------------------------------------------------------
+
+class Failures : public ::google::protobuf::Message {
+ public:
+  Failures();
+  virtual ~Failures();
+
+  Failures(const Failures& from);
+
+  inline Failures& operator=(const Failures& from) {
+    CopyFrom(from);
+    return *this;
+  }
+
+  inline const ::google::protobuf::UnknownFieldSet& unknown_fields() const {
+    return _unknown_fields_;
+  }
+
+  inline ::google::protobuf::UnknownFieldSet* mutable_unknown_fields() {
+    return &_unknown_fields_;
+  }
+
+  static const ::google::protobuf::Descriptor* descriptor();
+  static const Failures& default_instance();
+
+  void Swap(Failures* other);
+
+  // implements Message ----------------------------------------------
+
+  Failures* New() const;
+  void CopyFrom(const ::google::protobuf::Message& from);
+  void MergeFrom(const ::google::protobuf::Message& from);
+  void CopyFrom(const Failures& from);
+  void MergeFrom(const Failures& from);
+  void Clear();
+  bool IsInitialized() const;
+
+  int ByteSize() const;
+  bool MergePartialFromCodedStream(
+      ::google::protobuf::io::CodedInputStream* input);
+  void SerializeWithCachedSizes(
+      ::google::protobuf::io::CodedOutputStream* output) const;
+  ::google::protobuf::uint8* SerializeWithCachedSizesToArray(::google::protobuf::uint8* output) const;
+  int GetCachedSize() const { return _cached_size_; }
+  private:
+  void SharedCtor();
+  void SharedDtor();
+  void SetCachedSize(int size) const;
+  public:
+  ::google::protobuf::Metadata GetMetadata() const;
+
+  // nested types ----------------------------------------------------
+
+  // accessors -------------------------------------------------------
+
+  // optional .SAFplus.Rpc.amfMgmtRpc.IntStatistic IntStatistic = 1;
+  inline bool has_intstatistic() const;
+  inline void clear_intstatistic();
+  static const int kIntStatisticFieldNumber = 1;
+  inline const ::SAFplus::Rpc::amfMgmtRpc::IntStatistic& intstatistic() const;
+  inline ::SAFplus::Rpc::amfMgmtRpc::IntStatistic* mutable_intstatistic();
+  inline ::SAFplus::Rpc::amfMgmtRpc::IntStatistic* release_intstatistic();
+  inline void set_allocated_intstatistic(::SAFplus::Rpc::amfMgmtRpc::IntStatistic* intstatistic);
+
+  GOOGLE_PROTOBUF_EXTENSION_ACCESSORS(Failures)
+  // @@protoc_insertion_point(class_scope:SAFplus.Rpc.amfMgmtRpc.Failures)
+ private:
+  inline void set_has_intstatistic();
+  inline void clear_has_intstatistic();
+
+  ::google::protobuf::internal::ExtensionSet _extensions_;
+
+  ::google::protobuf::UnknownFieldSet _unknown_fields_;
+
+  ::google::protobuf::uint32 _has_bits_[1];
+  mutable int _cached_size_;
+  ::SAFplus::Rpc::amfMgmtRpc::IntStatistic* intstatistic_;
+  friend void  protobuf_AddDesc_amfMgmtRpc_2eproto();
+  friend void protobuf_AssignDesc_amfMgmtRpc_2eproto();
+  friend void protobuf_ShutdownFile_amfMgmtRpc_2eproto();
+
+  void InitAsDefaultInstance();
+  static Failures* default_instance_;
+};
+// -------------------------------------------------------------------
+
+class CpuUtilization : public ::google::protobuf::Message {
+ public:
+  CpuUtilization();
+  virtual ~CpuUtilization();
+
+  CpuUtilization(const CpuUtilization& from);
+
+  inline CpuUtilization& operator=(const CpuUtilization& from) {
+    CopyFrom(from);
+    return *this;
+  }
+
+  inline const ::google::protobuf::UnknownFieldSet& unknown_fields() const {
+    return _unknown_fields_;
+  }
+
+  inline ::google::protobuf::UnknownFieldSet* mutable_unknown_fields() {
+    return &_unknown_fields_;
+  }
+
+  static const ::google::protobuf::Descriptor* descriptor();
+  static const CpuUtilization& default_instance();
+
+  void Swap(CpuUtilization* other);
+
+  // implements Message ----------------------------------------------
+
+  CpuUtilization* New() const;
+  void CopyFrom(const ::google::protobuf::Message& from);
+  void MergeFrom(const ::google::protobuf::Message& from);
+  void CopyFrom(const CpuUtilization& from);
+  void MergeFrom(const CpuUtilization& from);
+  void Clear();
+  bool IsInitialized() const;
+
+  int ByteSize() const;
+  bool MergePartialFromCodedStream(
+      ::google::protobuf::io::CodedInputStream* input);
+  void SerializeWithCachedSizes(
+      ::google::protobuf::io::CodedOutputStream* output) const;
+  ::google::protobuf::uint8* SerializeWithCachedSizesToArray(::google::protobuf::uint8* output) const;
+  int GetCachedSize() const { return _cached_size_; }
+  private:
+  void SharedCtor();
+  void SharedDtor();
+  void SetCachedSize(int size) const;
+  public:
+  ::google::protobuf::Metadata GetMetadata() const;
+
+  // nested types ----------------------------------------------------
+
+  // accessors -------------------------------------------------------
+
+  // optional .SAFplus.Rpc.amfMgmtRpc.DecStatistic DecStatistic = 1;
+  inline bool has_decstatistic() const;
+  inline void clear_decstatistic();
+  static const int kDecStatisticFieldNumber = 1;
+  inline const ::SAFplus::Rpc::amfMgmtRpc::DecStatistic& decstatistic() const;
+  inline ::SAFplus::Rpc::amfMgmtRpc::DecStatistic* mutable_decstatistic();
+  inline ::SAFplus::Rpc::amfMgmtRpc::DecStatistic* release_decstatistic();
+  inline void set_allocated_decstatistic(::SAFplus::Rpc::amfMgmtRpc::DecStatistic* decstatistic);
+
+  GOOGLE_PROTOBUF_EXTENSION_ACCESSORS(CpuUtilization)
+  // @@protoc_insertion_point(class_scope:SAFplus.Rpc.amfMgmtRpc.CpuUtilization)
+ private:
+  inline void set_has_decstatistic();
+  inline void clear_has_decstatistic();
+
+  ::google::protobuf::internal::ExtensionSet _extensions_;
+
+  ::google::protobuf::UnknownFieldSet _unknown_fields_;
+
+  ::google::protobuf::uint32 _has_bits_[1];
+  mutable int _cached_size_;
+  ::SAFplus::Rpc::amfMgmtRpc::DecStatistic* decstatistic_;
+  friend void  protobuf_AddDesc_amfMgmtRpc_2eproto();
+  friend void protobuf_AssignDesc_amfMgmtRpc_2eproto();
+  friend void protobuf_ShutdownFile_amfMgmtRpc_2eproto();
+
+  void InitAsDefaultInstance();
+  static CpuUtilization* default_instance_;
+};
+// -------------------------------------------------------------------
+
+class MemUtilization : public ::google::protobuf::Message {
+ public:
+  MemUtilization();
+  virtual ~MemUtilization();
+
+  MemUtilization(const MemUtilization& from);
+
+  inline MemUtilization& operator=(const MemUtilization& from) {
+    CopyFrom(from);
+    return *this;
+  }
+
+  inline const ::google::protobuf::UnknownFieldSet& unknown_fields() const {
+    return _unknown_fields_;
+  }
+
+  inline ::google::protobuf::UnknownFieldSet* mutable_unknown_fields() {
+    return &_unknown_fields_;
+  }
+
+  static const ::google::protobuf::Descriptor* descriptor();
+  static const MemUtilization& default_instance();
+
+  void Swap(MemUtilization* other);
+
+  // implements Message ----------------------------------------------
+
+  MemUtilization* New() const;
+  void CopyFrom(const ::google::protobuf::Message& from);
+  void MergeFrom(const ::google::protobuf::Message& from);
+  void CopyFrom(const MemUtilization& from);
+  void MergeFrom(const MemUtilization& from);
+  void Clear();
+  bool IsInitialized() const;
+
+  int ByteSize() const;
+  bool MergePartialFromCodedStream(
+      ::google::protobuf::io::CodedInputStream* input);
+  void SerializeWithCachedSizes(
+      ::google::protobuf::io::CodedOutputStream* output) const;
+  ::google::protobuf::uint8* SerializeWithCachedSizesToArray(::google::protobuf::uint8* output) const;
+  int GetCachedSize() const { return _cached_size_; }
+  private:
+  void SharedCtor();
+  void SharedDtor();
+  void SetCachedSize(int size) const;
+  public:
+  ::google::protobuf::Metadata GetMetadata() const;
+
+  // nested types ----------------------------------------------------
+
+  // accessors -------------------------------------------------------
+
+  // optional .SAFplus.Rpc.amfMgmtRpc.DecStatistic DecStatistic = 1;
+  inline bool has_decstatistic() const;
+  inline void clear_decstatistic();
+  static const int kDecStatisticFieldNumber = 1;
+  inline const ::SAFplus::Rpc::amfMgmtRpc::DecStatistic& decstatistic() const;
+  inline ::SAFplus::Rpc::amfMgmtRpc::DecStatistic* mutable_decstatistic();
+  inline ::SAFplus::Rpc::amfMgmtRpc::DecStatistic* release_decstatistic();
+  inline void set_allocated_decstatistic(::SAFplus::Rpc::amfMgmtRpc::DecStatistic* decstatistic);
+
+  GOOGLE_PROTOBUF_EXTENSION_ACCESSORS(MemUtilization)
+  // @@protoc_insertion_point(class_scope:SAFplus.Rpc.amfMgmtRpc.MemUtilization)
+ private:
+  inline void set_has_decstatistic();
+  inline void clear_has_decstatistic();
+
+  ::google::protobuf::internal::ExtensionSet _extensions_;
+
+  ::google::protobuf::UnknownFieldSet _unknown_fields_;
+
+  ::google::protobuf::uint32 _has_bits_[1];
+  mutable int _cached_size_;
+  ::SAFplus::Rpc::amfMgmtRpc::DecStatistic* decstatistic_;
+  friend void  protobuf_AddDesc_amfMgmtRpc_2eproto();
+  friend void protobuf_AssignDesc_amfMgmtRpc_2eproto();
+  friend void protobuf_ShutdownFile_amfMgmtRpc_2eproto();
+
+  void InitAsDefaultInstance();
+  static MemUtilization* default_instance_;
+};
+// -------------------------------------------------------------------
+
+class PageFaults : public ::google::protobuf::Message {
+ public:
+  PageFaults();
+  virtual ~PageFaults();
+
+  PageFaults(const PageFaults& from);
+
+  inline PageFaults& operator=(const PageFaults& from) {
+    CopyFrom(from);
+    return *this;
+  }
+
+  inline const ::google::protobuf::UnknownFieldSet& unknown_fields() const {
+    return _unknown_fields_;
+  }
+
+  inline ::google::protobuf::UnknownFieldSet* mutable_unknown_fields() {
+    return &_unknown_fields_;
+  }
+
+  static const ::google::protobuf::Descriptor* descriptor();
+  static const PageFaults& default_instance();
+
+  void Swap(PageFaults* other);
+
+  // implements Message ----------------------------------------------
+
+  PageFaults* New() const;
+  void CopyFrom(const ::google::protobuf::Message& from);
+  void MergeFrom(const ::google::protobuf::Message& from);
+  void CopyFrom(const PageFaults& from);
+  void MergeFrom(const PageFaults& from);
+  void Clear();
+  bool IsInitialized() const;
+
+  int ByteSize() const;
+  bool MergePartialFromCodedStream(
+      ::google::protobuf::io::CodedInputStream* input);
+  void SerializeWithCachedSizes(
+      ::google::protobuf::io::CodedOutputStream* output) const;
+  ::google::protobuf::uint8* SerializeWithCachedSizesToArray(::google::protobuf::uint8* output) const;
+  int GetCachedSize() const { return _cached_size_; }
+  private:
+  void SharedCtor();
+  void SharedDtor();
+  void SetCachedSize(int size) const;
+  public:
+  ::google::protobuf::Metadata GetMetadata() const;
+
+  // nested types ----------------------------------------------------
+
+  // accessors -------------------------------------------------------
+
+  // optional .SAFplus.Rpc.amfMgmtRpc.IntStatistic IntStatistic = 1;
+  inline bool has_intstatistic() const;
+  inline void clear_intstatistic();
+  static const int kIntStatisticFieldNumber = 1;
+  inline const ::SAFplus::Rpc::amfMgmtRpc::IntStatistic& intstatistic() const;
+  inline ::SAFplus::Rpc::amfMgmtRpc::IntStatistic* mutable_intstatistic();
+  inline ::SAFplus::Rpc::amfMgmtRpc::IntStatistic* release_intstatistic();
+  inline void set_allocated_intstatistic(::SAFplus::Rpc::amfMgmtRpc::IntStatistic* intstatistic);
+
+  GOOGLE_PROTOBUF_EXTENSION_ACCESSORS(PageFaults)
+  // @@protoc_insertion_point(class_scope:SAFplus.Rpc.amfMgmtRpc.PageFaults)
+ private:
+  inline void set_has_intstatistic();
+  inline void clear_has_intstatistic();
+
+  ::google::protobuf::internal::ExtensionSet _extensions_;
+
+  ::google::protobuf::UnknownFieldSet _unknown_fields_;
+
+  ::google::protobuf::uint32 _has_bits_[1];
+  mutable int _cached_size_;
+  ::SAFplus::Rpc::amfMgmtRpc::IntStatistic* intstatistic_;
+  friend void  protobuf_AddDesc_amfMgmtRpc_2eproto();
+  friend void protobuf_AssignDesc_amfMgmtRpc_2eproto();
+  friend void protobuf_ShutdownFile_amfMgmtRpc_2eproto();
+
+  void InitAsDefaultInstance();
+  static PageFaults* default_instance_;
+};
+// -------------------------------------------------------------------
+
+class NumThreads : public ::google::protobuf::Message {
+ public:
+  NumThreads();
+  virtual ~NumThreads();
+
+  NumThreads(const NumThreads& from);
+
+  inline NumThreads& operator=(const NumThreads& from) {
+    CopyFrom(from);
+    return *this;
+  }
+
+  inline const ::google::protobuf::UnknownFieldSet& unknown_fields() const {
+    return _unknown_fields_;
+  }
+
+  inline ::google::protobuf::UnknownFieldSet* mutable_unknown_fields() {
+    return &_unknown_fields_;
+  }
+
+  static const ::google::protobuf::Descriptor* descriptor();
+  static const NumThreads& default_instance();
+
+  void Swap(NumThreads* other);
+
+  // implements Message ----------------------------------------------
+
+  NumThreads* New() const;
+  void CopyFrom(const ::google::protobuf::Message& from);
+  void MergeFrom(const ::google::protobuf::Message& from);
+  void CopyFrom(const NumThreads& from);
+  void MergeFrom(const NumThreads& from);
+  void Clear();
+  bool IsInitialized() const;
+
+  int ByteSize() const;
+  bool MergePartialFromCodedStream(
+      ::google::protobuf::io::CodedInputStream* input);
+  void SerializeWithCachedSizes(
+      ::google::protobuf::io::CodedOutputStream* output) const;
+  ::google::protobuf::uint8* SerializeWithCachedSizesToArray(::google::protobuf::uint8* output) const;
+  int GetCachedSize() const { return _cached_size_; }
+  private:
+  void SharedCtor();
+  void SharedDtor();
+  void SetCachedSize(int size) const;
+  public:
+  ::google::protobuf::Metadata GetMetadata() const;
+
+  // nested types ----------------------------------------------------
+
+  // accessors -------------------------------------------------------
+
+  // optional .SAFplus.Rpc.amfMgmtRpc.IntStatistic IntStatistic = 1;
+  inline bool has_intstatistic() const;
+  inline void clear_intstatistic();
+  static const int kIntStatisticFieldNumber = 1;
+  inline const ::SAFplus::Rpc::amfMgmtRpc::IntStatistic& intstatistic() const;
+  inline ::SAFplus::Rpc::amfMgmtRpc::IntStatistic* mutable_intstatistic();
+  inline ::SAFplus::Rpc::amfMgmtRpc::IntStatistic* release_intstatistic();
+  inline void set_allocated_intstatistic(::SAFplus::Rpc::amfMgmtRpc::IntStatistic* intstatistic);
+
+  GOOGLE_PROTOBUF_EXTENSION_ACCESSORS(NumThreads)
+  // @@protoc_insertion_point(class_scope:SAFplus.Rpc.amfMgmtRpc.NumThreads)
+ private:
+  inline void set_has_intstatistic();
+  inline void clear_has_intstatistic();
+
+  ::google::protobuf::internal::ExtensionSet _extensions_;
+
+  ::google::protobuf::UnknownFieldSet _unknown_fields_;
+
+  ::google::protobuf::uint32 _has_bits_[1];
+  mutable int _cached_size_;
+  ::SAFplus::Rpc::amfMgmtRpc::IntStatistic* intstatistic_;
+  friend void  protobuf_AddDesc_amfMgmtRpc_2eproto();
+  friend void protobuf_AssignDesc_amfMgmtRpc_2eproto();
+  friend void protobuf_ShutdownFile_amfMgmtRpc_2eproto();
+
+  void InitAsDefaultInstance();
+  static NumThreads* default_instance_;
+};
+// -------------------------------------------------------------------
+
+class ResidentMem : public ::google::protobuf::Message {
+ public:
+  ResidentMem();
+  virtual ~ResidentMem();
+
+  ResidentMem(const ResidentMem& from);
+
+  inline ResidentMem& operator=(const ResidentMem& from) {
+    CopyFrom(from);
+    return *this;
+  }
+
+  inline const ::google::protobuf::UnknownFieldSet& unknown_fields() const {
+    return _unknown_fields_;
+  }
+
+  inline ::google::protobuf::UnknownFieldSet* mutable_unknown_fields() {
+    return &_unknown_fields_;
+  }
+
+  static const ::google::protobuf::Descriptor* descriptor();
+  static const ResidentMem& default_instance();
+
+  void Swap(ResidentMem* other);
+
+  // implements Message ----------------------------------------------
+
+  ResidentMem* New() const;
+  void CopyFrom(const ::google::protobuf::Message& from);
+  void MergeFrom(const ::google::protobuf::Message& from);
+  void CopyFrom(const ResidentMem& from);
+  void MergeFrom(const ResidentMem& from);
+  void Clear();
+  bool IsInitialized() const;
+
+  int ByteSize() const;
+  bool MergePartialFromCodedStream(
+      ::google::protobuf::io::CodedInputStream* input);
+  void SerializeWithCachedSizes(
+      ::google::protobuf::io::CodedOutputStream* output) const;
+  ::google::protobuf::uint8* SerializeWithCachedSizesToArray(::google::protobuf::uint8* output) const;
+  int GetCachedSize() const { return _cached_size_; }
+  private:
+  void SharedCtor();
+  void SharedDtor();
+  void SetCachedSize(int size) const;
+  public:
+  ::google::protobuf::Metadata GetMetadata() const;
+
+  // nested types ----------------------------------------------------
+
+  // accessors -------------------------------------------------------
+
+  // optional .SAFplus.Rpc.amfMgmtRpc.IntStatistic IntStatistic = 1;
+  inline bool has_intstatistic() const;
+  inline void clear_intstatistic();
+  static const int kIntStatisticFieldNumber = 1;
+  inline const ::SAFplus::Rpc::amfMgmtRpc::IntStatistic& intstatistic() const;
+  inline ::SAFplus::Rpc::amfMgmtRpc::IntStatistic* mutable_intstatistic();
+  inline ::SAFplus::Rpc::amfMgmtRpc::IntStatistic* release_intstatistic();
+  inline void set_allocated_intstatistic(::SAFplus::Rpc::amfMgmtRpc::IntStatistic* intstatistic);
+
+  GOOGLE_PROTOBUF_EXTENSION_ACCESSORS(ResidentMem)
+  // @@protoc_insertion_point(class_scope:SAFplus.Rpc.amfMgmtRpc.ResidentMem)
+ private:
+  inline void set_has_intstatistic();
+  inline void clear_has_intstatistic();
+
+  ::google::protobuf::internal::ExtensionSet _extensions_;
+
+  ::google::protobuf::UnknownFieldSet _unknown_fields_;
+
+  ::google::protobuf::uint32 _has_bits_[1];
+  mutable int _cached_size_;
+  ::SAFplus::Rpc::amfMgmtRpc::IntStatistic* intstatistic_;
+  friend void  protobuf_AddDesc_amfMgmtRpc_2eproto();
+  friend void protobuf_AssignDesc_amfMgmtRpc_2eproto();
+  friend void protobuf_ShutdownFile_amfMgmtRpc_2eproto();
+
+  void InitAsDefaultInstance();
+  static ResidentMem* default_instance_;
+};
+// -------------------------------------------------------------------
+
+class ProcessStats : public ::google::protobuf::Message {
+ public:
+  ProcessStats();
+  virtual ~ProcessStats();
+
+  ProcessStats(const ProcessStats& from);
+
+  inline ProcessStats& operator=(const ProcessStats& from) {
+    CopyFrom(from);
+    return *this;
+  }
+
+  inline const ::google::protobuf::UnknownFieldSet& unknown_fields() const {
+    return _unknown_fields_;
+  }
+
+  inline ::google::protobuf::UnknownFieldSet* mutable_unknown_fields() {
+    return &_unknown_fields_;
+  }
+
+  static const ::google::protobuf::Descriptor* descriptor();
+  static const ProcessStats& default_instance();
+
+  void Swap(ProcessStats* other);
+
+  // implements Message ----------------------------------------------
+
+  ProcessStats* New() const;
+  void CopyFrom(const ::google::protobuf::Message& from);
+  void MergeFrom(const ::google::protobuf::Message& from);
+  void CopyFrom(const ProcessStats& from);
+  void MergeFrom(const ProcessStats& from);
+  void Clear();
+  bool IsInitialized() const;
+
+  int ByteSize() const;
+  bool MergePartialFromCodedStream(
+      ::google::protobuf::io::CodedInputStream* input);
+  void SerializeWithCachedSizes(
+      ::google::protobuf::io::CodedOutputStream* output) const;
+  ::google::protobuf::uint8* SerializeWithCachedSizesToArray(::google::protobuf::uint8* output) const;
+  int GetCachedSize() const { return _cached_size_; }
+  private:
+  void SharedCtor();
+  void SharedDtor();
+  void SetCachedSize(int size) const;
+  public:
+  ::google::protobuf::Metadata GetMetadata() const;
+
+  // nested types ----------------------------------------------------
+
+  // accessors -------------------------------------------------------
+
+  // optional .SAFplus.Rpc.amfMgmtRpc.Failures failures = 1;
+  inline bool has_failures() const;
+  inline void clear_failures();
+  static const int kFailuresFieldNumber = 1;
+  inline const ::SAFplus::Rpc::amfMgmtRpc::Failures& failures() const;
+  inline ::SAFplus::Rpc::amfMgmtRpc::Failures* mutable_failures();
+  inline ::SAFplus::Rpc::amfMgmtRpc::Failures* release_failures();
+  inline void set_allocated_failures(::SAFplus::Rpc::amfMgmtRpc::Failures* failures);
+
+  // optional .SAFplus.Rpc.amfMgmtRpc.CpuUtilization cpuUtilization = 2;
+  inline bool has_cpuutilization() const;
+  inline void clear_cpuutilization();
+  static const int kCpuUtilizationFieldNumber = 2;
+  inline const ::SAFplus::Rpc::amfMgmtRpc::CpuUtilization& cpuutilization() const;
+  inline ::SAFplus::Rpc::amfMgmtRpc::CpuUtilization* mutable_cpuutilization();
+  inline ::SAFplus::Rpc::amfMgmtRpc::CpuUtilization* release_cpuutilization();
+  inline void set_allocated_cpuutilization(::SAFplus::Rpc::amfMgmtRpc::CpuUtilization* cpuutilization);
+
+  // optional .SAFplus.Rpc.amfMgmtRpc.MemUtilization memUtilization = 3;
+  inline bool has_memutilization() const;
+  inline void clear_memutilization();
+  static const int kMemUtilizationFieldNumber = 3;
+  inline const ::SAFplus::Rpc::amfMgmtRpc::MemUtilization& memutilization() const;
+  inline ::SAFplus::Rpc::amfMgmtRpc::MemUtilization* mutable_memutilization();
+  inline ::SAFplus::Rpc::amfMgmtRpc::MemUtilization* release_memutilization();
+  inline void set_allocated_memutilization(::SAFplus::Rpc::amfMgmtRpc::MemUtilization* memutilization);
+
+  // optional .SAFplus.Rpc.amfMgmtRpc.PageFaults pageFaults = 4;
+  inline bool has_pagefaults() const;
+  inline void clear_pagefaults();
+  static const int kPageFaultsFieldNumber = 4;
+  inline const ::SAFplus::Rpc::amfMgmtRpc::PageFaults& pagefaults() const;
+  inline ::SAFplus::Rpc::amfMgmtRpc::PageFaults* mutable_pagefaults();
+  inline ::SAFplus::Rpc::amfMgmtRpc::PageFaults* release_pagefaults();
+  inline void set_allocated_pagefaults(::SAFplus::Rpc::amfMgmtRpc::PageFaults* pagefaults);
+
+  // optional .SAFplus.Rpc.amfMgmtRpc.NumThreads numThreads = 5;
+  inline bool has_numthreads() const;
+  inline void clear_numthreads();
+  static const int kNumThreadsFieldNumber = 5;
+  inline const ::SAFplus::Rpc::amfMgmtRpc::NumThreads& numthreads() const;
+  inline ::SAFplus::Rpc::amfMgmtRpc::NumThreads* mutable_numthreads();
+  inline ::SAFplus::Rpc::amfMgmtRpc::NumThreads* release_numthreads();
+  inline void set_allocated_numthreads(::SAFplus::Rpc::amfMgmtRpc::NumThreads* numthreads);
+
+  // optional .SAFplus.Rpc.amfMgmtRpc.ResidentMem residentMem = 6;
+  inline bool has_residentmem() const;
+  inline void clear_residentmem();
+  static const int kResidentMemFieldNumber = 6;
+  inline const ::SAFplus::Rpc::amfMgmtRpc::ResidentMem& residentmem() const;
+  inline ::SAFplus::Rpc::amfMgmtRpc::ResidentMem* mutable_residentmem();
+  inline ::SAFplus::Rpc::amfMgmtRpc::ResidentMem* release_residentmem();
+  inline void set_allocated_residentmem(::SAFplus::Rpc::amfMgmtRpc::ResidentMem* residentmem);
+
+  // optional .SAFplus.Rpc.amfMgmtRpc.ProcessState processState = 7;
+  inline bool has_processstate() const;
+  inline void clear_processstate();
+  static const int kProcessStateFieldNumber = 7;
+  inline ::SAFplus::Rpc::amfMgmtRpc::ProcessState processstate() const;
+  inline void set_processstate(::SAFplus::Rpc::amfMgmtRpc::ProcessState value);
+
+  GOOGLE_PROTOBUF_EXTENSION_ACCESSORS(ProcessStats)
+  // @@protoc_insertion_point(class_scope:SAFplus.Rpc.amfMgmtRpc.ProcessStats)
+ private:
+  inline void set_has_failures();
+  inline void clear_has_failures();
+  inline void set_has_cpuutilization();
+  inline void clear_has_cpuutilization();
+  inline void set_has_memutilization();
+  inline void clear_has_memutilization();
+  inline void set_has_pagefaults();
+  inline void clear_has_pagefaults();
+  inline void set_has_numthreads();
+  inline void clear_has_numthreads();
+  inline void set_has_residentmem();
+  inline void clear_has_residentmem();
+  inline void set_has_processstate();
+  inline void clear_has_processstate();
+
+  ::google::protobuf::internal::ExtensionSet _extensions_;
+
+  ::google::protobuf::UnknownFieldSet _unknown_fields_;
+
+  ::google::protobuf::uint32 _has_bits_[1];
+  mutable int _cached_size_;
+  ::SAFplus::Rpc::amfMgmtRpc::Failures* failures_;
+  ::SAFplus::Rpc::amfMgmtRpc::CpuUtilization* cpuutilization_;
+  ::SAFplus::Rpc::amfMgmtRpc::MemUtilization* memutilization_;
+  ::SAFplus::Rpc::amfMgmtRpc::PageFaults* pagefaults_;
+  ::SAFplus::Rpc::amfMgmtRpc::NumThreads* numthreads_;
+  ::SAFplus::Rpc::amfMgmtRpc::ResidentMem* residentmem_;
+  int processstate_;
+  friend void  protobuf_AddDesc_amfMgmtRpc_2eproto();
+  friend void protobuf_AssignDesc_amfMgmtRpc_2eproto();
+  friend void protobuf_ShutdownFile_amfMgmtRpc_2eproto();
+
+  void InitAsDefaultInstance();
+  static ProcessStats* default_instance_;
 };
 // -------------------------------------------------------------------
 
@@ -2328,6 +3644,3095 @@ class ServiceUnitConfig : public ::google::protobuf::Message {
 
   void InitAsDefaultInstance();
   static ServiceUnitConfig* default_instance_;
+};
+// -------------------------------------------------------------------
+
+class User : public ::google::protobuf::Message {
+ public:
+  User();
+  virtual ~User();
+
+  User(const User& from);
+
+  inline User& operator=(const User& from) {
+    CopyFrom(from);
+    return *this;
+  }
+
+  inline const ::google::protobuf::UnknownFieldSet& unknown_fields() const {
+    return _unknown_fields_;
+  }
+
+  inline ::google::protobuf::UnknownFieldSet* mutable_unknown_fields() {
+    return &_unknown_fields_;
+  }
+
+  static const ::google::protobuf::Descriptor* descriptor();
+  static const User& default_instance();
+
+  void Swap(User* other);
+
+  // implements Message ----------------------------------------------
+
+  User* New() const;
+  void CopyFrom(const ::google::protobuf::Message& from);
+  void MergeFrom(const ::google::protobuf::Message& from);
+  void CopyFrom(const User& from);
+  void MergeFrom(const User& from);
+  void Clear();
+  bool IsInitialized() const;
+
+  int ByteSize() const;
+  bool MergePartialFromCodedStream(
+      ::google::protobuf::io::CodedInputStream* input);
+  void SerializeWithCachedSizes(
+      ::google::protobuf::io::CodedOutputStream* output) const;
+  ::google::protobuf::uint8* SerializeWithCachedSizesToArray(::google::protobuf::uint8* output) const;
+  int GetCachedSize() const { return _cached_size_; }
+  private:
+  void SharedCtor();
+  void SharedDtor();
+  void SetCachedSize(int size) const;
+  public:
+  ::google::protobuf::Metadata GetMetadata() const;
+
+  // nested types ----------------------------------------------------
+
+  // accessors -------------------------------------------------------
+
+  // optional .SAFplus.Rpc.amfMgmtRpc.DecStatistic DecStatistic = 1;
+  inline bool has_decstatistic() const;
+  inline void clear_decstatistic();
+  static const int kDecStatisticFieldNumber = 1;
+  inline const ::SAFplus::Rpc::amfMgmtRpc::DecStatistic& decstatistic() const;
+  inline ::SAFplus::Rpc::amfMgmtRpc::DecStatistic* mutable_decstatistic();
+  inline ::SAFplus::Rpc::amfMgmtRpc::DecStatistic* release_decstatistic();
+  inline void set_allocated_decstatistic(::SAFplus::Rpc::amfMgmtRpc::DecStatistic* decstatistic);
+
+  GOOGLE_PROTOBUF_EXTENSION_ACCESSORS(User)
+  // @@protoc_insertion_point(class_scope:SAFplus.Rpc.amfMgmtRpc.User)
+ private:
+  inline void set_has_decstatistic();
+  inline void clear_has_decstatistic();
+
+  ::google::protobuf::internal::ExtensionSet _extensions_;
+
+  ::google::protobuf::UnknownFieldSet _unknown_fields_;
+
+  ::google::protobuf::uint32 _has_bits_[1];
+  mutable int _cached_size_;
+  ::SAFplus::Rpc::amfMgmtRpc::DecStatistic* decstatistic_;
+  friend void  protobuf_AddDesc_amfMgmtRpc_2eproto();
+  friend void protobuf_AssignDesc_amfMgmtRpc_2eproto();
+  friend void protobuf_ShutdownFile_amfMgmtRpc_2eproto();
+
+  void InitAsDefaultInstance();
+  static User* default_instance_;
+};
+// -------------------------------------------------------------------
+
+class LowPriorityUser : public ::google::protobuf::Message {
+ public:
+  LowPriorityUser();
+  virtual ~LowPriorityUser();
+
+  LowPriorityUser(const LowPriorityUser& from);
+
+  inline LowPriorityUser& operator=(const LowPriorityUser& from) {
+    CopyFrom(from);
+    return *this;
+  }
+
+  inline const ::google::protobuf::UnknownFieldSet& unknown_fields() const {
+    return _unknown_fields_;
+  }
+
+  inline ::google::protobuf::UnknownFieldSet* mutable_unknown_fields() {
+    return &_unknown_fields_;
+  }
+
+  static const ::google::protobuf::Descriptor* descriptor();
+  static const LowPriorityUser& default_instance();
+
+  void Swap(LowPriorityUser* other);
+
+  // implements Message ----------------------------------------------
+
+  LowPriorityUser* New() const;
+  void CopyFrom(const ::google::protobuf::Message& from);
+  void MergeFrom(const ::google::protobuf::Message& from);
+  void CopyFrom(const LowPriorityUser& from);
+  void MergeFrom(const LowPriorityUser& from);
+  void Clear();
+  bool IsInitialized() const;
+
+  int ByteSize() const;
+  bool MergePartialFromCodedStream(
+      ::google::protobuf::io::CodedInputStream* input);
+  void SerializeWithCachedSizes(
+      ::google::protobuf::io::CodedOutputStream* output) const;
+  ::google::protobuf::uint8* SerializeWithCachedSizesToArray(::google::protobuf::uint8* output) const;
+  int GetCachedSize() const { return _cached_size_; }
+  private:
+  void SharedCtor();
+  void SharedDtor();
+  void SetCachedSize(int size) const;
+  public:
+  ::google::protobuf::Metadata GetMetadata() const;
+
+  // nested types ----------------------------------------------------
+
+  // accessors -------------------------------------------------------
+
+  // optional .SAFplus.Rpc.amfMgmtRpc.DecStatistic DecStatistic = 1;
+  inline bool has_decstatistic() const;
+  inline void clear_decstatistic();
+  static const int kDecStatisticFieldNumber = 1;
+  inline const ::SAFplus::Rpc::amfMgmtRpc::DecStatistic& decstatistic() const;
+  inline ::SAFplus::Rpc::amfMgmtRpc::DecStatistic* mutable_decstatistic();
+  inline ::SAFplus::Rpc::amfMgmtRpc::DecStatistic* release_decstatistic();
+  inline void set_allocated_decstatistic(::SAFplus::Rpc::amfMgmtRpc::DecStatistic* decstatistic);
+
+  GOOGLE_PROTOBUF_EXTENSION_ACCESSORS(LowPriorityUser)
+  // @@protoc_insertion_point(class_scope:SAFplus.Rpc.amfMgmtRpc.LowPriorityUser)
+ private:
+  inline void set_has_decstatistic();
+  inline void clear_has_decstatistic();
+
+  ::google::protobuf::internal::ExtensionSet _extensions_;
+
+  ::google::protobuf::UnknownFieldSet _unknown_fields_;
+
+  ::google::protobuf::uint32 _has_bits_[1];
+  mutable int _cached_size_;
+  ::SAFplus::Rpc::amfMgmtRpc::DecStatistic* decstatistic_;
+  friend void  protobuf_AddDesc_amfMgmtRpc_2eproto();
+  friend void protobuf_AssignDesc_amfMgmtRpc_2eproto();
+  friend void protobuf_ShutdownFile_amfMgmtRpc_2eproto();
+
+  void InitAsDefaultInstance();
+  static LowPriorityUser* default_instance_;
+};
+// -------------------------------------------------------------------
+
+class IoWait : public ::google::protobuf::Message {
+ public:
+  IoWait();
+  virtual ~IoWait();
+
+  IoWait(const IoWait& from);
+
+  inline IoWait& operator=(const IoWait& from) {
+    CopyFrom(from);
+    return *this;
+  }
+
+  inline const ::google::protobuf::UnknownFieldSet& unknown_fields() const {
+    return _unknown_fields_;
+  }
+
+  inline ::google::protobuf::UnknownFieldSet* mutable_unknown_fields() {
+    return &_unknown_fields_;
+  }
+
+  static const ::google::protobuf::Descriptor* descriptor();
+  static const IoWait& default_instance();
+
+  void Swap(IoWait* other);
+
+  // implements Message ----------------------------------------------
+
+  IoWait* New() const;
+  void CopyFrom(const ::google::protobuf::Message& from);
+  void MergeFrom(const ::google::protobuf::Message& from);
+  void CopyFrom(const IoWait& from);
+  void MergeFrom(const IoWait& from);
+  void Clear();
+  bool IsInitialized() const;
+
+  int ByteSize() const;
+  bool MergePartialFromCodedStream(
+      ::google::protobuf::io::CodedInputStream* input);
+  void SerializeWithCachedSizes(
+      ::google::protobuf::io::CodedOutputStream* output) const;
+  ::google::protobuf::uint8* SerializeWithCachedSizesToArray(::google::protobuf::uint8* output) const;
+  int GetCachedSize() const { return _cached_size_; }
+  private:
+  void SharedCtor();
+  void SharedDtor();
+  void SetCachedSize(int size) const;
+  public:
+  ::google::protobuf::Metadata GetMetadata() const;
+
+  // nested types ----------------------------------------------------
+
+  // accessors -------------------------------------------------------
+
+  // optional .SAFplus.Rpc.amfMgmtRpc.DecStatistic DecStatistic = 1;
+  inline bool has_decstatistic() const;
+  inline void clear_decstatistic();
+  static const int kDecStatisticFieldNumber = 1;
+  inline const ::SAFplus::Rpc::amfMgmtRpc::DecStatistic& decstatistic() const;
+  inline ::SAFplus::Rpc::amfMgmtRpc::DecStatistic* mutable_decstatistic();
+  inline ::SAFplus::Rpc::amfMgmtRpc::DecStatistic* release_decstatistic();
+  inline void set_allocated_decstatistic(::SAFplus::Rpc::amfMgmtRpc::DecStatistic* decstatistic);
+
+  GOOGLE_PROTOBUF_EXTENSION_ACCESSORS(IoWait)
+  // @@protoc_insertion_point(class_scope:SAFplus.Rpc.amfMgmtRpc.IoWait)
+ private:
+  inline void set_has_decstatistic();
+  inline void clear_has_decstatistic();
+
+  ::google::protobuf::internal::ExtensionSet _extensions_;
+
+  ::google::protobuf::UnknownFieldSet _unknown_fields_;
+
+  ::google::protobuf::uint32 _has_bits_[1];
+  mutable int _cached_size_;
+  ::SAFplus::Rpc::amfMgmtRpc::DecStatistic* decstatistic_;
+  friend void  protobuf_AddDesc_amfMgmtRpc_2eproto();
+  friend void protobuf_AssignDesc_amfMgmtRpc_2eproto();
+  friend void protobuf_ShutdownFile_amfMgmtRpc_2eproto();
+
+  void InitAsDefaultInstance();
+  static IoWait* default_instance_;
+};
+// -------------------------------------------------------------------
+
+class SysTime : public ::google::protobuf::Message {
+ public:
+  SysTime();
+  virtual ~SysTime();
+
+  SysTime(const SysTime& from);
+
+  inline SysTime& operator=(const SysTime& from) {
+    CopyFrom(from);
+    return *this;
+  }
+
+  inline const ::google::protobuf::UnknownFieldSet& unknown_fields() const {
+    return _unknown_fields_;
+  }
+
+  inline ::google::protobuf::UnknownFieldSet* mutable_unknown_fields() {
+    return &_unknown_fields_;
+  }
+
+  static const ::google::protobuf::Descriptor* descriptor();
+  static const SysTime& default_instance();
+
+  void Swap(SysTime* other);
+
+  // implements Message ----------------------------------------------
+
+  SysTime* New() const;
+  void CopyFrom(const ::google::protobuf::Message& from);
+  void MergeFrom(const ::google::protobuf::Message& from);
+  void CopyFrom(const SysTime& from);
+  void MergeFrom(const SysTime& from);
+  void Clear();
+  bool IsInitialized() const;
+
+  int ByteSize() const;
+  bool MergePartialFromCodedStream(
+      ::google::protobuf::io::CodedInputStream* input);
+  void SerializeWithCachedSizes(
+      ::google::protobuf::io::CodedOutputStream* output) const;
+  ::google::protobuf::uint8* SerializeWithCachedSizesToArray(::google::protobuf::uint8* output) const;
+  int GetCachedSize() const { return _cached_size_; }
+  private:
+  void SharedCtor();
+  void SharedDtor();
+  void SetCachedSize(int size) const;
+  public:
+  ::google::protobuf::Metadata GetMetadata() const;
+
+  // nested types ----------------------------------------------------
+
+  // accessors -------------------------------------------------------
+
+  // optional .SAFplus.Rpc.amfMgmtRpc.DecStatistic DecStatistic = 1;
+  inline bool has_decstatistic() const;
+  inline void clear_decstatistic();
+  static const int kDecStatisticFieldNumber = 1;
+  inline const ::SAFplus::Rpc::amfMgmtRpc::DecStatistic& decstatistic() const;
+  inline ::SAFplus::Rpc::amfMgmtRpc::DecStatistic* mutable_decstatistic();
+  inline ::SAFplus::Rpc::amfMgmtRpc::DecStatistic* release_decstatistic();
+  inline void set_allocated_decstatistic(::SAFplus::Rpc::amfMgmtRpc::DecStatistic* decstatistic);
+
+  GOOGLE_PROTOBUF_EXTENSION_ACCESSORS(SysTime)
+  // @@protoc_insertion_point(class_scope:SAFplus.Rpc.amfMgmtRpc.SysTime)
+ private:
+  inline void set_has_decstatistic();
+  inline void clear_has_decstatistic();
+
+  ::google::protobuf::internal::ExtensionSet _extensions_;
+
+  ::google::protobuf::UnknownFieldSet _unknown_fields_;
+
+  ::google::protobuf::uint32 _has_bits_[1];
+  mutable int _cached_size_;
+  ::SAFplus::Rpc::amfMgmtRpc::DecStatistic* decstatistic_;
+  friend void  protobuf_AddDesc_amfMgmtRpc_2eproto();
+  friend void protobuf_AssignDesc_amfMgmtRpc_2eproto();
+  friend void protobuf_ShutdownFile_amfMgmtRpc_2eproto();
+
+  void InitAsDefaultInstance();
+  static SysTime* default_instance_;
+};
+// -------------------------------------------------------------------
+
+class IntTime : public ::google::protobuf::Message {
+ public:
+  IntTime();
+  virtual ~IntTime();
+
+  IntTime(const IntTime& from);
+
+  inline IntTime& operator=(const IntTime& from) {
+    CopyFrom(from);
+    return *this;
+  }
+
+  inline const ::google::protobuf::UnknownFieldSet& unknown_fields() const {
+    return _unknown_fields_;
+  }
+
+  inline ::google::protobuf::UnknownFieldSet* mutable_unknown_fields() {
+    return &_unknown_fields_;
+  }
+
+  static const ::google::protobuf::Descriptor* descriptor();
+  static const IntTime& default_instance();
+
+  void Swap(IntTime* other);
+
+  // implements Message ----------------------------------------------
+
+  IntTime* New() const;
+  void CopyFrom(const ::google::protobuf::Message& from);
+  void MergeFrom(const ::google::protobuf::Message& from);
+  void CopyFrom(const IntTime& from);
+  void MergeFrom(const IntTime& from);
+  void Clear();
+  bool IsInitialized() const;
+
+  int ByteSize() const;
+  bool MergePartialFromCodedStream(
+      ::google::protobuf::io::CodedInputStream* input);
+  void SerializeWithCachedSizes(
+      ::google::protobuf::io::CodedOutputStream* output) const;
+  ::google::protobuf::uint8* SerializeWithCachedSizesToArray(::google::protobuf::uint8* output) const;
+  int GetCachedSize() const { return _cached_size_; }
+  private:
+  void SharedCtor();
+  void SharedDtor();
+  void SetCachedSize(int size) const;
+  public:
+  ::google::protobuf::Metadata GetMetadata() const;
+
+  // nested types ----------------------------------------------------
+
+  // accessors -------------------------------------------------------
+
+  // optional .SAFplus.Rpc.amfMgmtRpc.DecStatistic DecStatistic = 1;
+  inline bool has_decstatistic() const;
+  inline void clear_decstatistic();
+  static const int kDecStatisticFieldNumber = 1;
+  inline const ::SAFplus::Rpc::amfMgmtRpc::DecStatistic& decstatistic() const;
+  inline ::SAFplus::Rpc::amfMgmtRpc::DecStatistic* mutable_decstatistic();
+  inline ::SAFplus::Rpc::amfMgmtRpc::DecStatistic* release_decstatistic();
+  inline void set_allocated_decstatistic(::SAFplus::Rpc::amfMgmtRpc::DecStatistic* decstatistic);
+
+  GOOGLE_PROTOBUF_EXTENSION_ACCESSORS(IntTime)
+  // @@protoc_insertion_point(class_scope:SAFplus.Rpc.amfMgmtRpc.IntTime)
+ private:
+  inline void set_has_decstatistic();
+  inline void clear_has_decstatistic();
+
+  ::google::protobuf::internal::ExtensionSet _extensions_;
+
+  ::google::protobuf::UnknownFieldSet _unknown_fields_;
+
+  ::google::protobuf::uint32 _has_bits_[1];
+  mutable int _cached_size_;
+  ::SAFplus::Rpc::amfMgmtRpc::DecStatistic* decstatistic_;
+  friend void  protobuf_AddDesc_amfMgmtRpc_2eproto();
+  friend void protobuf_AssignDesc_amfMgmtRpc_2eproto();
+  friend void protobuf_ShutdownFile_amfMgmtRpc_2eproto();
+
+  void InitAsDefaultInstance();
+  static IntTime* default_instance_;
+};
+// -------------------------------------------------------------------
+
+class SoftIrqs : public ::google::protobuf::Message {
+ public:
+  SoftIrqs();
+  virtual ~SoftIrqs();
+
+  SoftIrqs(const SoftIrqs& from);
+
+  inline SoftIrqs& operator=(const SoftIrqs& from) {
+    CopyFrom(from);
+    return *this;
+  }
+
+  inline const ::google::protobuf::UnknownFieldSet& unknown_fields() const {
+    return _unknown_fields_;
+  }
+
+  inline ::google::protobuf::UnknownFieldSet* mutable_unknown_fields() {
+    return &_unknown_fields_;
+  }
+
+  static const ::google::protobuf::Descriptor* descriptor();
+  static const SoftIrqs& default_instance();
+
+  void Swap(SoftIrqs* other);
+
+  // implements Message ----------------------------------------------
+
+  SoftIrqs* New() const;
+  void CopyFrom(const ::google::protobuf::Message& from);
+  void MergeFrom(const ::google::protobuf::Message& from);
+  void CopyFrom(const SoftIrqs& from);
+  void MergeFrom(const SoftIrqs& from);
+  void Clear();
+  bool IsInitialized() const;
+
+  int ByteSize() const;
+  bool MergePartialFromCodedStream(
+      ::google::protobuf::io::CodedInputStream* input);
+  void SerializeWithCachedSizes(
+      ::google::protobuf::io::CodedOutputStream* output) const;
+  ::google::protobuf::uint8* SerializeWithCachedSizesToArray(::google::protobuf::uint8* output) const;
+  int GetCachedSize() const { return _cached_size_; }
+  private:
+  void SharedCtor();
+  void SharedDtor();
+  void SetCachedSize(int size) const;
+  public:
+  ::google::protobuf::Metadata GetMetadata() const;
+
+  // nested types ----------------------------------------------------
+
+  // accessors -------------------------------------------------------
+
+  // optional .SAFplus.Rpc.amfMgmtRpc.DecStatistic DecStatistic = 1;
+  inline bool has_decstatistic() const;
+  inline void clear_decstatistic();
+  static const int kDecStatisticFieldNumber = 1;
+  inline const ::SAFplus::Rpc::amfMgmtRpc::DecStatistic& decstatistic() const;
+  inline ::SAFplus::Rpc::amfMgmtRpc::DecStatistic* mutable_decstatistic();
+  inline ::SAFplus::Rpc::amfMgmtRpc::DecStatistic* release_decstatistic();
+  inline void set_allocated_decstatistic(::SAFplus::Rpc::amfMgmtRpc::DecStatistic* decstatistic);
+
+  GOOGLE_PROTOBUF_EXTENSION_ACCESSORS(SoftIrqs)
+  // @@protoc_insertion_point(class_scope:SAFplus.Rpc.amfMgmtRpc.SoftIrqs)
+ private:
+  inline void set_has_decstatistic();
+  inline void clear_has_decstatistic();
+
+  ::google::protobuf::internal::ExtensionSet _extensions_;
+
+  ::google::protobuf::UnknownFieldSet _unknown_fields_;
+
+  ::google::protobuf::uint32 _has_bits_[1];
+  mutable int _cached_size_;
+  ::SAFplus::Rpc::amfMgmtRpc::DecStatistic* decstatistic_;
+  friend void  protobuf_AddDesc_amfMgmtRpc_2eproto();
+  friend void protobuf_AssignDesc_amfMgmtRpc_2eproto();
+  friend void protobuf_ShutdownFile_amfMgmtRpc_2eproto();
+
+  void InitAsDefaultInstance();
+  static SoftIrqs* default_instance_;
+};
+// -------------------------------------------------------------------
+
+class Idle : public ::google::protobuf::Message {
+ public:
+  Idle();
+  virtual ~Idle();
+
+  Idle(const Idle& from);
+
+  inline Idle& operator=(const Idle& from) {
+    CopyFrom(from);
+    return *this;
+  }
+
+  inline const ::google::protobuf::UnknownFieldSet& unknown_fields() const {
+    return _unknown_fields_;
+  }
+
+  inline ::google::protobuf::UnknownFieldSet* mutable_unknown_fields() {
+    return &_unknown_fields_;
+  }
+
+  static const ::google::protobuf::Descriptor* descriptor();
+  static const Idle& default_instance();
+
+  void Swap(Idle* other);
+
+  // implements Message ----------------------------------------------
+
+  Idle* New() const;
+  void CopyFrom(const ::google::protobuf::Message& from);
+  void MergeFrom(const ::google::protobuf::Message& from);
+  void CopyFrom(const Idle& from);
+  void MergeFrom(const Idle& from);
+  void Clear();
+  bool IsInitialized() const;
+
+  int ByteSize() const;
+  bool MergePartialFromCodedStream(
+      ::google::protobuf::io::CodedInputStream* input);
+  void SerializeWithCachedSizes(
+      ::google::protobuf::io::CodedOutputStream* output) const;
+  ::google::protobuf::uint8* SerializeWithCachedSizesToArray(::google::protobuf::uint8* output) const;
+  int GetCachedSize() const { return _cached_size_; }
+  private:
+  void SharedCtor();
+  void SharedDtor();
+  void SetCachedSize(int size) const;
+  public:
+  ::google::protobuf::Metadata GetMetadata() const;
+
+  // nested types ----------------------------------------------------
+
+  // accessors -------------------------------------------------------
+
+  // optional .SAFplus.Rpc.amfMgmtRpc.DecStatistic DecStatistic = 1;
+  inline bool has_decstatistic() const;
+  inline void clear_decstatistic();
+  static const int kDecStatisticFieldNumber = 1;
+  inline const ::SAFplus::Rpc::amfMgmtRpc::DecStatistic& decstatistic() const;
+  inline ::SAFplus::Rpc::amfMgmtRpc::DecStatistic* mutable_decstatistic();
+  inline ::SAFplus::Rpc::amfMgmtRpc::DecStatistic* release_decstatistic();
+  inline void set_allocated_decstatistic(::SAFplus::Rpc::amfMgmtRpc::DecStatistic* decstatistic);
+
+  GOOGLE_PROTOBUF_EXTENSION_ACCESSORS(Idle)
+  // @@protoc_insertion_point(class_scope:SAFplus.Rpc.amfMgmtRpc.Idle)
+ private:
+  inline void set_has_decstatistic();
+  inline void clear_has_decstatistic();
+
+  ::google::protobuf::internal::ExtensionSet _extensions_;
+
+  ::google::protobuf::UnknownFieldSet _unknown_fields_;
+
+  ::google::protobuf::uint32 _has_bits_[1];
+  mutable int _cached_size_;
+  ::SAFplus::Rpc::amfMgmtRpc::DecStatistic* decstatistic_;
+  friend void  protobuf_AddDesc_amfMgmtRpc_2eproto();
+  friend void protobuf_AssignDesc_amfMgmtRpc_2eproto();
+  friend void protobuf_ShutdownFile_amfMgmtRpc_2eproto();
+
+  void InitAsDefaultInstance();
+  static Idle* default_instance_;
+};
+// -------------------------------------------------------------------
+
+class ContextSwitches : public ::google::protobuf::Message {
+ public:
+  ContextSwitches();
+  virtual ~ContextSwitches();
+
+  ContextSwitches(const ContextSwitches& from);
+
+  inline ContextSwitches& operator=(const ContextSwitches& from) {
+    CopyFrom(from);
+    return *this;
+  }
+
+  inline const ::google::protobuf::UnknownFieldSet& unknown_fields() const {
+    return _unknown_fields_;
+  }
+
+  inline ::google::protobuf::UnknownFieldSet* mutable_unknown_fields() {
+    return &_unknown_fields_;
+  }
+
+  static const ::google::protobuf::Descriptor* descriptor();
+  static const ContextSwitches& default_instance();
+
+  void Swap(ContextSwitches* other);
+
+  // implements Message ----------------------------------------------
+
+  ContextSwitches* New() const;
+  void CopyFrom(const ::google::protobuf::Message& from);
+  void MergeFrom(const ::google::protobuf::Message& from);
+  void CopyFrom(const ContextSwitches& from);
+  void MergeFrom(const ContextSwitches& from);
+  void Clear();
+  bool IsInitialized() const;
+
+  int ByteSize() const;
+  bool MergePartialFromCodedStream(
+      ::google::protobuf::io::CodedInputStream* input);
+  void SerializeWithCachedSizes(
+      ::google::protobuf::io::CodedOutputStream* output) const;
+  ::google::protobuf::uint8* SerializeWithCachedSizesToArray(::google::protobuf::uint8* output) const;
+  int GetCachedSize() const { return _cached_size_; }
+  private:
+  void SharedCtor();
+  void SharedDtor();
+  void SetCachedSize(int size) const;
+  public:
+  ::google::protobuf::Metadata GetMetadata() const;
+
+  // nested types ----------------------------------------------------
+
+  // accessors -------------------------------------------------------
+
+  // optional .SAFplus.Rpc.amfMgmtRpc.IntStatistic IntStatistic = 1;
+  inline bool has_intstatistic() const;
+  inline void clear_intstatistic();
+  static const int kIntStatisticFieldNumber = 1;
+  inline const ::SAFplus::Rpc::amfMgmtRpc::IntStatistic& intstatistic() const;
+  inline ::SAFplus::Rpc::amfMgmtRpc::IntStatistic* mutable_intstatistic();
+  inline ::SAFplus::Rpc::amfMgmtRpc::IntStatistic* release_intstatistic();
+  inline void set_allocated_intstatistic(::SAFplus::Rpc::amfMgmtRpc::IntStatistic* intstatistic);
+
+  GOOGLE_PROTOBUF_EXTENSION_ACCESSORS(ContextSwitches)
+  // @@protoc_insertion_point(class_scope:SAFplus.Rpc.amfMgmtRpc.ContextSwitches)
+ private:
+  inline void set_has_intstatistic();
+  inline void clear_has_intstatistic();
+
+  ::google::protobuf::internal::ExtensionSet _extensions_;
+
+  ::google::protobuf::UnknownFieldSet _unknown_fields_;
+
+  ::google::protobuf::uint32 _has_bits_[1];
+  mutable int _cached_size_;
+  ::SAFplus::Rpc::amfMgmtRpc::IntStatistic* intstatistic_;
+  friend void  protobuf_AddDesc_amfMgmtRpc_2eproto();
+  friend void protobuf_AssignDesc_amfMgmtRpc_2eproto();
+  friend void protobuf_ShutdownFile_amfMgmtRpc_2eproto();
+
+  void InitAsDefaultInstance();
+  static ContextSwitches* default_instance_;
+};
+// -------------------------------------------------------------------
+
+class ProcessCount : public ::google::protobuf::Message {
+ public:
+  ProcessCount();
+  virtual ~ProcessCount();
+
+  ProcessCount(const ProcessCount& from);
+
+  inline ProcessCount& operator=(const ProcessCount& from) {
+    CopyFrom(from);
+    return *this;
+  }
+
+  inline const ::google::protobuf::UnknownFieldSet& unknown_fields() const {
+    return _unknown_fields_;
+  }
+
+  inline ::google::protobuf::UnknownFieldSet* mutable_unknown_fields() {
+    return &_unknown_fields_;
+  }
+
+  static const ::google::protobuf::Descriptor* descriptor();
+  static const ProcessCount& default_instance();
+
+  void Swap(ProcessCount* other);
+
+  // implements Message ----------------------------------------------
+
+  ProcessCount* New() const;
+  void CopyFrom(const ::google::protobuf::Message& from);
+  void MergeFrom(const ::google::protobuf::Message& from);
+  void CopyFrom(const ProcessCount& from);
+  void MergeFrom(const ProcessCount& from);
+  void Clear();
+  bool IsInitialized() const;
+
+  int ByteSize() const;
+  bool MergePartialFromCodedStream(
+      ::google::protobuf::io::CodedInputStream* input);
+  void SerializeWithCachedSizes(
+      ::google::protobuf::io::CodedOutputStream* output) const;
+  ::google::protobuf::uint8* SerializeWithCachedSizesToArray(::google::protobuf::uint8* output) const;
+  int GetCachedSize() const { return _cached_size_; }
+  private:
+  void SharedCtor();
+  void SharedDtor();
+  void SetCachedSize(int size) const;
+  public:
+  ::google::protobuf::Metadata GetMetadata() const;
+
+  // nested types ----------------------------------------------------
+
+  // accessors -------------------------------------------------------
+
+  // optional .SAFplus.Rpc.amfMgmtRpc.IntStatistic IntStatistic = 1;
+  inline bool has_intstatistic() const;
+  inline void clear_intstatistic();
+  static const int kIntStatisticFieldNumber = 1;
+  inline const ::SAFplus::Rpc::amfMgmtRpc::IntStatistic& intstatistic() const;
+  inline ::SAFplus::Rpc::amfMgmtRpc::IntStatistic* mutable_intstatistic();
+  inline ::SAFplus::Rpc::amfMgmtRpc::IntStatistic* release_intstatistic();
+  inline void set_allocated_intstatistic(::SAFplus::Rpc::amfMgmtRpc::IntStatistic* intstatistic);
+
+  GOOGLE_PROTOBUF_EXTENSION_ACCESSORS(ProcessCount)
+  // @@protoc_insertion_point(class_scope:SAFplus.Rpc.amfMgmtRpc.ProcessCount)
+ private:
+  inline void set_has_intstatistic();
+  inline void clear_has_intstatistic();
+
+  ::google::protobuf::internal::ExtensionSet _extensions_;
+
+  ::google::protobuf::UnknownFieldSet _unknown_fields_;
+
+  ::google::protobuf::uint32 _has_bits_[1];
+  mutable int _cached_size_;
+  ::SAFplus::Rpc::amfMgmtRpc::IntStatistic* intstatistic_;
+  friend void  protobuf_AddDesc_amfMgmtRpc_2eproto();
+  friend void protobuf_AssignDesc_amfMgmtRpc_2eproto();
+  friend void protobuf_ShutdownFile_amfMgmtRpc_2eproto();
+
+  void InitAsDefaultInstance();
+  static ProcessCount* default_instance_;
+};
+// -------------------------------------------------------------------
+
+class ProcessStarts : public ::google::protobuf::Message {
+ public:
+  ProcessStarts();
+  virtual ~ProcessStarts();
+
+  ProcessStarts(const ProcessStarts& from);
+
+  inline ProcessStarts& operator=(const ProcessStarts& from) {
+    CopyFrom(from);
+    return *this;
+  }
+
+  inline const ::google::protobuf::UnknownFieldSet& unknown_fields() const {
+    return _unknown_fields_;
+  }
+
+  inline ::google::protobuf::UnknownFieldSet* mutable_unknown_fields() {
+    return &_unknown_fields_;
+  }
+
+  static const ::google::protobuf::Descriptor* descriptor();
+  static const ProcessStarts& default_instance();
+
+  void Swap(ProcessStarts* other);
+
+  // implements Message ----------------------------------------------
+
+  ProcessStarts* New() const;
+  void CopyFrom(const ::google::protobuf::Message& from);
+  void MergeFrom(const ::google::protobuf::Message& from);
+  void CopyFrom(const ProcessStarts& from);
+  void MergeFrom(const ProcessStarts& from);
+  void Clear();
+  bool IsInitialized() const;
+
+  int ByteSize() const;
+  bool MergePartialFromCodedStream(
+      ::google::protobuf::io::CodedInputStream* input);
+  void SerializeWithCachedSizes(
+      ::google::protobuf::io::CodedOutputStream* output) const;
+  ::google::protobuf::uint8* SerializeWithCachedSizesToArray(::google::protobuf::uint8* output) const;
+  int GetCachedSize() const { return _cached_size_; }
+  private:
+  void SharedCtor();
+  void SharedDtor();
+  void SetCachedSize(int size) const;
+  public:
+  ::google::protobuf::Metadata GetMetadata() const;
+
+  // nested types ----------------------------------------------------
+
+  // accessors -------------------------------------------------------
+
+  // optional .SAFplus.Rpc.amfMgmtRpc.IntStatistic IntStatistic = 1;
+  inline bool has_intstatistic() const;
+  inline void clear_intstatistic();
+  static const int kIntStatisticFieldNumber = 1;
+  inline const ::SAFplus::Rpc::amfMgmtRpc::IntStatistic& intstatistic() const;
+  inline ::SAFplus::Rpc::amfMgmtRpc::IntStatistic* mutable_intstatistic();
+  inline ::SAFplus::Rpc::amfMgmtRpc::IntStatistic* release_intstatistic();
+  inline void set_allocated_intstatistic(::SAFplus::Rpc::amfMgmtRpc::IntStatistic* intstatistic);
+
+  GOOGLE_PROTOBUF_EXTENSION_ACCESSORS(ProcessStarts)
+  // @@protoc_insertion_point(class_scope:SAFplus.Rpc.amfMgmtRpc.ProcessStarts)
+ private:
+  inline void set_has_intstatistic();
+  inline void clear_has_intstatistic();
+
+  ::google::protobuf::internal::ExtensionSet _extensions_;
+
+  ::google::protobuf::UnknownFieldSet _unknown_fields_;
+
+  ::google::protobuf::uint32 _has_bits_[1];
+  mutable int _cached_size_;
+  ::SAFplus::Rpc::amfMgmtRpc::IntStatistic* intstatistic_;
+  friend void  protobuf_AddDesc_amfMgmtRpc_2eproto();
+  friend void protobuf_AssignDesc_amfMgmtRpc_2eproto();
+  friend void protobuf_ShutdownFile_amfMgmtRpc_2eproto();
+
+  void InitAsDefaultInstance();
+  static ProcessStarts* default_instance_;
+};
+// -------------------------------------------------------------------
+
+class Load : public ::google::protobuf::Message {
+ public:
+  Load();
+  virtual ~Load();
+
+  Load(const Load& from);
+
+  inline Load& operator=(const Load& from) {
+    CopyFrom(from);
+    return *this;
+  }
+
+  inline const ::google::protobuf::UnknownFieldSet& unknown_fields() const {
+    return _unknown_fields_;
+  }
+
+  inline ::google::protobuf::UnknownFieldSet* mutable_unknown_fields() {
+    return &_unknown_fields_;
+  }
+
+  static const ::google::protobuf::Descriptor* descriptor();
+  static const Load& default_instance();
+
+  void Swap(Load* other);
+
+  // implements Message ----------------------------------------------
+
+  Load* New() const;
+  void CopyFrom(const ::google::protobuf::Message& from);
+  void MergeFrom(const ::google::protobuf::Message& from);
+  void CopyFrom(const Load& from);
+  void MergeFrom(const Load& from);
+  void Clear();
+  bool IsInitialized() const;
+
+  int ByteSize() const;
+  bool MergePartialFromCodedStream(
+      ::google::protobuf::io::CodedInputStream* input);
+  void SerializeWithCachedSizes(
+      ::google::protobuf::io::CodedOutputStream* output) const;
+  ::google::protobuf::uint8* SerializeWithCachedSizesToArray(::google::protobuf::uint8* output) const;
+  int GetCachedSize() const { return _cached_size_; }
+  private:
+  void SharedCtor();
+  void SharedDtor();
+  void SetCachedSize(int size) const;
+  public:
+  ::google::protobuf::Metadata GetMetadata() const;
+
+  // nested types ----------------------------------------------------
+
+  // accessors -------------------------------------------------------
+
+  // optional .SAFplus.Rpc.amfMgmtRpc.User user = 1;
+  inline bool has_user() const;
+  inline void clear_user();
+  static const int kUserFieldNumber = 1;
+  inline const ::SAFplus::Rpc::amfMgmtRpc::User& user() const;
+  inline ::SAFplus::Rpc::amfMgmtRpc::User* mutable_user();
+  inline ::SAFplus::Rpc::amfMgmtRpc::User* release_user();
+  inline void set_allocated_user(::SAFplus::Rpc::amfMgmtRpc::User* user);
+
+  // optional .SAFplus.Rpc.amfMgmtRpc.LowPriorityUser lowPriorityUser = 2;
+  inline bool has_lowpriorityuser() const;
+  inline void clear_lowpriorityuser();
+  static const int kLowPriorityUserFieldNumber = 2;
+  inline const ::SAFplus::Rpc::amfMgmtRpc::LowPriorityUser& lowpriorityuser() const;
+  inline ::SAFplus::Rpc::amfMgmtRpc::LowPriorityUser* mutable_lowpriorityuser();
+  inline ::SAFplus::Rpc::amfMgmtRpc::LowPriorityUser* release_lowpriorityuser();
+  inline void set_allocated_lowpriorityuser(::SAFplus::Rpc::amfMgmtRpc::LowPriorityUser* lowpriorityuser);
+
+  // optional .SAFplus.Rpc.amfMgmtRpc.IoWait ioWait = 3;
+  inline bool has_iowait() const;
+  inline void clear_iowait();
+  static const int kIoWaitFieldNumber = 3;
+  inline const ::SAFplus::Rpc::amfMgmtRpc::IoWait& iowait() const;
+  inline ::SAFplus::Rpc::amfMgmtRpc::IoWait* mutable_iowait();
+  inline ::SAFplus::Rpc::amfMgmtRpc::IoWait* release_iowait();
+  inline void set_allocated_iowait(::SAFplus::Rpc::amfMgmtRpc::IoWait* iowait);
+
+  // optional .SAFplus.Rpc.amfMgmtRpc.SysTime sysTime = 4;
+  inline bool has_systime() const;
+  inline void clear_systime();
+  static const int kSysTimeFieldNumber = 4;
+  inline const ::SAFplus::Rpc::amfMgmtRpc::SysTime& systime() const;
+  inline ::SAFplus::Rpc::amfMgmtRpc::SysTime* mutable_systime();
+  inline ::SAFplus::Rpc::amfMgmtRpc::SysTime* release_systime();
+  inline void set_allocated_systime(::SAFplus::Rpc::amfMgmtRpc::SysTime* systime);
+
+  // optional .SAFplus.Rpc.amfMgmtRpc.IntTime intTime = 5;
+  inline bool has_inttime() const;
+  inline void clear_inttime();
+  static const int kIntTimeFieldNumber = 5;
+  inline const ::SAFplus::Rpc::amfMgmtRpc::IntTime& inttime() const;
+  inline ::SAFplus::Rpc::amfMgmtRpc::IntTime* mutable_inttime();
+  inline ::SAFplus::Rpc::amfMgmtRpc::IntTime* release_inttime();
+  inline void set_allocated_inttime(::SAFplus::Rpc::amfMgmtRpc::IntTime* inttime);
+
+  // optional .SAFplus.Rpc.amfMgmtRpc.SoftIrqs softIrqs = 6;
+  inline bool has_softirqs() const;
+  inline void clear_softirqs();
+  static const int kSoftIrqsFieldNumber = 6;
+  inline const ::SAFplus::Rpc::amfMgmtRpc::SoftIrqs& softirqs() const;
+  inline ::SAFplus::Rpc::amfMgmtRpc::SoftIrqs* mutable_softirqs();
+  inline ::SAFplus::Rpc::amfMgmtRpc::SoftIrqs* release_softirqs();
+  inline void set_allocated_softirqs(::SAFplus::Rpc::amfMgmtRpc::SoftIrqs* softirqs);
+
+  // optional .SAFplus.Rpc.amfMgmtRpc.Idle idle = 7;
+  inline bool has_idle() const;
+  inline void clear_idle();
+  static const int kIdleFieldNumber = 7;
+  inline const ::SAFplus::Rpc::amfMgmtRpc::Idle& idle() const;
+  inline ::SAFplus::Rpc::amfMgmtRpc::Idle* mutable_idle();
+  inline ::SAFplus::Rpc::amfMgmtRpc::Idle* release_idle();
+  inline void set_allocated_idle(::SAFplus::Rpc::amfMgmtRpc::Idle* idle);
+
+  // optional .SAFplus.Rpc.amfMgmtRpc.ContextSwitches contextSwitches = 8;
+  inline bool has_contextswitches() const;
+  inline void clear_contextswitches();
+  static const int kContextSwitchesFieldNumber = 8;
+  inline const ::SAFplus::Rpc::amfMgmtRpc::ContextSwitches& contextswitches() const;
+  inline ::SAFplus::Rpc::amfMgmtRpc::ContextSwitches* mutable_contextswitches();
+  inline ::SAFplus::Rpc::amfMgmtRpc::ContextSwitches* release_contextswitches();
+  inline void set_allocated_contextswitches(::SAFplus::Rpc::amfMgmtRpc::ContextSwitches* contextswitches);
+
+  // optional .SAFplus.Rpc.amfMgmtRpc.ProcessCount processCount = 9;
+  inline bool has_processcount() const;
+  inline void clear_processcount();
+  static const int kProcessCountFieldNumber = 9;
+  inline const ::SAFplus::Rpc::amfMgmtRpc::ProcessCount& processcount() const;
+  inline ::SAFplus::Rpc::amfMgmtRpc::ProcessCount* mutable_processcount();
+  inline ::SAFplus::Rpc::amfMgmtRpc::ProcessCount* release_processcount();
+  inline void set_allocated_processcount(::SAFplus::Rpc::amfMgmtRpc::ProcessCount* processcount);
+
+  // optional .SAFplus.Rpc.amfMgmtRpc.ProcessStarts processStarts = 10;
+  inline bool has_processstarts() const;
+  inline void clear_processstarts();
+  static const int kProcessStartsFieldNumber = 10;
+  inline const ::SAFplus::Rpc::amfMgmtRpc::ProcessStarts& processstarts() const;
+  inline ::SAFplus::Rpc::amfMgmtRpc::ProcessStarts* mutable_processstarts();
+  inline ::SAFplus::Rpc::amfMgmtRpc::ProcessStarts* release_processstarts();
+  inline void set_allocated_processstarts(::SAFplus::Rpc::amfMgmtRpc::ProcessStarts* processstarts);
+
+  GOOGLE_PROTOBUF_EXTENSION_ACCESSORS(Load)
+  // @@protoc_insertion_point(class_scope:SAFplus.Rpc.amfMgmtRpc.Load)
+ private:
+  inline void set_has_user();
+  inline void clear_has_user();
+  inline void set_has_lowpriorityuser();
+  inline void clear_has_lowpriorityuser();
+  inline void set_has_iowait();
+  inline void clear_has_iowait();
+  inline void set_has_systime();
+  inline void clear_has_systime();
+  inline void set_has_inttime();
+  inline void clear_has_inttime();
+  inline void set_has_softirqs();
+  inline void clear_has_softirqs();
+  inline void set_has_idle();
+  inline void clear_has_idle();
+  inline void set_has_contextswitches();
+  inline void clear_has_contextswitches();
+  inline void set_has_processcount();
+  inline void clear_has_processcount();
+  inline void set_has_processstarts();
+  inline void clear_has_processstarts();
+
+  ::google::protobuf::internal::ExtensionSet _extensions_;
+
+  ::google::protobuf::UnknownFieldSet _unknown_fields_;
+
+  ::google::protobuf::uint32 _has_bits_[1];
+  mutable int _cached_size_;
+  ::SAFplus::Rpc::amfMgmtRpc::User* user_;
+  ::SAFplus::Rpc::amfMgmtRpc::LowPriorityUser* lowpriorityuser_;
+  ::SAFplus::Rpc::amfMgmtRpc::IoWait* iowait_;
+  ::SAFplus::Rpc::amfMgmtRpc::SysTime* systime_;
+  ::SAFplus::Rpc::amfMgmtRpc::IntTime* inttime_;
+  ::SAFplus::Rpc::amfMgmtRpc::SoftIrqs* softirqs_;
+  ::SAFplus::Rpc::amfMgmtRpc::Idle* idle_;
+  ::SAFplus::Rpc::amfMgmtRpc::ContextSwitches* contextswitches_;
+  ::SAFplus::Rpc::amfMgmtRpc::ProcessCount* processcount_;
+  ::SAFplus::Rpc::amfMgmtRpc::ProcessStarts* processstarts_;
+  friend void  protobuf_AddDesc_amfMgmtRpc_2eproto();
+  friend void protobuf_AssignDesc_amfMgmtRpc_2eproto();
+  friend void protobuf_ShutdownFile_amfMgmtRpc_2eproto();
+
+  void InitAsDefaultInstance();
+  static Load* default_instance_;
+};
+// -------------------------------------------------------------------
+
+class Stats : public ::google::protobuf::Message {
+ public:
+  Stats();
+  virtual ~Stats();
+
+  Stats(const Stats& from);
+
+  inline Stats& operator=(const Stats& from) {
+    CopyFrom(from);
+    return *this;
+  }
+
+  inline const ::google::protobuf::UnknownFieldSet& unknown_fields() const {
+    return _unknown_fields_;
+  }
+
+  inline ::google::protobuf::UnknownFieldSet* mutable_unknown_fields() {
+    return &_unknown_fields_;
+  }
+
+  static const ::google::protobuf::Descriptor* descriptor();
+  static const Stats& default_instance();
+
+  void Swap(Stats* other);
+
+  // implements Message ----------------------------------------------
+
+  Stats* New() const;
+  void CopyFrom(const ::google::protobuf::Message& from);
+  void MergeFrom(const ::google::protobuf::Message& from);
+  void CopyFrom(const Stats& from);
+  void MergeFrom(const Stats& from);
+  void Clear();
+  bool IsInitialized() const;
+
+  int ByteSize() const;
+  bool MergePartialFromCodedStream(
+      ::google::protobuf::io::CodedInputStream* input);
+  void SerializeWithCachedSizes(
+      ::google::protobuf::io::CodedOutputStream* output) const;
+  ::google::protobuf::uint8* SerializeWithCachedSizesToArray(::google::protobuf::uint8* output) const;
+  int GetCachedSize() const { return _cached_size_; }
+  private:
+  void SharedCtor();
+  void SharedDtor();
+  void SetCachedSize(int size) const;
+  public:
+  ::google::protobuf::Metadata GetMetadata() const;
+
+  // nested types ----------------------------------------------------
+
+  // accessors -------------------------------------------------------
+
+  // optional .SAFplus.Rpc.amfMgmtRpc.Load load = 1;
+  inline bool has_load() const;
+  inline void clear_load();
+  static const int kLoadFieldNumber = 1;
+  inline const ::SAFplus::Rpc::amfMgmtRpc::Load& load() const;
+  inline ::SAFplus::Rpc::amfMgmtRpc::Load* mutable_load();
+  inline ::SAFplus::Rpc::amfMgmtRpc::Load* release_load();
+  inline void set_allocated_load(::SAFplus::Rpc::amfMgmtRpc::Load* load);
+
+  // optional uint64 upTime = 2;
+  inline bool has_uptime() const;
+  inline void clear_uptime();
+  static const int kUpTimeFieldNumber = 2;
+  inline ::google::protobuf::uint64 uptime() const;
+  inline void set_uptime(::google::protobuf::uint64 value);
+
+  // optional uint64 bootTime = 3;
+  inline bool has_boottime() const;
+  inline void clear_boottime();
+  static const int kBootTimeFieldNumber = 3;
+  inline ::google::protobuf::uint64 boottime() const;
+  inline void set_boottime(::google::protobuf::uint64 value);
+
+  GOOGLE_PROTOBUF_EXTENSION_ACCESSORS(Stats)
+  // @@protoc_insertion_point(class_scope:SAFplus.Rpc.amfMgmtRpc.Stats)
+ private:
+  inline void set_has_load();
+  inline void clear_has_load();
+  inline void set_has_uptime();
+  inline void clear_has_uptime();
+  inline void set_has_boottime();
+  inline void clear_has_boottime();
+
+  ::google::protobuf::internal::ExtensionSet _extensions_;
+
+  ::google::protobuf::UnknownFieldSet _unknown_fields_;
+
+  ::google::protobuf::uint32 _has_bits_[1];
+  mutable int _cached_size_;
+  ::SAFplus::Rpc::amfMgmtRpc::Load* load_;
+  ::google::protobuf::uint64 uptime_;
+  ::google::protobuf::uint64 boottime_;
+  friend void  protobuf_AddDesc_amfMgmtRpc_2eproto();
+  friend void protobuf_AssignDesc_amfMgmtRpc_2eproto();
+  friend void protobuf_ShutdownFile_amfMgmtRpc_2eproto();
+
+  void InitAsDefaultInstance();
+  static Stats* default_instance_;
+};
+// -------------------------------------------------------------------
+
+class NodeStatus : public ::google::protobuf::Message {
+ public:
+  NodeStatus();
+  virtual ~NodeStatus();
+
+  NodeStatus(const NodeStatus& from);
+
+  inline NodeStatus& operator=(const NodeStatus& from) {
+    CopyFrom(from);
+    return *this;
+  }
+
+  inline const ::google::protobuf::UnknownFieldSet& unknown_fields() const {
+    return _unknown_fields_;
+  }
+
+  inline ::google::protobuf::UnknownFieldSet* mutable_unknown_fields() {
+    return &_unknown_fields_;
+  }
+
+  static const ::google::protobuf::Descriptor* descriptor();
+  static const NodeStatus& default_instance();
+
+  void Swap(NodeStatus* other);
+
+  // implements Message ----------------------------------------------
+
+  NodeStatus* New() const;
+  void CopyFrom(const ::google::protobuf::Message& from);
+  void MergeFrom(const ::google::protobuf::Message& from);
+  void CopyFrom(const NodeStatus& from);
+  void MergeFrom(const NodeStatus& from);
+  void Clear();
+  bool IsInitialized() const;
+
+  int ByteSize() const;
+  bool MergePartialFromCodedStream(
+      ::google::protobuf::io::CodedInputStream* input);
+  void SerializeWithCachedSizes(
+      ::google::protobuf::io::CodedOutputStream* output) const;
+  ::google::protobuf::uint8* SerializeWithCachedSizesToArray(::google::protobuf::uint8* output) const;
+  int GetCachedSize() const { return _cached_size_; }
+  private:
+  void SharedCtor();
+  void SharedDtor();
+  void SetCachedSize(int size) const;
+  public:
+  ::google::protobuf::Metadata GetMetadata() const;
+
+  // nested types ----------------------------------------------------
+
+  // accessors -------------------------------------------------------
+
+  // optional string name = 1;
+  inline bool has_name() const;
+  inline void clear_name();
+  static const int kNameFieldNumber = 1;
+  inline const ::std::string& name() const;
+  inline void set_name(const ::std::string& value);
+  inline void set_name(const char* value);
+  inline void set_name(const char* value, size_t size);
+  inline ::std::string* mutable_name();
+  inline ::std::string* release_name();
+  inline void set_allocated_name(::std::string* name);
+
+  // optional .SAFplus.Rpc.amfMgmtRpc.Stats stats = 2;
+  inline bool has_stats() const;
+  inline void clear_stats();
+  static const int kStatsFieldNumber = 2;
+  inline const ::SAFplus::Rpc::amfMgmtRpc::Stats& stats() const;
+  inline ::SAFplus::Rpc::amfMgmtRpc::Stats* mutable_stats();
+  inline ::SAFplus::Rpc::amfMgmtRpc::Stats* release_stats();
+  inline void set_allocated_stats(::SAFplus::Rpc::amfMgmtRpc::Stats* stats);
+
+  // optional .SAFplus.Rpc.amfMgmtRpc.PresenceState presenceState = 3;
+  inline bool has_presencestate() const;
+  inline void clear_presencestate();
+  static const int kPresenceStateFieldNumber = 3;
+  inline ::SAFplus::Rpc::amfMgmtRpc::PresenceState presencestate() const;
+  inline void set_presencestate(::SAFplus::Rpc::amfMgmtRpc::PresenceState value);
+
+  // optional bool operState = 4;
+  inline bool has_operstate() const;
+  inline void clear_operstate();
+  static const int kOperStateFieldNumber = 4;
+  inline bool operstate() const;
+  inline void set_operstate(bool value);
+
+  GOOGLE_PROTOBUF_EXTENSION_ACCESSORS(NodeStatus)
+  // @@protoc_insertion_point(class_scope:SAFplus.Rpc.amfMgmtRpc.NodeStatus)
+ private:
+  inline void set_has_name();
+  inline void clear_has_name();
+  inline void set_has_stats();
+  inline void clear_has_stats();
+  inline void set_has_presencestate();
+  inline void clear_has_presencestate();
+  inline void set_has_operstate();
+  inline void clear_has_operstate();
+
+  ::google::protobuf::internal::ExtensionSet _extensions_;
+
+  ::google::protobuf::UnknownFieldSet _unknown_fields_;
+
+  ::google::protobuf::uint32 _has_bits_[1];
+  mutable int _cached_size_;
+  ::std::string* name_;
+  ::SAFplus::Rpc::amfMgmtRpc::Stats* stats_;
+  int presencestate_;
+  bool operstate_;
+  friend void  protobuf_AddDesc_amfMgmtRpc_2eproto();
+  friend void protobuf_AssignDesc_amfMgmtRpc_2eproto();
+  friend void protobuf_ShutdownFile_amfMgmtRpc_2eproto();
+
+  void InitAsDefaultInstance();
+  static NodeStatus* default_instance_;
+};
+// -------------------------------------------------------------------
+
+class NumAssignedServiceUnits : public ::google::protobuf::Message {
+ public:
+  NumAssignedServiceUnits();
+  virtual ~NumAssignedServiceUnits();
+
+  NumAssignedServiceUnits(const NumAssignedServiceUnits& from);
+
+  inline NumAssignedServiceUnits& operator=(const NumAssignedServiceUnits& from) {
+    CopyFrom(from);
+    return *this;
+  }
+
+  inline const ::google::protobuf::UnknownFieldSet& unknown_fields() const {
+    return _unknown_fields_;
+  }
+
+  inline ::google::protobuf::UnknownFieldSet* mutable_unknown_fields() {
+    return &_unknown_fields_;
+  }
+
+  static const ::google::protobuf::Descriptor* descriptor();
+  static const NumAssignedServiceUnits& default_instance();
+
+  void Swap(NumAssignedServiceUnits* other);
+
+  // implements Message ----------------------------------------------
+
+  NumAssignedServiceUnits* New() const;
+  void CopyFrom(const ::google::protobuf::Message& from);
+  void MergeFrom(const ::google::protobuf::Message& from);
+  void CopyFrom(const NumAssignedServiceUnits& from);
+  void MergeFrom(const NumAssignedServiceUnits& from);
+  void Clear();
+  bool IsInitialized() const;
+
+  int ByteSize() const;
+  bool MergePartialFromCodedStream(
+      ::google::protobuf::io::CodedInputStream* input);
+  void SerializeWithCachedSizes(
+      ::google::protobuf::io::CodedOutputStream* output) const;
+  ::google::protobuf::uint8* SerializeWithCachedSizesToArray(::google::protobuf::uint8* output) const;
+  int GetCachedSize() const { return _cached_size_; }
+  private:
+  void SharedCtor();
+  void SharedDtor();
+  void SetCachedSize(int size) const;
+  public:
+  ::google::protobuf::Metadata GetMetadata() const;
+
+  // nested types ----------------------------------------------------
+
+  // accessors -------------------------------------------------------
+
+  // optional .SAFplus.Rpc.amfMgmtRpc.IntStatistic IntStatistic = 1;
+  inline bool has_intstatistic() const;
+  inline void clear_intstatistic();
+  static const int kIntStatisticFieldNumber = 1;
+  inline const ::SAFplus::Rpc::amfMgmtRpc::IntStatistic& intstatistic() const;
+  inline ::SAFplus::Rpc::amfMgmtRpc::IntStatistic* mutable_intstatistic();
+  inline ::SAFplus::Rpc::amfMgmtRpc::IntStatistic* release_intstatistic();
+  inline void set_allocated_intstatistic(::SAFplus::Rpc::amfMgmtRpc::IntStatistic* intstatistic);
+
+  GOOGLE_PROTOBUF_EXTENSION_ACCESSORS(NumAssignedServiceUnits)
+  // @@protoc_insertion_point(class_scope:SAFplus.Rpc.amfMgmtRpc.NumAssignedServiceUnits)
+ private:
+  inline void set_has_intstatistic();
+  inline void clear_has_intstatistic();
+
+  ::google::protobuf::internal::ExtensionSet _extensions_;
+
+  ::google::protobuf::UnknownFieldSet _unknown_fields_;
+
+  ::google::protobuf::uint32 _has_bits_[1];
+  mutable int _cached_size_;
+  ::SAFplus::Rpc::amfMgmtRpc::IntStatistic* intstatistic_;
+  friend void  protobuf_AddDesc_amfMgmtRpc_2eproto();
+  friend void protobuf_AssignDesc_amfMgmtRpc_2eproto();
+  friend void protobuf_ShutdownFile_amfMgmtRpc_2eproto();
+
+  void InitAsDefaultInstance();
+  static NumAssignedServiceUnits* default_instance_;
+};
+// -------------------------------------------------------------------
+
+class NumIdleServiceUnits : public ::google::protobuf::Message {
+ public:
+  NumIdleServiceUnits();
+  virtual ~NumIdleServiceUnits();
+
+  NumIdleServiceUnits(const NumIdleServiceUnits& from);
+
+  inline NumIdleServiceUnits& operator=(const NumIdleServiceUnits& from) {
+    CopyFrom(from);
+    return *this;
+  }
+
+  inline const ::google::protobuf::UnknownFieldSet& unknown_fields() const {
+    return _unknown_fields_;
+  }
+
+  inline ::google::protobuf::UnknownFieldSet* mutable_unknown_fields() {
+    return &_unknown_fields_;
+  }
+
+  static const ::google::protobuf::Descriptor* descriptor();
+  static const NumIdleServiceUnits& default_instance();
+
+  void Swap(NumIdleServiceUnits* other);
+
+  // implements Message ----------------------------------------------
+
+  NumIdleServiceUnits* New() const;
+  void CopyFrom(const ::google::protobuf::Message& from);
+  void MergeFrom(const ::google::protobuf::Message& from);
+  void CopyFrom(const NumIdleServiceUnits& from);
+  void MergeFrom(const NumIdleServiceUnits& from);
+  void Clear();
+  bool IsInitialized() const;
+
+  int ByteSize() const;
+  bool MergePartialFromCodedStream(
+      ::google::protobuf::io::CodedInputStream* input);
+  void SerializeWithCachedSizes(
+      ::google::protobuf::io::CodedOutputStream* output) const;
+  ::google::protobuf::uint8* SerializeWithCachedSizesToArray(::google::protobuf::uint8* output) const;
+  int GetCachedSize() const { return _cached_size_; }
+  private:
+  void SharedCtor();
+  void SharedDtor();
+  void SetCachedSize(int size) const;
+  public:
+  ::google::protobuf::Metadata GetMetadata() const;
+
+  // nested types ----------------------------------------------------
+
+  // accessors -------------------------------------------------------
+
+  // optional .SAFplus.Rpc.amfMgmtRpc.IntStatistic IntStatistic = 1;
+  inline bool has_intstatistic() const;
+  inline void clear_intstatistic();
+  static const int kIntStatisticFieldNumber = 1;
+  inline const ::SAFplus::Rpc::amfMgmtRpc::IntStatistic& intstatistic() const;
+  inline ::SAFplus::Rpc::amfMgmtRpc::IntStatistic* mutable_intstatistic();
+  inline ::SAFplus::Rpc::amfMgmtRpc::IntStatistic* release_intstatistic();
+  inline void set_allocated_intstatistic(::SAFplus::Rpc::amfMgmtRpc::IntStatistic* intstatistic);
+
+  GOOGLE_PROTOBUF_EXTENSION_ACCESSORS(NumIdleServiceUnits)
+  // @@protoc_insertion_point(class_scope:SAFplus.Rpc.amfMgmtRpc.NumIdleServiceUnits)
+ private:
+  inline void set_has_intstatistic();
+  inline void clear_has_intstatistic();
+
+  ::google::protobuf::internal::ExtensionSet _extensions_;
+
+  ::google::protobuf::UnknownFieldSet _unknown_fields_;
+
+  ::google::protobuf::uint32 _has_bits_[1];
+  mutable int _cached_size_;
+  ::SAFplus::Rpc::amfMgmtRpc::IntStatistic* intstatistic_;
+  friend void  protobuf_AddDesc_amfMgmtRpc_2eproto();
+  friend void protobuf_AssignDesc_amfMgmtRpc_2eproto();
+  friend void protobuf_ShutdownFile_amfMgmtRpc_2eproto();
+
+  void InitAsDefaultInstance();
+  static NumIdleServiceUnits* default_instance_;
+};
+// -------------------------------------------------------------------
+
+class NumSpareServiceUnits : public ::google::protobuf::Message {
+ public:
+  NumSpareServiceUnits();
+  virtual ~NumSpareServiceUnits();
+
+  NumSpareServiceUnits(const NumSpareServiceUnits& from);
+
+  inline NumSpareServiceUnits& operator=(const NumSpareServiceUnits& from) {
+    CopyFrom(from);
+    return *this;
+  }
+
+  inline const ::google::protobuf::UnknownFieldSet& unknown_fields() const {
+    return _unknown_fields_;
+  }
+
+  inline ::google::protobuf::UnknownFieldSet* mutable_unknown_fields() {
+    return &_unknown_fields_;
+  }
+
+  static const ::google::protobuf::Descriptor* descriptor();
+  static const NumSpareServiceUnits& default_instance();
+
+  void Swap(NumSpareServiceUnits* other);
+
+  // implements Message ----------------------------------------------
+
+  NumSpareServiceUnits* New() const;
+  void CopyFrom(const ::google::protobuf::Message& from);
+  void MergeFrom(const ::google::protobuf::Message& from);
+  void CopyFrom(const NumSpareServiceUnits& from);
+  void MergeFrom(const NumSpareServiceUnits& from);
+  void Clear();
+  bool IsInitialized() const;
+
+  int ByteSize() const;
+  bool MergePartialFromCodedStream(
+      ::google::protobuf::io::CodedInputStream* input);
+  void SerializeWithCachedSizes(
+      ::google::protobuf::io::CodedOutputStream* output) const;
+  ::google::protobuf::uint8* SerializeWithCachedSizesToArray(::google::protobuf::uint8* output) const;
+  int GetCachedSize() const { return _cached_size_; }
+  private:
+  void SharedCtor();
+  void SharedDtor();
+  void SetCachedSize(int size) const;
+  public:
+  ::google::protobuf::Metadata GetMetadata() const;
+
+  // nested types ----------------------------------------------------
+
+  // accessors -------------------------------------------------------
+
+  // optional .SAFplus.Rpc.amfMgmtRpc.IntStatistic IntStatistic = 1;
+  inline bool has_intstatistic() const;
+  inline void clear_intstatistic();
+  static const int kIntStatisticFieldNumber = 1;
+  inline const ::SAFplus::Rpc::amfMgmtRpc::IntStatistic& intstatistic() const;
+  inline ::SAFplus::Rpc::amfMgmtRpc::IntStatistic* mutable_intstatistic();
+  inline ::SAFplus::Rpc::amfMgmtRpc::IntStatistic* release_intstatistic();
+  inline void set_allocated_intstatistic(::SAFplus::Rpc::amfMgmtRpc::IntStatistic* intstatistic);
+
+  GOOGLE_PROTOBUF_EXTENSION_ACCESSORS(NumSpareServiceUnits)
+  // @@protoc_insertion_point(class_scope:SAFplus.Rpc.amfMgmtRpc.NumSpareServiceUnits)
+ private:
+  inline void set_has_intstatistic();
+  inline void clear_has_intstatistic();
+
+  ::google::protobuf::internal::ExtensionSet _extensions_;
+
+  ::google::protobuf::UnknownFieldSet _unknown_fields_;
+
+  ::google::protobuf::uint32 _has_bits_[1];
+  mutable int _cached_size_;
+  ::SAFplus::Rpc::amfMgmtRpc::IntStatistic* intstatistic_;
+  friend void  protobuf_AddDesc_amfMgmtRpc_2eproto();
+  friend void protobuf_AssignDesc_amfMgmtRpc_2eproto();
+  friend void protobuf_ShutdownFile_amfMgmtRpc_2eproto();
+
+  void InitAsDefaultInstance();
+  static NumSpareServiceUnits* default_instance_;
+};
+// -------------------------------------------------------------------
+
+class ServiceGroupStatus : public ::google::protobuf::Message {
+ public:
+  ServiceGroupStatus();
+  virtual ~ServiceGroupStatus();
+
+  ServiceGroupStatus(const ServiceGroupStatus& from);
+
+  inline ServiceGroupStatus& operator=(const ServiceGroupStatus& from) {
+    CopyFrom(from);
+    return *this;
+  }
+
+  inline const ::google::protobuf::UnknownFieldSet& unknown_fields() const {
+    return _unknown_fields_;
+  }
+
+  inline ::google::protobuf::UnknownFieldSet* mutable_unknown_fields() {
+    return &_unknown_fields_;
+  }
+
+  static const ::google::protobuf::Descriptor* descriptor();
+  static const ServiceGroupStatus& default_instance();
+
+  void Swap(ServiceGroupStatus* other);
+
+  // implements Message ----------------------------------------------
+
+  ServiceGroupStatus* New() const;
+  void CopyFrom(const ::google::protobuf::Message& from);
+  void MergeFrom(const ::google::protobuf::Message& from);
+  void CopyFrom(const ServiceGroupStatus& from);
+  void MergeFrom(const ServiceGroupStatus& from);
+  void Clear();
+  bool IsInitialized() const;
+
+  int ByteSize() const;
+  bool MergePartialFromCodedStream(
+      ::google::protobuf::io::CodedInputStream* input);
+  void SerializeWithCachedSizes(
+      ::google::protobuf::io::CodedOutputStream* output) const;
+  ::google::protobuf::uint8* SerializeWithCachedSizesToArray(::google::protobuf::uint8* output) const;
+  int GetCachedSize() const { return _cached_size_; }
+  private:
+  void SharedCtor();
+  void SharedDtor();
+  void SetCachedSize(int size) const;
+  public:
+  ::google::protobuf::Metadata GetMetadata() const;
+
+  // nested types ----------------------------------------------------
+
+  // accessors -------------------------------------------------------
+
+  // optional string name = 1;
+  inline bool has_name() const;
+  inline void clear_name();
+  static const int kNameFieldNumber = 1;
+  inline const ::std::string& name() const;
+  inline void set_name(const ::std::string& value);
+  inline void set_name(const char* value);
+  inline void set_name(const char* value, size_t size);
+  inline ::std::string* mutable_name();
+  inline ::std::string* release_name();
+  inline void set_allocated_name(::std::string* name);
+
+  // optional .SAFplus.Rpc.amfMgmtRpc.NumAssignedServiceUnits numAssignedServiceUnits = 2;
+  inline bool has_numassignedserviceunits() const;
+  inline void clear_numassignedserviceunits();
+  static const int kNumAssignedServiceUnitsFieldNumber = 2;
+  inline const ::SAFplus::Rpc::amfMgmtRpc::NumAssignedServiceUnits& numassignedserviceunits() const;
+  inline ::SAFplus::Rpc::amfMgmtRpc::NumAssignedServiceUnits* mutable_numassignedserviceunits();
+  inline ::SAFplus::Rpc::amfMgmtRpc::NumAssignedServiceUnits* release_numassignedserviceunits();
+  inline void set_allocated_numassignedserviceunits(::SAFplus::Rpc::amfMgmtRpc::NumAssignedServiceUnits* numassignedserviceunits);
+
+  // optional .SAFplus.Rpc.amfMgmtRpc.NumIdleServiceUnits numIdleServiceUnits = 3;
+  inline bool has_numidleserviceunits() const;
+  inline void clear_numidleserviceunits();
+  static const int kNumIdleServiceUnitsFieldNumber = 3;
+  inline const ::SAFplus::Rpc::amfMgmtRpc::NumIdleServiceUnits& numidleserviceunits() const;
+  inline ::SAFplus::Rpc::amfMgmtRpc::NumIdleServiceUnits* mutable_numidleserviceunits();
+  inline ::SAFplus::Rpc::amfMgmtRpc::NumIdleServiceUnits* release_numidleserviceunits();
+  inline void set_allocated_numidleserviceunits(::SAFplus::Rpc::amfMgmtRpc::NumIdleServiceUnits* numidleserviceunits);
+
+  // optional .SAFplus.Rpc.amfMgmtRpc.NumSpareServiceUnits numSpareServiceUnits = 4;
+  inline bool has_numspareserviceunits() const;
+  inline void clear_numspareserviceunits();
+  static const int kNumSpareServiceUnitsFieldNumber = 4;
+  inline const ::SAFplus::Rpc::amfMgmtRpc::NumSpareServiceUnits& numspareserviceunits() const;
+  inline ::SAFplus::Rpc::amfMgmtRpc::NumSpareServiceUnits* mutable_numspareserviceunits();
+  inline ::SAFplus::Rpc::amfMgmtRpc::NumSpareServiceUnits* release_numspareserviceunits();
+  inline void set_allocated_numspareserviceunits(::SAFplus::Rpc::amfMgmtRpc::NumSpareServiceUnits* numspareserviceunits);
+
+  GOOGLE_PROTOBUF_EXTENSION_ACCESSORS(ServiceGroupStatus)
+  // @@protoc_insertion_point(class_scope:SAFplus.Rpc.amfMgmtRpc.ServiceGroupStatus)
+ private:
+  inline void set_has_name();
+  inline void clear_has_name();
+  inline void set_has_numassignedserviceunits();
+  inline void clear_has_numassignedserviceunits();
+  inline void set_has_numidleserviceunits();
+  inline void clear_has_numidleserviceunits();
+  inline void set_has_numspareserviceunits();
+  inline void clear_has_numspareserviceunits();
+
+  ::google::protobuf::internal::ExtensionSet _extensions_;
+
+  ::google::protobuf::UnknownFieldSet _unknown_fields_;
+
+  ::google::protobuf::uint32 _has_bits_[1];
+  mutable int _cached_size_;
+  ::std::string* name_;
+  ::SAFplus::Rpc::amfMgmtRpc::NumAssignedServiceUnits* numassignedserviceunits_;
+  ::SAFplus::Rpc::amfMgmtRpc::NumIdleServiceUnits* numidleserviceunits_;
+  ::SAFplus::Rpc::amfMgmtRpc::NumSpareServiceUnits* numspareserviceunits_;
+  friend void  protobuf_AddDesc_amfMgmtRpc_2eproto();
+  friend void protobuf_AssignDesc_amfMgmtRpc_2eproto();
+  friend void protobuf_ShutdownFile_amfMgmtRpc_2eproto();
+
+  void InitAsDefaultInstance();
+  static ServiceGroupStatus* default_instance_;
+};
+// -------------------------------------------------------------------
+
+class ProcStats : public ::google::protobuf::Message {
+ public:
+  ProcStats();
+  virtual ~ProcStats();
+
+  ProcStats(const ProcStats& from);
+
+  inline ProcStats& operator=(const ProcStats& from) {
+    CopyFrom(from);
+    return *this;
+  }
+
+  inline const ::google::protobuf::UnknownFieldSet& unknown_fields() const {
+    return _unknown_fields_;
+  }
+
+  inline ::google::protobuf::UnknownFieldSet* mutable_unknown_fields() {
+    return &_unknown_fields_;
+  }
+
+  static const ::google::protobuf::Descriptor* descriptor();
+  static const ProcStats& default_instance();
+
+  void Swap(ProcStats* other);
+
+  // implements Message ----------------------------------------------
+
+  ProcStats* New() const;
+  void CopyFrom(const ::google::protobuf::Message& from);
+  void MergeFrom(const ::google::protobuf::Message& from);
+  void CopyFrom(const ProcStats& from);
+  void MergeFrom(const ProcStats& from);
+  void Clear();
+  bool IsInitialized() const;
+
+  int ByteSize() const;
+  bool MergePartialFromCodedStream(
+      ::google::protobuf::io::CodedInputStream* input);
+  void SerializeWithCachedSizes(
+      ::google::protobuf::io::CodedOutputStream* output) const;
+  ::google::protobuf::uint8* SerializeWithCachedSizesToArray(::google::protobuf::uint8* output) const;
+  int GetCachedSize() const { return _cached_size_; }
+  private:
+  void SharedCtor();
+  void SharedDtor();
+  void SetCachedSize(int size) const;
+  public:
+  ::google::protobuf::Metadata GetMetadata() const;
+
+  // nested types ----------------------------------------------------
+
+  // accessors -------------------------------------------------------
+
+  // optional .SAFplus.Rpc.amfMgmtRpc.ProcessStats ProcessStats = 1;
+  inline bool has_processstats() const;
+  inline void clear_processstats();
+  static const int kProcessStatsFieldNumber = 1;
+  inline const ::SAFplus::Rpc::amfMgmtRpc::ProcessStats& processstats() const;
+  inline ::SAFplus::Rpc::amfMgmtRpc::ProcessStats* mutable_processstats();
+  inline ::SAFplus::Rpc::amfMgmtRpc::ProcessStats* release_processstats();
+  inline void set_allocated_processstats(::SAFplus::Rpc::amfMgmtRpc::ProcessStats* processstats);
+
+  GOOGLE_PROTOBUF_EXTENSION_ACCESSORS(ProcStats)
+  // @@protoc_insertion_point(class_scope:SAFplus.Rpc.amfMgmtRpc.ProcStats)
+ private:
+  inline void set_has_processstats();
+  inline void clear_has_processstats();
+
+  ::google::protobuf::internal::ExtensionSet _extensions_;
+
+  ::google::protobuf::UnknownFieldSet _unknown_fields_;
+
+  ::google::protobuf::uint32 _has_bits_[1];
+  mutable int _cached_size_;
+  ::SAFplus::Rpc::amfMgmtRpc::ProcessStats* processstats_;
+  friend void  protobuf_AddDesc_amfMgmtRpc_2eproto();
+  friend void protobuf_AssignDesc_amfMgmtRpc_2eproto();
+  friend void protobuf_ShutdownFile_amfMgmtRpc_2eproto();
+
+  void InitAsDefaultInstance();
+  static ProcStats* default_instance_;
+};
+// -------------------------------------------------------------------
+
+class ActiveAssignments : public ::google::protobuf::Message {
+ public:
+  ActiveAssignments();
+  virtual ~ActiveAssignments();
+
+  ActiveAssignments(const ActiveAssignments& from);
+
+  inline ActiveAssignments& operator=(const ActiveAssignments& from) {
+    CopyFrom(from);
+    return *this;
+  }
+
+  inline const ::google::protobuf::UnknownFieldSet& unknown_fields() const {
+    return _unknown_fields_;
+  }
+
+  inline ::google::protobuf::UnknownFieldSet* mutable_unknown_fields() {
+    return &_unknown_fields_;
+  }
+
+  static const ::google::protobuf::Descriptor* descriptor();
+  static const ActiveAssignments& default_instance();
+
+  void Swap(ActiveAssignments* other);
+
+  // implements Message ----------------------------------------------
+
+  ActiveAssignments* New() const;
+  void CopyFrom(const ::google::protobuf::Message& from);
+  void MergeFrom(const ::google::protobuf::Message& from);
+  void CopyFrom(const ActiveAssignments& from);
+  void MergeFrom(const ActiveAssignments& from);
+  void Clear();
+  bool IsInitialized() const;
+
+  int ByteSize() const;
+  bool MergePartialFromCodedStream(
+      ::google::protobuf::io::CodedInputStream* input);
+  void SerializeWithCachedSizes(
+      ::google::protobuf::io::CodedOutputStream* output) const;
+  ::google::protobuf::uint8* SerializeWithCachedSizesToArray(::google::protobuf::uint8* output) const;
+  int GetCachedSize() const { return _cached_size_; }
+  private:
+  void SharedCtor();
+  void SharedDtor();
+  void SetCachedSize(int size) const;
+  public:
+  ::google::protobuf::Metadata GetMetadata() const;
+
+  // nested types ----------------------------------------------------
+
+  // accessors -------------------------------------------------------
+
+  // optional .SAFplus.Rpc.amfMgmtRpc.IntStatistic IntStatistic = 1;
+  inline bool has_intstatistic() const;
+  inline void clear_intstatistic();
+  static const int kIntStatisticFieldNumber = 1;
+  inline const ::SAFplus::Rpc::amfMgmtRpc::IntStatistic& intstatistic() const;
+  inline ::SAFplus::Rpc::amfMgmtRpc::IntStatistic* mutable_intstatistic();
+  inline ::SAFplus::Rpc::amfMgmtRpc::IntStatistic* release_intstatistic();
+  inline void set_allocated_intstatistic(::SAFplus::Rpc::amfMgmtRpc::IntStatistic* intstatistic);
+
+  GOOGLE_PROTOBUF_EXTENSION_ACCESSORS(ActiveAssignments)
+  // @@protoc_insertion_point(class_scope:SAFplus.Rpc.amfMgmtRpc.ActiveAssignments)
+ private:
+  inline void set_has_intstatistic();
+  inline void clear_has_intstatistic();
+
+  ::google::protobuf::internal::ExtensionSet _extensions_;
+
+  ::google::protobuf::UnknownFieldSet _unknown_fields_;
+
+  ::google::protobuf::uint32 _has_bits_[1];
+  mutable int _cached_size_;
+  ::SAFplus::Rpc::amfMgmtRpc::IntStatistic* intstatistic_;
+  friend void  protobuf_AddDesc_amfMgmtRpc_2eproto();
+  friend void protobuf_AssignDesc_amfMgmtRpc_2eproto();
+  friend void protobuf_ShutdownFile_amfMgmtRpc_2eproto();
+
+  void InitAsDefaultInstance();
+  static ActiveAssignments* default_instance_;
+};
+// -------------------------------------------------------------------
+
+class StandbyAssignments : public ::google::protobuf::Message {
+ public:
+  StandbyAssignments();
+  virtual ~StandbyAssignments();
+
+  StandbyAssignments(const StandbyAssignments& from);
+
+  inline StandbyAssignments& operator=(const StandbyAssignments& from) {
+    CopyFrom(from);
+    return *this;
+  }
+
+  inline const ::google::protobuf::UnknownFieldSet& unknown_fields() const {
+    return _unknown_fields_;
+  }
+
+  inline ::google::protobuf::UnknownFieldSet* mutable_unknown_fields() {
+    return &_unknown_fields_;
+  }
+
+  static const ::google::protobuf::Descriptor* descriptor();
+  static const StandbyAssignments& default_instance();
+
+  void Swap(StandbyAssignments* other);
+
+  // implements Message ----------------------------------------------
+
+  StandbyAssignments* New() const;
+  void CopyFrom(const ::google::protobuf::Message& from);
+  void MergeFrom(const ::google::protobuf::Message& from);
+  void CopyFrom(const StandbyAssignments& from);
+  void MergeFrom(const StandbyAssignments& from);
+  void Clear();
+  bool IsInitialized() const;
+
+  int ByteSize() const;
+  bool MergePartialFromCodedStream(
+      ::google::protobuf::io::CodedInputStream* input);
+  void SerializeWithCachedSizes(
+      ::google::protobuf::io::CodedOutputStream* output) const;
+  ::google::protobuf::uint8* SerializeWithCachedSizesToArray(::google::protobuf::uint8* output) const;
+  int GetCachedSize() const { return _cached_size_; }
+  private:
+  void SharedCtor();
+  void SharedDtor();
+  void SetCachedSize(int size) const;
+  public:
+  ::google::protobuf::Metadata GetMetadata() const;
+
+  // nested types ----------------------------------------------------
+
+  // accessors -------------------------------------------------------
+
+  // optional .SAFplus.Rpc.amfMgmtRpc.IntStatistic IntStatistic = 1;
+  inline bool has_intstatistic() const;
+  inline void clear_intstatistic();
+  static const int kIntStatisticFieldNumber = 1;
+  inline const ::SAFplus::Rpc::amfMgmtRpc::IntStatistic& intstatistic() const;
+  inline ::SAFplus::Rpc::amfMgmtRpc::IntStatistic* mutable_intstatistic();
+  inline ::SAFplus::Rpc::amfMgmtRpc::IntStatistic* release_intstatistic();
+  inline void set_allocated_intstatistic(::SAFplus::Rpc::amfMgmtRpc::IntStatistic* intstatistic);
+
+  GOOGLE_PROTOBUF_EXTENSION_ACCESSORS(StandbyAssignments)
+  // @@protoc_insertion_point(class_scope:SAFplus.Rpc.amfMgmtRpc.StandbyAssignments)
+ private:
+  inline void set_has_intstatistic();
+  inline void clear_has_intstatistic();
+
+  ::google::protobuf::internal::ExtensionSet _extensions_;
+
+  ::google::protobuf::UnknownFieldSet _unknown_fields_;
+
+  ::google::protobuf::uint32 _has_bits_[1];
+  mutable int _cached_size_;
+  ::SAFplus::Rpc::amfMgmtRpc::IntStatistic* intstatistic_;
+  friend void  protobuf_AddDesc_amfMgmtRpc_2eproto();
+  friend void protobuf_AssignDesc_amfMgmtRpc_2eproto();
+  friend void protobuf_ShutdownFile_amfMgmtRpc_2eproto();
+
+  void InitAsDefaultInstance();
+  static StandbyAssignments* default_instance_;
+};
+// -------------------------------------------------------------------
+
+class RestartCount : public ::google::protobuf::Message {
+ public:
+  RestartCount();
+  virtual ~RestartCount();
+
+  RestartCount(const RestartCount& from);
+
+  inline RestartCount& operator=(const RestartCount& from) {
+    CopyFrom(from);
+    return *this;
+  }
+
+  inline const ::google::protobuf::UnknownFieldSet& unknown_fields() const {
+    return _unknown_fields_;
+  }
+
+  inline ::google::protobuf::UnknownFieldSet* mutable_unknown_fields() {
+    return &_unknown_fields_;
+  }
+
+  static const ::google::protobuf::Descriptor* descriptor();
+  static const RestartCount& default_instance();
+
+  void Swap(RestartCount* other);
+
+  // implements Message ----------------------------------------------
+
+  RestartCount* New() const;
+  void CopyFrom(const ::google::protobuf::Message& from);
+  void MergeFrom(const ::google::protobuf::Message& from);
+  void CopyFrom(const RestartCount& from);
+  void MergeFrom(const RestartCount& from);
+  void Clear();
+  bool IsInitialized() const;
+
+  int ByteSize() const;
+  bool MergePartialFromCodedStream(
+      ::google::protobuf::io::CodedInputStream* input);
+  void SerializeWithCachedSizes(
+      ::google::protobuf::io::CodedOutputStream* output) const;
+  ::google::protobuf::uint8* SerializeWithCachedSizesToArray(::google::protobuf::uint8* output) const;
+  int GetCachedSize() const { return _cached_size_; }
+  private:
+  void SharedCtor();
+  void SharedDtor();
+  void SetCachedSize(int size) const;
+  public:
+  ::google::protobuf::Metadata GetMetadata() const;
+
+  // nested types ----------------------------------------------------
+
+  // accessors -------------------------------------------------------
+
+  // optional .SAFplus.Rpc.amfMgmtRpc.IntStatistic IntStatistic = 1;
+  inline bool has_intstatistic() const;
+  inline void clear_intstatistic();
+  static const int kIntStatisticFieldNumber = 1;
+  inline const ::SAFplus::Rpc::amfMgmtRpc::IntStatistic& intstatistic() const;
+  inline ::SAFplus::Rpc::amfMgmtRpc::IntStatistic* mutable_intstatistic();
+  inline ::SAFplus::Rpc::amfMgmtRpc::IntStatistic* release_intstatistic();
+  inline void set_allocated_intstatistic(::SAFplus::Rpc::amfMgmtRpc::IntStatistic* intstatistic);
+
+  GOOGLE_PROTOBUF_EXTENSION_ACCESSORS(RestartCount)
+  // @@protoc_insertion_point(class_scope:SAFplus.Rpc.amfMgmtRpc.RestartCount)
+ private:
+  inline void set_has_intstatistic();
+  inline void clear_has_intstatistic();
+
+  ::google::protobuf::internal::ExtensionSet _extensions_;
+
+  ::google::protobuf::UnknownFieldSet _unknown_fields_;
+
+  ::google::protobuf::uint32 _has_bits_[1];
+  mutable int _cached_size_;
+  ::SAFplus::Rpc::amfMgmtRpc::IntStatistic* intstatistic_;
+  friend void  protobuf_AddDesc_amfMgmtRpc_2eproto();
+  friend void protobuf_AssignDesc_amfMgmtRpc_2eproto();
+  friend void protobuf_ShutdownFile_amfMgmtRpc_2eproto();
+
+  void InitAsDefaultInstance();
+  static RestartCount* default_instance_;
+};
+// -------------------------------------------------------------------
+
+class ComponentStatus : public ::google::protobuf::Message {
+ public:
+  ComponentStatus();
+  virtual ~ComponentStatus();
+
+  ComponentStatus(const ComponentStatus& from);
+
+  inline ComponentStatus& operator=(const ComponentStatus& from) {
+    CopyFrom(from);
+    return *this;
+  }
+
+  inline const ::google::protobuf::UnknownFieldSet& unknown_fields() const {
+    return _unknown_fields_;
+  }
+
+  inline ::google::protobuf::UnknownFieldSet* mutable_unknown_fields() {
+    return &_unknown_fields_;
+  }
+
+  static const ::google::protobuf::Descriptor* descriptor();
+  static const ComponentStatus& default_instance();
+
+  void Swap(ComponentStatus* other);
+
+  // implements Message ----------------------------------------------
+
+  ComponentStatus* New() const;
+  void CopyFrom(const ::google::protobuf::Message& from);
+  void MergeFrom(const ::google::protobuf::Message& from);
+  void CopyFrom(const ComponentStatus& from);
+  void MergeFrom(const ComponentStatus& from);
+  void Clear();
+  bool IsInitialized() const;
+
+  int ByteSize() const;
+  bool MergePartialFromCodedStream(
+      ::google::protobuf::io::CodedInputStream* input);
+  void SerializeWithCachedSizes(
+      ::google::protobuf::io::CodedOutputStream* output) const;
+  ::google::protobuf::uint8* SerializeWithCachedSizesToArray(::google::protobuf::uint8* output) const;
+  int GetCachedSize() const { return _cached_size_; }
+  private:
+  void SharedCtor();
+  void SharedDtor();
+  void SetCachedSize(int size) const;
+  public:
+  ::google::protobuf::Metadata GetMetadata() const;
+
+  // nested types ----------------------------------------------------
+
+  // accessors -------------------------------------------------------
+
+  // optional string name = 1;
+  inline bool has_name() const;
+  inline void clear_name();
+  static const int kNameFieldNumber = 1;
+  inline const ::std::string& name() const;
+  inline void set_name(const ::std::string& value);
+  inline void set_name(const char* value);
+  inline void set_name(const char* value, size_t size);
+  inline ::std::string* mutable_name();
+  inline ::std::string* release_name();
+  inline void set_allocated_name(::std::string* name);
+
+  // optional .SAFplus.Rpc.amfMgmtRpc.ProcStats procStats = 2;
+  inline bool has_procstats() const;
+  inline void clear_procstats();
+  static const int kProcStatsFieldNumber = 2;
+  inline const ::SAFplus::Rpc::amfMgmtRpc::ProcStats& procstats() const;
+  inline ::SAFplus::Rpc::amfMgmtRpc::ProcStats* mutable_procstats();
+  inline ::SAFplus::Rpc::amfMgmtRpc::ProcStats* release_procstats();
+  inline void set_allocated_procstats(::SAFplus::Rpc::amfMgmtRpc::ProcStats* procstats);
+
+  // optional .SAFplus.Rpc.amfMgmtRpc.PresenceState presenceState = 3;
+  inline bool has_presencestate() const;
+  inline void clear_presencestate();
+  static const int kPresenceStateFieldNumber = 3;
+  inline ::SAFplus::Rpc::amfMgmtRpc::PresenceState presencestate() const;
+  inline void set_presencestate(::SAFplus::Rpc::amfMgmtRpc::PresenceState value);
+
+  // optional .SAFplus.Rpc.amfMgmtRpc.ActiveAssignments activeAssignments = 4;
+  inline bool has_activeassignments() const;
+  inline void clear_activeassignments();
+  static const int kActiveAssignmentsFieldNumber = 4;
+  inline const ::SAFplus::Rpc::amfMgmtRpc::ActiveAssignments& activeassignments() const;
+  inline ::SAFplus::Rpc::amfMgmtRpc::ActiveAssignments* mutable_activeassignments();
+  inline ::SAFplus::Rpc::amfMgmtRpc::ActiveAssignments* release_activeassignments();
+  inline void set_allocated_activeassignments(::SAFplus::Rpc::amfMgmtRpc::ActiveAssignments* activeassignments);
+
+  // optional .SAFplus.Rpc.amfMgmtRpc.StandbyAssignments standbyAssignments = 5;
+  inline bool has_standbyassignments() const;
+  inline void clear_standbyassignments();
+  static const int kStandbyAssignmentsFieldNumber = 5;
+  inline const ::SAFplus::Rpc::amfMgmtRpc::StandbyAssignments& standbyassignments() const;
+  inline ::SAFplus::Rpc::amfMgmtRpc::StandbyAssignments* mutable_standbyassignments();
+  inline ::SAFplus::Rpc::amfMgmtRpc::StandbyAssignments* release_standbyassignments();
+  inline void set_allocated_standbyassignments(::SAFplus::Rpc::amfMgmtRpc::StandbyAssignments* standbyassignments);
+
+  // repeated string assignedWork = 6;
+  inline int assignedwork_size() const;
+  inline void clear_assignedwork();
+  static const int kAssignedWorkFieldNumber = 6;
+  inline const ::std::string& assignedwork(int index) const;
+  inline ::std::string* mutable_assignedwork(int index);
+  inline void set_assignedwork(int index, const ::std::string& value);
+  inline void set_assignedwork(int index, const char* value);
+  inline void set_assignedwork(int index, const char* value, size_t size);
+  inline ::std::string* add_assignedwork();
+  inline void add_assignedwork(const ::std::string& value);
+  inline void add_assignedwork(const char* value);
+  inline void add_assignedwork(const char* value, size_t size);
+  inline const ::google::protobuf::RepeatedPtrField< ::std::string>& assignedwork() const;
+  inline ::google::protobuf::RepeatedPtrField< ::std::string>* mutable_assignedwork();
+
+  // optional bool operState = 7;
+  inline bool has_operstate() const;
+  inline void clear_operstate();
+  static const int kOperStateFieldNumber = 7;
+  inline bool operstate() const;
+  inline void set_operstate(bool value);
+
+  // optional .SAFplus.Rpc.amfMgmtRpc.ReadinessState readinessState = 8;
+  inline bool has_readinessstate() const;
+  inline void clear_readinessstate();
+  static const int kReadinessStateFieldNumber = 8;
+  inline ::SAFplus::Rpc::amfMgmtRpc::ReadinessState readinessstate() const;
+  inline void set_readinessstate(::SAFplus::Rpc::amfMgmtRpc::ReadinessState value);
+
+  // optional .SAFplus.Rpc.amfMgmtRpc.HighAvailabilityReadinessState haReadinessState = 9;
+  inline bool has_hareadinessstate() const;
+  inline void clear_hareadinessstate();
+  static const int kHaReadinessStateFieldNumber = 9;
+  inline ::SAFplus::Rpc::amfMgmtRpc::HighAvailabilityReadinessState hareadinessstate() const;
+  inline void set_hareadinessstate(::SAFplus::Rpc::amfMgmtRpc::HighAvailabilityReadinessState value);
+
+  // optional .SAFplus.Rpc.amfMgmtRpc.HighAvailabilityState haState = 10;
+  inline bool has_hastate() const;
+  inline void clear_hastate();
+  static const int kHaStateFieldNumber = 10;
+  inline ::SAFplus::Rpc::amfMgmtRpc::HighAvailabilityState hastate() const;
+  inline void set_hastate(::SAFplus::Rpc::amfMgmtRpc::HighAvailabilityState value);
+
+  // optional string safVersion = 11;
+  inline bool has_safversion() const;
+  inline void clear_safversion();
+  static const int kSafVersionFieldNumber = 11;
+  inline const ::std::string& safversion() const;
+  inline void set_safversion(const ::std::string& value);
+  inline void set_safversion(const char* value);
+  inline void set_safversion(const char* value, size_t size);
+  inline ::std::string* mutable_safversion();
+  inline ::std::string* release_safversion();
+  inline void set_allocated_safversion(::std::string* safversion);
+
+  // optional fixed32 compCategory = 12;
+  inline bool has_compcategory() const;
+  inline void clear_compcategory();
+  static const int kCompCategoryFieldNumber = 12;
+  inline ::google::protobuf::uint32 compcategory() const;
+  inline void set_compcategory(::google::protobuf::uint32 value);
+
+  // optional string swBundle = 13;
+  inline bool has_swbundle() const;
+  inline void clear_swbundle();
+  static const int kSwBundleFieldNumber = 13;
+  inline const ::std::string& swbundle() const;
+  inline void set_swbundle(const ::std::string& value);
+  inline void set_swbundle(const char* value);
+  inline void set_swbundle(const char* value, size_t size);
+  inline ::std::string* mutable_swbundle();
+  inline ::std::string* release_swbundle();
+  inline void set_allocated_swbundle(::std::string* swbundle);
+
+  // optional fixed32 numInstantiationAttempts = 14;
+  inline bool has_numinstantiationattempts() const;
+  inline void clear_numinstantiationattempts();
+  static const int kNumInstantiationAttemptsFieldNumber = 14;
+  inline ::google::protobuf::uint32 numinstantiationattempts() const;
+  inline void set_numinstantiationattempts(::google::protobuf::uint32 value);
+
+  // optional .SAFplus.Rpc.amfMgmtRpc.Date lastInstantiation = 15;
+  inline bool has_lastinstantiation() const;
+  inline void clear_lastinstantiation();
+  static const int kLastInstantiationFieldNumber = 15;
+  inline const ::SAFplus::Rpc::amfMgmtRpc::Date& lastinstantiation() const;
+  inline ::SAFplus::Rpc::amfMgmtRpc::Date* mutable_lastinstantiation();
+  inline ::SAFplus::Rpc::amfMgmtRpc::Date* release_lastinstantiation();
+  inline void set_allocated_lastinstantiation(::SAFplus::Rpc::amfMgmtRpc::Date* lastinstantiation);
+
+  // optional .SAFplus.Rpc.amfMgmtRpc.RestartCount restartCount = 16;
+  inline bool has_restartcount() const;
+  inline void clear_restartcount();
+  static const int kRestartCountFieldNumber = 16;
+  inline const ::SAFplus::Rpc::amfMgmtRpc::RestartCount& restartcount() const;
+  inline ::SAFplus::Rpc::amfMgmtRpc::RestartCount* mutable_restartcount();
+  inline ::SAFplus::Rpc::amfMgmtRpc::RestartCount* release_restartcount();
+  inline void set_allocated_restartcount(::SAFplus::Rpc::amfMgmtRpc::RestartCount* restartcount);
+
+  // optional sint32 processId = 17;
+  inline bool has_processid() const;
+  inline void clear_processid();
+  static const int kProcessIdFieldNumber = 17;
+  inline ::google::protobuf::int32 processid() const;
+  inline void set_processid(::google::protobuf::int32 value);
+
+  // optional string lastError = 18;
+  inline bool has_lasterror() const;
+  inline void clear_lasterror();
+  static const int kLastErrorFieldNumber = 18;
+  inline const ::std::string& lasterror() const;
+  inline void set_lasterror(const ::std::string& value);
+  inline void set_lasterror(const char* value);
+  inline void set_lasterror(const char* value, size_t size);
+  inline ::std::string* mutable_lasterror();
+  inline ::std::string* release_lasterror();
+  inline void set_allocated_lasterror(::std::string* lasterror);
+
+  // optional .SAFplus.Rpc.amfMgmtRpc.PendingOperation pendingOperation = 19;
+  inline bool has_pendingoperation() const;
+  inline void clear_pendingoperation();
+  static const int kPendingOperationFieldNumber = 19;
+  inline ::SAFplus::Rpc::amfMgmtRpc::PendingOperation pendingoperation() const;
+  inline void set_pendingoperation(::SAFplus::Rpc::amfMgmtRpc::PendingOperation value);
+
+  // optional .SAFplus.Rpc.amfMgmtRpc.Date pendingOperationExpiration = 20;
+  inline bool has_pendingoperationexpiration() const;
+  inline void clear_pendingoperationexpiration();
+  static const int kPendingOperationExpirationFieldNumber = 20;
+  inline const ::SAFplus::Rpc::amfMgmtRpc::Date& pendingoperationexpiration() const;
+  inline ::SAFplus::Rpc::amfMgmtRpc::Date* mutable_pendingoperationexpiration();
+  inline ::SAFplus::Rpc::amfMgmtRpc::Date* release_pendingoperationexpiration();
+  inline void set_allocated_pendingoperationexpiration(::SAFplus::Rpc::amfMgmtRpc::Date* pendingoperationexpiration);
+
+  GOOGLE_PROTOBUF_EXTENSION_ACCESSORS(ComponentStatus)
+  // @@protoc_insertion_point(class_scope:SAFplus.Rpc.amfMgmtRpc.ComponentStatus)
+ private:
+  inline void set_has_name();
+  inline void clear_has_name();
+  inline void set_has_procstats();
+  inline void clear_has_procstats();
+  inline void set_has_presencestate();
+  inline void clear_has_presencestate();
+  inline void set_has_activeassignments();
+  inline void clear_has_activeassignments();
+  inline void set_has_standbyassignments();
+  inline void clear_has_standbyassignments();
+  inline void set_has_operstate();
+  inline void clear_has_operstate();
+  inline void set_has_readinessstate();
+  inline void clear_has_readinessstate();
+  inline void set_has_hareadinessstate();
+  inline void clear_has_hareadinessstate();
+  inline void set_has_hastate();
+  inline void clear_has_hastate();
+  inline void set_has_safversion();
+  inline void clear_has_safversion();
+  inline void set_has_compcategory();
+  inline void clear_has_compcategory();
+  inline void set_has_swbundle();
+  inline void clear_has_swbundle();
+  inline void set_has_numinstantiationattempts();
+  inline void clear_has_numinstantiationattempts();
+  inline void set_has_lastinstantiation();
+  inline void clear_has_lastinstantiation();
+  inline void set_has_restartcount();
+  inline void clear_has_restartcount();
+  inline void set_has_processid();
+  inline void clear_has_processid();
+  inline void set_has_lasterror();
+  inline void clear_has_lasterror();
+  inline void set_has_pendingoperation();
+  inline void clear_has_pendingoperation();
+  inline void set_has_pendingoperationexpiration();
+  inline void clear_has_pendingoperationexpiration();
+
+  ::google::protobuf::internal::ExtensionSet _extensions_;
+
+  ::google::protobuf::UnknownFieldSet _unknown_fields_;
+
+  ::google::protobuf::uint32 _has_bits_[1];
+  mutable int _cached_size_;
+  ::std::string* name_;
+  ::SAFplus::Rpc::amfMgmtRpc::ProcStats* procstats_;
+  ::SAFplus::Rpc::amfMgmtRpc::ActiveAssignments* activeassignments_;
+  ::SAFplus::Rpc::amfMgmtRpc::StandbyAssignments* standbyassignments_;
+  int presencestate_;
+  bool operstate_;
+  ::google::protobuf::RepeatedPtrField< ::std::string> assignedwork_;
+  int readinessstate_;
+  int hareadinessstate_;
+  ::std::string* safversion_;
+  int hastate_;
+  ::google::protobuf::uint32 compcategory_;
+  ::std::string* swbundle_;
+  ::SAFplus::Rpc::amfMgmtRpc::Date* lastinstantiation_;
+  ::google::protobuf::uint32 numinstantiationattempts_;
+  ::google::protobuf::int32 processid_;
+  ::SAFplus::Rpc::amfMgmtRpc::RestartCount* restartcount_;
+  ::std::string* lasterror_;
+  ::SAFplus::Rpc::amfMgmtRpc::Date* pendingoperationexpiration_;
+  int pendingoperation_;
+  friend void  protobuf_AddDesc_amfMgmtRpc_2eproto();
+  friend void protobuf_AssignDesc_amfMgmtRpc_2eproto();
+  friend void protobuf_ShutdownFile_amfMgmtRpc_2eproto();
+
+  void InitAsDefaultInstance();
+  static ComponentStatus* default_instance_;
+};
+// -------------------------------------------------------------------
+
+class ComponentServiceInstanceStatus : public ::google::protobuf::Message {
+ public:
+  ComponentServiceInstanceStatus();
+  virtual ~ComponentServiceInstanceStatus();
+
+  ComponentServiceInstanceStatus(const ComponentServiceInstanceStatus& from);
+
+  inline ComponentServiceInstanceStatus& operator=(const ComponentServiceInstanceStatus& from) {
+    CopyFrom(from);
+    return *this;
+  }
+
+  inline const ::google::protobuf::UnknownFieldSet& unknown_fields() const {
+    return _unknown_fields_;
+  }
+
+  inline ::google::protobuf::UnknownFieldSet* mutable_unknown_fields() {
+    return &_unknown_fields_;
+  }
+
+  static const ::google::protobuf::Descriptor* descriptor();
+  static const ComponentServiceInstanceStatus& default_instance();
+
+  void Swap(ComponentServiceInstanceStatus* other);
+
+  // implements Message ----------------------------------------------
+
+  ComponentServiceInstanceStatus* New() const;
+  void CopyFrom(const ::google::protobuf::Message& from);
+  void MergeFrom(const ::google::protobuf::Message& from);
+  void CopyFrom(const ComponentServiceInstanceStatus& from);
+  void MergeFrom(const ComponentServiceInstanceStatus& from);
+  void Clear();
+  bool IsInitialized() const;
+
+  int ByteSize() const;
+  bool MergePartialFromCodedStream(
+      ::google::protobuf::io::CodedInputStream* input);
+  void SerializeWithCachedSizes(
+      ::google::protobuf::io::CodedOutputStream* output) const;
+  ::google::protobuf::uint8* SerializeWithCachedSizesToArray(::google::protobuf::uint8* output) const;
+  int GetCachedSize() const { return _cached_size_; }
+  private:
+  void SharedCtor();
+  void SharedDtor();
+  void SetCachedSize(int size) const;
+  public:
+  ::google::protobuf::Metadata GetMetadata() const;
+
+  // nested types ----------------------------------------------------
+
+  // accessors -------------------------------------------------------
+
+  // optional string name = 1;
+  inline bool has_name() const;
+  inline void clear_name();
+  static const int kNameFieldNumber = 1;
+  inline const ::std::string& name() const;
+  inline void set_name(const ::std::string& value);
+  inline void set_name(const char* value);
+  inline void set_name(const char* value, size_t size);
+  inline ::std::string* mutable_name();
+  inline ::std::string* release_name();
+  inline void set_allocated_name(::std::string* name);
+
+  // repeated string standbyComponents = 2;
+  inline int standbycomponents_size() const;
+  inline void clear_standbycomponents();
+  static const int kStandbyComponentsFieldNumber = 2;
+  inline const ::std::string& standbycomponents(int index) const;
+  inline ::std::string* mutable_standbycomponents(int index);
+  inline void set_standbycomponents(int index, const ::std::string& value);
+  inline void set_standbycomponents(int index, const char* value);
+  inline void set_standbycomponents(int index, const char* value, size_t size);
+  inline ::std::string* add_standbycomponents();
+  inline void add_standbycomponents(const ::std::string& value);
+  inline void add_standbycomponents(const char* value);
+  inline void add_standbycomponents(const char* value, size_t size);
+  inline const ::google::protobuf::RepeatedPtrField< ::std::string>& standbycomponents() const;
+  inline ::google::protobuf::RepeatedPtrField< ::std::string>* mutable_standbycomponents();
+
+  // repeated string activeComponents = 3;
+  inline int activecomponents_size() const;
+  inline void clear_activecomponents();
+  static const int kActiveComponentsFieldNumber = 3;
+  inline const ::std::string& activecomponents(int index) const;
+  inline ::std::string* mutable_activecomponents(int index);
+  inline void set_activecomponents(int index, const ::std::string& value);
+  inline void set_activecomponents(int index, const char* value);
+  inline void set_activecomponents(int index, const char* value, size_t size);
+  inline ::std::string* add_activecomponents();
+  inline void add_activecomponents(const ::std::string& value);
+  inline void add_activecomponents(const char* value);
+  inline void add_activecomponents(const char* value, size_t size);
+  inline const ::google::protobuf::RepeatedPtrField< ::std::string>& activecomponents() const;
+  inline ::google::protobuf::RepeatedPtrField< ::std::string>* mutable_activecomponents();
+
+  GOOGLE_PROTOBUF_EXTENSION_ACCESSORS(ComponentServiceInstanceStatus)
+  // @@protoc_insertion_point(class_scope:SAFplus.Rpc.amfMgmtRpc.ComponentServiceInstanceStatus)
+ private:
+  inline void set_has_name();
+  inline void clear_has_name();
+
+  ::google::protobuf::internal::ExtensionSet _extensions_;
+
+  ::google::protobuf::UnknownFieldSet _unknown_fields_;
+
+  ::google::protobuf::uint32 _has_bits_[1];
+  mutable int _cached_size_;
+  ::std::string* name_;
+  ::google::protobuf::RepeatedPtrField< ::std::string> standbycomponents_;
+  ::google::protobuf::RepeatedPtrField< ::std::string> activecomponents_;
+  friend void  protobuf_AddDesc_amfMgmtRpc_2eproto();
+  friend void protobuf_AssignDesc_amfMgmtRpc_2eproto();
+  friend void protobuf_ShutdownFile_amfMgmtRpc_2eproto();
+
+  void InitAsDefaultInstance();
+  static ComponentServiceInstanceStatus* default_instance_;
+};
+// -------------------------------------------------------------------
+
+class NumActiveAssignments : public ::google::protobuf::Message {
+ public:
+  NumActiveAssignments();
+  virtual ~NumActiveAssignments();
+
+  NumActiveAssignments(const NumActiveAssignments& from);
+
+  inline NumActiveAssignments& operator=(const NumActiveAssignments& from) {
+    CopyFrom(from);
+    return *this;
+  }
+
+  inline const ::google::protobuf::UnknownFieldSet& unknown_fields() const {
+    return _unknown_fields_;
+  }
+
+  inline ::google::protobuf::UnknownFieldSet* mutable_unknown_fields() {
+    return &_unknown_fields_;
+  }
+
+  static const ::google::protobuf::Descriptor* descriptor();
+  static const NumActiveAssignments& default_instance();
+
+  void Swap(NumActiveAssignments* other);
+
+  // implements Message ----------------------------------------------
+
+  NumActiveAssignments* New() const;
+  void CopyFrom(const ::google::protobuf::Message& from);
+  void MergeFrom(const ::google::protobuf::Message& from);
+  void CopyFrom(const NumActiveAssignments& from);
+  void MergeFrom(const NumActiveAssignments& from);
+  void Clear();
+  bool IsInitialized() const;
+
+  int ByteSize() const;
+  bool MergePartialFromCodedStream(
+      ::google::protobuf::io::CodedInputStream* input);
+  void SerializeWithCachedSizes(
+      ::google::protobuf::io::CodedOutputStream* output) const;
+  ::google::protobuf::uint8* SerializeWithCachedSizesToArray(::google::protobuf::uint8* output) const;
+  int GetCachedSize() const { return _cached_size_; }
+  private:
+  void SharedCtor();
+  void SharedDtor();
+  void SetCachedSize(int size) const;
+  public:
+  ::google::protobuf::Metadata GetMetadata() const;
+
+  // nested types ----------------------------------------------------
+
+  // accessors -------------------------------------------------------
+
+  // optional .SAFplus.Rpc.amfMgmtRpc.IntStatistic IntStatistic = 1;
+  inline bool has_intstatistic() const;
+  inline void clear_intstatistic();
+  static const int kIntStatisticFieldNumber = 1;
+  inline const ::SAFplus::Rpc::amfMgmtRpc::IntStatistic& intstatistic() const;
+  inline ::SAFplus::Rpc::amfMgmtRpc::IntStatistic* mutable_intstatistic();
+  inline ::SAFplus::Rpc::amfMgmtRpc::IntStatistic* release_intstatistic();
+  inline void set_allocated_intstatistic(::SAFplus::Rpc::amfMgmtRpc::IntStatistic* intstatistic);
+
+  GOOGLE_PROTOBUF_EXTENSION_ACCESSORS(NumActiveAssignments)
+  // @@protoc_insertion_point(class_scope:SAFplus.Rpc.amfMgmtRpc.NumActiveAssignments)
+ private:
+  inline void set_has_intstatistic();
+  inline void clear_has_intstatistic();
+
+  ::google::protobuf::internal::ExtensionSet _extensions_;
+
+  ::google::protobuf::UnknownFieldSet _unknown_fields_;
+
+  ::google::protobuf::uint32 _has_bits_[1];
+  mutable int _cached_size_;
+  ::SAFplus::Rpc::amfMgmtRpc::IntStatistic* intstatistic_;
+  friend void  protobuf_AddDesc_amfMgmtRpc_2eproto();
+  friend void protobuf_AssignDesc_amfMgmtRpc_2eproto();
+  friend void protobuf_ShutdownFile_amfMgmtRpc_2eproto();
+
+  void InitAsDefaultInstance();
+  static NumActiveAssignments* default_instance_;
+};
+// -------------------------------------------------------------------
+
+class NumStandbyAssignments : public ::google::protobuf::Message {
+ public:
+  NumStandbyAssignments();
+  virtual ~NumStandbyAssignments();
+
+  NumStandbyAssignments(const NumStandbyAssignments& from);
+
+  inline NumStandbyAssignments& operator=(const NumStandbyAssignments& from) {
+    CopyFrom(from);
+    return *this;
+  }
+
+  inline const ::google::protobuf::UnknownFieldSet& unknown_fields() const {
+    return _unknown_fields_;
+  }
+
+  inline ::google::protobuf::UnknownFieldSet* mutable_unknown_fields() {
+    return &_unknown_fields_;
+  }
+
+  static const ::google::protobuf::Descriptor* descriptor();
+  static const NumStandbyAssignments& default_instance();
+
+  void Swap(NumStandbyAssignments* other);
+
+  // implements Message ----------------------------------------------
+
+  NumStandbyAssignments* New() const;
+  void CopyFrom(const ::google::protobuf::Message& from);
+  void MergeFrom(const ::google::protobuf::Message& from);
+  void CopyFrom(const NumStandbyAssignments& from);
+  void MergeFrom(const NumStandbyAssignments& from);
+  void Clear();
+  bool IsInitialized() const;
+
+  int ByteSize() const;
+  bool MergePartialFromCodedStream(
+      ::google::protobuf::io::CodedInputStream* input);
+  void SerializeWithCachedSizes(
+      ::google::protobuf::io::CodedOutputStream* output) const;
+  ::google::protobuf::uint8* SerializeWithCachedSizesToArray(::google::protobuf::uint8* output) const;
+  int GetCachedSize() const { return _cached_size_; }
+  private:
+  void SharedCtor();
+  void SharedDtor();
+  void SetCachedSize(int size) const;
+  public:
+  ::google::protobuf::Metadata GetMetadata() const;
+
+  // nested types ----------------------------------------------------
+
+  // accessors -------------------------------------------------------
+
+  // optional .SAFplus.Rpc.amfMgmtRpc.IntStatistic IntStatistic = 1;
+  inline bool has_intstatistic() const;
+  inline void clear_intstatistic();
+  static const int kIntStatisticFieldNumber = 1;
+  inline const ::SAFplus::Rpc::amfMgmtRpc::IntStatistic& intstatistic() const;
+  inline ::SAFplus::Rpc::amfMgmtRpc::IntStatistic* mutable_intstatistic();
+  inline ::SAFplus::Rpc::amfMgmtRpc::IntStatistic* release_intstatistic();
+  inline void set_allocated_intstatistic(::SAFplus::Rpc::amfMgmtRpc::IntStatistic* intstatistic);
+
+  GOOGLE_PROTOBUF_EXTENSION_ACCESSORS(NumStandbyAssignments)
+  // @@protoc_insertion_point(class_scope:SAFplus.Rpc.amfMgmtRpc.NumStandbyAssignments)
+ private:
+  inline void set_has_intstatistic();
+  inline void clear_has_intstatistic();
+
+  ::google::protobuf::internal::ExtensionSet _extensions_;
+
+  ::google::protobuf::UnknownFieldSet _unknown_fields_;
+
+  ::google::protobuf::uint32 _has_bits_[1];
+  mutable int _cached_size_;
+  ::SAFplus::Rpc::amfMgmtRpc::IntStatistic* intstatistic_;
+  friend void  protobuf_AddDesc_amfMgmtRpc_2eproto();
+  friend void protobuf_AssignDesc_amfMgmtRpc_2eproto();
+  friend void protobuf_ShutdownFile_amfMgmtRpc_2eproto();
+
+  void InitAsDefaultInstance();
+  static NumStandbyAssignments* default_instance_;
+};
+// -------------------------------------------------------------------
+
+class ServiceInstanceStatus : public ::google::protobuf::Message {
+ public:
+  ServiceInstanceStatus();
+  virtual ~ServiceInstanceStatus();
+
+  ServiceInstanceStatus(const ServiceInstanceStatus& from);
+
+  inline ServiceInstanceStatus& operator=(const ServiceInstanceStatus& from) {
+    CopyFrom(from);
+    return *this;
+  }
+
+  inline const ::google::protobuf::UnknownFieldSet& unknown_fields() const {
+    return _unknown_fields_;
+  }
+
+  inline ::google::protobuf::UnknownFieldSet* mutable_unknown_fields() {
+    return &_unknown_fields_;
+  }
+
+  static const ::google::protobuf::Descriptor* descriptor();
+  static const ServiceInstanceStatus& default_instance();
+
+  void Swap(ServiceInstanceStatus* other);
+
+  // implements Message ----------------------------------------------
+
+  ServiceInstanceStatus* New() const;
+  void CopyFrom(const ::google::protobuf::Message& from);
+  void MergeFrom(const ::google::protobuf::Message& from);
+  void CopyFrom(const ServiceInstanceStatus& from);
+  void MergeFrom(const ServiceInstanceStatus& from);
+  void Clear();
+  bool IsInitialized() const;
+
+  int ByteSize() const;
+  bool MergePartialFromCodedStream(
+      ::google::protobuf::io::CodedInputStream* input);
+  void SerializeWithCachedSizes(
+      ::google::protobuf::io::CodedOutputStream* output) const;
+  ::google::protobuf::uint8* SerializeWithCachedSizesToArray(::google::protobuf::uint8* output) const;
+  int GetCachedSize() const { return _cached_size_; }
+  private:
+  void SharedCtor();
+  void SharedDtor();
+  void SetCachedSize(int size) const;
+  public:
+  ::google::protobuf::Metadata GetMetadata() const;
+
+  // nested types ----------------------------------------------------
+
+  // accessors -------------------------------------------------------
+
+  // optional string name = 1;
+  inline bool has_name() const;
+  inline void clear_name();
+  static const int kNameFieldNumber = 1;
+  inline const ::std::string& name() const;
+  inline void set_name(const ::std::string& value);
+  inline void set_name(const char* value);
+  inline void set_name(const char* value, size_t size);
+  inline ::std::string* mutable_name();
+  inline ::std::string* release_name();
+  inline void set_allocated_name(::std::string* name);
+
+  // optional .SAFplus.Rpc.amfMgmtRpc.AssignmentState assignmentState = 2;
+  inline bool has_assignmentstate() const;
+  inline void clear_assignmentstate();
+  static const int kAssignmentStateFieldNumber = 2;
+  inline ::SAFplus::Rpc::amfMgmtRpc::AssignmentState assignmentstate() const;
+  inline void set_assignmentstate(::SAFplus::Rpc::amfMgmtRpc::AssignmentState value);
+
+  // repeated string activeAssignments = 3;
+  inline int activeassignments_size() const;
+  inline void clear_activeassignments();
+  static const int kActiveAssignmentsFieldNumber = 3;
+  inline const ::std::string& activeassignments(int index) const;
+  inline ::std::string* mutable_activeassignments(int index);
+  inline void set_activeassignments(int index, const ::std::string& value);
+  inline void set_activeassignments(int index, const char* value);
+  inline void set_activeassignments(int index, const char* value, size_t size);
+  inline ::std::string* add_activeassignments();
+  inline void add_activeassignments(const ::std::string& value);
+  inline void add_activeassignments(const char* value);
+  inline void add_activeassignments(const char* value, size_t size);
+  inline const ::google::protobuf::RepeatedPtrField< ::std::string>& activeassignments() const;
+  inline ::google::protobuf::RepeatedPtrField< ::std::string>* mutable_activeassignments();
+
+  // repeated string standbyAssignments = 4;
+  inline int standbyassignments_size() const;
+  inline void clear_standbyassignments();
+  static const int kStandbyAssignmentsFieldNumber = 4;
+  inline const ::std::string& standbyassignments(int index) const;
+  inline ::std::string* mutable_standbyassignments(int index);
+  inline void set_standbyassignments(int index, const ::std::string& value);
+  inline void set_standbyassignments(int index, const char* value);
+  inline void set_standbyassignments(int index, const char* value, size_t size);
+  inline ::std::string* add_standbyassignments();
+  inline void add_standbyassignments(const ::std::string& value);
+  inline void add_standbyassignments(const char* value);
+  inline void add_standbyassignments(const char* value, size_t size);
+  inline const ::google::protobuf::RepeatedPtrField< ::std::string>& standbyassignments() const;
+  inline ::google::protobuf::RepeatedPtrField< ::std::string>* mutable_standbyassignments();
+
+  // optional .SAFplus.Rpc.amfMgmtRpc.NumActiveAssignments numActiveAssignments = 5;
+  inline bool has_numactiveassignments() const;
+  inline void clear_numactiveassignments();
+  static const int kNumActiveAssignmentsFieldNumber = 5;
+  inline const ::SAFplus::Rpc::amfMgmtRpc::NumActiveAssignments& numactiveassignments() const;
+  inline ::SAFplus::Rpc::amfMgmtRpc::NumActiveAssignments* mutable_numactiveassignments();
+  inline ::SAFplus::Rpc::amfMgmtRpc::NumActiveAssignments* release_numactiveassignments();
+  inline void set_allocated_numactiveassignments(::SAFplus::Rpc::amfMgmtRpc::NumActiveAssignments* numactiveassignments);
+
+  // optional .SAFplus.Rpc.amfMgmtRpc.NumStandbyAssignments numStandbyAssignments = 6;
+  inline bool has_numstandbyassignments() const;
+  inline void clear_numstandbyassignments();
+  static const int kNumStandbyAssignmentsFieldNumber = 6;
+  inline const ::SAFplus::Rpc::amfMgmtRpc::NumStandbyAssignments& numstandbyassignments() const;
+  inline ::SAFplus::Rpc::amfMgmtRpc::NumStandbyAssignments* mutable_numstandbyassignments();
+  inline ::SAFplus::Rpc::amfMgmtRpc::NumStandbyAssignments* release_numstandbyassignments();
+  inline void set_allocated_numstandbyassignments(::SAFplus::Rpc::amfMgmtRpc::NumStandbyAssignments* numstandbyassignments);
+
+  GOOGLE_PROTOBUF_EXTENSION_ACCESSORS(ServiceInstanceStatus)
+  // @@protoc_insertion_point(class_scope:SAFplus.Rpc.amfMgmtRpc.ServiceInstanceStatus)
+ private:
+  inline void set_has_name();
+  inline void clear_has_name();
+  inline void set_has_assignmentstate();
+  inline void clear_has_assignmentstate();
+  inline void set_has_numactiveassignments();
+  inline void clear_has_numactiveassignments();
+  inline void set_has_numstandbyassignments();
+  inline void clear_has_numstandbyassignments();
+
+  ::google::protobuf::internal::ExtensionSet _extensions_;
+
+  ::google::protobuf::UnknownFieldSet _unknown_fields_;
+
+  ::google::protobuf::uint32 _has_bits_[1];
+  mutable int _cached_size_;
+  ::std::string* name_;
+  ::google::protobuf::RepeatedPtrField< ::std::string> activeassignments_;
+  ::google::protobuf::RepeatedPtrField< ::std::string> standbyassignments_;
+  ::SAFplus::Rpc::amfMgmtRpc::NumActiveAssignments* numactiveassignments_;
+  ::SAFplus::Rpc::amfMgmtRpc::NumStandbyAssignments* numstandbyassignments_;
+  int assignmentstate_;
+  friend void  protobuf_AddDesc_amfMgmtRpc_2eproto();
+  friend void protobuf_AssignDesc_amfMgmtRpc_2eproto();
+  friend void protobuf_ShutdownFile_amfMgmtRpc_2eproto();
+
+  void InitAsDefaultInstance();
+  static ServiceInstanceStatus* default_instance_;
+};
+// -------------------------------------------------------------------
+
+class NumActiveServiceInstances : public ::google::protobuf::Message {
+ public:
+  NumActiveServiceInstances();
+  virtual ~NumActiveServiceInstances();
+
+  NumActiveServiceInstances(const NumActiveServiceInstances& from);
+
+  inline NumActiveServiceInstances& operator=(const NumActiveServiceInstances& from) {
+    CopyFrom(from);
+    return *this;
+  }
+
+  inline const ::google::protobuf::UnknownFieldSet& unknown_fields() const {
+    return _unknown_fields_;
+  }
+
+  inline ::google::protobuf::UnknownFieldSet* mutable_unknown_fields() {
+    return &_unknown_fields_;
+  }
+
+  static const ::google::protobuf::Descriptor* descriptor();
+  static const NumActiveServiceInstances& default_instance();
+
+  void Swap(NumActiveServiceInstances* other);
+
+  // implements Message ----------------------------------------------
+
+  NumActiveServiceInstances* New() const;
+  void CopyFrom(const ::google::protobuf::Message& from);
+  void MergeFrom(const ::google::protobuf::Message& from);
+  void CopyFrom(const NumActiveServiceInstances& from);
+  void MergeFrom(const NumActiveServiceInstances& from);
+  void Clear();
+  bool IsInitialized() const;
+
+  int ByteSize() const;
+  bool MergePartialFromCodedStream(
+      ::google::protobuf::io::CodedInputStream* input);
+  void SerializeWithCachedSizes(
+      ::google::protobuf::io::CodedOutputStream* output) const;
+  ::google::protobuf::uint8* SerializeWithCachedSizesToArray(::google::protobuf::uint8* output) const;
+  int GetCachedSize() const { return _cached_size_; }
+  private:
+  void SharedCtor();
+  void SharedDtor();
+  void SetCachedSize(int size) const;
+  public:
+  ::google::protobuf::Metadata GetMetadata() const;
+
+  // nested types ----------------------------------------------------
+
+  // accessors -------------------------------------------------------
+
+  // optional .SAFplus.Rpc.amfMgmtRpc.IntStatistic IntStatistic = 1;
+  inline bool has_intstatistic() const;
+  inline void clear_intstatistic();
+  static const int kIntStatisticFieldNumber = 1;
+  inline const ::SAFplus::Rpc::amfMgmtRpc::IntStatistic& intstatistic() const;
+  inline ::SAFplus::Rpc::amfMgmtRpc::IntStatistic* mutable_intstatistic();
+  inline ::SAFplus::Rpc::amfMgmtRpc::IntStatistic* release_intstatistic();
+  inline void set_allocated_intstatistic(::SAFplus::Rpc::amfMgmtRpc::IntStatistic* intstatistic);
+
+  GOOGLE_PROTOBUF_EXTENSION_ACCESSORS(NumActiveServiceInstances)
+  // @@protoc_insertion_point(class_scope:SAFplus.Rpc.amfMgmtRpc.NumActiveServiceInstances)
+ private:
+  inline void set_has_intstatistic();
+  inline void clear_has_intstatistic();
+
+  ::google::protobuf::internal::ExtensionSet _extensions_;
+
+  ::google::protobuf::UnknownFieldSet _unknown_fields_;
+
+  ::google::protobuf::uint32 _has_bits_[1];
+  mutable int _cached_size_;
+  ::SAFplus::Rpc::amfMgmtRpc::IntStatistic* intstatistic_;
+  friend void  protobuf_AddDesc_amfMgmtRpc_2eproto();
+  friend void protobuf_AssignDesc_amfMgmtRpc_2eproto();
+  friend void protobuf_ShutdownFile_amfMgmtRpc_2eproto();
+
+  void InitAsDefaultInstance();
+  static NumActiveServiceInstances* default_instance_;
+};
+// -------------------------------------------------------------------
+
+class NumStandbyServiceInstances : public ::google::protobuf::Message {
+ public:
+  NumStandbyServiceInstances();
+  virtual ~NumStandbyServiceInstances();
+
+  NumStandbyServiceInstances(const NumStandbyServiceInstances& from);
+
+  inline NumStandbyServiceInstances& operator=(const NumStandbyServiceInstances& from) {
+    CopyFrom(from);
+    return *this;
+  }
+
+  inline const ::google::protobuf::UnknownFieldSet& unknown_fields() const {
+    return _unknown_fields_;
+  }
+
+  inline ::google::protobuf::UnknownFieldSet* mutable_unknown_fields() {
+    return &_unknown_fields_;
+  }
+
+  static const ::google::protobuf::Descriptor* descriptor();
+  static const NumStandbyServiceInstances& default_instance();
+
+  void Swap(NumStandbyServiceInstances* other);
+
+  // implements Message ----------------------------------------------
+
+  NumStandbyServiceInstances* New() const;
+  void CopyFrom(const ::google::protobuf::Message& from);
+  void MergeFrom(const ::google::protobuf::Message& from);
+  void CopyFrom(const NumStandbyServiceInstances& from);
+  void MergeFrom(const NumStandbyServiceInstances& from);
+  void Clear();
+  bool IsInitialized() const;
+
+  int ByteSize() const;
+  bool MergePartialFromCodedStream(
+      ::google::protobuf::io::CodedInputStream* input);
+  void SerializeWithCachedSizes(
+      ::google::protobuf::io::CodedOutputStream* output) const;
+  ::google::protobuf::uint8* SerializeWithCachedSizesToArray(::google::protobuf::uint8* output) const;
+  int GetCachedSize() const { return _cached_size_; }
+  private:
+  void SharedCtor();
+  void SharedDtor();
+  void SetCachedSize(int size) const;
+  public:
+  ::google::protobuf::Metadata GetMetadata() const;
+
+  // nested types ----------------------------------------------------
+
+  // accessors -------------------------------------------------------
+
+  // optional .SAFplus.Rpc.amfMgmtRpc.IntStatistic IntStatistic = 1;
+  inline bool has_intstatistic() const;
+  inline void clear_intstatistic();
+  static const int kIntStatisticFieldNumber = 1;
+  inline const ::SAFplus::Rpc::amfMgmtRpc::IntStatistic& intstatistic() const;
+  inline ::SAFplus::Rpc::amfMgmtRpc::IntStatistic* mutable_intstatistic();
+  inline ::SAFplus::Rpc::amfMgmtRpc::IntStatistic* release_intstatistic();
+  inline void set_allocated_intstatistic(::SAFplus::Rpc::amfMgmtRpc::IntStatistic* intstatistic);
+
+  GOOGLE_PROTOBUF_EXTENSION_ACCESSORS(NumStandbyServiceInstances)
+  // @@protoc_insertion_point(class_scope:SAFplus.Rpc.amfMgmtRpc.NumStandbyServiceInstances)
+ private:
+  inline void set_has_intstatistic();
+  inline void clear_has_intstatistic();
+
+  ::google::protobuf::internal::ExtensionSet _extensions_;
+
+  ::google::protobuf::UnknownFieldSet _unknown_fields_;
+
+  ::google::protobuf::uint32 _has_bits_[1];
+  mutable int _cached_size_;
+  ::SAFplus::Rpc::amfMgmtRpc::IntStatistic* intstatistic_;
+  friend void  protobuf_AddDesc_amfMgmtRpc_2eproto();
+  friend void protobuf_AssignDesc_amfMgmtRpc_2eproto();
+  friend void protobuf_ShutdownFile_amfMgmtRpc_2eproto();
+
+  void InitAsDefaultInstance();
+  static NumStandbyServiceInstances* default_instance_;
+};
+// -------------------------------------------------------------------
+
+class ServiceUnitStatus : public ::google::protobuf::Message {
+ public:
+  ServiceUnitStatus();
+  virtual ~ServiceUnitStatus();
+
+  ServiceUnitStatus(const ServiceUnitStatus& from);
+
+  inline ServiceUnitStatus& operator=(const ServiceUnitStatus& from) {
+    CopyFrom(from);
+    return *this;
+  }
+
+  inline const ::google::protobuf::UnknownFieldSet& unknown_fields() const {
+    return _unknown_fields_;
+  }
+
+  inline ::google::protobuf::UnknownFieldSet* mutable_unknown_fields() {
+    return &_unknown_fields_;
+  }
+
+  static const ::google::protobuf::Descriptor* descriptor();
+  static const ServiceUnitStatus& default_instance();
+
+  void Swap(ServiceUnitStatus* other);
+
+  // implements Message ----------------------------------------------
+
+  ServiceUnitStatus* New() const;
+  void CopyFrom(const ::google::protobuf::Message& from);
+  void MergeFrom(const ::google::protobuf::Message& from);
+  void CopyFrom(const ServiceUnitStatus& from);
+  void MergeFrom(const ServiceUnitStatus& from);
+  void Clear();
+  bool IsInitialized() const;
+
+  int ByteSize() const;
+  bool MergePartialFromCodedStream(
+      ::google::protobuf::io::CodedInputStream* input);
+  void SerializeWithCachedSizes(
+      ::google::protobuf::io::CodedOutputStream* output) const;
+  ::google::protobuf::uint8* SerializeWithCachedSizesToArray(::google::protobuf::uint8* output) const;
+  int GetCachedSize() const { return _cached_size_; }
+  private:
+  void SharedCtor();
+  void SharedDtor();
+  void SetCachedSize(int size) const;
+  public:
+  ::google::protobuf::Metadata GetMetadata() const;
+
+  // nested types ----------------------------------------------------
+
+  // accessors -------------------------------------------------------
+
+  // optional string name = 1;
+  inline bool has_name() const;
+  inline void clear_name();
+  static const int kNameFieldNumber = 1;
+  inline const ::std::string& name() const;
+  inline void set_name(const ::std::string& value);
+  inline void set_name(const char* value);
+  inline void set_name(const char* value, size_t size);
+  inline ::std::string* mutable_name();
+  inline ::std::string* release_name();
+  inline void set_allocated_name(::std::string* name);
+
+  // optional bool preinstantiable = 2;
+  inline bool has_preinstantiable() const;
+  inline void clear_preinstantiable();
+  static const int kPreinstantiableFieldNumber = 2;
+  inline bool preinstantiable() const;
+  inline void set_preinstantiable(bool value);
+
+  // optional .SAFplus.Rpc.amfMgmtRpc.PresenceState presenceState = 3;
+  inline bool has_presencestate() const;
+  inline void clear_presencestate();
+  static const int kPresenceStateFieldNumber = 3;
+  inline ::SAFplus::Rpc::amfMgmtRpc::PresenceState presencestate() const;
+  inline void set_presencestate(::SAFplus::Rpc::amfMgmtRpc::PresenceState value);
+
+  // optional .SAFplus.Rpc.amfMgmtRpc.ReadinessState readinessState = 4;
+  inline bool has_readinessstate() const;
+  inline void clear_readinessstate();
+  static const int kReadinessStateFieldNumber = 4;
+  inline ::SAFplus::Rpc::amfMgmtRpc::ReadinessState readinessstate() const;
+  inline void set_readinessstate(::SAFplus::Rpc::amfMgmtRpc::ReadinessState value);
+
+  // optional .SAFplus.Rpc.amfMgmtRpc.HighAvailabilityReadinessState haReadinessState = 5;
+  inline bool has_hareadinessstate() const;
+  inline void clear_hareadinessstate();
+  static const int kHaReadinessStateFieldNumber = 5;
+  inline ::SAFplus::Rpc::amfMgmtRpc::HighAvailabilityReadinessState hareadinessstate() const;
+  inline void set_hareadinessstate(::SAFplus::Rpc::amfMgmtRpc::HighAvailabilityReadinessState value);
+
+  // optional .SAFplus.Rpc.amfMgmtRpc.HighAvailabilityState haState = 6;
+  inline bool has_hastate() const;
+  inline void clear_hastate();
+  static const int kHaStateFieldNumber = 6;
+  inline ::SAFplus::Rpc::amfMgmtRpc::HighAvailabilityState hastate() const;
+  inline void set_hastate(::SAFplus::Rpc::amfMgmtRpc::HighAvailabilityState value);
+
+  // optional bool operState = 7;
+  inline bool has_operstate() const;
+  inline void clear_operstate();
+  static const int kOperStateFieldNumber = 7;
+  inline bool operstate() const;
+  inline void set_operstate(bool value);
+
+  // repeated string assignedServiceInstances = 8;
+  inline int assignedserviceinstances_size() const;
+  inline void clear_assignedserviceinstances();
+  static const int kAssignedServiceInstancesFieldNumber = 8;
+  inline const ::std::string& assignedserviceinstances(int index) const;
+  inline ::std::string* mutable_assignedserviceinstances(int index);
+  inline void set_assignedserviceinstances(int index, const ::std::string& value);
+  inline void set_assignedserviceinstances(int index, const char* value);
+  inline void set_assignedserviceinstances(int index, const char* value, size_t size);
+  inline ::std::string* add_assignedserviceinstances();
+  inline void add_assignedserviceinstances(const ::std::string& value);
+  inline void add_assignedserviceinstances(const char* value);
+  inline void add_assignedserviceinstances(const char* value, size_t size);
+  inline const ::google::protobuf::RepeatedPtrField< ::std::string>& assignedserviceinstances() const;
+  inline ::google::protobuf::RepeatedPtrField< ::std::string>* mutable_assignedserviceinstances();
+
+  // optional .SAFplus.Rpc.amfMgmtRpc.NumActiveServiceInstances numActiveServiceInstances = 9;
+  inline bool has_numactiveserviceinstances() const;
+  inline void clear_numactiveserviceinstances();
+  static const int kNumActiveServiceInstancesFieldNumber = 9;
+  inline const ::SAFplus::Rpc::amfMgmtRpc::NumActiveServiceInstances& numactiveserviceinstances() const;
+  inline ::SAFplus::Rpc::amfMgmtRpc::NumActiveServiceInstances* mutable_numactiveserviceinstances();
+  inline ::SAFplus::Rpc::amfMgmtRpc::NumActiveServiceInstances* release_numactiveserviceinstances();
+  inline void set_allocated_numactiveserviceinstances(::SAFplus::Rpc::amfMgmtRpc::NumActiveServiceInstances* numactiveserviceinstances);
+
+  // optional .SAFplus.Rpc.amfMgmtRpc.NumStandbyServiceInstances numStandbyServiceInstances = 10;
+  inline bool has_numstandbyserviceinstances() const;
+  inline void clear_numstandbyserviceinstances();
+  static const int kNumStandbyServiceInstancesFieldNumber = 10;
+  inline const ::SAFplus::Rpc::amfMgmtRpc::NumStandbyServiceInstances& numstandbyserviceinstances() const;
+  inline ::SAFplus::Rpc::amfMgmtRpc::NumStandbyServiceInstances* mutable_numstandbyserviceinstances();
+  inline ::SAFplus::Rpc::amfMgmtRpc::NumStandbyServiceInstances* release_numstandbyserviceinstances();
+  inline void set_allocated_numstandbyserviceinstances(::SAFplus::Rpc::amfMgmtRpc::NumStandbyServiceInstances* numstandbyserviceinstances);
+
+  // optional .SAFplus.Rpc.amfMgmtRpc.RestartCount restartCount = 11;
+  inline bool has_restartcount() const;
+  inline void clear_restartcount();
+  static const int kRestartCountFieldNumber = 11;
+  inline const ::SAFplus::Rpc::amfMgmtRpc::RestartCount& restartcount() const;
+  inline ::SAFplus::Rpc::amfMgmtRpc::RestartCount* mutable_restartcount();
+  inline ::SAFplus::Rpc::amfMgmtRpc::RestartCount* release_restartcount();
+  inline void set_allocated_restartcount(::SAFplus::Rpc::amfMgmtRpc::RestartCount* restartcount);
+
+  GOOGLE_PROTOBUF_EXTENSION_ACCESSORS(ServiceUnitStatus)
+  // @@protoc_insertion_point(class_scope:SAFplus.Rpc.amfMgmtRpc.ServiceUnitStatus)
+ private:
+  inline void set_has_name();
+  inline void clear_has_name();
+  inline void set_has_preinstantiable();
+  inline void clear_has_preinstantiable();
+  inline void set_has_presencestate();
+  inline void clear_has_presencestate();
+  inline void set_has_readinessstate();
+  inline void clear_has_readinessstate();
+  inline void set_has_hareadinessstate();
+  inline void clear_has_hareadinessstate();
+  inline void set_has_hastate();
+  inline void clear_has_hastate();
+  inline void set_has_operstate();
+  inline void clear_has_operstate();
+  inline void set_has_numactiveserviceinstances();
+  inline void clear_has_numactiveserviceinstances();
+  inline void set_has_numstandbyserviceinstances();
+  inline void clear_has_numstandbyserviceinstances();
+  inline void set_has_restartcount();
+  inline void clear_has_restartcount();
+
+  ::google::protobuf::internal::ExtensionSet _extensions_;
+
+  ::google::protobuf::UnknownFieldSet _unknown_fields_;
+
+  ::google::protobuf::uint32 _has_bits_[1];
+  mutable int _cached_size_;
+  ::std::string* name_;
+  int presencestate_;
+  int readinessstate_;
+  bool preinstantiable_;
+  bool operstate_;
+  int hareadinessstate_;
+  ::google::protobuf::RepeatedPtrField< ::std::string> assignedserviceinstances_;
+  ::SAFplus::Rpc::amfMgmtRpc::NumActiveServiceInstances* numactiveserviceinstances_;
+  ::SAFplus::Rpc::amfMgmtRpc::NumStandbyServiceInstances* numstandbyserviceinstances_;
+  ::SAFplus::Rpc::amfMgmtRpc::RestartCount* restartcount_;
+  int hastate_;
+  friend void  protobuf_AddDesc_amfMgmtRpc_2eproto();
+  friend void protobuf_AssignDesc_amfMgmtRpc_2eproto();
+  friend void protobuf_ShutdownFile_amfMgmtRpc_2eproto();
+
+  void InitAsDefaultInstance();
+  static ServiceUnitStatus* default_instance_;
 };
 // -------------------------------------------------------------------
 
@@ -11160,6 +15565,1194 @@ class GetCSIConfigResponse : public ::google::protobuf::Message {
   void InitAsDefaultInstance();
   static GetCSIConfigResponse* default_instance_;
 };
+// -------------------------------------------------------------------
+
+class GetComponentStatusRequest : public ::google::protobuf::Message {
+ public:
+  GetComponentStatusRequest();
+  virtual ~GetComponentStatusRequest();
+
+  GetComponentStatusRequest(const GetComponentStatusRequest& from);
+
+  inline GetComponentStatusRequest& operator=(const GetComponentStatusRequest& from) {
+    CopyFrom(from);
+    return *this;
+  }
+
+  inline const ::google::protobuf::UnknownFieldSet& unknown_fields() const {
+    return _unknown_fields_;
+  }
+
+  inline ::google::protobuf::UnknownFieldSet* mutable_unknown_fields() {
+    return &_unknown_fields_;
+  }
+
+  static const ::google::protobuf::Descriptor* descriptor();
+  static const GetComponentStatusRequest& default_instance();
+
+  void Swap(GetComponentStatusRequest* other);
+
+  // implements Message ----------------------------------------------
+
+  GetComponentStatusRequest* New() const;
+  void CopyFrom(const ::google::protobuf::Message& from);
+  void MergeFrom(const ::google::protobuf::Message& from);
+  void CopyFrom(const GetComponentStatusRequest& from);
+  void MergeFrom(const GetComponentStatusRequest& from);
+  void Clear();
+  bool IsInitialized() const;
+
+  int ByteSize() const;
+  bool MergePartialFromCodedStream(
+      ::google::protobuf::io::CodedInputStream* input);
+  void SerializeWithCachedSizes(
+      ::google::protobuf::io::CodedOutputStream* output) const;
+  ::google::protobuf::uint8* SerializeWithCachedSizesToArray(::google::protobuf::uint8* output) const;
+  int GetCachedSize() const { return _cached_size_; }
+  private:
+  void SharedCtor();
+  void SharedDtor();
+  void SetCachedSize(int size) const;
+  public:
+  ::google::protobuf::Metadata GetMetadata() const;
+
+  // nested types ----------------------------------------------------
+
+  // accessors -------------------------------------------------------
+
+  // repeated bytes amfMgmtHandle = 1;
+  inline int amfmgmthandle_size() const;
+  inline void clear_amfmgmthandle();
+  static const int kAmfMgmtHandleFieldNumber = 1;
+  inline const ::std::string& amfmgmthandle(int index) const;
+  inline ::std::string* mutable_amfmgmthandle(int index);
+  inline void set_amfmgmthandle(int index, const ::std::string& value);
+  inline void set_amfmgmthandle(int index, const char* value);
+  inline void set_amfmgmthandle(int index, const void* value, size_t size);
+  inline ::std::string* add_amfmgmthandle();
+  inline void add_amfmgmthandle(const ::std::string& value);
+  inline void add_amfmgmthandle(const char* value);
+  inline void add_amfmgmthandle(const void* value, size_t size);
+  inline const ::google::protobuf::RepeatedPtrField< ::std::string>& amfmgmthandle() const;
+  inline ::google::protobuf::RepeatedPtrField< ::std::string>* mutable_amfmgmthandle();
+
+  // optional string compName = 2;
+  inline bool has_compname() const;
+  inline void clear_compname();
+  static const int kCompNameFieldNumber = 2;
+  inline const ::std::string& compname() const;
+  inline void set_compname(const ::std::string& value);
+  inline void set_compname(const char* value);
+  inline void set_compname(const char* value, size_t size);
+  inline ::std::string* mutable_compname();
+  inline ::std::string* release_compname();
+  inline void set_allocated_compname(::std::string* compname);
+
+  GOOGLE_PROTOBUF_EXTENSION_ACCESSORS(GetComponentStatusRequest)
+  // @@protoc_insertion_point(class_scope:SAFplus.Rpc.amfMgmtRpc.GetComponentStatusRequest)
+ private:
+  inline void set_has_compname();
+  inline void clear_has_compname();
+
+  ::google::protobuf::internal::ExtensionSet _extensions_;
+
+  ::google::protobuf::UnknownFieldSet _unknown_fields_;
+
+  ::google::protobuf::uint32 _has_bits_[1];
+  mutable int _cached_size_;
+  ::google::protobuf::RepeatedPtrField< ::std::string> amfmgmthandle_;
+  ::std::string* compname_;
+  friend void  protobuf_AddDesc_amfMgmtRpc_2eproto();
+  friend void protobuf_AssignDesc_amfMgmtRpc_2eproto();
+  friend void protobuf_ShutdownFile_amfMgmtRpc_2eproto();
+
+  void InitAsDefaultInstance();
+  static GetComponentStatusRequest* default_instance_;
+};
+// -------------------------------------------------------------------
+
+class GetComponentStatusResponse : public ::google::protobuf::Message {
+ public:
+  GetComponentStatusResponse();
+  virtual ~GetComponentStatusResponse();
+
+  GetComponentStatusResponse(const GetComponentStatusResponse& from);
+
+  inline GetComponentStatusResponse& operator=(const GetComponentStatusResponse& from) {
+    CopyFrom(from);
+    return *this;
+  }
+
+  inline const ::google::protobuf::UnknownFieldSet& unknown_fields() const {
+    return _unknown_fields_;
+  }
+
+  inline ::google::protobuf::UnknownFieldSet* mutable_unknown_fields() {
+    return &_unknown_fields_;
+  }
+
+  static const ::google::protobuf::Descriptor* descriptor();
+  static const GetComponentStatusResponse& default_instance();
+
+  void Swap(GetComponentStatusResponse* other);
+
+  // implements Message ----------------------------------------------
+
+  GetComponentStatusResponse* New() const;
+  void CopyFrom(const ::google::protobuf::Message& from);
+  void MergeFrom(const ::google::protobuf::Message& from);
+  void CopyFrom(const GetComponentStatusResponse& from);
+  void MergeFrom(const GetComponentStatusResponse& from);
+  void Clear();
+  bool IsInitialized() const;
+
+  int ByteSize() const;
+  bool MergePartialFromCodedStream(
+      ::google::protobuf::io::CodedInputStream* input);
+  void SerializeWithCachedSizes(
+      ::google::protobuf::io::CodedOutputStream* output) const;
+  ::google::protobuf::uint8* SerializeWithCachedSizesToArray(::google::protobuf::uint8* output) const;
+  int GetCachedSize() const { return _cached_size_; }
+  private:
+  void SharedCtor();
+  void SharedDtor();
+  void SetCachedSize(int size) const;
+  public:
+  ::google::protobuf::Metadata GetMetadata() const;
+
+  // nested types ----------------------------------------------------
+
+  // accessors -------------------------------------------------------
+
+  // optional .SAFplus.Rpc.amfMgmtRpc.ComponentStatus ComponentStatus = 1;
+  inline bool has_componentstatus() const;
+  inline void clear_componentstatus();
+  static const int kComponentStatusFieldNumber = 1;
+  inline const ::SAFplus::Rpc::amfMgmtRpc::ComponentStatus& componentstatus() const;
+  inline ::SAFplus::Rpc::amfMgmtRpc::ComponentStatus* mutable_componentstatus();
+  inline ::SAFplus::Rpc::amfMgmtRpc::ComponentStatus* release_componentstatus();
+  inline void set_allocated_componentstatus(::SAFplus::Rpc::amfMgmtRpc::ComponentStatus* componentstatus);
+
+  // optional sint32 err = 2;
+  inline bool has_err() const;
+  inline void clear_err();
+  static const int kErrFieldNumber = 2;
+  inline ::google::protobuf::int32 err() const;
+  inline void set_err(::google::protobuf::int32 value);
+
+  GOOGLE_PROTOBUF_EXTENSION_ACCESSORS(GetComponentStatusResponse)
+  // @@protoc_insertion_point(class_scope:SAFplus.Rpc.amfMgmtRpc.GetComponentStatusResponse)
+ private:
+  inline void set_has_componentstatus();
+  inline void clear_has_componentstatus();
+  inline void set_has_err();
+  inline void clear_has_err();
+
+  ::google::protobuf::internal::ExtensionSet _extensions_;
+
+  ::google::protobuf::UnknownFieldSet _unknown_fields_;
+
+  ::google::protobuf::uint32 _has_bits_[1];
+  mutable int _cached_size_;
+  ::SAFplus::Rpc::amfMgmtRpc::ComponentStatus* componentstatus_;
+  ::google::protobuf::int32 err_;
+  friend void  protobuf_AddDesc_amfMgmtRpc_2eproto();
+  friend void protobuf_AssignDesc_amfMgmtRpc_2eproto();
+  friend void protobuf_ShutdownFile_amfMgmtRpc_2eproto();
+
+  void InitAsDefaultInstance();
+  static GetComponentStatusResponse* default_instance_;
+};
+// -------------------------------------------------------------------
+
+class GetNodeStatusRequest : public ::google::protobuf::Message {
+ public:
+  GetNodeStatusRequest();
+  virtual ~GetNodeStatusRequest();
+
+  GetNodeStatusRequest(const GetNodeStatusRequest& from);
+
+  inline GetNodeStatusRequest& operator=(const GetNodeStatusRequest& from) {
+    CopyFrom(from);
+    return *this;
+  }
+
+  inline const ::google::protobuf::UnknownFieldSet& unknown_fields() const {
+    return _unknown_fields_;
+  }
+
+  inline ::google::protobuf::UnknownFieldSet* mutable_unknown_fields() {
+    return &_unknown_fields_;
+  }
+
+  static const ::google::protobuf::Descriptor* descriptor();
+  static const GetNodeStatusRequest& default_instance();
+
+  void Swap(GetNodeStatusRequest* other);
+
+  // implements Message ----------------------------------------------
+
+  GetNodeStatusRequest* New() const;
+  void CopyFrom(const ::google::protobuf::Message& from);
+  void MergeFrom(const ::google::protobuf::Message& from);
+  void CopyFrom(const GetNodeStatusRequest& from);
+  void MergeFrom(const GetNodeStatusRequest& from);
+  void Clear();
+  bool IsInitialized() const;
+
+  int ByteSize() const;
+  bool MergePartialFromCodedStream(
+      ::google::protobuf::io::CodedInputStream* input);
+  void SerializeWithCachedSizes(
+      ::google::protobuf::io::CodedOutputStream* output) const;
+  ::google::protobuf::uint8* SerializeWithCachedSizesToArray(::google::protobuf::uint8* output) const;
+  int GetCachedSize() const { return _cached_size_; }
+  private:
+  void SharedCtor();
+  void SharedDtor();
+  void SetCachedSize(int size) const;
+  public:
+  ::google::protobuf::Metadata GetMetadata() const;
+
+  // nested types ----------------------------------------------------
+
+  // accessors -------------------------------------------------------
+
+  // repeated bytes amfMgmtHandle = 1;
+  inline int amfmgmthandle_size() const;
+  inline void clear_amfmgmthandle();
+  static const int kAmfMgmtHandleFieldNumber = 1;
+  inline const ::std::string& amfmgmthandle(int index) const;
+  inline ::std::string* mutable_amfmgmthandle(int index);
+  inline void set_amfmgmthandle(int index, const ::std::string& value);
+  inline void set_amfmgmthandle(int index, const char* value);
+  inline void set_amfmgmthandle(int index, const void* value, size_t size);
+  inline ::std::string* add_amfmgmthandle();
+  inline void add_amfmgmthandle(const ::std::string& value);
+  inline void add_amfmgmthandle(const char* value);
+  inline void add_amfmgmthandle(const void* value, size_t size);
+  inline const ::google::protobuf::RepeatedPtrField< ::std::string>& amfmgmthandle() const;
+  inline ::google::protobuf::RepeatedPtrField< ::std::string>* mutable_amfmgmthandle();
+
+  // optional string nodeName = 2;
+  inline bool has_nodename() const;
+  inline void clear_nodename();
+  static const int kNodeNameFieldNumber = 2;
+  inline const ::std::string& nodename() const;
+  inline void set_nodename(const ::std::string& value);
+  inline void set_nodename(const char* value);
+  inline void set_nodename(const char* value, size_t size);
+  inline ::std::string* mutable_nodename();
+  inline ::std::string* release_nodename();
+  inline void set_allocated_nodename(::std::string* nodename);
+
+  GOOGLE_PROTOBUF_EXTENSION_ACCESSORS(GetNodeStatusRequest)
+  // @@protoc_insertion_point(class_scope:SAFplus.Rpc.amfMgmtRpc.GetNodeStatusRequest)
+ private:
+  inline void set_has_nodename();
+  inline void clear_has_nodename();
+
+  ::google::protobuf::internal::ExtensionSet _extensions_;
+
+  ::google::protobuf::UnknownFieldSet _unknown_fields_;
+
+  ::google::protobuf::uint32 _has_bits_[1];
+  mutable int _cached_size_;
+  ::google::protobuf::RepeatedPtrField< ::std::string> amfmgmthandle_;
+  ::std::string* nodename_;
+  friend void  protobuf_AddDesc_amfMgmtRpc_2eproto();
+  friend void protobuf_AssignDesc_amfMgmtRpc_2eproto();
+  friend void protobuf_ShutdownFile_amfMgmtRpc_2eproto();
+
+  void InitAsDefaultInstance();
+  static GetNodeStatusRequest* default_instance_;
+};
+// -------------------------------------------------------------------
+
+class GetNodeStatusResponse : public ::google::protobuf::Message {
+ public:
+  GetNodeStatusResponse();
+  virtual ~GetNodeStatusResponse();
+
+  GetNodeStatusResponse(const GetNodeStatusResponse& from);
+
+  inline GetNodeStatusResponse& operator=(const GetNodeStatusResponse& from) {
+    CopyFrom(from);
+    return *this;
+  }
+
+  inline const ::google::protobuf::UnknownFieldSet& unknown_fields() const {
+    return _unknown_fields_;
+  }
+
+  inline ::google::protobuf::UnknownFieldSet* mutable_unknown_fields() {
+    return &_unknown_fields_;
+  }
+
+  static const ::google::protobuf::Descriptor* descriptor();
+  static const GetNodeStatusResponse& default_instance();
+
+  void Swap(GetNodeStatusResponse* other);
+
+  // implements Message ----------------------------------------------
+
+  GetNodeStatusResponse* New() const;
+  void CopyFrom(const ::google::protobuf::Message& from);
+  void MergeFrom(const ::google::protobuf::Message& from);
+  void CopyFrom(const GetNodeStatusResponse& from);
+  void MergeFrom(const GetNodeStatusResponse& from);
+  void Clear();
+  bool IsInitialized() const;
+
+  int ByteSize() const;
+  bool MergePartialFromCodedStream(
+      ::google::protobuf::io::CodedInputStream* input);
+  void SerializeWithCachedSizes(
+      ::google::protobuf::io::CodedOutputStream* output) const;
+  ::google::protobuf::uint8* SerializeWithCachedSizesToArray(::google::protobuf::uint8* output) const;
+  int GetCachedSize() const { return _cached_size_; }
+  private:
+  void SharedCtor();
+  void SharedDtor();
+  void SetCachedSize(int size) const;
+  public:
+  ::google::protobuf::Metadata GetMetadata() const;
+
+  // nested types ----------------------------------------------------
+
+  // accessors -------------------------------------------------------
+
+  // optional .SAFplus.Rpc.amfMgmtRpc.NodeStatus NodeStatus = 1;
+  inline bool has_nodestatus() const;
+  inline void clear_nodestatus();
+  static const int kNodeStatusFieldNumber = 1;
+  inline const ::SAFplus::Rpc::amfMgmtRpc::NodeStatus& nodestatus() const;
+  inline ::SAFplus::Rpc::amfMgmtRpc::NodeStatus* mutable_nodestatus();
+  inline ::SAFplus::Rpc::amfMgmtRpc::NodeStatus* release_nodestatus();
+  inline void set_allocated_nodestatus(::SAFplus::Rpc::amfMgmtRpc::NodeStatus* nodestatus);
+
+  // optional sint32 err = 2;
+  inline bool has_err() const;
+  inline void clear_err();
+  static const int kErrFieldNumber = 2;
+  inline ::google::protobuf::int32 err() const;
+  inline void set_err(::google::protobuf::int32 value);
+
+  GOOGLE_PROTOBUF_EXTENSION_ACCESSORS(GetNodeStatusResponse)
+  // @@protoc_insertion_point(class_scope:SAFplus.Rpc.amfMgmtRpc.GetNodeStatusResponse)
+ private:
+  inline void set_has_nodestatus();
+  inline void clear_has_nodestatus();
+  inline void set_has_err();
+  inline void clear_has_err();
+
+  ::google::protobuf::internal::ExtensionSet _extensions_;
+
+  ::google::protobuf::UnknownFieldSet _unknown_fields_;
+
+  ::google::protobuf::uint32 _has_bits_[1];
+  mutable int _cached_size_;
+  ::SAFplus::Rpc::amfMgmtRpc::NodeStatus* nodestatus_;
+  ::google::protobuf::int32 err_;
+  friend void  protobuf_AddDesc_amfMgmtRpc_2eproto();
+  friend void protobuf_AssignDesc_amfMgmtRpc_2eproto();
+  friend void protobuf_ShutdownFile_amfMgmtRpc_2eproto();
+
+  void InitAsDefaultInstance();
+  static GetNodeStatusResponse* default_instance_;
+};
+// -------------------------------------------------------------------
+
+class GetSUStatusRequest : public ::google::protobuf::Message {
+ public:
+  GetSUStatusRequest();
+  virtual ~GetSUStatusRequest();
+
+  GetSUStatusRequest(const GetSUStatusRequest& from);
+
+  inline GetSUStatusRequest& operator=(const GetSUStatusRequest& from) {
+    CopyFrom(from);
+    return *this;
+  }
+
+  inline const ::google::protobuf::UnknownFieldSet& unknown_fields() const {
+    return _unknown_fields_;
+  }
+
+  inline ::google::protobuf::UnknownFieldSet* mutable_unknown_fields() {
+    return &_unknown_fields_;
+  }
+
+  static const ::google::protobuf::Descriptor* descriptor();
+  static const GetSUStatusRequest& default_instance();
+
+  void Swap(GetSUStatusRequest* other);
+
+  // implements Message ----------------------------------------------
+
+  GetSUStatusRequest* New() const;
+  void CopyFrom(const ::google::protobuf::Message& from);
+  void MergeFrom(const ::google::protobuf::Message& from);
+  void CopyFrom(const GetSUStatusRequest& from);
+  void MergeFrom(const GetSUStatusRequest& from);
+  void Clear();
+  bool IsInitialized() const;
+
+  int ByteSize() const;
+  bool MergePartialFromCodedStream(
+      ::google::protobuf::io::CodedInputStream* input);
+  void SerializeWithCachedSizes(
+      ::google::protobuf::io::CodedOutputStream* output) const;
+  ::google::protobuf::uint8* SerializeWithCachedSizesToArray(::google::protobuf::uint8* output) const;
+  int GetCachedSize() const { return _cached_size_; }
+  private:
+  void SharedCtor();
+  void SharedDtor();
+  void SetCachedSize(int size) const;
+  public:
+  ::google::protobuf::Metadata GetMetadata() const;
+
+  // nested types ----------------------------------------------------
+
+  // accessors -------------------------------------------------------
+
+  // repeated bytes amfMgmtHandle = 1;
+  inline int amfmgmthandle_size() const;
+  inline void clear_amfmgmthandle();
+  static const int kAmfMgmtHandleFieldNumber = 1;
+  inline const ::std::string& amfmgmthandle(int index) const;
+  inline ::std::string* mutable_amfmgmthandle(int index);
+  inline void set_amfmgmthandle(int index, const ::std::string& value);
+  inline void set_amfmgmthandle(int index, const char* value);
+  inline void set_amfmgmthandle(int index, const void* value, size_t size);
+  inline ::std::string* add_amfmgmthandle();
+  inline void add_amfmgmthandle(const ::std::string& value);
+  inline void add_amfmgmthandle(const char* value);
+  inline void add_amfmgmthandle(const void* value, size_t size);
+  inline const ::google::protobuf::RepeatedPtrField< ::std::string>& amfmgmthandle() const;
+  inline ::google::protobuf::RepeatedPtrField< ::std::string>* mutable_amfmgmthandle();
+
+  // optional string suName = 2;
+  inline bool has_suname() const;
+  inline void clear_suname();
+  static const int kSuNameFieldNumber = 2;
+  inline const ::std::string& suname() const;
+  inline void set_suname(const ::std::string& value);
+  inline void set_suname(const char* value);
+  inline void set_suname(const char* value, size_t size);
+  inline ::std::string* mutable_suname();
+  inline ::std::string* release_suname();
+  inline void set_allocated_suname(::std::string* suname);
+
+  GOOGLE_PROTOBUF_EXTENSION_ACCESSORS(GetSUStatusRequest)
+  // @@protoc_insertion_point(class_scope:SAFplus.Rpc.amfMgmtRpc.GetSUStatusRequest)
+ private:
+  inline void set_has_suname();
+  inline void clear_has_suname();
+
+  ::google::protobuf::internal::ExtensionSet _extensions_;
+
+  ::google::protobuf::UnknownFieldSet _unknown_fields_;
+
+  ::google::protobuf::uint32 _has_bits_[1];
+  mutable int _cached_size_;
+  ::google::protobuf::RepeatedPtrField< ::std::string> amfmgmthandle_;
+  ::std::string* suname_;
+  friend void  protobuf_AddDesc_amfMgmtRpc_2eproto();
+  friend void protobuf_AssignDesc_amfMgmtRpc_2eproto();
+  friend void protobuf_ShutdownFile_amfMgmtRpc_2eproto();
+
+  void InitAsDefaultInstance();
+  static GetSUStatusRequest* default_instance_;
+};
+// -------------------------------------------------------------------
+
+class GetSUStatusResponse : public ::google::protobuf::Message {
+ public:
+  GetSUStatusResponse();
+  virtual ~GetSUStatusResponse();
+
+  GetSUStatusResponse(const GetSUStatusResponse& from);
+
+  inline GetSUStatusResponse& operator=(const GetSUStatusResponse& from) {
+    CopyFrom(from);
+    return *this;
+  }
+
+  inline const ::google::protobuf::UnknownFieldSet& unknown_fields() const {
+    return _unknown_fields_;
+  }
+
+  inline ::google::protobuf::UnknownFieldSet* mutable_unknown_fields() {
+    return &_unknown_fields_;
+  }
+
+  static const ::google::protobuf::Descriptor* descriptor();
+  static const GetSUStatusResponse& default_instance();
+
+  void Swap(GetSUStatusResponse* other);
+
+  // implements Message ----------------------------------------------
+
+  GetSUStatusResponse* New() const;
+  void CopyFrom(const ::google::protobuf::Message& from);
+  void MergeFrom(const ::google::protobuf::Message& from);
+  void CopyFrom(const GetSUStatusResponse& from);
+  void MergeFrom(const GetSUStatusResponse& from);
+  void Clear();
+  bool IsInitialized() const;
+
+  int ByteSize() const;
+  bool MergePartialFromCodedStream(
+      ::google::protobuf::io::CodedInputStream* input);
+  void SerializeWithCachedSizes(
+      ::google::protobuf::io::CodedOutputStream* output) const;
+  ::google::protobuf::uint8* SerializeWithCachedSizesToArray(::google::protobuf::uint8* output) const;
+  int GetCachedSize() const { return _cached_size_; }
+  private:
+  void SharedCtor();
+  void SharedDtor();
+  void SetCachedSize(int size) const;
+  public:
+  ::google::protobuf::Metadata GetMetadata() const;
+
+  // nested types ----------------------------------------------------
+
+  // accessors -------------------------------------------------------
+
+  // optional .SAFplus.Rpc.amfMgmtRpc.ServiceUnitStatus ServiceUnitStatus = 1;
+  inline bool has_serviceunitstatus() const;
+  inline void clear_serviceunitstatus();
+  static const int kServiceUnitStatusFieldNumber = 1;
+  inline const ::SAFplus::Rpc::amfMgmtRpc::ServiceUnitStatus& serviceunitstatus() const;
+  inline ::SAFplus::Rpc::amfMgmtRpc::ServiceUnitStatus* mutable_serviceunitstatus();
+  inline ::SAFplus::Rpc::amfMgmtRpc::ServiceUnitStatus* release_serviceunitstatus();
+  inline void set_allocated_serviceunitstatus(::SAFplus::Rpc::amfMgmtRpc::ServiceUnitStatus* serviceunitstatus);
+
+  // optional sint32 err = 2;
+  inline bool has_err() const;
+  inline void clear_err();
+  static const int kErrFieldNumber = 2;
+  inline ::google::protobuf::int32 err() const;
+  inline void set_err(::google::protobuf::int32 value);
+
+  GOOGLE_PROTOBUF_EXTENSION_ACCESSORS(GetSUStatusResponse)
+  // @@protoc_insertion_point(class_scope:SAFplus.Rpc.amfMgmtRpc.GetSUStatusResponse)
+ private:
+  inline void set_has_serviceunitstatus();
+  inline void clear_has_serviceunitstatus();
+  inline void set_has_err();
+  inline void clear_has_err();
+
+  ::google::protobuf::internal::ExtensionSet _extensions_;
+
+  ::google::protobuf::UnknownFieldSet _unknown_fields_;
+
+  ::google::protobuf::uint32 _has_bits_[1];
+  mutable int _cached_size_;
+  ::SAFplus::Rpc::amfMgmtRpc::ServiceUnitStatus* serviceunitstatus_;
+  ::google::protobuf::int32 err_;
+  friend void  protobuf_AddDesc_amfMgmtRpc_2eproto();
+  friend void protobuf_AssignDesc_amfMgmtRpc_2eproto();
+  friend void protobuf_ShutdownFile_amfMgmtRpc_2eproto();
+
+  void InitAsDefaultInstance();
+  static GetSUStatusResponse* default_instance_;
+};
+// -------------------------------------------------------------------
+
+class GetSGStatusRequest : public ::google::protobuf::Message {
+ public:
+  GetSGStatusRequest();
+  virtual ~GetSGStatusRequest();
+
+  GetSGStatusRequest(const GetSGStatusRequest& from);
+
+  inline GetSGStatusRequest& operator=(const GetSGStatusRequest& from) {
+    CopyFrom(from);
+    return *this;
+  }
+
+  inline const ::google::protobuf::UnknownFieldSet& unknown_fields() const {
+    return _unknown_fields_;
+  }
+
+  inline ::google::protobuf::UnknownFieldSet* mutable_unknown_fields() {
+    return &_unknown_fields_;
+  }
+
+  static const ::google::protobuf::Descriptor* descriptor();
+  static const GetSGStatusRequest& default_instance();
+
+  void Swap(GetSGStatusRequest* other);
+
+  // implements Message ----------------------------------------------
+
+  GetSGStatusRequest* New() const;
+  void CopyFrom(const ::google::protobuf::Message& from);
+  void MergeFrom(const ::google::protobuf::Message& from);
+  void CopyFrom(const GetSGStatusRequest& from);
+  void MergeFrom(const GetSGStatusRequest& from);
+  void Clear();
+  bool IsInitialized() const;
+
+  int ByteSize() const;
+  bool MergePartialFromCodedStream(
+      ::google::protobuf::io::CodedInputStream* input);
+  void SerializeWithCachedSizes(
+      ::google::protobuf::io::CodedOutputStream* output) const;
+  ::google::protobuf::uint8* SerializeWithCachedSizesToArray(::google::protobuf::uint8* output) const;
+  int GetCachedSize() const { return _cached_size_; }
+  private:
+  void SharedCtor();
+  void SharedDtor();
+  void SetCachedSize(int size) const;
+  public:
+  ::google::protobuf::Metadata GetMetadata() const;
+
+  // nested types ----------------------------------------------------
+
+  // accessors -------------------------------------------------------
+
+  // repeated bytes amfMgmtHandle = 1;
+  inline int amfmgmthandle_size() const;
+  inline void clear_amfmgmthandle();
+  static const int kAmfMgmtHandleFieldNumber = 1;
+  inline const ::std::string& amfmgmthandle(int index) const;
+  inline ::std::string* mutable_amfmgmthandle(int index);
+  inline void set_amfmgmthandle(int index, const ::std::string& value);
+  inline void set_amfmgmthandle(int index, const char* value);
+  inline void set_amfmgmthandle(int index, const void* value, size_t size);
+  inline ::std::string* add_amfmgmthandle();
+  inline void add_amfmgmthandle(const ::std::string& value);
+  inline void add_amfmgmthandle(const char* value);
+  inline void add_amfmgmthandle(const void* value, size_t size);
+  inline const ::google::protobuf::RepeatedPtrField< ::std::string>& amfmgmthandle() const;
+  inline ::google::protobuf::RepeatedPtrField< ::std::string>* mutable_amfmgmthandle();
+
+  // optional string sgName = 2;
+  inline bool has_sgname() const;
+  inline void clear_sgname();
+  static const int kSgNameFieldNumber = 2;
+  inline const ::std::string& sgname() const;
+  inline void set_sgname(const ::std::string& value);
+  inline void set_sgname(const char* value);
+  inline void set_sgname(const char* value, size_t size);
+  inline ::std::string* mutable_sgname();
+  inline ::std::string* release_sgname();
+  inline void set_allocated_sgname(::std::string* sgname);
+
+  GOOGLE_PROTOBUF_EXTENSION_ACCESSORS(GetSGStatusRequest)
+  // @@protoc_insertion_point(class_scope:SAFplus.Rpc.amfMgmtRpc.GetSGStatusRequest)
+ private:
+  inline void set_has_sgname();
+  inline void clear_has_sgname();
+
+  ::google::protobuf::internal::ExtensionSet _extensions_;
+
+  ::google::protobuf::UnknownFieldSet _unknown_fields_;
+
+  ::google::protobuf::uint32 _has_bits_[1];
+  mutable int _cached_size_;
+  ::google::protobuf::RepeatedPtrField< ::std::string> amfmgmthandle_;
+  ::std::string* sgname_;
+  friend void  protobuf_AddDesc_amfMgmtRpc_2eproto();
+  friend void protobuf_AssignDesc_amfMgmtRpc_2eproto();
+  friend void protobuf_ShutdownFile_amfMgmtRpc_2eproto();
+
+  void InitAsDefaultInstance();
+  static GetSGStatusRequest* default_instance_;
+};
+// -------------------------------------------------------------------
+
+class GetSGStatusResponse : public ::google::protobuf::Message {
+ public:
+  GetSGStatusResponse();
+  virtual ~GetSGStatusResponse();
+
+  GetSGStatusResponse(const GetSGStatusResponse& from);
+
+  inline GetSGStatusResponse& operator=(const GetSGStatusResponse& from) {
+    CopyFrom(from);
+    return *this;
+  }
+
+  inline const ::google::protobuf::UnknownFieldSet& unknown_fields() const {
+    return _unknown_fields_;
+  }
+
+  inline ::google::protobuf::UnknownFieldSet* mutable_unknown_fields() {
+    return &_unknown_fields_;
+  }
+
+  static const ::google::protobuf::Descriptor* descriptor();
+  static const GetSGStatusResponse& default_instance();
+
+  void Swap(GetSGStatusResponse* other);
+
+  // implements Message ----------------------------------------------
+
+  GetSGStatusResponse* New() const;
+  void CopyFrom(const ::google::protobuf::Message& from);
+  void MergeFrom(const ::google::protobuf::Message& from);
+  void CopyFrom(const GetSGStatusResponse& from);
+  void MergeFrom(const GetSGStatusResponse& from);
+  void Clear();
+  bool IsInitialized() const;
+
+  int ByteSize() const;
+  bool MergePartialFromCodedStream(
+      ::google::protobuf::io::CodedInputStream* input);
+  void SerializeWithCachedSizes(
+      ::google::protobuf::io::CodedOutputStream* output) const;
+  ::google::protobuf::uint8* SerializeWithCachedSizesToArray(::google::protobuf::uint8* output) const;
+  int GetCachedSize() const { return _cached_size_; }
+  private:
+  void SharedCtor();
+  void SharedDtor();
+  void SetCachedSize(int size) const;
+  public:
+  ::google::protobuf::Metadata GetMetadata() const;
+
+  // nested types ----------------------------------------------------
+
+  // accessors -------------------------------------------------------
+
+  // optional .SAFplus.Rpc.amfMgmtRpc.ServiceGroupStatus ServiceGroupStatus = 1;
+  inline bool has_servicegroupstatus() const;
+  inline void clear_servicegroupstatus();
+  static const int kServiceGroupStatusFieldNumber = 1;
+  inline const ::SAFplus::Rpc::amfMgmtRpc::ServiceGroupStatus& servicegroupstatus() const;
+  inline ::SAFplus::Rpc::amfMgmtRpc::ServiceGroupStatus* mutable_servicegroupstatus();
+  inline ::SAFplus::Rpc::amfMgmtRpc::ServiceGroupStatus* release_servicegroupstatus();
+  inline void set_allocated_servicegroupstatus(::SAFplus::Rpc::amfMgmtRpc::ServiceGroupStatus* servicegroupstatus);
+
+  // optional sint32 err = 2;
+  inline bool has_err() const;
+  inline void clear_err();
+  static const int kErrFieldNumber = 2;
+  inline ::google::protobuf::int32 err() const;
+  inline void set_err(::google::protobuf::int32 value);
+
+  GOOGLE_PROTOBUF_EXTENSION_ACCESSORS(GetSGStatusResponse)
+  // @@protoc_insertion_point(class_scope:SAFplus.Rpc.amfMgmtRpc.GetSGStatusResponse)
+ private:
+  inline void set_has_servicegroupstatus();
+  inline void clear_has_servicegroupstatus();
+  inline void set_has_err();
+  inline void clear_has_err();
+
+  ::google::protobuf::internal::ExtensionSet _extensions_;
+
+  ::google::protobuf::UnknownFieldSet _unknown_fields_;
+
+  ::google::protobuf::uint32 _has_bits_[1];
+  mutable int _cached_size_;
+  ::SAFplus::Rpc::amfMgmtRpc::ServiceGroupStatus* servicegroupstatus_;
+  ::google::protobuf::int32 err_;
+  friend void  protobuf_AddDesc_amfMgmtRpc_2eproto();
+  friend void protobuf_AssignDesc_amfMgmtRpc_2eproto();
+  friend void protobuf_ShutdownFile_amfMgmtRpc_2eproto();
+
+  void InitAsDefaultInstance();
+  static GetSGStatusResponse* default_instance_;
+};
+// -------------------------------------------------------------------
+
+class GetSIStatusRequest : public ::google::protobuf::Message {
+ public:
+  GetSIStatusRequest();
+  virtual ~GetSIStatusRequest();
+
+  GetSIStatusRequest(const GetSIStatusRequest& from);
+
+  inline GetSIStatusRequest& operator=(const GetSIStatusRequest& from) {
+    CopyFrom(from);
+    return *this;
+  }
+
+  inline const ::google::protobuf::UnknownFieldSet& unknown_fields() const {
+    return _unknown_fields_;
+  }
+
+  inline ::google::protobuf::UnknownFieldSet* mutable_unknown_fields() {
+    return &_unknown_fields_;
+  }
+
+  static const ::google::protobuf::Descriptor* descriptor();
+  static const GetSIStatusRequest& default_instance();
+
+  void Swap(GetSIStatusRequest* other);
+
+  // implements Message ----------------------------------------------
+
+  GetSIStatusRequest* New() const;
+  void CopyFrom(const ::google::protobuf::Message& from);
+  void MergeFrom(const ::google::protobuf::Message& from);
+  void CopyFrom(const GetSIStatusRequest& from);
+  void MergeFrom(const GetSIStatusRequest& from);
+  void Clear();
+  bool IsInitialized() const;
+
+  int ByteSize() const;
+  bool MergePartialFromCodedStream(
+      ::google::protobuf::io::CodedInputStream* input);
+  void SerializeWithCachedSizes(
+      ::google::protobuf::io::CodedOutputStream* output) const;
+  ::google::protobuf::uint8* SerializeWithCachedSizesToArray(::google::protobuf::uint8* output) const;
+  int GetCachedSize() const { return _cached_size_; }
+  private:
+  void SharedCtor();
+  void SharedDtor();
+  void SetCachedSize(int size) const;
+  public:
+  ::google::protobuf::Metadata GetMetadata() const;
+
+  // nested types ----------------------------------------------------
+
+  // accessors -------------------------------------------------------
+
+  // repeated bytes amfMgmtHandle = 1;
+  inline int amfmgmthandle_size() const;
+  inline void clear_amfmgmthandle();
+  static const int kAmfMgmtHandleFieldNumber = 1;
+  inline const ::std::string& amfmgmthandle(int index) const;
+  inline ::std::string* mutable_amfmgmthandle(int index);
+  inline void set_amfmgmthandle(int index, const ::std::string& value);
+  inline void set_amfmgmthandle(int index, const char* value);
+  inline void set_amfmgmthandle(int index, const void* value, size_t size);
+  inline ::std::string* add_amfmgmthandle();
+  inline void add_amfmgmthandle(const ::std::string& value);
+  inline void add_amfmgmthandle(const char* value);
+  inline void add_amfmgmthandle(const void* value, size_t size);
+  inline const ::google::protobuf::RepeatedPtrField< ::std::string>& amfmgmthandle() const;
+  inline ::google::protobuf::RepeatedPtrField< ::std::string>* mutable_amfmgmthandle();
+
+  // optional string siName = 2;
+  inline bool has_siname() const;
+  inline void clear_siname();
+  static const int kSiNameFieldNumber = 2;
+  inline const ::std::string& siname() const;
+  inline void set_siname(const ::std::string& value);
+  inline void set_siname(const char* value);
+  inline void set_siname(const char* value, size_t size);
+  inline ::std::string* mutable_siname();
+  inline ::std::string* release_siname();
+  inline void set_allocated_siname(::std::string* siname);
+
+  GOOGLE_PROTOBUF_EXTENSION_ACCESSORS(GetSIStatusRequest)
+  // @@protoc_insertion_point(class_scope:SAFplus.Rpc.amfMgmtRpc.GetSIStatusRequest)
+ private:
+  inline void set_has_siname();
+  inline void clear_has_siname();
+
+  ::google::protobuf::internal::ExtensionSet _extensions_;
+
+  ::google::protobuf::UnknownFieldSet _unknown_fields_;
+
+  ::google::protobuf::uint32 _has_bits_[1];
+  mutable int _cached_size_;
+  ::google::protobuf::RepeatedPtrField< ::std::string> amfmgmthandle_;
+  ::std::string* siname_;
+  friend void  protobuf_AddDesc_amfMgmtRpc_2eproto();
+  friend void protobuf_AssignDesc_amfMgmtRpc_2eproto();
+  friend void protobuf_ShutdownFile_amfMgmtRpc_2eproto();
+
+  void InitAsDefaultInstance();
+  static GetSIStatusRequest* default_instance_;
+};
+// -------------------------------------------------------------------
+
+class GetSIStatusResponse : public ::google::protobuf::Message {
+ public:
+  GetSIStatusResponse();
+  virtual ~GetSIStatusResponse();
+
+  GetSIStatusResponse(const GetSIStatusResponse& from);
+
+  inline GetSIStatusResponse& operator=(const GetSIStatusResponse& from) {
+    CopyFrom(from);
+    return *this;
+  }
+
+  inline const ::google::protobuf::UnknownFieldSet& unknown_fields() const {
+    return _unknown_fields_;
+  }
+
+  inline ::google::protobuf::UnknownFieldSet* mutable_unknown_fields() {
+    return &_unknown_fields_;
+  }
+
+  static const ::google::protobuf::Descriptor* descriptor();
+  static const GetSIStatusResponse& default_instance();
+
+  void Swap(GetSIStatusResponse* other);
+
+  // implements Message ----------------------------------------------
+
+  GetSIStatusResponse* New() const;
+  void CopyFrom(const ::google::protobuf::Message& from);
+  void MergeFrom(const ::google::protobuf::Message& from);
+  void CopyFrom(const GetSIStatusResponse& from);
+  void MergeFrom(const GetSIStatusResponse& from);
+  void Clear();
+  bool IsInitialized() const;
+
+  int ByteSize() const;
+  bool MergePartialFromCodedStream(
+      ::google::protobuf::io::CodedInputStream* input);
+  void SerializeWithCachedSizes(
+      ::google::protobuf::io::CodedOutputStream* output) const;
+  ::google::protobuf::uint8* SerializeWithCachedSizesToArray(::google::protobuf::uint8* output) const;
+  int GetCachedSize() const { return _cached_size_; }
+  private:
+  void SharedCtor();
+  void SharedDtor();
+  void SetCachedSize(int size) const;
+  public:
+  ::google::protobuf::Metadata GetMetadata() const;
+
+  // nested types ----------------------------------------------------
+
+  // accessors -------------------------------------------------------
+
+  // optional .SAFplus.Rpc.amfMgmtRpc.ServiceInstanceStatus ServiceInstanceStatus = 1;
+  inline bool has_serviceinstancestatus() const;
+  inline void clear_serviceinstancestatus();
+  static const int kServiceInstanceStatusFieldNumber = 1;
+  inline const ::SAFplus::Rpc::amfMgmtRpc::ServiceInstanceStatus& serviceinstancestatus() const;
+  inline ::SAFplus::Rpc::amfMgmtRpc::ServiceInstanceStatus* mutable_serviceinstancestatus();
+  inline ::SAFplus::Rpc::amfMgmtRpc::ServiceInstanceStatus* release_serviceinstancestatus();
+  inline void set_allocated_serviceinstancestatus(::SAFplus::Rpc::amfMgmtRpc::ServiceInstanceStatus* serviceinstancestatus);
+
+  // optional sint32 err = 2;
+  inline bool has_err() const;
+  inline void clear_err();
+  static const int kErrFieldNumber = 2;
+  inline ::google::protobuf::int32 err() const;
+  inline void set_err(::google::protobuf::int32 value);
+
+  GOOGLE_PROTOBUF_EXTENSION_ACCESSORS(GetSIStatusResponse)
+  // @@protoc_insertion_point(class_scope:SAFplus.Rpc.amfMgmtRpc.GetSIStatusResponse)
+ private:
+  inline void set_has_serviceinstancestatus();
+  inline void clear_has_serviceinstancestatus();
+  inline void set_has_err();
+  inline void clear_has_err();
+
+  ::google::protobuf::internal::ExtensionSet _extensions_;
+
+  ::google::protobuf::UnknownFieldSet _unknown_fields_;
+
+  ::google::protobuf::uint32 _has_bits_[1];
+  mutable int _cached_size_;
+  ::SAFplus::Rpc::amfMgmtRpc::ServiceInstanceStatus* serviceinstancestatus_;
+  ::google::protobuf::int32 err_;
+  friend void  protobuf_AddDesc_amfMgmtRpc_2eproto();
+  friend void protobuf_AssignDesc_amfMgmtRpc_2eproto();
+  friend void protobuf_ShutdownFile_amfMgmtRpc_2eproto();
+
+  void InitAsDefaultInstance();
+  static GetSIStatusResponse* default_instance_;
+};
+// -------------------------------------------------------------------
+
+class GetCSIStatusRequest : public ::google::protobuf::Message {
+ public:
+  GetCSIStatusRequest();
+  virtual ~GetCSIStatusRequest();
+
+  GetCSIStatusRequest(const GetCSIStatusRequest& from);
+
+  inline GetCSIStatusRequest& operator=(const GetCSIStatusRequest& from) {
+    CopyFrom(from);
+    return *this;
+  }
+
+  inline const ::google::protobuf::UnknownFieldSet& unknown_fields() const {
+    return _unknown_fields_;
+  }
+
+  inline ::google::protobuf::UnknownFieldSet* mutable_unknown_fields() {
+    return &_unknown_fields_;
+  }
+
+  static const ::google::protobuf::Descriptor* descriptor();
+  static const GetCSIStatusRequest& default_instance();
+
+  void Swap(GetCSIStatusRequest* other);
+
+  // implements Message ----------------------------------------------
+
+  GetCSIStatusRequest* New() const;
+  void CopyFrom(const ::google::protobuf::Message& from);
+  void MergeFrom(const ::google::protobuf::Message& from);
+  void CopyFrom(const GetCSIStatusRequest& from);
+  void MergeFrom(const GetCSIStatusRequest& from);
+  void Clear();
+  bool IsInitialized() const;
+
+  int ByteSize() const;
+  bool MergePartialFromCodedStream(
+      ::google::protobuf::io::CodedInputStream* input);
+  void SerializeWithCachedSizes(
+      ::google::protobuf::io::CodedOutputStream* output) const;
+  ::google::protobuf::uint8* SerializeWithCachedSizesToArray(::google::protobuf::uint8* output) const;
+  int GetCachedSize() const { return _cached_size_; }
+  private:
+  void SharedCtor();
+  void SharedDtor();
+  void SetCachedSize(int size) const;
+  public:
+  ::google::protobuf::Metadata GetMetadata() const;
+
+  // nested types ----------------------------------------------------
+
+  // accessors -------------------------------------------------------
+
+  // repeated bytes amfMgmtHandle = 1;
+  inline int amfmgmthandle_size() const;
+  inline void clear_amfmgmthandle();
+  static const int kAmfMgmtHandleFieldNumber = 1;
+  inline const ::std::string& amfmgmthandle(int index) const;
+  inline ::std::string* mutable_amfmgmthandle(int index);
+  inline void set_amfmgmthandle(int index, const ::std::string& value);
+  inline void set_amfmgmthandle(int index, const char* value);
+  inline void set_amfmgmthandle(int index, const void* value, size_t size);
+  inline ::std::string* add_amfmgmthandle();
+  inline void add_amfmgmthandle(const ::std::string& value);
+  inline void add_amfmgmthandle(const char* value);
+  inline void add_amfmgmthandle(const void* value, size_t size);
+  inline const ::google::protobuf::RepeatedPtrField< ::std::string>& amfmgmthandle() const;
+  inline ::google::protobuf::RepeatedPtrField< ::std::string>* mutable_amfmgmthandle();
+
+  // optional string csiName = 2;
+  inline bool has_csiname() const;
+  inline void clear_csiname();
+  static const int kCsiNameFieldNumber = 2;
+  inline const ::std::string& csiname() const;
+  inline void set_csiname(const ::std::string& value);
+  inline void set_csiname(const char* value);
+  inline void set_csiname(const char* value, size_t size);
+  inline ::std::string* mutable_csiname();
+  inline ::std::string* release_csiname();
+  inline void set_allocated_csiname(::std::string* csiname);
+
+  GOOGLE_PROTOBUF_EXTENSION_ACCESSORS(GetCSIStatusRequest)
+  // @@protoc_insertion_point(class_scope:SAFplus.Rpc.amfMgmtRpc.GetCSIStatusRequest)
+ private:
+  inline void set_has_csiname();
+  inline void clear_has_csiname();
+
+  ::google::protobuf::internal::ExtensionSet _extensions_;
+
+  ::google::protobuf::UnknownFieldSet _unknown_fields_;
+
+  ::google::protobuf::uint32 _has_bits_[1];
+  mutable int _cached_size_;
+  ::google::protobuf::RepeatedPtrField< ::std::string> amfmgmthandle_;
+  ::std::string* csiname_;
+  friend void  protobuf_AddDesc_amfMgmtRpc_2eproto();
+  friend void protobuf_AssignDesc_amfMgmtRpc_2eproto();
+  friend void protobuf_ShutdownFile_amfMgmtRpc_2eproto();
+
+  void InitAsDefaultInstance();
+  static GetCSIStatusRequest* default_instance_;
+};
+// -------------------------------------------------------------------
+
+class GetCSIStatusResponse : public ::google::protobuf::Message {
+ public:
+  GetCSIStatusResponse();
+  virtual ~GetCSIStatusResponse();
+
+  GetCSIStatusResponse(const GetCSIStatusResponse& from);
+
+  inline GetCSIStatusResponse& operator=(const GetCSIStatusResponse& from) {
+    CopyFrom(from);
+    return *this;
+  }
+
+  inline const ::google::protobuf::UnknownFieldSet& unknown_fields() const {
+    return _unknown_fields_;
+  }
+
+  inline ::google::protobuf::UnknownFieldSet* mutable_unknown_fields() {
+    return &_unknown_fields_;
+  }
+
+  static const ::google::protobuf::Descriptor* descriptor();
+  static const GetCSIStatusResponse& default_instance();
+
+  void Swap(GetCSIStatusResponse* other);
+
+  // implements Message ----------------------------------------------
+
+  GetCSIStatusResponse* New() const;
+  void CopyFrom(const ::google::protobuf::Message& from);
+  void MergeFrom(const ::google::protobuf::Message& from);
+  void CopyFrom(const GetCSIStatusResponse& from);
+  void MergeFrom(const GetCSIStatusResponse& from);
+  void Clear();
+  bool IsInitialized() const;
+
+  int ByteSize() const;
+  bool MergePartialFromCodedStream(
+      ::google::protobuf::io::CodedInputStream* input);
+  void SerializeWithCachedSizes(
+      ::google::protobuf::io::CodedOutputStream* output) const;
+  ::google::protobuf::uint8* SerializeWithCachedSizesToArray(::google::protobuf::uint8* output) const;
+  int GetCachedSize() const { return _cached_size_; }
+  private:
+  void SharedCtor();
+  void SharedDtor();
+  void SetCachedSize(int size) const;
+  public:
+  ::google::protobuf::Metadata GetMetadata() const;
+
+  // nested types ----------------------------------------------------
+
+  // accessors -------------------------------------------------------
+
+  // optional .SAFplus.Rpc.amfMgmtRpc.ComponentServiceInstanceStatus ComponentServiceInstanceStatus = 1;
+  inline bool has_componentserviceinstancestatus() const;
+  inline void clear_componentserviceinstancestatus();
+  static const int kComponentServiceInstanceStatusFieldNumber = 1;
+  inline const ::SAFplus::Rpc::amfMgmtRpc::ComponentServiceInstanceStatus& componentserviceinstancestatus() const;
+  inline ::SAFplus::Rpc::amfMgmtRpc::ComponentServiceInstanceStatus* mutable_componentserviceinstancestatus();
+  inline ::SAFplus::Rpc::amfMgmtRpc::ComponentServiceInstanceStatus* release_componentserviceinstancestatus();
+  inline void set_allocated_componentserviceinstancestatus(::SAFplus::Rpc::amfMgmtRpc::ComponentServiceInstanceStatus* componentserviceinstancestatus);
+
+  // optional sint32 err = 2;
+  inline bool has_err() const;
+  inline void clear_err();
+  static const int kErrFieldNumber = 2;
+  inline ::google::protobuf::int32 err() const;
+  inline void set_err(::google::protobuf::int32 value);
+
+  GOOGLE_PROTOBUF_EXTENSION_ACCESSORS(GetCSIStatusResponse)
+  // @@protoc_insertion_point(class_scope:SAFplus.Rpc.amfMgmtRpc.GetCSIStatusResponse)
+ private:
+  inline void set_has_componentserviceinstancestatus();
+  inline void clear_has_componentserviceinstancestatus();
+  inline void set_has_err();
+  inline void clear_has_err();
+
+  ::google::protobuf::internal::ExtensionSet _extensions_;
+
+  ::google::protobuf::UnknownFieldSet _unknown_fields_;
+
+  ::google::protobuf::uint32 _has_bits_[1];
+  mutable int _cached_size_;
+  ::SAFplus::Rpc::amfMgmtRpc::ComponentServiceInstanceStatus* componentserviceinstancestatus_;
+  ::google::protobuf::int32 err_;
+  friend void  protobuf_AddDesc_amfMgmtRpc_2eproto();
+  friend void protobuf_AssignDesc_amfMgmtRpc_2eproto();
+  friend void protobuf_ShutdownFile_amfMgmtRpc_2eproto();
+
+  void InitAsDefaultInstance();
+  static GetCSIStatusResponse* default_instance_;
+};
 // ===================================================================
 
 
@@ -11189,6 +16782,1699 @@ inline void SaTimeT::set_uint64(::google::protobuf::uint64 value) {
   set_has_uint64();
   uint64_ = value;
   // @@protoc_insertion_point(field_set:SAFplus.Rpc.amfMgmtRpc.SaTimeT.uint64)
+}
+
+// -------------------------------------------------------------------
+
+// Date
+
+// required uint64 uint64 = 1;
+inline bool Date::has_uint64() const {
+  return (_has_bits_[0] & 0x00000001u) != 0;
+}
+inline void Date::set_has_uint64() {
+  _has_bits_[0] |= 0x00000001u;
+}
+inline void Date::clear_has_uint64() {
+  _has_bits_[0] &= ~0x00000001u;
+}
+inline void Date::clear_uint64() {
+  uint64_ = GOOGLE_ULONGLONG(0);
+  clear_has_uint64();
+}
+inline ::google::protobuf::uint64 Date::uint64() const {
+  // @@protoc_insertion_point(field_get:SAFplus.Rpc.amfMgmtRpc.Date.uint64)
+  return uint64_;
+}
+inline void Date::set_uint64(::google::protobuf::uint64 value) {
+  set_has_uint64();
+  uint64_ = value;
+  // @@protoc_insertion_point(field_set:SAFplus.Rpc.amfMgmtRpc.Date.uint64)
+}
+
+// -------------------------------------------------------------------
+
+// IntStatistic
+
+// optional uint64 current = 1;
+inline bool IntStatistic::has_current() const {
+  return (_has_bits_[0] & 0x00000001u) != 0;
+}
+inline void IntStatistic::set_has_current() {
+  _has_bits_[0] |= 0x00000001u;
+}
+inline void IntStatistic::clear_has_current() {
+  _has_bits_[0] &= ~0x00000001u;
+}
+inline void IntStatistic::clear_current() {
+  current_ = GOOGLE_ULONGLONG(0);
+  clear_has_current();
+}
+inline ::google::protobuf::uint64 IntStatistic::current() const {
+  // @@protoc_insertion_point(field_get:SAFplus.Rpc.amfMgmtRpc.IntStatistic.current)
+  return current_;
+}
+inline void IntStatistic::set_current(::google::protobuf::uint64 value) {
+  set_has_current();
+  current_ = value;
+  // @@protoc_insertion_point(field_set:SAFplus.Rpc.amfMgmtRpc.IntStatistic.current)
+}
+
+// optional string history10sec = 2;
+inline bool IntStatistic::has_history10sec() const {
+  return (_has_bits_[0] & 0x00000002u) != 0;
+}
+inline void IntStatistic::set_has_history10sec() {
+  _has_bits_[0] |= 0x00000002u;
+}
+inline void IntStatistic::clear_has_history10sec() {
+  _has_bits_[0] &= ~0x00000002u;
+}
+inline void IntStatistic::clear_history10sec() {
+  if (history10sec_ != &::google::protobuf::internal::GetEmptyStringAlreadyInited()) {
+    history10sec_->clear();
+  }
+  clear_has_history10sec();
+}
+inline const ::std::string& IntStatistic::history10sec() const {
+  // @@protoc_insertion_point(field_get:SAFplus.Rpc.amfMgmtRpc.IntStatistic.history10sec)
+  return *history10sec_;
+}
+inline void IntStatistic::set_history10sec(const ::std::string& value) {
+  set_has_history10sec();
+  if (history10sec_ == &::google::protobuf::internal::GetEmptyStringAlreadyInited()) {
+    history10sec_ = new ::std::string;
+  }
+  history10sec_->assign(value);
+  // @@protoc_insertion_point(field_set:SAFplus.Rpc.amfMgmtRpc.IntStatistic.history10sec)
+}
+inline void IntStatistic::set_history10sec(const char* value) {
+  set_has_history10sec();
+  if (history10sec_ == &::google::protobuf::internal::GetEmptyStringAlreadyInited()) {
+    history10sec_ = new ::std::string;
+  }
+  history10sec_->assign(value);
+  // @@protoc_insertion_point(field_set_char:SAFplus.Rpc.amfMgmtRpc.IntStatistic.history10sec)
+}
+inline void IntStatistic::set_history10sec(const char* value, size_t size) {
+  set_has_history10sec();
+  if (history10sec_ == &::google::protobuf::internal::GetEmptyStringAlreadyInited()) {
+    history10sec_ = new ::std::string;
+  }
+  history10sec_->assign(reinterpret_cast<const char*>(value), size);
+  // @@protoc_insertion_point(field_set_pointer:SAFplus.Rpc.amfMgmtRpc.IntStatistic.history10sec)
+}
+inline ::std::string* IntStatistic::mutable_history10sec() {
+  set_has_history10sec();
+  if (history10sec_ == &::google::protobuf::internal::GetEmptyStringAlreadyInited()) {
+    history10sec_ = new ::std::string;
+  }
+  // @@protoc_insertion_point(field_mutable:SAFplus.Rpc.amfMgmtRpc.IntStatistic.history10sec)
+  return history10sec_;
+}
+inline ::std::string* IntStatistic::release_history10sec() {
+  clear_has_history10sec();
+  if (history10sec_ == &::google::protobuf::internal::GetEmptyStringAlreadyInited()) {
+    return NULL;
+  } else {
+    ::std::string* temp = history10sec_;
+    history10sec_ = const_cast< ::std::string*>(&::google::protobuf::internal::GetEmptyStringAlreadyInited());
+    return temp;
+  }
+}
+inline void IntStatistic::set_allocated_history10sec(::std::string* history10sec) {
+  if (history10sec_ != &::google::protobuf::internal::GetEmptyStringAlreadyInited()) {
+    delete history10sec_;
+  }
+  if (history10sec) {
+    set_has_history10sec();
+    history10sec_ = history10sec;
+  } else {
+    clear_has_history10sec();
+    history10sec_ = const_cast< ::std::string*>(&::google::protobuf::internal::GetEmptyStringAlreadyInited());
+  }
+  // @@protoc_insertion_point(field_set_allocated:SAFplus.Rpc.amfMgmtRpc.IntStatistic.history10sec)
+}
+
+// optional string history1min = 3;
+inline bool IntStatistic::has_history1min() const {
+  return (_has_bits_[0] & 0x00000004u) != 0;
+}
+inline void IntStatistic::set_has_history1min() {
+  _has_bits_[0] |= 0x00000004u;
+}
+inline void IntStatistic::clear_has_history1min() {
+  _has_bits_[0] &= ~0x00000004u;
+}
+inline void IntStatistic::clear_history1min() {
+  if (history1min_ != &::google::protobuf::internal::GetEmptyStringAlreadyInited()) {
+    history1min_->clear();
+  }
+  clear_has_history1min();
+}
+inline const ::std::string& IntStatistic::history1min() const {
+  // @@protoc_insertion_point(field_get:SAFplus.Rpc.amfMgmtRpc.IntStatistic.history1min)
+  return *history1min_;
+}
+inline void IntStatistic::set_history1min(const ::std::string& value) {
+  set_has_history1min();
+  if (history1min_ == &::google::protobuf::internal::GetEmptyStringAlreadyInited()) {
+    history1min_ = new ::std::string;
+  }
+  history1min_->assign(value);
+  // @@protoc_insertion_point(field_set:SAFplus.Rpc.amfMgmtRpc.IntStatistic.history1min)
+}
+inline void IntStatistic::set_history1min(const char* value) {
+  set_has_history1min();
+  if (history1min_ == &::google::protobuf::internal::GetEmptyStringAlreadyInited()) {
+    history1min_ = new ::std::string;
+  }
+  history1min_->assign(value);
+  // @@protoc_insertion_point(field_set_char:SAFplus.Rpc.amfMgmtRpc.IntStatistic.history1min)
+}
+inline void IntStatistic::set_history1min(const char* value, size_t size) {
+  set_has_history1min();
+  if (history1min_ == &::google::protobuf::internal::GetEmptyStringAlreadyInited()) {
+    history1min_ = new ::std::string;
+  }
+  history1min_->assign(reinterpret_cast<const char*>(value), size);
+  // @@protoc_insertion_point(field_set_pointer:SAFplus.Rpc.amfMgmtRpc.IntStatistic.history1min)
+}
+inline ::std::string* IntStatistic::mutable_history1min() {
+  set_has_history1min();
+  if (history1min_ == &::google::protobuf::internal::GetEmptyStringAlreadyInited()) {
+    history1min_ = new ::std::string;
+  }
+  // @@protoc_insertion_point(field_mutable:SAFplus.Rpc.amfMgmtRpc.IntStatistic.history1min)
+  return history1min_;
+}
+inline ::std::string* IntStatistic::release_history1min() {
+  clear_has_history1min();
+  if (history1min_ == &::google::protobuf::internal::GetEmptyStringAlreadyInited()) {
+    return NULL;
+  } else {
+    ::std::string* temp = history1min_;
+    history1min_ = const_cast< ::std::string*>(&::google::protobuf::internal::GetEmptyStringAlreadyInited());
+    return temp;
+  }
+}
+inline void IntStatistic::set_allocated_history1min(::std::string* history1min) {
+  if (history1min_ != &::google::protobuf::internal::GetEmptyStringAlreadyInited()) {
+    delete history1min_;
+  }
+  if (history1min) {
+    set_has_history1min();
+    history1min_ = history1min;
+  } else {
+    clear_has_history1min();
+    history1min_ = const_cast< ::std::string*>(&::google::protobuf::internal::GetEmptyStringAlreadyInited());
+  }
+  // @@protoc_insertion_point(field_set_allocated:SAFplus.Rpc.amfMgmtRpc.IntStatistic.history1min)
+}
+
+// optional string history10min = 4;
+inline bool IntStatistic::has_history10min() const {
+  return (_has_bits_[0] & 0x00000008u) != 0;
+}
+inline void IntStatistic::set_has_history10min() {
+  _has_bits_[0] |= 0x00000008u;
+}
+inline void IntStatistic::clear_has_history10min() {
+  _has_bits_[0] &= ~0x00000008u;
+}
+inline void IntStatistic::clear_history10min() {
+  if (history10min_ != &::google::protobuf::internal::GetEmptyStringAlreadyInited()) {
+    history10min_->clear();
+  }
+  clear_has_history10min();
+}
+inline const ::std::string& IntStatistic::history10min() const {
+  // @@protoc_insertion_point(field_get:SAFplus.Rpc.amfMgmtRpc.IntStatistic.history10min)
+  return *history10min_;
+}
+inline void IntStatistic::set_history10min(const ::std::string& value) {
+  set_has_history10min();
+  if (history10min_ == &::google::protobuf::internal::GetEmptyStringAlreadyInited()) {
+    history10min_ = new ::std::string;
+  }
+  history10min_->assign(value);
+  // @@protoc_insertion_point(field_set:SAFplus.Rpc.amfMgmtRpc.IntStatistic.history10min)
+}
+inline void IntStatistic::set_history10min(const char* value) {
+  set_has_history10min();
+  if (history10min_ == &::google::protobuf::internal::GetEmptyStringAlreadyInited()) {
+    history10min_ = new ::std::string;
+  }
+  history10min_->assign(value);
+  // @@protoc_insertion_point(field_set_char:SAFplus.Rpc.amfMgmtRpc.IntStatistic.history10min)
+}
+inline void IntStatistic::set_history10min(const char* value, size_t size) {
+  set_has_history10min();
+  if (history10min_ == &::google::protobuf::internal::GetEmptyStringAlreadyInited()) {
+    history10min_ = new ::std::string;
+  }
+  history10min_->assign(reinterpret_cast<const char*>(value), size);
+  // @@protoc_insertion_point(field_set_pointer:SAFplus.Rpc.amfMgmtRpc.IntStatistic.history10min)
+}
+inline ::std::string* IntStatistic::mutable_history10min() {
+  set_has_history10min();
+  if (history10min_ == &::google::protobuf::internal::GetEmptyStringAlreadyInited()) {
+    history10min_ = new ::std::string;
+  }
+  // @@protoc_insertion_point(field_mutable:SAFplus.Rpc.amfMgmtRpc.IntStatistic.history10min)
+  return history10min_;
+}
+inline ::std::string* IntStatistic::release_history10min() {
+  clear_has_history10min();
+  if (history10min_ == &::google::protobuf::internal::GetEmptyStringAlreadyInited()) {
+    return NULL;
+  } else {
+    ::std::string* temp = history10min_;
+    history10min_ = const_cast< ::std::string*>(&::google::protobuf::internal::GetEmptyStringAlreadyInited());
+    return temp;
+  }
+}
+inline void IntStatistic::set_allocated_history10min(::std::string* history10min) {
+  if (history10min_ != &::google::protobuf::internal::GetEmptyStringAlreadyInited()) {
+    delete history10min_;
+  }
+  if (history10min) {
+    set_has_history10min();
+    history10min_ = history10min;
+  } else {
+    clear_has_history10min();
+    history10min_ = const_cast< ::std::string*>(&::google::protobuf::internal::GetEmptyStringAlreadyInited());
+  }
+  // @@protoc_insertion_point(field_set_allocated:SAFplus.Rpc.amfMgmtRpc.IntStatistic.history10min)
+}
+
+// optional string history1hour = 5;
+inline bool IntStatistic::has_history1hour() const {
+  return (_has_bits_[0] & 0x00000010u) != 0;
+}
+inline void IntStatistic::set_has_history1hour() {
+  _has_bits_[0] |= 0x00000010u;
+}
+inline void IntStatistic::clear_has_history1hour() {
+  _has_bits_[0] &= ~0x00000010u;
+}
+inline void IntStatistic::clear_history1hour() {
+  if (history1hour_ != &::google::protobuf::internal::GetEmptyStringAlreadyInited()) {
+    history1hour_->clear();
+  }
+  clear_has_history1hour();
+}
+inline const ::std::string& IntStatistic::history1hour() const {
+  // @@protoc_insertion_point(field_get:SAFplus.Rpc.amfMgmtRpc.IntStatistic.history1hour)
+  return *history1hour_;
+}
+inline void IntStatistic::set_history1hour(const ::std::string& value) {
+  set_has_history1hour();
+  if (history1hour_ == &::google::protobuf::internal::GetEmptyStringAlreadyInited()) {
+    history1hour_ = new ::std::string;
+  }
+  history1hour_->assign(value);
+  // @@protoc_insertion_point(field_set:SAFplus.Rpc.amfMgmtRpc.IntStatistic.history1hour)
+}
+inline void IntStatistic::set_history1hour(const char* value) {
+  set_has_history1hour();
+  if (history1hour_ == &::google::protobuf::internal::GetEmptyStringAlreadyInited()) {
+    history1hour_ = new ::std::string;
+  }
+  history1hour_->assign(value);
+  // @@protoc_insertion_point(field_set_char:SAFplus.Rpc.amfMgmtRpc.IntStatistic.history1hour)
+}
+inline void IntStatistic::set_history1hour(const char* value, size_t size) {
+  set_has_history1hour();
+  if (history1hour_ == &::google::protobuf::internal::GetEmptyStringAlreadyInited()) {
+    history1hour_ = new ::std::string;
+  }
+  history1hour_->assign(reinterpret_cast<const char*>(value), size);
+  // @@protoc_insertion_point(field_set_pointer:SAFplus.Rpc.amfMgmtRpc.IntStatistic.history1hour)
+}
+inline ::std::string* IntStatistic::mutable_history1hour() {
+  set_has_history1hour();
+  if (history1hour_ == &::google::protobuf::internal::GetEmptyStringAlreadyInited()) {
+    history1hour_ = new ::std::string;
+  }
+  // @@protoc_insertion_point(field_mutable:SAFplus.Rpc.amfMgmtRpc.IntStatistic.history1hour)
+  return history1hour_;
+}
+inline ::std::string* IntStatistic::release_history1hour() {
+  clear_has_history1hour();
+  if (history1hour_ == &::google::protobuf::internal::GetEmptyStringAlreadyInited()) {
+    return NULL;
+  } else {
+    ::std::string* temp = history1hour_;
+    history1hour_ = const_cast< ::std::string*>(&::google::protobuf::internal::GetEmptyStringAlreadyInited());
+    return temp;
+  }
+}
+inline void IntStatistic::set_allocated_history1hour(::std::string* history1hour) {
+  if (history1hour_ != &::google::protobuf::internal::GetEmptyStringAlreadyInited()) {
+    delete history1hour_;
+  }
+  if (history1hour) {
+    set_has_history1hour();
+    history1hour_ = history1hour;
+  } else {
+    clear_has_history1hour();
+    history1hour_ = const_cast< ::std::string*>(&::google::protobuf::internal::GetEmptyStringAlreadyInited());
+  }
+  // @@protoc_insertion_point(field_set_allocated:SAFplus.Rpc.amfMgmtRpc.IntStatistic.history1hour)
+}
+
+// optional string history1day = 6;
+inline bool IntStatistic::has_history1day() const {
+  return (_has_bits_[0] & 0x00000020u) != 0;
+}
+inline void IntStatistic::set_has_history1day() {
+  _has_bits_[0] |= 0x00000020u;
+}
+inline void IntStatistic::clear_has_history1day() {
+  _has_bits_[0] &= ~0x00000020u;
+}
+inline void IntStatistic::clear_history1day() {
+  if (history1day_ != &::google::protobuf::internal::GetEmptyStringAlreadyInited()) {
+    history1day_->clear();
+  }
+  clear_has_history1day();
+}
+inline const ::std::string& IntStatistic::history1day() const {
+  // @@protoc_insertion_point(field_get:SAFplus.Rpc.amfMgmtRpc.IntStatistic.history1day)
+  return *history1day_;
+}
+inline void IntStatistic::set_history1day(const ::std::string& value) {
+  set_has_history1day();
+  if (history1day_ == &::google::protobuf::internal::GetEmptyStringAlreadyInited()) {
+    history1day_ = new ::std::string;
+  }
+  history1day_->assign(value);
+  // @@protoc_insertion_point(field_set:SAFplus.Rpc.amfMgmtRpc.IntStatistic.history1day)
+}
+inline void IntStatistic::set_history1day(const char* value) {
+  set_has_history1day();
+  if (history1day_ == &::google::protobuf::internal::GetEmptyStringAlreadyInited()) {
+    history1day_ = new ::std::string;
+  }
+  history1day_->assign(value);
+  // @@protoc_insertion_point(field_set_char:SAFplus.Rpc.amfMgmtRpc.IntStatistic.history1day)
+}
+inline void IntStatistic::set_history1day(const char* value, size_t size) {
+  set_has_history1day();
+  if (history1day_ == &::google::protobuf::internal::GetEmptyStringAlreadyInited()) {
+    history1day_ = new ::std::string;
+  }
+  history1day_->assign(reinterpret_cast<const char*>(value), size);
+  // @@protoc_insertion_point(field_set_pointer:SAFplus.Rpc.amfMgmtRpc.IntStatistic.history1day)
+}
+inline ::std::string* IntStatistic::mutable_history1day() {
+  set_has_history1day();
+  if (history1day_ == &::google::protobuf::internal::GetEmptyStringAlreadyInited()) {
+    history1day_ = new ::std::string;
+  }
+  // @@protoc_insertion_point(field_mutable:SAFplus.Rpc.amfMgmtRpc.IntStatistic.history1day)
+  return history1day_;
+}
+inline ::std::string* IntStatistic::release_history1day() {
+  clear_has_history1day();
+  if (history1day_ == &::google::protobuf::internal::GetEmptyStringAlreadyInited()) {
+    return NULL;
+  } else {
+    ::std::string* temp = history1day_;
+    history1day_ = const_cast< ::std::string*>(&::google::protobuf::internal::GetEmptyStringAlreadyInited());
+    return temp;
+  }
+}
+inline void IntStatistic::set_allocated_history1day(::std::string* history1day) {
+  if (history1day_ != &::google::protobuf::internal::GetEmptyStringAlreadyInited()) {
+    delete history1day_;
+  }
+  if (history1day) {
+    set_has_history1day();
+    history1day_ = history1day;
+  } else {
+    clear_has_history1day();
+    history1day_ = const_cast< ::std::string*>(&::google::protobuf::internal::GetEmptyStringAlreadyInited());
+  }
+  // @@protoc_insertion_point(field_set_allocated:SAFplus.Rpc.amfMgmtRpc.IntStatistic.history1day)
+}
+
+// optional string history1week = 7;
+inline bool IntStatistic::has_history1week() const {
+  return (_has_bits_[0] & 0x00000040u) != 0;
+}
+inline void IntStatistic::set_has_history1week() {
+  _has_bits_[0] |= 0x00000040u;
+}
+inline void IntStatistic::clear_has_history1week() {
+  _has_bits_[0] &= ~0x00000040u;
+}
+inline void IntStatistic::clear_history1week() {
+  if (history1week_ != &::google::protobuf::internal::GetEmptyStringAlreadyInited()) {
+    history1week_->clear();
+  }
+  clear_has_history1week();
+}
+inline const ::std::string& IntStatistic::history1week() const {
+  // @@protoc_insertion_point(field_get:SAFplus.Rpc.amfMgmtRpc.IntStatistic.history1week)
+  return *history1week_;
+}
+inline void IntStatistic::set_history1week(const ::std::string& value) {
+  set_has_history1week();
+  if (history1week_ == &::google::protobuf::internal::GetEmptyStringAlreadyInited()) {
+    history1week_ = new ::std::string;
+  }
+  history1week_->assign(value);
+  // @@protoc_insertion_point(field_set:SAFplus.Rpc.amfMgmtRpc.IntStatistic.history1week)
+}
+inline void IntStatistic::set_history1week(const char* value) {
+  set_has_history1week();
+  if (history1week_ == &::google::protobuf::internal::GetEmptyStringAlreadyInited()) {
+    history1week_ = new ::std::string;
+  }
+  history1week_->assign(value);
+  // @@protoc_insertion_point(field_set_char:SAFplus.Rpc.amfMgmtRpc.IntStatistic.history1week)
+}
+inline void IntStatistic::set_history1week(const char* value, size_t size) {
+  set_has_history1week();
+  if (history1week_ == &::google::protobuf::internal::GetEmptyStringAlreadyInited()) {
+    history1week_ = new ::std::string;
+  }
+  history1week_->assign(reinterpret_cast<const char*>(value), size);
+  // @@protoc_insertion_point(field_set_pointer:SAFplus.Rpc.amfMgmtRpc.IntStatistic.history1week)
+}
+inline ::std::string* IntStatistic::mutable_history1week() {
+  set_has_history1week();
+  if (history1week_ == &::google::protobuf::internal::GetEmptyStringAlreadyInited()) {
+    history1week_ = new ::std::string;
+  }
+  // @@protoc_insertion_point(field_mutable:SAFplus.Rpc.amfMgmtRpc.IntStatistic.history1week)
+  return history1week_;
+}
+inline ::std::string* IntStatistic::release_history1week() {
+  clear_has_history1week();
+  if (history1week_ == &::google::protobuf::internal::GetEmptyStringAlreadyInited()) {
+    return NULL;
+  } else {
+    ::std::string* temp = history1week_;
+    history1week_ = const_cast< ::std::string*>(&::google::protobuf::internal::GetEmptyStringAlreadyInited());
+    return temp;
+  }
+}
+inline void IntStatistic::set_allocated_history1week(::std::string* history1week) {
+  if (history1week_ != &::google::protobuf::internal::GetEmptyStringAlreadyInited()) {
+    delete history1week_;
+  }
+  if (history1week) {
+    set_has_history1week();
+    history1week_ = history1week;
+  } else {
+    clear_has_history1week();
+    history1week_ = const_cast< ::std::string*>(&::google::protobuf::internal::GetEmptyStringAlreadyInited());
+  }
+  // @@protoc_insertion_point(field_set_allocated:SAFplus.Rpc.amfMgmtRpc.IntStatistic.history1week)
+}
+
+// optional string history4weeks = 8;
+inline bool IntStatistic::has_history4weeks() const {
+  return (_has_bits_[0] & 0x00000080u) != 0;
+}
+inline void IntStatistic::set_has_history4weeks() {
+  _has_bits_[0] |= 0x00000080u;
+}
+inline void IntStatistic::clear_has_history4weeks() {
+  _has_bits_[0] &= ~0x00000080u;
+}
+inline void IntStatistic::clear_history4weeks() {
+  if (history4weeks_ != &::google::protobuf::internal::GetEmptyStringAlreadyInited()) {
+    history4weeks_->clear();
+  }
+  clear_has_history4weeks();
+}
+inline const ::std::string& IntStatistic::history4weeks() const {
+  // @@protoc_insertion_point(field_get:SAFplus.Rpc.amfMgmtRpc.IntStatistic.history4weeks)
+  return *history4weeks_;
+}
+inline void IntStatistic::set_history4weeks(const ::std::string& value) {
+  set_has_history4weeks();
+  if (history4weeks_ == &::google::protobuf::internal::GetEmptyStringAlreadyInited()) {
+    history4weeks_ = new ::std::string;
+  }
+  history4weeks_->assign(value);
+  // @@protoc_insertion_point(field_set:SAFplus.Rpc.amfMgmtRpc.IntStatistic.history4weeks)
+}
+inline void IntStatistic::set_history4weeks(const char* value) {
+  set_has_history4weeks();
+  if (history4weeks_ == &::google::protobuf::internal::GetEmptyStringAlreadyInited()) {
+    history4weeks_ = new ::std::string;
+  }
+  history4weeks_->assign(value);
+  // @@protoc_insertion_point(field_set_char:SAFplus.Rpc.amfMgmtRpc.IntStatistic.history4weeks)
+}
+inline void IntStatistic::set_history4weeks(const char* value, size_t size) {
+  set_has_history4weeks();
+  if (history4weeks_ == &::google::protobuf::internal::GetEmptyStringAlreadyInited()) {
+    history4weeks_ = new ::std::string;
+  }
+  history4weeks_->assign(reinterpret_cast<const char*>(value), size);
+  // @@protoc_insertion_point(field_set_pointer:SAFplus.Rpc.amfMgmtRpc.IntStatistic.history4weeks)
+}
+inline ::std::string* IntStatistic::mutable_history4weeks() {
+  set_has_history4weeks();
+  if (history4weeks_ == &::google::protobuf::internal::GetEmptyStringAlreadyInited()) {
+    history4weeks_ = new ::std::string;
+  }
+  // @@protoc_insertion_point(field_mutable:SAFplus.Rpc.amfMgmtRpc.IntStatistic.history4weeks)
+  return history4weeks_;
+}
+inline ::std::string* IntStatistic::release_history4weeks() {
+  clear_has_history4weeks();
+  if (history4weeks_ == &::google::protobuf::internal::GetEmptyStringAlreadyInited()) {
+    return NULL;
+  } else {
+    ::std::string* temp = history4weeks_;
+    history4weeks_ = const_cast< ::std::string*>(&::google::protobuf::internal::GetEmptyStringAlreadyInited());
+    return temp;
+  }
+}
+inline void IntStatistic::set_allocated_history4weeks(::std::string* history4weeks) {
+  if (history4weeks_ != &::google::protobuf::internal::GetEmptyStringAlreadyInited()) {
+    delete history4weeks_;
+  }
+  if (history4weeks) {
+    set_has_history4weeks();
+    history4weeks_ = history4weeks;
+  } else {
+    clear_has_history4weeks();
+    history4weeks_ = const_cast< ::std::string*>(&::google::protobuf::internal::GetEmptyStringAlreadyInited());
+  }
+  // @@protoc_insertion_point(field_set_allocated:SAFplus.Rpc.amfMgmtRpc.IntStatistic.history4weeks)
+}
+
+// -------------------------------------------------------------------
+
+// DecStatistic
+
+// optional sfixed64 current = 1;
+inline bool DecStatistic::has_current() const {
+  return (_has_bits_[0] & 0x00000001u) != 0;
+}
+inline void DecStatistic::set_has_current() {
+  _has_bits_[0] |= 0x00000001u;
+}
+inline void DecStatistic::clear_has_current() {
+  _has_bits_[0] &= ~0x00000001u;
+}
+inline void DecStatistic::clear_current() {
+  current_ = GOOGLE_LONGLONG(0);
+  clear_has_current();
+}
+inline ::google::protobuf::int64 DecStatistic::current() const {
+  // @@protoc_insertion_point(field_get:SAFplus.Rpc.amfMgmtRpc.DecStatistic.current)
+  return current_;
+}
+inline void DecStatistic::set_current(::google::protobuf::int64 value) {
+  set_has_current();
+  current_ = value;
+  // @@protoc_insertion_point(field_set:SAFplus.Rpc.amfMgmtRpc.DecStatistic.current)
+}
+
+// optional string history10sec = 2;
+inline bool DecStatistic::has_history10sec() const {
+  return (_has_bits_[0] & 0x00000002u) != 0;
+}
+inline void DecStatistic::set_has_history10sec() {
+  _has_bits_[0] |= 0x00000002u;
+}
+inline void DecStatistic::clear_has_history10sec() {
+  _has_bits_[0] &= ~0x00000002u;
+}
+inline void DecStatistic::clear_history10sec() {
+  if (history10sec_ != &::google::protobuf::internal::GetEmptyStringAlreadyInited()) {
+    history10sec_->clear();
+  }
+  clear_has_history10sec();
+}
+inline const ::std::string& DecStatistic::history10sec() const {
+  // @@protoc_insertion_point(field_get:SAFplus.Rpc.amfMgmtRpc.DecStatistic.history10sec)
+  return *history10sec_;
+}
+inline void DecStatistic::set_history10sec(const ::std::string& value) {
+  set_has_history10sec();
+  if (history10sec_ == &::google::protobuf::internal::GetEmptyStringAlreadyInited()) {
+    history10sec_ = new ::std::string;
+  }
+  history10sec_->assign(value);
+  // @@protoc_insertion_point(field_set:SAFplus.Rpc.amfMgmtRpc.DecStatistic.history10sec)
+}
+inline void DecStatistic::set_history10sec(const char* value) {
+  set_has_history10sec();
+  if (history10sec_ == &::google::protobuf::internal::GetEmptyStringAlreadyInited()) {
+    history10sec_ = new ::std::string;
+  }
+  history10sec_->assign(value);
+  // @@protoc_insertion_point(field_set_char:SAFplus.Rpc.amfMgmtRpc.DecStatistic.history10sec)
+}
+inline void DecStatistic::set_history10sec(const char* value, size_t size) {
+  set_has_history10sec();
+  if (history10sec_ == &::google::protobuf::internal::GetEmptyStringAlreadyInited()) {
+    history10sec_ = new ::std::string;
+  }
+  history10sec_->assign(reinterpret_cast<const char*>(value), size);
+  // @@protoc_insertion_point(field_set_pointer:SAFplus.Rpc.amfMgmtRpc.DecStatistic.history10sec)
+}
+inline ::std::string* DecStatistic::mutable_history10sec() {
+  set_has_history10sec();
+  if (history10sec_ == &::google::protobuf::internal::GetEmptyStringAlreadyInited()) {
+    history10sec_ = new ::std::string;
+  }
+  // @@protoc_insertion_point(field_mutable:SAFplus.Rpc.amfMgmtRpc.DecStatistic.history10sec)
+  return history10sec_;
+}
+inline ::std::string* DecStatistic::release_history10sec() {
+  clear_has_history10sec();
+  if (history10sec_ == &::google::protobuf::internal::GetEmptyStringAlreadyInited()) {
+    return NULL;
+  } else {
+    ::std::string* temp = history10sec_;
+    history10sec_ = const_cast< ::std::string*>(&::google::protobuf::internal::GetEmptyStringAlreadyInited());
+    return temp;
+  }
+}
+inline void DecStatistic::set_allocated_history10sec(::std::string* history10sec) {
+  if (history10sec_ != &::google::protobuf::internal::GetEmptyStringAlreadyInited()) {
+    delete history10sec_;
+  }
+  if (history10sec) {
+    set_has_history10sec();
+    history10sec_ = history10sec;
+  } else {
+    clear_has_history10sec();
+    history10sec_ = const_cast< ::std::string*>(&::google::protobuf::internal::GetEmptyStringAlreadyInited());
+  }
+  // @@protoc_insertion_point(field_set_allocated:SAFplus.Rpc.amfMgmtRpc.DecStatistic.history10sec)
+}
+
+// optional string history1min = 3;
+inline bool DecStatistic::has_history1min() const {
+  return (_has_bits_[0] & 0x00000004u) != 0;
+}
+inline void DecStatistic::set_has_history1min() {
+  _has_bits_[0] |= 0x00000004u;
+}
+inline void DecStatistic::clear_has_history1min() {
+  _has_bits_[0] &= ~0x00000004u;
+}
+inline void DecStatistic::clear_history1min() {
+  if (history1min_ != &::google::protobuf::internal::GetEmptyStringAlreadyInited()) {
+    history1min_->clear();
+  }
+  clear_has_history1min();
+}
+inline const ::std::string& DecStatistic::history1min() const {
+  // @@protoc_insertion_point(field_get:SAFplus.Rpc.amfMgmtRpc.DecStatistic.history1min)
+  return *history1min_;
+}
+inline void DecStatistic::set_history1min(const ::std::string& value) {
+  set_has_history1min();
+  if (history1min_ == &::google::protobuf::internal::GetEmptyStringAlreadyInited()) {
+    history1min_ = new ::std::string;
+  }
+  history1min_->assign(value);
+  // @@protoc_insertion_point(field_set:SAFplus.Rpc.amfMgmtRpc.DecStatistic.history1min)
+}
+inline void DecStatistic::set_history1min(const char* value) {
+  set_has_history1min();
+  if (history1min_ == &::google::protobuf::internal::GetEmptyStringAlreadyInited()) {
+    history1min_ = new ::std::string;
+  }
+  history1min_->assign(value);
+  // @@protoc_insertion_point(field_set_char:SAFplus.Rpc.amfMgmtRpc.DecStatistic.history1min)
+}
+inline void DecStatistic::set_history1min(const char* value, size_t size) {
+  set_has_history1min();
+  if (history1min_ == &::google::protobuf::internal::GetEmptyStringAlreadyInited()) {
+    history1min_ = new ::std::string;
+  }
+  history1min_->assign(reinterpret_cast<const char*>(value), size);
+  // @@protoc_insertion_point(field_set_pointer:SAFplus.Rpc.amfMgmtRpc.DecStatistic.history1min)
+}
+inline ::std::string* DecStatistic::mutable_history1min() {
+  set_has_history1min();
+  if (history1min_ == &::google::protobuf::internal::GetEmptyStringAlreadyInited()) {
+    history1min_ = new ::std::string;
+  }
+  // @@protoc_insertion_point(field_mutable:SAFplus.Rpc.amfMgmtRpc.DecStatistic.history1min)
+  return history1min_;
+}
+inline ::std::string* DecStatistic::release_history1min() {
+  clear_has_history1min();
+  if (history1min_ == &::google::protobuf::internal::GetEmptyStringAlreadyInited()) {
+    return NULL;
+  } else {
+    ::std::string* temp = history1min_;
+    history1min_ = const_cast< ::std::string*>(&::google::protobuf::internal::GetEmptyStringAlreadyInited());
+    return temp;
+  }
+}
+inline void DecStatistic::set_allocated_history1min(::std::string* history1min) {
+  if (history1min_ != &::google::protobuf::internal::GetEmptyStringAlreadyInited()) {
+    delete history1min_;
+  }
+  if (history1min) {
+    set_has_history1min();
+    history1min_ = history1min;
+  } else {
+    clear_has_history1min();
+    history1min_ = const_cast< ::std::string*>(&::google::protobuf::internal::GetEmptyStringAlreadyInited());
+  }
+  // @@protoc_insertion_point(field_set_allocated:SAFplus.Rpc.amfMgmtRpc.DecStatistic.history1min)
+}
+
+// optional string history10min = 4;
+inline bool DecStatistic::has_history10min() const {
+  return (_has_bits_[0] & 0x00000008u) != 0;
+}
+inline void DecStatistic::set_has_history10min() {
+  _has_bits_[0] |= 0x00000008u;
+}
+inline void DecStatistic::clear_has_history10min() {
+  _has_bits_[0] &= ~0x00000008u;
+}
+inline void DecStatistic::clear_history10min() {
+  if (history10min_ != &::google::protobuf::internal::GetEmptyStringAlreadyInited()) {
+    history10min_->clear();
+  }
+  clear_has_history10min();
+}
+inline const ::std::string& DecStatistic::history10min() const {
+  // @@protoc_insertion_point(field_get:SAFplus.Rpc.amfMgmtRpc.DecStatistic.history10min)
+  return *history10min_;
+}
+inline void DecStatistic::set_history10min(const ::std::string& value) {
+  set_has_history10min();
+  if (history10min_ == &::google::protobuf::internal::GetEmptyStringAlreadyInited()) {
+    history10min_ = new ::std::string;
+  }
+  history10min_->assign(value);
+  // @@protoc_insertion_point(field_set:SAFplus.Rpc.amfMgmtRpc.DecStatistic.history10min)
+}
+inline void DecStatistic::set_history10min(const char* value) {
+  set_has_history10min();
+  if (history10min_ == &::google::protobuf::internal::GetEmptyStringAlreadyInited()) {
+    history10min_ = new ::std::string;
+  }
+  history10min_->assign(value);
+  // @@protoc_insertion_point(field_set_char:SAFplus.Rpc.amfMgmtRpc.DecStatistic.history10min)
+}
+inline void DecStatistic::set_history10min(const char* value, size_t size) {
+  set_has_history10min();
+  if (history10min_ == &::google::protobuf::internal::GetEmptyStringAlreadyInited()) {
+    history10min_ = new ::std::string;
+  }
+  history10min_->assign(reinterpret_cast<const char*>(value), size);
+  // @@protoc_insertion_point(field_set_pointer:SAFplus.Rpc.amfMgmtRpc.DecStatistic.history10min)
+}
+inline ::std::string* DecStatistic::mutable_history10min() {
+  set_has_history10min();
+  if (history10min_ == &::google::protobuf::internal::GetEmptyStringAlreadyInited()) {
+    history10min_ = new ::std::string;
+  }
+  // @@protoc_insertion_point(field_mutable:SAFplus.Rpc.amfMgmtRpc.DecStatistic.history10min)
+  return history10min_;
+}
+inline ::std::string* DecStatistic::release_history10min() {
+  clear_has_history10min();
+  if (history10min_ == &::google::protobuf::internal::GetEmptyStringAlreadyInited()) {
+    return NULL;
+  } else {
+    ::std::string* temp = history10min_;
+    history10min_ = const_cast< ::std::string*>(&::google::protobuf::internal::GetEmptyStringAlreadyInited());
+    return temp;
+  }
+}
+inline void DecStatistic::set_allocated_history10min(::std::string* history10min) {
+  if (history10min_ != &::google::protobuf::internal::GetEmptyStringAlreadyInited()) {
+    delete history10min_;
+  }
+  if (history10min) {
+    set_has_history10min();
+    history10min_ = history10min;
+  } else {
+    clear_has_history10min();
+    history10min_ = const_cast< ::std::string*>(&::google::protobuf::internal::GetEmptyStringAlreadyInited());
+  }
+  // @@protoc_insertion_point(field_set_allocated:SAFplus.Rpc.amfMgmtRpc.DecStatistic.history10min)
+}
+
+// optional string history1hour = 5;
+inline bool DecStatistic::has_history1hour() const {
+  return (_has_bits_[0] & 0x00000010u) != 0;
+}
+inline void DecStatistic::set_has_history1hour() {
+  _has_bits_[0] |= 0x00000010u;
+}
+inline void DecStatistic::clear_has_history1hour() {
+  _has_bits_[0] &= ~0x00000010u;
+}
+inline void DecStatistic::clear_history1hour() {
+  if (history1hour_ != &::google::protobuf::internal::GetEmptyStringAlreadyInited()) {
+    history1hour_->clear();
+  }
+  clear_has_history1hour();
+}
+inline const ::std::string& DecStatistic::history1hour() const {
+  // @@protoc_insertion_point(field_get:SAFplus.Rpc.amfMgmtRpc.DecStatistic.history1hour)
+  return *history1hour_;
+}
+inline void DecStatistic::set_history1hour(const ::std::string& value) {
+  set_has_history1hour();
+  if (history1hour_ == &::google::protobuf::internal::GetEmptyStringAlreadyInited()) {
+    history1hour_ = new ::std::string;
+  }
+  history1hour_->assign(value);
+  // @@protoc_insertion_point(field_set:SAFplus.Rpc.amfMgmtRpc.DecStatistic.history1hour)
+}
+inline void DecStatistic::set_history1hour(const char* value) {
+  set_has_history1hour();
+  if (history1hour_ == &::google::protobuf::internal::GetEmptyStringAlreadyInited()) {
+    history1hour_ = new ::std::string;
+  }
+  history1hour_->assign(value);
+  // @@protoc_insertion_point(field_set_char:SAFplus.Rpc.amfMgmtRpc.DecStatistic.history1hour)
+}
+inline void DecStatistic::set_history1hour(const char* value, size_t size) {
+  set_has_history1hour();
+  if (history1hour_ == &::google::protobuf::internal::GetEmptyStringAlreadyInited()) {
+    history1hour_ = new ::std::string;
+  }
+  history1hour_->assign(reinterpret_cast<const char*>(value), size);
+  // @@protoc_insertion_point(field_set_pointer:SAFplus.Rpc.amfMgmtRpc.DecStatistic.history1hour)
+}
+inline ::std::string* DecStatistic::mutable_history1hour() {
+  set_has_history1hour();
+  if (history1hour_ == &::google::protobuf::internal::GetEmptyStringAlreadyInited()) {
+    history1hour_ = new ::std::string;
+  }
+  // @@protoc_insertion_point(field_mutable:SAFplus.Rpc.amfMgmtRpc.DecStatistic.history1hour)
+  return history1hour_;
+}
+inline ::std::string* DecStatistic::release_history1hour() {
+  clear_has_history1hour();
+  if (history1hour_ == &::google::protobuf::internal::GetEmptyStringAlreadyInited()) {
+    return NULL;
+  } else {
+    ::std::string* temp = history1hour_;
+    history1hour_ = const_cast< ::std::string*>(&::google::protobuf::internal::GetEmptyStringAlreadyInited());
+    return temp;
+  }
+}
+inline void DecStatistic::set_allocated_history1hour(::std::string* history1hour) {
+  if (history1hour_ != &::google::protobuf::internal::GetEmptyStringAlreadyInited()) {
+    delete history1hour_;
+  }
+  if (history1hour) {
+    set_has_history1hour();
+    history1hour_ = history1hour;
+  } else {
+    clear_has_history1hour();
+    history1hour_ = const_cast< ::std::string*>(&::google::protobuf::internal::GetEmptyStringAlreadyInited());
+  }
+  // @@protoc_insertion_point(field_set_allocated:SAFplus.Rpc.amfMgmtRpc.DecStatistic.history1hour)
+}
+
+// optional string history1day = 6;
+inline bool DecStatistic::has_history1day() const {
+  return (_has_bits_[0] & 0x00000020u) != 0;
+}
+inline void DecStatistic::set_has_history1day() {
+  _has_bits_[0] |= 0x00000020u;
+}
+inline void DecStatistic::clear_has_history1day() {
+  _has_bits_[0] &= ~0x00000020u;
+}
+inline void DecStatistic::clear_history1day() {
+  if (history1day_ != &::google::protobuf::internal::GetEmptyStringAlreadyInited()) {
+    history1day_->clear();
+  }
+  clear_has_history1day();
+}
+inline const ::std::string& DecStatistic::history1day() const {
+  // @@protoc_insertion_point(field_get:SAFplus.Rpc.amfMgmtRpc.DecStatistic.history1day)
+  return *history1day_;
+}
+inline void DecStatistic::set_history1day(const ::std::string& value) {
+  set_has_history1day();
+  if (history1day_ == &::google::protobuf::internal::GetEmptyStringAlreadyInited()) {
+    history1day_ = new ::std::string;
+  }
+  history1day_->assign(value);
+  // @@protoc_insertion_point(field_set:SAFplus.Rpc.amfMgmtRpc.DecStatistic.history1day)
+}
+inline void DecStatistic::set_history1day(const char* value) {
+  set_has_history1day();
+  if (history1day_ == &::google::protobuf::internal::GetEmptyStringAlreadyInited()) {
+    history1day_ = new ::std::string;
+  }
+  history1day_->assign(value);
+  // @@protoc_insertion_point(field_set_char:SAFplus.Rpc.amfMgmtRpc.DecStatistic.history1day)
+}
+inline void DecStatistic::set_history1day(const char* value, size_t size) {
+  set_has_history1day();
+  if (history1day_ == &::google::protobuf::internal::GetEmptyStringAlreadyInited()) {
+    history1day_ = new ::std::string;
+  }
+  history1day_->assign(reinterpret_cast<const char*>(value), size);
+  // @@protoc_insertion_point(field_set_pointer:SAFplus.Rpc.amfMgmtRpc.DecStatistic.history1day)
+}
+inline ::std::string* DecStatistic::mutable_history1day() {
+  set_has_history1day();
+  if (history1day_ == &::google::protobuf::internal::GetEmptyStringAlreadyInited()) {
+    history1day_ = new ::std::string;
+  }
+  // @@protoc_insertion_point(field_mutable:SAFplus.Rpc.amfMgmtRpc.DecStatistic.history1day)
+  return history1day_;
+}
+inline ::std::string* DecStatistic::release_history1day() {
+  clear_has_history1day();
+  if (history1day_ == &::google::protobuf::internal::GetEmptyStringAlreadyInited()) {
+    return NULL;
+  } else {
+    ::std::string* temp = history1day_;
+    history1day_ = const_cast< ::std::string*>(&::google::protobuf::internal::GetEmptyStringAlreadyInited());
+    return temp;
+  }
+}
+inline void DecStatistic::set_allocated_history1day(::std::string* history1day) {
+  if (history1day_ != &::google::protobuf::internal::GetEmptyStringAlreadyInited()) {
+    delete history1day_;
+  }
+  if (history1day) {
+    set_has_history1day();
+    history1day_ = history1day;
+  } else {
+    clear_has_history1day();
+    history1day_ = const_cast< ::std::string*>(&::google::protobuf::internal::GetEmptyStringAlreadyInited());
+  }
+  // @@protoc_insertion_point(field_set_allocated:SAFplus.Rpc.amfMgmtRpc.DecStatistic.history1day)
+}
+
+// optional string history1week = 7;
+inline bool DecStatistic::has_history1week() const {
+  return (_has_bits_[0] & 0x00000040u) != 0;
+}
+inline void DecStatistic::set_has_history1week() {
+  _has_bits_[0] |= 0x00000040u;
+}
+inline void DecStatistic::clear_has_history1week() {
+  _has_bits_[0] &= ~0x00000040u;
+}
+inline void DecStatistic::clear_history1week() {
+  if (history1week_ != &::google::protobuf::internal::GetEmptyStringAlreadyInited()) {
+    history1week_->clear();
+  }
+  clear_has_history1week();
+}
+inline const ::std::string& DecStatistic::history1week() const {
+  // @@protoc_insertion_point(field_get:SAFplus.Rpc.amfMgmtRpc.DecStatistic.history1week)
+  return *history1week_;
+}
+inline void DecStatistic::set_history1week(const ::std::string& value) {
+  set_has_history1week();
+  if (history1week_ == &::google::protobuf::internal::GetEmptyStringAlreadyInited()) {
+    history1week_ = new ::std::string;
+  }
+  history1week_->assign(value);
+  // @@protoc_insertion_point(field_set:SAFplus.Rpc.amfMgmtRpc.DecStatistic.history1week)
+}
+inline void DecStatistic::set_history1week(const char* value) {
+  set_has_history1week();
+  if (history1week_ == &::google::protobuf::internal::GetEmptyStringAlreadyInited()) {
+    history1week_ = new ::std::string;
+  }
+  history1week_->assign(value);
+  // @@protoc_insertion_point(field_set_char:SAFplus.Rpc.amfMgmtRpc.DecStatistic.history1week)
+}
+inline void DecStatistic::set_history1week(const char* value, size_t size) {
+  set_has_history1week();
+  if (history1week_ == &::google::protobuf::internal::GetEmptyStringAlreadyInited()) {
+    history1week_ = new ::std::string;
+  }
+  history1week_->assign(reinterpret_cast<const char*>(value), size);
+  // @@protoc_insertion_point(field_set_pointer:SAFplus.Rpc.amfMgmtRpc.DecStatistic.history1week)
+}
+inline ::std::string* DecStatistic::mutable_history1week() {
+  set_has_history1week();
+  if (history1week_ == &::google::protobuf::internal::GetEmptyStringAlreadyInited()) {
+    history1week_ = new ::std::string;
+  }
+  // @@protoc_insertion_point(field_mutable:SAFplus.Rpc.amfMgmtRpc.DecStatistic.history1week)
+  return history1week_;
+}
+inline ::std::string* DecStatistic::release_history1week() {
+  clear_has_history1week();
+  if (history1week_ == &::google::protobuf::internal::GetEmptyStringAlreadyInited()) {
+    return NULL;
+  } else {
+    ::std::string* temp = history1week_;
+    history1week_ = const_cast< ::std::string*>(&::google::protobuf::internal::GetEmptyStringAlreadyInited());
+    return temp;
+  }
+}
+inline void DecStatistic::set_allocated_history1week(::std::string* history1week) {
+  if (history1week_ != &::google::protobuf::internal::GetEmptyStringAlreadyInited()) {
+    delete history1week_;
+  }
+  if (history1week) {
+    set_has_history1week();
+    history1week_ = history1week;
+  } else {
+    clear_has_history1week();
+    history1week_ = const_cast< ::std::string*>(&::google::protobuf::internal::GetEmptyStringAlreadyInited());
+  }
+  // @@protoc_insertion_point(field_set_allocated:SAFplus.Rpc.amfMgmtRpc.DecStatistic.history1week)
+}
+
+// optional string history4weeks = 8;
+inline bool DecStatistic::has_history4weeks() const {
+  return (_has_bits_[0] & 0x00000080u) != 0;
+}
+inline void DecStatistic::set_has_history4weeks() {
+  _has_bits_[0] |= 0x00000080u;
+}
+inline void DecStatistic::clear_has_history4weeks() {
+  _has_bits_[0] &= ~0x00000080u;
+}
+inline void DecStatistic::clear_history4weeks() {
+  if (history4weeks_ != &::google::protobuf::internal::GetEmptyStringAlreadyInited()) {
+    history4weeks_->clear();
+  }
+  clear_has_history4weeks();
+}
+inline const ::std::string& DecStatistic::history4weeks() const {
+  // @@protoc_insertion_point(field_get:SAFplus.Rpc.amfMgmtRpc.DecStatistic.history4weeks)
+  return *history4weeks_;
+}
+inline void DecStatistic::set_history4weeks(const ::std::string& value) {
+  set_has_history4weeks();
+  if (history4weeks_ == &::google::protobuf::internal::GetEmptyStringAlreadyInited()) {
+    history4weeks_ = new ::std::string;
+  }
+  history4weeks_->assign(value);
+  // @@protoc_insertion_point(field_set:SAFplus.Rpc.amfMgmtRpc.DecStatistic.history4weeks)
+}
+inline void DecStatistic::set_history4weeks(const char* value) {
+  set_has_history4weeks();
+  if (history4weeks_ == &::google::protobuf::internal::GetEmptyStringAlreadyInited()) {
+    history4weeks_ = new ::std::string;
+  }
+  history4weeks_->assign(value);
+  // @@protoc_insertion_point(field_set_char:SAFplus.Rpc.amfMgmtRpc.DecStatistic.history4weeks)
+}
+inline void DecStatistic::set_history4weeks(const char* value, size_t size) {
+  set_has_history4weeks();
+  if (history4weeks_ == &::google::protobuf::internal::GetEmptyStringAlreadyInited()) {
+    history4weeks_ = new ::std::string;
+  }
+  history4weeks_->assign(reinterpret_cast<const char*>(value), size);
+  // @@protoc_insertion_point(field_set_pointer:SAFplus.Rpc.amfMgmtRpc.DecStatistic.history4weeks)
+}
+inline ::std::string* DecStatistic::mutable_history4weeks() {
+  set_has_history4weeks();
+  if (history4weeks_ == &::google::protobuf::internal::GetEmptyStringAlreadyInited()) {
+    history4weeks_ = new ::std::string;
+  }
+  // @@protoc_insertion_point(field_mutable:SAFplus.Rpc.amfMgmtRpc.DecStatistic.history4weeks)
+  return history4weeks_;
+}
+inline ::std::string* DecStatistic::release_history4weeks() {
+  clear_has_history4weeks();
+  if (history4weeks_ == &::google::protobuf::internal::GetEmptyStringAlreadyInited()) {
+    return NULL;
+  } else {
+    ::std::string* temp = history4weeks_;
+    history4weeks_ = const_cast< ::std::string*>(&::google::protobuf::internal::GetEmptyStringAlreadyInited());
+    return temp;
+  }
+}
+inline void DecStatistic::set_allocated_history4weeks(::std::string* history4weeks) {
+  if (history4weeks_ != &::google::protobuf::internal::GetEmptyStringAlreadyInited()) {
+    delete history4weeks_;
+  }
+  if (history4weeks) {
+    set_has_history4weeks();
+    history4weeks_ = history4weeks;
+  } else {
+    clear_has_history4weeks();
+    history4weeks_ = const_cast< ::std::string*>(&::google::protobuf::internal::GetEmptyStringAlreadyInited());
+  }
+  // @@protoc_insertion_point(field_set_allocated:SAFplus.Rpc.amfMgmtRpc.DecStatistic.history4weeks)
+}
+
+// -------------------------------------------------------------------
+
+// Failures
+
+// optional .SAFplus.Rpc.amfMgmtRpc.IntStatistic IntStatistic = 1;
+inline bool Failures::has_intstatistic() const {
+  return (_has_bits_[0] & 0x00000001u) != 0;
+}
+inline void Failures::set_has_intstatistic() {
+  _has_bits_[0] |= 0x00000001u;
+}
+inline void Failures::clear_has_intstatistic() {
+  _has_bits_[0] &= ~0x00000001u;
+}
+inline void Failures::clear_intstatistic() {
+  if (intstatistic_ != NULL) intstatistic_->::SAFplus::Rpc::amfMgmtRpc::IntStatistic::Clear();
+  clear_has_intstatistic();
+}
+inline const ::SAFplus::Rpc::amfMgmtRpc::IntStatistic& Failures::intstatistic() const {
+  // @@protoc_insertion_point(field_get:SAFplus.Rpc.amfMgmtRpc.Failures.IntStatistic)
+  return intstatistic_ != NULL ? *intstatistic_ : *default_instance_->intstatistic_;
+}
+inline ::SAFplus::Rpc::amfMgmtRpc::IntStatistic* Failures::mutable_intstatistic() {
+  set_has_intstatistic();
+  if (intstatistic_ == NULL) intstatistic_ = new ::SAFplus::Rpc::amfMgmtRpc::IntStatistic;
+  // @@protoc_insertion_point(field_mutable:SAFplus.Rpc.amfMgmtRpc.Failures.IntStatistic)
+  return intstatistic_;
+}
+inline ::SAFplus::Rpc::amfMgmtRpc::IntStatistic* Failures::release_intstatistic() {
+  clear_has_intstatistic();
+  ::SAFplus::Rpc::amfMgmtRpc::IntStatistic* temp = intstatistic_;
+  intstatistic_ = NULL;
+  return temp;
+}
+inline void Failures::set_allocated_intstatistic(::SAFplus::Rpc::amfMgmtRpc::IntStatistic* intstatistic) {
+  delete intstatistic_;
+  intstatistic_ = intstatistic;
+  if (intstatistic) {
+    set_has_intstatistic();
+  } else {
+    clear_has_intstatistic();
+  }
+  // @@protoc_insertion_point(field_set_allocated:SAFplus.Rpc.amfMgmtRpc.Failures.IntStatistic)
+}
+
+// -------------------------------------------------------------------
+
+// CpuUtilization
+
+// optional .SAFplus.Rpc.amfMgmtRpc.DecStatistic DecStatistic = 1;
+inline bool CpuUtilization::has_decstatistic() const {
+  return (_has_bits_[0] & 0x00000001u) != 0;
+}
+inline void CpuUtilization::set_has_decstatistic() {
+  _has_bits_[0] |= 0x00000001u;
+}
+inline void CpuUtilization::clear_has_decstatistic() {
+  _has_bits_[0] &= ~0x00000001u;
+}
+inline void CpuUtilization::clear_decstatistic() {
+  if (decstatistic_ != NULL) decstatistic_->::SAFplus::Rpc::amfMgmtRpc::DecStatistic::Clear();
+  clear_has_decstatistic();
+}
+inline const ::SAFplus::Rpc::amfMgmtRpc::DecStatistic& CpuUtilization::decstatistic() const {
+  // @@protoc_insertion_point(field_get:SAFplus.Rpc.amfMgmtRpc.CpuUtilization.DecStatistic)
+  return decstatistic_ != NULL ? *decstatistic_ : *default_instance_->decstatistic_;
+}
+inline ::SAFplus::Rpc::amfMgmtRpc::DecStatistic* CpuUtilization::mutable_decstatistic() {
+  set_has_decstatistic();
+  if (decstatistic_ == NULL) decstatistic_ = new ::SAFplus::Rpc::amfMgmtRpc::DecStatistic;
+  // @@protoc_insertion_point(field_mutable:SAFplus.Rpc.amfMgmtRpc.CpuUtilization.DecStatistic)
+  return decstatistic_;
+}
+inline ::SAFplus::Rpc::amfMgmtRpc::DecStatistic* CpuUtilization::release_decstatistic() {
+  clear_has_decstatistic();
+  ::SAFplus::Rpc::amfMgmtRpc::DecStatistic* temp = decstatistic_;
+  decstatistic_ = NULL;
+  return temp;
+}
+inline void CpuUtilization::set_allocated_decstatistic(::SAFplus::Rpc::amfMgmtRpc::DecStatistic* decstatistic) {
+  delete decstatistic_;
+  decstatistic_ = decstatistic;
+  if (decstatistic) {
+    set_has_decstatistic();
+  } else {
+    clear_has_decstatistic();
+  }
+  // @@protoc_insertion_point(field_set_allocated:SAFplus.Rpc.amfMgmtRpc.CpuUtilization.DecStatistic)
+}
+
+// -------------------------------------------------------------------
+
+// MemUtilization
+
+// optional .SAFplus.Rpc.amfMgmtRpc.DecStatistic DecStatistic = 1;
+inline bool MemUtilization::has_decstatistic() const {
+  return (_has_bits_[0] & 0x00000001u) != 0;
+}
+inline void MemUtilization::set_has_decstatistic() {
+  _has_bits_[0] |= 0x00000001u;
+}
+inline void MemUtilization::clear_has_decstatistic() {
+  _has_bits_[0] &= ~0x00000001u;
+}
+inline void MemUtilization::clear_decstatistic() {
+  if (decstatistic_ != NULL) decstatistic_->::SAFplus::Rpc::amfMgmtRpc::DecStatistic::Clear();
+  clear_has_decstatistic();
+}
+inline const ::SAFplus::Rpc::amfMgmtRpc::DecStatistic& MemUtilization::decstatistic() const {
+  // @@protoc_insertion_point(field_get:SAFplus.Rpc.amfMgmtRpc.MemUtilization.DecStatistic)
+  return decstatistic_ != NULL ? *decstatistic_ : *default_instance_->decstatistic_;
+}
+inline ::SAFplus::Rpc::amfMgmtRpc::DecStatistic* MemUtilization::mutable_decstatistic() {
+  set_has_decstatistic();
+  if (decstatistic_ == NULL) decstatistic_ = new ::SAFplus::Rpc::amfMgmtRpc::DecStatistic;
+  // @@protoc_insertion_point(field_mutable:SAFplus.Rpc.amfMgmtRpc.MemUtilization.DecStatistic)
+  return decstatistic_;
+}
+inline ::SAFplus::Rpc::amfMgmtRpc::DecStatistic* MemUtilization::release_decstatistic() {
+  clear_has_decstatistic();
+  ::SAFplus::Rpc::amfMgmtRpc::DecStatistic* temp = decstatistic_;
+  decstatistic_ = NULL;
+  return temp;
+}
+inline void MemUtilization::set_allocated_decstatistic(::SAFplus::Rpc::amfMgmtRpc::DecStatistic* decstatistic) {
+  delete decstatistic_;
+  decstatistic_ = decstatistic;
+  if (decstatistic) {
+    set_has_decstatistic();
+  } else {
+    clear_has_decstatistic();
+  }
+  // @@protoc_insertion_point(field_set_allocated:SAFplus.Rpc.amfMgmtRpc.MemUtilization.DecStatistic)
+}
+
+// -------------------------------------------------------------------
+
+// PageFaults
+
+// optional .SAFplus.Rpc.amfMgmtRpc.IntStatistic IntStatistic = 1;
+inline bool PageFaults::has_intstatistic() const {
+  return (_has_bits_[0] & 0x00000001u) != 0;
+}
+inline void PageFaults::set_has_intstatistic() {
+  _has_bits_[0] |= 0x00000001u;
+}
+inline void PageFaults::clear_has_intstatistic() {
+  _has_bits_[0] &= ~0x00000001u;
+}
+inline void PageFaults::clear_intstatistic() {
+  if (intstatistic_ != NULL) intstatistic_->::SAFplus::Rpc::amfMgmtRpc::IntStatistic::Clear();
+  clear_has_intstatistic();
+}
+inline const ::SAFplus::Rpc::amfMgmtRpc::IntStatistic& PageFaults::intstatistic() const {
+  // @@protoc_insertion_point(field_get:SAFplus.Rpc.amfMgmtRpc.PageFaults.IntStatistic)
+  return intstatistic_ != NULL ? *intstatistic_ : *default_instance_->intstatistic_;
+}
+inline ::SAFplus::Rpc::amfMgmtRpc::IntStatistic* PageFaults::mutable_intstatistic() {
+  set_has_intstatistic();
+  if (intstatistic_ == NULL) intstatistic_ = new ::SAFplus::Rpc::amfMgmtRpc::IntStatistic;
+  // @@protoc_insertion_point(field_mutable:SAFplus.Rpc.amfMgmtRpc.PageFaults.IntStatistic)
+  return intstatistic_;
+}
+inline ::SAFplus::Rpc::amfMgmtRpc::IntStatistic* PageFaults::release_intstatistic() {
+  clear_has_intstatistic();
+  ::SAFplus::Rpc::amfMgmtRpc::IntStatistic* temp = intstatistic_;
+  intstatistic_ = NULL;
+  return temp;
+}
+inline void PageFaults::set_allocated_intstatistic(::SAFplus::Rpc::amfMgmtRpc::IntStatistic* intstatistic) {
+  delete intstatistic_;
+  intstatistic_ = intstatistic;
+  if (intstatistic) {
+    set_has_intstatistic();
+  } else {
+    clear_has_intstatistic();
+  }
+  // @@protoc_insertion_point(field_set_allocated:SAFplus.Rpc.amfMgmtRpc.PageFaults.IntStatistic)
+}
+
+// -------------------------------------------------------------------
+
+// NumThreads
+
+// optional .SAFplus.Rpc.amfMgmtRpc.IntStatistic IntStatistic = 1;
+inline bool NumThreads::has_intstatistic() const {
+  return (_has_bits_[0] & 0x00000001u) != 0;
+}
+inline void NumThreads::set_has_intstatistic() {
+  _has_bits_[0] |= 0x00000001u;
+}
+inline void NumThreads::clear_has_intstatistic() {
+  _has_bits_[0] &= ~0x00000001u;
+}
+inline void NumThreads::clear_intstatistic() {
+  if (intstatistic_ != NULL) intstatistic_->::SAFplus::Rpc::amfMgmtRpc::IntStatistic::Clear();
+  clear_has_intstatistic();
+}
+inline const ::SAFplus::Rpc::amfMgmtRpc::IntStatistic& NumThreads::intstatistic() const {
+  // @@protoc_insertion_point(field_get:SAFplus.Rpc.amfMgmtRpc.NumThreads.IntStatistic)
+  return intstatistic_ != NULL ? *intstatistic_ : *default_instance_->intstatistic_;
+}
+inline ::SAFplus::Rpc::amfMgmtRpc::IntStatistic* NumThreads::mutable_intstatistic() {
+  set_has_intstatistic();
+  if (intstatistic_ == NULL) intstatistic_ = new ::SAFplus::Rpc::amfMgmtRpc::IntStatistic;
+  // @@protoc_insertion_point(field_mutable:SAFplus.Rpc.amfMgmtRpc.NumThreads.IntStatistic)
+  return intstatistic_;
+}
+inline ::SAFplus::Rpc::amfMgmtRpc::IntStatistic* NumThreads::release_intstatistic() {
+  clear_has_intstatistic();
+  ::SAFplus::Rpc::amfMgmtRpc::IntStatistic* temp = intstatistic_;
+  intstatistic_ = NULL;
+  return temp;
+}
+inline void NumThreads::set_allocated_intstatistic(::SAFplus::Rpc::amfMgmtRpc::IntStatistic* intstatistic) {
+  delete intstatistic_;
+  intstatistic_ = intstatistic;
+  if (intstatistic) {
+    set_has_intstatistic();
+  } else {
+    clear_has_intstatistic();
+  }
+  // @@protoc_insertion_point(field_set_allocated:SAFplus.Rpc.amfMgmtRpc.NumThreads.IntStatistic)
+}
+
+// -------------------------------------------------------------------
+
+// ResidentMem
+
+// optional .SAFplus.Rpc.amfMgmtRpc.IntStatistic IntStatistic = 1;
+inline bool ResidentMem::has_intstatistic() const {
+  return (_has_bits_[0] & 0x00000001u) != 0;
+}
+inline void ResidentMem::set_has_intstatistic() {
+  _has_bits_[0] |= 0x00000001u;
+}
+inline void ResidentMem::clear_has_intstatistic() {
+  _has_bits_[0] &= ~0x00000001u;
+}
+inline void ResidentMem::clear_intstatistic() {
+  if (intstatistic_ != NULL) intstatistic_->::SAFplus::Rpc::amfMgmtRpc::IntStatistic::Clear();
+  clear_has_intstatistic();
+}
+inline const ::SAFplus::Rpc::amfMgmtRpc::IntStatistic& ResidentMem::intstatistic() const {
+  // @@protoc_insertion_point(field_get:SAFplus.Rpc.amfMgmtRpc.ResidentMem.IntStatistic)
+  return intstatistic_ != NULL ? *intstatistic_ : *default_instance_->intstatistic_;
+}
+inline ::SAFplus::Rpc::amfMgmtRpc::IntStatistic* ResidentMem::mutable_intstatistic() {
+  set_has_intstatistic();
+  if (intstatistic_ == NULL) intstatistic_ = new ::SAFplus::Rpc::amfMgmtRpc::IntStatistic;
+  // @@protoc_insertion_point(field_mutable:SAFplus.Rpc.amfMgmtRpc.ResidentMem.IntStatistic)
+  return intstatistic_;
+}
+inline ::SAFplus::Rpc::amfMgmtRpc::IntStatistic* ResidentMem::release_intstatistic() {
+  clear_has_intstatistic();
+  ::SAFplus::Rpc::amfMgmtRpc::IntStatistic* temp = intstatistic_;
+  intstatistic_ = NULL;
+  return temp;
+}
+inline void ResidentMem::set_allocated_intstatistic(::SAFplus::Rpc::amfMgmtRpc::IntStatistic* intstatistic) {
+  delete intstatistic_;
+  intstatistic_ = intstatistic;
+  if (intstatistic) {
+    set_has_intstatistic();
+  } else {
+    clear_has_intstatistic();
+  }
+  // @@protoc_insertion_point(field_set_allocated:SAFplus.Rpc.amfMgmtRpc.ResidentMem.IntStatistic)
+}
+
+// -------------------------------------------------------------------
+
+// ProcessStats
+
+// optional .SAFplus.Rpc.amfMgmtRpc.Failures failures = 1;
+inline bool ProcessStats::has_failures() const {
+  return (_has_bits_[0] & 0x00000001u) != 0;
+}
+inline void ProcessStats::set_has_failures() {
+  _has_bits_[0] |= 0x00000001u;
+}
+inline void ProcessStats::clear_has_failures() {
+  _has_bits_[0] &= ~0x00000001u;
+}
+inline void ProcessStats::clear_failures() {
+  if (failures_ != NULL) failures_->::SAFplus::Rpc::amfMgmtRpc::Failures::Clear();
+  clear_has_failures();
+}
+inline const ::SAFplus::Rpc::amfMgmtRpc::Failures& ProcessStats::failures() const {
+  // @@protoc_insertion_point(field_get:SAFplus.Rpc.amfMgmtRpc.ProcessStats.failures)
+  return failures_ != NULL ? *failures_ : *default_instance_->failures_;
+}
+inline ::SAFplus::Rpc::amfMgmtRpc::Failures* ProcessStats::mutable_failures() {
+  set_has_failures();
+  if (failures_ == NULL) failures_ = new ::SAFplus::Rpc::amfMgmtRpc::Failures;
+  // @@protoc_insertion_point(field_mutable:SAFplus.Rpc.amfMgmtRpc.ProcessStats.failures)
+  return failures_;
+}
+inline ::SAFplus::Rpc::amfMgmtRpc::Failures* ProcessStats::release_failures() {
+  clear_has_failures();
+  ::SAFplus::Rpc::amfMgmtRpc::Failures* temp = failures_;
+  failures_ = NULL;
+  return temp;
+}
+inline void ProcessStats::set_allocated_failures(::SAFplus::Rpc::amfMgmtRpc::Failures* failures) {
+  delete failures_;
+  failures_ = failures;
+  if (failures) {
+    set_has_failures();
+  } else {
+    clear_has_failures();
+  }
+  // @@protoc_insertion_point(field_set_allocated:SAFplus.Rpc.amfMgmtRpc.ProcessStats.failures)
+}
+
+// optional .SAFplus.Rpc.amfMgmtRpc.CpuUtilization cpuUtilization = 2;
+inline bool ProcessStats::has_cpuutilization() const {
+  return (_has_bits_[0] & 0x00000002u) != 0;
+}
+inline void ProcessStats::set_has_cpuutilization() {
+  _has_bits_[0] |= 0x00000002u;
+}
+inline void ProcessStats::clear_has_cpuutilization() {
+  _has_bits_[0] &= ~0x00000002u;
+}
+inline void ProcessStats::clear_cpuutilization() {
+  if (cpuutilization_ != NULL) cpuutilization_->::SAFplus::Rpc::amfMgmtRpc::CpuUtilization::Clear();
+  clear_has_cpuutilization();
+}
+inline const ::SAFplus::Rpc::amfMgmtRpc::CpuUtilization& ProcessStats::cpuutilization() const {
+  // @@protoc_insertion_point(field_get:SAFplus.Rpc.amfMgmtRpc.ProcessStats.cpuUtilization)
+  return cpuutilization_ != NULL ? *cpuutilization_ : *default_instance_->cpuutilization_;
+}
+inline ::SAFplus::Rpc::amfMgmtRpc::CpuUtilization* ProcessStats::mutable_cpuutilization() {
+  set_has_cpuutilization();
+  if (cpuutilization_ == NULL) cpuutilization_ = new ::SAFplus::Rpc::amfMgmtRpc::CpuUtilization;
+  // @@protoc_insertion_point(field_mutable:SAFplus.Rpc.amfMgmtRpc.ProcessStats.cpuUtilization)
+  return cpuutilization_;
+}
+inline ::SAFplus::Rpc::amfMgmtRpc::CpuUtilization* ProcessStats::release_cpuutilization() {
+  clear_has_cpuutilization();
+  ::SAFplus::Rpc::amfMgmtRpc::CpuUtilization* temp = cpuutilization_;
+  cpuutilization_ = NULL;
+  return temp;
+}
+inline void ProcessStats::set_allocated_cpuutilization(::SAFplus::Rpc::amfMgmtRpc::CpuUtilization* cpuutilization) {
+  delete cpuutilization_;
+  cpuutilization_ = cpuutilization;
+  if (cpuutilization) {
+    set_has_cpuutilization();
+  } else {
+    clear_has_cpuutilization();
+  }
+  // @@protoc_insertion_point(field_set_allocated:SAFplus.Rpc.amfMgmtRpc.ProcessStats.cpuUtilization)
+}
+
+// optional .SAFplus.Rpc.amfMgmtRpc.MemUtilization memUtilization = 3;
+inline bool ProcessStats::has_memutilization() const {
+  return (_has_bits_[0] & 0x00000004u) != 0;
+}
+inline void ProcessStats::set_has_memutilization() {
+  _has_bits_[0] |= 0x00000004u;
+}
+inline void ProcessStats::clear_has_memutilization() {
+  _has_bits_[0] &= ~0x00000004u;
+}
+inline void ProcessStats::clear_memutilization() {
+  if (memutilization_ != NULL) memutilization_->::SAFplus::Rpc::amfMgmtRpc::MemUtilization::Clear();
+  clear_has_memutilization();
+}
+inline const ::SAFplus::Rpc::amfMgmtRpc::MemUtilization& ProcessStats::memutilization() const {
+  // @@protoc_insertion_point(field_get:SAFplus.Rpc.amfMgmtRpc.ProcessStats.memUtilization)
+  return memutilization_ != NULL ? *memutilization_ : *default_instance_->memutilization_;
+}
+inline ::SAFplus::Rpc::amfMgmtRpc::MemUtilization* ProcessStats::mutable_memutilization() {
+  set_has_memutilization();
+  if (memutilization_ == NULL) memutilization_ = new ::SAFplus::Rpc::amfMgmtRpc::MemUtilization;
+  // @@protoc_insertion_point(field_mutable:SAFplus.Rpc.amfMgmtRpc.ProcessStats.memUtilization)
+  return memutilization_;
+}
+inline ::SAFplus::Rpc::amfMgmtRpc::MemUtilization* ProcessStats::release_memutilization() {
+  clear_has_memutilization();
+  ::SAFplus::Rpc::amfMgmtRpc::MemUtilization* temp = memutilization_;
+  memutilization_ = NULL;
+  return temp;
+}
+inline void ProcessStats::set_allocated_memutilization(::SAFplus::Rpc::amfMgmtRpc::MemUtilization* memutilization) {
+  delete memutilization_;
+  memutilization_ = memutilization;
+  if (memutilization) {
+    set_has_memutilization();
+  } else {
+    clear_has_memutilization();
+  }
+  // @@protoc_insertion_point(field_set_allocated:SAFplus.Rpc.amfMgmtRpc.ProcessStats.memUtilization)
+}
+
+// optional .SAFplus.Rpc.amfMgmtRpc.PageFaults pageFaults = 4;
+inline bool ProcessStats::has_pagefaults() const {
+  return (_has_bits_[0] & 0x00000008u) != 0;
+}
+inline void ProcessStats::set_has_pagefaults() {
+  _has_bits_[0] |= 0x00000008u;
+}
+inline void ProcessStats::clear_has_pagefaults() {
+  _has_bits_[0] &= ~0x00000008u;
+}
+inline void ProcessStats::clear_pagefaults() {
+  if (pagefaults_ != NULL) pagefaults_->::SAFplus::Rpc::amfMgmtRpc::PageFaults::Clear();
+  clear_has_pagefaults();
+}
+inline const ::SAFplus::Rpc::amfMgmtRpc::PageFaults& ProcessStats::pagefaults() const {
+  // @@protoc_insertion_point(field_get:SAFplus.Rpc.amfMgmtRpc.ProcessStats.pageFaults)
+  return pagefaults_ != NULL ? *pagefaults_ : *default_instance_->pagefaults_;
+}
+inline ::SAFplus::Rpc::amfMgmtRpc::PageFaults* ProcessStats::mutable_pagefaults() {
+  set_has_pagefaults();
+  if (pagefaults_ == NULL) pagefaults_ = new ::SAFplus::Rpc::amfMgmtRpc::PageFaults;
+  // @@protoc_insertion_point(field_mutable:SAFplus.Rpc.amfMgmtRpc.ProcessStats.pageFaults)
+  return pagefaults_;
+}
+inline ::SAFplus::Rpc::amfMgmtRpc::PageFaults* ProcessStats::release_pagefaults() {
+  clear_has_pagefaults();
+  ::SAFplus::Rpc::amfMgmtRpc::PageFaults* temp = pagefaults_;
+  pagefaults_ = NULL;
+  return temp;
+}
+inline void ProcessStats::set_allocated_pagefaults(::SAFplus::Rpc::amfMgmtRpc::PageFaults* pagefaults) {
+  delete pagefaults_;
+  pagefaults_ = pagefaults;
+  if (pagefaults) {
+    set_has_pagefaults();
+  } else {
+    clear_has_pagefaults();
+  }
+  // @@protoc_insertion_point(field_set_allocated:SAFplus.Rpc.amfMgmtRpc.ProcessStats.pageFaults)
+}
+
+// optional .SAFplus.Rpc.amfMgmtRpc.NumThreads numThreads = 5;
+inline bool ProcessStats::has_numthreads() const {
+  return (_has_bits_[0] & 0x00000010u) != 0;
+}
+inline void ProcessStats::set_has_numthreads() {
+  _has_bits_[0] |= 0x00000010u;
+}
+inline void ProcessStats::clear_has_numthreads() {
+  _has_bits_[0] &= ~0x00000010u;
+}
+inline void ProcessStats::clear_numthreads() {
+  if (numthreads_ != NULL) numthreads_->::SAFplus::Rpc::amfMgmtRpc::NumThreads::Clear();
+  clear_has_numthreads();
+}
+inline const ::SAFplus::Rpc::amfMgmtRpc::NumThreads& ProcessStats::numthreads() const {
+  // @@protoc_insertion_point(field_get:SAFplus.Rpc.amfMgmtRpc.ProcessStats.numThreads)
+  return numthreads_ != NULL ? *numthreads_ : *default_instance_->numthreads_;
+}
+inline ::SAFplus::Rpc::amfMgmtRpc::NumThreads* ProcessStats::mutable_numthreads() {
+  set_has_numthreads();
+  if (numthreads_ == NULL) numthreads_ = new ::SAFplus::Rpc::amfMgmtRpc::NumThreads;
+  // @@protoc_insertion_point(field_mutable:SAFplus.Rpc.amfMgmtRpc.ProcessStats.numThreads)
+  return numthreads_;
+}
+inline ::SAFplus::Rpc::amfMgmtRpc::NumThreads* ProcessStats::release_numthreads() {
+  clear_has_numthreads();
+  ::SAFplus::Rpc::amfMgmtRpc::NumThreads* temp = numthreads_;
+  numthreads_ = NULL;
+  return temp;
+}
+inline void ProcessStats::set_allocated_numthreads(::SAFplus::Rpc::amfMgmtRpc::NumThreads* numthreads) {
+  delete numthreads_;
+  numthreads_ = numthreads;
+  if (numthreads) {
+    set_has_numthreads();
+  } else {
+    clear_has_numthreads();
+  }
+  // @@protoc_insertion_point(field_set_allocated:SAFplus.Rpc.amfMgmtRpc.ProcessStats.numThreads)
+}
+
+// optional .SAFplus.Rpc.amfMgmtRpc.ResidentMem residentMem = 6;
+inline bool ProcessStats::has_residentmem() const {
+  return (_has_bits_[0] & 0x00000020u) != 0;
+}
+inline void ProcessStats::set_has_residentmem() {
+  _has_bits_[0] |= 0x00000020u;
+}
+inline void ProcessStats::clear_has_residentmem() {
+  _has_bits_[0] &= ~0x00000020u;
+}
+inline void ProcessStats::clear_residentmem() {
+  if (residentmem_ != NULL) residentmem_->::SAFplus::Rpc::amfMgmtRpc::ResidentMem::Clear();
+  clear_has_residentmem();
+}
+inline const ::SAFplus::Rpc::amfMgmtRpc::ResidentMem& ProcessStats::residentmem() const {
+  // @@protoc_insertion_point(field_get:SAFplus.Rpc.amfMgmtRpc.ProcessStats.residentMem)
+  return residentmem_ != NULL ? *residentmem_ : *default_instance_->residentmem_;
+}
+inline ::SAFplus::Rpc::amfMgmtRpc::ResidentMem* ProcessStats::mutable_residentmem() {
+  set_has_residentmem();
+  if (residentmem_ == NULL) residentmem_ = new ::SAFplus::Rpc::amfMgmtRpc::ResidentMem;
+  // @@protoc_insertion_point(field_mutable:SAFplus.Rpc.amfMgmtRpc.ProcessStats.residentMem)
+  return residentmem_;
+}
+inline ::SAFplus::Rpc::amfMgmtRpc::ResidentMem* ProcessStats::release_residentmem() {
+  clear_has_residentmem();
+  ::SAFplus::Rpc::amfMgmtRpc::ResidentMem* temp = residentmem_;
+  residentmem_ = NULL;
+  return temp;
+}
+inline void ProcessStats::set_allocated_residentmem(::SAFplus::Rpc::amfMgmtRpc::ResidentMem* residentmem) {
+  delete residentmem_;
+  residentmem_ = residentmem;
+  if (residentmem) {
+    set_has_residentmem();
+  } else {
+    clear_has_residentmem();
+  }
+  // @@protoc_insertion_point(field_set_allocated:SAFplus.Rpc.amfMgmtRpc.ProcessStats.residentMem)
+}
+
+// optional .SAFplus.Rpc.amfMgmtRpc.ProcessState processState = 7;
+inline bool ProcessStats::has_processstate() const {
+  return (_has_bits_[0] & 0x00000040u) != 0;
+}
+inline void ProcessStats::set_has_processstate() {
+  _has_bits_[0] |= 0x00000040u;
+}
+inline void ProcessStats::clear_has_processstate() {
+  _has_bits_[0] &= ~0x00000040u;
+}
+inline void ProcessStats::clear_processstate() {
+  processstate_ = 0;
+  clear_has_processstate();
+}
+inline ::SAFplus::Rpc::amfMgmtRpc::ProcessState ProcessStats::processstate() const {
+  // @@protoc_insertion_point(field_get:SAFplus.Rpc.amfMgmtRpc.ProcessStats.processState)
+  return static_cast< ::SAFplus::Rpc::amfMgmtRpc::ProcessState >(processstate_);
+}
+inline void ProcessStats::set_processstate(::SAFplus::Rpc::amfMgmtRpc::ProcessState value) {
+  assert(::SAFplus::Rpc::amfMgmtRpc::ProcessState_IsValid(value));
+  set_has_processstate();
+  processstate_ = value;
+  // @@protoc_insertion_point(field_set:SAFplus.Rpc.amfMgmtRpc.ProcessStats.processState)
 }
 
 // -------------------------------------------------------------------
@@ -14254,6 +21540,3548 @@ inline void ServiceUnitConfig::set_probationtime(::google::protobuf::uint32 valu
   set_has_probationtime();
   probationtime_ = value;
   // @@protoc_insertion_point(field_set:SAFplus.Rpc.amfMgmtRpc.ServiceUnitConfig.probationTime)
+}
+
+// -------------------------------------------------------------------
+
+// User
+
+// optional .SAFplus.Rpc.amfMgmtRpc.DecStatistic DecStatistic = 1;
+inline bool User::has_decstatistic() const {
+  return (_has_bits_[0] & 0x00000001u) != 0;
+}
+inline void User::set_has_decstatistic() {
+  _has_bits_[0] |= 0x00000001u;
+}
+inline void User::clear_has_decstatistic() {
+  _has_bits_[0] &= ~0x00000001u;
+}
+inline void User::clear_decstatistic() {
+  if (decstatistic_ != NULL) decstatistic_->::SAFplus::Rpc::amfMgmtRpc::DecStatistic::Clear();
+  clear_has_decstatistic();
+}
+inline const ::SAFplus::Rpc::amfMgmtRpc::DecStatistic& User::decstatistic() const {
+  // @@protoc_insertion_point(field_get:SAFplus.Rpc.amfMgmtRpc.User.DecStatistic)
+  return decstatistic_ != NULL ? *decstatistic_ : *default_instance_->decstatistic_;
+}
+inline ::SAFplus::Rpc::amfMgmtRpc::DecStatistic* User::mutable_decstatistic() {
+  set_has_decstatistic();
+  if (decstatistic_ == NULL) decstatistic_ = new ::SAFplus::Rpc::amfMgmtRpc::DecStatistic;
+  // @@protoc_insertion_point(field_mutable:SAFplus.Rpc.amfMgmtRpc.User.DecStatistic)
+  return decstatistic_;
+}
+inline ::SAFplus::Rpc::amfMgmtRpc::DecStatistic* User::release_decstatistic() {
+  clear_has_decstatistic();
+  ::SAFplus::Rpc::amfMgmtRpc::DecStatistic* temp = decstatistic_;
+  decstatistic_ = NULL;
+  return temp;
+}
+inline void User::set_allocated_decstatistic(::SAFplus::Rpc::amfMgmtRpc::DecStatistic* decstatistic) {
+  delete decstatistic_;
+  decstatistic_ = decstatistic;
+  if (decstatistic) {
+    set_has_decstatistic();
+  } else {
+    clear_has_decstatistic();
+  }
+  // @@protoc_insertion_point(field_set_allocated:SAFplus.Rpc.amfMgmtRpc.User.DecStatistic)
+}
+
+// -------------------------------------------------------------------
+
+// LowPriorityUser
+
+// optional .SAFplus.Rpc.amfMgmtRpc.DecStatistic DecStatistic = 1;
+inline bool LowPriorityUser::has_decstatistic() const {
+  return (_has_bits_[0] & 0x00000001u) != 0;
+}
+inline void LowPriorityUser::set_has_decstatistic() {
+  _has_bits_[0] |= 0x00000001u;
+}
+inline void LowPriorityUser::clear_has_decstatistic() {
+  _has_bits_[0] &= ~0x00000001u;
+}
+inline void LowPriorityUser::clear_decstatistic() {
+  if (decstatistic_ != NULL) decstatistic_->::SAFplus::Rpc::amfMgmtRpc::DecStatistic::Clear();
+  clear_has_decstatistic();
+}
+inline const ::SAFplus::Rpc::amfMgmtRpc::DecStatistic& LowPriorityUser::decstatistic() const {
+  // @@protoc_insertion_point(field_get:SAFplus.Rpc.amfMgmtRpc.LowPriorityUser.DecStatistic)
+  return decstatistic_ != NULL ? *decstatistic_ : *default_instance_->decstatistic_;
+}
+inline ::SAFplus::Rpc::amfMgmtRpc::DecStatistic* LowPriorityUser::mutable_decstatistic() {
+  set_has_decstatistic();
+  if (decstatistic_ == NULL) decstatistic_ = new ::SAFplus::Rpc::amfMgmtRpc::DecStatistic;
+  // @@protoc_insertion_point(field_mutable:SAFplus.Rpc.amfMgmtRpc.LowPriorityUser.DecStatistic)
+  return decstatistic_;
+}
+inline ::SAFplus::Rpc::amfMgmtRpc::DecStatistic* LowPriorityUser::release_decstatistic() {
+  clear_has_decstatistic();
+  ::SAFplus::Rpc::amfMgmtRpc::DecStatistic* temp = decstatistic_;
+  decstatistic_ = NULL;
+  return temp;
+}
+inline void LowPriorityUser::set_allocated_decstatistic(::SAFplus::Rpc::amfMgmtRpc::DecStatistic* decstatistic) {
+  delete decstatistic_;
+  decstatistic_ = decstatistic;
+  if (decstatistic) {
+    set_has_decstatistic();
+  } else {
+    clear_has_decstatistic();
+  }
+  // @@protoc_insertion_point(field_set_allocated:SAFplus.Rpc.amfMgmtRpc.LowPriorityUser.DecStatistic)
+}
+
+// -------------------------------------------------------------------
+
+// IoWait
+
+// optional .SAFplus.Rpc.amfMgmtRpc.DecStatistic DecStatistic = 1;
+inline bool IoWait::has_decstatistic() const {
+  return (_has_bits_[0] & 0x00000001u) != 0;
+}
+inline void IoWait::set_has_decstatistic() {
+  _has_bits_[0] |= 0x00000001u;
+}
+inline void IoWait::clear_has_decstatistic() {
+  _has_bits_[0] &= ~0x00000001u;
+}
+inline void IoWait::clear_decstatistic() {
+  if (decstatistic_ != NULL) decstatistic_->::SAFplus::Rpc::amfMgmtRpc::DecStatistic::Clear();
+  clear_has_decstatistic();
+}
+inline const ::SAFplus::Rpc::amfMgmtRpc::DecStatistic& IoWait::decstatistic() const {
+  // @@protoc_insertion_point(field_get:SAFplus.Rpc.amfMgmtRpc.IoWait.DecStatistic)
+  return decstatistic_ != NULL ? *decstatistic_ : *default_instance_->decstatistic_;
+}
+inline ::SAFplus::Rpc::amfMgmtRpc::DecStatistic* IoWait::mutable_decstatistic() {
+  set_has_decstatistic();
+  if (decstatistic_ == NULL) decstatistic_ = new ::SAFplus::Rpc::amfMgmtRpc::DecStatistic;
+  // @@protoc_insertion_point(field_mutable:SAFplus.Rpc.amfMgmtRpc.IoWait.DecStatistic)
+  return decstatistic_;
+}
+inline ::SAFplus::Rpc::amfMgmtRpc::DecStatistic* IoWait::release_decstatistic() {
+  clear_has_decstatistic();
+  ::SAFplus::Rpc::amfMgmtRpc::DecStatistic* temp = decstatistic_;
+  decstatistic_ = NULL;
+  return temp;
+}
+inline void IoWait::set_allocated_decstatistic(::SAFplus::Rpc::amfMgmtRpc::DecStatistic* decstatistic) {
+  delete decstatistic_;
+  decstatistic_ = decstatistic;
+  if (decstatistic) {
+    set_has_decstatistic();
+  } else {
+    clear_has_decstatistic();
+  }
+  // @@protoc_insertion_point(field_set_allocated:SAFplus.Rpc.amfMgmtRpc.IoWait.DecStatistic)
+}
+
+// -------------------------------------------------------------------
+
+// SysTime
+
+// optional .SAFplus.Rpc.amfMgmtRpc.DecStatistic DecStatistic = 1;
+inline bool SysTime::has_decstatistic() const {
+  return (_has_bits_[0] & 0x00000001u) != 0;
+}
+inline void SysTime::set_has_decstatistic() {
+  _has_bits_[0] |= 0x00000001u;
+}
+inline void SysTime::clear_has_decstatistic() {
+  _has_bits_[0] &= ~0x00000001u;
+}
+inline void SysTime::clear_decstatistic() {
+  if (decstatistic_ != NULL) decstatistic_->::SAFplus::Rpc::amfMgmtRpc::DecStatistic::Clear();
+  clear_has_decstatistic();
+}
+inline const ::SAFplus::Rpc::amfMgmtRpc::DecStatistic& SysTime::decstatistic() const {
+  // @@protoc_insertion_point(field_get:SAFplus.Rpc.amfMgmtRpc.SysTime.DecStatistic)
+  return decstatistic_ != NULL ? *decstatistic_ : *default_instance_->decstatistic_;
+}
+inline ::SAFplus::Rpc::amfMgmtRpc::DecStatistic* SysTime::mutable_decstatistic() {
+  set_has_decstatistic();
+  if (decstatistic_ == NULL) decstatistic_ = new ::SAFplus::Rpc::amfMgmtRpc::DecStatistic;
+  // @@protoc_insertion_point(field_mutable:SAFplus.Rpc.amfMgmtRpc.SysTime.DecStatistic)
+  return decstatistic_;
+}
+inline ::SAFplus::Rpc::amfMgmtRpc::DecStatistic* SysTime::release_decstatistic() {
+  clear_has_decstatistic();
+  ::SAFplus::Rpc::amfMgmtRpc::DecStatistic* temp = decstatistic_;
+  decstatistic_ = NULL;
+  return temp;
+}
+inline void SysTime::set_allocated_decstatistic(::SAFplus::Rpc::amfMgmtRpc::DecStatistic* decstatistic) {
+  delete decstatistic_;
+  decstatistic_ = decstatistic;
+  if (decstatistic) {
+    set_has_decstatistic();
+  } else {
+    clear_has_decstatistic();
+  }
+  // @@protoc_insertion_point(field_set_allocated:SAFplus.Rpc.amfMgmtRpc.SysTime.DecStatistic)
+}
+
+// -------------------------------------------------------------------
+
+// IntTime
+
+// optional .SAFplus.Rpc.amfMgmtRpc.DecStatistic DecStatistic = 1;
+inline bool IntTime::has_decstatistic() const {
+  return (_has_bits_[0] & 0x00000001u) != 0;
+}
+inline void IntTime::set_has_decstatistic() {
+  _has_bits_[0] |= 0x00000001u;
+}
+inline void IntTime::clear_has_decstatistic() {
+  _has_bits_[0] &= ~0x00000001u;
+}
+inline void IntTime::clear_decstatistic() {
+  if (decstatistic_ != NULL) decstatistic_->::SAFplus::Rpc::amfMgmtRpc::DecStatistic::Clear();
+  clear_has_decstatistic();
+}
+inline const ::SAFplus::Rpc::amfMgmtRpc::DecStatistic& IntTime::decstatistic() const {
+  // @@protoc_insertion_point(field_get:SAFplus.Rpc.amfMgmtRpc.IntTime.DecStatistic)
+  return decstatistic_ != NULL ? *decstatistic_ : *default_instance_->decstatistic_;
+}
+inline ::SAFplus::Rpc::amfMgmtRpc::DecStatistic* IntTime::mutable_decstatistic() {
+  set_has_decstatistic();
+  if (decstatistic_ == NULL) decstatistic_ = new ::SAFplus::Rpc::amfMgmtRpc::DecStatistic;
+  // @@protoc_insertion_point(field_mutable:SAFplus.Rpc.amfMgmtRpc.IntTime.DecStatistic)
+  return decstatistic_;
+}
+inline ::SAFplus::Rpc::amfMgmtRpc::DecStatistic* IntTime::release_decstatistic() {
+  clear_has_decstatistic();
+  ::SAFplus::Rpc::amfMgmtRpc::DecStatistic* temp = decstatistic_;
+  decstatistic_ = NULL;
+  return temp;
+}
+inline void IntTime::set_allocated_decstatistic(::SAFplus::Rpc::amfMgmtRpc::DecStatistic* decstatistic) {
+  delete decstatistic_;
+  decstatistic_ = decstatistic;
+  if (decstatistic) {
+    set_has_decstatistic();
+  } else {
+    clear_has_decstatistic();
+  }
+  // @@protoc_insertion_point(field_set_allocated:SAFplus.Rpc.amfMgmtRpc.IntTime.DecStatistic)
+}
+
+// -------------------------------------------------------------------
+
+// SoftIrqs
+
+// optional .SAFplus.Rpc.amfMgmtRpc.DecStatistic DecStatistic = 1;
+inline bool SoftIrqs::has_decstatistic() const {
+  return (_has_bits_[0] & 0x00000001u) != 0;
+}
+inline void SoftIrqs::set_has_decstatistic() {
+  _has_bits_[0] |= 0x00000001u;
+}
+inline void SoftIrqs::clear_has_decstatistic() {
+  _has_bits_[0] &= ~0x00000001u;
+}
+inline void SoftIrqs::clear_decstatistic() {
+  if (decstatistic_ != NULL) decstatistic_->::SAFplus::Rpc::amfMgmtRpc::DecStatistic::Clear();
+  clear_has_decstatistic();
+}
+inline const ::SAFplus::Rpc::amfMgmtRpc::DecStatistic& SoftIrqs::decstatistic() const {
+  // @@protoc_insertion_point(field_get:SAFplus.Rpc.amfMgmtRpc.SoftIrqs.DecStatistic)
+  return decstatistic_ != NULL ? *decstatistic_ : *default_instance_->decstatistic_;
+}
+inline ::SAFplus::Rpc::amfMgmtRpc::DecStatistic* SoftIrqs::mutable_decstatistic() {
+  set_has_decstatistic();
+  if (decstatistic_ == NULL) decstatistic_ = new ::SAFplus::Rpc::amfMgmtRpc::DecStatistic;
+  // @@protoc_insertion_point(field_mutable:SAFplus.Rpc.amfMgmtRpc.SoftIrqs.DecStatistic)
+  return decstatistic_;
+}
+inline ::SAFplus::Rpc::amfMgmtRpc::DecStatistic* SoftIrqs::release_decstatistic() {
+  clear_has_decstatistic();
+  ::SAFplus::Rpc::amfMgmtRpc::DecStatistic* temp = decstatistic_;
+  decstatistic_ = NULL;
+  return temp;
+}
+inline void SoftIrqs::set_allocated_decstatistic(::SAFplus::Rpc::amfMgmtRpc::DecStatistic* decstatistic) {
+  delete decstatistic_;
+  decstatistic_ = decstatistic;
+  if (decstatistic) {
+    set_has_decstatistic();
+  } else {
+    clear_has_decstatistic();
+  }
+  // @@protoc_insertion_point(field_set_allocated:SAFplus.Rpc.amfMgmtRpc.SoftIrqs.DecStatistic)
+}
+
+// -------------------------------------------------------------------
+
+// Idle
+
+// optional .SAFplus.Rpc.amfMgmtRpc.DecStatistic DecStatistic = 1;
+inline bool Idle::has_decstatistic() const {
+  return (_has_bits_[0] & 0x00000001u) != 0;
+}
+inline void Idle::set_has_decstatistic() {
+  _has_bits_[0] |= 0x00000001u;
+}
+inline void Idle::clear_has_decstatistic() {
+  _has_bits_[0] &= ~0x00000001u;
+}
+inline void Idle::clear_decstatistic() {
+  if (decstatistic_ != NULL) decstatistic_->::SAFplus::Rpc::amfMgmtRpc::DecStatistic::Clear();
+  clear_has_decstatistic();
+}
+inline const ::SAFplus::Rpc::amfMgmtRpc::DecStatistic& Idle::decstatistic() const {
+  // @@protoc_insertion_point(field_get:SAFplus.Rpc.amfMgmtRpc.Idle.DecStatistic)
+  return decstatistic_ != NULL ? *decstatistic_ : *default_instance_->decstatistic_;
+}
+inline ::SAFplus::Rpc::amfMgmtRpc::DecStatistic* Idle::mutable_decstatistic() {
+  set_has_decstatistic();
+  if (decstatistic_ == NULL) decstatistic_ = new ::SAFplus::Rpc::amfMgmtRpc::DecStatistic;
+  // @@protoc_insertion_point(field_mutable:SAFplus.Rpc.amfMgmtRpc.Idle.DecStatistic)
+  return decstatistic_;
+}
+inline ::SAFplus::Rpc::amfMgmtRpc::DecStatistic* Idle::release_decstatistic() {
+  clear_has_decstatistic();
+  ::SAFplus::Rpc::amfMgmtRpc::DecStatistic* temp = decstatistic_;
+  decstatistic_ = NULL;
+  return temp;
+}
+inline void Idle::set_allocated_decstatistic(::SAFplus::Rpc::amfMgmtRpc::DecStatistic* decstatistic) {
+  delete decstatistic_;
+  decstatistic_ = decstatistic;
+  if (decstatistic) {
+    set_has_decstatistic();
+  } else {
+    clear_has_decstatistic();
+  }
+  // @@protoc_insertion_point(field_set_allocated:SAFplus.Rpc.amfMgmtRpc.Idle.DecStatistic)
+}
+
+// -------------------------------------------------------------------
+
+// ContextSwitches
+
+// optional .SAFplus.Rpc.amfMgmtRpc.IntStatistic IntStatistic = 1;
+inline bool ContextSwitches::has_intstatistic() const {
+  return (_has_bits_[0] & 0x00000001u) != 0;
+}
+inline void ContextSwitches::set_has_intstatistic() {
+  _has_bits_[0] |= 0x00000001u;
+}
+inline void ContextSwitches::clear_has_intstatistic() {
+  _has_bits_[0] &= ~0x00000001u;
+}
+inline void ContextSwitches::clear_intstatistic() {
+  if (intstatistic_ != NULL) intstatistic_->::SAFplus::Rpc::amfMgmtRpc::IntStatistic::Clear();
+  clear_has_intstatistic();
+}
+inline const ::SAFplus::Rpc::amfMgmtRpc::IntStatistic& ContextSwitches::intstatistic() const {
+  // @@protoc_insertion_point(field_get:SAFplus.Rpc.amfMgmtRpc.ContextSwitches.IntStatistic)
+  return intstatistic_ != NULL ? *intstatistic_ : *default_instance_->intstatistic_;
+}
+inline ::SAFplus::Rpc::amfMgmtRpc::IntStatistic* ContextSwitches::mutable_intstatistic() {
+  set_has_intstatistic();
+  if (intstatistic_ == NULL) intstatistic_ = new ::SAFplus::Rpc::amfMgmtRpc::IntStatistic;
+  // @@protoc_insertion_point(field_mutable:SAFplus.Rpc.amfMgmtRpc.ContextSwitches.IntStatistic)
+  return intstatistic_;
+}
+inline ::SAFplus::Rpc::amfMgmtRpc::IntStatistic* ContextSwitches::release_intstatistic() {
+  clear_has_intstatistic();
+  ::SAFplus::Rpc::amfMgmtRpc::IntStatistic* temp = intstatistic_;
+  intstatistic_ = NULL;
+  return temp;
+}
+inline void ContextSwitches::set_allocated_intstatistic(::SAFplus::Rpc::amfMgmtRpc::IntStatistic* intstatistic) {
+  delete intstatistic_;
+  intstatistic_ = intstatistic;
+  if (intstatistic) {
+    set_has_intstatistic();
+  } else {
+    clear_has_intstatistic();
+  }
+  // @@protoc_insertion_point(field_set_allocated:SAFplus.Rpc.amfMgmtRpc.ContextSwitches.IntStatistic)
+}
+
+// -------------------------------------------------------------------
+
+// ProcessCount
+
+// optional .SAFplus.Rpc.amfMgmtRpc.IntStatistic IntStatistic = 1;
+inline bool ProcessCount::has_intstatistic() const {
+  return (_has_bits_[0] & 0x00000001u) != 0;
+}
+inline void ProcessCount::set_has_intstatistic() {
+  _has_bits_[0] |= 0x00000001u;
+}
+inline void ProcessCount::clear_has_intstatistic() {
+  _has_bits_[0] &= ~0x00000001u;
+}
+inline void ProcessCount::clear_intstatistic() {
+  if (intstatistic_ != NULL) intstatistic_->::SAFplus::Rpc::amfMgmtRpc::IntStatistic::Clear();
+  clear_has_intstatistic();
+}
+inline const ::SAFplus::Rpc::amfMgmtRpc::IntStatistic& ProcessCount::intstatistic() const {
+  // @@protoc_insertion_point(field_get:SAFplus.Rpc.amfMgmtRpc.ProcessCount.IntStatistic)
+  return intstatistic_ != NULL ? *intstatistic_ : *default_instance_->intstatistic_;
+}
+inline ::SAFplus::Rpc::amfMgmtRpc::IntStatistic* ProcessCount::mutable_intstatistic() {
+  set_has_intstatistic();
+  if (intstatistic_ == NULL) intstatistic_ = new ::SAFplus::Rpc::amfMgmtRpc::IntStatistic;
+  // @@protoc_insertion_point(field_mutable:SAFplus.Rpc.amfMgmtRpc.ProcessCount.IntStatistic)
+  return intstatistic_;
+}
+inline ::SAFplus::Rpc::amfMgmtRpc::IntStatistic* ProcessCount::release_intstatistic() {
+  clear_has_intstatistic();
+  ::SAFplus::Rpc::amfMgmtRpc::IntStatistic* temp = intstatistic_;
+  intstatistic_ = NULL;
+  return temp;
+}
+inline void ProcessCount::set_allocated_intstatistic(::SAFplus::Rpc::amfMgmtRpc::IntStatistic* intstatistic) {
+  delete intstatistic_;
+  intstatistic_ = intstatistic;
+  if (intstatistic) {
+    set_has_intstatistic();
+  } else {
+    clear_has_intstatistic();
+  }
+  // @@protoc_insertion_point(field_set_allocated:SAFplus.Rpc.amfMgmtRpc.ProcessCount.IntStatistic)
+}
+
+// -------------------------------------------------------------------
+
+// ProcessStarts
+
+// optional .SAFplus.Rpc.amfMgmtRpc.IntStatistic IntStatistic = 1;
+inline bool ProcessStarts::has_intstatistic() const {
+  return (_has_bits_[0] & 0x00000001u) != 0;
+}
+inline void ProcessStarts::set_has_intstatistic() {
+  _has_bits_[0] |= 0x00000001u;
+}
+inline void ProcessStarts::clear_has_intstatistic() {
+  _has_bits_[0] &= ~0x00000001u;
+}
+inline void ProcessStarts::clear_intstatistic() {
+  if (intstatistic_ != NULL) intstatistic_->::SAFplus::Rpc::amfMgmtRpc::IntStatistic::Clear();
+  clear_has_intstatistic();
+}
+inline const ::SAFplus::Rpc::amfMgmtRpc::IntStatistic& ProcessStarts::intstatistic() const {
+  // @@protoc_insertion_point(field_get:SAFplus.Rpc.amfMgmtRpc.ProcessStarts.IntStatistic)
+  return intstatistic_ != NULL ? *intstatistic_ : *default_instance_->intstatistic_;
+}
+inline ::SAFplus::Rpc::amfMgmtRpc::IntStatistic* ProcessStarts::mutable_intstatistic() {
+  set_has_intstatistic();
+  if (intstatistic_ == NULL) intstatistic_ = new ::SAFplus::Rpc::amfMgmtRpc::IntStatistic;
+  // @@protoc_insertion_point(field_mutable:SAFplus.Rpc.amfMgmtRpc.ProcessStarts.IntStatistic)
+  return intstatistic_;
+}
+inline ::SAFplus::Rpc::amfMgmtRpc::IntStatistic* ProcessStarts::release_intstatistic() {
+  clear_has_intstatistic();
+  ::SAFplus::Rpc::amfMgmtRpc::IntStatistic* temp = intstatistic_;
+  intstatistic_ = NULL;
+  return temp;
+}
+inline void ProcessStarts::set_allocated_intstatistic(::SAFplus::Rpc::amfMgmtRpc::IntStatistic* intstatistic) {
+  delete intstatistic_;
+  intstatistic_ = intstatistic;
+  if (intstatistic) {
+    set_has_intstatistic();
+  } else {
+    clear_has_intstatistic();
+  }
+  // @@protoc_insertion_point(field_set_allocated:SAFplus.Rpc.amfMgmtRpc.ProcessStarts.IntStatistic)
+}
+
+// -------------------------------------------------------------------
+
+// Load
+
+// optional .SAFplus.Rpc.amfMgmtRpc.User user = 1;
+inline bool Load::has_user() const {
+  return (_has_bits_[0] & 0x00000001u) != 0;
+}
+inline void Load::set_has_user() {
+  _has_bits_[0] |= 0x00000001u;
+}
+inline void Load::clear_has_user() {
+  _has_bits_[0] &= ~0x00000001u;
+}
+inline void Load::clear_user() {
+  if (user_ != NULL) user_->::SAFplus::Rpc::amfMgmtRpc::User::Clear();
+  clear_has_user();
+}
+inline const ::SAFplus::Rpc::amfMgmtRpc::User& Load::user() const {
+  // @@protoc_insertion_point(field_get:SAFplus.Rpc.amfMgmtRpc.Load.user)
+  return user_ != NULL ? *user_ : *default_instance_->user_;
+}
+inline ::SAFplus::Rpc::amfMgmtRpc::User* Load::mutable_user() {
+  set_has_user();
+  if (user_ == NULL) user_ = new ::SAFplus::Rpc::amfMgmtRpc::User;
+  // @@protoc_insertion_point(field_mutable:SAFplus.Rpc.amfMgmtRpc.Load.user)
+  return user_;
+}
+inline ::SAFplus::Rpc::amfMgmtRpc::User* Load::release_user() {
+  clear_has_user();
+  ::SAFplus::Rpc::amfMgmtRpc::User* temp = user_;
+  user_ = NULL;
+  return temp;
+}
+inline void Load::set_allocated_user(::SAFplus::Rpc::amfMgmtRpc::User* user) {
+  delete user_;
+  user_ = user;
+  if (user) {
+    set_has_user();
+  } else {
+    clear_has_user();
+  }
+  // @@protoc_insertion_point(field_set_allocated:SAFplus.Rpc.amfMgmtRpc.Load.user)
+}
+
+// optional .SAFplus.Rpc.amfMgmtRpc.LowPriorityUser lowPriorityUser = 2;
+inline bool Load::has_lowpriorityuser() const {
+  return (_has_bits_[0] & 0x00000002u) != 0;
+}
+inline void Load::set_has_lowpriorityuser() {
+  _has_bits_[0] |= 0x00000002u;
+}
+inline void Load::clear_has_lowpriorityuser() {
+  _has_bits_[0] &= ~0x00000002u;
+}
+inline void Load::clear_lowpriorityuser() {
+  if (lowpriorityuser_ != NULL) lowpriorityuser_->::SAFplus::Rpc::amfMgmtRpc::LowPriorityUser::Clear();
+  clear_has_lowpriorityuser();
+}
+inline const ::SAFplus::Rpc::amfMgmtRpc::LowPriorityUser& Load::lowpriorityuser() const {
+  // @@protoc_insertion_point(field_get:SAFplus.Rpc.amfMgmtRpc.Load.lowPriorityUser)
+  return lowpriorityuser_ != NULL ? *lowpriorityuser_ : *default_instance_->lowpriorityuser_;
+}
+inline ::SAFplus::Rpc::amfMgmtRpc::LowPriorityUser* Load::mutable_lowpriorityuser() {
+  set_has_lowpriorityuser();
+  if (lowpriorityuser_ == NULL) lowpriorityuser_ = new ::SAFplus::Rpc::amfMgmtRpc::LowPriorityUser;
+  // @@protoc_insertion_point(field_mutable:SAFplus.Rpc.amfMgmtRpc.Load.lowPriorityUser)
+  return lowpriorityuser_;
+}
+inline ::SAFplus::Rpc::amfMgmtRpc::LowPriorityUser* Load::release_lowpriorityuser() {
+  clear_has_lowpriorityuser();
+  ::SAFplus::Rpc::amfMgmtRpc::LowPriorityUser* temp = lowpriorityuser_;
+  lowpriorityuser_ = NULL;
+  return temp;
+}
+inline void Load::set_allocated_lowpriorityuser(::SAFplus::Rpc::amfMgmtRpc::LowPriorityUser* lowpriorityuser) {
+  delete lowpriorityuser_;
+  lowpriorityuser_ = lowpriorityuser;
+  if (lowpriorityuser) {
+    set_has_lowpriorityuser();
+  } else {
+    clear_has_lowpriorityuser();
+  }
+  // @@protoc_insertion_point(field_set_allocated:SAFplus.Rpc.amfMgmtRpc.Load.lowPriorityUser)
+}
+
+// optional .SAFplus.Rpc.amfMgmtRpc.IoWait ioWait = 3;
+inline bool Load::has_iowait() const {
+  return (_has_bits_[0] & 0x00000004u) != 0;
+}
+inline void Load::set_has_iowait() {
+  _has_bits_[0] |= 0x00000004u;
+}
+inline void Load::clear_has_iowait() {
+  _has_bits_[0] &= ~0x00000004u;
+}
+inline void Load::clear_iowait() {
+  if (iowait_ != NULL) iowait_->::SAFplus::Rpc::amfMgmtRpc::IoWait::Clear();
+  clear_has_iowait();
+}
+inline const ::SAFplus::Rpc::amfMgmtRpc::IoWait& Load::iowait() const {
+  // @@protoc_insertion_point(field_get:SAFplus.Rpc.amfMgmtRpc.Load.ioWait)
+  return iowait_ != NULL ? *iowait_ : *default_instance_->iowait_;
+}
+inline ::SAFplus::Rpc::amfMgmtRpc::IoWait* Load::mutable_iowait() {
+  set_has_iowait();
+  if (iowait_ == NULL) iowait_ = new ::SAFplus::Rpc::amfMgmtRpc::IoWait;
+  // @@protoc_insertion_point(field_mutable:SAFplus.Rpc.amfMgmtRpc.Load.ioWait)
+  return iowait_;
+}
+inline ::SAFplus::Rpc::amfMgmtRpc::IoWait* Load::release_iowait() {
+  clear_has_iowait();
+  ::SAFplus::Rpc::amfMgmtRpc::IoWait* temp = iowait_;
+  iowait_ = NULL;
+  return temp;
+}
+inline void Load::set_allocated_iowait(::SAFplus::Rpc::amfMgmtRpc::IoWait* iowait) {
+  delete iowait_;
+  iowait_ = iowait;
+  if (iowait) {
+    set_has_iowait();
+  } else {
+    clear_has_iowait();
+  }
+  // @@protoc_insertion_point(field_set_allocated:SAFplus.Rpc.amfMgmtRpc.Load.ioWait)
+}
+
+// optional .SAFplus.Rpc.amfMgmtRpc.SysTime sysTime = 4;
+inline bool Load::has_systime() const {
+  return (_has_bits_[0] & 0x00000008u) != 0;
+}
+inline void Load::set_has_systime() {
+  _has_bits_[0] |= 0x00000008u;
+}
+inline void Load::clear_has_systime() {
+  _has_bits_[0] &= ~0x00000008u;
+}
+inline void Load::clear_systime() {
+  if (systime_ != NULL) systime_->::SAFplus::Rpc::amfMgmtRpc::SysTime::Clear();
+  clear_has_systime();
+}
+inline const ::SAFplus::Rpc::amfMgmtRpc::SysTime& Load::systime() const {
+  // @@protoc_insertion_point(field_get:SAFplus.Rpc.amfMgmtRpc.Load.sysTime)
+  return systime_ != NULL ? *systime_ : *default_instance_->systime_;
+}
+inline ::SAFplus::Rpc::amfMgmtRpc::SysTime* Load::mutable_systime() {
+  set_has_systime();
+  if (systime_ == NULL) systime_ = new ::SAFplus::Rpc::amfMgmtRpc::SysTime;
+  // @@protoc_insertion_point(field_mutable:SAFplus.Rpc.amfMgmtRpc.Load.sysTime)
+  return systime_;
+}
+inline ::SAFplus::Rpc::amfMgmtRpc::SysTime* Load::release_systime() {
+  clear_has_systime();
+  ::SAFplus::Rpc::amfMgmtRpc::SysTime* temp = systime_;
+  systime_ = NULL;
+  return temp;
+}
+inline void Load::set_allocated_systime(::SAFplus::Rpc::amfMgmtRpc::SysTime* systime) {
+  delete systime_;
+  systime_ = systime;
+  if (systime) {
+    set_has_systime();
+  } else {
+    clear_has_systime();
+  }
+  // @@protoc_insertion_point(field_set_allocated:SAFplus.Rpc.amfMgmtRpc.Load.sysTime)
+}
+
+// optional .SAFplus.Rpc.amfMgmtRpc.IntTime intTime = 5;
+inline bool Load::has_inttime() const {
+  return (_has_bits_[0] & 0x00000010u) != 0;
+}
+inline void Load::set_has_inttime() {
+  _has_bits_[0] |= 0x00000010u;
+}
+inline void Load::clear_has_inttime() {
+  _has_bits_[0] &= ~0x00000010u;
+}
+inline void Load::clear_inttime() {
+  if (inttime_ != NULL) inttime_->::SAFplus::Rpc::amfMgmtRpc::IntTime::Clear();
+  clear_has_inttime();
+}
+inline const ::SAFplus::Rpc::amfMgmtRpc::IntTime& Load::inttime() const {
+  // @@protoc_insertion_point(field_get:SAFplus.Rpc.amfMgmtRpc.Load.intTime)
+  return inttime_ != NULL ? *inttime_ : *default_instance_->inttime_;
+}
+inline ::SAFplus::Rpc::amfMgmtRpc::IntTime* Load::mutable_inttime() {
+  set_has_inttime();
+  if (inttime_ == NULL) inttime_ = new ::SAFplus::Rpc::amfMgmtRpc::IntTime;
+  // @@protoc_insertion_point(field_mutable:SAFplus.Rpc.amfMgmtRpc.Load.intTime)
+  return inttime_;
+}
+inline ::SAFplus::Rpc::amfMgmtRpc::IntTime* Load::release_inttime() {
+  clear_has_inttime();
+  ::SAFplus::Rpc::amfMgmtRpc::IntTime* temp = inttime_;
+  inttime_ = NULL;
+  return temp;
+}
+inline void Load::set_allocated_inttime(::SAFplus::Rpc::amfMgmtRpc::IntTime* inttime) {
+  delete inttime_;
+  inttime_ = inttime;
+  if (inttime) {
+    set_has_inttime();
+  } else {
+    clear_has_inttime();
+  }
+  // @@protoc_insertion_point(field_set_allocated:SAFplus.Rpc.amfMgmtRpc.Load.intTime)
+}
+
+// optional .SAFplus.Rpc.amfMgmtRpc.SoftIrqs softIrqs = 6;
+inline bool Load::has_softirqs() const {
+  return (_has_bits_[0] & 0x00000020u) != 0;
+}
+inline void Load::set_has_softirqs() {
+  _has_bits_[0] |= 0x00000020u;
+}
+inline void Load::clear_has_softirqs() {
+  _has_bits_[0] &= ~0x00000020u;
+}
+inline void Load::clear_softirqs() {
+  if (softirqs_ != NULL) softirqs_->::SAFplus::Rpc::amfMgmtRpc::SoftIrqs::Clear();
+  clear_has_softirqs();
+}
+inline const ::SAFplus::Rpc::amfMgmtRpc::SoftIrqs& Load::softirqs() const {
+  // @@protoc_insertion_point(field_get:SAFplus.Rpc.amfMgmtRpc.Load.softIrqs)
+  return softirqs_ != NULL ? *softirqs_ : *default_instance_->softirqs_;
+}
+inline ::SAFplus::Rpc::amfMgmtRpc::SoftIrqs* Load::mutable_softirqs() {
+  set_has_softirqs();
+  if (softirqs_ == NULL) softirqs_ = new ::SAFplus::Rpc::amfMgmtRpc::SoftIrqs;
+  // @@protoc_insertion_point(field_mutable:SAFplus.Rpc.amfMgmtRpc.Load.softIrqs)
+  return softirqs_;
+}
+inline ::SAFplus::Rpc::amfMgmtRpc::SoftIrqs* Load::release_softirqs() {
+  clear_has_softirqs();
+  ::SAFplus::Rpc::amfMgmtRpc::SoftIrqs* temp = softirqs_;
+  softirqs_ = NULL;
+  return temp;
+}
+inline void Load::set_allocated_softirqs(::SAFplus::Rpc::amfMgmtRpc::SoftIrqs* softirqs) {
+  delete softirqs_;
+  softirqs_ = softirqs;
+  if (softirqs) {
+    set_has_softirqs();
+  } else {
+    clear_has_softirqs();
+  }
+  // @@protoc_insertion_point(field_set_allocated:SAFplus.Rpc.amfMgmtRpc.Load.softIrqs)
+}
+
+// optional .SAFplus.Rpc.amfMgmtRpc.Idle idle = 7;
+inline bool Load::has_idle() const {
+  return (_has_bits_[0] & 0x00000040u) != 0;
+}
+inline void Load::set_has_idle() {
+  _has_bits_[0] |= 0x00000040u;
+}
+inline void Load::clear_has_idle() {
+  _has_bits_[0] &= ~0x00000040u;
+}
+inline void Load::clear_idle() {
+  if (idle_ != NULL) idle_->::SAFplus::Rpc::amfMgmtRpc::Idle::Clear();
+  clear_has_idle();
+}
+inline const ::SAFplus::Rpc::amfMgmtRpc::Idle& Load::idle() const {
+  // @@protoc_insertion_point(field_get:SAFplus.Rpc.amfMgmtRpc.Load.idle)
+  return idle_ != NULL ? *idle_ : *default_instance_->idle_;
+}
+inline ::SAFplus::Rpc::amfMgmtRpc::Idle* Load::mutable_idle() {
+  set_has_idle();
+  if (idle_ == NULL) idle_ = new ::SAFplus::Rpc::amfMgmtRpc::Idle;
+  // @@protoc_insertion_point(field_mutable:SAFplus.Rpc.amfMgmtRpc.Load.idle)
+  return idle_;
+}
+inline ::SAFplus::Rpc::amfMgmtRpc::Idle* Load::release_idle() {
+  clear_has_idle();
+  ::SAFplus::Rpc::amfMgmtRpc::Idle* temp = idle_;
+  idle_ = NULL;
+  return temp;
+}
+inline void Load::set_allocated_idle(::SAFplus::Rpc::amfMgmtRpc::Idle* idle) {
+  delete idle_;
+  idle_ = idle;
+  if (idle) {
+    set_has_idle();
+  } else {
+    clear_has_idle();
+  }
+  // @@protoc_insertion_point(field_set_allocated:SAFplus.Rpc.amfMgmtRpc.Load.idle)
+}
+
+// optional .SAFplus.Rpc.amfMgmtRpc.ContextSwitches contextSwitches = 8;
+inline bool Load::has_contextswitches() const {
+  return (_has_bits_[0] & 0x00000080u) != 0;
+}
+inline void Load::set_has_contextswitches() {
+  _has_bits_[0] |= 0x00000080u;
+}
+inline void Load::clear_has_contextswitches() {
+  _has_bits_[0] &= ~0x00000080u;
+}
+inline void Load::clear_contextswitches() {
+  if (contextswitches_ != NULL) contextswitches_->::SAFplus::Rpc::amfMgmtRpc::ContextSwitches::Clear();
+  clear_has_contextswitches();
+}
+inline const ::SAFplus::Rpc::amfMgmtRpc::ContextSwitches& Load::contextswitches() const {
+  // @@protoc_insertion_point(field_get:SAFplus.Rpc.amfMgmtRpc.Load.contextSwitches)
+  return contextswitches_ != NULL ? *contextswitches_ : *default_instance_->contextswitches_;
+}
+inline ::SAFplus::Rpc::amfMgmtRpc::ContextSwitches* Load::mutable_contextswitches() {
+  set_has_contextswitches();
+  if (contextswitches_ == NULL) contextswitches_ = new ::SAFplus::Rpc::amfMgmtRpc::ContextSwitches;
+  // @@protoc_insertion_point(field_mutable:SAFplus.Rpc.amfMgmtRpc.Load.contextSwitches)
+  return contextswitches_;
+}
+inline ::SAFplus::Rpc::amfMgmtRpc::ContextSwitches* Load::release_contextswitches() {
+  clear_has_contextswitches();
+  ::SAFplus::Rpc::amfMgmtRpc::ContextSwitches* temp = contextswitches_;
+  contextswitches_ = NULL;
+  return temp;
+}
+inline void Load::set_allocated_contextswitches(::SAFplus::Rpc::amfMgmtRpc::ContextSwitches* contextswitches) {
+  delete contextswitches_;
+  contextswitches_ = contextswitches;
+  if (contextswitches) {
+    set_has_contextswitches();
+  } else {
+    clear_has_contextswitches();
+  }
+  // @@protoc_insertion_point(field_set_allocated:SAFplus.Rpc.amfMgmtRpc.Load.contextSwitches)
+}
+
+// optional .SAFplus.Rpc.amfMgmtRpc.ProcessCount processCount = 9;
+inline bool Load::has_processcount() const {
+  return (_has_bits_[0] & 0x00000100u) != 0;
+}
+inline void Load::set_has_processcount() {
+  _has_bits_[0] |= 0x00000100u;
+}
+inline void Load::clear_has_processcount() {
+  _has_bits_[0] &= ~0x00000100u;
+}
+inline void Load::clear_processcount() {
+  if (processcount_ != NULL) processcount_->::SAFplus::Rpc::amfMgmtRpc::ProcessCount::Clear();
+  clear_has_processcount();
+}
+inline const ::SAFplus::Rpc::amfMgmtRpc::ProcessCount& Load::processcount() const {
+  // @@protoc_insertion_point(field_get:SAFplus.Rpc.amfMgmtRpc.Load.processCount)
+  return processcount_ != NULL ? *processcount_ : *default_instance_->processcount_;
+}
+inline ::SAFplus::Rpc::amfMgmtRpc::ProcessCount* Load::mutable_processcount() {
+  set_has_processcount();
+  if (processcount_ == NULL) processcount_ = new ::SAFplus::Rpc::amfMgmtRpc::ProcessCount;
+  // @@protoc_insertion_point(field_mutable:SAFplus.Rpc.amfMgmtRpc.Load.processCount)
+  return processcount_;
+}
+inline ::SAFplus::Rpc::amfMgmtRpc::ProcessCount* Load::release_processcount() {
+  clear_has_processcount();
+  ::SAFplus::Rpc::amfMgmtRpc::ProcessCount* temp = processcount_;
+  processcount_ = NULL;
+  return temp;
+}
+inline void Load::set_allocated_processcount(::SAFplus::Rpc::amfMgmtRpc::ProcessCount* processcount) {
+  delete processcount_;
+  processcount_ = processcount;
+  if (processcount) {
+    set_has_processcount();
+  } else {
+    clear_has_processcount();
+  }
+  // @@protoc_insertion_point(field_set_allocated:SAFplus.Rpc.amfMgmtRpc.Load.processCount)
+}
+
+// optional .SAFplus.Rpc.amfMgmtRpc.ProcessStarts processStarts = 10;
+inline bool Load::has_processstarts() const {
+  return (_has_bits_[0] & 0x00000200u) != 0;
+}
+inline void Load::set_has_processstarts() {
+  _has_bits_[0] |= 0x00000200u;
+}
+inline void Load::clear_has_processstarts() {
+  _has_bits_[0] &= ~0x00000200u;
+}
+inline void Load::clear_processstarts() {
+  if (processstarts_ != NULL) processstarts_->::SAFplus::Rpc::amfMgmtRpc::ProcessStarts::Clear();
+  clear_has_processstarts();
+}
+inline const ::SAFplus::Rpc::amfMgmtRpc::ProcessStarts& Load::processstarts() const {
+  // @@protoc_insertion_point(field_get:SAFplus.Rpc.amfMgmtRpc.Load.processStarts)
+  return processstarts_ != NULL ? *processstarts_ : *default_instance_->processstarts_;
+}
+inline ::SAFplus::Rpc::amfMgmtRpc::ProcessStarts* Load::mutable_processstarts() {
+  set_has_processstarts();
+  if (processstarts_ == NULL) processstarts_ = new ::SAFplus::Rpc::amfMgmtRpc::ProcessStarts;
+  // @@protoc_insertion_point(field_mutable:SAFplus.Rpc.amfMgmtRpc.Load.processStarts)
+  return processstarts_;
+}
+inline ::SAFplus::Rpc::amfMgmtRpc::ProcessStarts* Load::release_processstarts() {
+  clear_has_processstarts();
+  ::SAFplus::Rpc::amfMgmtRpc::ProcessStarts* temp = processstarts_;
+  processstarts_ = NULL;
+  return temp;
+}
+inline void Load::set_allocated_processstarts(::SAFplus::Rpc::amfMgmtRpc::ProcessStarts* processstarts) {
+  delete processstarts_;
+  processstarts_ = processstarts;
+  if (processstarts) {
+    set_has_processstarts();
+  } else {
+    clear_has_processstarts();
+  }
+  // @@protoc_insertion_point(field_set_allocated:SAFplus.Rpc.amfMgmtRpc.Load.processStarts)
+}
+
+// -------------------------------------------------------------------
+
+// Stats
+
+// optional .SAFplus.Rpc.amfMgmtRpc.Load load = 1;
+inline bool Stats::has_load() const {
+  return (_has_bits_[0] & 0x00000001u) != 0;
+}
+inline void Stats::set_has_load() {
+  _has_bits_[0] |= 0x00000001u;
+}
+inline void Stats::clear_has_load() {
+  _has_bits_[0] &= ~0x00000001u;
+}
+inline void Stats::clear_load() {
+  if (load_ != NULL) load_->::SAFplus::Rpc::amfMgmtRpc::Load::Clear();
+  clear_has_load();
+}
+inline const ::SAFplus::Rpc::amfMgmtRpc::Load& Stats::load() const {
+  // @@protoc_insertion_point(field_get:SAFplus.Rpc.amfMgmtRpc.Stats.load)
+  return load_ != NULL ? *load_ : *default_instance_->load_;
+}
+inline ::SAFplus::Rpc::amfMgmtRpc::Load* Stats::mutable_load() {
+  set_has_load();
+  if (load_ == NULL) load_ = new ::SAFplus::Rpc::amfMgmtRpc::Load;
+  // @@protoc_insertion_point(field_mutable:SAFplus.Rpc.amfMgmtRpc.Stats.load)
+  return load_;
+}
+inline ::SAFplus::Rpc::amfMgmtRpc::Load* Stats::release_load() {
+  clear_has_load();
+  ::SAFplus::Rpc::amfMgmtRpc::Load* temp = load_;
+  load_ = NULL;
+  return temp;
+}
+inline void Stats::set_allocated_load(::SAFplus::Rpc::amfMgmtRpc::Load* load) {
+  delete load_;
+  load_ = load;
+  if (load) {
+    set_has_load();
+  } else {
+    clear_has_load();
+  }
+  // @@protoc_insertion_point(field_set_allocated:SAFplus.Rpc.amfMgmtRpc.Stats.load)
+}
+
+// optional uint64 upTime = 2;
+inline bool Stats::has_uptime() const {
+  return (_has_bits_[0] & 0x00000002u) != 0;
+}
+inline void Stats::set_has_uptime() {
+  _has_bits_[0] |= 0x00000002u;
+}
+inline void Stats::clear_has_uptime() {
+  _has_bits_[0] &= ~0x00000002u;
+}
+inline void Stats::clear_uptime() {
+  uptime_ = GOOGLE_ULONGLONG(0);
+  clear_has_uptime();
+}
+inline ::google::protobuf::uint64 Stats::uptime() const {
+  // @@protoc_insertion_point(field_get:SAFplus.Rpc.amfMgmtRpc.Stats.upTime)
+  return uptime_;
+}
+inline void Stats::set_uptime(::google::protobuf::uint64 value) {
+  set_has_uptime();
+  uptime_ = value;
+  // @@protoc_insertion_point(field_set:SAFplus.Rpc.amfMgmtRpc.Stats.upTime)
+}
+
+// optional uint64 bootTime = 3;
+inline bool Stats::has_boottime() const {
+  return (_has_bits_[0] & 0x00000004u) != 0;
+}
+inline void Stats::set_has_boottime() {
+  _has_bits_[0] |= 0x00000004u;
+}
+inline void Stats::clear_has_boottime() {
+  _has_bits_[0] &= ~0x00000004u;
+}
+inline void Stats::clear_boottime() {
+  boottime_ = GOOGLE_ULONGLONG(0);
+  clear_has_boottime();
+}
+inline ::google::protobuf::uint64 Stats::boottime() const {
+  // @@protoc_insertion_point(field_get:SAFplus.Rpc.amfMgmtRpc.Stats.bootTime)
+  return boottime_;
+}
+inline void Stats::set_boottime(::google::protobuf::uint64 value) {
+  set_has_boottime();
+  boottime_ = value;
+  // @@protoc_insertion_point(field_set:SAFplus.Rpc.amfMgmtRpc.Stats.bootTime)
+}
+
+// -------------------------------------------------------------------
+
+// NodeStatus
+
+// optional string name = 1;
+inline bool NodeStatus::has_name() const {
+  return (_has_bits_[0] & 0x00000001u) != 0;
+}
+inline void NodeStatus::set_has_name() {
+  _has_bits_[0] |= 0x00000001u;
+}
+inline void NodeStatus::clear_has_name() {
+  _has_bits_[0] &= ~0x00000001u;
+}
+inline void NodeStatus::clear_name() {
+  if (name_ != &::google::protobuf::internal::GetEmptyStringAlreadyInited()) {
+    name_->clear();
+  }
+  clear_has_name();
+}
+inline const ::std::string& NodeStatus::name() const {
+  // @@protoc_insertion_point(field_get:SAFplus.Rpc.amfMgmtRpc.NodeStatus.name)
+  return *name_;
+}
+inline void NodeStatus::set_name(const ::std::string& value) {
+  set_has_name();
+  if (name_ == &::google::protobuf::internal::GetEmptyStringAlreadyInited()) {
+    name_ = new ::std::string;
+  }
+  name_->assign(value);
+  // @@protoc_insertion_point(field_set:SAFplus.Rpc.amfMgmtRpc.NodeStatus.name)
+}
+inline void NodeStatus::set_name(const char* value) {
+  set_has_name();
+  if (name_ == &::google::protobuf::internal::GetEmptyStringAlreadyInited()) {
+    name_ = new ::std::string;
+  }
+  name_->assign(value);
+  // @@protoc_insertion_point(field_set_char:SAFplus.Rpc.amfMgmtRpc.NodeStatus.name)
+}
+inline void NodeStatus::set_name(const char* value, size_t size) {
+  set_has_name();
+  if (name_ == &::google::protobuf::internal::GetEmptyStringAlreadyInited()) {
+    name_ = new ::std::string;
+  }
+  name_->assign(reinterpret_cast<const char*>(value), size);
+  // @@protoc_insertion_point(field_set_pointer:SAFplus.Rpc.amfMgmtRpc.NodeStatus.name)
+}
+inline ::std::string* NodeStatus::mutable_name() {
+  set_has_name();
+  if (name_ == &::google::protobuf::internal::GetEmptyStringAlreadyInited()) {
+    name_ = new ::std::string;
+  }
+  // @@protoc_insertion_point(field_mutable:SAFplus.Rpc.amfMgmtRpc.NodeStatus.name)
+  return name_;
+}
+inline ::std::string* NodeStatus::release_name() {
+  clear_has_name();
+  if (name_ == &::google::protobuf::internal::GetEmptyStringAlreadyInited()) {
+    return NULL;
+  } else {
+    ::std::string* temp = name_;
+    name_ = const_cast< ::std::string*>(&::google::protobuf::internal::GetEmptyStringAlreadyInited());
+    return temp;
+  }
+}
+inline void NodeStatus::set_allocated_name(::std::string* name) {
+  if (name_ != &::google::protobuf::internal::GetEmptyStringAlreadyInited()) {
+    delete name_;
+  }
+  if (name) {
+    set_has_name();
+    name_ = name;
+  } else {
+    clear_has_name();
+    name_ = const_cast< ::std::string*>(&::google::protobuf::internal::GetEmptyStringAlreadyInited());
+  }
+  // @@protoc_insertion_point(field_set_allocated:SAFplus.Rpc.amfMgmtRpc.NodeStatus.name)
+}
+
+// optional .SAFplus.Rpc.amfMgmtRpc.Stats stats = 2;
+inline bool NodeStatus::has_stats() const {
+  return (_has_bits_[0] & 0x00000002u) != 0;
+}
+inline void NodeStatus::set_has_stats() {
+  _has_bits_[0] |= 0x00000002u;
+}
+inline void NodeStatus::clear_has_stats() {
+  _has_bits_[0] &= ~0x00000002u;
+}
+inline void NodeStatus::clear_stats() {
+  if (stats_ != NULL) stats_->::SAFplus::Rpc::amfMgmtRpc::Stats::Clear();
+  clear_has_stats();
+}
+inline const ::SAFplus::Rpc::amfMgmtRpc::Stats& NodeStatus::stats() const {
+  // @@protoc_insertion_point(field_get:SAFplus.Rpc.amfMgmtRpc.NodeStatus.stats)
+  return stats_ != NULL ? *stats_ : *default_instance_->stats_;
+}
+inline ::SAFplus::Rpc::amfMgmtRpc::Stats* NodeStatus::mutable_stats() {
+  set_has_stats();
+  if (stats_ == NULL) stats_ = new ::SAFplus::Rpc::amfMgmtRpc::Stats;
+  // @@protoc_insertion_point(field_mutable:SAFplus.Rpc.amfMgmtRpc.NodeStatus.stats)
+  return stats_;
+}
+inline ::SAFplus::Rpc::amfMgmtRpc::Stats* NodeStatus::release_stats() {
+  clear_has_stats();
+  ::SAFplus::Rpc::amfMgmtRpc::Stats* temp = stats_;
+  stats_ = NULL;
+  return temp;
+}
+inline void NodeStatus::set_allocated_stats(::SAFplus::Rpc::amfMgmtRpc::Stats* stats) {
+  delete stats_;
+  stats_ = stats;
+  if (stats) {
+    set_has_stats();
+  } else {
+    clear_has_stats();
+  }
+  // @@protoc_insertion_point(field_set_allocated:SAFplus.Rpc.amfMgmtRpc.NodeStatus.stats)
+}
+
+// optional .SAFplus.Rpc.amfMgmtRpc.PresenceState presenceState = 3;
+inline bool NodeStatus::has_presencestate() const {
+  return (_has_bits_[0] & 0x00000004u) != 0;
+}
+inline void NodeStatus::set_has_presencestate() {
+  _has_bits_[0] |= 0x00000004u;
+}
+inline void NodeStatus::clear_has_presencestate() {
+  _has_bits_[0] &= ~0x00000004u;
+}
+inline void NodeStatus::clear_presencestate() {
+  presencestate_ = 0;
+  clear_has_presencestate();
+}
+inline ::SAFplus::Rpc::amfMgmtRpc::PresenceState NodeStatus::presencestate() const {
+  // @@protoc_insertion_point(field_get:SAFplus.Rpc.amfMgmtRpc.NodeStatus.presenceState)
+  return static_cast< ::SAFplus::Rpc::amfMgmtRpc::PresenceState >(presencestate_);
+}
+inline void NodeStatus::set_presencestate(::SAFplus::Rpc::amfMgmtRpc::PresenceState value) {
+  assert(::SAFplus::Rpc::amfMgmtRpc::PresenceState_IsValid(value));
+  set_has_presencestate();
+  presencestate_ = value;
+  // @@protoc_insertion_point(field_set:SAFplus.Rpc.amfMgmtRpc.NodeStatus.presenceState)
+}
+
+// optional bool operState = 4;
+inline bool NodeStatus::has_operstate() const {
+  return (_has_bits_[0] & 0x00000008u) != 0;
+}
+inline void NodeStatus::set_has_operstate() {
+  _has_bits_[0] |= 0x00000008u;
+}
+inline void NodeStatus::clear_has_operstate() {
+  _has_bits_[0] &= ~0x00000008u;
+}
+inline void NodeStatus::clear_operstate() {
+  operstate_ = false;
+  clear_has_operstate();
+}
+inline bool NodeStatus::operstate() const {
+  // @@protoc_insertion_point(field_get:SAFplus.Rpc.amfMgmtRpc.NodeStatus.operState)
+  return operstate_;
+}
+inline void NodeStatus::set_operstate(bool value) {
+  set_has_operstate();
+  operstate_ = value;
+  // @@protoc_insertion_point(field_set:SAFplus.Rpc.amfMgmtRpc.NodeStatus.operState)
+}
+
+// -------------------------------------------------------------------
+
+// NumAssignedServiceUnits
+
+// optional .SAFplus.Rpc.amfMgmtRpc.IntStatistic IntStatistic = 1;
+inline bool NumAssignedServiceUnits::has_intstatistic() const {
+  return (_has_bits_[0] & 0x00000001u) != 0;
+}
+inline void NumAssignedServiceUnits::set_has_intstatistic() {
+  _has_bits_[0] |= 0x00000001u;
+}
+inline void NumAssignedServiceUnits::clear_has_intstatistic() {
+  _has_bits_[0] &= ~0x00000001u;
+}
+inline void NumAssignedServiceUnits::clear_intstatistic() {
+  if (intstatistic_ != NULL) intstatistic_->::SAFplus::Rpc::amfMgmtRpc::IntStatistic::Clear();
+  clear_has_intstatistic();
+}
+inline const ::SAFplus::Rpc::amfMgmtRpc::IntStatistic& NumAssignedServiceUnits::intstatistic() const {
+  // @@protoc_insertion_point(field_get:SAFplus.Rpc.amfMgmtRpc.NumAssignedServiceUnits.IntStatistic)
+  return intstatistic_ != NULL ? *intstatistic_ : *default_instance_->intstatistic_;
+}
+inline ::SAFplus::Rpc::amfMgmtRpc::IntStatistic* NumAssignedServiceUnits::mutable_intstatistic() {
+  set_has_intstatistic();
+  if (intstatistic_ == NULL) intstatistic_ = new ::SAFplus::Rpc::amfMgmtRpc::IntStatistic;
+  // @@protoc_insertion_point(field_mutable:SAFplus.Rpc.amfMgmtRpc.NumAssignedServiceUnits.IntStatistic)
+  return intstatistic_;
+}
+inline ::SAFplus::Rpc::amfMgmtRpc::IntStatistic* NumAssignedServiceUnits::release_intstatistic() {
+  clear_has_intstatistic();
+  ::SAFplus::Rpc::amfMgmtRpc::IntStatistic* temp = intstatistic_;
+  intstatistic_ = NULL;
+  return temp;
+}
+inline void NumAssignedServiceUnits::set_allocated_intstatistic(::SAFplus::Rpc::amfMgmtRpc::IntStatistic* intstatistic) {
+  delete intstatistic_;
+  intstatistic_ = intstatistic;
+  if (intstatistic) {
+    set_has_intstatistic();
+  } else {
+    clear_has_intstatistic();
+  }
+  // @@protoc_insertion_point(field_set_allocated:SAFplus.Rpc.amfMgmtRpc.NumAssignedServiceUnits.IntStatistic)
+}
+
+// -------------------------------------------------------------------
+
+// NumIdleServiceUnits
+
+// optional .SAFplus.Rpc.amfMgmtRpc.IntStatistic IntStatistic = 1;
+inline bool NumIdleServiceUnits::has_intstatistic() const {
+  return (_has_bits_[0] & 0x00000001u) != 0;
+}
+inline void NumIdleServiceUnits::set_has_intstatistic() {
+  _has_bits_[0] |= 0x00000001u;
+}
+inline void NumIdleServiceUnits::clear_has_intstatistic() {
+  _has_bits_[0] &= ~0x00000001u;
+}
+inline void NumIdleServiceUnits::clear_intstatistic() {
+  if (intstatistic_ != NULL) intstatistic_->::SAFplus::Rpc::amfMgmtRpc::IntStatistic::Clear();
+  clear_has_intstatistic();
+}
+inline const ::SAFplus::Rpc::amfMgmtRpc::IntStatistic& NumIdleServiceUnits::intstatistic() const {
+  // @@protoc_insertion_point(field_get:SAFplus.Rpc.amfMgmtRpc.NumIdleServiceUnits.IntStatistic)
+  return intstatistic_ != NULL ? *intstatistic_ : *default_instance_->intstatistic_;
+}
+inline ::SAFplus::Rpc::amfMgmtRpc::IntStatistic* NumIdleServiceUnits::mutable_intstatistic() {
+  set_has_intstatistic();
+  if (intstatistic_ == NULL) intstatistic_ = new ::SAFplus::Rpc::amfMgmtRpc::IntStatistic;
+  // @@protoc_insertion_point(field_mutable:SAFplus.Rpc.amfMgmtRpc.NumIdleServiceUnits.IntStatistic)
+  return intstatistic_;
+}
+inline ::SAFplus::Rpc::amfMgmtRpc::IntStatistic* NumIdleServiceUnits::release_intstatistic() {
+  clear_has_intstatistic();
+  ::SAFplus::Rpc::amfMgmtRpc::IntStatistic* temp = intstatistic_;
+  intstatistic_ = NULL;
+  return temp;
+}
+inline void NumIdleServiceUnits::set_allocated_intstatistic(::SAFplus::Rpc::amfMgmtRpc::IntStatistic* intstatistic) {
+  delete intstatistic_;
+  intstatistic_ = intstatistic;
+  if (intstatistic) {
+    set_has_intstatistic();
+  } else {
+    clear_has_intstatistic();
+  }
+  // @@protoc_insertion_point(field_set_allocated:SAFplus.Rpc.amfMgmtRpc.NumIdleServiceUnits.IntStatistic)
+}
+
+// -------------------------------------------------------------------
+
+// NumSpareServiceUnits
+
+// optional .SAFplus.Rpc.amfMgmtRpc.IntStatistic IntStatistic = 1;
+inline bool NumSpareServiceUnits::has_intstatistic() const {
+  return (_has_bits_[0] & 0x00000001u) != 0;
+}
+inline void NumSpareServiceUnits::set_has_intstatistic() {
+  _has_bits_[0] |= 0x00000001u;
+}
+inline void NumSpareServiceUnits::clear_has_intstatistic() {
+  _has_bits_[0] &= ~0x00000001u;
+}
+inline void NumSpareServiceUnits::clear_intstatistic() {
+  if (intstatistic_ != NULL) intstatistic_->::SAFplus::Rpc::amfMgmtRpc::IntStatistic::Clear();
+  clear_has_intstatistic();
+}
+inline const ::SAFplus::Rpc::amfMgmtRpc::IntStatistic& NumSpareServiceUnits::intstatistic() const {
+  // @@protoc_insertion_point(field_get:SAFplus.Rpc.amfMgmtRpc.NumSpareServiceUnits.IntStatistic)
+  return intstatistic_ != NULL ? *intstatistic_ : *default_instance_->intstatistic_;
+}
+inline ::SAFplus::Rpc::amfMgmtRpc::IntStatistic* NumSpareServiceUnits::mutable_intstatistic() {
+  set_has_intstatistic();
+  if (intstatistic_ == NULL) intstatistic_ = new ::SAFplus::Rpc::amfMgmtRpc::IntStatistic;
+  // @@protoc_insertion_point(field_mutable:SAFplus.Rpc.amfMgmtRpc.NumSpareServiceUnits.IntStatistic)
+  return intstatistic_;
+}
+inline ::SAFplus::Rpc::amfMgmtRpc::IntStatistic* NumSpareServiceUnits::release_intstatistic() {
+  clear_has_intstatistic();
+  ::SAFplus::Rpc::amfMgmtRpc::IntStatistic* temp = intstatistic_;
+  intstatistic_ = NULL;
+  return temp;
+}
+inline void NumSpareServiceUnits::set_allocated_intstatistic(::SAFplus::Rpc::amfMgmtRpc::IntStatistic* intstatistic) {
+  delete intstatistic_;
+  intstatistic_ = intstatistic;
+  if (intstatistic) {
+    set_has_intstatistic();
+  } else {
+    clear_has_intstatistic();
+  }
+  // @@protoc_insertion_point(field_set_allocated:SAFplus.Rpc.amfMgmtRpc.NumSpareServiceUnits.IntStatistic)
+}
+
+// -------------------------------------------------------------------
+
+// ServiceGroupStatus
+
+// optional string name = 1;
+inline bool ServiceGroupStatus::has_name() const {
+  return (_has_bits_[0] & 0x00000001u) != 0;
+}
+inline void ServiceGroupStatus::set_has_name() {
+  _has_bits_[0] |= 0x00000001u;
+}
+inline void ServiceGroupStatus::clear_has_name() {
+  _has_bits_[0] &= ~0x00000001u;
+}
+inline void ServiceGroupStatus::clear_name() {
+  if (name_ != &::google::protobuf::internal::GetEmptyStringAlreadyInited()) {
+    name_->clear();
+  }
+  clear_has_name();
+}
+inline const ::std::string& ServiceGroupStatus::name() const {
+  // @@protoc_insertion_point(field_get:SAFplus.Rpc.amfMgmtRpc.ServiceGroupStatus.name)
+  return *name_;
+}
+inline void ServiceGroupStatus::set_name(const ::std::string& value) {
+  set_has_name();
+  if (name_ == &::google::protobuf::internal::GetEmptyStringAlreadyInited()) {
+    name_ = new ::std::string;
+  }
+  name_->assign(value);
+  // @@protoc_insertion_point(field_set:SAFplus.Rpc.amfMgmtRpc.ServiceGroupStatus.name)
+}
+inline void ServiceGroupStatus::set_name(const char* value) {
+  set_has_name();
+  if (name_ == &::google::protobuf::internal::GetEmptyStringAlreadyInited()) {
+    name_ = new ::std::string;
+  }
+  name_->assign(value);
+  // @@protoc_insertion_point(field_set_char:SAFplus.Rpc.amfMgmtRpc.ServiceGroupStatus.name)
+}
+inline void ServiceGroupStatus::set_name(const char* value, size_t size) {
+  set_has_name();
+  if (name_ == &::google::protobuf::internal::GetEmptyStringAlreadyInited()) {
+    name_ = new ::std::string;
+  }
+  name_->assign(reinterpret_cast<const char*>(value), size);
+  // @@protoc_insertion_point(field_set_pointer:SAFplus.Rpc.amfMgmtRpc.ServiceGroupStatus.name)
+}
+inline ::std::string* ServiceGroupStatus::mutable_name() {
+  set_has_name();
+  if (name_ == &::google::protobuf::internal::GetEmptyStringAlreadyInited()) {
+    name_ = new ::std::string;
+  }
+  // @@protoc_insertion_point(field_mutable:SAFplus.Rpc.amfMgmtRpc.ServiceGroupStatus.name)
+  return name_;
+}
+inline ::std::string* ServiceGroupStatus::release_name() {
+  clear_has_name();
+  if (name_ == &::google::protobuf::internal::GetEmptyStringAlreadyInited()) {
+    return NULL;
+  } else {
+    ::std::string* temp = name_;
+    name_ = const_cast< ::std::string*>(&::google::protobuf::internal::GetEmptyStringAlreadyInited());
+    return temp;
+  }
+}
+inline void ServiceGroupStatus::set_allocated_name(::std::string* name) {
+  if (name_ != &::google::protobuf::internal::GetEmptyStringAlreadyInited()) {
+    delete name_;
+  }
+  if (name) {
+    set_has_name();
+    name_ = name;
+  } else {
+    clear_has_name();
+    name_ = const_cast< ::std::string*>(&::google::protobuf::internal::GetEmptyStringAlreadyInited());
+  }
+  // @@protoc_insertion_point(field_set_allocated:SAFplus.Rpc.amfMgmtRpc.ServiceGroupStatus.name)
+}
+
+// optional .SAFplus.Rpc.amfMgmtRpc.NumAssignedServiceUnits numAssignedServiceUnits = 2;
+inline bool ServiceGroupStatus::has_numassignedserviceunits() const {
+  return (_has_bits_[0] & 0x00000002u) != 0;
+}
+inline void ServiceGroupStatus::set_has_numassignedserviceunits() {
+  _has_bits_[0] |= 0x00000002u;
+}
+inline void ServiceGroupStatus::clear_has_numassignedserviceunits() {
+  _has_bits_[0] &= ~0x00000002u;
+}
+inline void ServiceGroupStatus::clear_numassignedserviceunits() {
+  if (numassignedserviceunits_ != NULL) numassignedserviceunits_->::SAFplus::Rpc::amfMgmtRpc::NumAssignedServiceUnits::Clear();
+  clear_has_numassignedserviceunits();
+}
+inline const ::SAFplus::Rpc::amfMgmtRpc::NumAssignedServiceUnits& ServiceGroupStatus::numassignedserviceunits() const {
+  // @@protoc_insertion_point(field_get:SAFplus.Rpc.amfMgmtRpc.ServiceGroupStatus.numAssignedServiceUnits)
+  return numassignedserviceunits_ != NULL ? *numassignedserviceunits_ : *default_instance_->numassignedserviceunits_;
+}
+inline ::SAFplus::Rpc::amfMgmtRpc::NumAssignedServiceUnits* ServiceGroupStatus::mutable_numassignedserviceunits() {
+  set_has_numassignedserviceunits();
+  if (numassignedserviceunits_ == NULL) numassignedserviceunits_ = new ::SAFplus::Rpc::amfMgmtRpc::NumAssignedServiceUnits;
+  // @@protoc_insertion_point(field_mutable:SAFplus.Rpc.amfMgmtRpc.ServiceGroupStatus.numAssignedServiceUnits)
+  return numassignedserviceunits_;
+}
+inline ::SAFplus::Rpc::amfMgmtRpc::NumAssignedServiceUnits* ServiceGroupStatus::release_numassignedserviceunits() {
+  clear_has_numassignedserviceunits();
+  ::SAFplus::Rpc::amfMgmtRpc::NumAssignedServiceUnits* temp = numassignedserviceunits_;
+  numassignedserviceunits_ = NULL;
+  return temp;
+}
+inline void ServiceGroupStatus::set_allocated_numassignedserviceunits(::SAFplus::Rpc::amfMgmtRpc::NumAssignedServiceUnits* numassignedserviceunits) {
+  delete numassignedserviceunits_;
+  numassignedserviceunits_ = numassignedserviceunits;
+  if (numassignedserviceunits) {
+    set_has_numassignedserviceunits();
+  } else {
+    clear_has_numassignedserviceunits();
+  }
+  // @@protoc_insertion_point(field_set_allocated:SAFplus.Rpc.amfMgmtRpc.ServiceGroupStatus.numAssignedServiceUnits)
+}
+
+// optional .SAFplus.Rpc.amfMgmtRpc.NumIdleServiceUnits numIdleServiceUnits = 3;
+inline bool ServiceGroupStatus::has_numidleserviceunits() const {
+  return (_has_bits_[0] & 0x00000004u) != 0;
+}
+inline void ServiceGroupStatus::set_has_numidleserviceunits() {
+  _has_bits_[0] |= 0x00000004u;
+}
+inline void ServiceGroupStatus::clear_has_numidleserviceunits() {
+  _has_bits_[0] &= ~0x00000004u;
+}
+inline void ServiceGroupStatus::clear_numidleserviceunits() {
+  if (numidleserviceunits_ != NULL) numidleserviceunits_->::SAFplus::Rpc::amfMgmtRpc::NumIdleServiceUnits::Clear();
+  clear_has_numidleserviceunits();
+}
+inline const ::SAFplus::Rpc::amfMgmtRpc::NumIdleServiceUnits& ServiceGroupStatus::numidleserviceunits() const {
+  // @@protoc_insertion_point(field_get:SAFplus.Rpc.amfMgmtRpc.ServiceGroupStatus.numIdleServiceUnits)
+  return numidleserviceunits_ != NULL ? *numidleserviceunits_ : *default_instance_->numidleserviceunits_;
+}
+inline ::SAFplus::Rpc::amfMgmtRpc::NumIdleServiceUnits* ServiceGroupStatus::mutable_numidleserviceunits() {
+  set_has_numidleserviceunits();
+  if (numidleserviceunits_ == NULL) numidleserviceunits_ = new ::SAFplus::Rpc::amfMgmtRpc::NumIdleServiceUnits;
+  // @@protoc_insertion_point(field_mutable:SAFplus.Rpc.amfMgmtRpc.ServiceGroupStatus.numIdleServiceUnits)
+  return numidleserviceunits_;
+}
+inline ::SAFplus::Rpc::amfMgmtRpc::NumIdleServiceUnits* ServiceGroupStatus::release_numidleserviceunits() {
+  clear_has_numidleserviceunits();
+  ::SAFplus::Rpc::amfMgmtRpc::NumIdleServiceUnits* temp = numidleserviceunits_;
+  numidleserviceunits_ = NULL;
+  return temp;
+}
+inline void ServiceGroupStatus::set_allocated_numidleserviceunits(::SAFplus::Rpc::amfMgmtRpc::NumIdleServiceUnits* numidleserviceunits) {
+  delete numidleserviceunits_;
+  numidleserviceunits_ = numidleserviceunits;
+  if (numidleserviceunits) {
+    set_has_numidleserviceunits();
+  } else {
+    clear_has_numidleserviceunits();
+  }
+  // @@protoc_insertion_point(field_set_allocated:SAFplus.Rpc.amfMgmtRpc.ServiceGroupStatus.numIdleServiceUnits)
+}
+
+// optional .SAFplus.Rpc.amfMgmtRpc.NumSpareServiceUnits numSpareServiceUnits = 4;
+inline bool ServiceGroupStatus::has_numspareserviceunits() const {
+  return (_has_bits_[0] & 0x00000008u) != 0;
+}
+inline void ServiceGroupStatus::set_has_numspareserviceunits() {
+  _has_bits_[0] |= 0x00000008u;
+}
+inline void ServiceGroupStatus::clear_has_numspareserviceunits() {
+  _has_bits_[0] &= ~0x00000008u;
+}
+inline void ServiceGroupStatus::clear_numspareserviceunits() {
+  if (numspareserviceunits_ != NULL) numspareserviceunits_->::SAFplus::Rpc::amfMgmtRpc::NumSpareServiceUnits::Clear();
+  clear_has_numspareserviceunits();
+}
+inline const ::SAFplus::Rpc::amfMgmtRpc::NumSpareServiceUnits& ServiceGroupStatus::numspareserviceunits() const {
+  // @@protoc_insertion_point(field_get:SAFplus.Rpc.amfMgmtRpc.ServiceGroupStatus.numSpareServiceUnits)
+  return numspareserviceunits_ != NULL ? *numspareserviceunits_ : *default_instance_->numspareserviceunits_;
+}
+inline ::SAFplus::Rpc::amfMgmtRpc::NumSpareServiceUnits* ServiceGroupStatus::mutable_numspareserviceunits() {
+  set_has_numspareserviceunits();
+  if (numspareserviceunits_ == NULL) numspareserviceunits_ = new ::SAFplus::Rpc::amfMgmtRpc::NumSpareServiceUnits;
+  // @@protoc_insertion_point(field_mutable:SAFplus.Rpc.amfMgmtRpc.ServiceGroupStatus.numSpareServiceUnits)
+  return numspareserviceunits_;
+}
+inline ::SAFplus::Rpc::amfMgmtRpc::NumSpareServiceUnits* ServiceGroupStatus::release_numspareserviceunits() {
+  clear_has_numspareserviceunits();
+  ::SAFplus::Rpc::amfMgmtRpc::NumSpareServiceUnits* temp = numspareserviceunits_;
+  numspareserviceunits_ = NULL;
+  return temp;
+}
+inline void ServiceGroupStatus::set_allocated_numspareserviceunits(::SAFplus::Rpc::amfMgmtRpc::NumSpareServiceUnits* numspareserviceunits) {
+  delete numspareserviceunits_;
+  numspareserviceunits_ = numspareserviceunits;
+  if (numspareserviceunits) {
+    set_has_numspareserviceunits();
+  } else {
+    clear_has_numspareserviceunits();
+  }
+  // @@protoc_insertion_point(field_set_allocated:SAFplus.Rpc.amfMgmtRpc.ServiceGroupStatus.numSpareServiceUnits)
+}
+
+// -------------------------------------------------------------------
+
+// ProcStats
+
+// optional .SAFplus.Rpc.amfMgmtRpc.ProcessStats ProcessStats = 1;
+inline bool ProcStats::has_processstats() const {
+  return (_has_bits_[0] & 0x00000001u) != 0;
+}
+inline void ProcStats::set_has_processstats() {
+  _has_bits_[0] |= 0x00000001u;
+}
+inline void ProcStats::clear_has_processstats() {
+  _has_bits_[0] &= ~0x00000001u;
+}
+inline void ProcStats::clear_processstats() {
+  if (processstats_ != NULL) processstats_->::SAFplus::Rpc::amfMgmtRpc::ProcessStats::Clear();
+  clear_has_processstats();
+}
+inline const ::SAFplus::Rpc::amfMgmtRpc::ProcessStats& ProcStats::processstats() const {
+  // @@protoc_insertion_point(field_get:SAFplus.Rpc.amfMgmtRpc.ProcStats.ProcessStats)
+  return processstats_ != NULL ? *processstats_ : *default_instance_->processstats_;
+}
+inline ::SAFplus::Rpc::amfMgmtRpc::ProcessStats* ProcStats::mutable_processstats() {
+  set_has_processstats();
+  if (processstats_ == NULL) processstats_ = new ::SAFplus::Rpc::amfMgmtRpc::ProcessStats;
+  // @@protoc_insertion_point(field_mutable:SAFplus.Rpc.amfMgmtRpc.ProcStats.ProcessStats)
+  return processstats_;
+}
+inline ::SAFplus::Rpc::amfMgmtRpc::ProcessStats* ProcStats::release_processstats() {
+  clear_has_processstats();
+  ::SAFplus::Rpc::amfMgmtRpc::ProcessStats* temp = processstats_;
+  processstats_ = NULL;
+  return temp;
+}
+inline void ProcStats::set_allocated_processstats(::SAFplus::Rpc::amfMgmtRpc::ProcessStats* processstats) {
+  delete processstats_;
+  processstats_ = processstats;
+  if (processstats) {
+    set_has_processstats();
+  } else {
+    clear_has_processstats();
+  }
+  // @@protoc_insertion_point(field_set_allocated:SAFplus.Rpc.amfMgmtRpc.ProcStats.ProcessStats)
+}
+
+// -------------------------------------------------------------------
+
+// ActiveAssignments
+
+// optional .SAFplus.Rpc.amfMgmtRpc.IntStatistic IntStatistic = 1;
+inline bool ActiveAssignments::has_intstatistic() const {
+  return (_has_bits_[0] & 0x00000001u) != 0;
+}
+inline void ActiveAssignments::set_has_intstatistic() {
+  _has_bits_[0] |= 0x00000001u;
+}
+inline void ActiveAssignments::clear_has_intstatistic() {
+  _has_bits_[0] &= ~0x00000001u;
+}
+inline void ActiveAssignments::clear_intstatistic() {
+  if (intstatistic_ != NULL) intstatistic_->::SAFplus::Rpc::amfMgmtRpc::IntStatistic::Clear();
+  clear_has_intstatistic();
+}
+inline const ::SAFplus::Rpc::amfMgmtRpc::IntStatistic& ActiveAssignments::intstatistic() const {
+  // @@protoc_insertion_point(field_get:SAFplus.Rpc.amfMgmtRpc.ActiveAssignments.IntStatistic)
+  return intstatistic_ != NULL ? *intstatistic_ : *default_instance_->intstatistic_;
+}
+inline ::SAFplus::Rpc::amfMgmtRpc::IntStatistic* ActiveAssignments::mutable_intstatistic() {
+  set_has_intstatistic();
+  if (intstatistic_ == NULL) intstatistic_ = new ::SAFplus::Rpc::amfMgmtRpc::IntStatistic;
+  // @@protoc_insertion_point(field_mutable:SAFplus.Rpc.amfMgmtRpc.ActiveAssignments.IntStatistic)
+  return intstatistic_;
+}
+inline ::SAFplus::Rpc::amfMgmtRpc::IntStatistic* ActiveAssignments::release_intstatistic() {
+  clear_has_intstatistic();
+  ::SAFplus::Rpc::amfMgmtRpc::IntStatistic* temp = intstatistic_;
+  intstatistic_ = NULL;
+  return temp;
+}
+inline void ActiveAssignments::set_allocated_intstatistic(::SAFplus::Rpc::amfMgmtRpc::IntStatistic* intstatistic) {
+  delete intstatistic_;
+  intstatistic_ = intstatistic;
+  if (intstatistic) {
+    set_has_intstatistic();
+  } else {
+    clear_has_intstatistic();
+  }
+  // @@protoc_insertion_point(field_set_allocated:SAFplus.Rpc.amfMgmtRpc.ActiveAssignments.IntStatistic)
+}
+
+// -------------------------------------------------------------------
+
+// StandbyAssignments
+
+// optional .SAFplus.Rpc.amfMgmtRpc.IntStatistic IntStatistic = 1;
+inline bool StandbyAssignments::has_intstatistic() const {
+  return (_has_bits_[0] & 0x00000001u) != 0;
+}
+inline void StandbyAssignments::set_has_intstatistic() {
+  _has_bits_[0] |= 0x00000001u;
+}
+inline void StandbyAssignments::clear_has_intstatistic() {
+  _has_bits_[0] &= ~0x00000001u;
+}
+inline void StandbyAssignments::clear_intstatistic() {
+  if (intstatistic_ != NULL) intstatistic_->::SAFplus::Rpc::amfMgmtRpc::IntStatistic::Clear();
+  clear_has_intstatistic();
+}
+inline const ::SAFplus::Rpc::amfMgmtRpc::IntStatistic& StandbyAssignments::intstatistic() const {
+  // @@protoc_insertion_point(field_get:SAFplus.Rpc.amfMgmtRpc.StandbyAssignments.IntStatistic)
+  return intstatistic_ != NULL ? *intstatistic_ : *default_instance_->intstatistic_;
+}
+inline ::SAFplus::Rpc::amfMgmtRpc::IntStatistic* StandbyAssignments::mutable_intstatistic() {
+  set_has_intstatistic();
+  if (intstatistic_ == NULL) intstatistic_ = new ::SAFplus::Rpc::amfMgmtRpc::IntStatistic;
+  // @@protoc_insertion_point(field_mutable:SAFplus.Rpc.amfMgmtRpc.StandbyAssignments.IntStatistic)
+  return intstatistic_;
+}
+inline ::SAFplus::Rpc::amfMgmtRpc::IntStatistic* StandbyAssignments::release_intstatistic() {
+  clear_has_intstatistic();
+  ::SAFplus::Rpc::amfMgmtRpc::IntStatistic* temp = intstatistic_;
+  intstatistic_ = NULL;
+  return temp;
+}
+inline void StandbyAssignments::set_allocated_intstatistic(::SAFplus::Rpc::amfMgmtRpc::IntStatistic* intstatistic) {
+  delete intstatistic_;
+  intstatistic_ = intstatistic;
+  if (intstatistic) {
+    set_has_intstatistic();
+  } else {
+    clear_has_intstatistic();
+  }
+  // @@protoc_insertion_point(field_set_allocated:SAFplus.Rpc.amfMgmtRpc.StandbyAssignments.IntStatistic)
+}
+
+// -------------------------------------------------------------------
+
+// RestartCount
+
+// optional .SAFplus.Rpc.amfMgmtRpc.IntStatistic IntStatistic = 1;
+inline bool RestartCount::has_intstatistic() const {
+  return (_has_bits_[0] & 0x00000001u) != 0;
+}
+inline void RestartCount::set_has_intstatistic() {
+  _has_bits_[0] |= 0x00000001u;
+}
+inline void RestartCount::clear_has_intstatistic() {
+  _has_bits_[0] &= ~0x00000001u;
+}
+inline void RestartCount::clear_intstatistic() {
+  if (intstatistic_ != NULL) intstatistic_->::SAFplus::Rpc::amfMgmtRpc::IntStatistic::Clear();
+  clear_has_intstatistic();
+}
+inline const ::SAFplus::Rpc::amfMgmtRpc::IntStatistic& RestartCount::intstatistic() const {
+  // @@protoc_insertion_point(field_get:SAFplus.Rpc.amfMgmtRpc.RestartCount.IntStatistic)
+  return intstatistic_ != NULL ? *intstatistic_ : *default_instance_->intstatistic_;
+}
+inline ::SAFplus::Rpc::amfMgmtRpc::IntStatistic* RestartCount::mutable_intstatistic() {
+  set_has_intstatistic();
+  if (intstatistic_ == NULL) intstatistic_ = new ::SAFplus::Rpc::amfMgmtRpc::IntStatistic;
+  // @@protoc_insertion_point(field_mutable:SAFplus.Rpc.amfMgmtRpc.RestartCount.IntStatistic)
+  return intstatistic_;
+}
+inline ::SAFplus::Rpc::amfMgmtRpc::IntStatistic* RestartCount::release_intstatistic() {
+  clear_has_intstatistic();
+  ::SAFplus::Rpc::amfMgmtRpc::IntStatistic* temp = intstatistic_;
+  intstatistic_ = NULL;
+  return temp;
+}
+inline void RestartCount::set_allocated_intstatistic(::SAFplus::Rpc::amfMgmtRpc::IntStatistic* intstatistic) {
+  delete intstatistic_;
+  intstatistic_ = intstatistic;
+  if (intstatistic) {
+    set_has_intstatistic();
+  } else {
+    clear_has_intstatistic();
+  }
+  // @@protoc_insertion_point(field_set_allocated:SAFplus.Rpc.amfMgmtRpc.RestartCount.IntStatistic)
+}
+
+// -------------------------------------------------------------------
+
+// ComponentStatus
+
+// optional string name = 1;
+inline bool ComponentStatus::has_name() const {
+  return (_has_bits_[0] & 0x00000001u) != 0;
+}
+inline void ComponentStatus::set_has_name() {
+  _has_bits_[0] |= 0x00000001u;
+}
+inline void ComponentStatus::clear_has_name() {
+  _has_bits_[0] &= ~0x00000001u;
+}
+inline void ComponentStatus::clear_name() {
+  if (name_ != &::google::protobuf::internal::GetEmptyStringAlreadyInited()) {
+    name_->clear();
+  }
+  clear_has_name();
+}
+inline const ::std::string& ComponentStatus::name() const {
+  // @@protoc_insertion_point(field_get:SAFplus.Rpc.amfMgmtRpc.ComponentStatus.name)
+  return *name_;
+}
+inline void ComponentStatus::set_name(const ::std::string& value) {
+  set_has_name();
+  if (name_ == &::google::protobuf::internal::GetEmptyStringAlreadyInited()) {
+    name_ = new ::std::string;
+  }
+  name_->assign(value);
+  // @@protoc_insertion_point(field_set:SAFplus.Rpc.amfMgmtRpc.ComponentStatus.name)
+}
+inline void ComponentStatus::set_name(const char* value) {
+  set_has_name();
+  if (name_ == &::google::protobuf::internal::GetEmptyStringAlreadyInited()) {
+    name_ = new ::std::string;
+  }
+  name_->assign(value);
+  // @@protoc_insertion_point(field_set_char:SAFplus.Rpc.amfMgmtRpc.ComponentStatus.name)
+}
+inline void ComponentStatus::set_name(const char* value, size_t size) {
+  set_has_name();
+  if (name_ == &::google::protobuf::internal::GetEmptyStringAlreadyInited()) {
+    name_ = new ::std::string;
+  }
+  name_->assign(reinterpret_cast<const char*>(value), size);
+  // @@protoc_insertion_point(field_set_pointer:SAFplus.Rpc.amfMgmtRpc.ComponentStatus.name)
+}
+inline ::std::string* ComponentStatus::mutable_name() {
+  set_has_name();
+  if (name_ == &::google::protobuf::internal::GetEmptyStringAlreadyInited()) {
+    name_ = new ::std::string;
+  }
+  // @@protoc_insertion_point(field_mutable:SAFplus.Rpc.amfMgmtRpc.ComponentStatus.name)
+  return name_;
+}
+inline ::std::string* ComponentStatus::release_name() {
+  clear_has_name();
+  if (name_ == &::google::protobuf::internal::GetEmptyStringAlreadyInited()) {
+    return NULL;
+  } else {
+    ::std::string* temp = name_;
+    name_ = const_cast< ::std::string*>(&::google::protobuf::internal::GetEmptyStringAlreadyInited());
+    return temp;
+  }
+}
+inline void ComponentStatus::set_allocated_name(::std::string* name) {
+  if (name_ != &::google::protobuf::internal::GetEmptyStringAlreadyInited()) {
+    delete name_;
+  }
+  if (name) {
+    set_has_name();
+    name_ = name;
+  } else {
+    clear_has_name();
+    name_ = const_cast< ::std::string*>(&::google::protobuf::internal::GetEmptyStringAlreadyInited());
+  }
+  // @@protoc_insertion_point(field_set_allocated:SAFplus.Rpc.amfMgmtRpc.ComponentStatus.name)
+}
+
+// optional .SAFplus.Rpc.amfMgmtRpc.ProcStats procStats = 2;
+inline bool ComponentStatus::has_procstats() const {
+  return (_has_bits_[0] & 0x00000002u) != 0;
+}
+inline void ComponentStatus::set_has_procstats() {
+  _has_bits_[0] |= 0x00000002u;
+}
+inline void ComponentStatus::clear_has_procstats() {
+  _has_bits_[0] &= ~0x00000002u;
+}
+inline void ComponentStatus::clear_procstats() {
+  if (procstats_ != NULL) procstats_->::SAFplus::Rpc::amfMgmtRpc::ProcStats::Clear();
+  clear_has_procstats();
+}
+inline const ::SAFplus::Rpc::amfMgmtRpc::ProcStats& ComponentStatus::procstats() const {
+  // @@protoc_insertion_point(field_get:SAFplus.Rpc.amfMgmtRpc.ComponentStatus.procStats)
+  return procstats_ != NULL ? *procstats_ : *default_instance_->procstats_;
+}
+inline ::SAFplus::Rpc::amfMgmtRpc::ProcStats* ComponentStatus::mutable_procstats() {
+  set_has_procstats();
+  if (procstats_ == NULL) procstats_ = new ::SAFplus::Rpc::amfMgmtRpc::ProcStats;
+  // @@protoc_insertion_point(field_mutable:SAFplus.Rpc.amfMgmtRpc.ComponentStatus.procStats)
+  return procstats_;
+}
+inline ::SAFplus::Rpc::amfMgmtRpc::ProcStats* ComponentStatus::release_procstats() {
+  clear_has_procstats();
+  ::SAFplus::Rpc::amfMgmtRpc::ProcStats* temp = procstats_;
+  procstats_ = NULL;
+  return temp;
+}
+inline void ComponentStatus::set_allocated_procstats(::SAFplus::Rpc::amfMgmtRpc::ProcStats* procstats) {
+  delete procstats_;
+  procstats_ = procstats;
+  if (procstats) {
+    set_has_procstats();
+  } else {
+    clear_has_procstats();
+  }
+  // @@protoc_insertion_point(field_set_allocated:SAFplus.Rpc.amfMgmtRpc.ComponentStatus.procStats)
+}
+
+// optional .SAFplus.Rpc.amfMgmtRpc.PresenceState presenceState = 3;
+inline bool ComponentStatus::has_presencestate() const {
+  return (_has_bits_[0] & 0x00000004u) != 0;
+}
+inline void ComponentStatus::set_has_presencestate() {
+  _has_bits_[0] |= 0x00000004u;
+}
+inline void ComponentStatus::clear_has_presencestate() {
+  _has_bits_[0] &= ~0x00000004u;
+}
+inline void ComponentStatus::clear_presencestate() {
+  presencestate_ = 0;
+  clear_has_presencestate();
+}
+inline ::SAFplus::Rpc::amfMgmtRpc::PresenceState ComponentStatus::presencestate() const {
+  // @@protoc_insertion_point(field_get:SAFplus.Rpc.amfMgmtRpc.ComponentStatus.presenceState)
+  return static_cast< ::SAFplus::Rpc::amfMgmtRpc::PresenceState >(presencestate_);
+}
+inline void ComponentStatus::set_presencestate(::SAFplus::Rpc::amfMgmtRpc::PresenceState value) {
+  assert(::SAFplus::Rpc::amfMgmtRpc::PresenceState_IsValid(value));
+  set_has_presencestate();
+  presencestate_ = value;
+  // @@protoc_insertion_point(field_set:SAFplus.Rpc.amfMgmtRpc.ComponentStatus.presenceState)
+}
+
+// optional .SAFplus.Rpc.amfMgmtRpc.ActiveAssignments activeAssignments = 4;
+inline bool ComponentStatus::has_activeassignments() const {
+  return (_has_bits_[0] & 0x00000008u) != 0;
+}
+inline void ComponentStatus::set_has_activeassignments() {
+  _has_bits_[0] |= 0x00000008u;
+}
+inline void ComponentStatus::clear_has_activeassignments() {
+  _has_bits_[0] &= ~0x00000008u;
+}
+inline void ComponentStatus::clear_activeassignments() {
+  if (activeassignments_ != NULL) activeassignments_->::SAFplus::Rpc::amfMgmtRpc::ActiveAssignments::Clear();
+  clear_has_activeassignments();
+}
+inline const ::SAFplus::Rpc::amfMgmtRpc::ActiveAssignments& ComponentStatus::activeassignments() const {
+  // @@protoc_insertion_point(field_get:SAFplus.Rpc.amfMgmtRpc.ComponentStatus.activeAssignments)
+  return activeassignments_ != NULL ? *activeassignments_ : *default_instance_->activeassignments_;
+}
+inline ::SAFplus::Rpc::amfMgmtRpc::ActiveAssignments* ComponentStatus::mutable_activeassignments() {
+  set_has_activeassignments();
+  if (activeassignments_ == NULL) activeassignments_ = new ::SAFplus::Rpc::amfMgmtRpc::ActiveAssignments;
+  // @@protoc_insertion_point(field_mutable:SAFplus.Rpc.amfMgmtRpc.ComponentStatus.activeAssignments)
+  return activeassignments_;
+}
+inline ::SAFplus::Rpc::amfMgmtRpc::ActiveAssignments* ComponentStatus::release_activeassignments() {
+  clear_has_activeassignments();
+  ::SAFplus::Rpc::amfMgmtRpc::ActiveAssignments* temp = activeassignments_;
+  activeassignments_ = NULL;
+  return temp;
+}
+inline void ComponentStatus::set_allocated_activeassignments(::SAFplus::Rpc::amfMgmtRpc::ActiveAssignments* activeassignments) {
+  delete activeassignments_;
+  activeassignments_ = activeassignments;
+  if (activeassignments) {
+    set_has_activeassignments();
+  } else {
+    clear_has_activeassignments();
+  }
+  // @@protoc_insertion_point(field_set_allocated:SAFplus.Rpc.amfMgmtRpc.ComponentStatus.activeAssignments)
+}
+
+// optional .SAFplus.Rpc.amfMgmtRpc.StandbyAssignments standbyAssignments = 5;
+inline bool ComponentStatus::has_standbyassignments() const {
+  return (_has_bits_[0] & 0x00000010u) != 0;
+}
+inline void ComponentStatus::set_has_standbyassignments() {
+  _has_bits_[0] |= 0x00000010u;
+}
+inline void ComponentStatus::clear_has_standbyassignments() {
+  _has_bits_[0] &= ~0x00000010u;
+}
+inline void ComponentStatus::clear_standbyassignments() {
+  if (standbyassignments_ != NULL) standbyassignments_->::SAFplus::Rpc::amfMgmtRpc::StandbyAssignments::Clear();
+  clear_has_standbyassignments();
+}
+inline const ::SAFplus::Rpc::amfMgmtRpc::StandbyAssignments& ComponentStatus::standbyassignments() const {
+  // @@protoc_insertion_point(field_get:SAFplus.Rpc.amfMgmtRpc.ComponentStatus.standbyAssignments)
+  return standbyassignments_ != NULL ? *standbyassignments_ : *default_instance_->standbyassignments_;
+}
+inline ::SAFplus::Rpc::amfMgmtRpc::StandbyAssignments* ComponentStatus::mutable_standbyassignments() {
+  set_has_standbyassignments();
+  if (standbyassignments_ == NULL) standbyassignments_ = new ::SAFplus::Rpc::amfMgmtRpc::StandbyAssignments;
+  // @@protoc_insertion_point(field_mutable:SAFplus.Rpc.amfMgmtRpc.ComponentStatus.standbyAssignments)
+  return standbyassignments_;
+}
+inline ::SAFplus::Rpc::amfMgmtRpc::StandbyAssignments* ComponentStatus::release_standbyassignments() {
+  clear_has_standbyassignments();
+  ::SAFplus::Rpc::amfMgmtRpc::StandbyAssignments* temp = standbyassignments_;
+  standbyassignments_ = NULL;
+  return temp;
+}
+inline void ComponentStatus::set_allocated_standbyassignments(::SAFplus::Rpc::amfMgmtRpc::StandbyAssignments* standbyassignments) {
+  delete standbyassignments_;
+  standbyassignments_ = standbyassignments;
+  if (standbyassignments) {
+    set_has_standbyassignments();
+  } else {
+    clear_has_standbyassignments();
+  }
+  // @@protoc_insertion_point(field_set_allocated:SAFplus.Rpc.amfMgmtRpc.ComponentStatus.standbyAssignments)
+}
+
+// repeated string assignedWork = 6;
+inline int ComponentStatus::assignedwork_size() const {
+  return assignedwork_.size();
+}
+inline void ComponentStatus::clear_assignedwork() {
+  assignedwork_.Clear();
+}
+inline const ::std::string& ComponentStatus::assignedwork(int index) const {
+  // @@protoc_insertion_point(field_get:SAFplus.Rpc.amfMgmtRpc.ComponentStatus.assignedWork)
+  return assignedwork_.Get(index);
+}
+inline ::std::string* ComponentStatus::mutable_assignedwork(int index) {
+  // @@protoc_insertion_point(field_mutable:SAFplus.Rpc.amfMgmtRpc.ComponentStatus.assignedWork)
+  return assignedwork_.Mutable(index);
+}
+inline void ComponentStatus::set_assignedwork(int index, const ::std::string& value) {
+  // @@protoc_insertion_point(field_set:SAFplus.Rpc.amfMgmtRpc.ComponentStatus.assignedWork)
+  assignedwork_.Mutable(index)->assign(value);
+}
+inline void ComponentStatus::set_assignedwork(int index, const char* value) {
+  assignedwork_.Mutable(index)->assign(value);
+  // @@protoc_insertion_point(field_set_char:SAFplus.Rpc.amfMgmtRpc.ComponentStatus.assignedWork)
+}
+inline void ComponentStatus::set_assignedwork(int index, const char* value, size_t size) {
+  assignedwork_.Mutable(index)->assign(
+    reinterpret_cast<const char*>(value), size);
+  // @@protoc_insertion_point(field_set_pointer:SAFplus.Rpc.amfMgmtRpc.ComponentStatus.assignedWork)
+}
+inline ::std::string* ComponentStatus::add_assignedwork() {
+  return assignedwork_.Add();
+}
+inline void ComponentStatus::add_assignedwork(const ::std::string& value) {
+  assignedwork_.Add()->assign(value);
+  // @@protoc_insertion_point(field_add:SAFplus.Rpc.amfMgmtRpc.ComponentStatus.assignedWork)
+}
+inline void ComponentStatus::add_assignedwork(const char* value) {
+  assignedwork_.Add()->assign(value);
+  // @@protoc_insertion_point(field_add_char:SAFplus.Rpc.amfMgmtRpc.ComponentStatus.assignedWork)
+}
+inline void ComponentStatus::add_assignedwork(const char* value, size_t size) {
+  assignedwork_.Add()->assign(reinterpret_cast<const char*>(value), size);
+  // @@protoc_insertion_point(field_add_pointer:SAFplus.Rpc.amfMgmtRpc.ComponentStatus.assignedWork)
+}
+inline const ::google::protobuf::RepeatedPtrField< ::std::string>&
+ComponentStatus::assignedwork() const {
+  // @@protoc_insertion_point(field_list:SAFplus.Rpc.amfMgmtRpc.ComponentStatus.assignedWork)
+  return assignedwork_;
+}
+inline ::google::protobuf::RepeatedPtrField< ::std::string>*
+ComponentStatus::mutable_assignedwork() {
+  // @@protoc_insertion_point(field_mutable_list:SAFplus.Rpc.amfMgmtRpc.ComponentStatus.assignedWork)
+  return &assignedwork_;
+}
+
+// optional bool operState = 7;
+inline bool ComponentStatus::has_operstate() const {
+  return (_has_bits_[0] & 0x00000040u) != 0;
+}
+inline void ComponentStatus::set_has_operstate() {
+  _has_bits_[0] |= 0x00000040u;
+}
+inline void ComponentStatus::clear_has_operstate() {
+  _has_bits_[0] &= ~0x00000040u;
+}
+inline void ComponentStatus::clear_operstate() {
+  operstate_ = false;
+  clear_has_operstate();
+}
+inline bool ComponentStatus::operstate() const {
+  // @@protoc_insertion_point(field_get:SAFplus.Rpc.amfMgmtRpc.ComponentStatus.operState)
+  return operstate_;
+}
+inline void ComponentStatus::set_operstate(bool value) {
+  set_has_operstate();
+  operstate_ = value;
+  // @@protoc_insertion_point(field_set:SAFplus.Rpc.amfMgmtRpc.ComponentStatus.operState)
+}
+
+// optional .SAFplus.Rpc.amfMgmtRpc.ReadinessState readinessState = 8;
+inline bool ComponentStatus::has_readinessstate() const {
+  return (_has_bits_[0] & 0x00000080u) != 0;
+}
+inline void ComponentStatus::set_has_readinessstate() {
+  _has_bits_[0] |= 0x00000080u;
+}
+inline void ComponentStatus::clear_has_readinessstate() {
+  _has_bits_[0] &= ~0x00000080u;
+}
+inline void ComponentStatus::clear_readinessstate() {
+  readinessstate_ = 0;
+  clear_has_readinessstate();
+}
+inline ::SAFplus::Rpc::amfMgmtRpc::ReadinessState ComponentStatus::readinessstate() const {
+  // @@protoc_insertion_point(field_get:SAFplus.Rpc.amfMgmtRpc.ComponentStatus.readinessState)
+  return static_cast< ::SAFplus::Rpc::amfMgmtRpc::ReadinessState >(readinessstate_);
+}
+inline void ComponentStatus::set_readinessstate(::SAFplus::Rpc::amfMgmtRpc::ReadinessState value) {
+  assert(::SAFplus::Rpc::amfMgmtRpc::ReadinessState_IsValid(value));
+  set_has_readinessstate();
+  readinessstate_ = value;
+  // @@protoc_insertion_point(field_set:SAFplus.Rpc.amfMgmtRpc.ComponentStatus.readinessState)
+}
+
+// optional .SAFplus.Rpc.amfMgmtRpc.HighAvailabilityReadinessState haReadinessState = 9;
+inline bool ComponentStatus::has_hareadinessstate() const {
+  return (_has_bits_[0] & 0x00000100u) != 0;
+}
+inline void ComponentStatus::set_has_hareadinessstate() {
+  _has_bits_[0] |= 0x00000100u;
+}
+inline void ComponentStatus::clear_has_hareadinessstate() {
+  _has_bits_[0] &= ~0x00000100u;
+}
+inline void ComponentStatus::clear_hareadinessstate() {
+  hareadinessstate_ = 0;
+  clear_has_hareadinessstate();
+}
+inline ::SAFplus::Rpc::amfMgmtRpc::HighAvailabilityReadinessState ComponentStatus::hareadinessstate() const {
+  // @@protoc_insertion_point(field_get:SAFplus.Rpc.amfMgmtRpc.ComponentStatus.haReadinessState)
+  return static_cast< ::SAFplus::Rpc::amfMgmtRpc::HighAvailabilityReadinessState >(hareadinessstate_);
+}
+inline void ComponentStatus::set_hareadinessstate(::SAFplus::Rpc::amfMgmtRpc::HighAvailabilityReadinessState value) {
+  assert(::SAFplus::Rpc::amfMgmtRpc::HighAvailabilityReadinessState_IsValid(value));
+  set_has_hareadinessstate();
+  hareadinessstate_ = value;
+  // @@protoc_insertion_point(field_set:SAFplus.Rpc.amfMgmtRpc.ComponentStatus.haReadinessState)
+}
+
+// optional .SAFplus.Rpc.amfMgmtRpc.HighAvailabilityState haState = 10;
+inline bool ComponentStatus::has_hastate() const {
+  return (_has_bits_[0] & 0x00000200u) != 0;
+}
+inline void ComponentStatus::set_has_hastate() {
+  _has_bits_[0] |= 0x00000200u;
+}
+inline void ComponentStatus::clear_has_hastate() {
+  _has_bits_[0] &= ~0x00000200u;
+}
+inline void ComponentStatus::clear_hastate() {
+  hastate_ = 1;
+  clear_has_hastate();
+}
+inline ::SAFplus::Rpc::amfMgmtRpc::HighAvailabilityState ComponentStatus::hastate() const {
+  // @@protoc_insertion_point(field_get:SAFplus.Rpc.amfMgmtRpc.ComponentStatus.haState)
+  return static_cast< ::SAFplus::Rpc::amfMgmtRpc::HighAvailabilityState >(hastate_);
+}
+inline void ComponentStatus::set_hastate(::SAFplus::Rpc::amfMgmtRpc::HighAvailabilityState value) {
+  assert(::SAFplus::Rpc::amfMgmtRpc::HighAvailabilityState_IsValid(value));
+  set_has_hastate();
+  hastate_ = value;
+  // @@protoc_insertion_point(field_set:SAFplus.Rpc.amfMgmtRpc.ComponentStatus.haState)
+}
+
+// optional string safVersion = 11;
+inline bool ComponentStatus::has_safversion() const {
+  return (_has_bits_[0] & 0x00000400u) != 0;
+}
+inline void ComponentStatus::set_has_safversion() {
+  _has_bits_[0] |= 0x00000400u;
+}
+inline void ComponentStatus::clear_has_safversion() {
+  _has_bits_[0] &= ~0x00000400u;
+}
+inline void ComponentStatus::clear_safversion() {
+  if (safversion_ != &::google::protobuf::internal::GetEmptyStringAlreadyInited()) {
+    safversion_->clear();
+  }
+  clear_has_safversion();
+}
+inline const ::std::string& ComponentStatus::safversion() const {
+  // @@protoc_insertion_point(field_get:SAFplus.Rpc.amfMgmtRpc.ComponentStatus.safVersion)
+  return *safversion_;
+}
+inline void ComponentStatus::set_safversion(const ::std::string& value) {
+  set_has_safversion();
+  if (safversion_ == &::google::protobuf::internal::GetEmptyStringAlreadyInited()) {
+    safversion_ = new ::std::string;
+  }
+  safversion_->assign(value);
+  // @@protoc_insertion_point(field_set:SAFplus.Rpc.amfMgmtRpc.ComponentStatus.safVersion)
+}
+inline void ComponentStatus::set_safversion(const char* value) {
+  set_has_safversion();
+  if (safversion_ == &::google::protobuf::internal::GetEmptyStringAlreadyInited()) {
+    safversion_ = new ::std::string;
+  }
+  safversion_->assign(value);
+  // @@protoc_insertion_point(field_set_char:SAFplus.Rpc.amfMgmtRpc.ComponentStatus.safVersion)
+}
+inline void ComponentStatus::set_safversion(const char* value, size_t size) {
+  set_has_safversion();
+  if (safversion_ == &::google::protobuf::internal::GetEmptyStringAlreadyInited()) {
+    safversion_ = new ::std::string;
+  }
+  safversion_->assign(reinterpret_cast<const char*>(value), size);
+  // @@protoc_insertion_point(field_set_pointer:SAFplus.Rpc.amfMgmtRpc.ComponentStatus.safVersion)
+}
+inline ::std::string* ComponentStatus::mutable_safversion() {
+  set_has_safversion();
+  if (safversion_ == &::google::protobuf::internal::GetEmptyStringAlreadyInited()) {
+    safversion_ = new ::std::string;
+  }
+  // @@protoc_insertion_point(field_mutable:SAFplus.Rpc.amfMgmtRpc.ComponentStatus.safVersion)
+  return safversion_;
+}
+inline ::std::string* ComponentStatus::release_safversion() {
+  clear_has_safversion();
+  if (safversion_ == &::google::protobuf::internal::GetEmptyStringAlreadyInited()) {
+    return NULL;
+  } else {
+    ::std::string* temp = safversion_;
+    safversion_ = const_cast< ::std::string*>(&::google::protobuf::internal::GetEmptyStringAlreadyInited());
+    return temp;
+  }
+}
+inline void ComponentStatus::set_allocated_safversion(::std::string* safversion) {
+  if (safversion_ != &::google::protobuf::internal::GetEmptyStringAlreadyInited()) {
+    delete safversion_;
+  }
+  if (safversion) {
+    set_has_safversion();
+    safversion_ = safversion;
+  } else {
+    clear_has_safversion();
+    safversion_ = const_cast< ::std::string*>(&::google::protobuf::internal::GetEmptyStringAlreadyInited());
+  }
+  // @@protoc_insertion_point(field_set_allocated:SAFplus.Rpc.amfMgmtRpc.ComponentStatus.safVersion)
+}
+
+// optional fixed32 compCategory = 12;
+inline bool ComponentStatus::has_compcategory() const {
+  return (_has_bits_[0] & 0x00000800u) != 0;
+}
+inline void ComponentStatus::set_has_compcategory() {
+  _has_bits_[0] |= 0x00000800u;
+}
+inline void ComponentStatus::clear_has_compcategory() {
+  _has_bits_[0] &= ~0x00000800u;
+}
+inline void ComponentStatus::clear_compcategory() {
+  compcategory_ = 0u;
+  clear_has_compcategory();
+}
+inline ::google::protobuf::uint32 ComponentStatus::compcategory() const {
+  // @@protoc_insertion_point(field_get:SAFplus.Rpc.amfMgmtRpc.ComponentStatus.compCategory)
+  return compcategory_;
+}
+inline void ComponentStatus::set_compcategory(::google::protobuf::uint32 value) {
+  set_has_compcategory();
+  compcategory_ = value;
+  // @@protoc_insertion_point(field_set:SAFplus.Rpc.amfMgmtRpc.ComponentStatus.compCategory)
+}
+
+// optional string swBundle = 13;
+inline bool ComponentStatus::has_swbundle() const {
+  return (_has_bits_[0] & 0x00001000u) != 0;
+}
+inline void ComponentStatus::set_has_swbundle() {
+  _has_bits_[0] |= 0x00001000u;
+}
+inline void ComponentStatus::clear_has_swbundle() {
+  _has_bits_[0] &= ~0x00001000u;
+}
+inline void ComponentStatus::clear_swbundle() {
+  if (swbundle_ != &::google::protobuf::internal::GetEmptyStringAlreadyInited()) {
+    swbundle_->clear();
+  }
+  clear_has_swbundle();
+}
+inline const ::std::string& ComponentStatus::swbundle() const {
+  // @@protoc_insertion_point(field_get:SAFplus.Rpc.amfMgmtRpc.ComponentStatus.swBundle)
+  return *swbundle_;
+}
+inline void ComponentStatus::set_swbundle(const ::std::string& value) {
+  set_has_swbundle();
+  if (swbundle_ == &::google::protobuf::internal::GetEmptyStringAlreadyInited()) {
+    swbundle_ = new ::std::string;
+  }
+  swbundle_->assign(value);
+  // @@protoc_insertion_point(field_set:SAFplus.Rpc.amfMgmtRpc.ComponentStatus.swBundle)
+}
+inline void ComponentStatus::set_swbundle(const char* value) {
+  set_has_swbundle();
+  if (swbundle_ == &::google::protobuf::internal::GetEmptyStringAlreadyInited()) {
+    swbundle_ = new ::std::string;
+  }
+  swbundle_->assign(value);
+  // @@protoc_insertion_point(field_set_char:SAFplus.Rpc.amfMgmtRpc.ComponentStatus.swBundle)
+}
+inline void ComponentStatus::set_swbundle(const char* value, size_t size) {
+  set_has_swbundle();
+  if (swbundle_ == &::google::protobuf::internal::GetEmptyStringAlreadyInited()) {
+    swbundle_ = new ::std::string;
+  }
+  swbundle_->assign(reinterpret_cast<const char*>(value), size);
+  // @@protoc_insertion_point(field_set_pointer:SAFplus.Rpc.amfMgmtRpc.ComponentStatus.swBundle)
+}
+inline ::std::string* ComponentStatus::mutable_swbundle() {
+  set_has_swbundle();
+  if (swbundle_ == &::google::protobuf::internal::GetEmptyStringAlreadyInited()) {
+    swbundle_ = new ::std::string;
+  }
+  // @@protoc_insertion_point(field_mutable:SAFplus.Rpc.amfMgmtRpc.ComponentStatus.swBundle)
+  return swbundle_;
+}
+inline ::std::string* ComponentStatus::release_swbundle() {
+  clear_has_swbundle();
+  if (swbundle_ == &::google::protobuf::internal::GetEmptyStringAlreadyInited()) {
+    return NULL;
+  } else {
+    ::std::string* temp = swbundle_;
+    swbundle_ = const_cast< ::std::string*>(&::google::protobuf::internal::GetEmptyStringAlreadyInited());
+    return temp;
+  }
+}
+inline void ComponentStatus::set_allocated_swbundle(::std::string* swbundle) {
+  if (swbundle_ != &::google::protobuf::internal::GetEmptyStringAlreadyInited()) {
+    delete swbundle_;
+  }
+  if (swbundle) {
+    set_has_swbundle();
+    swbundle_ = swbundle;
+  } else {
+    clear_has_swbundle();
+    swbundle_ = const_cast< ::std::string*>(&::google::protobuf::internal::GetEmptyStringAlreadyInited());
+  }
+  // @@protoc_insertion_point(field_set_allocated:SAFplus.Rpc.amfMgmtRpc.ComponentStatus.swBundle)
+}
+
+// optional fixed32 numInstantiationAttempts = 14;
+inline bool ComponentStatus::has_numinstantiationattempts() const {
+  return (_has_bits_[0] & 0x00002000u) != 0;
+}
+inline void ComponentStatus::set_has_numinstantiationattempts() {
+  _has_bits_[0] |= 0x00002000u;
+}
+inline void ComponentStatus::clear_has_numinstantiationattempts() {
+  _has_bits_[0] &= ~0x00002000u;
+}
+inline void ComponentStatus::clear_numinstantiationattempts() {
+  numinstantiationattempts_ = 0u;
+  clear_has_numinstantiationattempts();
+}
+inline ::google::protobuf::uint32 ComponentStatus::numinstantiationattempts() const {
+  // @@protoc_insertion_point(field_get:SAFplus.Rpc.amfMgmtRpc.ComponentStatus.numInstantiationAttempts)
+  return numinstantiationattempts_;
+}
+inline void ComponentStatus::set_numinstantiationattempts(::google::protobuf::uint32 value) {
+  set_has_numinstantiationattempts();
+  numinstantiationattempts_ = value;
+  // @@protoc_insertion_point(field_set:SAFplus.Rpc.amfMgmtRpc.ComponentStatus.numInstantiationAttempts)
+}
+
+// optional .SAFplus.Rpc.amfMgmtRpc.Date lastInstantiation = 15;
+inline bool ComponentStatus::has_lastinstantiation() const {
+  return (_has_bits_[0] & 0x00004000u) != 0;
+}
+inline void ComponentStatus::set_has_lastinstantiation() {
+  _has_bits_[0] |= 0x00004000u;
+}
+inline void ComponentStatus::clear_has_lastinstantiation() {
+  _has_bits_[0] &= ~0x00004000u;
+}
+inline void ComponentStatus::clear_lastinstantiation() {
+  if (lastinstantiation_ != NULL) lastinstantiation_->::SAFplus::Rpc::amfMgmtRpc::Date::Clear();
+  clear_has_lastinstantiation();
+}
+inline const ::SAFplus::Rpc::amfMgmtRpc::Date& ComponentStatus::lastinstantiation() const {
+  // @@protoc_insertion_point(field_get:SAFplus.Rpc.amfMgmtRpc.ComponentStatus.lastInstantiation)
+  return lastinstantiation_ != NULL ? *lastinstantiation_ : *default_instance_->lastinstantiation_;
+}
+inline ::SAFplus::Rpc::amfMgmtRpc::Date* ComponentStatus::mutable_lastinstantiation() {
+  set_has_lastinstantiation();
+  if (lastinstantiation_ == NULL) lastinstantiation_ = new ::SAFplus::Rpc::amfMgmtRpc::Date;
+  // @@protoc_insertion_point(field_mutable:SAFplus.Rpc.amfMgmtRpc.ComponentStatus.lastInstantiation)
+  return lastinstantiation_;
+}
+inline ::SAFplus::Rpc::amfMgmtRpc::Date* ComponentStatus::release_lastinstantiation() {
+  clear_has_lastinstantiation();
+  ::SAFplus::Rpc::amfMgmtRpc::Date* temp = lastinstantiation_;
+  lastinstantiation_ = NULL;
+  return temp;
+}
+inline void ComponentStatus::set_allocated_lastinstantiation(::SAFplus::Rpc::amfMgmtRpc::Date* lastinstantiation) {
+  delete lastinstantiation_;
+  lastinstantiation_ = lastinstantiation;
+  if (lastinstantiation) {
+    set_has_lastinstantiation();
+  } else {
+    clear_has_lastinstantiation();
+  }
+  // @@protoc_insertion_point(field_set_allocated:SAFplus.Rpc.amfMgmtRpc.ComponentStatus.lastInstantiation)
+}
+
+// optional .SAFplus.Rpc.amfMgmtRpc.RestartCount restartCount = 16;
+inline bool ComponentStatus::has_restartcount() const {
+  return (_has_bits_[0] & 0x00008000u) != 0;
+}
+inline void ComponentStatus::set_has_restartcount() {
+  _has_bits_[0] |= 0x00008000u;
+}
+inline void ComponentStatus::clear_has_restartcount() {
+  _has_bits_[0] &= ~0x00008000u;
+}
+inline void ComponentStatus::clear_restartcount() {
+  if (restartcount_ != NULL) restartcount_->::SAFplus::Rpc::amfMgmtRpc::RestartCount::Clear();
+  clear_has_restartcount();
+}
+inline const ::SAFplus::Rpc::amfMgmtRpc::RestartCount& ComponentStatus::restartcount() const {
+  // @@protoc_insertion_point(field_get:SAFplus.Rpc.amfMgmtRpc.ComponentStatus.restartCount)
+  return restartcount_ != NULL ? *restartcount_ : *default_instance_->restartcount_;
+}
+inline ::SAFplus::Rpc::amfMgmtRpc::RestartCount* ComponentStatus::mutable_restartcount() {
+  set_has_restartcount();
+  if (restartcount_ == NULL) restartcount_ = new ::SAFplus::Rpc::amfMgmtRpc::RestartCount;
+  // @@protoc_insertion_point(field_mutable:SAFplus.Rpc.amfMgmtRpc.ComponentStatus.restartCount)
+  return restartcount_;
+}
+inline ::SAFplus::Rpc::amfMgmtRpc::RestartCount* ComponentStatus::release_restartcount() {
+  clear_has_restartcount();
+  ::SAFplus::Rpc::amfMgmtRpc::RestartCount* temp = restartcount_;
+  restartcount_ = NULL;
+  return temp;
+}
+inline void ComponentStatus::set_allocated_restartcount(::SAFplus::Rpc::amfMgmtRpc::RestartCount* restartcount) {
+  delete restartcount_;
+  restartcount_ = restartcount;
+  if (restartcount) {
+    set_has_restartcount();
+  } else {
+    clear_has_restartcount();
+  }
+  // @@protoc_insertion_point(field_set_allocated:SAFplus.Rpc.amfMgmtRpc.ComponentStatus.restartCount)
+}
+
+// optional sint32 processId = 17;
+inline bool ComponentStatus::has_processid() const {
+  return (_has_bits_[0] & 0x00010000u) != 0;
+}
+inline void ComponentStatus::set_has_processid() {
+  _has_bits_[0] |= 0x00010000u;
+}
+inline void ComponentStatus::clear_has_processid() {
+  _has_bits_[0] &= ~0x00010000u;
+}
+inline void ComponentStatus::clear_processid() {
+  processid_ = 0;
+  clear_has_processid();
+}
+inline ::google::protobuf::int32 ComponentStatus::processid() const {
+  // @@protoc_insertion_point(field_get:SAFplus.Rpc.amfMgmtRpc.ComponentStatus.processId)
+  return processid_;
+}
+inline void ComponentStatus::set_processid(::google::protobuf::int32 value) {
+  set_has_processid();
+  processid_ = value;
+  // @@protoc_insertion_point(field_set:SAFplus.Rpc.amfMgmtRpc.ComponentStatus.processId)
+}
+
+// optional string lastError = 18;
+inline bool ComponentStatus::has_lasterror() const {
+  return (_has_bits_[0] & 0x00020000u) != 0;
+}
+inline void ComponentStatus::set_has_lasterror() {
+  _has_bits_[0] |= 0x00020000u;
+}
+inline void ComponentStatus::clear_has_lasterror() {
+  _has_bits_[0] &= ~0x00020000u;
+}
+inline void ComponentStatus::clear_lasterror() {
+  if (lasterror_ != &::google::protobuf::internal::GetEmptyStringAlreadyInited()) {
+    lasterror_->clear();
+  }
+  clear_has_lasterror();
+}
+inline const ::std::string& ComponentStatus::lasterror() const {
+  // @@protoc_insertion_point(field_get:SAFplus.Rpc.amfMgmtRpc.ComponentStatus.lastError)
+  return *lasterror_;
+}
+inline void ComponentStatus::set_lasterror(const ::std::string& value) {
+  set_has_lasterror();
+  if (lasterror_ == &::google::protobuf::internal::GetEmptyStringAlreadyInited()) {
+    lasterror_ = new ::std::string;
+  }
+  lasterror_->assign(value);
+  // @@protoc_insertion_point(field_set:SAFplus.Rpc.amfMgmtRpc.ComponentStatus.lastError)
+}
+inline void ComponentStatus::set_lasterror(const char* value) {
+  set_has_lasterror();
+  if (lasterror_ == &::google::protobuf::internal::GetEmptyStringAlreadyInited()) {
+    lasterror_ = new ::std::string;
+  }
+  lasterror_->assign(value);
+  // @@protoc_insertion_point(field_set_char:SAFplus.Rpc.amfMgmtRpc.ComponentStatus.lastError)
+}
+inline void ComponentStatus::set_lasterror(const char* value, size_t size) {
+  set_has_lasterror();
+  if (lasterror_ == &::google::protobuf::internal::GetEmptyStringAlreadyInited()) {
+    lasterror_ = new ::std::string;
+  }
+  lasterror_->assign(reinterpret_cast<const char*>(value), size);
+  // @@protoc_insertion_point(field_set_pointer:SAFplus.Rpc.amfMgmtRpc.ComponentStatus.lastError)
+}
+inline ::std::string* ComponentStatus::mutable_lasterror() {
+  set_has_lasterror();
+  if (lasterror_ == &::google::protobuf::internal::GetEmptyStringAlreadyInited()) {
+    lasterror_ = new ::std::string;
+  }
+  // @@protoc_insertion_point(field_mutable:SAFplus.Rpc.amfMgmtRpc.ComponentStatus.lastError)
+  return lasterror_;
+}
+inline ::std::string* ComponentStatus::release_lasterror() {
+  clear_has_lasterror();
+  if (lasterror_ == &::google::protobuf::internal::GetEmptyStringAlreadyInited()) {
+    return NULL;
+  } else {
+    ::std::string* temp = lasterror_;
+    lasterror_ = const_cast< ::std::string*>(&::google::protobuf::internal::GetEmptyStringAlreadyInited());
+    return temp;
+  }
+}
+inline void ComponentStatus::set_allocated_lasterror(::std::string* lasterror) {
+  if (lasterror_ != &::google::protobuf::internal::GetEmptyStringAlreadyInited()) {
+    delete lasterror_;
+  }
+  if (lasterror) {
+    set_has_lasterror();
+    lasterror_ = lasterror;
+  } else {
+    clear_has_lasterror();
+    lasterror_ = const_cast< ::std::string*>(&::google::protobuf::internal::GetEmptyStringAlreadyInited());
+  }
+  // @@protoc_insertion_point(field_set_allocated:SAFplus.Rpc.amfMgmtRpc.ComponentStatus.lastError)
+}
+
+// optional .SAFplus.Rpc.amfMgmtRpc.PendingOperation pendingOperation = 19;
+inline bool ComponentStatus::has_pendingoperation() const {
+  return (_has_bits_[0] & 0x00040000u) != 0;
+}
+inline void ComponentStatus::set_has_pendingoperation() {
+  _has_bits_[0] |= 0x00040000u;
+}
+inline void ComponentStatus::clear_has_pendingoperation() {
+  _has_bits_[0] &= ~0x00040000u;
+}
+inline void ComponentStatus::clear_pendingoperation() {
+  pendingoperation_ = 0;
+  clear_has_pendingoperation();
+}
+inline ::SAFplus::Rpc::amfMgmtRpc::PendingOperation ComponentStatus::pendingoperation() const {
+  // @@protoc_insertion_point(field_get:SAFplus.Rpc.amfMgmtRpc.ComponentStatus.pendingOperation)
+  return static_cast< ::SAFplus::Rpc::amfMgmtRpc::PendingOperation >(pendingoperation_);
+}
+inline void ComponentStatus::set_pendingoperation(::SAFplus::Rpc::amfMgmtRpc::PendingOperation value) {
+  assert(::SAFplus::Rpc::amfMgmtRpc::PendingOperation_IsValid(value));
+  set_has_pendingoperation();
+  pendingoperation_ = value;
+  // @@protoc_insertion_point(field_set:SAFplus.Rpc.amfMgmtRpc.ComponentStatus.pendingOperation)
+}
+
+// optional .SAFplus.Rpc.amfMgmtRpc.Date pendingOperationExpiration = 20;
+inline bool ComponentStatus::has_pendingoperationexpiration() const {
+  return (_has_bits_[0] & 0x00080000u) != 0;
+}
+inline void ComponentStatus::set_has_pendingoperationexpiration() {
+  _has_bits_[0] |= 0x00080000u;
+}
+inline void ComponentStatus::clear_has_pendingoperationexpiration() {
+  _has_bits_[0] &= ~0x00080000u;
+}
+inline void ComponentStatus::clear_pendingoperationexpiration() {
+  if (pendingoperationexpiration_ != NULL) pendingoperationexpiration_->::SAFplus::Rpc::amfMgmtRpc::Date::Clear();
+  clear_has_pendingoperationexpiration();
+}
+inline const ::SAFplus::Rpc::amfMgmtRpc::Date& ComponentStatus::pendingoperationexpiration() const {
+  // @@protoc_insertion_point(field_get:SAFplus.Rpc.amfMgmtRpc.ComponentStatus.pendingOperationExpiration)
+  return pendingoperationexpiration_ != NULL ? *pendingoperationexpiration_ : *default_instance_->pendingoperationexpiration_;
+}
+inline ::SAFplus::Rpc::amfMgmtRpc::Date* ComponentStatus::mutable_pendingoperationexpiration() {
+  set_has_pendingoperationexpiration();
+  if (pendingoperationexpiration_ == NULL) pendingoperationexpiration_ = new ::SAFplus::Rpc::amfMgmtRpc::Date;
+  // @@protoc_insertion_point(field_mutable:SAFplus.Rpc.amfMgmtRpc.ComponentStatus.pendingOperationExpiration)
+  return pendingoperationexpiration_;
+}
+inline ::SAFplus::Rpc::amfMgmtRpc::Date* ComponentStatus::release_pendingoperationexpiration() {
+  clear_has_pendingoperationexpiration();
+  ::SAFplus::Rpc::amfMgmtRpc::Date* temp = pendingoperationexpiration_;
+  pendingoperationexpiration_ = NULL;
+  return temp;
+}
+inline void ComponentStatus::set_allocated_pendingoperationexpiration(::SAFplus::Rpc::amfMgmtRpc::Date* pendingoperationexpiration) {
+  delete pendingoperationexpiration_;
+  pendingoperationexpiration_ = pendingoperationexpiration;
+  if (pendingoperationexpiration) {
+    set_has_pendingoperationexpiration();
+  } else {
+    clear_has_pendingoperationexpiration();
+  }
+  // @@protoc_insertion_point(field_set_allocated:SAFplus.Rpc.amfMgmtRpc.ComponentStatus.pendingOperationExpiration)
+}
+
+// -------------------------------------------------------------------
+
+// ComponentServiceInstanceStatus
+
+// optional string name = 1;
+inline bool ComponentServiceInstanceStatus::has_name() const {
+  return (_has_bits_[0] & 0x00000001u) != 0;
+}
+inline void ComponentServiceInstanceStatus::set_has_name() {
+  _has_bits_[0] |= 0x00000001u;
+}
+inline void ComponentServiceInstanceStatus::clear_has_name() {
+  _has_bits_[0] &= ~0x00000001u;
+}
+inline void ComponentServiceInstanceStatus::clear_name() {
+  if (name_ != &::google::protobuf::internal::GetEmptyStringAlreadyInited()) {
+    name_->clear();
+  }
+  clear_has_name();
+}
+inline const ::std::string& ComponentServiceInstanceStatus::name() const {
+  // @@protoc_insertion_point(field_get:SAFplus.Rpc.amfMgmtRpc.ComponentServiceInstanceStatus.name)
+  return *name_;
+}
+inline void ComponentServiceInstanceStatus::set_name(const ::std::string& value) {
+  set_has_name();
+  if (name_ == &::google::protobuf::internal::GetEmptyStringAlreadyInited()) {
+    name_ = new ::std::string;
+  }
+  name_->assign(value);
+  // @@protoc_insertion_point(field_set:SAFplus.Rpc.amfMgmtRpc.ComponentServiceInstanceStatus.name)
+}
+inline void ComponentServiceInstanceStatus::set_name(const char* value) {
+  set_has_name();
+  if (name_ == &::google::protobuf::internal::GetEmptyStringAlreadyInited()) {
+    name_ = new ::std::string;
+  }
+  name_->assign(value);
+  // @@protoc_insertion_point(field_set_char:SAFplus.Rpc.amfMgmtRpc.ComponentServiceInstanceStatus.name)
+}
+inline void ComponentServiceInstanceStatus::set_name(const char* value, size_t size) {
+  set_has_name();
+  if (name_ == &::google::protobuf::internal::GetEmptyStringAlreadyInited()) {
+    name_ = new ::std::string;
+  }
+  name_->assign(reinterpret_cast<const char*>(value), size);
+  // @@protoc_insertion_point(field_set_pointer:SAFplus.Rpc.amfMgmtRpc.ComponentServiceInstanceStatus.name)
+}
+inline ::std::string* ComponentServiceInstanceStatus::mutable_name() {
+  set_has_name();
+  if (name_ == &::google::protobuf::internal::GetEmptyStringAlreadyInited()) {
+    name_ = new ::std::string;
+  }
+  // @@protoc_insertion_point(field_mutable:SAFplus.Rpc.amfMgmtRpc.ComponentServiceInstanceStatus.name)
+  return name_;
+}
+inline ::std::string* ComponentServiceInstanceStatus::release_name() {
+  clear_has_name();
+  if (name_ == &::google::protobuf::internal::GetEmptyStringAlreadyInited()) {
+    return NULL;
+  } else {
+    ::std::string* temp = name_;
+    name_ = const_cast< ::std::string*>(&::google::protobuf::internal::GetEmptyStringAlreadyInited());
+    return temp;
+  }
+}
+inline void ComponentServiceInstanceStatus::set_allocated_name(::std::string* name) {
+  if (name_ != &::google::protobuf::internal::GetEmptyStringAlreadyInited()) {
+    delete name_;
+  }
+  if (name) {
+    set_has_name();
+    name_ = name;
+  } else {
+    clear_has_name();
+    name_ = const_cast< ::std::string*>(&::google::protobuf::internal::GetEmptyStringAlreadyInited());
+  }
+  // @@protoc_insertion_point(field_set_allocated:SAFplus.Rpc.amfMgmtRpc.ComponentServiceInstanceStatus.name)
+}
+
+// repeated string standbyComponents = 2;
+inline int ComponentServiceInstanceStatus::standbycomponents_size() const {
+  return standbycomponents_.size();
+}
+inline void ComponentServiceInstanceStatus::clear_standbycomponents() {
+  standbycomponents_.Clear();
+}
+inline const ::std::string& ComponentServiceInstanceStatus::standbycomponents(int index) const {
+  // @@protoc_insertion_point(field_get:SAFplus.Rpc.amfMgmtRpc.ComponentServiceInstanceStatus.standbyComponents)
+  return standbycomponents_.Get(index);
+}
+inline ::std::string* ComponentServiceInstanceStatus::mutable_standbycomponents(int index) {
+  // @@protoc_insertion_point(field_mutable:SAFplus.Rpc.amfMgmtRpc.ComponentServiceInstanceStatus.standbyComponents)
+  return standbycomponents_.Mutable(index);
+}
+inline void ComponentServiceInstanceStatus::set_standbycomponents(int index, const ::std::string& value) {
+  // @@protoc_insertion_point(field_set:SAFplus.Rpc.amfMgmtRpc.ComponentServiceInstanceStatus.standbyComponents)
+  standbycomponents_.Mutable(index)->assign(value);
+}
+inline void ComponentServiceInstanceStatus::set_standbycomponents(int index, const char* value) {
+  standbycomponents_.Mutable(index)->assign(value);
+  // @@protoc_insertion_point(field_set_char:SAFplus.Rpc.amfMgmtRpc.ComponentServiceInstanceStatus.standbyComponents)
+}
+inline void ComponentServiceInstanceStatus::set_standbycomponents(int index, const char* value, size_t size) {
+  standbycomponents_.Mutable(index)->assign(
+    reinterpret_cast<const char*>(value), size);
+  // @@protoc_insertion_point(field_set_pointer:SAFplus.Rpc.amfMgmtRpc.ComponentServiceInstanceStatus.standbyComponents)
+}
+inline ::std::string* ComponentServiceInstanceStatus::add_standbycomponents() {
+  return standbycomponents_.Add();
+}
+inline void ComponentServiceInstanceStatus::add_standbycomponents(const ::std::string& value) {
+  standbycomponents_.Add()->assign(value);
+  // @@protoc_insertion_point(field_add:SAFplus.Rpc.amfMgmtRpc.ComponentServiceInstanceStatus.standbyComponents)
+}
+inline void ComponentServiceInstanceStatus::add_standbycomponents(const char* value) {
+  standbycomponents_.Add()->assign(value);
+  // @@protoc_insertion_point(field_add_char:SAFplus.Rpc.amfMgmtRpc.ComponentServiceInstanceStatus.standbyComponents)
+}
+inline void ComponentServiceInstanceStatus::add_standbycomponents(const char* value, size_t size) {
+  standbycomponents_.Add()->assign(reinterpret_cast<const char*>(value), size);
+  // @@protoc_insertion_point(field_add_pointer:SAFplus.Rpc.amfMgmtRpc.ComponentServiceInstanceStatus.standbyComponents)
+}
+inline const ::google::protobuf::RepeatedPtrField< ::std::string>&
+ComponentServiceInstanceStatus::standbycomponents() const {
+  // @@protoc_insertion_point(field_list:SAFplus.Rpc.amfMgmtRpc.ComponentServiceInstanceStatus.standbyComponents)
+  return standbycomponents_;
+}
+inline ::google::protobuf::RepeatedPtrField< ::std::string>*
+ComponentServiceInstanceStatus::mutable_standbycomponents() {
+  // @@protoc_insertion_point(field_mutable_list:SAFplus.Rpc.amfMgmtRpc.ComponentServiceInstanceStatus.standbyComponents)
+  return &standbycomponents_;
+}
+
+// repeated string activeComponents = 3;
+inline int ComponentServiceInstanceStatus::activecomponents_size() const {
+  return activecomponents_.size();
+}
+inline void ComponentServiceInstanceStatus::clear_activecomponents() {
+  activecomponents_.Clear();
+}
+inline const ::std::string& ComponentServiceInstanceStatus::activecomponents(int index) const {
+  // @@protoc_insertion_point(field_get:SAFplus.Rpc.amfMgmtRpc.ComponentServiceInstanceStatus.activeComponents)
+  return activecomponents_.Get(index);
+}
+inline ::std::string* ComponentServiceInstanceStatus::mutable_activecomponents(int index) {
+  // @@protoc_insertion_point(field_mutable:SAFplus.Rpc.amfMgmtRpc.ComponentServiceInstanceStatus.activeComponents)
+  return activecomponents_.Mutable(index);
+}
+inline void ComponentServiceInstanceStatus::set_activecomponents(int index, const ::std::string& value) {
+  // @@protoc_insertion_point(field_set:SAFplus.Rpc.amfMgmtRpc.ComponentServiceInstanceStatus.activeComponents)
+  activecomponents_.Mutable(index)->assign(value);
+}
+inline void ComponentServiceInstanceStatus::set_activecomponents(int index, const char* value) {
+  activecomponents_.Mutable(index)->assign(value);
+  // @@protoc_insertion_point(field_set_char:SAFplus.Rpc.amfMgmtRpc.ComponentServiceInstanceStatus.activeComponents)
+}
+inline void ComponentServiceInstanceStatus::set_activecomponents(int index, const char* value, size_t size) {
+  activecomponents_.Mutable(index)->assign(
+    reinterpret_cast<const char*>(value), size);
+  // @@protoc_insertion_point(field_set_pointer:SAFplus.Rpc.amfMgmtRpc.ComponentServiceInstanceStatus.activeComponents)
+}
+inline ::std::string* ComponentServiceInstanceStatus::add_activecomponents() {
+  return activecomponents_.Add();
+}
+inline void ComponentServiceInstanceStatus::add_activecomponents(const ::std::string& value) {
+  activecomponents_.Add()->assign(value);
+  // @@protoc_insertion_point(field_add:SAFplus.Rpc.amfMgmtRpc.ComponentServiceInstanceStatus.activeComponents)
+}
+inline void ComponentServiceInstanceStatus::add_activecomponents(const char* value) {
+  activecomponents_.Add()->assign(value);
+  // @@protoc_insertion_point(field_add_char:SAFplus.Rpc.amfMgmtRpc.ComponentServiceInstanceStatus.activeComponents)
+}
+inline void ComponentServiceInstanceStatus::add_activecomponents(const char* value, size_t size) {
+  activecomponents_.Add()->assign(reinterpret_cast<const char*>(value), size);
+  // @@protoc_insertion_point(field_add_pointer:SAFplus.Rpc.amfMgmtRpc.ComponentServiceInstanceStatus.activeComponents)
+}
+inline const ::google::protobuf::RepeatedPtrField< ::std::string>&
+ComponentServiceInstanceStatus::activecomponents() const {
+  // @@protoc_insertion_point(field_list:SAFplus.Rpc.amfMgmtRpc.ComponentServiceInstanceStatus.activeComponents)
+  return activecomponents_;
+}
+inline ::google::protobuf::RepeatedPtrField< ::std::string>*
+ComponentServiceInstanceStatus::mutable_activecomponents() {
+  // @@protoc_insertion_point(field_mutable_list:SAFplus.Rpc.amfMgmtRpc.ComponentServiceInstanceStatus.activeComponents)
+  return &activecomponents_;
+}
+
+// -------------------------------------------------------------------
+
+// NumActiveAssignments
+
+// optional .SAFplus.Rpc.amfMgmtRpc.IntStatistic IntStatistic = 1;
+inline bool NumActiveAssignments::has_intstatistic() const {
+  return (_has_bits_[0] & 0x00000001u) != 0;
+}
+inline void NumActiveAssignments::set_has_intstatistic() {
+  _has_bits_[0] |= 0x00000001u;
+}
+inline void NumActiveAssignments::clear_has_intstatistic() {
+  _has_bits_[0] &= ~0x00000001u;
+}
+inline void NumActiveAssignments::clear_intstatistic() {
+  if (intstatistic_ != NULL) intstatistic_->::SAFplus::Rpc::amfMgmtRpc::IntStatistic::Clear();
+  clear_has_intstatistic();
+}
+inline const ::SAFplus::Rpc::amfMgmtRpc::IntStatistic& NumActiveAssignments::intstatistic() const {
+  // @@protoc_insertion_point(field_get:SAFplus.Rpc.amfMgmtRpc.NumActiveAssignments.IntStatistic)
+  return intstatistic_ != NULL ? *intstatistic_ : *default_instance_->intstatistic_;
+}
+inline ::SAFplus::Rpc::amfMgmtRpc::IntStatistic* NumActiveAssignments::mutable_intstatistic() {
+  set_has_intstatistic();
+  if (intstatistic_ == NULL) intstatistic_ = new ::SAFplus::Rpc::amfMgmtRpc::IntStatistic;
+  // @@protoc_insertion_point(field_mutable:SAFplus.Rpc.amfMgmtRpc.NumActiveAssignments.IntStatistic)
+  return intstatistic_;
+}
+inline ::SAFplus::Rpc::amfMgmtRpc::IntStatistic* NumActiveAssignments::release_intstatistic() {
+  clear_has_intstatistic();
+  ::SAFplus::Rpc::amfMgmtRpc::IntStatistic* temp = intstatistic_;
+  intstatistic_ = NULL;
+  return temp;
+}
+inline void NumActiveAssignments::set_allocated_intstatistic(::SAFplus::Rpc::amfMgmtRpc::IntStatistic* intstatistic) {
+  delete intstatistic_;
+  intstatistic_ = intstatistic;
+  if (intstatistic) {
+    set_has_intstatistic();
+  } else {
+    clear_has_intstatistic();
+  }
+  // @@protoc_insertion_point(field_set_allocated:SAFplus.Rpc.amfMgmtRpc.NumActiveAssignments.IntStatistic)
+}
+
+// -------------------------------------------------------------------
+
+// NumStandbyAssignments
+
+// optional .SAFplus.Rpc.amfMgmtRpc.IntStatistic IntStatistic = 1;
+inline bool NumStandbyAssignments::has_intstatistic() const {
+  return (_has_bits_[0] & 0x00000001u) != 0;
+}
+inline void NumStandbyAssignments::set_has_intstatistic() {
+  _has_bits_[0] |= 0x00000001u;
+}
+inline void NumStandbyAssignments::clear_has_intstatistic() {
+  _has_bits_[0] &= ~0x00000001u;
+}
+inline void NumStandbyAssignments::clear_intstatistic() {
+  if (intstatistic_ != NULL) intstatistic_->::SAFplus::Rpc::amfMgmtRpc::IntStatistic::Clear();
+  clear_has_intstatistic();
+}
+inline const ::SAFplus::Rpc::amfMgmtRpc::IntStatistic& NumStandbyAssignments::intstatistic() const {
+  // @@protoc_insertion_point(field_get:SAFplus.Rpc.amfMgmtRpc.NumStandbyAssignments.IntStatistic)
+  return intstatistic_ != NULL ? *intstatistic_ : *default_instance_->intstatistic_;
+}
+inline ::SAFplus::Rpc::amfMgmtRpc::IntStatistic* NumStandbyAssignments::mutable_intstatistic() {
+  set_has_intstatistic();
+  if (intstatistic_ == NULL) intstatistic_ = new ::SAFplus::Rpc::amfMgmtRpc::IntStatistic;
+  // @@protoc_insertion_point(field_mutable:SAFplus.Rpc.amfMgmtRpc.NumStandbyAssignments.IntStatistic)
+  return intstatistic_;
+}
+inline ::SAFplus::Rpc::amfMgmtRpc::IntStatistic* NumStandbyAssignments::release_intstatistic() {
+  clear_has_intstatistic();
+  ::SAFplus::Rpc::amfMgmtRpc::IntStatistic* temp = intstatistic_;
+  intstatistic_ = NULL;
+  return temp;
+}
+inline void NumStandbyAssignments::set_allocated_intstatistic(::SAFplus::Rpc::amfMgmtRpc::IntStatistic* intstatistic) {
+  delete intstatistic_;
+  intstatistic_ = intstatistic;
+  if (intstatistic) {
+    set_has_intstatistic();
+  } else {
+    clear_has_intstatistic();
+  }
+  // @@protoc_insertion_point(field_set_allocated:SAFplus.Rpc.amfMgmtRpc.NumStandbyAssignments.IntStatistic)
+}
+
+// -------------------------------------------------------------------
+
+// ServiceInstanceStatus
+
+// optional string name = 1;
+inline bool ServiceInstanceStatus::has_name() const {
+  return (_has_bits_[0] & 0x00000001u) != 0;
+}
+inline void ServiceInstanceStatus::set_has_name() {
+  _has_bits_[0] |= 0x00000001u;
+}
+inline void ServiceInstanceStatus::clear_has_name() {
+  _has_bits_[0] &= ~0x00000001u;
+}
+inline void ServiceInstanceStatus::clear_name() {
+  if (name_ != &::google::protobuf::internal::GetEmptyStringAlreadyInited()) {
+    name_->clear();
+  }
+  clear_has_name();
+}
+inline const ::std::string& ServiceInstanceStatus::name() const {
+  // @@protoc_insertion_point(field_get:SAFplus.Rpc.amfMgmtRpc.ServiceInstanceStatus.name)
+  return *name_;
+}
+inline void ServiceInstanceStatus::set_name(const ::std::string& value) {
+  set_has_name();
+  if (name_ == &::google::protobuf::internal::GetEmptyStringAlreadyInited()) {
+    name_ = new ::std::string;
+  }
+  name_->assign(value);
+  // @@protoc_insertion_point(field_set:SAFplus.Rpc.amfMgmtRpc.ServiceInstanceStatus.name)
+}
+inline void ServiceInstanceStatus::set_name(const char* value) {
+  set_has_name();
+  if (name_ == &::google::protobuf::internal::GetEmptyStringAlreadyInited()) {
+    name_ = new ::std::string;
+  }
+  name_->assign(value);
+  // @@protoc_insertion_point(field_set_char:SAFplus.Rpc.amfMgmtRpc.ServiceInstanceStatus.name)
+}
+inline void ServiceInstanceStatus::set_name(const char* value, size_t size) {
+  set_has_name();
+  if (name_ == &::google::protobuf::internal::GetEmptyStringAlreadyInited()) {
+    name_ = new ::std::string;
+  }
+  name_->assign(reinterpret_cast<const char*>(value), size);
+  // @@protoc_insertion_point(field_set_pointer:SAFplus.Rpc.amfMgmtRpc.ServiceInstanceStatus.name)
+}
+inline ::std::string* ServiceInstanceStatus::mutable_name() {
+  set_has_name();
+  if (name_ == &::google::protobuf::internal::GetEmptyStringAlreadyInited()) {
+    name_ = new ::std::string;
+  }
+  // @@protoc_insertion_point(field_mutable:SAFplus.Rpc.amfMgmtRpc.ServiceInstanceStatus.name)
+  return name_;
+}
+inline ::std::string* ServiceInstanceStatus::release_name() {
+  clear_has_name();
+  if (name_ == &::google::protobuf::internal::GetEmptyStringAlreadyInited()) {
+    return NULL;
+  } else {
+    ::std::string* temp = name_;
+    name_ = const_cast< ::std::string*>(&::google::protobuf::internal::GetEmptyStringAlreadyInited());
+    return temp;
+  }
+}
+inline void ServiceInstanceStatus::set_allocated_name(::std::string* name) {
+  if (name_ != &::google::protobuf::internal::GetEmptyStringAlreadyInited()) {
+    delete name_;
+  }
+  if (name) {
+    set_has_name();
+    name_ = name;
+  } else {
+    clear_has_name();
+    name_ = const_cast< ::std::string*>(&::google::protobuf::internal::GetEmptyStringAlreadyInited());
+  }
+  // @@protoc_insertion_point(field_set_allocated:SAFplus.Rpc.amfMgmtRpc.ServiceInstanceStatus.name)
+}
+
+// optional .SAFplus.Rpc.amfMgmtRpc.AssignmentState assignmentState = 2;
+inline bool ServiceInstanceStatus::has_assignmentstate() const {
+  return (_has_bits_[0] & 0x00000002u) != 0;
+}
+inline void ServiceInstanceStatus::set_has_assignmentstate() {
+  _has_bits_[0] |= 0x00000002u;
+}
+inline void ServiceInstanceStatus::clear_has_assignmentstate() {
+  _has_bits_[0] &= ~0x00000002u;
+}
+inline void ServiceInstanceStatus::clear_assignmentstate() {
+  assignmentstate_ = 0;
+  clear_has_assignmentstate();
+}
+inline ::SAFplus::Rpc::amfMgmtRpc::AssignmentState ServiceInstanceStatus::assignmentstate() const {
+  // @@protoc_insertion_point(field_get:SAFplus.Rpc.amfMgmtRpc.ServiceInstanceStatus.assignmentState)
+  return static_cast< ::SAFplus::Rpc::amfMgmtRpc::AssignmentState >(assignmentstate_);
+}
+inline void ServiceInstanceStatus::set_assignmentstate(::SAFplus::Rpc::amfMgmtRpc::AssignmentState value) {
+  assert(::SAFplus::Rpc::amfMgmtRpc::AssignmentState_IsValid(value));
+  set_has_assignmentstate();
+  assignmentstate_ = value;
+  // @@protoc_insertion_point(field_set:SAFplus.Rpc.amfMgmtRpc.ServiceInstanceStatus.assignmentState)
+}
+
+// repeated string activeAssignments = 3;
+inline int ServiceInstanceStatus::activeassignments_size() const {
+  return activeassignments_.size();
+}
+inline void ServiceInstanceStatus::clear_activeassignments() {
+  activeassignments_.Clear();
+}
+inline const ::std::string& ServiceInstanceStatus::activeassignments(int index) const {
+  // @@protoc_insertion_point(field_get:SAFplus.Rpc.amfMgmtRpc.ServiceInstanceStatus.activeAssignments)
+  return activeassignments_.Get(index);
+}
+inline ::std::string* ServiceInstanceStatus::mutable_activeassignments(int index) {
+  // @@protoc_insertion_point(field_mutable:SAFplus.Rpc.amfMgmtRpc.ServiceInstanceStatus.activeAssignments)
+  return activeassignments_.Mutable(index);
+}
+inline void ServiceInstanceStatus::set_activeassignments(int index, const ::std::string& value) {
+  // @@protoc_insertion_point(field_set:SAFplus.Rpc.amfMgmtRpc.ServiceInstanceStatus.activeAssignments)
+  activeassignments_.Mutable(index)->assign(value);
+}
+inline void ServiceInstanceStatus::set_activeassignments(int index, const char* value) {
+  activeassignments_.Mutable(index)->assign(value);
+  // @@protoc_insertion_point(field_set_char:SAFplus.Rpc.amfMgmtRpc.ServiceInstanceStatus.activeAssignments)
+}
+inline void ServiceInstanceStatus::set_activeassignments(int index, const char* value, size_t size) {
+  activeassignments_.Mutable(index)->assign(
+    reinterpret_cast<const char*>(value), size);
+  // @@protoc_insertion_point(field_set_pointer:SAFplus.Rpc.amfMgmtRpc.ServiceInstanceStatus.activeAssignments)
+}
+inline ::std::string* ServiceInstanceStatus::add_activeassignments() {
+  return activeassignments_.Add();
+}
+inline void ServiceInstanceStatus::add_activeassignments(const ::std::string& value) {
+  activeassignments_.Add()->assign(value);
+  // @@protoc_insertion_point(field_add:SAFplus.Rpc.amfMgmtRpc.ServiceInstanceStatus.activeAssignments)
+}
+inline void ServiceInstanceStatus::add_activeassignments(const char* value) {
+  activeassignments_.Add()->assign(value);
+  // @@protoc_insertion_point(field_add_char:SAFplus.Rpc.amfMgmtRpc.ServiceInstanceStatus.activeAssignments)
+}
+inline void ServiceInstanceStatus::add_activeassignments(const char* value, size_t size) {
+  activeassignments_.Add()->assign(reinterpret_cast<const char*>(value), size);
+  // @@protoc_insertion_point(field_add_pointer:SAFplus.Rpc.amfMgmtRpc.ServiceInstanceStatus.activeAssignments)
+}
+inline const ::google::protobuf::RepeatedPtrField< ::std::string>&
+ServiceInstanceStatus::activeassignments() const {
+  // @@protoc_insertion_point(field_list:SAFplus.Rpc.amfMgmtRpc.ServiceInstanceStatus.activeAssignments)
+  return activeassignments_;
+}
+inline ::google::protobuf::RepeatedPtrField< ::std::string>*
+ServiceInstanceStatus::mutable_activeassignments() {
+  // @@protoc_insertion_point(field_mutable_list:SAFplus.Rpc.amfMgmtRpc.ServiceInstanceStatus.activeAssignments)
+  return &activeassignments_;
+}
+
+// repeated string standbyAssignments = 4;
+inline int ServiceInstanceStatus::standbyassignments_size() const {
+  return standbyassignments_.size();
+}
+inline void ServiceInstanceStatus::clear_standbyassignments() {
+  standbyassignments_.Clear();
+}
+inline const ::std::string& ServiceInstanceStatus::standbyassignments(int index) const {
+  // @@protoc_insertion_point(field_get:SAFplus.Rpc.amfMgmtRpc.ServiceInstanceStatus.standbyAssignments)
+  return standbyassignments_.Get(index);
+}
+inline ::std::string* ServiceInstanceStatus::mutable_standbyassignments(int index) {
+  // @@protoc_insertion_point(field_mutable:SAFplus.Rpc.amfMgmtRpc.ServiceInstanceStatus.standbyAssignments)
+  return standbyassignments_.Mutable(index);
+}
+inline void ServiceInstanceStatus::set_standbyassignments(int index, const ::std::string& value) {
+  // @@protoc_insertion_point(field_set:SAFplus.Rpc.amfMgmtRpc.ServiceInstanceStatus.standbyAssignments)
+  standbyassignments_.Mutable(index)->assign(value);
+}
+inline void ServiceInstanceStatus::set_standbyassignments(int index, const char* value) {
+  standbyassignments_.Mutable(index)->assign(value);
+  // @@protoc_insertion_point(field_set_char:SAFplus.Rpc.amfMgmtRpc.ServiceInstanceStatus.standbyAssignments)
+}
+inline void ServiceInstanceStatus::set_standbyassignments(int index, const char* value, size_t size) {
+  standbyassignments_.Mutable(index)->assign(
+    reinterpret_cast<const char*>(value), size);
+  // @@protoc_insertion_point(field_set_pointer:SAFplus.Rpc.amfMgmtRpc.ServiceInstanceStatus.standbyAssignments)
+}
+inline ::std::string* ServiceInstanceStatus::add_standbyassignments() {
+  return standbyassignments_.Add();
+}
+inline void ServiceInstanceStatus::add_standbyassignments(const ::std::string& value) {
+  standbyassignments_.Add()->assign(value);
+  // @@protoc_insertion_point(field_add:SAFplus.Rpc.amfMgmtRpc.ServiceInstanceStatus.standbyAssignments)
+}
+inline void ServiceInstanceStatus::add_standbyassignments(const char* value) {
+  standbyassignments_.Add()->assign(value);
+  // @@protoc_insertion_point(field_add_char:SAFplus.Rpc.amfMgmtRpc.ServiceInstanceStatus.standbyAssignments)
+}
+inline void ServiceInstanceStatus::add_standbyassignments(const char* value, size_t size) {
+  standbyassignments_.Add()->assign(reinterpret_cast<const char*>(value), size);
+  // @@protoc_insertion_point(field_add_pointer:SAFplus.Rpc.amfMgmtRpc.ServiceInstanceStatus.standbyAssignments)
+}
+inline const ::google::protobuf::RepeatedPtrField< ::std::string>&
+ServiceInstanceStatus::standbyassignments() const {
+  // @@protoc_insertion_point(field_list:SAFplus.Rpc.amfMgmtRpc.ServiceInstanceStatus.standbyAssignments)
+  return standbyassignments_;
+}
+inline ::google::protobuf::RepeatedPtrField< ::std::string>*
+ServiceInstanceStatus::mutable_standbyassignments() {
+  // @@protoc_insertion_point(field_mutable_list:SAFplus.Rpc.amfMgmtRpc.ServiceInstanceStatus.standbyAssignments)
+  return &standbyassignments_;
+}
+
+// optional .SAFplus.Rpc.amfMgmtRpc.NumActiveAssignments numActiveAssignments = 5;
+inline bool ServiceInstanceStatus::has_numactiveassignments() const {
+  return (_has_bits_[0] & 0x00000010u) != 0;
+}
+inline void ServiceInstanceStatus::set_has_numactiveassignments() {
+  _has_bits_[0] |= 0x00000010u;
+}
+inline void ServiceInstanceStatus::clear_has_numactiveassignments() {
+  _has_bits_[0] &= ~0x00000010u;
+}
+inline void ServiceInstanceStatus::clear_numactiveassignments() {
+  if (numactiveassignments_ != NULL) numactiveassignments_->::SAFplus::Rpc::amfMgmtRpc::NumActiveAssignments::Clear();
+  clear_has_numactiveassignments();
+}
+inline const ::SAFplus::Rpc::amfMgmtRpc::NumActiveAssignments& ServiceInstanceStatus::numactiveassignments() const {
+  // @@protoc_insertion_point(field_get:SAFplus.Rpc.amfMgmtRpc.ServiceInstanceStatus.numActiveAssignments)
+  return numactiveassignments_ != NULL ? *numactiveassignments_ : *default_instance_->numactiveassignments_;
+}
+inline ::SAFplus::Rpc::amfMgmtRpc::NumActiveAssignments* ServiceInstanceStatus::mutable_numactiveassignments() {
+  set_has_numactiveassignments();
+  if (numactiveassignments_ == NULL) numactiveassignments_ = new ::SAFplus::Rpc::amfMgmtRpc::NumActiveAssignments;
+  // @@protoc_insertion_point(field_mutable:SAFplus.Rpc.amfMgmtRpc.ServiceInstanceStatus.numActiveAssignments)
+  return numactiveassignments_;
+}
+inline ::SAFplus::Rpc::amfMgmtRpc::NumActiveAssignments* ServiceInstanceStatus::release_numactiveassignments() {
+  clear_has_numactiveassignments();
+  ::SAFplus::Rpc::amfMgmtRpc::NumActiveAssignments* temp = numactiveassignments_;
+  numactiveassignments_ = NULL;
+  return temp;
+}
+inline void ServiceInstanceStatus::set_allocated_numactiveassignments(::SAFplus::Rpc::amfMgmtRpc::NumActiveAssignments* numactiveassignments) {
+  delete numactiveassignments_;
+  numactiveassignments_ = numactiveassignments;
+  if (numactiveassignments) {
+    set_has_numactiveassignments();
+  } else {
+    clear_has_numactiveassignments();
+  }
+  // @@protoc_insertion_point(field_set_allocated:SAFplus.Rpc.amfMgmtRpc.ServiceInstanceStatus.numActiveAssignments)
+}
+
+// optional .SAFplus.Rpc.amfMgmtRpc.NumStandbyAssignments numStandbyAssignments = 6;
+inline bool ServiceInstanceStatus::has_numstandbyassignments() const {
+  return (_has_bits_[0] & 0x00000020u) != 0;
+}
+inline void ServiceInstanceStatus::set_has_numstandbyassignments() {
+  _has_bits_[0] |= 0x00000020u;
+}
+inline void ServiceInstanceStatus::clear_has_numstandbyassignments() {
+  _has_bits_[0] &= ~0x00000020u;
+}
+inline void ServiceInstanceStatus::clear_numstandbyassignments() {
+  if (numstandbyassignments_ != NULL) numstandbyassignments_->::SAFplus::Rpc::amfMgmtRpc::NumStandbyAssignments::Clear();
+  clear_has_numstandbyassignments();
+}
+inline const ::SAFplus::Rpc::amfMgmtRpc::NumStandbyAssignments& ServiceInstanceStatus::numstandbyassignments() const {
+  // @@protoc_insertion_point(field_get:SAFplus.Rpc.amfMgmtRpc.ServiceInstanceStatus.numStandbyAssignments)
+  return numstandbyassignments_ != NULL ? *numstandbyassignments_ : *default_instance_->numstandbyassignments_;
+}
+inline ::SAFplus::Rpc::amfMgmtRpc::NumStandbyAssignments* ServiceInstanceStatus::mutable_numstandbyassignments() {
+  set_has_numstandbyassignments();
+  if (numstandbyassignments_ == NULL) numstandbyassignments_ = new ::SAFplus::Rpc::amfMgmtRpc::NumStandbyAssignments;
+  // @@protoc_insertion_point(field_mutable:SAFplus.Rpc.amfMgmtRpc.ServiceInstanceStatus.numStandbyAssignments)
+  return numstandbyassignments_;
+}
+inline ::SAFplus::Rpc::amfMgmtRpc::NumStandbyAssignments* ServiceInstanceStatus::release_numstandbyassignments() {
+  clear_has_numstandbyassignments();
+  ::SAFplus::Rpc::amfMgmtRpc::NumStandbyAssignments* temp = numstandbyassignments_;
+  numstandbyassignments_ = NULL;
+  return temp;
+}
+inline void ServiceInstanceStatus::set_allocated_numstandbyassignments(::SAFplus::Rpc::amfMgmtRpc::NumStandbyAssignments* numstandbyassignments) {
+  delete numstandbyassignments_;
+  numstandbyassignments_ = numstandbyassignments;
+  if (numstandbyassignments) {
+    set_has_numstandbyassignments();
+  } else {
+    clear_has_numstandbyassignments();
+  }
+  // @@protoc_insertion_point(field_set_allocated:SAFplus.Rpc.amfMgmtRpc.ServiceInstanceStatus.numStandbyAssignments)
+}
+
+// -------------------------------------------------------------------
+
+// NumActiveServiceInstances
+
+// optional .SAFplus.Rpc.amfMgmtRpc.IntStatistic IntStatistic = 1;
+inline bool NumActiveServiceInstances::has_intstatistic() const {
+  return (_has_bits_[0] & 0x00000001u) != 0;
+}
+inline void NumActiveServiceInstances::set_has_intstatistic() {
+  _has_bits_[0] |= 0x00000001u;
+}
+inline void NumActiveServiceInstances::clear_has_intstatistic() {
+  _has_bits_[0] &= ~0x00000001u;
+}
+inline void NumActiveServiceInstances::clear_intstatistic() {
+  if (intstatistic_ != NULL) intstatistic_->::SAFplus::Rpc::amfMgmtRpc::IntStatistic::Clear();
+  clear_has_intstatistic();
+}
+inline const ::SAFplus::Rpc::amfMgmtRpc::IntStatistic& NumActiveServiceInstances::intstatistic() const {
+  // @@protoc_insertion_point(field_get:SAFplus.Rpc.amfMgmtRpc.NumActiveServiceInstances.IntStatistic)
+  return intstatistic_ != NULL ? *intstatistic_ : *default_instance_->intstatistic_;
+}
+inline ::SAFplus::Rpc::amfMgmtRpc::IntStatistic* NumActiveServiceInstances::mutable_intstatistic() {
+  set_has_intstatistic();
+  if (intstatistic_ == NULL) intstatistic_ = new ::SAFplus::Rpc::amfMgmtRpc::IntStatistic;
+  // @@protoc_insertion_point(field_mutable:SAFplus.Rpc.amfMgmtRpc.NumActiveServiceInstances.IntStatistic)
+  return intstatistic_;
+}
+inline ::SAFplus::Rpc::amfMgmtRpc::IntStatistic* NumActiveServiceInstances::release_intstatistic() {
+  clear_has_intstatistic();
+  ::SAFplus::Rpc::amfMgmtRpc::IntStatistic* temp = intstatistic_;
+  intstatistic_ = NULL;
+  return temp;
+}
+inline void NumActiveServiceInstances::set_allocated_intstatistic(::SAFplus::Rpc::amfMgmtRpc::IntStatistic* intstatistic) {
+  delete intstatistic_;
+  intstatistic_ = intstatistic;
+  if (intstatistic) {
+    set_has_intstatistic();
+  } else {
+    clear_has_intstatistic();
+  }
+  // @@protoc_insertion_point(field_set_allocated:SAFplus.Rpc.amfMgmtRpc.NumActiveServiceInstances.IntStatistic)
+}
+
+// -------------------------------------------------------------------
+
+// NumStandbyServiceInstances
+
+// optional .SAFplus.Rpc.amfMgmtRpc.IntStatistic IntStatistic = 1;
+inline bool NumStandbyServiceInstances::has_intstatistic() const {
+  return (_has_bits_[0] & 0x00000001u) != 0;
+}
+inline void NumStandbyServiceInstances::set_has_intstatistic() {
+  _has_bits_[0] |= 0x00000001u;
+}
+inline void NumStandbyServiceInstances::clear_has_intstatistic() {
+  _has_bits_[0] &= ~0x00000001u;
+}
+inline void NumStandbyServiceInstances::clear_intstatistic() {
+  if (intstatistic_ != NULL) intstatistic_->::SAFplus::Rpc::amfMgmtRpc::IntStatistic::Clear();
+  clear_has_intstatistic();
+}
+inline const ::SAFplus::Rpc::amfMgmtRpc::IntStatistic& NumStandbyServiceInstances::intstatistic() const {
+  // @@protoc_insertion_point(field_get:SAFplus.Rpc.amfMgmtRpc.NumStandbyServiceInstances.IntStatistic)
+  return intstatistic_ != NULL ? *intstatistic_ : *default_instance_->intstatistic_;
+}
+inline ::SAFplus::Rpc::amfMgmtRpc::IntStatistic* NumStandbyServiceInstances::mutable_intstatistic() {
+  set_has_intstatistic();
+  if (intstatistic_ == NULL) intstatistic_ = new ::SAFplus::Rpc::amfMgmtRpc::IntStatistic;
+  // @@protoc_insertion_point(field_mutable:SAFplus.Rpc.amfMgmtRpc.NumStandbyServiceInstances.IntStatistic)
+  return intstatistic_;
+}
+inline ::SAFplus::Rpc::amfMgmtRpc::IntStatistic* NumStandbyServiceInstances::release_intstatistic() {
+  clear_has_intstatistic();
+  ::SAFplus::Rpc::amfMgmtRpc::IntStatistic* temp = intstatistic_;
+  intstatistic_ = NULL;
+  return temp;
+}
+inline void NumStandbyServiceInstances::set_allocated_intstatistic(::SAFplus::Rpc::amfMgmtRpc::IntStatistic* intstatistic) {
+  delete intstatistic_;
+  intstatistic_ = intstatistic;
+  if (intstatistic) {
+    set_has_intstatistic();
+  } else {
+    clear_has_intstatistic();
+  }
+  // @@protoc_insertion_point(field_set_allocated:SAFplus.Rpc.amfMgmtRpc.NumStandbyServiceInstances.IntStatistic)
+}
+
+// -------------------------------------------------------------------
+
+// ServiceUnitStatus
+
+// optional string name = 1;
+inline bool ServiceUnitStatus::has_name() const {
+  return (_has_bits_[0] & 0x00000001u) != 0;
+}
+inline void ServiceUnitStatus::set_has_name() {
+  _has_bits_[0] |= 0x00000001u;
+}
+inline void ServiceUnitStatus::clear_has_name() {
+  _has_bits_[0] &= ~0x00000001u;
+}
+inline void ServiceUnitStatus::clear_name() {
+  if (name_ != &::google::protobuf::internal::GetEmptyStringAlreadyInited()) {
+    name_->clear();
+  }
+  clear_has_name();
+}
+inline const ::std::string& ServiceUnitStatus::name() const {
+  // @@protoc_insertion_point(field_get:SAFplus.Rpc.amfMgmtRpc.ServiceUnitStatus.name)
+  return *name_;
+}
+inline void ServiceUnitStatus::set_name(const ::std::string& value) {
+  set_has_name();
+  if (name_ == &::google::protobuf::internal::GetEmptyStringAlreadyInited()) {
+    name_ = new ::std::string;
+  }
+  name_->assign(value);
+  // @@protoc_insertion_point(field_set:SAFplus.Rpc.amfMgmtRpc.ServiceUnitStatus.name)
+}
+inline void ServiceUnitStatus::set_name(const char* value) {
+  set_has_name();
+  if (name_ == &::google::protobuf::internal::GetEmptyStringAlreadyInited()) {
+    name_ = new ::std::string;
+  }
+  name_->assign(value);
+  // @@protoc_insertion_point(field_set_char:SAFplus.Rpc.amfMgmtRpc.ServiceUnitStatus.name)
+}
+inline void ServiceUnitStatus::set_name(const char* value, size_t size) {
+  set_has_name();
+  if (name_ == &::google::protobuf::internal::GetEmptyStringAlreadyInited()) {
+    name_ = new ::std::string;
+  }
+  name_->assign(reinterpret_cast<const char*>(value), size);
+  // @@protoc_insertion_point(field_set_pointer:SAFplus.Rpc.amfMgmtRpc.ServiceUnitStatus.name)
+}
+inline ::std::string* ServiceUnitStatus::mutable_name() {
+  set_has_name();
+  if (name_ == &::google::protobuf::internal::GetEmptyStringAlreadyInited()) {
+    name_ = new ::std::string;
+  }
+  // @@protoc_insertion_point(field_mutable:SAFplus.Rpc.amfMgmtRpc.ServiceUnitStatus.name)
+  return name_;
+}
+inline ::std::string* ServiceUnitStatus::release_name() {
+  clear_has_name();
+  if (name_ == &::google::protobuf::internal::GetEmptyStringAlreadyInited()) {
+    return NULL;
+  } else {
+    ::std::string* temp = name_;
+    name_ = const_cast< ::std::string*>(&::google::protobuf::internal::GetEmptyStringAlreadyInited());
+    return temp;
+  }
+}
+inline void ServiceUnitStatus::set_allocated_name(::std::string* name) {
+  if (name_ != &::google::protobuf::internal::GetEmptyStringAlreadyInited()) {
+    delete name_;
+  }
+  if (name) {
+    set_has_name();
+    name_ = name;
+  } else {
+    clear_has_name();
+    name_ = const_cast< ::std::string*>(&::google::protobuf::internal::GetEmptyStringAlreadyInited());
+  }
+  // @@protoc_insertion_point(field_set_allocated:SAFplus.Rpc.amfMgmtRpc.ServiceUnitStatus.name)
+}
+
+// optional bool preinstantiable = 2;
+inline bool ServiceUnitStatus::has_preinstantiable() const {
+  return (_has_bits_[0] & 0x00000002u) != 0;
+}
+inline void ServiceUnitStatus::set_has_preinstantiable() {
+  _has_bits_[0] |= 0x00000002u;
+}
+inline void ServiceUnitStatus::clear_has_preinstantiable() {
+  _has_bits_[0] &= ~0x00000002u;
+}
+inline void ServiceUnitStatus::clear_preinstantiable() {
+  preinstantiable_ = false;
+  clear_has_preinstantiable();
+}
+inline bool ServiceUnitStatus::preinstantiable() const {
+  // @@protoc_insertion_point(field_get:SAFplus.Rpc.amfMgmtRpc.ServiceUnitStatus.preinstantiable)
+  return preinstantiable_;
+}
+inline void ServiceUnitStatus::set_preinstantiable(bool value) {
+  set_has_preinstantiable();
+  preinstantiable_ = value;
+  // @@protoc_insertion_point(field_set:SAFplus.Rpc.amfMgmtRpc.ServiceUnitStatus.preinstantiable)
+}
+
+// optional .SAFplus.Rpc.amfMgmtRpc.PresenceState presenceState = 3;
+inline bool ServiceUnitStatus::has_presencestate() const {
+  return (_has_bits_[0] & 0x00000004u) != 0;
+}
+inline void ServiceUnitStatus::set_has_presencestate() {
+  _has_bits_[0] |= 0x00000004u;
+}
+inline void ServiceUnitStatus::clear_has_presencestate() {
+  _has_bits_[0] &= ~0x00000004u;
+}
+inline void ServiceUnitStatus::clear_presencestate() {
+  presencestate_ = 0;
+  clear_has_presencestate();
+}
+inline ::SAFplus::Rpc::amfMgmtRpc::PresenceState ServiceUnitStatus::presencestate() const {
+  // @@protoc_insertion_point(field_get:SAFplus.Rpc.amfMgmtRpc.ServiceUnitStatus.presenceState)
+  return static_cast< ::SAFplus::Rpc::amfMgmtRpc::PresenceState >(presencestate_);
+}
+inline void ServiceUnitStatus::set_presencestate(::SAFplus::Rpc::amfMgmtRpc::PresenceState value) {
+  assert(::SAFplus::Rpc::amfMgmtRpc::PresenceState_IsValid(value));
+  set_has_presencestate();
+  presencestate_ = value;
+  // @@protoc_insertion_point(field_set:SAFplus.Rpc.amfMgmtRpc.ServiceUnitStatus.presenceState)
+}
+
+// optional .SAFplus.Rpc.amfMgmtRpc.ReadinessState readinessState = 4;
+inline bool ServiceUnitStatus::has_readinessstate() const {
+  return (_has_bits_[0] & 0x00000008u) != 0;
+}
+inline void ServiceUnitStatus::set_has_readinessstate() {
+  _has_bits_[0] |= 0x00000008u;
+}
+inline void ServiceUnitStatus::clear_has_readinessstate() {
+  _has_bits_[0] &= ~0x00000008u;
+}
+inline void ServiceUnitStatus::clear_readinessstate() {
+  readinessstate_ = 0;
+  clear_has_readinessstate();
+}
+inline ::SAFplus::Rpc::amfMgmtRpc::ReadinessState ServiceUnitStatus::readinessstate() const {
+  // @@protoc_insertion_point(field_get:SAFplus.Rpc.amfMgmtRpc.ServiceUnitStatus.readinessState)
+  return static_cast< ::SAFplus::Rpc::amfMgmtRpc::ReadinessState >(readinessstate_);
+}
+inline void ServiceUnitStatus::set_readinessstate(::SAFplus::Rpc::amfMgmtRpc::ReadinessState value) {
+  assert(::SAFplus::Rpc::amfMgmtRpc::ReadinessState_IsValid(value));
+  set_has_readinessstate();
+  readinessstate_ = value;
+  // @@protoc_insertion_point(field_set:SAFplus.Rpc.amfMgmtRpc.ServiceUnitStatus.readinessState)
+}
+
+// optional .SAFplus.Rpc.amfMgmtRpc.HighAvailabilityReadinessState haReadinessState = 5;
+inline bool ServiceUnitStatus::has_hareadinessstate() const {
+  return (_has_bits_[0] & 0x00000010u) != 0;
+}
+inline void ServiceUnitStatus::set_has_hareadinessstate() {
+  _has_bits_[0] |= 0x00000010u;
+}
+inline void ServiceUnitStatus::clear_has_hareadinessstate() {
+  _has_bits_[0] &= ~0x00000010u;
+}
+inline void ServiceUnitStatus::clear_hareadinessstate() {
+  hareadinessstate_ = 0;
+  clear_has_hareadinessstate();
+}
+inline ::SAFplus::Rpc::amfMgmtRpc::HighAvailabilityReadinessState ServiceUnitStatus::hareadinessstate() const {
+  // @@protoc_insertion_point(field_get:SAFplus.Rpc.amfMgmtRpc.ServiceUnitStatus.haReadinessState)
+  return static_cast< ::SAFplus::Rpc::amfMgmtRpc::HighAvailabilityReadinessState >(hareadinessstate_);
+}
+inline void ServiceUnitStatus::set_hareadinessstate(::SAFplus::Rpc::amfMgmtRpc::HighAvailabilityReadinessState value) {
+  assert(::SAFplus::Rpc::amfMgmtRpc::HighAvailabilityReadinessState_IsValid(value));
+  set_has_hareadinessstate();
+  hareadinessstate_ = value;
+  // @@protoc_insertion_point(field_set:SAFplus.Rpc.amfMgmtRpc.ServiceUnitStatus.haReadinessState)
+}
+
+// optional .SAFplus.Rpc.amfMgmtRpc.HighAvailabilityState haState = 6;
+inline bool ServiceUnitStatus::has_hastate() const {
+  return (_has_bits_[0] & 0x00000020u) != 0;
+}
+inline void ServiceUnitStatus::set_has_hastate() {
+  _has_bits_[0] |= 0x00000020u;
+}
+inline void ServiceUnitStatus::clear_has_hastate() {
+  _has_bits_[0] &= ~0x00000020u;
+}
+inline void ServiceUnitStatus::clear_hastate() {
+  hastate_ = 1;
+  clear_has_hastate();
+}
+inline ::SAFplus::Rpc::amfMgmtRpc::HighAvailabilityState ServiceUnitStatus::hastate() const {
+  // @@protoc_insertion_point(field_get:SAFplus.Rpc.amfMgmtRpc.ServiceUnitStatus.haState)
+  return static_cast< ::SAFplus::Rpc::amfMgmtRpc::HighAvailabilityState >(hastate_);
+}
+inline void ServiceUnitStatus::set_hastate(::SAFplus::Rpc::amfMgmtRpc::HighAvailabilityState value) {
+  assert(::SAFplus::Rpc::amfMgmtRpc::HighAvailabilityState_IsValid(value));
+  set_has_hastate();
+  hastate_ = value;
+  // @@protoc_insertion_point(field_set:SAFplus.Rpc.amfMgmtRpc.ServiceUnitStatus.haState)
+}
+
+// optional bool operState = 7;
+inline bool ServiceUnitStatus::has_operstate() const {
+  return (_has_bits_[0] & 0x00000040u) != 0;
+}
+inline void ServiceUnitStatus::set_has_operstate() {
+  _has_bits_[0] |= 0x00000040u;
+}
+inline void ServiceUnitStatus::clear_has_operstate() {
+  _has_bits_[0] &= ~0x00000040u;
+}
+inline void ServiceUnitStatus::clear_operstate() {
+  operstate_ = false;
+  clear_has_operstate();
+}
+inline bool ServiceUnitStatus::operstate() const {
+  // @@protoc_insertion_point(field_get:SAFplus.Rpc.amfMgmtRpc.ServiceUnitStatus.operState)
+  return operstate_;
+}
+inline void ServiceUnitStatus::set_operstate(bool value) {
+  set_has_operstate();
+  operstate_ = value;
+  // @@protoc_insertion_point(field_set:SAFplus.Rpc.amfMgmtRpc.ServiceUnitStatus.operState)
+}
+
+// repeated string assignedServiceInstances = 8;
+inline int ServiceUnitStatus::assignedserviceinstances_size() const {
+  return assignedserviceinstances_.size();
+}
+inline void ServiceUnitStatus::clear_assignedserviceinstances() {
+  assignedserviceinstances_.Clear();
+}
+inline const ::std::string& ServiceUnitStatus::assignedserviceinstances(int index) const {
+  // @@protoc_insertion_point(field_get:SAFplus.Rpc.amfMgmtRpc.ServiceUnitStatus.assignedServiceInstances)
+  return assignedserviceinstances_.Get(index);
+}
+inline ::std::string* ServiceUnitStatus::mutable_assignedserviceinstances(int index) {
+  // @@protoc_insertion_point(field_mutable:SAFplus.Rpc.amfMgmtRpc.ServiceUnitStatus.assignedServiceInstances)
+  return assignedserviceinstances_.Mutable(index);
+}
+inline void ServiceUnitStatus::set_assignedserviceinstances(int index, const ::std::string& value) {
+  // @@protoc_insertion_point(field_set:SAFplus.Rpc.amfMgmtRpc.ServiceUnitStatus.assignedServiceInstances)
+  assignedserviceinstances_.Mutable(index)->assign(value);
+}
+inline void ServiceUnitStatus::set_assignedserviceinstances(int index, const char* value) {
+  assignedserviceinstances_.Mutable(index)->assign(value);
+  // @@protoc_insertion_point(field_set_char:SAFplus.Rpc.amfMgmtRpc.ServiceUnitStatus.assignedServiceInstances)
+}
+inline void ServiceUnitStatus::set_assignedserviceinstances(int index, const char* value, size_t size) {
+  assignedserviceinstances_.Mutable(index)->assign(
+    reinterpret_cast<const char*>(value), size);
+  // @@protoc_insertion_point(field_set_pointer:SAFplus.Rpc.amfMgmtRpc.ServiceUnitStatus.assignedServiceInstances)
+}
+inline ::std::string* ServiceUnitStatus::add_assignedserviceinstances() {
+  return assignedserviceinstances_.Add();
+}
+inline void ServiceUnitStatus::add_assignedserviceinstances(const ::std::string& value) {
+  assignedserviceinstances_.Add()->assign(value);
+  // @@protoc_insertion_point(field_add:SAFplus.Rpc.amfMgmtRpc.ServiceUnitStatus.assignedServiceInstances)
+}
+inline void ServiceUnitStatus::add_assignedserviceinstances(const char* value) {
+  assignedserviceinstances_.Add()->assign(value);
+  // @@protoc_insertion_point(field_add_char:SAFplus.Rpc.amfMgmtRpc.ServiceUnitStatus.assignedServiceInstances)
+}
+inline void ServiceUnitStatus::add_assignedserviceinstances(const char* value, size_t size) {
+  assignedserviceinstances_.Add()->assign(reinterpret_cast<const char*>(value), size);
+  // @@protoc_insertion_point(field_add_pointer:SAFplus.Rpc.amfMgmtRpc.ServiceUnitStatus.assignedServiceInstances)
+}
+inline const ::google::protobuf::RepeatedPtrField< ::std::string>&
+ServiceUnitStatus::assignedserviceinstances() const {
+  // @@protoc_insertion_point(field_list:SAFplus.Rpc.amfMgmtRpc.ServiceUnitStatus.assignedServiceInstances)
+  return assignedserviceinstances_;
+}
+inline ::google::protobuf::RepeatedPtrField< ::std::string>*
+ServiceUnitStatus::mutable_assignedserviceinstances() {
+  // @@protoc_insertion_point(field_mutable_list:SAFplus.Rpc.amfMgmtRpc.ServiceUnitStatus.assignedServiceInstances)
+  return &assignedserviceinstances_;
+}
+
+// optional .SAFplus.Rpc.amfMgmtRpc.NumActiveServiceInstances numActiveServiceInstances = 9;
+inline bool ServiceUnitStatus::has_numactiveserviceinstances() const {
+  return (_has_bits_[0] & 0x00000100u) != 0;
+}
+inline void ServiceUnitStatus::set_has_numactiveserviceinstances() {
+  _has_bits_[0] |= 0x00000100u;
+}
+inline void ServiceUnitStatus::clear_has_numactiveserviceinstances() {
+  _has_bits_[0] &= ~0x00000100u;
+}
+inline void ServiceUnitStatus::clear_numactiveserviceinstances() {
+  if (numactiveserviceinstances_ != NULL) numactiveserviceinstances_->::SAFplus::Rpc::amfMgmtRpc::NumActiveServiceInstances::Clear();
+  clear_has_numactiveserviceinstances();
+}
+inline const ::SAFplus::Rpc::amfMgmtRpc::NumActiveServiceInstances& ServiceUnitStatus::numactiveserviceinstances() const {
+  // @@protoc_insertion_point(field_get:SAFplus.Rpc.amfMgmtRpc.ServiceUnitStatus.numActiveServiceInstances)
+  return numactiveserviceinstances_ != NULL ? *numactiveserviceinstances_ : *default_instance_->numactiveserviceinstances_;
+}
+inline ::SAFplus::Rpc::amfMgmtRpc::NumActiveServiceInstances* ServiceUnitStatus::mutable_numactiveserviceinstances() {
+  set_has_numactiveserviceinstances();
+  if (numactiveserviceinstances_ == NULL) numactiveserviceinstances_ = new ::SAFplus::Rpc::amfMgmtRpc::NumActiveServiceInstances;
+  // @@protoc_insertion_point(field_mutable:SAFplus.Rpc.amfMgmtRpc.ServiceUnitStatus.numActiveServiceInstances)
+  return numactiveserviceinstances_;
+}
+inline ::SAFplus::Rpc::amfMgmtRpc::NumActiveServiceInstances* ServiceUnitStatus::release_numactiveserviceinstances() {
+  clear_has_numactiveserviceinstances();
+  ::SAFplus::Rpc::amfMgmtRpc::NumActiveServiceInstances* temp = numactiveserviceinstances_;
+  numactiveserviceinstances_ = NULL;
+  return temp;
+}
+inline void ServiceUnitStatus::set_allocated_numactiveserviceinstances(::SAFplus::Rpc::amfMgmtRpc::NumActiveServiceInstances* numactiveserviceinstances) {
+  delete numactiveserviceinstances_;
+  numactiveserviceinstances_ = numactiveserviceinstances;
+  if (numactiveserviceinstances) {
+    set_has_numactiveserviceinstances();
+  } else {
+    clear_has_numactiveserviceinstances();
+  }
+  // @@protoc_insertion_point(field_set_allocated:SAFplus.Rpc.amfMgmtRpc.ServiceUnitStatus.numActiveServiceInstances)
+}
+
+// optional .SAFplus.Rpc.amfMgmtRpc.NumStandbyServiceInstances numStandbyServiceInstances = 10;
+inline bool ServiceUnitStatus::has_numstandbyserviceinstances() const {
+  return (_has_bits_[0] & 0x00000200u) != 0;
+}
+inline void ServiceUnitStatus::set_has_numstandbyserviceinstances() {
+  _has_bits_[0] |= 0x00000200u;
+}
+inline void ServiceUnitStatus::clear_has_numstandbyserviceinstances() {
+  _has_bits_[0] &= ~0x00000200u;
+}
+inline void ServiceUnitStatus::clear_numstandbyserviceinstances() {
+  if (numstandbyserviceinstances_ != NULL) numstandbyserviceinstances_->::SAFplus::Rpc::amfMgmtRpc::NumStandbyServiceInstances::Clear();
+  clear_has_numstandbyserviceinstances();
+}
+inline const ::SAFplus::Rpc::amfMgmtRpc::NumStandbyServiceInstances& ServiceUnitStatus::numstandbyserviceinstances() const {
+  // @@protoc_insertion_point(field_get:SAFplus.Rpc.amfMgmtRpc.ServiceUnitStatus.numStandbyServiceInstances)
+  return numstandbyserviceinstances_ != NULL ? *numstandbyserviceinstances_ : *default_instance_->numstandbyserviceinstances_;
+}
+inline ::SAFplus::Rpc::amfMgmtRpc::NumStandbyServiceInstances* ServiceUnitStatus::mutable_numstandbyserviceinstances() {
+  set_has_numstandbyserviceinstances();
+  if (numstandbyserviceinstances_ == NULL) numstandbyserviceinstances_ = new ::SAFplus::Rpc::amfMgmtRpc::NumStandbyServiceInstances;
+  // @@protoc_insertion_point(field_mutable:SAFplus.Rpc.amfMgmtRpc.ServiceUnitStatus.numStandbyServiceInstances)
+  return numstandbyserviceinstances_;
+}
+inline ::SAFplus::Rpc::amfMgmtRpc::NumStandbyServiceInstances* ServiceUnitStatus::release_numstandbyserviceinstances() {
+  clear_has_numstandbyserviceinstances();
+  ::SAFplus::Rpc::amfMgmtRpc::NumStandbyServiceInstances* temp = numstandbyserviceinstances_;
+  numstandbyserviceinstances_ = NULL;
+  return temp;
+}
+inline void ServiceUnitStatus::set_allocated_numstandbyserviceinstances(::SAFplus::Rpc::amfMgmtRpc::NumStandbyServiceInstances* numstandbyserviceinstances) {
+  delete numstandbyserviceinstances_;
+  numstandbyserviceinstances_ = numstandbyserviceinstances;
+  if (numstandbyserviceinstances) {
+    set_has_numstandbyserviceinstances();
+  } else {
+    clear_has_numstandbyserviceinstances();
+  }
+  // @@protoc_insertion_point(field_set_allocated:SAFplus.Rpc.amfMgmtRpc.ServiceUnitStatus.numStandbyServiceInstances)
+}
+
+// optional .SAFplus.Rpc.amfMgmtRpc.RestartCount restartCount = 11;
+inline bool ServiceUnitStatus::has_restartcount() const {
+  return (_has_bits_[0] & 0x00000400u) != 0;
+}
+inline void ServiceUnitStatus::set_has_restartcount() {
+  _has_bits_[0] |= 0x00000400u;
+}
+inline void ServiceUnitStatus::clear_has_restartcount() {
+  _has_bits_[0] &= ~0x00000400u;
+}
+inline void ServiceUnitStatus::clear_restartcount() {
+  if (restartcount_ != NULL) restartcount_->::SAFplus::Rpc::amfMgmtRpc::RestartCount::Clear();
+  clear_has_restartcount();
+}
+inline const ::SAFplus::Rpc::amfMgmtRpc::RestartCount& ServiceUnitStatus::restartcount() const {
+  // @@protoc_insertion_point(field_get:SAFplus.Rpc.amfMgmtRpc.ServiceUnitStatus.restartCount)
+  return restartcount_ != NULL ? *restartcount_ : *default_instance_->restartcount_;
+}
+inline ::SAFplus::Rpc::amfMgmtRpc::RestartCount* ServiceUnitStatus::mutable_restartcount() {
+  set_has_restartcount();
+  if (restartcount_ == NULL) restartcount_ = new ::SAFplus::Rpc::amfMgmtRpc::RestartCount;
+  // @@protoc_insertion_point(field_mutable:SAFplus.Rpc.amfMgmtRpc.ServiceUnitStatus.restartCount)
+  return restartcount_;
+}
+inline ::SAFplus::Rpc::amfMgmtRpc::RestartCount* ServiceUnitStatus::release_restartcount() {
+  clear_has_restartcount();
+  ::SAFplus::Rpc::amfMgmtRpc::RestartCount* temp = restartcount_;
+  restartcount_ = NULL;
+  return temp;
+}
+inline void ServiceUnitStatus::set_allocated_restartcount(::SAFplus::Rpc::amfMgmtRpc::RestartCount* restartcount) {
+  delete restartcount_;
+  restartcount_ = restartcount;
+  if (restartcount) {
+    set_has_restartcount();
+  } else {
+    clear_has_restartcount();
+  }
+  // @@protoc_insertion_point(field_set_allocated:SAFplus.Rpc.amfMgmtRpc.ServiceUnitStatus.restartCount)
 }
 
 // -------------------------------------------------------------------
@@ -21768,6 +32596,1224 @@ inline void GetCSIConfigResponse::set_err(::google::protobuf::int32 value) {
   // @@protoc_insertion_point(field_set:SAFplus.Rpc.amfMgmtRpc.GetCSIConfigResponse.err)
 }
 
+// -------------------------------------------------------------------
+
+// GetComponentStatusRequest
+
+// repeated bytes amfMgmtHandle = 1;
+inline int GetComponentStatusRequest::amfmgmthandle_size() const {
+  return amfmgmthandle_.size();
+}
+inline void GetComponentStatusRequest::clear_amfmgmthandle() {
+  amfmgmthandle_.Clear();
+}
+inline const ::std::string& GetComponentStatusRequest::amfmgmthandle(int index) const {
+  // @@protoc_insertion_point(field_get:SAFplus.Rpc.amfMgmtRpc.GetComponentStatusRequest.amfMgmtHandle)
+  return amfmgmthandle_.Get(index);
+}
+inline ::std::string* GetComponentStatusRequest::mutable_amfmgmthandle(int index) {
+  // @@protoc_insertion_point(field_mutable:SAFplus.Rpc.amfMgmtRpc.GetComponentStatusRequest.amfMgmtHandle)
+  return amfmgmthandle_.Mutable(index);
+}
+inline void GetComponentStatusRequest::set_amfmgmthandle(int index, const ::std::string& value) {
+  // @@protoc_insertion_point(field_set:SAFplus.Rpc.amfMgmtRpc.GetComponentStatusRequest.amfMgmtHandle)
+  amfmgmthandle_.Mutable(index)->assign(value);
+}
+inline void GetComponentStatusRequest::set_amfmgmthandle(int index, const char* value) {
+  amfmgmthandle_.Mutable(index)->assign(value);
+  // @@protoc_insertion_point(field_set_char:SAFplus.Rpc.amfMgmtRpc.GetComponentStatusRequest.amfMgmtHandle)
+}
+inline void GetComponentStatusRequest::set_amfmgmthandle(int index, const void* value, size_t size) {
+  amfmgmthandle_.Mutable(index)->assign(
+    reinterpret_cast<const char*>(value), size);
+  // @@protoc_insertion_point(field_set_pointer:SAFplus.Rpc.amfMgmtRpc.GetComponentStatusRequest.amfMgmtHandle)
+}
+inline ::std::string* GetComponentStatusRequest::add_amfmgmthandle() {
+  return amfmgmthandle_.Add();
+}
+inline void GetComponentStatusRequest::add_amfmgmthandle(const ::std::string& value) {
+  amfmgmthandle_.Add()->assign(value);
+  // @@protoc_insertion_point(field_add:SAFplus.Rpc.amfMgmtRpc.GetComponentStatusRequest.amfMgmtHandle)
+}
+inline void GetComponentStatusRequest::add_amfmgmthandle(const char* value) {
+  amfmgmthandle_.Add()->assign(value);
+  // @@protoc_insertion_point(field_add_char:SAFplus.Rpc.amfMgmtRpc.GetComponentStatusRequest.amfMgmtHandle)
+}
+inline void GetComponentStatusRequest::add_amfmgmthandle(const void* value, size_t size) {
+  amfmgmthandle_.Add()->assign(reinterpret_cast<const char*>(value), size);
+  // @@protoc_insertion_point(field_add_pointer:SAFplus.Rpc.amfMgmtRpc.GetComponentStatusRequest.amfMgmtHandle)
+}
+inline const ::google::protobuf::RepeatedPtrField< ::std::string>&
+GetComponentStatusRequest::amfmgmthandle() const {
+  // @@protoc_insertion_point(field_list:SAFplus.Rpc.amfMgmtRpc.GetComponentStatusRequest.amfMgmtHandle)
+  return amfmgmthandle_;
+}
+inline ::google::protobuf::RepeatedPtrField< ::std::string>*
+GetComponentStatusRequest::mutable_amfmgmthandle() {
+  // @@protoc_insertion_point(field_mutable_list:SAFplus.Rpc.amfMgmtRpc.GetComponentStatusRequest.amfMgmtHandle)
+  return &amfmgmthandle_;
+}
+
+// optional string compName = 2;
+inline bool GetComponentStatusRequest::has_compname() const {
+  return (_has_bits_[0] & 0x00000002u) != 0;
+}
+inline void GetComponentStatusRequest::set_has_compname() {
+  _has_bits_[0] |= 0x00000002u;
+}
+inline void GetComponentStatusRequest::clear_has_compname() {
+  _has_bits_[0] &= ~0x00000002u;
+}
+inline void GetComponentStatusRequest::clear_compname() {
+  if (compname_ != &::google::protobuf::internal::GetEmptyStringAlreadyInited()) {
+    compname_->clear();
+  }
+  clear_has_compname();
+}
+inline const ::std::string& GetComponentStatusRequest::compname() const {
+  // @@protoc_insertion_point(field_get:SAFplus.Rpc.amfMgmtRpc.GetComponentStatusRequest.compName)
+  return *compname_;
+}
+inline void GetComponentStatusRequest::set_compname(const ::std::string& value) {
+  set_has_compname();
+  if (compname_ == &::google::protobuf::internal::GetEmptyStringAlreadyInited()) {
+    compname_ = new ::std::string;
+  }
+  compname_->assign(value);
+  // @@protoc_insertion_point(field_set:SAFplus.Rpc.amfMgmtRpc.GetComponentStatusRequest.compName)
+}
+inline void GetComponentStatusRequest::set_compname(const char* value) {
+  set_has_compname();
+  if (compname_ == &::google::protobuf::internal::GetEmptyStringAlreadyInited()) {
+    compname_ = new ::std::string;
+  }
+  compname_->assign(value);
+  // @@protoc_insertion_point(field_set_char:SAFplus.Rpc.amfMgmtRpc.GetComponentStatusRequest.compName)
+}
+inline void GetComponentStatusRequest::set_compname(const char* value, size_t size) {
+  set_has_compname();
+  if (compname_ == &::google::protobuf::internal::GetEmptyStringAlreadyInited()) {
+    compname_ = new ::std::string;
+  }
+  compname_->assign(reinterpret_cast<const char*>(value), size);
+  // @@protoc_insertion_point(field_set_pointer:SAFplus.Rpc.amfMgmtRpc.GetComponentStatusRequest.compName)
+}
+inline ::std::string* GetComponentStatusRequest::mutable_compname() {
+  set_has_compname();
+  if (compname_ == &::google::protobuf::internal::GetEmptyStringAlreadyInited()) {
+    compname_ = new ::std::string;
+  }
+  // @@protoc_insertion_point(field_mutable:SAFplus.Rpc.amfMgmtRpc.GetComponentStatusRequest.compName)
+  return compname_;
+}
+inline ::std::string* GetComponentStatusRequest::release_compname() {
+  clear_has_compname();
+  if (compname_ == &::google::protobuf::internal::GetEmptyStringAlreadyInited()) {
+    return NULL;
+  } else {
+    ::std::string* temp = compname_;
+    compname_ = const_cast< ::std::string*>(&::google::protobuf::internal::GetEmptyStringAlreadyInited());
+    return temp;
+  }
+}
+inline void GetComponentStatusRequest::set_allocated_compname(::std::string* compname) {
+  if (compname_ != &::google::protobuf::internal::GetEmptyStringAlreadyInited()) {
+    delete compname_;
+  }
+  if (compname) {
+    set_has_compname();
+    compname_ = compname;
+  } else {
+    clear_has_compname();
+    compname_ = const_cast< ::std::string*>(&::google::protobuf::internal::GetEmptyStringAlreadyInited());
+  }
+  // @@protoc_insertion_point(field_set_allocated:SAFplus.Rpc.amfMgmtRpc.GetComponentStatusRequest.compName)
+}
+
+// -------------------------------------------------------------------
+
+// GetComponentStatusResponse
+
+// optional .SAFplus.Rpc.amfMgmtRpc.ComponentStatus ComponentStatus = 1;
+inline bool GetComponentStatusResponse::has_componentstatus() const {
+  return (_has_bits_[0] & 0x00000001u) != 0;
+}
+inline void GetComponentStatusResponse::set_has_componentstatus() {
+  _has_bits_[0] |= 0x00000001u;
+}
+inline void GetComponentStatusResponse::clear_has_componentstatus() {
+  _has_bits_[0] &= ~0x00000001u;
+}
+inline void GetComponentStatusResponse::clear_componentstatus() {
+  if (componentstatus_ != NULL) componentstatus_->::SAFplus::Rpc::amfMgmtRpc::ComponentStatus::Clear();
+  clear_has_componentstatus();
+}
+inline const ::SAFplus::Rpc::amfMgmtRpc::ComponentStatus& GetComponentStatusResponse::componentstatus() const {
+  // @@protoc_insertion_point(field_get:SAFplus.Rpc.amfMgmtRpc.GetComponentStatusResponse.ComponentStatus)
+  return componentstatus_ != NULL ? *componentstatus_ : *default_instance_->componentstatus_;
+}
+inline ::SAFplus::Rpc::amfMgmtRpc::ComponentStatus* GetComponentStatusResponse::mutable_componentstatus() {
+  set_has_componentstatus();
+  if (componentstatus_ == NULL) componentstatus_ = new ::SAFplus::Rpc::amfMgmtRpc::ComponentStatus;
+  // @@protoc_insertion_point(field_mutable:SAFplus.Rpc.amfMgmtRpc.GetComponentStatusResponse.ComponentStatus)
+  return componentstatus_;
+}
+inline ::SAFplus::Rpc::amfMgmtRpc::ComponentStatus* GetComponentStatusResponse::release_componentstatus() {
+  clear_has_componentstatus();
+  ::SAFplus::Rpc::amfMgmtRpc::ComponentStatus* temp = componentstatus_;
+  componentstatus_ = NULL;
+  return temp;
+}
+inline void GetComponentStatusResponse::set_allocated_componentstatus(::SAFplus::Rpc::amfMgmtRpc::ComponentStatus* componentstatus) {
+  delete componentstatus_;
+  componentstatus_ = componentstatus;
+  if (componentstatus) {
+    set_has_componentstatus();
+  } else {
+    clear_has_componentstatus();
+  }
+  // @@protoc_insertion_point(field_set_allocated:SAFplus.Rpc.amfMgmtRpc.GetComponentStatusResponse.ComponentStatus)
+}
+
+// optional sint32 err = 2;
+inline bool GetComponentStatusResponse::has_err() const {
+  return (_has_bits_[0] & 0x00000002u) != 0;
+}
+inline void GetComponentStatusResponse::set_has_err() {
+  _has_bits_[0] |= 0x00000002u;
+}
+inline void GetComponentStatusResponse::clear_has_err() {
+  _has_bits_[0] &= ~0x00000002u;
+}
+inline void GetComponentStatusResponse::clear_err() {
+  err_ = 0;
+  clear_has_err();
+}
+inline ::google::protobuf::int32 GetComponentStatusResponse::err() const {
+  // @@protoc_insertion_point(field_get:SAFplus.Rpc.amfMgmtRpc.GetComponentStatusResponse.err)
+  return err_;
+}
+inline void GetComponentStatusResponse::set_err(::google::protobuf::int32 value) {
+  set_has_err();
+  err_ = value;
+  // @@protoc_insertion_point(field_set:SAFplus.Rpc.amfMgmtRpc.GetComponentStatusResponse.err)
+}
+
+// -------------------------------------------------------------------
+
+// GetNodeStatusRequest
+
+// repeated bytes amfMgmtHandle = 1;
+inline int GetNodeStatusRequest::amfmgmthandle_size() const {
+  return amfmgmthandle_.size();
+}
+inline void GetNodeStatusRequest::clear_amfmgmthandle() {
+  amfmgmthandle_.Clear();
+}
+inline const ::std::string& GetNodeStatusRequest::amfmgmthandle(int index) const {
+  // @@protoc_insertion_point(field_get:SAFplus.Rpc.amfMgmtRpc.GetNodeStatusRequest.amfMgmtHandle)
+  return amfmgmthandle_.Get(index);
+}
+inline ::std::string* GetNodeStatusRequest::mutable_amfmgmthandle(int index) {
+  // @@protoc_insertion_point(field_mutable:SAFplus.Rpc.amfMgmtRpc.GetNodeStatusRequest.amfMgmtHandle)
+  return amfmgmthandle_.Mutable(index);
+}
+inline void GetNodeStatusRequest::set_amfmgmthandle(int index, const ::std::string& value) {
+  // @@protoc_insertion_point(field_set:SAFplus.Rpc.amfMgmtRpc.GetNodeStatusRequest.amfMgmtHandle)
+  amfmgmthandle_.Mutable(index)->assign(value);
+}
+inline void GetNodeStatusRequest::set_amfmgmthandle(int index, const char* value) {
+  amfmgmthandle_.Mutable(index)->assign(value);
+  // @@protoc_insertion_point(field_set_char:SAFplus.Rpc.amfMgmtRpc.GetNodeStatusRequest.amfMgmtHandle)
+}
+inline void GetNodeStatusRequest::set_amfmgmthandle(int index, const void* value, size_t size) {
+  amfmgmthandle_.Mutable(index)->assign(
+    reinterpret_cast<const char*>(value), size);
+  // @@protoc_insertion_point(field_set_pointer:SAFplus.Rpc.amfMgmtRpc.GetNodeStatusRequest.amfMgmtHandle)
+}
+inline ::std::string* GetNodeStatusRequest::add_amfmgmthandle() {
+  return amfmgmthandle_.Add();
+}
+inline void GetNodeStatusRequest::add_amfmgmthandle(const ::std::string& value) {
+  amfmgmthandle_.Add()->assign(value);
+  // @@protoc_insertion_point(field_add:SAFplus.Rpc.amfMgmtRpc.GetNodeStatusRequest.amfMgmtHandle)
+}
+inline void GetNodeStatusRequest::add_amfmgmthandle(const char* value) {
+  amfmgmthandle_.Add()->assign(value);
+  // @@protoc_insertion_point(field_add_char:SAFplus.Rpc.amfMgmtRpc.GetNodeStatusRequest.amfMgmtHandle)
+}
+inline void GetNodeStatusRequest::add_amfmgmthandle(const void* value, size_t size) {
+  amfmgmthandle_.Add()->assign(reinterpret_cast<const char*>(value), size);
+  // @@protoc_insertion_point(field_add_pointer:SAFplus.Rpc.amfMgmtRpc.GetNodeStatusRequest.amfMgmtHandle)
+}
+inline const ::google::protobuf::RepeatedPtrField< ::std::string>&
+GetNodeStatusRequest::amfmgmthandle() const {
+  // @@protoc_insertion_point(field_list:SAFplus.Rpc.amfMgmtRpc.GetNodeStatusRequest.amfMgmtHandle)
+  return amfmgmthandle_;
+}
+inline ::google::protobuf::RepeatedPtrField< ::std::string>*
+GetNodeStatusRequest::mutable_amfmgmthandle() {
+  // @@protoc_insertion_point(field_mutable_list:SAFplus.Rpc.amfMgmtRpc.GetNodeStatusRequest.amfMgmtHandle)
+  return &amfmgmthandle_;
+}
+
+// optional string nodeName = 2;
+inline bool GetNodeStatusRequest::has_nodename() const {
+  return (_has_bits_[0] & 0x00000002u) != 0;
+}
+inline void GetNodeStatusRequest::set_has_nodename() {
+  _has_bits_[0] |= 0x00000002u;
+}
+inline void GetNodeStatusRequest::clear_has_nodename() {
+  _has_bits_[0] &= ~0x00000002u;
+}
+inline void GetNodeStatusRequest::clear_nodename() {
+  if (nodename_ != &::google::protobuf::internal::GetEmptyStringAlreadyInited()) {
+    nodename_->clear();
+  }
+  clear_has_nodename();
+}
+inline const ::std::string& GetNodeStatusRequest::nodename() const {
+  // @@protoc_insertion_point(field_get:SAFplus.Rpc.amfMgmtRpc.GetNodeStatusRequest.nodeName)
+  return *nodename_;
+}
+inline void GetNodeStatusRequest::set_nodename(const ::std::string& value) {
+  set_has_nodename();
+  if (nodename_ == &::google::protobuf::internal::GetEmptyStringAlreadyInited()) {
+    nodename_ = new ::std::string;
+  }
+  nodename_->assign(value);
+  // @@protoc_insertion_point(field_set:SAFplus.Rpc.amfMgmtRpc.GetNodeStatusRequest.nodeName)
+}
+inline void GetNodeStatusRequest::set_nodename(const char* value) {
+  set_has_nodename();
+  if (nodename_ == &::google::protobuf::internal::GetEmptyStringAlreadyInited()) {
+    nodename_ = new ::std::string;
+  }
+  nodename_->assign(value);
+  // @@protoc_insertion_point(field_set_char:SAFplus.Rpc.amfMgmtRpc.GetNodeStatusRequest.nodeName)
+}
+inline void GetNodeStatusRequest::set_nodename(const char* value, size_t size) {
+  set_has_nodename();
+  if (nodename_ == &::google::protobuf::internal::GetEmptyStringAlreadyInited()) {
+    nodename_ = new ::std::string;
+  }
+  nodename_->assign(reinterpret_cast<const char*>(value), size);
+  // @@protoc_insertion_point(field_set_pointer:SAFplus.Rpc.amfMgmtRpc.GetNodeStatusRequest.nodeName)
+}
+inline ::std::string* GetNodeStatusRequest::mutable_nodename() {
+  set_has_nodename();
+  if (nodename_ == &::google::protobuf::internal::GetEmptyStringAlreadyInited()) {
+    nodename_ = new ::std::string;
+  }
+  // @@protoc_insertion_point(field_mutable:SAFplus.Rpc.amfMgmtRpc.GetNodeStatusRequest.nodeName)
+  return nodename_;
+}
+inline ::std::string* GetNodeStatusRequest::release_nodename() {
+  clear_has_nodename();
+  if (nodename_ == &::google::protobuf::internal::GetEmptyStringAlreadyInited()) {
+    return NULL;
+  } else {
+    ::std::string* temp = nodename_;
+    nodename_ = const_cast< ::std::string*>(&::google::protobuf::internal::GetEmptyStringAlreadyInited());
+    return temp;
+  }
+}
+inline void GetNodeStatusRequest::set_allocated_nodename(::std::string* nodename) {
+  if (nodename_ != &::google::protobuf::internal::GetEmptyStringAlreadyInited()) {
+    delete nodename_;
+  }
+  if (nodename) {
+    set_has_nodename();
+    nodename_ = nodename;
+  } else {
+    clear_has_nodename();
+    nodename_ = const_cast< ::std::string*>(&::google::protobuf::internal::GetEmptyStringAlreadyInited());
+  }
+  // @@protoc_insertion_point(field_set_allocated:SAFplus.Rpc.amfMgmtRpc.GetNodeStatusRequest.nodeName)
+}
+
+// -------------------------------------------------------------------
+
+// GetNodeStatusResponse
+
+// optional .SAFplus.Rpc.amfMgmtRpc.NodeStatus NodeStatus = 1;
+inline bool GetNodeStatusResponse::has_nodestatus() const {
+  return (_has_bits_[0] & 0x00000001u) != 0;
+}
+inline void GetNodeStatusResponse::set_has_nodestatus() {
+  _has_bits_[0] |= 0x00000001u;
+}
+inline void GetNodeStatusResponse::clear_has_nodestatus() {
+  _has_bits_[0] &= ~0x00000001u;
+}
+inline void GetNodeStatusResponse::clear_nodestatus() {
+  if (nodestatus_ != NULL) nodestatus_->::SAFplus::Rpc::amfMgmtRpc::NodeStatus::Clear();
+  clear_has_nodestatus();
+}
+inline const ::SAFplus::Rpc::amfMgmtRpc::NodeStatus& GetNodeStatusResponse::nodestatus() const {
+  // @@protoc_insertion_point(field_get:SAFplus.Rpc.amfMgmtRpc.GetNodeStatusResponse.NodeStatus)
+  return nodestatus_ != NULL ? *nodestatus_ : *default_instance_->nodestatus_;
+}
+inline ::SAFplus::Rpc::amfMgmtRpc::NodeStatus* GetNodeStatusResponse::mutable_nodestatus() {
+  set_has_nodestatus();
+  if (nodestatus_ == NULL) nodestatus_ = new ::SAFplus::Rpc::amfMgmtRpc::NodeStatus;
+  // @@protoc_insertion_point(field_mutable:SAFplus.Rpc.amfMgmtRpc.GetNodeStatusResponse.NodeStatus)
+  return nodestatus_;
+}
+inline ::SAFplus::Rpc::amfMgmtRpc::NodeStatus* GetNodeStatusResponse::release_nodestatus() {
+  clear_has_nodestatus();
+  ::SAFplus::Rpc::amfMgmtRpc::NodeStatus* temp = nodestatus_;
+  nodestatus_ = NULL;
+  return temp;
+}
+inline void GetNodeStatusResponse::set_allocated_nodestatus(::SAFplus::Rpc::amfMgmtRpc::NodeStatus* nodestatus) {
+  delete nodestatus_;
+  nodestatus_ = nodestatus;
+  if (nodestatus) {
+    set_has_nodestatus();
+  } else {
+    clear_has_nodestatus();
+  }
+  // @@protoc_insertion_point(field_set_allocated:SAFplus.Rpc.amfMgmtRpc.GetNodeStatusResponse.NodeStatus)
+}
+
+// optional sint32 err = 2;
+inline bool GetNodeStatusResponse::has_err() const {
+  return (_has_bits_[0] & 0x00000002u) != 0;
+}
+inline void GetNodeStatusResponse::set_has_err() {
+  _has_bits_[0] |= 0x00000002u;
+}
+inline void GetNodeStatusResponse::clear_has_err() {
+  _has_bits_[0] &= ~0x00000002u;
+}
+inline void GetNodeStatusResponse::clear_err() {
+  err_ = 0;
+  clear_has_err();
+}
+inline ::google::protobuf::int32 GetNodeStatusResponse::err() const {
+  // @@protoc_insertion_point(field_get:SAFplus.Rpc.amfMgmtRpc.GetNodeStatusResponse.err)
+  return err_;
+}
+inline void GetNodeStatusResponse::set_err(::google::protobuf::int32 value) {
+  set_has_err();
+  err_ = value;
+  // @@protoc_insertion_point(field_set:SAFplus.Rpc.amfMgmtRpc.GetNodeStatusResponse.err)
+}
+
+// -------------------------------------------------------------------
+
+// GetSUStatusRequest
+
+// repeated bytes amfMgmtHandle = 1;
+inline int GetSUStatusRequest::amfmgmthandle_size() const {
+  return amfmgmthandle_.size();
+}
+inline void GetSUStatusRequest::clear_amfmgmthandle() {
+  amfmgmthandle_.Clear();
+}
+inline const ::std::string& GetSUStatusRequest::amfmgmthandle(int index) const {
+  // @@protoc_insertion_point(field_get:SAFplus.Rpc.amfMgmtRpc.GetSUStatusRequest.amfMgmtHandle)
+  return amfmgmthandle_.Get(index);
+}
+inline ::std::string* GetSUStatusRequest::mutable_amfmgmthandle(int index) {
+  // @@protoc_insertion_point(field_mutable:SAFplus.Rpc.amfMgmtRpc.GetSUStatusRequest.amfMgmtHandle)
+  return amfmgmthandle_.Mutable(index);
+}
+inline void GetSUStatusRequest::set_amfmgmthandle(int index, const ::std::string& value) {
+  // @@protoc_insertion_point(field_set:SAFplus.Rpc.amfMgmtRpc.GetSUStatusRequest.amfMgmtHandle)
+  amfmgmthandle_.Mutable(index)->assign(value);
+}
+inline void GetSUStatusRequest::set_amfmgmthandle(int index, const char* value) {
+  amfmgmthandle_.Mutable(index)->assign(value);
+  // @@protoc_insertion_point(field_set_char:SAFplus.Rpc.amfMgmtRpc.GetSUStatusRequest.amfMgmtHandle)
+}
+inline void GetSUStatusRequest::set_amfmgmthandle(int index, const void* value, size_t size) {
+  amfmgmthandle_.Mutable(index)->assign(
+    reinterpret_cast<const char*>(value), size);
+  // @@protoc_insertion_point(field_set_pointer:SAFplus.Rpc.amfMgmtRpc.GetSUStatusRequest.amfMgmtHandle)
+}
+inline ::std::string* GetSUStatusRequest::add_amfmgmthandle() {
+  return amfmgmthandle_.Add();
+}
+inline void GetSUStatusRequest::add_amfmgmthandle(const ::std::string& value) {
+  amfmgmthandle_.Add()->assign(value);
+  // @@protoc_insertion_point(field_add:SAFplus.Rpc.amfMgmtRpc.GetSUStatusRequest.amfMgmtHandle)
+}
+inline void GetSUStatusRequest::add_amfmgmthandle(const char* value) {
+  amfmgmthandle_.Add()->assign(value);
+  // @@protoc_insertion_point(field_add_char:SAFplus.Rpc.amfMgmtRpc.GetSUStatusRequest.amfMgmtHandle)
+}
+inline void GetSUStatusRequest::add_amfmgmthandle(const void* value, size_t size) {
+  amfmgmthandle_.Add()->assign(reinterpret_cast<const char*>(value), size);
+  // @@protoc_insertion_point(field_add_pointer:SAFplus.Rpc.amfMgmtRpc.GetSUStatusRequest.amfMgmtHandle)
+}
+inline const ::google::protobuf::RepeatedPtrField< ::std::string>&
+GetSUStatusRequest::amfmgmthandle() const {
+  // @@protoc_insertion_point(field_list:SAFplus.Rpc.amfMgmtRpc.GetSUStatusRequest.amfMgmtHandle)
+  return amfmgmthandle_;
+}
+inline ::google::protobuf::RepeatedPtrField< ::std::string>*
+GetSUStatusRequest::mutable_amfmgmthandle() {
+  // @@protoc_insertion_point(field_mutable_list:SAFplus.Rpc.amfMgmtRpc.GetSUStatusRequest.amfMgmtHandle)
+  return &amfmgmthandle_;
+}
+
+// optional string suName = 2;
+inline bool GetSUStatusRequest::has_suname() const {
+  return (_has_bits_[0] & 0x00000002u) != 0;
+}
+inline void GetSUStatusRequest::set_has_suname() {
+  _has_bits_[0] |= 0x00000002u;
+}
+inline void GetSUStatusRequest::clear_has_suname() {
+  _has_bits_[0] &= ~0x00000002u;
+}
+inline void GetSUStatusRequest::clear_suname() {
+  if (suname_ != &::google::protobuf::internal::GetEmptyStringAlreadyInited()) {
+    suname_->clear();
+  }
+  clear_has_suname();
+}
+inline const ::std::string& GetSUStatusRequest::suname() const {
+  // @@protoc_insertion_point(field_get:SAFplus.Rpc.amfMgmtRpc.GetSUStatusRequest.suName)
+  return *suname_;
+}
+inline void GetSUStatusRequest::set_suname(const ::std::string& value) {
+  set_has_suname();
+  if (suname_ == &::google::protobuf::internal::GetEmptyStringAlreadyInited()) {
+    suname_ = new ::std::string;
+  }
+  suname_->assign(value);
+  // @@protoc_insertion_point(field_set:SAFplus.Rpc.amfMgmtRpc.GetSUStatusRequest.suName)
+}
+inline void GetSUStatusRequest::set_suname(const char* value) {
+  set_has_suname();
+  if (suname_ == &::google::protobuf::internal::GetEmptyStringAlreadyInited()) {
+    suname_ = new ::std::string;
+  }
+  suname_->assign(value);
+  // @@protoc_insertion_point(field_set_char:SAFplus.Rpc.amfMgmtRpc.GetSUStatusRequest.suName)
+}
+inline void GetSUStatusRequest::set_suname(const char* value, size_t size) {
+  set_has_suname();
+  if (suname_ == &::google::protobuf::internal::GetEmptyStringAlreadyInited()) {
+    suname_ = new ::std::string;
+  }
+  suname_->assign(reinterpret_cast<const char*>(value), size);
+  // @@protoc_insertion_point(field_set_pointer:SAFplus.Rpc.amfMgmtRpc.GetSUStatusRequest.suName)
+}
+inline ::std::string* GetSUStatusRequest::mutable_suname() {
+  set_has_suname();
+  if (suname_ == &::google::protobuf::internal::GetEmptyStringAlreadyInited()) {
+    suname_ = new ::std::string;
+  }
+  // @@protoc_insertion_point(field_mutable:SAFplus.Rpc.amfMgmtRpc.GetSUStatusRequest.suName)
+  return suname_;
+}
+inline ::std::string* GetSUStatusRequest::release_suname() {
+  clear_has_suname();
+  if (suname_ == &::google::protobuf::internal::GetEmptyStringAlreadyInited()) {
+    return NULL;
+  } else {
+    ::std::string* temp = suname_;
+    suname_ = const_cast< ::std::string*>(&::google::protobuf::internal::GetEmptyStringAlreadyInited());
+    return temp;
+  }
+}
+inline void GetSUStatusRequest::set_allocated_suname(::std::string* suname) {
+  if (suname_ != &::google::protobuf::internal::GetEmptyStringAlreadyInited()) {
+    delete suname_;
+  }
+  if (suname) {
+    set_has_suname();
+    suname_ = suname;
+  } else {
+    clear_has_suname();
+    suname_ = const_cast< ::std::string*>(&::google::protobuf::internal::GetEmptyStringAlreadyInited());
+  }
+  // @@protoc_insertion_point(field_set_allocated:SAFplus.Rpc.amfMgmtRpc.GetSUStatusRequest.suName)
+}
+
+// -------------------------------------------------------------------
+
+// GetSUStatusResponse
+
+// optional .SAFplus.Rpc.amfMgmtRpc.ServiceUnitStatus ServiceUnitStatus = 1;
+inline bool GetSUStatusResponse::has_serviceunitstatus() const {
+  return (_has_bits_[0] & 0x00000001u) != 0;
+}
+inline void GetSUStatusResponse::set_has_serviceunitstatus() {
+  _has_bits_[0] |= 0x00000001u;
+}
+inline void GetSUStatusResponse::clear_has_serviceunitstatus() {
+  _has_bits_[0] &= ~0x00000001u;
+}
+inline void GetSUStatusResponse::clear_serviceunitstatus() {
+  if (serviceunitstatus_ != NULL) serviceunitstatus_->::SAFplus::Rpc::amfMgmtRpc::ServiceUnitStatus::Clear();
+  clear_has_serviceunitstatus();
+}
+inline const ::SAFplus::Rpc::amfMgmtRpc::ServiceUnitStatus& GetSUStatusResponse::serviceunitstatus() const {
+  // @@protoc_insertion_point(field_get:SAFplus.Rpc.amfMgmtRpc.GetSUStatusResponse.ServiceUnitStatus)
+  return serviceunitstatus_ != NULL ? *serviceunitstatus_ : *default_instance_->serviceunitstatus_;
+}
+inline ::SAFplus::Rpc::amfMgmtRpc::ServiceUnitStatus* GetSUStatusResponse::mutable_serviceunitstatus() {
+  set_has_serviceunitstatus();
+  if (serviceunitstatus_ == NULL) serviceunitstatus_ = new ::SAFplus::Rpc::amfMgmtRpc::ServiceUnitStatus;
+  // @@protoc_insertion_point(field_mutable:SAFplus.Rpc.amfMgmtRpc.GetSUStatusResponse.ServiceUnitStatus)
+  return serviceunitstatus_;
+}
+inline ::SAFplus::Rpc::amfMgmtRpc::ServiceUnitStatus* GetSUStatusResponse::release_serviceunitstatus() {
+  clear_has_serviceunitstatus();
+  ::SAFplus::Rpc::amfMgmtRpc::ServiceUnitStatus* temp = serviceunitstatus_;
+  serviceunitstatus_ = NULL;
+  return temp;
+}
+inline void GetSUStatusResponse::set_allocated_serviceunitstatus(::SAFplus::Rpc::amfMgmtRpc::ServiceUnitStatus* serviceunitstatus) {
+  delete serviceunitstatus_;
+  serviceunitstatus_ = serviceunitstatus;
+  if (serviceunitstatus) {
+    set_has_serviceunitstatus();
+  } else {
+    clear_has_serviceunitstatus();
+  }
+  // @@protoc_insertion_point(field_set_allocated:SAFplus.Rpc.amfMgmtRpc.GetSUStatusResponse.ServiceUnitStatus)
+}
+
+// optional sint32 err = 2;
+inline bool GetSUStatusResponse::has_err() const {
+  return (_has_bits_[0] & 0x00000002u) != 0;
+}
+inline void GetSUStatusResponse::set_has_err() {
+  _has_bits_[0] |= 0x00000002u;
+}
+inline void GetSUStatusResponse::clear_has_err() {
+  _has_bits_[0] &= ~0x00000002u;
+}
+inline void GetSUStatusResponse::clear_err() {
+  err_ = 0;
+  clear_has_err();
+}
+inline ::google::protobuf::int32 GetSUStatusResponse::err() const {
+  // @@protoc_insertion_point(field_get:SAFplus.Rpc.amfMgmtRpc.GetSUStatusResponse.err)
+  return err_;
+}
+inline void GetSUStatusResponse::set_err(::google::protobuf::int32 value) {
+  set_has_err();
+  err_ = value;
+  // @@protoc_insertion_point(field_set:SAFplus.Rpc.amfMgmtRpc.GetSUStatusResponse.err)
+}
+
+// -------------------------------------------------------------------
+
+// GetSGStatusRequest
+
+// repeated bytes amfMgmtHandle = 1;
+inline int GetSGStatusRequest::amfmgmthandle_size() const {
+  return amfmgmthandle_.size();
+}
+inline void GetSGStatusRequest::clear_amfmgmthandle() {
+  amfmgmthandle_.Clear();
+}
+inline const ::std::string& GetSGStatusRequest::amfmgmthandle(int index) const {
+  // @@protoc_insertion_point(field_get:SAFplus.Rpc.amfMgmtRpc.GetSGStatusRequest.amfMgmtHandle)
+  return amfmgmthandle_.Get(index);
+}
+inline ::std::string* GetSGStatusRequest::mutable_amfmgmthandle(int index) {
+  // @@protoc_insertion_point(field_mutable:SAFplus.Rpc.amfMgmtRpc.GetSGStatusRequest.amfMgmtHandle)
+  return amfmgmthandle_.Mutable(index);
+}
+inline void GetSGStatusRequest::set_amfmgmthandle(int index, const ::std::string& value) {
+  // @@protoc_insertion_point(field_set:SAFplus.Rpc.amfMgmtRpc.GetSGStatusRequest.amfMgmtHandle)
+  amfmgmthandle_.Mutable(index)->assign(value);
+}
+inline void GetSGStatusRequest::set_amfmgmthandle(int index, const char* value) {
+  amfmgmthandle_.Mutable(index)->assign(value);
+  // @@protoc_insertion_point(field_set_char:SAFplus.Rpc.amfMgmtRpc.GetSGStatusRequest.amfMgmtHandle)
+}
+inline void GetSGStatusRequest::set_amfmgmthandle(int index, const void* value, size_t size) {
+  amfmgmthandle_.Mutable(index)->assign(
+    reinterpret_cast<const char*>(value), size);
+  // @@protoc_insertion_point(field_set_pointer:SAFplus.Rpc.amfMgmtRpc.GetSGStatusRequest.amfMgmtHandle)
+}
+inline ::std::string* GetSGStatusRequest::add_amfmgmthandle() {
+  return amfmgmthandle_.Add();
+}
+inline void GetSGStatusRequest::add_amfmgmthandle(const ::std::string& value) {
+  amfmgmthandle_.Add()->assign(value);
+  // @@protoc_insertion_point(field_add:SAFplus.Rpc.amfMgmtRpc.GetSGStatusRequest.amfMgmtHandle)
+}
+inline void GetSGStatusRequest::add_amfmgmthandle(const char* value) {
+  amfmgmthandle_.Add()->assign(value);
+  // @@protoc_insertion_point(field_add_char:SAFplus.Rpc.amfMgmtRpc.GetSGStatusRequest.amfMgmtHandle)
+}
+inline void GetSGStatusRequest::add_amfmgmthandle(const void* value, size_t size) {
+  amfmgmthandle_.Add()->assign(reinterpret_cast<const char*>(value), size);
+  // @@protoc_insertion_point(field_add_pointer:SAFplus.Rpc.amfMgmtRpc.GetSGStatusRequest.amfMgmtHandle)
+}
+inline const ::google::protobuf::RepeatedPtrField< ::std::string>&
+GetSGStatusRequest::amfmgmthandle() const {
+  // @@protoc_insertion_point(field_list:SAFplus.Rpc.amfMgmtRpc.GetSGStatusRequest.amfMgmtHandle)
+  return amfmgmthandle_;
+}
+inline ::google::protobuf::RepeatedPtrField< ::std::string>*
+GetSGStatusRequest::mutable_amfmgmthandle() {
+  // @@protoc_insertion_point(field_mutable_list:SAFplus.Rpc.amfMgmtRpc.GetSGStatusRequest.amfMgmtHandle)
+  return &amfmgmthandle_;
+}
+
+// optional string sgName = 2;
+inline bool GetSGStatusRequest::has_sgname() const {
+  return (_has_bits_[0] & 0x00000002u) != 0;
+}
+inline void GetSGStatusRequest::set_has_sgname() {
+  _has_bits_[0] |= 0x00000002u;
+}
+inline void GetSGStatusRequest::clear_has_sgname() {
+  _has_bits_[0] &= ~0x00000002u;
+}
+inline void GetSGStatusRequest::clear_sgname() {
+  if (sgname_ != &::google::protobuf::internal::GetEmptyStringAlreadyInited()) {
+    sgname_->clear();
+  }
+  clear_has_sgname();
+}
+inline const ::std::string& GetSGStatusRequest::sgname() const {
+  // @@protoc_insertion_point(field_get:SAFplus.Rpc.amfMgmtRpc.GetSGStatusRequest.sgName)
+  return *sgname_;
+}
+inline void GetSGStatusRequest::set_sgname(const ::std::string& value) {
+  set_has_sgname();
+  if (sgname_ == &::google::protobuf::internal::GetEmptyStringAlreadyInited()) {
+    sgname_ = new ::std::string;
+  }
+  sgname_->assign(value);
+  // @@protoc_insertion_point(field_set:SAFplus.Rpc.amfMgmtRpc.GetSGStatusRequest.sgName)
+}
+inline void GetSGStatusRequest::set_sgname(const char* value) {
+  set_has_sgname();
+  if (sgname_ == &::google::protobuf::internal::GetEmptyStringAlreadyInited()) {
+    sgname_ = new ::std::string;
+  }
+  sgname_->assign(value);
+  // @@protoc_insertion_point(field_set_char:SAFplus.Rpc.amfMgmtRpc.GetSGStatusRequest.sgName)
+}
+inline void GetSGStatusRequest::set_sgname(const char* value, size_t size) {
+  set_has_sgname();
+  if (sgname_ == &::google::protobuf::internal::GetEmptyStringAlreadyInited()) {
+    sgname_ = new ::std::string;
+  }
+  sgname_->assign(reinterpret_cast<const char*>(value), size);
+  // @@protoc_insertion_point(field_set_pointer:SAFplus.Rpc.amfMgmtRpc.GetSGStatusRequest.sgName)
+}
+inline ::std::string* GetSGStatusRequest::mutable_sgname() {
+  set_has_sgname();
+  if (sgname_ == &::google::protobuf::internal::GetEmptyStringAlreadyInited()) {
+    sgname_ = new ::std::string;
+  }
+  // @@protoc_insertion_point(field_mutable:SAFplus.Rpc.amfMgmtRpc.GetSGStatusRequest.sgName)
+  return sgname_;
+}
+inline ::std::string* GetSGStatusRequest::release_sgname() {
+  clear_has_sgname();
+  if (sgname_ == &::google::protobuf::internal::GetEmptyStringAlreadyInited()) {
+    return NULL;
+  } else {
+    ::std::string* temp = sgname_;
+    sgname_ = const_cast< ::std::string*>(&::google::protobuf::internal::GetEmptyStringAlreadyInited());
+    return temp;
+  }
+}
+inline void GetSGStatusRequest::set_allocated_sgname(::std::string* sgname) {
+  if (sgname_ != &::google::protobuf::internal::GetEmptyStringAlreadyInited()) {
+    delete sgname_;
+  }
+  if (sgname) {
+    set_has_sgname();
+    sgname_ = sgname;
+  } else {
+    clear_has_sgname();
+    sgname_ = const_cast< ::std::string*>(&::google::protobuf::internal::GetEmptyStringAlreadyInited());
+  }
+  // @@protoc_insertion_point(field_set_allocated:SAFplus.Rpc.amfMgmtRpc.GetSGStatusRequest.sgName)
+}
+
+// -------------------------------------------------------------------
+
+// GetSGStatusResponse
+
+// optional .SAFplus.Rpc.amfMgmtRpc.ServiceGroupStatus ServiceGroupStatus = 1;
+inline bool GetSGStatusResponse::has_servicegroupstatus() const {
+  return (_has_bits_[0] & 0x00000001u) != 0;
+}
+inline void GetSGStatusResponse::set_has_servicegroupstatus() {
+  _has_bits_[0] |= 0x00000001u;
+}
+inline void GetSGStatusResponse::clear_has_servicegroupstatus() {
+  _has_bits_[0] &= ~0x00000001u;
+}
+inline void GetSGStatusResponse::clear_servicegroupstatus() {
+  if (servicegroupstatus_ != NULL) servicegroupstatus_->::SAFplus::Rpc::amfMgmtRpc::ServiceGroupStatus::Clear();
+  clear_has_servicegroupstatus();
+}
+inline const ::SAFplus::Rpc::amfMgmtRpc::ServiceGroupStatus& GetSGStatusResponse::servicegroupstatus() const {
+  // @@protoc_insertion_point(field_get:SAFplus.Rpc.amfMgmtRpc.GetSGStatusResponse.ServiceGroupStatus)
+  return servicegroupstatus_ != NULL ? *servicegroupstatus_ : *default_instance_->servicegroupstatus_;
+}
+inline ::SAFplus::Rpc::amfMgmtRpc::ServiceGroupStatus* GetSGStatusResponse::mutable_servicegroupstatus() {
+  set_has_servicegroupstatus();
+  if (servicegroupstatus_ == NULL) servicegroupstatus_ = new ::SAFplus::Rpc::amfMgmtRpc::ServiceGroupStatus;
+  // @@protoc_insertion_point(field_mutable:SAFplus.Rpc.amfMgmtRpc.GetSGStatusResponse.ServiceGroupStatus)
+  return servicegroupstatus_;
+}
+inline ::SAFplus::Rpc::amfMgmtRpc::ServiceGroupStatus* GetSGStatusResponse::release_servicegroupstatus() {
+  clear_has_servicegroupstatus();
+  ::SAFplus::Rpc::amfMgmtRpc::ServiceGroupStatus* temp = servicegroupstatus_;
+  servicegroupstatus_ = NULL;
+  return temp;
+}
+inline void GetSGStatusResponse::set_allocated_servicegroupstatus(::SAFplus::Rpc::amfMgmtRpc::ServiceGroupStatus* servicegroupstatus) {
+  delete servicegroupstatus_;
+  servicegroupstatus_ = servicegroupstatus;
+  if (servicegroupstatus) {
+    set_has_servicegroupstatus();
+  } else {
+    clear_has_servicegroupstatus();
+  }
+  // @@protoc_insertion_point(field_set_allocated:SAFplus.Rpc.amfMgmtRpc.GetSGStatusResponse.ServiceGroupStatus)
+}
+
+// optional sint32 err = 2;
+inline bool GetSGStatusResponse::has_err() const {
+  return (_has_bits_[0] & 0x00000002u) != 0;
+}
+inline void GetSGStatusResponse::set_has_err() {
+  _has_bits_[0] |= 0x00000002u;
+}
+inline void GetSGStatusResponse::clear_has_err() {
+  _has_bits_[0] &= ~0x00000002u;
+}
+inline void GetSGStatusResponse::clear_err() {
+  err_ = 0;
+  clear_has_err();
+}
+inline ::google::protobuf::int32 GetSGStatusResponse::err() const {
+  // @@protoc_insertion_point(field_get:SAFplus.Rpc.amfMgmtRpc.GetSGStatusResponse.err)
+  return err_;
+}
+inline void GetSGStatusResponse::set_err(::google::protobuf::int32 value) {
+  set_has_err();
+  err_ = value;
+  // @@protoc_insertion_point(field_set:SAFplus.Rpc.amfMgmtRpc.GetSGStatusResponse.err)
+}
+
+// -------------------------------------------------------------------
+
+// GetSIStatusRequest
+
+// repeated bytes amfMgmtHandle = 1;
+inline int GetSIStatusRequest::amfmgmthandle_size() const {
+  return amfmgmthandle_.size();
+}
+inline void GetSIStatusRequest::clear_amfmgmthandle() {
+  amfmgmthandle_.Clear();
+}
+inline const ::std::string& GetSIStatusRequest::amfmgmthandle(int index) const {
+  // @@protoc_insertion_point(field_get:SAFplus.Rpc.amfMgmtRpc.GetSIStatusRequest.amfMgmtHandle)
+  return amfmgmthandle_.Get(index);
+}
+inline ::std::string* GetSIStatusRequest::mutable_amfmgmthandle(int index) {
+  // @@protoc_insertion_point(field_mutable:SAFplus.Rpc.amfMgmtRpc.GetSIStatusRequest.amfMgmtHandle)
+  return amfmgmthandle_.Mutable(index);
+}
+inline void GetSIStatusRequest::set_amfmgmthandle(int index, const ::std::string& value) {
+  // @@protoc_insertion_point(field_set:SAFplus.Rpc.amfMgmtRpc.GetSIStatusRequest.amfMgmtHandle)
+  amfmgmthandle_.Mutable(index)->assign(value);
+}
+inline void GetSIStatusRequest::set_amfmgmthandle(int index, const char* value) {
+  amfmgmthandle_.Mutable(index)->assign(value);
+  // @@protoc_insertion_point(field_set_char:SAFplus.Rpc.amfMgmtRpc.GetSIStatusRequest.amfMgmtHandle)
+}
+inline void GetSIStatusRequest::set_amfmgmthandle(int index, const void* value, size_t size) {
+  amfmgmthandle_.Mutable(index)->assign(
+    reinterpret_cast<const char*>(value), size);
+  // @@protoc_insertion_point(field_set_pointer:SAFplus.Rpc.amfMgmtRpc.GetSIStatusRequest.amfMgmtHandle)
+}
+inline ::std::string* GetSIStatusRequest::add_amfmgmthandle() {
+  return amfmgmthandle_.Add();
+}
+inline void GetSIStatusRequest::add_amfmgmthandle(const ::std::string& value) {
+  amfmgmthandle_.Add()->assign(value);
+  // @@protoc_insertion_point(field_add:SAFplus.Rpc.amfMgmtRpc.GetSIStatusRequest.amfMgmtHandle)
+}
+inline void GetSIStatusRequest::add_amfmgmthandle(const char* value) {
+  amfmgmthandle_.Add()->assign(value);
+  // @@protoc_insertion_point(field_add_char:SAFplus.Rpc.amfMgmtRpc.GetSIStatusRequest.amfMgmtHandle)
+}
+inline void GetSIStatusRequest::add_amfmgmthandle(const void* value, size_t size) {
+  amfmgmthandle_.Add()->assign(reinterpret_cast<const char*>(value), size);
+  // @@protoc_insertion_point(field_add_pointer:SAFplus.Rpc.amfMgmtRpc.GetSIStatusRequest.amfMgmtHandle)
+}
+inline const ::google::protobuf::RepeatedPtrField< ::std::string>&
+GetSIStatusRequest::amfmgmthandle() const {
+  // @@protoc_insertion_point(field_list:SAFplus.Rpc.amfMgmtRpc.GetSIStatusRequest.amfMgmtHandle)
+  return amfmgmthandle_;
+}
+inline ::google::protobuf::RepeatedPtrField< ::std::string>*
+GetSIStatusRequest::mutable_amfmgmthandle() {
+  // @@protoc_insertion_point(field_mutable_list:SAFplus.Rpc.amfMgmtRpc.GetSIStatusRequest.amfMgmtHandle)
+  return &amfmgmthandle_;
+}
+
+// optional string siName = 2;
+inline bool GetSIStatusRequest::has_siname() const {
+  return (_has_bits_[0] & 0x00000002u) != 0;
+}
+inline void GetSIStatusRequest::set_has_siname() {
+  _has_bits_[0] |= 0x00000002u;
+}
+inline void GetSIStatusRequest::clear_has_siname() {
+  _has_bits_[0] &= ~0x00000002u;
+}
+inline void GetSIStatusRequest::clear_siname() {
+  if (siname_ != &::google::protobuf::internal::GetEmptyStringAlreadyInited()) {
+    siname_->clear();
+  }
+  clear_has_siname();
+}
+inline const ::std::string& GetSIStatusRequest::siname() const {
+  // @@protoc_insertion_point(field_get:SAFplus.Rpc.amfMgmtRpc.GetSIStatusRequest.siName)
+  return *siname_;
+}
+inline void GetSIStatusRequest::set_siname(const ::std::string& value) {
+  set_has_siname();
+  if (siname_ == &::google::protobuf::internal::GetEmptyStringAlreadyInited()) {
+    siname_ = new ::std::string;
+  }
+  siname_->assign(value);
+  // @@protoc_insertion_point(field_set:SAFplus.Rpc.amfMgmtRpc.GetSIStatusRequest.siName)
+}
+inline void GetSIStatusRequest::set_siname(const char* value) {
+  set_has_siname();
+  if (siname_ == &::google::protobuf::internal::GetEmptyStringAlreadyInited()) {
+    siname_ = new ::std::string;
+  }
+  siname_->assign(value);
+  // @@protoc_insertion_point(field_set_char:SAFplus.Rpc.amfMgmtRpc.GetSIStatusRequest.siName)
+}
+inline void GetSIStatusRequest::set_siname(const char* value, size_t size) {
+  set_has_siname();
+  if (siname_ == &::google::protobuf::internal::GetEmptyStringAlreadyInited()) {
+    siname_ = new ::std::string;
+  }
+  siname_->assign(reinterpret_cast<const char*>(value), size);
+  // @@protoc_insertion_point(field_set_pointer:SAFplus.Rpc.amfMgmtRpc.GetSIStatusRequest.siName)
+}
+inline ::std::string* GetSIStatusRequest::mutable_siname() {
+  set_has_siname();
+  if (siname_ == &::google::protobuf::internal::GetEmptyStringAlreadyInited()) {
+    siname_ = new ::std::string;
+  }
+  // @@protoc_insertion_point(field_mutable:SAFplus.Rpc.amfMgmtRpc.GetSIStatusRequest.siName)
+  return siname_;
+}
+inline ::std::string* GetSIStatusRequest::release_siname() {
+  clear_has_siname();
+  if (siname_ == &::google::protobuf::internal::GetEmptyStringAlreadyInited()) {
+    return NULL;
+  } else {
+    ::std::string* temp = siname_;
+    siname_ = const_cast< ::std::string*>(&::google::protobuf::internal::GetEmptyStringAlreadyInited());
+    return temp;
+  }
+}
+inline void GetSIStatusRequest::set_allocated_siname(::std::string* siname) {
+  if (siname_ != &::google::protobuf::internal::GetEmptyStringAlreadyInited()) {
+    delete siname_;
+  }
+  if (siname) {
+    set_has_siname();
+    siname_ = siname;
+  } else {
+    clear_has_siname();
+    siname_ = const_cast< ::std::string*>(&::google::protobuf::internal::GetEmptyStringAlreadyInited());
+  }
+  // @@protoc_insertion_point(field_set_allocated:SAFplus.Rpc.amfMgmtRpc.GetSIStatusRequest.siName)
+}
+
+// -------------------------------------------------------------------
+
+// GetSIStatusResponse
+
+// optional .SAFplus.Rpc.amfMgmtRpc.ServiceInstanceStatus ServiceInstanceStatus = 1;
+inline bool GetSIStatusResponse::has_serviceinstancestatus() const {
+  return (_has_bits_[0] & 0x00000001u) != 0;
+}
+inline void GetSIStatusResponse::set_has_serviceinstancestatus() {
+  _has_bits_[0] |= 0x00000001u;
+}
+inline void GetSIStatusResponse::clear_has_serviceinstancestatus() {
+  _has_bits_[0] &= ~0x00000001u;
+}
+inline void GetSIStatusResponse::clear_serviceinstancestatus() {
+  if (serviceinstancestatus_ != NULL) serviceinstancestatus_->::SAFplus::Rpc::amfMgmtRpc::ServiceInstanceStatus::Clear();
+  clear_has_serviceinstancestatus();
+}
+inline const ::SAFplus::Rpc::amfMgmtRpc::ServiceInstanceStatus& GetSIStatusResponse::serviceinstancestatus() const {
+  // @@protoc_insertion_point(field_get:SAFplus.Rpc.amfMgmtRpc.GetSIStatusResponse.ServiceInstanceStatus)
+  return serviceinstancestatus_ != NULL ? *serviceinstancestatus_ : *default_instance_->serviceinstancestatus_;
+}
+inline ::SAFplus::Rpc::amfMgmtRpc::ServiceInstanceStatus* GetSIStatusResponse::mutable_serviceinstancestatus() {
+  set_has_serviceinstancestatus();
+  if (serviceinstancestatus_ == NULL) serviceinstancestatus_ = new ::SAFplus::Rpc::amfMgmtRpc::ServiceInstanceStatus;
+  // @@protoc_insertion_point(field_mutable:SAFplus.Rpc.amfMgmtRpc.GetSIStatusResponse.ServiceInstanceStatus)
+  return serviceinstancestatus_;
+}
+inline ::SAFplus::Rpc::amfMgmtRpc::ServiceInstanceStatus* GetSIStatusResponse::release_serviceinstancestatus() {
+  clear_has_serviceinstancestatus();
+  ::SAFplus::Rpc::amfMgmtRpc::ServiceInstanceStatus* temp = serviceinstancestatus_;
+  serviceinstancestatus_ = NULL;
+  return temp;
+}
+inline void GetSIStatusResponse::set_allocated_serviceinstancestatus(::SAFplus::Rpc::amfMgmtRpc::ServiceInstanceStatus* serviceinstancestatus) {
+  delete serviceinstancestatus_;
+  serviceinstancestatus_ = serviceinstancestatus;
+  if (serviceinstancestatus) {
+    set_has_serviceinstancestatus();
+  } else {
+    clear_has_serviceinstancestatus();
+  }
+  // @@protoc_insertion_point(field_set_allocated:SAFplus.Rpc.amfMgmtRpc.GetSIStatusResponse.ServiceInstanceStatus)
+}
+
+// optional sint32 err = 2;
+inline bool GetSIStatusResponse::has_err() const {
+  return (_has_bits_[0] & 0x00000002u) != 0;
+}
+inline void GetSIStatusResponse::set_has_err() {
+  _has_bits_[0] |= 0x00000002u;
+}
+inline void GetSIStatusResponse::clear_has_err() {
+  _has_bits_[0] &= ~0x00000002u;
+}
+inline void GetSIStatusResponse::clear_err() {
+  err_ = 0;
+  clear_has_err();
+}
+inline ::google::protobuf::int32 GetSIStatusResponse::err() const {
+  // @@protoc_insertion_point(field_get:SAFplus.Rpc.amfMgmtRpc.GetSIStatusResponse.err)
+  return err_;
+}
+inline void GetSIStatusResponse::set_err(::google::protobuf::int32 value) {
+  set_has_err();
+  err_ = value;
+  // @@protoc_insertion_point(field_set:SAFplus.Rpc.amfMgmtRpc.GetSIStatusResponse.err)
+}
+
+// -------------------------------------------------------------------
+
+// GetCSIStatusRequest
+
+// repeated bytes amfMgmtHandle = 1;
+inline int GetCSIStatusRequest::amfmgmthandle_size() const {
+  return amfmgmthandle_.size();
+}
+inline void GetCSIStatusRequest::clear_amfmgmthandle() {
+  amfmgmthandle_.Clear();
+}
+inline const ::std::string& GetCSIStatusRequest::amfmgmthandle(int index) const {
+  // @@protoc_insertion_point(field_get:SAFplus.Rpc.amfMgmtRpc.GetCSIStatusRequest.amfMgmtHandle)
+  return amfmgmthandle_.Get(index);
+}
+inline ::std::string* GetCSIStatusRequest::mutable_amfmgmthandle(int index) {
+  // @@protoc_insertion_point(field_mutable:SAFplus.Rpc.amfMgmtRpc.GetCSIStatusRequest.amfMgmtHandle)
+  return amfmgmthandle_.Mutable(index);
+}
+inline void GetCSIStatusRequest::set_amfmgmthandle(int index, const ::std::string& value) {
+  // @@protoc_insertion_point(field_set:SAFplus.Rpc.amfMgmtRpc.GetCSIStatusRequest.amfMgmtHandle)
+  amfmgmthandle_.Mutable(index)->assign(value);
+}
+inline void GetCSIStatusRequest::set_amfmgmthandle(int index, const char* value) {
+  amfmgmthandle_.Mutable(index)->assign(value);
+  // @@protoc_insertion_point(field_set_char:SAFplus.Rpc.amfMgmtRpc.GetCSIStatusRequest.amfMgmtHandle)
+}
+inline void GetCSIStatusRequest::set_amfmgmthandle(int index, const void* value, size_t size) {
+  amfmgmthandle_.Mutable(index)->assign(
+    reinterpret_cast<const char*>(value), size);
+  // @@protoc_insertion_point(field_set_pointer:SAFplus.Rpc.amfMgmtRpc.GetCSIStatusRequest.amfMgmtHandle)
+}
+inline ::std::string* GetCSIStatusRequest::add_amfmgmthandle() {
+  return amfmgmthandle_.Add();
+}
+inline void GetCSIStatusRequest::add_amfmgmthandle(const ::std::string& value) {
+  amfmgmthandle_.Add()->assign(value);
+  // @@protoc_insertion_point(field_add:SAFplus.Rpc.amfMgmtRpc.GetCSIStatusRequest.amfMgmtHandle)
+}
+inline void GetCSIStatusRequest::add_amfmgmthandle(const char* value) {
+  amfmgmthandle_.Add()->assign(value);
+  // @@protoc_insertion_point(field_add_char:SAFplus.Rpc.amfMgmtRpc.GetCSIStatusRequest.amfMgmtHandle)
+}
+inline void GetCSIStatusRequest::add_amfmgmthandle(const void* value, size_t size) {
+  amfmgmthandle_.Add()->assign(reinterpret_cast<const char*>(value), size);
+  // @@protoc_insertion_point(field_add_pointer:SAFplus.Rpc.amfMgmtRpc.GetCSIStatusRequest.amfMgmtHandle)
+}
+inline const ::google::protobuf::RepeatedPtrField< ::std::string>&
+GetCSIStatusRequest::amfmgmthandle() const {
+  // @@protoc_insertion_point(field_list:SAFplus.Rpc.amfMgmtRpc.GetCSIStatusRequest.amfMgmtHandle)
+  return amfmgmthandle_;
+}
+inline ::google::protobuf::RepeatedPtrField< ::std::string>*
+GetCSIStatusRequest::mutable_amfmgmthandle() {
+  // @@protoc_insertion_point(field_mutable_list:SAFplus.Rpc.amfMgmtRpc.GetCSIStatusRequest.amfMgmtHandle)
+  return &amfmgmthandle_;
+}
+
+// optional string csiName = 2;
+inline bool GetCSIStatusRequest::has_csiname() const {
+  return (_has_bits_[0] & 0x00000002u) != 0;
+}
+inline void GetCSIStatusRequest::set_has_csiname() {
+  _has_bits_[0] |= 0x00000002u;
+}
+inline void GetCSIStatusRequest::clear_has_csiname() {
+  _has_bits_[0] &= ~0x00000002u;
+}
+inline void GetCSIStatusRequest::clear_csiname() {
+  if (csiname_ != &::google::protobuf::internal::GetEmptyStringAlreadyInited()) {
+    csiname_->clear();
+  }
+  clear_has_csiname();
+}
+inline const ::std::string& GetCSIStatusRequest::csiname() const {
+  // @@protoc_insertion_point(field_get:SAFplus.Rpc.amfMgmtRpc.GetCSIStatusRequest.csiName)
+  return *csiname_;
+}
+inline void GetCSIStatusRequest::set_csiname(const ::std::string& value) {
+  set_has_csiname();
+  if (csiname_ == &::google::protobuf::internal::GetEmptyStringAlreadyInited()) {
+    csiname_ = new ::std::string;
+  }
+  csiname_->assign(value);
+  // @@protoc_insertion_point(field_set:SAFplus.Rpc.amfMgmtRpc.GetCSIStatusRequest.csiName)
+}
+inline void GetCSIStatusRequest::set_csiname(const char* value) {
+  set_has_csiname();
+  if (csiname_ == &::google::protobuf::internal::GetEmptyStringAlreadyInited()) {
+    csiname_ = new ::std::string;
+  }
+  csiname_->assign(value);
+  // @@protoc_insertion_point(field_set_char:SAFplus.Rpc.amfMgmtRpc.GetCSIStatusRequest.csiName)
+}
+inline void GetCSIStatusRequest::set_csiname(const char* value, size_t size) {
+  set_has_csiname();
+  if (csiname_ == &::google::protobuf::internal::GetEmptyStringAlreadyInited()) {
+    csiname_ = new ::std::string;
+  }
+  csiname_->assign(reinterpret_cast<const char*>(value), size);
+  // @@protoc_insertion_point(field_set_pointer:SAFplus.Rpc.amfMgmtRpc.GetCSIStatusRequest.csiName)
+}
+inline ::std::string* GetCSIStatusRequest::mutable_csiname() {
+  set_has_csiname();
+  if (csiname_ == &::google::protobuf::internal::GetEmptyStringAlreadyInited()) {
+    csiname_ = new ::std::string;
+  }
+  // @@protoc_insertion_point(field_mutable:SAFplus.Rpc.amfMgmtRpc.GetCSIStatusRequest.csiName)
+  return csiname_;
+}
+inline ::std::string* GetCSIStatusRequest::release_csiname() {
+  clear_has_csiname();
+  if (csiname_ == &::google::protobuf::internal::GetEmptyStringAlreadyInited()) {
+    return NULL;
+  } else {
+    ::std::string* temp = csiname_;
+    csiname_ = const_cast< ::std::string*>(&::google::protobuf::internal::GetEmptyStringAlreadyInited());
+    return temp;
+  }
+}
+inline void GetCSIStatusRequest::set_allocated_csiname(::std::string* csiname) {
+  if (csiname_ != &::google::protobuf::internal::GetEmptyStringAlreadyInited()) {
+    delete csiname_;
+  }
+  if (csiname) {
+    set_has_csiname();
+    csiname_ = csiname;
+  } else {
+    clear_has_csiname();
+    csiname_ = const_cast< ::std::string*>(&::google::protobuf::internal::GetEmptyStringAlreadyInited());
+  }
+  // @@protoc_insertion_point(field_set_allocated:SAFplus.Rpc.amfMgmtRpc.GetCSIStatusRequest.csiName)
+}
+
+// -------------------------------------------------------------------
+
+// GetCSIStatusResponse
+
+// optional .SAFplus.Rpc.amfMgmtRpc.ComponentServiceInstanceStatus ComponentServiceInstanceStatus = 1;
+inline bool GetCSIStatusResponse::has_componentserviceinstancestatus() const {
+  return (_has_bits_[0] & 0x00000001u) != 0;
+}
+inline void GetCSIStatusResponse::set_has_componentserviceinstancestatus() {
+  _has_bits_[0] |= 0x00000001u;
+}
+inline void GetCSIStatusResponse::clear_has_componentserviceinstancestatus() {
+  _has_bits_[0] &= ~0x00000001u;
+}
+inline void GetCSIStatusResponse::clear_componentserviceinstancestatus() {
+  if (componentserviceinstancestatus_ != NULL) componentserviceinstancestatus_->::SAFplus::Rpc::amfMgmtRpc::ComponentServiceInstanceStatus::Clear();
+  clear_has_componentserviceinstancestatus();
+}
+inline const ::SAFplus::Rpc::amfMgmtRpc::ComponentServiceInstanceStatus& GetCSIStatusResponse::componentserviceinstancestatus() const {
+  // @@protoc_insertion_point(field_get:SAFplus.Rpc.amfMgmtRpc.GetCSIStatusResponse.ComponentServiceInstanceStatus)
+  return componentserviceinstancestatus_ != NULL ? *componentserviceinstancestatus_ : *default_instance_->componentserviceinstancestatus_;
+}
+inline ::SAFplus::Rpc::amfMgmtRpc::ComponentServiceInstanceStatus* GetCSIStatusResponse::mutable_componentserviceinstancestatus() {
+  set_has_componentserviceinstancestatus();
+  if (componentserviceinstancestatus_ == NULL) componentserviceinstancestatus_ = new ::SAFplus::Rpc::amfMgmtRpc::ComponentServiceInstanceStatus;
+  // @@protoc_insertion_point(field_mutable:SAFplus.Rpc.amfMgmtRpc.GetCSIStatusResponse.ComponentServiceInstanceStatus)
+  return componentserviceinstancestatus_;
+}
+inline ::SAFplus::Rpc::amfMgmtRpc::ComponentServiceInstanceStatus* GetCSIStatusResponse::release_componentserviceinstancestatus() {
+  clear_has_componentserviceinstancestatus();
+  ::SAFplus::Rpc::amfMgmtRpc::ComponentServiceInstanceStatus* temp = componentserviceinstancestatus_;
+  componentserviceinstancestatus_ = NULL;
+  return temp;
+}
+inline void GetCSIStatusResponse::set_allocated_componentserviceinstancestatus(::SAFplus::Rpc::amfMgmtRpc::ComponentServiceInstanceStatus* componentserviceinstancestatus) {
+  delete componentserviceinstancestatus_;
+  componentserviceinstancestatus_ = componentserviceinstancestatus;
+  if (componentserviceinstancestatus) {
+    set_has_componentserviceinstancestatus();
+  } else {
+    clear_has_componentserviceinstancestatus();
+  }
+  // @@protoc_insertion_point(field_set_allocated:SAFplus.Rpc.amfMgmtRpc.GetCSIStatusResponse.ComponentServiceInstanceStatus)
+}
+
+// optional sint32 err = 2;
+inline bool GetCSIStatusResponse::has_err() const {
+  return (_has_bits_[0] & 0x00000002u) != 0;
+}
+inline void GetCSIStatusResponse::set_has_err() {
+  _has_bits_[0] |= 0x00000002u;
+}
+inline void GetCSIStatusResponse::clear_has_err() {
+  _has_bits_[0] &= ~0x00000002u;
+}
+inline void GetCSIStatusResponse::clear_err() {
+  err_ = 0;
+  clear_has_err();
+}
+inline ::google::protobuf::int32 GetCSIStatusResponse::err() const {
+  // @@protoc_insertion_point(field_get:SAFplus.Rpc.amfMgmtRpc.GetCSIStatusResponse.err)
+  return err_;
+}
+inline void GetCSIStatusResponse::set_err(::google::protobuf::int32 value) {
+  set_has_err();
+  err_ = value;
+  // @@protoc_insertion_point(field_set:SAFplus.Rpc.amfMgmtRpc.GetCSIStatusResponse.err)
+}
+
 
 // @@protoc_insertion_point(namespace_scope)
 
@@ -21779,10 +33825,35 @@ inline void GetCSIConfigResponse::set_err(::google::protobuf::int32 value) {
 namespace google {
 namespace protobuf {
 
+template <> struct is_proto_enum< ::SAFplus::Rpc::amfMgmtRpc::PresenceState> : ::google::protobuf::internal::true_type {};
+template <>
+inline const EnumDescriptor* GetEnumDescriptor< ::SAFplus::Rpc::amfMgmtRpc::PresenceState>() {
+  return ::SAFplus::Rpc::amfMgmtRpc::PresenceState_descriptor();
+}
+template <> struct is_proto_enum< ::SAFplus::Rpc::amfMgmtRpc::ReadinessState> : ::google::protobuf::internal::true_type {};
+template <>
+inline const EnumDescriptor* GetEnumDescriptor< ::SAFplus::Rpc::amfMgmtRpc::ReadinessState>() {
+  return ::SAFplus::Rpc::amfMgmtRpc::ReadinessState_descriptor();
+}
+template <> struct is_proto_enum< ::SAFplus::Rpc::amfMgmtRpc::HighAvailabilityReadinessState> : ::google::protobuf::internal::true_type {};
+template <>
+inline const EnumDescriptor* GetEnumDescriptor< ::SAFplus::Rpc::amfMgmtRpc::HighAvailabilityReadinessState>() {
+  return ::SAFplus::Rpc::amfMgmtRpc::HighAvailabilityReadinessState_descriptor();
+}
+template <> struct is_proto_enum< ::SAFplus::Rpc::amfMgmtRpc::HighAvailabilityState> : ::google::protobuf::internal::true_type {};
+template <>
+inline const EnumDescriptor* GetEnumDescriptor< ::SAFplus::Rpc::amfMgmtRpc::HighAvailabilityState>() {
+  return ::SAFplus::Rpc::amfMgmtRpc::HighAvailabilityState_descriptor();
+}
 template <> struct is_proto_enum< ::SAFplus::Rpc::amfMgmtRpc::AdministrativeState> : ::google::protobuf::internal::true_type {};
 template <>
 inline const EnumDescriptor* GetEnumDescriptor< ::SAFplus::Rpc::amfMgmtRpc::AdministrativeState>() {
   return ::SAFplus::Rpc::amfMgmtRpc::AdministrativeState_descriptor();
+}
+template <> struct is_proto_enum< ::SAFplus::Rpc::amfMgmtRpc::ProcessState> : ::google::protobuf::internal::true_type {};
+template <>
+inline const EnumDescriptor* GetEnumDescriptor< ::SAFplus::Rpc::amfMgmtRpc::ProcessState>() {
+  return ::SAFplus::Rpc::amfMgmtRpc::ProcessState_descriptor();
 }
 template <> struct is_proto_enum< ::SAFplus::Rpc::amfMgmtRpc::CapabilityModel> : ::google::protobuf::internal::true_type {};
 template <>
@@ -21793,6 +33864,16 @@ template <> struct is_proto_enum< ::SAFplus::Rpc::amfMgmtRpc::Recovery> : ::goog
 template <>
 inline const EnumDescriptor* GetEnumDescriptor< ::SAFplus::Rpc::amfMgmtRpc::Recovery>() {
   return ::SAFplus::Rpc::amfMgmtRpc::Recovery_descriptor();
+}
+template <> struct is_proto_enum< ::SAFplus::Rpc::amfMgmtRpc::PendingOperation> : ::google::protobuf::internal::true_type {};
+template <>
+inline const EnumDescriptor* GetEnumDescriptor< ::SAFplus::Rpc::amfMgmtRpc::PendingOperation>() {
+  return ::SAFplus::Rpc::amfMgmtRpc::PendingOperation_descriptor();
+}
+template <> struct is_proto_enum< ::SAFplus::Rpc::amfMgmtRpc::AssignmentState> : ::google::protobuf::internal::true_type {};
+template <>
+inline const EnumDescriptor* GetEnumDescriptor< ::SAFplus::Rpc::amfMgmtRpc::AssignmentState>() {
+  return ::SAFplus::Rpc::amfMgmtRpc::AssignmentState_descriptor();
 }
 
 }  // namespace google

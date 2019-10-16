@@ -62,6 +62,11 @@ ClRcT amfMgmtSUGetConfig(const Handle& mgmtHandle,const std::string& suName, SAF
 ClRcT amfMgmtSIGetConfig(const Handle& mgmtHandle,const std::string& siName, SAFplus::Rpc::amfMgmtRpc::ServiceInstanceConfig** siConfig);
 ClRcT amfMgmtCSIGetConfig(const Handle& mgmtHandle,const std::string& csiName, SAFplus::Rpc::amfMgmtRpc::ComponentServiceInstanceConfig** csiConfig);
       
-      
+ClRcT amfMgmtComponentGetStatus(const Handle& mgmtHandle,const std::string& compName, SAFplus::Rpc::amfMgmtRpc::ComponentStatus** compStatus);
+ClRcT amfMgmtNodeGetStatus(const Handle& mgmtHandle,const std::string& nodeName, SAFplus::Rpc::amfMgmtRpc::NodeStatus** nodeStatus);
+ClRcT amfMgmtSGGetStatus(const Handle& mgmtHandle,const std::string& sgName, SAFplus::Rpc::amfMgmtRpc::ServiceGroupStatus** sgStatus);
+ClRcT amfMgmtSUGetStatus(const Handle& mgmtHandle,const std::string& suName, SAFplus::Rpc::amfMgmtRpc::ServiceUnitStatus** suStatus);
+ClRcT amfMgmtSIGetStatus(const Handle& mgmtHandle,const std::string& siName, SAFplus::Rpc::amfMgmtRpc::ServiceInstanceStatus** siStatus);
+ClRcT amfMgmtCSIGetStatus(const Handle& mgmtHandle,const std::string& csiName, SAFplus::Rpc::amfMgmtRpc::ComponentServiceInstanceStatus** csiStatus);
 
 }

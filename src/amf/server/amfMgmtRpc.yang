@@ -20,6 +20,76 @@ module amfMgmtRpc
     reference "SAI-AIS-AMF-B.04.01.pdf";
   }
 
+  typedef PresenceState
+    {
+      type enumeration
+      {
+	enum uninstantiated;
+	enum instantiating;
+	enum instantiated;
+	enum terminating;
+	enum restarting;
+	enum instantiationFailed;
+	enum terminationFailed;
+      }
+      default "uninstantiated";
+    }
+
+    typedef ReadinessState
+    {
+      description "This state indicates if a service unit is eligible to take service instance assignments from an administrative and health status view-point.  The operational, administrative, and presence states of a service unit, the operational state of its containing node, and the administrative states of its containing node, service group, application, and the cluster are combined to form this state.";
+      type enumeration
+      {
+	enum outOfService;
+        enum inService;
+        enum stopping;
+      }
+      default outOfService;
+    }
+
+  typedef HighAvailabilityReadinessState
+    {
+      description "The HA readiness state is not used to reflect a failure of the component, but rather to reflect situations in which a healthy component is not ready to assume a particular assignment for a component service instance, either because the component is not in an internal state required for the assignment, or because some resources on which the assignment depends are not available.  If a component receives a new component service instance assignment request (see SaAmfCSISetCallbackT) for which it is not ready, it must set its HA readiness state for this component service instance accordingly (by invoking the saAmfHAReadinessStateSet() function), before it responds to the assignment request with the SA_AIS_ERR_NOT_READY error (by invoking the saAmfResponse_4() function) to prevent the Availability Management Framework from treating the error as a component failure.";
+      type enumeration
+      {
+	enum readyForAssignment;
+        enum readyForActiveDegraded;
+        enum notReadyForActive;
+        enum notReadyForAssignment;
+      }
+      default readyForAssignment;
+    }
+
+
+
+    typedef HighAvailabilityState
+    {
+      type enumeration
+      {
+	enum active  // SA_AMF_HA_ACTIVE = 1,
+	{
+	  value 1;
+	  description "The service unit is currently responsible for providing the service characterized by this service instance.";
+	}
+	enum standby // SA_AMF_HA_STANDBY = 2
+	{
+	  value 2;
+	  description "The service unit acts as a standby for the service characterized by this service instance.";
+	}
+	enum idle  // SA_AMF_HA_QUIESCED = 3
+	{
+	  value 3;
+	  description "SA-Forum 'quiesced': this entity has no high availability assignments.";
+	}
+	enum quiescing  // SA_AMF_HA_QUIESCING = 4
+	{
+	  value 4;
+	  description "This entity is in the process of stopping its active or standby activity.  This is a transitional state; when completed it will automatically change to idle.";
+	}
+      }
+    default "idle";
+    }
+
   typedef AdministrativeState
     {
       type enumeration
@@ -48,6 +118,148 @@ module amfMgmtRpc
       type uint64;
       description "A representation of a time interval, specified in milliseconds";
     }
+ 
+  typedef date
+      {
+	type uint64;
+	description "A representation of a date.";
+      }
+
+  grouping intStatistic
+    {
+      //SAFplusTypes:c-existing "SAFplus::MgtHistoryStat<int>"; 
+
+      leaf current
+      {
+        type uint64;
+      }
+      /* contains a data points indicating data broken into 10 second periods
+         for example:
+         100 400 300 200 100 <etc>
+      */
+
+      leaf history10sec  
+      {
+        type string; // comma separated list of uint64;
+      }
+      leaf history1min  
+      {
+        type string; // comma separated list of uint64;
+      }
+      leaf history10min  
+      {
+        type string; // comma separated list of uint64;
+      }
+      leaf history1hour  
+      {
+        type string; // comma separated list of uint64;
+      }
+      leaf history1day  
+      {
+        type string; // comma separated list of uint64;
+      }
+      leaf history1week 
+      {
+        type string; // comma separated list of uint64;
+      }
+      leaf history4weeks
+      {
+        type string; // comma separated list of uint64;
+      }
+    }
+  
+  grouping decStatistic
+    {
+      
+      leaf current
+      {
+        type decimal64
+	{
+	  fraction-digits 17;
+	}
+      }
+      /* contains a data points indicating data broken into 10 second periods
+         for example:
+         100 400 300 200 100 <etc>
+      */
+
+      leaf history10sec  
+      {
+        type string; // Comma separated list of float
+      }
+      leaf history1min
+      {
+        type string; // Comma separated list of float
+      }
+      leaf history10min  
+      {
+        type string; // Comma separated list of float
+      }
+      leaf history1hour  
+      {
+        type string; // Comma separated list of float
+      }
+      leaf history1day  
+      {
+        type string; // Comma separated list of float
+      }
+      leaf history1week 
+      {
+        type string; // Comma separated list of float
+      }
+      leaf history4weeks
+      {
+        type string; // Comma separated list of float
+      }
+    }
+
+  grouping ProcessStats
+  {
+    description "Statistics on processes running in the system";
+    container failures       
+      {
+      //SAFplusTypes:c-existing "SAFplus::MgtHistoryStat<int>"; 
+      uses intStatistic; 
+      }
+    container cpuUtilization 
+      { 
+      //SAFplusTypes:c-existing "SAFplus::MgtHistoryStat<float>"; 
+      uses decStatistic; 
+      }
+    container memUtilization 
+      { 
+      //SAFplusTypes:c-existing "SAFplus::MgtHistoryStat<float>"; 
+      uses decStatistic; 
+      }
+    container pageFaults 
+      { 
+      //SAFplusTypes:c-existing "SAFplus::MgtHistoryStat<int>"; 
+      uses intStatistic; 
+      }
+    container numThreads 
+      { 
+      //SAFplusTypes:c-existing "SAFplus::MgtHistoryStat<int>"; 
+      uses intStatistic; 
+      }
+    container residentMem 
+      { 
+      //SAFplusTypes:c-existing "SAFplus::MgtHistoryStat<int>"; 
+      uses intStatistic; 
+      }
+
+    leaf processState
+      {  
+      type enumeration
+	{
+	  enum Running { value 0; }
+	  enum Sleeping { value 1; }
+	  enum WaitingForDisk { value 2; }
+	  enum Zombie { value 3; }
+	  enum Stopped { value 4; }
+	  enum TracingStop { value 5; }
+        }
+      }
+  }
   
   grouping EscalationPolicy
     {
@@ -487,6 +699,480 @@ are switched over to other nodes (component service instances are not abruptly r
 	description "Once this Service Unit is instantiated, how long should I wait before trusting that it is working properly?  Work will not be assigned until after this period.";	
       }     
   }
+
+  /*********** Entities Status *******************/
+  
+  grouping NodeStatus
+    {      
+      leaf name {
+        type string;
+      }
+      container stats
+        {
+        //SAFplusTypes:c-type "NodeStats";
+        description "Statistics on this node";
+        
+        container load
+          {
+          //SAFplusTypes:c-type "NodeLoad";
+          
+          container user       
+            {
+            description "Percentage of CPU time spent in user mode";
+            //SAFplusTypes:c-existing "SAFplus::MgtHistoryStat<float>"; 
+            uses decStatistic; 
+            
+            }
+          container lowPriorityUser      
+            {
+            description "Percentage of CPU time spent in low priority (niced) user mode";
+            //SAFplusTypes:c-existing "SAFplus::MgtHistoryStat<float>"; 
+            uses decStatistic; 
+            
+            }
+          container ioWait       
+            {
+            description "Percentage of CPU time spent waiting for IO";
+            //SAFplusTypes:c-existing "SAFplus::MgtHistoryStat<float>"; 
+            uses decStatistic; 
+            
+            }
+          container sysTime      
+            {
+            description "Percentage of CPU time spent in system mode";
+            //SAFplusTypes:c-existing "SAFplus::MgtHistoryStat<float>"; 
+            uses decStatistic; 
+            
+            }
+          container intTime     
+            {
+            description "Percentage of CPU time spent servicing interrupts";
+            //SAFplusTypes:c-existing "SAFplus::MgtHistoryStat<float>"; 
+            uses decStatistic; 
+            
+            }
+          container softIrqs     
+            {
+            description "Percentage of CPU time spent servicing soft interrupt requests";
+            //SAFplusTypes:c-existing "SAFplus::MgtHistoryStat<float>"; 
+            uses decStatistic; 
+            
+            }
+          container idle     
+            {
+            description "Percentage of idle CPU time";
+            //SAFplusTypes:c-existing "SAFplus::MgtHistoryStat<float>"; 
+            uses decStatistic; 
+            
+            }
+          container contextSwitches     
+            {
+            description "number of context switches";
+            //SAFplusTypes:c-existing "SAFplus::MgtHistoryStat<int>"; 
+            uses intStatistic; 
+            
+            }
+          container processCount     
+            {
+            description "Number of processes on this node";
+            //SAFplusTypes:c-existing "SAFplus::MgtHistoryStat<int>"; 
+            uses intStatistic; 
+            
+            }
+          container processStarts     
+            {
+            description "Number of process started within this time interval";
+            //SAFplusTypes:c-existing "SAFplus::MgtHistoryStat<int>"; 
+            uses intStatistic; 
+            
+            }
+          }
+        leaf upTime
+          {
+          type uint64;
+          description "Number of seconds this node has been running";
+          
+          }
+        leaf bootTime
+          {
+          type uint64;
+          description "Date (in seconds since the epoch) this node booted";
+          
+          }
+        
+        }
+
+      // SA-Forum does not define presence state for a node, but it should...
+      leaf presenceState
+      {
+	type PresenceState;
+        
+      }      
+      leaf operState
+      {
+	type boolean;
+	description "True is enabled, False is disabled.  To move from False to True a 'repair' action must occur.";
+        
+        default true;
+        //SAFplusTypes:settable true;
+      }      
+    }
+
+
+    grouping ServiceGroupStatus
+    {
+      leaf name {
+        type string;
+      } 
+      container numAssignedServiceUnits
+      {
+        //SAFplusTypes:c-existing "SAFplus::MgtHistoryStat<int>";
+	//SAFplusTypes:alias saAmfSGNumCurrAssignedSUs;
+	uses intStatistic;
+        
+      }
+      container numIdleServiceUnits
+      {
+        //SAFplusTypes:c-existing "SAFplus::MgtHistoryStat<int>";
+	//SAFplusTypes:alias saAmfSGNumCurrInstantiatedSpareSUs;
+	uses intStatistic;
+        	
+      }	
+      container numSpareServiceUnits
+      {
+        //SAFplusTypes:c-existing "SAFplus::MgtHistoryStat<int>";
+	//SAFplusTypes:alias saAmfSGNumCurrNonInstantiatedSpareSUs;
+	uses intStatistic;
+        	
+      }    
+    }
+
+    grouping ComponentStatus
+    {
+      leaf name {
+        type string;
+      }
+      container procStats
+      {
+        uses ProcessStats; 
+               
+      }
+      leaf presenceState
+      {
+	type PresenceState;
+        
+      }
+      container activeAssignments
+      {
+	//SAFplusTypes:alias saAmfCompNumCurrActiveCSIs;
+        //SAFplusTypes:c-existing "SAFplus::MgtHistoryStat<int>";
+	uses intStatistic;
+	description "Current number of active work assignments this component is handling.";
+        
+      }
+      container standbyAssignments
+      {
+	//SAFplusTypes:alias saAmfCompNumCurrStandbyCSIs;
+        //SAFplusTypes:c-existing "SAFplus::MgtHistoryStat<int>";
+	uses intStatistic;
+	description "Current number of standby work assignments this component is handling.";
+        
+      }
+      leaf-list assignedWork
+      {
+	//SAFplusTypes:alias saAmfCompAssignedCsi;
+	type string;
+	description "Currently assigned work.";
+        
+      }
+
+
+      leaf operState
+      {
+	type boolean;
+	description "True is enabled, False is disabled.  To move from False to True a 'repair' action must occur.";
+        
+        //SAFplusTypes:settable true;
+        default true;
+      }
+
+      leaf readinessState
+      {
+        type ReadinessState;
+        
+      }
+	
+      leaf haReadinessState
+      {
+        type HighAvailabilityReadinessState;
+         // Application can change this, but not management interface
+	description "This state field covers ALL work assignments.  If this field is set to notReadyForAssignment then SAFplus will not assign work.  So the application can call saAmfHAReadinessStateSet() upon startup (or any other time) to enable or disable work assignments.";
+      }
+    
+      leaf haState
+      {
+	type HighAvailabilityState;
+	
+      }
+
+      leaf safVersion
+      {
+	type string;
+	description "Compatible SA-Forum API version";
+        default "B.04.01";
+          // The version is determined when the component registers via the saAmfInitialize API call
+      }
+
+      leaf compCategory
+      {
+	type uint32;
+        description "Information about the type of component, as defined in sec 7.4.8 of AMF-B.04.01.  This is C type: SaAmfCompCategoryT, and its value is set based on other configuration (namely the component capabilities and whether a proxy is defined)";
+        
+      }
+
+      leaf swBundle
+      {
+	type string;
+	description "What software installation bundle does this component come from";
+	
+      }     
+
+      leaf numInstantiationAttempts
+      {
+        type uint32;
+         // Application can change this, but not management interface
+	description "The number of times this application has been attempted to be instantiated";
+      }     
+
+      leaf lastInstantiation
+	{
+	  type date;
+	  
+	  description "The last time an instantiation attempt occurred";
+	}     
+
+     container restartCount
+      {
+	//SAFplusTypes:alias saAmfCompRestartCount;
+        //SAFplusTypes:c-existing "SAFplus::MgtHistoryStat<int>";
+	uses intStatistic;
+        
+      }    
+
+    leaf processId
+      {
+      description "The process id of this component (if it is instantiated as a process), or 0";
+      default 0;
+      type int32;
+      
+      //SAFplusTypes:replicated true;
+      }
+
+    leaf lastError
+      {
+	description "The last error generated by operations on this component";
+	type string;
+	
+      }
+
+    leaf pendingOperation
+      {
+	description "The system is currently attempting the following operation on the component";	
+	
+
+	type enumeration
+	{
+	  enum none { value 0; }
+	  enum instantiation
+	  { 
+	    value 1; 
+	    description "This component is being started";
+	  }
+	  enum shutdown
+	  { 
+	    value 2; 
+	    description "This component is being stopped";
+	  }
+	  enum workAssignment
+	  { 
+	    value 3; 
+	    description "This component is being assigned active or standby work";
+	  }
+	  enum workRemoval
+	  { 
+	    value 4; 
+	    description "Active or standby work is being removed from this component";
+	  }
+        }
+      }
+
+    leaf pendingOperationExpiration
+      {
+	description "When the system will give up on the pending operation, in milliseconds since the epoch";
+	type date;
+	
+        default 0;
+      }
+
+    }
+
+
+    grouping ComponentServiceInstanceStatus
+    {     
+     leaf name {
+       type string;
+     }
+     leaf-list standbyComponents
+     {
+        description "This work is assigned standby to these components";
+        type string;
+        //SAFplusTypes:c-type "::SAFplusAmf::Component*";
+          // The component handling this work is assigned at run time by the AMF
+     }
+
+     leaf-list activeComponents
+      {
+        description "This work is assigned active to these components";
+        //SAFplusTypes:c-type "::SAFplusAmf::Component*";
+        type string;
+          // The component handling this work is assigned at run time by the AMF
+      }
+
+    }
+
+    // done
+    grouping ServiceInstanceStatus
+    {
+      leaf name {
+        type string;
+      }
+      leaf assignmentState
+      {
+	type enumeration 
+	{
+	  enum unassigned;
+	  enum fullyAssigned;
+	  enum partiallyAssigned;
+	}
+        description "The assignment state of a service instance indicates whether the service represented by this service instance is being provided or not by some service unit.";
+        
+      }     
+
+      leaf-list activeAssignments
+      {
+        description "This work is assigned active to these service units.  Depending on the redundancy model, it ";
+        //SAFplusTypes:c-type "::SAFplusAmf::ServiceUnit*";
+        type string;
+          // The component handling this work is assigned at run time by the AMF
+      }
+
+      leaf-list standbyAssignments
+      {
+        description "This work is assigned active to these service units";
+        //SAFplusTypes:c-type "::SAFplusAmf::ServiceUnit*";
+        type string;
+          // The component handling this work is assigned at run time by the AMF
+      }
+
+
+      // SAFplus extensions
+      container numActiveAssignments
+      {
+	//SAFplusTypes:alias saAmfSINumCurrActiveAssignments;
+        //SAFplusTypes:c-existing "SAFplus::MgtHistoryStat<int>";
+	uses intStatistic;
+	description "Number of active assignments.  Pending assignments are counted.";
+        
+      }
+      container numStandbyAssignments
+      {
+	//SAFplusTypes:alias saAmfSINumCurrStandbyAssignments;
+        //SAFplusTypes:c-existing "SAFplus::MgtHistoryStat<int>";
+	uses intStatistic;
+	description "Number of standby assignments.  Pending assignments are counted.";
+        
+      }
+    }
+ 
+
+    grouping ServiceUnitStatus
+    {
+      leaf name {
+        type string;
+      }
+      leaf preinstantiable
+      {
+	type boolean;
+	
+	description "Can this service unit be instantiated before being assigned active?  True if ALL components are preinstantiable.";
+      }     
+
+      // SA-Forum defined fields
+      leaf presenceState
+      {
+	type PresenceState;
+        
+      }
+      leaf readinessState
+      {
+        type ReadinessState;
+        
+      }
+
+      leaf haReadinessState
+      {
+        type HighAvailabilityReadinessState;
+         // Application can change this, but not management interface
+	description "This state field covers ALL work assignments...";
+      }
+
+      leaf haState
+      {
+	type HighAvailabilityState;
+	
+      }
+      leaf operState
+      {
+	type boolean;
+	description "True is enabled, False is disabled.  To move from False to True a 'repair' action must occur.";
+        
+        //SAFplusTypes:settable true;
+        default true;
+      }
+
+     leaf-list assignedServiceInstances
+     {
+        type string;
+        //SAFplusTypes:c-type "ServiceInstance*";
+            
+     }
+
+     // ?? saAmfSUHostedByNode string
+       
+
+     container numActiveServiceInstances
+      {
+	//SAFplusTypes:alias saAmfSUNumCurrActiveSIs;
+        //SAFplusTypes:c-existing "SAFplus::MgtHistoryStat<int>";
+	uses intStatistic;
+        
+      }
+     container numStandbyServiceInstances
+      {
+	//SAFplusTypes:alias saAmfSUNumCurrStandbySIs;
+        //SAFplusTypes:c-existing "SAFplus::MgtHistoryStat<int>";
+	uses intStatistic;
+        
+      }
+
+     container restartCount
+      {
+	//SAFplusTypes:alias saAmfSURestartCount;
+        //SAFplusTypes:c-existing "SAFplus::MgtHistoryStat<int>";
+	uses intStatistic;
+        
+      }
+    }
 
   rpc initialize {     
      /*input {
@@ -1407,6 +2093,133 @@ are switched over to other nodes (component service instances are not abruptly r
      }
      output {
        uses ComponentServiceInstanceConfig;
+       leaf err {
+        type int32;
+       }       
+     }
+   }
+
+   /******** Get entities statue *************/
+   rpc getComponentStatus {
+     input {
+       leaf-list amfMgmtHandle
+	{
+	  type binary
+          { 
+	    length 16;  // 2 64-bit words 
+	  }
+	}
+        leaf compName {
+         type string;
+        }
+     }
+     output {
+       uses ComponentStatus;
+       leaf err {
+        type int32;
+       }       
+     }
+   }
+
+   rpc getNodeStatus {
+     input {
+       leaf-list amfMgmtHandle
+	{
+	  type binary
+          { 
+	    length 16;  // 2 64-bit words 
+	  }
+	}
+        leaf nodeName {
+         type string;
+        }
+     }
+     output {
+       uses NodeStatus;
+       leaf err {
+        type int32;
+       }       
+     }
+   }
+
+   rpc getSUStatus {
+     input {
+       leaf-list amfMgmtHandle
+	{
+	  type binary
+          { 
+	    length 16;  // 2 64-bit words 
+	  }
+	}
+        leaf suName {
+         type string;
+        }
+     }
+     output {
+       uses ServiceUnitStatus;
+       leaf err {
+        type int32;
+       }       
+     }
+   }
+
+   rpc getSGStatus {
+     input {
+       leaf-list amfMgmtHandle
+	{
+	  type binary
+          { 
+	    length 16;  // 2 64-bit words 
+	  }
+	}
+        leaf sgName {
+         type string;
+        }
+     }
+     output {
+       uses ServiceGroupStatus;
+       leaf err {
+        type int32;
+       }       
+     }
+   }
+
+   rpc getSIStatus {
+     input {
+       leaf-list amfMgmtHandle
+	{
+	  type binary
+          { 
+	    length 16;  // 2 64-bit words 
+	  }
+	}
+        leaf siName {
+         type string;
+        }
+     }
+     output {
+       uses ServiceInstanceStatus;
+       leaf err {
+        type int32;
+       }       
+     }
+   }
+
+   rpc getCSIStatus {
+     input {
+       leaf-list amfMgmtHandle
+	{
+	  type binary
+          { 
+	    length 16;  // 2 64-bit words 
+	  }
+	}
+        leaf csiName {
+         type string;
+        }
+     }
+     output {
+       uses ComponentServiceInstanceStatus;
        leaf err {
         type int32;
        }       

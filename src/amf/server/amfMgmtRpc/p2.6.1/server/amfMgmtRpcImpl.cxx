@@ -978,6 +978,21 @@ namespace amfMgmtRpc {
       bool restartable = comp.restartable();
       MGMT_CALL(updateEntityFromDatabase("/safplusAmf/Component",comp.name(),"restartable",B2S(restartable)));
     }
+
+    /*TODO: timeouts*/
+    /*
+    if (comp.has_timeout())
+    {
+      const Timeouts& timeouts = comp.timeouts();
+      if (timeouts.has_terminate())
+      {
+        const SaTimeT& terminate  = timeouts.terminate();
+        std::stringstream ss;
+        ss << terminate.uint64();
+        MGMT_CALL(updateEntityFromDatabase("/safplusAmf/Component",comp.name(),"timeout/terminate",ss.str()));
+      }
+    }*/
+   
     return rc;
   }
 
@@ -1047,6 +1062,86 @@ namespace amfMgmtRpc {
 
     compConfig->set_restartable(comp->restartable.value);
 
+    return rc;
+  }
+
+  ClRcT fillCompStatus(const SAFplusAmf::Component* comp,ComponentStatus* compStatus)
+  {
+    ClRcT rc = CL_OK;
+    logDebug("MGMT","RPC", "server is processing [%s] for entity [%s]", __FUNCTION__, comp->name.value.c_str());
+
+    compStatus->set_name(comp->name.value);
+
+    ProcStats* procStats = new ProcStats();
+    ProcessStats* ps = new ProcessStats();
+    MemUtilization* memUtil = new MemUtilization();
+    DecStatistic* decStat = new DecStatistic();
+    decStat->set_current(comp->procStats.memUtilization.current.value);
+    memUtil->set_allocated_decstatistic(decStat);
+    ps->set_allocated_memutilization(memUtil);
+
+    NumThreads* numThreads = new NumThreads();
+    IntStatistic* intStat2 = new IntStatistic();   
+    intStat2->set_current(comp->procStats.numThreads.current.value);
+    numThreads->set_allocated_intstatistic(intStat2);
+    ps->set_allocated_numthreads(numThreads);
+
+    ResidentMem* resMem = new ResidentMem();
+    IntStatistic* intStat3 = new IntStatistic();   
+    intStat3->set_current(comp->procStats.residentMem.current.value);
+    resMem->set_allocated_intstatistic(intStat3);
+    ps->set_allocated_residentmem(resMem);
+    
+    procStats->set_allocated_processstats(ps);
+    compStatus->set_allocated_procstats(procStats);    
+
+    ActiveAssignments* activeAssignments = new ActiveAssignments();    
+    IntStatistic* intStat4 = new IntStatistic();   
+    intStat4->set_current(comp->activeAssignments.current.value);
+    activeAssignments->set_allocated_intstatistic(intStat4);
+    compStatus->set_allocated_activeassignments(activeAssignments);
+
+    StandbyAssignments* standbyAssignments = new StandbyAssignments();    
+    IntStatistic* intStat5 = new IntStatistic();   
+    intStat5->set_current(comp->standbyAssignments.current.value);
+    standbyAssignments->set_allocated_intstatistic(intStat5);
+    compStatus->set_allocated_standbyassignments(standbyAssignments);
+
+    const std::vector<std::string>& assignedCSI = comp->assignedWork.value;
+    for(std::vector<std::string>::const_iterator it = assignedCSI.begin();it!=assignedCSI.end();it++)
+    {
+      compStatus->add_assignedwork(*it);
+    }   
+
+    compStatus->set_presencestate(static_cast<::SAFplus::Rpc::amfMgmtRpc::PresenceState>(comp->presenceState.value));
+    compStatus->set_operstate(comp->operState.value);
+    compStatus->set_readinessstate(static_cast<::SAFplus::Rpc::amfMgmtRpc::ReadinessState>(comp->readinessState.value));
+    compStatus->set_hareadinessstate(static_cast<::SAFplus::Rpc::amfMgmtRpc::HighAvailabilityReadinessState>(comp->haReadinessState.value));
+    compStatus->set_hastate(static_cast<::SAFplus::Rpc::amfMgmtRpc::HighAvailabilityState>(comp->haState.value));
+
+    compStatus->set_safversion(comp->safVersion.value);
+    compStatus->set_compcategory(comp->compCategory.value);
+    compStatus->set_swbundle(comp->swBundle.value);
+    compStatus->set_numinstantiationattempts(comp->numInstantiationAttempts.value);
+    
+    SAFplus::Rpc::amfMgmtRpc::Date* date = new SAFplus::Rpc::amfMgmtRpc::Date();
+    date->set_uint64(comp->lastInstantiation.value.value);
+    compStatus->set_allocated_lastinstantiation(date);
+
+    RestartCount* restartCount = new RestartCount();
+    IntStatistic* intStat6 = new IntStatistic();   
+    intStat6->set_current(comp->restartCount.current.value);
+    restartCount->set_allocated_intstatistic(intStat6);
+    compStatus->set_allocated_restartcount(restartCount);
+
+    compStatus->set_processid(comp->processId.value);
+    compStatus->set_lasterror(comp->lastError.value);
+    compStatus->set_pendingoperation(static_cast<::SAFplus::Rpc::amfMgmtRpc::PendingOperation>(comp->pendingOperation.value));
+    
+    SAFplus::Rpc::amfMgmtRpc::Date* date2 = new SAFplus::Rpc::amfMgmtRpc::Date();
+    date2->set_uint64(comp->pendingOperationExpiration.value.value);
+    compStatus->set_allocated_pendingoperationexpiration(date2);
+    
     return rc;
   }
 
@@ -1137,6 +1232,48 @@ namespace amfMgmtRpc {
     suConfig->set_node(su->node.value->name.value);
     suConfig->set_servicegroup(su->serviceGroup.value->name.value);
     suConfig->set_probationtime(su->probationTime.value);   
+    
+    return rc;
+  }
+
+  ClRcT fillSuStatus(const SAFplusAmf::ServiceUnit* su, ServiceUnitStatus* suStatus)
+  {
+    ClRcT rc = CL_OK;
+    logDebug("MGMT","RPC", "server is processing [%s] for entity [%s]", __FUNCTION__, su->name.value.c_str());
+    suStatus->set_name(su->name.value);
+    suStatus->set_presencestate(static_cast<::SAFplus::Rpc::amfMgmtRpc::PresenceState>(su->presenceState.value));
+    suStatus->set_operstate(su->operState.value);
+    suStatus->set_readinessstate(static_cast<::SAFplus::Rpc::amfMgmtRpc::ReadinessState>(su->readinessState.value));
+    suStatus->set_hareadinessstate(static_cast<::SAFplus::Rpc::amfMgmtRpc::HighAvailabilityReadinessState>(su->haReadinessState.value));
+    suStatus->set_hastate(static_cast<::SAFplus::Rpc::amfMgmtRpc::HighAvailabilityState>(su->haState.value));
+
+    suStatus->set_preinstantiable(su->preinstantiable.value);
+
+    SAFplus::MgtIdentifierList<SAFplusAmf::ServiceInstance*>::iterator itsi = const_cast<SAFplusAmf::ServiceUnit*>(su)->assignedServiceInstances.listBegin();
+    SAFplus::MgtIdentifierList<SAFplusAmf::ServiceInstance*>::iterator itend = const_cast<SAFplusAmf::ServiceUnit*>(su)->assignedServiceInstances.listEnd();
+    for (; itsi != itend; itsi++)
+    {      
+      SAFplusAmf::ServiceInstance* si = dynamic_cast<SAFplusAmf::ServiceInstance*>(*itsi);
+      suStatus->add_assignedserviceinstances(si->name.value);
+    } 
+
+    NumActiveServiceInstances* nasi = new NumActiveServiceInstances();
+    IntStatistic* intStat = new IntStatistic();   
+    intStat->set_current(su->numActiveServiceInstances.current.value);
+    nasi->set_allocated_intstatistic(intStat);
+    suStatus->set_allocated_numactiveserviceinstances(nasi);
+
+    NumStandbyServiceInstances* nssi = new NumStandbyServiceInstances();
+    IntStatistic* intStat2 = new IntStatistic();   
+    intStat2->set_current(su->numStandbyServiceInstances.current.value);
+    nssi->set_allocated_intstatistic(intStat2);
+    suStatus->set_allocated_numstandbyserviceinstances(nssi);
+
+    RestartCount* restartCount = new RestartCount();
+    IntStatistic* intStat3 = new IntStatistic();   
+    intStat3->set_current(su->restartCount.current.value);
+    restartCount->set_allocated_intstatistic(intStat3);
+    suStatus->set_allocated_restartcount(restartCount);
     
     return rc;
   }
@@ -1349,6 +1486,97 @@ namespace amfMgmtRpc {
     return rc;
   }
 
+  ClRcT fillSgStatus(const SAFplusAmf::ServiceGroup* sg, ServiceGroupStatus* sgStatus)
+  {
+    ClRcT rc = CL_OK;
+    logDebug("MGMT","RPC", "server is processing [%s] for entity [%s]", __FUNCTION__, sg->name.value.c_str());
+    sgStatus->set_name(sg->name.value);
+
+    NumAssignedServiceUnits* nasu = new NumAssignedServiceUnits();
+    IntStatistic* intStat = new IntStatistic();   
+    intStat->set_current(sg->numAssignedServiceUnits.current.value);
+    nasu->set_allocated_intstatistic(intStat);
+    sgStatus->set_allocated_numassignedserviceunits(nasu);
+
+    NumIdleServiceUnits* nisu = new NumIdleServiceUnits();
+    IntStatistic* intStat2 = new IntStatistic();   
+    intStat2->set_current(sg->numIdleServiceUnits.current.value);
+    nisu->set_allocated_intstatistic(intStat2);
+    sgStatus->set_allocated_numidleserviceunits(nisu);
+
+    NumSpareServiceUnits* nssu = new NumSpareServiceUnits();
+    IntStatistic* intStat3 = new IntStatistic();   
+    intStat3->set_current(sg->numSpareServiceUnits.current.value);
+    nssu->set_allocated_intstatistic(intStat3);
+    sgStatus->set_allocated_numspareserviceunits(nssu);
+
+    return rc;
+  }
+
+  ClRcT fillSiStatus(const SAFplusAmf::ServiceInstance* si, ServiceInstanceStatus* siStatus)
+  {
+    ClRcT rc = CL_OK;
+    logDebug("MGMT","RPC", "server is processing [%s] for entity [%s]", __FUNCTION__, si->name.value.c_str());
+    siStatus->set_name(si->name.value);
+
+    siStatus->set_assignmentstate(static_cast<::SAFplus::Rpc::amfMgmtRpc::AssignmentState>(si->assignmentState.value));
+
+    SAFplus::MgtIdentifierList<SAFplusAmf::ServiceUnit*>::iterator itsu = const_cast<SAFplusAmf::ServiceInstance*>(si)->activeAssignments.listBegin();
+    SAFplus::MgtIdentifierList<SAFplusAmf::ServiceUnit*>::iterator itend = const_cast<SAFplusAmf::ServiceInstance*>(si)->activeAssignments.listEnd();
+    for (; itsu != itend; itsu++)
+    {      
+      SAFplusAmf::ServiceUnit* su = dynamic_cast<SAFplusAmf::ServiceUnit*>(*itsu);
+      siStatus->add_activeassignments(su->name.value);
+    }
+
+    itsu = const_cast<SAFplusAmf::ServiceInstance*>(si)->standbyAssignments.listBegin();
+    itend = const_cast<SAFplusAmf::ServiceInstance*>(si)->standbyAssignments.listEnd();
+    for (; itsu != itend; itsu++)
+    {      
+      SAFplusAmf::ServiceUnit* su = dynamic_cast<SAFplusAmf::ServiceUnit*>(*itsu);
+      siStatus->add_standbyassignments(su->name.value);
+    }
+
+    NumActiveAssignments* naa = new NumActiveAssignments();
+    IntStatistic* intStat = new IntStatistic();   
+    intStat->set_current(si->numActiveAssignments.current.value);
+    naa->set_allocated_intstatistic(intStat);
+    siStatus->set_allocated_numactiveassignments(naa);
+
+    NumStandbyAssignments* nsa = new NumStandbyAssignments();
+    IntStatistic* intStat2 = new IntStatistic();   
+    intStat2->set_current(si->numStandbyAssignments.current.value);
+    nsa->set_allocated_intstatistic(intStat2);
+    siStatus->set_allocated_numstandbyassignments(nsa);    
+
+    return rc;
+  }
+
+  ClRcT fillCsiStatus(const SAFplusAmf::ComponentServiceInstance* csi, ComponentServiceInstanceStatus* csiStatus)
+  {
+    ClRcT rc = CL_OK;
+    logDebug("MGMT","RPC", "server is processing [%s] for entity [%s]", __FUNCTION__, csi->name.value.c_str());
+    csiStatus->set_name(csi->name.value);
+
+    SAFplus::MgtIdentifierList<SAFplusAmf::Component*>::iterator itcomp = const_cast<SAFplusAmf::ComponentServiceInstance*>(csi)->standbyComponents.listBegin();
+    SAFplus::MgtIdentifierList<SAFplusAmf::Component*>::iterator itend = const_cast<SAFplusAmf::ComponentServiceInstance*>(csi)->standbyComponents.listEnd();
+    for (; itcomp != itend; itcomp++)
+    {
+      SAFplusAmf::Component* c = dynamic_cast<SAFplusAmf::Component*>(*itcomp);
+      csiStatus->add_standbycomponents(c->name.value);
+    }
+
+    itcomp = const_cast<SAFplusAmf::ComponentServiceInstance*>(csi)->activeComponents.listBegin();
+    itend = const_cast<SAFplusAmf::ComponentServiceInstance*>(csi)->activeComponents.listEnd();
+    for (; itcomp != itend; itcomp++)
+    {
+      SAFplusAmf::Component* c = dynamic_cast<SAFplusAmf::Component*>(*itcomp);
+      csiStatus->add_activecomponents(c->name.value);
+    }
+
+    return rc;
+  }
+
   ClRcT nodeCommit(const NodeConfig& node)
   {
     ClRcT rc = CL_OK;
@@ -1453,6 +1681,88 @@ namespace amfMgmtRpc {
       SAFplusAmf::ServiceUnit* su = dynamic_cast<SAFplusAmf::ServiceUnit*>(*itsu);
       nodeConfig->add_serviceunits(su->name.value);
     }
+
+    return rc;
+  }
+
+  ClRcT fillNodeStatus(const SAFplusAmf::Node* node, NodeStatus* nodeStatus)
+  {
+    ClRcT rc = CL_OK;
+    logDebug("MGMT","RPC", "server is processing [%s] for entity [%s]", __FUNCTION__, node->name.value.c_str());
+
+    nodeStatus->set_name(node->name.value);
+    
+    Stats* stats = new Stats();
+    Load* load = new Load();
+    User* user = new User();    
+    DecStatistic* decStat = new DecStatistic();
+    decStat->set_current(node->stats.load.user.current.value);
+    user->set_allocated_decstatistic(decStat);
+    load->set_allocated_user(user);
+
+    LowPriorityUser* luser = new LowPriorityUser();    
+    DecStatistic* decStat2 = new DecStatistic();
+    decStat2->set_current(node->stats.load.lowPriorityUser.current.value);
+    luser->set_allocated_decstatistic(decStat2);
+    load->set_allocated_lowpriorityuser(luser);
+
+    IoWait* ioWait = new IoWait();    
+    DecStatistic* decStat3 = new DecStatistic();
+    decStat3->set_current(node->stats.load.ioWait.current.value);
+    ioWait->set_allocated_decstatistic(decStat3);
+    load->set_allocated_iowait(ioWait);
+
+    SysTime* sysTime = new SysTime();    
+    DecStatistic* decStat4 = new DecStatistic();
+    decStat4->set_current(node->stats.load.sysTime.current.value);
+    sysTime->set_allocated_decstatistic(decStat4);
+    load->set_allocated_systime(sysTime);
+
+    IntTime* intTime = new IntTime();    
+    DecStatistic* decStat5 = new DecStatistic();
+    decStat5->set_current(node->stats.load.intTime.current.value);
+    intTime->set_allocated_decstatistic(decStat5);
+    load->set_allocated_inttime(intTime);
+
+    SoftIrqs* softIrqs = new SoftIrqs();    
+    DecStatistic* decStat6 = new DecStatistic();
+    decStat6->set_current(node->stats.load.softIrqs.current.value);
+    softIrqs->set_allocated_decstatistic(decStat6);
+    load->set_allocated_softirqs(softIrqs);
+
+    Idle* idle = new Idle();    
+    DecStatistic* decStat7 = new DecStatistic();
+    decStat7->set_current(node->stats.load.idle.current.value);
+    idle->set_allocated_decstatistic(decStat7);
+    load->set_allocated_idle(idle);
+
+    ContextSwitches* contextSwitches = new ContextSwitches();
+    IntStatistic* intStat = new IntStatistic();   
+    intStat->set_current(node->stats.load.contextSwitches.current.value);
+    contextSwitches->set_allocated_intstatistic(intStat);
+    load->set_allocated_contextswitches(contextSwitches);
+
+    ProcessCount* processCount = new ProcessCount();
+    IntStatistic* intStat2 = new IntStatistic();   
+    intStat2->set_current(node->stats.load.processCount.current.value);
+    processCount->set_allocated_intstatistic(intStat2);
+    load->set_allocated_processcount(processCount);
+
+    ProcessStarts* processStarts = new ProcessStarts();
+    IntStatistic* intStat3 = new IntStatistic();   
+    intStat3->set_current(node->stats.load.processStarts.current.value);
+    processStarts->set_allocated_intstatistic(intStat3);
+    load->set_allocated_processstarts(processStarts);
+
+    stats->set_allocated_load(load);
+    nodeStatus->set_allocated_stats(stats);
+
+    stats->set_uptime(node->stats.upTime.value);
+    stats->set_boottime(node->stats.bootTime.value);
+    nodeStatus->set_allocated_stats(stats); 
+
+    nodeStatus->set_presencestate(static_cast<::SAFplus::Rpc::amfMgmtRpc::PresenceState>(node->presenceState.value));
+    nodeStatus->set_operstate(node->operState.value);
 
     return rc;
   }
@@ -4160,6 +4470,180 @@ namespace amfMgmtRpc {
       {
         rc = fillCsiConfig(csi,csiConfig);
         response->set_allocated_componentserviceinstanceconfig(csiConfig);        
+      }
+    }
+    response->set_err(rc);
+  }
+  
+  void amfMgmtRpcImpl::getComponentStatus(const ::SAFplus::Rpc::amfMgmtRpc::GetComponentStatusRequest* request,
+                                ::SAFplus::Rpc::amfMgmtRpc::GetComponentStatusResponse* response)
+  {
+    const std::string& compName = request->compname();
+    logDebug("MGMT","RPC","enter [%s] with param comp name [%s]",__FUNCTION__,compName.c_str());
+    ClRcT rc = CL_OK;
+    SAFplusAmf::Component* comp = dynamic_cast<SAFplusAmf::Component*>(cfg.safplusAmf.componentList[compName]);
+    if (comp == NULL)
+    {
+      logDebug("MGMT","RPC","comp object is null for its name [%s]", compName.c_str());
+      rc = CL_ERR_UNSPECIFIED;
+    }
+    else
+    {
+      ComponentStatus* compStatus = new ComponentStatus();
+      if (compStatus == NULL)
+      {
+        logError("MGMT","RPC","No memory");
+        rc = CL_ERR_NO_MEMORY;
+      }
+      else
+      {
+        rc = fillCompStatus(comp,compStatus);
+        response->set_allocated_componentstatus(compStatus);
+      }
+    }
+    response->set_err(rc);
+  }
+
+  void amfMgmtRpcImpl::getNodeStatus(const ::SAFplus::Rpc::amfMgmtRpc::GetNodeStatusRequest* request,
+                                ::SAFplus::Rpc::amfMgmtRpc::GetNodeStatusResponse* response)
+  {
+    const std::string& nodeName = request->nodename();
+    logDebug("MGMT","RPC","enter [%s] with param node name [%s]",__FUNCTION__,nodeName.c_str());
+    ClRcT rc = CL_OK;
+    SAFplusAmf::Node* node = dynamic_cast<SAFplusAmf::Node*>(cfg.safplusAmf.nodeList[nodeName]);
+    if (node == NULL)
+    {
+      logDebug("MGMT","RPC","node object is null for its name [%s]", nodeName.c_str());
+      rc = CL_ERR_UNSPECIFIED;
+    }
+    else
+    {
+      NodeStatus* nodeStatus = new NodeStatus();
+      if (nodeStatus == NULL)
+      {
+        logError("MGMT","RPC","No memory");
+        rc = CL_ERR_NO_MEMORY;
+      }
+      else
+      {
+        rc = fillNodeStatus(node,nodeStatus);
+        response->set_allocated_nodestatus(nodeStatus);
+      }
+    }
+    response->set_err(rc);
+  }
+
+  void amfMgmtRpcImpl::getSUStatus(const ::SAFplus::Rpc::amfMgmtRpc::GetSUStatusRequest* request,
+                                ::SAFplus::Rpc::amfMgmtRpc::GetSUStatusResponse* response)
+  {
+    const std::string& suName = request->suname();
+    logDebug("MGMT","RPC","enter [%s] with param name [%s]",__FUNCTION__,suName.c_str());
+    ClRcT rc = CL_OK;
+    SAFplusAmf::ServiceUnit* su = dynamic_cast<SAFplusAmf::ServiceUnit*>(cfg.safplusAmf.serviceUnitList[suName]);
+    if (su == NULL)
+    {
+      logDebug("MGMT","RPC","object is null for its name [%s]", suName.c_str());
+      rc = CL_ERR_UNSPECIFIED;
+    }
+    else
+    {
+      ServiceUnitStatus* suStatus = new ServiceUnitStatus();
+      if (suStatus == NULL)
+      {
+        logError("MGMT","RPC","No memory");
+        rc = CL_ERR_NO_MEMORY;
+      }
+      else
+      {
+        rc = fillSuStatus(su,suStatus);
+        response->set_allocated_serviceunitstatus(suStatus);        
+      }
+    }
+    response->set_err(rc);
+  }
+
+  void amfMgmtRpcImpl::getSGStatus(const ::SAFplus::Rpc::amfMgmtRpc::GetSGStatusRequest* request,
+                                ::SAFplus::Rpc::amfMgmtRpc::GetSGStatusResponse* response)
+  {
+    const std::string& sgName = request->sgname();
+    logDebug("MGMT","RPC","enter [%s] with param name [%s]",__FUNCTION__,sgName.c_str());
+    ClRcT rc = CL_OK;
+    SAFplusAmf::ServiceGroup* sg = dynamic_cast<SAFplusAmf::ServiceGroup*>(cfg.safplusAmf.serviceGroupList[sgName]);
+    if (sg == NULL)
+    {
+      logDebug("MGMT","RPC","object is null for its name [%s]", sgName.c_str());
+      rc = CL_ERR_UNSPECIFIED;
+    }
+    else
+    {
+      ServiceGroupStatus* sgStatus = new ServiceGroupStatus();
+      if (sgStatus == NULL)
+      {
+        logError("MGMT","RPC","No memory");
+        rc = CL_ERR_NO_MEMORY;
+      }
+      else
+      {
+        rc = fillSgStatus(sg,sgStatus);
+        response->set_allocated_servicegroupstatus(sgStatus);        
+      }
+    }
+    response->set_err(rc);
+  }
+
+  void amfMgmtRpcImpl::getSIStatus(const ::SAFplus::Rpc::amfMgmtRpc::GetSIStatusRequest* request,
+                                ::SAFplus::Rpc::amfMgmtRpc::GetSIStatusResponse* response)
+  {
+    const std::string& siName = request->siname();
+    logDebug("MGMT","RPC","enter [%s] with param name [%s]",__FUNCTION__,siName.c_str());
+    ClRcT rc = CL_OK;
+    SAFplusAmf::ServiceInstance* si = dynamic_cast<SAFplusAmf::ServiceInstance*>(cfg.safplusAmf.serviceInstanceList[siName]);
+    if (si == NULL)
+    {
+      logDebug("MGMT","RPC","object is null for its name [%s]", siName.c_str());
+      rc = CL_ERR_UNSPECIFIED;
+    }
+    else
+    {
+      ServiceInstanceStatus* siStatus = new ServiceInstanceStatus();
+      if (siStatus == NULL)
+      {
+        logError("MGMT","RPC","No memory");
+        rc = CL_ERR_NO_MEMORY;
+      }
+      else
+      {
+        rc = fillSiStatus(si,siStatus);
+        response->set_allocated_serviceinstancestatus(siStatus);        
+      }
+    }
+    response->set_err(rc);
+  }
+
+  void amfMgmtRpcImpl::getCSIStatus(const ::SAFplus::Rpc::amfMgmtRpc::GetCSIStatusRequest* request,
+                                ::SAFplus::Rpc::amfMgmtRpc::GetCSIStatusResponse* response)
+  {
+    const std::string& csiName = request->csiname();
+    logDebug("MGMT","RPC","enter [%s] with param name [%s]",__FUNCTION__,csiName.c_str());
+    ClRcT rc = CL_OK;
+    SAFplusAmf::ComponentServiceInstance* csi = dynamic_cast<SAFplusAmf::ComponentServiceInstance*>(cfg.safplusAmf.componentServiceInstanceList[csiName]);
+    if (csi == NULL)
+    {
+      logDebug("MGMT","RPC","object is null for its name [%s]", csiName.c_str());
+      rc = CL_ERR_UNSPECIFIED;
+    }
+    else
+    {
+      ComponentServiceInstanceStatus* csiStatus = new ComponentServiceInstanceStatus();
+      if (csiStatus == NULL)
+      {
+        logError("MGMT","RPC","No memory");
+        rc = CL_ERR_NO_MEMORY;
+      }
+      else
+      {
+        rc = fillCsiStatus(csi,csiStatus);
+        response->set_allocated_componentserviceinstancestatus(csiStatus);
       }
     }
     response->set_err(rc);
