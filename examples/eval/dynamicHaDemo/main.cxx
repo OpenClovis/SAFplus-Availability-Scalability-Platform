@@ -229,6 +229,22 @@ ClRcT addNewComponent(const SAFplus::Handle& mgmtHandle, const char* binary, con
   inst->set_allocated_execution(exe);
   comp->set_allocated_instantiate(inst);
   comp->set_serviceunit(suName);
+  
+  SAFplus::Rpc::amfMgmtRpc::Timeouts* timeouts = new Timeouts();
+  SAFplus::Rpc::amfMgmtRpc::SaTimeT* terminateTimeout = new SAFplus::Rpc::amfMgmtRpc::SaTimeT();
+  terminateTimeout->set_uint64(35000);
+  SAFplus::Rpc::amfMgmtRpc::SaTimeT* quiescingComplete = new SAFplus::Rpc::amfMgmtRpc::SaTimeT();
+  quiescingComplete->set_uint64(45000);
+  SAFplus::Rpc::amfMgmtRpc::SaTimeT* workRemoval = new SAFplus::Rpc::amfMgmtRpc::SaTimeT();
+  workRemoval->set_uint64(55000);
+  SAFplus::Rpc::amfMgmtRpc::SaTimeT* workAssignment = new SAFplus::Rpc::amfMgmtRpc::SaTimeT();
+  workAssignment->set_uint64(65000);
+  timeouts->set_allocated_terminate(terminateTimeout);
+  timeouts->set_allocated_quiescingcomplete(quiescingComplete);
+  timeouts->set_allocated_workremoval(workRemoval);
+  timeouts->set_allocated_workassignment(workAssignment);
+  comp->set_allocated_timeouts(timeouts);
+
   ClRcT rc = SAFplus::amfMgmtComponentCreate(mgmtHandle,comp);
   //rc = SAFplus::amfMgmtComponentConfigSet(mgmtHandle,comp);
   clprintf(SAFplus::LOG_SEV_INFO,"Basic HA app: Test creating component returns [0x%x]", rc);
@@ -422,11 +438,12 @@ ClRcT dynamicModelCreate()
   return rc;
 }
 
-ClRcT entitiesGetConfig()
+ClRcT entitiesGetConfig(SAFplus::Handle& mgmtHandle, bool finalizeHandle=false)
 {
-  SAFplus::Handle mgmtHandle;
+  //SAFplus::Handle mgmtHandle;
   ClRcT rc = CL_OK;
-  FN_CALL(SAFplus::amfMgmtInitialize(mgmtHandle));
+  if (mgmtHandle == SAFplus::INVALID_HDL)
+    FN_CALL(SAFplus::amfMgmtInitialize(mgmtHandle));
   // get component configurations
   SAFplus::Rpc::amfMgmtRpc::ComponentConfig* compConfig = NULL;
   rc = amfMgmtComponentGetConfig(mgmtHandle,std::string("c0"),&compConfig);
@@ -441,6 +458,7 @@ ClRcT entitiesGetConfig()
     clprintf(SAFplus::LOG_SEV_INFO,"maxStandbyAssignments [%u]", compConfig->maxstandbyassignments());
     clprintf(SAFplus::LOG_SEV_INFO,"recovery [%d]", compConfig->recovery());
     // Release resources
+    #if 0  // according to Google protobuf documents, object returned from release_xxx() doesn't need to be deallocated manually, it will be freed automatically
     SAFplus::Rpc::amfMgmtRpc::Instantiate* instantiate = compConfig->release_instantiate();
     SAFplus::Rpc::amfMgmtRpc::Execution* exe = instantiate->release_execution();
     delete exe;
@@ -454,6 +472,7 @@ ClRcT entitiesGetConfig()
     delete cleanup_exe;
     delete cleanup;
     delete compConfig;
+    #endif
   }
   // get csi configurations
   SAFplus::Rpc::amfMgmtRpc::ComponentServiceInstanceConfig* csiConfig = NULL;
@@ -470,11 +489,75 @@ ClRcT entitiesGetConfig()
       }
     clprintf(SAFplus::LOG_SEV_INFO,"service instance [%s]", csiConfig->serviceinstance().c_str());
     // Release resources
-    delete csiConfig;
+    //delete csiConfig;
   }
+  if (finalizeHandle) {
+    rc = SAFplus::amfMgmtFinalize(mgmtHandle);
+    clprintf(SAFplus::LOG_SEV_INFO,"Basic HA app: finalize returns [0x%x]", rc);
+  }
+}
 
-  rc = SAFplus::amfMgmtFinalize(mgmtHandle);
-  clprintf(SAFplus::LOG_SEV_INFO,"Basic HA app: finalize returns [0x%x]", rc);
+ClRcT entitiesGetStatus(SAFplus::Handle& mgmtHandle,bool finalizeHandle=false)
+{
+  //SAFplus::Handle mgmtHandle;
+  ClRcT rc = CL_OK;
+  if (mgmtHandle == SAFplus::INVALID_HDL)
+    FN_CALL(SAFplus::amfMgmtInitialize(mgmtHandle));
+  // get component configurations
+  SAFplus::Rpc::amfMgmtRpc::ComponentStatus* compStatus = NULL;
+  rc = amfMgmtComponentGetStatus(mgmtHandle,std::string("c0"),&compStatus);
+  clprintf(SAFplus::LOG_SEV_INFO,"amfMgmtComponentGetStatus [0x%x]", rc);
+  if (rc == CL_OK)
+  {
+    // print some component's attributes
+    clprintf(SAFplus::LOG_SEV_INFO,"status about component [%s]", compStatus->name().c_str());
+    clprintf(SAFplus::LOG_SEV_INFO,"operState [%d]", compStatus->operstate());
+    clprintf(SAFplus::LOG_SEV_INFO,"presenceState [%d]", compStatus->presencestate());
+    clprintf(SAFplus::LOG_SEV_INFO,"readinessState [%d]", compStatus->readinessstate());
+    clprintf(SAFplus::LOG_SEV_INFO,"haReadinessState [%d]", compStatus->hareadinessstate());
+    clprintf(SAFplus::LOG_SEV_INFO,"haState [%d]", compStatus->hastate());
+    clprintf(SAFplus::LOG_SEV_INFO,"processId [%d]", compStatus->processid());
+    // Release resources
+    // according to Google protobuf documents, object returned from release_xxx() doesn't need to be deallocated manually, it will be freed automatically
+    /*SAFplus::Rpc::amfMgmtRpc::Instantiate* instantiate = compConfig->release_instantiate();
+    SAFplus::Rpc::amfMgmtRpc::Execution* exe = instantiate->release_execution();
+    delete exe;
+    delete instantiate;
+    SAFplus::Rpc::amfMgmtRpc::Terminate* terminate = compConfig->release_terminate();
+    SAFplus::Rpc::amfMgmtRpc::Execution* ter_exe = terminate->release_execution();
+    delete ter_exe;
+    delete terminate;
+    SAFplus::Rpc::amfMgmtRpc::Cleanup* cleanup = compConfig->release_cleanup();
+    SAFplus::Rpc::amfMgmtRpc::Execution* cleanup_exe = cleanup->release_execution();
+    delete cleanup_exe;
+    delete cleanup;*/
+    //delete compStatus;
+  }
+  // get csi configurations
+  SAFplus::Rpc::amfMgmtRpc::ComponentServiceInstanceStatus* csiStatus = NULL;
+  rc = amfMgmtCSIGetStatus(mgmtHandle,std::string("csi"),&csiStatus);
+  clprintf(SAFplus::LOG_SEV_INFO,"amfMgmtCSIGetStatus [0x%x]", rc);
+  if (rc == CL_OK)
+  {
+    // print some csi's attributes
+    clprintf(SAFplus::LOG_SEV_INFO,"status about csi [%s]", csiStatus->name().c_str());
+    clprintf(SAFplus::LOG_SEV_INFO,"standby components:");
+    for (int i=0;i<csiStatus->standbycomponents_size();i++)
+      {
+         clprintf(SAFplus::LOG_SEV_INFO,"standby comp [%s]", csiStatus->standbycomponents(i).c_str());
+      }
+    clprintf(SAFplus::LOG_SEV_INFO,"active components:");
+    for (int i=0;i<csiStatus->activecomponents_size();i++)
+      {
+         clprintf(SAFplus::LOG_SEV_INFO,"active comp [%s]", csiStatus->activecomponents(i).c_str());
+      }
+    // Release resources
+    //delete csiStatus;
+  }
+  if (finalizeHandle) {
+    rc = SAFplus::amfMgmtFinalize(mgmtHandle);
+    clprintf(SAFplus::LOG_SEV_INFO,"Basic HA app: finalize returns [0x%x]", rc);
+  }
 }
 
 void* standbyLoop(void* arg)
@@ -490,7 +573,9 @@ void* standbyLoop(void* arg)
   }
   else if (strcmp(mode,"query")==0)
   {
-    entitiesGetConfig();
+    SAFplus::Handle mgmtHandle = SAFplus::INVALID_HDL;
+    entitiesGetConfig(mgmtHandle,false);
+    entitiesGetStatus(mgmtHandle,true);
   }
   else
   {

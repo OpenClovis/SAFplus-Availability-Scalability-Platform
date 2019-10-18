@@ -979,9 +979,7 @@ namespace amfMgmtRpc {
       MGMT_CALL(updateEntityFromDatabase("/safplusAmf/Component",comp.name(),"restartable",B2S(restartable)));
     }
 
-    /*TODO: timeouts*/
-    /*
-    if (comp.has_timeout())
+    if (comp.has_timeouts())
     {
       const Timeouts& timeouts = comp.timeouts();
       if (timeouts.has_terminate())
@@ -989,9 +987,30 @@ namespace amfMgmtRpc {
         const SaTimeT& terminate  = timeouts.terminate();
         std::stringstream ss;
         ss << terminate.uint64();
-        MGMT_CALL(updateEntityFromDatabase("/safplusAmf/Component",comp.name(),"timeout/terminate",ss.str()));
+        MGMT_CALL(updateEntityFromDatabase("/safplusAmf/Component",comp.name(),"timeouts/terminate",ss.str()));
       }
-    }*/
+      if (timeouts.has_quiescingcomplete())
+      {
+        const SaTimeT& qc  = timeouts.quiescingcomplete();
+        std::stringstream ss;
+        ss << qc.uint64();
+        MGMT_CALL(updateEntityFromDatabase("/safplusAmf/Component",comp.name(),"timeouts/quiescingComplete",ss.str()));
+      }
+      if (timeouts.has_workremoval())
+      {
+        const SaTimeT& wr  = timeouts.workremoval();
+        std::stringstream ss;
+        ss << wr.uint64();
+        MGMT_CALL(updateEntityFromDatabase("/safplusAmf/Component",comp.name(),"timeouts/workRemoval",ss.str()));
+      }
+      if (timeouts.has_workassignment())
+      {
+        const SaTimeT& wa  = timeouts.workassignment();
+        std::stringstream ss;
+        ss << wa.uint64();
+        MGMT_CALL(updateEntityFromDatabase("/safplusAmf/Component",comp.name(),"timeouts/workAssignment",ss.str()));
+      }
+    }
    
     return rc;
   }
@@ -1062,6 +1081,21 @@ namespace amfMgmtRpc {
 
     compConfig->set_restartable(comp->restartable.value);
 
+    Timeouts* timeouts = new Timeouts();
+    SaTimeT* terminateTimeout = new SaTimeT();
+    terminateTimeout->set_uint64(comp->timeouts.terminate.value);
+    SaTimeT* quiescingComplete = new SaTimeT();
+    quiescingComplete->set_uint64(comp->timeouts.quiescingComplete.value);
+    SaTimeT* workRemoval = new SaTimeT();
+    workRemoval->set_uint64(comp->timeouts.workRemoval.value);
+    SaTimeT* workAssignment = new SaTimeT();
+    workAssignment->set_uint64(comp->timeouts.workAssignment.value);
+    timeouts->set_allocated_terminate(terminateTimeout);
+    timeouts->set_allocated_quiescingcomplete(quiescingComplete);
+    timeouts->set_allocated_workremoval(workRemoval);
+    timeouts->set_allocated_workassignment(workAssignment);
+    compConfig->set_allocated_timeouts(timeouts);
+ 
     return rc;
   }
 
