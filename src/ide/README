@@ -1,16 +1,18 @@
 
 DEPENDENCIES
 ------------
-WX:
-git clone git@github.com:OpenClovis/wxWidgets.git
-cd wxWidgets
-git checkout WX_3_0_BRANCH
-apt-get install autoconf build-essential python-dev mesa-common-dev freeglut3-dev libglew-dev libglm-dev libgtk-3-dev libcairo2-dev librsvg2-dev python-rsvg libpng12-dev libjpeg8-dev
+sudo apt-get install autoconf build-essential python-dev mesa-common-dev freeglut3-dev libglew-dev libglm-dev libgtk-3-dev libcairo2-dev librsvg2-dev python-rsvg
 
+# for ubuntu
+sudo apt-get install libpng12-dev libjpeg8-dev
 
-cd <wxdir>
-mkdir debug
-cd debug
+- ubuntu 16, debian 9.9 (wxWidgets & wxPython)
+sudo apt-get install python-wxgtk3.0
+
+- ubuntu 14.04 (wxWidgets & wxPython)
+git clone https://github.com/wxWidgets/wxWidgets.git
+cd wxWidgets; git checkout WX_3_0_BRANCH
+mkdir debug; cd debug
 touch .configure # set this file to:
 #!/bin/bash
 ../configure --prefix=/usr --disable-optimise --enable-debug --enable-debug_info --enable-debug_gdb --enable-http --enable-aui --enable-html --with-zlib --with-libjpeg --with-libpng  --with-expat --enable-gif --enable-image --enable-dragimage --enable-mousewheel --enable-tooltips --enable-menus --enable-gui --with-gtk=3 --enable-unicode --with-opengl
@@ -18,57 +20,23 @@ touch .configure # set this file to:
 chmod a+x .configure
 ./.configure
 make
-make install
+sudo make install
 
-
-root@clovisdev wxWidgets # git clone git@github.com:wxWidgets/wxPython.git
+(Install wxPython for ubuntu 14)
+git clone https://github.com/wxWidgets/wxPython.git
 cd wxPython
-root@clovisdev wxPython # bin/subrepos-make 
 python setup.py build_ext WXPORT=gtk3
-python setup.py install WXPORT=gtk3
+sudo python setup.py install WXPORT=gtk3
 
-CODE::BLOCKS
+- Install pip
+curl https://bootstrap.pypa.io/get-pip.py -o get-pip.py
+sudo python get-pip.py --force-reinstall
+sudo pip install genshi watchdog paramiko python-pexpect
 
-apt-get install subversion libtool libltdl-dev autotools-dev automake libboost-dev libboost-python-dev libgamin-dev   libhunspell-dev
-svn checkout svn://svn.code.sf.net/p/codeblocks/code/trunk 
-mv trunk codeblocks
-cd codeblocks
-./bootstrap 
-./configure CFLAGS="-g -O0" CXXFLAGS="-g -O0" --with-contrib-plugins=all --prefix /opt/SAFplus/7.0/ide GTK2_CFLAGS="`pkg-config --cflags gtk+-3.0`" GTK2_LIBS="`pkg-config --libs gtk+-3.0`"
-make
-make install
+- Install pyang
+git clone https://github.com/mbj4668/pyang pyang	
+cd pyang; git reset --hard a6e51ba83f06829d3d26849bcb306f49f335267f
+sudo python setup.py install
 
-IDE dependencies:
-pyang:
-cd mgt/src/3rdparty/pyang
-python setup.py install
-
-watchdog:
-apt-get install python-pip
-pip install watchdog (https://pythonhosted.org/watchdog/index.html#)
-apt-get install libyaml-dev python-setuptools
-
-apt-get install libcairo2-dev libgtk2.0-dev python-dev
-
-apt-get install librsvg2-dev 
-
-install boost
-
-in IDE directory, create a symlink so boost/python.hpp (for example) exists:
-
-ln -s <boostdir>/boost boost
-
-
-in IDE directory, create a symlink so boostlibs/libboost_python.so (for example) exists:
-
-ln -s <booststagingdir>/lib boostlibs
-
-
-To debug codeblocks plugin issue:
-/opt/SAFplus/7.0/ide/bin/codeblocks -v -d
-
-If codeclocks crashed indicate "double free", try to execute with:
-G_SLICE=always-malloc /opt/SAFplus/7.0/ide/bin/codeblocks 
-
-using wxPython to render svg file:
-sudo apt-get install python-rsvg
+- Run IDE
+python safplus_ide.py
