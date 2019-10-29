@@ -36,6 +36,7 @@ Typically, a single active process writes the checkpoint and other standby entit
 #define	NullTMask 0x800000UL
 
 #define SharedMemPath "/dev/shm/"
+typedef ClRcT (*NotificationCallBackT) (const SAFplus::Buffer& key, const SAFplus::Buffer& val, void *cookie);
 
 namespace SAFplus
 {
@@ -325,6 +326,9 @@ namespace SAFplus
     /* During deletion of checkpoint data , messages are received from the remote checkpoint.  This API applies these changes */
     void applyDelete(const Buffer& key, const Buffer& value,Transaction& t=SAFplus::NO_TXN);
 
+    /* Register callback for hot-standby*/
+    void clCkptImmediateConsumptionRegister(NotificationCallBackT notificationCallback, void* param);
+
     /* temporarily disallow/allow synchronization */
     // NOT USED: void syncLock() { gate.lock(); }
     // NOT USED: void syncUnlock() { gate.unlock(); }
@@ -381,6 +385,8 @@ namespace SAFplus
     const SAFplus::Handle& handle() { return hdr->handle; } // its read only
     //? Get the name of the checkpoint
     std::string                    name;
+    NotificationCallBackT notificationCallback;
+    void *notifCallBackParam;
     //? Get the number of items in the checkpoint
     int size(void) { return map->size(); }
     //? [DEBUGGING ONLY]: print out the keys and values in this checkpoint.

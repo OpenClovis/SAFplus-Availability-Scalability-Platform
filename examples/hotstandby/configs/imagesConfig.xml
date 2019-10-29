@@ -1,0 +1,12 @@
+<Nodes>
+  <Node11>
+    <slot>1</slot>
+    <netInterface>eth0</netInterface>
+    <name>Node11</name>
+  </Node11>
+  <Node12>
+    <slot>2</slot>
+    <netInterface>eth0</netInterface>
+    <name>Node12</name>
+  </Node12>
+</Nodes>

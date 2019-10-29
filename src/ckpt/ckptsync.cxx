@@ -190,6 +190,11 @@ unsigned int SAFplusI::CkptSynchronization::applySyncMsg(ClPtrT msg, ClWordT msg
     if (lastChange < val->changeNum()) lastChange = val->changeNum();
     logInfo("SYNC","APLY","[%" PRIx64 ":%" PRIx64"]: part %d: change %d. key(len:%d) %x  val(len:%d) %x", ckpt->hdr->handle.id[0],ckpt->hdr->handle.id[1], count, val->changeNum(), key->len(), *((uint32_t*) key->data), val->len(), *((uint32_t*) val->data));
     if (!synchronizing) { gated = true; ckpt->gate.close(); }  // In the initial sync case, the gate is already closed.
+    if(ckpt->notificationCallback != NULL)
+    {
+		//logInfo("SYNC","APPLY", "start ckpt->notificationCallback");
+		ckpt->notificationCallback(*key,*val,ckpt->notifCallBackParam);
+	}
     ckpt->applySync(*key,*val);
     if (gated) ckpt->gate.open();
     }

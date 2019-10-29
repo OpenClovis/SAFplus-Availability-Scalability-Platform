@@ -1,0 +1,5 @@
+<SAFplusProject version='7.0'>
+  <datamodel>SAFplusAmf.yang</datamodel>
+  <model>hotstandbyModel.xml</model>
+  <src>/home/thaivo/s7/examples/hotstandby/src/Makefile  /home/thaivo/s7/examples/hotstandby/src/Component1/Makefile  /home/thaivo/s7/examples/hotstandby/src/Component1/main.cxx</src>
+</SAFplusProject>

@@ -92,7 +92,7 @@ void SAFplus::Checkpoint::init(const Handle& hdl, uint_t _flags, uint64_t retent
   gate.init(hdl.id[1]);  // 2nd word of the handle should be unique on this node
   gate.close(); // start the gate closed so this process can't access the checkpoint.  But I can't init the gate closed, in case the init opens an existing gate, instead of creating one
   // TODO: gate has to be closed while this process inits but also while replica syncs.  Need 2 gates (thread and interprocess).
-
+  notificationCallback =NULL;
   flags = _flags;
   if (flags & REPLICATED)
     if (!(flags & CHANGE_LOG)) flags |= CHANGE_ANNOTATION; // Change annotation is the default delta replication mechanism
@@ -897,3 +897,9 @@ void SAFplus::Checkpoint::dumpHeader()
   printf("Handle: %s serverPid: %lu, retention: %lu, generation: %d, change: %d, lastUsed: %s, structId: 0x%lx\n",hdr->handle.toStr(tempStr), (long unsigned int) hdr->serverPid,(long unsigned int) hdr->retentionDuration,hdr->generation, hdr->changeNum, to_simple_string(hdr->lastUsed).c_str(), hdr->structId);  
 }
 #endif
+
+void SAFplus::Checkpoint::clCkptImmediateConsumptionRegister(NotificationCallBackT notifCb, void* param)
+{
+	notificationCallback = notifCb;
+	notifCallBackParam = param;
+}
