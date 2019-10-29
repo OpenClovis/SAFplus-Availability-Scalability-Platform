@@ -6,7 +6,7 @@ sudo apt-get install autoconf build-essential python-dev mesa-common-dev freeglu
 # for ubuntu
 sudo apt-get install libpng12-dev libjpeg8-dev
 
-- ubuntu 16, debian 9.9 (wxWidgets & wxPython)
+- ubuntu 16, ubuntu 15.04, debian 9.9 (wxWidgets & wxPython)
 sudo apt-get install python-wxgtk3.0
 
 - ubuntu 14.04 (wxWidgets & wxPython)
@@ -29,9 +29,11 @@ python setup.py build_ext WXPORT=gtk3
 sudo python setup.py install WXPORT=gtk3
 
 - Install pip
+sudo apt-get install curl
 curl https://bootstrap.pypa.io/get-pip.py -o get-pip.py
 sudo python get-pip.py --force-reinstall
 sudo pip install genshi watchdog paramiko python-pexpect
+sudo pip install genshi watchdog paramiko pexpect (install pexpect for ubuntu 15.04 instead of python-pexpect  )
 
 - Install pyang
 git clone https://github.com/mbj4668/pyang pyang	
