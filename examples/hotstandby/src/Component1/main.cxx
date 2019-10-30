@@ -196,7 +196,7 @@ void safAssignWork(SaInvocationT       invocation,
      * Take appropriate action based on state
      */
     countCkpt.name = (char*)csiDescriptor.csiName.value;
-    Handle hdl = APP_CKPT;
+    Handle hdl = WellKnownHandle(64<<SUB_HDL_SHIFT,0,0);
     countCkpt.init(hdl, Checkpoint::SHARED|Checkpoint::REPLICATED,CkptRetentionDurationDefault,1024*1024,CkptDefaultRows);
 
     switch ( haState )
