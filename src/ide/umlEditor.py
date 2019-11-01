@@ -553,6 +553,11 @@ class Panel(scrolled.ScrolledPanel):
       self.rotate = 0.0
       self.scale = 1.0
 
+      self.undoData = []
+      self.redoData = []
+      self.UNDO_MAX = 100
+      self.undoAction = False
+
       # Buttons and other IDs that are registered may need to be looked up to turn the ID back into a python object
       self.idLookup={}  
       self.drawSelectionBox = False
@@ -594,6 +599,41 @@ class Panel(scrolled.ScrolledPanel):
         self.Scroll((pos[0]*newscale - size.x/2)/scrollx, (pos[1]*newscale - size.y/2)/scrolly)  # multiply by scale because I am converting from scaled to screen coordinates
         self.Refresh()
 
+    def Undo(self):
+      if len(self.undoData) == 0:
+        return
+      self.undoAction = True
+      data = self.undoData.pop()
+      self.model.setEntitiesAndInfos(data[0])
+      frame = share.umlEditorPanel.guiPlaces.frame
+      model = frame.model
+      model.uml.setModelData(model.model)
+      model.instance.deleteMyTools()
+      model.instance.addTools()
+      self.entities = share.detailsPanel.model.entities
+      self.refresh()
+      frame.enableTools(frame.getCurrentPageText(0))
+      self.redoData.append(data)
+      while len(self.redoData) > self.UNDO_MAX:
+        self.redoData.remove(self.redoData[0])
+
+    def Redo(self):
+      if len(self.redoData) == 0:
+        return
+      self.undoAction = True
+      data = self.redoData.pop()
+      self.model.setEntitiesAndInfos(data[1])
+      frame = share.umlEditorPanel.guiPlaces.frame
+      model = frame.model
+      model.uml.setModelData(model.model)
+      model.instance.deleteMyTools()
+      model.instance.addTools()
+      self.entities = share.detailsPanel.model.entities
+      self.refresh()
+      frame.enableTools(frame.getCurrentPageText(0))
+      self.undoData.append(data)
+      while len(self.undoData) > self.UNDO_MAX:
+        self.undoData.remove(self.undoData[0])
 
     def resetDataMembers(self):
       self.location = (0,0)
@@ -703,7 +743,6 @@ class Panel(scrolled.ScrolledPanel):
       bitmap = s.bmp(tsize, { }, BAR_GREY)
       self.toolBar.AddRadioTool(DELETE_BUTTON, bitmap, bitmapDisabled, shortHelp="Delete entity/entities", longHelp="Select one or many entities. Click entity to delete.")
       self.idLookup[DELETE_BUTTON] = DeleteTool(self)
-      
       # setting the default tool
       self.tool = self.idLookup[CONNECT_BUTTON]
 
@@ -751,10 +790,41 @@ class Panel(scrolled.ScrolledPanel):
             tool.OnSelect(self,event)
             self.tool = tool
 
+      self.recordStartChange(event)
       handled = False
       if self.tool:
         handled = self.tool.OnEditEvent(self, event)
       event.Skip(not handled)  # if you pass false, event will not be processed anymore
+      self.recordEndChange(event)
+      
+    def recordStartChange(self, event):
+      isStartChange = False
+      if isinstance(event,wx.MouseEvent):
+        if event.ButtonDown(wx.MOUSE_BTN_LEFT):
+          isStartChange = True
+      if isinstance(event,wx.KeyEvent):      
+        if event.GetEventType() == wx.EVT_KEY_DOWN.typeId and (event.GetKeyCode() ==  wx.WXK_DELETE or event.GetKeyCode() ==  wx.WXK_NUMPAD_DELETE):
+          isStartChange = True
+      if isStartChange:
+        self.model.updateMicrodom()
+        self.data_before = self.model.getEntitiesAndInfos()
+
+    def recordEndChange(self, event):
+      isEndChange = False
+      if isinstance(event,wx.MouseEvent):
+        if event.ButtonUp(wx.MOUSE_BTN_LEFT):
+          isEndChange = True
+      if isinstance(event,wx.KeyEvent):      
+        if event.GetEventType() == wx.EVT_KEY_DOWN.typeId and (event.GetKeyCode() ==  wx.WXK_DELETE or event.GetKeyCode() ==  wx.WXK_NUMPAD_DELETE):
+          isEndChange = True
+      if isEndChange:
+        self.model.updateMicrodom()
+        data_after = self.model.getEntitiesAndInfos()
+        if self.data_before[1] != data_after[1]:
+          data = (self.data_before, data_after)
+          self.undoData.append(data)
+          while len(self.undoData) > self.UNDO_MAX:
+            self.undoData.remove(self.undoData[0])
 
     def OnToolMenu(self,event):
       print "On Tool Menu"

@@ -37,6 +37,7 @@ class SAFplusFrame(wx.Frame):
         self.model = None
         self.problems = None
         self.currentActivePrj = None # indicating that this the current project which is active
+        self.undo = {}
        # Create the menubar
         self.style_manager = styles.StyleManager()
         self.menuBar = wx.MenuBar()
@@ -249,6 +250,10 @@ class SAFplusFrame(wx.Frame):
         self.setPagesText(t.modelDetails, self.getCurrentPageText(1))
         self.setPagesText(t.instance, self.getCurrentPageText(2))
         self.setPagesText(t.instanceDetails, self.getCurrentPageText(3))
+      if self.project.currentProjectPath not in self.undo.keys():
+        self.undo[self.project.currentProjectPath] = ([],[])
+      t.uml.undoData = self.undo[self.project.currentProjectPath][0]
+      t.uml.redoData = self.undo[self.project.currentProjectPath][1]
       self.tab.Bind(wx.aui.EVT_AUINOTEBOOK_PAGE_CHANGED, self.onPageChanged) # bind to catch page selection event
       if self.tab.GetCurrentPage() == t.uml:
         self.enableTools(self.getCurrentPageText(0))
@@ -375,6 +380,11 @@ class SAFplusFrame(wx.Frame):
       page = self.tab.GetPageText(evt.GetSelection())
       print 'onPageChangedEvent: page [%s] is selected' % page
       self.enableTools(page)
+      currentPage = self.tab.GetCurrentPage()
+      if isinstance(currentPage, entityDetailsDialog.Panel):
+        if self.model.uml.undoAction:
+          currentPage.refresh()
+          self.model.uml.undoAction = False
 
     def enableTools(self, page):
       t = self.model

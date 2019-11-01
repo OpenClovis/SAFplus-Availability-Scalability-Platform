@@ -1119,7 +1119,7 @@ class Panel(scrolled.ScrolledPanel):
         self.idLookup[idx] = GenerateTool(self)
 
       # Add the umlEditor's standard tools
-      self.toolBar.AddSeparator()
+      # self.toolBar.AddSeparator()
       
      
       #bitmap = svg.SvgFile("connect.svg").bmp(tsize, { }, (222,222,222,wx.ALPHA_OPAQUE))

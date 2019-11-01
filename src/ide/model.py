@@ -144,68 +144,35 @@ instantiated  <instances>     instances                         instances     (e
             name = "_" + containedName
             t = arrows[0].getElementsByTagName(name)
             if t:
-              arrows[0].delChild(t[0])      
-    
-  def deleteInstance(self,inst):
-    self.recursiveDeleteInstance(inst)
-    
-  def deleteInstanceFromMicrodom(self, entname):
-    instances = self.data.getElementsByTagName("instances")
-    if instances:    
-      instances[0].delChild(instances[0].findOneByChild("name",entname))
+              arrows[0].delChild(t[0])
 
-  def recursiveDeleteInstance(self,inst):
-    entname = inst.data["name"]    
-    #if len(inst.containmentArrows)==0:
-    #  self.deleteInstanceFromMicrodom(entname)
-    #  for (name, e) in self.instances.items():
-    #    if name==entname:
-    #      del self.instances[name]
-    #  return
-    for ca in inst.containmentArrows:
-      self.recursiveDeleteInstance(ca.contained)
-    if len(inst.containmentArrows)>0:
-      del inst.containmentArrows[:]
-    self.deleteInstanceFromMicrodom(entname)
-    del self.instances[entname]
-    for (name,e) in self.instances.items():
-      e.containmentArrows = [ x for x in e.containmentArrows if x.contained != inst]
+  def getEntitiesAndInfos(self):
+    entities = self.data.getElementsByTagName("entities")
+    entitiesInfo = self.data.getElementsByTagName("ide_entity_info")
+    if entities and entitiesInfo:
+      return (entities[0].pretty(), entitiesInfo[0].pretty())
+    else: return ("", "")
 
-  def connect(self,container, contained):
-    """Connects 2 instances together.  Returns the containment arrow instance"""
-    assert(isinstance(container,entity.Instance))  # TODO, allow this function to connect 2 entities (but not 1 instance and 1 entity)
-    assert(isinstance(contained,entity.Instance))
-    ca = entity.ContainmentArrow(container,(0,0),contained,(0,0))
-    container.containmentArrows.append(ca)
-    contained.childOf.add(container)
-    return ca
+  def setEntitiesAndInfos(self, data):
+    c = self.data.getElementsByTagName("entities")
+    if c:
+      self.data.delChild(c[0])
+    dom  = xml.dom.minidom.parseString(data[0])
+    entities = microdom.LoadMiniDom(dom.childNodes[0])
+    self.data.addChild(entities)
+      
+    c = self.data.getElementsByTagName("ide")
+    if c:
+      c1 = c[0].getElementsByTagName("ide_entity_info")
+      if c1:
+        c[0].delChild(c1[0])
+        dom1 = xml.dom.minidom.parseString(data[1])
+        entitiesInfo = microdom.LoadMiniDom(dom1.childNodes[0])
+        c[0].addChild(entitiesInfo)
+    self.entities = {}
+    self.loadDataInfomation()
 
-  def generateSource(self,srcDir):
-
-    output = common.FilesystemOutput()
-    comps = filter(lambda entity: entity.et.name == 'Component', self.entities.values())
-    srcDir = os.sep.join([srcDir, "src"])
-    files = []  
-    files += generate.topMakefile(output, srcDir,[c.data["name"] for c in comps])
-
-    for c in comps:
-      files += generate.cpp(output, srcDir, c, c.data)
-    return files
-
-
-  def load(self, fileOrString):
-    """Load an XML representation of the model"""
-    if fileOrString[0] != "<":  # XML must begin with opener
-      self.filename = common.fileResolver(fileOrString)
-      f = open(self.filename,"r")
-      fileOrString = f.read()
-      f.close()
-    dom = xml.dom.minidom.parseString(fileOrString)
-    self.data = microdom.LoadMiniDom(dom.childNodes[0])
-
-    self.loadModules()
-
-    # Populate the helper variables from the microdom
+  def loadDataInfomation(self):
     entities = self.data.getElementsByTagName("entities")
     ideEntities = self.data.getElementsByTagName("ide_entity_info")
     if ideEntities: ideEntities = ideEntities[0]  # Get first item in the list
@@ -265,7 +232,6 @@ instantiated  <instances>     instances                         instances     (e
               for ed in et[0].children(microdom.microdomFilter):
                 e.instanceLocked[str(ed.tag_)] = ed.data_
 
-
     instances = self.data.find("instances")
     if instances:
       for (path, obj) in instances:
@@ -277,6 +243,8 @@ instantiated  <instances>     instances                         instances     (e
 
               # Entity of this instance
               entityParent = self.entities.get(entityTypeName)
+              if not entityParent:
+                continue
               entityInstance = entity.Instance(entityParent, instance, (0,0), (10,10), instance.name.data_)
               entityInstance.updateDataFields(instance)
     
@@ -302,6 +270,66 @@ instantiated  <instances>     instances                         instances     (e
               pass
     
     entity.updateNamelyDict(self)
+
+  def deleteInstance(self,inst):
+    self.recursiveDeleteInstance(inst)
+    
+  def deleteInstanceFromMicrodom(self, entname):
+    instances = self.data.getElementsByTagName("instances")
+    if instances:    
+      instances[0].delChild(instances[0].findOneByChild("name",entname))
+
+  def recursiveDeleteInstance(self,inst):
+    entname = inst.data["name"]    
+    #if len(inst.containmentArrows)==0:
+    #  self.deleteInstanceFromMicrodom(entname)
+    #  for (name, e) in self.instances.items():
+    #    if name==entname:
+    #      del self.instances[name]
+    #  return
+    for ca in inst.containmentArrows:
+      self.recursiveDeleteInstance(ca.contained)
+    if len(inst.containmentArrows)>0:
+      del inst.containmentArrows[:]
+    self.deleteInstanceFromMicrodom(entname)
+    del self.instances[entname]
+    for (name,e) in self.instances.items():
+      e.containmentArrows = [ x for x in e.containmentArrows if x.contained != inst]
+
+  def connect(self,container, contained):
+    """Connects 2 instances together.  Returns the containment arrow instance"""
+    assert(isinstance(container,entity.Instance))  # TODO, allow this function to connect 2 entities (but not 1 instance and 1 entity)
+    assert(isinstance(contained,entity.Instance))
+    ca = entity.ContainmentArrow(container,(0,0),contained,(0,0))
+    container.containmentArrows.append(ca)
+    contained.childOf.add(container)
+    return ca
+
+  def generateSource(self,srcDir):
+
+    output = common.FilesystemOutput()
+    comps = filter(lambda entity: entity.et.name == 'Component', self.entities.values())
+    srcDir = os.sep.join([srcDir, "src"])
+    files = []  
+    files += generate.topMakefile(output, srcDir,[c.data["name"] for c in comps])
+
+    for c in comps:
+      files += generate.cpp(output, srcDir, c, c.data)
+    return files
+
+
+  def load(self, fileOrString):
+    """Load an XML representation of the model"""
+    if fileOrString[0] != "<":  # XML must begin with opener
+      self.filename = common.fileResolver(fileOrString)
+      f = open(self.filename,"r")
+      fileOrString = f.read()
+      f.close()
+    dom = xml.dom.minidom.parseString(fileOrString)
+    self.data = microdom.LoadMiniDom(dom.childNodes[0])
+
+    self.loadModules()
+    self.loadDataInfomation()
 
   def getContainmemtArrowPos(self, ideEntities, container, contained):
     name = container.data["name"]    

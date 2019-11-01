@@ -32,6 +32,7 @@ import style_dialog
 import styles
 from progressdialog import ProgressDialog
 import texts
+import umlEditor
 
 PROJECT_LOAD = wx.NewId()
 PROJECT_SAVE = wx.NewId()
@@ -926,6 +927,7 @@ class ProjectTreePanel(wx.Panel):
       prjPath = self.tree.GetPyData(selectItem).directory()
     else: return
     if itemPath != prjPath: return
+    del self.guiPlaces.frame.undo[self.currentProjectPath]
     self.deleteTreeRecursion(itemPath)
     if self.currentActiveProject != self.tree.GetPyData(selectItem):
       self.tree.Delete(selectItem)
@@ -1504,18 +1506,21 @@ class ProjectTreePanel(wx.Panel):
     currentPage = self.guiPlaces.frame.tab.GetCurrentPage()
     if currentPage.__class__.__name__ == "Page":
       return currentPage
-
     return False
-    
+
   def onUndo(self, event):
-    pageControl = self.getPageControl()
-    if pageControl:
-      pageControl.control.Undo()
+    currentPage = self.guiPlaces.frame.tab.GetCurrentPage()
+    if currentPage.__class__.__name__ == "Page":
+      currentPage.control.Undo()
+    elif isinstance(currentPage, umlEditor.Panel):
+      currentPage.Undo() 
 
   def onRedo(self, event):
-    pageControl = self.getPageControl()
-    if pageControl:
-      pageControl.control.Redo()
+    currentPage = self.guiPlaces.frame.tab.GetCurrentPage()
+    if currentPage.__class__.__name__ == "Page":
+      currentPage.control.Redo()
+    elif isinstance(currentPage, umlEditor.Panel):
+      currentPage.Redo() 
 
   def onReload(self, event):
     pageControl = self.getPageControl()
