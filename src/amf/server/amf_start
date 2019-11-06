@@ -1,4 +1,5 @@
 #!/bin/bash
-rm -rf /dev/shm/SAFplus*
+#rm -rf /dev/shm/SAFplus*
+setsid python ../lib/safplus_watchdog.py &
 exec ./safplus_amf
 exit 0
