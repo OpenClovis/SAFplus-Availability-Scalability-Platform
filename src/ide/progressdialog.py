@@ -1,8 +1,11 @@
 import wx
 
 class ProgressDialog(wx.Dialog):
-    def __init__(self, parent, currentRunningThread):
-        wx.Dialog.__init__(self, parent, wx.ID_ANY, "Progress information", size= (610,222))
+    def __init__(self, parent, currentRunningThread, parentDialog):
+        if parentDialog:
+            wx.Dialog.__init__(self, parentDialog, wx.ID_ANY, "Progress information", size= (610,222))
+        else:
+            wx.Dialog.__init__(self, parent, wx.ID_ANY, "Progress information", size= (610,222))
         self.parent = parent
         self.parent.setCancelProgress(False)
         self.thread = currentRunningThread

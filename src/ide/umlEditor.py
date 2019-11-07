@@ -557,6 +557,7 @@ class Panel(scrolled.ScrolledPanel):
       self.redoData = []
       self.UNDO_MAX = 100
       self.undoAction = False
+      self.data_before = None
 
       # Buttons and other IDs that are registered may need to be looked up to turn the ID back into a python object
       self.idLookup={}  
@@ -809,8 +810,8 @@ class Panel(scrolled.ScrolledPanel):
         self.model.updateMicrodom()
         self.data_before = self.model.getEntitiesAndInfos()
 
-    def recordEndChange(self, event):
-      isEndChange = False
+    def recordEndChange(self, event, isEndChange=False):
+      if not self.data_before: return
       if isinstance(event,wx.MouseEvent):
         if event.ButtonUp(wx.MOUSE_BTN_LEFT):
           isEndChange = True
@@ -820,11 +821,12 @@ class Panel(scrolled.ScrolledPanel):
       if isEndChange:
         self.model.updateMicrodom()
         data_after = self.model.getEntitiesAndInfos()
-        if self.data_before[1] != data_after[1]:
+        if self.data_before[1] != data_after[1] or self.data_before[0] != data_after[0]:
           data = (self.data_before, data_after)
           self.undoData.append(data)
           while len(self.undoData) > self.UNDO_MAX:
             self.undoData.remove(self.undoData[0])
+          self.data_before = data_after
 
     def OnToolMenu(self,event):
       print "On Tool Menu"

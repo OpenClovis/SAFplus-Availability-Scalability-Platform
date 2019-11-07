@@ -872,6 +872,7 @@ class ProjectTreePanel(wx.Panel):
     #  prj.save()
     #  saved.append(prj.name)
     self.guiPlaces.statusbar.SetStatusText("Projects %s saved." % ", ".join(saved),0);
+    self.guiPlaces.frame.model.uml.recordEndChange(None, True)
 
     index = self.guiPlaces.frame.tab.GetSelection()
     curPage = self.guiPlaces.frame.tab.GetPage(index)
@@ -898,6 +899,7 @@ class ProjectTreePanel(wx.Panel):
       self.currentActiveProject.save() 
       saved.append(self.currentActiveProject.name)
       self.guiPlaces.statusbar.SetStatusText("Projects %s saved." % ", ".join(saved),0)
+      self.guiPlaces.frame.model.uml.recordEndChange(None, True)
 
     n = self.guiPlaces.frame.tab.GetPageCount()
     for index in range(n):
@@ -1357,12 +1359,12 @@ class ProjectTreePanel(wx.Panel):
       self.updateTreeItem(self.currentActiveProject, texts.images)
       self.updateTreeItem(self.currentActiveProject, texts.configs)
 
-  def runningLongProcess(self, func, parram):
+  def runningLongProcess(self, func, parram, parentDialog=None):
     self.guiPlaces.frame.console.SetValue('')
     self.guiPlaces.frame.setCurrentTabInfoByText(texts.console)
     runningThread = threading.Thread(target = func, args = parram)
     runningThread.start()
-    progressDialog = ProgressDialog(self, runningThread)
+    progressDialog = ProgressDialog(self, runningThread, parentDialog)
     progressDialog.ShowModal()
     progressDialog.Destroy()
 
@@ -2059,7 +2061,7 @@ class DeployDialog(wx.Dialog):
       srcImage = self.parent.getPrjPath() + '/images/' + self.curNode
       if os.path.isfile(srcImage + '.tar.gz'):
         img = self.deployInfos[self.curNode]
-        self.parent.runningLongProcess(self.deploymentSingleImage, (img, srcImage, ))
+        self.parent.runningLongProcess(self.deploymentSingleImage, (img, srcImage, ), self)
       else:
         self.parent.guiPlaces.frame.setCurrentTabInfoByText(texts.console)
         self.parent.log_error("Image %s.tar.gz don't exist.\nDeploy failure" % srcImage)
