@@ -406,6 +406,7 @@ class Panel(scrolled.ScrolledPanel):
       else:
         if share.umlEditorPanel:          
           share.umlEditorPanel.notifyValueChange(self.entity, name, query, proposedValue)
+      share.umlEditorPanel.guiPlaces.frame.modelChange()
 
     def OnUnfocus(self,event):
       # TODO: got wrong entity value change

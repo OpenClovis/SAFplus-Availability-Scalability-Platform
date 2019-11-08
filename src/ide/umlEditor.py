@@ -613,6 +613,7 @@ class Panel(scrolled.ScrolledPanel):
       model.instance.addTools()
       self.entities = share.detailsPanel.model.entities
       self.refresh()
+      self.modellingChange()
       frame.enableTools(frame.getCurrentPageText(0))
       self.redoData.append(data)
       while len(self.redoData) > self.UNDO_MAX:
@@ -631,6 +632,7 @@ class Panel(scrolled.ScrolledPanel):
       model.instance.addTools()
       self.entities = share.detailsPanel.model.entities
       self.refresh()
+      self.modellingChange()
       frame.enableTools(frame.getCurrentPageText(0))
       self.undoData.append(data)
       while len(self.undoData) > self.UNDO_MAX:
@@ -810,6 +812,12 @@ class Panel(scrolled.ScrolledPanel):
         self.model.updateMicrodom()
         self.data_before = self.model.getEntitiesAndInfos()
 
+    def modellingChange(self):
+      '''
+      @summary    : add character '*' if modelling is change
+      '''
+      share.umlEditorPanel.guiPlaces.frame.modelChange()
+
     def recordEndChange(self, event, isEndChange=False):
       if not self.data_before: return
       if isinstance(event,wx.MouseEvent):
@@ -827,6 +835,7 @@ class Panel(scrolled.ScrolledPanel):
           while len(self.undoData) > self.UNDO_MAX:
             self.undoData.remove(self.undoData[0])
           self.data_before = data_after
+          self.modellingChange()
 
     def OnToolMenu(self,event):
       print "On Tool Menu"

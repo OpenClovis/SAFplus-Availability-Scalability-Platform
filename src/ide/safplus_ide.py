@@ -389,7 +389,7 @@ class SAFplusFrame(wx.Frame):
     def enableTools(self, page):
       t = self.model
       if not t: return      
-      if page == self.getCurrentPageText(0):
+      if re.sub("\*", "", page) == self.getCurrentPageText(0):
         # uml modelling is selected, now enable tools belonging to it and disable the others not belonging to it
         if t.uml: 
           t.uml.enableTools(True)
@@ -397,7 +397,7 @@ class SAFplusFrame(wx.Frame):
         if t.instance:
           t.instance.enableTools(False)
           t.instance.enableMenuItems(False) # set menu items state also
-      elif page == self.getCurrentPageText(2):
+      elif re.sub("\*", "", page) == self.getCurrentPageText(2):
         # instantiation is selected, now enable tools belonging to it and disable the others not belonging to it
         if t.uml:
           t.uml.enableTools(False)
@@ -540,6 +540,15 @@ class SAFplusFrame(wx.Frame):
         self.tab.InsertPage(idx, page, pageText, select=True)
         self.deleteWindowsMenuItem(pageText)
 
+    def modelChange(self):
+      '''
+      @summary    : add character '*' if data on model is change
+      '''
+      index = self.tab.GetSelection()
+      label = self.tab.GetPageText(index)
+      if not ('*' in label):
+        self.tab.SetPageText(index, "*%s" % label)
+
 class SAFplusApp(wx.App):
     """ WX Application wrapper for SAFplus IDE"""
     def __init__(self, redirect):
@@ -563,10 +572,10 @@ class Page(wx.Panel):
     self.parent = parent
     self.control = control.EditorControl(self, wx.BORDER_NONE, pathFile)
 
-    SAVE_ID = wx.NewId()
-    self.Bind(wx.EVT_MENU, self.onSave, id=SAVE_ID)
-    accelTbl = wx.AcceleratorTable([(wx.ACCEL_CTRL, ord('S'), SAVE_ID)])
-    self.SetAcceleratorTable(accelTbl)
+    # SAVE_ID = wx.NewId()
+    # self.Bind(wx.EVT_MENU, self.onSave, id=SAVE_ID)
+    # accelTbl = wx.AcceleratorTable([(wx.ACCEL_CTRL, ord('S'), SAVE_ID)])
+    # self.SetAcceleratorTable(accelTbl)
 
     self.sizer = wx.BoxSizer(wx.VERTICAL)
     self.sizer.Add(self.control,1,wx.EXPAND)

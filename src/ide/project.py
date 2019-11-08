@@ -398,7 +398,7 @@ class ProjectTreePanel(wx.Panel):
         self.fileMenu.Append(wx.ID_NEW, "&New\tAlt-n", "New Project")
         self.fileMenu.Append(PROJECT_LOAD, "L&oad\tAlt-l", "Load Project")
         self.fileMenu.AppendSeparator()
-        self.fileMenu.Append(PROJECT_SAVE, "S&ave\tAlt-s", "Save Project")
+        self.fileMenu.Append(PROJECT_SAVE, "S&ave\tCtrl-s", "Save Project")
         self.fileMenu.Append(PROJECT_SAVE_AS, "Save As...\tAlt-a", "Save As")
         self.fileMenu.Append(PROJECT_SAVE_ALL, "Save All", "")
         self.fileMenu.AppendSeparator()
@@ -863,21 +863,34 @@ class ProjectTreePanel(wx.Panel):
 
       os.system('mkdir -p %s/configs' % self.getPrjPath())
 
-  def OnSave(self,event):
-    saved = []
-    self.currentActiveProject.save() 
-    saved.append(self.currentActiveProject.name)
-    #for p in self.projects:
-    #  prj = self.tree.GetPyData(p)
-    #  prj.save()
-    #  saved.append(prj.name)
-    self.guiPlaces.statusbar.SetStatusText("Projects %s saved." % ", ".join(saved),0);
-    self.guiPlaces.frame.model.uml.recordEndChange(None, True)
+  def resetLabel(self, *pageList):
+    for page in pageList:
+      index = self.guiPlaces.frame.tab.GetPageIndex(page)
+      if index >= 0:
+        label = self.guiPlaces.frame.tab.GetPageText(index)
+        if '*' in label:
+          label = re.sub("\*", "", label)
+          self.guiPlaces.frame.tab.SetPageText(index, label)
 
+  def OnSave(self,event):
     index = self.guiPlaces.frame.tab.GetSelection()
-    curPage = self.guiPlaces.frame.tab.GetPage(index)
-    if curPage.__class__.__name__ == "Page":
-      curPage.onSave(None)
+    c = self.guiPlaces.frame.tab.GetPage(index)
+    t = self.guiPlaces.frame.model
+    if c in (t.uml, t.modelDetails, t.instance, t.instanceDetails):
+      saved = []
+      self.currentActiveProject.save() 
+      saved.append(self.currentActiveProject.name)
+      self.guiPlaces.statusbar.SetStatusText("Projects %s saved." % ", ".join(saved),0);
+      self.guiPlaces.frame.model.uml.recordEndChange(None, True)
+      self.resetLabel(t.uml, t.modelDetails, t.instance, t.instanceDetails)
+
+      #for p in self.projects:
+      #  prj = self.tree.GetPyData(p)
+      #  prj.save()
+      #  saved.append(prj.name)
+
+    elif c.__class__.__name__ == "Page":
+      c.onSave(None)
 
   def OnSaveAs(self, event):
     dlg = SaveAsDialog()
@@ -900,6 +913,8 @@ class ProjectTreePanel(wx.Panel):
       saved.append(self.currentActiveProject.name)
       self.guiPlaces.statusbar.SetStatusText("Projects %s saved." % ", ".join(saved),0)
       self.guiPlaces.frame.model.uml.recordEndChange(None, True)
+      t = self.guiPlaces.frame.model
+      self.resetLabel(t.uml, t.modelDetails, t.instance, t.instanceDetails)
 
     n = self.guiPlaces.frame.tab.GetPageCount()
     for index in range(n):
