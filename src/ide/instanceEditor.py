@@ -759,14 +759,12 @@ class GenerateTool(Tool):
       parentFrame.project.prjProperties['backupMode'] = "never"
       parentFrame.project.savePrjProperties()
     self.dlg.EndModal(1)
-    # self.dlg.Close()
   
   def onClickBackupCancelBtn(self, event):
     '''
     @summary    : cancel backup dialog
     '''
     self.dlg.EndModal(0)
-    # self.dlg.Close()
 
   def onClickBackupYesBtn(self, event):
     '''
@@ -778,7 +776,6 @@ class GenerateTool(Tool):
       parentFrame.project.savePrjProperties()
     self.executeBackupSource()
     self.dlg.EndModal(2)
-    # self.dlg.Close()
 
   def onChecked(self, event):
     pass
@@ -1025,6 +1022,8 @@ class Panel(scrolled.ScrolledPanel):
       self.location = (0,0)
       self.rotate = 0.0
       self.scale = 1.0
+
+      self.data_before = None
 
       # Buttons and other IDs that are registered may need to be looked up to turn the ID back into a python object
       self.idLookup={}  
@@ -1412,6 +1411,31 @@ class Panel(scrolled.ScrolledPanel):
       self.toolBar.ToggleTool(event.GetId(), True)
       self.OnToolClick(event)
 
+    def recordStartChange(self, event):
+      isStartChange = False
+      if isinstance(event,wx.MouseEvent):
+        if event.ButtonDown(wx.MOUSE_BTN_LEFT):
+          isStartChange = True
+      if isinstance(event,wx.KeyEvent):
+        if event.GetEventType() == wx.EVT_KEY_DOWN.typeId and (event.GetKeyCode() ==  wx.WXK_DELETE or event.GetKeyCode() ==  wx.WXK_NUMPAD_DELETE):
+          isStartChange = True
+      if isStartChange:
+        self.data_before = self.model.getInstanceInfomation()
+
+    def recordEndChange(self, event, isEndChange=False):
+      if not self.data_before: return
+      if isinstance(event,wx.MouseEvent):
+        if event.ButtonUp(wx.MOUSE_BTN_LEFT):
+          isEndChange = True
+      if isinstance(event,wx.KeyEvent):
+        if event.GetEventType() == wx.EVT_KEY_DOWN.typeId and (event.GetKeyCode() ==  wx.WXK_DELETE or event.GetKeyCode() ==  wx.WXK_NUMPAD_DELETE):
+          isEndChange = True
+      if isEndChange:
+        data_after = self.model.getInstanceInfomation()
+        if self.data_before != data_after:
+          self.setIntanceChange()
+          self.data_before = None
+
     def OnToolEvent(self,event):
       # Set tool is SelectTool after press ESC button
       if isinstance(event, wx.KeyEvent):
@@ -1427,7 +1451,9 @@ class Panel(scrolled.ScrolledPanel):
 
       handled = False
       if self.tool:
+        self.recordStartChange(event)
         handled = self.tool.OnEditEvent(self, event)
+        self.recordEndChange(event)
       event.Skip(not handled)  # if you pass false, event will not be processed anymore
 
     def OnToolClick(self,event):
@@ -2066,6 +2092,11 @@ class Panel(scrolled.ScrolledPanel):
       self.Refresh()
       self.layout()
 
+    def setIntanceChange(self):
+      '''
+      @summary    : add character '*' if intance is change
+      '''
+      share.umlEditorPanel.guiPlaces.frame.modelChange()
 
 model = None
 

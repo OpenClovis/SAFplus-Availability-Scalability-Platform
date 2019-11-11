@@ -153,6 +153,12 @@ instantiated  <instances>     instances                         instances     (e
       return (entities[0].pretty(), entitiesInfo[0].pretty())
     else: return ("", "")
 
+  def getInstanceInfomation(self):
+    self.updateMicrodom()
+    instances = self.data.getElementsByTagName("instances")
+    if instances: 
+      return instances[0].pretty()
+
   def setEntitiesAndInfos(self, data):
     c = self.data.getElementsByTagName("entities")
     if c:
