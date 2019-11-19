@@ -220,6 +220,7 @@ clAmsPeRemoteProxiedSUsForNode(ClAmsNodeT *node,
 static ClRcT clAmsPeSUSwitchoverPrologue(ClAmsSUT *su, ClUint32T error, ClUint32T switchoverMode);
 static ClUint32T clAmsSURestartingCompCount(CL_IN       ClAmsSUT        *su);
 static ClBoolT clAmsSUHasRestartingComp(CL_IN       ClAmsSUT        *su);
+static ClRcT clAmsPeNodeStatusCheck();
 
 /******************************************************************************
  * Cluster Functions
@@ -4535,6 +4536,47 @@ clAmsPeSUUnlockCallback(
         CL_IN   ClUint32T error)
 {
     return CL_OK;
+}
+
+ClRcT clAmsPeNodeStatusCheck()
+{
+    ClAmsEntityT entity = {0};
+    ClRcT rc = clCpmLocalNodeNameGet(&entity.name);
+    if (rc != CL_OK)
+    {
+       clLogError("NODE","CHK","get local node name fail rc [0x%x]",rc);
+       goto exitfn;
+    }
+    ++entity.name.length;
+    entity.type = CL_AMS_ENTITY_TYPE_NODE;
+    ClAmsEntityRefT  entityRef = {{0},0,0};
+    memcpy(&entityRef.entity, &entity ,sizeof (ClAmsEntityT));
+    entityRef.ptr = NULL;
+    clLogTrace("NODE","CHK","looking up entity [%s] from DB", entity.name.value);    
+    AMS_CALL(clAmsEntityDbFindEntity(
+                &gAms.db.entityDb[entityRef.entity.type],
+                &entityRef));
+    ClAmsNodeT *node = (ClAmsNodeT*) entityRef.ptr;
+#if 0
+    clLogInfo("NODE","CHK","node name [%s]", node->config.entity.name.value);
+    clLogInfo("NODE","CHK","admin state [%d]", node->config.adminState);
+    clLogInfo("NODE","CHK","oper state [%d]", node->status.operState);
+    clLogInfo("NODE","CHK","presence state [%d]", node->status.presenceState);
+    clLogInfo("NODE","CHK","is cluster member [%d]", node->status.isClusterMember);
+    clLogInfo("NODE","CHK","was member before [%d]", node->status.wasMemberBefore);
+    clLogInfo("NODE","CHK","recovery [%d]", node->status.recovery);
+    clLogInfo("NODE","CHK","su failovers count [%d]", node->status.suFailoverCount);
+    clLogInfo("NODE","CHK","number of instantiated SU [%d]", node->status.numInstantiatedSUs); 
+    clLogInfo("NODE","CHK","number of assigned SU [%d]", node->status.numAssignedSUs);
+#endif
+    if (node->status.presenceState == CL_AMS_PRESENCE_STATE_TERMINATING || node->status.isClusterMember == CL_AMS_NODE_IS_LEAVING_CLUSTER)
+    {
+       return CL_AMS_RC(CL_ERR_TRY_AGAIN);
+    }
+
+exitfn:
+    clLogTrace("NODE","CHK","exit function [%s] with rc [0x%x]",__FUNCTION__,rc);
+    return rc;
 }
 
 /*
@@ -20529,6 +20571,13 @@ clAmsPeEntityUnlock(
         {
             rc = CL_AMS_RC(CL_ERR_BAD_OPERATION);
         }
+        else if ( (rc = clAmsPeNodeStatusCheck()) != CL_OK)
+        {
+            AMS_ENTITY_LOG (entity, CL_AMS_MGMT_SUB_AREA_MSG, CL_DEBUG_INFO,
+            ("Admin Operation [Unlock] on [%s] in Admin State [%s] returned failure because the master node is terminating\n",
+             entity->name.value,
+             CL_AMS_STRING_A_STATE(adminState)));
+        }
         else
         {
             switch ( entity->type )
@@ -20654,6 +20703,13 @@ clAmsPeEntityLockInstantiate(
         {
             rc = CL_AMS_RC(CL_ERR_BAD_OPERATION);
         }
+        else if ( (rc = clAmsPeNodeStatusCheck()) != CL_OK)
+        {
+            AMS_ENTITY_LOG (entity, CL_AMS_MGMT_SUB_AREA_MSG, CL_DEBUG_INFO,
+            ("Admin Operation [Lock Instantiation] on [%s] in Admin State [%s] returned failure because the master node is terminating\n",
+             entity->name.value,
+             CL_AMS_STRING_A_STATE(adminState)));
+        }
         else
         {
             switch ( entity->type )
@@ -20774,6 +20830,13 @@ clAmsPeEntityLockAssignment(
         else if ( adminState == CL_AMS_ADMIN_STATE_SHUTTINGDOWN )
         {
             rc = CL_AMS_RC(CL_ERR_BAD_OPERATION);
+        }
+        else if ( (rc = clAmsPeNodeStatusCheck()) != CL_OK)
+        {
+            AMS_ENTITY_LOG (entity, CL_AMS_MGMT_SUB_AREA_MSG, CL_DEBUG_INFO,
+            ("Admin Operation [Lock Assignment] on [%s] in Admin State [%s] returned failure because the master node is terminating\n",
+             entity->name.value,
+             CL_AMS_STRING_A_STATE(adminState)));
         }
         else
         {
