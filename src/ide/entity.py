@@ -12,9 +12,25 @@ nameIdx = {
 RLS_OK = 0              # Relationship is allowed
 RLS_ERR_EXISTS = 1      # Relationship already exists
 RLS_ERR_NOT_ALLOWED = 2 # Relationship is not allowed
+MAXIMUM_NUMBER = 1000
+
+def getNames(typ):
+  listName = []
+  for (name, e) in share.detailsPanel.model.entities.items():
+    if e.data['entityType'] == typ:
+      listName.append(name)
+  return listName
+
+def NameEntityCreator(typ):
+  """Create a unique entity name by using the type number"""
+  exitsName = getNames(typ)
+  for i in range(1, MAXIMUM_NUMBER):
+    name = typ + str(i)
+    if name not in exitsName:
+      break
+  return name
 
 def NameCreator(typ, etname=None):
-  """Create a unique name by using the type and an instance number"""
   idx = nameIdx.get(typ, 1)
   entIdx = 0
   if etname:
@@ -109,7 +125,7 @@ class Entity:
     self.customInstantiator = entityType.customInstantiator
     self.instanceLocked = {}  # Whether this data data fields can be changed by an instance
     self.data["entityType"] = self.et.name
-    self.data["name"] = NameCreator(entityType.name) if name is None else name
+    self.data["name"] = NameEntityCreator(entityType.name) if name is None else name
     self.bmp  = self.et.iconSvg.instantiate(self.size,self.data)
     self.containmentArrows = []
 
