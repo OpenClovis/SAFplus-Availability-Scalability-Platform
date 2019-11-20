@@ -1450,7 +1450,7 @@ class ProjectTreePanel(wx.Panel):
     '''
     @summary    : Show safplus information
     '''
-    self.dlg = wx.Dialog(None, title="Deployment Details", size=(350,220))
+    self.dlg = wx.Dialog(None, title="Deployment Details", size=(350,190))
     vBox = wx.BoxSizer(wx.VERTICAL)
     hBox = wx.BoxSizer(wx.HORIZONTAL)
     text = wx.StaticText(self.dlg, label="OpenClovis IDE")
@@ -1458,7 +1458,7 @@ class ProjectTreePanel(wx.Panel):
     text3 = wx.StaticText(self.dlg, label="Build: 1.0")
     self.dlg.SetBackgroundColour('#FFFFFF')
 
-    okBtn = wx.Button(self.dlg, label="OK")
+    okBtn = wx.Button(self.dlg, label="OK", size=(75,25))
     okBtn.Bind(wx.EVT_BUTTON, self.onClickOkCloseBtn)
 
     img = wx.EmptyImage(35, 35)
@@ -1474,7 +1474,9 @@ class ProjectTreePanel(wx.Panel):
     vBox.Add(hBox, 0, wx.ALL|wx.ALIGN_LEFT, 5)
     vBox.Add(text2, 0, wx.LEFT, 50)
     vBox.Add(text3, 0, wx.LEFT, 50)
-    vBox.Add(okBtn, 0, wx.TOP|wx.ALIGN_RIGHT, 65)
+    vBox1 = wx.BoxSizer(wx.VERTICAL)
+    vBox1.Add(okBtn, 0, wx.LEFT, 257)
+    vBox.Add(vBox1, 0, wx.TOP, 28)
 
     self.dlg.SetSizer(vBox)
     self.dlg.ShowModal()
@@ -1710,6 +1712,7 @@ class PropertiesDialog(wx.Dialog):
       self.properties.Bind(wx.EVT_LISTBOX, self.onSelectChange)
       vBox1 = wx.BoxSizer(wx.VERTICAL)
 
+      line = wx.StaticLine(self, size=(445,1), style=wx.LI_HORIZONTAL)
       label1 = wx.StaticText(self, label="Clovis System Project", size=(200,25))
       font = wx.Font(11, wx.DEFAULT, wx.NORMAL, wx.BOLD)
       label1.SetFont(font)
@@ -1718,6 +1721,7 @@ class PropertiesDialog(wx.Dialog):
       self.okBtn.Bind(wx.EVT_BUTTON, self.onClickOkBtn)
       cancelBtn = wx.Button(self, label="Cancel")
       cancelBtn.Bind(wx.EVT_BUTTON, self.onClickCancelBtn)
+      line2 = wx.StaticLine(self, size=(668,1), style=wx.LI_HORIZONTAL)
 
       self.systemProject = SystemProject(self)
       self.parent.getPrjProperties()
@@ -1725,7 +1729,8 @@ class PropertiesDialog(wx.Dialog):
       self.systemProject.nBackup.SetValue(str(self.parent.prjProperties['backupNumber']).strip())
 
       vBox1.Add(label1, 0, wx.ALL, 10)
-      vBox1.Add(self.systemProject, 0, wx.ALL, 0)
+      vBox1.Add(line, 0, wx.ALIGN_TOP, 5)
+      vBox1.Add(self.systemProject, 0, wx.ALL, 10)
       hBox.Add(self.properties, 0, wx.ALL, 0)
       hBox.Add(vBox1, 0, wx.ALL, 0)
 
@@ -1734,6 +1739,7 @@ class PropertiesDialog(wx.Dialog):
       hBox2.Add(cancelBtn, 0, wx.ALL, 10)
 
       vBox.Add(hBox, 0, wx.ALL, 0)
+      vBox.Add(line2, 0, wx.ALIGN_TOP, 5)
       vBox.Add(hBox2, 0, wx.ALL|wx.ALIGN_RIGHT, 0)
       self.SetSizer(vBox)
    
