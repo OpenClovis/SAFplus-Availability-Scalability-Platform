@@ -1,5 +1,47 @@
 #!/bin/bash
-#rm -rf /dev/shm/SAFplus*
+
+#*******************************************************************************
+# Syntax: 
+#   $ ./amf_start -g <databaseGenerated>
+#   DatabaseGenerated: 0|1
+# Example:
+#   $ ./amf_start -g 1 # The node runs first
+#   $ ./amf_start #(same as ./amf_start -g 0) Running the other node
+#*******************************************************************************
+
+databaseGenerated=0
+while [[ $# -gt 0 ]]
+do
+    key=$1
+    case $key in
+        -g|-G)
+        databaseGenerated=$2
+        shift
+        ;;
+        *)
+        echo "Unrecognized parameter: '$key'."
+        echo "The node runs first"
+        echo "	$ ./amf_start -g 1"
+        echo "Running the other node"
+        echo "	$ ./amf_start #(same as ./amf_start -g 0)"
+        exit 1
+        ;;
+    esac
+    shift
+done
+
+rm -rf /dev/shm/SAFplus*
+source setup
+if [ $databaseGenerated == 1 ]; then
+    cnt=$(ls *Model.xml|wc -l)
+    if [ $cnt != 1 ]; then
+        echo "There is more/less than one *Model.xml. Recheck and try again..."
+        exit 1
+    fi
+    model=$(ls *Model.xml)
+    ./safplus_db -x $model safplusAmf
+fi
+
 setsid python ../lib/safplus_watchdog.py &
 exec ./safplus_amf
 exit 0
