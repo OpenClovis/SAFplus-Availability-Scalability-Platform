@@ -387,7 +387,7 @@ class SelectTool(Tool):
           # TODO deal with scaling and rotation in delta
           if delta[0] != 0 or delta[1] != 0:
             for e in self.selected:
-              e.pos = (e.pos[0] + delta[0], e.pos[1] + delta[1])  # move all the touching objects by the amount the mouse moved
+              e.pos = (int(e.pos[0] + delta[0]), int(e.pos[1] + delta[1]))  # move all the touching objects by the amount the mouse moved
           self.dragPos = pos
           panel.Refresh()
         else:  # touching nothing, this is a selection rectangle
