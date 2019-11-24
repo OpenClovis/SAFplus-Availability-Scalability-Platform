@@ -17,7 +17,7 @@ namespace SAFplusAmf
 
     enum class Recovery
       {
-        NoRecommendation=1, Restart=2, Failover=3, NodeSwitchover=4, NodeFailover=5, NodeFailfast=6, ClusterReset=7, ApplicationRestart=8, ContainerRestart=9
+        None=0,NoRecommendation=1, Restart=2, Failover=3, NodeSwitchover=4, NodeFailover=5, NodeFailfast=6, ClusterReset=7, ApplicationRestart=8, ContainerRestart=9
       };
     std::ostream& operator<<(std::ostream& os, const Recovery& e);
     std::istream& operator>>(std::istream& is, Recovery& e);

@@ -27,7 +27,7 @@ namespace SAFplus
     ~NplusMPolicy();
     virtual void activeAudit(SAFplusAmf::SAFplusAmfModule* root);
     virtual void standbyAudit(SAFplusAmf::SAFplusAmfModule* root);
-
+	SAFplusAmf::Recovery recommendedRecovery;
   protected:
     void auditOperation(SAFplusAmf::SAFplusAmfModule* root);
     void auditDiscovery(SAFplusAmf::SAFplusAmfModule* root);
@@ -52,6 +52,7 @@ namespace SAFplus
 
   NplusMPolicy::NplusMPolicy()
     {
+		recommendedRecovery=SAFplusAmf::Recovery::None;
     }
 
   NplusMPolicy::~NplusMPolicy()
@@ -330,7 +331,6 @@ namespace SAFplus
     logInfo("POL","N+M","Active audit: Operation phase");
     assert(root);
     SAFplusAmfModule* cfg = (SAFplusAmfModule*) root;
-
     MgtObject::Iterator it;
     for (it = cfg->safplusAmf.serviceGroupList.begin();it != cfg->safplusAmf.serviceGroupList.end(); it++)
       {
@@ -446,7 +446,7 @@ namespace SAFplus
 
 
       // Look for Service Instances that need assignment
-      if (1) 
+      if (1)
         {
         // TODO: pick the SU sort algorithm based on SG policy
         bool (*suOrder)(ServiceUnit* a, ServiceUnit* b) = suEarliestRanking;
@@ -474,7 +474,7 @@ namespace SAFplus
           if (eas == AdministrativeState::on)
             {
             // Handle promotion of standby to active
-              if ((si->numActiveAssignments.current < si->preferredActiveAssignments) && (si->numStandbyAssignments.current > 0))
+              if ( recommendedRecovery!= SAFplusAmf::Recovery::Restart &&(si->numActiveAssignments.current < si->preferredActiveAssignments) && (si->numStandbyAssignments.current > 0))
                 {
                 // Sort the SUs by rank so we promote them in proper order.
                 // TODO: I don't like this constant resorting... we should have a sorted list in the SG.
@@ -492,9 +492,7 @@ namespace SAFplus
                     si->getNumStandbyAssignments()->current.value--;
                     si->getNumActiveAssignments()->current.value++;
                     amfOps->assignWork(su,si,HighAvailabilityState::active);
-                  } 
-                
-
+                  }
                 }
             }
 
@@ -885,6 +883,25 @@ namespace SAFplus
                   {
                     readyForAssignment++;
                   }
+				if(recommendedRecovery==SAFplusAmf::Recovery::None)
+				{
+                   Handle compHdl=INVALID_HDL;
+                   try
+                   {
+                       RefObjMapPair p = SAFplus::name.get(comp->name);  // The way a component "registers" is that it puts its name in the name service.
+                       compHdl = p.first;
+                       if(compHdl!=INVALID_HDL && compHdl.getNode() == SAFplus::ASP_NODEADDR )
+					   {
+						//TODO: compute recovery action
+						//in case of component restart:
+							recommendedRecovery=comp->recovery.value;
+						}
+                   }
+                   catch(NameException& n)
+                   {
+                          // compHandle=INVALID_HDL; I'd do this but its already set.
+                   }
+			     }
                 }
               }
 
