@@ -150,8 +150,27 @@ class SAFplusFrame(wx.Frame):
         
 
     def OnCloseFrame(self,event):
-      print "Closing application"
-      self.Destroy()
+        # print "Closing application"
+        fileName = ""
+        n = self.tab.GetPageCount()
+        cnt = 0
+        for index in range(0,n):
+            text = self.tab.GetPageText(index)
+            if '*' in text:
+                cnt += 1
+                fileName += '\n' + text[1:]
+        style = wx.YES_NO | wx.YES_DEFAULT | wx.ICON_QUESTION
+        style |= wx.CANCEL
+        if fileName:
+            dialog = wx.MessageDialog(self, 'There are %s documents with unsaved changes. Save changes before closing? %s' % (cnt,fileName), 'Save Changes?', style)
+            result = dialog.ShowModal()
+            if result == wx.ID_YES:
+                self.project.OnSaveAll(None)
+            elif result == wx.NO:
+                pass
+            elif result == wx.ID_CANCEL:
+                return False
+        self.Destroy()
 
     def cleanupTabs(self):
       """remove all editor window tabs"""
