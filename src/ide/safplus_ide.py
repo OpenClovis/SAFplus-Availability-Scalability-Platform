@@ -461,14 +461,14 @@ class SAFplusFrame(wx.Frame):
       t = self.model
       if not t:
         return
-      if pageText == self.getCurrentPageText(0):
+      if pageText == self.getCurrentPageText(0) or pageText[1:] == self.getCurrentPageText(0):
         t.uml.deleteMyTools()        
-        pageIdx = 0
-      elif pageText == self.getCurrentPageText(1):
-        pageIdx = 1
-      elif pageText == self.getCurrentPageText(2):
+      #   pageIdx = 0
+      # elif pageText == self.getCurrentPageText(1) or pageText[1:] == self.getCurrentPageText(0):
+      #   pageIdx = 1
+      elif pageText == self.getCurrentPageText(2) or pageText[1:] == self.getCurrentPageText(2):
         t.instance.deleteMyTools()
-        pageIdx = 2
+        # pageIdx = 2
       # elif pageText == self.getCurrentPageText(3):        
       #   pageIdx = 3
       # else:
