@@ -865,6 +865,8 @@ class ProjectTreePanel(wx.Panel):
 
   def resetLabel(self, *pageList):
     for page in pageList:
+      if not page:
+        continue
       index = self.guiPlaces.frame.tab.GetPageIndex(page)
       if index >= 0:
         label = self.guiPlaces.frame.tab.GetPageText(index)
@@ -881,7 +883,8 @@ class ProjectTreePanel(wx.Panel):
       self.currentActiveProject.save() 
       saved.append(self.currentActiveProject.name)
       self.guiPlaces.statusbar.SetStatusText("Projects %s saved." % ", ".join(saved),0);
-      self.guiPlaces.frame.model.uml.recordEndChange(None, True)
+      if self.guiPlaces.frame.model.uml:
+        self.guiPlaces.frame.model.uml.recordEndChange(None, True)
       self.resetLabel(t.uml, t.modelDetails, t.instance, t.instanceDetails)
 
       #for p in self.projects:
@@ -944,7 +947,8 @@ class ProjectTreePanel(wx.Panel):
       prjPath = self.tree.GetPyData(selectItem).directory()
     else: return
     if itemPath != prjPath: return
-    del self.guiPlaces.frame.undo[self.currentProjectPath]
+    if self.guiPlaces.frame.undo.has_key(self.currentProjectPath):
+      del self.guiPlaces.frame.undo[self.currentProjectPath]
     self.deleteTreeRecursion(itemPath)
     if self.currentActiveProject != self.tree.GetPyData(selectItem):
       self.tree.Delete(selectItem)
@@ -959,6 +963,8 @@ class ProjectTreePanel(wx.Panel):
       self.guiPlaces.frame.enableTools(pageText)
     else:
       model = self.guiPlaces.frame.model
+      # model.uml.deleteMyTools()
+      model.instance.deleteMenuItems()
       self.removePageByObj(model.instanceDetails)
       self.removePageByObj(model.instance)
       self.removePageByObj(model.modelDetails)

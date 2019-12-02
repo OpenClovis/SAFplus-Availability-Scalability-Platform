@@ -401,9 +401,10 @@ class SAFplusFrame(wx.Frame):
       self.enableTools(page)
       currentPage = self.tab.GetCurrentPage()
       if isinstance(currentPage, entityDetailsDialog.Panel):
-        if self.model.uml.undoAction:
-          currentPage.refresh()
-          self.model.uml.undoAction = False
+        if self.model.uml:
+          if self.model.uml.undoAction:
+            currentPage.refresh()
+            self.model.uml.undoAction = False
 
     def enableTools(self, page):
       t = self.model
@@ -427,11 +428,13 @@ class SAFplusFrame(wx.Frame):
       else:
         # disable all tools because in these pages, we do not model
         if t.uml:
-          t.uml.enableTools(False)
-          t.uml.enableMenuItems(False)
+          if self.tab.GetPageIndex(t.uml) != wx.NOT_FOUND:
+            t.uml.enableTools(False)
+            t.uml.enableMenuItems(False)
         if t.instance:
-          t.instance.enableTools(False)
-          t.instance.enableMenuItems(False)
+          if self.tab.GetPageIndex(t.instance) != wx.NOT_FOUND:
+            t.instance.enableTools(False)
+            t.instance.enableMenuItems(False)
 
     def getCurrentPageText(self, pageIdx):
       if pageIdx==0:

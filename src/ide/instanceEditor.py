@@ -2096,7 +2096,7 @@ class Panel(scrolled.ScrolledPanel):
       '''
       @summary    : add character '*' if intance is change
       '''
-      share.umlEditorPanel.guiPlaces.frame.modelChange()
+      self.guiPlaces.frame.modelChange()
 
 model = None
 
