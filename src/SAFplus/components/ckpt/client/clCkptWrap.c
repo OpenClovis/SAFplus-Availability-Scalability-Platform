@@ -5365,17 +5365,33 @@ void ckptEventCallback(ClEventSubscriptionIdT    subscriptionId,
             if(ntohl(payLoad.actAddr) == CL_CKPT_UNINIT_VALUE && pHdlInfo->activeAddr == clIocLocalAddressGet())
             {
                 clLogInfo(CL_CKPT_AREA_CLIENT, CL_CKPT_CTX_NOTIFICATION,
-                          "Skipping updation of Active address to uninitialized address as local address [%d] is currently active replica",
+                          "Skipping updation of Active address to uninitialized address for [%.*s] as local address [%d] is currently active replica",
+                          payLoad.name.length,
+                          payLoad.name.value,
                           pHdlInfo->activeAddr);
             }
             else
             {
+                ClIocNodeAddressT newActiveAddr = ntohl(payLoad.actAddr);
+                if (newActiveAddr == CL_CKPT_UNINIT_VALUE)
+                {
+                    ClIocNodeAddressT actAddr;
+                    ClRcT ret = clCpmMasterAddressGet(&actAddr);
+                    if (ret == CL_OK)
+                    {
+                        newActiveAddr = actAddr;
+                    }
+                    else
+                    {
+                        clLogWarning(CL_CKPT_AREA_CLIENT, CL_CKPT_CTX_NOTIFICATION,"Getting master address failed, error [0x%x]", ret);
+                    }
+                }
 
-                clLogInfo(CL_CKPT_AREA_CLIENT, CL_CKPT_CTX_NOTIFICATION,
+                clLogNotice(CL_CKPT_AREA_CLIENT, CL_CKPT_CTX_NOTIFICATION,
                           "Active address is getting changed from [%d] to [%d] for [%.*s]",
-                          pHdlInfo->activeAddr, ntohl(payLoad.actAddr), payLoad.name.length,
+                          pHdlInfo->activeAddr, newActiveAddr, payLoad.name.length,
                           payLoad.name.value);
-                pHdlInfo->activeAddr = ntohl(payLoad.actAddr);
+                pHdlInfo->activeAddr = newActiveAddr;
 
             }
         }
