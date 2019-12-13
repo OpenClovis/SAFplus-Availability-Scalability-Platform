@@ -65,6 +65,7 @@ typedef boost::unordered_map<SAFplus::AmfRedundancyPolicy,ClPluginHandle*> RedPo
 
 void initializeOperationalValues(SAFplusAmf::SAFplusAmfModule& cfg);
 void loadAmfPluginsAt(const char* soPath, AmfOperations& amfOps,Fault& fault);
+void postProcessing();
 
 RedPolicyMap redPolicies;
 
@@ -83,7 +84,7 @@ SAFplusAmf::SAFplusAmfModule cfg;
 const char* LogArea = "MAN";
 MgtDatabase amfDb;
 MgtDatabase logDb;
-SAFplus::Fault fault;  // Fault client global variable
+SAFplus::Fault gfault;  // Fault client global variable
 bool initOperValues = false;
 
 enum
@@ -179,7 +180,7 @@ static unsigned int MAX_HANDLER_THREADS=10;
 // Threads
 boost::thread    logServer;
 boost::thread    compStatsRefresh;
-
+extern bool rebootFlag;
 
 static void quitSignalHandler(int signum)
 {
@@ -341,12 +342,12 @@ bool activeAudit()  // Check to make sure DB and the system state are in sync.  
       try
         {
          nodeHdl = name.getHandle(node->name);
-         fs = fault.getFaultState(nodeHdl);
+         fs = gfault.getFaultState(nodeHdl);
          bool inClusterGroup = clusterGroup.isMember(getProcessHandle(nodeHdl.getNode(),SAFplusI::AMF_IOC_PORT));
 #if 0  // Can happen when first starting up...
          if ((!inClusterGroup)&&(fs != FaultState::STATE_DOWN)) // stale data in the fault manager... likely from restarting safplus_amf
            {
-           fault.notify(nodeHdl,AlarmState::ALARM_STATE_ASSERT,AlarmCategory::ALARM_CATEGORY_COMMUNICATIONS,AlarmSeverity::ALARM_SEVERITY_MAJOR,AlarmProbableCause::ALARM_PROB_CAUSE_RECEIVER_FAILURE);
+           gfault.notify(nodeHdl,AlarmState::ALARM_STATE_ASSERT,AlarmCategory::ALARM_CATEGORY_COMMUNICATIONS,AlarmSeverity::ALARM_SEVERITY_MAJOR,AlarmProbableCause::ALARM_PROB_CAUSE_RECEIVER_FAILURE);
            }
 #endif
 
@@ -686,7 +687,7 @@ int main(int argc, char* argv[])
   bool firstTime=true;
   logEchoToFd = 1;  // echo logs to stdout for debugging
   logCompName = "AMF";
-
+  rebootFlag=false;
   sic.iocPort     = SAFplusI::AMF_IOC_PORT;
   sic.msgQueueLen = MAX_MSGS;
   sic.msgThreads  = MAX_HANDLER_THREADS;
@@ -797,7 +798,7 @@ int main(int argc, char* argv[])
 
   //---------------------------------------------------
 
-  loadAmfPlugins(amfOps,fault);
+  loadAmfPlugins(amfOps,gfault);
 
 #ifdef USE_GRP
   clusterGroup.init(CLUSTER_GROUP,"safplusCluster");
@@ -864,7 +865,7 @@ int main(int argc, char* argv[])
   SAFplus::SafplusMsgServer* mgtIocInstance = &safplusMsgServer;
   mgtIocInstance->registerHandler(SAFplusI::CL_MGT_MSG_TYPE,&msghandle,NULL);
 
-  fault.init(myHandle);
+  gfault.init(myHandle);
 
   struct sigaction newAction;
   newAction.sa_handler = sigChildHandler;
@@ -912,15 +913,14 @@ int main(int argc, char* argv[])
   // And because we set ourselves up only ONCE.  Beyond this point, the fault manager is authorative -- if it reports us down, the AMF should quit.
   // TODO: add generations to the fault manager, to distinguish between a prior run of the AMF/node, or other entities
   do {  // Loop because active fault manager may not be chosen yet
-    fault.registerEntity(nodeHandle, FaultState::STATE_UP);  // set this node as up
+    gfault.registerEntity(nodeHandle, FaultState::STATE_UP);  // set this node as up
     boost::this_thread::sleep(boost::posix_time::milliseconds(250));    
-  } while(fault.getFaultState(nodeHandle) != FaultState::STATE_UP);
+  } while(gfault.getFaultState(nodeHandle) != FaultState::STATE_UP);
 
   do {
-    fault.registerEntity(myHandle, FaultState::STATE_UP);    // set this AMF as up
+    gfault.registerEntity(myHandle, FaultState::STATE_UP);    // set this AMF as up
     boost::this_thread::sleep(boost::posix_time::milliseconds(250));    
-  } while(fault.getFaultState(myHandle) != FaultState::STATE_UP);
-
+  } while(gfault.getFaultState(myHandle) != FaultState::STATE_UP);
 
   uint64_t lastBeat = beat; 
   uint64_t nowBeat;
@@ -939,7 +939,7 @@ int main(int argc, char* argv[])
     beat++;
     if (!firstTime && !amfOps.changed) changeTriggered = somethingChanged.timed_wait(somethingChangedMutex,REEVALUATION_DELAY);
 
-    if (fault.getFaultState(nodeHandle) != FaultState::STATE_UP)  // Since the fault manager is authoritative, quit it if marks this node as down.
+    if (gfault.getFaultState(nodeHandle) != FaultState::STATE_UP)  // Since the fault manager is authoritative, quit it if marks this node as down.
       {
         logCritical("PRC","MON","Fault manager has marked this node as DOWN.  This could indicate a real issue with the node, or be a false positive due to missed heartbeat messages, etc.  Quitting.");
         quitting = true;
@@ -1036,11 +1036,12 @@ int main(int argc, char* argv[])
     }
 
   //fs.notify(nodeHandle,AlarmStateT::ALARM_STATE_ASSERT, AlarmCategoryTypeT::ALARM_CATEGORY_EQUIPMENT,...);
-  fault.registerEntity(nodeHandle,FaultState::STATE_DOWN);
+  gfault.registerEntity(nodeHandle,FaultState::STATE_DOWN);
   nodeMonitor.finalize();
   compStatsRefresh.join();
   amfDb.finalize();
   safplusFinalize();
+  postProcessing();
   }
 
 
@@ -1131,7 +1132,15 @@ void initializeOperationalValues(SAFplusAmf::SAFplusAmfModule& cfg)
           // Nothing to initialize
         }
     }
-
-
-
 }
+
+void postProcessing()
+{
+	if(rebootFlag)
+	{
+		ofstream rebootFile;
+		rebootFile.open("safplus_reboot");
+		rebootFile.close();
+	}
+}
+

@@ -80,6 +80,13 @@ void amfRpc::processFailed(const ::SAFplus::Rpc::amfRpc::ProcessFailedRequest*,
   logError("RPC","SVR","Method processFailed() not implemented.");
 }
 
+void amfRpc::rebootNode(const ::SAFplus::Rpc::amfRpc::RebootNodeRequest*,
+                         ::SAFplus::Rpc::amfRpc::RebootNodeResponse*)
+{
+  logError("RPC","SVR","Method rebootNode() not implemented.");
+}
+
+
 void amfRpc::startComponent(SAFplus::Handle destination,
                      const ::SAFplus::Rpc::amfRpc::StartComponentRequest* request,
                      ::SAFplus::Rpc::amfRpc::StartComponentResponse* response,
@@ -128,6 +135,14 @@ void amfRpc::processFailed(SAFplus::Handle destination,
   logError("RPC","SVR","Method processFailed() not implemented.");
 }
 
+void amfRpc::rebootNode(SAFplus::Handle destination,
+                     const ::SAFplus::Rpc::amfRpc::RebootNodeRequest* request,
+                     ::SAFplus::Rpc::amfRpc::RebootNodeResponse* response,
+                     SAFplus::Wakeable& wakeable)
+{
+  logError("RPC","SVR","Method rebootNode() not implemented.");
+}
+
 void amfRpc::CallMethod(const ::google::protobuf::MethodDescriptor* method,
                              SAFplus::Handle destination,
                              const ::google::protobuf::Message* request,
@@ -159,6 +174,10 @@ void amfRpc::CallMethod(const ::google::protobuf::MethodDescriptor* method,
       processFailed(::google::protobuf::down_cast<const ::SAFplus::Rpc::amfRpc::ProcessFailedRequest*>(request),
              ::google::protobuf::down_cast< ::SAFplus::Rpc::amfRpc::ProcessFailedResponse*>(response));
       break;
+    case 6:
+      rebootNode(::google::protobuf::down_cast<const ::SAFplus::Rpc::amfRpc::RebootNodeRequest*>(request),
+             ::google::protobuf::down_cast< ::SAFplus::Rpc::amfRpc::RebootNodeResponse*>(response));
+      break;
     default:
       GOOGLE_LOG(FATAL) << "Bad method index; this should never happen.";
       break;
@@ -181,6 +200,8 @@ const ::google::protobuf::Message& amfRpc::GetRequestPrototype(
       return ::SAFplus::Rpc::amfRpc::ProcessInfoRequest::default_instance();
     case 5:
       return ::SAFplus::Rpc::amfRpc::ProcessFailedRequest::default_instance();
+    case 6:
+      return ::SAFplus::Rpc::amfRpc::RebootNodeRequest::default_instance();
     default:
       GOOGLE_LOG(FATAL) << "Bad method index; this should never happen.";
       return *reinterpret_cast< ::google::protobuf::Message*>(NULL);
@@ -203,6 +224,8 @@ const ::google::protobuf::Message& amfRpc::GetResponsePrototype(
       return ::SAFplus::Rpc::amfRpc::ProcessInfoResponse::default_instance();
     case 5:
       return ::SAFplus::Rpc::amfRpc::ProcessFailedResponse::default_instance();
+    case 6:
+      return ::SAFplus::Rpc::amfRpc::RebootNodeResponse::default_instance();
     default:
       GOOGLE_LOG(FATAL) << "Bad method index; this should never happen.";
       return *reinterpret_cast< ::google::protobuf::Message*>(NULL);
@@ -256,6 +279,15 @@ void amfRpc_Stub::processFailed(SAFplus::Handle dest,
                               SAFplus::Wakeable& wakeable) {
   channel_->CallMethod(descriptor()->method(5), dest, request, response, wakeable);
 }
+
+void amfRpc_Stub::rebootNode(SAFplus::Handle dest,
+                              const ::SAFplus::Rpc::amfRpc::RebootNodeRequest* request,
+                              ::SAFplus::Rpc::amfRpc::RebootNodeResponse* response,
+                              SAFplus::Wakeable& wakeable) {
+  channel_->CallMethod(descriptor()->method(6),
+                       dest, request, response, wakeable);
+}
+
 
 }  // namespace amfRpc
 }  // namespace Rpc

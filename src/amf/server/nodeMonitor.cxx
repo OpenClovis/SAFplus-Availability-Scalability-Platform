@@ -9,7 +9,7 @@
 using namespace SAFplus;
 using namespace SAFplusI;
 extern Group clusterGroup;
-extern SAFplus::Fault fault;
+extern SAFplus::Fault gfault;
 extern SAFplusAmf::SAFplusAmfModule cfg;
 
 struct HeartbeatData
@@ -118,7 +118,7 @@ void NodeMonitor::monitorThread(void)
     {
       loopCnt++;
       int64_t now = timerMs();
-      fault.loadFaultPolicyEnv();
+      gfault.loadFaultPolicyEnv();
       if (active)
         {
           bool ka[SAFplus::MaxNodes];
@@ -129,7 +129,7 @@ void NodeMonitor::monitorThread(void)
 	/*
 	when the old active is disconnected, the new active must broadcast its role.
 	*/
-	if(fault.getFaultState(standbyHandle) == FaultState::STATE_UNDEFINED)
+	if(gfault.getFaultState(standbyHandle) == FaultState::STATE_UNDEFINED)
 	{
 	   clusterGroup.broadcastRole(activeHandle,standbyHandle,true);
 	}
@@ -141,8 +141,8 @@ void NodeMonitor::monitorThread(void)
 	if(currentHandle!= activeHandle)
 	{
            clusterGroup.sendMemberReJoinMessage(GroupRoleNotifyTypeT::ROLE_STANDBY);
-           fault.registerEntity(nodeHandle, FaultState::STATE_UP);
-           fault.registerEntity(currentHandle, FaultState::STATE_UP);
+           gfault.registerEntity(nodeHandle, FaultState::STATE_UP);
+           gfault.registerEntity(currentHandle, FaultState::STATE_UP);
 	}
           if (1)
             {
@@ -153,7 +153,7 @@ void NodeMonitor::monitorThread(void)
                     {
                       if ((cfg.safplusAmf.healthCheckMaxSilence!=0) && (now - lastHeard[i] > cfg.safplusAmf.healthCheckMaxSilence))
                         {
-                          fault.notify(getNodeHandle(i),AlarmState::ALARM_STATE_ASSERT,AlarmCategory::ALARM_CATEGORY_COMMUNICATIONS,AlarmSeverity::ALARM_SEVERITY_MAJOR,AlarmProbableCause::ALARM_PROB_CAUSE_RECEIVER_FAILURE, fault.getFaultPolicy());
+                          gfault.notify(getNodeHandle(i),AlarmState::ALARM_STATE_ASSERT,AlarmCategory::ALARM_CATEGORY_COMMUNICATIONS,AlarmSeverity::ALARM_SEVERITY_MAJOR,AlarmProbableCause::ALARM_PROB_CAUSE_RECEIVER_FAILURE, gfault.getFaultPolicy());
                           lastHeard[i] = 0;  // after fault mgr notification, reset node as if its new.  If the fault mgr does not choose to kill the node, this will cause us to give the node another maxSilentInterval.
                           // DEBUG only trigger once boost::this_thread::sleep(boost::posix_time::milliseconds(1000000 + SAFplusI::NodeHeartbeatInterval)); 
                         }
@@ -163,7 +163,7 @@ void NodeMonitor::monitorThread(void)
 
           for (int i=1;i<SAFplus::MaxNodes;i++)  // Start Keepaliving any nodes that the fault manager thinks are up.
             {
-              FaultState fs = fault.getFaultState(getNodeHandle(i));
+              FaultState fs = gfault.getFaultState(getNodeHandle(i));
               if (i != SAFplus::ASP_NODEADDR)  // No point in keepaliving myself
                 {
                   if (fs == FaultState::STATE_UP)
@@ -226,7 +226,7 @@ void NodeMonitor::monitorThread(void)
               hdl = getNodeHandle(lastHbHandle);
               // I need to special case the fault reporting of the ACTIVE, since that fault server is probably dead.
               // TODO: It is more semantically correct to send this notification to the standby fault server by looking at the fault group.  However, it will end up pointing to this node...
-              fault.notifyLocal(hdl,AlarmState::ALARM_STATE_ASSERT,AlarmCategory::ALARM_CATEGORY_COMMUNICATIONS,AlarmSeverity::ALARM_SEVERITY_MAJOR,AlarmProbableCause::ALARM_PROB_CAUSE_RECEIVER_FAILURE, fault.getFaultPolicy());
+              gfault.notifyLocal(hdl,AlarmState::ALARM_STATE_ASSERT,AlarmCategory::ALARM_CATEGORY_COMMUNICATIONS,AlarmSeverity::ALARM_SEVERITY_MAJOR,AlarmProbableCause::ALARM_PROB_CAUSE_RECEIVER_FAILURE, gfault.getFaultPolicy());
             }
         }
       uint64_t tmp = cfg.safplusAmf.healthCheckPeriod;

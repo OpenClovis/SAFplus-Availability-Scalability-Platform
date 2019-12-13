@@ -2,8 +2,13 @@
 #include "clPortAllocator.hxx"
 #include <clLogApi.hxx>
 #include <clOsalApi.hxx>
+#include <clFaultApi.hxx>
 #include <string>
 #include <sstream>
+
+extern SAFplus::Handle nodeHandle; //? The handle associated with this node
+extern SAFplus::Fault gfault;
+bool rebootFlag;
 
 namespace SAFplus {
 namespace Rpc {
@@ -139,6 +144,13 @@ namespace amfRpc {
   response->set_err(0);
   }
 
+    void amfRpcImpl::rebootNode(const ::SAFplus::Rpc::amfRpc::RebootNodeRequest* request,
+                       ::SAFplus::Rpc::amfRpc::RebootNodeResponse* response)
+  {
+	  rebootFlag = true;
+	  gfault.registerEntity(nodeHandle,FaultState::STATE_DOWN);
+	  response->set_err(0);
+  }
 }  // namespace amfRpc
 }  // namespace Rpc
 }  // namespace SAFplus

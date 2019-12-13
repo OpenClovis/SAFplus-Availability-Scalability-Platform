@@ -8,6 +8,8 @@ import sys
 import traceback
 import logging
 
+ASP_REBOOT_FILE = 'safplus_reboot'
+
 def init_log():
     logger = logging.getLogger('ASP')
     logger.setLevel(logging.DEBUG)
@@ -53,6 +55,9 @@ def set_up_asp_config():
 def get_asp_log_dir():
     return asp_env['log_dir']
 
+def get_asp_bin_dir():
+	return asp_env['bin_dir']
+
 def configWatchdogLog():
     logging.basicConfig(filename='%s/amf_watchdog.log' % get_asp_log_dir(), format='%(levelname)s %(asctime)s.%(msecs)d %(message)s', level=logging.DEBUG, datefmt='%a %d %b %Y %H:%M:%S')
     os.chmod('%s/amf_watchdog.log' % get_asp_log_dir(), 0644);
@@ -93,8 +98,17 @@ def get_childs_pid(ppid):
             start = True
     return processes
 
+def safe_remove(fileName):
+    try:
+        os.remove(fileName)
+    except:
+        os.system('rm -f %s' %fileName)
+
 def amf_watchdog_loop():
+    monitor_interval = 0.1
     ppid = wait_until_amf_up()
+    rebootFile = get_asp_bin_dir()+ '/' + ASP_REBOOT_FILE
+    safe_remove(rebootFile)
     if not ppid:
         logging.critical('ASP did not come up successfully...')
         #logging.critical('Cleaning up...')
@@ -111,10 +125,13 @@ def amf_watchdog_loop():
                 sys.exit(1)
             else:
                 processChild = get_childs_pid(ppid)
+            if os.access(rebootFile,os.F_OK):
+                safe_remove(rebootFile)
+                os.system('reboot')
         except Exception,e:
             logging.critical('SAFplus watchdog received exception %s' %str(e))
             logging.critical('traceback: %s',traceback.format_exc())
-        time.sleep(1)
+        time.sleep(monitor_interval)
 
 def main():
     configWatchdogLog()

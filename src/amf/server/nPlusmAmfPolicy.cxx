@@ -28,9 +28,11 @@ namespace SAFplus
     virtual void activeAudit(SAFplusAmf::SAFplusAmfModule* root);
     virtual void standbyAudit(SAFplusAmf::SAFplusAmfModule* root);
 	SAFplusAmf::Recovery recommendedRecovery;
+	Component* processedComp;
   protected:
     void auditOperation(SAFplusAmf::SAFplusAmfModule* root);
     void auditDiscovery(SAFplusAmf::SAFplusAmfModule* root);
+    void processFaultyComp(Component* comp);
     };
 
   class ServiceGroupPolicyExecution: public Poolable
@@ -53,6 +55,7 @@ namespace SAFplus
   NplusMPolicy::NplusMPolicy()
     {
 		recommendedRecovery=SAFplusAmf::Recovery::None;
+		processedComp = NULL;
     }
 
   NplusMPolicy::~NplusMPolicy()
@@ -429,8 +432,15 @@ namespace SAFplus
                           }
                         else if (eas != SAFplusAmf::AdministrativeState::off)
                           {
-                            logError("N+M","AUDIT","Component [%s] could be on but is not instantiated", comp->name.value.c_str());
-                            startSg=true;
+							if(recommendedRecovery==SAFplusAmf::Recovery::NodeSwitchover && processedComp)
+							{
+								startSg=false;
+							}
+							else
+							{
+								logError("N+M","AUDIT","Component [%s] could be on but is not instantiated", comp->name.value.c_str());
+								startSg = true;
+							}
                           }
                       }
                   }
@@ -526,6 +536,12 @@ namespace SAFplus
               for (int cnt = si->getNumStandbyAssignments()->current.value; cnt < si->preferredStandbyAssignments; cnt++)
                 {
                 ServiceUnit* su = findAssignableServiceUnit(sus,si,HighAvailabilityState::standby);
+
+                if(recommendedRecovery==SAFplusAmf::Recovery::NodeSwitchover 
+					&& processedComp && su && processedComp->serviceUnit.value->name.value.compare(su->name.value) == 0 )
+                {
+					continue;
+				}
                 if (su)
                   {
                     // TODO: assert(si is not already assigned to this su)
@@ -632,12 +648,19 @@ namespace SAFplus
         }
 #endif
 
-
-      if (startSg)
-        {
-        ServiceGroupPolicyExecution go(sg,amfOps);
-        go.start(); // TODO: this will be put in a thread pool...
-        }
+		if(startSg)
+		{
+			ServiceGroupPolicyExecution go(sg,amfOps);
+			go.start(); // TODO: this will be put in a thread pool...
+		}
+		else
+		{
+			if(recommendedRecovery==SAFplusAmf::Recovery::NodeSwitchover && processedComp)
+			{
+				amfOps->rebootNode(processedComp->serviceUnit.value->node.value);
+				processedComp =NULL;
+			}
+		}
       }
     }
 
@@ -830,8 +853,8 @@ namespace SAFplus
                     {
                     logWarning("N+M","AUDIT","Component [%s] is marked as running with uninstantiated state and no name registration (no handle).  It may have died at startup.", comp->name.value.c_str());
                     }
-                amfOps->cleanup(comp);
-                updateStateDueToProcessDeath(comp);
+					processFaultyComp(comp);//we must have more steps to handle for other comps in the same su in node switchover case
+					processedComp = comp;
                 }
               else if (comp->presenceState == PresenceState::instantiating)  // If the component is in the instantiating state, look for it to register with the AMF
                 {
@@ -1074,6 +1097,39 @@ namespace SAFplus
 
   static NplusMPolicy api;
   };
+
+  void NplusMPolicy::processFaultyComp(Component* comp)
+  {
+	  logInfo("POL","CUSTOM","processFaultyComp recommendedRecovery[%s]",c_str(recommendedRecovery));
+	  if(recommendedRecovery==SAFplusAmf::Recovery::NodeSwitchover)
+	  {
+		  MgtIdentifierList<ServiceUnit*> suList = comp->serviceUnit.value->node.value->serviceUnits;
+		  MgtIdentifierList<ServiceUnit*>::iterator itSu = suList.listBegin();
+		  MgtIdentifierList<ServiceUnit*>::iterator endSu = suList.listEnd();
+		  for(;itSu != endSu; itSu++)
+		  {
+			  ServiceUnit *su = dynamic_cast<ServiceUnit*>(*itSu);
+			  MgtIdentifierList<Component*>::iterator itcomp = su->components.listBegin();
+			  MgtIdentifierList<Component*>::iterator end = su->components.listEnd();
+			  for(;itcomp != end;++itcomp)
+			  {
+				  Component* iterComp = dynamic_cast<Component*>(*itcomp);
+				  if(comp->name.value.compare(iterComp->name.value)!=0)
+				  {
+					  amfOps->stop(iterComp);
+				  }
+				  amfOps->cleanup(iterComp);
+				  updateStateDueToProcessDeath(iterComp);
+			  }
+		  }
+	  }
+	  else
+	  {
+		  amfOps->cleanup(comp);
+		  updateStateDueToProcessDeath(comp);
+	  }
+	  logInfo("POL","CUSTOM","End processFaultyComp recommendedRecovery[%s]",c_str(recommendedRecovery));
+  }
 
 extern "C" SAFplus::ClPlugin* clPluginInitialize(uint_t preferredPluginVersion)
   {

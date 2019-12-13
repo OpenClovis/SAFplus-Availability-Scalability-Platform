@@ -6,6 +6,7 @@
 #include <amfAppRpc.hxx>
 #include <clPortAllocator.hxx>
 #include <clRpcChannel.hxx>
+#include <SAFplusPBExt.pb.hxx>
 
 #include <amfOperations.hxx>
 #include <clHandleApi.hxx>
@@ -26,6 +27,8 @@ using namespace SAFplusAmf;
 using namespace SAFplus::Rpc::amfRpc;
 
 extern Handle           nodeHandle; //? The handle associated with this node
+extern SAFplus::Fault gfault;
+bool rebootFlag;
 namespace SAFplus
   {
 
@@ -1043,5 +1046,60 @@ namespace SAFplus
       }
 #endif
     }
+
+    void AmfOperations::rebootNode(SAFplusAmf::Node* node, Wakeable& w)
+    {
+		if(!node)
+		{
+			return;
+		}
+		MgtIdentifierList<ServiceUnit*>::iterator itsu;
+		for(itsu=node->serviceUnits.listBegin(); itsu != node->serviceUnits.listEnd(); ++itsu)
+		{
+			//remove each component in su of this node out of name service before restarting this node.
+			ServiceUnit* su = dynamic_cast<ServiceUnit*>(*itsu);
+			MgtIdentifierList<Component*>::iterator itcomp=su->components.listBegin();
+			MgtIdentifierList<Component*>::iterator endComp=su->components.listEnd();
+			for(;itcomp!=endComp;++itcomp)
+			{
+				Component *comp=dynamic_cast<Component*>(*itcomp);
+				try
+				{
+					name.remove(comp->name);
+				}
+				catch(NameException& n)
+				{
+					//comp is not registered
+					logCritical("OPS","SRT","AMF Entity [%s] is not registered in the name service.", comp->name.value.c_str());
+				}
+			}
+		}
+		Handle nodeHdl;
+		try
+		{
+			nodeHdl = name.getHandle(node->name);
+		}
+		catch (SAFplus::NameException& n)
+		{
+			logCritical("OPS","SRT","AMF Entity [%s] is not registered in the name service.", node->name.value.c_str());
+			return;
+		}
+		if(nodeHdl == nodeHandle)//handle locally
+		{
+			rebootFlag = true;
+			gfault.registerEntity(nodeHandle,FaultState::STATE_DOWN);
+		}
+		else //remotely reboot node
+		{
+			Handle remoteAmfHdl = getProcessHandle(SAFplusI::AMF_IOC_PORT, nodeHdl.getNode());
+			if(FaultState::STATE_UP == fault.getFaultState(remoteAmfHdl))
+			{
+				logInfo("OPS", "REB", "Reboot Node [%d]",nodeHdl.getNode());
+				RebootNodeRequest req;
+				RebootNodeResponse resp;
+				amfInternalRpc->rebootNode(remoteAmfHdl,&req,&resp);
+			}
+		}
+	}
 
   };
