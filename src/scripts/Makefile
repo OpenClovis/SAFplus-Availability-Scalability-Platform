@@ -1,5 +1,4 @@
 S7 := 1
-SAFPLUS_GROUP_TEST := 1
 include ../mk/preface.mk
 
 all:
