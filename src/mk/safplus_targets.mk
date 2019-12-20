@@ -197,6 +197,11 @@ $(BIN_DIR)/safplus_amf $(PLUGIN_DIR)/customAmfPolicy.so $(PLUGIN_DIR)/nPlusmAmfP
 	$(MAKE) -C $(SAFPLUS_SRC_DIR)/amf/server
 endif
 
+ifndef SAFPLUS_SCRIPTS
+$(BIN_DIR)/scripts:
+	$(MAKE) -C $(SAFPLUS_SRC_DIR)/scripts
+endif
+
 endif
 
 #SAFplusTests := $(TEST_DIR)/testLog $(TEST_DIR)/testmgt   $(TEST_DIR)/TestClient $(TEST_DIR)/TestServer $(TEST_DIR)/TestCombine $(TEST_DIR)/testCkpt $(TEST_DIR)/testGroup $(TEST_DIR)/exampleSafApp $(TEST_DIR)/testTransport $(TEST_DIR)/testMsgPerf
@@ -223,6 +228,8 @@ SAFplusPlugins := $(SAFplusDbalPlugins) $(SAFplusMsgTransports)
 ThirdPartySOs :=
 
 Languages ?= $(LIB_DIR)/pySAFplus.so
+
+SAFplusScripts := $(BIN_DIR)/scripts
 
 cleanSAFplus:
 	rm -rf $(SAFplusBin) $(SAFplusTests) $(SAFplusSOs) $(SAFplusServices) $(LIB_DIR)/* $(MWOBJ_DIR)/* $(OBJ_DIR)/* $(TEST_DIR)/*
