@@ -1,0 +1,152 @@
+#!/bin/bash
+###############################################################################
+#
+# Copyright (C) 2002-2009 by OpenClovis Inc. All  Rights Reserved.
+# 
+# The source code for  this program is not published  or otherwise 
+# divested of  its trade secrets, irrespective  of  what  has been 
+# deposited with the U.S. Copyright office.
+# 
+# This program is  free software; you can redistribute it and / or
+# modify  it under  the  terms  of  the GNU General Public License
+# version 2 as published by the Free Software Foundation.
+# 
+# This program is distributed in the  hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied  warranty  of 
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU 
+# General Public License for more details.
+# 
+# You  should  have  received  a  copy of  the  GNU General Public
+# License along  with  this program. If  not,  write  to  the 
+# Free Software Foundation, 675 Mass Ave, Cambridge, MA 02139, USA.
+#
+###############################################################################
+
+# killproc : comment so that /etc/rc will stop ASP if 
+#            appropriately symlinked
+
+start() {
+    $ASP_SCRIPT start $*
+    return $?
+}
+
+stop() {
+    $ASP_SCRIPT stop
+    return $?
+}
+
+status() {
+    $ASP_SCRIPT status
+    return $?
+}
+
+consolestart() {
+    $ASP_SCRIPT console
+    return $?
+}
+
+zap() {
+    $ASP_SCRIPT zap
+    return $?
+}
+
+help() {
+    $ASP_SCRIPT help
+    return $?
+}
+
+get_shell_working_dir()
+{
+    # We need to get the working dir for the original
+    # init.d/asp script, not any of the symlinks (or
+    # symlinks to symlinks) to it.  Thus, we must find
+    # the original target.
+
+    self=$0
+    curdir=$(pwd)
+    selfdir=$(dirname $self); cd $selfdir
+    while [ -L $self ]; do
+        next_target=$(readlink $self)
+        next_target_dir=$(cd $(dirname $next_target); pwd)
+        next_target_name=$(basename $next_target)
+        self=$next_target_dir/$next_target_name
+    done
+    cd $curdir
+    cd `dirname $self`; pwd
+    return $?
+}
+
+
+ASP_SCRIPT_DIR=`get_shell_working_dir` || exit 1
+ASP_DIR=`cd $ASP_SCRIPT_DIR/../../; pwd` || exit 1
+cd ${ASP_DIR}/bin; source setup 
+rm -rf /dev/shm/SAFplus*
+
+#echo "ASP_DIR":$ASP_DIR
+#exit 0
+#source ${ASP_DIR}/etc/asp.conf
+
+#Get the OS first
+# THIS_OS=`uname`
+# if [ "SunOS" = $THIS_OS ] 
+# then
+#     ASP_SCRIPT=$ASP_DIR/etc/asp_solaris.py
+# else
+    # ASP_SCRIPT=$ASP_DIR/etc/asp.py
+# fi
+ASP_SCRIPT=$ASP_DIR/etc/asp.py
+
+#echo "ASP script directory is $ASP_SCRIPT_DIR"
+
+case "$1" in
+    start)
+        shift
+    if [ "$1" == "leader" ]; then
+        export GENERATE_DB_FOR_NODE=1
+        shift
+    fi
+	start $*
+        RETVAL=$?
+	;;
+    
+    stop)
+	stop
+        RETVAL=$?
+	;;
+    
+    status)
+	status
+        RETVAL=$?
+        ;;
+
+    restart)
+	stop
+        shift
+    if [ "$1" == "leader" ]; then
+        export GENERATE_DB_FOR_NODE=1
+        shift
+    fi
+	start $*
+        RETVAL=$?
+        ;;
+
+    consolestart)
+	consolestart
+        RETVAL=$?
+	;;
+
+    zap)
+        zap
+        RETVAL=$?
+        ;;
+    
+    help)
+        help
+        RETVAL=$?
+        ;;
+    *)
+        help
+        RETVAL=1
+esac
+
+exit $RETVAL

@@ -3,64 +3,31 @@
 import commands
 import time
 import os
-import signal
 import sys
 import traceback
 import logging
+import asp
 
+ASP_RESTART_FILE = 'safplus_restart'
+ASP_WATCHDOG_RESTART_FILE='safplus_restart_watchdog'
 ASP_REBOOT_FILE = 'safplus_reboot'
 
-def init_log():
-    logger = logging.getLogger('ASP')
-    logger.setLevel(logging.DEBUG)
+SAFPLUS_RESTART_DELAY = 10  # How long to delay before restarting.  If the AMF is able to restart before keepalives find it dead this will cause major issues in the AMF.
 
-    console = logging.StreamHandler(sys.stdout)
-    console.setLevel(logging.INFO)
+fileLogger=None
 
-    formatter = logging.Formatter('%(levelname)s '
-                                  '%(message)s')
-    console.setFormatter(formatter)
+def asp_admin_stop():
+    cmd = 'cat %s' % asp.get_asp_cmd_marker_file()
+    ret, out, signal, core = asp.system(cmd)
+    last_asp_cmd = out[0][:-1]
 
-    logger.addHandler(console)
-    return logger
-
-def set_up_asp_config():
-    def get_sandbox_dir():
-        p = os.path.dirname(os.path.realpath(__file__))
-        p = os.path.split(p)[0]
-
-        return p
-
-    def get_dir(p):
-        if os.path.exists(p):
-            return p
-        else:
-            try:
-                os.mkdir(p)
-            except OSError, e:
-                if e.errno != errno.EEXIST:
-                    fail_and_exit('Failed to create directory, [%s]' % e)
-            return p
-                
-    d = {}
-    sandbox = get_sandbox_dir()
-    d['bin_dir'] = sandbox + '/bin'
-    d['etc_dir'] = sandbox + '/etc'
-    d['lib_dir'] = sandbox + '/lib'
-    d['var_dir'] = get_dir(sandbox + '/var')
-    d['log_dir'] = get_dir(d['var_dir'] + '/log')
-
-    return d
-
-def get_asp_log_dir():
-    return asp_env['log_dir']
-
-def get_asp_bin_dir():
-	return asp_env['bin_dir']
+    return last_asp_cmd in ['stop', 'zap']
 
 def configWatchdogLog():
-    logging.basicConfig(filename='%s/amf_watchdog.log' % get_asp_log_dir(), format='%(levelname)s %(asctime)s.%(msecs)d %(message)s', level=logging.DEBUG, datefmt='%a %d %b %Y %H:%M:%S')
-    os.chmod('%s/amf_watchdog.log' % get_asp_log_dir(), 0644);
+    logging.basicConfig(filename='%s/amf_watchdog.log' % asp.get_asp_log_dir(), format='%(levelname)s %(asctime)s.%(msecs)d %(message)s', level=logging.DEBUG, datefmt='%a %d %b %Y %H:%M:%S')
+    os.chmod('%s/amf_watchdog.log' % asp.get_asp_log_dir(), 0644);
+    global fileLogger
+    fileLogger = logging.getLogger()
 
 def get_amf_pid():
     while True:
@@ -69,7 +36,7 @@ def get_amf_pid():
             return valid[1]    
         else:
             break
-        log.warning('There is more than one AMF pid. Try again...')
+        logging.warning('There is more than one AMF pid. Try again...')
         time.sleep(0.25)     
     return 0
 
@@ -85,19 +52,6 @@ def wait_until_amf_up():
 
     return amf_pid
 
-def get_childs_pid(ppid):
-    cmd = "ps --forest -o pid -g $(ps -o sid= -p %s)" % ppid
-    processChild = os.popen(cmd).read()
-    processes = []
-    start = False
-    for p in processChild.split('\n'):
-        pid = p.strip()
-        if start and pid:
-            processes.append(pid)
-        if pid == str(ppid):
-            start = True
-    return processes
-
 def safe_remove(fileName):
     try:
         os.remove(fileName)
@@ -105,29 +59,64 @@ def safe_remove(fileName):
         os.system('rm -f %s' %fileName)
 
 def amf_watchdog_loop():
-    monitor_interval = 0.1
+    monitor_interval = 5
     ppid = wait_until_amf_up()
-    rebootFile = get_asp_bin_dir()+ '/' + ASP_REBOOT_FILE
+    run_dir = asp.get_asp_run_dir()
+    restart_file = run_dir + '/' + ASP_RESTART_FILE
+    watchdog_restart_file = run_dir + '/' + ASP_WATCHDOG_RESTART_FILE
+    rebootFile = asp.get_asp_bin_dir()+ '/' + ASP_REBOOT_FILE
     safe_remove(rebootFile)
     if not ppid:
         logging.critical('ASP did not come up successfully...')
-        #logging.critical('Cleaning up...')
         sys.exit(1)
-    processChild = get_childs_pid(ppid)
+
+    global fileLogger
     while True:
         try:
             ppid = get_amf_pid()
             if not ppid:
-                for pid in processChild:
-                    try:
-                        os.kill(int(pid), signal.SIGINT)
-                    except: pass
-                sys.exit(1)
-            else:
-                processChild = get_childs_pid(ppid)
-            if os.access(rebootFile,os.F_OK):
-                safe_remove(rebootFile)
-                os.system('reboot')
+                logging.critical('SAFplus watchdog invoked on %s' % time.strftime('%a %d %b %Y %H:%M:%S'))
+                is_restart = os.access(restart_file, os.F_OK)
+                is_forced_restart = os.access(watchdog_restart_file, os.F_OK)
+                if is_restart or is_forced_restart:
+                    safe_remove(restart_file) 
+                    safe_remove(watchdog_restart_file)
+                    logging.debug('SAFplus watchdog stopping SAFplus for %d sec' % SAFPLUS_RESTART_DELAY)
+                    asp.zap_asp(False)
+                    time.sleep(SAFPLUS_RESTART_DELAY)
+                    logging.debug('SAFplus watchdog restarting SAFplus...')
+                    asp.save_asp_runtime_files()
+                    cmd = asp.get_amf_command()
+                    os.system(cmd)
+                    asp.create_asp_cmd_marker('start')
+                    if asp.reconfigWdLog:
+                        fileLogger.handlers = []
+                        configWatchdogLog()
+                        asp.reconfigWdLog = False
+                else:
+                    logging.debug('SAFplus watchdog invocation default case')
+
+                    if not asp_admin_stop():
+                        asp.zap_asp(False)
+                        if asp.should_restart_asp():
+                            asp.zap_asp(False)
+                            logging.debug('SAFplus watchdog stopping SAFplus for %d sec' % SAFPLUS_RESTART_DELAY)
+                            time.sleep(SAFPLUS_RESTART_DELAY)
+                            asp.save_asp_runtime_files()
+                            cmd = asp.get_amf_command()
+                            os.system(cmd)
+                            asp.create_asp_cmd_marker('start')
+                            if asp.reconfigWdLog:
+                                fileLogger.handlers = []
+                                configWatchdogLog()
+                                asp.reconfigWdLog = False
+                        else:
+                            asp.proc_lock_file('remove')
+                            sys.exit(1)
+                    else:
+                        logging.debug('SAFplus watchdog ignoring node failure, as it might be due to shutdown request from logd')
+                        asp.proc_lock_file('remove')
+                        sys.exit(1)
         except Exception,e:
             logging.critical('SAFplus watchdog received exception %s' %str(e))
             logging.critical('traceback: %s',traceback.format_exc())
@@ -136,9 +125,6 @@ def amf_watchdog_loop():
 def main():
     configWatchdogLog()
     amf_watchdog_loop()
-
-log = init_log()
-asp_env = set_up_asp_config()
 
 if __name__ == '__main__':
     main()
