@@ -117,7 +117,7 @@ BIN_DIR ?= $(SAFPLUS_TARGET)/bin
 MWOBJ_DIR ?= $(SAFPLUS_TARGET)/mwobj
 # All other objects
 OBJ_DIR ?= $(SAFPLUS_TARGET)/obj
-
+ETC_INIT_DIR ?= $(SAFPLUS_TARGET)/etc/init.d
 LOCAL_OBJ_DIR ?= $(SAFPLUS_TOOL_TARGET)/obj
 
 # Figure out which protobuf
@@ -141,6 +141,7 @@ NOOP := $(shell mkdir -p $(BIN_DIR))
 NOOP := $(shell mkdir -p $(PLUGIN_DIR))
 NOOP := $(shell mkdir -p $(MWOBJ_DIR))
 NOOP := $(shell mkdir -p $(OBJ_DIR))
+NOOP := $(shell mkdir -p $(ETC_INIT_DIR))
 NOOP := $(shell mkdir -p $(SAFPLUS_TOOL_TARGET)/bin)
 endif
 
