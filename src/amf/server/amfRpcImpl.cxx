@@ -9,6 +9,7 @@
 extern SAFplus::Handle nodeHandle; //? The handle associated with this node
 extern SAFplus::Fault gfault;
 bool rebootFlag;
+bool isComponentLaunched;
 
 namespace SAFplus {
 namespace Rpc {
@@ -55,6 +56,7 @@ namespace amfRpc {
     Process p = executeProgram(request->command().c_str(), env,Process::InheritEnvironment);
     SAFplusI::portAllocator.assignPort(port, p.pid);
     logInfo("OPS","SRT","Launched Component [%s] as [%s] with process id [%d] and recommended msg port [%d], working directory [%s]", request->name().c_str(),request->command().c_str(),p.pid,port,getcwd(temp,200));
+    isComponentLaunched = true;
     response->set_pid(p.pid);
     response->set_err(0);
     }

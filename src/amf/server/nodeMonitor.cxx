@@ -5,12 +5,17 @@
 #include <amfRpc.hxx>
 #include "nodeMonitor.hxx"
 #include <SAFplusAmfModule.hxx>
+#include <signal.h>
+
+#define CL_CPM_RESTART_FILE "safplus_restart"
 
 using namespace SAFplus;
 using namespace SAFplusI;
+
 extern Group clusterGroup;
 extern SAFplus::Fault gfault;
 extern SAFplusAmf::SAFplusAmfModule cfg;
+extern bool isComponentLaunched;
 
 struct HeartbeatData
 {
@@ -110,6 +115,7 @@ NodeMonitor::~NodeMonitor()
 void NodeMonitor::monitorThread(void)
 {
   int loopCnt=-1;
+  bool waitingForActive = true;
   //assert(maxSilentInterval);  // You didn't call init()
 
   Group::Iterator end = clusterGroup.end();
@@ -229,6 +235,45 @@ void NodeMonitor::monitorThread(void)
               gfault.notifyLocal(hdl,AlarmState::ALARM_STATE_ASSERT,AlarmCategory::ALARM_CATEGORY_COMMUNICATIONS,AlarmSeverity::ALARM_SEVERITY_MAJOR,AlarmProbableCause::ALARM_PROB_CAUSE_RECEIVER_FAILURE, gfault.getFaultPolicy());
             }
         }
+      if (!SAFplus::SYSTEM_CONTROLLER)  // Let the payload ensure that the active is alive
+        {
+          waitingForActive = true;
+          verify_active_alive:
+          int64_t now = timerMs();
+          if (loopCnt&31==0) 
+            {
+              cfg.safplusAmf.healthCheckMaxSilence.read();  // Periodically reload from the database to get any changes.  TODO: checkpoint should notify us
+              cfg.safplusAmf.healthCheckPeriod.read();
+            }
+          if ((cfg.safplusAmf.healthCheckMaxSilence.value>0)&&((now > lastHbRequest)&&(now - lastHbRequest > cfg.safplusAmf.healthCheckMaxSilence)))
+            {
+              // Not found active, failover may happen so wating for active in 5s
+              if (waitingForActive)
+                {
+                  waitingForActive = false;
+                  boost::this_thread::sleep(boost::posix_time::milliseconds(5000));
+                  goto verify_active_alive;
+                }
+              else if (isComponentLaunched)
+                {
+                  FILE *fptr = fopen(CL_CPM_RESTART_FILE, "w");
+                  if(fptr){
+                      logCritical("HB","CLM","AMF failure to trigger restart. Please ensure you restart safplus again");
+                  }
+                  else{
+                      fclose(fptr);
+                  }
+                  pid_t amf = getpid();
+                  kill(amf, SIGKILL);
+                  assert(0);
+                }
+              else
+                {
+                  logWarning("HB","CLM", "AMF Payload blade Waiting for AMF active to came up...");
+                }
+            }
+        }
+
       uint64_t tmp = cfg.safplusAmf.healthCheckPeriod;
       if (tmp == 0) tmp = 1000; // if "off" loop every second anyway so we can detect when we get turned on.
       boost::this_thread::sleep(boost::posix_time::milliseconds(tmp)); 
