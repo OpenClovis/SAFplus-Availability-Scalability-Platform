@@ -808,6 +808,7 @@ class ProjectTreePanel(wx.Panel):
       self.buildTreeRecursion(path, c, project)   
 
   def OnLoad(self,event):
+    current_path = os.getcwd()
     dlg = wx.FileDialog(
             self, message="Choose a file",
             defaultDir=common.getMostRecentPrjDir(),
@@ -835,6 +836,7 @@ class ProjectTreePanel(wx.Panel):
       self.menuProject.Enable(IMAGES_DEPLOY, True)
       self.menuProject.Enable(PROJECT_PROPERTIES, True)
       self.menuTools.Enable(TOOL_CLEAR_PROJECT_DATA, True)
+    os.chdir(current_path)
 
   def OnNew(self,event):
     dlg = NewPrjDialog()
