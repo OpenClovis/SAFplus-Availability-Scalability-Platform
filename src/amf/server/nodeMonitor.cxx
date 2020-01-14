@@ -8,14 +8,15 @@
 #include <signal.h>
 
 #define CL_CPM_RESTART_FILE "safplus_restart"
-
 using namespace SAFplus;
 using namespace SAFplusI;
 
 extern Group clusterGroup;
 extern SAFplus::Fault gfault;
 extern SAFplusAmf::SAFplusAmfModule cfg;
-extern bool isComponentLaunched;
+extern Handle myHandle;
+extern Handle nodeHandle;
+extern SAFplus::Fault gfault;
 
 struct HeartbeatData
 {
@@ -116,6 +117,8 @@ void NodeMonitor::monitorThread(void)
 {
   int loopCnt=-1;
   bool waitingForActive = true;
+  bool isEntityRegisted = false;
+  bool isActiveExist = true;
   //assert(maxSilentInterval);  // You didn't call init()
 
   Group::Iterator end = clusterGroup.end();
@@ -254,13 +257,13 @@ void NodeMonitor::monitorThread(void)
                   boost::this_thread::sleep(boost::posix_time::milliseconds(5000));
                   goto verify_active_alive;
                 }
-              else if (isComponentLaunched)
+              else if (isEntityRegisted)
                 {
                   FILE *fptr = fopen(CL_CPM_RESTART_FILE, "w");
-                  if(fptr){
+                  if (fptr) {
                       logCritical("HB","CLM","AMF failure to trigger restart. Please ensure you restart safplus again");
                   }
-                  else{
+                  else {
                       fclose(fptr);
                   }
                   pid_t amf = getpid();
@@ -270,8 +273,27 @@ void NodeMonitor::monitorThread(void)
               else
                 {
                   logWarning("HB","CLM", "AMF Payload blade Waiting for AMF active to came up...");
+                  isActiveExist = false;
                 }
             }
+          else if (!isEntityRegisted && !isActiveExist) {
+            EntityIdentifier handle = clusterGroup.getActive();
+            if (handle != INVALID_HDL) {
+              do {  // Loop because active fault manager may not be chosen yet
+                gfault.registerEntity(nodeHandle, FaultState::STATE_UP);  // set this node as up
+                boost::this_thread::sleep(boost::posix_time::milliseconds(250));
+              } while(gfault.getFaultState(nodeHandle) != FaultState::STATE_UP);
+
+              do {
+                gfault.registerEntity(myHandle, FaultState::STATE_UP);    // set this AMF as up
+                boost::this_thread::sleep(boost::posix_time::milliseconds(250));
+              } while(gfault.getFaultState(myHandle) != FaultState::STATE_UP);
+              isEntityRegisted = true;
+            }
+          }
+          else if (!isEntityRegisted) {
+            isEntityRegisted = true;          
+          }
         }
 
       uint64_t tmp = cfg.safplusAmf.healthCheckPeriod;
