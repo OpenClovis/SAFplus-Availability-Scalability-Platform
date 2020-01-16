@@ -11,6 +11,7 @@ import asp
 ASP_RESTART_FILE = 'safplus_restart'
 ASP_WATCHDOG_RESTART_FILE='safplus_restart_watchdog'
 ASP_REBOOT_FILE = 'safplus_reboot'
+ASP_RESTART_DISABLE_FILE = 'safplus_restart_disable'
 
 SAFPLUS_RESTART_DELAY = 10  # How long to delay before restarting.  If the AMF is able to restart before keepalives find it dead this will cause major issues in the AMF.
 
@@ -62,10 +63,14 @@ def amf_watchdog_loop():
     monitor_interval = 5
     ppid = wait_until_amf_up()
     run_dir = asp.get_asp_run_dir()
+    node_name = asp.get_asp_node_name()
     restart_file = run_dir + '/' + ASP_RESTART_FILE
     watchdog_restart_file = run_dir + '/' + ASP_WATCHDOG_RESTART_FILE
-    rebootFile = asp.get_asp_bin_dir()+ '/' + ASP_REBOOT_FILE
-    safe_remove(rebootFile)
+    reboot_file = asp.get_asp_bin_dir()+ '/' + ASP_REBOOT_FILE
+    restart_disable_file = run_dir + '/' + ASP_RESTART_DISABLE_FILE
+    safe_remove(restart_file)
+    safe_remove(reboot_file)
+    safe_remove(restart_disable_file)
     if not ppid:
         logging.critical('ASP did not come up successfully...')
         sys.exit(1)
@@ -79,7 +84,7 @@ def amf_watchdog_loop():
                 is_restart = os.access(restart_file, os.F_OK)
                 is_forced_restart = os.access(watchdog_restart_file, os.F_OK)
                 if is_restart or is_forced_restart:
-                    safe_remove(restart_file) 
+                    safe_remove(restart_file)
                     safe_remove(watchdog_restart_file)
                     logging.debug('SAFplus watchdog stopping SAFplus for %d sec' % SAFPLUS_RESTART_DELAY)
                     asp.zap_asp(False)
@@ -93,9 +98,30 @@ def amf_watchdog_loop():
                         fileLogger.handlers = []
                         configWatchdogLog()
                         asp.reconfigWdLog = False
+                elif os.access(reboot_file, os.F_OK):
+                    safe_remove(reboot_file)
+                    # if getenv("ASP_NODE_REBOOT_DISABLE", 0) != 0:
+                    #     logging.debug('SAFplus watchdog would normally reboot %s, but ASP_NODE_REBOOT_DISABLE is set' % node_name)
+                    #     os.system("rm -f /dev/shm/SAFplus*")
+                    #     asp.zap_asp()
+                    #     sys.exit(1)
+                    # else:
+                    logging.debug('SAFplus watchdog rebooting %s...' % node_name)
+                    # asp.run_custom_scripts('reboot')
+                    asp.proc_lock_file('remove')
+                    os.system('reboot')
+                elif os.access(restart_disable_file, os.F_OK):
+                    safe_remove(restart_disable_file)
+                    logging.debug('SAFplus watchdog ignoring failure of %s '
+                                  'as node failfast/failover recovery action '
+                                  'was called on it and ASP_NODE_REBOOT_DISABLE '
+                                  'environment variable is set for it.'
+                                  % node_name)
+                    os.system("rm -f /dev/shm/SAFplus*")
+                    asp.zap_asp()
+                    sys.exit(1)
                 else:
                     logging.debug('SAFplus watchdog invocation default case')
-
                     if not asp_admin_stop():
                         asp.zap_asp(False)
                         if asp.should_restart_asp():
