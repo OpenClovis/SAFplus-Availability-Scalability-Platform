@@ -99,8 +99,9 @@ namespace SAFplus
         }
     }
 
-    void FaultServer::init()
+    void FaultServer::init(const SAFplusI::GroupServer* gs)
     {
+        this->gs = const_cast<SAFplusI::GroupServer*>(gs);
         faultServerHandle = Handle::create();  // This is the handle for this specific fault server
 
         logDebug(FAULT,FAULT_SERVER,"Initialize shared memory");
@@ -522,6 +523,8 @@ namespace SAFplus
                   if (result) break;
               }
         }
+        logDebug("FLT","---","have gs to update related entity fault state");
+        gs->removeEntities(faultEntity);
     }
 
 #if 0

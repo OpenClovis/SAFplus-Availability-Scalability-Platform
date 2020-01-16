@@ -296,6 +296,8 @@ class GroupServer:public SAFplus::MsgHandler
   void sendRoleAssignmentMessage(SAFplus::Handle grpHandle,const std::pair<SAFplus::Handle,SAFplus::Handle>& results);
 
   std::pair<SAFplus::Handle,SAFplus::Handle> _electRoles(const GroupData& gd);
+
+  void removeEntities(SAFplus::Handle faultEntity);
   };
 
   // Group associated data

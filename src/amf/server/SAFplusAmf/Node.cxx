@@ -68,16 +68,16 @@ namespace SAFplusAmf
     {
         this->name.value =  nameValue;
         this->addChildObject(&presenceState, "presenceState");
-        presenceState.config = false;
-        presenceState.settable = false;
-        presenceState.loadDb = false;
-        presenceState.replicated = false;
+        //presenceState.config = false;
+        //presenceState.settable = false;
+        //presenceState.loadDb = false;
+        //presenceState.replicated = false;
         this->addChildObject(&adminState, "adminState");
         this->addChildObject(&operState, "operState");
-        operState.config = false;
-        operState.settable = true;
-        operState.loadDb = false;
-        operState.replicated = false;
+        //operState.config = false;
+        //operState.settable = true;
+        //operState.loadDb = false;
+        //operState.replicated = false;
         this->addChildObject(&autoRepair, "autoRepair");
         this->addChildObject(&failFastOnInstantiationFailure, "failFastOnInstantiationFailure");
         this->addChildObject(&failFastOnCleanupFailure, "failFastOnCleanupFailure");

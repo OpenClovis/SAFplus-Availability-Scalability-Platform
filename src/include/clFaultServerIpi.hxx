@@ -1,6 +1,7 @@
 #pragma once
 #include <FaultSharedMem.hxx>
 #include <FaultStatistic.hxx>
+#include <clGroupIpi.hxx>
 
 //? <section name="Fault">
 
@@ -35,11 +36,13 @@ protected:
     //? Synchronize fault data across servers
     SAFplus::Checkpoint faultCheckpoint;
 
+    SAFplusI::GroupServer* gs;
+
 public:
     //? <ctor>default 2 phase constructor.  Must call init(...)</ctor>
     FaultServer();
     //? Initialize the fault service
-    void init();
+    void init(const SAFplusI::GroupServer* gs);
     //?  Search for any fault plugins and load them up
     void loadFaultPlugins();
     //? reporter fault event message

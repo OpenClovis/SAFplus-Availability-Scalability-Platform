@@ -335,6 +335,29 @@ void GroupServer::init()
       }
   }
 
+void GroupServer::removeEntities(SAFplus::Handle faultEntity)
+{
+  SAFplusI::GroupShmHashMap::iterator i;
+  for (i=gsm.groupMap->begin(); i!=gsm.groupMap->end();i++)
+   {
+        GroupShmEntry& ge = i->second;
+        const GroupData& gd = ge.read();
+        for (int j=0;j<::SAFplusI::GroupMaxMembers;j++)
+         {
+             const SAFplus::Handle& ent = gd.members[j].id;
+             if (ent != INVALID_HDL && ent.getNode() == faultEntity.getNode())
+             {
+                 logInfo("FLT","RMV","Removing faulted [%" PRIx64 ":%" PRIx64 "] from group", ent.id[0],ent.id[1]);
+                 deregisterEntity(&ge,ent,true);
+                 //logInfo("FLT","SET","set fault state of entity [%" PRIx64 ":%" PRIx64 "] as DOWN", ent.id[0],ent.id[1]);
+                 //fault.setFaultState(ent,FaultState::STATE_DOWN);
+                 j=::SAFplusI::GroupMaxMembers;
+             }
+        }
+  }
+}
+
+
 GroupShmEntry* GroupSharedMem::createGroup(SAFplus::Handle grp)
   {
   ScopedLock<ProcSem> lock(mutex);

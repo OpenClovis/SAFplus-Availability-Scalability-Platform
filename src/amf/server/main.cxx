@@ -66,6 +66,7 @@ typedef boost::unordered_map<SAFplus::AmfRedundancyPolicy,ClPluginHandle*> RedPo
 void initializeOperationalValues(SAFplusAmf::SAFplusAmfModule& cfg);
 void loadAmfPluginsAt(const char* soPath, AmfOperations& amfOps,Fault& fault);
 void postProcessing();
+void updateNodesFaultState(SAFplusAmf::SAFplusAmfModule& cfg);
 
 RedPolicyMap redPolicies;
 
@@ -85,6 +86,7 @@ const char* LogArea = "MAN";
 MgtDatabase amfDb;
 MgtDatabase logDb;
 SAFplus::Fault gfault;  // Fault client global variable
+SAFplus::FaultServer fs;
 bool initOperValues = false;
 
 enum
@@ -464,6 +466,7 @@ void becomeActive(void)
 
   cfg.read(&amfDb);
   initializeOperationalValues(cfg);
+  updateNodesFaultState(cfg);
 
   cfg.bind(myHandle,&cfg.safplusAmf);
   activeAudit();
@@ -744,8 +747,8 @@ int main(int argc, char* argv[])
 #endif
 
 #ifdef SAFPLUS_AMF_FAULT_NODE_REPRESENTATIVE
-  SAFplus::FaultServer fs;
-  fs.init();
+  //SAFplus::FaultServer fs;
+  fs.init(&gs);
 #endif
 
   nameInitialize();  // Name must be initialized after the group server 
@@ -1142,5 +1145,33 @@ void postProcessing()
 		rebootFile.open("safplus_reboot");
 		rebootFile.close();
 	}
+}
+
+void updateNodesFaultState(SAFplusAmf::SAFplusAmfModule& cfg)
+{
+  MgtObject::Iterator itnode;
+  MgtObject::Iterator endnode = cfg.safplusAmf.nodeList.end();
+  for (itnode = cfg.safplusAmf.nodeList.begin(); itnode != endnode; itnode++)
+    {
+      Node* node = dynamic_cast<Node*>(itnode->second);
+      //node->operState = true;  // Not faulted: We can try to turn this on.
+      if (node->presenceState.value == PresenceState::instantiated)
+      {
+        logDebug(LogArea,"INI","presenceState of node [%s] is instantiated. Update its fault state for consistency", node->name.value.c_str());
+        Handle nodeHdl = INVALID_HDL;
+        try
+        {
+          nodeHdl = name.getHandle(node->name);
+        }
+        catch(NameException& ne)
+        {
+          logInfo(LogArea,"INI", "[%s]",ne.what());
+        }
+        if (nodeHdl != INVALID_HDL)
+        {
+          fs.setFaultState(nodeHdl, FaultState::STATE_UP);
+        }
+      }
+    }
 }
 
