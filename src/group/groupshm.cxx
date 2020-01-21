@@ -337,6 +337,11 @@ void GroupServer::init()
 
 void GroupServer::removeEntities(SAFplus::Handle faultEntity)
 {
+  if (faultEntity.getProcess() > 0)
+  {
+    //logInfo("FLT","SET","do no deregister entities in case their node is not death");
+    return;
+  }
   SAFplusI::GroupShmHashMap::iterator i;
   for (i=gsm.groupMap->begin(); i!=gsm.groupMap->end();i++)
    {
