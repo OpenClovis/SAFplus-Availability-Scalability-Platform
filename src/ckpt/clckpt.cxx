@@ -39,9 +39,14 @@ bool SAFplusI::BufferPtrContentsEqual::operator() (const BufferPtr& x, const Buf
   return result;
 }
 
+
+
+
 SAFplus::Checkpoint::~Checkpoint()
 {
+#if 0
   if (isSyncReplica) { if(sync) delete sync; }  
+
   if (flags&PERSISTENT) 
   {
     if (pDbal) delete pDbal;
@@ -54,6 +59,7 @@ SAFplus::Checkpoint::~Checkpoint()
     operMap.clear();
     gate.unlock();
   }
+#endif
 }
 
 /*
@@ -294,15 +300,15 @@ const Buffer& SAFplus::Checkpoint::read (const std::string& key) //const
 }
 
 
-void SAFplus::Checkpoint::write (const uintcw_t key,const Buffer& value,Transaction& t)
+void SAFplus::Checkpoint::write (const uintcw_t key,const Buffer& value,bool overwrite,Transaction& t)
 {
   char data[sizeof(Buffer)-1+sizeof(uintcw_t)];
   Buffer* b = new(data) Buffer(sizeof(uintcw_t));
   *((uintcw_t*) b->data) = key;
-  write(*b,value,t);
+  write(*b,value,overwrite,t);
 }
    
-void SAFplus::Checkpoint::write(const char* key, const Buffer& value,Transaction& t)
+void SAFplus::Checkpoint::write(const char* key, const Buffer& value,bool overwrite,Transaction& t)
   {
     // Doing a copy just to create a Buffer object is not efficient and should be fixed with a direct void* interface into the checkpoint system.
     int klen = strlen(key)+1;  // +1 for the null term
@@ -310,10 +316,10 @@ void SAFplus::Checkpoint::write(const char* key, const Buffer& value,Transaction
     Buffer* kb = new(kmem) Buffer(klen);
     memcpy(kb->data,key,klen);
     kb->setNullT(true);
-    write(*kb,value,t);
+    write(*kb,value,overwrite,t);
   }
 
-void SAFplus::Checkpoint::write(const std::string& key, const Buffer& value,Transaction& t)
+void SAFplus::Checkpoint::write(const std::string& key, const Buffer& value,bool overwrite,Transaction& t)
   {
     // Doing a copy just to create a Buffer object is not efficient and should be fixed with a direct void* interface into the checkpoint system.
     int klen = key.length()+1;  // +1 for the null term
@@ -322,10 +328,10 @@ void SAFplus::Checkpoint::write(const std::string& key, const Buffer& value,Tran
     memcpy(kb->data,key.c_str(),klen);
     kb->setNullT(true);
 
-    write(*kb,value,t);
+    write(*kb,value,overwrite,t);
   }
 
-void SAFplus::Checkpoint::write(const std::string& key, const std::string& value,Transaction& t)
+void SAFplus::Checkpoint::write(const std::string& key, const std::string& value,bool overwrite,Transaction& t)
   {
     // Doing a copy just to create a Buffer object is not efficient and should be fixed with a direct void* interface into the checkpoint system.
 
@@ -341,12 +347,12 @@ void SAFplus::Checkpoint::write(const std::string& key, const std::string& value
     memcpy(vb->data, value.c_str(),vlen);
     kb->setNullT(true);
     vb->setNullT(true);
-    write(*kb,*vb,t);
+    write(*kb,*vb,overwrite,t);
   }
 
 bool SAFplus::Buffer::isNullT() const { return (refAndLen&NullTMask)>0; }
 
-void SAFplus::Checkpoint::write(const void* key, int keylen, const void* value, int vallen, Transaction& t)
+void SAFplus::Checkpoint::write(const void* key, int keylen, const void* value, int vallen, bool overwrite,Transaction& t)
 {
   char kmem[sizeof(Buffer)-1+keylen];
   Buffer* kb = new(kmem) Buffer(keylen);
@@ -354,11 +360,11 @@ void SAFplus::Checkpoint::write(const void* key, int keylen, const void* value, 
   char vdata[sizeof(Buffer)-1+vallen];
   Buffer* val = new(vdata) Buffer(vallen);
   memcpy(val->data, value, vallen);
-  write(*kb,*val, t);
+  write(*kb,*val, overwrite,t);
 }
 
 
-void SAFplus::Checkpoint::write(const Buffer& key, const Buffer& value,Transaction& t)
+void SAFplus::Checkpoint::write(const Buffer& key, const Buffer& value,bool overwrite,Transaction& t)
 {
   gate.close();
   // All write operations are funneled through this function.
@@ -379,7 +385,7 @@ void SAFplus::Checkpoint::write(const Buffer& key, const Buffer& value,Transacti
             {
               if (curval->len() == newlen) {// lengths are the same, most efficient is to just copy the new data onto the old.
                 //memcpy (curval->data,value.data,newlen);
-                if (memcmp(curval->data,value.data,newlen)!=0) // Only overwrite if they are different
+                if (memcmp(curval->data,value.data,newlen)!=0 || overwrite) // Only overwrite if they are different
                   {
                     *curval = value;
                     if (flags & CHANGE_ANNOTATION) curval->setChangeNum(change);

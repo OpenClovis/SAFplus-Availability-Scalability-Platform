@@ -47,7 +47,7 @@ void NameRegistrar::init(Handle hdl)
   m_checkpoint.init(hdl,Checkpoint::SHARED | Checkpoint::REPLICATED, SAFplusI::CkptRetentionDurationDefault, CkptDefaultSize, CkptDefaultRows,IGNORE);
   }
 
-void NameRegistrar::set(const char* name, Handle handle, MappingMode m)
+void NameRegistrar::set(const char* name, Handle handle, MappingMode m, bool overwrite)
 {
 #if 0
    short numHandles = 1;
@@ -66,12 +66,12 @@ void NameRegistrar::set(const char* name, Handle handle, MappingMode m)
    data.mappingMode = m;
    data.numHandles = 1;
    data.handles[0] = handle;
-   set(name, &data, sizeof(data));
+   set(name, &data, sizeof(data),overwrite);
 }
 
-void NameRegistrar::set(const std::string& name, Handle handle, MappingMode m)
+void NameRegistrar::set(const std::string& name, Handle handle, MappingMode m,bool overwrite)
 {
-   set(name.c_str(), handle, m);
+   set(name.c_str(), handle, m,overwrite);
 }
 
 void NameRegistrar::append(const char* name, Handle handle, MappingMode m) throw (NameException&)
@@ -191,19 +191,19 @@ void NameRegistrar::setLocalObject(Handle handle, void* object)
    m_mapObject.insert(vt);
 }
 
-void NameRegistrar::set(const char* name, const void* data, int length) throw (NameException&)
+void NameRegistrar::set(const char* name, const void* data, int length,bool overwrite) throw (NameException&)
 {
    size_t valLen = length;
    char vdata[sizeof(Buffer)-1+valLen];
    Buffer* val = new(vdata) Buffer(valLen);
    memcpy(val->data, data, valLen);
-   m_checkpoint.write(name,*val);
+   m_checkpoint.write(name,*val,overwrite);
 }
 
-void NameRegistrar::set(const std::string& name, const void* data, int length) throw (NameException&)
+void NameRegistrar::set(const std::string& name, const void* data, int length,bool overwrite) throw (NameException&)
 {
    try {
-      set(name.c_str(), data, length);
+      set(name.c_str(), data, length,overwrite);
    }catch (NameException &ne) {
       throw ne;
    }
@@ -220,15 +220,15 @@ void NameRegistrar::remove(const std::string& name) throw (NameException&)
 }
 
 
-void NameRegistrar::set(const char* name, Buffer* p_buf) throw (NameException&)
+void NameRegistrar::set(const char* name, Buffer* p_buf,bool overwrite) throw (NameException&)
 {
-   m_checkpoint.write(name,*p_buf);
+   m_checkpoint.write(name,*p_buf,overwrite);
 }
 
-void NameRegistrar::set(const std::string& name, Buffer* p_buf) throw (NameException&)
+void NameRegistrar::set(const std::string& name, Buffer* p_buf, bool overwrite) throw (NameException&)
 {
    try {
-      set(name.c_str(), p_buf);
+      set(name.c_str(), p_buf,overwrite);
    }catch (NameException &ne) {
       throw ne;
    }

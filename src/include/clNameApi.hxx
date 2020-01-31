@@ -123,7 +123,7 @@ namespace SAFplus
       the void* object pointer is local to this process; it does not need to be part of the checkpoint.
       This association is valid for all SAFplus API name lookups, and for AMF entity names.
       */
-     void set(const char* name, SAFplus::Handle handle, MappingMode m);
+     void set(const char* name, SAFplus::Handle handle, MappingMode m, bool overwrite=false);
 
      /*? Associate a name with a handle and pointer and associate a handle with a pointer.
       If the name does not exist, it is created.  If it exists, it is overwritten.
@@ -131,7 +131,7 @@ namespace SAFplus
       the void* object pointer is local to this process; it does not need to be part of the checkpoint.
       This association is valid for all SAFplus API name lookups, and for AMF entity names.
       */
-     void set(const std::string& name, SAFplus::Handle handle, MappingMode m);
+     void set(const std::string& name, SAFplus::Handle handle, MappingMode m, bool overwrite=false);
 
      //void setMode(const char* name, MappingMode mode);
      //void setMode(const std::string& name, MappingMode mode);
@@ -159,14 +159,14 @@ namespace SAFplus
      void setLocalObject(SAFplus::Handle handle, void* object);
      
      //? Associate name with arbitrary data. A copy of the data is made.
-     void set(const char* name, const void* data, int length) throw (NameException&);
+     void set(const char* name, const void* data, int length, bool overwrite=false) throw (NameException&);
      //? Associate name with arbitrary data. A copy of the data is made.
-     void set(const std::string& name, const void* data, int length) throw (NameException&); 
+     void set(const std::string& name, const void* data, int length, bool overwrite=false) throw (NameException&); 
    
      //? Associate name with arbitrary data. A copy of the data is NOT made; this call transfers the reference count (ownership) to the callee.
-     void set(const char* name, SAFplus::Buffer*) throw (NameException&);
+     void set(const char* name, SAFplus::Buffer*, bool overwrite=false) throw (NameException&);
      //? Associate name with arbitrary data. A copy of the data is NOT made; this call transfers the reference count (ownership) to the callee.
-     void set(const std::string& name, SAFplus::Buffer*) throw (NameException&);
+     void set(const std::string& name, SAFplus::Buffer*, bool overwrite=false) throw (NameException&);
 
      //? Remove a name
      void remove(const char* name) throw (NameException&);

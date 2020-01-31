@@ -245,7 +245,7 @@ namespace SAFplus
    <arg name="t" default="NO_TXN">[OPTIONAL, NOT IMPLEMENTED] Write this record as part of a transaction commit, rather than immediately</arg>   
    <exception name="SAFplus::Error">Raised if there is an underlying SAF read error that cannot be automatically handled</exception>   
    */ 
-    void write(const Buffer& key, const Buffer& value,Transaction& t=SAFplus::NO_TXN);
+    void write(const Buffer& key, const Buffer& value,bool overwrite=false,Transaction& t=SAFplus::NO_TXN);
 
   /*? Write a section of the checkpoint table.
    <arg name="key">The section to write</arg>
@@ -255,7 +255,7 @@ namespace SAFplus
    <arg name="t" default="NO_TXN">[OPTIONAL, NOT IMPLEMENTED] Write this record as part of a transaction commit, rather than immediately</arg>   
    <exception name="SAFplus::Error">Raised if there is an underlying SAF read error that cannot be automatically handled</exception>   
    */ 
-    void write(const void* key, int keylen, const void* value, int vallen, Transaction& t=SAFplus::NO_TXN);
+    void write(const void* key, int keylen, const void* value, int vallen, bool overwrite=false,Transaction& t=SAFplus::NO_TXN);
  
  /*? Write a section of the checkpoint table 
    <arg name="key">The section to write</arg>
@@ -263,7 +263,7 @@ namespace SAFplus
    <arg name="t" default="NO_TXN">[OPTIONAL, NOT IMPLEMENTED] Write this record as part of a transaction commit, rather than immediately</arg>
    <exception name="SAFplus::Error">Raised if there is an underlying SAF read error that cannot be automatically handled</exception>
    */ 
-    void write(const uintcw_t key, const Buffer& value,Transaction& t=SAFplus::NO_TXN);
+    void write(const uintcw_t key, const Buffer& value,bool overwrite=false,Transaction& t=SAFplus::NO_TXN);
 
  /*? Write a section of the checkpoint table 
    <arg name="key">The section to write</arg>
@@ -271,7 +271,7 @@ namespace SAFplus
    <arg name="t" default="NO_TXN">[OPTIONAL, NOT IMPLEMENTED] Write this record as part of a transaction commit, rather than immediately</arg>
    <exception name="SAFplus::Error">Raised if there is an underlying SAF read error that cannot be automatically handled</exception>
    */ 
-    void write(const char* key, const Buffer& value,Transaction& t=SAFplus::NO_TXN);
+    void write(const char* key, const Buffer& value,bool overwrite=false,Transaction& t=SAFplus::NO_TXN);
 
  /*? Write a section of the checkpoint table 
    <arg name="key">The section to write</arg>
@@ -279,7 +279,7 @@ namespace SAFplus
    <arg name="t" default="NO_TXN">[OPTIONAL, NOT IMPLEMENTED] Write this record as part of a transaction commit, rather than immediately</arg>
    <exception name="SAFplus::Error">Raised if there is an underlying SAF read error that cannot be automatically handled</exception>
    */ 
-    void write(const std::string& key, const Buffer& value,Transaction& t=SAFplus::NO_TXN);
+    void write(const std::string& key, const Buffer& value,bool overwrite=false,Transaction& t=SAFplus::NO_TXN);
 
  /*? Write a section of the checkpoint table 
    <arg name="key">The section to write</arg>
@@ -287,7 +287,7 @@ namespace SAFplus
    <arg name="t" default="NO_TXN">[OPTIONAL, NOT IMPLEMENTED] Write this record as part of a transaction commit, rather than immediately</arg>
    <exception name="SAFplus::Error">Raised if there is an underlying SAF read error that cannot be automatically handled</exception>
    */ 
-    void write(const std::string& key, const std::string& value,Transaction& t=SAFplus::NO_TXN);
+    void write(const std::string& key, const std::string& value,bool overwrite=false,Transaction& t=SAFplus::NO_TXN);
 
  /*? Delete a section from the checkpoint table 
    <arg name="key">The section to delete</arg>

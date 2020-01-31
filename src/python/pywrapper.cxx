@@ -128,7 +128,7 @@ BOOST_PYTHON_MODULE(pySAFplus)
     //.def("get",&Buffer::get,return_internal_reference<1,with_custodian_and_ward<1, 1> >());
     .def("get",&buffer_get, (arg("self")), "doc");
 
-  void (Checkpoint::*wss) (const std::string&, const std::string&,Transaction&) = &Checkpoint::write;
+  void (Checkpoint::*wss) (const std::string&, const std::string&,bool overwrite,Transaction&) = &Checkpoint::write;
   //Buffer& (Checkpoint::*rcs) (const char*) const = &Checkpoint::read;
 
   class_<Checkpoint,boost::noncopyable> ckpt("Checkpoint",init<uint_t, uint_t, uint_t>());
