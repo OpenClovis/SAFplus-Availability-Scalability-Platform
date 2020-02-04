@@ -1560,30 +1560,30 @@ def is_asp_running(watchdog_pid = False):
     
 def usage():
     print
-    print 'Usage : %s {start|start leader|stop|restart|restart leader|console|status|zap|help} [options]' %\
+    print 'Usage : %s {start|start leader|stop|restart|restart leader|status|zap|help} [options]' %\
           os.path.splitext(os.path.basename(sys.argv[0]))[0]
-    print
-    print 'options can be one of the following : (these '\
-          'options only work with start command, '\
-          'e.g. etc/init.d/asp start -v etc.)'
-    print
+    # print
+    # print 'options can be one of the following : (these '\
+    #       'options only work with start command, '\
+    #       'e.g. etc/init.d/asp start -v etc.)'
+    # print
 
-    l = ( ('-v', 'Be verbose'),
-          ('--enforce-tipc-settings',
-           'Use etc/asp.conf\'s TIPC settings '
-           'overriding the system TIPC settings'),
-          ('--ignore-tipc-settings',
-           'Use systems TIPC settings '
-           'ignoring the etc/asp.conf\'s settings'),
-          ('--remove-persistent-db',
-           'Delete all of the SAFplus persistent database files'),
-          ('--asp-log-level <level>',
-           'Start SAFplus with particular log level. <level> is '
-           '[trace|debug|info|notice|warning|error|critical]')
-        )
+    # l = ( ('-v', 'Be verbose'),
+    #       ('--enforce-tipc-settings',
+    #        'Use etc/asp.conf\'s TIPC settings '
+    #        'overriding the system TIPC settings'),
+    #       ('--ignore-tipc-settings',
+    #        'Use systems TIPC settings '
+    #        'ignoring the etc/asp.conf\'s settings'),
+    #       ('--remove-persistent-db',
+    #        'Delete all of the SAFplus persistent database files'),
+    #       ('--asp-log-level <level>',
+    #        'Start SAFplus with particular log level. <level> is '
+    #        '[trace|debug|info|notice|warning|error|critical]')
+    #     )
 
-    for o, h in l:
-        print '%-30s:  %s' % (o, h)
+    # for o, h in l:
+    #     print '%-30s:  %s' % (o, h)
 
 def create_asp_cmd_marker(cmd):
     execute_shell_cmd('echo "%s" > %s' %\
@@ -1713,8 +1713,8 @@ def main():
     if len(sys.argv) < 2:
         usage()
         sys.exit(1)
-    else:
-        parse_command_line()
+    # else:
+    #     parse_command_line()
 
     log_asp_env()
 
