@@ -161,6 +161,9 @@ def package_dirs(target_dir, tar_dir, yum_package, debian_package):
             elif os.path.basename(dir_name) == "share":
                 tar_share_dir = tar_dir+'/share'
                 copy_dir(dir_name, tar_share_dir)
+            elif os.path.basename(dir_name) == "etc":
+                tar_share_dir = tar_dir+'/etc'
+                copy_dir(dir_name, tar_share_dir)
             else:
                 pass
     else:
