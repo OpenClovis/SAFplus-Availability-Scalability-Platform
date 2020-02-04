@@ -79,6 +79,9 @@ namespace SAFplusAmf
         SAFplus::MgtHistoryStat<int> numActiveAssignments;
         SAFplus::MgtHistoryStat<int> numStandbyAssignments;
 
+        SAFplus::MgtProv<bool> isFullActiveAssignment;//true when all component service instances of this service instance are assigned to all components of an active service unit completely
+        SAFplus::MgtProv<bool> isFullStandbyAssignment;//true when all component service instances of this service instance are assigned to all components of a standby service unit completely
+
         /*
          * An abstract definition of the amount of work this node can handle.  Nodes can be assigned capacities for arbitrarily chosen strings (MEM or CPU, for example).  Service Instances can be assigned 'weights' and the sum of the weights of service instances assigned active or standby on this node cannot exceed these values.
          */

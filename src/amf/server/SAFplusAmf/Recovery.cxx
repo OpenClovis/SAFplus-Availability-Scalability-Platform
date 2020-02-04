@@ -18,9 +18,11 @@ namespace SAFplusAmf
      * Provide an implementation of the en2str_map lookup table.
      */
     const RecoveryManager::map_t RecoveryManager::en2str_map = {
+            pair_t(Recovery::None, "None"),
             pair_t(Recovery::NoRecommendation, "NoRecommendation"),
-            pair_t(Recovery::Restart, "Restart"),
-            pair_t(Recovery::Failover, "Failover"),
+            pair_t(Recovery::CompRestart, "CompRestart"),
+            pair_t(Recovery::CompFailover, "CompFailover"),
+            pair_t(Recovery::CompRestart, "SuRestart"),
             pair_t(Recovery::NodeSwitchover, "NodeSwitchover"),
             pair_t(Recovery::NodeFailover, "NodeFailover"),
             pair_t(Recovery::NodeFailfast, "NodeFailfast"),

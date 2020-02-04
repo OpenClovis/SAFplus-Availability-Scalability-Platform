@@ -292,12 +292,14 @@ namespace SAFplus
           // pending operation completed.  Clear it out
           wat.comp->pendingOperationExpiration.value.value = 0;
           wat.comp->pendingOperation = PendingOperation::none;
+
+          if(wat.comp->activeAssignments > 0)--wat.comp->activeAssignments;
+          if(wat.comp->standbyAssignments > 0)--wat.comp->standbyAssignments;
           }
         }
       reportChange();
       }
     // TODO: crashes pendingWorkOperations.erase(invocation);
-    
     }
 
   CompStatus AmfOperations::getCompState(SAFplusAmf::Component* comp)
@@ -492,11 +494,20 @@ namespace SAFplus
         {
           ServiceInstance* si = dynamic_cast<ServiceInstance*>(*it);
           assert(si);
+          SAFplusAmf::ComponentServiceInstance* csi = NULL;
+          SAFplus::MgtObject::Iterator itcsi;
+          SAFplus::MgtObject::Iterator endcsi = si->componentServiceInstances.end();
           if (si->activeAssignments.find(su) != si->activeAssignments.value.end())
             {
               assert(si->numActiveAssignments.current > 0); // Data is inconsistent
               si->numActiveAssignments.current -= 1;
               si->activeAssignments.erase(su);
+
+              for (itcsi = si->componentServiceInstances.begin(); itcsi != endcsi; itcsi++)
+                {
+                    csi = dynamic_cast<SAFplusAmf::ComponentServiceInstance*> (itcsi->second);
+                    csi->activeComponents.value.clear();
+                }
             }
 
           if (si->standbyAssignments.find(su) != si->standbyAssignments.value.end())
@@ -504,6 +515,11 @@ namespace SAFplus
               assert(si->numStandbyAssignments.current > 0);  // Data is inconsistent
               si->numStandbyAssignments.current -= 1;
               si->standbyAssignments.erase(su);
+              for (itcsi = si->componentServiceInstances.begin(); itcsi != endcsi; itcsi++)
+                {
+                    csi = dynamic_cast<SAFplusAmf::ComponentServiceInstance*> (itcsi->second);
+                    csi->standbyComponents.value.clear();
+                }
             }
           if ((si->numActiveAssignments.current.value == 0)||(si->numStandbyAssignments.current.value == 0)) si->assignmentState = AssignmentState::partiallyAssigned;
           if ((si->numActiveAssignments.current.value == 0)&&(si->numStandbyAssignments.current.value == 0)) si->assignmentState = AssignmentState::unassigned;
@@ -555,7 +571,7 @@ namespace SAFplus
                         }
 
                       // Mark this component with a pending operation.  This will be cleared in the WorkOperationTracker, or by timeout in auditDiscovery
-                      comp->pendingOperationExpiration.value.value = nowMs() + comp->timeouts.workAssignment;
+                      comp->pendingOperationExpiration.value.value = nowMs() + comp->timeouts.workRemoval;
                       comp->pendingOperation = PendingOperation::workRemoval;
 
                       request.set_componentname(comp->name.value.c_str());
@@ -580,14 +596,18 @@ namespace SAFplus
 
   void AmfOperations::assignWork(ServiceUnit* su, ServiceInstance* si, HighAvailabilityState state,Wakeable& w)
     {
-    SAFplus::Rpc::amfAppRpc::WorkOperationRequest request;
     ComponentServiceInstance* csi = nullptr;
 
-    assert(su->assignedServiceInstances.contains(si) == false);  // We can only assign a particular SI to a particular SU once.
-
-    su->assignedServiceInstances.push_back(si);
-    if (state == HighAvailabilityState::active) su->numActiveServiceInstances.current.value+=1;
-    if (state == HighAvailabilityState::standby) su->numStandbyServiceInstances.current.value+=1;
+    //assert(su->assignedServiceInstances.contains(si) == false);  // We can only assign a particular SI to a particular SU once.
+    if(su->assignedServiceInstances.contains(si) == false)su->assignedServiceInstances.push_back(si);
+    if (state == HighAvailabilityState::active)
+    {
+        su->numActiveServiceInstances.current.value=su->assignedServiceInstances.value.size();
+    }
+    if (state == HighAvailabilityState::standby)
+    {
+        su->numStandbyServiceInstances.current.value=su->assignedServiceInstances.value.size();
+    }
 
     //SAFplus::MgtProvList<SAFplusAmf::Component*>::ContainerType::iterator   itcomp;
     //SAFplus::MgtProvList<SAFplusAmf::Component*>::ContainerType::iterator   endcomp = su->components.value.end();
@@ -631,9 +651,10 @@ namespace SAFplus
         {
         csi = *itcsi;
         if (!csi) continue;
+        if(!(csi->type.value.compare(comp->csiType.value))) break;// We found one!
         // TODO: figure out number of assignments allowed if (csi->getComponent()) continue;  // We can't assign a CSI to > 1 component.
         // TODO validate CSI dependencies are assigned
-        break;  // We found one!
+        //break;
         }
 
       if (itcsi != endcsi)  // We found an assignable CSI and it is the variable "csi"
@@ -649,7 +670,7 @@ namespace SAFplus
             // Mark this component with a pending operation.  This will be cleared in the WorkOperationTracker, or by timeout in auditDiscovery
             comp->pendingOperationExpiration.value.value = nowMs() + comp->timeouts.workAssignment;
             comp->pendingOperation = PendingOperation::workAssignment;
-
+            SAFplus::Rpc::amfAppRpc::WorkOperationRequest request;
             request.set_componentname(comp->name.value.c_str());
             request.add_componenthandle((const char*) &hdl, sizeof(Handle)); // [libprotobuf ERROR google/protobuf/wire_format.cc:1053] String field contains invalid UTF-8 data when serializing a protocol buffer. Use the 'bytes' type if you intend to send raw bytes.
             request.set_operation((uint32_t)state);
@@ -660,10 +681,12 @@ namespace SAFplus
             if (state == HighAvailabilityState::active)
               {
                 csi->activeComponents.value.push_back(comp);  // Mark this CSI assigned to this component
+                ++comp->activeAssignments;
               }
             else if (state == HighAvailabilityState::standby)
               {
                 csi->standbyComponents.value.push_back(comp); // Mark this CSI assigned to this component
+                ++comp->standbyAssignments;
               }
             else if (state == HighAvailabilityState::idle)
               {
@@ -854,7 +877,7 @@ namespace SAFplus
       }
     catch (SAFplus::NameException& n)
       {
-	// This is the expected condition -- comp is not registered
+    // This is the expected condition -- comp is not registered
       }
 
     Handle nodeHdl;
@@ -1049,57 +1072,57 @@ namespace SAFplus
 
     void AmfOperations::rebootNode(SAFplusAmf::Node* node, Wakeable& w)
     {
-		if(!node)
-		{
-			return;
-		}
-		MgtIdentifierList<ServiceUnit*>::iterator itsu;
-		for(itsu=node->serviceUnits.listBegin(); itsu != node->serviceUnits.listEnd(); ++itsu)
-		{
-			//remove each component in su of this node out of name service before restarting this node.
-			ServiceUnit* su = dynamic_cast<ServiceUnit*>(*itsu);
-			MgtIdentifierList<Component*>::iterator itcomp=su->components.listBegin();
-			MgtIdentifierList<Component*>::iterator endComp=su->components.listEnd();
-			for(;itcomp!=endComp;++itcomp)
-			{
-				Component *comp=dynamic_cast<Component*>(*itcomp);
-				try
-				{
-					name.remove(comp->name);
-				}
-				catch(NameException& n)
-				{
-					//comp is not registered
-					logCritical("OPS","SRT","AMF Entity [%s] is not registered in the name service.", comp->name.value.c_str());
-				}
-			}
-		}
-		Handle nodeHdl;
-		try
-		{
-			nodeHdl = name.getHandle(node->name);
-		}
-		catch (SAFplus::NameException& n)
-		{
-			logCritical("OPS","SRT","AMF Entity [%s] is not registered in the name service.", node->name.value.c_str());
-			return;
-		}
-		if(nodeHdl == nodeHandle)//handle locally
-		{
-			rebootFlag = true;
-			gfault.registerEntity(nodeHandle,FaultState::STATE_DOWN);
-		}
-		else //remotely reboot node
-		{
-			Handle remoteAmfHdl = getProcessHandle(SAFplusI::AMF_IOC_PORT, nodeHdl.getNode());
-			if(FaultState::STATE_UP == fault.getFaultState(remoteAmfHdl))
-			{
-				logInfo("OPS", "REB", "Reboot Node [%d]",nodeHdl.getNode());
-				RebootNodeRequest req;
-				RebootNodeResponse resp;
-				amfInternalRpc->rebootNode(remoteAmfHdl,&req,&resp);
-			}
-		}
-	}
+        if(!node)
+        {
+            return;
+        }
+        MgtIdentifierList<ServiceUnit*>::iterator itsu;
+        for(itsu=node->serviceUnits.listBegin(); itsu != node->serviceUnits.listEnd(); ++itsu)
+        {
+            //remove each component in su of this node out of name service before restarting this node.
+            ServiceUnit* su = dynamic_cast<ServiceUnit*>(*itsu);
+            MgtIdentifierList<Component*>::iterator itcomp=su->components.listBegin();
+            MgtIdentifierList<Component*>::iterator endComp=su->components.listEnd();
+            for(;itcomp!=endComp;++itcomp)
+            {
+                Component *comp=dynamic_cast<Component*>(*itcomp);
+                try
+                {
+                    name.remove(comp->name);
+                }
+                catch(NameException& n)
+                {
+                    //comp is not registered
+                    logCritical("OPS","SRT","AMF Entity [%s] is not registered in the name service.", comp->name.value.c_str());
+                }
+            }
+        }
+        Handle nodeHdl;
+        try
+        {
+            nodeHdl = name.getHandle(node->name);
+        }
+        catch (SAFplus::NameException& n)
+        {
+            logCritical("OPS","SRT","AMF Entity [%s] is not registered in the name service.", node->name.value.c_str());
+            return;
+        }
+        if(nodeHdl == nodeHandle)//handle locally
+        {
+            rebootFlag = true;
+            gfault.registerEntity(nodeHandle,FaultState::STATE_DOWN);
+        }
+        else //remotely reboot node
+        {
+            Handle remoteAmfHdl = getProcessHandle(SAFplusI::AMF_IOC_PORT, nodeHdl.getNode());
+            if(FaultState::STATE_UP == fault.getFaultState(remoteAmfHdl))
+            {
+                logInfo("OPS", "REB", "Reboot Node [%d]",nodeHdl.getNode());
+                RebootNodeRequest req;
+                RebootNodeResponse resp;
+                amfInternalRpc->rebootNode(remoteAmfHdl,&req,&resp);
+            }
+        }
+    }
 
   };

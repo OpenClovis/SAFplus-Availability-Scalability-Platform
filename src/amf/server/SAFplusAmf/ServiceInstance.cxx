@@ -32,7 +32,7 @@ namespace SAFplusAmf
     /* Apply MGT object factory */
     MGT_REGISTER_IMPL(ServiceInstance, /SAFplusAmf/safplusAmf/ServiceInstance)
 
-    ServiceInstance::ServiceInstance(): adminState("adminState",::SAFplusAmf::AdministrativeState::on), assignmentState("assignmentState"), preferredActiveAssignments("preferredActiveAssignments",1), preferredStandbyAssignments("preferredStandbyAssignments",1), rank("rank"), activeAssignments("activeAssignments"), standbyAssignments("standbyAssignments"), componentServiceInstances("componentServiceInstances"), serviceGroup("serviceGroup"), activeWeightList("activeWeight"), standbyWeightList("standbyWeight")
+    ServiceInstance::ServiceInstance(): adminState("adminState",::SAFplusAmf::AdministrativeState::on), assignmentState("assignmentState"), preferredActiveAssignments("preferredActiveAssignments",1), preferredStandbyAssignments("preferredStandbyAssignments",1), rank("rank"), activeAssignments("activeAssignments"), standbyAssignments("standbyAssignments"), componentServiceInstances("componentServiceInstances"), serviceGroup("serviceGroup"), activeWeightList("activeWeight"), standbyWeightList("standbyWeight"), isFullActiveAssignment("isFullActiveAssignment",false), isFullStandbyAssignment("isFullStandbyAssignment",false)
     {
         this->addChildObject(&adminState, "adminState");
         this->addChildObject(&assignmentState, "assignmentState");
@@ -71,13 +71,23 @@ namespace SAFplusAmf
         activeWeightList.setListKey("resource");
         standbyWeightList.childXpath="/SAFplusAmf/safplusAmf/ServiceInstance/standbyWeight";
         standbyWeightList.setListKey("resource");
+        this->addChildObject(&isFullActiveAssignment, "isFullActiveAssignment");
+        isFullActiveAssignment.config = false;
+        isFullActiveAssignment.settable = false;
+        isFullActiveAssignment.loadDb = false;
+        isFullActiveAssignment.replicated = false;
+        this->addChildObject(&isFullStandbyAssignment, "isFullStandbyAssignment");
+        isFullStandbyAssignment.config = false;
+        isFullStandbyAssignment.settable = false;
+        isFullStandbyAssignment.loadDb = false;
+        isFullStandbyAssignment.replicated = false;
         this->tag.assign("ServiceInstance");
         adminState = ::SAFplusAmf::AdministrativeState::on;
         preferredActiveAssignments = 1;
         preferredStandbyAssignments = 1;
     };
 
-    ServiceInstance::ServiceInstance(const std::string& nameValue): adminState("adminState",::SAFplusAmf::AdministrativeState::on), assignmentState("assignmentState"), preferredActiveAssignments("preferredActiveAssignments",1), preferredStandbyAssignments("preferredStandbyAssignments",1), rank("rank"), activeAssignments("activeAssignments"), standbyAssignments("standbyAssignments"), componentServiceInstances("componentServiceInstances"), serviceGroup("serviceGroup"), activeWeightList("activeWeight"), standbyWeightList("standbyWeight")
+    ServiceInstance::ServiceInstance(const std::string& nameValue): adminState("adminState",::SAFplusAmf::AdministrativeState::on), assignmentState("assignmentState"), preferredActiveAssignments("preferredActiveAssignments",1), preferredStandbyAssignments("preferredStandbyAssignments",1), rank("rank"), activeAssignments("activeAssignments"), standbyAssignments("standbyAssignments"), componentServiceInstances("componentServiceInstances"), serviceGroup("serviceGroup"), activeWeightList("activeWeight"), standbyWeightList("standbyWeight"), isFullActiveAssignment("isFullActiveAssignment",false), isFullStandbyAssignment("isFullStandbyAssignment",false)
     {
         this->name.value =  nameValue;
         this->addChildObject(&adminState, "adminState");
@@ -117,6 +127,16 @@ namespace SAFplusAmf
         activeWeightList.setListKey("resource");
         standbyWeightList.childXpath="/SAFplusAmf/safplusAmf/ServiceInstance/standbyWeight";
         standbyWeightList.setListKey("resource");
+        this->addChildObject(&isFullActiveAssignment, "isFullActiveAssignment");
+        isFullActiveAssignment.config = false;
+        isFullActiveAssignment.settable = false;
+        isFullActiveAssignment.loadDb = false;
+        isFullActiveAssignment.replicated = false;
+        this->addChildObject(&isFullStandbyAssignment, "isFullStandbyAssignment");
+        isFullStandbyAssignment.config = false;
+        isFullStandbyAssignment.settable = false;
+        isFullStandbyAssignment.loadDb = false;
+        isFullStandbyAssignment.replicated = false;
         this->tag.assign("ServiceInstance");
     };
 

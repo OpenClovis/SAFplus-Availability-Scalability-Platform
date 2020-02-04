@@ -1139,12 +1139,12 @@ void initializeOperationalValues(SAFplusAmf::SAFplusAmfModule& cfg)
 
 void postProcessing()
 {
-	if(rebootFlag)
-	{
-		ofstream rebootFile;
-		rebootFile.open("safplus_reboot");
-		rebootFile.close();
-	}
+    if(rebootFlag)
+    {
+        ofstream rebootFile;
+        rebootFile.open("safplus_reboot");
+        rebootFile.close();
+    }
 }
 
 void updateNodesFaultState(SAFplusAmf::SAFplusAmfModule& cfg)

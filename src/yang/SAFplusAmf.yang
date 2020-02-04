@@ -721,6 +721,12 @@ module SAFplusAmf
         config false;
       }
 
+      leaf csiType
+      {
+        description "type of csi assigned for component";
+        type string;
+      }
+
       leaf swBundle
       {
 	type string;
@@ -855,12 +861,12 @@ module SAFplusAmf
 	type enumeration
 	{
 	  enum NoRecommendation { value 1; }
-	  enum Restart 
+	  enum CompRestart
 	  { 
 	    value 2; 
 	    description "The erroneous component should be terminated and reinstantiated.";
 	  }
-	  enum Failover 
+	  enum CompFailover
 	  { 
 	    value 3; 
 	    description "Depending on the redundancy model used, either the component or the service unit containing the component should fail over to another node.";
@@ -1013,6 +1019,11 @@ are switched over to other nodes (component service instances are not abruptly r
 	description "";
         type instance-identifier;
         SAFplusTypes:c-type "::SAFplusAmf::ComponentServiceInstance*";
+      }
+
+      leaf type
+      {
+      type string;
       }
 
       list data

@@ -178,6 +178,11 @@ public:
     {
       setValue(value);
     }
+
+    bool operator > (const T& value);
+    bool operator == (const T& value);
+    MgtHistoryStat<T>& operator ++();
+    MgtHistoryStat<T>& operator --();
   // virtual void toString(std::stringstream& xmlString, int depth=SAFplusI::MgtToStringRecursionDepth,SerializationOptions opts=SerializeNoOptions);
 
     virtual ClRcT write(MgtDatabase* db, std::string xpt = "")
@@ -341,6 +346,33 @@ T MgtHistoryStat<T>::calculateCurrentValue()
 {
     return 0;
 }
+
+template <class T>
+bool MgtHistoryStat<T>::operator > (const T& val)
+{
+    return (current.value > val)?true:false;
+}
+
+template <class T>
+bool MgtHistoryStat<T>::operator == (const T& val)
+{
+    return (current.value == val)?true:false;
+}
+
+template <class T>
+MgtHistoryStat<T>& MgtHistoryStat<T>::operator ++ ()//prefix
+{
+    ++current.value;
+    return *this;
+}
+
+template <class T>
+MgtHistoryStat<T>& MgtHistoryStat<T>::operator -- ()//prefix
+{
+    --current.value;
+    return *this;
+}
+
 
 };
 

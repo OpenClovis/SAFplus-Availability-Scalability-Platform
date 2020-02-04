@@ -141,6 +141,8 @@ namespace SAFplusAmf
          */
         SAFplus::MgtProv<std::string> proxy;
 
+        SAFplus::MgtProv<std::string> csiType;
+
         /*
          * This component is the proxy for the components listed here.
          */

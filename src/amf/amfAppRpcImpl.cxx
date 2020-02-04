@@ -74,6 +74,13 @@ namespace amfAppRpc {
         {
           if (tgt == SA_AMF_CSI_TARGET_ALL)
             {
+                if (SAFplusI::amfSession->callbacks.saAmfCSIRemoveCallback)
+                {
+                    SaNameT csiName;
+                    SaAmfCSIFlagsT csiFlags = 0;
+                    csiName.length = 0;
+                    SAFplusI::amfSession->callbacks.saAmfCSIRemoveCallback((SaInvocationT) request->invocation(),&compName,&csiName,csiFlags);
+                }
             }
           else   
             {
@@ -81,7 +88,7 @@ namespace amfAppRpc {
               assert(0);
             }
         }
-      if (tgt != SAFplusI::AMF_CSI_REMOVE_ONE)
+      else if (tgt != SAFplusI::AMF_CSI_REMOVE_ONE)
         {
         SaAmfCSIDescriptorT csiDescriptor;  // TODO
         csiDescriptor.csiFlags = tgt;
@@ -121,13 +128,6 @@ namespace amfAppRpc {
           {
           SAFplusI::amfSession->callbacks.saAmfCSISetCallback((SaInvocationT) request->invocation(),&compName,(SaAmfHAStateT) request->operation(), csiDescriptor);
           }
-        }
-      else if (SAFplusI::amfSession->callbacks.saAmfCSIRemoveCallback)
-        {
-        SaNameT csiName;
-        SaAmfCSIFlagsT csiFlags = 0; // TODO
-        csiName.length = 0;
-        SAFplusI::amfSession->callbacks.saAmfCSIRemoveCallback((SaInvocationT) request->invocation(),&compName,&csiName,csiFlags);
         }
       }
     }

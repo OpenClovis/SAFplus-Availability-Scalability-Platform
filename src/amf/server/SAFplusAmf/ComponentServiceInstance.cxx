@@ -26,8 +26,9 @@ namespace SAFplusAmf
     /* Apply MGT object factory */
     MGT_REGISTER_IMPL(ComponentServiceInstance, /SAFplusAmf/safplusAmf/ComponentServiceInstance)
 
-    ComponentServiceInstance::ComponentServiceInstance(): protectionGroup("protectionGroup"), dependencies("dependencies"), serviceInstance("serviceInstance"), standbyComponents("standbyComponents"), activeComponents("activeComponents"), dataList("data")
+    ComponentServiceInstance::ComponentServiceInstance(): protectionGroup("protectionGroup"), dependencies("dependencies"), serviceInstance("serviceInstance"), standbyComponents("standbyComponents"), activeComponents("activeComponents"), dataList("data"), type("type")
     {
+        this->addChildObject(&type,"type");
         this->addChildObject(&protectionGroup, "protectionGroup");
         this->addChildObject(&dependencies, "dependencies");
         this->addChildObject(&serviceInstance, "serviceInstance");
@@ -47,8 +48,9 @@ namespace SAFplusAmf
         this->tag.assign("ComponentServiceInstance");
     };
 
-    ComponentServiceInstance::ComponentServiceInstance(const std::string& nameValue): protectionGroup("protectionGroup"), dependencies("dependencies"), serviceInstance("serviceInstance"), standbyComponents("standbyComponents"), activeComponents("activeComponents"), dataList("data")
+    ComponentServiceInstance::ComponentServiceInstance(const std::string& nameValue): protectionGroup("protectionGroup"), dependencies("dependencies"), serviceInstance("serviceInstance"), standbyComponents("standbyComponents"), activeComponents("activeComponents"), dataList("data"), type("type")
     {
+        this->addChildObject(&type,"type");
         this->name.value =  nameValue;
         this->addChildObject(&protectionGroup, "protectionGroup");
         this->addChildObject(&dependencies, "dependencies");
@@ -77,7 +79,7 @@ namespace SAFplusAmf
 
     std::vector<std::string>* ComponentServiceInstance::getChildNames()
     {
-        std::string childNames[] = { "name", "id", "protectionGroup", "dependencies", "data", "serviceInstance", "standbyComponents", "activeComponents" };
+        std::string childNames[] = { "name", "id", "protectionGroup", "dependencies", "data", "serviceInstance", "standbyComponents", "activeComponents", "type"};
         return new std::vector<std::string> (childNames, childNames + sizeof(childNames) / sizeof(childNames[0]));
     };
 
