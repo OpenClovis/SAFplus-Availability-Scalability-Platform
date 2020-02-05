@@ -72,6 +72,7 @@ RedPolicyMap redPolicies;
 
 // IOC related globals
 extern ClUint32T chassisId;
+extern bool isNodeRegistered;
 
 // signal this condition to execute a cluster state reevaluation early
 ThreadCondition somethingChanged;
@@ -905,8 +906,11 @@ int main(int argc, char* argv[])
   //Timer readStats(statsTimeout, CL_TIMER_REPETITIVE,CL_TIMER_SEPARATE_CONTEXT,refreshComponentStats,NULL);
   //readStats.timerStart();
 
-  logInfo(LogArea,"NAM", "Registering this node [%s] as handle [%" PRIx64 ":%" PRIx64 "]", SAFplus::ASP_NODENAME, nodeHandle.id[0],nodeHandle.id[1]);
-  name.set(SAFplus::ASP_NODENAME,nodeHandle,NameRegistrar::MODE_NO_CHANGE,true);
+  if (SAFplus::SYSTEM_CONTROLLER) // payload nodes should register to the name service later after the active SC comming up
+  {
+    logInfo(LogArea,"NAM", "Registering this node [%s] as handle [%" PRIx64 ":%" PRIx64 "]", SAFplus::ASP_NODENAME, nodeHandle.id[0],nodeHandle.id[1]);
+    name.set(SAFplus::ASP_NODENAME,nodeHandle,NameRegistrar::MODE_NO_CHANGE,true);
+  }
 
   compStatsRefresh = boost::thread(CompStatsRefresh());
 
@@ -915,15 +919,18 @@ int main(int argc, char* argv[])
   // Ready to go.  Claim that I am up, and wait until the fault manager commits that change.  We must wait so we don't see ourselves as down!
   // And because we set ourselves up only ONCE.  Beyond this point, the fault manager is authorative -- if it reports us down, the AMF should quit.
   // TODO: add generations to the fault manager, to distinguish between a prior run of the AMF/node, or other entities
-  do {  // Loop because active fault manager may not be chosen yet
-    gfault.registerEntity(nodeHandle, FaultState::STATE_UP);  // set this node as up
-    boost::this_thread::sleep(boost::posix_time::milliseconds(250));    
-  } while(gfault.getFaultState(nodeHandle) != FaultState::STATE_UP);
+  if (SAFplus::SYSTEM_CONTROLLER) // payload nodes should register to the fault manager later after the active SC comming up
+  {
+    do {  // Loop because active fault manager may not be chosen yet
+      gfault.registerEntity(nodeHandle, FaultState::STATE_UP);  // set this node as up
+      boost::this_thread::sleep(boost::posix_time::milliseconds(250));
+    } while(gfault.getFaultState(nodeHandle) != FaultState::STATE_UP);
 
-  do {
-    gfault.registerEntity(myHandle, FaultState::STATE_UP);    // set this AMF as up
-    boost::this_thread::sleep(boost::posix_time::milliseconds(250));    
-  } while(gfault.getFaultState(myHandle) != FaultState::STATE_UP);
+    do {
+      gfault.registerEntity(myHandle, FaultState::STATE_UP);    // set this AMF as up
+      boost::this_thread::sleep(boost::posix_time::milliseconds(250));
+    } while(gfault.getFaultState(myHandle) != FaultState::STATE_UP);
+  }
 
   uint64_t lastBeat = beat; 
   uint64_t nowBeat;
@@ -942,7 +949,7 @@ int main(int argc, char* argv[])
     beat++;
     if (!firstTime && !amfOps.changed) changeTriggered = somethingChanged.timed_wait(somethingChangedMutex,REEVALUATION_DELAY);
 
-    if (gfault.getFaultState(nodeHandle) != FaultState::STATE_UP)  // Since the fault manager is authoritative, quit it if marks this node as down.
+    if ((SAFplus::SYSTEM_CONTROLLER && gfault.getFaultState(nodeHandle) != FaultState::STATE_UP) || (!SAFplus::SYSTEM_CONTROLLER && isNodeRegistered && gfault.getFaultState(nodeHandle) != FaultState::STATE_UP))  // Since the fault manager is authoritative, quit it if marks this node as down.
       {
         logCritical("PRC","MON","Fault manager has marked this node as DOWN.  This could indicate a real issue with the node, or be a false positive due to missed heartbeat messages, etc.  Quitting.");
         quitting = true;

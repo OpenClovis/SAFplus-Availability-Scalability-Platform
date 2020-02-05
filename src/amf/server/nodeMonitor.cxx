@@ -17,6 +17,7 @@ extern SAFplusAmf::SAFplusAmfModule cfg;
 extern Handle myHandle;
 extern Handle nodeHandle;
 extern SAFplus::Fault gfault;
+bool isNodeRegistered = false;
 
 struct HeartbeatData
 {
@@ -117,8 +118,6 @@ void NodeMonitor::monitorThread(void)
 {
   int loopCnt=-1;
   bool waitingForActive = true;
-  bool isEntityRegisted = false;
-  bool isActiveExist = true;
   //assert(maxSilentInterval);  // You didn't call init()
 
   Group::Iterator end = clusterGroup.end();
@@ -238,10 +237,12 @@ void NodeMonitor::monitorThread(void)
               gfault.notifyLocal(hdl,AlarmState::ALARM_STATE_ASSERT,AlarmCategory::ALARM_CATEGORY_COMMUNICATIONS,AlarmSeverity::ALARM_SEVERITY_MAJOR,AlarmProbableCause::ALARM_PROB_CAUSE_RECEIVER_FAILURE, gfault.getFaultPolicy());
             }
         }
-      if (!SAFplus::SYSTEM_CONTROLLER)  // Let the payload ensure that the active is alive
+      if (!active && !standby && !SAFplus::SYSTEM_CONTROLLER)  // Let the payload ensure that the active is alive
         {
           waitingForActive = true;
-          verify_active_alive:
+
+verify_active_alive:
+
           int64_t now = timerMs();
           if (loopCnt&31==0) 
             {
@@ -254,45 +255,59 @@ void NodeMonitor::monitorThread(void)
               if (waitingForActive)
                 {
                   waitingForActive = false;
+                  if (isNodeRegistered)
+                  {
+                    logAlert("HB","CLM", "No leader in the cluster, this node will be restarted in 5 seconds");
+                  }
                   boost::this_thread::sleep(boost::posix_time::milliseconds(5000));
                   goto verify_active_alive;
                 }
-              else if (isEntityRegisted)
+              else if (isNodeRegistered)
                 {
-                  FILE *fptr = fopen(CL_CPM_RESTART_FILE, "w");
-                  if (fptr) {
-                      logCritical("HB","CLM","AMF failure to trigger restart. Please ensure you restart safplus again");
+                  // Deregister my node handle from the name service before I restart
+                  logInfo("HB","NAM", "Deregistering this node [%s], handle [%" PRIx64 ":%" PRIx64 "] from the name service", SAFplus::ASP_NODENAME, nodeHandle.id[0],nodeHandle.id[1]);
+                  name.set(SAFplus::ASP_NODENAME,INVALID_HDL,NameRegistrar::MODE_NO_CHANGE);
+                  FILE *fp = fopen(CL_CPM_RESTART_FILE, "w");
+                  if (!fp)
+                  {
+                    logCritical("HB","CLM","AMF failure to trigger restart. Please restart safplus manually");
                   }
-                  else {
-                      fclose(fptr);
+                  else
+                  {
+                    fclose(fp);
                   }
-                  pid_t amf = getpid();
-                  kill(amf, SIGKILL);
-                  assert(0);
+                  pid_t amfPid = getpid();
+                  kill(amfPid, SIGKILL);
                 }
               else
                 {
-                  logWarning("HB","CLM", "AMF Payload blade Waiting for AMF active to came up...");
-                  isActiveExist = false;
+                  logWarning("HB","CLM", "AMF payload blade waiting for AMF active to come up or node handle and amf handle to be valid...");
                 }
             }
-          else if (!isEntityRegisted && !isActiveExist) {
-            EntityIdentifier handle = clusterGroup.getActive();
-            if (handle != INVALID_HDL) {
-              do {  // Loop because active fault manager may not be chosen yet
-                gfault.registerEntity(nodeHandle, FaultState::STATE_UP);  // set this node as up
-                boost::this_thread::sleep(boost::posix_time::milliseconds(250));
-              } while(gfault.getFaultState(nodeHandle) != FaultState::STATE_UP);
+          else if (!isNodeRegistered)
+          {
+            EntityIdentifier activeHdl = clusterGroup.getActive();
+            if (activeHdl != INVALID_HDL && nodeHandle != INVALID_HDL && myHandle != INVALID_HDL) 
+            {
+                logInfo("HB","NAM", "Registering this node [%s] as handle [%" PRIx64 ":%" PRIx64 "]", SAFplus::ASP_NODENAME, nodeHandle.id[0],nodeHandle.id[1]);
+                name.set(SAFplus::ASP_NODENAME,nodeHandle,NameRegistrar::MODE_NO_CHANGE,true);
+                do
+                {  // Loop because active fault manager may not be chosen yet
+                  gfault.registerEntity(nodeHandle, FaultState::STATE_UP);  // set this node as up
+                  boost::this_thread::sleep(boost::posix_time::milliseconds(250));
+                } while(gfault.getFaultState(nodeHandle) != FaultState::STATE_UP);
 
-              do {
-                gfault.registerEntity(myHandle, FaultState::STATE_UP);    // set this AMF as up
-                boost::this_thread::sleep(boost::posix_time::milliseconds(250));
-              } while(gfault.getFaultState(myHandle) != FaultState::STATE_UP);
-              isEntityRegisted = true;
+                do
+                {
+                  gfault.registerEntity(myHandle, FaultState::STATE_UP);    // set this AMF as up
+                  boost::this_thread::sleep(boost::posix_time::milliseconds(250));
+                } while(gfault.getFaultState(myHandle) != FaultState::STATE_UP);
+                isNodeRegistered = true;
             }
-          }
-          else if (!isEntityRegisted) {
-            isEntityRegisted = true;          
+            else
+            {
+                logInfo("HB","CLM","waiting for active SC up, my node handle and my amf handle valid, current values: active SC [%" PRIx64 ":%" PRIx64 "], my node handle [%" PRIx64 ":%" PRIx64 "], my amf handle [%" PRIx64 ":%" PRIx64 "]", activeHdl.id[0],activeHdl.id[1],nodeHandle.id[0],nodeHandle.id[1],myHandle.id[0],myHandle.id[1]);
+            }
           }
         }
 
