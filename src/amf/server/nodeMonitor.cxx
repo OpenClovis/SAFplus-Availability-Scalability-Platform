@@ -267,7 +267,12 @@ verify_active_alive:
                   // Deregister my node handle from the name service before I restart
                   logInfo("HB","NAM", "Deregistering this node [%s], handle [%" PRIx64 ":%" PRIx64 "] from the name service", SAFplus::ASP_NODENAME, nodeHandle.id[0],nodeHandle.id[1]);
                   name.set(SAFplus::ASP_NODENAME,INVALID_HDL,NameRegistrar::MODE_NO_CHANGE);
-                  FILE *fp = fopen(CL_CPM_RESTART_FILE, "w");
+                  char *runDir = getenv("ASP_RUNDIR");
+                  char fileName[512];
+                  strncpy(fileName, runDir, 511);
+                  strncat(fileName, "/", 511);
+                  strncat(fileName, CL_CPM_RESTART_FILE, 511);
+                  FILE *fp = fopen(fileName, "w");
                   if (!fp)
                   {
                     logCritical("HB","CLM","AMF failure to trigger restart. Please restart safplus manually");
