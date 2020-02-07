@@ -245,7 +245,15 @@ void MsgServer::MakeMePrimary()
     assert(msg->firstFragment == msg->lastFragment);  // This code is only written to handle one fragment.
     MsgFragment* frag =  msg->firstFragment;
     // TODO: what would the performance be to put the header into its own buffer during the recvmmsg?
-    int msgType = *((char*)frag->read(0));
+    const void *fragment = frag->read(0);
+    if (!fragment)
+    {
+      logWarning("MSG", "SVR", "Received message with 0 length fragment");
+      msg->msgPool->free(msg);
+      msg=nullptr;
+      return;
+    }
+    int msgType = *((char*)fragment);
     frag->start++;
     frag->len--;
 

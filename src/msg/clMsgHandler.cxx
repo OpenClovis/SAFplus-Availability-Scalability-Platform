@@ -42,7 +42,13 @@ namespace SAFplus
         assert(msg->firstFragment == msg->lastFragment);  // TODO: This code is only written to handle one fragment.
         MsgFragment* frag = msg->firstFragment;
         Handle from = msg->getAddress();
-        msgHandler(from,svr,(ClPtrT)frag->read(0),frag->len,cookie);
+        const void *fragment = frag->read(0);
+        if (!fragment)
+          {
+            logWarning("MSG", "SVR", "Received message with 0 length of data");
+            break;
+          }
+        msgHandler(from,svr,(ClPtrT)fragment,frag->len,cookie);
         msg = msg->nextMsg;
       }
     msgHead->msgPool->free(msgHead);
