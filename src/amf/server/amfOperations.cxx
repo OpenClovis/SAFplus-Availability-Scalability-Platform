@@ -803,7 +803,7 @@ namespace SAFplus
       }
     catch (SAFplus::NameException& n)
       {
-      logCritical("OPS","SRT","AMF Entity [%s] is not registered in the name service.  Cannot stop processes on it.", comp->serviceUnit.value->node.value->name.value.c_str());
+      logCritical("OPS","ABRT","AMF Entity [%s] is not registered in the name service.  Cannot stop processes on it.", comp->serviceUnit.value->node.value->name.value.c_str());
       comp->lastError.value = "Component's node is not registered in the name service so address cannot be determined.";
       if (&w) w.wake(1,(void*)comp);
       // Node's name is only not there if the node has never existed.
@@ -815,12 +815,13 @@ namespace SAFplus
       {
         if (comp->processId.value)
           {
+          logDebug("OPS","ABRT","sending signal [SIGTERM] to process [%d]", comp->processId.value);
           Process p(comp->processId.value);
           p.signal(SIGTERM);
           }
         else
           {
-          logWarning("OPS","SRT","Cannot stop AMF Entity [%s] since it has no associated process id.  If this process still exists, it will become orphaned.", comp->serviceUnit.value->node.value->name.value.c_str());
+          logWarning("OPS","ABRT","Cannot stop AMF Entity [%s] since it has no associated process id.  If this process still exists, it will become orphaned.", comp->serviceUnit.value->node.value->name.value.c_str());
 
           }
         comp->presenceState = PresenceState::uninstantiated;

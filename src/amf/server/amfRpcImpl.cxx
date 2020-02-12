@@ -71,7 +71,10 @@ namespace amfRpc {
   void amfRpcImpl::stopComponent(const ::SAFplus::Rpc::amfRpc::StopComponentRequest* request,
                                 ::SAFplus::Rpc::amfRpc::StopComponentResponse* response)
   {
-    //TODO: put your code here 
+    int32_t compPid = request->pid();
+    logDebug("OPS","STOP","sending signal [SIGTERM] to process [%d]", compPid);
+    Process p(compPid);
+    p.signal(SIGTERM);
   }
 
   void amfRpcImpl::cleanupComponent(const ::SAFplus::Rpc::amfRpc::CleanupComponentRequest* request,
@@ -99,7 +102,7 @@ namespace amfRpc {
   }
   catch (ProcessError& e)
   {
-    logInfo("OPS","SRT","Failed to cleanup Component [%s] as [%s] with error [%s:%d]", request->name().c_str(),request->command().c_str(),strerror(e.osError),e.osError);
+    logInfo("OPS","CLE","Failed to cleanup Component [%s] as [%s] with error [%s:%d]", request->name().c_str(),request->command().c_str(),strerror(e.osError),e.osError);
     response->set_err(e.osError);
   }
  }
