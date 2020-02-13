@@ -170,6 +170,16 @@ module amfRpc
       }
     }
   }
-  
+
+ rpc rebootNode
+  {
+    output
+    {
+      leaf err
+      {
+    type int32;
+      }
+    }
+  } 
 
 }
