@@ -508,6 +508,7 @@ namespace SAFplus
                     csi = dynamic_cast<SAFplusAmf::ComponentServiceInstance*> (itcsi->second);
                     csi->activeComponents.value.clear();
                 }
+              si->isFullActiveAssignment= false;
             }
 
           if (si->standbyAssignments.find(su) != si->standbyAssignments.value.end())
@@ -520,6 +521,7 @@ namespace SAFplus
                     csi = dynamic_cast<SAFplusAmf::ComponentServiceInstance*> (itcsi->second);
                     csi->standbyComponents.value.clear();
                 }
+              si->isFullStandbyAssignment= false;
             }
           if ((si->numActiveAssignments.current.value == 0)||(si->numStandbyAssignments.current.value == 0)) si->assignmentState = AssignmentState::partiallyAssigned;
           if ((si->numActiveAssignments.current.value == 0)&&(si->numStandbyAssignments.current.value == 0)) si->assignmentState = AssignmentState::unassigned;
@@ -724,7 +726,23 @@ namespace SAFplus
             amfAppRpc->workOperation(hdl, &request);
           }
 
-        reportChange();
+          reportChange();
+          //update isFullActiveAssignment and isFullStandbyAssignment for service instance
+          si->isFullActiveAssignment= si->isFullStandbyAssignment =true;
+          for(itcsi = si->componentServiceInstances.listBegin(); itcsi != endcsi; itcsi++)
+          {
+            ComponentServiceInstance* csi=dynamic_cast<ComponentServiceInstance*>(*itcsi);
+            if(state == HighAvailabilityState::active && csi->activeComponents.value.empty())
+            {
+                si->isFullActiveAssignment=false;
+                break;
+            }
+            if(state == HighAvailabilityState::standby&& csi->standbyComponents.value.empty())
+            {
+                si->isFullStandbyAssignment=false;
+                break;
+            }
+          }
         }
       else
         {
