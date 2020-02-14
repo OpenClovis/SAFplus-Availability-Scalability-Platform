@@ -125,6 +125,8 @@ class SAFplusFrame(wx.Frame):
           self.Bind(wx.EVT_TIMER, self.update, self.timer)
           self.timer.Start(1000)
 
+        self.Bind(wx.EVT_SIZE, self.OnSizeChange)
+
     def loadInfoPanel(self):
         self.modelProblems = ULC.UltimateListCtrl(self, wx.ID_ANY, agwStyle=ULC.ULC_AUTOARRANGE | ULC.ULC_REPORT | ULC.ULC_VRULES | ULC.ULC_HRULES | ULC.ULC_SINGLE_SEL | ULC.ULC_HAS_VARIABLE_ROW_HEIGHT)
         self.modelProblems.InsertColumn(0, "Severity Level")
@@ -136,6 +138,14 @@ class SAFplusFrame(wx.Frame):
         self.infoPanel.AddPage(self.modelProblems, texts.model_problems)
         self.console = wx.TextCtrl(self, style=wx.TE_MULTILINE|wx.TE_READONLY)
         self.infoPanel.AddPage(self.console, texts.console)
+
+    def OnSizeChange(self, event):
+        w, h = self.GetSize()
+        clw_2 = 350
+        if w > 1160:
+          clw_2 = w - 810
+        self.modelProblems.SetColumnWidth(2, clw_2)
+        event.Skip()
 
     def setCurrentTabInfoByText(self, text):
         n = self.infoPanel.GetPageCount()
