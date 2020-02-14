@@ -183,24 +183,35 @@ class Entity:
         return RLS_ERR_EXISTS
       return RLS_OK
     if self.et.name=="Node" and entity.et.name=="ServiceUnit":
-      if isRelationshipExist(entity):
-        return RLS_ERR_EXISTS
+      # if isRelationshipExist(entity):
+      #   return RLS_ERR_EXISTS
       return RLS_OK
-    if self.et.name=="ServiceUnit" and entity.et.name=="Component":      
-      if isRelationshipExist(entity):
-        return RLS_ERR_EXISTS
+    if self.et.name=="ServiceUnit" and entity.et.name=="Component":
+      # if isRelationshipExist(entity):
+      #   return RLS_ERR_EXISTS
       return RLS_OK
     if self.et.name=="ServiceGroup" and (entity.et.name=="ServiceInstance" or entity.et.name=="ServiceUnit"):
+      for arrow in self.containmentArrows:
+        if arrow.contained.et.name == "ServiceUnit":
+          if entity.et.name=="ServiceUnit":
+            return RLS_ERR_EXISTS
+      for arrow in self.containmentArrows:
+        if arrow.contained.et.name == "ServiceInstance":
+          if entity.et.name=="ServiceInstance":
+            return RLS_ERR_EXISTS
       if isRelationshipExist(entity):
         return RLS_ERR_EXISTS
       return RLS_OK
     if self.et.name=="ServiceInstance" and entity.et.name=="ComponentServiceInstance":
-      if isRelationshipExist(entity):
-        return RLS_ERR_EXISTS
+      # if isRelationshipExist(entity):
+      #   return RLS_ERR_EXISTS
       return RLS_OK
     if self.et.name=="ComponentServiceInstance" and entity.et.name=="Component":
-      if isRelationshipExist(entity):
-        return RLS_ERR_EXISTS
+      for arrow in self.containmentArrows:
+        if arrow.contained == entity:
+          return RLS_ERR_EXISTS
+      # if isRelationshipExist(entity):
+      #   return RLS_ERR_EXISTS
       return RLS_OK
     return RLS_ERR_NOT_ALLOWED
 
