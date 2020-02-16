@@ -35,7 +35,7 @@ namespace SAFplusAmf
     /* Apply MGT object factory */
     MGT_REGISTER_IMPL(ServiceUnit, /SAFplusAmf/safplusAmf/ServiceUnit)
 
-    ServiceUnit::ServiceUnit(): adminState("adminState",::SAFplusAmf::AdministrativeState::on), rank("rank",0), failover("failover"), preinstantiable("preinstantiable"), saAmfSUHostNodeOrNodeGroup("saAmfSUHostNodeOrNodeGroup"), presenceState("presenceState",::SAFplusAmf::PresenceState::uninstantiated), readinessState("readinessState",::SAFplusAmf::ReadinessState::outOfService), haReadinessState("haReadinessState",::SAFplusAmf::HighAvailabilityReadinessState::readyForAssignment), haState("haState",::SAFplusAmf::HighAvailabilityState::idle), operState("operState",true), assignedServiceInstances("assignedServiceInstances"), components("components"), node("node"), serviceGroup("serviceGroup"), probationTime("probationTime",0)
+    ServiceUnit::ServiceUnit(): adminState("adminState",::SAFplusAmf::AdministrativeState::on), rank("rank",0), failover("failover"), preinstantiable("preinstantiable"), saAmfSUHostNodeOrNodeGroup("saAmfSUHostNodeOrNodeGroup"), presenceState("presenceState",::SAFplusAmf::PresenceState::uninstantiated), readinessState("readinessState",::SAFplusAmf::ReadinessState::outOfService), haReadinessState("haReadinessState",::SAFplusAmf::HighAvailabilityReadinessState::readyForAssignment), haState("haState",::SAFplusAmf::HighAvailabilityState::idle), operState("operState",true), assignedServiceInstances("assignedServiceInstances"), components("components"), node("node"), serviceGroup("serviceGroup"), probationTime("probationTime",0), currentRecovery("currentRecovery",SAFplusAmf::Recovery::None), restartable("restartable",true), lastCompRestart("lastCompRestart"), lastRestart("lastRestart")
     {
         this->addChildObject(&adminState, "adminState");
         this->addChildObject(&rank, "rank");
@@ -95,6 +95,27 @@ namespace SAFplusAmf
         restartCount.settable = false;
         restartCount.loadDb = false;
         restartCount.replicated = false;
+        this->addChildObject(&compRestartCount, "compRestartCount");
+        compRestartCount.config = false;
+        compRestartCount.settable = false;
+        compRestartCount.loadDb = false;
+        compRestartCount.replicated = false;
+        this->addChildObject(&currentRecovery, "currentRecovery");
+        currentRecovery.config = false;
+        currentRecovery.settable = false;
+        currentRecovery.loadDb = false;
+        currentRecovery.replicated = false;
+        this->addChildObject(&restartable, "restartable");
+        this->addChildObject(&lastCompRestart, "lastCompRestart");
+        lastCompRestart.config = false;
+        lastCompRestart.settable = false;
+        lastCompRestart.loadDb = false;
+        lastCompRestart.replicated = false;
+        this->addChildObject(&lastRestart, "lastRestart");
+        lastRestart.config = false;
+        lastRestart.settable = false;
+        lastRestart.loadDb = false;
+        lastRestart.replicated = false;
         this->tag.assign("ServiceUnit");
         adminState = ::SAFplusAmf::AdministrativeState::on;
         rank = 0;
@@ -106,7 +127,7 @@ namespace SAFplusAmf
         probationTime = 0;
     };
 
-    ServiceUnit::ServiceUnit(const std::string& nameValue): adminState("adminState",::SAFplusAmf::AdministrativeState::on), rank("rank",0), failover("failover"), preinstantiable("preinstantiable"), saAmfSUHostNodeOrNodeGroup("saAmfSUHostNodeOrNodeGroup"), presenceState("presenceState",::SAFplusAmf::PresenceState::uninstantiated), readinessState("readinessState",::SAFplusAmf::ReadinessState::outOfService), haReadinessState("haReadinessState",::SAFplusAmf::HighAvailabilityReadinessState::readyForAssignment), haState("haState",::SAFplusAmf::HighAvailabilityState::idle), operState("operState",true), assignedServiceInstances("assignedServiceInstances"), components("components"), node("node"), serviceGroup("serviceGroup"), probationTime("probationTime",0)
+    ServiceUnit::ServiceUnit(const std::string& nameValue): adminState("adminState",::SAFplusAmf::AdministrativeState::on), rank("rank",0), failover("failover"), preinstantiable("preinstantiable"), saAmfSUHostNodeOrNodeGroup("saAmfSUHostNodeOrNodeGroup"), presenceState("presenceState",::SAFplusAmf::PresenceState::uninstantiated), readinessState("readinessState",::SAFplusAmf::ReadinessState::outOfService), haReadinessState("haReadinessState",::SAFplusAmf::HighAvailabilityReadinessState::readyForAssignment), haState("haState",::SAFplusAmf::HighAvailabilityState::idle), operState("operState",true), assignedServiceInstances("assignedServiceInstances"), components("components"), node("node"), serviceGroup("serviceGroup"), probationTime("probationTime",0), currentRecovery("currentRecovery",SAFplusAmf::Recovery::None), restartable("restartable",true), lastCompRestart("lastCompRestart"), lastRestart("lastRestart")
     {
         this->name.value =  nameValue;
         this->addChildObject(&adminState, "adminState");
@@ -167,6 +188,27 @@ namespace SAFplusAmf
         restartCount.settable = false;
         restartCount.loadDb = false;
         restartCount.replicated = false;
+        this->addChildObject(&compRestartCount, "compRestartCount");
+        compRestartCount.config = false;
+        compRestartCount.settable = false;
+        compRestartCount.loadDb = false;
+        compRestartCount.replicated = false;
+        this->addChildObject(&currentRecovery, "currentRecovery");
+        currentRecovery.config = false;
+        currentRecovery.settable = false;
+        currentRecovery.loadDb = false;
+        currentRecovery.replicated = false;
+        this->addChildObject(&restartable, "restartable");
+        this->addChildObject(&lastCompRestart, "lastCompRestart");
+        lastCompRestart.config = false;
+        lastCompRestart.settable = false;
+        lastCompRestart.loadDb = false;
+        lastCompRestart.replicated = false;
+        this->addChildObject(&lastRestart, "lastRestart");
+        lastRestart.config = false;
+        lastRestart.settable = false;
+        lastRestart.loadDb = false;
+        lastRestart.replicated = false;
         this->tag.assign("ServiceUnit");
     };
 
@@ -178,7 +220,7 @@ namespace SAFplusAmf
 
     std::vector<std::string>* ServiceUnit::getChildNames()
     {
-        std::string childNames[] = { "name", "id", "adminState", "rank", "failover", "preinstantiable", "saAmfSUHostNodeOrNodeGroup", "presenceState", "readinessState", "haReadinessState", "haState", "operState", "assignedServiceInstances", "numActiveServiceInstances", "numStandbyServiceInstances", "restartCount", "components", "node", "serviceGroup", "probationTime" };
+        std::string childNames[] = { "name", "id", "adminState", "rank", "failover", "preinstantiable", "saAmfSUHostNodeOrNodeGroup", "presenceState", "readinessState", "haReadinessState", "haState", "operState", "assignedServiceInstances", "numActiveServiceInstances", "numStandbyServiceInstances", "restartCount", "components", "node", "serviceGroup", "probationTime", "restartable" , "compRestartCount", "currentRecovery", "lastCompRestart", "lastRestart"};
         return new std::vector<std::string> (childNames, childNames + sizeof(childNames) / sizeof(childNames[0]));
     };
 

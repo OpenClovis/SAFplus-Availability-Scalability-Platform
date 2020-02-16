@@ -19,6 +19,7 @@ namespace SAFplus
   {
  
   const char* oper_str(bool val) { if (val) return "enabled"; else return "disabled"; }
+  bool compareEntityRecoveryScope(Recovery a, Recovery b);
 
   class NplusMPolicy:public ClAmfPolicyPlugin_1
     {
@@ -33,6 +34,10 @@ namespace SAFplus
     void auditOperation(SAFplusAmf::SAFplusAmfModule* root);
     void auditDiscovery(SAFplusAmf::SAFplusAmfModule* root);
     void processFaultyComp(Component* comp);
+    void computeCompRecoveryAction(Component* comp, Recovery* recovery, bool* escalation);
+    void computeSURecoveryAction(ServiceUnit* su, Component* faultyComp, Recovery* recovery, bool* escalation);
+    void postProcessForSURecoveryAction(ServiceUnit* su, Component* faultyComp, Recovery* recovery, bool* escalation);
+    void computeNodeRecoveryAction(Node* node, Recovery* recovery, bool* escalation);
     };
 
   class ServiceGroupPolicyExecution: public Poolable
@@ -385,7 +390,22 @@ namespace SAFplus
             {
               nodeExists = (node->presenceState == PresenceState::instantiated);  //(node->stats.upTime > 0); // TODO: use the presence state
             }
-     
+
+          uint64_t curTime = std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::system_clock::now().time_since_epoch()).count();
+          if(!(su->compRestartCount==0) && (curTime - su->lastCompRestart.value.value >= sg->componentRestart.getDuration()))
+          {
+              su->compRestartCount=0;
+          }
+          if(!(su->restartCount==0) && (curTime - su->lastRestart.value.value >= sg->serviceUnitRestart.getDuration()))
+          {
+              su->restartCount=0;
+          }
+          if(!(node->serviceUnitFailureEscalationPolicy.failureCount==0) &&
+            (curTime - node->lastSUFailure.value.value >= node->serviceUnitFailureEscalationPolicy.getDuration()))
+          {
+              node->serviceUnitFailureEscalationPolicy.failureCount=0;
+          }
+
           logInfo("N+M","AUDIT","Auditing service unit [%s] on [%s (%s)]: Operational State [%s] AdminState [%s] PresenceState [%s] ReadinessState [%s] HA State [%s] HA Readiness [%s] ", suName.c_str(),node ? node->name.value.c_str() : "unattached", node ? c_str(node->presenceState.value): "N/A", oper_str(su->operState.value), c_str(su->adminState.value), c_str(su->presenceState.value), c_str(su->readinessState.value), c_str(su->haState.value), c_str(su->haReadinessState.value) );
 
           SAFplus::MgtIdentifierList<SAFplusAmf::Component*>::iterator itcomp;
@@ -394,7 +414,6 @@ namespace SAFplus
           //SAFplus::MgtProvList<SAFplusAmf::Component*>::ContainerType::iterator   endcomp = su->components.value.end();
           for (itcomp = su->components.listBegin(); itcomp != endcomp; itcomp++)
             {
-        uint64_t curTime = std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::system_clock::now().time_since_epoch()).count();
             Component* comp = dynamic_cast<Component*>(*itcomp);
             SAFplusAmf::AdministrativeState eas = effectiveAdminState(comp);
         logInfo("N+M","AUDIT","Auditing component [%s] on [%s.%s] pid [%d]: Operational State [%s] PresenceState [%s] ReadinessState [%s] HA State [%s] HA Readiness [%s] Pending Operation [%s] (expires in: [%d ms]) instantiation attempts [%d]",comp->name.value.c_str(),node ? node->name.value.c_str(): "unattached",suName.c_str(), comp->processId.value,
@@ -453,7 +472,9 @@ namespace SAFplus
                           }
                         else if (eas != SAFplusAmf::AdministrativeState::off)
                           {
-                            if(recommendedRecovery==SAFplusAmf::Recovery::NodeSwitchover && processedComp)
+                            if((recommendedRecovery==SAFplusAmf::Recovery::NodeSwitchover
+                            || recommendedRecovery==SAFplusAmf::Recovery::NodeFailover
+                            || recommendedRecovery==SAFplusAmf::Recovery::NodeFailfast) && processedComp)
                             {
                                 startSg=false;
                             }
@@ -505,7 +526,8 @@ namespace SAFplus
           if (eas == AdministrativeState::on)
             {
             // Handle promotion of standby to active
-              if ( recommendedRecovery!= SAFplusAmf::Recovery::CompRestart &&(si->numActiveAssignments.current < si->preferredActiveAssignments) && (si->numStandbyAssignments.current > 0))
+              if ( (recommendedRecovery!= SAFplusAmf::Recovery::CompRestart && recommendedRecovery!= SAFplusAmf::Recovery::SuRestart) &&
+                (si->numActiveAssignments.current < si->preferredActiveAssignments) && (si->numStandbyAssignments.current > 0))
                 {
                 // Sort the SUs by rank so we promote them in proper order.
                 // TODO: I don't like this constant resorting... we should have a sorted list in the SG.
@@ -549,7 +571,8 @@ namespace SAFplus
             {
               logInfo("N+M","AUDIT","Service Instance [%s] should be fully assigned but is [%s]. Current active assignments [%d], targeting [%d]", si->name.value.c_str(),c_str(si->assignmentState),(int) si->getNumActiveAssignments()->current.value,(int) si->preferredActiveAssignments.value);
 
-            if (1)
+            //if (1)
+            if (recommendedRecovery != SAFplusAmf::Recovery::NodeFailfast)
               {
               for (int cnt = si->getNumActiveAssignments()->current.value; cnt < si->preferredActiveAssignments || !si->isFullActiveAssignment.value; cnt++)
                 {
@@ -581,8 +604,10 @@ namespace SAFplus
                 {
                 ServiceUnit* su = findAssignableServiceUnit(sus,si,HighAvailabilityState::standby);
 
-                if(recommendedRecovery==SAFplusAmf::Recovery::NodeSwitchover 
-                    && processedComp && su && processedComp->serviceUnit.value->name.value.compare(su->name.value) == 0 )
+                if((recommendedRecovery==SAFplusAmf::Recovery::NodeSwitchover
+                || recommendedRecovery==SAFplusAmf::Recovery::NodeFailover
+                || recommendedRecovery==SAFplusAmf::Recovery::NodeFailfast)
+                && processedComp && su && processedComp->serviceUnit.value->name.value.compare(su->name.value) == 0 )
                 {
                     continue;
                 }
@@ -704,7 +729,9 @@ namespace SAFplus
         }
         else
         {
-            if(recommendedRecovery==SAFplusAmf::Recovery::NodeSwitchover && processedComp)
+            if((recommendedRecovery==SAFplusAmf::Recovery::NodeSwitchover
+            ||recommendedRecovery==SAFplusAmf::Recovery::NodeFailover
+            ||recommendedRecovery==SAFplusAmf::Recovery::NodeFailfast)&& processedComp)
             {
                 amfOps->rebootNode(processedComp->serviceUnit.value->node.value);
                 processedComp =NULL;
@@ -728,6 +755,9 @@ namespace SAFplus
     comp->pendingOperationExpiration.value.value = 0;
     comp->processId = 0;
     SAFplus::name.set(comp->name,INVALID_HDL,NameRegistrar::MODE_NO_CHANGE);  // remove the handle in the name service because the component is dead
+    comp->currentRecovery = Recovery::None;
+    comp->serviceUnit.value->currentRecovery = Recovery::None;
+    comp->serviceUnit.value->node.value->currentRecovery = Recovery::None;
     
     SAFplusAmf::ServiceUnit* su = comp->serviceUnit.value;
     SAFplusAmf::ServiceGroup* sg = su->serviceGroup.value;
@@ -963,25 +993,6 @@ namespace SAFplus
                   {
                     readyForAssignment++;
                   }
-                if(recommendedRecovery==SAFplusAmf::Recovery::None)
-                {
-                   Handle compHdl=INVALID_HDL;
-                   try
-                   {
-                       RefObjMapPair p = SAFplus::name.get(comp->name);  // The way a component "registers" is that it puts its name in the name service.
-                       compHdl = p.first;
-                       if(compHdl!=INVALID_HDL && compHdl.getNode() == SAFplus::ASP_NODEADDR )
-                       {
-                        //TODO: compute recovery action
-                        //in case of component restart:
-                            recommendedRecovery=comp->recovery.value;
-                        }
-                   }
-                   catch(NameException& n)
-                   {
-                          // compHandle=INVALID_HDL; I'd do this but its already set.
-                   }
-                 }
                 }
               }
 
@@ -1174,38 +1185,499 @@ namespace SAFplus
     }
 
   static NplusMPolicy api;
-  };
-
   void NplusMPolicy::processFaultyComp(Component* comp)
   {
+      recommendedRecovery = Recovery::NoRecommendation;
+      bool escalation = false;
+      
+      computeCompRecoveryAction(comp, &recommendedRecovery, &escalation);
+      
+      switch(recommendedRecovery)
+      {
+          case Recovery::CompRestart:
+              comp->serviceUnit.value->lastCompRestart.value.value = std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::system_clock::now().time_since_epoch()).count();
+              break;
+          case Recovery::SuRestart:
+          case Recovery::CompFailover:
+              computeSURecoveryAction(comp->serviceUnit.value, comp, &recommendedRecovery, &escalation);
+              postProcessForSURecoveryAction(comp->serviceUnit.value, comp, &recommendedRecovery, &escalation);
+              break;
+          case Recovery::NodeSwitchover:
+          case Recovery::NodeFailover:
+          case Recovery::NodeFailfast:
+              computeNodeRecoveryAction(comp->serviceUnit.value->node.value, &recommendedRecovery, &escalation);
+              break;
+      }
+      
       if(recommendedRecovery!=SAFplusAmf::Recovery::CompRestart)
       {
-          MgtIdentifierList<ServiceUnit*> suList = comp->serviceUnit.value->node.value->serviceUnits;
-          MgtIdentifierList<ServiceUnit*>::iterator itSu = suList.listBegin();
-          MgtIdentifierList<ServiceUnit*>::iterator endSu = suList.listEnd();
-          for(;itSu != endSu; itSu++)
+          MgtIdentifierList<Component*>::iterator itcomp = comp->serviceUnit.value->components.listBegin();
+          MgtIdentifierList<Component*>::iterator end = comp->serviceUnit.value->components.listEnd();
+          for(;itcomp != end;++itcomp)
           {
-              ServiceUnit *su = dynamic_cast<ServiceUnit*>(*itSu);
-              MgtIdentifierList<Component*>::iterator itcomp = su->components.listBegin();
-              MgtIdentifierList<Component*>::iterator end = su->components.listEnd();
-              for(;itcomp != end;++itcomp)
+              Component* iterComp = dynamic_cast<Component*>(*itcomp);
+              if(comp->name.value.compare(iterComp->name.value)!=0)
               {
-                  Component* iterComp = dynamic_cast<Component*>(*itcomp);
-                  if(comp->name.value.compare(iterComp->name.value)!=0)
-                  {
-                      amfOps->stop(iterComp);
-                  }
-                  amfOps->cleanup(iterComp);
-                  updateStateDueToProcessDeath(iterComp);
+                  amfOps->stop(iterComp);
               }
+              amfOps->cleanup(iterComp);
+              updateStateDueToProcessDeath(iterComp);
           }
       }
       else
       {
           amfOps->cleanup(comp);
-          updateStateDueToProcessDeath(comp);
+          if(recommendedRecovery != SAFplusAmf::Recovery::NodeFailfast)updateStateDueToProcessDeath(comp);
       }
   }
+
+  void NplusMPolicy::computeCompRecoveryAction(Component* comp, Recovery* recovery, bool* escalation)
+  {
+      AdministrativeState adminState;
+      Recovery computedRecovery = *recovery;
+      ServiceUnit* su = comp->serviceUnit.value;
+      assert(su);
+      ServiceGroup* sg = su->serviceGroup.value;
+      assert(sg);
+      Node* node = su->node.value;
+      assert(node);
+      bool match = false;
+
+      if(computedRecovery == Recovery::NoRecommendation)
+      {
+          computedRecovery = comp->recovery.value;
+          logInfo("POL","COMPUTE","1 computedRecovery[%s] configRecovery[%s] currentRecovery[%s]",c_str(computedRecovery),c_str(comp->recovery.value), c_str(comp->currentRecovery.value));
+          if(computedRecovery == Recovery::NoRecommendation)
+          {
+              computedRecovery = comp->restartable.value ?
+                                  Recovery::CompRestart :
+                                  Recovery::CompFailover;
+          }
+      }
+
+    adminState = effectiveAdminState(comp->serviceUnit.value);
+    if(adminState == AdministrativeState::idle)
+    {
+        if ( (computedRecovery == Recovery::NoRecommendation) ||
+             (computedRecovery == Recovery::CompRestart)      ||
+             (computedRecovery == Recovery::SuRestart) )
+        {
+            computedRecovery = Recovery::CompFailover;
+        }
+    }
+
+         /*
+     * -ve
+     * If this is an external fault, it is only allowed if it has a larger scope
+     * than any existing fault recovery affecting the component.
+     */
+    if ( *escalation == false )
+    {
+        if ( compareEntityRecoveryScope(comp->currentRecovery.value, computedRecovery) ||
+             compareEntityRecoveryScope(su->currentRecovery.value, computedRecovery) ||
+             compareEntityRecoveryScope(node->currentRecovery.value, computedRecovery))
+        {
+            computedRecovery = Recovery::None;
+        }
+    }
+
+    /*
+     * +ve
+     * If this is an escalated fault, make sure it is atleast at the same level
+     * as the current recovery.
+     */
+
+    else
+    {
+        if ( compareEntityRecoveryScope(comp->currentRecovery.value, computedRecovery))
+        {
+            computedRecovery = comp->currentRecovery.value;
+        }
+
+        if ( compareEntityRecoveryScope(su->currentRecovery.value, computedRecovery))
+        {
+            computedRecovery = su->currentRecovery.value;
+        }
+
+        if ( compareEntityRecoveryScope(node->currentRecovery.value, computedRecovery))
+        {
+            computedRecovery = node->currentRecovery.value;
+        }
+    }
+      if ( computedRecovery == Recovery::CompRestart )
+    {
+        
+        match = true;
+        if ( comp->restartable.value)
+        {
+            ++su->compRestartCount;
+            if(su->compRestartCount > sg->componentRestart.maximum.value)
+            {
+                computedRecovery = Recovery::SuRestart;
+                *escalation = true;
+            }
+        }
+        else
+        {
+            computedRecovery = Recovery::SuRestart;
+            *escalation = true;
+        }
+    }
+    if(computedRecovery == Recovery::SuRestart || computedRecovery == Recovery::CompFailover ||
+        computedRecovery == Recovery::NodeSwitchover || computedRecovery == Recovery::NodeFailover ||
+        computedRecovery == Recovery::NodeFailfast || computedRecovery == Recovery::ClusterReset)
+      {
+          match = true;
+      }
+
+    if(!*escalation && computedRecovery == comp->currentRecovery.value)
+    {
+        match = false;
+    }
+
+    if(!match)computedRecovery = Recovery::None;
+
+    *recovery = computedRecovery;
+
+    if(computedRecovery != Recovery::None)
+    {
+        comp->currentRecovery.value = computedRecovery;
+    }
+  }
+
+  void NplusMPolicy::computeSURecoveryAction(ServiceUnit* su, Component* faultyComp, Recovery* recovery, bool* escalation )
+  {
+      bool match = false;
+      assert(su);
+      assert(faultyComp);
+      ServiceGroup* sg = su->serviceGroup.value;
+      assert(sg);
+      Node* node = su->node.value;
+      assert(node);
+      //Pre compute SU recovery action
+      if(su->presenceState == PresenceState::uninstantiated)
+      {
+          logDebug("AMS", "FLT-SU", "Fault on SU[%s]: Presence State[%s]. Ignore fault ...",su->name.value.c_str(),c_str(su->presenceState.value));
+          return;
+      }
+      if(*recovery == Recovery::CompFailover)
+      {
+          bool foundOtherSu = false;
+          SAFplus::MgtObject::Iterator itsu = sg->serviceUnits.begin();
+          SAFplus::MgtObject::Iterator endsu = sg->serviceUnits.end();
+          for(; itsu != endsu; itsu++ )
+          {
+              ServiceUnit* foundSu = dynamic_cast<ServiceUnit*>(itsu->second);
+              if(su == foundSu)continue;
+              if(foundSu->operState && foundSu->presenceState == PresenceState::instantiated)
+              {
+                  foundOtherSu = true;
+                  break;
+              }
+          }
+
+          /*
+         * SU failover with restart
+         */
+          if(!foundOtherSu && su->adminState == AdministrativeState::on)
+          {
+              *recovery = Recovery::SuRestart;
+              *escalation = true;
+          }
+      }
+      //End pre compute SU recovery action
+
+      if ( (*recovery == Recovery::NoRecommendation) ||
+         (*recovery == Recovery::CompRestart) )
+      {
+        match = true;
+
+        *recovery = su->restartable.value ?
+                        Recovery::SuRestart :
+                        Recovery::CompFailover;
+      }
+
+      if ( *escalation == false )
+    {
+        if ( compareEntityRecoveryScope(su->currentRecovery.value, *recovery) ||
+             compareEntityRecoveryScope(node->currentRecovery.value, *recovery) )
+        {
+            *recovery = Recovery::None;
+        }
+    }
+
+    if ( *recovery == Recovery::SuRestart )
+    {
+        match = CL_TRUE;
+
+        if ( su->restartable.value )// isRestartable stil not implemented on ide yet.
+        {
+            ++su->restartCount;
+            if ( su->restartCount > sg->serviceUnitRestart.maximum )
+            {
+                *recovery = Recovery::CompFailover;
+                *escalation = true;
+            }
+        }
+        else
+        {
+            *recovery = Recovery::CompFailover;
+            *escalation = true;
+        }
+    }
+
+     if(*recovery == Recovery::CompFailover)
+     {
+        match = true;
+        ++node->serviceUnitFailureEscalationPolicy.failureCount;
+        if(node->serviceUnitFailureEscalationPolicy.failureCount > node->serviceUnitFailureEscalationPolicy.maximum.value)
+        {
+            *recovery = Recovery::NodeFailover;
+            *escalation = true;
+        }
+     }
+
+    if ( *recovery == Recovery::NodeSwitchover
+    || *recovery == Recovery::NodeFailover
+    || *recovery == Recovery::NodeFailfast
+    || *recovery == Recovery::ClusterReset)
+    {
+        match = true;
+    }
+
+    if ( !*escalation && *recovery == su->currentRecovery.value )
+    {
+        match = false;
+    }
+
+    if ( !match )
+    {
+        *recovery = Recovery::None;
+    }
+
+    if ( *recovery != Recovery::None )
+    {
+        su->currentRecovery = *recovery;
+    }
+  }
+
+void NplusMPolicy::postProcessForSURecoveryAction(ServiceUnit* su, Component* faultyComp, Recovery* recovery, bool* escalation)
+{
+     /*
+     * Stop all possible timers that could be running for the SU
+     * and clear the invocation list.
+     */
+
+    //AMS_CALL ( clAmsEntityClearOps((ClAmsEntityT *)su) );
+
+    /*
+     * Delete pending reassign ops against this SU.
+     */
+    //clAmsPeSUSIReassignEntryDelete(su);
+    /*
+     * Clear the entity stack operations.
+     */
+    //clAmsEntityOpsClear((ClAmsEntityT*)su, &su->status.entity);
+
+    switch(*recovery)
+    {
+        case Recovery::SuRestart:
+            su->lastRestart.value.value = std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::system_clock::now().time_since_epoch()).count();
+            break;
+        case Recovery::CompFailover:
+            su->node.value->lastSUFailure.value.value = std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::system_clock::now().time_since_epoch()).count();
+            break;
+        case Recovery::NodeSwitchover:
+        case Recovery::NodeFailover:
+        case Recovery::NodeFailfast:
+            computeNodeRecoveryAction(su->node.value, recovery, escalation);
+            break;
+    }
+}
+
+void NplusMPolicy::computeNodeRecoveryAction(Node* node, Recovery* recovery, bool* escalation)
+{
+    bool match = false;
+    if(!node->operState.value )
+    {
+        match = true;
+        *recovery = Recovery::None;
+    }
+
+    if(*recovery == Recovery::NoRecommendation)
+    {
+        match = true;
+        if(node->restartable.value)
+        {
+            *recovery = Recovery::NodeFailover;
+        }
+        else
+        {
+            *recovery = Recovery::ClusterReset;
+            *escalation = true;
+        }
+    }
+
+    if(!*escalation)
+    {
+        if(compareEntityRecoveryScope(node->currentRecovery.value, *recovery))
+        {
+            *recovery = Recovery::None;
+        }
+    }
+
+    if(*recovery == Recovery::NodeSwitchover
+    || *recovery == Recovery::NodeFailover
+    || *recovery == Recovery::NodeFailfast
+    || *recovery == Recovery::ClusterReset)
+    {
+        match = true;
+    }
+
+    if ( *recovery == node->currentRecovery.value )
+    {
+        match = false;
+    }
+
+    if ( !match )
+    {
+        *recovery = Recovery::None;
+    }
+
+    if ( *recovery != Recovery::None )
+    {
+        node->currentRecovery = *recovery;
+    }
+}
+
+bool compareEntityRecoveryScope(Recovery a, Recovery b)
+{
+    if ( a == b )
+    {
+        return true;
+    }
+
+    switch ( a )
+    {
+        case Recovery::None:
+        {
+            break;
+        }
+
+        case Recovery::CompRestart:
+        {
+            if ( b == Recovery::None )
+            {
+                return true;
+            }
+
+            break;
+        }
+
+        case Recovery::SuRestart:
+        {
+            if ( (b == Recovery::None)            ||
+                 (b == Recovery::CompRestart) )
+            {
+                return true;
+            }
+
+            break;
+        }
+
+        case Recovery::CompFailover:
+        //case CL_AMS_RECOVERY_INTERNALLY_RECOVERED:
+        {
+            if ( (b == Recovery::None)            ||
+                 (b == Recovery::CompRestart) )
+            {
+                return true;
+            }
+            break;
+        }
+
+        case Recovery::NodeSwitchover:
+        {
+            if ( (b == Recovery::None)           ||
+                 (b == Recovery::CompRestart)    ||
+                 (b == Recovery::SuRestart)      ||
+                 (b == Recovery::CompFailover)   ||
+                 //(b == CL_AMS_RECOVERY_INTERNALLY_RECOVERED) ||
+                 (b == Recovery::ApplicationRestart) )
+            {
+                return true;
+            }
+            break;
+        }
+
+        case Recovery::NodeFailover:
+        {
+            if ( (b == Recovery::None)           ||
+                 (b == Recovery::CompRestart)    ||
+                 (b == Recovery::SuRestart)      ||
+                 (b == Recovery::CompFailover)   ||
+                 //(b == CL_AMS_RECOVERY_INTERNALLY_RECOVERED) ||
+                 (b == Recovery::NodeSwitchover) ||
+                 (b == Recovery::ApplicationRestart) )
+            {
+                return true;
+            }
+            break;
+        }
+
+        case Recovery::NodeFailfast:
+        {
+            if ( (b == Recovery::None)           ||
+                 (b == Recovery::CompRestart)    ||
+                 (b == Recovery::SuRestart)      ||
+                 (b == Recovery::CompFailover)   ||
+                 //(b == CL_AMS_RECOVERY_INTERNALLY_RECOVERED) ||
+                 (b == Recovery::NodeSwitchover) ||
+                 (b == Recovery::NodeFailover)   ||
+                 (b == Recovery::ApplicationRestart) )
+            {
+                return true;
+            }
+            break;
+        }
+
+        //case CL_AMS_RECOVERY_NODE_HALT:
+        //{
+            /*
+             * Supercedes everything else.
+             */
+        //    return CL_TRUE;
+        //}
+        //break;
+
+        case Recovery::ApplicationRestart:
+        {
+            if ( (b == Recovery::None)           ||
+                 (b == Recovery::CompRestart)    ||
+                 (b == Recovery::SuRestart)      ||
+                 (b == Recovery::CompFailover)   ||
+                 //(b == CL_AMS_RECOVERY_INTERNALLY_RECOVERED) ||
+                 (b == Recovery::NodeSwitchover) ||
+                 (b == Recovery::NodeFailover)   ||
+                 (b == Recovery::NodeFailfast) )
+            {
+                return true;
+            }
+            break;
+        }
+
+        case Recovery::ClusterReset:
+        default:
+        {
+            return false;
+        }
+    }
+
+    return false;
+}
+  };
+
+  
 
 extern "C" SAFplus::ClPlugin* clPluginInitialize(uint_t preferredPluginVersion)
   {

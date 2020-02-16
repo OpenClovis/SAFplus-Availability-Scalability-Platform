@@ -20,7 +20,8 @@ namespace SAFplusAmf
 
         /* Apply MGT object factory */
         MGT_REGISTER(ServiceUnitFailureEscalationPolicy);
-
+    public:
+        SAFplus::MgtHistoryStat<int> failureCount;
     public:
         ServiceUnitFailureEscalationPolicy();
         std::vector<std::string>* getChildNames();

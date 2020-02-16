@@ -48,14 +48,14 @@ module SAFplusAmf
 	type uint64;
 	description "The maximum number of events that can occur within that time period before escalation occurs.  A value of 0 will escalate the event right away.";
 	SAFplusTypes:ui-prompt "Number of events: ";
-        default 0;
+        default 1;
       }
       leaf duration
       {
 	type SAFplusTypes:SaTimeT;
 	description "The time period (in milliseconds) involved.";
 	SAFplusTypes:ui-prompt "within time: ";
-        default 0;
+        default 10000;
       }
     }
 

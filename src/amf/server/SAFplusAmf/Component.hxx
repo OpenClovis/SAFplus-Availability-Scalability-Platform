@@ -129,8 +129,10 @@ namespace SAFplusAmf
          */
         SAFplus::MgtProv<::uint32_t> delayBetweenInstantiation;
         SAFplus::MgtIdentifier<ServiceUnit*> serviceUnit;
+        //recovery in config file
         SAFplus::MgtProv<::SAFplusAmf::Recovery> recovery;
-
+        //status of recovery
+        SAFplus::MgtProv<::SAFplusAmf::Recovery> currentRecovery;
         /*
          * Set to true if this component can be restarted on failure, without this event registering as a fault
          */

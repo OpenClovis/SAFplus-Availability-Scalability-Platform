@@ -88,6 +88,11 @@ namespace SAFplusAmf
         SAFplus::MgtHistoryStat<int> numActiveServiceInstances;
         SAFplus::MgtHistoryStat<int> numStandbyServiceInstances;
         SAFplus::MgtHistoryStat<int> restartCount;
+        SAFplus::MgtHistoryStat<int> compRestartCount;
+        SAFplus::MgtProv<SAFplusAmf::Recovery> currentRecovery;
+        SAFplus::MgtProv<bool> restartable;
+        SAFplus::MgtProv<SAFplusTypes::Date> lastCompRestart;
+        SAFplus::MgtProv<SAFplusTypes::Date> lastRestart;
 
     public:
         ServiceUnit();

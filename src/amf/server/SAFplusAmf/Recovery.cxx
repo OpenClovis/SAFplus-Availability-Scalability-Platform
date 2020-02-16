@@ -22,7 +22,7 @@ namespace SAFplusAmf
             pair_t(Recovery::NoRecommendation, "NoRecommendation"),
             pair_t(Recovery::CompRestart, "CompRestart"),
             pair_t(Recovery::CompFailover, "CompFailover"),
-            pair_t(Recovery::CompRestart, "SuRestart"),
+            pair_t(Recovery::SuRestart, "SuRestart"),
             pair_t(Recovery::NodeSwitchover, "NodeSwitchover"),
             pair_t(Recovery::NodeFailover, "NodeFailover"),
             pair_t(Recovery::NodeFailfast, "NodeFailfast"),

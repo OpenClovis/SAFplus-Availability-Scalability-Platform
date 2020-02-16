@@ -16,12 +16,14 @@ namespace SAFplusAmf
 
     ServiceUnitFailureEscalationPolicy::ServiceUnitFailureEscalationPolicy()
     {
+        this->addChildObject(&failureCount, "failureCount");
+        failureCount = 0;
         this->tag.assign("serviceUnitFailureEscalationPolicy");
     };
 
     std::vector<std::string>* ServiceUnitFailureEscalationPolicy::getChildNames()
     {
-        std::string childNames[] = { "maximum", "duration" };
+        std::string childNames[] = { "maximum", "duration", "failureCount" };
         return new std::vector<std::string> (childNames, childNames + sizeof(childNames) / sizeof(childNames[0]));
     };
 

@@ -29,7 +29,7 @@ namespace SAFplusAmf
     /* Apply MGT object factory */
     MGT_REGISTER_IMPL(Node, /SAFplusAmf/safplusAmf/Node)
 
-    Node::Node(): presenceState("presenceState",::SAFplusAmf::PresenceState::uninstantiated), adminState("adminState",::SAFplusAmf::AdministrativeState::on), operState("operState",true), autoRepair("autoRepair"), failFastOnInstantiationFailure("failFastOnInstantiationFailure"), failFastOnCleanupFailure("failFastOnCleanupFailure"), disableAssignmentOn("disableAssignmentOn"), userDefinedType("userDefinedType"), canBeInherited("canBeInherited"), serviceUnits("serviceUnits"), capacityList("capacity")
+    Node::Node(): presenceState("presenceState",::SAFplusAmf::PresenceState::uninstantiated), adminState("adminState",::SAFplusAmf::AdministrativeState::on), operState("operState",true), autoRepair("autoRepair"), failFastOnInstantiationFailure("failFastOnInstantiationFailure"), failFastOnCleanupFailure("failFastOnCleanupFailure"), disableAssignmentOn("disableAssignmentOn"), userDefinedType("userDefinedType"), canBeInherited("canBeInherited"), serviceUnits("serviceUnits"), capacityList("capacity"), currentRecovery("currentRecovery", SAFplusAmf::Recovery::None), restartable("restartable",true), lastSUFailure("lastSUFailure")
     {
         this->addChildObject(&presenceState, "presenceState");
         presenceState.config = false;
@@ -62,9 +62,20 @@ namespace SAFplusAmf
         presenceState = ::SAFplusAmf::PresenceState::uninstantiated;
         adminState = ::SAFplusAmf::AdministrativeState::on;
         operState = true;
+        this->addChildObject(&currentRecovery, "currentRecovery");
+        currentRecovery.config = false;
+        currentRecovery.settable = false;
+        currentRecovery.loadDb = false;
+        currentRecovery.replicated = false;
+        this->addChildObject(&lastSUFailure, "lastSUFailure");
+        lastSUFailure.config = false;
+        lastSUFailure.settable = false;
+        lastSUFailure.loadDb = false;
+        lastSUFailure.replicated = false;
+        this->addChildObject(&restartable, "restartable");
     };
 
-    Node::Node(const std::string& nameValue): presenceState("presenceState",::SAFplusAmf::PresenceState::uninstantiated), adminState("adminState",::SAFplusAmf::AdministrativeState::on), operState("operState",true), autoRepair("autoRepair"), failFastOnInstantiationFailure("failFastOnInstantiationFailure"), failFastOnCleanupFailure("failFastOnCleanupFailure"), disableAssignmentOn("disableAssignmentOn"), userDefinedType("userDefinedType"), canBeInherited("canBeInherited"), serviceUnits("serviceUnits"), capacityList("capacity")
+    Node::Node(const std::string& nameValue): presenceState("presenceState",::SAFplusAmf::PresenceState::uninstantiated), adminState("adminState",::SAFplusAmf::AdministrativeState::on), operState("operState",true), autoRepair("autoRepair"), failFastOnInstantiationFailure("failFastOnInstantiationFailure"), failFastOnCleanupFailure("failFastOnCleanupFailure"), disableAssignmentOn("disableAssignmentOn"), userDefinedType("userDefinedType"), canBeInherited("canBeInherited"), serviceUnits("serviceUnits"), capacityList("capacity"), currentRecovery("currentRecovery", SAFplusAmf::Recovery::None), restartable("restartable",true), lastSUFailure("lastSUFailure")
     {
         this->name.value =  nameValue;
         this->addChildObject(&presenceState, "presenceState");
@@ -95,6 +106,17 @@ namespace SAFplusAmf
         capacityList.childXpath="/SAFplusAmf/safplusAmf/Node/capacity";
         capacityList.setListKey("resource");
         this->tag.assign("Node");
+        this->addChildObject(&currentRecovery, "currentRecovery");
+        currentRecovery.config = false;
+        currentRecovery.settable = false;
+        currentRecovery.loadDb = false;
+        currentRecovery.replicated = false;
+        this->addChildObject(&lastSUFailure, "lastSUFailure");
+        lastSUFailure.config = false;
+        lastSUFailure.settable = false;
+        lastSUFailure.loadDb = false;
+        lastSUFailure.replicated = false;
+        this->addChildObject(&restartable, "restartable");
     };
 
     std::vector<std::string> Node::getKeys()
@@ -105,7 +127,7 @@ namespace SAFplusAmf
 
     std::vector<std::string>* Node::getChildNames()
     {
-        std::string childNames[] = { "name", "id", "stats", "presenceState", "adminState", "operState", "capacity", "serviceUnitFailureEscalationPolicy", "autoRepair", "failFastOnInstantiationFailure", "failFastOnCleanupFailure", "disableAssignmentOn", "userDefinedType", "canBeInherited", "serviceUnits" };
+        std::string childNames[] = { "name", "id", "stats", "presenceState", "adminState", "operState", "capacity", "serviceUnitFailureEscalationPolicy", "autoRepair", "failFastOnInstantiationFailure", "failFastOnCleanupFailure", "disableAssignmentOn", "userDefinedType", "canBeInherited", "serviceUnits", "currentRecovery" , "restartable", "lastSUFailure" };
         return new std::vector<std::string> (childNames, childNames + sizeof(childNames) / sizeof(childNames[0]));
     };
 
