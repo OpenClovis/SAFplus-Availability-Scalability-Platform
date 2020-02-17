@@ -124,6 +124,7 @@ namespace SAFplusAmf
         haReadinessState = ::SAFplusAmf::HighAvailabilityReadinessState::readyForAssignment;
         haState = ::SAFplusAmf::HighAvailabilityState::idle;
         operState = true;
+        restartable = true;
         probationTime = 0;
     };
 
