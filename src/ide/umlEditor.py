@@ -97,6 +97,13 @@ class EntityTypeTool(Tool):
         self.box.change(panel,event)
         ret = True
       elif event.ButtonUp(wx.MOUSE_BTN_LEFT):
+        if self.entityType.name == 'Cluster':
+          for name,e in share.umlEditorPanel.model.entities.items():
+            if e.et.name == 'Cluster':
+              panel.statusBar.SetStatusText("Model don't contain more than one Cluster",0);
+              panel.drawers.discard(self.box)
+              panel.Refresh()
+              return ret
         rect = self.box.finish(panel,pos)
         # Real point rectangle
         rect = convertToRealPos(rect, panel.scale)
