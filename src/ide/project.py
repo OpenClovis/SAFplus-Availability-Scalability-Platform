@@ -1426,6 +1426,8 @@ class ProjectTreePanel(wx.Panel):
     s = open(fConf).read()
     s = s.replace('ASP_NODENAME=node0', 'ASP_NODENAME=%s' % imgConf['name'] )
     s = s.replace('SAFPLUS_BACKPLANE_INTERFACE=eth0', 'SAFPLUS_BACKPLANE_INTERFACE=%s' % imgConf['netInterface'] )
+    if imgConf['slot'] == "SC":
+      s = s.replace('export SAFPLUS_SYSTEM_CONTROLLER=0', '')
     f = open(fConf, 'w')
     f.write(s)
     f.close()
@@ -2155,7 +2157,7 @@ class RawInfo(wx.Panel):
     hBox = wx.BoxSizer(wx.HORIZONTAL)
 
     self.txtName = wx.StaticText(self, label=node['name'], size=(130,25))
-    s = [str(i) for i in range (1,17)]
+    s = ["SC", "Payload"]
     self.num = wx.ComboBox(self, choices = s, size=(110,25), style=wx.CB_READONLY)
     self.num.SetValue(node['slot'])
     self.net = wx.TextCtrl(self, size=(150,25))
@@ -2192,7 +2194,7 @@ class GeneralPage(scrolled.ScrolledPanel):
 
     hBox = wx.BoxSizer(wx.HORIZONTAL)
     intanceName = wx.StaticText(self, label="Node Instance", size=(130,25))
-    slotNum = wx.StaticText(self, label="Slot Number", size=(110,25))
+    slotNum = wx.StaticText(self, label="Node Class", size=(110,25))
     netInterface = wx.StaticText(self, label="Network Interface", size=(150,25))
     hBox.Add(intanceName, 0, wx.ALL|wx.ALIGN_TOP, 5)
     hBox.Add(slotNum, 0, wx.ALL|wx.ALIGN_TOP, 5)
@@ -2222,7 +2224,7 @@ class GeneralPage(scrolled.ScrolledPanel):
         image['slot'] = str(md[img].slot.data_).strip()
         image['netInterface'] = str(md[img].netInterface.data_).strip()
       except:
-        image['slot'] = ""
+        image['slot'] = "SC"
         image['netInterface'] = ""
       self.imagesConfig[img] = image
 

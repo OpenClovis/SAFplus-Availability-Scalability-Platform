@@ -22,3 +22,4 @@ export SAFPLUS_BACKPLANE_INTERFACE=eth0
 
 # Set up the management database to use the SAFplus checkpointing service
 export SAFPLUS_MGT_DB_PLUGIN=libclCkptDB.so
+export SAFPLUS_SYSTEM_CONTROLLER=0
