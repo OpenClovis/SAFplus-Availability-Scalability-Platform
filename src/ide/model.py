@@ -717,6 +717,9 @@ instantiated  <instances>     instances                         instances     (e
           print 'model::recursiveAndDuplicateInst: ca = [%s]' % ca.contained.data["name"]
           ch = self.recursiveDuplicateInst(ca.contained,instances, depth)
           print 'model::recursiveAndDuplicateInst: ch name = [%s]' % ch.data["name"]
+          for child in ch.childOf:
+            if child.data['entityType'] == "ServiceUnit" and ei.et.name == "ServiceUnit":
+              ch.childOf = set()
           ch.childOf.add(ei)
           cai = copy.copy(ca)
           cai.container = ei
