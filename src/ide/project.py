@@ -1426,7 +1426,7 @@ class ProjectTreePanel(wx.Panel):
     s = open(fConf).read()
     s = s.replace('ASP_NODENAME=node0', 'ASP_NODENAME=%s' % imgConf['name'] )
     s = s.replace('SAFPLUS_BACKPLANE_INTERFACE=eth0', 'SAFPLUS_BACKPLANE_INTERFACE=%s' % imgConf['netInterface'] )
-    if imgConf['slot'] == "SC":
+    if imgConf['slot'] != "Payload":
       s = s.replace('export SAFPLUS_SYSTEM_CONTROLLER=0', '')
     f = open(fConf, 'w')
     f.write(s)
