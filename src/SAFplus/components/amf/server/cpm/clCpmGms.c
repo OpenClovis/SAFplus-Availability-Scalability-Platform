@@ -173,7 +173,7 @@ static void cpmMakeSCActiveOrDeputy(const ClGmsClusterNotificationBufferT *notif
     {
         if (notificationBuffer->leader == pCpmLocalInfo->nodeId)
         {
-            clLogInfo(CPM_LOG_AREA_CPM, CPM_LOG_CTX_CPM_GMS,
+            clLogNotice(CPM_LOG_AREA_CPM, CPM_LOG_CTX_CPM_GMS,
                       "Node [%d] has become the leader of the cluster",
                       pCpmLocalInfo->nodeId);
 
@@ -190,7 +190,7 @@ static void cpmMakeSCActiveOrDeputy(const ClGmsClusterNotificationBufferT *notif
         }
         else if (notificationBuffer->deputy == pCpmLocalInfo->nodeId)
         {
-            clLogInfo(CPM_LOG_AREA_CPM, CPM_LOG_CTX_CPM_GMS,
+            clLogNotice(CPM_LOG_AREA_CPM, CPM_LOG_CTX_CPM_GMS,
                       "Node [%d] has become the deputy of the cluster",
                       pCpmLocalInfo->nodeId);
             /*
@@ -210,7 +210,7 @@ static void cpmMakeSCActiveOrDeputy(const ClGmsClusterNotificationBufferT *notif
 
         if ((gpClCpm->haState == CL_AMS_HA_STATE_ACTIVE) && (notificationBuffer->leader != pCpmLocalInfo->nodeId))
         {
-            clLogDebug(CPM_LOG_AREA_CPM, CPM_LOG_CTX_CPM_GMS,
+            clLogNotice(CPM_LOG_AREA_CPM, CPM_LOG_CTX_CPM_GMS,
                        "Node [%d] is changing HA state from active to standby",
                        pCpmLocalInfo->nodeId);
               
@@ -229,7 +229,7 @@ static void cpmMakeSCActiveOrDeputy(const ClGmsClusterNotificationBufferT *notif
             if ((gpClCpm->cpmToAmsCallback != NULL) && 
                 (gpClCpm->cpmToAmsCallback->amsStateChange != NULL))
             {
-                clLogDebug(CPM_LOG_AREA_CPM, CPM_LOG_CTX_CPM_GMS,
+                clLogNotice(CPM_LOG_AREA_CPM, CPM_LOG_CTX_CPM_GMS,
                            "Informing AMS on node [%d] to change state "
                            "from active to standby...",
                            pCpmLocalInfo->nodeId);
@@ -328,7 +328,7 @@ static void cpmMakeSCActiveOrDeputy(const ClGmsClusterNotificationBufferT *notif
             if ((gpClCpm->amsToCpmCallback != NULL) &&
                 (gpClCpm->cpmToAmsCallback != NULL))
             {
-                clLogDebug(CPM_LOG_AREA_CPM, CPM_LOG_CTX_CPM_AMS,"Starting AMS in active mode...");
+                clLogNotice(CPM_LOG_AREA_CPM, CPM_LOG_CTX_CPM_AMS,"Starting AMS in active mode...");
 
                 rc = clAmsStart(&gAms,CL_AMS_INSTANTIATE_MODE_ACTIVE | CL_AMS_INSTANTIATE_USE_CHECKPOINT);
                 /*
@@ -383,7 +383,7 @@ static void cpmMakeSCActiveOrDeputy(const ClGmsClusterNotificationBufferT *notif
             if ((gpClCpm->amsToCpmCallback != NULL) &&
                 (gpClCpm->cpmToAmsCallback != NULL))
             {
-                clLogDebug(CPM_LOG_AREA_CPM, CPM_LOG_CTX_CPM_AMS,
+                clLogNotice(CPM_LOG_AREA_CPM, CPM_LOG_CTX_CPM_AMS,
                            "Starting AMS in standby mode...");
 
                 rc = clAmsStart(&gAms,CL_AMS_INSTANTIATE_MODE_STANDBY);
@@ -638,7 +638,7 @@ void cpmHandleGroupInformation(const ClGmsClusterNotificationBufferT *notificati
 
 void cpmClusterTrackCallBack(const ClGmsClusterNotificationBufferT *clusterNotificationBuffer, ClUint32T nMembers, ClRcT rc)
 {
-    clLogMultiline(CL_LOG_DEBUG, CPM_LOG_AREA_CPM, CPM_LOG_CTX_CPM_GMS,
+    clLogMultiline(CL_LOG_NOTICE, CPM_LOG_AREA_CPM, CPM_LOG_CTX_CPM_GMS,
                    "Received cluster track callback from GMS on node [%s] -- \n"
                    "Leader : [%d] \n"
                    "Deputy : [%d] (-1 -> No deputy) \n"
