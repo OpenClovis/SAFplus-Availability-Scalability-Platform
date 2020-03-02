@@ -336,6 +336,7 @@ instantiated  <instances>     instances                         instances     (e
 
     self.loadModules()
     self.loadDataInfomation()
+    return True
 
   def getContainmemtArrowPos(self, ideEntities, container, contained):
     name = container.data["name"]    

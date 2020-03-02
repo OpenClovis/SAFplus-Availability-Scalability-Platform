@@ -220,17 +220,28 @@ class SAFplusFrame(wx.Frame):
     def loadProject(self, prj):
       if not prj: return
       index = 0
+      loadResult = False
       self.project.currentProjectPath = prj.projectFilename
       self.currentActivePrj = prj
       self.project.currentActiveProject = prj
       self.tab.Unbind(wx.aui.EVT_AUINOTEBOOK_PAGE_CHANGED) # need to unbind to not catch page delete event b/c we only want to catch page selection event
+      self.guiPlaces.frame.console.SetValue('')
+      self.setCurrentTabInfoByText(texts.console)
       if not self.model:
         self.cleanupTabs()
         self.model = t = namedtuple('model','model uml instance modelDetails instanceDetails')
         t.model = model.Model()
         prj.setSAFplusModel(t.model)
         modelFile = os.path.join(prj.directory(), prj.model.children()[0].strip())
-        t.model.load(modelFile)
+        try:
+          loadResult = t.model.load(modelFile)
+        finally:
+          if not loadResult:
+            t.uml = None
+            t.modelDetails = None
+            t.instance = None
+            t.instanceDetails = None
+            self.project.log_error("project load failed, %s has invalid format" % prj.model.children()[0])
         t.uml = umlEditor.Panel(self.tab,self.guiPlaces, t.model)
         self.tab.InsertPage(0, t.uml, self.getCurrentPageText(0))
         t.modelDetails = entityDetailsDialog.Panel(self.tab,self.guiPlaces, t.model,isDetailInstance=False)
@@ -248,7 +259,11 @@ class SAFplusFrame(wx.Frame):
         modelFile = os.path.join(prj.directory(), prj.model.children()[0].strip())
         print "model file: %s" % modelFile
         t.model.init()
-        t.model.load(modelFile)
+        try:
+          loadResult = t.model.load(modelFile)
+        finally:
+          if not loadResult:
+            self.project.log_error("project load failed, %s has invalid format" % prj.model.children()[0])
         if t.uml:
           t.uml.setModelData(t.model)
           t.uml.deleteTools()
