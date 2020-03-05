@@ -225,7 +225,7 @@ class SAFplusFrame(wx.Frame):
       self.currentActivePrj = prj
       self.project.currentActiveProject = prj
       self.tab.Unbind(wx.aui.EVT_AUINOTEBOOK_PAGE_CHANGED) # need to unbind to not catch page delete event b/c we only want to catch page selection event
-      self.guiPlaces.frame.console.SetValue('')
+      self.console.SetValue('')
       self.setCurrentTabInfoByText(texts.console)
       if not self.model:
         self.cleanupTabs()

@@ -2153,14 +2153,14 @@ class RawInfo(wx.Panel):
   """
   def __init__(self, parent, node):
     """Constructor"""
-    wx.Panel.__init__(self, parent, size=(415, 25))
+    wx.Panel.__init__(self, parent, size=(400, 35))
     hBox = wx.BoxSizer(wx.HORIZONTAL)
 
-    self.txtName = wx.StaticText(self, label=node['name'], size=(130,25))
+    self.txtName = wx.StaticText(self, label=node['name'], size=(125,30))
     s = ["SC", "Payload"]
-    self.num = wx.ComboBox(self, choices = s, size=(110,25), style=wx.CB_READONLY)
+    self.num = wx.ComboBox(self, choices = s, size=(110,30), style=wx.CB_READONLY)
     self.num.SetValue(node['slot'])
-    self.net = wx.TextCtrl(self, size=(150,25))
+    self.net = wx.TextCtrl(self, size=(150,30))
     self.net.SetValue(node['netInterface'])
 
     hBox.Add(self.txtName, 0, wx.ALL|wx.CENTER, border=5, )
@@ -2193,9 +2193,9 @@ class GeneralPage(scrolled.ScrolledPanel):
     self.SetBackgroundColour('#F2F1EF')
 
     hBox = wx.BoxSizer(wx.HORIZONTAL)
-    intanceName = wx.StaticText(self, label="Node Instance", size=(130,25))
+    intanceName = wx.StaticText(self, label="Node Instance", size=(125,25))
     slotNum = wx.StaticText(self, label="Node Class", size=(110,25))
-    netInterface = wx.StaticText(self, label="Network Interface", size=(150,25))
+    netInterface = wx.StaticText(self, label="Network Interface", size=(145,25))
     hBox.Add(intanceName, 0, wx.ALL|wx.ALIGN_TOP, 5)
     hBox.Add(slotNum, 0, wx.ALL|wx.ALIGN_TOP, 5)
     hBox.Add(netInterface, 0, wx.ALL|wx.ALIGN_TOP, 5)

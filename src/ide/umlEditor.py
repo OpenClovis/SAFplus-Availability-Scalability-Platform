@@ -100,7 +100,7 @@ class EntityTypeTool(Tool):
         if self.entityType.name == 'Cluster':
           for name,e in share.umlEditorPanel.model.entities.items():
             if e.et.name == 'Cluster':
-              panel.statusBar.SetStatusText("Model don't contain more than one Cluster",0);
+              panel.statusBar.SetStatusText("Model can't contain more than one Cluster",0);
               panel.drawers.discard(self.box)
               panel.Refresh()
               return ret
