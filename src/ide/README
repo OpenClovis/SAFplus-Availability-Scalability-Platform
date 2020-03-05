@@ -10,30 +10,15 @@ sudo apt-get install libpng12-dev libjpeg8-dev
 sudo apt-get install python-wxgtk3.0
 
 - ubuntu 14.04 (wxWidgets & wxPython)
-git clone https://github.com/wxWidgets/wxWidgets.git
-cd wxWidgets; git checkout WX_3_0_BRANCH
-mkdir debug; cd debug
-touch .configure # set this file to:
-#!/bin/bash
-../configure --prefix=/usr --disable-optimise --enable-debug --enable-debug_info --enable-debug_gdb --enable-http --enable-aui --enable-html --with-zlib --with-libjpeg --with-libpng  --with-expat --enable-gif --enable-image --enable-dragimage --enable-mousewheel --enable-tooltips --enable-menus --enable-gui --with-gtk=3 --enable-unicode --with-opengl
-
-chmod a+x .configure
-./.configure
-make
-sudo make install
-
-(Install wxPython for ubuntu 14)
-git clone https://github.com/wxWidgets/wxPython.git
-cd wxPython
-python setup.py build_ext WXPORT=gtk3
-sudo python setup.py install WXPORT=gtk3
+sudo add-apt-repository ppa:adamwolf/kicad-trusty-backports
+sudo apt-get update
+sudo apt-get install libwxgtk3.0-dev python-wxgtk3.0-dev
 
 - Install pip
 sudo apt-get install curl
 curl https://bootstrap.pypa.io/get-pip.py -o get-pip.py
 sudo python get-pip.py --force-reinstall
-sudo pip install genshi watchdog paramiko python-pexpect
-sudo pip install genshi watchdog paramiko pexpect (install pexpect for ubuntu 15.04 instead of python-pexpect  )
+sudo pip install genshi watchdog paramiko
 
 - Install pyang
 git clone https://github.com/mbj4668/pyang pyang	
