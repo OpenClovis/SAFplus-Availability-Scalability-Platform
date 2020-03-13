@@ -22,7 +22,6 @@ import ntpath
 import common
 import sys
 import share
-import pexpect
 import wx.aui as aui
 import wx.lib.scrolledpanel as scrolled
 from distutils.dir_util import copy_tree
