@@ -333,7 +333,7 @@ class ZoomTool(Tool):
     #self.downPos = None    # Where the left mouse button was pressed
     self.boxSel = BoxGesture()
     #self.scale = 1
-    self.scaleRange = 0.2
+    self.scaleRange = 0.1
     self.minScale = 0.2
     self.maxScale = 10
     self.handBmp = wx.Bitmap(common.fileResolver("hand.png"))
@@ -558,7 +558,7 @@ class Panel(scrolled.ScrolledPanel):
       # The position of the panel's viewport within the larger drawing
       self.location = (0,0)
       self.rotate = 0.0
-      self.scale = 1.0
+      self.scale = 0.5
 
       self.undoData = []
       self.redoData = []
