@@ -328,9 +328,8 @@ instantiated  <instances>     instances                         instances     (e
     """Load an XML representation of the model"""
     if fileOrString[0] != "<":  # XML must begin with opener
       self.filename = common.fileResolver(fileOrString)
-      f = open(self.filename,"r")
-      fileOrString = f.read()
-      f.close()
+      with open(self.filename,"r") as f:
+        fileOrString = f.read()
     dom = xml.dom.minidom.parseString(fileOrString)
     self.data = microdom.LoadMiniDom(dom.childNodes[0])
 
@@ -367,9 +366,8 @@ instantiated  <instances>     instances                         instances     (e
   def save(self, filename=None):
     """Save XML representation of the model"""
     if filename is None: filename = self.filename
-    f = open(filename,"w")
-    f.write(self.xmlify())
-    f.close()
+    with open(filename,"w") as f:
+      f.write(self.xmlify())
 
   def loadModules(self):
     """Load the modules specified in the model"""

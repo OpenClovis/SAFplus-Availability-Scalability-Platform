@@ -48,9 +48,8 @@ class FilesystemOutput(Output):
   def writes(self, filename, string):
     if not os.path.exists(os.path.dirname(filename)):
       os.makedirs(os.path.dirname(filename))
-    f = open(filename,"w")
-    f.write(string)
-    f.close()
+    with open(filename,"w") as f:
+      f.write(string)
 
 class GuiPlaces:
   """This class identifies all the important services/locations in the GUI so that entities can use these services"""
@@ -122,7 +121,6 @@ def getRecentPrjs():
     return []
   with open(recentPrjFile) as f:
     contents = f.readlines()
-    f.close()
   return contents
 
 def getMostRecentPrj():
@@ -145,15 +143,13 @@ def addRecentPrj(prjPath):
   l=len(t)
   p = prjPath+'\n'
   if l<numRecentProjects and not p in t:    
-    f = open(recentPrjFile,"a+")
-    f.write(p)
-    f.close()
+    with open(recentPrjFile,"a+") as f:
+      f.write(p)
   else:
-    os.remove(recentPrjFile)    
-    f = open(recentPrjFile, "a+")
-    t2 = t[l-numRecentProjects+1:] # excerpt last n-1 elements from the original list
-    for i in t2:
-      if i!=p:        
-        f.write(i)    
-    f.write(p)
-    f.close()
+    os.remove(recentPrjFile)
+    with open(recentPrjFile, "a+") as f:
+      t2 = t[l-numRecentProjects+1:] # excerpt last n-1 elements from the original list
+      for i in t2:
+        if i!=p:
+          f.write(i)
+      f.write(p)

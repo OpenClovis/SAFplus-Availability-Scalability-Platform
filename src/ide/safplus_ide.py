@@ -677,15 +677,11 @@ class Page(wx.Panel):
     index = self.parent.tab.GetPageIndex(self)
     label = self.parent.tab.GetPageText(index)
     if not ('*' in label):
-      try:
-        file = open(self.control.file_path, 'r')
-        if self.control.GetValue() != file.read():
+      with open(self.control.file_path, 'r') as f:
+        if self.control.GetValue() != f.read():
           self.isReloadFile = True
           self.control.reload_file(False)
           self.isReloadFile = False
-      finally:
-        if file:
-          file.close()
 
   def reloadFile(self):
     self.control.reload_file(False)
@@ -703,13 +699,9 @@ class Page(wx.Panel):
     label = self.parent.tab.GetPageText(index)
     if not ('*' in label) and (not self.isReloadFile):
       self.control.edited = True
-      try:
-        file = open(self.control.file_path,'r')
-        if self.control.GetValue() != file.read():
+      with open(self.control.file_path,'r') as f:
+        if self.control.GetValue() != f.read():
           self.parent.tab.SetPageText(index, "*%s" % label)
-      finally:
-        if file:
-          file.close()
 
   def onGoToLine(self):
     lineMax = self.control.GetLineCount()

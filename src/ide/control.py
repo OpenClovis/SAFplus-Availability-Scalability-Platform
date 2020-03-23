@@ -148,23 +148,20 @@ class EditorControl(stc.StyledTextCtrl):
         stat = self.get_stat()
         return stat == self._stat
     def open_file(self, path, emptyUndoBuffer=True):
-        file = None
         try:
-            file = open(path, 'r')
-            text = file.read()
-            self.SetText(text)
-            if emptyUndoBuffer:
-                self.EmptyUndoBuffer()
-            self.edited = False
-            self.file_path = path
+            with open(path, 'r') as f:
+                text = f.read()
+                self.SetText(text)
+                if emptyUndoBuffer:
+                    self.EmptyUndoBuffer()
+                self.edited = False
+                self.file_path = path
         except IOError:
             self.SetText('')
         except UnicodeDecodeError:
             self.SetText("The file will not be displayed in the editor because it is either binary or use unsupported text encoding.")
             self.SetEditable(False)
         finally:
-            if file:
-                file.close()
             self.mark_stat()
             self.detect_language()
             self.update_line_numbers()
@@ -174,17 +171,14 @@ class EditorControl(stc.StyledTextCtrl):
             return False
         if not self.edited and not force:
             return True
-        file = None
         try:
-            file = open(path, 'w')
-            text = self.GetText()
-            file.write(text)
-            self.edited = False
-            self.file_path = path
-            return True
+            with open(path, 'w') as f:
+                text = self.GetText()
+                f.write(text)
+                self.edited = False
+                self.file_path = path
+                return True
         finally:
-            if file:
-                file.close()
             self.mark_stat()
             self.detect_language()
         return False

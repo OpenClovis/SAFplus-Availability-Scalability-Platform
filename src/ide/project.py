@@ -1526,9 +1526,8 @@ class ProjectTreePanel(wx.Panel):
     '''
     md = microdom.MicroDom({"tag_":"prjProperties"},[],[])
     md.update(self.prjProperties)
-    f = open("%s/configs/prjProperties.xml" % self.getPrjPath(),"w")
-    f.write(md.pretty())
-    f.close()
+    with open("%s/configs/prjProperties.xml" % self.getPrjPath(),"w") as f:
+      f.write(md.pretty())
 
   def getPageControl(self):
     currentPage = self.guiPlaces.frame.tab.GetCurrentPage()
@@ -1937,19 +1936,15 @@ class DeployDialog(wx.Dialog):
 
     def initDeploymentInfo(self):
       nodeIntances = []
-      file = None
       try:
         for (name, e) in share.detailsPanel.model.instances.items():
           if e.data['entityType'] == "Node":
             nodeIntances.append(name)
-        file = open("%s/configs/target.xml" % self.parent.getPrjPath(), 'rb')
-        p = pickle.Unpickler(file)
-        md = p.load()
+        with open("%s/configs/target.xml" % self.parent.getPrjPath(), 'rb') as f:
+          p = pickle.Unpickler(f)
+          md = p.load()
       except:
         pass
-      finally:
-        if file:
-          file.close()
       nodeIntances = sorted(nodeIntances)
       self.curNode = nodeIntances[0]
 
@@ -2005,17 +2000,13 @@ class DeployDialog(wx.Dialog):
       return cipheredConfig
 
     def onSaveAllDeploymentInfo(self):
-      file = None
       try:
-        file = open("%s/configs/target.xml" % self.parent.getPrjPath(),"wb")
-        p = pickle.Pickler(file, -1)
-        cipheredConfig = self.getCipheredConfigData()
-        p.dump(cipheredConfig)
-      except:
+        with open("%s/configs/target.xml" % self.parent.getPrjPath(),"wb") as f:
+          p = pickle.Pickler(f, -1)
+          cipheredConfig = self.getCipheredConfigData()
+          p.dump(cipheredConfig)
+      except: 
         pass
-      finally:
-        if file:
-          file.close()
 
     def onClickCancelBtn(self, event):
       self.Close()
@@ -2244,9 +2235,8 @@ class GeneralPage(scrolled.ScrolledPanel):
   def saveAllImgConfig(self):
     md = microdom.MicroDom({"tag_":"Nodes"},[],[])
     md.update(self.imagesConfig)
-    f = open("%s/configs/imagesConfig.xml" % self.parent.parent.getPrjPath(),"w")
-    f.write(md.pretty())
-    f.close()
+    with open("%s/configs/imagesConfig.xml" % self.parent.parent.getPrjPath(),"w") as f:
+      f.write(md.pretty())
       
 class NewPrjDialog(wx.Dialog):
     """
