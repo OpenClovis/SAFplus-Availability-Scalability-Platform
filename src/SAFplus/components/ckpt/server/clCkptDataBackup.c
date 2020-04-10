@@ -46,15 +46,19 @@
 #include "clLogApi.h"
 #include "clCkptExtApi.h"
 #include "clCkptMaster.h"
+#include "clCkptSvrIpi.h"
 
-extern ClRcT ckptMasterDatabasePack(ClBufferHandleT  outMsg);
-extern ClRcT ckptDbPack();
-ClCkptSvcHdlT          gCkptHandle;
-ClOsalMutexIdT         gMutex = NULL;
-ClTimerHandleT         gTimerHdl;
+
+static ClInt32T gClCkptPersistentDBDisabled = -1;
+static ClBoolT gClCkptDBInitialized = CL_FALSE;
+//extern ClRcT ckptMasterDatabasePack(ClBufferHandleT  outMsg);
+//extern ClRcT ckptDbPack();
+static  ClCkptSvcHdlT         gCkptHandle;
+static ClOsalMutexIdT         gMutex;
+//ClTimerHandleT         gTimerHdl;
 
 #define CL_CKPT_MASTERDB_CKPT_NAME  "Cl_CkptMasterDB_Point"
-#define CL_CKPT_CHECKPOINTS         2
+//#define CL_CKPT_CHECKPOINTS         2
 #define CL_CKPT_METADATA            1
 
 /* Checkpoint name */
@@ -62,98 +66,38 @@ ClNameT gCkptName = {sizeof(CL_CKPT_MASTERDB_CKPT_NAME),
                      CL_CKPT_MASTERDB_CKPT_NAME};
 
 
-ClRcT ckptMetaDataSerializer(ClUint32T dataSetID, ClAddrT* ppData,
-                        ClUint32T* pDataLen, ClPtrT pCookie);
-
-ClRcT ckptMetaDataDeserializer(ClUint32T dataSetID, ClAddrT pData,
-                       ClUint32T dataLen, ClPtrT pCookie);
-
-ClRcT ckptCheckpointsSerializer(ClUint32T dataSetID, ClAddrT* ppData,
-                        ClUint32T* pDataLen, ClPtrT pCookie);
-
-ClRcT ckptCheckpointsDeserializer(ClUint32T dataSetID, ClAddrT pData,
-                       ClUint32T dataLen, ClPtrT pCookie);
-
-
-
-/**
- *  Name: ckptDataPeriodicSave
- *
- *  This function periodically writes into the persistent memory
- *
- *  @param  none
- *
- *  @returns
- *    CL_OK                    - everything is ok <br>
- *
- */
-
-ClRcT ckptDataPeriodicSave()
-{
-    ClRcT rc = CL_OK;
-
-    /* Write to metadata dataset */
-    rc = clCkptLibraryCkptDataSetWrite(gCkptHandle, &gCkptName,
-                CL_CKPT_METADATA, 0);
-    if(CL_OK != rc)
-    {
-        CL_DEBUG_PRINT(CL_DEBUG_ERROR,("\nCKPT DataSet Write Failed, "
-                                       "rc = %x \n", rc));
-        clLogWrite(CL_LOG_HANDLE_APP, CL_LOG_DEBUG, NULL, 
-                   CL_LOG_MESSAGE_1_CKPT_WRITE_FAILED, rc);
-
-        CL_FUNC_EXIT();
-    }
-
-    /* Wriet to checkpoint info dataset */
-    rc = clCkptLibraryCkptDataSetWrite(gCkptHandle, &gCkptName,
-                CL_CKPT_CHECKPOINTS, 0);
-    if(CL_OK != rc)
-    {
-        CL_DEBUG_PRINT(CL_DEBUG_ERROR,("\nCKPT DataSet Write Failed, "
-                                       "rc = %x \n", rc));
-        clLogWrite(CL_LOG_HANDLE_APP, CL_LOG_DEBUG, NULL, 
-                   CL_LOG_MESSAGE_1_CKPT_WRITE_FAILED, rc);
-
-        CL_FUNC_EXIT();
-    }
-    return rc;
-}
-
-
-
-/**
- *  Name: ckptDataBackupInitialize
- *
- *  Function for initializing ckpt library, creating data ckeckpoints,
- *  creating datasets and starting the timer for periodic backup.
- *  "pFlag" will carry back the info whether db files are there or not.
- *
- *  @param  none
- *
- *  @returns
- *    CL_OK                    - everything is ok <br>
- *
- */
-
 ClRcT ckptDataBackupInitialize(ClUint8T *pFlag)
 {
     ClRcT           rc      = CL_OK;
     ClBoolT         retVal  = CL_TRUE;
-    ClTimerTimeOutT timeOut = {0};
+    //ClTimerTimeOutT timeOut = {0};
     
     CL_FUNC_ENTER();
 
     /* Create the mutex for controlling access to global message handles */
-    clOsalMutexCreate(&gMutex);
-    CL_ASSERT(gMutex);
-    
+    /*rc = clOsalMutexCreate(&gMutex);
+    if (rc != CL_OK)
+    {
+    	clLogError("PERSISTENT", "DB", "cannot create mutex. rc [%x]", rc);
+    	goto out;
+    }
+    clLogDebug("PERSISTENT", "DB", "mutex created ok rc [%x]", rc);*/
+
+    gClCkptPersistentDBDisabled = (ClInt32T)clParseEnvBoolean("CL_CKPT_PERSISTENT_DB_DISABLED");
+
+        if(gClCkptPersistentDBDisabled)
+        {
+            clLogNotice("PERSISTENT", "DB", "CKPT persistent db disabled");
+            return CL_CKPT_RC(CL_ERR_NOT_EXIST);
+        }
+
+        if(gClCkptDBInitialized == CL_TRUE) return CL_OK;
+
     /* Initialize the Check Point Service Library */
     rc = clCkptLibraryInitialize(&gCkptHandle);
     if(CL_OK != rc)
     {
-        CL_DEBUG_PRINT(CL_DEBUG_ERROR,("\n CKPT Library Initialize Failed, "
-                                       "rc = %x \n", rc));
+        clLogError("PERSISTENT", "INIT", "CKPT Library Initialize Failed rc = %x", rc);
         CL_FUNC_EXIT();
         return rc;
     }
@@ -163,8 +107,7 @@ ClRcT ckptDataBackupInitialize(ClUint8T *pFlag)
     rc = clCkptLibraryDoesCkptExist(gCkptHandle, &gCkptName, &retVal);
     if(rc != CL_OK)
     {
-        CL_DEBUG_PRINT(CL_DEBUG_ERROR,("\n Ckpt: CKPT Initialize Failed,"
-                                       " rc = %x \n", rc));
+    	clLogError("PERSISTENT", "INIT", "Ckpt: CKPT Initialize Failed,rc = %x", rc);
         CL_FUNC_EXIT();
         goto label4;
     }
@@ -181,9 +124,7 @@ ClRcT ckptDataBackupInitialize(ClUint8T *pFlag)
     rc = clCkptLibraryCkptCreate(gCkptHandle, &gCkptName); 
     if(CL_OK != rc)
     {
-        CL_DEBUG_PRINT(CL_DEBUG_ERROR,("\n CKPT Check Point Create Failed, "
-                                       "rc = %x \n",
-                             rc));
+    	clLogError("PERSISTENT", "INIT", "CKPT Check Point Create Failed, rc = %x", rc);
         goto label4;
     }
 
@@ -196,269 +137,23 @@ ClRcT ckptDataBackupInitialize(ClUint8T *pFlag)
                         );
     if(CL_OK != rc)
     {
-        CL_DEBUG_PRINT(CL_DEBUG_ERROR,("\n CKPT Data Set Create Failed, "
-                                       "rc = %x \n", rc));
+    	clLogError("PERSISTENT", "INIT", "CKPT Data Set Create Failed, rc = %x", rc);
         goto label3;
     }
-
-    /* Create a dataset to store checkpoints' info */
-    rc =  clCkptLibraryCkptDataSetCreate(gCkptHandle, &gCkptName,
-                        CL_CKPT_CHECKPOINTS, 
-                        0, 0,
-                        ckptCheckpointsSerializer,
-                        ckptCheckpointsDeserializer
-                        );
-    if(CL_OK != rc)
-    {
-        CL_DEBUG_PRINT(CL_DEBUG_ERROR,("\n CKPT Data Set Create Failed, "
-                                       "rc = %x \n", rc));
-        goto label2;
-    }
-                                                                                                                             
-    /* Start the periodic timer */
-    timeOut.tsSec      = 5;
-    timeOut.tsMilliSec = 0;
-    rc = clTimerCreateAndStart(timeOut, CL_TIMER_REPETITIVE,
-                    CL_TIMER_SEPARATE_CONTEXT, ckptDataPeriodicSave,
-                    (void*)NULL, &gTimerHdl);
-    if(CL_OK != rc)
-    {
-        CL_DEBUG_PRINT(CL_DEBUG_ERROR,("\n CKPT Data Set Create Failed, "
-                                       "rc = %x \n", rc));
-        goto label1;
-    }
+    gClCkptDBInitialized = CL_TRUE;
+    clLogNotice("PERSISTENT", "INIT", "CKPT Library Initialize successfully");
+    return rc;
     
-    goto label0;
-    
-    /* Cleanup part */
-label1:
-    clCkptLibraryCkptDataSetDelete(gCkptHandle,
-                                   &gCkptName,
-                                   CL_CKPT_CHECKPOINTS);
-label2:
-    clCkptLibraryCkptDataSetDelete(gCkptHandle,
-                                   &gCkptName,
-                                   CL_CKPT_METADATA);
 label3:
     clCkptLibraryCkptDelete(gCkptHandle, &gCkptName);
 label4:
     clCkptLibraryFinalize(gCkptHandle);
-label0:
+//label0:
     clDbgResourceNotify(clDbgComponentResource, clDbgAllocate, 0, CL_CID_CKPT, ("Checkpoint data backup library initialized"));
 
-    CL_FUNC_EXIT();                                                                                                                             
-    return CL_OK;
-}
-
-
-/**
- *  Name: ckptMetaDataSerializer 
- *
- *  Serializer function for ckpt meta data 
- *
- *  @param  none
- *
- *  @returns
- *    CL_OK                    - everything is ok <br>
- *    CL_ERR_INVALID_PARAMETER - Improper dataset id
- *
- */
-
-ClRcT ckptMetaDataSerializer(ClUint32T dataSetID, ClAddrT* ppData,
-                        ClUint32T* pDataLen, ClPtrT pCookie)
-{
-    ClRcT                  rc        = CL_OK;
-    ClBufferHandleT outMsgHdl = 0;
-                                                                                                                             
-    CL_FUNC_ENTER();
-    /* take the semaphore */
-    clOsalMutexLock(gMutex); 
-
-    rc = clBufferCreate(&outMsgHdl);
-    if(rc == CL_OK)
-    {
-        rc = clBufferLengthGet(outMsgHdl, pDataLen);
-        if(rc == CL_OK)
-        {
-            *ppData = (ClAddrT)clHeapAllocate(*pDataLen);
-            rc = clBufferNBytesRead(outMsgHdl, 
-                            (ClUint8T*)*ppData, pDataLen); 
-            if(rc != CL_OK)
-            {
-                 /* Release the semaphore */
-                 clOsalMutexUnlock(gMutex);
-                 return rc;
-            }
-        }
-        else
-        {
-            /* Release the semaphore */
-            clOsalMutexUnlock(gMutex);
-            return rc;
-        }
-    }
-    else
-    {
-         /* Release the semaphore */
-         clOsalMutexUnlock(gMutex);
-         return rc;
-    }
-    rc = clBufferDelete(&outMsgHdl);
-
-    /* Release the semaphore */
-    clOsalMutexUnlock(gMutex);
-    CL_FUNC_EXIT();
-    return CL_OK;
-}
-                                                                                                                             
-
-/**
- *  Name: ckptCheckpointsSerializer 
- *
- *  Serializer function for checkpoints
- *
- *  @param  none
- *
- *  @returns
- *    CL_OK                    - everything is ok <br>
- *
- */
-
-ClRcT ckptCheckpointsSerializer(ClUint32T dataSetID, ClAddrT* ppData,
-                        ClUint32T* pDataLen, ClPtrT pCookie)
-{
-    ClRcT                  rc        = CL_OK;
-    ClBufferHandleT outMsgHdl = 0;
-    
-    CL_FUNC_ENTER();
-    
-    /* take the semaphore */
-    clOsalMutexLock(gMutex);
-    
-    clBufferCreate(&outMsgHdl);
-
-    /* Pack and serialize the checkpoint info */
-    rc = ckptDbPack(&outMsgHdl,0);
-    if(rc == CL_OK)
-    {
-        rc = clBufferLengthGet(outMsgHdl, pDataLen);
-        if(rc == CL_OK)
-        {
-            *ppData = (ClAddrT)clHeapAllocate(*pDataLen);
-            rc = clBufferNBytesRead(outMsgHdl, 
-                            (ClUint8T*)*ppData, pDataLen); 
-            if(rc != CL_OK)
-            {
-                 /* Release the semaphore */
-                 clBufferDelete(&outMsgHdl);
-                 clOsalMutexUnlock(gMutex);
-                 return rc;
-            }
-        }
-        else
-        {
-            /* Release the semaphore */
-            clBufferDelete(&outMsgHdl);
-            clOsalMutexUnlock(gMutex);
-            return rc;
-        }
-    }
-    else
-    {
-         /* Release the semaphore */
-         clBufferDelete(&outMsgHdl);
-         clOsalMutexUnlock(gMutex);
-         return rc;
-    }
-    rc = clBufferDelete(&outMsgHdl);
-
-    /* Release the semaphore */
-    clOsalMutexUnlock(gMutex);
-    CL_FUNC_EXIT();
-    return CL_OK;
-}
-
-
-                                                                                                                             
-/**
- *  Name: ckptMetaDataDeserializer 
- *
- *  Deserializer function for ckpt meta data
- *
- *  @param  none
- *
- *  @returns
- *    CL_OK                    - everything is ok <br>
- *
- */
-
-ClRcT ckptMetaDataDeserializer(ClUint32T dataSetID, ClAddrT pData,
-                            ClUint32T dataLen, ClPtrT pCookie)
-{
-    ClRcT                  rc     = CL_OK; 
-    ClBufferHandleT msgHdl = 0;
-      
-    rc = clBufferCreate (&msgHdl);
-    if(rc != CL_OK)
-    {
-        return rc;
-    }
-    
-    /* Deserialize the metadata info stored in the persistent memory */
-    rc = clBufferNBytesWrite(msgHdl, (ClUint8T*)pData, 
-                                    (ClUint32T) (dataLen));
-    if(CL_OK != rc) {
-        clBufferDelete(&msgHdl); 
-        return(rc);
-    }
-
-#if 0
-    /* Unpack the deserialized checkpoint metadata */
-    rc =  ckptMasterDatabaseUnpack(msgHdl);
-#endif    
-    clBufferDelete(&msgHdl); 
     CL_FUNC_EXIT();
     return rc;
-}                                                                                                                           
-
-
-
-/**
- *  Name: ckptCheckpointsDeserializer 
- *
- *  Deserializer function for checkpoints
- *
- *  @param  none
- *
- *  @returns
- *    CL_OK                    - everything is ok <br>
- *
- */
-
-ClRcT ckptCheckpointsDeserializer(ClUint32T dataSetID, ClAddrT pData,
-                            ClUint32T dataLen, ClPtrT pCookie)
-{
-    ClRcT                  rc     = CL_OK; 
-    ClBufferHandleT msgHdl = 0;
-    
-    rc = clBufferCreate (&msgHdl);
-    if(rc != CL_OK)
-        return rc;
-
-    /* Deserialize the checkpoint info stored in the persistent memory */
-    rc = clBufferNBytesWrite(msgHdl, (ClUint8T*)pData, 
-                                    (ClUint32T) (dataLen));
-    if(CL_OK != rc) {
-        clBufferDelete(&msgHdl); 
-        return(rc);
-    }
-
-    clBufferDelete(&msgHdl); 
-    
-    CL_FUNC_ENTER();
-    return rc;
-}                                                                                                                           
-
+}
 
 /**
  *  Name: ckptDataBackupFinalize
@@ -475,66 +170,102 @@ ClRcT ckptCheckpointsDeserializer(ClUint32T dataSetID, ClAddrT pData,
 void ckptDataBackupFinalize(void)
 {
     CL_FUNC_ENTER();
+    clLogDebug("HUNG80","---","enter %s", __FUNCTION__);
+#if 1
     /* take the semaphore */
-    if (gMutex)
-      {
+    //if (gMutex)
+    //  {
         clDbgResourceNotify(clDbgComponentResource, clDbgRelease, 0, CL_CID_CKPT, ("Checkpoint data backup library shut down"));
 
         clOsalMutexLock(gMutex); 
         /* Delete the Data Sets */
+#if 0
         clCkptLibraryCkptDataSetDelete(gCkptHandle,
                                        &gCkptName,
                                        CL_CKPT_METADATA);
+#endif
 
-        clCkptLibraryCkptDataSetDelete(gCkptHandle,
-                                       &gCkptName,
-                                       CL_CKPT_CHECKPOINTS);
+//        clCkptLibraryCkptDataSetDelete(gCkptHandle,
+//                                       &gCkptName,
+//                                       CL_CKPT_CHECKPOINTS);
         /* Delete the timer */
-        clTimerDelete(&gTimerHdl);
+        //clTimerDelete(&gTimerHdl);
         /* Delete the Check Point */
         clCkptLibraryCkptDelete(gCkptHandle, &gCkptName);
         /* Finalize the Check Point Service Library */
         clCkptLibraryFinalize(gCkptHandle);
 
         /* Release the semaphore */
-        clOsalMutexUnlock(gMutex);
-        clOsalMutexDelete(gMutex);
-      }
-    else
-      {
+        //clOsalMutexUnlock(gMutex);
+        //clOsalMutexDelete(gMutex);
+   //   }
+    //else
+    //  {
         /* Passing OK to the error because calling finalize 2x is actually ok */
-        clDbgCodeError(CL_OK, ("Double call to checkpoint data backup finalize, or initialize never called"));
-      }
+   //     clDbgCodeError(CL_OK, ("Double call to checkpoint data backup finalize, or initialize never called"));
+    //  }
 
     CL_FUNC_EXIT();
+#endif
+    clLogDebug("HUNG80","---", "leave %s", __FUNCTION__);
     return;
 }
 
-
-
-/**
- *  Name: ckptDataBackupInit DEPRECATED use ckptDataBackupInitialize
- *
- *  Function for initializing ckpt library and creating the buffers 
- *  carrying the info to be packed.  DEPRECATED use ckptDataBackupInitialize
- *
- *  @param  none
- *
- *  @returns
- *    CL_OK                    - everything is ok <br>
- *
- */
-
-ClRcT ckptDataBackupInit(ClUint8T *pFlag)
+ClRcT ckptPersistentMemoryWrite()
 {
-    ClRcT rc = CL_OK;
-    CL_FUNC_ENTER();
-    rc = ckptDataBackupInitialize(pFlag);
-    CL_FUNC_EXIT();
-    return rc;
+	ClRcT rc = CL_OK;
+	static ClRcT dbInitialized = CL_OK;
+    ClUint8T flag;
+    /*rc = clOsalMutexCreate(&gMutex);
+        if (rc != CL_OK)
+        {
+        	clLogError("PERSISTENT", "DB", "cannot create mutex. rc [%x]", rc);
+        	goto out;
+        }*/
+	/*if((rc = clOsalMutexLock(gMutex))  != CL_OK)
+	    {
+		clLogError(CL_CKPT_AREA_DEPUTY,"DSK.WRI", "Ckpt: ckptPersistentMemoryWrite: Could not get Lock");
+		goto out;
+	    }*/
+#if 1
+	if(gClCkptPersistentDBDisabled == -1)
+	    {
+	        gClCkptPersistentDBDisabled = (ClInt32T)clParseEnvBoolean("CL_CKPT_PERSISTENT_DB_DISABLED");
+	    }
+
+	    if(gClCkptPersistentDBDisabled)
+	    {
+	        return CL_OK;
+	    }
+
+	    if(gClCkptDBInitialized == CL_FALSE)
+	    {
+	        if( (dbInitialized == CL_OK) &&
+	            (rc = ckptDataBackupInitialize(&flag)) != CL_OK)
+	        {
+	            dbInitialized = rc;
+	        }
+	        if(dbInitialized != CL_OK)
+	            return dbInitialized;
+	    }
+#endif
+	    /* Write to metadata dataset */
+	    rc = clCkptLibraryCkptDataSetWrite(gCkptHandle, &gCkptName,
+	                CL_CKPT_METADATA, 0);
+	    if(CL_OK != rc)
+	    {
+	    	clLogError("PERSISTENT","DSK.WRI","CKPT DataSet Write Failed, "
+	                                       "rc = %x \n", rc);
+	        clLogWrite(CL_LOG_HANDLE_APP, CL_LOG_DEBUG, NULL,
+	                   CL_LOG_MESSAGE_1_CKPT_WRITE_FAILED, rc);
+
+	        CL_FUNC_EXIT();
+	    }
+	//clOsalMutexUnlock(gMutex);
+//out:
+    clLogDebug("PERSISTENT","---", "leave %s with retcode [0x%x]", __FUNCTION__,rc);
+	return rc;
 }
-
-
 
 /**
  *  Name: ckptPersistentMemoryRead
@@ -555,39 +286,28 @@ ClRcT ckptPersistentMemoryRead()
     CL_FUNC_ENTER();
 
     /* take the semaphore */
-    if(clOsalMutexLock(gMutex)  != CL_OK)
+    /*if((rc = clOsalMutexLock(gMutex))  != CL_OK)
     {
-        CL_DEBUG_PRINT(CL_DEBUG_ERROR, ("\n Ckpt: Could not get Lock \n"));
-    }
+    	clLogError(CL_CKPT_AREA_DEPUTY,"DSK.READ", "Ckpt: ckptPersistentMemoryRead: Could not get Lock");
+    	goto out;
+    }*/
 
     /* Read checkpoint meta data */
     rc = clCkptLibraryCkptDataSetRead(gCkptHandle, &gCkptName,
            CL_CKPT_METADATA, 0);
     if(CL_OK != rc)
     {
-        CL_DEBUG_PRINT(CL_DEBUG_ERROR,("\nCKPT DataSet Read Failed, "
-                                       "rc = %x \n", rc));
+    	clLogError("PERSISTENT","DSK.READ","CKPT DataSet Read Failed rc = [%x]", rc);
         /* Release the semaphore */
-        clOsalMutexUnlock(gMutex);
-        CL_FUNC_EXIT();
-        return rc;
-    }
-
-    /* Read checkpoints */
-    rc = clCkptLibraryCkptDataSetRead(gCkptHandle, &gCkptName,
-           CL_CKPT_CHECKPOINTS, 0);
-    if(CL_OK != rc)
-    {
-        CL_DEBUG_PRINT(CL_DEBUG_ERROR,("\nCKPT DataSet Read Failed, "
-                                       "rc = %x \n", rc));
-        /* Release the semaphore */
-        clOsalMutexUnlock(gMutex);
+        //clOsalMutexUnlock(gMutex);
         CL_FUNC_EXIT();
         return rc;
     }
 
     CL_FUNC_EXIT();
     /* Release the semaphore */
-    clOsalMutexUnlock(gMutex);
-    return CL_OK;
+    //clOsalMutexUnlock(gMutex);
+//out:
+    clLogDebug("HUNG","---","leave %s with retcode [0x%x]", __FUNCTION__,rc);
+    return rc;
 }

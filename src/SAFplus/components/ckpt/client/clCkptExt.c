@@ -528,7 +528,7 @@ ClRcT clCkptLibraryCkptCreate (ClCkptSvcHdlT  ckptHdl,
     
     rc   = clDbalOpen ( tempDb, 
                         tempDb,
-                        CL_DB_CREAT,
+                        CL_DB_APPEND,
                         CKPT_MAX_NUMBER_RECORD,
                         CKPT_MAX_SIZE_RECORD,
                         &pCkpt->usrDbHdl);

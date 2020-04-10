@@ -61,6 +61,8 @@ ClRcT clCkptSvrInitialize(void)
     /* Variable related ckptDataBackup feature thats not supported
        ClUint8T          ckptRead   = 0;
     */
+    ClUint8T          ckptRead   = 0;
+
     ClTimerTimeOutT   timeOut    = {0}; 
     ClIocNodeAddressT deputy = 0;
     ClIocNodeAddressT master = 0;
@@ -129,7 +131,13 @@ ClRcT clCkptSvrInitialize(void)
       Feature not yet supported see bug 6017 -- Do not forget to uncomment ckptDataBackupFinalize
       rc = ckptDataBackupInitialize(&ckptRead);
     */
-
+    if(  gCkptSvr->localAddr != master && clCpmIsSCCapable())
+    {
+      clLogNotice("---","---", "initialize persistent DB on standby");
+      rc = ckptDataBackupInitialize(&ckptRead);
+    }
+    //else
+    //	clLogNotice("HUNG","---", "DO NOT initialize persistent DB on active");
     if(rc != CL_OK)
     {
         clLogWrite(CL_LOG_HANDLE_APP, CL_LOG_WARNING, NULL,
@@ -164,6 +172,11 @@ ClRcT clCkptSvrInitialize(void)
                        rc = ckptPersistentMemoryRead();
                        }
                     */
+                }
+                if (rc != CL_OK)
+                {
+                    clLogWarning("---", "DBS", "master database syncup fail [%x]. Try to load it from persistent DB", rc);
+                    rc = ckptPersistentMemoryRead();
                 }
             }
         }
@@ -225,9 +238,15 @@ ClRcT clCkptSvrInitialize(void)
          * master and any calls from master to update deputy will sleep on the
          * lock.
          */
-        CKPT_LOCK(gCkptSvr->masterInfo.ckptMasterDBSem);
-        ckptMasterDatabaseSyncup(gCkptSvr->masterInfo.masterAddr);
-        CKPT_UNLOCK(gCkptSvr->masterInfo.ckptMasterDBSem);
+
+          CKPT_LOCK(gCkptSvr->masterInfo.ckptMasterDBSem);
+          ClRcT err = ckptMasterDatabaseSyncup(gCkptSvr->masterInfo.masterAddr);
+          CKPT_UNLOCK(gCkptSvr->masterInfo.ckptMasterDBSem);
+          if (err != CL_OK)
+          {
+              clLogWarning("---", "DBS", "master database syncup fail [%x]. Try to load it from persistent DB", err);
+              ckptPersistentMemoryRead();
+          }
     }
     
     /* 
@@ -263,6 +282,14 @@ ClRcT  clCkptRestart()
  
 ClRcT   ckptShutDown()
 {
+	//clLogNotice("HUNG","---", "ckpt shutting down");
+	if(gCkptSvr->localAddr != gCkptSvr->masterInfo.masterAddr && clCpmIsSCCapable())
+	    {
+	      clLogNotice("CKPT","---", "finalizing persistent DB on standby");
+	      ckptDataBackupFinalize();
+	      //clLogNotice("HUNG","---", "finalizing persistent DB on standby return [0x%x]", rc);
+	    }
+
     /*
      * Uninstall the notification callback function
      */

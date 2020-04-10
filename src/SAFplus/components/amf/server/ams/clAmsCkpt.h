@@ -53,6 +53,8 @@ extern "C" {
 
 #define CL_AMS_CKPT_CTRL_DB_NAME "CKPTDB_AMS_CONFIG"
 
+#define CL_AMS_CKPT_PERSISTENT_DB_NAME "CKPT_DB_AMS"
+
 #define CL_AMS_CKPT_CONFIG_DS_ID 0x1
 
 #define CL_AMS_CKPT_CONFIG_GRP_ID 0x0
@@ -137,6 +139,9 @@ clAmsCkptFree(
 
 extern ClRcT
 clAmsHotStandbyRegister(ClAmsT *ams);
+
+extern ClRcT clAmsCkptPersistentRead(ClAmsT* ams);
+extern void clAmsCkptPersistentFinalize();
 
 #ifdef __cplusplus
 }

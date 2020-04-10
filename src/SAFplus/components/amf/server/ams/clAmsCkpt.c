@@ -55,6 +55,41 @@
 #include <clCkptIpi.h>
 #include <clNodeCache.h>
 
+/*  Functions for checkpoint AMS_CKPT persistent DB  */
+static ClInt32T gClCkptPersistentDBDisabled = -1;
+static ClBoolT gClCkptDBInitialized = CL_FALSE;
+static  ClCkptSvcHdlT         gCkptHandle;
+#define CL_AMS_CKPT_VERSION_SECTION              1
+#define CL_AMS_CKPT_DB_SECTION_1                 2
+#define CL_AMS_CKPT_INVOCATION_SECTION_1         3
+#define CL_AMS_CKPT_CURRENT_SECTION              4
+#define CL_AMS_CKPT_DB_SECTION_2                 5
+#define CL_AMS_CKPT_INVOCATION_SECTION_2         6
+
+static ClNameT gCkptName = {sizeof(CL_AMS_CKPT_PERSISTENT_DB_NAME),
+        CL_AMS_CKPT_PERSISTENT_DB_NAME};
+static ClUint32T ckptVersionSize = 0;
+static ClUint8T* pDBSection1 = NULL;
+static ClUint32T dbSection1Size = 0;
+static ClUint8T* pDBSection2 = NULL;
+static ClUint32T dbSection2Size = 0;
+static ClUint8T* pInvocationSection1 = NULL;
+static ClUint32T invocationSection1Size = 0;
+static ClUint8T* pInvocationSection2 = NULL;
+static ClUint32T invocationSection2Size = 0;
+static ClUint32T currentSection = CL_AMS_DB_INVOCATION_PAIRS;
+
+static ClRcT ckptPersistentDeserializer(ClUint32T dsId, ClAddrT pData, ClUint32T dataLength, ClPtrT cookie);
+static ClRcT ckptSectionOverwrite(ClAmsT  *ams,
+                            ClNameT *pSection,
+                            ClCharT *pData,
+                            ClUint32T dataLen);
+static ClRcT ckptPersistentSerializer(ClUint32T dsId, ClAddrT *pData, ClUint32T *pDataLength, ClPtrT cookie);
+static ClRcT ckptPersistentWrite();
+static void dataCopy(ClUint8T** dest, ClUint32T* destSize, ClUint8T* src, ClUint32T srcSize, ClCharT* expectedSection, ClUint32T expectedNum, ClCharT* sectionName);
+static ClRcT ckptPersistentInitialize(ClUint8T *pFlag);
+
+
 #define CL_AMS_INVOCATION_CKPT  0x10 
 #define CL_AMS_DB_CKPT  ( CL_AMS_INVOCATION_CKPT + 1 )
 #define CL_AMS_CKPT_GROUP_ID  0x0
@@ -907,6 +942,7 @@ clAmsCkptNotifyCallback(ClCkptHdlT              ckptHdl,
             goto out_unlock;
         }
         clLogNotice("CKPT", "NOTIFY", "AMS DB ckpt version [%s]", gClAmsCkptVersionBuf);
+        ckptVersionSize = strlen(gClAmsCkptVersionBuf)+1;
     }
 
     if(!strncmp(pSectionName,
@@ -957,6 +993,53 @@ clAmsCkptNotifyCallback(ClCkptHdlT              ckptHdl,
          * Update the local db for persistency.
          */
         clAmsCkptDBWrite();
+#if 0
+        ClCharT buf[sizeof(ClNameT)];
+        snprintf(buf,sizeof(buf),"%s_%d",AMS_CKPT_DB_SECTION,1);
+        if (strncmp(pSectionName, buf, strlen(buf)) == 0)
+        {
+            clLogDebug("HUNG","---","DB Section 1");
+            if (dbSection1Size != pIOVector->dataSize && pDBSection1 != NULL)
+            {
+                dbSection1Size = pIOVector->dataSize;
+                pDBSection1 = clHeapRealloc(pDBSection1, dbSection1Size);
+            }
+            else if (pDBSection1 != NULL && dbSection1Size == pIOVector->dataSize)
+            {
+
+            }
+            else
+            {
+                dbSection1Size = pIOVector->dataSize;
+                pDBSection1 = clHeapAlloc(dbSection1Size);
+            }
+            memcpy(pDBSection1, pIOVector->dataBuffer, dbSection1Size);
+        }
+
+        snprintf(buf,sizeof(buf),"%s_%d",AMS_CKPT_DB_SECTION,2);
+        if (strncmp(pSectionName, buf, strlen(buf)) == 0)
+        {
+            clLogDebug("HUNG","---","DB Section 2");
+            if (dbSection2Size != pIOVector->dataSize && pDBSection2 != NULL)
+            {
+                dbSection2Size = pIOVector->dataSize;
+                pDBSection2 = clHeapRealloc(pDBSection2, dbSection2Size);
+            }
+            else if (pDBSection2 != NULL && dbSection2Size == pIOVector->dataSize)
+            {
+
+            }
+            else
+            {
+                dbSection2Size = pIOVector->dataSize;
+                pDBSection2 = clHeapAlloc(dbSection2Size);
+            }
+            memcpy(pDBSection2, pIOVector->dataBuffer, dbSection2Size);
+        }
+#endif
+
+        dataCopy(&pDBSection1, &dbSection1Size, pIOVector->dataBuffer, pIOVector->dataSize, AMS_CKPT_DB_SECTION, 1, pSectionName);
+        dataCopy(&pDBSection2, &dbSection2Size, pIOVector->dataBuffer, pIOVector->dataSize, AMS_CKPT_DB_SECTION, 2, pSectionName);
     }
     else if(!strncmp(pSectionName,
                      AMS_CKPT_INVOCATION_SECTION, strlen(AMS_CKPT_INVOCATION_SECTION)))
@@ -1007,11 +1090,20 @@ clAmsCkptNotifyCallback(ClCkptHdlT              ckptHdl,
             clLogError("CKPT", "NOTIFY", "AMS invocation dexmlize returned [%#x]", rc);
             goto out_unlock;
         }
+        dataCopy(&pInvocationSection1, &invocationSection1Size, pIOVector->dataBuffer, pIOVector->dataSize, AMS_CKPT_INVOCATION_SECTION, 1, pSectionName);
+        dataCopy(&pInvocationSection2, &invocationSection2Size, pIOVector->dataBuffer, pIOVector->dataSize, AMS_CKPT_INVOCATION_SECTION, 2, pSectionName);
     }
     else
     {
         /*ignore*/
+        if(!strncmp(pSectionName,
+                AMS_CKPT_CURRENT_SECTION, strlen(AMS_CKPT_CURRENT_SECTION)))
+        {
+            currentSection = *(ClUint32T*)pIOVector->dataBuffer;
+        }
     }
+
+    ckptPersistentWrite();
 
     out_unlock:
     clOsalMutexUnlock(&gAms.ckptMutex);
@@ -1805,5 +1897,687 @@ clAmsCkptReadCurrentDBInvocationPair(ClAmsT *ams,
     *pDBInvocationPair = dbInvocationPair;
 
     exitfn:
+    return rc;
+}
+
+/*  Functions for checkpoint AMS_CKPT persistent DB  */
+
+ClRcT ckptPersistentInitialize(ClUint8T *pFlag)
+{
+    ClRcT           rc      = CL_OK;
+    ClBoolT         retVal  = CL_TRUE;
+
+    CL_FUNC_ENTER();
+
+
+    gClCkptPersistentDBDisabled = (ClInt32T)clParseEnvBoolean("CL_CKPT_PERSISTENT_DB_DISABLED");
+
+    if(gClCkptPersistentDBDisabled)
+    {
+        clLogWarning("PERSISTENT", "DB", "CKPT persistent db disabled");
+        return CL_AMS_RC(CL_ERR_NOT_EXIST);
+    }
+
+        if(gClCkptDBInitialized == CL_TRUE) return CL_OK;
+
+    /* Initialize the Check Point Service Library */
+    rc = clCkptLibraryInitialize(&gCkptHandle);
+    if(CL_OK != rc)
+    {
+        clLogError("PERSISTENT", "INIT", "CKPT Library Initialize Failed rc = %x", rc);
+        CL_FUNC_EXIT();
+        return rc;
+    }
+
+    /* Check whether db files are present or not and set the
+     * flag accordingly*/
+    rc = clCkptLibraryDoesCkptExist(gCkptHandle, &gCkptName, &retVal);
+    if(rc != CL_OK)
+    {
+        clLogError("PERSISTENT", "INIT", "Ckpt: CKPT Initialize Failed,rc = %x", rc);
+        CL_FUNC_EXIT();
+        goto label4;
+    }
+    else
+    {
+        if(retVal == CL_TRUE)
+            *pFlag = 1;
+        else
+            *pFlag = 0;
+    }
+
+    /* Create a checkpoint to store both checkpoints and metadata needed by
+     * master ckpt server */
+    rc = clCkptLibraryCkptCreate(gCkptHandle, &gCkptName);
+    if(CL_OK != rc)
+    {
+        clLogError("PERSISTENT", "INIT", "CKPT Check Point Create Failed, rc = %x", rc);
+        goto label4;
+    }
+
+    /* Create a data set to store checkpoints' related metadata */
+    rc =  clCkptLibraryCkptDataSetCreate(gCkptHandle, &gCkptName,
+                        CL_AMS_CKPT_VERSION_SECTION,
+                        0, 0,
+                        ckptPersistentSerializer,
+                        ckptPersistentDeserializer
+                        );
+    if(CL_OK != rc)
+    {
+        clLogError("PERSISTENT", "INIT", "CKPT VERSION_SECTION Data Set Create Failed, rc = %x", rc);
+        goto label3;
+    }
+    rc =  clCkptLibraryCkptDataSetCreate(gCkptHandle, &gCkptName,
+                            CL_AMS_CKPT_DB_SECTION_1,
+                            0, 0,
+                            ckptPersistentSerializer,
+                            ckptPersistentDeserializer
+                            );
+    if(CL_OK != rc)
+    {
+        clLogError("PERSISTENT", "INIT", "CKPT DB_SECTION_1 Data Set Create Failed, rc = %x", rc);
+        goto label3;
+    }
+    rc =  clCkptLibraryCkptDataSetCreate(gCkptHandle, &gCkptName,
+                                CL_AMS_CKPT_INVOCATION_SECTION_1,
+                                0, 0,
+                                ckptPersistentSerializer,
+                                ckptPersistentDeserializer
+                                );
+    if(CL_OK != rc)
+    {
+        clLogError("PERSISTENT", "INIT", "CKPT INVOCATION_SECTION_1 Data Set Create Failed, rc = %x", rc);
+        goto label3;
+    }
+    rc =  clCkptLibraryCkptDataSetCreate(gCkptHandle, &gCkptName,
+                                CL_AMS_CKPT_CURRENT_SECTION,
+                                0, 0,
+                                ckptPersistentSerializer,
+                                ckptPersistentDeserializer
+                                );
+    if(CL_OK != rc)
+    {
+        clLogError("PERSISTENT", "INIT", "CKPT CURRENT_SECTION Data Set Create Failed, rc = %x", rc);
+        goto label3;
+    }
+
+    rc =  clCkptLibraryCkptDataSetCreate(gCkptHandle, &gCkptName,
+                                CL_AMS_CKPT_DB_SECTION_2,
+                                0, 0,
+                                ckptPersistentSerializer,
+                                ckptPersistentDeserializer
+                                );
+    if(CL_OK != rc)
+    {
+        clLogError("PERSISTENT", "INIT", "CKPT DB_SECTION_2 Data Set Create Failed, rc = %x", rc);
+        goto label3;
+    }
+    rc =  clCkptLibraryCkptDataSetCreate(gCkptHandle, &gCkptName,
+                                CL_AMS_CKPT_INVOCATION_SECTION_2,
+                                0, 0,
+                                ckptPersistentSerializer,
+                                ckptPersistentDeserializer
+                                );
+    if(CL_OK != rc)
+    {
+        clLogError("PERSISTENT", "INIT", "CKPT INVOCATION_SECTION_2 Data Set Create Failed, rc = %x", rc);
+        goto label3;
+    }
+
+    gClCkptDBInitialized = CL_TRUE;
+    clLogNotice("PERSISTENT", "INIT", "CKPT Library Initialize successfully");
+    return rc;
+
+label3:
+    clCkptLibraryCkptDelete(gCkptHandle, &gCkptName);
+label4:
+    clCkptLibraryFinalize(gCkptHandle);
+//label0:
+    clDbgResourceNotify(clDbgComponentResource, clDbgAllocate, 0, CL_CID_CKPT, ("Checkpoint data backup library initialized"));
+
+    CL_FUNC_EXIT();
+    return rc;
+}
+
+void clAmsCkptPersistentFinalize()
+{
+    CL_FUNC_ENTER();
+    if (pDBSection1 != NULL)
+    {
+       clHeapFree(pDBSection1);
+       pDBSection1 = NULL;
+    } 
+    if (pDBSection2 != NULL)
+    {
+       clHeapFree(pDBSection2);
+       pDBSection2 = NULL;
+    }
+    if (pInvocationSection1 != NULL)
+    {
+       clHeapFree(pInvocationSection1);
+       pInvocationSection1 = NULL;
+    }
+    if (pInvocationSection2 != NULL)
+    {
+       clHeapFree(pInvocationSection2);
+       pInvocationSection2 = NULL;
+    }
+    currentSection = CL_AMS_DB_INVOCATION_PAIRS;
+    if (gClCkptDBInitialized)
+    {
+        clCkptLibraryCkptDataSetDelete(gCkptHandle,
+                                       &gCkptName,
+                                       CL_AMS_CKPT_VERSION_SECTION);
+        clCkptLibraryCkptDataSetDelete(gCkptHandle,
+                                       &gCkptName,
+                                       CL_AMS_CKPT_DB_SECTION_1);
+        clCkptLibraryCkptDataSetDelete(gCkptHandle,
+                                       &gCkptName,
+                                       CL_AMS_CKPT_DB_SECTION_2);
+        clCkptLibraryCkptDataSetDelete(gCkptHandle,
+                                       &gCkptName,
+                                       CL_AMS_CKPT_CURRENT_SECTION);
+        clCkptLibraryCkptDataSetDelete(gCkptHandle,
+                                       &gCkptName,
+                                       CL_AMS_CKPT_INVOCATION_SECTION_1);
+        clCkptLibraryCkptDataSetDelete(gCkptHandle,
+                                       &gCkptName,
+                                       CL_AMS_CKPT_INVOCATION_SECTION_2);
+
+
+        /* Delete the Check Point */
+        clCkptLibraryCkptDelete(gCkptHandle, &gCkptName);
+        /* Finalize the Check Point Service Library */
+        clCkptLibraryFinalize(gCkptHandle);
+
+        gClCkptDBInitialized = CL_FALSE;
+    }
+    CL_FUNC_EXIT();
+    return;
+}
+
+void dataCopy(ClUint8T** dest, ClUint32T* destSize, ClUint8T* src, ClUint32T srcSize, ClCharT* expectedSection, ClUint32T expectedNum, ClCharT* sectionName)
+{
+    ClCharT buf[sizeof(ClNameT)];
+    snprintf(buf,sizeof(buf),"%s_%d",expectedSection,expectedNum);
+    if (strncmp(sectionName, buf, strlen(buf)) == 0)
+    {
+        if (*destSize != srcSize && *dest != NULL)
+        {
+            *destSize = srcSize;
+            *dest = clHeapRealloc(*dest, *destSize);
+        }
+        else if (*dest != NULL && *destSize == srcSize)
+        {
+
+        }
+        else
+        {
+            *destSize = srcSize;
+            *dest = clHeapAllocate(*destSize);
+        }
+        memcpy(*dest, src, *destSize);
+    }
+}
+
+ClRcT ckptPersistentWrite()
+{
+    ClRcT rc = CL_OK;
+    static ClRcT dbInitialized = CL_OK;
+    ClUint8T flag;
+
+
+    if(gClCkptPersistentDBDisabled == -1)
+    {
+        gClCkptPersistentDBDisabled = (ClInt32T)clParseEnvBoolean("CL_CKPT_PERSISTENT_DB_DISABLED");
+    }
+
+    if(gClCkptPersistentDBDisabled)
+    {
+        return CL_OK;
+    }
+
+    if(gClCkptDBInitialized == CL_FALSE)
+    {
+        if( (dbInitialized == CL_OK) &&
+            (rc = ckptPersistentInitialize(&flag)) != CL_OK)
+        {
+            dbInitialized = rc;
+        }
+        if(dbInitialized != CL_OK)
+            return dbInitialized;
+    }
+
+    rc = clCkptLibraryCkptDataSetWrite(gCkptHandle, &gCkptName,
+                CL_AMS_CKPT_VERSION_SECTION, 0);
+    if(CL_OK != rc)
+    {
+        clLogError("PERSISTENT","DSK.WRI","CKPT Version DataSet Write Failed, "
+                                       "rc = %x \n", rc);
+        clLogWrite(CL_LOG_HANDLE_APP, CL_LOG_DEBUG, NULL,
+                   CL_LOG_MESSAGE_1_CKPT_WRITE_FAILED, rc);
+
+        goto out;
+    }
+
+    if (pDBSection1)
+    {
+        rc = clCkptLibraryCkptDataSetWrite(gCkptHandle, &gCkptName,
+                        CL_AMS_CKPT_DB_SECTION_1, 0);
+        if(CL_OK != rc)
+        {
+            clLogError("PERSISTENT","DSK.WRI","CKPT DB_SECTION_1 DataSet Write Failed, "
+                                           "rc = %x \n", rc);
+            clLogWrite(CL_LOG_HANDLE_APP, CL_LOG_DEBUG, NULL,
+                       CL_LOG_MESSAGE_1_CKPT_WRITE_FAILED, rc);
+
+        }
+    }
+
+    if (pInvocationSection1)
+    {
+        rc = clCkptLibraryCkptDataSetWrite(gCkptHandle, &gCkptName,
+                            CL_AMS_CKPT_INVOCATION_SECTION_1, 0);
+        if(CL_OK != rc)
+        {
+            clLogError("PERSISTENT","DSK.WRI","CKPT INVOCATION_SECTION_1 DataSet Write Failed, "
+                                           "rc = %x \n", rc);
+            clLogWrite(CL_LOG_HANDLE_APP, CL_LOG_DEBUG, NULL,
+                       CL_LOG_MESSAGE_1_CKPT_WRITE_FAILED, rc);
+
+        }
+    }
+
+    if (currentSection != CL_AMS_DB_INVOCATION_PAIRS)
+    {
+        rc = clCkptLibraryCkptDataSetWrite(gCkptHandle, &gCkptName,
+                            CL_AMS_CKPT_CURRENT_SECTION, 0);
+        if(CL_OK != rc)
+        {
+            clLogError("PERSISTENT","DSK.WRI","CKPT CURRENT_SECTION DataSet Write Failed, "
+                                           "rc = %x \n", rc);
+            clLogWrite(CL_LOG_HANDLE_APP, CL_LOG_DEBUG, NULL,
+                       CL_LOG_MESSAGE_1_CKPT_WRITE_FAILED, rc);
+
+        }
+    }
+
+    if (pDBSection2)
+    {
+        rc = clCkptLibraryCkptDataSetWrite(gCkptHandle, &gCkptName,
+                            CL_AMS_CKPT_DB_SECTION_2, 0);
+        if(CL_OK != rc)
+        {
+            clLogError("PERSISTENT","DSK.WRI","CKPT DB_SECTION_2 DataSet Write Failed, "
+                                           "rc = %x \n", rc);
+            clLogWrite(CL_LOG_HANDLE_APP, CL_LOG_DEBUG, NULL,
+                       CL_LOG_MESSAGE_1_CKPT_WRITE_FAILED, rc);
+
+        }
+    }
+
+    if (pInvocationSection2)
+    {
+        rc = clCkptLibraryCkptDataSetWrite(gCkptHandle, &gCkptName,
+                                CL_AMS_CKPT_INVOCATION_SECTION_2, 0);
+        if(CL_OK != rc)
+        {
+            clLogError("PERSISTENT","DSK.WRI","CKPT INVOCATION_SECTION_2 DataSet Write Failed, "
+                                           "rc = %x \n", rc);
+            clLogWrite(CL_LOG_HANDLE_APP, CL_LOG_DEBUG, NULL,
+                       CL_LOG_MESSAGE_1_CKPT_WRITE_FAILED, rc);
+
+        }
+    }
+out:
+    CL_FUNC_EXIT();
+    clLogDebug("PERSISTENT","WRI", "leave %s with retcode [0x%x]", __FUNCTION__,rc);
+    return rc;
+}
+
+ClRcT clAmsCkptPersistentRead(ClAmsT* ams)
+{
+    ClRcT   rc     = CL_OK;
+   
+    static ClRcT dbInitialized = CL_OK;
+    ClUint8T flag;
+
+
+    if(gClCkptPersistentDBDisabled == -1)
+    {
+        gClCkptPersistentDBDisabled = (ClInt32T)clParseEnvBoolean("CL_CKPT_PERSISTENT_DB_DISABLED");
+    }
+
+    if(gClCkptPersistentDBDisabled)
+    {
+        return CL_OK;
+    }
+
+    if(gClCkptDBInitialized == CL_FALSE)
+    {
+        if( (dbInitialized == CL_OK) &&
+            (rc = ckptPersistentInitialize(&flag)) != CL_OK)
+        {
+            dbInitialized = rc;
+        }
+        if(dbInitialized != CL_OK)
+            return dbInitialized;
+    }
+
+    //CL_FUNC_ENTER();
+
+    rc = clCkptLibraryCkptDataSetRead(gCkptHandle, &gCkptName,
+           CL_AMS_CKPT_VERSION_SECTION, 0);
+    if(CL_OK != rc)
+    {
+        clLogError("PERSISTENT","DSK.READ","CKPT VERSION_SECTION DataSet Read Failed rc = [%x]", rc);
+        goto out;
+    }
+
+    rc = clCkptLibraryCkptDataSetRead(gCkptHandle, &gCkptName,
+               CL_AMS_CKPT_DB_SECTION_1, 0);
+    if(CL_OK != rc)
+    {
+        clLogError("PERSISTENT","DSK.READ","CKPT DB_SECTION_1 DataSet Read Failed rc = [%x]", rc);
+    }
+
+    rc = clCkptLibraryCkptDataSetRead(gCkptHandle, &gCkptName,
+                   CL_AMS_CKPT_INVOCATION_SECTION_1, 0);
+    if(CL_OK != rc)
+    {
+        clLogError("PERSISTENT","DSK.READ","CKPT INVOCATION_SECTION_1 DataSet Read Failed rc = [%x]", rc);
+    }
+
+    rc = clCkptLibraryCkptDataSetRead(gCkptHandle, &gCkptName,
+                   CL_AMS_CKPT_CURRENT_SECTION, 0);
+    if(CL_OK != rc)
+    {
+        clLogError("PERSISTENT","DSK.READ","CKPT CURRENT_SECTION DataSet Read Failed rc = [%x]", rc);
+    }
+
+    rc = clCkptLibraryCkptDataSetRead(gCkptHandle, &gCkptName,
+                   CL_AMS_CKPT_DB_SECTION_2, 0);
+    if(CL_OK != rc)
+    {
+        clLogError("PERSISTENT","DSK.READ","CKPT DB_SECTION_2 DataSet Read Failed rc = [%x]", rc);
+    }
+
+    rc = clCkptLibraryCkptDataSetRead(gCkptHandle, &gCkptName,
+                   CL_AMS_CKPT_INVOCATION_SECTION_2, 0);
+    if(CL_OK != rc)
+    {
+        clLogError("PERSISTENT","DSK.READ","CKPT INVOCATION_SECTION_2 DataSet Read Failed rc = [%x]", rc);
+    }
+    else
+    {
+        rc = clAmsCkptRead(ams);
+    }
+
+out:
+    CL_FUNC_EXIT();
+    clLogDebug("PERISTENT","---","leave %s with retcode [0x%x]", __FUNCTION__,rc);
+    return rc;
+}
+
+ClRcT ckptPersistentSerializer(ClUint32T dsId, ClAddrT *pData, ClUint32T *pDataLength, ClPtrT cookie)
+{
+    ClBufferHandleT msgHdl = CL_HANDLE_INVALID_VALUE;
+    ClRcT rc = CL_OK;
+
+    if(!pData || !pDataLength) return CL_AMS_RC(CL_ERR_INVALID_PARAMETER);
+
+    /*if(dsId != CL_AMS_CKPT_CONFIG_DS_ID)
+    {
+        AMS_LOG(CL_DEBUG_CRITICAL, ("Ckpt config serialize invoked with invalid data set id [%d]\n", dsId));
+        return CL_AMS_RC(CL_ERR_INVALID_PARAMETER);
+    }*/
+#if 0 
+    if (currentSection == CL_AMS_DB_INVOCATION_PAIRS /*|| pInvocationSection2 == NULL*/)
+    {
+        rc =  CL_AMS_RC(CL_ERR_NOT_EXIST);
+        AMS_LOG(CL_DEBUG_WARN, ("Current section is [%d], no ckpt data can be serialized", currentSection));
+        goto out;
+    }
+#endif
+    rc = clBufferCreate(&msgHdl);
+    if(rc != CL_OK)
+    {
+        AMS_LOG(CL_DEBUG_ERROR, ("Buffer create in ckpt config serialize returned [%#x]\n", rc));
+        goto out;
+    }
+
+    if (dsId == CL_AMS_CKPT_VERSION_SECTION)
+    {
+        rc = clXdrMarshallArrayClCharT(gClAmsCkptVersionBuf, ckptVersionSize, msgHdl, 0);
+        if(rc != CL_OK)
+        {
+            AMS_LOG(CL_DEBUG_ERROR, ("Ckpt version marshall returned [%#x]\n", rc));
+            goto out_free;
+        }
+    }
+    else if (dsId == CL_AMS_CKPT_DB_SECTION_1 && pDBSection1)
+    {
+        rc = clBufferNBytesWrite(msgHdl, pDBSection1,dbSection1Size);
+        if(rc != CL_OK)
+        {
+            clLogError("CKPT", "SER", "Buffer write for DB_SECTION_1 returned [%#x]", rc);
+            goto out_free;
+        }
+    }
+    else if (dsId == CL_AMS_CKPT_INVOCATION_SECTION_1 && pInvocationSection1)
+    {
+        rc = clBufferNBytesWrite(msgHdl, pInvocationSection1,invocationSection1Size);
+        if(rc != CL_OK)
+        {
+            clLogError("CKPT", "SER", "Buffer write for INVOCATION_SECTION_1 returned [%#x]", rc);
+            goto out_free;
+        }
+    }
+    else if (dsId == CL_AMS_CKPT_CURRENT_SECTION)
+    {
+        rc = clXdrMarshallClUint32T(&currentSection, msgHdl, 0);
+        if(rc != CL_OK)
+        {
+            clLogError("CKPT", "SER", "marshall for current section returned [%#x]", rc);
+            goto out_free;
+        }
+    }
+    else if (dsId == CL_AMS_CKPT_DB_SECTION_2 && pDBSection2)
+    {
+        rc = clBufferNBytesWrite(msgHdl, pDBSection2,dbSection2Size);
+        if(rc != CL_OK)
+        {
+            clLogError("CKPT", "SER", "Buffer write for DB_SECTION_2 returned [%#x]", rc);
+            goto out_free;
+        }
+    }
+    else if (dsId == CL_AMS_CKPT_INVOCATION_SECTION_2 && pInvocationSection2)
+    {
+        rc = clBufferNBytesWrite(msgHdl, pInvocationSection2,invocationSection2Size);
+        if(rc != CL_OK)
+        {
+            clLogError("CKPT", "SER", "Buffer write for INVOCATION_SECTION_1 returned [%#x]", rc);
+            goto out_free;
+        }
+    }
+    else
+    {
+        AMS_LOG(CL_DEBUG_CRITICAL, ("Ckpt config serialize invoked with invalid data set id [%d]\n", dsId));
+        goto out_free;
+    }
+    rc = clBufferLengthGet(msgHdl, pDataLength);
+    if(rc != CL_OK)
+    {
+        AMS_LOG(CL_DEBUG_ERROR, ("Buffer length get in ckpt persistent serialize returned [%#x]\n", rc));
+        goto out_free;
+    }
+    rc = clBufferFlatten(msgHdl, (ClUint8T**)pData);
+    if(rc != CL_OK)
+    {
+        AMS_LOG(CL_DEBUG_ERROR, ("Buffer flatten in ckpt persistent serialize returned [%#x]\n", rc));
+        goto out_free;
+    }
+/*
+    rc = clAmsDBConfigSerialize(&gAms.db, msgHdl);
+
+    if(rc != CL_OK)
+    {
+        AMS_LOG(CL_DEBUG_ERROR, ("DB config serialize returned [%#x]\n", rc));
+        goto out_free;
+    }
+
+    rc = clBufferLengthGet(msgHdl, pDataLength);
+    if(rc != CL_OK)
+    {
+        AMS_LOG(CL_DEBUG_ERROR, ("Buffer length get in ckpt config serialize returned [%#x]\n", rc));
+        goto out_free;
+    }
+
+    rc = clBufferFlatten(msgHdl, (ClUint8T**)pData);
+    if(rc != CL_OK)
+    {
+        AMS_LOG(CL_DEBUG_ERROR, ("Buffer flatten in ckpt config serialize returned [%#x]\n", rc));
+        goto out_free;
+    }*/
+
+    AMS_LOG(CL_DEBUG_INFO, ("AMS ckpt persistent [%d] bytes written to [%s]\n",
+                            *pDataLength, CL_AMS_CKPT_PERSISTENT_DB_NAME));
+
+    out_free:
+    clBufferDelete(&msgHdl);
+
+    out:
+    return rc;
+}
+
+ClRcT ckptSectionOverwrite(ClAmsT  *ams,
+                            ClNameT *pSection,
+                            ClCharT *pData,
+                            ClUint32T dataLen)
+{
+    ClRcT rc = CL_OK;
+    AMS_CHECKPTR(!ams);
+    AMS_CHECKPTR(!pSection);
+    AMS_CHECKPTR(!pData);
+    ClCkptSectionIdT secId;
+    memset(&secId,0,sizeof(ClCkptSectionIdT));
+    secId.idLen = strlen (pSection->value);
+    secId.id = (ClUint8T*)clHeapAllocate(secId.idLen);
+    rc = CL_AMS_RC(CL_ERR_NO_MEMORY);
+    if(secId.id == NULL)
+    {
+        goto error;
+    }
+    memcpy(secId.id,(ClUint8T*)pSection->value,secId.idLen);
+    if ( ( rc = clCkptSectionOverwrite(
+                                        ams->ckptOpenHandle,
+                                        &secId,
+                                        (ClUint8T *)pData,
+                                        dataLen)) != CL_OK)
+    {
+        clLogError("CKPT", "PERSISTENT", "section [%s] overwrite fail rc [%x]", secId.id, rc);
+    }
+    clAmsFreeMemory(secId.id);
+
+error:
+    return rc;
+}
+
+ClRcT
+ckptPersistentDeserializer(ClUint32T dsId, ClAddrT pData, ClUint32T dataLength, ClPtrT cookie)
+{
+    ClRcT rc = CL_OK;
+    ClBufferHandleT msgHdl = CL_HANDLE_INVALID_VALUE;
+
+    if(!pData || !dataLength) return CL_OK;
+
+    AMS_LOG(CL_DEBUG_INFO, ("AMS persistent ckpt loading [%d] bytes of config from [%s]\n", dataLength, CL_AMS_CKPT_PERSISTENT_DB_NAME));
+
+    rc = clBufferCreate(&msgHdl);
+    if(rc != CL_OK)
+    {
+        AMS_LOG(CL_DEBUG_ERROR, ("Buffer create in ckpt persistent deserialize returned [%#x]\n", rc));
+        goto out;
+    }
+
+    rc = clBufferNBytesWrite(msgHdl, (ClUint8T*)pData, dataLength);
+    if(rc != CL_OK)
+    {
+        AMS_LOG(CL_DEBUG_ERROR, ("Buffer write in ckpt persistent deserialize returned [%#x]\n", rc));
+        goto out_free;
+    }
+    if (dsId == CL_AMS_CKPT_VERSION_SECTION)
+    {
+        ClCharT ckptVersionBuf[CL_MAX_NAME_LENGTH];
+        rc = clXdrUnmarshallArrayClCharT(msgHdl, ckptVersionBuf, dataLength);
+        if(rc != CL_OK)
+        {
+            AMS_LOG(CL_DEBUG_ERROR, ("Ckpt version unmarshall returned [%#x]\n", rc));
+            goto out_free;
+        }
+        rc = ckptSectionOverwrite(&gAms, &gAms.ckptVersionSection,ckptVersionBuf,strlen(ckptVersionBuf)+1);
+    }
+    else if (dsId == CL_AMS_CKPT_DB_SECTION_1)
+    {
+        ClUint8T dbSection1[dataLength];
+        rc = clBufferNBytesRead(msgHdl, dbSection1,&dataLength);
+        if(rc != CL_OK)
+        {
+            clLogError("CKPT", "SER", "Buffer read for DB_SECTION_1 returned [%#x]", rc);
+            goto out_free;
+        }
+        rc = ckptSectionOverwrite(&gAms, &gAms.ckptDBSections[0],(ClCharT*)dbSection1,dataLength);
+    }
+    else if (dsId == CL_AMS_CKPT_INVOCATION_SECTION_1 && pInvocationSection1)
+    {
+        ClUint8T invocationSection1[dataLength];
+        rc = clBufferNBytesRead(msgHdl, invocationSection1,&dataLength);
+        if(rc != CL_OK)
+        {
+            clLogError("CKPT", "SER", "Buffer read for INVOCATION_SECTION_1 returned [%#x]", rc);
+            goto out_free;
+        }
+        rc = ckptSectionOverwrite(&gAms, &gAms.ckptInvocationSections[0],(ClCharT*)invocationSection1,dataLength);
+    }
+    else if (dsId == CL_AMS_CKPT_CURRENT_SECTION)
+    {
+        //ClUint8T currentSection[dataLength];
+        //rc = clBufferNBytesRead(msgHdl, currentSection,&dataLength);
+        rc = clXdrUnmarshallClUint32T(msgHdl, &currentSection);     
+        if(rc != CL_OK)
+        {
+            clLogError("CKPT", "SER", "Buffer read for CURRENT_SECTION returned [%#x]", rc);
+            goto out_free;
+        }
+        //clLogDebug("HUNG","---","current section unmarshalled [%u]",currentSection);
+        rc = ckptSectionOverwrite(&gAms, &gAms.ckptCurrentSection,(ClCharT*)&currentSection,dataLength);
+    }
+    else if (dsId == CL_AMS_CKPT_DB_SECTION_2)
+    {
+        ClUint8T dbSection2[dataLength];
+        rc = clBufferNBytesRead(msgHdl, dbSection2,&dataLength);
+        if(rc != CL_OK)
+        {
+            clLogError("CKPT", "SER", "Buffer read for DB_SECTION_2 returned [%#x]", rc);
+            goto out_free;
+        }
+        rc = ckptSectionOverwrite(&gAms, &gAms.ckptDBSections[1],(ClCharT*)dbSection2,dataLength);
+    }
+    else if (dsId == CL_AMS_CKPT_INVOCATION_SECTION_2)
+    {
+        ClUint8T invocationSection2[dataLength];
+        rc = clBufferNBytesRead(msgHdl, invocationSection2,&dataLength);
+        if(rc != CL_OK)
+        {
+            clLogError("CKPT", "SER", "Buffer read for INVOCATION_SECTION_2 returned [%#x]", rc);
+            goto out_free;
+        }
+        rc = ckptSectionOverwrite(&gAms, &gAms.ckptInvocationSections[1],(ClCharT*)invocationSection2,dataLength);
+    }
+
+    out_free:
+    clBufferDelete(&msgHdl);
+
+    out:
     return rc;
 }

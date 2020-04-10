@@ -283,13 +283,15 @@ void clCkptTrackCallback(ClGmsClusterNotificationBufferT *notificationBuffer,
          * and do the same.
          */
         _ckptSvrArrvlAnnounce();
-        if (CL_OK != ckptMasterDatabaseSyncup(gCkptSvr->masterInfo.masterAddr))
+        ClRcT err;
+        if ((err = ckptMasterDatabaseSyncup(gCkptSvr->masterInfo.masterAddr)) != CL_OK)
         {
-            clLogWarning(CL_CKPT_AREA_ACTIVE, "IOC", "ckptMasterDatabaseSyncup failed");
+            clLogWarning(CL_CKPT_AREA_ACTIVE, "IOC", "ckptMasterDatabaseSyncup failed [%x]. Try to load it from persistent DB", err);
+            ckptPersistentMemoryRead();
         } 
         else
         {
-            clLogWarning(CL_CKPT_AREA_ACTIVE, "IOC", "ckptMasterDatabaseSyncup succeeded");
+            clLogNotice(CL_CKPT_AREA_ACTIVE, "IOC", "ckptMasterDatabaseSyncup succeeded");
         }
 
         /*

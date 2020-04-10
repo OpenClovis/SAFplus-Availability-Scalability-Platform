@@ -43,9 +43,18 @@ File        : clCkptDeputy.c
 #include "clCkptMasterUtils.h"
 #include "clCkptMaster.h"
 #include <clCpmExtApi.h>
+#include <ipi/clHandleIpi.h>
 
 #include "ckptEockptServerMasterDeputyClient.h"
 #include "ckptEockptServerMasterActiveServer.h"
+
+typedef struct ClCkptMasterSyncupWalk
+{
+    ClPtrT pData;
+    ClUint32T count;
+    ClUint32T index;
+}ClCkptMasterSyncupWalkT;
+
 extern CkptSvrCbT  *gCkptSvr;
 extern ClInt32T ckptReplicaListKeyComp(ClCntKeyHandleT key1,
         ClCntKeyHandleT key2);
@@ -679,6 +688,10 @@ exitOnErrorBeforeHdlCheckout:
       {
         rc = CL_OK;
       }
+    if (rc == CL_OK)
+        {
+            rc = ckptPersistentMemoryWrite();
+        }
     return rc;
 }
 
@@ -895,6 +908,10 @@ exitOnErrorBeforeHdlCheckout:
      * Unock the master DB.
      */
     CKPT_UNLOCK(gCkptSvr->masterInfo.ckptMasterDBSem);
+    if (rc == CL_OK)
+        {
+            rc = ckptPersistentMemoryWrite();
+        }
     return rc;
 }
 
@@ -950,6 +967,10 @@ exitOnErrorBeforeHdlCheckout:
      * Unock the master DB.
      */
     CKPT_UNLOCK(gCkptSvr->masterInfo.ckptMasterDBSem);
+    if (rc == CL_OK)
+    {
+        rc = ckptPersistentMemoryWrite();
+    }
     return rc;
 }
 
@@ -1258,6 +1279,551 @@ exitOnErrorBeforeHdlCheckout:
 }
 
 
+ClRcT deputyDatabaseInfoPack(ClVersionT*pVersion,
+        ClUint32T               *pCkptCount,
+        CkptXlationDBEntryT     **ppXlationEntry,
+        CkptMasterDBInfoIDLT    *pMasterInfo,
+        ClUint32T               *pMastHdlCount,
+        CkptMasterDBEntryIDLT   **ppMasterDBInfo,
+        ClUint32T               *pPeerCount,
+        CkptPeerListInfoT       **ppPeerListInfo,
+        ClUint32T               *pClntHdlCount,
+        CkptMasterDBClientInfoT **ppClientDBInfo)
+{
+
+	    ClCkptMasterSyncupWalkT walkArgs = { 0 };
+
+	    /*
+	     * Chech whether the server is up or not.
+	     */
+	    CL_CKPT_SVR_EXISTENCE_CHECK;
+
+	    /*
+	     * Lock the master DB.
+	     */
+	    CKPT_LOCK(gCkptSvr->masterInfo.ckptMasterDBSem);
+	    //memcpy(pVersion,gCkptSvr->versionDatabase.versionsSupported, sizeof(ClVersionT));
+#if 0
+	    /*
+	     * Verify the version.
+	     */
+	    ClRcT rc = clVersionVerify(&gCkptSvr->versionDatabase,pVersion);
+	    CKPT_ERR_CHECK_BEFORE_HDL_CHK(CL_CKPT_SVR,CL_DEBUG_ERROR,
+	            ("Ckpt: DeputyDatabasePack failed, "
+	            "versionMismatch rc[0x %x]\n", rc), rc);
+#endif
+
+	    /*
+	     * Pack the name translation table.
+	     */
+	    ClRcT rc = clCntSizeGet(gCkptSvr->masterInfo.nameXlationDBHdl,pCkptCount);
+	    CKPT_ERR_CHECK_BEFORE_HDL_CHK(CL_CKPT_SVR,CL_DEBUG_ERROR,
+	       ("Ckpt: deputyDatabaseInfoPack:Failed to get the size of Xlation Table rc[0x %x]\n", rc), rc);
+	    *ppXlationEntry = (CkptXlationDBEntryT *)clHeapAllocate(
+	                              sizeof(CkptXlationDBEntryT) *(*pCkptCount));
+	     if(*ppXlationEntry == NULL)
+	     {
+	        rc = CL_CKPT_ERR_NO_MEMORY;
+	        CKPT_ERR_CHECK_BEFORE_HDL_CHK(CL_CKPT_SVR,CL_DEBUG_ERROR,
+	            ("Ckpt: Failed to allocate the memory rc[0x %x]\n", rc), rc);
+	     }
+
+	     walkArgs.pData = (ClPtrT)*ppXlationEntry;
+	     walkArgs.index = 0;
+	     walkArgs.count = *pCkptCount;
+	     rc = clCntWalk( gCkptSvr->masterInfo.nameXlationDBHdl,
+	                     _ckptMasterXlationTablePack,
+	                     (ClCntArgHandleT)&walkArgs,
+	                     (ClUint32T)sizeof(walkArgs));
+
+
+	    CKPT_ERR_CHECK_BEFORE_HDL_CHK(CL_CKPT_SVR,CL_DEBUG_ERROR,
+	            ("Ckpt: deputyDatabaseInfoPack: Failed to pack the Xlation Table rc[0x %x]\n", rc), rc);
+
+	    /*
+	     * Pack the master Related Entries.
+	     */
+	    pMasterInfo->masterAddr    = gCkptSvr->masterInfo.masterAddr;
+	    pMasterInfo->deputyAddr    = gCkptSvr->masterInfo.deputyAddr;
+	    pMasterInfo->compId        = gCkptSvr->masterInfo.compId;
+
+	    /*
+	     * Pack Master DB entries.
+	     */
+	    *pMastHdlCount  = gCkptSvr->masterInfo.masterHdlCount;
+	    *ppMasterDBInfo = (CkptMasterDBEntryIDLT *)clHeapAllocate(
+	                                           sizeof(CkptMasterDBEntryIDLT) *
+	                                        gCkptSvr->masterInfo.masterHdlCount);
+	     if(*ppMasterDBInfo == NULL)
+	     {
+	        rc = CL_CKPT_ERR_NO_MEMORY;
+	        CKPT_ERR_CHECK_BEFORE_HDL_CHK(CL_CKPT_SVR,CL_DEBUG_ERROR,
+	            ("Ckpt: deputyDatabaseInfoPack: Failed to allocate the memory rc[0x %x]\n", rc), rc);
+	     }
+
+	     walkArgs.pData = (ClPtrT)*ppMasterDBInfo;
+	     walkArgs.index = 0;
+	     walkArgs.count = gCkptSvr->masterInfo.masterHdlCount;
+	     rc = clHandleWalk( gCkptSvr->masterInfo.masterDBHdl,
+	                       _ckptMasterDBEntryPack,
+	                        (ClPtrT)&walkArgs);
+	     if(walkArgs.count > gCkptSvr->masterInfo.masterHdlCount)
+	     {
+	         gCkptSvr->masterInfo.masterHdlCount = *pMastHdlCount = walkArgs.count;
+	     }
+
+	     CKPT_ERR_CHECK_BEFORE_HDL_CHK(CL_CKPT_SVR,CL_DEBUG_ERROR,
+	            ("Ckpt: deputyDatabaseInfoPack: Failed to allocate the memory rc[0x %x]\n", rc), rc);
+
+	     /*
+	      * Pack the peerList Entries.
+	      */
+	     rc = clCntSizeGet(gCkptSvr->masterInfo.peerList,pPeerCount);
+	     CKPT_ERR_CHECK_BEFORE_HDL_CHK(CL_CKPT_SVR,CL_DEBUG_ERROR,
+	            ("Ckpt: deputyDatabaseInfoPack: Failed to allocate the memory rc[0x %x]\n", rc), rc);
+	     *ppPeerListInfo = (CkptPeerListInfoT *)clHeapAllocate(
+	                         sizeof(CkptPeerListInfoT) * (*pPeerCount));
+	     if(*ppPeerListInfo == NULL)
+	     {
+	        rc = CL_CKPT_ERR_NO_MEMORY;
+	        CKPT_ERR_CHECK_BEFORE_HDL_CHK(CL_CKPT_SVR,CL_DEBUG_ERROR,
+	            ("Ckpt: deputyDatabaseInfoPack: Failed to allocate the memory rc[0x %x]\n", rc), rc);
+	     }
+
+	     walkArgs.count = *pPeerCount;
+	     walkArgs.index = 0;
+	     walkArgs.pData = (ClPtrT)*ppPeerListInfo;
+	     rc = clCntWalk(gCkptSvr->masterInfo.peerList, _ckptMasterPeerListPack,
+	                    (ClCntArgHandleT)&walkArgs,
+	                    (ClUint32T)sizeof(walkArgs));
+
+	     CKPT_ERR_CHECK_BEFORE_HDL_CHK(CL_CKPT_SVR,CL_DEBUG_ERROR,
+	            ("Ckpt: Failed to pack the PeerInfo rc[0x %x]\n", rc), rc);
+
+	     /*
+	      * Pack the client DB and the Entries.
+	      */
+	     *pClntHdlCount = gCkptSvr->masterInfo.clientHdlCount;
+	     clLogDebug(CL_CKPT_AREA_DEPUTY, CL_CKPT_CTX_DEP_SYNCUP,
+	             "Num of opened handles [%d]", *pClntHdlCount);
+	     *ppClientDBInfo = (CkptMasterDBClientInfoT *)clHeapCalloc(1,
+	        sizeof(CkptMasterDBClientInfoT) *
+	        gCkptSvr->masterInfo.clientHdlCount);
+	     if(*ppClientDBInfo == NULL)
+	     {
+	        rc = CL_CKPT_ERR_NO_MEMORY;
+	        CKPT_ERR_CHECK_BEFORE_HDL_CHK(CL_CKPT_SVR,CL_DEBUG_ERROR,
+	            ("Ckpt: deputyDatabaseInfoPack: Failed to allocate the memory rc[0x %x]\n", rc), rc);
+	     }
+
+	     walkArgs.index = 0;
+	     walkArgs.count = gCkptSvr->masterInfo.clientHdlCount;
+	     walkArgs.pData = (ClPtrT)*ppClientDBInfo;
+	     rc = clHandleWalk(gCkptSvr->masterInfo.clientDBHdl,
+	                       ckptClientDBEntryPack,
+	                       (ClPtrT)&walkArgs);
+
+	     CKPT_ERR_CHECK_BEFORE_HDL_CHK(CL_CKPT_SVR,CL_DEBUG_ERROR,
+	          ("Ckpt: deputyDatabaseInfoPack: Failed to pack the client DB Entries rc[0x %x]\n", rc), rc);
+
+	exitOnErrorBeforeHdlCheckout:
+	    /*
+	     * Unlock the master DB.
+	     */
+	    CKPT_UNLOCK(gCkptSvr->masterInfo.ckptMasterDBSem);
+	    //clLogDebug("HUNG","---", "leave %s with retcode [0x%x]", __FUNCTION__,rc);
+	    return rc;
+}
+
+ClRcT deputyDatabaseInfoMarshalling(ClBufferHandleT* outMsgHdl)
+{
+	ClRcT rc = CL_OK;
+
+    CkptXlationDBEntryT      *pXlationInfo  = NULL;
+    CkptMasterDBInfoIDLT     *pMasterInfo   = NULL;
+    ClUint32T                mastHdlCount   = 0;
+    CkptMasterDBEntryIDLT    *pMasterDBInfo = NULL;
+    ClUint32T                peerCount      = 0;
+    CkptPeerListInfoT        *pPeerListInfo = NULL;
+    ClUint32T                clntHdlCount   = 0;
+    CkptMasterDBClientInfoT  *pClientDBInfo = NULL;
+    ClVersionT               ckptVersion    = {0};
+    ClUint32T                ckptCount      = 0;
+    //ClBufferHandleT outMsgHdl;
+    pMasterInfo = (CkptMasterDBInfoIDLT *) clHeapCalloc(1,
+                               sizeof(CkptMasterDBInfoIDLT));
+    if(pMasterInfo == NULL)
+        {
+            rc = CL_CKPT_ERR_NO_MEMORY;
+            clLogError(CL_CKPT_AREA_DEPUTY,CL_CKPT_CTX_CKPT_OPEN,
+                "Ckpt: Failed to allocate the memory rc[0x %x]\n", rc);
+            goto out;
+        }
+    rc = clBufferCreate(outMsgHdl);
+    if (rc != CL_OK)
+    {
+      	clLogError(CL_CKPT_AREA_DEPUTY, CL_CKPT_CTX_CKPT_OPEN,"Ckpt: deputyDatabaseInfoMarshalling: clBufferCreate failed, rc = [0x%x]", rc);
+      	goto out;
+    }
+    rc = deputyDatabaseInfoPack(&ckptVersion, &ckptCount, &pXlationInfo, pMasterInfo, &mastHdlCount, &pMasterDBInfo, &peerCount, &pPeerListInfo, &clntHdlCount, &pClientDBInfo);
+    if (rc != CL_OK)
+    {
+    	clLogError(CL_CKPT_AREA_DEPUTY, CL_CKPT_CTX_CKPT_OPEN,"Ckpt: deputyDatabaseInfoMarshalling failed, rc = [0x%x]", rc);
+    	//goto L0;
+    	goto out_free_buffer;
+    }
+
+    /*rc = clXdrMarshallClVersionT(&(ckptVersion), outMsgHdl, 1);
+    if (CL_OK != rc)
+    {
+        //goto L1;
+    	goto out_free_buffer;
+    }*/
+
+    rc = clXdrMarshallClUint32T(&(ckptCount), *outMsgHdl, 1);
+    if (CL_OK != rc)
+    {
+        //goto L2;
+    	clLogError(CL_CKPT_AREA_DEPUTY, CL_CKPT_CTX_CKPT_OPEN,"Ckpt: deputyDatabaseInfoMarshalling: clXdrMarshallClUint32T failed, rc = [0x%x]", rc);
+    	goto out_free_buffer;
+    }
+
+    rc = clXdrMarshallCkptMasterDBInfoIDLT_4_0_0(&(pMasterInfo), *outMsgHdl, 1);
+    if (CL_OK != rc)
+    {
+        //goto L3;
+    	clLogError(CL_CKPT_AREA_DEPUTY, CL_CKPT_CTX_CKPT_OPEN,"Ckpt: deputyDatabaseInfoMarshalling: clXdrMarshallClUint32T failed, rc = [0x%x]", rc);
+    	goto out_free_buffer;
+    }
+
+    rc = clXdrMarshallClUint32T(&(mastHdlCount), *outMsgHdl, 1);
+    if (CL_OK != rc)
+    {
+        //goto L4;
+    	clLogError(CL_CKPT_AREA_DEPUTY, CL_CKPT_CTX_CKPT_OPEN,"Ckpt: deputyDatabaseInfoMarshalling: clXdrMarshallClUint32T failed, rc = [0x%x]", rc);
+    	goto out_free_buffer;
+    }
+
+    rc = clXdrMarshallClUint32T(&(peerCount), *outMsgHdl, 1);
+    if (CL_OK != rc)
+    {
+        //goto L5;
+    	clLogError(CL_CKPT_AREA_DEPUTY, CL_CKPT_CTX_CKPT_OPEN,"Ckpt: deputyDatabaseInfoMarshalling: clXdrMarshallClUint32T failed, rc = [0x%x]", rc);
+    	goto out_free_buffer;
+    }
+
+    rc = clXdrMarshallClUint32T(&(clntHdlCount), *outMsgHdl, 1);
+    if (CL_OK != rc)
+    {
+        //goto L6;
+    	clLogError(CL_CKPT_AREA_DEPUTY, CL_CKPT_CTX_CKPT_OPEN,"Ckpt: deputyDatabaseInfoMarshalling: clXdrMarshallClUint32T failed, rc = [0x%x]", rc);
+    	goto out_free_buffer;
+    }
+
+    rc = clXdrMarshallPtrCkptXlationDBEntryT_4_0_0(pXlationInfo, ckptCount, *outMsgHdl, 1);
+    if (CL_OK != rc)
+    {
+        //goto L7;
+    	clLogError(CL_CKPT_AREA_DEPUTY, CL_CKPT_CTX_CKPT_OPEN,"Ckpt: deputyDatabaseInfoMarshalling: clXdrMarshallClUint32T failed, rc = [0x%x]", rc);
+    	goto out_free_buffer;
+    }
+
+    rc = clXdrMarshallPtrCkptMasterDBEntryIDLT_4_0_0(pMasterDBInfo, mastHdlCount, *outMsgHdl, 1);
+    if (CL_OK != rc)
+    {
+        //goto L8;
+    	clLogError(CL_CKPT_AREA_DEPUTY, CL_CKPT_CTX_CKPT_OPEN,"Ckpt: deputyDatabaseInfoMarshalling: clXdrMarshallClUint32T failed, rc = [0x%x]", rc);
+        goto out_free_buffer;
+    }
+
+    rc = clXdrMarshallPtrCkptPeerListInfoT_4_0_0(pPeerListInfo, peerCount, *outMsgHdl, 1);
+    if (CL_OK != rc)
+    {
+        //goto L9;
+    	clLogError(CL_CKPT_AREA_DEPUTY, CL_CKPT_CTX_CKPT_OPEN,"Ckpt: deputyDatabaseInfoMarshalling: clXdrMarshallClUint32T failed, rc = [0x%x]", rc);
+    	goto out_free_buffer;
+    }
+
+    rc = clXdrMarshallPtrCkptMasterDBClientInfoT_4_0_0(pClientDBInfo, clntHdlCount, *outMsgHdl, 1);
+    if (CL_OK != rc)
+    {
+        //goto L10;
+    	clLogError(CL_CKPT_AREA_DEPUTY, CL_CKPT_CTX_CKPT_OPEN,"Ckpt: deputyDatabaseInfoMarshalling: clXdrMarshallClUint32T failed, rc = [0x%x]", rc);
+    	goto out_free_buffer;
+    }
+
+    goto out;
+
+#if 0
+    L10:    return rc;
+
+    LL0:  clXdrMarshallClVersionT(&(ckptVersion), 0, 1);
+
+    return rc;
+
+L0:  clXdrMarshallClVersionT(&(ckptVersion), 0, 1);
+L1:  clXdrMarshallClUint32T(&(ckptCount), 0, 1);
+L2:  clXdrMarshallCkptMasterDBInfoIDLT_4_0_0(&(pMasterInfo), 0, 1);
+L3:  clXdrMarshallClUint32T(&(mastHdlCount), 0, 1);
+L4:  clXdrMarshallClUint32T(&(peerCount), 0, 1);
+L5:  clXdrMarshallClUint32T(&(clntHdlCount), 0, 1);
+L6:  clXdrMarshallPtrCkptXlationDBEntryT_4_0_0(pXlationInfo, ckptCount, 0, 1);
+L7:  clXdrMarshallPtrCkptMasterDBEntryIDLT_4_0_0(pMasterDBInfo, mastHdlCount, 0, 1);
+L8:  clXdrMarshallPtrCkptPeerListInfoT_4_0_0(pPeerListInfo, peerCount, 0, 1);
+L9:  clXdrMarshallPtrCkptMasterDBClientInfoT_4_0_0(pClientDBInfo, clntHdlCount, 0, 1);
+#endif
+
+out_free_buffer:
+   clBufferDelete(outMsgHdl);
+#if 0
+out_free:
+   if(pMasterDBInfo != NULL)
+   {
+       if( NULL != pMasterDBInfo->replicaListInfo )
+       {
+          clHeapFree(pMasterDBInfo->replicaListInfo);
+          pMasterDBInfo->replicaListInfo = NULL;
+       }
+       clHeapFree(pMasterDBInfo);
+   }
+   if(pXlationInfo != NULL) clHeapFree(pXlationInfo);
+   if(pPeerListInfo != NULL)
+   {
+       if( NULL != pPeerListInfo->nodeListInfo )
+       {
+           clHeapFree(pPeerListInfo->nodeListInfo);
+           pPeerListInfo->nodeListInfo = NULL;
+       }
+       if( NULL != pPeerListInfo->mastHdlInfo )
+       {
+           clHeapFree(pPeerListInfo->mastHdlInfo);
+           pPeerListInfo->mastHdlInfo = NULL;
+       }
+       clHeapFree(pPeerListInfo);
+   }
+   if(pClientDBInfo != NULL) clHeapFree(pClientDBInfo);
+#endif
+out:
+   //clLogDebug("HUNG","---", "leave %s with retcode [0x%x]", __FUNCTION__,rc);
+   return rc;
+}
+
+ClRcT deputyDatabaseInfoUnpack(ClBufferHandleT outMsgHdl)
+{
+	ClRcT rc = CL_OK;
+
+    CkptXlationDBEntryT      *pXlationInfo  = NULL;
+    CkptMasterDBInfoIDLT     *pMasterInfo   = NULL;
+    ClUint32T                mastHdlCount   = 0;
+    CkptMasterDBEntryIDLT    *pMasterDBInfo = NULL;
+    ClUint32T                peerCount      = 0;
+    CkptPeerListInfoT        *pPeerListInfo = NULL;
+    ClUint32T                clntHdlCount   = 0;
+    CkptMasterDBClientInfoT  *pClientDBInfo = NULL;
+    //ClVersionT               ckptVersion    = {0};
+    ClUint32T                ckptCount      = 0;
+    //ClBufferHandleT outMsgHdl;
+    pMasterInfo = (CkptMasterDBInfoIDLT *) clHeapCalloc(1,
+                               sizeof(CkptMasterDBInfoIDLT));
+    if(pMasterInfo == NULL)
+        {
+            rc = CL_CKPT_ERR_NO_MEMORY;
+            clLogError(CL_CKPT_AREA_DEPUTY,CL_CKPT_CTX_CKPT_OPEN,
+                "Ckpt: Failed to allocate the memory rc[0x %x]\n", rc);
+            goto exitOnError;
+        }
+
+        /*rc = clXdrUnmarshallClVersionT( outMsgHdl, &ckptVersion);
+        if (CL_OK != rc)
+        {
+        	goto exitOnError;
+        }*/
+
+        rc = clXdrUnmarshallClUint32T( outMsgHdl, &ckptCount);
+        if (CL_OK != rc)
+        {
+        	goto exitOnError;
+        }
+
+        rc = clXdrUnmarshallCkptMasterDBInfoIDLT_4_0_0( outMsgHdl, pMasterInfo);
+        if (CL_OK != rc)
+        {
+        	goto exitOnError;
+        }
+
+        rc = clXdrUnmarshallClUint32T( outMsgHdl, &mastHdlCount);
+        if (CL_OK != rc)
+        {
+        	goto exitOnError;
+        }
+
+        rc = clXdrUnmarshallClUint32T( outMsgHdl, &peerCount);
+        if (CL_OK != rc)
+        {
+        	goto exitOnError;
+        }
+
+        rc = clXdrUnmarshallClUint32T( outMsgHdl, &clntHdlCount);
+        if (CL_OK != rc)
+        {
+        	goto exitOnError;
+        }
+
+        rc = clXdrUnmarshallPtrCkptXlationDBEntryT_4_0_0( outMsgHdl, (void **)&pXlationInfo, ckptCount);
+        if (CL_OK != rc)
+        {
+        	goto exitOnError;
+        }
+
+        rc = clXdrUnmarshallPtrCkptMasterDBEntryIDLT_4_0_0( outMsgHdl, (void **)&pMasterDBInfo, mastHdlCount);
+        if (CL_OK != rc)
+        {
+        	goto exitOnError;
+        }
+
+        rc = clXdrUnmarshallPtrCkptPeerListInfoT_4_0_0( outMsgHdl, (void **)&pPeerListInfo, peerCount);
+        if (CL_OK != rc)
+        {
+        	goto exitOnError;
+        }
+
+        rc = clXdrUnmarshallPtrCkptMasterDBClientInfoT_4_0_0( outMsgHdl, (void **)&pClientDBInfo, clntHdlCount);
+        if (CL_OK != rc)
+        {
+        	goto exitOnError;
+        }
+
+        /*
+             * Populate All data structures in deputy.
+             */
+
+            /*
+             * Unpack the Name xlation Entries
+             */
+            rc = ckptXlatioEntryUnpack(ckptCount,pXlationInfo);
+            CKPT_ERR_CHECK(CL_CKPT_SVR,CL_DEBUG_ERROR, ("Ckpt: Failed to unpack the Xlation Entry rc[0x %x]\n", rc), rc);
+            gCkptSvr->masterInfo.masterAddr = pMasterInfo->masterAddr;
+            gCkptSvr->masterInfo.deputyAddr = pMasterInfo->deputyAddr;
+            gCkptSvr->masterInfo.compId     = pMasterInfo->compId;
+
+            /*
+             * Unpack the peerList.
+             */
+            rc = ckptPeerListInfoUnpack(peerCount,pPeerListInfo);
+            CKPT_ERR_CHECK(CL_CKPT_SVR,CL_DEBUG_ERROR,("Ckpt: Failed to unpack the PeerList info rc[0x %x]\n", rc), rc);
+
+            /*
+             * Unpack the master DB info.
+             */
+            rc = ckptMasterDBInfoUnpack(mastHdlCount,pMasterDBInfo);
+            CKPT_ERR_CHECK(CL_CKPT_SVR,CL_DEBUG_ERROR,("Ckpt: Failed to unpack the MasterInfo rc[0x %x]\n", rc), rc);
+
+            clLogDebug(CL_CKPT_AREA_DEPUTY, CL_CKPT_CTX_DEP_SYNCUP,"Received open handle [%d]", clntHdlCount);
+            /*
+             * Unpack the client DB info.
+             */
+            rc = ckptClientDBInfoUnpack(clntHdlCount,pClientDBInfo);
+            CKPT_ERR_CHECK(CL_CKPT_SVR,CL_DEBUG_ERROR,("Ckpt: Failed to unpack the ClientDB Info rc[0x %x]\n", rc), rc);
+            gCkptSvr->isSynced = CL_TRUE;
+
+exitOnError:
+   clBufferDelete(&outMsgHdl);
+//out_free:
+   if(pMasterDBInfo != NULL)
+   {
+       if( NULL != pMasterDBInfo->replicaListInfo )
+       {
+          clHeapFree(pMasterDBInfo->replicaListInfo);
+          pMasterDBInfo->replicaListInfo = NULL;
+       }
+       clHeapFree(pMasterDBInfo);
+   }
+   if(pXlationInfo != NULL) clHeapFree(pXlationInfo);
+   if(pPeerListInfo != NULL)
+   {
+       if( NULL != pPeerListInfo->nodeListInfo )
+       {
+           clHeapFree(pPeerListInfo->nodeListInfo);
+           pPeerListInfo->nodeListInfo = NULL;
+       }
+       if( NULL != pPeerListInfo->mastHdlInfo )
+       {
+           clHeapFree(pPeerListInfo->mastHdlInfo);
+           pPeerListInfo->mastHdlInfo = NULL;
+       }
+       clHeapFree(pPeerListInfo);
+   }
+   if(pClientDBInfo != NULL) clHeapFree(pClientDBInfo);
+//out:
+   return rc;
+}
+
+ClRcT ckptMetaDataSerializer(ClUint32T dataSetID, ClAddrT* ppData,
+                        ClUint32T* pDataLen, ClPtrT pCookie)
+{
+	ClRcT rc = CL_OK;
+	ClBufferHandleT msgHdl = CL_HANDLE_INVALID_VALUE;
+	rc = deputyDatabaseInfoMarshalling(&msgHdl);
+	if (rc != CL_OK)
+	{
+         goto out_free;
+	}
+	rc = clBufferLengthGet(msgHdl, pDataLen);
+	if(rc != CL_OK)
+	    {
+	        clLogError(CL_CKPT_AREA_DEPUTY, "SER", "Buffer length get in ckpt config serialize returned [%#x]\n", rc);
+	        goto out_free;
+	    }
+
+	rc = clBufferFlatten(msgHdl, (ClUint8T**)ppData);
+	if(rc != CL_OK)
+	    {
+		clLogError(CL_CKPT_AREA_DEPUTY, "SER", "Buffer Flatten get in ckpt config serialize returned [%#x]\n", rc);
+	    }
+
+out_free:
+   clBufferDelete(&msgHdl);
+   //clLogDebug("HUNG", "---","leave %s with retcode [0x%x]", __FUNCTION__,rc);
+   return rc;
+}
+
+ClRcT ckptMetaDataDeserializer(ClUint32T dataSetID, ClAddrT pData,
+                       ClUint32T dataLen, ClPtrT pCookie)
+{
+       ClRcT rc = CL_OK;
+       ClBufferHandleT msgHdl = CL_HANDLE_INVALID_VALUE;
+
+       if(!pData || !dataLen) return CL_OK;
+
+       rc = clBufferCreate(&msgHdl);
+       if(rc != CL_OK)
+       {
+    	   clLogError(CL_CKPT_AREA_DEPUTY, "DESER", "Buffer create get in ckpt config deserialize returned [%#x]\n", rc);
+           goto out;
+       }
+
+       rc = clBufferNBytesWrite(msgHdl, (ClUint8T*)pData, dataLen);
+       if(rc != CL_OK)
+       {
+    	   clLogError(CL_CKPT_AREA_DEPUTY, "DESER", "Buffer write get in ckpt config deserialize returned [%#x]\n", rc);
+           goto out_free;
+       }
+       //unpack database info
+       rc = deputyDatabaseInfoUnpack(msgHdl);
+
+       if(rc != CL_OK)
+       {
+    	   clLogError(CL_CKPT_AREA_DEPUTY, "DESER", "deputyDatabaseInfoUnpack in ckpt config deserialize returned [%#x]\n", rc);
+           goto out_free;
+       }
+
+out_free:
+       clBufferDelete(&msgHdl);
+
+out:
+       //clLogDebug("HUNG", "---","leave %s with retcode [0x%x]", __FUNCTION__,rc);
+       return rc;
+}
 
 /*
  * Function called at deputy whenever a checkpoint has been created.
@@ -1342,6 +1908,9 @@ VDECL_VER(clCkptDeputyCkptCreate, 4, 0, 0)(ClHandleT                           m
         CKPT_UNLOCK(gCkptSvr->masterInfo.ckptMasterDBSem);
         return rc;
     }
+
+
+
     /* 
      * Create the client handle and add the client info.
      */
@@ -1375,11 +1944,16 @@ VDECL_VER(clCkptDeputyCkptCreate, 4, 0, 0)(ClHandleT                           m
                "Deputy updated for creation, ckptName [%.*s] "
                "mastHdl [%#llX] OpenHdl [%#llX]", lookup.name.length, 
                lookup.name.value, masterHdl, clientHdl);
-    
+
+    // Write Deputy Database to persistent DB
     /*
      * Unlock the master DB.
      */
     CKPT_UNLOCK(gCkptSvr->masterInfo.ckptMasterDBSem);
+    if (rc == CL_OK)
+        {
+            rc = ckptPersistentMemoryWrite();
+        }
     return rc;
 }
 
@@ -1509,12 +2083,16 @@ VDECL_VER(clCkptDeputyCkptOpen, 4, 0, 0)(ClHandleT         storedDBHdl,
     clLogDebug(CL_CKPT_AREA_DEPUTY, CL_CKPT_CTX_CKPT_OPEN, 
                "Deputy updated for Open, mastHdl [%#llX] OpenHdl [%#llX]", 
                 storedDBHdl, clientHdl);
-            
+
  exitOnError:
     /*
      * Unlock the master DB.
      */
     CKPT_UNLOCK(gCkptSvr->masterInfo.ckptMasterDBSem);
+    if (rc == CL_OK)
+        {
+            rc = ckptPersistentMemoryWrite();
+        }
     return rc;
 }
 

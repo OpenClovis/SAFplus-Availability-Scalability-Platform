@@ -694,6 +694,7 @@ clAmsFinalize(
     }
 
     AMS_CALL ( clAmsCkptFree(ams) );
+    clAmsCkptPersistentFinalize();
 
     clEoClientUninstallTables(ams->eoObject,
                               CL_EO_SERVER_SYM_MOD(gAspFuncTable, AMFMgmtServer));

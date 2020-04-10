@@ -185,10 +185,32 @@ extern ClRcT _clCkptMasterCloseNoLock(ClHandleT clientHdl, ClIocNodeAddressT loc
 extern ClRcT _ckptCkptReplicaNodeAddrGet(ClIocNodeAddressT* pNodeAddr,
                                   ClCntHandleT replicaListHdl);
 extern ClRcT ckptMasterDatabaseSyncup();
-extern ClRcT ckptMasterDatabasePack(ClBufferHandleT  outMsg);
-extern ClRcT ckptMasterDatabaseUnpack(ClBufferHandleT  outMsg);
+extern ClRcT   ckptClientDBEntryPack(ClHandleDatabaseHandleT databaseHandle,
+                              ClHandleT               handle,
+                              void                    *pCookie);
+
+//extern ClRcT ckptMasterDatabasePack(ClBufferHandleT  outMsg);
+//extern ClRcT ckptMasterDatabaseUnpack(ClBufferHandleT  outMsg);
+//extern ClRcT ckptPersistentMemoryRead();
+//extern ClRcT ckptDataBackupInit(ClUint8T *pFlag);
+extern ClRcT ckptDataBackupInitialize(ClUint8T *pFlag);
+extern void ckptDataBackupFinalize(void);
+extern ClRcT ckptPersistentMemoryWrite();
 extern ClRcT ckptPersistentMemoryRead();
-extern ClRcT ckptDataBackupInit(ClUint8T *pFlag);
+extern ClRcT ckptMetaDataSerializer(ClUint32T dataSetID, ClAddrT* ppData,
+                        ClUint32T* pDataLen, ClPtrT pCookie);
+extern ClRcT ckptMetaDataDeserializer(ClUint32T dataSetID, ClAddrT pData,
+                       ClUint32T dataLen, ClPtrT pCookie);
+
+
+extern ClRcT _ckptMasterXlationTablePack(ClCntKeyHandleT    userKey,
+                                  ClCntDataHandleT   hashTable,
+                                  ClCntArgHandleT    userArg,
+                                  ClUint32T          dataLength);
+extern ClRcT _ckptMasterPeerListPack(ClCntKeyHandleT    userKey,
+        ClCntDataHandleT   hashTable,
+        ClCntArgHandleT    userArg,
+        ClUint32T          dataLength);
 extern ClRcT clCkptMasterReplicaListUpdate(ClIocNodeAddressT peerAddr);
 extern ClRcT clCkptMasterReplicaListUpdateNoLock(ClIocNodeAddressT peerAddr);
 extern void ckptDataBackupFinalize();

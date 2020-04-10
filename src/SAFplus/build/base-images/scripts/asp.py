@@ -27,6 +27,8 @@ import commands
 import errno
 
 AmfName = "safplus_amf"
+ckptPersisentDbFilename='Cl_CkptMetadata.db'
+ckptPersisentAmsDbFilename='CKPT_DB_AMS.db'
 
 reconfigWdLog=False
 
@@ -213,6 +215,9 @@ def remove_persistent_db():
 
 def save_previous_logs():
     return bool(int(asp_env['save_prev_logs']))
+
+def ckpt_persistent_db_disabled():
+    return bool(int(asp_env['ckpt_persistent_db_disabled']))
 
 def should_restart_asp():
     return bool(int(asp_env['restart_asp']))
@@ -436,6 +441,8 @@ def set_up_asp_config():
     else:
         d['crash_log_dir'] = get_dir(d['save_log_dir'] + '/crash')
         d['normal_log_dir'] = get_dir(d['save_log_dir'] + '/normal')
+
+    d['ckpt_persistent_db_disabled'] = asp_getenv('CL_CKPT_PERSISTENT_DB_DISABLED', default='0')
 
     d['save_dir_size_margin'] = int(asp_getenv('ASP_SAVE_DIR_SIZE_MARGIN',
                                                default=(5 * 1024)))
@@ -1126,6 +1133,8 @@ def save_asp_runtime_files():
         l = glob.glob('%s/*' % get_asp_run_dir())
         l = [e for e in l if not p.search(e)]
         for e in l:
+            if (not ckpt_persistent_db_disabled()) and (ckptPersisentDbFilename in e or ckptPersisentAmsDbFilename in e):
+                continue
             execute_shell_cmd('rm -rf \'%s\'' % e,
                               'Failed to delete [%s]' % e)
 
@@ -1143,6 +1152,8 @@ def save_asp_runtime_files():
             for e in glob.glob('%s/*' % run_dir):
                 if not p.search(e):
                     core_file_name = os.path.split(e)[1]
+                    if (not ckpt_persistent_db_disabled()) and (ckptPersisentDbFilename in core_file_name or ckptPersisentAmsDbFilename in core_file_name):
+                        continue                    
                     execute_shell_cmd('mv -f %s %s/%s_%s' %(e, cores_dir, core_file_name, cur_time), 'Failed to move core file [%s]' % e)
 
     if save_previous_logs():
@@ -1163,16 +1174,28 @@ def save_asp_runtime_files():
                 if not can_save:
                     log.critical(err_msg)
                     cmd = 'rm -rf %s' % src
-                    execute_shell_cmd(cmd, 'Failed to delete [%s]' % src)
-                    log.info('Deleted previous %s directory' % src)
+                    if (not ckpt_persistent_db_disabled()) and (ckptPersisentDbFilename in cmd or ckptPersisentAmsDbFilename in cmd):
+                        pass
+                    else:
+                        execute_shell_cmd(cmd, 'Failed to delete [%s]' % src)
+                        log.info('Deleted previous %s directory' % src)
                 else:
                     cmd = 'cp -Ppr %s %s' % (src, dst)
                     execute_shell_cmd(cmd, 'Failed to copy [%s] to [%s]'
                                       % (src, dst), fail_on_error=False)
                 
-                    cmd = 'rm -rf %s' % src
-                    execute_shell_cmd(cmd, 'Failed to delete [%s]' % src)
-                    log.info('Saved previous %s directory in %s' % (d, dst))
+                    for e in glob.glob('%s/*' % src):
+                        filename = os.path.split(e)[1]
+                        if (not ckpt_persistent_db_disabled()) and (ckptPersisentDbFilename in filename or ckptPersisentAmsDbFilename in filename):
+                            continue
+                            
+                    #if not ckpt_persistent_db_disabled() and ckptPersisentDbFilename in cmd:
+                    #    pass
+                        else:
+                            cmd = 'rm -rf %s/%s'%(src,filename)
+                            print 'DBG3.1:%s'%cmd
+                            execute_shell_cmd(cmd, 'Failed to delete [%s]' % src)
+                            log.info('Saved previous %s directory in %s' % (d, dst))
 
                 try:
                     os.mkdir(src)

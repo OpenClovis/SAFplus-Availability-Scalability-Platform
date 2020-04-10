@@ -1951,14 +1951,22 @@ _clAmsSAStateChangeStandby2Active(
 
         clLogDebug("CKPT", "READ", "AMS checkpoint read during failover");
         rc = clAmsCkptRead(&gAms);
+        if (CL_GET_ERROR_CODE(rc) == CL_ERR_NOT_EXIST)
+        {
+            clLogWarning("CKPT","READ", "ckpt read error [%x], try to read from peristent DB", rc);
+            rc = clAmsCkptPersistentRead(&gAms);
+        }
         if(rc != CL_OK)
         {
+
             gAms.serviceState = CL_AMS_SERVICE_STATE_SHUTTINGDOWN;
             clOsalMutexUnlock(&gAms.ckptMutex);
             clLogError("CKPT", "READ", "AMS checkpoint read returned [%#x]", rc);
             return rc;
-        }
+        }                
     }
+
+    clAmsCkptPersistentFinalize();
 
     gAms.serviceState = CL_AMS_SERVICE_STATE_RUNNING;
 
