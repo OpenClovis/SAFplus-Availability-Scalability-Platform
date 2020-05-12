@@ -70,7 +70,9 @@ void clErrorTxlate(ClRcT        clError,
          case CL_ERR_NULL_POINTER:      
              *aisError = SA_AIS_ERR_INVALID_PARAM;
              break;
-
+       
+         case CL_IOC_ERR_COMP_UNREACHABLE:
+         case CL_IOC_ERR_HOST_UNREACHABLE:
          case CL_ERR_OUT_OF_RANGE:    
          case CL_ERR_NOT_EXIST:
          case CL_ERR_DOESNT_EXIST:
