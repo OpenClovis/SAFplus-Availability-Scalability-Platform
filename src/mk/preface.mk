@@ -31,7 +31,7 @@ endif
 $(info Using SAFplus7 located in $(SAFPLUS_HA_DIR))
 
 #? By default we link with the local Linux distribution's installed libraries.  Override this to 0 if you are doing a crossbuild.
-USE_DIST_LIB ?= 1  
+USE_DIST_LIB ?= 0
 
 #? If this is included from an application makefile, the application build may choose to not build SAFplus 
 ifndef SAFPLUS_HA_INSTALLED  # by default don't build HA if we are getting it from the installed location

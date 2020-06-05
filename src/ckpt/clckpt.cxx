@@ -44,7 +44,7 @@ bool SAFplusI::BufferPtrContentsEqual::operator() (const BufferPtr& x, const Buf
 
 SAFplus::Checkpoint::~Checkpoint()
 {
-#if 0
+
   if (isSyncReplica) { if(sync) delete sync; }  
 
   if (flags&PERSISTENT) 
@@ -59,7 +59,7 @@ SAFplus::Checkpoint::~Checkpoint()
     operMap.clear();
     gate.unlock();
   }
-#endif
+
 }
 
 /*
