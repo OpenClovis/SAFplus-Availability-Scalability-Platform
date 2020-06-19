@@ -310,7 +310,7 @@ static ClRcT argCompletion(ClDebugCliT* pDebugObj, ClCharT *ptrPrompt,
 
 static ClUint32T    shouldIUnblock = 0;
 static ClDebugCliT  *pGDebugObj = 0;
-
+static ClCharT gCurrentContext[CL_MAX_NAME_LENGTH];
 
 ClCharT* helpGeneric[] = 
 
@@ -1471,6 +1471,17 @@ static ClRcT getCompContext( ClIocNodeAddressT nodeAddress,
             goto L2;
         }
 
+        if (((strncmp(gCurrentContext,"cpm",3)==0) || strncmp(gCurrentContext,"amf",3)==0) &&
+                (strcmp(funcName,"mcastPeerListAdd")==0 || strcmp(funcName,"mcastPeerListDelete")==0 || strcmp(funcName,"mcastPeerListGet")==0))
+        {
+            memcpy(funcName, "", CL_DEBUG_FUNC_NAME_LEN);
+        }
+        else if (strncmp(gCurrentContext,"ioc",3)==0 &&
+                 (strcmp(funcName,"mcastPeerListAdd")!=0 && strcmp(funcName,"mcastPeerListDelete")!=0 && strcmp(funcName,"mcastPeerListGet")!=0))
+        {
+            memcpy(funcName, "", CL_DEBUG_FUNC_NAME_LEN);
+        }
+
         memcpy(ptr, funcName, CL_DEBUG_FUNC_NAME_LEN);
         context->list[2 * (i + 1)] = ptr;
         ptr += CL_DEBUG_FUNC_NAME_LEN;
@@ -1480,6 +1491,16 @@ static ClRcT getCompContext( ClIocNodeAddressT nodeAddress,
         if (CL_OK != rc)
         {
             goto L2;
+        }
+        if (((strncmp(gCurrentContext,"cpm",3)==0) || strncmp(gCurrentContext,"amf",3)==0) &&
+                (strcmp(funcName,"mcastPeerListAdd")==0 || strcmp(funcName,"mcastPeerListDelete")==0 || strcmp(funcName,"mcastPeerListGet")==0))
+        {
+            memcpy(funcHelp, "", CL_DEBUG_FUNC_NAME_LEN);
+        }
+        else if (strncmp(gCurrentContext,"ioc",3)==0 &&
+                (strcmp(funcName,"mcastPeerListAdd")!=0 && strcmp(funcName,"mcastPeerListDelete")!=0 && strcmp(funcName,"mcastPeerListGet")!=0))
+        {
+            memcpy(funcHelp, "", CL_DEBUG_FUNC_NAME_LEN);
         }
 
         memcpy(ptr, funcHelp, CL_DEBUG_FUNC_HELP_LEN);
@@ -1588,7 +1609,6 @@ static ClRcT setPrompt(ClDebugCliT* pDebugObj)
     ClRcT rc = CL_OK;
     ClRcT retCode = CL_OK;
     ClCpmSlotInfoT cpmSlotInfo = {0};
-
     if (pDebugObj->context.isNodeAddressValid)
     {
         if (pDebugObj->context.isCommPortValid)
@@ -1608,12 +1628,16 @@ static ClRcT setPrompt(ClDebugCliT* pDebugObj)
 
             if(CL_OK == retCode)
             {
-
+                if (strncmp(pDebugObj->argv[1],"ioc",3)==0)
+                {
+		    context.list[1] = "IOC";
+                }
                 sprintf( pDebugObj->context.prompt, "cli[%s:%.*s:%s]-> ",
                         pDebugObj->prompt,
                         cpmSlotInfo.nodeName.length,
                         cpmSlotInfo.nodeName.value,
                         context.list[1]);
+                
             }
             else
             {
@@ -1678,8 +1702,13 @@ static ClRcT debugHelp(ClDebugCliT* pDebugObj)
 
             for (i = 1; i < context.numList/2; i++)
             {
-                printf("\r\n%s - %s", context.list[2 * i], 
-                       context.list[2 * i + 1]);
+                if (strncmp(context.list[2 * i],"",1)==0)
+                {
+                    // do nothing
+                }
+                else
+                printf("\r\n%s - %s", context.list[2 * i],
+                            context.list[2 * i + 1]);
             }
             finCompContext(&context);
             pHelp = helpCompLevel;
@@ -1699,7 +1728,7 @@ static ClRcT debugHelp(ClDebugCliT* pDebugObj)
 
     for (i = 0; i < numHelp/2; i++)
     {
-        printf("\r\n%s - %s", pHelp[2 * i], pHelp[2 * i + 1]);
+        printf("\r\n%s - %s", pHelp[2 * i], pHelp[2 * i + 1]);        
     }
 
     printf("\r\n");
@@ -1752,7 +1781,7 @@ static ClRcT enterContext( ClDebugCliT* pDebugObj, ClCharT* name )
     {
         if (!pDebugObj->context.isCommPortValid)
         {
-            if (strcmp(name, "cpm") && strcmp(name, "amf"))
+            if (strcmp(name, "cpm") && strcmp(name, "amf") && strcmp(name,"ioc"))
             {
                 strcpy (nameStr.value, name);
                 nameStr.length = strlen(name);
@@ -1937,6 +1966,7 @@ static ClRcT debugList(ClDebugCliT* pDebugObj)
             {
 		printf("amf\n");
                 printf("cpm\n");
+                printf("ioc\n");
                 printf("%s", retStr);
                 clHeapFree(retStr);
             }
@@ -2196,6 +2226,7 @@ static ClUint32T debugCliShell(ClDebugCliT* pDebugObj)
                     }
                     else if (!strncasecmp(pDebugObj->argv[0], "setc", j))
                     {
+                        strcpy(gCurrentContext,pDebugObj->argv[1]);
                         retCode = enterContext(pDebugObj, pDebugObj->argv[1]);
                     }
                     else if (!strncasecmp(pDebugObj->argv[0],"sleep",j))

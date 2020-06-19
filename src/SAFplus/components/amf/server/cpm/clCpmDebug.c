@@ -35,9 +35,12 @@
 
 #include <clAmsDebugCli.h>
 #include <clAmsMgmtDebugCli.h>
+#include <clIocDebug.h>
 /* #define AMS_TEST_CLI_COMMANDS */
 
 ClHandleT  gCpmDebugReg = CL_HANDLE_INVALID_VALUE;
+ClHandleT  gIocDebugReg = CL_HANDLE_INVALID_VALUE;
+extern ClCharT gClXportDefaultType[CL_MAX_NAME_LENGTH];
 
 #define CPM_DEBUG_CLI_COMMON_FUNC_LIST                                  \
     {                                                                   \
@@ -408,11 +411,18 @@ ClRcT cpmDebugRegister(void)
         return rc;
     }
 
-    return clDebugRegisterConstBuf(cpmSCDebugFuncList,
+    rc = clDebugRegisterConstBuf(cpmSCDebugFuncList,
                            sizeof(cpmSCDebugFuncList) /
                            sizeof(cpmSCDebugFuncList[0]),
                            &gCpmDebugReg);
-
+    if (rc == CL_OK && strncmp(gClXportDefaultType,"UDP",3)==0)
+    {
+        rc = clDebugRegister(iocDebugFuncList,
+                                          sizeof(iocDebugFuncList)/sizeof(iocDebugFuncList[0]),
+                                          &gIocDebugReg);
+        clLogDebug("DBG","REG","Registering ioc debug returned [0x%x]", rc);
+    }
+    return rc;
     //return clDebugRegister(cpmSCDebugFuncList,
      //                      sizeof(cpmSCDebugFuncList) /
       //                     sizeof(cpmSCDebugFuncList[0]), 
@@ -421,5 +431,6 @@ ClRcT cpmDebugRegister(void)
 
 ClRcT cpmDebugDeregister()
 {
-    return clDebugDeregister(gCpmDebugReg);
+    clDebugDeregister(gCpmDebugReg);
+    return clDebugDeregister(gIocDebugReg);
 }

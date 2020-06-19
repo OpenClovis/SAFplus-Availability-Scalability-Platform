@@ -212,7 +212,7 @@ static ClXportCtrlT gXportCtrlDefault = {
 };
 
 static CL_LIST_HEAD_DECLARE(gClTransportList);
-static ClCharT gClXportDefaultType[CL_MAX_NAME_LENGTH];
+ClCharT gClXportDefaultType[CL_MAX_NAME_LENGTH];
 static ClTransportLayerT *gClXportDefault;
 static ClBoolT gXportNodeRep;
 
@@ -1435,6 +1435,16 @@ static ClRcT _iocMcastPeerAdd(const ClCharT *addr)
   if (!gClMcastAddrCache) return CL_ERR_NOT_EXIST;
 
   clOsalSemLock(gClMcastAddrCacheSem);
+  for (i = 0; i < CL_MCAST_MAX_NODES; i++)
+  {
+      ClIocAddrMapT *map = &CL_MCAST_ADDR_CACHE_ENTRY_BASE(gClMcastAddrCache)[i];
+      if (map->addrstr != NULL && !strcmp(map->addrstr, addr))
+      {
+          clLogDebug("MCAST", "MAP", "Duplicate addr: [%s]", addr);
+          clOsalSemUnlock(gClMcastAddrCacheSem);
+          return CL_ERR_DUPLICATE;
+      }
+  }
   for (i = 0; i < CL_MCAST_MAX_NODES; i++)
   {
     ClIocAddrMapT *map = &CL_MCAST_ADDR_CACHE_ENTRY_BASE(gClMcastAddrCache)[i];

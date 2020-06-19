@@ -54,6 +54,7 @@ CPPFLAGS += -I../../common/cpm
 CPPFLAGS += -I../../common/cpm/idl/xdr
 CPPFLAGS += -I../../server/ams 
 CPPFLAGS += -I../../server/cpm
+CPPFLAGS += -I../../../ioc/client
 CPPFLAGS += -DCL_CPM_GMS
 CPPFLAGS += -DCL_CPM_AMS
 #CPPFLAGS += -DCL_CPM_COR
