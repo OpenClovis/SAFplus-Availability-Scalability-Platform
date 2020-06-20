@@ -80,8 +80,8 @@ ClRcT clIocDebugCliTransportMcastPeerListGet(int          argc,
 
     clDebugPrintInitialize(&inMsg);
     clDebugPrint(inMsg,"%s\n","McastPeerListGet:");
-
-    for(ClUint32T i = 0; i < pNumPeers; ++i)
+    ClUint32T i;
+    for(i = 0; i < pNumPeers; ++i)
     {
         clDebugPrint(inMsg,"%s\n",peers[i].addrstr);
         clLogDebug("MCAST", "MAP", "[%s]", peers[i].addrstr);
