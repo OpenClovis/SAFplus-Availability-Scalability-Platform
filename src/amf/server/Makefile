@@ -133,21 +133,21 @@ gen:
 genrpc: $(SAFplusRpcGen)
 	-mkdir -p amfRpc/$(PROTOBUFVER)
 	PYTHONPATH=$(MGT_SRC_DIR)/3rdparty/pyang:/usr/local/lib PYANG_PLUGINPATH=$(MGT_SRC_DIR)/pyplugin $(MGT_SRC_DIR)/3rdparty/pyang/bin/pyang --path=$(SAFPLUS_SRC_DIR)/yang -f y2cpp amfRpc.yang --y2cpp-output `pwd` --y2cpp-rpc --y2cpp-sdkdir $(SAFPLUS_SRC_DIR)
-	LD_LIBRARY_PATH=/usr/local/lib:/usr/lib:$$LD_LIBRARY_PATH $(PROTOC) -I../../3rdparty -I../../rpc -I. --cpp_out=./amfRpc/$(PROTOBUFVER) amfRpc.proto
-	LD_LIBRARY_PATH=/usr/local/lib:/usr/lib:$$LD_LIBRARY_PATH $(SAFplusRpcGen) -I../../3rdparty -I../../rpc -I. --rpc_out=./amfRpc/$(PROTOBUFVER) amfRpc.proto
+	LD_LIBRARY_PATH=$(INSTALL_DIR)/lib:$$LD_LIBRARY_PATH $(PROTOC) -I../../3rdparty -I../../rpc -I. --cpp_out=./amfRpc/$(PROTOBUFVER) amfRpc.proto
+	LD_LIBRARY_PATH=$(INSTALL_DIR)/lib:$$LD_LIBRARY_PATH $(SAFplusRpcGen) -I../../3rdparty -I../../rpc -I. --rpc_out=./amfRpc/$(PROTOBUFVER) amfRpc.proto
 
 
 genapprpc: $(SAFplusRpcGen)
 	-mkdir -p amfAppRpc/$(PROTOBUFVER)
 	PYTHONPATH=$(MGT_SRC_DIR)/3rdparty/pyang:/usr/local/lib PYANG_PLUGINPATH=$(MGT_SRC_DIR)/pyplugin $(MGT_SRC_DIR)/3rdparty/pyang/bin/pyang --path=$(SAFPLUS_SRC_DIR)/yang -f y2cpp amfAppRpc.yang --y2cpp-output `pwd` --y2cpp-rpc --y2cpp-sdkdir $(SAFPLUS_SRC_DIR)
-	LD_LIBRARY_PATH=/usr/local/lib:/usr/lib protoc -I../../3rdparty -I../../rpc -I. --cpp_out=./amfAppRpc/$(PROTOBUFVER) amfAppRpc.proto
-	LD_LIBRARY_PATH=/usr/local/lib:/usr/lib $(SAFplusRpcGen) -I../../3rdparty -I../../rpc -I. --rpc_out=./amfAppRpc/$(PROTOBUFVER) amfAppRpc.proto
+	LD_LIBRARY_PATH=$(INSTALL_DIR)/lib $(PROTOC) -I../../3rdparty -I../../rpc -I. --cpp_out=./amfAppRpc/$(PROTOBUFVER) amfAppRpc.proto
+	LD_LIBRARY_PATH=$(INSTALL_DIR)/lib $(SAFplusRpcGen) -I../../3rdparty -I../../rpc -I. --rpc_out=./amfAppRpc/$(PROTOBUFVER) amfAppRpc.proto
 
 genmgmtrpc: $(SAFplusRpcGen)
 	-mkdir -p amfMgmtRpc/$(PROTOBUFVER)
 	PYTHONPATH=$(MGT_SRC_DIR)/3rdparty/pyang:/usr/local/lib PYANG_PLUGINPATH=$(MGT_SRC_DIR)/pyplugin $(MGT_SRC_DIR)/3rdparty/pyang/bin/pyang --path=$(SAFPLUS_SRC_DIR)/yang -f y2cpp amfMgmtRpc.yang --y2cpp-output `pwd` --y2cpp-rpc --y2cpp-sdkdir $(SAFPLUS_SRC_DIR)
-	LD_LIBRARY_PATH=/usr/local/lib:/usr/lib:$(INSTALL_DIR)/lib:$$LD_LIBRARY_PATH $(PROTOC) -I../../3rdparty -I../../rpc -I. --cpp_out=./amfMgmtRpc/$(PROTOBUFVER) amfMgmtRpc.proto
-	LD_LIBRARY_PATH=/usr/local/lib:/usr/lib:$(INSTALL_DIR)/lib:$$LD_LIBRARY_PATH $(SAFplusRpcGen) -I../../3rdparty -I../../rpc -I. --rpc_out=./amfMgmtRpc/$(PROTOBUFVER) amfMgmtRpc.proto
+	LD_LIBRARY_PATH=$(INSTALL_DIR)/lib:$$LD_LIBRARY_PATH $(PROTOC) -I../../3rdparty -I../../rpc -I. --cpp_out=./amfMgmtRpc/$(PROTOBUFVER) amfMgmtRpc.proto
+	LD_LIBRARY_PATH=$(INSTALL_DIR)/lib:$$LD_LIBRARY_PATH $(SAFplusRpcGen) -I../../3rdparty -I../../rpc -I. --rpc_out=./amfMgmtRpc/$(PROTOBUFVER) amfMgmtRpc.proto
 
 cleangen:
 	(cd SAFplusAmf && find . -type f -not -name "*Common.hxx" -not -name "*Base.cxx" | xargs rm)
