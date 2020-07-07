@@ -213,6 +213,11 @@ class Entity:
       # if isRelationshipExist(entity):
       #   return RLS_ERR_EXISTS
       return RLS_OK
+    if self.et.name=="Component" and entity.et.name=="NonSafComponent":
+      for arrow in self.containmentArrows:
+        if arrow.contained == entity:
+          return RLS_ERR_EXISTS      
+      return RLS_OK
     return RLS_ERR_NOT_ALLOWED
 
   def canBeContained(self, entity):
