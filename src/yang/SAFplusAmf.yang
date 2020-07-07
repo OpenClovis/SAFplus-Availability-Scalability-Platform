@@ -586,6 +586,16 @@ module SAFplusAmf
         config false;
       }
  
+      leaf compProperty
+      {
+	type enumeration
+        {
+	  enum sa_aware;	  
+        }
+        default "SA_AWARE";
+        SAFplusTypes:ui-prompt "Component type:";
+        config true;
+      }
       // No adminState; this is controlled by the ServiceUnit
 
 
@@ -759,6 +769,14 @@ module SAFplusAmf
       {
 	uses execution;
 	description "Optional: This will be run after the component stops for any reason (terminate or fault) so long as the node (machine) is still running.";
+      }
+
+      leaf instantiateLevel
+      {
+	type uint32;
+	config true;
+	description "Order of component instantiation in a service unit";        
+        default 0;
       }
 
       leaf maxInstantInstantiations
@@ -997,6 +1015,454 @@ are switched over to other nodes (component service instances are not abruptly r
 
     }
 
+    list NonSafComponent
+    {
+      key "name";
+      description "Non-saf component";
+      SAFplusTypes:ui-entity "nonsaf_comp.svg";
+      SAFplusTypes:ui-button "nonsaf_comp_button.svg";
+      SAFplusTypes:atomic;
+      uses EntityId;
+      container procStats
+      {
+        uses SAFplusTypes:ProcessStats; 
+        config false;       
+      }
+      leaf presenceState
+      {
+	type PresenceState;
+        config false;
+      }
+ 
+      leaf compProperty
+      {
+	type enumeration
+        {	  
+	  enum proxied_preinstantiable;
+	  enum proxied_non_preinstantiable;	
+        }
+        default "proxied_preinstantiable";
+        SAFplusTypes:ui-prompt "Component type:";
+        config true;
+      }
+      // No adminState; this is controlled by the ServiceUnit
+
+
+      // SA-Forum defined fields
+
+      leaf capabilityModel
+      {
+	description "This is defined by the SA-Forum AMF B.04.01 specification section 3.5.  Options allowing just 1 assignment are a subset of the x assignment options.  To limit the capability to 1 assignment, change the saAmfCompNumMaxActiveCSIs and saAmfCompNumMaxStandbyCSIs fields.  Options disallowing standby assignments are implemented by setting saAmfCompNumMaxStandbyCSIs.  Choose 'non-pre-instantiable', saAmfCompNumMaxStandbyCSIs=0 for applications that are not SAF-aware";
+	type enumeration
+	{
+	  enum x_active_and_y_standby
+	  {
+	    description "For a certain component service type, the component supports all values of the HA state, and it can have the active HA state for x component service instances and the standby HA state for y component service instances at a time.";
+	  }
+	  enum x_active_or_y_standby
+	  {
+	    description "For a certain component service type, the component supports all values of the HA state. It can be assigned either the active HA state for x component service instances or the standby HA state for y component service instances at a time.";
+	  }
+	  enum not_preinstantiable
+	  {
+	    description "For a certain component service type, the component provides service as soon as it is started.";
+	  }
+
+/* These options are subcases of the above 
+	  enum one_active_or_y_standby
+	  {
+	    description "For a certain component service type, the component supports all values of the HA state. It can be assigned either the active HA state for only one component service instance or the standby HA state for y component service instances at a time.";
+	  }
+	  enum one_active_or_one_standby
+	  {
+	    description "For a certain component service type, the component supports all values of the HA state, and it can be assigned either the active HA state or the standby HA state for only one component service instance at a time.";
+	  }
+	  enum x_active
+	  {
+	    description "for a certain component service type, the component cannot be assigned the standby HA state for component service instances, but it can be assigned the active HA state for x component service instances at a time.";
+	  }
+	  enum one_active
+	  {
+	    description "for a certain component service type, the component cannot be assigned the standby HA state for component service instances, but it can be assigned the active HA state for only one component service instance at a time.";
+	  }
+*/
+
+	}
+        SAFplusTypes:ui-prompt "Capability:";
+        default x_active_or_y_standby;
+      }
+
+      leaf maxActiveAssignments
+      {
+	SAFplusTypes:alias saAmfCompNumMaxActiveCSIs;
+	SAFplusTypes:ui-prompt "Active Work:";
+	type uint32;
+	default 1;
+	description "Maximum number of active work assignments this component can handle.";
+        SAFplusTypes:ui-commonRange "0..100";
+      }
+
+      leaf maxStandbyAssignments
+      {
+	SAFplusTypes:alias saAmfCompNumMaxStandbyCSIs;
+	SAFplusTypes:ui-prompt "Standby Work:";
+	type uint32;
+	default 1;
+	description "Maximum number of standby work assignments this component can handle.";
+        SAFplusTypes:ui-commonRange "0..100";
+      }
+
+      container activeAssignments
+      {
+	SAFplusTypes:alias saAmfCompNumCurrActiveCSIs;
+        SAFplusTypes:c-existing "SAFplus::MgtHistoryStat<int>";
+	uses SAFplusTypes:intStatistic;
+	description "Current number of active work assignments this component is handling.";
+        config false;
+      }
+      container standbyAssignments
+      {
+	SAFplusTypes:alias saAmfCompNumCurrStandbyCSIs;
+        SAFplusTypes:c-existing "SAFplus::MgtHistoryStat<int>";
+	uses SAFplusTypes:intStatistic;
+	description "Current number of standby work assignments this component is handling.";
+        config false;
+      }
+      leaf-list assignedWork
+      {
+	SAFplusTypes:alias saAmfCompAssignedCsi;
+	type instance-identifier;
+	description "Currently assigned work.";
+        config false;
+      }
+
+
+      leaf operState
+      {
+	type boolean;
+	description "True is enabled, False is disabled.  To move from False to True a 'repair' action must occur.";
+        config false;
+        SAFplusTypes:settable true;
+        default true;
+      }
+
+      leaf readinessState
+      {
+        type ReadinessState;
+        config false;
+      }
+	
+      leaf haReadinessState
+      {
+        type HighAvailabilityReadinessState;
+        config false; // Application can change this, but not management interface
+	description "This state field covers ALL work assignments.  If this field is set to notReadyForAssignment then SAFplus will not assign work.  So the application can call saAmfHAReadinessStateSet() upon startup (or any other time) to enable or disable work assignments.";
+      }
+    
+      leaf haState
+      {
+	type HighAvailabilityState;
+	config false;
+      }
+
+      leaf safVersion
+      {
+	type string;
+	description "Compatible SA-Forum API version";
+        default "B.04.01";
+        config false;  // The version is determined when the component registers via the saAmfInitialize API call
+      }
+
+      leaf compCategory
+      {
+	type uint32;
+        description "Information about the type of component, as defined in sec 7.4.8 of AMF-B.04.01.  This is C type: SaAmfCompCategoryT, and its value is set based on other configuration (namely the component capabilities and whether a proxy is defined)";
+        config false;
+      }
+
+      leaf csiType
+      {
+        description "type of csi assigned for component";
+        type string;
+      }
+
+      leaf swBundle
+      {
+	type string;
+	description "What software installation bundle does this component come from";
+	config false;
+      }
+
+      leaf-list commandEnvironment
+      {
+	type string;
+	description "List of environment variables in the form '<VARIABLE>=<VALUE>\n<VARIABLE2>=<VALUE2>\n' the form the environment in which this component should be started";
+	SAFplusTypes:ui-prompt "Environment";
+      }
+
+      container instantiate
+      {
+	uses execution;
+	description "How to start up this component";
+	SAFplusTypes:ui-prompt "Execution";
+      }
+
+      container terminate
+      {
+	uses execution;
+	description "Optional: This will be run just before the component's process (if it exists) is told to terminate.";
+	SAFplusTypes:ui-prompt "Termination";
+      }
+
+      container cleanup
+      {
+	uses execution;
+	description "Optional: This will be run after the component stops for any reason (terminate or fault) so long as the node (machine) is still running.";
+      }
+
+      leaf instantiateLevel
+      {
+	type uint32;
+	config true;
+	description "Order of component instantiation in a service unit";        
+        default 0; // 30 second default
+      }
+
+      leaf maxInstantInstantiations
+      {
+	SAFplusTypes:alias saAmfCompNumMaxInstantiateWithoutDelay;
+	type uint32;
+	default 1;
+	description "How many times to attempt to instantiate this entity without delay.  If the number of instantiation attempts exceeds both this and the max delayed instantiations field, the fault will be elevated to the Service Unit level.";
+	SAFplusTypes:ui-prompt "Instant starts";
+      }
+
+      leaf maxDelayedInstantiations
+      {
+	SAFplusTypes:alias saAmfCompNumMaxInstantiateWithoutDelay;
+	type uint32;
+	default 1;
+	description "How many times to attempt to instantiate this entity after an initial delay.  If the number of instantiation attempts exceeds both this and the max instant instantiations field, the fault will be elevated to the Service Unit level.";
+	SAFplusTypes:ui-prompt "Delayed starts";
+      }
+
+      leaf numInstantiationAttempts
+      {
+        type uint32;
+        config false; // Application can change this, but not management interface
+	description "The number of times this application has been attempted to be instantiated";
+      }
+
+      leaf instantiationSuccessDuration
+      {
+	type uint32;
+	config true;
+	description "If this component remains instantiated for this length of time (in milliseconds), the component is deemed to be successfully instantiated and the numInstantiationAttempts field is zeroed.";
+        SAFplusTypes:ui-prompt "Startup OK time";
+        default 30000; // 30 second default
+      }
+
+      leaf lastInstantiation
+	{
+	  type SAFplusTypes:date;
+	  config false;
+	  description "The last time an instantiation attempt occurred";
+	}
+
+      leaf delayBetweenInstantiation
+      {
+	SAFplusTypes:alias saAmfCompDelayBetweenInstantiationAttempts;
+	type uint32;
+	default 10000;
+	description "How long to delay between instantiation attempts";
+	SAFplusTypes:ui-prompt "Start Delay: ";
+      }
+
+      container timeouts
+      {
+        leaf terminate
+        {
+	  SAFplusTypes:ui-prompt "Terminate";
+	  type SAFplusTypes:SaTimeT;
+	  default 120000; // 2 minutes
+	  description "How much time to give a component to gracefully shut down before faulting it, in milliseconds.";        
+        }
+
+	leaf quiescingComplete
+	{
+	  SAFplusTypes:alias saAmfCompQuiescingCompleteTimeout;
+	  SAFplusTypes:ui-prompt "Quiescing complete";
+	  type SAFplusTypes:SaTimeT;
+	  default 120000; // 2 minutes
+	  description "How much time to give a component to gracefully finish handling its work before faulting it, in milliseconds.";
+	}
+	leaf workRemoval
+	{
+	  SAFplusTypes:alias saAmfCompCSIRmvCallbackTimeout;
+	  SAFplusTypes:ui-prompt "Work removal";
+	  type SAFplusTypes:SaTimeT;
+	  default 120000; // 2 minutes
+	  description "How much time to give a component to execute its work (component service instance) removal callback before faulting the component.  Specified in milliseconds.";
+	}
+
+	leaf workAssignment
+	{
+	  SAFplusTypes:alias saAmfCompCSISetCallbackTimeout;
+	  SAFplusTypes:ui-prompt "Work assignment";
+	  type SAFplusTypes:SaTimeT;
+	  default 120000; // 2 minutes
+	  description "How much time to give a component to execute its work (component service instance) removal callback before faulting the component.  Specified in milliseconds.";
+	}
+      }
+
+     leaf serviceUnit
+     {
+        type instance-identifier;
+        SAFplusTypes:c-type "ServiceUnit*";
+        SAFplusTypes:ui-container 1;
+        SAFplusTypes:instance-type "ServiceUnit";
+     }
+
+      leaf recovery
+      {
+	type enumeration
+	{
+	  enum NoRecommendation { value 1; }
+	  enum CompRestart
+	  { 
+	    value 2; 
+	    description "The erroneous component should be terminated and reinstantiated.";
+	  }
+	  enum CompFailover
+	  { 
+	    value 3; 
+	    description "Depending on the redundancy model used, either the component or the service unit containing the component should fail over to another node.";
+	  }
+	  enum NodeSwitchover 
+	  { 
+	    value 4; 
+	    description "Service instances containing component service instances assigned to the failed component are failed over while other service instances
+are switched over to other nodes (component service instances are not abruptly removed; instead, they are brought to the quiesced state before being removed).";
+	  }
+	  enum NodeFailover 
+	  { 
+	    value 5; 
+	    description "No service instance should be assigned to service units on that node. All service instances assigned to service units contained in the node are failed over to other nodes (by an abrupt termination of all node-local components).";
+	  }
+	  enum NodeFailfast
+	  {
+	    value 6;
+	    description "The node should be rebooted using a low-level interface.";
+	  }
+	  enum ClusterReset
+	  {
+	    value 7;
+	    description "The cluster should be reset. In order to execute this function, the Availability Management Framework reboots all nodes that are part of the cluster by using a low level interface without trying to terminate the components individually.  All AMF nodes are first terminated before any of the AMF nodes starts to instantiate again.";
+	  }
+	  enum ApplicationRestart
+	  {
+	    value 8;
+	    description "The application should be completely terminated and then started again by first terminating all of its service units and then starting them again, ensuring that during the termination phase of the restart procedure service instances of the application are not reassigned.";
+	  }
+	  enum ContainerRestart
+	  {
+	    value 9;
+	    description "Terminate all contained components and the container component abruptly and then instantiate them again.";
+	  }
+	    
+	}
+        default NoRecommendation;
+
+      }
+
+      leaf restartable
+      {
+	type boolean;
+	default true;
+	description "Set to true if this component can be restarted on failure, without this event registering as a fault";
+      }
+
+     container restartCount
+      {
+	SAFplusTypes:alias saAmfCompRestartCount;
+        SAFplusTypes:c-existing "SAFplus::MgtHistoryStat<int>";
+	uses SAFplusTypes:intStatistic;
+        config false;
+      }
+
+     // saAmfCompProxyCsi? and saAmfCompContainerCsi?
+
+     leaf proxy
+     {
+       SAFplusTypes:alias saAmfCompCurrProxyName;
+       type instance-identifier;
+       description "The component listed here is this component's proxy.";
+     }
+
+     leaf-list proxied
+     {
+       SAFplusTypes:alias saAmfCompCurrProxiedNames;
+       type instance-identifier;
+       description "This component is the proxy for the components listed here.";
+     }
+
+    leaf processId
+      {
+      description "The process id of this component (if it is instantiated as a process), or 0";
+      default 0;
+      type int32;
+      config false;
+      SAFplusTypes:replicated true;
+      }
+
+    leaf lastError
+      {
+	description "The last error generated by operations on this component";
+	type string;
+	config false;
+      }
+
+    leaf pendingOperation
+      {
+	description "The system is currently attempting the following operation on the component";	
+	config false;
+
+	type enumeration
+	{
+	  enum none { value 0; }
+	  enum instantiation
+	  { 
+	    value 1; 
+	    description "This component is being started";
+	  }
+	  enum shutdown
+	  { 
+	    value 2; 
+	    description "This component is being stopped";
+	  }
+	  enum workAssignment
+	  { 
+	    value 3; 
+	    description "This component is being assigned active or standby work";
+	  }
+	  enum workRemoval
+	  { 
+	    value 4; 
+	    description "Active or standby work is being removed from this component";
+	  }
+        }
+      }
+
+    leaf pendingOperationExpiration
+      {
+	description "When the system will give up on the pending operation, in milliseconds since the epoch";
+	type SAFplusTypes:date;
+	config false;
+        default 0;
+      }
+
+
+    }
 
     list ComponentServiceInstance
     {
