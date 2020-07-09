@@ -735,6 +735,7 @@ module SAFplusAmf
       {
         description "type of csi assigned for component";
         type string;
+        config false;
       }
 
       leaf swBundle
@@ -1184,6 +1185,7 @@ are switched over to other nodes (component service instances are not abruptly r
       {
         description "type of csi assigned for component";
         type string;
+        config false;
       }
 
       leaf swBundle
@@ -1405,6 +1407,13 @@ are switched over to other nodes (component service instances are not abruptly r
        type instance-identifier;
        description "This component is the proxy for the components listed here.";
      }
+
+     leaf proxyCSI
+      {
+        description "type of csi assigned for component";
+        type string;
+        config false;
+      }
 
     leaf processId
       {

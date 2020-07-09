@@ -93,8 +93,12 @@ instantiated  <instances>     instances                         instances     (e
     entname = entity.data["name"]
     for (name,e) in self.entities.items():
       e.containmentArrows[:] = [ x for x in e.containmentArrows if x.contained != entity]
-    del self.entities[entname]
-
+      for k,v in e.data.items():         
+         if (v == entity.data['name']):
+            e.data[k] = ''
+            break
+    del self.entities[entname]   
+       
     # Also delete the entity from the microdom
     #entities = self.data.getElementsByTagName("entities")
     #if entities:

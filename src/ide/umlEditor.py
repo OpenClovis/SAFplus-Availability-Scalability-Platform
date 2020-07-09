@@ -190,8 +190,16 @@ class LinkTool(Tool):
                 self.err = FadingX(panel,pos,1)
               else:
                 # Add the arrow into the model.  the arrow's location is relative to the objects it connects
+                #print 'starten: %s, endE: %s' % (self.startEntity.data['name'],self.endEntity.data['name'])
                 ca = ContainmentArrow(self.startEntity, (line[0][0]-self.startEntity.pos[0],line[0][1] - self.startEntity.pos[1]), self.endEntity, (line[1][0]-self.endEntity.pos[0],line[1][1]-self.endEntity.pos[1]), [line[2]] if len(line)>1 else None)
                 self.startEntity.containmentArrows.append(ca)
+                if (self.endEntity.data['entityType'] == 'Component' or self.endEntity.data['entityType'] == 'NonSafComponent') and self.startEntity.data['entityType']=='ComponentServiceInstance':
+                   self.endEntity.data['csiType'] = self.startEntity.data['name']
+                if self.startEntity.data['entityType'] == 'Component' and self.endEntity.data['entityType']=='NonSafComponent':
+                   self.endEntity.data['proxyCSI'] = self.startEntity.data['csiType']
+                #print str(self.startEntity.data)
+                #print '\n\n'
+                #print str(self.endEntity.data)
 
     return ret
     
@@ -475,6 +483,10 @@ class DeleteTool(Tool):
         if math.fabs(l1+l2-l) < 0.08:
           e.containmentArrows.remove(arrow)
           model.deleteWireFromMicrodom(name, arrow.contained.data['name'])
+          if (arrow.contained.data['entityType'] == 'Component' or arrow.contained.data['entityType'] == 'NonSafComponent') and arrow.container.data['entityType']=='ComponentServiceInstance':
+             arrow.contained.data['csiType'] = ''
+          if arrow.container.data['entityType'] == 'Component' and arrow.contained.data['entityType']=='NonSafComponent':
+             arrow.contained.data['proxyCSI'] = ''
 
   def OnEditEvent(self,panel,event):
     pos = panel.CalcUnscrolledPosition(event.GetPositionTuple())

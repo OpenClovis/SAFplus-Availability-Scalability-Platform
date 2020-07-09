@@ -206,7 +206,7 @@ class Entity:
       # if isRelationshipExist(entity):
       #   return RLS_ERR_EXISTS
       return RLS_OK
-    if self.et.name=="ComponentServiceInstance" and entity.et.name=="Component":
+    if self.et.name=="ComponentServiceInstance" and (entity.et.name=="Component" or entity.et.name=="NonSafComponent"):
       for arrow in self.containmentArrows:
         if arrow.contained == entity:
           return RLS_ERR_EXISTS
