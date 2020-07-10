@@ -195,6 +195,7 @@ class LinkTool(Tool):
                 self.startEntity.containmentArrows.append(ca)
                 if (self.endEntity.data['entityType'] == 'Component' or self.endEntity.data['entityType'] == 'NonSafComponent') and self.startEntity.data['entityType']=='ComponentServiceInstance':
                    self.endEntity.data['csiType'] = self.startEntity.data['name']
+                   self.updateProxyCSI(self.endEntity)
                 if self.startEntity.data['entityType'] == 'Component' and self.endEntity.data['entityType']=='NonSafComponent':
                    self.endEntity.data['proxyCSI'] = self.startEntity.data['csiType']
                 #print str(self.startEntity.data)
@@ -209,7 +210,14 @@ class LinkTool(Tool):
     panel.entities.append(self.entityType.createEntity(position, size))
     panel.Refresh()
     return True
- 
+
+  def updateProxyCSI(self, proxyComp):
+    for arrow in proxyComp.containmentArrows:
+       proxiedComp = arrow.contained
+       for name,e in share.umlEditorPanel.model.entities.items():
+          if proxiedComp.data['name'] == e.data['name']:
+             proxiedComp.data['proxyCSI'] = proxyComp.data['csiType']
+             break
 
 class SelectTool(Tool):
   def __init__(self, panel):
@@ -480,13 +488,14 @@ class DeleteTool(Tool):
         l = self.getDistance(pos_1, pos_2)
         l1 = self.getDistance(pos_1, pos)
         l2 = self.getDistance(pos_2, pos)
-        if math.fabs(l1+l2-l) < 0.08:
-          e.containmentArrows.remove(arrow)
-          model.deleteWireFromMicrodom(name, arrow.contained.data['name'])
+        if math.fabs(l1+l2-l) < 0.08:          
           if (arrow.contained.data['entityType'] == 'Component' or arrow.contained.data['entityType'] == 'NonSafComponent') and arrow.container.data['entityType']=='ComponentServiceInstance':
              arrow.contained.data['csiType'] = ''
+             self.removeProxyCSI(arrow.contained)
           if arrow.container.data['entityType'] == 'Component' and arrow.contained.data['entityType']=='NonSafComponent':
              arrow.contained.data['proxyCSI'] = ''
+          e.containmentArrows.remove(arrow)
+          model.deleteWireFromMicrodom(name, arrow.contained.data['name'])
 
   def OnEditEvent(self,panel,event):
     pos = panel.CalcUnscrolledPosition(event.GetPositionTuple())
@@ -544,6 +553,13 @@ class DeleteTool(Tool):
         ent = ents[0]
       self.panel.deleteEntities([ent])
 
+  def removeProxyCSI(self, proxyComp):    
+    for arrow in proxyComp.containmentArrows:
+       proxiedComp = arrow.contained
+       for name,e in share.umlEditorPanel.model.entities.items():
+          if proxiedComp.data['name'] == e.data['name']:
+             proxiedComp.data['proxyCSI'] = ''
+             break
 # Global of this panel for debug purposes only.  DO NOT USE IN CODE
 dbgUep = None
 
