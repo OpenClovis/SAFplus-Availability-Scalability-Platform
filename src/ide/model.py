@@ -357,17 +357,14 @@ instantiated  <instances>     instances                         instances     (e
       #  proxyComps.append(e)
         
     #print 'generateSource: %s' %str(proxyComps)
-    
     srcDir = os.sep.join([srcDir, "src"])
-    files = []  
-    files += generate.topMakefile(output, srcDir,[c.data["name"] for c in comps])
-
-    proxyFiles = []  
-    proxyFiles += generate.topMakefile(output, srcDir,[proxy.data["name"] for proxy in proxyComps])
+    files = []
+    files += generate.topMakefile(output, srcDir,[c.data["name"] for c in comps+proxyComps])    
 
     for c in comps:
       files += generate.cpp(output, srcDir, c, c.data)
 
+    proxyFiles = []
     for proxy in proxyComps:
       proxyFiles += generate.cpp(output, srcDir, proxy, proxy.data, True)
 
