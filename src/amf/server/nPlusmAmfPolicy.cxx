@@ -20,8 +20,7 @@ namespace SAFplus
  
   const char* oper_str(bool val) { if (val) return "enabled"; else return "disabled"; }
   bool compareEntityRecoveryScope(Recovery a, Recovery b);
-
-  class NplusMPolicy:public ClAmfPolicyPlugin_1
+class NplusMPolicy:public ClAmfPolicyPlugin_1
     {
   public:
     NplusMPolicy();
@@ -90,16 +89,33 @@ namespace SAFplus
   return (a->rank.value < b->rank.value);
   }
 
+  bool EarliestLevel(Component* a, Component* b)
+  {
+	  assert(a);
+	  assert(b);
+	  if (b->instantiateLevel.value == 0) return true;
+	  if(a->instantiateLevel.value == 0) return false;
+	  return (a->instantiateLevel.value < b->instantiateLevel.value);
+  }
+
   int ServiceGroupPolicyExecution::start(ServiceUnit* su,Wakeable& w)
     {
     int ret=0;
-    //SAFplus::MgtProvList<SAFplusAmf::Component*>::ContainerType::iterator   itcomp;
-    //SAFplus::MgtProvList<SAFplusAmf::Component*>::ContainerType::iterator   endcomp = su->components.value.end();
-    SAFplus::MgtIdentifierList<SAFplusAmf::Component*>::iterator itcomp;
-    SAFplus::MgtIdentifierList<SAFplusAmf::Component*>::iterator endcomp = su->components.listEnd();
-    for (itcomp = su->components.listBegin(); itcomp != endcomp; itcomp++)
+    static bool isAlreadySorted = false;
+    static std::vector<SAFplusAmf::Component*> sortedComps;
+    std::vector<SAFplusAmf::Component*>::iterator itcomp, endcomp;
+
+    sortedComps << su->components;
+    if(!isAlreadySorted)
+    {
+	/* Sort the list of the components. */
+	boost::sort(sortedComps, EarliestLevel);
+    	isAlreadySorted = true;
+    }   
+    endcomp = sortedComps.end();
+    for (itcomp = sortedComps.begin(); itcomp != endcomp; itcomp++)
       {
-      Component* comp = dynamic_cast<Component*>(*itcomp);
+      Component* comp = *itcomp;
       if (!comp->serviceUnit.value)
         {
           comp->serviceUnit.updateReference(); // find the pointer if it is not resolved         
@@ -140,8 +156,8 @@ namespace SAFplus
         logDebug("N+M","STRT","Not starting [%s]. Must wait [%" PRIu64 "] more milliseconds.",comp->name.value.c_str(),comp->delayBetweenInstantiation + comp->lastInstantiation.value.value - curTime);
         continue;
         }
-
-      logInfo("N+M","STRT","Starting component [%s]", comp->name.value.c_str());
+	int minInstantiateLevel = comp->instantiateLevel;
+      logInfo("N+M","STRT","Starting component [%s], with instantiateLevel = %d", comp->name.value.c_str(), minInstantiateLevel);
       try
         {
         CompStatus status = amfOps->getCompState(comp);
@@ -166,8 +182,9 @@ namespace SAFplus
       logInfo("N+M","STRT","Starting service group [%s]", name.c_str());
       if (1) // TODO: figure out if this Policy should control this Service group
         {
-        std::vector<SAFplusAmf::ServiceUnit*> sus; //(sg->serviceUnits.value.begin(),sg->serviceUnits.value.end());
+        std::vector<SAFplusAmf::ServiceUnit*> sus;//(sg->serviceUnits.value.begin(),sg->serviceUnits.value.end());
         sus << sg->serviceUnits;
+
 
         // Sort the SUs by rank so we start them up in the proper order.
         boost::sort(sus,suEarliestRanking);
