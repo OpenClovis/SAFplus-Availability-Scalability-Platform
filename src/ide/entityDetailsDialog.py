@@ -494,6 +494,9 @@ class Panel(scrolled.ScrolledPanel):
     def createControl(self,id,item, value, nameCtrl):
       """Create the best GUI control for this type of data"""
       # pdb.set_trace()
+      #print '\nbegin item\n%s\nend item\n'%str(item)
+      if item[0]=='proxyCSI'or item[0]=='csiType':
+        return None
       typeData = item[1]
       if type(typeData) is DictType and typeData.has_key("type"):
         if typeData["type"] == "boolean":

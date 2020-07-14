@@ -702,12 +702,15 @@ class GenerateTool(Tool):
         self.executeBackupSource()
         src_bak = True
       # code gen must be per-component -- not generation of one type of application
-      files = panel.model.generateSource(self.panel.model.directory())
+      print 'gen source...'
+      files,proxyFiles = panel.model.generateSource(self.panel.model.directory())
+      print 'files gen: files %s\nproxies %s\n' %(str(files),str(proxyFiles))
       self.panel.statusBar.SetStatusText("Code generation complete")
       # add these files to the "source" part of the project tab and update the project xml file
       #print files
       # parentFrame = self.panel.guiPlaces.frame
       parentFrame.project.updateTreeItem(parentFrame.currentActivePrj, texts.src, files)
+      parentFrame.project.updateTreeItem(parentFrame.currentActivePrj, texts.src, proxyFiles)
       if src_bak:
         parentFrame.project.updateTreeItem(parentFrame.currentActivePrj, texts.src_bak)
     return False

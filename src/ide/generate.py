@@ -59,7 +59,7 @@ def topMakefile(output, srcDir,dirNames):
     return [srcDir + os.sep + "Makefile"]
 
 
-def cpp(output, srcDir, comp,ts_comp):
+def cpp(output, srcDir, comp,ts_comp, proxy=False):
     # Create main
     compName = str(comp.data["name"])
 
@@ -70,11 +70,21 @@ def cpp(output, srcDir, comp,ts_comp):
       ts_comp['instantiate_command'] = comp.data["instantiate"]["command"].split()[0]
     except:
       pass
-
-    cpptmpl = templateMgr.loadPyTemplate(TemplatePath + "main.cpp.ts")
+    
+    if not proxy:
+      print 'gen cpp for non-proxy'
+      cpptmpl = templateMgr.loadPyTemplate(TemplatePath + "main.cpp.ts")
+    else:
+      print 'gen cpp for proxy'
+      cpptmpl = templateMgr.loadPyTemplate(TemplatePath + "mainProxy.cpp.ts")
 
     s = cpptmpl.safe_substitute(**ts_comp)
-    output.write(srcDir + os.sep + compName + os.sep + "main.cxx", s)
+    if not proxy:
+      print 'create cpp for non-proxy'
+      output.write(srcDir + os.sep + compName + os.sep + "main.cxx", s)
+    else:
+      print 'create cpp for proxy'
+      output.write(srcDir + os.sep + compName + os.sep + "proxyMain.cxx", s)
   
     # Create Makefile
     tmpl = templateMgr.loadPyTemplate(TemplatePath + "Makefile.cpp.ts")

@@ -315,17 +315,63 @@ instantiated  <instances>     instances                         instances     (e
     contained.childOf.add(container)
     return ca
 
-  def generateSource(self,srcDir):
+  def isProxyOf(self,proxy, proxied):
+    if proxy.data['csiType']==proxied.data['proxyCSI']:
+      #print 'same csi for proxied [%s]'%proxied.data['name']
+      for ca in proxy.containmentArrows:
+        #print 'ca of [%s]: container [%s]. contained [%s]' %(proxy.data['name'],ca.container.data['name'],ca.contained.data['name'])
+        if ca.contained.data['name']==proxied.data['name']:
+          #print 'proxied found'
+          return True
+    #print 'no proxied found'
+    return False
+     
 
+  def generateSource(self,srcDir):
+    #print 'eneter generateSource'
     output = common.FilesystemOutput()
-    comps = filter(lambda entity: entity.et.name == 'Component', self.entities.values())
+    #comps = filter(lambda entity: entity.et.name == 'Component' and entity.data['NonSafComponents']!='', self.entities.values()) # SA_Aware comp no proxied
+    #proxyComps = filter(lambda entity: entity.et.name == 'Component' and len(entity.data['NonSafComponents'])>0, self.entities.values())
+    comps = []
+    proxyComps = []
+    for c in filter(lambda entity: entity.et.name == 'Component',self.entities.values()):
+      noProxied = True
+      #print '%s\n\n'%c.data
+      #print 'in outer loop'
+      for nsc in filter(lambda entity: entity.et.name == 'NonSafComponent',self.entities.values()):
+        #print '%s\n\n'%nsc.data
+        #print 'in inner loop'
+        if self.isProxyOf(c, nsc):             
+          proxyComps.append(c)
+          noProxied = False
+          print 'found proxied. break'
+          break
+        #print 'continue inner loop'
+      if noProxied:
+        comps.append(c)
+      #print 'continue outer loop'
+
+      #if e.et.name == 'Component' and e.data.has_key('NonSafComponents') and len(e.data['NonSafComponents'])==0:
+      #  comps.append(e)
+      #elif e.et.name == 'Component' and e.data.has_key('NonSafComponents') and len(e.data['NonSafComponents'])>0:
+      #  proxyComps.append(e)
+        
+    #print 'generateSource: %s' %str(proxyComps)
+    
     srcDir = os.sep.join([srcDir, "src"])
     files = []  
     files += generate.topMakefile(output, srcDir,[c.data["name"] for c in comps])
 
+    proxyFiles = []  
+    proxyFiles += generate.topMakefile(output, srcDir,[proxy.data["name"] for proxy in proxyComps])
+
     for c in comps:
       files += generate.cpp(output, srcDir, c, c.data)
-    return files
+
+    for proxy in proxyComps:
+      proxyFiles += generate.cpp(output, srcDir, proxy, proxy.data, True)
+
+    return files,proxyFiles
 
 
   def load(self, fileOrString):

@@ -190,6 +190,10 @@ class Entity:
       # if isRelationshipExist(entity):
       #   return RLS_ERR_EXISTS
       return RLS_OK
+    if self.et.name=="ServiceUnit" and entity.et.name=="NonSafComponent":
+      # if isRelationshipExist(entity):
+      #   return RLS_ERR_EXISTS
+      return RLS_OK
     if self.et.name=="ServiceGroup" and (entity.et.name=="ServiceInstance" or entity.et.name=="ServiceUnit"):
       for arrow in self.containmentArrows:
         if arrow.contained.et.name == "ServiceUnit":

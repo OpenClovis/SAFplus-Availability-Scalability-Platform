@@ -735,7 +735,7 @@ module SAFplusAmf
       {
         description "type of csi assigned for component";
         type string;
-        config false;
+        //config false;
       }
 
       leaf swBundle
@@ -1044,7 +1044,7 @@ are switched over to other nodes (component service instances are not abruptly r
         }
         default "proxied_preinstantiable";
         SAFplusTypes:ui-prompt "Component type:";
-        config true;
+        config false;
       }
       // No adminState; this is controlled by the ServiceUnit
 
@@ -1185,7 +1185,7 @@ are switched over to other nodes (component service instances are not abruptly r
       {
         description "type of csi assigned for component";
         type string;
-        config false;
+        //config false;
       }
 
       leaf swBundle
@@ -1412,7 +1412,7 @@ are switched over to other nodes (component service instances are not abruptly r
       {
         description "type of csi assigned for component";
         type string;
-        config false;
+        //config false;
       }
 
     leaf processId
