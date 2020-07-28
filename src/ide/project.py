@@ -1257,6 +1257,9 @@ class ProjectTreePanel(wx.Panel):
       self.guiPlaces.frame.modelProblems.SetStringItem(index, 1, problem['msg'])
       self.guiPlaces.frame.modelProblems.SetStringItem(index, 2, problem['source'])
 
+    if self.guiPlaces.frame.modelProblems.GetItemCount()>0:
+      self.guiPlaces.frame.prjSplitter2.SetSashPosition(400)
+
   def OnDeploy(self, event):
     if not self.tree.GetFirstVisibleItem().IsOk(): return
     if not share.detailsPanel.model.instances:
@@ -2277,6 +2280,7 @@ class NewPrjDialog(wx.Dialog):
         main_sizer.Add(prjname_sizer, 0, wx.ALL, 5)
         main_sizer.Add(prjlocation_sizer, 0, wx.ALL, 5)
         main_sizer.Add(datamodel_sizer, 0, wx.ALL, 5)
+        main_sizer.AddSpacer((0,50))
  
         OK_btn = wx.Button(self, label="OK")
         OK_btn.Bind(wx.EVT_BUTTON, self.onBtnHandler)
@@ -2284,10 +2288,10 @@ class NewPrjDialog(wx.Dialog):
         cancel_btn.Bind(wx.EVT_BUTTON, self.onBtnHandler)
   
         btn_sizer = wx.BoxSizer(wx.HORIZONTAL)
-        btn_sizer.Add(OK_btn, 0, wx.ALL|wx.CENTER, 5)
-        btn_sizer.Add(cancel_btn, 0, wx.ALL|wx.CENTER, 5)  
+        btn_sizer.Add(OK_btn, 0, wx.ALL|wx.CENTER, 0)
+        btn_sizer.Add(cancel_btn, 0, wx.ALL, 10)  
               
-        main_sizer.Add(btn_sizer, 0, wx.ALL|wx.CENTER, 5)
+        main_sizer.Add(btn_sizer, 0, wx.ALL|wx.ALIGN_RIGHT, 0)
 
         self.SetSizer(main_sizer)
         main_sizer.Layout()
