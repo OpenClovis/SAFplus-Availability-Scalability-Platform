@@ -336,18 +336,21 @@ class ProjectTreePanel(wx.Panel):
         self.problems = []
         self.prjProperties = {}
         # self.getPrjProperties()
-
+        
+        # Children of an element. 
         self.entitiesRelation = {
           "Application"             : None, #Skip validation for Application entity
           "ServiceGroup"            :["ServiceInstance", "ServiceUnit"],
           "ServiceInstance"         :["ComponentServiceInstance"],
-          "ComponentServiceInstance":["Component"],
-          "Component"               :None,
+          "ComponentServiceInstance":["Component", "NonSafComponent"],
+          "Component"               : None,
           "Cluster"                 :["Node"],
           "Node"                    :["ServiceUnit"],
-          "ServiceUnit"             :["Component"]
+          "ServiceUnit"             :["Component", "NonSafComponent"],
+          "NonSafComponent"         : None   
         }
-
+        
+        # Parent of a element. 
         self.entitiesParent = {
           "Application"             : None, #Skip validation for Application entity
           "ServiceGroup"            : None,
@@ -356,7 +359,8 @@ class ProjectTreePanel(wx.Panel):
           "Component"               :["ComponentServiceInstance", "ServiceUnit"],
           "Cluster"                 :None,
           "Node"                    :["Cluster"],
-          "ServiceUnit"             :["Node", "ServiceGroup"]
+          "ServiceUnit"             :["Node", "ServiceGroup"],
+          "NonSafComponent"         :["Component", "ComponentServiceInstance", "ServiceUnit"]
         }
 
         self.warn = "WARNNING"
@@ -1076,13 +1080,23 @@ class ProjectTreePanel(wx.Panel):
     if nServiceGroup == 0:
       msg = "There are no ServiceGroup instances defined in AMF Configuration"
       self.updateProblems(self.warn, msg, self.instantiation)
-
+        
   def validateComponentModel(self):
+    '''
+    @summary    : Check Cluster in project
+    '''  
     cntCluster = 0
     for (name, e) in share.detailsPanel.model.entities.items():
       if e.data['entityType'] == "Cluster":
-        cntCluster += 1
-
+        cntCluster += 1  
+      if e.data['entityType'] == "ComponentServiceInstance":
+        for link in e.containmentArrows:
+          # CSI can only have either Components or NonSafComponents.   
+          if link.contained.data['entityType'] == "NonSafComponent":
+            for existComp in e.containmentArrows:
+              if existComp.contained.data['entityType'] == "Component":
+                msg = "Single CSI type shared by a Proxy and Proxied is not valid"
+                self.updateProblems(self.error, msg, self.modelling)           
     if cntCluster == 0:
       msg = "Model should contain at least one Cluster"
       self.updateProblems(self.error, msg, self.modelling)
@@ -1198,6 +1212,7 @@ class ProjectTreePanel(wx.Panel):
     for (name, e) in share.detailsPanel.model.entities.items():
       eType = e.data["entityType"]
       self.validateParentOfComponent(name, eType)
+      '''
       if self.entitiesRelation[eType] is not None:
 
         for link in self.entitiesRelation[eType]:
@@ -1205,9 +1220,10 @@ class ProjectTreePanel(wx.Panel):
           for arrow in e.containmentArrows:
             if arrow.contained.data["entityType"] == link:
               result = True
-          if result is False:
-            msg = "%s is not associated to any of the %ss" % (e.data["name"], link)
-            self.updateProblems(self.error, msg, self.modelling)
+            if result is False:
+              msg = "%s is not associated to any of the %ss" % (e.data["name"], link)
+              self.updateProblems(self.error, msg, self.modelling)
+      '''        
 
   def validateParentOfComponent(self, cName, eType):
     '''
