@@ -96,7 +96,7 @@ do{\
     }\
 }while(0);
 
-# define CL_EVT_CHANNEL_KEY_GEN(channelScope,channelId) ((((channelScope)|0xFFFC)<<16)|(channelId))
+# define CL_EVT_CHANNEL_KEY_GEN(channelScope,channelId) ((((ClUint32T)((channelScope)|0xFFFC))<<16)|(channelId))
 
 # define CL_EVT_CHANNEL_SCOPE_GET_FROM_FLAG(flag) (flag&0x1)
 # define CL_CHANNEL_HANDLE 1

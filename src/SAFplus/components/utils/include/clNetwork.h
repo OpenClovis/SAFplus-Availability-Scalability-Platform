@@ -29,7 +29,7 @@ static  __inline__ ClInt64T clHtonl64(ClInt64T v)
         v1 = htonl(v1);
         v2 = htonl(v2);
     }
-    v = ((ClInt64T)v2 << 32) | v1;
+    v = (ClInt64T)((((ClUint64T)v2) << 32) | v1);
     return v;
 }
 
@@ -49,7 +49,7 @@ static __inline__ ClInt64T clNtohl64(ClInt64T v)
         v1 = ntohl(v1);
         v2 = ntohl(v2);
     }
-    v = ((ClInt64T)v2 << 32) | v1;
+    v = (ClInt64T)((((ClUint64T)v2) << 32) | v1);
     return v;
 }
 

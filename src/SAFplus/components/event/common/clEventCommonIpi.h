@@ -174,8 +174,8 @@ do{\
     /*
      * Form channel handle from ID and flag 
      */
-# define CL_EVT_CHANNEL_HANDLE_FORM(flag,evtChannelId) (((flag|CL_EVT_FLAG_SPACE16)<<16)|(evtChannelId))
-# define CL_EVT_CHANNEL_HANDLE_FROM_KEY_FLAG(flag,evtChannelKey) (((flag|CL_EVT_FLAG_SPACE16)<<16)|(evtChannelKey&0xffff))
+# define CL_EVT_CHANNEL_HANDLE_FORM(flag,evtChannelId) ((((ClUint32T)(flag|CL_EVT_FLAG_SPACE16))<<16)|(evtChannelId))
+# define CL_EVT_CHANNEL_HANDLE_FROM_KEY_FLAG(flag,evtChannelKey) ((((ClUint32T)(flag|CL_EVT_FLAG_SPACE16))<<16)|(evtChannelKey&0xffff))
 
     /*
      * Validate Init od EM is done or not 

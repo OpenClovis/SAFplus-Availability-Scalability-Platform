@@ -107,7 +107,7 @@ extern "C"
     /*
      * local flags
      */
-# define RMD_CALL_MSG_ASYNC 1<<31   /* if this bit is set the params are msg
+# define RMD_CALL_MSG_ASYNC ((ClUint32T)1)<<31   /* if this bit is set the params are msg
                                      * type */
 
     /*
