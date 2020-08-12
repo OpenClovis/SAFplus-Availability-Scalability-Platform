@@ -123,6 +123,10 @@ class EntityTypeTool(Tool):
     """Create a new instance of this entity type at this position"""
     panel.statusBar.SetStatusText("Created %s" % self.entityType.name,0);
     ent = self.entityType.createEntity(position, size)
+    if(ent.data["entityType"] == "ComponentServiceInstance"):
+      ent.data["type"] = ent.data["name"]
+    
+    
     panel.entities[ent.data["name"]] = ent
     panel.Refresh()
 
