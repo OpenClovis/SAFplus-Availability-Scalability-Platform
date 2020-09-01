@@ -910,8 +910,7 @@ namespace SAFplus
     }
     else
     {
-      logInfo("OPS","PROXY.READY","proxied comp [%s] has no proxy or redinessState of [%s] is [%s]", comp->name.value.c_str(), proxy?proxy->name.value.c
-_str():"Unknown",proxy?SAFplusAmf::c_str(proxy->readinessState.value):"Unknown");
+      logInfo("OPS","PROXY.READY","proxied comp [%s] has no proxy or redinessState of [%s] is [%s]", comp->name.value.c_str(), proxy?proxy->name.value.c_str():"Unknown",proxy?SAFplusAmf::c_str(proxy->readinessState.value):"Unknown");
     }
 
     return false;
