@@ -1196,7 +1196,7 @@ void preprocessDb(SAFplusAmf::SAFplusAmfModule& cfg)
       for (itcomp = cfg.safplusAmf.componentList.begin(); itcomp != endcomp; itcomp++)
       {
          Component* comp = dynamic_cast<Component*>(itcomp->second);
-         if (comp->proxyCSI.value.compare(csi->type.value))
+         if (comp->proxyCSI.value.compare(csi->type.value)==0)
          {
             logDebug("INI","PROC.DB", "turn on proxy CSI flag for CSI [%s]", csi->name.value.c_str());
             csi->isProxyCSI = true;
