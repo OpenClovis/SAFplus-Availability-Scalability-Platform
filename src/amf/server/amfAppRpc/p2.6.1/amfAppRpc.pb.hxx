@@ -43,6 +43,8 @@ class TerminateResponse;
 class KeyValuePairs;
 class WorkOperationRequest;
 class WorkOperationResponseRequest;
+class ProxiedComponentInstantiateRequest;
+class ProxiedComponentCleanupRequest;
 
 // ===================================================================
 
@@ -752,6 +754,234 @@ class WorkOperationResponseRequest : public ::google::protobuf::Message {
 
   void InitAsDefaultInstance();
   static WorkOperationResponseRequest* default_instance_;
+};
+// -------------------------------------------------------------------
+
+class ProxiedComponentInstantiateRequest : public ::google::protobuf::Message {
+ public:
+  ProxiedComponentInstantiateRequest();
+  virtual ~ProxiedComponentInstantiateRequest();
+
+  ProxiedComponentInstantiateRequest(const ProxiedComponentInstantiateRequest& from);
+
+  inline ProxiedComponentInstantiateRequest& operator=(const ProxiedComponentInstantiateRequest& from) {
+    CopyFrom(from);
+    return *this;
+  }
+
+  inline const ::google::protobuf::UnknownFieldSet& unknown_fields() const {
+    return _unknown_fields_;
+  }
+
+  inline ::google::protobuf::UnknownFieldSet* mutable_unknown_fields() {
+    return &_unknown_fields_;
+  }
+
+  static const ::google::protobuf::Descriptor* descriptor();
+  static const ProxiedComponentInstantiateRequest& default_instance();
+
+  void Swap(ProxiedComponentInstantiateRequest* other);
+
+  // implements Message ----------------------------------------------
+
+  ProxiedComponentInstantiateRequest* New() const;
+  void CopyFrom(const ::google::protobuf::Message& from);
+  void MergeFrom(const ::google::protobuf::Message& from);
+  void CopyFrom(const ProxiedComponentInstantiateRequest& from);
+  void MergeFrom(const ProxiedComponentInstantiateRequest& from);
+  void Clear();
+  bool IsInitialized() const;
+
+  int ByteSize() const;
+  bool MergePartialFromCodedStream(
+      ::google::protobuf::io::CodedInputStream* input);
+  void SerializeWithCachedSizes(
+      ::google::protobuf::io::CodedOutputStream* output) const;
+  ::google::protobuf::uint8* SerializeWithCachedSizesToArray(::google::protobuf::uint8* output) const;
+  int GetCachedSize() const { return _cached_size_; }
+  private:
+  void SharedCtor();
+  void SharedDtor();
+  void SetCachedSize(int size) const;
+  public:
+  ::google::protobuf::Metadata GetMetadata() const;
+
+  // nested types ----------------------------------------------------
+
+  // accessors -------------------------------------------------------
+
+  // optional uint64 invocation = 1;
+  inline bool has_invocation() const;
+  inline void clear_invocation();
+  static const int kInvocationFieldNumber = 1;
+  inline ::google::protobuf::uint64 invocation() const;
+  inline void set_invocation(::google::protobuf::uint64 value);
+
+  // optional string componentName = 2;
+  inline bool has_componentname() const;
+  inline void clear_componentname();
+  static const int kComponentNameFieldNumber = 2;
+  inline const ::std::string& componentname() const;
+  inline void set_componentname(const ::std::string& value);
+  inline void set_componentname(const char* value);
+  inline void set_componentname(const char* value, size_t size);
+  inline ::std::string* mutable_componentname();
+  inline ::std::string* release_componentname();
+  inline void set_allocated_componentname(::std::string* componentname);
+
+  // repeated bytes componentHandle = 3;
+  inline int componenthandle_size() const;
+  inline void clear_componenthandle();
+  static const int kComponentHandleFieldNumber = 3;
+  inline const ::std::string& componenthandle(int index) const;
+  inline ::std::string* mutable_componenthandle(int index);
+  inline void set_componenthandle(int index, const ::std::string& value);
+  inline void set_componenthandle(int index, const char* value);
+  inline void set_componenthandle(int index, const void* value, size_t size);
+  inline ::std::string* add_componenthandle();
+  inline void add_componenthandle(const ::std::string& value);
+  inline void add_componenthandle(const char* value);
+  inline void add_componenthandle(const void* value, size_t size);
+  inline const ::google::protobuf::RepeatedPtrField< ::std::string>& componenthandle() const;
+  inline ::google::protobuf::RepeatedPtrField< ::std::string>* mutable_componenthandle();
+
+  GOOGLE_PROTOBUF_EXTENSION_ACCESSORS(ProxiedComponentInstantiateRequest)
+  // @@protoc_insertion_point(class_scope:SAFplus.Rpc.amfAppRpc.ProxiedComponentInstantiateRequest)
+ private:
+  inline void set_has_invocation();
+  inline void clear_has_invocation();
+  inline void set_has_componentname();
+  inline void clear_has_componentname();
+
+  ::google::protobuf::internal::ExtensionSet _extensions_;
+
+  ::google::protobuf::UnknownFieldSet _unknown_fields_;
+
+  ::google::protobuf::uint32 _has_bits_[1];
+  mutable int _cached_size_;
+  ::google::protobuf::uint64 invocation_;
+  ::std::string* componentname_;
+  ::google::protobuf::RepeatedPtrField< ::std::string> componenthandle_;
+  friend void  protobuf_AddDesc_amfAppRpc_2eproto();
+  friend void protobuf_AssignDesc_amfAppRpc_2eproto();
+  friend void protobuf_ShutdownFile_amfAppRpc_2eproto();
+
+  void InitAsDefaultInstance();
+  static ProxiedComponentInstantiateRequest* default_instance_;
+};
+// -------------------------------------------------------------------
+
+class ProxiedComponentCleanupRequest : public ::google::protobuf::Message {
+ public:
+  ProxiedComponentCleanupRequest();
+  virtual ~ProxiedComponentCleanupRequest();
+
+  ProxiedComponentCleanupRequest(const ProxiedComponentCleanupRequest& from);
+
+  inline ProxiedComponentCleanupRequest& operator=(const ProxiedComponentCleanupRequest& from) {
+    CopyFrom(from);
+    return *this;
+  }
+
+  inline const ::google::protobuf::UnknownFieldSet& unknown_fields() const {
+    return _unknown_fields_;
+  }
+
+  inline ::google::protobuf::UnknownFieldSet* mutable_unknown_fields() {
+    return &_unknown_fields_;
+  }
+
+  static const ::google::protobuf::Descriptor* descriptor();
+  static const ProxiedComponentCleanupRequest& default_instance();
+
+  void Swap(ProxiedComponentCleanupRequest* other);
+
+  // implements Message ----------------------------------------------
+
+  ProxiedComponentCleanupRequest* New() const;
+  void CopyFrom(const ::google::protobuf::Message& from);
+  void MergeFrom(const ::google::protobuf::Message& from);
+  void CopyFrom(const ProxiedComponentCleanupRequest& from);
+  void MergeFrom(const ProxiedComponentCleanupRequest& from);
+  void Clear();
+  bool IsInitialized() const;
+
+  int ByteSize() const;
+  bool MergePartialFromCodedStream(
+      ::google::protobuf::io::CodedInputStream* input);
+  void SerializeWithCachedSizes(
+      ::google::protobuf::io::CodedOutputStream* output) const;
+  ::google::protobuf::uint8* SerializeWithCachedSizesToArray(::google::protobuf::uint8* output) const;
+  int GetCachedSize() const { return _cached_size_; }
+  private:
+  void SharedCtor();
+  void SharedDtor();
+  void SetCachedSize(int size) const;
+  public:
+  ::google::protobuf::Metadata GetMetadata() const;
+
+  // nested types ----------------------------------------------------
+
+  // accessors -------------------------------------------------------
+
+  // optional uint64 invocation = 1;
+  inline bool has_invocation() const;
+  inline void clear_invocation();
+  static const int kInvocationFieldNumber = 1;
+  inline ::google::protobuf::uint64 invocation() const;
+  inline void set_invocation(::google::protobuf::uint64 value);
+
+  // optional string componentName = 2;
+  inline bool has_componentname() const;
+  inline void clear_componentname();
+  static const int kComponentNameFieldNumber = 2;
+  inline const ::std::string& componentname() const;
+  inline void set_componentname(const ::std::string& value);
+  inline void set_componentname(const char* value);
+  inline void set_componentname(const char* value, size_t size);
+  inline ::std::string* mutable_componentname();
+  inline ::std::string* release_componentname();
+  inline void set_allocated_componentname(::std::string* componentname);
+
+  // repeated bytes componentHandle = 3;
+  inline int componenthandle_size() const;
+  inline void clear_componenthandle();
+  static const int kComponentHandleFieldNumber = 3;
+  inline const ::std::string& componenthandle(int index) const;
+  inline ::std::string* mutable_componenthandle(int index);
+  inline void set_componenthandle(int index, const ::std::string& value);
+  inline void set_componenthandle(int index, const char* value);
+  inline void set_componenthandle(int index, const void* value, size_t size);
+  inline ::std::string* add_componenthandle();
+  inline void add_componenthandle(const ::std::string& value);
+  inline void add_componenthandle(const char* value);
+  inline void add_componenthandle(const void* value, size_t size);
+  inline const ::google::protobuf::RepeatedPtrField< ::std::string>& componenthandle() const;
+  inline ::google::protobuf::RepeatedPtrField< ::std::string>* mutable_componenthandle();
+
+  GOOGLE_PROTOBUF_EXTENSION_ACCESSORS(ProxiedComponentCleanupRequest)
+  // @@protoc_insertion_point(class_scope:SAFplus.Rpc.amfAppRpc.ProxiedComponentCleanupRequest)
+ private:
+  inline void set_has_invocation();
+  inline void clear_has_invocation();
+  inline void set_has_componentname();
+  inline void clear_has_componentname();
+
+  ::google::protobuf::internal::ExtensionSet _extensions_;
+
+  ::google::protobuf::UnknownFieldSet _unknown_fields_;
+
+  ::google::protobuf::uint32 _has_bits_[1];
+  mutable int _cached_size_;
+  ::google::protobuf::uint64 invocation_;
+  ::std::string* componentname_;
+  ::google::protobuf::RepeatedPtrField< ::std::string> componenthandle_;
+  friend void  protobuf_AddDesc_amfAppRpc_2eproto();
+  friend void protobuf_AssignDesc_amfAppRpc_2eproto();
+  friend void protobuf_ShutdownFile_amfAppRpc_2eproto();
+
+  void InitAsDefaultInstance();
+  static ProxiedComponentCleanupRequest* default_instance_;
 };
 // ===================================================================
 
@@ -1486,6 +1716,322 @@ inline void WorkOperationResponseRequest::set_result(::google::protobuf::uint32 
   set_has_result();
   result_ = value;
   // @@protoc_insertion_point(field_set:SAFplus.Rpc.amfAppRpc.WorkOperationResponseRequest.result)
+}
+
+// -------------------------------------------------------------------
+
+// ProxiedComponentInstantiateRequest
+
+// optional uint64 invocation = 1;
+inline bool ProxiedComponentInstantiateRequest::has_invocation() const {
+  return (_has_bits_[0] & 0x00000001u) != 0;
+}
+inline void ProxiedComponentInstantiateRequest::set_has_invocation() {
+  _has_bits_[0] |= 0x00000001u;
+}
+inline void ProxiedComponentInstantiateRequest::clear_has_invocation() {
+  _has_bits_[0] &= ~0x00000001u;
+}
+inline void ProxiedComponentInstantiateRequest::clear_invocation() {
+  invocation_ = GOOGLE_ULONGLONG(0);
+  clear_has_invocation();
+}
+inline ::google::protobuf::uint64 ProxiedComponentInstantiateRequest::invocation() const {
+  // @@protoc_insertion_point(field_get:SAFplus.Rpc.amfAppRpc.ProxiedComponentInstantiateRequest.invocation)
+  return invocation_;
+}
+inline void ProxiedComponentInstantiateRequest::set_invocation(::google::protobuf::uint64 value) {
+  set_has_invocation();
+  invocation_ = value;
+  // @@protoc_insertion_point(field_set:SAFplus.Rpc.amfAppRpc.ProxiedComponentInstantiateRequest.invocation)
+}
+
+// optional string componentName = 2;
+inline bool ProxiedComponentInstantiateRequest::has_componentname() const {
+  return (_has_bits_[0] & 0x00000002u) != 0;
+}
+inline void ProxiedComponentInstantiateRequest::set_has_componentname() {
+  _has_bits_[0] |= 0x00000002u;
+}
+inline void ProxiedComponentInstantiateRequest::clear_has_componentname() {
+  _has_bits_[0] &= ~0x00000002u;
+}
+inline void ProxiedComponentInstantiateRequest::clear_componentname() {
+  if (componentname_ != &::google::protobuf::internal::GetEmptyStringAlreadyInited()) {
+    componentname_->clear();
+  }
+  clear_has_componentname();
+}
+inline const ::std::string& ProxiedComponentInstantiateRequest::componentname() const {
+  // @@protoc_insertion_point(field_get:SAFplus.Rpc.amfAppRpc.ProxiedComponentInstantiateRequest.componentName)
+  return *componentname_;
+}
+inline void ProxiedComponentInstantiateRequest::set_componentname(const ::std::string& value) {
+  set_has_componentname();
+  if (componentname_ == &::google::protobuf::internal::GetEmptyStringAlreadyInited()) {
+    componentname_ = new ::std::string;
+  }
+  componentname_->assign(value);
+  // @@protoc_insertion_point(field_set:SAFplus.Rpc.amfAppRpc.ProxiedComponentInstantiateRequest.componentName)
+}
+inline void ProxiedComponentInstantiateRequest::set_componentname(const char* value) {
+  set_has_componentname();
+  if (componentname_ == &::google::protobuf::internal::GetEmptyStringAlreadyInited()) {
+    componentname_ = new ::std::string;
+  }
+  componentname_->assign(value);
+  // @@protoc_insertion_point(field_set_char:SAFplus.Rpc.amfAppRpc.ProxiedComponentInstantiateRequest.componentName)
+}
+inline void ProxiedComponentInstantiateRequest::set_componentname(const char* value, size_t size) {
+  set_has_componentname();
+  if (componentname_ == &::google::protobuf::internal::GetEmptyStringAlreadyInited()) {
+    componentname_ = new ::std::string;
+  }
+  componentname_->assign(reinterpret_cast<const char*>(value), size);
+  // @@protoc_insertion_point(field_set_pointer:SAFplus.Rpc.amfAppRpc.ProxiedComponentInstantiateRequest.componentName)
+}
+inline ::std::string* ProxiedComponentInstantiateRequest::mutable_componentname() {
+  set_has_componentname();
+  if (componentname_ == &::google::protobuf::internal::GetEmptyStringAlreadyInited()) {
+    componentname_ = new ::std::string;
+  }
+  // @@protoc_insertion_point(field_mutable:SAFplus.Rpc.amfAppRpc.ProxiedComponentInstantiateRequest.componentName)
+  return componentname_;
+}
+inline ::std::string* ProxiedComponentInstantiateRequest::release_componentname() {
+  clear_has_componentname();
+  if (componentname_ == &::google::protobuf::internal::GetEmptyStringAlreadyInited()) {
+    return NULL;
+  } else {
+    ::std::string* temp = componentname_;
+    componentname_ = const_cast< ::std::string*>(&::google::protobuf::internal::GetEmptyStringAlreadyInited());
+    return temp;
+  }
+}
+inline void ProxiedComponentInstantiateRequest::set_allocated_componentname(::std::string* componentname) {
+  if (componentname_ != &::google::protobuf::internal::GetEmptyStringAlreadyInited()) {
+    delete componentname_;
+  }
+  if (componentname) {
+    set_has_componentname();
+    componentname_ = componentname;
+  } else {
+    clear_has_componentname();
+    componentname_ = const_cast< ::std::string*>(&::google::protobuf::internal::GetEmptyStringAlreadyInited());
+  }
+  // @@protoc_insertion_point(field_set_allocated:SAFplus.Rpc.amfAppRpc.ProxiedComponentInstantiateRequest.componentName)
+}
+
+// repeated bytes componentHandle = 3;
+inline int ProxiedComponentInstantiateRequest::componenthandle_size() const {
+  return componenthandle_.size();
+}
+inline void ProxiedComponentInstantiateRequest::clear_componenthandle() {
+  componenthandle_.Clear();
+}
+inline const ::std::string& ProxiedComponentInstantiateRequest::componenthandle(int index) const {
+  // @@protoc_insertion_point(field_get:SAFplus.Rpc.amfAppRpc.ProxiedComponentInstantiateRequest.componentHandle)
+  return componenthandle_.Get(index);
+}
+inline ::std::string* ProxiedComponentInstantiateRequest::mutable_componenthandle(int index) {
+  // @@protoc_insertion_point(field_mutable:SAFplus.Rpc.amfAppRpc.ProxiedComponentInstantiateRequest.componentHandle)
+  return componenthandle_.Mutable(index);
+}
+inline void ProxiedComponentInstantiateRequest::set_componenthandle(int index, const ::std::string& value) {
+  // @@protoc_insertion_point(field_set:SAFplus.Rpc.amfAppRpc.ProxiedComponentInstantiateRequest.componentHandle)
+  componenthandle_.Mutable(index)->assign(value);
+}
+inline void ProxiedComponentInstantiateRequest::set_componenthandle(int index, const char* value) {
+  componenthandle_.Mutable(index)->assign(value);
+  // @@protoc_insertion_point(field_set_char:SAFplus.Rpc.amfAppRpc.ProxiedComponentInstantiateRequest.componentHandle)
+}
+inline void ProxiedComponentInstantiateRequest::set_componenthandle(int index, const void* value, size_t size) {
+  componenthandle_.Mutable(index)->assign(
+    reinterpret_cast<const char*>(value), size);
+  // @@protoc_insertion_point(field_set_pointer:SAFplus.Rpc.amfAppRpc.ProxiedComponentInstantiateRequest.componentHandle)
+}
+inline ::std::string* ProxiedComponentInstantiateRequest::add_componenthandle() {
+  return componenthandle_.Add();
+}
+inline void ProxiedComponentInstantiateRequest::add_componenthandle(const ::std::string& value) {
+  componenthandle_.Add()->assign(value);
+  // @@protoc_insertion_point(field_add:SAFplus.Rpc.amfAppRpc.ProxiedComponentInstantiateRequest.componentHandle)
+}
+inline void ProxiedComponentInstantiateRequest::add_componenthandle(const char* value) {
+  componenthandle_.Add()->assign(value);
+  // @@protoc_insertion_point(field_add_char:SAFplus.Rpc.amfAppRpc.ProxiedComponentInstantiateRequest.componentHandle)
+}
+inline void ProxiedComponentInstantiateRequest::add_componenthandle(const void* value, size_t size) {
+  componenthandle_.Add()->assign(reinterpret_cast<const char*>(value), size);
+  // @@protoc_insertion_point(field_add_pointer:SAFplus.Rpc.amfAppRpc.ProxiedComponentInstantiateRequest.componentHandle)
+}
+inline const ::google::protobuf::RepeatedPtrField< ::std::string>&
+ProxiedComponentInstantiateRequest::componenthandle() const {
+  // @@protoc_insertion_point(field_list:SAFplus.Rpc.amfAppRpc.ProxiedComponentInstantiateRequest.componentHandle)
+  return componenthandle_;
+}
+inline ::google::protobuf::RepeatedPtrField< ::std::string>*
+ProxiedComponentInstantiateRequest::mutable_componenthandle() {
+  // @@protoc_insertion_point(field_mutable_list:SAFplus.Rpc.amfAppRpc.ProxiedComponentInstantiateRequest.componentHandle)
+  return &componenthandle_;
+}
+
+// -------------------------------------------------------------------
+
+// ProxiedComponentCleanupRequest
+
+// optional uint64 invocation = 1;
+inline bool ProxiedComponentCleanupRequest::has_invocation() const {
+  return (_has_bits_[0] & 0x00000001u) != 0;
+}
+inline void ProxiedComponentCleanupRequest::set_has_invocation() {
+  _has_bits_[0] |= 0x00000001u;
+}
+inline void ProxiedComponentCleanupRequest::clear_has_invocation() {
+  _has_bits_[0] &= ~0x00000001u;
+}
+inline void ProxiedComponentCleanupRequest::clear_invocation() {
+  invocation_ = GOOGLE_ULONGLONG(0);
+  clear_has_invocation();
+}
+inline ::google::protobuf::uint64 ProxiedComponentCleanupRequest::invocation() const {
+  // @@protoc_insertion_point(field_get:SAFplus.Rpc.amfAppRpc.ProxiedComponentCleanupRequest.invocation)
+  return invocation_;
+}
+inline void ProxiedComponentCleanupRequest::set_invocation(::google::protobuf::uint64 value) {
+  set_has_invocation();
+  invocation_ = value;
+  // @@protoc_insertion_point(field_set:SAFplus.Rpc.amfAppRpc.ProxiedComponentCleanupRequest.invocation)
+}
+
+// optional string componentName = 2;
+inline bool ProxiedComponentCleanupRequest::has_componentname() const {
+  return (_has_bits_[0] & 0x00000002u) != 0;
+}
+inline void ProxiedComponentCleanupRequest::set_has_componentname() {
+  _has_bits_[0] |= 0x00000002u;
+}
+inline void ProxiedComponentCleanupRequest::clear_has_componentname() {
+  _has_bits_[0] &= ~0x00000002u;
+}
+inline void ProxiedComponentCleanupRequest::clear_componentname() {
+  if (componentname_ != &::google::protobuf::internal::GetEmptyStringAlreadyInited()) {
+    componentname_->clear();
+  }
+  clear_has_componentname();
+}
+inline const ::std::string& ProxiedComponentCleanupRequest::componentname() const {
+  // @@protoc_insertion_point(field_get:SAFplus.Rpc.amfAppRpc.ProxiedComponentCleanupRequest.componentName)
+  return *componentname_;
+}
+inline void ProxiedComponentCleanupRequest::set_componentname(const ::std::string& value) {
+  set_has_componentname();
+  if (componentname_ == &::google::protobuf::internal::GetEmptyStringAlreadyInited()) {
+    componentname_ = new ::std::string;
+  }
+  componentname_->assign(value);
+  // @@protoc_insertion_point(field_set:SAFplus.Rpc.amfAppRpc.ProxiedComponentCleanupRequest.componentName)
+}
+inline void ProxiedComponentCleanupRequest::set_componentname(const char* value) {
+  set_has_componentname();
+  if (componentname_ == &::google::protobuf::internal::GetEmptyStringAlreadyInited()) {
+    componentname_ = new ::std::string;
+  }
+  componentname_->assign(value);
+  // @@protoc_insertion_point(field_set_char:SAFplus.Rpc.amfAppRpc.ProxiedComponentCleanupRequest.componentName)
+}
+inline void ProxiedComponentCleanupRequest::set_componentname(const char* value, size_t size) {
+  set_has_componentname();
+  if (componentname_ == &::google::protobuf::internal::GetEmptyStringAlreadyInited()) {
+    componentname_ = new ::std::string;
+  }
+  componentname_->assign(reinterpret_cast<const char*>(value), size);
+  // @@protoc_insertion_point(field_set_pointer:SAFplus.Rpc.amfAppRpc.ProxiedComponentCleanupRequest.componentName)
+}
+inline ::std::string* ProxiedComponentCleanupRequest::mutable_componentname() {
+  set_has_componentname();
+  if (componentname_ == &::google::protobuf::internal::GetEmptyStringAlreadyInited()) {
+    componentname_ = new ::std::string;
+  }
+  // @@protoc_insertion_point(field_mutable:SAFplus.Rpc.amfAppRpc.ProxiedComponentCleanupRequest.componentName)
+  return componentname_;
+}
+inline ::std::string* ProxiedComponentCleanupRequest::release_componentname() {
+  clear_has_componentname();
+  if (componentname_ == &::google::protobuf::internal::GetEmptyStringAlreadyInited()) {
+    return NULL;
+  } else {
+    ::std::string* temp = componentname_;
+    componentname_ = const_cast< ::std::string*>(&::google::protobuf::internal::GetEmptyStringAlreadyInited());
+    return temp;
+  }
+}
+inline void ProxiedComponentCleanupRequest::set_allocated_componentname(::std::string* componentname) {
+  if (componentname_ != &::google::protobuf::internal::GetEmptyStringAlreadyInited()) {
+    delete componentname_;
+  }
+  if (componentname) {
+    set_has_componentname();
+    componentname_ = componentname;
+  } else {
+    clear_has_componentname();
+    componentname_ = const_cast< ::std::string*>(&::google::protobuf::internal::GetEmptyStringAlreadyInited());
+  }
+  // @@protoc_insertion_point(field_set_allocated:SAFplus.Rpc.amfAppRpc.ProxiedComponentCleanupRequest.componentName)
+}
+
+// repeated bytes componentHandle = 3;
+inline int ProxiedComponentCleanupRequest::componenthandle_size() const {
+  return componenthandle_.size();
+}
+inline void ProxiedComponentCleanupRequest::clear_componenthandle() {
+  componenthandle_.Clear();
+}
+inline const ::std::string& ProxiedComponentCleanupRequest::componenthandle(int index) const {
+  // @@protoc_insertion_point(field_get:SAFplus.Rpc.amfAppRpc.ProxiedComponentCleanupRequest.componentHandle)
+  return componenthandle_.Get(index);
+}
+inline ::std::string* ProxiedComponentCleanupRequest::mutable_componenthandle(int index) {
+  // @@protoc_insertion_point(field_mutable:SAFplus.Rpc.amfAppRpc.ProxiedComponentCleanupRequest.componentHandle)
+  return componenthandle_.Mutable(index);
+}
+inline void ProxiedComponentCleanupRequest::set_componenthandle(int index, const ::std::string& value) {
+  // @@protoc_insertion_point(field_set:SAFplus.Rpc.amfAppRpc.ProxiedComponentCleanupRequest.componentHandle)
+  componenthandle_.Mutable(index)->assign(value);
+}
+inline void ProxiedComponentCleanupRequest::set_componenthandle(int index, const char* value) {
+  componenthandle_.Mutable(index)->assign(value);
+  // @@protoc_insertion_point(field_set_char:SAFplus.Rpc.amfAppRpc.ProxiedComponentCleanupRequest.componentHandle)
+}
+inline void ProxiedComponentCleanupRequest::set_componenthandle(int index, const void* value, size_t size) {
+  componenthandle_.Mutable(index)->assign(
+    reinterpret_cast<const char*>(value), size);
+  // @@protoc_insertion_point(field_set_pointer:SAFplus.Rpc.amfAppRpc.ProxiedComponentCleanupRequest.componentHandle)
+}
+inline ::std::string* ProxiedComponentCleanupRequest::add_componenthandle() {
+  return componenthandle_.Add();
+}
+inline void ProxiedComponentCleanupRequest::add_componenthandle(const ::std::string& value) {
+  componenthandle_.Add()->assign(value);
+  // @@protoc_insertion_point(field_add:SAFplus.Rpc.amfAppRpc.ProxiedComponentCleanupRequest.componentHandle)
+}
+inline void ProxiedComponentCleanupRequest::add_componenthandle(const char* value) {
+  componenthandle_.Add()->assign(value);
+  // @@protoc_insertion_point(field_add_char:SAFplus.Rpc.amfAppRpc.ProxiedComponentCleanupRequest.componentHandle)
+}
+inline void ProxiedComponentCleanupRequest::add_componenthandle(const void* value, size_t size) {
+  componenthandle_.Add()->assign(reinterpret_cast<const char*>(value), size);
+  // @@protoc_insertion_point(field_add_pointer:SAFplus.Rpc.amfAppRpc.ProxiedComponentCleanupRequest.componentHandle)
+}
+inline const ::google::protobuf::RepeatedPtrField< ::std::string>&
+ProxiedComponentCleanupRequest::componenthandle() const {
+  // @@protoc_insertion_point(field_list:SAFplus.Rpc.amfAppRpc.ProxiedComponentCleanupRequest.componentHandle)
+  return componenthandle_;
+}
+inline ::google::protobuf::RepeatedPtrField< ::std::string>*
+ProxiedComponentCleanupRequest::mutable_componenthandle() {
+  // @@protoc_insertion_point(field_mutable_list:SAFplus.Rpc.amfAppRpc.ProxiedComponentCleanupRequest.componentHandle)
+  return &componenthandle_;
 }
 
 

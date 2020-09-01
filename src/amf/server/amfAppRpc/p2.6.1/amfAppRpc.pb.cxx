@@ -43,6 +43,12 @@ const ::google::protobuf::internal::GeneratedMessageReflection*
 const ::google::protobuf::Descriptor* WorkOperationResponseRequest_descriptor_ = NULL;
 const ::google::protobuf::internal::GeneratedMessageReflection*
   WorkOperationResponseRequest_reflection_ = NULL;
+const ::google::protobuf::Descriptor* ProxiedComponentInstantiateRequest_descriptor_ = NULL;
+const ::google::protobuf::internal::GeneratedMessageReflection*
+  ProxiedComponentInstantiateRequest_reflection_ = NULL;
+const ::google::protobuf::Descriptor* ProxiedComponentCleanupRequest_descriptor_ = NULL;
+const ::google::protobuf::internal::GeneratedMessageReflection*
+  ProxiedComponentCleanupRequest_reflection_ = NULL;
 
 }  // namespace
 
@@ -168,6 +174,40 @@ void protobuf_AssignDesc_amfAppRpc_2eproto() {
       ::google::protobuf::DescriptorPool::generated_pool(),
       ::google::protobuf::MessageFactory::generated_factory(),
       sizeof(WorkOperationResponseRequest));
+  ProxiedComponentInstantiateRequest_descriptor_ = file->message_type(7);
+  static const int ProxiedComponentInstantiateRequest_offsets_[3] = {
+    GOOGLE_PROTOBUF_GENERATED_MESSAGE_FIELD_OFFSET(ProxiedComponentInstantiateRequest, invocation_),
+    GOOGLE_PROTOBUF_GENERATED_MESSAGE_FIELD_OFFSET(ProxiedComponentInstantiateRequest, componentname_),
+    GOOGLE_PROTOBUF_GENERATED_MESSAGE_FIELD_OFFSET(ProxiedComponentInstantiateRequest, componenthandle_),
+  };
+  ProxiedComponentInstantiateRequest_reflection_ =
+    new ::google::protobuf::internal::GeneratedMessageReflection(
+      ProxiedComponentInstantiateRequest_descriptor_,
+      ProxiedComponentInstantiateRequest::default_instance_,
+      ProxiedComponentInstantiateRequest_offsets_,
+      GOOGLE_PROTOBUF_GENERATED_MESSAGE_FIELD_OFFSET(ProxiedComponentInstantiateRequest, _has_bits_[0]),
+      GOOGLE_PROTOBUF_GENERATED_MESSAGE_FIELD_OFFSET(ProxiedComponentInstantiateRequest, _unknown_fields_),
+      GOOGLE_PROTOBUF_GENERATED_MESSAGE_FIELD_OFFSET(ProxiedComponentInstantiateRequest, _extensions_),
+      ::google::protobuf::DescriptorPool::generated_pool(),
+      ::google::protobuf::MessageFactory::generated_factory(),
+      sizeof(ProxiedComponentInstantiateRequest));
+  ProxiedComponentCleanupRequest_descriptor_ = file->message_type(8);
+  static const int ProxiedComponentCleanupRequest_offsets_[3] = {
+    GOOGLE_PROTOBUF_GENERATED_MESSAGE_FIELD_OFFSET(ProxiedComponentCleanupRequest, invocation_),
+    GOOGLE_PROTOBUF_GENERATED_MESSAGE_FIELD_OFFSET(ProxiedComponentCleanupRequest, componentname_),
+    GOOGLE_PROTOBUF_GENERATED_MESSAGE_FIELD_OFFSET(ProxiedComponentCleanupRequest, componenthandle_),
+  };
+  ProxiedComponentCleanupRequest_reflection_ =
+    new ::google::protobuf::internal::GeneratedMessageReflection(
+      ProxiedComponentCleanupRequest_descriptor_,
+      ProxiedComponentCleanupRequest::default_instance_,
+      ProxiedComponentCleanupRequest_offsets_,
+      GOOGLE_PROTOBUF_GENERATED_MESSAGE_FIELD_OFFSET(ProxiedComponentCleanupRequest, _has_bits_[0]),
+      GOOGLE_PROTOBUF_GENERATED_MESSAGE_FIELD_OFFSET(ProxiedComponentCleanupRequest, _unknown_fields_),
+      GOOGLE_PROTOBUF_GENERATED_MESSAGE_FIELD_OFFSET(ProxiedComponentCleanupRequest, _extensions_),
+      ::google::protobuf::DescriptorPool::generated_pool(),
+      ::google::protobuf::MessageFactory::generated_factory(),
+      sizeof(ProxiedComponentCleanupRequest));
 }
 
 namespace {
@@ -194,6 +234,10 @@ void protobuf_RegisterTypes(const ::std::string&) {
     WorkOperationRequest_descriptor_, &WorkOperationRequest::default_instance());
   ::google::protobuf::MessageFactory::InternalRegisterGeneratedMessage(
     WorkOperationResponseRequest_descriptor_, &WorkOperationResponseRequest::default_instance());
+  ::google::protobuf::MessageFactory::InternalRegisterGeneratedMessage(
+    ProxiedComponentInstantiateRequest_descriptor_, &ProxiedComponentInstantiateRequest::default_instance());
+  ::google::protobuf::MessageFactory::InternalRegisterGeneratedMessage(
+    ProxiedComponentCleanupRequest_descriptor_, &ProxiedComponentCleanupRequest::default_instance());
 }
 
 }  // namespace
@@ -213,6 +257,10 @@ void protobuf_ShutdownFile_amfAppRpc_2eproto() {
   delete WorkOperationRequest_reflection_;
   delete WorkOperationResponseRequest::default_instance_;
   delete WorkOperationResponseRequest_reflection_;
+  delete ProxiedComponentInstantiateRequest::default_instance_;
+  delete ProxiedComponentInstantiateRequest_reflection_;
+  delete ProxiedComponentCleanupRequest::default_instance_;
+  delete ProxiedComponentCleanupRequest_reflection_;
 }
 
 void protobuf_AddDesc_amfAppRpc_2eproto() {
@@ -239,17 +287,29 @@ void protobuf_AddDesc_amfAppRpc_2eproto() {
     "\rkeyValuePairs\030\006 \003(\0132$.SAFplus.Rpc.amfAp"
     "pRpc.KeyValuePairs*\t\010\350\007\020\200\200\200\200\002\"M\n\034WorkOpe"
     "rationResponseRequest\022\022\n\ninvocation\030\001 \001("
-    "\004\022\016\n\006result\030\002 \001(\007*\t\010\350\007\020\200\200\200\200\0022\213\003\n\tamfAppR"
-    "pc\022^\n\theartbeat\022\'.SAFplus.Rpc.amfAppRpc."
-    "HeartbeatRequest\032(.SAFplus.Rpc.amfAppRpc"
-    ".HeartbeatResponse\022^\n\tterminate\022\'.SAFplu"
-    "s.Rpc.amfAppRpc.TerminateRequest\032(.SAFpl"
-    "us.Rpc.amfAppRpc.TerminateResponse\022V\n\rwo"
-    "rkOperation\022+.SAFplus.Rpc.amfAppRpc.Work"
-    "OperationRequest\032\030.SAFplus.Rpc.NO_RESPON"
-    "SE\022f\n\025workOperationResponse\0223.SAFplus.Rp"
-    "c.amfAppRpc.WorkOperationResponseRequest"
-    "\032\030.SAFplus.Rpc.NO_RESPONSEB\t\200\001\000\210\001\000\220\001\001", 1077);
+    "\004\022\016\n\006result\030\002 \001(\007*\t\010\350\007\020\200\200\200\200\002\"s\n\"ProxiedC"
+    "omponentInstantiateRequest\022\022\n\ninvocation"
+    "\030\001 \001(\004\022\025\n\rcomponentName\030\002 \001(\t\022\027\n\017compone"
+    "ntHandle\030\003 \003(\014*\t\010\350\007\020\200\200\200\200\002\"o\n\036ProxiedComp"
+    "onentCleanupRequest\022\022\n\ninvocation\030\001 \001(\004\022"
+    "\025\n\rcomponentName\030\002 \001(\t\022\027\n\017componentHandl"
+    "e\030\003 \003(\014*\t\010\350\007\020\200\200\200\200\0022\353\004\n\tamfAppRpc\022^\n\thear"
+    "tbeat\022\'.SAFplus.Rpc.amfAppRpc.HeartbeatR"
+    "equest\032(.SAFplus.Rpc.amfAppRpc.Heartbeat"
+    "Response\022^\n\tterminate\022\'.SAFplus.Rpc.amfA"
+    "ppRpc.TerminateRequest\032(.SAFplus.Rpc.amf"
+    "AppRpc.TerminateResponse\022V\n\rworkOperatio"
+    "n\022+.SAFplus.Rpc.amfAppRpc.WorkOperationR"
+    "equest\032\030.SAFplus.Rpc.NO_RESPONSE\022f\n\025work"
+    "OperationResponse\0223.SAFplus.Rpc.amfAppRp"
+    "c.WorkOperationResponseRequest\032\030.SAFplus"
+    ".Rpc.NO_RESPONSE\022r\n\033proxiedComponentInst"
+    "antiate\0229.SAFplus.Rpc.amfAppRpc.ProxiedC"
+    "omponentInstantiateRequest\032\030.SAFplus.Rpc"
+    ".NO_RESPONSE\022j\n\027proxiedComponentCleanup\022"
+    "5.SAFplus.Rpc.amfAppRpc.ProxiedComponent"
+    "CleanupRequest\032\030.SAFplus.Rpc.NO_RESPONSE"
+    "B\t\200\001\000\210\001\000\220\001\001", 1531);
   ::google::protobuf::MessageFactory::InternalRegisterGeneratedFile(
     "amfAppRpc.proto", &protobuf_RegisterTypes);
   HeartbeatRequest::default_instance_ = new HeartbeatRequest();
@@ -259,6 +319,8 @@ void protobuf_AddDesc_amfAppRpc_2eproto() {
   KeyValuePairs::default_instance_ = new KeyValuePairs();
   WorkOperationRequest::default_instance_ = new WorkOperationRequest();
   WorkOperationResponseRequest::default_instance_ = new WorkOperationResponseRequest();
+  ProxiedComponentInstantiateRequest::default_instance_ = new ProxiedComponentInstantiateRequest();
+  ProxiedComponentCleanupRequest::default_instance_ = new ProxiedComponentCleanupRequest();
   HeartbeatRequest::default_instance_->InitAsDefaultInstance();
   HeartbeatResponse::default_instance_->InitAsDefaultInstance();
   TerminateRequest::default_instance_->InitAsDefaultInstance();
@@ -266,6 +328,8 @@ void protobuf_AddDesc_amfAppRpc_2eproto() {
   KeyValuePairs::default_instance_->InitAsDefaultInstance();
   WorkOperationRequest::default_instance_->InitAsDefaultInstance();
   WorkOperationResponseRequest::default_instance_->InitAsDefaultInstance();
+  ProxiedComponentInstantiateRequest::default_instance_->InitAsDefaultInstance();
+  ProxiedComponentCleanupRequest::default_instance_->InitAsDefaultInstance();
   ::google::protobuf::internal::OnShutdown(&protobuf_ShutdownFile_amfAppRpc_2eproto);
 }
 
@@ -2474,6 +2538,686 @@ void WorkOperationResponseRequest::Swap(WorkOperationResponseRequest* other) {
   ::google::protobuf::Metadata metadata;
   metadata.descriptor = WorkOperationResponseRequest_descriptor_;
   metadata.reflection = WorkOperationResponseRequest_reflection_;
+  return metadata;
+}
+
+
+// ===================================================================
+
+#ifndef _MSC_VER
+const int ProxiedComponentInstantiateRequest::kInvocationFieldNumber;
+const int ProxiedComponentInstantiateRequest::kComponentNameFieldNumber;
+const int ProxiedComponentInstantiateRequest::kComponentHandleFieldNumber;
+#endif  // !_MSC_VER
+
+ProxiedComponentInstantiateRequest::ProxiedComponentInstantiateRequest()
+  : ::google::protobuf::Message() {
+  SharedCtor();
+  // @@protoc_insertion_point(constructor:SAFplus.Rpc.amfAppRpc.ProxiedComponentInstantiateRequest)
+}
+
+void ProxiedComponentInstantiateRequest::InitAsDefaultInstance() {
+}
+
+ProxiedComponentInstantiateRequest::ProxiedComponentInstantiateRequest(const ProxiedComponentInstantiateRequest& from)
+  : ::google::protobuf::Message() {
+  SharedCtor();
+  MergeFrom(from);
+  // @@protoc_insertion_point(copy_constructor:SAFplus.Rpc.amfAppRpc.ProxiedComponentInstantiateRequest)
+}
+
+void ProxiedComponentInstantiateRequest::SharedCtor() {
+  ::google::protobuf::internal::GetEmptyString();
+  _cached_size_ = 0;
+  invocation_ = GOOGLE_ULONGLONG(0);
+  componentname_ = const_cast< ::std::string*>(&::google::protobuf::internal::GetEmptyStringAlreadyInited());
+  ::memset(_has_bits_, 0, sizeof(_has_bits_));
+}
+
+ProxiedComponentInstantiateRequest::~ProxiedComponentInstantiateRequest() {
+  // @@protoc_insertion_point(destructor:SAFplus.Rpc.amfAppRpc.ProxiedComponentInstantiateRequest)
+  SharedDtor();
+}
+
+void ProxiedComponentInstantiateRequest::SharedDtor() {
+  if (componentname_ != &::google::protobuf::internal::GetEmptyStringAlreadyInited()) {
+    delete componentname_;
+  }
+  if (this != default_instance_) {
+  }
+}
+
+void ProxiedComponentInstantiateRequest::SetCachedSize(int size) const {
+  GOOGLE_SAFE_CONCURRENT_WRITES_BEGIN();
+  _cached_size_ = size;
+  GOOGLE_SAFE_CONCURRENT_WRITES_END();
+}
+const ::google::protobuf::Descriptor* ProxiedComponentInstantiateRequest::descriptor() {
+  protobuf_AssignDescriptorsOnce();
+  return ProxiedComponentInstantiateRequest_descriptor_;
+}
+
+const ProxiedComponentInstantiateRequest& ProxiedComponentInstantiateRequest::default_instance() {
+  if (default_instance_ == NULL) protobuf_AddDesc_amfAppRpc_2eproto();
+  return *default_instance_;
+}
+
+ProxiedComponentInstantiateRequest* ProxiedComponentInstantiateRequest::default_instance_ = NULL;
+
+ProxiedComponentInstantiateRequest* ProxiedComponentInstantiateRequest::New() const {
+  return new ProxiedComponentInstantiateRequest;
+}
+
+void ProxiedComponentInstantiateRequest::Clear() {
+  _extensions_.Clear();
+  if (_has_bits_[0 / 32] & 3) {
+    invocation_ = GOOGLE_ULONGLONG(0);
+    if (has_componentname()) {
+      if (componentname_ != &::google::protobuf::internal::GetEmptyStringAlreadyInited()) {
+        componentname_->clear();
+      }
+    }
+  }
+  componenthandle_.Clear();
+  ::memset(_has_bits_, 0, sizeof(_has_bits_));
+  mutable_unknown_fields()->Clear();
+}
+
+bool ProxiedComponentInstantiateRequest::MergePartialFromCodedStream(
+    ::google::protobuf::io::CodedInputStream* input) {
+#define DO_(EXPRESSION) if (!(EXPRESSION)) goto failure
+  ::google::protobuf::uint32 tag;
+  // @@protoc_insertion_point(parse_start:SAFplus.Rpc.amfAppRpc.ProxiedComponentInstantiateRequest)
+  for (;;) {
+    ::std::pair< ::google::protobuf::uint32, bool> p = input->ReadTagWithCutoff(127);
+    tag = p.first;
+    if (!p.second) goto handle_unusual;
+    switch (::google::protobuf::internal::WireFormatLite::GetTagFieldNumber(tag)) {
+      // optional uint64 invocation = 1;
+      case 1: {
+        if (tag == 8) {
+          DO_((::google::protobuf::internal::WireFormatLite::ReadPrimitive<
+                   ::google::protobuf::uint64, ::google::protobuf::internal::WireFormatLite::TYPE_UINT64>(
+                 input, &invocation_)));
+          set_has_invocation();
+        } else {
+          goto handle_unusual;
+        }
+        if (input->ExpectTag(18)) goto parse_componentName;
+        break;
+      }
+
+      // optional string componentName = 2;
+      case 2: {
+        if (tag == 18) {
+         parse_componentName:
+          DO_(::google::protobuf::internal::WireFormatLite::ReadString(
+                input, this->mutable_componentname()));
+          ::google::protobuf::internal::WireFormat::VerifyUTF8StringNamedField(
+            this->componentname().data(), this->componentname().length(),
+            ::google::protobuf::internal::WireFormat::PARSE,
+            "componentname");
+        } else {
+          goto handle_unusual;
+        }
+        if (input->ExpectTag(26)) goto parse_componentHandle;
+        break;
+      }
+
+      // repeated bytes componentHandle = 3;
+      case 3: {
+        if (tag == 26) {
+         parse_componentHandle:
+          DO_(::google::protobuf::internal::WireFormatLite::ReadBytes(
+                input, this->add_componenthandle()));
+        } else {
+          goto handle_unusual;
+        }
+        if (input->ExpectTag(26)) goto parse_componentHandle;
+        if (input->ExpectAtEnd()) goto success;
+        break;
+      }
+
+      default: {
+      handle_unusual:
+        if (tag == 0 ||
+            ::google::protobuf::internal::WireFormatLite::GetTagWireType(tag) ==
+            ::google::protobuf::internal::WireFormatLite::WIRETYPE_END_GROUP) {
+          goto success;
+        }
+        if ((8000u <= tag)) {
+          DO_(_extensions_.ParseField(tag, input, default_instance_,
+                                      mutable_unknown_fields()));
+          continue;
+        }
+        DO_(::google::protobuf::internal::WireFormat::SkipField(
+              input, tag, mutable_unknown_fields()));
+        break;
+      }
+    }
+  }
+success:
+  // @@protoc_insertion_point(parse_success:SAFplus.Rpc.amfAppRpc.ProxiedComponentInstantiateRequest)
+  return true;
+failure:
+  // @@protoc_insertion_point(parse_failure:SAFplus.Rpc.amfAppRpc.ProxiedComponentInstantiateRequest)
+  return false;
+#undef DO_
+}
+
+void ProxiedComponentInstantiateRequest::SerializeWithCachedSizes(
+    ::google::protobuf::io::CodedOutputStream* output) const {
+  // @@protoc_insertion_point(serialize_start:SAFplus.Rpc.amfAppRpc.ProxiedComponentInstantiateRequest)
+  // optional uint64 invocation = 1;
+  if (has_invocation()) {
+    ::google::protobuf::internal::WireFormatLite::WriteUInt64(1, this->invocation(), output);
+  }
+
+  // optional string componentName = 2;
+  if (has_componentname()) {
+    ::google::protobuf::internal::WireFormat::VerifyUTF8StringNamedField(
+      this->componentname().data(), this->componentname().length(),
+      ::google::protobuf::internal::WireFormat::SERIALIZE,
+      "componentname");
+    ::google::protobuf::internal::WireFormatLite::WriteStringMaybeAliased(
+      2, this->componentname(), output);
+  }
+
+  // repeated bytes componentHandle = 3;
+  for (int i = 0; i < this->componenthandle_size(); i++) {
+    ::google::protobuf::internal::WireFormatLite::WriteBytes(
+      3, this->componenthandle(i), output);
+  }
+
+  // Extension range [1000, 536870912)
+  _extensions_.SerializeWithCachedSizes(
+      1000, 536870912, output);
+
+  if (!unknown_fields().empty()) {
+    ::google::protobuf::internal::WireFormat::SerializeUnknownFields(
+        unknown_fields(), output);
+  }
+  // @@protoc_insertion_point(serialize_end:SAFplus.Rpc.amfAppRpc.ProxiedComponentInstantiateRequest)
+}
+
+::google::protobuf::uint8* ProxiedComponentInstantiateRequest::SerializeWithCachedSizesToArray(
+    ::google::protobuf::uint8* target) const {
+  // @@protoc_insertion_point(serialize_to_array_start:SAFplus.Rpc.amfAppRpc.ProxiedComponentInstantiateRequest)
+  // optional uint64 invocation = 1;
+  if (has_invocation()) {
+    target = ::google::protobuf::internal::WireFormatLite::WriteUInt64ToArray(1, this->invocation(), target);
+  }
+
+  // optional string componentName = 2;
+  if (has_componentname()) {
+    ::google::protobuf::internal::WireFormat::VerifyUTF8StringNamedField(
+      this->componentname().data(), this->componentname().length(),
+      ::google::protobuf::internal::WireFormat::SERIALIZE,
+      "componentname");
+    target =
+      ::google::protobuf::internal::WireFormatLite::WriteStringToArray(
+        2, this->componentname(), target);
+  }
+
+  // repeated bytes componentHandle = 3;
+  for (int i = 0; i < this->componenthandle_size(); i++) {
+    target = ::google::protobuf::internal::WireFormatLite::
+      WriteBytesToArray(3, this->componenthandle(i), target);
+  }
+
+  // Extension range [1000, 536870912)
+  target = _extensions_.SerializeWithCachedSizesToArray(
+      1000, 536870912, target);
+
+  if (!unknown_fields().empty()) {
+    target = ::google::protobuf::internal::WireFormat::SerializeUnknownFieldsToArray(
+        unknown_fields(), target);
+  }
+  // @@protoc_insertion_point(serialize_to_array_end:SAFplus.Rpc.amfAppRpc.ProxiedComponentInstantiateRequest)
+  return target;
+}
+
+int ProxiedComponentInstantiateRequest::ByteSize() const {
+  int total_size = 0;
+
+  if (_has_bits_[0 / 32] & (0xffu << (0 % 32))) {
+    // optional uint64 invocation = 1;
+    if (has_invocation()) {
+      total_size += 1 +
+        ::google::protobuf::internal::WireFormatLite::UInt64Size(
+          this->invocation());
+    }
+
+    // optional string componentName = 2;
+    if (has_componentname()) {
+      total_size += 1 +
+        ::google::protobuf::internal::WireFormatLite::StringSize(
+          this->componentname());
+    }
+
+  }
+  // repeated bytes componentHandle = 3;
+  total_size += 1 * this->componenthandle_size();
+  for (int i = 0; i < this->componenthandle_size(); i++) {
+    total_size += ::google::protobuf::internal::WireFormatLite::BytesSize(
+      this->componenthandle(i));
+  }
+
+  total_size += _extensions_.ByteSize();
+
+  if (!unknown_fields().empty()) {
+    total_size +=
+      ::google::protobuf::internal::WireFormat::ComputeUnknownFieldsSize(
+        unknown_fields());
+  }
+  GOOGLE_SAFE_CONCURRENT_WRITES_BEGIN();
+  _cached_size_ = total_size;
+  GOOGLE_SAFE_CONCURRENT_WRITES_END();
+  return total_size;
+}
+
+void ProxiedComponentInstantiateRequest::MergeFrom(const ::google::protobuf::Message& from) {
+  GOOGLE_CHECK_NE(&from, this);
+  const ProxiedComponentInstantiateRequest* source =
+    ::google::protobuf::internal::dynamic_cast_if_available<const ProxiedComponentInstantiateRequest*>(
+      &from);
+  if (source == NULL) {
+    ::google::protobuf::internal::ReflectionOps::Merge(from, this);
+  } else {
+    MergeFrom(*source);
+  }
+}
+
+void ProxiedComponentInstantiateRequest::MergeFrom(const ProxiedComponentInstantiateRequest& from) {
+  GOOGLE_CHECK_NE(&from, this);
+  componenthandle_.MergeFrom(from.componenthandle_);
+  if (from._has_bits_[0 / 32] & (0xffu << (0 % 32))) {
+    if (from.has_invocation()) {
+      set_invocation(from.invocation());
+    }
+    if (from.has_componentname()) {
+      set_componentname(from.componentname());
+    }
+  }
+  _extensions_.MergeFrom(from._extensions_);
+  mutable_unknown_fields()->MergeFrom(from.unknown_fields());
+}
+
+void ProxiedComponentInstantiateRequest::CopyFrom(const ::google::protobuf::Message& from) {
+  if (&from == this) return;
+  Clear();
+  MergeFrom(from);
+}
+
+void ProxiedComponentInstantiateRequest::CopyFrom(const ProxiedComponentInstantiateRequest& from) {
+  if (&from == this) return;
+  Clear();
+  MergeFrom(from);
+}
+
+bool ProxiedComponentInstantiateRequest::IsInitialized() const {
+
+
+  if (!_extensions_.IsInitialized()) return false;  return true;
+}
+
+void ProxiedComponentInstantiateRequest::Swap(ProxiedComponentInstantiateRequest* other) {
+  if (other != this) {
+    std::swap(invocation_, other->invocation_);
+    std::swap(componentname_, other->componentname_);
+    componenthandle_.Swap(&other->componenthandle_);
+    std::swap(_has_bits_[0], other->_has_bits_[0]);
+    _unknown_fields_.Swap(&other->_unknown_fields_);
+    std::swap(_cached_size_, other->_cached_size_);
+    _extensions_.Swap(&other->_extensions_);
+  }
+}
+
+::google::protobuf::Metadata ProxiedComponentInstantiateRequest::GetMetadata() const {
+  protobuf_AssignDescriptorsOnce();
+  ::google::protobuf::Metadata metadata;
+  metadata.descriptor = ProxiedComponentInstantiateRequest_descriptor_;
+  metadata.reflection = ProxiedComponentInstantiateRequest_reflection_;
+  return metadata;
+}
+
+
+// ===================================================================
+
+#ifndef _MSC_VER
+const int ProxiedComponentCleanupRequest::kInvocationFieldNumber;
+const int ProxiedComponentCleanupRequest::kComponentNameFieldNumber;
+const int ProxiedComponentCleanupRequest::kComponentHandleFieldNumber;
+#endif  // !_MSC_VER
+
+ProxiedComponentCleanupRequest::ProxiedComponentCleanupRequest()
+  : ::google::protobuf::Message() {
+  SharedCtor();
+  // @@protoc_insertion_point(constructor:SAFplus.Rpc.amfAppRpc.ProxiedComponentCleanupRequest)
+}
+
+void ProxiedComponentCleanupRequest::InitAsDefaultInstance() {
+}
+
+ProxiedComponentCleanupRequest::ProxiedComponentCleanupRequest(const ProxiedComponentCleanupRequest& from)
+  : ::google::protobuf::Message() {
+  SharedCtor();
+  MergeFrom(from);
+  // @@protoc_insertion_point(copy_constructor:SAFplus.Rpc.amfAppRpc.ProxiedComponentCleanupRequest)
+}
+
+void ProxiedComponentCleanupRequest::SharedCtor() {
+  ::google::protobuf::internal::GetEmptyString();
+  _cached_size_ = 0;
+  invocation_ = GOOGLE_ULONGLONG(0);
+  componentname_ = const_cast< ::std::string*>(&::google::protobuf::internal::GetEmptyStringAlreadyInited());
+  ::memset(_has_bits_, 0, sizeof(_has_bits_));
+}
+
+ProxiedComponentCleanupRequest::~ProxiedComponentCleanupRequest() {
+  // @@protoc_insertion_point(destructor:SAFplus.Rpc.amfAppRpc.ProxiedComponentCleanupRequest)
+  SharedDtor();
+}
+
+void ProxiedComponentCleanupRequest::SharedDtor() {
+  if (componentname_ != &::google::protobuf::internal::GetEmptyStringAlreadyInited()) {
+    delete componentname_;
+  }
+  if (this != default_instance_) {
+  }
+}
+
+void ProxiedComponentCleanupRequest::SetCachedSize(int size) const {
+  GOOGLE_SAFE_CONCURRENT_WRITES_BEGIN();
+  _cached_size_ = size;
+  GOOGLE_SAFE_CONCURRENT_WRITES_END();
+}
+const ::google::protobuf::Descriptor* ProxiedComponentCleanupRequest::descriptor() {
+  protobuf_AssignDescriptorsOnce();
+  return ProxiedComponentCleanupRequest_descriptor_;
+}
+
+const ProxiedComponentCleanupRequest& ProxiedComponentCleanupRequest::default_instance() {
+  if (default_instance_ == NULL) protobuf_AddDesc_amfAppRpc_2eproto();
+  return *default_instance_;
+}
+
+ProxiedComponentCleanupRequest* ProxiedComponentCleanupRequest::default_instance_ = NULL;
+
+ProxiedComponentCleanupRequest* ProxiedComponentCleanupRequest::New() const {
+  return new ProxiedComponentCleanupRequest;
+}
+
+void ProxiedComponentCleanupRequest::Clear() {
+  _extensions_.Clear();
+  if (_has_bits_[0 / 32] & 3) {
+    invocation_ = GOOGLE_ULONGLONG(0);
+    if (has_componentname()) {
+      if (componentname_ != &::google::protobuf::internal::GetEmptyStringAlreadyInited()) {
+        componentname_->clear();
+      }
+    }
+  }
+  componenthandle_.Clear();
+  ::memset(_has_bits_, 0, sizeof(_has_bits_));
+  mutable_unknown_fields()->Clear();
+}
+
+bool ProxiedComponentCleanupRequest::MergePartialFromCodedStream(
+    ::google::protobuf::io::CodedInputStream* input) {
+#define DO_(EXPRESSION) if (!(EXPRESSION)) goto failure
+  ::google::protobuf::uint32 tag;
+  // @@protoc_insertion_point(parse_start:SAFplus.Rpc.amfAppRpc.ProxiedComponentCleanupRequest)
+  for (;;) {
+    ::std::pair< ::google::protobuf::uint32, bool> p = input->ReadTagWithCutoff(127);
+    tag = p.first;
+    if (!p.second) goto handle_unusual;
+    switch (::google::protobuf::internal::WireFormatLite::GetTagFieldNumber(tag)) {
+      // optional uint64 invocation = 1;
+      case 1: {
+        if (tag == 8) {
+          DO_((::google::protobuf::internal::WireFormatLite::ReadPrimitive<
+                   ::google::protobuf::uint64, ::google::protobuf::internal::WireFormatLite::TYPE_UINT64>(
+                 input, &invocation_)));
+          set_has_invocation();
+        } else {
+          goto handle_unusual;
+        }
+        if (input->ExpectTag(18)) goto parse_componentName;
+        break;
+      }
+
+      // optional string componentName = 2;
+      case 2: {
+        if (tag == 18) {
+         parse_componentName:
+          DO_(::google::protobuf::internal::WireFormatLite::ReadString(
+                input, this->mutable_componentname()));
+          ::google::protobuf::internal::WireFormat::VerifyUTF8StringNamedField(
+            this->componentname().data(), this->componentname().length(),
+            ::google::protobuf::internal::WireFormat::PARSE,
+            "componentname");
+        } else {
+          goto handle_unusual;
+        }
+        if (input->ExpectTag(26)) goto parse_componentHandle;
+        break;
+      }
+
+      // repeated bytes componentHandle = 3;
+      case 3: {
+        if (tag == 26) {
+         parse_componentHandle:
+          DO_(::google::protobuf::internal::WireFormatLite::ReadBytes(
+                input, this->add_componenthandle()));
+        } else {
+          goto handle_unusual;
+        }
+        if (input->ExpectTag(26)) goto parse_componentHandle;
+        if (input->ExpectAtEnd()) goto success;
+        break;
+      }
+
+      default: {
+      handle_unusual:
+        if (tag == 0 ||
+            ::google::protobuf::internal::WireFormatLite::GetTagWireType(tag) ==
+            ::google::protobuf::internal::WireFormatLite::WIRETYPE_END_GROUP) {
+          goto success;
+        }
+        if ((8000u <= tag)) {
+          DO_(_extensions_.ParseField(tag, input, default_instance_,
+                                      mutable_unknown_fields()));
+          continue;
+        }
+        DO_(::google::protobuf::internal::WireFormat::SkipField(
+              input, tag, mutable_unknown_fields()));
+        break;
+      }
+    }
+  }
+success:
+  // @@protoc_insertion_point(parse_success:SAFplus.Rpc.amfAppRpc.ProxiedComponentCleanupRequest)
+  return true;
+failure:
+  // @@protoc_insertion_point(parse_failure:SAFplus.Rpc.amfAppRpc.ProxiedComponentCleanupRequest)
+  return false;
+#undef DO_
+}
+
+void ProxiedComponentCleanupRequest::SerializeWithCachedSizes(
+    ::google::protobuf::io::CodedOutputStream* output) const {
+  // @@protoc_insertion_point(serialize_start:SAFplus.Rpc.amfAppRpc.ProxiedComponentCleanupRequest)
+  // optional uint64 invocation = 1;
+  if (has_invocation()) {
+    ::google::protobuf::internal::WireFormatLite::WriteUInt64(1, this->invocation(), output);
+  }
+
+  // optional string componentName = 2;
+  if (has_componentname()) {
+    ::google::protobuf::internal::WireFormat::VerifyUTF8StringNamedField(
+      this->componentname().data(), this->componentname().length(),
+      ::google::protobuf::internal::WireFormat::SERIALIZE,
+      "componentname");
+    ::google::protobuf::internal::WireFormatLite::WriteStringMaybeAliased(
+      2, this->componentname(), output);
+  }
+
+  // repeated bytes componentHandle = 3;
+  for (int i = 0; i < this->componenthandle_size(); i++) {
+    ::google::protobuf::internal::WireFormatLite::WriteBytes(
+      3, this->componenthandle(i), output);
+  }
+
+  // Extension range [1000, 536870912)
+  _extensions_.SerializeWithCachedSizes(
+      1000, 536870912, output);
+
+  if (!unknown_fields().empty()) {
+    ::google::protobuf::internal::WireFormat::SerializeUnknownFields(
+        unknown_fields(), output);
+  }
+  // @@protoc_insertion_point(serialize_end:SAFplus.Rpc.amfAppRpc.ProxiedComponentCleanupRequest)
+}
+
+::google::protobuf::uint8* ProxiedComponentCleanupRequest::SerializeWithCachedSizesToArray(
+    ::google::protobuf::uint8* target) const {
+  // @@protoc_insertion_point(serialize_to_array_start:SAFplus.Rpc.amfAppRpc.ProxiedComponentCleanupRequest)
+  // optional uint64 invocation = 1;
+  if (has_invocation()) {
+    target = ::google::protobuf::internal::WireFormatLite::WriteUInt64ToArray(1, this->invocation(), target);
+  }
+
+  // optional string componentName = 2;
+  if (has_componentname()) {
+    ::google::protobuf::internal::WireFormat::VerifyUTF8StringNamedField(
+      this->componentname().data(), this->componentname().length(),
+      ::google::protobuf::internal::WireFormat::SERIALIZE,
+      "componentname");
+    target =
+      ::google::protobuf::internal::WireFormatLite::WriteStringToArray(
+        2, this->componentname(), target);
+  }
+
+  // repeated bytes componentHandle = 3;
+  for (int i = 0; i < this->componenthandle_size(); i++) {
+    target = ::google::protobuf::internal::WireFormatLite::
+      WriteBytesToArray(3, this->componenthandle(i), target);
+  }
+
+  // Extension range [1000, 536870912)
+  target = _extensions_.SerializeWithCachedSizesToArray(
+      1000, 536870912, target);
+
+  if (!unknown_fields().empty()) {
+    target = ::google::protobuf::internal::WireFormat::SerializeUnknownFieldsToArray(
+        unknown_fields(), target);
+  }
+  // @@protoc_insertion_point(serialize_to_array_end:SAFplus.Rpc.amfAppRpc.ProxiedComponentCleanupRequest)
+  return target;
+}
+
+int ProxiedComponentCleanupRequest::ByteSize() const {
+  int total_size = 0;
+
+  if (_has_bits_[0 / 32] & (0xffu << (0 % 32))) {
+    // optional uint64 invocation = 1;
+    if (has_invocation()) {
+      total_size += 1 +
+        ::google::protobuf::internal::WireFormatLite::UInt64Size(
+          this->invocation());
+    }
+
+    // optional string componentName = 2;
+    if (has_componentname()) {
+      total_size += 1 +
+        ::google::protobuf::internal::WireFormatLite::StringSize(
+          this->componentname());
+    }
+
+  }
+  // repeated bytes componentHandle = 3;
+  total_size += 1 * this->componenthandle_size();
+  for (int i = 0; i < this->componenthandle_size(); i++) {
+    total_size += ::google::protobuf::internal::WireFormatLite::BytesSize(
+      this->componenthandle(i));
+  }
+
+  total_size += _extensions_.ByteSize();
+
+  if (!unknown_fields().empty()) {
+    total_size +=
+      ::google::protobuf::internal::WireFormat::ComputeUnknownFieldsSize(
+        unknown_fields());
+  }
+  GOOGLE_SAFE_CONCURRENT_WRITES_BEGIN();
+  _cached_size_ = total_size;
+  GOOGLE_SAFE_CONCURRENT_WRITES_END();
+  return total_size;
+}
+
+void ProxiedComponentCleanupRequest::MergeFrom(const ::google::protobuf::Message& from) {
+  GOOGLE_CHECK_NE(&from, this);
+  const ProxiedComponentCleanupRequest* source =
+    ::google::protobuf::internal::dynamic_cast_if_available<const ProxiedComponentCleanupRequest*>(
+      &from);
+  if (source == NULL) {
+    ::google::protobuf::internal::ReflectionOps::Merge(from, this);
+  } else {
+    MergeFrom(*source);
+  }
+}
+
+void ProxiedComponentCleanupRequest::MergeFrom(const ProxiedComponentCleanupRequest& from) {
+  GOOGLE_CHECK_NE(&from, this);
+  componenthandle_.MergeFrom(from.componenthandle_);
+  if (from._has_bits_[0 / 32] & (0xffu << (0 % 32))) {
+    if (from.has_invocation()) {
+      set_invocation(from.invocation());
+    }
+    if (from.has_componentname()) {
+      set_componentname(from.componentname());
+    }
+  }
+  _extensions_.MergeFrom(from._extensions_);
+  mutable_unknown_fields()->MergeFrom(from.unknown_fields());
+}
+
+void ProxiedComponentCleanupRequest::CopyFrom(const ::google::protobuf::Message& from) {
+  if (&from == this) return;
+  Clear();
+  MergeFrom(from);
+}
+
+void ProxiedComponentCleanupRequest::CopyFrom(const ProxiedComponentCleanupRequest& from) {
+  if (&from == this) return;
+  Clear();
+  MergeFrom(from);
+}
+
+bool ProxiedComponentCleanupRequest::IsInitialized() const {
+
+
+  if (!_extensions_.IsInitialized()) return false;  return true;
+}
+
+void ProxiedComponentCleanupRequest::Swap(ProxiedComponentCleanupRequest* other) {
+  if (other != this) {
+    std::swap(invocation_, other->invocation_);
+    std::swap(componentname_, other->componentname_);
+    componenthandle_.Swap(&other->componenthandle_);
+    std::swap(_has_bits_[0], other->_has_bits_[0]);
+    _unknown_fields_.Swap(&other->_unknown_fields_);
+    std::swap(_cached_size_, other->_cached_size_);
+    _extensions_.Swap(&other->_extensions_);
+  }
+}
+
+::google::protobuf::Metadata ProxiedComponentCleanupRequest::GetMetadata() const {
+  protobuf_AssignDescriptorsOnce();
+  ::google::protobuf::Metadata metadata;
+  metadata.descriptor = ProxiedComponentCleanupRequest_descriptor_;
+  metadata.reflection = ProxiedComponentCleanupRequest_reflection_;
   return metadata;
 }
 

@@ -135,4 +135,52 @@ module amfAppRpc
 	}
     }
 
+  rpc proxiedComponentInstantiate  // Actually going from the app to the AMF
+    {
+      input
+      {
+        leaf invocation
+          {
+            type uint64;
+          }
+
+        leaf componentName  // Or should I use the component handle?
+          {
+            type string;
+          }
+
+        leaf-list componentHandle
+          {
+            type binary
+              {
+                length 16;  // 2 64-bit words
+              }
+          }
+       }
+    }
+
+  rpc proxiedComponentCleanup  // Actually going from the app to the AMF
+    {
+      input
+      {
+        leaf invocation
+          {
+            type uint64;
+          }
+
+        leaf componentName  // Or should I use the component handle?
+          {
+            type string;
+          }
+
+        leaf-list componentHandle
+          {
+            type binary
+              {
+                length 16;  // 2 64-bit words
+              }
+          }
+       }
+    }
+
 }

@@ -26,9 +26,10 @@ namespace SAFplusAmf
     /* Apply MGT object factory */
     MGT_REGISTER_IMPL(ComponentServiceInstance, /SAFplusAmf/safplusAmf/ComponentServiceInstance)
 
-    ComponentServiceInstance::ComponentServiceInstance(): protectionGroup("protectionGroup"), dependencies("dependencies"), serviceInstance("serviceInstance"), standbyComponents("standbyComponents"), activeComponents("activeComponents"), dataList("data"), type("type")
+    ComponentServiceInstance::ComponentServiceInstance(): protectionGroup("protectionGroup"), dependencies("dependencies"), serviceInstance("serviceInstance"), standbyComponents("standbyComponents"), activeComponents("activeComponents"), dataList("data"), type("type"), isProxyCSI("isProxyCSI",false)
     {
         this->addChildObject(&type,"type");
+        this->addChildObject(&isProxyCSI,"isProxyCSI");
         this->addChildObject(&protectionGroup, "protectionGroup");
         this->addChildObject(&dependencies, "dependencies");
         this->addChildObject(&serviceInstance, "serviceInstance");
@@ -48,9 +49,10 @@ namespace SAFplusAmf
         this->tag.assign("ComponentServiceInstance");
     };
 
-    ComponentServiceInstance::ComponentServiceInstance(const std::string& nameValue): protectionGroup("protectionGroup"), dependencies("dependencies"), serviceInstance("serviceInstance"), standbyComponents("standbyComponents"), activeComponents("activeComponents"), dataList("data"), type("type")
+    ComponentServiceInstance::ComponentServiceInstance(const std::string& nameValue): protectionGroup("protectionGroup"), dependencies("dependencies"), serviceInstance("serviceInstance"), standbyComponents("standbyComponents"), activeComponents("activeComponents"), dataList("data"), type("type"), isProxyCSI("isProxyCSI",false)
     {
         this->addChildObject(&type,"type");
+        this->addChildObject(&isProxyCSI,"isProxyCSI");
         this->name.value =  nameValue;
         this->addChildObject(&protectionGroup, "protectionGroup");
         this->addChildObject(&dependencies, "dependencies");

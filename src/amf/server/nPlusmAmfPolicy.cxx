@@ -164,8 +164,9 @@ class NplusMPolicy:public ClAmfPolicyPlugin_1
 
         SAFplusAmf::AdministrativeState eas = effectiveAdminState(comp);
         assert(eas != SAFplusAmf::AdministrativeState::off); // Do not call this API if the component is administratively OFF!
-        amfOps->start(comp,w);
-        ret++;
+        amfOps->start(comp,w);        
+        if (comp->compProperty.value == SAFplusAmf::CompProperty::sa_aware)
+          ret++;
         }
       catch (Error& e)  // Can't talk to the node and the fault manager entry does not exist.
         {
@@ -279,7 +280,12 @@ class NplusMPolicy:public ClAmfPolicyPlugin_1
           {
           Component* comp = dynamic_cast<Component*>(*itcomp);
           assert(comp);
-          if (comp->operState.value == false) { assignable = false; break; }
+          if (comp->compProperty.value == SAFplusAmf::CompProperty::proxied_preinstantiable)
+            {
+               //Don't count proxied preinstantiable because it never gets assignment
+               continue;
+            }          
+          if (comp->operState.value == false) {assignable = false; break; }
           if (comp->capabilityModel == CapabilityModel::not_preinstantiable)  // If the component is not preinstantiable, there are basically no requirements on it to be assignable -- it doesn't even have to be running.
             {
             }
@@ -432,6 +438,11 @@ class NplusMPolicy:public ClAmfPolicyPlugin_1
           for (itcomp = su->components.listBegin(); itcomp != endcomp; itcomp++)
             {
             Component* comp = dynamic_cast<Component*>(*itcomp);
+            if (comp->compProperty.value == SAFplusAmf::CompProperty::proxied_preinstantiable)
+              {
+                //Don't count proxied preinstantiable because it never gets assignment according to safplus 6.0
+                continue;
+              }            
             SAFplusAmf::AdministrativeState eas = effectiveAdminState(comp);
         logInfo("N+M","AUDIT","Auditing component [%s] on [%s.%s] pid [%d]: Operational State [%s] PresenceState [%s] ReadinessState [%s] HA State [%s] HA Readiness [%s] Pending Operation [%s] (expires in: [%d ms]) instantiation attempts [%d]",comp->name.value.c_str(),node ? node->name.value.c_str(): "unattached",suName.c_str(), comp->processId.value,
             oper_str(comp->operState.value), c_str(comp->presenceState.value), c_str(comp->readinessState.value),
@@ -591,7 +602,7 @@ class NplusMPolicy:public ClAmfPolicyPlugin_1
             //if (1)
             if (recommendedRecovery != SAFplusAmf::Recovery::NodeFailfast)
               {
-              for (int cnt = si->getNumActiveAssignments()->current.value; cnt < si->preferredActiveAssignments || !si->isFullActiveAssignment.value; cnt++)
+              for (int cnt = si->getNumActiveAssignments()->current.value; cnt < si->preferredActiveAssignments /*|| !si->isFullActiveAssignment.value*/; cnt++)
                 {
                 ServiceUnit* su = findAssignableServiceUnit(sus,si,HighAvailabilityState::active);
                 if (su)
@@ -617,8 +628,8 @@ class NplusMPolicy:public ClAmfPolicyPlugin_1
               }
             if (si->getNumActiveAssignments()->current.value > 0 && si->isFullActiveAssignment)  // If there is at least 1 active, try to assign the standbys
               {
-              for (int cnt = si->getNumStandbyAssignments()->current.value; cnt < si->preferredStandbyAssignments || (!si->isFullStandbyAssignment.value ); cnt++)
-                {
+              for (int cnt = si->getNumStandbyAssignments()->current.value; cnt < si->preferredStandbyAssignments /*|| (!si->isFullStandbyAssignment.value )*/; cnt++)
+               {
                 ServiceUnit* su = findAssignableServiceUnit(sus,si,HighAvailabilityState::standby);
 
                 if((recommendedRecovery==SAFplusAmf::Recovery::NodeSwitchover
@@ -916,9 +927,14 @@ class NplusMPolicy:public ClAmfPolicyPlugin_1
           SAFplus::MgtObject::Iterator itcomp;
           SAFplus::MgtObject::Iterator endcomp = su->components.end();
           for (itcomp = su->components.begin(); itcomp != endcomp; itcomp++)
-            {
-            numComps++;
+            {                        
             Component* comp = dynamic_cast<Component*>(itcomp->second);
+            if (comp->compProperty.value == SAFplusAmf::CompProperty::proxied_preinstantiable)
+            {
+               //Don't count proxied preinstantiable because it must be instantiated after its proxy gets assignment
+               continue;
+            }
+            numComps++;
             logInfo("N+M","AUDIT","Component [%s]: operState [%s]", comp->name.value.c_str(), comp->operState.value ? "enabled" : "faulted");
             if (!running(comp->presenceState))
               {

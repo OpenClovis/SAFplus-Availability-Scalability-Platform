@@ -138,6 +138,26 @@ namespace amfAppRpc {
   logInfo("AMF","RPC","work Operation response");
   }
 
+  void amfAppRpcImpl::proxiedComponentInstantiate(const ::SAFplus::Rpc::amfAppRpc::ProxiedComponentInstantiateRequest* request)
+  {
+    if (SAFplusI::amfSession->callbacks.saAmfProxiedComponentInstantiateCallback)
+      {
+        SaNameT compName;
+        SAFplus::saNameSet(&compName,request->componentname().c_str());
+        SAFplusI::amfSession->callbacks.saAmfProxiedComponentInstantiateCallback((SaInvocationT) request->invocation(),&compName);
+      }
+  }
+
+  void amfAppRpcImpl::proxiedComponentCleanup(const ::SAFplus::Rpc::amfAppRpc::ProxiedComponentCleanupRequest* request)
+  {
+    if (SAFplusI::amfSession->callbacks.saAmfProxiedComponentCleanupCallback)
+      {
+        SaNameT compName;
+        SAFplus::saNameSet(&compName,request->componentname().c_str());
+        SAFplusI::amfSession->callbacks.saAmfProxiedComponentCleanupCallback((SaInvocationT) request->invocation(),&compName);
+      }
+  }
+
 }  // namespace amfAppRpc
 }  // namespace Rpc
 }  // namespace SAFplus

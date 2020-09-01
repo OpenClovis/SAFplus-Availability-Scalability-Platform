@@ -57,6 +57,7 @@ namespace SAFplusAmf
          */
         SAFplus::MgtList<std::string> dataList;
         SAFplus::MgtProv<std::string> type;
+        SAFplus::MgtProv<bool> isProxyCSI;
 
     public:
         ComponentServiceInstance();

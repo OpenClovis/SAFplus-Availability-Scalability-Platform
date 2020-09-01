@@ -36,16 +36,6 @@ namespace amfAppRpc {
     //TODO: put your code here
   }
 
-  void amfAppRpcImpl::proxiedComponentInstantiate(const ::SAFplus::Rpc::amfAppRpc::ProxiedComponentInstantiateRequest* request)
-  {
-    //TODO: put your code here
-  }
-
-  void amfAppRpcImpl::proxiedComponentCleanup(const ::SAFplus::Rpc::amfAppRpc::ProxiedComponentCleanupRequest* request)
-  {
-    //TODO: put your code here
-  }
-
 }  // namespace amfAppRpc
 }  // namespace Rpc
 }  // namespace SAFplus

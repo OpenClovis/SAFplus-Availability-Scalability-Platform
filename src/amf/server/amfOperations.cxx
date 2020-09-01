@@ -20,6 +20,7 @@
 #include <SAFplusAmf/ServiceUnit.hxx>
 #include <SAFplusAmf/ServiceGroup.hxx>
 #include <SAFplusAmf/Data.hxx>
+#include <SAFplusAmfModule.hxx>
 
 using namespace SAFplus;
 using namespace SAFplusI;
@@ -29,6 +30,7 @@ using namespace SAFplus::Rpc::amfRpc;
 extern Handle           nodeHandle; //? The handle associated with this node
 extern SAFplus::Fault gfault;
 bool rebootFlag;
+extern SAFplusAmf::SAFplusAmfModule cfg;
 namespace SAFplus
   {
 
@@ -245,15 +247,25 @@ namespace SAFplus
     amfOps = amfOperations;
     fault  = faultp;
     return true;
-    }
+    }  
 
   void AmfOperations::workOperationResponse(uint64_t invocation, uint32_t result)
     {
     if (1)
       {
+      // if there is no invocation in the pendingWorkOperations, it means this is from proxied preinstantiable component response ==> no-op for this case      
+      if (pendingWorkOperations.find(invocation) == pendingWorkOperations.end()) // saAmfResponse from proxied preinstantiable instatiate
+      {
+         logInfo("AMF","OPS","workOperationResponse from proxied preinstantiable instatiate. No-op");
+         return;
+      }
       WorkOperationTracker& wat = pendingWorkOperations.at(invocation);
       logInfo("AMF","OPS","Work Operation response on component [%s] invocation [%" PRIu64 "] result [%d]",wat.comp->name.value.c_str(),invocation, result);
-      if ( wat.state == WorkOperationTracker::TerminationState)
+      if ( wat.state == (int)HighAvailabilityState::active)
+      {
+        assignWorkCallback(wat.comp);
+      }
+      else if ( wat.state == WorkOperationTracker::TerminationState)
         {
           if (result == SA_AIS_OK)
           {
@@ -621,7 +633,11 @@ namespace SAFplus
 
       Component* comp = dynamic_cast<Component*>(*itcomp);
       assert(comp);
-
+      if (comp->compProperty.value == SAFplusAmf::CompProperty::proxied_preinstantiable)
+        {
+           //Don't count proxied preinstantiable because it never gets assignment
+           continue;
+        }
       assert(comp->pendingOperation == PendingOperation::none);  // We should not be adding work to a component if something else is happening to it.
 
       Handle hdl;
@@ -724,6 +740,8 @@ namespace SAFplus
             pendingWorkOperations[request.invocation()] = WorkOperationTracker(comp,csi,si,(uint32_t)state,SA_AMF_CSI_ADD_ONE);
 
             amfAppRpc->workOperation(hdl, &request);
+
+            //assignWorkCallback(comp);
           }
 
           reportChange();
@@ -864,6 +882,41 @@ namespace SAFplus
       }
     }
 
+  bool compIsProxyReady(SAFplusAmf::Component* comp)
+  {
+    SAFplusAmf::Component* proxy = comp->proxy.value;    
+  
+    if (proxy && (proxy->readinessState.value == SAFplusAmf::ReadinessState::inService))
+    {     
+       MgtObject::Iterator itcsi;
+       MgtObject::Iterator endcsi = cfg.safplusAmf.componentServiceInstanceList.end();
+       for (itcsi = cfg.safplusAmf.componentServiceInstanceList.begin(); itcsi != endcsi; itcsi++)
+        {
+            ComponentServiceInstance* csi = dynamic_cast<ComponentServiceInstance*>(itcsi->second);
+            //std::vector<SAFplus::MgtIdentifierList::Elem>& vec = csi->activeComponents.value;
+            SAFplus::MgtIdentifierList<SAFplusAmf::Component*>::Container& vec = csi->activeComponents.value;
+            std::vector<SAFplus::MgtIdentifierList<SAFplusAmf::Component*>::Elem>::iterator itvec = vec.begin();            
+            for(; itvec != vec.end(); itvec++)
+            {
+               SAFplus::MgtIdentifierList<SAFplusAmf::Component*>::Elem elem = *itvec;
+               SAFplusAmf::Component* c = elem.value;
+               if (proxy->name.value.compare(c->name.value)==0)
+               {
+                  logDebug("OPS","PROXY.READY","found csi [%s] has active assignment for component [%s]", csi->name.value.c_str(), proxy->name.value.c_str());
+                  return true;
+               }
+            }
+        }
+    }
+    else
+    {
+      logInfo("OPS","PROXY.READY","proxied comp [%s] has no proxy or redinessState of [%s] is [%s]", comp->name.value.c_str(), proxy?proxy->name.value.c
+_str():"Unknown",proxy?SAFplusAmf::c_str(proxy->readinessState.value):"Unknown");
+    }
+
+    return false;
+}
+
   void AmfOperations::start(SAFplusAmf::Component* comp,Wakeable& w)
     {
     assert(comp);
@@ -930,47 +983,48 @@ namespace SAFplus
         }
     else 
         comp->presenceState.value  = PresenceState::instantiating;
-
-    if (nodeHdl == nodeHandle)  // Handle this request locally.  This is an optimization.  The RPC call will also work locally.
+    if (comp->compProperty.value == SAFplusAmf::CompProperty::sa_aware)
+    {
+      if (nodeHdl == nodeHandle)  // Handle this request locally.  This is an optimization.  The RPC call will also work locally.
       {
-      std::vector<std::string> newEnv = comp->commandEnvironment.value;
-      std::string strCompName("ASP_COMPNAME=");
-      std::string strNodeName("ASP_NODENAME=");
-      std::string strNodeAddr("ASP_NODEADDR=");
-      std::string strPort("SAFPLUS_RECOMMENDED_MSG_PORT=");
+        std::vector<std::string> newEnv = comp->commandEnvironment.value;
+        std::string strCompName("ASP_COMPNAME=");
+        std::string strNodeName("ASP_NODENAME=");
+        std::string strNodeAddr("ASP_NODEADDR=");
+        std::string strPort("SAFPLUS_RECOMMENDED_MSG_PORT=");
 
-      strCompName.append(comp->name);
-      strNodeName.append(SAFplus::ASP_NODENAME);
-      strNodeAddr.append(std::to_string(SAFplus::ASP_NODEADDR));
-      int port = portAllocator.allocPort();
-      strPort.append(std::to_string(port));
-      newEnv.push_back(strCompName);
-      newEnv.push_back(strNodeName);
-      newEnv.push_back(strNodeAddr);
-      newEnv.push_back(strPort);
+        strCompName.append(comp->name);
+        strNodeName.append(SAFplus::ASP_NODENAME);
+        strNodeAddr.append(std::to_string(SAFplus::ASP_NODEADDR));
+        int port = portAllocator.allocPort();
+        strPort.append(std::to_string(port));
+        newEnv.push_back(strCompName);
+        newEnv.push_back(strNodeName);
+        newEnv.push_back(strNodeAddr);
+        newEnv.push_back(strPort);
 
-      Process p = executeProgram(inst->command.value, newEnv,Process::InheritEnvironment);
-      portAllocator.assignPort(port, p.pid);
-      comp->processId.value = p.pid;
+        Process p = executeProgram(inst->command.value, newEnv,Process::InheritEnvironment);
+        portAllocator.assignPort(port, p.pid);
+        comp->processId.value = p.pid;
 
-      // I need to set the handle because the process itself will not do so.
-      if ( comp->capabilityModel == CapabilityModel::not_preinstantiable)
+        // I need to set the handle because the process itself will not do so.
+        if ( comp->capabilityModel == CapabilityModel::not_preinstantiable)
         {
           Handle handle=getProcessHandle(p.pid);
           name.set(comp->name, handle, NameRegistrar::MODE_NO_CHANGE);        
           comp->presenceState.value  = PresenceState::instantiated;    // There are no transitional states in the not_preinstantiable (not SAF aware) case
         }
 
-      logInfo("OPS","SRT","Launching Component [%s] as [%s] locally with process id [%d], recommended port [%d]", comp->name.value.c_str(),inst->command.value.c_str(),p.pid,port);
+        logInfo("OPS","SRT","Launching Component [%s] as [%s] locally with process id [%d], recommended port [%d]", comp->name.value.c_str(),inst->command.value.c_str(),p.pid,port);
 
 
-      if (&w) w.wake(1,(void*)comp);
+        if (&w) w.wake(1,(void*)comp);
       }
-    else  // RPC call
+      else  // RPC call
       {
-      Handle remoteAmfHdl = getProcessHandle(SAFplusI::AMF_IOC_PORT,nodeHdl.getNode());
-      FaultState fs = fault.getFaultState(remoteAmfHdl);
-      if (fs == FaultState::STATE_UP)
+        Handle remoteAmfHdl = getProcessHandle(SAFplusI::AMF_IOC_PORT,nodeHdl.getNode());
+        FaultState fs = fault.getFaultState(remoteAmfHdl);
+        if (fs == FaultState::STATE_UP)
         {
           logInfo("OP","CMP","Request launch component [%s] as [%s] on node [%s]", comp->name.value.c_str(),inst->command.value.c_str(),comp->serviceUnit.value->node.value->name.value.c_str());
 
@@ -980,15 +1034,52 @@ namespace SAFplus
           StartCompResp* resp = new StartCompResp(&w,comp);
           amfInternalRpc->startComponent(remoteAmfHdl,&req, &resp->response,*resp);
         }
-      else
+        else
         {
           comp->lastError.value = "Component's node is not up.";
           if (&w) w.wake(1,(void*)comp);
         }
       }
-    reportChange();
+      reportChange();
     }
+    else if (comp->compProperty.value == SAFplusAmf::CompProperty::proxied_preinstantiable)
+    {
+      if (!compIsProxyReady(comp))
+      {
+        logInfo("OPS","START","proxy is not ready, no operation for proxied start right now");
+        return;
+      }
+      SAFplus::Rpc::amfAppRpc::ProxiedComponentInstantiateRequest request;
+      Handle proxyHdl, hdl;
+      SAFplusAmf::Component* proxy = comp->proxy.value;
+      try
+      {
+         proxyHdl = name.getHandle(proxy->name);
+      }
+      catch (SAFplus::NameException& n)
+      {
+        logCritical("OPS","START","Component [%s] is not registered in the name service.  Cannot control it. Exception message [%s]", proxy->name.value.c_str(), n.what());
+        comp->lastError.value = "Component's name is not registered in the name service so cannot cleanup proxied component cleanly";
+        return;
+      }
+      try
+      {
+         hdl = name.getHandle(comp->name);
+      }
+      catch (SAFplus::NameException& n)
+      {
+        logInfo("OPS","START","Component [%s] is not registered in the name service. It'll register later. Exception message [%s]", comp->name.value.c_str(), n.what());
+        //comp->lastError.value = "Component's name is not registered in the name service so cannot cleanup proxied component cleanly";
 
+        //return;
+      }
+      request.set_componentname(comp->name.value.c_str());
+      request.add_componenthandle((const char*) &hdl, sizeof(Handle)); // [libprotobuf ERROR google/protobuf/wire_format.cc:1053] String field contains invalid UTF-8 data when serializing a protocol buffer. Use the 'bytes' type if you intend to send raw bytes.
+      if ((invocation & 0xFFFFFFFF) == 0xFFFFFFFF) invocation &= 0xFFFFFFFF00000000ULL;  // Don't let increasing invocation numbers overwrite the node or port... ofc this'll never happen 4 billion invocations? :-)
+      request.set_invocation(invocation++);
+      amfAppRpc->proxiedComponentInstantiate(proxyHdl, &request);
+    }
+ }
 
  void AmfOperations::cleanup(SAFplusAmf::Component* comp,Wakeable& w)
  {
@@ -1013,30 +1104,32 @@ namespace SAFplus
       comp->presenceState = PresenceState::uninstantiated;
       return;
     }
-   if (nodeHdl == nodeHandle)  // Handle this request locally.  This is an optimization.  The RPC call will also work locally.
-   {
-      std::vector<std::string> newEnv = comp->commandEnvironment.value;
-      std::string strCompName("ASP_COMPNAME=");
-      strCompName.append(comp->name);
-      newEnv.push_back(strCompName);
+   if (comp->compProperty.value == SAFplusAmf::CompProperty::sa_aware)
+   {   
+     if (nodeHdl == nodeHandle)  // Handle this request locally.  This is an optimization.  The RPC call will also work locally.
+     {
+        std::vector<std::string> newEnv = comp->commandEnvironment.value;
+        std::string strCompName("ASP_COMPNAME=");
+        strCompName.append(comp->name);
+        newEnv.push_back(strCompName);
 
-      logDebug("OPS","CLE","Cleaning up Component [%s] as [%s] locally", comp->name.value.c_str(),cleanup->command.value.c_str());
-      int status = executeProgramWithTimeout(cleanup->command.value, newEnv,cleanup->timeout.value,Process::InheritEnvironment);
+        logDebug("OPS","CLE","Cleaning up Component [%s] as [%s] locally", comp->name.value.c_str(),cleanup->command.value.c_str());
+        int status = executeProgramWithTimeout(cleanup->command.value, newEnv,cleanup->timeout.value,Process::InheritEnvironment);
 
-      if (comp->processId.value>0)
-      {
-         logDebug("OPS", "CLE", "Sending SIGKILL signal to component [%s] with process id [%d]", comp->name.value.c_str(), comp->processId.value);
-         kill(comp->processId.value, SIGKILL);
-      }
+        if (comp->processId.value>0)
+        {
+           logDebug("OPS", "CLE", "Sending SIGKILL signal to component [%s] with process id [%d]", comp->name.value.c_str(), comp->processId.value);
+           kill(comp->processId.value, SIGKILL);
+        }
 
-      if (&w) w.wake(1,(void*)comp);
-      }
-    else  // RPC call
-    {
-      Handle remoteAmfHdl = getProcessHandle(SAFplusI::AMF_IOC_PORT,nodeHdl.getNode());
-      FaultState fs = fault.getFaultState(remoteAmfHdl);
-      if (fs == FaultState::STATE_UP)
-      {
+        if (&w) w.wake(1,(void*)comp);
+     }
+     else  // RPC call
+     {
+       Handle remoteAmfHdl = getProcessHandle(SAFplusI::AMF_IOC_PORT,nodeHdl.getNode());
+       FaultState fs = fault.getFaultState(remoteAmfHdl);
+       if (fs == FaultState::STATE_UP)
+       {
           logInfo("OP","CLE","Request cleanup component [%s] as [%s] on node [%s]", comp->name.value.c_str(),cleanup->command.value.c_str(),comp->serviceUnit.value->node.value->name.value.c_str());
 
           CleanupComponentRequest req;
@@ -1046,12 +1139,49 @@ namespace SAFplus
           req.set_timeout(cleanup->timeout.value);
           CleanupCompResp* resp = new CleanupCompResp(&w,comp);
           amfInternalRpc->cleanupComponent(remoteAmfHdl,&req, &resp->response,*resp);
-     }
-     else
-     {
+       }
+       else
+       {
          comp->lastError.value = "Component's node is not up.";
          if (&w) w.wake(1,(void*)comp);
+       }
      }
+   }
+   else if (comp->compProperty.value == SAFplusAmf::CompProperty::proxied_preinstantiable)
+    {
+      if (!compIsProxyReady(comp))
+      {
+        logInfo("OPS","CLEANUP","proxy is not ready, no operation for proxied cleanup right now");
+        return;
+      }
+      SAFplus::Rpc::amfAppRpc::ProxiedComponentCleanupRequest request;
+      Handle proxyHdl, hdl;
+      SAFplusAmf::Component* proxy = comp->proxy.value;
+      try
+      {
+         proxyHdl = name.getHandle(proxy->name);
+      }
+      catch (SAFplus::NameException& n)
+      {
+        logCritical("OPS","START","Component [%s] is not registered in the name service.  Cannot control it. Exception message [%s]", proxy->name.value.c_str(), n.what());
+        comp->lastError.value = "Component's name is not registered in the name service so cannot cleanup proxied component cleanly";
+        return;
+      }
+      try
+      {
+         hdl = name.getHandle(comp->name);
+      }
+      catch (SAFplus::NameException& n)
+      {
+        logCritical("OPS","START","Component [%s] is not registered in the name service.  Cannot control it. Exception message [%s]", comp->name.value.c_str(), n.what());
+        comp->lastError.value = "Component's name is not registered in the name service so cannot cleanup proxied component cleanly";
+        return;
+      }
+      request.set_componentname(comp->name.value.c_str());
+      request.add_componenthandle((const char*) &hdl, sizeof(Handle)); // [libprotobuf ERROR google/protobuf/wire_format.cc:1053] String field contains invalid UTF-8 data when serializing a protocol buffer. Use the 'bytes' type if you intend to send raw bytes.
+      if ((invocation & 0xFFFFFFFF) == 0xFFFFFFFF) invocation &= 0xFFFFFFFF00000000ULL;  // Don't let increasing invocation numbers overwrite the node or port... ofc this'll never happen 4 billion invocations? :-)
+      request.set_invocation(invocation++);
+      amfAppRpc->proxiedComponentCleanup(proxyHdl, &request);
     }
   }
 
@@ -1140,6 +1270,65 @@ namespace SAFplus
                 RebootNodeRequest req;
                 RebootNodeResponse resp;
                 amfInternalRpc->rebootNode(remoteAmfHdl,&req,&resp);
+            }
+        }
+    }
+    
+    bool AmfOperations::compUpdateProxiedComponents(SAFplusAmf::Component* proxy, SAFplusAmf::ComponentServiceInstance* csi)
+    {
+        SAFplusAmf::PresenceState suState, compState;
+        bool suUp, compNotUp, suDown, compNotDown;
+        MgtObject::Iterator itcomp;
+        MgtObject::Iterator endcomp = cfg.safplusAmf.componentList.end();
+        for (itcomp = cfg.safplusAmf.componentList.begin(); itcomp != endcomp; itcomp++)
+        {
+           SAFplusAmf::Component* comp = dynamic_cast<SAFplusAmf::Component*>(itcomp->second);
+           if (comp->proxyCSI.value.compare(csi->type.value)==0)
+           {
+              if (csi->activeComponents.value.size()>0)
+              {
+                 logInfo("OPS","UPD.PROXIED","registering proxy [%s] for component [%s]", proxy->name.value.c_str(),comp->name.value.c_str());
+                 comp->proxy = proxy;
+                 suState = comp->serviceUnit.value->presenceState.value;
+                 compState = comp->presenceState.value;
+                 logInfo("OPS","UPD.PROXIED","su [%s] presenceState [%s]; component [%s] presenceState [%s]", comp->serviceUnit.value->name.value.c_str(), SAFplusAmf::c_str(suState),comp->name.value.c_str(),SAFplusAmf::c_str(compState));
+                 compNotUp = (compState == SAFplusAmf::PresenceState::uninstantiated) ||
+                    (compState == SAFplusAmf::PresenceState::instantiating)  ||
+                    (compState == SAFplusAmf::PresenceState::restarting);
+                 compNotDown = (compState == SAFplusAmf::PresenceState::instantiated)   ||
+                    (compState == SAFplusAmf::PresenceState::terminating)    ||
+                    (compState == SAFplusAmf::PresenceState::restarting);
+                 suUp      = (suState   == SAFplusAmf::PresenceState::instantiating)  ||
+                    (suState   == SAFplusAmf::PresenceState::restarting)     ||
+                    (suState   == SAFplusAmf::PresenceState::instantiated);
+                 suDown      = (suState   == SAFplusAmf::PresenceState::uninstantiated) ||
+                    (suState   == SAFplusAmf::PresenceState::terminating);
+                 if ( suUp && compNotUp )
+                    {
+                        logInfo("OPS","UPD.PROXIED","starting proxied component [%s] in presenceState [%s]", comp->name.value.c_str(),SAFplusAmf::c_str(compState));
+                        start(comp);
+                    }
+                    
+                 if ( suDown && compNotDown )
+                    {
+                        logInfo("OPS","UPD.PROXIED","stopping proxied component [%s] in presenceState [%s]", comp->name.value.c_str(),SAFplusAmf::c_str(compState));
+                        stop(comp);
+                    }
+              }   
+           }           
+        }
+    }
+
+    void AmfOperations::assignWorkCallback(SAFplusAmf::Component* comp)
+    {
+        MgtObject::Iterator itcsi;
+        MgtObject::Iterator endcsi = cfg.safplusAmf.componentServiceInstanceList.end();
+        for (itcsi = cfg.safplusAmf.componentServiceInstanceList.begin(); itcsi != endcsi; itcsi++)
+        {
+            ComponentServiceInstance* csi = dynamic_cast<ComponentServiceInstance*>(itcsi->second);
+            if (csi->isProxyCSI.value)
+            {
+                compUpdateProxiedComponents(comp,csi);
             }
         }
     }

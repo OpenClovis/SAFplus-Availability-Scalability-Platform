@@ -603,7 +603,7 @@ module SAFplusAmf
         {
 	  enum sa_aware;	  
         }
-        default "SA_AWARE";
+        default "sa_aware";
         SAFplusTypes:ui-prompt "Component type:";
         config true;
       }
@@ -1055,7 +1055,7 @@ are switched over to other nodes (component service instances are not abruptly r
         }
         default "proxied_preinstantiable";
         SAFplusTypes:ui-prompt "Component type:";
-        config false;
+        config true;
       }
       // No adminState; this is controlled by the ServiceUnit
 
@@ -1510,6 +1510,12 @@ are switched over to other nodes (component service instances are not abruptly r
       leaf type
       {
       type string;
+      }
+
+      leaf isProxyCSI
+      {
+        type boolean;
+        config false;
       }
 
       list data

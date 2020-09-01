@@ -68,6 +68,9 @@ namespace SAFplus
 
   class AmfOperations
     {
+  protected:
+      void assignWorkCallback(SAFplusAmf::Component* comp);
+      bool compUpdateProxiedComponents(SAFplusAmf::Component* proxy, SAFplusAmf::ComponentServiceInstance* csi);
   public: // Don't use directly
       Rpc::amfRpc::amfRpc_Stub* amfInternalRpc;
 

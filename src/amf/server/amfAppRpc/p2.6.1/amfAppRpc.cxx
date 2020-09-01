@@ -66,6 +66,16 @@ void amfAppRpc::workOperationResponse(const ::SAFplus::Rpc::amfAppRpc::WorkOpera
   logError("RPC","SVR","Method workOperationResponse() not implemented.");
 }
 
+void amfAppRpc::proxiedComponentInstantiate(const ::SAFplus::Rpc::amfAppRpc::ProxiedComponentInstantiateRequest*)
+{
+  logError("RPC","SVR","Method proxiedComponentInstantiate() not implemented.");
+}
+
+void amfAppRpc::proxiedComponentCleanup(const ::SAFplus::Rpc::amfAppRpc::ProxiedComponentCleanupRequest*)
+{
+  logError("RPC","SVR","Method proxiedComponentCleanup() not implemented.");
+}
+
 void amfAppRpc::heartbeat(SAFplus::Handle destination,
                      const ::SAFplus::Rpc::amfAppRpc::HeartbeatRequest* request,
                      ::SAFplus::Rpc::amfAppRpc::HeartbeatResponse* response,
@@ -94,6 +104,18 @@ void amfAppRpc::workOperationResponse(SAFplus::Handle destination,
   logError("RPC","SVR","Method workOperationResponse() not implemented.");
 }
 
+void amfAppRpc::proxiedComponentInstantiate(SAFplus::Handle destination,
+                     const ::SAFplus::Rpc::amfAppRpc::ProxiedComponentInstantiateRequest* request)
+{
+  logError("RPC","SVR","Method proxiedComponentInstantiate() not implemented.");
+}
+
+void amfAppRpc::proxiedComponentCleanup(SAFplus::Handle destination,
+                     const ::SAFplus::Rpc::amfAppRpc::ProxiedComponentCleanupRequest* request)
+{
+  logError("RPC","SVR","Method proxiedComponentCleanup() not implemented.");
+}
+
 void amfAppRpc::CallMethod(const ::google::protobuf::MethodDescriptor* method,
                              SAFplus::Handle destination,
                              const ::google::protobuf::Message* request,
@@ -115,6 +137,12 @@ void amfAppRpc::CallMethod(const ::google::protobuf::MethodDescriptor* method,
     case 3:
       workOperationResponse(::google::protobuf::down_cast<const ::SAFplus::Rpc::amfAppRpc::WorkOperationResponseRequest*>(request));
       break;
+    case 4:
+      proxiedComponentInstantiate(::google::protobuf::down_cast<const ::SAFplus::Rpc::amfAppRpc::ProxiedComponentInstantiateRequest*>(request));
+      break;
+    case 5:
+      proxiedComponentCleanup(::google::protobuf::down_cast<const ::SAFplus::Rpc::amfAppRpc::ProxiedComponentCleanupRequest*>(request));
+      break;
     default:
       GOOGLE_LOG(FATAL) << "Bad method index; this should never happen.";
       break;
@@ -133,6 +161,10 @@ const ::google::protobuf::Message& amfAppRpc::GetRequestPrototype(
       return ::SAFplus::Rpc::amfAppRpc::WorkOperationRequest::default_instance();
     case 3:
       return ::SAFplus::Rpc::amfAppRpc::WorkOperationResponseRequest::default_instance();
+    case 4:
+      return ::SAFplus::Rpc::amfAppRpc::ProxiedComponentInstantiateRequest::default_instance();
+    case 5:
+      return ::SAFplus::Rpc::amfAppRpc::ProxiedComponentCleanupRequest::default_instance();
     default:
       GOOGLE_LOG(FATAL) << "Bad method index; this should never happen.";
       return *reinterpret_cast< ::google::protobuf::Message*>(NULL);
@@ -150,6 +182,10 @@ const ::google::protobuf::Message& amfAppRpc::GetResponsePrototype(
     case 2:
       return ::SAFplus::Rpc::NO_RESPONSE::default_instance();
     case 3:
+      return ::SAFplus::Rpc::NO_RESPONSE::default_instance();
+    case 4:
+      return ::SAFplus::Rpc::NO_RESPONSE::default_instance();
+    case 5:
       return ::SAFplus::Rpc::NO_RESPONSE::default_instance();
     default:
       GOOGLE_LOG(FATAL) << "Bad method index; this should never happen.";
@@ -187,6 +223,14 @@ void amfAppRpc_Stub::workOperation(SAFplus::Handle dest,
 void amfAppRpc_Stub::workOperationResponse(SAFplus::Handle dest,
                               const ::SAFplus::Rpc::amfAppRpc::WorkOperationResponseRequest* request) {
   channel_->CallMethod(descriptor()->method(3), dest, request, NULL, *((SAFplus::Wakeable*)nullptr));
+}
+void amfAppRpc_Stub::proxiedComponentInstantiate(SAFplus::Handle dest,
+                              const ::SAFplus::Rpc::amfAppRpc::ProxiedComponentInstantiateRequest* request) {
+  channel_->CallMethod(descriptor()->method(4), dest, request, NULL, *((SAFplus::Wakeable*)nullptr));
+}
+void amfAppRpc_Stub::proxiedComponentCleanup(SAFplus::Handle dest,
+                              const ::SAFplus::Rpc::amfAppRpc::ProxiedComponentCleanupRequest* request) {
+  channel_->CallMethod(descriptor()->method(5), dest, request, NULL, *((SAFplus::Wakeable*)nullptr));
 }
 
 }  // namespace amfAppRpc

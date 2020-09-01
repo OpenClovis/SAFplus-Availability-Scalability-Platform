@@ -42,9 +42,11 @@ namespace SAFplusAmf
     /* Apply MGT object factory */
     MGT_REGISTER_IMPL(Component, /SAFplusAmf/safplusAmf/Component)
 
-    Component::Component(): presenceState("presenceState",::SAFplusAmf::PresenceState::uninstantiated), capabilityModel("capabilityModel"), maxActiveAssignments("maxActiveAssignments",1), instantiateLevel("instantiateLevel",1), maxStandbyAssignments("maxStandbyAssignments",1), assignedWork("assignedWork"), operState("operState",true), readinessState("readinessState",::SAFplusAmf::ReadinessState::outOfService), haReadinessState("haReadinessState",::SAFplusAmf::HighAvailabilityReadinessState::readyForAssignment), haState("haState",::SAFplusAmf::HighAvailabilityState::idle), safVersion("safVersion",std::string("B.04.01")), compCategory("compCategory"), swBundle("swBundle"), commandEnvironment("commandEnvironment"), maxInstantInstantiations("maxInstantInstantiations",1), maxDelayedInstantiations("maxDelayedInstantiations",1), numInstantiationAttempts("numInstantiationAttempts"), instantiationSuccessDuration("instantiationSuccessDuration",30000), lastInstantiation("lastInstantiation"), delayBetweenInstantiation("delayBetweenInstantiation",10000), serviceUnit("serviceUnit"), recovery("recovery",Recovery::NoRecommendation), currentRecovery("currentRecovery", Recovery::None), restartable("restartable",true), proxy("proxy"), proxied("proxied"), processId("processId",0), lastError("lastError"), pendingOperation("pendingOperation"), pendingOperationExpiration("pendingOperationExpiration",Date(0)), csiType("csiType")
+    Component::Component(): presenceState("presenceState",::SAFplusAmf::PresenceState::uninstantiated), compProperty("compProperty",::SAFplusAmf::CompProperty::sa_aware), capabilityModel("capabilityModel"), maxActiveAssignments("maxActiveAssignments",1), instantiateLevel("instantiateLevel",1), maxStandbyAssignments("maxStandbyAssignments",1), assignedWork("assignedWork"), operState("operState",true), readinessState("readinessState",::SAFplusAmf::ReadinessState::outOfService), haReadinessState("haReadinessState",::SAFplusAmf::HighAvailabilityReadinessState::readyForAssignment), haState("haState",::SAFplusAmf::HighAvailabilityState::idle), safVersion("safVersion",std::string("B.04.01")), compCategory("compCategory"), swBundle("swBundle"), commandEnvironment("commandEnvironment"), maxInstantInstantiations("maxInstantInstantiations",1), maxDelayedInstantiations("maxDelayedInstantiations",1), numInstantiationAttempts("numInstantiationAttempts"), instantiationSuccessDuration("instantiationSuccessDuration",30000), lastInstantiation("lastInstantiation"), delayBetweenInstantiation("delayBetweenInstantiation",10000), serviceUnit("serviceUnit"), recovery("recovery",Recovery::NoRecommendation), currentRecovery("currentRecovery", Recovery::None), restartable("restartable",true), proxy("proxy"), proxied("proxied"), processId("processId",0), lastError("lastError"), pendingOperation("pendingOperation"), pendingOperationExpiration("pendingOperationExpiration",Date(0)), csiType("csiType"), proxyCSI("proxyCSI")
     {
         this->addChildObject(&presenceState, "presenceState");
+        this->addChildObject(&compProperty, "compProperty");
+        this->addChildObject(&proxyCSI, "proxyCSI");
         // We allow presenceState to be stored and read to/from database to do the failover, comment the followings:
         //presenceState.config = true;
         //presenceState.settable = true;
@@ -180,10 +182,12 @@ namespace SAFplusAmf
         pendingOperationExpiration = Date(0);
     };
 
-    Component::Component(const std::string& nameValue): presenceState("presenceState",::SAFplusAmf::PresenceState::uninstantiated), capabilityModel("capabilityModel"), maxActiveAssignments("maxActiveAssignments",1), instantiateLevel("instantiateLevel",1), maxStandbyAssignments("maxStandbyAssignments",1), assignedWork("assignedWork"), operState("operState",true), readinessState("readinessState",::SAFplusAmf::ReadinessState::outOfService), haReadinessState("haReadinessState",::SAFplusAmf::HighAvailabilityReadinessState::readyForAssignment), haState("haState",::SAFplusAmf::HighAvailabilityState::idle), safVersion("safVersion",std::string("B.04.01")), compCategory("compCategory"), swBundle("swBundle"), commandEnvironment("commandEnvironment"), maxInstantInstantiations("maxInstantInstantiations",1), maxDelayedInstantiations("maxDelayedInstantiations",1), numInstantiationAttempts("numInstantiationAttempts"), instantiationSuccessDuration("instantiationSuccessDuration",30000), lastInstantiation("lastInstantiation"), delayBetweenInstantiation("delayBetweenInstantiation",10000), serviceUnit("serviceUnit"), recovery("recovery",SAFplusAmf::Recovery::NoRecommendation), currentRecovery("currentRecovery", Recovery::None), restartable("restartable",true), proxy("proxy"), proxied("proxied"), processId("processId",0), lastError("lastError"), pendingOperation("pendingOperation"), pendingOperationExpiration("pendingOperationExpiration",Date(0)), csiType("csiType")
+    Component::Component(const std::string& nameValue): presenceState("presenceState",::SAFplusAmf::PresenceState::uninstantiated), compProperty("compProperty",::SAFplusAmf::CompProperty::sa_aware), capabilityModel("capabilityModel"), maxActiveAssignments("maxActiveAssignments",1), instantiateLevel("instantiateLevel",1), maxStandbyAssignments("maxStandbyAssignments",1), assignedWork("assignedWork"), operState("operState",true), readinessState("readinessState",::SAFplusAmf::ReadinessState::outOfService), haReadinessState("haReadinessState",::SAFplusAmf::HighAvailabilityReadinessState::readyForAssignment), haState("haState",::SAFplusAmf::HighAvailabilityState::idle), safVersion("safVersion",std::string("B.04.01")), compCategory("compCategory"), swBundle("swBundle"), commandEnvironment("commandEnvironment"), maxInstantInstantiations("maxInstantInstantiations",1), maxDelayedInstantiations("maxDelayedInstantiations",1), numInstantiationAttempts("numInstantiationAttempts"), instantiationSuccessDuration("instantiationSuccessDuration",30000), lastInstantiation("lastInstantiation"), delayBetweenInstantiation("delayBetweenInstantiation",10000), serviceUnit("serviceUnit"), recovery("recovery",SAFplusAmf::Recovery::NoRecommendation), currentRecovery("currentRecovery", Recovery::None), restartable("restartable",true), proxy("proxy"), proxied("proxied"), processId("processId",0), lastError("lastError"), pendingOperation("pendingOperation"), pendingOperationExpiration("pendingOperationExpiration",Date(0)), csiType("csiType"), proxyCSI("proxyCSI")
     {
         this->name.value =  nameValue;
         this->addChildObject(&presenceState, "presenceState");
+        this->addChildObject(&compProperty, "compProperty");
+        this->addChildObject(&proxyCSI, "proxyCSI");
         // We allow presenceState to be stored and read to/from database to do the failover, comment the followings:
         //presenceState.config = false;
         //presenceState.settable = false;
@@ -760,6 +764,24 @@ namespace SAFplusAmf
     /*
      * XPATH: /SAFplusAmf/safplusAmf/Component/proxy
      */
+    Component* Component::getProxy()
+    {
+        return this->proxy.value;
+    };
+
+    /*
+     * XPATH: /SAFplusAmf/safplusAmf/Component/proxy
+     */
+    void Component::setProxy(Component* proxyValue, SAFplus::Transaction &t)
+    {
+        if(&t == &SAFplus::NO_TXN) this->proxy.value = proxyValue;
+        else
+        {
+            SAFplus::SimpleTxnOperation<Component*> *opt = new SAFplus::SimpleTxnOperation<Component*>(&(proxy.value),proxyValue);
+            t.addOperation(opt);
+        }        
+    };
+#if 0
     std::string Component::getProxy()
     {
         return this->proxy.value;
@@ -777,6 +799,7 @@ namespace SAFplusAmf
             t.addOperation(opt);
         }
     };
+#endif
 
     /*
      * XPATH: /SAFplusAmf/safplusAmf/Component/processId

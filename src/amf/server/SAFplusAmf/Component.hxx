@@ -16,6 +16,7 @@
 #include <cstdint>
 #include "Date.hxx"
 #include "PresenceState.hxx"
+#include "CompProperty.hxx"
 #include "Cleanup.hxx"
 #include "clMgtHistoryStat.hxx"
 #include "ProcStats.hxx"
@@ -46,6 +47,8 @@ namespace SAFplusAmf
     public:
         SAFplus::MgtProv<::SAFplusAmf::PresenceState> presenceState;
 
+        SAFplus::MgtProv<::SAFplusAmf::CompProperty> compProperty;
+
         /*
          * This is defined by the SA-Forum AMF B.04.01 specification section 3.5.  Options allowing just 1 assignment are a subset of the x assignment options.  To limit the capability to 1 assignment, change the saAmfCompNumMaxActiveCSIs and saAmfCompNumMaxStandbyCSIs fields.  Options disallowing standby assignments are implemented by setting saAmfCompNumMaxStandbyCSIs.  Choose 'non-pre-instantiable', saAmfCompNumMaxStandbyCSIs=0 for applications that are not SAF-aware
          */
@@ -69,6 +72,7 @@ namespace SAFplusAmf
          * Currently assigned work.
          */
         SAFplus::MgtProvList<std::string> assignedWork;
+        //SAFplus::MgtIdentifierList<::SAFplusAmf::Component*> activeComponents; //this is the right declaration
 
         /*
          * True is enabled, False is disabled.  To move from False to True a 'repair' action must occur.
@@ -133,7 +137,7 @@ namespace SAFplusAmf
          * How long to delay between instantiation attempts
          */
         SAFplus::MgtProv<::uint32_t> delayBetweenInstantiation;
-        SAFplus::MgtIdentifier<ServiceUnit*> serviceUnit;
+        SAFplus::MgtIdentifier<ServiceUnit*> serviceUnit;        
         //recovery in config file
         SAFplus::MgtProv<::SAFplusAmf::Recovery> recovery;
         //status of recovery
@@ -146,9 +150,11 @@ namespace SAFplusAmf
         /*
          * The component listed here is this component's proxy.
          */
-        SAFplus::MgtProv<std::string> proxy;
+        SAFplus::MgtIdentifier<Component*> proxy;
+        //SAFplus::MgtProv<std::string> proxy;
 
         SAFplus::MgtProv<std::string> csiType;
+        SAFplus::MgtProv<std::string> proxyCSI;
 
         /*
          * This component is the proxy for the components listed here.
@@ -380,6 +386,16 @@ namespace SAFplusAmf
         void setServiceUnit(ServiceUnit* serviceUnitValue, SAFplus::Transaction &t=SAFplus::NO_TXN);
 
         /*
+         * XPATH: /SAFplusAmf/safplusAmf/NonSafComponent/proxy
+         */
+        Component* getProxy();
+
+        /*
+         * XPATH: XPATH: /SAFplusAmf/safplusAmf/NonSafComponent/proxy
+         */
+        void setProxy(Component* proxyValue, SAFplus::Transaction &t=SAFplus::NO_TXN);
+
+        /*
          * XPATH: /SAFplusAmf/safplusAmf/Component/recovery
          */
         ::SAFplusAmf::Recovery getRecovery();
@@ -402,12 +418,12 @@ namespace SAFplusAmf
         /*
          * XPATH: /SAFplusAmf/safplusAmf/Component/proxy
          */
-        std::string getProxy();
+        //std::string getProxy();
 
         /*
          * XPATH: /SAFplusAmf/safplusAmf/Component/proxy
          */
-        void setProxy(std::string proxyValue, SAFplus::Transaction &t=SAFplus::NO_TXN);
+        //void setProxy(std::string proxyValue, SAFplus::Transaction &t=SAFplus::NO_TXN);
 
         /*
          * XPATH: /SAFplusAmf/safplusAmf/Component/processId

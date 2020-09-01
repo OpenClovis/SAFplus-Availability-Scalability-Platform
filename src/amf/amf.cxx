@@ -184,10 +184,19 @@ SaAisErrorT saAmfDispatch(SaAmfHandleT amfHandle, SaDispatchFlagsT dispatchFlags
 SaAisErrorT saAmfComponentRegister(SaAmfHandleT amfHandle,const SaNameT *compName,const SaNameT *proxyCompName)
   {
   // Compare compName with ASP_COMPNAME if ASP_COMPNAME!=0.  If they are not equal, big problem AMF thinks it is starting a different comp than the app.
+    Handle compHdl;
     if ((compName != 0) && (SAFplus::ASP_COMPNAME[0]!=0) && (strncmp((const char*) compName->value,SAFplus::ASP_COMPNAME,std::min((unsigned int) SA_MAX_NAME_LENGTH,(unsigned int) sizeof(SAFplus::ASP_COMPNAME)))!=0))
     {
-    logWarning("AMF","INI","Component name [%s] does not match AMF expectation [%s].  Using passed name.", (const char*) compName->value, SAFplus::ASP_COMPNAME);
-    saNameGet(SAFplus::ASP_COMPNAME, compName,CL_MAX_NAME_LENGTH);
+       try
+       {
+          compHdl = name.getHandle(SAFplus::ASP_COMPNAME);
+          compHdl = Handle::create();
+       }
+       catch (SAFplus::NameException& n)
+       {       
+          logWarning("AMF","INI","Component name [%s] does not match AMF expectation [%s].  Using passed name.", (const char*) compName->value, SAFplus::ASP_COMPNAME);
+          saNameGet(SAFplus::ASP_COMPNAME, compName,CL_MAX_NAME_LENGTH);          
+       }
     }
 
   // Maybe send a message to AMF telling it that I am a particular component, for now name registration is used.
@@ -205,12 +214,20 @@ SaAisErrorT saAmfComponentRegister(SaAmfHandleT amfHandle,const SaNameT *compNam
       }
 
     // TODO: read the name and log a warning if it is not INVALID_HDL
-    logInfo("AMF","INI","Registering component name [%s] as handle [%" PRIx64 ":%" PRIx64 "]", SAFplus::ASP_COMPNAME, myHandle.id[0],myHandle.id[1]);
-    name.set(SAFplus::ASP_COMPNAME,myHandle,NameRegistrar::MODE_NO_CHANGE, true);
-    name.setLocalObject(myHandle,(void*) amfHandle);
-    name.setLocalObject(SAFplus::ASP_COMPNAME,(void*) amfHandle);
+    if (compHdl == INVALID_HDL)
+    {
+      logInfo("AMF","INI","Registering component name [%s] as handle [%" PRIx64 ":%" PRIx64 "]",      SAFplus::ASP_COMPNAME, myHandle.id[0],myHandle.id[1]);
+      name.set(SAFplus::ASP_COMPNAME,myHandle,NameRegistrar::MODE_NO_CHANGE, true);
+      name.setLocalObject(myHandle,(void*) amfHandle);
+      name.setLocalObject(SAFplus::ASP_COMPNAME,(void*) amfHandle);
     }
-
+    else
+    {
+      logInfo("AMF","INI","Registering component name [%s] as handle [%" PRIx64 ":%" PRIx64 "]", compName->value, compHdl.id[0],compHdl.id[1]);
+      name.set((const char*)compName->value,compHdl,NameRegistrar::MODE_NO_CHANGE, true);
+      name.setLocalObject(compHdl,(void*) amfHandle);
+    }    
+  }
   return SA_AIS_OK;
   }
 

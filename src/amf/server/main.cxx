@@ -64,6 +64,7 @@ typedef boost::unordered_map<SAFplus::AmfRedundancyPolicy,ClPluginHandle*> RedPo
 // namespace SAFplusAmf { void loadAmfConfig(SAFplusAmfModule* self); };
 
 void initializeOperationalValues(SAFplusAmf::SAFplusAmfModule& cfg);
+void preprocessDb(SAFplusAmf::SAFplusAmfModule& cfg);
 void loadAmfPluginsAt(const char* soPath, AmfOperations& amfOps,Fault& fault);
 void postProcessing();
 void updateNodesFaultState(SAFplusAmf::SAFplusAmfModule& cfg);
@@ -467,7 +468,8 @@ void becomeActive(void)
 
   cfg.read(&amfDb);
   initializeOperationalValues(cfg);
-  updateNodesFaultState(cfg);
+  preprocessDb(cfg);
+  updateNodesFaultState(cfg);  
 
   cfg.bind(myHandle,&cfg.safplusAmf);
   activeAudit();
@@ -1180,5 +1182,26 @@ void updateNodesFaultState(SAFplusAmf::SAFplusAmfModule& cfg)
         }
       }
     }
+}
+
+void preprocessDb(SAFplusAmf::SAFplusAmfModule& cfg)
+{
+   MgtObject::Iterator itcsi;
+   MgtObject::Iterator endcsi = cfg.safplusAmf.componentServiceInstanceList.end();
+   for (itcsi = cfg.safplusAmf.componentServiceInstanceList.begin(); itcsi != endcsi; itcsi++)
+   {
+      ComponentServiceInstance* csi = dynamic_cast<ComponentServiceInstance*>(itcsi->second);
+      MgtObject::Iterator itcomp;
+      MgtObject::Iterator endcomp = cfg.safplusAmf.componentList.end();
+      for (itcomp = cfg.safplusAmf.componentList.begin(); itcomp != endcomp; itcomp++)
+      {
+         Component* comp = dynamic_cast<Component*>(itcomp->second);
+         if (comp->proxyCSI.value.compare(csi->type.value))
+         {
+            logDebug("INI","PROC.DB", "turn on proxy CSI flag for CSI [%s]", csi->name.value.c_str());
+            csi->isProxyCSI = true;
+         }
+      } 
+   }
 }
 
