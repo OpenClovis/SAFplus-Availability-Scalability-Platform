@@ -602,7 +602,12 @@ instantiated  <instances>     instances                         instances     (e
         temp[key] = val
 
       # Add module and xpath attributes
-      instance.addAttribute("xpath",e.entity.et.data["xpath"] + ("[@name=\"%s\"]" % e.data["name"]))
+      # workaround for NonSafComponent: xpath for it is same as Component
+      expath = e.entity.et.data["xpath"]
+      idx = expath.rfind('NonSafComponent')
+      if idx != -1:
+         expath = expath[:idx]+'Component'
+      instance.addAttribute("xpath",expath + ("[@name=\"%s\"]" % e.data["name"]))
       instance.addAttribute("module",e.entity.et.data["module"])
 
       # Write all the data fields into the model's microdom
@@ -734,6 +739,9 @@ instantiated  <instances>     instances                         instances     (e
       if ent.et.name != "ComponentServiceInstance":
         if depth<=MAX_RECURSIVE_INSTANTIATION_DEPTH:
           for ca in ent.containmentArrows:
+            if ca.container.et.name == 'Component':
+              print 'skip creating instance which is a child (such as NonSafComponent) of Component'
+              continue
             (ch, xtra) = self.recursiveInstantiation(ca.contained,instances, depth)
             ch.childOf.add(ei)
             cai = copy.copy(ca)

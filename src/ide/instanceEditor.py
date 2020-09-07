@@ -397,13 +397,16 @@ class SelectTool(Tool):
         # TODO: Move the data in this entity to the configuration editing sidebar, and expand it if its minimized.
         if self.touching and self.dragPos:
           # Ignore moving component and csi
-          for e in filter(lambda e: not e.et.name in (self.panel.ignoreEntities), self.selected):
-             if e.et.name in panel.rowTypes:
-               panel.repositionRow(e,(pos[0]/scale,pos[1]/scale))
-             if e.et.name in panel.columnTypes:
-               panel.repositionColumn(e,(pos[0]/scale,pos[1]/scale))
-             else:
-               panel.grid.reposition(e, panel,pos=(pos[0]/scale,pos[1]/scale))
+          #for e in filter(lambda e: not e.et.name in (self.panel.ignoreEntities), self.selected):
+          #   if e.et.name in panel.rowTypes:
+          #     print 'DBG: repositionRow for [%s]'%e.data['name']
+          #     panel.repositionRow(e,(pos[0]/scale,pos[1]/scale))
+          #   if e.et.name in panel.columnTypes:
+          #     print 'DBG: repositionRow for [%s]'%e.data['name']
+          #     panel.repositionColumn(e,(pos[0]/scale,pos[1]/scale))
+          #   else:
+          #     print 'DBG: reposition for [%s]'%e.data['name']
+          #     panel.grid.reposition(e, panel,pos=(pos[0]/scale,pos[1]/scale))
           self.touching = set()
           panel.layout()
           panel.Refresh()
