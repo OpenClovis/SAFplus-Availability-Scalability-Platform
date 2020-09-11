@@ -5,13 +5,13 @@ import pdb
 import fnmatch
 import errno
 import types
-import urllib2
+import urllib.request, urllib.error, urllib.parse
 from xml.dom import minidom
 from subprocess import Popen, PIPE
 
 # make sure they have a proper version of python
 if sys.version_info[:3] < (2, 4, 3):
-    print "Error: Must use Python 2.4.3 or greater for this script"
+    print("Error: Must use Python 2.4.3 or greater for this script")
     sys.exit(1)
 
 # ------------------------------------------------------------------------------
@@ -23,9 +23,9 @@ try:
     from objects import *
     from common import *
 except ImportError:
-    print 'ImportError: Source files not found or invalid.\n' \
+    print('ImportError: Source files not found or invalid.\n' \
         'Your tarball may have been damaged.\n' \
-        'Please contact %s for support' % SUPPORT_EMAIL
+        'Please contact %s for support' % SUPPORT_EMAIL)
     sys.exit(1)
 
 # ------------------------------------------------------------------------------
@@ -217,7 +217,7 @@ class ASPInstaller:
             self.print_install_header()
             self.feedback('Warning: Unrecognized options sent to installer')
             for arg in sys.argv[1:]:
-                print '\t' + arg.strip()
+                print('\t' + arg.strip())
             self.feedback('Please press <enter> to continue or <ctrl-c> to quit this installer')
             self.get_user_feedback()
 
@@ -697,24 +697,44 @@ class ASPInstaller:
             
             # this is used to sort our word list
             # by length of word so that we can
-            # print the dep list in a nicer way
+
+            def cmp_to_key(mycmp):
+            #Convert a cmp= function into a key= function
+                class K:
+                    def __init__(self, obj, *args):
+                        self.obj = obj
+                    def __lt__(self, other):
+                        return mycmp(self.obj, other.obj) < 0
+                    def __gt__(self, other):
+                        return mycmp(self.obj, other.obj) > 0
+                    def __eq__(self, other):
+                        return mycmp(self.obj, other.obj) == 0
+                    def __le__(self, other):
+                        return mycmp(self.obj, other.obj) <= 0
+                    def __ge__(self, other):
+                        return mycmp(self.obj, other.obj) >= 0
+                    def __ne__(self, other):
+                        return mycmp(self.obj, other.obj) != 0
+                return K
+
             def bylength(word1, word2):
                 return len(word1) - len(word2)
             
-            depnames.sort(cmp=bylength)
+
+            depnames.sort(key=cmp_to_key(bylength))
             
             #self.debug(str(depnames))
             
             # this may look odd but it is simply
             # printing the dep names in a nice way
             while len(depnames):
-                print depnames[0],
+                print(depnames[0], end=' ')
                 depnames.pop(0) # O(n)
                 if len(depnames):
-                    print ' ' + depnames[-1]
+                    print(' ' + depnames[-1])
                     depnames.pop() # removes last item
             
-            print '\n\n',
+            print('\n\n', end=' ')
             
             cmd = 'apt-get install'
             if self.OS.yum:
@@ -922,7 +942,7 @@ class ASPInstaller:
         if self.OS.apt:
             if self.OFFLINE:
                res = syscall ("dpkg -i -R preinstall")
-               print str (res)
+               print(str (res))
             
             # lets build a string in order to pass apt-get ALL our deps at once
             # this is MUCH faster than doing them one at a time although errors
@@ -933,7 +953,8 @@ class ASPInstaller:
                self.debug('Installing via apt-get: ' + install_str)
                (retval, result, signal, core) = system('apt-get -y --force-yes install %s' % install_str)
                self.debug("Result: %d, output: %s" % (retval, str(result)))
-               if "Could not get lock" in "".join(result):
+
+               if "Could not get lock" in "".join(str(result)):
                  self.feedback("Could not get the lock, is another package manager running?\n", fatal=True)
                if retval != 0:
                  self.feedback("\n\nPreinstall was not successful.  You may need to install some of the following packages yourself.\n%s\n\nOutput of apt-get was:\n%s" % (install_str,"".join(result)), fatal=True)
@@ -968,10 +989,10 @@ class ASPInstaller:
                 syscall('tar zxf %s' % PRE_INSTALL_PKG)
                 self.feedback('install preinstall dependencies without internet')
                 os.chdir(self.PRE_INSTALL_PKG)
-		pre_Install_List = fnmatch.filter(os.listdir(self.PRE_INSTALL_PKG),"*.rpm")
+                pre_Install_List = fnmatch.filter(os.listdir(self.PRE_INSTALL_PKG),"*.rpm")
                 self.feedback('There are %d items to install' % len(pre_Install_List))
                 strin=''
-		for pre_Install in pre_Install_List:
+                for pre_Install in pre_Install_List:
                     self.feedback('install pkg :  %s' %(pre_Install))
                     #self.debug('Installing: ' + cmd)
                     result = syscall('rpm -Uvh --nodeps %s' %(pre_Install))
@@ -999,7 +1020,7 @@ class ASPInstaller:
                 os.chdir(self.BUILD_DIR)                                            # move into build dir
                 self.feedback('tar xfm %s %s' % (self.THIRDPARTYPKG_PATH, dep.pkg_name))
                 ret = syscall('tar xfm %s %s' % (self.THIRDPARTYPKG_PATH, dep.pkg_name))    # pull out of pkg
-		packageList = fnmatch.filter(os.listdir(self.BUILD_DIR),dep.pkg_name)
+                packageList = fnmatch.filter(os.listdir(self.BUILD_DIR),dep.pkg_name)
                			
                 #if ret == 0:
                 if len (packageList) == 0:
@@ -1382,7 +1403,7 @@ class ASPInstaller:
            cmd = '%s' % self.BUILDTOOLS
            os.chdir (cmd)
            tool = syscall ('ls -1d *')
-           print tool
+           print(tool)
            cmd = '%s' % self.ASP_PREBUILD_DIR
            os.chdir (cmd)
            self.feedback ('Select the crossbuild tool(s) to build from the above list, [Default: local]') 
@@ -1446,11 +1467,11 @@ class ASPInstaller:
             #self.feedback("%s -> %s" % (src,dst))
             try:
               os.remove(dst)  # remove it since it may point to another SDK version
-            except OSError,e:
+            except OSError as e:
               pass # its ok if the file does not exist
             try:
               os.symlink(src,dst)
-            except OSError,e:  
+            except OSError as e:  
               if e.errno == errno.EPERM or e.errno == errno.EEXIST:  # EEXIST means that os.remove() failed for some reason
                 self.feedback('No permission to change %s' % dst)
               else:
@@ -1523,7 +1544,7 @@ class ASPInstaller:
         olist = ['PREFIX', 'thirdPartyPkg', 'BUILDTOOLS', 'NET_SNMP_CONFIG', 'PACKAGE_ROOT', 'BIN_ROOT', 'LIB_ROOT', 'WORKING_DIR', 'ESC_PKG_ROOT', 'ESC_PKG_NAME', 'IDE', 'ASP', 'PACKAGE_NAME', 'HOME', 'CACHE_DIR', 'IDE_ROOT', 'ECLIPSE_ROOT', 'ECLIPSE', 'ESC_ECLIPSE_DIR', 'PATH']
         rlist = [self.PREFIX, self.THIRDPARTYPKG_PATH, self.BUILDTOOLS, self.NET_SNMP_CONFIG, self.PACKAGE_ROOT, self.BIN_ROOT, self.LIB_ROOT, self.WORKING_DIR, self.ESC_PKG_ROOT, self.ESC_PKG_NAME, 'IDE', 'ASP', self.PACKAGE_NAME, self.HOME, self.CACHE_DIR, self.IDE_ROOT, self.ECLIPSE_ROOT, self.ECLIPSE, self.ESC_ECLIPSE_DIR, os.getenv('PATH') + os.defpath]
         
-	assert len(rlist) == len(olist)
+        assert len(rlist) == len(olist)
 
         for r in rlist:
             assert r
@@ -1580,14 +1601,14 @@ class ASPInstaller:
         assert self.GENERAL_LOG_PATH
         msg = "[DEBUG] " + msg
         if self.DEBUG_ENABLED:
-            print msg
+            print(msg)
         try:
             fh = open(self.GENERAL_LOG_PATH, 'a')
             fh.write(msg + '\n')
             fh.close()
         except:
             if self.DEBUG_ENABLED:
-                print "[DEBUG] Could not locate log path '%s'" % self.GENERAL_LOG_PATH
+                print("[DEBUG] Could not locate log path '%s'" % self.GENERAL_LOG_PATH)
     
     
     
@@ -1606,7 +1627,7 @@ class ASPInstaller:
             optionally tars up the log directory
             """
         
-        print msg
+        print(msg)
         
         try:
             fh = open(self.GENERAL_LOG_PATH, 'a')
@@ -1614,7 +1635,7 @@ class ASPInstaller:
             fh.close()
         except:
             if self.DEBUG_ENABLED:
-                print "[DEBUG] Could not locate log path '%s'" % self.GENERAL_LOG_PATH
+                print("[DEBUG] Could not locate log path '%s'" % self.GENERAL_LOG_PATH)
             pass
         
         
@@ -1721,13 +1742,13 @@ class ASPInstaller:
         
         CONST_WIDTH = max(80, len(title))
         
-        space = ' '*((CONST_WIDTH-1-len(title))/2)
         
+        space = ' '*round(((CONST_WIDTH-1-len(title))/2))
+
         os.system('clear')  # clear screen
-        
-        print('-'*CONST_WIDTH)
-        print(space + title + space)
-        print('-'*CONST_WIDTH)
+        print(('-'*CONST_WIDTH))
+        print((space + title + space))
+        print(('-'*CONST_WIDTH))
     
     
     def get_user_feedback(self, prompt=''):
@@ -1736,7 +1757,7 @@ class ASPInstaller:
             """
         
         try:
-            return raw_input(prompt).strip()
+            return input(prompt).strip()
         except KeyboardInterrupt:
             self.feedback(WARNING_INCOMPLETE, True, False)
     
@@ -1771,7 +1792,7 @@ def main():
     # allocate an ASP installer object
     installer = ASPInstaller()
     installer.launchGUI()
-    print "Script exited cleanly."
+    print("Script exited cleanly.")
     sys.exit(0)
 
 def Test():

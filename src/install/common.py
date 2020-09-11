@@ -16,7 +16,9 @@
 
 import os, sys
 from subprocess import call
-import popen2
+import subprocess
+from subprocess import Popen
+#import popen2
 import fnmatch
 
 # ------------------------------------------------------------------------------
@@ -48,13 +50,16 @@ def system(cmd):
     """Similar to the os.system call, except that both the output and return value is returned"""
     # WARNING: system will deadlock if command output exceeds ~64 KB!
     #print 'Executing command: [%s]' % cmd
-    child = popen2.Popen4(cmd)
+    #command = subprocess.run([cmd], universal_newlines=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+    
+    child = subprocess.Popen([cmd], shell = True, stdout=subprocess.PIPE)
     retval = child.wait()
     signal = retval & 0x7f
     core   = ((retval & 0x80) !=0)
-    retval = retval >> 8
-    output = child.fromchild.readlines()
-    del child
+    retval = retval >> 8   
+    output = child.stdout.read() 
+            
+       
     return (retval, output, signal, core)
 
 # points to root directory where install.py
@@ -97,14 +102,14 @@ def cli_cmd(cli):
     try:
         ecode = call(cli, shell=True)
         if ecode < 0:
-            print >> sys.stderr, "[ERROR] Child was terminated by signal %d" % (-ecode)
+            print("[ERROR] Child was terminated by signal %d" % (-ecode), file=sys.stderr)
             sys.exit(1)
     except KeyboardInterrupt:
-        print WARNING_INCOMPLETE
-        print '[WARNING] Script killed in an unrecoverable state'
+        print(WARNING_INCOMPLETE)
+        print('[WARNING] Script killed in an unrecoverable state')
         sys.exit(1)
-    except OSError, e:
-        print >> sys.stderr, "Child Execution failed:", e
+    except OSError as e:
+        print("Child Execution failed:", e, file=sys.stderr)
         sys.exit(1)
 
     return ecode
@@ -191,10 +196,25 @@ green='\E[32;49m'
 yellow='\E[33;49m'
 blue='\E[34;49m'
 magenta='\E[35;49m'
+
 cyan='\E[36;49m'
 white='\E[37;49m'
-
 trap 'rm -f \$INSTALLER; tput cup \`tput lines\` 0; tput cnorm; tput sgr0 ' 0
 trap "exit 1; tput sgr0" 1 2 3 15 20
 
 """.strip()
+
+
+
+if __name__ == "__main__":
+
+    print('Begin testing')
+    
+    locateFiles('py', '.')
+    print(system('ls'))
+    print((syscall('ls')))
+    print((determine_bit()))
+    print((cli_cmd('ls')))
+
+    
+    print('Finish testing')

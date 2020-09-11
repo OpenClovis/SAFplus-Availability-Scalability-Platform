@@ -88,7 +88,7 @@ class OS:
             self.gccVer                 = [int(x) for x in syscall('gcc --version')[0].split()[3].split(".")]
             if self.gccVer[0] > 4 or (self.gccVer[0] == 4 and self.gccVer[1] > 5):
               squelchWarn = "-Wno-error=unused-but-set-variable"            
-          except Exception, e:
+          except Exception as e:
             #assert e, "Cannot determine C compiler version"
             pass
     
@@ -508,7 +508,8 @@ class Ubuntu(OS):
                  'e2fslibs-dev',
                  'libsnmp-dev',
                  'zlib1g-dev',
-                 'tcl']
+                 'tcl',
+                 'python']
         
         
         for name in deps:
@@ -1013,7 +1014,7 @@ def determine_os():
                 if 'stretch' in fdata or '9.' in fdata: return Debian9()
                 if '8.' in fdata: return Debian8()
                 if cmp_version(fdata, "7.0") >= 0:
-                    print "For Debian OS 7"
+                    print("For Debian OS 7")
                     return Debian7()
                 else:               
                     return Debian()
