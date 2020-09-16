@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/env python3
 ###############################################################################
 #
 # Copyright (C) 2002-2009 by OpenClovis Inc. All  Rights Reserved.
@@ -54,8 +54,8 @@ import signal
 import cmd
 import pdb
 import re
-import commands
 import subprocess
+from functools import cmp_to_key
 
 try:
     from lxml import etree as et
@@ -66,6 +66,9 @@ except ImportError:
 
 def on_platform(p):
   return p in sys.platform
+
+def cmp(a, b):
+    return (a > b) - (a < b)
 
 try: # Readline is optional, just gives up command completion and so forth
   if on_platform('linux'): import readline
@@ -191,25 +194,25 @@ class Dot:
     """
 
     def __init__(self, dict):
-        for (key, val) in dict.items():
+        for (key, val) in list(dict.items()):
             if type(val) == type({}): val = Dot(val)
             self.__dict__[key] = val
 
     def __str__(self):
         s=[]
-        for (key, val) in self.__dict__.items():
+        for (key, val) in list(self.__dict__.items()):
             s.append("'%s':%s" % (str(key), str(val)))
         return "{ " + ", ".join(s) + " }"
 
     def __repr__(self): return 'Dot(%s)' % self.__str__()
 
-    def has_key(self, key): return self.__dict__.has_key(key)
+    def has_key(self, key): return key in self.__dict__
 
-    def keys(self): return self.__dict__.keys()
+    def keys(self): return list(self.__dict__.keys())
 
-    def values(self): return self.__dict__.values()
+    def values(self): return list(self.__dict__.values())
 
-    def items(self): return self.__dict__.items()
+    def items(self): return list(self.__dict__.items())
 
     def clear(self): self.__dict__.clear()
 
@@ -221,11 +224,11 @@ class Dot:
 
     def popitem(self): return self.__dict__.popitem()
 
-    def iteritems(self): return self.__dict__.iteritems()
+    def iteritems(self): return iter(self.__dict__.items())
 
-    def iterkeys(self): return self.__dict__.iterkeys()
+    def iterkeys(self): return iter(self.__dict__.keys())
 
-    def itervalues(self): return self.__dict__.itervalues()
+    def itervalues(self): return iter(self.__dict__.values())
 
     def __getitem__(self, key): return self.__dict__[key]
 
@@ -239,7 +242,7 @@ class Dot:
 
     def dot_print(self, prefix=None):
         s = []
-        for (key, val) in self.__dict__.items():
+        for (key, val) in list(self.__dict__.items()):
             p = (prefix and prefix+'.' or '')+str(key)
             try:
                 s.append(val.dot_print(p))
@@ -271,14 +274,14 @@ def load_xml_string(string, strip_root=None):
                 if tag is et.Comment:
                     continue
                 else:
-                    if not d.has_key(tag):
+                    if tag not in d:
                         d[tag] = []
                     d[tag].append({})
 
                     if len(n):
                         d[tag][-1] = decode_tree(n)
 
-                    if n.attrib.has_key('value'):
+                    if 'value' in n.attrib:
                         if d[tag][-1]:
                             d[tag][-1]['value'] = n.attrib.get('value').strip()
                         else:
@@ -289,7 +292,7 @@ def load_xml_string(string, strip_root=None):
                             for n2 in list(n):
                               if n2.tag is et.Comment:
                                   continue
-                              if n2.attrib.has_key('value'):
+                              if 'value' in n2.attrib:
                                   pass
                               else:
                                   d2[n2.tag][-1] =  decode_tree(n2)
@@ -298,7 +301,7 @@ def load_xml_string(string, strip_root=None):
                             d[tag][-1] = text
 
         else:
-            if node.attrib.has_key('value'):
+            if 'value' in node.attrib:
                 return node.attrib.get('value').strip()
             else:
                 return node.text
@@ -313,25 +316,25 @@ def load_xml_string(string, strip_root=None):
             for n in dom.childNodes:
                 if n.nodeType == minidom.Comment.nodeType: # Skip all comments
                     pass
-                elif n.__dict__.has_key('nodeValue'):
+                elif n.hasChildNodes() == False and n.nodeValue != None:
                     str += n.nodeValue.strip()
                 else:
-                    if not d.has_key(n.tagName):
+                    if n.tagName not in d:
                         d[n.tagName] = []
                     d[n.tagName].append({})
                     
                     if len(n.childNodes) > 0:
                         d[n.tagName][-1] = decode_dom(n)
                         
-                    if n._attrs.has_key('value'):
+                    if n._attrs != None and 'value' in n._attrs:
                         if d[n.tagName][-1]:
                             d[n.tagName][-1]['value'] = n._attrs['value'].nodeValue
                         else:
                             d[n.tagName][-1] = n._attrs['value'].nodeValue
                         
-                    elif len(n._attrs.items())>0:
+                    elif n._attrs != None and len(list(n._attrs.items()))>0:
                         d2 = d[n.tagName][-1]
-                        for (k, v) in n._attrs.items():
+                        for (k, v) in list(n._attrs.items()):
                             d2[k] = v.nodeValue
                         d[n.tagName][-1] = d2
         else:
@@ -353,7 +356,7 @@ def load_xml_string(string, strip_root=None):
     if strip_root:
         for t in strip_root:
             for tag in t:
-                if not d.has_key(tag) or len(d[tag]) != 1:
+                if tag not in d or len(d[tag]) != 1:
                     break
                 d = d[tag][0]
 
@@ -402,12 +405,12 @@ def dbmsg(level, *args):
     """ Level sensitive debug printing function """
     if _dblevel >= level:
         for s in args:
-            print s,
-        print ''
+            print(s, end=' ')
+        print('')
 
 
 def error(msg):
-    print '***Error: ' + msg
+    print('***Error: ' + msg)
     global _exit_code
     _exit_code = 1
 
@@ -433,7 +436,7 @@ def load_asp_run_env():
     if _asp_run_env:
         return _asp_run_env
     
-    f = file(_asp_dir + '/etc/asp_run.env')
+    f = open(_asp_dir + '/etc/asp_run.env', 'r')
     lines = f.readlines()
     f.close()
     try:
@@ -454,8 +457,8 @@ def load_asp_conf(quit_on_error=True):
         return _asp_conf
 
     try:
-        f = file(_asp_dir + '/etc/asp.conf')
-    except IOError, e:
+        f = open(_asp_dir + '/etc/asp.conf', 'r')
+    except IOError as e:
         if quit_on_error:
             error('%s:' % str(e))
             error('Directory [%s/bin] in which %s resides is not part of an SAFplus install' %
@@ -560,7 +563,7 @@ def asp_console_execute(cmds, use_file=False):
             raise DebugCliError('Could run safplus_console: %s' % output)
     
     if use_file:
-        f = file(out_file, 'r')
+        f = open(out_file, 'r')
         output = f.read()
         f.close()
         safe_remove(out_file)
@@ -607,7 +610,7 @@ def check_install():
 
 def get_amf_pid(watchdog_pid = False):
     while True:
-        valid = commands.getstatusoutput("pidof %s" % AMF_NAME);
+        valid = subprocess.getstatusoutput("pidof %s" % AMF_NAME);
         if valid[0] == 0:
             if len(valid[1].split())==1:
                 return int(valid[1])
@@ -616,7 +619,7 @@ def get_amf_pid(watchdog_pid = False):
         log.warning('There is more than one AMF pid. Try again...')
         time.sleep(0.25)
     if watchdog_pid:
-         valid = commands.getstatusoutput("pidof safplus_watchdog.py");
+         valid = subprocess.getstatusoutput("pidof safplus_watchdog.py");
          if valid[0] == 0:
             return int(valid[1])
     return 0;
@@ -891,7 +894,7 @@ def get_comps_info(nodeaddr, do_ps=True):
     comps = []
     for row in [r for r in rows if r]: # filter out empty rows (last)
         c = Dot({})
-        cells = map(str.strip, re.split(r'[|]|\n', row.strip()))
+        cells = list(map(str.strip, re.split(r'[|]|\n', row.strip())))
         assert len(cells)>=6, 'Expected at least 6 fields, but got: %s' % str(cells)
         c.compname = cells[0]
         c.running = (cells[5] == 'INSTANTIATED' and 'Y' or '-')
@@ -1229,9 +1232,9 @@ class Cli(cmd.Cmd):
             except: # Catch all readline exceptions since this an optional component
                 pass
 
-        print
-        print color('bold', WELCOME_MSG)
-        print '-'*len(WELCOME_MSG)
+        print()
+        print(color('bold', WELCOME_MSG))
+        print('-'*len(WELCOME_MSG))
 
     def postloop(self):
         """ Save history file """
@@ -1255,7 +1258,7 @@ class Cli(cmd.Cmd):
     def do_exit(self, msg):
         """Exiting the asp-info utility"""
         if len(msg):
-            print 'No arguments to exit command, please'
+            print('No arguments to exit command, please')
             return
         return(1) # will exit cmd loop (but call postloop() first)
 
@@ -1274,29 +1277,29 @@ class Cli(cmd.Cmd):
         """Show various information on this SAFplus installation (does not need SAFplus running)"""
 
         install = check_install()
-        print 'installation:            %s' % install
+        print('installation:            %s' % install)
         
         # FIXME: implement build number retrieval [I'm on it -M.S.]
         
         info = get_node_info_from_cpm()
-        print 'node instance name:      %(nodename)s' % info
-        print 'node class:              %(nodeclass)s' % info
-        print 'node type:               %(nodetype)s' % info
+        print('node instance name:      %(nodename)s' % info)
+        print('node class:              %(nodeclass)s' % info)
+        print('node type:               %(nodetype)s' % info)
         
         conf = load_asp_conf()
-        print 'default node address:    %(defnodeaddr)s' % info
-        print 'node address assignment: %(assignmode)s' % info
-        print 'tipc netid:              %(netid)s' % info
-        print 'tipc address:            %(addr)s' % info
-        print 'cluster interface(s):    %s' % \
-              '\n                         '.join(info.ifaces)
+        print('default node address:    %(defnodeaddr)s' % info)
+        print('node address assignment: %(assignmode)s' % info)
+        print('tipc netid:              %(netid)s' % info)
+        print('tipc address:            %(addr)s' % info)
+        print('cluster interface(s):    %s' % \
+              '\n                         '.join(info.ifaces))
 
         try: info = get_gms_info()
-        except AspError, e:
+        except AspError as e:
             error(str(e))
             return 0
-        print 'gms multicast ip:        %(mip)s' % info
-        print 'gms multicast port:      %(mport)s' % info
+        print('gms multicast ip:        %(mip)s' % info)
+        print('gms multicast port:      %(mport)s' % info)
     
     ##
     ## status command
@@ -1306,24 +1309,24 @@ class Cli(cmd.Cmd):
 
         try:
             info = get_status_info()
-        except AspError, e:
+        except AspError as e:
             error(str(e))
             return 0
-        print 'SAFplus run status:          %s' % color('bold-red',
-                                                    '%(status)s' % info)
-        print 'pid of safplus_amf:          %(pid)s' % info
+        print('SAFplus run status:          %s' % color('bold-red',
+                                                    '%(status)s' % info))
+        print('pid of safplus_amf:          %(pid)s' % info)
         # print 'node instance name:      %(nodename)s' % info
 
-        print 'actual node address:     %(nodeaddr)s' % info
+        print('actual node address:     %(nodeaddr)s' % info)
         try: tipc = get_tipc_live_node_info()
-        except AspError, e:
+        except AspError as e:
             error(str(e))
             return 0
-        print 'tipc kernel module:      %(module)s' % tipc
-        print 'tipc network id:         %(netid)s' % tipc
-        print 'tipc node address:       %(addr)s' % tipc
-        print 'tipc interface(s):       %s' % \
-            '\n                         '.join(tipc['ifaces'])
+        print('tipc kernel module:      %(module)s' % tipc)
+        print('tipc network id:         %(netid)s' % tipc)
+        print('tipc node address:       %(addr)s' % tipc)
+        print('tipc interface(s):       %s' % \
+            '\n                         '.join(tipc['ifaces']))
     
         d = {}
         try:
@@ -1335,7 +1338,7 @@ class Cli(cmd.Cmd):
                 d['console'] = 'not available'
             else:
                 d['console'] = 'available'
-        print 'SAFplus local console:       %(console)s' % d
+        print('SAFplus local console:       %(console)s' % d)
 
         if info.status == 'down':
             return
@@ -1345,7 +1348,7 @@ class Cli(cmd.Cmd):
         else:
             d['master'] = 'available'
             
-        print 'SAFplus master console:      %(master)s' % d
+        print('SAFplus master console:      %(master)s' % d)
     
     ##
     ## role command
@@ -1355,13 +1358,13 @@ class Cli(cmd.Cmd):
         
         try:
             info = get_status_info()
-        except AspError, e:
+        except AspError as e:
             error(str(e))
             return 0
-        print 'node instance name:      %(nodename)s' % info
+        print('node instance name:      %(nodename)s' % info)
 
         nodetype = get_node_info_from_cpm().nodetype
-        print 'node type:               %s' % nodetype
+        print('node type:               %s' % nodetype)
         
         if nodetype == 'controller' and info.status == 'up':
             amf_db = load_amf_db()
@@ -1372,8 +1375,8 @@ class Cli(cmd.Cmd):
             ha_state = str(node[0].ha_state[0])
         else:
             ha_state = 'n/a'
-        print 'controller ha state:     %s' % \
-            color_state(ha_state)
+        print('controller ha state:     %s' % \
+            color_state(ha_state))
     
     ##
     ## host command
@@ -1387,7 +1390,7 @@ class Cli(cmd.Cmd):
             return 0
         elif ec:
             error('nodeinfo command exited with error')
-        print ''.join(res)
+        print(''.join(res))
 
     ##
     ## network command
@@ -1405,7 +1408,7 @@ class Cli(cmd.Cmd):
 
         try:
             nodes = get_cluster_info()
-        except AspError, e:
+        except AspError as e:
             error(str(e))
             return 0
         
@@ -1417,25 +1420,25 @@ class Cli(cmd.Cmd):
         h.nodename, h.nodetype, h.hastate,  h.nodeaddr = \
         'NODE-NAME', 'NODE-TYPE', 'HA-STATE', 'NODE-ADDR'
 
-        nodes.sort(lambda x,y: cmp(int(x.nodeaddr), int(y.nodeaddr)))
+        nodes.sort(key=cmp_to_key(lambda x,y: cmp(int(x.nodeaddr), int(y.nodeaddr))))
 
-        print color('bold', fmt % h)
+        print(color('bold', fmt % h))
         for n in nodes:
             line = n.hastate == 'active' and color('bold-red', fmt % n) or fmt % n
             if n.nodename == get_node_info_from_cpm().nodename:
                 line += ' <-- this node'
-            print line
+            print(line)
 
     def do_uptime(self, msg):
         """Show node uptime """
 
         try:
             uptime = get_uptime()
-        except AspError, e:
+        except AspError as e:
             error(str(e))
             return 0
 
-        print uptime
+        print(uptime)
     ##
     ## nodes command
     ##
@@ -1456,7 +1459,7 @@ class Cli(cmd.Cmd):
         "    ASU:        # of assigned SUs\n"
         try:
             nodes = get_nodes_info()
-        except  AspError, e:
+        except  AspError as e:
             error('Command is not available while SAFplus is down (run "status"),')
             error('or if another safplus_console is running')
             return 0
@@ -1469,22 +1472,22 @@ class Cli(cmd.Cmd):
         h.nodename, h.classtype, h.astate,  h.castate, h.presence, h.operstate, h.instantiable, h.member,         h.isu, h.asu = \
         'NODE',     'CLASS',     'AS',      'CAS',     'PS',       'OS',        'INSTANTIABLE', 'CLUSTER-MEMBER', 'ISU', 'ASU'
         
-        nodes.sort(lambda x,y: cmp(x.nodename, y.nodename))
-        print color('bold', fmt % h)
+        nodes.sort(key=cmp_to_key(lambda x,y: cmp(x.nodename, y.nodename)))
+        print(color('bold', fmt % h))
         for n in nodes:
             if  n.castate == 'UL' and n.member == 'Y':
-                print color('bold-red', fmt % n)
+                print(color('bold-red', fmt % n))
             elif n.castate == 'LA' and n.member == 'Y':
-                print color('yellow', fmt % n)
+                print(color('yellow', fmt % n))
             else:
-                print fmt % n
+                print(fmt % n)
         
     def print_components(self, asp=True):
         """Prints either the SAFplus components or the user components"""
 
         try:
             comps = get_comps_info(get_status_info().nodeaddr)
-        except AspError, e:
+        except AspError as e:
             error('Command is not available while SAFplus is down (run "status"),')
             error('or if another safplus_console is running')
             return 0
@@ -1512,15 +1515,15 @@ class Cli(cmd.Cmd):
         asp_comps = ['_'.join([e, node_name]) for e in asp_comps]
 
         if asp:
-            comps = filter(lambda c: c.compname in asp_comps, comps)
+            comps = [c for c in comps if c.compname in asp_comps]
         else:
-            comps = filter(lambda c: not c.compname in asp_comps, comps)
+            comps = [c for c in comps if not c.compname in asp_comps]
         
-        comps.sort(lambda x,y: cmp(x.compname, y.compname))
+        comps.sort(key=cmp_to_key(lambda x,y: cmp(x.compname, y.compname)))
         
-        print color('bold', fmt % h)
+        print(color('bold', fmt % h))
         for c in comps:
-            print c.running=='Y' and color('bold-red', fmt % c) or fmt % c
+            print(c.running=='Y' and color('bold-red', fmt % c) or fmt % c)
 
     ##
     ## asp command
@@ -1572,7 +1575,7 @@ class Cli(cmd.Cmd):
         
         try:
             sgs = get_sgs_info()
-        except  AspError, e:
+        except  AspError as e:
             error('Command is not available while SAFplus is down (run "status"),')
             error('or if another safplus_console is running')
             return 0
@@ -1585,16 +1588,16 @@ class Cli(cmd.Cmd):
         h.sgname,  h.redundancy, h.astate,  h.castate, h.activesus, h.stbysus, h.started = \
         'SG-NAME', 'REDUND',     'AS',      'CAS',     'A-SUS',     'S-SUS',   'STARTED'
         
-        sgs.sort(lambda x,y: cmp(x.sgname, y.sgname))
+        sgs.sort(key=cmp_to_key(lambda x,y: cmp(x.sgname, y.sgname)))
 
-        print color('bold', fmt % h)
+        print(color('bold', fmt % h))
         for sg in sgs:
             if  sg.castate == 'UL':
-                print color('bold-red', fmt % sg)
+                print(color('bold-red', fmt % sg))
             elif sg.castate == 'LA':
-                print color('yellow', fmt % sg)
+                print(color('yellow', fmt % sg))
             else:
-                print fmt % sg
+                print(fmt % sg)
     
     ##
     ## sg command
@@ -1613,7 +1616,7 @@ class Cli(cmd.Cmd):
             
         try:
             sg = get_sg_info(msg)
-        except  AspError, e:
+        except  AspError as e:
             error('Command is not available while SAFplus is down (run "status"),')
             error('or if another safplus_console is running')
             return 0
@@ -1622,50 +1625,50 @@ class Cli(cmd.Cmd):
             error('Could not find SG [%s] in AMF database' % msg)
             return 0
             
-        print 'sg name:                 %s' % color('bold', sg.value)
-        print 'admin state:             %s' % color('bold-red', sg.config[0].admin_state[0])
-        print 'computed admin state:    %s' % color('bold-red', sg.config[0].computed_admin_state[0])
-        print 'redundancy model:        %s' % sg.config[0].redundancy_model[0]
-        print 'failback option:         %s' % sg.config[0].failback_option[0]
-        print 'autorepair:              %s' % sg.config[0].autorepair[0]
-        print 'preferred active SUs:    %s' % sg.config[0].preferred_active_sus[0]
-        print 'preferred standby SUs:   %s' % sg.config[0].preferred_standby_sus[0]
-        print 'preferred inservice SUs: %s' % sg.config[0].preferred_inservice_sus[0]
-        print 'preferred assigned SUs:  %s' % sg.config[0].preferred_assigned_sus[0]
-        print 'collocation allowed:     %s' % sg.config[0].collocation_allowed[0]
+        print('sg name:                 %s' % color('bold', sg.value))
+        print('admin state:             %s' % color('bold-red', sg.config[0].admin_state[0]))
+        print('computed admin state:    %s' % color('bold-red', sg.config[0].computed_admin_state[0]))
+        print('redundancy model:        %s' % sg.config[0].redundancy_model[0])
+        print('failback option:         %s' % sg.config[0].failback_option[0])
+        print('autorepair:              %s' % sg.config[0].autorepair[0])
+        print('preferred active SUs:    %s' % sg.config[0].preferred_active_sus[0])
+        print('preferred standby SUs:   %s' % sg.config[0].preferred_standby_sus[0])
+        print('preferred inservice SUs: %s' % sg.config[0].preferred_inservice_sus[0])
+        print('preferred assigned SUs:  %s' % sg.config[0].preferred_assigned_sus[0])
+        print('collocation allowed:     %s' % sg.config[0].collocation_allowed[0])
 
         started = sg.status[0].is_started[0]
         if started == 'True':
-            print 'started:                 %s' % color('bold-red', started)
+            print('started:                 %s' % color('bold-red', started))
         else:
-            print 'started:                 %s' % started
+            print('started:                 %s' % started)
 
         sus = sg.status[0].instantiable_sus[0]
         if sus == '0':  sus = ['-']
         else:           sus = sus.su
-        print 'instantiable SUs:        %s' % \
-            '\n                         '.join(sus)
+        print('instantiable SUs:        %s' % \
+            '\n                         '.join(sus))
             
         sus = sg.status[0].instantiated_sus[0]
         if sus == '0':  sus = ['-']
         else:           sus = sus.su
-        print 'instantiated SUs:        %s' % \
-            '\n                         '.join(sus)
+        print('instantiated SUs:        %s' % \
+            '\n                         '.join(sus))
             
         sus = sg.status[0].inservice_spare_sus[0]
         if sus == '0':  sus = ['-']
         else:           sus = sus.su
-        print 'inservice spare SUs:     %s' % \
-            '\n                         '.join(sus)
+        print('inservice spare SUs:     %s' % \
+            '\n                         '.join(sus))
             
         sus = sg.status[0].assigned_sus[0]
         if sus == '0':  sus = ['-']
         else:           sus = sus.su
-        print 'assigned SUs:            %s' % \
-            '\n                         '.join(sus)
+        print('assigned SUs:            %s' % \
+            '\n                         '.join(sus))
             
-        print 'current active SUs       %s' % sg.status[0].current_active_sus[0]
-        print 'current standby SUs      %s' % sg.status[0].current_standby_sus[0]
+        print('current active SUs       %s' % sg.status[0].current_active_sus[0])
+        print('current standby SUs      %s' % sg.status[0].current_standby_sus[0])
 
     def complete_sg(self, text, line, bidx, eidx):
         return [n for n in get_sg_names() if n.startswith(text)]
@@ -1708,7 +1711,7 @@ class Cli(cmd.Cmd):
             
         try:
             sus = get_sus_info(nodename=nodename)
-        except  AspError, e:
+        except  AspError as e:
             error('Command is not available while SAFplus is down (run "status"),')
             error('or if another safplus_console is running')
             return 0
@@ -1723,16 +1726,16 @@ class Cli(cmd.Cmd):
         h.suname,  h.sgname,      h.nodename, h.astate,  h.castate, h.presence, h.operstate, h.readiness, h.comps, h.sis = \
         'SU-NAME','MEMBER-OF-SG', 'ON-NODE',  'AS',      'CAS',     'PS',       'OS',        'RS',        'IC',    'SIS'
         
-        sus.sort(lambda x,y: cmp(x.suname, y.suname))
+        sus.sort(key=cmp_to_key(lambda x,y: cmp(x.suname, y.suname)))
         
-        print color('bold', fmt % h)
+        print(color('bold', fmt % h))
         for su in sus:
             if  su.castate == 'UL':
-                print color('bold-red', fmt % su)
+                print(color('bold-red', fmt % su))
             elif su.castate == 'LA':
-                print color('yellow', fmt % su)
+                print(color('yellow', fmt % su))
             else:
-                print fmt % su
+                print(fmt % su)
     
     def complete_sus(self, text, line, bidx, eidx):
         names = get_node_names()
@@ -1756,7 +1759,7 @@ class Cli(cmd.Cmd):
             
         try:
             su = get_su_info(msg)
-        except  AspError, e:
+        except  AspError as e:
             error('Command is not available while SAFplus is down (run "status"),')
             error('or if another safplus_console is running')
             return 0
@@ -1765,33 +1768,33 @@ class Cli(cmd.Cmd):
             error('Could not find SU [%s] in AMF database' % msg)
             return 0
         
-        print 'su name:                 %s' % color('bold', su.value)
-        print 'admin state:             %s' % color('bold-red', su.config[0].admin_state[0])
-        print 'computed admin state:    %s' % color('bold-red', su.config[0].computed_admin_state[0])
-        print 'member of sg:            %s' % su.config[0].member_of_sg[0]
-        print 'member of node:          %s' % su.config[0].member_of_node[0]
-        print 'restartable:             %s' % su.config[0].is_restartable[0]
-        print 'presence state:          %s' % su.status[0].presence_state[0]
-        print 'readiness state:         %s' % su.status[0].readiness_state[0]
-        print 'operational state:       %s' % su.status[0].operational_state[0]
-        print 'number of active SIs:    %s' % su.status[0].num_active_sis[0]
-        print 'number of standby SIs:   %s' % su.status[0].num_standby_sis[0]
-        print 'number of quiesced SIs:  %s' % su.status[0].num_quiesced_sis[0]
-        print 'SU restart count:        %s' % su.status[0].su_restart_count[0]
-        print 'component restart count: %s' % su.status[0].comp_restart_count[0]
+        print('su name:                 %s' % color('bold', su.value))
+        print('admin state:             %s' % color('bold-red', su.config[0].admin_state[0]))
+        print('computed admin state:    %s' % color('bold-red', su.config[0].computed_admin_state[0]))
+        print('member of sg:            %s' % su.config[0].member_of_sg[0])
+        print('member of node:          %s' % su.config[0].member_of_node[0])
+        print('restartable:             %s' % su.config[0].is_restartable[0])
+        print('presence state:          %s' % su.status[0].presence_state[0])
+        print('readiness state:         %s' % su.status[0].readiness_state[0])
+        print('operational state:       %s' % su.status[0].operational_state[0])
+        print('number of active SIs:    %s' % su.status[0].num_active_sis[0])
+        print('number of standby SIs:   %s' % su.status[0].num_standby_sis[0])
+        print('number of quiesced SIs:  %s' % su.status[0].num_quiesced_sis[0])
+        print('SU restart count:        %s' % su.status[0].su_restart_count[0])
+        print('component restart count: %s' % su.status[0].comp_restart_count[0])
         
         comps = su.config[0].components[0]
         if comps == '0': comps = ['-']
         else:            comps = comps.comp
-        print 'component list:          %s' % \
-            '\n                         '.join(comps)
+        print('component list:          %s' % \
+            '\n                         '.join(comps))
 
         sis = su.status[0].sis[0]
         if sis == '0': sis = ['-']
         else:          sis = [si.value + '(%s)' % color_state(si.ha_state[0])
                               for si in sis.si]
-        print 'SI list:                 %s' % \
-            '\n                         '.join(sis)
+        print('SI list:                 %s' % \
+            '\n                         '.join(sis))
 
     def complete_su(self, text, line, bidx, eidx):
         names = get_su_names()
@@ -1832,7 +1835,7 @@ class Cli(cmd.Cmd):
         if s:
             error('Failed to %s %s [%s]: %s' % (cli_cmd, e_type, e_name, ''.join(res)))
         else:
-            print 'OK'
+            print('OK')
         
     def lock_unlock_complete(self, text, line, bidx, eidx, cli_cmd):
         """Common command completer for unlock, locki, and locka"""
@@ -1885,7 +1888,7 @@ class Cli(cmd.Cmd):
         sg_name = msg.strip()
         try:
             sg = get_sg_info(sg_name)
-        except  AspError, e:
+        except  AspError as e:
             error('Command is not available while SAFplus is down (run "status"),')
             error('or if another safplus_console is running')
             return 0
@@ -1896,11 +1899,11 @@ class Cli(cmd.Cmd):
         
         try: redundancy = _redundancy_map[sg.config[0].redundancy_model[0]]
         except KeyError: redundancy = sg.config[0].redundancy_model[0]
-        print 'SG %s (redundancy:%s, state:%s/%s)' % \
+        print('SG %s (redundancy:%s, state:%s/%s)' % \
             (color('bold', sg.value),
              redundancy,
              color('bold-red', _state_map[sg.config[0].admin_state[0]]),
-             color('bold-red', _state_map[sg.config[0].computed_admin_state[0]]))
+             color('bold-red', _state_map[sg.config[0].computed_admin_state[0]])))
 
         instantiable_sus = sg.status[0].instantiable_sus[0]
         if instantiable_sus == '0': instantiable_sus = []
@@ -1925,7 +1928,7 @@ class Cli(cmd.Cmd):
         nodes = [su.config[0].member_of_node[0]
                  for su in amf_db.ams[0].entities[0].sus[0].su
                  if su.value in all_sus]
-        nodes = dict([(n, 0) for n in nodes]).keys() # weeding out duplicates
+        nodes = list(dict([(n, 0) for n in nodes]).keys()) # weeding out duplicates
         
         cluster_info = get_cluster_info()
         nodeaddrs = dict([(c.nodename, c.nodeaddr) for c in cluster_info])
@@ -1933,15 +1936,15 @@ class Cli(cmd.Cmd):
         nodes.sort()
         for node in nodes:
 
-            print '   Node %s' % color('bold', node)
+            print('   Node %s' % color('bold', node))
             
             try:
                 comps_info = get_comps_info(nodeaddrs[node], do_ps=False)
-            except AspError, e:
+            except AspError as e:
                 error('Command is not available while SAFplus is down (run "status"),')
                 error('or if another safplus_console is running')
                 return 0
-            except KeyError, e:
+            except KeyError as e:
                 continue
 
             pids = dict([(c.compname, c.pid) for c in comps_info])
@@ -1950,21 +1953,21 @@ class Cli(cmd.Cmd):
                    if su.config[0].member_of_sg[0] == sg_name and
                       su.config[0].member_of_node[0] == node]
             
-            sus.sort(lambda x,y: cmp(x.value, y.value))
+            sus.sort(key=cmp_to_key(lambda x,y: cmp(x.value, y.value)))
             for su in sus:
 
-                print '        SU %s (state:%s/%s)' % \
+                print('        SU %s (state:%s/%s)' % \
                     (color('bold', su.value),
                      color('bold-red', _state_map[su.config[0].admin_state[0]]),
-                     color('bold-red', _state_map[su.config[0].computed_admin_state[0]]))
+                     color('bold-red', _state_map[su.config[0].computed_admin_state[0]])))
 
                 sis = su.status[0].sis[0]
                 if sis == '0': sis = []
                 else:          sis = sis.si
                 
                 for si in sis:
-                    print '           SI %s (state:%s)' % \
-                        (si.value, color_state(si.ha_state[0]))
+                    print('           SI %s (state:%s)' % \
+                        (si.value, color_state(si.ha_state[0])))
         
                 compnames = su.config[0].components[0]
                 if compnames == '0': compnames = []
@@ -1974,21 +1977,21 @@ class Cli(cmd.Cmd):
                     
                     comp = get_comp_info(compname)
                     try:
-                      print '           Comp %s (PS:%s OS:%s RS:%s PID:%s)' % \
+                      print('           Comp %s (PS:%s OS:%s RS:%s PID:%s)' % \
                         (color('bold', compname),
                          comp.status[0].presence_state[0],
                          comp.status[0].operational_state[0],
                          _readiness_map[comp.status[0].readiness_state[0]],
-                         color('bold-cyan', pids[compname]))
-                    except KeyError, e: continue
+                         color('bold-cyan', pids[compname])))
+                    except KeyError as e: continue
 
                     csis = comp.status[0].csis[0]
                     if csis == '0': csis = []
                     else:           csis = csis.csi
 
                     for csi in csis:
-                        print '                CSI %s (state:%s)' % \
-                            (csi.value, color_state(csi.ha_state[0]))
+                        print('                CSI %s (state:%s)' % \
+                            (csi.value, color_state(csi.ha_state[0])))
                         
     def complete_tree(self, text, line, bidx, eidx):
         return [n for n in get_sg_names() if n.startswith(text)]
@@ -2071,11 +2074,11 @@ class Cli(cmd.Cmd):
             
         try:
             s, output = asp_console_execute(msg.split(';'), use_file=True)
-        except DebugCliError, e:
+        except DebugCliError as e:
             error(str(e))
             return 0
-        print s
-        print '\n'.join(output)
+        print(s)
+        print('\n'.join(output))
 
     ##
     ## version command
@@ -2083,22 +2086,22 @@ class Cli(cmd.Cmd):
     def do_version(self, msg):
 
         # get a dict with path info
-		# if asp is running, this will work
-		try:
-			asp_run_env = load_asp_run_env()
-			version_loc = asp_run_env['ASP_CONFIG'] + "/VERSION"
-		except:
-			# otherwise, look for BASE_PATH/etc/BUILD
-			version_loc = _asp_dir + "/etc/VERSION"
+                # if asp is running, this will work
+                try:
+                        asp_run_env = load_asp_run_env()
+                        version_loc = asp_run_env['ASP_CONFIG'] + "/VERSION"
+                except:
+                        # otherwise, look for BASE_PATH/etc/BUILD
+                        version_loc = _asp_dir + "/etc/VERSION"
 
-		if not os.path.isfile(version_loc):
-			print "Version unknown" 
-		else:
-			fh = open(version_loc, "r")
-			line = fh.readline()
-			if len(line) > 1:
-				print line.split("=")[1].strip()
-			fh.close()
+                if not os.path.isfile(version_loc):
+                        print("Version unknown") 
+                else:
+                        fh = open(version_loc, "r")
+                        line = fh.readline()
+                        if len(line) > 1:
+                                print(line.split("=")[1].strip())
+                        fh.close()
         
     def do_shell(self, msg):
         "Execute the argument(s) in a Unix shell and print the results\n" \
@@ -2110,16 +2113,19 @@ class Cli(cmd.Cmd):
         "    ! pwd\n" \
         "    ! killall bugs\n"
         
-        stdin, stdout = os.popen2(msg)
+        child = subprocess.Popen(msg, shell=True,
+                             stdout=subprocess.PIPE,
+                             stderr=subprocess.PIPE,
+                             close_fds=True)
         while True:
-            line = stdout.readline()
+            line = child.stdout.readline().decode()
             if not line:
                 break
-            print line,
+            print(line, end=' ')
 
     def do_EOF(self, msg):
         """Type 'exit' or press Ctrl-D to exit"""
-        print # a new line before exiting
+        print() # a new line before exiting
         return(self.do_exit(msg))    
     
     def help_help(self):
@@ -2151,6 +2157,11 @@ def system(cmd):
         else:
             time.sleep(0.00001)
 
+    output2 = []
+    for c in output:
+        d = c.decode()
+        output2.append(d)
+
     child.stdout.close()
     child.stderr.close()
     retval = sts
@@ -2159,7 +2170,7 @@ def system(cmd):
     retval = retval >> 8
     #print 'Command return value %s, Output: %s' % (str(retval),output)
     del child
-    return (retval, output, signal, core)
+    return (retval, output2, signal, core)
 
 def grep_amf_cmd(e):
     return 'ps -eo pid,cmd | grep %s | grep -v grep' % e
@@ -2218,7 +2229,7 @@ echo_cmd = '/bin/echo'
     s = imp.new_module("aspinfo_%s" % p)
     sys.modules['aspinfo_%s'%p] = s
 
-    exec code in s.__dict__
+    exec(code, s.__dict__)
 
     d = {}
 
@@ -2239,7 +2250,7 @@ def main(argv):
     cli = Cli(HISTORY_FILE)
     
     def usage(exit_code=0):
-        print USAGE_MSG
+        print(USAGE_MSG)
         cli.onecmd('help')
         sys.exit(exit_code)
 
@@ -2270,7 +2281,7 @@ def main(argv):
         try:
             cli.cmdloop("Starting interactive prompt (type 'help' for help)")
         except KeyboardInterrupt:
-            print 'Exiting on Ctrl-C'
+            print('Exiting on Ctrl-C')
     sys.exit(0)
 
 asp_run_env = load_asp_run_env()
