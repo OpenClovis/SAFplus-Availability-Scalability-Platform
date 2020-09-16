@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/env python3
 # Copyright (C) 2002-2012 OpenClovis Solutions Inc.  All Rights Reserved.
 # This file is available  under  a  commercial  license  from  the
 # copyright  holder or the GNU General Public License Version 2.0.

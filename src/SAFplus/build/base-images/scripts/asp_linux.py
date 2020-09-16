@@ -60,6 +60,7 @@ def system(cmd):
         return (retval, output, signal, core)
 
 def Popen(cmd):
+    #print(cmd)
     """Similar to the os.popen call, except that using subprocess.Popen from python 2.6"""
     if sys.version_info[0:2] <= (2, 4):
         return os.popen('%s' %cmd)
@@ -81,6 +82,34 @@ def Popen(cmd):
         child.stderr.close()
         del child
         return output
+
+def Popen2(cmd):
+    #print(cmd)
+    """Similar to the os.popen call, except that using subprocess.Popen from python 2.6"""
+    if sys.version_info[0:2] <= (2, 4):
+        return os.popen('%s' %cmd)
+
+    else:
+        child = subprocess.Popen(cmd, shell=True,
+                             stdout=subprocess.PIPE,
+                             stderr=subprocess.PIPE,
+                             close_fds=True,
+                             encoding='utf-8')
+        output = []
+        while True:
+            pid, sts = os.waitpid(child.pid, os.WNOHANG)
+            output += child.stdout.readlines()
+            if pid == child.pid:
+                break
+            else:
+                time.sleep(0.00001)
+        child.stdout.close()
+        child.stderr.close()
+        del child
+        return output
+
+
+
 
 def getMultiLink():
     """Similar to the os.system call, except that both the output and

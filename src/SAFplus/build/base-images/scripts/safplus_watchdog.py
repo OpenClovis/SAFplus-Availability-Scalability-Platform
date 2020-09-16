@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/env python3
 # Copyright (C) 2002-2012 OpenClovis Solutions Inc.  All Rights Reserved.
 # This file is available  under  a  commercial  license  from  the
 # copyright  holder or the GNU General Public License Version 2.0.
@@ -174,7 +174,7 @@ def amf_watchdog_loop():
                         seen_openhpid = True
                         seen_openhpid_id = openhpid_pid
 
-        except Exception,e:
+        except Exception as e:
             logging.critical('SAFplus watchdog received exception %s' %str(e))
             logging.critical('traceback: %s',traceback.format_exc())
 
@@ -213,7 +213,7 @@ def redirect_file():
 
 def configWatchdogLog():
     logging.basicConfig(filename='%s/amf_watchdog.log' % asp.get_asp_log_dir(), format='%(levelname)s %(asctime)s.%(msecs)d %(message)s', level=logging.DEBUG, datefmt='%a %d %b %Y %H:%M:%S')
-    os.chmod('%s/amf_watchdog.log' % asp.get_asp_log_dir(), 0644);
+    os.chmod('%s/amf_watchdog.log' % asp.get_asp_log_dir(), 0o644);
     global fileLogger
     fileLogger = logging.getLogger()
 

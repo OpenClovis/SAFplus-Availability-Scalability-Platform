@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/env python3
 # Copyright (C) 2002-2012 OpenClovis Solutions Inc.  All Rights Reserved.
 # This file is available  under  a  commercial  license  from  the
 # copyright  holder or the GNU General Public License Version 2.0.
@@ -23,8 +23,10 @@ import errno
 import re
 import xml.dom.minidom
 import glob
-import commands
+import subprocess
 import errno
+import subprocess
+
 
 AmfName = "safplus_amf"
 
@@ -54,6 +56,7 @@ def init_sys_asp():
 
     d['system'] = s.system
     d['Popen'] = s.Popen
+    d['Popen2'] = s.Popen2
     d['getMultiLink'] = s.getMultiLink
     d['get_kill_asp_cmd'] = s.get_kill_asp_cmd
     d['get_amf_watchdog_pid_cmd'] = s.get_amf_watchdog_pid_cmd
@@ -78,6 +81,7 @@ def init_sys_asp():
 
 def system(cmd): return sys_asp['system'](cmd)
 def Popen(cmd): return sys_asp['Popen'](cmd)
+def Popen2(cmd): return sys_asp['Popen2'](cmd)
 def getMultiLink(): return sys_asp['getMultiLink']()
 
 def proc_lock_file(cmd):
@@ -233,9 +237,9 @@ def log_asp_env():
     log.debug('Node name : [%s]' % asp_env['node_name'])
 
     log.debug('System controller ? : %s' %\
-              bool(int(asp_env['system_controller'])))
+              (asp_env['system_controller']))
     log.debug('Simulation ? : %s' %\
-              bool(int(asp_env['simulation'])))
+              (asp_env['simulation']))
 
 def gen_asp_run_env_file(run_file, d):
     """ Generates a run-time env file that carries all needed environment vars """
@@ -244,28 +248,28 @@ def gen_asp_run_env_file(run_file, d):
         return
 
     try:
-        f = file(run_file, 'w')
+        f = open(run_file, 'w')
     except IOError:
         if not is_root():
             return
         fail_and_exit('Could not create file %s' % run_file)
-    print >> f, '# This file is auto-generated when SAFplus is started, please do not modify'
-    print >> f, 'ASP_DIR=%s' % d['sandbox_dir']
-    print >> f, 'ASP_BINDIR=%s' % d['bin_dir']
-    print >> f, 'ASP_APP_BINDIR=%s' % d['bin_dir']
-    print >> f, 'ASP_RUNDIR=%s' % d['run_dir']
-    print >> f, 'ASP_DBDIR=%s' % d['db_dir']
-    print >> f, 'ASP_CONFIG=%s' % d['etc_dir']
-    print >> f, 'ASP_LOGDIR=%s' % d['log_dir']
-    print >> f, 'ASP_NODENAME=%s' % d['node_name']
-    print >> f, 'ASP_NODEADDR=%s' % d['node_addr']
-    print >> f, 'ASP_MULTINODE=%s' %d['simulation']
-    print >> f, 'ASP_SIMULATION=%s' %d['simulation']
-    print >> f, 'BUILD_TIPC=%s' %d['build_tipc']
+    print('# This file is auto-generated when SAFplus is started, please do not modify', file=f)
+    print('ASP_DIR=%s' % d['sandbox_dir'], file=f)
+    print('ASP_BINDIR=%s' % d['bin_dir'], file=f)
+    print('ASP_APP_BINDIR=%s' % d['bin_dir'], file=f)
+    print('ASP_RUNDIR=%s' % d['run_dir'], file=f)
+    print('ASP_DBDIR=%s' % d['db_dir'], file=f)
+    print('ASP_CONFIG=%s' % d['etc_dir'], file=f)
+    print('ASP_LOGDIR=%s' % d['log_dir'], file=f)
+    print('ASP_NODENAME=%s' % d['node_name'], file=f)
+    print('ASP_NODEADDR=%s' % d['node_addr'], file=f)
+    print('ASP_MULTINODE=%s' %d['simulation'], file=f)
+    print('ASP_SIMULATION=%s' %d['simulation'], file=f)
+    print('BUILD_TIPC=%s' %d['build_tipc'], file=f)
     if d["ASP_UDP_USE_EXISTING_IP"] is not None:
-      print >> f, 'ASP_UDP_USE_EXISTING_IP=%s' % d['ASP_UDP_USE_EXISTING_IP']
+      print('ASP_UDP_USE_EXISTING_IP=%s' % d['ASP_UDP_USE_EXISTING_IP'], file=f)
     if d["ASP_UDP_LINK_NAME"] is not None:
-      print >> f, 'ASP_UDP_LINK_NAME=%s' % d['ASP_UDP_LINK_NAME']
+      print('ASP_UDP_LINK_NAME=%s' % d['ASP_UDP_LINK_NAME'], file=f)
 
     f.close()
     
@@ -284,7 +288,7 @@ def set_up_asp_config():
             try:
                 os.mkdir(p)
                 return p
-            except OSError, e:
+            except OSError as e:
                 fail_and_exit('Failed to create directory, [%s]' % e)
 
     def get_dir(p):
@@ -293,7 +297,7 @@ def set_up_asp_config():
         else:
             try:
                 os.mkdir(p)
-            except OSError, e:
+            except OSError as e:
                 if e.errno != errno.EEXIST:
                     fail_and_exit('Failed to create directory, [%s]' % e)
             return p
@@ -496,23 +500,23 @@ def stop_amf_watchdog():
 
     p = '%s/safplus_watchdog.py' % get_asp_etc_dir()
     cmd = sys_asp['get_amf_watchdog_pid_cmd'](p)
-    result=Popen(cmd)
+    result=Popen2(cmd)
     # Eliminate the incorrect lines
-    psLine = filter(lambda x: not "grep" in x, result)
+    psLine = [x for x in result if not "grep" in x]
 
     if len(psLine) == 0: # Its already dead
       return
     try:
       wpid = int(psLine[0].split()[0])
-    except Exception, e:
-      print "Exception: %s" % str(e)
-      print "CMD: %s" % cmd
-      print "data: %s" % result
+    except Exception as e:
+      print("Exception: %s" % str(e))
+      print("CMD: %s" % cmd)
+      print("data: %s" % result)
       raise
 
     try:
         os.kill(wpid, signal.SIGKILL)
-    except OSError, e:
+    except OSError as e:
         if e.errno == errno.ESRCH:
             pass
         else:
@@ -857,7 +861,7 @@ def load_config_tipc_module():
 
     def is_tipc_loaded():
         cmd = sys_asp['is_tipc_loaded_cmd']
-        l = Popen(cmd)
+        l = Popen2(cmd)
         l = [e[:-1] for e in l]
         l = [e for e in l if 'grep' not in e]
         c = len(l)
@@ -884,14 +888,16 @@ def load_config_tipc_module():
 
     def is_tipc_properly_configured():
         tipc_config_cmd = get_asp_tipc_config_cmd()
-
         tipc_addr = ''
         if get_tipc_config_tool_exist() == 0:
-            tipc_addr = Popen('%s node get address' % tipc_config_cmd)[0]
+            tipc_addr = Popen2('%s node get address' % tipc_config_cmd)[0]
             tipc_addr = tipc_addr.strip()[1:-1]
         else:
-            tipc_addr = Popen('%s -addr' % tipc_config_cmd)[0]
+            #print('-addr' + tipc_config_cmd)
+            tipc_addr = Popen2('%s -addr' % tipc_config_cmd)[0]
+            #print(tipc_addr)
             tipc_addr = tipc_addr.split(':')[1].strip()[1:-1]
+            #print(tipc_addr)
 
         if tipc_addr != '1.1.%s' % get_asp_node_addr():
             log.debug('System configured TIPC address : %s, user configured TIPC address : %s' % (tipc_addr, '1.1.%s' % get_asp_node_addr()))
@@ -902,7 +908,7 @@ def load_config_tipc_module():
             tipc_netid = Popen('%s node get netid' % tipc_config_cmd)[0]
             tipc_netid = tipc_netid.strip()
         else:
-            tipc_netid = Popen('%s -netid' % tipc_config_cmd)[0]
+            tipc_netid = Popen2('%s -netid' % tipc_config_cmd)[0]
             tipc_netid = tipc_netid.split(':')[1].strip()
 
         if tipc_netid != get_asp_tipc_netid():
@@ -1179,7 +1185,7 @@ def save_asp_runtime_files():
                     if d =='log':
                         global reconfigWdLog
                         reconfigWdLog = True                       
-                except OSError, e:
+                except OSError as e:
                     if e.errno == errno.EEXIST:
                         pass
                     else:
@@ -1203,7 +1209,7 @@ def check_if_root():
 def touch_lock_file(asp_file):
     try:
         f = os.open(asp_file, os.O_CREAT | os.O_EXCL | os.O_RDWR)
-    except OSError, e:
+    except OSError as e:
         if e.errno != errno.EEXIST:
             raise
         fail_and_exit("SAFplus instance already running. "
@@ -1295,7 +1301,7 @@ def get_openhpid_pid():
 
     try:
         #l = Popen('ps aux | grep -i openhpid | grep -vF "grep"')
-        l = commands.getstatusoutput("%s openhpid" %cmd);
+        l = subprocess.getstatusoutput("%s openhpid" %cmd);
         if l[0] == 0:
             # pid found
             pid = int(l[1].split()[0])
@@ -1311,7 +1317,7 @@ def get_pid_for_this_sandbox(pid):
     
     try:
         cwd = os.readlink(proc_file)
-    except OSError, e:
+    except OSError as e:
         log.debug('Failed to read [%s] : %s' %\
                       (proc_file, e))
         cwd = ''
@@ -1327,11 +1333,11 @@ def get_pid_for_this_sandbox(pid):
     
 def get_amf_pid(watchdog_pid = False):
     while True:
-        valid = commands.getstatusoutput("pidof %s" % AmfName);
+        valid = subprocess.getstatusoutput("pidof %s" % AmfName);
         if valid[0] == 0:
             l = valid[1].split()
             if is_simulation():
-                l = filter(get_pid_for_this_sandbox, l)
+                l = list(filter(get_pid_for_this_sandbox, l))
             if len(l) == 1 :          
                 return int(l[0])            
             if len(l) == 0 :          
@@ -1341,11 +1347,11 @@ def get_amf_pid(watchdog_pid = False):
         log.warning('There is more than one AMF pid. Try again...')
         time.sleep(0.25)
     if watchdog_pid:
-         valid = commands.getstatusoutput("pidof safplus_watchdog.py");
+         valid = subprocess.getstatusoutput("pidof safplus_watchdog.py");
          if valid[0] == 0:
             l = valid[1].split()
             if is_simulation():
-                l = filter(get_pid_for_this_sandbox, l)
+                l = list(filter(get_pid_for_this_sandbox, l))
             if len(l) == 1: 
                 return int(l[0])
             if len(l) == 0 :          
@@ -1367,7 +1373,7 @@ def wait_until_amf_up():
 def stop_asp():
     def wait_for_asp_shutdown():
         t = sys_asp['asp_shutdown_wait_timeout']
-        for i in range(t/6):
+        for i in range(round(t/6)):
             amf_pid = get_amf_pid()
             if amf_pid == 0:
                 break
@@ -1443,7 +1449,7 @@ def kill_asp(lock_remove = True):
                 if exe == f:
                     try:
                         os.kill(pid, signal.SIGKILL)
-                    except OSError, e:
+                    except OSError as e:
                         if e.errno == errno.ESRCH:
                             pass
                         else:
@@ -1456,7 +1462,7 @@ def kill_asp(lock_remove = True):
 def zap_asp(lock_remove = True):
     try:
       run_custom_scripts('zap')
-    except Exception, e:
+    except Exception as e:
       log.critical('%s: run_custom_scripts(zap) received exception %s' % (time.strftime('%a %d %b %Y %H:%M:%S'),str(e)))
       log.critical('traceback: %s',traceback.format_exc())
 
@@ -1540,14 +1546,14 @@ def is_asp_running(watchdog_pid = False):
         return 3
     
 def usage():
-    print
-    print 'Usage : %s {start|stop|restart|console|status|zap|help} [options]' %\
-          os.path.splitext(os.path.basename(sys.argv[0]))[0]
-    print
-    print 'options can be one of the following : (these '\
+    print()
+    print('Usage : %s {start|stop|restart|console|status|zap|help} [options]' %\
+          os.path.splitext(os.path.basename(sys.argv[0]))[0])
+    print()
+    print('options can be one of the following : (these '\
           'options only work with start command, '\
-          'e.g. etc/init.d/asp start -v etc.)'
-    print
+          'e.g. etc/init.d/asp start -v etc.)')
+    print()
 
     l = ( ('-v', 'Be verbose'),
           ('--enforce-tipc-settings',
@@ -1564,7 +1570,7 @@ def usage():
         )
 
     for o, h in l:
-        print '%-30s:  %s' % (o, h)
+        print('%-30s:  %s' % (o, h))
 
 def create_asp_cmd_marker(cmd):
     execute_shell_cmd('echo "%s" > %s' %\
@@ -1582,7 +1588,7 @@ def asp_driver(cmd):
                'help' : usage
                }
 
-    if cmd_map.has_key(cmd):
+    if cmd in cmd_map:
         if cmd == 'start':
             # Remove and Re-Create asp_run.env for safplus start
             asp_run_env_file = asp_env['etc_dir']+'/asp_run.env'
@@ -1649,8 +1655,8 @@ def parse_command_line():
                                     'remove-persistent-db',
                                     'asp-log-level=',
                                    ])
-    except getopt.GetoptError, e:
-        print 'Command line parsing failed, error [%s]' % e
+    except getopt.GetoptError as e:
+        print('Command line parsing failed, error [%s]' % e)
         usage()
         sys.exit(1)
 
@@ -1691,6 +1697,7 @@ def check_py_version():
 
 def main():
     check_py_version()
+    #print "len(argv) = %d"%len(sys.argv)
     if len(sys.argv) < 2:
         usage()
         sys.exit(1)
@@ -1699,6 +1706,8 @@ def main():
 
     log_asp_env()
 
+    #while(True):
+    #    pass
     if not is_root():
         if sys.argv[1] not in [ 'status' ]:
             log.info('SAFplus is being run in non-root user mode.')
