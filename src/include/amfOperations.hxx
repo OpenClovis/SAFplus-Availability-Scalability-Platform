@@ -108,6 +108,7 @@ namespace SAFplus
     void workOperationResponse(uint64_t invocation, uint32_t result);
 
       //? Report that AMF state has changed.  This will cause the AMF to rerun its evaluation loop right away.  If you call another amfOperations API, you do not need to call this.
-      void reportChange(void) { changed=true;}
+    void reportChange(void) { changed=true;}
+    bool suContainsSaAwareComp(SAFplusAmf::ServiceUnit* su);
     };
   };

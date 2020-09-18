@@ -263,7 +263,7 @@ class NplusMPolicy:public ClAmfPolicyPlugin_1
       bool assignable = true;
       ServiceUnit* su = *i;
       assert(su);
-
+      if (su->presenceState.value != SAFplusAmf::PresenceState::instantiated) continue;
       // We can only assign a particular SI to a particular SU once, and it can't be in "repair needed" state
       if ((su->assignedServiceInstances.contains(si) == false ||
            (tgtState == HighAvailabilityState::active && !si->isFullActiveAssignment.value && !si->standbyAssignments.contains(su)) ||
@@ -929,7 +929,8 @@ class NplusMPolicy:public ClAmfPolicyPlugin_1
           for (itcomp = su->components.begin(); itcomp != endcomp; itcomp++)
             {                        
             Component* comp = dynamic_cast<Component*>(itcomp->second);
-            if (comp->compProperty.value == SAFplusAmf::CompProperty::proxied_preinstantiable)
+            if (comp->compProperty.value == SAFplusAmf::CompProperty::proxied_preinstantiable &&
+                amfOps->suContainsSaAwareComp(su))
             {
                //Don't count proxied preinstantiable because it must be instantiated after its proxy gets assignment
                continue;

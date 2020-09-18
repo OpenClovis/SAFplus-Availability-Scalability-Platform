@@ -261,7 +261,8 @@ namespace SAFplus
       }
       WorkOperationTracker& wat = pendingWorkOperations.at(invocation);
       logInfo("AMF","OPS","Work Operation response on component [%s] invocation [%" PRIu64 "] result [%d]",wat.comp->name.value.c_str(),invocation, result);
-      if ( wat.state == (int)HighAvailabilityState::active)
+      SAFplusAmf::Component* comp = wat.comp;
+      if (comp->compProperty.value == SAFplusAmf::CompProperty::sa_aware && wat.state == (int)HighAvailabilityState::active)
       {
         assignWorkCallback(wat.comp);
       }
@@ -356,7 +357,11 @@ namespace SAFplus
       else  // RPC call
         {
           //logInfo("OP","CMP","Request component [%s] state from node [%s]", comp->name.value.c_str(), comp->serviceUnit.value->node.value->name.value.c_str());
-
+        if (comp->compProperty.value == SAFplusAmf::CompProperty::proxied_preinstantiable &&
+            comp->presenceState.value == SAFplusAmf::PresenceState::instantiated) // TODO: with NonSAFComponent: don't care comp's pid???
+         {
+            return CompStatus::Instantiated; 
+         }
         ProcessInfoRequest req;
         req.set_pid(pid);
         ProcessInfoResponse resp;
@@ -608,6 +613,21 @@ namespace SAFplus
       reportChange();
     }
 
+  bool AmfOperations::suContainsSaAwareComp(SAFplusAmf::ServiceUnit* su)
+  {
+     SAFplus::MgtObject::Iterator itcomp;
+     SAFplus::MgtObject::Iterator endcomp = su->components.end();
+     for (itcomp = su->components.begin(); itcomp != endcomp; itcomp++)
+     {                        
+        Component* comp = dynamic_cast<SAFplusAmf::Component*>(itcomp->second);
+        if (comp->compProperty.value == SAFplusAmf::CompProperty::sa_aware)
+        {
+           return true;
+        }
+     }
+     return false;
+  }
+
   void AmfOperations::assignWork(ServiceUnit* su, ServiceInstance* si, HighAvailabilityState state,Wakeable& w)
     {
     ComponentServiceInstance* csi = nullptr;
@@ -633,7 +653,8 @@ namespace SAFplus
 
       Component* comp = dynamic_cast<Component*>(*itcomp);
       assert(comp);
-      if (comp->compProperty.value == SAFplusAmf::CompProperty::proxied_preinstantiable)
+      if (comp->compProperty.value == SAFplusAmf::CompProperty::proxied_preinstantiable &&
+          suContainsSaAwareComp(su))
         {
            //Don't count proxied preinstantiable because it never gets assignment
            continue;
@@ -1302,7 +1323,7 @@ namespace SAFplus
                     (suState   == SAFplusAmf::PresenceState::instantiated);
                  suDown      = (suState   == SAFplusAmf::PresenceState::uninstantiated) ||
                     (suState   == SAFplusAmf::PresenceState::terminating);
-                 if ( suUp && compNotUp )
+                 if ( (suUp | suDown) && compNotUp ) // starting a comp in s7 doesn't require its su up
                     {
                         logInfo("OPS","UPD.PROXIED","starting proxied component [%s] in presenceState [%s]", comp->name.value.c_str(),SAFplusAmf::c_str(compState));
                         start(comp);

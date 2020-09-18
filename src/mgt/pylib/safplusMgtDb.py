@@ -7,6 +7,7 @@ This module provides interfaces to access the DBAL provided by SAFplus library.
 import pdb, traceback
 import os, sys, os.path
 import re
+import copy
 
 try:
   import pyDbal
@@ -390,7 +391,15 @@ class PyDBAL():
 
     def Write(self, key, data, childs = []):
         print "Writing %s -> %s childs: [%s]" % (str(key), str(data), ",".join(childs))
-        return pyDbal.write(key, data, childs)
+        i = key.rfind('nonSafComponents')
+        if i>1:
+            key = key[:i]+'components'
+        children = copy.copy(childs)
+        if 'nonSafComponents' in childs:
+            children = filter(lambda child: child != 'nonSafComponents', childs)
+            children.append('components')
+        print "[A] Writing %s -> %s childs: [%s]" % (str(key), str(data), ",".join(children))
+        return pyDbal.write(key, data, children)
 
     def Read(self, key):
         return pyDbal.read(key)
