@@ -438,15 +438,20 @@ class NplusMPolicy:public ClAmfPolicyPlugin_1
           for (itcomp = su->components.listBegin(); itcomp != endcomp; itcomp++)
             {
             Component* comp = dynamic_cast<Component*>(*itcomp);
-            if (comp->compProperty.value == SAFplusAmf::CompProperty::proxied_preinstantiable)
+            logInfo("N+M","AUDIT","Auditing component [%s], compProperty [%s] on [%s.%s] pid [%d]: Operational State [%s] PresenceState [%s] ReadinessState [%s] HA State [%s] HA Readiness [%s] Pending Operation [%s] (expires in: [%d ms]) instantiation attempts [%d]",comp->name.value.c_str(),c_str(comp->compProperty.value),node ? node->name.value.c_str(): "unattached",suName.c_str(), comp->processId.value,
+            oper_str(comp->operState.value), c_str(comp->presenceState.value), c_str(comp->readinessState.value),
+            c_str(comp->haState.value), c_str(comp->haReadinessState.value), c_str(comp->pendingOperation.value), ((comp->pendingOperationExpiration.value.value>0) ? (int) (comp->pendingOperationExpiration.value.value - curTime): 0), comp->numInstantiationAttempts.value);
+            if (comp->compProperty.value == SAFplusAmf::CompProperty::proxied_preinstantiable &&
+                amfOps->suContainsSaAwareComp(su))
               {
                 //Don't count proxied preinstantiable because it never gets assignment according to safplus 6.0
+                logInfo("N+M","AUDIT","Don't count proxied preinstantiable for component [%s] because it must be instantiated after its proxy gets assignment", comp->name.value.c_str());
                 continue;
               }            
             SAFplusAmf::AdministrativeState eas = effectiveAdminState(comp);
-        logInfo("N+M","AUDIT","Auditing component [%s] on [%s.%s] pid [%d]: Operational State [%s] PresenceState [%s] ReadinessState [%s] HA State [%s] HA Readiness [%s] Pending Operation [%s] (expires in: [%d ms]) instantiation attempts [%d]",comp->name.value.c_str(),node ? node->name.value.c_str(): "unattached",suName.c_str(), comp->processId.value,
+        /*logInfo("N+M","AUDIT","Auditing component [%s] on [%s.%s] pid [%d]: Operational State [%s] PresenceState [%s] ReadinessState [%s] HA State [%s] HA Readiness [%s] Pending Operation [%s] (expires in: [%d ms]) instantiation attempts [%d]",comp->name.value.c_str(),node ? node->name.value.c_str(): "unattached",suName.c_str(), comp->processId.value,
             oper_str(comp->operState.value), c_str(comp->presenceState.value), c_str(comp->readinessState.value),
-            c_str(comp->haState.value), c_str(comp->haReadinessState.value), c_str(comp->pendingOperation.value), ((comp->pendingOperationExpiration.value.value>0) ? (int) (comp->pendingOperationExpiration.value.value - curTime): 0), comp->numInstantiationAttempts.value);
+            c_str(comp->haState.value), c_str(comp->haReadinessState.value), c_str(comp->pendingOperation.value), ((comp->pendingOperationExpiration.value.value>0) ? (int) (comp->pendingOperationExpiration.value.value - curTime): 0), comp->numInstantiationAttempts.value);*/
             if (comp->operState == true) // false means that the component needs repair before we will deal with it.
               {
               if (running(comp->presenceState.value))
@@ -787,6 +792,69 @@ class NplusMPolicy:public ClAmfPolicyPlugin_1
     comp->serviceUnit.value->currentRecovery = Recovery::None;
     comp->serviceUnit.value->node.value->currentRecovery = Recovery::None;
     
+    /* update states of my proxied components */
+    logDebug("HUNG","---","update states of my proxied components if any");
+    SAFplus::MgtIdentifierList<SAFplusAmf::Component*>::Container& vec = comp->proxied.value;
+    std::vector<SAFplus::MgtIdentifierList<SAFplusAmf::Component*>::Elem>::iterator itvec = vec.begin();            
+    for(; itvec != vec.end(); itvec++)
+    {      
+      SAFplus::MgtIdentifierList<SAFplusAmf::Component*>::Elem elem = *itvec;
+      SAFplusAmf::Component* c = elem.value;
+      c->presenceState = PresenceState::uninstantiated;
+      c->activeAssignments = 0;
+      c->standbyAssignments = 0;
+      c->assignedWork = "";
+      c->readinessState = ReadinessState::outOfService;
+      c->haState = HighAvailabilityState::idle;
+      c->pendingOperation = PendingOperation::none;
+      c->pendingOperationExpiration.value.value = 0;
+      c->launched = false;
+      SAFplus::name.set(c->name,INVALID_HDL,NameRegistrar::MODE_NO_CHANGE);  // remove the handle in the name service because the component is dead
+      // CSI
+      logDebug("HUNG","---","removing CSIs assigned to proxied component [%s] if any", c->name.value.c_str());
+      SAFplusAmf::ServiceUnit* su = c->serviceUnit.value;
+      SAFplusAmf::ServiceGroup* sg = su->serviceGroup.value;
+    
+    // I need to remove any CSIs that were assigned to this component.
+    //SAFplus::MgtProvList<SAFplusAmf::ServiceInstance*>::ContainerType::iterator itsi;
+    //SAFplus::MgtProvList<SAFplusAmf::ServiceInstance*>::ContainerType::iterator endsi = sg->serviceInstances.value.end();
+      SAFplus::MgtObject::Iterator itsi;
+      SAFplus::MgtObject::Iterator endsi = sg->serviceInstances.end();
+      for (itsi = sg->serviceInstances.begin();itsi != endsi; itsi++)
+      {
+        ServiceInstance* si = dynamic_cast<ServiceInstance*> (itsi->second);
+        const std::string& name = si->name;
+
+        SAFplus::MgtObject::Iterator itcsi;
+        SAFplus::MgtObject::Iterator endcsi = si->componentServiceInstances.end();
+        //SAFplus::MgtProvList<SAFplusAmf::ComponentServiceInstance*>::ContainerType::iterator itcsi;
+        //SAFplus::MgtProvList<SAFplusAmf::ComponentServiceInstance*>::ContainerType::iterator endcsi = si->componentServiceInstances.value.end();
+
+        SAFplusAmf::ComponentServiceInstance* csi = NULL;
+        bool found = false;
+        bool isPartiallyAssignment = false;
+        // Look for which CSI is assigned to the dead component and remove the assignment.
+        for (itcsi = si->componentServiceInstances.begin(); itcsi != endcsi; itcsi++)
+        {
+          csi = dynamic_cast<SAFplusAmf::ComponentServiceInstance*> (itcsi->second);
+          if (!csi || !(csi->type == comp->csiType.value)) continue;
+          found = csi->activeComponents.erase(comp);
+          if(found){
+            isPartiallyAssignment=true;
+            si->isFullActiveAssignment=false;
+          }
+          found = csi->standbyComponents.erase(comp);
+          if(found){
+            isPartiallyAssignment=true;
+            si->isFullStandbyAssignment=false;
+          }
+        }
+        if (isPartiallyAssignment) si->assignmentState = AssignmentState::partiallyAssigned;// TODO: or it could be unassigned...
+      }
+    }
+   
+    //----------------------------------------------------    
+
     SAFplusAmf::ServiceUnit* su = comp->serviceUnit.value;
     SAFplusAmf::ServiceGroup* sg = su->serviceGroup.value;
     
@@ -930,6 +998,7 @@ class NplusMPolicy:public ClAmfPolicyPlugin_1
             {                        
             Component* comp = dynamic_cast<Component*>(itcomp->second);
             if (comp->compProperty.value == SAFplusAmf::CompProperty::proxied_preinstantiable &&
+                !comp->launched &&
                 amfOps->suContainsSaAwareComp(su))
             {
                //Don't count proxied preinstantiable because it must be instantiated after its proxy gets assignment

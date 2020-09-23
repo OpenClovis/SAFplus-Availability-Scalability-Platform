@@ -23,7 +23,7 @@ using namespace SAFplus;
 
 static MgtDatabase* db=NULL;
 
-static PyObject* Read(PyObject *self, PyObject *args)
+/*static PyObject* Read(PyObject *self, PyObject *args)
 {
     ClRcT rc = CL_OK;
     ClCharT *key;
@@ -45,6 +45,46 @@ static PyObject* Read(PyObject *self, PyObject *args)
     }
 
     PyObject* ret = PyString_FromString(value.c_str());
+    return ret;
+}*/
+
+static PyObject* Read(PyObject *self, PyObject *args)
+{
+    ClRcT rc = CL_OK;
+    ClCharT *key;
+    string value;
+    vector<string> child;
+
+    if (!PyArg_ParseTuple(args, "s", &key))
+    {
+        Py_DECREF(args);
+        return NULL;
+    }
+
+    Py_DECREF(args);
+
+    rc = db->getRecord(key, value, &child);
+    if (rc != CL_OK)
+    {
+        //PyErr_SetObject(PyExc_SystemError, PyInt_FromLong(CL_GET_ERROR_CODE(rc)));
+        return NULL;
+    }
+
+    PyObject* pVal = PyString_FromString(value.c_str());
+
+    PyObject* pChild;
+    pChild = PyList_New(child.size());
+    int i=0;
+    for (vector<string>::iterator it = child.begin();it!=child.end();it++)
+    {
+        PyObject* val = PyString_FromString((*it).c_str());
+        PyList_SetItem(pChild,i++,val);
+    }
+
+    PyObject* ret;
+    ret = PyTuple_New(2);
+    PyTuple_SetItem(ret,0,pVal);
+    PyTuple_SetItem(ret,1,pChild);
     return ret;
 }
 

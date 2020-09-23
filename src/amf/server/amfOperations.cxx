@@ -1098,6 +1098,7 @@ namespace SAFplus
       if ((invocation & 0xFFFFFFFF) == 0xFFFFFFFF) invocation &= 0xFFFFFFFF00000000ULL;  // Don't let increasing invocation numbers overwrite the node or port... ofc this'll never happen 4 billion invocations? :-)
       request.set_invocation(invocation++);
       amfAppRpc->proxiedComponentInstantiate(proxyHdl, &request);
+      comp->launched = true;
     }
  }
 
@@ -1309,6 +1310,7 @@ namespace SAFplus
               {
                  logInfo("OPS","UPD.PROXIED","registering proxy [%s] for component [%s]", proxy->name.value.c_str(),comp->name.value.c_str());
                  comp->proxy = proxy;
+                 proxy->proxied.value.push_back(comp); // add the proxied component to the list of proxied components of its proxy
                  suState = comp->serviceUnit.value->presenceState.value;
                  compState = comp->presenceState.value;
                  logInfo("OPS","UPD.PROXIED","su [%s] presenceState [%s]; component [%s] presenceState [%s]", comp->serviceUnit.value->name.value.c_str(), SAFplusAmf::c_str(suState),comp->name.value.c_str(),SAFplusAmf::c_str(compState));

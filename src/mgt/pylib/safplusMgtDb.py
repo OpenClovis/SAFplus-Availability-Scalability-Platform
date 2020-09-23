@@ -305,7 +305,7 @@ class PyDBAL():
             attr_xpath = False 
 
             try:
-              value = str(self.Read(xpath))
+              value = str(self.Read(xpath)[0])
             except SystemError, e:
               print "Cannot read [%s], error %s" % (xpath,str(e))
               continue
@@ -389,17 +389,81 @@ class PyDBAL():
         else:
             return pyDbal.iterators('/') #Default select all rows of db
 
+    def mergeNonSafComp2Comp(self, key, nonSafCompValue):
+        print '[A0] reading child of key [%s]'%key
+        ret = self.Read(key)
+        if ret:
+            value = ret[0]
+            child = ret[1]
+            if value and len(value)>0 and len(child)==0:
+                print '[A0] value of key [%s] is [%s]:'%(key,value)
+                compIdxList = ['[1]','[2]']
+                #Writing /safplusAmf/ServiceUnit[@name="ServiceUnit13"]/nonSafComponents ->  childs: [[1],[2]...]
+                pyDbal.write(key,'',compIdxList)
+                #Write [/safplusAmf/ServiceUnit[@name="ServiceUnit13"]/components[n]] -> [Componentxy] children [0]
+                k = key+compIdxList[0]
+                print "[A0] Writing %s -> %s childs: [0]" % (str(k),value)                
+                pyDbal.write(k,value,[])
+                #Write [/safplusAmf/ServiceUnit[@name="ServiceUnit13"]/components[n]] -> [Componentxy] children [0]
+                k = key+compIdxList[1]
+                print "[A0] Writing %s -> %s childs: [0]" % (str(k),nonSafCompValue)                
+                pyDbal.write(k,nonSafCompValue,[])
+            else:
+                print '[A0] child of key [%s] is of size [%d]:'%(key,len(child))                
+                for c in child:
+                    print '[A0]: %s'%c  # c is [n]
+                c = child[len(child)-1]
+                i1 = c.find('[')
+                i2 = c.find(']')
+                lastIdx=int(c[i1+1:i2])
+                lastIdx+=1
+                child.append('[%d]'%lastIdx)
+                print '[A0] new child of key [%s] is of size [%d]:'%(key,len(child))                
+                for c in child:
+                    print '[A0]: %s'%c  # c is [n]
+                print "[A0] Writing %s -> childs: [%d]" % (str(key),len(child))
+                #Writing /safplusAmf/ServiceUnit[@name="ServiceUnit13"]/nonSafComponents ->  childs: [[1],[2]...]
+                pyDbal.write(key,'', child)
+                #Write [/safplusAmf/ServiceUnit[@name="ServiceUnit13"]/components[n]] -> [Componentxy] children [0]
+                k = '%s[%d]'%(key,lastIdx)
+                print "[A0] Writing %s -> %s childs: [0]" % (str(k),nonSafCompValue)
+                pyDbal.write(k,nonSafCompValue,[])
+        else:
+            print "[A0] Writing %s -> %s childs: [0]" % (str(key),nonSafCompValue)
+            pyDbal.write(key,nonSafCompValue,[])
+
     def Write(self, key, data, childs = []):
         print "Writing %s -> %s childs: [%s]" % (str(key), str(data), ",".join(childs))
-        i = key.rfind('nonSafComponents')
+        recordWritten = False
+        i = key.rfind('nonSafComponents[')
         if i>1:
+            #oriKey = key
+            print '[A] case nonSafComponents['
             key = key[:i]+'components'
+            self.mergeNonSafComp2Comp(key,data)
+            recordWritten = True
+        else:           
+           i = key.rfind('nonSafComponents')
+           if i>1 and len(childs)==0:
+               print '[A] case nonSafComponents without childs'
+               key = key[:i]+'components'
+               self.mergeNonSafComp2Comp(key,data)
+               recordWritten = True
         children = copy.copy(childs)
         if 'nonSafComponents' in childs:
             children = filter(lambda child: child != 'nonSafComponents', childs)
-            children.append('components')
-        print "[A] Writing %s -> %s childs: [%s]" % (str(key), str(data), ",".join(children))
-        return pyDbal.write(key, data, children)
+            if 'components' not in children:
+                children.append('components')
+        if not recordWritten:
+            print "[A] Writing %s -> %s childs: [%s]" % (str(key), str(data), ",".join(children))
+            return pyDbal.write(key, data, children)
+        return None
 
     def Read(self, key):
-        return pyDbal.read(key)
+        ret = None
+        try:
+            ret = pyDbal.read(key)
+        except Exception, e:
+            print 'Read exception, message [%s]'%str(e)
+        return ret   
+    

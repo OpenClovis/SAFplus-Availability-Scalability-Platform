@@ -159,7 +159,13 @@ namespace SAFplusAmf
         /*
          * This component is the proxy for the components listed here.
          */
-        SAFplus::MgtProvList<std::string> proxied;
+        //SAFplus::MgtProvList<std::string> proxied;
+        SAFplus::MgtIdentifierList<::SAFplusAmf::Component*> proxied;
+         
+        /*
+        Am I launched?        
+        */
+        bool launched; // this is for proxied component only
 
         /*
          * The process id of this component (if it is instantiated as a process), or 0
