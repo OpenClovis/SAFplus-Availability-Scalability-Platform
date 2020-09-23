@@ -93,8 +93,7 @@ def Popen2(cmd):
         child = subprocess.Popen(cmd, shell=True,
                              stdout=subprocess.PIPE,
                              stderr=subprocess.PIPE,
-                             close_fds=True,
-                             encoding='utf-8')
+                             close_fds=True)
         output = []
         while True:
             pid, sts = os.waitpid(child.pid, os.WNOHANG)
@@ -103,10 +102,15 @@ def Popen2(cmd):
                 break
             else:
                 time.sleep(0.00001)
+        output2 = []
+        for c in output:
+            d = c.decode()
+            output2.append(d)
+        
         child.stdout.close()
         child.stderr.close()
         del child
-        return output
+        return output2
 
 
 

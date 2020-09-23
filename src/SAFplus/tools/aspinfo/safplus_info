@@ -59,7 +59,8 @@ from functools import cmp_to_key
 
 try:
     from lxml import etree as et
-    hasLxml = True
+    import xml.dom.minidom as minidom
+    hasLxml = False
 except ImportError:
     import xml.dom.minidom as minidom
     hasLxml = False
