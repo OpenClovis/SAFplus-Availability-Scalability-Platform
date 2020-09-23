@@ -116,6 +116,17 @@ ifdef SOLARIS_BUILD
 endif
 
 #-------------------------------------------------------------------------------
+
+#-------------------------------------------------------------------------------
+# To verify gcc
+GCCVERSIONGTEQ4 := $(shell expr `gcc -dumpversion | cut -f1 -d.` \>= 7)
+ifeq "$(GCCVERSIONGTEQ4)" "1"
+    CFLAGS += -Wno-error=format-truncation -Wno-error=format-overflow
+#    $(warning Greater than or equal to GCCVERSION g: $(CFLAGS))
+endif
+
+#-------------------------------------------------------------------------------
+
 # To build with debug, use the CL_DEBUG=1 flag on the make command line
 ifdef PROF
   ifeq ("$(origin PROF)", "command line")
