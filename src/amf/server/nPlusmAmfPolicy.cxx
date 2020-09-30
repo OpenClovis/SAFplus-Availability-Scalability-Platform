@@ -772,11 +772,11 @@ class NplusMPolicy:public ClAmfPolicyPlugin_1
         }
       }
     }
-
+  
   void updateStateDueToProcessDeath(SAFplusAmf::Component* comp)
-    {
+  {
     assert(comp);
-      // Reset component's basic state to dead
+    // Reset component's basic state to dead
     comp->presenceState = PresenceState::uninstantiated;
     comp->activeAssignments = 0;
     comp->standbyAssignments = 0;
@@ -791,69 +791,20 @@ class NplusMPolicy:public ClAmfPolicyPlugin_1
     comp->currentRecovery = Recovery::None;
     comp->serviceUnit.value->currentRecovery = Recovery::None;
     comp->serviceUnit.value->node.value->currentRecovery = Recovery::None;
-    
+    comp->launched = false;
     /* update states of my proxied components */
-    logDebug("HUNG","---","update states of my proxied components if any");
-    SAFplus::MgtIdentifierList<SAFplusAmf::Component*>::Container& vec = comp->proxied.value;
-    std::vector<SAFplus::MgtIdentifierList<SAFplusAmf::Component*>::Elem>::iterator itvec = vec.begin();            
-    for(; itvec != vec.end(); itvec++)
-    {      
-      SAFplus::MgtIdentifierList<SAFplusAmf::Component*>::Elem elem = *itvec;
-      SAFplusAmf::Component* c = elem.value;
-      c->presenceState = PresenceState::uninstantiated;
-      c->activeAssignments = 0;
-      c->standbyAssignments = 0;
-      c->assignedWork = "";
-      c->readinessState = ReadinessState::outOfService;
-      c->haState = HighAvailabilityState::idle;
-      c->pendingOperation = PendingOperation::none;
-      c->pendingOperationExpiration.value.value = 0;
-      c->launched = false;
-      SAFplus::name.set(c->name,INVALID_HDL,NameRegistrar::MODE_NO_CHANGE);  // remove the handle in the name service because the component is dead
-      // CSI
-      logDebug("HUNG","---","removing CSIs assigned to proxied component [%s] if any", c->name.value.c_str());
-      SAFplusAmf::ServiceUnit* su = c->serviceUnit.value;
-      SAFplusAmf::ServiceGroup* sg = su->serviceGroup.value;
-    
-    // I need to remove any CSIs that were assigned to this component.
-    //SAFplus::MgtProvList<SAFplusAmf::ServiceInstance*>::ContainerType::iterator itsi;
-    //SAFplus::MgtProvList<SAFplusAmf::ServiceInstance*>::ContainerType::iterator endsi = sg->serviceInstances.value.end();
-      SAFplus::MgtObject::Iterator itsi;
-      SAFplus::MgtObject::Iterator endsi = sg->serviceInstances.end();
-      for (itsi = sg->serviceInstances.begin();itsi != endsi; itsi++)
+    if (comp->compProperty.value == CompProperty::sa_aware)
+    {
+      logDebug("HUNG","---","update states of my proxied components if any");
+      SAFplus::MgtIdentifierList<SAFplusAmf::Component*>::Container& vec = comp->proxied.value;
+      std::vector<SAFplus::MgtIdentifierList<SAFplusAmf::Component*>::Elem>::iterator itvec = vec.begin();            
+      for(; itvec != vec.end(); itvec++)
       {
-        ServiceInstance* si = dynamic_cast<ServiceInstance*> (itsi->second);
-        const std::string& name = si->name;
-
-        SAFplus::MgtObject::Iterator itcsi;
-        SAFplus::MgtObject::Iterator endcsi = si->componentServiceInstances.end();
-        //SAFplus::MgtProvList<SAFplusAmf::ComponentServiceInstance*>::ContainerType::iterator itcsi;
-        //SAFplus::MgtProvList<SAFplusAmf::ComponentServiceInstance*>::ContainerType::iterator endcsi = si->componentServiceInstances.value.end();
-
-        SAFplusAmf::ComponentServiceInstance* csi = NULL;
-        bool found = false;
-        bool isPartiallyAssignment = false;
-        // Look for which CSI is assigned to the dead component and remove the assignment.
-        for (itcsi = si->componentServiceInstances.begin(); itcsi != endcsi; itcsi++)
-        {
-          csi = dynamic_cast<SAFplusAmf::ComponentServiceInstance*> (itcsi->second);
-          if (!csi || !(csi->type == comp->csiType.value)) continue;
-          found = csi->activeComponents.erase(comp);
-          if(found){
-            isPartiallyAssignment=true;
-            si->isFullActiveAssignment=false;
-          }
-          found = csi->standbyComponents.erase(comp);
-          if(found){
-            isPartiallyAssignment=true;
-            si->isFullStandbyAssignment=false;
-          }
-        }
-        if (isPartiallyAssignment) si->assignmentState = AssignmentState::partiallyAssigned;// TODO: or it could be unassigned...
+        SAFplus::MgtIdentifierList<SAFplusAmf::Component*>::Elem elem = *itvec;
+        SAFplusAmf::Component* c = elem.value;
+        updateStateDueToProcessDeath(c);
       }
     }
-   
-    //----------------------------------------------------    
 
     SAFplusAmf::ServiceUnit* su = comp->serviceUnit.value;
     SAFplusAmf::ServiceGroup* sg = su->serviceGroup.value;
@@ -917,7 +868,7 @@ class NplusMPolicy:public ClAmfPolicyPlugin_1
       if (isPartiallyAssignment) si->assignmentState = AssignmentState::partiallyAssigned;// TODO: or it could be unassigned...
       }
 
-    }
+  }
 
   // First step in the audit is to update the current state of every entity to match the reality.
   void NplusMPolicy::auditDiscovery(SAFplusAmf::SAFplusAmfModule* root)
