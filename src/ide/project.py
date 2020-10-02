@@ -1528,18 +1528,22 @@ class ProjectTreePanel(wx.Panel):
     except:
       pass
 
-    item = {}
+    item = {}  
+
     try:
-      item['backupMode'] = str(md.backupMode.data_).strip()
+      item['backupMode']   = str(md.backupMode.data_).strip()
       item['backupNumber'] = str(md.backupNumber.data_).strip()
+      item['mergeMode']    = str(md.mergeMode.data_).strip()
     except:
       item['backupMode'] = "prompt"
+      item['mergeMode'] = "prompt"
       item['backupNumber'] = "5"
       self.propsChange = True
 
     self.prjProperties = item
 
   def savePrjProperties(self):
+    #print 'project[1546]: %s'%self.prjProperties['mergeMode']
     '''
     @summary    : Save properties to xml file
     '''
@@ -1754,10 +1758,20 @@ class PropertiesDialog(wx.Dialog):
       self.parent.getPrjProperties()
       self.systemProject.mBackup.SetValue(str(self.parent.prjProperties['backupMode']).strip())
       self.systemProject.nBackup.SetValue(str(self.parent.prjProperties['backupNumber']).strip())
+      self.systemProject.mMerge.SetValue(str(self.parent.prjProperties['mergeMode']).strip())
+
+      #print 'project[1763]: %s'%str(self.parent.prjProperties['mergeMode']).strip()
 
       vBox1.Add(label1, 0, wx.ALL, 10)
       vBox1.Add(line, 0, wx.ALIGN_TOP, 5)
       vBox1.Add(self.systemProject, 0, wx.ALL, 10)
+
+      print self.parent.prjProperties
+
+
+
+
+
       hBox.Add(self.properties, 0, wx.ALL, 0)
       hBox.Add(vBox1, 0, wx.ALL, 0)
 
@@ -1768,6 +1782,7 @@ class PropertiesDialog(wx.Dialog):
       vBox.Add(hBox, 0, wx.ALL, 0)
       vBox.Add(line2, 0, wx.ALIGN_TOP, 5)
       vBox.Add(hBox2, 0, wx.ALL|wx.ALIGN_RIGHT, 0)
+      
       self.SetSizer(vBox)
    
     def onSelectChange(self, event):
@@ -1779,6 +1794,15 @@ class PropertiesDialog(wx.Dialog):
       '''
       self.parent.prjProperties['backupMode'] = self.systemProject.mBackup.GetValue()
       self.parent.prjProperties['backupNumber'] = self.systemProject.nBackup.GetValue()
+      self.parent.prjProperties['mergeMode'] = self.systemProject.mMerge.GetValue()
+
+      #if self.systemProject.mMerge.GetValue() == "prompt":
+      #  self.parent.prjProperties['mergeMode'] = "prompt"
+      #elif self.systemProject.mMerge.GetValue() == "merge":
+      #  self.parent.prjProperties['mergeMode'] = "never"
+      #elif self.systemProject.mMerge.GetValue() == "overwrite":  
+      #  self.parent.prjProperties['mergeMode'] = "always" 
+
 
       self.parent.savePrjProperties()
       self.Close()
@@ -1791,6 +1815,7 @@ class SystemProject(wx.Panel):
       self.parent = parent
       wx.Panel.__init__(self, parent, -1, style=wx.WANTS_CHARS)
       vBox = wx.BoxSizer(wx.VERTICAL)
+      
       hBox1 = wx.BoxSizer(wx.HORIZONTAL)
       label1 = wx.StaticText(self, label="Source Backup Mode")
       s = ["prompt", "always", "never"]
@@ -1801,12 +1826,20 @@ class SystemProject(wx.Panel):
       hBox2 = wx.BoxSizer(wx.HORIZONTAL)
       label2 = wx.StaticText(self, label="Number of Backups")
       self.nBackup = wx.TextCtrl(self, size=(290,25))
-
       hBox2.Add(label2, 0, wx.ALL|wx.ALIGN_LEFT, 5)
       hBox2.Add(self.nBackup, 0, wx.ALL|wx.ALIGN_RIGHT, 5)
 
+      hBox3 = wx.BoxSizer(wx.HORIZONTAL)
+      label3 = wx.StaticText(self, label="Overwrite Source")
+      c = ["prompt", "always", "never"]
+      self.mMerge = wx.ComboBox(self, choices = c, size=(290,25), style=wx.CB_READONLY)
+      hBox3.Add(label3, 0, wx.ALL|wx.ALIGN_LEFT, 5)
+      hBox3.Add(self.mMerge, 0, wx.ALL|wx.ALIGN_RIGHT, 5)
+      
+
       vBox.Add(hBox1, 0, wx.ALL, 0)
       vBox.Add(hBox2, 0, wx.ALL, 0)
+      vBox.Add(hBox3, 0, wx.ALL, 0)
       self.SetSizer(vBox)
       self.nBackup.Bind(wx.EVT_TEXT, self.onTextChange)
 

@@ -696,17 +696,38 @@ class GenerateTool(Tool):
     if event.GetId() == CODEGEN_BUTTON:
       parentFrame = self.panel.guiPlaces.frame
       parentFrame.project.getPrjProperties()
+      
+      #print parentFrame.project.prjProperties['backupMode']
+
       src_bak = False
       if parentFrame.project.prjProperties['backupMode'] == "prompt":
         result = self.openBackupDialog()
-        if not result: return
-        elif result == 2: src_bak = True
+        if not result: 
+          return
+        elif result == 2:
+          src_bak = True
       elif parentFrame.project.prjProperties['backupMode'] == "always":
         self.executeBackupSource()
         src_bak = True
       # code gen must be per-component -- not generation of one type of application
       print 'gen source...'
-      files,proxyFiles = panel.model.generateSource(self.panel.model.directory())
+      #print parentFrame.project.prjProperties['backupMode']
+      #print parentFrame.project.prjProperties['mergeMode']
+
+      if parentFrame.project.prjProperties['mergeMode'] == "prompt":
+        result = self.mergeDialog()
+        if not result:
+          return
+        elif result == 2:
+          overwrite = True
+        elif result == 1:
+          overwrite = False  
+      elif parentFrame.project.prjProperties['mergeMode'] == "always":  
+        overwrite = True
+      elif parentFrame.project.prjProperties['mergeMode'] == "never":  
+        overwrite = False
+
+      files,proxyFiles = panel.model.generateSource(overwrite, self.panel.model.directory())
       print 'files gen: files %s\nproxies %s\n' %(str(files),str(proxyFiles))
       self.panel.statusBar.SetStatusText("Code generation complete")
       # add these files to the "source" part of the project tab and update the project xml file
@@ -722,11 +743,15 @@ class GenerateTool(Tool):
     '''
     @summary    : Show dialog for backup option
     '''
-    self.dlg = wx.Dialog(None, title="Backup Configuration?", size=(620,320))
+    # Create popup box
+    self.dlg = wx.Dialog(None, title="Backup Configuration ?", size=(620,320))
     vBox = wx.BoxSizer(wx.VERTICAL)
     hBox = wx.BoxSizer(wx.HORIZONTAL)
+    # Not clear 
     parentFrame = self.panel.guiPlaces.frame
+    # Project Path + /src
     srcDir = "%s/src" % parentFrame.project.getPrjPath()
+    # Project Path + Backup folder
     backupDir = "%s/src.bak" % parentFrame.project.getPrjPath()
     lablel1 = wx.StaticText(self.dlg, label="Source and configuration files exist in directory:")
     lablel2 = wx.StaticText(self.dlg, label=srcDir)
@@ -756,8 +781,53 @@ class GenerateTool(Tool):
     vBox.Add(hBox, 0, wx.TOP|wx.ALIGN_RIGHT, 30)
 
     self.dlg.SetSizer(vBox)
+
     result = self.dlg.ShowModal()
     return result
+
+
+  def mergeDialog(self):
+    '''
+    @summary    : Show dialog for merging option
+    '''
+    # Create popup box
+    self.dlg = wx.Dialog(None, title="Merge source code ?", size=(620,320))
+    vBox = wx.BoxSizer(wx.VERTICAL)
+    hBox = wx.BoxSizer(wx.HORIZONTAL)
+    # Not clear 
+    parentFrameMerge = self.panel.guiPlaces.frame
+    # Project Path + /src
+    srcDir = "%s/src" % parentFrameMerge.project.getPrjPath()
+    lablel1 = wx.StaticText(self.dlg, label="Source and configuration files exist in directory:")
+    lablel2 = wx.StaticText(self.dlg, label=srcDir)
+    lablel3 = wx.StaticText(self.dlg, label="Would you like to merge or overwrite the source code:")
+    self.checkBox = wx.CheckBox(self.dlg, id=wx.ID_ANY, label="Never show this dialog again")
+    self.checkBox.Bind(wx.EVT_CHECKBOX, self.onChecked) 
+    lablel5 = wx.StaticText(self.dlg, label="(Dialog can be reenable through Project Properties)")
+
+    noBtn = wx.Button(self.dlg, label="Merge")
+    noBtn.Bind(wx.EVT_BUTTON, self.onClickMergeNoBtn)
+    cancelBtn = wx.Button(self.dlg, label="Cancel")
+    cancelBtn.Bind(wx.EVT_BUTTON, self.onClickMergeCancelBtn)
+    yesBtn = wx.Button(self.dlg, label="Overwrite")
+    yesBtn.Bind(wx.EVT_BUTTON, self.onClickMergeYesBtn)
+
+    vBox.Add(lablel1, 0, wx.ALL, 5)
+    vBox.Add(lablel2, 0, wx.ALL|wx.LEFT, 15)
+    vBox.Add(lablel3, 0, wx.ALL, 5)
+    vBox.Add(self.checkBox, 0, wx.ALL, 5)
+    vBox.Add(lablel5, 0, wx.ALL, 5)
+
+    hBox.Add(noBtn, 0, wx.CENTER, 0)
+    hBox.Add(cancelBtn, 0, wx.CENTER, 0)
+    hBox.Add(yesBtn, 0, wx.CENTER|wx.RIGHT, 15)
+    vBox.Add(hBox, 0, wx.TOP|wx.ALIGN_RIGHT, 30)
+
+    self.dlg.SetSizer(vBox)
+
+    result = self.dlg.ShowModal()
+    return result
+
 
   def onClickBackupNoBtn(self, event):
     '''
@@ -785,6 +855,38 @@ class GenerateTool(Tool):
       parentFrame.project.savePrjProperties()
     self.executeBackupSource()
     self.dlg.EndModal(2)
+
+
+
+
+  def onClickMergeNoBtn(self, event):
+    '''
+    @Summary    : Do not overwrite the existed source code
+    '''
+    if self.checkBox.GetValue():
+      parentFrame = self.panel.guiPlaces.frame
+      parentFrame.project.prjProperties['mergeMode'] = "never"
+      parentFrame.project.savePrjProperties()
+    self.dlg.EndModal(1)
+  
+  def onClickMergeCancelBtn(self, event):
+    '''
+    @Summary    : Cancle merging
+    '''
+    self.dlg.EndModal(0)
+
+  def onClickMergeYesBtn(self, event):
+    '''
+    @Summary    : Always overwrite the existed source code
+    '''
+    if self.checkBox.GetValue():
+      parentFrame = self.panel.guiPlaces.frame
+      parentFrame.project.prjProperties['mergeMode'] = "always"
+      parentFrame.project.savePrjProperties()
+    self.dlg.EndModal(2)
+
+
+
 
   def onChecked(self, event):
     pass
@@ -1304,6 +1406,7 @@ class Panel(scrolled.ScrolledPanel):
 
     def addEntityTool(self, ent):
       name = ent.et.name
+      
       entExists = False
       for (eid,e) in self.idLookup.items():
         if isinstance(e, EntityTool) and e.entity==ent:

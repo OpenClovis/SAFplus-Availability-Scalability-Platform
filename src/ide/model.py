@@ -12,6 +12,10 @@ import entity
 from entity import Entity
 import generate
 import share
+import wx  
+
+
+
 
 VERSION = "7.0"
 MAX_RECURSIVE_INSTANTIATION_DEPTH = 5
@@ -327,7 +331,7 @@ instantiated  <instances>     instances                         instances     (e
     return False
      
 
-  def generateSource(self,srcDir):
+  def generateSource(self,overwrite,srcDir):
     #print 'eneter generateSource'
     output = common.FilesystemOutput()
     #comps = filter(lambda entity: entity.et.name == 'Component' and entity.data['NonSafComponents']!='', self.entities.values()) # SA_Aware comp no proxied
@@ -336,13 +340,12 @@ instantiated  <instances>     instances                         instances     (e
     proxyComps = []
     for c in filter(lambda entity: entity.et.name == 'Component',self.entities.values()):
       noProxied = True
-      #print '%s\n\n'%c.data
+      #print c.data['name']
       #print 'in outer loop'
       for nsc in filter(lambda entity: entity.et.name == 'NonSafComponent',self.entities.values()):
-        #print '%s\n\n'%nsc.data
-        #print 'in inner loop'
-        if self.isProxyOf(c, nsc):             
-          proxyComps.append(c)
+        #print nsc.data['name']
+        if self.isProxyOf(c, nsc):            
+          proxyComps.append(nsc)
           noProxied = False
           print 'found proxied. break'
           break
@@ -358,16 +361,54 @@ instantiated  <instances>     instances                         instances     (e
         
     #print 'generateSource: %s' %str(proxyComps)
     srcDir = os.sep.join([srcDir, "src"])
+
+
+
+
+
     files = []
-    files += generate.topMakefile(output, srcDir,[c.data["name"] for c in comps+proxyComps])    
+    
+    # Create Makefile
+    files += generate.topMakefile(output, srcDir,[c.data["name"] for c in comps+proxyComps])  
+
+    # Get all existed generated source code
+    ls = os.popen('ls ' + srcDir)
+    old_genCode = ls.read()
+    old_genCode = old_genCode.split()
+
+
+
+    new_genCode = []
 
     for c in comps:
-      files += generate.cpp(output, srcDir, c, c.data)
+      #print '   %s'%c.data['name']
+      new_genCode.append(c.data['name'])
+      # Skip if the source code was already existed
+      if c.data['name'] not in old_genCode and overwrite == False:
+        files += generate.cpp(output, srcDir, c, c.data)
+      elif overwrite == True:
+        files += generate.cpp(output, srcDir, c, c.data)
+
 
     proxyFiles = []
     for proxy in proxyComps:
-      proxyFiles += generate.cpp(output, srcDir, proxy, proxy.data, True)
+      #print '   %s'%proxy.data['name']
+      new_genCode.append(proxy.data['name'])
+      # Skip if the source code was already existed
+      if proxy.data['name'] not in old_genCode and overwrite == False:
+        proxyFiles += generate.cpp(output, srcDir, proxy, proxy.data, True)
+      elif overwrite == True:
+        proxyFiles += generate.cpp(output, srcDir, proxy, proxy.data, True)
 
+    # Delete the source code that is not in the current model
+    for old in old_genCode:
+      if old == "Makefile":
+        continue
+      elif old not in new_genCode:
+        #print '%s is not in the current model'%old
+        cmd = 'rm -rf ' + srcDir + '/' + old
+        pipe = os.popen('%s'%cmd)
+        
     return files,proxyFiles
 
 
