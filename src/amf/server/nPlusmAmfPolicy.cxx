@@ -131,6 +131,12 @@ class NplusMPolicy:public ClAmfPolicyPlugin_1
         logDebug("N+M","STRT","Not starting [%s]. Its already started as pid [%d].",comp->name.value.c_str(),comp->processId.value);
         continue;
         }
+      else if (comp->compProperty.value == SAFplusAmf::CompProperty::proxied_preinstantiable &&
+               comp->presenceState.value == PresenceState::instantiated)
+      {
+         logDebug("N+M","STRT","Not starting [%s]. Its a proxied preinstantiable component already started",comp->name.value.c_str());
+         continue;
+      }
       if (comp->operState == false)
         {
         logDebug("N+M","STRT","Not starting [%s]. It must be repaired.",comp->name.value.c_str());
@@ -795,7 +801,7 @@ class NplusMPolicy:public ClAmfPolicyPlugin_1
     /* update states of my proxied components */
     if (comp->compProperty.value == CompProperty::sa_aware)
     {
-      logDebug("HUNG","---","update states of my proxied components if any");
+      logDebug("COMP","DEAD","update states of my proxied components if any");
       SAFplus::MgtIdentifierList<SAFplusAmf::Component*>::Container& vec = comp->proxied.value;
       std::vector<SAFplus::MgtIdentifierList<SAFplusAmf::Component*>::Elem>::iterator itvec = vec.begin();            
       for(; itvec != vec.end(); itvec++)
