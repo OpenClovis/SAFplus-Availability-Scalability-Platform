@@ -4035,7 +4035,14 @@ namespace amfMgmtRpc {
     }
     else
     {
-      rc = SAFplus::setAdminState(node, SAFplusAmf::AdministrativeState::off,true);
+      if (node->adminState.value != SAFplusAmf::AdministrativeState::idle)
+      {
+        rc = CL_ERR_INVALID_STATE;
+      }
+      else
+      {
+        rc = SAFplus::setAdminState(node, SAFplusAmf::AdministrativeState::off,true);
+      }
     }
 
     response->set_err(rc);
@@ -4065,7 +4072,14 @@ namespace amfMgmtRpc {
     }
     else
     {
-      rc = SAFplus::setAdminState(sg, SAFplusAmf::AdministrativeState::off,true);
+      if (sg->adminState.value != SAFplusAmf::AdministrativeState::idle)
+      {
+        rc = CL_ERR_INVALID_STATE;
+      }
+      else
+      {
+        rc = SAFplus::setAdminState(sg, SAFplusAmf::AdministrativeState::off,true);
+      }
     }
 
     response->set_err(rc);
@@ -4095,7 +4109,14 @@ namespace amfMgmtRpc {
     }
     else
     {
-      rc = SAFplus::setAdminState(su,SAFplusAmf::AdministrativeState::off,true);
+      if (su->adminState.value != SAFplusAmf::AdministrativeState::idle)
+      {
+        rc = CL_ERR_INVALID_STATE;
+      }
+      else
+      {
+        rc = SAFplus::setAdminState(su,SAFplusAmf::AdministrativeState::off,true);
+      }
       //logInfo("MGMT","RPC","setting service unit [%s] to admin state [%s] ==> writting changes to DB",suName.c_str(),c_str(SAFplusAmf::AdministrativeState::off));
       //su->write(); // write immedidately rather than waiting for AMF to write, which is too late to reflect the changes
     }
@@ -4126,7 +4147,14 @@ namespace amfMgmtRpc {
     }
     else
     {
-      rc = SAFplus::setAdminState(node, SAFplusAmf::AdministrativeState::on,true);
+      if (node->adminState.value != SAFplusAmf::AdministrativeState::idle)
+      {
+        rc = CL_ERR_INVALID_STATE;
+      }
+      else
+      {
+        rc = SAFplus::setAdminState(node, SAFplusAmf::AdministrativeState::on,true);
+      }
     }
     response->set_err(rc);
   }
@@ -4155,7 +4183,14 @@ namespace amfMgmtRpc {
     }
     else
     {
-      rc = SAFplus::setAdminState(sg, SAFplusAmf::AdministrativeState::on,true);
+      if (sg->adminState.value != SAFplusAmf::AdministrativeState::idle)
+      {
+        rc = CL_ERR_INVALID_STATE;
+      }
+      else
+      {
+        rc = SAFplus::setAdminState(sg, SAFplusAmf::AdministrativeState::on,true);
+      }
     }
     response->set_err(rc);
   }
@@ -4184,7 +4219,14 @@ namespace amfMgmtRpc {
     }
     else
     {
-      rc = SAFplus::setAdminState(su,SAFplusAmf::AdministrativeState::on,true);
+      if (su->adminState.value != SAFplusAmf::AdministrativeState::idle)
+      {
+        rc = CL_ERR_INVALID_STATE;
+      }
+      else
+      {
+        rc = SAFplus::setAdminState(su,SAFplusAmf::AdministrativeState::on,true);
+      }
     }
     response->set_err(rc);
   }
@@ -4213,7 +4255,14 @@ namespace amfMgmtRpc {
     }
     else
     {
-      rc = SAFplus::setAdminState(si,SAFplusAmf::AdministrativeState::on,true);
+      if (si->adminState.value != SAFplusAmf::AdministrativeState::idle)
+      {
+        rc = CL_ERR_INVALID_STATE;
+      }
+      else
+      {
+        rc = SAFplus::setAdminState(si,SAFplusAmf::AdministrativeState::on,true);
+      }
     }
     response->set_err(rc);
   }
