@@ -18,7 +18,8 @@ include $(SAFPLUS_MAKE_DIR)/preface.mk
 
 SUBDIRS = ${subdirs}
 
-Release all: $(SUBDIRS)
+.PHONY: all $(SUBDIRS)
+all: $(SUBDIRS)
 
 ${labelApps}
 

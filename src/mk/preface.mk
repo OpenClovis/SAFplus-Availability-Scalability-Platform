@@ -116,6 +116,7 @@ BIN_DIR ?= $(SAFPLUS_TARGET)/bin
 # All objects that should end up into libmw.so:
 MWOBJ_DIR ?= $(SAFPLUS_TARGET)/mwobj
 # All other objects
+# Rather than gathering the object files at this location, we will get them in each generated source code folder to make sure it will never be overwriten.
 OBJ_DIR ?= $(SAFPLUS_TARGET)/obj
 ETC_INIT_DIR ?= $(SAFPLUS_TARGET)/etc/init.d
 LOCAL_OBJ_DIR ?= $(SAFPLUS_TOOL_TARGET)/obj
