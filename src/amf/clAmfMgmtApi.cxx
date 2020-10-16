@@ -685,12 +685,12 @@ ClRcT amfMgmtSICSIListDelete(const Handle& mgmtHandle, const std::string& siName
 
 ClRcT amfMgmtNodeLockAssignment(const Handle& mgmtHandle, const std::string& nodeName)
 {
-//#ifdef HANDLE_VALIDATE
+#ifdef HANDLE_VALIDATE
   if (!gAmfMgmtInitialized)
    {
      return CL_ERR_NOT_INITIALIZED;
    }
-//#endif
+#endif
    ClRcT rc;
    SAFplus::Rpc::amfMgmtRpc::LockNodeAssignmentRequest request;
    request.add_amfmgmthandle((const char*) &mgmtHandle, sizeof(Handle));
@@ -712,12 +712,12 @@ ClRcT amfMgmtNodeLockAssignment(const Handle& mgmtHandle, const std::string& nod
 
 ClRcT amfMgmtSGLockAssignment(const Handle& mgmtHandle, const std::string& sgName)
 {
-//#ifdef HANDLE_VALIDATE
+#ifdef HANDLE_VALIDATE
   if (!gAmfMgmtInitialized)
    {
      return CL_ERR_NOT_INITIALIZED;
    }
-//#endif
+#endif
    ClRcT rc;
    SAFplus::Rpc::amfMgmtRpc::LockSGAssignmentRequest request;
    request.add_amfmgmthandle((const char*) &mgmtHandle, sizeof(Handle));
@@ -739,12 +739,12 @@ ClRcT amfMgmtSGLockAssignment(const Handle& mgmtHandle, const std::string& sgNam
 
 ClRcT amfMgmtSULockAssignment(const Handle& mgmtHandle, const std::string& suName)
 {
-//#ifdef HANDLE_VALIDATE
+#ifdef HANDLE_VALIDATE
   if (!gAmfMgmtInitialized)
    {
      return CL_ERR_NOT_INITIALIZED;
    }
-//#endif
+#endif
    ClRcT rc;
    SAFplus::Rpc::amfMgmtRpc::LockSUAssignmentRequest request;
    request.add_amfmgmthandle((const char*) &mgmtHandle, sizeof(Handle));
@@ -766,12 +766,12 @@ ClRcT amfMgmtSULockAssignment(const Handle& mgmtHandle, const std::string& suNam
 
 ClRcT amfMgmtSILockAssignment(const Handle& mgmtHandle, const std::string& siName)
 {
-//#ifdef HANDLE_VALIDATE
+#ifdef HANDLE_VALIDATE
   if (!gAmfMgmtInitialized)
    {
      return CL_ERR_NOT_INITIALIZED;
    }
-//#endif
+#endif
    ClRcT rc;
    SAFplus::Rpc::amfMgmtRpc::LockSIAssignmentRequest request;
    request.add_amfmgmthandle((const char*) &mgmtHandle, sizeof(Handle));
@@ -793,12 +793,12 @@ ClRcT amfMgmtSILockAssignment(const Handle& mgmtHandle, const std::string& siNam
 
 ClRcT amfMgmtNodeLockInstantiation(const Handle& mgmtHandle, const std::string& nodeName)
 {
-//#ifdef HANDLE_VALIDATE
+#ifdef HANDLE_VALIDATE
   if (!gAmfMgmtInitialized)
    {
      return CL_ERR_NOT_INITIALIZED;
    }
-//#endif
+#endif
    ClRcT rc;
    SAFplus::Rpc::amfMgmtRpc::LockNodeInstantiationRequest request;
    request.add_amfmgmthandle((const char*) &mgmtHandle, sizeof(Handle));
@@ -820,12 +820,12 @@ ClRcT amfMgmtNodeLockInstantiation(const Handle& mgmtHandle, const std::string& 
 
 ClRcT amfMgmtSGLockInstantiation(const Handle& mgmtHandle, const std::string& sgName)
 {
-//#ifdef HANDLE_VALIDATE
+#ifdef HANDLE_VALIDATE
   if (!gAmfMgmtInitialized)
    {
      return CL_ERR_NOT_INITIALIZED;
    }
-//#endif
+#endif
    ClRcT rc;
    SAFplus::Rpc::amfMgmtRpc::LockSGInstantiationRequest request;
    request.add_amfmgmthandle((const char*) &mgmtHandle, sizeof(Handle));
@@ -847,12 +847,12 @@ ClRcT amfMgmtSGLockInstantiation(const Handle& mgmtHandle, const std::string& sg
 
 ClRcT amfMgmtSULockInstantiation(const Handle& mgmtHandle, const std::string& suName)
 {
-//#ifdef HANDLE_VALIDATE
+#ifdef HANDLE_VALIDATE
   if (!gAmfMgmtInitialized)
    {
      return CL_ERR_NOT_INITIALIZED;
    }
-//#endif
+#endif
    ClRcT rc;
    SAFplus::Rpc::amfMgmtRpc::LockSUInstantiationRequest request;
    request.add_amfmgmthandle((const char*) &mgmtHandle, sizeof(Handle));
@@ -874,12 +874,12 @@ ClRcT amfMgmtSULockInstantiation(const Handle& mgmtHandle, const std::string& su
 
 ClRcT amfMgmtNodeUnlock(const Handle& mgmtHandle, const std::string& nodeName)
 {
-//#ifdef HANDLE_VALIDATE
+#ifdef HANDLE_VALIDATE
   if (!gAmfMgmtInitialized)
    {
      return CL_ERR_NOT_INITIALIZED;
    }
-//#endif
+#endif
    ClRcT rc;
    SAFplus::Rpc::amfMgmtRpc::UnlockNodeRequest request;
    request.add_amfmgmthandle((const char*) &mgmtHandle, sizeof(Handle));
@@ -901,12 +901,12 @@ ClRcT amfMgmtNodeUnlock(const Handle& mgmtHandle, const std::string& nodeName)
 
 ClRcT amfMgmtSGUnlock(const Handle& mgmtHandle, const std::string& sgName)
 {
-//#ifdef HANDLE_VALIDATE
+#ifdef HANDLE_VALIDATE
   if (!gAmfMgmtInitialized)
    {
      return CL_ERR_NOT_INITIALIZED;
    }
-//#endif
+#endif
    ClRcT rc;
    SAFplus::Rpc::amfMgmtRpc::UnlockSGRequest request;
    request.add_amfmgmthandle((const char*) &mgmtHandle, sizeof(Handle));
@@ -928,12 +928,12 @@ ClRcT amfMgmtSGUnlock(const Handle& mgmtHandle, const std::string& sgName)
 
 ClRcT amfMgmtSUUnlock(const Handle& mgmtHandle, const std::string& suName)
 {
-//#ifdef HANDLE_VALIDATE
+#ifdef HANDLE_VALIDATE
   if (!gAmfMgmtInitialized)
    {
      return CL_ERR_NOT_INITIALIZED;
    }
-//#endif
+#endif
    ClRcT rc;
    SAFplus::Rpc::amfMgmtRpc::UnlockSURequest request;
    request.add_amfmgmthandle((const char*) &mgmtHandle, sizeof(Handle));
@@ -955,12 +955,12 @@ ClRcT amfMgmtSUUnlock(const Handle& mgmtHandle, const std::string& suName)
 
 ClRcT amfMgmtSIUnlock(const Handle& mgmtHandle, const std::string& siName)
 {
-//#ifdef HANDLE_VALIDATE
+#ifdef HANDLE_VALIDATE
   if (!gAmfMgmtInitialized)
    {
      return CL_ERR_NOT_INITIALIZED;
    }
-//#endif
+#endif
    ClRcT rc;
    SAFplus::Rpc::amfMgmtRpc::UnlockSIRequest request;
    request.add_amfmgmthandle((const char*) &mgmtHandle, sizeof(Handle));
@@ -982,12 +982,12 @@ ClRcT amfMgmtSIUnlock(const Handle& mgmtHandle, const std::string& siName)
 
 ClRcT amfMgmtNodeRepair(const Handle& mgmtHandle, const std::string& nodeName)
 {
-//#ifdef HANDLE_VALIDATE
+#ifdef HANDLE_VALIDATE
   if (!gAmfMgmtInitialized)
    {
      return CL_ERR_NOT_INITIALIZED;
    }
-//#endif
+#endif
    ClRcT rc;
    SAFplus::Rpc::amfMgmtRpc::RepairNodeRequest request;
    request.add_amfmgmthandle((const char*) &mgmtHandle, sizeof(Handle));
@@ -1009,12 +1009,12 @@ ClRcT amfMgmtNodeRepair(const Handle& mgmtHandle, const std::string& nodeName)
 
 ClRcT amfMgmtCompRepair(const Handle& mgmtHandle, const std::string& compName)
 {
-//#ifdef HANDLE_VALIDATE
+#ifdef HANDLE_VALIDATE
   if (!gAmfMgmtInitialized)
    {
      return CL_ERR_NOT_INITIALIZED;
    }
-//#endif
+#endif
    ClRcT rc;
    SAFplus::Rpc::amfMgmtRpc::RepairComponentRequest request;
    logDebug("MGMT","XXX","adding handle [%" PRIx64 ":%" PRIx64 "]", mgmtHandle.id[0],mgmtHandle.id[1]);
@@ -1040,12 +1040,12 @@ ClRcT amfMgmtCompRepair(const Handle& mgmtHandle, const std::string& compName)
 
 ClRcT amfMgmtSURepair(const Handle& mgmtHandle, const std::string& suName)
 {
-//#ifdef HANDLE_VALIDATE
+#ifdef HANDLE_VALIDATE
   if (!gAmfMgmtInitialized)
    {
      return CL_ERR_NOT_INITIALIZED;
    }
-//#endif
+#endif
    ClRcT rc;
    SAFplus::Rpc::amfMgmtRpc::RepairSURequest request;
    request.add_amfmgmthandle((const char*) &mgmtHandle, sizeof(Handle));
