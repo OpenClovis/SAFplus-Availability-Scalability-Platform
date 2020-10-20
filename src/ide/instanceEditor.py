@@ -32,6 +32,7 @@ from entity import Entity
 
 import share
 import texts
+import sys
  
 ENTITY_TYPE_BUTTON_START = wx.NewId()
 SAVE_BUTTON = wx.NewId()
@@ -728,6 +729,40 @@ class GenerateTool(Tool):
         overwrite = False
 
       files,proxyFiles = panel.model.generateSource(overwrite, self.panel.model.directory())
+      #print 'instanceEditor[%d]: dir = %s'%(sys._getframe().f_lineno, self.panel.model.directory())
+      
+      # Copy setup to model
+      os.system('cp resources/setup %s' %self.panel.model.directory())
+
+
+      # Get infomation about model
+      nodeIntances = []
+      for (name, e) in share.detailsPanel.model.instances.items():
+        if e.data['entityType'] == "Node":
+          nodeIntances.append(name)
+
+      for img in nodeIntances:
+        image = {}
+        image['name'] = img
+        try:
+          image['slot'] = str(md[img].slot.data_).strip()
+          image['netInterface'] = str(md[img].netInterface.data_).strip()
+        except:
+          image['slot'] = "SC"
+          image['netInterface'] = ""
+
+
+      # Update NodeName and type of Component in copied setup file
+      fConf = self.panel.model.directory() + '/setup'
+      s = open(fConf).read()
+      s = s.replace('ASP_NODENAME=node0', 'ASP_NODENAME=%s' % image['name'] )
+      if image['slot'] != "Payload":
+        s = s.replace('export SAFPLUS_SYSTEM_CONTROLLER=0', '')
+      f = open(fConf, 'w')
+      f.write(s)
+      f.close()
+
+
       print 'files gen: files %s\nproxies %s\n' %(str(files),str(proxyFiles))
       self.panel.statusBar.SetStatusText("Code generation complete")
       # add these files to the "source" part of the project tab and update the project xml file

@@ -1417,30 +1417,48 @@ class ProjectTreePanel(wx.Panel):
     os.chdir('../mk')
     tool = os.path.abspath("safplus_packager_ide.py")
     os.chdir('%s' % prjPath)
+
+    #print 'project[%d]: tool   = %s'%(sys._getframe().f_lineno, tool)
+    #print 'project[%d]: tarGet = %s'%(sys._getframe().f_lineno, tarGet)
+    
+
     cmd = 'python %s -a %s %s.tgz' % (tool, tarGet, tarGet)
+    print 'project[%d]: cmd1 = %s'%(sys._getframe().f_lineno, cmd)
     self.log_info("Generating image...")
     if not self.execute('%s' % cmd):
       os.chdir(owd)
       return False
     os.system('cp *.xml %s/bin' % baseImage)
+    print 'project[%d]: cp *.xml %s/bin' %(sys._getframe().f_lineno,baseImage)
+    #print 'project[%d]: baseImage = %s'%(sys._getframe().f_lineno, baseImage)
     os.chdir(owd)
     if os.path.isdir(baseImage):
       for img in self.currentImagesConfig:
         tarImg = prjPath + '/images/' + img
+        print 'project[%d]: tarImg = %s'%(sys._getframe().f_lineno, tarImg)
         self.log_info("Building %s...\n" % tarImg)
         cmd = 'cp -r %s %s' % (baseImage, tarImg)
+        print 'project[%d]: cmd2 = %s'%(sys._getframe().f_lineno, cmd)
         if not self.execute(cmd, False):
           return False
-        os.system('cp resources/setup %s/bin' % tarImg)
-        self.updateImageConfig(tarImg, self.currentImagesConfig[img])
+
+        # Move it to generation process  
+        #os.system('cp resources/setup %s/bin' % tarImg)
+        print 'project[%d]: cp resources/setup %s/bin' %(sys._getframe().f_lineno,tarImg)
+        self.updateImageConfig(tarImg + '/../..', self.currentImagesConfig[img])
+        copy = 'cp %s/setup %s/bin'%(tarImg + '/../..', tarImg)
+        #print 'project[%d]: copy = %s' %(sys._getframe().f_lineno,copy)
+        os.system('cp %s/setup %s/bin'%(tarImg + '/../..', tarImg))
         self.log_info("Creating tarball: %s.tar.gz\n" % tarImg)
         cmd = 'cd %s/images/; tar -zcvf %s.tar.gz %s' % (prjPath, img, img)
+        print 'project[%d]: cmd3 = %s'%(sys._getframe().f_lineno, cmd)
         if not self.execute(cmd, False):
           return False
         self.log_info("Blade specific tarballs created.\n")
 
   def updateImageConfig(self, tarGet, imgConf):
-    fConf = tarGet + '/bin/setup'
+    #fConf = self.panel.model.directory() + '/setup'
+    fConf = tarGet + '/setup'
     s = open(fConf).read()
     s = s.replace('ASP_NODENAME=node0', 'ASP_NODENAME=%s' % imgConf['name'] )
     s = s.replace('SAFPLUS_BACKPLANE_INTERFACE=eth0', 'SAFPLUS_BACKPLANE_INTERFACE=%s' % imgConf['netInterface'] )

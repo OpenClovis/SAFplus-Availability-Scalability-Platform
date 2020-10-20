@@ -69,6 +69,9 @@ def log_init():
 def create_archive(tar_name, ext, tar_dir, arch_format='gztar'):
     """ Create an archive with a given archive name and archive format for the provided directory
     """
+    #log.info("NAM = {}".format(tar_name))
+    #log.info("EXT = {}".format(ext))
+    #log.info("DIR = {}".format(tar_dir))
     if check_dir_exists(tar_dir):
         gen_tar_name = shutil.make_archive(tar_name, arch_format, tar_dir)
     # Rename this archive if create_archive gave us the wrong name
@@ -201,7 +204,9 @@ def package(base_dir, tar_name, prefix_dir, machine=None, pre_build_dir=None,exe
 
     # Break the output file name into its components so we can ...
     image_dir_path = get_image_dir_path(tar_name)
-    image_dir = "{}/images".format(image_dir_path)
+
+    image_dir = "{}/../images".format(image_dir_path)
+
     tar_name = get_image_file_name(tar_name)
     tar_name, compress_format, archive_suffix = get_compression_format(tar_name)
     #image_stage_dir = image_dir + os.sep + os.path.splitext(get_image_file_name(tar_name))[0]
@@ -262,8 +267,9 @@ def package(base_dir, tar_name, prefix_dir, machine=None, pre_build_dir=None,exe
 
     log.info("Archive name is {0} Archive compression format is {1}".format(tar_name, compress_format))
     # put the tarball exactly where the requested on the command line: tar_name = os.path.join(image_dir, tar_name)
-    tar_name = os.path.join(image_dir_path, tar_name)
-    gen_tar_name = create_archive(tar_name, archive_suffix, image_dir, compress_format)
+    tar_name = os.path.join(image_dir_path+'/../images', tar_name)
+    #image_dir = "{}/../images".format(image_dir_path)
+    gen_tar_name = create_archive(tar_name, archive_suffix, image_dir , compress_format)
     # select the corresponding package generation class method from the package module
     if yum_package:
 	from package import RPM

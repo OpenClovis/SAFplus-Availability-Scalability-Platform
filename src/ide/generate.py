@@ -3,6 +3,8 @@ import os, types
 import time
 from types import *
 import inspect
+import share
+import sys
 
 import common
 
@@ -43,6 +45,7 @@ cleanApp = """	$(MAKE) SAFPLUS_SRC_DIR=$(SAFPLUS_SRC_DIR) -C %s clean """
 safplusDir=''
 
 def topMakefile(output, srcDir,dirNames):
+    
     global safplusDir
     thisDir=os.path.dirname(os.path.abspath(inspect.getfile(inspect.currentframe())))
     global TemplatePath
@@ -54,6 +57,28 @@ def topMakefile(output, srcDir,dirNames):
     makeSubsDict['subdirs'] = " ".join(["$(BIN_DIR)/%s" % c for c in dirNames])
     makeSubsDict['labelApps'] = "\n".join([makeBinApp % (c,c) for c in dirNames])
     makeSubsDict['cleanupApps'] = "\n".join([cleanApp % c for c in dirNames])
+
+    # Get infomation about model
+    nodeIntances = []
+    for (name, e) in share.detailsPanel.model.instances.items():
+      if e.data['entityType'] == "Node":
+        nodeIntances.append(name)
+
+    for img in nodeIntances:
+      image = {}
+      image['name'] = img
+      try:
+        image['slot'] = str(md[img].slot.data_).strip()
+        image['netInterface'] = str(md[img].netInterface.data_).strip()
+      except:
+        image['slot'] = "SC"
+        image['netInterface'] = ""
+    #print 'generate[%d]:  %s.tgz = %s'%(sys._getframe().f_lineno, image['name'], image)
+    
+    
+    
+    
+    makeSubsDict['nameTgz'] = image['name']+'.tgz'
     s = mkSubdirTmpl.safe_substitute(**makeSubsDict)
     output.write(srcDir + os.sep + "Makefile", s)
     return [srcDir + os.sep + "Makefile"]
