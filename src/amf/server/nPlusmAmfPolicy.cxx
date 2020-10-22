@@ -101,17 +101,11 @@ class NplusMPolicy:public ClAmfPolicyPlugin_1
   int ServiceGroupPolicyExecution::start(ServiceUnit* su,Wakeable& w)
     {
     int ret=0;
-    static bool isAlreadySorted = false;
-    static std::vector<SAFplusAmf::Component*> sortedComps;
+    std::vector<SAFplusAmf::Component*> sortedComps;
     std::vector<SAFplusAmf::Component*>::iterator itcomp, endcomp;
 
     sortedComps << su->components;
-    if(!isAlreadySorted)
-    {
-	/* Sort the list of the components. */
-	boost::sort(sortedComps, EarliestLevel);
-    	isAlreadySorted = true;
-    }   
+    boost::sort(sortedComps, EarliestLevel);
     endcomp = sortedComps.end();
     for (itcomp = sortedComps.begin(); itcomp != endcomp; itcomp++)
       {
