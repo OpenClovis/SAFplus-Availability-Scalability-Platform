@@ -41,6 +41,7 @@
 #include "amfAppRpcImplAmfSide.hxx"
 
 #include <amfMgmtRpc.hxx>
+#include <groupCliRpc.hxx>
 
 #include "nodeMonitor.hxx"
 
@@ -801,6 +802,15 @@ int main(int argc, char* argv[])
   amfMgmtRpcChannel.setMsgType(AMF_MGMT_REQ_HANDLER_TYPE, AMF_MGMT_REPLY_HANDLER_TYPE);
   amfMgmtRpcChannel.service = &mgmtRpc;  // The AMF needs to receive saAmfResponse calls from the clients so it needs to act as a "server".
   SAFplus::Rpc::amfMgmtRpc::amfMgmtRpc_Stub amfMgmtRpc(&amfMgmtRpcChannel);
+
+  //---------------------------------------------------
+
+  //--------setup rpc for groupCli-------------------
+  SAFplus::Rpc::groupCliRpc::groupCliRpcImpl groupCliRpc;
+  SAFplus::Rpc::RpcChannel groupCliRpcChannel(&safplusMsgServer, myHandle);
+  groupCliRpcChannel.setMsgType(AMF_GROUP_CLI_REQ_HANDLER_TYPE, AMF_GROUP_CLI_REPLY_HANDLER_TYPE);
+  groupCliRpcChannel.service = &groupCliRpc;  // The AMF needs to receive saAmfResponse calls from the clients so it needs to act as a "server".
+  SAFplus::Rpc::groupCliRpc::groupCliRpc_Stub grpCliRpc(&groupCliRpcChannel);
 
   //---------------------------------------------------
 

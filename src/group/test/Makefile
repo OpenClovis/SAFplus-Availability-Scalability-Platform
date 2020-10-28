@@ -6,7 +6,7 @@ CLIENT_H := $(wildcard *.hxx) $(wildcard $(SAFPLUS_INC_DIR)/*.hxx)
 
 MGT_SRC_DIR ?= $(SAFPLUS_SRC_DIR)/../../mgt
 
-CPP_FLAGS += -I$(BOOST_DIR) -I. -I.. -I../include
+CPP_FLAGS += -I$(BOOST_DIR) -I. -I.. -I../include -I../groupCliRpc/$(PROTOBUFVER)
 
 SERVER_SRC := testGroupServer.cxx
 SERVER_OBJ := $(addprefix $(OBJ_DIR)/,$(subst .cxx,.o,$(SERVER_SRC)))
@@ -15,7 +15,7 @@ UNITTEST_SRC := testGroup.cxx
 UNITTEST_OBJ := $(addprefix $(OBJ_DIR)/,$(subst .cxx,.o,$(UNITTEST_SRC)))
 
 # Specify the required libraries
-SAFPLUS_LIBS := clName clMgt clTimer clMsg clGroup clCkpt clUtils clOsal clLog clDbal clFault
+SAFPLUS_LIBS := clName clMgt clTimer clMsg clGroup clCkpt clUtils clOsal clLog clDbal clFault clRpc clGroupCli
 # Then use these in the make rule
 SAFPLUS_DEP_LIBS     := $(addsuffix .so,$(addprefix $(LIB_DIR)/lib,$(SAFPLUS_LIBS)))
 SAFPLUS_LINK_LIBS := -L$(LIB_DIR) $(addprefix -l,$(SAFPLUS_LIBS))
@@ -23,7 +23,7 @@ SAFPLUS_LINK_LIBS := -L$(LIB_DIR) $(addprefix -l,$(SAFPLUS_LIBS))
 LINK_STD_LIBS := -L$(INSTALL_DIR)/lib $(XML2_LINK) -lstdc++ -lm $(LINK_STD_LIBS)
 
 # $(TEST_DIR)/testGroupServer $(TEST_DIR)/testGroup $(TEST_DIR)/testMultiGroup
-all:  $(TEST_DIR)/testGroup
+all:  $(TEST_DIR)/testGroup $(TEST_DIR)/testGroupCli
 
 
 #$(TEST_DIR)/safplus_group: $(OBJ_DIR)/safplus_group.o $(SAFPLUS_DEP_LIBS) Makefile
@@ -38,12 +38,16 @@ $(TEST_DIR)/testGroup: $(OBJ_DIR)/testGroup.o $(SAFPLUS_DEP_LIBS)
 $(TEST_DIR)/testMultiGroup: $(OBJ_DIR)/testMultiGroup.o $(SAFPLUS_DEP_LIBS)
 	$(LINK_EXE) $@ $< $(LINK_LIBS) $(SAFPLUS_LINK_LIBS) $(LINK_STD_LIBS) 
 
+$(TEST_DIR)/testGroupCli: $(OBJ_DIR)/testGroupCli.o $(SAFPLUS_DEP_LIBS)
+	$(LINK_EXE) $@ $< $(LINK_LIBS) $(SAFPLUS_LINK_LIBS) -lboost_program_options $(LINK_STD_LIBS) 
+
 $(OBJ_DIR)/%.o: %.cxx $(CLIENT_H)
 	$(COMPILE_CPP) $@ $<
 
 test: all
 	cp -f $(TEST_DIR)/testGroupServer .
 	cp -f $(TEST_DIR)/testGroup .
+	cp -f $(TEST_DIR)/testGroupCli .
 
 # TAE packaging stuff
 image: $(IMAGE_FILE)

@@ -7,7 +7,7 @@ MGT_SRC_DIR ?= $(SAFPLUS_SRC_DIR)/../../mgt
 #MakefileDepend := Makefile
 MakefileDepend :=
 
-CPP_FLAGS += -I$(BOOST_DIR)  -I. -I..  -I../rpc -I./amfRpc/$(PROTOBUFVER) -I../amfAppRpc/$(PROTOBUFVER) -I../amfMgmtRpc/$(PROTOBUFVER) $(SAFPLUS_MGT_INC_FLAGS)
+CPP_FLAGS += -I$(BOOST_DIR)  -I. -I..  -I../rpc -I./amfRpc/$(PROTOBUFVER) -I../amfAppRpc/$(PROTOBUFVER) -I../amfMgmtRpc/$(PROTOBUFVER) -I../../group/groupCliRpc/$(PROTOBUFVER) $(SAFPLUS_MGT_INC_FLAGS)
 
 LINK_SO_LIBS += -lprotobuf -lprotoc $(XML2_LINK)
 

@@ -259,6 +259,7 @@ def gen_asp_run_env_file(run_file, d):
     print >> f, 'ASP_LOGDIR=%s' % d['log_dir']
     print >> f, 'ASP_NODENAME=%s' % d['node_name']
     print >> f, 'ASP_NODEADDR=%s' % d['node_addr']
+    print >> f, 'SAFPLUS_BACKPLANE_INTERFACE=%s' % d['backplane_interface']
     print >> f, 'ASP_MULTINODE=%s' %d['simulation']
     print >> f, 'ASP_SIMULATION=%s' %d['simulation']
     print >> f, 'BUILD_TIPC=%s' %d['build_tipc']
@@ -410,6 +411,7 @@ def set_up_asp_config():
     d['status_file'] = get_status_file()
     d['asp_cmd_marker_file'] = get_marker_file()
     d['node_name'] = asp_getenv('ASP_NODENAME')
+    d['backplane_interface'] = asp_getenv('SAFPLUS_BACKPLANE_INTERFACE')
 
 
     if is_tipc_build(d['build_tipc']):        
@@ -453,6 +455,7 @@ def set_up_asp_config():
     os.putenv('ASP_CPM_CWD', d['run_dir'])
 
     os.putenv('ASP_DIR', d['sandbox_dir'])
+    os.putenv('SAFPLUS_BACKPLANE_INTERFACE', d['backplane_interface'])
     
     # This needs to be cleaned up
     os.putenv('SAHPI_UNSPECIFIED_DOMAIN_ID', d['hpi_ip'])

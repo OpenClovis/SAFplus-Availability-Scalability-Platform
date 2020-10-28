@@ -4,7 +4,7 @@ import pySAFplus as sp
 import amfctrl
 import xml.etree.ElementTree as ET
 
-from pySAFplus import SafplusInitializationConfiguration, Libraries, Initialize, Finalize, logMsgWrite, LogSeverity, HandleType, Handle, WellKnownHandle, Transaction, SYS_LOG, APP_LOG, Buffer, Checkpoint, mgtGet, mgtSet, mgtCreate, mgtDelete, logSeverity
+from pySAFplus import SafplusInitializationConfiguration, Libraries, Initialize, Finalize, logMsgWrite, LogSeverity, HandleType, Handle, WellKnownHandle, Transaction, SYS_LOG, APP_LOG, Buffer, Checkpoint, mgtGet, mgtSet, mgtCreate, mgtDelete, logSeverity, grpCliClusterViewGet
 
 class Error(Exception):
   pass

@@ -171,14 +171,19 @@ $(TEST_DIR)/TestClient $(TEST_DIR)/TestServer $(TEST_DIR)/TestCombine:
 	$(MAKE) -C $(SAFPLUS_SRC_DIR)/rpc/test
 endif
 
-ifndef SAFPLUS_MGT_TEST
-$(TEST_DIR)/testmgt:
-	$(MAKE) -C $(SAFPLUS_SRC_DIR)/mgt/test
-endif
+#ifndef SAFPLUS_MGT_TEST
+#$(TEST_DIR)/testmgt:
+#	$(MAKE) -C $(SAFPLUS_SRC_DIR)/mgt/test
+#endif
 
 ifndef SAFPLUS_GROUP_TEST
 $(TEST_DIR)/testGroup $(TEST_DIR)/testMultiGroup :
 	$(MAKE) -C $(SAFPLUS_SRC_DIR)/group/test
+endif
+
+ifndef SAFPLUS_MGT_TEST
+$(TEST_DIR)/testmgt:
+	$(MAKE) -C $(SAFPLUS_SRC_DIR)/mgt/test
 endif
 
 ifndef SAFPLUS_NAME_TEST
@@ -200,6 +205,11 @@ endif
 ifndef SAFPLUS_SCRIPTS
 $(BIN_DIR)/scripts:
 	$(MAKE) -C $(SAFPLUS_SRC_DIR)/scripts
+endif
+
+ifndef SAFPLUS_TOOLS
+$(BIN_DIR)/tools:
+	$(MAKE) -C $(SAFPLUS_SRC_DIR)/tools
 endif
 
 endif
@@ -230,6 +240,8 @@ ThirdPartySOs :=
 Languages ?= $(LIB_DIR)/pySAFplus.so
 
 SAFplusScripts := $(BIN_DIR)/scripts
+
+SAFplusTools := $(BIN_DIR)/tools
 
 cleanSAFplus:
 	rm -rf $(SAFplusBin) $(SAFplusTests) $(SAFplusSOs) $(SAFplusServices) $(LIB_DIR)/* $(MWOBJ_DIR)/* $(OBJ_DIR)/* $(TEST_DIR)/*

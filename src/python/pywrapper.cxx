@@ -11,6 +11,9 @@
 
 #include <clCkptApi.hxx>
 #include <clMgtApi.hxx>
+
+#include <clGroupCliApi.hxx>
+
 using namespace SAFplus;
 using namespace boost::python;
 
@@ -157,5 +160,5 @@ BOOST_PYTHON_MODULE(pySAFplus)
   def("mgtSet",static_cast< ClRcT (*)(const std::string&,const std::string&) > (&SAFplus::mgtSet)); 
   def("mgtCreate",static_cast< ClRcT (*)(const std::string& pathSpec) > (&SAFplus::mgtCreate));
   def("mgtDelete",static_cast< ClRcT (*)(const std::string& pathSpec) > (&SAFplus::mgtDelete));
-
+  def("grpCliClusterViewGet",&SAFplus::grpCliClusterViewGet);
 }

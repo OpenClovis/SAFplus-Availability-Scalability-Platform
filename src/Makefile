@@ -40,7 +40,7 @@ parallel: pa pb
 endif
 endif
 
-all: $(ThirdPartySOs) $(SAFplusTools) $(SAFplusSOs) $(SAFplusPlugins) $(SAFplusServices) $(SAFplusBin) $(SAFplusTests) $(LIB_DIR)/libmw.so $(Languages) $(SAFplusScripts)
+all: $(ThirdPartySOs) $(SAFplusTools) $(SAFplusSOs) $(SAFplusPlugins) $(SAFplusServices) $(SAFplusBin) $(SAFplusTests) $(LIB_DIR)/libmw.so $(Languages) $(SAFplusScripts) $(SAFplusTools)
 
 tools: $(SAFplusTools)
 
