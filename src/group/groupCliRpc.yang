@@ -1,0 +1,31 @@
+module groupCliRpc
+{
+
+  namespace "http://www.openclovis.org/ns/amfAppRpc";
+  prefix "groupCliRpc";
+  //import SAFplusTypes { prefix "SAFplusTypes"; }
+
+  organization
+    "OpenClovis Solutions, Inc";
+
+  contact
+    "Hung Ta <hung.ta@openclovis.com>";
+
+  description
+    "RPCs for group so that from other app on any node can call";
+
+  revision 2019-05-22 
+  {
+    description "Initial description";
+    reference "SAI-AIS-AMF-B.04.01.pdf";
+  }  
+
+  rpc getClusterView {
+    output {
+      leaf clusterView {
+        type string;
+      }
+    }
+  }
+}
+

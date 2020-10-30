@@ -1,0 +1,891 @@
+#!/usr/bin/env python
+###############################################################################
+#
+# Copyright (C) 2020 by OpenClovis Inc. All  Rights Reserved.
+# 
+# The source code for  this program is not published  or otherwise 
+# divested of  its trade secrets, irrespective  of  what  has been 
+# deposited with the U.S. Copyright office.
+# 
+# This program is  free software; you can redistribute it and / or
+# modify  it under  the  terms  of  the GNU General Public License
+# version 2 as published by the Free Software Foundation.
+# 
+# This program is distributed in the  hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied  warranty  of 
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU 
+# General Public License for more details.
+# 
+# You  should  have  received  a  copy of  the  GNU General Public
+# License along  with  this program. If  not,  write  to  the 
+# Free Software Foundation, 675 Mass Ave, Cambridge, MA 02139, USA.
+#
+###############################################################################
+"""
+Provides various status information about SAFplus running on this node and on the
+cluster
+
+Use the --help option or the help command to obtain more information
+on available asp-info commands.
+
+The plan is to provide info on many different things, such as (not all
+of these are implemented yet):
+
+Info                                                              Needs running
+about:                                                                 SAFplus
+---------------------------------------------------------------   -------------
+- check if SAFplus is properly installed (approximation)                    N
+- check the version (build number) of this installation                 N
+- check if SAFplus is running and if so, what PID number                    N/A
+- list all SAFplus middleware processes running                             Y
+- list all SAFplus-based applications started by SAFplus and their status       Y
+- list the tipc/gms parameters of this instance of SAFplus                  N
+- list all other hosts in the cluster having same tipc netid            N
+- list all other SAFplus nodes that are candidates for this cluster         N
+- list all SGs in the cluster and their state                           Y
+- list all SU in the cluster and their state (and node to run on)       Y
+
+"""
+
+import sys
+import os
+import time
+import signal
+import cmd
+import pdb
+import re
+import commands
+import subprocess
+import socket
+import fcntl
+import struct
+import safplus as s
+
+try:
+    from lxml import etree as et
+    hasLxml = True
+except ImportError:
+    import xml.dom.minidom as minidom
+    hasLxml = False
+
+
+access = None
+try:
+    import localaccess
+    access = localaccess    
+except ImportError, e:
+    print e
+    pass
+
+
+def on_platform(p):
+  return p in sys.platform
+
+try: # Readline is optional, just gives up command completion and so forth
+  if on_platform('linux'): import readline
+except:
+  pass
+
+##
+## Customizable constants
+##
+xmlRoot = '/safplusAmf'
+GMSCONFIGFILE           = '/etc/clGmsConfig.xml'
+HISTORY_FILE            = '.asp-info.hist'
+AMF_DB_CACHE_TIMEOUT    = 7.0  # cache aging for amf database [sec]
+WELCOME_MSG             = 'SAFplus info utility -- OpenClovis, Inc., 2020'
+AMF_NAME                = "safplus_amf"
+##
+## Internal variables and constants
+##
+_dblevel = 0 # default debug level
+_asp_dir = os.path.dirname(os.path.dirname(os.path.realpath(__file__)))
+_exit_code = 0
+try:
+  _app_name = os.path.basename(__file__)
+except NameError:  # __file__ is not defined if I'm in the pdb debugger
+  _app_name = "safplus_info"
+_asp_conf = None                    # caching asp.conf content
+_asp_run_env = None                 # caching asp_run.env content
+_amf_config_xml = None              # caching clAmfConfig.xml content as dot tree
+_do_colors = sys.stderr.isatty()    # output coloring on if not a redirect
+_amf_db = None                      # caching amf database
+_amf_db_timestamp = None            # time.time of last amf_db cache refresh
+_su_names = None                    # cached SU names
+_sg_names = None                    # cached SU names
+_node_names = None                  # cached Node names
+_interactive_shell = False
+_yesno_map = {
+    'True':     'Y',
+    'False':    'N'
+}
+_member_map = {
+    'True':     'Y',
+    'False':    'N',
+    'Leaving':  'L'
+}
+_state_map = {
+    'idle':    'LA',
+    'on':      'UL',
+    'off':     'LI'
+}
+_classtype_map = {
+    'Class A':          'A',
+    'Class B':          'B',
+    'Class C':          'C',
+    'Class D':          'D'
+}
+_redundancy_map = {
+    'No Redundancy':    'None',
+    '2N (1+1)':         '1+1',
+    'M + N':            'M+N',
+    'N-Way-Active':     'N-Way-A'
+}
+_presence_map = {
+    'uninstantiated':       'U',
+    'instantiating':        'i',
+    'instantiated':         'I',
+    'terminating':          'T',
+    'restarting':           'R',
+    'instantiationFailed': 'iF',
+    'terminationFailed':   'tF'    
+}
+_operstate_map = {
+    '1':             'E',
+    '0':             'D'    
+}
+_readiness_map = {
+    'inService':           'IS',
+    'stopping':            'S',
+    'outOfService':        'OOS',
+    'None':                '-'
+}
+_hastate_map = {
+    'active':               'A',
+    'standby':              'S',
+    'quiesced':             'Q',
+    'quiescing':            'q',
+    'none':                 '-',
+    'invalid':              '?'
+}
+
+NO_SUCH_FILE_OR_DIR     = 127
+PROC_GOT_SIGKILL        = 137
+
+USAGE_MSG = """
+OpenClovis SAFplus run-time information utility
+
+Usage:
+    %(_app_name)s [options] [command(s)]
+
+Options:
+    -h, --help          This help page
+    -v, --verbose       Be more verbose
+    -c, --no-colors     Disables output coloring
+""" % locals()
+
+
+class AspError(Exception): pass
+class UnknownError(AspError): pass
+class CommandError(AspError): pass
+class NotFoundError(AspError): pass
+class DebugCliError(AspError): pass    
+
+
+class Dot:
+    """
+    The dot class lets you access fields either through field notation (.)
+    or dictionary notation ([]).
+    """
+
+    def __init__(self, dict):
+        for (key, val) in dict.items():
+            if type(val) == type({}): val = Dot(val)
+            self.__dict__[key] = val
+
+    def __str__(self):
+        s=[]
+        for (key, val) in self.__dict__.items():
+            s.append("'%s':%s" % (str(key), str(val)))
+        return "{ " + ", ".join(s) + " }"
+
+    def __repr__(self): return 'Dot(%s)' % self.__str__()
+
+    def has_key(self, key): return self.__dict__.has_key(key)
+
+    def keys(self): return self.__dict__.keys()
+
+    def values(self): return self.__dict__.values()
+
+    def items(self): return self.__dict__.items()
+
+    def clear(self): self.__dict__.clear()
+
+    def get(self, key, default = None): return self.__dict__.get(key, default)
+
+    def setdefault(self, key, default = None): return self.__dict__.setdefault(key, default)
+
+    def pop(self, key, default = None): return self.__dict__.pop(key, default)
+
+    def popitem(self): return self.__dict__.popitem()
+
+    def iteritems(self): return self.__dict__.iteritems()
+
+    def iterkeys(self): return self.__dict__.iterkeys()
+
+    def itervalues(self): return self.__dict__.itervalues()
+
+    def __getitem__(self, key): return self.__dict__[key]
+
+    def __setitem__(self, key, val): self.__dict__[key] = val
+
+    def __delitem__(self, key): del self.__dict__[key]
+
+    def __len__(self): return self.__dict__.__len__()
+
+    def __contains__(self, item): return item in self.__dict__
+
+    def dot_print(self, prefix=None):
+        s = []
+        for (key, val) in self.__dict__.items():
+            p = (prefix and prefix+'.' or '')+str(key)
+            try:
+                s.append(val.dot_print(p))
+            except AttributeError:
+                s.append(p + '=' + str(val)) 
+        return '\n'.join(s)
+
+def get_ip_address(ifname):
+    s = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
+    return socket.inet_ntoa(fcntl.ioctl(
+        s.fileno(),
+        0x8915,  # SIOCGIFADDR
+        struct.pack('256s', ifname[:15])
+        )[20:24])
+
+def color(code, string):
+    """Return with the colorer string accroding to color code if coloring is
+       enabled, or the original string otherwise. Color is one of the colors
+       define in the following dictionary (using ANSI codes):
+    """
+    colors = {
+        'normal':       '0',
+        'bold':         '1',
+        'cyan':         '0;36',
+        'bold-cyan':    '1;36',
+        'red':          '0;31',
+        'bold-red':     '1;31',
+        'green':        '0;32',
+        'bold-green':   '1;32',
+        'yellow':       '0;33',
+        'bold-yellow':  '1;33',
+        'blue':         '0;34',
+        'bold-blue':    '1;34'
+    }
+    col = colors.get(code)
+    if _do_colors and col:
+        return '\033[%sm%s\033[0m' % (col, string)
+    else:
+        return string
+
+
+def color_state(state):
+    if state == 'active': return color('bold-red', state)
+    elif state == 'standby': return color('bold-yellow', state)
+    else: return state
+    
+
+def extend_path():
+    """Inserts asp_dir/bin to the beginning of the PATH environment"""
+    path = os.getenv('PATH')
+    path = _asp_dir + '/bin:' + path
+    os.putenv('PATH', path)
+    
+
+def dbmsg(level, *args):
+    """ Level sensitive debug printing function """
+    if _dblevel >= level:
+        for s in args:
+            print s,
+        print ''
+
+
+def error(msg):
+    print '***Error: ' + msg
+    global _exit_code
+    _exit_code = 1
+
+
+def system(cmd): return sys_asp['system'](cmd)
+
+def assert_root():
+    """Exits if the program is not run as root"""
+    ec, res, s, c = system('whoami')
+    if ec or len(res)==0:
+        error('Could not run "whoami"')
+        sys.exit(1)
+    if not res[0].strip() == 'root':
+        error('You need to be root to run %(_app_name)s' % globals())
+        sys.exit(1)
+
+
+def load_asp_run_env():
+    """Returns the content of asp_run.env as a dictionary"""
+
+    global _asp_run_env
+    
+    if _asp_run_env:
+        return _asp_run_env
+    
+    f = file(_asp_dir + '/etc/asp_run.env')
+    lines = f.readlines()
+    f.close()
+    try:
+        d = dict([l.split('=') for l in [l.strip() for l in lines]
+                                     if not l.startswith('#')])
+    except:
+        raise CommandError('Could not parse asp_run.env. Values are missing?')
+    
+    _asp_run_env = d
+    return _asp_run_env
+
+def safe_remove(f):
+    try:
+        os.remove(f)
+    except:
+        os.system('rm -f %s' %f)
+    
+def get_amf_pid(watchdog_pid = False):
+    while True:
+        valid = commands.getstatusoutput("pidof %s" % AMF_NAME);
+        if valid[0] == 0:
+            if len(valid[1].split())==1:
+                return int(valid[1])
+        else:
+            break
+        log.warning('There is more than one AMF pid. Try again...')
+        time.sleep(0.25)
+    if watchdog_pid:
+         valid = commands.getstatusoutput("pidof safplus_watchdog.py");
+         if valid[0] == 0:
+            return int(valid[1])
+    return 0;
+
+def is_asp_running(watchdog_pid = False):
+    '''
+    Return value meaning :
+    0 -> running
+    1 -> not running,
+    2 -> booting/shutting down
+    3 -> running without status file, this is a bug.
+    '''
+
+    amf_pid = get_amf_pid(watchdog_pid)
+
+    if amf_pid == 0:
+        return 1
+    return 0
+    #asp_status_file = asp_run_env['ASP_RUNDIR'] + '/aspstate-%s' % asp_run_env['ASP_NODEADDR']
+
+    #if os.path.exists(asp_status_file):
+    #    (ec, t, signal, core) = system('cat %s' % asp_status_file)
+    #    asp_up = bool(int(t[0]))
+    #    if asp_up:
+    #        return 0
+    #    else:
+    #        return 2
+    #else:
+    #    return 3
+
+def get_asp_status():
+    v = is_asp_running(watchdog_pid = True)
+
+    if v == 0:
+        return ('SAFplus is running on node [%s], pid [%s]' % (asp_run_env['ASP_NODEADDR'], get_amf_pid(True)))
+    elif v == 1:
+        return ('SAFplus is not running on node [%s]' % asp_run_env['ASP_NODEADDR'])
+    elif v == 2:
+        return ('SAFplus is booting up/shutting down')
+    elif v == 3:
+        return ('SAFplus is running with pid [%s], but it was not started from this sandbox [%s].' % (get_amf_pid(True), asp_run_env['ASP_DIR']))
+    return ""
+
+def get_status_info():
+    """Returns with SAFplus running status, as a dict with following entries:
+       Key:         Value(s):
+       status       'down', 'up', 'booting/shutting down'
+       pid          <pid> or 'N/A'
+       nodeaddr     <nodeaddr> or 'N/A'
+       nodename     <nodename>
+    """
+
+    d = Dot({})
+    # need to parse 3 forms:
+    #   INFO ASP is not running on node [1]
+    #   INFO ASP is booting up/shutting down
+    #   INFO ASP is running on node [1], pid [21548]
+    res = get_asp_status().strip()
+    if res.find('not running') >= 0:
+        d.status = 'down'
+        d.pid    = d.nodeaddr = 'N/A'
+        #conf = load_asp_conf()
+        d.nodename = asp_run_env['ASP_NODENAME']
+    elif res.find('booting up') >= 0:
+        d.status = 'booting or shutting down'
+    elif res.find('running on node') >= 0:
+        d.status = 'up'
+    else:
+        raise CommandError('Unexpected output from asp status: [%s]' % res)
+    
+    if d.status in ['up', 'booting or shutting down']:        
+        ip = get_ip_address(asp_run_env['SAFPLUS_BACKPLANE_INTERFACE'])
+        myNodeID = ip.split('.')[3]
+        d.nodeaddr = myNodeID
+        d.nodename = asp_run_env['ASP_NODENAME']
+        amf_cmd_line = '%s/bin/safplus_amf' % (_asp_dir)
+        cmd = sys_asp['grep_amf_cmd'](amf_cmd_line)
+        (ec, output, signal, core) = system(cmd)
+        if ec:
+            raise CommandError('SAFplus is reported running, but could not retrieve PID')
+        d.pid = output[0].split()[0].strip()
+        # Sanity check: if 'up', same pid should have been in res message
+        if d.status == 'up' and res.find(d.pid) == -1:
+            raise UnknownError('PID mismatch beetween asp status and pgrep')
+    
+    return d
+
+def get_cluster_info():
+    """Obtain the cluster list from master CPM and return a list of dot objects
+       with following keys:
+            .nodename
+            .nodeaddr
+            .nodetype
+            .hastate
+    """
+    info = s.grpCliClusterViewGet()
+    rows = info.split('\n')
+    nodes = []
+    for row in rows:
+        if len(row) == 0:
+            continue
+        n = Dot({})
+        #print row
+        #cells = row.split()
+        #assert len(cells)>=7, 'Unexpected cluster view line from safplus_console: %s' % row
+        cells = row.split()
+        #print str(cells)        
+        n.nodename = cells[0]
+        n.nodetype = cells[1]
+        n.hastate = cells[2]
+        n.nodeaddr = cells[3]
+        #n.nodeaddr, n.nodename, addr, port, leader, credential = cells[0:6]
+        #if credential != '0':
+        #    n.nodetype = 'controller'
+        #    if leader == 'Yes':
+        #        n.hastate = 'active'
+        #    else:
+        #      if leader == '(Pending)':
+        #        n.hastate = 'unassigned'
+        #      else:
+        #        n.hastate = 'standby'
+        #else:
+        #     n.nodetype = 'worker'
+        #     assert leader == 'No', 'a worker node shall never be the cluster leader'
+        #     n.hastate = '-'
+
+        nodes.append(n)
+    
+    return nodes
+    
+    #return info
+
+def get_nodes_info():
+    """Obtain the su list as a list of Dot objects with following info:
+    """    
+    xml = s.mgtGet(xmlRoot)    
+    root = et.fromstring(xml)    
+    nodes = []
+    for e in root.getchildren():
+        if e.tag == 'Node':
+            node = Dot({})
+            for n in e.getchildren():
+                #node.classtype    = None#_classtype_map[n.config[0].class_type[0]]
+                if n.tag == 'name':
+                    node.nodename     = n.text                    
+                elif n.tag == 'adminState':
+                    node.astate       = _state_map[n.text]
+                elif n.tag == 'presenceState':
+                    node.presence       = _presence_map[n.text]
+                elif n.tag == 'operState':
+                    node.operstate       = _operstate_map[n.text]
+        
+        #node.castate      = _state_map[n.config[0].computed_admin_state[0]]
+        #node.presence     = _presence_map[n.presenceState[0]]
+        #node.operstate    = _operstate_map[n.operState[0]]
+        #node.instantiable = _yesno_map[n.status[0].is_instantiable[0]]
+        #node.member       = _member_map[n.status[0].is_cluster_member[0]]
+        #node.isu          = n.status[0].num_instantiated_sus[0]
+        #node.asu          = n.status[0].num_assigned_sus[0]
+
+            nodes.append(node)
+
+    return nodes
+
+        
+class Cli(cmd.Cmd):
+    """Command line handler class"""
+    
+    def __init__(self, histfile):
+        self.doc_header = "Available commands (type help <topic> for more info):"
+        cmd.Cmd.__init__(self)
+        try:
+            self.prompt = color('bold-blue', '[%s@' % _app_name) + \
+                          color('bold-red', load_asp_conf(False).NODENAME) + \
+                          color('bold-blue', ']==> ')
+        except:
+            self.prompt = color('bold-blue', '[%s]==> ' % _app_name)
+            
+        self.histfile = histfile
+
+    def preloop(self):
+        """ Load history file """
+        cmd.Cmd.preloop(self) # call original preloop to activate completion
+        
+        if on_platform('linux'):
+            try:
+                readline.read_history_file(self.histfile)
+            except: # Catch all readline exceptions since this an optional component
+                pass
+
+        print
+        print color('bold', WELCOME_MSG)
+        print '-'*len(WELCOME_MSG)
+
+    def postloop(self):
+        """ Save history file """
+        cmd.Cmd.postloop(self) # call original postloop to deactivate completion
+        if on_platform('linux'):
+            try:
+                readline.read_history_file(self.histfile)
+            except: # Catch all readline exceptions since this an optional component
+                pass
+
+    def completenames(self, text, *ignored):
+        """override cmd's builtin: sneak in a trailing space if cmd was fully
+           resolved
+        """
+        dotext = 'do_'+text
+        cmds = [a[3:] for a in self.get_names() if a.startswith(dotext)]
+        if len(cmds) == 1:
+            cmds[0] = cmds[0]+' '
+        return cmds
+
+    def do_exit(self, msg):
+        """Exiting the asp-info utility"""
+        if len(msg):
+            print 'No arguments to exit command, please'
+            return
+        return(1) # will exit cmd loop (but call postloop() first)
+
+    def do_bye(self, msg):
+        """Exit the asp-info utility"""
+        return self.do_exit(msg)
+      
+    def do_quit(self, msg):
+        """Exit the asp-info utility"""
+        return self.do_exit(msg)    
+    
+    ##
+    ## status command
+    ##
+    def do_status(self, msg):
+        """Show SAFplus running status and some basic run-time information"""
+
+        try:
+            info = get_status_info()
+        except AspError, e:
+            error(str(e))
+            return 0
+        print 'SAFplus run status:          %s' % color('bold-red',
+                                                    '%(status)s' % info)
+        print 'pid of safplus_amf:          %(pid)s' % info
+        # print 'node instance name:      %(nodename)s' % info
+
+        print 'actual node address:         %(nodeaddr)s' % info        
+        
+        # TODO: try connecting to local node and master node and fill the following info:
+        # Hint: use mgtGet(dest, xpath) in which dest is masterHandle. If it returns an empty string, the master is not available, otherwise, it's available
+        # use mgtGet(xpath). If it returns an empty string, the local is not available, otherwise, it's available
+        d = {}
+        #try:
+        #    s, output = asp_console_execute(['setc %(nodeaddr)s' % info])
+        #except AspError:
+        #    d['console'] = 'not available'
+        #else:
+        #    if s:
+        #        d['console'] = 'not available'
+        #    else:
+        #        d['console'] = 'available'
+        #print 'SAFplus local console:       %(console)s' % d
+
+        #if info.status == 'down':
+        #    return
+        #s, output = asp_console_execute(['setc master'])
+        clusterView = s.grpCliClusterViewGet()
+        if len(clusterView)==0:
+            d['master'] = 'not available'
+        else:
+            d['master'] = 'available'
+            
+        print 'SAFplus master console:      %(master)s' % d
+        try:
+            xml = s.mgtGet(xmlRoot)
+            if len(xml)>0:
+                d['console'] = 'available'
+            else:
+                d['console'] = 'not available'
+        except:
+            d['console'] = 'not available' #TODO: more specific error handling
+        print 'SAFplus local console:       %(console)s' % d    
+    
+    ##
+    ## cluster command
+    ##
+    def do_cluster(self, msg):
+        """Show cluster nodes and their state """
+
+        try:
+            nodes = get_cluster_info()
+        except AspError, e:
+            error(str(e))
+            return 0
+        
+        
+        len_nodename = max([len(n.nodename) for n in nodes]+[9])
+        fmt = '%%(nodename)%ds  %%(nodetype)10s  %%(hastate)-8s  %%(nodeaddr)9s' % \
+            (len_nodename)
+
+        h = Dot({}) # table header
+        h.nodename, h.nodetype, h.hastate,  h.nodeaddr = \
+        'NODE-NAME', 'NODE-TYPE', 'HA-STATE', 'NODE-ADDR'
+
+        nodes.sort(lambda x,y: cmp(int(x.nodeaddr), int(y.nodeaddr)))
+
+        print color('bold', fmt % h)
+        status_info = get_status_info()
+        for n in nodes:
+            line = n.hastate == 'active' and color('bold-red', fmt % n) or fmt % n
+            if n.nodeaddr == status_info.nodeaddr:
+                line += ' <-- this node'
+            print line
+        #print info
+    
+    ##
+    ## nodes command
+    ##
+    def do_nodes(self, msg):
+        "Show list of node entities and their state\n" \
+        "\n" \
+        "Usage: nodes\n" \
+        "\n" \
+        "Abbreviations:\n" \
+        "    AS:         Administrative state (LI: Locked-instantiation, LA: Locked-assignment,\n" \
+        "                UL: Unlocked)\n" \
+        "    CAS:        Computed administrative state (same values as AS)\n" \
+        "    PS:         Presence state:\n" \
+        "                I: Instantiated, U: Uninstantiated\n" \
+        "    OS:         Operational state:\n" \
+        "                E: Enabled, D: Disabled\n" \
+        "    ISU:        # of instantiated SUs\n" \
+        "    ASU:        # of assigned SUs\n"
+        try:
+            nodes = get_nodes_info()
+        except  AspError, e:
+            error('Command is not available while SAFplus is down (run "status"),')
+            error('or if another safplus_console is running')
+            return 0
+        
+        len_name = max([len(n.nodename) for n in nodes])
+        #fmt = '%%(nodename)%ds  %%(classtype)5s  %%(astate)2s  %%(castate)3s  %%(presence)2s  %%(operstate)2s  %%(instantiable)12s  %%(member)14s  %%(isu)3s  %%(asu)3s' % \
+#                (len_name)
+        fmt = '%%(nodename)%ds  %%(astate)2s  %%(presence)2s  %%(operstate)2s  ' % \
+                (len_name)
+
+        h = Dot({}) # table header
+        h.nodename, h.astate,  h.presence, h.operstate, = \
+        'NODE',     'AS',      'PS',       'OS'
+        
+        nodes.sort(lambda x,y: cmp(x.nodename, y.nodename))
+        print color('bold', fmt % h)
+        for n in nodes:
+            if  n.astate == 'UL':
+                print color('bold-red', fmt % n)
+            elif n.astate == 'LA':
+                print color('yellow', fmt % n)
+            else:
+                print fmt % n    
+
+    def do_EOF(self, msg):
+        """Type 'exit' or press Ctrl-D to exit"""
+        print # a new line before exiting
+        return(self.do_exit(msg))    
+    
+    def help_help(self):
+        """Print this help page"""
+        pass
+
+def init_sys_asp():
+    linux_code = \
+    '''\
+import subprocess
+import os
+import time
+
+def system(cmd):
+    """Similar to the os.system call, except that both the output and
+    return value is returned"""
+    
+    #print 'Executing command: %s' % cmd
+    child = subprocess.Popen(cmd, shell=True,
+                             stdout=subprocess.PIPE,
+                             stderr=subprocess.PIPE,
+                             close_fds=True)
+    output = []
+    while True:
+        pid, sts = os.waitpid(child.pid, os.WNOHANG)
+        output += child.stdout.readlines() 
+        if pid == child.pid:
+            break
+        else:
+            time.sleep(0.00001)
+
+    child.stdout.close()
+    child.stderr.close()
+    retval = sts
+    signal = retval & 0x7f
+    core   = ((retval & 0x80) !=0)
+    retval = retval >> 8
+    #print 'Command return value %s, Output: %s' % (str(retval),output)
+    del child
+    return (retval, output, signal, core)
+
+def grep_amf_cmd(e):
+    return 'ps -eo pid,cmd | grep %s | grep -v grep' % e
+
+def proc_info_cmd(e):
+    return 'ps h -p %s -ocomm,%%cpu,nlwp,rss,vsz' % e
+
+echo_cmd = '/bin/echo -e'
+
+'''
+
+    qnx_code = \
+    '''\
+import popen2
+import platform
+
+def on_arch(arch_name):
+    return arch_name in arch
+
+def system(cmd):
+    """Similar to the os.system call, except that both the output and return value is returned"""
+    # WARNING: system will deadlock if command output exceeds ~64 KB!
+    #print 'Executing command: [%s]' % cmd
+    child = popen2.Popen4(cmd)
+    retval = child.wait()
+    signal = retval & 0x7f
+    core   = ((retval & 0x80) !=0)
+    retval = retval >> 8
+    if on_arch("x86"):
+        output = child.fromchild.readlines()
+    else:
+        output = child.fromchild.readlines()[3:]
+        
+    #print 'Command return value [%s], output:%s' % (str(retval), output)
+    del child
+    return (retval, output, signal, core)
+
+def grep_amf_cmd(e):
+    return 'pidin ar | grep %s' % e
+
+def proc_info_cmd(e):
+    return 'ps -p %s -ocomm,pcpu,threads,sz,vsz | grep -v COMMAND' % e
+
+arch = platform.machine()
+echo_cmd = '/bin/echo'
+
+'''
+    if on_platform("linux"):
+      p = "linux"
+      code = linux_code
+    else:
+      p = "qnx"
+      code = qnx_code
+
+    import imp
+    s = imp.new_module("aspinfo_%s" % p)
+    sys.modules['aspinfo_%s'%p] = s
+
+    exec code in s.__dict__
+
+    d = {}
+
+    d['system'] = s.system
+    d['echo_cmd'] = s.echo_cmd
+    d['grep_amf_cmd'] = s.grep_amf_cmd
+    d['proc_info_cmd'] = s.proc_info_cmd
+
+    return d
+
+##
+## main function
+##
+def main(argv):
+    global _interactive_shell
+    global access 
+
+    cmds,handlers = access.Initialize()
+
+    extend_path()
+    
+    cli = Cli(HISTORY_FILE)
+    
+    def usage(exit_code=0):
+        print USAGE_MSG
+        cli.onecmd('help')
+        sys.exit(exit_code)
+
+    import getopt
+    try:
+        opts, args = getopt.getopt(argv[1:],'hvc',['help', 'verbose', 'no-colors'])
+    except getopt.GetoptError:
+        usage(1)
+    
+    for o, a in opts:
+        if o in ("-h", "--help"):
+            usage()
+        if o in ("-v", "--verbose"):
+            global _dblevel
+            _dblevel += 1
+        if o in ("-c", "--no-colors"):
+            global _do_colors
+            _do_colors = False
+            
+    if len(args):
+        t = ' '.join(args)
+        cmds = t.split(",")
+        for c in cmds:
+          cli.onecmd(c)
+        sys.exit(_exit_code)
+    else:
+        _interactive_shell = True
+        try:
+            cli.cmdloop("Starting interactive prompt (type 'help' for help)")
+        except KeyboardInterrupt:
+            print 'Exiting on Ctrl-C'
+    sys.exit(0)
+
+asp_run_env = load_asp_run_env()
+sys_asp = init_sys_asp()
+if __name__ == '__main__':
+    main(sys.argv)
