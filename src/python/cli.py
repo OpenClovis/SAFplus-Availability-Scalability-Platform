@@ -3,6 +3,9 @@ import sys, os, os.path, time, types
 import traceback,pdb
 import argparse
 import ConfigParser
+import re
+from tabulate import tabulate
+
 
 #command completion
 import clicompletion, readline
@@ -40,6 +43,7 @@ if access is None:
     print e
     pass
 
+print "CliName: %s" % CliName
 
 # assert (AVAILABLE_SERVICES['localaccess'] == 1 or AVAILABLE_SERVICES['netconfaccess'] == 1)
 
@@ -436,6 +440,8 @@ class TermController(xmlterm.XmlResolver):
     self.cmds.append(self)  # I provide some default commands
     self.xmlterm = None
     self.helpdoc = None
+    self.handle = None
+    self.didConnect = 0
 
   def newContext(self):
     path = self.curdir.split("/")
@@ -547,7 +553,7 @@ By default the specified location and children are shown.  Use -N to specify how
     gs = "{d=%s}%s" % (depth,str(t))
     #print "getting ", gs
     try:
-      xml = access.mgtGet(gs)
+      xml = access.mgtGet(self.handle, gs)
     except RuntimeError, e:
       if str(e) == "Route has no implementer":
         return "<error>Invalid path [%s]</error>" % str(t)
@@ -569,7 +575,8 @@ By default the specified location and children are shown.  Use -N to specify how
 
   def do_pwd(self,*sp):
     """Print working directory - shows the current directory"""
-    return self.curdir
+    print self.curdir
+    return ""
 
   def do_raw(self,*sp):
     """Equivalent to 'ls' but displays raw XML"""
@@ -599,7 +606,12 @@ By default the specified location and children are shown.  Use -N to specify how
 
   def do_time(self,*sp):
     """Show the time"""
-    return "<time/>"
+    import datetime
+    now = datetime.datetime.now()
+    print ("Current date and time : ")
+    print (now.strftime("%Y-%m-%d %H:%M:%S"))
+    #return "<time/>"
+    return ""
 
   def do_echo(self,*sp):
     """Print the args back at the user"""
@@ -775,6 +787,385 @@ By default the specified location and children are shown.  Use -N to specify how
           t = xmlterm.escape(" ".join(sp))
           xt.doc.append('<process>%s</process>' % t)  
 
+  def do_connect(self,ipAddress):
+    """syntax: connect ipAddress
+    Connect to an active node
+    """
+    self.didConnect = 1
+    pattern = r"(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)"
+    try:
+      ip = [match[3] for match in re.findall(pattern, ipAddress)]
+      print "nodeName: %s" %ip[0]
+      self.handle = access.getProcessHandle(1, int(ip[0]))
+    except IndexError, e:
+      print "<error>ipAddress [%s] error [%s]</error>" % (ipAddress, str(e))
+      self.didConnect = 0
+      return ""
+    return ""
+
+  def do_entityPrint(self, *entityTypeAndEntityNamePairs):
+    """syntax: entityPrint entityType entityName
+    Display attributes in an entity
+    """
+    if len(entityTypeAndEntityNamePairs) % 2 != 0:
+      print "don't have entityName with the corresponding entityType"
+      return ""
+
+    i = 0
+    while i < len(entityTypeAndEntityNamePairs):
+      entityType = entityTypeAndEntityNamePairs[i]
+      entityName = entityTypeAndEntityNamePairs[i+1]
+      t = os.path.normpath(os.path.join(self.curdir,"/safplusAmf",entityType,entityName))
+      depth=1
+      gs = "{d=%s}%s" % (depth,str(t))
+      try:
+        xml = access.mgtGet(self.handle, gs)
+      except RuntimeError, e:
+        if str(e) == "Route has no implementer":
+          return "<error>Invalid path [%s]</error>" % str(t)
+        return "<error>" + str(e) + "</error>"
+      except Exception, e:
+        return "<error>" + str(e) + "</error>"
+
+      configureItems = "adminState",  "autoRepair",  "canBeInherited",  "currentRecovery",\
+        "disableAssignmentOn",  "failFastOnCleanupFailure",  "failFastOnInstantiationFailure",\
+          "id",  "lastSUFailure",  "name",  "restartable",  "serviceUnitFailureEscalationPolicy",\
+            "userDefinedType",  "autoAdjust",  "autoAdjustInterval",  "componentRestart",\
+              "maxActiveWorkAssignments",  "maxStandbyWorkAssignments",  "preferredNumActiveServiceUnits",\
+                "preferredNumIdleServiceUnits",  "preferredNumStandbyServiceUnits",  "serviceInstances",\
+                  "serviceUnitRestart",  "serviceUnits",  "assignedServiceInstances",  "compRestartCount",\
+                    "components",  "failover",  "lastCompRestart",  "lastRestart",  "node",  "rank",\
+                      "saAmfSUHostNodeOrNodeGroup",  "serviceGroup",  "capabilityModel",  "cleanup",\
+                        "csiType",  "delayBetweenInstantiation",  "instantiate",  "instantiateLevel",\
+                          "maxInstantInstantiations",  "maxStandbyAssignments",  "proxied",  "proxyCSI",  "recovery",\
+                            "serviceUnit",  "terminate",  "timeouts",  "isFullStandbyAssignment",\
+                              "preferredActiveAssignments",  "preferredStandbyAssignments",  "dependencies",  "type",\
+                                "instantiationSuccessDuration",  "maxActiveAssignments",  "maxDelayedInstantiations",\
+                                  "componentServiceInstances",  "serviceInstance"
+      configureList = [["Configuration -------------------------------", "---------------------------"], ["", ""]]
+      statusItems = "operState", "presenceState", "stats", "numAssignedServiceUnits", "numIdleServiceUnits",\
+        "numSpareServiceUnits", "haReadinessState", "haState", "numActiveServiceInstances", "numStandbyServiceInstances",\
+          "preinstantiable", "probationTime", "readinessState", "restartCount", "activeAssignments", "compCategory",\
+            "compProperty", "lastError", "lastInstantiation", "numInstantiationAttempts", "pendingOperation",\
+              "pendingOperationExpiration", "procStats", "processId", "safVersion", "swBundle", "numActiveAssignments",\
+                "numStandbyAssignments", "standbyAssignments", "activeComponents", "isProxyCSI", "standbyComponents",\
+                  "assignmentState"
+      statusList = [["Status --------------------------------------", "---------------------------"], ["", ""]]
+
+      try:
+        root = ET.fromstring(xml)
+      except IndexError, e:
+        print "<error>xml [%s] error [%s]</error>" % (xml, str(e))
+        return ""
+      except ET.ParseError, e:
+        print "<error>xml [%s] error [%s]</error>" % (xml, str(e))
+        return ""
+      for child in root:
+        d = [child.tag, child.text]
+        if child.tag in configureItems:
+          configureList.append(d)
+        elif child.tag in statusItems:
+          statusList.append(d)
+        else:
+          print "not in configure and status: %s %s" %(child.tag, child.text)
+      headers = ["Name", entityName]
+      print tabulate(configureList, headers, tablefmt="psql")
+      print tabulate(statusList, headers, tablefmt="psql")
+      i += 2
+    return ""
+
+  def do_entityLockAssignment(self, entityType, entityName):
+    """syntax: entityLockAssignment entityType entityName
+    """
+    try:
+      access.nameInitialize()
+      handleTest = access.getProcessHandle(0, 0)
+      ret = access.amfMgmtInitialize(handleTest)
+      # print "amfMgmtInitialize: ", hex(ret)
+
+      if entityType == "Node":
+        ret = access.amfMgmtNodeLockAssignment(handleTest, entityName)
+        # print "amfMgmtNodeLockAssignment: ", hex(ret)
+        if ret == 0x11:
+          print "%s entity do not exist in %s" % (entityName, entityType)
+        elif ret == 0x12:
+          print "%s entity have an invalid state to lockAssignment" %entityName
+        elif ret == 0x0:
+          print " %s entity lockAssignment OK" %entityName
+      elif entityType == "ServiceGroup":
+        ret = access.amfMgmtSGLockAssignment(handleTest, entityName)
+        # print "amfMgmtSGLockAssignment: ", hex(ret)
+        if ret == 0x11:
+          print "%s entity do not exist in %s" % (entityName, entityType)
+        elif ret == 0x12:
+          print "%s entity have an invalid state to lockAssignment" %entityName
+        elif ret == 0x0:
+          print " %s entity lockAssignment OK" %entityName
+      elif entityType == "ServiceUnit":
+        ret = access.amfMgmtSULockAssignment(handleTest, entityName)
+        # print "amfMgmtSULockAssignment: ", hex(ret)
+        if ret == 0x11:
+          print "%s entity do not exist in %s" % (entityName, entityType)
+        elif ret == 0x12:
+          print "%s entity have an invalid state to lockAssignment" %entityName
+        elif ret == 0x0:
+          print " %s entity lockAssignment OK" %entityName
+      elif entityType == "ServiceInstance":
+        ret = access.amfMgmtSILockAssignment(handleTest, entityName)
+        # print "amfMgmtSILockAssignment: ", hex(ret)
+        if ret == 0x11:
+          print "%s entity do not exist in %s" % (entityName, entityType)
+        elif ret == 0x12:
+          print "%s entity have an invalid state to lockAssignment" %entityName
+        elif ret == 0x0:
+          print " %s entity lockAssignment OK" %entityName
+      else:
+        print "%s type do not exist in entityLockAssignment" % entityType
+
+      ret = access.amfMgmtFinalize(handleTest)
+      # print "amfMgmtFinalize: ", hex(ret)
+    except RuntimeError, e:
+      print "error: ", e
+
+    return ""
+
+  def do_entityLockInstantiation(self, entityType, entityName):
+    """syntax: entityLockInstantiation entityType entityName
+    """
+    try:
+      access.nameInitialize()
+      handleTest = access.getProcessHandle(0, 0)
+      ret = access.amfMgmtInitialize(handleTest)
+      # print "amfMgmtInitialize: ", hex(ret)
+
+      if entityType == "Node":
+        ret = access.amfMgmtNodeLockInstantiation(handleTest, entityName)
+        # print "amfMgmtNodeLockInstantiation: ", hex(ret)
+        if ret == 0x11:
+          print "%s entity do not exist in %s" % (entityName, entityType)
+        elif ret == 0x12:
+          print "%s entity have an invalid state to lockInstantiation" %entityName
+        elif ret == 0x0:
+          print " %s entity lockInstantiation OK" %entityName
+      elif entityType == "ServiceGroup":
+        ret = access.amfMgmtSGLockInstantiation(handleTest, entityName)
+        # print "amfMgmtSGLockInstantiation: ", hex(ret)
+        if ret == 0x11:
+          print "%s entity do not exist in %s" % (entityName, entityType)
+        elif ret == 0x12:
+          print "%s entity have an invalid state to lockInstantiation" %entityName
+        elif ret == 0x0:
+          print " %s entity lockInstantiation OK" %entityName
+      elif entityType == "ServiceUnit":
+        ret = access.amfMgmtSULockInstantiation(handleTest, entityName)
+        # print "amfMgmtSULockInstantiation: ", hex(ret)
+        if ret == 0x11:
+          print "%s entity do not exist in %s" % (entityName, entityType)
+        elif ret == 0x12:
+          print "%s entity have an invalid state to lockInstantiation" %entityName
+        elif ret == 0x0:
+          print " %s entity lockInstantiation OK" %entityName
+      else:
+        print "%s type do not exist in entityLockInstantiation" % entityType
+
+      ret = access.amfMgmtFinalize(handleTest)
+      # print "amfMgmtFinalize: ", hex(ret)
+    except RuntimeError, e:
+      print "error: ", e
+
+    return ""
+
+  def do_entityUnlock(self, entityType, entityName):
+    """syntax: entityUnlock entityType entityName
+    """
+    try:
+      access.nameInitialize()
+      handleTest = access.getProcessHandle(0, 0)
+      ret = access.amfMgmtInitialize(handleTest)
+      # print "amfMgmtInitialize: ", hex(ret)
+
+      if entityType == "Node":
+        ret = access.amfMgmtNodeUnlock(handleTest, entityName)
+        # print "amfMgmtNodeUnlock: ", hex(ret)
+        if ret == 0x11:
+          print "%s entity do not exist in %s" % (entityName, entityType)
+        elif ret == 0x12:
+          print "%s entity have an invalid state to unlock" %entityName
+        elif ret == 0x0:
+          print " %s entity unlock OK" %entityName
+      elif entityType == "ServiceGroup":
+        ret = access.amfMgmtSGUnlock(handleTest, entityName)
+        # print "amfMgmtSGUnlock: ", hex(ret)
+        if ret == 0x11:
+          print "%s entity do not exist in %s" % (entityName, entityType)
+        elif ret == 0x12:
+          print "%s entity have an invalid state to unlock" %entityName
+        elif ret == 0x0:
+          print " %s entity unlock OK" %entityName
+      elif entityType == "ServiceUnit":
+        ret = access.amfMgmtSUUnlock(handleTest, entityName)
+        # print "amfMgmtSUUnlock: ", hex(ret)
+        if ret == 0x11:
+          print "%s entity do not exist in %s" % (entityName, entityType)
+        elif ret == 0x12:
+          print "%s entity have an invalid state to unlock" %entityName
+        elif ret == 0x0:
+          print " %s entity unlock OK" %entityName
+      elif entityType == "ServiceInstance":
+        ret = access.amfMgmtSIUnlock(handleTest, entityName)
+        # print "amfMgmtSIUnlock: ", hex(ret)
+        if ret == 0x11:
+          print "%s entity do not exist in %s" % (entityName, entityType)
+        elif ret == 0x12:
+          print "%s entity have an invalid state to unlock" %entityName
+        elif ret == 0x0:
+          print " %s entity unlock OK" %entityName
+      else:
+        print "%s type do not exist in entityUnlock" % entityType
+
+      ret = access.amfMgmtFinalize(handleTest)
+      # print "amfMgmtFinalize: ", hex(ret)
+    except RuntimeError, e:
+      print "error: ", e
+
+    return ""
+
+  def do_entityRepaired(self, entityType, entityName):
+    """syntax: entityRepaired entityType entityName
+    """
+    try:
+      access.nameInitialize()
+      handleTest = access.getProcessHandle(0, 0)
+      ret = access.amfMgmtInitialize(handleTest)
+      # print "amfMgmtInitialize: ", hex(ret)
+
+      if entityType == "Node":
+        ret = access.amfMgmtNodeRepair(handleTest, entityName)
+        # print "amfMgmtNodeRepair: ", hex(ret)
+        if ret == 0x11:
+          print "%s entity do not exist in %s" % (entityName, entityType)
+        elif ret == 0x12:
+          print "%s entity have an invalid state to repair" %entityName
+        elif ret == 0x0:
+          print " %s entity repair OK" %entityName
+      elif entityType == "Component":
+        ret = access.amfMgmtCompRepair(handleTest, entityName)
+        # print "amfMgmtCompRepair: ", hex(ret)
+        if ret == 0x11:
+          print "%s entity do not exist in %s" % (entityName, entityType)
+        elif ret == 0x12:
+          print "%s entity have an invalid state to repair" %entityName
+        elif ret == 0x0:
+          print " %s entity repair OK" %entityName
+      elif entityType == "ServiceUnit":
+        ret = access.amfMgmtSURepair(handleTest, entityName)
+        # print "amfMgmtSURepair: ", hex(ret)
+        if ret == 0x11:
+          print "%s entity do not exist in %s" % (entityName, entityType)
+        elif ret == 0x12:
+          print "%s entity have an invalid state to repair" %entityName
+        elif ret == 0x0:
+          print " %s entity repair OK" %entityName
+      else:
+        print "%s type do not exist in entityRepaired" % entityType
+
+      ret = access.amfMgmtFinalize(handleTest)
+      # print "amfMgmtFinalize: ", hex(ret)
+    except RuntimeError, e:
+      print "error: ", e
+
+    return ""
+
+  def do_start(self, entityName):
+    """syntax: start entityName
+    """
+
+    entityTypes = "Node", "ServiceGroup", "ServiceUnit", "Component", "ServiceInstance"
+    for entityType in entityTypes:
+      try:
+        self.do_entityUnlock(entityType, entityName)
+      except RuntimeError, e:
+        print "error: ", e
+    return ""
+
+  def do_stop(self, entityName):
+    """syntax: stop entityName
+    """
+
+    entityTypes = "Node", "ServiceGroup", "ServiceUnit", "Component", "ServiceInstance"
+    for entityType in entityTypes:
+      try:
+        self.do_entityLockInstantiation(entityType, entityName)
+      except RuntimeError, e:
+        print "error: ", e
+    return ""
+
+  def do_idle(self, entityName):
+    """syntax: idle entityName
+    """
+
+    entityTypes = "Node", "ServiceGroup", "ServiceUnit", "Component", "ServiceInstance"
+    for entityType in entityTypes:
+      try:
+        self.do_entityLockAssignment(entityType, entityName)
+      except RuntimeError, e:
+        print "error: ", e
+    return ""
+
+  def do_repair(self, entityName):
+    """syntax: repair entityName
+    """
+
+    entityTypes = "Node", "ServiceGroup", "ServiceUnit", "Component", "ServiceInstance"
+    for entityType in entityTypes:
+      try:
+        self.do_entityRepaired(entityType, entityName)
+      except RuntimeError, e:
+        print "error: ", e
+    return ""
+
+  def do_repairAll(self):
+    """syntax: repairAll
+    """
+    def parseXML(entityType):
+      t = os.path.normpath(os.path.join(self.curdir,"/safplusAmf/", entityType))
+      depth=1
+      gs = "{d=%s}%s" % (depth,str(t))
+      try:
+        xml = access.mgtGet(self.handle, gs)
+        xml = "<top>" + xml + "</top>"
+      except RuntimeError, e:
+        if str(e) == "Route has no implementer":
+          return "<error>Invalid path [%s]</error>" % str(t)
+        return "<error>" + str(e) + "</error>"
+      except Exception, e:
+        return "<error>" + str(e) + "</error>"
+      try:
+        root = ET.fromstring(xml)
+      except IndexError, e:
+        print "<error>xml [%s] error [%s]</error>" % (xml, str(e))
+        return ""
+      except ET.ParseError, e:
+        print "<error>xml [%s] error [%s]</error>" % (xml, str(e))
+        return ""
+      listEntityName = []
+      for child in root:
+        dictAtrr = child.attrib
+        listEntityName.append(dictAtrr["listkey"])
+      return listEntityName
+
+    entityTypes = "Node", "ServiceUnit", "Component"
+    for entityType in entityTypes:
+      listEntityName = parseXML(entityType)
+      if len(listEntityName) != 0:
+        for entityName in listEntityName:
+          try:
+            self.do_entityRepaired(entityType, entityName)
+          except RuntimeError, e:
+            print "error: ", e
+
+    return ""
+
 class CaptureOutput:
   def __init__(self,resolver):
     try: 
@@ -880,6 +1271,11 @@ def main(argLst):
   config = ConfigParser.SafeConfigParser()
   config.read(".safplus_cli.cfg")  
 
+  RED='\033[0;31m'
+  NOCOLOR='\033[m'   # reset
+  # print (RED + "Connect to active node before do anything please!" + NOCOLOR)
+  windowed = False
+
   if windowed:
     os.environ["TERM"] = "XT1" # Set the term in the environment so child programs know xmlterm is running
     resolver = TermController()
@@ -926,6 +1322,13 @@ def main(argLst):
 
     while 1:      
       cmd = resolver.cmdLine.input()
+
+      if resolver.didConnect == 0:
+        if cmd != "help" and cmd != "exit":
+          if not "connect" in cmd:
+            print (RED + "connect to active node before do anything please!" + NOCOLOR)
+            continue
+
       resolver.execute(cmd,resolver)
   access.Finalize()
 

@@ -5,7 +5,7 @@ include ../mk/preface.mk
 CPP_FLAGS += -I../group/groupCliRpc/$(PROTOBUFVER)
 
 # Specify the required libraries
-SAFPLUS_LIBS := clMgt clUtils clLog clCkpt clGroup clMsg clOsal clDbal clGroupCli
+SAFPLUS_LIBS := clMgt clUtils clLog clCkpt clGroup clMsg clOsal clDbal clAmfMgmt clName clAmf clRpc clGroupCli
 # Then use these in the make rule
 SAFPLUS_DEP_LIBS     := $(addsuffix .so,$(addprefix $(LIB_DIR)/lib,$(SAFPLUS_LIBS)))
 SAFPLUS_LINK_LIBS := -L$(LIB_DIR) $(addprefix -l,$(SAFPLUS_LIBS))

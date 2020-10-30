@@ -3,6 +3,31 @@ import safplus
 import pdb
 
 mgtGet = safplus.mgtGet
+getProcessHandle = safplus.getProcessHandle
+
+amfMgmtInitialize = safplus.amfMgmtInitialize
+amfMgmtFinalize = safplus.amfMgmtFinalize
+nameInitialize = safplus.nameInitialize
+
+amfMgmtNodeLockAssignment = safplus.amfMgmtNodeLockAssignment
+amfMgmtSGLockAssignment = safplus.amfMgmtSGLockAssignment
+amfMgmtSULockAssignment = safplus.amfMgmtSULockAssignment
+amfMgmtSILockAssignment = safplus.amfMgmtSILockAssignment
+
+
+amfMgmtNodeLockInstantiation = safplus.amfMgmtNodeLockInstantiation
+amfMgmtSGLockInstantiation = safplus.amfMgmtSGLockInstantiation
+amfMgmtSULockInstantiation = safplus.amfMgmtSULockInstantiation
+
+amfMgmtNodeUnlock = safplus.amfMgmtNodeUnlock
+amfMgmtSGUnlock = safplus.amfMgmtSGUnlock
+amfMgmtSUUnlock = safplus.amfMgmtSUUnlock
+amfMgmtSIUnlock = safplus.amfMgmtSIUnlock
+
+
+amfMgmtNodeRepair = safplus.amfMgmtNodeRepair
+amfMgmtCompRepair = safplus.amfMgmtCompRepair
+amfMgmtSURepair = safplus.amfMgmtSURepair
 
 def isValidDirectory(path):
   try:
@@ -20,7 +45,7 @@ class Commands:
     self.context = None
 
   def canonicalPath(self,location):
-    print "cur: ", self.context.curdir, " loc: ", location
+    #print "cur: ", self.context.curdir, " loc: ", location
     if location == "." or location == "" or location == None:
       return self.context.curdir
     if location[0] == "/": # not a relative path
@@ -74,6 +99,79 @@ class Commands:
     """Sets the context (environment) object so commands can access it while they are executing"""
     self.context = context
 
+  def do_entitySet(self, entityType, entityName, firstAttribute, firstValue, *attributesAndValuesPairs):
+    """syntax: entitySet entityType entityName attribute value
+    Set the specified values to the attributes
+    """
+    if len(attributesAndValuesPairs) % 2 != 0:
+      print "don't have values with the corresponding attributes"
+      return ""
+
+    t = "/safplusAmf" + "/" + entityType + "/" + entityName
+
+    listAttributesAndValuesPairs = list(attributesAndValuesPairs)
+    listAttributesAndValuesPairs.append(firstAttribute)
+    listAttributesAndValuesPairs.append(firstValue)
+
+    i = 0
+    while i < len(listAttributesAndValuesPairs):
+      loc = self.canonicalPath(t + "/" + listAttributesAndValuesPairs[i])
+      try:
+        ret = safplus.mgtSet(str(loc),str(listAttributesAndValuesPairs[i+1]))
+      except RuntimeError, e:
+        print "<error>location [%s] error [%s]</error>" % (location, str(e))
+      i += 2
+      if ret == 4:  # CL_ERROR_NOT_EXIST
+        print "<error>location [%s] does not exist</error>" % loc
+    return ""
+
+  def do_entityCreate(self, *entityTypeAndEntityNamePairs):
+    """syntax: entityCreate entityType entityName
+    Creates a new entityName with the specified entityType
+    """
+
+    if len(entityTypeAndEntityNamePairs) % 2 != 0:
+      print "don't have entityName with the corresponding entityType"
+      return ""
+
+    t = "/safplusAmf"
+    i = 0
+    while i < len(entityTypeAndEntityNamePairs):
+      entityType = entityTypeAndEntityNamePairs[i]
+      entityName = entityTypeAndEntityNamePairs[i+1]
+      loc = self.canonicalPath(t + "/" + entityType + "/" + entityName)
+      try:
+        ret = safplus.mgtCreate(str(loc))
+      except RuntimeError, e:
+        print"<error>location [%s] error [%s]</error>" % (location, str(e))
+      i += 2
+      if ret == 16:  # CL_ERR_ALREADY_EXIST
+        print "<error>entityName [%s] already exists</error>" % entityName
+    return ""
+
+  def do_entityDelete(self, *entityTypeAndEntityNamePairs):
+    """syntax: entityDelete entityType entityName
+    Deletes the entityNames
+    """
+
+    if len(entityTypeAndEntityNamePairs) % 2 != 0:
+      print "don't have entityName with the corresponding entityType"
+      return ""
+
+    t = "/safplusAmf"
+    i = 0
+    while i < len(entityTypeAndEntityNamePairs):
+      entityType = entityTypeAndEntityNamePairs[i]
+      entityName = entityTypeAndEntityNamePairs[i+1]
+      loc = self.canonicalPath(t + "/" + entityType + "/" + entityName)
+      try:
+        ret = safplus.mgtDelete(str(loc))
+      except RuntimeError, e:
+        print"<error>location [%s] error [%s]</error>" % (location, str(e))
+      i += 2
+      if ret == 19:  # CL_ERR_DOESNT_EXIST
+        print "<error>entityName [%s] does not exist</error>" % entityName
+    return ""
 
 def Initialize():
   svcs = safplus.Libraries.MSG | safplus.Libraries.GRP | safplus.Libraries.MGT_ACCESS

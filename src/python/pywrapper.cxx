@@ -12,6 +12,10 @@
 #include <clCkptApi.hxx>
 #include <clMgtApi.hxx>
 
+#include <clNameApi.hxx>
+#include <clCustomization.hxx>
+
+#include <clAmfMgmtApi.hxx>
 #include <clGroupCliApi.hxx>
 
 using namespace SAFplus;
@@ -120,7 +124,7 @@ BOOST_PYTHON_MODULE(pySAFplus)
   // Expose global variables
   boost::python::scope().attr("SYS_LOG") = SYS_LOG;   
   boost::python::scope().attr("APP_LOG") = APP_LOG;   
-  boost::python::scope().attr("logSeverity") = SAFplus::logSeverity;   
+  boost::python::scope().attr("logSeverity") = SAFplus::logSeverity;
 
   // Checkpoint
 
@@ -156,9 +160,35 @@ BOOST_PYTHON_MODULE(pySAFplus)
 
   // Management information access
 
-  def("mgtGet",static_cast< std::string (*)(const std::string&) > (&SAFplus::mgtGet)); 
+  def("mgtGet",static_cast< std::string (*)(const std::string&) > (&SAFplus::mgtGet));
   def("mgtSet",static_cast< ClRcT (*)(const std::string&,const std::string&) > (&SAFplus::mgtSet)); 
   def("mgtCreate",static_cast< ClRcT (*)(const std::string& pathSpec) > (&SAFplus::mgtCreate));
   def("mgtDelete",static_cast< ClRcT (*)(const std::string& pathSpec) > (&SAFplus::mgtDelete));
+
+  def("getProcessHandle",static_cast< Handle (*)(int pid, int nodeNum) > (&SAFplus::getProcessHandle));
+  def("mgtGet",static_cast< std::string (*)(Handle src, const std::string&) > (&SAFplus::mgtGet));
+
+  def("amfMgmtInitialize",static_cast< ClRcT (*)(Handle &) > (&SAFplus::amfMgmtInitialize));
+  def("amfMgmtFinalize",static_cast< ClRcT (*)(const Handle &) > (&SAFplus::amfMgmtFinalize));
+  def("nameInitialize", &SAFplus::nameInitialize);
+
+  def("amfMgmtNodeLockAssignment",static_cast< ClRcT (*)(const Handle &, const std::string &) > (&SAFplus::amfMgmtNodeLockAssignment));
+  def("amfMgmtSGLockAssignment",static_cast< ClRcT (*)(const Handle &, const std::string &) > (&SAFplus::amfMgmtSGLockAssignment));
+  def("amfMgmtSULockAssignment",static_cast< ClRcT (*)(const Handle &, const std::string &) > (&SAFplus::amfMgmtSULockAssignment));
+  def("amfMgmtSILockAssignment",static_cast< ClRcT (*)(const Handle &, const std::string &) > (&SAFplus::amfMgmtSILockAssignment));
+
+  def("amfMgmtNodeLockInstantiation",static_cast< ClRcT (*)(const Handle &, const std::string &) > (&SAFplus::amfMgmtNodeLockInstantiation));
+  def("amfMgmtSGLockInstantiation",static_cast< ClRcT (*)(const Handle &, const std::string &) > (&SAFplus::amfMgmtSGLockInstantiation));
+  def("amfMgmtSULockInstantiation",static_cast< ClRcT (*)(const Handle &, const std::string &) > (&SAFplus::amfMgmtSULockInstantiation));
+
+  def("amfMgmtNodeUnlock",static_cast< ClRcT (*)(const Handle &, const std::string &) > (&SAFplus::amfMgmtNodeUnlock));
+  def("amfMgmtSGUnlock",static_cast< ClRcT (*)(const Handle &, const std::string &) > (&SAFplus::amfMgmtSGUnlock));
+  def("amfMgmtSUUnlock",static_cast< ClRcT (*)(const Handle &, const std::string &) > (&SAFplus::amfMgmtSUUnlock));
+  def("amfMgmtSIUnlock",static_cast< ClRcT (*)(const Handle &, const std::string &) > (&SAFplus::amfMgmtSIUnlock));
+
+  def("amfMgmtNodeRepair",static_cast< ClRcT (*)(const Handle &, const std::string &) > (&SAFplus::amfMgmtNodeRepair));
+  def("amfMgmtCompRepair",static_cast< ClRcT (*)(const Handle &, const std::string &) > (&SAFplus::amfMgmtCompRepair));
+  def("amfMgmtSURepair",static_cast< ClRcT (*)(const Handle &, const std::string &) > (&SAFplus::amfMgmtSURepair));
+
   def("grpCliClusterViewGet",&SAFplus::grpCliClusterViewGet);
 }
