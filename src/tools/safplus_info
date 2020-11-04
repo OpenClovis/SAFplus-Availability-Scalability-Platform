@@ -60,6 +60,8 @@ import socket
 import fcntl
 import struct
 import safplus as s
+import microdom
+import amfctrl
 
 try:
     from lxml import etree as et
@@ -498,6 +500,29 @@ def get_cluster_info():
     return nodes
     
     #return info
+def countAssignedSU(root, su):
+    #print 'countAssignedSU: %s' % su
+    count = 0
+    for e in root.getchildren():
+        if e.tag == 'ServiceUnit' and e.get('listkey') == su:
+            for n in e.getchildren():               
+                if n.tag == 'assignedServiceInstances':
+                    #print n.text
+                    if n.text:
+                        count += 1
+    return count
+
+def countInstantiatedSU(root, su):
+    #print 'countInstantiatedSU: %s' % su
+    count = 0
+    for e in root.getchildren():
+        if e.tag == 'ServiceUnit' and e.get('listkey') == su:
+            for n in e.getchildren():                
+                if n.tag == 'presenceState':
+                    #print n.text
+                    if n.text == 'instantiated':
+                        count += 1
+    return count
 
 def get_nodes_info():
     """Obtain the su list as a list of Dot objects with following info:
@@ -505,6 +530,8 @@ def get_nodes_info():
     xml = s.mgtGet(xmlRoot)    
     root = et.fromstring(xml)    
     nodes = []
+    isu = 0
+    asu = 0
     for e in root.getchildren():
         if e.tag == 'Node':
             node = Dot({})
@@ -518,6 +545,11 @@ def get_nodes_info():
                     node.presence       = _presence_map[n.text]
                 elif n.tag == 'operState':
                     node.operstate       = _operstate_map[n.text]
+                elif n.tag == 'serviceUnits':
+                    su = n.text[n.text.rfind('/')+1:]
+                    asu += countAssignedSU(root, su)
+                    isu += countInstantiatedSU(root, su)
+
         
         #node.castate      = _state_map[n.config[0].computed_admin_state[0]]
         #node.presence     = _presence_map[n.presenceState[0]]
@@ -526,12 +558,39 @@ def get_nodes_info():
         #node.member       = _member_map[n.status[0].is_cluster_member[0]]
         #node.isu          = n.status[0].num_instantiated_sus[0]
         #node.asu          = n.status[0].num_assigned_sus[0]
-
+            node.isu = isu
+            node.asu = asu            
             nodes.append(node)
+            isu = asu = 0
 
     return nodes
 
-        
+def get_sg_info(sgName):
+    sgx = s.mgtGet(xmlRoot + "/ServiceGroup/" + sgName)
+    if sgx: 
+        sg = microdom.LoadString(sgx)
+        sg.su = {}
+        suNames = amfctrl.csv2List(sg.serviceUnits.data_)
+        for sun in suNames:
+            if not sun: continue
+            sut = s.mgtGet(sun)
+            if sut:
+                #print 'geting su obj of [%s]'%sut
+                sumd = microdom.LoadString(sut)
+                sg.su[sumd.name.data_] = sumd # Add this su to the sg's dictionary
+    else:
+        raise Error("no service group [%s], or no access" % sgName)
+    return sg
+
+def get_sg_names():
+    xml = s.mgtGet(xmlRoot)    
+    root = et.fromstring(xml)    
+    sgs = []
+    for e in root.getchildren():
+        if e.tag == 'ServiceGroup':
+            sgs.append(e.get('listkey'))
+    return sgs
+
 class Cli(cmd.Cmd):
     """Command line handler class"""
     
@@ -706,14 +765,13 @@ class Cli(cmd.Cmd):
             return 0
         
         len_name = max([len(n.nodename) for n in nodes])
-        #fmt = '%%(nodename)%ds  %%(classtype)5s  %%(astate)2s  %%(castate)3s  %%(presence)2s  %%(operstate)2s  %%(instantiable)12s  %%(member)14s  %%(isu)3s  %%(asu)3s' % \
-#                (len_name)
-        fmt = '%%(nodename)%ds  %%(astate)2s  %%(presence)2s  %%(operstate)2s  ' % \
+       
+        fmt = '%%(nodename)%ds  %%(astate)2s  %%(presence)2s  %%(operstate)2s  %%(isu)3s  %%(asu)3s' % \
                 (len_name)
 
         h = Dot({}) # table header
-        h.nodename, h.astate,  h.presence, h.operstate, = \
-        'NODE',     'AS',      'PS',       'OS'
+        h.nodename, h.astate,  h.presence, h.operstate, h.isu, h.asu = \
+        'NODE',     'AS',      'PS',       'OS',       'ISU',       'ASU'
         
         nodes.sort(lambda x,y: cmp(x.nodename, y.nodename))
         print color('bold', fmt % h)
@@ -724,6 +782,132 @@ class Cli(cmd.Cmd):
                 print color('yellow', fmt % n)
             else:
                 print fmt % n    
+
+    def do_forest(self, msg):
+        """print the HA hierarchy for each SG in the cluster (call 'tree' for each SG)"""
+        for sgname in get_sg_names():
+            self.onecmd('tree %s' % sgname)
+
+    def do_tree(self, msg):
+        "Show a tree view of related HA entities containing the specified SG\n" \
+        "\n" \
+        "Usage: tree <sg-name>\n" \
+        "\n" \
+        "where\n" \
+        "    <sg-name>       is one of the names listed by the 'sgs' command\n"
+
+        args = msg.split()
+        if len(args)!=1:
+            self.onecmd('help tree')
+            return 0
+    
+        sg_name = msg.strip()
+        sg = get_sg_info(sg_name)        
+        if not sg:
+            error('Could not find SG [%s] in AMF database' % sg_name)
+            return 0       
+
+        print 'SG %s (state:%s)' % \
+            (color('bold', sg.name.data_),
+             color('bold-red', _state_map[sg.adminState.data_]))
+
+        suList = sg.su.items()
+        nodes = []
+        for sun,su in suList:
+            nodeName = su.node.data_
+            nodex = s.mgtGet(nodeName)
+            #print 'get node obj of [%s]'%nodex
+            node = microdom.LoadString(nodex)
+            nodes.append(node)        
+        
+        #nodes.sort()
+        for node in nodes:
+
+            print '   Node %s' % color('bold', node.name.data_)            
+            
+            sus = [su for sun,su in suList
+                   if su.node.data_[su.node.data_.rfind('/')+1:] == node.name.data_]
+            
+            #sus.sort(lambda x,y: cmp(x.value, y.value))
+            for su in sus:
+
+                print '        SU %s (state:%s)' % \
+                    (color('bold', su.name.data_),
+                     color('bold-red', _state_map[su.adminState.data_]))
+                sis = []
+                siNames = [x.strip() for x in su.assignedServiceInstances.data_.split(",")]
+                for sin in siNames:
+                    if not sin: continue
+                    six = s.mgtGet(sin)
+                    if six:
+                        sim = microdom.LoadString(six)
+                        sis.append(sim)                        
+                
+                for si in sis:
+                    siState = '-'
+                    if len(si.activeAssignments.data_)>0:
+                        siState = 'active'
+                    elif len(si.standbyAssignments.data_)>0:
+                        siState = 'standby'
+                    print '           SI %s (state:%s)' % \
+                        (si.name.data_, color_state(siState))
+        
+                compNames = amfctrl.csv2List(su.components.data_)
+                comps = []
+                for cn in compNames:
+                    if not cn: continue
+                    cux = s.mgtGet(cn)
+                    if cux:
+                        compMicrodom = microdom.LoadString(cux)
+                        comps.append(compMicrodom)
+                
+                for comp in comps:                    
+                    print '           Comp %s (PS:%s OS:%s RS:%s PID:%s)' % \
+                        (color('bold', comp.name.data_),
+                         comp.presenceState.data_,
+                         _operstate_map[str(comp.operState.data_)],
+                         _readiness_map[comp.readinessState.data_],
+                         color('bold-cyan', comp.processId.data_))                    
+
+                    csis = []
+                    for si in sis:                        
+                        csiNames = amfctrl.csv2List(si.componentServiceInstances.data_)
+                        for csin in csiNames:
+                            if not csin: continue
+                            csix = s.mgtGet(csin)
+                            #print 'getting csi obj from [%s]' % csix
+                            csim = microdom.LoadString(csix)
+                            #print 'DBG: adding csi [%s] to list csis'%csin
+                            csis.append(csim)
+                    activeComps = standbyComps = []                    
+                    csiState = '-'
+                    csin = ''
+                    for csi in csis:                        
+                        #print 'DBG:compname:%s/csiname:%s/active comps:%s'%(comp.name.data_,csi.name.data_,csi.activeComponents.data_)
+                        #print 'compname:%s/csiname:%s/standby comps:%s'%(comp.name.data_,csi.name.data_,csi.standbyComponents.data_)
+                        if len(csi.activeComponents.data_)>0:
+                            #print 'active comps:%s'%csi.activeComponents.data_                            
+                            activeCompsX = amfctrl.csv2List(csi.activeComponents.data_)
+                            for c in activeCompsX:
+                                activeComps.append(c[c.rfind('/')+1:])
+                            if comp.name.data_ in activeComps:
+                                csiState = 'active'
+                                csin = csi.name.data_
+                                break                            
+                        elif len(csi.standbyComponents.data_)>0:
+                            #print 'standby comps:%s'%csi.activeComponents.data_                           
+                            standbyCompsX = amfctrl.csv2List(csi.standbyComponents.data_)
+                            for c in standbyCompsX:
+                                standbyComps.append(c[c.rfind('/')+1:])                            
+                            if comp.name.data_ in standbyComps:
+                                csiState = 'standby'
+                                csin = csi.name.data_
+                                break
+                        #print 'active comps:%s'%str(activeComps)
+                        #print 'standby comps:%s'%str(standbyComps)
+
+                    print '                CSI %s (state:%s)' % \
+                            (csin, color_state(csiState))                    
 
     def do_EOF(self, msg):
         """Type 'exit' or press Ctrl-D to exit"""
