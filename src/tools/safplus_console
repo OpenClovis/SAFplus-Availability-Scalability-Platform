@@ -62,6 +62,7 @@ SAFplusNamespace = "http://www.openclovis.org/ns/amf"
 
 import pdb
 import xml.etree.ElementTree as ET
+from xml.dom import minidom
 
 
 try:
@@ -1127,42 +1128,153 @@ By default the specified location and children are shown.  Use -N to specify how
   def do_repairAll(self):
     """syntax: repairAll
     """
-    def parseXML(entityType):
-      t = os.path.normpath(os.path.join(self.curdir,"/safplusAmf/", entityType))
-      depth=1
-      gs = "{d=%s}%s" % (depth,str(t))
-      try:
-        xml = access.mgtGet(self.handle, gs)
-        xml = "<top>" + xml + "</top>"
-      except RuntimeError, e:
-        if str(e) == "Route has no implementer":
-          return "<error>Invalid path [%s]</error>" % str(t)
-        return "<error>" + str(e) + "</error>"
-      except Exception, e:
-        return "<error>" + str(e) + "</error>"
-      try:
-        root = ET.fromstring(xml)
-      except IndexError, e:
-        print "<error>xml [%s] error [%s]</error>" % (xml, str(e))
-        return ""
-      except ET.ParseError, e:
-        print "<error>xml [%s] error [%s]</error>" % (xml, str(e))
-        return ""
-      listEntityName = []
-      for child in root:
-        dictAtrr = child.attrib
-        listEntityName.append(dictAtrr["listkey"])
-      return listEntityName
-
     entityTypes = "Node", "ServiceUnit", "Component"
     for entityType in entityTypes:
-      listEntityName = parseXML(entityType)
+      listEntityName = self.parseXML(entityType)
       if len(listEntityName) != 0:
         for entityName in listEntityName:
           try:
             self.do_entityRepaired(entityType, entityName)
           except RuntimeError, e:
             print "error: ", e
+
+    return ""
+
+  def parseXML(self, entityType):
+    t = os.path.normpath(os.path.join(self.curdir,"/safplusAmf/", entityType))
+    depth=1
+    gs = "{d=%s}%s" % (depth,str(t))
+    try:
+      xml = access.mgtGet(self.handle, gs)
+      xml = "<top>" + xml + "</top>"
+    except RuntimeError, e:
+      if str(e) == "Route has no implementer":
+        return "<error>Invalid path [%s]</error>" % str(t)
+      return "<error>" + str(e) + "</error>"
+    except Exception, e:
+      return "<error>" + str(e) + "</error>"
+    try:
+      # print xml
+      root = ET.fromstring(xml)
+    except IndexError, e:
+      print "<error>xml [%s] error [%s]</error>" % (xml, str(e))
+      return ""
+    except ET.ParseError, e:
+      print "<error>xml [%s] error [%s]</error>" % (xml, str(e))
+      return ""
+    listEntityName = []
+    for child in root:
+      dictAtrr = child.attrib
+      listEntityName.append(dictAtrr["listkey"])
+    return listEntityName
+
+  def do_dbPrint(self):
+    """syntax: dbPrint
+    """
+    entityTypes = "Node", "ServiceUnit", "Component", "ServiceGroup", "ServiceInstance", "componentServiceInstance"
+    for entityType in entityTypes:
+      listEntityName = self.parseXML(entityType)
+      if len(listEntityName) != 0:
+        for entityName in listEntityName:
+          try:
+            self.do_entityPrint(entityType, entityName)
+          except RuntimeError, e:
+            print "error: ", e
+
+    return ""
+
+  def prettify(self, elem):
+    rough_string = ET.tostring(elem, 'utf-8')
+    reparsed = minidom.parseString(rough_string)
+    return reparsed.toprettyxml(indent="  ")
+
+  def recursiveParseXML(self, dom, top):
+    if len(dom.childNodes) > 0:
+      for n in dom.childNodes:
+        if n.nodeType == n.TEXT_NODE:
+          child = ET.SubElement(top, dom.tagName)
+          child.text = n.data
+        else:
+          if len(n.childNodes) > 0:
+            self.recursiveParseXML(n, top)
+          else:
+            if n.getAttribute("listkey") != "":
+              if n.tagName == "Node":
+                element = top.find("Nodes")
+                if element == None:
+                  element = ET.SubElement(top, "Nodes")
+                child2 = ET.SubElement(element, n.tagName, {'listkey':n.getAttribute("listkey")})
+                self.parseXMLParent2Child(n.tagName, child2)
+              elif n.tagName == "ServiceGroup":
+                element = top.find("ServiceGroups")
+                if element == None:
+                  element = ET.SubElement(top, "ServiceGroups")
+                child2 = ET.SubElement(element, n.tagName, {'listkey':n.getAttribute("listkey")})
+                self.parseXMLParent2Child(n.tagName, child2)
+              elif n.tagName == "ServiceUnit":
+                element = top.find("ServiceUnits")
+                if element == None:
+                  element = ET.SubElement(top, "ServiceUnits")
+                child2 = ET.SubElement(element, n.tagName, {'listkey':n.getAttribute("listkey")})
+                self.parseXMLParent2Child(n.tagName, child2)
+              elif n.tagName == "Component":
+                element = top.find("Components")
+                if element == None:
+                  element = ET.SubElement(top, "Components")
+                child2 = ET.SubElement(element, n.tagName, {'listkey':n.getAttribute("listkey")})
+                self.parseXMLParent2Child(n.tagName, child2)
+              elif n.tagName == "ServiceInstance":
+                element = top.find("ServiceInstances")
+                if element == None:
+                  element = ET.SubElement(top, "ServiceInstances")
+                child2 = ET.SubElement(element, n.tagName, {'listkey':n.getAttribute("listkey")})
+                self.parseXMLParent2Child(n.tagName, child2)
+              elif n.tagName == "ComponentServiceInstance":
+                element = top.find("ComponentServiceInstances")
+                if element == None:
+                  element = ET.SubElement(top, "ComponentServiceInstances")
+                child2 = ET.SubElement(element, n.tagName, {'listkey':n.getAttribute("listkey")})
+                self.parseXMLParent2Child(n.tagName, child2)
+            else:
+              child = ET.SubElement(top, n.tagName)
+    return ""
+
+  def parseXMLParent2Child(self, entityType, top):
+    t = os.path.normpath(os.path.join(self.curdir,"/safplusAmf/", entityType))
+    depth=1
+    gs = "{d=%s}%s" % (depth,str(t))
+    try:
+      xml = access.mgtGet(self.handle, gs)
+      xml = "<top>" + xml + "</top>"
+    except RuntimeError, e:
+      if str(e) == "Route has no implementer":
+        return "<error>Invalid path [%s]</error>" % str(t)
+      return "<error>" + str(e) + "</error>"
+    except Exception, e:
+      return "<error>" + str(e) + "</error>"
+    dom = minidom.parseString(xml)
+    if entityType == "":
+      top = ET.Element(dom.childNodes[0].childNodes[0].tagName)
+    self.recursiveParseXML(dom, top)
+    return top
+
+
+
+
+  def do_dbXMLPrint(self):
+    """syntax: dbXMLPrint
+    """
+    top = ET.Element("")
+    top = self.parseXMLParent2Child("", top)
+    print self.prettify(top)
+
+    f = open("../var/log/safplusAmf_db_print.xml", "w")
+    f.write(self.prettify(top))
+    f.close()
+
+    path = os.path.abspath(os.getcwd())
+    parent = os.path.join(path, os.pardir)
+    print "Success - Output written to [%s/var/log/safplusAmf_db_print.xml]" %os.path.abspath(parent)
 
     return ""
 

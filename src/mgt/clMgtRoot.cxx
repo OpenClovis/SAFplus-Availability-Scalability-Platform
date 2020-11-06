@@ -858,22 +858,8 @@ namespace SAFplus
     logDebug("MGT","MSG","receive new  message ");
     Mgt::Msg::MsgMgt mgtMsgReq;
     Mgt::Msg::MsgRpc mgtRpcReq;
-    if(mgtRpcReq.ParseFromArray(msg, msglen))
+    if(mgtMsgReq.ParseFromArray(msg, msglen))
     {
-      if(mgtRpcReq.isrpc())
-      {
-         logDebug("MGT","MSG","process RPC message");
-         mRoot->clMgtMsgRPCHandler(from,mgtRpcReq);
-      }
-      else
-      {
-         logDebug("MGT","MSG","process Action message");
-         mRoot->clMgtMsgActionHandler(from,mgtRpcReq);
-      }
-    }
-    else
-    {
-      mgtMsgReq.ParseFromArray(msg, msglen);
       logDebug("MGT","MSG","process MGT message [%d]",mgtMsgReq.type());
       switch(mgtMsgReq.type())
       {
@@ -906,6 +892,20 @@ namespace SAFplus
           break;
         default:
           break;
+      }
+    }
+    else
+    {
+      mgtRpcReq.ParseFromArray(msg, msglen);
+      if(mgtRpcReq.isrpc())
+      {
+         logDebug("MGT","MSG","process RPC message");
+         mRoot->clMgtMsgRPCHandler(from,mgtRpcReq);
+      }
+      else
+      {
+         logDebug("MGT","MSG","process Action message");
+         mRoot->clMgtMsgActionHandler(from,mgtRpcReq);
       }
     }
   }
