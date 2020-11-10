@@ -387,39 +387,43 @@ class SAFplusFrame(wx.Frame):
 
     def onPrjTreeActivated(self, evt):
       """ handle an event when user double-clicks on an item at the tree on the left to switch views to it or to set it active """
-      pt = evt.GetPoint()
-      item, _ = self.project.tree.HitTest(pt)
-      if item:       
-        print "onPrjTreeActivated [%s]" % self.project.tree.GetItemText(item)
-        if self.project.tree.GetItemParent(item) == self.project.root: # check to see if this is the project name
-          prjname = os.path.splitext(self.project.tree.GetItemText(item))[0]
-          print 'project [%s] is activated' % prjname
-          prj = self.project.active()
-          print 'project [%s] is selected' % prj.name
-          if prj == self.currentActivePrj:
-            return
-          else:
-            self.loadProject(prj)
-        else: 
-          # for create, update status of edit page
-          path = self.project.getItemAbsolutePath(item)
-          if os.path.isfile(path):
+      item = evt.GetItem()
+      if item:
+        if self.project.tree.IsExpanded(item) and self.project.tree.ItemHasChildren(item):
+          self.project.tree.Collapse(item)
+        elif not self.project.tree.IsExpanded(item) and self.project.tree.ItemHasChildren(item):
+          self.project.tree.Expand(item)
+        elif not self.project.tree.IsExpanded(item) and not self.project.tree.ItemHasChildren(item):
+          print "onPrjTreeActivated [%s]" % self.project.tree.GetItemText(item)
+          if self.project.tree.GetItemParent(item) == self.project.root: # check to see if this is the project name
+            prjname = os.path.splitext(self.project.tree.GetItemText(item))[0]
+            print 'project [%s] is activated' % prjname
+            prj = self.project.active()
+            print 'project [%s] is selected' % prj.name
+            if prj == self.currentActivePrj:
+              return
+            else:
+              self.loadProject(prj)
+          else: 
+            # for create, update status of edit page
+            path = self.project.getItemAbsolutePath(item)
+            if os.path.isfile(path):
             
-            if path in self.openFile.keys():
-              if "DELETED Page object" in str(self.openFile[path]):
-                del self.openFile[path]
+              if path in self.openFile.keys():
+                if "DELETED Page object" in str(self.openFile[path]):
+                  del self.openFile[path]
 
-            if not (path in self.openFile.keys()):
-              fileName = str(self.project.tree.GetItemText(item))
-              p = Page(self, path)
-              self.tab.AddPage(p, fileName)
-              self.openFile[path] = p
+              if not (path in self.openFile.keys()):
+                fileName = str(self.project.tree.GetItemText(item))
+                p = Page(self, path)
+                self.tab.AddPage(p, fileName)
+                self.openFile[path] = p
 
-            pageIndex = self.tab.GetPageIndex(self.openFile[path])
-            self.tab.SetSelection(pageIndex)
+              pageIndex = self.tab.GetPageIndex(self.openFile[path])
+              self.tab.SetSelection(pageIndex)
           
-          pass #TODO : handling other tree item clicked e.g. c++ source or others
-
+            pass #TODO : handling other tree item clicked e.g. c++ source or others
+          
     def onPageChanged(self, evt):
       page = self.tab.GetPageText(evt.GetSelection())
       print 'onPageChangedEvent: page [%s] is selected' % page
