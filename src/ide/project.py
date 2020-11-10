@@ -471,7 +471,9 @@ class ProjectTreePanel(wx.Panel):
         self.menuProject.Enable(PROJECT_BUILD, False)
         self.menuProject.Enable(PROJECT_CLEAN, False)
         self.menuProject.Enable(PROJECT_PROPERTIES, False)
-        self.menuProject.Bind(wx.EVT_MENU, self.OnLoad, id=PROJECT_OPEN)
+        
+        
+        self.menuProject.Bind(wx.EVT_MENU, self.OnLoadProject, id=PROJECT_OPEN)
         self.menuProject.Bind(wx.EVT_MENU, self.OnCloseProject, id=PROJECT_CLOSE)
         self.menuProject.Bind(wx.EVT_MENU, self.OnValidate, id=PROJECT_VALIDATE)
         self.menuProject.Bind(wx.EVT_MENU, self.OnMakeImages, id=MAKE_IMAGES)
@@ -840,6 +842,39 @@ class ProjectTreePanel(wx.Panel):
       self.menuProject.Enable(PROJECT_PROPERTIES, True)
       self.menuTools.Enable(TOOL_CLEAR_PROJECT_DATA, True)
     os.chdir(current_path)
+
+  def OnLoadProject(self, event):
+    dialog = wx.DirDialog(self, 
+    message = "Choose the exist project:",
+    defaultPath=common.getMostRecentPrjDir(),
+    style=wx.DD_DEFAULT_STYLE | wx.DD_NEW_DIR_BUTTON)
+    if dialog.ShowModal() == wx.ID_OK:
+      name = os.path.splitext(os.path.basename(dialog.GetPath()))[0]
+      link = dialog.GetPath() + os.sep+ name +'.spp'
+      paths=[]
+      paths.append(link)
+      if not os.path.exists(link):
+        msgBox = wx.MessageDialog(self, link+' does not exist', style=wx.OK|wx.CENTRE)
+        msgBox.ShowModal()
+        msgBox.Destroy()
+        return  
+
+      for p in paths:
+        if self.isPrjLoaded(p): return 
+        project = Project(p)                 
+        self.populateGui(project, self.root)
+      evt = ProjectLoadedEvent(EVT_PROJECT_LOADED.evtType[0])
+      wx.PostEvent(self.parent,evt)
+      self.fileMenu.Enable(PROJECT_SAVE, True)
+      self.fileMenu.Enable(PROJECT_SAVE_AS, True) 
+      self.menuProject.Enable(PROJECT_VALIDATE, True)
+      self.menuProject.Enable(PROJECT_BUILD, True)
+      self.menuProject.Enable(PROJECT_CLEAN, True)
+      self.menuProject.Enable(MAKE_IMAGES, True)
+      self.menuProject.Enable(IMAGES_DEPLOY, True)
+      self.menuProject.Enable(PROJECT_PROPERTIES, True)
+      self.menuTools.Enable(TOOL_CLEAR_PROJECT_DATA, True)
+    dialog.Destroy()
 
   def OnNew(self,event):
     dlg = NewPrjDialog()
