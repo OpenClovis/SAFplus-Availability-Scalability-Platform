@@ -501,8 +501,14 @@ class Panel(scrolled.ScrolledPanel):
       if type(typeData) is DictType and typeData.has_key("type"):
         if typeData["type"] == "boolean":
           query = wx.CheckBox(self.tree.GetMainWindow(),id,"")
-          checked = bool(value)
-          query.SetValue(checked)
+          #checked = bool(value)
+          if value == 'true':
+            #checked = True
+            query.SetValue(True)
+          elif value == 'false':
+            #checked = False
+            query.SetValue(False)
+          
         elif typeData["type"] in YangIntegerTypes or typeData["type"]=="SAFplusTypes:SaTimeT":
           v = 0
           try:

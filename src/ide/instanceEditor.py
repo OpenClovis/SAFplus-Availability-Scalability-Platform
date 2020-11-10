@@ -1486,6 +1486,11 @@ class Panel(scrolled.ScrolledPanel):
       self.menuNodeInstCreate.AppendMenu(wx.NewId(), NEW_NODE_INST_INHERIT_FROM_A_NODE, self.menuUserDefineNodeTypes, "Create new node instance from another one")
 
     def modifyEntityTool(self, ent, newValue):      
+      if isinstance(newValue, types.BooleanType) == True:
+        if newValue == True:
+          newValue = 'true'
+        elif newValue == False:
+          newValue = 'false' 
       name = ent.et.name
       entExists = False
       for (eid,e) in self.idLookup.items():
