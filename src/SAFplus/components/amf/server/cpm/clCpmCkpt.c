@@ -646,18 +646,29 @@ ClRcT cpmCpmLCheckpointWrite(void)
      */
     
     if((rc = cpmCpmLSerializer(&readData, &dataSize)) != CL_OK)
-        goto failure;
-    
-    if ((rc = clCkptSectionOverwrite(gpClCpm->ckptOpenHandle,
+        goto out_free;
+
+    ClBoolT retried = CL_FALSE;
+
+retry:
+
+    rc = clCkptSectionOverwrite(gpClCpm->ckptOpenHandle,
                                      &sectionId,
                                      (ClUint8T *)readData,
-                                     dataSize)) != CL_OK)
-        goto failure;
-
-    clHeapFree(readData);
+                                     dataSize);
+    if (CL_GET_ERROR_CODE(rc) == CL_ERR_NOT_EXIST && retried == CL_FALSE)
+    {
+       ClRcT rc2 = clCkptActiveReplicaSet(gpClCpm->ckptOpenHandle);
+       retried = CL_TRUE;
+       if (rc2 == CL_OK) goto retry;
+       else
+       {
+           clLogWarning("CKP","WRI","active replica set for cpmServer checkpoint failed, rc [0x%x]", rc2);
+       }
+    }   
     
-    return CL_OK;
-failure:
+    
+out_free:
     if(readData)
         clHeapFree(readData);
 

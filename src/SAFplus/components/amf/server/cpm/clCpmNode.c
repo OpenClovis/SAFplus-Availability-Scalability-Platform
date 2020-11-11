@@ -663,7 +663,7 @@ ClRcT VDECL(cpmCpmLocalRegister)(ClEoDataT data,
          * Do the CPM\L dataSet checkpoint 
          */
         rc = cpmCkptCpmLDatsSet();
-        if (rc != CL_OK) clLogError(CPM_LOG_AREA_CPM, CPM_LOG_CTX_CPM_CM, "Cannot write checkpoint to indicate node arrival");        
+        if (rc != CL_OK) clLogError(CPM_LOG_AREA_CPM, CPM_LOG_CTX_CPM_CM, "Cannot write checkpoint to indicate node arrival, rc [0x%x]", rc);
         clOsalMutexUnlock(&gpClCpm->cpmMutex);
     }
     else
