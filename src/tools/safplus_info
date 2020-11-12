@@ -524,6 +524,45 @@ def countInstantiatedSU(root, su):
                         count += 1
     return count
 
+def countActiveStandbySU(sg):
+    suNames = amfctrl.csv2List(sg.serviceUnits.data_)
+    numActives=numStandbys=0
+    for sun in suNames:
+        #print 'sun:'+sun
+        sux = s.mgtGet(sun)
+        if sux: 
+            su = microdom.LoadString(sux)
+            #print 'haState:'+su.haState.data_
+            if su.haState.data_ == 'active':
+                numActives+=1
+            elif su.haState.data_ == 'standby':
+                numStandbys+=1
+        else:
+            print 'mgtget for su %s failed'% sun
+    return numActives,numStandbys
+
+def countInstantiatedComp(su):
+    compNames = amfctrl.csv2List(su.components.data_)
+    count = 0
+    for compName in compNames:        
+        compx = s.mgtGet(compName)
+        if compx: 
+            comp = microdom.LoadString(compx)
+            #print 'comp:%s, presenceState:%s'%(comp.name.data_,comp.presenceState.data_)
+            if comp.presenceState.data_ == 'instantiated':
+                count+=1                
+        else:
+            print 'mgtget for comp %s failed'% compName
+    #print 'count:%d\n\n\n'%count
+    return count
+
+def getNumActiveStandbySI(su):
+    nActiveSI = su.numActiveServiceInstances.current.data_ if su.numActiveServiceInstances.current else 0
+    nStandbySI = su.numStandbyServiceInstances.current.data_ if su.numStandbyServiceInstances.current else 0
+    #print 'nASI:%d'%nActiveSI
+    #print 'nSSI:%d'%nStandbySI
+    return nActiveSI,nStandbySI
+
 def get_nodes_info():
     """Obtain the su list as a list of Dot objects with following info:
     """    
@@ -582,6 +621,20 @@ def get_sg_info(sgName):
         raise Error("no service group [%s], or no access" % sgName)
     return sg
 
+def get_sgs_info():
+    sgs = []
+    for sgname in get_sg_names():
+        sginfo = get_sg_info(sgname)
+        sg = Dot({})
+        sg.sgname     = sginfo.name.data_
+        sg.astate     = _state_map[sginfo.adminState.data_]
+        numA,numS     = countActiveStandbySU(sginfo)
+        sg.activesus  = numA
+        sg.stbysus    = numS
+        sg.started    = 'True' if sginfo.adminState.data_=='on' or sginfo.adminState.data_=='idle' else 'False'
+        sgs.append(sg)
+    return sgs
+
 def get_sg_names():
     xml = s.mgtGet(xmlRoot)    
     root = et.fromstring(xml)    
@@ -590,6 +643,82 @@ def get_sg_names():
         if e.tag == 'ServiceGroup':
             sgs.append(e.get('listkey'))
     return sgs
+
+def get_sus_info(nodename=None):
+    """Obtain the su list as a list of Dot objects with following info:
+    """
+    xml = s.mgtGet(xmlRoot)    
+    root = et.fromstring(xml)
+    sus = []
+    for e in root.getchildren():
+        if e.tag == 'ServiceUnit':    
+            sux = s.mgtGet(xmlRoot + '/ServiceUnit/' + e.get('listkey'))
+            if sux: 
+                suxm = microdom.LoadString(sux)
+                thisNode = suxm.node.data_
+                this_nodename = thisNode[thisNode.rfind('/')+1:]
+                if nodename and not nodename == this_nodename:
+                    continue
+                su = Dot({})
+                su.suname    = suxm.name.data_
+                #print 'suname:'+su.suname
+                su.sgname    = suxm.serviceGroup.data_[suxm.serviceGroup.data_.rfind('/')+1:]
+                su.nodename  = this_nodename
+                su.astate    = _state_map[suxm.adminState.data_]
+                su.presence  = _presence_map[suxm.presenceState.data_]
+                #print 'operState:%s'% str(suxm.operState.data_)
+                su.operstate = _operstate_map[str(suxm.operState.data_)]
+                su.readiness = _readiness_map[suxm.readinessState.data_]
+                su.comps     = countInstantiatedComp(suxm)
+                nA,nS = getNumActiveStandbySI(suxm)
+                if nA:
+                    su.sis   = 'A'
+                elif nS:
+                    su.sis   = 'S'
+                else:
+                    su.sis   = '-'
+        #else:
+        #    su.sis   = ''.join([ _hastate_map[si.ha_state[0]]
+        #                       for si in s.status[0].sis[0].si ])
+                sus.append(su)
+
+    return sus
+
+def get_comps_info():
+    """Obtain the component list from CPM and return it as list of dot objects
+       with following fields:
+            .compname       <compname>
+            .running        'Y' or '-'
+            .pid            <pid> or '-'            
+            .command        <command name> or '-'            
+    """
+
+    xml = s.mgtGet(xmlRoot)    
+    root = et.fromstring(xml)
+    comps = []
+    for e in root.getchildren():
+        if e.tag == 'Component':    
+            compx = s.mgtGet(xmlRoot + '/Component/' + e.get('listkey'))
+            if compx:
+                comp = microdom.LoadString(compx)
+                if comp:
+                    c = Dot({})
+                    c.compname = comp.name.data_
+                    c.running = (comp.presenceState.data_ == 'instantiated' and 'Y' or '-')
+                    if c.running == 'Y':
+                        c.pid = str(comp.processId.data_)
+                        pid = int(c.pid)
+                        if not pid:
+                            c.pid = '-'
+                        if pid>0:
+                            c.command = comp.instantiate.command.data_
+                        else:
+                            c.command = '-'
+                    else:
+                        c.pid = c.command = '-'
+                comps.append(c)
+    
+    return comps
 
 class Cli(cmd.Cmd):
     """Command line handler class"""
@@ -750,7 +879,6 @@ class Cli(cmd.Cmd):
         "Abbreviations:\n" \
         "    AS:         Administrative state (LI: Locked-instantiation, LA: Locked-assignment,\n" \
         "                UL: Unlocked)\n" \
-        "    CAS:        Computed administrative state (same values as AS)\n" \
         "    PS:         Presence state:\n" \
         "                I: Instantiated, U: Uninstantiated\n" \
         "    OS:         Operational state:\n" \
@@ -905,9 +1033,120 @@ class Cli(cmd.Cmd):
                                 break
                         #print 'active comps:%s'%str(activeComps)
                         #print 'standby comps:%s'%str(standbyComps)
-
+                    
                     print '                CSI %s (state:%s)' % \
-                            (csin, color_state(csiState))                    
+                            (csin, color_state(csiState))
+                    #del csis
+
+    def do_sgs(self, msg):
+        "Show all defined service groups in cluster\n" \
+        "\n" \
+        "Abbreviations:\n" \
+        "    AS:         Administrative state (LI: Locked-instantiation, LA: Locked-assignment,\n" \
+        "                UL: Unlocked)\n" \
+        "    A-SUS       # of active SUs\n" \
+        "    S-SUS:      # of standby SUS\n" \
+        "\n" \
+        "Use the 'sg' command to get more information on a given SG\n"
+        sgs = get_sgs_info()
+        len_name = max([len(s.sgname) for s in sgs])
+        fmt = '%%(sgname)-%ds  %%(astate)3s  %%(started)7s %%(activesus)5s  %%(stbysus)5s' % \
+                (len_name)
+
+        h = Dot({}) # table header
+        h.sgname,  h.astate,  h.activesus, h.stbysus, h.started = \
+        'SG-NAME',     'AS',     'A-SUS',     'S-SUS',   'STARTED'
+        
+        sgs.sort(lambda x,y: cmp(x.sgname, y.sgname))
+
+        print color('bold', fmt % h)
+        for sg in sgs:
+            if  sg.astate == 'UL':
+                print color('bold-red', fmt % sg)
+            elif sg.astate == 'LA':
+                print color('yellow', fmt % sg)
+            else:
+                print fmt % sg
+
+    def do_sus(self, msg):
+        "Show list of service units\n" \
+        "\n" \
+        "Usage: sus [ <nodename> | all ]\n" \
+        "\n" \
+        "Without argument, lists all SUS defined in the cluster. With the optional node\n" \
+        "name, lists SUs dedicated to the given node.\n" \
+        "\n" \
+        "Abbreviations:\n" \
+        "    AS:         Administrative state (LI: Locked-instantiation, LA: Locked-assignment,\n" \
+        "                UL: Unlocked)\n" \
+        "    PS:         Presence state:\n" \
+        "                I: Instantiated, U: Uninstantiated\n" \
+        "    OS:         Operational state:\n" \
+        "                E: Enabled, D: Disabled\n" \
+        "    RS:         Readiness state:\n" \
+        "                FIXME add details here\n" \
+        "    IC:         # of instantiated components\n" \
+        "    SIS:        Assigned SIs ('A'=active, 'S'=standby, 'Q'=quiesced)\n"
+
+        args = msg.split()
+        nodename = None
+        if len(args)>1:
+            self.onecmd('help sus')
+            return 0
+        elif len(args)==1:
+            if msg == 'all':
+                pass
+            else:
+                nodename = msg
+        #else:
+        #    nodename = get_node_info_from_cpm().nodename
+           
+        sus = get_sus_info(nodename=nodename)
+        
+        len_suname = max([len(s.suname) for s in sus]+[7])
+        len_sgname = max([len(s.sgname) for s in sus]+[13])
+        len_nodename = max([len(s.nodename) for s in sus]+[7])
+        fmt = '%%(suname)%ds  %%(sgname)-%ds  %%(nodename)-%ds %%(astate)2s %%(presence)-2s %%(operstate)-2s %%(readiness)-3s %%(comps)2s %%(sis)s' % \
+                (len_suname, len_sgname, len_nodename)
+
+        h = Dot({}) # table header
+        h.suname,  h.sgname,      h.nodename, h.astate,  h.presence, h.operstate, h.readiness, h.comps, h.sis = \
+        'SU-NAME','MEMBER-OF-SG', 'ON-NODE',  'AS',     'PS',       'OS',        'RS',        'IC',    'SIS'
+        
+        sus.sort(lambda x,y: cmp(x.suname, y.suname))
+        
+        print color('bold', fmt % h)
+        for su in sus:
+            if  su.astate == 'UL':
+                print color('bold-red', fmt % su)
+            elif su.astate == 'LA':
+                print color('yellow', fmt % su)
+            else:
+                print fmt % su
+
+    def do_components(self, msg):
+        "Show user components running on this node\n" \
+        "\n" \
+        "Abbreviations:\n" \
+        "    R:     Running?\n" \
+        
+        comps = get_comps_info()
+
+        len_compname = max([len(c.compname) for c in comps])
+        len_pid = max([len(c.pid) for c in comps])
+        len_command = max([len(c.command) for c in comps])
+        fmt = '%%(compname)%ds  %%(running)s  %%(pid)-%ds  %%(command)-%ds' % \
+                (len_compname, len_pid, len_command)
+
+        h = Dot({}) # table header
+        h.compname, h.running, h.pid, h.command = \
+        'COMPNAME', 'R',       'PID',       'COMMAND'
+        
+        #comps.sort(lambda x,y: cmp(x.compname, y.compname))
+        
+        print color('bold', fmt % h)
+        for c in comps:
+            print c.running=='Y' and color('bold-red', fmt % c) or fmt % c
 
     def do_EOF(self, msg):
         """Type 'exit' or press Ctrl-D to exit"""

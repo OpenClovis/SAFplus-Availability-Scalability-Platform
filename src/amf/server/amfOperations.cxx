@@ -266,7 +266,7 @@ namespace SAFplus
       {
         assignWorkCallback(wat.comp);
       }
-      else if ( wat.state == WorkOperationTracker::TerminationState)
+      if ( wat.state == WorkOperationTracker::TerminationState)
         {
           if (result == SA_AIS_OK)
           {
