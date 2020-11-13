@@ -1258,9 +1258,6 @@ By default the specified location and children are shown.  Use -N to specify how
     self.recursiveParseXML(dom, top)
     return top
 
-
-
-
   def do_dbXMLPrint(self):
     """syntax: dbXMLPrint
     """
@@ -1276,6 +1273,100 @@ By default the specified location and children are shown.  Use -N to specify how
     parent = os.path.join(path, os.pardir)
     print "Success - Output written to [%s/var/log/safplusAmf_db_print.xml]" %os.path.abspath(parent)
 
+    return ""
+
+  def do_entitySet(self, entityType, entityName, firstAttribute, firstValue, *attributesAndValuesPairs):
+    """syntax: entitySet entityType entityName attribute value
+    Set the specified values to the attributes
+    """
+    configureItems = "adminState",  "autoRepair",  "canBeInherited",  "currentRecovery",\
+      "disableAssignmentOn",  "failFastOnCleanupFailure",  "failFastOnInstantiationFailure",\
+        "id",  "lastSUFailure",  "name",  "restartable",  "serviceUnitFailureEscalationPolicy",\
+          "userDefinedType",  "autoAdjust",  "autoAdjustInterval",  "componentRestart",\
+            "maxActiveWorkAssignments",  "maxStandbyWorkAssignments",  "preferredNumActiveServiceUnits",\
+              "preferredNumIdleServiceUnits",  "preferredNumStandbyServiceUnits",  "serviceInstances",\
+                "serviceUnitRestart",  "serviceUnits",  "assignedServiceInstances",  "compRestartCount",\
+                  "components",  "failover",  "lastCompRestart",  "lastRestart",  "node",  "rank",\
+                    "saAmfSUHostNodeOrNodeGroup",  "serviceGroup",  "capabilityModel",  "cleanup",\
+                      "csiType",  "delayBetweenInstantiation",  "instantiate",  "instantiateLevel",\
+                        "maxInstantInstantiations",  "maxStandbyAssignments",  "proxied",  "proxyCSI",  "recovery",\
+                          "serviceUnit",  "terminate",  "timeouts",  "isFullStandbyAssignment",\
+                            "preferredActiveAssignments",  "preferredStandbyAssignments",  "dependencies",  "type",\
+                              "instantiationSuccessDuration",  "maxActiveAssignments",  "maxDelayedInstantiations",\
+                                "componentServiceInstances",  "serviceInstance"
+    if len(attributesAndValuesPairs) % 2 != 0:
+      print "don't have values with the corresponding attributes"
+      return ""
+
+    t = "/safplusAmf" + "/" + entityType + "/" + entityName
+
+    listAttributesAndValuesPairs = list(attributesAndValuesPairs)
+    listAttributesAndValuesPairs.append(firstAttribute)
+    listAttributesAndValuesPairs.append(firstValue)
+
+    i = 0
+    while i < len(listAttributesAndValuesPairs):
+      if listAttributesAndValuesPairs[i] in configureItems:
+        loc = t + "/" + listAttributesAndValuesPairs[i]
+      else:
+        print "<error>Attribue: [%s] can not set</error>" % listAttributesAndValuesPairs[i]
+        i += 2
+        continue
+      try:
+        ret = access.mgtSet(str(loc),str(listAttributesAndValuesPairs[i+1]))
+      except RuntimeError, e:
+        print "<error>location [%s] error [%s]</error>" % (location, str(e))
+      i += 2
+      if ret == 4:  # CL_ERROR_NOT_EXIST
+        print "<error>location [%s] does not exist</error>" % loc
+    return ""
+
+  def do_entityCreate(self, *entityTypeAndEntityNamePairs):
+    """syntax: entityCreate entityType entityName
+    Creates a new entityName with the specified entityType
+    """
+
+    if len(entityTypeAndEntityNamePairs) % 2 != 0:
+      print "don't have entityName with the corresponding entityType"
+      return ""
+
+    t = "/safplusAmf"
+    i = 0
+    while i < len(entityTypeAndEntityNamePairs):
+      entityType = entityTypeAndEntityNamePairs[i]
+      entityName = entityTypeAndEntityNamePairs[i+1]
+      loc = t + "/" + entityType + "/" + entityName
+      try:
+        ret = access.mgtCreate(str(loc))
+      except RuntimeError, e:
+        print"<error>location [%s] error [%s]</error>" % (location, str(e))
+      i += 2
+      if ret == 16:  # CL_ERR_ALREADY_EXIST
+        print "<error>entityName [%s] already exists</error>" % entityName
+    return ""
+
+  def do_entityDelete(self, *entityTypeAndEntityNamePairs):
+    """syntax: entityDelete entityType entityName
+    Deletes the entityNames
+    """
+
+    if len(entityTypeAndEntityNamePairs) % 2 != 0:
+      print "don't have entityName with the corresponding entityType"
+      return ""
+
+    t = "/safplusAmf"
+    i = 0
+    while i < len(entityTypeAndEntityNamePairs):
+      entityType = entityTypeAndEntityNamePairs[i]
+      entityName = entityTypeAndEntityNamePairs[i+1]
+      loc = t + "/" + entityType + "/" + entityName
+      try:
+        ret = access.mgtDelete(str(loc))
+      except RuntimeError, e:
+        print"<error>location [%s] error [%s]</error>" % (location, str(e))
+      i += 2
+      if ret == 19:  # CL_ERR_DOESNT_EXIST
+        print "<error>entityName [%s] does not exist</error>" % entityName
     return ""
 
 class CaptureOutput:
