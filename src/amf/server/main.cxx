@@ -356,9 +356,11 @@ bool activeAudit()  // Check to make sure DB and the system state are in sync.  
            }
 #endif
 
-         if ((fs == FaultState::STATE_UP)&&(node->presenceState != PresenceState::instantiated))
+         if ((fs == FaultState::STATE_UP) && (node->adminState.value != AdministrativeState::off) &&(node->presenceState != PresenceState::instantiated))
            {
-             node->presenceState = PresenceState::instantiated;
+             PresenceState ps = PresenceState::instantiated;
+             logInfo("AUD","ACT","Presence state of Node [%s] changed from [%s (%d)] to [%s (%d)]", node->name.value.c_str(),c_str(node->presenceState.value),(int) node->presenceState.value, c_str(ps), (int) ps);             
+             node->presenceState = ps;
              // TODO: set change flag
            }
          else if ((fs == FaultState::STATE_DOWN)&&(node->presenceState != PresenceState::terminating))

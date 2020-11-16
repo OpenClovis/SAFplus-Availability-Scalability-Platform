@@ -585,9 +585,11 @@ def get_nodes_info():
                 elif n.tag == 'operState':
                     node.operstate       = _operstate_map[n.text]
                 elif n.tag == 'serviceUnits':
-                    su = n.text[n.text.rfind('/')+1:]
-                    asu += countAssignedSU(root, su)
-                    isu += countInstantiatedSU(root, su)
+                    suList = amfctrl.csv2List(n.text)
+                    for suName in suList:
+                        su = suName[suName.rfind('/')+1:]
+                        asu += countAssignedSU(root, su)
+                        isu += countInstantiatedSU(root, su)
 
         
         #node.castate      = _state_map[n.config[0].computed_admin_state[0]]

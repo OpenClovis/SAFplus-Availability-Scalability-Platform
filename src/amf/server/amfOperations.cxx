@@ -491,12 +491,30 @@ namespace SAFplus
     };
 
   void AmfOperations::removeWork(SAFplusAmf::ServiceInstance* si,Wakeable& w)
+  {
+    //auto numStandby = si->getNumStandbyAssignments()->current.value;
+    //auto numActive = si->getNumActiveAssignments()->current.value;
+    //if (numActive > 0)
     {
-    auto standby = si->getNumStandbyAssignments();
-    auto active = si->getNumActiveAssignments();
-    
-    
+      SAFplus::MgtIdentifierList<SAFplusAmf::ServiceUnit*>::iterator it;
+      SAFplus::MgtIdentifierList<SAFplusAmf::ServiceUnit*>::iterator end = si->activeAssignments.listEnd();
+      for (it = si->activeAssignments.listBegin(); it != end; it++)
+      {
+        ServiceUnit* su = dynamic_cast<ServiceUnit*>(*it);
+        removeWork(su,w);
+      }
     }
+    //if (numStandby > 0)
+    {
+      SAFplus::MgtIdentifierList<SAFplusAmf::ServiceUnit*>::iterator it;
+      SAFplus::MgtIdentifierList<SAFplusAmf::ServiceUnit*>::iterator end = si->standbyAssignments.listEnd();
+      for (it = si->standbyAssignments.listBegin(); it != end; it++)
+      {
+        ServiceUnit* su = dynamic_cast<ServiceUnit*>(*it);
+        removeWork(su,w);
+      }
+    }    
+  }
 
     void AmfOperations::removeWork(ServiceUnit* su, Wakeable& w)
     {

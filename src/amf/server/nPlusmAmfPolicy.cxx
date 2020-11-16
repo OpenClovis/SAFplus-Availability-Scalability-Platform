@@ -11,6 +11,8 @@
 #include <SAFplusAmfModule.hxx>
 #include <ServiceGroup.hxx>
 
+typedef boost::unordered_map<SAFplusAmf::Node*, int> UninstantiatedCountMap;
+
 using namespace std;
 using namespace SAFplus;
 using namespace SAFplusAmf;
@@ -667,7 +669,7 @@ class NplusMPolicy:public ClAmfPolicyPlugin_1
               }
             }
 
-          else if ((eas == AdministrativeState::off) && (si->assignmentState != AssignmentState::unassigned))
+          else if ((eas == AdministrativeState::off || eas == AdministrativeState::idle) && (si->assignmentState != AssignmentState::unassigned))
             {
             logInfo("N+M","AUDIT","Service Instance [%s] should be unassigned but is [%s].", si->name.value.c_str(),c_str(si->assignmentState));
             amfOps->removeWork(si);
@@ -875,6 +877,7 @@ class NplusMPolicy:public ClAmfPolicyPlugin_1
     {
     logInfo("POL","N+M","Active audit: Discovery phase");
     assert(root);
+    UninstantiatedCountMap uninstCountMap;
     SAFplusAmfModule* cfg = (SAFplusAmfModule*) root;
 
     MgtObject::Iterator it;
@@ -1014,6 +1017,11 @@ class NplusMPolicy:public ClAmfPolicyPlugin_1
                       if (compHandle != INVALID_HDL) // TODO: what other things do we need to do for registration?
                         {
                           comp->presenceState = PresenceState::instantiated;
+                          if (comp->compProperty.value == CompProperty::proxied_preinstantiable)
+                          {
+                             readyForAssignment++;
+                          }
+                          logDebug("M+N","AUDIT","comp name [%s] presence state changes to [%s], readyForAssignment [%d]", comp->name.value.c_str(),c_str(comp->presenceState.value), readyForAssignment);
                           fault->registerEntity(compHandle ,FaultState::STATE_UP);
                         }
                       else
@@ -1043,9 +1051,23 @@ class NplusMPolicy:public ClAmfPolicyPlugin_1
                   amfOps->reportChange();
                   }
                 
-                if (comp->haReadinessState == HighAvailabilityReadinessState::readyForAssignment)
-                  {
+                if (su->adminState.value == AdministrativeState::on && comp->haReadinessState == HighAvailabilityReadinessState::readyForAssignment)
+                  {                    
                     readyForAssignment++;
+                    logDebug("M+N","AUDIT","comp name [%s] haReadinessState [%s]", comp->name.value.c_str(),c_str(comp->haReadinessState.value)); 
+                    logDebug("M+N","AUDIT","readyForAssignment [%d]", readyForAssignment); 
+                  }
+                else if (su->adminState.value == AdministrativeState::idle)
+                  {
+                    comp->haReadinessState.value = HighAvailabilityReadinessState::notReadyForAssignment;
+                    logDebug("M+N","AUDIT","comp name [%s] haReadinessState [%s]", comp->name.value.c_str(),c_str(comp->haReadinessState.value));
+                    logDebug("M+N","AUDIT","readyForAssignment [%d]", readyForAssignment); 
+                  }
+                else if (su->adminState.value == AdministrativeState::on)
+                  {
+                    comp->haReadinessState.value = HighAvailabilityReadinessState::readyForAssignment;
+                    logDebug("M+N","AUDIT","comp name [%s] haReadinessState [%s]", comp->name.value.c_str(),c_str(comp->haReadinessState.value));
+                    logDebug("M+N","AUDIT","readyForAssignment [%d]", readyForAssignment); 
                   }
                 }
               }
@@ -1158,6 +1180,21 @@ class NplusMPolicy:public ClAmfPolicyPlugin_1
             // Presence state changed.
           logInfo("N+M","AUDIT","Presence state of Service Unit [%s] changed from [%s (%d)] to [%s (%d)]", su->name.value.c_str(),c_str(su->presenceState.value),(int) su->presenceState.value, c_str(ps), (int) ps);
             su->presenceState.value = ps;
+            if (ps == PresenceState::uninstantiated)
+            {                 
+                if (uninstCountMap.find(suNode) != uninstCountMap.end())
+                {                   
+                   int count = uninstCountMap[suNode];
+                   uninstCountMap[suNode] = ++count;
+                   //logInfo("N+M","AUDIT","increase [%d]", uninstCountMap[suNode]);                   
+                }
+                else
+                {                   
+                   int count = 1;
+                   //logInfo("N+M","AUDIT","add new pair (%s->%d) to the map", suNode->name.value.c_str(), count);
+                   uninstCountMap[suNode] = count;
+                }
+            }
             amfOps->reportChange();
 
             // TODO: Event?
@@ -1230,7 +1267,30 @@ class NplusMPolicy:public ClAmfPolicyPlugin_1
 
 
       }
-
+      UninstantiatedCountMap::iterator itMap = uninstCountMap.begin();
+      for(; itMap != uninstCountMap.end(); itMap++)
+      {
+          Node* node = itMap->first;
+          int count = itMap->second;
+          if (node->serviceUnits.value.size() == count)
+          {
+              PresenceState ps = PresenceState::uninstantiated;
+              logInfo("N+M","AUDIT","Presence state of Node [%s] changed from [%s (%d)] to [%s (%d)]", node->name.value.c_str(),c_str(node->presenceState.value),(int) node->presenceState.value, c_str(ps), (int) ps);
+              node->presenceState.value = ps;
+          }
+      }
+      // free the map
+      /*for(itMap = uninstCountMap.begin(); itMap != uninstCountMap.end(); itMap++)
+      {          
+          int* count = (int*)itMap->second;
+          if (count) {
+             logInfo("N+M","AUDIT","deleting (%s->%d) from the map", (Node*)itMap->first->name.value.c_str(), *count);
+             delete count;
+          }
+          else
+             logInfo("N+M","AUDIT", "null pointer");
+      }*/
+      uninstCountMap.clear();
     }
 
   void NplusMPolicy::standbyAudit(SAFplusAmf::SAFplusAmfModule* root)
