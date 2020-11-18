@@ -1,3 +1,4 @@
+import sys
 import atexit
 import safplus
 import pdb
@@ -103,11 +104,24 @@ class Commands:
     self.context = context
 
 def Initialize():
-  svcs = safplus.Libraries.MSG | safplus.Libraries.GRP | safplus.Libraries.MGT_ACCESS
-  sic = safplus.SafplusInitializationConfiguration()
-  sic.port = 51
-  atexit.register(safplus.Finalize)  # Register a clean up function so SAFplus does not assert on a dead mutex when quitting
-  safplus.Initialize(svcs, sic)
+  port = 52
+  while True:
+    try:
+      svcs = safplus.Libraries.MSG | safplus.Libraries.GRP | safplus.Libraries.MGT_ACCESS
+      sic = safplus.SafplusInitializationConfiguration()
+      sic.port = port
+      atexit.register(safplus.Finalize)  # Register a clean up function so SAFplus does not assert on a dead mutex when quitting
+  
+      safplus.Initialize(svcs, sic)
+      break
+    except RuntimeError, e:
+      errMsg = str(e) 
+      if errMsg== 'Address already in use':
+        port+=1
+      else:
+        print 'Error while initializing safplus. Error message: '+errMsg
+        sys.exit('Exiting the program...')     
+    
   return (Commands(),{})
 
 def Finalize():
