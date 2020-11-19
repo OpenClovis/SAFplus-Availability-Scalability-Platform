@@ -331,7 +331,7 @@ instantiated  <instances>     instances                         instances     (e
     return False
      
 
-  def generateSource(self,overwrite,srcDir):
+  def generateSource(self,srcDir):
     #print 'eneter generateSource'
     output = common.FilesystemOutput()
     #comps = filter(lambda entity: entity.et.name == 'Component' and entity.data['NonSafComponents']!='', self.entities.values()) # SA_Aware comp no proxied
@@ -345,7 +345,7 @@ instantiated  <instances>     instances                         instances     (e
       for nsc in filter(lambda entity: entity.et.name == 'NonSafComponent',self.entities.values()):
         #print nsc.data['name']
         if self.isProxyOf(c, nsc):            
-          proxyComps.append(nsc)
+          proxyComps.append(c)
           noProxied = False
           print 'found proxied. break'
           break
@@ -363,52 +363,34 @@ instantiated  <instances>     instances                         instances     (e
     srcDir = os.sep.join([srcDir, "src"])
 
 
-
-
-
     files = []
     
     # Create Makefile
-    files += generate.topMakefile(output, srcDir,[c.data["name"] for c in comps+proxyComps])  
-
-    # Get all existed generated source code
-    ls = os.popen('ls ' + srcDir)
-    old_genCode = ls.read()
-    old_genCode = old_genCode.split()
+    files += generate.topMakefile(output, srcDir,[c.data["name"] for c in comps+proxyComps])    
 
 
-
-    new_genCode = []
 
     for c in comps:
-      #print '   %s'%c.data['name']
-      new_genCode.append(c.data['name'])
-      # Skip if the source code was already existed
-      if c.data['name'] not in old_genCode and overwrite == False:
-        files += generate.cpp(output, srcDir, c, c.data)
-      elif overwrite == True:
-        files += generate.cpp(output, srcDir, c, c.data)
+      if os.path.exists(srcDir+os.sep+c.data['name']+os.sep+'proxyMain.cxx'):
+        #print 'model[%d]: We will delete = %s'%(sys._getframe().f_lineno, srcDir+os.sep+c.data['name']+os.sep+'proxymain.cxx') 
+        os.popen('rm -rf '+srcDir+os.sep+c.data['name']+os.sep+'proxyMain.cxx')
+      files += generate.cpp(output, srcDir, c, c.data)
 
 
     proxyFiles = []
     for proxy in proxyComps:
-      #print '   %s'%proxy.data['name']
-      new_genCode.append(proxy.data['name'])
-      # Skip if the source code was already existed
-      if proxy.data['name'] not in old_genCode and overwrite == False:
-        proxyFiles += generate.cpp(output, srcDir, proxy, proxy.data, True)
-      elif overwrite == True:
-        proxyFiles += generate.cpp(output, srcDir, proxy, proxy.data, True)
+      if os.path.exists(srcDir+os.sep+proxy.data['name']+os.sep+'main.cxx'):
+        #print 'model[%d]: We will delete = %s'%(sys._getframe().f_lineno, srcDir+os.sep+proxy.data['name']+os.sep+'main.cxx')
+        os.popen('rm -rf '+srcDir+os.sep+proxy.data['name']+os.sep+'main.cxx')
+      proxyFiles += generate.cpp(output, srcDir, proxy, proxy.data, True)
 
-    # Delete the source code that is not in the current model
-    for old in old_genCode:
-      if old == "Makefile":
-        continue
-      elif old not in new_genCode:
-        #print '%s is not in the current model'%old
-        cmd = 'rm -rf ' + srcDir + '/' + old
-        pipe = os.popen('%s'%cmd)
-        
+    # Delete unnecessary .cxx file
+    for folder in os.popen('ls '+srcDir).read().split():
+      if folder not in [c.data['name'] for c in comps+proxyComps] and folder != 'Makefile':
+        #print 'model[%d]: We will delete %s folder'%(sys._getframe().f_lineno, folder)
+        cmd = 'rm -rf ' + srcDir + os.sep + folder
+        os.popen('%s'%cmd) 
+
     return files,proxyFiles
 
 

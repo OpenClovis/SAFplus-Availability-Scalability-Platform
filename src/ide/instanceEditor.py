@@ -3,7 +3,7 @@ import pdb
 import math
 import time
 from types import *
-
+import os.path
 # import networkx  # generic network description library used during object layout
 
 import wx
@@ -698,38 +698,24 @@ class GenerateTool(Tool):
       parentFrame = self.panel.guiPlaces.frame
       parentFrame.project.getPrjProperties()
       
-      #print parentFrame.project.prjProperties['backupMode']
+
 
       src_bak = False
-      if parentFrame.project.prjProperties['backupMode'] == "prompt":
+      if parentFrame.project.prjProperties['backupMode'] == "prompt" and os.listdir(self.panel.model.directory()+'/src'):
         result = self.openBackupDialog()
         if not result: 
           return
         elif result == 2:
           src_bak = True
-      elif parentFrame.project.prjProperties['backupMode'] == "always":
+      elif parentFrame.project.prjProperties['backupMode'] == "always" and os.listdir(self.panel.model.directory()+'/src'):
         self.executeBackupSource()
         src_bak = True
       # code gen must be per-component -- not generation of one type of application
       print 'gen source...'
-      #print parentFrame.project.prjProperties['backupMode']
-      #print parentFrame.project.prjProperties['mergeMode']
 
-      if parentFrame.project.prjProperties['mergeMode'] == "prompt":
-        result = self.mergeDialog()
-        if not result:
-          return
-        elif result == 2:
-          overwrite = True
-        elif result == 1:
-          overwrite = False  
-      elif parentFrame.project.prjProperties['mergeMode'] == "always":  
-        overwrite = True
-      elif parentFrame.project.prjProperties['mergeMode'] == "never":  
-        overwrite = False
 
-      files,proxyFiles = panel.model.generateSource(overwrite, self.panel.model.directory())
-      #print 'instanceEditor[%d]: dir = %s'%(sys._getframe().f_lineno, self.panel.model.directory())
+      files,proxyFiles = panel.model.generateSource(self.panel.model.directory())
+
       
       # Copy setup to model
       os.system('cp resources/setup %s' %self.panel.model.directory())
@@ -2251,6 +2237,67 @@ class Panel(scrolled.ScrolledPanel):
       self.guiPlaces.frame.modelChange()
 
 model = None
+
+class Reminder:
+  def __init__(self):
+    pass
+  def Dialog(self, fileName):
+    self.dlg = wx.Dialog(None, title = "Merge source code ?", size=(620, 320))
+    vBox = wx.BoxSizer(wx.VERTICAL)
+    hBox = wx.BoxSizer(wx.HORIZONTAL)
+    parentFrame = share.instancePanel.guiPlaces.frame 
+    lablel1 = wx.StaticText(self.dlg, label="Source code already exists in : ")
+    lablel2 = wx.StaticText(self.dlg, label=fileName)
+    lablel3 = wx.StaticText(self.dlg, label="Would you like to merge or overwrite the source code:")
+    self.checkBox = wx.CheckBox(self.dlg, id=wx.ID_ANY, label="Never show this dialog again")
+    self.checkBox.Bind(wx.EVT_CHECKBOX, self.onChecked) 
+    lablel5 = wx.StaticText(self.dlg, label="(Dialog can be reenable through Project Properties)")
+
+    noBtn = wx.Button(self.dlg, label="Merge")
+    noBtn.Bind(wx.EVT_BUTTON, self.onClickMergeNoBtn)
+    cancelBtn = wx.Button(self.dlg, label="Cancel")
+    cancelBtn.Bind(wx.EVT_BUTTON, self.onClickMergeCancelBtn)
+    yesBtn = wx.Button(self.dlg, label="Overwrite")
+    yesBtn.Bind(wx.EVT_BUTTON, self.onClickMergeYesBtn)
+
+    vBox.Add(lablel1, 0, wx.ALL, 5)
+    vBox.Add(lablel2, 0, wx.ALL|wx.LEFT, 15)
+    vBox.Add(lablel3, 0, wx.ALL, 5)
+    vBox.Add(self.checkBox, 0, wx.ALL, 5)
+    vBox.Add(lablel5, 0, wx.ALL, 5)
+
+    hBox.Add(noBtn, 0, wx.CENTER, 0)
+    hBox.Add(cancelBtn, 0, wx.CENTER, 0)
+    hBox.Add(yesBtn, 0, wx.CENTER|wx.RIGHT, 15)
+    vBox.Add(hBox, 0, wx.TOP|wx.ALIGN_RIGHT, 30)
+
+    self.dlg.SetSizer(vBox)
+
+    result = self.dlg.ShowModal()
+    return result
+
+  def onClickMergeNoBtn(self, event):
+    '''Do not merge and never show this dialog again'''
+    if self.checkBox.GetValue():
+      parentFrame = share.instancePanel.guiPlaces.frame
+      parentFrame.project.prjProperties['mergeMode'] = "never"
+      parentFrame.project.savePrjProperties()
+    self.dlg.EndModal(1)
+  
+  def onClickMergeCancelBtn(self, event):
+    '''Cancle'''
+    self.dlg.EndModal(0)
+
+  def onClickMergeYesBtn(self, event):
+    '''Merge and do not show this dialog again'''
+    if self.checkBox.GetValue():
+      parentFrame = share.instancePanel.guiPlaces.frame
+      parentFrame.project.prjProperties['mergeMode'] = "always"
+      parentFrame.project.savePrjProperties()
+    self.dlg.EndModal(2)
+
+  def onChecked(self, event):
+    pass
 
 def Test():
   import time

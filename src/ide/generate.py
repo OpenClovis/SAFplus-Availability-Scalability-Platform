@@ -6,7 +6,10 @@ import inspect
 import share
 import sys
 
+import instanceEditor
+
 import common
+
 
 class TemplateMgr:
   """ This class caches template files for later use to reduce disk access"""
@@ -85,7 +88,7 @@ def topMakefile(output, srcDir,dirNames):
 
 
 def cpp(output, srcDir, comp,ts_comp, proxy=False):
-    # Create main
+    # Create source main
     compName = str(comp.data["name"])
 
     ts_comp['name'] = comp.data["name"]
@@ -103,18 +106,68 @@ def cpp(output, srcDir, comp,ts_comp, proxy=False):
       print 'gen cpp for proxy'
       cpptmpl = templateMgr.loadPyTemplate(TemplatePath + "mainProxy.cpp.ts")
 
-    s = cpptmpl.safe_substitute(**ts_comp)
-    if not proxy:
-      print 'create cpp for non-proxy'
-      output.write(srcDir + os.sep + compName + os.sep + "main.cxx", s)
-    else:
-      print 'create cpp for proxy'
-      output.write(srcDir + os.sep + compName + os.sep + "proxyMain.cxx", s)
-  
+    main = cpptmpl.safe_substitute(**ts_comp)
+
     # Create Makefile
-    tmpl = templateMgr.loadPyTemplate(TemplatePath + "Makefile.cpp.ts")
-    s = tmpl.safe_substitute(**ts_comp)
-    output.write(srcDir + os.sep + compName + os.sep + "Makefile", s)
+    makefiletmpl = templateMgr.loadPyTemplate(TemplatePath + "Makefile.cpp.ts")
+    makefile = makefiletmpl.safe_substitute(**ts_comp)
+
+
+    parentFrame = share.instancePanel.guiPlaces.frame
+    template = {}
+    if not os.path.exists(srcDir+os.sep+compName) or os.path.exists(srcDir+os.sep+compName) and not any(item.endswith('.cxx') for item in os.listdir(srcDir+os.sep+compName)):
+      print 'Source code does not exist so create them'
+      # Create main.cxx
+      if not proxy:
+        print 'create cpp for non-proxy'
+        output.write(srcDir + os.sep + compName + os.sep + "main.cxx", main)
+      else:
+        print 'create cpp for proxy'
+        output.write(srcDir + os.sep + compName + os.sep + "proxyMain.cxx", main)
+      # Create Makefile
+      output.write(srcDir + os.sep + compName + os.sep + "Makefile", makefile)
+    else:
+      for item in os.listdir(srcDir+os.sep+compName):
+        if item.endswith('.cxx'):
+          template[item] = main
+        elif item == 'Makefile':
+          template[item] = makefile
+      for i in list(template.keys()):
+        with open(srcDir+os.sep+compName+os.sep+i) as reader:
+          if reader.read() != template[i] and parentFrame.project.prjProperties['mergeMode'] == "prompt":
+            dlg = instanceEditor.Reminder()
+            result = instanceEditor.Reminder().Dialog(srcDir+os.sep+compName+os.sep+i)
+            if not result:
+              return
+            elif result == 2:
+              if i == 'Makefile':
+                output.write(srcDir + os.sep + compName + os.sep + "Makefile", makefile)
+              else:
+                if not proxy:
+                  print 'create cpp for non-proxy'
+                  output.write(srcDir + os.sep + compName + os.sep + "main.cxx", main)
+      
+                else:
+                  print 'create cpp for proxy'
+                  output.write(srcDir + os.sep + compName + os.sep + "proxyMain.cxx", main)
+            elif result == 1:
+              pass   
+          # Do not show the dialog again and always overwrite the source code.         
+          elif parentFrame.project.prjProperties['mergeMode'] == "always":
+            if i == 'Makefile':
+              output.write(srcDir + os.sep + compName + os.sep + "Makefile", makefile)    
+            else:
+              if not proxy:
+                print 'create cpp for non-proxy'
+                output.write(srcDir + os.sep + compName + os.sep + "main.cxx", main)
+      
+              else:
+                print 'create cpp for proxy'
+                output.write(srcDir + os.sep + compName + os.sep + "proxyMain.cxx", main)
+          # Do not show the dialog again and never overwrite the source code.
+          elif parentFrame.project.prjProperties['mergeMode'] == "never":
+            pass
+
     return [srcDir + os.sep + compName + os.sep + "Makefile",srcDir + os.sep + compName + os.sep + "main.cxx"]
 
 
