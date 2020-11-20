@@ -863,6 +863,14 @@ By default the specified location and children are shown.  Use -N to specify how
         return ""
       for child in root:
         d = [child.tag, child.text]
+        if child.text == None:
+          t1 = os.path.normpath(os.path.join(self.curdir,"/safplusAmf",entityType,entityName,child.tag))
+          depth1=1
+          gs1 = "{d=%s}%s" % (depth1,str(t1))
+          xml1 = access.mgtGet(self.handle, gs1)
+          root1 = ET.fromstring(xml1)
+          for child1 in root1.iter('current'):
+            d = [child.tag, child1.text]
         if child.tag in configureItems:
           configureList.append(d)
         elif child.tag in statusItems:
@@ -1237,6 +1245,16 @@ By default the specified location and children are shown.  Use -N to specify how
                 self.parseXMLParent2Child(n.tagName, child2)
             else:
               child = ET.SubElement(top, n.tagName)
+              t1 = os.path.normpath(os.path.join(self.curdir,"/safplusAmf",dom.tagName, dom.getAttribute("listkey"), n.tagName))
+              depth1=1
+              gs1 = "{d=%s}%s" % (depth1,str(t1))
+              xml1 = access.mgtGet(self.handle, gs1)
+              xml1 = "<top>" + xml1 + "</top>"
+              print t1
+              print xml1
+              root1 = ET.fromstring(xml1)
+              for child1 in root1.iter('current'):
+                child.text = child1.text
     return ""
 
   def parseXMLParent2Child(self, entityType, top):
@@ -1367,6 +1385,56 @@ By default the specified location and children are shown.  Use -N to specify how
       i += 2
       if ret == 19:  # CL_ERR_DOESNT_EXIST
         print "<error>entityName [%s] does not exist</error>" % entityName
+    return ""
+
+  def do_entityShutdown(self, entityType, entityName):
+    """syntax: entityShutdown entityType entityName
+    """
+    try:
+      access.nameInitialize()
+      handleTest = access.getProcessHandle(0, 0)
+      ret = access.amfMgmtInitialize(handleTest)
+
+      if entityType == "Node":
+        ret = access.amfMgmtNodeLockAssignment(handleTest, entityName)
+        if ret == 0x11:
+          print "%s entity do not exist" % (entityName)
+        elif ret == 0x12:
+          print "%s entity have an invalid state to lockAssignment" %entityName
+        elif ret == 0x0:
+          print " %s entity shutdown OK" %entityName
+      elif entityType == "ServiceGroup":
+        ret = access.amfMgmtSGLockAssignment(handleTest, entityName)
+        if ret == 0x11:
+          print "%s entity do not exist in %s" % (entityName, entityType)
+        elif ret == 0x12:
+          print "%s entity have an invalid state to lockAssignment" %entityName
+        elif ret == 0x0:
+          print " %s entity shutdown OK" %entityName
+      elif entityType == "ServiceUnit":
+        ret = access.amfMgmtSULockAssignment(handleTest, entityName)
+        if ret == 0x11:
+          print "%s entity do not exist in %s" % (entityName, entityType)
+        elif ret == 0x12:
+          print "%s entity have an invalid state to lockAssignment" %entityName
+        elif ret == 0x0:
+          print " %s entity shutdown OK" %entityName
+      elif entityType == "ServiceInstance":
+        ret = access.amfMgmtSILockAssignment(handleTest, entityName)
+        if ret == 0x11:
+          print "%s entity do not exist in %s" % (entityName, entityType)
+        elif ret == 0x12:
+          print "%s entity have an invalid state to lockAssignment" %entityName
+        elif ret == 0x0:
+          print " %s entity shutdown OK" %entityName
+      else:
+        print "%s type do not exist in entityShutdown" % entityType
+
+      ret = access.amfMgmtFinalize(handleTest)
+      # print "amfMgmtFinalize: ", hex(ret)
+    except RuntimeError, e:
+      print "error: ", e
+
     return ""
 
 class CaptureOutput:
