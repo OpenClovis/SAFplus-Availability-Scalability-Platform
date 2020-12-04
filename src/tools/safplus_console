@@ -1437,6 +1437,86 @@ By default the specified location and children are shown.  Use -N to specify how
 
     return ""
 
+  def getValueFromAttributeName(self, entityType, entityName, attributeName):
+    t = os.path.normpath(os.path.join(self.curdir,"/safplusAmf/",entityType, entityName, attributeName))
+    depth=1
+    gs = "{d=%s}%s" % (depth,str(t))
+    try:
+      xml = access.mgtGet(self.handle, gs)
+      xml = "<top>" + xml + "</top>"
+    except RuntimeError, e:
+      if str(e) == "Route has no implementer":
+        return "<error>Invalid path [%s]</error>" % str(t)
+      return "<error>" + str(e) + "</error>"
+    except Exception, e:
+      return "<error>" + str(e) + "</error>"
+    try:
+      root = ET.fromstring(xml)
+      state = ""
+      for child in root.findall(attributeName):
+        state =  child.text
+      return state
+    except IndexError, e:
+      print "<error>xml [%s] error [%s]</error>" % (xml, str(e))
+      return
+    except ET.ParseError, e:
+      print "<error>xml [%s] error [%s]</error>" % (xml, str(e))
+      return
+    return
+
+  def do_compList(self):
+    """syntax: compList
+    """
+    entityTypes = ["Component"]
+    attributeList = "id", "processId", "presenceState", "restartCount"
+    for entityType in entityTypes:
+      listEntityName = self.parseXML(entityType)
+      if len(listEntityName) != 0:
+        valueList = [["", "", "", "", ""]]
+        headers = ["CompName", "ID", "PID", "Presence state", "Restart count"]
+        for entityName in listEntityName:
+          d = [entityName]
+          for attribute in attributeList:
+            if attribute == "restartCount":
+              d.append(self.getValueFromAttributeName(entityType,entityName + "/" + attribute, "current"))
+            else:
+              d.append(self.getValueFromAttributeName(entityType,entityName, attribute))
+          valueList.append(d)
+        print tabulate(valueList, headers, tablefmt="psql")
+    return ""
+
+  def do_clusterList(self):
+    """syntax: clusterList
+    """
+    entityTypes = ["Node"]
+    attributeList = ["presenceState"]
+    for entityType in entityTypes:
+      listEntityName = self.parseXML(entityType)
+      if len(listEntityName) != 0:
+        valueList = [["", ""]]
+        headers = ["CompName", "Presence state"]
+        for entityName in listEntityName:
+          d = [entityName]
+          for attribute in attributeList:
+            d.append(self.getValueFromAttributeName(entityType,entityName, attribute))
+          valueList.append(d)
+        print tabulate(valueList, headers, tablefmt="psql")
+    return ""
+
+  def do_compPIDGet(self, componentName):
+    """syntax: compPIDGet
+    """
+    print "compPId is %s" %self.getValueFromAttributeName("Component", componentName, "processId")
+    return ""
+
+  def do_nodeName(self):
+    """syntax: nodeName
+    """
+    nodeList = self.parseXML("Node")
+    for node in nodeList:
+      print "nodeName is %s" %node
+    return ""
+
 class CaptureOutput:
   def __init__(self,resolver):
     try: 
