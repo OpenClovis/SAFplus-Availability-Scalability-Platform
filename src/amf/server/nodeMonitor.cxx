@@ -257,6 +257,7 @@ verify_active_alive:
                   waitingForActive = false;
                   if (isNodeRegistered)
                   {
+                    name.set(AMF_MASTER_HANDLE,INVALID_HDL,NameRegistrar::MODE_NO_CHANGE,true);
                     logAlert("HB","CLM", "No leader in the cluster, this node will be restarted in 5 seconds");
                   }
                   boost::this_thread::sleep(boost::posix_time::milliseconds(5000));
@@ -266,7 +267,7 @@ verify_active_alive:
                 {
                   // Deregister my node handle from the name service before I restart
                   logInfo("HB","NAM", "Deregistering this node [%s], handle [%" PRIx64 ":%" PRIx64 "] from the name service", SAFplus::ASP_NODENAME, nodeHandle.id[0],nodeHandle.id[1]);
-                  name.set(SAFplus::ASP_NODENAME,INVALID_HDL,NameRegistrar::MODE_NO_CHANGE);
+                  name.set(SAFplus::ASP_NODENAME,INVALID_HDL,NameRegistrar::MODE_NO_CHANGE,true);
                   char *runDir = getenv("ASP_RUNDIR");
                   char fileName[512];
                   strncpy(fileName, runDir, 511);

@@ -92,6 +92,7 @@ except:
 ## Customizable constants
 ##
 xmlRoot = '/safplusAmf'
+amfMasterHdl            = 0
 GMSCONFIGFILE           = '/etc/clGmsConfig.xml'
 HISTORY_FILE            = '.asp-info.hist'
 AMF_DB_CACHE_TIMEOUT    = 7.0  # cache aging for amf database [sec]
@@ -456,6 +457,33 @@ def get_status_info():
     
     return d
 
+def get_amf_master_handle():
+    #print 'get_amf_master_handle'
+    global amfMasterHdl
+    info = s.grpCliClusterViewGet()
+    rows = info.split('\n')
+    for row in rows:
+        if len(row) == 0:
+            continue
+        cells = row.split()
+        #print cells[1]
+        #cells[2]
+        if cells[1] == 'controller' and cells[2] == 'active':
+            masterNodeId = int(cells[3])
+            #print 'master node id:%d'%masterNodeId
+            amfMasterHdl = s.getProcessHandle(1,masterNodeId)
+            return
+        
+def mgtGet(xpath):
+    #print 'mgtGet:%s'%xpath
+    xml = s.mgtGet(amfMasterHdl,xpath)
+    #print '====================='
+    if len(xml) == 0:
+        #print 'get the master handle'
+        get_amf_master_handle()
+        return s.mgtGet(amfMasterHdl,xpath)
+    return xml
+ 
 def get_cluster_info():
     """Obtain the cluster list from master CPM and return a list of dot objects
        with following keys:
@@ -529,7 +557,7 @@ def countActiveStandbySU(sg):
     numActives=numStandbys=0
     for sun in suNames:
         #print 'sun:'+sun
-        sux = s.mgtGet(sun)
+        sux = mgtGet(sun)
         if sux: 
             su = microdom.LoadString(sux)
             #print 'haState:'+su.haState.data_
@@ -545,7 +573,7 @@ def countInstantiatedComp(su):
     compNames = amfctrl.csv2List(su.components.data_)
     count = 0
     for compName in compNames:        
-        compx = s.mgtGet(compName)
+        compx = mgtGet(compName)
         if compx: 
             comp = microdom.LoadString(compx)
             #print 'comp:%s, presenceState:%s'%(comp.name.data_,comp.presenceState.data_)
@@ -566,7 +594,12 @@ def getNumActiveStandbySI(su):
 def get_nodes_info():
     """Obtain the su list as a list of Dot objects with following info:
     """    
-    xml = s.mgtGet(xmlRoot)    
+    #xml = mgtGet( xmlRoot)
+    xml = mgtGet(xmlRoot)
+    #if len(xml)==0:
+    #    print 'cannot get nodes info'
+    #    return None
+    #print xml
     root = et.fromstring(xml)    
     nodes = []
     isu = 0
@@ -607,14 +640,14 @@ def get_nodes_info():
     return nodes
 
 def get_sg_info(sgName):
-    sgx = s.mgtGet(xmlRoot + "/ServiceGroup/" + sgName)
+    sgx = mgtGet(xmlRoot + "/ServiceGroup/" + sgName)
     if sgx: 
         sg = microdom.LoadString(sgx)
         sg.su = {}
         suNames = amfctrl.csv2List(sg.serviceUnits.data_)
         for sun in suNames:
             if not sun: continue
-            sut = s.mgtGet(sun)
+            sut = mgtGet(sun)
             if sut:
                 #print 'geting su obj of [%s]'%sut
                 sumd = microdom.LoadString(sut)
@@ -638,7 +671,7 @@ def get_sgs_info():
     return sgs
 
 def get_sg_names():
-    xml = s.mgtGet(xmlRoot)    
+    xml = mgtGet(xmlRoot)    
     root = et.fromstring(xml)    
     sgs = []
     for e in root.getchildren():
@@ -649,12 +682,12 @@ def get_sg_names():
 def get_sus_info(nodename=None):
     """Obtain the su list as a list of Dot objects with following info:
     """
-    xml = s.mgtGet(xmlRoot)    
+    xml = mgtGet(xmlRoot)    
     root = et.fromstring(xml)
     sus = []
     for e in root.getchildren():
         if e.tag == 'ServiceUnit':    
-            sux = s.mgtGet(xmlRoot + '/ServiceUnit/' + e.get('listkey'))
+            sux = mgtGet(xmlRoot + '/ServiceUnit/' + e.get('listkey'))
             if sux: 
                 suxm = microdom.LoadString(sux)
                 thisNode = suxm.node.data_
@@ -695,12 +728,12 @@ def get_comps_info():
             .command        <command name> or '-'            
     """
 
-    xml = s.mgtGet(xmlRoot)    
+    xml = mgtGet(xmlRoot)    
     root = et.fromstring(xml)
     comps = []
     for e in root.getchildren():
         if e.tag == 'Component':    
-            compx = s.mgtGet(xmlRoot + '/Component/' + e.get('listkey'))
+            compx = mgtGet(xmlRoot + '/Component/' + e.get('listkey'))
             if compx:
                 comp = microdom.LoadString(compx)
                 if comp:
@@ -829,7 +862,7 @@ class Cli(cmd.Cmd):
             
         print 'SAFplus master console:      %(master)s' % d
         try:
-            xml = s.mgtGet(xmlRoot)
+            xml = mgtGet(xmlRoot)
             if len(xml)>0:
                 d['console'] = 'available'
             else:
@@ -945,7 +978,7 @@ class Cli(cmd.Cmd):
         nodes = []
         for sun,su in suList:
             nodeName = su.node.data_
-            nodex = s.mgtGet(nodeName)
+            nodex = mgtGet(nodeName)
             #print 'get node obj of [%s]'%nodex
             node = microdom.LoadString(nodex)
             nodes.append(node)        
@@ -968,16 +1001,17 @@ class Cli(cmd.Cmd):
                 siNames = [x.strip() for x in su.assignedServiceInstances.data_.split(",")]
                 for sin in siNames:
                     if not sin: continue
-                    six = s.mgtGet(sin)
+                    six = mgtGet(sin)
                     if six:
                         sim = microdom.LoadString(six)
                         sis.append(sim)                        
                 
                 for si in sis:
                     siState = '-'
-                    if len(si.activeAssignments.data_)>0:
+                    #print 'DBG: su [%s], numActiveServiceInstances.current [%d]'%(su.name.data_,su.numActiveServiceInstances.current.data_)
+                    if su.numActiveServiceInstances.current.data_ > 0:
                         siState = 'active'
-                    elif len(si.standbyAssignments.data_)>0:
+                    elif su.numStandbyServiceInstances.current.data_ > 0:
                         siState = 'standby'
                     print '           SI %s (state:%s)' % \
                         (si.name.data_, color_state(siState))
@@ -986,7 +1020,7 @@ class Cli(cmd.Cmd):
                 comps = []
                 for cn in compNames:
                     if not cn: continue
-                    cux = s.mgtGet(cn)
+                    cux = mgtGet(cn)
                     if cux:
                         compMicrodom = microdom.LoadString(cux)
                         comps.append(compMicrodom)
@@ -1004,7 +1038,7 @@ class Cli(cmd.Cmd):
                         csiNames = amfctrl.csv2List(si.componentServiceInstances.data_)
                         for csin in csiNames:
                             if not csin: continue
-                            csix = s.mgtGet(csin)
+                            csix = mgtGet(csin)
                             #print 'getting csi obj from [%s]' % csix
                             csim = microdom.LoadString(csix)
                             #print 'DBG: adding csi [%s] to list csis'%csin
@@ -1014,21 +1048,23 @@ class Cli(cmd.Cmd):
                     csin = ''
                     for csi in csis:                        
                         #print 'DBG:compname:%s/csiname:%s/active comps:%s'%(comp.name.data_,csi.name.data_,csi.activeComponents.data_)
-                        #print 'compname:%s/csiname:%s/standby comps:%s'%(comp.name.data_,csi.name.data_,csi.standbyComponents.data_)
+                        #print 'DBG:compname:%s/csiname:%s/standby comps:%s'%(comp.name.data_,csi.name.data_,csi.standbyComponents.data_)
                         if len(csi.activeComponents.data_)>0:
-                            #print 'active comps:%s'%csi.activeComponents.data_                            
+                            #print 'DBG1:active comps:%s'%csi.activeComponents.data_                            
                             activeCompsX = amfctrl.csv2List(csi.activeComponents.data_)
                             for c in activeCompsX:
                                 activeComps.append(c[c.rfind('/')+1:])
+                            #print 'DBG1.1:active comps:%s'%str(activeComps)
                             if comp.name.data_ in activeComps:
                                 csiState = 'active'
                                 csin = csi.name.data_
                                 break                            
-                        elif len(csi.standbyComponents.data_)>0:
-                            #print 'standby comps:%s'%csi.activeComponents.data_                           
+                        if len(csi.standbyComponents.data_)>0:
+                            #print 'DBG2:standby comps:%s'%csi.activeComponents.data_                           
                             standbyCompsX = amfctrl.csv2List(csi.standbyComponents.data_)
                             for c in standbyCompsX:
-                                standbyComps.append(c[c.rfind('/')+1:])                            
+                                standbyComps.append(c[c.rfind('/')+1:])  
+                            #print 'DBG2.2:standby comps:%s'%str(standbyComps)                          
                             if comp.name.data_ in standbyComps:
                                 csiState = 'standby'
                                 csin = csi.name.data_
@@ -1267,10 +1303,10 @@ echo_cmd = '/bin/echo'
 ##
 def main(argv):
     global _interactive_shell
-    global access 
-
+    global access, amfMasterHdl
+    #print 'access init'
     cmds,handlers = access.Initialize()
-
+    #print 'extend path'
     extend_path()
     
     cli = Cli(HISTORY_FILE)
@@ -1304,6 +1340,14 @@ def main(argv):
         sys.exit(_exit_code)
     else:
         _interactive_shell = True
+        #print 'get master node ID'
+        #masterNodeId = 109 #s.amfMasterNodeIDGet()
+        #print 'master node id:%d'%masterNodeId
+        #if masterNodeId == 0:
+        #    sys.exit('Cannot not get the master node ID. Exitting...')
+        #print 'get master process handle'
+        #amfMasterHdl = s.getProcessHandle(1,masterNodeId)
+        get_amf_master_handle()
         try:
             cli.cmdloop("Starting interactive prompt (type 'help' for help)")
         except KeyboardInterrupt:

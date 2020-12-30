@@ -1041,7 +1041,7 @@ int main(int argc, char* argv[])
           logInfo("---","---","This node just became the active system controller");
           myRole = Group::IS_ACTIVE;
           becomeActive();
-          name.set(AMF_MASTER_HANDLE,myHandle,NameRegistrar::MODE_NO_CHANGE);
+          name.set(AMF_MASTER_HANDLE,myHandle,NameRegistrar::MODE_NO_CHANGE,true);
           lastBeat = beat;  // Don't rewrite the changes that loading makes          
           }
         }
