@@ -480,6 +480,7 @@ def mgtGet(xpath):
     #print '====================='
     if len(xml) == 0:
         #print 'get the master handle'
+        time.sleep(3)
         get_amf_master_handle()
         return s.mgtGet(amfMasterHdl,xpath)
     return xml
