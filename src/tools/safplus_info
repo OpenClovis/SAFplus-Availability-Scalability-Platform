@@ -1187,6 +1187,130 @@ class Cli(cmd.Cmd):
         for c in comps:
             print c.running=='Y' and color('bold-red', fmt % c) or fmt % c
 
+    def do_lock_a(self, msg):
+        "Lock-assigment on an SG,SU,NODE or SI\n" \
+        "\n" \
+        "Usage: lock_a sg <sg-name> or\n" \
+        "       lock_a su <su-name>\n" \
+        "       lock_a node <node-name>\n" \
+        "       lock_a si <si-name>\n"
+        
+        args = msg.split()
+        
+        if len(args)!=2:
+            self.onecmd('help lock_a')
+            return 0
+        
+        if args[0] not in ['sg', 'su', 'node', 'si']:
+            self.onecmd('help lock_a')
+            return 0
+        
+        e_type, e_name = args
+        dummyHdl = s.getProcessHandle(0,0)
+        ret = s.amfMgmtInitialize(dummyHdl)
+        if ret != 0x0:
+            print 'Cannot initialize safplus amf managememt, error code [0x%x]'% ret
+            return 0
+        if e_type == 'sg':
+            ret = s.amfMgmtSGLockAssignment(dummyHdl, e_name)
+        elif e_type == 'node':
+            ret = s.amfMgmtNodeLockAssignment(dummyHdl, e_name)
+        elif e_type == 'su':
+            ret = s.amfMgmtSULockAssignment(dummyHdl, e_name)
+        elif e_type == 'si':
+            ret = s.amfMgmtSILockAssignment(dummyHdl, e_name)
+        if ret == 0x11:
+            print "entity [%s] does not exist" % e_name
+        elif ret == 0x12:
+            print "entity [%s] has an invalid state for lockAssignment" % e_name
+        elif ret == 0x0:
+            print " entity [%s] lockAssignment OK" % e_name
+        else:
+            print "entity [%s] lockAssignment unknown error [0x%x]" % (e_name,ret)
+        ret = s.amfMgmtFinalize(dummyHdl)
+        
+    def do_lock_i(self, msg):
+        "Lock-instantiation on an SG, SU or NODE\n" \
+        "\n" \
+        "Usage: lock_i sg <sg-name> or\n" \
+        "       lock_i su <su-name>\n" \
+        "       lock_i node <node-name>\n"
+                
+        args = msg.split()
+        
+        if len(args)!=2:
+            self.onecmd('help lock_i')
+            return 0
+        
+        if args[0] not in ['sg', 'su', 'node']:
+            self.onecmd('help lock_i')
+            return 0
+        
+        e_type, e_name = args
+        dummyHdl = s.getProcessHandle(0,0)
+        ret = s.amfMgmtInitialize(dummyHdl)
+        if ret != 0x0:
+            print 'Cannot initialize safplus amf managememt, error code [0x%x]'% ret
+            return 0
+        if e_type == 'sg':
+            ret = s.amfMgmtSGLockInstantiation(dummyHdl, e_name)
+        elif e_type == 'node':
+            ret = s.amfMgmtNodeLockInstantiation(dummyHdl, e_name)
+        elif e_type == 'su':
+            ret = s.amfMgmtSULockInstantiation(dummyHdl, e_name)
+        if ret == 0x11:
+            print "entity [%s] does not exist" % e_name
+        elif ret == 0x12:
+            print "entity [%s] has an invalid state for lockInsantiation" % e_name
+        elif ret == 0x0:
+            print " entity [%s] lockInsantiation OK" % e_name
+        else:
+            print "entity [%s] lockInstantiation unknown error [0x%x]" % (e_name,ret)
+        ret = s.amfMgmtFinalize(dummyHdl)
+
+    def do_unlock(self, msg):
+        "Unlock an SG,SU,NODE or SI\n" \
+        "\n" \
+        "Usage: unlock sg <sg-name> or\n" \
+        "       unlock su <su-name>\n" \
+        "       unlock node <node-name>\n" \
+        "       unlock si <si-name>\n" 
+                
+        args = msg.split()
+        
+        if len(args)!=2:
+            self.onecmd('help unlock')
+            return 0
+        
+        if args[0] not in ['sg', 'su', 'node', 'si']:
+            self.onecmd('help unlock')
+            return 0
+        
+        e_type, e_name = args
+        dummyHdl = s.getProcessHandle(0,0)
+        ret = s.amfMgmtInitialize(dummyHdl)
+        if ret != 0x0:
+            print 'Cannot initialize safplus amf managememt, error code [0x%x]'% ret
+            return 0
+        if e_type == 'sg':
+            ret = s.amfMgmtSGUnlock(dummyHdl, e_name)
+        elif e_type == 'node':
+            ret = s.amfMgmtNodeUnlock(dummyHdl, e_name)
+        elif e_type == 'su':
+            ret = s.amfMgmtSUUnlock(dummyHdl, e_name)
+        elif e_type == 'si':
+            ret = s.amfMgmtSIUnlock(dummyHdl, e_name)
+        if ret == 0x11:
+            print "entity [%s] does not exist" % e_name
+        elif ret == 0x12:
+            print "entity [%s] has an invalid state for unlock" % e_name
+        elif ret == 0x0:
+            print " entity [%s] unlock OK" % e_name
+        else:
+            print "entity [%s] unlock unknown error [0x%x]" % (e_name,ret)
+        ret = s.amfMgmtFinalize(dummyHdl)
+
+
     def do_EOF(self, msg):
         """Type 'exit' or press Ctrl-D to exit"""
         print # a new line before exiting
