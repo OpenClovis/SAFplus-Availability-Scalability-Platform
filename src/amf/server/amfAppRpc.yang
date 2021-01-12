@@ -117,8 +117,16 @@ module amfAppRpc
 		type string;
 	      }
 	  }
-      }
-    }
+       leaf csiName  // CSI assigned to this component
+       {
+	  type string;
+       }
+       leaf activeCompName  // the active component name
+       {
+	  type string;
+       }
+     }
+  }
 
   rpc workOperationResponse  // Actually going from the app to the AMF
     {

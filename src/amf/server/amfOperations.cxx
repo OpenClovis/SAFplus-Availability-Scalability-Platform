@@ -21,6 +21,7 @@
 #include <SAFplusAmf/ServiceGroup.hxx>
 #include <SAFplusAmf/Data.hxx>
 #include <SAFplusAmfModule.hxx>
+#include <unordered_map>
 
 using namespace SAFplus;
 using namespace SAFplusI;
@@ -525,6 +526,8 @@ namespace SAFplus
       //SAFplus::MgtProvList<SAFplusAmf::ServiceInstance*>::ContainerType::iterator   end = su->assignedServiceInstances.value.end();
       SAFplus::MgtIdentifierList<SAFplusAmf::ServiceInstance*>::iterator it;
       SAFplus::MgtIdentifierList<SAFplusAmf::ServiceInstance*>::iterator end = su->assignedServiceInstances.listEnd();
+      std::unordered_map<ComponentServiceInstance*, std::vector<Component*>> csiRemovedComps;
+      
       for (it = su->assignedServiceInstances.listBegin(); it != end; it++)
         {
           ServiceInstance* si = dynamic_cast<ServiceInstance*>(*it);
@@ -539,10 +542,22 @@ namespace SAFplus
               si->activeAssignments.erase(su);
 
               for (itcsi = si->componentServiceInstances.begin(); itcsi != endcsi; itcsi++)
-                {
-                    csi = dynamic_cast<SAFplusAmf::ComponentServiceInstance*> (itcsi->second);
-                    csi->activeComponents.value.clear();
-                }
+              {
+                  std::vector<Component*> comps;
+                  csi = dynamic_cast<SAFplusAmf::ComponentServiceInstance*> (itcsi->second);
+                    
+                  SAFplus::MgtIdentifierList<SAFplusAmf::Component*>::Container& vec = csi->activeComponents.value;
+                  std::vector<SAFplus::MgtIdentifierList<SAFplusAmf::Component*>::Elem>::iterator itvec = vec.begin();            
+                  for (;itvec != vec.end(); itvec++)
+                  {
+                     SAFplus::MgtIdentifierList<SAFplusAmf::Component*>::Elem elem = *itvec;
+                     SAFplusAmf::Component* c = elem.value;                     
+                     comps.push_back(c);                     
+                  }
+                  if (comps.size()>0)
+                     csiRemovedComps[csi] = comps;
+                  csi->activeComponents.value.clear();
+              }              
               si->isFullActiveAssignment= false;
             }
 
@@ -554,6 +569,19 @@ namespace SAFplus
               for (itcsi = si->componentServiceInstances.begin(); itcsi != endcsi; itcsi++)
                 {
                     csi = dynamic_cast<SAFplusAmf::ComponentServiceInstance*> (itcsi->second);
+                    
+                    std::vector<Component*> comps;
+                                      
+                    SAFplus::MgtIdentifierList<SAFplusAmf::Component*>::Container& vec = csi->standbyComponents.value;
+                    std::vector<SAFplus::MgtIdentifierList<SAFplusAmf::Component*>::Elem>::iterator itvec = vec.begin();            
+                    for (;itvec != vec.end(); itvec++)
+                    {
+                       SAFplus::MgtIdentifierList<SAFplusAmf::Component*>::Elem elem = *itvec;
+                       SAFplusAmf::Component* c = elem.value;                       
+                       comps.push_back(c);                    
+                    }
+                    if (comps.size()>0)
+                       csiRemovedComps[csi] = comps;
                     csi->standbyComponents.value.clear();
                 }
               si->isFullStandbyAssignment= false;
@@ -614,20 +642,44 @@ namespace SAFplus
                       request.set_componentname(comp->name.value.c_str());
                       request.add_componenthandle((const char*) &hdl, sizeof(Handle)); // [libprotobuf ERROR google/protobuf/wire_format.cc:1053] String field contains invalid UTF-8 data when serializing a protocol buffer. Use the 'bytes' type if you intend to send raw bytes.
                       request.set_operation((uint32_t)SAFplusI::AMF_HA_OPERATION_REMOVE);
-                      request.set_target(SA_AMF_CSI_TARGET_ALL);
+                      request.set_target(SA_AMF_CSI_TARGET_ALL);                 
                       if ((invocation & 0xFFFFFFFF) == 0xFFFFFFFF) invocation &= 0xFFFFFFFF00000000ULL;  // Don't let increasing invocation numbers overwrite the node or port... ofc this'll never happen 4 billion invocations? :-)
                       request.set_invocation(invocation++);
+                      //request.set_csiname(csi->name.value);
 
                       // Now I need to fill up the key/value pairs from the CSI
                       request.clear_keyvaluepairs();
 
                       pendingWorkOperations[request.invocation()] = WorkOperationTracker(comp,nullptr,nullptr,(uint32_t)SAFplusI::AMF_HA_OPERATION_REMOVE,SA_AMF_CSI_TARGET_ALL);
 
-                      amfAppRpc->workOperation(hdl, &request);
-                    }
+                      // finding CSI for this component
+                      bool csiFound = false;
+                      for ( auto it = csiRemovedComps.begin(); it != csiRemovedComps.end(); ++it )
+                      {
+                         ComponentServiceInstance* csi = it->first;
+                         std::vector<Component*>& vec =  it->second;
+                         
+                         for (std::vector<Component*>::iterator itvec = vec.begin();itvec != vec.end();itvec++)
+                            {
+                               Component* c = *itvec;
+                               if (comp->name.value.compare(c->name.value) == 0)
+                               {
+                                   logDebug("OPS","WRK", "found work removed csi [%s] for comp [%s]", csi->name.value.c_str(), comp->name.value.c_str());
+                                   request.set_csiname(csi->name.value);
+                                   csiFound = true;
+                                   break;
+                               }
+                           }
+                         
+                         if (csiFound) break;
+                      }
+                      amfAppRpc->workOperation(hdl, &request);                                            
+                   }
                 }
             }
         }
+      // Free map     
+      csiRemovedComps.clear();
       reportChange();
     }
 
@@ -734,16 +786,26 @@ namespace SAFplus
             request.set_target(SA_AMF_CSI_ADD_ONE);
             if ((invocation & 0xFFFFFFFF) == 0xFFFFFFFF) invocation &= 0xFFFFFFFF00000000ULL;  // Don't let increasing invocation numbers overwrite the node or port... ofc this'll never happen 4 billion invocations? :-)
             request.set_invocation(invocation++);
+            request.set_csiname(csi->name.value);
 
             if (state == HighAvailabilityState::active)
               {
                 csi->activeComponents.value.push_back(comp);  // Mark this CSI assigned to this component
                 ++comp->activeAssignments;
+                request.set_activecompname(comp->name.value); // assume that the SG model is 2N (1 active, 1 standby) or 1+N (one active, N standby)
               }
             else if (state == HighAvailabilityState::standby)
               {
                 csi->standbyComponents.value.push_back(comp); // Mark this CSI assigned to this component
                 ++comp->standbyAssignments;
+                SAFplus::MgtIdentifierList<SAFplusAmf::Component*>::Container& vec = csi->activeComponents.value;
+                std::vector<SAFplus::MgtIdentifierList<SAFplusAmf::Component*>::Elem>::iterator itvec = vec.begin();            
+                if (itvec != vec.end())
+                {
+                   SAFplus::MgtIdentifierList<SAFplusAmf::Component*>::Elem elem = *itvec;
+                   SAFplusAmf::Component* c = elem.value;
+                   request.set_activecompname(c->name.value);
+                }
               }
             else if (state == HighAvailabilityState::idle)
               {

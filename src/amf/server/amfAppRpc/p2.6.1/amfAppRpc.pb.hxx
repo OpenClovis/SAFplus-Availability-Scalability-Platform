@@ -632,6 +632,30 @@ class WorkOperationRequest : public ::google::protobuf::Message {
   inline ::google::protobuf::RepeatedPtrField< ::SAFplus::Rpc::amfAppRpc::KeyValuePairs >*
       mutable_keyvaluepairs();
 
+  // optional string csiName = 7;
+  inline bool has_csiname() const;
+  inline void clear_csiname();
+  static const int kCsiNameFieldNumber = 7;
+  inline const ::std::string& csiname() const;
+  inline void set_csiname(const ::std::string& value);
+  inline void set_csiname(const char* value);
+  inline void set_csiname(const char* value, size_t size);
+  inline ::std::string* mutable_csiname();
+  inline ::std::string* release_csiname();
+  inline void set_allocated_csiname(::std::string* csiname);
+
+  // optional string activeCompName = 8;
+  inline bool has_activecompname() const;
+  inline void clear_activecompname();
+  static const int kActiveCompNameFieldNumber = 8;
+  inline const ::std::string& activecompname() const;
+  inline void set_activecompname(const ::std::string& value);
+  inline void set_activecompname(const char* value);
+  inline void set_activecompname(const char* value, size_t size);
+  inline ::std::string* mutable_activecompname();
+  inline ::std::string* release_activecompname();
+  inline void set_allocated_activecompname(::std::string* activecompname);
+
   GOOGLE_PROTOBUF_EXTENSION_ACCESSORS(WorkOperationRequest)
   // @@protoc_insertion_point(class_scope:SAFplus.Rpc.amfAppRpc.WorkOperationRequest)
  private:
@@ -643,6 +667,10 @@ class WorkOperationRequest : public ::google::protobuf::Message {
   inline void clear_has_operation();
   inline void set_has_target();
   inline void clear_has_target();
+  inline void set_has_csiname();
+  inline void clear_has_csiname();
+  inline void set_has_activecompname();
+  inline void clear_has_activecompname();
 
   ::google::protobuf::internal::ExtensionSet _extensions_;
 
@@ -656,6 +684,8 @@ class WorkOperationRequest : public ::google::protobuf::Message {
   ::google::protobuf::uint32 operation_;
   ::google::protobuf::uint32 target_;
   ::google::protobuf::RepeatedPtrField< ::SAFplus::Rpc::amfAppRpc::KeyValuePairs > keyvaluepairs_;
+  ::std::string* csiname_;
+  ::std::string* activecompname_;
   friend void  protobuf_AddDesc_amfAppRpc_2eproto();
   friend void protobuf_AssignDesc_amfAppRpc_2eproto();
   friend void protobuf_ShutdownFile_amfAppRpc_2eproto();
@@ -1664,6 +1694,158 @@ inline ::google::protobuf::RepeatedPtrField< ::SAFplus::Rpc::amfAppRpc::KeyValue
 WorkOperationRequest::mutable_keyvaluepairs() {
   // @@protoc_insertion_point(field_mutable_list:SAFplus.Rpc.amfAppRpc.WorkOperationRequest.keyValuePairs)
   return &keyvaluepairs_;
+}
+
+// optional string csiName = 7;
+inline bool WorkOperationRequest::has_csiname() const {
+  return (_has_bits_[0] & 0x00000040u) != 0;
+}
+inline void WorkOperationRequest::set_has_csiname() {
+  _has_bits_[0] |= 0x00000040u;
+}
+inline void WorkOperationRequest::clear_has_csiname() {
+  _has_bits_[0] &= ~0x00000040u;
+}
+inline void WorkOperationRequest::clear_csiname() {
+  if (csiname_ != &::google::protobuf::internal::GetEmptyStringAlreadyInited()) {
+    csiname_->clear();
+  }
+  clear_has_csiname();
+}
+inline const ::std::string& WorkOperationRequest::csiname() const {
+  // @@protoc_insertion_point(field_get:SAFplus.Rpc.amfAppRpc.WorkOperationRequest.csiName)
+  return *csiname_;
+}
+inline void WorkOperationRequest::set_csiname(const ::std::string& value) {
+  set_has_csiname();
+  if (csiname_ == &::google::protobuf::internal::GetEmptyStringAlreadyInited()) {
+    csiname_ = new ::std::string;
+  }
+  csiname_->assign(value);
+  // @@protoc_insertion_point(field_set:SAFplus.Rpc.amfAppRpc.WorkOperationRequest.csiName)
+}
+inline void WorkOperationRequest::set_csiname(const char* value) {
+  set_has_csiname();
+  if (csiname_ == &::google::protobuf::internal::GetEmptyStringAlreadyInited()) {
+    csiname_ = new ::std::string;
+  }
+  csiname_->assign(value);
+  // @@protoc_insertion_point(field_set_char:SAFplus.Rpc.amfAppRpc.WorkOperationRequest.csiName)
+}
+inline void WorkOperationRequest::set_csiname(const char* value, size_t size) {
+  set_has_csiname();
+  if (csiname_ == &::google::protobuf::internal::GetEmptyStringAlreadyInited()) {
+    csiname_ = new ::std::string;
+  }
+  csiname_->assign(reinterpret_cast<const char*>(value), size);
+  // @@protoc_insertion_point(field_set_pointer:SAFplus.Rpc.amfAppRpc.WorkOperationRequest.csiName)
+}
+inline ::std::string* WorkOperationRequest::mutable_csiname() {
+  set_has_csiname();
+  if (csiname_ == &::google::protobuf::internal::GetEmptyStringAlreadyInited()) {
+    csiname_ = new ::std::string;
+  }
+  // @@protoc_insertion_point(field_mutable:SAFplus.Rpc.amfAppRpc.WorkOperationRequest.csiName)
+  return csiname_;
+}
+inline ::std::string* WorkOperationRequest::release_csiname() {
+  clear_has_csiname();
+  if (csiname_ == &::google::protobuf::internal::GetEmptyStringAlreadyInited()) {
+    return NULL;
+  } else {
+    ::std::string* temp = csiname_;
+    csiname_ = const_cast< ::std::string*>(&::google::protobuf::internal::GetEmptyStringAlreadyInited());
+    return temp;
+  }
+}
+inline void WorkOperationRequest::set_allocated_csiname(::std::string* csiname) {
+  if (csiname_ != &::google::protobuf::internal::GetEmptyStringAlreadyInited()) {
+    delete csiname_;
+  }
+  if (csiname) {
+    set_has_csiname();
+    csiname_ = csiname;
+  } else {
+    clear_has_csiname();
+    csiname_ = const_cast< ::std::string*>(&::google::protobuf::internal::GetEmptyStringAlreadyInited());
+  }
+  // @@protoc_insertion_point(field_set_allocated:SAFplus.Rpc.amfAppRpc.WorkOperationRequest.csiName)
+}
+
+// optional string activeCompName = 8;
+inline bool WorkOperationRequest::has_activecompname() const {
+  return (_has_bits_[0] & 0x00000080u) != 0;
+}
+inline void WorkOperationRequest::set_has_activecompname() {
+  _has_bits_[0] |= 0x00000080u;
+}
+inline void WorkOperationRequest::clear_has_activecompname() {
+  _has_bits_[0] &= ~0x00000080u;
+}
+inline void WorkOperationRequest::clear_activecompname() {
+  if (activecompname_ != &::google::protobuf::internal::GetEmptyStringAlreadyInited()) {
+    activecompname_->clear();
+  }
+  clear_has_activecompname();
+}
+inline const ::std::string& WorkOperationRequest::activecompname() const {
+  // @@protoc_insertion_point(field_get:SAFplus.Rpc.amfAppRpc.WorkOperationRequest.activeCompName)
+  return *activecompname_;
+}
+inline void WorkOperationRequest::set_activecompname(const ::std::string& value) {
+  set_has_activecompname();
+  if (activecompname_ == &::google::protobuf::internal::GetEmptyStringAlreadyInited()) {
+    activecompname_ = new ::std::string;
+  }
+  activecompname_->assign(value);
+  // @@protoc_insertion_point(field_set:SAFplus.Rpc.amfAppRpc.WorkOperationRequest.activeCompName)
+}
+inline void WorkOperationRequest::set_activecompname(const char* value) {
+  set_has_activecompname();
+  if (activecompname_ == &::google::protobuf::internal::GetEmptyStringAlreadyInited()) {
+    activecompname_ = new ::std::string;
+  }
+  activecompname_->assign(value);
+  // @@protoc_insertion_point(field_set_char:SAFplus.Rpc.amfAppRpc.WorkOperationRequest.activeCompName)
+}
+inline void WorkOperationRequest::set_activecompname(const char* value, size_t size) {
+  set_has_activecompname();
+  if (activecompname_ == &::google::protobuf::internal::GetEmptyStringAlreadyInited()) {
+    activecompname_ = new ::std::string;
+  }
+  activecompname_->assign(reinterpret_cast<const char*>(value), size);
+  // @@protoc_insertion_point(field_set_pointer:SAFplus.Rpc.amfAppRpc.WorkOperationRequest.activeCompName)
+}
+inline ::std::string* WorkOperationRequest::mutable_activecompname() {
+  set_has_activecompname();
+  if (activecompname_ == &::google::protobuf::internal::GetEmptyStringAlreadyInited()) {
+    activecompname_ = new ::std::string;
+  }
+  // @@protoc_insertion_point(field_mutable:SAFplus.Rpc.amfAppRpc.WorkOperationRequest.activeCompName)
+  return activecompname_;
+}
+inline ::std::string* WorkOperationRequest::release_activecompname() {
+  clear_has_activecompname();
+  if (activecompname_ == &::google::protobuf::internal::GetEmptyStringAlreadyInited()) {
+    return NULL;
+  } else {
+    ::std::string* temp = activecompname_;
+    activecompname_ = const_cast< ::std::string*>(&::google::protobuf::internal::GetEmptyStringAlreadyInited());
+    return temp;
+  }
+}
+inline void WorkOperationRequest::set_allocated_activecompname(::std::string* activecompname) {
+  if (activecompname_ != &::google::protobuf::internal::GetEmptyStringAlreadyInited()) {
+    delete activecompname_;
+  }
+  if (activecompname) {
+    set_has_activecompname();
+    activecompname_ = activecompname;
+  } else {
+    clear_has_activecompname();
+    activecompname_ = const_cast< ::std::string*>(&::google::protobuf::internal::GetEmptyStringAlreadyInited());
+  }
+  // @@protoc_insertion_point(field_set_allocated:SAFplus.Rpc.amfAppRpc.WorkOperationRequest.activeCompName)
 }
 
 // -------------------------------------------------------------------

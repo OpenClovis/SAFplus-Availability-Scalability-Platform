@@ -78,7 +78,8 @@ namespace amfAppRpc {
                 {
                     SaNameT csiName;
                     SaAmfCSIFlagsT csiFlags = 0;
-                    csiName.length = 0;
+                    strcpy((char*)csiName.value,request->csiname().c_str());
+                    csiName.length = request->csiname().length()+1;                    
                     SAFplusI::amfSession->callbacks.saAmfCSIRemoveCallback((SaInvocationT) request->invocation(),&compName,&csiName,csiFlags);
                 }
             }
@@ -90,19 +91,20 @@ namespace amfAppRpc {
         }
       else if (tgt != SAFplusI::AMF_CSI_REMOVE_ONE)
         {
-        SaAmfCSIDescriptorT csiDescriptor;  // TODO
+        SaAmfCSIDescriptorT csiDescriptor;
         csiDescriptor.csiFlags = tgt;
-        strcpy((char*)csiDescriptor.csiName.value,"TODO");
-        csiDescriptor.csiName.length = 4;
+        strcpy((char*)csiDescriptor.csiName.value,request->csiname().c_str());
+        csiDescriptor.csiName.length = request->csiname().length()+1;
         if (haState == SA_AMF_HA_ACTIVE)
           {
           csiDescriptor.csiStateDescriptor.activeDescriptor.transitionDescriptor = SA_AMF_CSI_NEW_ASSIGN; // TODO
-          csiDescriptor.csiStateDescriptor.activeDescriptor.activeCompName.length = 0;
+          strcpy((char*)csiDescriptor.csiStateDescriptor.activeDescriptor.activeCompName.value, request->activecompname().c_str());
+          csiDescriptor.csiStateDescriptor.activeDescriptor.activeCompName.length = request->activecompname().length()+1;
           }
         else if (haState == SA_AMF_HA_STANDBY)
           {
-          strcpy((char*)csiDescriptor.csiStateDescriptor.standbyDescriptor.activeCompName.value,"TODO");
-          csiDescriptor.csiStateDescriptor.standbyDescriptor.activeCompName.length = 4;  // TODO
+          strcpy((char*)csiDescriptor.csiStateDescriptor.standbyDescriptor.activeCompName.value, request->activecompname().c_str());
+          csiDescriptor.csiStateDescriptor.standbyDescriptor.activeCompName.length = request->activecompname().length()+1;
           csiDescriptor.csiStateDescriptor.standbyDescriptor.standbyRank = 0;  // TODO
           }
 

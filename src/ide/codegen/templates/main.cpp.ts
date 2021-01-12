@@ -288,7 +288,7 @@ void safRemoveWork(SaInvocationT  invocation,
     /*
      * Add application specific logic for removing the work for this CSI.
      */
-
+    running = 0;
     saAmfResponse(amfHandle, invocation, SA_AIS_OK);
 }
 

@@ -139,13 +139,15 @@ void protobuf_AssignDesc_amfAppRpc_2eproto() {
       ::google::protobuf::MessageFactory::generated_factory(),
       sizeof(KeyValuePairs));
   WorkOperationRequest_descriptor_ = file->message_type(5);
-  static const int WorkOperationRequest_offsets_[6] = {
+  static const int WorkOperationRequest_offsets_[8] = {
     GOOGLE_PROTOBUF_GENERATED_MESSAGE_FIELD_OFFSET(WorkOperationRequest, invocation_),
     GOOGLE_PROTOBUF_GENERATED_MESSAGE_FIELD_OFFSET(WorkOperationRequest, componentname_),
     GOOGLE_PROTOBUF_GENERATED_MESSAGE_FIELD_OFFSET(WorkOperationRequest, componenthandle_),
     GOOGLE_PROTOBUF_GENERATED_MESSAGE_FIELD_OFFSET(WorkOperationRequest, operation_),
     GOOGLE_PROTOBUF_GENERATED_MESSAGE_FIELD_OFFSET(WorkOperationRequest, target_),
     GOOGLE_PROTOBUF_GENERATED_MESSAGE_FIELD_OFFSET(WorkOperationRequest, keyvaluepairs_),
+    GOOGLE_PROTOBUF_GENERATED_MESSAGE_FIELD_OFFSET(WorkOperationRequest, csiname_),
+    GOOGLE_PROTOBUF_GENERATED_MESSAGE_FIELD_OFFSET(WorkOperationRequest, activecompname_),
   };
   WorkOperationRequest_reflection_ =
     new ::google::protobuf::internal::GeneratedMessageReflection(
@@ -280,36 +282,37 @@ void protobuf_AddDesc_amfAppRpc_2eproto() {
     "le\030\003 \001(\014*\t\010\350\007\020\200\200\200\200\002\"B\n\021TerminateResponse"
     "\022\022\n\ninvocation\030\001 \001(\004\022\016\n\006result\030\002 \001(\007*\t\010\350"
     "\007\020\200\200\200\200\002\"<\n\rKeyValuePairs\022\016\n\006theKey\030\001 \001(\t"
-    "\022\020\n\010theValue\030\002 \001(\t*\t\010\350\007\020\200\200\200\200\002\"\305\001\n\024WorkOp"
+    "\022\020\n\010theValue\030\002 \001(\t*\t\010\350\007\020\200\200\200\200\002\"\356\001\n\024WorkOp"
     "erationRequest\022\022\n\ninvocation\030\001 \001(\004\022\025\n\rco"
     "mponentName\030\002 \001(\t\022\027\n\017componentHandle\030\003 \003"
     "(\014\022\021\n\toperation\030\004 \001(\007\022\016\n\006target\030\005 \001(\007\022;\n"
     "\rkeyValuePairs\030\006 \003(\0132$.SAFplus.Rpc.amfAp"
-    "pRpc.KeyValuePairs*\t\010\350\007\020\200\200\200\200\002\"M\n\034WorkOpe"
-    "rationResponseRequest\022\022\n\ninvocation\030\001 \001("
-    "\004\022\016\n\006result\030\002 \001(\007*\t\010\350\007\020\200\200\200\200\002\"s\n\"ProxiedC"
-    "omponentInstantiateRequest\022\022\n\ninvocation"
-    "\030\001 \001(\004\022\025\n\rcomponentName\030\002 \001(\t\022\027\n\017compone"
-    "ntHandle\030\003 \003(\014*\t\010\350\007\020\200\200\200\200\002\"o\n\036ProxiedComp"
-    "onentCleanupRequest\022\022\n\ninvocation\030\001 \001(\004\022"
-    "\025\n\rcomponentName\030\002 \001(\t\022\027\n\017componentHandl"
-    "e\030\003 \003(\014*\t\010\350\007\020\200\200\200\200\0022\353\004\n\tamfAppRpc\022^\n\thear"
-    "tbeat\022\'.SAFplus.Rpc.amfAppRpc.HeartbeatR"
-    "equest\032(.SAFplus.Rpc.amfAppRpc.Heartbeat"
-    "Response\022^\n\tterminate\022\'.SAFplus.Rpc.amfA"
-    "ppRpc.TerminateRequest\032(.SAFplus.Rpc.amf"
-    "AppRpc.TerminateResponse\022V\n\rworkOperatio"
-    "n\022+.SAFplus.Rpc.amfAppRpc.WorkOperationR"
-    "equest\032\030.SAFplus.Rpc.NO_RESPONSE\022f\n\025work"
-    "OperationResponse\0223.SAFplus.Rpc.amfAppRp"
-    "c.WorkOperationResponseRequest\032\030.SAFplus"
-    ".Rpc.NO_RESPONSE\022r\n\033proxiedComponentInst"
-    "antiate\0229.SAFplus.Rpc.amfAppRpc.ProxiedC"
-    "omponentInstantiateRequest\032\030.SAFplus.Rpc"
-    ".NO_RESPONSE\022j\n\027proxiedComponentCleanup\022"
-    "5.SAFplus.Rpc.amfAppRpc.ProxiedComponent"
-    "CleanupRequest\032\030.SAFplus.Rpc.NO_RESPONSE"
-    "B\t\200\001\000\210\001\000\220\001\001", 1531);
+    "pRpc.KeyValuePairs\022\017\n\007csiName\030\007 \001(\t\022\026\n\016a"
+    "ctiveCompName\030\010 \001(\t*\t\010\350\007\020\200\200\200\200\002\"M\n\034WorkOp"
+    "erationResponseRequest\022\022\n\ninvocation\030\001 \001"
+    "(\004\022\016\n\006result\030\002 \001(\007*\t\010\350\007\020\200\200\200\200\002\"s\n\"Proxied"
+    "ComponentInstantiateRequest\022\022\n\ninvocatio"
+    "n\030\001 \001(\004\022\025\n\rcomponentName\030\002 \001(\t\022\027\n\017compon"
+    "entHandle\030\003 \003(\014*\t\010\350\007\020\200\200\200\200\002\"o\n\036ProxiedCom"
+    "ponentCleanupRequest\022\022\n\ninvocation\030\001 \001(\004"
+    "\022\025\n\rcomponentName\030\002 \001(\t\022\027\n\017componentHand"
+    "le\030\003 \003(\014*\t\010\350\007\020\200\200\200\200\0022\353\004\n\tamfAppRpc\022^\n\thea"
+    "rtbeat\022\'.SAFplus.Rpc.amfAppRpc.Heartbeat"
+    "Request\032(.SAFplus.Rpc.amfAppRpc.Heartbea"
+    "tResponse\022^\n\tterminate\022\'.SAFplus.Rpc.amf"
+    "AppRpc.TerminateRequest\032(.SAFplus.Rpc.am"
+    "fAppRpc.TerminateResponse\022V\n\rworkOperati"
+    "on\022+.SAFplus.Rpc.amfAppRpc.WorkOperation"
+    "Request\032\030.SAFplus.Rpc.NO_RESPONSE\022f\n\025wor"
+    "kOperationResponse\0223.SAFplus.Rpc.amfAppR"
+    "pc.WorkOperationResponseRequest\032\030.SAFplu"
+    "s.Rpc.NO_RESPONSE\022r\n\033proxiedComponentIns"
+    "tantiate\0229.SAFplus.Rpc.amfAppRpc.Proxied"
+    "ComponentInstantiateRequest\032\030.SAFplus.Rp"
+    "c.NO_RESPONSE\022j\n\027proxiedComponentCleanup"
+    "\0225.SAFplus.Rpc.amfAppRpc.ProxiedComponen"
+    "tCleanupRequest\032\030.SAFplus.Rpc.NO_RESPONS"
+    "EB\t\200\001\000\210\001\000\220\001\001", 1572);
   ::google::protobuf::MessageFactory::InternalRegisterGeneratedFile(
     "amfAppRpc.proto", &protobuf_RegisterTypes);
   HeartbeatRequest::default_instance_ = new HeartbeatRequest();
@@ -1793,6 +1796,8 @@ const int WorkOperationRequest::kComponentHandleFieldNumber;
 const int WorkOperationRequest::kOperationFieldNumber;
 const int WorkOperationRequest::kTargetFieldNumber;
 const int WorkOperationRequest::kKeyValuePairsFieldNumber;
+const int WorkOperationRequest::kCsiNameFieldNumber;
+const int WorkOperationRequest::kActiveCompNameFieldNumber;
 #endif  // !_MSC_VER
 
 WorkOperationRequest::WorkOperationRequest()
@@ -1818,6 +1823,8 @@ void WorkOperationRequest::SharedCtor() {
   componentname_ = const_cast< ::std::string*>(&::google::protobuf::internal::GetEmptyStringAlreadyInited());
   operation_ = 0u;
   target_ = 0u;
+  csiname_ = const_cast< ::std::string*>(&::google::protobuf::internal::GetEmptyStringAlreadyInited());
+  activecompname_ = const_cast< ::std::string*>(&::google::protobuf::internal::GetEmptyStringAlreadyInited());
   ::memset(_has_bits_, 0, sizeof(_has_bits_));
 }
 
@@ -1829,6 +1836,12 @@ WorkOperationRequest::~WorkOperationRequest() {
 void WorkOperationRequest::SharedDtor() {
   if (componentname_ != &::google::protobuf::internal::GetEmptyStringAlreadyInited()) {
     delete componentname_;
+  }
+  if (csiname_ != &::google::protobuf::internal::GetEmptyStringAlreadyInited()) {
+    delete csiname_;
+  }
+  if (activecompname_ != &::google::protobuf::internal::GetEmptyStringAlreadyInited()) {
+    delete activecompname_;
   }
   if (this != default_instance_) {
   }
@@ -1867,12 +1880,22 @@ void WorkOperationRequest::Clear() {
     ::memset(&first, 0, n);                                \
   } while (0)
 
-  if (_has_bits_[0 / 32] & 27) {
+  if (_has_bits_[0 / 32] & 219) {
     ZR_(operation_, target_);
     invocation_ = GOOGLE_ULONGLONG(0);
     if (has_componentname()) {
       if (componentname_ != &::google::protobuf::internal::GetEmptyStringAlreadyInited()) {
         componentname_->clear();
+      }
+    }
+    if (has_csiname()) {
+      if (csiname_ != &::google::protobuf::internal::GetEmptyStringAlreadyInited()) {
+        csiname_->clear();
+      }
+    }
+    if (has_activecompname()) {
+      if (activecompname_ != &::google::protobuf::internal::GetEmptyStringAlreadyInited()) {
+        activecompname_->clear();
       }
     }
   }
@@ -1981,6 +2004,40 @@ bool WorkOperationRequest::MergePartialFromCodedStream(
           goto handle_unusual;
         }
         if (input->ExpectTag(50)) goto parse_keyValuePairs;
+        if (input->ExpectTag(58)) goto parse_csiName;
+        break;
+      }
+
+      // optional string csiName = 7;
+      case 7: {
+        if (tag == 58) {
+         parse_csiName:
+          DO_(::google::protobuf::internal::WireFormatLite::ReadString(
+                input, this->mutable_csiname()));
+          ::google::protobuf::internal::WireFormat::VerifyUTF8StringNamedField(
+            this->csiname().data(), this->csiname().length(),
+            ::google::protobuf::internal::WireFormat::PARSE,
+            "csiname");
+        } else {
+          goto handle_unusual;
+        }
+        if (input->ExpectTag(66)) goto parse_activeCompName;
+        break;
+      }
+
+      // optional string activeCompName = 8;
+      case 8: {
+        if (tag == 66) {
+         parse_activeCompName:
+          DO_(::google::protobuf::internal::WireFormatLite::ReadString(
+                input, this->mutable_activecompname()));
+          ::google::protobuf::internal::WireFormat::VerifyUTF8StringNamedField(
+            this->activecompname().data(), this->activecompname().length(),
+            ::google::protobuf::internal::WireFormat::PARSE,
+            "activecompname");
+        } else {
+          goto handle_unusual;
+        }
         if (input->ExpectAtEnd()) goto success;
         break;
       }
@@ -2052,6 +2109,26 @@ void WorkOperationRequest::SerializeWithCachedSizes(
       6, this->keyvaluepairs(i), output);
   }
 
+  // optional string csiName = 7;
+  if (has_csiname()) {
+    ::google::protobuf::internal::WireFormat::VerifyUTF8StringNamedField(
+      this->csiname().data(), this->csiname().length(),
+      ::google::protobuf::internal::WireFormat::SERIALIZE,
+      "csiname");
+    ::google::protobuf::internal::WireFormatLite::WriteStringMaybeAliased(
+      7, this->csiname(), output);
+  }
+
+  // optional string activeCompName = 8;
+  if (has_activecompname()) {
+    ::google::protobuf::internal::WireFormat::VerifyUTF8StringNamedField(
+      this->activecompname().data(), this->activecompname().length(),
+      ::google::protobuf::internal::WireFormat::SERIALIZE,
+      "activecompname");
+    ::google::protobuf::internal::WireFormatLite::WriteStringMaybeAliased(
+      8, this->activecompname(), output);
+  }
+
   // Extension range [1000, 536870912)
   _extensions_.SerializeWithCachedSizes(
       1000, 536870912, output);
@@ -2105,6 +2182,28 @@ void WorkOperationRequest::SerializeWithCachedSizes(
         6, this->keyvaluepairs(i), target);
   }
 
+  // optional string csiName = 7;
+  if (has_csiname()) {
+    ::google::protobuf::internal::WireFormat::VerifyUTF8StringNamedField(
+      this->csiname().data(), this->csiname().length(),
+      ::google::protobuf::internal::WireFormat::SERIALIZE,
+      "csiname");
+    target =
+      ::google::protobuf::internal::WireFormatLite::WriteStringToArray(
+        7, this->csiname(), target);
+  }
+
+  // optional string activeCompName = 8;
+  if (has_activecompname()) {
+    ::google::protobuf::internal::WireFormat::VerifyUTF8StringNamedField(
+      this->activecompname().data(), this->activecompname().length(),
+      ::google::protobuf::internal::WireFormat::SERIALIZE,
+      "activecompname");
+    target =
+      ::google::protobuf::internal::WireFormatLite::WriteStringToArray(
+        8, this->activecompname(), target);
+  }
+
   // Extension range [1000, 536870912)
   target = _extensions_.SerializeWithCachedSizesToArray(
       1000, 536870912, target);
@@ -2143,6 +2242,20 @@ int WorkOperationRequest::ByteSize() const {
     // optional fixed32 target = 5;
     if (has_target()) {
       total_size += 1 + 4;
+    }
+
+    // optional string csiName = 7;
+    if (has_csiname()) {
+      total_size += 1 +
+        ::google::protobuf::internal::WireFormatLite::StringSize(
+          this->csiname());
+    }
+
+    // optional string activeCompName = 8;
+    if (has_activecompname()) {
+      total_size += 1 +
+        ::google::protobuf::internal::WireFormatLite::StringSize(
+          this->activecompname());
     }
 
   }
@@ -2203,6 +2316,12 @@ void WorkOperationRequest::MergeFrom(const WorkOperationRequest& from) {
     if (from.has_target()) {
       set_target(from.target());
     }
+    if (from.has_csiname()) {
+      set_csiname(from.csiname());
+    }
+    if (from.has_activecompname()) {
+      set_activecompname(from.activecompname());
+    }
   }
   _extensions_.MergeFrom(from._extensions_);
   mutable_unknown_fields()->MergeFrom(from.unknown_fields());
@@ -2235,6 +2354,8 @@ void WorkOperationRequest::Swap(WorkOperationRequest* other) {
     std::swap(operation_, other->operation_);
     std::swap(target_, other->target_);
     keyvaluepairs_.Swap(&other->keyvaluepairs_);
+    std::swap(csiname_, other->csiname_);
+    std::swap(activecompname_, other->activecompname_);
     std::swap(_has_bits_[0], other->_has_bits_[0]);
     _unknown_fields_.Swap(&other->_unknown_fields_);
     std::swap(_cached_size_, other->_cached_size_);
