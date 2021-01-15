@@ -398,7 +398,7 @@ class SelectTool(Tool):
         # TODO: Move the data in this entity to the configuration editing sidebar, and expand it if its minimized.
         if self.touching and self.dragPos:
           # Ignore moving component and csi
-          #for e in filter(lambda e: not e.et.name in (self.panel.ignoreEntities), self.selected):
+          for e in filter(lambda e: not e.et.name in (self.panel.ignoreEntities), self.selected):
           #   if e.et.name in panel.rowTypes:
           #     print 'DBG: repositionRow for [%s]'%e.data['name']
           #     panel.repositionRow(e,(pos[0]/scale,pos[1]/scale))
@@ -406,8 +406,11 @@ class SelectTool(Tool):
           #     print 'DBG: repositionRow for [%s]'%e.data['name']
           #     panel.repositionColumn(e,(pos[0]/scale,pos[1]/scale))
           #   else:
-          #     print 'DBG: reposition for [%s]'%e.data['name']
-          #     panel.grid.reposition(e, panel,pos=(pos[0]/scale,pos[1]/scale))
+               if e.et.name == 'Component' or e.et.name == 'NonSafComponent':
+                 pass # ignore reposition Component or NonSafComponent
+               else:
+                 print 'DBG: reposition for [%s]'%e.data['name']
+                 panel.grid.reposition(e, panel,pos=(pos[0]/scale,pos[1]/scale))
           self.touching = set()
           panel.layout()
           panel.Refresh()
@@ -1020,11 +1023,14 @@ class GridEntityLayout:
         if sg and cell.row != sg:
           continue
 
+        if instance.et.name == 'ServiceUnit' and isinstance(cell.col, Margin) and not isinstance(cell.row, Margin) and cell.row.et.name=="ServiceGroup":
+          print 'cannot move SU to SG'
+          continue
         # Does not allow si to be moved to node
         if instance.et.name=="ServiceInstance" and not isinstance(cell.col, Margin) and cell.col.et.name=="Node":
           print 'cannot move SIs/CSIs to Nodes'
           continue
-
+        #print str(cell.col)
         if inBox(pos,cell.bound):
           # Remove the containment arrows (if they exist)
           for i in instance.childOf:  
