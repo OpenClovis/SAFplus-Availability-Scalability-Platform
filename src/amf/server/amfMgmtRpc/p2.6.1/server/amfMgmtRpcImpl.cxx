@@ -38,6 +38,7 @@ do {                                                                    \
 
 extern SAFplus::MgtDatabase amfDb;
 extern SAFplusAmf::SAFplusAmfModule cfg;
+extern SAFplus::AmfOperations *amfOpsMgmt;
 
 //namespace SAFplus {
 
@@ -4730,6 +4731,120 @@ namespace amfMgmtRpc {
       }
     }
     response->set_err(rc);
+  }
+
+  void amfMgmtRpcImpl::nodeRestart(const ::SAFplus::Rpc::amfMgmtRpc::NodeRestartRequest* request,
+                                   ::SAFplus::Rpc::amfMgmtRpc::NodeRestartResponse* response)
+  {
+      const std::string& nodeName = request->nodename();
+      logDebug("MGMT","RPC","enter [%s] with param node name [%s]",__FUNCTION__,nodeName.c_str());
+      ClRcT rc = CL_OK;
+#ifdef HANDLE_VALIDATE
+      DbalPlugin* pd = NULL;
+      rc = getDbalObj(request->amfmgmthandle().Get(0).c_str(), &pd);
+      if (rc != CL_OK)
+      {
+          logDebug("MGMT","RPC","invalid handle, rc [0x%x", rc);
+          response->set_err(rc);
+          return;
+      }
+#endif
+      SAFplusAmf::Node* node = dynamic_cast<SAFplusAmf::Node*>(cfg.safplusAmf.nodeList[nodeName]);
+      if (node == NULL)
+      {
+          logDebug("MGMT","RPC","node object is null for its name [%s]", nodeName.c_str());
+          rc = CL_ERR_UNSPECIFIED;
+      }
+      else
+      {
+          if (node->restartable.value == true)
+          {
+              amfOpsMgmt->nodeRestart(node);
+          }
+          else
+          {
+              logDebug("MGMT","RPC","Configure node  cannot restart");
+              rc = CL_ERR_NO_OP;
+          }
+      }
+
+      response->set_err(rc);
+  }
+
+  void amfMgmtRpcImpl::serviceUnitRestart(const ::SAFplus::Rpc::amfMgmtRpc::ServiceUnitRestartRequest* request,
+                                          ::SAFplus::Rpc::amfMgmtRpc::ServiceUnitRestartResponse* response)
+  {
+      const std::string& suName = request->suname();
+      logDebug("MGMT","RPC","enter [%s] with param su name [%s]",__FUNCTION__,suName.c_str());
+      ClRcT rc = CL_OK;
+#ifdef HANDLE_VALIDATE
+      DbalPlugin* pd = NULL;
+      rc = getDbalObj(request->amfmgmthandle().Get(0).c_str(), &pd);
+      if (rc != CL_OK)
+      {
+          logDebug("MGMT","RPC","invalid handle, rc [0x%x", rc);
+          response->set_err(rc);
+          return;
+      }
+#endif
+      SAFplusAmf::ServiceUnit* su = dynamic_cast<SAFplusAmf::ServiceUnit*>(cfg.safplusAmf.serviceUnitList[suName]);
+      if (su == NULL)
+      {
+          logDebug("MGMT","RPC","su object is null for its name [%s]", suName.c_str());
+          rc = CL_ERR_UNSPECIFIED;
+      }
+      else
+      {
+          if (su->restartable.value == true)
+          {
+              amfOpsMgmt->serviceUnitRestart(su);
+          }
+          else
+          {
+              logDebug("MGMT","RPC","Configure serviceUnit  cannot restart");
+              rc = CL_ERR_NO_OP;
+          }
+      }
+
+      response->set_err(rc);
+  }
+
+  void amfMgmtRpcImpl::componentRestart(const ::SAFplus::Rpc::amfMgmtRpc::ComponentRestartRequest* request,
+                                        ::SAFplus::Rpc::amfMgmtRpc::ComponentRestartResponse* response)
+  {
+      const std::string& compName = request->compname();
+      logDebug("MGMT","RPC","enter [%s] with param comp name [%s]",__FUNCTION__,compName.c_str());
+      ClRcT rc = CL_OK;
+#ifdef HANDLE_VALIDATE
+      DbalPlugin* pd = NULL;
+      rc = getDbalObj(request->amfmgmthandle().Get(0).c_str(), &pd);
+      if (rc != CL_OK)
+      {
+          logDebug("MGMT","RPC","invalid handle, rc [0x%x", rc);
+          response->set_err(rc);
+          return;
+      }
+#endif
+      SAFplusAmf::Component* comp = dynamic_cast<SAFplusAmf::Component*>(cfg.safplusAmf.componentList[compName]);
+      if (comp == NULL)
+      {
+          logDebug("MGMT","RPC","comp object is null for its name [%s]", compName.c_str());
+          rc = CL_ERR_UNSPECIFIED;
+      }
+      else
+      {
+          if (comp->restartable.value == true)
+          {
+              amfOpsMgmt->componentRestart(comp);
+          }
+          else
+          {
+              logDebug("MGMT","RPC","Configure component  cannot restart");
+              rc = CL_ERR_NO_OP;
+          }
+      }
+
+      response->set_err(rc);
   }
 
 }  // namespace amfMgmtRpc

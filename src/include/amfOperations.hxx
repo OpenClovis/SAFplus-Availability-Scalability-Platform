@@ -96,7 +96,7 @@ namespace SAFplus
     CompStatus getCompState(SAFplusAmf::Component* comp);
     void start(SAFplusAmf::ServiceGroup* sg,Wakeable& w = *((Wakeable*)nullptr));
     void start(SAFplusAmf::Component* comp,Wakeable& w = *((Wakeable*)nullptr));
-    void abort(SAFplusAmf::Component* comp,Wakeable& w = *((Wakeable*)nullptr));  // Stops a component via a signal (without removing work)
+    void abort(SAFplusAmf::Component* comp, bool changePS = true, Wakeable& w = *((Wakeable*)nullptr));  // Stops a component via a signal (without removing work)
     void stop(SAFplusAmf::Component* comp,Wakeable& w = *((Wakeable*)nullptr));  // Stops a component via terminate RPC
     void cleanup(SAFplusAmf::Component* comp,Wakeable& w = *((Wakeable*)nullptr));  // Stops a component via terminate RPC
     void rebootNode(SAFplusAmf::Node* node, Wakeable& w = *((Wakeable*)nullptr));
@@ -110,5 +110,9 @@ namespace SAFplus
       //? Report that AMF state has changed.  This will cause the AMF to rerun its evaluation loop right away.  If you call another amfOperations API, you do not need to call this.
     void reportChange(void) { changed=true;}
     bool suContainsSaAwareComp(SAFplusAmf::ServiceUnit* su);
+
+    void nodeRestart(SAFplusAmf::Node* node,Wakeable& w = *((Wakeable*)nullptr));
+    void serviceUnitRestart(SAFplusAmf::ServiceUnit* su,Wakeable& w = *((Wakeable*)nullptr));
+    void componentRestart(SAFplusAmf::Component* comp,Wakeable& w = *((Wakeable*)nullptr));
     };
   };

@@ -1517,6 +1517,36 @@ By default the specified location and children are shown.  Use -N to specify how
       print "nodeName is %s" %node
     return ""
 
+  def do_entityRestart(self, entityType, entityName):
+    """syntax: entityRestart entityType entityName
+    """
+    try:
+      access.nameInitialize()
+      handleTest = access.getProcessHandle(0, 0)
+      ret = access.amfMgmtInitialize(handleTest)
+      # print "amfMgmtInitialize: ", hex(ret)
+
+      if entityType == "Node":
+        ret = access.amfMgmtNodeRestart(handleTest, entityName)
+      elif entityType == "ServiceUnit":
+        ret = access.amfMgmtSURestart(handleTest, entityName)
+      elif entityType == "Component":
+        ret = access.amfMgmtCompRestart(handleTest, entityName)
+      # print "amfMgmtSURestart: ", hex(ret)
+      if ret == 0x11:
+        print "%s entity do not exist in %s" % (entityName, entityType)
+      elif ret == 0x12:
+        print "%s entity have an invalid state to restart" %entityName
+      elif ret == 0x0:
+        print " %s entity restart OK" %entityName
+
+      ret = access.amfMgmtFinalize(handleTest)
+ 
+    except RuntimeError, e:
+      print "error: ", e
+
+    return ""
+
 class CaptureOutput:
   def __init__(self,resolver):
     try: 

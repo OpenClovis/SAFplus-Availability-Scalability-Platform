@@ -83,6 +83,7 @@ bool amfChange = false;  //? Set to true if the change was AMF related (process 
 bool grpChange = false;  //? Set to true if the change was group related
 
 SAFplusAmf::SAFplusAmfModule cfg;
+AmfOperations *amfOpsMgmt;
 //MgtModule dataModule("SAFplusAmf");
 
 const char* LogArea = "MAN";
@@ -787,6 +788,7 @@ int main(int argc, char* argv[])
   logServer = boost::thread(LogServer());
 
   AmfOperations amfOps;  // Must happen after messaging initialization so that we can use the node address and message port in the invocation.
+  amfOpsMgmt = &amfOps;
   amfOps.amfInternalRpc = &amfInternalRpc;
 
   // Set up the RPC communication to applications

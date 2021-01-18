@@ -55,6 +55,10 @@ ClRcT amfMgmtNodeRepair(const Handle& mgmtHandle, const std::string& nodeName);
 ClRcT amfMgmtCompRepair(const Handle& mgmtHandle, const std::string& compName);
 ClRcT amfMgmtSURepair(const Handle& mgmtHandle, const std::string& suName);
 
+ClRcT amfMgmtNodeRestart(const Handle& mgmtHandle, const std::string& nodeName);
+ClRcT amfMgmtSURestart(const Handle& mgmtHandle, const std::string& suName);
+ClRcT amfMgmtCompRestart(const Handle& mgmtHandle, const std::string& compName);
+
 ClRcT amfMgmtComponentGetConfig(const Handle& mgmtHandle,const std::string& compName, SAFplus::Rpc::amfMgmtRpc::ComponentConfig** compConfig);
 ClRcT amfMgmtNodeGetConfig(const Handle& mgmtHandle,const std::string& nodeName, SAFplus::Rpc::amfMgmtRpc::NodeConfig** nodeConfig);
 ClRcT amfMgmtSGGetConfig(const Handle& mgmtHandle,const std::string& sgName, SAFplus::Rpc::amfMgmtRpc::ServiceGroupConfig** sgConfig);

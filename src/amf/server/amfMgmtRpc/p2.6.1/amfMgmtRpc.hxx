@@ -138,6 +138,12 @@ class amfMgmtRpc : public SAFplus::Rpc::RpcService {
                        ::SAFplus::Rpc::amfMgmtRpc::GetSIStatusResponse* response);
   virtual void getCSIStatus(const ::SAFplus::Rpc::amfMgmtRpc::GetCSIStatusRequest* request,
                        ::SAFplus::Rpc::amfMgmtRpc::GetCSIStatusResponse* response);
+  virtual void nodeRestart(const ::SAFplus::Rpc::amfMgmtRpc::NodeRestartRequest* request,
+                       ::SAFplus::Rpc::amfMgmtRpc::NodeRestartResponse* response);
+  virtual void serviceUnitRestart(const ::SAFplus::Rpc::amfMgmtRpc::ServiceUnitRestartRequest* request,
+                       ::SAFplus::Rpc::amfMgmtRpc::ServiceUnitRestartResponse* response);
+  virtual void componentRestart(const ::SAFplus::Rpc::amfMgmtRpc::ComponentRestartRequest* request,
+                       ::SAFplus::Rpc::amfMgmtRpc::ComponentRestartResponse* response);
 
   // implements amfMgmtRpc ------------------------------------------
   virtual void initialize(SAFplus::Handle destination,
@@ -351,6 +357,18 @@ class amfMgmtRpc : public SAFplus::Rpc::RpcService {
   virtual void getCSIStatus(SAFplus::Handle destination,
                        const ::SAFplus::Rpc::amfMgmtRpc::GetCSIStatusRequest* request,
                        ::SAFplus::Rpc::amfMgmtRpc::GetCSIStatusResponse* response,
+                       SAFplus::Wakeable& wakeable = *((SAFplus::Wakeable*)nullptr));
+  virtual void nodeRestart(SAFplus::Handle destination,
+                       const ::SAFplus::Rpc::amfMgmtRpc::NodeRestartRequest* request,
+                       ::SAFplus::Rpc::amfMgmtRpc::NodeRestartResponse* response,
+                       SAFplus::Wakeable& wakeable = *((SAFplus::Wakeable*)nullptr));
+  virtual void serviceUnitRestart(SAFplus::Handle destination,
+                       const ::SAFplus::Rpc::amfMgmtRpc::ServiceUnitRestartRequest* request,
+                       ::SAFplus::Rpc::amfMgmtRpc::ServiceUnitRestartResponse* response,
+                       SAFplus::Wakeable& wakeable = *((SAFplus::Wakeable*)nullptr));
+  virtual void componentRestart(SAFplus::Handle destination,
+                       const ::SAFplus::Rpc::amfMgmtRpc::ComponentRestartRequest* request,
+                       ::SAFplus::Rpc::amfMgmtRpc::ComponentRestartResponse* response,
                        SAFplus::Wakeable& wakeable = *((SAFplus::Wakeable*)nullptr));
 
 
@@ -592,6 +610,18 @@ class amfMgmtRpc_Stub : public amfMgmtRpc {
                        const ::SAFplus::Rpc::amfMgmtRpc::GetCSIStatusRequest* request,
                        ::SAFplus::Rpc::amfMgmtRpc::GetCSIStatusResponse* response,
                        SAFplus::Wakeable& wakeable = *((SAFplus::Wakeable*)nullptr));
+  void nodeRestart(SAFplus::Handle destination,
+                       const ::SAFplus::Rpc::amfMgmtRpc::NodeRestartRequest* request,
+                       ::SAFplus::Rpc::amfMgmtRpc::NodeRestartResponse* response,
+                       SAFplus::Wakeable& wakeable = *((SAFplus::Wakeable*)nullptr));
+  void serviceUnitRestart(SAFplus::Handle destination,
+                       const ::SAFplus::Rpc::amfMgmtRpc::ServiceUnitRestartRequest* request,
+                       ::SAFplus::Rpc::amfMgmtRpc::ServiceUnitRestartResponse* response,
+                       SAFplus::Wakeable& wakeable = *((SAFplus::Wakeable*)nullptr));
+  void componentRestart(SAFplus::Handle destination,
+                       const ::SAFplus::Rpc::amfMgmtRpc::ComponentRestartRequest* request,
+                       ::SAFplus::Rpc::amfMgmtRpc::ComponentRestartResponse* response,
+                       SAFplus::Wakeable& wakeable = *((SAFplus::Wakeable*)nullptr));
  private:
   SAFplus::Rpc::RpcChannel* channel_;
   bool owns_channel_;
@@ -711,6 +741,12 @@ class amfMgmtRpcImpl : public amfMgmtRpc {
                        ::SAFplus::Rpc::amfMgmtRpc::GetSIStatusResponse* response);
   void getCSIStatus(const ::SAFplus::Rpc::amfMgmtRpc::GetCSIStatusRequest* request,
                        ::SAFplus::Rpc::amfMgmtRpc::GetCSIStatusResponse* response);
+  void nodeRestart(const ::SAFplus::Rpc::amfMgmtRpc::NodeRestartRequest* request,
+                       ::SAFplus::Rpc::amfMgmtRpc::NodeRestartResponse* response);
+  void serviceUnitRestart(const ::SAFplus::Rpc::amfMgmtRpc::ServiceUnitRestartRequest* request,
+                       ::SAFplus::Rpc::amfMgmtRpc::ServiceUnitRestartResponse* response);
+  void componentRestart(const ::SAFplus::Rpc::amfMgmtRpc::ComponentRestartRequest* request,
+                       ::SAFplus::Rpc::amfMgmtRpc::ComponentRestartResponse* response);
 };
 
 }  // namespace amfMgmtRpc

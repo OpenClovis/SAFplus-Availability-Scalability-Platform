@@ -33,6 +33,10 @@ amfMgmtNodeRepair = safplus.amfMgmtNodeRepair
 amfMgmtCompRepair = safplus.amfMgmtCompRepair
 amfMgmtSURepair = safplus.amfMgmtSURepair
 
+amfMgmtNodeRestart = safplus.amfMgmtNodeRestart
+amfMgmtSURestart = safplus.amfMgmtSURestart
+amfMgmtCompRestart = safplus.amfMgmtCompRestart
+
 def isValidDirectory(path):
   try:
     data = mgtGet(str("{d=0}"+path))

@@ -612,7 +612,7 @@ namespace SAFplus
             {
               if ( comp->capabilityModel == CapabilityModel::not_preinstantiable)  // except if it has no work we just kill it
                 {
-                  abort(comp, w);  // TODO, need to consolidate the wakeables
+                  abort(comp, true, w);  // TODO, need to consolidate the wakeables
                 }
               else
                 {
@@ -630,7 +630,7 @@ namespace SAFplus
                           logCritical("OPS","WRK","Component [%s] is not registered in the name service.  Cannot control it.", comp->name.value.c_str());
                           comp->lastError.value = "Component's name is not registered in the name service so cannot remove work cleanly";
                           // this one should be killed since it can't be controlled
-                          abort(comp,w);  // TODO, need to consolidate the wakeables
+                          abort(comp, true, w);  // TODO, need to consolidate the wakeables
                           // TODO ? anything to set in the comp's status?
                           continue; // Go to the next component
                         }
@@ -881,7 +881,7 @@ namespace SAFplus
     Handle hdl;
     if (comp->capabilityModel == CapabilityModel::not_preinstantiable)  // Cannot talk to the component, just kill it
       {
-        abort(comp,w);
+        abort(comp, true,w);
         return;
       }
 
@@ -893,7 +893,7 @@ namespace SAFplus
       {
         logCritical("OPS","SRT","Component [%s] is not registered in the name service, so the AMF cannot communicate with it. Substituting kill for stop.", comp->name.value.c_str());
         comp->lastError.value = "Component's name is not registered in the name service so address cannot be determined.";
-        abort(comp,w);
+        abort(comp, true,w);
         return;
       }
         
@@ -930,7 +930,7 @@ namespace SAFplus
 
     }
 
-  void AmfOperations::abort(SAFplusAmf::Component* comp,Wakeable& w)
+  void AmfOperations::abort(SAFplusAmf::Component* comp, bool changePS, Wakeable& w)
     {
     Handle nodeHdl;
     Handle remoteAmfHdl;
@@ -961,7 +961,10 @@ namespace SAFplus
           logWarning("OPS","ABRT","Cannot stop AMF Entity [%s] since it has no associated process id.  If this process still exists, it will become orphaned.", comp->serviceUnit.value->node.value->name.value.c_str());
 
           }
-        comp->presenceState = PresenceState::uninstantiated;
+        if(changePS == true)
+        {
+            comp->presenceState = PresenceState::uninstantiated;
+        }
       }
     else  
       {
@@ -1433,6 +1436,36 @@ namespace SAFplus
                 compUpdateProxiedComponents(comp,csi);
             }
         }
+    }
+
+    void AmfOperations::nodeRestart(SAFplusAmf::Node* node,Wakeable& w)
+    {
+        logDebug("OPS", "RESTART", "enter [nodeRestart] with param node name [%s]", node->name.value.c_str());
+        SAFplus::MgtIdentifierList<SAFplusAmf::ServiceUnit*>::iterator itsu;
+        SAFplus::MgtIdentifierList<SAFplusAmf::ServiceUnit*>::iterator endsu = node->serviceUnits.listEnd();
+        for (itsu = node->serviceUnits.listBegin(); itsu != endsu; itsu++)
+        {
+            ServiceUnit* su = dynamic_cast<ServiceUnit*>(*itsu);
+            serviceUnitRestart(su, w);
+        }
+    }
+
+    void AmfOperations::serviceUnitRestart(SAFplusAmf::ServiceUnit* su,Wakeable& w)
+    {
+        logDebug("OPS", "RESTART", "enter [serviceUnitRestart] with param serviceUnit name [%s]", su->name.value.c_str());
+        SAFplus::MgtObject::Iterator itcomp;
+        SAFplus::MgtObject::Iterator endcomp = su->components.end();
+        for (itcomp = su->components.begin(); itcomp != endcomp; itcomp++)
+        {
+            Component* comp = dynamic_cast<Component*>(itcomp->second);
+            abort(comp, false, w);
+        }
+    }
+
+    void AmfOperations::componentRestart(SAFplusAmf::Component* comp,Wakeable& w)
+    {
+        logDebug("OPS", "RESTART", "enter [componentRestart] with param component name [%s]", comp->name.value.c_str());
+        abort(comp, false, w);
     }
 
   };

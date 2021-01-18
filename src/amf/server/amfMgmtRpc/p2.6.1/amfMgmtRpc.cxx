@@ -362,6 +362,24 @@ void amfMgmtRpc::getCSIStatus(const ::SAFplus::Rpc::amfMgmtRpc::GetCSIStatusRequ
   logError("RPC","SVR","Method getCSIStatus() not implemented.");
 }
 
+void amfMgmtRpc::nodeRestart(const ::SAFplus::Rpc::amfMgmtRpc::NodeRestartRequest*,
+                         ::SAFplus::Rpc::amfMgmtRpc::NodeRestartResponse*)
+{
+  logError("RPC","SVR","Method nodeRestart() not implemented.");
+}
+
+void amfMgmtRpc::serviceUnitRestart(const ::SAFplus::Rpc::amfMgmtRpc::ServiceUnitRestartRequest*,
+                         ::SAFplus::Rpc::amfMgmtRpc::ServiceUnitRestartResponse*)
+{
+  logError("RPC","SVR","Method serviceUnitRestart() not implemented.");
+}
+
+void amfMgmtRpc::componentRestart(const ::SAFplus::Rpc::amfMgmtRpc::ComponentRestartRequest*,
+                         ::SAFplus::Rpc::amfMgmtRpc::ComponentRestartResponse*)
+{
+  logError("RPC","SVR","Method componentRestart() not implemented.");
+}
+
 void amfMgmtRpc::initialize(SAFplus::Handle destination,
                      const ::SAFplus::Rpc::amfMgmtRpc::InitializeRequest* request,
                      ::SAFplus::Rpc::amfMgmtRpc::InitializeResponse* response,
@@ -786,6 +804,30 @@ void amfMgmtRpc::getCSIStatus(SAFplus::Handle destination,
   logError("RPC","SVR","Method getCSIStatus() not implemented.");
 }
 
+void amfMgmtRpc::nodeRestart(SAFplus::Handle destination,
+                     const ::SAFplus::Rpc::amfMgmtRpc::NodeRestartRequest* request,
+                     ::SAFplus::Rpc::amfMgmtRpc::NodeRestartResponse* response,
+                     SAFplus::Wakeable& wakeable)
+{
+  logError("RPC","SVR","Method nodeRestart() not implemented.");
+}
+
+void amfMgmtRpc::serviceUnitRestart(SAFplus::Handle destination,
+                     const ::SAFplus::Rpc::amfMgmtRpc::ServiceUnitRestartRequest* request,
+                     ::SAFplus::Rpc::amfMgmtRpc::ServiceUnitRestartResponse* response,
+                     SAFplus::Wakeable& wakeable)
+{
+  logError("RPC","SVR","Method serviceUnitRestart() not implemented.");
+}
+
+void amfMgmtRpc::componentRestart(SAFplus::Handle destination,
+                     const ::SAFplus::Rpc::amfMgmtRpc::ComponentRestartRequest* request,
+                     ::SAFplus::Rpc::amfMgmtRpc::ComponentRestartResponse* response,
+                     SAFplus::Wakeable& wakeable)
+{
+  logError("RPC","SVR","Method componentRestart() not implemented.");
+}
+
 void amfMgmtRpc::CallMethod(const ::google::protobuf::MethodDescriptor* method,
                              SAFplus::Handle destination,
                              const ::google::protobuf::Message* request,
@@ -1005,6 +1047,18 @@ void amfMgmtRpc::CallMethod(const ::google::protobuf::MethodDescriptor* method,
       getCSIStatus(::google::protobuf::down_cast<const ::SAFplus::Rpc::amfMgmtRpc::GetCSIStatusRequest*>(request),
              ::google::protobuf::down_cast< ::SAFplus::Rpc::amfMgmtRpc::GetCSIStatusResponse*>(response));
       break;
+    case 53:
+      nodeRestart(::google::protobuf::down_cast<const ::SAFplus::Rpc::amfMgmtRpc::NodeRestartRequest*>(request),
+             ::google::protobuf::down_cast< ::SAFplus::Rpc::amfMgmtRpc::NodeRestartResponse*>(response));
+      break;
+    case 54:
+      serviceUnitRestart(::google::protobuf::down_cast<const ::SAFplus::Rpc::amfMgmtRpc::ServiceUnitRestartRequest*>(request),
+             ::google::protobuf::down_cast< ::SAFplus::Rpc::amfMgmtRpc::ServiceUnitRestartResponse*>(response));
+      break;
+    case 55:
+      componentRestart(::google::protobuf::down_cast<const ::SAFplus::Rpc::amfMgmtRpc::ComponentRestartRequest*>(request),
+             ::google::protobuf::down_cast< ::SAFplus::Rpc::amfMgmtRpc::ComponentRestartResponse*>(response));
+      break;
     default:
       GOOGLE_LOG(FATAL) << "Bad method index; this should never happen.";
       break;
@@ -1121,6 +1175,12 @@ const ::google::protobuf::Message& amfMgmtRpc::GetRequestPrototype(
       return ::SAFplus::Rpc::amfMgmtRpc::GetSIStatusRequest::default_instance();
     case 52:
       return ::SAFplus::Rpc::amfMgmtRpc::GetCSIStatusRequest::default_instance();
+    case 53:
+      return ::SAFplus::Rpc::amfMgmtRpc::NodeRestartRequest::default_instance();
+    case 54:
+      return ::SAFplus::Rpc::amfMgmtRpc::ServiceUnitRestartRequest::default_instance();
+    case 55:
+      return ::SAFplus::Rpc::amfMgmtRpc::ComponentRestartRequest::default_instance();
     default:
       GOOGLE_LOG(FATAL) << "Bad method index; this should never happen.";
       return *reinterpret_cast< ::google::protobuf::Message*>(NULL);
@@ -1237,6 +1297,12 @@ const ::google::protobuf::Message& amfMgmtRpc::GetResponsePrototype(
       return ::SAFplus::Rpc::amfMgmtRpc::GetSIStatusResponse::default_instance();
     case 52:
       return ::SAFplus::Rpc::amfMgmtRpc::GetCSIStatusResponse::default_instance();
+    case 53:
+      return ::SAFplus::Rpc::amfMgmtRpc::NodeRestartResponse::default_instance();
+    case 54:
+      return ::SAFplus::Rpc::amfMgmtRpc::ServiceUnitRestartResponse::default_instance();
+    case 55:
+      return ::SAFplus::Rpc::amfMgmtRpc::ComponentRestartResponse::default_instance();
     default:
       GOOGLE_LOG(FATAL) << "Bad method index; this should never happen.";
       return *reinterpret_cast< ::google::protobuf::Message*>(NULL);
@@ -1571,6 +1637,24 @@ void amfMgmtRpc_Stub::getCSIStatus(SAFplus::Handle dest,
                               ::SAFplus::Rpc::amfMgmtRpc::GetCSIStatusResponse* response,
                               SAFplus::Wakeable& wakeable) {
   channel_->CallMethod(descriptor()->method(52), dest, request, response, wakeable);
+}
+void amfMgmtRpc_Stub::nodeRestart(SAFplus::Handle dest,
+                              const ::SAFplus::Rpc::amfMgmtRpc::NodeRestartRequest* request,
+                              ::SAFplus::Rpc::amfMgmtRpc::NodeRestartResponse* response,
+                              SAFplus::Wakeable& wakeable) {
+  channel_->CallMethod(descriptor()->method(53), dest, request, response, wakeable);
+}
+void amfMgmtRpc_Stub::serviceUnitRestart(SAFplus::Handle dest,
+                              const ::SAFplus::Rpc::amfMgmtRpc::ServiceUnitRestartRequest* request,
+                              ::SAFplus::Rpc::amfMgmtRpc::ServiceUnitRestartResponse* response,
+                              SAFplus::Wakeable& wakeable) {
+  channel_->CallMethod(descriptor()->method(54), dest, request, response, wakeable);
+}
+void amfMgmtRpc_Stub::componentRestart(SAFplus::Handle dest,
+                              const ::SAFplus::Rpc::amfMgmtRpc::ComponentRestartRequest* request,
+                              ::SAFplus::Rpc::amfMgmtRpc::ComponentRestartResponse* response,
+                              SAFplus::Wakeable& wakeable) {
+  channel_->CallMethod(descriptor()->method(55), dest, request, response, wakeable);
 }
 
 }  // namespace amfMgmtRpc
