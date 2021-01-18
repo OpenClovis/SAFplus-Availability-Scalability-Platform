@@ -887,7 +887,6 @@ By default the specified location and children are shown.  Use -N to specify how
     """syntax: entityLockAssignment entityType entityName
     """
     try:
-      access.nameInitialize()
       handleTest = access.getProcessHandle(0, 0)
       ret = access.amfMgmtInitialize(handleTest)
       # print "amfMgmtInitialize: ", hex(ret)
@@ -942,7 +941,6 @@ By default the specified location and children are shown.  Use -N to specify how
     """syntax: entityLockInstantiation entityType entityName
     """
     try:
-      access.nameInitialize()
       handleTest = access.getProcessHandle(0, 0)
       ret = access.amfMgmtInitialize(handleTest)
       # print "amfMgmtInitialize: ", hex(ret)
@@ -988,7 +986,6 @@ By default the specified location and children are shown.  Use -N to specify how
     """syntax: entityUnlock entityType entityName
     """
     try:
-      access.nameInitialize()
       handleTest = access.getProcessHandle(0, 0)
       ret = access.amfMgmtInitialize(handleTest)
       # print "amfMgmtInitialize: ", hex(ret)
@@ -1043,7 +1040,6 @@ By default the specified location and children are shown.  Use -N to specify how
     """syntax: entityRepaired entityType entityName
     """
     try:
-      access.nameInitialize()
       handleTest = access.getProcessHandle(0, 0)
       ret = access.amfMgmtInitialize(handleTest)
       # print "amfMgmtInitialize: ", hex(ret)
@@ -1391,7 +1387,6 @@ By default the specified location and children are shown.  Use -N to specify how
     """syntax: entityShutdown entityType entityName
     """
     try:
-      access.nameInitialize()
       handleTest = access.getProcessHandle(0, 0)
       ret = access.amfMgmtInitialize(handleTest)
 
@@ -1521,7 +1516,6 @@ By default the specified location and children are shown.  Use -N to specify how
     """syntax: entityRestart entityType entityName
     """
     try:
-      access.nameInitialize()
       handleTest = access.getProcessHandle(0, 0)
       ret = access.amfMgmtInitialize(handleTest)
       # print "amfMgmtInitialize: ", hex(ret)

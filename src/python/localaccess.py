@@ -111,7 +111,7 @@ def Initialize():
   port = 52
   while True:
     try:
-      svcs = safplus.Libraries.MSG | safplus.Libraries.GRP | safplus.Libraries.MGT_ACCESS
+      svcs = safplus.Libraries.MSG | safplus.Libraries.GRP | safplus.Libraries.MGT_ACCESS | safplus.Libraries.NAME
       sic = safplus.SafplusInitializationConfiguration()
       sic.port = port
       atexit.register(safplus.Finalize)  # Register a clean up function so SAFplus does not assert on a dead mutex when quitting
