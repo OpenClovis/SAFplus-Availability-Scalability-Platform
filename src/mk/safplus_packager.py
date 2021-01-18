@@ -213,8 +213,8 @@ def package(base_dir, tar_name, prefix_dir, machine=None, pre_build_dir=None,exe
     image_stage_dir = image_dir + os.sep + tar_name
 
     # Blow away the old staging directory if it exists and recreate it
-    if check_dir_exists(image_dir):
-        shutil.rmtree(image_dir)
+    #if check_dir_exists(image_dir):
+    #    shutil.rmtree(image_dir)
         # There's no need to copy it somewhere else... nobody needs it.
         #log.info("Backing up the already existed image directory")
         #image_backup_dir = "{}/images_backup".format(image_dir_path)

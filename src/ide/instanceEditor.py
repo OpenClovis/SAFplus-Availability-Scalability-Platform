@@ -699,10 +699,7 @@ class GenerateTool(Tool):
   def OnSelect(self, panel, event):
     if event.GetId() == CODEGEN_BUTTON:
       parentFrame = self.panel.guiPlaces.frame
-      parentFrame.project.getPrjProperties()
-      
-
-
+      parentFrame.project.getPrjProperties()    
       src_bak = False
       if parentFrame.project.prjProperties['backupMode'] == "prompt" and os.listdir(self.panel.model.directory()+'/src'):
         result = self.openBackupDialog()
@@ -715,43 +712,9 @@ class GenerateTool(Tool):
         src_bak = True
       # code gen must be per-component -- not generation of one type of application
       print 'gen source...'
-
-
       files,proxyFiles = panel.model.generateSource(self.panel.model.directory())
-
-      
       # Copy setup to model
-      os.system('cp resources/setup %s' %self.panel.model.directory())
-
-
-      # Get infomation about model
-      nodeIntances = []
-      for (name, e) in share.detailsPanel.model.instances.items():
-        if e.data['entityType'] == "Node":
-          nodeIntances.append(name)
-
-      for img in nodeIntances:
-        image = {}
-        image['name'] = img
-        try:
-          image['slot'] = str(md[img].slot.data_).strip()
-          image['netInterface'] = str(md[img].netInterface.data_).strip()
-        except:
-          image['slot'] = "SC"
-          image['netInterface'] = ""
-
-
-      # Update NodeName and type of Component in copied setup file
-      fConf = self.panel.model.directory() + '/setup'
-      s = open(fConf).read()
-      s = s.replace('ASP_NODENAME=node0', 'ASP_NODENAME=%s' % image['name'] )
-      if image['slot'] != "Payload":
-        s = s.replace('export SAFPLUS_SYSTEM_CONTROLLER=0', '')
-      f = open(fConf, 'w')
-      f.write(s)
-      f.close()
-
-
+      #os.system('cp resources/setup %s' %self.panel.model.directory())
       print 'files gen: files %s\nproxies %s\n' %(str(files),str(proxyFiles))
       self.panel.statusBar.SetStatusText("Code generation complete")
       # add these files to the "source" part of the project tab and update the project xml file
@@ -767,15 +730,11 @@ class GenerateTool(Tool):
     '''
     @summary    : Show dialog for backup option
     '''
-    # Create popup box
     self.dlg = wx.Dialog(None, title="Backup Configuration ?", size=(620,320))
     vBox = wx.BoxSizer(wx.VERTICAL)
     hBox = wx.BoxSizer(wx.HORIZONTAL)
-    # Not clear 
     parentFrame = self.panel.guiPlaces.frame
-    # Project Path + /src
     srcDir = "%s/src" % parentFrame.project.getPrjPath()
-    # Project Path + Backup folder
     backupDir = "%s/src.bak" % parentFrame.project.getPrjPath()
     lablel1 = wx.StaticText(self.dlg, label="Source and configuration files exist in directory:")
     lablel2 = wx.StaticText(self.dlg, label=srcDir)
@@ -805,7 +764,6 @@ class GenerateTool(Tool):
     vBox.Add(hBox, 0, wx.TOP|wx.ALIGN_RIGHT, 30)
 
     self.dlg.SetSizer(vBox)
-
     result = self.dlg.ShowModal()
     return result
 
@@ -1432,8 +1390,7 @@ class Panel(scrolled.ScrolledPanel):
       self.toolBar.Realize()
 
     def addEntityTool(self, ent):
-      name = ent.et.name
-      
+      name = ent.et.name      
       entExists = False
       for (eid,e) in self.idLookup.items():
         if isinstance(e, EntityTool) and e.entity==ent:

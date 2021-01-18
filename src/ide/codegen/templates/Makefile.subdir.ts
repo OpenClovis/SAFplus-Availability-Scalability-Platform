@@ -23,10 +23,18 @@ all: $(SUBDIRS)
 
 ${labelApps}
 
-image: ${nameTgz}
+image: preMakeImage ${imagetgz}
+preMakeImage:
+ifneq ($(wildcard ../images),) 
+	@echo "Directory exists.Deleting..."
+	rm -r ../images
+else
+	@echo "Directory not exist, skip deleting..."
+endif
+
+${imageTgz}
 	
-${nameTgz}: $(SAFPLUS_SRC_DIR)/mk/safplus_packager.py ${subdirs} $(wildcard $(PLUGIN_DIR)/*.so) $(wildcard $(BIN_DIR)/*) Makefile 
-	$(SAFPLUS_MAKE_DIR)/safplus_packager.py -a x86_64-linux-gnu -x "(cp ../setup ../*.xml {image_dir}/bin)" ${nameTgz}
+
 
 clean:
 ${cleanupApps}

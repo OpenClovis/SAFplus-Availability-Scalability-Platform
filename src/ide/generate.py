@@ -41,6 +41,8 @@ makeBinApp = """
 $(BIN_DIR)/%s:
 	$(MAKE) SAFPLUS_SRC_DIR=$(SAFPLUS_SRC_DIR) -C %s
 """
+imageTarget = """%s.tar.gz: $(SAFPLUS_SRC_DIR)/mk/safplus_packager.py ${subdirs} $(wildcard $(PLUGIN_DIR)/*.so) $(wildcard $(BIN_DIR)/*) Makefile 
+	$(SAFPLUS_MAKE_DIR)/safplus_packager.py -a x86_64-linux-gnu -x "(cp $(SAFPLUS_SRC_DIR)/ide/resources/setup ../*.xml {image_dir}/bin)" $@"""
 
 cleanApp = """	$(MAKE) SAFPLUS_SRC_DIR=$(SAFPLUS_SRC_DIR) -C %s clean """
 
@@ -76,12 +78,11 @@ def topMakefile(output, srcDir,dirNames):
       except:
         image['slot'] = "SC"
         image['netInterface'] = ""
-    #print 'generate[%d]:  %s.tgz = %s'%(sys._getframe().f_lineno, image['name'], image)
+
     
+    makeSubsDict['imagetgz'] = " ".join(["%s.tar.gz" %c for c in nodeIntances])
+    makeSubsDict['imageTgz'] = "\n".join([imageTarget % c for c in nodeIntances])
     
-    
-    
-    makeSubsDict['nameTgz'] = image['name']+'.tgz'
     s = mkSubdirTmpl.safe_substitute(**makeSubsDict)
     output.write(srcDir + os.sep + "Makefile", s)
     return [srcDir + os.sep + "Makefile"]
