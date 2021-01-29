@@ -332,7 +332,11 @@ class BoxGesture(Gesture):
 
   def change(self,panel, event):
     #pos = event.GetPositionTuple()
-    pos = panel.CalcUnscrolledPosition(event.GetPositionTuple())
+    #pos = panel.CalcUnscrolledPosition(event.GetPositionTuple())
+    pos = event.GetPosition()
+
+
+
     assert(self.active)
     self.rect=(min(self.downPos[0],pos[0]),min(self.downPos[1],pos[1]),max(self.downPos[0],pos[0]),max(self.downPos[1],pos[1]))
     print "selecting", self.rect

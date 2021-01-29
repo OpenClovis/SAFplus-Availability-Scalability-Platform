@@ -249,15 +249,17 @@ class SelectTool(Tool):
         if self.panel.entities.has_key(e.data["name"]):  # Don't show if its deleted.
           pos = (e.pos[0] * share.umlEditorPanel.scale,e.pos[1] * share.umlEditorPanel.scale) 
           ctx.set_line_width(2)
-          ctx.rectangle(pos[0], pos[1], 10,10)
+          ctx.rectangle(pos[0] + self.panel.scale*self.panel.translating['horizontal'], pos[1] + self.panel.scale*self.panel.translating['vertical'], 20*self.panel.scale, 20*self.panel.scale)
           ctx.set_source_rgba(0, 0, 1, 1)
           ctx.fill()
 
   def OnEditEvent(self,panel, event):
     panel.drawSelectionBox = True
-    pos = panel.CalcUnscrolledPosition(event.GetPositionTuple())
+    #pos = panel.CalcUnscrolledPosition(event.GetPositionTuple())
+    pos = event.GetPosition()
     if isinstance(event,wx.MouseEvent):
-      if event.ButtonDown(wx.MOUSE_BTN_LEFT) or event.LeftDClick():  # Select
+      # Single select
+      if event.ButtonDown(wx.MOUSE_BTN_LEFT) or event.LeftDClick():  
         entities = panel.findEntitiesAt(pos)
         self.dragPos = pos
         if not entities:
@@ -283,6 +285,7 @@ class SelectTool(Tool):
           self.updateSelected()
         panel.Refresh()
         return True
+        
       if event.Dragging():
         # if you are touching anything, then drag everything
         if self.touching and self.dragPos:
@@ -311,11 +314,12 @@ class SelectTool(Tool):
       elif event.ButtonDClick(wx.MOUSE_BTN_LEFT):
         entity = panel.findEntitiesAt(pos)
         if not entity: return False
+      
       # in pointer mode scroll wheel zooms
-      elif event.GetWheelRotation() > 0:
-        panel.SetScale(panel.scale*1.1,pos)
-      elif event.GetWheelRotation() < 0:
-        panel.SetScale(panel.scale*.9,pos)
+      #elif event.GetWheelRotation() > 0:
+      #  panel.SetScale(panel.scale*1.1,pos)
+      #elif event.GetWheelRotation() < 0:
+      #  panel.SetScale(panel.scale*.9,pos)
 
     if isinstance(event,wx.KeyEvent):      
       if event.GetEventType() == wx.EVT_KEY_DOWN.typeId and (event.GetKeyCode() ==  wx.WXK_DELETE or event.GetKeyCode() ==  wx.WXK_NUMPAD_DELETE):
@@ -402,13 +406,13 @@ class ZoomTool(Tool):
         if (scale - self.scaleRange) > self.minScale:
           scale -= self.scaleRange
 
-      #elif event.ControlDown(): 
-      if event.GetWheelRotation() > 0:
-          if (scale + self.scaleRange) < self.maxScale:
-            scale += self.scaleRange
-      elif event.GetWheelRotation() < 0:
-          if (scale - self.scaleRange) > self.minScale:
-            scale -= self.scaleRange
+      elif event.ControlDown(): 
+        if event.GetWheelRotation() > 0:
+            if (scale + self.scaleRange) < self.maxScale:
+              scale += self.scaleRange
+        elif event.GetWheelRotation() < 0:
+            if (scale - self.scaleRange) > self.minScale:
+              scale -= self.scaleRange
 
     if isinstance(event, wx.KeyEvent):
       if event.ControlDown(): 
@@ -502,7 +506,8 @@ class DeleteTool(Tool):
           model.deleteWireFromMicrodom(name, arrow.contained.data['name'])
 
   def OnEditEvent(self,panel,event):
-    pos = panel.CalcUnscrolledPosition(event.GetPositionTuple())
+    #pos = panel.CalcUnscrolledPosition(event.GetPositionTuple())
+    pos = event.GetPosition()
     if isinstance(event, wx.MouseEvent):
       if event.ButtonDown(wx.MOUSE_BTN_LEFT):  # Select
         self.selectMultiple = False
@@ -572,10 +577,11 @@ class Panel(scrolled.ScrolledPanel):
       scrolled.ScrolledPanel.__init__(self, parent, style = wx.TAB_TRAVERSAL|wx.SUNKEN_BORDER)
       self.guiPlaces = guiPlaces
       self.SetupScrolling(True, True)
-      self.SetScrollRate(10, 10)
+      self.SetScrollRate(1, 1)
       self.Bind(wx.EVT_SIZE, self.OnReSize)
       self.Bind(wx.EVT_PAINT, self.OnPaint)
       #self.Bind(wx.EVT_SHOW, self.OnShow)
+      self.Bind(wx.EVT_SCROLLWIN, self.OnScroll)
 
       share.umlEditorPanel = self
 
@@ -627,6 +633,20 @@ class Panel(scrolled.ScrolledPanel):
       for t in toolEvents:
         self.Bind(t, self.OnToolEvent)
       self.toolIds = [CONNECT_BUTTON,SELECT_BUTTON,ZOOM_BUTTON,DELETE_BUTTON]
+      
+
+      self.translating = {'vertical':0, 'horizontal':0}
+
+
+    def OnScroll(self, event):
+      if event.GetOrientation() == wx.HORIZONTAL:
+        self.translating['horizontal'] = -10*event.GetPosition()
+      elif event.GetOrientation() == wx.VERTICAL:
+        self.translating['vertical'] = -10*event.GetPosition()
+      self.OnPaint(event)
+      self.Refresh()
+
+
 
     def SetScale(self, newscale, pos):
       if newscale != self.scale:
@@ -958,13 +978,18 @@ class Panel(scrolled.ScrolledPanel):
         # Now draw the links
         # Now draw the entites
         for (name,e) in self.entities.items():
-          svg.blit(ctx,e.bmp,e.pos,e.scale,e.rotate)
+          svg.blit(ctx, e.bmp, (e.pos[0]+self.translating['horizontal'], e.pos[1]+self.translating['vertical']), e.scale, e.rotate)
         # Now draw the containment arrows on top
         for (name,e) in self.entities.items():
           for a in e.containmentArrows:
+            #print 'UpdatedMidpoints = ', [(list(a.midpoints[0])[0]+self.translating['horizontal'], list(a.midpoints[0])[1]+self.translating['vertical'])]
             st = a.container.pos
             end = a.contained.pos
-            drawCurvyArrow(ctx, (st[0] + a.beginOffset[0],st[1] + a.beginOffset[1]),(end[0] + a.endOffset[0],end[1] + a.endOffset[1]),a.midpoints, linkNormalLook)
+            drawCurvyArrow(ctx, 
+            (st[0] + a.beginOffset[0] + self.translating['horizontal'] ,st[1] + a.beginOffset[1] + self.translating['vertical']),
+            (end[0] + a.endOffset[0]  + self.translating['horizontal'] ,end[1] + a.endOffset[1]  + self.translating['vertical']),
+            [(list(a.midpoints[0])[0] + self.translating['horizontal'], list(a.midpoints[0])[1]  + self.translating['vertical'])], 
+            linkNormalLook)
         ctx.restore()
 
         # These are non-model based transient elements that need to be drawn like selection boxes
@@ -984,9 +1009,9 @@ class Panel(scrolled.ScrolledPanel):
       pos = convertToRealPos(pos, self.scale)
       ret = set()
       for (name, e) in self.entities.items():
-        furthest= (e.pos[0] + e.size[0]*e.scale[0],e.pos[1] + e.size[1]*e.scale[1])
+        furthest= (e.pos[0] + e.size[0]*e.scale[0] + self.translating['horizontal'], e.pos[1] + e.size[1]*e.scale[1] + self.translating['vertical'])
         #print e.data["name"], ": ", pos, " inside: ", e.pos, " to ", furthest
-        if pos[0] >= e.pos[0] and pos[1] >= e.pos[1] and pos[0] <= furthest[0] and pos[1] <= furthest[1]:  # mouse is in the box formed by the entity
+        if pos[0] >= (e.pos[0] + self.translating['horizontal']) and pos[1] >= (e.pos[1] + self.translating['vertical']) and pos[0] <= furthest[0] and pos[1] <= furthest[1]:  # mouse is in the box formed by the entity
           ret.add(e)
       return ret
 
@@ -997,8 +1022,8 @@ class Panel(scrolled.ScrolledPanel):
       rect = convertToRealPos(rect, self.scale)
       ret = set()
       for (name, e) in self.entities.items():
-        furthest= (e.pos[0] + e.size[0]*e.scale[0],e.pos[1] + e.size[1]*e.scale[1])
-        if rectOverlaps(rect,(e.pos[0],e.pos[1],furthest[0],furthest[1])):  # mouse is in the box formed by the entity
+        furthest= (e.pos[0] + e.size[0]*e.scale[0] + self.translating['horizontal'], e.pos[1] + e.size[1]*e.scale[1] + self.translating['vertical'])
+        if rectOverlaps(rect,(e.pos[0] + self.translating['horizontal'], e.pos[1] + self.translating['vertical'], furthest[0], furthest[1])):  # mouse is in the box formed by the entity
           ret.add(e)
       return ret
 
