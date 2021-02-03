@@ -687,6 +687,41 @@ static ClRcT refreshComponentStats(void *unused)
 const std::string dbName("safplusAmf");
 SafplusInitializationConfiguration sic;
 
+static void sigintHandler(int signum)
+{
+    if (signum == SIGINT || signum == SIGTERM)
+    {
+       logAlert("MAIN","---", "got signal [%d]. Shutting down the node", signum);
+       quitting = true;
+    }
+    else
+       logWarning("MAIN","---", "got an unexpected signal [%d]", signum);
+}
+
+static void sigHandlerInstall(void)
+{
+    struct sigaction newAction;
+
+    newAction.sa_handler = sigintHandler;
+    sigemptyset(&newAction.sa_mask);
+    newAction.sa_flags = SA_RESTART;
+
+    if (-1 == sigaction(SIGINT, &newAction, NULL))
+    {
+        perror("sigaction for SIGINT failed");
+        logError("MAIN", "BOOT",
+                   "Unable to install signal handler for SIGINT");
+    }
+
+    if (-1 == sigaction(SIGTERM, &newAction, NULL))
+    {
+        perror("sigaction for SIGTERM failed");
+        logError("MAIN", "BOOT",
+                   "Unable to install signal handler for SIGTERM");
+    }
+    return;
+}
+
 int main(int argc, char* argv[])
   {
 
@@ -697,7 +732,7 @@ int main(int argc, char* argv[])
   bool firstTime=true;
   logEchoToFd = 1;  // echo logs to stdout for debugging
   logCompName = "AMF";
-  rebootFlag=false;
+  rebootFlag = false;
   sic.iocPort     = SAFplusI::AMF_IOC_PORT;
   sic.msgQueueLen = MAX_MSGS;
   sic.msgThreads  = MAX_HANDLER_THREADS;
@@ -706,6 +741,8 @@ int main(int argc, char* argv[])
   logSeverity     = LOG_SEV_DEBUG;
 
   assert(SAFplus::ASP_NODENAME);
+
+  sigHandlerInstall();
 
   // Should be loaded from the environment during safplusInitialize.  But if it does not exist in the environment, override to true for the AMF rather then false which is default for non-existent variables.
   SAFplus::SYSTEM_CONTROLLER = parseEnvBoolean("SAFPLUS_SYSTEM_CONTROLLER",true);
@@ -1062,6 +1099,7 @@ int main(int argc, char* argv[])
     }
 
   //fs.notify(nodeHandle,AlarmStateT::ALARM_STATE_ASSERT, AlarmCategoryTypeT::ALARM_CATEGORY_EQUIPMENT,...);
+  logNotice("---","---","Finalizing AMF...");
   gfault.registerEntity(nodeHandle,FaultState::STATE_DOWN);
   nodeMonitor.finalize();
   compStatsRefresh.join();
