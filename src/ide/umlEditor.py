@@ -87,7 +87,8 @@ class EntityTypeTool(Tool):
     return True
 
   def OnEditEvent(self,panel, event):
-    pos = panel.CalcUnscrolledPosition(event.GetPositionTuple())
+    #pos = panel.CalcUnscrolledPosition(event.GetPositionTuple())
+    pos = event.GetPosition()
     ret = False
     if isinstance(event,wx.MouseEvent):
       if event.ButtonDown(wx.MOUSE_BTN_LEFT):  # Select
@@ -112,17 +113,18 @@ class EntityTypeTool(Tool):
           size = None
         ret = self.CreateNewInstance(panel,(rect[0],rect[1]),size)
       # in pointer mode scroll wheel zooms
-      elif event.GetWheelRotation() > 0:
-        panel.SetScale(panel.scale*1.1,pos)
-      elif event.GetWheelRotation() < 0:
-        panel.SetScale(panel.scale*.9,pos)
+      #elif event.GetWheelRotation() > 0:
+      #  panel.SetScale(panel.scale*1.1,pos)
+      #elif event.GetWheelRotation() < 0:
+      #  panel.SetScale(panel.scale*.9,pos)
 
     return ret
     
   def CreateNewInstance(self,panel,position,size=None):
     """Create a new instance of this entity type at this position"""
     panel.statusBar.SetStatusText("Created %s" % self.entityType.name,0);
-    ent = self.entityType.createEntity(position, size)
+    
+    ent = self.entityType.createEntity((list(position)[0]-self.panel.translating['horizontal'], list(position)[1]-self.panel.translating['vertical']), size)
     if(ent.data["entityType"] == "ComponentServiceInstance"):
       ent.data["type"] = ent.data["name"]
     
