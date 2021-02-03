@@ -458,7 +458,8 @@ class LazyLineGesture(Gesture,wx.Timer):
 
   def change(self,panel, event):
     #self.curPos = event.GetPositionTuple()
-    self.curPos = panel.CalcUnscrolledPosition(event.GetPositionTuple())
+    #self.curPos = panel.CalcUnscrolledPosition(event.GetPositionTuple())
+    self.curPos = event.GetPosition()
     assert(self.active)
     panel.Refresh()
 

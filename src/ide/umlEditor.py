@@ -155,7 +155,8 @@ class LinkTool(Tool):
 
   def OnEditEvent(self,panel, event):
     #pos = event.GetPositionTuple()
-    pos = panel.CalcUnscrolledPosition(event.GetPositionTuple())
+    #pos = panel.CalcUnscrolledPosition(event.GetPositionTuple())
+    pos = event.GetPosition()
     ret = False
     if isinstance(event,wx.MouseEvent):
       if event.ButtonDown(wx.MOUSE_BTN_LEFT):  # Select
@@ -195,7 +196,14 @@ class LinkTool(Tool):
               else:
                 # Add the arrow into the model.  the arrow's location is relative to the objects it connects
                 #print 'starten: %s, endE: %s' % (self.startEntity.data['name'],self.endEntity.data['name'])
-                ca = ContainmentArrow(self.startEntity, (line[0][0]-self.startEntity.pos[0],line[0][1] - self.startEntity.pos[1]), self.endEntity, (line[1][0]-self.endEntity.pos[0],line[1][1]-self.endEntity.pos[1]), [line[2]] if len(line)>1 else None)
+                ca = ContainmentArrow(
+                self.startEntity, 
+                (line[0][0] - self.startEntity.pos[0] - self.panel.translating['horizontal'],
+                line[0][1] - self.startEntity.pos[1]  - self.panel.translating['vertical']), 
+                self.endEntity, 
+                (line[1][0]-self.endEntity.pos[0]     - self.panel.translating['horizontal'],
+                line[1][1]-self.endEntity.pos[1]      - self.panel.translating['vertical']), 
+                [line[2]] if len(line)>1 else None)
                 self.startEntity.containmentArrows.append(ca)
                 if (self.endEntity.data['entityType'] == 'Component' or self.endEntity.data['entityType'] == 'NonSafComponent') and self.startEntity.data['entityType']=='ComponentServiceInstance':
                    self.endEntity.data['csiType'] = self.startEntity.data['name']
