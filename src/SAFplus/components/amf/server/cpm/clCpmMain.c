@@ -3788,11 +3788,17 @@ ClRcT clCpmIocNotification(ClEoExecutionObjT *pThis,
 
                         /* Only update leaderID if msg come from SC's leader */
                         if (reportedLeader == notification.nodeAddress.iocPhyAddress.nodeAddress)
-                        {
-                            clNodeCacheLeaderUpdate(reportedLeader);
+                        {                            
+                            if (reportedLeader > currentLeader || clNodeCacheIsPreferredLeader(reportedLeader) == CL_TRUE)
+                            {
+                               clNodeCacheLeaderUpdate(reportedLeader);
+
+                               // Trigger GMS to do elect on this update
+                               clNodeCacheLeaderSendLocal(reportedLeader);
+                            }
 
                             // Trigger GMS to do elect on this update
-                            clNodeCacheLeaderSendLocal(reportedLeader);
+                            //clNodeCacheLeaderSendLocal(reportedLeader);
                         }
                         // I am the leader
                         else if (gpClCpm->activeMasterNodeId == gpClCpm->pCpmLocalInfo->nodeId)

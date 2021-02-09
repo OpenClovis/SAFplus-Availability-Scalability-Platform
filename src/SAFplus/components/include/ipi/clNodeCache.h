@@ -99,6 +99,10 @@ ClRcT clNodeCacheLeaderSendLocal(ClIocNodeAddressT currentLeader);
 
 /** This function sets the leader without cleaning up any prior leader marking.  This is used to update the database so that split brain can be detected */
 ClRcT  clNodeCacheLeaderSet(ClIocNodeAddressT leader);
+
+ClRcT  clNodeCachePreferredLeaderUpdate(ClIocNodeAddressT nodeId, ClBoolT isPreferredLeader);
+
+ClBoolT  clNodeCacheIsPreferredLeader(ClIocNodeAddressT nodeId);
     
 ClRcT clNodeCacheLeaderGet(ClIocNodeAddressT *pCurrentLeader);
 

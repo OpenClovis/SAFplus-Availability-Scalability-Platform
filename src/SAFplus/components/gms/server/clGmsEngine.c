@@ -1083,6 +1083,7 @@ static ClRcT _clGmsEngineClusterJoinWrapper(
         /* This node is a preferred Leader. So set isPreferredLeader flag to TRUE */
         node->viewMember.clusterMember.isPreferredLeader = CL_TRUE;
         clLog(CL_LOG_DEBUG,CLM,NA, "Node [%s] is marked as preferred leader in the in the config file.  So marking this node as preferred leader", gmsGlobalInfo.config.preferredActiveSCNodeName);
+        clNodeCachePreferredLeaderUpdate(nodeId, CL_TRUE);
     }
 
     currentLeader = thisClusterView->leader;

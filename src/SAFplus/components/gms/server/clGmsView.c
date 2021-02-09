@@ -190,6 +190,7 @@ ClRcT clGmsViewCacheCheckAndAdd(ClGmsNodeIdT currentLeader, ClIocNodeAddressT no
         node->viewMember.clusterMember.credential = CL_GMS_INELIGIBLE_CREDENTIALS;
 
         node->viewMember.clusterMember.isPreferredLeader = CL_FALSE;
+        clNodeCachePreferredLeaderUpdate(member.address, CL_FALSE);
         node->viewMember.clusterMember.leaderPreferenceSet = CL_FALSE;
         node->viewMember.clusterMember.bootTimestamp = clOsalStopWatchTimeGet();
     }

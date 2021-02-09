@@ -82,6 +82,7 @@ typedef struct ClNodeCacheEntry
     ClUint32T version; /*entry address is the index into the segment.*/
     ClUint32T capability; /* node capability mask */
     ClCharT nodeName[CL_NODE_CACHE_NODENAME_MAX];
+    ClBoolT isPreferredLeader;
 }ClNodeCacheEntryT;
 
 static ClBoolT gClAspNativeLeaderElection;
@@ -631,6 +632,73 @@ ClRcT clNodeCacheUpdate(ClIocNodeAddressT nodeAddress, ClUint32T version, ClUint
     }
     
     return CL_OK;
+}
+
+ClRcT  clNodeCachePreferredLeaderUpdate(ClIocNodeAddressT nodeId, ClBoolT isPreferredLeader)
+{
+    ClRcT   rc = CL_OK;
+    ClNodeCacheEntryT *entry;
+
+    if(nodeId >= CL_IOC_MAX_NODES) return CL_ERR_INVALID_PARAMETER;
+
+    rc = clOsalSemLock(gClNodeCacheSem);
+    if (rc != CL_OK)
+    {
+        clLogError("CACHE", "SET", "Cannot update node cache preferredLeader; error taking lock");        
+        return rc;
+    }    
+
+    if(!gpClNodeCache)
+    {
+        clOsalSemUnlock(gClNodeCacheSem);
+        clLogError("CACHE", "SET", "Cannot update node cache preferredLeader; not initialized");        
+        return CL_ERR_NOT_INITIALIZED;
+    }    
+
+    entry = &CL_NODE_CACHE_ENTRY_BASE(gpClNodeCache)[nodeId];
+    entry->isPreferredLeader = isPreferredLeader;
+    
+    if (1)
+    {
+        ClNodeCacheEntryT temp;
+        memcpy(&temp,entry,sizeof(ClNodeCacheEntryT));
+        
+        clOsalSemUnlock(gClNodeCacheSem);
+        /* I do not want to log inside the node cache sem lock because logging can block, esp if its going to stdout */
+        clLogInfo("CACHE", "SET", "Updating node cache entry for node [%d: %s] with isPreferredLeader [%d]",
+                nodeId, temp.nodeName, temp.isPreferredLeader);
+    }
+    
+    return CL_OK;
+}
+
+ClBoolT  clNodeCacheIsPreferredLeader(ClIocNodeAddressT nodeId)
+{    
+    ClNodeCacheEntryT *entry;
+
+    if(nodeId >= CL_IOC_MAX_NODES) return CL_ERR_INVALID_PARAMETER;
+
+    ClRcT rc = clOsalSemLock(gClNodeCacheSem);
+    if (rc != CL_OK)
+    {
+        clLogError("CACHE", "SET", "Cannot get node cache preferredLeader; error taking lock");        
+        return CL_FALSE;
+    }    
+
+    if(!gpClNodeCache)
+    {
+        clOsalSemUnlock(gClNodeCacheSem);
+        clLogError("CACHE", "SET", "Cannot get node cache preferredLeader; not initialized");        
+        return CL_FALSE;
+    }    
+
+    entry = &CL_NODE_CACHE_ENTRY_BASE(gpClNodeCache)[nodeId];
+    ClBoolT isPreferredLeader = entry->isPreferredLeader;
+    
+    clOsalSemUnlock(gClNodeCacheSem);
+    
+    
+    return isPreferredLeader;
 }
 
 static ClRcT __nodeCacheReset(ClIocNodeAddressT nodeAddress, ClBoolT soft)
