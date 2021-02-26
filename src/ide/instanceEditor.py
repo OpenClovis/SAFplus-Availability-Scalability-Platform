@@ -981,14 +981,57 @@ class GridEntityLayout:
         if sg and cell.row != sg:
           continue
 
-        if instance.et.name == 'ServiceUnit' and isinstance(cell.col, Margin) and not isinstance(cell.row, Margin) and cell.row.et.name=="ServiceGroup":
-          print 'cannot move SU to SG'
-          continue
+        b1 = False
         # Does not allow si to be moved to node
         if instance.et.name=="ServiceInstance" and not isinstance(cell.col, Margin) and cell.col.et.name=="Node":
           print 'cannot move SIs/CSIs to Nodes'
-          continue
-        #print str(cell.col)
+          b1 = True
+        b2 = False
+        rowContained = []
+        if not isinstance(cell.row, Margin):
+          for ca in cell.row.entity.containmentArrows:
+            rowContained.append(ca.contained)        
+        #for c in rowContained: print 'row contained:%s'%c.data['name']
+        if instance.et.name == 'ServiceInstance' and not isinstance(cell.row, Margin) and instance.entity not in rowContained:
+          print 'cannot move: [%s] is not a child of [%s]'%(instance.entity.data['name'], cell.row.entity.data['name'])
+          b2 = True
+        if b1 or b2: continue
+        
+
+          #continue
+        print 'next iterator'        
+        b1 = False 
+        if instance.et.name == 'ServiceUnit' and isinstance(cell.col, Margin) and not isinstance(cell.row, Margin) and cell.row.entity.et.name=='ServiceGroup':
+          print 'cannot move [%s] to [%s]' % (instance.data['name'],cell.row.data['name'])
+          b1 = True        
+
+        #if instance.et.name == 'ServiceUnit' and not isinstance(cell.col, Margin) and cell.col not in instance.childOf:
+        #  print 'cannot move: [%s] is not a child of [%s]'%(instance.data['name'], cell.col.data['name'])
+        #  continue
+        #print 'instance name [%s], [%s]' %(instance.data['name'],str(instance.entity))
+
+        b2 = False
+        colContained = []
+        if not isinstance(cell.col, Margin):
+          for ca in cell.col.entity.containmentArrows:
+            colContained.append(ca.contained)        
+        #for c in colContained: print 'col contained:%s'%c.data['name']
+        if instance.et.name == 'ServiceUnit' and not isinstance(cell.col, Margin) and instance.entity not in colContained:
+          print 'cannot move: [%s] is not a child of [%s]'%(instance.entity.data['name'], cell.col.entity.data['name'])
+          b2 = True
+
+        b3 = False
+        rowContained = []
+        if not isinstance(cell.row, Margin):
+          for ca in cell.row.entity.containmentArrows:
+            rowContained.append(ca.contained)        
+        #for c in rowContained: print 'row contained:%s'%c.data['name']
+        if instance.et.name == 'ServiceUnit' and not isinstance(cell.row, Margin) and instance.entity not in rowContained:
+          print 'cannot move: [%s] is not a child of [%s]'%(instance.entity.data['name'], cell.row.entity.data['name'])
+          b3 = True
+
+        if b1 or b2 or b3: continue        
+
         if inBox(pos,cell.bound):
           # Remove the containment arrows (if they exist)
           for i in instance.childOf:  

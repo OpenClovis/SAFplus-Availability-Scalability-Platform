@@ -746,6 +746,27 @@ instantiated  <instances>     instances                         instances     (e
         
     return (ret,addtl)
 
+  def getInstantiatedNodes(self):
+    nodes = []
+    for (name, i) in self.instances.items():
+      if i.data['entityType'] == 'Node':
+         print 'append [%s] to the returned list'%name
+         nodes.append(i)
+    return nodes
+
+  def needInstantiate(self, ent):
+    if ent.data['entityType'] == 'ServiceUnit':
+      nodeList = self.getInstantiatedNodes()
+      for node in nodeList:
+        for ca in node.entity.containmentArrows:
+          if ent == ca.contained:
+             print '[%s] is the child of [%s]'%(ent.data['name'],node.entity.data['name'])
+             return True
+          else:
+             print '[%s] is NOT the child of [%s]'%(ent.data['name'], node.entity.data['name'])
+      return False
+    return True
+
   def recursiveInstantiation(self,ent,instances=None, depth=1):
     if not instances: instances = self.instances
     children = []
@@ -753,6 +774,7 @@ instantiated  <instances>     instances                         instances     (e
       name=entity.NameCreator(ent.data["name"])  # Let's see if the instance is already here before we recreate it.
       ei = instances.get(name,None)  
       if not ei:
+        print 'instantiating [%s]'%name
         ei = entity.Instance(ent, None,pos=None,size=None,name=name)
         instances[name] = ei
       depth = depth + 1
@@ -765,12 +787,16 @@ instantiated  <instances>     instances                         instances     (e
             if ca.container.et.name == 'Component':
               print 'skip creating instance which is a child (such as NonSafComponent) of Component'
               continue
+            if not self.needInstantiate(ca.contained):
+              print 'skip instantiating [%s] because its SG or Node are not instantiated yet'%ca.contained.data['name']
+              continue
             (ch, xtra) = self.recursiveInstantiation(ca.contained,instances, depth)
             ch.childOf.add(ei)
             cai = copy.copy(ca)
             cai.container = ei
             cai.contained = ch
             ei.containmentArrows.append(cai)
+            print 'created arrow [%s-->%s] for [%s]'% (ei.data['name'],ch.data['name'], ei.data['name'])
             children.append(ch)
       else:
         print 'model::recursiveInstantiation: do not create recursive instance for [%s], type [%s]' % (name, ent.et.name)
