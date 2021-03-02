@@ -334,7 +334,8 @@ class SelectTool(Tool):
   def OnEditEvent(self,panel, event):
     panel.drawSelectionBox = True
     ret = False
-    pos = panel.CalcUnscrolledPosition(event.GetPositionTuple())
+    #pos = panel.CalcUnscrolledPosition(event.GetPositionTuple())
+    pos = event.GetPosition()
     scale = self.panel.scale
     if isinstance(event,wx.MouseEvent):
       if event.ButtonDown(wx.MOUSE_BTN_LEFT):  # Select
