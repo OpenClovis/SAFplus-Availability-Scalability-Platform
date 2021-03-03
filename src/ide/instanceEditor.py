@@ -327,7 +327,11 @@ class SelectTool(Tool):
       for e in self.selected:
         pos = (e.pos[0] * share.instancePanel.scale,e.pos[1] * share.instancePanel.scale) 
         ctx.set_line_width(2)
-        ctx.rectangle(pos[0], pos[1], 10,10)
+        ctx.rectangle(
+        pos[0] + self.panel.scale*self.panel.translating['horizontal'], 
+        pos[1] + self.panel.scale*self.panel.translating['vertical'], 
+        20*self.panel.scale, 
+        20*self.panel.scale)
         ctx.set_source_rgba(0, 0, 1, 1)
         ctx.fill()
 
@@ -440,7 +444,10 @@ class SelectTool(Tool):
                 flag = False
                 break
             if flag:
-              panel.createGrayCell(pos, self.entities)
+              panel.createGrayCell(
+              (pos[0]-share.instancePanel.translating['horizontal'], 
+              pos[1]-share.instancePanel.translating['vertical']),
+              self.entities)
               self.panel.Refresh()
         self.mouseDownPos = None 
 
@@ -614,7 +621,8 @@ class ZoomTool(Tool):
     pass
 
   def OnEditEvent(self,panel, event):
-    pos = panel.CalcUnscrolledPosition(event.GetPositionTuple())
+    #pos = panel.CalcUnscrolledPosition(event.GetPositionTuple())
+    pos = event.GetPosition()
     scale = self.scale
     if isinstance(event, wx.MouseEvent):
       if event.ButtonDown(wx.MOUSE_BTN_LEFT) or event.ButtonDown(wx.MOUSE_BTN_RIGHT):  # Select
@@ -1032,8 +1040,11 @@ class GridEntityLayout:
           b3 = True
 
         if b1 or b2 or b3: continue        
-
-        if inBox(pos,cell.bound):
+        if inBox(pos,
+        (cell.bound[0]+share.instancePanel.translating['horizontal'],
+        cell.bound[1]+share.instancePanel.translating['vertical'], 
+        cell.bound[2]+share.instancePanel.translating['horizontal'], 
+        cell.bound[3]+share.instancePanel.translating['vertical']) ):
           # Remove the containment arrows (if they exist)
           for i in instance.childOf:  
             i.deleteContainmentArrowTo(instance)
@@ -1144,10 +1155,11 @@ class Panel(scrolled.ScrolledPanel):
       #    m.customInstantiator = lambda entity,pos,size,children,name,pnl=self: pnl.sgInstantiator(entity, pos,size,children,name)
 
       self.SetupScrolling(True, True)
-      self.SetScrollRate(10, 10)
+      self.SetScrollRate(1, 1)
       self.Bind(wx.EVT_SIZE, self.OnReSize)
 
       self.Bind(wx.EVT_PAINT, self.OnPaint)
+      self.Bind(wx.EVT_SCROLLWIN, self.OnScroll)
 
       self.guiPlaces = guiPlaces
       self.menuBar = self.guiPlaces.menubar
@@ -1185,7 +1197,7 @@ class Panel(scrolled.ScrolledPanel):
       self.menuNodeInstCreate = wx.Menu()
       self.newNodeInstOption = None
       self.menuUserDefineNodeTypes = wx.Menu()
-
+      self.translating = {'vertical':0, 'horizontal':0}
       # Ignore render entities since size(0,0) is invalid
       self.ignoreEntities = ["Component", "ComponentServiceInstance"]
 
@@ -1236,6 +1248,15 @@ class Panel(scrolled.ScrolledPanel):
       self.UpdateVirtualSize()
       self.layout()
       self.loadGrayCells()
+
+    def OnScroll(self, event):
+      if event.GetOrientation() == wx.HORIZONTAL:
+        self.translating['horizontal'] = -10*event.GetPosition()
+      elif event.GetOrientation() == wx.VERTICAL:
+        self.translating['vertical'] = -10*event.GetPosition()
+      self.OnPaint(event)
+      self.Refresh()
+    
 
     def addCommonTools(self):
       tsize = self.toolBar.GetToolBitmapSize()
@@ -1664,7 +1685,13 @@ class Panel(scrolled.ScrolledPanel):
           if grayBmp:
             pos = (cell.bound[0],cell.bound[1])            
             #print 'render gray cell at (%d,%d), size: %s; bound (%d,%d,%d,%d)' %(pos[0], pos[1], str(cell.graySize), cell.bound[0],cell.bound[1], cell.bound[2], cell.bound[3])
-            svg.blit(ctx,grayBmp,pos, (1.0,1.0), 0.0)
+            svg.blit(
+            ctx,
+            grayBmp,
+            (pos[0]+self.translating['horizontal'], 
+            pos[1]+self.translating['vertical']), 
+            (1.0,1.0), 
+            0.0)
 
     def createGrayCell(self, pos, entities=None, save=True):
       added = self.grid.createGrayCell(pos, self)
@@ -2038,16 +2065,33 @@ class Panel(scrolled.ScrolledPanel):
 
         # Draw the baseline row and column entities
         for e in filter(lambda entInt: entInt.et.name in (self.columnTypes + self.rowTypes), self.model.instances.values()):
-          svg.blit(ctx,e.bmp,e.pos,e.scale,e.rotate)
+          svg.blit(
+          ctx,
+          e.bmp,
+          (e.pos[0]+self.translating['horizontal'], 
+          e.pos[1]+self.translating['vertical']),
+          e.scale,
+          e.rotate)
 
         self.addButtons = {}
 
         # Draw the other instances on top
         for e in filter(lambda entInt: not entInt.et.name in (self.columnTypes + self.rowTypes ), self.model.instances.values()):
           if e.size != (0,0):  # indicate that the object is hidden
-            svg.blit(ctx,e.bmp,e.pos,e.scale,e.rotate)
-            self.addButtons[(e.pos[0]+e.size[0]-self.addBmp.get_width(), e.pos[1]+e.size[1]-self.addBmp.get_height(), e.pos[0]+e.size[0], e.pos[1]+e.size[1])] = e
-
+            svg.blit(
+            ctx,
+            e.bmp,
+            (e.pos[0]+self.translating['horizontal'], 
+            e.pos[1]+self.translating['vertical']),
+            e.scale,
+            e.rotate)
+            
+            self.addButtons[
+            (e.pos[0]+e.size[0]-self.addBmp.get_width()+self.translating['horizontal'], 
+            e.pos[1]+e.size[1]-self.addBmp.get_height()+self.translating['vertical'], 
+            e.pos[0]+e.size[0]+self.translating['horizontal'], 
+            e.pos[1]+e.size[1]+self.translating['vertical'])] = e
+            
             # Show "component/csi" children of "SUs/SIs" inside the graphical box which is the SU/SI
             if e.et.name in ("ServiceInstance", "ServiceUnit",):
               childs = []
@@ -2064,15 +2108,30 @@ class Panel(scrolled.ScrolledPanel):
                 if tmp != ch.size:
                   ch.size = tmp
                   ch.recreateBitmap()
-                svg.blit(ctx,ch.bmp,ch.pos,ch.scale,ch.rotate)
-
+                svg.blit(
+                ctx,
+                ch.bmp,
+                (ch.pos[0]+self.translating['horizontal'], 
+                ch.pos[1]+self.translating['vertical']),
+                ch.scale,
+                ch.rotate)
+                
                 # Render copy button (duplicate, similar: selected entity and type ctrl+'v')
-                self.addButtons[(ch.pos[0]+ch.size[0]-self.addBmp.get_width(), ch.pos[1]+ch.size[1]-self.addBmp.get_height(), ch.pos[0]+ch.size[0], ch.pos[1]+ch.size[1])] = ch
-
+                self.addButtons[
+                (ch.pos[0]+ch.size[0]-self.addBmp.get_width()+self.translating['horizontal'],
+                ch.pos[1]+ch.size[1]-self.addBmp.get_height()+self.translating['vertical'], 
+                ch.pos[0]+ch.size[0]+self.translating['horizontal'], 
+                ch.pos[1]+ch.size[1]+self.translating['vertical'])] = ch
+                
         # Draw "add" icon on top of entity
         # Render copy button (duplicate, similar: selected entity and type ctrl+'v')
         for (rect,e) in self.addButtons.items():
-          svg.blit(ctx,self.addBmp,(rect[0],rect[1]),e.scale,e.rotate)
+          svg.blit(
+          ctx,
+          self.addBmp,
+          (rect[0],rect[1]),
+          e.scale,
+          e.rotate)
 
         # Now draw the containment arrows on top
 #        pdb.set_trace()
@@ -2083,7 +2142,14 @@ class Panel(scrolled.ScrolledPanel):
             end = a.contained.pos
             if self.renderArrow.get((a.container,a.contained),True):  # Check to see if there's an directive whether to render this arrow or not.  If there is not one, render it by default
               # pdb.set_trace()
-              drawCurvyArrow(ctx, (st[0] + a.beginOffset[0],st[1] + a.beginOffset[1]),(end[0] + a.endOffset[0],end[1] + a.endOffset[1]),a.midpoints, linkNormalLook)
+              drawCurvyArrow(
+              ctx, 
+              (st[0] + a.beginOffset[0]+self.translating['horizontal'],
+              st[1] + a.beginOffset[1]+self.translating['vertical']),
+              (end[0] + a.endOffset[0]+self.translating['horizontal'],
+              end[1] + a.endOffset[1]+self.translating['vertical']),
+              a.midpoints, 
+              linkNormalLook)
         
         self.renderGrayCells(ctx)
         ctx.restore()
@@ -2111,9 +2177,16 @@ class Panel(scrolled.ScrolledPanel):
         if e.et.name in filterOut:
           continue
 
-        furthest= (e.pos[0] + e.size[0]*e.scale[0],e.pos[1] + e.size[1]*e.scale[1])
+        furthest= (
+        e.pos[0] + e.size[0]*e.scale[0]+ self.translating['horizontal'], 
+        e.pos[1] + e.size[1]*e.scale[1]+ self.translating['vertical'])
         #print e.data["name"], ": ", pos, " inside: ", e.pos, " to ", furthest
-        if inBox(pos,(e.pos[0],e.pos[1],furthest[0],furthest[1])): # mouse is in the box formed by the entity
+        if inBox(
+        pos,
+        (e.pos[0]+ self.translating['horizontal'], 
+        e.pos[1]+ self.translating['vertical'],
+        furthest[0],
+        furthest[1])): # mouse is in the box formed by the entity
           ret.add(e)
       return ret
 
