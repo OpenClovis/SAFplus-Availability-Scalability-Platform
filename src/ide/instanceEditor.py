@@ -389,11 +389,11 @@ class SelectTool(Tool):
       if event.Dragging():
         # if you are touching anything, then drag everything
         if self.touching and self.dragPos:
-          delta = ((pos[0]-self.dragPos[0])/scale, (pos[1] - self.dragPos[1])/scale)
+          delta = ((self.dragPos[0] - pos[0])/scale, (self.dragPos[1] - pos[1])/scale)
           # TODO deal with scaling and rotation in delta
           if delta[0] != 0 or delta[1] != 0:
             for e in self.selected:
-              e.pos = (int(e.pos[0] + delta[0]), int(e.pos[1] + delta[1]))  # move all the touching objects by the amount the mouse moved
+              e.pos = (e.pos[0] - delta[0], e.pos[1] - delta[1])  # move all the touching objects by the amount the mouse moved
           self.dragPos = pos
           panel.Refresh()
         else:  # touching nothing, this is a selection rectangle
@@ -445,8 +445,8 @@ class SelectTool(Tool):
                 break
             if flag:
               panel.createGrayCell(
-              (pos[0]-share.instancePanel.translating['horizontal'], 
-              pos[1]-share.instancePanel.translating['vertical']),
+              (pos[0]-share.instancePanel.translating['horizontal']*share.instancePanel.scale, 
+              pos[1]-share.instancePanel.translating['vertical']*share.instancePanel.scale),
               self.entities)
               self.panel.Refresh()
         self.mouseDownPos = None 
