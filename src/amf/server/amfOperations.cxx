@@ -847,7 +847,7 @@ namespace SAFplus
 
           reportChange();
           //update isFullActiveAssignment and isFullStandbyAssignment for service instance
-          si->isFullActiveAssignment= si->isFullStandbyAssignment =true;
+          si->isFullActiveAssignment.value = si->isFullStandbyAssignment.value = true;
           for(itcsi = si->componentServiceInstances.listBegin(); itcsi != endcsi; itcsi++)
           {
             ComponentServiceInstance* csi=dynamic_cast<ComponentServiceInstance*>(*itcsi);

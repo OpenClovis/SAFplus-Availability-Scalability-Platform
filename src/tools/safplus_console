@@ -839,7 +839,7 @@ By default the specified location and children are shown.  Use -N to specify how
                       "saAmfSUHostNodeOrNodeGroup",  "serviceGroup",  "capabilityModel",  "cleanup",\
                         "csiType",  "delayBetweenInstantiation",  "instantiate",  "instantiateLevel",\
                           "maxInstantInstantiations",  "maxStandbyAssignments",  "proxied",  "proxyCSI",  "recovery",\
-                            "serviceUnit",  "terminate",  "timeouts",  "isFullStandbyAssignment",\
+                            "serviceUnit",  "terminate",  "timeouts",  "isFullStandbyAssignment",  "isFullActiveAssignment",\
                               "preferredActiveAssignments",  "preferredStandbyAssignments",  "dependencies",  "type",\
                                 "instantiationSuccessDuration",  "maxActiveAssignments",  "maxDelayedInstantiations",\
                                   "componentServiceInstances",  "serviceInstance"
@@ -1304,7 +1304,7 @@ By default the specified location and children are shown.  Use -N to specify how
                     "saAmfSUHostNodeOrNodeGroup",  "serviceGroup",  "capabilityModel",  "cleanup",\
                       "csiType",  "delayBetweenInstantiation",  "instantiate",  "instantiateLevel",\
                         "maxInstantInstantiations",  "maxStandbyAssignments",  "proxied",  "proxyCSI",  "recovery",\
-                          "serviceUnit",  "terminate",  "timeouts",  "isFullStandbyAssignment",\
+                          "serviceUnit",  "terminate",  "timeouts",  "isFullStandbyAssignment",  "isFullActiveAssignment",\
                             "preferredActiveAssignments",  "preferredStandbyAssignments",  "dependencies",  "type",\
                               "instantiationSuccessDuration",  "maxActiveAssignments",  "maxDelayedInstantiations",\
                                 "componentServiceInstances",  "serviceInstance"
