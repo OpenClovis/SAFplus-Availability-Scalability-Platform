@@ -27,7 +27,7 @@ image: preMakeImage ${imagetgz}
 preMakeImage:
 ifneq ($(wildcard ../images),) 
 	@echo "Directory exists.Deleting..."
-	rm -r ../images
+	rm -rf ../images
 else
 	@echo "Directory not exist, skip deleting..."
 endif
