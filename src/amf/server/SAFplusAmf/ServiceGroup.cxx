@@ -408,6 +408,31 @@ namespace SAFplusAmf
         this->addChildObject(numSpareServiceUnitsValue, "numSpareServiceUnits");
     };
 
+    static ClRcT adjustTimerTimeout(void* arg)
+    {
+        SAFplusAmf::ServiceGroup* sg = (SAFplusAmf::ServiceGroup*)arg;
+        logInfo("SG", "ADJUST", "Running SG [%s] adjust probation after timeout of [%lld] ms",
+                        sg->name.value.c_str(),sg->autoAdjustInterval.value);
+        sg->stopAdjustTimer();
+        logDebug("SG", "ADJUST-PROBE", "Resetting auto adjust for SG [%s] as adjustments are done", sg->name.value.c_str());
+        sg->autoAdjust.value = false;
+        return CL_OK;
+    }
+
+    void ServiceGroup::startAdjustTimer()
+    {
+        TimerTimeOutT adjustTimeout;
+        adjustTimeout.tsMilliSec = SAFplusI::SG_ADJUST_DURATION;
+        adjustTimeout.tsSec = 0;
+        adjustTimer.timerCreate(adjustTimeout, TimerTypeT::TIMER_ONE_SHOT, TimerContextT::TIMER_SEPARATE_CONTEXT,adjustTimerTimeout, (void*)this);
+        adjustTimer.timerStart();
+    }
+
+    void ServiceGroup::stopAdjustTimer()
+    {
+        adjustTimer.timerStop();
+    }
+
     ServiceGroup::~ServiceGroup()
     {
     };

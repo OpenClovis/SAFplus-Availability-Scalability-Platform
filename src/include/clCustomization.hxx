@@ -181,6 +181,11 @@ namespace SAFplusI
     CkptMaxRecordSize = 40000, /* Maximum size of the record (in bytes) to be stored in the database. This parameter is ignored in case of Berkeley and GDBM databases */
   };
 
+  enum
+  {
+     SG_ADJUST_DURATION = 3000,
+  };
+
   };
 
 #endif

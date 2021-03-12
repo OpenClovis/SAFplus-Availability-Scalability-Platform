@@ -1555,4 +1555,32 @@ ClRcT amfMgmtCompRestart(const Handle& mgmtHandle, const std::string& compName)
     return rc;
 }
 
+ClRcT amfMgmtSGAdjust(const Handle& mgmtHandle, const std::string& sgName, bool enabled)
+{
+#ifdef HANDLE_VALIDATE
+    if (!gAmfMgmtInitialized)
+    {
+        return CL_ERR_NOT_INITIALIZED;
+    }
+#endif
+    ClRcT rc;
+    SAFplus::Rpc::amfMgmtRpc::AdjustSGRequest request;
+    request.add_amfmgmthandle((const char*) &mgmtHandle, sizeof(Handle));
+    request.set_sgname(sgName);
+    request.set_enabled(enabled);
+    try
+    {
+        Handle& remoteAmfHdl = name.getHandle(AMF_MASTER_HANDLE, 2000);
+        SAFplus::Rpc::amfMgmtRpc::AdjustSGResponse resp;
+        amfMgmtRpc->adjustSG(remoteAmfHdl,&request,&resp);
+        rc = (ClRcT)resp.err();
+    }
+    catch(NameException& ex)
+    {
+        logError("MGMT","INI","getHandle got exception [%s]", ex.what());
+        rc = CL_ERR_NOT_EXIST;
+    }
+    return rc;
+}
+
 }

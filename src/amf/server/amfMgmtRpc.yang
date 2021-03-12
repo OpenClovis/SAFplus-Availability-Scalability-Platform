@@ -2285,5 +2285,29 @@ are switched over to other nodes (component service instances are not abruptly r
        }
      }
    }
+
+   rpc adjustSG {
+     input {
+       leaf-list amfMgmtHandle
+	{
+	  type binary
+          {
+	    length 16;  // 2 64-bit words
+	  }
+	}
+       leaf sgName {
+         type string;
+       }
+       leaf enabled {
+         type boolean;
+         description "True is enabled, False is disabled - nothing occurs"; 
+       }
+     }
+     output {
+       leaf err {
+         type int32;
+       }
+     }
+   }
 }
 

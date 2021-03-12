@@ -144,6 +144,8 @@ class amfMgmtRpc : public SAFplus::Rpc::RpcService {
                        ::SAFplus::Rpc::amfMgmtRpc::ServiceUnitRestartResponse* response);
   virtual void componentRestart(const ::SAFplus::Rpc::amfMgmtRpc::ComponentRestartRequest* request,
                        ::SAFplus::Rpc::amfMgmtRpc::ComponentRestartResponse* response);
+  virtual void adjustSG(const ::SAFplus::Rpc::amfMgmtRpc::AdjustSGRequest* request,
+                       ::SAFplus::Rpc::amfMgmtRpc::AdjustSGResponse* response);
 
   // implements amfMgmtRpc ------------------------------------------
   virtual void initialize(SAFplus::Handle destination,
@@ -369,6 +371,10 @@ class amfMgmtRpc : public SAFplus::Rpc::RpcService {
   virtual void componentRestart(SAFplus::Handle destination,
                        const ::SAFplus::Rpc::amfMgmtRpc::ComponentRestartRequest* request,
                        ::SAFplus::Rpc::amfMgmtRpc::ComponentRestartResponse* response,
+                       SAFplus::Wakeable& wakeable = *((SAFplus::Wakeable*)nullptr));
+  virtual void adjustSG(SAFplus::Handle destination,
+                       const ::SAFplus::Rpc::amfMgmtRpc::AdjustSGRequest* request,
+                       ::SAFplus::Rpc::amfMgmtRpc::AdjustSGResponse* response,
                        SAFplus::Wakeable& wakeable = *((SAFplus::Wakeable*)nullptr));
 
 
@@ -622,6 +628,10 @@ class amfMgmtRpc_Stub : public amfMgmtRpc {
                        const ::SAFplus::Rpc::amfMgmtRpc::ComponentRestartRequest* request,
                        ::SAFplus::Rpc::amfMgmtRpc::ComponentRestartResponse* response,
                        SAFplus::Wakeable& wakeable = *((SAFplus::Wakeable*)nullptr));
+  void adjustSG(SAFplus::Handle destination,
+                       const ::SAFplus::Rpc::amfMgmtRpc::AdjustSGRequest* request,
+                       ::SAFplus::Rpc::amfMgmtRpc::AdjustSGResponse* response,
+                       SAFplus::Wakeable& wakeable = *((SAFplus::Wakeable*)nullptr));
  private:
   SAFplus::Rpc::RpcChannel* channel_;
   bool owns_channel_;
@@ -747,6 +757,8 @@ class amfMgmtRpcImpl : public amfMgmtRpc {
                        ::SAFplus::Rpc::amfMgmtRpc::ServiceUnitRestartResponse* response);
   void componentRestart(const ::SAFplus::Rpc::amfMgmtRpc::ComponentRestartRequest* request,
                        ::SAFplus::Rpc::amfMgmtRpc::ComponentRestartResponse* response);
+  void adjustSG(const ::SAFplus::Rpc::amfMgmtRpc::AdjustSGRequest* request,
+                       ::SAFplus::Rpc::amfMgmtRpc::AdjustSGResponse* response);
 };
 
 }  // namespace amfMgmtRpc

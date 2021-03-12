@@ -4,7 +4,7 @@ import pySAFplus as sp
 import amfctrl
 import xml.etree.ElementTree as ET
 
-from pySAFplus import SafplusInitializationConfiguration, Libraries, Initialize, Finalize, logMsgWrite, LogSeverity, HandleType, Handle, WellKnownHandle, Transaction, SYS_LOG, APP_LOG, Buffer, Checkpoint, mgtGet, mgtSet, mgtCreate, mgtDelete, logSeverity, getProcessHandle, amfMgmtInitialize, amfMgmtFinalize, nameInitialize, amfMgmtNodeLockAssignment, amfMgmtSGLockAssignment, amfMgmtSULockAssignment, amfMgmtSILockAssignment, amfMgmtNodeLockInstantiation, amfMgmtSGLockInstantiation, amfMgmtSULockInstantiation, amfMgmtNodeUnlock, amfMgmtSGUnlock, amfMgmtSUUnlock, amfMgmtSIUnlock, amfMgmtNodeRepair, amfMgmtCompRepair, amfMgmtSURepair, amfMgmtNodeRestart, amfMgmtSURestart, amfMgmtCompRestart, grpCliClusterViewGet
+from pySAFplus import SafplusInitializationConfiguration, Libraries, Initialize, Finalize, logMsgWrite, LogSeverity, HandleType, Handle, WellKnownHandle, Transaction, SYS_LOG, APP_LOG, Buffer, Checkpoint, mgtGet, mgtSet, mgtCreate, mgtDelete, logSeverity, getProcessHandle, amfMgmtInitialize, amfMgmtFinalize, nameInitialize, amfMgmtNodeLockAssignment, amfMgmtSGLockAssignment, amfMgmtSULockAssignment, amfMgmtSILockAssignment, amfMgmtNodeLockInstantiation, amfMgmtSGLockInstantiation, amfMgmtSULockInstantiation, amfMgmtNodeUnlock, amfMgmtSGUnlock, amfMgmtSUUnlock, amfMgmtSIUnlock, amfMgmtNodeRepair, amfMgmtCompRepair, amfMgmtSURepair, amfMgmtNodeRestart, amfMgmtSURestart, amfMgmtCompRestart, grpCliClusterViewGet, amfMgmtSGAdjust
 
 class Error(Exception):
   pass

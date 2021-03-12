@@ -25,6 +25,7 @@
 #include <cstdint>
 #include <vector>
 #include "AdministrativeState.hxx"
+#include <Timer.hxx>
 
 namespace SAFplusAmf
   {
@@ -96,6 +97,10 @@ namespace SAFplusAmf
         SAFplus::MgtHistoryStat<int> numAssignedServiceUnits;
         SAFplus::MgtHistoryStat<int> numIdleServiceUnits;
         SAFplus::MgtHistoryStat<int> numSpareServiceUnits;
+
+    protected:
+
+        SAFplus::Timer adjustTimer;
 
     public:
         ServiceGroup();
@@ -252,6 +257,10 @@ namespace SAFplusAmf
          * XPATH: /SAFplusAmf/safplusAmf/ServiceGroup/numSpareServiceUnits
          */
         void addNumSpareServiceUnits(SAFplus::MgtHistoryStat<int> *numSpareServiceUnitsValue);
+
+        void startAdjustTimer();
+        void stopAdjustTimer();
+
         ~ServiceGroup();
 
     };

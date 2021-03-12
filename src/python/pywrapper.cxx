@@ -195,4 +195,6 @@ BOOST_PYTHON_MODULE(pySAFplus)
   def("amfMgmtCompRestart",static_cast< ClRcT (*)(const Handle &, const std::string &) > (&SAFplus::amfMgmtCompRestart));
 
   def("grpCliClusterViewGet",&SAFplus::grpCliClusterViewGet);
+
+  def("amfMgmtSGAdjust",static_cast< ClRcT (*)(const Handle &, const std::string &, bool) > (&SAFplus::amfMgmtSGAdjust));
 }

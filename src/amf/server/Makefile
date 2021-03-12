@@ -27,7 +27,7 @@ CPP_FLAGS += -I$(COMMON_DIR)/SAFplusTypes -ISAFplusAmf
 
 
 SERVER_H := $(wildcard *.hpp) $(wildcard *.h) $(wildcard *.hxx) $(wildcard $(SAFPLUS_INC_DIR)/*.hpp) $(wildcard $(SAFPLUS_INC_DIR)/*.hxx) $(wildcard SAFplusAmf/*.hxx) $(wildcard $(COMMON_DIR)/SAFplusTypes/*.hxx)
-SERVER_SRC := main.cxx amfcommon.cxx nodeMonitor.cxx $(wildcard amfRpc/$(PROTOBUFVER)/*.cc) $(wildcard amfRpc/$(PROTOBUFVER)/*.cxx) $(wildcard amfMgmtRpc/$(PROTOBUFVER)/*.cc) $(wildcard amfMgmtRpc/$(PROTOBUFVER)/*.cxx) amfAppRpcImpl.cxx amfRpcImpl.cxx $(wildcard amfMgmtRpc/$(PROTOBUFVER)/server/*.cxx) #amfMgmtRpcImpl.cxx
+SERVER_SRC := main.cxx nPlusmAmfPolicy.cxx amfcommon.cxx nodeMonitor.cxx $(wildcard amfRpc/$(PROTOBUFVER)/*.cc) $(wildcard amfRpc/$(PROTOBUFVER)/*.cxx) $(wildcard amfMgmtRpc/$(PROTOBUFVER)/*.cc) $(wildcard amfMgmtRpc/$(PROTOBUFVER)/*.cxx) amfAppRpcImpl.cxx amfRpcImpl.cxx $(wildcard amfMgmtRpc/$(PROTOBUFVER)/server/*.cxx) #amfMgmtRpcImpl.cxx
 
 POLICY_ENV_SRC := amfOperations.cxx portAllocator.cxx $(wildcard SAFplusAmf/*.cxx) $(wildcard $(COMMON_DIR)/SAFplusTypes/*.cxx) $(wildcard amfAppRpc/$(PROTOBUFVER)/*.cxx) $(wildcard amfAppRpc/$(PROTOBUFVER)/*.cc)
 

@@ -5,6 +5,7 @@
 #include <ComponentServiceInstance.hxx>
 #include <Component.hxx>
 //#include <EntityId.hxx>
+//#include <clAmfPolicyPlugin.hxx>
 #include <SAFplusAmfModule.hxx>
 #include <CapabilityModel.hxx>
 #include <Recovery.hxx>
@@ -39,6 +40,7 @@ do {                                                                    \
 extern SAFplus::MgtDatabase amfDb;
 extern SAFplusAmf::SAFplusAmfModule cfg;
 extern SAFplus::AmfOperations *amfOpsMgmt;
+
 
 //namespace SAFplus {
 
@@ -137,6 +139,9 @@ enum RpcOperation
 
 
 namespace SAFplus {
+
+extern ClRcT sgAdjust(const SAFplusAmf::ServiceGroup* sg);
+
 namespace Rpc {
 namespace amfMgmtRpc {
 
@@ -4843,7 +4848,61 @@ namespace amfMgmtRpc {
               rc = CL_ERR_NO_OP;
           }
       }
+  }
 
+  void amfMgmtRpcImpl::adjustSG(const ::SAFplus::Rpc::amfMgmtRpc::AdjustSGRequest* request,
+                                ::SAFplus::Rpc::amfMgmtRpc::AdjustSGResponse* response)
+  {
+      const std::string& sgName = request->sgname();
+      bool enabled = request->enabled();
+      logDebug("MGMT","RPC","enter [%s] with param sg name [%s], enabled [%d]",__FUNCTION__,sgName.c_str(), enabled);
+      ClRcT rc = CL_OK;
+#ifdef HANDLE_VALIDATE
+      DbalPlugin* pd = NULL;
+      rc = getDbalObj(request->amfmgmthandle().Get(0).c_str(), &pd);
+      if (rc != CL_OK)
+      {
+         logDebug("MGMT","RPC","invalid handle, rc [0x%x", rc);
+         response->set_err(rc);
+         return;
+      }
+#endif
+      SAFplusAmf::ServiceGroup* sg = dynamic_cast<SAFplusAmf::ServiceGroup*>(cfg.safplusAmf.serviceGroupList[sgName]);
+      if (sg == NULL)
+      {
+         logWarning("MGMT","RPC","sg object is null for its name [%s]", sgName.c_str());
+         rc = CL_ERR_NOT_EXIST;
+      }
+      else
+      {
+          if (!enabled)
+          {
+            sg->autoAdjust.value = false;
+          }
+          else
+          {
+              if (sg->autoAdjust.value)
+              {
+                  logDebug("MGMT","RPC","nothing to do for sg [%s] adjustment due to its autoAdjust flag being set", sgName.c_str());
+              }
+              /*if(clAmsInvocationsPendingForSG(sg))
+              {
+                  clLogInfo("SG", "ADJUST",
+                            "SG [%s] has pending invocations. Deferring adjust",
+                            sg->config.entity.name.value);
+                  return CL_AMS_RC(CL_ERR_TRY_AGAIN);
+              }*/
+              else
+              {
+                 sg->autoAdjust.value = true;
+                /*
+                * Start the auto adjust probation timer to reset adjustments.
+                * */
+                 sg->startAdjustTimer();
+                 rc = sgAdjust(sg);
+              }
+          }
+      }
       response->set_err(rc);
   }
 

@@ -1541,6 +1541,34 @@ By default the specified location and children are shown.  Use -N to specify how
 
     return ""
 
+  def do_sgAdjust(self, sgName, enabled):
+    """syntax: sgAdjust sgName <on/off>
+    """
+    if enabled != "on" and enabled != "off":
+      print 'enabled argument must be "on" or "off"'
+      return ""
+    b = False
+    if enabled == 'on': b = True
+    try:
+      handleTest = access.getProcessHandle(0, 0)
+      ret = access.amfMgmtInitialize(handleTest)
+      # print "amfMgmtInitialize: ", hex(ret)
+
+      ret = access.amfMgmtSGAdjust(handleTest, sgName, b)
+      if ret == 0x4:
+        print "Service group %s do not exist" % sgName
+      elif ret == 0x0:
+        print "service group %s adjust OK" %sgName
+      else:
+        print "Sg adjust failure with error 0x%x" % ret
+      
+      ret = access.amfMgmtFinalize(handleTest)
+ 
+    except RuntimeError, e:
+      print "error: ", e
+
+    return ""
+
 class CaptureOutput:
   def __init__(self,resolver):
     try: 

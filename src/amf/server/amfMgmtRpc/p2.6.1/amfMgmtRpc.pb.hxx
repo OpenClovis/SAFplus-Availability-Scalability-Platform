@@ -205,6 +205,8 @@ class ServiceUnitRestartRequest;
 class ServiceUnitRestartResponse;
 class ComponentRestartRequest;
 class ComponentRestartResponse;
+class AdjustSGRequest;
+class AdjustSGResponse;
 
 enum PresenceState {
   PresenceState_uninstantiated = 0,
@@ -17316,6 +17318,202 @@ class ComponentRestartResponse : public ::google::protobuf::Message {
 
   void InitAsDefaultInstance();
   static ComponentRestartResponse* default_instance_;
+};
+// -------------------------------------------------------------------
+
+class AdjustSGRequest : public ::google::protobuf::Message {
+ public:
+  AdjustSGRequest();
+  virtual ~AdjustSGRequest();
+
+  AdjustSGRequest(const AdjustSGRequest& from);
+
+  inline AdjustSGRequest& operator=(const AdjustSGRequest& from) {
+    CopyFrom(from);
+    return *this;
+  }
+
+  inline const ::google::protobuf::UnknownFieldSet& unknown_fields() const {
+    return _unknown_fields_;
+  }
+
+  inline ::google::protobuf::UnknownFieldSet* mutable_unknown_fields() {
+    return &_unknown_fields_;
+  }
+
+  static const ::google::protobuf::Descriptor* descriptor();
+  static const AdjustSGRequest& default_instance();
+
+  void Swap(AdjustSGRequest* other);
+
+  // implements Message ----------------------------------------------
+
+  AdjustSGRequest* New() const;
+  void CopyFrom(const ::google::protobuf::Message& from);
+  void MergeFrom(const ::google::protobuf::Message& from);
+  void CopyFrom(const AdjustSGRequest& from);
+  void MergeFrom(const AdjustSGRequest& from);
+  void Clear();
+  bool IsInitialized() const;
+
+  int ByteSize() const;
+  bool MergePartialFromCodedStream(
+      ::google::protobuf::io::CodedInputStream* input);
+  void SerializeWithCachedSizes(
+      ::google::protobuf::io::CodedOutputStream* output) const;
+  ::google::protobuf::uint8* SerializeWithCachedSizesToArray(::google::protobuf::uint8* output) const;
+  int GetCachedSize() const { return _cached_size_; }
+  private:
+  void SharedCtor();
+  void SharedDtor();
+  void SetCachedSize(int size) const;
+  public:
+  ::google::protobuf::Metadata GetMetadata() const;
+
+  // nested types ----------------------------------------------------
+
+  // accessors -------------------------------------------------------
+
+  // repeated bytes amfMgmtHandle = 1;
+  inline int amfmgmthandle_size() const;
+  inline void clear_amfmgmthandle();
+  static const int kAmfMgmtHandleFieldNumber = 1;
+  inline const ::std::string& amfmgmthandle(int index) const;
+  inline ::std::string* mutable_amfmgmthandle(int index);
+  inline void set_amfmgmthandle(int index, const ::std::string& value);
+  inline void set_amfmgmthandle(int index, const char* value);
+  inline void set_amfmgmthandle(int index, const void* value, size_t size);
+  inline ::std::string* add_amfmgmthandle();
+  inline void add_amfmgmthandle(const ::std::string& value);
+  inline void add_amfmgmthandle(const char* value);
+  inline void add_amfmgmthandle(const void* value, size_t size);
+  inline const ::google::protobuf::RepeatedPtrField< ::std::string>& amfmgmthandle() const;
+  inline ::google::protobuf::RepeatedPtrField< ::std::string>* mutable_amfmgmthandle();
+
+  // optional string sgName = 2;
+  inline bool has_sgname() const;
+  inline void clear_sgname();
+  static const int kSgNameFieldNumber = 2;
+  inline const ::std::string& sgname() const;
+  inline void set_sgname(const ::std::string& value);
+  inline void set_sgname(const char* value);
+  inline void set_sgname(const char* value, size_t size);
+  inline ::std::string* mutable_sgname();
+  inline ::std::string* release_sgname();
+  inline void set_allocated_sgname(::std::string* sgname);
+
+  // optional bool enabled = 3;
+  inline bool has_enabled() const;
+  inline void clear_enabled();
+  static const int kEnabledFieldNumber = 3;
+  inline bool enabled() const;
+  inline void set_enabled(bool value);
+
+  GOOGLE_PROTOBUF_EXTENSION_ACCESSORS(AdjustSGRequest)
+  // @@protoc_insertion_point(class_scope:SAFplus.Rpc.amfMgmtRpc.AdjustSGRequest)
+ private:
+  inline void set_has_sgname();
+  inline void clear_has_sgname();
+  inline void set_has_enabled();
+  inline void clear_has_enabled();
+
+  ::google::protobuf::internal::ExtensionSet _extensions_;
+
+  ::google::protobuf::UnknownFieldSet _unknown_fields_;
+
+  ::google::protobuf::uint32 _has_bits_[1];
+  mutable int _cached_size_;
+  ::google::protobuf::RepeatedPtrField< ::std::string> amfmgmthandle_;
+  ::std::string* sgname_;
+  bool enabled_;
+  friend void  protobuf_AddDesc_amfMgmtRpc_2eproto();
+  friend void protobuf_AssignDesc_amfMgmtRpc_2eproto();
+  friend void protobuf_ShutdownFile_amfMgmtRpc_2eproto();
+
+  void InitAsDefaultInstance();
+  static AdjustSGRequest* default_instance_;
+};
+// -------------------------------------------------------------------
+
+class AdjustSGResponse : public ::google::protobuf::Message {
+ public:
+  AdjustSGResponse();
+  virtual ~AdjustSGResponse();
+
+  AdjustSGResponse(const AdjustSGResponse& from);
+
+  inline AdjustSGResponse& operator=(const AdjustSGResponse& from) {
+    CopyFrom(from);
+    return *this;
+  }
+
+  inline const ::google::protobuf::UnknownFieldSet& unknown_fields() const {
+    return _unknown_fields_;
+  }
+
+  inline ::google::protobuf::UnknownFieldSet* mutable_unknown_fields() {
+    return &_unknown_fields_;
+  }
+
+  static const ::google::protobuf::Descriptor* descriptor();
+  static const AdjustSGResponse& default_instance();
+
+  void Swap(AdjustSGResponse* other);
+
+  // implements Message ----------------------------------------------
+
+  AdjustSGResponse* New() const;
+  void CopyFrom(const ::google::protobuf::Message& from);
+  void MergeFrom(const ::google::protobuf::Message& from);
+  void CopyFrom(const AdjustSGResponse& from);
+  void MergeFrom(const AdjustSGResponse& from);
+  void Clear();
+  bool IsInitialized() const;
+
+  int ByteSize() const;
+  bool MergePartialFromCodedStream(
+      ::google::protobuf::io::CodedInputStream* input);
+  void SerializeWithCachedSizes(
+      ::google::protobuf::io::CodedOutputStream* output) const;
+  ::google::protobuf::uint8* SerializeWithCachedSizesToArray(::google::protobuf::uint8* output) const;
+  int GetCachedSize() const { return _cached_size_; }
+  private:
+  void SharedCtor();
+  void SharedDtor();
+  void SetCachedSize(int size) const;
+  public:
+  ::google::protobuf::Metadata GetMetadata() const;
+
+  // nested types ----------------------------------------------------
+
+  // accessors -------------------------------------------------------
+
+  // optional sint32 err = 1;
+  inline bool has_err() const;
+  inline void clear_err();
+  static const int kErrFieldNumber = 1;
+  inline ::google::protobuf::int32 err() const;
+  inline void set_err(::google::protobuf::int32 value);
+
+  GOOGLE_PROTOBUF_EXTENSION_ACCESSORS(AdjustSGResponse)
+  // @@protoc_insertion_point(class_scope:SAFplus.Rpc.amfMgmtRpc.AdjustSGResponse)
+ private:
+  inline void set_has_err();
+  inline void clear_has_err();
+
+  ::google::protobuf::internal::ExtensionSet _extensions_;
+
+  ::google::protobuf::UnknownFieldSet _unknown_fields_;
+
+  ::google::protobuf::uint32 _has_bits_[1];
+  mutable int _cached_size_;
+  ::google::protobuf::int32 err_;
+  friend void  protobuf_AddDesc_amfMgmtRpc_2eproto();
+  friend void protobuf_AssignDesc_amfMgmtRpc_2eproto();
+  friend void protobuf_ShutdownFile_amfMgmtRpc_2eproto();
+
+  void InitAsDefaultInstance();
+  static AdjustSGResponse* default_instance_;
 };
 // ===================================================================
 
@@ -34862,6 +35060,192 @@ inline void ComponentRestartResponse::set_err(::google::protobuf::int32 value) {
   set_has_err();
   err_ = value;
   // @@protoc_insertion_point(field_set:SAFplus.Rpc.amfMgmtRpc.ComponentRestartResponse.err)
+}
+
+// -------------------------------------------------------------------
+
+// AdjustSGRequest
+
+// repeated bytes amfMgmtHandle = 1;
+inline int AdjustSGRequest::amfmgmthandle_size() const {
+  return amfmgmthandle_.size();
+}
+inline void AdjustSGRequest::clear_amfmgmthandle() {
+  amfmgmthandle_.Clear();
+}
+inline const ::std::string& AdjustSGRequest::amfmgmthandle(int index) const {
+  // @@protoc_insertion_point(field_get:SAFplus.Rpc.amfMgmtRpc.AdjustSGRequest.amfMgmtHandle)
+  return amfmgmthandle_.Get(index);
+}
+inline ::std::string* AdjustSGRequest::mutable_amfmgmthandle(int index) {
+  // @@protoc_insertion_point(field_mutable:SAFplus.Rpc.amfMgmtRpc.AdjustSGRequest.amfMgmtHandle)
+  return amfmgmthandle_.Mutable(index);
+}
+inline void AdjustSGRequest::set_amfmgmthandle(int index, const ::std::string& value) {
+  // @@protoc_insertion_point(field_set:SAFplus.Rpc.amfMgmtRpc.AdjustSGRequest.amfMgmtHandle)
+  amfmgmthandle_.Mutable(index)->assign(value);
+}
+inline void AdjustSGRequest::set_amfmgmthandle(int index, const char* value) {
+  amfmgmthandle_.Mutable(index)->assign(value);
+  // @@protoc_insertion_point(field_set_char:SAFplus.Rpc.amfMgmtRpc.AdjustSGRequest.amfMgmtHandle)
+}
+inline void AdjustSGRequest::set_amfmgmthandle(int index, const void* value, size_t size) {
+  amfmgmthandle_.Mutable(index)->assign(
+    reinterpret_cast<const char*>(value), size);
+  // @@protoc_insertion_point(field_set_pointer:SAFplus.Rpc.amfMgmtRpc.AdjustSGRequest.amfMgmtHandle)
+}
+inline ::std::string* AdjustSGRequest::add_amfmgmthandle() {
+  return amfmgmthandle_.Add();
+}
+inline void AdjustSGRequest::add_amfmgmthandle(const ::std::string& value) {
+  amfmgmthandle_.Add()->assign(value);
+  // @@protoc_insertion_point(field_add:SAFplus.Rpc.amfMgmtRpc.AdjustSGRequest.amfMgmtHandle)
+}
+inline void AdjustSGRequest::add_amfmgmthandle(const char* value) {
+  amfmgmthandle_.Add()->assign(value);
+  // @@protoc_insertion_point(field_add_char:SAFplus.Rpc.amfMgmtRpc.AdjustSGRequest.amfMgmtHandle)
+}
+inline void AdjustSGRequest::add_amfmgmthandle(const void* value, size_t size) {
+  amfmgmthandle_.Add()->assign(reinterpret_cast<const char*>(value), size);
+  // @@protoc_insertion_point(field_add_pointer:SAFplus.Rpc.amfMgmtRpc.AdjustSGRequest.amfMgmtHandle)
+}
+inline const ::google::protobuf::RepeatedPtrField< ::std::string>&
+AdjustSGRequest::amfmgmthandle() const {
+  // @@protoc_insertion_point(field_list:SAFplus.Rpc.amfMgmtRpc.AdjustSGRequest.amfMgmtHandle)
+  return amfmgmthandle_;
+}
+inline ::google::protobuf::RepeatedPtrField< ::std::string>*
+AdjustSGRequest::mutable_amfmgmthandle() {
+  // @@protoc_insertion_point(field_mutable_list:SAFplus.Rpc.amfMgmtRpc.AdjustSGRequest.amfMgmtHandle)
+  return &amfmgmthandle_;
+}
+
+// optional string sgName = 2;
+inline bool AdjustSGRequest::has_sgname() const {
+  return (_has_bits_[0] & 0x00000002u) != 0;
+}
+inline void AdjustSGRequest::set_has_sgname() {
+  _has_bits_[0] |= 0x00000002u;
+}
+inline void AdjustSGRequest::clear_has_sgname() {
+  _has_bits_[0] &= ~0x00000002u;
+}
+inline void AdjustSGRequest::clear_sgname() {
+  if (sgname_ != &::google::protobuf::internal::GetEmptyStringAlreadyInited()) {
+    sgname_->clear();
+  }
+  clear_has_sgname();
+}
+inline const ::std::string& AdjustSGRequest::sgname() const {
+  // @@protoc_insertion_point(field_get:SAFplus.Rpc.amfMgmtRpc.AdjustSGRequest.sgName)
+  return *sgname_;
+}
+inline void AdjustSGRequest::set_sgname(const ::std::string& value) {
+  set_has_sgname();
+  if (sgname_ == &::google::protobuf::internal::GetEmptyStringAlreadyInited()) {
+    sgname_ = new ::std::string;
+  }
+  sgname_->assign(value);
+  // @@protoc_insertion_point(field_set:SAFplus.Rpc.amfMgmtRpc.AdjustSGRequest.sgName)
+}
+inline void AdjustSGRequest::set_sgname(const char* value) {
+  set_has_sgname();
+  if (sgname_ == &::google::protobuf::internal::GetEmptyStringAlreadyInited()) {
+    sgname_ = new ::std::string;
+  }
+  sgname_->assign(value);
+  // @@protoc_insertion_point(field_set_char:SAFplus.Rpc.amfMgmtRpc.AdjustSGRequest.sgName)
+}
+inline void AdjustSGRequest::set_sgname(const char* value, size_t size) {
+  set_has_sgname();
+  if (sgname_ == &::google::protobuf::internal::GetEmptyStringAlreadyInited()) {
+    sgname_ = new ::std::string;
+  }
+  sgname_->assign(reinterpret_cast<const char*>(value), size);
+  // @@protoc_insertion_point(field_set_pointer:SAFplus.Rpc.amfMgmtRpc.AdjustSGRequest.sgName)
+}
+inline ::std::string* AdjustSGRequest::mutable_sgname() {
+  set_has_sgname();
+  if (sgname_ == &::google::protobuf::internal::GetEmptyStringAlreadyInited()) {
+    sgname_ = new ::std::string;
+  }
+  // @@protoc_insertion_point(field_mutable:SAFplus.Rpc.amfMgmtRpc.AdjustSGRequest.sgName)
+  return sgname_;
+}
+inline ::std::string* AdjustSGRequest::release_sgname() {
+  clear_has_sgname();
+  if (sgname_ == &::google::protobuf::internal::GetEmptyStringAlreadyInited()) {
+    return NULL;
+  } else {
+    ::std::string* temp = sgname_;
+    sgname_ = const_cast< ::std::string*>(&::google::protobuf::internal::GetEmptyStringAlreadyInited());
+    return temp;
+  }
+}
+inline void AdjustSGRequest::set_allocated_sgname(::std::string* sgname) {
+  if (sgname_ != &::google::protobuf::internal::GetEmptyStringAlreadyInited()) {
+    delete sgname_;
+  }
+  if (sgname) {
+    set_has_sgname();
+    sgname_ = sgname;
+  } else {
+    clear_has_sgname();
+    sgname_ = const_cast< ::std::string*>(&::google::protobuf::internal::GetEmptyStringAlreadyInited());
+  }
+  // @@protoc_insertion_point(field_set_allocated:SAFplus.Rpc.amfMgmtRpc.AdjustSGRequest.sgName)
+}
+
+// optional bool enabled = 3;
+inline bool AdjustSGRequest::has_enabled() const {
+  return (_has_bits_[0] & 0x00000004u) != 0;
+}
+inline void AdjustSGRequest::set_has_enabled() {
+  _has_bits_[0] |= 0x00000004u;
+}
+inline void AdjustSGRequest::clear_has_enabled() {
+  _has_bits_[0] &= ~0x00000004u;
+}
+inline void AdjustSGRequest::clear_enabled() {
+  enabled_ = false;
+  clear_has_enabled();
+}
+inline bool AdjustSGRequest::enabled() const {
+  // @@protoc_insertion_point(field_get:SAFplus.Rpc.amfMgmtRpc.AdjustSGRequest.enabled)
+  return enabled_;
+}
+inline void AdjustSGRequest::set_enabled(bool value) {
+  set_has_enabled();
+  enabled_ = value;
+  // @@protoc_insertion_point(field_set:SAFplus.Rpc.amfMgmtRpc.AdjustSGRequest.enabled)
+}
+
+// -------------------------------------------------------------------
+
+// AdjustSGResponse
+
+// optional sint32 err = 1;
+inline bool AdjustSGResponse::has_err() const {
+  return (_has_bits_[0] & 0x00000001u) != 0;
+}
+inline void AdjustSGResponse::set_has_err() {
+  _has_bits_[0] |= 0x00000001u;
+}
+inline void AdjustSGResponse::clear_has_err() {
+  _has_bits_[0] &= ~0x00000001u;
+}
+inline void AdjustSGResponse::clear_err() {
+  err_ = 0;
+  clear_has_err();
+}
+inline ::google::protobuf::int32 AdjustSGResponse::err() const {
+  // @@protoc_insertion_point(field_get:SAFplus.Rpc.amfMgmtRpc.AdjustSGResponse.err)
+  return err_;
+}
+inline void AdjustSGResponse::set_err(::google::protobuf::int32 value) {
+  set_has_err();
+  err_ = value;
+  // @@protoc_insertion_point(field_set:SAFplus.Rpc.amfMgmtRpc.AdjustSGResponse.err)
 }
 
 

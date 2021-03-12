@@ -526,6 +526,12 @@ const ::google::protobuf::internal::GeneratedMessageReflection*
 const ::google::protobuf::Descriptor* ComponentRestartResponse_descriptor_ = NULL;
 const ::google::protobuf::internal::GeneratedMessageReflection*
   ComponentRestartResponse_reflection_ = NULL;
+const ::google::protobuf::Descriptor* AdjustSGRequest_descriptor_ = NULL;
+const ::google::protobuf::internal::GeneratedMessageReflection*
+  AdjustSGRequest_reflection_ = NULL;
+const ::google::protobuf::Descriptor* AdjustSGResponse_descriptor_ = NULL;
+const ::google::protobuf::internal::GeneratedMessageReflection*
+  AdjustSGResponse_reflection_ = NULL;
 const ::google::protobuf::EnumDescriptor* PresenceState_descriptor_ = NULL;
 const ::google::protobuf::EnumDescriptor* ReadinessState_descriptor_ = NULL;
 const ::google::protobuf::EnumDescriptor* HighAvailabilityReadinessState_descriptor_ = NULL;
@@ -3266,6 +3272,38 @@ void protobuf_AssignDesc_amfMgmtRpc_2eproto() {
       ::google::protobuf::DescriptorPool::generated_pool(),
       ::google::protobuf::MessageFactory::generated_factory(),
       sizeof(ComponentRestartResponse));
+  AdjustSGRequest_descriptor_ = file->message_type(168);
+  static const int AdjustSGRequest_offsets_[3] = {
+    GOOGLE_PROTOBUF_GENERATED_MESSAGE_FIELD_OFFSET(AdjustSGRequest, amfmgmthandle_),
+    GOOGLE_PROTOBUF_GENERATED_MESSAGE_FIELD_OFFSET(AdjustSGRequest, sgname_),
+    GOOGLE_PROTOBUF_GENERATED_MESSAGE_FIELD_OFFSET(AdjustSGRequest, enabled_),
+  };
+  AdjustSGRequest_reflection_ =
+    new ::google::protobuf::internal::GeneratedMessageReflection(
+      AdjustSGRequest_descriptor_,
+      AdjustSGRequest::default_instance_,
+      AdjustSGRequest_offsets_,
+      GOOGLE_PROTOBUF_GENERATED_MESSAGE_FIELD_OFFSET(AdjustSGRequest, _has_bits_[0]),
+      GOOGLE_PROTOBUF_GENERATED_MESSAGE_FIELD_OFFSET(AdjustSGRequest, _unknown_fields_),
+      GOOGLE_PROTOBUF_GENERATED_MESSAGE_FIELD_OFFSET(AdjustSGRequest, _extensions_),
+      ::google::protobuf::DescriptorPool::generated_pool(),
+      ::google::protobuf::MessageFactory::generated_factory(),
+      sizeof(AdjustSGRequest));
+  AdjustSGResponse_descriptor_ = file->message_type(169);
+  static const int AdjustSGResponse_offsets_[1] = {
+    GOOGLE_PROTOBUF_GENERATED_MESSAGE_FIELD_OFFSET(AdjustSGResponse, err_),
+  };
+  AdjustSGResponse_reflection_ =
+    new ::google::protobuf::internal::GeneratedMessageReflection(
+      AdjustSGResponse_descriptor_,
+      AdjustSGResponse::default_instance_,
+      AdjustSGResponse_offsets_,
+      GOOGLE_PROTOBUF_GENERATED_MESSAGE_FIELD_OFFSET(AdjustSGResponse, _has_bits_[0]),
+      GOOGLE_PROTOBUF_GENERATED_MESSAGE_FIELD_OFFSET(AdjustSGResponse, _unknown_fields_),
+      GOOGLE_PROTOBUF_GENERATED_MESSAGE_FIELD_OFFSET(AdjustSGResponse, _extensions_),
+      ::google::protobuf::DescriptorPool::generated_pool(),
+      ::google::protobuf::MessageFactory::generated_factory(),
+      sizeof(AdjustSGResponse));
   PresenceState_descriptor_ = file->enum_type(0);
   ReadinessState_descriptor_ = file->enum_type(1);
   HighAvailabilityReadinessState_descriptor_ = file->enum_type(2);
@@ -3624,6 +3662,10 @@ void protobuf_RegisterTypes(const ::std::string&) {
     ComponentRestartRequest_descriptor_, &ComponentRestartRequest::default_instance());
   ::google::protobuf::MessageFactory::InternalRegisterGeneratedMessage(
     ComponentRestartResponse_descriptor_, &ComponentRestartResponse::default_instance());
+  ::google::protobuf::MessageFactory::InternalRegisterGeneratedMessage(
+    AdjustSGRequest_descriptor_, &AdjustSGRequest::default_instance());
+  ::google::protobuf::MessageFactory::InternalRegisterGeneratedMessage(
+    AdjustSGResponse_descriptor_, &AdjustSGResponse::default_instance());
 }
 
 }  // namespace
@@ -3965,6 +4007,10 @@ void protobuf_ShutdownFile_amfMgmtRpc_2eproto() {
   delete ComponentRestartRequest_reflection_;
   delete ComponentRestartResponse::default_instance_;
   delete ComponentRestartResponse_reflection_;
+  delete AdjustSGRequest::default_instance_;
+  delete AdjustSGRequest_reflection_;
+  delete AdjustSGResponse::default_instance_;
+  delete AdjustSGResponse_reflection_;
 }
 
 void protobuf_AddDesc_amfMgmtRpc_2eproto() {
@@ -4427,204 +4473,210 @@ void protobuf_AddDesc_amfMgmtRpc_2eproto() {
     "err\030\001 \001(\021*\t\010\350\007\020\200\200\200\200\002\"M\n\027ComponentRestart"
     "Request\022\025\n\ramfMgmtHandle\030\001 \003(\014\022\020\n\010compNa"
     "me\030\002 \001(\t*\t\010\350\007\020\200\200\200\200\002\"2\n\030ComponentRestartR"
-    "esponse\022\013\n\003err\030\001 \001(\021*\t\010\350\007\020\200\200\200\200\002*\377\001\n\rPres"
-    "enceState\022 \n\034PresenceState_uninstantiate"
-    "d\020\000\022\037\n\033PresenceState_instantiating\020\001\022\036\n\032"
-    "PresenceState_instantiated\020\002\022\035\n\031Presence"
-    "State_terminating\020\003\022\034\n\030PresenceState_res"
-    "tarting\020\004\022%\n!PresenceState_instantiation"
-    "Failed\020\005\022#\n\037PresenceState_terminationFai"
-    "led\020\006\032\002\020\001*p\n\016ReadinessState\022\037\n\033Readiness"
-    "State_outOfService\020\000\022\034\n\030ReadinessState_i"
-    "nService\020\001\022\033\n\027ReadinessState_stopping\020\002\032"
-    "\002\020\001*\206\002\n\036HighAvailabilityReadinessState\0225"
-    "\n1HighAvailabilityReadinessState_readyFo"
-    "rAssignment\020\000\0229\n5HighAvailabilityReadine"
-    "ssState_readyForActiveDegraded\020\001\0224\n0High"
-    "AvailabilityReadinessState_notReadyForAc"
-    "tive\020\002\0228\n4HighAvailabilityReadinessState"
-    "_notReadyForAssignment\020\003\032\002\020\001*\245\001\n\025HighAva"
-    "ilabilityState\022 \n\034HighAvailabilityState_"
-    "active\020\001\022!\n\035HighAvailabilityState_standb"
-    "y\020\002\022\036\n\032HighAvailabilityState_idle\020\003\022#\n\037H"
-    "ighAvailabilityState_quiescing\020\004\032\002\020\001*p\n\023"
-    "AdministrativeState\022\033\n\027AdministrativeSta"
-    "te_off\020\000\022\034\n\030AdministrativeState_idle\020\001\022\032"
-    "\n\026AdministrativeState_on\020\002\032\002\020\001*\271\001\n\014Proce"
-    "ssState\022\030\n\024ProcessState_Running\020\000\022\031\n\025Pro"
-    "cessState_Sleeping\020\001\022\037\n\033ProcessState_Wai"
-    "tingForDisk\020\002\022\027\n\023ProcessState_Zombie\020\003\022\030"
-    "\n\024ProcessState_Stopped\020\004\022\034\n\030ProcessState"
-    "_TracingStop\020\005\032\002\020\001*\225\001\n\017CapabilityModel\022*"
-    "\n&CapabilityModel_x_active_and_y_standby"
-    "\020\000\022)\n%CapabilityModel_x_active_or_y_stan"
-    "dby\020\001\022\'\n#CapabilityModel_not_preinstanti"
-    "able\020\002\032\002\020\001*\210\002\n\010Recovery\022\035\n\031Recovery_NoRe"
-    "commendation\020\001\022\024\n\020Recovery_Restart\020\002\022\025\n\021"
-    "Recovery_Failover\020\003\022\033\n\027Recovery_NodeSwit"
-    "chover\020\004\022\031\n\025Recovery_NodeFailover\020\005\022\031\n\025R"
-    "ecovery_NodeFailfast\020\006\022\031\n\025Recovery_Clust"
-    "erReset\020\007\022\037\n\033Recovery_ApplicationRestart"
-    "\020\010\022\035\n\031Recovery_ContainerRestart\020\t\032\002\020\001*\273\001"
-    "\n\020PendingOperation\022\031\n\025PendingOperation_n"
-    "one\020\000\022\"\n\036PendingOperation_instantiation\020"
-    "\001\022\035\n\031PendingOperation_shutdown\020\002\022#\n\037Pend"
-    "ingOperation_workAssignment\020\003\022 \n\034Pending"
-    "Operation_workRemoval\020\004\032\002\020\001*\177\n\017Assignmen"
-    "tState\022\036\n\032AssignmentState_unassigned\020\000\022!"
-    "\n\035AssignmentState_fullyAssigned\020\001\022%\n!Ass"
-    "ignmentState_partiallyAssigned\020\002\032\002\020\0012\373.\n"
-    "\namfMgmtRpc\022c\n\ninitialize\022).SAFplus.Rpc."
-    "amfMgmtRpc.InitializeRequest\032*.SAFplus.R"
-    "pc.amfMgmtRpc.InitializeResponse\022]\n\010fina"
-    "lize\022\'.SAFplus.Rpc.amfMgmtRpc.FinalizeRe"
-    "quest\032(.SAFplus.Rpc.amfMgmtRpc.FinalizeR"
-    "esponse\022W\n\006commit\022%.SAFplus.Rpc.amfMgmtR"
-    "pc.CommitRequest\032&.SAFplus.Rpc.amfMgmtRp"
-    "c.CommitResponse\022r\n\017createComponent\022..SA"
-    "Fplus.Rpc.amfMgmtRpc.CreateComponentRequ"
-    "est\032/.SAFplus.Rpc.amfMgmtRpc.CreateCompo"
-    "nentResponse\022r\n\017updateComponent\022..SAFplu"
-    "s.Rpc.amfMgmtRpc.UpdateComponentRequest\032"
-    "/.SAFplus.Rpc.amfMgmtRpc.UpdateComponent"
-    "Response\022r\n\017deleteComponent\022..SAFplus.Rp"
-    "c.amfMgmtRpc.DeleteComponentRequest\032/.SA"
-    "Fplus.Rpc.amfMgmtRpc.DeleteComponentResp"
-    "onse\022]\n\010createSG\022\'.SAFplus.Rpc.amfMgmtRp"
-    "c.CreateSGRequest\032(.SAFplus.Rpc.amfMgmtR"
-    "pc.CreateSGResponse\022]\n\010updateSG\022\'.SAFplu"
-    "s.Rpc.amfMgmtRpc.UpdateSGRequest\032(.SAFpl"
-    "us.Rpc.amfMgmtRpc.UpdateSGResponse\022]\n\010de"
-    "leteSG\022\'.SAFplus.Rpc.amfMgmtRpc.DeleteSG"
-    "Request\032(.SAFplus.Rpc.amfMgmtRpc.DeleteS"
-    "GResponse\022c\n\ncreateNode\022).SAFplus.Rpc.am"
-    "fMgmtRpc.CreateNodeRequest\032*.SAFplus.Rpc"
-    ".amfMgmtRpc.CreateNodeResponse\022c\n\nupdate"
-    "Node\022).SAFplus.Rpc.amfMgmtRpc.UpdateNode"
-    "Request\032*.SAFplus.Rpc.amfMgmtRpc.UpdateN"
-    "odeResponse\022c\n\ndeleteNode\022).SAFplus.Rpc."
-    "amfMgmtRpc.DeleteNodeRequest\032*.SAFplus.R"
-    "pc.amfMgmtRpc.DeleteNodeResponse\022]\n\010crea"
-    "teSU\022\'.SAFplus.Rpc.amfMgmtRpc.CreateSURe"
-    "quest\032(.SAFplus.Rpc.amfMgmtRpc.CreateSUR"
-    "esponse\022]\n\010updateSU\022\'.SAFplus.Rpc.amfMgm"
-    "tRpc.UpdateSURequest\032(.SAFplus.Rpc.amfMg"
-    "mtRpc.UpdateSUResponse\022]\n\010deleteSU\022\'.SAF"
-    "plus.Rpc.amfMgmtRpc.DeleteSURequest\032(.SA"
-    "Fplus.Rpc.amfMgmtRpc.DeleteSUResponse\022]\n"
-    "\010createSI\022\'.SAFplus.Rpc.amfMgmtRpc.Creat"
-    "eSIRequest\032(.SAFplus.Rpc.amfMgmtRpc.Crea"
-    "teSIResponse\022]\n\010updateSI\022\'.SAFplus.Rpc.a"
-    "mfMgmtRpc.UpdateSIRequest\032(.SAFplus.Rpc."
-    "amfMgmtRpc.UpdateSIResponse\022]\n\010deleteSI\022"
-    "\'.SAFplus.Rpc.amfMgmtRpc.DeleteSIRequest"
-    "\032(.SAFplus.Rpc.amfMgmtRpc.DeleteSIRespon"
-    "se\022`\n\tcreateCSI\022(.SAFplus.Rpc.amfMgmtRpc"
-    ".CreateCSIRequest\032).SAFplus.Rpc.amfMgmtR"
-    "pc.CreateCSIResponse\022`\n\tupdateCSI\022(.SAFp"
-    "lus.Rpc.amfMgmtRpc.UpdateCSIRequest\032).SA"
-    "Fplus.Rpc.amfMgmtRpc.UpdateCSIResponse\022`"
-    "\n\tdeleteCSI\022(.SAFplus.Rpc.amfMgmtRpc.Del"
-    "eteCSIRequest\032).SAFplus.Rpc.amfMgmtRpc.D"
-    "eleteCSIResponse\022i\n\014deleteCSINVP\022+.SAFpl"
-    "us.Rpc.amfMgmtRpc.DeleteCSINVPRequest\032,."
-    "SAFplus.Rpc.amfMgmtRpc.DeleteCSINVPRespo"
-    "nse\022u\n\020deleteNodeSUList\022/.SAFplus.Rpc.am"
-    "fMgmtRpc.DeleteNodeSUListRequest\0320.SAFpl"
-    "us.Rpc.amfMgmtRpc.DeleteNodeSUListRespon"
-    "se\022o\n\016deleteSGSUList\022-.SAFplus.Rpc.amfMg"
-    "mtRpc.DeleteSGSUListRequest\032..SAFplus.Rp"
-    "c.amfMgmtRpc.DeleteSGSUListResponse\022o\n\016d"
-    "eleteSGSIList\022-.SAFplus.Rpc.amfMgmtRpc.D"
-    "eleteSGSIListRequest\032..SAFplus.Rpc.amfMg"
-    "mtRpc.DeleteSGSIListResponse\022u\n\020deleteSU"
-    "CompList\022/.SAFplus.Rpc.amfMgmtRpc.Delete"
-    "SUCompListRequest\0320.SAFplus.Rpc.amfMgmtR"
-    "pc.DeleteSUCompListResponse\022r\n\017deleteSIC"
-    "SIList\022..SAFplus.Rpc.amfMgmtRpc.DeleteSI"
-    "CSIListRequest\032/.SAFplus.Rpc.amfMgmtRpc."
-    "DeleteSICSIListResponse\022{\n\022lockNodeAssig"
-    "nment\0221.SAFplus.Rpc.amfMgmtRpc.LockNodeA"
-    "ssignmentRequest\0322.SAFplus.Rpc.amfMgmtRp"
-    "c.LockNodeAssignmentResponse\022u\n\020lockSGAs"
-    "signment\022/.SAFplus.Rpc.amfMgmtRpc.LockSG"
-    "AssignmentRequest\0320.SAFplus.Rpc.amfMgmtR"
-    "pc.LockSGAssignmentResponse\022u\n\020lockSUAss"
-    "ignment\022/.SAFplus.Rpc.amfMgmtRpc.LockSUA"
-    "ssignmentRequest\0320.SAFplus.Rpc.amfMgmtRp"
-    "c.LockSUAssignmentResponse\022u\n\020lockSIAssi"
-    "gnment\022/.SAFplus.Rpc.amfMgmtRpc.LockSIAs"
-    "signmentRequest\0320.SAFplus.Rpc.amfMgmtRpc"
-    ".LockSIAssignmentResponse\022\204\001\n\025lockNodeIn"
-    "stantiation\0224.SAFplus.Rpc.amfMgmtRpc.Loc"
-    "kNodeInstantiationRequest\0325.SAFplus.Rpc."
-    "amfMgmtRpc.LockNodeInstantiationResponse"
-    "\022~\n\023lockSGInstantiation\0222.SAFplus.Rpc.am"
-    "fMgmtRpc.LockSGInstantiationRequest\0323.SA"
-    "Fplus.Rpc.amfMgmtRpc.LockSGInstantiation"
-    "Response\022~\n\023lockSUInstantiation\0222.SAFplu"
-    "s.Rpc.amfMgmtRpc.LockSUInstantiationRequ"
-    "est\0323.SAFplus.Rpc.amfMgmtRpc.LockSUInsta"
-    "ntiationResponse\022c\n\nunlockNode\022).SAFplus"
-    ".Rpc.amfMgmtRpc.UnlockNodeRequest\032*.SAFp"
-    "lus.Rpc.amfMgmtRpc.UnlockNodeResponse\022]\n"
-    "\010unlockSG\022\'.SAFplus.Rpc.amfMgmtRpc.Unloc"
-    "kSGRequest\032(.SAFplus.Rpc.amfMgmtRpc.Unlo"
-    "ckSGResponse\022]\n\010unlockSU\022\'.SAFplus.Rpc.a"
-    "mfMgmtRpc.UnlockSURequest\032(.SAFplus.Rpc."
-    "amfMgmtRpc.UnlockSUResponse\022]\n\010unlockSI\022"
-    "\'.SAFplus.Rpc.amfMgmtRpc.UnlockSIRequest"
-    "\032(.SAFplus.Rpc.amfMgmtRpc.UnlockSIRespon"
-    "se\022c\n\nrepairNode\022).SAFplus.Rpc.amfMgmtRp"
-    "c.RepairNodeRequest\032*.SAFplus.Rpc.amfMgm"
-    "tRpc.RepairNodeResponse\022r\n\017repairCompone"
-    "nt\022..SAFplus.Rpc.amfMgmtRpc.RepairCompon"
-    "entRequest\032/.SAFplus.Rpc.amfMgmtRpc.Repa"
-    "irComponentResponse\022]\n\010repairSU\022\'.SAFplu"
-    "s.Rpc.amfMgmtRpc.RepairSURequest\032(.SAFpl"
-    "us.Rpc.amfMgmtRpc.RepairSUResponse\022{\n\022ge"
-    "tComponentConfig\0221.SAFplus.Rpc.amfMgmtRp"
-    "c.GetComponentConfigRequest\0322.SAFplus.Rp"
-    "c.amfMgmtRpc.GetComponentConfigResponse\022"
-    "l\n\rgetNodeConfig\022,.SAFplus.Rpc.amfMgmtRp"
-    "c.GetNodeConfigRequest\032-.SAFplus.Rpc.amf"
-    "MgmtRpc.GetNodeConfigResponse\022f\n\013getSUCo"
-    "nfig\022*.SAFplus.Rpc.amfMgmtRpc.GetSUConfi"
-    "gRequest\032+.SAFplus.Rpc.amfMgmtRpc.GetSUC"
-    "onfigResponse\022f\n\013getSGConfig\022*.SAFplus.R"
-    "pc.amfMgmtRpc.GetSGConfigRequest\032+.SAFpl"
-    "us.Rpc.amfMgmtRpc.GetSGConfigResponse\022f\n"
-    "\013getSIConfig\022*.SAFplus.Rpc.amfMgmtRpc.Ge"
-    "tSIConfigRequest\032+.SAFplus.Rpc.amfMgmtRp"
-    "c.GetSIConfigResponse\022i\n\014getCSIConfig\022+."
-    "SAFplus.Rpc.amfMgmtRpc.GetCSIConfigReque"
-    "st\032,.SAFplus.Rpc.amfMgmtRpc.GetCSIConfig"
-    "Response\022{\n\022getComponentStatus\0221.SAFplus"
-    ".Rpc.amfMgmtRpc.GetComponentStatusReques"
-    "t\0322.SAFplus.Rpc.amfMgmtRpc.GetComponentS"
-    "tatusResponse\022l\n\rgetNodeStatus\022,.SAFplus"
-    ".Rpc.amfMgmtRpc.GetNodeStatusRequest\032-.S"
-    "AFplus.Rpc.amfMgmtRpc.GetNodeStatusRespo"
-    "nse\022f\n\013getSUStatus\022*.SAFplus.Rpc.amfMgmt"
-    "Rpc.GetSUStatusRequest\032+.SAFplus.Rpc.amf"
-    "MgmtRpc.GetSUStatusResponse\022f\n\013getSGStat"
-    "us\022*.SAFplus.Rpc.amfMgmtRpc.GetSGStatusR"
-    "equest\032+.SAFplus.Rpc.amfMgmtRpc.GetSGSta"
-    "tusResponse\022f\n\013getSIStatus\022*.SAFplus.Rpc"
-    ".amfMgmtRpc.GetSIStatusRequest\032+.SAFplus"
-    ".Rpc.amfMgmtRpc.GetSIStatusResponse\022i\n\014g"
-    "etCSIStatus\022+.SAFplus.Rpc.amfMgmtRpc.Get"
-    "CSIStatusRequest\032,.SAFplus.Rpc.amfMgmtRp"
-    "c.GetCSIStatusResponse\022f\n\013nodeRestart\022*."
-    "SAFplus.Rpc.amfMgmtRpc.NodeRestartReques"
-    "t\032+.SAFplus.Rpc.amfMgmtRpc.NodeRestartRe"
-    "sponse\022{\n\022serviceUnitRestart\0221.SAFplus.R"
-    "pc.amfMgmtRpc.ServiceUnitRestartRequest\032"
-    "2.SAFplus.Rpc.amfMgmtRpc.ServiceUnitRest"
-    "artResponse\022u\n\020componentRestart\022/.SAFplu"
-    "s.Rpc.amfMgmtRpc.ComponentRestartRequest"
-    "\0320.SAFplus.Rpc.amfMgmtRpc.ComponentResta"
-    "rtResponseB\t\200\001\000\210\001\000\220\001\001", 25981);
+    "esponse\022\013\n\003err\030\001 \001(\021*\t\010\350\007\020\200\200\200\200\002\"T\n\017Adjus"
+    "tSGRequest\022\025\n\ramfMgmtHandle\030\001 \003(\014\022\016\n\006sgN"
+    "ame\030\002 \001(\t\022\017\n\007enabled\030\003 \001(\010*\t\010\350\007\020\200\200\200\200\002\"*\n"
+    "\020AdjustSGResponse\022\013\n\003err\030\001 \001(\021*\t\010\350\007\020\200\200\200\200"
+    "\002*\377\001\n\rPresenceState\022 \n\034PresenceState_uni"
+    "nstantiated\020\000\022\037\n\033PresenceState_instantia"
+    "ting\020\001\022\036\n\032PresenceState_instantiated\020\002\022\035"
+    "\n\031PresenceState_terminating\020\003\022\034\n\030Presenc"
+    "eState_restarting\020\004\022%\n!PresenceState_ins"
+    "tantiationFailed\020\005\022#\n\037PresenceState_term"
+    "inationFailed\020\006\032\002\020\001*p\n\016ReadinessState\022\037\n"
+    "\033ReadinessState_outOfService\020\000\022\034\n\030Readin"
+    "essState_inService\020\001\022\033\n\027ReadinessState_s"
+    "topping\020\002\032\002\020\001*\206\002\n\036HighAvailabilityReadin"
+    "essState\0225\n1HighAvailabilityReadinessSta"
+    "te_readyForAssignment\020\000\0229\n5HighAvailabil"
+    "ityReadinessState_readyForActiveDegraded"
+    "\020\001\0224\n0HighAvailabilityReadinessState_not"
+    "ReadyForActive\020\002\0228\n4HighAvailabilityRead"
+    "inessState_notReadyForAssignment\020\003\032\002\020\001*\245"
+    "\001\n\025HighAvailabilityState\022 \n\034HighAvailabi"
+    "lityState_active\020\001\022!\n\035HighAvailabilitySt"
+    "ate_standby\020\002\022\036\n\032HighAvailabilityState_i"
+    "dle\020\003\022#\n\037HighAvailabilityState_quiescing"
+    "\020\004\032\002\020\001*p\n\023AdministrativeState\022\033\n\027Adminis"
+    "trativeState_off\020\000\022\034\n\030AdministrativeStat"
+    "e_idle\020\001\022\032\n\026AdministrativeState_on\020\002\032\002\020\001"
+    "*\271\001\n\014ProcessState\022\030\n\024ProcessState_Runnin"
+    "g\020\000\022\031\n\025ProcessState_Sleeping\020\001\022\037\n\033Proces"
+    "sState_WaitingForDisk\020\002\022\027\n\023ProcessState_"
+    "Zombie\020\003\022\030\n\024ProcessState_Stopped\020\004\022\034\n\030Pr"
+    "ocessState_TracingStop\020\005\032\002\020\001*\225\001\n\017Capabil"
+    "ityModel\022*\n&CapabilityModel_x_active_and"
+    "_y_standby\020\000\022)\n%CapabilityModel_x_active"
+    "_or_y_standby\020\001\022\'\n#CapabilityModel_not_p"
+    "reinstantiable\020\002\032\002\020\001*\210\002\n\010Recovery\022\035\n\031Rec"
+    "overy_NoRecommendation\020\001\022\024\n\020Recovery_Res"
+    "tart\020\002\022\025\n\021Recovery_Failover\020\003\022\033\n\027Recover"
+    "y_NodeSwitchover\020\004\022\031\n\025Recovery_NodeFailo"
+    "ver\020\005\022\031\n\025Recovery_NodeFailfast\020\006\022\031\n\025Reco"
+    "very_ClusterReset\020\007\022\037\n\033Recovery_Applicat"
+    "ionRestart\020\010\022\035\n\031Recovery_ContainerRestar"
+    "t\020\t\032\002\020\001*\273\001\n\020PendingOperation\022\031\n\025PendingO"
+    "peration_none\020\000\022\"\n\036PendingOperation_inst"
+    "antiation\020\001\022\035\n\031PendingOperation_shutdown"
+    "\020\002\022#\n\037PendingOperation_workAssignment\020\003\022"
+    " \n\034PendingOperation_workRemoval\020\004\032\002\020\001*\177\n"
+    "\017AssignmentState\022\036\n\032AssignmentState_unas"
+    "signed\020\000\022!\n\035AssignmentState_fullyAssigne"
+    "d\020\001\022%\n!AssignmentState_partiallyAssigned"
+    "\020\002\032\002\020\0012\332/\n\namfMgmtRpc\022c\n\ninitialize\022).SA"
+    "Fplus.Rpc.amfMgmtRpc.InitializeRequest\032*"
+    ".SAFplus.Rpc.amfMgmtRpc.InitializeRespon"
+    "se\022]\n\010finalize\022\'.SAFplus.Rpc.amfMgmtRpc."
+    "FinalizeRequest\032(.SAFplus.Rpc.amfMgmtRpc"
+    ".FinalizeResponse\022W\n\006commit\022%.SAFplus.Rp"
+    "c.amfMgmtRpc.CommitRequest\032&.SAFplus.Rpc"
+    ".amfMgmtRpc.CommitResponse\022r\n\017createComp"
+    "onent\022..SAFplus.Rpc.amfMgmtRpc.CreateCom"
+    "ponentRequest\032/.SAFplus.Rpc.amfMgmtRpc.C"
+    "reateComponentResponse\022r\n\017updateComponen"
+    "t\022..SAFplus.Rpc.amfMgmtRpc.UpdateCompone"
+    "ntRequest\032/.SAFplus.Rpc.amfMgmtRpc.Updat"
+    "eComponentResponse\022r\n\017deleteComponent\022.."
+    "SAFplus.Rpc.amfMgmtRpc.DeleteComponentRe"
+    "quest\032/.SAFplus.Rpc.amfMgmtRpc.DeleteCom"
+    "ponentResponse\022]\n\010createSG\022\'.SAFplus.Rpc"
+    ".amfMgmtRpc.CreateSGRequest\032(.SAFplus.Rp"
+    "c.amfMgmtRpc.CreateSGResponse\022]\n\010updateS"
+    "G\022\'.SAFplus.Rpc.amfMgmtRpc.UpdateSGReque"
+    "st\032(.SAFplus.Rpc.amfMgmtRpc.UpdateSGResp"
+    "onse\022]\n\010deleteSG\022\'.SAFplus.Rpc.amfMgmtRp"
+    "c.DeleteSGRequest\032(.SAFplus.Rpc.amfMgmtR"
+    "pc.DeleteSGResponse\022c\n\ncreateNode\022).SAFp"
+    "lus.Rpc.amfMgmtRpc.CreateNodeRequest\032*.S"
+    "AFplus.Rpc.amfMgmtRpc.CreateNodeResponse"
+    "\022c\n\nupdateNode\022).SAFplus.Rpc.amfMgmtRpc."
+    "UpdateNodeRequest\032*.SAFplus.Rpc.amfMgmtR"
+    "pc.UpdateNodeResponse\022c\n\ndeleteNode\022).SA"
+    "Fplus.Rpc.amfMgmtRpc.DeleteNodeRequest\032*"
+    ".SAFplus.Rpc.amfMgmtRpc.DeleteNodeRespon"
+    "se\022]\n\010createSU\022\'.SAFplus.Rpc.amfMgmtRpc."
+    "CreateSURequest\032(.SAFplus.Rpc.amfMgmtRpc"
+    ".CreateSUResponse\022]\n\010updateSU\022\'.SAFplus."
+    "Rpc.amfMgmtRpc.UpdateSURequest\032(.SAFplus"
+    ".Rpc.amfMgmtRpc.UpdateSUResponse\022]\n\010dele"
+    "teSU\022\'.SAFplus.Rpc.amfMgmtRpc.DeleteSURe"
+    "quest\032(.SAFplus.Rpc.amfMgmtRpc.DeleteSUR"
+    "esponse\022]\n\010createSI\022\'.SAFplus.Rpc.amfMgm"
+    "tRpc.CreateSIRequest\032(.SAFplus.Rpc.amfMg"
+    "mtRpc.CreateSIResponse\022]\n\010updateSI\022\'.SAF"
+    "plus.Rpc.amfMgmtRpc.UpdateSIRequest\032(.SA"
+    "Fplus.Rpc.amfMgmtRpc.UpdateSIResponse\022]\n"
+    "\010deleteSI\022\'.SAFplus.Rpc.amfMgmtRpc.Delet"
+    "eSIRequest\032(.SAFplus.Rpc.amfMgmtRpc.Dele"
+    "teSIResponse\022`\n\tcreateCSI\022(.SAFplus.Rpc."
+    "amfMgmtRpc.CreateCSIRequest\032).SAFplus.Rp"
+    "c.amfMgmtRpc.CreateCSIResponse\022`\n\tupdate"
+    "CSI\022(.SAFplus.Rpc.amfMgmtRpc.UpdateCSIRe"
+    "quest\032).SAFplus.Rpc.amfMgmtRpc.UpdateCSI"
+    "Response\022`\n\tdeleteCSI\022(.SAFplus.Rpc.amfM"
+    "gmtRpc.DeleteCSIRequest\032).SAFplus.Rpc.am"
+    "fMgmtRpc.DeleteCSIResponse\022i\n\014deleteCSIN"
+    "VP\022+.SAFplus.Rpc.amfMgmtRpc.DeleteCSINVP"
+    "Request\032,.SAFplus.Rpc.amfMgmtRpc.DeleteC"
+    "SINVPResponse\022u\n\020deleteNodeSUList\022/.SAFp"
+    "lus.Rpc.amfMgmtRpc.DeleteNodeSUListReque"
+    "st\0320.SAFplus.Rpc.amfMgmtRpc.DeleteNodeSU"
+    "ListResponse\022o\n\016deleteSGSUList\022-.SAFplus"
+    ".Rpc.amfMgmtRpc.DeleteSGSUListRequest\032.."
+    "SAFplus.Rpc.amfMgmtRpc.DeleteSGSUListRes"
+    "ponse\022o\n\016deleteSGSIList\022-.SAFplus.Rpc.am"
+    "fMgmtRpc.DeleteSGSIListRequest\032..SAFplus"
+    ".Rpc.amfMgmtRpc.DeleteSGSIListResponse\022u"
+    "\n\020deleteSUCompList\022/.SAFplus.Rpc.amfMgmt"
+    "Rpc.DeleteSUCompListRequest\0320.SAFplus.Rp"
+    "c.amfMgmtRpc.DeleteSUCompListResponse\022r\n"
+    "\017deleteSICSIList\022..SAFplus.Rpc.amfMgmtRp"
+    "c.DeleteSICSIListRequest\032/.SAFplus.Rpc.a"
+    "mfMgmtRpc.DeleteSICSIListResponse\022{\n\022loc"
+    "kNodeAssignment\0221.SAFplus.Rpc.amfMgmtRpc"
+    ".LockNodeAssignmentRequest\0322.SAFplus.Rpc"
+    ".amfMgmtRpc.LockNodeAssignmentResponse\022u"
+    "\n\020lockSGAssignment\022/.SAFplus.Rpc.amfMgmt"
+    "Rpc.LockSGAssignmentRequest\0320.SAFplus.Rp"
+    "c.amfMgmtRpc.LockSGAssignmentResponse\022u\n"
+    "\020lockSUAssignment\022/.SAFplus.Rpc.amfMgmtR"
+    "pc.LockSUAssignmentRequest\0320.SAFplus.Rpc"
+    ".amfMgmtRpc.LockSUAssignmentResponse\022u\n\020"
+    "lockSIAssignment\022/.SAFplus.Rpc.amfMgmtRp"
+    "c.LockSIAssignmentRequest\0320.SAFplus.Rpc."
+    "amfMgmtRpc.LockSIAssignmentResponse\022\204\001\n\025"
+    "lockNodeInstantiation\0224.SAFplus.Rpc.amfM"
+    "gmtRpc.LockNodeInstantiationRequest\0325.SA"
+    "Fplus.Rpc.amfMgmtRpc.LockNodeInstantiati"
+    "onResponse\022~\n\023lockSGInstantiation\0222.SAFp"
+    "lus.Rpc.amfMgmtRpc.LockSGInstantiationRe"
+    "quest\0323.SAFplus.Rpc.amfMgmtRpc.LockSGIns"
+    "tantiationResponse\022~\n\023lockSUInstantiatio"
+    "n\0222.SAFplus.Rpc.amfMgmtRpc.LockSUInstant"
+    "iationRequest\0323.SAFplus.Rpc.amfMgmtRpc.L"
+    "ockSUInstantiationResponse\022c\n\nunlockNode"
+    "\022).SAFplus.Rpc.amfMgmtRpc.UnlockNodeRequ"
+    "est\032*.SAFplus.Rpc.amfMgmtRpc.UnlockNodeR"
+    "esponse\022]\n\010unlockSG\022\'.SAFplus.Rpc.amfMgm"
+    "tRpc.UnlockSGRequest\032(.SAFplus.Rpc.amfMg"
+    "mtRpc.UnlockSGResponse\022]\n\010unlockSU\022\'.SAF"
+    "plus.Rpc.amfMgmtRpc.UnlockSURequest\032(.SA"
+    "Fplus.Rpc.amfMgmtRpc.UnlockSUResponse\022]\n"
+    "\010unlockSI\022\'.SAFplus.Rpc.amfMgmtRpc.Unloc"
+    "kSIRequest\032(.SAFplus.Rpc.amfMgmtRpc.Unlo"
+    "ckSIResponse\022c\n\nrepairNode\022).SAFplus.Rpc"
+    ".amfMgmtRpc.RepairNodeRequest\032*.SAFplus."
+    "Rpc.amfMgmtRpc.RepairNodeResponse\022r\n\017rep"
+    "airComponent\022..SAFplus.Rpc.amfMgmtRpc.Re"
+    "pairComponentRequest\032/.SAFplus.Rpc.amfMg"
+    "mtRpc.RepairComponentResponse\022]\n\010repairS"
+    "U\022\'.SAFplus.Rpc.amfMgmtRpc.RepairSUReque"
+    "st\032(.SAFplus.Rpc.amfMgmtRpc.RepairSUResp"
+    "onse\022{\n\022getComponentConfig\0221.SAFplus.Rpc"
+    ".amfMgmtRpc.GetComponentConfigRequest\0322."
+    "SAFplus.Rpc.amfMgmtRpc.GetComponentConfi"
+    "gResponse\022l\n\rgetNodeConfig\022,.SAFplus.Rpc"
+    ".amfMgmtRpc.GetNodeConfigRequest\032-.SAFpl"
+    "us.Rpc.amfMgmtRpc.GetNodeConfigResponse\022"
+    "f\n\013getSUConfig\022*.SAFplus.Rpc.amfMgmtRpc."
+    "GetSUConfigRequest\032+.SAFplus.Rpc.amfMgmt"
+    "Rpc.GetSUConfigResponse\022f\n\013getSGConfig\022*"
+    ".SAFplus.Rpc.amfMgmtRpc.GetSGConfigReque"
+    "st\032+.SAFplus.Rpc.amfMgmtRpc.GetSGConfigR"
+    "esponse\022f\n\013getSIConfig\022*.SAFplus.Rpc.amf"
+    "MgmtRpc.GetSIConfigRequest\032+.SAFplus.Rpc"
+    ".amfMgmtRpc.GetSIConfigResponse\022i\n\014getCS"
+    "IConfig\022+.SAFplus.Rpc.amfMgmtRpc.GetCSIC"
+    "onfigRequest\032,.SAFplus.Rpc.amfMgmtRpc.Ge"
+    "tCSIConfigResponse\022{\n\022getComponentStatus"
+    "\0221.SAFplus.Rpc.amfMgmtRpc.GetComponentSt"
+    "atusRequest\0322.SAFplus.Rpc.amfMgmtRpc.Get"
+    "ComponentStatusResponse\022l\n\rgetNodeStatus"
+    "\022,.SAFplus.Rpc.amfMgmtRpc.GetNodeStatusR"
+    "equest\032-.SAFplus.Rpc.amfMgmtRpc.GetNodeS"
+    "tatusResponse\022f\n\013getSUStatus\022*.SAFplus.R"
+    "pc.amfMgmtRpc.GetSUStatusRequest\032+.SAFpl"
+    "us.Rpc.amfMgmtRpc.GetSUStatusResponse\022f\n"
+    "\013getSGStatus\022*.SAFplus.Rpc.amfMgmtRpc.Ge"
+    "tSGStatusRequest\032+.SAFplus.Rpc.amfMgmtRp"
+    "c.GetSGStatusResponse\022f\n\013getSIStatus\022*.S"
+    "AFplus.Rpc.amfMgmtRpc.GetSIStatusRequest"
+    "\032+.SAFplus.Rpc.amfMgmtRpc.GetSIStatusRes"
+    "ponse\022i\n\014getCSIStatus\022+.SAFplus.Rpc.amfM"
+    "gmtRpc.GetCSIStatusRequest\032,.SAFplus.Rpc"
+    ".amfMgmtRpc.GetCSIStatusResponse\022f\n\013node"
+    "Restart\022*.SAFplus.Rpc.amfMgmtRpc.NodeRes"
+    "tartRequest\032+.SAFplus.Rpc.amfMgmtRpc.Nod"
+    "eRestartResponse\022{\n\022serviceUnitRestart\0221"
+    ".SAFplus.Rpc.amfMgmtRpc.ServiceUnitResta"
+    "rtRequest\0322.SAFplus.Rpc.amfMgmtRpc.Servi"
+    "ceUnitRestartResponse\022u\n\020componentRestar"
+    "t\022/.SAFplus.Rpc.amfMgmtRpc.ComponentRest"
+    "artRequest\0320.SAFplus.Rpc.amfMgmtRpc.Comp"
+    "onentRestartResponse\022]\n\010adjustSG\022\'.SAFpl"
+    "us.Rpc.amfMgmtRpc.AdjustSGRequest\032(.SAFp"
+    "lus.Rpc.amfMgmtRpc.AdjustSGResponseB\t\200\001\000"
+    "\210\001\000\220\001\001", 26206);
   ::google::protobuf::MessageFactory::InternalRegisterGeneratedFile(
     "amfMgmtRpc.proto", &protobuf_RegisterTypes);
   SaTimeT::default_instance_ = new SaTimeT();
@@ -4795,6 +4847,8 @@ void protobuf_AddDesc_amfMgmtRpc_2eproto() {
   ServiceUnitRestartResponse::default_instance_ = new ServiceUnitRestartResponse();
   ComponentRestartRequest::default_instance_ = new ComponentRestartRequest();
   ComponentRestartResponse::default_instance_ = new ComponentRestartResponse();
+  AdjustSGRequest::default_instance_ = new AdjustSGRequest();
+  AdjustSGResponse::default_instance_ = new AdjustSGResponse();
   SaTimeT::default_instance_->InitAsDefaultInstance();
   Date::default_instance_->InitAsDefaultInstance();
   IntStatistic::default_instance_->InitAsDefaultInstance();
@@ -4963,6 +5017,8 @@ void protobuf_AddDesc_amfMgmtRpc_2eproto() {
   ServiceUnitRestartResponse::default_instance_->InitAsDefaultInstance();
   ComponentRestartRequest::default_instance_->InitAsDefaultInstance();
   ComponentRestartResponse::default_instance_->InitAsDefaultInstance();
+  AdjustSGRequest::default_instance_->InitAsDefaultInstance();
+  AdjustSGResponse::default_instance_->InitAsDefaultInstance();
   ::google::protobuf::internal::OnShutdown(&protobuf_ShutdownFile_amfMgmtRpc_2eproto);
 }
 
@@ -56259,6 +56315,586 @@ void ComponentRestartResponse::Swap(ComponentRestartResponse* other) {
   ::google::protobuf::Metadata metadata;
   metadata.descriptor = ComponentRestartResponse_descriptor_;
   metadata.reflection = ComponentRestartResponse_reflection_;
+  return metadata;
+}
+
+
+// ===================================================================
+
+#ifndef _MSC_VER
+const int AdjustSGRequest::kAmfMgmtHandleFieldNumber;
+const int AdjustSGRequest::kSgNameFieldNumber;
+const int AdjustSGRequest::kEnabledFieldNumber;
+#endif  // !_MSC_VER
+
+AdjustSGRequest::AdjustSGRequest()
+  : ::google::protobuf::Message() {
+  SharedCtor();
+  // @@protoc_insertion_point(constructor:SAFplus.Rpc.amfMgmtRpc.AdjustSGRequest)
+}
+
+void AdjustSGRequest::InitAsDefaultInstance() {
+}
+
+AdjustSGRequest::AdjustSGRequest(const AdjustSGRequest& from)
+  : ::google::protobuf::Message() {
+  SharedCtor();
+  MergeFrom(from);
+  // @@protoc_insertion_point(copy_constructor:SAFplus.Rpc.amfMgmtRpc.AdjustSGRequest)
+}
+
+void AdjustSGRequest::SharedCtor() {
+  ::google::protobuf::internal::GetEmptyString();
+  _cached_size_ = 0;
+  sgname_ = const_cast< ::std::string*>(&::google::protobuf::internal::GetEmptyStringAlreadyInited());
+  enabled_ = false;
+  ::memset(_has_bits_, 0, sizeof(_has_bits_));
+}
+
+AdjustSGRequest::~AdjustSGRequest() {
+  // @@protoc_insertion_point(destructor:SAFplus.Rpc.amfMgmtRpc.AdjustSGRequest)
+  SharedDtor();
+}
+
+void AdjustSGRequest::SharedDtor() {
+  if (sgname_ != &::google::protobuf::internal::GetEmptyStringAlreadyInited()) {
+    delete sgname_;
+  }
+  if (this != default_instance_) {
+  }
+}
+
+void AdjustSGRequest::SetCachedSize(int size) const {
+  GOOGLE_SAFE_CONCURRENT_WRITES_BEGIN();
+  _cached_size_ = size;
+  GOOGLE_SAFE_CONCURRENT_WRITES_END();
+}
+const ::google::protobuf::Descriptor* AdjustSGRequest::descriptor() {
+  protobuf_AssignDescriptorsOnce();
+  return AdjustSGRequest_descriptor_;
+}
+
+const AdjustSGRequest& AdjustSGRequest::default_instance() {
+  if (default_instance_ == NULL) protobuf_AddDesc_amfMgmtRpc_2eproto();
+  return *default_instance_;
+}
+
+AdjustSGRequest* AdjustSGRequest::default_instance_ = NULL;
+
+AdjustSGRequest* AdjustSGRequest::New() const {
+  return new AdjustSGRequest;
+}
+
+void AdjustSGRequest::Clear() {
+  _extensions_.Clear();
+  if (_has_bits_[0 / 32] & 6) {
+    if (has_sgname()) {
+      if (sgname_ != &::google::protobuf::internal::GetEmptyStringAlreadyInited()) {
+        sgname_->clear();
+      }
+    }
+    enabled_ = false;
+  }
+  amfmgmthandle_.Clear();
+  ::memset(_has_bits_, 0, sizeof(_has_bits_));
+  mutable_unknown_fields()->Clear();
+}
+
+bool AdjustSGRequest::MergePartialFromCodedStream(
+    ::google::protobuf::io::CodedInputStream* input) {
+#define DO_(EXPRESSION) if (!(EXPRESSION)) goto failure
+  ::google::protobuf::uint32 tag;
+  // @@protoc_insertion_point(parse_start:SAFplus.Rpc.amfMgmtRpc.AdjustSGRequest)
+  for (;;) {
+    ::std::pair< ::google::protobuf::uint32, bool> p = input->ReadTagWithCutoff(127);
+    tag = p.first;
+    if (!p.second) goto handle_unusual;
+    switch (::google::protobuf::internal::WireFormatLite::GetTagFieldNumber(tag)) {
+      // repeated bytes amfMgmtHandle = 1;
+      case 1: {
+        if (tag == 10) {
+         parse_amfMgmtHandle:
+          DO_(::google::protobuf::internal::WireFormatLite::ReadBytes(
+                input, this->add_amfmgmthandle()));
+        } else {
+          goto handle_unusual;
+        }
+        if (input->ExpectTag(10)) goto parse_amfMgmtHandle;
+        if (input->ExpectTag(18)) goto parse_sgName;
+        break;
+      }
+
+      // optional string sgName = 2;
+      case 2: {
+        if (tag == 18) {
+         parse_sgName:
+          DO_(::google::protobuf::internal::WireFormatLite::ReadString(
+                input, this->mutable_sgname()));
+          ::google::protobuf::internal::WireFormat::VerifyUTF8StringNamedField(
+            this->sgname().data(), this->sgname().length(),
+            ::google::protobuf::internal::WireFormat::PARSE,
+            "sgname");
+        } else {
+          goto handle_unusual;
+        }
+        if (input->ExpectTag(24)) goto parse_enabled;
+        break;
+      }
+
+      // optional bool enabled = 3;
+      case 3: {
+        if (tag == 24) {
+         parse_enabled:
+          DO_((::google::protobuf::internal::WireFormatLite::ReadPrimitive<
+                   bool, ::google::protobuf::internal::WireFormatLite::TYPE_BOOL>(
+                 input, &enabled_)));
+          set_has_enabled();
+        } else {
+          goto handle_unusual;
+        }
+        if (input->ExpectAtEnd()) goto success;
+        break;
+      }
+
+      default: {
+      handle_unusual:
+        if (tag == 0 ||
+            ::google::protobuf::internal::WireFormatLite::GetTagWireType(tag) ==
+            ::google::protobuf::internal::WireFormatLite::WIRETYPE_END_GROUP) {
+          goto success;
+        }
+        if ((8000u <= tag)) {
+          DO_(_extensions_.ParseField(tag, input, default_instance_,
+                                      mutable_unknown_fields()));
+          continue;
+        }
+        DO_(::google::protobuf::internal::WireFormat::SkipField(
+              input, tag, mutable_unknown_fields()));
+        break;
+      }
+    }
+  }
+success:
+  // @@protoc_insertion_point(parse_success:SAFplus.Rpc.amfMgmtRpc.AdjustSGRequest)
+  return true;
+failure:
+  // @@protoc_insertion_point(parse_failure:SAFplus.Rpc.amfMgmtRpc.AdjustSGRequest)
+  return false;
+#undef DO_
+}
+
+void AdjustSGRequest::SerializeWithCachedSizes(
+    ::google::protobuf::io::CodedOutputStream* output) const {
+  // @@protoc_insertion_point(serialize_start:SAFplus.Rpc.amfMgmtRpc.AdjustSGRequest)
+  // repeated bytes amfMgmtHandle = 1;
+  for (int i = 0; i < this->amfmgmthandle_size(); i++) {
+    ::google::protobuf::internal::WireFormatLite::WriteBytes(
+      1, this->amfmgmthandle(i), output);
+  }
+
+  // optional string sgName = 2;
+  if (has_sgname()) {
+    ::google::protobuf::internal::WireFormat::VerifyUTF8StringNamedField(
+      this->sgname().data(), this->sgname().length(),
+      ::google::protobuf::internal::WireFormat::SERIALIZE,
+      "sgname");
+    ::google::protobuf::internal::WireFormatLite::WriteStringMaybeAliased(
+      2, this->sgname(), output);
+  }
+
+  // optional bool enabled = 3;
+  if (has_enabled()) {
+    ::google::protobuf::internal::WireFormatLite::WriteBool(3, this->enabled(), output);
+  }
+
+  // Extension range [1000, 536870912)
+  _extensions_.SerializeWithCachedSizes(
+      1000, 536870912, output);
+
+  if (!unknown_fields().empty()) {
+    ::google::protobuf::internal::WireFormat::SerializeUnknownFields(
+        unknown_fields(), output);
+  }
+  // @@protoc_insertion_point(serialize_end:SAFplus.Rpc.amfMgmtRpc.AdjustSGRequest)
+}
+
+::google::protobuf::uint8* AdjustSGRequest::SerializeWithCachedSizesToArray(
+    ::google::protobuf::uint8* target) const {
+  // @@protoc_insertion_point(serialize_to_array_start:SAFplus.Rpc.amfMgmtRpc.AdjustSGRequest)
+  // repeated bytes amfMgmtHandle = 1;
+  for (int i = 0; i < this->amfmgmthandle_size(); i++) {
+    target = ::google::protobuf::internal::WireFormatLite::
+      WriteBytesToArray(1, this->amfmgmthandle(i), target);
+  }
+
+  // optional string sgName = 2;
+  if (has_sgname()) {
+    ::google::protobuf::internal::WireFormat::VerifyUTF8StringNamedField(
+      this->sgname().data(), this->sgname().length(),
+      ::google::protobuf::internal::WireFormat::SERIALIZE,
+      "sgname");
+    target =
+      ::google::protobuf::internal::WireFormatLite::WriteStringToArray(
+        2, this->sgname(), target);
+  }
+
+  // optional bool enabled = 3;
+  if (has_enabled()) {
+    target = ::google::protobuf::internal::WireFormatLite::WriteBoolToArray(3, this->enabled(), target);
+  }
+
+  // Extension range [1000, 536870912)
+  target = _extensions_.SerializeWithCachedSizesToArray(
+      1000, 536870912, target);
+
+  if (!unknown_fields().empty()) {
+    target = ::google::protobuf::internal::WireFormat::SerializeUnknownFieldsToArray(
+        unknown_fields(), target);
+  }
+  // @@protoc_insertion_point(serialize_to_array_end:SAFplus.Rpc.amfMgmtRpc.AdjustSGRequest)
+  return target;
+}
+
+int AdjustSGRequest::ByteSize() const {
+  int total_size = 0;
+
+  if (_has_bits_[1 / 32] & (0xffu << (1 % 32))) {
+    // optional string sgName = 2;
+    if (has_sgname()) {
+      total_size += 1 +
+        ::google::protobuf::internal::WireFormatLite::StringSize(
+          this->sgname());
+    }
+
+    // optional bool enabled = 3;
+    if (has_enabled()) {
+      total_size += 1 + 1;
+    }
+
+  }
+  // repeated bytes amfMgmtHandle = 1;
+  total_size += 1 * this->amfmgmthandle_size();
+  for (int i = 0; i < this->amfmgmthandle_size(); i++) {
+    total_size += ::google::protobuf::internal::WireFormatLite::BytesSize(
+      this->amfmgmthandle(i));
+  }
+
+  total_size += _extensions_.ByteSize();
+
+  if (!unknown_fields().empty()) {
+    total_size +=
+      ::google::protobuf::internal::WireFormat::ComputeUnknownFieldsSize(
+        unknown_fields());
+  }
+  GOOGLE_SAFE_CONCURRENT_WRITES_BEGIN();
+  _cached_size_ = total_size;
+  GOOGLE_SAFE_CONCURRENT_WRITES_END();
+  return total_size;
+}
+
+void AdjustSGRequest::MergeFrom(const ::google::protobuf::Message& from) {
+  GOOGLE_CHECK_NE(&from, this);
+  const AdjustSGRequest* source =
+    ::google::protobuf::internal::dynamic_cast_if_available<const AdjustSGRequest*>(
+      &from);
+  if (source == NULL) {
+    ::google::protobuf::internal::ReflectionOps::Merge(from, this);
+  } else {
+    MergeFrom(*source);
+  }
+}
+
+void AdjustSGRequest::MergeFrom(const AdjustSGRequest& from) {
+  GOOGLE_CHECK_NE(&from, this);
+  amfmgmthandle_.MergeFrom(from.amfmgmthandle_);
+  if (from._has_bits_[1 / 32] & (0xffu << (1 % 32))) {
+    if (from.has_sgname()) {
+      set_sgname(from.sgname());
+    }
+    if (from.has_enabled()) {
+      set_enabled(from.enabled());
+    }
+  }
+  _extensions_.MergeFrom(from._extensions_);
+  mutable_unknown_fields()->MergeFrom(from.unknown_fields());
+}
+
+void AdjustSGRequest::CopyFrom(const ::google::protobuf::Message& from) {
+  if (&from == this) return;
+  Clear();
+  MergeFrom(from);
+}
+
+void AdjustSGRequest::CopyFrom(const AdjustSGRequest& from) {
+  if (&from == this) return;
+  Clear();
+  MergeFrom(from);
+}
+
+bool AdjustSGRequest::IsInitialized() const {
+
+
+  if (!_extensions_.IsInitialized()) return false;  return true;
+}
+
+void AdjustSGRequest::Swap(AdjustSGRequest* other) {
+  if (other != this) {
+    amfmgmthandle_.Swap(&other->amfmgmthandle_);
+    std::swap(sgname_, other->sgname_);
+    std::swap(enabled_, other->enabled_);
+    std::swap(_has_bits_[0], other->_has_bits_[0]);
+    _unknown_fields_.Swap(&other->_unknown_fields_);
+    std::swap(_cached_size_, other->_cached_size_);
+    _extensions_.Swap(&other->_extensions_);
+  }
+}
+
+::google::protobuf::Metadata AdjustSGRequest::GetMetadata() const {
+  protobuf_AssignDescriptorsOnce();
+  ::google::protobuf::Metadata metadata;
+  metadata.descriptor = AdjustSGRequest_descriptor_;
+  metadata.reflection = AdjustSGRequest_reflection_;
+  return metadata;
+}
+
+
+// ===================================================================
+
+#ifndef _MSC_VER
+const int AdjustSGResponse::kErrFieldNumber;
+#endif  // !_MSC_VER
+
+AdjustSGResponse::AdjustSGResponse()
+  : ::google::protobuf::Message() {
+  SharedCtor();
+  // @@protoc_insertion_point(constructor:SAFplus.Rpc.amfMgmtRpc.AdjustSGResponse)
+}
+
+void AdjustSGResponse::InitAsDefaultInstance() {
+}
+
+AdjustSGResponse::AdjustSGResponse(const AdjustSGResponse& from)
+  : ::google::protobuf::Message() {
+  SharedCtor();
+  MergeFrom(from);
+  // @@protoc_insertion_point(copy_constructor:SAFplus.Rpc.amfMgmtRpc.AdjustSGResponse)
+}
+
+void AdjustSGResponse::SharedCtor() {
+  _cached_size_ = 0;
+  err_ = 0;
+  ::memset(_has_bits_, 0, sizeof(_has_bits_));
+}
+
+AdjustSGResponse::~AdjustSGResponse() {
+  // @@protoc_insertion_point(destructor:SAFplus.Rpc.amfMgmtRpc.AdjustSGResponse)
+  SharedDtor();
+}
+
+void AdjustSGResponse::SharedDtor() {
+  if (this != default_instance_) {
+  }
+}
+
+void AdjustSGResponse::SetCachedSize(int size) const {
+  GOOGLE_SAFE_CONCURRENT_WRITES_BEGIN();
+  _cached_size_ = size;
+  GOOGLE_SAFE_CONCURRENT_WRITES_END();
+}
+const ::google::protobuf::Descriptor* AdjustSGResponse::descriptor() {
+  protobuf_AssignDescriptorsOnce();
+  return AdjustSGResponse_descriptor_;
+}
+
+const AdjustSGResponse& AdjustSGResponse::default_instance() {
+  if (default_instance_ == NULL) protobuf_AddDesc_amfMgmtRpc_2eproto();
+  return *default_instance_;
+}
+
+AdjustSGResponse* AdjustSGResponse::default_instance_ = NULL;
+
+AdjustSGResponse* AdjustSGResponse::New() const {
+  return new AdjustSGResponse;
+}
+
+void AdjustSGResponse::Clear() {
+  _extensions_.Clear();
+  err_ = 0;
+  ::memset(_has_bits_, 0, sizeof(_has_bits_));
+  mutable_unknown_fields()->Clear();
+}
+
+bool AdjustSGResponse::MergePartialFromCodedStream(
+    ::google::protobuf::io::CodedInputStream* input) {
+#define DO_(EXPRESSION) if (!(EXPRESSION)) goto failure
+  ::google::protobuf::uint32 tag;
+  // @@protoc_insertion_point(parse_start:SAFplus.Rpc.amfMgmtRpc.AdjustSGResponse)
+  for (;;) {
+    ::std::pair< ::google::protobuf::uint32, bool> p = input->ReadTagWithCutoff(127);
+    tag = p.first;
+    if (!p.second) goto handle_unusual;
+    switch (::google::protobuf::internal::WireFormatLite::GetTagFieldNumber(tag)) {
+      // optional sint32 err = 1;
+      case 1: {
+        if (tag == 8) {
+          DO_((::google::protobuf::internal::WireFormatLite::ReadPrimitive<
+                   ::google::protobuf::int32, ::google::protobuf::internal::WireFormatLite::TYPE_SINT32>(
+                 input, &err_)));
+          set_has_err();
+        } else {
+          goto handle_unusual;
+        }
+        if (input->ExpectAtEnd()) goto success;
+        break;
+      }
+
+      default: {
+      handle_unusual:
+        if (tag == 0 ||
+            ::google::protobuf::internal::WireFormatLite::GetTagWireType(tag) ==
+            ::google::protobuf::internal::WireFormatLite::WIRETYPE_END_GROUP) {
+          goto success;
+        }
+        if ((8000u <= tag)) {
+          DO_(_extensions_.ParseField(tag, input, default_instance_,
+                                      mutable_unknown_fields()));
+          continue;
+        }
+        DO_(::google::protobuf::internal::WireFormat::SkipField(
+              input, tag, mutable_unknown_fields()));
+        break;
+      }
+    }
+  }
+success:
+  // @@protoc_insertion_point(parse_success:SAFplus.Rpc.amfMgmtRpc.AdjustSGResponse)
+  return true;
+failure:
+  // @@protoc_insertion_point(parse_failure:SAFplus.Rpc.amfMgmtRpc.AdjustSGResponse)
+  return false;
+#undef DO_
+}
+
+void AdjustSGResponse::SerializeWithCachedSizes(
+    ::google::protobuf::io::CodedOutputStream* output) const {
+  // @@protoc_insertion_point(serialize_start:SAFplus.Rpc.amfMgmtRpc.AdjustSGResponse)
+  // optional sint32 err = 1;
+  if (has_err()) {
+    ::google::protobuf::internal::WireFormatLite::WriteSInt32(1, this->err(), output);
+  }
+
+  // Extension range [1000, 536870912)
+  _extensions_.SerializeWithCachedSizes(
+      1000, 536870912, output);
+
+  if (!unknown_fields().empty()) {
+    ::google::protobuf::internal::WireFormat::SerializeUnknownFields(
+        unknown_fields(), output);
+  }
+  // @@protoc_insertion_point(serialize_end:SAFplus.Rpc.amfMgmtRpc.AdjustSGResponse)
+}
+
+::google::protobuf::uint8* AdjustSGResponse::SerializeWithCachedSizesToArray(
+    ::google::protobuf::uint8* target) const {
+  // @@protoc_insertion_point(serialize_to_array_start:SAFplus.Rpc.amfMgmtRpc.AdjustSGResponse)
+  // optional sint32 err = 1;
+  if (has_err()) {
+    target = ::google::protobuf::internal::WireFormatLite::WriteSInt32ToArray(1, this->err(), target);
+  }
+
+  // Extension range [1000, 536870912)
+  target = _extensions_.SerializeWithCachedSizesToArray(
+      1000, 536870912, target);
+
+  if (!unknown_fields().empty()) {
+    target = ::google::protobuf::internal::WireFormat::SerializeUnknownFieldsToArray(
+        unknown_fields(), target);
+  }
+  // @@protoc_insertion_point(serialize_to_array_end:SAFplus.Rpc.amfMgmtRpc.AdjustSGResponse)
+  return target;
+}
+
+int AdjustSGResponse::ByteSize() const {
+  int total_size = 0;
+
+  if (_has_bits_[0 / 32] & (0xffu << (0 % 32))) {
+    // optional sint32 err = 1;
+    if (has_err()) {
+      total_size += 1 +
+        ::google::protobuf::internal::WireFormatLite::SInt32Size(
+          this->err());
+    }
+
+  }
+  total_size += _extensions_.ByteSize();
+
+  if (!unknown_fields().empty()) {
+    total_size +=
+      ::google::protobuf::internal::WireFormat::ComputeUnknownFieldsSize(
+        unknown_fields());
+  }
+  GOOGLE_SAFE_CONCURRENT_WRITES_BEGIN();
+  _cached_size_ = total_size;
+  GOOGLE_SAFE_CONCURRENT_WRITES_END();
+  return total_size;
+}
+
+void AdjustSGResponse::MergeFrom(const ::google::protobuf::Message& from) {
+  GOOGLE_CHECK_NE(&from, this);
+  const AdjustSGResponse* source =
+    ::google::protobuf::internal::dynamic_cast_if_available<const AdjustSGResponse*>(
+      &from);
+  if (source == NULL) {
+    ::google::protobuf::internal::ReflectionOps::Merge(from, this);
+  } else {
+    MergeFrom(*source);
+  }
+}
+
+void AdjustSGResponse::MergeFrom(const AdjustSGResponse& from) {
+  GOOGLE_CHECK_NE(&from, this);
+  if (from._has_bits_[0 / 32] & (0xffu << (0 % 32))) {
+    if (from.has_err()) {
+      set_err(from.err());
+    }
+  }
+  _extensions_.MergeFrom(from._extensions_);
+  mutable_unknown_fields()->MergeFrom(from.unknown_fields());
+}
+
+void AdjustSGResponse::CopyFrom(const ::google::protobuf::Message& from) {
+  if (&from == this) return;
+  Clear();
+  MergeFrom(from);
+}
+
+void AdjustSGResponse::CopyFrom(const AdjustSGResponse& from) {
+  if (&from == this) return;
+  Clear();
+  MergeFrom(from);
+}
+
+bool AdjustSGResponse::IsInitialized() const {
+
+
+  if (!_extensions_.IsInitialized()) return false;  return true;
+}
+
+void AdjustSGResponse::Swap(AdjustSGResponse* other) {
+  if (other != this) {
+    std::swap(err_, other->err_);
+    std::swap(_has_bits_[0], other->_has_bits_[0]);
+    _unknown_fields_.Swap(&other->_unknown_fields_);
+    std::swap(_cached_size_, other->_cached_size_);
+    _extensions_.Swap(&other->_extensions_);
+  }
+}
+
+::google::protobuf::Metadata AdjustSGResponse::GetMetadata() const {
+  protobuf_AssignDescriptorsOnce();
+  ::google::protobuf::Metadata metadata;
+  metadata.descriptor = AdjustSGResponse_descriptor_;
+  metadata.reflection = AdjustSGResponse_reflection_;
   return metadata;
 }
 

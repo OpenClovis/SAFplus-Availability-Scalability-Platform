@@ -380,6 +380,12 @@ void amfMgmtRpc::componentRestart(const ::SAFplus::Rpc::amfMgmtRpc::ComponentRes
   logError("RPC","SVR","Method componentRestart() not implemented.");
 }
 
+void amfMgmtRpc::adjustSG(const ::SAFplus::Rpc::amfMgmtRpc::AdjustSGRequest*,
+                         ::SAFplus::Rpc::amfMgmtRpc::AdjustSGResponse*)
+{
+  logError("RPC","SVR","Method adjustSG() not implemented.");
+}
+
 void amfMgmtRpc::initialize(SAFplus::Handle destination,
                      const ::SAFplus::Rpc::amfMgmtRpc::InitializeRequest* request,
                      ::SAFplus::Rpc::amfMgmtRpc::InitializeResponse* response,
@@ -828,6 +834,14 @@ void amfMgmtRpc::componentRestart(SAFplus::Handle destination,
   logError("RPC","SVR","Method componentRestart() not implemented.");
 }
 
+void amfMgmtRpc::adjustSG(SAFplus::Handle destination,
+                     const ::SAFplus::Rpc::amfMgmtRpc::AdjustSGRequest* request,
+                     ::SAFplus::Rpc::amfMgmtRpc::AdjustSGResponse* response,
+                     SAFplus::Wakeable& wakeable)
+{
+  logError("RPC","SVR","Method adjustSG() not implemented.");
+}
+
 void amfMgmtRpc::CallMethod(const ::google::protobuf::MethodDescriptor* method,
                              SAFplus::Handle destination,
                              const ::google::protobuf::Message* request,
@@ -1059,6 +1073,10 @@ void amfMgmtRpc::CallMethod(const ::google::protobuf::MethodDescriptor* method,
       componentRestart(::google::protobuf::down_cast<const ::SAFplus::Rpc::amfMgmtRpc::ComponentRestartRequest*>(request),
              ::google::protobuf::down_cast< ::SAFplus::Rpc::amfMgmtRpc::ComponentRestartResponse*>(response));
       break;
+    case 56:
+      adjustSG(::google::protobuf::down_cast<const ::SAFplus::Rpc::amfMgmtRpc::AdjustSGRequest*>(request),
+             ::google::protobuf::down_cast< ::SAFplus::Rpc::amfMgmtRpc::AdjustSGResponse*>(response));
+      break;
     default:
       GOOGLE_LOG(FATAL) << "Bad method index; this should never happen.";
       break;
@@ -1181,6 +1199,8 @@ const ::google::protobuf::Message& amfMgmtRpc::GetRequestPrototype(
       return ::SAFplus::Rpc::amfMgmtRpc::ServiceUnitRestartRequest::default_instance();
     case 55:
       return ::SAFplus::Rpc::amfMgmtRpc::ComponentRestartRequest::default_instance();
+    case 56:
+      return ::SAFplus::Rpc::amfMgmtRpc::AdjustSGRequest::default_instance();
     default:
       GOOGLE_LOG(FATAL) << "Bad method index; this should never happen.";
       return *reinterpret_cast< ::google::protobuf::Message*>(NULL);
@@ -1303,6 +1323,8 @@ const ::google::protobuf::Message& amfMgmtRpc::GetResponsePrototype(
       return ::SAFplus::Rpc::amfMgmtRpc::ServiceUnitRestartResponse::default_instance();
     case 55:
       return ::SAFplus::Rpc::amfMgmtRpc::ComponentRestartResponse::default_instance();
+    case 56:
+      return ::SAFplus::Rpc::amfMgmtRpc::AdjustSGResponse::default_instance();
     default:
       GOOGLE_LOG(FATAL) << "Bad method index; this should never happen.";
       return *reinterpret_cast< ::google::protobuf::Message*>(NULL);
@@ -1655,6 +1677,12 @@ void amfMgmtRpc_Stub::componentRestart(SAFplus::Handle dest,
                               ::SAFplus::Rpc::amfMgmtRpc::ComponentRestartResponse* response,
                               SAFplus::Wakeable& wakeable) {
   channel_->CallMethod(descriptor()->method(55), dest, request, response, wakeable);
+}
+void amfMgmtRpc_Stub::adjustSG(SAFplus::Handle dest,
+                              const ::SAFplus::Rpc::amfMgmtRpc::AdjustSGRequest* request,
+                              ::SAFplus::Rpc::amfMgmtRpc::AdjustSGResponse* response,
+                              SAFplus::Wakeable& wakeable) {
+  channel_->CallMethod(descriptor()->method(56), dest, request, response, wakeable);
 }
 
 }  // namespace amfMgmtRpc

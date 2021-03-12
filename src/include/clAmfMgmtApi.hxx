@@ -73,4 +73,6 @@ ClRcT amfMgmtSUGetStatus(const Handle& mgmtHandle,const std::string& suName, SAF
 ClRcT amfMgmtSIGetStatus(const Handle& mgmtHandle,const std::string& siName, SAFplus::Rpc::amfMgmtRpc::ServiceInstanceStatus** siStatus);
 ClRcT amfMgmtCSIGetStatus(const Handle& mgmtHandle,const std::string& csiName, SAFplus::Rpc::amfMgmtRpc::ComponentServiceInstanceStatus** csiStatus);
 
+ClRcT amfMgmtSGAdjust(const Handle& mgmtHandle, const std::string& sgName, bool enabled);
+
 }

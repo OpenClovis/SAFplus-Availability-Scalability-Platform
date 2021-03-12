@@ -22,6 +22,8 @@ namespace SAFplus
  
   const char* oper_str(bool val) { if (val) return "enabled"; else return "disabled"; }
   bool compareEntityRecoveryScope(Recovery a, Recovery b);
+  ClRcT sgAdjust(const SAFplusAmf::ServiceGroup* sg);
+
 class NplusMPolicy:public ClAmfPolicyPlugin_1
     {
   public:
@@ -31,6 +33,7 @@ class NplusMPolicy:public ClAmfPolicyPlugin_1
     virtual void standbyAudit(SAFplusAmf::SAFplusAmfModule* root);
     SAFplusAmf::Recovery recommendedRecovery;
     Component* processedComp;
+
   protected:
     void auditOperation(SAFplusAmf::SAFplusAmfModule* root);
     void auditDiscovery(SAFplusAmf::SAFplusAmfModule* root);
@@ -306,7 +309,7 @@ class NplusMPolicy:public ClAmfPolicyPlugin_1
 
             // candidate
             }
-          else 
+          else
             {
             assignable = false;
             break;
@@ -775,6 +778,103 @@ class NplusMPolicy:public ClAmfPolicyPlugin_1
       }
     }
   
+  bool isThereStandbySU(const std::vector<ServiceUnit*>& suList)
+  {
+      std::vector<SAFplusAmf::ServiceUnit*>::const_iterator itsu = suList.begin();
+      for (; itsu != suList.end(); ++itsu)
+      {
+         SAFplusAmf::ServiceUnit* su = dynamic_cast<ServiceUnit*>(*itsu);
+         if (su->numStandbyServiceInstances.current.value > 0)
+             return true;
+      }
+      return false;
+  }
+
+  uint32_t getActiveHighestRankSU(const std::vector<ServiceUnit*>& suList)
+    {
+        std::vector<SAFplusAmf::ServiceUnit*>::const_iterator itsu = suList.begin();
+        for (; itsu != suList.end(); ++itsu)
+        {
+           SAFplusAmf::ServiceUnit* su = dynamic_cast<ServiceUnit*>(*itsu);
+           if (su->numActiveServiceInstances.current.value > 0)
+               return su->rank.value;
+        }
+        return 0;
+    }
+
+  uint32_t getStandbyHighestRankSU(const std::vector<ServiceUnit*>& suList)
+      {
+          std::vector<SAFplusAmf::ServiceUnit*>::const_iterator itsu = suList.begin();
+          for (; itsu != suList.end(); ++itsu)
+          {
+             SAFplusAmf::ServiceUnit* su = dynamic_cast<ServiceUnit*>(*itsu);
+             if (su->numStandbyServiceInstances.current.value > 0)
+                 return su->rank.value;
+          }
+          return 0;
+      }
+
+  int getNumAssignedSUs(const std::vector<ServiceUnit*>& suList)
+        {
+            std::vector<SAFplusAmf::ServiceUnit*>::const_iterator itsu = suList.begin();
+            int count = 0;
+            for (; itsu != suList.end(); ++itsu)
+            {
+               SAFplusAmf::ServiceUnit* su = dynamic_cast<ServiceUnit*>(*itsu);
+               if (su->numStandbyServiceInstances.current.value > 0 || su->numActiveServiceInstances.current.value > 0)
+                   count++;
+            }
+            return count;
+        }
+
+  ClRcT sgAdjust(const SAFplusAmf::ServiceGroup* sg)
+  {
+      logDebug("N+M","ADJUST","adjusting sg [%s]", sg->name.value.c_str());
+      ClRcT rc = CL_OK;
+      bool (*suOrder)(ServiceUnit* a, ServiceUnit* b) = suEarliestRanking;
+      std::vector<SAFplusAmf::ServiceUnit*> sus;
+      sus << sg->serviceUnits;
+      if (!isThereStandbySU(sus) || getNumAssignedSUs(sus) == 1) // there are only active assignments or there is only one su in the list, so nothing to do
+      {
+         logDebug("N+M","ADJUST","sg [%s] doesn't need to be adjusted because there is no any standby SU or there is only one assigned SU", sg->name.value.c_str());
+         rc = CL_ERR_NO_OP;
+         return rc;
+      }
+      boost::sort(sus, suOrder);
+      uint32_t activeHighestRankSU = getActiveHighestRankSU(sus);
+      uint32_t standbyHighestRankSU = getStandbyHighestRankSU(sus);      
+      if ((activeHighestRankSU && activeHighestRankSU > standbyHighestRankSU) || (activeHighestRankSU == 0 && standbyHighestRankSU > 0))
+      {
+          logDebug("N+M","ADJUST","SU list of sg [%s] need to be adjusted", sg->name.value.c_str());
+          std::vector<SAFplusAmf::ServiceUnit*>::iterator itsu = sus.begin();
+          for (; itsu != sus.end(); ++itsu)
+          {
+             SAFplusAmf::ServiceUnit* su = dynamic_cast<ServiceUnit*>(*itsu);
+             // go one by one su to see if there is any su having hastate standby and having lower rank than active higher rank su,
+             // then remove their work by setting their admin state to idle
+             if (su->adminState.value == AdministrativeState::on)
+             {
+                su->adminState.value = AdministrativeState::idle;
+             }
+          }
+          boost::this_thread::sleep(boost::posix_time::milliseconds(2000));
+          for (itsu = sus.begin(); itsu != sus.end(); ++itsu)
+          {
+             SAFplusAmf::ServiceUnit* su = dynamic_cast<ServiceUnit*>(*itsu);
+             // then add their work by setting their admin state to on
+             if (su->adminState.value == AdministrativeState::idle)
+             {
+                su->adminState.value = AdministrativeState::on;
+             }
+          }
+      }
+      else
+      {
+          logDebug("N+M","ADJUST","sg [%s] doesn't need to be adjusted because its SUs with ranks have appropriate hastate", sg->name.value.c_str());
+      }
+      return rc;
+  }
+
   void updateStateDueToProcessDeath(SAFplusAmf::Component* comp)
   {
     assert(comp);

@@ -92,6 +92,7 @@ MgtDatabase logDb;
 SAFplus::Fault gfault;  // Fault client global variable
 SAFplus::FaultServer fs;
 bool initOperValues = false;
+//ClAmfPolicyPlugin_1* gAmfPolicy;
 
 enum
   {
@@ -99,7 +100,7 @@ enum
   SC_ELECTION_BIT = 1<<8,           // This bit is set in the credential if the node is a system controller, making SCs preferred 
   STARTUP_ELECTION_DELAY_MS = 2000,  // Wait for 5 seconds during startup if nobody is active so that other nodes can arrive, making the initial election not dependent on small timing issues. 
 
-  REEVALUATION_DELAY = 5000, //? How long to wait (max) before reevaluating the cluster
+  REEVALUATION_DELAY = 1000, //? How long to wait (max) before reevaluating the cluster
   };
 
 static void sigChildHandler(int signum)
@@ -425,6 +426,7 @@ bool activeAudit()  // Check to make sure DB and the system state are in sync.  
   for (it = redPolicies.begin(); it != redPolicies.end();it++)
     {
     ClAmfPolicyPlugin_1* pp = dynamic_cast<ClAmfPolicyPlugin_1*>(it->second->pluginApi);
+    //gAmfPolicy = pp;
     pp->activeAudit(&cfg);
     policyCount++;
     }
@@ -738,6 +740,7 @@ int main(int argc, char* argv[])
   sic.msgThreads  = MAX_HANDLER_THREADS;
   logSeverity     = LOG_SEV_DEBUG;
   safplusInitialize( SAFplus::LibDep::FAULT | SAFplus::LibDep::GRP | SAFplus::LibDep::CKPT | SAFplus::LibDep::LOG, sic);
+  timerInitialize(NULL);
   logSeverity     = LOG_SEV_DEBUG;
 
   assert(SAFplus::ASP_NODENAME);
@@ -1256,4 +1259,3 @@ void preprocessDb(SAFplusAmf::SAFplusAmfModule& cfg)
       } 
    }
 }
-

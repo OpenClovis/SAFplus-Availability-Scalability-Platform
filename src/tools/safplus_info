@@ -641,6 +641,7 @@ def get_nodes_info():
     return nodes
 
 def get_sg_info(sgName):
+    sg = None
     sgx = mgtGet(xmlRoot + "/ServiceGroup/" + sgName)
     if sgx: 
         sg = microdom.LoadString(sgx)
@@ -975,14 +976,24 @@ class Cli(cmd.Cmd):
             (color('bold', sg.name.data_),
              color('bold-red', _state_map[sg.adminState.data_]))
 
-        suList = sg.su.items()
+        
+        def getNodeNameList(nodes):            
+            nodeNameList = []
+            for node in nodes:
+                nodeNameList.append(node.name.data_)
+            #print 'DBG1010: list:%s'%str(nodeNameList)
+            return nodeNameList
+
+        suList = sg.su.items()        
         nodes = []
         for sun,su in suList:
             nodeName = su.node.data_
-            nodex = mgtGet(nodeName)
-            #print 'get node obj of [%s]'%nodex
-            node = microdom.LoadString(nodex)
-            nodes.append(node)        
+            #print 'DBG1010:%s'%nodeName
+            if nodeName.split('/')[3] not in getNodeNameList(nodes):#list(filter(lambda n: n.name.data_, nodes))
+                nodex = mgtGet(nodeName)
+                #print 'get node obj of [%s]'%nodex
+                node = microdom.LoadString(nodex)
+                nodes.append(node)
         
         #nodes.sort()
         for node in nodes:
