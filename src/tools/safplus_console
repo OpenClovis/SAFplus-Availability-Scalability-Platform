@@ -1542,7 +1542,7 @@ By default the specified location and children are shown.  Use -N to specify how
     return ""
 
   def do_sgAdjust(self, sgName, enabled):
-    """syntax: sgAdjust sgName <on/off>
+    """syntax: sgAdjust sgName [on/off]
     """
     if enabled != "on" and enabled != "off":
       print 'enabled argument must be "on" or "off"'
@@ -1564,6 +1564,30 @@ By default the specified location and children are shown.  Use -N to specify how
       
       ret = access.amfMgmtFinalize(handleTest)
  
+    except RuntimeError, e:
+      print "error: ", e
+
+    return ""
+
+  def do_entitySISwap(self, siName):
+    """syntax: entitySISwap siName
+    """
+    try:
+      handleTest = access.getProcessHandle(0, 0)
+      ret = access.amfMgmtInitialize(handleTest)
+      # print "amfMgmtInitialize: ", hex(ret)
+
+      ret = access.amfMgmtSISwap(handleTest, siName)
+      # print "amfMgmtSISwap: ", hex(ret)
+      if ret == 0x0:
+        print "swapping si [%s] OK" %siName
+      elif ret == 0x4:
+        print "Service instance %s do not exist" % siName
+      else:
+        print "si swap failure with error 0x%x" % ret
+
+      ret = access.amfMgmtFinalize(handleTest)
+
     except RuntimeError, e:
       print "error: ", e
 

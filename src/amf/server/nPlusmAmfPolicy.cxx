@@ -17,8 +17,11 @@ using namespace std;
 using namespace SAFplus;
 using namespace SAFplusAmf;
 
+extern std::string siNameSwapFlag;
+
 namespace SAFplus
   {
+
  
   const char* oper_str(bool val) { if (val) return "enabled"; else return "disabled"; }
   bool compareEntityRecoveryScope(Recovery a, Recovery b);
@@ -559,6 +562,14 @@ class NplusMPolicy:public ClAmfPolicyPlugin_1
           {
           ServiceInstance* si = dynamic_cast<ServiceInstance*>(*itsi);
           if (!si) continue;
+
+          if(siNameSwapFlag == si->name.value.c_str())
+          {
+              logInfo("N+M","AUDIT","swapping si [%s]", si->name.value.c_str());
+              amfOps->swapSI(siNameSwapFlag);
+              siNameSwapFlag = "";
+          }
+
           SAFplusAmf::AdministrativeState eas = effectiveAdminState(si);
 
           if (eas == AdministrativeState::on)

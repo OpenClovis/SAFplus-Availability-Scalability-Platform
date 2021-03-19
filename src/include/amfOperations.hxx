@@ -114,5 +114,8 @@ namespace SAFplus
     void nodeRestart(SAFplusAmf::Node* node,Wakeable& w = *((Wakeable*)nullptr));
     void serviceUnitRestart(SAFplusAmf::ServiceUnit* su,Wakeable& w = *((Wakeable*)nullptr));
     void componentRestart(SAFplusAmf::Component* comp,Wakeable& w = *((Wakeable*)nullptr));
+
+    ClRcT triggerFlagSISwap(std::string siName);
+    ClRcT swapSI(std::string siName);
     };
   };

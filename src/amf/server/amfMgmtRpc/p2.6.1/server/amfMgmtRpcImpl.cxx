@@ -4906,6 +4906,27 @@ namespace amfMgmtRpc {
       response->set_err(rc);
   }
 
+  void amfMgmtRpcImpl::swapSI(const ::SAFplus::Rpc::amfMgmtRpc::SwapSIRequest* request,
+                                ::SAFplus::Rpc::amfMgmtRpc::SwapSIResponse* response)
+  {
+      const std::string& siName = request->siname();
+      logDebug("MGMT","RPC","enter [%s] with param si name [%s]",__FUNCTION__,siName.c_str());
+      ClRcT rc = CL_OK;
+#ifdef HANDLE_VALIDATE
+      DbalPlugin* pd = NULL;
+      rc = getDbalObj(request->amfmgmthandle().Get(0).c_str(), &pd);
+      if (rc != CL_OK)
+      {
+          logDebug("MGMT","RPC","invalid handle, rc [0x%x", rc);
+          response->set_err(rc);
+          return;
+      }
+#endif
+      rc = amfOpsMgmt->triggerFlagSISwap(siName);
+
+      response->set_err(rc);
+  }
+
 }  // namespace amfMgmtRpc
 }  // namespace Rpc
 }  // namespace SAFplus

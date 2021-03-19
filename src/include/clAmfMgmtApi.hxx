@@ -75,4 +75,6 @@ ClRcT amfMgmtCSIGetStatus(const Handle& mgmtHandle,const std::string& csiName, S
 
 ClRcT amfMgmtSGAdjust(const Handle& mgmtHandle, const std::string& sgName, bool enabled);
 
+ClRcT amfMgmtSISwap(const Handle& mgmtHandle, const std::string& siName);
+
 }
