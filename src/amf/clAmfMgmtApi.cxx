@@ -1610,4 +1610,32 @@ ClRcT amfMgmtSISwap(const Handle& mgmtHandle, const std::string& siName)
    return rc;
 }
 
+ClRcT amfMgmtCompErrorReport(const Handle& mgmtHandle, const std::string& compName, SAFplus::Rpc::amfMgmtRpc::Recovery recommendedRecovery)
+{
+#ifdef HANDLE_VALIDATE
+    if (!gAmfMgmtInitialized)
+    {
+        return CL_ERR_NOT_INITIALIZED;
+    }
+#endif
+    ClRcT rc;
+    SAFplus::Rpc::amfMgmtRpc::CompErrorReportRequest request;
+    request.add_amfmgmthandle((const char*) &mgmtHandle, sizeof(Handle));
+    request.set_compname(compName);
+    request.set_recommendedrecovery(recommendedRecovery);
+    try
+    {
+        Handle& remoteAmfHdl = name.getHandle(AMF_MASTER_HANDLE, 2000);
+        SAFplus::Rpc::amfMgmtRpc::CompErrorReportResponse resp;
+        amfMgmtRpc->compErrorReport(remoteAmfHdl,&request,&resp);
+        rc = (ClRcT)resp.err();
+    }
+    catch(NameException& ex)
+    {
+        logError("MGMT","INI","getHandle got exception [%s]", ex.what());
+        rc = CL_ERR_NOT_EXIST;
+    }
+    return rc;
+}
+
 }

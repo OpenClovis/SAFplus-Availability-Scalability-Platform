@@ -153,6 +153,15 @@ BOOST_PYTHON_MODULE(pySAFplus)
   ckpt.attr("VARIABLE_SIZE") = (int) Checkpoint::VARIABLE_SIZE;
   ckpt.attr("EXISTING") = (int) Checkpoint::EXISTING;
 
+  enum_<SAFplus::Rpc::amfMgmtRpc::Recovery>("Recovery")
+    .value("Recovery_NoRecommendation",SAFplus::Rpc::amfMgmtRpc::Recovery_NoRecommendation)
+    .value("Recovery_Restart",SAFplus::Rpc::amfMgmtRpc::Recovery_Restart)
+    .value("Recovery_Failover",SAFplus::Rpc::amfMgmtRpc::Recovery_Failover)
+    .value("Recovery_NodeSwitchover",SAFplus::Rpc::amfMgmtRpc::Recovery_NodeSwitchover)
+    .value("Recovery_NodeFailover",SAFplus::Rpc::amfMgmtRpc::Recovery_NodeFailover)
+    .value("Recovery_NodeFailfast",SAFplus::Rpc::amfMgmtRpc::Recovery_NodeFailfast)
+    ;
+
   //class_<Checkpoint>("Checkpoint",init<Handle,unsigned int flags, unsigned int size, unsigned int rows>())
   //    .def(init<uint_t flags, uint_t size, uint_t rows>);
   //.def(write, &Checkpoint::write)
@@ -199,4 +208,6 @@ BOOST_PYTHON_MODULE(pySAFplus)
   def("amfMgmtSGAdjust",static_cast< ClRcT (*)(const Handle &, const std::string &, bool) > (&SAFplus::amfMgmtSGAdjust));
 
   def("amfMgmtSISwap",static_cast< ClRcT (*)(const Handle &, const std::string &) > (&SAFplus::amfMgmtSISwap));
+
+  def("amfMgmtCompErrorReport",static_cast< ClRcT (*)(const Handle &, const std::string &, SAFplus::Rpc::amfMgmtRpc::Recovery recommendedRecovery) > (&SAFplus::amfMgmtCompErrorReport));
 }

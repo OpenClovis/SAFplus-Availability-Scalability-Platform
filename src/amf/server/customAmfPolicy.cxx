@@ -20,6 +20,7 @@ namespace SAFplus
     ~CustomPolicy();
     virtual void activeAudit(SAFplusAmf::SAFplusAmfModule* root);
     virtual void standbyAudit(SAFplusAmf::SAFplusAmfModule* root);
+    virtual void compFaultReport(Component* comp, const SAFplusAmf::Recovery recommRecovery = SAFplusAmf::Recovery::NoRecommendation);
     
     };
 
@@ -54,6 +55,11 @@ namespace SAFplus
     logInfo("POL","CUSTOM","Standby audit");
     }
   
+  void CustomPolicy::compFaultReport(Component* comp, const SAFplusAmf::Recovery recommRecovery)
+  {
+
+  }
+
   static CustomPolicy api;
   }
 

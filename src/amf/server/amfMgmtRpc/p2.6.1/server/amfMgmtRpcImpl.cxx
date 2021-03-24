@@ -5,7 +5,7 @@
 #include <ComponentServiceInstance.hxx>
 #include <Component.hxx>
 //#include <EntityId.hxx>
-//#include <clAmfPolicyPlugin.hxx>
+#include <clAmfPolicyPlugin.hxx>
 #include <SAFplusAmfModule.hxx>
 #include <CapabilityModel.hxx>
 #include <Recovery.hxx>
@@ -40,7 +40,7 @@ do {                                                                    \
 extern SAFplus::MgtDatabase amfDb;
 extern SAFplusAmf::SAFplusAmfModule cfg;
 extern SAFplus::AmfOperations *amfOpsMgmt;
-
+extern SAFplus::RedPolicyMap redPolicies;
 
 //namespace SAFplus {
 
@@ -4924,6 +4924,43 @@ namespace amfMgmtRpc {
 #endif
       rc = amfOpsMgmt->triggerFlagSISwap(siName);
 
+      response->set_err(rc);
+  }
+
+
+  void amfMgmtRpcImpl::compErrorReport(const ::SAFplus::Rpc::amfMgmtRpc::CompErrorReportRequest* request,
+                                ::SAFplus::Rpc::amfMgmtRpc::CompErrorReportResponse* response)
+  {
+      const std::string& compName = request->compname();
+      Recovery recommendedRecovery = request->recommendedrecovery();
+      logDebug("MGMT","RPC","enter [%s] with param comp name [%s], recommendedRecovery [%d]",__FUNCTION__,compName.c_str(), recommendedRecovery);
+      ClRcT rc = CL_OK;
+#ifdef HANDLE_VALIDATE
+      DbalPlugin* pd = NULL;
+      rc = getDbalObj(request->amfmgmthandle().Get(0).c_str(), &pd);
+      if (rc != CL_OK)
+      {
+          logDebug("MGMT","RPC","invalid handle, rc [0x%x", rc);
+          response->set_err(rc);
+          return;
+      }
+#endif
+      SAFplusAmf::Component* comp = dynamic_cast<SAFplusAmf::Component*>(cfg.safplusAmf.componentList[compName]);
+      if (comp == NULL)
+      {
+          logWarning("MGMT","RPC","comp object is null for its name [%s]", compName.c_str());
+          rc = CL_ERR_NOT_EXIST;
+      }
+      else
+      {
+          //processFaultyComp(amfOpsMgmt, comp, (SAFplusAmf::Recovery) recommendedRecovery);
+          for (auto it = redPolicies.begin(); it != redPolicies.end();it++)
+              {
+              ClAmfPolicyPlugin_1* pp = dynamic_cast<ClAmfPolicyPlugin_1*>(it->second->pluginApi);
+              //gAmfPolicy = pp;
+              pp->compFaultReport(comp, (SAFplusAmf::Recovery) recommendedRecovery);
+              }
+      }
       response->set_err(rc);
   }
 

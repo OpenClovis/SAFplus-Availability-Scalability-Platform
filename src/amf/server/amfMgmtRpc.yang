@@ -94,24 +94,72 @@ module amfMgmtRpc
     {
       type enumeration
       {
-        enum off
+       enum off
           {
             description "SA-Forum 'lockedInstantiation': the administrator has prevented the service unit from being instantiated by the Availability Management Framework.";
-	    value 0; 
-	  }
-        enum idle 
-	{ 
-	  value 1;
-	  description "SA-Forum 'locked': the administrator has prevented the service unit from taking service instance assignments.";
-	}
-        enum on
-	{ 
-	  value 2;
-	  description "SA-Forum 'unlocked': the service unit has not been directly prohibited from taking service instance assignments by the administrator.";
-	}
+	        value 0; 
+	      }
+       enum idle 
+	   { 
+	     value 1;
+	     description "SA-Forum 'locked': the administrator has prevented the service unit from taking service instance assignments.";
+	   }
+       enum on
+	   {  
+	     value 2;
+	     description "SA-Forum 'unlocked': the service unit has not been directly prohibited from taking service instance assignments by the administrator.";
+	   }
       }
       default "on";  
     }
+  typedef Recovery {
+    type enumeration
+	{
+	  enum NoRecommendation { value 1; }
+	  enum Restart 
+	  { 
+	    value 2; 
+	    description "The erroneous component should be terminated and reinstantiated.";
+	  }
+	  enum Failover 
+	  { 
+	    value 3; 
+	    description "Depending on the redundancy model used, either the component or the service unit containing the component should fail over to another node.";
+	  }
+	  enum NodeSwitchover 
+	  { 
+	    value 4; 
+	    description "Service instances containing component service instances assigned to the failed component are failed over while other service instances
+are switched over to other nodes (component service instances are not abruptly removed; instead, they are brought to the quiesced state before being removed).";
+	  }
+	  enum NodeFailover 
+	  { 
+	    value 5; 
+	    description "No service instance should be assigned to service units on that node. All service instances assigned to service units contained in the node are failed over to other nodes (by an abrupt termination of all node-local components).";
+	  }
+	  enum NodeFailfast
+	  {
+	    value 6;
+	    description "The node should be rebooted using a low-level interface.";
+	  }
+	  enum ClusterReset
+	  {
+	    value 7;
+	    description "The cluster should be reset. In order to execute this function, the Availability Management Framework reboots all nodes that are part of the cluster by using a low level interface without trying to terminate the components individually.  All AMF nodes are first terminated before any of the AMF nodes starts to instantiate again.";
+	  }
+	  enum ApplicationRestart
+	  {
+	    value 8;
+	    description "The application should be completely terminated and then started again by first terminating all of its service units and then starting them again, ensuring that during the termination phase of the restart procedure service instances of the application are not reassigned.";
+	  }
+	  enum ContainerRestart
+	  {
+	    value 9;
+	    description "Terminate all contained components and the container component abruptly and then instantiate them again.";
+	  }	    
+	}
+	default NoRecommendation;
+  }
 
   typedef SaTimeT
     {
@@ -521,54 +569,7 @@ module amfMgmtRpc
 
       leaf recovery
       {
-	type enumeration
-	{
-	  enum NoRecommendation { value 1; }
-	  enum Restart 
-	  { 
-	    value 2; 
-	    description "The erroneous component should be terminated and reinstantiated.";
-	  }
-	  enum Failover 
-	  { 
-	    value 3; 
-	    description "Depending on the redundancy model used, either the component or the service unit containing the component should fail over to another node.";
-	  }
-	  enum NodeSwitchover 
-	  { 
-	    value 4; 
-	    description "Service instances containing component service instances assigned to the failed component are failed over while other service instances
-are switched over to other nodes (component service instances are not abruptly removed; instead, they are brought to the quiesced state before being removed).";
-	  }
-	  enum NodeFailover 
-	  { 
-	    value 5; 
-	    description "No service instance should be assigned to service units on that node. All service instances assigned to service units contained in the node are failed over to other nodes (by an abrupt termination of all node-local components).";
-	  }
-	  enum NodeFailfast
-	  {
-	    value 6;
-	    description "The node should be rebooted using a low-level interface.";
-	  }
-	  enum ClusterReset
-	  {
-	    value 7;
-	    description "The cluster should be reset. In order to execute this function, the Availability Management Framework reboots all nodes that are part of the cluster by using a low level interface without trying to terminate the components individually.  All AMF nodes are first terminated before any of the AMF nodes starts to instantiate again.";
-	  }
-	  enum ApplicationRestart
-	  {
-	    value 8;
-	    description "The application should be completely terminated and then started again by first terminating all of its service units and then starting them again, ensuring that during the termination phase of the restart procedure service instances of the application are not reassigned.";
-	  }
-	  enum ContainerRestart
-	  {
-	    value 9;
-	    description "Terminate all contained components and the container component abruptly and then instantiate them again.";
-	  }
-	    
-	}
-        default NoRecommendation;
-
+	    type Recovery;
       }
 
       leaf restartable
@@ -2321,6 +2322,30 @@ are switched over to other nodes (component service instances are not abruptly r
 	}
        leaf siName {
          type string;
+       }
+     }
+     output {
+       leaf err {
+         type int32;
+       }
+     }
+   }
+   
+   rpc compErrorReport {
+     input {
+       leaf-list amfMgmtHandle
+	{
+	  type binary
+          {
+	    length 16;  // 2 64-bit words
+	  }
+	}
+       leaf compName {
+         type string;
+       }
+       leaf recommendedRecovery {
+         type Recovery;
+         description "recommended recovery for this component: noRecommendation, compRestart, compFailover, suRestart, nodeSwitchover, nodeFailover, nodeFailfast, or clusterReset"; 
        }
      }
      output {

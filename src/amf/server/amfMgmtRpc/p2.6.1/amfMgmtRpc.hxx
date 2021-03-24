@@ -148,6 +148,8 @@ class amfMgmtRpc : public SAFplus::Rpc::RpcService {
                        ::SAFplus::Rpc::amfMgmtRpc::AdjustSGResponse* response);
   virtual void swapSI(const ::SAFplus::Rpc::amfMgmtRpc::SwapSIRequest* request,
                        ::SAFplus::Rpc::amfMgmtRpc::SwapSIResponse* response);
+  virtual void compErrorReport(const ::SAFplus::Rpc::amfMgmtRpc::CompErrorReportRequest* request,
+                       ::SAFplus::Rpc::amfMgmtRpc::CompErrorReportResponse* response);
 
   // implements amfMgmtRpc ------------------------------------------
   virtual void initialize(SAFplus::Handle destination,
@@ -381,6 +383,10 @@ class amfMgmtRpc : public SAFplus::Rpc::RpcService {
   virtual void swapSI(SAFplus::Handle destination,
                        const ::SAFplus::Rpc::amfMgmtRpc::SwapSIRequest* request,
                        ::SAFplus::Rpc::amfMgmtRpc::SwapSIResponse* response,
+                       SAFplus::Wakeable& wakeable = *((SAFplus::Wakeable*)nullptr));
+  virtual void compErrorReport(SAFplus::Handle destination,
+                       const ::SAFplus::Rpc::amfMgmtRpc::CompErrorReportRequest* request,
+                       ::SAFplus::Rpc::amfMgmtRpc::CompErrorReportResponse* response,
                        SAFplus::Wakeable& wakeable = *((SAFplus::Wakeable*)nullptr));
 
 
@@ -642,6 +648,10 @@ class amfMgmtRpc_Stub : public amfMgmtRpc {
                        const ::SAFplus::Rpc::amfMgmtRpc::SwapSIRequest* request,
                        ::SAFplus::Rpc::amfMgmtRpc::SwapSIResponse* response,
                        SAFplus::Wakeable& wakeable = *((SAFplus::Wakeable*)nullptr));
+  void compErrorReport(SAFplus::Handle destination,
+                       const ::SAFplus::Rpc::amfMgmtRpc::CompErrorReportRequest* request,
+                       ::SAFplus::Rpc::amfMgmtRpc::CompErrorReportResponse* response,
+                       SAFplus::Wakeable& wakeable = *((SAFplus::Wakeable*)nullptr));
  private:
   SAFplus::Rpc::RpcChannel* channel_;
   bool owns_channel_;
@@ -771,6 +781,8 @@ class amfMgmtRpcImpl : public amfMgmtRpc {
                        ::SAFplus::Rpc::amfMgmtRpc::AdjustSGResponse* response);
   void swapSI(const ::SAFplus::Rpc::amfMgmtRpc::SwapSIRequest* request,
                        ::SAFplus::Rpc::amfMgmtRpc::SwapSIResponse* response);
+  void compErrorReport(const ::SAFplus::Rpc::amfMgmtRpc::CompErrorReportRequest* request,
+                       ::SAFplus::Rpc::amfMgmtRpc::CompErrorReportResponse* response);
 };
 
 }  // namespace amfMgmtRpc

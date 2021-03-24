@@ -34,13 +34,13 @@ class NplusMPolicy:public ClAmfPolicyPlugin_1
     ~NplusMPolicy();
     virtual void activeAudit(SAFplusAmf::SAFplusAmfModule* root);
     virtual void standbyAudit(SAFplusAmf::SAFplusAmfModule* root);
+    virtual void compFaultReport(Component* comp, const SAFplusAmf::Recovery recommRecovery = SAFplusAmf::Recovery::NoRecommendation);
     SAFplusAmf::Recovery recommendedRecovery;
     Component* processedComp;
 
   protected:
     void auditOperation(SAFplusAmf::SAFplusAmfModule* root);
     void auditDiscovery(SAFplusAmf::SAFplusAmfModule* root);
-    void processFaultyComp(Component* comp);
     void computeCompRecoveryAction(Component* comp, Recovery* recovery, bool* escalation);
     void computeSURecoveryAction(ServiceUnit* su, Component* faultyComp, Recovery* recovery, bool* escalation);
     void postProcessForSURecoveryAction(ServiceUnit* su, Component* faultyComp, Recovery* recovery, bool* escalation);
@@ -602,12 +602,19 @@ class NplusMPolicy:public ClAmfPolicyPlugin_1
                         si->activeAssignments.value.push_back(su);  // assign the si to the su
                         si->getNumActiveAssignments()->current.value = si->activeAssignments.value.size();
                     }
+
                     SAFplus::MgtObject::Iterator itcsi;
                     SAFplus::MgtObject::Iterator endcsi = si->componentServiceInstances.end();
                     for (itcsi = si->componentServiceInstances.begin(); itcsi != endcsi; itcsi++)
                     {
                         SAFplusAmf::ComponentServiceInstance *csi = dynamic_cast<SAFplusAmf::ComponentServiceInstance*> (itcsi->second);
-                        csi->standbyComponents.value.clear();
+                        //csi->standbyComponents.value.clear();
+                        // remove the old active comp only from its CSI
+                        if (csi->standbyComponents.contains(processedComp))
+                        {
+                            csi->standbyComponents.erase(processedComp);
+                            break;
+                        }
                     }
 
                     amfOps->assignWork(su,si,HighAvailabilityState::active);
@@ -1108,8 +1115,7 @@ class NplusMPolicy:public ClAmfPolicyPlugin_1
                     {
                     logWarning("N+M","AUDIT","Component [%s] is marked as running with uninstantiated state and no name registration (no handle).  It may have died at startup.", comp->name.value.c_str());
                     }
-                    processFaultyComp(comp);//we must have more steps to handle for other comps in the same su in node switchover case
-                    processedComp = comp;
+                    compFaultReport(comp);//we must have more steps to handle for other comps in the same su in node switchover case
                 }
               else if (comp->presenceState == PresenceState::instantiating)  // If the component is in the instantiating state, look for it to register with the AMF
                 {
@@ -1408,15 +1414,18 @@ class NplusMPolicy:public ClAmfPolicyPlugin_1
     {
     logInfo("POL","CUSTOM","Standby audit");
     }
-
   static NplusMPolicy api;
-  void NplusMPolicy::processFaultyComp(Component* comp)
+  void NplusMPolicy::compFaultReport(Component* comp, const Recovery recommRecovery)
   {
-      recommendedRecovery = Recovery::NoRecommendation;
+      logInfo("POL","FAILURE","Component failure reported for component [%s]", comp->name.value.c_str());
+      processedComp = comp;
+      recommendedRecovery = recommRecovery;
       bool escalation = false;
       
       computeCompRecoveryAction(comp, &recommendedRecovery, &escalation);
       
+      logDebug("N+M","FAILURE","Fault on component [%s]: recommended recovery [%s], escalation [%s] ", comp->name.value.c_str(), SAFplusAmf::c_str(recommendedRecovery), escalation?"Yes":"No");
+
       switch(recommendedRecovery)
       {
           case Recovery::CompRestart:

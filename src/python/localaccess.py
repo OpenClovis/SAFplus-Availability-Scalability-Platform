@@ -41,6 +41,15 @@ amfMgmtSGAdjust = safplus.amfMgmtSGAdjust
 
 amfMgmtSISwap = safplus.amfMgmtSISwap
 
+amfMgmtCompErrorReport = safplus.amfMgmtCompErrorReport
+Recovery_NoRecommendation = safplus.Recovery.Recovery_NoRecommendation
+Recovery_Restart = safplus.Recovery.Recovery_Restart
+Recovery_Failover = safplus.Recovery.Recovery_Failover
+Recovery_NodeSwitchover = safplus.Recovery.Recovery_NodeSwitchover
+Recovery_NodeFailover = safplus.Recovery.Recovery_NodeFailover
+Recovery_NodeFailfast = safplus.Recovery.Recovery_NodeFailfast
+
+
 def isValidDirectory(path):
   try:
     data = mgtGet(str("{d=0}"+path))

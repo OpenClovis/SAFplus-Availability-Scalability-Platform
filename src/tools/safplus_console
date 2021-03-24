@@ -1542,7 +1542,8 @@ By default the specified location and children are shown.  Use -N to specify how
     return ""
 
   def do_sgAdjust(self, sgName, enabled):
-    """syntax: sgAdjust sgName [on/off]
+    """syntax: sgAdjust sgName on/off
+
     """
     if enabled != "on" and enabled != "off":
       print 'enabled argument must be "on" or "off"'
@@ -1588,6 +1589,47 @@ By default the specified location and children are shown.  Use -N to specify how
 
       ret = access.amfMgmtFinalize(handleTest)
 
+    except RuntimeError, e:
+      print "error: ", e
+
+    return ""
+
+  def do_compReport(self, compName, recommendedRecovery):
+    """syntax: compReport compName recommendedRecovery
+               recommendedRecovery is one of values no_recommendation, comp_restart, comp_failover, node_switchover, node_failover or node_failfast
+    """
+    recRecovery = Recovery_NoRecommendation
+    if recommendedRecovery == 'no_recommendation':
+      recRecovery = Recovery_NoRecommendation
+    elif recommendedRecovery == 'comp_restart':
+      recRecovery = Recovery_Restart
+    elif recommendedRecovery == 'comp_failover':
+      recRecovery = Recovery_Failover
+    elif recommendedRecovery == 'node_switchover':
+      recRecovery = Recovery_NodeSwitchover
+    elif recommendedRecovery == 'node_failover':
+      recRecovery = Recovery_Failover
+    elif recommendedRecovery == 'node_failfast':
+      recRecovery = Recovery_NodeFailfast
+    else:
+      print 'recommendedRecovery argument must be no_recommendation, comp_restart, comp_failover, node_switchover, node_failover or node_failfast'
+      return ""
+      
+    try:
+      handleTest = access.getProcessHandle(0, 0)
+      ret = access.amfMgmtInitialize(handleTest)
+      # print "amfMgmtInitialize: ", hex(ret)
+
+      ret = access.amfMgmtCompErrorReport(handleTest, compName, recRecovery)
+      if ret == 0x4:
+        print "component %s do not exist" % compName
+      elif ret == 0x0:
+        print "component report %s OK" %compName
+      else:
+        print "component report failure with error 0x%x" % ret
+      
+      ret = access.amfMgmtFinalize(handleTest)
+ 
     except RuntimeError, e:
       print "error: ", e
 

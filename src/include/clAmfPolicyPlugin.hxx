@@ -3,6 +3,7 @@
 #include <clMgtApi.hxx>
 #include <clAmfApi.hxx>
 #include <amfOperations.hxx>
+#include <Recovery.hxx>
 
 namespace SAFplusAmf
   {
@@ -29,6 +30,8 @@ namespace SAFplus
     virtual void activeAudit(SAFplusAmf::SAFplusAmfModule* root) = 0;
       //? Run an AMF data audit as the standby system controller.
     virtual void standbyAudit(SAFplusAmf::SAFplusAmfModule* root) = 0;
+
+    virtual void compFaultReport(SAFplusAmf::Component* comp, const SAFplusAmf::Recovery recommRecovery = SAFplusAmf::Recovery::NoRecommendation) = 0;
     //? The AMF will call this function after your plugin is loaded
     virtual bool initialize(SAFplus::AmfOperations* amfOperations,SAFplus::Fault* fault);
 
@@ -43,5 +46,7 @@ namespace SAFplus
 
 
     };
+
+  typedef boost::unordered_map<SAFplus::AmfRedundancyPolicy,ClPluginHandle*> RedPolicyMap;
 
   }

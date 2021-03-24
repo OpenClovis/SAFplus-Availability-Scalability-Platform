@@ -209,6 +209,8 @@ class AdjustSGRequest;
 class AdjustSGResponse;
 class SwapSIRequest;
 class SwapSIResponse;
+class CompErrorReportRequest;
+class CompErrorReportResponse;
 
 enum PresenceState {
   PresenceState_uninstantiated = 0,
@@ -316,6 +318,32 @@ inline bool AdministrativeState_Parse(
   return ::google::protobuf::internal::ParseNamedEnum<AdministrativeState>(
     AdministrativeState_descriptor(), name, value);
 }
+enum Recovery {
+  Recovery_NoRecommendation = 1,
+  Recovery_Restart = 2,
+  Recovery_Failover = 3,
+  Recovery_NodeSwitchover = 4,
+  Recovery_NodeFailover = 5,
+  Recovery_NodeFailfast = 6,
+  Recovery_ClusterReset = 7,
+  Recovery_ApplicationRestart = 8,
+  Recovery_ContainerRestart = 9
+};
+bool Recovery_IsValid(int value);
+const Recovery Recovery_MIN = Recovery_NoRecommendation;
+const Recovery Recovery_MAX = Recovery_ContainerRestart;
+const int Recovery_ARRAYSIZE = Recovery_MAX + 1;
+
+const ::google::protobuf::EnumDescriptor* Recovery_descriptor();
+inline const ::std::string& Recovery_Name(Recovery value) {
+  return ::google::protobuf::internal::NameOfEnum(
+    Recovery_descriptor(), value);
+}
+inline bool Recovery_Parse(
+    const ::std::string& name, Recovery* value) {
+  return ::google::protobuf::internal::ParseNamedEnum<Recovery>(
+    Recovery_descriptor(), name, value);
+}
 enum ProcessState {
   ProcessState_Running = 0,
   ProcessState_Sleeping = 1,
@@ -358,32 +386,6 @@ inline bool CapabilityModel_Parse(
     const ::std::string& name, CapabilityModel* value) {
   return ::google::protobuf::internal::ParseNamedEnum<CapabilityModel>(
     CapabilityModel_descriptor(), name, value);
-}
-enum Recovery {
-  Recovery_NoRecommendation = 1,
-  Recovery_Restart = 2,
-  Recovery_Failover = 3,
-  Recovery_NodeSwitchover = 4,
-  Recovery_NodeFailover = 5,
-  Recovery_NodeFailfast = 6,
-  Recovery_ClusterReset = 7,
-  Recovery_ApplicationRestart = 8,
-  Recovery_ContainerRestart = 9
-};
-bool Recovery_IsValid(int value);
-const Recovery Recovery_MIN = Recovery_NoRecommendation;
-const Recovery Recovery_MAX = Recovery_ContainerRestart;
-const int Recovery_ARRAYSIZE = Recovery_MAX + 1;
-
-const ::google::protobuf::EnumDescriptor* Recovery_descriptor();
-inline const ::std::string& Recovery_Name(Recovery value) {
-  return ::google::protobuf::internal::NameOfEnum(
-    Recovery_descriptor(), value);
-}
-inline bool Recovery_Parse(
-    const ::std::string& name, Recovery* value) {
-  return ::google::protobuf::internal::ParseNamedEnum<Recovery>(
-    Recovery_descriptor(), name, value);
 }
 enum PendingOperation {
   PendingOperation_none = 0,
@@ -17702,6 +17704,202 @@ class SwapSIResponse : public ::google::protobuf::Message {
 
   void InitAsDefaultInstance();
   static SwapSIResponse* default_instance_;
+};
+// -------------------------------------------------------------------
+
+class CompErrorReportRequest : public ::google::protobuf::Message {
+ public:
+  CompErrorReportRequest();
+  virtual ~CompErrorReportRequest();
+
+  CompErrorReportRequest(const CompErrorReportRequest& from);
+
+  inline CompErrorReportRequest& operator=(const CompErrorReportRequest& from) {
+    CopyFrom(from);
+    return *this;
+  }
+
+  inline const ::google::protobuf::UnknownFieldSet& unknown_fields() const {
+    return _unknown_fields_;
+  }
+
+  inline ::google::protobuf::UnknownFieldSet* mutable_unknown_fields() {
+    return &_unknown_fields_;
+  }
+
+  static const ::google::protobuf::Descriptor* descriptor();
+  static const CompErrorReportRequest& default_instance();
+
+  void Swap(CompErrorReportRequest* other);
+
+  // implements Message ----------------------------------------------
+
+  CompErrorReportRequest* New() const;
+  void CopyFrom(const ::google::protobuf::Message& from);
+  void MergeFrom(const ::google::protobuf::Message& from);
+  void CopyFrom(const CompErrorReportRequest& from);
+  void MergeFrom(const CompErrorReportRequest& from);
+  void Clear();
+  bool IsInitialized() const;
+
+  int ByteSize() const;
+  bool MergePartialFromCodedStream(
+      ::google::protobuf::io::CodedInputStream* input);
+  void SerializeWithCachedSizes(
+      ::google::protobuf::io::CodedOutputStream* output) const;
+  ::google::protobuf::uint8* SerializeWithCachedSizesToArray(::google::protobuf::uint8* output) const;
+  int GetCachedSize() const { return _cached_size_; }
+  private:
+  void SharedCtor();
+  void SharedDtor();
+  void SetCachedSize(int size) const;
+  public:
+  ::google::protobuf::Metadata GetMetadata() const;
+
+  // nested types ----------------------------------------------------
+
+  // accessors -------------------------------------------------------
+
+  // repeated bytes amfMgmtHandle = 1;
+  inline int amfmgmthandle_size() const;
+  inline void clear_amfmgmthandle();
+  static const int kAmfMgmtHandleFieldNumber = 1;
+  inline const ::std::string& amfmgmthandle(int index) const;
+  inline ::std::string* mutable_amfmgmthandle(int index);
+  inline void set_amfmgmthandle(int index, const ::std::string& value);
+  inline void set_amfmgmthandle(int index, const char* value);
+  inline void set_amfmgmthandle(int index, const void* value, size_t size);
+  inline ::std::string* add_amfmgmthandle();
+  inline void add_amfmgmthandle(const ::std::string& value);
+  inline void add_amfmgmthandle(const char* value);
+  inline void add_amfmgmthandle(const void* value, size_t size);
+  inline const ::google::protobuf::RepeatedPtrField< ::std::string>& amfmgmthandle() const;
+  inline ::google::protobuf::RepeatedPtrField< ::std::string>* mutable_amfmgmthandle();
+
+  // optional string compName = 2;
+  inline bool has_compname() const;
+  inline void clear_compname();
+  static const int kCompNameFieldNumber = 2;
+  inline const ::std::string& compname() const;
+  inline void set_compname(const ::std::string& value);
+  inline void set_compname(const char* value);
+  inline void set_compname(const char* value, size_t size);
+  inline ::std::string* mutable_compname();
+  inline ::std::string* release_compname();
+  inline void set_allocated_compname(::std::string* compname);
+
+  // optional .SAFplus.Rpc.amfMgmtRpc.Recovery recommendedRecovery = 3;
+  inline bool has_recommendedrecovery() const;
+  inline void clear_recommendedrecovery();
+  static const int kRecommendedRecoveryFieldNumber = 3;
+  inline ::SAFplus::Rpc::amfMgmtRpc::Recovery recommendedrecovery() const;
+  inline void set_recommendedrecovery(::SAFplus::Rpc::amfMgmtRpc::Recovery value);
+
+  GOOGLE_PROTOBUF_EXTENSION_ACCESSORS(CompErrorReportRequest)
+  // @@protoc_insertion_point(class_scope:SAFplus.Rpc.amfMgmtRpc.CompErrorReportRequest)
+ private:
+  inline void set_has_compname();
+  inline void clear_has_compname();
+  inline void set_has_recommendedrecovery();
+  inline void clear_has_recommendedrecovery();
+
+  ::google::protobuf::internal::ExtensionSet _extensions_;
+
+  ::google::protobuf::UnknownFieldSet _unknown_fields_;
+
+  ::google::protobuf::uint32 _has_bits_[1];
+  mutable int _cached_size_;
+  ::google::protobuf::RepeatedPtrField< ::std::string> amfmgmthandle_;
+  ::std::string* compname_;
+  int recommendedrecovery_;
+  friend void  protobuf_AddDesc_amfMgmtRpc_2eproto();
+  friend void protobuf_AssignDesc_amfMgmtRpc_2eproto();
+  friend void protobuf_ShutdownFile_amfMgmtRpc_2eproto();
+
+  void InitAsDefaultInstance();
+  static CompErrorReportRequest* default_instance_;
+};
+// -------------------------------------------------------------------
+
+class CompErrorReportResponse : public ::google::protobuf::Message {
+ public:
+  CompErrorReportResponse();
+  virtual ~CompErrorReportResponse();
+
+  CompErrorReportResponse(const CompErrorReportResponse& from);
+
+  inline CompErrorReportResponse& operator=(const CompErrorReportResponse& from) {
+    CopyFrom(from);
+    return *this;
+  }
+
+  inline const ::google::protobuf::UnknownFieldSet& unknown_fields() const {
+    return _unknown_fields_;
+  }
+
+  inline ::google::protobuf::UnknownFieldSet* mutable_unknown_fields() {
+    return &_unknown_fields_;
+  }
+
+  static const ::google::protobuf::Descriptor* descriptor();
+  static const CompErrorReportResponse& default_instance();
+
+  void Swap(CompErrorReportResponse* other);
+
+  // implements Message ----------------------------------------------
+
+  CompErrorReportResponse* New() const;
+  void CopyFrom(const ::google::protobuf::Message& from);
+  void MergeFrom(const ::google::protobuf::Message& from);
+  void CopyFrom(const CompErrorReportResponse& from);
+  void MergeFrom(const CompErrorReportResponse& from);
+  void Clear();
+  bool IsInitialized() const;
+
+  int ByteSize() const;
+  bool MergePartialFromCodedStream(
+      ::google::protobuf::io::CodedInputStream* input);
+  void SerializeWithCachedSizes(
+      ::google::protobuf::io::CodedOutputStream* output) const;
+  ::google::protobuf::uint8* SerializeWithCachedSizesToArray(::google::protobuf::uint8* output) const;
+  int GetCachedSize() const { return _cached_size_; }
+  private:
+  void SharedCtor();
+  void SharedDtor();
+  void SetCachedSize(int size) const;
+  public:
+  ::google::protobuf::Metadata GetMetadata() const;
+
+  // nested types ----------------------------------------------------
+
+  // accessors -------------------------------------------------------
+
+  // optional sint32 err = 1;
+  inline bool has_err() const;
+  inline void clear_err();
+  static const int kErrFieldNumber = 1;
+  inline ::google::protobuf::int32 err() const;
+  inline void set_err(::google::protobuf::int32 value);
+
+  GOOGLE_PROTOBUF_EXTENSION_ACCESSORS(CompErrorReportResponse)
+  // @@protoc_insertion_point(class_scope:SAFplus.Rpc.amfMgmtRpc.CompErrorReportResponse)
+ private:
+  inline void set_has_err();
+  inline void clear_has_err();
+
+  ::google::protobuf::internal::ExtensionSet _extensions_;
+
+  ::google::protobuf::UnknownFieldSet _unknown_fields_;
+
+  ::google::protobuf::uint32 _has_bits_[1];
+  mutable int _cached_size_;
+  ::google::protobuf::int32 err_;
+  friend void  protobuf_AddDesc_amfMgmtRpc_2eproto();
+  friend void protobuf_AssignDesc_amfMgmtRpc_2eproto();
+  friend void protobuf_ShutdownFile_amfMgmtRpc_2eproto();
+
+  void InitAsDefaultInstance();
+  static CompErrorReportResponse* default_instance_;
 };
 // ===================================================================
 
@@ -35598,6 +35796,193 @@ inline void SwapSIResponse::set_err(::google::protobuf::int32 value) {
   // @@protoc_insertion_point(field_set:SAFplus.Rpc.amfMgmtRpc.SwapSIResponse.err)
 }
 
+// -------------------------------------------------------------------
+
+// CompErrorReportRequest
+
+// repeated bytes amfMgmtHandle = 1;
+inline int CompErrorReportRequest::amfmgmthandle_size() const {
+  return amfmgmthandle_.size();
+}
+inline void CompErrorReportRequest::clear_amfmgmthandle() {
+  amfmgmthandle_.Clear();
+}
+inline const ::std::string& CompErrorReportRequest::amfmgmthandle(int index) const {
+  // @@protoc_insertion_point(field_get:SAFplus.Rpc.amfMgmtRpc.CompErrorReportRequest.amfMgmtHandle)
+  return amfmgmthandle_.Get(index);
+}
+inline ::std::string* CompErrorReportRequest::mutable_amfmgmthandle(int index) {
+  // @@protoc_insertion_point(field_mutable:SAFplus.Rpc.amfMgmtRpc.CompErrorReportRequest.amfMgmtHandle)
+  return amfmgmthandle_.Mutable(index);
+}
+inline void CompErrorReportRequest::set_amfmgmthandle(int index, const ::std::string& value) {
+  // @@protoc_insertion_point(field_set:SAFplus.Rpc.amfMgmtRpc.CompErrorReportRequest.amfMgmtHandle)
+  amfmgmthandle_.Mutable(index)->assign(value);
+}
+inline void CompErrorReportRequest::set_amfmgmthandle(int index, const char* value) {
+  amfmgmthandle_.Mutable(index)->assign(value);
+  // @@protoc_insertion_point(field_set_char:SAFplus.Rpc.amfMgmtRpc.CompErrorReportRequest.amfMgmtHandle)
+}
+inline void CompErrorReportRequest::set_amfmgmthandle(int index, const void* value, size_t size) {
+  amfmgmthandle_.Mutable(index)->assign(
+    reinterpret_cast<const char*>(value), size);
+  // @@protoc_insertion_point(field_set_pointer:SAFplus.Rpc.amfMgmtRpc.CompErrorReportRequest.amfMgmtHandle)
+}
+inline ::std::string* CompErrorReportRequest::add_amfmgmthandle() {
+  return amfmgmthandle_.Add();
+}
+inline void CompErrorReportRequest::add_amfmgmthandle(const ::std::string& value) {
+  amfmgmthandle_.Add()->assign(value);
+  // @@protoc_insertion_point(field_add:SAFplus.Rpc.amfMgmtRpc.CompErrorReportRequest.amfMgmtHandle)
+}
+inline void CompErrorReportRequest::add_amfmgmthandle(const char* value) {
+  amfmgmthandle_.Add()->assign(value);
+  // @@protoc_insertion_point(field_add_char:SAFplus.Rpc.amfMgmtRpc.CompErrorReportRequest.amfMgmtHandle)
+}
+inline void CompErrorReportRequest::add_amfmgmthandle(const void* value, size_t size) {
+  amfmgmthandle_.Add()->assign(reinterpret_cast<const char*>(value), size);
+  // @@protoc_insertion_point(field_add_pointer:SAFplus.Rpc.amfMgmtRpc.CompErrorReportRequest.amfMgmtHandle)
+}
+inline const ::google::protobuf::RepeatedPtrField< ::std::string>&
+CompErrorReportRequest::amfmgmthandle() const {
+  // @@protoc_insertion_point(field_list:SAFplus.Rpc.amfMgmtRpc.CompErrorReportRequest.amfMgmtHandle)
+  return amfmgmthandle_;
+}
+inline ::google::protobuf::RepeatedPtrField< ::std::string>*
+CompErrorReportRequest::mutable_amfmgmthandle() {
+  // @@protoc_insertion_point(field_mutable_list:SAFplus.Rpc.amfMgmtRpc.CompErrorReportRequest.amfMgmtHandle)
+  return &amfmgmthandle_;
+}
+
+// optional string compName = 2;
+inline bool CompErrorReportRequest::has_compname() const {
+  return (_has_bits_[0] & 0x00000002u) != 0;
+}
+inline void CompErrorReportRequest::set_has_compname() {
+  _has_bits_[0] |= 0x00000002u;
+}
+inline void CompErrorReportRequest::clear_has_compname() {
+  _has_bits_[0] &= ~0x00000002u;
+}
+inline void CompErrorReportRequest::clear_compname() {
+  if (compname_ != &::google::protobuf::internal::GetEmptyStringAlreadyInited()) {
+    compname_->clear();
+  }
+  clear_has_compname();
+}
+inline const ::std::string& CompErrorReportRequest::compname() const {
+  // @@protoc_insertion_point(field_get:SAFplus.Rpc.amfMgmtRpc.CompErrorReportRequest.compName)
+  return *compname_;
+}
+inline void CompErrorReportRequest::set_compname(const ::std::string& value) {
+  set_has_compname();
+  if (compname_ == &::google::protobuf::internal::GetEmptyStringAlreadyInited()) {
+    compname_ = new ::std::string;
+  }
+  compname_->assign(value);
+  // @@protoc_insertion_point(field_set:SAFplus.Rpc.amfMgmtRpc.CompErrorReportRequest.compName)
+}
+inline void CompErrorReportRequest::set_compname(const char* value) {
+  set_has_compname();
+  if (compname_ == &::google::protobuf::internal::GetEmptyStringAlreadyInited()) {
+    compname_ = new ::std::string;
+  }
+  compname_->assign(value);
+  // @@protoc_insertion_point(field_set_char:SAFplus.Rpc.amfMgmtRpc.CompErrorReportRequest.compName)
+}
+inline void CompErrorReportRequest::set_compname(const char* value, size_t size) {
+  set_has_compname();
+  if (compname_ == &::google::protobuf::internal::GetEmptyStringAlreadyInited()) {
+    compname_ = new ::std::string;
+  }
+  compname_->assign(reinterpret_cast<const char*>(value), size);
+  // @@protoc_insertion_point(field_set_pointer:SAFplus.Rpc.amfMgmtRpc.CompErrorReportRequest.compName)
+}
+inline ::std::string* CompErrorReportRequest::mutable_compname() {
+  set_has_compname();
+  if (compname_ == &::google::protobuf::internal::GetEmptyStringAlreadyInited()) {
+    compname_ = new ::std::string;
+  }
+  // @@protoc_insertion_point(field_mutable:SAFplus.Rpc.amfMgmtRpc.CompErrorReportRequest.compName)
+  return compname_;
+}
+inline ::std::string* CompErrorReportRequest::release_compname() {
+  clear_has_compname();
+  if (compname_ == &::google::protobuf::internal::GetEmptyStringAlreadyInited()) {
+    return NULL;
+  } else {
+    ::std::string* temp = compname_;
+    compname_ = const_cast< ::std::string*>(&::google::protobuf::internal::GetEmptyStringAlreadyInited());
+    return temp;
+  }
+}
+inline void CompErrorReportRequest::set_allocated_compname(::std::string* compname) {
+  if (compname_ != &::google::protobuf::internal::GetEmptyStringAlreadyInited()) {
+    delete compname_;
+  }
+  if (compname) {
+    set_has_compname();
+    compname_ = compname;
+  } else {
+    clear_has_compname();
+    compname_ = const_cast< ::std::string*>(&::google::protobuf::internal::GetEmptyStringAlreadyInited());
+  }
+  // @@protoc_insertion_point(field_set_allocated:SAFplus.Rpc.amfMgmtRpc.CompErrorReportRequest.compName)
+}
+
+// optional .SAFplus.Rpc.amfMgmtRpc.Recovery recommendedRecovery = 3;
+inline bool CompErrorReportRequest::has_recommendedrecovery() const {
+  return (_has_bits_[0] & 0x00000004u) != 0;
+}
+inline void CompErrorReportRequest::set_has_recommendedrecovery() {
+  _has_bits_[0] |= 0x00000004u;
+}
+inline void CompErrorReportRequest::clear_has_recommendedrecovery() {
+  _has_bits_[0] &= ~0x00000004u;
+}
+inline void CompErrorReportRequest::clear_recommendedrecovery() {
+  recommendedrecovery_ = 1;
+  clear_has_recommendedrecovery();
+}
+inline ::SAFplus::Rpc::amfMgmtRpc::Recovery CompErrorReportRequest::recommendedrecovery() const {
+  // @@protoc_insertion_point(field_get:SAFplus.Rpc.amfMgmtRpc.CompErrorReportRequest.recommendedRecovery)
+  return static_cast< ::SAFplus::Rpc::amfMgmtRpc::Recovery >(recommendedrecovery_);
+}
+inline void CompErrorReportRequest::set_recommendedrecovery(::SAFplus::Rpc::amfMgmtRpc::Recovery value) {
+  assert(::SAFplus::Rpc::amfMgmtRpc::Recovery_IsValid(value));
+  set_has_recommendedrecovery();
+  recommendedrecovery_ = value;
+  // @@protoc_insertion_point(field_set:SAFplus.Rpc.amfMgmtRpc.CompErrorReportRequest.recommendedRecovery)
+}
+
+// -------------------------------------------------------------------
+
+// CompErrorReportResponse
+
+// optional sint32 err = 1;
+inline bool CompErrorReportResponse::has_err() const {
+  return (_has_bits_[0] & 0x00000001u) != 0;
+}
+inline void CompErrorReportResponse::set_has_err() {
+  _has_bits_[0] |= 0x00000001u;
+}
+inline void CompErrorReportResponse::clear_has_err() {
+  _has_bits_[0] &= ~0x00000001u;
+}
+inline void CompErrorReportResponse::clear_err() {
+  err_ = 0;
+  clear_has_err();
+}
+inline ::google::protobuf::int32 CompErrorReportResponse::err() const {
+  // @@protoc_insertion_point(field_get:SAFplus.Rpc.amfMgmtRpc.CompErrorReportResponse.err)
+  return err_;
+}
+inline void CompErrorReportResponse::set_err(::google::protobuf::int32 value) {
+  set_has_err();
+  err_ = value;
+  // @@protoc_insertion_point(field_set:SAFplus.Rpc.amfMgmtRpc.CompErrorReportResponse.err)
+}
+
 
 // @@protoc_insertion_point(namespace_scope)
 
@@ -35634,6 +36019,11 @@ template <>
 inline const EnumDescriptor* GetEnumDescriptor< ::SAFplus::Rpc::amfMgmtRpc::AdministrativeState>() {
   return ::SAFplus::Rpc::amfMgmtRpc::AdministrativeState_descriptor();
 }
+template <> struct is_proto_enum< ::SAFplus::Rpc::amfMgmtRpc::Recovery> : ::google::protobuf::internal::true_type {};
+template <>
+inline const EnumDescriptor* GetEnumDescriptor< ::SAFplus::Rpc::amfMgmtRpc::Recovery>() {
+  return ::SAFplus::Rpc::amfMgmtRpc::Recovery_descriptor();
+}
 template <> struct is_proto_enum< ::SAFplus::Rpc::amfMgmtRpc::ProcessState> : ::google::protobuf::internal::true_type {};
 template <>
 inline const EnumDescriptor* GetEnumDescriptor< ::SAFplus::Rpc::amfMgmtRpc::ProcessState>() {
@@ -35643,11 +36033,6 @@ template <> struct is_proto_enum< ::SAFplus::Rpc::amfMgmtRpc::CapabilityModel> :
 template <>
 inline const EnumDescriptor* GetEnumDescriptor< ::SAFplus::Rpc::amfMgmtRpc::CapabilityModel>() {
   return ::SAFplus::Rpc::amfMgmtRpc::CapabilityModel_descriptor();
-}
-template <> struct is_proto_enum< ::SAFplus::Rpc::amfMgmtRpc::Recovery> : ::google::protobuf::internal::true_type {};
-template <>
-inline const EnumDescriptor* GetEnumDescriptor< ::SAFplus::Rpc::amfMgmtRpc::Recovery>() {
-  return ::SAFplus::Rpc::amfMgmtRpc::Recovery_descriptor();
 }
 template <> struct is_proto_enum< ::SAFplus::Rpc::amfMgmtRpc::PendingOperation> : ::google::protobuf::internal::true_type {};
 template <>

@@ -392,6 +392,12 @@ void amfMgmtRpc::swapSI(const ::SAFplus::Rpc::amfMgmtRpc::SwapSIRequest*,
   logError("RPC","SVR","Method swapSI() not implemented.");
 }
 
+void amfMgmtRpc::compErrorReport(const ::SAFplus::Rpc::amfMgmtRpc::CompErrorReportRequest*,
+                         ::SAFplus::Rpc::amfMgmtRpc::CompErrorReportResponse*)
+{
+  logError("RPC","SVR","Method compErrorReport() not implemented.");
+}
+
 void amfMgmtRpc::initialize(SAFplus::Handle destination,
                      const ::SAFplus::Rpc::amfMgmtRpc::InitializeRequest* request,
                      ::SAFplus::Rpc::amfMgmtRpc::InitializeResponse* response,
@@ -856,6 +862,14 @@ void amfMgmtRpc::swapSI(SAFplus::Handle destination,
   logError("RPC","SVR","Method swapSI() not implemented.");
 }
 
+void amfMgmtRpc::compErrorReport(SAFplus::Handle destination,
+                     const ::SAFplus::Rpc::amfMgmtRpc::CompErrorReportRequest* request,
+                     ::SAFplus::Rpc::amfMgmtRpc::CompErrorReportResponse* response,
+                     SAFplus::Wakeable& wakeable)
+{
+  logError("RPC","SVR","Method compErrorReport() not implemented.");
+}
+
 void amfMgmtRpc::CallMethod(const ::google::protobuf::MethodDescriptor* method,
                              SAFplus::Handle destination,
                              const ::google::protobuf::Message* request,
@@ -1095,6 +1109,10 @@ void amfMgmtRpc::CallMethod(const ::google::protobuf::MethodDescriptor* method,
       swapSI(::google::protobuf::down_cast<const ::SAFplus::Rpc::amfMgmtRpc::SwapSIRequest*>(request),
              ::google::protobuf::down_cast< ::SAFplus::Rpc::amfMgmtRpc::SwapSIResponse*>(response));
       break;
+    case 58:
+      compErrorReport(::google::protobuf::down_cast<const ::SAFplus::Rpc::amfMgmtRpc::CompErrorReportRequest*>(request),
+             ::google::protobuf::down_cast< ::SAFplus::Rpc::amfMgmtRpc::CompErrorReportResponse*>(response));
+      break;
     default:
       GOOGLE_LOG(FATAL) << "Bad method index; this should never happen.";
       break;
@@ -1221,6 +1239,8 @@ const ::google::protobuf::Message& amfMgmtRpc::GetRequestPrototype(
       return ::SAFplus::Rpc::amfMgmtRpc::AdjustSGRequest::default_instance();
     case 57:
       return ::SAFplus::Rpc::amfMgmtRpc::SwapSIRequest::default_instance();
+    case 58:
+      return ::SAFplus::Rpc::amfMgmtRpc::CompErrorReportRequest::default_instance();
     default:
       GOOGLE_LOG(FATAL) << "Bad method index; this should never happen.";
       return *reinterpret_cast< ::google::protobuf::Message*>(NULL);
@@ -1347,6 +1367,8 @@ const ::google::protobuf::Message& amfMgmtRpc::GetResponsePrototype(
       return ::SAFplus::Rpc::amfMgmtRpc::AdjustSGResponse::default_instance();
     case 57:
       return ::SAFplus::Rpc::amfMgmtRpc::SwapSIResponse::default_instance();
+    case 58:
+      return ::SAFplus::Rpc::amfMgmtRpc::CompErrorReportResponse::default_instance();
     default:
       GOOGLE_LOG(FATAL) << "Bad method index; this should never happen.";
       return *reinterpret_cast< ::google::protobuf::Message*>(NULL);
@@ -1711,6 +1733,12 @@ void amfMgmtRpc_Stub::swapSI(SAFplus::Handle dest,
                               ::SAFplus::Rpc::amfMgmtRpc::SwapSIResponse* response,
                               SAFplus::Wakeable& wakeable) {
   channel_->CallMethod(descriptor()->method(57), dest, request, response, wakeable);
+}
+void amfMgmtRpc_Stub::compErrorReport(SAFplus::Handle dest,
+                              const ::SAFplus::Rpc::amfMgmtRpc::CompErrorReportRequest* request,
+                              ::SAFplus::Rpc::amfMgmtRpc::CompErrorReportResponse* response,
+                              SAFplus::Wakeable& wakeable) {
+  channel_->CallMethod(descriptor()->method(58), dest, request, response, wakeable);
 }
 
 }  // namespace amfMgmtRpc

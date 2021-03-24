@@ -77,4 +77,6 @@ ClRcT amfMgmtSGAdjust(const Handle& mgmtHandle, const std::string& sgName, bool 
 
 ClRcT amfMgmtSISwap(const Handle& mgmtHandle, const std::string& siName);
 
+ClRcT amfMgmtCompErrorReport(const Handle& mgmtHandle, const std::string& compName, SAFplus::Rpc::amfMgmtRpc::Recovery recommendedRecovery);
+
 }

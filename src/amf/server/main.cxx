@@ -60,7 +60,6 @@ using namespace SAFplusI;
 using namespace SAFplusAmf;
 using namespace SAFplus::Rpc::amfRpc;
 
-typedef boost::unordered_map<SAFplus::AmfRedundancyPolicy,ClPluginHandle*> RedPolicyMap;
 
 // namespace SAFplusAmf { void loadAmfConfig(SAFplusAmfModule* self); };
 
