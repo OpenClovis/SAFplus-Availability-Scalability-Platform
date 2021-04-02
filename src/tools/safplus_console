@@ -1635,6 +1635,121 @@ By default the specified location and children are shown.  Use -N to specify how
 
     return ""
 
+  def do_nodeErrorReport(self, nodeName):
+    """syntax: nodeErrorReport nodeName
+    """
+    try:
+      handleTest = access.getProcessHandle(0, 0)
+      ret = access.amfMgmtInitialize(handleTest)
+      # print "amfMgmtInitialize: ", hex(ret)
+
+      ret = access.amfMgmtNodeErrorReport(handleTest, nodeName)
+      if ret == 0x4:
+        print "node %s do not exist" % nodeName
+      elif ret == 0x0:
+        print "Node %s error report OK" %nodeName
+      else:
+        print "Node error report failure with error 0x%x" % ret
+      
+      ret = access.amfMgmtFinalize(handleTest)
+ 
+    except RuntimeError, e:
+      print "error: ", e
+
+    return ""
+
+  def do_nodeErrorClear(self, nodeName):
+    """syntax: nodeErrorClear nodeName
+    """
+    try:
+      handleTest = access.getProcessHandle(0, 0)
+      ret = access.amfMgmtInitialize(handleTest)
+      # print "amfMgmtInitialize: ", hex(ret)
+
+      ret = access.amfMgmtNodeErrorClear(handleTest, nodeName)
+      if ret == 0x4:
+        print "node %s do not exist" % nodeName
+      elif ret == 0x0:
+        print "Node %s error clear OK" %nodeName
+      else:
+        print "Node error clear failure with error 0x%x" % ret
+      
+      ret = access.amfMgmtFinalize(handleTest)
+ 
+    except RuntimeError, e:
+      print "error: ", e
+
+    return ""
+
+  def do_nodeJoin(self, nodeName):
+    """syntax: nodeJoin nodeName
+    """
+    try:
+      handleTest = access.getProcessHandle(0, 0)
+      ret = access.amfMgmtInitialize(handleTest)
+      # print "amfMgmtInitialize: ", hex(ret)
+
+      ret = access.amfMgmtNodeJoin(handleTest, nodeName)
+      if ret == 0x4:
+        print "node %s do not exist" % nodeName
+      elif ret == 0x0:
+        print "Node %s join OK" %nodeName
+      else:
+        print "Node join failure with error 0x%x" % ret
+      
+      ret = access.amfMgmtFinalize(handleTest)
+ 
+    except RuntimeError, e:
+      print "error: ", e
+
+    return ""
+
+  def do_nodeShutdown(self, nodeName):
+    """syntax: nodeShutdown nodeName
+    """
+    try:
+      handleTest = access.getProcessHandle(0, 0)
+      ret = access.amfMgmtInitialize(handleTest)
+      # print "amfMgmtInitialize: ", hex(ret)
+
+      ret = access.amfMgmtNodeShutdown(handleTest, nodeName)
+      if ret == 0x4:
+        print "node %s do not exist" % nodeName
+      elif ret == 0x0:
+        print "Node %s shutdown OK" %nodeName
+      else:
+        print "Node shutdown failure with error 0x%x" % ret
+      
+      ret = access.amfMgmtFinalize(handleTest)
+ 
+    except RuntimeError, e:
+      print "error: ", e
+
+    return ""
+
+  def do_nodeRestart(self, nodeName):
+    """syntax: nodeRestart nodeName
+    """
+    try:
+      handleTest = access.getProcessHandle(0, 0)
+      ret = access.amfMgmtInitialize(handleTest)
+      # print "amfMgmtInitialize: ", hex(ret)
+
+      ret = access.amfNodeRestart(handleTest, nodeName)
+      if ret == 0x4:
+        print "node %s do not exist" % nodeName
+      elif ret == 0x0:
+        print "Node %s restart OK" %nodeName
+      else:
+        print "Node restart failure with error 0x%x" % ret
+      
+      ret = access.amfMgmtFinalize(handleTest)
+ 
+    except RuntimeError, e:
+      print "error: ", e
+
+    return ""
+
 class CaptureOutput:
   def __init__(self,resolver):
     try: 

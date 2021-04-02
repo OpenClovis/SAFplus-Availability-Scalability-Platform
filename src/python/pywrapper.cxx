@@ -210,4 +210,10 @@ BOOST_PYTHON_MODULE(pySAFplus)
   def("amfMgmtSISwap",static_cast< ClRcT (*)(const Handle &, const std::string &) > (&SAFplus::amfMgmtSISwap));
 
   def("amfMgmtCompErrorReport",static_cast< ClRcT (*)(const Handle &, const std::string &, SAFplus::Rpc::amfMgmtRpc::Recovery recommendedRecovery) > (&SAFplus::amfMgmtCompErrorReport));
+
+  def("amfMgmtNodeErrorReport",static_cast< ClRcT (*)(const Handle &, const std::string &) > (&SAFplus::amfMgmtNodeErrorReport));
+  def("amfMgmtNodeErrorClear",static_cast< ClRcT (*)(const Handle &, const std::string &) > (&SAFplus::amfMgmtNodeErrorClear));
+  def("amfMgmtNodeJoin",static_cast< ClRcT (*)(const Handle &, const std::string &) > (&SAFplus::amfNodeJoin));
+  def("amfMgmtNodeShutdown",static_cast< ClRcT (*)(const Handle &, const std::string &) > (&SAFplus::amfMgmtNodeShutdown));
+  def("amfNodeRestart",static_cast< ClRcT (*)(const Handle &, const std::string &) > (&SAFplus::amfNodeRestart));
 }

@@ -117,5 +117,12 @@ namespace SAFplus
 
     ClRcT triggerFlagSISwap(std::string siName);
     ClRcT swapSI(std::string siName);
+
+    ClRcT sgAdjust(const SAFplusAmf::ServiceGroup* sg);
+
+    ClRcT nodeErrorReport(SAFplusAmf::Node* node, bool shutdownAmf = false, bool rebootNode = false);
+    ClRcT nodeErrorClear(SAFplusAmf::Node* node);
+
+
     };
   };

@@ -180,6 +180,17 @@ module amfRpc
     type int32;
       }
     }
+  }
+  
+  rpc shutdownAmf
+  {
+    output
+    {
+      leaf err
+      {
+         type int32;
+      }
+    }
   } 
 
 }

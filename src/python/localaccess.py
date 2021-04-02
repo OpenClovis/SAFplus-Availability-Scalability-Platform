@@ -49,6 +49,12 @@ Recovery_NodeSwitchover = safplus.Recovery.Recovery_NodeSwitchover
 Recovery_NodeFailover = safplus.Recovery.Recovery_NodeFailover
 Recovery_NodeFailfast = safplus.Recovery.Recovery_NodeFailfast
 
+amfMgmtNodeErrorReport = safplus.amfMgmtNodeErrorReport
+amfMgmtNodeErrorClear = safplus.amfMgmtNodeErrorClear
+amfMgmtNodeJoin  = safplus.amfMgmtNodeJoin
+amfMgmtNodeShutdown = safplus.amfMgmtNodeShutdown
+amfNodeRestart  = safplus.amfNodeRestart
+
 
 def isValidDirectory(path):
   try:

@@ -22,6 +22,7 @@
 #include <SAFplusAmf/Data.hxx>
 #include <SAFplusAmfModule.hxx>
 #include <unordered_map>
+#include <boost/range/algorithm.hpp>
 
 using namespace SAFplus;
 using namespace SAFplusI;
@@ -35,6 +36,8 @@ extern SAFplusAmf::SAFplusAmfModule cfg;
 std::string siNameSwapFlag = "";
 namespace SAFplus
   {
+
+    extern bool suEarliestRanking(ServiceUnit* a, ServiceUnit* b);
 
     WorkOperationTracker::WorkOperationTracker(SAFplusAmf::Component* c,SAFplusAmf::ComponentServiceInstance* cwork,SAFplusAmf::ServiceInstance* work,uint statep, uint targetp)
     {
@@ -1326,6 +1329,7 @@ namespace SAFplus
 
     void AmfOperations::rebootNode(SAFplusAmf::Node* node, Wakeable& w)
     {
+        logDebug("OPS","NODE.REBOOT","Rebooting node [%s]", node->name.value.c_str());
         if(!node)
         {
             return;
@@ -1704,6 +1708,195 @@ namespace SAFplus
             }
             assignWork(su,si,HighAvailabilityState::active);
         }
+    }
+
+
+    bool isThereStandbySU(const std::vector<ServiceUnit*>& suList)
+      {
+          std::vector<SAFplusAmf::ServiceUnit*>::const_iterator itsu = suList.begin();
+          for (; itsu != suList.end(); ++itsu)
+          {
+             SAFplusAmf::ServiceUnit* su = dynamic_cast<ServiceUnit*>(*itsu);
+             if (su->numStandbyServiceInstances.current.value > 0)
+                 return true;
+          }
+          return false;
+      }
+
+      uint32_t getActiveHighestRankSU(const std::vector<ServiceUnit*>& suList)
+        {
+            std::vector<SAFplusAmf::ServiceUnit*>::const_iterator itsu = suList.begin();
+            for (; itsu != suList.end(); ++itsu)
+            {
+               SAFplusAmf::ServiceUnit* su = dynamic_cast<ServiceUnit*>(*itsu);
+               if (su->numActiveServiceInstances.current.value > 0)
+                   return su->rank.value;
+            }
+            return 0;
+        }
+
+      uint32_t getStandbyHighestRankSU(const std::vector<ServiceUnit*>& suList)
+          {
+              std::vector<SAFplusAmf::ServiceUnit*>::const_iterator itsu = suList.begin();
+              for (; itsu != suList.end(); ++itsu)
+              {
+                 SAFplusAmf::ServiceUnit* su = dynamic_cast<ServiceUnit*>(*itsu);
+                 if (su->numStandbyServiceInstances.current.value > 0)
+                     return su->rank.value;
+              }
+              return 0;
+          }
+
+      int getNumAssignedSUs(const std::vector<ServiceUnit*>& suList)
+            {
+                std::vector<SAFplusAmf::ServiceUnit*>::const_iterator itsu = suList.begin();
+                int count = 0;
+                for (; itsu != suList.end(); ++itsu)
+                {
+                   SAFplusAmf::ServiceUnit* su = dynamic_cast<ServiceUnit*>(*itsu);
+                   if (su->numStandbyServiceInstances.current.value > 0 || su->numActiveServiceInstances.current.value > 0)
+                       count++;
+                }
+                return count;
+            }
+
+    ClRcT AmfOperations::sgAdjust(const SAFplusAmf::ServiceGroup* sg)
+      {
+          logDebug("N+M","ADJUST","adjusting sg [%s]", sg->name.value.c_str());
+          ClRcT rc = CL_OK;
+          bool (*suOrder)(ServiceUnit* a, ServiceUnit* b) = suEarliestRanking;
+          std::vector<SAFplusAmf::ServiceUnit*> sus;
+          sus << sg->serviceUnits;
+          if (!isThereStandbySU(sus) || getNumAssignedSUs(sus) == 1) // there are only active assignments or there is only one su in the list, so nothing to do
+          {
+             logDebug("N+M","ADJUST","sg [%s] doesn't need to be adjusted because there is no any standby SU or there is only one assigned SU", sg->name.value.c_str());
+             rc = CL_ERR_NO_OP;
+             return rc;
+          }
+          boost::sort(sus, suOrder);
+          uint32_t activeHighestRankSU = getActiveHighestRankSU(sus);
+          uint32_t standbyHighestRankSU = getStandbyHighestRankSU(sus);
+          if ((activeHighestRankSU && activeHighestRankSU > standbyHighestRankSU) || (activeHighestRankSU == 0 && standbyHighestRankSU > 0))
+          {
+              logDebug("N+M","ADJUST","SU list of sg [%s] need to be adjusted", sg->name.value.c_str());
+              std::vector<SAFplusAmf::ServiceUnit*>::iterator itsu = sus.begin();
+              for (; itsu != sus.end(); ++itsu)
+              {
+                 SAFplusAmf::ServiceUnit* su = dynamic_cast<ServiceUnit*>(*itsu);
+                 // go one by one su to see if there is any su having hastate standby and having lower rank than active higher rank su,
+                 // then remove their work by setting their admin state to idle
+                 if (su->adminState.value == AdministrativeState::on)
+                 {
+                    su->adminState.value = AdministrativeState::idle;
+                 }
+              }
+              boost::this_thread::sleep(boost::posix_time::milliseconds(2000));
+              for (itsu = sus.begin(); itsu != sus.end(); ++itsu)
+              {
+                 SAFplusAmf::ServiceUnit* su = dynamic_cast<ServiceUnit*>(*itsu);
+                 // then add their work by setting their admin state to on
+                 if (su->adminState.value == AdministrativeState::idle)
+                 {
+                    su->adminState.value = AdministrativeState::on;
+                 }
+              }
+          }
+          else
+          {
+              logDebug("N+M","ADJUST","sg [%s] doesn't need to be adjusted because its SUs with ranks have appropriate hastate", sg->name.value.c_str());
+          }
+          return rc;
+      }
+
+    ClRcT AmfOperations::nodeErrorReport(SAFplusAmf::Node* node, bool shutdownAmf, bool rebootNode)
+    {
+        logDebug("OPS","NODE.ERR","Error reported for node [%s]", node->name.value.c_str());
+        if (node->operState.value == false)
+        {
+            return CL_ERR_NO_OP;
+        }
+        node->operState.value = false;
+        //comp->haReadinessState == HighAvailabilityReadinessState::readyForAssignment
+        //Terminate all components running in this node
+        boost::this_thread::sleep(boost::posix_time::milliseconds(1000));
+        SAFplus::MgtIdentifierList<SAFplusAmf::ServiceUnit*>::iterator itsu;
+        logDebug("OPS","NODE.ERR","Terminating components running in node [%s]", node->name.value.c_str());
+        for (itsu = node->serviceUnits.listBegin(); itsu != node->serviceUnits.listEnd(); itsu++)
+        {
+            ServiceUnit* su = dynamic_cast<ServiceUnit*>(*itsu);
+            assert(su);
+            SAFplus::MgtIdentifierList<SAFplusAmf::Component*>::iterator itcomp;
+            for (itcomp = su->components.listBegin(); itcomp != su->components.listEnd(); itcomp++)
+            {
+                Component* comp = dynamic_cast<Component*>(*itcomp);
+                assert(comp);
+                logDebug("OPS","NODE.ERR","Terminating component [%s]", comp->name.value.c_str());
+                stop(comp);
+            }
+        }
+        if (shutdownAmf)
+        {
+            Handle nodeHdl;
+            try
+            {
+                nodeHdl = name.getHandle(node->name.value);
+            }
+            catch (NameException& ne)
+            {
+                logError("OPS", "NODE.REPORT", "Handle got exception for name [%s]", node->name.value.c_str());
+                return CL_ERR_NOT_EXIST;
+            }
+
+            if (nodeHdl == nodeHandle)  // Handle this request locally.  This is an optimization.  The RPC call will also work locally.
+            {
+                char asp_restart_disable_file[CL_MAX_NAME_LENGTH];
+                snprintf(asp_restart_disable_file, CL_MAX_NAME_LENGTH-1, "%s/%s", (SAFplus::ASP_RUNDIR[0] != 0) ? SAFplus::ASP_RUNDIR : ".", ASP_RESTART_DISABLE_FILE);
+                FILE* fp = fopen(asp_restart_disable_file, "w");
+                if (fp)
+                {
+                    fclose(fp);
+                    logDebug("OPS","NODE.ERR","Shutdown amf by setting node [%s] fault state DOWN", node->name.value.c_str());
+                    gfault.registerEntity(nodeHdl,FaultState::STATE_DOWN);
+                }
+                else
+                {
+                   logError("OPS","SHUTDOWN.AMF","Opening file [%s] fail. Error code [%d], error text [%s]", asp_restart_disable_file, errno, strerror(errno));
+                }
+
+            }
+            else
+            {
+                Handle remoteAmfHdl = getProcessHandle(SAFplusI::AMF_IOC_PORT, nodeHdl.getNode());
+                if (FaultState::STATE_UP == fault.getFaultState(remoteAmfHdl))
+                {
+                    logInfo("OPS", "NODE.ERR", "Sending shutdown amf request to node [%d]",nodeHdl.getNode());
+                    ShutdownAmfRequest req;
+                    ShutdownAmfResponse resp;
+                    amfInternalRpc->shutdownAmf(remoteAmfHdl,&req,&resp);
+                }
+                else
+                {
+                    logError("OPS","NODE.ERR","Fault state of node [%s] is DOWN, cannot send shutdownAmf request to it", node->name.value.c_str());
+                }
+            }
+        }
+        if (rebootNode)
+        {
+            boost::this_thread::sleep(boost::posix_time::milliseconds(1000));
+            this->rebootNode(node);
+        }
+        return CL_OK;
+    }
+
+    ClRcT AmfOperations::nodeErrorClear(SAFplusAmf::Node* node)
+    {
+        logDebug("OPS","NODE.ERR","Error clear for node [%s]", node->name.value.c_str());
+        if (node->operState.value == true)
+        {
+            return CL_ERR_NO_OP;
+        }
+        node->operState.value = true;
+        return CL_OK;
     }
 
   };

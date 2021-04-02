@@ -25,7 +25,8 @@ namespace SAFplus
  
   const char* oper_str(bool val) { if (val) return "enabled"; else return "disabled"; }
   bool compareEntityRecoveryScope(Recovery a, Recovery b);
-  ClRcT sgAdjust(const SAFplusAmf::ServiceGroup* sg);
+  //ClRcT sgAdjust(const SAFplusAmf::ServiceGroup* sg);
+  //ClRcT nodeErrorReport(SAFplusAmf::Node* node, bool shutdownAmf = false, bool rebootNode = false);
 
 class NplusMPolicy:public ClAmfPolicyPlugin_1
     {
@@ -796,6 +797,7 @@ class NplusMPolicy:public ClAmfPolicyPlugin_1
       }
     }
   
+#if 0
   bool isThereStandbySU(const std::vector<ServiceUnit*>& suList)
   {
       std::vector<SAFplusAmf::ServiceUnit*>::const_iterator itsu = suList.begin();
@@ -892,6 +894,7 @@ class NplusMPolicy:public ClAmfPolicyPlugin_1
       }
       return rc;
   }
+#endif
 
   void updateStateDueToProcessDeath(SAFplusAmf::Component* comp)
   {
@@ -1909,6 +1912,7 @@ bool compareEntityRecoveryScope(Recovery a, Recovery b)
 
     return false;
 }
+
   };
 
   

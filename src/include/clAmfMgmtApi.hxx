@@ -79,4 +79,10 @@ ClRcT amfMgmtSISwap(const Handle& mgmtHandle, const std::string& siName);
 
 ClRcT amfMgmtCompErrorReport(const Handle& mgmtHandle, const std::string& compName, SAFplus::Rpc::amfMgmtRpc::Recovery recommendedRecovery);
 
+ClRcT amfMgmtNodeErrorReport(const Handle& mgmtHandle, const std::string& nodeName);
+ClRcT amfMgmtNodeErrorClear(const Handle& mgmtHandle, const std::string& nodeName);
+ClRcT amfNodeJoin(const Handle& mgmtHandle, const std::string& nodeName);
+ClRcT amfMgmtNodeShutdown(const Handle& mgmtHandle, const std::string& nodeName);
+ClRcT amfNodeRestart(const Handle& mgmtHandle, const std::string& nodeName);
+
 }

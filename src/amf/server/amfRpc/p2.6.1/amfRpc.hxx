@@ -46,7 +46,8 @@ class amfRpc : public SAFplus::Rpc::RpcService {
                        ::SAFplus::Rpc::amfRpc::ProcessFailedResponse* response);
   virtual void rebootNode(const ::SAFplus::Rpc::amfRpc::RebootNodeRequest* request,
                        ::SAFplus::Rpc::amfRpc::RebootNodeResponse* response);
-
+  virtual void shutdownAmf(const ::SAFplus::Rpc::amfRpc::ShutdownAmfRequest* request,
+                       ::SAFplus::Rpc::amfRpc::ShutdownAmfResponse* response);
 
   // implements amfRpc ------------------------------------------
   virtual void startComponent(SAFplus::Handle destination,
@@ -74,9 +75,15 @@ class amfRpc : public SAFplus::Rpc::RpcService {
                        ::SAFplus::Rpc::amfRpc::ProcessFailedResponse* response,
                        SAFplus::Wakeable& wakeable = *((SAFplus::Wakeable*)nullptr));
   virtual void rebootNode(SAFplus::Handle destination,
-					   const ::SAFplus::Rpc::amfRpc::RebootNodeRequest* request,
+                       const ::SAFplus::Rpc::amfRpc::RebootNodeRequest* request,
                        ::SAFplus::Rpc::amfRpc::RebootNodeResponse* response,
                        SAFplus::Wakeable& wakeable = *((SAFplus::Wakeable*)nullptr));
+  virtual void shutdownAmf(SAFplus::Handle destination,
+                       const ::SAFplus::Rpc::amfRpc::ShutdownAmfRequest* request,
+                       ::SAFplus::Rpc::amfRpc::ShutdownAmfResponse* response,
+                       SAFplus::Wakeable& wakeable = *((SAFplus::Wakeable*)nullptr));
+
+
   const ::google::protobuf::ServiceDescriptor* GetDescriptor();
   void CallMethod(const ::google::protobuf::MethodDescriptor* method,
                   SAFplus::Handle destination,
@@ -131,6 +138,10 @@ class amfRpc_Stub : public amfRpc {
                        const ::SAFplus::Rpc::amfRpc::RebootNodeRequest* request,
                        ::SAFplus::Rpc::amfRpc::RebootNodeResponse* response,
                        SAFplus::Wakeable& wakeable = *((SAFplus::Wakeable*)nullptr));
+  void shutdownAmf(SAFplus::Handle destination,
+                       const ::SAFplus::Rpc::amfRpc::ShutdownAmfRequest* request,
+                       ::SAFplus::Rpc::amfRpc::ShutdownAmfResponse* response,
+                       SAFplus::Wakeable& wakeable = *((SAFplus::Wakeable*)nullptr));
  private:
   SAFplus::Rpc::RpcChannel* channel_;
   bool owns_channel_;
@@ -158,6 +169,8 @@ class amfRpcImpl : public amfRpc {
                        ::SAFplus::Rpc::amfRpc::ProcessFailedResponse* response);
   void rebootNode(const ::SAFplus::Rpc::amfRpc::RebootNodeRequest* request,
                        ::SAFplus::Rpc::amfRpc::RebootNodeResponse* response);
+  void shutdownAmf(const ::SAFplus::Rpc::amfRpc::ShutdownAmfRequest* request,
+                       ::SAFplus::Rpc::amfRpc::ShutdownAmfResponse* response);
 };
 
 }  // namespace amfRpc

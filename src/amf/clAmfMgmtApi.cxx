@@ -1638,4 +1638,130 @@ ClRcT amfMgmtCompErrorReport(const Handle& mgmtHandle, const std::string& compNa
     return rc;
 }
 
+ClRcT amfMgmtNodeErrorReport(const Handle& mgmtHandle, const std::string& nodeName)
+{
+#ifdef HANDLE_VALIDATE
+    if (!gAmfMgmtInitialized)
+    {
+        return CL_ERR_NOT_INITIALIZED;
+    }
+#endif
+    ClRcT rc;
+    SAFplus::Rpc::amfMgmtRpc::NodeErrorReportRequest request;
+    request.add_amfmgmthandle((const char*) &mgmtHandle, sizeof(Handle));
+    request.set_nodename(nodeName);
+    request.set_shutdownamf(false);
+    request.set_rebootnode(false);
+    try
+    {
+        Handle& remoteAmfHdl = name.getHandle(AMF_MASTER_HANDLE, 2000);
+        SAFplus::Rpc::amfMgmtRpc::NodeErrorReportResponse resp;
+        amfMgmtRpc->nodeErrorReport(remoteAmfHdl,&request,&resp);
+        rc = (ClRcT)resp.err();
+    }
+    catch(NameException& ex)
+    {
+        logError("MGMT","INI","getHandle got exception [%s]", ex.what());
+        rc = CL_ERR_NOT_EXIST;
+    }
+    return rc;
+}
+
+ClRcT amfMgmtNodeErrorClear(const Handle& mgmtHandle, const std::string& nodeName)
+{
+#ifdef HANDLE_VALIDATE
+    if (!gAmfMgmtInitialized)
+    {
+        return CL_ERR_NOT_INITIALIZED;
+    }
+#endif
+    ClRcT rc;
+    SAFplus::Rpc::amfMgmtRpc::NodeErrorClearRequest request;
+    request.add_amfmgmthandle((const char*) &mgmtHandle, sizeof(Handle));
+    request.set_nodename(nodeName);
+    try
+    {
+        Handle& remoteAmfHdl = name.getHandle(AMF_MASTER_HANDLE, 2000);
+        SAFplus::Rpc::amfMgmtRpc::NodeErrorClearResponse resp;
+        amfMgmtRpc->nodeErrorClear(remoteAmfHdl,&request,&resp);
+        rc = (ClRcT)resp.err();
+    }
+    catch(NameException& ex)
+    {
+        logError("MGMT","INI","getHandle got exception [%s]", ex.what());
+        rc = CL_ERR_NOT_EXIST;
+    }
+    return rc;
+}
+
+ClRcT amfNodeJoin(const Handle& mgmtHandle, const std::string& nodeName)
+{
+#ifdef HANDLE_VALIDATE
+    if (!gAmfMgmtInitialized)
+    {
+        return CL_ERR_NOT_INITIALIZED;
+    }
+#endif
+    ClRcT rc = amfMgmtNodeErrorClear(mgmtHandle, nodeName);
+    return rc;
+}
+
+ClRcT amfMgmtNodeShutdown(const Handle& mgmtHandle, const std::string& nodeName)
+{
+#ifdef HANDLE_VALIDATE
+    if (!gAmfMgmtInitialized)
+    {
+        return CL_ERR_NOT_INITIALIZED;
+    }
+#endif
+    ClRcT rc;
+    SAFplus::Rpc::amfMgmtRpc::NodeErrorReportRequest request;
+    request.add_amfmgmthandle((const char*) &mgmtHandle, sizeof(Handle));
+    request.set_nodename(nodeName);
+    request.set_shutdownamf(true);
+    request.set_rebootnode(false);
+    try
+    {
+        Handle& remoteAmfHdl = name.getHandle(AMF_MASTER_HANDLE, 2000);
+        SAFplus::Rpc::amfMgmtRpc::NodeErrorReportResponse resp;
+        amfMgmtRpc->nodeErrorReport(remoteAmfHdl,&request,&resp);
+        rc = (ClRcT)resp.err();
+    }
+    catch(NameException& ex)
+    {
+        logError("MGMT","INI","getHandle got exception [%s]", ex.what());
+        rc = CL_ERR_NOT_EXIST;
+    }
+    return rc;
+}
+
+ClRcT amfNodeRestart(const Handle& mgmtHandle, const std::string& nodeName)
+{
+#ifdef HANDLE_VALIDATE
+    if (!gAmfMgmtInitialized)
+    {
+        return CL_ERR_NOT_INITIALIZED;
+    }
+#endif
+    ClRcT rc;
+    SAFplus::Rpc::amfMgmtRpc::NodeErrorReportRequest request;
+    request.add_amfmgmthandle((const char*) &mgmtHandle, sizeof(Handle));
+    request.set_nodename(nodeName);
+    request.set_shutdownamf(false);
+    request.set_rebootnode(true);
+    try
+    {
+        Handle& remoteAmfHdl = name.getHandle(AMF_MASTER_HANDLE, 2000);
+        SAFplus::Rpc::amfMgmtRpc::NodeErrorReportResponse resp;
+        amfMgmtRpc->nodeErrorReport(remoteAmfHdl,&request,&resp);
+        rc = (ClRcT)resp.err();
+    }
+    catch(NameException& ex)
+    {
+        logError("MGMT","INI","getHandle got exception [%s]", ex.what());
+        rc = CL_ERR_NOT_EXIST;
+    }
+    return rc;
+}
+
 }

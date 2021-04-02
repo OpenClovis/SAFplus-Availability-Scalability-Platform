@@ -2354,5 +2354,54 @@ are switched over to other nodes (component service instances are not abruptly r
        }
      }
    }
+   
+   rpc nodeErrorReport {
+     input {
+       leaf-list amfMgmtHandle
+	   {
+	     type binary
+         {
+	       length 16;  // 2 64-bit words
+	     }
+	   }
+       leaf nodeName {
+         type string;
+       }
+       
+       leaf shutdownAmf {
+         type boolean; // true: shutdown AMF; false: don't shutdown AMF
+       }
+       
+       leaf rebootNode {
+         type boolean; // true: reboot the node; false: don't reboot the node
+       }     
+     }
+     output {
+       leaf err {
+         type int32;
+       }
+     }
+   }
+   
+   rpc nodeErrorClear {
+     input {
+       leaf-list amfMgmtHandle
+	   {
+	      type binary
+          {
+	        length 16;  // 2 64-bit words
+	      }
+	   }
+       leaf nodeName {
+         type string;
+       }         
+     }
+     output {
+       leaf err {
+         type int32;
+       }
+     }
+   }  
+   
 }
 

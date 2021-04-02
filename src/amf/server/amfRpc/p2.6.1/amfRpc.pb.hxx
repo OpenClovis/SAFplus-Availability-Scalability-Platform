@@ -50,6 +50,8 @@ class ProcessFailedRequest;
 class ProcessFailedResponse;
 class RebootNodeRequest;
 class RebootNodeResponse;
+class ShutdownAmfRequest;
+class ShutdownAmfResponse;
 
 // ===================================================================
 
@@ -483,12 +485,12 @@ class CleanupComponentRequest : public ::google::protobuf::Message {
   inline ::google::protobuf::int32 pid() const;
   inline void set_pid(::google::protobuf::int32 value);
 
-  // optional fixed32 timeout = 3;
+  // optional uint64 timeout = 3;
   inline bool has_timeout() const;
   inline void clear_timeout();
   static const int kTimeoutFieldNumber = 3;
-  inline ::google::protobuf::uint32 timeout() const;
-  inline void set_timeout(::google::protobuf::uint32 value);
+  inline ::google::protobuf::uint64 timeout() const;
+  inline void set_timeout(::google::protobuf::uint64 value);
 
   // optional string command = 4;
   inline bool has_command() const;
@@ -521,9 +523,9 @@ class CleanupComponentRequest : public ::google::protobuf::Message {
   ::google::protobuf::uint32 _has_bits_[1];
   mutable int _cached_size_;
   ::std::string* name_;
-  ::google::protobuf::int32 pid_;
-  ::google::protobuf::uint32 timeout_;
+  ::google::protobuf::uint64 timeout_;
   ::std::string* command_;
+  ::google::protobuf::int32 pid_;
   friend void  protobuf_AddDesc_amfRpc_2eproto();
   friend void protobuf_AssignDesc_amfRpc_2eproto();
   friend void protobuf_ShutdownFile_amfRpc_2eproto();
@@ -668,12 +670,12 @@ class NodeInfoRequest : public ::google::protobuf::Message {
 
   // accessors -------------------------------------------------------
 
-  // optional fixed32 time = 1;
+  // optional uint64 time = 1;
   inline bool has_time() const;
   inline void clear_time();
   static const int kTimeFieldNumber = 1;
-  inline ::google::protobuf::uint32 time() const;
-  inline void set_time(::google::protobuf::uint32 value);
+  inline ::google::protobuf::uint64 time() const;
+  inline void set_time(::google::protobuf::uint64 value);
 
   GOOGLE_PROTOBUF_EXTENSION_ACCESSORS(NodeInfoRequest)
   // @@protoc_insertion_point(class_scope:SAFplus.Rpc.amfRpc.NodeInfoRequest)
@@ -687,7 +689,7 @@ class NodeInfoRequest : public ::google::protobuf::Message {
 
   ::google::protobuf::uint32 _has_bits_[1];
   mutable int _cached_size_;
-  ::google::protobuf::uint32 time_;
+  ::google::protobuf::uint64 time_;
   friend void  protobuf_AddDesc_amfRpc_2eproto();
   friend void protobuf_AssignDesc_amfRpc_2eproto();
   friend void protobuf_ShutdownFile_amfRpc_2eproto();
@@ -750,12 +752,12 @@ class NodeInfoResponse : public ::google::protobuf::Message {
 
   // accessors -------------------------------------------------------
 
-  // optional fixed32 time = 1;
+  // optional uint64 time = 1;
   inline bool has_time() const;
   inline void clear_time();
   static const int kTimeFieldNumber = 1;
-  inline ::google::protobuf::uint32 time() const;
-  inline void set_time(::google::protobuf::uint32 value);
+  inline ::google::protobuf::uint64 time() const;
+  inline void set_time(::google::protobuf::uint64 value);
 
   GOOGLE_PROTOBUF_EXTENSION_ACCESSORS(NodeInfoResponse)
   // @@protoc_insertion_point(class_scope:SAFplus.Rpc.amfRpc.NodeInfoResponse)
@@ -769,7 +771,7 @@ class NodeInfoResponse : public ::google::protobuf::Message {
 
   ::google::protobuf::uint32 _has_bits_[1];
   mutable int _cached_size_;
-  ::google::protobuf::uint32 time_;
+  ::google::protobuf::uint64 time_;
   friend void  protobuf_AddDesc_amfRpc_2eproto();
   friend void protobuf_AssignDesc_amfRpc_2eproto();
   friend void protobuf_ShutdownFile_amfRpc_2eproto();
@@ -1247,12 +1249,12 @@ class RebootNodeResponse : public ::google::protobuf::Message {
 
   // accessors -------------------------------------------------------
 
-  // optional uint32 err = 1;
+  // optional sint32 err = 1;
   inline bool has_err() const;
   inline void clear_err();
   static const int kErrFieldNumber = 1;
-  inline ::google::protobuf::uint32 err() const;
-  inline void set_err(::google::protobuf::uint32 value);
+  inline ::google::protobuf::int32 err() const;
+  inline void set_err(::google::protobuf::int32 value);
 
   GOOGLE_PROTOBUF_EXTENSION_ACCESSORS(RebootNodeResponse)
   // @@protoc_insertion_point(class_scope:SAFplus.Rpc.amfRpc.RebootNodeResponse)
@@ -1266,13 +1268,167 @@ class RebootNodeResponse : public ::google::protobuf::Message {
 
   ::google::protobuf::uint32 _has_bits_[1];
   mutable int _cached_size_;
-  ::google::protobuf::uint32 err_;
+  ::google::protobuf::int32 err_;
   friend void  protobuf_AddDesc_amfRpc_2eproto();
   friend void protobuf_AssignDesc_amfRpc_2eproto();
   friend void protobuf_ShutdownFile_amfRpc_2eproto();
 
   void InitAsDefaultInstance();
   static RebootNodeResponse* default_instance_;
+};
+// -------------------------------------------------------------------
+
+class ShutdownAmfRequest : public ::google::protobuf::Message {
+ public:
+  ShutdownAmfRequest();
+  virtual ~ShutdownAmfRequest();
+
+  ShutdownAmfRequest(const ShutdownAmfRequest& from);
+
+  inline ShutdownAmfRequest& operator=(const ShutdownAmfRequest& from) {
+    CopyFrom(from);
+    return *this;
+  }
+
+  inline const ::google::protobuf::UnknownFieldSet& unknown_fields() const {
+    return _unknown_fields_;
+  }
+
+  inline ::google::protobuf::UnknownFieldSet* mutable_unknown_fields() {
+    return &_unknown_fields_;
+  }
+
+  static const ::google::protobuf::Descriptor* descriptor();
+  static const ShutdownAmfRequest& default_instance();
+
+  void Swap(ShutdownAmfRequest* other);
+
+  // implements Message ----------------------------------------------
+
+  ShutdownAmfRequest* New() const;
+  void CopyFrom(const ::google::protobuf::Message& from);
+  void MergeFrom(const ::google::protobuf::Message& from);
+  void CopyFrom(const ShutdownAmfRequest& from);
+  void MergeFrom(const ShutdownAmfRequest& from);
+  void Clear();
+  bool IsInitialized() const;
+
+  int ByteSize() const;
+  bool MergePartialFromCodedStream(
+      ::google::protobuf::io::CodedInputStream* input);
+  void SerializeWithCachedSizes(
+      ::google::protobuf::io::CodedOutputStream* output) const;
+  ::google::protobuf::uint8* SerializeWithCachedSizesToArray(::google::protobuf::uint8* output) const;
+  int GetCachedSize() const { return _cached_size_; }
+  private:
+  void SharedCtor();
+  void SharedDtor();
+  void SetCachedSize(int size) const;
+  public:
+  ::google::protobuf::Metadata GetMetadata() const;
+
+  // nested types ----------------------------------------------------
+
+  // accessors -------------------------------------------------------
+
+  GOOGLE_PROTOBUF_EXTENSION_ACCESSORS(ShutdownAmfRequest)
+  // @@protoc_insertion_point(class_scope:SAFplus.Rpc.amfRpc.ShutdownAmfRequest)
+ private:
+
+  ::google::protobuf::internal::ExtensionSet _extensions_;
+
+  ::google::protobuf::UnknownFieldSet _unknown_fields_;
+
+  ::google::protobuf::uint32 _has_bits_[1];
+  mutable int _cached_size_;
+  friend void  protobuf_AddDesc_amfRpc_2eproto();
+  friend void protobuf_AssignDesc_amfRpc_2eproto();
+  friend void protobuf_ShutdownFile_amfRpc_2eproto();
+
+  void InitAsDefaultInstance();
+  static ShutdownAmfRequest* default_instance_;
+};
+// -------------------------------------------------------------------
+
+class ShutdownAmfResponse : public ::google::protobuf::Message {
+ public:
+  ShutdownAmfResponse();
+  virtual ~ShutdownAmfResponse();
+
+  ShutdownAmfResponse(const ShutdownAmfResponse& from);
+
+  inline ShutdownAmfResponse& operator=(const ShutdownAmfResponse& from) {
+    CopyFrom(from);
+    return *this;
+  }
+
+  inline const ::google::protobuf::UnknownFieldSet& unknown_fields() const {
+    return _unknown_fields_;
+  }
+
+  inline ::google::protobuf::UnknownFieldSet* mutable_unknown_fields() {
+    return &_unknown_fields_;
+  }
+
+  static const ::google::protobuf::Descriptor* descriptor();
+  static const ShutdownAmfResponse& default_instance();
+
+  void Swap(ShutdownAmfResponse* other);
+
+  // implements Message ----------------------------------------------
+
+  ShutdownAmfResponse* New() const;
+  void CopyFrom(const ::google::protobuf::Message& from);
+  void MergeFrom(const ::google::protobuf::Message& from);
+  void CopyFrom(const ShutdownAmfResponse& from);
+  void MergeFrom(const ShutdownAmfResponse& from);
+  void Clear();
+  bool IsInitialized() const;
+
+  int ByteSize() const;
+  bool MergePartialFromCodedStream(
+      ::google::protobuf::io::CodedInputStream* input);
+  void SerializeWithCachedSizes(
+      ::google::protobuf::io::CodedOutputStream* output) const;
+  ::google::protobuf::uint8* SerializeWithCachedSizesToArray(::google::protobuf::uint8* output) const;
+  int GetCachedSize() const { return _cached_size_; }
+  private:
+  void SharedCtor();
+  void SharedDtor();
+  void SetCachedSize(int size) const;
+  public:
+  ::google::protobuf::Metadata GetMetadata() const;
+
+  // nested types ----------------------------------------------------
+
+  // accessors -------------------------------------------------------
+
+  // optional sint32 err = 1;
+  inline bool has_err() const;
+  inline void clear_err();
+  static const int kErrFieldNumber = 1;
+  inline ::google::protobuf::int32 err() const;
+  inline void set_err(::google::protobuf::int32 value);
+
+  GOOGLE_PROTOBUF_EXTENSION_ACCESSORS(ShutdownAmfResponse)
+  // @@protoc_insertion_point(class_scope:SAFplus.Rpc.amfRpc.ShutdownAmfResponse)
+ private:
+  inline void set_has_err();
+  inline void clear_has_err();
+
+  ::google::protobuf::internal::ExtensionSet _extensions_;
+
+  ::google::protobuf::UnknownFieldSet _unknown_fields_;
+
+  ::google::protobuf::uint32 _has_bits_[1];
+  mutable int _cached_size_;
+  ::google::protobuf::int32 err_;
+  friend void  protobuf_AddDesc_amfRpc_2eproto();
+  friend void protobuf_AssignDesc_amfRpc_2eproto();
+  friend void protobuf_ShutdownFile_amfRpc_2eproto();
+
+  void InitAsDefaultInstance();
+  static ShutdownAmfResponse* default_instance_;
 };
 // ===================================================================
 
@@ -1645,7 +1801,7 @@ inline void CleanupComponentRequest::set_pid(::google::protobuf::int32 value) {
   // @@protoc_insertion_point(field_set:SAFplus.Rpc.amfRpc.CleanupComponentRequest.pid)
 }
 
-// optional fixed32 timeout = 3;
+// optional uint64 timeout = 3;
 inline bool CleanupComponentRequest::has_timeout() const {
   return (_has_bits_[0] & 0x00000004u) != 0;
 }
@@ -1656,14 +1812,14 @@ inline void CleanupComponentRequest::clear_has_timeout() {
   _has_bits_[0] &= ~0x00000004u;
 }
 inline void CleanupComponentRequest::clear_timeout() {
-  timeout_ = 0u;
+  timeout_ = GOOGLE_ULONGLONG(0);
   clear_has_timeout();
 }
-inline ::google::protobuf::uint32 CleanupComponentRequest::timeout() const {
+inline ::google::protobuf::uint64 CleanupComponentRequest::timeout() const {
   // @@protoc_insertion_point(field_get:SAFplus.Rpc.amfRpc.CleanupComponentRequest.timeout)
   return timeout_;
 }
-inline void CleanupComponentRequest::set_timeout(::google::protobuf::uint32 value) {
+inline void CleanupComponentRequest::set_timeout(::google::protobuf::uint64 value) {
   set_has_timeout();
   timeout_ = value;
   // @@protoc_insertion_point(field_set:SAFplus.Rpc.amfRpc.CleanupComponentRequest.timeout)
@@ -1777,7 +1933,7 @@ inline void CleanupComponentResponse::set_err(::google::protobuf::int32 value) {
 
 // NodeInfoRequest
 
-// optional fixed32 time = 1;
+// optional uint64 time = 1;
 inline bool NodeInfoRequest::has_time() const {
   return (_has_bits_[0] & 0x00000001u) != 0;
 }
@@ -1788,14 +1944,14 @@ inline void NodeInfoRequest::clear_has_time() {
   _has_bits_[0] &= ~0x00000001u;
 }
 inline void NodeInfoRequest::clear_time() {
-  time_ = 0u;
+  time_ = GOOGLE_ULONGLONG(0);
   clear_has_time();
 }
-inline ::google::protobuf::uint32 NodeInfoRequest::time() const {
+inline ::google::protobuf::uint64 NodeInfoRequest::time() const {
   // @@protoc_insertion_point(field_get:SAFplus.Rpc.amfRpc.NodeInfoRequest.time)
   return time_;
 }
-inline void NodeInfoRequest::set_time(::google::protobuf::uint32 value) {
+inline void NodeInfoRequest::set_time(::google::protobuf::uint64 value) {
   set_has_time();
   time_ = value;
   // @@protoc_insertion_point(field_set:SAFplus.Rpc.amfRpc.NodeInfoRequest.time)
@@ -1805,7 +1961,7 @@ inline void NodeInfoRequest::set_time(::google::protobuf::uint32 value) {
 
 // NodeInfoResponse
 
-// optional fixed32 time = 1;
+// optional uint64 time = 1;
 inline bool NodeInfoResponse::has_time() const {
   return (_has_bits_[0] & 0x00000001u) != 0;
 }
@@ -1816,14 +1972,14 @@ inline void NodeInfoResponse::clear_has_time() {
   _has_bits_[0] &= ~0x00000001u;
 }
 inline void NodeInfoResponse::clear_time() {
-  time_ = 0u;
+  time_ = GOOGLE_ULONGLONG(0);
   clear_has_time();
 }
-inline ::google::protobuf::uint32 NodeInfoResponse::time() const {
+inline ::google::protobuf::uint64 NodeInfoResponse::time() const {
   // @@protoc_insertion_point(field_get:SAFplus.Rpc.amfRpc.NodeInfoResponse.time)
   return time_;
 }
-inline void NodeInfoResponse::set_time(::google::protobuf::uint32 value) {
+inline void NodeInfoResponse::set_time(::google::protobuf::uint64 value) {
   set_has_time();
   time_ = value;
   // @@protoc_insertion_point(field_set:SAFplus.Rpc.amfRpc.NodeInfoResponse.time)
@@ -2025,7 +2181,7 @@ inline void ProcessFailedResponse::set_err(::google::protobuf::int32 value) {
 
 // RebootNodeResponse
 
-// optional uint32 err = 1;
+// optional sint32 err = 1;
 inline bool RebootNodeResponse::has_err() const {
   return (_has_bits_[0] & 0x00000001u) != 0;
 }
@@ -2036,17 +2192,49 @@ inline void RebootNodeResponse::clear_has_err() {
   _has_bits_[0] &= ~0x00000001u;
 }
 inline void RebootNodeResponse::clear_err() {
-  err_ = 0u;
+  err_ = 0;
   clear_has_err();
 }
-inline ::google::protobuf::uint32 RebootNodeResponse::err() const {
+inline ::google::protobuf::int32 RebootNodeResponse::err() const {
   // @@protoc_insertion_point(field_get:SAFplus.Rpc.amfRpc.RebootNodeResponse.err)
   return err_;
 }
-inline void RebootNodeResponse::set_err(::google::protobuf::uint32 value) {
+inline void RebootNodeResponse::set_err(::google::protobuf::int32 value) {
   set_has_err();
   err_ = value;
   // @@protoc_insertion_point(field_set:SAFplus.Rpc.amfRpc.RebootNodeResponse.err)
+}
+
+// -------------------------------------------------------------------
+
+// ShutdownAmfRequest
+
+// -------------------------------------------------------------------
+
+// ShutdownAmfResponse
+
+// optional sint32 err = 1;
+inline bool ShutdownAmfResponse::has_err() const {
+  return (_has_bits_[0] & 0x00000001u) != 0;
+}
+inline void ShutdownAmfResponse::set_has_err() {
+  _has_bits_[0] |= 0x00000001u;
+}
+inline void ShutdownAmfResponse::clear_has_err() {
+  _has_bits_[0] &= ~0x00000001u;
+}
+inline void ShutdownAmfResponse::clear_err() {
+  err_ = 0;
+  clear_has_err();
+}
+inline ::google::protobuf::int32 ShutdownAmfResponse::err() const {
+  // @@protoc_insertion_point(field_get:SAFplus.Rpc.amfRpc.ShutdownAmfResponse.err)
+  return err_;
+}
+inline void ShutdownAmfResponse::set_err(::google::protobuf::int32 value) {
+  set_has_err();
+  err_ = value;
+  // @@protoc_insertion_point(field_set:SAFplus.Rpc.amfRpc.ShutdownAmfResponse.err)
 }
 
 

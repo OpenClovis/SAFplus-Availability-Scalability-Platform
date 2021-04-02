@@ -37,6 +37,8 @@ using namespace std;
 #define FAULT "FLT"
 #define FAULT_SERVER "SVR"
 
+extern void setNodeOperState(const SAFplus::Handle& nodeHdl, bool state);
+
 namespace SAFplus
 {
 
@@ -239,6 +241,21 @@ namespace SAFplus
                     {
                       logDebug(FAULT,"MSG","Repeated entity JOIN message for entity [%d.%d.%" PRIx64 "] state %d",faultEntity.getNode(),faultEntity.getProcess(),faultEntity.getIndex(),faultState);
                       setFaultState(faultEntity,faultState);
+                      if (faultEntity.getProcess() == 0 && faultEntity.getNode() != SAFplus::ASP_NODEADDR && faultState == FaultState::STATE_UP) // other node is up
+                      {
+                        try
+                        {
+                            Handle& amfMasterHdl = name.getHandle(AMF_MASTER_HANDLE, 2000);
+                            if (SAFplus::ASP_NODEADDR == amfMasterHdl.getNode()) // only active node needs to do this
+                            {
+                                setNodeOperState(faultEntity, true);
+                            }
+                        }
+                        catch(NameException& ex)
+                        {
+                            logError("MGMT","INI","getHandle got exception [%s]", ex.what());
+                        }
+                      }
                     }
                 }
                 break;

@@ -140,7 +140,7 @@ enum RpcOperation
 
 namespace SAFplus {
 
-extern ClRcT sgAdjust(const SAFplusAmf::ServiceGroup* sg);
+//extern ClRcT sgAdjust(const SAFplusAmf::ServiceGroup* sg);
 
 namespace Rpc {
 namespace amfMgmtRpc {
@@ -4899,7 +4899,8 @@ namespace amfMgmtRpc {
                 * Start the auto adjust probation timer to reset adjustments.
                 * */
                  sg->startAdjustTimer();
-                 rc = sgAdjust(sg);
+                 //rc = sgAdjust(sg);
+                 rc = amfOpsMgmt->sgAdjust(sg);
               }
           }
       }
@@ -4960,6 +4961,66 @@ namespace amfMgmtRpc {
               //gAmfPolicy = pp;
               pp->compFaultReport(comp, (SAFplusAmf::Recovery) recommendedRecovery);
               }
+      }
+      response->set_err(rc);
+  }
+
+  void amfMgmtRpcImpl::nodeErrorReport(const ::SAFplus::Rpc::amfMgmtRpc::NodeErrorReportRequest* request,
+                                  ::SAFplus::Rpc::amfMgmtRpc::NodeErrorReportResponse* response)
+  {
+      const std::string& nodeName = request->nodename();
+      bool shutdownAmf = request->shutdownamf();
+      bool rebootNode = request->rebootnode();
+      logDebug("MGMT","RPC","enter [%s] with param node name [%s], shutdownAmf [%d], rebootNode [%d]",__FUNCTION__,nodeName.c_str(), shutdownAmf, rebootNode);
+      ClRcT rc = CL_OK;
+#ifdef HANDLE_VALIDATE
+      DbalPlugin* pd = NULL;
+      rc = getDbalObj(request->amfmgmthandle().Get(0).c_str(), &pd);
+      if (rc != CL_OK)
+      {
+          logDebug("MGMT","RPC","invalid handle, rc [0x%x", rc);
+          response->set_err(rc);
+          return;
+      }
+#endif
+      SAFplusAmf::Node* node = dynamic_cast<SAFplusAmf::Node*>(cfg.safplusAmf.nodeList[nodeName]);
+      if (node == NULL)
+      {
+          logWarning("MGMT","RPC","node object is null for its name [%s]", nodeName.c_str());
+          rc = CL_ERR_NOT_EXIST;
+      }
+      else
+      {
+          amfOpsMgmt->nodeErrorReport(node, shutdownAmf, rebootNode);
+      }
+      response->set_err(rc);
+  }
+
+  void amfMgmtRpcImpl::nodeErrorClear(const ::SAFplus::Rpc::amfMgmtRpc::NodeErrorClearRequest* request,
+                                  ::SAFplus::Rpc::amfMgmtRpc::NodeErrorClearResponse* response)
+  {
+      const std::string& nodeName = request->nodename();
+      logDebug("MGMT","RPC","enter [%s] with param node name [%s]",__FUNCTION__,nodeName.c_str());
+      ClRcT rc = CL_OK;
+#ifdef HANDLE_VALIDATE
+      DbalPlugin* pd = NULL;
+      rc = getDbalObj(request->amfmgmthandle().Get(0).c_str(), &pd);
+      if (rc != CL_OK)
+      {
+          logDebug("MGMT","RPC","invalid handle, rc [0x%x", rc);
+          response->set_err(rc);
+          return;
+      }
+#endif
+      SAFplusAmf::Node* node = dynamic_cast<SAFplusAmf::Node*>(cfg.safplusAmf.nodeList[nodeName]);
+      if (node == NULL)
+      {
+          logWarning("MGMT","RPC","node object is null for its name [%s]", nodeName.c_str());
+          rc = CL_ERR_NOT_EXIST;
+      }
+      else
+      {
+          amfOpsMgmt->nodeErrorClear(node);
       }
       response->set_err(rc);
   }

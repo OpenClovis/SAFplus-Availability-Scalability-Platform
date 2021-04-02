@@ -68,6 +68,7 @@ void preprocessDb(SAFplusAmf::SAFplusAmfModule& cfg);
 void loadAmfPluginsAt(const char* soPath, AmfOperations& amfOps,Fault& fault);
 void postProcessing();
 void updateNodesFaultState(SAFplusAmf::SAFplusAmfModule& cfg);
+void setNodeOperState(const SAFplus::Handle& nodeHdl, bool state);
 
 RedPolicyMap redPolicies;
 
@@ -357,7 +358,7 @@ bool activeAudit()  // Check to make sure DB and the system state are in sync.  
            }
 #endif
 
-         if ((fs == FaultState::STATE_UP) && (node->adminState.value != AdministrativeState::off) &&(node->presenceState != PresenceState::instantiated))
+         if ((fs == FaultState::STATE_UP) && node->operState.value && (node->adminState.value != AdministrativeState::off) &&(node->presenceState != PresenceState::instantiated))
            {
              PresenceState ps = PresenceState::instantiated;
              logInfo("AUD","ACT","Presence state of Node [%s] changed from [%s (%d)] to [%s (%d)]", node->name.value.c_str(),c_str(node->presenceState.value),(int) node->presenceState.value, c_str(ps), (int) ps);             
@@ -1256,5 +1257,29 @@ void preprocessDb(SAFplusAmf::SAFplusAmfModule& cfg)
             csi->isProxyCSI = true;
          }
       } 
+   }
+}
+
+void setNodeOperState(const SAFplus::Handle& nodeHdl, bool state)
+{
+   try
+   {
+       char* nodeName = name.getName(nodeHdl);
+       std::string strNode(nodeName);
+       SAFplusAmf::Node* node = dynamic_cast<SAFplusAmf::Node*>(cfg.safplusAmf.nodeList[strNode]);
+       if (node && node->operState.value != state)
+       {
+           bool oldState = node->operState.value;
+           node->operState.value = state;
+           logInfo("MAIN","OPS","operState of Node [%s] changed from [%s] to [%s]", node->name.value.c_str(),oldState?"Enabled":"Disabled", node->operState.value?"Enabled":"Disabled");
+       }
+       else if (!node)
+       {
+           logError("MAIN","OPS", "object for node [%s] doesn't exist", nodeName);
+       }
+   }
+   catch (NameException& ne)
+   {
+       logError("MAIN","OPS", "get name by handle [%" PRIx64 ":%" PRIx64 "] fail. Error message: %s", nodeHdl.id[0], nodeHdl.id[1], ne.what());
    }
 }
