@@ -1741,7 +1741,8 @@ class Panel(scrolled.ScrolledPanel):
           sgs = values.data.get(tagName, None)
           if sgs:
             if added:
-              if sgs.find(thisSg) == -1:
+              #if sgs.find(thisSg) == -1:
+              if thisSg not in sgs.split():
                 sgs += " "+thisSg
                 values.data[tagName] = sgs
             else:
