@@ -411,7 +411,7 @@ class SelectTool(Tool):
           #     print 'DBG: repositionRow for [%s]'%e.data['name']
           #     panel.repositionColumn(e,(pos[0]/scale,pos[1]/scale))
           #   else:
-               if e.et.name == 'Component' or e.et.name == 'NonSafComponent':
+               if e.et.name == 'Component' or e.et.name == 'NonSafComponent' or e.et.name == 'Node' or e.et.name == 'ServiceGroup':
                  pass # ignore reposition Component or NonSafComponent
                else:
                  print 'DBG: reposition for [%s]'%e.data['name']
@@ -1060,6 +1060,7 @@ class GridEntityLayout:
     return False
 
   def getCell(self, pos):
+    pos = (round(pos[0]), round(pos[1]))
     for row in self.grid:
       for cell in row:        
         if inBox(pos,cell.bound) and len(cell.entities)==0:
@@ -1717,7 +1718,7 @@ class Panel(scrolled.ScrolledPanel):
             if sgs:
               sgs = sgs.split()
               if e1.data["name"] in sgs:
-                self.createGrayCell(pos, entities=None, save=False)
+                self.createGrayCell((pos[0]*self.scale, pos[1]*self.scale), entities=None, save=False)
           x=COL_SPACING+cell.bound[2]
         if cell:
           y=ROW_SPACING+cell.bound[3]
@@ -2308,6 +2309,7 @@ class Panel(scrolled.ScrolledPanel):
       if deleteFromModel:
         self.updateDefineNodeTypes(ents)
         self.model.delete(ents)
+      self.loadGrayCells()
       self.Refresh()
       self.layout()
 
