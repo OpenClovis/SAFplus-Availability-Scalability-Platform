@@ -85,4 +85,6 @@ ClRcT amfNodeJoin(const Handle& mgmtHandle, const std::string& nodeName);
 ClRcT amfMgmtNodeShutdown(const Handle& mgmtHandle, const std::string& nodeName);
 ClRcT amfNodeRestart(const Handle& mgmtHandle, const std::string& nodeName);
 
+ClRcT amfMgmtAssignSUtoSI(const Handle& mgmtHandle, const std::string& siName, const std::string& acitveSUName, const std::string& standbySUName);
+
 }

@@ -154,6 +154,8 @@ class amfMgmtRpc : public SAFplus::Rpc::RpcService {
                        ::SAFplus::Rpc::amfMgmtRpc::NodeErrorReportResponse* response);
   virtual void nodeErrorClear(const ::SAFplus::Rpc::amfMgmtRpc::NodeErrorClearRequest* request,
                        ::SAFplus::Rpc::amfMgmtRpc::NodeErrorClearResponse* response);
+  virtual void assignSUtoSI(const ::SAFplus::Rpc::amfMgmtRpc::AssignSUtoSIRequest* request,
+                       ::SAFplus::Rpc::amfMgmtRpc::AssignSUtoSIResponse* response);
 
   // implements amfMgmtRpc ------------------------------------------
   virtual void initialize(SAFplus::Handle destination,
@@ -399,6 +401,10 @@ class amfMgmtRpc : public SAFplus::Rpc::RpcService {
   virtual void nodeErrorClear(SAFplus::Handle destination,
                        const ::SAFplus::Rpc::amfMgmtRpc::NodeErrorClearRequest* request,
                        ::SAFplus::Rpc::amfMgmtRpc::NodeErrorClearResponse* response,
+                       SAFplus::Wakeable& wakeable = *((SAFplus::Wakeable*)nullptr));
+  virtual void assignSUtoSI(SAFplus::Handle destination,
+                       const ::SAFplus::Rpc::amfMgmtRpc::AssignSUtoSIRequest* request,
+                       ::SAFplus::Rpc::amfMgmtRpc::AssignSUtoSIResponse* response,
                        SAFplus::Wakeable& wakeable = *((SAFplus::Wakeable*)nullptr));
 
 
@@ -672,6 +678,10 @@ class amfMgmtRpc_Stub : public amfMgmtRpc {
                        const ::SAFplus::Rpc::amfMgmtRpc::NodeErrorClearRequest* request,
                        ::SAFplus::Rpc::amfMgmtRpc::NodeErrorClearResponse* response,
                        SAFplus::Wakeable& wakeable = *((SAFplus::Wakeable*)nullptr));
+  void assignSUtoSI(SAFplus::Handle destination,
+                       const ::SAFplus::Rpc::amfMgmtRpc::AssignSUtoSIRequest* request,
+                       ::SAFplus::Rpc::amfMgmtRpc::AssignSUtoSIResponse* response,
+                       SAFplus::Wakeable& wakeable = *((SAFplus::Wakeable*)nullptr));
  private:
   SAFplus::Rpc::RpcChannel* channel_;
   bool owns_channel_;
@@ -807,6 +817,8 @@ class amfMgmtRpcImpl : public amfMgmtRpc {
                        ::SAFplus::Rpc::amfMgmtRpc::NodeErrorReportResponse* response);
   void nodeErrorClear(const ::SAFplus::Rpc::amfMgmtRpc::NodeErrorClearRequest* request,
                        ::SAFplus::Rpc::amfMgmtRpc::NodeErrorClearResponse* response);
+  void assignSUtoSI(const ::SAFplus::Rpc::amfMgmtRpc::AssignSUtoSIRequest* request,
+                       ::SAFplus::Rpc::amfMgmtRpc::AssignSUtoSIResponse* response);
 };
 
 }  // namespace amfMgmtRpc

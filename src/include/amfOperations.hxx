@@ -115,13 +115,15 @@ namespace SAFplus
     void serviceUnitRestart(SAFplusAmf::ServiceUnit* su,Wakeable& w = *((Wakeable*)nullptr));
     void componentRestart(SAFplusAmf::Component* comp,Wakeable& w = *((Wakeable*)nullptr));
 
-    ClRcT triggerFlagSISwap(std::string siName);
     ClRcT swapSI(std::string siName);
 
     ClRcT sgAdjust(const SAFplusAmf::ServiceGroup* sg);
 
     ClRcT nodeErrorReport(SAFplusAmf::Node* node, bool shutdownAmf = false, bool rebootNode = false);
     ClRcT nodeErrorClear(SAFplusAmf::Node* node);
+
+    ClRcT removeThenAssignWork(SAFplusAmf::ServiceInstance* si, SAFplusAmf::ServiceUnit* su, SAFplusAmf::HighAvailabilityState currentState, SAFplusAmf::HighAvailabilityState assignState);
+    ClRcT assignSUtoSI(std::string siName, std::string activceSUName, std::string standbySUName);
 
 
     };

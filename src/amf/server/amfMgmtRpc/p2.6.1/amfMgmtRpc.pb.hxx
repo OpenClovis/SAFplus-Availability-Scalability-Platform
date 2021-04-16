@@ -215,6 +215,8 @@ class NodeErrorReportRequest;
 class NodeErrorReportResponse;
 class NodeErrorClearRequest;
 class NodeErrorClearResponse;
+class AssignSUtoSIRequest;
+class AssignSUtoSIResponse;
 
 enum PresenceState {
   PresenceState_uninstantiated = 0,
@@ -18296,6 +18298,222 @@ class NodeErrorClearResponse : public ::google::protobuf::Message {
 
   void InitAsDefaultInstance();
   static NodeErrorClearResponse* default_instance_;
+};
+// -------------------------------------------------------------------
+
+class AssignSUtoSIRequest : public ::google::protobuf::Message {
+ public:
+  AssignSUtoSIRequest();
+  virtual ~AssignSUtoSIRequest();
+
+  AssignSUtoSIRequest(const AssignSUtoSIRequest& from);
+
+  inline AssignSUtoSIRequest& operator=(const AssignSUtoSIRequest& from) {
+    CopyFrom(from);
+    return *this;
+  }
+
+  inline const ::google::protobuf::UnknownFieldSet& unknown_fields() const {
+    return _unknown_fields_;
+  }
+
+  inline ::google::protobuf::UnknownFieldSet* mutable_unknown_fields() {
+    return &_unknown_fields_;
+  }
+
+  static const ::google::protobuf::Descriptor* descriptor();
+  static const AssignSUtoSIRequest& default_instance();
+
+  void Swap(AssignSUtoSIRequest* other);
+
+  // implements Message ----------------------------------------------
+
+  AssignSUtoSIRequest* New() const;
+  void CopyFrom(const ::google::protobuf::Message& from);
+  void MergeFrom(const ::google::protobuf::Message& from);
+  void CopyFrom(const AssignSUtoSIRequest& from);
+  void MergeFrom(const AssignSUtoSIRequest& from);
+  void Clear();
+  bool IsInitialized() const;
+
+  int ByteSize() const;
+  bool MergePartialFromCodedStream(
+      ::google::protobuf::io::CodedInputStream* input);
+  void SerializeWithCachedSizes(
+      ::google::protobuf::io::CodedOutputStream* output) const;
+  ::google::protobuf::uint8* SerializeWithCachedSizesToArray(::google::protobuf::uint8* output) const;
+  int GetCachedSize() const { return _cached_size_; }
+  private:
+  void SharedCtor();
+  void SharedDtor();
+  void SetCachedSize(int size) const;
+  public:
+  ::google::protobuf::Metadata GetMetadata() const;
+
+  // nested types ----------------------------------------------------
+
+  // accessors -------------------------------------------------------
+
+  // repeated bytes amfMgmtHandle = 1;
+  inline int amfmgmthandle_size() const;
+  inline void clear_amfmgmthandle();
+  static const int kAmfMgmtHandleFieldNumber = 1;
+  inline const ::std::string& amfmgmthandle(int index) const;
+  inline ::std::string* mutable_amfmgmthandle(int index);
+  inline void set_amfmgmthandle(int index, const ::std::string& value);
+  inline void set_amfmgmthandle(int index, const char* value);
+  inline void set_amfmgmthandle(int index, const void* value, size_t size);
+  inline ::std::string* add_amfmgmthandle();
+  inline void add_amfmgmthandle(const ::std::string& value);
+  inline void add_amfmgmthandle(const char* value);
+  inline void add_amfmgmthandle(const void* value, size_t size);
+  inline const ::google::protobuf::RepeatedPtrField< ::std::string>& amfmgmthandle() const;
+  inline ::google::protobuf::RepeatedPtrField< ::std::string>* mutable_amfmgmthandle();
+
+  // optional string siName = 2;
+  inline bool has_siname() const;
+  inline void clear_siname();
+  static const int kSiNameFieldNumber = 2;
+  inline const ::std::string& siname() const;
+  inline void set_siname(const ::std::string& value);
+  inline void set_siname(const char* value);
+  inline void set_siname(const char* value, size_t size);
+  inline ::std::string* mutable_siname();
+  inline ::std::string* release_siname();
+  inline void set_allocated_siname(::std::string* siname);
+
+  // optional string activeSUName = 3;
+  inline bool has_activesuname() const;
+  inline void clear_activesuname();
+  static const int kActiveSUNameFieldNumber = 3;
+  inline const ::std::string& activesuname() const;
+  inline void set_activesuname(const ::std::string& value);
+  inline void set_activesuname(const char* value);
+  inline void set_activesuname(const char* value, size_t size);
+  inline ::std::string* mutable_activesuname();
+  inline ::std::string* release_activesuname();
+  inline void set_allocated_activesuname(::std::string* activesuname);
+
+  // optional string standbySUName = 4;
+  inline bool has_standbysuname() const;
+  inline void clear_standbysuname();
+  static const int kStandbySUNameFieldNumber = 4;
+  inline const ::std::string& standbysuname() const;
+  inline void set_standbysuname(const ::std::string& value);
+  inline void set_standbysuname(const char* value);
+  inline void set_standbysuname(const char* value, size_t size);
+  inline ::std::string* mutable_standbysuname();
+  inline ::std::string* release_standbysuname();
+  inline void set_allocated_standbysuname(::std::string* standbysuname);
+
+  GOOGLE_PROTOBUF_EXTENSION_ACCESSORS(AssignSUtoSIRequest)
+  // @@protoc_insertion_point(class_scope:SAFplus.Rpc.amfMgmtRpc.AssignSUtoSIRequest)
+ private:
+  inline void set_has_siname();
+  inline void clear_has_siname();
+  inline void set_has_activesuname();
+  inline void clear_has_activesuname();
+  inline void set_has_standbysuname();
+  inline void clear_has_standbysuname();
+
+  ::google::protobuf::internal::ExtensionSet _extensions_;
+
+  ::google::protobuf::UnknownFieldSet _unknown_fields_;
+
+  ::google::protobuf::uint32 _has_bits_[1];
+  mutable int _cached_size_;
+  ::google::protobuf::RepeatedPtrField< ::std::string> amfmgmthandle_;
+  ::std::string* siname_;
+  ::std::string* activesuname_;
+  ::std::string* standbysuname_;
+  friend void  protobuf_AddDesc_amfMgmtRpc_2eproto();
+  friend void protobuf_AssignDesc_amfMgmtRpc_2eproto();
+  friend void protobuf_ShutdownFile_amfMgmtRpc_2eproto();
+
+  void InitAsDefaultInstance();
+  static AssignSUtoSIRequest* default_instance_;
+};
+// -------------------------------------------------------------------
+
+class AssignSUtoSIResponse : public ::google::protobuf::Message {
+ public:
+  AssignSUtoSIResponse();
+  virtual ~AssignSUtoSIResponse();
+
+  AssignSUtoSIResponse(const AssignSUtoSIResponse& from);
+
+  inline AssignSUtoSIResponse& operator=(const AssignSUtoSIResponse& from) {
+    CopyFrom(from);
+    return *this;
+  }
+
+  inline const ::google::protobuf::UnknownFieldSet& unknown_fields() const {
+    return _unknown_fields_;
+  }
+
+  inline ::google::protobuf::UnknownFieldSet* mutable_unknown_fields() {
+    return &_unknown_fields_;
+  }
+
+  static const ::google::protobuf::Descriptor* descriptor();
+  static const AssignSUtoSIResponse& default_instance();
+
+  void Swap(AssignSUtoSIResponse* other);
+
+  // implements Message ----------------------------------------------
+
+  AssignSUtoSIResponse* New() const;
+  void CopyFrom(const ::google::protobuf::Message& from);
+  void MergeFrom(const ::google::protobuf::Message& from);
+  void CopyFrom(const AssignSUtoSIResponse& from);
+  void MergeFrom(const AssignSUtoSIResponse& from);
+  void Clear();
+  bool IsInitialized() const;
+
+  int ByteSize() const;
+  bool MergePartialFromCodedStream(
+      ::google::protobuf::io::CodedInputStream* input);
+  void SerializeWithCachedSizes(
+      ::google::protobuf::io::CodedOutputStream* output) const;
+  ::google::protobuf::uint8* SerializeWithCachedSizesToArray(::google::protobuf::uint8* output) const;
+  int GetCachedSize() const { return _cached_size_; }
+  private:
+  void SharedCtor();
+  void SharedDtor();
+  void SetCachedSize(int size) const;
+  public:
+  ::google::protobuf::Metadata GetMetadata() const;
+
+  // nested types ----------------------------------------------------
+
+  // accessors -------------------------------------------------------
+
+  // optional sint32 err = 1;
+  inline bool has_err() const;
+  inline void clear_err();
+  static const int kErrFieldNumber = 1;
+  inline ::google::protobuf::int32 err() const;
+  inline void set_err(::google::protobuf::int32 value);
+
+  GOOGLE_PROTOBUF_EXTENSION_ACCESSORS(AssignSUtoSIResponse)
+  // @@protoc_insertion_point(class_scope:SAFplus.Rpc.amfMgmtRpc.AssignSUtoSIResponse)
+ private:
+  inline void set_has_err();
+  inline void clear_has_err();
+
+  ::google::protobuf::internal::ExtensionSet _extensions_;
+
+  ::google::protobuf::UnknownFieldSet _unknown_fields_;
+
+  ::google::protobuf::uint32 _has_bits_[1];
+  mutable int _cached_size_;
+  ::google::protobuf::int32 err_;
+  friend void  protobuf_AddDesc_amfMgmtRpc_2eproto();
+  friend void protobuf_AssignDesc_amfMgmtRpc_2eproto();
+  friend void protobuf_ShutdownFile_amfMgmtRpc_2eproto();
+
+  void InitAsDefaultInstance();
+  static AssignSUtoSIResponse* default_instance_;
 };
 // ===================================================================
 
@@ -36749,6 +36967,320 @@ inline void NodeErrorClearResponse::set_err(::google::protobuf::int32 value) {
   set_has_err();
   err_ = value;
   // @@protoc_insertion_point(field_set:SAFplus.Rpc.amfMgmtRpc.NodeErrorClearResponse.err)
+}
+
+// -------------------------------------------------------------------
+
+// AssignSUtoSIRequest
+
+// repeated bytes amfMgmtHandle = 1;
+inline int AssignSUtoSIRequest::amfmgmthandle_size() const {
+  return amfmgmthandle_.size();
+}
+inline void AssignSUtoSIRequest::clear_amfmgmthandle() {
+  amfmgmthandle_.Clear();
+}
+inline const ::std::string& AssignSUtoSIRequest::amfmgmthandle(int index) const {
+  // @@protoc_insertion_point(field_get:SAFplus.Rpc.amfMgmtRpc.AssignSUtoSIRequest.amfMgmtHandle)
+  return amfmgmthandle_.Get(index);
+}
+inline ::std::string* AssignSUtoSIRequest::mutable_amfmgmthandle(int index) {
+  // @@protoc_insertion_point(field_mutable:SAFplus.Rpc.amfMgmtRpc.AssignSUtoSIRequest.amfMgmtHandle)
+  return amfmgmthandle_.Mutable(index);
+}
+inline void AssignSUtoSIRequest::set_amfmgmthandle(int index, const ::std::string& value) {
+  // @@protoc_insertion_point(field_set:SAFplus.Rpc.amfMgmtRpc.AssignSUtoSIRequest.amfMgmtHandle)
+  amfmgmthandle_.Mutable(index)->assign(value);
+}
+inline void AssignSUtoSIRequest::set_amfmgmthandle(int index, const char* value) {
+  amfmgmthandle_.Mutable(index)->assign(value);
+  // @@protoc_insertion_point(field_set_char:SAFplus.Rpc.amfMgmtRpc.AssignSUtoSIRequest.amfMgmtHandle)
+}
+inline void AssignSUtoSIRequest::set_amfmgmthandle(int index, const void* value, size_t size) {
+  amfmgmthandle_.Mutable(index)->assign(
+    reinterpret_cast<const char*>(value), size);
+  // @@protoc_insertion_point(field_set_pointer:SAFplus.Rpc.amfMgmtRpc.AssignSUtoSIRequest.amfMgmtHandle)
+}
+inline ::std::string* AssignSUtoSIRequest::add_amfmgmthandle() {
+  return amfmgmthandle_.Add();
+}
+inline void AssignSUtoSIRequest::add_amfmgmthandle(const ::std::string& value) {
+  amfmgmthandle_.Add()->assign(value);
+  // @@protoc_insertion_point(field_add:SAFplus.Rpc.amfMgmtRpc.AssignSUtoSIRequest.amfMgmtHandle)
+}
+inline void AssignSUtoSIRequest::add_amfmgmthandle(const char* value) {
+  amfmgmthandle_.Add()->assign(value);
+  // @@protoc_insertion_point(field_add_char:SAFplus.Rpc.amfMgmtRpc.AssignSUtoSIRequest.amfMgmtHandle)
+}
+inline void AssignSUtoSIRequest::add_amfmgmthandle(const void* value, size_t size) {
+  amfmgmthandle_.Add()->assign(reinterpret_cast<const char*>(value), size);
+  // @@protoc_insertion_point(field_add_pointer:SAFplus.Rpc.amfMgmtRpc.AssignSUtoSIRequest.amfMgmtHandle)
+}
+inline const ::google::protobuf::RepeatedPtrField< ::std::string>&
+AssignSUtoSIRequest::amfmgmthandle() const {
+  // @@protoc_insertion_point(field_list:SAFplus.Rpc.amfMgmtRpc.AssignSUtoSIRequest.amfMgmtHandle)
+  return amfmgmthandle_;
+}
+inline ::google::protobuf::RepeatedPtrField< ::std::string>*
+AssignSUtoSIRequest::mutable_amfmgmthandle() {
+  // @@protoc_insertion_point(field_mutable_list:SAFplus.Rpc.amfMgmtRpc.AssignSUtoSIRequest.amfMgmtHandle)
+  return &amfmgmthandle_;
+}
+
+// optional string siName = 2;
+inline bool AssignSUtoSIRequest::has_siname() const {
+  return (_has_bits_[0] & 0x00000002u) != 0;
+}
+inline void AssignSUtoSIRequest::set_has_siname() {
+  _has_bits_[0] |= 0x00000002u;
+}
+inline void AssignSUtoSIRequest::clear_has_siname() {
+  _has_bits_[0] &= ~0x00000002u;
+}
+inline void AssignSUtoSIRequest::clear_siname() {
+  if (siname_ != &::google::protobuf::internal::GetEmptyStringAlreadyInited()) {
+    siname_->clear();
+  }
+  clear_has_siname();
+}
+inline const ::std::string& AssignSUtoSIRequest::siname() const {
+  // @@protoc_insertion_point(field_get:SAFplus.Rpc.amfMgmtRpc.AssignSUtoSIRequest.siName)
+  return *siname_;
+}
+inline void AssignSUtoSIRequest::set_siname(const ::std::string& value) {
+  set_has_siname();
+  if (siname_ == &::google::protobuf::internal::GetEmptyStringAlreadyInited()) {
+    siname_ = new ::std::string;
+  }
+  siname_->assign(value);
+  // @@protoc_insertion_point(field_set:SAFplus.Rpc.amfMgmtRpc.AssignSUtoSIRequest.siName)
+}
+inline void AssignSUtoSIRequest::set_siname(const char* value) {
+  set_has_siname();
+  if (siname_ == &::google::protobuf::internal::GetEmptyStringAlreadyInited()) {
+    siname_ = new ::std::string;
+  }
+  siname_->assign(value);
+  // @@protoc_insertion_point(field_set_char:SAFplus.Rpc.amfMgmtRpc.AssignSUtoSIRequest.siName)
+}
+inline void AssignSUtoSIRequest::set_siname(const char* value, size_t size) {
+  set_has_siname();
+  if (siname_ == &::google::protobuf::internal::GetEmptyStringAlreadyInited()) {
+    siname_ = new ::std::string;
+  }
+  siname_->assign(reinterpret_cast<const char*>(value), size);
+  // @@protoc_insertion_point(field_set_pointer:SAFplus.Rpc.amfMgmtRpc.AssignSUtoSIRequest.siName)
+}
+inline ::std::string* AssignSUtoSIRequest::mutable_siname() {
+  set_has_siname();
+  if (siname_ == &::google::protobuf::internal::GetEmptyStringAlreadyInited()) {
+    siname_ = new ::std::string;
+  }
+  // @@protoc_insertion_point(field_mutable:SAFplus.Rpc.amfMgmtRpc.AssignSUtoSIRequest.siName)
+  return siname_;
+}
+inline ::std::string* AssignSUtoSIRequest::release_siname() {
+  clear_has_siname();
+  if (siname_ == &::google::protobuf::internal::GetEmptyStringAlreadyInited()) {
+    return NULL;
+  } else {
+    ::std::string* temp = siname_;
+    siname_ = const_cast< ::std::string*>(&::google::protobuf::internal::GetEmptyStringAlreadyInited());
+    return temp;
+  }
+}
+inline void AssignSUtoSIRequest::set_allocated_siname(::std::string* siname) {
+  if (siname_ != &::google::protobuf::internal::GetEmptyStringAlreadyInited()) {
+    delete siname_;
+  }
+  if (siname) {
+    set_has_siname();
+    siname_ = siname;
+  } else {
+    clear_has_siname();
+    siname_ = const_cast< ::std::string*>(&::google::protobuf::internal::GetEmptyStringAlreadyInited());
+  }
+  // @@protoc_insertion_point(field_set_allocated:SAFplus.Rpc.amfMgmtRpc.AssignSUtoSIRequest.siName)
+}
+
+// optional string activeSUName = 3;
+inline bool AssignSUtoSIRequest::has_activesuname() const {
+  return (_has_bits_[0] & 0x00000004u) != 0;
+}
+inline void AssignSUtoSIRequest::set_has_activesuname() {
+  _has_bits_[0] |= 0x00000004u;
+}
+inline void AssignSUtoSIRequest::clear_has_activesuname() {
+  _has_bits_[0] &= ~0x00000004u;
+}
+inline void AssignSUtoSIRequest::clear_activesuname() {
+  if (activesuname_ != &::google::protobuf::internal::GetEmptyStringAlreadyInited()) {
+    activesuname_->clear();
+  }
+  clear_has_activesuname();
+}
+inline const ::std::string& AssignSUtoSIRequest::activesuname() const {
+  // @@protoc_insertion_point(field_get:SAFplus.Rpc.amfMgmtRpc.AssignSUtoSIRequest.activeSUName)
+  return *activesuname_;
+}
+inline void AssignSUtoSIRequest::set_activesuname(const ::std::string& value) {
+  set_has_activesuname();
+  if (activesuname_ == &::google::protobuf::internal::GetEmptyStringAlreadyInited()) {
+    activesuname_ = new ::std::string;
+  }
+  activesuname_->assign(value);
+  // @@protoc_insertion_point(field_set:SAFplus.Rpc.amfMgmtRpc.AssignSUtoSIRequest.activeSUName)
+}
+inline void AssignSUtoSIRequest::set_activesuname(const char* value) {
+  set_has_activesuname();
+  if (activesuname_ == &::google::protobuf::internal::GetEmptyStringAlreadyInited()) {
+    activesuname_ = new ::std::string;
+  }
+  activesuname_->assign(value);
+  // @@protoc_insertion_point(field_set_char:SAFplus.Rpc.amfMgmtRpc.AssignSUtoSIRequest.activeSUName)
+}
+inline void AssignSUtoSIRequest::set_activesuname(const char* value, size_t size) {
+  set_has_activesuname();
+  if (activesuname_ == &::google::protobuf::internal::GetEmptyStringAlreadyInited()) {
+    activesuname_ = new ::std::string;
+  }
+  activesuname_->assign(reinterpret_cast<const char*>(value), size);
+  // @@protoc_insertion_point(field_set_pointer:SAFplus.Rpc.amfMgmtRpc.AssignSUtoSIRequest.activeSUName)
+}
+inline ::std::string* AssignSUtoSIRequest::mutable_activesuname() {
+  set_has_activesuname();
+  if (activesuname_ == &::google::protobuf::internal::GetEmptyStringAlreadyInited()) {
+    activesuname_ = new ::std::string;
+  }
+  // @@protoc_insertion_point(field_mutable:SAFplus.Rpc.amfMgmtRpc.AssignSUtoSIRequest.activeSUName)
+  return activesuname_;
+}
+inline ::std::string* AssignSUtoSIRequest::release_activesuname() {
+  clear_has_activesuname();
+  if (activesuname_ == &::google::protobuf::internal::GetEmptyStringAlreadyInited()) {
+    return NULL;
+  } else {
+    ::std::string* temp = activesuname_;
+    activesuname_ = const_cast< ::std::string*>(&::google::protobuf::internal::GetEmptyStringAlreadyInited());
+    return temp;
+  }
+}
+inline void AssignSUtoSIRequest::set_allocated_activesuname(::std::string* activesuname) {
+  if (activesuname_ != &::google::protobuf::internal::GetEmptyStringAlreadyInited()) {
+    delete activesuname_;
+  }
+  if (activesuname) {
+    set_has_activesuname();
+    activesuname_ = activesuname;
+  } else {
+    clear_has_activesuname();
+    activesuname_ = const_cast< ::std::string*>(&::google::protobuf::internal::GetEmptyStringAlreadyInited());
+  }
+  // @@protoc_insertion_point(field_set_allocated:SAFplus.Rpc.amfMgmtRpc.AssignSUtoSIRequest.activeSUName)
+}
+
+// optional string standbySUName = 4;
+inline bool AssignSUtoSIRequest::has_standbysuname() const {
+  return (_has_bits_[0] & 0x00000008u) != 0;
+}
+inline void AssignSUtoSIRequest::set_has_standbysuname() {
+  _has_bits_[0] |= 0x00000008u;
+}
+inline void AssignSUtoSIRequest::clear_has_standbysuname() {
+  _has_bits_[0] &= ~0x00000008u;
+}
+inline void AssignSUtoSIRequest::clear_standbysuname() {
+  if (standbysuname_ != &::google::protobuf::internal::GetEmptyStringAlreadyInited()) {
+    standbysuname_->clear();
+  }
+  clear_has_standbysuname();
+}
+inline const ::std::string& AssignSUtoSIRequest::standbysuname() const {
+  // @@protoc_insertion_point(field_get:SAFplus.Rpc.amfMgmtRpc.AssignSUtoSIRequest.standbySUName)
+  return *standbysuname_;
+}
+inline void AssignSUtoSIRequest::set_standbysuname(const ::std::string& value) {
+  set_has_standbysuname();
+  if (standbysuname_ == &::google::protobuf::internal::GetEmptyStringAlreadyInited()) {
+    standbysuname_ = new ::std::string;
+  }
+  standbysuname_->assign(value);
+  // @@protoc_insertion_point(field_set:SAFplus.Rpc.amfMgmtRpc.AssignSUtoSIRequest.standbySUName)
+}
+inline void AssignSUtoSIRequest::set_standbysuname(const char* value) {
+  set_has_standbysuname();
+  if (standbysuname_ == &::google::protobuf::internal::GetEmptyStringAlreadyInited()) {
+    standbysuname_ = new ::std::string;
+  }
+  standbysuname_->assign(value);
+  // @@protoc_insertion_point(field_set_char:SAFplus.Rpc.amfMgmtRpc.AssignSUtoSIRequest.standbySUName)
+}
+inline void AssignSUtoSIRequest::set_standbysuname(const char* value, size_t size) {
+  set_has_standbysuname();
+  if (standbysuname_ == &::google::protobuf::internal::GetEmptyStringAlreadyInited()) {
+    standbysuname_ = new ::std::string;
+  }
+  standbysuname_->assign(reinterpret_cast<const char*>(value), size);
+  // @@protoc_insertion_point(field_set_pointer:SAFplus.Rpc.amfMgmtRpc.AssignSUtoSIRequest.standbySUName)
+}
+inline ::std::string* AssignSUtoSIRequest::mutable_standbysuname() {
+  set_has_standbysuname();
+  if (standbysuname_ == &::google::protobuf::internal::GetEmptyStringAlreadyInited()) {
+    standbysuname_ = new ::std::string;
+  }
+  // @@protoc_insertion_point(field_mutable:SAFplus.Rpc.amfMgmtRpc.AssignSUtoSIRequest.standbySUName)
+  return standbysuname_;
+}
+inline ::std::string* AssignSUtoSIRequest::release_standbysuname() {
+  clear_has_standbysuname();
+  if (standbysuname_ == &::google::protobuf::internal::GetEmptyStringAlreadyInited()) {
+    return NULL;
+  } else {
+    ::std::string* temp = standbysuname_;
+    standbysuname_ = const_cast< ::std::string*>(&::google::protobuf::internal::GetEmptyStringAlreadyInited());
+    return temp;
+  }
+}
+inline void AssignSUtoSIRequest::set_allocated_standbysuname(::std::string* standbysuname) {
+  if (standbysuname_ != &::google::protobuf::internal::GetEmptyStringAlreadyInited()) {
+    delete standbysuname_;
+  }
+  if (standbysuname) {
+    set_has_standbysuname();
+    standbysuname_ = standbysuname;
+  } else {
+    clear_has_standbysuname();
+    standbysuname_ = const_cast< ::std::string*>(&::google::protobuf::internal::GetEmptyStringAlreadyInited());
+  }
+  // @@protoc_insertion_point(field_set_allocated:SAFplus.Rpc.amfMgmtRpc.AssignSUtoSIRequest.standbySUName)
+}
+
+// -------------------------------------------------------------------
+
+// AssignSUtoSIResponse
+
+// optional sint32 err = 1;
+inline bool AssignSUtoSIResponse::has_err() const {
+  return (_has_bits_[0] & 0x00000001u) != 0;
+}
+inline void AssignSUtoSIResponse::set_has_err() {
+  _has_bits_[0] |= 0x00000001u;
+}
+inline void AssignSUtoSIResponse::clear_has_err() {
+  _has_bits_[0] &= ~0x00000001u;
+}
+inline void AssignSUtoSIResponse::clear_err() {
+  err_ = 0;
+  clear_has_err();
+}
+inline ::google::protobuf::int32 AssignSUtoSIResponse::err() const {
+  // @@protoc_insertion_point(field_get:SAFplus.Rpc.amfMgmtRpc.AssignSUtoSIResponse.err)
+  return err_;
+}
+inline void AssignSUtoSIResponse::set_err(::google::protobuf::int32 value) {
+  set_has_err();
+  err_ = value;
+  // @@protoc_insertion_point(field_set:SAFplus.Rpc.amfMgmtRpc.AssignSUtoSIResponse.err)
 }
 
 

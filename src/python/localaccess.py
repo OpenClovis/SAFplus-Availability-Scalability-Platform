@@ -55,6 +55,8 @@ amfMgmtNodeJoin  = safplus.amfMgmtNodeJoin
 amfMgmtNodeShutdown = safplus.amfMgmtNodeShutdown
 amfNodeRestart  = safplus.amfNodeRestart
 
+amfMgmtAssignSUtoSI = safplus.amfMgmtAssignSUtoSI
+
 
 def isValidDirectory(path):
   try:

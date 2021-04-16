@@ -2401,6 +2401,32 @@ are switched over to other nodes (component service instances are not abruptly r
          type int32;
        }
      }
+   }
+
+   rpc assignSUtoSI {
+     input {
+       leaf-list amfMgmtHandle
+	{
+	  type binary
+          {
+	    length 16;  // 2 64-bit words
+	  }
+	}
+       leaf siName {
+         type string;
+       }
+       leaf activeSUName {
+         type string;
+       }
+       leaf standbySUName {
+         type string;
+       }
+     }
+     output {
+       leaf err {
+         type int32;
+       }
+     }
    }  
    
 }

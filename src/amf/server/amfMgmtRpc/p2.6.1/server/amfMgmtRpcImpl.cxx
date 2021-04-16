@@ -4923,7 +4923,7 @@ namespace amfMgmtRpc {
           return;
       }
 #endif
-      rc = amfOpsMgmt->triggerFlagSISwap(siName);
+      rc = amfOpsMgmt->swapSI(siName);
 
       response->set_err(rc);
   }
@@ -5022,6 +5022,29 @@ namespace amfMgmtRpc {
       {
           amfOpsMgmt->nodeErrorClear(node);
       }
+      response->set_err(rc);
+  }
+
+  void amfMgmtRpcImpl::assignSUtoSI(const ::SAFplus::Rpc::amfMgmtRpc::AssignSUtoSIRequest* request,
+                                ::SAFplus::Rpc::amfMgmtRpc::AssignSUtoSIResponse* response)
+  {
+      const std::string& siName = request->siname();
+      const std::string& activeSUName = request->activesuname();
+      const std::string& standbySUName = request->standbysuname();
+      logDebug("MGMT","RPC","enter [%s] with param si name [%s], active su name [%s], standby su name [%s]",__FUNCTION__,siName.c_str(),activeSUName.c_str(),standbySUName.c_str());
+      ClRcT rc = CL_OK;
+#ifdef HANDLE_VALIDATE
+      DbalPlugin* pd = NULL;
+      rc = getDbalObj(request->amfmgmthandle().Get(0).c_str(), &pd);
+      if (rc != CL_OK)
+      {
+          logDebug("MGMT","RPC","invalid handle, rc [0x%x", rc);
+          response->set_err(rc);
+          return;
+      }
+#endif
+       rc = amfOpsMgmt->assignSUtoSI(siName, activeSUName, standbySUName);
+
       response->set_err(rc);
   }
 

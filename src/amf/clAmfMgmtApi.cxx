@@ -1764,4 +1764,225 @@ ClRcT amfNodeRestart(const Handle& mgmtHandle, const std::string& nodeName)
     return rc;
 }
 
+ClRcT amfMgmtAssignSUtoSI(const Handle& mgmtHandle, const std::string& siName, const std::string& activeSUName, const std::string& standbySUName)
+{
+#ifdef HANDLE_VALIDATE
+  if (!gAmfMgmtInitialized)
+   {
+     return CL_ERR_NOT_INITIALIZED;
+   }
+#endif
+   ClRcT rc;
+
+   const std::string& stringToCheckNULL = "objectIsNULL_";
+   std::string getActiveSUNameDiffNull = "";
+   std::string getStandbySUNameDiffNull = "";
+   if(activeSUName.compare(0, stringToCheckNULL.size(), stringToCheckNULL) == 0)
+   {
+     getActiveSUNameDiffNull = activeSUName;
+     getActiveSUNameDiffNull.erase(0, stringToCheckNULL.size());
+     logDebug("MGMT","ASUI","getActiveSUNameDiffNull [%s]", getActiveSUNameDiffNull.c_str());
+
+     SAFplus::Rpc::amfMgmtRpc::LockSUAssignmentRequest requestLock;
+     requestLock.add_amfmgmthandle((const char*) &mgmtHandle, sizeof(Handle));
+     requestLock.set_suname(getActiveSUNameDiffNull);
+     Handle& remoteAmfHdl = name.getHandle(AMF_MASTER_HANDLE, 2000);
+     try
+     {
+         SAFplus::Rpc::amfMgmtRpc::LockSUAssignmentResponse respLock;
+         amfMgmtRpc->lockSUAssignment(remoteAmfHdl,&requestLock,&respLock);
+         rc = (ClRcT)respLock.err();
+     }
+     catch(NameException& ex)
+     {
+         logError("MGMT","INI","getHandle got exception [%s]", ex.what());
+         rc = CL_ERR_NOT_EXIST;
+     }
+     if(rc == CL_OK)
+     {
+         while(1)
+         {
+             // wait for 1 s
+             boost::this_thread::sleep(boost::posix_time::milliseconds(2000));
+
+             SAFplus::Rpc::amfMgmtRpc::ServiceUnitStatus* suStatus = NULL;
+             SAFplus::Rpc::amfMgmtRpc::GetSUStatusRequest requestGet;
+             requestGet.add_amfmgmthandle((const char*) &mgmtHandle, sizeof(Handle));
+             requestGet.set_suname(getActiveSUNameDiffNull);
+             try
+             {
+                 SAFplus::Rpc::amfMgmtRpc::GetSUStatusResponse respGet;
+                 amfMgmtRpc->getSUStatus(remoteAmfHdl,&requestGet,&respGet);
+                 rc = (ClRcT)respGet.err();
+                 if (rc == CL_OK)
+                 {
+                     suStatus = respGet.release_serviceunitstatus();
+                     if (suStatus->hastate() == ::SAFplus::Rpc::amfMgmtRpc::HighAvailabilityState::HighAvailabilityState_idle
+                             && suStatus->presencestate() == ::SAFplus::Rpc::amfMgmtRpc::PresenceState::PresenceState_instantiated
+                             && suStatus->hareadinessstate() == ::SAFplus::Rpc::amfMgmtRpc::HighAvailabilityReadinessState::HighAvailabilityReadinessState_notReadyForAssignment
+                             && suStatus->readinessstate() == ::SAFplus::Rpc::amfMgmtRpc::ReadinessState::ReadinessState_outOfService)
+                     {
+                         SAFplus::Rpc::amfMgmtRpc::UnlockSURequest requestUnlock;
+                         requestUnlock.add_amfmgmthandle((const char*) &mgmtHandle, sizeof(Handle));
+                         requestUnlock.set_suname(getActiveSUNameDiffNull);
+                         try
+                         {
+                             SAFplus::Rpc::amfMgmtRpc::UnlockSUResponse respUnlock;
+                             amfMgmtRpc->unlockSU(remoteAmfHdl,&requestUnlock,&respUnlock);
+                             rc = (ClRcT)respUnlock.err();
+                         }
+                         catch(NameException& ex)
+                         {
+                             logError("MGMT","INI","getHandle got exception [%s]", ex.what());
+                             rc = CL_ERR_NOT_EXIST;
+                         }
+                         break;
+                     }
+                     else
+                     {
+                         logDebug("MGMT","ASUI","getActiveSUNameDiffNull [%s] ---- State is incorrect ----", getActiveSUNameDiffNull.c_str());
+                     }
+                 }
+                 else
+                 {
+                     logDebug("MGMT","ASUI","getActiveSUNameDiffNull [%s] ---- Can not getSUStatus ----", getActiveSUNameDiffNull.c_str());
+                 }
+             }
+             catch(NameException& ex)
+             {
+                 logError("MGMT","INI","getHandle got exception [%s]", ex.what());
+                 rc = CL_ERR_NOT_EXIST;
+             }
+         }
+     }
+     else
+     {
+         logDebug("MGMT","ASUI","getActiveSUNameDiffNull [%s] ---- CL_ERR_INVALID_STATE ----", getActiveSUNameDiffNull.c_str());
+     }
+   }
+   if(standbySUName.compare(0, stringToCheckNULL.size(), stringToCheckNULL) == 0)
+   {
+       getStandbySUNameDiffNull = standbySUName;
+       getStandbySUNameDiffNull.erase(0, stringToCheckNULL.size());
+       logDebug("MGMT","ASUI","getStandbySUNameDiffNull [%s]", getStandbySUNameDiffNull.c_str());
+
+       SAFplus::Rpc::amfMgmtRpc::LockSUAssignmentRequest requestLock;
+       requestLock.add_amfmgmthandle((const char*) &mgmtHandle, sizeof(Handle));
+       requestLock.set_suname(getStandbySUNameDiffNull);
+       Handle& remoteAmfHdl = name.getHandle(AMF_MASTER_HANDLE, 2000);
+       try
+       {
+           SAFplus::Rpc::amfMgmtRpc::LockSUAssignmentResponse respLock;
+           amfMgmtRpc->lockSUAssignment(remoteAmfHdl,&requestLock,&respLock);
+           rc = (ClRcT)respLock.err();
+       }
+       catch(NameException& ex)
+       {
+           logError("MGMT","INI","getHandle got exception [%s]", ex.what());
+           rc = CL_ERR_NOT_EXIST;
+       }
+       if(rc == CL_OK)
+       {
+           while(1)
+           {
+               // wait for 1 s
+               boost::this_thread::sleep(boost::posix_time::milliseconds(2000));
+
+               SAFplus::Rpc::amfMgmtRpc::ServiceUnitStatus* suStatus = NULL;
+               SAFplus::Rpc::amfMgmtRpc::GetSUStatusRequest requestGet;
+               requestGet.add_amfmgmthandle((const char*) &mgmtHandle, sizeof(Handle));
+               requestGet.set_suname(getStandbySUNameDiffNull);
+               try
+               {
+                   SAFplus::Rpc::amfMgmtRpc::GetSUStatusResponse respGet;
+                   amfMgmtRpc->getSUStatus(remoteAmfHdl,&requestGet,&respGet);
+                   rc = (ClRcT)respGet.err();
+                   if (rc == CL_OK)
+                   {
+                       suStatus = respGet.release_serviceunitstatus();
+                       if (suStatus->hastate() == ::SAFplus::Rpc::amfMgmtRpc::HighAvailabilityState::HighAvailabilityState_idle
+                               && suStatus->presencestate() == ::SAFplus::Rpc::amfMgmtRpc::PresenceState::PresenceState_instantiated
+                               && suStatus->hareadinessstate() == ::SAFplus::Rpc::amfMgmtRpc::HighAvailabilityReadinessState::HighAvailabilityReadinessState_notReadyForAssignment
+                               && suStatus->readinessstate() == ::SAFplus::Rpc::amfMgmtRpc::ReadinessState::ReadinessState_outOfService)
+                       {
+                           SAFplus::Rpc::amfMgmtRpc::UnlockSURequest requestUnlock;
+                           requestUnlock.add_amfmgmthandle((const char*) &mgmtHandle, sizeof(Handle));
+                           requestUnlock.set_suname(getStandbySUNameDiffNull);
+                           try
+                           {
+                               SAFplus::Rpc::amfMgmtRpc::UnlockSUResponse respUnlock;
+                               amfMgmtRpc->unlockSU(remoteAmfHdl,&requestUnlock,&respUnlock);
+                               rc = (ClRcT)respUnlock.err();
+                           }
+                           catch(NameException& ex)
+                           {
+                               logError("MGMT","INI","getHandle got exception [%s]", ex.what());
+                               rc = CL_ERR_NOT_EXIST;
+                           }
+                           break;
+                       }
+                       else
+                       {
+                           logDebug("MGMT","ASUI","getStandbySUNameDiffNull [%s] ---- State is incorrect ----", getStandbySUNameDiffNull.c_str());
+                       }
+                   }
+                   else
+                   {
+                       logDebug("MGMT","ASUI","getStandbySUNameDiffNull [%s] ---- Can not getSUStatus ----", getStandbySUNameDiffNull.c_str());
+                   }
+               }
+               catch(NameException& ex)
+               {
+                   logError("MGMT","INI","getHandle got exception [%s]", ex.what());
+                   rc = CL_ERR_NOT_EXIST;
+               }
+           }
+       }
+       else
+       {
+           logDebug("MGMT","ASUI","getStandbySUNameDiffNull [%s] ---- CL_ERR_INVALID_STATE ----", getStandbySUNameDiffNull.c_str());
+       }
+   }
+
+   SAFplus::Rpc::amfMgmtRpc::AssignSUtoSIRequest request;
+   request.add_amfmgmthandle((const char*) &mgmtHandle, sizeof(Handle));
+   request.set_siname(siName);
+
+
+   if(getActiveSUNameDiffNull == "" && getStandbySUNameDiffNull == "")
+   {
+       request.set_activesuname(activeSUName);
+       request.set_standbysuname(standbySUName);
+   }
+   else if(getActiveSUNameDiffNull == "" && getStandbySUNameDiffNull != "")
+   {
+       request.set_activesuname(activeSUName);
+       request.set_standbysuname("");
+   }
+   else if(getActiveSUNameDiffNull != "" && getStandbySUNameDiffNull == "")
+   {
+
+       request.set_activesuname("");
+       request.set_standbysuname(standbySUName);
+   }
+   else
+   {
+       return rc;
+   }
+
+   try
+    {
+      Handle& remoteAmfHdl = name.getHandle(AMF_MASTER_HANDLE, 2000);
+      SAFplus::Rpc::amfMgmtRpc::AssignSUtoSIResponse resp;
+      amfMgmtRpc->assignSUtoSI(remoteAmfHdl,&request,&resp);
+      rc = (ClRcT)resp.err();
+    }
+   catch(NameException& ex)
+    {
+      logError("MGMT","INI","getHandle got exception [%s]", ex.what());
+      rc = CL_ERR_NOT_EXIST;
+    }
+   return rc;
+}
+
 }

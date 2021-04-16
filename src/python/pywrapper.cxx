@@ -216,4 +216,6 @@ BOOST_PYTHON_MODULE(pySAFplus)
   def("amfMgmtNodeJoin",static_cast< ClRcT (*)(const Handle &, const std::string &) > (&SAFplus::amfNodeJoin));
   def("amfMgmtNodeShutdown",static_cast< ClRcT (*)(const Handle &, const std::string &) > (&SAFplus::amfMgmtNodeShutdown));
   def("amfNodeRestart",static_cast< ClRcT (*)(const Handle &, const std::string &) > (&SAFplus::amfNodeRestart));
+
+  def("amfMgmtAssignSUtoSI",static_cast< ClRcT (*)(const Handle &, const std::string &, const std::string &, const std::string &) > (&SAFplus::amfMgmtAssignSUtoSI));
 }

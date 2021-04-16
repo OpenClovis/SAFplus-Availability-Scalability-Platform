@@ -33,7 +33,6 @@ extern Handle           nodeHandle; //? The handle associated with this node
 extern SAFplus::Fault gfault;
 bool rebootFlag;
 extern SAFplusAmf::SAFplusAmfModule cfg;
-std::string siNameSwapFlag = "";
 namespace SAFplus
   {
 
@@ -560,7 +559,21 @@ namespace SAFplus
                   }
                   if (comps.size()>0)
                      csiRemovedComps[csi] = comps;
-                  csi->activeComponents.value.clear();
+//                  csi->activeComponents.value.clear();
+                  for(auto iter{comps.begin()}; iter != comps.end(); ++iter)
+                  {
+                      SAFplus::MgtIdentifierList<SAFplusAmf::Component*>::iterator itcomp;
+                      SAFplus::MgtIdentifierList<SAFplusAmf::Component*>::iterator endcomp = su->components.listEnd();
+                      for (itcomp = su->components.listBegin(); itcomp != endcomp; itcomp++)
+                      {
+                          Component* comp = dynamic_cast<Component*>(*itcomp);
+                          if((*iter)->name.value == comp->name.value)
+                          {
+                              csi->activeComponents.erase(*iter);
+                          }
+
+                      }
+                  }
               }              
               si->isFullActiveAssignment= false;
             }
@@ -586,7 +599,21 @@ namespace SAFplus
                     }
                     if (comps.size()>0)
                        csiRemovedComps[csi] = comps;
-                    csi->standbyComponents.value.clear();
+//                    csi->standbyComponents.value.clear();
+                    for(auto iter{comps.begin()}; iter != comps.end(); ++iter)
+                    {
+                        SAFplus::MgtIdentifierList<SAFplusAmf::Component*>::iterator itcomp;
+                        SAFplus::MgtIdentifierList<SAFplusAmf::Component*>::iterator endcomp = su->components.listEnd();
+                        for (itcomp = su->components.listBegin(); itcomp != endcomp; itcomp++)
+                        {
+                            Component* comp = dynamic_cast<Component*>(*itcomp);
+                            if((*iter)->name.value == comp->name.value)
+                            {
+                                csi->standbyComponents.erase(*iter);
+                            }
+
+                        }
+                    }
                 }
               si->isFullStandbyAssignment= false;
             }
@@ -1473,113 +1500,32 @@ namespace SAFplus
         abort(comp, false, w);
     }
 
-    ClRcT AmfOperations::triggerFlagSISwap(std::string siName)
-    {
-        ClRcT rc = CL_OK;
-
-        SAFplusAmf::ServiceInstance* si = dynamic_cast<SAFplusAmf::ServiceInstance*>(cfg.safplusAmf.serviceInstanceList[siName]);
-        if (si == NULL)
-        {
-            logDebug("MGMT","RPC","si object is null for its name [%s]", siName.c_str());
-            return CL_ERR_NOT_EXIST;
-        }
-
-        ServiceGroup* sg = si->serviceGroup.value;
-        if(sg->autoAdjust == true)
-        {
-            logDebug("OPS", "SWAP", "Cannot swap SIs for SG [%s], which has auto adjust option enabled.", sg->name.value.c_str());
-            return CL_ERR_BAD_OPERATION;
-        }
-
-        if(si->adminState.value != SAFplusAmf::AdministrativeState::on)
-        {
-            logDebug("OPS", "SWAP", "serviceInstance [%s] admin state is not on", siName.c_str());
-            return CL_ERR_BAD_OPERATION;
-        }
-
-        if(si->getNumStandbyAssignments()->current.value == 0 || si->preferredStandbyAssignments.value == 0)
-        {
-            logDebug("OPS", "SWAP", "serviceInstance [%s] doesnt have standby assignments", siName.c_str());
-            return CL_ERR_BAD_OPERATION;
-        }
-
-        std::vector<ServiceUnit*> activeSU;
-        std::vector<ServiceUnit*> standbySU;
-        SAFplus::MgtIdentifierList<SAFplusAmf::ServiceUnit*>::iterator beginSU;
-        SAFplus::MgtIdentifierList<SAFplusAmf::ServiceUnit*>::iterator endSU = sg->serviceUnits.listEnd();
-        for (beginSU = sg->serviceUnits.listBegin(); beginSU != endSU; beginSU++)
-        {
-            ServiceUnit* su = dynamic_cast<ServiceUnit*>(*beginSU);
-            if(su->haState == HighAvailabilityState::active)
-            {
-                if(activeSU.size() != 0)
-                {
-                    continue;
-                }
-                activeSU.push_back(su);
-            }
-            else if(su->haState == HighAvailabilityState::standby)
-            {
-                if(standbySU.size() != 0)
-                {
-                    continue;
-                }
-                standbySU.push_back(su);
-            }
-        }
-
-        if(activeSU.size() == 0 || standbySU.size() == 0)
-        {
-            logDebug("OPS", "SWAP", "SI [%s] doesn't have active or standby SUs", siName.c_str());
-            return CL_ERR_BAD_OPERATION;
-        }
-
-        if((activeSU.at(0))->presenceState.value == SAFplusAmf::PresenceState::instantiating ||
-                (activeSU.at(0))->presenceState.value == SAFplusAmf::PresenceState::terminating ||
-                (activeSU.at(0))->presenceState.value == SAFplusAmf::PresenceState::restarting)
-        {
-            logDebug("OPS", "SWAP", "Active SU [%s] has state [%s]. Returning try again for SI swap", (activeSU.at(0))->name.value.c_str(), c_str((activeSU.at(0))->presenceState.value));
-            return CL_ERR_BAD_OPERATION;
-        }
-
-        if((standbySU.at(0))->presenceState.value == SAFplusAmf::PresenceState::instantiating ||
-                (standbySU.at(0))->presenceState.value == SAFplusAmf::PresenceState::terminating ||
-                (standbySU.at(0))->presenceState.value == SAFplusAmf::PresenceState::restarting)
-        {
-            logDebug("OPS", "SWAP", "Standby SU [%s] has state [%s]. Returning try again for SI swap", (standbySU.at(0))->name.value.c_str(), c_str((standbySU.at(0))->presenceState.value));
-            return CL_ERR_TRY_AGAIN;
-        }
-
-        // set siNameSwapFlag to siName
-        siNameSwapFlag = siName;
-        return rc;
-    }
-
     ClRcT AmfOperations::swapSI(std::string siName)
     {
+        ClRcT rc = CL_OK;
         SAFplusAmf::ServiceInstance* si = dynamic_cast<SAFplusAmf::ServiceInstance*>(cfg.safplusAmf.serviceInstanceList[siName]);
         if (si == NULL)
         {
-            logDebug("MGMT","RPC","si object is null for its name [%s]", siName.c_str());
+            logDebug("OPS","SWSI","si object is null for its name [%s]", siName.c_str());
             return CL_ERR_NOT_EXIST;
         }
 
         ServiceGroup* sg = si->serviceGroup.value;
         if(sg->autoAdjust == true)
         {
-            logDebug("OPS", "SWAP", "Cannot swap SIs for SG [%s], which has auto adjust option enabled.", sg->name.value.c_str());
+            logDebug("OPS", "SWSI", "Cannot swap SIs for SG [%s], which has auto adjust option enabled.", sg->name.value.c_str());
             return CL_ERR_BAD_OPERATION;
         }
 
         if(si->adminState.value != SAFplusAmf::AdministrativeState::on)
         {
-            logDebug("OPS", "SWAP", "serviceInstance [%s] admin state is not on", siName.c_str());
+            logDebug("OPS", "SWSI", "serviceInstance [%s] admin state is not on", siName.c_str());
             return CL_ERR_BAD_OPERATION;
         }
 
         if(si->getNumStandbyAssignments()->current.value == 0 || si->preferredStandbyAssignments.value == 0)
         {
-            logDebug("OPS", "SWAP", "serviceInstance [%s] doesnt have standby assignments", siName.c_str());
+            logDebug("OPS", "SWSI", "serviceInstance [%s] doesnt have standby assignments", siName.c_str());
             return CL_ERR_BAD_OPERATION;
         }
 
@@ -1610,7 +1556,7 @@ namespace SAFplus
 
         if(activeSU.size() == 0 || standbySU.size() == 0)
         {
-            logDebug("OPS", "SWAP", "SI [%s] doesn't have active or standby SUs", siName.c_str());
+            logDebug("OPS", "SWSI", "SI [%s] doesn't have active or standby SUs", siName.c_str());
             return CL_ERR_BAD_OPERATION;
         }
 
@@ -1618,7 +1564,7 @@ namespace SAFplus
                 (activeSU.at(0))->presenceState.value == SAFplusAmf::PresenceState::terminating ||
                 (activeSU.at(0))->presenceState.value == SAFplusAmf::PresenceState::restarting)
         {
-            logDebug("OPS", "SWAP", "Active SU [%s] has state [%s]. Returning try again for SI swap", (activeSU.at(0))->name.value.c_str(), c_str((activeSU.at(0))->presenceState.value));
+            logDebug("OPS", "SWSI", "Active SU [%s] has state [%s]. Returning try again for SI swap", (activeSU.at(0))->name.value.c_str(), c_str((activeSU.at(0))->presenceState.value));
             return CL_ERR_TRY_AGAIN;
         }
 
@@ -1626,7 +1572,7 @@ namespace SAFplus
                 (standbySU.at(0))->presenceState.value == SAFplusAmf::PresenceState::terminating ||
                 (standbySU.at(0))->presenceState.value == SAFplusAmf::PresenceState::restarting)
         {
-            logDebug("OPS", "SWAP", "Standby SU [%s] has state [%s]. Returning try again for SI swap", (standbySU.at(0))->name.value.c_str(), c_str((standbySU.at(0))->presenceState.value));
+            logDebug("OPS", "SWSI", "Standby SU [%s] has state [%s]. Returning try again for SI swap", (standbySU.at(0))->name.value.c_str(), c_str((standbySU.at(0))->presenceState.value));
             return CL_ERR_TRY_AGAIN;
         }
 
@@ -1636,78 +1582,17 @@ namespace SAFplus
         for(iterActiveSU = activeSU.begin(); iterActiveSU != activeSU.end(); iterActiveSU++)
         {
             ServiceUnit* su = *iterActiveSU;
-            logInfo("OPS", "SWAP", "swapSI for active serviceUnit name [%s]", su->name.value.c_str());
-
-            // remove active
-            SAFplusAmf::ComponentServiceInstance* csi = NULL;
-            SAFplus::MgtObject::Iterator itcsi;
-            SAFplus::MgtObject::Iterator endcsi = si->componentServiceInstances.end();
-            if (si->activeAssignments.find(su) != si->activeAssignments.value.end())
-            {
-                si->numActiveAssignments.current -= 1;
-                si->activeAssignments.erase(su);
-
-                for (itcsi = si->componentServiceInstances.begin(); itcsi != endcsi; itcsi++)
-                {
-                    csi = dynamic_cast<SAFplusAmf::ComponentServiceInstance*> (itcsi->second);
-                    csi->activeComponents.value.clear();
-                    SAFplus::MgtIdentifierList<SAFplusAmf::Component*>::iterator itcomp;
-                    SAFplus::MgtIdentifierList<SAFplusAmf::Component*>::iterator endcomp = (standbySU.at(0))->components.listEnd();
-                    for (itcomp = (standbySU.at(0))->components.listBegin(); itcomp != endcomp; itcomp++)
-                    {
-                        Component* comp = dynamic_cast<Component*>(*itcomp);
-                        csi->standbyComponents.erase(comp);
-                    }
-                }
-                si->isFullActiveAssignment= false;
-            }
-            su->assignedServiceInstances.clear();
-            su->numActiveServiceInstances = 0;
-            su->numStandbyServiceInstances = 0;
-
-            // assign standby
-            if(!si->standbyAssignments.contains(su))
-            {
-                si->standbyAssignments.value.push_back(su);
-                si->getNumStandbyAssignments()->current.value = si->standbyAssignments.value.size();
-            }
-            assignWork(su,si,HighAvailabilityState::standby);
+            rc = removeThenAssignWork(si, su, su->haState, SAFplusAmf::HighAvailabilityState::standby);
         }
 
         std::vector<ServiceUnit*>::iterator iterStandbySU;
         for(iterStandbySU = standbySU.begin(); iterStandbySU != standbySU.end(); iterStandbySU++)
         {
             ServiceUnit* su = *iterStandbySU;
-            logInfo("OPS", "SWAP", "swapSI for standby serviceUnit name [%s]", su->name.value.c_str());
-
-            // remove standby
-            if (si->standbyAssignments.find(su) != si->standbyAssignments.value.end())
-            {
-                si->numStandbyAssignments.current -= 1;
-                si->standbyAssignments.erase(su);
-                si->isFullStandbyAssignment= false;
-            }
-            su->assignedServiceInstances.clear();
-            su->numActiveServiceInstances = 0;
-            su->numStandbyServiceInstances = 0;
-
-            // assign active
-            if(si->standbyAssignments.contains(su))
-            {
-                si->standbyAssignments.erase(su);
-                si->getNumStandbyAssignments()->current.value = si->standbyAssignments.value.size();
-            }
-            if(su->assignedServiceInstances.contains(si))
-            {
-                su->assignedServiceInstances.erase(si);
-            }
-            if(!si->activeAssignments.contains(su))
-            {
-                si->activeAssignments.value.push_back(su);
-                si->getNumActiveAssignments()->current.value = si->activeAssignments.value.size();
-            }
-            assignWork(su,si,HighAvailabilityState::active);
+            rc = removeThenAssignWork(si, su, su->haState, SAFplusAmf::HighAvailabilityState::active);
         }
+
+        return rc;
     }
 
 
@@ -1897,6 +1782,196 @@ namespace SAFplus
         }
         node->operState.value = true;
         return CL_OK;
+    }
+
+    ClRcT AmfOperations::assignSUtoSI(std::string siName, std::string activceSUName, std::string standbySUName)
+    {
+        logDebug("OPS","ASUI","assignSUtoSI: siName: %s, activeName: %s, standbyName: %s", siName.c_str(), activceSUName.c_str(), standbySUName.c_str());
+        ClRcT rc = CL_OK;
+        SAFplusAmf::ServiceInstance* si = dynamic_cast<SAFplusAmf::ServiceInstance*>(cfg.safplusAmf.serviceInstanceList[siName]);
+        if (si == NULL)
+        {
+            logDebug("OPS","ASUI","si object is null for its name [%s]", siName.c_str());
+            return CL_ERR_NOT_EXIST;
+        }
+
+        ServiceGroup* sg = si->serviceGroup.value;
+        if(sg->autoAdjust == true)
+        {
+            logDebug("OPS", "ASUI", "Cannot swap SIs for SG [%s], which has auto adjust option enabled.", sg->name.value.c_str());
+            return CL_ERR_BAD_OPERATION;
+        }
+
+        if(si->adminState.value != SAFplusAmf::AdministrativeState::on)
+        {
+            logDebug("OPS", "ASUI", "serviceInstance [%s] admin state is not on", siName.c_str());
+            return CL_ERR_BAD_OPERATION;
+        }
+
+        SAFplusAmf::ServiceUnit* activeSU = dynamic_cast<SAFplusAmf::ServiceUnit*>(cfg.safplusAmf.serviceUnitList[activceSUName]);
+        SAFplusAmf::ServiceUnit* standbySU = dynamic_cast<SAFplusAmf::ServiceUnit*>(cfg.safplusAmf.serviceUnitList[standbySUName]);
+        if (activeSU != NULL)
+        {
+            rc = removeThenAssignWork(si, activeSU, activeSU->haState, SAFplusAmf::HighAvailabilityState::active);
+        }
+        else
+        {
+            logDebug("---","---","activeSU wasn't existing");
+        }
+        if (standbySU != NULL)
+        {
+            rc = removeThenAssignWork(si, standbySU, standbySU->haState, SAFplusAmf::HighAvailabilityState::standby);
+        }
+        else
+        {
+            logDebug("---","---","standbySU wasn't existing");
+        }
+
+        return rc;
+    }
+
+    ClRcT AmfOperations::removeThenAssignWork(SAFplusAmf::ServiceInstance* si, SAFplusAmf::ServiceUnit* su, SAFplusAmf::HighAvailabilityState currentState, SAFplusAmf::HighAvailabilityState assignState)
+    {
+        ClRcT rc = CL_OK;
+        if(currentState != assignState)
+        {
+            if(currentState == SAFplusAmf::HighAvailabilityState::standby)
+            {
+                if (si->standbyAssignments.find(su) != si->standbyAssignments.value.end())
+                {
+                    assert(si->numStandbyAssignments.current > 0);
+                    si->numStandbyAssignments.current -= 1;
+                    si->standbyAssignments.erase(su);
+
+                    std::vector<Component *> comps;
+                    SAFplus::MgtObject::Iterator beginCsi = si->componentServiceInstances.begin();
+                    SAFplus::MgtObject::Iterator endCsi = si->componentServiceInstances.end();
+                    for (auto itCsi{beginCsi}; itCsi != endCsi; itCsi++)
+                    {
+                        SAFplusAmf::ComponentServiceInstance* csi = dynamic_cast<SAFplusAmf::ComponentServiceInstance*> (itCsi->second);
+
+                        SAFplus::MgtIdentifierList<SAFplusAmf::Component*>::Container& vec = csi->standbyComponents.value;
+                        std::vector<SAFplus::MgtIdentifierList<SAFplusAmf::Component*>::Elem>::iterator beginVec = vec.begin();
+                        std::vector<SAFplus::MgtIdentifierList<SAFplusAmf::Component*>::Elem>::iterator endVec = vec.end();
+                        for (auto itVec{beginVec}; itVec != endVec; itVec++)
+                        {
+                            SAFplus::MgtIdentifierList<SAFplusAmf::Component*>::Elem elem = *itVec;
+                            SAFplusAmf::Component* c = elem.value;
+
+                            SAFplus::MgtIdentifierList<SAFplusAmf::Component*>::iterator beginComp = su->components.listBegin();
+                            SAFplus::MgtIdentifierList<SAFplusAmf::Component*>::iterator endComp = su->components.listEnd();
+                            for (auto itComp{beginComp}; itComp != endComp; itComp++)
+                            {
+                                Component* comp = dynamic_cast<Component*>(*itComp);
+                                if(comp->name.value == c->name.value)
+                                {
+                                    // same work removal in workOperationResponse function
+                                    comp->haState = SAFplusAmf::HighAvailabilityState::idle;
+                                    if(comp->activeAssignments > 0)
+                                    {
+                                        --comp->activeAssignments;
+                                    }
+                                    if(comp->standbyAssignments > 0)
+                                    {
+                                        --comp->standbyAssignments;
+                                    }
+
+                                    comps.push_back(comp);
+                                }
+                            }
+                        }
+                        for(auto iter{comps.begin()}; iter != comps.end(); ++iter)
+                        {
+                            csi->standbyComponents.erase(*iter);
+                        }
+                    }
+                    si->isFullStandbyAssignment= false;
+                }
+                su->assignedServiceInstances.clear();
+                su->numActiveServiceInstances = 0;
+                su->numStandbyServiceInstances = 0;
+                if(!si->activeAssignments.contains(su))
+                {
+                    si->activeAssignments.value.push_back(su);
+                    si->getNumActiveAssignments()->current.value = si->activeAssignments.value.size();
+                }
+                assignWork(su, si, assignState);
+            }
+            else if(currentState == SAFplusAmf::HighAvailabilityState::active)
+            {
+                if (si->activeAssignments.find(su) != si->activeAssignments.value.end())
+                {
+                    si->numActiveAssignments.current -= 1;
+                    si->activeAssignments.erase(su);
+
+                    std::vector<Component *> comps;
+                    SAFplus::MgtObject::Iterator beginCsi = si->componentServiceInstances.begin();
+                    SAFplus::MgtObject::Iterator endCsi = si->componentServiceInstances.end();
+                    for (auto itCsi{beginCsi}; itCsi != endCsi; itCsi++)
+                    {
+                        SAFplusAmf::ComponentServiceInstance* csi = dynamic_cast<SAFplusAmf::ComponentServiceInstance*> (itCsi->second);
+
+                        SAFplus::MgtIdentifierList<SAFplusAmf::Component*>::Container& vec = csi->activeComponents.value;
+                        std::vector<SAFplus::MgtIdentifierList<SAFplusAmf::Component*>::Elem>::iterator beginVec = vec.begin();
+                        std::vector<SAFplus::MgtIdentifierList<SAFplusAmf::Component*>::Elem>::iterator endVec = vec.end();
+                        for (auto itVec{beginVec}; itVec != endVec; itVec++)
+                        {
+                            SAFplus::MgtIdentifierList<SAFplusAmf::Component*>::Elem elem = *itVec;
+                            SAFplusAmf::Component* c = elem.value;
+
+                            SAFplus::MgtIdentifierList<SAFplusAmf::Component*>::iterator beginComp = su->components.listBegin();
+                            SAFplus::MgtIdentifierList<SAFplusAmf::Component*>::iterator endComp = su->components.listEnd();
+                            for (auto itComp{beginComp}; itComp != endComp; itComp++)
+                            {
+                                Component* comp = dynamic_cast<Component*>(*itComp);
+                                if(comp->name.value == c->name.value)
+                                {
+                                    // same work removal in workOperationResponse function
+                                    comp->haState = SAFplusAmf::HighAvailabilityState::idle;
+                                    if(comp->activeAssignments > 0)
+                                    {
+                                        --comp->activeAssignments;
+                                    }
+                                    if(comp->standbyAssignments > 0)
+                                    {
+                                        --comp->standbyAssignments;
+                                    }
+
+                                    comps.push_back(comp);
+                                }
+                            }
+                        }
+                        for(auto iter{comps.begin()}; iter != comps.end(); ++iter)
+                        {
+                            csi->activeComponents.erase(*iter);
+                        }
+                    }
+                    si->isFullActiveAssignment= false;
+                }
+                su->assignedServiceInstances.clear();
+                su->numActiveServiceInstances = 0;
+                su->numStandbyServiceInstances = 0;
+
+                // assign standby
+                if(!si->standbyAssignments.contains(su))
+                {
+                    si->standbyAssignments.value.push_back(su);
+                    si->getNumStandbyAssignments()->current.value = si->standbyAssignments.value.size();
+                }
+                assignWork(su, si, assignState);
+            }
+            else
+            {
+                logDebug("OPS","RMTAS","invalid currentState");
+            }
+        }
+        else
+        {
+            logDebug("OPS","RMTAS","currentState == assignState");
+        }
+
+        return rc;
+
     }
 
   };

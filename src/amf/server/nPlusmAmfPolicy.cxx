@@ -17,7 +17,6 @@ using namespace std;
 using namespace SAFplus;
 using namespace SAFplusAmf;
 
-extern std::string siNameSwapFlag;
 
 namespace SAFplus
   {
@@ -563,13 +562,6 @@ class NplusMPolicy:public ClAmfPolicyPlugin_1
           {
           ServiceInstance* si = dynamic_cast<ServiceInstance*>(*itsi);
           if (!si) continue;
-
-          if(siNameSwapFlag == si->name.value.c_str())
-          {
-              logInfo("N+M","AUDIT","swapping si [%s]", si->name.value.c_str());
-              amfOps->swapSI(siNameSwapFlag);
-              siNameSwapFlag = "";
-          }
 
           SAFplusAmf::AdministrativeState eas = effectiveAdminState(si);
 

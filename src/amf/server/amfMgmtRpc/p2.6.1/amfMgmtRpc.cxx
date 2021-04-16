@@ -410,6 +410,12 @@ void amfMgmtRpc::nodeErrorClear(const ::SAFplus::Rpc::amfMgmtRpc::NodeErrorClear
   logError("RPC","SVR","Method nodeErrorClear() not implemented.");
 }
 
+void amfMgmtRpc::assignSUtoSI(const ::SAFplus::Rpc::amfMgmtRpc::AssignSUtoSIRequest*,
+                         ::SAFplus::Rpc::amfMgmtRpc::AssignSUtoSIResponse*)
+{
+  logError("RPC","SVR","Method assignSUtoSI() not implemented.");
+}
+
 void amfMgmtRpc::initialize(SAFplus::Handle destination,
                      const ::SAFplus::Rpc::amfMgmtRpc::InitializeRequest* request,
                      ::SAFplus::Rpc::amfMgmtRpc::InitializeResponse* response,
@@ -898,6 +904,14 @@ void amfMgmtRpc::nodeErrorClear(SAFplus::Handle destination,
   logError("RPC","SVR","Method nodeErrorClear() not implemented.");
 }
 
+void amfMgmtRpc::assignSUtoSI(SAFplus::Handle destination,
+                     const ::SAFplus::Rpc::amfMgmtRpc::AssignSUtoSIRequest* request,
+                     ::SAFplus::Rpc::amfMgmtRpc::AssignSUtoSIResponse* response,
+                     SAFplus::Wakeable& wakeable)
+{
+  logError("RPC","SVR","Method assignSUtoSI() not implemented.");
+}
+
 void amfMgmtRpc::CallMethod(const ::google::protobuf::MethodDescriptor* method,
                              SAFplus::Handle destination,
                              const ::google::protobuf::Message* request,
@@ -1149,6 +1163,10 @@ void amfMgmtRpc::CallMethod(const ::google::protobuf::MethodDescriptor* method,
       nodeErrorClear(::google::protobuf::down_cast<const ::SAFplus::Rpc::amfMgmtRpc::NodeErrorClearRequest*>(request),
              ::google::protobuf::down_cast< ::SAFplus::Rpc::amfMgmtRpc::NodeErrorClearResponse*>(response));
       break;
+    case 61:
+      assignSUtoSI(::google::protobuf::down_cast<const ::SAFplus::Rpc::amfMgmtRpc::AssignSUtoSIRequest*>(request),
+             ::google::protobuf::down_cast< ::SAFplus::Rpc::amfMgmtRpc::AssignSUtoSIResponse*>(response));
+      break;
     default:
       GOOGLE_LOG(FATAL) << "Bad method index; this should never happen.";
       break;
@@ -1281,6 +1299,8 @@ const ::google::protobuf::Message& amfMgmtRpc::GetRequestPrototype(
       return ::SAFplus::Rpc::amfMgmtRpc::NodeErrorReportRequest::default_instance();
     case 60:
       return ::SAFplus::Rpc::amfMgmtRpc::NodeErrorClearRequest::default_instance();
+    case 61:
+      return ::SAFplus::Rpc::amfMgmtRpc::AssignSUtoSIRequest::default_instance();
     default:
       GOOGLE_LOG(FATAL) << "Bad method index; this should never happen.";
       return *reinterpret_cast< ::google::protobuf::Message*>(NULL);
@@ -1413,6 +1433,8 @@ const ::google::protobuf::Message& amfMgmtRpc::GetResponsePrototype(
       return ::SAFplus::Rpc::amfMgmtRpc::NodeErrorReportResponse::default_instance();
     case 60:
       return ::SAFplus::Rpc::amfMgmtRpc::NodeErrorClearResponse::default_instance();
+    case 61:
+      return ::SAFplus::Rpc::amfMgmtRpc::AssignSUtoSIResponse::default_instance();
     default:
       GOOGLE_LOG(FATAL) << "Bad method index; this should never happen.";
       return *reinterpret_cast< ::google::protobuf::Message*>(NULL);
@@ -1795,6 +1817,12 @@ void amfMgmtRpc_Stub::nodeErrorClear(SAFplus::Handle dest,
                               ::SAFplus::Rpc::amfMgmtRpc::NodeErrorClearResponse* response,
                               SAFplus::Wakeable& wakeable) {
   channel_->CallMethod(descriptor()->method(60), dest, request, response, wakeable);
+}
+void amfMgmtRpc_Stub::assignSUtoSI(SAFplus::Handle dest,
+                              const ::SAFplus::Rpc::amfMgmtRpc::AssignSUtoSIRequest* request,
+                              ::SAFplus::Rpc::amfMgmtRpc::AssignSUtoSIResponse* response,
+                              SAFplus::Wakeable& wakeable) {
+  channel_->CallMethod(descriptor()->method(61), dest, request, response, wakeable);
 }
 
 }  // namespace amfMgmtRpc
