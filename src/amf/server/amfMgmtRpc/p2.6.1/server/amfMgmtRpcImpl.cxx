@@ -4971,7 +4971,9 @@ namespace amfMgmtRpc {
       const std::string& nodeName = request->nodename();
       bool shutdownAmf = request->shutdownamf();
       bool rebootNode = request->rebootnode();
-      logDebug("MGMT","RPC","enter [%s] with param node name [%s], shutdownAmf [%d], rebootNode [%d]",__FUNCTION__,nodeName.c_str(), shutdownAmf, rebootNode);
+      bool graceful = request->gracefulswitchover();
+      bool restartAmf = request->restartamf();
+      logDebug("MGMT","RPC","enter [%s] with param node name [%s], shutdownAmf [%d], rebootNode [%d], graceful [%d], restartAmf [%d]",__FUNCTION__,nodeName.c_str(), shutdownAmf, rebootNode, graceful, restartAmf);
       ClRcT rc = CL_OK;
 #ifdef HANDLE_VALIDATE
       DbalPlugin* pd = NULL;
@@ -4991,7 +4993,7 @@ namespace amfMgmtRpc {
       }
       else
       {
-          amfOpsMgmt->nodeErrorReport(node, shutdownAmf, rebootNode);
+          rc = amfOpsMgmt->nodeErrorReport(node, graceful, shutdownAmf, restartAmf, rebootNode);
       }
       response->set_err(rc);
   }

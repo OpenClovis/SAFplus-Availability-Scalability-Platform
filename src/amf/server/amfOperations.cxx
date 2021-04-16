@@ -522,6 +522,7 @@ namespace SAFplus
 
     void AmfOperations::removeWork(ServiceUnit* su, Wakeable& w)
     {
+      logDebug("OPS","RMV.WRK","Removing works for su [%s]", su->name.value.c_str());
       assert(su);
 
       // Update the Service Instances: decrement assignment statistics, and remove this SU from the SI's assigned list.
@@ -1693,7 +1694,7 @@ namespace SAFplus
           return rc;
       }
 
-    ClRcT AmfOperations::nodeErrorReport(SAFplusAmf::Node* node, bool shutdownAmf, bool rebootNode)
+    ClRcT AmfOperations::nodeErrorReport(SAFplusAmf::Node* node, bool gracefulSwitchover, bool shutdownAmf, bool restartAmf, bool rebootNode)
     {
         logDebug("OPS","NODE.ERR","Error reported for node [%s]", node->name.value.c_str());
         if (node->operState.value == false)
@@ -1702,21 +1703,50 @@ namespace SAFplus
         }
         node->operState.value = false;
         //comp->haReadinessState == HighAvailabilityReadinessState::readyForAssignment
-        //Terminate all components running in this node
+        //Terminate all components running in this node        
         boost::this_thread::sleep(boost::posix_time::milliseconds(1000));
-        SAFplus::MgtIdentifierList<SAFplusAmf::ServiceUnit*>::iterator itsu;
-        logDebug("OPS","NODE.ERR","Terminating components running in node [%s]", node->name.value.c_str());
-        for (itsu = node->serviceUnits.listBegin(); itsu != node->serviceUnits.listEnd(); itsu++)
+#define MAX_TRY 30
+        int loopCount = 0;
+        if (gracefulSwitchover)
         {
-            ServiceUnit* su = dynamic_cast<ServiceUnit*>(*itsu);
-            assert(su);
-            SAFplus::MgtIdentifierList<SAFplusAmf::Component*>::iterator itcomp;
-            for (itcomp = su->components.listBegin(); itcomp != su->components.listEnd(); itcomp++)
+            nodeGracefulSwitchover = gracefulSwitchover;
+            SAFplus::MgtIdentifierList<SAFplusAmf::ServiceUnit*>::iterator itsu;
+            logDebug("OPS","NODE.ERR","Removing works for all components running in node [%s]", node->name.value.c_str());
+            for (itsu = node->serviceUnits.listBegin(); itsu != node->serviceUnits.listEnd(); itsu++)
             {
-                Component* comp = dynamic_cast<Component*>(*itcomp);
-                assert(comp);
-                logDebug("OPS","NODE.ERR","Terminating component [%s]", comp->name.value.c_str());
-                stop(comp);
+                ServiceUnit* su = dynamic_cast<ServiceUnit*>(*itsu);
+                assert(su);
+                // remove work first
+                logDebug("OPS","NODE.ERR","Removing work assignments for all components running in su [%s]", su->name.value.c_str());
+                if ((su->numActiveServiceInstances.current > 0) || (su->numStandbyServiceInstances.current > 0))
+                {
+                    removeWork(su);
+                }
+            }
+            logDebug("OPS","NODE.ERR","Terminating all components running in node [%s]", node->name.value.c_str());
+            for (itsu = node->serviceUnits.listBegin(); itsu != node->serviceUnits.listEnd(); itsu++)
+            {
+                ServiceUnit* su = dynamic_cast<ServiceUnit*>(*itsu);
+                assert(su);
+                SAFplus::MgtIdentifierList<SAFplusAmf::Component*>::iterator itcomp;
+                for (itcomp = su->components.listBegin(); itcomp != su->components.listEnd(); itcomp++)
+                {
+                    Component* comp = dynamic_cast<Component*>(*itcomp);
+                    assert(comp);
+                    while (comp->haState != SAFplusAmf::HighAvailabilityState::idle && loopCount < MAX_TRY)
+                    {
+                        boost::this_thread::sleep(boost::posix_time::milliseconds(100));
+                        loopCount++;
+                    }
+                    if (loopCount == MAX_TRY)
+                    {
+                        logWarning("OPS","NODE.ERR","Component [%s] doesn't complete CSI Removed (no CSI Removed Response) in [%d] ms, so handling of node error report is not completed", comp->name.value.c_str(), MAX_TRY*100);
+                        nodeGracefulSwitchover = false;
+                        return CL_ERR_UNSPECIFIED;
+                    }
+                    logDebug("OPS","NODE.ERR","Terminating component [%s]", comp->name.value.c_str());
+                    stop(comp);
+                }
             }
         }
         if (shutdownAmf)
@@ -1730,10 +1760,11 @@ namespace SAFplus
             {
                 logError("OPS", "NODE.REPORT", "Handle got exception for name [%s]", node->name.value.c_str());
                 return CL_ERR_NOT_EXIST;
-            }
-
+            }            
             if (nodeHdl == nodeHandle)  // Handle this request locally.  This is an optimization.  The RPC call will also work locally.
             {
+                if (!restartAmf)
+                {
                 char asp_restart_disable_file[CL_MAX_NAME_LENGTH];
                 snprintf(asp_restart_disable_file, CL_MAX_NAME_LENGTH-1, "%s/%s", (SAFplus::ASP_RUNDIR[0] != 0) ? SAFplus::ASP_RUNDIR : ".", ASP_RESTART_DISABLE_FILE);
                 FILE* fp = fopen(asp_restart_disable_file, "w");
@@ -1747,8 +1778,12 @@ namespace SAFplus
                 {
                    logError("OPS","SHUTDOWN.AMF","Opening file [%s] fail. Error code [%d], error text [%s]", asp_restart_disable_file, errno, strerror(errno));
                 }
-
-            }
+                }
+                else
+                {
+                    gfault.registerEntity(nodeHdl,FaultState::STATE_DOWN);
+                }
+            }            
             else
             {
                 Handle remoteAmfHdl = getProcessHandle(SAFplusI::AMF_IOC_PORT, nodeHdl.getNode());
@@ -1756,6 +1791,7 @@ namespace SAFplus
                 {
                     logInfo("OPS", "NODE.ERR", "Sending shutdown amf request to node [%d]",nodeHdl.getNode());
                     ShutdownAmfRequest req;
+                    req.set_restartamf(restartAmf);
                     ShutdownAmfResponse resp;
                     amfInternalRpc->shutdownAmf(remoteAmfHdl,&req,&resp);
                 }
@@ -1770,6 +1806,21 @@ namespace SAFplus
             boost::this_thread::sleep(boost::posix_time::milliseconds(1000));
             this->rebootNode(node);
         }
+        //nodeGracefulSwitchover = false;
+
+        loopCount = 0;
+        while (node->presenceState.value != PresenceState::uninstantiated && loopCount < MAX_TRY)
+        {
+            boost::this_thread::sleep(boost::posix_time::milliseconds(100));
+            loopCount++;
+        }
+        nodeGracefulSwitchover = false;
+        if (loopCount == MAX_TRY)
+        {
+            logWarning("OPS","NODE.ERR","Node [%s] (presenceState [%s]) doesn't complete the switchover in [%d] ms, so handling of node error report is not completed", node->name.value.c_str(), SAFplusAmf::c_str(node->presenceState.value), MAX_TRY*100);        
+            return CL_ERR_UNSPECIFIED;
+        }
+        
         return CL_OK;
     }
 

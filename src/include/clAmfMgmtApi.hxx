@@ -83,7 +83,8 @@ ClRcT amfMgmtNodeErrorReport(const Handle& mgmtHandle, const std::string& nodeNa
 ClRcT amfMgmtNodeErrorClear(const Handle& mgmtHandle, const std::string& nodeName);
 ClRcT amfNodeJoin(const Handle& mgmtHandle, const std::string& nodeName);
 ClRcT amfMgmtNodeShutdown(const Handle& mgmtHandle, const std::string& nodeName);
-ClRcT amfNodeRestart(const Handle& mgmtHandle, const std::string& nodeName);
+ClRcT amfNodeRestart(const Handle& mgmtHandle, const std::string& nodeName, bool graceful);
+ClRcT amfMiddlewareRestart(const Handle& mgmtHandle, const std::string& nodeName, bool graceful, bool nodeReset);
 
 ClRcT amfMgmtAssignSUtoSI(const Handle& mgmtHandle, const std::string& siName, const std::string& acitveSUName, const std::string& standbySUName);
 

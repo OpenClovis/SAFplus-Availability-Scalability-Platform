@@ -18004,6 +18004,20 @@ class NodeErrorReportRequest : public ::google::protobuf::Message {
   inline bool rebootnode() const;
   inline void set_rebootnode(bool value);
 
+  // optional bool gracefulSwitchover = 5;
+  inline bool has_gracefulswitchover() const;
+  inline void clear_gracefulswitchover();
+  static const int kGracefulSwitchoverFieldNumber = 5;
+  inline bool gracefulswitchover() const;
+  inline void set_gracefulswitchover(bool value);
+
+  // optional bool restartAmf = 6;
+  inline bool has_restartamf() const;
+  inline void clear_restartamf();
+  static const int kRestartAmfFieldNumber = 6;
+  inline bool restartamf() const;
+  inline void set_restartamf(bool value);
+
   GOOGLE_PROTOBUF_EXTENSION_ACCESSORS(NodeErrorReportRequest)
   // @@protoc_insertion_point(class_scope:SAFplus.Rpc.amfMgmtRpc.NodeErrorReportRequest)
  private:
@@ -18013,6 +18027,10 @@ class NodeErrorReportRequest : public ::google::protobuf::Message {
   inline void clear_has_shutdownamf();
   inline void set_has_rebootnode();
   inline void clear_has_rebootnode();
+  inline void set_has_gracefulswitchover();
+  inline void clear_has_gracefulswitchover();
+  inline void set_has_restartamf();
+  inline void clear_has_restartamf();
 
   ::google::protobuf::internal::ExtensionSet _extensions_;
 
@@ -18024,6 +18042,8 @@ class NodeErrorReportRequest : public ::google::protobuf::Message {
   ::std::string* nodename_;
   bool shutdownamf_;
   bool rebootnode_;
+  bool gracefulswitchover_;
+  bool restartamf_;
   friend void  protobuf_AddDesc_amfMgmtRpc_2eproto();
   friend void protobuf_AssignDesc_amfMgmtRpc_2eproto();
   friend void protobuf_ShutdownFile_amfMgmtRpc_2eproto();
@@ -36777,6 +36797,54 @@ inline void NodeErrorReportRequest::set_rebootnode(bool value) {
   set_has_rebootnode();
   rebootnode_ = value;
   // @@protoc_insertion_point(field_set:SAFplus.Rpc.amfMgmtRpc.NodeErrorReportRequest.rebootNode)
+}
+
+// optional bool gracefulSwitchover = 5;
+inline bool NodeErrorReportRequest::has_gracefulswitchover() const {
+  return (_has_bits_[0] & 0x00000010u) != 0;
+}
+inline void NodeErrorReportRequest::set_has_gracefulswitchover() {
+  _has_bits_[0] |= 0x00000010u;
+}
+inline void NodeErrorReportRequest::clear_has_gracefulswitchover() {
+  _has_bits_[0] &= ~0x00000010u;
+}
+inline void NodeErrorReportRequest::clear_gracefulswitchover() {
+  gracefulswitchover_ = false;
+  clear_has_gracefulswitchover();
+}
+inline bool NodeErrorReportRequest::gracefulswitchover() const {
+  // @@protoc_insertion_point(field_get:SAFplus.Rpc.amfMgmtRpc.NodeErrorReportRequest.gracefulSwitchover)
+  return gracefulswitchover_;
+}
+inline void NodeErrorReportRequest::set_gracefulswitchover(bool value) {
+  set_has_gracefulswitchover();
+  gracefulswitchover_ = value;
+  // @@protoc_insertion_point(field_set:SAFplus.Rpc.amfMgmtRpc.NodeErrorReportRequest.gracefulSwitchover)
+}
+
+// optional bool restartAmf = 6;
+inline bool NodeErrorReportRequest::has_restartamf() const {
+  return (_has_bits_[0] & 0x00000020u) != 0;
+}
+inline void NodeErrorReportRequest::set_has_restartamf() {
+  _has_bits_[0] |= 0x00000020u;
+}
+inline void NodeErrorReportRequest::clear_has_restartamf() {
+  _has_bits_[0] &= ~0x00000020u;
+}
+inline void NodeErrorReportRequest::clear_restartamf() {
+  restartamf_ = false;
+  clear_has_restartamf();
+}
+inline bool NodeErrorReportRequest::restartamf() const {
+  // @@protoc_insertion_point(field_get:SAFplus.Rpc.amfMgmtRpc.NodeErrorReportRequest.restartAmf)
+  return restartamf_;
+}
+inline void NodeErrorReportRequest::set_restartamf(bool value) {
+  set_has_restartamf();
+  restartamf_ = value;
+  // @@protoc_insertion_point(field_set:SAFplus.Rpc.amfMgmtRpc.NodeErrorReportRequest.restartAmf)
 }
 
 // -------------------------------------------------------------------

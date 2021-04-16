@@ -184,6 +184,12 @@ module amfRpc
   
   rpc shutdownAmf
   {
+    input
+    {
+      leaf restartAmf {
+         type boolean; // true: restart the amf; false: otherwise
+       }
+    }
     output
     {
       leaf err

@@ -297,6 +297,7 @@ void protobuf_AssignDesc_amfRpc_2eproto() {
       sizeof(RebootNodeResponse));
   ShutdownAmfRequest_descriptor_ = file->message_type(14);
   static const int ShutdownAmfRequest_offsets_[1] = {
+    GOOGLE_PROTOBUF_GENERATED_MESSAGE_FIELD_OFFSET(ShutdownAmfRequest, restartamf_),
   };
   ShutdownAmfRequest_reflection_ =
     new ::google::protobuf::internal::GeneratedMessageReflection(
@@ -435,29 +436,30 @@ void protobuf_AddDesc_amfRpc_2eproto() {
     "\200\200\002\"/\n\025ProcessFailedResponse\022\013\n\003err\030\001 \001("
     "\021*\t\010\350\007\020\200\200\200\200\002\"\036\n\021RebootNodeRequest*\t\010\350\007\020\200"
     "\200\200\200\002\",\n\022RebootNodeResponse\022\013\n\003err\030\001 \001(\021*"
-    "\t\010\350\007\020\200\200\200\200\002\"\037\n\022ShutdownAmfRequest*\t\010\350\007\020\200\200"
-    "\200\200\002\"-\n\023ShutdownAmfResponse\022\013\n\003err\030\001 \001(\021*"
-    "\t\010\350\007\020\200\200\200\200\0022\240\006\n\006amfRpc\022g\n\016startComponent\022"
-    ").SAFplus.Rpc.amfRpc.StartComponentReque"
-    "st\032*.SAFplus.Rpc.amfRpc.StartComponentRe"
-    "sponse\022d\n\rstopComponent\022(.SAFplus.Rpc.am"
-    "fRpc.StopComponentRequest\032).SAFplus.Rpc."
-    "amfRpc.StopComponentResponse\022m\n\020cleanupC"
-    "omponent\022+.SAFplus.Rpc.amfRpc.CleanupCom"
-    "ponentRequest\032,.SAFplus.Rpc.amfRpc.Clean"
-    "upComponentResponse\022U\n\010nodeInfo\022#.SAFplu"
-    "s.Rpc.amfRpc.NodeInfoRequest\032$.SAFplus.R"
-    "pc.amfRpc.NodeInfoResponse\022^\n\013processInf"
-    "o\022&.SAFplus.Rpc.amfRpc.ProcessInfoReques"
-    "t\032\'.SAFplus.Rpc.amfRpc.ProcessInfoRespon"
-    "se\022d\n\rprocessFailed\022(.SAFplus.Rpc.amfRpc"
-    ".ProcessFailedRequest\032).SAFplus.Rpc.amfR"
-    "pc.ProcessFailedResponse\022[\n\nrebootNode\022%"
-    ".SAFplus.Rpc.amfRpc.RebootNodeRequest\032&."
-    "SAFplus.Rpc.amfRpc.RebootNodeResponse\022^\n"
-    "\013shutdownAmf\022&.SAFplus.Rpc.amfRpc.Shutdo"
-    "wnAmfRequest\032\'.SAFplus.Rpc.amfRpc.Shutdo"
-    "wnAmfResponseB\t\200\001\000\210\001\000\220\001\001", 1704);
+    "\t\010\350\007\020\200\200\200\200\002\"3\n\022ShutdownAmfRequest\022\022\n\nrest"
+    "artAmf\030\001 \001(\010*\t\010\350\007\020\200\200\200\200\002\"-\n\023ShutdownAmfRe"
+    "sponse\022\013\n\003err\030\001 \001(\021*\t\010\350\007\020\200\200\200\200\0022\240\006\n\006amfRp"
+    "c\022g\n\016startComponent\022).SAFplus.Rpc.amfRpc"
+    ".StartComponentRequest\032*.SAFplus.Rpc.amf"
+    "Rpc.StartComponentResponse\022d\n\rstopCompon"
+    "ent\022(.SAFplus.Rpc.amfRpc.StopComponentRe"
+    "quest\032).SAFplus.Rpc.amfRpc.StopComponent"
+    "Response\022m\n\020cleanupComponent\022+.SAFplus.R"
+    "pc.amfRpc.CleanupComponentRequest\032,.SAFp"
+    "lus.Rpc.amfRpc.CleanupComponentResponse\022"
+    "U\n\010nodeInfo\022#.SAFplus.Rpc.amfRpc.NodeInf"
+    "oRequest\032$.SAFplus.Rpc.amfRpc.NodeInfoRe"
+    "sponse\022^\n\013processInfo\022&.SAFplus.Rpc.amfR"
+    "pc.ProcessInfoRequest\032\'.SAFplus.Rpc.amfR"
+    "pc.ProcessInfoResponse\022d\n\rprocessFailed\022"
+    "(.SAFplus.Rpc.amfRpc.ProcessFailedReques"
+    "t\032).SAFplus.Rpc.amfRpc.ProcessFailedResp"
+    "onse\022[\n\nrebootNode\022%.SAFplus.Rpc.amfRpc."
+    "RebootNodeRequest\032&.SAFplus.Rpc.amfRpc.R"
+    "ebootNodeResponse\022^\n\013shutdownAmf\022&.SAFpl"
+    "us.Rpc.amfRpc.ShutdownAmfRequest\032\'.SAFpl"
+    "us.Rpc.amfRpc.ShutdownAmfResponseB\t\200\001\000\210\001"
+    "\000\220\001\001", 1724);
   ::google::protobuf::MessageFactory::InternalRegisterGeneratedFile(
     "amfRpc.proto", &protobuf_RegisterTypes);
   StartComponentRequest::default_instance_ = new StartComponentRequest();
@@ -4185,6 +4187,7 @@ void RebootNodeResponse::Swap(RebootNodeResponse* other) {
 // ===================================================================
 
 #ifndef _MSC_VER
+const int ShutdownAmfRequest::kRestartAmfFieldNumber;
 #endif  // !_MSC_VER
 
 ShutdownAmfRequest::ShutdownAmfRequest()
@@ -4205,6 +4208,7 @@ ShutdownAmfRequest::ShutdownAmfRequest(const ShutdownAmfRequest& from)
 
 void ShutdownAmfRequest::SharedCtor() {
   _cached_size_ = 0;
+  restartamf_ = false;
   ::memset(_has_bits_, 0, sizeof(_has_bits_));
 }
 
@@ -4241,6 +4245,7 @@ ShutdownAmfRequest* ShutdownAmfRequest::New() const {
 
 void ShutdownAmfRequest::Clear() {
   _extensions_.Clear();
+  restartamf_ = false;
   ::memset(_has_bits_, 0, sizeof(_has_bits_));
   mutable_unknown_fields()->Clear();
 }
@@ -4254,19 +4259,38 @@ bool ShutdownAmfRequest::MergePartialFromCodedStream(
     ::std::pair< ::google::protobuf::uint32, bool> p = input->ReadTagWithCutoff(127);
     tag = p.first;
     if (!p.second) goto handle_unusual;
-  handle_unusual:
-    if (tag == 0 ||
-        ::google::protobuf::internal::WireFormatLite::GetTagWireType(tag) ==
-        ::google::protobuf::internal::WireFormatLite::WIRETYPE_END_GROUP) {
-      goto success;
+    switch (::google::protobuf::internal::WireFormatLite::GetTagFieldNumber(tag)) {
+      // optional bool restartAmf = 1;
+      case 1: {
+        if (tag == 8) {
+          DO_((::google::protobuf::internal::WireFormatLite::ReadPrimitive<
+                   bool, ::google::protobuf::internal::WireFormatLite::TYPE_BOOL>(
+                 input, &restartamf_)));
+          set_has_restartamf();
+        } else {
+          goto handle_unusual;
+        }
+        if (input->ExpectAtEnd()) goto success;
+        break;
+      }
+
+      default: {
+      handle_unusual:
+        if (tag == 0 ||
+            ::google::protobuf::internal::WireFormatLite::GetTagWireType(tag) ==
+            ::google::protobuf::internal::WireFormatLite::WIRETYPE_END_GROUP) {
+          goto success;
+        }
+        if ((8000u <= tag)) {
+          DO_(_extensions_.ParseField(tag, input, default_instance_,
+                                      mutable_unknown_fields()));
+          continue;
+        }
+        DO_(::google::protobuf::internal::WireFormat::SkipField(
+              input, tag, mutable_unknown_fields()));
+        break;
+      }
     }
-    if ((8000u <= tag)) {
-      DO_(_extensions_.ParseField(tag, input, default_instance_,
-                                  mutable_unknown_fields()));
-      continue;
-    }
-    DO_(::google::protobuf::internal::WireFormat::SkipField(
-          input, tag, mutable_unknown_fields()));
   }
 success:
   // @@protoc_insertion_point(parse_success:SAFplus.Rpc.amfRpc.ShutdownAmfRequest)
@@ -4280,6 +4304,11 @@ failure:
 void ShutdownAmfRequest::SerializeWithCachedSizes(
     ::google::protobuf::io::CodedOutputStream* output) const {
   // @@protoc_insertion_point(serialize_start:SAFplus.Rpc.amfRpc.ShutdownAmfRequest)
+  // optional bool restartAmf = 1;
+  if (has_restartamf()) {
+    ::google::protobuf::internal::WireFormatLite::WriteBool(1, this->restartamf(), output);
+  }
+
   // Extension range [1000, 536870912)
   _extensions_.SerializeWithCachedSizes(
       1000, 536870912, output);
@@ -4294,6 +4323,11 @@ void ShutdownAmfRequest::SerializeWithCachedSizes(
 ::google::protobuf::uint8* ShutdownAmfRequest::SerializeWithCachedSizesToArray(
     ::google::protobuf::uint8* target) const {
   // @@protoc_insertion_point(serialize_to_array_start:SAFplus.Rpc.amfRpc.ShutdownAmfRequest)
+  // optional bool restartAmf = 1;
+  if (has_restartamf()) {
+    target = ::google::protobuf::internal::WireFormatLite::WriteBoolToArray(1, this->restartamf(), target);
+  }
+
   // Extension range [1000, 536870912)
   target = _extensions_.SerializeWithCachedSizesToArray(
       1000, 536870912, target);
@@ -4309,6 +4343,13 @@ void ShutdownAmfRequest::SerializeWithCachedSizes(
 int ShutdownAmfRequest::ByteSize() const {
   int total_size = 0;
 
+  if (_has_bits_[0 / 32] & (0xffu << (0 % 32))) {
+    // optional bool restartAmf = 1;
+    if (has_restartamf()) {
+      total_size += 1 + 1;
+    }
+
+  }
   total_size += _extensions_.ByteSize();
 
   if (!unknown_fields().empty()) {
@@ -4336,6 +4377,11 @@ void ShutdownAmfRequest::MergeFrom(const ::google::protobuf::Message& from) {
 
 void ShutdownAmfRequest::MergeFrom(const ShutdownAmfRequest& from) {
   GOOGLE_CHECK_NE(&from, this);
+  if (from._has_bits_[0 / 32] & (0xffu << (0 % 32))) {
+    if (from.has_restartamf()) {
+      set_restartamf(from.restartamf());
+    }
+  }
   _extensions_.MergeFrom(from._extensions_);
   mutable_unknown_fields()->MergeFrom(from.unknown_fields());
 }
@@ -4360,6 +4406,8 @@ bool ShutdownAmfRequest::IsInitialized() const {
 
 void ShutdownAmfRequest::Swap(ShutdownAmfRequest* other) {
   if (other != this) {
+    std::swap(restartamf_, other->restartamf_);
+    std::swap(_has_bits_[0], other->_has_bits_[0]);
     _unknown_fields_.Swap(&other->_unknown_fields_);
     std::swap(_cached_size_, other->_cached_size_);
     _extensions_.Swap(&other->_extensions_);

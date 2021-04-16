@@ -2374,7 +2374,15 @@ are switched over to other nodes (component service instances are not abruptly r
        
        leaf rebootNode {
          type boolean; // true: reboot the node; false: don't reboot the node
-       }     
+       }
+       
+       leaf gracefulSwitchover {
+         type boolean; // true: graceful switchover the node; false: otherwise
+       }
+       
+       leaf restartAmf {
+         type boolean; // true: restart the amf; false: otherwise
+       }
      }
      output {
        leaf err {

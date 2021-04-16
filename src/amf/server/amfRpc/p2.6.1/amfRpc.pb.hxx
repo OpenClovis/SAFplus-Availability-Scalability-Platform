@@ -1331,9 +1331,18 @@ class ShutdownAmfRequest : public ::google::protobuf::Message {
 
   // accessors -------------------------------------------------------
 
+  // optional bool restartAmf = 1;
+  inline bool has_restartamf() const;
+  inline void clear_restartamf();
+  static const int kRestartAmfFieldNumber = 1;
+  inline bool restartamf() const;
+  inline void set_restartamf(bool value);
+
   GOOGLE_PROTOBUF_EXTENSION_ACCESSORS(ShutdownAmfRequest)
   // @@protoc_insertion_point(class_scope:SAFplus.Rpc.amfRpc.ShutdownAmfRequest)
  private:
+  inline void set_has_restartamf();
+  inline void clear_has_restartamf();
 
   ::google::protobuf::internal::ExtensionSet _extensions_;
 
@@ -1341,6 +1350,7 @@ class ShutdownAmfRequest : public ::google::protobuf::Message {
 
   ::google::protobuf::uint32 _has_bits_[1];
   mutable int _cached_size_;
+  bool restartamf_;
   friend void  protobuf_AddDesc_amfRpc_2eproto();
   friend void protobuf_AssignDesc_amfRpc_2eproto();
   friend void protobuf_ShutdownFile_amfRpc_2eproto();
@@ -2208,6 +2218,30 @@ inline void RebootNodeResponse::set_err(::google::protobuf::int32 value) {
 // -------------------------------------------------------------------
 
 // ShutdownAmfRequest
+
+// optional bool restartAmf = 1;
+inline bool ShutdownAmfRequest::has_restartamf() const {
+  return (_has_bits_[0] & 0x00000001u) != 0;
+}
+inline void ShutdownAmfRequest::set_has_restartamf() {
+  _has_bits_[0] |= 0x00000001u;
+}
+inline void ShutdownAmfRequest::clear_has_restartamf() {
+  _has_bits_[0] &= ~0x00000001u;
+}
+inline void ShutdownAmfRequest::clear_restartamf() {
+  restartamf_ = false;
+  clear_has_restartamf();
+}
+inline bool ShutdownAmfRequest::restartamf() const {
+  // @@protoc_insertion_point(field_get:SAFplus.Rpc.amfRpc.ShutdownAmfRequest.restartAmf)
+  return restartamf_;
+}
+inline void ShutdownAmfRequest::set_restartamf(bool value) {
+  set_has_restartamf();
+  restartamf_ = value;
+  // @@protoc_insertion_point(field_set:SAFplus.Rpc.amfRpc.ShutdownAmfRequest.restartAmf)
+}
 
 // -------------------------------------------------------------------
 

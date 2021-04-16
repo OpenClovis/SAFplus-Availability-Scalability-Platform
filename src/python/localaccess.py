@@ -54,7 +54,7 @@ amfMgmtNodeErrorClear = safplus.amfMgmtNodeErrorClear
 amfMgmtNodeJoin  = safplus.amfMgmtNodeJoin
 amfMgmtNodeShutdown = safplus.amfMgmtNodeShutdown
 amfNodeRestart  = safplus.amfNodeRestart
-
+amfMiddlewareRestart = safplus.amfMiddlewareRestart
 amfMgmtAssignSUtoSI = safplus.amfMgmtAssignSUtoSI
 
 

@@ -1652,6 +1652,8 @@ ClRcT amfMgmtNodeErrorReport(const Handle& mgmtHandle, const std::string& nodeNa
     request.set_nodename(nodeName);
     request.set_shutdownamf(false);
     request.set_rebootnode(false);
+    request.set_gracefulswitchover(true);
+    request.set_restartamf(false);
     try
     {
         Handle& remoteAmfHdl = name.getHandle(AMF_MASTER_HANDLE, 2000);
@@ -1720,6 +1722,8 @@ ClRcT amfMgmtNodeShutdown(const Handle& mgmtHandle, const std::string& nodeName)
     request.set_nodename(nodeName);
     request.set_shutdownamf(true);
     request.set_rebootnode(false);
+    request.set_gracefulswitchover(true);
+    request.set_restartamf(false);
     try
     {
         Handle& remoteAmfHdl = name.getHandle(AMF_MASTER_HANDLE, 2000);
@@ -1735,7 +1739,7 @@ ClRcT amfMgmtNodeShutdown(const Handle& mgmtHandle, const std::string& nodeName)
     return rc;
 }
 
-ClRcT amfNodeRestart(const Handle& mgmtHandle, const std::string& nodeName)
+ClRcT amfNodeRestart(const Handle& mgmtHandle, const std::string& nodeName, bool graceful)
 {
 #ifdef HANDLE_VALIDATE
     if (!gAmfMgmtInitialized)
@@ -1749,6 +1753,39 @@ ClRcT amfNodeRestart(const Handle& mgmtHandle, const std::string& nodeName)
     request.set_nodename(nodeName);
     request.set_shutdownamf(false);
     request.set_rebootnode(true);
+    request.set_gracefulswitchover(graceful);
+    request.set_restartamf(false);
+    try
+    {
+        Handle& remoteAmfHdl = name.getHandle(AMF_MASTER_HANDLE, 2000);
+        SAFplus::Rpc::amfMgmtRpc::NodeErrorReportResponse resp;
+        amfMgmtRpc->nodeErrorReport(remoteAmfHdl,&request,&resp);
+        rc = (ClRcT)resp.err();
+    }
+    catch(NameException& ex)
+    {
+        logError("MGMT","INI","getHandle got exception [%s]", ex.what());
+        rc = CL_ERR_NOT_EXIST;
+    }
+    return rc;
+}
+
+ClRcT amfMiddlewareRestart(const Handle& mgmtHandle, const std::string& nodeName, bool graceful, bool nodeReset)
+{
+#ifdef HANDLE_VALIDATE
+    if (!gAmfMgmtInitialized)
+    {
+        return CL_ERR_NOT_INITIALIZED;
+    }
+#endif
+    ClRcT rc;
+    SAFplus::Rpc::amfMgmtRpc::NodeErrorReportRequest request;
+    request.add_amfmgmthandle((const char*) &mgmtHandle, sizeof(Handle));
+    request.set_nodename(nodeName);
+    request.set_shutdownamf(false);
+    request.set_rebootnode(nodeReset);
+    request.set_gracefulswitchover(graceful);
+    request.set_restartamf(true);
     try
     {
         Handle& remoteAmfHdl = name.getHandle(AMF_MASTER_HANDLE, 2000);

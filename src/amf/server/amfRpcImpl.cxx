@@ -158,19 +158,27 @@ namespace amfRpc {
   void amfRpcImpl::shutdownAmf(const ::SAFplus::Rpc::amfRpc::ShutdownAmfRequest* request,
                                 ::SAFplus::Rpc::amfRpc::ShutdownAmfResponse* response)
   {
-      char asp_restart_disable_file[CL_MAX_NAME_LENGTH];
-      snprintf(asp_restart_disable_file, CL_MAX_NAME_LENGTH-1, "%s/%s", (SAFplus::ASP_RUNDIR[0] != 0) ? SAFplus::ASP_RUNDIR : ".", ASP_RESTART_DISABLE_FILE);
-      logDebug("OPS","SHUTDOWN.AMF","Opening file [%s]", asp_restart_disable_file);
-      FILE* fp = fopen(asp_restart_disable_file, "w");
-      if (fp)
+      bool restartAmf = request->restartamf();
+      logDebug("OPS","SHUTDOWN.AMF","Shutdown amf by setting node [%d] fault state DOWN", nodeHandle.getNode());
+      if (!restartAmf)
       {
-          fclose(fp);
-          logDebug("OPS","SHUTDOWN.AMF","Shutdown amf by setting node [%d] fault state DOWN", nodeHandle.getNode());
-          gfault.registerEntity(nodeHandle,FaultState::STATE_DOWN);
+          char asp_restart_disable_file[CL_MAX_NAME_LENGTH];
+          snprintf(asp_restart_disable_file, CL_MAX_NAME_LENGTH-1, "%s/%s", (SAFplus::ASP_RUNDIR[0] != 0) ? SAFplus::ASP_RUNDIR : ".", ASP_RESTART_DISABLE_FILE);
+          logDebug("OPS","SHUTDOWN.AMF","Opening file [%s]", asp_restart_disable_file);
+          FILE* fp = fopen(asp_restart_disable_file, "w");
+          if (fp)
+          {
+              fclose(fp);
+              gfault.registerEntity(nodeHandle,FaultState::STATE_DOWN);
+          }
+          else
+          {
+              logError("OPS","SHUTDOWN.AMF","Opening file [%s] fail. Error code [%d], error text [%s]", asp_restart_disable_file, errno, strerror(errno));
+          }
       }
       else
       {
-          logError("OPS","SHUTDOWN.AMF","Opening file [%s] fail. Error code [%d], error text [%s]", asp_restart_disable_file, errno, strerror(errno));
+          gfault.registerEntity(nodeHandle,FaultState::STATE_DOWN);
       }
   }
 

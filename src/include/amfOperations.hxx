@@ -79,6 +79,7 @@ namespace SAFplus
       bool changed;
       PendingWorkOperationMap pendingWorkOperations;
       Fault fault;
+      bool nodeGracefulSwitchover;
 
       AmfOperations()
       {
@@ -89,6 +90,7 @@ namespace SAFplus
         invocation = (SAFplus::ASP_NODEADDR << 16) | SAFplus::iocPort;
         invocation <<= 32;  // TODO: should checkpointed value be used?
         //fault.init();
+        nodeGracefulSwitchover = false;
       }
 
   public:  // Public API
@@ -119,7 +121,7 @@ namespace SAFplus
 
     ClRcT sgAdjust(const SAFplusAmf::ServiceGroup* sg);
 
-    ClRcT nodeErrorReport(SAFplusAmf::Node* node, bool shutdownAmf = false, bool rebootNode = false);
+    ClRcT nodeErrorReport(SAFplusAmf::Node* node, bool gracefulSwitchover, bool shutdownAmf, bool restartAmf, bool rebootNode);
     ClRcT nodeErrorClear(SAFplusAmf::Node* node);
 
     ClRcT removeThenAssignWork(SAFplusAmf::ServiceInstance* si, SAFplusAmf::ServiceUnit* su, SAFplusAmf::HighAvailabilityState currentState, SAFplusAmf::HighAvailabilityState assignState);

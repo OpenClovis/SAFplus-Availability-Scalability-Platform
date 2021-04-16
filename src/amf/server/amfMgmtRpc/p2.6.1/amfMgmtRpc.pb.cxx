@@ -3398,11 +3398,13 @@ void protobuf_AssignDesc_amfMgmtRpc_2eproto() {
       ::google::protobuf::MessageFactory::generated_factory(),
       sizeof(CompErrorReportResponse));
   NodeErrorReportRequest_descriptor_ = file->message_type(174);
-  static const int NodeErrorReportRequest_offsets_[4] = {
+  static const int NodeErrorReportRequest_offsets_[6] = {
     GOOGLE_PROTOBUF_GENERATED_MESSAGE_FIELD_OFFSET(NodeErrorReportRequest, amfmgmthandle_),
     GOOGLE_PROTOBUF_GENERATED_MESSAGE_FIELD_OFFSET(NodeErrorReportRequest, nodename_),
     GOOGLE_PROTOBUF_GENERATED_MESSAGE_FIELD_OFFSET(NodeErrorReportRequest, shutdownamf_),
     GOOGLE_PROTOBUF_GENERATED_MESSAGE_FIELD_OFFSET(NodeErrorReportRequest, rebootnode_),
+    GOOGLE_PROTOBUF_GENERATED_MESSAGE_FIELD_OFFSET(NodeErrorReportRequest, gracefulswitchover_),
+    GOOGLE_PROTOBUF_GENERATED_MESSAGE_FIELD_OFFSET(NodeErrorReportRequest, restartamf_),
   };
   NodeErrorReportRequest_reflection_ =
     new ::google::protobuf::internal::GeneratedMessageReflection(
@@ -4714,231 +4716,233 @@ void protobuf_AddDesc_amfMgmtRpc_2eproto() {
     "\022\020\n\010compName\030\002 \001(\t\022=\n\023recommendedRecover"
     "y\030\003 \001(\0162 .SAFplus.Rpc.amfMgmtRpc.Recover"
     "y*\t\010\350\007\020\200\200\200\200\002\"1\n\027CompErrorReportResponse\022"
-    "\013\n\003err\030\001 \001(\021*\t\010\350\007\020\200\200\200\200\002\"u\n\026NodeErrorRepo"
-    "rtRequest\022\025\n\ramfMgmtHandle\030\001 \003(\014\022\020\n\010node"
-    "Name\030\002 \001(\t\022\023\n\013shutdownAmf\030\003 \001(\010\022\022\n\nreboo"
-    "tNode\030\004 \001(\010*\t\010\350\007\020\200\200\200\200\002\"1\n\027NodeErrorRepor"
-    "tResponse\022\013\n\003err\030\001 \001(\021*\t\010\350\007\020\200\200\200\200\002\"K\n\025Nod"
-    "eErrorClearRequest\022\025\n\ramfMgmtHandle\030\001 \003("
-    "\014\022\020\n\010nodeName\030\002 \001(\t*\t\010\350\007\020\200\200\200\200\002\"0\n\026NodeEr"
-    "rorClearResponse\022\013\n\003err\030\001 \001(\021*\t\010\350\007\020\200\200\200\200\002"
-    "\"t\n\023AssignSUtoSIRequest\022\025\n\ramfMgmtHandle"
-    "\030\001 \003(\014\022\016\n\006siName\030\002 \001(\t\022\024\n\014activeSUName\030\003"
-    " \001(\t\022\025\n\rstandbySUName\030\004 \001(\t*\t\010\350\007\020\200\200\200\200\002\"."
-    "\n\024AssignSUtoSIResponse\022\013\n\003err\030\001 \001(\021*\t\010\350\007"
-    "\020\200\200\200\200\002*\377\001\n\rPresenceState\022 \n\034PresenceStat"
-    "e_uninstantiated\020\000\022\037\n\033PresenceState_inst"
-    "antiating\020\001\022\036\n\032PresenceState_instantiate"
-    "d\020\002\022\035\n\031PresenceState_terminating\020\003\022\034\n\030Pr"
-    "esenceState_restarting\020\004\022%\n!PresenceStat"
-    "e_instantiationFailed\020\005\022#\n\037PresenceState"
-    "_terminationFailed\020\006\032\002\020\001*p\n\016ReadinessSta"
-    "te\022\037\n\033ReadinessState_outOfService\020\000\022\034\n\030R"
-    "eadinessState_inService\020\001\022\033\n\027ReadinessSt"
-    "ate_stopping\020\002\032\002\020\001*\206\002\n\036HighAvailabilityR"
-    "eadinessState\0225\n1HighAvailabilityReadine"
-    "ssState_readyForAssignment\020\000\0229\n5HighAvai"
-    "labilityReadinessState_readyForActiveDeg"
-    "raded\020\001\0224\n0HighAvailabilityReadinessStat"
-    "e_notReadyForActive\020\002\0228\n4HighAvailabilit"
-    "yReadinessState_notReadyForAssignment\020\003\032"
-    "\002\020\001*\245\001\n\025HighAvailabilityState\022 \n\034HighAva"
-    "ilabilityState_active\020\001\022!\n\035HighAvailabil"
-    "ityState_standby\020\002\022\036\n\032HighAvailabilitySt"
-    "ate_idle\020\003\022#\n\037HighAvailabilityState_quie"
-    "scing\020\004\032\002\020\001*p\n\023AdministrativeState\022\033\n\027Ad"
-    "ministrativeState_off\020\000\022\034\n\030Administrativ"
-    "eState_idle\020\001\022\032\n\026AdministrativeState_on\020"
-    "\002\032\002\020\001*\210\002\n\010Recovery\022\035\n\031Recovery_NoRecomme"
-    "ndation\020\001\022\024\n\020Recovery_Restart\020\002\022\025\n\021Recov"
-    "ery_Failover\020\003\022\033\n\027Recovery_NodeSwitchove"
-    "r\020\004\022\031\n\025Recovery_NodeFailover\020\005\022\031\n\025Recove"
-    "ry_NodeFailfast\020\006\022\031\n\025Recovery_ClusterRes"
-    "et\020\007\022\037\n\033Recovery_ApplicationRestart\020\010\022\035\n"
-    "\031Recovery_ContainerRestart\020\t\032\002\020\001*\271\001\n\014Pro"
-    "cessState\022\030\n\024ProcessState_Running\020\000\022\031\n\025P"
-    "rocessState_Sleeping\020\001\022\037\n\033ProcessState_W"
-    "aitingForDisk\020\002\022\027\n\023ProcessState_Zombie\020\003"
-    "\022\030\n\024ProcessState_Stopped\020\004\022\034\n\030ProcessSta"
-    "te_TracingStop\020\005\032\002\020\001*\225\001\n\017CapabilityModel"
-    "\022*\n&CapabilityModel_x_active_and_y_stand"
-    "by\020\000\022)\n%CapabilityModel_x_active_or_y_st"
-    "andby\020\001\022\'\n#CapabilityModel_not_preinstan"
-    "tiable\020\002\032\002\020\001*\273\001\n\020PendingOperation\022\031\n\025Pen"
-    "dingOperation_none\020\000\022\"\n\036PendingOperation"
-    "_instantiation\020\001\022\035\n\031PendingOperation_shu"
-    "tdown\020\002\022#\n\037PendingOperation_workAssignme"
-    "nt\020\003\022 \n\034PendingOperation_workRemoval\020\004\032\002"
-    "\020\001*\177\n\017AssignmentState\022\036\n\032AssignmentState"
-    "_unassigned\020\000\022!\n\035AssignmentState_fullyAs"
-    "signed\020\001\022%\n!AssignmentState_partiallyAss"
-    "igned\020\002\032\002\020\0012\3673\n\namfMgmtRpc\022c\n\ninitialize"
-    "\022).SAFplus.Rpc.amfMgmtRpc.InitializeRequ"
-    "est\032*.SAFplus.Rpc.amfMgmtRpc.InitializeR"
-    "esponse\022]\n\010finalize\022\'.SAFplus.Rpc.amfMgm"
-    "tRpc.FinalizeRequest\032(.SAFplus.Rpc.amfMg"
-    "mtRpc.FinalizeResponse\022W\n\006commit\022%.SAFpl"
-    "us.Rpc.amfMgmtRpc.CommitRequest\032&.SAFplu"
-    "s.Rpc.amfMgmtRpc.CommitResponse\022r\n\017creat"
-    "eComponent\022..SAFplus.Rpc.amfMgmtRpc.Crea"
-    "teComponentRequest\032/.SAFplus.Rpc.amfMgmt"
-    "Rpc.CreateComponentResponse\022r\n\017updateCom"
-    "ponent\022..SAFplus.Rpc.amfMgmtRpc.UpdateCo"
-    "mponentRequest\032/.SAFplus.Rpc.amfMgmtRpc."
-    "UpdateComponentResponse\022r\n\017deleteCompone"
-    "nt\022..SAFplus.Rpc.amfMgmtRpc.DeleteCompon"
-    "entRequest\032/.SAFplus.Rpc.amfMgmtRpc.Dele"
-    "teComponentResponse\022]\n\010createSG\022\'.SAFplu"
-    "s.Rpc.amfMgmtRpc.CreateSGRequest\032(.SAFpl"
-    "us.Rpc.amfMgmtRpc.CreateSGResponse\022]\n\010up"
-    "dateSG\022\'.SAFplus.Rpc.amfMgmtRpc.UpdateSG"
-    "Request\032(.SAFplus.Rpc.amfMgmtRpc.UpdateS"
-    "GResponse\022]\n\010deleteSG\022\'.SAFplus.Rpc.amfM"
-    "gmtRpc.DeleteSGRequest\032(.SAFplus.Rpc.amf"
-    "MgmtRpc.DeleteSGResponse\022c\n\ncreateNode\022)"
-    ".SAFplus.Rpc.amfMgmtRpc.CreateNodeReques"
-    "t\032*.SAFplus.Rpc.amfMgmtRpc.CreateNodeRes"
-    "ponse\022c\n\nupdateNode\022).SAFplus.Rpc.amfMgm"
-    "tRpc.UpdateNodeRequest\032*.SAFplus.Rpc.amf"
-    "MgmtRpc.UpdateNodeResponse\022c\n\ndeleteNode"
-    "\022).SAFplus.Rpc.amfMgmtRpc.DeleteNodeRequ"
-    "est\032*.SAFplus.Rpc.amfMgmtRpc.DeleteNodeR"
-    "esponse\022]\n\010createSU\022\'.SAFplus.Rpc.amfMgm"
-    "tRpc.CreateSURequest\032(.SAFplus.Rpc.amfMg"
-    "mtRpc.CreateSUResponse\022]\n\010updateSU\022\'.SAF"
-    "plus.Rpc.amfMgmtRpc.UpdateSURequest\032(.SA"
-    "Fplus.Rpc.amfMgmtRpc.UpdateSUResponse\022]\n"
-    "\010deleteSU\022\'.SAFplus.Rpc.amfMgmtRpc.Delet"
-    "eSURequest\032(.SAFplus.Rpc.amfMgmtRpc.Dele"
-    "teSUResponse\022]\n\010createSI\022\'.SAFplus.Rpc.a"
-    "mfMgmtRpc.CreateSIRequest\032(.SAFplus.Rpc."
-    "amfMgmtRpc.CreateSIResponse\022]\n\010updateSI\022"
-    "\'.SAFplus.Rpc.amfMgmtRpc.UpdateSIRequest"
-    "\032(.SAFplus.Rpc.amfMgmtRpc.UpdateSIRespon"
-    "se\022]\n\010deleteSI\022\'.SAFplus.Rpc.amfMgmtRpc."
-    "DeleteSIRequest\032(.SAFplus.Rpc.amfMgmtRpc"
-    ".DeleteSIResponse\022`\n\tcreateCSI\022(.SAFplus"
-    ".Rpc.amfMgmtRpc.CreateCSIRequest\032).SAFpl"
-    "us.Rpc.amfMgmtRpc.CreateCSIResponse\022`\n\tu"
-    "pdateCSI\022(.SAFplus.Rpc.amfMgmtRpc.Update"
-    "CSIRequest\032).SAFplus.Rpc.amfMgmtRpc.Upda"
-    "teCSIResponse\022`\n\tdeleteCSI\022(.SAFplus.Rpc"
-    ".amfMgmtRpc.DeleteCSIRequest\032).SAFplus.R"
-    "pc.amfMgmtRpc.DeleteCSIResponse\022i\n\014delet"
-    "eCSINVP\022+.SAFplus.Rpc.amfMgmtRpc.DeleteC"
-    "SINVPRequest\032,.SAFplus.Rpc.amfMgmtRpc.De"
-    "leteCSINVPResponse\022u\n\020deleteNodeSUList\022/"
-    ".SAFplus.Rpc.amfMgmtRpc.DeleteNodeSUList"
-    "Request\0320.SAFplus.Rpc.amfMgmtRpc.DeleteN"
-    "odeSUListResponse\022o\n\016deleteSGSUList\022-.SA"
-    "Fplus.Rpc.amfMgmtRpc.DeleteSGSUListReque"
-    "st\032..SAFplus.Rpc.amfMgmtRpc.DeleteSGSULi"
-    "stResponse\022o\n\016deleteSGSIList\022-.SAFplus.R"
-    "pc.amfMgmtRpc.DeleteSGSIListRequest\032..SA"
-    "Fplus.Rpc.amfMgmtRpc.DeleteSGSIListRespo"
-    "nse\022u\n\020deleteSUCompList\022/.SAFplus.Rpc.am"
-    "fMgmtRpc.DeleteSUCompListRequest\0320.SAFpl"
-    "us.Rpc.amfMgmtRpc.DeleteSUCompListRespon"
-    "se\022r\n\017deleteSICSIList\022..SAFplus.Rpc.amfM"
-    "gmtRpc.DeleteSICSIListRequest\032/.SAFplus."
-    "Rpc.amfMgmtRpc.DeleteSICSIListResponse\022{"
-    "\n\022lockNodeAssignment\0221.SAFplus.Rpc.amfMg"
-    "mtRpc.LockNodeAssignmentRequest\0322.SAFplu"
-    "s.Rpc.amfMgmtRpc.LockNodeAssignmentRespo"
-    "nse\022u\n\020lockSGAssignment\022/.SAFplus.Rpc.am"
-    "fMgmtRpc.LockSGAssignmentRequest\0320.SAFpl"
-    "us.Rpc.amfMgmtRpc.LockSGAssignmentRespon"
-    "se\022u\n\020lockSUAssignment\022/.SAFplus.Rpc.amf"
-    "MgmtRpc.LockSUAssignmentRequest\0320.SAFplu"
-    "s.Rpc.amfMgmtRpc.LockSUAssignmentRespons"
-    "e\022u\n\020lockSIAssignment\022/.SAFplus.Rpc.amfM"
-    "gmtRpc.LockSIAssignmentRequest\0320.SAFplus"
-    ".Rpc.amfMgmtRpc.LockSIAssignmentResponse"
-    "\022\204\001\n\025lockNodeInstantiation\0224.SAFplus.Rpc"
-    ".amfMgmtRpc.LockNodeInstantiationRequest"
-    "\0325.SAFplus.Rpc.amfMgmtRpc.LockNodeInstan"
-    "tiationResponse\022~\n\023lockSGInstantiation\0222"
-    ".SAFplus.Rpc.amfMgmtRpc.LockSGInstantiat"
-    "ionRequest\0323.SAFplus.Rpc.amfMgmtRpc.Lock"
-    "SGInstantiationResponse\022~\n\023lockSUInstant"
-    "iation\0222.SAFplus.Rpc.amfMgmtRpc.LockSUIn"
-    "stantiationRequest\0323.SAFplus.Rpc.amfMgmt"
-    "Rpc.LockSUInstantiationResponse\022c\n\nunloc"
-    "kNode\022).SAFplus.Rpc.amfMgmtRpc.UnlockNod"
-    "eRequest\032*.SAFplus.Rpc.amfMgmtRpc.Unlock"
-    "NodeResponse\022]\n\010unlockSG\022\'.SAFplus.Rpc.a"
-    "mfMgmtRpc.UnlockSGRequest\032(.SAFplus.Rpc."
-    "amfMgmtRpc.UnlockSGResponse\022]\n\010unlockSU\022"
-    "\'.SAFplus.Rpc.amfMgmtRpc.UnlockSURequest"
-    "\032(.SAFplus.Rpc.amfMgmtRpc.UnlockSURespon"
-    "se\022]\n\010unlockSI\022\'.SAFplus.Rpc.amfMgmtRpc."
-    "UnlockSIRequest\032(.SAFplus.Rpc.amfMgmtRpc"
-    ".UnlockSIResponse\022c\n\nrepairNode\022).SAFplu"
-    "s.Rpc.amfMgmtRpc.RepairNodeRequest\032*.SAF"
-    "plus.Rpc.amfMgmtRpc.RepairNodeResponse\022r"
-    "\n\017repairComponent\022..SAFplus.Rpc.amfMgmtR"
-    "pc.RepairComponentRequest\032/.SAFplus.Rpc."
-    "amfMgmtRpc.RepairComponentResponse\022]\n\010re"
-    "pairSU\022\'.SAFplus.Rpc.amfMgmtRpc.RepairSU"
-    "Request\032(.SAFplus.Rpc.amfMgmtRpc.RepairS"
-    "UResponse\022{\n\022getComponentConfig\0221.SAFplu"
-    "s.Rpc.amfMgmtRpc.GetComponentConfigReque"
-    "st\0322.SAFplus.Rpc.amfMgmtRpc.GetComponent"
-    "ConfigResponse\022l\n\rgetNodeConfig\022,.SAFplu"
-    "s.Rpc.amfMgmtRpc.GetNodeConfigRequest\032-."
-    "SAFplus.Rpc.amfMgmtRpc.GetNodeConfigResp"
-    "onse\022f\n\013getSUConfig\022*.SAFplus.Rpc.amfMgm"
-    "tRpc.GetSUConfigRequest\032+.SAFplus.Rpc.am"
-    "fMgmtRpc.GetSUConfigResponse\022f\n\013getSGCon"
-    "fig\022*.SAFplus.Rpc.amfMgmtRpc.GetSGConfig"
-    "Request\032+.SAFplus.Rpc.amfMgmtRpc.GetSGCo"
-    "nfigResponse\022f\n\013getSIConfig\022*.SAFplus.Rp"
-    "c.amfMgmtRpc.GetSIConfigRequest\032+.SAFplu"
-    "s.Rpc.amfMgmtRpc.GetSIConfigResponse\022i\n\014"
-    "getCSIConfig\022+.SAFplus.Rpc.amfMgmtRpc.Ge"
-    "tCSIConfigRequest\032,.SAFplus.Rpc.amfMgmtR"
-    "pc.GetCSIConfigResponse\022{\n\022getComponentS"
-    "tatus\0221.SAFplus.Rpc.amfMgmtRpc.GetCompon"
-    "entStatusRequest\0322.SAFplus.Rpc.amfMgmtRp"
-    "c.GetComponentStatusResponse\022l\n\rgetNodeS"
-    "tatus\022,.SAFplus.Rpc.amfMgmtRpc.GetNodeSt"
-    "atusRequest\032-.SAFplus.Rpc.amfMgmtRpc.Get"
-    "NodeStatusResponse\022f\n\013getSUStatus\022*.SAFp"
-    "lus.Rpc.amfMgmtRpc.GetSUStatusRequest\032+."
-    "SAFplus.Rpc.amfMgmtRpc.GetSUStatusRespon"
-    "se\022f\n\013getSGStatus\022*.SAFplus.Rpc.amfMgmtR"
-    "pc.GetSGStatusRequest\032+.SAFplus.Rpc.amfM"
-    "gmtRpc.GetSGStatusResponse\022f\n\013getSIStatu"
-    "s\022*.SAFplus.Rpc.amfMgmtRpc.GetSIStatusRe"
-    "quest\032+.SAFplus.Rpc.amfMgmtRpc.GetSIStat"
-    "usResponse\022i\n\014getCSIStatus\022+.SAFplus.Rpc"
-    ".amfMgmtRpc.GetCSIStatusRequest\032,.SAFplu"
-    "s.Rpc.amfMgmtRpc.GetCSIStatusResponse\022f\n"
-    "\013nodeRestart\022*.SAFplus.Rpc.amfMgmtRpc.No"
-    "deRestartRequest\032+.SAFplus.Rpc.amfMgmtRp"
-    "c.NodeRestartResponse\022{\n\022serviceUnitRest"
-    "art\0221.SAFplus.Rpc.amfMgmtRpc.ServiceUnit"
-    "RestartRequest\0322.SAFplus.Rpc.amfMgmtRpc."
-    "ServiceUnitRestartResponse\022u\n\020componentR"
-    "estart\022/.SAFplus.Rpc.amfMgmtRpc.Componen"
-    "tRestartRequest\0320.SAFplus.Rpc.amfMgmtRpc"
-    ".ComponentRestartResponse\022]\n\010adjustSG\022\'."
-    "SAFplus.Rpc.amfMgmtRpc.AdjustSGRequest\032("
-    ".SAFplus.Rpc.amfMgmtRpc.AdjustSGResponse"
-    "\022W\n\006swapSI\022%.SAFplus.Rpc.amfMgmtRpc.Swap"
-    "SIRequest\032&.SAFplus.Rpc.amfMgmtRpc.SwapS"
-    "IResponse\022r\n\017compErrorReport\022..SAFplus.R"
-    "pc.amfMgmtRpc.CompErrorReportRequest\032/.S"
-    "AFplus.Rpc.amfMgmtRpc.CompErrorReportRes"
-    "ponse\022r\n\017nodeErrorReport\022..SAFplus.Rpc.a"
-    "mfMgmtRpc.NodeErrorReportRequest\032/.SAFpl"
-    "us.Rpc.amfMgmtRpc.NodeErrorReportRespons"
-    "e\022o\n\016nodeErrorClear\022-.SAFplus.Rpc.amfMgm"
-    "tRpc.NodeErrorClearRequest\032..SAFplus.Rpc"
-    ".amfMgmtRpc.NodeErrorClearResponse\022i\n\014as"
-    "signSUtoSI\022+.SAFplus.Rpc.amfMgmtRpc.Assi"
-    "gnSUtoSIRequest\032,.SAFplus.Rpc.amfMgmtRpc"
-    ".AssignSUtoSIResponseB\t\200\001\000\210\001\000\220\001\001", 27512);
+    "\013\n\003err\030\001 \001(\021*\t\010\350\007\020\200\200\200\200\002\"\245\001\n\026NodeErrorRep"
+    "ortRequest\022\025\n\ramfMgmtHandle\030\001 \003(\014\022\020\n\010nod"
+    "eName\030\002 \001(\t\022\023\n\013shutdownAmf\030\003 \001(\010\022\022\n\nrebo"
+    "otNode\030\004 \001(\010\022\032\n\022gracefulSwitchover\030\005 \001(\010"
+    "\022\022\n\nrestartAmf\030\006 \001(\010*\t\010\350\007\020\200\200\200\200\002\"1\n\027NodeE"
+    "rrorReportResponse\022\013\n\003err\030\001 \001(\021*\t\010\350\007\020\200\200\200"
+    "\200\002\"K\n\025NodeErrorClearRequest\022\025\n\ramfMgmtHa"
+    "ndle\030\001 \003(\014\022\020\n\010nodeName\030\002 \001(\t*\t\010\350\007\020\200\200\200\200\002\""
+    "0\n\026NodeErrorClearResponse\022\013\n\003err\030\001 \001(\021*\t"
+    "\010\350\007\020\200\200\200\200\002\"t\n\023AssignSUtoSIRequest\022\025\n\ramfM"
+    "gmtHandle\030\001 \003(\014\022\016\n\006siName\030\002 \001(\t\022\024\n\014activ"
+    "eSUName\030\003 \001(\t\022\025\n\rstandbySUName\030\004 \001(\t*\t\010\350"
+    "\007\020\200\200\200\200\002\".\n\024AssignSUtoSIResponse\022\013\n\003err\030\001"
+    " \001(\021*\t\010\350\007\020\200\200\200\200\002*\377\001\n\rPresenceState\022 \n\034Pre"
+    "senceState_uninstantiated\020\000\022\037\n\033PresenceS"
+    "tate_instantiating\020\001\022\036\n\032PresenceState_in"
+    "stantiated\020\002\022\035\n\031PresenceState_terminatin"
+    "g\020\003\022\034\n\030PresenceState_restarting\020\004\022%\n!Pre"
+    "senceState_instantiationFailed\020\005\022#\n\037Pres"
+    "enceState_terminationFailed\020\006\032\002\020\001*p\n\016Rea"
+    "dinessState\022\037\n\033ReadinessState_outOfServi"
+    "ce\020\000\022\034\n\030ReadinessState_inService\020\001\022\033\n\027Re"
+    "adinessState_stopping\020\002\032\002\020\001*\206\002\n\036HighAvai"
+    "labilityReadinessState\0225\n1HighAvailabili"
+    "tyReadinessState_readyForAssignment\020\000\0229\n"
+    "5HighAvailabilityReadinessState_readyFor"
+    "ActiveDegraded\020\001\0224\n0HighAvailabilityRead"
+    "inessState_notReadyForActive\020\002\0228\n4HighAv"
+    "ailabilityReadinessState_notReadyForAssi"
+    "gnment\020\003\032\002\020\001*\245\001\n\025HighAvailabilityState\022 "
+    "\n\034HighAvailabilityState_active\020\001\022!\n\035High"
+    "AvailabilityState_standby\020\002\022\036\n\032HighAvail"
+    "abilityState_idle\020\003\022#\n\037HighAvailabilityS"
+    "tate_quiescing\020\004\032\002\020\001*p\n\023AdministrativeSt"
+    "ate\022\033\n\027AdministrativeState_off\020\000\022\034\n\030Admi"
+    "nistrativeState_idle\020\001\022\032\n\026Administrative"
+    "State_on\020\002\032\002\020\001*\210\002\n\010Recovery\022\035\n\031Recovery_"
+    "NoRecommendation\020\001\022\024\n\020Recovery_Restart\020\002"
+    "\022\025\n\021Recovery_Failover\020\003\022\033\n\027Recovery_Node"
+    "Switchover\020\004\022\031\n\025Recovery_NodeFailover\020\005\022"
+    "\031\n\025Recovery_NodeFailfast\020\006\022\031\n\025Recovery_C"
+    "lusterReset\020\007\022\037\n\033Recovery_ApplicationRes"
+    "tart\020\010\022\035\n\031Recovery_ContainerRestart\020\t\032\002\020"
+    "\001*\271\001\n\014ProcessState\022\030\n\024ProcessState_Runni"
+    "ng\020\000\022\031\n\025ProcessState_Sleeping\020\001\022\037\n\033Proce"
+    "ssState_WaitingForDisk\020\002\022\027\n\023ProcessState"
+    "_Zombie\020\003\022\030\n\024ProcessState_Stopped\020\004\022\034\n\030P"
+    "rocessState_TracingStop\020\005\032\002\020\001*\225\001\n\017Capabi"
+    "lityModel\022*\n&CapabilityModel_x_active_an"
+    "d_y_standby\020\000\022)\n%CapabilityModel_x_activ"
+    "e_or_y_standby\020\001\022\'\n#CapabilityModel_not_"
+    "preinstantiable\020\002\032\002\020\001*\273\001\n\020PendingOperati"
+    "on\022\031\n\025PendingOperation_none\020\000\022\"\n\036Pending"
+    "Operation_instantiation\020\001\022\035\n\031PendingOper"
+    "ation_shutdown\020\002\022#\n\037PendingOperation_wor"
+    "kAssignment\020\003\022 \n\034PendingOperation_workRe"
+    "moval\020\004\032\002\020\001*\177\n\017AssignmentState\022\036\n\032Assign"
+    "mentState_unassigned\020\000\022!\n\035AssignmentStat"
+    "e_fullyAssigned\020\001\022%\n!AssignmentState_par"
+    "tiallyAssigned\020\002\032\002\020\0012\3673\n\namfMgmtRpc\022c\n\ni"
+    "nitialize\022).SAFplus.Rpc.amfMgmtRpc.Initi"
+    "alizeRequest\032*.SAFplus.Rpc.amfMgmtRpc.In"
+    "itializeResponse\022]\n\010finalize\022\'.SAFplus.R"
+    "pc.amfMgmtRpc.FinalizeRequest\032(.SAFplus."
+    "Rpc.amfMgmtRpc.FinalizeResponse\022W\n\006commi"
+    "t\022%.SAFplus.Rpc.amfMgmtRpc.CommitRequest"
+    "\032&.SAFplus.Rpc.amfMgmtRpc.CommitResponse"
+    "\022r\n\017createComponent\022..SAFplus.Rpc.amfMgm"
+    "tRpc.CreateComponentRequest\032/.SAFplus.Rp"
+    "c.amfMgmtRpc.CreateComponentResponse\022r\n\017"
+    "updateComponent\022..SAFplus.Rpc.amfMgmtRpc"
+    ".UpdateComponentRequest\032/.SAFplus.Rpc.am"
+    "fMgmtRpc.UpdateComponentResponse\022r\n\017dele"
+    "teComponent\022..SAFplus.Rpc.amfMgmtRpc.Del"
+    "eteComponentRequest\032/.SAFplus.Rpc.amfMgm"
+    "tRpc.DeleteComponentResponse\022]\n\010createSG"
+    "\022\'.SAFplus.Rpc.amfMgmtRpc.CreateSGReques"
+    "t\032(.SAFplus.Rpc.amfMgmtRpc.CreateSGRespo"
+    "nse\022]\n\010updateSG\022\'.SAFplus.Rpc.amfMgmtRpc"
+    ".UpdateSGRequest\032(.SAFplus.Rpc.amfMgmtRp"
+    "c.UpdateSGResponse\022]\n\010deleteSG\022\'.SAFplus"
+    ".Rpc.amfMgmtRpc.DeleteSGRequest\032(.SAFplu"
+    "s.Rpc.amfMgmtRpc.DeleteSGResponse\022c\n\ncre"
+    "ateNode\022).SAFplus.Rpc.amfMgmtRpc.CreateN"
+    "odeRequest\032*.SAFplus.Rpc.amfMgmtRpc.Crea"
+    "teNodeResponse\022c\n\nupdateNode\022).SAFplus.R"
+    "pc.amfMgmtRpc.UpdateNodeRequest\032*.SAFplu"
+    "s.Rpc.amfMgmtRpc.UpdateNodeResponse\022c\n\nd"
+    "eleteNode\022).SAFplus.Rpc.amfMgmtRpc.Delet"
+    "eNodeRequest\032*.SAFplus.Rpc.amfMgmtRpc.De"
+    "leteNodeResponse\022]\n\010createSU\022\'.SAFplus.R"
+    "pc.amfMgmtRpc.CreateSURequest\032(.SAFplus."
+    "Rpc.amfMgmtRpc.CreateSUResponse\022]\n\010updat"
+    "eSU\022\'.SAFplus.Rpc.amfMgmtRpc.UpdateSUReq"
+    "uest\032(.SAFplus.Rpc.amfMgmtRpc.UpdateSURe"
+    "sponse\022]\n\010deleteSU\022\'.SAFplus.Rpc.amfMgmt"
+    "Rpc.DeleteSURequest\032(.SAFplus.Rpc.amfMgm"
+    "tRpc.DeleteSUResponse\022]\n\010createSI\022\'.SAFp"
+    "lus.Rpc.amfMgmtRpc.CreateSIRequest\032(.SAF"
+    "plus.Rpc.amfMgmtRpc.CreateSIResponse\022]\n\010"
+    "updateSI\022\'.SAFplus.Rpc.amfMgmtRpc.Update"
+    "SIRequest\032(.SAFplus.Rpc.amfMgmtRpc.Updat"
+    "eSIResponse\022]\n\010deleteSI\022\'.SAFplus.Rpc.am"
+    "fMgmtRpc.DeleteSIRequest\032(.SAFplus.Rpc.a"
+    "mfMgmtRpc.DeleteSIResponse\022`\n\tcreateCSI\022"
+    "(.SAFplus.Rpc.amfMgmtRpc.CreateCSIReques"
+    "t\032).SAFplus.Rpc.amfMgmtRpc.CreateCSIResp"
+    "onse\022`\n\tupdateCSI\022(.SAFplus.Rpc.amfMgmtR"
+    "pc.UpdateCSIRequest\032).SAFplus.Rpc.amfMgm"
+    "tRpc.UpdateCSIResponse\022`\n\tdeleteCSI\022(.SA"
+    "Fplus.Rpc.amfMgmtRpc.DeleteCSIRequest\032)."
+    "SAFplus.Rpc.amfMgmtRpc.DeleteCSIResponse"
+    "\022i\n\014deleteCSINVP\022+.SAFplus.Rpc.amfMgmtRp"
+    "c.DeleteCSINVPRequest\032,.SAFplus.Rpc.amfM"
+    "gmtRpc.DeleteCSINVPResponse\022u\n\020deleteNod"
+    "eSUList\022/.SAFplus.Rpc.amfMgmtRpc.DeleteN"
+    "odeSUListRequest\0320.SAFplus.Rpc.amfMgmtRp"
+    "c.DeleteNodeSUListResponse\022o\n\016deleteSGSU"
+    "List\022-.SAFplus.Rpc.amfMgmtRpc.DeleteSGSU"
+    "ListRequest\032..SAFplus.Rpc.amfMgmtRpc.Del"
+    "eteSGSUListResponse\022o\n\016deleteSGSIList\022-."
+    "SAFplus.Rpc.amfMgmtRpc.DeleteSGSIListReq"
+    "uest\032..SAFplus.Rpc.amfMgmtRpc.DeleteSGSI"
+    "ListResponse\022u\n\020deleteSUCompList\022/.SAFpl"
+    "us.Rpc.amfMgmtRpc.DeleteSUCompListReques"
+    "t\0320.SAFplus.Rpc.amfMgmtRpc.DeleteSUCompL"
+    "istResponse\022r\n\017deleteSICSIList\022..SAFplus"
+    ".Rpc.amfMgmtRpc.DeleteSICSIListRequest\032/"
+    ".SAFplus.Rpc.amfMgmtRpc.DeleteSICSIListR"
+    "esponse\022{\n\022lockNodeAssignment\0221.SAFplus."
+    "Rpc.amfMgmtRpc.LockNodeAssignmentRequest"
+    "\0322.SAFplus.Rpc.amfMgmtRpc.LockNodeAssign"
+    "mentResponse\022u\n\020lockSGAssignment\022/.SAFpl"
+    "us.Rpc.amfMgmtRpc.LockSGAssignmentReques"
+    "t\0320.SAFplus.Rpc.amfMgmtRpc.LockSGAssignm"
+    "entResponse\022u\n\020lockSUAssignment\022/.SAFplu"
+    "s.Rpc.amfMgmtRpc.LockSUAssignmentRequest"
+    "\0320.SAFplus.Rpc.amfMgmtRpc.LockSUAssignme"
+    "ntResponse\022u\n\020lockSIAssignment\022/.SAFplus"
+    ".Rpc.amfMgmtRpc.LockSIAssignmentRequest\032"
+    "0.SAFplus.Rpc.amfMgmtRpc.LockSIAssignmen"
+    "tResponse\022\204\001\n\025lockNodeInstantiation\0224.SA"
+    "Fplus.Rpc.amfMgmtRpc.LockNodeInstantiati"
+    "onRequest\0325.SAFplus.Rpc.amfMgmtRpc.LockN"
+    "odeInstantiationResponse\022~\n\023lockSGInstan"
+    "tiation\0222.SAFplus.Rpc.amfMgmtRpc.LockSGI"
+    "nstantiationRequest\0323.SAFplus.Rpc.amfMgm"
+    "tRpc.LockSGInstantiationResponse\022~\n\023lock"
+    "SUInstantiation\0222.SAFplus.Rpc.amfMgmtRpc"
+    ".LockSUInstantiationRequest\0323.SAFplus.Rp"
+    "c.amfMgmtRpc.LockSUInstantiationResponse"
+    "\022c\n\nunlockNode\022).SAFplus.Rpc.amfMgmtRpc."
+    "UnlockNodeRequest\032*.SAFplus.Rpc.amfMgmtR"
+    "pc.UnlockNodeResponse\022]\n\010unlockSG\022\'.SAFp"
+    "lus.Rpc.amfMgmtRpc.UnlockSGRequest\032(.SAF"
+    "plus.Rpc.amfMgmtRpc.UnlockSGResponse\022]\n\010"
+    "unlockSU\022\'.SAFplus.Rpc.amfMgmtRpc.Unlock"
+    "SURequest\032(.SAFplus.Rpc.amfMgmtRpc.Unloc"
+    "kSUResponse\022]\n\010unlockSI\022\'.SAFplus.Rpc.am"
+    "fMgmtRpc.UnlockSIRequest\032(.SAFplus.Rpc.a"
+    "mfMgmtRpc.UnlockSIResponse\022c\n\nrepairNode"
+    "\022).SAFplus.Rpc.amfMgmtRpc.RepairNodeRequ"
+    "est\032*.SAFplus.Rpc.amfMgmtRpc.RepairNodeR"
+    "esponse\022r\n\017repairComponent\022..SAFplus.Rpc"
+    ".amfMgmtRpc.RepairComponentRequest\032/.SAF"
+    "plus.Rpc.amfMgmtRpc.RepairComponentRespo"
+    "nse\022]\n\010repairSU\022\'.SAFplus.Rpc.amfMgmtRpc"
+    ".RepairSURequest\032(.SAFplus.Rpc.amfMgmtRp"
+    "c.RepairSUResponse\022{\n\022getComponentConfig"
+    "\0221.SAFplus.Rpc.amfMgmtRpc.GetComponentCo"
+    "nfigRequest\0322.SAFplus.Rpc.amfMgmtRpc.Get"
+    "ComponentConfigResponse\022l\n\rgetNodeConfig"
+    "\022,.SAFplus.Rpc.amfMgmtRpc.GetNodeConfigR"
+    "equest\032-.SAFplus.Rpc.amfMgmtRpc.GetNodeC"
+    "onfigResponse\022f\n\013getSUConfig\022*.SAFplus.R"
+    "pc.amfMgmtRpc.GetSUConfigRequest\032+.SAFpl"
+    "us.Rpc.amfMgmtRpc.GetSUConfigResponse\022f\n"
+    "\013getSGConfig\022*.SAFplus.Rpc.amfMgmtRpc.Ge"
+    "tSGConfigRequest\032+.SAFplus.Rpc.amfMgmtRp"
+    "c.GetSGConfigResponse\022f\n\013getSIConfig\022*.S"
+    "AFplus.Rpc.amfMgmtRpc.GetSIConfigRequest"
+    "\032+.SAFplus.Rpc.amfMgmtRpc.GetSIConfigRes"
+    "ponse\022i\n\014getCSIConfig\022+.SAFplus.Rpc.amfM"
+    "gmtRpc.GetCSIConfigRequest\032,.SAFplus.Rpc"
+    ".amfMgmtRpc.GetCSIConfigResponse\022{\n\022getC"
+    "omponentStatus\0221.SAFplus.Rpc.amfMgmtRpc."
+    "GetComponentStatusRequest\0322.SAFplus.Rpc."
+    "amfMgmtRpc.GetComponentStatusResponse\022l\n"
+    "\rgetNodeStatus\022,.SAFplus.Rpc.amfMgmtRpc."
+    "GetNodeStatusRequest\032-.SAFplus.Rpc.amfMg"
+    "mtRpc.GetNodeStatusResponse\022f\n\013getSUStat"
+    "us\022*.SAFplus.Rpc.amfMgmtRpc.GetSUStatusR"
+    "equest\032+.SAFplus.Rpc.amfMgmtRpc.GetSUSta"
+    "tusResponse\022f\n\013getSGStatus\022*.SAFplus.Rpc"
+    ".amfMgmtRpc.GetSGStatusRequest\032+.SAFplus"
+    ".Rpc.amfMgmtRpc.GetSGStatusResponse\022f\n\013g"
+    "etSIStatus\022*.SAFplus.Rpc.amfMgmtRpc.GetS"
+    "IStatusRequest\032+.SAFplus.Rpc.amfMgmtRpc."
+    "GetSIStatusResponse\022i\n\014getCSIStatus\022+.SA"
+    "Fplus.Rpc.amfMgmtRpc.GetCSIStatusRequest"
+    "\032,.SAFplus.Rpc.amfMgmtRpc.GetCSIStatusRe"
+    "sponse\022f\n\013nodeRestart\022*.SAFplus.Rpc.amfM"
+    "gmtRpc.NodeRestartRequest\032+.SAFplus.Rpc."
+    "amfMgmtRpc.NodeRestartResponse\022{\n\022servic"
+    "eUnitRestart\0221.SAFplus.Rpc.amfMgmtRpc.Se"
+    "rviceUnitRestartRequest\0322.SAFplus.Rpc.am"
+    "fMgmtRpc.ServiceUnitRestartResponse\022u\n\020c"
+    "omponentRestart\022/.SAFplus.Rpc.amfMgmtRpc"
+    ".ComponentRestartRequest\0320.SAFplus.Rpc.a"
+    "mfMgmtRpc.ComponentRestartResponse\022]\n\010ad"
+    "justSG\022\'.SAFplus.Rpc.amfMgmtRpc.AdjustSG"
+    "Request\032(.SAFplus.Rpc.amfMgmtRpc.AdjustS"
+    "GResponse\022W\n\006swapSI\022%.SAFplus.Rpc.amfMgm"
+    "tRpc.SwapSIRequest\032&.SAFplus.Rpc.amfMgmt"
+    "Rpc.SwapSIResponse\022r\n\017compErrorReport\022.."
+    "SAFplus.Rpc.amfMgmtRpc.CompErrorReportRe"
+    "quest\032/.SAFplus.Rpc.amfMgmtRpc.CompError"
+    "ReportResponse\022r\n\017nodeErrorReport\022..SAFp"
+    "lus.Rpc.amfMgmtRpc.NodeErrorReportReques"
+    "t\032/.SAFplus.Rpc.amfMgmtRpc.NodeErrorRepo"
+    "rtResponse\022o\n\016nodeErrorClear\022-.SAFplus.R"
+    "pc.amfMgmtRpc.NodeErrorClearRequest\032..SA"
+    "Fplus.Rpc.amfMgmtRpc.NodeErrorClearRespo"
+    "nse\022i\n\014assignSUtoSI\022+.SAFplus.Rpc.amfMgm"
+    "tRpc.AssignSUtoSIRequest\032,.SAFplus.Rpc.a"
+    "mfMgmtRpc.AssignSUtoSIResponseB\t\200\001\000\210\001\000\220\001"
+    "\001", 27561);
   ::google::protobuf::MessageFactory::InternalRegisterGeneratedFile(
     "amfMgmtRpc.proto", &protobuf_RegisterTypes);
   SaTimeT::default_instance_ = new SaTimeT();
@@ -58317,6 +58321,8 @@ const int NodeErrorReportRequest::kAmfMgmtHandleFieldNumber;
 const int NodeErrorReportRequest::kNodeNameFieldNumber;
 const int NodeErrorReportRequest::kShutdownAmfFieldNumber;
 const int NodeErrorReportRequest::kRebootNodeFieldNumber;
+const int NodeErrorReportRequest::kGracefulSwitchoverFieldNumber;
+const int NodeErrorReportRequest::kRestartAmfFieldNumber;
 #endif  // !_MSC_VER
 
 NodeErrorReportRequest::NodeErrorReportRequest()
@@ -58341,6 +58347,8 @@ void NodeErrorReportRequest::SharedCtor() {
   nodename_ = const_cast< ::std::string*>(&::google::protobuf::internal::GetEmptyStringAlreadyInited());
   shutdownamf_ = false;
   rebootnode_ = false;
+  gracefulswitchover_ = false;
+  restartamf_ = false;
   ::memset(_has_bits_, 0, sizeof(_has_bits_));
 }
 
@@ -58390,8 +58398,8 @@ void NodeErrorReportRequest::Clear() {
     ::memset(&first, 0, n);                                \
   } while (0)
 
-  if (_has_bits_[0 / 32] & 14) {
-    ZR_(shutdownamf_, rebootnode_);
+  if (_has_bits_[0 / 32] & 62) {
+    ZR_(shutdownamf_, restartamf_);
     if (has_nodename()) {
       if (nodename_ != &::google::protobuf::internal::GetEmptyStringAlreadyInited()) {
         nodename_->clear();
@@ -58474,6 +58482,36 @@ bool NodeErrorReportRequest::MergePartialFromCodedStream(
         } else {
           goto handle_unusual;
         }
+        if (input->ExpectTag(40)) goto parse_gracefulSwitchover;
+        break;
+      }
+
+      // optional bool gracefulSwitchover = 5;
+      case 5: {
+        if (tag == 40) {
+         parse_gracefulSwitchover:
+          DO_((::google::protobuf::internal::WireFormatLite::ReadPrimitive<
+                   bool, ::google::protobuf::internal::WireFormatLite::TYPE_BOOL>(
+                 input, &gracefulswitchover_)));
+          set_has_gracefulswitchover();
+        } else {
+          goto handle_unusual;
+        }
+        if (input->ExpectTag(48)) goto parse_restartAmf;
+        break;
+      }
+
+      // optional bool restartAmf = 6;
+      case 6: {
+        if (tag == 48) {
+         parse_restartAmf:
+          DO_((::google::protobuf::internal::WireFormatLite::ReadPrimitive<
+                   bool, ::google::protobuf::internal::WireFormatLite::TYPE_BOOL>(
+                 input, &restartamf_)));
+          set_has_restartamf();
+        } else {
+          goto handle_unusual;
+        }
         if (input->ExpectAtEnd()) goto success;
         break;
       }
@@ -58534,6 +58572,16 @@ void NodeErrorReportRequest::SerializeWithCachedSizes(
     ::google::protobuf::internal::WireFormatLite::WriteBool(4, this->rebootnode(), output);
   }
 
+  // optional bool gracefulSwitchover = 5;
+  if (has_gracefulswitchover()) {
+    ::google::protobuf::internal::WireFormatLite::WriteBool(5, this->gracefulswitchover(), output);
+  }
+
+  // optional bool restartAmf = 6;
+  if (has_restartamf()) {
+    ::google::protobuf::internal::WireFormatLite::WriteBool(6, this->restartamf(), output);
+  }
+
   // Extension range [1000, 536870912)
   _extensions_.SerializeWithCachedSizes(
       1000, 536870912, output);
@@ -58575,6 +58623,16 @@ void NodeErrorReportRequest::SerializeWithCachedSizes(
     target = ::google::protobuf::internal::WireFormatLite::WriteBoolToArray(4, this->rebootnode(), target);
   }
 
+  // optional bool gracefulSwitchover = 5;
+  if (has_gracefulswitchover()) {
+    target = ::google::protobuf::internal::WireFormatLite::WriteBoolToArray(5, this->gracefulswitchover(), target);
+  }
+
+  // optional bool restartAmf = 6;
+  if (has_restartamf()) {
+    target = ::google::protobuf::internal::WireFormatLite::WriteBoolToArray(6, this->restartamf(), target);
+  }
+
   // Extension range [1000, 536870912)
   target = _extensions_.SerializeWithCachedSizesToArray(
       1000, 536870912, target);
@@ -58605,6 +58663,16 @@ int NodeErrorReportRequest::ByteSize() const {
 
     // optional bool rebootNode = 4;
     if (has_rebootnode()) {
+      total_size += 1 + 1;
+    }
+
+    // optional bool gracefulSwitchover = 5;
+    if (has_gracefulswitchover()) {
+      total_size += 1 + 1;
+    }
+
+    // optional bool restartAmf = 6;
+    if (has_restartamf()) {
       total_size += 1 + 1;
     }
 
@@ -58654,6 +58722,12 @@ void NodeErrorReportRequest::MergeFrom(const NodeErrorReportRequest& from) {
     if (from.has_rebootnode()) {
       set_rebootnode(from.rebootnode());
     }
+    if (from.has_gracefulswitchover()) {
+      set_gracefulswitchover(from.gracefulswitchover());
+    }
+    if (from.has_restartamf()) {
+      set_restartamf(from.restartamf());
+    }
   }
   _extensions_.MergeFrom(from._extensions_);
   mutable_unknown_fields()->MergeFrom(from.unknown_fields());
@@ -58683,6 +58757,8 @@ void NodeErrorReportRequest::Swap(NodeErrorReportRequest* other) {
     std::swap(nodename_, other->nodename_);
     std::swap(shutdownamf_, other->shutdownamf_);
     std::swap(rebootnode_, other->rebootnode_);
+    std::swap(gracefulswitchover_, other->gracefulswitchover_);
+    std::swap(restartamf_, other->restartamf_);
     std::swap(_has_bits_[0], other->_has_bits_[0]);
     _unknown_fields_.Swap(&other->_unknown_fields_);
     std::swap(_cached_size_, other->_cached_size_);

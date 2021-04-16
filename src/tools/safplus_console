@@ -1727,21 +1727,63 @@ By default the specified location and children are shown.  Use -N to specify how
 
     return ""
 
-  def do_nodeRestart(self, nodeName):
-    """syntax: nodeRestart nodeName
+  def do_nodeRestart(self, nodeName, graceful):
+    """syntax: nodeRestart nodeName graceful
+               graceful: 1: indicates the graceful restart
+                         0: indicates the ungraceful restart
     """
+    if graceful != '0' and graceful != '1':
+      print 'graceful argument must be 0 or 1'
+      return ""
+    grf = True if graceful=='1' else False
     try:
       handleTest = access.getProcessHandle(0, 0)
       ret = access.amfMgmtInitialize(handleTest)
       # print "amfMgmtInitialize: ", hex(ret)
 
-      ret = access.amfNodeRestart(handleTest, nodeName)
+      ret = access.amfNodeRestart(handleTest, nodeName, grf)
       if ret == 0x4:
         print "node %s do not exist" % nodeName
       elif ret == 0x0:
         print "Node %s restart OK" %nodeName
       else:
         print "Node restart failure with error 0x%x" % ret
+      
+      ret = access.amfMgmtFinalize(handleTest)
+ 
+    except RuntimeError, e:
+      print "error: ", e
+
+    return ""
+
+  def do_middlewareRestart(self, nodeName, graceful, nodeReset):
+    """syntax: nodeRestart nodeName graceful, nodeReset
+               nodeName: name of node to take the action
+               graceful: 1: indicates the graceful restart
+                         0: indicates the ungraceful restart
+               nodeReset: 1: indicates the node is reset
+                          0: indicates the middleware is restarted only
+    """
+    if graceful != '0' and graceful != '1':
+      print 'graceful argument must be 0 or 1'
+      return ""
+    if nodeReset != '0' and nodeReset != '1':
+      print 'nodeReset argument must be 0 or 1'
+      return ""
+    grf = True if graceful=='1' else False
+    nrst = True if nodeReset=='1' else False
+    try:     
+      handleTest = access.getProcessHandle(0, 0)
+      ret = access.amfMgmtInitialize(handleTest)
+      # print "amfMgmtInitialize: ", hex(ret)    
+      ret = access.amfMiddlewareRestart(handleTest, nodeName, grf, nrst)
+      #ret = access.amfMiddlewareRestart(handleTest, nodeName, graceful, nodeReset)
+      if ret == 0x4:
+        print "node %s do not exist" % nodeName
+      elif ret == 0x0:
+        print "Middleware restart OK for node %s" %nodeName
+      else:
+        print "Middleware restart failure with error 0x%x" % ret
       
       ret = access.amfMgmtFinalize(handleTest)
  

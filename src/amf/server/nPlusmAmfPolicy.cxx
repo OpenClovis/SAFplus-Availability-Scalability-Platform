@@ -605,8 +605,9 @@ class NplusMPolicy:public ClAmfPolicyPlugin_1
                         // remove the old active comp only from its CSI
                         if (csi->standbyComponents.contains(processedComp))
                         {
-                            csi->standbyComponents.erase(processedComp);
-                            break;
+                           logDebug("N+M","AUDIT","Erase faulty component [%s] from standbyComponents of csi [%s]", processedComp->name.value.c_str(),csi->name.value.c_str());
+                           csi->standbyComponents.erase(processedComp);
+                           break;
                         }
                     }
 
@@ -891,6 +892,7 @@ class NplusMPolicy:public ClAmfPolicyPlugin_1
   void updateStateDueToProcessDeath(SAFplusAmf::Component* comp)
   {
     assert(comp);
+    logDebug("POL","CUSTOM","updating states of component [%s] due to its process dead", comp->name.value.c_str());
     // Reset component's basic state to dead
     comp->presenceState = PresenceState::uninstantiated;
     comp->activeAssignments = 0;
@@ -1412,32 +1414,38 @@ class NplusMPolicy:public ClAmfPolicyPlugin_1
   static NplusMPolicy api;
   void NplusMPolicy::compFaultReport(Component* comp, const Recovery recommRecovery)
   {
-      logInfo("POL","FAILURE","Component failure reported for component [%s]", comp->name.value.c_str());
-      processedComp = comp;
-      recommendedRecovery = recommRecovery;
+      logDebug("POL","N+M","Component failure reported for component [%s], recommended recovery [%s], current recovery [%s]", comp->name.value.c_str(),c_str(recommRecovery),c_str(recommendedRecovery));
       bool escalation = false;
-      
-      computeCompRecoveryAction(comp, &recommendedRecovery, &escalation);
-      
-      logDebug("N+M","FAILURE","Fault on component [%s]: recommended recovery [%s], escalation [%s] ", comp->name.value.c_str(), SAFplusAmf::c_str(recommendedRecovery), escalation?"Yes":"No");
-
-      switch(recommendedRecovery)
-      {
-          case Recovery::CompRestart:
-              comp->serviceUnit.value->lastCompRestart.value.value = std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::system_clock::now().time_since_epoch()).count();
-              break;
-          case Recovery::SuRestart:
-          case Recovery::CompFailover:
-              computeSURecoveryAction(comp->serviceUnit.value, comp, &recommendedRecovery, &escalation);
-              postProcessForSURecoveryAction(comp->serviceUnit.value, comp, &recommendedRecovery, &escalation);
-              break;
-          case Recovery::NodeSwitchover:
-          case Recovery::NodeFailover:
-          case Recovery::NodeFailfast:
-              computeNodeRecoveryAction(comp->serviceUnit.value->node.value, &recommendedRecovery, &escalation);
-              break;
+      processedComp = comp;
+      if (amfOps->nodeGracefulSwitchover)
+      {          
+          recommendedRecovery = Recovery::None;          
       }
-      
+      else
+      {
+          recommendedRecovery = recommRecovery;
+
+          computeCompRecoveryAction(comp, &recommendedRecovery, &escalation);
+
+          logDebug("POL","N+M","Fault on component [%s], recommended recovery [%s], escalation [%s]", comp->name.value.c_str(),c_str(recommendedRecovery), escalation?"Yes":"No");
+
+          switch(recommendedRecovery)
+          {
+              case Recovery::CompRestart:
+                  comp->serviceUnit.value->lastCompRestart.value.value = std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::system_clock::now().time_since_epoch()).count();
+                  break;
+              case Recovery::SuRestart:
+              case Recovery::CompFailover:
+                  computeSURecoveryAction(comp->serviceUnit.value, comp, &recommendedRecovery, &escalation);
+                  postProcessForSURecoveryAction(comp->serviceUnit.value, comp, &recommendedRecovery, &escalation);
+                  break;
+              case Recovery::NodeSwitchover:
+              case Recovery::NodeFailover:
+              case Recovery::NodeFailfast:
+                  computeNodeRecoveryAction(comp->serviceUnit.value->node.value, &recommendedRecovery, &escalation);
+                  break;
+          }
+      }
       if(recommendedRecovery!=SAFplusAmf::Recovery::CompRestart)
       {
           MgtIdentifierList<Component*>::iterator itcomp = comp->serviceUnit.value->components.listBegin();
@@ -1458,6 +1466,7 @@ class NplusMPolicy:public ClAmfPolicyPlugin_1
           amfOps->cleanup(comp);
           if(recommendedRecovery != SAFplusAmf::Recovery::NodeFailfast)updateStateDueToProcessDeath(comp);
       }
+      logDebug("POL","N+M","processing faulty component [%s], recommended recovery [%s], escalation [%s]", comp->name.value.c_str(),c_str(recommendedRecovery), escalation?"Yes":"No");
   }
 
   void NplusMPolicy::computeCompRecoveryAction(Component* comp, Recovery* recovery, bool* escalation)
