@@ -318,7 +318,7 @@ class Entity:
         else:
           data[name]=[]
   
-  def createInstance(self,pos, size=None,children=False, name=None, parent=None):
+  def createInstance(self,pos, size=None,children=False, name=None, parent=None, id = 0):
     """Create an entity of this type"""
     if not size:
       size = self.size    
@@ -327,6 +327,7 @@ class Entity:
     else: 
       newdata = copy.deepcopy(self.data)
       ret = Instance(self,newdata,pos,size,name=name)
+    ret.data['id'] = id
     return ret
  
 

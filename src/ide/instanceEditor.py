@@ -1705,9 +1705,11 @@ class Panel(scrolled.ScrolledPanel):
       tagName = "disableAssignmentOn"
       y = ROW_MARGIN+ROW_SPACING
       cell=None
-      for e1 in self.rows:
+      #for e1 in self.rows:
+      for e1 in sorted(self.rows, key = lambda e: e.data['id'], reverse=False):
         x = COL_MARGIN+COL_SPACING
-        for e2 in self.columns:
+        #for e2 in self.columns:
+        for e2 in sorted(self.columns, key = lambda e: e.data['id'], reverse=False):
           thisNode = e2.data["name"]
           pos = (x,y)
           cell = self.grid.getAnyCell(pos)
@@ -1891,7 +1893,8 @@ class Panel(scrolled.ScrolledPanel):
         self.statusBar.SetStatusText("Created instance of %s" % entity.data["name"],0);
         # TODO ent = self.entityType.createEntity(position, size)
         if size is None: size = (COL_WIDTH, ROW_WIDTH)  # The layout will automatically update the long size to be the width of the screen        
-        inst = entity.createInstance(position, size, name=name, parent=self)
+        # Add index for entities when creating them, index will be the current maximum index plus 1
+        inst = entity.createInstance(position, size, name=name, parent=self, id = 0 if not len(self.model.instances) else sorted(filter(lambda n: n.et.name in ['ServiceGroup', 'Node'] , self.model.instances.values()), reverse=True, key = lambda n: n.data['id'])[0].data['id']+1)
         inst.instanceLocked = copy.deepcopy(entity.instanceLocked)
 
         self.model.instances[inst.data["name"]] = inst
@@ -1974,7 +1977,8 @@ class Panel(scrolled.ScrolledPanel):
         scaledExtents = (panelSize.x/self.scale,panelSize.y/self.scale)
         x = COL_MARGIN
         self.renderOrder = []
-        for i in self.columns:
+        # sorted column according to id
+        for i in sorted(self.columns, key = lambda e: e.data['id'], reverse=False):
           width = max(COL_WIDTH,i.size[0])  # Pick the minimum width or the user's adjustment, whichever is bigger
           i.pos = (x,0)
           size = (width,scaledExtents[1])
@@ -1985,8 +1989,8 @@ class Panel(scrolled.ScrolledPanel):
           self.renderOrder.append(i)
 
         y = ROW_MARGIN
-        
-        for i in self.rows:
+        # sorted rows according to id
+        for i in sorted(self.rows, key = lambda e: e.data['id'], reverse=False):
           width = max(ROW_WIDTH,i.size[1])  # Pick the minimum width or the user's adjustment, whichever is bigger
           i.pos = (0,y)
           size = (scaledExtents[0],width)
