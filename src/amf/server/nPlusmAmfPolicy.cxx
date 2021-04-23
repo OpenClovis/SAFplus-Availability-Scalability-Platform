@@ -21,9 +21,10 @@ using namespace SAFplusAmf;
 namespace SAFplus
   {
 
- 
+  SAFplusAmf::Recovery recommendedRecovery = SAFplusAmf::Recovery::None;
   const char* oper_str(bool val) { if (val) return "enabled"; else return "disabled"; }
   bool compareEntityRecoveryScope(Recovery a, Recovery b);
+  void updateStateDueToProcessDeath(SAFplusAmf::Component* comp);
   //ClRcT sgAdjust(const SAFplusAmf::ServiceGroup* sg);
   //ClRcT nodeErrorReport(SAFplusAmf::Node* node, bool shutdownAmf = false, bool rebootNode = false);
 
@@ -35,7 +36,7 @@ class NplusMPolicy:public ClAmfPolicyPlugin_1
     virtual void activeAudit(SAFplusAmf::SAFplusAmfModule* root);
     virtual void standbyAudit(SAFplusAmf::SAFplusAmfModule* root);
     virtual void compFaultReport(Component* comp, const SAFplusAmf::Recovery recommRecovery = SAFplusAmf::Recovery::NoRecommendation);
-    SAFplusAmf::Recovery recommendedRecovery;
+    //SAFplusAmf::Recovery recommendedRecovery;
     Component* processedComp;
 
   protected:
@@ -66,7 +67,7 @@ class NplusMPolicy:public ClAmfPolicyPlugin_1
 
   NplusMPolicy::NplusMPolicy()
     {
-        recommendedRecovery=SAFplusAmf::Recovery::None;
+        //recommendedRecovery=SAFplusAmf::Recovery::None;
         processedComp = NULL;
     }
 
@@ -1293,7 +1294,7 @@ class NplusMPolicy:public ClAmfPolicyPlugin_1
             {
             // Presence state changed.
           logInfo("N+M","AUDIT","Presence state of Service Unit [%s] changed from [%s (%d)] to [%s (%d)]", su->name.value.c_str(),c_str(su->presenceState.value),(int) su->presenceState.value, c_str(ps), (int) ps);
-            su->presenceState.value = ps;
+            su->presenceState = ps;
             if (ps == PresenceState::uninstantiated)
             {                 
                 if (uninstCountMap.find(suNode) != uninstCountMap.end())
@@ -1390,7 +1391,7 @@ class NplusMPolicy:public ClAmfPolicyPlugin_1
           {
               PresenceState ps = PresenceState::uninstantiated;
               logInfo("N+M","AUDIT","Presence state of Node [%s] changed from [%s (%d)] to [%s (%d)]", node->name.value.c_str(),c_str(node->presenceState.value),(int) node->presenceState.value, c_str(ps), (int) ps);
-              node->presenceState.value = ps;
+              node->presenceState = ps;
           }
       }
       // free the map
@@ -1417,7 +1418,7 @@ class NplusMPolicy:public ClAmfPolicyPlugin_1
       logDebug("POL","N+M","Component failure reported for component [%s], recommended recovery [%s], current recovery [%s]", comp->name.value.c_str(),c_str(recommRecovery),c_str(recommendedRecovery));
       bool escalation = false;
       processedComp = comp;
-      if (amfOps->nodeGracefulSwitchover)
+      if (0) //(amfOps->nodeGracefulSwitchover)
       {          
           recommendedRecovery = Recovery::None;          
       }

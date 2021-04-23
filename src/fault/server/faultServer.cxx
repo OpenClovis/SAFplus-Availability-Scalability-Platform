@@ -239,7 +239,7 @@ namespace SAFplus
                     }
                   else
                     {
-                      logDebug(FAULT,"MSG","Repeated entity JOIN message for entity [%d.%d.%" PRIx64 "] state %d",faultEntity.getNode(),faultEntity.getProcess(),faultEntity.getIndex(),faultState);
+                      logDebug(FAULT,"MSG","Repeated entity JOIN message for entity [%d.%d.%" PRIx64 "], entity handle [%" PRIx64 ":%" PRIx64 "] state %d",faultEntity.getNode(),faultEntity.getProcess(),faultEntity.getIndex(),faultEntity.id[0], faultEntity.id[1], faultState);
                       setFaultState(faultEntity,faultState);
                       if (faultEntity.getProcess() == 0 && faultEntity.getNode() != SAFplus::ASP_NODEADDR && faultState == FaultState::STATE_UP) // other node is up
                       {

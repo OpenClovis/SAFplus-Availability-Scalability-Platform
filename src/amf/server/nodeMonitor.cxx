@@ -133,7 +133,7 @@ void NodeMonitor::monitorThread(void)
 	Handle currentHandle = getProcessHandle(SAFplusI::AMF_IOC_PORT,SAFplus::ASP_NODEADDR);
           Handle activeHandle = clusterGroup.getActive(ABORT);
           Handle standbyHandle = clusterGroup.getStandby(ABORT);
-	Handle nodeHandle = getNodeHandle(SAFplus::ASP_NODEADDR);
+	//Handle nodeHandle = getNodeHandle(SAFplus::ASP_NODEADDR);
 	/*
 	when the old active is disconnected, the new active must broadcast its role.
 	*/
@@ -146,12 +146,16 @@ void NodeMonitor::monitorThread(void)
 	After it receive role message broadcasting from the new active, currentHandle (itself) does not resemble activeHandle.
 	So it needs to send a message to rejoin group with standby role.
 	*/
+#if 0
 	if(currentHandle!= activeHandle)
 	{
            clusterGroup.sendMemberReJoinMessage(GroupRoleNotifyTypeT::ROLE_STANDBY);
+           logInfo("HB","CLM","Registering handle [%" PRIx64 ":%" PRIx64 "] as fault state UP",nodeHandle.id[0],nodeHandle.id[1]);
            gfault.registerEntity(nodeHandle, FaultState::STATE_UP);
+           logInfo("HB","CLM","Registering handle [%" PRIx64 ":%" PRIx64 "] as fault state UP",currentHandle.id[0],currentHandle.id[1]);
            gfault.registerEntity(currentHandle, FaultState::STATE_UP);
 	}
+#endif
           if (1)
             {
               ScopedLock<> lock(exclusion);
@@ -299,12 +303,14 @@ verify_active_alive:
                 name.set(SAFplus::ASP_NODENAME,nodeHandle,NameRegistrar::MODE_NO_CHANGE,true);
                 do
                 {  // Loop because active fault manager may not be chosen yet
+                  logInfo("HB","CLM","Registering handle [%" PRIx64 ":%" PRIx64 "] as fault state UP",nodeHandle.id[0],nodeHandle.id[1]);
                   gfault.registerEntity(nodeHandle, FaultState::STATE_UP);  // set this node as up
                   boost::this_thread::sleep(boost::posix_time::milliseconds(250));
                 } while(gfault.getFaultState(nodeHandle) != FaultState::STATE_UP);
 
                 do
                 {
+                  logInfo("HB","CLM","Registering handle [%" PRIx64 ":%" PRIx64 "] as fault state UP",myHandle.id[0],myHandle.id[1]);
                   gfault.registerEntity(myHandle, FaultState::STATE_UP);    // set this AMF as up
                   boost::this_thread::sleep(boost::posix_time::milliseconds(250));
                 } while(gfault.getFaultState(myHandle) != FaultState::STATE_UP);

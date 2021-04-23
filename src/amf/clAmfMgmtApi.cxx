@@ -1782,7 +1782,7 @@ ClRcT amfMiddlewareRestart(const Handle& mgmtHandle, const std::string& nodeName
     SAFplus::Rpc::amfMgmtRpc::NodeErrorReportRequest request;
     request.add_amfmgmthandle((const char*) &mgmtHandle, sizeof(Handle));
     request.set_nodename(nodeName);
-    request.set_shutdownamf(false);
+    request.set_shutdownamf(true);
     request.set_rebootnode(nodeReset);
     request.set_gracefulswitchover(graceful);
     request.set_restartamf(true);

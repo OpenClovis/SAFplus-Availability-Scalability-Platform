@@ -79,7 +79,7 @@ namespace SAFplus
       bool changed;
       PendingWorkOperationMap pendingWorkOperations;
       Fault fault;
-      bool nodeGracefulSwitchover;
+      //bool nodeGracefulSwitchover;
 
       AmfOperations()
       {
@@ -90,7 +90,7 @@ namespace SAFplus
         invocation = (SAFplus::ASP_NODEADDR << 16) | SAFplus::iocPort;
         invocation <<= 32;  // TODO: should checkpointed value be used?
         //fault.init();
-        nodeGracefulSwitchover = false;
+        //nodeGracefulSwitchover = false;
       }
 
   public:  // Public API

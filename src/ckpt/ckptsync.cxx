@@ -68,8 +68,8 @@ void SAFplusI::CkptSynchronization::msgHandler(Handle from, SAFplus::MsgServer* 
   CkptMsgHdr* hdr = (CkptMsgHdr*) msg;
   assert((hdr->msgType>>16) == CKPT_MSG_TYPE);  // TODO: endian swap & should never assert on bad incoming message data
   bool endianSwap = false;
-
-
+  Handle active;
+  
   switch(hdr->msgType&0xffff)
     {
     case CKPT_MSG_TYPE_SYNC_REQUEST_1:
@@ -111,6 +111,12 @@ void SAFplusI::CkptSynchronization::msgHandler(Handle from, SAFplus::MsgServer* 
       } break;
 
     case CKPT_MSG_TYPE_UPDATE_MSG_1:
+      active = group->getActive();
+      if (active.getNode() != SAFplus::ASP_NODEADDR && synchronizing)
+      {
+         logNotice("SYNC","MSG","Ckpt sync update for ckpt handle [%" PRIx64 ":%" PRIx64 "] is not complete. Defer the msg update", ckpt->hdr->handle.id[0], ckpt->hdr->handle.id[1]);
+         break;
+      }
       if (from.getNode() != SAFplus::ASP_NODEADDR) // No need to handle update messages coming from myself.
         {
         unsigned int change = applySyncMsg(msg,msglen, cookie);
@@ -511,7 +517,7 @@ void SAFplusI::CkptSynchronization::operator()()
             syncRecordCount = 0;
             syncRecvCount = 0;
             msgSvr->SendMsg(active,&msg,sizeof(msg),CKPT_SYNC_MSG_TYPE);
-            logInfo("SYNC","TRD","Sent synchronization request message to [%d:%d] type [%d] generation [%d] change [%d] sync cookie [%x]", active.getNode(), active.getPort(),CKPT_SYNC_MSG_TYPE,msg.generation, msg.changeNum, syncCookie);
+            logInfo("SYNC","TRD","Sent synchronization request message for ckpt handle [%" PRIx64 ":%" PRIx64 "] to [%d:%d] type [%d] generation [%d] change [%d] sync cookie [%x]", msg.checkpoint.id[0], msg.checkpoint.id[1], active.getNode(), active.getPort(),CKPT_SYNC_MSG_TYPE,msg.generation, msg.changeNum, syncCookie);
           }
         }
     else 

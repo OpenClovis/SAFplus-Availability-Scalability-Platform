@@ -111,10 +111,10 @@ static void sigChildHandler(int signum)
     /* 
      * Wait for all childs to finish.
      */
-#if 0    
+#if 1
 do {
         pid = waitpid(WAIT_ANY, &w, WNOHANG);
-    } while((pid != 0)&&(pid != -1));
+   } while(pid>0/*(pid != 0)&&(pid != -1)*/);
 #endif
     amfChange = true;
     somethingChanged.notify_all();
@@ -372,7 +372,7 @@ bool activeAudit()  // Check to make sure DB and the system state are in sync.  
         }
       catch (SAFplus::NameException& n)
         {
-          node->presenceState.value = PresenceState::uninstantiated;
+          node->presenceState = PresenceState::uninstantiated;
         }
       if (nodeHdl != INVALID_HDL)
         {
@@ -930,7 +930,7 @@ int main(int argc, char* argv[])
   struct sigaction newAction;
   newAction.sa_handler = sigChildHandler;
   sigemptyset(&newAction.sa_mask);
-  newAction.sa_flags = SA_RESTART | SA_NOCLDSTOP;
+  newAction.sa_flags = SA_RESTART/* | SA_NOCLDSTOP*/;
 
   if (-1 == sigaction(SIGCHLD, &newAction, NULL))
     {

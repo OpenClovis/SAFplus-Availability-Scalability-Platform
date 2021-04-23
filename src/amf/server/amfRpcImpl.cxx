@@ -159,6 +159,7 @@ namespace amfRpc {
                                 ::SAFplus::Rpc::amfRpc::ShutdownAmfResponse* response)
   {
       bool restartAmf = request->restartamf();
+      bool rebootNode = request->rebootnode();
       logDebug("OPS","SHUTDOWN.AMF","Shutdown amf by setting node [%d] fault state DOWN", nodeHandle.getNode());
       if (!restartAmf)
       {
@@ -178,7 +179,10 @@ namespace amfRpc {
       }
       else
       {
-          gfault.registerEntity(nodeHandle,FaultState::STATE_DOWN);
+          if (!rebootNode)
+          {
+              gfault.registerEntity(nodeHandle,FaultState::STATE_DOWN);
+          }
       }
   }
 

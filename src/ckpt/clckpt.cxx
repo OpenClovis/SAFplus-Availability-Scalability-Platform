@@ -93,7 +93,7 @@ std::string getFullShmFile(const char* shmFilename)
 
 void SAFplus::Checkpoint::init(const Handle& hdl, uint_t _flags, uint64_t retentionDuration, uint_t size, uint_t rows,SAFplus::Wakeable& execSemantics)
 {
-  logInfo("CKP","INI","Opening checkpoint [%" PRIx64 ":%" PRIx64 "] [%s]",hdl.id[0],hdl.id[1], (_flags & REPLICATED) ? "REPLICATED": "");
+  logInfo("CKP","INI","Opening checkpoint [%s], handle [%" PRIx64 ":%" PRIx64 "] [%s]",name.c_str(), hdl.id[0],hdl.id[1], (_flags & REPLICATED) ? "REPLICATED": "");
   // All constructors funnel through this init routine.
   gate.init(hdl.id[1]);  // 2nd word of the handle should be unique on this node
   gate.close(); // start the gate closed so this process can't access the checkpoint.  But I can't init the gate closed, in case the init opens an existing gate, instead of creating one

@@ -188,7 +188,10 @@ module amfRpc
     {
       leaf restartAmf {
          type boolean; // true: restart the amf; false: otherwise
-       }
+      }
+      leaf rebootNode {
+         type boolean; // true: reboot the node; false: otherwise
+      }
     }
     output
     {
