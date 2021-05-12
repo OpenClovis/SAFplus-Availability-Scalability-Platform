@@ -548,7 +548,7 @@ ClRcT  ckptCliCkptWrite( int argc,
 
     clDebugPrintInitialize(&inMsg);
     clDebugPrint(inMsg,"Writing to a checkpoint \n");
-    hdl = atoi(argv[1]);
+    hdl = strtol(argv[1],NULL,16);
 
     secCount = (argc - 2)/3;
     if (NULL== ( pVec = (ClCkptIOVectorElementT *)clHeapAllocate(
@@ -643,7 +643,7 @@ ClRcT  ckptCliCkptRead( int argc,
 
    clDebugPrintInitialize(&inMsg);
    clDebugPrint(inMsg,"Reading checkpoint \n");
-   hdl = atoi(argv[1]);
+   hdl = strtol(argv[1],NULL,16);
 
     secCount = (argc - 2)/3;
     if (NULL== ( pVec = (ClCkptIOVectorElementT *)clHeapCalloc(secCount ,sizeof(ClCkptIOVectorElementT))))
@@ -737,7 +737,7 @@ ClRcT  ckptCliSectionCreate( int argc,
         return CL_OK;
     }
     clDebugPrintInitialize(&inMsg);
-    hdl = atoi(argv[1]);
+    hdl = strtol(argv[1],NULL,16);
     memset(&createAttr, '\0', sizeof(ClCkptSectionCreationAttributesT));
     createAttr.sectionId = (ClCkptSectionIdT *)clHeapAllocate(
                                                      sizeof(ClCkptSectionIdT));
@@ -809,7 +809,7 @@ ClRcT  ckptCliSectionOverwrite( int argc,
         return 0;
     }
     clDebugPrintInitialize(&inMsg);
-    hdl = atoi(argv[1]);
+    hdl = strtol(argv[1],NULL,16);
     if(!strcmp(argv[2],"null"))
     {
     sectionId.id  = NULL;
@@ -865,7 +865,7 @@ ClRcT  ckptCliSectionExpirationTimeSet( int argc,
     }
 
   
-    hdl = atoi(argv[1]);
+    hdl = strtol(argv[1],NULL,16);
     clDebugPrintInitialize(&inMsg);
 
     memset(&sectionId, '\0', sizeof(ClCkptSectionIdT));
@@ -920,7 +920,7 @@ ClRcT  ckptCliSectionDelete( int argc,
     }
 
   
-    hdl = atoi(argv[1]);
+    hdl = strtol(argv[1],NULL,16);
     clDebugPrintInitialize(&inMsg);
 
     memset(&sectionId, '\0', sizeof(ClCkptSectionIdT));
@@ -960,7 +960,7 @@ ClRcT  ckptCliCkptClose( int argc,
         return 0;
     }
 
-    hdl = atoi(argv[1]);
+    hdl = strtol(argv[1],NULL,16);
     clDebugPrintInitialize(&inMsg);
     rc = clCkptCheckpointClose(hdl);
     if(rc != CL_OK)
@@ -1017,7 +1017,7 @@ ClRcT ckptCliCkptStatusGet( int argc ,
                      "handle              [INT]  Handle of the checkpoint\n",ret);
         return CL_OK;
     }
-    hdl = atoi(argv[1]);
+    hdl = strtol(argv[1],NULL,16);
     rc = clCkptCheckpointStatusGet(hdl,&ckptStatus);
     if (rc != CL_OK) 
     {
@@ -1063,7 +1063,7 @@ ClRcT  ckptCliActiveReplicaSet( int argc,
         return 0;
     }
                                                                                                                              
-    hdl = atoi(argv[1]);
+    hdl = strtol(argv[1],NULL,16);
     clDebugPrintInitialize(&inMsg);
     rc = clCkptActiveReplicaSet(hdl);
     if(rc != CL_OK)
@@ -1447,7 +1447,7 @@ ClRcT ckptCliIterInit( int argc ,
         return CL_OK;
     }
     rc = clDebugPrintInitialize(&inMsg);
-    hdl = atoi(argv[1]);
+    hdl = strtol(argv[1],NULL,16);
     switch( atoi(argv[2]) )
     {
        case 1:
@@ -1559,7 +1559,7 @@ ClRcT ckptCliSync( int argc ,
         return CL_OK;
     }
     rc = clDebugPrintInitialize(&inMsg);
-    hdl = atoi(argv[1]);
+    hdl = strtol(argv[1],NULL,16);
     timeout = atoi(argv[2]);
     rc = clCkptCheckpointSynchronize(hdl,timeout);
     if(rc != CL_OK)
@@ -1599,10 +1599,17 @@ ClRcT ckptMasterXlationTablePrint(ClCntKeyHandleT    userKey,
     ClRcT                   rc          = CL_OK;
     CkptXlationDBEntryT    *pInXlation  = (CkptXlationDBEntryT *)hashTable;
     CKPT_NULL_CHECK(pInXlation);
+    ClDebugPrintHandleT inMsg = *(ClDebugPrintHandleT*)userArg;
+#if 0
     clOsalPrintf("CkptName   :%20.*s\n",pInXlation->name.length,
                  pInXlation->name.value);
     clOsalPrintf("checksum   :%20.d\n",pInXlation->cksum);
     clOsalPrintf("CkptHandle :%20.d\n",pInXlation->mastHdl);
+#endif
+    clDebugPrint(inMsg,"CkptName   :%20.*s\n",pInXlation->name.length,
+                     pInXlation->name.value);
+    clDebugPrint(inMsg,"checksum   :%20.d\n",pInXlation->cksum);
+    clDebugPrint(inMsg,"CkptHandle :%20.x\n",pInXlation->mastHdl);
     return rc;
 }
 ClRcT ckptMasterReplicaListPrint(ClCntKeyHandleT    userKey,
@@ -1610,7 +1617,8 @@ ClRcT ckptMasterReplicaListPrint(ClCntKeyHandleT    userKey,
         ClCntArgHandleT    userArg,
         ClUint32T          dataLength)
 {
-    clOsalPrintf("%d   ",userKey);
+    ClDebugPrintHandleT inMsg = *(ClDebugPrintHandleT*)userArg;
+    clDebugPrint(inMsg,"%p   ",userKey);
     return CL_OK;
 }
 ClRcT ckptMasterDBEntryPrint(ClHandleDatabaseHandleT databaseHandle,
@@ -1618,6 +1626,7 @@ ClRcT ckptMasterDBEntryPrint(ClHandleDatabaseHandleT databaseHandle,
 {
     ClRcT                  rc              = CL_OK;
     CkptMasterDBEntryT     *pStoredData    = NULL;
+    ClDebugPrintHandleT inMsg = *(ClDebugPrintHandleT*)pCookie;
 
     rc = clHandleCheckout(gCkptSvr->masterInfo.masterDBHdl,
             handle,(void **)&pStoredData);
@@ -1629,6 +1638,7 @@ ClRcT ckptMasterDBEntryPrint(ClHandleDatabaseHandleT databaseHandle,
        CKPT_ERR_CHECK(CL_CKPT_SVR,CL_DEBUG_ERROR,
             ("Ckpt:Proper data is not there rc[0x %x]\n", rc), rc);
     }
+#if 0
     clOsalPrintf("Name       :%s\t",pStoredData->name.value);
     clOsalPrintf("Handle     :%d\t",handle);
     clOsalPrintf("ActiveAdddr:%d\t",pStoredData->activeRepAddr);
@@ -1637,15 +1647,24 @@ ClRcT ckptMasterDBEntryPrint(ClHandleDatabaseHandleT databaseHandle,
     clOsalPrintf("Refcount   :%d\t",pStoredData->refCount);
     clOsalPrintf("isDelete   :%d\n",pStoredData->markedDelete);
     clOsalPrintf("List of Replicas =>  ");
+#endif
+    clDebugPrint(inMsg,"Name       :%s\t",pStoredData->name.value);
+    clDebugPrint(inMsg,"Handle     :%lld\t",handle);
+    clDebugPrint(inMsg,"ActiveAdddr:%d\t",pStoredData->activeRepAddr);
+    clDebugPrint(inMsg,"PrevActAddr:%d\t",pStoredData->prevActiveRepAddr);
+    clDebugPrint(inMsg,"ActHandle  :%lld\t",pStoredData->activeRepHdl);
+    clDebugPrint(inMsg,"Refcount   :%d\t",pStoredData->refCount);
+    clDebugPrint(inMsg,"isDelete   :%d\n",pStoredData->markedDelete);
+    clDebugPrint(inMsg,"List of Replicas =>  ");
     /* Pack the no. size of replica list first */
     if(pStoredData->replicaList != 0)
     {
         rc = clCntWalk(pStoredData->replicaList, ckptMasterReplicaListPrint,
-            NULL,0);
+            &inMsg,0);
        CKPT_ERR_CHECK(CL_CKPT_SVR,CL_DEBUG_ERROR,
             ("Ckpt:Proper data is not there rc[0x %x]\n", rc), rc);
     }
-    clOsalPrintf("\n");
+    clDebugPrint(inMsg,"\n");
 exitOnError:
     clHandleCheckin(gCkptSvr->masterInfo.masterDBHdl, handle);
 exitOnErrorBeforeHdlCheckout:
@@ -1656,7 +1675,7 @@ ClRcT   ckptClientDBEntryPrint(ClHandleDatabaseHandleT databaseHandle,
 {
     CkptMasterDBClientInfoT *pClientData = NULL;
     ClRcT                    rc          = CL_OK;
-
+    ClDebugPrintHandleT inMsg = *(ClDebugPrintHandleT*)pCookie;
     rc = clHandleCheckout( gCkptSvr->masterInfo.clientDBHdl,
             handle,(void **)&pClientData);
     CKPT_ERR_CHECK(CL_CKPT_SVR,CL_DEBUG_ERROR,
@@ -1668,7 +1687,7 @@ ClRcT   ckptClientDBEntryPrint(ClHandleDatabaseHandleT databaseHandle,
        CKPT_ERR_CHECK(CL_CKPT_SVR,CL_DEBUG_ERROR,
             ("Ckpt:Proper data is not there rc[0x %x]\n", rc), rc);
     }
-clOsalPrintf("%#llX\t%#llX\n",handle, pClientData->masterHdl);;
+    clDebugPrint(inMsg,"%#llX\t%#llX\n",handle, pClientData->masterHdl);;
     clHandleCheckin(gCkptSvr->masterInfo.clientDBHdl, handle);
 exitOnError:
   return rc;
@@ -1679,18 +1698,19 @@ ClRcT ckptMasterPeerListHdlPrint(ClCntKeyHandleT    userKey,
         ClUint32T          dataLength)
 { 
     ClRcT       rc   = CL_OK;
-    ClUint32T   flag = (ClUint32T)(ClWordT)userArg;            
+    ClDebugPrintHandleT inMsg = *(ClDebugPrintHandleT*)userArg;
+    ClUint32T   flag = dataLength;
     if(flag) 
     {
         CkptNodeListInfoT *pData  = (CkptNodeListInfoT*)hashTable;
 
-    CKPT_NULL_CHECK(pData);
-    clOsalPrintf("%llX\t[%d:%d]\n",
+        CKPT_NULL_CHECK(pData);
+        clDebugPrint(inMsg,"%llX\t[%d:%d]\n",
          pData->clientHdl,pData->appAddr,pData->appPortNum);
     }
     else
     {
-        clOsalPrintf(" %#llX | ", *(ClHandleT *)userKey);
+        clDebugPrint(inMsg," %#llX | ", *(ClHandleT *)userKey);
     }
     return rc;
 }
@@ -1702,30 +1722,31 @@ ClRcT ckptMasterPeerListPrint(ClCntKeyHandleT    userKey,
     ClRcT                  rc            = CL_OK;
     CkptPeerInfoT         *pPeerInfo     = (CkptPeerInfoT *) hashTable;
     ClUint32T              flag          = 0;
+    ClDebugPrintHandleT inMsg = *(ClDebugPrintHandleT*)userArg;
 
     CKPT_NULL_CHECK(pPeerInfo);
 
-    clOsalPrintf("NodeAddr   :%20.d\n",pPeerInfo->addr);
-    clOsalPrintf("Credential :%20.d\n",pPeerInfo->credential);
-    clOsalPrintf("Available  :%20.d\n",pPeerInfo->available);
-    clOsalPrintf("ReplicaCnt :%20.d\n",pPeerInfo->replicaCount);
-    clOsalPrintf("NodeInfo:\n");
+    clDebugPrint(inMsg,"NodeAddr   :%20.d\n",pPeerInfo->addr);
+    clDebugPrint(inMsg,"Credential :%20.d\n",pPeerInfo->credential);
+    clDebugPrint(inMsg,"Available  :%20.d\n",pPeerInfo->available);
+    clDebugPrint(inMsg,"ReplicaCnt :%20.d\n",pPeerInfo->replicaCount);
+    clDebugPrint(inMsg,"NodeInfo:\n");
     /* Pack the no. of handle per peer first */
     if(pPeerInfo->ckptList != 0)
     {
-        clOsalPrintf("ClientHdl [appAddr:portId]\n");
+        clDebugPrint(inMsg,"ClientHdl [appAddr:portId]\n");
         flag = 1;
         rc = clCntWalk(pPeerInfo->ckptList, ckptMasterPeerListHdlPrint,
-                       (ClPtrT)(ClWordT)flag, sizeof(flag));
+                       &inMsg, flag);
     }        
 
     if(pPeerInfo->mastHdlList != 0)
     {
         flag = 0;
-        clOsalPrintf("MastHdlList:\n");
+        clDebugPrint(inMsg,"MastHdlList:\n");
         rc = clCntWalk(pPeerInfo->mastHdlList, ckptMasterPeerListHdlPrint,
-                       (ClPtrT)(ClWordT)flag, sizeof(flag));
-        clOsalPrintf("\n");
+                       &inMsg, flag);
+        clDebugPrint(inMsg,"\n");
     }        
     return rc;
 }
@@ -1744,7 +1765,7 @@ ClRcT ckptCliDbShow(int argc,
         return CL_OK;
     }
     rc = clDebugPrintInitialize(&inMsg);
-      
+#if 0
     clOsalPrintf("MasterAddr :%20.d\n",gCkptSvr->masterInfo.masterAddr);
     clOsalPrintf("DeputyAddr :%20.d\n",gCkptSvr->masterInfo.deputyAddr);
     clOsalPrintf("ComponentId:%20.d\n",gCkptSvr->masterInfo.compId);
@@ -1764,6 +1785,27 @@ ClRcT ckptCliDbShow(int argc,
      rc = clCntWalk( gCkptSvr->masterInfo.peerList,
                      ckptMasterPeerListPrint,
                      NULL,0);
+#endif
+     clDebugPrint(inMsg,"MasterAddr :%20.d\n",gCkptSvr->masterInfo.masterAddr);
+     clDebugPrint(inMsg,"DeputyAddr :%20.d\n",gCkptSvr->masterInfo.deputyAddr);
+     clDebugPrint(inMsg,"ComponentId:%20.d\n",gCkptSvr->masterInfo.compId);
+     rc = clCntSizeGet(gCkptSvr->masterInfo.nameXlationDBHdl,&ckptCount);
+     clDebugPrint(inMsg,"No of Ckpts:%20.d\n",ckptCount);
+     clDebugPrint(inMsg,"----------------Xlation Entries------------------------- \n");
+     rc = clCntWalk( gCkptSvr->masterInfo.nameXlationDBHdl,
+                      ckptMasterXlationTablePrint,&inMsg,0);
+     clDebugPrint(inMsg,"----------------MasterDB Entries------------------------ \n");
+     rc = clHandleWalk( gCkptSvr->masterInfo.masterDBHdl,
+                        ckptMasterDBEntryPrint,&inMsg);
+     clDebugPrint(inMsg,"----------------ClientDB Entries------------------------ \n");
+     clDebugPrint(inMsg,"ClientHdl MasterHdl\n");
+     rc = clHandleWalk( gCkptSvr->masterInfo.clientDBHdl,
+                        ckptClientDBEntryPrint,&inMsg);
+     clDebugPrint(inMsg,"----------------PeerList Entries------------------------ \n");
+     rc = clCntWalk( gCkptSvr->masterInfo.peerList,
+                      ckptMasterPeerListPrint,
+                      &inMsg,0);
+
     /*Pack Master DB entries */
     clDebugPrintFinalize(&inMsg,ret);
     return rc;
