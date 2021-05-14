@@ -217,6 +217,8 @@ class NodeErrorClearRequest;
 class NodeErrorClearResponse;
 class AssignSUtoSIRequest;
 class AssignSUtoSIResponse;
+class ForceLockInstantiationRequest;
+class ForceLockInstantiationResponse;
 
 enum PresenceState {
   PresenceState_uninstantiated = 0,
@@ -18534,6 +18536,192 @@ class AssignSUtoSIResponse : public ::google::protobuf::Message {
 
   void InitAsDefaultInstance();
   static AssignSUtoSIResponse* default_instance_;
+};
+// -------------------------------------------------------------------
+
+class ForceLockInstantiationRequest : public ::google::protobuf::Message {
+ public:
+  ForceLockInstantiationRequest();
+  virtual ~ForceLockInstantiationRequest();
+
+  ForceLockInstantiationRequest(const ForceLockInstantiationRequest& from);
+
+  inline ForceLockInstantiationRequest& operator=(const ForceLockInstantiationRequest& from) {
+    CopyFrom(from);
+    return *this;
+  }
+
+  inline const ::google::protobuf::UnknownFieldSet& unknown_fields() const {
+    return _unknown_fields_;
+  }
+
+  inline ::google::protobuf::UnknownFieldSet* mutable_unknown_fields() {
+    return &_unknown_fields_;
+  }
+
+  static const ::google::protobuf::Descriptor* descriptor();
+  static const ForceLockInstantiationRequest& default_instance();
+
+  void Swap(ForceLockInstantiationRequest* other);
+
+  // implements Message ----------------------------------------------
+
+  ForceLockInstantiationRequest* New() const;
+  void CopyFrom(const ::google::protobuf::Message& from);
+  void MergeFrom(const ::google::protobuf::Message& from);
+  void CopyFrom(const ForceLockInstantiationRequest& from);
+  void MergeFrom(const ForceLockInstantiationRequest& from);
+  void Clear();
+  bool IsInitialized() const;
+
+  int ByteSize() const;
+  bool MergePartialFromCodedStream(
+      ::google::protobuf::io::CodedInputStream* input);
+  void SerializeWithCachedSizes(
+      ::google::protobuf::io::CodedOutputStream* output) const;
+  ::google::protobuf::uint8* SerializeWithCachedSizesToArray(::google::protobuf::uint8* output) const;
+  int GetCachedSize() const { return _cached_size_; }
+  private:
+  void SharedCtor();
+  void SharedDtor();
+  void SetCachedSize(int size) const;
+  public:
+  ::google::protobuf::Metadata GetMetadata() const;
+
+  // nested types ----------------------------------------------------
+
+  // accessors -------------------------------------------------------
+
+  // repeated bytes amfMgmtHandle = 1;
+  inline int amfmgmthandle_size() const;
+  inline void clear_amfmgmthandle();
+  static const int kAmfMgmtHandleFieldNumber = 1;
+  inline const ::std::string& amfmgmthandle(int index) const;
+  inline ::std::string* mutable_amfmgmthandle(int index);
+  inline void set_amfmgmthandle(int index, const ::std::string& value);
+  inline void set_amfmgmthandle(int index, const char* value);
+  inline void set_amfmgmthandle(int index, const void* value, size_t size);
+  inline ::std::string* add_amfmgmthandle();
+  inline void add_amfmgmthandle(const ::std::string& value);
+  inline void add_amfmgmthandle(const char* value);
+  inline void add_amfmgmthandle(const void* value, size_t size);
+  inline const ::google::protobuf::RepeatedPtrField< ::std::string>& amfmgmthandle() const;
+  inline ::google::protobuf::RepeatedPtrField< ::std::string>* mutable_amfmgmthandle();
+
+  // optional string suName = 2;
+  inline bool has_suname() const;
+  inline void clear_suname();
+  static const int kSuNameFieldNumber = 2;
+  inline const ::std::string& suname() const;
+  inline void set_suname(const ::std::string& value);
+  inline void set_suname(const char* value);
+  inline void set_suname(const char* value, size_t size);
+  inline ::std::string* mutable_suname();
+  inline ::std::string* release_suname();
+  inline void set_allocated_suname(::std::string* suname);
+
+  GOOGLE_PROTOBUF_EXTENSION_ACCESSORS(ForceLockInstantiationRequest)
+  // @@protoc_insertion_point(class_scope:SAFplus.Rpc.amfMgmtRpc.ForceLockInstantiationRequest)
+ private:
+  inline void set_has_suname();
+  inline void clear_has_suname();
+
+  ::google::protobuf::internal::ExtensionSet _extensions_;
+
+  ::google::protobuf::UnknownFieldSet _unknown_fields_;
+
+  ::google::protobuf::uint32 _has_bits_[1];
+  mutable int _cached_size_;
+  ::google::protobuf::RepeatedPtrField< ::std::string> amfmgmthandle_;
+  ::std::string* suname_;
+  friend void  protobuf_AddDesc_amfMgmtRpc_2eproto();
+  friend void protobuf_AssignDesc_amfMgmtRpc_2eproto();
+  friend void protobuf_ShutdownFile_amfMgmtRpc_2eproto();
+
+  void InitAsDefaultInstance();
+  static ForceLockInstantiationRequest* default_instance_;
+};
+// -------------------------------------------------------------------
+
+class ForceLockInstantiationResponse : public ::google::protobuf::Message {
+ public:
+  ForceLockInstantiationResponse();
+  virtual ~ForceLockInstantiationResponse();
+
+  ForceLockInstantiationResponse(const ForceLockInstantiationResponse& from);
+
+  inline ForceLockInstantiationResponse& operator=(const ForceLockInstantiationResponse& from) {
+    CopyFrom(from);
+    return *this;
+  }
+
+  inline const ::google::protobuf::UnknownFieldSet& unknown_fields() const {
+    return _unknown_fields_;
+  }
+
+  inline ::google::protobuf::UnknownFieldSet* mutable_unknown_fields() {
+    return &_unknown_fields_;
+  }
+
+  static const ::google::protobuf::Descriptor* descriptor();
+  static const ForceLockInstantiationResponse& default_instance();
+
+  void Swap(ForceLockInstantiationResponse* other);
+
+  // implements Message ----------------------------------------------
+
+  ForceLockInstantiationResponse* New() const;
+  void CopyFrom(const ::google::protobuf::Message& from);
+  void MergeFrom(const ::google::protobuf::Message& from);
+  void CopyFrom(const ForceLockInstantiationResponse& from);
+  void MergeFrom(const ForceLockInstantiationResponse& from);
+  void Clear();
+  bool IsInitialized() const;
+
+  int ByteSize() const;
+  bool MergePartialFromCodedStream(
+      ::google::protobuf::io::CodedInputStream* input);
+  void SerializeWithCachedSizes(
+      ::google::protobuf::io::CodedOutputStream* output) const;
+  ::google::protobuf::uint8* SerializeWithCachedSizesToArray(::google::protobuf::uint8* output) const;
+  int GetCachedSize() const { return _cached_size_; }
+  private:
+  void SharedCtor();
+  void SharedDtor();
+  void SetCachedSize(int size) const;
+  public:
+  ::google::protobuf::Metadata GetMetadata() const;
+
+  // nested types ----------------------------------------------------
+
+  // accessors -------------------------------------------------------
+
+  // optional sint32 err = 1;
+  inline bool has_err() const;
+  inline void clear_err();
+  static const int kErrFieldNumber = 1;
+  inline ::google::protobuf::int32 err() const;
+  inline void set_err(::google::protobuf::int32 value);
+
+  GOOGLE_PROTOBUF_EXTENSION_ACCESSORS(ForceLockInstantiationResponse)
+  // @@protoc_insertion_point(class_scope:SAFplus.Rpc.amfMgmtRpc.ForceLockInstantiationResponse)
+ private:
+  inline void set_has_err();
+  inline void clear_has_err();
+
+  ::google::protobuf::internal::ExtensionSet _extensions_;
+
+  ::google::protobuf::UnknownFieldSet _unknown_fields_;
+
+  ::google::protobuf::uint32 _has_bits_[1];
+  mutable int _cached_size_;
+  ::google::protobuf::int32 err_;
+  friend void  protobuf_AddDesc_amfMgmtRpc_2eproto();
+  friend void protobuf_AssignDesc_amfMgmtRpc_2eproto();
+  friend void protobuf_ShutdownFile_amfMgmtRpc_2eproto();
+
+  void InitAsDefaultInstance();
+  static ForceLockInstantiationResponse* default_instance_;
 };
 // ===================================================================
 
@@ -37349,6 +37537,168 @@ inline void AssignSUtoSIResponse::set_err(::google::protobuf::int32 value) {
   set_has_err();
   err_ = value;
   // @@protoc_insertion_point(field_set:SAFplus.Rpc.amfMgmtRpc.AssignSUtoSIResponse.err)
+}
+
+// -------------------------------------------------------------------
+
+// ForceLockInstantiationRequest
+
+// repeated bytes amfMgmtHandle = 1;
+inline int ForceLockInstantiationRequest::amfmgmthandle_size() const {
+  return amfmgmthandle_.size();
+}
+inline void ForceLockInstantiationRequest::clear_amfmgmthandle() {
+  amfmgmthandle_.Clear();
+}
+inline const ::std::string& ForceLockInstantiationRequest::amfmgmthandle(int index) const {
+  // @@protoc_insertion_point(field_get:SAFplus.Rpc.amfMgmtRpc.ForceLockInstantiationRequest.amfMgmtHandle)
+  return amfmgmthandle_.Get(index);
+}
+inline ::std::string* ForceLockInstantiationRequest::mutable_amfmgmthandle(int index) {
+  // @@protoc_insertion_point(field_mutable:SAFplus.Rpc.amfMgmtRpc.ForceLockInstantiationRequest.amfMgmtHandle)
+  return amfmgmthandle_.Mutable(index);
+}
+inline void ForceLockInstantiationRequest::set_amfmgmthandle(int index, const ::std::string& value) {
+  // @@protoc_insertion_point(field_set:SAFplus.Rpc.amfMgmtRpc.ForceLockInstantiationRequest.amfMgmtHandle)
+  amfmgmthandle_.Mutable(index)->assign(value);
+}
+inline void ForceLockInstantiationRequest::set_amfmgmthandle(int index, const char* value) {
+  amfmgmthandle_.Mutable(index)->assign(value);
+  // @@protoc_insertion_point(field_set_char:SAFplus.Rpc.amfMgmtRpc.ForceLockInstantiationRequest.amfMgmtHandle)
+}
+inline void ForceLockInstantiationRequest::set_amfmgmthandle(int index, const void* value, size_t size) {
+  amfmgmthandle_.Mutable(index)->assign(
+    reinterpret_cast<const char*>(value), size);
+  // @@protoc_insertion_point(field_set_pointer:SAFplus.Rpc.amfMgmtRpc.ForceLockInstantiationRequest.amfMgmtHandle)
+}
+inline ::std::string* ForceLockInstantiationRequest::add_amfmgmthandle() {
+  return amfmgmthandle_.Add();
+}
+inline void ForceLockInstantiationRequest::add_amfmgmthandle(const ::std::string& value) {
+  amfmgmthandle_.Add()->assign(value);
+  // @@protoc_insertion_point(field_add:SAFplus.Rpc.amfMgmtRpc.ForceLockInstantiationRequest.amfMgmtHandle)
+}
+inline void ForceLockInstantiationRequest::add_amfmgmthandle(const char* value) {
+  amfmgmthandle_.Add()->assign(value);
+  // @@protoc_insertion_point(field_add_char:SAFplus.Rpc.amfMgmtRpc.ForceLockInstantiationRequest.amfMgmtHandle)
+}
+inline void ForceLockInstantiationRequest::add_amfmgmthandle(const void* value, size_t size) {
+  amfmgmthandle_.Add()->assign(reinterpret_cast<const char*>(value), size);
+  // @@protoc_insertion_point(field_add_pointer:SAFplus.Rpc.amfMgmtRpc.ForceLockInstantiationRequest.amfMgmtHandle)
+}
+inline const ::google::protobuf::RepeatedPtrField< ::std::string>&
+ForceLockInstantiationRequest::amfmgmthandle() const {
+  // @@protoc_insertion_point(field_list:SAFplus.Rpc.amfMgmtRpc.ForceLockInstantiationRequest.amfMgmtHandle)
+  return amfmgmthandle_;
+}
+inline ::google::protobuf::RepeatedPtrField< ::std::string>*
+ForceLockInstantiationRequest::mutable_amfmgmthandle() {
+  // @@protoc_insertion_point(field_mutable_list:SAFplus.Rpc.amfMgmtRpc.ForceLockInstantiationRequest.amfMgmtHandle)
+  return &amfmgmthandle_;
+}
+
+// optional string suName = 2;
+inline bool ForceLockInstantiationRequest::has_suname() const {
+  return (_has_bits_[0] & 0x00000002u) != 0;
+}
+inline void ForceLockInstantiationRequest::set_has_suname() {
+  _has_bits_[0] |= 0x00000002u;
+}
+inline void ForceLockInstantiationRequest::clear_has_suname() {
+  _has_bits_[0] &= ~0x00000002u;
+}
+inline void ForceLockInstantiationRequest::clear_suname() {
+  if (suname_ != &::google::protobuf::internal::GetEmptyStringAlreadyInited()) {
+    suname_->clear();
+  }
+  clear_has_suname();
+}
+inline const ::std::string& ForceLockInstantiationRequest::suname() const {
+  // @@protoc_insertion_point(field_get:SAFplus.Rpc.amfMgmtRpc.ForceLockInstantiationRequest.suName)
+  return *suname_;
+}
+inline void ForceLockInstantiationRequest::set_suname(const ::std::string& value) {
+  set_has_suname();
+  if (suname_ == &::google::protobuf::internal::GetEmptyStringAlreadyInited()) {
+    suname_ = new ::std::string;
+  }
+  suname_->assign(value);
+  // @@protoc_insertion_point(field_set:SAFplus.Rpc.amfMgmtRpc.ForceLockInstantiationRequest.suName)
+}
+inline void ForceLockInstantiationRequest::set_suname(const char* value) {
+  set_has_suname();
+  if (suname_ == &::google::protobuf::internal::GetEmptyStringAlreadyInited()) {
+    suname_ = new ::std::string;
+  }
+  suname_->assign(value);
+  // @@protoc_insertion_point(field_set_char:SAFplus.Rpc.amfMgmtRpc.ForceLockInstantiationRequest.suName)
+}
+inline void ForceLockInstantiationRequest::set_suname(const char* value, size_t size) {
+  set_has_suname();
+  if (suname_ == &::google::protobuf::internal::GetEmptyStringAlreadyInited()) {
+    suname_ = new ::std::string;
+  }
+  suname_->assign(reinterpret_cast<const char*>(value), size);
+  // @@protoc_insertion_point(field_set_pointer:SAFplus.Rpc.amfMgmtRpc.ForceLockInstantiationRequest.suName)
+}
+inline ::std::string* ForceLockInstantiationRequest::mutable_suname() {
+  set_has_suname();
+  if (suname_ == &::google::protobuf::internal::GetEmptyStringAlreadyInited()) {
+    suname_ = new ::std::string;
+  }
+  // @@protoc_insertion_point(field_mutable:SAFplus.Rpc.amfMgmtRpc.ForceLockInstantiationRequest.suName)
+  return suname_;
+}
+inline ::std::string* ForceLockInstantiationRequest::release_suname() {
+  clear_has_suname();
+  if (suname_ == &::google::protobuf::internal::GetEmptyStringAlreadyInited()) {
+    return NULL;
+  } else {
+    ::std::string* temp = suname_;
+    suname_ = const_cast< ::std::string*>(&::google::protobuf::internal::GetEmptyStringAlreadyInited());
+    return temp;
+  }
+}
+inline void ForceLockInstantiationRequest::set_allocated_suname(::std::string* suname) {
+  if (suname_ != &::google::protobuf::internal::GetEmptyStringAlreadyInited()) {
+    delete suname_;
+  }
+  if (suname) {
+    set_has_suname();
+    suname_ = suname;
+  } else {
+    clear_has_suname();
+    suname_ = const_cast< ::std::string*>(&::google::protobuf::internal::GetEmptyStringAlreadyInited());
+  }
+  // @@protoc_insertion_point(field_set_allocated:SAFplus.Rpc.amfMgmtRpc.ForceLockInstantiationRequest.suName)
+}
+
+// -------------------------------------------------------------------
+
+// ForceLockInstantiationResponse
+
+// optional sint32 err = 1;
+inline bool ForceLockInstantiationResponse::has_err() const {
+  return (_has_bits_[0] & 0x00000001u) != 0;
+}
+inline void ForceLockInstantiationResponse::set_has_err() {
+  _has_bits_[0] |= 0x00000001u;
+}
+inline void ForceLockInstantiationResponse::clear_has_err() {
+  _has_bits_[0] &= ~0x00000001u;
+}
+inline void ForceLockInstantiationResponse::clear_err() {
+  err_ = 0;
+  clear_has_err();
+}
+inline ::google::protobuf::int32 ForceLockInstantiationResponse::err() const {
+  // @@protoc_insertion_point(field_get:SAFplus.Rpc.amfMgmtRpc.ForceLockInstantiationResponse.err)
+  return err_;
+}
+inline void ForceLockInstantiationResponse::set_err(::google::protobuf::int32 value) {
+  set_has_err();
+  err_ = value;
+  // @@protoc_insertion_point(field_set:SAFplus.Rpc.amfMgmtRpc.ForceLockInstantiationResponse.err)
 }
 
 

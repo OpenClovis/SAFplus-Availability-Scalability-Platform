@@ -87,5 +87,6 @@ ClRcT amfNodeRestart(const Handle& mgmtHandle, const std::string& nodeName, bool
 ClRcT amfMiddlewareRestart(const Handle& mgmtHandle, const std::string& nodeName, bool graceful, bool nodeReset);
 
 ClRcT amfMgmtAssignSUtoSI(const Handle& mgmtHandle, const std::string& siName, const std::string& acitveSUName, const std::string& standbySUName);
+ClRcT amfMgmtForceLockInstantiation(const Handle& mgmtHandle, const std::string& suName);
 
 }

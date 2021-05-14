@@ -416,6 +416,12 @@ void amfMgmtRpc::assignSUtoSI(const ::SAFplus::Rpc::amfMgmtRpc::AssignSUtoSIRequ
   logError("RPC","SVR","Method assignSUtoSI() not implemented.");
 }
 
+void amfMgmtRpc::forceLockInstantiation(const ::SAFplus::Rpc::amfMgmtRpc::ForceLockInstantiationRequest*,
+                         ::SAFplus::Rpc::amfMgmtRpc::ForceLockInstantiationResponse*)
+{
+  logError("RPC","SVR","Method forceLockInstantiation() not implemented.");
+}
+
 void amfMgmtRpc::initialize(SAFplus::Handle destination,
                      const ::SAFplus::Rpc::amfMgmtRpc::InitializeRequest* request,
                      ::SAFplus::Rpc::amfMgmtRpc::InitializeResponse* response,
@@ -912,6 +918,14 @@ void amfMgmtRpc::assignSUtoSI(SAFplus::Handle destination,
   logError("RPC","SVR","Method assignSUtoSI() not implemented.");
 }
 
+void amfMgmtRpc::forceLockInstantiation(SAFplus::Handle destination,
+                     const ::SAFplus::Rpc::amfMgmtRpc::ForceLockInstantiationRequest* request,
+                     ::SAFplus::Rpc::amfMgmtRpc::ForceLockInstantiationResponse* response,
+                     SAFplus::Wakeable& wakeable)
+{
+  logError("RPC","SVR","Method forceLockInstantiation() not implemented.");
+}
+
 void amfMgmtRpc::CallMethod(const ::google::protobuf::MethodDescriptor* method,
                              SAFplus::Handle destination,
                              const ::google::protobuf::Message* request,
@@ -1167,6 +1181,10 @@ void amfMgmtRpc::CallMethod(const ::google::protobuf::MethodDescriptor* method,
       assignSUtoSI(::google::protobuf::down_cast<const ::SAFplus::Rpc::amfMgmtRpc::AssignSUtoSIRequest*>(request),
              ::google::protobuf::down_cast< ::SAFplus::Rpc::amfMgmtRpc::AssignSUtoSIResponse*>(response));
       break;
+    case 62:
+      forceLockInstantiation(::google::protobuf::down_cast<const ::SAFplus::Rpc::amfMgmtRpc::ForceLockInstantiationRequest*>(request),
+             ::google::protobuf::down_cast< ::SAFplus::Rpc::amfMgmtRpc::ForceLockInstantiationResponse*>(response));
+      break;
     default:
       GOOGLE_LOG(FATAL) << "Bad method index; this should never happen.";
       break;
@@ -1301,6 +1319,8 @@ const ::google::protobuf::Message& amfMgmtRpc::GetRequestPrototype(
       return ::SAFplus::Rpc::amfMgmtRpc::NodeErrorClearRequest::default_instance();
     case 61:
       return ::SAFplus::Rpc::amfMgmtRpc::AssignSUtoSIRequest::default_instance();
+    case 62:
+      return ::SAFplus::Rpc::amfMgmtRpc::ForceLockInstantiationRequest::default_instance();
     default:
       GOOGLE_LOG(FATAL) << "Bad method index; this should never happen.";
       return *reinterpret_cast< ::google::protobuf::Message*>(NULL);
@@ -1435,6 +1455,8 @@ const ::google::protobuf::Message& amfMgmtRpc::GetResponsePrototype(
       return ::SAFplus::Rpc::amfMgmtRpc::NodeErrorClearResponse::default_instance();
     case 61:
       return ::SAFplus::Rpc::amfMgmtRpc::AssignSUtoSIResponse::default_instance();
+    case 62:
+      return ::SAFplus::Rpc::amfMgmtRpc::ForceLockInstantiationResponse::default_instance();
     default:
       GOOGLE_LOG(FATAL) << "Bad method index; this should never happen.";
       return *reinterpret_cast< ::google::protobuf::Message*>(NULL);
@@ -1823,6 +1845,12 @@ void amfMgmtRpc_Stub::assignSUtoSI(SAFplus::Handle dest,
                               ::SAFplus::Rpc::amfMgmtRpc::AssignSUtoSIResponse* response,
                               SAFplus::Wakeable& wakeable) {
   channel_->CallMethod(descriptor()->method(61), dest, request, response, wakeable);
+}
+void amfMgmtRpc_Stub::forceLockInstantiation(SAFplus::Handle dest,
+                              const ::SAFplus::Rpc::amfMgmtRpc::ForceLockInstantiationRequest* request,
+                              ::SAFplus::Rpc::amfMgmtRpc::ForceLockInstantiationResponse* response,
+                              SAFplus::Wakeable& wakeable) {
+  channel_->CallMethod(descriptor()->method(62), dest, request, response, wakeable);
 }
 
 }  // namespace amfMgmtRpc

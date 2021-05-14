@@ -126,6 +126,7 @@ namespace SAFplus
 
     ClRcT removeThenAssignWork(SAFplusAmf::ServiceInstance* si, SAFplusAmf::ServiceUnit* su, SAFplusAmf::HighAvailabilityState currentState, SAFplusAmf::HighAvailabilityState assignState);
     ClRcT assignSUtoSI(std::string siName, std::string activceSUName, std::string standbySUName);
+    ClRcT removeWorkWithoutAppRemove(SAFplusAmf::ServiceUnit* su);
 
 
     };

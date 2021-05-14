@@ -271,6 +271,14 @@ namespace SAFplus
       {
         assignWorkCallback(wat.comp);
       }
+      if( wat.state == (int)HighAvailabilityState::active || wat.state == (int)HighAvailabilityState::standby)
+      {
+          AdministrativeState adminState = effectiveAdminState(comp->serviceUnit.value);
+          if(adminState == AdministrativeState::on)
+          {
+              recommendedRecovery = Recovery::None;
+          }
+      }
       if ( wat.state == WorkOperationTracker::TerminationState)
         {
           if (result == SA_AIS_OK)
@@ -2047,6 +2055,124 @@ namespace SAFplus
         else
         {
             logDebug("OPS","RMTAS","currentState == assignState");
+        }
+
+        return rc;
+
+    }
+
+    ClRcT AmfOperations::removeWorkWithoutAppRemove(SAFplusAmf::ServiceUnit* su)
+    {
+        ClRcT rc = CL_OK;
+        SAFplus::MgtIdentifierList<SAFplusAmf::ServiceInstance*>::iterator beginSI = su->assignedServiceInstances.listBegin();
+        SAFplus::MgtIdentifierList<SAFplusAmf::ServiceInstance*>::iterator endSI = su->assignedServiceInstances.listEnd();
+        for (auto itSI{beginSI}; itSI != endSI; itSI++)
+        {
+            SAFplusAmf::ServiceInstance* si = dynamic_cast<ServiceInstance*>(*itSI);
+
+            if (si->standbyAssignments.find(su) != si->standbyAssignments.value.end())
+            {
+                assert(si->numStandbyAssignments.current > 0);
+                si->numStandbyAssignments.current -= 1;
+                si->standbyAssignments.erase(su);
+
+                std::vector<Component *> comps;
+                SAFplus::MgtObject::Iterator beginCsi = si->componentServiceInstances.begin();
+                SAFplus::MgtObject::Iterator endCsi = si->componentServiceInstances.end();
+                for (auto itCsi{beginCsi}; itCsi != endCsi; itCsi++)
+                {
+                    SAFplusAmf::ComponentServiceInstance* csi = dynamic_cast<SAFplusAmf::ComponentServiceInstance*> (itCsi->second);
+
+                    SAFplus::MgtIdentifierList<SAFplusAmf::Component*>::Container& vec = csi->standbyComponents.value;
+                    std::vector<SAFplus::MgtIdentifierList<SAFplusAmf::Component*>::Elem>::iterator beginVec = vec.begin();
+                    std::vector<SAFplus::MgtIdentifierList<SAFplusAmf::Component*>::Elem>::iterator endVec = vec.end();
+                    for (auto itVec{beginVec}; itVec != endVec; itVec++)
+                    {
+                        SAFplus::MgtIdentifierList<SAFplusAmf::Component*>::Elem elem = *itVec;
+                        SAFplusAmf::Component* c = elem.value;
+
+                        SAFplus::MgtIdentifierList<SAFplusAmf::Component*>::iterator beginComp = su->components.listBegin();
+                        SAFplus::MgtIdentifierList<SAFplusAmf::Component*>::iterator endComp = su->components.listEnd();
+                        for (auto itComp{beginComp}; itComp != endComp; itComp++)
+                        {
+                            Component* comp = dynamic_cast<Component*>(*itComp);
+                            if(comp->name.value == c->name.value)
+                            {
+                                // same work removal in workOperationResponse function
+                                comp->haState = SAFplusAmf::HighAvailabilityState::idle;
+                                if(comp->activeAssignments > 0)
+                                {
+                                    --comp->activeAssignments;
+                                }
+                                if(comp->standbyAssignments > 0)
+                                {
+                                    --comp->standbyAssignments;
+                                }
+
+                                comps.push_back(comp);
+                            }
+                        }
+                    }
+                    for(auto iter{comps.begin()}; iter != comps.end(); ++iter)
+                    {
+                        csi->standbyComponents.erase(*iter);
+                    }
+                }
+                si->isFullStandbyAssignment= false;
+            }
+            if (si->activeAssignments.find(su) != si->activeAssignments.value.end())
+            {
+                si->numActiveAssignments.current -= 1;
+                si->activeAssignments.erase(su);
+
+                std::vector<Component *> comps;
+                SAFplus::MgtObject::Iterator beginCsi = si->componentServiceInstances.begin();
+                SAFplus::MgtObject::Iterator endCsi = si->componentServiceInstances.end();
+                for (auto itCsi{beginCsi}; itCsi != endCsi; itCsi++)
+                {
+                    SAFplusAmf::ComponentServiceInstance* csi = dynamic_cast<SAFplusAmf::ComponentServiceInstance*> (itCsi->second);
+
+                    SAFplus::MgtIdentifierList<SAFplusAmf::Component*>::Container& vec = csi->activeComponents.value;
+                    std::vector<SAFplus::MgtIdentifierList<SAFplusAmf::Component*>::Elem>::iterator beginVec = vec.begin();
+                    std::vector<SAFplus::MgtIdentifierList<SAFplusAmf::Component*>::Elem>::iterator endVec = vec.end();
+                    for (auto itVec{beginVec}; itVec != endVec; itVec++)
+                    {
+                        SAFplus::MgtIdentifierList<SAFplusAmf::Component*>::Elem elem = *itVec;
+                        SAFplusAmf::Component* c = elem.value;
+
+                        SAFplus::MgtIdentifierList<SAFplusAmf::Component*>::iterator beginComp = su->components.listBegin();
+                        SAFplus::MgtIdentifierList<SAFplusAmf::Component*>::iterator endComp = su->components.listEnd();
+                        for (auto itComp{beginComp}; itComp != endComp; itComp++)
+                        {
+                            Component* comp = dynamic_cast<Component*>(*itComp);
+                            if(comp->name.value == c->name.value)
+                            {
+                                // same work removal in workOperationResponse function
+                                comp->haState = SAFplusAmf::HighAvailabilityState::idle;
+                                if(comp->activeAssignments > 0)
+                                {
+                                    --comp->activeAssignments;
+                                }
+                                if(comp->standbyAssignments > 0)
+                                {
+                                    --comp->standbyAssignments;
+                                }
+
+                                comps.push_back(comp);
+                            }
+                        }
+                    }
+                    for(auto iter{comps.begin()}; iter != comps.end(); ++iter)
+                    {
+                        csi->activeComponents.erase(*iter);
+                    }
+                }
+                si->isFullActiveAssignment= false;
+            }
+
+            su->assignedServiceInstances.clear();
+            su->numActiveServiceInstances = 0;
+            su->numStandbyServiceInstances = 0;
         }
 
         return rc;

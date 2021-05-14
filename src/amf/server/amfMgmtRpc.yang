@@ -2435,6 +2435,26 @@ are switched over to other nodes (component service instances are not abruptly r
          type int32;
        }
      }
+   }
+
+   rpc forceLockInstantiation {
+     input {
+       leaf-list amfMgmtHandle
+	{
+	  type binary
+          { 
+	    length 16;  // 2 64-bit words 
+	  }
+	}
+       leaf suName {
+         type string;
+       }       
+     }
+     output {
+       leaf err {
+         type int32;
+       }
+     }
    }  
    
 }

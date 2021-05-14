@@ -2022,4 +2022,31 @@ ClRcT amfMgmtAssignSUtoSI(const Handle& mgmtHandle, const std::string& siName, c
    return rc;
 }
 
+ClRcT amfMgmtForceLockInstantiation(const Handle& mgmtHandle, const std::string& suName)
+{
+#ifdef HANDLE_VALIDATE
+    if (!gAmfMgmtInitialized)
+    {
+        return CL_ERR_NOT_INITIALIZED;
+    }
+#endif
+    ClRcT rc;
+    SAFplus::Rpc::amfMgmtRpc::ForceLockInstantiationRequest request;
+    request.add_amfmgmthandle((const char*) &mgmtHandle, sizeof(Handle));
+    request.set_suname(suName);
+    Handle& remoteAmfHdl = name.getHandle(AMF_MASTER_HANDLE, 2000);
+    try
+    {
+        SAFplus::Rpc::amfMgmtRpc::ForceLockInstantiationResponse resp;
+        amfMgmtRpc->forceLockInstantiation(remoteAmfHdl,&request,&resp);
+        rc = (ClRcT)resp.err();
+    }
+    catch(NameException& ex)
+    {
+        logError("MGMT","INI","getHandle got exception [%s]", ex.what());
+        rc = CL_ERR_NOT_EXIST;
+    }
+    return rc;
+}
+
 }

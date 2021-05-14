@@ -218,4 +218,5 @@ BOOST_PYTHON_MODULE(pySAFplus)
   def("amfNodeRestart",static_cast< ClRcT (*)(const Handle &, const std::string &, bool) > (&SAFplus::amfNodeRestart));
   def("amfMiddlewareRestart",static_cast< ClRcT (*)(const Handle &, const std::string &, bool, bool) > (&SAFplus::amfMiddlewareRestart));
   def("amfMgmtAssignSUtoSI",static_cast< ClRcT (*)(const Handle &, const std::string &, const std::string &, const std::string &) > (&SAFplus::amfMgmtAssignSUtoSI));
+  def("amfMgmtForceLockInstantiation",static_cast< ClRcT (*)(const Handle &, const std::string &) > (&SAFplus::amfMgmtForceLockInstantiation));
 }

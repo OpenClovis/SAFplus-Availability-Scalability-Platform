@@ -1838,6 +1838,43 @@ By default the specified location and children are shown.  Use -N to specify how
 
     return ""
 
+  def do_forceLockInstantiation(self, entityName):
+    """syntax: forceLockInstantiation entitySUName
+    """
+    try:
+      handleTest = access.getProcessHandle(0, 0)
+      ret = access.amfMgmtInitialize(handleTest)
+      # print "amfMgmtInitialize: ", hex(ret)
+
+      ret = access.amfMgmtForceLockInstantiation(handleTest, entityName)
+      # print "amfMgmtForceLockInstantiation: ", hex(ret)
+      if ret == 0x11:
+        print "%s entity do not exist" %entityName
+      elif ret == 0x12:
+        print "%s entity have an invalid state to ForceLockInstantiation" %entityName
+      elif ret == 0x0:
+        print " %s entity ForceLockInstantiation OK" %entityName
+
+      ret = access.amfMgmtFinalize(handleTest)
+      # print "amfMgmtFinalize: ", hex(ret)
+    except RuntimeError, e:
+      print "error: ", e
+
+    return ""
+
+  def get_amf_master_handle(self):
+    info = access.grpCliClusterViewGet()
+    rows = info.split('\n')
+    for row in rows:
+        if len(row) == 0:
+            continue
+        cells = row.split()
+        if cells[1] == 'controller' and cells[2] == 'active':
+            masterNodeId = int(cells[3])
+            self.handle = access.getProcessHandle(1, masterNodeId)
+            self.didConnect = 1
+            return masterNodeId
+
 class CaptureOutput:
   def __init__(self,resolver):
     try: 
@@ -1991,6 +2028,10 @@ def main(argLst):
     resolver.tags["helpCmd"] = nowinhelpCmdHandler
     resolver.addCmds(cmds)
     resolver.addCmds(RunScript(resolver))
+
+    # automatically connect
+    masterNodeId = resolver.get_amf_master_handle()
+    # print 'master node id: ', masterNodeId
 
     while 1:      
       cmd = resolver.cmdLine.input()

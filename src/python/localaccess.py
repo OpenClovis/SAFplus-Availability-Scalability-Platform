@@ -57,6 +57,10 @@ amfNodeRestart  = safplus.amfNodeRestart
 amfMiddlewareRestart = safplus.amfMiddlewareRestart
 amfMgmtAssignSUtoSI = safplus.amfMgmtAssignSUtoSI
 
+grpCliClusterViewGet = safplus.grpCliClusterViewGet
+
+amfMgmtForceLockInstantiation = safplus.amfMgmtForceLockInstantiation
+
 
 def isValidDirectory(path):
   try:

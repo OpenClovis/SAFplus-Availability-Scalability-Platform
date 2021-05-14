@@ -5050,6 +5050,44 @@ namespace amfMgmtRpc {
       response->set_err(rc);
   }
 
+  void amfMgmtRpcImpl::forceLockInstantiation(const ::SAFplus::Rpc::amfMgmtRpc::ForceLockInstantiationRequest* request,
+                                ::SAFplus::Rpc::amfMgmtRpc::ForceLockInstantiationResponse* response)
+  {
+    const std::string& suName = request->suname();
+    logDebug("MGMT","RPC","enter [%s] with param su name [%s]",__FUNCTION__,suName.c_str());
+    ClRcT rc = CL_OK;
+#ifdef HANDLE_VALIDATE
+    DbalPlugin* pd = NULL;
+    rc = getDbalObj(request->amfmgmthandle().Get(0).c_str(), &pd);
+    if (rc != CL_OK)
+    {
+      logDebug("MGMT","RPC","invalid handle, rc [0x%x", rc);
+      response->set_err(rc);
+      return;
+    }
+#endif
+    SAFplusAmf::ServiceUnit* su = dynamic_cast<SAFplusAmf::ServiceUnit*>(cfg.safplusAmf.serviceUnitList[suName]);
+    if (su == NULL)
+    {
+      logDebug("MGMT","RPC","su object is null for its name [%s]", suName.c_str());
+      rc = CL_ERR_UNSPECIFIED;
+    }
+    else
+    {
+        amfOpsMgmt->removeWorkWithoutAppRemove(su);
+        rc = SAFplus::setAdminState(su,SAFplusAmf::AdministrativeState::off,true);
+        SAFplus::MgtIdentifierList<SAFplusAmf::Component*>::iterator beginComp = su->components.listBegin();
+        SAFplus::MgtIdentifierList<SAFplusAmf::Component*>::iterator endComp = su->components.listEnd();
+        for (auto itComp{beginComp}; itComp != endComp; itComp++)
+        {
+            SAFplusAmf::Component* comp = dynamic_cast<SAFplusAmf::Component*>(*itComp);
+            amfOpsMgmt->abort(comp, true);
+        }
+    }
+
+    response->set_err(rc);
+  }
+
 }  // namespace amfMgmtRpc
 }  // namespace Rpc
 }  // namespace SAFplus
