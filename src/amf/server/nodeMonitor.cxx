@@ -97,7 +97,7 @@ void NodeMonitor::msgHandler(MsgServer* svr, Message* msg, ClPtrT cookie)
       int64_t timeDiff = now - hb->now;
       int node = hdl.getNode();
       lastHeard[node] = timerMs();
-      logDebug("HB","NOD","Heartbeat response from [%d] handle [%" PRIx64 ":%" PRIx64 "] latency/time difference is [%" PRId64 " ms]; lastHeard[%d]=[%" PRId64 " ms]",node, hdl.id[0],hdl.id[1],timeDiff, lastHeard[node]);
+      logDebug("HB","NOD","Heartbeat response from [%d] handle [%" PRIx64 ":%" PRIx64 "] latency/time difference is [%" PRId64 " ms]; lastHeard[%d]=[%" PRId64 " ms]",node, hdl.id[0],hdl.id[1],timeDiff, node, lastHeard[node]);
     }
 }
 
@@ -506,6 +506,5 @@ active_exists:
       uint64_t tmp = cfg.safplusAmf.healthCheckPeriod;
       if (tmp == 0) tmp = 1000; // if "off" loop every second anyway so we can detect when we get turned on.      
       boost::this_thread::sleep(boost::posix_time::milliseconds(tmp));
-      logInfo("HB","CLM","next node monitor loop");
     }
 }

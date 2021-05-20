@@ -412,7 +412,7 @@ void GroupServer::msgHandler(Handle from, SAFplus::MsgServer* svr, ClPtrT msg, C
         GroupIdentity *rxGrp = (GroupIdentity *)rxMsg->data;
         if (rxGrp->id.getPort() == SAFplusI::AMF_IOC_PORT && rxGrp->id.getNode() != SAFplus::ASP_NODEADDR)
         {
-          logDebug("GMS","MSG","Entity [%" PRIx64 ":%" PRIx64 "] JOIN from starting. Turn off reelect flag");
+          logDebug("GMS","MSG","Entity [%" PRIx64 ":%" PRIx64 "] JOIN from starting. Turn off reelect flag", rxGrp->id.id[0], rxGrp->id.id[1]);
           m_reelect = false;
         }
         registerEntity(ge, rxGrp->id, rxGrp->credentials, NULL, rxGrp->dataLen, rxGrp->capabilities, false);
@@ -838,7 +838,7 @@ void GroupServer::registerEntityEx(const SAFplus::Handle& grpHdl, EntityIdentifi
     {
     ge = &entryPtr->second; // &(gsm.groupMap->find(grpHandle)->second);
     }
-   registerEntity(ge, me, credentials, NULL, dataLength, capabilities, needNotify);
+   registerEntity(ge, me, credentials, data, dataLength, capabilities, needNotify);
 }
 
 void GroupServer::startElection(SAFplus::Handle grpHandle)
