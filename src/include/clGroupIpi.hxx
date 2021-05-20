@@ -276,6 +276,7 @@ class GroupServer:public SAFplus::MsgHandler
     bool quit;
       // Communication port
   int groupCommunicationPort;
+  bool m_reelect;
 
   void operator()(void);  // fault polling thread
 
@@ -286,6 +287,7 @@ class GroupServer:public SAFplus::MsgHandler
 
   void init();
   void registerEntity (GroupShmEntry* grp, SAFplus::Handle me, uint64_t credentials, const void* data, int dataLength, uint capabilities,bool needNotify);
+  void registerEntityEx (const SAFplus::Handle& grpHdl, SAFplus::Handle me, uint64_t credentials, const void* data, int dataLength, uint capabilities,bool needNotify);
   void deregisterEntity (GroupShmEntry* grp, SAFplus::Handle me,bool needNotify);
   void _deregister (GroupShmEntry* grp, unsigned int node, unsigned int port=0);
 

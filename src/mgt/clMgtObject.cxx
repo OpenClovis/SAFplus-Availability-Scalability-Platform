@@ -257,7 +257,7 @@ namespace SAFplus
 
   ClRcT MgtObject::writeChanged(uint64_t firstBeat, uint64_t beat, MgtDatabase* db, std::string xpt)
   {
-    clDbgCodeError(CL_ERR_BAD_OPERATION, "WriteChanged operation not supported on element [%s], path [%s]", getFullXpath(true).c_str(), xpt.c_str());
+    //clDbgCodeError(CL_ERR_BAD_OPERATION, "WriteChanged operation not supported on element [%s], path [%s]", getFullXpath(true).c_str(), xpt.c_str());
     return CL_OK;
   }
 

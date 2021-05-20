@@ -216,6 +216,22 @@ char* Group::capStr(uint cap, char* buf)
       return (gi != NULL);
     }
 
+  const GroupIdentity* Group::getMember(EntityIdentifier id)
+  {
+    GroupShmHashMap::iterator entryPtr;
+    assert(gsm.groupMap);  // You did not call groupInitialize()
+    entryPtr = gsm.groupMap->find(handle);
+    if (entryPtr == gsm.groupMap->end())
+      {
+      assert(0);  // Unknown group but Group ctor should have created it
+      throw Error(Error::SAFPLUS_ERROR,Error::NOT_IMPLEMENTED);
+      }
+    GroupShmEntry& shm = entryPtr->second;
+    const GroupData& gd = shm.read();
+    const GroupIdentity* gi = gd.find(id);
+    return gi;
+  }
+
 #if 0
   // Calls for an election with specified role
   std::pair<EntityIdentifier,EntityIdentifier>  Group::elect(SAFplus::Wakeable& wake)

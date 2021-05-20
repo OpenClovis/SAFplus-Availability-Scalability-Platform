@@ -28,6 +28,7 @@ GroupServer::GroupServer()
  quit = false;
  groupCommunicationPort=GMS_IOC_PORT; 
  groupMsgServer = NULL;
+ m_reelect = false;
  }
 
 void GroupSharedMem::deleteSharedMemory()
@@ -324,7 +325,8 @@ void GroupServer::init()
                         if (fs == FaultState::STATE_DOWN)
                           {
                             //logInfo("FLT","MSG","Removing faulted [%d.%d.%" PRIx64 "] from group", gd.members[j].id.getNode(),gd.members[j].id.getProcess(), gd.members[j].id.getIndex());
-                            printf("Removing faulted [%d.%d.%" PRIx64 "] from group", gd.members[j].id.getNode(),gd.members[j].id.getProcess(), gd.members[j].id.getIndex());
+                            //printf("Removing faulted [%d.%d.%" PRIx64 "] from group", gd.members[j].id.getNode(),gd.members[j].id.getProcess(), gd.members[j].id.getIndex());
+                            logInfo("FLT","MSG","Removing faulted %" PRIx64 ":%" PRIx64 "] from group", gd.members[j].id.id[0],gd.members[j].id.id[1]);
                             deregisterEntity(&ge,gd.members[j].id,true);
                             j=::SAFplusI::GroupMaxMembers;  // Not going to find a double
                           }
@@ -339,7 +341,7 @@ void GroupServer::removeEntities(SAFplus::Handle faultEntity)
 {
   if (faultEntity.getProcess() > 0)
   {
-    //logInfo("FLT","SET","do no deregister entities in case their node is not death");
+    logInfo("FLT","RMV","do no deregister entities in case their node is not death");
     return;
   }
   SAFplusI::GroupShmHashMap::iterator i;
@@ -408,6 +410,11 @@ void GroupServer::msgHandler(Handle from, SAFplus::MsgServer* svr, ClPtrT msg, C
         {
         logDebug("GMS","MSG","Entity JOIN message");
         GroupIdentity *rxGrp = (GroupIdentity *)rxMsg->data;
+        if (rxGrp->id.getPort() == SAFplusI::AMF_IOC_PORT && rxGrp->id.getNode() != SAFplus::ASP_NODEADDR)
+        {
+          logDebug("GMS","MSG","Entity [%" PRIx64 ":%" PRIx64 "] JOIN from starting. Turn off reelect flag");
+          m_reelect = false;
+        }
         registerEntity(ge, rxGrp->id, rxGrp->credentials, NULL, rxGrp->dataLen, rxGrp->capabilities, false);
         } break;
     case SAFplusI::GroupMessageTypeT::MSG_HELLO:
@@ -818,6 +825,21 @@ void GroupServer::registerEntity(GroupShmEntry* grp, EntityIdentifier me, uint64
     }
 
   }
+
+void GroupServer::registerEntityEx(const SAFplus::Handle& grpHdl, EntityIdentifier me, uint64_t credentials, const void* data, int dataLength, uint capabilities,bool needNotify)
+{
+   GroupShmHashMap::iterator entryPtr = gsm.groupMap->find(grpHdl);
+   GroupShmEntry* ge = NULL;
+   if (entryPtr == gsm.groupMap->end())  // We don't know about the group, so create it;
+    {
+    ge = gsm.createGroup(grpHdl);
+    }
+   else
+    {
+    ge = &entryPtr->second; // &(gsm.groupMap->find(grpHandle)->second);
+    }
+   registerEntity(ge, me, credentials, NULL, dataLength, capabilities, needNotify);
+}
 
 void GroupServer::startElection(SAFplus::Handle grpHandle)
   {

@@ -1175,7 +1175,7 @@ namespace SAFplus
             std::string keyValue = strKey.substr(posEquals+2, strKey.length() - posEquals - 4);
             if (children.find(keyValue) != children.end())
             {
-              logDebug("MGMT","READ","object of [%s] was created, skip it", keyValue.c_str());
+              //logDebug("MGMT","READ","object of [%s] was created, skip it", keyValue.c_str());
               continue;
             }
 

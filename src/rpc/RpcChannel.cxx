@@ -187,7 +187,8 @@ namespace SAFplus
                             FaultState fs = svr->fault->getFaultState(h);
                             if (fs==FaultState::STATE_UP)
                               {
-                                svr->fault->notifyNoResponse(h);  // Tell the fault manager that I'm having a problem.
+                                // not neccessary to report fault because this is handled at nodeMonitor.cxx
+                                //svr->fault->notifyNoResponse(h);  // Tell the fault manager that I'm having a problem.
                                 retry=true;
                                 break;
                               }

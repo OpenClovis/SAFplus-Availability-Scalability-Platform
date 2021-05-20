@@ -91,17 +91,9 @@ MgtDatabase amfDb;
 MgtDatabase logDb;
 SAFplus::Fault gfault;  // Fault client global variable
 SAFplus::FaultServer fs;
+SAFplusI::GroupServer gs;
 bool initOperValues = false;
 //ClAmfPolicyPlugin_1* gAmfPolicy;
-
-enum
-  {
-  NODENAME_LEN = 16*8,              // Make sure it is a multiple of 64 bits
-  SC_ELECTION_BIT = 1<<8,           // This bit is set in the credential if the node is a system controller, making SCs preferred 
-  STARTUP_ELECTION_DELAY_MS = 2000,  // Wait for 5 seconds during startup if nobody is active so that other nodes can arrive, making the initial election not dependent on small timing issues. 
-
-  REEVALUATION_DELAY = 1000, //? How long to wait (max) before reevaluating the cluster
-  };
 
 static void sigChildHandler(int signum)
 {
@@ -775,7 +767,7 @@ int main(int argc, char* argv[])
 
 
 #ifdef SAFPLUS_AMF_GRP_NODE_REPRESENTATIVE
-  SAFplusI::GroupServer gs;  // WARN: may not be initialized if safplus_group is running
+  //SAFplusI::GroupServer gs;  // WARN: may not be initialized if safplus_group is running
   try
     {
     gs.init();
@@ -805,7 +797,7 @@ int main(int argc, char* argv[])
   amfDb.initialize(dbName);
   cfg.setDatabase(&amfDb);
   /* Initialize mgt database  */
-  SaTimeT healthCheckMaxSilence = (SaTimeT)1500;
+  SaTimeT healthCheckMaxSilence = (SaTimeT)2000;
   cfg.safplusAmf.setHealthCheckMaxSilence(healthCheckMaxSilence);
   DbalPlugin* plugin = amfDb.getPlugin();
   logInfo(LogArea,"DB", "Opening database file [%s] using plugin [%s]", dbName.c_str(),plugin->type);
@@ -1059,6 +1051,7 @@ int main(int argc, char* argv[])
       firstTime=false;
 #ifdef USE_GRP
       activeStandbyPairs = clusterGroup.getRoles();
+      logNotice("---","---","Current active [%" PRIx64 ":%" PRIx64 "], current standby [%" PRIx64 ":%" PRIx64 "]", activeStandbyPairs.first.id[0], activeStandbyPairs.first.id[1], activeStandbyPairs.second.id[0], activeStandbyPairs.second.id[1]);
       assert((activeStandbyPairs.first != activeStandbyPairs.second) || ((activeStandbyPairs.first == INVALID_HDL)&&(activeStandbyPairs.second == INVALID_HDL)) );
       // now election occurs automatically, so just need to wait for it.
       // if ((activeStandbyPairs.first == INVALID_HDL)||(activeStandbyPairs.second == INVALID_HDL)) clusterGroup.elect();
@@ -1066,10 +1059,19 @@ int main(int argc, char* argv[])
       if (myRole == Group::IS_ACTIVE) 
         {
         //CL_ASSERT(activeStandbyPairs.first == myHandle);  // Once I become ACTIVE I can never lose it.
-        if (activeStandbyPairs.first != myHandle) // I am no longer active
+
+        if (activeStandbyPairs.first != INVALID_HDL && activeStandbyPairs.first != myHandle) // I am no longer active
           {
-          //stopActive(); TBD
-          myRole = 0;
+             //stopActive(); TBD
+#if 0
+             if (activeStandbyPairs.second == myHandle)
+             {
+                logNotice("---","---","Active became standby, this node will be restart now");
+                break;
+             }
+#endif
+             logNotice("---","---","I am no longer active, reset my role to 0. Current active [%" PRIx64 ":%" PRIx64 "],current standby [%" PRIx64 ":%" PRIx64 "]. My handle [%" PRIx64 ":%" PRIx64 "]", activeStandbyPairs.first.id[0], activeStandbyPairs.first.id[1], activeStandbyPairs.second.id[0], activeStandbyPairs.second.id[1], myHandle.id[0], myHandle.id[1]);
+             myRole = 0;
           }
         }
       else
@@ -1080,10 +1082,14 @@ int main(int argc, char* argv[])
             {
             initOperValues = true;
             }
-          logInfo("---","---","This node just became the active system controller");
-          myRole = Group::IS_ACTIVE;
-          becomeActive();
-          name.set(AMF_MASTER_HANDLE,myHandle,NameRegistrar::MODE_NO_CHANGE,true);
+          logInfo("---","---","This node just became the active system controller. Previous role [%d]", myRole);
+          nodeMonitor.currentActive = myHandle;
+          if (myRole != Group::IS_ACTIVE) //if my previous HA state is ACTIVE, do not anything
+          {
+             myRole = Group::IS_ACTIVE;          
+             becomeActive();
+             name.set(AMF_MASTER_HANDLE,myHandle,NameRegistrar::MODE_NO_CHANGE,true);
+          }          
           lastBeat = beat;  // Don't rewrite the changes that loading makes          
           }
         }
@@ -1091,11 +1097,21 @@ int main(int argc, char* argv[])
         {
         if (activeStandbyPairs.second == myHandle)
           {
-          CL_ASSERT(myRole != Group::IS_ACTIVE);  // Fall back from active to standby is not allowed
-          logInfo("---","---","This node just became standby system controller");
-          initOperValues = false;
-          myRole = Group::IS_STANDBY;
-          becomeStandby();
+              CL_ASSERT(myRole != Group::IS_ACTIVE);  // Fall back from active to standby is not allowed
+              logInfo("---","---","This node just became standby system controller. Previous role [%d]", myRole);
+              if (nodeMonitor.currentActive == myHandle)
+              {
+                 logNotice("---","---","Active became standby, this node will restart now");
+                 quitting = true;
+                 break;
+              }
+              initOperValues = false;
+              if (myRole != Group::IS_STANDBY) //if my previous HA state is STANDBY, do not anything
+              {
+                 //nodeMonitor.currentActive = activeStandbyPairs.first;
+                 myRole = Group::IS_STANDBY;
+                 becomeStandby();
+              }
           }
         }
       }

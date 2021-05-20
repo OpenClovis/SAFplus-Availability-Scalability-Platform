@@ -18,7 +18,8 @@ extern Handle myHandle;
 extern Handle nodeHandle;
 extern SAFplus::Fault gfault;
 bool isNodeRegistered = false;
-
+extern volatile bool    quitting;  // Set to true to tell all threads to quit
+extern SAFplusI::GroupServer gs;
 struct HeartbeatData
 {
   enum
@@ -63,9 +64,11 @@ void NodeMonitor::finalize()
 void NodeMonitor::msgHandler(MsgServer* svr, Message* msg, ClPtrT cookie)
 {
   ScopedLock<> lock(exclusion);
+  if (quitting) return;
   if (msg->getLength() != sizeof(HeartbeatData))
     {
       // TODO: log error, notify fault mgr
+      logError("HB","NOD","invalid msg received: msg received len [%d]; expected msg len [%d]", msg->getLength(), (int)sizeof(HeartbeatData));
       msg->free();
       return;
     }
@@ -78,6 +81,7 @@ void NodeMonitor::msgHandler(MsgServer* svr, Message* msg, ClPtrT cookie)
       hb->now = nowMs();
       lastHbHandle = msg->getAddress();
       lastHbRequest = timerMs();
+      logDebug("HB","NOD","Heartbeat request from [%d] handle [%" PRIx64 ":%" PRIx64 "] lastHbRequest [%" PRId64 " ms]",lastHbHandle.getNode(), lastHbHandle.id[0],lastHbHandle.id[1],lastHbRequest);
       if (hb == &hbbuf) 
         {
           logCritical("HB","NOD","Heartbeat response misalignment");
@@ -91,8 +95,9 @@ void NodeMonitor::msgHandler(MsgServer* svr, Message* msg, ClPtrT cookie)
       if (hb->id == HeartbeatData::RESP_OPP) hb->now = __builtin_bswap64(hb->now);
       int64_t now = nowMs();
       int64_t timeDiff = now - hb->now;
-      //logDebug("HB","NOD","Heartbeat response from [%d] handle [%" PRIx64 ":%" PRIx64 "] latency/time difference is [%" PRId64 " ms]",hdl.getNode(), hdl.id[0],hdl.id[1],timeDiff);
-      lastHeard[hdl.getNode()] = timerMs();
+      int node = hdl.getNode();
+      lastHeard[node] = timerMs();
+      logDebug("HB","NOD","Heartbeat response from [%d] handle [%" PRIx64 ":%" PRIx64 "] latency/time difference is [%" PRId64 " ms]; lastHeard[%d]=[%" PRId64 " ms]",node, hdl.id[0],hdl.id[1],timeDiff, lastHeard[node]);
     }
 }
 
@@ -118,11 +123,12 @@ void NodeMonitor::monitorThread(void)
 {
   int loopCnt=-1;
   bool waitingForActive = true;
+  bool activeHdlExist = false;
   //assert(maxSilentInterval);  // You didn't call init()
 
   Group::Iterator end = clusterGroup.end();
 
-  while(!quit)
+  while(!quit && !quitting)
     {
       loopCnt++;
       int64_t now = timerMs();
@@ -130,17 +136,26 @@ void NodeMonitor::monitorThread(void)
       if (active)
         {
           bool ka[SAFplus::MaxNodes];
-	Handle currentHandle = getProcessHandle(SAFplusI::AMF_IOC_PORT,SAFplus::ASP_NODEADDR);
+	      Handle currentHandle = getProcessHandle(SAFplusI::AMF_IOC_PORT,SAFplus::ASP_NODEADDR);
           Handle activeHandle = clusterGroup.getActive(ABORT);
           Handle standbyHandle = clusterGroup.getStandby(ABORT);
-	//Handle nodeHandle = getNodeHandle(SAFplus::ASP_NODEADDR);
+	      Handle nodeHdl = getNodeHandle(SAFplus::ASP_NODEADDR);
+          logInfo("HB","CLM","current handle [%" PRIx64 ":%" PRIx64 "]; active handle [%" PRIx64 ":%" PRIx64 "]; standby handle [%" PRIx64 ":%" PRIx64 "]; node handle [%" PRIx64 ":%" PRIx64 "];", currentHandle.id[0],currentHandle.id[1], activeHandle.id[0],activeHandle.id[1], standbyHandle.id[0],standbyHandle.id[1], nodeHdl.id[0],nodeHdl.id[1]);
+          if (currentActive == standbyHandle)
+          {
+             logNotice("---","---","Active became standby, this node will restart now");
+             quitting = true;
+             //exit(0);
+          }
 	/*
 	when the old active is disconnected, the new active must broadcast its role.
 	*/
+#if 0
 	if(gfault.getFaultState(standbyHandle) == FaultState::STATE_UNDEFINED)
 	{
 	   clusterGroup.broadcastRole(activeHandle,standbyHandle,true);
 	}
+#endif
 	/*
 	when the old active reconnect, it will find out that it is not active anymore.
 	After it receive role message broadcasting from the new active, currentHandle (itself) does not resemble activeHandle.
@@ -165,9 +180,94 @@ void NodeMonitor::monitorThread(void)
                     {
                       if ((cfg.safplusAmf.healthCheckMaxSilence!=0) && (now - lastHeard[i] > cfg.safplusAmf.healthCheckMaxSilence))
                         {
-                          gfault.notify(getNodeHandle(i),AlarmState::ALARM_STATE_ASSERT,AlarmCategory::ALARM_CATEGORY_COMMUNICATIONS,AlarmSeverity::ALARM_SEVERITY_MAJOR,AlarmProbableCause::ALARM_PROB_CAUSE_RECEIVER_FAILURE, gfault.getFaultPolicy());
-                          lastHeard[i] = 0;  // after fault mgr notification, reset node as if its new.  If the fault mgr does not choose to kill the node, this will cause us to give the node another maxSilentInterval.
-                          // DEBUG only trigger once boost::this_thread::sleep(boost::posix_time::milliseconds(1000000 + SAFplusI::NodeHeartbeatInterval)); 
+                          logInfo("HB","CLM","active: not heard from node %d",i);
+                          Handle amfHdl = getProcessHandle(SAFplusI::AMF_IOC_PORT,i);
+                          bool skip = false;
+                          for (auto it = members.cbegin(); it != members.cend(); it++)
+                          {
+                            const GroupIdentity* gi = dynamic_cast<const GroupIdentity*>(*it);
+                            if (gi->id == amfHdl)
+                            {
+                                skip = true;
+                                break;
+                            }
+                          }
+                          if (!skip)
+                          {
+                            const GroupIdentity* gi = clusterGroup.getMember(amfHdl);
+                            if (gi)
+                            {
+                              logDebug("HB","CLM","active: store member with id [%" PRIx64 ":%" PRIx64 "]",amfHdl.id[0], amfHdl.id[1]);
+                              gs.m_reelect = true;
+                              GroupIdentity* pgi = new GroupIdentity;
+                              memcpy(pgi, gi, sizeof(GroupIdentity));
+                              members.push_back(pgi);
+                              //clusterGroup.deregister(amfHdl);
+                            }
+                            else
+                            {
+                              logWarning("HB","CLM","active: there is no member with id [%" PRIx64 ":%" PRIx64 "]",amfHdl.id[0], amfHdl.id[1]);
+                            }
+                            //syslog(LOG_INFO,"active: node %d not heard",i);
+                            Handle faultHdl = getNodeHandle(i);
+                            logInfo("HB","CLM","active: notifying fault entity [%" PRIx64 ":%" PRIx64 "]", faultHdl.id[0],faultHdl.id[1]);
+                            gfault.notify(faultHdl,AlarmState::ALARM_STATE_ASSERT,AlarmCategory::ALARM_CATEGORY_COMMUNICATIONS,AlarmSeverity::ALARM_SEVERITY_MAJOR,AlarmProbableCause::ALARM_PROB_CAUSE_RECEIVER_FAILURE, gfault.getFaultPolicy());
+                            //lastHeard[i] = 0;  // after fault mgr notification, reset node as if its new.  If the fault mgr does not choose to kill the node, this will cause us to give the node another maxSilentInterval.
+                            // DEBUG only trigger once boost::this_thread::sleep(boost::posix_time::milliseconds(1000000 + SAFplusI::NodeHeartbeatInterval));
+                          }
+                          lastHeard[i] = 0;
+                        }
+                      else
+                        {
+                          logInfo("HB","CLM","active: heard from node %d",i);
+                          Handle amfHdl = getProcessHandle(SAFplusI::AMF_IOC_PORT,i);
+                          for (auto it = members.cbegin(); it != members.cend(); it++)
+                          {
+                             const GroupIdentity* gi = dynamic_cast<const GroupIdentity*>(*it);
+                             if (gi->id == amfHdl)
+                             {
+                                 if (gi->credentials|SC_ELECTION_BIT) //Only SystemContoler node can be taken into account
+                                 {
+                                    FaultState fs = gfault.getFaultState(amfHdl);
+                                    bool isMember = clusterGroup.isMember(amfHdl);
+                                    logInfo("HB","CLM","Amf Handle [%" PRIx64 ":%" PRIx64 "] Fault: [%s] Member: [%c], reelect [%c]",amfHdl.id[0],amfHdl.id[1],c_str(fs), isMember?'Y':'N',gs.m_reelect?'Y':'N');
+                                    // Might TODO: sync data (checkpoint data after the dead node up again???
+                                    /*if (fs != FaultState::STATE_UP)
+                                      {
+                                         gfault.registerEntity(amfHdl, FaultState::STATE_UP);
+                                         gfault.registerEntity(getNodeHandle(amfHdl), FaultState::STATE_UP);
+                                      }*/
+                                    if (!isMember)
+                                    {
+                                       gs.registerEntityEx(clusterGroup.handle,gi->id, gi->credentials,NULL,0, gi->capabilities,false);
+                                       gs.m_reelect = false;
+                                    }
+                                    isMember = clusterGroup.isMember(amfHdl);
+                                    //fs = gfault.getFaultState(amfHdl);
+                                    logInfo("HB","CLM","Amf Handle [%" PRIx64 ":%" PRIx64 "] Fault: [%s] Member: [%c], reelect [%c]",amfHdl.id[0],amfHdl.id[1],c_str(fs), isMember ? 'Y':'N', gs.m_reelect?'Y':'N');        
+                                    if (gs.m_reelect && fs == FaultState::STATE_UP && isMember)
+                                    {
+                                       logDebug("HB","CLM","active: deregister myself and the register again to the cluster group to trigger re-election");
+                                       GroupIdentity me;
+                                       memcpy(&me, &clusterGroup.myInformation, sizeof(GroupIdentity));
+                                       clusterGroup.deregister();
+                                       clusterGroup.registerEntity(myHandle, me.credentials, me.capabilities);
+                                       gs.m_reelect = false;
+                                    }
+                                    else
+                                    {
+                                       logDebug("HB","CLM","active: no need to trigger re-election");
+                                    }
+                                 }
+                                 delete gi;
+                                 members.erase(it);
+                                 break;
+                             }
+                             else
+                             {
+                                 logWarning("HB","CLM","active: member with id [%" PRIx64 ":%" PRIx64 "] not found from the nodeMonitor",amfHdl.id[0], amfHdl.id[1]);
+                             }
+                          }
                         }
                     }
                 }
@@ -182,11 +282,11 @@ void NodeMonitor::monitorThread(void)
                     {
                       Handle hdl = getProcessHandle(SAFplusI::AMF_IOC_PORT,i);
                       ka[i] = true;
-                      if (lastHeard[i]==0) lastHeard[i] = timerMs() + InitialHbInterval;
+                      //if (lastHeard[i]==0) lastHeard[i] = timerMs() + InitialHbInterval;
                       HeartbeatData hd;
                       hd.id = HeartbeatData::REQ;
                       hd.now = nowMs();
-                      //logDebug("HB","CLM","Heartbeat to handle [%" PRIx64 ":%" PRIx64 "]",hdl.id[0],hdl.id[1]);
+                      logDebug("HB","CLM","Heartbeat to handle [%" PRIx64 ":%" PRIx64 "]; lastHeart[%d]=%" PRId64 "ms",hdl.id[0],hdl.id[1], i, lastHeard[i]);
                       safplusMsgServer.SendMsg(hdl, (void*) &hd, sizeof(HeartbeatData), SAFplusI::HEARTBEAT_MSG_TYPE);                
                     }
                   else
@@ -197,19 +297,29 @@ void NodeMonitor::monitorThread(void)
             }
 
           // Keepalive any nodes in the cluster group.  Every node in this group SHOULD have registered with the fault manager and be UP so this should be a big NO-OP
+          //for (int thisNode=1;thisNode<SAFplus::MaxNodes;thisNode++)
+          //{
+#if 0
           for (Group::Iterator it = clusterGroup.begin();it != end; it++)
             {
               Handle hdl = it->first;  // same as gi->id
               const GroupIdentity* gi = &it->second;
               int thisNode = hdl.getNode();
               assert(thisNode < SAFplus::MaxNodes);
+#endif
+          for (auto it = members.cbegin(); it != members.cend(); it++)
+            {
+              const GroupIdentity* gi = dynamic_cast<const GroupIdentity*>(*it);
+              const Handle& hdl = gi->id;              
+              int thisNode = hdl.getNode();
+              assert(thisNode < SAFplus::MaxNodes);              
               if (thisNode != SAFplus::ASP_NODEADDR)  // No point in keepaliving myself
                 {
                   if (ka[thisNode] == false)
                     {
-                      logInfo("HB","CLM"," heartbeat to [%d] handle [%" PRIx64 ":%" PRIx64 "] -- in cluster group but not in fault manager",hdl.getNode(), hdl.id[0],hdl.id[1]);
-                      if (lastHeard[thisNode]==0) lastHeard[thisNode] = timerMs() + InitialHbInterval;
-                      assert(hdl == gi->id);  // key should = handle in the value, if not shared memory is corrupt 
+                      logInfo("HB","CLM"," heartbeat to [%d] handle [%" PRIx64 ":%" PRIx64 "] -- not in cluster group and not in fault manager",hdl.getNode(), hdl.id[0],hdl.id[1]);
+                      //if (lastHeard[thisNode]==0) lastHeard[thisNode] = timerMs() + InitialHbInterval;
+                      //assert(hdl == gi->id);  // key should = handle in the value, if not shared memory is corrupt 
                       HeartbeatData hd;
                       hd.id = HeartbeatData::REQ;
                       hd.now = nowMs();
@@ -217,7 +327,7 @@ void NodeMonitor::monitorThread(void)
                     }
                 }
             }
-        }
+      }
       if (standby)  // Let the standby ensure that the active is alive
         {
           int64_t now = timerMs();
@@ -229,25 +339,91 @@ void NodeMonitor::monitorThread(void)
 
           if ((cfg.safplusAmf.healthCheckMaxSilence.value>0)&&((now > lastHbRequest)&&(now - lastHbRequest > cfg.safplusAmf.healthCheckMaxSilence)))
             {
-              // TODO: Split brain avoidance.  The standby should send HB reqs to all the other nodes and count how many it can talk to.  If it is half or greater, then become active.  Otherwise, print a split brain critical message and exit
-              Handle hdl;
+              // TODO: Split brain avoidance.  The standby should send HB reqs to all the other nodes and count how many it can talk to.  If it is half or greater, then become active.  Otherwise, print a split brain critical message and exit              
               if (lastHbHandle == INVALID_HDL)  // We never received a HB from the active so fail whatever the cluster manager thinks is active
-                {
-                  lastHbHandle = clusterGroup.getActive(ABORT);
+              {
+                 lastHbHandle = clusterGroup.getActive(ABORT);
+              }
+              Handle& amfHdl = lastHbHandle;              
+              logInfo("HB","CLM","standby: not heard from active [%" PRIx64 ":%" PRIx64 "]",amfHdl.id[0], amfHdl.id[1]);
+              
+              bool skip = false;
+              for (auto it = members.cbegin(); it != members.cend(); it++)
+              {
+                 const GroupIdentity* gi = dynamic_cast<const GroupIdentity*>(*it);
+                 if (gi->id == amfHdl)
+                 {
+                    skip = true;
+                    break;
+                 }
+              }
+              if (!skip)
+              {
+                 const GroupIdentity* gi = clusterGroup.getMember(amfHdl);
+                 if (gi)
+                 {
+                    logDebug("HB","CLM","standby: store member with id [%" PRIx64 ":%" PRIx64 "]",amfHdl.id[0], amfHdl.id[1]);
+                    gs.m_reelect = true;
+                    GroupIdentity* pgi = new GroupIdentity;
+                    memcpy(pgi, gi, sizeof(GroupIdentity));
+                    members.push_back(pgi);
+                    clusterGroup.deregister(amfHdl);
+                 }
+                 else
+                 {
+                     logWarning("HB","CLM","standby: there is no member with id [%" PRIx64 ":%" PRIx64 "]",amfHdl.id[0], amfHdl.id[1]);
+                 }
+                 Handle hdl;
+                 /*if (lastHbHandle == INVALID_HDL)  // We never received a HB from the active so fail whatever the cluster manager thinks is active
+                 {
+                    lastHbHandle = clusterGroup.getActive(ABORT);
+                 }*/
+                 hdl = getNodeHandle(lastHbHandle);
+                 // I need to special case the fault reporting of the ACTIVE, since that fault server is probably dead.
+                 // TODO: It is more semantically correct to send this notification to the standby fault server by looking at the fault group.  However, it will end up pointing to this node...
+                 gfault.notifyLocal(hdl,AlarmState::ALARM_STATE_ASSERT,AlarmCategory::ALARM_CATEGORY_COMMUNICATIONS,AlarmSeverity::ALARM_SEVERITY_MAJOR,AlarmProbableCause::ALARM_PROB_CAUSE_RECEIVER_FAILURE, gfault.getFaultPolicy());
+               }
+            }
+            else
+            {
+               if (lastHbHandle == INVALID_HDL)  // We never received a HB from the active so fail whatever the cluster manager thinks is active
+               {
+                   lastHbHandle = clusterGroup.getActive(ABORT);
+               }
+               logInfo("HB","CLM","standby: heard from [%" PRIx64 ":%" PRIx64 "]", lastHbHandle.id[0], lastHbHandle.id[1]);
+               Handle& amfHdl = lastHbHandle;
+               for (auto it = members.cbegin(); it != members.cend(); it++)
+               {
+                   const GroupIdentity* gi = dynamic_cast<const GroupIdentity*>(*it);
+                   if (gi->id == amfHdl)
+                   {
+                       members.erase(it);
+                       break;
+                   }
+                   else
+                   {
+                       logWarning("HB","CLM","standby: member with id [%" PRIx64 ":%" PRIx64 "] not found from the nodeMonitor",amfHdl.id[0], amfHdl.id[1]);
+                   }
                 }
-              hdl = getNodeHandle(lastHbHandle);
-              // I need to special case the fault reporting of the ACTIVE, since that fault server is probably dead.
-              // TODO: It is more semantically correct to send this notification to the standby fault server by looking at the fault group.  However, it will end up pointing to this node...
-              gfault.notifyLocal(hdl,AlarmState::ALARM_STATE_ASSERT,AlarmCategory::ALARM_CATEGORY_COMMUNICATIONS,AlarmSeverity::ALARM_SEVERITY_MAJOR,AlarmProbableCause::ALARM_PROB_CAUSE_RECEIVER_FAILURE, gfault.getFaultPolicy());
             }
         }
       if (!active && !standby && !SAFplus::SYSTEM_CONTROLLER)  // Let the payload ensure that the active is alive
         {
           waitingForActive = true;
-
+          Handle activeHandle;
+          int64_t now;
 verify_active_alive:
-
-          int64_t now = timerMs();
+          if (!activeHdlExist)
+          {
+             activeHandle = clusterGroup.getActive(ABORT);
+             logDebug("HB","CLM","payload: current active [%" PRIx64 ":%" PRIx64 "]", activeHandle.id[0], activeHandle.id[1]);         
+             if (activeHandle != INVALID_HDL)
+             {
+                activeHdlExist = true;
+                goto active_exists;
+             }
+          }
+          now = timerMs();
           if (loopCnt&31==0) 
             {
               cfg.safplusAmf.healthCheckMaxSilence.read();  // Periodically reload from the database to get any changes.  TODO: checkpoint should notify us
@@ -287,44 +463,49 @@ verify_active_alive:
                     fclose(fp);
                   }
                   pid_t amfPid = getpid();
-                  kill(amfPid, SIGKILL);
+                  kill(amfPid, SIGINT);
                 }
               else
                 {
                   logWarning("HB","CLM", "AMF payload blade waiting for AMF active to come up or node handle and amf handle to be valid...");
                 }
             }
-          else if (!isNodeRegistered)
+          else 
           {
-            EntityIdentifier activeHdl = clusterGroup.getActive();
-            if (activeHdl != INVALID_HDL && nodeHandle != INVALID_HDL && myHandle != INVALID_HDL) 
+active_exists:
+            if (!isNodeRegistered) 
             {
-                logInfo("HB","NAM", "Registering this node [%s] as handle [%" PRIx64 ":%" PRIx64 "]", SAFplus::ASP_NODENAME, nodeHandle.id[0],nodeHandle.id[1]);
-                name.set(SAFplus::ASP_NODENAME,nodeHandle,NameRegistrar::MODE_NO_CHANGE,true);
-                do
-                {  // Loop because active fault manager may not be chosen yet
-                  logInfo("HB","CLM","Registering handle [%" PRIx64 ":%" PRIx64 "] as fault state UP",nodeHandle.id[0],nodeHandle.id[1]);
-                  gfault.registerEntity(nodeHandle, FaultState::STATE_UP);  // set this node as up
-                  boost::this_thread::sleep(boost::posix_time::milliseconds(250));
-                } while(gfault.getFaultState(nodeHandle) != FaultState::STATE_UP);
+		    EntityIdentifier activeHdl = clusterGroup.getActive();
+		    if (activeHdl != INVALID_HDL && nodeHandle != INVALID_HDL && myHandle != INVALID_HDL) 
+		    {
+		        logInfo("HB","NAM", "Registering this node [%s] as handle [%" PRIx64 ":%" PRIx64 "]", SAFplus::ASP_NODENAME, nodeHandle.id[0],nodeHandle.id[1]);
+		        name.set(SAFplus::ASP_NODENAME,nodeHandle,NameRegistrar::MODE_NO_CHANGE,true);
+		        do
+		        {  // Loop because active fault manager may not be chosen yet
+		          logInfo("HB","CLM","Registering handle [%" PRIx64 ":%" PRIx64 "] as fault state UP",nodeHandle.id[0],nodeHandle.id[1]);
+		          gfault.registerEntity(nodeHandle, FaultState::STATE_UP);  // set this node as up
+		          boost::this_thread::sleep(boost::posix_time::milliseconds(250));
+		        } while(gfault.getFaultState(nodeHandle) != FaultState::STATE_UP);
 
-                do
-                {
-                  logInfo("HB","CLM","Registering handle [%" PRIx64 ":%" PRIx64 "] as fault state UP",myHandle.id[0],myHandle.id[1]);
-                  gfault.registerEntity(myHandle, FaultState::STATE_UP);    // set this AMF as up
-                  boost::this_thread::sleep(boost::posix_time::milliseconds(250));
-                } while(gfault.getFaultState(myHandle) != FaultState::STATE_UP);
-                isNodeRegistered = true;
-            }
-            else
-            {
-                logInfo("HB","CLM","waiting for active SC up, my node handle and my amf handle valid, current values: active SC [%" PRIx64 ":%" PRIx64 "], my node handle [%" PRIx64 ":%" PRIx64 "], my amf handle [%" PRIx64 ":%" PRIx64 "]", activeHdl.id[0],activeHdl.id[1],nodeHandle.id[0],nodeHandle.id[1],myHandle.id[0],myHandle.id[1]);
-            }
+		        do
+		        {
+		          logInfo("HB","CLM","Registering handle [%" PRIx64 ":%" PRIx64 "] as fault state UP",myHandle.id[0],myHandle.id[1]);
+		          gfault.registerEntity(myHandle, FaultState::STATE_UP);    // set this AMF as up
+		          boost::this_thread::sleep(boost::posix_time::milliseconds(250));
+		        } while(gfault.getFaultState(myHandle) != FaultState::STATE_UP);
+		        isNodeRegistered = true;                
+		    }
+                    else
+		    {
+		        logInfo("HB","CLM","waiting for active SC up, my node handle and my amf handle valid, current values: active SC [%" PRIx64 ":%" PRIx64 "], my node handle [%" PRIx64 ":%" PRIx64 "], my amf handle [%" PRIx64 ":%" PRIx64 "]", activeHdl.id[0],activeHdl.id[1],nodeHandle.id[0],nodeHandle.id[1],myHandle.id[0],myHandle.id[1]);
+		    }
+            }            
           }
         }
 
       uint64_t tmp = cfg.safplusAmf.healthCheckPeriod;
-      if (tmp == 0) tmp = 1000; // if "off" loop every second anyway so we can detect when we get turned on.
-      boost::this_thread::sleep(boost::posix_time::milliseconds(tmp)); 
+      if (tmp == 0) tmp = 1000; // if "off" loop every second anyway so we can detect when we get turned on.      
+      boost::this_thread::sleep(boost::posix_time::milliseconds(tmp));
+      logInfo("HB","CLM","next node monitor loop");
     }
 }

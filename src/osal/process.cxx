@@ -154,13 +154,13 @@ namespace SAFplus
         for (char** envvar = environ; *envvar != 0; envvar++)
         {
           strcpy(envs[i++],*envvar);
-          logInfo("PROC","EXE","envs[%d]=%s",i-1,envs[i-1]);
+          //logInfo("PROC","EXE","envs[%d]=%s",i-1,envs[i-1]);
         }
      }
      for (int j=0;j<env.size(); j++)
       {
         strcpy(envs[i++],env[j].c_str());
-        logInfo("PROC","EXE","2. envs[%d]=%s",i-1,envs[i-1]);
+        //logInfo("PROC","EXE","2. envs[%d]=%s",i-1,envs[i-1]);
       }
     envs[i]=(char*)0;
 

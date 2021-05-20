@@ -246,6 +246,7 @@ namespace SAFplus
 
       //? Return true if the passed Handle is a member of this group.
       bool isMember(EntityIdentifier id);
+      const GroupIdentity* getMember(EntityIdentifier id);
 
       void setNotification(SAFplus::Wakeable& w);  //? call w.wake when someone enters/leaves the group or an active or standby assignment or transition occurs.  Pass what happened into the wakeable.  There can be only one registered notification per Group object.
       uint64_t lastChange(); //?  Return the time of the last change to this group in monotonically increasing system ticks.

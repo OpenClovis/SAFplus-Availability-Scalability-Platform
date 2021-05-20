@@ -337,17 +337,17 @@ namespace SAFplus
             rc = child->read(db, xp);
             if (CL_OK != rc)
               {
-                logWarning("MGT", "READ", "Read data failed error [0x%x] for child [%s] of [%s]. Ignored", rc, child->tag.c_str(), xp.c_str());
+                //logWarning("MGT", "READ", "Read data failed error [0x%x] for child [%s] of [%s]. Ignored", rc, child->tag.c_str(), xp.c_str());
                 // TODO: Attempt to initialize the MgtObject to its configured default.  If that cannot happen, remember this error and raise an exception at the end.
               }
             else
               {
-                logInfo("MGT", "READ", "Read [%s/%s] OK", xp.c_str(), child->tag.c_str());
+                //logInfo("MGT", "READ", "Read [%s/%s] OK", xp.c_str(), child->tag.c_str());
               }
           }
         else
           {
-            logInfo("MGT", "READ", "skipping nonconfig object [%s/%s]", xp.c_str(), child->tag.c_str());
+            //logInfo("MGT", "READ", "skipping nonconfig object [%s/%s]", xp.c_str(), child->tag.c_str());
             // TODO: Initialize the MgtObject to its configured default.           
           }
       }
