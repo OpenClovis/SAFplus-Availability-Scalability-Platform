@@ -410,6 +410,7 @@ class Panel(scrolled.ScrolledPanel):
 
     def OnUnfocus(self,event):
       # TODO: got wrong entity value change
+      self.refresh()
       id = event.GetId()
       if id in self.usrDefinedNodeTypeCtrls:
         idx = id - TEXT_ENTRY_ID
