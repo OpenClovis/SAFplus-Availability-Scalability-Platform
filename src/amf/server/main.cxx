@@ -733,7 +733,6 @@ int main(int argc, char* argv[])
   logSeverity     = LOG_SEV_DEBUG;
   safplusInitialize( SAFplus::LibDep::FAULT | SAFplus::LibDep::GRP | SAFplus::LibDep::CKPT | SAFplus::LibDep::LOG, sic);
   timerInitialize(NULL);
-  logSeverity     = LOG_SEV_DEBUG;
 
   assert(SAFplus::ASP_NODENAME);
 

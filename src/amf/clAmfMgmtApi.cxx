@@ -2049,4 +2049,9 @@ ClRcT amfMgmtForceLockInstantiation(const Handle& mgmtHandle, const std::string&
     return rc;
 }
 
+Handle amfMgmtCompAddressGet(const std::string& entityName)
+{
+    return name.getHandle(entityName, 2000);
+}
+
 }

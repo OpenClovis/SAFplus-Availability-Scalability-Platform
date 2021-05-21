@@ -107,6 +107,7 @@ BOOST_PYTHON_MODULE(pySAFplus)
         .def("getProcess", &Handle::getProcess)
         .def("getIndex", &Handle::getIndex)
         .def("getType", &Handle::getType)
+        .def("getPort", &Handle::getPort)
         .def("create",static_cast< Handle (*)(int) > (&Handle::create))
     .staticmethod("create");
 
@@ -219,4 +220,6 @@ BOOST_PYTHON_MODULE(pySAFplus)
   def("amfMiddlewareRestart",static_cast< ClRcT (*)(const Handle &, const std::string &, bool, bool) > (&SAFplus::amfMiddlewareRestart));
   def("amfMgmtAssignSUtoSI",static_cast< ClRcT (*)(const Handle &, const std::string &, const std::string &, const std::string &) > (&SAFplus::amfMgmtAssignSUtoSI));
   def("amfMgmtForceLockInstantiation",static_cast< ClRcT (*)(const Handle &, const std::string &) > (&SAFplus::amfMgmtForceLockInstantiation));
+
+  def("amfMgmtCompAddressGet",static_cast< Handle (*)(const std::string &) > (&SAFplus::amfMgmtCompAddressGet));
 }

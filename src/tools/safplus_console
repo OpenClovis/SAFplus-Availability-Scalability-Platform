@@ -1862,6 +1862,20 @@ By default the specified location and children are shown.  Use -N to specify how
 
     return ""
 
+  def do_compAddressGet(self, entityName):
+    """syntax: compAddressGet entitySUName
+    """
+    try:
+      handle = access.amfMgmtCompAddressGet(entityName)
+      print "node: ", handle.getNode()
+      print "port: ", handle.getPort()
+      
+      # print "amfMgmtFinalize: ", hex(ret)
+    except RuntimeError, e:
+      print "Failed get component Address: ", e
+
+    return ""
+
   def get_amf_master_handle(self):
     info = access.grpCliClusterViewGet()
     rows = info.split('\n')

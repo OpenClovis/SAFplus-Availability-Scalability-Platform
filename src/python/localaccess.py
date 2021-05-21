@@ -60,6 +60,7 @@ amfMgmtAssignSUtoSI = safplus.amfMgmtAssignSUtoSI
 grpCliClusterViewGet = safplus.grpCliClusterViewGet
 
 amfMgmtForceLockInstantiation = safplus.amfMgmtForceLockInstantiation
+amfMgmtCompAddressGet = safplus.amfMgmtCompAddressGet
 
 
 def isValidDirectory(path):
