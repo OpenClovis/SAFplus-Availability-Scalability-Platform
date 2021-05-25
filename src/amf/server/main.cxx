@@ -357,14 +357,24 @@ bool activeAudit()  // Check to make sure DB and the system state are in sync.  
              node->presenceState = ps;
              // TODO: set change flag
            }
-         else if ((fs == FaultState::STATE_DOWN)&&(node->presenceState != PresenceState::terminating))
+         else if (((fs == FaultState::STATE_DOWN)&&(node->presenceState != PresenceState::terminating)) || nodeHdl == INVALID_HDL)
            {
-             node->presenceState = PresenceState::uninstantiated;
+             PresenceState ps = node->presenceState.value;
+             if (ps != PresenceState::uninstantiated)
+             {
+               node->presenceState = PresenceState::uninstantiated;
+               logInfo("AUD","ACT","Presence state of Node [%s] changed from [%s] to [%s]", node->name.value.c_str(),c_str(ps), c_str(node->presenceState.value));
+             }
            }
         }
       catch (SAFplus::NameException& n)
         {
-          node->presenceState = PresenceState::uninstantiated;
+          PresenceState ps = node->presenceState.value;
+          if (ps != PresenceState::uninstantiated)
+          {          
+            node->presenceState = PresenceState::uninstantiated;
+            logInfo("AUD","ACT","Presence state of Node [%s] changed from [%s] to [%s]", node->name.value.c_str(),c_str(ps), c_str(node->presenceState.value));
+          }
         }
       if (nodeHdl != INVALID_HDL)
         {
@@ -796,7 +806,7 @@ int main(int argc, char* argv[])
   amfDb.initialize(dbName);
   cfg.setDatabase(&amfDb);
   /* Initialize mgt database  */
-  SaTimeT healthCheckMaxSilence = (SaTimeT)2000;
+  SaTimeT healthCheckMaxSilence = (SaTimeT)2500;
   cfg.safplusAmf.setHealthCheckMaxSilence(healthCheckMaxSilence);
   DbalPlugin* plugin = amfDb.getPlugin();
   logInfo(LogArea,"DB", "Opening database file [%s] using plugin [%s]", dbName.c_str(),plugin->type);
@@ -1118,6 +1128,7 @@ int main(int argc, char* argv[])
 
   //fs.notify(nodeHandle,AlarmStateT::ALARM_STATE_ASSERT, AlarmCategoryTypeT::ALARM_CATEGORY_EQUIPMENT,...);
   logNotice("---","---","Finalizing AMF...");
+  name.set(SAFplus::ASP_NODENAME,INVALID_HDL,NameRegistrar::MODE_NO_CHANGE,true);
   gfault.registerEntity(nodeHandle,FaultState::STATE_DOWN);
   nodeMonitor.finalize();
   compStatsRefresh.join();

@@ -119,6 +119,27 @@ NodeMonitor::~NodeMonitor()
   if (!quit) finalize(); // If quit is false, we never initialized this object and started the thread
 }
 
+template <size_t N>
+void sendHB(const SAFplus::Handle& hdl, const bool (&ka)[N])
+{
+   int thisNode = hdl.getNode();
+   assert(thisNode < SAFplus::MaxNodes);              
+   if (thisNode != SAFplus::ASP_NODEADDR)  // No point in keepaliving myself
+   {
+      if (ka[thisNode] == false)
+      {
+         //Handle hdl = getProcessHandle(SAFplusI::AMF_IOC_PORT, thisNode);
+         logInfo("HB","CLM"," heartbeat to [%d] handle [%" PRIx64 ":%" PRIx64 "] -- not in cluster group and not in fault manager",hdl.getNode(), hdl.id[0],hdl.id[1]);
+         //if (lastHeard[thisNode]==0) lastHeard[thisNode] = timerMs() + InitialHbInterval;
+         //assert(hdl == gi->id);  // key should = handle in the value, if not shared memory is corrupt 
+         HeartbeatData hd;
+         hd.id = HeartbeatData::REQ;
+         hd.now = nowMs();
+         safplusMsgServer.SendMsg(hdl, (void*) &hd, sizeof(HeartbeatData), SAFplusI::HEARTBEAT_MSG_TYPE);
+       }
+   }
+}
+
 void NodeMonitor::monitorThread(void)
 {
   int loopCnt=-1;
@@ -136,11 +157,11 @@ void NodeMonitor::monitorThread(void)
       if (active)
         {
           bool ka[SAFplus::MaxNodes];
-	      Handle currentHandle = getProcessHandle(SAFplusI::AMF_IOC_PORT,SAFplus::ASP_NODEADDR);
-          Handle activeHandle = clusterGroup.getActive(ABORT);
+	  //Handle currentHandle = getProcessHandle(SAFplusI::AMF_IOC_PORT,SAFplus::ASP_NODEADDR);
+          //Handle activeHandle = clusterGroup.getActive(ABORT);
           Handle standbyHandle = clusterGroup.getStandby(ABORT);
-	      Handle nodeHdl = getNodeHandle(SAFplus::ASP_NODEADDR);
-          logInfo("HB","CLM","current handle [%" PRIx64 ":%" PRIx64 "]; active handle [%" PRIx64 ":%" PRIx64 "]; standby handle [%" PRIx64 ":%" PRIx64 "]; node handle [%" PRIx64 ":%" PRIx64 "];", currentHandle.id[0],currentHandle.id[1], activeHandle.id[0],activeHandle.id[1], standbyHandle.id[0],standbyHandle.id[1], nodeHdl.id[0],nodeHdl.id[1]);
+	  //Handle nodeHdl = getNodeHandle(SAFplus::ASP_NODEADDR);
+          //logInfo("HB","CLM","active handle [%" PRIx64 ":%" PRIx64 "]; standby handle [%" PRIx64 ":%" PRIx64 "]", currentHandle.id[0],currentHandle.id[1], activeHandle.id[0],activeHandle.id[1], standbyHandle.id[0],standbyHandle.id[1]);
           if (currentActive == standbyHandle)
           {
              logNotice("---","---","Active became standby, this node will restart now");
@@ -232,11 +253,11 @@ void NodeMonitor::monitorThread(void)
                                     bool isMember = clusterGroup.isMember(amfHdl);
                                     logInfo("HB","CLM","Amf Handle [%" PRIx64 ":%" PRIx64 "] Fault: [%s] Member: [%c], reelect [%c]",amfHdl.id[0],amfHdl.id[1],c_str(fs), isMember?'Y':'N',gs.m_reelect?'Y':'N');
                                     // Might TODO: sync data (checkpoint data after the dead node up again???
-                                    /*if (fs != FaultState::STATE_UP)
-                                      {
-                                         gfault.registerEntity(amfHdl, FaultState::STATE_UP);
-                                         gfault.registerEntity(getNodeHandle(amfHdl), FaultState::STATE_UP);
-                                      }*/
+                                    if (fs != FaultState::STATE_UP)
+                                    {
+                                        gfault.registerEntity(amfHdl, FaultState::STATE_UP);
+                                        gfault.registerEntity(getNodeHandle(i), FaultState::STATE_UP);
+                                    }
                                     if (!isMember)
                                     {
                                        gs.registerEntityEx(clusterGroup.handle,gi->id, gi->credentials,NULL,0, gi->capabilities,false);
@@ -310,6 +331,8 @@ void NodeMonitor::monitorThread(void)
           for (auto it = members.cbegin(); it != members.cend(); it++)
             {
               const GroupIdentity* gi = dynamic_cast<const GroupIdentity*>(*it);
+              sendHB(gi->id, ka);
+#if 0
               const Handle& hdl = gi->id;              
               int thisNode = hdl.getNode();
               assert(thisNode < SAFplus::MaxNodes);              
@@ -326,8 +349,29 @@ void NodeMonitor::monitorThread(void)
                       safplusMsgServer.SendMsg(hdl, (void*) &hd, sizeof(HeartbeatData), SAFplusI::HEARTBEAT_MSG_TYPE);
                     }
                 }
+#endif
             }
-      }
+
+          for (Group::Iterator it = clusterGroup.begin();it != end; it++)
+            {
+              Handle hdl = it->first;
+              const GroupIdentity* gi = &it->second;
+              int count = 0;
+              for (auto it2 = members.cbegin(); it2 != members.cend(); it2++)
+                 {
+                    const GroupIdentity* gi2 = dynamic_cast<const GroupIdentity*>(*it2);
+                    if (gi->id != gi2->id)
+                    {
+                       count++;
+                    }
+                 }
+              if (count == members.size() || count==0)
+              {
+                 sendHB(gi->id, ka);
+              } 
+            }
+
+        }
       if (standby)  // Let the standby ensure that the active is alive
         {
           int64_t now = timerMs();
@@ -397,6 +441,7 @@ void NodeMonitor::monitorThread(void)
                    const GroupIdentity* gi = dynamic_cast<const GroupIdentity*>(*it);
                    if (gi->id == amfHdl)
                    {
+                       delete gi;
                        members.erase(it);
                        break;
                    }
@@ -475,30 +520,30 @@ verify_active_alive:
 active_exists:
             if (!isNodeRegistered) 
             {
-		    EntityIdentifier activeHdl = clusterGroup.getActive();
-		    if (activeHdl != INVALID_HDL && nodeHandle != INVALID_HDL && myHandle != INVALID_HDL) 
-		    {
-		        logInfo("HB","NAM", "Registering this node [%s] as handle [%" PRIx64 ":%" PRIx64 "]", SAFplus::ASP_NODENAME, nodeHandle.id[0],nodeHandle.id[1]);
-		        name.set(SAFplus::ASP_NODENAME,nodeHandle,NameRegistrar::MODE_NO_CHANGE,true);
-		        do
-		        {  // Loop because active fault manager may not be chosen yet
-		          logInfo("HB","CLM","Registering handle [%" PRIx64 ":%" PRIx64 "] as fault state UP",nodeHandle.id[0],nodeHandle.id[1]);
-		          gfault.registerEntity(nodeHandle, FaultState::STATE_UP);  // set this node as up
-		          boost::this_thread::sleep(boost::posix_time::milliseconds(250));
-		        } while(gfault.getFaultState(nodeHandle) != FaultState::STATE_UP);
+                EntityIdentifier activeHdl = clusterGroup.getActive();
+                if (activeHdl != INVALID_HDL && nodeHandle != INVALID_HDL && myHandle != INVALID_HDL)
+                {
+                    logInfo("HB","NAM", "Registering this node [%s] as handle [%" PRIx64 ":%" PRIx64 "]", SAFplus::ASP_NODENAME, nodeHandle.id[0],nodeHandle.id[1]);
+                    name.set(SAFplus::ASP_NODENAME,nodeHandle,NameRegistrar::MODE_NO_CHANGE,true);
+                    do
+                    {  // Loop because active fault manager may not be chosen yet
+                      logInfo("HB","CLM","Registering handle [%" PRIx64 ":%" PRIx64 "] as fault state UP",nodeHandle.id[0],nodeHandle.id[1]);
+                      gfault.registerEntity(nodeHandle, FaultState::STATE_UP);  // set this node as up
+                      boost::this_thread::sleep(boost::posix_time::milliseconds(250));
+                    } while(gfault.getFaultState(nodeHandle) != FaultState::STATE_UP);
 
-		        do
-		        {
-		          logInfo("HB","CLM","Registering handle [%" PRIx64 ":%" PRIx64 "] as fault state UP",myHandle.id[0],myHandle.id[1]);
-		          gfault.registerEntity(myHandle, FaultState::STATE_UP);    // set this AMF as up
-		          boost::this_thread::sleep(boost::posix_time::milliseconds(250));
-		        } while(gfault.getFaultState(myHandle) != FaultState::STATE_UP);
-		        isNodeRegistered = true;                
-		    }
-                    else
-		    {
-		        logInfo("HB","CLM","waiting for active SC up, my node handle and my amf handle valid, current values: active SC [%" PRIx64 ":%" PRIx64 "], my node handle [%" PRIx64 ":%" PRIx64 "], my amf handle [%" PRIx64 ":%" PRIx64 "]", activeHdl.id[0],activeHdl.id[1],nodeHandle.id[0],nodeHandle.id[1],myHandle.id[0],myHandle.id[1]);
-		    }
+                    do
+                    {
+                      logInfo("HB","CLM","Registering handle [%" PRIx64 ":%" PRIx64 "] as fault state UP",myHandle.id[0],myHandle.id[1]);
+                      gfault.registerEntity(myHandle, FaultState::STATE_UP);    // set this AMF as up
+                      boost::this_thread::sleep(boost::posix_time::milliseconds(250));
+                    } while(gfault.getFaultState(myHandle) != FaultState::STATE_UP);
+                    isNodeRegistered = true;
+                }
+                else
+                {
+                    logInfo("HB","CLM","waiting for active SC up, my node handle and my amf handle valid, current values: active SC [%" PRIx64 ":%" PRIx64 "], my node handle [%" PRIx64 ":%" PRIx64 "], my amf handle [%" PRIx64 ":%" PRIx64 "]", activeHdl.id[0],activeHdl.id[1],nodeHandle.id[0],nodeHandle.id[1],myHandle.id[0],myHandle.id[1]);
+                }
             }            
           }
         }
