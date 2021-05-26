@@ -96,7 +96,9 @@ namespace SAFplus
             FaultState fs = svr->fault->getFaultState(overDest);
             if (fs==FaultState::STATE_DOWN)
               {
-              throw Error(Error::SAFPLUS_ERROR,Error::DOES_NOT_EXIST, "Entity is down",__FILE__,__LINE__);
+              //throw Error(Error::SAFPLUS_ERROR,Error::DOES_NOT_EXIST, "Entity is down",__FILE__,__LINE__);
+              logWarning("RPC","REQ","Entity [%" PRIx64 ":%" PRIx64 "] is DOWN. Cannot send", overDest.id[0], overDest.id[1]);
+              return;
               }
 
             MsgRpcEntry *rpcReqEntry = NULL;
@@ -206,7 +208,9 @@ namespace SAFplus
                               }
                             else if (fs==FaultState::STATE_DOWN)
                               {
-                                   throw Error(Error::SAFPLUS_ERROR,Error::DOES_NOT_EXIST, "Entity is down",__FILE__,__LINE__);                          
+                                   //throw Error(Error::SAFPLUS_ERROR,Error::DOES_NOT_EXIST, "Entity is down",__FILE__,__LINE__);
+                                 logWarning("RPC","REQ","Entity [%" PRIx64 ":%" PRIx64 "] is DOWN. Cannot send", h.id[0], h.id[1]);
+                                 retry = false;
                               }
                             else 
                               {

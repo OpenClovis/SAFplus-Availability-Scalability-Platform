@@ -67,7 +67,7 @@ void initializeOperationalValues(SAFplusAmf::SAFplusAmfModule& cfg);
 void preprocessDb(SAFplusAmf::SAFplusAmfModule& cfg);
 void loadAmfPluginsAt(const char* soPath, AmfOperations& amfOps,Fault& fault);
 void postProcessing();
-void updateNodesFaultState(SAFplusAmf::SAFplusAmfModule& cfg);
+//void updateNodesFaultState(SAFplusAmf::SAFplusAmfModule& cfg);
 void setNodeOperState(const SAFplus::Handle& nodeHdl, bool state);
 
 RedPolicyMap redPolicies;
@@ -477,7 +477,7 @@ void becomeActive(void)
   cfg.read(&amfDb);
   initializeOperationalValues(cfg);
   preprocessDb(cfg);
-  updateNodesFaultState(cfg);  
+  //updateNodesFaultState(cfg);  
 
   cfg.bind(myHandle,&cfg.safplusAmf);
   activeAudit();
@@ -1202,6 +1202,7 @@ void initializeOperationalValues(SAFplusAmf::SAFplusAmfModule& cfg)
       Node* node = dynamic_cast<Node*>(itnode->second);
 
       node->operState = true;  // Not faulted: We can try to turn this on.
+      node->presenceState = PresenceState::uninstantiated;
     }
 
   MgtObject::Iterator itsi;
@@ -1236,7 +1237,7 @@ void postProcessing()
         rebootFile.close();
     }
 }
-
+#if 0
 void updateNodesFaultState(SAFplusAmf::SAFplusAmfModule& cfg)
 {
   MgtObject::Iterator itnode;
@@ -1264,7 +1265,7 @@ void updateNodesFaultState(SAFplusAmf::SAFplusAmfModule& cfg)
       }
     }
 }
-
+#endif
 void preprocessDb(SAFplusAmf::SAFplusAmfModule& cfg)
 {
    MgtObject::Iterator itcsi;
