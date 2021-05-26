@@ -10,7 +10,48 @@ import getopt
 import errno
 import subprocess
 import pdb
+from xml.dom import minidom
 
+def parseXML(imagesConfig, targetName = ""):
+    dom = minidom.parse(imagesConfig);
+    dictConfigure = {"slot" : "", "netInterface" : "", "name" : ""}
+    for n in dom.childNodes:
+        for n1 in n.childNodes:
+            if n1.nodeType != n1.TEXT_NODE:
+                if n1.tagName == targetName:
+                    slot = n1.getElementsByTagName("slot")[0]
+                    netInterface = n1.getElementsByTagName("netInterface")[0]
+                    dictConfigure["slot"] = slot.firstChild.data
+                    dictConfigure["netInterface"] = netInterface.firstChild.data
+                    dictConfigure["name"] = n1.tagName
+    return dictConfigure
+
+def updateSetupFile(dictConfigure, tarGet = ""):
+    if tarGet == "" or not check_dir_exists(tarGet):
+        return ""
+    s = open(tarGet).read()
+    if dictConfigure['name'] != "":
+        s = s.replace('ASP_NODENAME=node0', 'ASP_NODENAME=%s' % dictConfigure['name'] )
+    if dictConfigure['netInterface'] != "":
+        s = s.replace('SAFPLUS_BACKPLANE_INTERFACE=eth0', 'SAFPLUS_BACKPLANE_INTERFACE=%s' % dictConfigure['netInterface'] )
+    if dictConfigure['slot'] != "Payload":
+        s = s.replace('export SAFPLUS_SYSTEM_CONTROLLER=0', '')
+    f = open(tarGet, 'w')
+    f.write(s)
+    f.close()
+    return ""
+
+def createArchiveByCommand(tar_dir, tarFileName):
+    """ Create an archive with a given archive name and archive format for the provided directory
+    """
+    if check_dir_exists(os.path.join(tar_dir, tarFileName)):
+        cmd = 'cd %s; tar -zcf %s.tar.gz %s' % (tar_dir, tarFileName, tarFileName)
+        try:
+            log.info("Creating tarball: %s" % os.path.join(tar_dir, tarFileName) + ".tar.gz")
+            ret = subprocess.call(cmd, shell=True)
+        except Exception,e:
+            pdb.set_trace
+    return os.path.join(tar_dir, tarFileName) + ".tar.gz"
 
 def file_list(dir_name, pattern='*'):
     """ Returns a list of file names having same extension present in the directory based on the pattern.
@@ -94,7 +135,7 @@ def copy_dir(src, dst, recursion=0):
         if len(files_list) != 0 and len(files_list) == obj_header_files_count:
             return
         os.makedirs(dst)
-    log.debug(recursion*" " + src)
+    # log.debug(recursion*" " + src)
     for item in os.listdir(src):
         s = os.path.join(src, item)
         d = os.path.join(dst, item)
@@ -133,7 +174,7 @@ def get_compression_format(archive_name):
             archive_suffix = "."+ compress_extension
         else:
             archive_suffix = ".tar." + compress_extension
-        log.debug("Archive suffix is {}".format(archive_suffix))
+        # log.debug("Archive suffix is {}".format(archive_suffix))
         archive_name = archive_name.split(archive_suffix)[0]
     return archive_name, compress_format, archive_suffix
 
@@ -191,7 +232,7 @@ def get_image_file_name(tar_name):
     image_file_name = os.path.split(tar_name)[1]
     if not image_file_name:
         image_file_name = tar_name
-    log.debug("Image File Name is {}".format(image_file_name))
+    # log.debug("Image File Name is {}".format(image_file_name))
     return image_file_name
 
 
@@ -204,8 +245,9 @@ def package(base_dir, tar_name, prefix_dir, machine=None, pre_build_dir=None,exe
 
     # Break the output file name into its components so we can ...
     image_dir_path = get_image_dir_path(tar_name)
+    modelDir = os.path.normpath("{}/../".format(image_dir_path))
 
-    image_dir = "{}/../images".format(image_dir_path)
+    image_dir = "{}/images".format(modelDir)
 
     tar_name = get_image_file_name(tar_name)
     tar_name, compress_format, archive_suffix = get_compression_format(tar_name)
@@ -229,15 +271,15 @@ def package(base_dir, tar_name, prefix_dir, machine=None, pre_build_dir=None,exe
         machine = get_target_machine_type() # target processor compiler type, e.g. x86_64-linux-gnu, i686-linux-gnu
 
     # Print out what was discovered so user can visually verify.
-    log.info("Target platform machine type:{}".format(machine))
-    log.info("Target platform image directory is {}".format(image_dir))
+    # log.info("Target platform machine type:{}".format(machine))
+    # log.info("Target platform image directory is {}".format(image_dir))
     if yum_package:
         log.info("Packaging the Model/SAFplus in RPM for {} version {} release".format(pkg_ver, pkg_rel))
     if debain_package:
         log.info("Packaging the Model/SAFplus in DEBIAN for {} version {} release".format(pkg_ver, pkg_rel))
     #tar_dir = "{}/{}".format(image_dir, tar_name)
     #check_and_createdir(tar_dir)
-    log.info("Packaging files from {0} and {1}".format(pre_build_dir,base_dir));
+    # log.info("Packaging files from {0} and {1}".format(pre_build_dir,base_dir));
 
     if pre_build_dir:  # Create the actual prebuilt dir by combining what the user passed with the given machine type.
         target_dir = "{0}/target/{1}".format(pre_build_dir, machine)
@@ -255,7 +297,7 @@ def package(base_dir, tar_name, prefix_dir, machine=None, pre_build_dir=None,exe
         else:
             fail_and_exit("Specified {} does not exists".format(target_dir))
 
-    log.info("Packaging complete")
+    # log.info("Packaging complete")
     if execute:
       tmp = execute.format(image_dir=image_stage_dir)
       log.info("Executing user supplied script: %s" % tmp)
@@ -263,13 +305,25 @@ def package(base_dir, tar_name, prefix_dir, machine=None, pre_build_dir=None,exe
         ret = subprocess.call(tmp, shell=True)
       except Exception,e:
         pdb.set_trace()
-      log.info("script execution complete, returned %d", ret)
+    #   log.info("script execution complete, returned %d", ret)
 
-    log.info("Archive name is {0} Archive compression format is {1}".format(tar_name, compress_format))
+    imagesConfig = os.path.join(modelDir+'/configs', "imagesConfig.xml")
+    if check_dir_exists(imagesConfig):
+        # read information from imagesConfig.xml
+        dictConfigure = parseXML(imagesConfig, tar_name)
+        setupFile = os.path.join(image_dir, tar_name, "bin") + "/setup"
+        # modify information follow imagesConfig.xml
+        updateSetupFile(dictConfigure, setupFile)
+
+    # log.info("Archive name is {0} Archive compression format is {1}".format(tar_name, compress_format))
     # put the tarball exactly where the requested on the command line: tar_name = os.path.join(image_dir, tar_name)
-    tar_name = os.path.join(image_dir_path+'/../images', tar_name)
+    tarFileName = tar_name
+    tar_name = os.path.join(image_dir, tar_name)
     #image_dir = "{}/../images".format(image_dir_path)
-    gen_tar_name = create_archive(tar_name, archive_suffix, image_dir , compress_format)
+    # gen_tar_name = create_archive(tar_name, archive_suffix, image_dir , compress_format)
+    gen_tar_name = createArchiveByCommand(image_dir, tarFileName)
+    log.info("Archive {} generated successfully".format(gen_tar_name))
+
     # select the corresponding package generation class method from the package module
     if yum_package:
 	from package import RPM
@@ -406,25 +460,25 @@ def parser(args):
             execute =  get_option_value(arg)
         elif opt in ("-p", "--project-dir="):
             model_dir = get_option_value(arg)
-            log.info("Project dir is {}".format(model_dir))
+            # log.info("Project dir is {}".format(model_dir))
         elif opt in ("-o", "--output"):
             tar_name = get_option_value(arg)
-            log.debug("Archive name is {}".format(tar_name))
+            # log.debug("Archive name is {}".format(tar_name))
         elif opt in ("-a", "--target-machine"):
             target_machine = get_option_value(arg)
-            log.info("target-machine is {}".format(target_machine))
+            # log.info("target-machine is {}".format(target_machine))
         elif opt in ("-s", "--safplus-dir"):
             pre_build_dir = get_option_value(arg)
-            log.info("SAFplus dir {}".format(pre_build_dir))
+            # log.info("SAFplus dir {}".format(pre_build_dir))
         elif opt in ("-y", "--yum"):
             yum_package = True
-            log.info("RPM PACKAGE ")
+            # log.info("RPM PACKAGE ")
         elif opt in ("-d", "--debian"):
             debian_package = True
-            log.info("DEBIAN PACKAGE")
+            # log.info("DEBIAN PACKAGE")
         elif opt in ("-i", "--install_dir"):
             install_dir = get_option_value(arg)
-	    log.info(" Package Installation directory on the target Machine is {}".format(install_dir))
+	    # log.info(" Package Installation directory on the target Machine is {}".format(install_dir))
         elif opt in ("-v", "--pkg-version"):
             pkg_ver = get_option_value(arg)
         elif opt in ("-r", "--pkg-release"):
@@ -482,7 +536,7 @@ def get_option_value(arg_val):
 
 
 def main():
-    log.debug("Command line Arguments are {}".format(sys.argv))
+    # log.debug("Command line Arguments are {}".format(sys.argv))
     model_dir, tar_name, target_machine, pre_build_dir,execute, yum_package, debian_package, prefix_dir, pkg_ver, pkg_rel = parser(sys.argv[1:])
     if pre_build_dir is None:
         pre_build_dir = os.path.abspath(os.path.dirname(__file__) + os.sep + '..' + os.sep + '..')
