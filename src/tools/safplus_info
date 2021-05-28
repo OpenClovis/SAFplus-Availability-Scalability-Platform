@@ -529,28 +529,46 @@ def get_cluster_info():
     return nodes
     
     #return info
-def countAssignedSU(root, su):
+def countAssignedSU(su):
     #print 'countAssignedSU: %s' % su
+    xmlStr = '%s/ServiceUnit'%xmlRoot    
+    xml = mgtGet(xmlStr)
+    d = '<ServiceUnit listkey='
+    sustrlist = [d+e for e in xml.split(d) if e]
     count = 0
-    for e in root.getchildren():
-        if e.tag == 'ServiceUnit' and e.get('listkey') == su:
-            for n in e.getchildren():               
-                if n.tag == 'assignedServiceInstances':
+    for e in sustrlist:        
+        root = et.fromstring(e)
+        newroot = et.Element('su')
+        newroot.insert(0,root)
+        #if su=='SU12':
+        #    print et.tostring(newroot,pretty_print=True)
+        for e in newroot.getchildren():
+            if e.tag == 'ServiceUnit' and e.get('listkey') == su:
+                for n in e.getchildren():               
+                    if n.tag == 'assignedServiceInstances':
                     #print n.text
-                    if n.text:
-                        count += 1
+                        if n.text:
+                            count += 1
     return count
 
-def countInstantiatedSU(root, su):
+def countInstantiatedSU(su):
     #print 'countInstantiatedSU: %s' % su
+    xmlStr = '%s/ServiceUnit'%xmlRoot    
+    xml = mgtGet(xmlStr)
+    d = '<ServiceUnit listkey='
+    sustrlist = [d+e for e in xml.split(d) if e]
     count = 0
-    for e in root.getchildren():
-        if e.tag == 'ServiceUnit' and e.get('listkey') == su:
-            for n in e.getchildren():                
-                if n.tag == 'presenceState':
-                    #print n.text
-                    if n.text == 'instantiated':
-                        count += 1
+    for e in sustrlist:
+        root = et.fromstring(e)
+        newroot = et.Element('su')
+        newroot.insert(0,root)
+        for e in newroot.getchildren():
+            if e.tag == 'ServiceUnit' and e.get('listkey') == su:
+                for n in e.getchildren():                
+                    if n.tag == 'presenceState':
+                        #print n.text
+                        if n.text == 'instantiated':
+                            count += 1
     return count
 
 def countActiveStandbySU(sg):
@@ -596,34 +614,50 @@ def get_nodes_info():
     """Obtain the su list as a list of Dot objects with following info:
     """    
     #xml = mgtGet( xmlRoot)
-    xml = mgtGet(xmlRoot)
+    #xml = mgtGet(xmlRoot)
     #if len(xml)==0:
     #    print 'cannot get nodes info'
     #    return None
     #print xml
-    root = et.fromstring(xml)    
+    #root = et.fromstring(xml)
+    xmlStr = '%s/Node'%xmlRoot
+    #print xmlStr
+    xml = mgtGet(xmlStr)
+    #print xml
+    #root = et.fromstring(xml)
+    #print str(root)
+    d = '<Node listkey='
+    nodestrlist = [d+e for e in xml.split(d) if e]
+
     nodes = []
     isu = 0
     asu = 0
-    for e in root.getchildren():
-        if e.tag == 'Node':
-            node = Dot({})
-            for n in e.getchildren():
-                #node.classtype    = None#_classtype_map[n.config[0].class_type[0]]
-                if n.tag == 'name':
-                    node.nodename     = n.text                    
-                elif n.tag == 'adminState':
-                    node.astate       = _state_map[n.text]
-                elif n.tag == 'presenceState':
-                    node.presence       = _presence_map[n.text]
-                elif n.tag == 'operState':
-                    node.operstate       = _operstate_map[n.text]
-                elif n.tag == 'serviceUnits':
-                    suList = amfctrl.csv2List(n.text)
-                    for suName in suList:
-                        su = suName[suName.rfind('/')+1:]
-                        asu += countAssignedSU(root, su)
-                        isu += countInstantiatedSU(root, su)
+    for e in nodestrlist:
+        root = et.fromstring(e)        
+        newroot = et.Element('node')
+        newroot.insert(0,root)
+        #print et.tostring(newroot,pretty_print=True)
+        for e2 in newroot.getchildren():
+            if e2.tag == 'Node':
+                node = Dot({})
+                for n in e2.getchildren():
+                    #node.classtype    = None#_classtype_map[n.config[0].class_type[0]]                    
+                    if n.tag == 'name':
+                        node.nodename     = n.text                    
+                    elif n.tag == 'adminState':
+                        node.astate       = _state_map[n.text]
+                    elif n.tag == 'presenceState':
+                        node.presence       = _presence_map[n.text]
+                    elif n.tag == 'operState':
+                        node.operstate       = _operstate_map[n.text]
+                    elif n.tag == 'serviceUnits':
+                        suList = amfctrl.csv2List(n.text)
+                        for suName in suList:
+                            su = suName[suName.rfind('/')+1:]
+                            asu += countAssignedSU(su)
+                            isu += countInstantiatedSU(su)
+                            #print asu
+                            #print isu
 
         
         #node.castate      = _state_map[n.config[0].computed_admin_state[0]]
@@ -633,10 +667,10 @@ def get_nodes_info():
         #node.member       = _member_map[n.status[0].is_cluster_member[0]]
         #node.isu          = n.status[0].num_instantiated_sus[0]
         #node.asu          = n.status[0].num_assigned_sus[0]
-            node.isu = isu
-            node.asu = asu            
-            nodes.append(node)
-            isu = asu = 0
+                node.isu = isu
+                node.asu = asu            
+                nodes.append(node)
+                isu = asu = 0
 
     return nodes
 
@@ -673,51 +707,67 @@ def get_sgs_info():
     return sgs
 
 def get_sg_names():
-    xml = mgtGet(xmlRoot)    
-    root = et.fromstring(xml)    
+    xmlStr = '%s/ServiceGroup'%xmlRoot
+    #print xmlStr
+    xml = mgtGet(xmlStr)
+    #print xml
+    #root = et.fromstring(xml)
+    #print str(root)
+    d = '<ServiceGroup listkey='
+    sgstrlist = [d+e for e in xml.split(d) if e]
     sgs = []
-    for e in root.getchildren():
-        if e.tag == 'ServiceGroup':
-            sgs.append(e.get('listkey'))
+    for e in sgstrlist:
+        root = et.fromstring(e)
+        newroot = et.Element('sg')
+        newroot.insert(0, root)
+        for e2 in newroot.getchildren():
+            if e2.tag == 'ServiceGroup':
+                sgs.append(e2.get('listkey'))
     return sgs
 
 def get_sus_info(nodename=None):
     """Obtain the su list as a list of Dot objects with following info:
     """
-    xml = mgtGet(xmlRoot)    
-    root = et.fromstring(xml)
+    xmlStr = '%s/ServiceUnit'%xmlRoot    
+    xml = mgtGet(xmlStr)
+    d = '<ServiceUnit listkey='
+    sustrlist = [d+e for e in xml.split(d) if e]
     sus = []
-    for e in root.getchildren():
-        if e.tag == 'ServiceUnit':    
-            sux = mgtGet(xmlRoot + '/ServiceUnit/' + e.get('listkey'))
-            if sux: 
-                suxm = microdom.LoadString(sux)
-                thisNode = suxm.node.data_
-                this_nodename = thisNode[thisNode.rfind('/')+1:]
-                if nodename and not nodename == this_nodename:
-                    continue
-                su = Dot({})
-                su.suname    = suxm.name.data_
-                #print 'suname:'+su.suname
-                su.sgname    = suxm.serviceGroup.data_[suxm.serviceGroup.data_.rfind('/')+1:]
-                su.nodename  = this_nodename
-                su.astate    = _state_map[suxm.adminState.data_]
-                su.presence  = _presence_map[suxm.presenceState.data_]
-                #print 'operState:%s'% str(suxm.operState.data_)
-                su.operstate = _operstate_map[str(suxm.operState.data_)]
-                su.readiness = _readiness_map[suxm.readinessState.data_]
-                su.comps     = countInstantiatedComp(suxm)
-                nA,nS = getNumActiveStandbySI(suxm)
-                if nA:
-                    su.sis   = 'A'
-                elif nS:
-                    su.sis   = 'S'
-                else:
-                    su.sis   = '-'
-        #else:
-        #    su.sis   = ''.join([ _hastate_map[si.ha_state[0]]
-        #                       for si in s.status[0].sis[0].si ])
-                sus.append(su)
+    for e in sustrlist:
+        root = et.fromstring(e)
+        newroot = et.Element('su')
+        newroot.insert(0,root)
+        for e2 in newroot.getchildren():
+            if e2.tag == 'ServiceUnit':    
+                sux = mgtGet(xmlRoot + '/ServiceUnit/' + e2.get('listkey'))
+                if sux: 
+                    suxm = microdom.LoadString(sux)
+                    thisNode = suxm.node.data_
+                    this_nodename = thisNode[thisNode.rfind('/')+1:]
+                    if nodename and not nodename == this_nodename:
+                        continue
+                    su = Dot({})
+                    su.suname    = suxm.name.data_
+                    #print 'suname:'+su.suname
+                    su.sgname    = suxm.serviceGroup.data_[suxm.serviceGroup.data_.rfind('/')+1:]
+                    su.nodename  = this_nodename
+                    su.astate    = _state_map[suxm.adminState.data_]
+                    su.presence  = _presence_map[suxm.presenceState.data_]
+                    #print 'operState:%s'% str(suxm.operState.data_)
+                    su.operstate = _operstate_map[str(suxm.operState.data_)]
+                    su.readiness = _readiness_map[suxm.readinessState.data_]
+                    su.comps     = countInstantiatedComp(suxm)
+                    nA,nS = getNumActiveStandbySI(suxm)
+                    if nA:
+                        su.sis   = 'A'
+                    elif nS:
+                        su.sis   = 'S'
+                    else:
+                        su.sis   = '-'
+            #else:
+            #    su.sis   = ''.join([ _hastate_map[si.ha_state[0]]
+            #                       for si in s.status[0].sis[0].si ])
+                    sus.append(su)
 
     return sus
 
@@ -730,30 +780,36 @@ def get_comps_info():
             .command        <command name> or '-'            
     """
 
-    xml = mgtGet(xmlRoot)    
-    root = et.fromstring(xml)
+    xmlStr = '%s/Component'%xmlRoot    
+    xml = mgtGet(xmlStr)
+    d = '<Component listkey='
+    compstrlist = [d+e for e in xml.split(d) if e]
     comps = []
-    for e in root.getchildren():
-        if e.tag == 'Component':    
-            compx = mgtGet(xmlRoot + '/Component/' + e.get('listkey'))
-            if compx:
-                comp = microdom.LoadString(compx)
-                if comp:
-                    c = Dot({})
-                    c.compname = comp.name.data_
-                    c.running = (comp.presenceState.data_ == 'instantiated' and 'Y' or '-')
-                    if c.running == 'Y':
-                        c.pid = str(comp.processId.data_)
-                        pid = int(c.pid)
-                        if not pid:
-                            c.pid = '-'
-                        if pid>0:
-                            c.command = comp.instantiate.command.data_
+    for e in compstrlist:
+        root = et.fromstring(e)
+        newroot = et.Element('su')
+        newroot.insert(0,root)
+        for e2 in newroot.getchildren():
+            if e2.tag == 'Component':    
+                compx = mgtGet(xmlRoot + '/Component/' + e2.get('listkey'))
+                if compx:
+                    comp = microdom.LoadString(compx)
+                    if comp:
+                        c = Dot({})
+                        c.compname = comp.name.data_
+                        c.running = (comp.presenceState.data_ == 'instantiated' and 'Y' or '-')
+                        if c.running == 'Y':
+                            c.pid = str(comp.processId.data_)
+                            pid = int(c.pid)
+                            if not pid:
+                                c.pid = '-'
+                            if pid>0:
+                                c.command = comp.instantiate.command.data_
+                            else:
+                                c.command = '-'
                         else:
-                            c.command = '-'
-                    else:
-                        c.pid = c.command = '-'
-                comps.append(c)
+                            c.pid = c.command = '-'
+                        comps.append(c)
     
     return comps
 
@@ -864,7 +920,7 @@ class Cli(cmd.Cmd):
             
         print 'SAFplus master console:      %(master)s' % d
         try:
-            xml = mgtGet(xmlRoot)
+            xml = mgtGet(xmlRoot+'/ServiceInstance')
             if len(xml)>0:
                 d['console'] = 'available'
             else:
