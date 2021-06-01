@@ -41,7 +41,7 @@ def getEntity(ent):
 try: # only set this variable once, not every time reload occurs
   test = SAFplusInitialized  # Will throw an error if this variable does not exist
 except:
-  print "First run"
+  #print "First run"
   SAFplusInitialized=False
 
 class Error:

@@ -689,7 +689,7 @@ def get_sg_info(sgName):
                 sumd = microdom.LoadString(sut)
                 sg.su[sumd.name.data_] = sumd # Add this su to the sg's dictionary
     else:
-        raise Error("no service group [%s], or no access" % sgName)
+        raise
     return sg
 
 def get_sgs_info():
@@ -921,10 +921,11 @@ class Cli(cmd.Cmd):
         print 'SAFplus master console:      %(master)s' % d
         try:
             xml = mgtGet(xmlRoot+'/ServiceInstance')
-            if len(xml)>0:
-                d['console'] = 'available'
-            else:
-                d['console'] = 'not available'
+            #if len(xml)>0:
+            #    d['console'] = 'available'
+            #else:
+            #    d['console'] = 'not available'
+            d['console'] = 'available'
         except:
             d['console'] = 'not available' #TODO: more specific error handling
         print 'SAFplus local console:       %(console)s' % d    
@@ -980,9 +981,13 @@ class Cli(cmd.Cmd):
         "    ASU:        # of assigned SUs\n"
         try:
             nodes = get_nodes_info()
-        except  AspError, e:
+        except:
             error('Command is not available while SAFplus is down (run "status"),')
             error('or if another safplus_console is running')
+            return 0
+
+        if len(nodes)==0:
+            error('No node defined in the model or database is empty')
             return 0
         
         len_name = max([len(n.nodename) for n in nodes])
@@ -1023,7 +1028,11 @@ class Cli(cmd.Cmd):
             return 0
     
         sg_name = msg.strip()
-        sg = get_sg_info(sg_name)        
+        sg = None
+        try:
+            sg = get_sg_info(sg_name)        
+        except:
+            pass            
         if not sg:
             error('Could not find SG [%s] in AMF database' % sg_name)
             return 0       
@@ -1155,6 +1164,9 @@ class Cli(cmd.Cmd):
         "\n" \
         "Use the 'sg' command to get more information on a given SG\n"
         sgs = get_sgs_info()
+        if len(sgs)==0:
+            error('No ServiceGroup defined in the model or database is empty')
+            return 0
         len_name = max([len(s.sgname) for s in sgs])
         fmt = '%%(sgname)-%ds  %%(astate)3s  %%(started)7s %%(activesus)5s  %%(stbysus)5s' % \
                 (len_name)
@@ -1208,7 +1220,9 @@ class Cli(cmd.Cmd):
         #    nodename = get_node_info_from_cpm().nodename
            
         sus = get_sus_info(nodename=nodename)
-        
+        if len(sus)==0:
+            error('No ServiceUnit defined in the model or database is empty')
+            return 0
         len_suname = max([len(s.suname) for s in sus]+[7])
         len_sgname = max([len(s.sgname) for s in sus]+[13])
         len_nodename = max([len(s.nodename) for s in sus]+[7])
@@ -1237,6 +1251,9 @@ class Cli(cmd.Cmd):
         "    R:     Running?\n" \
         
         comps = get_comps_info()
+        if len(comps)==0: 
+            error('No component defined in the model or database is empty')
+            return 0
 
         len_compname = max([len(c.compname) for c in comps])
         len_pid = max([len(c.pid) for c in comps])
