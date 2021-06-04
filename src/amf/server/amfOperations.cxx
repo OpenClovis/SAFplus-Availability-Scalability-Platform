@@ -386,8 +386,10 @@ namespace SAFplus
           }
         if (resp.command().size() == 0)
           {
-            // RPC call is not implemented -- probably code regeneration issue
-            assert(0);
+            // There is no response from the destination because it's down
+            // so treat it as stopped, not to assert
+            //assert(0);
+            resp.set_running(false);
           }
         logInfo("OP","CMP","Request component [%s] pid [%d] state from node [%s (%d)] returned [%s]", comp->name.value.c_str(), pid, comp->serviceUnit.value->node.value->name.value.c_str(), amfHdl.getNode(), resp.running() ? "running" : "stopped");
 

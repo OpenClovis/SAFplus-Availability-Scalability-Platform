@@ -13,7 +13,7 @@ ASP_WATCHDOG_RESTART_FILE='safplus_restart_watchdog'
 ASP_REBOOT_FILE = 'safplus_reboot'
 ASP_RESTART_DISABLE_FILE = 'safplus_restart_disable'
 
-SAFPLUS_RESTART_DELAY = 10  # How long to delay before restarting.  If the AMF is able to restart before keepalives find it dead this will cause major issues in the AMF.
+SAFPLUS_RESTART_DELAY = 20  # How long to delay before restarting.  If the AMF is able to restart before keepalives find it dead this will cause major issues in the AMF.
 
 fileLogger=None
 

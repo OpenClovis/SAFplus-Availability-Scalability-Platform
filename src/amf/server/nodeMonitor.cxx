@@ -481,8 +481,7 @@ verify_active_alive:
                 {
                   waitingForActive = false;
                   if (isNodeRegistered)
-                  {
-                    name.set(AMF_MASTER_HANDLE,INVALID_HDL,NameRegistrar::MODE_NO_CHANGE,true);
+                  {                    
                     logAlert("HB","CLM", "No leader in the cluster, this node will be restarted in 5 seconds");
                   }
                   boost::this_thread::sleep(boost::posix_time::milliseconds(5000));
