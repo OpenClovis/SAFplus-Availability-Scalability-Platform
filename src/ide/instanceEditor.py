@@ -1509,6 +1509,8 @@ class Panel(scrolled.ScrolledPanel):
         for name, e in self.model.instances.items():  
           if e.data['entityType'] == 'Component':
             e.data['csiType'] = newValue
+          if e.data['entityType'] == 'ComponentServiceInstance':
+            e.data['type'] = newValue 
       if isinstance(newValue, types.BooleanType) == True:
         if newValue == True:
           newValue = 'true'
