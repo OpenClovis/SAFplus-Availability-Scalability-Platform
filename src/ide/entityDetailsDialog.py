@@ -299,6 +299,7 @@ class Panel(scrolled.ScrolledPanel):
         self.Bind(wx.EVT_BUTTON, self.OnButtonClick)
         self.tree = None
         self.treeItemSelected = None
+        self.editTreeItem = False
   
         # for the data entry
         # self.Bind(wx.EVT_TEXT, self.EvtText)
@@ -385,10 +386,12 @@ class Panel(scrolled.ScrolledPanel):
 
           # TODO: Enable "SAVE_BUTTON" if mark dirty and handle only dirty (actually value changed) entity
           self.ChangedValue(proposedValue, event.GetEventObject(), obj[0])
+          self.editTreeItem = True
       else:
         # Notify name change to umlEditor to validate and render
         # TODO: Enable "SAVE_BUTTON"
         self.ChangedValue(event.GetEventObject().GetValue(), event.GetEventObject())
+        self.editTreeItem = True
 
     def ChangedValue(self, proposedValue, query, obj = None):
       if not self.treeItemSelected: return
@@ -410,7 +413,6 @@ class Panel(scrolled.ScrolledPanel):
 
     def OnUnfocus(self,event):
       # TODO: got wrong entity value change
-      self.refresh()
       id = event.GetId()
       if id in self.usrDefinedNodeTypeCtrls:
         idx = id - TEXT_ENTRY_ID
@@ -420,6 +422,9 @@ class Panel(scrolled.ScrolledPanel):
         entity = self.tree.GetPyData(unfocusTreeItem)
         if share.instancePanel:
           share.instancePanel.updateMenuUserDefineNodeTypes(entity, self.usrDefinedNodeTypeCtrls[id])
+      if self.editTreeItem:
+        self.editTreeItem = False
+        self.refresh()
       return
       id = event.GetId()
       if id>=TEXT_ENTRY_ID and id < TEXT_ENTRY_ID+self.numElements:
@@ -441,6 +446,7 @@ class Panel(scrolled.ScrolledPanel):
         # Notify name change to umlEditor to validate and render
         # TODO: Enable "SAVE_BUTTON" button if mark dirty
         self.ChangedValue(event.GetEventObject().GetValue())
+      
 
     def OnFocus(self,event):
       id = event.GetId()
@@ -619,7 +625,6 @@ class Panel(scrolled.ScrolledPanel):
       #  self.tree.Collapse(item)
       #self.tree.UnselectAll()
       # self.tree.Unselect()
-
       # collapse all item
       itemsCollapse = None
       if "entity.Entity" in str(ent):
@@ -635,7 +640,7 @@ class Panel(scrolled.ScrolledPanel):
       if self.sizer:
         if self.tree:
           self.sizer.Detach(self.tree)
-          self.tree.Destroy()
+          #self.tree.Destroy()
           del self.tree
 
       self.tree = HTL.HyperTreeList(self, id=wx.ID_ANY, pos=wx.DefaultPosition, style=wx.BORDER_NONE, size=(5,5), agwStyle=HTL.TR_NO_HEADER | wx.TR_HAS_BUTTONS | wx.TR_HAS_VARIABLE_ROW_HEIGHT | HTL.TR_HIDE_ROOT | wx.TR_SINGLE) # wx.TR_MULTIPLE)
