@@ -42,6 +42,7 @@
 
 #include <amfMgmtRpc.hxx>
 #include <groupCliRpc.hxx>
+#include <clAmfMgmtApi.hxx>
 
 #include "nodeMonitor.hxx"
 
@@ -687,19 +688,49 @@ static ClRcT refreshComponentStats(void *unused)
     logInfo("STAT","COMP", "refresh component statistics");
     return CL_OK;
 }
- 
-const std::string dbName("safplusAmf");
-SafplusInitializationConfiguration sic;
+
+ClRcT gracefullNodeShutdown()
+{
+    std::string nodeName(SAFplus::ASP_NODENAME);
+    if (nodeMonitor.currentActive == myHandle) // local node is active
+    {
+        std::string nodeName(SAFplus::ASP_NODENAME);
+        SAFplusAmf::Node* node = dynamic_cast<SAFplusAmf::Node*>(cfg.safplusAmf.nodeList[nodeName]);
+        return amfOpsMgmt->nodeErrorReport(node, true, true, false, false);
+    }
+    else //rpc
+    {
+        SAFplus::Handle dummyHdl = INVALID_HDL;
+        ClRcT rc = amfMgmtInitialize(dummyHdl);
+        if (rc == CL_OK)
+        {
+           rc = amfMgmtNodeShutdown(dummyHdl, nodeName);
+           if (rc != CL_OK)
+           {
+              logError("MAIN","NODE.SHD", "node shutdown failed with error [0x%x]", rc);
+           }
+           amfMgmtFinalize(dummyHdl);
+        }
+        return rc;
+    }
+}
 
 static void sigintHandler(int signum)
 {
     if (signum == SIGINT || signum == SIGTERM)
     {
-       logAlert("MAIN","---", "got signal [%d]. Shutting down the node", signum);
-       quitting = true;
+       logAlert("MAIN","---", "got signal [%d]. Shutting down the node", signum);       
+       ClRcT rc = gracefullNodeShutdown();
+       if (rc != CL_OK)
+       {
+           logError("MAIN","---", "node shutdown failed with error [0x%x]", rc);
+           quitting = true; //there is an error of node shutting down gracefully, so quitting immediately
+       }
     }
     else
+    {
        logWarning("MAIN","---", "got an unexpected signal [%d]", signum);
+    }
 }
 
 static void sigHandlerInstall(void)
@@ -725,6 +756,9 @@ static void sigHandlerInstall(void)
     }
     return;
 }
+
+const std::string dbName("safplusAmf");
+SafplusInitializationConfiguration sic;
 
 int main(int argc, char* argv[])
   {
