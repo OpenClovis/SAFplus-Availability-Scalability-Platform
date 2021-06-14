@@ -79,7 +79,7 @@ get_shell_working_dir()
 
 ASP_SCRIPT_DIR=`get_shell_working_dir` || exit 1
 ASP_DIR=`cd $ASP_SCRIPT_DIR/../../; pwd` || exit 1
-cd ${ASP_DIR}/bin; source setup 
+cd ${ASP_DIR}/bin; source setup > /dev/null
 rm -rf /dev/shm/SAFplus*
 
 #echo "ASP_DIR":$ASP_DIR
@@ -94,17 +94,20 @@ rm -rf /dev/shm/SAFplus*
 # else
     # ASP_SCRIPT=$ASP_DIR/etc/asp.py
 # fi
-ASP_SCRIPT=$ASP_DIR/etc/asp.py
+ASP_SCRIPT=$ASP_DIR/etc/safplus.py
 
 #echo "ASP script directory is $ASP_SCRIPT_DIR"
 
 case "$1" in
     start)
         shift
-    if [ "$1" == "leader" ]; then
+    if [ "$1" == "--load-cluster-model" ]; then
         export GENERATE_DB_FOR_NODE=1
         shift
-    fi
+    elif ! [ -z "$1" ] && ! [ "$1" == "--load-cluster-model" ]  ; then
+        echo "Invalid argument. Press etc/init.d/safplus help for help"
+        exit 1
+    fi    
 	start $*
         RETVAL=$?
 	;;

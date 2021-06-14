@@ -6,7 +6,7 @@ import os
 import sys
 import traceback
 import logging
-import asp
+import safplus as asp
 
 ASP_RESTART_FILE = 'safplus_restart'
 ASP_WATCHDOG_RESTART_FILE='safplus_restart_watchdog'

@@ -6,4 +6,4 @@ all:
 	cp -f asp_linux.py $(SAFPLUS_TARGET)/etc
 	cp -f asp_qnx.py $(SAFPLUS_TARGET)/etc
 	cp -f asp.py $(SAFPLUS_TARGET)/etc
-	cp -f init.d/asp $(SAFPLUS_TARGET)/etc/init.d
+	cp -f init.d/safplus $(SAFPLUS_TARGET)/etc/init.d

@@ -1562,8 +1562,8 @@ def is_asp_running(watchdog_pid = False):
         return 3
     
 def usage():
-    print
-    print 'Usage : %s {start|start leader|stop|restart|restart leader|status|zap|help} [options]' %\
+    print 
+    print 'Usage : %s {start [--load-cluster-model]|stop|restart|restart|zap|help}' %\
           os.path.splitext(os.path.basename(sys.argv[0]))[0]
     # print
     # print 'options can be one of the following : (these '\
@@ -1584,9 +1584,9 @@ def usage():
     #        'Start SAFplus with particular log level. <level> is '
     #        '[trace|debug|info|notice|warning|error|critical]')
     #     )
-
-    # for o, h in l:
-    #     print '%-30s:  %s' % (o, h)
+    d = {'--load-cluster-model':'For the first node starts, this option is required. For the next nodes, it must be eliminated'}
+    for o, h in d.items():
+         print '%s: %s' % (o, h)
 
 def create_asp_cmd_marker(cmd):
     execute_shell_cmd('echo "%s" > %s' %\
@@ -1599,7 +1599,7 @@ def asp_driver(cmd):
                'stop' : stop_asp,
                'restart': restart_asp,
             #    'console' : start_asp_console,
-               'status' : get_asp_status,
+            #   'status' : get_asp_status,
                'zap' : zap_asp,
                'help' : usage
                }
