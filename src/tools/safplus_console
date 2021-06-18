@@ -1175,7 +1175,7 @@ By default the specified location and children are shown.  Use -N to specify how
   def do_dbPrint(self):
     """syntax: dbPrint
     """
-    entityTypes = "Node", "ServiceUnit", "Component", "ServiceGroup", "ServiceInstance", "componentServiceInstance"
+    entityTypes = "Node", "ServiceUnit", "Component", "ServiceGroup", "ServiceInstance", "ComponentServiceInstance"
     for entityType in entityTypes:
       listEntityName = self.parseXML(entityType)
       if len(listEntityName) != 0:
