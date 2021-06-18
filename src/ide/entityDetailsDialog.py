@@ -790,7 +790,9 @@ class Panel(scrolled.ScrolledPanel):
     def createChildControls(self, treeItem, ent, items, values, nameCtrl):
       for item in filter(lambda item: item[0] != "name", items):
         name = item[0]
-        if item[0] == "contains":
+        if item[0] == "contains" or (item[0] == 'type' and self.isDetailInstance and ent.data['entityType'] == 'ComponentServiceInstance'):
+          if (item[0] == 'type' and self.isDetailInstance and ent.data['entityType'] == 'ComponentServiceInstance'):
+            print 'Instances Details Tab: ', item[0], ' is hiden'
           pass
         elif type(item[1]) is DictType:
           if item[1].get("type","untyped") in self.noShowTypes:

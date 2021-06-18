@@ -1491,15 +1491,15 @@ class Panel(scrolled.ScrolledPanel):
 
     def modifyEntityTool(self, ent, newValue):      
       if ent.data['entityType'] == 'ComponentServiceInstance':
-        ent.data['type'] = newValue
         for name, e in share.umlEditorPanel.entities.items():
-          if e.data['entityType'] == 'Component':
+          if e.data['entityType'] == 'Component' and e.data['csiType'] == ent.data['type']:
             e.data['csiType'] = newValue
         for name, e in self.model.instances.items():  
-          if e.data['entityType'] == 'Component':
+          if e.data['entityType'] == 'Component' and e.data['csiType'] == ent.data['type']:
             e.data['csiType'] = newValue
-          if e.data['entityType'] == 'ComponentServiceInstance':
-            e.data['type'] = newValue 
+          if e.data['entityType'] == 'ComponentServiceInstance' and e.data['type'] == ent.data['type']:
+            e.data['type'] = newValue
+        ent.data['type'] = newValue 
       if isinstance(newValue, types.BooleanType) == True:
         if newValue == True:
           newValue = 'true'
