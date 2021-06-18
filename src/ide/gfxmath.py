@@ -55,7 +55,6 @@ def rectOverlaps(rect_a, rect_b):
     """Assumes tuples of format x0,y0, x1,y1 where 0 is upper left (lowest), 1 is lower right
        This code finds if the rectangles are separate by checking if the right side of one rectangle is further left then the leftmost side of the other, etc...
     """
-    print rect_a, rect_b
     separate = rect_a[2] < rect_b[0] or rect_a[0] > rect_b[2] or rect_a[1] > rect_b[3] or rect_a[3] < rect_b[1]
     return not separate
 

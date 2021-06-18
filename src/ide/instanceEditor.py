@@ -338,8 +338,7 @@ class SelectTool(Tool):
   def OnEditEvent(self,panel, event):
     panel.drawSelectionBox = True
     ret = False
-    #pos = panel.CalcUnscrolledPosition(event.GetPositionTuple())
-    pos = event.GetPosition()
+    pos = panel.CalcUnscrolledPosition(event.GetPositionTuple())
     scale = self.panel.scale
     if isinstance(event,wx.MouseEvent):
       if event.ButtonDown(wx.MOUSE_BTN_LEFT):  # Select
@@ -621,8 +620,7 @@ class ZoomTool(Tool):
     pass
 
   def OnEditEvent(self,panel, event):
-    #pos = panel.CalcUnscrolledPosition(event.GetPositionTuple())
-    pos = event.GetPosition()
+    pos = panel.CalcUnscrolledPosition(event.GetPositionTuple())
     scale = self.scale
     if isinstance(event, wx.MouseEvent):
       if event.ButtonDown(wx.MOUSE_BTN_LEFT) or event.ButtonDown(wx.MOUSE_BTN_RIGHT):  # Select
@@ -1155,12 +1153,10 @@ class Panel(scrolled.ScrolledPanel):
       #  if m.et.name == "ServiceGroup":
       #    m.customInstantiator = lambda entity,pos,size,children,name,pnl=self: pnl.sgInstantiator(entity, pos,size,children,name)
 
-      self.SetupScrolling(True, True)
-      self.SetScrollRate(1, 1)
-      self.Bind(wx.EVT_SIZE, self.OnReSize)
+      self.SetupScrolling(True, True, 10, 10, True, False)
 
+      self.Bind(wx.EVT_SIZE, self.OnReSize)
       self.Bind(wx.EVT_PAINT, self.OnPaint)
-      self.Bind(wx.EVT_SCROLLWIN, self.OnScroll)
 
       self.guiPlaces = guiPlaces
       self.menuBar = self.guiPlaces.menubar
@@ -1249,14 +1245,6 @@ class Panel(scrolled.ScrolledPanel):
       self.UpdateVirtualSize()
       self.layout()
       self.loadGrayCells()
-
-    def OnScroll(self, event):
-      if event.GetOrientation() == wx.HORIZONTAL:
-        self.translating['horizontal'] = -10*event.GetPosition()
-      elif event.GetOrientation() == wx.VERTICAL:
-        self.translating['vertical'] = -10*event.GetPosition()
-      self.OnPaint(event)
-      self.Refresh()
     
 
     def addCommonTools(self):
@@ -1417,6 +1405,7 @@ class Panel(scrolled.ScrolledPanel):
 
 
     def OnReSize(self, event):
+      self.UpdateVirtualSize()
       self.Refresh()
       event.Skip()
     
@@ -1679,11 +1668,9 @@ class Panel(scrolled.ScrolledPanel):
       self.userSelectionNode = self.getNodeInst(self.newNodeInstOption)
 
     def OnPaint(self, event):
-        #dc = wx.PaintDC(self)
-        dc = wx.BufferedPaintDC(self)
+        dc = wx.BufferedPaintDC(self, style=wx.BUFFER_VIRTUAL_AREA)
         dc.SetBackground(wx.Brush('white'))
         dc.Clear()
-        self.PrepareDC(dc)
         self.UpdateVirtualSize()
         self.render(dc)
 

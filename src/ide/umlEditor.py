@@ -87,8 +87,7 @@ class EntityTypeTool(Tool):
     return True
 
   def OnEditEvent(self,panel, event):
-    #pos = panel.CalcUnscrolledPosition(event.GetPositionTuple())
-    pos = event.GetPosition()
+    pos = panel.CalcUnscrolledPosition(event.GetPositionTuple())
     ret = False
     if isinstance(event,wx.MouseEvent):
       if event.ButtonDown(wx.MOUSE_BTN_LEFT):  # Select
@@ -156,9 +155,7 @@ class LinkTool(Tool):
     return True
 
   def OnEditEvent(self,panel, event):
-    #pos = event.GetPositionTuple()
-    #pos = panel.CalcUnscrolledPosition(event.GetPositionTuple())
-    pos = event.GetPosition()
+    pos = panel.CalcUnscrolledPosition(event.GetPositionTuple())
     ret = False
     if isinstance(event,wx.MouseEvent):
       if event.ButtonDown(wx.MOUSE_BTN_LEFT):  # Select
@@ -265,8 +262,7 @@ class SelectTool(Tool):
 
   def OnEditEvent(self,panel, event):
     panel.drawSelectionBox = True
-    #pos = panel.CalcUnscrolledPosition(event.GetPositionTuple())
-    pos = event.GetPosition()
+    pos = panel.CalcUnscrolledPosition(event.GetPositionTuple())
     if isinstance(event,wx.MouseEvent):
       # Single select
       if event.ButtonDown(wx.MOUSE_BTN_LEFT) or event.LeftDClick():  
@@ -516,8 +512,7 @@ class DeleteTool(Tool):
           model.deleteWireFromMicrodom(name, arrow.contained.data['name'])
 
   def OnEditEvent(self,panel,event):
-    #pos = panel.CalcUnscrolledPosition(event.GetPositionTuple())
-    pos = event.GetPosition()
+    pos = panel.CalcUnscrolledPosition(event.GetPositionTuple())
     if isinstance(event, wx.MouseEvent):
       if event.ButtonDown(wx.MOUSE_BTN_LEFT):  # Select
         self.selectMultiple = False
@@ -586,12 +581,9 @@ class Panel(scrolled.ScrolledPanel):
     def __init__(self, parent,guiPlaces,model,**cfg):
       scrolled.ScrolledPanel.__init__(self, parent, style = wx.TAB_TRAVERSAL|wx.SUNKEN_BORDER)
       self.guiPlaces = guiPlaces
-      self.SetupScrolling(True, True)
-      self.SetScrollRate(1, 1)
+      self.SetupScrolling(True, True, 10, 10, True, False)
       self.Bind(wx.EVT_SIZE, self.OnReSize)
       self.Bind(wx.EVT_PAINT, self.OnPaint)
-      #self.Bind(wx.EVT_SHOW, self.OnShow)
-      self.Bind(wx.EVT_SCROLLWIN, self.OnScroll)
 
       share.umlEditorPanel = self
 
@@ -644,19 +636,7 @@ class Panel(scrolled.ScrolledPanel):
         self.Bind(t, self.OnToolEvent)
       self.toolIds = [CONNECT_BUTTON,SELECT_BUTTON,ZOOM_BUTTON,DELETE_BUTTON]
       
-
       self.translating = {'vertical':0, 'horizontal':0}
-
-
-    def OnScroll(self, event):
-      if event.GetOrientation() == wx.HORIZONTAL:
-        self.translating['horizontal'] = -10*event.GetPosition()
-      elif event.GetOrientation() == wx.VERTICAL:
-        self.translating['vertical'] = -10*event.GetPosition()
-      self.OnPaint(event)
-      self.Refresh()
-
-
 
     def SetScale(self, newscale, pos):
       if newscale != self.scale:
@@ -734,6 +714,7 @@ class Panel(scrolled.ScrolledPanel):
       self.toolBar.Refresh()
 
     def OnReSize(self, event):
+      self.UpdateVirtualSize()
       self.Refresh(False)
       event.Skip()
     
@@ -949,12 +930,11 @@ class Panel(scrolled.ScrolledPanel):
 
 
     def OnPaint(self, event):
-        dc = wx.BufferedPaintDC(self)
-        dc.SetBackground(wx.Brush('white'))
-        dc.Clear()
-        self.PrepareDC(dc)
-        self.UpdateVirtualSize(dc)
-        self.render(dc)
+      dc = wx.BufferedPaintDC(self, style=wx.BUFFER_VIRTUAL_AREA)
+      dc.SetBackground(wx.Brush('white'))
+      dc.Clear()
+      self.UpdateVirtualSize()
+      self.render(dc)
 
     def GetBoundingBox(self):
       # Calculate bounding box
@@ -969,7 +949,7 @@ class Panel(scrolled.ScrolledPanel):
             virtRct.Union(wx.Rect(e.pos[0]*self.scale, e.pos[1]*self.scale, e.size[0]*e.scale[0]*self.scale, e.size[1]*e.scale[1]*self.scale))
       return virtRct
  
-    def UpdateVirtualSize(self, dc):
+    def UpdateVirtualSize(self):
       virtRct = self.GetBoundingBox()
       # We need to shift the client rectangle to take into account
       # scrolling, converting device to logical coordinates

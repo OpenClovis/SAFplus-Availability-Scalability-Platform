@@ -331,11 +331,8 @@ class BoxGesture(Gesture):
     self.rect    = (pos[0],pos[1],pos[0],pos[1])
 
   def change(self,panel, event):
-    #pos = event.GetPositionTuple()
-    #pos = panel.CalcUnscrolledPosition(event.GetPositionTuple())
-    pos = event.GetPosition()
-
-
+    # pos = event.GetPositionTuple()
+    pos = panel.CalcUnscrolledPosition(event.GetPositionTuple())
 
     assert(self.active)
     self.rect=(min(self.downPos[0],pos[0]),min(self.downPos[1],pos[1]),max(self.downPos[0],pos[0]),max(self.downPos[1],pos[1]))
@@ -457,9 +454,7 @@ class LazyLineGesture(Gesture,wx.Timer):
     panel.drawers.add(self)
 
   def change(self,panel, event):
-    #self.curPos = event.GetPositionTuple()
-    #self.curPos = panel.CalcUnscrolledPosition(event.GetPositionTuple())
-    self.curPos = event.GetPosition()
+    self.curPos = panel.CalcUnscrolledPosition(event.GetPositionTuple())
     assert(self.active)
     panel.Refresh()
 
