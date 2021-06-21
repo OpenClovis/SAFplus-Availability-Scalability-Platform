@@ -23,6 +23,7 @@
 #include <clMgtBaseCommon.hxx>
 #include <clMgtObject.hxx>
 #include <clMgtDatabase.hxx>
+#include <clLogIpi.hxx>
 
 using namespace std;
 

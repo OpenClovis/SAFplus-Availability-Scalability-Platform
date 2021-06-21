@@ -19,7 +19,7 @@
 
 #include <clCommon.hxx>
 #include <clMgtDatabase.hxx>
-#include <clLogApi.hxx>
+#include <clLogIpi.hxx>
 #include <clMgtApi.hxx>
 
 #define MURMURKEY 0xc107deed

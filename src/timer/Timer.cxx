@@ -7,6 +7,7 @@
 #include <unistd.h>
 #include <sys/time.h>
 #include "Timer.hxx"
+#include <clLogIpi.hxx>
 using namespace SAFplus;
 
 static bool gClTimerDebug = CL_FALSE;

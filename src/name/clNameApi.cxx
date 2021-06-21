@@ -1,4 +1,4 @@
-#include <clLogApi.hxx>
+#include <clLogIpi.hxx>
 #include <clThreadApi.hxx>
 #include <clCommon.hxx>
 #include <clNameApi.hxx>

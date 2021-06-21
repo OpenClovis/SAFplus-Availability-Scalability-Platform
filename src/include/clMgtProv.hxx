@@ -37,7 +37,7 @@
 #include <clMgtBaseCommon.hxx>
 #include "clMgtObject.hxx"
 #include "clMgtDatabase.hxx"
-#include "clLogApi.hxx"
+#include "clLogIpi.hxx"
 
 namespace SAFplus
 {

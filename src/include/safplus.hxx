@@ -1,4 +1,4 @@
 // This include file includes the entire SAFplus public API set for application use
 
 #include <clCommon.hxx>
-#include <clLogApi.hxx>
+#include <clLogIpi.hxx>

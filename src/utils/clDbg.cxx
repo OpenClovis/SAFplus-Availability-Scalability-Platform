@@ -2,7 +2,7 @@
 #include <semaphore.h>
 
 #include <clDbg.hxx>
-#include <clLogApi.hxx>
+#include <clLogIpi.hxx>
 #include <clCommon.hxx>
 
 namespace SAFplus

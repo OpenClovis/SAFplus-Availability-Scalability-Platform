@@ -1,5 +1,6 @@
 #include <clCommon.hxx>
 #include <clDbalBase.hxx>
+#include <clLogIpi.hxx>
 
 namespace SAFplusI
 {

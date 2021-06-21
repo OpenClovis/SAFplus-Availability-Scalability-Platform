@@ -1,6 +1,6 @@
 #include <chrono>
 #include <clAmfPolicyPlugin.hxx>
-#include <clLogApi.hxx>
+#include <clLogIpi.hxx>
 #include <clProcessApi.hxx>
 #include <clThreadApi.hxx>
 #include <clNameApi.hxx>

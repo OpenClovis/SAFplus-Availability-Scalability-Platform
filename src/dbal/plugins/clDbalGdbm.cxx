@@ -3,8 +3,8 @@
 #include <clCommon6.h>
 #include <clCommonErrors6.h>
 #include <clCommon.hxx>
-#include <clLogApi.hxx>
-#include <clDbg.hxx>
+#include <clLogIpi.hxx>
+//#include <clDbg.hxx>
 #include <gdbm.h>
 
 namespace SAFplus {

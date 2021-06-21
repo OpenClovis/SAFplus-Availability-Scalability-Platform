@@ -26,6 +26,7 @@
 #include "clMsgApi.hxx"
 #include <inttypes.h>
 #include <clFaultApi.hxx>
+#include <clLogIpi.hxx>
 
 #include <boost/iostreams/stream.hpp>
 

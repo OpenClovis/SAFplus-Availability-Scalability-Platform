@@ -1,5 +1,5 @@
 #include <clAmfPolicyPlugin.hxx>
-#include <clLogApi.hxx>
+#include <clLogIpi.hxx>
 #include <clAmfApi.hxx>
 #include <vector>
 

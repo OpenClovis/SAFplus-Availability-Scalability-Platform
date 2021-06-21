@@ -18,7 +18,7 @@
  */
 
 #include <string>
-#include "clLogApi.hxx"
+#include "clLogIpi.hxx"
 #include "clNodeStats.hxx"
 #include "clProcFileSystem.hxx"
 #include <boost/filesystem.hpp>

@@ -24,7 +24,7 @@
 #include "clMgtRoot.hxx"
 #include "MgtMsg.pb.hxx"
 
-#include <clLogApi.hxx>
+#include <clLogIpi.hxx>
 
 using namespace std;
 

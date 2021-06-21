@@ -1,5 +1,6 @@
 #include <clCommon.hxx>
 #include <clMsgApi.hxx>
+#include <clLogIpi.hxx>
 
 namespace SAFplusI
 {

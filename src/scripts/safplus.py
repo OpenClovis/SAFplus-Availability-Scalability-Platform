@@ -1563,7 +1563,7 @@ def is_asp_running(watchdog_pid = False):
     
 def usage():
     print 
-    print 'Usage : %s {start [--load-cluster-model]|stop|restart|restart|zap|help}' %\
+    print 'Usage : %s {start [--load-cluster-model]|stop|restart [--load-cluster-model]|zap|help}' %\
           os.path.splitext(os.path.basename(sys.argv[0]))[0]
     # print
     # print 'options can be one of the following : (these '\

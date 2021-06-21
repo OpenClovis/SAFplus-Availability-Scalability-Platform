@@ -1,6 +1,6 @@
 #include <clFaultPolicyPlugin.hxx>
 #include <clFaultApi.hxx>
-#include <clLogApi.hxx>
+#include <clLogIpi.hxx>
 #include <vector>
 
 using namespace std;

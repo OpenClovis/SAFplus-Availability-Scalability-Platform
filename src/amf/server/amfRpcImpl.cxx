@@ -1,6 +1,6 @@
 #include "amfRpc.hxx"
 #include "clPortAllocator.hxx"
-#include <clLogApi.hxx>
+#include <clLogIpi.hxx>
 #include <clOsalApi.hxx>
 #include <clFaultApi.hxx>
 #include <string>

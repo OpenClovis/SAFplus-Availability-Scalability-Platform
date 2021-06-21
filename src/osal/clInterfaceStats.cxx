@@ -17,7 +17,7 @@
  * material.
  */
 #include <string.h>
-#include "clLogApi.hxx"
+#include "clLogIpi.hxx"
 #include "clNodeStats.hxx"
 #include "clInterfaceStats.hxx"
 #include "clProcFileSystem.hxx"

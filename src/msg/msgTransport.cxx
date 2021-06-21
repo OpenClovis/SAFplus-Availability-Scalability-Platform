@@ -1,5 +1,5 @@
 #include <clMsgApi.hxx>
-#include <clLogApi.hxx>
+#include <clLogIpi.hxx>
 #include <clMsgBase.hxx>
 #include <boost/tokenizer.hpp>
 

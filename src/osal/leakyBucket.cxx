@@ -19,7 +19,7 @@
 
 #include <leakyBucket.hxx>
 #include <boost/thread.hpp>
-#include "clLogApi.hxx"
+#include "clLogIpi.hxx"
 
 
 

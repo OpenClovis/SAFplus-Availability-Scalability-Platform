@@ -13,7 +13,8 @@
 #include <clMsgApi.hxx>
 #include <clGroupApi.hxx>
 #include <clGlobals.hxx>
-#include <clLogApi.hxx>
+#include <clLogIpi.hxx>
+
 
 namespace SAFplusI
 {

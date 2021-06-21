@@ -1,5 +1,5 @@
 #include "amfAppRpc.hxx"
-#include <clLogApi.hxx>
+#include <clLogIpi.hxx>
 #include <clNameApi.hxx>
 #include <clAmfIpi.hxx>
 

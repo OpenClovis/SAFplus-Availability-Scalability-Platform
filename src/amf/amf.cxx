@@ -8,6 +8,7 @@
 #include <clRpcChannel.hxx>
 
 #include <clAmfIpi.hxx>
+#include <clLogIpi.hxx>
 
 namespace SAFplus
   {

@@ -21,7 +21,7 @@
 #include <string>
 #include <fstream>
 
-#include "clLogApi.hxx"
+#include "clLogIpi.hxx"
 #include "clProcFileSystem.hxx"
 
 namespace SAFplusI

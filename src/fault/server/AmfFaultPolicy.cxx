@@ -1,5 +1,5 @@
 #include <clFaultPolicyPlugin.hxx>
-#include <clLogApi.hxx>
+#include <clLogIpi.hxx>
 #include <vector>
 #include <FaultSharedMem.hxx>
 

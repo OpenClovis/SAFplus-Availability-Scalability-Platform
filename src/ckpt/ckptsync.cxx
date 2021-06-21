@@ -18,6 +18,7 @@
 #include <clObjectMessager.hxx>
 
 #include <clCustomization.hxx>
+#include <clLogIpi.hxx>
 
 #include "ckptprotocol.hxx"
 

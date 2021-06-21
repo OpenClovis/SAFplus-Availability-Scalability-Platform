@@ -7,6 +7,10 @@
 #include <SAFplusAmfModule.hxx>
 #include <signal.h>
 
+//#ifdef SAFPLUS_AMF_LOG_NODE_REPRESENTATIVE
+#include "../../log/clLogIpi.hxx"
+//#endif
+
 #define CL_CPM_RESTART_FILE "safplus_restart"
 using namespace SAFplus;
 using namespace SAFplusI;

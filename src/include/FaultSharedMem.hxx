@@ -13,11 +13,11 @@
 #include <clMsgApi.hxx>
 #include <clGroupApi.hxx>
 #include <clGlobals.hxx>
-#include <clLogApi.hxx>
+#include <clLogIpi.hxx>
 #include <clCustomization.hxx>
 #include <clMsgApi.hxx>
 #include <clGlobals.hxx>
-#include <clLogApi.hxx>
+#include <clLogIpi.hxx>
 #include <clGroupApi.hxx>
 
 

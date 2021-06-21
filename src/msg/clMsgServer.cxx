@@ -1,5 +1,5 @@
 #include <clCommon.hxx>
-#include <clLogApi.hxx>
+#include <clLogIpi.hxx>
 #include <clMsgHandler.hxx>
 #include <clMsgApi.hxx>
 #include <clMsgSarSocket.hxx>

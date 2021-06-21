@@ -12,7 +12,7 @@
 #include <errno.h>
 #include <clCommon6.h>
 #include <clCommonErrors6.h>
-#include <clLogApi.hxx>
+#include <clLogIpi.hxx>
 #include <clGlobals.hxx>
 #include <boost/lexical_cast.hpp>
 #include <bitset>

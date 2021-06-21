@@ -7,7 +7,7 @@
 #include <clMsgPortsAndTypes.hxx>
 #include <clGroupIpi.hxx>
 #include <clHandleApi.hxx>
-#include <clLogApi.hxx>
+#include <clLogIpi.hxx>
 
 using namespace SAFplus;
 using namespace SAFplusI;

@@ -18,7 +18,7 @@
  */
 
 #include <string>
-#include "clLogApi.hxx"
+#include "clLogIpi.hxx"
 #include "clProcFileSystem.hxx"
 #include "clProcessApi.hxx"
 #include "clProcessStats.hxx"

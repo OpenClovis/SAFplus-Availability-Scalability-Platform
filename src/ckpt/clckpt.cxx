@@ -13,6 +13,7 @@
 #include <clCkptApi.hxx>
 
 #include <clCustomization.hxx>
+#include <clLogIpi.hxx>
 
 namespace fs = boost::filesystem;
 

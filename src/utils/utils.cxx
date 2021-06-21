@@ -10,7 +10,7 @@
 #include <sys/types.h>
 #include <signal.h>
 
-#include <clLogApi.hxx>
+#include <clLogIpi.hxx>
 #include <clCommon.hxx>
 #include <clGlobals.hxx>
 #include <clTransaction.hxx>

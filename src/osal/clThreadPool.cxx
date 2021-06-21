@@ -1,5 +1,5 @@
 #include <clThreadPool.hxx>
-#include <clLogApi.hxx>
+#include <clLogIpi.hxx>
 
 
 using namespace SAFplus;

@@ -1,5 +1,5 @@
 #include <clMsgRelSocket.hxx>
-#include "clLogApi.hxx"
+#include "clLogIpi.hxx"
 #include "clCommon.hxx"
 #include <stdio.h>
 #define MAXSIZE 64000

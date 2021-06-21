@@ -17,7 +17,7 @@
 #include <clGroupApi.hxx>
 #include <clThreadApi.hxx>
 #include <clTestApi.hxx>
-#include <clLogApi.hxx>
+#include <clLogIpi.hxx>
 #include <clGlobals.hxx>
 #include <clCommon.hxx>
 #include <clMgtApi.hxx>

@@ -7,8 +7,8 @@
 #error SQLITE version number must be >= 3003013
 #endif
 #include <clCommon.hxx>
-#include <clLogApi.hxx>
-#include <clDbg.hxx>
+#include <clLogIpi.hxx>
+//#include <clDbg.hxx>
 //#include "../../clovisDbalInternal.h"
 //#include "../../clDbalInterface.h"
 //#include <clDbalCfg.h>

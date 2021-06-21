@@ -1,7 +1,7 @@
 #pragma once
 
 #include <clMsgApi.hxx>
-#include <clLogApi.hxx>
+#include <clLogIpi.hxx>
 #include <clMsgBase.hxx>
 #include <Timer.hxx>
 #include <boost/intrusive/list.hpp>

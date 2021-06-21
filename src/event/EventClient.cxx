@@ -7,7 +7,7 @@
 
 #include "EventClient.hxx"
 #include "common/EventChannel.hxx"
-#include <clLogApi.hxx>
+#include <clLogIpi.hxx>
 #include <clCommon.hxx>
 #include <clMsgPortsAndTypes.hxx>
 #include <clHandleApi.hxx>

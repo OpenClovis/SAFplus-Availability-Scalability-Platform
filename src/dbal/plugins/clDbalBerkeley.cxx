@@ -9,8 +9,8 @@
 #include <clCommonErrors6.h>
 #include "clClistApi.hxx"
 #include <clCommon.hxx>
-#include <clLogApi.hxx>
-#include <clDbg.hxx>
+#include <clLogIpi.hxx>
+//#include <clDbg.hxx>
 
 using namespace SAFplusI;
 

@@ -14,7 +14,7 @@ using namespace std;
 /*
  * Basic ASP Includes.
  */
-#include <clLogApi.hxx>
+#include <clLogIpi.hxx>
 #include <clGlobals.hxx>
 #include <clCommon.hxx>
 #include <clMgtDatabase.hxx>

@@ -24,6 +24,10 @@
 #include <unordered_map>
 #include <boost/range/algorithm.hpp>
 
+//#ifdef SAFPLUS_AMF_LOG_NODE_REPRESENTATIVE
+#include "../../log/clLogIpi.hxx"
+//#endif
+
 using namespace SAFplus;
 using namespace SAFplusI;
 using namespace SAFplusAmf;
