@@ -23,7 +23,7 @@ all: $(SUBDIRS)
 
 ${labelApps}
 
-image: preMakeImage ${imagetgz}
+images: preMakeImage ${imagetgz}
 preMakeImage:
 ifneq ($(wildcard ../images),) 
 	@echo "Directory exists.Deleting..."

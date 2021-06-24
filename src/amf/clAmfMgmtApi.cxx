@@ -1728,6 +1728,7 @@ ClRcT amfMgmtNodeShutdown(const Handle& mgmtHandle, const std::string& nodeName)
     {
         Handle& remoteAmfHdl = name.getHandle(AMF_MASTER_HANDLE, 2000);
         SAFplus::Rpc::amfMgmtRpc::NodeErrorReportResponse resp;
+        resp.set_err(-1);
         amfMgmtRpc->nodeErrorReport(remoteAmfHdl,&request,&resp);
         rc = (ClRcT)resp.err();
     }
