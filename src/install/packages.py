@@ -1011,6 +1011,7 @@ def determine_os():
                 fh = open('/etc/debian_version')
                 fdata = fh.read().lower()
                 fh.close()
+                if 'buster' in fdata or '10.' in fdata: return Debian9() # no change in Debian10 comparing to Debian9
                 if 'stretch' in fdata or '9.' in fdata: return Debian9()
                 if '8.' in fdata: return Debian8()
                 if cmp_version(fdata, "7.0") >= 0:
