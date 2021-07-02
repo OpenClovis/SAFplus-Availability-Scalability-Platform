@@ -1891,7 +1891,8 @@ class Panel(scrolled.ScrolledPanel):
         # TODO ent = self.entityType.createEntity(position, size)
         if size is None: size = (COL_WIDTH, ROW_WIDTH)  # The layout will automatically update the long size to be the width of the screen        
         # Add index for entities when creating them, index will be the current maximum index plus 1
-        inst = entity.createInstance(position, size, name=name, parent=self, id = 0 if not len(self.model.instances) else sorted(filter(lambda n: n.et.name in ['ServiceGroup', 'Node'] , self.model.instances.values()), reverse=True, key = lambda n: n.data['id'])[0].data['id']+1)
+        inst = entity.createInstance(position, size, name=name, parent=self, id = 0 if not len(self.model.instances) else sorted(filter(lambda n: n.et.name in ['ServiceGroup', 'Node', 'Application'] , self.model.instances.values()), reverse=True, key = lambda n: n.data['id'])[0].data['id']+1)
+        
         inst.instanceLocked = copy.deepcopy(entity.instanceLocked)
 
         self.model.instances[inst.data["name"]] = inst
