@@ -473,7 +473,7 @@ class ProjectTreePanel(wx.Panel):
         self.menuProject.Enable(PROJECT_PROPERTIES, False)
         
         
-        self.menuProject.Bind(wx.EVT_MENU, self.OnLoadProject, id=PROJECT_OPEN)
+        self.menuProject.Bind(wx.EVT_MENU, self.OnLoad, id=PROJECT_OPEN)
         self.menuProject.Bind(wx.EVT_MENU, self.OnCloseProject, id=PROJECT_CLOSE)
         self.menuProject.Bind(wx.EVT_MENU, self.OnValidate, id=PROJECT_VALIDATE)
         self.menuProject.Bind(wx.EVT_MENU, self.OnMakeImages, id=MAKE_IMAGES)
@@ -605,6 +605,16 @@ class ProjectTreePanel(wx.Panel):
           frame.openFile[newPath].control.file_path = newPath
           frame.openFile[newPath].control.detect_language()
       elif os.path.isdir(itemPath):
+        prj = self.active()
+        if prj:
+          if os.path.isfile(prj.projectFilename) and itemText == (prj.projectFilename).split("/")[-2]:
+            fileName = self.getFileName(prj.projectFilename)
+            prj.projectFilename = os.path.join(newPath, fileName)
+            prj.fileProject = os.path.join(newPath, fileName)
+            if prj == self.currentActiveProject:
+              self.currentProjectPath = os.path.join(newPath, fileName)
+              XMLFileName = self.getFileName(prj._safplusModel.filename)
+              prj._safplusModel.filename = os.path.join(newPath, XMLFileName)
         self.renameTreeRecursion(itemPath, itemPath, newPath)
       os.rename(itemPath, newPath)
       parentItem = self.tree.GetItemParent(selectedItem)
