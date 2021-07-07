@@ -2226,19 +2226,24 @@ echo_cmd = '/bin/echo'
       p = "qnx"
       code = qnx_code
 
-    import imp
-    s = imp.new_module("aspinfo_%s" % p)
-    sys.modules['aspinfo_%s'%p] = s
-
-    exec(code, s.__dict__)
+    import importlib.util
+    import importlib.machinery
 
     d = {}
+    modName = "aspinfo_%s" %p
+    spec = importlib.machinery.ModuleSpec(modName,None)
+    if spec:
+      s = importlib.util.module_from_spec(spec)
+      sys.modules[modName] = s
 
-    d['system'] = s.system
-    d['echo_cmd'] = s.echo_cmd
-    d['grep_amf_cmd'] = s.grep_amf_cmd
-    d['proc_info_cmd'] = s.proc_info_cmd
+      exec(code, s.__dict__)
 
+      d['system'] = s.system
+      d['echo_cmd'] = s.echo_cmd
+      d['grep_amf_cmd'] = s.grep_amf_cmd
+      d['proc_info_cmd'] = s.proc_info_cmd
+    else:
+      raise AspError('Module name [%s] could not be created'%modeName)
     return d
 
 ##
