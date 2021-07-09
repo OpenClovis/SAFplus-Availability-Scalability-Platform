@@ -80,7 +80,7 @@ instantiated  <instances>     instances                         instances     (e
         share.instancePanel.deleteEntities([items], False)
       self.deleteInstance(items)
     elif isinstance(items, entity.Entity): 
-      self.deleteEntity(items)
+      #self.deleteEntity(items)
       entname = items.data["name"]
       insToDelete = []
       for name,e in self.instances.items():
@@ -91,7 +91,7 @@ instantiated  <instances>     instances                         instances     (e
       for i in insToDelete:
         # delete instances and its related instances (instances have relationship with it)
         self.deleteInstance(i)
-
+      self.deleteEntity(items)
   def deleteEntity(self,entity):
     """Delete this instance of Entity from the model"""
     entname = entity.data["name"]
