@@ -299,7 +299,6 @@ class Panel(scrolled.ScrolledPanel):
         self.Bind(wx.EVT_BUTTON, self.OnButtonClick)
         self.tree = None
         self.treeItemSelected = None
-        self.editTreeItem = False
   
         # for the data entry
         # self.Bind(wx.EVT_TEXT, self.EvtText)
@@ -386,12 +385,10 @@ class Panel(scrolled.ScrolledPanel):
 
           # TODO: Enable "SAVE_BUTTON" if mark dirty and handle only dirty (actually value changed) entity
           self.ChangedValue(proposedValue, event.GetEventObject(), obj[0])
-          self.editTreeItem = True
       else:
         # Notify name change to umlEditor to validate and render
         # TODO: Enable "SAVE_BUTTON"
         self.ChangedValue(event.GetEventObject().GetValue(), event.GetEventObject())
-        self.editTreeItem = True
 
     def ChangedValue(self, proposedValue, query, obj = None):
       if not self.treeItemSelected: return
@@ -422,9 +419,6 @@ class Panel(scrolled.ScrolledPanel):
         entity = self.tree.GetPyData(unfocusTreeItem)
         if share.instancePanel:
           share.instancePanel.updateMenuUserDefineNodeTypes(entity, self.usrDefinedNodeTypeCtrls[id])
-      if self.editTreeItem:
-        self.editTreeItem = False
-        self.refresh()
       return
       id = event.GetId()
       if id>=TEXT_ENTRY_ID and id < TEXT_ENTRY_ID+self.numElements:
@@ -640,7 +634,7 @@ class Panel(scrolled.ScrolledPanel):
       if self.sizer:
         if self.tree:
           self.sizer.Detach(self.tree)
-          #self.tree.Destroy()
+          self.tree.Destroy()
           del self.tree
 
       self.tree = HTL.HyperTreeList(self, id=wx.ID_ANY, pos=wx.DefaultPosition, style=wx.BORDER_NONE, size=(5,5), agwStyle=HTL.TR_NO_HEADER | wx.TR_HAS_BUTTONS | wx.TR_HAS_VARIABLE_ROW_HEIGHT | HTL.TR_HIDE_ROOT | wx.TR_SINGLE) # wx.TR_MULTIPLE)
@@ -790,9 +784,11 @@ class Panel(scrolled.ScrolledPanel):
     def createChildControls(self, treeItem, ent, items, values, nameCtrl):
       for item in filter(lambda item: item[0] != "name", items):
         name = item[0]
-        if item[0] == "contains" or (item[0] == 'type' and self.isDetailInstance and ent.data['entityType'] == 'ComponentServiceInstance'):
+        if item[0] == "contains" or (item[0] == 'type' and self.isDetailInstance and ent.data['entityType'] == 'ComponentServiceInstance') or (item[0] == 'type' and ent.data['entityType'] == 'ComponentServiceInstance' and not self.isDetailInstance):
           if (item[0] == 'type' and self.isDetailInstance and ent.data['entityType'] == 'ComponentServiceInstance'):
             print 'Instances Details Tab: ', item[0], ' is hiden'
+          if (item[0] == 'type' and not self.isDetailInstance and ent.data['entityType'] == 'ComponentServiceInstance'):
+            print 'Model Details Tab: ', item[0], ' is hiden'
           pass
         elif type(item[1]) is DictType:
           if item[1].get("type","untyped") in self.noShowTypes:
