@@ -310,7 +310,7 @@ class Panel(scrolled.ScrolledPanel):
         self.sizer.Add(self.info, 0, wx.EXPAND)
 
         # Creates hyperlisttree 
-        self.eventDictTree = {wx.EVT_TREE_ITEM_EXPANDED:self.OnTreeSelExpanded, wx.EVT_TREE_SEL_CHANGING: self.OnTreeSelChanged, wx.EVT_TREE_SEL_CHANGED: self.OnTreeSelChanged}
+        self.eventDictTree = {wx.EVT_TREE_ITEM_EXPANDED:self.OnTreeSelExpanded, wx.EVT_TREE_SEL_CHANGING: self.OnTreeSelChanged, wx.EVT_TREE_SEL_CHANGED: self.OnTreeSelChanged, wx.EVT_TREE_ITEM_ACTIVATED: self.OnTreeSelActivated}
         self._createTreeEntities()
 
         if (self.isDetailInstance):
@@ -611,6 +611,22 @@ class Panel(scrolled.ScrolledPanel):
 
     def OnTreeSelChanged(self, event):
       self.treeItemSelected = event.GetItem()
+      windowObject = self.tree.GetItemWindow(self.treeItemSelected, column=3)
+      if windowObject is not None:
+          if isinstance(windowObject, SliderCustom):
+            windowObject.sliderText.SetFocus()
+          else:
+            windowObject.SetFocus()
+      event.Skip()
+
+    def OnTreeSelActivated(self, event):
+      item = event.GetItem()
+      windowObject = self.tree.GetItemWindow(item, column=3)
+      if windowObject is not None:
+          if isinstance(windowObject, SliderCustom):
+            windowObject.sliderText.SetFocus()
+          else:
+            windowObject.SetFocus()
       event.Skip()
 
     def CollapseAll(self, ent):
@@ -643,7 +659,8 @@ class Panel(scrolled.ScrolledPanel):
       # win._hilightBrush = wx.Brush(wx.Colour(255,255,255,255))
 
       # workaround: the constructor of customtreectrl makes this very black which looks ugly when you click on a node in the tree:
-      bkcol = win.GetBackgroundColour()
+      # bkcol = win.GetBackgroundColour()
+      bkcol = wx.Colour(240, 119, 70, 255)
       win._hilightUnfocusedBrush = wx.Brush(bkcol)
      # self.tree.ShouldInheritColors(True)
       self.tree.AddColumn("Main column")
