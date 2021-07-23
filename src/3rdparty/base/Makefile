@@ -120,6 +120,12 @@ PYTHON=Python
 PYTHON_VER=2.7.10
 PYTHON_PKG=$(PYTHON)-$(PYTHON_VER).tgz
 
+PROTOBUF=protobuf
+PROTOBUF_PKG=$(PROTOBUF).tar.gz
+
+PYANG=pyang
+PYANG_PKG=$(PYANG).tar.gz
+
 # THAT IS ALL
 ifneq ($(Xtarget),)
   CC?=$(strip $(Xtarget)-gcc)
@@ -185,11 +191,14 @@ else
 XconfNETSNMP_PKG:=
 endif
 
-libs: $(InstDir) $(ZLIB) $(GDBM) $(BERKELEY) $(SQLITE) protobufs $(LIBXML2) $(BOOST) 
+libs: $(InstDir) $(ZLIB) $(GDBM) $(BERKELEY) $(SQLITE) protobuffer $(LIBXML2) $(BOOST) pyyang
 	echo building libs
+#libs: $(InstDir) protobuffer pyyang
+#	echo building libs
 
 # $(NETSNMP)  $(OPENHPI) $(OPENHPISUBAGENT)
-all: $(InstDir) $(ZLIB) $(GDBM) $(BERKELEY) $(SQLITE) rotobufs $(LIBXML2) $(BOOST)
+all: $(InstDir) $(ZLIB) $(GDBM) $(BERKELEY) $(SQLITE) protobuffer $(LIBXML2) $(BOOST) pyyang
+#all: $(InstDir) protobuffer pyyang
 
 wipe:
 	rm -rf $(LIBXML2)-$(LIBXML2_VER)
@@ -210,7 +219,20 @@ protobufs: protobuf
 	(cd protobuf; make )
 	(cd protobuf; make install )
 
+protobuffer: $(PROTOBUF_PKG)
+	echo "REMOVING $(PROTOBUF)"
+	(rm -rf $(PROTOBUF))
+	(tar xvfz $<  > /dev/null)
+	(cd protobuf; curl -L https://github.com/google/googletest/archive/release-1.5.0.tar.gz | tar zx)
+	(cd protobuf; mv googletest-release-1.5.0 gtest)
+	(cd protobuf; ./autogen.sh)
+	(cd protobuf; $(Xenv); $(Xargs) ./configure --prefix=$(InstDir) --with-protoc=$(shell which protoc) $(Xconfigure) )
+	(cd protobuf; make )
+	(cd protobuf; make install )
+	
+
 $(NETSNMP): $(NETSNMP_PKG)
+	(rm -rf $@)
 	(tar xvfz $<  > /dev/null)
 	(cd $(NETSNMP)-$(NETSNMP_VER); $(Xenv); $(Xargs) ./configure --prefix=$(InstDir) $(Xconfigure) $(XconfNETSNMP_PKG) \
 		--without-rpm \
@@ -226,6 +248,7 @@ $(NETSNMP_PKG):
 	wget http://sourceforge.net/projects/net-snmp/files/net-snmp/$(NETSNMP_VER)/$(NETSNMP)-$(NETSNMP_VER).tar.gz
 
 $(OPENHPI): $(OPENHPI_PKG) $(GLIB) $(E2FSPROGS)
+	(rm -rf $@)
 	(tar xvfz $<  > /dev/null)
 	(cd $(OPENHPI)-$(OPENHPI_VER); $(foreach config, $(XconfCROSS_OPENHPI), \
 		echo $(config) >> config.cache; \
@@ -238,6 +261,7 @@ $(OPENHPI_PKG):
 	wget http://sourceforge.net/projects/openhpi/files/openhpi-stable/$(OPENHPI_VER)/$(OPENHPI)-$(OPENHPI_VER).tar.gz
 
 $(OPENHPISUBAGENT): $(OPENHPISUBAGENT_PKG)
+	(rm -rf $@)
 	(tar xvfz $<  > /dev/null)
 	(cd $(OPENHPISUBAGENT)-$(OPENHPISUBAGENT_VER); $(foreach config, $(XconfCROSS_OPENHPISUBAGENT), \
 		echo $(config) >> config.cache; \
@@ -250,6 +274,7 @@ $(OPENHPISUBAGENT_PKG):
 	wget http://sourceforge.net/projects/openhpi/files/openhpi%20snmp%20subagent/$(OPENHPISUBAGENT_VER)/$(OPENHPISUBAGENT)-$(OPENHPISUBAGENT_VER).tar.gz
 
 $(PyHPI): $(PyHPI_PKG) $(PYTHON)
+	(rm -rf $@)
 	(tar xvfz $<  > /dev/null)
 	(cd $(PyHPI)-$(PyHPI_VER); $(foreach config, $(XconfCROSS_PyHPI), \
 		echo $(config) >> config.cache; \
@@ -261,6 +286,7 @@ $(PyHPI_PKG):
 	wget http://sourceforge.net/projects/openhpi/files/$(PyHPI)/$(PyHPI_VER)/$(PyHPI)-$(PyHPI_VER).tar.gz
 
 $(PYTHON): $(PYTHON_PKG)
+	(rm -rf $@)
 	(tar xvf $<  > /dev/null)
 	(cd $(PYTHON)-$(PYTHON_VER); $(foreach config, $(XconfCROSS_PYTHON), \
 		echo $(config) >> config.cache; \
@@ -273,6 +299,7 @@ $(PYTHON_PKG):
 	wget http://www.python.org/ftp/python/$(PYTHON_VER)/$(PYTHON_PKG)
 
 $(GLIB): $(GLIB_PKG) $(ZLIB) $(DBUS)
+	(rm -rf $@)
 	(tar xvfz $<  > /dev/null)
 	(cd $(GLIB)-$(GLIB_VER); $(foreach config, $(XconfCROSS_GLIB), \
 		echo $(config) >> config.cache; \
@@ -285,6 +312,7 @@ $(GLIB_PKG):
 	wget http://ftp.gtk.org/pub/glib/2.28/$(GLIB)-$(GLIB_VER).tar.gz
 
 $(E2FSPROGS): $(E2FSPROGS_PKG)
+	(rm -rf $@)
 	(tar xvfz $<  > /dev/null)
 	(cd $(E2FSPROGS)-$(E2FSPROGS_VER); $(foreach config, $(XconfCROSS_E2FSPROGS), \
 		echo $(config) >> config.cache; \
@@ -298,6 +326,7 @@ $(E2FSPROGS_PKG):
 	wget http://nchc.dl.sourceforge.net/project/e2fsprogs/e2fsprogs/v$(E2FSPROGS_VER)/$(E2FSPROGS)-$(E2FSPROGS_VER).tar.gz
 
 $(ZLIB): $(ZLIB_PKG) 
+	(rm -rf $@-$(ZLIB_VER))
 	(tar xvfz $<  > /dev/null)
 	(cd $(ZLIB)-$(ZLIB_VER); $(Xenv); $(Xargs) ./configure --prefix=$(InstDir) $(XconfZLIB_PKG))
 	(cd $(ZLIB)-$(ZLIB_VER); $(Xenv); make)
@@ -306,7 +335,8 @@ $(ZLIB): $(ZLIB_PKG)
 $(ZLIB_PKG):
 	wget http://zlib.net/$(ZLIB)-$(ZLIB_VER).tar.gz
 
-$(GDBM): $(GDBM_PKG) 
+$(GDBM): $(GDBM_PKG)
+	(rm -rf $@-$(GDBM_VER))
 	(tar xvfz $<  > /dev/null)
 	(cd $(GDBM)-$(GDBM_VER); $(Xenv); $(Xargs) ./configure --prefix=$(InstDir))
 	(cd $(GDBM)-$(GDBM_VER); $(Xenv); make)
@@ -316,6 +346,7 @@ $(GDBM_PKG):
 	wget ftp://ftp.gnu.org/gnu/gdbm/$(GDBM)-$(GDBM_VER).tar.gz
 
 $(BERKELEY): $(BERKELEY_PKG) 
+	(rm -rf $@-$(BERKELEY_VER))
 	(tar xvfz $<  > /dev/null)
 	(cd $(BERKELEY)-$(BERKELEY_VER); $(Xenv); $(Xargs) ./dist/configure --prefix=$(InstDir))
 	(cd $(BERKELEY)-$(BERKELEY_VER); $(Xenv); make)
@@ -325,6 +356,7 @@ $(BERKELEY_PKG):
 	wget http://download.oracle.com/berkeley-db/$(BERKELEY)-$(BERKELEY_VER).tar.gz
 
 $(SQLITE): $(SQLITE_PKG) 
+	(rm -rf $@-$(SQLITE_VER))
 	(tar xvfz $<  > /dev/null)
 	(cd $(SQLITE)-$(SQLITE_VER); $(Xenv); $(Xargs) ./configure --prefix=$(InstDir))
 	(cd $(SQLITE)-$(SQLITE_VER); $(Xenv); make)
@@ -334,6 +366,7 @@ $(SQLITE_PKG):
 	wget https://sqlite.org/2017/$(SQLITE)-$(SQLITE_VER).tar.gz
 
 $(DBUS): $(DBUS_PKG) $(EXPAT)
+	(rm -rf $@-$(DBUS_VER))
 	(tar xvfz $<  > /dev/null)
 	(cd $(DBUS)-$(DBUS_VER); $(Xenv); $(Xargs) ./configure --prefix=$(InstDir) $(Xconfigure) $(XconfDBUS_PKG))
 	(cd $(DBUS)-$(DBUS_VER); $(Xenv); make)
@@ -343,6 +376,7 @@ $(DBUS_PKG):
 	wget http://dbus.freedesktop.org/releases/dbus/$(DBUS)-$(DBUS_VER).tar.gz
 
 $(EXPAT): $(EXPAT_PKG)
+	(rm -rf $@-$(EXPAT_VER))
 	(tar xvfz $<  > /dev/null)
 	(cd $(EXPAT)-$(EXPAT_VER); $(Xenv); $(Xargs) ./configure --prefix=$(InstDir) $(Xconfigure) $(XconfEXPAT_PKG))
 	(cd $(EXPAT)-$(EXPAT_VER); $(Xenv); make)
@@ -352,6 +386,7 @@ $(EXPAT_PKG):
 	wget http://nchc.dl.sourceforge.net/project/expat/expat/$(EXPAT_VER)/$(EXPAT)-$(EXPAT_VER).tar.gz
 
 $(LIBXML2):$(LIBXML2_PKG)
+	(rm -rf $@-$(LIBXML2_VER))
 	(tar xvfz $<  > /dev/null)
         # without-python so crossbuilds don't have to build python
 	(cd $(LIBXML2)-$(LIBXML2_VER); $(Xenv); $(Xargs) ./configure --without-python --with-debug --with-run-debug --with-mem-debug CFLAGS="-O0 -g" --prefix=$(InstDir) $(Xconfigure))
@@ -361,7 +396,8 @@ $(LIBXML2):$(LIBXML2_PKG)
 $(LIBXML2_PKG):
 	wget ftp://xmlsoft.org/libxml2/$(LIBXML2_PKG)
 
-$(BOOST):$(BOOST_PKG)
+$(BOOST): $(BOOST_PKG)
+	(rm -rf $@-$(BOOST_VER))
 	(tar xvfz $<  > /dev/null)
 	(cd $(BOOST)_$(subst .,_,$(BOOST_VER)); CC= CXX= CFLAGS= ./bootstrap.sh --without-icu) # This is a native tool so remove all the cross compilation env vars
 ifneq ($(Xtarget),)
@@ -375,4 +411,11 @@ endif
 $(BOOST_PKG):
 	wget --no-check-certificate http://sourceforge.net/projects/boost/files/$(BOOST)/$(BOOST_VER)/$(BOOST_PKG)
 
-
+pyyang: $(PYANG_PKG)
+	(rm -rf $(PYANG))
+	(tar xvfz $<  > /dev/null)
+	(cd pyang; python setup.py install)
+	chmod -R 757 $(SAFPLUS_TARGET)
+#pyang:
+#	git clone https://github.com/mbj4668/pyang pyang
+#	(cd pyang; git reset --hard a6e51ba83f06829d3d26849bcb306f49f335267f)

@@ -5,7 +5,7 @@ import pdb
 
 # export PYTHONPATH=/code/git/mgt/3rdparty/pyang
 import sys
-sys.path.append("/code/rep/mgt/3rdparty/pyang")
+sys.path.append("../3rdparty/base/pyang")
 import pyang
 from pyang import plugin
 from pyang import error
