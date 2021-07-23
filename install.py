@@ -83,7 +83,9 @@ class ASPInstaller:
 
         self.GENERAL_LOG_PATH = os.path.join(self.LOG_DIR, 'general.log')
         self.OS = determine_os()
-        
+        if not self.OS:
+            self.feedback('Error: this OS is not supported')
+            sys.exit(1)
             
         self.nuke_dir(self.LOG_DIR) # clean and make log directory
         self.create_dir(self.LOG_DIR)
@@ -398,9 +400,12 @@ class ASPInstaller:
         
         # do they have the third party pkg tarball?
         if not Pkg_Found:
-            self.feedback('Error: Cannot find \'%s\' in directory \'%s\'. The installation stops\n' % (thirdPartyPkg, self.WORKING_DIR),True)
-            return
-        
+            self.feedback('Warning: Cannot find \'%s\' in directory \'%s\'. Gettting it from ftp server' % (thirdPartyPkg, self.WORKING_DIR))
+            #get the 3rdpary from server
+            self.feedback('Getting %s from server'%thirdPartyPkg);
+            self.debug('Getting %s from server'%thirdPartyPkg);
+            (retval, result, signal, core) = system('wget http://ftp.openclovis.com/files/%s' % thirdPartyPkg)
+            self.debug("Result: %d, output: %s" % (retval, str(result)))
         self.feedback('tar xfm %s'  % self.THIRDPARTYPKG_PATH)
         ret = syscall('tar xfm %s' % self.THIRDPARTYPKG_PATH)
         os.system('make')

@@ -327,7 +327,7 @@ def determine_os():
                 return None
             
             if 'ubuntu' in fdata:
-                #if '14.' in fdata:
+                #if '14.' in fdata: # ubuntu 14 is not supported. Need newwer one than it, e.g. 16, 18 or 20...
                 #    return Ubuntu14()
                 if '16.' in fdata:
                     return Ubuntu16()                
