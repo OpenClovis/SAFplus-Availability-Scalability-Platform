@@ -4,9 +4,13 @@ from types import *
 import inspect
 import shutil
 
+def instanceType(instance):
+  return hasattr(instance, '__class__') and \
+         ('__dict__' in dir(instance) or hasattr(instance, '__slots__'))
+  
 def isInstanceOf(obj,objType):
   """Is the object an instance (or derived from) of the class objType)?"""
-  if type(obj) is InstanceType and objType in inspect.getmro(obj.__class__): return True
+  if instanceType(obj) and objType in inspect.getmro(obj.__class__): return True
   return False
 
 def isTrue(v):
@@ -51,4 +55,4 @@ def writeFile(filename,data):
   f.close()
   
 def Log(s,severity="INFO"):
-  print "\n%s\n" % str(s)
+  print ("\n%s\n" % str(s))

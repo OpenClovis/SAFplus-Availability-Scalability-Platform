@@ -95,9 +95,9 @@ class MicroDom:
       try:
         self.__dict__[keyify(c.tag_)] = c
         self.child_[keyify(c.tag_)] = c
-        if c.attributes_.has_key["id"]:
+        if 'id' in c.attributes_:
           self.child_[keyify(c.id)] = c
-        if c.attributes_.has_key["name"]:
+        if 'name' in c.attributes_:
           self.child_[keyify(c.name)] = c
       except:
         pass
@@ -156,7 +156,7 @@ class MicroDom:
     """
     for (k,v) in attrs.items():
       myval = self.attributes_.get(k,None)
-      if type (v) is FunctionType:
+      if isinstance(v,FunctionType):
         if not v(myval): return False
       elif myval is not None:
         if not v == myval: return False
@@ -241,7 +241,7 @@ def LoadString(s):
   return md
 
 def LoadFile(fil):
-  if type(fil) is ListType:
+  if isinstance(fil,list):
     return [LoadFile(f) for f in fil]
 
   dom = xml.dom.minidom.parse(fil)
@@ -249,7 +249,7 @@ def LoadFile(fil):
 
 
 def LoadMiniDom(dom):
-  if type(dom) is ListType:
+  if isinstance(dom,list):
     return [LoadMiniDom(d) for d in dom]
 
   childlist = []
@@ -264,8 +264,15 @@ def LoadMiniDom(dom):
       else:
         childlist.append(LoadMiniDom(child))
 
-  for (key,val) in dom._attrs.items():
-    attrlist[key] = val.value
+  #for (key,val) in dom._attrs.items():
+  #  attrlist[key] = val.value
+  
+  #for (key,val) in dom.attributes.items():
+  attrs = dom.attributes
+  for i in range(attrs.length):
+    attr = attrs.item(i)
+    #print ('TEST ==> %s:%s' % (attr.name,attr.value))
+    attrlist[attr.name] = attr.value
 
   try: 
       data = dom.data
@@ -320,8 +327,7 @@ def Test():
   dom = xml.dom.minidom.parseString(x)
   md = LoadMiniDom(dom.childNodes[0])
 
-  print md.restartDuration.data_
-  print "%d" % md.restartDuration2.data_
-  print md.failbackOption.data_
-  print md.test.data_
-  
+  print (md.restartDuration.data_)
+  print ("%d" % md.restartDuration2.data_)
+  print (md.failbackOption.data_)
+  print (md.test.data_)
