@@ -27,7 +27,7 @@ def mgtGetItem(path,default=raiseException):
   try:
     t = ET.fromstring(data)
     return t.text
-  except IndexError, e:
+  except IndexError as e:
       pdb.set_trace()
       if default is raiseException:
         raise Error("Invalid element")

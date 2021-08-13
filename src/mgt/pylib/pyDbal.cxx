@@ -70,14 +70,14 @@ static PyObject* Read(PyObject *self, PyObject *args)
         return NULL;
     }
 
-    PyObject* pVal = PyString_FromString(value.c_str());
+    PyObject* pVal = PyUnicode_FromString(value.c_str());
 
     PyObject* pChild;
     pChild = PyList_New(child.size());
     int i=0;
     for (vector<string>::iterator it = child.begin();it!=child.end();it++)
     {
-        PyObject* val = PyString_FromString((*it).c_str());
+        PyObject* val = PyUnicode_FromString((*it).c_str());
         PyList_SetItem(pChild,i++,val);
     }
 
@@ -108,7 +108,9 @@ ClRcT ParseArgument(PyObject *args, string &strKey, string &strValue, vector<str
             int t_seqlen = PySequence_Fast_GET_SIZE(tseq);
             for (i = 0; i < t_seqlen; i++)
               {
-                ClCharT *childArg = PyString_AsString(PySequence_Fast_GET_ITEM(tseq, i));
+                //ClCharT *childArg = PyUnicode_AsEncodedString(PySequence_Fast_GET_ITEM(tseq, i), "utf-8", NULL);
+                PyObject* pyObj = PyUnicode_AsEncodedString(PySequence_Fast_GET_ITEM(tseq, i), "utf-8", NULL);
+                ClCharT *childArg = PyBytes_AS_STRING(pyObj);
                 child.push_back(childArg);
               }
             Py_DECREF(tseq);
@@ -135,7 +137,7 @@ static PyObject* Create(PyObject *self, PyObject *args)
     rc = db->insertRecord(key, value, &child);
     if (rc != CL_OK)
     {
-        PyErr_SetObject(PyExc_SystemError, PyInt_FromLong(CL_GET_ERROR_CODE(rc)));
+        PyErr_SetObject(PyExc_SystemError, PyLong_FromLong(CL_GET_ERROR_CODE(rc)));
         return NULL;
     }
 
@@ -158,7 +160,7 @@ static PyObject* Write(PyObject *self, PyObject *args)
     rc = db->setRecord(key, value, &child);
     if (rc != CL_OK)
     {
-        PyErr_SetObject(PyExc_SystemError, PyInt_FromLong(CL_GET_ERROR_CODE(rc)));
+        PyErr_SetObject(PyExc_SystemError, PyLong_FromLong(CL_GET_ERROR_CODE(rc)));
         return NULL;
     }
 
@@ -172,7 +174,7 @@ static PyObject* Iterators(PyObject *self, PyObject *args)
 
     if (!PyArg_ParseTuple(args, "s", &xpath))
     {
-        PyErr_SetObject(PyExc_SystemError, PyString_FromString("Xpath filter is NULL"));
+        PyErr_SetObject(PyExc_SystemError, PyUnicode_FromString("Xpath filter is NULL"));
         return NULL;
     }
 
@@ -187,7 +189,7 @@ static PyObject* Iterators(PyObject *self, PyObject *args)
     {
       for (std::vector<std::string>::iterator iter = xpathIterators.begin(); iter!=xpathIterators.end(); ++iter)
       {
-        PyObject *item = PyString_FromString((*iter).c_str());
+        PyObject *item = PyUnicode_FromString((*iter).c_str());
         PyList_Append(lstKeys, item);
       }
     }
@@ -217,7 +219,7 @@ static PyObject* initializeDbal(PyObject *self, PyObject *args)
 
     if (rc != CL_OK)
     {
-        PyErr_SetObject(PyExc_SystemError, PyInt_FromLong(CL_GET_ERROR_CODE(rc)));
+        PyErr_SetObject(PyExc_SystemError, PyLong_FromLong(CL_GET_ERROR_CODE(rc)));
         return NULL;
     }
 
@@ -241,8 +243,16 @@ static PyMethodDef DbalPyMethods[] = {
     { NULL, NULL, 0, NULL } /* Sentinel */
 };
 
+static PyModuleDef DbalModDef = {
+    PyModuleDef_HEAD_INIT,
+    "pyDbal",
+    "",
+    -1,
+    DbalPyMethods
+};
+
 PyMODINIT_FUNC
-initpyDbal(void)
+PyInit_pyDbal(void)
 {
     ClRcT rc = CL_OK;
 
@@ -251,5 +261,5 @@ initpyDbal(void)
 
     safplusInitialize(SAFplus::LibDep::DBAL | SAFplus::LibDep::LOG | SAFplus::LibDep::OSAL | SAFplus::LibDep::HEAP | SAFplus::LibDep::TIMER | SAFplus::LibDep::BUFFER);
 
-    (void) Py_InitModule("pyDbal", DbalPyMethods);
+    (void) PyModule_Create(&DbalModDef);
 }

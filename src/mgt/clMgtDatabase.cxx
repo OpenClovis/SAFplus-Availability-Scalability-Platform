@@ -207,6 +207,7 @@ namespace SAFplus
 
     if (!mInitialized)
       {
+        logError("MGT","DBR","db is not initialized");
         return CL_ERR_NOT_INITIALIZED;
       }
 
@@ -215,6 +216,7 @@ namespace SAFplus
     rc = mDbDataHdl->getRecord((ClDBKeyT) &hashKey, sizeof(hashKey), (ClDBRecordT*) &cvalue, &dataSize);
     if (CL_OK != rc)
       {
+        logError("MGT","DBR","Record [%s] read failed rc [0x%x]", key.c_str(), rc);
         return rc;
       }
 
@@ -234,7 +236,7 @@ namespace SAFplus
         }
     }
 
-    //logInfo("MGT", "DBR", "Record [0x%" PRIx64 "%" PRIx64 "]: [%s] -> [%s]", hashKey.num[0], hashKey.num[1], key.c_str(), value.c_str());
+    logInfo("MGT", "DBR", "Record [0x%" PRIx64 "%" PRIx64 "]: [%s] -> [%s]", hashKey.num[0], hashKey.num[1], key.c_str(), value.c_str());
     SAFplusHeapFree(cvalue);
     return rc;
   }
@@ -334,7 +336,7 @@ namespace SAFplus
                   else
                     childxpath.append("/").append(*i);
 
-                  //logDebug("MGT", "ITER", "Lookup child [%s] ", childxpath.c_str());
+                  logDebug("MGT", "ITER", "Lookup child [%s] ", childxpath.c_str());
                   result.push_back(childxpath);
                 }
             }

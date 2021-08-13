@@ -399,7 +399,7 @@ $(LIBXML2_PKG):
 $(BOOST): $(BOOST_PKG)
 	(rm -rf $@-$(BOOST_VER))
 	(tar xvfz $<  > /dev/null)
-	(cd $(BOOST)_$(subst .,_,$(BOOST_VER)); CC= CXX= CFLAGS= ./bootstrap.sh --without-icu) # This is a native tool so remove all the cross compilation env vars
+	(cd $(BOOST)_$(subst .,_,$(BOOST_VER)); CC= CXX= CFLAGS= ./bootstrap.sh --with-python-version=3.5 --prefix=$(InstDir) --without-icu) # This is a native tool so remove all the cross compilation env vars
 ifneq ($(Xtarget),)
 	-rm -f ~/user-config.jam
 	echo "using gcc : cross : $(COMPILER) ;" > ~/user-config.jam

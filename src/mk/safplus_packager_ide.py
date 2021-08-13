@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/env python3
 import os
 import sys
 import shutil
@@ -43,7 +43,7 @@ def check_dir_exists(dir_name):
 def unusedcreatedir(dir_name):
     try:
         os.mkdir(dir_name, 0o755)
-    except OSError, e:
+    except OSError as e:
         if e.errno != errno.EEXIST:
             raise
             fail_and_exit(" Failed to create the dir {}".format(dir_name))
@@ -260,7 +260,7 @@ def package(base_dir, tar_name, prefix_dir, machine=None, pre_build_dir=None,exe
       log.info("Executing user supplied script: %s" % tmp)
       try:
         ret = subprocess.call(tmp, shell=True)
-      except Exception,e:
+      except Exception as e:
         pdb.set_trace()
       log.info("script execution complete, returned %d", ret)
 
@@ -286,8 +286,8 @@ def get_target_machine_type():
         try:
             target_mch_compiler_type = subprocess.check_output("g++ -dumpmachine", shell=True)
             target_mch_compiler_type = target_mch_compiler_type.rstrip()
-        except subprocess.CalledProcessError,e:
-            print "Script is aborted due to the following error{}".format(e)
+        except subprocess.CalledProcessError as e:
+            print ("Script is aborted due to the following error{}".format(e))
             sys.exit(-1)
     return target_mch_compiler_type
 
@@ -299,25 +299,25 @@ def usage():
     target_machine = get_target_machine_type()
     target_machine = target_machine.rstrip()
     progName = os.path.split(sys.argv[0])[1]
-    print """
+    print ("""
 The {0} script generates an archive for the given project/prebuild  directory
-to a given target machine compiler type """.format(os.path.split(sys.argv[0])[1])
-    print """
+to a given target machine compiler type """.format(os.path.split(sys.argv[0])[1]))
+    print ("""
 If you are producing a cross build, use the -b flag to copy files from
 the appropriate target/<-m flag> directory to produce an archive for
-your target architecture."""
-    print """
+your target architecture.""")
+    print ("""
 The {0} script generates an Debian/RPM package for a given Project directory with the default
 package version number 1.0 and default release number 1.
 use the -y flag to generate the RPM package.
 use the -d flag to generate the DEBIAN PACKAGE.
 For generating a RPM/Debian package with custom version number and release number
 use th -r flag anf -v flag along with -y/-d flags.
-    """
+    """)
 
-    print """
-Syntax {} [-p <pathToProject>] [-s <pathToSAFplus>] [-m <target machine compiler Type>] [[-o] <outputFile>]""".format(sys.argv[0])
-    print """
+    print ("""
+Syntax {} [-p <pathToProject>] [-s <pathToSAFplus>] [-m <target machine compiler Type>] [[-o] <outputFile>]""".format(sys.argv[0]))
+    print ("""
 Options:
   -h or --help: This help
   -m or --target-machine=<target machine compiler Type>
@@ -344,9 +344,9 @@ Options:
   -r or --pkg-release=<pkg-release number>
      when a minor update happens, RPM/Debian package need to rebuilt with incremented release number
      default valus is 1
-""".format(tgtMachine=target_machine,tm=target_machine.split('-')[0],tp=target_platform)
+""".format(tgtMachine=target_machine,tm=target_machine.split('-')[0],tp=target_platform))
 
-    print """Example usage:
+    print ("""Example usage:
 
 Package SAFplus into safplus.zip:
 $ {sp} safplus.zip
@@ -366,7 +366,7 @@ $ {sp} -p <path to model dir> -v 2.0 -r 2 -y <model_name>.tgz
 Crossbuild RPM package generation:
 $ {sp} -s {s} -m {m} -y crossPkg.tgz""".\
         format(s=os.path.abspath(os.path.split(sys.argv[0])[0] +("/../..")), m=target_machine,
-               sp=progName)
+               sp=progName))
 
 
 def parser(args):

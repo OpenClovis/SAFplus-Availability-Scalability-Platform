@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/env python3
 """
 @namespace DBAL 
 
@@ -12,9 +12,9 @@ try:
   import pyDbal
   import microdom
   from common import *
-except ImportError, e:
-  print "Unable to import SAFplus libraries.  Is your PATH and PYTHONPATH set up properly?"
-  print "Error was:", str(e)
+except ImportError as e:
+  print ("Unable to import SAFplus libraries.  Is your PATH and PYTHONPATH set up properly?")
+  print ("Error was:", str(e))
   exit(1)
 
 from xml.etree import ElementPath
@@ -26,9 +26,9 @@ from safplusMgtDb import *
 
 def main(argv):
   if len(argv) < 3:
-    print "Usage:\n '%s -x <xml file> [output file]': Encode xml file to database file\n" % argv[0]
-    print " '%s -d <database file (no extension)> [output file]': Write database file into xml file of the same name\n" % argv[0]
-    print "If [output file] is not specified, a file is created with the same name as the input file.\n"
+    print ("Usage:\n '%s -x <xml file> [output file]': Encode xml file to database file\n" % argv[0])
+    print (" '%s -d <database file (no extension)> [output file]': Write database file into xml file of the same name\n" % argv[0])
+    print ("If [output file] is not specified, a file is created with the same name as the input file.\n")
     return -1
 
   inFile = argv[2]
@@ -39,12 +39,12 @@ def main(argv):
   else:
     outFile = os.path.splitext(os.path.split(inFile)[1])[0]  # remove both the directory and the extension from the input file to form the output file
 
-  print "Writing to: %s" % outFile
+  print ("Writing to: %s" % outFile)
 
   # Store into binary database
   if argv[1] == '-x':
     try:
-      print "Reading from %s" %inFile
+      print ("Reading from %s" %inFile)
       data = PyDBAL(outFile)
       data.LoadXML(inFile);
       data.Finalize()
@@ -71,9 +71,9 @@ def Test():
     for key in test.Iterators():
        try:
            data = test.Read(key)
-           print "[%s] -> [%s]" %(key, data)
-       except Exception, e:
-           print getErrorString(e)
+           print ("[%s] -> [%s]" %(key, data))
+       except Exception as e:
+           print (getErrorString(e))
 
     # Export to XML
     test.ExportXML("SAFplusAmf_New.xml")
@@ -88,9 +88,9 @@ def Test2():
     for key in test.Iterators():
        try:
            data = test.Read(key)
-           print "[%s] -> [%s]" %(key, data)
-       except Exception, e:
-           print getErrorString(e)
+           print ("[%s] -> [%s]" %(key, data))
+       except Exception as e:
+           print (getErrorString(e))
 
     #Export to XML
     test.ExportXML("test_New.xml")

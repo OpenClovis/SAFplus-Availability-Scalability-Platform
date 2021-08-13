@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/env python3
 import sys, os, os.path, time, types
 import traceback,pdb
 import argparse
@@ -27,8 +27,8 @@ if args.local == False:
     import netconfaccess
     access = netconfaccess
     CliName = "SAFplus CLI"
-  except ImportError, e:
-    print e    
+  except ImportError as e:
+    print (e)
     pass
 
 if access is None:
@@ -36,8 +36,8 @@ if access is None:
     import localaccess
     access = localaccess
     CliName = "SAFplus Local CLI"
-  except ImportError, e:
-    print e
+  except ImportError as e:
+    print (e)
     pass
 
 
@@ -64,8 +64,8 @@ try:
   if args.nw == True: raise Exception("Text mode selected on command line")
   import xmlterm
   windowed=True
-except Exception, e:
-  print "Cannot initialize windowing [%s], using no-window mode" % str(e)
+except Exception as e:
+  print ("Cannot initialize windowing [%s], using no-window mode" % str(e))
   import textxmlterm as xmlterm
   windowed=False
 
@@ -133,7 +133,7 @@ def childReorg(elem,path):
    for child in elem:  # go thru all the children
     lstName = access.isListElem(child,path)  # Ask the access layer if this is a list element
     if lstName:  # if so, add this element to our temporary dictionary and remove it from elem
-      if not lists.has_key(lstName):
+      if not lstName in lists:
         lists[lstName] = []
       lists[lstName].append(child)
 
@@ -304,12 +304,12 @@ def serviceUnitHandler(elem,resolver,context):
     resolver.add(w)
     w = xmlterm.FancyText(resolver.parentWin, ("  "*resolver.depth) + "  On Node: %s  In Service Group: %s" % (elem.find("node").text.split("/")[-1],elem.find("serviceGroup").text.split("/")[-1]))
     resolver.add(w)
-  except AttributeError, e: # object could have no children because recursion depth exceeded
+  except AttributeError as e: # object could have no children because recursion depth exceeded
     pass 
 
 def serviceUnitListHandler(elem,resolver,context):
   """Create a graphical representation of the XML 'text' tag"""
-  if elem.attrib.has_key("listkey"): # Its an instance of the list
+  if 'listkey' in elem.attrib: # Its an instance of the list
     serviceUnitHandler(elem,resolver,context)
     return
   path = elem.attrib.get("path",None)
@@ -340,7 +340,7 @@ def findSeries(et,prefix=None):
   """Pull all plottable elements out of the element tree and return them with a series label.  A series is a list of numbers"""
   if prefix is None: 
     prefix = ""
-  if et.attrib.has_key("path"):  # override the prefix with a supplied path if it exists, since that is guaranteed to be complete
+  if 'path' in et.attrib:  # override the prefix with a supplied path if it exists, since that is guaranteed to be complete
     prefix = et.attrib["path"]
   else:
     prefix = prefix + "/" + et.tag  # Build the prefix from the et structure
@@ -356,7 +356,7 @@ def findMetrics(et,prefix=None):
   """Pull all plottable elements out of the element tree and return them with a metric label.  A metric is just a single number, while a series is a list of numbers"""
   if prefix is None: 
     prefix = ""
-  if et.attrib.has_key("path"):  # override the prefix with a supplied path if it exists, since that is guaranteed to be complete
+  if 'path' in et.attrib:  # override the prefix with a supplied path if it exists, since that is guaranteed to be complete
     prefix = et.attrib["path"]
   else:
     prefix = prefix + "/" + et.tag  # Build the prefix from the et structure
@@ -364,7 +364,7 @@ def findMetrics(et,prefix=None):
   try:  # If we can convert into a number, report it as a metric
     test = float(et.text)
     ret.append((prefix, et.text))
-  except Exception, e:
+  except Exception as e:
     pass
   for e in et:
     t = findMetrics(e,prefix)
@@ -398,7 +398,7 @@ def getDictCommandHelp(d, prefix="",single=None):
         if not single or single == prefix + name:
           hlp = ["<helpCmd><helpCmdName>" + prefix + name + "</helpCmdName>"] + getFunctionHelp(val[0]) + ["</helpCmd>"]
     ret += hlp
-  print ret
+  print (ret)
   return ret  
 
 def getFunctionHelp(fn):
@@ -548,11 +548,11 @@ By default the specified location and children are shown.  Use -N to specify how
     #print "getting ", gs
     try:
       xml = access.mgtGet(gs)
-    except RuntimeError, e:
+    except RuntimeError as e:
       if str(e) == "Route has no implementer":
         return "<error>Invalid path [%s]</error>" % str(t)
       return "<error>" + str(e) + "</error>"
-    except Exception, e:
+    except Exception as e:
       return "<error>" + str(e) + "</error>"
     #print xml
     return "<top>" + xml + "</top>"  # I have to wrap in an xml tag in case I get 2 top levels from mgtGet
@@ -586,7 +586,7 @@ By default the specified location and children are shown.  Use -N to specify how
         else:
           try:  
             depth = int(flag[1:])  # depth modifier flag
-          except ValueError, e:
+          except ValueError as e:
             xt.doc.append("bad flag: " + flag)
             pass
       else:             
@@ -741,7 +741,7 @@ By default the specified location and children are shown.  Use -N to specify how
               else:
                 try:  
                   depth = int(flag[1:])  # depth modifier flag
-                except ValueError, e:
+                except ValueError as e:
                   xt.doc.append("bad flag: " + flag)
                   pass
             else:             
@@ -848,7 +848,7 @@ class RunScript:
     """Run a script.  This can be either a python script (.py extension) or a shell script"""
     try:
       f = open(filename,"r")
-    except IOError, e:
+    except IOError as e:
       self.context.xmlterm.doc.append("<error>" + str(e) + "</error>")
       return ""
 
@@ -857,7 +857,7 @@ class RunScript:
     if ext[1] == ".py":
       try:
         exec f in self.env
-      except Exception, e:
+      except Exception as e:
         if DropToDebugger:
           type, value, tb = sys.exc_info()
           traceback.print_exc()

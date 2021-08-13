@@ -119,8 +119,10 @@ class Ubuntu16(OS):
                  'python-pip',
                  'pkg-config',
                  'libtool',
-                 'curl',
-                 'mesa-common-dev',
+                 'curl'                 
+                ]
+
+        ide_deps = ['mesa-common-dev',
                  'freeglut3-dev',
                  'libglew-dev',
                  'libglm-dev',
@@ -130,12 +132,16 @@ class Ubuntu16(OS):
                  'librsvg2-dev',
                  'python-rsvg'
                 ]
-        
+
         pip_deps =  ['genshi', 'watchdog', 'paramiko']
         
         for name in deps:
             D = objects.RepoDep(name)
             self.pre_dep_list.append(D)
+
+        for name in ide_deps:
+            D = objects.RepoDep(name)
+            self.ide_pre_dep_list.append(D)
 
         for name in pip_deps:
             D = objects.RepoDep(name)

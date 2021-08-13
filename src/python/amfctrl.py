@@ -128,9 +128,9 @@ def displaySgStatus(sg):
   if type(sg) in types.StringTypes:
     sg = getSgEntities(sg)
 
-  print "Service Group: %s" % sg.name.data_
+  print ("Service Group: %s" % sg.name.data_)
   # print "Administrative State: %4s  Operational State: %10s  Service Units: Assigned: %d Idle: %d Spare: %d" % (sg.adminState.data_,"TBD",int(sg.numAssignedServiceUnits.data_),int(sg.numIdleServiceUnits.data_),int(sg.numSpareServiceUnits.data_) )
-  print "  Administrative State: %4s" % (sg.adminState.data_)
+  print ("  Administrative State: %4s" % (sg.adminState.data_))
   suList = sg.su.items()
   suList.sort()
   siList = sg.si.items()
@@ -138,42 +138,42 @@ def displaySgStatus(sg):
 
   indent = 1
   # Show the physical entity tree
-  print "  Service Units: ", ", ".join([x[0] for x in suList])
-  print "  Service Instances: ", ", ".join([x[0] for x in siList])
+  print ("  Service Units: ", ", ".join([x[0] for x in suList]))
+  print ("  Service Instances: ", ", ".join([x[0] for x in siList]))
   for (name,su) in suList:
-    print "  Service Unit: ", name
+    print ("  Service Unit: ", name)
     indent +=1
-    print "    On Node: %s Administrative State: %4s  Presence: %s  Readiness State: %s  High Availability State: %s Readiness State: %s " % (su.node.data_, su.adminState.data_, su.presenceState.data_, su.readinessState.data_, su.haState.data_, su.haReadinessState.data_)
+    print ("    On Node: %s Administrative State: %4s  Presence: %s  Readiness State: %s  High Availability State: %s Readiness State: %s " % (su.node.data_, su.adminState.data_, su.presenceState.data_, su.readinessState.data_, su.haState.data_, su.haReadinessState.data_))
     compList = su.comp.items()
     compList.sort()
-    print "    Components: ", ", ".join([x[0] for x in compList])
+    print ("    Components: ", ", ".join([x[0] for x in compList]))
     for (name, comp) in compList:
-      print "    Comp: ", name
+      print ("    Comp: ", name)
       indent+=1
-      print "      Presence: %s  Readiness State: %s  High Availability State: %s" % (comp.presenceState.data_, comp.readinessState.data_, comp.haState.data_)
+      print ("      Presence: %s  Readiness State: %s  High Availability State: %s" % (comp.presenceState.data_, comp.readinessState.data_, comp.haState.data_))
       if comp.presenceState.data_ == "instantiated":
-        print "%spid: %d" % ("  "*indent, int(comp.processId.data_))
+        print ("%spid: %d" % ("  "*indent, int(comp.processId.data_)))
       if comp.lastError.data_:
-        print "%sLast Error: %s" % ("  "*indent, int(comp.lastError.data_))
+        print ("%sLast Error: %s" % ("  "*indent, int(comp.lastError.data_)))
        
       indent-=1
     indent-=1
   # Show the work
   for (name,si) in siList:
-    print "%sService Instance: %s" % ("  "*indent, name)
+    print ("%sService Instance: %s" % ("  "*indent, name))
     indent +=1
     numActive = int(si.numActiveAssignments.current.data_)
     numStandby = int(si.numStandbyAssignments.current.data_)
-    print "%sAdministrative State: %4s  Assignment State: %s (%d/%d)" % ("  "*indent, si.adminState.data_, si.assignmentState.data_, numActive,numStandby)
+    print ("%sAdministrative State: %4s  Assignment State: %s (%d/%d)" % ("  "*indent, si.adminState.data_, si.assignmentState.data_, numActive,numStandby))
     if numActive or numStandby:
       activeSus = removePrefix([ x.strip() for x in si.activeAssignments.data_.split(",")] ,"/" + AmfPfx + "/ServiceUnit/")
       standbySus = removePrefix([x.strip() for x in si.standbyAssignments.data_.split(",")],"/" + AmfPfx + "/ServiceUnit/")
-      print "%sActive on: %s  Standby on: %s" % ("  "*indent,", ".join(activeSus), ", ".join(standbySus))
+      print ("%sActive on: %s  Standby on: %s" % ("  "*indent,", ".join(activeSus), ", ".join(standbySus)))
     indent-=1
 
 
 def Test():
-  print "PID IS: ", os.getpid()
+  print ("PID IS: ", os.getpid())
   global SAFplusInitialized
   if not SAFplusInitialized:
     svcs = sp.Libraries.MSG | sp.Libraries.GRP | sp.Libraries.MGT_ACCESS
@@ -189,5 +189,5 @@ def Test():
 
   commit(entity)
 
-  print "Active: %s" % str(ret[0])
-  print "Standby: %s" % str(ret[1])
+  print ("Active: %s" % str(ret[0]))
+  print ("Standby: %s" % str(ret[1]))

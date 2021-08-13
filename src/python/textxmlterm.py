@@ -28,7 +28,7 @@ class CmdLine:
     readline.parse_and_bind("tab:complete")
     readline.set_completer_delims("")
     readline.set_completer(self.resolver.completion)
-    return raw_input(self.prompt)
+    return input(self.prompt)
 
 class Doc:
   def __init__(self,resolver):
@@ -72,7 +72,7 @@ class XmlResolver:
     handler(tree,self,context)
 
   def add(self,string):
-    print string
+    print (string)
 
   def addCmds(self,cmds):
     if cmds:
@@ -94,7 +94,7 @@ class XmlResolver:
         if out[0].__name__ == "handleRpc":
           return (out,lst,None)  # TODO keyword args
         else:
-          print"bbb"
+          #print"bbb"
           return (out,lst[1:],None)  # TODO keyword args
 
     default = cmds.get(None,None)  # If there's a dictionary entry whose key is None, then this is used if nothing else matches
@@ -146,7 +146,7 @@ class XmlResolver:
                 if output:   # "" means command worked but nothing output
                   xmlterm.doc.append(output)
                 return
-            except TypeError, e:  # command had incorrect arguments or something
+            except TypeError as e:  # command had incorrect arguments or something
               if DropToDebugger:
                 type, value, tb = sys.exc_info()
                 traceback.print_exc()
@@ -161,16 +161,16 @@ class XmlResolver:
           exit(0)
         elif sp[0] == 'alias' or sp[0] == '!alias':  # Make one command become another
           xmlterm.aliases[sp[1]] = " ".join(sp[2:])
-	elif sp[0] == 'rpc' or sp[0] == '!rpc':
-	  return
+        elif sp[0] == 'rpc' or sp[0] == '!rpc':
+          return
         else:
-          print "Unknown command [%s]" % sp
+          print ("Unknown command [%s]" % sp)
 
 def indent(elem,depth=0):
   if type(elem) in types.StringTypes:
     try:
       elem = ET.fromstring(elem)
-    except ET.ParseError, e: # Its bad XML so just do something simple that breaks up lines
+    except ET.ParseError as e: # Its bad XML so just do something simple that breaks up lines
       return elem.replace(">",">\n")
   ret = ["  "*depth + "<" + elem.tag]
   for a in elem.attrib.items():

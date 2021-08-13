@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/env python3
 import os
 import shutil
 import tempfile
@@ -149,7 +149,7 @@ class DEBIAN:
         self.pkg_release_number = package_rel
         self.build_top_dir = self.user_home_dir + os.sep + "deb_build"
         if os.path.exists(self.build_top_dir):
-            print " {} is already existed".format(self.build_top_dir)
+            print (" {} is already existed".format(self.build_top_dir))
             shutil.rmtree(self.build_top_dir)
         os.mkdir(self.build_top_dir)
         self.pkg_name = None
@@ -237,7 +237,7 @@ class DEBIAN:
             self.check_req_deb_files()
             self.customise_deb_files(archive_file, machine_type, third_party_dir)
         else:
-            print "Provide correct details like deb_template dir {}".format(deb_pkg_template_dir)
+            print ("Provide correct details like deb_template dir {}".format(deb_pkg_template_dir))
         pass
 
     def customise_postrm(self):

@@ -67,7 +67,7 @@ def isValidDirectory(path):
   try:
     data = mgtGet(str("{d=0}"+path))
     if not data: return False  # TODO, what about an empty list?
-  except RuntimeError, e:
+  except RuntimeError as e:
     return False
   # print "isValidDir: ", str(data)
   # pdb.set_trace()
@@ -111,7 +111,7 @@ class Commands:
       loc = self.canonicalPath(location)
       try:
         safplus.mgtCreate(str(loc))
-      except RuntimeError, e:
+      except RuntimeError as e:
         result.append("<error>location [%s] error [%s]</error>" % (location, str(e)))
     return "<top>" + "".join(result) + "</top>"
 
@@ -124,7 +124,7 @@ class Commands:
       loc = self.canonicalPath(l)
       try:
         safplus.mgtDelete(str(loc))
-      except RuntimeError, e:
+      except RuntimeError as e:
         result.append("<error>location [%s] error [%s]</error>" % (location, str(e)))
 
     return "<top>" + "".join(result) + "</top>"
@@ -144,12 +144,12 @@ def Initialize():
   
       safplus.Initialize(svcs, sic)
       break
-    except RuntimeError, e:
+    except RuntimeError as e:
       errMsg = str(e) 
       if errMsg== 'Address already in use':
         port+=1
       else:
-        print 'Error while initializing safplus. Error message: '+errMsg
+        print ('Error while initializing safplus. Error message: '+errMsg)
         sys.exit('Exiting the program...')     
     
   return (Commands(),{})
@@ -159,6 +159,6 @@ def Finalize():
 
 def isListElem(elem,path):
   """Return the name of the list if this is an item in a list"""
-  if elem.attrib.has_key("listkey"):
+  if 'listkey' in elem.attrib:
     return elem.tag
   return None

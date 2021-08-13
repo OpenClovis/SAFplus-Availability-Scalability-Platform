@@ -10,9 +10,9 @@ SAFPLUS_LIBS := clMgt clUtils clLog clCkpt clGroup clMsg clOsal clDbal clAmfMgmt
 SAFPLUS_DEP_LIBS     := $(addsuffix .so,$(addprefix $(LIB_DIR)/lib,$(SAFPLUS_LIBS)))
 SAFPLUS_LINK_LIBS := -L$(LIB_DIR) $(addprefix -l,$(SAFPLUS_LIBS))
 
-PY_INC := -I$(SYSTEM_INC_DIR) -I$(SYSTEM_INC_DIR)/python2.7
+PY_INC := -I$(SYSTEM_INC_DIR) -I$(SYSTEM_INC_DIR)/python3.5
 # Note to make boost_python: cd boost/libs/python/example/quickstart; ../../../../bjam toolset=gcc --verbose-test test
-PY_LIB := -lpython2.7 -L$(BOOST_DIR)/libs -lboost_python
+PY_LIB := -lpython3.5m -L$(BOOST_DIR)/libs -lboost_python
 
 PY_CLIENT_H := $(wildcard *.hpp) $(wildcard ../include/*.hpp) $(wildcard ../include/*.hxx)
 PY_CLIENT_SRC := $(wildcard *.cxx)

@@ -1,5 +1,5 @@
-#!/usr/bin/env python
-###############################################################################
+#!/usr/bin/env python3
+##############################################################################
 #
 # Copyright (C) 2020 by OpenClovis Inc. All  Rights Reserved.
 # 
@@ -46,7 +46,7 @@ about:                                                                 SAFplus
 - list all SU in the cluster and their state (and node to run on)       Y
 
 """
-
+from functools import cmp_to_key
 import sys
 import os
 import time
@@ -54,7 +54,7 @@ import signal
 import cmd
 import pdb
 import re
-import commands
+#import commands
 import subprocess
 import socket
 import fcntl
@@ -63,20 +63,20 @@ import safplus as s
 import microdom
 import amfctrl
 
-try:
-    from lxml import etree as et
-    hasLxml = True
-except ImportError:
-    import xml.dom.minidom as minidom
-    hasLxml = False
+#try:
+from lxml import etree as et
+#    hasLxml = True
+#except ImportError:
+#    import xml.dom.minidom as minidom
+#    hasLxml = False
 
 
 access = None
 try:
     import localaccess
     access = localaccess    
-except ImportError, e:
-    print e
+except ImportError as e:
+    print (e)
     pass
 
 
@@ -214,7 +214,7 @@ class Dot:
 
     def __repr__(self): return 'Dot(%s)' % self.__str__()
 
-    def has_key(self, key): return self.__dict__.has_key(key)
+    #def has_key(self, key): return self.__dict__.has_key(key)
 
     def keys(self): return self.__dict__.keys()
 
@@ -263,7 +263,7 @@ def get_ip_address(ifname):
     return socket.inet_ntoa(fcntl.ioctl(
         s.fileno(),
         0x8915,  # SIOCGIFADDR
-        struct.pack('256s', ifname[:15])
+        struct.pack('256s', bytes(ifname[:15],'utf-8'))
         )[20:24])
 
 def color(code, string):
@@ -309,12 +309,12 @@ def dbmsg(level, *args):
     """ Level sensitive debug printing function """
     if _dblevel >= level:
         for s in args:
-            print s,
-        print ''
+            print (s),
+        print ('')
 
 
 def error(msg):
-    print '***Error: ' + msg
+    print ('***Error: ' + msg)
     global _exit_code
     _exit_code = 1
 
@@ -340,7 +340,7 @@ def load_asp_run_env():
     if _asp_run_env:
         return _asp_run_env
     
-    f = file(_asp_dir + '/etc/asp_run.env')
+    f = open(_asp_dir + '/etc/asp_run.env', "r")
     lines = f.readlines()
     f.close()
     try:
@@ -360,7 +360,7 @@ def safe_remove(f):
     
 def get_amf_pid(watchdog_pid = False):
     while True:
-        valid = commands.getstatusoutput("pidof %s" % AMF_NAME);
+        valid = subprocess.getstatusoutput("pidof %s" % AMF_NAME);
         if valid[0] == 0:
             if len(valid[1].split())==1:
                 return int(valid[1])
@@ -369,7 +369,7 @@ def get_amf_pid(watchdog_pid = False):
         log.warning('There is more than one AMF pid. Try again...')
         time.sleep(0.25)
     if watchdog_pid:
-         valid = commands.getstatusoutput("pidof safplus_watchdog.py");
+         valid = subprocess.getstatusoutput("pidof safplus_watchdog.py");
          if valid[0] == 0:
             return int(valid[1])
     return 0;
@@ -450,7 +450,7 @@ def get_status_info():
         (ec, output, signal, core) = system(cmd)
         if ec:
             raise CommandError('SAFplus is reported running, but could not retrieve PID')
-        d.pid = output[0].split()[0].strip()
+        d.pid = output[0].split()[0].strip().decode('utf-8')
         # Sanity check: if 'up', same pid should have been in res message
         if d.status == 'up' and res.find(d.pid) == -1:
             raise UnknownError('PID mismatch beetween asp status and pgrep')
@@ -585,7 +585,7 @@ def countActiveStandbySU(sg):
             elif su.haState.data_ == 'standby':
                 numStandbys+=1
         else:
-            print 'mgtget for su %s failed'% sun
+            print ('mgtget for su %s failed'% sun)
     return numActives,numStandbys
 
 def countInstantiatedComp(su):
@@ -599,7 +599,7 @@ def countInstantiatedComp(su):
             if comp.presenceState.data_ == 'instantiated':
                 count+=1                
         else:
-            print 'mgtget for comp %s failed'% compName
+            print ('mgtget for comp %s failed'% compName)
     #print 'count:%d\n\n\n'%count
     return count
 
@@ -813,6 +813,9 @@ def get_comps_info():
     
     return comps
 
+def cmp(a,b):
+    return (a>b)-(a<b)
+
 class Cli(cmd.Cmd):
     """Command line handler class"""
     
@@ -838,9 +841,9 @@ class Cli(cmd.Cmd):
             except: # Catch all readline exceptions since this an optional component
                 pass
 
-        print
-        print color('bold', WELCOME_MSG)
-        print '-'*len(WELCOME_MSG)
+        print ()
+        print (color('bold', WELCOME_MSG))
+        print ('-'*len(WELCOME_MSG))
 
     def postloop(self):
         """ Save history file """
@@ -864,7 +867,7 @@ class Cli(cmd.Cmd):
     def do_exit(self, msg):
         """Exiting the asp-info utility"""
         if len(msg):
-            print 'No arguments to exit command, please'
+            print ('No arguments to exit command, please')
             return
         return(1) # will exit cmd loop (but call postloop() first)
 
@@ -884,15 +887,15 @@ class Cli(cmd.Cmd):
 
         try:
             info = get_status_info()
-        except AspError, e:
+        except AspError as e:
             error(str(e))
             return 0
-        print 'SAFplus run status:          %s' % color('bold-red',
-                                                    '%(status)s' % info)
-        print 'pid of safplus_amf:          %(pid)s' % info
+        print ('SAFplus run status:          %s' % color('bold-red',
+                                                    '%(status)s' % info))
+        print ('pid of safplus_amf:          %(pid)s' % info)
         # print 'node instance name:      %(nodename)s' % info
 
-        print 'actual node address:         %(nodeaddr)s' % info        
+        print ('actual node address:         %(nodeaddr)s' % info)
         
         # TODO: try connecting to local node and master node and fill the following info:
         # Hint: use mgtGet(dest, xpath) in which dest is masterHandle. If it returns an empty string, the master is not available, otherwise, it's available
@@ -918,7 +921,7 @@ class Cli(cmd.Cmd):
         else:
             d['master'] = 'available'
             
-        print 'SAFplus master console:      %(master)s' % d
+        print ('SAFplus master console:      %(master)s' % d)
         try:
             xml = mgtGet(xmlRoot+'/ServiceInstance')
             #if len(xml)>0:
@@ -928,7 +931,7 @@ class Cli(cmd.Cmd):
             d['console'] = 'available'
         except:
             d['console'] = 'not available' #TODO: more specific error handling
-        print 'SAFplus local console:       %(console)s' % d    
+        print ('SAFplus local console:       %(console)s' % d)
     
     ##
     ## cluster command
@@ -938,7 +941,7 @@ class Cli(cmd.Cmd):
 
         try:
             nodes = get_cluster_info()
-        except AspError, e:
+        except AspError as e:
             error(str(e))
             return 0
         
@@ -951,15 +954,15 @@ class Cli(cmd.Cmd):
         h.nodename, h.nodetype, h.hastate,  h.nodeaddr = \
         'NODE-NAME', 'NODE-TYPE', 'HA-STATE', 'NODE-ADDR'
 
-        nodes.sort(lambda x,y: cmp(int(x.nodeaddr), int(y.nodeaddr)))
+        nodes.sort(key = cmp_to_key(lambda x,y: cmp(int(x.nodeaddr), int(y.nodeaddr))))
 
-        print color('bold', fmt % h)
+        print (color('bold', fmt % h))
         status_info = get_status_info()
         for n in nodes:
             line = n.hastate == 'active' and color('bold-red', fmt % n) or fmt % n
             if n.nodeaddr == status_info.nodeaddr:
                 line += ' <-- this node'
-            print line
+            print (line)
         #print info
     
     ##
@@ -981,9 +984,10 @@ class Cli(cmd.Cmd):
         "    ASU:        # of assigned SUs\n"
         try:
             nodes = get_nodes_info()
-        except:
+        except Exception as e:
             error('Command is not available while SAFplus is down (run "status"),')
             error('or if another safplus_console is running')
+            error(str(e))
             return 0
 
         if len(nodes)==0:
@@ -999,15 +1003,15 @@ class Cli(cmd.Cmd):
         h.nodename, h.astate,  h.presence, h.operstate, h.isu, h.asu = \
         'NODE',     'AS',      'PS',       'OS',       'ISU',       'ASU'
         
-        nodes.sort(lambda x,y: cmp(x.nodename, y.nodename))
-        print color('bold', fmt % h)
+        nodes.sort(key = cmp_to_key(lambda x,y: cmp(x.nodename, y.nodename)))
+        print (color('bold', fmt % h))
         for n in nodes:
             if  n.astate == 'UL':
-                print color('bold-red', fmt % n)
+                print (color('bold-red', fmt % n))
             elif n.astate == 'LA':
-                print color('yellow', fmt % n)
+                print (color('yellow', fmt % n))
             else:
-                print fmt % n    
+                print (fmt % n)
 
     def do_forest(self, msg):
         """print the HA hierarchy for each SG in the cluster (call 'tree' for each SG)"""
@@ -1037,9 +1041,9 @@ class Cli(cmd.Cmd):
             error('Could not find SG [%s] in AMF database' % sg_name)
             return 0       
 
-        print 'SG %s (state:%s)' % \
+        print ('SG %s (state:%s)' % \
             (color('bold', sg.name.data_),
-             color('bold-red', _state_map[sg.adminState.data_]))
+             color('bold-red', _state_map[sg.adminState.data_])))
 
         
         def getNodeNameList(nodes):            
@@ -1063,7 +1067,7 @@ class Cli(cmd.Cmd):
         #nodes.sort()
         for node in nodes:
 
-            print '   Node %s' % color('bold', node.name.data_)            
+            print ('   Node %s' % color('bold', node.name.data_))
             
             sus = [su for sun,su in suList
                    if su.node.data_[su.node.data_.rfind('/')+1:] == node.name.data_]
@@ -1071,9 +1075,9 @@ class Cli(cmd.Cmd):
             #sus.sort(lambda x,y: cmp(x.value, y.value))
             for su in sus:
 
-                print '        SU %s (state:%s)' % \
+                print ('        SU %s (state:%s)' % \
                     (color('bold', su.name.data_),
-                     color('bold-red', _state_map[su.adminState.data_]))
+                     color('bold-red', _state_map[su.adminState.data_])))
                 sis = []
                 siNames = [x.strip() for x in su.assignedServiceInstances.data_.split(",")]
                 for sin in siNames:
@@ -1090,8 +1094,8 @@ class Cli(cmd.Cmd):
                         siState = 'active'
                     elif su.numStandbyServiceInstances.current.data_ > 0:
                         siState = 'standby'
-                    print '           SI %s (state:%s)' % \
-                        (si.name.data_, color_state(siState))
+                    print ('           SI %s (state:%s)' % \
+                        (si.name.data_, color_state(siState)))
         
                 compNames = amfctrl.csv2List(su.components.data_)
                 comps = []
@@ -1103,12 +1107,12 @@ class Cli(cmd.Cmd):
                         comps.append(compMicrodom)
                 
                 for comp in comps:                    
-                    print '           Comp %s (PS:%s OS:%s RS:%s PID:%s)' % \
+                    print ('           Comp %s (PS:%s OS:%s RS:%s PID:%s)' % \
                         (color('bold', comp.name.data_),
                          comp.presenceState.data_,
                          _operstate_map[str(comp.operState.data_)],
                          _readiness_map[comp.readinessState.data_],
-                         color('bold-cyan', comp.processId.data_))                    
+                         color('bold-cyan', comp.processId.data_)))                    
 
                     csis = []
                     for si in sis:                        
@@ -1149,8 +1153,8 @@ class Cli(cmd.Cmd):
                         #print 'active comps:%s'%str(activeComps)
                         #print 'standby comps:%s'%str(standbyComps)
                     
-                    print '                CSI %s (state:%s)' % \
-                            (csin, color_state(csiState))
+                    print ('                CSI %s (state:%s)' % \
+                            (csin, color_state(csiState)))
                     #del csis
 
     def do_sgs(self, msg):
@@ -1175,16 +1179,16 @@ class Cli(cmd.Cmd):
         h.sgname,  h.astate,  h.activesus, h.stbysus, h.started = \
         'SG-NAME',     'AS',     'A-SUS',     'S-SUS',   'STARTED'
         
-        sgs.sort(lambda x,y: cmp(x.sgname, y.sgname))
+        sgs.sort(key = cmp_to_key(lambda x,y: cmp(x.sgname, y.sgname)))
 
-        print color('bold', fmt % h)
+        print (color('bold', fmt % h))
         for sg in sgs:
             if  sg.astate == 'UL':
-                print color('bold-red', fmt % sg)
+                print (color('bold-red', fmt % sg))
             elif sg.astate == 'LA':
-                print color('yellow', fmt % sg)
+                print (color('yellow', fmt % sg))
             else:
-                print fmt % sg
+                print (fmt % sg)
 
     def do_sus(self, msg):
         "Show list of service units\n" \
@@ -1233,16 +1237,16 @@ class Cli(cmd.Cmd):
         h.suname,  h.sgname,      h.nodename, h.astate,  h.presence, h.operstate, h.readiness, h.comps, h.sis = \
         'SU-NAME','MEMBER-OF-SG', 'ON-NODE',  'AS',     'PS',       'OS',        'RS',        'IC',    'SIS'
         
-        sus.sort(lambda x,y: cmp(x.suname, y.suname))
+        sus.sort(key = cmp_to_key(lambda x,y: cmp(x.suname, y.suname)))
         
-        print color('bold', fmt % h)
+        print (color('bold', fmt % h))
         for su in sus:
             if  su.astate == 'UL':
-                print color('bold-red', fmt % su)
+                print (color('bold-red', fmt % su))
             elif su.astate == 'LA':
-                print color('yellow', fmt % su)
+                print (color('yellow', fmt % su))
             else:
-                print fmt % su
+                print (fmt % su)
 
     def do_components(self, msg):
         "Show user components running on this node\n" \
@@ -1267,9 +1271,9 @@ class Cli(cmd.Cmd):
         
         #comps.sort(lambda x,y: cmp(x.compname, y.compname))
         
-        print color('bold', fmt % h)
+        print (color('bold', fmt % h))
         for c in comps:
-            print c.running=='Y' and color('bold-red', fmt % c) or fmt % c
+            print (c.running=='Y' and color('bold-red', fmt % c) or fmt % c)
 
     def do_lock_a(self, msg):
         "Lock-assigment on an SG,SU,NODE or SI\n" \
@@ -1293,7 +1297,7 @@ class Cli(cmd.Cmd):
         dummyHdl = s.getProcessHandle(0,0)
         ret = s.amfMgmtInitialize(dummyHdl)
         if ret != 0x0:
-            print 'Cannot initialize safplus amf managememt, error code [0x%x]'% ret
+            print ('Cannot initialize safplus amf managememt, error code [0x%x]'% ret)
             return 0
         if e_type == 'sg':
             ret = s.amfMgmtSGLockAssignment(dummyHdl, e_name)
@@ -1304,13 +1308,13 @@ class Cli(cmd.Cmd):
         elif e_type == 'si':
             ret = s.amfMgmtSILockAssignment(dummyHdl, e_name)
         if ret == 0x11:
-            print "entity [%s] does not exist" % e_name
+            print ("entity [%s] does not exist" % e_name)
         elif ret == 0x12:
-            print "entity [%s] has an invalid state for lockAssignment" % e_name
+            print ("entity [%s] has an invalid state for lockAssignment" % e_name)
         elif ret == 0x0:
-            print " entity [%s] lockAssignment OK" % e_name
+            print (" entity [%s] lockAssignment OK" % e_name)
         else:
-            print "entity [%s] lockAssignment unknown error [0x%x]" % (e_name,ret)
+            print ("entity [%s] lockAssignment unknown error [0x%x]" % (e_name,ret))
         ret = s.amfMgmtFinalize(dummyHdl)
         
     def do_lock_i(self, msg):
@@ -1334,7 +1338,7 @@ class Cli(cmd.Cmd):
         dummyHdl = s.getProcessHandle(0,0)
         ret = s.amfMgmtInitialize(dummyHdl)
         if ret != 0x0:
-            print 'Cannot initialize safplus amf managememt, error code [0x%x]'% ret
+            print ('Cannot initialize safplus amf managememt, error code [0x%x]'% ret)
             return 0
         if e_type == 'sg':
             ret = s.amfMgmtSGLockInstantiation(dummyHdl, e_name)
@@ -1343,13 +1347,13 @@ class Cli(cmd.Cmd):
         elif e_type == 'su':
             ret = s.amfMgmtSULockInstantiation(dummyHdl, e_name)
         if ret == 0x11:
-            print "entity [%s] does not exist" % e_name
+            print ("entity [%s] does not exist" % e_name)
         elif ret == 0x12:
-            print "entity [%s] has an invalid state for lockInsantiation" % e_name
+            print ("entity [%s] has an invalid state for lockInsantiation" % e_name)
         elif ret == 0x0:
-            print " entity [%s] lockInsantiation OK" % e_name
+            print (" entity [%s] lockInsantiation OK" % e_name)
         else:
-            print "entity [%s] lockInstantiation unknown error [0x%x]" % (e_name,ret)
+            print ("entity [%s] lockInstantiation unknown error [0x%x]" % (e_name,ret))
         ret = s.amfMgmtFinalize(dummyHdl)
 
     def do_unlock(self, msg):
@@ -1374,7 +1378,7 @@ class Cli(cmd.Cmd):
         dummyHdl = s.getProcessHandle(0,0)
         ret = s.amfMgmtInitialize(dummyHdl)
         if ret != 0x0:
-            print 'Cannot initialize safplus amf managememt, error code [0x%x]'% ret
+            print ('Cannot initialize safplus amf managememt, error code [0x%x]'% ret)
             return 0
         if e_type == 'sg':
             ret = s.amfMgmtSGUnlock(dummyHdl, e_name)
@@ -1385,13 +1389,13 @@ class Cli(cmd.Cmd):
         elif e_type == 'si':
             ret = s.amfMgmtSIUnlock(dummyHdl, e_name)
         if ret == 0x11:
-            print "entity [%s] does not exist" % e_name
+            print ("entity [%s] does not exist" % e_name)
         elif ret == 0x12:
-            print "entity [%s] has an invalid state for unlock" % e_name
+            print ("entity [%s] has an invalid state for unlock" % e_name)
         elif ret == 0x0:
-            print " entity [%s] unlock OK" % e_name
+            print (" entity [%s] unlock OK" % e_name)
         else:
-            print "entity [%s] unlock unknown error [0x%x]" % (e_name,ret)
+            print ("entity [%s] unlock unknown error [0x%x]" % (e_name,ret))
         ret = s.amfMgmtFinalize(dummyHdl)
 
 
@@ -1496,7 +1500,7 @@ echo_cmd = '/bin/echo'
     s = imp.new_module("aspinfo_%s" % p)
     sys.modules['aspinfo_%s'%p] = s
 
-    exec code in s.__dict__
+    exec (code, s.__dict__)
 
     d = {}
 
@@ -1521,7 +1525,7 @@ def main(argv):
     cli = Cli(HISTORY_FILE)
     
     def usage(exit_code=0):
-        print USAGE_MSG
+        print (USAGE_MSG)
         cli.onecmd('help')
         sys.exit(exit_code)
 
@@ -1560,7 +1564,7 @@ def main(argv):
         try:
             cli.cmdloop("Starting interactive prompt (type 'help' for help)")
         except KeyboardInterrupt:
-            print 'Exiting on Ctrl-C'
+            print ('Exiting on Ctrl-C')
     sys.exit(0)
 
 asp_run_env = load_asp_run_env()

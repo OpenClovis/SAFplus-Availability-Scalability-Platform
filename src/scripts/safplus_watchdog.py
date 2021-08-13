@@ -1,12 +1,12 @@
-#!/usr/bin/python
+#!/usr/bin/python3
 
-import commands
 import time
 import os
 import sys
 import traceback
 import logging
 import safplus as asp
+import subprocess
 
 ASP_RESTART_FILE = 'safplus_restart'
 ASP_WATCHDOG_RESTART_FILE='safplus_restart_watchdog'
@@ -26,13 +26,13 @@ def asp_admin_stop():
 
 def configWatchdogLog():
     logging.basicConfig(filename='%s/amf_watchdog.log' % asp.get_asp_log_dir(), format='%(levelname)s %(asctime)s.%(msecs)d %(message)s', level=logging.DEBUG, datefmt='%a %d %b %Y %H:%M:%S')
-    os.chmod('%s/amf_watchdog.log' % asp.get_asp_log_dir(), 0644);
+    os.chmod('%s/amf_watchdog.log' % asp.get_asp_log_dir(), 0o644);
     global fileLogger
     fileLogger = logging.getLogger()
 
 def get_amf_pid():
     while True:
-        valid = commands.getstatusoutput("pidof safplus_amf");
+        valid = subprocess.getstatusoutput("pidof safplus_amf");
         if valid[0] == 0:
             return valid[1]    
         else:
@@ -143,7 +143,7 @@ def amf_watchdog_loop():
                         logging.debug('SAFplus watchdog ignoring node failure, as it might be due to shutdown request from logd')
                         asp.proc_lock_file('remove')
                         sys.exit(1)
-        except Exception,e:
+        except Exception as e:
             logging.critical('SAFplus watchdog received exception %s' %str(e))
             logging.critical('traceback: %s',traceback.format_exc())
         time.sleep(monitor_interval)

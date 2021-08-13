@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/env python3
 """
 @namespace DBAL 
 
@@ -13,9 +13,9 @@ try:
   import pyDbal
   import microdom
   from common import *
-except ImportError, e:
-  print "Unable to import SAFplus libraries.  Is your PATH and PYTHONPATH set up properly?"
-  print "Error was:", str(e)
+except ImportError as e:
+  print ("Unable to import SAFplus libraries.  Is your PATH and PYTHONPATH set up properly?")
+  print ("Error was:", str(e))
   exit(1)
 
 from xml.etree import ElementPath
@@ -107,10 +107,10 @@ class PyDBAL():
             if self.docRoot is not None:
                 self.suppliedData = self.suppliedData.get(self.docRoot)
 
-        except IOError, e: # If the supplied data file does not exist just print a warning
+        except IOError as e: # If the supplied data file does not exist just print a warning
             raise Exception("Supplied data file %s does not exist.  You may need to export SAFPLUS_CONFIG enviroment variable" % xmlFile)
 
-        except Exception, e: # If the supplied data file does not exist just print a warning
+        except Exception as e: # If the supplied data file does not exist just print a warning
             raise Exception("Invalid format XML file!")
 
         self.xpathDB = {}
@@ -167,11 +167,11 @@ class PyDBAL():
                 child = microdom.keyify(element.tag_)
 
             #Add index key into list container, also modify old one with index [1]
-            if self.xpathParentDB.has_key(xpath):
+            if xpath in self.xpathParentDB:
                 #Update old xpath to new with append suffix [1]
                 if self.xpathParentDB[xpath] == 1:
                     # Lookup on xpathDB and replace with extra index [1]
-                    for key in filter(lambda key: key.rfind(xpath) != -1, self.xpathDB.keys()):
+                    for key in list(filter(lambda key: key.rfind(xpath) != -1, self.xpathDB.keys())):
                         key_prefix = xpath + "[1]"
                         key_new = key.replace(xpath, key_prefix)
                         self.xpathDB[key_new] = self.xpathDB.pop(key)
@@ -218,13 +218,13 @@ class PyDBAL():
                 metadata[parentXpath] = [childXpath]
 
         attributes = None
-        next = iter(ElementPath.xpath_tokenizer(childXpath)).next
+        iterObj = iter(ElementPath.xpath_tokenizer(childXpath))
 
         while 1:
                 try:
-                    token = next()
+                    token = next(iterObj)
                     if token[0] == "[":
-                        attributes = self._transformAttr(next, token)
+                        attributes = self._transformAttr(iterObj, token)
                 except StopIteration:
                     break
 
@@ -234,7 +234,7 @@ class PyDBAL():
         return childXpath, attributes
 
     """ Build element attribute """
-    def _transformAttr(self, next, token):
+    def _transformAttr(self, iterObj, token):
         predicate = []
         attributes = {}
 
@@ -242,7 +242,7 @@ class PyDBAL():
         #Ex: /a/b/c[@name="foo" and @id="bar"] => attributes {name=foo, id=bar}
         if token[0] == "[":
             while 1:
-                token = next()
+                token = next(iterObj)
                 if token[0] == "]":
                     break
                 if token[0] and token[0][:1] in "'\"":
@@ -306,10 +306,10 @@ class PyDBAL():
 
             try:
               value = str(self.Read(xpath)[0])
-            except SystemError, e:
-              print "Cannot read [%s], error %s" % (xpath,str(e))
+            except SystemError as e:
+              print ("Cannot read [%s], error %s" % (xpath,str(e)))
               continue
-            next = iter(ElementPath.xpath_tokenizer(xpath)).next
+            iterObj = iter(ElementPath.xpath_tokenizer(xpath))
 
             #For each leaf node on xpath
             current_elemment = root
@@ -322,9 +322,9 @@ class PyDBAL():
 
             while 1:
                 try:
-                    token = next()
+                    token = next(iterObj)
                     if token[0] == "/":
-                        token = next()
+                        token = next(iterObj)
 
                         #Ignore attribue element (xpath=//sg/@name)
                         if token[0] == "@":
@@ -350,7 +350,7 @@ class PyDBAL():
                             else:
                                 current_elemment = self._buildNode(current_xpath)
                     elif token[0] == "[":
-                        attributes = self._transformAttr(next, token)
+                        attributes = self._transformAttr(iterObj, token)
                         if len(attributes) > 0:
                             current_elemment.attrib = attributes
 
@@ -364,7 +364,7 @@ class PyDBAL():
         if filename is None:
             filename = "%s.xml" %self.dbName
 
-        file = open(filename, "wb")
+        file = open(filename, "w")
 
         ''' Wrapper into <SAFplus version="..."> ... </SAFplus>'''
         wrapper_safplus = ET.Element(ROOT_WRAPPER)
@@ -372,7 +372,7 @@ class PyDBAL():
         if root is not None:
           wrapper_safplus.append(root)
         else:  
-          print "Warning: empty database"
+          print ("Warning: empty database")
         file.write(prettify(wrapper_safplus))
         file.close()
 
@@ -390,62 +390,62 @@ class PyDBAL():
             return pyDbal.iterators('/') #Default select all rows of db
 
     def mergeNonSafComp2Comp(self, key, nonSafCompValue):
-        print '[A0] reading child of key [%s]'%key
+        print ('[A0] reading child of key [%s]'%key)
         ret = self.Read(key)
         if ret:
             value = ret[0]
             child = ret[1]
             if value and len(value)>0 and len(child)==0:
-                print '[A0] value of key [%s] is [%s]:'%(key,value)
+                print ('[A0] value of key [%s] is [%s]:'%(key,value))
                 compIdxList = ['[1]','[2]']
                 #Writing /safplusAmf/ServiceUnit[@name="ServiceUnit13"]/nonSafComponents ->  childs: [[1],[2]...]
                 pyDbal.write(key,'',compIdxList)
                 #Write [/safplusAmf/ServiceUnit[@name="ServiceUnit13"]/components[n]] -> [Componentxy] children [0]
                 k = key+compIdxList[0]
-                print "[A0] Writing %s -> %s childs: [0]" % (str(k),value)                
+                print ("[A0] Writing %s -> %s childs: [0]" % (str(k),value))
                 pyDbal.write(k,value,[])
                 #Write [/safplusAmf/ServiceUnit[@name="ServiceUnit13"]/components[n]] -> [Componentxy] children [0]
                 k = key+compIdxList[1]
-                print "[A0] Writing %s -> %s childs: [0]" % (str(k),nonSafCompValue)                
+                print ("[A0] Writing %s -> %s childs: [0]" % (str(k),nonSafCompValue))                
                 pyDbal.write(k,nonSafCompValue,[])
             else:
-                print '[A0] child of key [%s] is of size [%d]:'%(key,len(child))                
+                print ('[A0] child of key [%s] is of size [%d]:'%(key,len(child)))          
                 for c in child:
-                    print '[A0]: %s'%c  # c is [n]
+                    print ('[A0]: %s'%c)  # c is [n]
                 c = child[len(child)-1]
                 i1 = c.find('[')
                 i2 = c.find(']')
                 lastIdx=int(c[i1+1:i2])
                 lastIdx+=1
                 child.append('[%d]'%lastIdx)
-                print '[A0] new child of key [%s] is of size [%d]:'%(key,len(child))                
+                print ('[A0] new child of key [%s] is of size [%d]:'%(key,len(child)))
                 for c in child:
-                    print '[A0]: %s'%c  # c is [n]
-                print "[A0] Writing %s -> childs: [%d]" % (str(key),len(child))
+                    print ('[A0]: %s'%c)  # c is [n]
+                print ("[A0] Writing %s -> childs: [%d]" % (str(key),len(child)))
                 #Writing /safplusAmf/ServiceUnit[@name="ServiceUnit13"]/nonSafComponents ->  childs: [[1],[2]...]
                 pyDbal.write(key,'', child)
                 #Write [/safplusAmf/ServiceUnit[@name="ServiceUnit13"]/components[n]] -> [Componentxy] children [0]
                 k = '%s[%d]'%(key,lastIdx)
-                print "[A0] Writing %s -> %s childs: [0]" % (str(k),nonSafCompValue)
+                print ("[A0] Writing %s -> %s childs: [0]" % (str(k),nonSafCompValue))
                 pyDbal.write(k,nonSafCompValue,[])
         else:
-            print "[A0] Writing %s -> %s childs: [0]" % (str(key),nonSafCompValue)
+            print ("[A0] Writing %s -> %s childs: [0]" % (str(key),nonSafCompValue))
             pyDbal.write(key,nonSafCompValue,[])
 
     def Write(self, key, data, childs = []):
-        print "Writing %s -> %s childs: [%s]" % (str(key), str(data), ",".join(childs))
+        print ("Writing %s -> %s childs: [%s]" % (str(key), str(data), ",".join(childs)))
         recordWritten = False
         i = key.rfind('nonSafComponents[')
         if i>1:
             #oriKey = key
-            print '[A] case nonSafComponents['
+            print ('[A] case nonSafComponents[')
             key = key[:i]+'components'
             self.mergeNonSafComp2Comp(key,data)
             recordWritten = True
         else:           
            i = key.rfind('nonSafComponents')
            if i>1 and len(childs)==0:
-               print '[A] case nonSafComponents without childs'
+               print ('[A] case nonSafComponents without childs')
                key = key[:i]+'components'
                self.mergeNonSafComp2Comp(key,data)
                recordWritten = True
@@ -455,7 +455,7 @@ class PyDBAL():
             if 'components' not in children:
                 children.append('components')
         if not recordWritten:
-            print "[A] Writing %s -> %s childs: [%s]" % (str(key), str(data), ",".join(children))
+            print ("[A] Writing %s -> %s childs: [%s]" % (str(key), str(data), ",".join(children)))
             return pyDbal.write(key, data, children)
         return None
 
@@ -463,7 +463,7 @@ class PyDBAL():
         ret = None
         try:
             ret = pyDbal.read(key)
-        except Exception, e:
-            print 'Read exception, message [%s]'%str(e)
+        except Exception as e:
+            print ('Read exception, message [%s]'%str(e))
         return ret   
     

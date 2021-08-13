@@ -23,8 +23,12 @@ using namespace boost::python;
 
 static object buffer_get(Buffer& self)
 {
-  PyObject* pyBuf = PyBuffer_FromReadWriteMemory(self.data, self.len());
-  object retval = object(handle<>(pyBuf));
+  //PyObject* pyBuf = PyBuffer_FromReadWriteMemory(self.data, self.len());
+  Py_buffer pyBuf;
+  int rc = PyBuffer_FillInfo(&pyBuf, NULL, self.data, self.len(), true, PyBUF_CONTIG_RO);
+  PyObject* pyObj = PyMemoryView_FromBuffer(&pyBuf);
+  object retval = object(handle<>(pyObj));
+  //object retVal(handle<>(pyBuf));
   return retval;
 }
 
@@ -35,8 +39,12 @@ static object ckpt_get(Checkpoint& self, char* key)
     {
       uint_t len = b.len();
       if (b.isNullT()) len--;
-      PyObject* pyBuf = PyBuffer_FromMemory((void*)b.data, len);
-      object retval = object(handle<>(pyBuf));
+      //PyObject* pyBuf = PyBuffer_FromMemory((void*)b.data, len);
+      //PyObject* pyBuf = PyMemoryView_FromBuffer((void*)b.data, len, PyBUF_READ);
+      Py_buffer pyBuf;
+      int rc = PyBuffer_FillInfo(&pyBuf, NULL, (void*)b.data, len, true, PyBUF_CONTIG_RO);
+      PyObject* pyObj = PyMemoryView_FromBuffer(&pyBuf);
+      object retval = object(handle<>(pyObj));
       return retval;
     }
   PyErr_SetString(PyExc_KeyError, key);
