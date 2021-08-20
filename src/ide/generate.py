@@ -18,7 +18,7 @@ class TemplateMgr:
   
   def loadPyTemplate(self,fname):
     """Load a template file and return it as a string"""
-    if self.cache.has_key(fname): return self.cache[fname]
+    if fname in self.cache: return self.cache[fname]
 
     fname = common.fileResolver(fname);
     f = open(fname,"r")
@@ -65,7 +65,7 @@ def topMakefile(output, srcDir,dirNames):
 
     # Get infomation about model
     nodeIntances = []
-    for (name, e) in share.detailsPanel.model.instances.items():
+    for (name, e) in list(share.detailsPanel.model.instances.items()):
       if e.data['entityType'] == "Node":
         nodeIntances.append(name)
 
@@ -101,10 +101,10 @@ def cpp(output, srcDir, comp,ts_comp, proxy=False):
       pass
     
     if not proxy:
-      print 'gen cpp for non-proxy'
+      print('gen cpp for non-proxy')
       cpptmpl = templateMgr.loadPyTemplate(TemplatePath + "main.cpp.ts")
     else:
-      print 'gen cpp for proxy'
+      print('gen cpp for proxy')
       cpptmpl = templateMgr.loadPyTemplate(TemplatePath + "mainProxy.cpp.ts")
 
     main = cpptmpl.safe_substitute(**ts_comp)
@@ -117,13 +117,13 @@ def cpp(output, srcDir, comp,ts_comp, proxy=False):
     parentFrame = share.instancePanel.guiPlaces.frame
     template = {}
     if not os.path.exists(srcDir+os.sep+compName) or os.path.exists(srcDir+os.sep+compName) and not any(item.endswith('.cxx') for item in os.listdir(srcDir+os.sep+compName)):
-      print 'Source code does not exist so create them'
+      print('Source code does not exist so create them')
       # Create main.cxx
       if not proxy:
-        print 'create cpp for non-proxy'
+        print('create cpp for non-proxy')
         output.write(srcDir + os.sep + compName + os.sep + "main.cxx", main)
       else:
-        print 'create cpp for proxy'
+        print('create cpp for proxy')
         output.write(srcDir + os.sep + compName + os.sep + "proxyMain.cxx", main)
       # Create Makefile
       output.write(srcDir + os.sep + compName + os.sep + "Makefile", makefile)
@@ -145,11 +145,11 @@ def cpp(output, srcDir, comp,ts_comp, proxy=False):
                 output.write(srcDir + os.sep + compName + os.sep + "Makefile", makefile)
               else:
                 if not proxy:
-                  print 'create cpp for non-proxy'
+                  print('create cpp for non-proxy')
                   output.write(srcDir + os.sep + compName + os.sep + "main.cxx", main)
       
                 else:
-                  print 'create cpp for proxy'
+                  print('create cpp for proxy')
                   output.write(srcDir + os.sep + compName + os.sep + "proxyMain.cxx", main)
             elif result == 1:
               pass   
@@ -159,11 +159,11 @@ def cpp(output, srcDir, comp,ts_comp, proxy=False):
               output.write(srcDir + os.sep + compName + os.sep + "Makefile", makefile)    
             else:
               if not proxy:
-                print 'create cpp for non-proxy'
+                print('create cpp for non-proxy')
                 output.write(srcDir + os.sep + compName + os.sep + "main.cxx", main)
       
               else:
-                print 'create cpp for proxy'
+                print('create cpp for proxy')
                 output.write(srcDir + os.sep + compName + os.sep + "proxyMain.cxx", main)
           # Do not show the dialog again and never overwrite the source code.
           elif parentFrame.project.prjProperties['mergeMode'] == "never":

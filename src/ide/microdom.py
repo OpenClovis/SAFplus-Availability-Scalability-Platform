@@ -50,7 +50,7 @@ class AnyChild:
         if result is not None: return result
       except:
         pass
-    for (k,v) in self.microdom.attributes_.items():
+    for (k,v) in list(self.microdom.attributes_.items()):
       try:        
         if k == item: return v        
       except:
@@ -70,10 +70,10 @@ class AnyChild:
 
 
 #? Returns True if the passed object is a MicroDom instance
-def isMicroDom(x): return (type(x) is InstanceType and x.__class__ is MicroDom)
+def isMicroDom(x): return (isinstance(x, MicroDom) and x.__class__ is MicroDom)
 
 #? A predicate that selects objects if they are a microdom node.  Can be given to search functions to select dom objects instead of text
-microdomFilter =  lambda(x): x if isMicroDom(x) else None
+microdomFilter =  lambda x: x if isMicroDom(x) else None
 
 
 class MicroDom:
@@ -90,7 +90,7 @@ class MicroDom:
     self.any_        = AnyChild(self,True)
   
     # quick access
-    for (k,v) in attributes.items():
+    for (k,v) in list(attributes.items()):
       try:
         self.__dict__[keyify(k)] = v
       except:
@@ -139,7 +139,7 @@ class MicroDom:
   def __setitem__(self,name,value):
     if not isMicroDom(value):
       value = MicroDom({"tag_":name},[value],None)
-    if self.child_.has_key(name):
+    if name in self.child_:
       self.delChild(name)
     self.addChild(value,name)
 
@@ -160,10 +160,10 @@ class MicroDom:
 
   def delChild(self,child):
     if child is None: return None
-    if type(child) is ListType:
+    if type(child) is list:
       for c in child:
         self.delChild(c)
-    if (type(child) is StringType) or (isinstance(child, unicode)):
+    if (isinstance(child, str)):
       tag = child
     else:
       tag = child.tag_
@@ -176,15 +176,15 @@ class MicroDom:
 
 
   def update(self,dct):
-    for i in dct.items():
-      if self.child_.has_key(i[0]):
+    for i in list(dct.items()):
+      if i[0] in self.child_:
         self.delChild(i[0])
 
-      if type(i[1]) == DictType:
+      if type(i[1]) == dict:
         tmp = MicroDom({"tag_":i[0]}, [],[])
         tmp.update(i[1])
         self.addChild(tmp)
-      elif type(i[1]) == ListType:
+      elif type(i[1]) == list:
         for elem in i[1]:
           tmp = MicroDom({"tag_":i[0]}, [],[])
           tmp.update(elem)
@@ -200,8 +200,8 @@ class MicroDom:
 
   def has_key(self,item):
     if self.tag_ == item: return True
-    if self.attributes_.has_key(item): return True
-    if self.child_.has_key(item): return True
+    if item in self.attributes_: return True
+    if item in self.child_: return True
 
   def __getitem__(self,item):
     #print "ITEM: %s" % item
@@ -222,7 +222,7 @@ class MicroDom:
     """
     For attributes you can pass in a dictionary.  The value can be either an item, or a function.  If a function the function is called with this class's attribute's value as an arguement.  The fn should return "False" if this class does NOT match.
     """
-    for (k,v) in attrs.items():
+    for (k,v) in list(attrs.items()):
       myval = self.attributes_.get(k,None)
       if type (v) is FunctionType:
         if not v(myval): return False
@@ -249,7 +249,7 @@ class MicroDom:
     return None
 
   def findOneByChild(self,key,value):
-    if self.child_.has_key(key):
+    if key in self.child_:
       myval = self.child_[key]
       if type (value) is FunctionType:
         if value(myval): return self
@@ -317,7 +317,7 @@ class MicroDom:
 
     if len(self.attributes_)>1:
       # Format attribute string, eliminating the tag_ attribute
-      attrs = ["%s='%s'" % (k,v) for (k,v) in filter(lambda i: i[0] != 'tag_', self.attributes_.items())]
+      attrs = ["%s='%s'" % (k,v) for (k,v) in [i for i in list(self.attributes_.items()) if i[0] != 'tag_']]
       attrs = " " + " ".join(attrs)
     else:
       attrs = ""
@@ -352,7 +352,7 @@ class MicroDom:
 
     if len(self.attributes_)>1:
       # Format attribute string, eliminating the tag_ attribute
-      attrs = ["%s='%s'" % (k,v) for (k,v) in filter(lambda i: i[0] != 'tag_', self.attributes_.items())]
+      attrs = ["%s='%s'" % (k,v) for (k,v) in [i for i in list(self.attributes_.items()) if i[0] != 'tag_']]
       attrs = " " + " ".join(attrs)
     else:
       attrs = ""
@@ -368,7 +368,7 @@ def LoadString(s):
   return md  
 
 def LoadFile(fil):
-  if type(fil) is ListType:
+  if type(fil) is list:
     return [LoadFile(f) for f in fil]
 
   dom = xml.dom.minidom.parse(fil)
@@ -376,7 +376,7 @@ def LoadFile(fil):
 
 
 def LoadMiniDom(dom):
-  if type(dom) is ListType:
+  if type(dom) is list:
     return [LoadMiniDom(d) for d in dom]
 
   childlist = []
@@ -391,8 +391,9 @@ def LoadMiniDom(dom):
       else:
         childlist.append(LoadMiniDom(child))
 
-  for (key,val) in dom._attrs.items():
-    attrlist[key] = val.value
+  if dom._attrs is not None:
+    for (key,val) in list(dom._attrs.items()):
+      attrlist[key] = val.value
 
   try: 
       data = dom.data
@@ -447,10 +448,10 @@ def Test():
   dom = xml.dom.minidom.parseString(x)
   md = LoadMiniDom(dom.childNodes[0])
 
-  print md.restartDuration.data_
-  print "%d" % md.restartDuration2.data_
-  print md.failbackOption.data_
-  print md.test.data_
+  print(md.restartDuration.data_)
+  print("%d" % md.restartDuration2.data_)
+  print(md.failbackOption.data_)
+  print(md.test.data_)
   
 def Test2():
   dom = LoadFile("testModel.xml")

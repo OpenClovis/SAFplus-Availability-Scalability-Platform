@@ -9,7 +9,10 @@ import os.path
 import wx
 import wx.lib.wxcairo
 import cairo
-import rsvg
+import gi
+gi.require_version('Rsvg', '2.0')
+from gi.repository import Rsvg
+
 import yang
 import svg
 import wx.lib.scrolledpanel as scrolled
@@ -49,7 +52,7 @@ CODEGEN_LANG_JAVA = wx.NewId()
 DELETE_BUTTON = wx.NewId()
 
 def reassignCommonToolIds():
-  print 'reassignCommonToolIds'
+  print('reassignCommonToolIds')
   global ENTITY_TYPE_BUTTON_START
   global SAVE_BUTTON
   global ZOOM_BUTTON
@@ -108,11 +111,11 @@ class EntityTool(Tool):
     return True
 
   def OnUnselect(self,panel,event):
-    print "Unselected %s" % self.entity.data["name"]
+    print("Unselected %s" % self.entity.data["name"])
     return True
 
   def OnEditEvent(self,panel, event):
-    pos = panel.CalcUnscrolledPosition(event.GetPositionTuple())
+    pos = panel.CalcUnscrolledPosition(event.GetPosition())
     ret = False
     if isinstance(event,wx.MouseEvent):
       if event.ButtonUp(wx.MOUSE_BTN_LEFT):  # Select
@@ -184,7 +187,7 @@ class ChildEntities (wx.PopupTransientWindow):
       # Now draw the links
       # Now draw the entites
 
-      bound = (0, 0) + self.GetClientSizeTuple()
+      bound = (0, 0) + self.GetClientSize()
       for ent,place in zip(self.childEntities,partition(len(self.childEntities), bound)):
         ent.pos = (place[0]- 5,place[1] - (bound[3] - bound[1])/5) # (cell.bound[0]+ent.relativePos[0], cell.bound[1]+ent.relativePos[1])
         tmp = ((place[2]-place[0])+10, (place[3]-place[1])+(bound[3] - bound[1])/5+5) # (min(cell.bound[2]-30,64),min(cell.bound[3]-30,64))
@@ -217,7 +220,7 @@ class ChildEntities (wx.PopupTransientWindow):
         pass
 
     def OnCompClick(self, event):
-      pos = event.GetPositionTuple()
+      pos = event.GetPosition()
       entities = self.findEntitiesAt(pos)
       if entities:
         if share.instanceDetailsPanel:
@@ -248,8 +251,8 @@ class LinkTool(Tool):
     return True
 
   def OnEditEvent(self,panel, event):
-    #pos = event.GetPositionTuple()
-    pos = panel.CalcUnscrolledPosition(event.GetPositionTuple())
+    #pos = event.GetPosition()
+    pos = panel.CalcUnscrolledPosition(event.GetPosition())
     ret = False
     if isinstance(event,wx.MouseEvent):
       if event.ButtonDown(wx.MOUSE_BTN_LEFT):  # Select
@@ -338,7 +341,7 @@ class SelectTool(Tool):
   def OnEditEvent(self,panel, event):
     panel.drawSelectionBox = True
     ret = False
-    pos = panel.CalcUnscrolledPosition(event.GetPositionTuple())
+    pos = panel.CalcUnscrolledPosition(event.GetPosition())
     scale = self.panel.scale
     if isinstance(event,wx.MouseEvent):
       if event.ButtonDown(wx.MOUSE_BTN_LEFT):  # Select
@@ -367,7 +370,7 @@ class SelectTool(Tool):
           self.entities = ent
         else:
           self.entities = rcent
-        print "Touching %s" % ", ".join([ e.data["name"] for e in self.entities])
+        print("Touching %s" % ", ".join([ e.data["name"] for e in self.entities]))
         if all(e.et.name in ("Component", "ComponentServiceInstance", "ServiceUnit", "ServiceInstance") for e in self.entities):
           panel.selectedEntities = self.entities
         else:
@@ -402,7 +405,7 @@ class SelectTool(Tool):
         # TODO: Move the data in this entity to the configuration editing sidebar, and expand it if its minimized.
         if self.touching and self.dragPos:
           # Ignore moving component and csi
-          for e in filter(lambda e: not e.et.name in (self.panel.ignoreEntities), self.selected):
+          for e in [e for e in self.selected if not e.et.name in (self.panel.ignoreEntities)]:
           #   if e.et.name in panel.rowTypes:
           #     print 'DBG: repositionRow for [%s]'%e.data['name']
           #     panel.repositionRow(e,(pos[0]/scale,pos[1]/scale))
@@ -413,7 +416,7 @@ class SelectTool(Tool):
                if e.et.name == 'Component' or e.et.name == 'NonSafComponent' or e.et.name == 'Node' or e.et.name == 'ServiceGroup':
                  pass # ignore reposition Component or NonSafComponent
                else:
-                 print 'DBG: reposition for [%s]'%e.data['name']
+                 print('DBG: reposition for [%s]'%e.data['name'])
                  panel.grid.reposition(e, panel,pos=(pos[0]/scale,pos[1]/scale))
           self.touching = set()
           panel.layout()
@@ -482,7 +485,7 @@ class SelectTool(Tool):
           character = chr(event.GetKeyCode())
         except ValueError:
           character  = None
-        print "key code: ", character
+        print("key code: ", character)
         if event.GetKeyCode() ==  wx.WXK_DELETE or event.GetKeyCode() ==  wx.WXK_NUMPAD_DELETE:
           if self.touching:
             self.deleteEntities(self.touching)
@@ -537,7 +540,7 @@ class SelectTool(Tool):
       self.panel.deleteEntities([ent])
 
   def filterOut(self, ents, filterRules = []):
-    return filter(lambda ent: not ent.et.name in filterRules, ents)
+    return [ent for ent in ents if not ent.et.name in filterRules]
 
   def cloneInstances(self, ents):
     # Duplicate SG, NODE, SU, SI, COMP and CSI
@@ -546,14 +549,14 @@ class SelectTool(Tool):
     newEnts = []
     if self.selectMultiple:
       # TODO: take all entities?
-      print "Copy selected instances: %s" % ", ".join([ e.data["name"] for e in ents])
+      print("Copy selected instances: %s" % ", ".join([ e.data["name"] for e in ents]))
       (newEnts,addtl) = self.panel.model.duplicate(ents,recursive=True, flag=False)
     else:
       # Duplicate first order entity
       (newEnts,addtl) = self.panel.model.duplicate([ents[0]], recursive=True, flag=False)
 
     # Create ca for new intance component/csi
-    for i in filter(lambda ent: isinstance(ent, Entity),  ents[0].childOf):
+    for i in [ent for ent in ents[0].childOf if isinstance(ent, Entity)]:
       for newEnt in newEnts:
         i.createContainmentArrowTo(newEnt)
 
@@ -590,7 +593,7 @@ class CopyTool(Tool):
           else:
             ents = sorted(ents, key=lambda ent: selectTool.entOrder.index(ent.et.name))        
             ent = ents[0]
-          print 'copy instance [%s]' % ent.data['name']
+          print('copy instance [%s]' % ent.data['name'])
           selectTool.cloneInstances([ent])
           panel.Refresh()
           #panel.selectedEntities = None         
@@ -620,7 +623,7 @@ class ZoomTool(Tool):
     pass
 
   def OnEditEvent(self,panel, event):
-    pos = panel.CalcUnscrolledPosition(event.GetPositionTuple())
+    pos = panel.CalcUnscrolledPosition(event.GetPosition())
     scale = self.scale
     if isinstance(event, wx.MouseEvent):
       if event.ButtonDown(wx.MOUSE_BTN_LEFT) or event.ButtonDown(wx.MOUSE_BTN_RIGHT):  # Select
@@ -718,11 +721,11 @@ class GenerateTool(Tool):
         self.executeBackupSource()
         src_bak = True
       # code gen must be per-component -- not generation of one type of application
-      print 'gen source...'
+      print('gen source...')
       files,proxyFiles = panel.model.generateSource(self.panel.model.directory())
       # Copy setup to model
       #os.system('cp resources/setup %s' %self.panel.model.directory())
-      print 'files gen: files %s\nproxies %s\n' %(str(files),str(proxyFiles))
+      print('files gen: files %s\nproxies %s\n' %(str(files),str(proxyFiles)))
       self.panel.statusBar.SetStatusText("Code generation complete")
       # add these files to the "source" part of the project tab and update the project xml file
       #print files
@@ -991,7 +994,7 @@ class GridEntityLayout:
         b1 = False
         # Does not allow si to be moved to node
         if instance.et.name=="ServiceInstance" and not isinstance(cell.col, Margin) and cell.col.et.name=="Node":
-          print 'cannot move SIs/CSIs to Nodes'
+          print('cannot move SIs/CSIs to Nodes')
           b1 = True
         b2 = False
         rowContained = []
@@ -1000,16 +1003,16 @@ class GridEntityLayout:
             rowContained.append(ca.contained)        
         #for c in rowContained: print 'row contained:%s'%c.data['name']
         if instance.et.name == 'ServiceInstance' and not isinstance(cell.row, Margin) and instance.entity not in rowContained:
-          print 'cannot move: [%s] is not a child of [%s]'%(instance.entity.data['name'], cell.row.entity.data['name'])
+          print('cannot move: [%s] is not a child of [%s]'%(instance.entity.data['name'], cell.row.entity.data['name']))
           b2 = True
         if b1 or b2: continue
         
 
           #continue
-        print 'next iterator'        
+        print('next iterator')        
         b1 = False 
         if instance.et.name == 'ServiceUnit' and isinstance(cell.col, Margin) and not isinstance(cell.row, Margin) and cell.row.entity.et.name=='ServiceGroup':
-          print 'cannot move [%s] to [%s]' % (instance.data['name'],cell.row.data['name'])
+          print('cannot move [%s] to [%s]' % (instance.data['name'],cell.row.data['name']))
           b1 = True        
 
         #if instance.et.name == 'ServiceUnit' and not isinstance(cell.col, Margin) and cell.col not in instance.childOf:
@@ -1024,7 +1027,7 @@ class GridEntityLayout:
             colContained.append(ca.contained)        
         #for c in colContained: print 'col contained:%s'%c.data['name']
         if instance.et.name == 'ServiceUnit' and not isinstance(cell.col, Margin) and instance.entity not in colContained:
-          print 'cannot move: [%s] is not a child of [%s]'%(instance.entity.data['name'], cell.col.entity.data['name'])
+          print('cannot move: [%s] is not a child of [%s]'%(instance.entity.data['name'], cell.col.entity.data['name']))
           b2 = True
 
         b3 = False
@@ -1034,7 +1037,7 @@ class GridEntityLayout:
             rowContained.append(ca.contained)        
         #for c in rowContained: print 'row contained:%s'%c.data['name']
         if instance.et.name == 'ServiceUnit' and not isinstance(cell.row, Margin) and instance.entity not in rowContained:
-          print 'cannot move: [%s] is not a child of [%s]'%(instance.entity.data['name'], cell.row.entity.data['name'])
+          print('cannot move: [%s] is not a child of [%s]'%(instance.entity.data['name'], cell.row.entity.data['name']))
           b3 = True
 
         if b1 or b2 or b3: continue        
@@ -1078,14 +1081,14 @@ class GridEntityLayout:
     scale = panel.scale
     cell = self.getCell((pos[0]/scale,pos[1]/scale))
     if not cell:
-      print 'createGrayCell: cell is null at pos: %s' % str(pos)
+      print('createGrayCell: cell is null at pos: %s' % str(pos))
       return False
     if cell.bound in panel.grayCells:
-      print 'createGrayCell: clear gray cell'
+      print('createGrayCell: clear gray cell')
       del panel.grayCells[cell.bound]
       return False # return False: clear the gray from the cell
     tmp = svg.SvgFile("gray.svg")    
-    print 'createGrayCell: pos (%d,%d); bound(%d,%d,%d,%d)' % (pos[0]/scale,pos[1]/scale,cell.bound[0],cell.bound[1],cell.bound[2],cell.bound[3])    
+    print('createGrayCell: pos (%d,%d); bound(%d,%d,%d,%d)' % (pos[0]/scale,pos[1]/scale,cell.bound[0],cell.bound[1],cell.bound[2],cell.bound[3]))    
     cell.graySize = (cell.bound[2]-cell.bound[0],cell.bound[3]-cell.bound[1])
     cell.grayPos = (cell.bound[0]/scale,cell.bound[1]/scale)
     cell.grayBmp = tmp.instantiate((cell.graySize[0]+delta_x,cell.graySize[1]+delta_y))
@@ -1096,20 +1099,20 @@ class GridEntityLayout:
   def idx(self,row,col=-1):
     """Reference a location in the grid either by integer or by entity"""
     if col==-1:
-      if type(row) is types.IntType:
+      if type(row) is int:
         return self.grid[row]
       return self.grid[self.rowIdx[row]]
-    if not type(row) is types.IntType:
+    if not type(row) is int:
       row = self.rowIdx[row]
-    if not type(col) is types.IntType:
+    if not type(col) is int:
       col = self.colIdx[col]
     return self.grid[row][col]
 
   def __str__(self):
     for row in self.grid:
-      print "\n"
+      print("\n")
       for cell in row:
-        print cell.entities, "  ", 
+        print(cell.entities, "  ")
 
   def layout(self):
     for row in self.grid:
@@ -1228,7 +1231,7 @@ class Panel(scrolled.ScrolledPanel):
         self.Bind(t, self.OnToolEvent)
 
       # Building flatten instance from model.xml
-      for entInstance in self.model.instances.values():
+      for entInstance in list(self.model.instances.values()):
         """Create a new instance of this entity type at this position"""
         placement = None
         if entInstance.et.name in self.columnTypes:
@@ -1251,13 +1254,13 @@ class Panel(scrolled.ScrolledPanel):
       tsize = self.toolBar.GetToolBitmapSize()
       if 0: # Save is handled at the project level
         bitmap = svg.SvgFile("save_as.svg").bmp(tsize, { }, BAR_GREY)
-        self.toolBar.AddTool(SAVE_BUTTON, bitmap, wx.NullBitmap, shortHelpString="save", longHelpString="Save model as...")
+        self.toolBar.AddTool(SAVE_BUTTON, "", bitmap, wx.NullBitmap, shortHelp="save", longHelp="Save model as...")
         self.idLookup[SAVE_BUTTON] = SaveTool(self)
 
       s = svg.SvgFile("generate.svg")
       bitmap = s.bmp(tsize, { }, BAR_GREY)
       bitmapDisabled = s.disabledButton(tsize)
-      self.toolBar.AddTool(CODEGEN_BUTTON, bitmap, bitmapDisabled, shortHelpString="Generate Source Code", longHelpString="Generate source code ...")
+      self.toolBar.AddTool(CODEGEN_BUTTON, "", bitmap, bitmapDisabled, shortHelp="Generate Source Code", longHelp="Generate source code ...")
       # add the generate menu item
       menuFile = self.guiPlaces.menu.get("File",None)
       gen = menuFile.Insert(9, CODEGEN_BUTTON, "&Generate code\tAlt-G", "Generate source code ...")
@@ -1272,31 +1275,31 @@ class Panel(scrolled.ScrolledPanel):
       
      
       #bitmap = svg.SvgFile("connect.svg").bmp(tsize, { }, (222,222,222,wx.ALPHA_OPAQUE))
-      #self.toolBar.AddRadioTool(CONNECT_BUTTON, bitmap, wx.NullBitmap, shortHelp="connect", longHelp="Draw relationships between entities")
+      #self.toolBar.AddRadioTool(CONNECT_BUTTON, "", bitmap, wx.NullBitmap, shortHelp="connect", longHelp="Draw relationships between entities")
       #self.idLookup[CONNECT_BUTTON] = LinkTool(self)
 
       s = svg.SvgFile("pointer.svg")
       bitmap = s.bmp(tsize, { }, BAR_GREY)
       bitmapDisabled = s.disabledButton(tsize)
-      self.toolBar.AddRadioTool(SELECT_BUTTON, bitmap, bitmapDisabled, shortHelp="select", longHelp="Select one or many entities.  Click entity to edit details.  Double click to expand/contract.")
+      self.toolBar.AddRadioTool(SELECT_BUTTON, "", bitmap, bitmapDisabled, shortHelp="select", longHelp="Select one or many entities.  Click entity to edit details.  Double click to expand/contract.")
       self.idLookup[SELECT_BUTTON] = SelectTool(self)
 
       s = svg.SvgFile("zoom.svg")
       bitmap = s.bmp(tsize, { }, BAR_GREY)
       bitmapDisabled = s.disabledButton(tsize)
-      self.toolBar.AddRadioTool(ZOOM_BUTTON, bitmap, bitmapDisabled, shortHelp="zoom", longHelp="Left click (+) to zoom in. Right click (-) to zoom out.")
+      self.toolBar.AddRadioTool(ZOOM_BUTTON, "", bitmap, bitmapDisabled, shortHelp="zoom", longHelp="Left click (+) to zoom in. Right click (-) to zoom out.")
       self.idLookup[ZOOM_BUTTON] = ZoomTool(self)
 
       s = svg.SvgFile("copy.svg")
       bitmap = s.bmp(tsize, { }, BAR_GREY)
       bitmapDisabled = s.disabledButton(tsize)
-      self.toolBar.AddRadioTool(COPY_BUTTON, bitmap, bitmapDisabled, shortHelp="copy", longHelp="Select an instance, then click this button to copy it")
+      self.toolBar.AddRadioTool(COPY_BUTTON, "", bitmap, bitmapDisabled, shortHelp="copy", longHelp="Select an instance, then click this button to copy it")
       self.idLookup[COPY_BUTTON] = CopyTool(self)
 
       s = svg.SvgFile("remove.svg")
       bitmap = s.bmp(tsize, { }, BAR_GREY)
       bitmapDisabled = s.disabledButton(tsize)
-      self.toolBar.AddRadioTool(DELETE_BUTTON, bitmap, bitmapDisabled, shortHelp="Delete entity/entities", longHelp="Select one or many entities. Click entity to delete.")
+      self.toolBar.AddRadioTool(DELETE_BUTTON, "", bitmap, bitmapDisabled, shortHelp="Delete entity/entities", longHelp="Select one or many entities. Click entity to delete.")
       self.idLookup[DELETE_BUTTON] = DeleteTool(self)
 
       # setting the default tool
@@ -1319,7 +1322,7 @@ class Panel(scrolled.ScrolledPanel):
       self.idLookup.clear()
 
     def addTools(self, init=False):
-      print 'instanceEditor: addTools'      
+      print('instanceEditor: addTools')      
       if not init:
         reassignCommonToolIds()
         self.idLookup.clear()
@@ -1366,7 +1369,7 @@ class Panel(scrolled.ScrolledPanel):
       self.selectedEntities = None
 
       # Building flatten instance from model.xml
-      for entInstance in self.model.instances.values():
+      for entInstance in list(self.model.instances.values()):
         """Create a new instance of this entity type at this position"""
         placement = None
         if entInstance.et.name in self.columnTypes:
@@ -1387,7 +1390,7 @@ class Panel(scrolled.ScrolledPanel):
       self.model = model
 
     def refresh(self):
-      print 'instance refresh called'
+      print('instance refresh called')
       self.resetDataMembers()
       #self.layout()
       self.Refresh()
@@ -1413,7 +1416,7 @@ class Panel(scrolled.ScrolledPanel):
       """Iterate through all the entity types, adding them as tools"""
       tsize = self.toolBar.GetToolBitmapSize()
 
-      sortedent = self.model.entities.items()  # Do this so the buttons always appear in the same order
+      sortedent = list(self.model.entities.items())  # Do this so the buttons always appear in the same order
       sortedent.sort()
       # buttonIdx = ENTITY_TYPE_BUTTON_START
       menu = self.guiPlaces.menu.get("Instantiation",None)
@@ -1433,7 +1436,7 @@ class Panel(scrolled.ScrolledPanel):
           shortHelp = e[1].data.get("shortHelp",et.data.get("help",None)) 
           longHelp = e[1].data.get("help",et.data.get("help",None))
           self.toolBar.AddRadioLabelTool(buttonIdx, e[0], bitmap, disabledBitmap, shortHelp=shortHelp, longHelp=longHelp)
-          #self.toolBar.AddRadioTool(buttonIdx, bitmap, wx.NullBitmap, shortHelp=et[0], longHelp=longHelp,clientData=et)
+          #self.toolBar.AddRadioTool(buttonIdx, "", bitmap, wx.NullBitmap, shortHelp=et[0], longHelp=longHelp,clientData=et)
           self.idLookup[buttonIdx] = EntityTool(self,e[1])  # register this button so when its clicked we know about it
           #buttonIdx+=1
           e[1].buttonIdx = buttonIdx
@@ -1447,13 +1450,13 @@ class Panel(scrolled.ScrolledPanel):
     def addEntityTool(self, ent):
       name = ent.et.name      
       entExists = False
-      for (eid,e) in self.idLookup.items():
+      for (eid,e) in list(self.idLookup.items()):
         if isinstance(e, EntityTool) and e.entity==ent:
-          print 'addEntityTool: Entity [%s] exists' % name
+          print('addEntityTool: Entity [%s] exists' % name)
           entExists = True
           break
       if not entExists:
-        print 'addEntityTool: Entity [%s] not exists. adding tool' % name
+        print('addEntityTool: Entity [%s] not exists. adding tool' % name)
         placement = None
         if name in self.columnTypes:
           placement = "column"
@@ -1470,9 +1473,9 @@ class Panel(scrolled.ScrolledPanel):
           disabledBmp = buttonSvg.disabledButton(tsize)
           shortHelp = ent.data.get("shortHelp",ent.et.data.get("help",None)) 
           longHelp = ent.data.get("help",ent.et.data.get("help",None))
-          self.toolBar.AddRadioLabelTool(buttonIdx, name, bitmap, disabledBmp, shortHelp=shortHelp, longHelp=longHelp)
+          self.toolBar.AddRadioTool(buttonIdx, name, bitmap, disabledBmp, shortHelp=shortHelp, longHelp=longHelp)
           #print 'instanceEditor::addEntityTools: e[0]:%s;e[1].data[name]:%s' % (e[0], e[1].data["name"])
-          #self.toolBar.AddRadioTool(buttonIdx, bitmap, wx.NullBitmap, shortHelp=et[0], longHelp=longHelp,clientData=et)
+          #self.toolBar.AddRadioTool(buttonIdx, "", bitmap, wx.NullBitmap, shortHelp=et[0], longHelp=longHelp,clientData=et)
           self.toolBar.EnableTool(buttonIdx, False)          
           self.idLookup[buttonIdx] = EntityTool(self,ent)  # register this button so when its clicked we know about it          
           ent.buttonIdx = buttonIdx
@@ -1487,16 +1490,16 @@ class Panel(scrolled.ScrolledPanel):
       i = self.menuNodeInstCreate.Append(wx.NewId(), NEW_NODE_INST)
       self.Bind(wx.EVT_MENU, self.OnMenuNodeInstCreate, i)
       self.createNodeTypeMenu()      
-      self.menuNodeInstCreate.AppendMenu(wx.NewId(), NEW_NODE_INST_INHERIT_FROM_A_NODE, self.menuUserDefineNodeTypes, "Create new node instance from another one")
+      self.menuNodeInstCreate.Append(wx.NewId(), NEW_NODE_INST_INHERIT_FROM_A_NODE, self.menuUserDefineNodeTypes, "Create new node instance from another one")
 
     def modifyEntityTool(self, ent, newValue):      
       if ent.data['entityType'] == 'ComponentServiceInstance':
-        for name, e in share.umlEditorPanel.entities.items():
+        for name, e in list(share.umlEditorPanel.entities.items()):
           if (e.data['entityType'] == 'Component' or e.data['entityType'] == 'NonSafComponent') and e.data['csiType'] == ent.data['type']:
             e.data['csiType'] = newValue
           if e.data['entityType'] == 'NonSafComponent' and e.data['proxyCSI'] == ent.data['type']:
             e.data['proxyCSI'] = newValue       
-        for name, e in self.model.instances.items():  
+        for name, e in list(self.model.instances.items()):  
           if (e.data['entityType'] == 'Component' or e.data['entityType'] == 'NonSafComponent' )and e.data['csiType'] == ent.data['type']:
             e.data['csiType'] = newValue
           if e.data['entityType'] == 'NonSafComponent' and e.data['proxyCSI'] == ent.data['type']:
@@ -1504,25 +1507,25 @@ class Panel(scrolled.ScrolledPanel):
           if e.data['entityType'] == 'ComponentServiceInstance' and e.data['type'] == ent.data['type']:
             e.data['type'] = newValue
         ent.data['type'] = newValue 
-      if isinstance(newValue, types.BooleanType) == True:
+      if isinstance(newValue, bool) == True:
         if newValue == True:
           newValue = 'true'
         elif newValue == False:
           newValue = 'false' 
       name = ent.et.name
       entExists = False
-      for (eid,e) in self.idLookup.items():
+      for (eid,e) in list(self.idLookup.items()):
         if isinstance(e, EntityTool) and e.entity.et.name==name:
-          print 'modifyEntityTool: Entity [%s] exists' % name
+          print('modifyEntityTool: Entity [%s] exists' % name)
           entExists = True          
           break
       if entExists:
-        print 'modifyEntityTool: Entity [%s] exists --> modify it from toolbar to the new name [%s]' % (name, newValue)
+        print('modifyEntityTool: Entity [%s] exists --> modify it from toolbar to the new name [%s]' % (name, newValue))
         toolItem = self.toolBar.FindById(eid)
         if toolItem:
           toolItem.SetLabel(newValue)
         else:
-          print 'modifyEntityTool: tool item with id [%d] does not exist' % eid
+          print('modifyEntityTool: tool item with id [%d] does not exist' % eid)
         # modify the corresponding menu item from the instantiation menu too
         menu = self.guiPlaces.menu.get("Instantiation",None)
         if menu:
@@ -1530,21 +1533,21 @@ class Panel(scrolled.ScrolledPanel):
           if menuItem:
             menuItem.SetText(newValue)
           else:
-            print 'modifyEntityTool: menu item with id [%d] does not exist' % eid
+            print('modifyEntityTool: menu item with id [%d] does not exist' % eid)
       else:
-        print 'modifyEntityTool: tool name [%s] does not exist' % name
+        print('modifyEntityTool: tool name [%s] does not exist' % name)
 
     def deleteEntityTool(self, ents):      
       for ent in ents:
         name = ent.et.name
         entExists = False
-        for (eid,e) in self.idLookup.items():
+        for (eid,e) in list(self.idLookup.items()):
           if isinstance(e, EntityTool) and e.entity==ent:
-            print 'deleteEntityTool: Entity [%s] exists' % name
+            print('deleteEntityTool: Entity [%s] exists' % name)
             entExists = True          
             break
         if entExists:
-          print 'deleteEntityTool: Entity [%s] exists --> delete it from toolbar' % name
+          print('deleteEntityTool: Entity [%s] exists --> delete it from toolbar' % name)
           if self.tool == self.idLookup[eid]:
             self.tool = None
           self.toolBar.DeleteTool(eid)
@@ -1577,7 +1580,7 @@ class Panel(scrolled.ScrolledPanel):
         self.toolBar.EnableTool(toolId, enable)
 
     def OnToolMenu(self,event):
-      print "On Tool Menu"
+      print("On Tool Menu")
       self.toolBar.ToggleTool(event.GetId(), True)
       self.OnToolClick(event)
 
@@ -1630,7 +1633,7 @@ class Panel(scrolled.ScrolledPanel):
       co = event.GetClientObject()
       cd = event.GetClientData()
       id = event.GetId()
-      print "Tool Clicked %d %s %s" % (id, str(co), str(cd))
+      print("Tool Clicked %d %s %s" % (id, str(co), str(cd)))
       try:
         tool = self.idLookup[id]
         if (isinstance(self.tool, SelectTool) or isinstance(self.tool, CopyTool)) and not isinstance(tool, CopyTool) and self.drawSelectionBox:
@@ -1648,7 +1651,7 @@ class Panel(scrolled.ScrolledPanel):
         # show the menu node inst create options
         if isinstance(self.tool, EntityTool) and self.tool.entity.et.name=="Node":
           self.PopupMenu(self.menuNodeInstCreate)
-      except KeyError, e:
+      except KeyError as e:
         event.Skip()
         pass # Not one of my tools
 
@@ -1656,19 +1659,19 @@ class Panel(scrolled.ScrolledPanel):
       co = event.GetClientObject()
       cd = event.GetClientData()
       id = event.GetId()
-      print "Tool Right Clicked %d %s %s" % (id, str(co), str(cd))      
+      print("Tool Right Clicked %d %s %s" % (id, str(co), str(cd)))      
       tool = self.idLookup[id]
       try:
         if tool:
           tool.OnRightClick(self,event)
-      except KeyError, e:
+      except KeyError as e:
         event.Skip()
         pass # Not one of my tools
 
     def OnMenuNodeInstCreate(self, event):
       item = self.menuNodeInstCreate.FindItemById(event.GetId())
-      self.newNodeInstOption = item.GetText()
-      print 'OnMenuNodeInstCreate: item [%s] selected' % self.newNodeInstOption
+      self.newNodeInstOption = item.GetItemLabelText()
+      print('OnMenuNodeInstCreate: item [%s] selected' % self.newNodeInstOption)
       self.userSelectionNode = self.getNodeInst(self.newNodeInstOption)
 
     def OnPaint(self, event):
@@ -1701,7 +1704,7 @@ class Panel(scrolled.ScrolledPanel):
         self.saveGrayCell(added, entities)      
 
     def loadGrayCells(self):
-      print 'enter loadGrayCells'
+      print('enter loadGrayCells')
       self.grayCells = {}
       tagName = "disableAssignmentOn"
       y = ROW_MARGIN+ROW_SPACING
@@ -1727,7 +1730,7 @@ class Panel(scrolled.ScrolledPanel):
           y=ROW_SPACING+cell.bound[3]
         else:
           y=ROW_SPACING
-      print 'leave loadGrayCells'
+      print('leave loadGrayCells')
     
     def saveGrayCell(self, added, entities):
       thisSg = ""
@@ -1775,7 +1778,7 @@ class Panel(scrolled.ScrolledPanel):
           cell = self.grid.getAnyCell(pos)
           assert(cell)
           if e1==e or e2==e:
-            print 'removeGrayCells: remove gray cell at pos: : %s' % str(pos)
+            print('removeGrayCells: remove gray cell at pos: : %s' % str(pos))
             if cell.bound in self.grayCells:
               del self.grayCells[cell.bound]
           x=COL_SPACING+cell.bound[2]
@@ -1789,7 +1792,7 @@ class Panel(scrolled.ScrolledPanel):
           su = ca.contained
           break
       if not su:
-        print 'setSUAssignment: SU is not found. Nothing to do'
+        print('setSUAssignment: SU is not found. Nothing to do')
         return
       y = ROW_MARGIN+ROW_SPACING
       for e1 in self.rows:        
@@ -1822,7 +1825,7 @@ class Panel(scrolled.ScrolledPanel):
 
     def updateMenuUserDefineNodeTypes(self, ent, oldValue=None,flag=None):
       userDefineType = ent.data.get("userDefinedType", None)
-      print 'updateMenuUserDefineNodeTypes: userDefinedType: %s' % userDefineType
+      print('updateMenuUserDefineNodeTypes: userDefinedType: %s' % userDefineType)
       if not flag:
         flag = ent.data.get("canBeInherited", None)
       menuItems = self.menuUserDefineNodeTypes.GetMenuItems()
@@ -1869,7 +1872,7 @@ class Panel(scrolled.ScrolledPanel):
           self.columns.append(dupNode)
           # duplicate containment arrows
           for ca in self.userSelectionNode.containmentArrows:
-            print 'duplicateNode: ca [%s]' % ca.contained.data["name"]
+            print('duplicateNode: ca [%s]' % ca.contained.data["name"])
             inst = self.model.recursiveDuplicateInst(ca.contained)
             if inst.et.name == "ServiceUnit":
               inst.childOf.add(dupNode)
@@ -1879,7 +1882,7 @@ class Panel(scrolled.ScrolledPanel):
 
     def updateInstDetails(self):
       if share.instanceDetailsPanel:
-        for (name, ent) in filter(lambda (name, ent): not ent.et.name in (self.ignoreEntities),self.model.instances.items()):
+        for (name, ent) in [name_ent1 for name_ent1 in list(self.model.instances.items()) if not name_ent1[1].et.name_ent1[0] in (self.ignoreEntities)]:
           share.instanceDetailsPanel.createTreeItemEntity(name, ent)
 
     def CreateNewInstance(self,entity,position,size=None, name=None):
@@ -1895,7 +1898,7 @@ class Panel(scrolled.ScrolledPanel):
         # TODO ent = self.entityType.createEntity(position, size)
         if size is None: size = (COL_WIDTH, ROW_WIDTH)  # The layout will automatically update the long size to be the width of the screen        
         # Add index for entities when creating them, index will be the current maximum index plus 1
-        inst = entity.createInstance(position, size, name=name, parent=self, id = 0 if not len(self.model.instances) else sorted(filter(lambda n: n.et.name in ['ServiceGroup', 'Node', 'Application'] , self.model.instances.values()), reverse=True, key = lambda n: n.data['id'])[0].data['id']+1)
+        inst = entity.createInstance(position, size, name=name, parent=self, id = 0 if not len(self.model.instances) else sorted([n for n in list(self.model.instances.values()) if n.et.name in ['ServiceGroup', 'Node', 'Application']], reverse=True, key = lambda n: n.data['id'])[0].data['id']+1)
         
         inst.instanceLocked = copy.deepcopy(entity.instanceLocked)
 
@@ -1908,7 +1911,11 @@ class Panel(scrolled.ScrolledPanel):
 
         # Put all childs instances into hyperlisttree
         if share.instanceDetailsPanel:
-          for (name, ent) in filter(lambda (name, ent): not ent.et.name in (self.ignoreEntities),self.model.instances.items()):
+          result = []
+          for (name, ent) in list(self.model.instances.items()):
+            if not ent.et.name in (self.ignoreEntities):
+              result.append((name, ent))
+          for (name, ent) in result:
             share.instanceDetailsPanel.createTreeItemEntity(name, ent)
         self.Refresh()
 
@@ -2020,7 +2027,7 @@ class Panel(scrolled.ScrolledPanel):
             if sgRect.Intersects(nRect):
               self.intersects.append(sgRect.Intersect(nRect))
        
-        for (name,i) in self.model.instances.items():
+        for (name,i) in list(self.model.instances.items()):
           if i in self.columns or i in self.rows: continue  # Already laid out
           t = len(i.childOf)
           if t > 0:
@@ -2072,7 +2079,7 @@ class Panel(scrolled.ScrolledPanel):
         # Now draw the entites
 
         # Draw the baseline row and column entities
-        for e in filter(lambda entInt: entInt.et.name in (self.columnTypes + self.rowTypes), self.model.instances.values()):
+        for e in [entInt for entInt in list(self.model.instances.values()) if entInt.et.name in (self.columnTypes + self.rowTypes)]:
           svg.blit(
           ctx,
           e.bmp,
@@ -2084,7 +2091,7 @@ class Panel(scrolled.ScrolledPanel):
         self.addButtons = {}
 
         # Draw the other instances on top
-        for e in filter(lambda entInt: not entInt.et.name in (self.columnTypes + self.rowTypes ), self.model.instances.values()):
+        for e in [entInt for entInt in list(self.model.instances.values()) if not entInt.et.name in (self.columnTypes + self.rowTypes )]:
           if e.size != (0,0):  # indicate that the object is hidden
             svg.blit(
             ctx,
@@ -2133,7 +2140,7 @@ class Panel(scrolled.ScrolledPanel):
                 
         # Draw "add" icon on top of entity
         # Render copy button (duplicate, similar: selected entity and type ctrl+'v')
-        for (rect,e) in self.addButtons.items():
+        for (rect,e) in list(self.addButtons.items()):
           svg.blit(
           ctx,
           self.addBmp,
@@ -2144,7 +2151,7 @@ class Panel(scrolled.ScrolledPanel):
         # Now draw the containment arrows on top
 #        pdb.set_trace()
         if 0:
-         for (name,e) in self.model.instances.items():
+         for (name,e) in list(self.model.instances.items()):
           for a in e.containmentArrows:
             st = a.container.pos
             end = a.contained.pos
@@ -2181,7 +2188,7 @@ class Panel(scrolled.ScrolledPanel):
       # Real pos
       pos = convertToRealPos(pos, self.scale)
       ret = set()
-      for (name, e) in self.model.instances.items():
+      for (name, e) in list(self.model.instances.items()):
         if e.et.name in filterOut:
           continue
 
@@ -2207,7 +2214,7 @@ class Panel(scrolled.ScrolledPanel):
       # Real rectangle
       rect = convertToRealPos(rect, self.scale)
       ret = set()
-      for (name, e) in self.model.instances.items():
+      for (name, e) in list(self.model.instances.items()):
         if e.et.name in filterOut:
           continue
 
@@ -2218,13 +2225,13 @@ class Panel(scrolled.ScrolledPanel):
 
     def findAddButtonAt(self, pos):
       pos = convertToRealPos(pos, self.scale)
-      for (rect,e) in self.addButtons.items():
+      for (rect,e) in list(self.addButtons.items()):
         if inBox(pos, rect):
           return e
       return None
 
     def notifyValueChange(self, ent, key, query, newValue):
-      for (name, e) in self.model.instances.items():
+      for (name, e) in list(self.model.instances.items()):
         if e == ent:
           iterKeys = iter(key.split("_"))
           token  = next(iterKeys)
@@ -2232,7 +2239,7 @@ class Panel(scrolled.ScrolledPanel):
           while 1:
             try:
               token  = next(iterKeys)
-              if type(d[token]) is types.DictType:
+              if type(d[token]) is dict:
                 #d[token] = newValue
                 d = d[token]
               else:
@@ -2250,7 +2257,7 @@ class Panel(scrolled.ScrolledPanel):
           if validator:
             validator.currentValue = newValue
           else:
-            print 'instanceEditor::notifyValueChange: validator is null'
+            print('instanceEditor::notifyValueChange: validator is null')
           e.recreateBitmap()
 
           if token=="canBeInherited":
@@ -2277,7 +2284,7 @@ class Panel(scrolled.ScrolledPanel):
         cntViableType = 0
         userDefineType = ent.data.get("userDefinedType", None)
         if userDefineType is not None:
-          for (name, e) in self.model.instances.items():
+          for (name, e) in list(self.model.instances.items()):
             if e.data.get("userDefinedType", None) == userDefineType:
               if e.data.get("canBeInherited", None):
                 cntIntance += 1

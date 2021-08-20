@@ -14,7 +14,7 @@ DISABLED_GREY = (160,160,160,wx.ALPHA_OPAQUE)
 
 class Log():
   def write(self,string):
-    print string
+    print(string)
 
 log = Log()
 numRecentProjects = 5 # define the maximum number of recent projects
@@ -28,7 +28,7 @@ class Output:
      If you call writes("/foo/bar/yarh/myfile.txt","contents") then the directory hierarchy /foo/bar/yarh is automatically created.  The file "myfile.txt" is created and written with "contents".
   """
   def write(self, filename, data):
-    if type(data) in types.StringTypes:
+    if type(data) in (str,):
       self.writes(filename, data)
     else: self.writet(filename,data)
         

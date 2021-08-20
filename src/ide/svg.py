@@ -10,7 +10,9 @@ from string import Template
 import wx
 import wx.lib.wxcairo
 import cairo
-import rsvg
+import gi
+gi.require_version('Rsvg', '2.0')
+from gi.repository import Rsvg
 
 import genshi
 import genshi.template
@@ -49,8 +51,8 @@ class Svg:
       # so that we can capture complex resizing behavior.  At a minimum substitution needs to be able to evaluate expressions.
     else:
       data = self.rawsvg
-    hdl = rsvg.Handle()
-    hdl.write(data)
+    hdl = Rsvg.Handle()
+    hdl.write(data.encode())
     hdl.close()
     svgSize = (hdl.get_property('width'), hdl.get_property('height'))
     if size is None or size == svgSize or svgSize[0] <= 0 or svgSize[1] <= 0:
@@ -66,7 +68,7 @@ class Svg:
     """Return a bitmap.  Using cairo is preferred, but this is useful for things like buttons"""
     (hdl,size,scale) = self.prep(size,subst)
     dc = wx.MemoryDC()
-    bitmap = wx.EmptyBitmap(size[0],size[1])
+    bitmap = wx.Bitmap(size[0],size[1])
     dc.SelectObject(bitmap)
     dc.SetBackground(wx.Brush(wx.Colour(*bkcol)))  # Note, I don't think bitmap supports alpha
     dc.SetBackgroundMode(wx.TRANSPARENT)
@@ -90,9 +92,9 @@ class Svg:
     (hdl,size,scale) = self.prep(size,subst)
     try:
       image = cairo.ImageSurface(cairo.FORMAT_ARGB32,size[0],size[1])
-    except cairo.Error, e:
-      print str(e)
-      print size
+    except cairo.Error as e:
+      print(str(e))
+      print(size)
       pdb.set_trace()
     cr = cairo.Context(image)
     cr.set_source_rgba(0,0,0,0)
@@ -107,7 +109,7 @@ class Svg:
     im = self.image(size, xform, bkcol)
     im = im.Blur(1)
     im = im.ConvertToGreyscale()
-    bmp = wx.BitmapFromImage(im)
+    bmp = wx.Bitmap(im)
     return bmp
 
 def blit(ctx, bmp, location, scale=(1,1), rotate=0):
@@ -162,4 +164,3 @@ def Test():
   import time
   import pyGuiWrapper as gui
   gui.go(lambda parent,menu,tool,status,y=TestRender: gui.Panel(parent,menu,tool,status,y))
-

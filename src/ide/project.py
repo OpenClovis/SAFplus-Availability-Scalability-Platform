@@ -167,8 +167,8 @@ class Project(microdom.MicroDom):
     modulename = self.datamodel.data_.split(".")[0]
     try:
       self.dataModelPlugin = __import__(modulename)
-    except ImportError, e:
-      print "Warning: No custom code for this data model.  Tried to import %s" % modulename
+    except ImportError as e:
+      print("Warning: No custom code for this data model.  Tried to import %s" % modulename)
 
   def createPrjXml(self):
     dom = xml.dom.minidom.Document()
@@ -389,12 +389,12 @@ class ProjectTreePanel(wx.Panel):
         self.tree.Bind(wx.EVT_TREE_ITEM_RIGHT_CLICK, self.OnShowPopup)
         isz = (16,16)
         il = wx.ImageList(isz[0], isz[1])
-        fldridx     = il.Add(wx.ArtProvider_GetBitmap(wx.ART_FOLDER,      wx.ART_OTHER, isz))
-        fldropenidx = il.Add(wx.ArtProvider_GetBitmap(wx.ART_FOLDER_OPEN, wx.ART_OTHER, isz))
-        fileidx     = il.Add(wx.ArtProvider_GetBitmap(wx.ART_NORMAL_FILE, wx.ART_OTHER, isz))
+        fldridx     = il.Add(wx.ArtProvider.GetBitmap(wx.ART_FOLDER,      wx.ART_OTHER, isz))
+        fldropenidx = il.Add(wx.ArtProvider.GetBitmap(wx.ART_FOLDER_OPEN, wx.ART_OTHER, isz))
+        fileidx     = il.Add(wx.ArtProvider.GetBitmap(wx.ART_NORMAL_FILE, wx.ART_OTHER, isz))
 
         self.root = self.tree.AddRoot("Projects")  # Not going to be shown anyway
-        self.tree.SetPyData(self.root, None)
+        self.tree.SetItemData(self.root, None)
 
         # Insert my tools etc into the GUI
         self.fileMenu = guiPlaces.menu["File"]
@@ -504,10 +504,14 @@ class ProjectTreePanel(wx.Panel):
         self.menuHelp.Bind(wx.EVT_MENU, self.OnHelpAbout, id=HELP_ABOUT)
 
         # wx 2.8 compatibility
-        wx.EVT_MENU(guiPlaces.frame, wx.ID_NEW, self.OnNew)
-        wx.EVT_MENU(guiPlaces.frame, PROJECT_LOAD, self.OnLoad)
-        wx.EVT_MENU(guiPlaces.frame, PROJECT_SAVE, self.OnSave)
-        wx.EVT_MENU(guiPlaces.frame, PROJECT_SAVE_AS, self.OnSaveAs)
+        guiPlaces.frame.Bind(wx.EVT_MENU, self.OnNew, id=wx.ID_NEW)
+        guiPlaces.frame.Bind(wx.EVT_MENU, self.OnLoad, id=PROJECT_LOAD)
+        guiPlaces.frame.Bind(wx.EVT_MENU, self.OnSave, id=PROJECT_SAVE)
+        guiPlaces.frame.Bind(wx.EVT_MENU, self.OnSaveAs,id= PROJECT_SAVE_AS)
+        # wx.EVT_MENU(guiPlaces.frame, wx.ID_NEW, self.OnNew)
+        # wx.EVT_MENU(guiPlaces.frame, PROJECT_LOAD, self.OnLoad)
+        # wx.EVT_MENU(guiPlaces.frame, PROJECT_SAVE, self.OnSave)
+        # wx.EVT_MENU(guiPlaces.frame, PROJECT_SAVE_AS, self.OnSaveAs)
   def OnShowPopup(self, event):
     self.popupmenu = wx.Menu()
     selectItem = self.tree.GetFocusedItem()
@@ -540,7 +544,7 @@ class ProjectTreePanel(wx.Panel):
 
   def deleteSingleItem(self, file):
     frame = self.guiPlaces.frame
-    if file in frame.openFile.keys():
+    if file in list(frame.openFile.keys()):
       page = frame.openFile[file]
       index = frame.tab.GetPageIndex(page)
       if index != -1:
@@ -558,7 +562,7 @@ class ProjectTreePanel(wx.Panel):
     for file in self.getDirFiles(path):
       if os.path.isfile(file):
         frame = self.guiPlaces.frame
-        if file in frame.openFile.keys():
+        if file in list(frame.openFile.keys()):
           page = frame.openFile[file]
           p = page.control.file_path.replace(oldPath, newPath, 1)
           frame.openFile[p] = frame.openFile.pop(file)
@@ -594,7 +598,7 @@ class ProjectTreePanel(wx.Panel):
       newPath = self.reverseReplace(itemPath, itemText, dlgInfo[0], 1)
       if os.path.isfile(itemPath):
         frame = self.guiPlaces.frame
-        if itemPath in frame.openFile.keys():
+        if itemPath in list(frame.openFile.keys()):
           page = frame.openFile[itemPath]
           index = frame.tab.GetPageIndex(page)
           if index != -1:
@@ -628,7 +632,7 @@ class ProjectTreePanel(wx.Panel):
       itemId = self.tree.PrependItem(selectedItem, dlgInfo[0])
       self.tree.SortChildren(selectedItem)
       pyData = self.tree.GetPyData(selectedItem)
-      self.tree.SetPyData(itemId, pyData)
+      self.tree.SetItemData(itemId, pyData)
       self.setIconForItem(itemId, typeFile=True)
     elif text == "New Folder":
       dlgInfo = ["", "Folder name", "New Folder", itemPath]
@@ -639,7 +643,7 @@ class ProjectTreePanel(wx.Panel):
       itemId = self.tree.PrependItem(selectedItem, dlgInfo[0])
       self.tree.SortChildren(selectedItem)
       pyData = self.tree.GetPyData(selectedItem)
-      self.tree.SetPyData(itemId, pyData)
+      self.tree.SetItemData(itemId, pyData)
       self.setIconForItem(itemId, typeDir=True)
     elif text == "Open Containing Folder":
       parentPath = self.reverseReplace(itemPath, '/'+ itemText,"", 1)
@@ -655,16 +659,16 @@ class ProjectTreePanel(wx.Panel):
       i = self.tree.GetFirstVisibleItem()
     if not i.IsOk():
       return None
-    project = self.tree.GetItemPyData(i)
-    if type(project) is TupleType: project = project[0]
+    project = self.tree.GetItemData(i)
+    if type(project) is tuple: project = project[0]
       
     return project
 
   def latest(self):
     i = self.tree.GetLastChild(self.root)
     if i.IsOk():
-       project = self.tree.GetItemPyData(i)
-       if type(project) is TupleType: project = project[0]
+       project = self.tree.GetItemData(i)
+       if type(project) is tuple: project = project[0]
        self.tree.ClearFocusedItem()
        self.tree.SetFocusedItem(i)
        return project
@@ -674,7 +678,7 @@ class ProjectTreePanel(wx.Panel):
      name = os.path.splitext(os.path.basename(prjPath))[0]
      (child, cookie) = self.tree.GetFirstChild(self.root)
      while child.IsOk():
-       p = self.tree.GetItemPyData(child)
+       p = self.tree.GetItemData(child)
        if p.name == name:
          return True
        (child, cookie) = self.tree.GetNextChild(self.root, cookie)
@@ -709,8 +713,8 @@ class ProjectTreePanel(wx.Panel):
   def buildTreeRecursion(self, path, parentId, project):
     for file in self.getDirFiles(path): 
         id = self.tree.AppendItem(parentId, self.getFileName(file))
-        self.tree.SetPyData(id, project)
-        # self.tree.SetPyData(id, (project, self.getFileName(file)))
+        self.tree.SetItemData(id, project)
+        # self.tree.SetItemData(id, (project, self.getFileName(file)))
         if os.path.isfile(file):
           self.setIconForItem(id, typeFile=True)
         elif os.path.isdir(file):
@@ -732,8 +736,8 @@ class ProjectTreePanel(wx.Panel):
     # print "projName", projName
     prjT = self.tree.AppendItem(self.root, rootName)
     self.projects.append(prjT)
-    self.tree.SetPyData(prjT, project)
-    # self.tree.SetPyData(prjT, (project, projName))
+    self.tree.SetItemData(prjT, project)
+    # self.tree.SetItemData(prjT, (project, projName))
     self.setIconForItem(prjT, typeDir=True)
     srcDir = os.path.join(self.getPrjPath(), "src")
     if not os.path.isdir(srcDir):
@@ -799,14 +803,14 @@ class ProjectTreePanel(wx.Panel):
     projName = os.path.splitext(projName)[0]
     (child, cookie) = self.tree.GetFirstChild(self.root)
     while child.IsOk():
-      p = self.tree.GetItemPyData(child)
+      p = self.tree.GetItemData(child)
       if p.name == project.name:
         break
       (child, cookie) = self.tree.GetNextChild(self.root, cookie)
     if child.IsOk():
       (c, cookie) = self.tree.GetFirstChild(child)
       while (c.IsOk()):           
-          print 'updateTreeItem: child explored [%s]' % self.tree.GetItemText(c)
+          print('updateTreeItem: child explored [%s]' % self.tree.GetItemText(c))
           if self.tree.GetItemText(c) == itemText:
             break
           (c, cookie) = self.tree.GetNextChild(child, cookie)
@@ -891,13 +895,13 @@ class ProjectTreePanel(wx.Panel):
     dlg.ShowModal()
     dlg.Destroy()
     if dlg.what == "OK":
-      print 'handling ok clicked'                   
-      log.write('You selected %d files: %s; datamodel: %s' % (len(dlg.path),str(dlg.path), dlg.datamodel.GetTextCtrlValue()))       
-      if not self.fillDataModel(dlg.datamodel.GetTextCtrlValue(), dlg.prjDir+os.sep+"SAFplusAmf.yang"):
+      print('handling ok clicked')                   
+      log.write('You selected %d files: %s; datamodel: %s' % (len(dlg.path),str(dlg.path), dlg.datamodel.GetTextCtrl().GetValue()))       
+      if not self.fillDataModel(dlg.datamodel.GetTextCtrl().GetValue(), dlg.prjDir+os.sep+"SAFplusAmf.yang"):
         return
       project = Project()
       project.projectFilename = dlg.path
-      project.new(dlg.datamodel.GetTextCtrlValue())
+      project.new(dlg.datamodel.GetTextCtrl().GetValue())
       self.populateGui(project, self.root)
       evt = ProjectNewEvent(EVT_PROJECT_NEW.evtType[0])
       wx.PostEvent(self.parent,evt)
@@ -910,7 +914,6 @@ class ProjectTreePanel(wx.Panel):
       self.menuProject.Enable(IMAGES_DEPLOY, True)
       self.menuProject.Enable(PROJECT_PROPERTIES, True)
       self.menuTools.Enable(TOOL_CLEAR_PROJECT_DATA, True)
-
       os.system('mkdir -p %s/configs' % self.getPrjPath())
 
   def resetLabel(self, *pageList):
@@ -949,7 +952,7 @@ class ProjectTreePanel(wx.Panel):
     dlg = SaveAsDialog()
     dlg.ShowModal()
     if dlg.what == "OK":
-      print 'SaveAs: handling ok clicked'                   
+      print('SaveAs: handling ok clicked')                   
       log.write('SaveAs: You selected %d files: %s' % (len(dlg.path),str(dlg.path)))
 
       if self.isPrjLoaded(dlg.path): return 
@@ -976,8 +979,8 @@ class ProjectTreePanel(wx.Panel):
         Page.onSave(None, index)
 
   def OnSize(self, event):
-    w,h = self.GetClientSizeTuple()
-    self.tree.SetDimensions(0, 0, w, h)
+    w,h = self.GetClientSize()
+    self.tree.SetSize(0, 0, w, h)
      
   def removePageByObj(self, page):
     try:
@@ -997,7 +1000,7 @@ class ProjectTreePanel(wx.Panel):
       prjPath = self.tree.GetPyData(selectItem).directory()
     else: return
     if itemPath != prjPath: return
-    if self.guiPlaces.frame.undo.has_key(self.currentProjectPath):
+    if self.currentProjectPath in self.guiPlaces.frame.undo:
       del self.guiPlaces.frame.undo[self.currentProjectPath]
     self.deleteTreeRecursion(itemPath)
     if self.currentActiveProject != self.tree.GetPyData(selectItem):
@@ -1038,7 +1041,7 @@ class ProjectTreePanel(wx.Panel):
       self.validateNodeProfiles()
       self.validateAmfConfig()
       self.validateDataConfig()
-    except Exception, e:
+    except Exception as e:
       self.updateProblems(self.error, "%s exception occur while validate model\n (%s)" % (str(Exception),str(e)), "")
     # Update all problems on modal problems tag
     self.updateModalProblems()
@@ -1074,7 +1077,7 @@ class ProjectTreePanel(wx.Panel):
     
     # Validate Node child intance
     nNodeIntance = 0
-    for (name,e) in share.detailsPanel.model.instances.items():
+    for (name,e) in list(share.detailsPanel.model.instances.items()):
       if e.data['entityType'] == "Node":
         nNodeIntance += 1
         nSUIntance = 0
@@ -1100,7 +1103,7 @@ class ProjectTreePanel(wx.Panel):
       
     # Validate ServiceGroup child intance
     nServiceGroup = 0
-    for (name,e) in share.detailsPanel.model.instances.items():
+    for (name,e) in list(share.detailsPanel.model.instances.items()):
       if e.data['entityType'] == "ServiceGroup":
         nServiceGroup += 1
         nSI = 0
@@ -1131,7 +1134,7 @@ class ProjectTreePanel(wx.Panel):
     @summary    : Check Cluster in project
     '''  
     cntCluster = 0
-    for (name, e) in share.detailsPanel.model.entities.items():
+    for (name, e) in list(share.detailsPanel.model.entities.items()):
       if e.data['entityType'] == "Cluster":
         cntCluster += 1  
       if e.data['entityType'] == "ComponentServiceInstance":
@@ -1159,7 +1162,7 @@ class ProjectTreePanel(wx.Panel):
     suNameList = []
     cNameList = []
 
-    for (name, e) in share.detailsPanel.model.entities.items():
+    for (name, e) in list(share.detailsPanel.model.entities.items()):
       if e.data['entityType'] == "Node":
         nodeNameList.append(name)
       if e.data['entityType'] == "ServiceUnit":
@@ -1169,7 +1172,7 @@ class ProjectTreePanel(wx.Panel):
 
     instances = share.detailsPanel.model.data.getElementsByTagName("instances")[0]
 
-    for (name,e) in share.detailsPanel.model.instances.items():
+    for (name,e) in list(share.detailsPanel.model.instances.items()):
       # validate AMF configuration has valid Node
       if e.data['entityType'] == "Node":
         instance = instances.findOneByChild("name",name)
@@ -1189,7 +1192,7 @@ class ProjectTreePanel(wx.Panel):
               self.updateProblems(self.error, msg, self.instantiation)
 
             # validate AMF configuration has valid CSI
-            for (nameEntity,entity) in share.detailsPanel.model.instances.items():
+            for (nameEntity,entity) in list(share.detailsPanel.model.instances.items()):
               if entity.data['entityType'] == "ServiceUnit" and nameEntity == suName:
                 for arrowSu in entity.containmentArrows:
                    if arrowSu.contained.data['entityType'] == "Component":
@@ -1208,7 +1211,7 @@ class ProjectTreePanel(wx.Panel):
     siNameList = []
     csiNameList = []
 
-    for (name, e) in share.detailsPanel.model.entities.items():
+    for (name, e) in list(share.detailsPanel.model.entities.items()):
       if e.data['entityType'] == "ServiceInstance":
         siNameList.append(name)
       elif e.data['entityType'] == "ComponentServiceInstance":
@@ -1218,7 +1221,7 @@ class ProjectTreePanel(wx.Panel):
 
     instances = share.detailsPanel.model.data.getElementsByTagName("instances")[0]
 
-    for (name,e) in share.detailsPanel.model.instances.items():
+    for (name,e) in list(share.detailsPanel.model.instances.items()):
 
       # validate AMF configuration has valid SG
       if e.data['entityType'] == "ServiceGroup":
@@ -1239,7 +1242,7 @@ class ProjectTreePanel(wx.Panel):
               self.updateProblems(self.error, msg, self.instantiation)
 
             # validate AMF configuration has valid CSI
-            for (nameEntity,entity) in share.detailsPanel.model.instances.items():
+            for (nameEntity,entity) in list(share.detailsPanel.model.instances.items()):
               if entity.data['entityType'] == "ServiceInstance" and nameEntity == siName:
                 for arrowSi in entity.containmentArrows:
                    if arrowSi.contained.data['entityType'] == "ComponentServiceInstance":
@@ -1254,7 +1257,7 @@ class ProjectTreePanel(wx.Panel):
     '''
     @summary    : Validation entity has valid child and parent in modelling screen
     '''
-    for (name, e) in share.detailsPanel.model.entities.items():
+    for (name, e) in list(share.detailsPanel.model.entities.items()):
       eType = e.data["entityType"]
       self.validateParentOfComponent(name, eType)
       '''
@@ -1278,7 +1281,7 @@ class ProjectTreePanel(wx.Panel):
       for pType in self.entitiesParent[eType]:
 
         found = False
-        for (name, e) in share.detailsPanel.model.entities.items():
+        for (name, e) in list(share.detailsPanel.model.entities.items()):
 
           if e.data["entityType"] == pType:
             for arrow in e.containmentArrows:
@@ -2023,7 +2026,7 @@ class DeployDialog(wx.Dialog):
     def initDeploymentInfo(self):
       nodeIntances = []
       try:
-        for (name, e) in share.detailsPanel.model.instances.items():
+        for (name, e) in list(share.detailsPanel.model.instances.items()):
           if e.data['entityType'] == "Node":
             nodeIntances.append(name)
         with open("%s/configs/target.xml" % self.parent.getPrjPath(), 'rb') as f:
@@ -2282,7 +2285,7 @@ class GeneralPage(scrolled.ScrolledPanel):
     nodeIntances = []
     self.imagesConfig = {}
     try:
-      for (name, e) in share.detailsPanel.model.instances.items():
+      for (name, e) in list(share.detailsPanel.model.instances.items()):
         if e.data['entityType'] == "Node":
           nodeIntances.append(name)
 
@@ -2332,7 +2335,7 @@ class NewPrjDialog(wx.Dialog):
     #----------------------------------------------------------------------
     def __init__(self):
         """Constructor"""
-        wx.Dialog.__init__(self, None, title="New project", size=(430,240))
+        wx.Dialog.__init__(self, None, title="New project", size=(430,260))
         LabelSize = (100,25) 
         EntrySize = (300,25)
         prjname_sizer = wx.BoxSizer(wx.HORIZONTAL)
@@ -2363,7 +2366,7 @@ class NewPrjDialog(wx.Dialog):
         main_sizer.Add(prjname_sizer, 0, wx.ALL, 5)
         main_sizer.Add(prjlocation_sizer, 0, wx.ALL, 5)
         main_sizer.Add(datamodel_sizer, 0, wx.ALL, 5)
-        main_sizer.AddSpacer((0,50))
+        main_sizer.AddSpacer(50)
  
         OK_btn = wx.Button(self, label="OK")
         OK_btn.Bind(wx.EVT_BUTTON, self.onBtnHandler)
@@ -2383,7 +2386,7 @@ class NewPrjDialog(wx.Dialog):
     #----------------------------------------------------------------------
     def onBtnHandler(self, event):
         what = event.GetEventObject().GetLabel()
-        print 'about to %s' % what  
+        print('about to %s' % what)  
         if (what == "OK"):
            prjName = self.prjName.GetValue()
            if len(prjName)==0:
@@ -2392,14 +2395,14 @@ class NewPrjDialog(wx.Dialog):
               msgBox.Destroy()
               return     
 
-           self.prjDir = self.prjLocation.GetTextCtrlValue()+os.sep
-           if not self.prjLocation.GetTextCtrlValue() or not os.path.exists(self.prjDir):
+           self.prjDir = self.prjLocation.GetTextCtrl().GetValue()+os.sep
+           if not self.prjLocation.GetTextCtrl().GetValue() or not os.path.exists(self.prjDir):
               msgBox = wx.MessageDialog(self, "Project location is missing or does not exist. Please choose a location for the new project", style=wx.OK|wx.CENTRE)
               msgBox.ShowModal()
               msgBox.Destroy()
               return
 
-           t = self.datamodel.GetTextCtrlValue()
+           t = self.datamodel.GetTextCtrl().GetValue()
            if not t or not os.path.exists(t) or not re.search('.yang$', t):
               msgBox = wx.MessageDialog(self, "Data model is missing or does not exist. Please choose a valid data model for the new project", style=wx.OK|wx.CENTRE)
               msgBox.ShowModal()
@@ -2471,7 +2474,7 @@ class SaveAsDialog(wx.Dialog):
     #----------------------------------------------------------------------
     def onBtnHandler(self, event):
         what = event.GetEventObject().GetLabel()
-        print 'about to %s' % what  
+        print('about to %s' % what)  
         if (what == "OK"):
            prjName = self.prjName.GetValue()
            if len(prjName)==0:
@@ -2480,8 +2483,8 @@ class SaveAsDialog(wx.Dialog):
               msgBox.Destroy()
               return     
 
-           self.prjDir = self.prjLocation.GetTextCtrlValue()+os.sep
-           if not self.prjLocation.GetTextCtrlValue() or not os.path.exists(self.prjDir):
+           self.prjDir = self.prjLocation.GetTextCtrl().GetValue()+os.sep
+           if not self.prjLocation.GetTextCtrl().GetValue() or not os.path.exists(self.prjDir):
               msgBox = wx.MessageDialog(self, "Project location is missing or does not exist. Please choose a location for the new project", style=wx.OK|wx.CENTRE)
               msgBox.ShowModal()
               msgBox.Destroy()
@@ -2504,7 +2507,7 @@ class SaveAsDialog(wx.Dialog):
         self.Close()
 
     def onBrowse(self, event):
-        print 'about to browse project location'        
+        print('about to browse project location')        
         dlg = wx.DirDialog(
             self, message="Choose a project location",
             defaultPath=common.getMostRecentPrjDir(),             
@@ -2512,5 +2515,5 @@ class SaveAsDialog(wx.Dialog):
             )
         if dlg.ShowModal() == wx.ID_OK:
             path = dlg.GetPath()
-            print 'You selected %d path: %s' % (len(path),str(path))
+            print('You selected %d path: %s' % (len(path),str(path)))
             self.prjLocationName.SetValue(path)

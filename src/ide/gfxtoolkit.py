@@ -3,7 +3,9 @@ from gfxmath import *
 import wx
 import wx.lib.wxcairo
 import cairo
-import rsvg
+import gi
+gi.require_version('Rsvg', '2.0')
+from gi.repository import Rsvg
 import yang
 import svg
 import wx.lib.scrolledpanel as scrolled
@@ -76,16 +78,16 @@ class BoxGesture(Gesture):
     self.rect    = (pos[0],pos[1],pos[0],pos[1])
 
   def change(self,panel, event):
-    #pos = event.GetPositionTuple()
-    pos = panel.CalcUnscrolledPosition(event.GetPositionTuple())
+    #pos = event.GetPosition()
+    pos = panel.CalcUnscrolledPosition(event.GetPosition())
     assert(self.active)
     self.rect=(min(self.downPos[0],pos[0]),min(self.downPos[1],pos[1]),max(self.downPos[0],pos[0]),max(self.downPos[1],pos[1]))
-    print "selecting", self.rect
+    print("selecting", self.rect)
     panel.drawers.add(self)
     panel.Refresh()
 
   def finish(self, panel, pos):
-    print "finish"
+    print("finish")
     self.active = False
     panel.drawers.discard(self)
     panel.Refresh()
@@ -121,8 +123,8 @@ class LineGesture(Gesture):
     panel.drawers.add(self)
 
   def change(self,panel, event):
-    #self.curPos = event.GetPositionTuple()
-    self.curPos = panel.CalcUnscrolledPosition(event.GetPositionTuple())
+    #self.curPos = event.GetPosition()
+    self.curPos = panel.CalcUnscrolledPosition(event.GetPosition())
     assert(self.active)
     panel.Refresh()
 
@@ -199,8 +201,8 @@ class LazyLineGesture(Gesture,wx.Timer):
     panel.drawers.add(self)
 
   def change(self,panel, event):
-    #self.curPos = event.GetPositionTuple()
-    self.curPos = panel.CalcUnscrolledPosition(event.GetPositionTuple())
+    #self.curPos = event.GetPosition()
+    self.curPos = panel.CalcUnscrolledPosition(event.GetPosition())
     assert(self.active)
     panel.Refresh()
 
@@ -252,7 +254,7 @@ class FadingX(wx.Timer):
     ctx.restore()
 
 def drawCurvyArrow(ctx, startPos,endPos,middlePos,cust):
-      if type(cust) is DictType: cust = dot.Dot(cust)
+      if type(cust) is dict: cust = dot.Dot(cust)
       # if not middlePos:
       middlePos = [((startPos[0]+endPos[0])/2,(startPos[1]+endPos[1])/2)]
 
@@ -331,12 +333,12 @@ class BoxGesture(Gesture):
     self.rect    = (pos[0],pos[1],pos[0],pos[1])
 
   def change(self,panel, event):
-    # pos = event.GetPositionTuple()
-    pos = panel.CalcUnscrolledPosition(event.GetPositionTuple())
+    # pos = event.GetPosition()
+    pos = panel.CalcUnscrolledPosition(event.GetPosition())
 
     assert(self.active)
     self.rect=(min(self.downPos[0],pos[0]),min(self.downPos[1],pos[1]),max(self.downPos[0],pos[0]),max(self.downPos[1],pos[1]))
-    print "selecting", self.rect
+    print("selecting", self.rect)
     panel.drawers.add(self)
     panel.Refresh()
 
@@ -376,8 +378,8 @@ class LineGesture(Gesture):
     panel.drawers.add(self)
 
   def change(self,panel, event):
-    #self.curPos = event.GetPositionTuple()
-    self.curPos = panel.CalcUnscrolledPosition(event.GetPositionTuple())
+    #self.curPos = event.GetPosition()
+    self.curPos = panel.CalcUnscrolledPosition(event.GetPosition())
     assert(self.active)
     panel.Refresh()
 
@@ -454,7 +456,7 @@ class LazyLineGesture(Gesture,wx.Timer):
     panel.drawers.add(self)
 
   def change(self,panel, event):
-    self.curPos = panel.CalcUnscrolledPosition(event.GetPositionTuple())
+    self.curPos = panel.CalcUnscrolledPosition(event.GetPosition())
     assert(self.active)
     panel.Refresh()
 

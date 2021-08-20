@@ -22,7 +22,7 @@ class Settings(object):
             return value
         if self._parent:
             return getattr(self._parent, name)
-        raise InvalidSettingError, 'Invalid setting: %s' % name
+        raise InvalidSettingError('Invalid setting: %s' % name)
     def __setattr__(self, name, value):
         if name.startswith('_'):
             super(Settings, self).__setattr__(name, value)
@@ -32,11 +32,11 @@ class Settings(object):
         if self._parent:
             setattr(self._parent, name, value)
             return
-        raise InvalidSettingError, 'Invalid setting: %s' % name
+        raise InvalidSettingError('Invalid setting: %s' % name)
     def get(self, name):
-        raise NotImplementedError, 'Settings subclasses must implement the get() method.'
+        raise NotImplementedError('Settings subclasses must implement the get() method.')
     def set(self, name, value):
-        raise NotImplementedError, 'Settings subclasses must implement the set() method.'
+        raise NotImplementedError('Settings subclasses must implement the set() method.')
         
 class ModuleSettings(Settings):
     def __init__(self, parent, module):

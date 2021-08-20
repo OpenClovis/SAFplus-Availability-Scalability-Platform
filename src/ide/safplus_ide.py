@@ -113,7 +113,7 @@ class SAFplusFrame(wx.Frame):
         # add recent projects menu items
         self.menu.AppendSeparator()
         self.recentPrjMenu = wx.Menu()
-        self.menu.AppendMenu(wx.NewId(), "Recent", self.recentPrjMenu, "Recent projects")
+        self.menu.Append(wx.NewId(), "Recent", self.recentPrjMenu, "Recent projects")
         self.loadRecentProjects()
         self.loadInfoPanel()
         self.Bind(wx.EVT_CLOSE, self.OnCloseFrame)
@@ -206,7 +206,7 @@ class SAFplusFrame(wx.Frame):
 
     def OnProjectLoaded(self,evt):
       """Called when a project is loaded in the project tree"""
-      print "New project loaded"
+      print ("New project loaded")
 
       # clean up -- if we support multi-projects this won't happen
       #self.cleanupTabs()
@@ -251,13 +251,13 @@ class SAFplusFrame(wx.Frame):
         t.instanceDetails = entityDetailsDialog.Panel(self.tab,self.guiPlaces, t.model,isDetailInstance=True)
         self.tab.InsertPage(3, t.instanceDetails, self.getCurrentPageText(3))
       else:
-        print 'OnProjectLoaded: model is not None'
+        print('OnProjectLoaded: model is not None')
         self.cleanupTools()
         self.cleanupMenus()
         t = self.model
         prj.setSAFplusModel(t.model)
         modelFile = os.path.join(prj.directory(), prj.model.children()[0].strip())
-        print "model file: %s" % modelFile
+        print(("model file: %s" % modelFile))
         t.model.init()
         try:
           loadResult = t.model.load(modelFile)
@@ -294,7 +294,7 @@ class SAFplusFrame(wx.Frame):
         self.setPagesText(t.modelDetails, self.getCurrentPageText(1))
         self.setPagesText(t.instance, self.getCurrentPageText(2))
         self.setPagesText(t.instanceDetails, self.getCurrentPageText(3))
-      if self.project.currentProjectPath not in self.undo.keys():
+      if self.project.currentProjectPath not in list(self.undo.keys()):
         self.undo[self.project.currentProjectPath] = ([],[])
       t.uml.undoData = self.undo[self.project.currentProjectPath][0]
       t.uml.redoData = self.undo[self.project.currentProjectPath][1]
@@ -310,7 +310,7 @@ class SAFplusFrame(wx.Frame):
       
     def OnProjectNew(self,evt):
       """Called when a new project is created"""
-      print "New project created"
+      print("New project created")
 
       # clean up -- if we support multi-projects this won't happen
       self.cleanupTabs()
@@ -340,7 +340,7 @@ class SAFplusFrame(wx.Frame):
 
     def OnTimeToClose(self, evt):
       """Event handler for the button click"""
-      print "Quitting..."
+      print("Quitting...")
       self.Close()
    
     def setPagesText(self, page, text):
@@ -369,7 +369,7 @@ class SAFplusFrame(wx.Frame):
     def onRecentPrjMenu(self, evt):
       itemId = evt.GetId()
       p = self.recentPrjMenu.FindItemById(itemId).GetItemLabelText()      
-      print 'onRecentPrjMenu: name [%s]; id [%d]' % (p, itemId) 
+      print(('onRecentPrjMenu: name [%s]; id [%d]' % (p, itemId))) 
       if self.project.isPrjLoaded(p): return 
       project = Project(p)                 
       self.project.populateGui(project, self.project.root)
@@ -390,13 +390,13 @@ class SAFplusFrame(wx.Frame):
       pt = evt.GetPoint()
       item, _ = self.project.tree.HitTest(pt)
       if item:       
-        print "onPrjTreeActivated [%s]" % self.project.tree.GetItemText(item)
+        print(("onPrjTreeActivated [%s]" % self.project.tree.GetItemText(item)))
         # Check to see if this is the project name
         if self.project.tree.GetItemParent(item) == self.project.root: 
           prjname = os.path.splitext(self.project.tree.GetItemText(item))[0]
-          print 'project [%s] is activated' % prjname
+          print(('project [%s] is activated' % prjname))
           prj = self.project.active()
-          print 'project [%s] is selected' % prj.name
+          print(('project [%s] is selected' % prj.name))
           if prj == self.currentActivePrj:
             item = evt.GetItem()
             if item:
@@ -412,11 +412,11 @@ class SAFplusFrame(wx.Frame):
           path = self.project.getItemAbsolutePath(item)
           if os.path.isfile(path):
             
-            if path in self.openFile.keys():
+            if path in list(self.openFile.keys()):
               if "DELETED Page object" in str(self.openFile[path]):
                 del self.openFile[path]
 
-            if not (path in self.openFile.keys()):
+            if not (path in list(self.openFile.keys())):
               fileName = str(self.project.tree.GetItemText(item))
               p = Page(self, path)
               self.tab.AddPage(p, fileName)
@@ -436,7 +436,7 @@ class SAFplusFrame(wx.Frame):
 
     def onPageChanged(self, evt):
       page = self.tab.GetPageText(evt.GetSelection())
-      print 'onPageChangedEvent: page [%s] is selected' % page
+      print(('onPageChangedEvent: page [%s] is selected' % page))
       self.enableTools(page)
       currentPage = self.tab.GetCurrentPage()
       if isinstance(currentPage, entityDetailsDialog.Panel):
@@ -487,7 +487,7 @@ class SAFplusFrame(wx.Frame):
       return None
 
     def onPageClosing(self, evt):
-      print 'page closing event launched'
+      print('page closing event launched')
       idx = evt.GetSelection()
       if idx >= 0:
         page = self.tab.GetPage(idx)
@@ -496,7 +496,7 @@ class SAFplusFrame(wx.Frame):
           del self.openFile[page.control.file_path]
           return
       pageText = self.tab.GetPageText(idx)
-      print 'page [%s] idx [%d] closing' % (pageText, idx)
+      print(('page [%s] idx [%d] closing' % (pageText, idx)))
       t = self.model
       if not t:
         return
@@ -523,10 +523,10 @@ class SAFplusFrame(wx.Frame):
     def onWindowsMenu(self, evt):
       if not self.project.active():
         return
-      print 'onWindowsMenu launched'
+      print('onWindowsMenu launched')
       idx = evt.GetId()
       pageText = self.menuWindows.GetLabel(idx)
-      print 'menu item [%s] idx [%d] clicked' % (pageText, idx)
+      print(('menu item [%s] idx [%d] clicked' % (pageText, idx)))
       t = self.model
       index = -1
       if pageText == texts.modelling and t.uml:
@@ -566,7 +566,7 @@ class SAFplusFrame(wx.Frame):
         page = t.instanceDetails = entityDetailsDialog.Panel(self.tab,self.guiPlaces, t.model,isDetailInstance=True)
         textId = pageIdx = 3
       text = self.getCurrentPageText(textId)
-      print 'insert page id [%d] text [%s]' % (pageIdx, text)
+      print(('insert page id [%d] text [%s]' % (pageIdx, text)))
       self.tab.InsertPage(pageIdx, page, text)
       self.tab.SetSelection(pageIdx)
 
@@ -619,7 +619,7 @@ class SAFplusApp(wx.App):
       self.frame = SAFplusFrame(None, "SAFplus IDE")
       self.SetTopWindow(self.frame)
       self.SetExitOnFrameDelete(True)
-      print "Print statements go to this stdout window by default."
+      print("Print statements go to this stdout window by default.")
       self.frame.Show(True)
       return True
 

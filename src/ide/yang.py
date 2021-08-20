@@ -273,28 +273,28 @@ def dictifyStatements(stmts,ts,objs,indent=0):
 
 def dictify(ctx,ts,os):
   #print "Modules:"
-  for m in ctx.modules.items():
-    print m[0]
+  for m in list(ctx.modules.items()):
+    print(m[0])
 
   #print "Objects:"
-  for module in ctx.modules.items():
+  for module in list(ctx.modules.items()):
     m = module[1]
     dictifyStatements(m.substmts,ts,os,0)
 
 
 def dumpStatements(stmts,indent=0):
     for s in stmts:
-      print " "*indent, "keyword: ", s.keyword, " Arg: ", s.arg
+      print(" "*indent, "keyword: ", s.keyword, " Arg: ", s.arg)
       if s.substmts:
         dumpStatements(s.substmts, indent+2)
 
 def dumpContext(ctx):
-  print "Modules:"
-  for m in ctx.modules.items():
-    print m[0]
+  print("Modules:")
+  for m in list(ctx.modules.items()):
+    print(m[0])
 
-  print "Objects:"
-  for module in ctx.modules.items():
+  print("Objects:")
+  for module in list(ctx.modules.items()):
     m = module[1]
     dumpStatements(m.substmts,0)
 

@@ -9,10 +9,13 @@ from types import *
 import common
 import entity
 
+def cmp(a, b):
+    return bool(a > b) - bool(a < b) 
+
 def DataTypeSortOrder(a,b):
-  if not type(a[1]) is DictType:
+  if not type(a[1]) is dict:
     return 1
-  if not type(b[1]) is DictType:
+  if not type(b[1]) is dict:
     return -1
   return cmp(a[1].get("order",10000),b[1].get("order",10001))
 
@@ -29,7 +32,7 @@ class Module:
   def __init__(self, filename):
     global observer
     global handler
-    print filename
+    print(filename)
     self.filename = common.fileResolver(filename)
     realfile = os.path.realpath(self.filename)  # Chase thru symbolic links
     handler.files[realfile] = self
@@ -39,7 +42,7 @@ class Module:
     observer.schedule(handler, os.path.dirname(realfile), recursive=False)
     # Parse the yang module into entity types
     self.entityTypes = {}
-    for i in self.yobjects.items(): # Load the top level defined entities (like node, sg)
+    for i in list(self.yobjects.items()): # Load the top level defined entities (like node, sg)
       if i[1].get("ui-entity",False):
         self.entityTypes[i[0]] = entity.EntityType(i[0],i[1])  # create a new entity type, with the member fields (located in i[1])
 
@@ -52,7 +55,7 @@ class Module:
 
   def onModuleChanged(self):
     """If the module file changes, we need to reload it."""
-    print "module changed"  
+    print("module changed")  
 
         
 handler = ModuleChangedHandler()

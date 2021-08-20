@@ -60,14 +60,14 @@ instantiated  <instances>     instances                         instances     (e
 
   def delete(self, items):
     """Accept a list of items in a variety of formats to be deleted"""
-    if type(items) is types.ListType or isinstance(items,set):
+    if type(items) is list or isinstance(items,set):
       for item in items:
         self.delete(item)
-    if type(items) is types.DictType:
-      for item in items.items():
+    if type(items) is dict:
+      for item in list(items.items()):
         self.delete(item)
 
-    if type(items) in types.StringTypes:
+    if type(items) in (str,):
       #if self.entityTypes.get(item):
       #  self.deleteEntity(self.entities[item])
       if self.entities.get(items):
@@ -83,7 +83,7 @@ instantiated  <instances>     instances                         instances     (e
       #self.deleteEntity(items)
       entname = items.data["name"]
       insToDelete = []
-      for name,e in self.instances.items():
+      for name,e in list(self.instances.items()):
         if e.entity.data["name"] == entname:
           insToDelete.append(e)
       if share.instancePanel:
@@ -95,9 +95,9 @@ instantiated  <instances>     instances                         instances     (e
   def deleteEntity(self,entity):
     """Delete this instance of Entity from the model"""
     entname = entity.data["name"]
-    for (name,e) in self.entities.items():
+    for (name,e) in list(self.entities.items()):
       e.containmentArrows[:] = [ x for x in e.containmentArrows if x.contained != entity]
-      for k,v in e.data.items():         
+      for k,v in list(e.data.items()):         
          if (v == entity.data['name']):
             e.data[k] = ''
             break
@@ -217,8 +217,8 @@ instantiated  <instances>     instances                         instances     (e
 
       # Look for relationships.  I can't do this until all the entities are created
       for (ed,eo) in fileEntLst:        
-        for et in self.entityTypes.items():   # Look through all the children for a key that corresponds to the name of an entityType (+ s), eg: "ServiceGroups"
-          if ed.child_.has_key(et[0] + 's'):
+        for et in list(self.entityTypes.items()):   # Look through all the children for a key that corresponds to the name of an entityType (+ s), eg: "ServiceGroups"
+          if et[0] + 's' in ed.child_:
             linkstr = ed.child_[et[0] + 's'].data_
             linklst = linkstr.split(",")
             for link in linklst:
@@ -238,7 +238,7 @@ instantiated  <instances>     instances                         instances     (e
       # Get instance lock fields
       ide = self.data.getElementsByTagName("ide")
       if ide:
-        for (name,e) in self.entities.items():
+        for (name,e) in list(self.entities.items()):
           etType = ide[0].getElementsByTagName(e.et.name)
           if etType:
             et = etType[0].getElementsByTagName(name)
@@ -250,9 +250,9 @@ instantiated  <instances>     instances                         instances     (e
     if instances:
       for (path, obj) in instances:
         fileEntLst = []
-        for entityType in self.entityTypes.keys():
-          for instance in obj.children(lambda(x): x if (type(x) is types.InstanceType and x.__class__ is microdom.MicroDom and x.tag_ == entityType) else None):
-            if instance.child_.has_key("%sType"%entityType):
+        for entityType in list(self.entityTypes.keys()):
+          for instance in obj.children(lambda x: x if (type(x) is types.object and x.__class__ is microdom.MicroDom and x.tag_ == entityType) else None):
+            if "%sType"%entityType in instance.child_:
               entityTypeName = instance.child_.get("%sType"%entityType).data_
 
               # Entity of this instance
@@ -268,9 +268,9 @@ instantiated  <instances>     instances                         instances     (e
               fileEntLst.append((instance,entityInstance))
   
       for (ed,eo) in fileEntLst:
-        for et in self.entityTypes.items():   # Look through all the children for a key that corresponds to the name of an entityType (+ s), eg: "ServiceGroups"
+        for et in list(self.entityTypes.items()):   # Look through all the children for a key that corresponds to the name of an entityType (+ s), eg: "ServiceGroups"
           child = et[0][0].lower() + et[0][1:] + 's'
-          for ch in ed.children(lambda(x): x if (type(x) is types.InstanceType and x.__class__ is microdom.MicroDom and x.tag_ == child) else None):
+          for ch in ed.children(lambda x: x if (type(x) is types.object and x.__class__ is microdom.MicroDom and x.tag_ == child) else None):
             # Strip out instance-identifier if any
             childName = str(ch.data_)[str(ch.data_).rfind("/")+1:]
             contained = self.instances.get(childName,None)
@@ -307,7 +307,7 @@ instantiated  <instances>     instances                         instances     (e
       del inst.containmentArrows[:]
     self.deleteInstanceFromMicrodom(entname)
     del self.instances[entname]
-    for (name,e) in self.instances.items():
+    for (name,e) in list(self.instances.items()):
       e.containmentArrows = [ x for x in e.containmentArrows if x.contained != inst]
 
   def connect(self,container, contained):
@@ -338,16 +338,16 @@ instantiated  <instances>     instances                         instances     (e
     #proxyComps = filter(lambda entity: entity.et.name == 'Component' and len(entity.data['NonSafComponents'])>0, self.entities.values())
     comps = []
     proxyComps = []
-    for c in filter(lambda entity: entity.et.name == 'Component',self.entities.values()):
+    for c in [entity for entity in list(self.entities.values()) if entity.et.name == 'Component']:
       noProxied = True
       #print c.data['name']
       #print 'in outer loop'
-      for nsc in filter(lambda entity: entity.et.name == 'NonSafComponent',self.entities.values()):
+      for nsc in [entity for entity in list(self.entities.values()) if entity.et.name == 'NonSafComponent']:
         #print nsc.data['name']
         if self.isProxyOf(c, nsc):            
           proxyComps.append(c)
           noProxied = False
-          print 'found proxied. break'
+          print('found proxied. break')
           break
         #print 'continue inner loop'
       if noProxied:
@@ -449,26 +449,26 @@ instantiated  <instances>     instances                         instances     (e
         if not os.path.dirname(filename) or len(os.path.dirname(filename).strip()) == 0:
             filename = os.sep.join([os.path.dirname(self.filename), filename])
 
-        if not self.modules.has_key(filename):  # really load it since it does not exist
+        if filename not in self.modules:  # really load it since it does not exist
           tmp = self.modules[filename] = Module(filename)
           self.entityTypes.update(tmp.entityTypes)  # make the entity types easily accdef xmlify(self):
-          for (typName,data) in tmp.ytypes.items():
+          for (typName,data) in list(tmp.ytypes.items()):
             self.dataTypes[typName] = data
 
     # Set the entityType's context to this model so it can resolve referenced types, etc.
-    for (name,e) in self.entityTypes.items():
+    for (name,e) in list(self.entityTypes.items()):
       e.context = self
 
   def loadModuleFromFile(self, moduleFile):
     """Load the modules specified in the model"""
-    if not self.modules.has_key(moduleFile):  # really load it since it does not exist
+    if moduleFile not in self.modules:  # really load it since it does not exist
       tmp = self.modules[moduleFile] = Module(moduleFile)
       self.entityTypes.update(tmp.entityTypes)  # make the entity types easily accdef xmlify(self):
-      for (typName,data) in tmp.ytypes.items():
+      for (typName,data) in list(tmp.ytypes.items()):
         self.dataTypes[typName] = data
 
     # Set the entityType's context to this model so it can resolve referenced types, etc.
-    for (name,e) in self.entityTypes.items():
+    for (name,e) in list(self.entityTypes.items()):
       e.context = self
 
   def defaultForType(self,typ):
@@ -483,10 +483,10 @@ instantiated  <instances>     instances                         instances     (e
        The reason I don't create an entirely new tree is to preserve any application extensions that might have been put into the file.
     """
     # First, update the model to make sure that it is internally consistent
-    for (name,i) in self.instances.items():
-      for parent in filter(lambda ent: isinstance(ent, Entity), i.childOf):  # If the object has parent pointers, update them.  This is pretty specific to SAFplus data types...
+    for (name,i) in list(self.instances.items()):
+      for parent in [ent for ent in i.childOf if isinstance(ent, Entity)]:  # If the object has parent pointers, update them.  This is pretty specific to SAFplus data types...
         fieldName = parent.et.name[0].lower() + parent.et.name[1:]  # uncapitalize the first letter to make it use SAFplus bumpycase
-        if i.data.has_key(fieldName):
+        if fieldName in i.data:
           i.data[fieldName] = parent.data["name"]
 
     # Locate or create the needed sections in the XML file
@@ -533,7 +533,7 @@ instantiated  <instances>     instances                         instances     (e
 
 
     #   iterate through all entities writing them to the microdom, or changing the existing microdom
-    for (name,e) in self.entities.items():
+    for (name,e) in list(self.entities.items()):
       # Find the existing DOM nodes for the entity information, creating the node if it is missing
       entity = entities.findOneByChild("name",name)
       if not entity:
@@ -547,7 +547,7 @@ instantiated  <instances>     instances                         instances     (e
 
       # Remove all "None", replacing with the default or ""
       temp = {}
-      for (key,val) in e.data.items():
+      for (key,val) in list(e.data.items()):
         if val is None:
           val = e.et.data[key].get("default",None)
           if val is None:
@@ -570,13 +570,13 @@ instantiated  <instances>     instances                         instances     (e
         # TODO: write the containment arrow IDE specific information to the IDE area of the model xml
         self.writeContainmentArrow(ideEntity, arrow)
       # Now erase the missing linkages from the microdom
-      for (key, val) in self.entityTypes.items():   # Look through all the children for a key that corresponds to the name of an entityType (+ s), eg: "ServiceGroups"
-          if not contains.has_key(key): # Element is an entity type but no linkages
-            if entity.child_.has_key(key + 's'): entity.delChild(key + 's')
+      for (key, val) in list(self.entityTypes.items()):   # Look through all the children for a key that corresponds to the name of an entityType (+ s), eg: "ServiceGroups"
+          if key not in contains: # Element is an entity type but no linkages
+            if key + 's' in entity.child_: entity.delChild(key + 's')
       # Ok now write the linkages to the microdom
-      for (key, val) in contains.items():
+      for (key, val) in list(contains.items()):
         k = key + "s"
-        if entity.child_.has_key(k): entity.delChild(k)
+        if k in entity.child_: entity.delChild(k)
         entity.addChild(microdom.MicroDom({"tag_":k},[",".join(val)],""))  # TODO: do we really need to pluralize?  Also validate comma separation is ok
 
       # Building instance lock fields
@@ -608,7 +608,7 @@ instantiated  <instances>     instances                         instances     (e
       instances = instances[0]
 
     # iterate through all instances writing them to the microdom, or changing the existing microdom
-    for (name,e) in self.instances.items():
+    for (name,e) in list(self.instances.items()):
       instance = instances.findOneByChild("name",name)
       if not instance:
         instance = microdom.MicroDom({"tag_":e.et.name},[],[])
@@ -616,7 +616,7 @@ instantiated  <instances>     instances                         instances     (e
 
       # Remove all "None", replacing with the default or ""
       temp = {}      
-      for (key,val) in e.data.items():
+      for (key,val) in list(e.data.items()):
         if val is None:
           val = e.et.data[key].get("default",None)
           if val is None:
@@ -646,21 +646,21 @@ instantiated  <instances>     instances                         instances     (e
         contains[key] = tmp
 
       # Now erase the missing linkages from the microdom
-      for (key, val) in self.entityTypes.items():   # Look through all the children for a key that corresponds to the name of an entityType (+ s), eg: "serviceUnits"
+      for (key, val) in list(self.entityTypes.items()):   # Look through all the children for a key that corresponds to the name of an entityType (+ s), eg: "serviceUnits"
           key = key[0].lower() + key[1:] + 's'
-          if not contains.has_key(key): # Element is an entity type but no linkages
-            if instance.child_.has_key(key): instance.delChild(key)
+          if key not in contains: # Element is an entity type but no linkages
+            if key in instance.child_: instance.delChild(key)
 
       # Ok now write the linkages to the microdom
-      for (key, vals) in contains.items():
-        if instance.child_.has_key(key): instance.delChild(key)
+      for (key, vals) in list(contains.items()):
+        if key in instance.child_: instance.delChild(key)
         for val in vals:
           instance.addChild(microdom.MicroDom({"tag_":key},[val],""))  # TODO: do we really need to pluralize?  Also validate comma separation is ok
 
       # Extra parent entity name
       entityParentVal = e.entity.data["name"]
       entityParentKey = "%sType"%e.et.name
-      if instance.child_.has_key(entityParentKey): instance.delChild(entityParentKey)
+      if entityParentKey in instance.child_: instance.delChild(entityParentKey)
       instance.addChild(microdom.MicroDom({"tag_":entityParentKey},[entityParentVal],""))
   
   def createChild(self, parent, childName):
@@ -748,9 +748,9 @@ instantiated  <instances>     instances                         instances     (e
 
   def getInstantiatedNodes(self):
     nodes = []
-    for (name, i) in self.instances.items():
+    for (name, i) in list(self.instances.items()):
       if i.data['entityType'] == 'Node':
-         print 'append [%s] to the returned list'%name
+         print('append [%s] to the returned list'%name)
          nodes.append(i)
     return nodes
 
@@ -760,10 +760,10 @@ instantiated  <instances>     instances                         instances     (e
       for node in nodeList:
         for ca in node.entity.containmentArrows:
           if ent == ca.contained:
-             print '[%s] is the child of [%s]'%(ent.data['name'],node.entity.data['name'])
+             print('[%s] is the child of [%s]'%(ent.data['name'],node.entity.data['name']))
              return True
           else:
-             print '[%s] is NOT the child of [%s]'%(ent.data['name'], node.entity.data['name'])
+             print('[%s] is NOT the child of [%s]'%(ent.data['name'], node.entity.data['name']))
       return False
     return True
 
@@ -774,7 +774,7 @@ instantiated  <instances>     instances                         instances     (e
       name=entity.NameCreator(ent.data["name"])  # Let's see if the instance is already here before we recreate it.
       ei = instances.get(name,None)  
       if not ei:
-        print 'instantiating [%s]'%name
+        print('instantiating [%s]'%name)
         ei = entity.Instance(ent, None,pos=None,size=None,name=name)
         instances[name] = ei
       depth = depth + 1
@@ -785,10 +785,10 @@ instantiated  <instances>     instances                         instances     (e
         if depth<=MAX_RECURSIVE_INSTANTIATION_DEPTH:
           for ca in ent.containmentArrows:
             if ca.container.et.name == 'Component':
-              print 'skip creating instance which is a child (such as NonSafComponent) of Component'
+              print('skip creating instance which is a child (such as NonSafComponent) of Component')
               continue
             if not self.needInstantiate(ca.contained):
-              print 'skip instantiating [%s] because its SG or Node are not instantiated yet'%ca.contained.data['name']
+              print('skip instantiating [%s] because its SG or Node are not instantiated yet'%ca.contained.data['name'])
               continue
             (ch, xtra) = self.recursiveInstantiation(ca.contained,instances, depth)
             ch.childOf.add(ei)
@@ -796,17 +796,17 @@ instantiated  <instances>     instances                         instances     (e
             cai.container = ei
             cai.contained = ch
             ei.containmentArrows.append(cai)
-            print 'created arrow [%s-->%s] for [%s]'% (ei.data['name'],ch.data['name'], ei.data['name'])
+            print('created arrow [%s-->%s] for [%s]'% (ei.data['name'],ch.data['name'], ei.data['name']))
             children.append(ch)
       else:
-        print 'model::recursiveInstantiation: do not create recursive instance for [%s], type [%s]' % (name, ent.et.name)
+        print('model::recursiveInstantiation: do not create recursive instance for [%s], type [%s]' % (name, ent.et.name))
       return (ei, instances)
 
   def recursiveDuplicateInst(self,inst,instances=None, depth=1):
     if not instances: instances = self.instances    
     if 1:
       name=entity.NameCreator(inst.data["name"])  # Let's see if the instance is already here before we recreate it.
-      print 'model::recursiveAndDuplicateInst: new dup inst name = [%s]' % name
+      print('model::recursiveAndDuplicateInst: new dup inst name = [%s]' % name)
       ei = instances.get(name,None)  
       if not ei:
         ei = inst.duplicate(name)
@@ -817,9 +817,9 @@ instantiated  <instances>     instances                         instances     (e
       depth = depth + 1      
       if depth<=MAX_RECURSIVE_INSTANTIATION_DEPTH:
         for ca in inst.containmentArrows:
-          print 'model::recursiveAndDuplicateInst: ca = [%s]' % ca.contained.data["name"]
+          print('model::recursiveAndDuplicateInst: ca = [%s]' % ca.contained.data["name"])
           ch = self.recursiveDuplicateInst(ca.contained,instances, depth)
-          print 'model::recursiveAndDuplicateInst: ch name = [%s]' % ch.data["name"]
+          print('model::recursiveAndDuplicateInst: ch name = [%s]' % ch.data["name"])
           for parent in ch.childOf:
             if parent.data['entityType'] == "ServiceUnit" and ei.et.name == "ServiceUnit":
               ch.childOf = set()
@@ -834,7 +834,7 @@ instantiated  <instances>     instances                         instances     (e
   def addContainmenArrow(self, inst, newinst):
     if inst.et.name=="ServiceUnit":
       newinst.childOf = set()
-      for e in filter(lambda entInt: entInt.et.name=="ServiceGroup", self.instances.values()):        
+      for e in [entInt for entInt in list(self.instances.values()) if entInt.et.name=="ServiceGroup"]:        
         for ca in e.containmentArrows:
           if ca.contained==inst:
             newinst.childOf.add(e)
@@ -886,9 +886,9 @@ def Test():
   m = Model()
   m.load("testModel.xml")
   for (path, obj) in m.data.find("modules"):
-    for module in obj.children(lambda(x): x if (type(x) is types.InstanceType and x.__class__ is microdom.MicroDom) else None):   
-      print module.tag_, ": ", module.data_
-  print m.entityTypes.keys()
+    for module in obj.children(lambda x: x if (type(x) is types.object and x.__class__ is microdom.MicroDom) else None):   
+      print(module.tag_, ": ", module.data_)
+  print(list(m.entityTypes.keys()))
   # pdb.set_trace()
 
   #sg0 = m.entities["appSG"].createInstance((0,0),(100,40),"sg0")
@@ -916,7 +916,7 @@ theModel = None
 def TestRender(ctx):
   posx = 10
   posy = 10
-  for et in theModel.entityTypes.items():
+  for et in list(theModel.entityTypes.items()):
     bmp = et[1].iconSvg.instantiate((256,128))
     svg.blit(ctx,bmp,(posx,posy),(1,1))
     posx += 300

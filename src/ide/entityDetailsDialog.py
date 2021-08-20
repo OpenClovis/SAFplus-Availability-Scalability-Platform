@@ -1,5 +1,6 @@
 import pdb
 from collections import namedtuple
+from functools import cmp_to_key
 
 import wx
 #from wx.py import shell,
@@ -10,7 +11,9 @@ import wx.grid
 try:
     import wx.lib.wxcairo
     import cairo
-    import rsvg
+    import gi
+    gi.require_version('Rsvg', '2.0')
+    from gi.repository import Rsvg
     haveCairo = True
 except ImportError:
     haveCairo = False
@@ -76,12 +79,12 @@ app = wx.App(0)
 
 class SliderCustom(wx.PyControl):
   def __init__(self, parent, id, v, rang, style = wx.BORDER_NONE, name = ''):
-    wx.PyControl.__init__(self, parent, id, style = style)
+    wx.Control.__init__(self, parent, id, style = style)
 
-    self.sliderText = wx.TextCtrl(self, id, str(v), style = wx.BORDER_SIMPLE, name=name)
+    self.sliderText = wx.TextCtrl(self, id, str(v), style = wx.BORDER_SIMPLE | wx.TE_PROCESS_ENTER, name=name)
     self.slider = wx.Slider(self,id,v,rang[0],rang[1],size=(200,60), style = wx.SL_HORIZONTAL) #  | wx.SL_AUTOTICKS | wx.SL_LABELS)
 
-    self.tickFreq = 5
+    self.tickFreq = rang[1] / 20
     self.slider.SetTickFreq(self.tickFreq)
 
     sizer = wx.BoxSizer(wx.HORIZONTAL)
@@ -133,7 +136,7 @@ class GenericObjectValidator(wx.PyValidator):
     def __init__(self):
       """ Standard constructor.
       """
-      wx.PyValidator.__init__(self)
+      wx.Validator.__init__(self)
       self.Bind(wx.EVT_CHAR, self.OnChar)
 
       # Error msg, this can get from yang leaf
@@ -214,7 +217,7 @@ class NameObjectValidator(GenericObjectValidator):
       if len(value) < self.length[0] or len(value) > self.length[1]:
         self.setError("Length value should be [%d..%d]" %(self.length[0], self.length[1]))
 
-      if (value != self.currentValue) and (value in self.dictItems.keys()):
+      if (value != self.currentValue) and (value in list(self.dictItems.keys())):
         self.setError("Name value of entity should be unique")
 
       return (not self.isError)
@@ -344,7 +347,7 @@ class Panel(scrolled.ScrolledPanel):
         fieldData.SetFocus()
       else:
         # Go through ctrl to validate
-        for obj in self.lookup.values():
+        for obj in list(self.lookup.values()):
           query = obj[1]
           validator = query.GetValidator()
           if validator:
@@ -465,16 +468,16 @@ class Panel(scrolled.ScrolledPanel):
         return
       elif id>=EDIT_BUTTON_ID:
         self.idx = id - EDIT_BUTTON_ID
-        print 'button with id [%d] clicked' % id
+        print('button with id [%d] clicked' % id)
         # TODO: open dialog for user to input list of data
         dlg = DataEntryDialog(self)
         dlg.ShowModal()
         if dlg.what == "OK":
-          print 'handling ok clicked'
+          print('handling ok clicked')
           dlg.save()
         return
       else:
-        print "unknown button! %d" % id
+        print("unknown button! %d" % id)
         return
         pdb.set_trace()
       obj = self.lookup[idx]
@@ -487,10 +490,10 @@ class Panel(scrolled.ScrolledPanel):
       # set the button appropriately
       if entity.instanceLocked[obj[0][0]]:
         lockButton.SetBitmap(self.lockedBmp);
-        lockButton.SetBitmapSelected(self.unlockedBmp)
+        lockButton.SetBitmapPressed(self.unlockedBmp)
       else:
         lockButton.SetBitmap(self.unlockedBmp);
-        lockButton.SetBitmapSelected(self.lockedBmp)
+        lockButton.SetBitmapPressed(self.lockedBmp)
 
     def createControl(self,id,item, value, nameCtrl):
       """Create the best GUI control for this type of data"""
@@ -499,7 +502,7 @@ class Panel(scrolled.ScrolledPanel):
       if item[0]=='proxyCSI'or item[0]=='csiType':
         return None
       typeData = item[1]
-      if type(typeData) is DictType and typeData.has_key("type"):
+      if type(typeData) is dict and "type" in typeData:
         if typeData["type"] == "boolean":
           query = wx.CheckBox(self.tree.GetMainWindow(),id,"")
           #checked = bool(value)
@@ -528,7 +531,7 @@ class Panel(scrolled.ScrolledPanel):
 
           # TODO: default 'v' > range ???
           if v > rang[1]:
-            query  = wx.TextCtrl(self.tree.GetMainWindow(),id,str(v),style = wx.BORDER_SIMPLE)
+            query  = wx.TextCtrl(self.tree.GetMainWindow(),id,str(v),style = wx.BORDER_SIMPLE | wx.TE_PROCESS_ENTER)
             query.SetValidator(NumberObjectValidator())
           else:
             query = SliderCustom(self.tree.GetMainWindow(),id, v, rang)
@@ -538,35 +541,35 @@ class Panel(scrolled.ScrolledPanel):
           # TODO create a control that contains both a slider and a small text box
           # TODO size the slider properly using min an max hints 
         elif typeData["type"] == 'enumeration':  # This handles enums inside other lists or containers
-          vals = typeData["choice"].choices.items()
-          vals = sorted(vals, module.DataTypeSortOrder)
+          vals = list(typeData["choice"].choices.items())
+          vals = sorted(vals, key=cmp_to_key(module.DataTypeSortOrder))
           choices = [x[0] for x in vals]
           if not value in choices:  # OOPS!  Either initial case or the datatype was changed
               value = choices[0]  # so set the value to the first one TODO: set to default one
-          query = wx.ComboBox(self.tree.GetMainWindow(),id,value=value,choices=[x[0] for x in vals],style=wx.CB_READONLY)
+          query = wx.ComboBox(self.tree.GetMainWindow(),id,value=value,choices=[x[0] for x in vals],style=wx.CB_READONLY | wx.TE_PROCESS_ENTER)
 
-        elif self.model.dataTypes.has_key(typeData["type"]):
+        elif typeData["type"] in self.model.dataTypes:
           typ = self.model.dataTypes[typeData["type"]]
           if typ["type"] == "enumeration":  # This is a typedef enum
-            vals = typ["values"].items()
-            vals = sorted(vals, module.DataTypeSortOrder)
+            vals = list(typ["values"].items())
+            vals = sorted(vals, key=cmp_to_key(module.DataTypeSortOrder))
             choices = [x[0] for x in vals]
             if not value in choices:  # OOPS!  Either initial case or the datatype was changed
               value = choices[0]  # so set the value to the first one TODO: set to default one
-            query = wx.ComboBox(self.tree.GetMainWindow(),id,value=value,choices=[x[0] for x in vals],style=wx.CB_READONLY)
+            query = wx.ComboBox(self.tree.GetMainWindow(),id,value=value,choices=[x[0] for x in vals],style=wx.CB_READONLY | wx.TE_PROCESS_ENTER)
           else:
             # TODO other datatypes 
-            query  = wx.TextCtrl(self.tree.GetMainWindow(), id, value,style = wx.BORDER_SIMPLE)
+            query  = wx.TextCtrl(self.tree.GetMainWindow(), id, value,style = wx.BORDER_SIMPLE | wx.TE_PROCESS_ENTER)
             query.Bind(wx.EVT_KILL_FOCUS, self.OnUnfocus)
         else:  # Default control is a text box
-          query  = wx.TextCtrl(self.tree.GetMainWindow(), id, str(value),style = wx.BORDER_SIMPLE)
-          # Works: query.SetToolTipString("test")
+          query  = wx.TextCtrl(self.tree.GetMainWindow(), id, str(value),style = wx.BORDER_SIMPLE | wx.TE_PROCESS_ENTER)
+          # Works: query.SetToolTip("test")
           query.Bind(wx.EVT_KILL_FOCUS, self.OnUnfocus)
         
         # Bind to handle event on change
         self.BuildChangeEvent(query)
         query.SetName(nameCtrl)
-      elif type(typeData) is ListType:
+      elif type(typeData) is list:
         #handling list type here: creating a button that opens a dialog for user to enter the list of data
         query = wx.Button(self.tree.GetMainWindow(), id, "Edit...")
       else:
@@ -638,9 +641,9 @@ class Panel(scrolled.ScrolledPanel):
       # collapse all item
       itemsCollapse = None
       if "entity.Entity" in str(ent):
-        itemsCollapse = self.model.entities.items()
+        itemsCollapse = list(self.model.entities.items())
       elif "entity.Instance" in str(ent):
-        itemsCollapse = self.model.instances.items()
+        itemsCollapse = list(self.model.instances.items())
       for (name, es) in itemsCollapse:
         item = self.createTreeItemEntity(es.data["name"], es)
         self.tree.Collapse(item)
@@ -674,7 +677,7 @@ class Panel(scrolled.ScrolledPanel):
       self.tree.SetColumnWidth(3, 225)
       self.row = 0
 
-      for (evt, func) in self.eventDictTree.items():
+      for (evt, func) in list(self.eventDictTree.items()):
         self.tree.Bind(evt, func)
 
       self.sizer.Add(self.tree, -1, wx.ALL | wx.EXPAND)
@@ -683,10 +686,10 @@ class Panel(scrolled.ScrolledPanel):
 
       # This tree to show details for entity instantiate
       if (self.isDetailInstance):
-        for (name, ent) in filter(lambda (name, ent): ent.et.name in (self.entityTreeTypes),self.model.instances.items()):
+        for (name, ent) in [name_ent for name_ent in list(self.model.instances.items()) if name_ent[1].et.name_ent[0] in (self.entityTreeTypes)]:
           self.createTreeItemEntity(name, ent)
       else:
-        for (name, ent) in self.model.entities.items():
+        for (name, ent) in list(self.model.entities.items()):
           self.createTreeItemEntity(name, ent)
 
       self.SetSizer(self.sizer)
@@ -694,7 +697,7 @@ class Panel(scrolled.ScrolledPanel):
       self.Refresh()
 
     def deleteEntFromLookup(self, ent):      
-      deletedItems = [k for (k,v) in self.lookup.items() if v[5] == ent]
+      deletedItems = [k for (k,v) in list(self.lookup.items()) if v[5] == ent]
       for k in deletedItems:
         query = self.lookup[k][1]
         if query:
@@ -742,7 +745,7 @@ class Panel(scrolled.ScrolledPanel):
               child = ca.contained
               self.createTreeItemEntity(child.data["name"], child, treeItem)
           else:
-            print '[%s] doesn exist in tree' % i.data['name']
+            print('[%s] doesn exist in tree' % i.data['name'])
           
 
     # Create controls for an entity
@@ -758,11 +761,11 @@ class Panel(scrolled.ScrolledPanel):
       treeItem = self.tree.AppendItem(parentItem, name)
       self.tree.SetPyData(treeItem, ent)
 
-      items = ent.et.data.items()
-      items = sorted(items,EntityTypeSortOrder)
+      items = list(ent.et.data.items())
+      items = sorted(items,key=cmp_to_key(EntityTypeSortOrder))
 
       # Put the name at the top
-      query  = wx.TextCtrl(self.tree.GetMainWindow(), self.row + TEXT_ENTRY_ID, "")
+      query  = wx.TextCtrl(self.tree.GetMainWindow(), self.row + TEXT_ENTRY_ID, "", style =  wx.TE_PROCESS_ENTER)
       query.ChangeValue(ent.data["name"])
       query.Bind(wx.EVT_KILL_FOCUS, self.OnUnfocus)
       
@@ -774,7 +777,7 @@ class Panel(scrolled.ScrolledPanel):
       query.SetValidator(NameObjectValidator(self.model.instances if self.isDetailInstance else self.model.entities, ent.data["name"]))
 
       b = wx.BitmapButton(self.tree.GetMainWindow(), self.row + LOCK_BUTTON_ID, self.unlockedBmp,style = wx.NO_BORDER )
-      b.SetToolTipString("If unlocked, instances can change this field")
+      b.SetToolTip("If unlocked, instances can change this field")
 
       child = self.tree.AppendItem(treeItem, "Name:")
       self.tree.SetPyData(child, ent)
@@ -799,15 +802,15 @@ class Panel(scrolled.ScrolledPanel):
       return treeItem
 
     def createChildControls(self, treeItem, ent, items, values, nameCtrl):
-      for item in filter(lambda item: item[0] != "name", items):
+      for item in [item for item in items if item[0] != "name"]:
         name = item[0]
         if item[0] == "contains" or (item[0] == 'type' and self.isDetailInstance and ent.data['entityType'] == 'ComponentServiceInstance') or (item[0] == 'type' and ent.data['entityType'] == 'ComponentServiceInstance' and not self.isDetailInstance):
           if (item[0] == 'type' and self.isDetailInstance and ent.data['entityType'] == 'ComponentServiceInstance'):
-            print 'Instances Details Tab: ', item[0], ' is hiden'
+            print('Instances Details Tab: ', item[0], ' is hiden')
           if (item[0] == 'type' and not self.isDetailInstance and ent.data['entityType'] == 'ComponentServiceInstance'):
-            print 'Model Details Tab: ', item[0], ' is hiden'
+            print('Model Details Tab: ', item[0], ' is hiden')
           pass
-        elif type(item[1]) is DictType:
+        elif type(item[1]) is dict:
           if item[1].get("type","untyped") in self.noShowTypes:
             continue
           if self.configOnly and item[1].get("config",True)==False:
@@ -820,7 +823,7 @@ class Panel(scrolled.ScrolledPanel):
 
           if ent.isContainer(item[1]):
             child = self.tree.AppendItem(treeItem, s)
-            self.createChildControls(child, ent, item[1].items(), values.get(item[0], None), nameCtrl="%s_%s"%(nameCtrl, name))
+            self.createChildControls(child, ent, list(item[1].items()), values.get(item[0], None), nameCtrl="%s_%s"%(nameCtrl, name))
           else:
             query = self.createControl(self.row + TEXT_ENTRY_ID, item, values.get(item[0], None), nameCtrl="%s_%s"%(nameCtrl, name))
             if not query: continue  # If this piece of data has no control, it is not user editable
@@ -830,28 +833,28 @@ class Panel(scrolled.ScrolledPanel):
             # pdb.set_trace()
             # Now create the lock/unlock button
             b = wx.BitmapButton(self, self.row + LOCK_BUTTON_ID, self.unlockedBmp,style = wx.NO_BORDER )
-            b.SetToolTipString("If unlocked, instances can change this field")
+            b.SetToolTip("If unlocked, instances can change this field")
             
             if ent.instanceLocked.get(name, False):  # Set its initial state
               b.SetBitmap(self.lockedBmp);
-              b.SetBitmapSelected(self.unlockedBmp)
+              b.SetBitmapPressed(self.unlockedBmp)
 
               # Not allow to change this value from instance
               query.Enable(isinstance(ent,entity.Instance) == False)
             else:
               b.SetBitmap(self.unlockedBmp);
-              b.SetBitmapSelected(self.lockedBmp)
+              b.SetBitmapPressed(self.lockedBmp)
 
-            b.SetBitmapSelected(self.lockedBmp)
+            b.SetBitmapPressed(self.lockedBmp)
 
             # Devide from entity type, not allow to 'Lock' this from instance
             b.Enable(isinstance(ent,entity.Instance) == False)
 
             # Next add the extended help button
             h = None
-            if item[1].has_key("help") and item[1]["help"]:
+            if "help" in item[1] and item[1]["help"]:
               h = wx.BitmapButton(self, self.row + HELP_BUTTON_ID, self.helpBmp,style = wx.NO_BORDER )
-              h.SetToolTipString(item[1]["help"])
+              h.SetToolTip(item[1]["help"])
             #else: 
             #  h = wx.StaticText(self,-1,"")  # Need a placeholder or gridbag sizer screws up
 
@@ -871,10 +874,10 @@ class Panel(scrolled.ScrolledPanel):
             self.row+=1
 
           self.tree.SetPyData(child, ent)
-        elif type(item[1]) is ListType: # handling yang list type
+        elif type(item[1]) is list: # handling yang list type
           if 0:#ent.isContainer(item[1]):
             child = self.tree.AppendItem(treeItem, s)
-            self.createChildControls(child, ent, item[1].items(), values.get(item[0], None), nameCtrl="%s_%s"%(nameCtrl, name))
+            self.createChildControls(child, ent, list(item[1].items()), values.get(item[0], None), nameCtrl="%s_%s"%(nameCtrl, name))
           else:
             query = self.createControl(self.row + EDIT_BUTTON_ID, item, None, nameCtrl="%s_%s"%(nameCtrl, name))
             if not query: continue  # If this piece of data has no control, it is not user editable
@@ -884,30 +887,30 @@ class Panel(scrolled.ScrolledPanel):
             child = self.tree.AppendItem(treeItem, s)            
             # Now create the lock/unlock button
             b = wx.BitmapButton(self, self.row + LOCK_BUTTON_ID, self.unlockedBmp,style = wx.NO_BORDER )
-            b.SetToolTipString("If unlocked, instances can change this field")
+            b.SetToolTip("If unlocked, instances can change this field")
             
             if ent.instanceLocked.get(name, False):  # Set its initial state
               b.SetBitmap(self.lockedBmp);
-              b.SetBitmapSelected(self.unlockedBmp)
+              b.SetBitmapPressed(self.unlockedBmp)
 
               # Not allow to change this value from instance
               query.Enable(isinstance(ent,entity.Instance) == False)
             else:
               b.SetBitmap(self.unlockedBmp);
-              b.SetBitmapSelected(self.lockedBmp)
+              b.SetBitmapPressed(self.lockedBmp)
 
-            b.SetBitmapSelected(self.lockedBmp)
+            b.SetBitmapPressed(self.lockedBmp)
 
             # Devide from entity type, not allow to 'Lock' this from instance
             b.Enable(isinstance(ent,entity.Instance) == False)
 
             # Next add the extended help button
             h = None
-            t = item[1][0].itervalues().next()
-            if t.has_key("help"):
+            t = next(iter(item[1][0].values()))
+            if "help" in t:
               h = wx.BitmapButton(self, self.row + HELP_BUTTON_ID, self.helpBmp,style = wx.NO_BORDER )
               if t["help"]:
-                h.SetToolTipString(t["help"])
+                h.SetToolTip(t["help"])
             #else: 
             #  h = wx.StaticText(self,-1,"")  # Need a placeholder or gridbag sizer screws up
 
@@ -942,8 +945,8 @@ class Panel(scrolled.ScrolledPanel):
         mapEvents = {
             'TextCtrl': [wx.EVT_TEXT, wx.EVT_TEXT_ENTER],
             'CheckBox': [wx.EVT_CHECKBOX],
-            'Slider': [wx.EVT_SCROLL, wx.EVT_SLIDER, wx.EVT_SCROLL_CHANGED, ],
-            'ComboBox': [wx.EVT_COMBOBOX, wx.EVT_TEXT, wx.EVT_TEXT_ENTER ], # , wx.EVT_COMBOBOX_CLOSEUP],  # wx.EVT_COMBOBOX_DROPDOWN,
+            'Slider': [wx.EVT_SCROLL, wx.EVT_SLIDER, wx.EVT_SCROLL_CHANGED],
+            'ComboBox': [wx.EVT_COMBOBOX, wx.EVT_TEXT, wx.EVT_TEXT_ENTER], # , wx.EVT_COMBOBOX_CLOSEUP],  # wx.EVT_COMBOBOX_DROPDOWN,
             'SliderCustom':[wx.EVT_TEXT, wx.EVT_TEXT_ENTER]
             # TBD 
         }
@@ -985,7 +988,7 @@ class DataEntryDialog(wx.Dialog):
         # Then we call CreateGrid to set the dimensions of the grid
         self.grid.CreateGrid(self.nRows, self.nCols)
         j = 0
-        for i in item[0].items():
+        for i in list(item[0].items()):
           self.grid.SetColLabelValue(j, i[0])
           if j==0:
             self.grid.SetColSize(0, 100)
@@ -1009,7 +1012,7 @@ class DataEntryDialog(wx.Dialog):
           row = 0
           for grp in self.data:
             col = 0
-            for it in grp.items():
+            for it in list(grp.items()):
               self.grid.SetCellValue(row, col, str(it[1]))
               col+=1
             row+=1
@@ -1034,7 +1037,7 @@ class DataEntryDialog(wx.Dialog):
     def OnGridCellChanged(self, evt):
         curRow = evt.GetRow()
         curCol = evt.GetCol()
-        print 'grid changed: curRow [%d]; old value [%s]; new value [%s]' % (curRow, evt.GetString(), self.grid.GetCellValue(curRow,curCol))
+        print('grid changed: curRow [%d]; old value [%s]; new value [%s]' % (curRow, evt.GetString(), self.grid.GetCellValue(curRow,curCol)))
         # Workaround: showing message box in wx grid always make wx python sends CELL_CHANGED event twice
         # so, we need to unbind the event first. After handling for the event finishes, rebind it
         self.Unbind(wx.grid.EVT_GRID_CMD_CELL_CHANGED, id=GRID_ID)
@@ -1079,7 +1082,7 @@ class DataEntryDialog(wx.Dialog):
         '''
         keycode = event.GetKeyCode()
         if keycode == wx.WXK_BACK or keycode == wx.WXK_DELETE:
-          print 'you pressed the delete key'
+          print('you pressed the delete key')
           self.deleteKeyDown = True
         else:
           self.deleteKeyDown = False
@@ -1101,7 +1104,7 @@ class DataEntryDialog(wx.Dialog):
     #----------------------------------------------------------------------
     def onBtnHandler(self, event):
         what = event.GetEventObject().GetLabel()
-        print 'about to %s' % what                
+        print('about to %s' % what)                
         self.what = what
         self.Close()
     

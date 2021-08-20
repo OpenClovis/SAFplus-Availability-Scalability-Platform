@@ -3,7 +3,7 @@ from types import *
 
 def findCfg(key,cfgLst,default=None):
   for a in cfgLst:
-    if a.has_key(key): return a[key]
+    if key in a: return a[key]
   return default
 
 class Dot:
@@ -13,20 +13,20 @@ class Dot:
   """
 
   def shouldRecurse(self,thing):
-    return (type(thing) == type({})) or  (type(thing) is InstanceType and thing.__class__ is Dot)
+    return (type(thing) == type({})) or  (type(thing) is object and thing.__class__ is Dot)
 
   def __init__(self, coll={}):
     self.__dict__["_order"]=[]
-    if type(coll) is DictType:
-      for (key, val) in coll.items():
+    if type(coll) is dict:
+      for (key, val) in list(coll.items()):
         if self.shouldRecurse(val): val = Dot(val)
         self._set(key,val)
-    elif type(coll) is ListType:
+    elif type(coll) is list:
       for (key, val) in coll:
         if self.shouldRecurse(val): val = Dot(val)
         self._set(key,val)
-    elif type(coll) is InstanceType and coll.__class__ is Dot:
-      for (key,val) in coll.iteritems():
+    elif type(coll) is object and coll.__class__ is Dot:
+      for (key,val) in coll.items():
         if self.shouldRecurse(val): val = Dot(val)
         self._set(key,val)
       
@@ -43,7 +43,7 @@ class Dot:
     return "{ " + ", ".join(s) + " }"
 
   def _set(self,k,v):
-    if not self.__dict__.has_key(k):
+    if k not in self.__dict__:
       self._order.append(k)
     self.__dict__[k] = v
     return v
@@ -53,28 +53,28 @@ class Dot:
 
   def merge(self,dict):
     """Like dictionary update but subdictionaries are recursively merged"""
-    for (k,v) in dict.items():
-      if type(v) == InstanceType and v.__class__ == Dot and self.__dict__.has_key(k):  # If dict and I both have a same-named subDOT then merge them
+    for (k,v) in list(dict.items()):
+      if type(v) == object and v.__class__ == Dot and k in self.__dict__:  # If dict and I both have a same-named subDOT then merge them
         self.__dict__[k].merge(v)
       else:
         self._set(k,v)
 
   def find(self, key):
     """Do a recursive search for the key, returning the complete path"""
-    if self.has_key(key): return key
-    for (k,v) in self.iteritems():
-      if type(v) == InstanceType and v.__class__ == Dot:
+    if key in self: return key
+    for (k,v) in self.items():
+      if type(v) == object and v.__class__ == Dot:
         r = v.find(key)
         if r: return ".".join([k,r])
     return None
           
   def update(self,dict):
     """Update is like merge but it will not merge subdictionaries -- it overwrites them"""
-    for (k,v) in dict.items():
+    for (k,v) in list(dict.items()):
       self._set(k,v)
 
   def has_key(self, key):
-    return self.__dict__.has_key(key)
+    return key in self.__dict__
 
   def keys(self):
     return self._order
@@ -93,7 +93,7 @@ class Dot:
     return self.__dict__.get(key, default)
 
   def setdefault(self, key, default = None):
-    if self.__dict__.has_key(key): return self.__dict__[key]
+    if key in self.__dict__: return self.__dict__[key]
     self._set(key,default)
     return default
 
@@ -138,7 +138,7 @@ class Dot:
       i = key.index('.')
       key_1 = key[:i]
       key_rest = key[i+1:]
-      if not self.__dict__.has_key(key_1):
+      if key_1 not in self.__dict__:
         self._set(key_1,Dot())
       self[key_1][key_rest] = val
     except ValueError:
@@ -159,7 +159,7 @@ class Dot:
 
   def flatten(self, prefix=None):
     d = {}
-    for (key, val) in self.iteritems():
+    for (key, val) in self.items():
       p = (prefix and prefix+'.' or '')+str(key)
       try:
         d.update(val.flatten(p))
@@ -210,7 +210,7 @@ if __name__ == '__main__':
             # pdb.set_trace()
             d = Dot(self.d)
             d.b.e.f.g = 12
-            print str(d)
+            print(str(d))
             self.assertEqual(d.__str__(),
                 "{ 'a':12, 'b':{ 'c':4, 'e':{ 'f':{ 'g':12 } }, 'd':16 } }")
 

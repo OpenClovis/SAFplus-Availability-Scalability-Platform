@@ -80,12 +80,12 @@ class MyFrame(wx.Frame):
 
     def OnTimeToClose(self, evt):
         """Event handler for the button click."""
-        print "See ya later!"
+        print("See ya later!")
         self.Close()
 
     def OnFunButton(self, evt):
         """Event handler for the button click."""
-        print "Having fun yet?"
+        print("Having fun yet?")
 
 
 class MyApp(wx.App):
@@ -96,7 +96,7 @@ class MyApp(wx.App):
       self.frame = MyFrame(None, "Simple wxPython App",self.panelFactory)
       self.SetTopWindow(self.frame)
 
-      print "Print statements go to this stdout window by default."
+      print("Print statements go to this stdout window by default.")
       self.frame.Show(True)
       return True
         

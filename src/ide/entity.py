@@ -16,7 +16,7 @@ MAXIMUM_NUMBER = 1000
 
 def getNames(typ):
   listName = []
-  for (name, e) in share.detailsPanel.model.entities.items():
+  for (name, e) in list(share.detailsPanel.model.entities.items()):
     if e.data['entityType'] == typ:
       listName.append(name)
   return listName
@@ -42,19 +42,22 @@ def NameCreator(typ, etname=None):
   nameIdx[typ] = idx+1
   return typ + str(idx)
 
+def cmp(a, b):
+    return bool(a > b) - bool(a < b) 
+
 def EntityTypeSortOrder(a,b):
-  if not type(a[1]) is DictType:
+  if not type(a[1]) is dict:
     return 1
-  if not type(b[1]) is DictType:
+  if not type(b[1]) is dict:
     return -1
   return cmp(a[1].get("order",10000),b[1].get("order",10001))
   
 def updateNamelyDict(model):
   global nameIdx
   nameIdx = {}
-  for (name,e) in model.entities.items():
+  for (name,e) in list(model.entities.items()):
     NameCreator(e.et.name)
-  for (name,i) in model.instances.items():
+  for (name,i) in list(model.instances.items()):
     NameCreator(i.entity.data["name"], name)
 
 
@@ -62,7 +65,7 @@ def isRelationshipExist(ent):
   if not share.umlEditorPanel:
     assert(False)
   count=0
-  for name,e in share.umlEditorPanel.model.entities.items():
+  for name,e in list(share.umlEditorPanel.model.entities.items()):
     if ent==e:
       continue
     if ent.et.name != "ServiceUnit" and ent.et.name != "Component":
@@ -115,7 +118,7 @@ class Entity:
   """This is a UML object of a particular entity type, for example the 'Apache' service group"""
   def __init__(self, entityType, pos, size,name=None,data=None):
     self.et = entityType
-    assert(type(pos) == TupleType);
+    assert(type(pos) == tuple);
     self.pos  = pos
     self.size = size
     self.scale = (1.0,1.0)
@@ -243,8 +246,8 @@ class Entity:
         break
 
   def isContainer(self, typeDicts):
-    for (name,metadata) in typeDicts.items():
-      if type(metadata) == DictType:
+    for (name,metadata) in list(typeDicts.items()):
+      if type(metadata) == dict:
         return True
     return False
   
@@ -256,16 +259,16 @@ class Entity:
       typeDict = self.et.data
 
     #new = self.data  # Keep what is already there
-    for (name,metadata) in typeDict.items():  # Dig thru everything in the entity type, moving it all into the entity
-      if type(metadata) == DictType: # If its not a dictionary type it cannot be changed; don't copy over
+    for (name,metadata) in list(typeDict.items()):  # Dig thru everything in the entity type, moving it all into the entity
+      if type(metadata) == dict: # If its not a dictionary type it cannot be changed; don't copy over
         if metadata.get('config', True) == False: continue  # Do not copy any runtime fields over; they are not interesting to us.        
-        if dataDict and dataDict.has_key(name):
+        if dataDict and name in dataDict:
           val = dataDict[name]
           if microdom.microdomFilter(val):
-            if metadata.has_key('type'):
+            if 'type' in metadata:
               try:
                 data[name] = val.data_.strip()
-              except AttributeError, e:  # Could be a number...
+              except AttributeError as e:  # Could be a number...
                 data[name] = val.data_
             else:
               # Build child container data
@@ -275,12 +278,12 @@ class Entity:
                 self.updateDataFields(val, typeChildsDict, data[name])
           else:
             data[name] = val
-        elif data.has_key(name):  # If its assigned pull it over
+        elif name in data:  # If its assigned pull it over
           pass
         else:  # Create it new
-          if metadata.has_key("default"):
+          if "default" in metadata:
             data[name] = metadata["default"]
-          elif metadata.has_key("type"):
+          elif "type" in metadata:
             data[name] = self.et.context.defaultForType(metadata["type"])
           else:
             # Build child container default data
@@ -290,24 +293,24 @@ class Entity:
               self.updateDataFields({}, typeChildsDict, data[name])
             else:
               data[name] = ""
-      elif type(metadata) == ListType:
-        if dataDict and dataDict.has_key(name):
+      elif type(metadata) == list:
+        if dataDict and name in dataDict:
           if isinstance(dataDict, microdom.MicroDom):
             dataTags = dataDict.getElementsByTagName(name)
           else:
             dataTags = dataDict.get(name, None)
           if dataTags:
             lst = []
-            for item in metadata[0].items():
+            for item in list(metadata[0].items()):
               lst.append(item[0])
             l = []
             for dt in dataTags:
               d = {}
               for i in range(0,len(lst)):
-                if dt.has_key(lst[i]):
+                if lst[i] in dt:
                   try:
                     k = dt[lst[i]].data_
-                  except AttributeError, e:  # Could be string NOT an xml tag
+                  except AttributeError as e:  # Could be string NOT an xml tag
                     k = dt[lst[i]]
                   d[lst[i]] = k
               if len(d)>0:

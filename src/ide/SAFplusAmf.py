@@ -22,7 +22,7 @@ class WizardDialog(wx.Dialog):
       if label is not None:
         label = wx.StaticText(self, label=label, size=size if size else self.LabelSize)
         if ctrl == 0: 
-          print label
+          print(label)
           sizer.Add(label, 3, wx.ALL| wx.EXPAND, 5)
         else:
           sizer.Add(label, 0, wx.ALL|wx.CENTER, 5)
@@ -31,7 +31,7 @@ class WizardDialog(wx.Dialog):
         sizer.Add(ctrl, 10, wx.ALL | wx.EXPAND, 5)
       elif ctrl == 0:
         pass
-      elif type(ctrl) is types.ListType:
+      elif type(ctrl) is list:
         if isinstance(ctrl[0], wx.Control):  # Its an object, assume that its a wx control
           for c in ctrl:
             sizer.Add(c, 10, wx.ALL | wx.EXPAND, 5)
@@ -78,7 +78,7 @@ class SAFWizardDialog(WizardDialog):
 
         
         for (sizer, ctrl) in gelems:
-          if type(ctrl) is types.ListType and isinstance(ctrl[0], wx.Button):
+          if type(ctrl) is list and isinstance(ctrl[0], wx.Button):
             self.main_sizer.Add(sizer, 0, wx.ALL|wx.CENTER, 5)
           else:
             self.main_sizer.Add(sizer, 0, wx.ALL, 5)
@@ -91,7 +91,7 @@ class SAFWizardDialog(WizardDialog):
         
     def onBtnHandler(self, event):
         what = event.GetEventObject().GetLabel()
-        print 'about to %s' % what  
+        print('about to %s' % what)  
         # if (what == "OK"):
         self.what = what
         if self.what == "OK":
@@ -155,7 +155,7 @@ class NPNPWizardDialog(WizardDialog):
 
         
         for (sizer, ctrl) in gelems:
-          if type(ctrl) is types.ListType and isinstance(ctrl[0], wx.Button):
+          if type(ctrl) is list and isinstance(ctrl[0], wx.Button):
             self.main_sizer.Add(sizer, 0, wx.ALL|wx.CENTER, 5)
           else:
             self.main_sizer.Add(sizer, 0, wx.ALL, 5)
@@ -170,7 +170,7 @@ class NPNPWizardDialog(WizardDialog):
     
     def onBtnHandler(self, event):
         what = event.GetEventObject().GetLabel()
-        print 'about to %s' % what  
+        print('about to %s' % what)  
         # if (what == "OK"):
         self.what = what
         if self.what == "OK":
@@ -209,7 +209,7 @@ class Extensions:
   def __init__(self, model, guiPlaces):
     self.model = model
     self.guiPlaces = guiPlaces
-    print "SAFplusAmf extension loaded"
+    print("SAFplusAmf extension loaded")
     self.safHAWizardId = wx.NewId()
     self.npnpHAWizardId = wx.NewId()
     menu = self.guiPlaces.menu.get("Modelling",None)
@@ -254,7 +254,7 @@ class Extensions:
 
       procNames = dlg.procNameList
 
-      for n in max(len(procNames), range(1,nProc+1)):
+      for n in max(len(procNames), list(range(1,nProc+1))):
         if procNames:
           compName = procNames[0]
           del procNames[0]
@@ -332,7 +332,7 @@ class Extensions:
 
       procNames = dlg.procNameList
 
-      for n in max(len(procNames), range(1,nProc+1)):
+      for n in max(len(procNames), list(range(1,nProc+1))):
         if procNames:
           compName = procNames[0]
           del procNames[0]

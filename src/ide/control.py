@@ -420,7 +420,7 @@ class EditorControl(stc.StyledTextCtrl):
     def highlight_markers(self):
         indicator = 2
         self.clear_indicator(indicator)
-        for text, flags in self._markers.iteritems():
+        for text, flags in self._markers.items():
             self.highlight_all(indicator, text, flags)
     def mark_text(self, text=None, flags=None):
         text = text or self.GetSelectedText()

@@ -6,7 +6,9 @@ from types import *
 import wx
 import wx.lib.wxcairo
 import cairo
-import rsvg
+import gi
+gi.require_version('Rsvg', '2.0')
+from gi.repository import Rsvg
 import yang
 import svg
 import wx.lib.scrolledpanel as scrolled
@@ -65,7 +67,7 @@ def convertToRealPos(pos, scale):
   if isinstance(pos, wx.Point):
     return wx.Point(round(pos.x/scale), round(pos.y/scale))
   elif isinstance(pos, tuple):
-    return map(lambda x: convertToRealPos(x, scale), pos)
+    return [convertToRealPos(x, scale) for x in pos]
   else:
     return round(pos/scale)
 
@@ -83,11 +85,11 @@ class EntityTypeTool(Tool):
     return True
 
   def OnUnselect(self,panel,event):
-    print "Unselected %s" % self.entityType.name
+    print("Unselected %s" % self.entityType.name)
     return True
 
   def OnEditEvent(self,panel, event):
-    pos = panel.CalcUnscrolledPosition(event.GetPositionTuple())
+    pos = panel.CalcUnscrolledPosition(event.GetPosition())
     ret = False
     if isinstance(event,wx.MouseEvent):
       if event.ButtonDown(wx.MOUSE_BTN_LEFT):  # Select
@@ -98,7 +100,7 @@ class EntityTypeTool(Tool):
         ret = True
       elif event.ButtonUp(wx.MOUSE_BTN_LEFT):
         if self.entityType.name == 'Cluster':
-          for name,e in share.umlEditorPanel.model.entities.items():
+          for name,e in list(share.umlEditorPanel.model.entities.items()):
             if e.et.name == 'Cluster':
               panel.statusBar.SetStatusText("Model can't contain more than one Cluster",0);
               panel.drawers.discard(self.box)
@@ -155,7 +157,7 @@ class LinkTool(Tool):
     return True
 
   def OnEditEvent(self,panel, event):
-    pos = panel.CalcUnscrolledPosition(event.GetPositionTuple())
+    pos = panel.CalcUnscrolledPosition(event.GetPosition())
     ret = False
     if isinstance(event,wx.MouseEvent):
       if event.ButtonDown(wx.MOUSE_BTN_LEFT):  # Select
@@ -225,7 +227,7 @@ class LinkTool(Tool):
   def updateProxyCSI(self, proxyComp):
     for arrow in proxyComp.containmentArrows:
        proxiedComp = arrow.contained
-       for name,e in share.umlEditorPanel.model.entities.items():
+       for name,e in list(share.umlEditorPanel.model.entities.items()):
           if proxiedComp.data['name'] == e.data['name']:
              proxiedComp.data['proxyCSI'] = proxyComp.data['csiType']
              break
@@ -253,7 +255,7 @@ class SelectTool(Tool):
     # Draw mini rectangle at top left corner
     if self.selected:
       for e in self.selected:
-        if self.panel.entities.has_key(e.data["name"]):  # Don't show if its deleted.
+        if e.data["name"] in self.panel.entities:  # Don't show if its deleted.
           pos = (e.pos[0] * share.umlEditorPanel.scale,e.pos[1] * share.umlEditorPanel.scale) 
           ctx.set_line_width(2)
           ctx.rectangle(pos[0] + self.panel.scale*self.panel.translating['horizontal'], pos[1] + self.panel.scale*self.panel.translating['vertical'], 20*self.panel.scale, 20*self.panel.scale)
@@ -262,7 +264,7 @@ class SelectTool(Tool):
 
   def OnEditEvent(self,panel, event):
     panel.drawSelectionBox = True
-    pos = panel.CalcUnscrolledPosition(event.GetPositionTuple())
+    pos = panel.CalcUnscrolledPosition(event.GetPosition())
     if isinstance(event,wx.MouseEvent):
       # Single select
       if event.ButtonDown(wx.MOUSE_BTN_LEFT) or event.LeftDClick():  
@@ -273,7 +275,7 @@ class SelectTool(Tool):
           self.touching = set()
           self.boxSel.start(panel,pos)
           return False
-        print "Touching %s" % ", ".join([ e.data["name"] for e in entities])
+        print("Touching %s" % ", ".join([ e.data["name"] for e in entities]))
         panel.statusBar.SetStatusText("Touching %s" % ", ".join([ e.data["name"] for e in entities]),0);
 
         self.touching = set(entities)
@@ -384,7 +386,7 @@ class ZoomTool(Tool):
     pass
 
   def OnEditEvent(self,panel, event):
-    pos = panel.CalcUnscrolledPosition(event.GetPositionTuple())
+    pos = panel.CalcUnscrolledPosition(event.GetPosition())
     scale = self.panel.scale
     if isinstance(event, wx.MouseEvent):
       if event.ButtonDown(wx.MOUSE_BTN_LEFT) or event.ButtonDown(wx.MOUSE_BTN_RIGHT):  # Select
@@ -493,7 +495,7 @@ class DeleteTool(Tool):
     '''
     model = share.detailsPanel.model
     pos = convertToRealPos(pos, self.panel.scale)
-    for (name, e) in model.entities.items():
+    for (name, e) in list(model.entities.items()):
       for arrow in e.containmentArrows:
         st = arrow.container.pos
         end = arrow.contained.pos
@@ -512,7 +514,7 @@ class DeleteTool(Tool):
           model.deleteWireFromMicrodom(name, arrow.contained.data['name'])
 
   def OnEditEvent(self,panel,event):
-    pos = panel.CalcUnscrolledPosition(event.GetPositionTuple())
+    pos = panel.CalcUnscrolledPosition(event.GetPosition())
     if isinstance(event, wx.MouseEvent):
       if event.ButtonDown(wx.MOUSE_BTN_LEFT):  # Select
         self.selectMultiple = False
@@ -546,7 +548,7 @@ class DeleteTool(Tool):
           self.touching = panel.findEntitiesTouching(self.boxSel.finish(panel,pos))
 
         if self.touching:
-          print "Delete(s): %s" % ", ".join([ e.data["name"] for e in self.touching])
+          print("Delete(s): %s" % ", ".join([ e.data["name"] for e in self.touching]))
           self.deleteEntities(self.touching)
           self.touching.clear()
         elif self.wireCheck:
@@ -570,7 +572,7 @@ class DeleteTool(Tool):
   def removeProxyCSI(self, proxyComp):    
     for arrow in proxyComp.containmentArrows:
        proxiedComp = arrow.contained
-       for name,e in share.umlEditorPanel.model.entities.items():
+       for name,e in list(share.umlEditorPanel.model.entities.items()):
           if proxiedComp.data['name'] == e.data['name']:
              proxiedComp.data['proxyCSI'] = ''
              break
@@ -696,18 +698,18 @@ class Panel(scrolled.ScrolledPanel):
       #self.entityToolIds = []
 
     def setModelData(self, model):
-      print 'set model data'
+      print('set model data')
       self.model = model
       self.entities = self.model.entities
 
     def OnShow(self,event):
-      print "ON SHOW"
+      print("ON SHOW")
       if event.IsShown():
         enable = True
       else:
         enable = False
       for i in self.toolIds:  # Enable/disable the tools when the tab is shown/removed
-        print i
+        print(i)
         #self.toolBar.EnableTool(i,enable)
         tool = self.toolBar.FindById(i)
         tool.Enable(enable)
@@ -723,7 +725,7 @@ class Panel(scrolled.ScrolledPanel):
       # print 'addEntityTools'
       tsize = self.toolBar.GetToolBitmapSize()
 
-      sortedEt = self.model.entityTypes.items()  # Do this so the buttons always appear in the same order
+      sortedEt = list(self.model.entityTypes.items())  # Do this so the buttons always appear in the same order
       sortedEt.sort()
       #buttonIdx = ENTITY_TYPE_BUTTON_START
       menu = self.guiPlaces.menu.get("Modelling",None)
@@ -735,7 +737,7 @@ class Panel(scrolled.ScrolledPanel):
         shortHelp = et[1].data.get("shortHelp",None)
         longHelp = et[1].data.get("help",None)
         #self.toolBar.AddLabelTool(11, et[0], bitmap, shortHelp=shortHelp, longHelp=longHelp)
-        self.toolBar.AddRadioTool(buttonIdx, bitmap, bitmapDisabled, shortHelp=et[0], longHelp=longHelp,clientData=et)
+        self.toolBar.AddRadioTool(buttonIdx, "", bitmap, bitmapDisabled, shortHelp=et[0], longHelp=longHelp,clientData=et)
         self.idLookup[buttonIdx] = EntityTypeTool(self,et[1])  # register this button so when its clicked we know about it
         #buttonIdx+=1
         if menu: # If there's a menu for these entity tools, then add the object to the menu as well
@@ -767,7 +769,7 @@ class Panel(scrolled.ScrolledPanel):
 
       if 0:  # Save is handled at the project level
         bitmap1 = svg.SvgFile("save_as.svg").bmp(tsize, { }, (222,222,222,wx.ALPHA_OPAQUE))
-        self.toolBar.AddTool(SAVE_BUTTON, bitmap1, wx.NullBitmap, shortHelpString="save", longHelpString="Save model as...")
+        self.toolBar.AddTool(SAVE_BUTTON, "", bitmap1, wx.NullBitmap, shortHelp="save", longHelp="Save model as...")
         self.idLookup[SAVE_BUTTON] = SaveTool(self)
 
       # Add the umlEditor's standard tools
@@ -776,25 +778,25 @@ class Panel(scrolled.ScrolledPanel):
       s = svg.SvgFile("connect.svg")
       bitmapDisabled = s.disabledButton(tsize)
       bitmap = s.bmp(tsize, { }, BAR_GREY)
-      self.toolBar.AddRadioTool(CONNECT_BUTTON, bitmap, bitmapDisabled, shortHelp="connect", longHelp="Draw relationships between entities")
+      self.toolBar.AddRadioTool(CONNECT_BUTTON, "", bitmap, bitmapDisabled, shortHelp="connect", longHelp="Draw relationships between entities")
       self.idLookup[CONNECT_BUTTON] = LinkTool(self)
 
       s = svg.SvgFile("pointer.svg")
       bitmapDisabled = s.disabledButton(tsize)
       bitmap = s.bmp(tsize, { }, BAR_GREY)
-      self.toolBar.AddRadioTool(SELECT_BUTTON, bitmap, bitmapDisabled, shortHelp="select", longHelp="Select one or many entities.  Click entity to edit details.  Double click to expand/contract.")
+      self.toolBar.AddRadioTool(SELECT_BUTTON, "", bitmap, bitmapDisabled, shortHelp="select", longHelp="Select one or many entities.  Click entity to edit details.  Double click to expand/contract.")
       self.idLookup[SELECT_BUTTON] = self.selectTool = SelectTool(self)
 
       s = svg.SvgFile("zoom.svg")
       bitmapDisabled = s.disabledButton(tsize)
       bitmap = s.bmp(tsize, { }, BAR_GREY)
-      self.toolBar.AddRadioTool(ZOOM_BUTTON, bitmap, bitmapDisabled, shortHelp="zoom", longHelp="Left click (+) to zoom in. Right click (-) to zoom out.")
+      self.toolBar.AddRadioTool(ZOOM_BUTTON, "", bitmap, bitmapDisabled, shortHelp="zoom", longHelp="Left click (+) to zoom in. Right click (-) to zoom out.")
       self.idLookup[ZOOM_BUTTON] = ZoomTool(self)
 
       s = svg.SvgFile("remove.svg")
       bitmapDisabled = s.disabledButton(tsize)
       bitmap = s.bmp(tsize, { }, BAR_GREY)
-      self.toolBar.AddRadioTool(DELETE_BUTTON, bitmap, bitmapDisabled, shortHelp="Delete entity/entities", longHelp="Select one or many entities. Click entity to delete.")
+      self.toolBar.AddRadioTool(DELETE_BUTTON, "", bitmap, bitmapDisabled, shortHelp="Delete entity/entities", longHelp="Select one or many entities. Click entity to delete.")
       self.idLookup[DELETE_BUTTON] = DeleteTool(self)
       # setting the default tool
       self.tool = self.idLookup[CONNECT_BUTTON]
@@ -888,7 +890,7 @@ class Panel(scrolled.ScrolledPanel):
           self.modellingChange()
 
     def OnToolMenu(self,event):
-      print "On Tool Menu"
+      print("On Tool Menu")
       self.toolBar.ToggleTool(event.GetId(), True)
       self.OnToolClick(event)
 
@@ -896,7 +898,7 @@ class Panel(scrolled.ScrolledPanel):
       co = event.GetClientObject()
       cd = event.GetClientData()
       id = event.GetId()
-      print "Tool Clicked %d %s %s" % (id, str(co), str(cd))
+      print("Tool Clicked %d %s %s" % (id, str(co), str(cd)))
       try:
         tool = self.idLookup[id]
         if not isinstance(tool, SelectTool) and self.drawSelectionBox:
@@ -910,7 +912,7 @@ class Panel(scrolled.ScrolledPanel):
         if tool:
           tool.OnSelect(self,event)
           self.tool = tool
-      except KeyError, e:
+      except KeyError as e:
         event.Skip()
         pass # Not one of my tools
       
@@ -919,12 +921,12 @@ class Panel(scrolled.ScrolledPanel):
       co = event.GetClientObject()
       cd = event.GetClientData()
       id = event.GetId()
-      print "Tool Right Clicked %d %s %s" % (id, str(co), str(cd))      
+      print("Tool Right Clicked %d %s %s" % (id, str(co), str(cd)))      
       try:
         tool = self.idLookup[id]
         if tool:
           tool.OnRightClick(self,event)
-      except KeyError, e:
+      except KeyError as e:
         event.Skip()
         pass # Not one of my tools
 
@@ -940,7 +942,7 @@ class Panel(scrolled.ScrolledPanel):
       # Calculate bounding box
       virtRct = wx.Rect()
       if len(self.entities) > 0:
-        elst = self.entities.items()
+        elst = list(self.entities.items())
         first = elst[0]
         for (name,e) in elst:
           if e == first:
@@ -967,10 +969,10 @@ class Panel(scrolled.ScrolledPanel):
         ctx.scale(self.scale, self.scale)
         # Now draw the links
         # Now draw the entites
-        for (name,e) in self.entities.items():
+        for (name,e) in list(self.entities.items()):
           svg.blit(ctx, e.bmp, (e.pos[0]+self.translating['horizontal'], e.pos[1]+self.translating['vertical']), e.scale, e.rotate)
         # Now draw the containment arrows on top
-        for (name,e) in self.entities.items():
+        for (name,e) in list(self.entities.items()):
           for a in e.containmentArrows:
             #print 'UpdatedMidpoints = ', [(list(a.midpoints[0])[0]+self.translating['horizontal'], list(a.midpoints[0])[1]+self.translating['vertical'])]
             st = a.container.pos
@@ -998,7 +1000,7 @@ class Panel(scrolled.ScrolledPanel):
       # Real pos
       pos = convertToRealPos(pos, self.scale)
       ret = set()
-      for (name, e) in self.entities.items():
+      for (name, e) in list(self.entities.items()):
         furthest= (e.pos[0] + e.size[0]*e.scale[0] + self.translating['horizontal'], e.pos[1] + e.size[1]*e.scale[1] + self.translating['vertical'])
         #print e.data["name"], ": ", pos, " inside: ", e.pos, " to ", furthest
         if pos[0] >= (e.pos[0] + self.translating['horizontal']) and pos[1] >= (e.pos[1] + self.translating['vertical']) and pos[0] <= furthest[0] and pos[1] <= furthest[1]:  # mouse is in the box formed by the entity
@@ -1011,7 +1013,7 @@ class Panel(scrolled.ScrolledPanel):
       # Real rectangle
       rect = convertToRealPos(rect, self.scale)
       ret = set()
-      for (name, e) in self.entities.items():
+      for (name, e) in list(self.entities.items()):
         furthest= (e.pos[0] + e.size[0]*e.scale[0] + self.translating['horizontal'], e.pos[1] + e.size[1]*e.scale[1] + self.translating['vertical'])
         if rectOverlaps(rect,(e.pos[0] + self.translating['horizontal'], e.pos[1] + self.translating['vertical'], furthest[0], furthest[1])):  # mouse is in the box formed by the entity
           ret.add(e)
@@ -1020,7 +1022,7 @@ class Panel(scrolled.ScrolledPanel):
     def notifyValueChange(self, ent, key, query, newValue):      
       if share.instancePanel:
         share.instancePanel.modifyEntityTool(ent, newValue)
-      for (name, e) in self.entities.items():
+      for (name, e) in list(self.entities.items()):
         if e == ent:
           iterKeys = iter(key.split("_"))
           token  = next(iterKeys)
@@ -1028,7 +1030,7 @@ class Panel(scrolled.ScrolledPanel):
           while 1:
             try:
               token  = next(iterKeys)
-              if type(d[token]) is DictType:
+              if type(d[token]) is dict:
                 #d[token] = newValue
                 d = d[token]
               else:
@@ -1045,7 +1047,7 @@ class Panel(scrolled.ScrolledPanel):
           if validator:            
             validator.currentValue = newValue
           else:
-            print 'umlEditor::notifyValueChange: validator is null'
+            print('umlEditor::notifyValueChange: validator is null')
           e.recreateBitmap()
       self.Refresh()
 
@@ -1059,7 +1061,7 @@ class Panel(scrolled.ScrolledPanel):
       self.Refresh()
 
     def refresh(self):
-      print 'refresh window'
+      print('refresh window')
       self.Refresh()
 
 model = None
@@ -1071,7 +1073,7 @@ def Test():
   model = Model()
   try:
     model.load("testModel.xml")
-  except IOError, e:
+  except IOError as e:
     if e.errno != 2: # no such file
       raise
 
