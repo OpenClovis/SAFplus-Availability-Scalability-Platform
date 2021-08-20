@@ -154,7 +154,8 @@ class XmlResolver:
                 frame = last_frame().tb_frame
                 pdb.post_mortem()
               # TODO: print the command's help and try to hint at the problem
-              xmlterm.doc.append("<error>" + str(e) + "</error>")
+              print ('Error:', e)
+              #xmlterm.doc.append("<error>" + str(e) + "</error>")
               return
 
         if sp[0] == '!exit' or sp[0] == 'exit':  # goodbye
