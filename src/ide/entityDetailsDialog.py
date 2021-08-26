@@ -686,7 +686,7 @@ class Panel(scrolled.ScrolledPanel):
 
       # This tree to show details for entity instantiate
       if (self.isDetailInstance):
-        for (name, ent) in [name_ent for name_ent in list(self.model.instances.items()) if name_ent[1].et.name_ent[0] in (self.entityTreeTypes)]:
+        for (name, ent) in [name_ent for name_ent in list(self.model.instances.items()) if name_ent[1].et.name in (self.entityTreeTypes)]:
           self.createTreeItemEntity(name, ent)
       else:
         for (name, ent) in list(self.model.entities.items()):

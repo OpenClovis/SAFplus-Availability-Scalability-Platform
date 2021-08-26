@@ -1435,7 +1435,8 @@ class Panel(scrolled.ScrolledPanel):
           bitmap = buttonSvg.bmp(tsize, { "name":e[0] }, BAR_GREY)  # Use the first 3 letters of the name as the button text if nothing
           shortHelp = e[1].data.get("shortHelp",et.data.get("help",None)) 
           longHelp = e[1].data.get("help",et.data.get("help",None))
-          self.toolBar.AddRadioLabelTool(buttonIdx, e[0], bitmap, disabledBitmap, shortHelp=shortHelp, longHelp=longHelp)
+          self.toolBar.AddTool(buttonIdx, e[0], bitmap, disabledBitmap, shortHelp=shortHelp, longHelp=longHelp)
+          #self.toolBar.AddLabelTool(buttonIdx, e[0], bitmap, disabledBitmap, shortHelp=shortHelp, longHelp=longHelp)
           #self.toolBar.AddRadioTool(buttonIdx, "", bitmap, wx.NullBitmap, shortHelp=et[0], longHelp=longHelp,clientData=et)
           self.idLookup[buttonIdx] = EntityTool(self,e[1])  # register this button so when its clicked we know about it
           #buttonIdx+=1

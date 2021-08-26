@@ -361,6 +361,10 @@ class MicroDom:
       return "<%s%s>%s%s</%s>" % (self.tag_,attrs,datastr,chstr,self.tag_)
     else:
       return "<%s%s />" % (self.tag_,attrs)
+  def __contains__(self, item):
+    return item in self.__dict__
+
+
 
 def LoadString(s):
   dom = xml.dom.minidom.parseString(s)

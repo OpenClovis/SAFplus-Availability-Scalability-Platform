@@ -196,8 +196,9 @@ instantiated  <instances>     instances                         instances     (e
       fileEntLst = []
       for ed in entities.children(microdom.microdomFilter):
         name = ed["name"].data_
+        # name = Cluster1
         entType = self.entityTypes[ed.tag_]
-
+        #entType = self.entityTypes[Cluster]
         pos = None
         size = None
         if ideEntities: # Load the pos and size from the model (if it exists)
@@ -214,7 +215,7 @@ instantiated  <instances>     instances                         instances     (e
         eo.updateDataFields(ed)
         self.entities[name] = eo
         fileEntLst.append((ed,eo))
-
+      
       # Look for relationships.  I can't do this until all the entities are created
       for (ed,eo) in fileEntLst:        
         for et in list(self.entityTypes.items()):   # Look through all the children for a key that corresponds to the name of an entityType (+ s), eg: "ServiceGroups"
@@ -251,7 +252,7 @@ instantiated  <instances>     instances                         instances     (e
       for (path, obj) in instances:
         fileEntLst = []
         for entityType in list(self.entityTypes.keys()):
-          for instance in obj.children(lambda x: x if (type(x) is types.object and x.__class__ is microdom.MicroDom and x.tag_ == entityType) else None):
+          for instance in obj.children(lambda x: x if (x.__class__ is microdom.MicroDom and x.tag_ == entityType) else None):
             if "%sType"%entityType in instance.child_:
               entityTypeName = instance.child_.get("%sType"%entityType).data_
 
@@ -270,7 +271,7 @@ instantiated  <instances>     instances                         instances     (e
       for (ed,eo) in fileEntLst:
         for et in list(self.entityTypes.items()):   # Look through all the children for a key that corresponds to the name of an entityType (+ s), eg: "ServiceGroups"
           child = et[0][0].lower() + et[0][1:] + 's'
-          for ch in ed.children(lambda x: x if (type(x) is types.object and x.__class__ is microdom.MicroDom and x.tag_ == child) else None):
+          for ch in ed.children(lambda x: x if (x.__class__ is microdom.MicroDom and x.tag_ == child) else None):
             # Strip out instance-identifier if any
             childName = str(ch.data_)[str(ch.data_).rfind("/")+1:]
             contained = self.instances.get(childName,None)
@@ -284,6 +285,7 @@ instantiated  <instances>     instances                         instances     (e
               pass
     
     entity.updateNamelyDict(self)
+    
 
   def deleteInstance(self,inst):
     self.recursiveDeleteInstance(inst)

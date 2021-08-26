@@ -833,7 +833,7 @@ class ProjectTreePanel(wx.Panel):
             defaultDir=common.getMostRecentPrjDir(),
             defaultFile="",
             wildcard=PROJECT_WILDCARD,
-            style=wx.OPEN | wx.CHANGE_DIR  # | wx.MULTIPLE
+            style=wx.FD_OPEN | wx.FD_CHANGE_DIR  # | wx.MULTIPLE
             )
     if dlg.ShowModal() == wx.ID_OK:
       paths = dlg.GetPaths()
