@@ -1507,9 +1507,16 @@ By default the specified location and children are shown.  Use -N to specify how
   def do_nodeName(self):
     """syntax: nodeName
     """
-    nodeList = self.parseXML("Node")
-    for node in nodeList:
-      print ("nodeName is %s" %node)
+    
+    import importlib.machinery
+    import importlib.util
+    loader = importlib.machinery.SourceFileLoader('si','safplus_info')
+    spec = importlib.util.spec_from_loader('si',loader)
+    si = importlib.util.module_from_spec(spec)
+    loader.exec_module(si)    
+    if not si._asp_run_env:       
+       si._asp_run_env = si.load_asp_run_env()
+    print (si._asp_run_env['ASP_NODENAME'])       
     return ""
 
   def do_entityRestart(self, entityType, entityName):
@@ -1526,6 +1533,8 @@ By default the specified location and children are shown.  Use -N to specify how
         ret = access.amfMgmtSURestart(handleTest, entityName)
       elif entityType == "Component":
         ret = access.amfMgmtCompRestart(handleTest, entityName)
+      else:
+        ret = 0x101
       # print "amfMgmtSURestart: ", hex(ret)
       if ret == 0x11:
         print ("%s entity does not exist in %s" % (entityName, entityType))
@@ -1533,6 +1542,8 @@ By default the specified location and children are shown.  Use -N to specify how
         print ("%s entity has an invalid state to restart" %entityName)
       elif ret == 0x0:
         print (" %s entity restart OK" %entityName)
+      elif ret == 0x101:
+        print ("entity type [%s] is invalid"%entityType)
 
       ret = access.amfMgmtFinalize(handleTest)
  
