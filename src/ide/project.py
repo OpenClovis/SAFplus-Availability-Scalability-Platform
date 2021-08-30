@@ -1459,7 +1459,7 @@ class ProjectTreePanel(wx.Panel):
 
   def makeImages(self, prjPath):
     os.system('rm -rf images/*')
-    tarGet = str(subprocess.check_output(['g++','-dumpmachine'])).strip()
+    tarGet = str(subprocess.check_output(['g++','-dumpmachine']).decode()).strip()
     baseImage = prjPath + '/images/%s' % tarGet
     owd = os.getcwd()
     os.chdir('../mk')

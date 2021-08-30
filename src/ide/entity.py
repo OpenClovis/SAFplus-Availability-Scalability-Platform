@@ -262,22 +262,41 @@ class Entity:
     for (name,metadata) in list(typeDict.items()):  # Dig thru everything in the entity type, moving it all into the entity
       if type(metadata) == dict: # If its not a dictionary type it cannot be changed; don't copy over
         if metadata.get('config', True) == False: continue  # Do not copy any runtime fields over; they are not interesting to us.        
-        if dataDict and name in dataDict:
-          val = dataDict[name]
-          if microdom.microdomFilter(val):
-            if 'type' in metadata:
-              try:
-                data[name] = val.data_.strip()
-              except AttributeError as e:  # Could be a number...
-                data[name] = val.data_
-            else:
-              # Build child container data
-              typeChildsDict = typeDict[name]
-              if self.isContainer(typeChildsDict):
-                data[name] = {}
-                self.updateDataFields(val, typeChildsDict, data[name])
+        if dataDict:
+          if isinstance(dataDict, microdom.MicroDom):
+            if dataDict.has_key(name):
+              val = dataDict[name]
+              if microdom.microdomFilter(val):
+                if 'type' in metadata:
+                  try:
+                    data[name] = val.data_.strip()
+                  except AttributeError as e:  # Could be a number...
+                    data[name] = val.data_
+                else:
+                  # Build child container data
+                  typeChildsDict = typeDict[name]
+                  if self.isContainer(typeChildsDict):
+                    data[name] = {}
+                    self.updateDataFields(val, typeChildsDict, data[name])
+              else:
+                data[name] = val
           else:
-            data[name] = val
+            if name in dataDict:
+              val = dataDict[name]
+              if microdom.microdomFilter(val):
+                if 'type' in metadata:
+                  try:
+                    data[name] = val.data_.strip()
+                  except AttributeError as e:  # Could be a number...
+                    data[name] = val.data_
+                else:
+                  # Build child container data
+                  typeChildsDict = typeDict[name]
+                  if self.isContainer(typeChildsDict):
+                    data[name] = {}
+                    self.updateDataFields(val, typeChildsDict, data[name])
+              else:
+                data[name] = val
         elif name in data:  # If its assigned pull it over
           pass
         else:  # Create it new
@@ -294,30 +313,55 @@ class Entity:
             else:
               data[name] = ""
       elif type(metadata) == list:
-        if dataDict and name in dataDict:
+        if dataDict:
           if isinstance(dataDict, microdom.MicroDom):
-            dataTags = dataDict.getElementsByTagName(name)
+            if dataDict.has_key(name):
+              dataTags = dataDict.getElementsByTagName(name)
+              if dataTags:
+                lst = []
+                for item in list(metadata[0].items()):
+                  lst.append(item[0])
+                l = []
+                for dt in dataTags:
+                  d = {}
+                  for i in range(0,len(lst)):
+                    if lst[i] in dt:
+                      try:
+                        k = dt[lst[i]].data_
+                      except AttributeError as e:  # Could be string NOT an xml tag
+                        k = dt[lst[i]]
+                      d[lst[i]] = k
+                  if len(d)>0:
+                    l.append(d)
+                data[name] = l
+              else:
+                data[name]=[]
+            else:
+              data[name]=[]
           else:
-            dataTags = dataDict.get(name, None)
-          if dataTags:
-            lst = []
-            for item in list(metadata[0].items()):
-              lst.append(item[0])
-            l = []
-            for dt in dataTags:
-              d = {}
-              for i in range(0,len(lst)):
-                if lst[i] in dt:
-                  try:
-                    k = dt[lst[i]].data_
-                  except AttributeError as e:  # Could be string NOT an xml tag
-                    k = dt[lst[i]]
-                  d[lst[i]] = k
-              if len(d)>0:
-                l.append(d)
-            data[name] = l
-          else:
-            data[name]=[]
+            if name in dataDict:
+              dataTags = dataDict.get(name, None)
+              if dataTags:
+                lst = []
+                for item in list(metadata[0].items()):
+                  lst.append(item[0])
+                l = []
+                for dt in dataTags:
+                  d = {}
+                  for i in range(0,len(lst)):
+                    if lst[i] in dt:
+                      try:
+                        k = dt[lst[i]].data_
+                      except AttributeError as e:  # Could be string NOT an xml tag
+                        k = dt[lst[i]]
+                      d[lst[i]] = k
+                  if len(d)>0:
+                    l.append(d)
+                data[name] = l
+              else:
+                data[name]=[]
+            else:
+              data[name]=[]
         else:
           data[name]=[]
   
