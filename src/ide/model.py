@@ -196,9 +196,7 @@ instantiated  <instances>     instances                         instances     (e
       fileEntLst = []
       for ed in entities.children(microdom.microdomFilter):
         name = ed["name"].data_
-        # name = Cluster1
         entType = self.entityTypes[ed.tag_]
-        #entType = self.entityTypes[Cluster]
         pos = None
         size = None
         if ideEntities: # Load the pos and size from the model (if it exists)
