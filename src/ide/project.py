@@ -517,7 +517,7 @@ class ProjectTreePanel(wx.Panel):
     selectItem = self.tree.GetFocusedItem()
     itemPath = self.getFullPath(selectItem)
     if os.path.isdir(itemPath):
-      prjPath = self.tree.GetItemData(selectItem).directory()
+      prjPath = self.tree.GetPyData(selectItem).directory()
       if itemPath == prjPath:
         menus = ["New File", "New Folder", "Open Containing Folder", "Rename", "Close Project"]
       else:
@@ -572,7 +572,7 @@ class ProjectTreePanel(wx.Panel):
 
   def onSelectContext(self, event):
     item = self.popupmenu.FindItemById(event.GetId())
-    text = item.GetItemLabel()
+    text = item.GetText()
     selectedItem = self.tree.GetFocusedItem()
     itemText = self.tree.GetItemText(selectedItem)
     itemPath = self.getFullPath(selectedItem)
@@ -631,7 +631,7 @@ class ProjectTreePanel(wx.Panel):
       open(path,'a').close()
       itemId = self.tree.PrependItem(selectedItem, dlgInfo[0])
       self.tree.SortChildren(selectedItem)
-      pyData = self.tree.GetItemData(selectedItem)
+      pyData = self.tree.GetPyData(selectedItem)
       self.tree.SetItemData(itemId, pyData)
       self.setIconForItem(itemId, typeFile=True)
     elif text == "New Folder":
@@ -642,7 +642,7 @@ class ProjectTreePanel(wx.Panel):
       os.mkdir(path)
       itemId = self.tree.PrependItem(selectedItem, dlgInfo[0])
       self.tree.SortChildren(selectedItem)
-      pyData = self.tree.GetItemData(selectedItem)
+      pyData = self.tree.GetPyData(selectedItem)
       self.tree.SetItemData(itemId, pyData)
       self.setIconForItem(itemId, typeDir=True)
     elif text == "Open Containing Folder":
@@ -997,13 +997,13 @@ class ProjectTreePanel(wx.Panel):
     selectItem = self.tree.GetFocusedItem()
     itemPath = self.getFullPath(selectItem)
     if os.path.isdir(itemPath):
-      prjPath = self.tree.GetItemData(selectItem).directory()
+      prjPath = self.tree.GetPyData(selectItem).directory()
     else: return
     if itemPath != prjPath: return
     if self.currentProjectPath in self.guiPlaces.frame.undo:
       del self.guiPlaces.frame.undo[self.currentProjectPath]
     self.deleteTreeRecursion(itemPath)
-    if self.currentActiveProject != self.tree.GetItemData(selectItem):
+    if self.currentActiveProject != self.tree.GetPyData(selectItem):
       self.tree.Delete(selectItem)
       return
     self.tree.Delete(selectItem)
@@ -1459,7 +1459,7 @@ class ProjectTreePanel(wx.Panel):
 
   def makeImages(self, prjPath):
     os.system('rm -rf images/*')
-    tarGet = str(subprocess.check_output(['g++','-dumpmachine'])).strip()
+    tarGet = str(subprocess.check_output(['g++','-dumpmachine']).decode()).strip()
     baseImage = prjPath + '/images/%s' % tarGet
     owd = os.getcwd()
     os.chdir('../mk')
@@ -1858,20 +1858,22 @@ class SystemProject(wx.Panel):
       s = ["prompt", "always", "never"]
       self.mBackup = wx.ComboBox(self, choices = s, size=(290,25), style=wx.CB_READONLY)
       hBox1.Add(label1, 0, wx.ALL|wx.ALIGN_LEFT, 5)
-      hBox1.Add(self.mBackup, 0, wx.ALL|wx.ALIGN_RIGHT, 5)
+      hBox1.Add(self.mBackup, 0, wx.ALL, 5)
 
       hBox2 = wx.BoxSizer(wx.HORIZONTAL)
       label2 = wx.StaticText(self, label="Number of Backups")
       self.nBackup = wx.TextCtrl(self, size=(290,25))
       hBox2.Add(label2, 0, wx.ALL|wx.ALIGN_LEFT, 5)
-      hBox2.Add(self.nBackup, 0, wx.ALL|wx.ALIGN_RIGHT, 5)
+      hBox2.AddSpacer(8)
+      hBox2.Add(self.nBackup, 0, wx.ALL, 5)
 
       hBox3 = wx.BoxSizer(wx.HORIZONTAL)
       label3 = wx.StaticText(self, label="Overwrite Source")
       c = ["prompt", "always", "never"]
       self.mMerge = wx.ComboBox(self, choices = c, size=(290,25), style=wx.CB_READONLY)
       hBox3.Add(label3, 0, wx.ALL|wx.ALIGN_LEFT, 5)
-      hBox3.Add(self.mMerge, 0, wx.ALL|wx.ALIGN_RIGHT, 5)
+      hBox3.AddSpacer(22)
+      hBox3.Add(self.mMerge, 0, wx.ALL, 5)
       
 
       vBox.Add(hBox1, 0, wx.ALL, 0)
