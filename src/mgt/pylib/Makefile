@@ -3,7 +3,8 @@ SAFPLUS_DBAL_PYLIB :=1
 include ../../mk/preface.mk
 
 CP=cp -f
-CPP_FLAGS +=-I$(SYSTEM_INC_DIR) -I$(SYSTEM_INC_DIR)/python3.5m
+PYTHON_VER :=$(shell python3 -c "import sys; print (\"%d.%d\" % (sys.version_info[0], sys.version_info[1]))")
+CPP_FLAGS +=-I$(SYSTEM_INC_DIR) -I$(SYSTEM_INC_DIR)/python$(PYTHON_VER)m
 
 # Specify the required libraries
 SAFPLUS_LIBS := clMgt clDbal

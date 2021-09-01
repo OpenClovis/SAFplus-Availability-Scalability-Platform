@@ -173,7 +173,7 @@ class CentOS8(OS):
                  'libjpeg-turbo-devel',
                  'libpng12'
                  ]
-        pip_deps =  ['--upgrade pip', 'wxpython', 'genshi', 'watchdog', 'paramiko']
+        pip_deps =  ['wxpython', 'genshi', 'watchdog', 'paramiko']
             
         for name in deps:
             D = objects.RepoDep(name)

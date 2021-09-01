@@ -528,12 +528,15 @@ class ASPInstaller:
                       self.debug('Yum Installing: ' + cmd)
                       result = syscall(cmd)
                       self.debug(str(result))
-
+                syscall('pip3 install --upgrade pip;')
                 instCmd = 'pip3 install %s 2>&1'
                 cmd = instCmd % pip_install_str
-                self.debug('Yum Installing: ' + cmd)
-                result = syscall(cmd)            
-                self.debug(str(result))         
+                self.debug('Installing via pip3: ' + cmd)
+                (retval, result, signal, core) = system(cmd)
+                self.debug("Result: %d, output: %s" % (retval, str(result)))
+                #self.debug('Yum Installing: ' + cmd)
+                #result = syscall(cmd)            
+                #self.debug(str(result))         
                 #yum -y update kernel            
 
                 for dep in pip_install_lst:

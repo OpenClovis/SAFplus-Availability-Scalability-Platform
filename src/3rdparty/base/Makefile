@@ -126,6 +126,8 @@ PROTOBUF_PKG=$(PROTOBUF).tar.gz
 PYANG=pyang
 PYANG_PKG=$(PYANG).tar.gz
 
+PYTHON_VER :=$(shell python3 -c "import sys; print (\"%d.%d\" % (sys.version_info[0], sys.version_info[1]))")
+
 # THAT IS ALL
 ifneq ($(Xtarget),)
   CC?=$(strip $(Xtarget)-gcc)
@@ -399,7 +401,7 @@ $(LIBXML2_PKG):
 $(BOOST): $(BOOST_PKG)
 	(rm -rf $@-$(BOOST_VER))
 	(tar xvfz $<  > /dev/null)
-	(cd $(BOOST)_$(subst .,_,$(BOOST_VER)); CC= CXX= CFLAGS= ./bootstrap.sh --with-python-version=3.5 --prefix=$(InstDir) --without-icu) # This is a native tool so remove all the cross compilation env vars
+	(cd $(BOOST)_$(subst .,_,$(BOOST_VER)); CC= CXX= CFLAGS= ./bootstrap.sh --with-python-version=$(PYTHON_VER) --prefix=$(InstDir) --without-icu) # This is a native tool so remove all the cross compilation env vars
 ifneq ($(Xtarget),)
 	-rm -f ~/user-config.jam
 	echo "using gcc : cross : $(COMPILER) ;" > ~/user-config.jam
