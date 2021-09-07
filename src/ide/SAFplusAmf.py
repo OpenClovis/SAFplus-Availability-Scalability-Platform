@@ -11,7 +11,7 @@ class WizardDialog(wx.Dialog):
     def __init__(self,title, size=(430,340)):
         """Constructor"""
         wx.Dialog.__init__(self, None, title="SAF Application Wizard", size=size)
-        self.LabelSize = (100,25) 
+        self.LabelSize = (150,25) 
         self.EntrySize = (300,25)
         self.main_sizer = wx.BoxSizer(wx.VERTICAL)
 
@@ -22,7 +22,6 @@ class WizardDialog(wx.Dialog):
       if label is not None:
         label = wx.StaticText(self, label=label, size=size if size else self.LabelSize)
         if ctrl == 0: 
-          print(label)
           sizer.Add(label, 3, wx.ALL| wx.EXPAND, 5)
         else:
           sizer.Add(label, 0, wx.ALL|wx.CENTER, 5)
@@ -37,7 +36,7 @@ class WizardDialog(wx.Dialog):
             sizer.Add(c, 10, wx.ALL | wx.EXPAND, 5)
         else:
           ctrlValues = ctrl
-          ctrl = wx.ComboBox(self,-1,value=ctrlValues[0],pos=None,size=None,choices=ctrlValues,style=wx.CB_DROPDOWN)
+          ctrl = wx.ComboBox(self,id=wx.ID_ANY,value=ctrlValues[0],choices=ctrlValues,style=wx.CB_DROPDOWN)
           sizer.Add(ctrl, 10, wx.ALL | wx.EXPAND, 5)
       else:
         sizer.Add(ctrl, 10, wx.ALL | wx.EXPAND, 5)
@@ -62,7 +61,7 @@ class SAFWizardDialog(WizardDialog):
         self.nProc = tmp[1]
         gelems.append(tmp)
 
-        tmp = self.createRow("Process names (space or comma separated)", size=(100,75))
+        tmp = self.createRow("Process names (space or comma separated)", size=(150,75))
         self.procNames = tmp[1]
         gelems.append(tmp)
 
@@ -143,7 +142,7 @@ class NPNPWizardDialog(WizardDialog):
         self.nProc = tmp[1]
         gelems.append(tmp)
 
-        tmp = self.createRow("Process names (space or comma separated)", size=(100,75))
+        tmp = self.createRow("Process names (space or comma separated)", size=(150,75))
         self.procNames = tmp[1]
         gelems.append(tmp)
 
