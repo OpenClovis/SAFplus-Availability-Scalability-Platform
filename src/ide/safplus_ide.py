@@ -796,11 +796,11 @@ class GoToLine(wx.Dialog):
       sizeLabel = (296,27)
       text = "Line (1 - %s)" % lineMax
       self.currentInfo = wx.StaticText(self.panel, label=text, size=sizeLabel, pos =(20,10))
-      self.lineColumn = wx.TextCtrl(self.panel, size=sizeLabel, pos=(20,42))
+      self.lineColumn = wx.TextCtrl(self.panel, size=sizeLabel, pos=(20,42), style = wx.TE_PROCESS_ENTER)
       self.line = wx.StaticLine(self.panel, size=(296,1), pos=(20, 84))
       self.btn = wx.Button(self.panel, label="OK", size=(82,27), pos =(234,100))
       self.btn.Bind(wx.EVT_BUTTON, self.onClicked)
-      self.lineColumn.Bind(wx.EVT_TEXT, self.onTextChange)
+      self.lineColumn.Bind(wx.EVT_TEXT_ENTER, self.onTextChange)
 
     def onClicked(self, event):
       self.Close()

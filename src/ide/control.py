@@ -83,7 +83,7 @@ class EditorControl(stc.StyledTextCtrl):
         self.IndicatorSetForeground(2, wx.BLUE)
         self.SetCaretForeground(settings.CARET_FOREGROUND)
         self.SetCaretLineVisible(settings.CARET_LINE_VISIBLE)
-        self.SetCaretLineBack(settings.CARET_LINE_BACKGROUND)
+        self.SetCaretLineBackground(settings.CARET_LINE_BACKGROUND)
         self.SetCaretPeriod(settings.CARET_PERIOD)
 
         self.SetCaretWidth(settings.CARET_WIDTH)
@@ -279,6 +279,7 @@ class EditorControl(stc.StyledTextCtrl):
         if self.PositionFromLine(end) == b:
             end -= 1
         linesComment = True
+        text = ""
         for line in range(start, end+1):
             text = self.GetLine(line)
             if not text.startswith(comment):
@@ -382,11 +383,11 @@ class EditorControl(stc.StyledTextCtrl):
         if self._indic_dirty[indicator]:
             self._indic_dirty[indicator] = False
             mask = self.get_indicator_mask(indicator)
-            self.StartStyling(0, mask)
+            self.StartStyling(0)
             self.SetStyling(self.GetLength(), 0)
     def highlight_range(self, indicator, start, length):
         mask = self.get_indicator_mask(indicator)
-        self.StartStyling(start, mask)
+        self.StartStyling(start)
         self.SetStyling(length, mask)
     def highlight_all(self, indicator, text, flags):
         if not text:
@@ -396,7 +397,7 @@ class EditorControl(stc.StyledTextCtrl):
         start = self.GetSelectionStart()
         count = 0
         while True:
-            index = self.FindText(index, self.GetLength(), text, flags)
+            index = self.FindText(index, self.GetLength(), text, flags)[0]
             if index < 0: break
             if index != start:
                 self.highlight_range(indicator, index, length)
