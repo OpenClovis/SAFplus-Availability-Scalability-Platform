@@ -264,10 +264,10 @@ class LanguageStyles(wx.Panel):
         self.set_languages(languages)
     def set_languages(self, languages):
         languages = list(languages)
-        languages.sort()
+        languages.sort(key=lambda language: language.name)
         control = self.choices
         control.Clear()
-        for language in sorted(languages):
+        for language in sorted(languages, key = lambda e: e.name):
             control.Append(language.name, language)
         if languages:
             control.SetSelection(0)
@@ -279,7 +279,7 @@ class LanguageStyles(wx.Panel):
         index = control.GetSelection()
         language = control.GetClientData(index) if index != wx.NOT_FOUND else None
         styles = list(language.styles) if language else []
-        styles.sort()
+        styles.sort(key=lambda style: style._name)
         if styles:
             styles = [language.base_style] + styles
         self.panel.set_styles(styles)

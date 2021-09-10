@@ -169,7 +169,7 @@ class GenericObjectValidator(wx.PyValidator):
 
     def clearError(self):
       textCtrl = self.GetWindow()
-      textCtrl.SetBackgroundColour(wx.SystemSettings_GetColour(wx.SYS_COLOUR_WINDOW))
+      textCtrl.SetBackgroundColour(wx.SystemSettings.GetColour(wx.SYS_COLOUR_WINDOW))
       textCtrl.Refresh()
 
       self.isError = False
@@ -379,7 +379,8 @@ class Panel(scrolled.ScrolledPanel):
         query = obj[1]
         self.treeItemSelected = obj[4]
 
-        if not isinstance(query, wx._core._wxPyDeadObject):
+        #if not isinstance(query, wx._core._wxPyDeadObject):
+        if not query:
           proposedValue = query.GetValue()
           # print "evt text ", obj
           if not self.partialDataValidate(proposedValue, query):
