@@ -366,7 +366,7 @@ class EditorControl(stc.StyledTextCtrl):
         index = start
         self.BeginUndoAction()
         while True:
-            index = self.FindText(index, self.GetLength(), text, flags)
+            index = self.FindText(index, self.GetLength(), text, flags)[0]
             if index < 0: break
             if index + length > end: break
             self.SetSelection(index, index+length)
