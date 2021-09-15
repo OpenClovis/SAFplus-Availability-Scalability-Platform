@@ -253,7 +253,8 @@ class Extensions:
 
       procNames = dlg.procNameList
 
-      for n in max(len(procNames), list(range(1,nProc+1))):
+      #for n in max(len(procNames), list(range(1,nProc+1))):
+      for n in range(1, nProc + 1):
         if procNames:
           compName = procNames[0]
           del procNames[0]
@@ -331,7 +332,8 @@ class Extensions:
 
       procNames = dlg.procNameList
 
-      for n in max(len(procNames), list(range(1,nProc+1))):
+      #for n in max(len(procNames), list(range(1,nProc+1))):
+      for n in range(1, nProc + 1):
         if procNames:
           compName = procNames[0]
           del procNames[0]
