@@ -975,11 +975,7 @@ class Panel(scrolled.ScrolledPanel):
             #print 'UpdatedMidpoints = ', [(list(a.midpoints[0])[0]+self.translating['horizontal'], list(a.midpoints[0])[1]+self.translating['vertical'])]
             st = a.container.pos
             end = a.contained.pos
-            drawCurvyArrow(ctx, 
-            (st[0] + a.beginOffset[0] + self.translating['horizontal'] ,st[1] + a.beginOffset[1] + self.translating['vertical']),
-            (end[0] + a.endOffset[0]  + self.translating['horizontal'] ,end[1] + a.endOffset[1]  + self.translating['vertical']),
-            [(list(a.midpoints[0])[0] + self.translating['horizontal'], list(a.midpoints[0])[1]  + self.translating['vertical'])], 
-            linkNormalLook)
+            drawCurvyArrow(ctx, (st[0] + a.beginOffset[0],st[1] + a.beginOffset[1]),(end[0] + a.endOffset[0],end[1] + a.endOffset[1]),a.midpoints, linkNormalLook)
         ctx.restore()
 
         # These are non-model based transient elements that need to be drawn like selection boxes
