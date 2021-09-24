@@ -39,7 +39,11 @@ extern "C"
 
 # define CL_IOC_UDP_MTU_SIZE (32*1024)
 
-
+    typedef struct ClXport
+    {
+        ClOsalMutexT mutex;
+        ClInt32T family;
+    }ClXportT;
 
 
     typedef struct

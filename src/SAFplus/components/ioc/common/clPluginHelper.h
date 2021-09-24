@@ -43,7 +43,7 @@ void clPluginHelperAddRemVirtualAddress(const char *cmd, const ClPluginHelperVir
 ClUint32T clPluginHelperBitFillRShift(ClUint32T numBits);
 ClRcT clPluginHelperConvertHostToInternetAddress(ClUint32T addr, ClCharT *internetAddress);
 ClRcT clPluginHelperConvertInternetToHostAddress(ClUint32T *addr, const ClCharT *internetAddress);
-ClRcT clPluginHelperDevToIpAddress(const ClCharT *dev, ClCharT *addrStr);
+ClRcT clPluginHelperDevToIpAddress(const ClCharT *dev, ClCharT *addrStr, ClInt32T* family);
 
 void clPluginHelperAddRouteAddress(const ClCharT *ipAddress, const ClCharT *ifDevName);
 

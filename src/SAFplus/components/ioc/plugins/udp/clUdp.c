@@ -18,6 +18,7 @@
 #include <clNodeCache.h>
 #include "clUdpSetup.h"
 #include "clUdpNotification.h"
+#include <clIocUdpTransportApi.h>
 
 #define IOC_UDP_MAP_BITS (8)
 #define IOC_UDP_MAP_SIZE (1 << IOC_UDP_MAP_BITS)
@@ -44,7 +45,7 @@ extern ClBoolT mcastPeerAddr(ClCharT *addStr, ClUint8T status);
 
 typedef struct ClUdpAddrCacheEntry
 {
-    ClCharT addrStr[INET_ADDRSTRLEN];
+    ClCharT addrStr[INET6_ADDRSTRLEN];
 }ClUdpAddrCacheEntryT;
 
 #define CL_UDP_ADDR_CACHE_SEGMENT "/CL_UDP_ADDR_CACHE"
@@ -69,11 +70,6 @@ typedef struct ClIocUdpPrivate
     ClInt32T fd;
 }ClIocUdpPrivateT;
 
-typedef struct ClXportCtrl
-{
-    ClOsalMutexT mutex;
-    ClInt32T family;
-}ClXportCtrlT;
 
 typedef struct ClLinkNotificationArgs
 {
@@ -81,7 +77,7 @@ typedef struct ClLinkNotificationArgs
     ClIocNotificationIdT event;
 } ClLinkNotificationArgsT;
 
-static ClXportCtrlT gXportCtrl;
+ClXportT gXportCtrl;
 
 #define UDP_MAP_HASH(addr) ( (addr) & IOC_UDP_MAP_MASK )
 
@@ -392,11 +388,11 @@ static ClIocUdpMapT *iocUdpMapAdd(ClCharT *addr, ClIocNodeAddressT slot)
     map->family = PF_INET;
     map->addrstr[0] = 0;
     strncat(map->addrstr, addr, sizeof(map->addrstr)-1);
-    map->__ipv4_addr.sin_family = PF_INET;
+    map->__ipv4_addr.sin_family = AF_INET;
     if(inet_pton(PF_INET, addr, (void*)&map->__ipv4_addr.sin_addr) != 1)
     {
         map->family = PF_INET6;
-        map->__ipv6_addr.sin6_family = PF_INET6;
+        map->__ipv6_addr.sin6_family = AF_INET6;
         if(inet_pton(PF_INET6, addr, (void*)&map->__ipv6_addr.sin6_addr) != 1)
         {
             clLogError("UDP", "MAP", "Error interpreting address [%s] for node [%d]", addr, slot);
@@ -447,15 +443,21 @@ ClRcT clIocUdpMapAdd(struct sockaddr *addr, ClIocNodeAddressT slot, ClCharT *ret
 {
     ClRcT rc = CL_ERR_UNSPECIFIED;
     ClIocUdpMapT *map = NULL;
-    ClCharT addrStr[INET_ADDRSTRLEN];
-    struct in_addr *in4_addr = &((struct sockaddr_in*)addr)->sin_addr;
-    if(!inet_ntop(PF_INET, (const void *)in4_addr, addrStr, sizeof(addrStr)))
+    ClCharT addrStr[INET6_ADDRSTRLEN] = {0};
+    ClCharT* pAddrStr = NULL;
+    if (gXportCtrl.family==PF_INET)
     {
-        struct in6_addr *in6_addr = &((struct sockaddr_in6*)addr)->sin6_addr;
-        if(!inet_ntop(PF_INET6, (const void*)in6_addr, addrStr, sizeof(addrStr)))
-            goto out;
+        pAddrStr = (ClCharT*)inet_ntop(gXportCtrl.family,&((struct sockaddr_in*)addr)->sin_addr,addrStr,sizeof(addrStr));
     }
-
+    else
+    {
+        pAddrStr = (ClCharT*)inet_ntop(gXportCtrl.family,&((struct sockaddr_in6*)addr)->sin6_addr,addrStr,sizeof(addrStr));
+    }
+    if (pAddrStr == NULL) 
+    {
+        clLogError("MAP","ADD","inet_ntop call failed with errno =%d (%s)", errno, strerror(errno));
+        goto out;
+    }
     clOsalMutexLock(&gXportCtrl.mutex);
     map = iocUdpMapFind(slot);
     if(!map)
@@ -484,7 +486,8 @@ ClRcT clIocUdpMapAdd(struct sockaddr *addr, ClIocNodeAddressT slot, ClCharT *ret
 
     if (retAddrStr)
     {
-        strncat(retAddrStr, addrStr, INET_ADDRSTRLEN - 1);
+        memset(retAddrStr, 0, INET6_ADDRSTRLEN);
+        strncat(retAddrStr, addrStr, INET6_ADDRSTRLEN - 1);
     }
 
     out_unlock:
@@ -500,7 +503,7 @@ ClRcT clIocUdpMapAdd(struct sockaddr *addr, ClIocNodeAddressT slot, ClCharT *ret
 static ClRcT _clUdpMapUpdateNotification(ClIocNotificationT *notification, ClPtrT cookie)
 {
     ClIocUdpMapT *map = NULL;
-    ClCharT addStr[INET_ADDRSTRLEN] = {0};
+    ClCharT addStr[INET6_ADDRSTRLEN] = {0};
     ClIocNotificationIdT notificationId = ntohl(notification->id);
     ClIocNodeAddressT nodeAddress = ntohl(notification->nodeAddress.iocPhyAddress.nodeAddress);
     switch (notificationId) 
@@ -568,7 +571,7 @@ ClRcT xportAddressAssign(void)
     return rc;
 }
 
-static ClRcT clUdpGetBackplaneInterface(const ClCharT *xportType, ClCharT *inf)
+static ClRcT clUdpGetBackplaneInterface(const ClCharT *xportType, ClCharT *virtualInf, ClCharT *inf)
 {
     ClCharT net_addr[CL_MAX_FIELD_LENGTH] = "eth0";
     ClCharT *linkName = NULL;
@@ -597,11 +600,13 @@ static ClRcT clUdpGetBackplaneInterface(const ClCharT *xportType, ClCharT *inf)
                 ClCharT *token = NULL;
                 strtok_r(net_addr, ":", &token);
             }
+            snprintf(inf, CL_MAX_FIELD_LENGTH, "%s", net_addr);
             /* If we are not using the existing IP addr then we need to use a virtual device to make sure we don't overwrite an already-configured address */
             if (!gClUdpUseExistingIp)
-              snprintf(inf, CL_MAX_FIELD_LENGTH, "%s:%d", net_addr, gIocLocalBladeAddress + 10);
-            /* If we ARE using the existing IP, then whatever interfaces LINK_NAME is set to IS that address */
-            else snprintf(inf, CL_MAX_FIELD_LENGTH, "%s", net_addr);            
+            {
+              snprintf(virtualInf, CL_MAX_FIELD_LENGTH, "%s:%d", net_addr, gIocLocalBladeAddress + 10);
+              printf("virtual backplane if [%s]", virtualInf);              
+            }           
         }
         else
         {
@@ -612,7 +617,7 @@ static ClRcT clUdpGetBackplaneInterface(const ClCharT *xportType, ClCharT *inf)
     return CL_OK;
 }
 
-static ClRcT clUdpGetNodeIpAddress(const ClCharT *xportType, const ClCharT *devIf, ClCharT *hostAddress, ClCharT *networkMask, ClCharT *broadcast, ClUint32T *ipAddressMask, ClCharT *xportSubnetPrefix)
+static ClRcT clUdpGetNodeIpAddress(const ClCharT *xportType, const ClCharT *devIf, ClInt32T* family, ClCharT *hostAddress, ClCharT *networkMask, ClCharT *broadcast, ClUint32T *ipAddressMask, ClCharT *xportSubnetPrefix)
 {
     ClCharT envSubNetType[CL_MAX_FIELD_LENGTH] = { 0 };
     ClCharT xportSubnet[CL_MAX_FIELD_LENGTH] = { 0 };
@@ -656,22 +661,32 @@ static ClRcT clUdpGetNodeIpAddress(const ClCharT *xportType, const ClCharT *devI
         /* network address */
         ipMask = (ip & mask);
 
-
+        
+        // determining what protocol family from the network device        
+        ClCharT hostAddr[CL_MAX_FIELD_LENGTH] = {0};
+        rc = clPluginHelperDevToIpAddress(devIf, hostAddr, family);
+        if (rc != CL_OK)
+        {
+            clLogCritical("UDP","INI","Protocol family lookup failed on device [%s] error [0x%x]", devIf, rc);
+            printf("Protocol family lookup failed on device [%s] error [0x%x]. Exiting\n", devIf, rc);            
+            exit(1);
+        }
         /* Try to get address from devif */
         
         rc = CL_OK+1;  /* start with any error condition, so the if below this one will be taken  */
-        if (gClUdpUseExistingIp)
+        if (gClUdpUseExistingIp || *family == PF_INET6)
         {
-            rc = clPluginHelperDevToIpAddress(devIf, hostAddress);
-            if (rc == CL_OK) clLogInfo("UDP","INI","Use existing IP address [%s] as this nodes transport address.", hostAddress);
-            else
-            {
-                clLogCritical("UDP","INI","Configured to use an existing IP address for message transport.  But address lookup failed on device [%s] error [0x%x]", devIf, rc);
-                // Not a good idea to continue with the wrong address.  Exit here.
-                printf("IP address lookup failed on configured ethernet device [%s]. Exiting\n", devIf);                
-                exit(1);
-            }            
+            //rc = clPluginHelperDevToIpAddress(devIf, hostAddress, family);
+            rc = CL_OK;
+            strcpy(hostAddress,hostAddr);
+            clLogInfo("UDP","INI","Use existing IP address [%s] as this nodes transport address.", hostAddress);            
+            
         }
+    
+        if (*family == PF_INET6)
+            {                
+                return rc;
+            }
         
         if (rc != CL_OK)
         {
@@ -756,29 +771,41 @@ ClRcT xportInit(const ClCharT *xportType, ClInt32T xportId, ClBoolT nodeRep)
     }
 
     /* Determine the device, IP address and IP network that will be used */
-    rc = clUdpGetBackplaneInterface(xportType, gVirtualIp.dev);
+    ClCharT virtualInf[CL_MAX_FIELD_LENGTH] = {0};
+    rc = clUdpGetBackplaneInterface(xportType, virtualInf, gVirtualIp.dev);
     if (rc != CL_OK)
     {
         clLogError("UDP", "INI", "Unable to determine the backplane link: error [%#x]", rc);
         return rc;
     }
-
-    rc = clUdpGetNodeIpAddress(xportType, gVirtualIp.dev,gVirtualIp.ip,gVirtualIp.netmask,gVirtualIp.broadcast,&gVirtualIp.ipAddressMask,gVirtualIp.subnetPrefix);
+    
+    rc = clUdpGetNodeIpAddress(xportType,gVirtualIp.dev,&gXportCtrl.family,gVirtualIp.ip,gVirtualIp.netmask,gVirtualIp.broadcast,&gVirtualIp.ipAddressMask,gVirtualIp.subnetPrefix);
     if (rc != CL_OK)
     {
         clLogError("UDP", "INI", "Unable to determine the backplane IP Address: error [%#x]", rc);
         return rc;
     }
-    
-    clLogInfo("UDP", "INI", "Backplane: Link Name: %s, IP Node Address: %s, Network Address: %s, Broadcast: %s, Subnet Prefix: %s, Address Mask: 0x%x", gVirtualIp.dev, gVirtualIp.ip, gVirtualIp.netmask, gVirtualIp.broadcast,gVirtualIp.subnetPrefix,gVirtualIp.ipAddressMask);
+    if (!gClUdpUseExistingIp && gXportCtrl.family == PF_INET6)
+    {
+        gClUdpUseExistingIp = CL_TRUE;; // if not using existing IP, which means using a virtual interface, which doesn't apply for ipv6, so set it TRUE        
+    }
+    if (gXportCtrl.family == PF_INET && !gClUdpUseExistingIp)
+    {
+        strcpy(gVirtualIp.dev, virtualInf);
+    }
+    if (gXportCtrl.family == PF_INET)
+    {
+        clLogInfo("UDP", "INI", "Backplane: Link Name: %s, IP Node Address: %s, Network Address: %s, Broadcast: %s, Subnet Prefix: %s, Address Mask: 0x%x", gVirtualIp.dev, gVirtualIp.ip, gVirtualIp.netmask, gVirtualIp.broadcast,gVirtualIp.subnetPrefix,gVirtualIp.ipAddressMask);    
+    }
+    else
+    {
+        clLogInfo("UDP", "INI", "Backplane: Link Name: %s, IP Node Address: %s", gVirtualIp.dev, gVirtualIp.ip);        
+    }
 
     /*
      * To do a fast pass early update node entry table
      */
     clIocNotificationRegister(_clUdpMapUpdateNotification, NULL);
-
-    // TODO: identify from linkName
-    gXportCtrl.family = PF_INET;
 
     rc = clOsalMutexInit(&gXportCtrl.mutex);
     CL_ASSERT(rc == CL_OK);
@@ -814,7 +841,7 @@ ClRcT xportInit(const ClCharT *xportType, ClInt32T xportId, ClBoolT nodeRep)
         goto out;
     }
 
-    ClCharT addStr[INET_ADDRSTRLEN] = {0};
+    ClCharT addStr[INET6_ADDRSTRLEN] = {0};
     /* insert into udp map */
     for (i = 0; i < numNodes; i++)
     {
@@ -852,7 +879,6 @@ static ClRcT udpDispatchCallback(ClInt32T fd, ClInt32T events, void *cookie)
     ClIocUdpPrivateT *xportPrivate = cookie;
     ClUint8T buffer[0xffff+1];
     struct msghdr msgHdr;
-    struct sockaddr peerAddress;
     struct iovec ioVector[1];
     ClInt32T bytes;
 
@@ -865,8 +891,24 @@ static ClRcT udpDispatchCallback(ClInt32T fd, ClInt32T events, void *cookie)
 
     memset(&msgHdr, 0, sizeof(msgHdr));
     memset(ioVector, 0, sizeof(ioVector));
-    msgHdr.msg_name = &peerAddress;
-    msgHdr.msg_namelen = sizeof(peerAddress);
+    union
+    {
+        struct sockaddr_in6 ipv6_addr;
+        struct sockaddr_in ipv4_addr;
+    }_addr;
+    memset(&_addr,0,sizeof(_addr));
+    if (gXportCtrl.family == PF_INET6)
+    {
+        msgHdr.msg_name = (struct sockaddr*)&_addr.ipv6_addr;
+        msgHdr.msg_namelen = sizeof(struct sockaddr_in6);
+    }
+    else
+    {
+        msgHdr.msg_name = (struct sockaddr*)&_addr.ipv4_addr;
+        msgHdr.msg_namelen = sizeof(struct sockaddr_in);
+    }
+    //msgHdr.msg_name = &peerAddress;
+    //msgHdr.msg_namelen = sizeof(peerAddress);
     msgHdr.msg_control = (ClUint8T*)gClCmsgHdr;
     msgHdr.msg_controllen = gClCmsgHdrLen;
     ioVector[0].iov_base = (ClPtrT)buffer;
@@ -897,27 +939,31 @@ static ClRcT udpDispatchCallback(ClInt32T fd, ClInt32T events, void *cookie)
 static ClRcT __xportBind(ClIocPortT port, ClInt32T *pFd)
 {
     ClRcT rc = CL_ERR_LIBRARY;
-    struct sockaddr_in6 ipv6_addr;
-    struct sockaddr_in ipv4_addr;
-    struct sockaddr *addr = (struct sockaddr*)&ipv4_addr;
+    union
+    {
+        struct sockaddr_in6 ipv6_addr;
+        struct sockaddr_in ipv4_addr;
+    }addr;
+    socklen_t addr_len;
     int fd = -1;
     int flag = 1;
-
+    memset(&addr,0, sizeof(addr));
     switch(gXportCtrl.family)
     {
     case PF_INET6:
         fd = socket(PF_INET6, gClSockType, gClProtocol);
-        addr = (struct sockaddr*)&ipv6_addr;
-        ipv6_addr.sin6_addr = in6addr_any;
-        ipv6_addr.sin6_port = htons(port + CL_TRANSPORT_BASE_PORT + gClBindOffset);
-        ipv6_addr.sin6_family = PF_INET6;
+        addr.ipv6_addr.sin6_addr = in6addr_any;
+        addr.ipv6_addr.sin6_port = htons(port + CL_TRANSPORT_BASE_PORT + gClBindOffset);
+        addr.ipv6_addr.sin6_family = AF_INET6;
+        addr_len = sizeof(struct sockaddr_in6);
         break;
     case PF_INET:
     default:
         fd = socket(PF_INET, gClSockType, gClProtocol);
-        ipv4_addr.sin_addr.s_addr = htonl(INADDR_ANY);
-        ipv4_addr.sin_port = htons(port + CL_TRANSPORT_BASE_PORT + gClBindOffset);
-        ipv4_addr.sin_family = PF_INET;
+        addr.ipv4_addr.sin_addr.s_addr = htonl(INADDR_ANY);
+        addr.ipv4_addr.sin_port = htons(port + CL_TRANSPORT_BASE_PORT + gClBindOffset);
+        addr.ipv4_addr.sin_family = AF_INET;
+        addr_len = sizeof(struct sockaddr_in);
         break;
     }
     if(fd < 0)
@@ -928,7 +974,7 @@ static ClRcT __xportBind(ClIocPortT port, ClInt32T *pFd)
         goto out_close;
     }
 
-    if(bind(fd, addr, sizeof(*addr)) < 0)
+    if((bind(fd, (struct sockaddr*) &addr, addr_len)) < 0)
     {
         clLogError("UDP", "BIND", "Bind failed with error [%s]", strerror(errno));
         goto out_close;
@@ -1080,7 +1126,6 @@ ClRcT xportRecv(ClIocCommPortHandleT commPort, ClIocDispatchOptionT *pRecvOption
     ClIocCommPortT *pCommPort = (ClIocCommPortT*)commPort;
     ClIocUdpPrivateT *pCommPortPrivate = NULL;
     struct msghdr msgHdr;
-    struct sockaddr peerAddress;
     struct iovec ioVector;
     struct pollfd pollfd;
     ClTimeT endTime;
@@ -1110,8 +1155,22 @@ ClRcT xportRecv(ClIocCommPortHandleT commPort, ClIocDispatchOptionT *pRecvOption
 
     memset(&msgHdr, 0, sizeof(msgHdr));
     memset(&ioVector, 0, sizeof(ioVector));
-    msgHdr.msg_name = &peerAddress;
-    msgHdr.msg_namelen = sizeof(peerAddress);
+    union
+    {
+        struct sockaddr_in6 ipv6_addr;
+        struct sockaddr_in ipv4_addr;
+    }_addr;
+    memset(&_addr,0,sizeof(_addr));
+    if (gXportCtrl.family == PF_INET6)
+    {
+        msgHdr.msg_name = (struct sockaddr*)&_addr.ipv6_addr;
+        msgHdr.msg_namelen = sizeof(struct sockaddr_in6);
+    }
+    else
+    {
+        msgHdr.msg_name = (struct sockaddr*)&_addr.ipv4_addr;
+        msgHdr.msg_namelen = sizeof(struct sockaddr_in);
+    }
     ioVector.iov_base = (ClPtrT)pBuffer;
     ioVector.iov_len = bufSize;
     msgHdr.msg_iov = &ioVector;
@@ -1277,7 +1336,7 @@ ClRcT xportSend(ClIocPortT port, ClUint32T priority, ClIocAddressT *address,
     ClUint8T buff[CL_IOC_BYTES_FOR_COMPS_PER_NODE];
     ClUint32T i = 0;
     ClRcT rc = CL_OK;
-    ClCharT addStr[INET_ADDRSTRLEN] = {0};
+    ClCharT addStr[INET6_ADDRSTRLEN] = {0};
 
     if(!address || !iovlen)
         return CL_OK;
@@ -1456,8 +1515,8 @@ ClRcT clUdpAddrSet(ClIocNodeAddressT nodeAddress, const ClCharT *addrStr)
         return CL_ERR_NOT_INITIALIZED;
     }
 
-    memset(gpClUdpAddrCache + (sizeof(ClUdpAddrCacheEntryT) * nodeAddress), 0, INET_ADDRSTRLEN);
-    memcpy(gpClUdpAddrCache + (sizeof(ClUdpAddrCacheEntryT) * nodeAddress), addrStr, INET_ADDRSTRLEN);
+    memset(gpClUdpAddrCache + (sizeof(ClUdpAddrCacheEntryT) * nodeAddress), 0, INET6_ADDRSTRLEN);
+    memcpy(gpClUdpAddrCache + (sizeof(ClUdpAddrCacheEntryT) * nodeAddress), addrStr, INET6_ADDRSTRLEN);
 
     clOsalSemUnlock(gClUdpAddrCacheSem);
 
@@ -1480,7 +1539,7 @@ ClRcT clUdpAddrGet(ClIocNodeAddressT nodeAddress, ClCharT *addrStr)
         return CL_ERR_NOT_INITIALIZED;
     }
 
-    memcpy(addrStr, gpClUdpAddrCache + (sizeof(ClUdpAddrCacheEntryT) * nodeAddress), INET_ADDRSTRLEN);
+    memcpy(addrStr, gpClUdpAddrCache + (sizeof(ClUdpAddrCacheEntryT) * nodeAddress), INET6_ADDRSTRLEN);
     clOsalSemUnlock(gClUdpAddrCacheSem);
 
     clLogTrace("UDP", "CACHE", "Getting address cache entry for node [%d: %s]", nodeAddress, addrStr);

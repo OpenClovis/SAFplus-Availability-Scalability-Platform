@@ -144,6 +144,7 @@ extern ClRcT clFindTransport(ClIocNodeAddressT dstIocAddress, ClIocAddressT *rds
         ClCharT **typeXport);
 
 extern ClCharT *clTransportMcastAddressGet();
+extern void clTransportMcastAddressSet(const ClCharT* maddr);
 extern ClUint32T clTransportMcastPortGet();
 extern ClUint32T clTransportHeartBeatIntervalGet();
 extern ClUint32T clTransportHeartBeatIntervalCompGet();

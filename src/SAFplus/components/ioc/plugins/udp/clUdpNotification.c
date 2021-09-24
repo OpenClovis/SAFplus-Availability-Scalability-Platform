@@ -48,6 +48,9 @@
 #include <clPluginHelper.h>
 #include <clTimerApi.h>
 #include <clClmTmsCommon.h>
+#include <clIocUdpTransportApi.h>
+
+#define MULTICAST_ADDR6_DEFAULT "ff1e:1:1:1:1:1:1:1"
 
 #define CL_UDP_HANDLER_MAX_SOCKETS            2
 #define UDP_CLUSTER_SYNC_WAIT_TIME 2 /* in seconds*/
@@ -99,15 +102,27 @@ ClBoolT mcastPeerAddr(ClCharT *addStr, ClUint8T status);
 
 extern ClBoolT gIsNodeRepresentative;
 
+extern ClXportT gXportCtrl;
+
+extern ClBoolT gMcastDefaultAddrUsed;
+
 static void udpSyncCallback(ClIocPhysicalAddressT *srcAddr, ClPtrT arg)
 {
     if(srcAddr->nodeAddress != gIocLocalBladeAddress)
     {
-        ClCharT addStr[INET_ADDRSTRLEN] = {0};
+        ClCharT addStr[INET6_ADDRSTRLEN] = {0};
+        if (gXportCtrl.family==PF_INET)
+        {
+           inet_ntop(gXportCtrl.family,&((struct sockaddr_in*)arg)->sin_addr,addStr,sizeof(addStr));
+        }
+        else
+        {
+           inet_ntop(gXportCtrl.family,&((struct sockaddr_in6*)arg)->sin6_addr,addStr,sizeof(addStr));
+        }
         clLogNotice("SYNC", "CALLBACK", 
                     "UDP cluster sync for node [%d], port [%#x], ip [%s]",
-                    srcAddr->nodeAddress, srcAddr->portId,
-                    inet_ntoa( ((struct sockaddr_in*)arg)->sin_addr) );
+                    srcAddr->nodeAddress, srcAddr->portId,addStr);
+
         ++gNumDiscoveredPeers;
         /*
          * Peer node arrival mean it is already come up
@@ -177,7 +192,7 @@ ClRcT clUdpNodeNotification(ClIocNodeAddressT node, ClIocNotificationIdT event)
         }
         else
         {
-            ClCharT addStr[INET_ADDRSTRLEN] = {0};
+            ClCharT addStr[INET6_ADDRSTRLEN] = {0};
             ClBoolT isPeerAddr = CL_FALSE;
             ClRcT rc = clUdpAddrGet(node, addStr);
             if (rc == CL_OK)
@@ -217,6 +232,16 @@ ClBoolT mcastPeerAddr(ClCharT *addStr, ClUint8T status)
 /*
  * Sending notify to peer list
  */
+ClInt32T __getPeerProcFamily()
+{
+    if (gClNumMcastPeers==0)
+    {
+        clLogError("UDP", "PEER", "There is no Mcast Peers (gClNumMcastPeers is 0)");
+        return 0;
+    }
+    return gClMcastPeers[0].family;
+}
+
 ClRcT clUdpNotifyPeer(ClIocUdpMapT *map, void *args)
 {
     ClIocNotificationT *pNotification = (ClIocNotificationT *)args;
@@ -231,12 +256,12 @@ ClRcT clUdpNotifyPeer(ClIocUdpMapT *map, void *args)
     {
         if(gClMcastSupport)
         {
-            if( (gFd = socket(PF_INET, SOCK_DGRAM, IPPROTO_UDP) ) < 0)
+            if( (gFd = socket(map->family, SOCK_DGRAM, IPPROTO_UDP) ) < 0)
                 return CL_ERR_LIBRARY;
         }
         else
         {
-            if( (gFd = socket(PF_INET, gClSockType, gClProtocol) ) < 0)
+            if( (gFd = socket(map->family, gClSockType, gClProtocol) ) < 0)
                 return CL_ERR_LIBRARY;
 
         }
@@ -377,7 +402,7 @@ ClRcT clIocPeerList(ClIocUdpMapT *map, void *args)
 static ClRcT clUdpReceivedPacket(ClUint32T socketType, struct msghdr *pMsgHdr) {
     ClRcT rc = CL_OK;
     ClUint8T *pRecvBase = (ClUint8T*) pMsgHdr->msg_iov->iov_base;
-    ClCharT addStr[INET_ADDRSTRLEN] = {0};
+    ClCharT addStr[INET6_ADDRSTRLEN] = {0};
 
     switch (socketType) {
     case 0:
@@ -551,7 +576,6 @@ static void clUdpEventHandler(ClPtrT pArg)
     struct pollfd pollfds[CL_UDP_HANDLER_MAX_SOCKETS];
     struct msghdr msgHdr;
     struct iovec ioVector[1];
-    struct sockaddr_in peerAddress;
     struct 
     {
         ClUint8T *cMsgHdr;
@@ -565,8 +589,7 @@ static void clUdpEventHandler(ClPtrT pArg)
     ClUint32T timeout = 1000; //CL_IOC_TIMEOUT_FOREVER;
     ClUint32T recvErrors = 0;
 
-    retry: 
-    memset(&peerAddress, 0, sizeof(peerAddress));
+    retry:
     memset(pollfds, 0, sizeof(pollfds));
     pollfds[0].fd = fd[0] = handlerFd[0];
     pollfds[1].fd = fd[1] = handlerFd[1];
@@ -576,9 +599,22 @@ static void clUdpEventHandler(ClPtrT pArg)
     memset(ioVector, 0, sizeof(ioVector));
     ioVector[0].iov_base = (ClPtrT) buffer;
     ioVector[0].iov_len = sizeof(buffer);
-    memset(&peerAddress, 0, sizeof(peerAddress));
-    msgHdr.msg_name = &peerAddress;
-    msgHdr.msg_namelen = sizeof(peerAddress);
+    union
+    {
+        struct sockaddr_in6 ipv6_addr;
+        struct sockaddr_in ipv4_addr;
+    }_addr;
+    memset(&_addr,0, sizeof(_addr));
+    if (gXportCtrl.family == PF_INET6)
+    {
+        msgHdr.msg_name = (struct sockaddr*)&_addr.ipv6_addr;
+        msgHdr.msg_namelen = sizeof(struct sockaddr_in6);
+    }
+    else
+    {
+        msgHdr.msg_name = (struct sockaddr*)&_addr.ipv4_addr;
+        msgHdr.msg_namelen = sizeof(struct sockaddr_in);
+    }
     msgHdr.msg_iov = ioVector;
     msgHdr.msg_iovlen = sizeof(ioVector)/sizeof(ioVector[0]);
 
@@ -603,17 +639,14 @@ static void clUdpEventHandler(ClPtrT pArg)
                     {
                         if (!(recvErrors++ & 255))  /* just slow down the logging */
                         {
-                            CL_DEBUG_PRINT(CL_DEBUG_ERROR,("Recvmsg failed with [%s]\n", strerror(errno)));
+                            clLogError("UDP","EVT","Recvmsg failed with [%s]\n", strerror(errno));
                             usleep(20000);  /* Is this going to cause keep-alive failure after 255 receive errors? */
                         }
                         if (errno == ENOTCONN) 
                         {
                             if (udpEventSubscribe(CL_FALSE) != CL_OK)  /* This call creates a thread that runs this routine, potentially leading to infinite loop */
                             {
-                                CL_DEBUG_PRINT(
-                                               CL_DEBUG_CRITICAL,
-                                               ("UDP topology subsciption retry failed. "
-                                                "Shutting down the notification thread and process\n"));
+                                clLogError("UDP","EVT","UDP topology subsciption retry failed.Shutting down the notification thread and process\n");
                                 threadContFlag = 0;
                                 exit(0);
                                 continue; /*unreached*/
@@ -636,7 +669,7 @@ static void clUdpEventHandler(ClPtrT pArg)
         else if (pollStatus < 0)
         {
             if (errno != EINTR) /* If the system call is interrupted just loop, its not an error */
-                CL_DEBUG_PRINT(CL_DEBUG_ERROR, ("Error : poll failed. errno=%d\n",errno));
+                clLogError("UDP","EVT","Error : poll failed. errno=%d (%s)\n",errno, strerror(errno));               
         }
     }
     close(handlerFd[0]);
@@ -688,13 +721,29 @@ static ClRcT udpMcastSetup(void)
     if(gClMcastSupport)
     {
         ClCharT *mcastAddr = clTransportMcastAddressGet();
+        if (gXportCtrl.family == PF_INET6 && gMcastDefaultAddrUsed == CL_TRUE)
+        {
+            mcastAddr = MULTICAST_ADDR6_DEFAULT;
+            clTransportMcastAddressSet(mcastAddr);
+        }
         gClMcastPeers = clHeapCalloc(1, sizeof(*gClMcastPeers));
         CL_ASSERT(gClMcastPeers != NULL);
         gClMcastPeers->family = PF_INET;
-        gClMcastPeers->_addr.sin_addr.sin_family = PF_INET;
-        gClMcastPeers->_addr.sin_addr.sin_addr.s_addr = inet_addr(mcastAddr);
+        gClMcastPeers->_addr.sin_addr.sin_family = AF_INET;
         gClMcastPeers->_addr.sin_addr.sin_port = htons(gClMcastNotifPort);
+        if (inet_pton(PF_INET, mcastAddr, (void*) &gClMcastPeers->_addr.sin_addr.sin_addr) != 1)
+        {
+             gClMcastPeers->family = PF_INET6;
+             gClMcastPeers->_addr.sin6_addr.sin6_family = AF_INET6;
+             if (inet_pton(PF_INET6, mcastAddr, (void*) &gClMcastPeers->_addr.sin6_addr.sin6_addr) != 1)
+             {
+                 clLogError("MCAST", "MAP", "Error interpreting address [%s]", mcastAddr);
+                 return CL_ERR_INVALID_PARAMETER;
+             }
+             gClMcastPeers->_addr.sin6_addr.sin6_port = htons(gClMcastNotifPort);
+        }
         strncat(gClMcastPeers->addrstr, mcastAddr, sizeof(gClMcastPeers->addrstr)-1);
+        clLogDebug("UDP", "NOTIFY", "Added to mcast peer address [%s], port [%d]", mcastAddr, gClMcastNotifPort);
         gClNumMcastPeers = 1;
     }
     else
@@ -736,11 +785,11 @@ static ClInt32T clUdpSubscriptionSocketCreate(void)
      */
     if(gClMcastSupport)
     {
-        sd = socket(PF_INET, SOCK_DGRAM, IPPROTO_UDP);
+        sd = socket(gXportCtrl.family, SOCK_DGRAM, IPPROTO_UDP);
     }
     else
     {
-        sd = socket(PF_INET, gClSockType, gClProtocol);
+        sd = socket(gXportCtrl.family, gClSockType, gClProtocol);
     }
 
     if (sd < 0) 
@@ -768,13 +817,33 @@ static ClInt32T clUdpSubscriptionSocketCreate(void)
         goto out_close;
     }
 
-    struct sockaddr_in localSock;
-    memset((char *) &localSock, 0, sizeof(localSock));
-    localSock.sin_family = PF_INET;
-    localSock.sin_port = htons(gClMcastNotifPort);
-    localSock.sin_addr.s_addr = htonl(INADDR_ANY);
+    union
+    {
+        struct sockaddr_in6 ipv6_addr;
+        struct sockaddr_in ipv4_addr;
+    }localSock;
+    socklen_t addr_len;    
+    memset(&localSock,0, sizeof(localSock));
+    switch(gXportCtrl.family)
+    {
+    case PF_INET6:
+        localSock.ipv6_addr.sin6_addr = in6addr_any;
+        localSock.ipv6_addr.sin6_port = htons(gClMcastNotifPort);
+        localSock.ipv6_addr.sin6_family = AF_INET6;
+        addr_len = sizeof(struct sockaddr_in6);
+        break;
+    case PF_INET:
+        localSock.ipv4_addr.sin_addr.s_addr = htonl(INADDR_ANY);
+        localSock.ipv4_addr.sin_port = htons(gClMcastNotifPort);
+        localSock.ipv4_addr.sin_family = AF_INET;
+        addr_len = sizeof(struct sockaddr_in);
+        break;
+     default:
+        clLogError("UDP","NOTIF","invalid protocol family");
+        return -1;
+    }
 
-    if (bind(sd, (struct sockaddr*) &localSock, sizeof(localSock))) 
+    if (bind(sd, (struct sockaddr*) &localSock, addr_len))
     {
         clLogError(
                    "UDP",
@@ -788,11 +857,34 @@ static ClInt32T clUdpSubscriptionSocketCreate(void)
         /*
          * Join group membership on socket
          */
-        struct ip_mreq group;
-        group.imr_multiaddr.s_addr = inet_addr(clTransportMcastAddressGet());
-        group.imr_interface.s_addr = htonl(INADDR_ANY);
-        if (setsockopt(sd, IPPROTO_IP, IP_ADD_MEMBERSHIP, (char *) &group,
-                       sizeof(group)) < 0) 
+        const ClCharT* mcastAddr = clTransportMcastAddressGet();
+        union 
+        {
+            struct ip_mreq group4;
+            struct ipv6_mreq group6;
+        }_group;
+        memset(&_group, 0, sizeof(_group));
+        socklen_t len;
+        ClInt32T ret;
+        if (gXportCtrl.family == PF_INET)
+        {
+            _group.group4.imr_multiaddr.s_addr = inet_addr(mcastAddr);
+            _group.group4.imr_interface.s_addr = htonl(INADDR_ANY);
+            len = sizeof(struct ip_mreq);
+            ret = setsockopt(sd, IPPROTO_IP, IP_ADD_MEMBERSHIP, (char *) &_group,len);
+        }
+        else
+        {          
+            if (inet_pton(PF_INET6, mcastAddr, (void*) &_group.group6.ipv6mr_multiaddr.s6_addr) != 1)
+            {
+               clLogError("UDP", "NOTIF", "Error interpreting address [%s]", mcastAddr);
+               return -1;
+            }            
+            _group.group6.ipv6mr_interface = 0;
+            len = sizeof(struct ipv6_mreq);
+            ret = setsockopt(sd, IPPROTO_IPV6, IPV6_ADD_MEMBERSHIP, (char *) &_group,len);
+        }
+        if (ret < 0) 
         {
             clLogError(
                        "UDP",
@@ -804,9 +896,26 @@ static ClInt32T clUdpSubscriptionSocketCreate(void)
         /*
          * Set outbound interface
          */
-        struct in_addr iaddr;
-        iaddr.s_addr = INADDR_ANY;
-        if (setsockopt(sd, IPPROTO_IP, IP_MULTICAST_IF, &iaddr, sizeof(iaddr)) < 0) {
+        union 
+        {
+            struct in_addr iaddr4;
+            struct in6_addr iaddr6;
+        }_addr;
+        memset(&_addr, 0, sizeof(_addr));
+        if (gXportCtrl.family == PF_INET)
+        {            
+            _addr.iaddr4.s_addr = INADDR_ANY;            
+            len = sizeof(struct in_addr);
+            ret = setsockopt(sd, IPPROTO_IP, IP_MULTICAST_IF, &_addr, len);
+        }
+        else
+        {
+            _addr.iaddr6 = in6addr_any;
+            len = sizeof(struct in6_addr);
+            ret = setsockopt(sd, IPPROTO_IPV6, IPV6_MULTICAST_IF, &_addr, len);
+        }
+        
+        if (ret < 0) {
             clLogError(
                        "UDP",
                        "NOTIF",
@@ -871,14 +980,16 @@ ClRcT clUdpNotify(ClIocNodeAddressT nodeAddress, ClUint32T portId, ClIocNotifica
 
     if(gFd < 0)
     {
+        ClInt32T fa = __getPeerProcFamily();
+        if (fa ==0) return rc; 
         if(gClMcastSupport)
         {
-            if( (gFd = socket(PF_INET, SOCK_DGRAM, IPPROTO_UDP) ) < 0)
+            if( (gFd = socket(fa, SOCK_DGRAM, IPPROTO_UDP) ) < 0)
                 return CL_ERR_LIBRARY;
         }
         else
         {
-            if( (gFd = socket(PF_INET, gClSockType, gClProtocol) ) < 0)
+            if( (gFd = socket(fa, gClSockType, gClProtocol) ) < 0)
                 return CL_ERR_LIBRARY;
 
         }
@@ -971,14 +1082,16 @@ ClRcT notifyLink(ClIocNodeAddressT nodeAddress, ClUint32T portId, ClIocNotificat
 
     if(gFd < 0)
     {
+        ClInt32T fa = __getPeerProcFamily();
+        if (fa ==0) return rc; 
         if(gClMcastSupport)
         {
-            if( (gFd = socket(PF_INET, SOCK_DGRAM, IPPROTO_UDP) ) < 0)
+            if( (gFd = socket(fa, SOCK_DGRAM, IPPROTO_UDP) ) < 0)
                 return CL_ERR_LIBRARY;
         }
         else
         {
-            if( (gFd = socket(PF_INET, gClSockType, gClProtocol) ) < 0)
+            if( (gFd = socket(fa, gClSockType, gClProtocol) ) < 0)
                 return CL_ERR_LIBRARY;
         }
     }

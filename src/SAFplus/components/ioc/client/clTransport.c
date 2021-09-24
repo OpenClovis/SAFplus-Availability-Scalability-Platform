@@ -197,6 +197,8 @@ static ClBoolT gLocalNodeBridge = CL_FALSE;
 static ClTimerHandleT gHandleGmsTimer = CL_HANDLE_INVALID_VALUE;
 static ClGmsHandleT gXportHandleGms = CL_HANDLE_INVALID_VALUE;
 
+ClBoolT gMcastDefaultAddrUsed = CL_FALSE;
+
 typedef struct ClXportPrivateData
 {
     ClInt32T fd;
@@ -1451,13 +1453,13 @@ static ClRcT _iocMcastPeerAdd(const ClCharT *addr)
     if ((map->addrstr == NULL )|| (strlen(map->addrstr) <= 0))
     {
       map->family = PF_INET;
-      map->_addr.sin_addr.sin_family = PF_INET;
+      map->_addr.sin_addr.sin_family = AF_INET;
       map->_addr.sin_addr.sin_port = htons(gClTransportMcastPort);
       map->status = CL_IOC_NODE_DOWN;
       if (inet_pton(PF_INET, addr, (void*) &map->_addr.sin_addr.sin_addr) != 1)
       {
         map->family = PF_INET6;
-        map->_addr.sin6_addr.sin6_family = PF_INET6;
+        map->_addr.sin6_addr.sin6_family = AF_INET6;
         if (inet_pton(PF_INET6, addr, (void*) &map->_addr.sin6_addr.sin6_addr) != 1)
         {
           clLogError("MCAST", "MAP", "Error interpreting address [%s]", addr);
@@ -1868,6 +1870,7 @@ ClRcT _clIocSetMulticastConfig(ClParserPtrT parent)
     if (!mcastAddressAttr)
     {
         mcastAddressAttr = MULTICAST_ADDR_DEFAULT;
+        gMcastDefaultAddrUsed = CL_TRUE;
     }
 
     strncat(gClTransportMcastAddr, mcastAddressAttr, sizeof(gClTransportMcastAddr)-1);
@@ -3064,6 +3067,12 @@ ClRcT clTransportLayerFinalize(void)
 ClCharT *clTransportMcastAddressGet(void)
 {
     return gClTransportMcastAddr;
+}
+
+void clTransportMcastAddressSet(const ClCharT* maddr)
+{
+    memset(gClTransportMcastAddr, 0, sizeof(gClTransportMcastAddr));
+    strncat(gClTransportMcastAddr, maddr, sizeof(gClTransportMcastAddr)-1);
 }
 
 ClUint32T clTransportMcastPortGet(void)

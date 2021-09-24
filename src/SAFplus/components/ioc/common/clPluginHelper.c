@@ -3,6 +3,7 @@
 #include <net/ethernet.h>
 #include <string.h>
 #include <net/if.h>
+#include <ifaddrs.h>
 #include <sys/ioctl.h>
 #include <arpa/inet.h>
 #include <sys/socket.h>       /* for AF_INET */
@@ -24,7 +25,7 @@
 #define CL_PLUGIN_HELPER_ARP_HW_TYPE_ETHERNET (1)
 #define CL_PLUGIN_HELPER_IP_PROTO_TYPE 0x0800
 
-ClRcT clPluginHelperDevToIpAddress(const ClCharT *dev, ClCharT *addrStr);
+ClRcT clPluginHelperDevToIpAddress(const ClCharT *dev, ClCharT *addrStr, ClInt32T* family);
 
 /*
  *  Network to Host
@@ -236,9 +237,68 @@ static void *_clPluginHelperPummelArps(void *arg) {
     return NULL;
 }
 
+ClRcT clPluginHelperDevToIpAddress(const ClCharT *dev, ClCharT *addrStr, ClInt32T* family)
+{
+    struct ifaddrs *ifa=NULL,*ifEntry=NULL;
+    void *addPtr = NULL;
+    ClInt32T rc = 1;
+    *family = 0;
+    char addressBuffer[INET6_ADDRSTRLEN];
+
+    rc = getifaddrs(&ifa);
+    if (rc == CL_OK) 
+    {
+        rc = 1;
+        for (ifEntry=ifa; ifEntry!=NULL; ifEntry=ifEntry->ifa_next) 
+        {
+	    if (ifEntry->ifa_addr->sa_data == NULL) 
+            {
+                continue;
+	    }
+            if (strcmp(ifEntry->ifa_name,dev)!=0) 
+            {
+                continue;
+            }
+            if (ifEntry->ifa_addr->sa_family==AF_INET) 
+            {                
+                addPtr = &((struct sockaddr_in *)ifEntry->ifa_addr)->sin_addr;                 
+            } 
+            else if (ifEntry->ifa_addr->sa_family==AF_INET6) 
+            {
+                 addPtr = &((struct sockaddr_in6 *)ifEntry->ifa_addr)->sin6_addr;
+            } 
+            else 
+            {
+                //It isn't IPv4 or IPv6
+		continue;
+	    }
+            *family = ifEntry->ifa_addr->sa_family;
+            const char *addr = inet_ntop(ifEntry->ifa_addr->sa_family,
+                          addPtr,
+                          addressBuffer,
+                          sizeof(addressBuffer));
+	    if (addr != NULL) 
+            {
+                strncat(addrStr, addr, sizeof(addressBuffer) - 1);
+                rc = CL_OK;
+                break;
+ 	    }
+        }
+        freeifaddrs(ifa);
+    }
+    else
+    {
+        rc = errno;
+    }
+    if (*family == 0) printf("%s::%s:%d couldn't determine protocol family from dev [%s]\n", __FILE__,__FUNCTION__, __LINE__,dev);
+    
+    return rc;
+}
+
 /*
  * Returns ip address on a network interface given its name...
  */
+#if 0
 ClRcT clPluginHelperDevToIpAddress(const ClCharT *dev, ClCharT *addrStr)
 {
     int sd;
@@ -283,6 +343,8 @@ out:
     close(sd);
     return rc;
 }
+#endif
+
 /*
  * Before calling ifconfig, we want to check if interface and ip existing,
  * if so, just ignore the calling command
