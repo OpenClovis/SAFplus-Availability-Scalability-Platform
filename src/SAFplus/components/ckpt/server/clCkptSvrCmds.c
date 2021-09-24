@@ -1609,7 +1609,7 @@ ClRcT ckptMasterXlationTablePrint(ClCntKeyHandleT    userKey,
     clDebugPrint(inMsg,"CkptName   :%20.*s\n",pInXlation->name.length,
                      pInXlation->name.value);
     clDebugPrint(inMsg,"checksum   :%20.d\n",pInXlation->cksum);
-    clDebugPrint(inMsg,"CkptHandle :%20.x\n",pInXlation->mastHdl);
+    clDebugPrint(inMsg,"CkptHandle :%20.llx\n",pInXlation->mastHdl);
     return rc;
 }
 ClRcT ckptMasterReplicaListPrint(ClCntKeyHandleT    userKey,
