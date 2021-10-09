@@ -18,6 +18,7 @@ import wx.stc as stc
 #import wx.lib.fancytext as fancytext
 from wx.html import HtmlWindow
 import sys
+sys.path.insert(0, '/usr/local/lib/python3.5/dist-packages')
 import wx.lib.agw.ultimatelistctrl as ULC
 
 import instanceEditor

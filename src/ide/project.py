@@ -2157,8 +2157,8 @@ class DeployDialog(wx.Dialog):
           self.parent.log_error("Deploy image failure")
       except Exception as e:
         self.parent.log_error("Exception occured while deploying image")
-        if e.message:
-          self.parent.log_error(e.message)
+        #if e.message:
+        # self.parent.log_error(e.message)
       finally:
         if remoteClient:
           remoteClient.close()
