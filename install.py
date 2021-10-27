@@ -469,19 +469,24 @@ class ASPInstaller:
             # are much harder to detect
 
             else:
-               syscall('apt-get update;')      
+               syscall('apt-get update')      
+               system('apt-get install --fix-missing')
                self.debug('Installing via apt-get: ' + install_str)
-               (retval, result, signal, core) = system('apt-get -y --force-yes install %s' % install_str)
+               (retval, result, signal, core) = system('apt-get -y --allow-unauthenticated install %s' % install_str)
                self.debug("Result: %d, output: %s" % (retval, str(result)))
-
                if "Could not get lock" in "".join(str(result)):
                  self.feedback("Could not get the lock, is another package manager running?\n", fatal=True)
                if retval != 0:
                  self.feedback("\n\nPreinstall via apt-get was not successful.  You may need to install some of the following packages yourself.\n%s\n\nOutput of apt-get was:\n%s" % (install_str,"".join(result)), fatal=True)
                self.debug('Installing via apt-get: ' + ide_install_str)
-               (retval, result, signal, core) = system('apt-get -y --force-yes install %s' % ide_install_str)
+               (retval, result, signal, core) = system('apt-get -y --allow-unauthenticated install %s' % ide_install_str)
                self.debug("Result: %d, output: %s" % (retval, str(result)))
-
+               system('curl https://bootstrap.pypa.io/pip/2.7/get-pip.py -o get-pip.py')
+               system('python get-pip.py --force-reinstall')
+               system('git clone https://github.com/mbj4668/pyang pyang')
+               os.chdir('pyang')
+               system('git reset --hard a6e51ba83f06829d3d26849bcb306f49f335267f')
+               system('python setup.py install')
                if "Could not get lock" in "".join(str(result)):
                  self.feedback("Could not get the lock, is another package manager running?\n", fatal=True)
                if retval != 0:
