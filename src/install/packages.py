@@ -119,18 +119,16 @@ class Ubuntu16(OS):
                  'python-pip',
                  'pkg-config',
                  'libtool',
-                 'curl'                 
+                 'curl',
+                 'python3-pip'                 
                 ]
 
-        ide_deps = ['mesa-common-dev',
-                 'freeglut3-dev',
-                 'libglew-dev',
-                 'libglm-dev',
-                 'libgtk-3-dev',
-                 'python-wxgtk3.0',
-                 'libcairo2-dev',
-                 'librsvg2-dev',
-                 'python-rsvg'
+        ide_deps = ['libffi-dev',
+                'libgtk-3-dev',
+                'gir1.2-rsvg-2.0',
+                'python3-cairo',
+                'python-gi-cairo',
+                'python3-gi'
                 ]
 
         pip_deps =  ['genshi', 'watchdog', 'paramiko']

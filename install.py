@@ -8,7 +8,6 @@ import types
 import urllib.request, urllib.error, urllib.parse
 from xml.dom import minidom
 from subprocess import Popen, PIPE
-
 # make sure they have a proper version of python
 if sys.version_info[:3] < (2, 4, 3):
     print("Error: Must use Python 2.4.3 or greater for this script")
@@ -413,7 +412,7 @@ class ASPInstaller:
         #Build the source
         os.chdir ('%s/src' % self.WORKING_ROOT)
         os.system('make')
-    
+        
     def doPreinstall(self):
         """ 
             After queueing up preinstall phase deps, this function is used to install them 
@@ -486,13 +485,25 @@ class ASPInstaller:
                  self.feedback("Could not get the lock, is another package manager running?\n", fatal=True)
                if retval != 0:
                  self.feedback("\n\nPreinstall via apt-get for ide was not successful.  You may need to install some of the following packages yourself.\n%s\n\nOutput of apt-get was:\n%s" % (install_str,"".join(result)), fatal=True)
-
+               system('pip3 install wxPython')
+               python3_version = int(subprocess.check_output('python3 --version', shell=True).split()[1].decode('UTF-8').split('.')[1])
+               if python3_version <= 5:
+                 pip3_21 = 'curl https://bootstrap.pypa.io/pip/3.5/get-pip.py -o get-pip.py'
+               else:
+                 pip3_21 = 'curl https://bootstrap.pypa.io/pip -o get-pip.py'
+               system(pip3_21)
+               system('python3 get-pip.py --force-reinstall')
                syscall('pip install --upgrade pip;')
                self.debug('Installing via pip: ' + pip_install_str)
                (retval, result, signal, core) = system('pip install %s' % pip_install_str)
                self.debug("Result: %d, output: %s" % (retval, str(result)))
                if retval != 0:
                  self.feedback("\n\nPreinstall via pip was not successful.  You may need to install some of the following packages yourself.\n%s\n\nOutput of apt-get was:\n%s" % (pip_install_str,"".join(result)), fatal=True)
+               system('git clone https://github.com/mbj4668/pyang pyang')
+               os.chdir('pyang')
+               system('git reset --hard a6e51ba83f06829d3d26849bcb306f49f335267f')
+               system('python3 setup.py install')
+
 
             self.feedback('Successfully installed preinstall dependencies.')
         
