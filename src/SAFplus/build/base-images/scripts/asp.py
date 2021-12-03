@@ -695,6 +695,16 @@ def set_ld_library_paths():
     os.putenv('LD_LIBRARY_PATH', v)
 
 def get_tipc_config_tool_exist():
+    cmd = 'uname -r'
+    ret, output, signal, core = system(cmd)
+    if (ret):
+        fail_and_exit('running command [%s] failed'%cmd)
+    output = output[0].decode('utf-8')
+    kernelVer1 = int(output.split('.')[0])
+    kernelVer2 = int(output.split('.')[1])
+    if ((kernelVer1 >= 4 and kernelVer2 >= 15) or (kernelVer1 >= 5)):
+        return 0
+
     tipc_config_cmd = None
     try:
         tipc_config_cmd = get_asp_tipc_config_cmd()
