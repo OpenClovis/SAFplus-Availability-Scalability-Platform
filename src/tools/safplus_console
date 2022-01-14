@@ -910,7 +910,7 @@ By default the specified location and children are shown.  Use -N to specify how
 
       access.amfMgmtFinalize(handleTest)
     except RuntimeError, e:
-      print "errorrrrrrrr: ", e
+      print "error: ", e
 
     return ret
 
@@ -1774,6 +1774,68 @@ By default the specified location and children are shown.  Use -N to specify how
             self.handle = access.getProcessHandle(1, masterNodeId)
             self.didConnect = 1
             return masterNodeId
+
+  def do_entityGetConfig(self, entityType, entityName):
+    """syntax: entityGetConfig entityType entityName
+    """
+    ret = "invalidType"
+    try:
+      handleTest = access.getProcessHandle(0, 0)
+      access.amfMgmtInitialize(handleTest)
+
+      if entityType == "Component":
+        ret = access.amfMgmtComponentGetConfig(handleTest, entityName)
+      elif entityType == "Node":
+        ret = access.amfMgmtNodeGetConfig(handleTest, entityName)
+      elif entityType == "ServiceGroup":
+        ret = access.amfMgmtSGGetConfig(handleTest, entityName)
+      elif entityType == "ServiceUnit":
+        ret = access.amfMgmtSUGetConfig(handleTest, entityName)
+      elif entityType == "ServiceInstance":
+        ret = access.amfMgmtSIGetConfig(handleTest, entityName)
+      elif entityType == "ComponentServiceInstance":
+        ret = access.amfMgmtCSIGetConfig(handleTest, entityName)
+
+      if "error" not in ret and ret != "invalidType":
+        print "entityGetConfig completed successfully"
+        print "dictionary: ", ret
+      elif ret != "invalidType":
+        print 'entityGetConfig failed with error code [%s]'% hex(ret["error"])
+      else:
+        ret = 0
+        print "Invalid entity type, valid entity types are Node, ServiceGroup, ServiceUnit, ServiceInstance, ComponentServiceInstance"
+
+      access.amfMgmtFinalize(handleTest)
+    except RuntimeError, e:
+      print "error: ", e
+
+    return ret
+
+  def do_CSIGetStatus(self, entityType, entityName):
+    """syntax: CSIGetStatus entityType entityName
+    """
+    ret = "invalidType"
+    try:
+      handleTest = access.getProcessHandle(0, 0)
+      access.amfMgmtInitialize(handleTest)
+
+      if entityType == "ComponentServiceInstance":
+        ret = access.amfMgmtCSIGetStatus(handleTest, entityName)
+
+      if "error" not in ret and ret != "invalidType":
+        print "CSIGetStatus completed successfully"
+        print "dictionary: ", ret
+      elif ret != "invalidType":
+        print 'CSIGetStatus failed with error code [%s]'% hex(ret["error"])
+      else:
+        ret = 0
+        print "Invalid entity type, valid entity types are ComponentServiceInstance"
+
+      access.amfMgmtFinalize(handleTest)
+    except RuntimeError, e:
+      print "error: ", e
+
+    return ret
 
 class CaptureOutput:
   def __init__(self,resolver):

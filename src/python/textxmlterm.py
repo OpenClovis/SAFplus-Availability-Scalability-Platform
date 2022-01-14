@@ -117,7 +117,7 @@ class XmlResolver:
           text = " ".join(sp)
           sp = pattern.split(text)[1::2]
         output = self.executeOne(sp,xmlterm)
-        if isinstance(output, int):
+        if isinstance(output, int) or isinstance(output, dict):
           return output
         
 
@@ -146,7 +146,7 @@ class XmlResolver:
               output = getattr(cmdClass,fn_name)(*sp[1:])
               if output is not None:  # None means keep looking -- I did not execute a command
                 if output:   # "" means command worked but nothing output
-                  if isinstance(output, int):
+                  if isinstance(output, int) or isinstance(output, dict):
                     return output
                   xmlterm.doc.append(output)
                 return
