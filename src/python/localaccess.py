@@ -62,6 +62,14 @@ grpCliClusterViewGet = safplus.grpCliClusterViewGet
 amfMgmtForceLockInstantiation = safplus.amfMgmtForceLockInstantiation
 amfMgmtCompAddressGet = safplus.amfMgmtCompAddressGet
 
+amfMgmtComponentGetConfig = safplus.amfMgmtComponentGetConfig
+amfMgmtNodeGetConfig = safplus.amfMgmtNodeGetConfig
+amfMgmtSGGetConfig = safplus.amfMgmtSGGetConfig
+amfMgmtSUGetConfig = safplus.amfMgmtSUGetConfig
+amfMgmtSIGetConfig = safplus.amfMgmtSIGetConfig
+amfMgmtCSIGetConfig = safplus.amfMgmtCSIGetConfig
+amfMgmtCSIGetStatus = safplus.amfMgmtCSIGetStatus
+
 
 def isValidDirectory(path):
   try:
