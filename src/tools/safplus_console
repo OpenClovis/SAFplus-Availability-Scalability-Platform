@@ -886,200 +886,122 @@ By default the specified location and children are shown.  Use -N to specify how
   def do_entityLockAssignment(self, entityType, entityName):
     """syntax: entityLockAssignment entityType entityName
     """
+    ret = "invalidType"
     try:
       handleTest = access.getProcessHandle(0, 0)
-      ret = access.amfMgmtInitialize(handleTest)
-      # print "amfMgmtInitialize: ", hex(ret)
+      access.amfMgmtInitialize(handleTest)
 
       if entityType == "Node":
         ret = access.amfMgmtNodeLockAssignment(handleTest, entityName)
-        # print "amfMgmtNodeLockAssignment: ", hex(ret)
-        if ret == 0x11:
-          print ("%s entity do not exist in %s" % (entityName, entityType))
-        elif ret == 0x12:
-          print ("%s entity have an invalid state to lockAssignment" %entityName)
-        elif ret == 0x0:
-          print (" %s entity lockAssignment OK" %entityName)
       elif entityType == "ServiceGroup":
         ret = access.amfMgmtSGLockAssignment(handleTest, entityName)
-        # print "amfMgmtSGLockAssignment: ", hex(ret)
-        if ret == 0x11:
-          print ("%s entity do not exist in %s" % (entityName, entityType))
-        elif ret == 0x12:
-          print ("%s entity have an invalid state to lockAssignment" %entityName)
-        elif ret == 0x0:
-          print (" %s entity lockAssignment OK" %entityName)
       elif entityType == "ServiceUnit":
         ret = access.amfMgmtSULockAssignment(handleTest, entityName)
-        # print "amfMgmtSULockAssignment: ", hex(ret)
-        if ret == 0x11:
-          print ("%s entity do not exist in %s" % (entityName, entityType))
-        elif ret == 0x12:
-          print ("%s entity have an invalid state to lockAssignment" %entityName)
-        elif ret == 0x0:
-          print (" %s entity lockAssignment OK" %entityName)
       elif entityType == "ServiceInstance":
         ret = access.amfMgmtSILockAssignment(handleTest, entityName)
-        # print "amfMgmtSILockAssignment: ", hex(ret)
-        if ret == 0x11:
-          print ("%s entity do not exist in %s" % (entityName, entityType))
-        elif ret == 0x12:
-          print ("%s entity have an invalid state to lockAssignment" %entityName)
-        elif ret == 0x0:
-          print (" %s entity lockAssignment OK" %entityName)
-      else:
-        print ("%s type do not exist in entityLockAssignment" % entityType)
 
-      ret = access.amfMgmtFinalize(handleTest)
-      # print "amfMgmtFinalize: ", hex(ret)
+      if ret == 0x0:
+        print("entityLockAssignment completed successfully")
+      elif ret != "invalidType":
+        print('entityLockAssignment failed with error code [%s]'% hex(ret))
+      else:
+        ret = 0
+        print("Invalid entity type, valid entity types are Node, ServiceGroup, ServiceUnit and ServiceInstance")
+
+      access.amfMgmtFinalize(handleTest)
     except RuntimeError as e:
       print ("error: ", e)
 
-    return ""
+    return ret
 
   def do_entityLockInstantiation(self, entityType, entityName):
     """syntax: entityLockInstantiation entityType entityName
     """
+    ret = "invalidType"
     try:
       handleTest = access.getProcessHandle(0, 0)
-      ret = access.amfMgmtInitialize(handleTest)
-      # print "amfMgmtInitialize: ", hex(ret)
+      access.amfMgmtInitialize(handleTest)
 
       if entityType == "Node":
         ret = access.amfMgmtNodeLockInstantiation(handleTest, entityName)
-        # print "amfMgmtNodeLockInstantiation: ", hex(ret)
-        if ret == 0x11:
-          print ("%s entity do not exist in %s" % (entityName, entityType))
-        elif ret == 0x12:
-          print ("%s entity have an invalid state to lockInstantiation" %entityName)
-        elif ret == 0x0:
-          print (" %s entity lockInstantiation OK" %entityName)
       elif entityType == "ServiceGroup":
         ret = access.amfMgmtSGLockInstantiation(handleTest, entityName)
-        # print "amfMgmtSGLockInstantiation: ", hex(ret)
-        if ret == 0x11:
-          print ("%s entity do not exist in %s" % (entityName, entityType))
-        elif ret == 0x12:
-          print ("%s entity have an invalid state to lockInstantiation" %entityName)
-        elif ret == 0x0:
-          print (" %s entity lockInstantiation OK" %entityName)
       elif entityType == "ServiceUnit":
         ret = access.amfMgmtSULockInstantiation(handleTest, entityName)
-        # print "amfMgmtSULockInstantiation: ", hex(ret)
-        if ret == 0x11:
-          print ("%s entity do not exist in %s" % (entityName, entityType))
-        elif ret == 0x12:
-          print ("%s entity have an invalid state to lockInstantiation" %entityName)
-        elif ret == 0x0:
-          print (" %s entity lockInstantiation OK" %entityName)
+
+      if ret == 0x0:
+        print("entityLockInstantiation completed successfully")
+      elif ret != "invalidType":
+        print('entityLockInstantiation failed with error code [%s]'% hex(ret))
       else:
-        print ("%s type do not exist in entityLockInstantiation" % entityType)
+        ret = 0
+        print("Invalid entity type, valid entity types are Node, ServiceGroup and ServiceUnit")
 
-      ret = access.amfMgmtFinalize(handleTest)
-      # print "amfMgmtFinalize: ", hex(ret)
+      access.amfMgmtFinalize(handleTest)
     except RuntimeError as e:
-      print ("error: ", e)
+      print("error: ", e)
 
-    return ""
+    return ret
 
   def do_entityUnlock(self, entityType, entityName):
     """syntax: entityUnlock entityType entityName
     """
+    ret = "invalidType"
     try:
       handleTest = access.getProcessHandle(0, 0)
-      ret = access.amfMgmtInitialize(handleTest)
-      # print "amfMgmtInitialize: ", hex(ret)
+      access.amfMgmtInitialize(handleTest)
 
       if entityType == "Node":
         ret = access.amfMgmtNodeUnlock(handleTest, entityName)
-        # print "amfMgmtNodeUnlock: ", hex(ret)
-        if ret == 0x11:
-          print ("%s entity do not exist in %s" % (entityName, entityType))
-        elif ret == 0x12:
-          print ("%s entity have an invalid state to unlock" %entityName)
-        elif ret == 0x0:
-          print (" %s entity unlock OK" %entityName)
       elif entityType == "ServiceGroup":
         ret = access.amfMgmtSGUnlock(handleTest, entityName)
-        # print "amfMgmtSGUnlock: ", hex(ret)
-        if ret == 0x11:
-          print ("%s entity do not exist in %s" % (entityName, entityType))
-        elif ret == 0x12:
-          print ("%s entity have an invalid state to unlock" %entityName)
-        elif ret == 0x0:
-          print (" %s entity unlock OK" %entityName)
       elif entityType == "ServiceUnit":
         ret = access.amfMgmtSUUnlock(handleTest, entityName)
-        # print "amfMgmtSUUnlock: ", hex(ret)
-        if ret == 0x11:
-          print ("%s entity do not exist in %s" % (entityName, entityType))
-        elif ret == 0x12:
-          print ("%s entity have an invalid state to unlock" %entityName)
-        elif ret == 0x0:
-          print (" %s entity unlock OK" %entityName)
       elif entityType == "ServiceInstance":
         ret = access.amfMgmtSIUnlock(handleTest, entityName)
-        # print "amfMgmtSIUnlock: ", hex(ret)
-        if ret == 0x11:
-          print ("%s entity do not exist in %s" % (entityName, entityType))
-        elif ret == 0x12:
-          print ("%s entity have an invalid state to unlock" %entityName)
-        elif ret == 0x0:
-          print (" %s entity unlock OK" %entityName)
-      else:
-        print ("%s type do not exist in entityUnlock" % entityType)
 
-      ret = access.amfMgmtFinalize(handleTest)
-      # print "amfMgmtFinalize: ", hex(ret)
+      if ret == 0x0:
+        print("entityUnlock completed successfully")
+      elif ret != "invalidType":
+        print('entityUnlock failed with error code [%s]'% hex(ret))
+      else:
+        ret = 0
+        print("Invalid entity type, valid entity types are Node, ServiceGroup, ServiceUnit and ServiceInstance")
+
+      access.amfMgmtFinalize(handleTest)
     except RuntimeError as e:
       print ("error: ", e)
 
-    return ""
+    return ret
 
   def do_entityRepaired(self, entityType, entityName):
     """syntax: entityRepaired entityType entityName
     """
+    ret = "invalidType"
     try:
       handleTest = access.getProcessHandle(0, 0)
-      ret = access.amfMgmtInitialize(handleTest)
-      # print "amfMgmtInitialize: ", hex(ret)
+      access.amfMgmtInitialize(handleTest)
 
       if entityType == "Node":
         ret = access.amfMgmtNodeRepair(handleTest, entityName)
-        # print "amfMgmtNodeRepair: ", hex(ret)
-        if ret == 0x11:
-          print ("%s entity do not exist in %s" % (entityName, entityType))
-        elif ret == 0x12:
-          print ("%s entity have an invalid state to repair" %entityName)
-        elif ret == 0x0:
-          print (" %s entity repair OK" %entityName)
       elif entityType == "Component":
         ret = access.amfMgmtCompRepair(handleTest, entityName)
-        # print "amfMgmtCompRepair: ", hex(ret)
-        if ret == 0x11:
-          print ("%s entity do not exist in %s" % (entityName, entityType))
-        elif ret == 0x12:
-          print ("%s entity have an invalid state to repair" %entityName)
-        elif ret == 0x0:
-          print (" %s entity repair OK" %entityName)
       elif entityType == "ServiceUnit":
         ret = access.amfMgmtSURepair(handleTest, entityName)
-        # print "amfMgmtSURepair: ", hex(ret)
-        if ret == 0x11:
-          print ("%s entity do not exist in %s" % (entityName, entityType))
-        elif ret == 0x12:
-          print ("%s entity have an invalid state to repair" %entityName)
-        elif ret == 0x0:
-          print (" %s entity repair OK" %entityName)
-      else:
-        print ("%s type do not exist in entityRepaired" % entityType)
 
-      ret = access.amfMgmtFinalize(handleTest)
-      # print "amfMgmtFinalize: ", hex(ret)
+      if ret == 0x0:
+        print("entityRepaired completed successfully")
+      elif ret != "invalidType":
+        print('entityRepaired failed with error code [%s]'% hex(ret))
+      else:
+        ret = 0
+        print("Invalid entity type, valid entity types are Node, Component and ServiceUnit")
+
+      access.amfMgmtFinalize(handleTest)
     except RuntimeError as e:
       print ("error: ", e)
 
-    return ""
+    return ret
 
   def do_start(self, entityName):
     """syntax: start entityName
@@ -1088,7 +1010,7 @@ By default the specified location and children are shown.  Use -N to specify how
     entityTypes = "Node", "ServiceGroup", "ServiceUnit", "Component", "ServiceInstance"
     for entityType in entityTypes:
       try:
-        self.do_entityUnlock(entityType, entityName)
+        print("for entityType is ", entityType, " : ", self.do_entityUnlock(entityType, entityName))
       except RuntimeError as e:
         print ("error: ", e)
     return ""
@@ -1100,7 +1022,7 @@ By default the specified location and children are shown.  Use -N to specify how
     entityTypes = "Node", "ServiceGroup", "ServiceUnit", "Component", "ServiceInstance"
     for entityType in entityTypes:
       try:
-        self.do_entityLockInstantiation(entityType, entityName)
+        print("for entityType is ", entityType, " : ", self.do_entityLockInstantiation(entityType, entityName))
       except RuntimeError as e:
         print ("error: ", e)
     return ""
@@ -1112,7 +1034,7 @@ By default the specified location and children are shown.  Use -N to specify how
     entityTypes = "Node", "ServiceGroup", "ServiceUnit", "Component", "ServiceInstance"
     for entityType in entityTypes:
       try:
-        self.do_entityLockAssignment(entityType, entityName)
+        print("for entityType is ", entityType, " : ", self.do_entityLockAssignment(entityType, entityName))
       except RuntimeError as e:
         print ("error: ", e)
     return ""
@@ -1124,7 +1046,7 @@ By default the specified location and children are shown.  Use -N to specify how
     entityTypes = "Node", "ServiceGroup", "ServiceUnit", "Component", "ServiceInstance"
     for entityType in entityTypes:
       try:
-        self.do_entityRepaired(entityType, entityName)
+        print("for entityType is ", entityType, " : ", self.do_entityRepaired(entityType, entityName))
       except RuntimeError as e:
         print ("error: ", e)
     return ""
@@ -1309,7 +1231,7 @@ By default the specified location and children are shown.  Use -N to specify how
                               "instantiationSuccessDuration",  "maxActiveAssignments",  "maxDelayedInstantiations",\
                                 "componentServiceInstances",  "serviceInstance"
     if len(attributesAndValuesPairs) % 2 != 0:
-      print ("No values with the corresponding attributes")
+      print("don't have values with the corresponding attributes")
       return ""
 
     t = "/safplusAmf" + "/" + entityType + "/" + entityName
@@ -1319,6 +1241,7 @@ By default the specified location and children are shown.  Use -N to specify how
     listAttributesAndValuesPairs.append(firstValue)
 
     i = 0
+    ret = ""
     while i < len(listAttributesAndValuesPairs):
       if listAttributesAndValuesPairs[i] in configureItems:
         loc = t + "/" + listAttributesAndValuesPairs[i]
@@ -1328,12 +1251,14 @@ By default the specified location and children are shown.  Use -N to specify how
         continue
       try:
         ret = access.mgtSet(str(loc),str(listAttributesAndValuesPairs[i+1]))
+        print("func ret: ", ret)
       except RuntimeError as e:
         print ("<error>location [%s] error [%s]</error>" % (location, str(e)))
       i += 2
       if ret == 4:  # CL_ERROR_NOT_EXIST
-        print ("<error>location [%s] does not exist</error>" % loc)
-    return ""
+        print("<error>location [%s] does not exist</error>" % loc)
+    print("return ret: ", ret)
+    return ret
 
   def do_entityCreate(self, *entityTypeAndEntityNamePairs):
     """syntax: entityCreate entityType entityName
@@ -1341,11 +1266,12 @@ By default the specified location and children are shown.  Use -N to specify how
     """
 
     if len(entityTypeAndEntityNamePairs) % 2 != 0:
-      print ("No entityName with the corresponding entityType")
+      print("don't have entityName with the corresponding entityType")
       return ""
 
     t = "/safplusAmf"
     i = 0
+    ret = ""
     while i < len(entityTypeAndEntityNamePairs):
       entityType = entityTypeAndEntityNamePairs[i]
       entityName = entityTypeAndEntityNamePairs[i+1]
@@ -1356,8 +1282,8 @@ By default the specified location and children are shown.  Use -N to specify how
         print ("<error>location [%s] error [%s]</error>" % (location, str(e)))
       i += 2
       if ret == 16:  # CL_ERR_ALREADY_EXIST
-        print ("<error>entityName [%s] already exists</error>" % entityName)
-    return ""
+        print("<error>entityName [%s] already exists</error>" % entityName)
+    return ret
 
   def do_entityDelete(self, *entityTypeAndEntityNamePairs):
     """syntax: entityDelete entityType entityName
@@ -1365,11 +1291,12 @@ By default the specified location and children are shown.  Use -N to specify how
     """
 
     if len(entityTypeAndEntityNamePairs) % 2 != 0:
-      print ("No entityName with the corresponding entityType")
+      print("don't have entityName with the corresponding entityType")
       return ""
 
     t = "/safplusAmf"
     i = 0
+    ret = ""
     while i < len(entityTypeAndEntityNamePairs):
       entityType = entityTypeAndEntityNamePairs[i]
       entityName = entityTypeAndEntityNamePairs[i+1]
@@ -1380,57 +1307,39 @@ By default the specified location and children are shown.  Use -N to specify how
         print ("<error>location [%s] error [%s]</error>" % (location, str(e)))
       i += 2
       if ret == 19:  # CL_ERR_DOESNT_EXIST
-        print ("<error>entityName [%s] does not exist</error>" % entityName)
-    return ""
+        print("<error>entityName [%s] does not exist</error>" % entityName)
+    return ret
 
   def do_entityShutdown(self, entityType, entityName):
     """syntax: entityShutdown entityType entityName
     """
+    ret = "invalidType"
     try:
       handleTest = access.getProcessHandle(0, 0)
-      ret = access.amfMgmtInitialize(handleTest)
+      access.amfMgmtInitialize(handleTest)
 
       if entityType == "Node":
         ret = access.amfMgmtNodeLockAssignment(handleTest, entityName)
-        if ret == 0x11:
-          print ("%s entity do not exist" % (entityName))
-        elif ret == 0x12:
-          print ("%s entity has an invalid state to lockAssignment" %entityName)
-        elif ret == 0x0:
-          print (" %s entity shutdown OK" %entityName)
       elif entityType == "ServiceGroup":
         ret = access.amfMgmtSGLockAssignment(handleTest, entityName)
-        if ret == 0x11:
-          print ("%s entity do not exist in %s" % (entityName, entityType))
-        elif ret == 0x12:
-          print ("%s entity have an invalid state to lockAssignment" %entityName)
-        elif ret == 0x0:
-          print (" %s entity shutdown OK" %entityName)
       elif entityType == "ServiceUnit":
         ret = access.amfMgmtSULockAssignment(handleTest, entityName)
-        if ret == 0x11:
-          print ("%s entity do not exist in %s" % (entityName, entityType))
-        elif ret == 0x12:
-          print ("%s entity has an invalid state to lockAssignment" %entityName)
-        elif ret == 0x0:
-          print (" %s entity shutdown OK" %entityName)
       elif entityType == "ServiceInstance":
         ret = access.amfMgmtSILockAssignment(handleTest, entityName)
-        if ret == 0x11:
-          print ("%s entity do not exist in %s" % (entityName, entityType))
-        elif ret == 0x12:
-          print ("%s entity has an invalid state to lockAssignment" %entityName)
-        elif ret == 0x0:
-          print (" %s entity shutdown OK" %entityName)
-      else:
-        print ("%s type does not exist in entityShutdown" % entityType)
 
-      ret = access.amfMgmtFinalize(handleTest)
-      # print "amfMgmtFinalize: ", hex(ret)
+      if ret == 0x0:
+        print("entityShutdown completed successfully")
+      elif ret != "invalidType":
+        print('entityShutdown failed with error code [%s]'% hex(ret))
+      else:
+        ret = 0
+        print("Invalid entity type, valid entity types are Node, ServiceGroup, ServiceUnit and ServiceInstance")
+
+      access.amfMgmtFinalize(handleTest)
     except RuntimeError as e:
       print ("error: ", e)
 
-    return ""
+    return ret
 
   def getValueFromAttributeName(self, entityType, entityName, attributeName):
     t = os.path.normpath(os.path.join(self.curdir,"/safplusAmf/",entityType, entityName, attributeName))
@@ -1489,7 +1398,7 @@ By default the specified location and children are shown.  Use -N to specify how
       listEntityName = self.parseXML(entityType)
       if len(listEntityName) != 0:
         valueList = [["", ""]]
-        headers = ["CompName", "Presence state"]
+        headers = ["NodeName", "Presence state"]
         for entityName in listEntityName:
           d = [entityName]
           for attribute in attributeList:
@@ -1507,25 +1416,18 @@ By default the specified location and children are shown.  Use -N to specify how
   def do_nodeName(self):
     """syntax: nodeName
     """
-    
-    import importlib.machinery
-    import importlib.util
-    loader = importlib.machinery.SourceFileLoader('si','safplus_info')
-    spec = importlib.util.spec_from_loader('si',loader)
-    si = importlib.util.module_from_spec(spec)
-    loader.exec_module(si)    
-    if not si._asp_run_env:       
-       si._asp_run_env = si.load_asp_run_env()
-    print (si._asp_run_env['ASP_NODENAME'])       
+    nodeList = self.parseXML("Node")
+    for node in nodeList:
+      print("nodeName is %s" %node)
     return ""
 
   def do_entityRestart(self, entityType, entityName):
     """syntax: entityRestart entityType entityName
     """
+    ret = "invalidType"
     try:
       handleTest = access.getProcessHandle(0, 0)
-      ret = access.amfMgmtInitialize(handleTest)
-      # print "amfMgmtInitialize: ", hex(ret)
+      access.amfMgmtInitialize(handleTest)
 
       if entityType == "Node":
         ret = access.amfMgmtNodeRestart(handleTest, entityName)
@@ -1533,29 +1435,26 @@ By default the specified location and children are shown.  Use -N to specify how
         ret = access.amfMgmtSURestart(handleTest, entityName)
       elif entityType == "Component":
         ret = access.amfMgmtCompRestart(handleTest, entityName)
-      else:
-        ret = 0x101
-      # print "amfMgmtSURestart: ", hex(ret)
-      if ret == 0x11:
-        print ("%s entity does not exist in %s" % (entityName, entityType))
-      elif ret == 0x12:
-        print ("%s entity has an invalid state to restart" %entityName)
-      elif ret == 0x0:
-        print (" %s entity restart OK" %entityName)
-      elif ret == 0x101:
-        print ("entity type [%s] is invalid"%entityType)
 
-      ret = access.amfMgmtFinalize(handleTest)
- 
+      if ret == 0x0:
+        print("entityRestart completed successfully")
+      elif ret != "invalidType":
+        print('entityRestart failed with error code [%s]'% hex(ret))
+      else:
+        ret = 0
+        print("Invalid entity type, valid entity types are Node, ServiceUnit and Component")
+
+      access.amfMgmtFinalize(handleTest)
     except RuntimeError as e:
       print ("error: ", e)
 
-    return ""
+    return ret
 
   def do_sgAdjust(self, sgName, enabled):
     """syntax: sgAdjust sgName on/off
 
     """
+    ret = 0
     if enabled != "on" and enabled != "off":
       print ('enabled argument must be "on" or "off"')
       return ""
@@ -1563,52 +1462,47 @@ By default the specified location and children are shown.  Use -N to specify how
     if enabled == 'on': b = True
     try:
       handleTest = access.getProcessHandle(0, 0)
-      ret = access.amfMgmtInitialize(handleTest)
-      # print "amfMgmtInitialize: ", hex(ret)
+      access.amfMgmtInitialize(handleTest)
 
       ret = access.amfMgmtSGAdjust(handleTest, sgName, b)
-      if ret == 0x4:
-        print ("Service group %s do not exist" % sgName)
-      elif ret == 0x0:
-        print ("service group %s adjust OK" %sgName)
+
+      if ret == 0x0:
+        print("sgAdjust completed successfully")
       else:
-        print ("Sg adjust failure with error 0x%x" % ret)
+        print('sgAdjust failed with error code [%s]'% hex(ret))
       
-      ret = access.amfMgmtFinalize(handleTest)
- 
+      access.amfMgmtFinalize(handleTest)
     except RuntimeError as e:
       print ("error: ", e)
 
-    return ""
+    return ret
 
   def do_entitySISwap(self, siName):
     """syntax: entitySISwap siName
     """
+    ret = 0
     try:
       handleTest = access.getProcessHandle(0, 0)
-      ret = access.amfMgmtInitialize(handleTest)
-      # print "amfMgmtInitialize: ", hex(ret)
+      access.amfMgmtInitialize(handleTest)
 
       ret = access.amfMgmtSISwap(handleTest, siName)
-      # print "amfMgmtSISwap: ", hex(ret)
+
       if ret == 0x0:
-        print ("swapping si [%s] OK" %siName)
-      elif ret == 0x4:
-        print ("Service instance %s does not exist" % siName)
+        print("entitySISwap completed successfully")
       else:
-        print ("si swap failure with error 0x%x" % ret)
+        print('entitySISwap failed with error code [%s]'% hex(ret))
 
-      ret = access.amfMgmtFinalize(handleTest)
-
+      access.amfMgmtFinalize(handleTest)
     except RuntimeError as e:
       print ("error: ", e)
 
-    return ""
+    return ret
 
   def do_compReport(self, compName, recommendedRecovery):
     """syntax: compReport compName recommendedRecovery
                recommendedRecovery is one of values no_recommendation, comp_restart, comp_failover, node_switchover, node_failover or node_failfast
     """
+    ret = 0
     recRecovery = Recovery_NoRecommendation
     if recommendedRecovery == 'no_recommendation':
       recRecovery = Recovery_NoRecommendation
@@ -1623,149 +1517,136 @@ By default the specified location and children are shown.  Use -N to specify how
     elif recommendedRecovery == 'node_failfast':
       recRecovery = Recovery_NodeFailfast
     else:
-      print ('recommendedRecovery argument must be no_recommendation, comp_restart, comp_failover, node_switchover, node_failover or node_failfast')
-      return ""
+      print('recommendedRecovery argument must be no_recommendation, comp_restart, comp_failover, node_switchover, node_failover or node_failfast')
+      return ret
       
     try:
       handleTest = access.getProcessHandle(0, 0)
-      ret = access.amfMgmtInitialize(handleTest)
-      # print "amfMgmtInitialize: ", hex(ret)
+      access.amfMgmtInitialize(handleTest)
 
       ret = access.amfMgmtCompErrorReport(handleTest, compName, recRecovery)
-      if ret == 0x4:
-        print ("component %s does not exist" % compName)
-      elif ret == 0x0:
-        print ("component report %s OK" %compName)
+
+      if ret == 0x0:
+        print("compReport completed successfully")
       else:
-        print ("component report failure with error 0x%x" % ret)
+        print('compReport failed with error code [%s]'% hex(ret))
       
-      ret = access.amfMgmtFinalize(handleTest)
- 
+      access.amfMgmtFinalize(handleTest)
     except RuntimeError as e:
       print ("error: ", e)
 
-    return ""
+    return ret
 
   def do_nodeErrorReport(self, nodeName):
     """syntax: nodeErrorReport nodeName
     """
+    ret = 0
     try:
       handleTest = access.getProcessHandle(0, 0)
-      ret = access.amfMgmtInitialize(handleTest)
-      # print "amfMgmtInitialize: ", hex(ret)
+      access.amfMgmtInitialize(handleTest)
 
       ret = access.amfMgmtNodeErrorReport(handleTest, nodeName)
-      if ret == 0x4:
-        print ("node %s do not exist" % nodeName)
-      elif ret == 0x0:
-        print ("Node %s error report OK" %nodeName)
+
+      if ret == 0x0:
+        print("nodeErrorReport completed successfully")
       else:
-        print ("Node error report failure with error 0x%x" % ret)
+        print('nodeErrorReport failed with error code [%s]'% hex(ret))
       
-      ret = access.amfMgmtFinalize(handleTest)
- 
+      access.amfMgmtFinalize(handleTest)
     except RuntimeError as e:
       print ("error: ", e)
 
-    return ""
+    return ret
 
   def do_nodeErrorClear(self, nodeName):
     """syntax: nodeErrorClear nodeName
     """
+    ret = 0
     try:
       handleTest = access.getProcessHandle(0, 0)
-      ret = access.amfMgmtInitialize(handleTest)
-      # print "amfMgmtInitialize: ", hex(ret)
+      access.amfMgmtInitialize(handleTest)
 
       ret = access.amfMgmtNodeErrorClear(handleTest, nodeName)
-      if ret == 0x4:
-        print ("node %s does not exist" % nodeName)
-      elif ret == 0x0:
-        print ("Node %s error clear OK" %nodeName)
+
+      if ret == 0x0:
+        print("nodeErrorClear completed successfully")
       else:
-        print ("Node error clear failure with error 0x%x" % ret)
+        print('nodeErrorClear failed with error code [%s]'% hex(ret))
       
-      ret = access.amfMgmtFinalize(handleTest)
- 
+      access.amfMgmtFinalize(handleTest)
     except RuntimeError as e:
       print ("error: ", e)
 
-    return ""
+    return ret
 
   def do_nodeJoin(self, nodeName):
     """syntax: nodeJoin nodeName
     """
+    ret = 0
     try:
       handleTest = access.getProcessHandle(0, 0)
-      ret = access.amfMgmtInitialize(handleTest)
-      # print "amfMgmtInitialize: ", hex(ret)
+      access.amfMgmtInitialize(handleTest)
 
       ret = access.amfMgmtNodeJoin(handleTest, nodeName)
-      if ret == 0x4:
-        print ("node %s does not exist" % nodeName)
-      elif ret == 0x0:
-        print ("Node %s join OK" %nodeName)
+
+      if ret == 0x0:
+        print("nodeJoin completed successfully")
       else:
-        print ("Node join failure with error 0x%x" % ret)
+        print('nodeJoin failed with error code [%s]'% hex(ret))
       
-      ret = access.amfMgmtFinalize(handleTest)
- 
+      access.amfMgmtFinalize(handleTest)
     except RuntimeError as e:
       print ("error: ", e)
 
-    return ""
+    return ret
 
   def do_nodeShutdown(self, nodeName):
     """syntax: nodeShutdown nodeName
     """
+    ret = 0
     try:
       handleTest = access.getProcessHandle(0, 0)
-      ret = access.amfMgmtInitialize(handleTest)
-      # print "amfMgmtInitialize: ", hex(ret)
+      access.amfMgmtInitialize(handleTest)
 
       ret = access.amfMgmtNodeShutdown(handleTest, nodeName)
-      if ret == 0x4:
-        print ("node %s does not exist" % nodeName)
-      elif ret == 0x0:
-        print ("Node %s shutdown OK" %nodeName)
+
+      if ret == 0x0:
+        print("nodeShutdown completed successfully")
       else:
-        print ("Node shutdown failure with error 0x%x" % ret)
+        print('nodeShutdown failed with error code [%s]'% hex(ret))
       
-      ret = access.amfMgmtFinalize(handleTest)
- 
+      access.amfMgmtFinalize(handleTest)
     except RuntimeError as e:
       print ("error: ", e)
 
-    return ""
+    return ret
 
   def do_nodeRestart(self, nodeName, graceful):
     """syntax: nodeRestart nodeName graceful
                graceful: 1: indicates the graceful restart
                          0: indicates the ungraceful restart
     """
+    ret = 0
     if graceful != '0' and graceful != '1':
-      print ('graceful argument must be 0 or 1')
-      return ""
+      print('graceful argument must be 0 or 1')
+      return ret
     grf = True if graceful=='1' else False
     try:
       handleTest = access.getProcessHandle(0, 0)
-      ret = access.amfMgmtInitialize(handleTest)
-      # print "amfMgmtInitialize: ", hex(ret)
+      access.amfMgmtInitialize(handleTest)
 
       ret = access.amfNodeRestart(handleTest, nodeName, grf)
-      if ret == 0x4:
-        print ("node %s does not exist" % nodeName)
-      elif ret == 0x0:
-        print ("Node %s restart OK" %nodeName)
+
+      if ret == 0x0:
+        print("nodeRestart completed successfully")
       else:
-        print ("Node restart failure with error 0x%x" % ret)
+        print('nodeRestart failed with error code [%s]'% hex(ret))
       
-      ret = access.amfMgmtFinalize(handleTest)
- 
+      access.amfMgmtFinalize(handleTest)
     except RuntimeError as e:
       print ("error: ", e)
 
-    return ""
+    return ret
 
   def do_middlewareRestart(self, nodeName, graceful, nodeReset):
     """syntax: nodeRestart nodeName graceful, nodeReset
@@ -1775,41 +1656,40 @@ By default the specified location and children are shown.  Use -N to specify how
                nodeReset: 1: indicates the node is reset
                           0: indicates the middleware is restarted only
     """
+    ret = 0
     if graceful != '0' and graceful != '1':
-      print ('graceful argument must be 0 or 1')
-      return ""
+      print('graceful argument must be 0 or 1')
+      return ret
     if nodeReset != '0' and nodeReset != '1':
-      print ('nodeReset argument must be 0 or 1')
-      return ""
+      print('nodeReset argument must be 0 or 1')
+      return ret
     grf = True if graceful=='1' else False
     nrst = True if nodeReset=='1' else False
     try:     
       handleTest = access.getProcessHandle(0, 0)
-      ret = access.amfMgmtInitialize(handleTest)
-      # print "amfMgmtInitialize: ", hex(ret)    
+      access.amfMgmtInitialize(handleTest)
+
       ret = access.amfMiddlewareRestart(handleTest, nodeName, grf, nrst)
       #ret = access.amfMiddlewareRestart(handleTest, nodeName, graceful, nodeReset)
-      if ret == 0x4:
-        print ("node %s does not exist" % nodeName)
-      elif ret == 0x0:
-        print ("Middleware restart OK for node %s" %nodeName)
+
+      if ret == 0x0:
+        print("middlewareRestart completed successfully")
       else:
-        print ("Middleware restart failure with error 0x%x" % ret)
+        print('middlewareRestart failed with error code [%s]'% hex(ret))
       
-      ret = access.amfMgmtFinalize(handleTest)
- 
+      access.amfMgmtFinalize(handleTest)
     except RuntimeError as e:
       print ("error: ", e)
 
-    return ""
+    return ret
 
   def do_assignSUtoSI(self, siName, activeSUName, standbySUName):
     """syntax: assignSUtoSI siName activeSUName standbySUName
     """
+    ret = 0
     try:
       handleTest = access.getProcessHandle(0, 0)
-      ret = access.amfMgmtInitialize(handleTest)
-      # print "amfMgmtInitialize: ", hex(ret)
+      access.amfMgmtInitialize(handleTest)
 
       if activeSUName == "NULL" or standbySUName == "NULL":
         appendString = "objectIsNULL_"
@@ -1833,44 +1713,41 @@ By default the specified location and children are shown.  Use -N to specify how
                 if standbySUName != "NULL" and activeSUName != "NULL":
                   break
             except RuntimeError as e:
-              print ("error: ", e)
+              print("error: ", e)
+
       ret = access.amfMgmtAssignSUtoSI(handleTest, siName, activeSUName, standbySUName)
-      # print "amfMgmtAssignSUtoSI: ", hex(ret)
+
       if ret == 0x0:
-        print ("assigning si [%s] OK" %siName)
+        print("assignSUtoSI completed successfully")
       else:
-        print ("si swap failure with error 0x%x" % ret)
+        print('assignSUtoSI failed with error code [%s]'% hex(ret))
 
-      ret = access.amfMgmtFinalize(handleTest)
-
+      access.amfMgmtFinalize(handleTest)
     except RuntimeError as e:
       print ("error: ", e)
 
-    return ""
+    return ret
 
   def do_forceLockInstantiation(self, entityName):
     """syntax: forceLockInstantiation entitySUName
     """
+    ret = 0
     try:
       handleTest = access.getProcessHandle(0, 0)
-      ret = access.amfMgmtInitialize(handleTest)
-      # print "amfMgmtInitialize: ", hex(ret)
+      access.amfMgmtInitialize(handleTest)
 
       ret = access.amfMgmtForceLockInstantiation(handleTest, entityName)
-      # print "amfMgmtForceLockInstantiation: ", hex(ret)
-      if ret == 0x11:
-        print ("%s entity do not exist" %entityName)
-      elif ret == 0x12:
-        print ("%s entity have an invalid state to ForceLockInstantiation" %entityName)
-      elif ret == 0x0:
-        print (" %s entity ForceLockInstantiation OK" %entityName)
 
-      ret = access.amfMgmtFinalize(handleTest)
-      # print "amfMgmtFinalize: ", hex(ret)
+      if ret == 0x0:
+        print("forceLockInstantiation completed successfully")
+      else:
+        print('forceLockInstantiation failed with error code [%s]'% hex(ret))
+
+      access.amfMgmtFinalize(handleTest)
     except RuntimeError as e:
       print ("error: ", e)
 
-    return ""
+    return ret
 
   def do_compAddressGet(self, entityName):
     """syntax: compAddressGet entitySUName
@@ -2066,7 +1943,7 @@ def main(argLst):
             print (RED + "connect to active node before do anything please!" + NOCOLOR)
             continue
 
-      resolver.execute(cmd,resolver)
+      output = resolver.execute(cmd,resolver)
   access.Finalize()
 
 

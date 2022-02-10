@@ -116,7 +116,9 @@ class XmlResolver:
           sp[0] = alias
           text = " ".join(sp)
           sp = pattern.split(text)[1::2]
-        self.executeOne(sp,xmlterm)
+        output = self.executeOne(sp,xmlterm)
+        if isinstance(output, int):
+          return output
         
 
   def executeOne(self,sp,xmlterm):
@@ -144,6 +146,8 @@ class XmlResolver:
               output = getattr(cmdClass,fn_name)(*sp[1:])
               if output is not None:  # None means keep looking -- I did not execute a command
                 if output:   # "" means command worked but nothing output
+                  if isinstance(output, int):
+                    return output
                   xmlterm.doc.append(output)
                 return
             except TypeError as e:  # command had incorrect arguments or something
