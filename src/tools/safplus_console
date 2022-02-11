@@ -5,6 +5,8 @@ import argparse
 import ConfigParser
 import re
 from tabulate import tabulate
+import random, errno
+import amfctrl
 
 
 #command completion
@@ -1861,10 +1863,51 @@ def csv2List(csvString):
   if not csvString.strip(): return []  # turn "" into [], otherwise it is ['']
   return [x.strip() for x in csvString.split(",")]
 
+def AmfCreateApp(suffix, compList, nodes):
+  sg = "ServiceGroup_%s" % suffix
+  numActiveSus = (len(nodes)+1)/2
+  numStandbySus = len(nodes) -  numActiveSus
+
+  entities = {
+    "ServiceGroup/%s" % sg : { "adminState":"off", "preferredNumActiveServiceUnits":numActiveSus,"preferredNumStandbyServiceUnits":numStandbySus, "serviceInstances" :  "safplusAmf/ServiceInstance/ServiceInstance_%s" % suffix },
+    "ServiceInstance/ServiceInstance_%s" % suffix : { "serviceGroup": sg, "componentServiceInstances" :"safplusAmf/ComponentServiceInstance/ComponentServiceInstance_%s" % suffix },
+    "ComponentServiceInstance/ComponentServiceInstance_%s" % suffix : { "serviceInstance": "safplusAmf/ServiceInstance/ServiceInstance_%s" % suffix, "name/testKey" : "testVal" }
+  }
+
+  count = 0
+  sus = []
+  for n in nodes:
+    suname = "ServiceUnit_%s_%d" % (suffix,count)
+    comps = []
+    for c in compList:
+      name = os.path.basename(c.split(" ")[0])
+      cname = "%s_in_%s" % (name,suname)
+      idx=1
+      while cname in comps:
+        cname = "%s_in_%s_%d" % (name,suname,idx)
+        idx+=1
+
+      entities["Component/%s" % cname] = { "maxActiveAssignments":1, "maxStandbyAssignments":1, "serviceUnit": suname, "instantiate": { "command" : c, "timeout":15*1000 }}
+      comps.append(cname)
+
+    entities["ServiceUnit/%s" % suname] = { "components":",".join(comps),"node":n, "serviceGroup": sg }
+    sus.append(suname)
+    count += 1
+
+  entities["ServiceGroup/%s" % sg]["serviceUnits"] = ",".join(sus)
+  print "AmfCreateApp 1: ", entities
+  amfctrl.commit(entities)
+
 class RunScript:
   def __init__(self,resolver):
     self.resolver = resolver
     self.context = None
+    self.commands = {"show" : (self.show, None),
+                    "createApp" : (self.createApp, None),
+                    "deleteApp" : (self.deleteApp, None),
+                    "startApp" : (self.startApp, None),
+                    "stopApp" : (self.stopApp, None)
+    }
     self.raiseException = Dotter()
     self.env = {}
     self.cli = Dotter()
@@ -1930,6 +1973,194 @@ class RunScript:
         self.context.xmlterm.doc.append("<error>" + str(e) + "</error>")
         return ""
     return ""
+
+  def startApp(self, appSuffix):
+    try:
+      sgName = "/safplusAmf/ServiceGroup/ServiceGroup%s" % appSuffix
+      sg = ET.fromstring(self.cli.run("ls " + sgName))
+      if len(sg) == 0:
+        sgName = sgName = "/safplusAmf/ServiceGroup/ServiceGroup_%s" % appSuffix
+        sg = ET.fromstring(self.cli.run("ls " + sgName))
+      if len(sg) == 0:
+        return None
+      else: sg=sg[0]
+    except self.cli.Error, e:
+      pass
+    # TDO self.cli.run("set %s/operState 1" % sgName)  # reenable the comps if faulted
+    suList = self.cli.getList(sgName + "/serviceUnits")
+    for su in suList:
+      self.cli.set("%s/adminState" % su, "on")
+    self.cli.run("set %s/adminState on" % sgName)  # turn app on
+    print("%s started" % appSuffix)
+    return ""
+
+  def stopApp(self, appSuffix):
+    try:
+      sgName = "/safplusAmf/ServiceGroup/ServiceGroup%s" % appSuffix
+      sg = ET.fromstring(self.cli.run("ls " + sgName))
+      if len(sg) == 0:
+        sgName = sgName = "/safplusAmf/ServiceGroup/ServiceGroup_%s" % appSuffix
+        sg = ET.fromstring(self.cli.run("ls " + sgName))
+      if len(sg) == 0:
+        return None
+      else: sg=sg[0]
+    except self.cli.Error, e:
+      pass
+    self.cli.run("set %s/adminState off" % sgName)
+    print("%s stopped" % appSuffix)
+    return ""
+
+  def deleteApp(self, appName):
+    sg = None
+    sus = []
+    comps = []
+    sgName = None
+    suNames = []
+    compNames = []
+    siNames = []
+    csiNames = []
+    try:
+      sgName = "/safplusAmf/ServiceGroup/ServiceGroup%s" % appName
+      sg = ET.fromstring(self.cli.run("ls " + sgName))
+      if len(sg) == 0:
+        sgName = sgName = "/safplusAmf/ServiceGroup/ServiceGroup_%s" % appName
+        sg = ET.fromstring(self.cli.run("ls " + sgName))
+      if len(sg) == 0:
+        return None
+      else: sg=sg[0]
+    except self.cli.Error, e:
+      pass
+
+    if sg:
+      siNameText = sg.find("serviceInstances").text
+      siNames = [ str(x) for x in siNameText.split(",")]
+      suNameText = sg.find("serviceUnits").text
+      suNames = [ str(x) for x in suNameText.split(",")]
+      print suNames
+      for suName in suNames:
+        if suName[0] != "?":
+          su = ET.fromstring(self.cli.run("ls %s" % suName))
+          if len(su) != 0:
+            su=su[0]
+            sus.append(su)
+            compN = su.find("components").text
+            compN = compN.split(",")
+            for compName in compN:
+              if compName[0] != "?":
+                comp = ET.fromstring(self.cli.run("ls %s" % compName))
+                if len(comp) != 0:  # if it is valid then add it to the delete list
+                  compNames.append(str(compName))
+      if siNames:
+       for siName in siNames:
+        if siName[0] != "?":
+          si = ET.fromstring(self.cli.run("ls %s" % siName))
+          if len(si) != 0:
+            si=si[0] # remove the "top"
+            csiNameStr = si.find("componentServiceInstances").text
+            tmp = [ str(x) for x in csiNameStr.split(",")]
+            csiNames += tmp
+
+    if sgName:
+      self.cli.run("delete " + str(sgName))
+      allNames = [sgName]
+      if suNames:
+        for su in suNames: self.cli.run("delete " + str(su))
+        allNames += suNames
+      if compNames:
+        for compName in compNames: self.cli.run("delete " + str(compName))
+        allNames += compNames
+      if siNames:
+        for si in siNames: self.cli.run("delete " + str(si))
+        allNames += siNames
+      if csiNames:
+        for csi in csiNames: self.cli.run("delete " + str(csi))
+        allNames += csiNames
+
+      print("Deleted %s" % ", ".join(allNames))
+      return ""
+    print("No such application")
+    return ""
+
+  def createApp(self, appName, appCommandLine, *nodes):
+    """syntax: createApp appName appCommandLine nodes
+    Create an application running on the specified nodes
+    Argument 1: application name prefix -- an arbitrary name given to all management elements created for this application
+    Argument 2: application command line.  If spaces are needed, enclose in quotes.
+    Argument 3: list of node names on which the application should be run
+    """
+    errors = []
+    for n in nodes:
+      nodeData = ET.fromstring(self.cli.run("ls /safplusAmf/Node/%s" % n))
+      if len(nodeData) == 0:
+        errors.append("Node %s does not exist." % n)
+    if errors:
+      print("\n".join(errors))
+      return ""
+
+    AmfCreateApp(appName, [appCommandLine], nodes)
+
+    print("Ok")
+    return ""
+
+  # All commands are defined as do_<command>.  So this function defines the "basicStatus" command.
+  def show(self,element):
+    """Display the status of the Basic application
+    """
+    # This demonstrates an API called "get" to access a single element.  This API is a wrapper around
+    # run("ls ...") which subsequently parses the XML and grabs the text of the first element in the response.
+    # It will throw an exception of the element cannot be accessed
+    sg = None
+    sus = []
+    comps = []
+    try:
+      sg = ET.fromstring(self.cli.run("ls /safplusAmf/ServiceGroup/ServiceGroup%s" % element))
+      if len(sg) == 0:
+        sg = ET.fromstring(self.cli.run("ls /safplusAmf/ServiceGroup/ServiceGroup_%s" % element))
+      if len(sg) == 0:
+        return None
+      else: sg=sg[0]
+    except self.cli.Error, e:
+      pass
+
+    if sg:
+      suNames = sg.find("serviceUnits").text
+      suNames = suNames.split(",")
+      print suNames
+      for suName in suNames:
+        if suName[0] != "?":
+          su = ET.fromstring(self.cli.run("ls %s" % suName))
+          if len(su) != 0:
+            su=su[0]
+            sus.append(su)
+            compNames = su.find("components").text
+            compNames = compNames.split(",")
+            for compName in compNames:
+              if compName[0] != "?":
+                comp = ET.fromstring(self.cli.run("ls %s" % compName))
+                if len(comp) != 0:
+                  comps.append(comp)
+              else:
+                comps.append("<error>Unresolved component: %s</error>" % compName[1:])
+        else:
+          sus.append("<error>Unresolved service unit: %s</error>" % suName[1:])
+    else:
+      self.cli.display("""<text size="24" fore="#108010">Invalid entity name "%s"</text>""" % element)
+      return None
+
+    self.cli.display(ET.tostring(sg))
+    for su in sus:
+      if type(su) in types.StringTypes:
+        self.cli.display(su)
+      else:
+        self.cli.display(ET.tostring(su))
+    for comp in comps:
+      if type(comp) in types.StringTypes:
+        self.cli.display(comp)
+      else:
+        self.cli.display(ET.tostring(comp))
+
+    self.cli.display("""<text size="24" fore="#108010"></text>""")
+    return "" # If you return None, the self.cli will look for another matching function
         
 
 
