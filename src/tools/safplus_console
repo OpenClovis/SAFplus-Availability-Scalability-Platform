@@ -19,13 +19,13 @@ access = None
 CliName = ''
 
 # We have to parse the args before main, because the args will determine what modules are imported
-parser = argparse.ArgumentParser()
-parser.add_argument("-l", "--local", action="store_true", help=('Force local access mode'))
-parser.add_argument("-nw", "--nw", action="store_true", help=('No window -- do not start a separate window'))
-args = parser.parse_args()
+#parser = argparse.ArgumentParser()
+#parser.add_argument("-l", "--local", action="store_true", help=('Force local access mode'))
+#parser.add_argument("-nw", "--nw", action="store_true", help=('No window -- do not start a separate window'))
+#args = parser.parse_args()
 
 access = None
-if args.local == False:
+if False:#args.local == False:
   try:
     import netconfaccess
     access = netconfaccess
@@ -65,14 +65,14 @@ import xml.etree.ElementTree as ET
 from xml.dom import minidom
 
 
-try:
-  if args.nw == True: raise Exception("Text mode selected on command line")
-  import xmlterm
-  windowed=True
-except Exception as e:
-  print ("Cannot initialize windowing [%s], using no-window mode" % str(e))
-  import textxmlterm as xmlterm
-  windowed=False
+#try:
+#  if args.nw == True: raise Exception("Text mode selected on command line")
+#  import xmlterm
+#  windowed=True
+#except Exception as e:
+#print ("Cannot initialize windowing [%s], using no-window mode" % str(e))
+import textxmlterm as xmlterm
+windowed=False
 
 def formatTag(tag):
   """Take a tag and format it for display"""
