@@ -87,7 +87,7 @@ class XmlResolver:
     idx = 0
     out = cmds.get(lst[0],None)
     if out is not None:
-      if type(out) is types.DictType:  # Recurse into the next level of keyword
+      if type(out) is dict:  # Recurse into the next level of keyword
         ret = self.bindCmd(out,lst[1:])
         return ret
       else:

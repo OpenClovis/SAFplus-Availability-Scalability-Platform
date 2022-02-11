@@ -10,14 +10,14 @@ def commit(dct,prefix="/safplusAmf"):
   for (name,val) in dct.items():
     myPath = "%s/%s" % (prefix,name)
     myPath = str(myPath)  # Rip off the unicode if it has it
-    if type(val) is types.DictType:  # its a YANG container
+    if type(val) is dict:  # its a YANG container
       cur = sp.mgtGet(myPath)
       if cur == "":
         sp.mgtCreate(myPath)
       commit(val,myPath)
-    elif type(val) is types.InstanceType:  # another was to describe a YANG container
+    elif isinstance(val, tuple):  # another was to describe a YANG container
       assert(0)  # TODO
-    elif type(val) is types.ListType: # a YANG list
+    elif type(val) is list: # a YANG list
       assert(0)  # TODO
     else:
       sp.mgtSet(myPath,str(val))
