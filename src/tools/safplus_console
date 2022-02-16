@@ -169,7 +169,7 @@ def defaultHandler(elem,resolver,context):
   #  more = elem.find("{%s}more" % SAFplusNamespace)
   #if more is not None:
 
-  if elem._children:  # it will either have child nodes or a "more" child node if it has children
+  if hasattr(elem, '_children'):  # it will either have child nodes or a "more" child node if it has children
     fore = NodeColor
   else:
     fore = LeafColor
@@ -227,7 +227,7 @@ def defaultTextHandler(elem,resolver,context):
   name = formatTag(name) # Get rid of the namespace indicator b/c that's ugly
   fore = None
 
-  if elem._children:  # it will either have child nodes or a "more" child node if it has children
+  if hasattr(elem, '_children'):  # it will either have child nodes or a "more" child node if it has children
     fore = NodeColor
   else:
     fore = LeafColor
