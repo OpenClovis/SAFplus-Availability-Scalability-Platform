@@ -1840,6 +1840,54 @@ By default the specified location and children are shown.  Use -N to specify how
 
     return ret
 
+  def do_startApp(self, entityType, entityName):
+    """syntax: startApp entityType entityName
+    """
+    if entityType not in ["Node", "ServiceGroup", "ServiceUnit", "ServiceInstance"]:
+      print("Invalid entity type, valid entity types are Node, ServiceGroup, ServiceUnit and ServiceInstance")
+      ret = 2 #CL_ERR_INVALID_PARAMETER = hex(0x02)
+      print('startApp failed with error code [%s]'% hex(ret))
+      return ret
+    ret = self.do_entityUnlock(entityType, entityName)
+    if ret == 0x00:
+      print("startApp completed successfully")
+      return ret
+    elif ret == 0x12: #CL_ERR_INVALID_STATE = hex(0x12)
+      ret = self.do_entityLockAssignment(entityType, entityName)
+      if ret == 0x00:
+          time.sleep(3)
+          ret = self.do_entityUnlock(entityType, entityName)
+          if ret == 0x00:
+              print("startApp completed successfully")
+              return ret
+    print('startApp failed with error code [%s]'% hex(ret))
+
+    return ret
+
+  def do_stopApp(self, entityType, entityName):
+    """syntax: stopApp entityType entityName
+    """
+    if entityType not in ["Node", "ServiceGroup", "ServiceUnit"]:
+      print("Invalid entity type, valid entity types are Node, ServiceGroup and ServiceUnit")
+      ret = 2 #CL_ERR_INVALID_PARAMETER = hex(0x02)
+      print('stopApp failed with error code [%s]'% hex(ret))
+      return ret
+    ret = self.do_entityLockInstantiation(entityType, entityName)
+    if ret == 0x00:
+      print("stopApp completed successfully")
+      return ret
+    elif ret == 0x12: #CL_ERR_INVALID_STATE = hex(0x12)
+      ret = self.do_entityLockAssignment(entityType, entityName)
+      if ret == 0x00:
+          time.sleep(3)
+          ret = self.do_entityLockInstantiation(entityType, entityName)
+          if ret == 0x00:
+              print("stopApp completed successfully")
+              return ret
+    print('stopApp failed with error code [%s]'% hex(ret))
+
+    return ret
+
 class CaptureOutput:
   def __init__(self,resolver):
     try: 
@@ -1905,9 +1953,7 @@ class RunScript:
     self.context = None
     self.commands = {"show" : (self.show, None),
                     "createApp" : (self.createApp, None),
-                    "deleteApp" : (self.deleteApp, None),
-                    "startApp" : (self.startApp, None),
-                    "stopApp" : (self.stopApp, None)
+                    "deleteApp" : (self.deleteApp, None)
     }
     self.raiseException = Dotter()
     self.env = {}
@@ -1975,46 +2021,6 @@ class RunScript:
         return ""
     return ""
 
-  def startApp(self, appSuffix):
-    """syntax: startApp entityName
-    """
-    try:
-      sgName = "/safplusAmf/ServiceGroup/ServiceGroup%s" % appSuffix
-      sg = ET.fromstring(self.cli.run("ls " + sgName))
-      if len(sg) == 0:
-        sgName = sgName = "/safplusAmf/ServiceGroup/ServiceGroup_%s" % appSuffix
-        sg = ET.fromstring(self.cli.run("ls " + sgName))
-      if len(sg) == 0:
-        return None
-      else: sg=sg[0]
-    except self.cli.Error as e:
-      pass
-    # TDO self.cli.run("set %s/operState 1" % sgName)  # reenable the comps if faulted
-    suList = self.cli.getList(sgName + "/serviceUnits")
-    for su in suList:
-      self.cli.set("%s/adminState" % su, "on")
-    self.cli.run("set %s/adminState on" % sgName)  # turn app on
-    print(("%s started" % appSuffix))
-    return ""
-
-  def stopApp(self, appSuffix):
-    """syntax: stopApp entityName
-    """
-    try:
-      sgName = "/safplusAmf/ServiceGroup/ServiceGroup%s" % appSuffix
-      sg = ET.fromstring(self.cli.run("ls " + sgName))
-      if len(sg) == 0:
-        sgName = sgName = "/safplusAmf/ServiceGroup/ServiceGroup_%s" % appSuffix
-        sg = ET.fromstring(self.cli.run("ls " + sgName))
-      if len(sg) == 0:
-        return None
-      else: sg=sg[0]
-    except self.cli.Error as e:
-      pass
-    self.cli.run("set %s/adminState off" % sgName)
-    print(("%s stopped" % appSuffix))
-    return ""
-
   def deleteApp(self, appName):
     """syntax: deleteApp entityName
     """
@@ -2033,17 +2039,21 @@ class RunScript:
         sgName = sgName = "/safplusAmf/ServiceGroup/ServiceGroup_%s" % appName
         sg = ET.fromstring(self.cli.run("ls " + sgName))
       if len(sg) == 0:
-        return None
+        ret = 2 #CL_ERR_INVALID_PARAMETER = hex(0x02)
+        print('deleteApp failed with error code [%s]'% hex(ret))
+        return ret
       else: sg=sg[0]
     except self.cli.Error as e:
       pass
-
     if sg:
+      if str(sg.find("adminState").text) != "off":
+        ret = 18 #CL_ERR_INVALID_STATE = hex(0x12)
+        print('deleteApp failed with error code [%s]'% hex(ret))
+        return ret
       siNameText = sg.find("serviceInstances").text
       siNames = [ str(x) for x in siNameText.split(",")]
       suNameText = sg.find("serviceUnits").text
       suNames = [ str(x) for x in suNameText.split(",")]
-      print(suNames)
       for suName in suNames:
         if suName[0] != "?":
           su = ET.fromstring(self.cli.run("ls %s" % suName))

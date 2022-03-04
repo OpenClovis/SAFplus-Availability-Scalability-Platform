@@ -135,6 +135,8 @@ class XmlResolver:
                   output = binding(*args)
                 if output is not None: # None means to continue looking for another command
                   if output:  # Commands will return "" if they have no output
+                    if isinstance(output, int):
+                      return output
                     xmlterm.doc.append(output)
                   return
               if fn_name=="do_connect": # it has been handled at handleRpc function of Command object
