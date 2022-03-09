@@ -1912,7 +1912,7 @@ def csv2List(csvString):
   if not csvString.strip(): return []  # turn "" into [], otherwise it is ['']
   return [x.strip() for x in csvString.split(",")]
 
-def AmfCreateApp(suffix, compList, nodes):
+def AmfCreateApp(suffix, compList, nodes, appDir = "./"):
   sg = "ServiceGroup_%s" % suffix
   numActiveSus = (len(nodes)+1)/2
   numStandbySus = len(nodes) -  numActiveSus
@@ -1936,7 +1936,7 @@ def AmfCreateApp(suffix, compList, nodes):
         cname = "%s_in_%s_%d" % (name,suname,idx)
         idx+=1
 
-      entities["Component/%s" % cname] = { "maxActiveAssignments":1, "maxStandbyAssignments":1, "serviceUnit": suname, "instantiate": { "command" : c, "timeout":15*1000 }}
+      entities["Component/%s" % cname] = { "maxActiveAssignments":1, "maxStandbyAssignments":1, "serviceUnit": suname, "instantiate": { "command" : appDir + c, "timeout":15*1000 }}
       comps.append(cname)
 
     entities["ServiceUnit/%s" % suname] = { "components":",".join(comps),"node":n, "serviceGroup": sg }
