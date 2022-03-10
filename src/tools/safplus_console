@@ -1920,7 +1920,7 @@ def AmfCreateApp(suffix, compList, nodes, appDir = "./"):
   entities = {
     "ServiceGroup/%s" % sg : { "adminState":"off", "preferredNumActiveServiceUnits":numActiveSus,"preferredNumStandbyServiceUnits":numStandbySus, "serviceInstances" :  "safplusAmf/ServiceInstance/ServiceInstance_%s" % suffix },
     "ServiceInstance/ServiceInstance_%s" % suffix : { "serviceGroup": sg, "componentServiceInstances" :"safplusAmf/ComponentServiceInstance/ComponentServiceInstance_%s" % suffix },
-    "ComponentServiceInstance/ComponentServiceInstance_%s" % suffix : { "serviceInstance": "safplusAmf/ServiceInstance/ServiceInstance_%s" % suffix, "name/testKey" : "testVal" }
+    "ComponentServiceInstance/ComponentServiceInstance_%s" % suffix : { "serviceInstance": "safplusAmf/ServiceInstance/ServiceInstance_%s" % suffix, "name/testKey" : "testVal", "type" : "ComponentServiceInstance_%s" % suffix }
   }
 
   count = 0
@@ -1936,7 +1936,7 @@ def AmfCreateApp(suffix, compList, nodes, appDir = "./"):
         cname = "%s_in_%s_%d" % (name,suname,idx)
         idx+=1
 
-      entities["Component/%s" % cname] = { "maxActiveAssignments":1, "maxStandbyAssignments":1, "serviceUnit": suname, "instantiate": { "command" : appDir + c, "timeout":15*1000 }}
+      entities["Component/%s" % cname] = { "maxActiveAssignments":1, "maxStandbyAssignments":1, "serviceUnit": suname, "csiType": "ComponentServiceInstance_%s" % suffix, "instantiate": { "command" : appDir + c, "timeout":15*1000 }}
       comps.append(cname)
 
     entities["ServiceUnit/%s" % suname] = { "components":",".join(comps),"node":n, "serviceGroup": sg }
@@ -1944,7 +1944,6 @@ def AmfCreateApp(suffix, compList, nodes, appDir = "./"):
     count += 1
 
   entities["ServiceGroup/%s" % sg]["serviceUnits"] = ",".join(sus)
-  print("AmfCreateApp 1: ", entities)
   amfctrl.commit(entities)
 
 class RunScript:
@@ -2116,7 +2115,7 @@ class RunScript:
 
     AmfCreateApp(appName, [appCommandLine], nodes)
 
-    print("Ok")
+    print("createApp completed successfully")
     return ""
 
   # All commands are defined as do_<command>.  So this function defines the "basicStatus" command.
