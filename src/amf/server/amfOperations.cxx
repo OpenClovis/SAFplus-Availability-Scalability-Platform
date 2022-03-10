@@ -807,7 +807,7 @@ namespace SAFplus
         {
         csi = *itcsi;
         if (!csi) continue;
-        if(!(csi->type.value.compare(comp->csiType.value))) break;// We found one!
+        if((csi->type.value.length()>0) && (!(csi->type.value.compare(comp->csiType.value)))) break;// We found one!
         // TODO: figure out number of assignments allowed if (csi->getComponent()) continue;  // We can't assign a CSI to > 1 component.
         // TODO validate CSI dependencies are assigned
         //break;
