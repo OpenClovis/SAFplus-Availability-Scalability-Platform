@@ -2719,11 +2719,12 @@ namespace amfMgmtRpc {
           rc = CL_ERR_NOT_EXIST;
           break;
         }
-        
+        #if 0 // no check except instantiateLevel set!!!
         if (SAFplus::effectiveAdminState(safComp) != SAFplusAmf::AdministrativeState::off)
         {
           rc = CL_ERR_INVALID_STATE;
         }
+        #endif
         break;
       }
 
@@ -2788,10 +2789,12 @@ namespace amfMgmtRpc {
           break;
 
         }
+#if 0
         if (SAFplus::effectiveAdminState(safSg) != SAFplusAmf::AdministrativeState::off)
         {
           rc = CL_ERR_INVALID_STATE;
         }
+#endif
         break;
       }
     case AMF_MGMT_OP_SG_DELETE:
@@ -2911,9 +2914,12 @@ namespace amfMgmtRpc {
           logError("MGMT","VALIDATE.OP","su with name [%s] doesn't exist, cannot update it", su.name().c_str());
           rc = CL_ERR_NOT_EXIST;         
         }
-        if (SAFplus::effectiveAdminState(safSu) != SAFplusAmf::AdministrativeState::off)
+        if (su.has_rank())
         {
-          rc = CL_ERR_INVALID_STATE;
+          if (SAFplus::effectiveAdminState(safSu) != SAFplusAmf::AdministrativeState::off)
+          {
+            rc = CL_ERR_INVALID_STATE;
+          }
         }
         break;
       }
@@ -2974,9 +2980,12 @@ namespace amfMgmtRpc {
           logError("MGMT","VALIDATE.OP","si with name [%s] doesn't exist, cannot update it", si.name().c_str());
           rc = CL_ERR_NOT_EXIST;         
         }
-        if (SAFplus::effectiveAdminState(safSi) != SAFplusAmf::AdministrativeState::off)
+        if (si.has_rank())
         {
-          rc = CL_ERR_INVALID_STATE;
+          if (SAFplus::effectiveAdminState(safSi) != SAFplusAmf::AdministrativeState::off)
+          {
+            rc = CL_ERR_INVALID_STATE;
+          }
         }
         break;
       }
@@ -3037,10 +3046,12 @@ namespace amfMgmtRpc {
           rc = CL_ERR_NOT_EXIST;
           break;         
         }
+#if 0
         if (SAFplus::effectiveAdminState(safCsi) != SAFplusAmf::AdministrativeState::idle)
         {
           rc = CL_ERR_INVALID_STATE;
         }
+#endif
         break;
       }      
     case AMF_MGMT_OP_CSI_DELETE:
@@ -3103,7 +3114,7 @@ namespace amfMgmtRpc {
           rc = CL_ERR_NOT_EXIST;
           break;
         }
-#if 0  // does it need to check the admin state of the containing entity?
+#if 0  // does it need to check the admin state of the containing entity? NO
         if (safNode->adminState != SAFplusAmf::AdministrativeState::off)
         {
           rc = CL_ERR_INVALID_STATE;
@@ -3130,7 +3141,7 @@ namespace amfMgmtRpc {
           rc = CL_ERR_NOT_EXIST;
           break;
         }
-#if 0  // does it need to check the admin state of the containing entity?
+#if 0  // does it need to check the admin state of the containing entity? NO
         if (SAFplus::effectiveAdminState(safSg) != SAFplusAmf::AdministrativeState::off)
         {
           rc = CL_ERR_INVALID_STATE;
@@ -3156,7 +3167,7 @@ namespace amfMgmtRpc {
           rc = CL_ERR_NOT_EXIST;
           break;
         }
-#if 0  // does it need to check the admin state of the containing entity?
+#if 0  // does it need to check the admin state of the containing entity? NO
         if (SAFplus::effectiveAdminState(safSg) != SAFplusAmf::AdministrativeState::off)
         {
           rc = CL_ERR_INVALID_STATE;
@@ -3182,7 +3193,7 @@ namespace amfMgmtRpc {
           rc = CL_ERR_NOT_EXIST;
           break;
         }
-#if 0  // does it need to check the admin state of the containing entity?
+#if 0  // does it need to check the admin state of the containing entity? NO
         if (SAFplus::effectiveAdminState(safSu) != SAFplusAmf::AdministrativeState::off)
         {
           rc = CL_ERR_INVALID_STATE;
@@ -3208,7 +3219,7 @@ namespace amfMgmtRpc {
           rc = CL_ERR_NOT_EXIST;
           break;
         }
-#if 0  // does it need to check the admin state of the containing entity?
+#if 0  // does it need to check the admin state of the containing entity? NO
         if (SAFplus::effectiveAdminState(safSi) != SAFplusAmf::AdministrativeState::off)
         {
           rc = CL_ERR_INVALID_STATE;
