@@ -206,31 +206,34 @@ namespace amfMgmtRpc {
     std::string val;
     std::vector<std::string>child;
     std::string strXpath(xpath);
+    strXpath.append("/");
+    strXpath.append(tagName);
     ClRcT rc = amfDb.getRecord(strXpath,val,&child);
-    logDebug("MGMT","ADD.ENT", "get record for xpath [%s], rc=[0x%x]", xpath, rc);
+    logDebug("MGMT","ADD.ENT", "get record for xpath [%s], rc=[0x%x]", strXpath.c_str(), rc);
     if (rc == CL_OK)
     {
        // build name of entity : ServiceUnit[@name="abc"]
        std::string temp = "[@name=\""; // [@name="
        temp.append(entityName); // [@name="su0
        temp.append("\"]"); // [@name="su0"]
-       std::string entname = tagName; // ServiceUnit  
+       //std::string entname = tagName; // ServiceUnit  
        //entname.append("[@name=\""); // ServiceUnit[@name="
        //entname.append(entityName); // ServiceUnit[@name="su0
        //entname.append("\"]"); // ServiceUnit[@name="su0"]
-       entname.append(temp); //ServiceUnit[@name="su0"]
+       //entname.append(temp); //ServiceUnit[@name="su0"]
        //Check if it already exists
        std::vector<std::string>::iterator it;
-       it = std::find(child.begin(),child.end(),entname);
+       it = std::find(child.begin(),child.end(),temp);
        if (it != child.end())
        {
           //return CL_ERR_ALREADY_EXIST;
-          logInfo("MGMT","ADD.ENT", "entity [%s] already added to database, rc=[0x%x]",entname.c_str(), rc);
+          logInfo("MGMT","ADD.ENT", "entity [%s] already added to database, rc=[0x%x]",temp.c_str(), rc);
        }
        else
        {
-         child.push_back(entname);
-         MGMT_CALL(amfDb.setRecord(xpath,val,&child));         
+         child.push_back(temp);
+         MGMT_CALL(amfDb.setRecord(strXpath,val,&child));
+#if 0     
          // check /safplusAmf/ServiceUnit ->  childs: [[@name="su0"]]
          child.clear();
          strXpath.append("/"); // /safplusAmf/
@@ -254,12 +257,15 @@ namespace amfMgmtRpc {
               return rc;
            }
          }
+#endif
+#if 0
          // adding: /safplusAmf/ServiceUnit[@name="suname"]
          entname.insert(0,"/"); // /ServiceUnit[@name="su0"]
          entname.insert(0,xpath); // /safplusAmf/ServiceUnit[@name="su0"]
          val="";
          rc = amfDb.setRecord(entname,val);
          logDebug("MGMT","ADD.ENT", "set record rc=[0x%x]", rc);
+#endif
        }
     }
     else
@@ -840,6 +846,7 @@ namespace amfMgmtRpc {
     {
        logNotice("MGMT","SU.COMMIT","xpath for entity [%s] already exists", comp.name().c_str());
     }
+    if (rc != CL_OK) return rc;
     if (comp.has_capabilitymodel())
     {
       SAFplusAmf::CapabilityModel cm = static_cast<SAFplusAmf::CapabilityModel>(comp.capabilitymodel());
@@ -1198,6 +1205,7 @@ namespace amfMgmtRpc {
     {
        logNotice("MGMT","SU.COMMIT","xpath for entity [%s] already exists", su.name().c_str());
     }
+    if (rc != CL_OK) return rc;
     if (su.has_adminstate())
     {
       SAFplusAmf::AdministrativeState as = static_cast<SAFplusAmf::AdministrativeState>(su.adminstate());
@@ -1331,6 +1339,7 @@ namespace amfMgmtRpc {
     {
        logNotice("MGMT","SG.COMMIT","xpath for entity [%s] already exists", sg.name().c_str());
     }
+    if (rc != CL_OK) return rc;
     if (sg.has_adminstate())
     {
       SAFplusAmf::AdministrativeState as = static_cast<SAFplusAmf::AdministrativeState>(sg.adminstate());
@@ -1630,6 +1639,7 @@ namespace amfMgmtRpc {
     {
        logNotice("MGMT","NODE.COMMIT","xpath for entity [%s] already exists", node.name().c_str());
     }
+    if (rc != CL_OK) return rc;
     if (node.has_adminstate())
     {
       SAFplusAmf::AdministrativeState as = static_cast<SAFplusAmf::AdministrativeState>(node.adminstate());
@@ -1859,6 +1869,7 @@ namespace amfMgmtRpc {
     {
        logNotice("MGMT","SG.COMMIT","xpath for entity [%s] already exists", si.name().c_str());
     }
+    if (rc != CL_OK) return rc;
     if (si.has_adminstate())
     {
       SAFplusAmf::AdministrativeState as = static_cast<SAFplusAmf::AdministrativeState>(si.adminstate());
@@ -1960,6 +1971,7 @@ namespace amfMgmtRpc {
     {
        logNotice("MGMT","SG.COMMIT","xpath for entity [%s] already exists", csi.name().c_str());
     }
+    if (rc != CL_OK) return rc;
     int depSize = 0;
     if ((depSize=csi.dependencies_size())>0)
     {
