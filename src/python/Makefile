@@ -38,6 +38,6 @@ $(OBJ_DIR)/%.o: %.cxx Makefile $(LOG_SERVER_H)
 	$(COMPILE_CPP)  $@ $(PY_INC) $<
 
 clean:
-	rm -f  $(PY_CLIENT_OBJ) $(LIB_DIR)/SAFplus.so
+	rm -f  $(PY_CLIENT_OBJ) $(LIB_DIR)/SAFplus.so $(LIB_DIR)/amfctrl.py $(LIB_DIR)/clTest.py $(LIB_DIR)/safplus.py $(BIN_DIR)/safplus_cli $(LIB_DIR)/localaccess.py $(LIB_DIR)/textxmlterm.py
 
 include $(SAFPLUS_MAKE_DIR)/safplus_targets.mk

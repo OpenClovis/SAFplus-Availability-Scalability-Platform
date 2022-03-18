@@ -261,6 +261,35 @@ static dict ComponentGetConfig(const Handle & self, const std::string & key)
     return dictionary;
 }
 
+static ClRcT addSUIntoNode(const Handle & mgmtHandle, const std::string & nodeName, const std::string & suName)
+{
+    ClRcT rc = CL_OK;
+    SAFplus::Rpc::amfMgmtRpc::NodeConfig* node = new SAFplus::Rpc::amfMgmtRpc::NodeConfig();
+    node->set_name(nodeName.c_str());
+    node->add_serviceunits(suName.c_str(), strlen(suName.c_str()));
+    rc = SAFplus::amfMgmtNodeConfigSet(mgmtHandle,node);
+    return rc;
+}
+
+static ClRcT addSUIntoSG(const Handle & mgmtHandle, const std::string & sgName, const std::string & suName)
+{
+    ClRcT rc = CL_OK;
+    SAFplus::Rpc::amfMgmtRpc::ServiceGroupConfig* sg = new SAFplus::Rpc::amfMgmtRpc::ServiceGroupConfig();
+    sg->set_name(sgName.c_str());
+    sg->add_serviceunits(suName.c_str(), strlen(suName.c_str()));
+    rc = SAFplus::amfMgmtServiceGroupConfigSet(mgmtHandle,sg);
+    return rc;
+}
+
+static ClRcT addCompIntoSU(const Handle & mgmtHandle, const std::string & suName, const std::string & compName)
+{
+    ClRcT rc = CL_OK;
+    SAFplus::Rpc::amfMgmtRpc::ServiceUnitConfig* su = new SAFplus::Rpc::amfMgmtRpc::ServiceUnitConfig();
+    su->set_name(suName.c_str());
+    su->add_components(compName.c_str(), strlen(compName.c_str()));
+    rc = SAFplus::amfMgmtServiceUnitConfigSet(mgmtHandle,su);
+    return rc;
+}
 
 BOOST_PYTHON_MODULE(pySAFplus)
 {
@@ -446,4 +475,10 @@ BOOST_PYTHON_MODULE(pySAFplus)
   def("amfMgmtSIGetConfig",static_cast< dict (*)(const Handle &, const std::string &) > (&SIGetConfig));
   def("amfMgmtCSIGetConfig",static_cast< dict (*)(const Handle &, const std::string &) > (&CSIGetConfig));
   def("amfMgmtCSIGetStatus",static_cast< dict (*)(const Handle &, const std::string &) > (&CSIGetStatus));
+
+
+  def("addSUIntoNode",static_cast< ClRcT (*)(const Handle &, const std::string &, const std::string &) > (&addSUIntoNode));
+  def("addSUIntoSG",static_cast< ClRcT (*)(const Handle &, const std::string &, const std::string &) > (&addSUIntoSG));
+  def("addCompIntoSU",static_cast< ClRcT (*)(const Handle &, const std::string &, const std::string &) > (&addCompIntoSU));
+  def("amfMgmtCommit",static_cast< ClRcT (*)(const Handle &) > (&amfMgmtCommit));
 }

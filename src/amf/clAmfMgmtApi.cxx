@@ -31,7 +31,7 @@ ClRcT amfMgmtInitialize(Handle& amfMgmtHandle)
   {
     if (!rpcInitialized) rpcInit();
     SAFplus::Rpc::amfMgmtRpc::InitializeRequest request;
-    request.add_amfmgmthandle((const char*) &myHandle, sizeof(Handle));    
+    request.add_amfmgmthandle((myHandle != SAFplus::INVALID_HDL)?((const char*) &myHandle):((const char*) &amfMgmtHandle), sizeof(Handle));
     try 
     {
       Handle& remoteAmfHdl = name.getHandle(AMF_MASTER_HANDLE, 2000);
@@ -41,7 +41,10 @@ ClRcT amfMgmtInitialize(Handle& amfMgmtHandle)
       if (rc == CL_OK)
       {
         gAmfMgmtInitialized = CL_TRUE;    
-        amfMgmtHandle = myHandle;
+        if (amfMgmtHandle == SAFplus::INVALID_HDL)
+        {
+            amfMgmtHandle = myHandle;
+        }
       }
       else
       {
@@ -1104,6 +1107,10 @@ ClRcT amfMgmtFinalize(const Handle& amfMgmtHandle)
       SAFplus::Rpc::amfMgmtRpc::FinalizeResponse resp;
       amfMgmtRpc->finalize(remoteAmfHdl,&request,&resp);
       rc = (ClRcT)resp.err();
+      if(rc == CL_OK)
+      {
+          gAmfMgmtInitialized = CL_FALSE;
+      }
     }
   catch(NameException& ex)
     {

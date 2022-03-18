@@ -19,6 +19,7 @@ sys.path.append(os.path.abspath(os.path.join(basedir, '..', 'lib', '3rdparty')))
 DropToDebugger = True
 access = None
 CliName = ''
+amfMgmtHandle = None
 
 # We have to parse the args before main, because the args will determine what modules are imported
 #parser = argparse.ArgumentParser()
@@ -1888,6 +1889,84 @@ By default the specified location and children are shown.  Use -N to specify how
 
     return ret
 
+  def do_addSUIntoNode(self, nodeName, suName):
+    """syntax: addSUIntoNode nodeName suName
+    """
+    global amfMgmtHandle
+    try:
+      ret = access.amfMgmtInitialize(amfMgmtHandle)
+      if ret == 0x0:
+        ret = access.addSUIntoNode(amfMgmtHandle, nodeName, suName)
+        if ret == 0x0:
+          ret = access.amfMgmtCommit(amfMgmtHandle)
+        if ret == 0x0:
+          print("addSUIntoNode completed successfully code [%s]"% hex(ret))
+        else:
+          print('addSUIntoNode failed with error code [%s]'% hex(ret))
+
+        ret = access.amfMgmtFinalize(amfMgmtHandle)
+        if ret !=0:
+          print('amfMgmtFinalize failed with error code [%s]'% hex(ret))
+      else:
+        print('amfMgmtInitialize failed with error code [%s]'% hex(ret))
+
+      return ret
+    except RuntimeError as e:
+      print ("error: ", e)
+    return "addSUIntoNode failed"
+
+  def do_addSUIntoSG(self, sgName, suName):
+    """syntax: addSUIntoSG sgName suName
+    """
+    global amfMgmtHandle
+    try:
+      ret = access.amfMgmtInitialize(amfMgmtHandle)
+      if ret == 0x0:
+        ret = access.addSUIntoSG(amfMgmtHandle, sgName, suName)
+        if ret == 0x0:
+          ret = access.amfMgmtCommit(amfMgmtHandle)
+        if ret == 0x0:
+          print("addSUIntoSG completed successfully code [%s]"% hex(ret))
+        else:
+          print('addSUIntoSG failed with error code [%s]'% hex(ret))
+
+        ret = access.amfMgmtFinalize(amfMgmtHandle)
+        if ret !=0:
+          print('amfMgmtFinalize failed with error code [%s]'% hex(ret))
+      else:
+        print('amfMgmtInitialize failed with error code [%s]'% hex(ret))
+
+      return ret
+    except RuntimeError as e:
+      print ("error: ", e)
+    return "addSUIntoSG failed"
+
+  def do_addCompIntoSU(self, suName, compName):
+    """syntax: addCompIntoSU suName suName
+    """
+    global amfMgmtHandle
+    try:
+      ret = access.amfMgmtInitialize(amfMgmtHandle)
+      if ret == 0x0:
+        ret = access.addCompIntoSU(amfMgmtHandle, suName, compName)
+        if ret == 0x0:
+          ret = access.amfMgmtCommit(amfMgmtHandle)
+        if ret == 0x0:
+          print("addCompIntoSU completed successfully code [%s]"% hex(ret))
+        else:
+          print('addCompIntoSU failed with error code [%s]'% hex(ret))
+
+        ret = access.amfMgmtFinalize(amfMgmtHandle)
+        if ret !=0:
+          print('amfMgmtFinalize failed with error code [%s]'% hex(ret))
+      else:
+        print('amfMgmtInitialize failed with error code [%s]'% hex(ret))
+
+      return ret
+    except RuntimeError as e:
+      print ("error: ", e)
+    return "addCompIntoSU failed"
+
 class CaptureOutput:
   def __init__(self,resolver):
     try: 
@@ -2183,6 +2262,7 @@ class RunScript:
 def main(argLst):
   global access, CliName
   global xmlterm, windowed
+  global amfMgmtHandle
 
   cmds,handlers = access.Initialize()
 
@@ -2240,7 +2320,10 @@ def main(argLst):
 
     # automatically connect
     masterNodeId = resolver.get_amf_master_handle()
-    # print 'master node id: ', masterNodeId
+
+    # get amfMgmtHandle with pid of current process
+    currentPID = os.getpid()
+    amfMgmtHandle = access.Handle.create(currentPID)
 
     while 1:      
       cmd = resolver.cmdLine.input()

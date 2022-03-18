@@ -70,6 +70,13 @@ amfMgmtSIGetConfig = safplus.amfMgmtSIGetConfig
 amfMgmtCSIGetConfig = safplus.amfMgmtCSIGetConfig
 amfMgmtCSIGetStatus = safplus.amfMgmtCSIGetStatus
 
+addSUIntoNode = safplus.addSUIntoNode
+addSUIntoSG = safplus.addSUIntoSG
+addCompIntoSU = safplus.addCompIntoSU
+Handle = safplus.Handle
+HandleType = safplus.HandleType
+amfMgmtCommit = safplus.amfMgmtCommit
+
 
 def isValidDirectory(path):
   try:
