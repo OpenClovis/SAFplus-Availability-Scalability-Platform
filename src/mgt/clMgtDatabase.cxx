@@ -258,6 +258,27 @@ namespace SAFplus
     return rc;
   }
 
+  ClRcT MgtDatabase::deleteAllRecordsContainKey(const std::string &keypart)
+  {
+     ClRcT rc = CL_ERR_NOT_EXIST;
+     std::vector<std::string> childs;
+     std::string root("/");
+     iterate(root,childs);     
+     for(std::vector<std::string>::const_iterator it=childs.cbegin();it!=childs.cend();it++)
+     {
+        const std::string& key = *it;
+        if (key.find(keypart) != std::string::npos)
+        {
+           if ((rc = deleteRecord(key) != CL_OK))
+           {
+              logError("MGT","DELL.ALL","delete record with key [%s] failed, rc [0x%x]", key.c_str(), rc);
+              break;
+           }             
+        }
+     }      
+     return rc;
+  }
+
   void MgtDatabase::loadDb(std::vector<std::string> &result)
   {
     ClUint32T keySize = 0;

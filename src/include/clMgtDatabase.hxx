@@ -112,6 +112,7 @@ namespace SAFplus
      * \brief	Function to delete record out of Db
      */
     ClRcT deleteRecord(const std::string &key);
+    ClRcT deleteAllRecordsContainKey(const std::string &keypart);
 
     /**
      * \brief   Function to return iterators match with xpath

@@ -205,9 +205,9 @@ namespace amfMgmtRpc {
     logTrace("MGMT","ADD.ENT", "enter [%s] with params [%s] [%s]",__FUNCTION__, xpath, entityName.c_str());
     std::string val;
     std::vector<std::string>child;
-    std::string strXpath(xpath);
-    strXpath.append("/");
-    strXpath.append(tagName);
+    std::string strXpath(xpath);// /safplusAmf
+    strXpath.append("/"); // /safplusAmf/
+    strXpath.append(tagName); // /safplusAmf/Component
     ClRcT rc = amfDb.getRecord(strXpath,val,&child);
     logDebug("MGMT","ADD.ENT", "get record for xpath [%s], rc=[0x%x]", strXpath.c_str(), rc);
     if (rc == CL_OK)
@@ -258,13 +258,14 @@ namespace amfMgmtRpc {
            }
          }
 #endif
-#if 0
+#if 1
          // adding: /safplusAmf/ServiceUnit[@name="suname"]
-         entname.insert(0,"/"); // /ServiceUnit[@name="su0"]
-         entname.insert(0,xpath); // /safplusAmf/ServiceUnit[@name="su0"]
+         //entname.insert(0,"/"); // /ServiceUnit[@name="su0"]
+         //entname.insert(0,xpath); // /safplusAmf/ServiceUnit[@name="su0"]
+         strXpath.append(temp);
          val="";
-         rc = amfDb.setRecord(entname,val);
-         logDebug("MGMT","ADD.ENT", "set record rc=[0x%x]", rc);
+         rc = amfDb.setRecord(strXpath,val);
+         logDebug("MGMT","ADD.ENT", "set record with key [%s] rc=[0x%x]", strXpath.c_str(), rc);
 #endif
        }
     }
@@ -272,6 +273,31 @@ namespace amfMgmtRpc {
     {
        logError("MGMT","ADD.ENT", "get record for xpath [%s] failed rc=[0x%x]", xpath, rc);
     }
+    return rc;
+  }
+
+  ClRcT deleteEntityFromDatabase(const char* xpath, const char* tagName, const std::string& entityName)
+  {
+    logTrace("MGMT","DELL.ENT", "enter [%s] with params [%s] [%s]",__FUNCTION__, xpath, entityName.c_str());
+    std::string strXpath(xpath); // /safplusAmf
+    strXpath.append("/"); // /safplusAmf/
+    strXpath.append(tagName); // /safplusAmf/Component
+    std::string temp = "[@name=\""; // [@name="
+    temp.append(entityName); // [@name="su0
+    temp.append("\"]"); // [@name="su0"]
+    ClRcT rc = amfDb.deleteAllRecordsContainKey(temp);
+    if (rc != CL_OK)
+    {
+       logError("MGMT","DELL.ENT", "delete records FAILED for xpath(key) containing [%s], rc=[0x%x]", temp.c_str(), rc);
+       return rc;
+    }
+    strXpath.append(temp); // /safplusAmf/Component[@name="c0"]
+    rc = amfDb.deleteRecord(strXpath);
+    if (rc != CL_OK)
+    {
+       logError("MGMT","DELL.ENT", "delete record with key [%s] FAILED rc=[0x%x]", strXpath.c_str(),rc);
+    }
+
     return rc;
   }
 
@@ -311,23 +337,27 @@ namespace amfMgmtRpc {
 
   // /safplusAmf/<entity:Component,Node,ServiceGroup...>[@name=entityName]/tagName --> value
   // updateEntityFromDatabase("/safplusAmf/ComponentServiceInstance",csi.name(),"serviceInstance",si));
+  // MGMT_CALL(updateEntityFromDatabase("/safplusAmf/Component",comp.name(),"capabilityModel",strCm));
   ClRcT updateEntityFromDatabase(const char* xpath, const std::string& entityName, const char* tagName, const std::string& value, std::vector<std::string>* child=nullptr)
   {
     // check if the xpath exists in the DB
     logDebug("MGMT","UDT.ENT", "enter [%s] with params [%s] [%s] [%s]",__FUNCTION__, xpath, entityName.c_str(), value.c_str());
     std::string val;
     std::vector<std::string>children;
-    std::string strXpath(xpath);
+    std::string strXpath(xpath); // /safplusAmf/Component
+    strXpath.append("[@name=\""); // /safplusAmf/Component[@name="
+    strXpath.append(entityName); // /safplusAmf/Component/[@name="c1
+    strXpath.append("\"]");// /safplusAmf/Component[@name="c1"]
     ClRcT rc = amfDb.getRecord(strXpath,val,&children);
-    logInfo("MGMT","UDT.ENT", "get record rc=[0x%x]", rc);
-    std::string strTagName(tagName);
+    logInfo("MGMT","UDT.ENT", "get record with key [%s] rc=[0x%x]", strXpath.c_str(), rc);    
     if (rc == CL_OK)
     {
+       std::string strTagName(tagName);
        std::vector<std::string>::iterator it;
        it = std::find(children.begin(),children.end(),strTagName);
        if (it != children.end())
        {
-          logInfo("MGMT","UDT.ENT","child [%s] is already assigned to xpath [%s]", tagName, xpath);
+          logInfo("MGMT","UDT.ENT","child [%s] is already assigned to xpath [%s]", tagName, strXpath.c_str());
        }
        else
        {
@@ -336,7 +366,7 @@ namespace amfMgmtRpc {
          rc = amfDb.setRecord(strXpath,val,&children);
          if (rc != CL_OK)
          {
-            logError("MGMT","UDT.ENT","setting record for xpath [%s], val [%s], child [%d] failed", xpath, val.c_str(), (int)children.size());
+            logError("MGMT","UDT.ENT","setting record for xpath [%s], val [%s], child [%d] failed", strXpath.c_str(), val.c_str(), (int)children.size());
             return rc;
          }
        }
@@ -347,10 +377,10 @@ namespace amfMgmtRpc {
           return CL_ERR_ALREADY_EXIST;
        }*/
        //std::string entname = entityName;
-       strXpath.append("[@name=\"");
-       strXpath.append(entityName);
-       strXpath.append("\"]/");
-       strXpath.append(tagName);
+       //strXpath.append("[@name=\""); // /safplusAmf/Component[@name="
+       //strXpath.append(entityName); // /safplusAmf/Component/[@name="c1
+       strXpath.append("/");// /safplusAmf/Component[@name="c1"]/
+       strXpath.append(tagName); // /safplusAmf/Component[@name="c1"]/capabilityModel
        rc = amfDb.setRecord(strXpath,value,child);
        logDebug("MGMT","UDT.ENT", "set record with xpath [%s], value [%s]  rc=[0x%x]", strXpath.c_str(), value.c_str(), rc);
     }
@@ -1038,6 +1068,13 @@ namespace amfMgmtRpc {
     }
     rc = cfg.safplusAmf.componentList.deleteObj(compName);
     logDebug("MGMT","RPC", "deleting comp name [%s] return [0x%x]", compName.c_str(),rc);
+    if (rc == CL_OK)
+    {
+       rc = deleteEntityFromDatabase("/safplusAmf", "Component",  compName);
+    }
+    if (rc != CL_OK)
+       logError("MGMT","RPC", "delete comp name [%s] failed, rc [0x%x]", compName.c_str(),rc);
+   
     return rc;
   }
 

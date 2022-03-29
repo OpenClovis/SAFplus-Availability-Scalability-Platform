@@ -20,10 +20,13 @@ MGT_TEST_SRC := $(wildcard testmgt.cxx)
 MGT_TEST_OBJ := $(subst .cpp,.o, $(subst .cxx,.o, $(notdir $(MGT_TEST_SRC))))
 MGT_TEST_OBJ := $(addprefix $(OBJ_DIR)/test/mgt/,$(MGT_TEST_OBJ))
 
-all: $(TEST_DIR)/testmgt $(TEST_DIR)/testmgtapi
+all: $(TEST_DIR)/testmgt $(TEST_DIR)/testmgtapi $(TEST_DIR)/testMgtDatabase
 
 $(TEST_DIR)/testmgtapi: $(OBJ_DIR)/test/mgt/testapi.o $(SAFPLUS_DEP_LIBS)
 	$(LINK_EXE) $@  $(OBJ_DIR)/test/mgt/testapi.o $(SAFPLUS_LINK_LIBS) -L$(SAFPLUS_TARGET)/lib -L$(INSTALL_DIR)/lib $(XML2_LINK) $(LINK_STD_LIBS)
+
+$(TEST_DIR)/testMgtDatabase: $(OBJ_DIR)/test/mgt/testMgtDatabase.o $(SAFPLUS_DEP_LIBS)
+	$(LINK_EXE) $@  $(OBJ_DIR)/test/mgt/testMgtDatabase.o $(SAFPLUS_LINK_LIBS) -L$(SAFPLUS_TARGET)/lib -L$(INSTALL_DIR)/lib $(XML2_LINK) $(LINK_STD_LIBS)
 
 $(TEST_DIR)/%: $(MGT_TEST_OBJ) $(SAFPLUS_DEP_LIBS)
 	$(LINK_EXE) $@ $(MGT_TEST_OBJ) $(SAFPLUS_LINK_LIBS) -L$(SAFPLUS_TARGET)/lib -L$(INSTALL_DIR)/lib $(XML2_LINK) $(LINK_STD_LIBS)
