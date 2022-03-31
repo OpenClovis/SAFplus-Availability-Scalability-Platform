@@ -400,9 +400,17 @@ namespace SAFplus
                        return rc;
                     }
                  }
+                 vals.clear();
               }
+              entityFound = false;
            }
         }
+        pos = std::string::npos;
+        childs.clear();
+        attrChilds.clear();
+        vec.clear();
+        val.clear();
+        attrVal.clear();
      }
      return rc;
   }
