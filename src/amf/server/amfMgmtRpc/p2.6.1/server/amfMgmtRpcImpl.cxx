@@ -275,7 +275,7 @@ namespace amfMgmtRpc {
     }
     return rc;
   }
-
+  // call: deleteEntityFromDatabase("/safplusAmf", "Component",  compName);
   ClRcT deleteEntityFromDatabase(const char* xpath, const char* tagName, const std::string& entityName)
   {
     logTrace("MGMT","DELL.ENT", "enter [%s] with params [%s] [%s]",__FUNCTION__, xpath, entityName.c_str());
@@ -292,6 +292,43 @@ namespace amfMgmtRpc {
        return rc;
     }
     strXpath.append(temp); // /safplusAmf/Component[@name="c0"]
+#if 0
+    std::string val;
+    std::vector<std::string> child;
+    ClRcT rc = amfDb.getRecord(strXpath,val,&child);
+    logDebug("MGMT","DELL.ENT", "get record for xpath [%s], rc=[0x%x]", strXpath.c_str(), rc);
+    if (rc == CL_OK)
+    {      
+       std::string entityAttrXpath;
+
+       std::vector<std::string>::iterator it;
+       for (it = child.begin(); it!=child.end(); it++);       
+       {
+          entityAttrXpath = strXpath;
+          entityAttrXpath.append("/");
+          logDebug("MGMT","DELL.ENT", "appending [%s]", (*it).c_str());
+          entityAttrXpath.append(*it);
+#endif
+#if 0
+       for(std::vector<std::string>::const_iterator it = child.cbegin();it!=child.cend();it++)
+       {
+          entityAttrXpath = strXpath;
+          entityAttrXpath.append("/");
+          entityAttrXpath.append(*it);
+          logDebug("MGMT","DELL.ENT","xpath of attribute is [%s]\n", entityAttrXpath.c_str());
+          rc = amfDb.deleteRecord(entityAttrXpath);
+          if (rc != CL_OK)
+          {
+             logError("MGMT","DELL.ENT", "delete record FAILED for xpath [%s], rc=[0x%x]", entityAttrXpath.c_str(), rc);
+             return rc; 
+          }
+       }
+#endif
+    if ((rc = amfDb.deleteAllReferencesToEntity(strXpath, entityName))!=CL_OK)
+    {
+       logError("MGMT","DELL.ENT", "delete all refs with xpath [%s] failed rc=[0x%x]", strXpath.c_str(),rc);
+       return rc;
+    }
     rc = amfDb.deleteRecord(strXpath);
     if (rc != CL_OK)
     {
@@ -1066,12 +1103,13 @@ namespace amfMgmtRpc {
     {
       return CL_ERR_INVALID_PARAMETER;      
     }
-    rc = cfg.safplusAmf.componentList.deleteObj(compName);
-    logDebug("MGMT","RPC", "deleting comp name [%s] return [0x%x]", compName.c_str(),rc);
-    if (rc == CL_OK)
+    rc = cfg.safplusAmf.componentList.deleteObj(compName);    
+    if (rc != CL_OK)
     {
-       rc = deleteEntityFromDatabase("/safplusAmf", "Component",  compName);
+       logError("MGMT","RPC", "delete comp name [%s] failed, rc [0x%x]", compName.c_str(),rc);
+       return rc;
     }
+    rc = deleteEntityFromDatabase("/safplusAmf", "Component",  compName);
     if (rc != CL_OK)
        logError("MGMT","RPC", "delete comp name [%s] failed, rc [0x%x]", compName.c_str(),rc);
    
@@ -1863,7 +1901,14 @@ namespace amfMgmtRpc {
       return CL_ERR_INVALID_PARAMETER;
     }
     rc = cfg.safplusAmf.serviceUnitList.deleteObj(suName);
-    logDebug("MGMT","RPC", "deleting su name [%s] returns [0x%x]", suName.c_str(),rc);
+    if (rc != CL_OK)
+    {
+       logError("MGMT","RPC", "delete su name [%s] failed, rc [0x%x]", suName.c_str(),rc);
+       return rc;
+    }
+    rc = deleteEntityFromDatabase("/safplusAmf", "ServiceUnit",  suName);
+    if (rc != CL_OK)
+       logError("MGMT","RPC", "delete su name [%s] failed, rc [0x%x]", suName.c_str(),rc);
     return rc;
   }
 
@@ -1876,7 +1921,14 @@ namespace amfMgmtRpc {
       return CL_ERR_INVALID_PARAMETER;      
     }
     rc = cfg.safplusAmf.serviceGroupList.deleteObj(sgName);
-    logDebug("MGMT","RPC", "deleting comp name [%s] return [0x%x]", sgName.c_str(),rc);
+    if (rc != CL_OK)
+    {
+       logError("MGMT","RPC", "delete sg name [%s] failed, rc [0x%x]", sgName.c_str(),rc);
+       return rc;
+    }
+    rc = deleteEntityFromDatabase("/safplusAmf", "ServiceGroup",  sgName);
+    if (rc != CL_OK)
+       logError("MGMT","RPC", "delete sg name [%s] failed, rc [0x%x]", sgName.c_str(),rc);
     return rc;
   }
 
@@ -1889,7 +1941,14 @@ namespace amfMgmtRpc {
       return CL_ERR_INVALID_PARAMETER;      
     }
     rc = cfg.safplusAmf.nodeList.deleteObj(nodeName);
-    logDebug("MGMT","RPC", "deleting node name [%s] return [0x%x]", nodeName.c_str(),rc);
+    if (rc != CL_OK)
+    {
+       logError("MGMT","RPC", "delete node name [%s] failed, rc [0x%x]", nodeName.c_str(),rc);
+       return rc;
+    }
+    rc = deleteEntityFromDatabase("/safplusAmf", "Node",  nodeName);
+    if (rc != CL_OK)
+       logError("MGMT","RPC", "delete node name [%s] failed, rc [0x%x]",nodeName.c_str(),rc);
     return rc;
   }
 
@@ -1991,7 +2050,14 @@ namespace amfMgmtRpc {
       return CL_ERR_INVALID_PARAMETER;      
     }
     rc = cfg.safplusAmf.serviceInstanceList.deleteObj(siName);
-    logDebug("MGMT","RPC", "deleting node name [%s] return [0x%x]", siName.c_str(),rc);
+    if (rc != CL_OK)
+    {
+       logError("MGMT","RPC", "delete si name [%s] failed, rc [0x%x]", siName.c_str(),rc);
+       return rc;
+    }
+    rc = deleteEntityFromDatabase("/safplusAmf", "ServiceInstance",  siName);
+    if (rc != CL_OK)
+       logError("MGMT","RPC", "delete si name [%s] failed, rc [0x%x]",siName.c_str(),rc);
     return rc;
   }
 
@@ -2081,7 +2147,14 @@ namespace amfMgmtRpc {
       return CL_ERR_INVALID_PARAMETER;      
     }
     rc = cfg.safplusAmf.componentServiceInstanceList.deleteObj(csiName);
-    logDebug("MGMT","RPC", "deleting node name [%s] return [0x%x]", csiName.c_str(),rc);
+    if (rc != CL_OK)
+    {
+       logError("MGMT","RPC", "delete csi name [%s] failed, rc [0x%x]", csiName.c_str(),rc);
+       return rc;
+    }
+    rc = deleteEntityFromDatabase("/safplusAmf", "ComponentServiceInstance",  csiName);
+    if (rc != CL_OK)
+       logError("MGMT","RPC", "delete csi name [%s] failed, rc [0x%x]",csiName.c_str(),rc);
     return rc;
   }
 

@@ -476,6 +476,8 @@ def get_amf_master_handle():
         
 def mgtGet(xpath):
     #print 'mgtGet:%s'%xpath
+    if not xpath or len(xpath)==0 or xpath[0]!='/':
+        return ""
     xml = s.mgtGet(amfMasterHdl,xpath)
     #print '====================='
     if len(xml) == 0:
@@ -1101,6 +1103,7 @@ class Cli(cmd.Cmd):
                 comps = []
                 for cn in compNames:
                     if not cn: continue
+                    #print ('mgtget comp name [%s]'%cn)                   
                     cux = mgtGet(cn)
                     if cux:
                         compMicrodom = microdom.LoadString(cux)

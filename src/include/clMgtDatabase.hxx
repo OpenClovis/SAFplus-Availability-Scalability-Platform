@@ -113,6 +113,7 @@ namespace SAFplus
      */
     ClRcT deleteRecord(const std::string &key);
     ClRcT deleteAllRecordsContainKey(const std::string &keypart);
+    ClRcT deleteAllReferencesToEntity(const std::string& xpathToDelete, const std::string &entityName);
 
     /**
      * \brief   Function to return iterators match with xpath

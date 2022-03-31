@@ -107,7 +107,16 @@ int main(int argc, char *argv[]) // testmgtapi /safplusAmf/Component Component11
 #endif
     ClRcT rc = amfDb.deleteAllRecordsContainKey(keypart.str());
     if (rc != CL_OK)
+     {
        logError("MGMT","DELL.ENT", "delete record FAILED for xpath containing [%s], rc=[0x%x]", keypart.str().c_str(), rc);
+       return rc;
+     }
+    rc = amfDb.deleteAllReferencesToEntity(strXpath, std::string(argv[2]));
+    if (rc != CL_OK)
+     {
+       logError("MGMT","DELL.ENT", "delete all refs to [%s] FAILED for xpath [%s] rc=[0x%x]", argv[2], strXpath.c_str(), rc);
+       return rc;
+     }
     rc = amfDb.deleteRecord(strXpath);
     if (rc != CL_OK)
     {
