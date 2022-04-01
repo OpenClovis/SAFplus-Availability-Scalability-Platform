@@ -963,7 +963,7 @@ void protobuf_AssignDesc_amfMgmtRpc_2eproto() {
       ::google::protobuf::MessageFactory::generated_factory(),
       sizeof(Timeouts));
   ComponentConfig_descriptor_ = file->message_type(22);
-  static const int ComponentConfig_offsets_[16] = {
+  static const int ComponentConfig_offsets_[17] = {
     GOOGLE_PROTOBUF_GENERATED_MESSAGE_FIELD_OFFSET(ComponentConfig, name_),
     GOOGLE_PROTOBUF_GENERATED_MESSAGE_FIELD_OFFSET(ComponentConfig, capabilitymodel_),
     GOOGLE_PROTOBUF_GENERATED_MESSAGE_FIELD_OFFSET(ComponentConfig, maxactiveassignments_),
@@ -980,6 +980,7 @@ void protobuf_AssignDesc_amfMgmtRpc_2eproto() {
     GOOGLE_PROTOBUF_GENERATED_MESSAGE_FIELD_OFFSET(ComponentConfig, serviceunit_),
     GOOGLE_PROTOBUF_GENERATED_MESSAGE_FIELD_OFFSET(ComponentConfig, recovery_),
     GOOGLE_PROTOBUF_GENERATED_MESSAGE_FIELD_OFFSET(ComponentConfig, restartable_),
+    GOOGLE_PROTOBUF_GENERATED_MESSAGE_FIELD_OFFSET(ComponentConfig, csitype_),
   };
   ComponentConfig_reflection_ =
     new ::google::protobuf::internal::GeneratedMessageReflection(
@@ -1009,11 +1010,12 @@ void protobuf_AssignDesc_amfMgmtRpc_2eproto() {
       ::google::protobuf::MessageFactory::generated_factory(),
       sizeof(Data));
   ComponentServiceInstanceConfig_descriptor_ = file->message_type(24);
-  static const int ComponentServiceInstanceConfig_offsets_[4] = {
+  static const int ComponentServiceInstanceConfig_offsets_[5] = {
     GOOGLE_PROTOBUF_GENERATED_MESSAGE_FIELD_OFFSET(ComponentServiceInstanceConfig, name_),
     GOOGLE_PROTOBUF_GENERATED_MESSAGE_FIELD_OFFSET(ComponentServiceInstanceConfig, dependencies_),
     GOOGLE_PROTOBUF_GENERATED_MESSAGE_FIELD_OFFSET(ComponentServiceInstanceConfig, data_),
     GOOGLE_PROTOBUF_GENERATED_MESSAGE_FIELD_OFFSET(ComponentServiceInstanceConfig, serviceinstance_),
+    GOOGLE_PROTOBUF_GENERATED_MESSAGE_FIELD_OFFSET(ComponentServiceInstanceConfig, type_),
   };
   ComponentServiceInstanceConfig_reflection_ =
     new ::google::protobuf::internal::GeneratedMessageReflection(
@@ -4381,7 +4383,7 @@ void protobuf_AddDesc_amfMgmtRpc_2eproto() {
     "\0132\037.SAFplus.Rpc.amfMgmtRpc.SaTimeT\0224\n\013wo"
     "rkRemoval\030\003 \001(\0132\037.SAFplus.Rpc.amfMgmtRpc"
     ".SaTimeT\0227\n\016workAssignment\030\004 \001(\0132\037.SAFpl"
-    "us.Rpc.amfMgmtRpc.SaTimeT*\t\010\350\007\020\200\200\200\200\002\"\206\005\n"
+    "us.Rpc.amfMgmtRpc.SaTimeT*\t\010\350\007\020\200\200\200\200\002\"\227\005\n"
     "\017ComponentConfig\022\014\n\004name\030\001 \001(\t\022@\n\017capabi"
     "lityModel\030\002 \001(\0162\'.SAFplus.Rpc.amfMgmtRpc"
     ".CapabilityModel\022\034\n\024maxActiveAssignments"
@@ -4397,603 +4399,604 @@ void protobuf_AddDesc_amfMgmtRpc_2eproto() {
     "on\030\014 \001(\007\0222\n\010timeouts\030\r \001(\0132 .SAFplus.Rpc"
     ".amfMgmtRpc.Timeouts\022\023\n\013serviceUnit\030\016 \001("
     "\t\0222\n\010recovery\030\017 \001(\0162 .SAFplus.Rpc.amfMgm"
-    "tRpc.Recovery\022\023\n\013restartable\030\020 \001(\010*\t\010\350\007\020"
-    "\200\200\200\200\002\",\n\004Data\022\014\n\004name\030\001 \001(\t\022\013\n\003val\030\002 \001(\t"
-    "*\t\010\350\007\020\200\200\200\200\002\"\224\001\n\036ComponentServiceInstance"
-    "Config\022\014\n\004name\030\001 \001(\t\022\024\n\014dependencies\030\002 \003"
-    "(\t\022*\n\004data\030\003 \003(\0132\034.SAFplus.Rpc.amfMgmtRp"
-    "c.Data\022\027\n\017serviceInstance\030\004 \001(\t*\t\010\350\007\020\200\200\200"
-    "\200\002\"\201\002\n\025ServiceInstanceConfig\022\014\n\004name\030\001 \001"
-    "(\t\022\?\n\nadminState\030\002 \001(\0162+.SAFplus.Rpc.amf"
-    "MgmtRpc.AdministrativeState\022\"\n\032preferred"
-    "ActiveAssignments\030\003 \001(\007\022#\n\033preferredStan"
-    "dbyAssignments\030\004 \001(\007\022\014\n\004rank\030\005 \001(\007\022!\n\031co"
-    "mponentServiceInstances\030\006 \003(\t\022\024\n\014service"
-    "Group\030\007 \001(\t*\t\010\350\007\020\200\200\200\200\002\"\334\001\n\021ServiceUnitCo"
-    "nfig\022\014\n\004name\030\001 \001(\t\022\?\n\nadminState\030\002 \001(\0162+"
-    ".SAFplus.Rpc.amfMgmtRpc.AdministrativeSt"
-    "ate\022\014\n\004rank\030\003 \001(\007\022\020\n\010failover\030\004 \001(\010\022\022\n\nc"
-    "omponents\030\005 \003(\t\022\014\n\004node\030\006 \001(\t\022\024\n\014service"
-    "Group\030\007 \001(\t\022\025\n\rprobationTime\030\010 \001(\007*\t\010\350\007\020"
-    "\200\200\200\200\002\"M\n\004User\022:\n\014DecStatistic\030\001 \001(\0132$.SA"
-    "Fplus.Rpc.amfMgmtRpc.DecStatistic*\t\010\350\007\020\200"
-    "\200\200\200\002\"X\n\017LowPriorityUser\022:\n\014DecStatistic\030"
-    "\001 \001(\0132$.SAFplus.Rpc.amfMgmtRpc.DecStatis"
-    "tic*\t\010\350\007\020\200\200\200\200\002\"O\n\006IoWait\022:\n\014DecStatistic"
-    "\030\001 \001(\0132$.SAFplus.Rpc.amfMgmtRpc.DecStati"
-    "stic*\t\010\350\007\020\200\200\200\200\002\"P\n\007SysTime\022:\n\014DecStatist"
-    "ic\030\001 \001(\0132$.SAFplus.Rpc.amfMgmtRpc.DecSta"
-    "tistic*\t\010\350\007\020\200\200\200\200\002\"P\n\007IntTime\022:\n\014DecStati"
-    "stic\030\001 \001(\0132$.SAFplus.Rpc.amfMgmtRpc.DecS"
-    "tatistic*\t\010\350\007\020\200\200\200\200\002\"Q\n\010SoftIrqs\022:\n\014DecSt"
-    "atistic\030\001 \001(\0132$.SAFplus.Rpc.amfMgmtRpc.D"
-    "ecStatistic*\t\010\350\007\020\200\200\200\200\002\"M\n\004Idle\022:\n\014DecSta"
-    "tistic\030\001 \001(\0132$.SAFplus.Rpc.amfMgmtRpc.De"
-    "cStatistic*\t\010\350\007\020\200\200\200\200\002\"X\n\017ContextSwitches"
-    "\022:\n\014IntStatistic\030\001 \001(\0132$.SAFplus.Rpc.amf"
-    "MgmtRpc.IntStatistic*\t\010\350\007\020\200\200\200\200\002\"U\n\014Proce"
-    "ssCount\022:\n\014IntStatistic\030\001 \001(\0132$.SAFplus."
-    "Rpc.amfMgmtRpc.IntStatistic*\t\010\350\007\020\200\200\200\200\002\"V"
-    "\n\rProcessStarts\022:\n\014IntStatistic\030\001 \001(\0132$."
-    "SAFplus.Rpc.amfMgmtRpc.IntStatistic*\t\010\350\007"
-    "\020\200\200\200\200\002\"\257\004\n\004Load\022*\n\004user\030\001 \001(\0132\034.SAFplus."
-    "Rpc.amfMgmtRpc.User\022@\n\017lowPriorityUser\030\002"
-    " \001(\0132\'.SAFplus.Rpc.amfMgmtRpc.LowPriorit"
-    "yUser\022.\n\006ioWait\030\003 \001(\0132\036.SAFplus.Rpc.amfM"
-    "gmtRpc.IoWait\0220\n\007sysTime\030\004 \001(\0132\037.SAFplus"
-    ".Rpc.amfMgmtRpc.SysTime\0220\n\007intTime\030\005 \001(\013"
-    "2\037.SAFplus.Rpc.amfMgmtRpc.IntTime\0222\n\010sof"
-    "tIrqs\030\006 \001(\0132 .SAFplus.Rpc.amfMgmtRpc.Sof"
-    "tIrqs\022*\n\004idle\030\007 \001(\0132\034.SAFplus.Rpc.amfMgm"
-    "tRpc.Idle\022@\n\017contextSwitches\030\010 \001(\0132\'.SAF"
-    "plus.Rpc.amfMgmtRpc.ContextSwitches\022:\n\014p"
-    "rocessCount\030\t \001(\0132$.SAFplus.Rpc.amfMgmtR"
-    "pc.ProcessCount\022<\n\rprocessStarts\030\n \001(\0132%"
-    ".SAFplus.Rpc.amfMgmtRpc.ProcessStarts*\t\010"
-    "\350\007\020\200\200\200\200\002\"`\n\005Stats\022*\n\004load\030\001 \001(\0132\034.SAFplu"
-    "s.Rpc.amfMgmtRpc.Load\022\016\n\006upTime\030\002 \001(\004\022\020\n"
-    "\010bootTime\030\003 \001(\004*\t\010\350\007\020\200\200\200\200\002\"\244\001\n\nNodeStatu"
-    "s\022\014\n\004name\030\001 \001(\t\022,\n\005stats\030\002 \001(\0132\035.SAFplus"
-    ".Rpc.amfMgmtRpc.Stats\022<\n\rpresenceState\030\003"
-    " \001(\0162%.SAFplus.Rpc.amfMgmtRpc.PresenceSt"
-    "ate\022\021\n\toperState\030\004 \001(\010*\t\010\350\007\020\200\200\200\200\002\"`\n\027Num"
-    "AssignedServiceUnits\022:\n\014IntStatistic\030\001 \001"
-    "(\0132$.SAFplus.Rpc.amfMgmtRpc.IntStatistic"
-    "*\t\010\350\007\020\200\200\200\200\002\"\\\n\023NumIdleServiceUnits\022:\n\014In"
-    "tStatistic\030\001 \001(\0132$.SAFplus.Rpc.amfMgmtRp"
-    "c.IntStatistic*\t\010\350\007\020\200\200\200\200\002\"]\n\024NumSpareSer"
-    "viceUnits\022:\n\014IntStatistic\030\001 \001(\0132$.SAFplu"
-    "s.Rpc.amfMgmtRpc.IntStatistic*\t\010\350\007\020\200\200\200\200\002"
-    "\"\225\002\n\022ServiceGroupStatus\022\014\n\004name\030\001 \001(\t\022P\n"
-    "\027numAssignedServiceUnits\030\002 \001(\0132/.SAFplus"
-    ".Rpc.amfMgmtRpc.NumAssignedServiceUnits\022"
-    "H\n\023numIdleServiceUnits\030\003 \001(\0132+.SAFplus.R"
-    "pc.amfMgmtRpc.NumIdleServiceUnits\022J\n\024num"
-    "SpareServiceUnits\030\004 \001(\0132,.SAFplus.Rpc.am"
-    "fMgmtRpc.NumSpareServiceUnits*\t\010\350\007\020\200\200\200\200\002"
-    "\"R\n\tProcStats\022:\n\014ProcessStats\030\001 \001(\0132$.SA"
-    "Fplus.Rpc.amfMgmtRpc.ProcessStats*\t\010\350\007\020\200"
-    "\200\200\200\002\"Z\n\021ActiveAssignments\022:\n\014IntStatisti"
-    "c\030\001 \001(\0132$.SAFplus.Rpc.amfMgmtRpc.IntStat"
-    "istic*\t\010\350\007\020\200\200\200\200\002\"[\n\022StandbyAssignments\022:"
-    "\n\014IntStatistic\030\001 \001(\0132$.SAFplus.Rpc.amfMg"
-    "mtRpc.IntStatistic*\t\010\350\007\020\200\200\200\200\002\"U\n\014Restart"
-    "Count\022:\n\014IntStatistic\030\001 \001(\0132$.SAFplus.Rp"
-    "c.amfMgmtRpc.IntStatistic*\t\010\350\007\020\200\200\200\200\002\"\246\007\n"
-    "\017ComponentStatus\022\014\n\004name\030\001 \001(\t\0224\n\tprocSt"
-    "ats\030\002 \001(\0132!.SAFplus.Rpc.amfMgmtRpc.ProcS"
-    "tats\022<\n\rpresenceState\030\003 \001(\0162%.SAFplus.Rp"
-    "c.amfMgmtRpc.PresenceState\022D\n\021activeAssi"
-    "gnments\030\004 \001(\0132).SAFplus.Rpc.amfMgmtRpc.A"
-    "ctiveAssignments\022F\n\022standbyAssignments\030\005"
-    " \001(\0132*.SAFplus.Rpc.amfMgmtRpc.StandbyAss"
-    "ignments\022\024\n\014assignedWork\030\006 \003(\t\022\021\n\toperSt"
-    "ate\030\007 \001(\010\022>\n\016readinessState\030\010 \001(\0162&.SAFp"
-    "lus.Rpc.amfMgmtRpc.ReadinessState\022P\n\020haR"
-    "eadinessState\030\t \001(\01626.SAFplus.Rpc.amfMgm"
-    "tRpc.HighAvailabilityReadinessState\022>\n\007h"
-    "aState\030\n \001(\0162-.SAFplus.Rpc.amfMgmtRpc.Hi"
-    "ghAvailabilityState\022\022\n\nsafVersion\030\013 \001(\t\022"
-    "\024\n\014compCategory\030\014 \001(\007\022\020\n\010swBundle\030\r \001(\t\022"
-    " \n\030numInstantiationAttempts\030\016 \001(\007\0227\n\021las"
-    "tInstantiation\030\017 \001(\0132\034.SAFplus.Rpc.amfMg"
-    "mtRpc.Date\022:\n\014restartCount\030\020 \001(\0132$.SAFpl"
-    "us.Rpc.amfMgmtRpc.RestartCount\022\021\n\tproces"
-    "sId\030\021 \001(\021\022\021\n\tlastError\030\022 \001(\t\022B\n\020pendingO"
-    "peration\030\023 \001(\0162(.SAFplus.Rpc.amfMgmtRpc."
-    "PendingOperation\022@\n\032pendingOperationExpi"
-    "ration\030\024 \001(\0132\034.SAFplus.Rpc.amfMgmtRpc.Da"
-    "te*\t\010\350\007\020\200\200\200\200\002\"n\n\036ComponentServiceInstanc"
-    "eStatus\022\014\n\004name\030\001 \001(\t\022\031\n\021standbyComponen"
-    "ts\030\002 \003(\t\022\030\n\020activeComponents\030\003 \003(\t*\t\010\350\007\020"
-    "\200\200\200\200\002\"]\n\024NumActiveAssignments\022:\n\014IntStat"
-    "istic\030\001 \001(\0132$.SAFplus.Rpc.amfMgmtRpc.Int"
-    "Statistic*\t\010\350\007\020\200\200\200\200\002\"^\n\025NumStandbyAssign"
-    "ments\022:\n\014IntStatistic\030\001 \001(\0132$.SAFplus.Rp"
-    "c.amfMgmtRpc.IntStatistic*\t\010\350\007\020\200\200\200\200\002\"\303\002\n"
-    "\025ServiceInstanceStatus\022\014\n\004name\030\001 \001(\t\022@\n\017"
-    "assignmentState\030\002 \001(\0162\'.SAFplus.Rpc.amfM"
-    "gmtRpc.AssignmentState\022\031\n\021activeAssignme"
-    "nts\030\003 \003(\t\022\032\n\022standbyAssignments\030\004 \003(\t\022J\n"
-    "\024numActiveAssignments\030\005 \001(\0132,.SAFplus.Rp"
-    "c.amfMgmtRpc.NumActiveAssignments\022L\n\025num"
-    "StandbyAssignments\030\006 \001(\0132-.SAFplus.Rpc.a"
-    "mfMgmtRpc.NumStandbyAssignments*\t\010\350\007\020\200\200\200"
-    "\200\002\"b\n\031NumActiveServiceInstances\022:\n\014IntSt"
+    "tRpc.Recovery\022\023\n\013restartable\030\020 \001(\010\022\017\n\007cs"
+    "iType\030\021 \001(\t*\t\010\350\007\020\200\200\200\200\002\",\n\004Data\022\014\n\004name\030\001"
+    " \001(\t\022\013\n\003val\030\002 \001(\t*\t\010\350\007\020\200\200\200\200\002\"\242\001\n\036Compone"
+    "ntServiceInstanceConfig\022\014\n\004name\030\001 \001(\t\022\024\n"
+    "\014dependencies\030\002 \003(\t\022*\n\004data\030\003 \003(\0132\034.SAFp"
+    "lus.Rpc.amfMgmtRpc.Data\022\027\n\017serviceInstan"
+    "ce\030\004 \001(\t\022\014\n\004type\030\005 \001(\t*\t\010\350\007\020\200\200\200\200\002\"\201\002\n\025Se"
+    "rviceInstanceConfig\022\014\n\004name\030\001 \001(\t\022\?\n\nadm"
+    "inState\030\002 \001(\0162+.SAFplus.Rpc.amfMgmtRpc.A"
+    "dministrativeState\022\"\n\032preferredActiveAss"
+    "ignments\030\003 \001(\007\022#\n\033preferredStandbyAssign"
+    "ments\030\004 \001(\007\022\014\n\004rank\030\005 \001(\007\022!\n\031componentSe"
+    "rviceInstances\030\006 \003(\t\022\024\n\014serviceGroup\030\007 \001"
+    "(\t*\t\010\350\007\020\200\200\200\200\002\"\334\001\n\021ServiceUnitConfig\022\014\n\004n"
+    "ame\030\001 \001(\t\022\?\n\nadminState\030\002 \001(\0162+.SAFplus."
+    "Rpc.amfMgmtRpc.AdministrativeState\022\014\n\004ra"
+    "nk\030\003 \001(\007\022\020\n\010failover\030\004 \001(\010\022\022\n\ncomponents"
+    "\030\005 \003(\t\022\014\n\004node\030\006 \001(\t\022\024\n\014serviceGroup\030\007 \001"
+    "(\t\022\025\n\rprobationTime\030\010 \001(\007*\t\010\350\007\020\200\200\200\200\002\"M\n\004"
+    "User\022:\n\014DecStatistic\030\001 \001(\0132$.SAFplus.Rpc"
+    ".amfMgmtRpc.DecStatistic*\t\010\350\007\020\200\200\200\200\002\"X\n\017L"
+    "owPriorityUser\022:\n\014DecStatistic\030\001 \001(\0132$.S"
+    "AFplus.Rpc.amfMgmtRpc.DecStatistic*\t\010\350\007\020"
+    "\200\200\200\200\002\"O\n\006IoWait\022:\n\014DecStatistic\030\001 \001(\0132$."
+    "SAFplus.Rpc.amfMgmtRpc.DecStatistic*\t\010\350\007"
+    "\020\200\200\200\200\002\"P\n\007SysTime\022:\n\014DecStatistic\030\001 \001(\0132"
+    "$.SAFplus.Rpc.amfMgmtRpc.DecStatistic*\t\010"
+    "\350\007\020\200\200\200\200\002\"P\n\007IntTime\022:\n\014DecStatistic\030\001 \001("
+    "\0132$.SAFplus.Rpc.amfMgmtRpc.DecStatistic*"
+    "\t\010\350\007\020\200\200\200\200\002\"Q\n\010SoftIrqs\022:\n\014DecStatistic\030\001"
+    " \001(\0132$.SAFplus.Rpc.amfMgmtRpc.DecStatist"
+    "ic*\t\010\350\007\020\200\200\200\200\002\"M\n\004Idle\022:\n\014DecStatistic\030\001 "
+    "\001(\0132$.SAFplus.Rpc.amfMgmtRpc.DecStatisti"
+    "c*\t\010\350\007\020\200\200\200\200\002\"X\n\017ContextSwitches\022:\n\014IntSt"
     "atistic\030\001 \001(\0132$.SAFplus.Rpc.amfMgmtRpc.I"
-    "ntStatistic*\t\010\350\007\020\200\200\200\200\002\"c\n\032NumStandbyServ"
-    "iceInstances\022:\n\014IntStatistic\030\001 \001(\0132$.SAF"
-    "plus.Rpc.amfMgmtRpc.IntStatistic*\t\010\350\007\020\200\200"
-    "\200\200\002\"\364\004\n\021ServiceUnitStatus\022\014\n\004name\030\001 \001(\t\022"
-    "\027\n\017preinstantiable\030\002 \001(\010\022<\n\rpresenceStat"
-    "e\030\003 \001(\0162%.SAFplus.Rpc.amfMgmtRpc.Presenc"
-    "eState\022>\n\016readinessState\030\004 \001(\0162&.SAFplus"
-    ".Rpc.amfMgmtRpc.ReadinessState\022P\n\020haRead"
-    "inessState\030\005 \001(\01626.SAFplus.Rpc.amfMgmtRp"
-    "c.HighAvailabilityReadinessState\022>\n\007haSt"
-    "ate\030\006 \001(\0162-.SAFplus.Rpc.amfMgmtRpc.HighA"
-    "vailabilityState\022\021\n\toperState\030\007 \001(\010\022 \n\030a"
-    "ssignedServiceInstances\030\010 \003(\t\022T\n\031numActi"
-    "veServiceInstances\030\t \001(\01321.SAFplus.Rpc.a"
-    "mfMgmtRpc.NumActiveServiceInstances\022V\n\032n"
-    "umStandbyServiceInstances\030\n \001(\01322.SAFplu"
-    "s.Rpc.amfMgmtRpc.NumStandbyServiceInstan"
-    "ces\022:\n\014restartCount\030\013 \001(\0132$.SAFplus.Rpc."
-    "amfMgmtRpc.RestartCount*\t\010\350\007\020\200\200\200\200\002\"5\n\021In"
-    "itializeRequest\022\025\n\ramfMgmtHandle\030\001 \003(\014*\t"
-    "\010\350\007\020\200\200\200\200\002\",\n\022InitializeResponse\022\013\n\003err\030\001"
-    " \001(\021*\t\010\350\007\020\200\200\200\200\002\"3\n\017FinalizeRequest\022\025\n\ram"
-    "fMgmtHandle\030\001 \003(\014*\t\010\350\007\020\200\200\200\200\002\"*\n\020Finalize"
-    "Response\022\013\n\003err\030\001 \001(\021*\t\010\350\007\020\200\200\200\200\002\"1\n\rComm"
-    "itRequest\022\025\n\ramfMgmtHandle\030\001 \003(\014*\t\010\350\007\020\200\200"
-    "\200\200\002\"(\n\016CommitResponse\022\013\n\003err\030\001 \001(\021*\t\010\350\007\020"
-    "\200\200\200\200\002\"|\n\026CreateComponentRequest\022\025\n\ramfMg"
-    "mtHandle\030\001 \003(\014\022@\n\017ComponentConfig\030\002 \001(\0132"
-    "\'.SAFplus.Rpc.amfMgmtRpc.ComponentConfig"
-    "*\t\010\350\007\020\200\200\200\200\002\"1\n\027CreateComponentResponse\022\013"
-    "\n\003err\030\001 \001(\021*\t\010\350\007\020\200\200\200\200\002\"|\n\026UpdateComponen"
-    "tRequest\022\025\n\ramfMgmtHandle\030\001 \003(\014\022@\n\017Compo"
-    "nentConfig\030\002 \001(\0132\'.SAFplus.Rpc.amfMgmtRp"
-    "c.ComponentConfig*\t\010\350\007\020\200\200\200\200\002\"1\n\027UpdateCo"
-    "mponentResponse\022\013\n\003err\030\001 \001(\021*\t\010\350\007\020\200\200\200\200\002\""
-    "H\n\026DeleteComponentRequest\022\025\n\ramfMgmtHand"
-    "le\030\001 \003(\014\022\014\n\004name\030\002 \001(\t*\t\010\350\007\020\200\200\200\200\002\"1\n\027Del"
-    "eteComponentResponse\022\013\n\003err\030\001 \001(\021*\t\010\350\007\020\200"
-    "\200\200\200\002\"{\n\017CreateSGRequest\022\025\n\ramfMgmtHandle"
+    "ntStatistic*\t\010\350\007\020\200\200\200\200\002\"U\n\014ProcessCount\022:"
+    "\n\014IntStatistic\030\001 \001(\0132$.SAFplus.Rpc.amfMg"
+    "mtRpc.IntStatistic*\t\010\350\007\020\200\200\200\200\002\"V\n\rProcess"
+    "Starts\022:\n\014IntStatistic\030\001 \001(\0132$.SAFplus.R"
+    "pc.amfMgmtRpc.IntStatistic*\t\010\350\007\020\200\200\200\200\002\"\257\004"
+    "\n\004Load\022*\n\004user\030\001 \001(\0132\034.SAFplus.Rpc.amfMg"
+    "mtRpc.User\022@\n\017lowPriorityUser\030\002 \001(\0132\'.SA"
+    "Fplus.Rpc.amfMgmtRpc.LowPriorityUser\022.\n\006"
+    "ioWait\030\003 \001(\0132\036.SAFplus.Rpc.amfMgmtRpc.Io"
+    "Wait\0220\n\007sysTime\030\004 \001(\0132\037.SAFplus.Rpc.amfM"
+    "gmtRpc.SysTime\0220\n\007intTime\030\005 \001(\0132\037.SAFplu"
+    "s.Rpc.amfMgmtRpc.IntTime\0222\n\010softIrqs\030\006 \001"
+    "(\0132 .SAFplus.Rpc.amfMgmtRpc.SoftIrqs\022*\n\004"
+    "idle\030\007 \001(\0132\034.SAFplus.Rpc.amfMgmtRpc.Idle"
+    "\022@\n\017contextSwitches\030\010 \001(\0132\'.SAFplus.Rpc."
+    "amfMgmtRpc.ContextSwitches\022:\n\014processCou"
+    "nt\030\t \001(\0132$.SAFplus.Rpc.amfMgmtRpc.Proces"
+    "sCount\022<\n\rprocessStarts\030\n \001(\0132%.SAFplus."
+    "Rpc.amfMgmtRpc.ProcessStarts*\t\010\350\007\020\200\200\200\200\002\""
+    "`\n\005Stats\022*\n\004load\030\001 \001(\0132\034.SAFplus.Rpc.amf"
+    "MgmtRpc.Load\022\016\n\006upTime\030\002 \001(\004\022\020\n\010bootTime"
+    "\030\003 \001(\004*\t\010\350\007\020\200\200\200\200\002\"\244\001\n\nNodeStatus\022\014\n\004name"
+    "\030\001 \001(\t\022,\n\005stats\030\002 \001(\0132\035.SAFplus.Rpc.amfM"
+    "gmtRpc.Stats\022<\n\rpresenceState\030\003 \001(\0162%.SA"
+    "Fplus.Rpc.amfMgmtRpc.PresenceState\022\021\n\top"
+    "erState\030\004 \001(\010*\t\010\350\007\020\200\200\200\200\002\"`\n\027NumAssignedS"
+    "erviceUnits\022:\n\014IntStatistic\030\001 \001(\0132$.SAFp"
+    "lus.Rpc.amfMgmtRpc.IntStatistic*\t\010\350\007\020\200\200\200"
+    "\200\002\"\\\n\023NumIdleServiceUnits\022:\n\014IntStatisti"
+    "c\030\001 \001(\0132$.SAFplus.Rpc.amfMgmtRpc.IntStat"
+    "istic*\t\010\350\007\020\200\200\200\200\002\"]\n\024NumSpareServiceUnits"
+    "\022:\n\014IntStatistic\030\001 \001(\0132$.SAFplus.Rpc.amf"
+    "MgmtRpc.IntStatistic*\t\010\350\007\020\200\200\200\200\002\"\225\002\n\022Serv"
+    "iceGroupStatus\022\014\n\004name\030\001 \001(\t\022P\n\027numAssig"
+    "nedServiceUnits\030\002 \001(\0132/.SAFplus.Rpc.amfM"
+    "gmtRpc.NumAssignedServiceUnits\022H\n\023numIdl"
+    "eServiceUnits\030\003 \001(\0132+.SAFplus.Rpc.amfMgm"
+    "tRpc.NumIdleServiceUnits\022J\n\024numSpareServ"
+    "iceUnits\030\004 \001(\0132,.SAFplus.Rpc.amfMgmtRpc."
+    "NumSpareServiceUnits*\t\010\350\007\020\200\200\200\200\002\"R\n\tProcS"
+    "tats\022:\n\014ProcessStats\030\001 \001(\0132$.SAFplus.Rpc"
+    ".amfMgmtRpc.ProcessStats*\t\010\350\007\020\200\200\200\200\002\"Z\n\021A"
+    "ctiveAssignments\022:\n\014IntStatistic\030\001 \001(\0132$"
+    ".SAFplus.Rpc.amfMgmtRpc.IntStatistic*\t\010\350"
+    "\007\020\200\200\200\200\002\"[\n\022StandbyAssignments\022:\n\014IntStat"
+    "istic\030\001 \001(\0132$.SAFplus.Rpc.amfMgmtRpc.Int"
+    "Statistic*\t\010\350\007\020\200\200\200\200\002\"U\n\014RestartCount\022:\n\014"
+    "IntStatistic\030\001 \001(\0132$.SAFplus.Rpc.amfMgmt"
+    "Rpc.IntStatistic*\t\010\350\007\020\200\200\200\200\002\"\246\007\n\017Componen"
+    "tStatus\022\014\n\004name\030\001 \001(\t\0224\n\tprocStats\030\002 \001(\013"
+    "2!.SAFplus.Rpc.amfMgmtRpc.ProcStats\022<\n\rp"
+    "resenceState\030\003 \001(\0162%.SAFplus.Rpc.amfMgmt"
+    "Rpc.PresenceState\022D\n\021activeAssignments\030\004"
+    " \001(\0132).SAFplus.Rpc.amfMgmtRpc.ActiveAssi"
+    "gnments\022F\n\022standbyAssignments\030\005 \001(\0132*.SA"
+    "Fplus.Rpc.amfMgmtRpc.StandbyAssignments\022"
+    "\024\n\014assignedWork\030\006 \003(\t\022\021\n\toperState\030\007 \001(\010"
+    "\022>\n\016readinessState\030\010 \001(\0162&.SAFplus.Rpc.a"
+    "mfMgmtRpc.ReadinessState\022P\n\020haReadinessS"
+    "tate\030\t \001(\01626.SAFplus.Rpc.amfMgmtRpc.High"
+    "AvailabilityReadinessState\022>\n\007haState\030\n "
+    "\001(\0162-.SAFplus.Rpc.amfMgmtRpc.HighAvailab"
+    "ilityState\022\022\n\nsafVersion\030\013 \001(\t\022\024\n\014compCa"
+    "tegory\030\014 \001(\007\022\020\n\010swBundle\030\r \001(\t\022 \n\030numIns"
+    "tantiationAttempts\030\016 \001(\007\0227\n\021lastInstanti"
+    "ation\030\017 \001(\0132\034.SAFplus.Rpc.amfMgmtRpc.Dat"
+    "e\022:\n\014restartCount\030\020 \001(\0132$.SAFplus.Rpc.am"
+    "fMgmtRpc.RestartCount\022\021\n\tprocessId\030\021 \001(\021"
+    "\022\021\n\tlastError\030\022 \001(\t\022B\n\020pendingOperation\030"
+    "\023 \001(\0162(.SAFplus.Rpc.amfMgmtRpc.PendingOp"
+    "eration\022@\n\032pendingOperationExpiration\030\024 "
+    "\001(\0132\034.SAFplus.Rpc.amfMgmtRpc.Date*\t\010\350\007\020\200"
+    "\200\200\200\002\"n\n\036ComponentServiceInstanceStatus\022\014"
+    "\n\004name\030\001 \001(\t\022\031\n\021standbyComponents\030\002 \003(\t\022"
+    "\030\n\020activeComponents\030\003 \003(\t*\t\010\350\007\020\200\200\200\200\002\"]\n\024"
+    "NumActiveAssignments\022:\n\014IntStatistic\030\001 \001"
+    "(\0132$.SAFplus.Rpc.amfMgmtRpc.IntStatistic"
+    "*\t\010\350\007\020\200\200\200\200\002\"^\n\025NumStandbyAssignments\022:\n\014"
+    "IntStatistic\030\001 \001(\0132$.SAFplus.Rpc.amfMgmt"
+    "Rpc.IntStatistic*\t\010\350\007\020\200\200\200\200\002\"\303\002\n\025ServiceI"
+    "nstanceStatus\022\014\n\004name\030\001 \001(\t\022@\n\017assignmen"
+    "tState\030\002 \001(\0162\'.SAFplus.Rpc.amfMgmtRpc.As"
+    "signmentState\022\031\n\021activeAssignments\030\003 \003(\t"
+    "\022\032\n\022standbyAssignments\030\004 \003(\t\022J\n\024numActiv"
+    "eAssignments\030\005 \001(\0132,.SAFplus.Rpc.amfMgmt"
+    "Rpc.NumActiveAssignments\022L\n\025numStandbyAs"
+    "signments\030\006 \001(\0132-.SAFplus.Rpc.amfMgmtRpc"
+    ".NumStandbyAssignments*\t\010\350\007\020\200\200\200\200\002\"b\n\031Num"
+    "ActiveServiceInstances\022:\n\014IntStatistic\030\001"
+    " \001(\0132$.SAFplus.Rpc.amfMgmtRpc.IntStatist"
+    "ic*\t\010\350\007\020\200\200\200\200\002\"c\n\032NumStandbyServiceInstan"
+    "ces\022:\n\014IntStatistic\030\001 \001(\0132$.SAFplus.Rpc."
+    "amfMgmtRpc.IntStatistic*\t\010\350\007\020\200\200\200\200\002\"\364\004\n\021S"
+    "erviceUnitStatus\022\014\n\004name\030\001 \001(\t\022\027\n\017preins"
+    "tantiable\030\002 \001(\010\022<\n\rpresenceState\030\003 \001(\0162%"
+    ".SAFplus.Rpc.amfMgmtRpc.PresenceState\022>\n"
+    "\016readinessState\030\004 \001(\0162&.SAFplus.Rpc.amfM"
+    "gmtRpc.ReadinessState\022P\n\020haReadinessStat"
+    "e\030\005 \001(\01626.SAFplus.Rpc.amfMgmtRpc.HighAva"
+    "ilabilityReadinessState\022>\n\007haState\030\006 \001(\016"
+    "2-.SAFplus.Rpc.amfMgmtRpc.HighAvailabili"
+    "tyState\022\021\n\toperState\030\007 \001(\010\022 \n\030assignedSe"
+    "rviceInstances\030\010 \003(\t\022T\n\031numActiveService"
+    "Instances\030\t \001(\01321.SAFplus.Rpc.amfMgmtRpc"
+    ".NumActiveServiceInstances\022V\n\032numStandby"
+    "ServiceInstances\030\n \001(\01322.SAFplus.Rpc.amf"
+    "MgmtRpc.NumStandbyServiceInstances\022:\n\014re"
+    "startCount\030\013 \001(\0132$.SAFplus.Rpc.amfMgmtRp"
+    "c.RestartCount*\t\010\350\007\020\200\200\200\200\002\"5\n\021InitializeR"
+    "equest\022\025\n\ramfMgmtHandle\030\001 \003(\014*\t\010\350\007\020\200\200\200\200\002"
+    "\",\n\022InitializeResponse\022\013\n\003err\030\001 \001(\021*\t\010\350\007"
+    "\020\200\200\200\200\002\"3\n\017FinalizeRequest\022\025\n\ramfMgmtHand"
+    "le\030\001 \003(\014*\t\010\350\007\020\200\200\200\200\002\"*\n\020FinalizeResponse\022"
+    "\013\n\003err\030\001 \001(\021*\t\010\350\007\020\200\200\200\200\002\"1\n\rCommitRequest"
+    "\022\025\n\ramfMgmtHandle\030\001 \003(\014*\t\010\350\007\020\200\200\200\200\002\"(\n\016Co"
+    "mmitResponse\022\013\n\003err\030\001 \001(\021*\t\010\350\007\020\200\200\200\200\002\"|\n\026"
+    "CreateComponentRequest\022\025\n\ramfMgmtHandle\030"
+    "\001 \003(\014\022@\n\017ComponentConfig\030\002 \001(\0132\'.SAFplus"
+    ".Rpc.amfMgmtRpc.ComponentConfig*\t\010\350\007\020\200\200\200"
+    "\200\002\"1\n\027CreateComponentResponse\022\013\n\003err\030\001 \001"
+    "(\021*\t\010\350\007\020\200\200\200\200\002\"|\n\026UpdateComponentRequest\022"
+    "\025\n\ramfMgmtHandle\030\001 \003(\014\022@\n\017ComponentConfi"
+    "g\030\002 \001(\0132\'.SAFplus.Rpc.amfMgmtRpc.Compone"
+    "ntConfig*\t\010\350\007\020\200\200\200\200\002\"1\n\027UpdateComponentRe"
+    "sponse\022\013\n\003err\030\001 \001(\021*\t\010\350\007\020\200\200\200\200\002\"H\n\026Delete"
+    "ComponentRequest\022\025\n\ramfMgmtHandle\030\001 \003(\014\022"
+    "\014\n\004name\030\002 \001(\t*\t\010\350\007\020\200\200\200\200\002\"1\n\027DeleteCompon"
+    "entResponse\022\013\n\003err\030\001 \001(\021*\t\010\350\007\020\200\200\200\200\002\"{\n\017C"
+    "reateSGRequest\022\025\n\ramfMgmtHandle\030\001 \003(\014\022F\n"
+    "\022ServiceGroupConfig\030\002 \001(\0132*.SAFplus.Rpc."
+    "amfMgmtRpc.ServiceGroupConfig*\t\010\350\007\020\200\200\200\200\002"
+    "\"*\n\020CreateSGResponse\022\013\n\003err\030\001 \001(\021*\t\010\350\007\020\200"
+    "\200\200\200\002\"{\n\017UpdateSGRequest\022\025\n\ramfMgmtHandle"
     "\030\001 \003(\014\022F\n\022ServiceGroupConfig\030\002 \001(\0132*.SAF"
     "plus.Rpc.amfMgmtRpc.ServiceGroupConfig*\t"
-    "\010\350\007\020\200\200\200\200\002\"*\n\020CreateSGResponse\022\013\n\003err\030\001 \001"
-    "(\021*\t\010\350\007\020\200\200\200\200\002\"{\n\017UpdateSGRequest\022\025\n\ramfM"
-    "gmtHandle\030\001 \003(\014\022F\n\022ServiceGroupConfig\030\002 "
-    "\001(\0132*.SAFplus.Rpc.amfMgmtRpc.ServiceGrou"
-    "pConfig*\t\010\350\007\020\200\200\200\200\002\"*\n\020UpdateSGResponse\022\013"
-    "\n\003err\030\001 \001(\021*\t\010\350\007\020\200\200\200\200\002\"A\n\017DeleteSGReques"
-    "t\022\025\n\ramfMgmtHandle\030\001 \003(\014\022\014\n\004name\030\002 \001(\t*\t"
-    "\010\350\007\020\200\200\200\200\002\"*\n\020DeleteSGResponse\022\013\n\003err\030\001 \001"
-    "(\021*\t\010\350\007\020\200\200\200\200\002\"m\n\021CreateNodeRequest\022\025\n\ram"
-    "fMgmtHandle\030\001 \003(\014\0226\n\nNodeConfig\030\002 \001(\0132\"."
-    "SAFplus.Rpc.amfMgmtRpc.NodeConfig*\t\010\350\007\020\200"
-    "\200\200\200\002\",\n\022CreateNodeResponse\022\013\n\003err\030\001 \001(\021*"
-    "\t\010\350\007\020\200\200\200\200\002\"m\n\021UpdateNodeRequest\022\025\n\ramfMg"
-    "mtHandle\030\001 \003(\014\0226\n\nNodeConfig\030\002 \001(\0132\".SAF"
-    "plus.Rpc.amfMgmtRpc.NodeConfig*\t\010\350\007\020\200\200\200\200"
-    "\002\",\n\022UpdateNodeResponse\022\013\n\003err\030\001 \001(\021*\t\010\350"
-    "\007\020\200\200\200\200\002\"C\n\021DeleteNodeRequest\022\025\n\ramfMgmtH"
-    "andle\030\001 \003(\014\022\014\n\004name\030\002 \001(\t*\t\010\350\007\020\200\200\200\200\002\",\n\022"
-    "DeleteNodeResponse\022\013\n\003err\030\001 \001(\021*\t\010\350\007\020\200\200\200"
-    "\200\002\"y\n\017CreateSURequest\022\025\n\ramfMgmtHandle\030\001"
-    " \003(\014\022D\n\021ServiceUnitConfig\030\002 \001(\0132).SAFplu"
-    "s.Rpc.amfMgmtRpc.ServiceUnitConfig*\t\010\350\007\020"
-    "\200\200\200\200\002\"*\n\020CreateSUResponse\022\013\n\003err\030\001 \001(\021*\t"
-    "\010\350\007\020\200\200\200\200\002\"y\n\017UpdateSURequest\022\025\n\ramfMgmtH"
-    "andle\030\001 \003(\014\022D\n\021ServiceUnitConfig\030\002 \001(\0132)"
-    ".SAFplus.Rpc.amfMgmtRpc.ServiceUnitConfi"
-    "g*\t\010\350\007\020\200\200\200\200\002\"*\n\020UpdateSUResponse\022\013\n\003err\030"
-    "\001 \001(\021*\t\010\350\007\020\200\200\200\200\002\"A\n\017DeleteSURequest\022\025\n\ra"
-    "mfMgmtHandle\030\001 \003(\014\022\014\n\004name\030\002 \001(\t*\t\010\350\007\020\200\200"
-    "\200\200\002\"*\n\020DeleteSUResponse\022\013\n\003err\030\001 \001(\021*\t\010\350"
-    "\007\020\200\200\200\200\002\"\201\001\n\017CreateSIRequest\022\025\n\ramfMgmtHa"
-    "ndle\030\001 \003(\014\022L\n\025ServiceInstanceConfig\030\002 \001("
-    "\0132-.SAFplus.Rpc.amfMgmtRpc.ServiceInstan"
-    "ceConfig*\t\010\350\007\020\200\200\200\200\002\"*\n\020CreateSIResponse\022"
-    "\013\n\003err\030\001 \001(\021*\t\010\350\007\020\200\200\200\200\002\"\201\001\n\017UpdateSIRequ"
-    "est\022\025\n\ramfMgmtHandle\030\001 \003(\014\022L\n\025ServiceIns"
-    "tanceConfig\030\002 \001(\0132-.SAFplus.Rpc.amfMgmtR"
-    "pc.ServiceInstanceConfig*\t\010\350\007\020\200\200\200\200\002\"*\n\020U"
-    "pdateSIResponse\022\013\n\003err\030\001 \001(\021*\t\010\350\007\020\200\200\200\200\002\""
-    "A\n\017DeleteSIRequest\022\025\n\ramfMgmtHandle\030\001 \003("
-    "\014\022\014\n\004name\030\002 \001(\t*\t\010\350\007\020\200\200\200\200\002\"*\n\020DeleteSIRe"
-    "sponse\022\013\n\003err\030\001 \001(\021*\t\010\350\007\020\200\200\200\200\002\"\224\001\n\020Creat"
-    "eCSIRequest\022\025\n\ramfMgmtHandle\030\001 \003(\014\022^\n\036Co"
-    "mponentServiceInstanceConfig\030\002 \001(\01326.SAF"
-    "plus.Rpc.amfMgmtRpc.ComponentServiceInst"
-    "anceConfig*\t\010\350\007\020\200\200\200\200\002\"+\n\021CreateCSIRespon"
-    "se\022\013\n\003err\030\001 \001(\021*\t\010\350\007\020\200\200\200\200\002\"\224\001\n\020UpdateCSI"
-    "Request\022\025\n\ramfMgmtHandle\030\001 \003(\014\022^\n\036Compon"
-    "entServiceInstanceConfig\030\002 \001(\01326.SAFplus"
-    ".Rpc.amfMgmtRpc.ComponentServiceInstance"
-    "Config*\t\010\350\007\020\200\200\200\200\002\"+\n\021UpdateCSIResponse\022\013"
-    "\n\003err\030\001 \001(\021*\t\010\350\007\020\200\200\200\200\002\"B\n\020DeleteCSIReque"
-    "st\022\025\n\ramfMgmtHandle\030\001 \003(\014\022\014\n\004name\030\002 \001(\t*"
-    "\t\010\350\007\020\200\200\200\200\002\"+\n\021DeleteCSIResponse\022\013\n\003err\030\001"
-    " \001(\021*\t\010\350\007\020\200\200\200\200\002\"q\n\023DeleteCSINVPRequest\022\025"
-    "\n\ramfMgmtHandle\030\001 \003(\014\022\014\n\004name\030\002 \001(\t\022*\n\004d"
-    "ata\030\003 \003(\0132\034.SAFplus.Rpc.amfMgmtRpc.Data*"
-    "\t\010\350\007\020\200\200\200\200\002\".\n\024DeleteCSINVPResponse\022\013\n\003er"
-    "r\030\001 \001(\021*\t\010\350\007\020\200\200\200\200\002\"]\n\027DeleteNodeSUListRe"
-    "quest\022\025\n\ramfMgmtHandle\030\001 \003(\014\022\020\n\010nodeName"
-    "\030\002 \001(\t\022\016\n\006suList\030\003 \003(\t*\t\010\350\007\020\200\200\200\200\002\"2\n\030Del"
-    "eteNodeSUListResponse\022\013\n\003err\030\001 \001(\021*\t\010\350\007\020"
-    "\200\200\200\200\002\"Y\n\025DeleteSGSUListRequest\022\025\n\ramfMgm"
-    "tHandle\030\001 \003(\014\022\016\n\006sgName\030\002 \001(\t\022\016\n\006suList\030"
-    "\003 \003(\t*\t\010\350\007\020\200\200\200\200\002\"0\n\026DeleteSGSUListRespon"
-    "se\022\013\n\003err\030\001 \001(\021*\t\010\350\007\020\200\200\200\200\002\"Y\n\025DeleteSGSI"
-    "ListRequest\022\025\n\ramfMgmtHandle\030\001 \003(\014\022\016\n\006sg"
-    "Name\030\002 \001(\t\022\016\n\006siList\030\003 \003(\t*\t\010\350\007\020\200\200\200\200\002\"0\n"
-    "\026DeleteSGSIListResponse\022\013\n\003err\030\001 \001(\021*\t\010\350"
-    "\007\020\200\200\200\200\002\"]\n\027DeleteSUCompListRequest\022\025\n\ram"
-    "fMgmtHandle\030\001 \003(\014\022\016\n\006suName\030\002 \001(\t\022\020\n\010com"
-    "pList\030\003 \003(\t*\t\010\350\007\020\200\200\200\200\002\"2\n\030DeleteSUCompLi"
-    "stResponse\022\013\n\003err\030\001 \001(\021*\t\010\350\007\020\200\200\200\200\002\"[\n\026De"
-    "leteSICSIListRequest\022\025\n\ramfMgmtHandle\030\001 "
-    "\003(\014\022\016\n\006siName\030\002 \001(\t\022\017\n\007csiList\030\003 \003(\t*\t\010\350"
-    "\007\020\200\200\200\200\002\"1\n\027DeleteSICSIListResponse\022\013\n\003er"
-    "r\030\001 \001(\021*\t\010\350\007\020\200\200\200\200\002\"O\n\031LockNodeAssignment"
-    "Request\022\025\n\ramfMgmtHandle\030\001 \003(\014\022\020\n\010nodeNa"
-    "me\030\002 \001(\t*\t\010\350\007\020\200\200\200\200\002\"4\n\032LockNodeAssignmen"
+    "\010\350\007\020\200\200\200\200\002\"*\n\020UpdateSGResponse\022\013\n\003err\030\001 \001"
+    "(\021*\t\010\350\007\020\200\200\200\200\002\"A\n\017DeleteSGRequest\022\025\n\ramfM"
+    "gmtHandle\030\001 \003(\014\022\014\n\004name\030\002 \001(\t*\t\010\350\007\020\200\200\200\200\002"
+    "\"*\n\020DeleteSGResponse\022\013\n\003err\030\001 \001(\021*\t\010\350\007\020\200"
+    "\200\200\200\002\"m\n\021CreateNodeRequest\022\025\n\ramfMgmtHand"
+    "le\030\001 \003(\014\0226\n\nNodeConfig\030\002 \001(\0132\".SAFplus.R"
+    "pc.amfMgmtRpc.NodeConfig*\t\010\350\007\020\200\200\200\200\002\",\n\022C"
+    "reateNodeResponse\022\013\n\003err\030\001 \001(\021*\t\010\350\007\020\200\200\200\200"
+    "\002\"m\n\021UpdateNodeRequest\022\025\n\ramfMgmtHandle\030"
+    "\001 \003(\014\0226\n\nNodeConfig\030\002 \001(\0132\".SAFplus.Rpc."
+    "amfMgmtRpc.NodeConfig*\t\010\350\007\020\200\200\200\200\002\",\n\022Upda"
+    "teNodeResponse\022\013\n\003err\030\001 \001(\021*\t\010\350\007\020\200\200\200\200\002\"C"
+    "\n\021DeleteNodeRequest\022\025\n\ramfMgmtHandle\030\001 \003"
+    "(\014\022\014\n\004name\030\002 \001(\t*\t\010\350\007\020\200\200\200\200\002\",\n\022DeleteNod"
+    "eResponse\022\013\n\003err\030\001 \001(\021*\t\010\350\007\020\200\200\200\200\002\"y\n\017Cre"
+    "ateSURequest\022\025\n\ramfMgmtHandle\030\001 \003(\014\022D\n\021S"
+    "erviceUnitConfig\030\002 \001(\0132).SAFplus.Rpc.amf"
+    "MgmtRpc.ServiceUnitConfig*\t\010\350\007\020\200\200\200\200\002\"*\n\020"
+    "CreateSUResponse\022\013\n\003err\030\001 \001(\021*\t\010\350\007\020\200\200\200\200\002"
+    "\"y\n\017UpdateSURequest\022\025\n\ramfMgmtHandle\030\001 \003"
+    "(\014\022D\n\021ServiceUnitConfig\030\002 \001(\0132).SAFplus."
+    "Rpc.amfMgmtRpc.ServiceUnitConfig*\t\010\350\007\020\200\200"
+    "\200\200\002\"*\n\020UpdateSUResponse\022\013\n\003err\030\001 \001(\021*\t\010\350"
+    "\007\020\200\200\200\200\002\"A\n\017DeleteSURequest\022\025\n\ramfMgmtHan"
+    "dle\030\001 \003(\014\022\014\n\004name\030\002 \001(\t*\t\010\350\007\020\200\200\200\200\002\"*\n\020De"
+    "leteSUResponse\022\013\n\003err\030\001 \001(\021*\t\010\350\007\020\200\200\200\200\002\"\201"
+    "\001\n\017CreateSIRequest\022\025\n\ramfMgmtHandle\030\001 \003("
+    "\014\022L\n\025ServiceInstanceConfig\030\002 \001(\0132-.SAFpl"
+    "us.Rpc.amfMgmtRpc.ServiceInstanceConfig*"
+    "\t\010\350\007\020\200\200\200\200\002\"*\n\020CreateSIResponse\022\013\n\003err\030\001 "
+    "\001(\021*\t\010\350\007\020\200\200\200\200\002\"\201\001\n\017UpdateSIRequest\022\025\n\ram"
+    "fMgmtHandle\030\001 \003(\014\022L\n\025ServiceInstanceConf"
+    "ig\030\002 \001(\0132-.SAFplus.Rpc.amfMgmtRpc.Servic"
+    "eInstanceConfig*\t\010\350\007\020\200\200\200\200\002\"*\n\020UpdateSIRe"
+    "sponse\022\013\n\003err\030\001 \001(\021*\t\010\350\007\020\200\200\200\200\002\"A\n\017Delete"
+    "SIRequest\022\025\n\ramfMgmtHandle\030\001 \003(\014\022\014\n\004name"
+    "\030\002 \001(\t*\t\010\350\007\020\200\200\200\200\002\"*\n\020DeleteSIResponse\022\013\n"
+    "\003err\030\001 \001(\021*\t\010\350\007\020\200\200\200\200\002\"\224\001\n\020CreateCSIReque"
+    "st\022\025\n\ramfMgmtHandle\030\001 \003(\014\022^\n\036ComponentSe"
+    "rviceInstanceConfig\030\002 \001(\01326.SAFplus.Rpc."
+    "amfMgmtRpc.ComponentServiceInstanceConfi"
+    "g*\t\010\350\007\020\200\200\200\200\002\"+\n\021CreateCSIResponse\022\013\n\003err"
+    "\030\001 \001(\021*\t\010\350\007\020\200\200\200\200\002\"\224\001\n\020UpdateCSIRequest\022\025"
+    "\n\ramfMgmtHandle\030\001 \003(\014\022^\n\036ComponentServic"
+    "eInstanceConfig\030\002 \001(\01326.SAFplus.Rpc.amfM"
+    "gmtRpc.ComponentServiceInstanceConfig*\t\010"
+    "\350\007\020\200\200\200\200\002\"+\n\021UpdateCSIResponse\022\013\n\003err\030\001 \001"
+    "(\021*\t\010\350\007\020\200\200\200\200\002\"B\n\020DeleteCSIRequest\022\025\n\ramf"
+    "MgmtHandle\030\001 \003(\014\022\014\n\004name\030\002 \001(\t*\t\010\350\007\020\200\200\200\200"
+    "\002\"+\n\021DeleteCSIResponse\022\013\n\003err\030\001 \001(\021*\t\010\350\007"
+    "\020\200\200\200\200\002\"q\n\023DeleteCSINVPRequest\022\025\n\ramfMgmt"
+    "Handle\030\001 \003(\014\022\014\n\004name\030\002 \001(\t\022*\n\004data\030\003 \003(\013"
+    "2\034.SAFplus.Rpc.amfMgmtRpc.Data*\t\010\350\007\020\200\200\200\200"
+    "\002\".\n\024DeleteCSINVPResponse\022\013\n\003err\030\001 \001(\021*\t"
+    "\010\350\007\020\200\200\200\200\002\"]\n\027DeleteNodeSUListRequest\022\025\n\r"
+    "amfMgmtHandle\030\001 \003(\014\022\020\n\010nodeName\030\002 \001(\t\022\016\n"
+    "\006suList\030\003 \003(\t*\t\010\350\007\020\200\200\200\200\002\"2\n\030DeleteNodeSU"
+    "ListResponse\022\013\n\003err\030\001 \001(\021*\t\010\350\007\020\200\200\200\200\002\"Y\n\025"
+    "DeleteSGSUListRequest\022\025\n\ramfMgmtHandle\030\001"
+    " \003(\014\022\016\n\006sgName\030\002 \001(\t\022\016\n\006suList\030\003 \003(\t*\t\010\350"
+    "\007\020\200\200\200\200\002\"0\n\026DeleteSGSUListResponse\022\013\n\003err"
+    "\030\001 \001(\021*\t\010\350\007\020\200\200\200\200\002\"Y\n\025DeleteSGSIListReque"
+    "st\022\025\n\ramfMgmtHandle\030\001 \003(\014\022\016\n\006sgName\030\002 \001("
+    "\t\022\016\n\006siList\030\003 \003(\t*\t\010\350\007\020\200\200\200\200\002\"0\n\026DeleteSG"
+    "SIListResponse\022\013\n\003err\030\001 \001(\021*\t\010\350\007\020\200\200\200\200\002\"]"
+    "\n\027DeleteSUCompListRequest\022\025\n\ramfMgmtHand"
+    "le\030\001 \003(\014\022\016\n\006suName\030\002 \001(\t\022\020\n\010compList\030\003 \003"
+    "(\t*\t\010\350\007\020\200\200\200\200\002\"2\n\030DeleteSUCompListRespons"
+    "e\022\013\n\003err\030\001 \001(\021*\t\010\350\007\020\200\200\200\200\002\"[\n\026DeleteSICSI"
+    "ListRequest\022\025\n\ramfMgmtHandle\030\001 \003(\014\022\016\n\006si"
+    "Name\030\002 \001(\t\022\017\n\007csiList\030\003 \003(\t*\t\010\350\007\020\200\200\200\200\002\"1"
+    "\n\027DeleteSICSIListResponse\022\013\n\003err\030\001 \001(\021*\t"
+    "\010\350\007\020\200\200\200\200\002\"O\n\031LockNodeAssignmentRequest\022\025"
+    "\n\ramfMgmtHandle\030\001 \003(\014\022\020\n\010nodeName\030\002 \001(\t*"
+    "\t\010\350\007\020\200\200\200\200\002\"4\n\032LockNodeAssignmentResponse"
+    "\022\013\n\003err\030\001 \001(\021*\t\010\350\007\020\200\200\200\200\002\"K\n\027LockSGAssign"
+    "mentRequest\022\025\n\ramfMgmtHandle\030\001 \003(\014\022\016\n\006sg"
+    "Name\030\002 \001(\t*\t\010\350\007\020\200\200\200\200\002\"2\n\030LockSGAssignmen"
     "tResponse\022\013\n\003err\030\001 \001(\021*\t\010\350\007\020\200\200\200\200\002\"K\n\027Loc"
-    "kSGAssignmentRequest\022\025\n\ramfMgmtHandle\030\001 "
-    "\003(\014\022\016\n\006sgName\030\002 \001(\t*\t\010\350\007\020\200\200\200\200\002\"2\n\030LockSG"
+    "kSUAssignmentRequest\022\025\n\ramfMgmtHandle\030\001 "
+    "\003(\014\022\016\n\006suName\030\002 \001(\t*\t\010\350\007\020\200\200\200\200\002\"2\n\030LockSU"
     "AssignmentResponse\022\013\n\003err\030\001 \001(\021*\t\010\350\007\020\200\200\200"
-    "\200\002\"K\n\027LockSUAssignmentRequest\022\025\n\ramfMgmt"
-    "Handle\030\001 \003(\014\022\016\n\006suName\030\002 \001(\t*\t\010\350\007\020\200\200\200\200\002\""
-    "2\n\030LockSUAssignmentResponse\022\013\n\003err\030\001 \001(\021"
-    "*\t\010\350\007\020\200\200\200\200\002\"K\n\027LockSIAssignmentRequest\022\025"
-    "\n\ramfMgmtHandle\030\001 \003(\014\022\016\n\006siName\030\002 \001(\t*\t\010"
-    "\350\007\020\200\200\200\200\002\"2\n\030LockSIAssignmentResponse\022\013\n\003"
-    "err\030\001 \001(\021*\t\010\350\007\020\200\200\200\200\002\"R\n\034LockNodeInstanti"
-    "ationRequest\022\025\n\ramfMgmtHandle\030\001 \003(\014\022\020\n\010n"
-    "odeName\030\002 \001(\t*\t\010\350\007\020\200\200\200\200\002\"7\n\035LockNodeInst"
-    "antiationResponse\022\013\n\003err\030\001 \001(\021*\t\010\350\007\020\200\200\200\200"
-    "\002\"N\n\032LockSGInstantiationRequest\022\025\n\ramfMg"
-    "mtHandle\030\001 \003(\014\022\016\n\006sgName\030\002 \001(\t*\t\010\350\007\020\200\200\200\200"
-    "\002\"5\n\033LockSGInstantiationResponse\022\013\n\003err\030"
-    "\001 \001(\021*\t\010\350\007\020\200\200\200\200\002\"N\n\032LockSUInstantiationR"
-    "equest\022\025\n\ramfMgmtHandle\030\001 \003(\014\022\016\n\006suName\030"
-    "\002 \001(\t*\t\010\350\007\020\200\200\200\200\002\"5\n\033LockSUInstantiationR"
-    "esponse\022\013\n\003err\030\001 \001(\021*\t\010\350\007\020\200\200\200\200\002\"G\n\021Unloc"
-    "kNodeRequest\022\025\n\ramfMgmtHandle\030\001 \003(\014\022\020\n\010n"
-    "odeName\030\002 \001(\t*\t\010\350\007\020\200\200\200\200\002\",\n\022UnlockNodeRe"
-    "sponse\022\013\n\003err\030\001 \001(\021*\t\010\350\007\020\200\200\200\200\002\"C\n\017Unlock"
-    "SGRequest\022\025\n\ramfMgmtHandle\030\001 \003(\014\022\016\n\006sgNa"
-    "me\030\002 \001(\t*\t\010\350\007\020\200\200\200\200\002\"*\n\020UnlockSGResponse\022"
-    "\013\n\003err\030\001 \001(\021*\t\010\350\007\020\200\200\200\200\002\"C\n\017UnlockSUReque"
-    "st\022\025\n\ramfMgmtHandle\030\001 \003(\014\022\016\n\006suName\030\002 \001("
-    "\t*\t\010\350\007\020\200\200\200\200\002\"*\n\020UnlockSUResponse\022\013\n\003err\030"
-    "\001 \001(\021*\t\010\350\007\020\200\200\200\200\002\"C\n\017UnlockSIRequest\022\025\n\ra"
-    "mfMgmtHandle\030\001 \003(\014\022\016\n\006siName\030\002 \001(\t*\t\010\350\007\020"
-    "\200\200\200\200\002\"*\n\020UnlockSIResponse\022\013\n\003err\030\001 \001(\021*\t"
-    "\010\350\007\020\200\200\200\200\002\"G\n\021RepairNodeRequest\022\025\n\ramfMgm"
-    "tHandle\030\001 \003(\014\022\020\n\010nodeName\030\002 \001(\t*\t\010\350\007\020\200\200\200"
-    "\200\002\",\n\022RepairNodeResponse\022\013\n\003err\030\001 \001(\021*\t\010"
-    "\350\007\020\200\200\200\200\002\"L\n\026RepairComponentRequest\022\025\n\ram"
-    "fMgmtHandle\030\001 \003(\014\022\020\n\010compName\030\002 \001(\t*\t\010\350\007"
-    "\020\200\200\200\200\002\"1\n\027RepairComponentResponse\022\013\n\003err"
-    "\030\001 \001(\021*\t\010\350\007\020\200\200\200\200\002\"C\n\017RepairSURequest\022\025\n\r"
-    "amfMgmtHandle\030\001 \003(\014\022\016\n\006suName\030\002 \001(\t*\t\010\350\007"
-    "\020\200\200\200\200\002\"*\n\020RepairSUResponse\022\013\n\003err\030\001 \001(\021*"
-    "\t\010\350\007\020\200\200\200\200\002\"O\n\031GetComponentConfigRequest\022"
-    "\025\n\ramfMgmtHandle\030\001 \003(\014\022\020\n\010compName\030\002 \001(\t"
-    "*\t\010\350\007\020\200\200\200\200\002\"v\n\032GetComponentConfigRespons"
-    "e\022@\n\017ComponentConfig\030\001 \001(\0132\'.SAFplus.Rpc"
-    ".amfMgmtRpc.ComponentConfig\022\013\n\003err\030\002 \001(\021"
-    "*\t\010\350\007\020\200\200\200\200\002\"J\n\024GetNodeConfigRequest\022\025\n\ra"
-    "mfMgmtHandle\030\001 \003(\014\022\020\n\010nodeName\030\002 \001(\t*\t\010\350"
-    "\007\020\200\200\200\200\002\"g\n\025GetNodeConfigResponse\0226\n\nNode"
-    "Config\030\001 \001(\0132\".SAFplus.Rpc.amfMgmtRpc.No"
-    "deConfig\022\013\n\003err\030\002 \001(\021*\t\010\350\007\020\200\200\200\200\002\"F\n\022GetS"
-    "UConfigRequest\022\025\n\ramfMgmtHandle\030\001 \003(\014\022\016\n"
-    "\006suName\030\002 \001(\t*\t\010\350\007\020\200\200\200\200\002\"s\n\023GetSUConfigR"
-    "esponse\022D\n\021ServiceUnitConfig\030\001 \001(\0132).SAF"
-    "plus.Rpc.amfMgmtRpc.ServiceUnitConfig\022\013\n"
-    "\003err\030\002 \001(\021*\t\010\350\007\020\200\200\200\200\002\"F\n\022GetSGConfigRequ"
-    "est\022\025\n\ramfMgmtHandle\030\001 \003(\014\022\016\n\006sgName\030\002 \001"
-    "(\t*\t\010\350\007\020\200\200\200\200\002\"u\n\023GetSGConfigResponse\022F\n\022"
-    "ServiceGroupConfig\030\001 \001(\0132*.SAFplus.Rpc.a"
-    "mfMgmtRpc.ServiceGroupConfig\022\013\n\003err\030\002 \001("
-    "\021*\t\010\350\007\020\200\200\200\200\002\"F\n\022GetSIConfigRequest\022\025\n\ram"
-    "fMgmtHandle\030\001 \003(\014\022\016\n\006siName\030\002 \001(\t*\t\010\350\007\020\200"
-    "\200\200\200\002\"{\n\023GetSIConfigResponse\022L\n\025ServiceIn"
-    "stanceConfig\030\001 \001(\0132-.SAFplus.Rpc.amfMgmt"
-    "Rpc.ServiceInstanceConfig\022\013\n\003err\030\002 \001(\021*\t"
-    "\010\350\007\020\200\200\200\200\002\"H\n\023GetCSIConfigRequest\022\025\n\ramfM"
-    "gmtHandle\030\001 \003(\014\022\017\n\007csiName\030\002 \001(\t*\t\010\350\007\020\200\200"
-    "\200\200\002\"\216\001\n\024GetCSIConfigResponse\022^\n\036Componen"
-    "tServiceInstanceConfig\030\001 \001(\01326.SAFplus.R"
-    "pc.amfMgmtRpc.ComponentServiceInstanceCo"
-    "nfig\022\013\n\003err\030\002 \001(\021*\t\010\350\007\020\200\200\200\200\002\"O\n\031GetCompo"
-    "nentStatusRequest\022\025\n\ramfMgmtHandle\030\001 \003(\014"
-    "\022\020\n\010compName\030\002 \001(\t*\t\010\350\007\020\200\200\200\200\002\"v\n\032GetComp"
-    "onentStatusResponse\022@\n\017ComponentStatus\030\001"
-    " \001(\0132\'.SAFplus.Rpc.amfMgmtRpc.ComponentS"
-    "tatus\022\013\n\003err\030\002 \001(\021*\t\010\350\007\020\200\200\200\200\002\"J\n\024GetNode"
-    "StatusRequest\022\025\n\ramfMgmtHandle\030\001 \003(\014\022\020\n\010"
-    "nodeName\030\002 \001(\t*\t\010\350\007\020\200\200\200\200\002\"g\n\025GetNodeStat"
-    "usResponse\0226\n\nNodeStatus\030\001 \001(\0132\".SAFplus"
-    ".Rpc.amfMgmtRpc.NodeStatus\022\013\n\003err\030\002 \001(\021*"
-    "\t\010\350\007\020\200\200\200\200\002\"F\n\022GetSUStatusRequest\022\025\n\ramfM"
-    "gmtHandle\030\001 \003(\014\022\016\n\006suName\030\002 \001(\t*\t\010\350\007\020\200\200\200"
-    "\200\002\"s\n\023GetSUStatusResponse\022D\n\021ServiceUnit"
-    "Status\030\001 \001(\0132).SAFplus.Rpc.amfMgmtRpc.Se"
-    "rviceUnitStatus\022\013\n\003err\030\002 \001(\021*\t\010\350\007\020\200\200\200\200\002\""
-    "F\n\022GetSGStatusRequest\022\025\n\ramfMgmtHandle\030\001"
-    " \003(\014\022\016\n\006sgName\030\002 \001(\t*\t\010\350\007\020\200\200\200\200\002\"u\n\023GetSG"
-    "StatusResponse\022F\n\022ServiceGroupStatus\030\001 \001"
-    "(\0132*.SAFplus.Rpc.amfMgmtRpc.ServiceGroup"
-    "Status\022\013\n\003err\030\002 \001(\021*\t\010\350\007\020\200\200\200\200\002\"F\n\022GetSIS"
+    "\200\002\"K\n\027LockSIAssignmentRequest\022\025\n\ramfMgmt"
+    "Handle\030\001 \003(\014\022\016\n\006siName\030\002 \001(\t*\t\010\350\007\020\200\200\200\200\002\""
+    "2\n\030LockSIAssignmentResponse\022\013\n\003err\030\001 \001(\021"
+    "*\t\010\350\007\020\200\200\200\200\002\"R\n\034LockNodeInstantiationRequ"
+    "est\022\025\n\ramfMgmtHandle\030\001 \003(\014\022\020\n\010nodeName\030\002"
+    " \001(\t*\t\010\350\007\020\200\200\200\200\002\"7\n\035LockNodeInstantiation"
+    "Response\022\013\n\003err\030\001 \001(\021*\t\010\350\007\020\200\200\200\200\002\"N\n\032Lock"
+    "SGInstantiationRequest\022\025\n\ramfMgmtHandle\030"
+    "\001 \003(\014\022\016\n\006sgName\030\002 \001(\t*\t\010\350\007\020\200\200\200\200\002\"5\n\033Lock"
+    "SGInstantiationResponse\022\013\n\003err\030\001 \001(\021*\t\010\350"
+    "\007\020\200\200\200\200\002\"N\n\032LockSUInstantiationRequest\022\025\n"
+    "\ramfMgmtHandle\030\001 \003(\014\022\016\n\006suName\030\002 \001(\t*\t\010\350"
+    "\007\020\200\200\200\200\002\"5\n\033LockSUInstantiationResponse\022\013"
+    "\n\003err\030\001 \001(\021*\t\010\350\007\020\200\200\200\200\002\"G\n\021UnlockNodeRequ"
+    "est\022\025\n\ramfMgmtHandle\030\001 \003(\014\022\020\n\010nodeName\030\002"
+    " \001(\t*\t\010\350\007\020\200\200\200\200\002\",\n\022UnlockNodeResponse\022\013\n"
+    "\003err\030\001 \001(\021*\t\010\350\007\020\200\200\200\200\002\"C\n\017UnlockSGRequest"
+    "\022\025\n\ramfMgmtHandle\030\001 \003(\014\022\016\n\006sgName\030\002 \001(\t*"
+    "\t\010\350\007\020\200\200\200\200\002\"*\n\020UnlockSGResponse\022\013\n\003err\030\001 "
+    "\001(\021*\t\010\350\007\020\200\200\200\200\002\"C\n\017UnlockSURequest\022\025\n\ramf"
+    "MgmtHandle\030\001 \003(\014\022\016\n\006suName\030\002 \001(\t*\t\010\350\007\020\200\200"
+    "\200\200\002\"*\n\020UnlockSUResponse\022\013\n\003err\030\001 \001(\021*\t\010\350"
+    "\007\020\200\200\200\200\002\"C\n\017UnlockSIRequest\022\025\n\ramfMgmtHan"
+    "dle\030\001 \003(\014\022\016\n\006siName\030\002 \001(\t*\t\010\350\007\020\200\200\200\200\002\"*\n\020"
+    "UnlockSIResponse\022\013\n\003err\030\001 \001(\021*\t\010\350\007\020\200\200\200\200\002"
+    "\"G\n\021RepairNodeRequest\022\025\n\ramfMgmtHandle\030\001"
+    " \003(\014\022\020\n\010nodeName\030\002 \001(\t*\t\010\350\007\020\200\200\200\200\002\",\n\022Rep"
+    "airNodeResponse\022\013\n\003err\030\001 \001(\021*\t\010\350\007\020\200\200\200\200\002\""
+    "L\n\026RepairComponentRequest\022\025\n\ramfMgmtHand"
+    "le\030\001 \003(\014\022\020\n\010compName\030\002 \001(\t*\t\010\350\007\020\200\200\200\200\002\"1\n"
+    "\027RepairComponentResponse\022\013\n\003err\030\001 \001(\021*\t\010"
+    "\350\007\020\200\200\200\200\002\"C\n\017RepairSURequest\022\025\n\ramfMgmtHa"
+    "ndle\030\001 \003(\014\022\016\n\006suName\030\002 \001(\t*\t\010\350\007\020\200\200\200\200\002\"*\n"
+    "\020RepairSUResponse\022\013\n\003err\030\001 \001(\021*\t\010\350\007\020\200\200\200\200"
+    "\002\"O\n\031GetComponentConfigRequest\022\025\n\ramfMgm"
+    "tHandle\030\001 \003(\014\022\020\n\010compName\030\002 \001(\t*\t\010\350\007\020\200\200\200"
+    "\200\002\"v\n\032GetComponentConfigResponse\022@\n\017Comp"
+    "onentConfig\030\001 \001(\0132\'.SAFplus.Rpc.amfMgmtR"
+    "pc.ComponentConfig\022\013\n\003err\030\002 \001(\021*\t\010\350\007\020\200\200\200"
+    "\200\002\"J\n\024GetNodeConfigRequest\022\025\n\ramfMgmtHan"
+    "dle\030\001 \003(\014\022\020\n\010nodeName\030\002 \001(\t*\t\010\350\007\020\200\200\200\200\002\"g"
+    "\n\025GetNodeConfigResponse\0226\n\nNodeConfig\030\001 "
+    "\001(\0132\".SAFplus.Rpc.amfMgmtRpc.NodeConfig\022"
+    "\013\n\003err\030\002 \001(\021*\t\010\350\007\020\200\200\200\200\002\"F\n\022GetSUConfigRe"
+    "quest\022\025\n\ramfMgmtHandle\030\001 \003(\014\022\016\n\006suName\030\002"
+    " \001(\t*\t\010\350\007\020\200\200\200\200\002\"s\n\023GetSUConfigResponse\022D"
+    "\n\021ServiceUnitConfig\030\001 \001(\0132).SAFplus.Rpc."
+    "amfMgmtRpc.ServiceUnitConfig\022\013\n\003err\030\002 \001("
+    "\021*\t\010\350\007\020\200\200\200\200\002\"F\n\022GetSGConfigRequest\022\025\n\ram"
+    "fMgmtHandle\030\001 \003(\014\022\016\n\006sgName\030\002 \001(\t*\t\010\350\007\020\200"
+    "\200\200\200\002\"u\n\023GetSGConfigResponse\022F\n\022ServiceGr"
+    "oupConfig\030\001 \001(\0132*.SAFplus.Rpc.amfMgmtRpc"
+    ".ServiceGroupConfig\022\013\n\003err\030\002 \001(\021*\t\010\350\007\020\200\200"
+    "\200\200\002\"F\n\022GetSIConfigRequest\022\025\n\ramfMgmtHand"
+    "le\030\001 \003(\014\022\016\n\006siName\030\002 \001(\t*\t\010\350\007\020\200\200\200\200\002\"{\n\023G"
+    "etSIConfigResponse\022L\n\025ServiceInstanceCon"
+    "fig\030\001 \001(\0132-.SAFplus.Rpc.amfMgmtRpc.Servi"
+    "ceInstanceConfig\022\013\n\003err\030\002 \001(\021*\t\010\350\007\020\200\200\200\200\002"
+    "\"H\n\023GetCSIConfigRequest\022\025\n\ramfMgmtHandle"
+    "\030\001 \003(\014\022\017\n\007csiName\030\002 \001(\t*\t\010\350\007\020\200\200\200\200\002\"\216\001\n\024G"
+    "etCSIConfigResponse\022^\n\036ComponentServiceI"
+    "nstanceConfig\030\001 \001(\01326.SAFplus.Rpc.amfMgm"
+    "tRpc.ComponentServiceInstanceConfig\022\013\n\003e"
+    "rr\030\002 \001(\021*\t\010\350\007\020\200\200\200\200\002\"O\n\031GetComponentStatu"
+    "sRequest\022\025\n\ramfMgmtHandle\030\001 \003(\014\022\020\n\010compN"
+    "ame\030\002 \001(\t*\t\010\350\007\020\200\200\200\200\002\"v\n\032GetComponentStat"
+    "usResponse\022@\n\017ComponentStatus\030\001 \001(\0132\'.SA"
+    "Fplus.Rpc.amfMgmtRpc.ComponentStatus\022\013\n\003"
+    "err\030\002 \001(\021*\t\010\350\007\020\200\200\200\200\002\"J\n\024GetNodeStatusReq"
+    "uest\022\025\n\ramfMgmtHandle\030\001 \003(\014\022\020\n\010nodeName\030"
+    "\002 \001(\t*\t\010\350\007\020\200\200\200\200\002\"g\n\025GetNodeStatusRespons"
+    "e\0226\n\nNodeStatus\030\001 \001(\0132\".SAFplus.Rpc.amfM"
+    "gmtRpc.NodeStatus\022\013\n\003err\030\002 \001(\021*\t\010\350\007\020\200\200\200\200"
+    "\002\"F\n\022GetSUStatusRequest\022\025\n\ramfMgmtHandle"
+    "\030\001 \003(\014\022\016\n\006suName\030\002 \001(\t*\t\010\350\007\020\200\200\200\200\002\"s\n\023Get"
+    "SUStatusResponse\022D\n\021ServiceUnitStatus\030\001 "
+    "\001(\0132).SAFplus.Rpc.amfMgmtRpc.ServiceUnit"
+    "Status\022\013\n\003err\030\002 \001(\021*\t\010\350\007\020\200\200\200\200\002\"F\n\022GetSGS"
     "tatusRequest\022\025\n\ramfMgmtHandle\030\001 \003(\014\022\016\n\006s"
-    "iName\030\002 \001(\t*\t\010\350\007\020\200\200\200\200\002\"{\n\023GetSIStatusRes"
-    "ponse\022L\n\025ServiceInstanceStatus\030\001 \001(\0132-.S"
-    "AFplus.Rpc.amfMgmtRpc.ServiceInstanceSta"
-    "tus\022\013\n\003err\030\002 \001(\021*\t\010\350\007\020\200\200\200\200\002\"H\n\023GetCSISta"
-    "tusRequest\022\025\n\ramfMgmtHandle\030\001 \003(\014\022\017\n\007csi"
-    "Name\030\002 \001(\t*\t\010\350\007\020\200\200\200\200\002\"\216\001\n\024GetCSIStatusRe"
-    "sponse\022^\n\036ComponentServiceInstanceStatus"
-    "\030\001 \001(\01326.SAFplus.Rpc.amfMgmtRpc.Componen"
-    "tServiceInstanceStatus\022\013\n\003err\030\002 \001(\021*\t\010\350\007"
-    "\020\200\200\200\200\002\"H\n\022NodeRestartRequest\022\025\n\ramfMgmtH"
-    "andle\030\001 \003(\014\022\020\n\010nodeName\030\002 \001(\t*\t\010\350\007\020\200\200\200\200\002"
-    "\"-\n\023NodeRestartResponse\022\013\n\003err\030\001 \001(\021*\t\010\350"
-    "\007\020\200\200\200\200\002\"M\n\031ServiceUnitRestartRequest\022\025\n\r"
-    "amfMgmtHandle\030\001 \003(\014\022\016\n\006suName\030\002 \001(\t*\t\010\350\007"
-    "\020\200\200\200\200\002\"4\n\032ServiceUnitRestartResponse\022\013\n\003"
-    "err\030\001 \001(\021*\t\010\350\007\020\200\200\200\200\002\"M\n\027ComponentRestart"
-    "Request\022\025\n\ramfMgmtHandle\030\001 \003(\014\022\020\n\010compNa"
-    "me\030\002 \001(\t*\t\010\350\007\020\200\200\200\200\002\"2\n\030ComponentRestartR"
-    "esponse\022\013\n\003err\030\001 \001(\021*\t\010\350\007\020\200\200\200\200\002\"T\n\017Adjus"
-    "tSGRequest\022\025\n\ramfMgmtHandle\030\001 \003(\014\022\016\n\006sgN"
-    "ame\030\002 \001(\t\022\017\n\007enabled\030\003 \001(\010*\t\010\350\007\020\200\200\200\200\002\"*\n"
-    "\020AdjustSGResponse\022\013\n\003err\030\001 \001(\021*\t\010\350\007\020\200\200\200\200"
-    "\002\"A\n\rSwapSIRequest\022\025\n\ramfMgmtHandle\030\001 \003("
-    "\014\022\016\n\006siName\030\002 \001(\t*\t\010\350\007\020\200\200\200\200\002\"(\n\016SwapSIRe"
-    "sponse\022\013\n\003err\030\001 \001(\021*\t\010\350\007\020\200\200\200\200\002\"\213\001\n\026CompE"
-    "rrorReportRequest\022\025\n\ramfMgmtHandle\030\001 \003(\014"
-    "\022\020\n\010compName\030\002 \001(\t\022=\n\023recommendedRecover"
-    "y\030\003 \001(\0162 .SAFplus.Rpc.amfMgmtRpc.Recover"
-    "y*\t\010\350\007\020\200\200\200\200\002\"1\n\027CompErrorReportResponse\022"
-    "\013\n\003err\030\001 \001(\021*\t\010\350\007\020\200\200\200\200\002\"\245\001\n\026NodeErrorRep"
-    "ortRequest\022\025\n\ramfMgmtHandle\030\001 \003(\014\022\020\n\010nod"
-    "eName\030\002 \001(\t\022\023\n\013shutdownAmf\030\003 \001(\010\022\022\n\nrebo"
-    "otNode\030\004 \001(\010\022\032\n\022gracefulSwitchover\030\005 \001(\010"
-    "\022\022\n\nrestartAmf\030\006 \001(\010*\t\010\350\007\020\200\200\200\200\002\"1\n\027NodeE"
-    "rrorReportResponse\022\013\n\003err\030\001 \001(\021*\t\010\350\007\020\200\200\200"
-    "\200\002\"K\n\025NodeErrorClearRequest\022\025\n\ramfMgmtHa"
-    "ndle\030\001 \003(\014\022\020\n\010nodeName\030\002 \001(\t*\t\010\350\007\020\200\200\200\200\002\""
-    "0\n\026NodeErrorClearResponse\022\013\n\003err\030\001 \001(\021*\t"
-    "\010\350\007\020\200\200\200\200\002\"t\n\023AssignSUtoSIRequest\022\025\n\ramfM"
-    "gmtHandle\030\001 \003(\014\022\016\n\006siName\030\002 \001(\t\022\024\n\014activ"
-    "eSUName\030\003 \001(\t\022\025\n\rstandbySUName\030\004 \001(\t*\t\010\350"
-    "\007\020\200\200\200\200\002\".\n\024AssignSUtoSIResponse\022\013\n\003err\030\001"
-    " \001(\021*\t\010\350\007\020\200\200\200\200\002\"Q\n\035ForceLockInstantiatio"
-    "nRequest\022\025\n\ramfMgmtHandle\030\001 \003(\014\022\016\n\006suNam"
-    "e\030\002 \001(\t*\t\010\350\007\020\200\200\200\200\002\"8\n\036ForceLockInstantia"
-    "tionResponse\022\013\n\003err\030\001 \001(\021*\t\010\350\007\020\200\200\200\200\002*\377\001\n"
-    "\rPresenceState\022 \n\034PresenceState_uninstan"
-    "tiated\020\000\022\037\n\033PresenceState_instantiating\020"
-    "\001\022\036\n\032PresenceState_instantiated\020\002\022\035\n\031Pre"
-    "senceState_terminating\020\003\022\034\n\030PresenceStat"
-    "e_restarting\020\004\022%\n!PresenceState_instanti"
-    "ationFailed\020\005\022#\n\037PresenceState_terminati"
-    "onFailed\020\006\032\002\020\001*p\n\016ReadinessState\022\037\n\033Read"
-    "inessState_outOfService\020\000\022\034\n\030ReadinessSt"
-    "ate_inService\020\001\022\033\n\027ReadinessState_stoppi"
-    "ng\020\002\032\002\020\001*\206\002\n\036HighAvailabilityReadinessSt"
-    "ate\0225\n1HighAvailabilityReadinessState_re"
-    "adyForAssignment\020\000\0229\n5HighAvailabilityRe"
-    "adinessState_readyForActiveDegraded\020\001\0224\n"
-    "0HighAvailabilityReadinessState_notReady"
-    "ForActive\020\002\0228\n4HighAvailabilityReadiness"
-    "State_notReadyForAssignment\020\003\032\002\020\001*\245\001\n\025Hi"
-    "ghAvailabilityState\022 \n\034HighAvailabilityS"
-    "tate_active\020\001\022!\n\035HighAvailabilityState_s"
-    "tandby\020\002\022\036\n\032HighAvailabilityState_idle\020\003"
-    "\022#\n\037HighAvailabilityState_quiescing\020\004\032\002\020"
-    "\001*p\n\023AdministrativeState\022\033\n\027Administrati"
-    "veState_off\020\000\022\034\n\030AdministrativeState_idl"
-    "e\020\001\022\032\n\026AdministrativeState_on\020\002\032\002\020\001*\210\002\n\010"
-    "Recovery\022\035\n\031Recovery_NoRecommendation\020\001\022"
-    "\024\n\020Recovery_Restart\020\002\022\025\n\021Recovery_Failov"
-    "er\020\003\022\033\n\027Recovery_NodeSwitchover\020\004\022\031\n\025Rec"
-    "overy_NodeFailover\020\005\022\031\n\025Recovery_NodeFai"
-    "lfast\020\006\022\031\n\025Recovery_ClusterReset\020\007\022\037\n\033Re"
-    "covery_ApplicationRestart\020\010\022\035\n\031Recovery_"
-    "ContainerRestart\020\t\032\002\020\001*\271\001\n\014ProcessState\022"
-    "\030\n\024ProcessState_Running\020\000\022\031\n\025ProcessStat"
-    "e_Sleeping\020\001\022\037\n\033ProcessState_WaitingForD"
-    "isk\020\002\022\027\n\023ProcessState_Zombie\020\003\022\030\n\024Proces"
-    "sState_Stopped\020\004\022\034\n\030ProcessState_Tracing"
-    "Stop\020\005\032\002\020\001*\225\001\n\017CapabilityModel\022*\n&Capabi"
-    "lityModel_x_active_and_y_standby\020\000\022)\n%Ca"
-    "pabilityModel_x_active_or_y_standby\020\001\022\'\n"
-    "#CapabilityModel_not_preinstantiable\020\002\032\002"
-    "\020\001*\273\001\n\020PendingOperation\022\031\n\025PendingOperat"
-    "ion_none\020\000\022\"\n\036PendingOperation_instantia"
-    "tion\020\001\022\035\n\031PendingOperation_shutdown\020\002\022#\n"
-    "\037PendingOperation_workAssignment\020\003\022 \n\034Pe"
-    "ndingOperation_workRemoval\020\004\032\002\020\001*\177\n\017Assi"
-    "gnmentState\022\036\n\032AssignmentState_unassigne"
-    "d\020\000\022!\n\035AssignmentState_fullyAssigned\020\001\022%"
-    "\n!AssignmentState_partiallyAssigned\020\002\032\002\020"
-    "\0012\2015\n\namfMgmtRpc\022c\n\ninitialize\022).SAFplus"
-    ".Rpc.amfMgmtRpc.InitializeRequest\032*.SAFp"
-    "lus.Rpc.amfMgmtRpc.InitializeResponse\022]\n"
-    "\010finalize\022\'.SAFplus.Rpc.amfMgmtRpc.Final"
-    "izeRequest\032(.SAFplus.Rpc.amfMgmtRpc.Fina"
-    "lizeResponse\022W\n\006commit\022%.SAFplus.Rpc.amf"
-    "MgmtRpc.CommitRequest\032&.SAFplus.Rpc.amfM"
-    "gmtRpc.CommitResponse\022r\n\017createComponent"
-    "\022..SAFplus.Rpc.amfMgmtRpc.CreateComponen"
-    "tRequest\032/.SAFplus.Rpc.amfMgmtRpc.Create"
-    "ComponentResponse\022r\n\017updateComponent\022..S"
-    "AFplus.Rpc.amfMgmtRpc.UpdateComponentReq"
-    "uest\032/.SAFplus.Rpc.amfMgmtRpc.UpdateComp"
-    "onentResponse\022r\n\017deleteComponent\022..SAFpl"
-    "us.Rpc.amfMgmtRpc.DeleteComponentRequest"
-    "\032/.SAFplus.Rpc.amfMgmtRpc.DeleteComponen"
-    "tResponse\022]\n\010createSG\022\'.SAFplus.Rpc.amfM"
-    "gmtRpc.CreateSGRequest\032(.SAFplus.Rpc.amf"
-    "MgmtRpc.CreateSGResponse\022]\n\010updateSG\022\'.S"
-    "AFplus.Rpc.amfMgmtRpc.UpdateSGRequest\032(."
-    "SAFplus.Rpc.amfMgmtRpc.UpdateSGResponse\022"
-    "]\n\010deleteSG\022\'.SAFplus.Rpc.amfMgmtRpc.Del"
-    "eteSGRequest\032(.SAFplus.Rpc.amfMgmtRpc.De"
-    "leteSGResponse\022c\n\ncreateNode\022).SAFplus.R"
-    "pc.amfMgmtRpc.CreateNodeRequest\032*.SAFplu"
-    "s.Rpc.amfMgmtRpc.CreateNodeResponse\022c\n\nu"
-    "pdateNode\022).SAFplus.Rpc.amfMgmtRpc.Updat"
-    "eNodeRequest\032*.SAFplus.Rpc.amfMgmtRpc.Up"
-    "dateNodeResponse\022c\n\ndeleteNode\022).SAFplus"
-    ".Rpc.amfMgmtRpc.DeleteNodeRequest\032*.SAFp"
-    "lus.Rpc.amfMgmtRpc.DeleteNodeResponse\022]\n"
-    "\010createSU\022\'.SAFplus.Rpc.amfMgmtRpc.Creat"
-    "eSURequest\032(.SAFplus.Rpc.amfMgmtRpc.Crea"
-    "teSUResponse\022]\n\010updateSU\022\'.SAFplus.Rpc.a"
-    "mfMgmtRpc.UpdateSURequest\032(.SAFplus.Rpc."
-    "amfMgmtRpc.UpdateSUResponse\022]\n\010deleteSU\022"
-    "\'.SAFplus.Rpc.amfMgmtRpc.DeleteSURequest"
-    "\032(.SAFplus.Rpc.amfMgmtRpc.DeleteSURespon"
-    "se\022]\n\010createSI\022\'.SAFplus.Rpc.amfMgmtRpc."
-    "CreateSIRequest\032(.SAFplus.Rpc.amfMgmtRpc"
-    ".CreateSIResponse\022]\n\010updateSI\022\'.SAFplus."
-    "Rpc.amfMgmtRpc.UpdateSIRequest\032(.SAFplus"
-    ".Rpc.amfMgmtRpc.UpdateSIResponse\022]\n\010dele"
-    "teSI\022\'.SAFplus.Rpc.amfMgmtRpc.DeleteSIRe"
-    "quest\032(.SAFplus.Rpc.amfMgmtRpc.DeleteSIR"
-    "esponse\022`\n\tcreateCSI\022(.SAFplus.Rpc.amfMg"
-    "mtRpc.CreateCSIRequest\032).SAFplus.Rpc.amf"
-    "MgmtRpc.CreateCSIResponse\022`\n\tupdateCSI\022("
-    ".SAFplus.Rpc.amfMgmtRpc.UpdateCSIRequest"
-    "\032).SAFplus.Rpc.amfMgmtRpc.UpdateCSIRespo"
-    "nse\022`\n\tdeleteCSI\022(.SAFplus.Rpc.amfMgmtRp"
-    "c.DeleteCSIRequest\032).SAFplus.Rpc.amfMgmt"
-    "Rpc.DeleteCSIResponse\022i\n\014deleteCSINVP\022+."
-    "SAFplus.Rpc.amfMgmtRpc.DeleteCSINVPReque"
-    "st\032,.SAFplus.Rpc.amfMgmtRpc.DeleteCSINVP"
-    "Response\022u\n\020deleteNodeSUList\022/.SAFplus.R"
-    "pc.amfMgmtRpc.DeleteNodeSUListRequest\0320."
-    "SAFplus.Rpc.amfMgmtRpc.DeleteNodeSUListR"
-    "esponse\022o\n\016deleteSGSUList\022-.SAFplus.Rpc."
-    "amfMgmtRpc.DeleteSGSUListRequest\032..SAFpl"
-    "us.Rpc.amfMgmtRpc.DeleteSGSUListResponse"
-    "\022o\n\016deleteSGSIList\022-.SAFplus.Rpc.amfMgmt"
-    "Rpc.DeleteSGSIListRequest\032..SAFplus.Rpc."
-    "amfMgmtRpc.DeleteSGSIListResponse\022u\n\020del"
-    "eteSUCompList\022/.SAFplus.Rpc.amfMgmtRpc.D"
-    "eleteSUCompListRequest\0320.SAFplus.Rpc.amf"
-    "MgmtRpc.DeleteSUCompListResponse\022r\n\017dele"
-    "teSICSIList\022..SAFplus.Rpc.amfMgmtRpc.Del"
-    "eteSICSIListRequest\032/.SAFplus.Rpc.amfMgm"
-    "tRpc.DeleteSICSIListResponse\022{\n\022lockNode"
-    "Assignment\0221.SAFplus.Rpc.amfMgmtRpc.Lock"
-    "NodeAssignmentRequest\0322.SAFplus.Rpc.amfM"
-    "gmtRpc.LockNodeAssignmentResponse\022u\n\020loc"
-    "kSGAssignment\022/.SAFplus.Rpc.amfMgmtRpc.L"
-    "ockSGAssignmentRequest\0320.SAFplus.Rpc.amf"
-    "MgmtRpc.LockSGAssignmentResponse\022u\n\020lock"
-    "SUAssignment\022/.SAFplus.Rpc.amfMgmtRpc.Lo"
-    "ckSUAssignmentRequest\0320.SAFplus.Rpc.amfM"
-    "gmtRpc.LockSUAssignmentResponse\022u\n\020lockS"
-    "IAssignment\022/.SAFplus.Rpc.amfMgmtRpc.Loc"
-    "kSIAssignmentRequest\0320.SAFplus.Rpc.amfMg"
-    "mtRpc.LockSIAssignmentResponse\022\204\001\n\025lockN"
-    "odeInstantiation\0224.SAFplus.Rpc.amfMgmtRp"
-    "c.LockNodeInstantiationRequest\0325.SAFplus"
-    ".Rpc.amfMgmtRpc.LockNodeInstantiationRes"
-    "ponse\022~\n\023lockSGInstantiation\0222.SAFplus.R"
-    "pc.amfMgmtRpc.LockSGInstantiationRequest"
-    "\0323.SAFplus.Rpc.amfMgmtRpc.LockSGInstanti"
-    "ationResponse\022~\n\023lockSUInstantiation\0222.S"
-    "AFplus.Rpc.amfMgmtRpc.LockSUInstantiatio"
-    "nRequest\0323.SAFplus.Rpc.amfMgmtRpc.LockSU"
-    "InstantiationResponse\022c\n\nunlockNode\022).SA"
-    "Fplus.Rpc.amfMgmtRpc.UnlockNodeRequest\032*"
-    ".SAFplus.Rpc.amfMgmtRpc.UnlockNodeRespon"
-    "se\022]\n\010unlockSG\022\'.SAFplus.Rpc.amfMgmtRpc."
-    "UnlockSGRequest\032(.SAFplus.Rpc.amfMgmtRpc"
-    ".UnlockSGResponse\022]\n\010unlockSU\022\'.SAFplus."
-    "Rpc.amfMgmtRpc.UnlockSURequest\032(.SAFplus"
-    ".Rpc.amfMgmtRpc.UnlockSUResponse\022]\n\010unlo"
-    "ckSI\022\'.SAFplus.Rpc.amfMgmtRpc.UnlockSIRe"
-    "quest\032(.SAFplus.Rpc.amfMgmtRpc.UnlockSIR"
-    "esponse\022c\n\nrepairNode\022).SAFplus.Rpc.amfM"
-    "gmtRpc.RepairNodeRequest\032*.SAFplus.Rpc.a"
-    "mfMgmtRpc.RepairNodeResponse\022r\n\017repairCo"
-    "mponent\022..SAFplus.Rpc.amfMgmtRpc.RepairC"
-    "omponentRequest\032/.SAFplus.Rpc.amfMgmtRpc"
-    ".RepairComponentResponse\022]\n\010repairSU\022\'.S"
-    "AFplus.Rpc.amfMgmtRpc.RepairSURequest\032(."
-    "SAFplus.Rpc.amfMgmtRpc.RepairSUResponse\022"
-    "{\n\022getComponentConfig\0221.SAFplus.Rpc.amfM"
-    "gmtRpc.GetComponentConfigRequest\0322.SAFpl"
-    "us.Rpc.amfMgmtRpc.GetComponentConfigResp"
-    "onse\022l\n\rgetNodeConfig\022,.SAFplus.Rpc.amfM"
-    "gmtRpc.GetNodeConfigRequest\032-.SAFplus.Rp"
-    "c.amfMgmtRpc.GetNodeConfigResponse\022f\n\013ge"
-    "tSUConfig\022*.SAFplus.Rpc.amfMgmtRpc.GetSU"
-    "ConfigRequest\032+.SAFplus.Rpc.amfMgmtRpc.G"
-    "etSUConfigResponse\022f\n\013getSGConfig\022*.SAFp"
-    "lus.Rpc.amfMgmtRpc.GetSGConfigRequest\032+."
-    "SAFplus.Rpc.amfMgmtRpc.GetSGConfigRespon"
-    "se\022f\n\013getSIConfig\022*.SAFplus.Rpc.amfMgmtR"
-    "pc.GetSIConfigRequest\032+.SAFplus.Rpc.amfM"
-    "gmtRpc.GetSIConfigResponse\022i\n\014getCSIConf"
-    "ig\022+.SAFplus.Rpc.amfMgmtRpc.GetCSIConfig"
-    "Request\032,.SAFplus.Rpc.amfMgmtRpc.GetCSIC"
-    "onfigResponse\022{\n\022getComponentStatus\0221.SA"
-    "Fplus.Rpc.amfMgmtRpc.GetComponentStatusR"
-    "equest\0322.SAFplus.Rpc.amfMgmtRpc.GetCompo"
-    "nentStatusResponse\022l\n\rgetNodeStatus\022,.SA"
-    "Fplus.Rpc.amfMgmtRpc.GetNodeStatusReques"
-    "t\032-.SAFplus.Rpc.amfMgmtRpc.GetNodeStatus"
-    "Response\022f\n\013getSUStatus\022*.SAFplus.Rpc.am"
-    "fMgmtRpc.GetSUStatusRequest\032+.SAFplus.Rp"
-    "c.amfMgmtRpc.GetSUStatusResponse\022f\n\013getS"
-    "GStatus\022*.SAFplus.Rpc.amfMgmtRpc.GetSGSt"
-    "atusRequest\032+.SAFplus.Rpc.amfMgmtRpc.Get"
-    "SGStatusResponse\022f\n\013getSIStatus\022*.SAFplu"
-    "s.Rpc.amfMgmtRpc.GetSIStatusRequest\032+.SA"
-    "Fplus.Rpc.amfMgmtRpc.GetSIStatusResponse"
-    "\022i\n\014getCSIStatus\022+.SAFplus.Rpc.amfMgmtRp"
-    "c.GetCSIStatusRequest\032,.SAFplus.Rpc.amfM"
-    "gmtRpc.GetCSIStatusResponse\022f\n\013nodeResta"
-    "rt\022*.SAFplus.Rpc.amfMgmtRpc.NodeRestartR"
-    "equest\032+.SAFplus.Rpc.amfMgmtRpc.NodeRest"
-    "artResponse\022{\n\022serviceUnitRestart\0221.SAFp"
-    "lus.Rpc.amfMgmtRpc.ServiceUnitRestartReq"
-    "uest\0322.SAFplus.Rpc.amfMgmtRpc.ServiceUni"
-    "tRestartResponse\022u\n\020componentRestart\022/.S"
+    "gName\030\002 \001(\t*\t\010\350\007\020\200\200\200\200\002\"u\n\023GetSGStatusRes"
+    "ponse\022F\n\022ServiceGroupStatus\030\001 \001(\0132*.SAFp"
+    "lus.Rpc.amfMgmtRpc.ServiceGroupStatus\022\013\n"
+    "\003err\030\002 \001(\021*\t\010\350\007\020\200\200\200\200\002\"F\n\022GetSIStatusRequ"
+    "est\022\025\n\ramfMgmtHandle\030\001 \003(\014\022\016\n\006siName\030\002 \001"
+    "(\t*\t\010\350\007\020\200\200\200\200\002\"{\n\023GetSIStatusResponse\022L\n\025"
+    "ServiceInstanceStatus\030\001 \001(\0132-.SAFplus.Rp"
+    "c.amfMgmtRpc.ServiceInstanceStatus\022\013\n\003er"
+    "r\030\002 \001(\021*\t\010\350\007\020\200\200\200\200\002\"H\n\023GetCSIStatusReques"
+    "t\022\025\n\ramfMgmtHandle\030\001 \003(\014\022\017\n\007csiName\030\002 \001("
+    "\t*\t\010\350\007\020\200\200\200\200\002\"\216\001\n\024GetCSIStatusResponse\022^\n"
+    "\036ComponentServiceInstanceStatus\030\001 \001(\01326."
+    "SAFplus.Rpc.amfMgmtRpc.ComponentServiceI"
+    "nstanceStatus\022\013\n\003err\030\002 \001(\021*\t\010\350\007\020\200\200\200\200\002\"H\n"
+    "\022NodeRestartRequest\022\025\n\ramfMgmtHandle\030\001 \003"
+    "(\014\022\020\n\010nodeName\030\002 \001(\t*\t\010\350\007\020\200\200\200\200\002\"-\n\023NodeR"
+    "estartResponse\022\013\n\003err\030\001 \001(\021*\t\010\350\007\020\200\200\200\200\002\"M"
+    "\n\031ServiceUnitRestartRequest\022\025\n\ramfMgmtHa"
+    "ndle\030\001 \003(\014\022\016\n\006suName\030\002 \001(\t*\t\010\350\007\020\200\200\200\200\002\"4\n"
+    "\032ServiceUnitRestartResponse\022\013\n\003err\030\001 \001(\021"
+    "*\t\010\350\007\020\200\200\200\200\002\"M\n\027ComponentRestartRequest\022\025"
+    "\n\ramfMgmtHandle\030\001 \003(\014\022\020\n\010compName\030\002 \001(\t*"
+    "\t\010\350\007\020\200\200\200\200\002\"2\n\030ComponentRestartResponse\022\013"
+    "\n\003err\030\001 \001(\021*\t\010\350\007\020\200\200\200\200\002\"T\n\017AdjustSGReques"
+    "t\022\025\n\ramfMgmtHandle\030\001 \003(\014\022\016\n\006sgName\030\002 \001(\t"
+    "\022\017\n\007enabled\030\003 \001(\010*\t\010\350\007\020\200\200\200\200\002\"*\n\020AdjustSG"
+    "Response\022\013\n\003err\030\001 \001(\021*\t\010\350\007\020\200\200\200\200\002\"A\n\rSwap"
+    "SIRequest\022\025\n\ramfMgmtHandle\030\001 \003(\014\022\016\n\006siNa"
+    "me\030\002 \001(\t*\t\010\350\007\020\200\200\200\200\002\"(\n\016SwapSIResponse\022\013\n"
+    "\003err\030\001 \001(\021*\t\010\350\007\020\200\200\200\200\002\"\213\001\n\026CompErrorRepor"
+    "tRequest\022\025\n\ramfMgmtHandle\030\001 \003(\014\022\020\n\010compN"
+    "ame\030\002 \001(\t\022=\n\023recommendedRecovery\030\003 \001(\0162 "
+    ".SAFplus.Rpc.amfMgmtRpc.Recovery*\t\010\350\007\020\200\200"
+    "\200\200\002\"1\n\027CompErrorReportResponse\022\013\n\003err\030\001 "
+    "\001(\021*\t\010\350\007\020\200\200\200\200\002\"\245\001\n\026NodeErrorReportReques"
+    "t\022\025\n\ramfMgmtHandle\030\001 \003(\014\022\020\n\010nodeName\030\002 \001"
+    "(\t\022\023\n\013shutdownAmf\030\003 \001(\010\022\022\n\nrebootNode\030\004 "
+    "\001(\010\022\032\n\022gracefulSwitchover\030\005 \001(\010\022\022\n\nresta"
+    "rtAmf\030\006 \001(\010*\t\010\350\007\020\200\200\200\200\002\"1\n\027NodeErrorRepor"
+    "tResponse\022\013\n\003err\030\001 \001(\021*\t\010\350\007\020\200\200\200\200\002\"K\n\025Nod"
+    "eErrorClearRequest\022\025\n\ramfMgmtHandle\030\001 \003("
+    "\014\022\020\n\010nodeName\030\002 \001(\t*\t\010\350\007\020\200\200\200\200\002\"0\n\026NodeEr"
+    "rorClearResponse\022\013\n\003err\030\001 \001(\021*\t\010\350\007\020\200\200\200\200\002"
+    "\"t\n\023AssignSUtoSIRequest\022\025\n\ramfMgmtHandle"
+    "\030\001 \003(\014\022\016\n\006siName\030\002 \001(\t\022\024\n\014activeSUName\030\003"
+    " \001(\t\022\025\n\rstandbySUName\030\004 \001(\t*\t\010\350\007\020\200\200\200\200\002\"."
+    "\n\024AssignSUtoSIResponse\022\013\n\003err\030\001 \001(\021*\t\010\350\007"
+    "\020\200\200\200\200\002\"Q\n\035ForceLockInstantiationRequest\022"
+    "\025\n\ramfMgmtHandle\030\001 \003(\014\022\016\n\006suName\030\002 \001(\t*\t"
+    "\010\350\007\020\200\200\200\200\002\"8\n\036ForceLockInstantiationRespo"
+    "nse\022\013\n\003err\030\001 \001(\021*\t\010\350\007\020\200\200\200\200\002*\377\001\n\rPresence"
+    "State\022 \n\034PresenceState_uninstantiated\020\000\022"
+    "\037\n\033PresenceState_instantiating\020\001\022\036\n\032Pres"
+    "enceState_instantiated\020\002\022\035\n\031PresenceStat"
+    "e_terminating\020\003\022\034\n\030PresenceState_restart"
+    "ing\020\004\022%\n!PresenceState_instantiationFail"
+    "ed\020\005\022#\n\037PresenceState_terminationFailed\020"
+    "\006\032\002\020\001*p\n\016ReadinessState\022\037\n\033ReadinessStat"
+    "e_outOfService\020\000\022\034\n\030ReadinessState_inSer"
+    "vice\020\001\022\033\n\027ReadinessState_stopping\020\002\032\002\020\001*"
+    "\206\002\n\036HighAvailabilityReadinessState\0225\n1Hi"
+    "ghAvailabilityReadinessState_readyForAss"
+    "ignment\020\000\0229\n5HighAvailabilityReadinessSt"
+    "ate_readyForActiveDegraded\020\001\0224\n0HighAvai"
+    "labilityReadinessState_notReadyForActive"
+    "\020\002\0228\n4HighAvailabilityReadinessState_not"
+    "ReadyForAssignment\020\003\032\002\020\001*\245\001\n\025HighAvailab"
+    "ilityState\022 \n\034HighAvailabilityState_acti"
+    "ve\020\001\022!\n\035HighAvailabilityState_standby\020\002\022"
+    "\036\n\032HighAvailabilityState_idle\020\003\022#\n\037HighA"
+    "vailabilityState_quiescing\020\004\032\002\020\001*p\n\023Admi"
+    "nistrativeState\022\033\n\027AdministrativeState_o"
+    "ff\020\000\022\034\n\030AdministrativeState_idle\020\001\022\032\n\026Ad"
+    "ministrativeState_on\020\002\032\002\020\001*\210\002\n\010Recovery\022"
+    "\035\n\031Recovery_NoRecommendation\020\001\022\024\n\020Recove"
+    "ry_Restart\020\002\022\025\n\021Recovery_Failover\020\003\022\033\n\027R"
+    "ecovery_NodeSwitchover\020\004\022\031\n\025Recovery_Nod"
+    "eFailover\020\005\022\031\n\025Recovery_NodeFailfast\020\006\022\031"
+    "\n\025Recovery_ClusterReset\020\007\022\037\n\033Recovery_Ap"
+    "plicationRestart\020\010\022\035\n\031Recovery_Container"
+    "Restart\020\t\032\002\020\001*\271\001\n\014ProcessState\022\030\n\024Proces"
+    "sState_Running\020\000\022\031\n\025ProcessState_Sleepin"
+    "g\020\001\022\037\n\033ProcessState_WaitingForDisk\020\002\022\027\n\023"
+    "ProcessState_Zombie\020\003\022\030\n\024ProcessState_St"
+    "opped\020\004\022\034\n\030ProcessState_TracingStop\020\005\032\002\020"
+    "\001*\225\001\n\017CapabilityModel\022*\n&CapabilityModel"
+    "_x_active_and_y_standby\020\000\022)\n%CapabilityM"
+    "odel_x_active_or_y_standby\020\001\022\'\n#Capabili"
+    "tyModel_not_preinstantiable\020\002\032\002\020\001*\273\001\n\020Pe"
+    "ndingOperation\022\031\n\025PendingOperation_none\020"
+    "\000\022\"\n\036PendingOperation_instantiation\020\001\022\035\n"
+    "\031PendingOperation_shutdown\020\002\022#\n\037PendingO"
+    "peration_workAssignment\020\003\022 \n\034PendingOper"
+    "ation_workRemoval\020\004\032\002\020\001*\177\n\017AssignmentSta"
+    "te\022\036\n\032AssignmentState_unassigned\020\000\022!\n\035As"
+    "signmentState_fullyAssigned\020\001\022%\n!Assignm"
+    "entState_partiallyAssigned\020\002\032\002\020\0012\2015\n\namf"
+    "MgmtRpc\022c\n\ninitialize\022).SAFplus.Rpc.amfM"
+    "gmtRpc.InitializeRequest\032*.SAFplus.Rpc.a"
+    "mfMgmtRpc.InitializeResponse\022]\n\010finalize"
+    "\022\'.SAFplus.Rpc.amfMgmtRpc.FinalizeReques"
+    "t\032(.SAFplus.Rpc.amfMgmtRpc.FinalizeRespo"
+    "nse\022W\n\006commit\022%.SAFplus.Rpc.amfMgmtRpc.C"
+    "ommitRequest\032&.SAFplus.Rpc.amfMgmtRpc.Co"
+    "mmitResponse\022r\n\017createComponent\022..SAFplu"
+    "s.Rpc.amfMgmtRpc.CreateComponentRequest\032"
+    "/.SAFplus.Rpc.amfMgmtRpc.CreateComponent"
+    "Response\022r\n\017updateComponent\022..SAFplus.Rp"
+    "c.amfMgmtRpc.UpdateComponentRequest\032/.SA"
+    "Fplus.Rpc.amfMgmtRpc.UpdateComponentResp"
+    "onse\022r\n\017deleteComponent\022..SAFplus.Rpc.am"
+    "fMgmtRpc.DeleteComponentRequest\032/.SAFplu"
+    "s.Rpc.amfMgmtRpc.DeleteComponentResponse"
+    "\022]\n\010createSG\022\'.SAFplus.Rpc.amfMgmtRpc.Cr"
+    "eateSGRequest\032(.SAFplus.Rpc.amfMgmtRpc.C"
+    "reateSGResponse\022]\n\010updateSG\022\'.SAFplus.Rp"
+    "c.amfMgmtRpc.UpdateSGRequest\032(.SAFplus.R"
+    "pc.amfMgmtRpc.UpdateSGResponse\022]\n\010delete"
+    "SG\022\'.SAFplus.Rpc.amfMgmtRpc.DeleteSGRequ"
+    "est\032(.SAFplus.Rpc.amfMgmtRpc.DeleteSGRes"
+    "ponse\022c\n\ncreateNode\022).SAFplus.Rpc.amfMgm"
+    "tRpc.CreateNodeRequest\032*.SAFplus.Rpc.amf"
+    "MgmtRpc.CreateNodeResponse\022c\n\nupdateNode"
+    "\022).SAFplus.Rpc.amfMgmtRpc.UpdateNodeRequ"
+    "est\032*.SAFplus.Rpc.amfMgmtRpc.UpdateNodeR"
+    "esponse\022c\n\ndeleteNode\022).SAFplus.Rpc.amfM"
+    "gmtRpc.DeleteNodeRequest\032*.SAFplus.Rpc.a"
+    "mfMgmtRpc.DeleteNodeResponse\022]\n\010createSU"
+    "\022\'.SAFplus.Rpc.amfMgmtRpc.CreateSUReques"
+    "t\032(.SAFplus.Rpc.amfMgmtRpc.CreateSURespo"
+    "nse\022]\n\010updateSU\022\'.SAFplus.Rpc.amfMgmtRpc"
+    ".UpdateSURequest\032(.SAFplus.Rpc.amfMgmtRp"
+    "c.UpdateSUResponse\022]\n\010deleteSU\022\'.SAFplus"
+    ".Rpc.amfMgmtRpc.DeleteSURequest\032(.SAFplu"
+    "s.Rpc.amfMgmtRpc.DeleteSUResponse\022]\n\010cre"
+    "ateSI\022\'.SAFplus.Rpc.amfMgmtRpc.CreateSIR"
+    "equest\032(.SAFplus.Rpc.amfMgmtRpc.CreateSI"
+    "Response\022]\n\010updateSI\022\'.SAFplus.Rpc.amfMg"
+    "mtRpc.UpdateSIRequest\032(.SAFplus.Rpc.amfM"
+    "gmtRpc.UpdateSIResponse\022]\n\010deleteSI\022\'.SA"
+    "Fplus.Rpc.amfMgmtRpc.DeleteSIRequest\032(.S"
+    "AFplus.Rpc.amfMgmtRpc.DeleteSIResponse\022`"
+    "\n\tcreateCSI\022(.SAFplus.Rpc.amfMgmtRpc.Cre"
+    "ateCSIRequest\032).SAFplus.Rpc.amfMgmtRpc.C"
+    "reateCSIResponse\022`\n\tupdateCSI\022(.SAFplus."
+    "Rpc.amfMgmtRpc.UpdateCSIRequest\032).SAFplu"
+    "s.Rpc.amfMgmtRpc.UpdateCSIResponse\022`\n\tde"
+    "leteCSI\022(.SAFplus.Rpc.amfMgmtRpc.DeleteC"
+    "SIRequest\032).SAFplus.Rpc.amfMgmtRpc.Delet"
+    "eCSIResponse\022i\n\014deleteCSINVP\022+.SAFplus.R"
+    "pc.amfMgmtRpc.DeleteCSINVPRequest\032,.SAFp"
+    "lus.Rpc.amfMgmtRpc.DeleteCSINVPResponse\022"
+    "u\n\020deleteNodeSUList\022/.SAFplus.Rpc.amfMgm"
+    "tRpc.DeleteNodeSUListRequest\0320.SAFplus.R"
+    "pc.amfMgmtRpc.DeleteNodeSUListResponse\022o"
+    "\n\016deleteSGSUList\022-.SAFplus.Rpc.amfMgmtRp"
+    "c.DeleteSGSUListRequest\032..SAFplus.Rpc.am"
+    "fMgmtRpc.DeleteSGSUListResponse\022o\n\016delet"
+    "eSGSIList\022-.SAFplus.Rpc.amfMgmtRpc.Delet"
+    "eSGSIListRequest\032..SAFplus.Rpc.amfMgmtRp"
+    "c.DeleteSGSIListResponse\022u\n\020deleteSUComp"
+    "List\022/.SAFplus.Rpc.amfMgmtRpc.DeleteSUCo"
+    "mpListRequest\0320.SAFplus.Rpc.amfMgmtRpc.D"
+    "eleteSUCompListResponse\022r\n\017deleteSICSILi"
+    "st\022..SAFplus.Rpc.amfMgmtRpc.DeleteSICSIL"
+    "istRequest\032/.SAFplus.Rpc.amfMgmtRpc.Dele"
+    "teSICSIListResponse\022{\n\022lockNodeAssignmen"
+    "t\0221.SAFplus.Rpc.amfMgmtRpc.LockNodeAssig"
+    "nmentRequest\0322.SAFplus.Rpc.amfMgmtRpc.Lo"
+    "ckNodeAssignmentResponse\022u\n\020lockSGAssign"
+    "ment\022/.SAFplus.Rpc.amfMgmtRpc.LockSGAssi"
+    "gnmentRequest\0320.SAFplus.Rpc.amfMgmtRpc.L"
+    "ockSGAssignmentResponse\022u\n\020lockSUAssignm"
+    "ent\022/.SAFplus.Rpc.amfMgmtRpc.LockSUAssig"
+    "nmentRequest\0320.SAFplus.Rpc.amfMgmtRpc.Lo"
+    "ckSUAssignmentResponse\022u\n\020lockSIAssignme"
+    "nt\022/.SAFplus.Rpc.amfMgmtRpc.LockSIAssign"
+    "mentRequest\0320.SAFplus.Rpc.amfMgmtRpc.Loc"
+    "kSIAssignmentResponse\022\204\001\n\025lockNodeInstan"
+    "tiation\0224.SAFplus.Rpc.amfMgmtRpc.LockNod"
+    "eInstantiationRequest\0325.SAFplus.Rpc.amfM"
+    "gmtRpc.LockNodeInstantiationResponse\022~\n\023"
+    "lockSGInstantiation\0222.SAFplus.Rpc.amfMgm"
+    "tRpc.LockSGInstantiationRequest\0323.SAFplu"
+    "s.Rpc.amfMgmtRpc.LockSGInstantiationResp"
+    "onse\022~\n\023lockSUInstantiation\0222.SAFplus.Rp"
+    "c.amfMgmtRpc.LockSUInstantiationRequest\032"
+    "3.SAFplus.Rpc.amfMgmtRpc.LockSUInstantia"
+    "tionResponse\022c\n\nunlockNode\022).SAFplus.Rpc"
+    ".amfMgmtRpc.UnlockNodeRequest\032*.SAFplus."
+    "Rpc.amfMgmtRpc.UnlockNodeResponse\022]\n\010unl"
+    "ockSG\022\'.SAFplus.Rpc.amfMgmtRpc.UnlockSGR"
+    "equest\032(.SAFplus.Rpc.amfMgmtRpc.UnlockSG"
+    "Response\022]\n\010unlockSU\022\'.SAFplus.Rpc.amfMg"
+    "mtRpc.UnlockSURequest\032(.SAFplus.Rpc.amfM"
+    "gmtRpc.UnlockSUResponse\022]\n\010unlockSI\022\'.SA"
+    "Fplus.Rpc.amfMgmtRpc.UnlockSIRequest\032(.S"
+    "AFplus.Rpc.amfMgmtRpc.UnlockSIResponse\022c"
+    "\n\nrepairNode\022).SAFplus.Rpc.amfMgmtRpc.Re"
+    "pairNodeRequest\032*.SAFplus.Rpc.amfMgmtRpc"
+    ".RepairNodeResponse\022r\n\017repairComponent\022."
+    ".SAFplus.Rpc.amfMgmtRpc.RepairComponentR"
+    "equest\032/.SAFplus.Rpc.amfMgmtRpc.RepairCo"
+    "mponentResponse\022]\n\010repairSU\022\'.SAFplus.Rp"
+    "c.amfMgmtRpc.RepairSURequest\032(.SAFplus.R"
+    "pc.amfMgmtRpc.RepairSUResponse\022{\n\022getCom"
+    "ponentConfig\0221.SAFplus.Rpc.amfMgmtRpc.Ge"
+    "tComponentConfigRequest\0322.SAFplus.Rpc.am"
+    "fMgmtRpc.GetComponentConfigResponse\022l\n\rg"
+    "etNodeConfig\022,.SAFplus.Rpc.amfMgmtRpc.Ge"
+    "tNodeConfigRequest\032-.SAFplus.Rpc.amfMgmt"
+    "Rpc.GetNodeConfigResponse\022f\n\013getSUConfig"
+    "\022*.SAFplus.Rpc.amfMgmtRpc.GetSUConfigReq"
+    "uest\032+.SAFplus.Rpc.amfMgmtRpc.GetSUConfi"
+    "gResponse\022f\n\013getSGConfig\022*.SAFplus.Rpc.a"
+    "mfMgmtRpc.GetSGConfigRequest\032+.SAFplus.R"
+    "pc.amfMgmtRpc.GetSGConfigResponse\022f\n\013get"
+    "SIConfig\022*.SAFplus.Rpc.amfMgmtRpc.GetSIC"
+    "onfigRequest\032+.SAFplus.Rpc.amfMgmtRpc.Ge"
+    "tSIConfigResponse\022i\n\014getCSIConfig\022+.SAFp"
+    "lus.Rpc.amfMgmtRpc.GetCSIConfigRequest\032,"
+    ".SAFplus.Rpc.amfMgmtRpc.GetCSIConfigResp"
+    "onse\022{\n\022getComponentStatus\0221.SAFplus.Rpc"
+    ".amfMgmtRpc.GetComponentStatusRequest\0322."
+    "SAFplus.Rpc.amfMgmtRpc.GetComponentStatu"
+    "sResponse\022l\n\rgetNodeStatus\022,.SAFplus.Rpc"
+    ".amfMgmtRpc.GetNodeStatusRequest\032-.SAFpl"
+    "us.Rpc.amfMgmtRpc.GetNodeStatusResponse\022"
+    "f\n\013getSUStatus\022*.SAFplus.Rpc.amfMgmtRpc."
+    "GetSUStatusRequest\032+.SAFplus.Rpc.amfMgmt"
+    "Rpc.GetSUStatusResponse\022f\n\013getSGStatus\022*"
+    ".SAFplus.Rpc.amfMgmtRpc.GetSGStatusReque"
+    "st\032+.SAFplus.Rpc.amfMgmtRpc.GetSGStatusR"
+    "esponse\022f\n\013getSIStatus\022*.SAFplus.Rpc.amf"
+    "MgmtRpc.GetSIStatusRequest\032+.SAFplus.Rpc"
+    ".amfMgmtRpc.GetSIStatusResponse\022i\n\014getCS"
+    "IStatus\022+.SAFplus.Rpc.amfMgmtRpc.GetCSIS"
+    "tatusRequest\032,.SAFplus.Rpc.amfMgmtRpc.Ge"
+    "tCSIStatusResponse\022f\n\013nodeRestart\022*.SAFp"
+    "lus.Rpc.amfMgmtRpc.NodeRestartRequest\032+."
+    "SAFplus.Rpc.amfMgmtRpc.NodeRestartRespon"
+    "se\022{\n\022serviceUnitRestart\0221.SAFplus.Rpc.a"
+    "mfMgmtRpc.ServiceUnitRestartRequest\0322.SA"
+    "Fplus.Rpc.amfMgmtRpc.ServiceUnitRestartR"
+    "esponse\022u\n\020componentRestart\022/.SAFplus.Rp"
+    "c.amfMgmtRpc.ComponentRestartRequest\0320.S"
     "AFplus.Rpc.amfMgmtRpc.ComponentRestartRe"
-    "quest\0320.SAFplus.Rpc.amfMgmtRpc.Component"
-    "RestartResponse\022]\n\010adjustSG\022\'.SAFplus.Rp"
-    "c.amfMgmtRpc.AdjustSGRequest\032(.SAFplus.R"
-    "pc.amfMgmtRpc.AdjustSGResponse\022W\n\006swapSI"
-    "\022%.SAFplus.Rpc.amfMgmtRpc.SwapSIRequest\032"
-    "&.SAFplus.Rpc.amfMgmtRpc.SwapSIResponse\022"
-    "r\n\017compErrorReport\022..SAFplus.Rpc.amfMgmt"
-    "Rpc.CompErrorReportRequest\032/.SAFplus.Rpc"
-    ".amfMgmtRpc.CompErrorReportResponse\022r\n\017n"
-    "odeErrorReport\022..SAFplus.Rpc.amfMgmtRpc."
-    "NodeErrorReportRequest\032/.SAFplus.Rpc.amf"
-    "MgmtRpc.NodeErrorReportResponse\022o\n\016nodeE"
-    "rrorClear\022-.SAFplus.Rpc.amfMgmtRpc.NodeE"
-    "rrorClearRequest\032..SAFplus.Rpc.amfMgmtRp"
-    "c.NodeErrorClearResponse\022i\n\014assignSUtoSI"
-    "\022+.SAFplus.Rpc.amfMgmtRpc.AssignSUtoSIRe"
-    "quest\032,.SAFplus.Rpc.amfMgmtRpc.AssignSUt"
-    "oSIResponse\022\207\001\n\026forceLockInstantiation\0225"
-    ".SAFplus.Rpc.amfMgmtRpc.ForceLockInstant"
-    "iationRequest\0326.SAFplus.Rpc.amfMgmtRpc.F"
-    "orceLockInstantiationResponseB\t\200\001\000\210\001\000\220\001\001", 27840);
+    "sponse\022]\n\010adjustSG\022\'.SAFplus.Rpc.amfMgmt"
+    "Rpc.AdjustSGRequest\032(.SAFplus.Rpc.amfMgm"
+    "tRpc.AdjustSGResponse\022W\n\006swapSI\022%.SAFplu"
+    "s.Rpc.amfMgmtRpc.SwapSIRequest\032&.SAFplus"
+    ".Rpc.amfMgmtRpc.SwapSIResponse\022r\n\017compEr"
+    "rorReport\022..SAFplus.Rpc.amfMgmtRpc.CompE"
+    "rrorReportRequest\032/.SAFplus.Rpc.amfMgmtR"
+    "pc.CompErrorReportResponse\022r\n\017nodeErrorR"
+    "eport\022..SAFplus.Rpc.amfMgmtRpc.NodeError"
+    "ReportRequest\032/.SAFplus.Rpc.amfMgmtRpc.N"
+    "odeErrorReportResponse\022o\n\016nodeErrorClear"
+    "\022-.SAFplus.Rpc.amfMgmtRpc.NodeErrorClear"
+    "Request\032..SAFplus.Rpc.amfMgmtRpc.NodeErr"
+    "orClearResponse\022i\n\014assignSUtoSI\022+.SAFplu"
+    "s.Rpc.amfMgmtRpc.AssignSUtoSIRequest\032,.S"
+    "AFplus.Rpc.amfMgmtRpc.AssignSUtoSIRespon"
+    "se\022\207\001\n\026forceLockInstantiation\0225.SAFplus."
+    "Rpc.amfMgmtRpc.ForceLockInstantiationReq"
+    "uest\0326.SAFplus.Rpc.amfMgmtRpc.ForceLockI"
+    "nstantiationResponseB\t\200\001\000\210\001\000\220\001\001", 27871);
   ::google::protobuf::MessageFactory::InternalRegisterGeneratedFile(
     "amfMgmtRpc.proto", &protobuf_RegisterTypes);
   SaTimeT::default_instance_ = new SaTimeT();
@@ -13209,6 +13212,7 @@ const int ComponentConfig::kTimeoutsFieldNumber;
 const int ComponentConfig::kServiceUnitFieldNumber;
 const int ComponentConfig::kRecoveryFieldNumber;
 const int ComponentConfig::kRestartableFieldNumber;
+const int ComponentConfig::kCsiTypeFieldNumber;
 #endif  // !_MSC_VER
 
 ComponentConfig::ComponentConfig()
@@ -13249,6 +13253,7 @@ void ComponentConfig::SharedCtor() {
   serviceunit_ = const_cast< ::std::string*>(&::google::protobuf::internal::GetEmptyStringAlreadyInited());
   recovery_ = 1;
   restartable_ = false;
+  csitype_ = const_cast< ::std::string*>(&::google::protobuf::internal::GetEmptyStringAlreadyInited());
   ::memset(_has_bits_, 0, sizeof(_has_bits_));
 }
 
@@ -13263,6 +13268,9 @@ void ComponentConfig::SharedDtor() {
   }
   if (serviceunit_ != &::google::protobuf::internal::GetEmptyStringAlreadyInited()) {
     delete serviceunit_;
+  }
+  if (csitype_ != &::google::protobuf::internal::GetEmptyStringAlreadyInited()) {
+    delete csitype_;
   }
   if (this != default_instance_) {
     delete instantiate_;
@@ -13337,6 +13345,11 @@ void ComponentConfig::Clear() {
     }
     recovery_ = 1;
     restartable_ = false;
+  }
+  if (has_csitype()) {
+    if (csitype_ != &::google::protobuf::internal::GetEmptyStringAlreadyInited()) {
+      csitype_->clear();
+    }
   }
 
 #undef OFFSET_OF_FIELD_
@@ -13602,6 +13615,23 @@ bool ComponentConfig::MergePartialFromCodedStream(
         } else {
           goto handle_unusual;
         }
+        if (input->ExpectTag(138)) goto parse_csiType;
+        break;
+      }
+
+      // optional string csiType = 17;
+      case 17: {
+        if (tag == 138) {
+         parse_csiType:
+          DO_(::google::protobuf::internal::WireFormatLite::ReadString(
+                input, this->mutable_csitype()));
+          ::google::protobuf::internal::WireFormat::VerifyUTF8StringNamedField(
+            this->csitype().data(), this->csitype().length(),
+            ::google::protobuf::internal::WireFormat::PARSE,
+            "csitype");
+        } else {
+          goto handle_unusual;
+        }
         if (input->ExpectAtEnd()) goto success;
         break;
       }
@@ -13737,6 +13767,16 @@ void ComponentConfig::SerializeWithCachedSizes(
     ::google::protobuf::internal::WireFormatLite::WriteBool(16, this->restartable(), output);
   }
 
+  // optional string csiType = 17;
+  if (has_csitype()) {
+    ::google::protobuf::internal::WireFormat::VerifyUTF8StringNamedField(
+      this->csitype().data(), this->csitype().length(),
+      ::google::protobuf::internal::WireFormat::SERIALIZE,
+      "csitype");
+    ::google::protobuf::internal::WireFormatLite::WriteStringMaybeAliased(
+      17, this->csitype(), output);
+  }
+
   // Extension range [1000, 536870912)
   _extensions_.SerializeWithCachedSizes(
       1000, 536870912, output);
@@ -13858,6 +13898,17 @@ void ComponentConfig::SerializeWithCachedSizes(
     target = ::google::protobuf::internal::WireFormatLite::WriteBoolToArray(16, this->restartable(), target);
   }
 
+  // optional string csiType = 17;
+  if (has_csitype()) {
+    ::google::protobuf::internal::WireFormat::VerifyUTF8StringNamedField(
+      this->csitype().data(), this->csitype().length(),
+      ::google::protobuf::internal::WireFormat::SERIALIZE,
+      "csitype");
+    target =
+      ::google::protobuf::internal::WireFormatLite::WriteStringToArray(
+        17, this->csitype(), target);
+  }
+
   // Extension range [1000, 536870912)
   target = _extensions_.SerializeWithCachedSizesToArray(
       1000, 536870912, target);
@@ -13966,6 +14017,15 @@ int ComponentConfig::ByteSize() const {
     }
 
   }
+  if (_has_bits_[16 / 32] & (0xffu << (16 % 32))) {
+    // optional string csiType = 17;
+    if (has_csitype()) {
+      total_size += 2 +
+        ::google::protobuf::internal::WireFormatLite::StringSize(
+          this->csitype());
+    }
+
+  }
   // repeated string commandEnvironment = 5;
   total_size += 1 * this->commandenvironment_size();
   for (int i = 0; i < this->commandenvironment_size(); i++) {
@@ -14050,6 +14110,11 @@ void ComponentConfig::MergeFrom(const ComponentConfig& from) {
       set_restartable(from.restartable());
     }
   }
+  if (from._has_bits_[16 / 32] & (0xffu << (16 % 32))) {
+    if (from.has_csitype()) {
+      set_csitype(from.csitype());
+    }
+  }
   _extensions_.MergeFrom(from._extensions_);
   mutable_unknown_fields()->MergeFrom(from.unknown_fields());
 }
@@ -14102,6 +14167,7 @@ void ComponentConfig::Swap(ComponentConfig* other) {
     std::swap(serviceunit_, other->serviceunit_);
     std::swap(recovery_, other->recovery_);
     std::swap(restartable_, other->restartable_);
+    std::swap(csitype_, other->csitype_);
     std::swap(_has_bits_[0], other->_has_bits_[0]);
     _unknown_fields_.Swap(&other->_unknown_fields_);
     std::swap(_cached_size_, other->_cached_size_);
@@ -14448,6 +14514,7 @@ const int ComponentServiceInstanceConfig::kNameFieldNumber;
 const int ComponentServiceInstanceConfig::kDependenciesFieldNumber;
 const int ComponentServiceInstanceConfig::kDataFieldNumber;
 const int ComponentServiceInstanceConfig::kServiceInstanceFieldNumber;
+const int ComponentServiceInstanceConfig::kTypeFieldNumber;
 #endif  // !_MSC_VER
 
 ComponentServiceInstanceConfig::ComponentServiceInstanceConfig()
@@ -14471,6 +14538,7 @@ void ComponentServiceInstanceConfig::SharedCtor() {
   _cached_size_ = 0;
   name_ = const_cast< ::std::string*>(&::google::protobuf::internal::GetEmptyStringAlreadyInited());
   serviceinstance_ = const_cast< ::std::string*>(&::google::protobuf::internal::GetEmptyStringAlreadyInited());
+  type_ = const_cast< ::std::string*>(&::google::protobuf::internal::GetEmptyStringAlreadyInited());
   ::memset(_has_bits_, 0, sizeof(_has_bits_));
 }
 
@@ -14485,6 +14553,9 @@ void ComponentServiceInstanceConfig::SharedDtor() {
   }
   if (serviceinstance_ != &::google::protobuf::internal::GetEmptyStringAlreadyInited()) {
     delete serviceinstance_;
+  }
+  if (type_ != &::google::protobuf::internal::GetEmptyStringAlreadyInited()) {
+    delete type_;
   }
   if (this != default_instance_) {
   }
@@ -14513,7 +14584,7 @@ ComponentServiceInstanceConfig* ComponentServiceInstanceConfig::New() const {
 
 void ComponentServiceInstanceConfig::Clear() {
   _extensions_.Clear();
-  if (_has_bits_[0 / 32] & 9) {
+  if (_has_bits_[0 / 32] & 25) {
     if (has_name()) {
       if (name_ != &::google::protobuf::internal::GetEmptyStringAlreadyInited()) {
         name_->clear();
@@ -14522,6 +14593,11 @@ void ComponentServiceInstanceConfig::Clear() {
     if (has_serviceinstance()) {
       if (serviceinstance_ != &::google::protobuf::internal::GetEmptyStringAlreadyInited()) {
         serviceinstance_->clear();
+      }
+    }
+    if (has_type()) {
+      if (type_ != &::google::protobuf::internal::GetEmptyStringAlreadyInited()) {
+        type_->clear();
       }
     }
   }
@@ -14603,6 +14679,23 @@ bool ComponentServiceInstanceConfig::MergePartialFromCodedStream(
         } else {
           goto handle_unusual;
         }
+        if (input->ExpectTag(42)) goto parse_type;
+        break;
+      }
+
+      // optional string type = 5;
+      case 5: {
+        if (tag == 42) {
+         parse_type:
+          DO_(::google::protobuf::internal::WireFormatLite::ReadString(
+                input, this->mutable_type()));
+          ::google::protobuf::internal::WireFormat::VerifyUTF8StringNamedField(
+            this->type().data(), this->type().length(),
+            ::google::protobuf::internal::WireFormat::PARSE,
+            "type");
+        } else {
+          goto handle_unusual;
+        }
         if (input->ExpectAtEnd()) goto success;
         break;
       }
@@ -14673,6 +14766,16 @@ void ComponentServiceInstanceConfig::SerializeWithCachedSizes(
       4, this->serviceinstance(), output);
   }
 
+  // optional string type = 5;
+  if (has_type()) {
+    ::google::protobuf::internal::WireFormat::VerifyUTF8StringNamedField(
+      this->type().data(), this->type().length(),
+      ::google::protobuf::internal::WireFormat::SERIALIZE,
+      "type");
+    ::google::protobuf::internal::WireFormatLite::WriteStringMaybeAliased(
+      5, this->type(), output);
+  }
+
   // Extension range [1000, 536870912)
   _extensions_.SerializeWithCachedSizes(
       1000, 536870912, output);
@@ -14726,6 +14829,17 @@ void ComponentServiceInstanceConfig::SerializeWithCachedSizes(
         4, this->serviceinstance(), target);
   }
 
+  // optional string type = 5;
+  if (has_type()) {
+    ::google::protobuf::internal::WireFormat::VerifyUTF8StringNamedField(
+      this->type().data(), this->type().length(),
+      ::google::protobuf::internal::WireFormat::SERIALIZE,
+      "type");
+    target =
+      ::google::protobuf::internal::WireFormatLite::WriteStringToArray(
+        5, this->type(), target);
+  }
+
   // Extension range [1000, 536870912)
   target = _extensions_.SerializeWithCachedSizesToArray(
       1000, 536870912, target);
@@ -14754,6 +14868,13 @@ int ComponentServiceInstanceConfig::ByteSize() const {
       total_size += 1 +
         ::google::protobuf::internal::WireFormatLite::StringSize(
           this->serviceinstance());
+    }
+
+    // optional string type = 5;
+    if (has_type()) {
+      total_size += 1 +
+        ::google::protobuf::internal::WireFormatLite::StringSize(
+          this->type());
     }
 
   }
@@ -14808,6 +14929,9 @@ void ComponentServiceInstanceConfig::MergeFrom(const ComponentServiceInstanceCon
     if (from.has_serviceinstance()) {
       set_serviceinstance(from.serviceinstance());
     }
+    if (from.has_type()) {
+      set_type(from.type());
+    }
   }
   _extensions_.MergeFrom(from._extensions_);
   mutable_unknown_fields()->MergeFrom(from.unknown_fields());
@@ -14838,6 +14962,7 @@ void ComponentServiceInstanceConfig::Swap(ComponentServiceInstanceConfig* other)
     dependencies_.Swap(&other->dependencies_);
     data_.Swap(&other->data_);
     std::swap(serviceinstance_, other->serviceinstance_);
+    std::swap(type_, other->type_);
     std::swap(_has_bits_[0], other->_has_bits_[0]);
     _unknown_fields_.Swap(&other->_unknown_fields_);
     std::swap(_cached_size_, other->_cached_size_);

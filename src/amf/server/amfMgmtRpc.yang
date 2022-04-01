@@ -578,6 +578,11 @@ are switched over to other nodes (component service instances are not abruptly r
 	default true;
 	description "Set to true if this component can be restarted on failure, without this event registering as a fault";
       }  
+
+     leaf csiType
+     {
+        type string;
+     }
   }
 
   grouping ComponentServiceInstanceConfig {
@@ -607,6 +612,10 @@ are switched over to other nodes (component service instances are not abruptly r
      leaf serviceInstance
      {
         type string;        
+     }
+     leaf type
+     {
+        type string;
      }
   }
 

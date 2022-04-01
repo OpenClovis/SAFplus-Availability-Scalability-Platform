@@ -21,6 +21,7 @@
 using namespace SAFplus;
 using namespace boost::python;
 
+
 static object buffer_get(Buffer& self)
 {
   //PyObject* pyBuf = PyBuffer_FromReadWriteMemory(self.data, self.len());
@@ -291,6 +292,591 @@ static ClRcT addCompIntoSU(const Handle & mgmtHandle, const std::string & suName
     return rc;
 }
 
+ClRcT addNewComponent(const SAFplus::Handle& mgmtHandle, const std::string & compName, const std::string & suName, const std::string & binary)
+{
+    SAFplus::Rpc::amfMgmtRpc::ComponentConfig* comp = new SAFplus::Rpc::amfMgmtRpc::ComponentConfig();
+    comp->set_name(compName.c_str());
+    comp->set_capabilitymodel(SAFplus::Rpc::amfMgmtRpc::CapabilityModel_x_active_or_y_standby);
+    SAFplus::Rpc::amfMgmtRpc::Execution* exe = new SAFplus::Rpc::amfMgmtRpc::Execution();
+    char cmd[SAFplus::CL_MAX_NAME_LENGTH];
+    strcpy(cmd, binary.c_str());
+//    strcat(cmd, " ");
+//    strcat(cmd,compName.c_str());
+    exe->set_command(cmd);
+    uint64_t timeout = 10000;
+    exe->set_timeout(timeout);
+    SAFplus::Rpc::amfMgmtRpc::Instantiate* inst = new SAFplus::Rpc::amfMgmtRpc::Instantiate();
+    inst->set_allocated_execution(exe);
+    comp->set_allocated_instantiate(inst);
+    comp->set_serviceunit(suName.c_str());
+
+    SAFplus::Rpc::amfMgmtRpc::Timeouts* timeouts = new SAFplus::Rpc::amfMgmtRpc::Timeouts();
+    SAFplus::Rpc::amfMgmtRpc::SaTimeT* terminateTimeout = new SAFplus::Rpc::amfMgmtRpc::SaTimeT();
+    terminateTimeout->set_uint64(35000);
+    SAFplus::Rpc::amfMgmtRpc::SaTimeT* quiescingComplete = new SAFplus::Rpc::amfMgmtRpc::SaTimeT();
+    quiescingComplete->set_uint64(45000);
+    SAFplus::Rpc::amfMgmtRpc::SaTimeT* workRemoval = new SAFplus::Rpc::amfMgmtRpc::SaTimeT();
+    workRemoval->set_uint64(55000);
+    SAFplus::Rpc::amfMgmtRpc::SaTimeT* workAssignment = new SAFplus::Rpc::amfMgmtRpc::SaTimeT();
+    workAssignment->set_uint64(65000);
+    timeouts->set_allocated_terminate(terminateTimeout);
+    timeouts->set_allocated_quiescingcomplete(quiescingComplete);
+    timeouts->set_allocated_workremoval(workRemoval);
+    timeouts->set_allocated_workassignment(workAssignment);
+    comp->set_allocated_timeouts(timeouts);
+
+    ClRcT rc = SAFplus::amfMgmtComponentCreate(mgmtHandle,comp);
+    return rc;
+}
+
+ClRcT addNewServiceUnit(const SAFplus::Handle& mgmtHandle, const std::string & suName, const std::string & compName, const std::string & sgName, const std::string & nodeName)
+{
+  SAFplus::Rpc::amfMgmtRpc::ServiceUnitConfig* su = new SAFplus::Rpc::amfMgmtRpc::ServiceUnitConfig();
+  su->set_name(suName.c_str());
+  su->set_adminstate(SAFplus::Rpc::amfMgmtRpc::AdministrativeState::AdministrativeState_on);
+  su->add_components(compName.c_str(), strlen(compName.c_str()));
+  su->set_servicegroup(sgName.c_str(), strlen(sgName.c_str()));
+  su->set_node(nodeName.c_str(), strlen(nodeName.c_str()));
+  ClRcT rc = SAFplus::amfMgmtServiceUnitCreate(mgmtHandle,su);
+  return rc;
+}
+
+ClRcT addNewServiceGroup(const SAFplus::Handle& mgmtHandle, const std::string & sgName, const std::string & suName, const std::string & siName)
+{
+  SAFplus::Rpc::amfMgmtRpc::ServiceGroupConfig* sg = new SAFplus::Rpc::amfMgmtRpc::ServiceGroupConfig();
+  sg->set_name(sgName.c_str());
+  sg->add_serviceunits(suName.c_str(), strlen(suName.c_str()));
+  sg->add_serviceinstances(siName.c_str(), strlen(siName.c_str()));
+  sg->set_autorepair(true);
+  ClRcT rc = SAFplus::amfMgmtServiceGroupCreate(mgmtHandle,sg);
+  return rc;
+}
+
+ClRcT addNewNode(const SAFplus::Handle& mgmtHandle, const std::string & nodeName, const std::string & suName)
+{
+  SAFplus::Rpc::amfMgmtRpc::NodeConfig* node = new SAFplus::Rpc::amfMgmtRpc::NodeConfig();
+  node->set_name(nodeName.c_str());
+  node->set_adminstate(SAFplus::Rpc::amfMgmtRpc::AdministrativeState::AdministrativeState_on);
+  node->add_serviceunits(suName.c_str(), strlen(suName.c_str()));
+  ClRcT rc = SAFplus::amfMgmtNodeCreate(mgmtHandle,node);
+  return rc;
+}
+
+ClRcT addNewServiceInstance(const SAFplus::Handle& mgmtHandle, const std::string & siName, const std::string & sgName, const std::string & csiName)
+{
+  SAFplus::Rpc::amfMgmtRpc::ServiceInstanceConfig* si = new SAFplus::Rpc::amfMgmtRpc::ServiceInstanceConfig();
+  si->set_name(siName.c_str());
+  si->set_adminstate(SAFplus::Rpc::amfMgmtRpc::AdministrativeState::AdministrativeState_on);
+  si->add_componentserviceinstances(csiName.c_str(), strlen(csiName.c_str()));
+  si->set_servicegroup(sgName.c_str(), strlen(sgName.c_str()));
+  ClRcT rc = SAFplus::amfMgmtServiceInstanceCreate(mgmtHandle,si);
+  return rc;
+}
+
+ClRcT addNewComponentServiceInstance(const SAFplus::Handle& mgmtHandle, const std::string & csiName, const std::string & siName, const std::string & ipName = "ip", const std::string & ipValue = "192.168.65.111", const std::string & portName = "port", const std::string & portValue = "35678")
+{
+  SAFplus::Rpc::amfMgmtRpc::ComponentServiceInstanceConfig* csi = new SAFplus::Rpc::amfMgmtRpc::ComponentServiceInstanceConfig();
+  csi->set_name(csiName.c_str());
+  csi->set_serviceinstance(siName.c_str(), strlen(siName.c_str()));
+  csi->add_data();
+  //Fill data
+  SAFplus::Rpc::amfMgmtRpc::Data* data = csi->mutable_data(0);
+  data->set_name(ipName.c_str());
+  data->set_val(ipValue.c_str());
+  data = csi->mutable_data(1);
+  data->set_name(portName.c_str());
+  data->set_val(portValue.c_str());
+  ClRcT rc = SAFplus::amfMgmtComponentServiceInstanceCreate(mgmtHandle,csi);
+  return rc;
+}
+
+ClRcT updateComponentServiceInstance(const SAFplus::Handle& mgmtHandle, boost::python::list & argv)
+{
+  SAFplus::Rpc::amfMgmtRpc::ComponentServiceInstanceConfig* csi = new SAFplus::Rpc::amfMgmtRpc::ComponentServiceInstanceConfig();
+  ssize_t len = boost::python::len(argv);
+  for(int i = 0; i < len; i = i + 2)
+  {
+      std::string attr = boost::python::extract<std::string>(argv[i]);
+      std::string val = boost::python::extract<std::string>(argv[i+1]);
+      if(!attr.compare("name"))
+      {
+          csi->set_name(val);
+      }
+      else if(!attr.compare("serviceInstance"))
+      {
+          csi->set_serviceinstance(val);
+      }
+      else if(!attr.compare("type"))
+      {
+          csi->set_type(val);
+      }
+      else
+      {
+          std::cout << "Doesn't support setting this attribute: " << attr << std::endl;
+          return CL_ERR_UNSPECIFIED;
+      }
+  }
+
+  ClRcT rc = SAFplus::amfMgmtComponentServiceInstanceConfigSet(mgmtHandle,csi);
+  return rc;
+}
+
+ClRcT updateServiceInstance(const SAFplus::Handle& mgmtHandle, boost::python::list & argv)
+{
+  SAFplus::Rpc::amfMgmtRpc::ServiceInstanceConfig* si = new SAFplus::Rpc::amfMgmtRpc::ServiceInstanceConfig();
+  ssize_t len = boost::python::len(argv);
+  for(int i = 0; i < len; i = i + 2)
+  {
+      std::string attr = boost::python::extract<std::string>(argv[i]);
+      std::string val = boost::python::extract<std::string>(argv[i+1]);
+      if(!attr.compare("name"))
+      {
+          si->set_name(val);
+      }
+      else if(!attr.compare("adminState"))
+      {
+          if(std::stoi(val) == 0)
+          {
+              si->set_adminstate(SAFplus::Rpc::amfMgmtRpc::AdministrativeState::AdministrativeState_off);
+          }
+          else if(std::stoi(val) == 1)
+          {
+              si->set_adminstate(SAFplus::Rpc::amfMgmtRpc::AdministrativeState::AdministrativeState_idle);
+          }
+          else if(std::stoi(val) == 2)
+          {
+              si->set_adminstate(SAFplus::Rpc::amfMgmtRpc::AdministrativeState::AdministrativeState_on);
+          }
+          else
+          {
+              std::cout << "Doesn't support adminState value: " << val << std::endl;
+              return CL_ERR_UNSPECIFIED;
+          }
+      }
+      else if(!attr.compare("preferredActiveAssignments"))
+      {
+          si->set_preferredactiveassignments(std::stoi(val));
+      }
+      else if(!attr.compare("preferredStandbyAssignments"))
+      {
+          si->set_preferredstandbyassignments(std::stoi(val));
+      }
+      else if(!attr.compare("rank"))
+      {
+          si->set_rank(std::stoi(val));
+      }
+      else if(!attr.compare("componentServiceInstances"))
+      {
+          si->add_componentserviceinstances(val);
+      }
+      else if(!attr.compare("serviceGroup"))
+      {
+          si->set_servicegroup(val);
+      }
+      else
+      {
+          std::cout << "Doesn't support setting this attribute: " << attr << std::endl;
+          return CL_ERR_UNSPECIFIED;
+      }
+  }
+
+  ClRcT rc = SAFplus::amfMgmtServiceInstanceConfigSet(mgmtHandle,si);
+  return rc;
+}
+
+ClRcT updateServiceUnit(const SAFplus::Handle& mgmtHandle, boost::python::list & argv)
+{
+  SAFplus::Rpc::amfMgmtRpc::ServiceUnitConfig* su = new SAFplus::Rpc::amfMgmtRpc::ServiceUnitConfig();
+  ssize_t len = boost::python::len(argv);
+  for(int i = 0; i < len; i = i + 2)
+  {
+      std::string attr = boost::python::extract<std::string>(argv[i]);
+      std::string val = boost::python::extract<std::string>(argv[i+1]);
+      if(!attr.compare("name"))
+      {
+          su->set_name(val);
+      }
+      else if(!attr.compare("adminState"))
+      {
+          if(std::stoi(val) == 0)
+          {
+              su->set_adminstate(SAFplus::Rpc::amfMgmtRpc::AdministrativeState::AdministrativeState_off);
+          }
+          else if(std::stoi(val) == 1)
+          {
+              su->set_adminstate(SAFplus::Rpc::amfMgmtRpc::AdministrativeState::AdministrativeState_idle);
+          }
+          else if(std::stoi(val) == 2)
+          {
+              su->set_adminstate(SAFplus::Rpc::amfMgmtRpc::AdministrativeState::AdministrativeState_on);
+          }
+          else
+          {
+              std::cout << "Doesn't support adminState value: " << val << std::endl;
+              return CL_ERR_UNSPECIFIED;
+          }
+      }
+      else if(!attr.compare("rank"))
+      {
+          su->set_rank(std::stoi(val));
+      }
+      else if(!attr.compare("failover"))
+      {
+          su->set_failover(std::stoi(val));
+      }
+      else if(!attr.compare("components"))
+      {
+          su->add_components(val);
+      }
+      else if(!attr.compare("node"))
+      {
+          su->set_node(val);
+      }
+      else if(!attr.compare("serviceGroup"))
+      {
+          su->set_servicegroup(val);
+      }
+      else
+      {
+          std::cout << "Doesn't support setting this attribute: " << attr << std::endl;
+          return CL_ERR_UNSPECIFIED;
+      }
+  }
+
+  ClRcT rc = SAFplus::amfMgmtServiceUnitConfigSet(mgmtHandle,su);
+  return rc;
+}
+
+ClRcT updateNode(const SAFplus::Handle& mgmtHandle, boost::python::list & argv)
+{
+    SAFplus::Rpc::amfMgmtRpc::NodeConfig* node = new SAFplus::Rpc::amfMgmtRpc::NodeConfig();
+    ssize_t len = boost::python::len(argv);
+    for(int i = 0; i < len; i = i + 2)
+    {
+        std::string attr = boost::python::extract<std::string>(argv[i]);
+        std::string val = boost::python::extract<std::string>(argv[i+1]);
+        if(!attr.compare("name"))
+        {
+            node->set_name(val);
+        }
+        else if(!attr.compare("adminState"))
+        {
+            if(std::stoi(val) == 0)
+            {
+                node->set_adminstate(SAFplus::Rpc::amfMgmtRpc::AdministrativeState::AdministrativeState_off);
+            }
+            else if(std::stoi(val) == 1)
+            {
+                node->set_adminstate(SAFplus::Rpc::amfMgmtRpc::AdministrativeState::AdministrativeState_idle);
+            }
+            else if(std::stoi(val) == 2)
+            {
+                node->set_adminstate(SAFplus::Rpc::amfMgmtRpc::AdministrativeState::AdministrativeState_on);
+            }
+            else
+            {
+                std::cout << "Doesn't support adminState value: " << val << std::endl;
+                return CL_ERR_UNSPECIFIED;
+            }
+        }
+        else if(!attr.compare("autoRepair"))
+        {
+            node->set_autorepair(std::stoi(val));
+        }
+        else if(!attr.compare("failFastOnInstantiationFailure"))
+        {
+            node->set_failfastoninstantiationfailure(std::stoi(val));
+        }
+        else if(!attr.compare("failFastOnCleanupFailure"))
+        {
+            node->set_failfastoncleanupfailure(std::stoi(val));
+        }
+        else if(!attr.compare("serviceUnits"))
+        {
+            node->add_serviceunits(val);
+        }
+        else
+        {
+            std::cout << "Doesn't support setting this attribute: " << attr << std::endl;
+            return CL_ERR_UNSPECIFIED;
+        }
+    }
+
+    ClRcT rc = SAFplus::amfMgmtNodeConfigSet(mgmtHandle,node);
+    return rc;
+}
+
+ClRcT updateServiceGroup(const SAFplus::Handle& mgmtHandle, boost::python::list & argv)
+{
+    SAFplus::Rpc::amfMgmtRpc::ServiceGroupConfig* sg = new SAFplus::Rpc::amfMgmtRpc::ServiceGroupConfig();
+    SAFplus::Rpc::amfMgmtRpc::SaTimeT* autoadjustinterval = new SAFplus::Rpc::amfMgmtRpc::SaTimeT();
+    ssize_t len = boost::python::len(argv);
+    for(int i = 0; i < len; i = i + 2)
+    {
+        std::string attr = boost::python::extract<std::string>(argv[i]);
+        std::string val = boost::python::extract<std::string>(argv[i+1]);
+        if(!attr.compare("name"))
+        {
+            sg->set_name(val);
+        }
+        else if(!attr.compare("adminState"))
+        {
+            if(std::stoi(val) == 0)
+            {
+                sg->set_adminstate(SAFplus::Rpc::amfMgmtRpc::AdministrativeState::AdministrativeState_off);
+            }
+            else if(std::stoi(val) == 1)
+            {
+                sg->set_adminstate(SAFplus::Rpc::amfMgmtRpc::AdministrativeState::AdministrativeState_idle);
+            }
+            else if(std::stoi(val) == 2)
+            {
+                sg->set_adminstate(SAFplus::Rpc::amfMgmtRpc::AdministrativeState::AdministrativeState_on);
+            }
+            else
+            {
+                std::cout << "Doesn't support adminState value: " << val << std::endl;
+                return CL_ERR_UNSPECIFIED;
+            }
+        }
+        else if(!attr.compare("autoRepair"))
+        {
+            sg->set_autorepair(std::stoi(val));
+        }
+        else if(!attr.compare("autoAdjust"))
+        {
+            sg->set_autoadjust(std::stoi(val));
+        }
+        else if(!attr.compare("autoAdjustInterval"))
+        {
+            autoadjustinterval->set_uint64(std::stoi(val));
+            sg->set_allocated_autoadjustinterval(autoadjustinterval);
+        }
+        else if(!attr.compare("preferredNumActiveServiceUnits"))
+        {
+            sg->set_preferrednumactiveserviceunits(std::stoi(val));
+        }
+        else if(!attr.compare("preferredNumStandbyServiceUnits"))
+        {
+            sg->set_preferrednumstandbyserviceunits(std::stoi(val));
+        }
+        else if(!attr.compare("preferredNumIdleServiceUnits"))
+        {
+            sg->set_preferrednumidleserviceunits(std::stoi(val));
+        }
+        else if(!attr.compare("maxActiveWorkAssignments"))
+        {
+            sg->set_maxactiveworkassignments(std::stoi(val));
+        }
+        else if(!attr.compare("maxStandbyWorkAssignments"))
+        {
+            sg->set_maxstandbyworkassignments(std::stoi(val));
+        }
+        else if(!attr.compare("serviceUnits"))
+        {
+            sg->add_serviceunits(val);
+        }
+        else if(!attr.compare("serviceInstances"))
+        {
+            sg->add_serviceinstances(val);
+        }
+        else
+        {
+            std::cout << "Doesn't support setting this attribute: " << attr << std::endl;
+            return CL_ERR_UNSPECIFIED;
+        }
+
+    }
+    ClRcT rc = SAFplus::amfMgmtServiceGroupConfigSet(mgmtHandle,sg);
+    return rc;
+}
+
+ClRcT updateComponent(const SAFplus::Handle& mgmtHandle, boost::python::list & argv)
+{
+    SAFplus::Rpc::amfMgmtRpc::ComponentConfig* comp = new SAFplus::Rpc::amfMgmtRpc::ComponentConfig();
+    SAFplus::Rpc::amfMgmtRpc::Execution* exeInst = new SAFplus::Rpc::amfMgmtRpc::Execution();
+    SAFplus::Rpc::amfMgmtRpc::Execution* exeTer = new SAFplus::Rpc::amfMgmtRpc::Execution();
+    SAFplus::Rpc::amfMgmtRpc::Execution* exeCl = new SAFplus::Rpc::amfMgmtRpc::Execution();
+    SAFplus::Rpc::amfMgmtRpc::Instantiate* inst = new SAFplus::Rpc::amfMgmtRpc::Instantiate();
+    SAFplus::Rpc::amfMgmtRpc::Terminate* terminate = new SAFplus::Rpc::amfMgmtRpc::Terminate();
+    SAFplus::Rpc::amfMgmtRpc::Cleanup* cleanup = new SAFplus::Rpc::amfMgmtRpc::Cleanup();
+    SAFplus::Rpc::amfMgmtRpc::Timeouts* timeouts = new SAFplus::Rpc::amfMgmtRpc::Timeouts();
+    SAFplus::Rpc::amfMgmtRpc::SaTimeT* terminateTimeout = new SAFplus::Rpc::amfMgmtRpc::SaTimeT();
+    SAFplus::Rpc::amfMgmtRpc::SaTimeT* quiescingComplete = new SAFplus::Rpc::amfMgmtRpc::SaTimeT();
+    SAFplus::Rpc::amfMgmtRpc::SaTimeT* workRemoval = new SAFplus::Rpc::amfMgmtRpc::SaTimeT();
+    SAFplus::Rpc::amfMgmtRpc::SaTimeT* workAssignment = new SAFplus::Rpc::amfMgmtRpc::SaTimeT();
+
+    ssize_t len = boost::python::len(argv);
+    for(int i = 0; i < len; i = i + 2)
+    {
+        std::string attr = boost::python::extract<std::string>(argv[i]);
+        std::string val = boost::python::extract<std::string>(argv[i+1]);
+        if(!attr.compare("name"))
+        {
+            comp->set_name(val);
+        }
+        else if(!attr.compare("capabilityModel"))
+        {
+            if(std::stoi(val) == 0)
+            {
+                comp->set_capabilitymodel(SAFplus::Rpc::amfMgmtRpc::CapabilityModel_x_active_and_y_standby);
+            }
+            else if(std::stoi(val) == 1)
+            {
+                comp->set_capabilitymodel(SAFplus::Rpc::amfMgmtRpc::CapabilityModel_x_active_or_y_standby);
+            }
+            else if(std::stoi(val) == 2)
+            {
+                comp->set_capabilitymodel(SAFplus::Rpc::amfMgmtRpc::CapabilityModel_not_preinstantiable);
+            }
+            else
+            {
+                std::cout << "Doesn't support capabilityModel value: " << val << std::endl;
+                return CL_ERR_UNSPECIFIED;
+            }
+        }
+        else if(!attr.compare("maxActiveAssignments"))
+        {
+            comp->set_maxactiveassignments(std::stoi(val));
+        }
+        else if(!attr.compare("maxStandbyAssignments"))
+        {
+            comp->set_maxstandbyassignments(std::stoi(val));
+        }
+        else if(!attr.compare("commandInstantiate"))
+        {
+            exeInst->set_command(val);
+        }
+        else if(!attr.compare("timeoutInstantiate"))
+        {
+            exeInst->set_timeout(std::stoi(val));
+            inst->set_allocated_execution(exeInst);
+            comp->set_allocated_instantiate(inst);
+        }
+        else if(!attr.compare("commandTerminate"))
+        {
+            exeTer->set_command(val);
+        }
+        else if(!attr.compare("timeoutTerminate"))
+        {
+            exeTer->set_timeout(std::stoi(val));
+            terminate->set_allocated_execution(exeTer);
+            comp->set_allocated_terminate(terminate);
+        }
+        else if(!attr.compare("commandCleanup"))
+        {
+            exeCl->set_command(val);
+        }
+        else if(!attr.compare("timeoutCleanup"))
+        {
+            exeCl->set_timeout(std::stoi(val));
+            cleanup->set_allocated_execution(exeCl);
+            comp->set_allocated_cleanup(cleanup);
+        }
+        else if(!attr.compare("maxInstantInstantiations"))
+        {
+            comp->set_maxinstantinstantiations(std::stoi(val));
+        }
+        else if(!attr.compare("maxDelayedInstantiations"))
+        {
+            comp->set_maxdelayedinstantiations(std::stoi(val));
+        }
+        else if(!attr.compare("instantiationSuccessDuration"))
+        {
+            comp->set_instantiationsuccessduration(std::stoi(val));
+        }
+        else if(!attr.compare("delayBetweenInstantiation"))
+        {
+            comp->set_delaybetweeninstantiation(std::stoi(val));
+        }
+        else if(!attr.compare("terminateTimeout"))
+        {
+            terminateTimeout->set_uint64(std::stoi(val));
+            timeouts->set_allocated_terminate(terminateTimeout);
+        }
+        else if(!attr.compare("quiescingcompleteTimeout"))
+        {
+            quiescingComplete->set_uint64(std::stoi(val));
+            timeouts->set_allocated_quiescingcomplete(quiescingComplete);
+        }
+        else if(!attr.compare("workremovalTimeout"))
+        {
+            workRemoval->set_uint64(std::stoi(val));
+            timeouts->set_allocated_workremoval(workRemoval);
+        }
+        else if(!attr.compare("workassignmentTimeout"))
+        {
+            workAssignment->set_uint64(std::stoi(val));
+            timeouts->set_allocated_workassignment(workAssignment);
+            comp->set_allocated_timeouts(timeouts);
+        }
+        else if(!attr.compare("serviceUnit"))
+        {
+            comp->set_serviceunit(val);
+        }
+        else if(!attr.compare("recovery"))
+        {
+            if(std::stoi(val) == 1)
+            {
+                comp->set_recovery(SAFplus::Rpc::amfMgmtRpc::Recovery_NoRecommendation);
+            }
+            else if(std::stoi(val) == 2)
+            {
+                comp->set_recovery(SAFplus::Rpc::amfMgmtRpc::Recovery_Restart);
+            }
+            else if(std::stoi(val) == 3)
+            {
+                comp->set_recovery(SAFplus::Rpc::amfMgmtRpc::Recovery_Failover);
+            }
+            else if(std::stoi(val) == 4)
+            {
+                comp->set_recovery(SAFplus::Rpc::amfMgmtRpc::Recovery_NodeSwitchover);
+            }
+            else if(std::stoi(val) == 5)
+            {
+                comp->set_recovery(SAFplus::Rpc::amfMgmtRpc::Recovery_NodeFailover);
+            }
+            else if(std::stoi(val) == 6)
+            {
+                comp->set_recovery(SAFplus::Rpc::amfMgmtRpc::Recovery_NodeFailfast);
+            }
+            else if(std::stoi(val) == 7)
+            {
+                comp->set_recovery(SAFplus::Rpc::amfMgmtRpc::Recovery_ClusterReset);
+            }
+            else if(std::stoi(val) == 8)
+            {
+                comp->set_recovery(SAFplus::Rpc::amfMgmtRpc::Recovery_ApplicationRestart);
+            }
+            else if(std::stoi(val) == 9)
+            {
+                comp->set_recovery(SAFplus::Rpc::amfMgmtRpc::Recovery_ContainerRestart);
+            }
+            else
+            {
+                std::cout << "Doesn't support recovery value: " << val << std::endl;
+                return CL_ERR_UNSPECIFIED;
+            }
+        }
+        else if(!attr.compare("restartable"))
+        {
+            comp->set_restartable(std::stoi(val));
+        }
+        else if(!attr.compare("csiType"))
+        {
+            comp->set_csitype(val);
+        }
+        else
+        {
+            std::cout << "Doesn't support setting this attribute: " << attr << std::endl;
+            return CL_ERR_UNSPECIFIED;
+        }
+    }
+
+    ClRcT rc = SAFplus::amfMgmtComponentConfigSet(mgmtHandle,comp);
+    return rc;
+}
+
 BOOST_PYTHON_MODULE(pySAFplus)
 {
   logInitialize();
@@ -413,6 +999,12 @@ BOOST_PYTHON_MODULE(pySAFplus)
   //.def(write, &Checkpoint::write)
   //  .def(read, &Checkpoint::read);
 
+  /*
+  // members of MembersOfComponentConfig class
+  class_<MembersOfComponentConfig>("MembersOfComponentConfig")
+          .def(init<optional<std::string>>())
+          .add_property("name", &MembersOfComponentConfig::getName, &MembersOfComponentConfig::setName);
+*/
   // Management information access
 
   def("mgtGet",static_cast< std::string (*)(const std::string&) > (&SAFplus::mgtGet));
@@ -481,4 +1073,25 @@ BOOST_PYTHON_MODULE(pySAFplus)
   def("addSUIntoSG",static_cast< ClRcT (*)(const Handle &, const std::string &, const std::string &) > (&addSUIntoSG));
   def("addCompIntoSU",static_cast< ClRcT (*)(const Handle &, const std::string &, const std::string &) > (&addCompIntoSU));
   def("amfMgmtCommit",static_cast< ClRcT (*)(const Handle &) > (&amfMgmtCommit));
+
+  def("updateComponent",static_cast< ClRcT (*)(const Handle &, boost::python::list&) > (&updateComponent));
+  def("updateServiceGroup",static_cast< ClRcT (*)(const Handle &, boost::python::list&) > (&updateServiceGroup));
+  def("updateNode",static_cast< ClRcT (*)(const Handle &, boost::python::list&) > (&updateNode));
+  def("updateServiceUnit",static_cast< ClRcT (*)(const Handle &, boost::python::list&) > (&updateServiceUnit));
+  def("updateServiceInstance",static_cast< ClRcT (*)(const Handle &, boost::python::list&) > (&updateServiceInstance));
+  def("updateComponentServiceInstance",static_cast< ClRcT (*)(const Handle &, boost::python::list&) > (&updateComponentServiceInstance));
+
+  def("addNewComponent",static_cast< ClRcT (*)(const Handle &, const std::string &, const std::string &, const std::string &) > (&addNewComponent));
+  def("addNewServiceGroup",static_cast< ClRcT (*)(const Handle &, const std::string &, const std::string &, const std::string &) > (&addNewServiceGroup));
+  def("addNewNode",static_cast< ClRcT (*)(const Handle &, const std::string &, const std::string &) > (&addNewNode));
+  def("addNewServiceUnit",static_cast< ClRcT (*)(const Handle &, const std::string &, const std::string &, const std::string &, const std::string &) > (&addNewServiceUnit));
+  def("addNewServiceInstance",static_cast< ClRcT (*)(const Handle &, const std::string &, const std::string &, const std::string &) > (&addNewServiceInstance));
+  def("addNewComponentServiceInstance",static_cast< ClRcT (*)(const Handle &, const std::string &, const std::string &, const std::string &, const std::string &, const std::string &, const std::string &) > (&addNewComponentServiceInstance));
+
+  def("amfMgmtComponentDelete",static_cast< ClRcT (*)(const Handle &, const std::string &) > (&amfMgmtComponentDelete));
+  def("amfMgmtServiceGroupDelete",static_cast< ClRcT (*)(const Handle &, const std::string &) > (&amfMgmtServiceGroupDelete));
+  def("amfMgmtNodeDelete",static_cast< ClRcT (*)(const Handle &, const std::string &) > (&amfMgmtNodeDelete));
+  def("amfMgmtServiceUnitDelete",static_cast< ClRcT (*)(const Handle &, const std::string &) > (&amfMgmtServiceUnitDelete));
+  def("amfMgmtServiceInstanceDelete",static_cast< ClRcT (*)(const Handle &, const std::string &) > (&amfMgmtServiceInstanceDelete));
+  def("amfMgmtComponentServiceInstanceDelete",static_cast< ClRcT (*)(const Handle &, const std::string &) > (&amfMgmtComponentServiceInstanceDelete));
 }
