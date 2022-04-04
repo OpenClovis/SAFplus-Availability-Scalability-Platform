@@ -77,6 +77,27 @@ Handle = safplus.Handle
 HandleType = safplus.HandleType
 amfMgmtCommit = safplus.amfMgmtCommit
 
+updateComponent = safplus.updateComponent
+updateServiceGroup = safplus.updateServiceGroup
+updateNode = safplus.updateNode
+updateServiceUnit = safplus.updateServiceUnit
+updateServiceInstance = safplus.updateServiceInstance
+updateComponentServiceInstance = safplus.updateComponentServiceInstance
+
+addNewComponent = safplus.addNewComponent
+addNewServiceGroup = safplus.addNewServiceGroup
+addNewNode = safplus.addNewNode
+addNewServiceUnit = safplus.addNewServiceUnit
+addNewServiceInstance = safplus.addNewServiceInstance
+addNewComponentServiceInstance = safplus.addNewComponentServiceInstance
+
+amfMgmtComponentDelete = safplus.amfMgmtComponentDelete
+amfMgmtServiceGroupDelete = safplus.amfMgmtServiceGroupDelete
+amfMgmtNodeDelete = safplus.amfMgmtNodeDelete
+amfMgmtServiceUnitDelete = safplus.amfMgmtServiceUnitDelete
+amfMgmtServiceInstanceDelete = safplus.amfMgmtServiceInstanceDelete
+amfMgmtComponentServiceInstanceDelete = safplus.amfMgmtComponentServiceInstanceDelete
+
 
 def isValidDirectory(path):
   try:

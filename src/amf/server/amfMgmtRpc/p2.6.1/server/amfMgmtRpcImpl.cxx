@@ -1091,6 +1091,11 @@ namespace amfMgmtRpc {
         MGMT_CALL(updateEntityFromDatabase("/safplusAmf/Component",comp.name(),"timeouts/workAssignment",ss.str()));
       }
     }
+    if (comp.has_csitype())
+    {
+      const std::string& csiType  = comp.csitype();
+      MGMT_CALL(updateEntityFromDatabase("/safplusAmf/Component",comp.name(),"csiType",csiType));
+    }
    
     return rc;
   }
@@ -2100,6 +2105,11 @@ namespace amfMgmtRpc {
     {
       const std::string& si = csi.serviceinstance();
       MGMT_CALL(updateEntityFromDatabase("/safplusAmf/ComponentServiceInstance",csi.name(),"serviceInstance",si));
+    }
+    if (csi.has_type())
+    {
+      const std::string& type = csi.type();
+      MGMT_CALL(updateEntityFromDatabase("/safplusAmf/ComponentServiceInstance",csi.name(),"type",type));
     }
 
     return rc;

@@ -1431,7 +1431,7 @@ namespace SAFplus
         }
         else
           logDebug("MGT","LIST", "db object is null");
-
+#if 0
         if (db &&(this->parent != nullptr)) /* Update childs for parent: i.e /safplusAmf => "Node[@name='node0'],Node[@name='node1']" */
         {
           std::string parentDBKey = parent->getFullXpath();
@@ -1460,6 +1460,7 @@ namespace SAFplus
         }
         else
           logDebug("MGT","LIST", "db object is null");
+#endif
 
         /* TODO: Remove the record out of database for its childs */
 

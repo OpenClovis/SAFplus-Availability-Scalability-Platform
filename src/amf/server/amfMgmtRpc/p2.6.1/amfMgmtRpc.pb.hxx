@@ -3035,6 +3035,18 @@ class ComponentConfig : public ::google::protobuf::Message {
   inline bool restartable() const;
   inline void set_restartable(bool value);
 
+  // optional string csiType = 17;
+  inline bool has_csitype() const;
+  inline void clear_csitype();
+  static const int kCsiTypeFieldNumber = 17;
+  inline const ::std::string& csitype() const;
+  inline void set_csitype(const ::std::string& value);
+  inline void set_csitype(const char* value);
+  inline void set_csitype(const char* value, size_t size);
+  inline ::std::string* mutable_csitype();
+  inline ::std::string* release_csitype();
+  inline void set_allocated_csitype(::std::string* csitype);
+
   GOOGLE_PROTOBUF_EXTENSION_ACCESSORS(ComponentConfig)
   // @@protoc_insertion_point(class_scope:SAFplus.Rpc.amfMgmtRpc.ComponentConfig)
  private:
@@ -3068,6 +3080,8 @@ class ComponentConfig : public ::google::protobuf::Message {
   inline void clear_has_recovery();
   inline void set_has_restartable();
   inline void clear_has_restartable();
+  inline void set_has_csitype();
+  inline void clear_has_csitype();
 
   ::google::protobuf::internal::ExtensionSet _extensions_;
 
@@ -3090,6 +3104,7 @@ class ComponentConfig : public ::google::protobuf::Message {
   ::google::protobuf::uint32 delaybetweeninstantiation_;
   int recovery_;
   ::std::string* serviceunit_;
+  ::std::string* csitype_;
   bool restartable_;
   friend void  protobuf_AddDesc_amfMgmtRpc_2eproto();
   friend void protobuf_AssignDesc_amfMgmtRpc_2eproto();
@@ -3307,6 +3322,18 @@ class ComponentServiceInstanceConfig : public ::google::protobuf::Message {
   inline ::std::string* release_serviceinstance();
   inline void set_allocated_serviceinstance(::std::string* serviceinstance);
 
+  // optional string type = 5;
+  inline bool has_type() const;
+  inline void clear_type();
+  static const int kTypeFieldNumber = 5;
+  inline const ::std::string& type() const;
+  inline void set_type(const ::std::string& value);
+  inline void set_type(const char* value);
+  inline void set_type(const char* value, size_t size);
+  inline ::std::string* mutable_type();
+  inline ::std::string* release_type();
+  inline void set_allocated_type(::std::string* type);
+
   GOOGLE_PROTOBUF_EXTENSION_ACCESSORS(ComponentServiceInstanceConfig)
   // @@protoc_insertion_point(class_scope:SAFplus.Rpc.amfMgmtRpc.ComponentServiceInstanceConfig)
  private:
@@ -3314,6 +3341,8 @@ class ComponentServiceInstanceConfig : public ::google::protobuf::Message {
   inline void clear_has_name();
   inline void set_has_serviceinstance();
   inline void clear_has_serviceinstance();
+  inline void set_has_type();
+  inline void clear_has_type();
 
   ::google::protobuf::internal::ExtensionSet _extensions_;
 
@@ -3325,6 +3354,7 @@ class ComponentServiceInstanceConfig : public ::google::protobuf::Message {
   ::google::protobuf::RepeatedPtrField< ::std::string> dependencies_;
   ::google::protobuf::RepeatedPtrField< ::SAFplus::Rpc::amfMgmtRpc::Data > data_;
   ::std::string* serviceinstance_;
+  ::std::string* type_;
   friend void  protobuf_AddDesc_amfMgmtRpc_2eproto();
   friend void protobuf_AssignDesc_amfMgmtRpc_2eproto();
   friend void protobuf_ShutdownFile_amfMgmtRpc_2eproto();
@@ -22426,6 +22456,82 @@ inline void ComponentConfig::set_restartable(bool value) {
   // @@protoc_insertion_point(field_set:SAFplus.Rpc.amfMgmtRpc.ComponentConfig.restartable)
 }
 
+// optional string csiType = 17;
+inline bool ComponentConfig::has_csitype() const {
+  return (_has_bits_[0] & 0x00010000u) != 0;
+}
+inline void ComponentConfig::set_has_csitype() {
+  _has_bits_[0] |= 0x00010000u;
+}
+inline void ComponentConfig::clear_has_csitype() {
+  _has_bits_[0] &= ~0x00010000u;
+}
+inline void ComponentConfig::clear_csitype() {
+  if (csitype_ != &::google::protobuf::internal::GetEmptyStringAlreadyInited()) {
+    csitype_->clear();
+  }
+  clear_has_csitype();
+}
+inline const ::std::string& ComponentConfig::csitype() const {
+  // @@protoc_insertion_point(field_get:SAFplus.Rpc.amfMgmtRpc.ComponentConfig.csiType)
+  return *csitype_;
+}
+inline void ComponentConfig::set_csitype(const ::std::string& value) {
+  set_has_csitype();
+  if (csitype_ == &::google::protobuf::internal::GetEmptyStringAlreadyInited()) {
+    csitype_ = new ::std::string;
+  }
+  csitype_->assign(value);
+  // @@protoc_insertion_point(field_set:SAFplus.Rpc.amfMgmtRpc.ComponentConfig.csiType)
+}
+inline void ComponentConfig::set_csitype(const char* value) {
+  set_has_csitype();
+  if (csitype_ == &::google::protobuf::internal::GetEmptyStringAlreadyInited()) {
+    csitype_ = new ::std::string;
+  }
+  csitype_->assign(value);
+  // @@protoc_insertion_point(field_set_char:SAFplus.Rpc.amfMgmtRpc.ComponentConfig.csiType)
+}
+inline void ComponentConfig::set_csitype(const char* value, size_t size) {
+  set_has_csitype();
+  if (csitype_ == &::google::protobuf::internal::GetEmptyStringAlreadyInited()) {
+    csitype_ = new ::std::string;
+  }
+  csitype_->assign(reinterpret_cast<const char*>(value), size);
+  // @@protoc_insertion_point(field_set_pointer:SAFplus.Rpc.amfMgmtRpc.ComponentConfig.csiType)
+}
+inline ::std::string* ComponentConfig::mutable_csitype() {
+  set_has_csitype();
+  if (csitype_ == &::google::protobuf::internal::GetEmptyStringAlreadyInited()) {
+    csitype_ = new ::std::string;
+  }
+  // @@protoc_insertion_point(field_mutable:SAFplus.Rpc.amfMgmtRpc.ComponentConfig.csiType)
+  return csitype_;
+}
+inline ::std::string* ComponentConfig::release_csitype() {
+  clear_has_csitype();
+  if (csitype_ == &::google::protobuf::internal::GetEmptyStringAlreadyInited()) {
+    return NULL;
+  } else {
+    ::std::string* temp = csitype_;
+    csitype_ = const_cast< ::std::string*>(&::google::protobuf::internal::GetEmptyStringAlreadyInited());
+    return temp;
+  }
+}
+inline void ComponentConfig::set_allocated_csitype(::std::string* csitype) {
+  if (csitype_ != &::google::protobuf::internal::GetEmptyStringAlreadyInited()) {
+    delete csitype_;
+  }
+  if (csitype) {
+    set_has_csitype();
+    csitype_ = csitype;
+  } else {
+    clear_has_csitype();
+    csitype_ = const_cast< ::std::string*>(&::google::protobuf::internal::GetEmptyStringAlreadyInited());
+  }
+  // @@protoc_insertion_point(field_set_allocated:SAFplus.Rpc.amfMgmtRpc.ComponentConfig.csiType)
+}
+
 // -------------------------------------------------------------------
 
 // Data
@@ -22820,6 +22926,82 @@ inline void ComponentServiceInstanceConfig::set_allocated_serviceinstance(::std:
     serviceinstance_ = const_cast< ::std::string*>(&::google::protobuf::internal::GetEmptyStringAlreadyInited());
   }
   // @@protoc_insertion_point(field_set_allocated:SAFplus.Rpc.amfMgmtRpc.ComponentServiceInstanceConfig.serviceInstance)
+}
+
+// optional string type = 5;
+inline bool ComponentServiceInstanceConfig::has_type() const {
+  return (_has_bits_[0] & 0x00000010u) != 0;
+}
+inline void ComponentServiceInstanceConfig::set_has_type() {
+  _has_bits_[0] |= 0x00000010u;
+}
+inline void ComponentServiceInstanceConfig::clear_has_type() {
+  _has_bits_[0] &= ~0x00000010u;
+}
+inline void ComponentServiceInstanceConfig::clear_type() {
+  if (type_ != &::google::protobuf::internal::GetEmptyStringAlreadyInited()) {
+    type_->clear();
+  }
+  clear_has_type();
+}
+inline const ::std::string& ComponentServiceInstanceConfig::type() const {
+  // @@protoc_insertion_point(field_get:SAFplus.Rpc.amfMgmtRpc.ComponentServiceInstanceConfig.type)
+  return *type_;
+}
+inline void ComponentServiceInstanceConfig::set_type(const ::std::string& value) {
+  set_has_type();
+  if (type_ == &::google::protobuf::internal::GetEmptyStringAlreadyInited()) {
+    type_ = new ::std::string;
+  }
+  type_->assign(value);
+  // @@protoc_insertion_point(field_set:SAFplus.Rpc.amfMgmtRpc.ComponentServiceInstanceConfig.type)
+}
+inline void ComponentServiceInstanceConfig::set_type(const char* value) {
+  set_has_type();
+  if (type_ == &::google::protobuf::internal::GetEmptyStringAlreadyInited()) {
+    type_ = new ::std::string;
+  }
+  type_->assign(value);
+  // @@protoc_insertion_point(field_set_char:SAFplus.Rpc.amfMgmtRpc.ComponentServiceInstanceConfig.type)
+}
+inline void ComponentServiceInstanceConfig::set_type(const char* value, size_t size) {
+  set_has_type();
+  if (type_ == &::google::protobuf::internal::GetEmptyStringAlreadyInited()) {
+    type_ = new ::std::string;
+  }
+  type_->assign(reinterpret_cast<const char*>(value), size);
+  // @@protoc_insertion_point(field_set_pointer:SAFplus.Rpc.amfMgmtRpc.ComponentServiceInstanceConfig.type)
+}
+inline ::std::string* ComponentServiceInstanceConfig::mutable_type() {
+  set_has_type();
+  if (type_ == &::google::protobuf::internal::GetEmptyStringAlreadyInited()) {
+    type_ = new ::std::string;
+  }
+  // @@protoc_insertion_point(field_mutable:SAFplus.Rpc.amfMgmtRpc.ComponentServiceInstanceConfig.type)
+  return type_;
+}
+inline ::std::string* ComponentServiceInstanceConfig::release_type() {
+  clear_has_type();
+  if (type_ == &::google::protobuf::internal::GetEmptyStringAlreadyInited()) {
+    return NULL;
+  } else {
+    ::std::string* temp = type_;
+    type_ = const_cast< ::std::string*>(&::google::protobuf::internal::GetEmptyStringAlreadyInited());
+    return temp;
+  }
+}
+inline void ComponentServiceInstanceConfig::set_allocated_type(::std::string* type) {
+  if (type_ != &::google::protobuf::internal::GetEmptyStringAlreadyInited()) {
+    delete type_;
+  }
+  if (type) {
+    set_has_type();
+    type_ = type;
+  } else {
+    clear_has_type();
+    type_ = const_cast< ::std::string*>(&::google::protobuf::internal::GetEmptyStringAlreadyInited());
+  }
+  // @@protoc_insertion_point(field_set_allocated:SAFplus.Rpc.amfMgmtRpc.ComponentServiceInstanceConfig.type)
 }
 
 // -------------------------------------------------------------------

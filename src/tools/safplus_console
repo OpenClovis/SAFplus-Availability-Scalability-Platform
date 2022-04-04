@@ -871,6 +871,8 @@ By default the specified location and children are shown.  Use -N to specify how
           depth1=1
           gs1 = "{d=%s}%s" % (depth1,str(t1))
           xml1 = access.mgtGet(self.handle, gs1)
+          if "data listkey" in xml1:
+            continue
           root1 = ET.fromstring(xml1)
           for child1 in root1.iter('current'):
             d = [child.tag, child1.text]
@@ -1214,104 +1216,162 @@ By default the specified location and children are shown.  Use -N to specify how
 
     return ""
 
-  def do_entitySet(self, entityType, entityName, firstAttribute, firstValue, *attributesAndValuesPairs):
+  def do_entitySet(self, entityType, entityName, *attributesAndValuesPairs):
     """syntax: entitySet entityType entityName attribute value
     Set the specified values to the attributes
     """
-    configureItems = "adminState",  "autoRepair",  "canBeInherited",  "currentRecovery",\
-      "disableAssignmentOn",  "failFastOnCleanupFailure",  "failFastOnInstantiationFailure",\
-        "id",  "lastSUFailure",  "name",  "restartable",  "serviceUnitFailureEscalationPolicy",\
-          "userDefinedType",  "autoAdjust",  "autoAdjustInterval",  "componentRestart",\
-            "maxActiveWorkAssignments",  "maxStandbyWorkAssignments",  "preferredNumActiveServiceUnits",\
-              "preferredNumIdleServiceUnits",  "preferredNumStandbyServiceUnits",  "serviceInstances",\
-                "serviceUnitRestart",  "serviceUnits",  "assignedServiceInstances",  "compRestartCount",\
-                  "components",  "failover",  "lastCompRestart",  "lastRestart",  "node",  "rank",\
-                    "saAmfSUHostNodeOrNodeGroup",  "serviceGroup",  "capabilityModel",  "cleanup",\
-                      "csiType",  "delayBetweenInstantiation",  "instantiate",  "instantiateLevel",\
-                        "maxInstantInstantiations",  "maxStandbyAssignments",  "proxied",  "proxyCSI",  "recovery",\
-                          "serviceUnit",  "terminate",  "timeouts",  "isFullStandbyAssignment",  "isFullActiveAssignment",\
-                            "preferredActiveAssignments",  "preferredStandbyAssignments",  "dependencies",  "type",\
-                              "instantiationSuccessDuration",  "maxActiveAssignments",  "maxDelayedInstantiations",\
-                                "componentServiceInstances",  "serviceInstance"
     if len(attributesAndValuesPairs) % 2 != 0:
       print("don't have values with the corresponding attributes")
       return ""
-
-    t = "/safplusAmf" + "/" + entityType + "/" + entityName
-
     listAttributesAndValuesPairs = list(attributesAndValuesPairs)
-    listAttributesAndValuesPairs.append(firstAttribute)
-    listAttributesAndValuesPairs.append(firstValue)
+    listAttributesAndValuesPairs.append("name")
+    listAttributesAndValuesPairs.append(entityName)
+    global amfMgmtHandle
+    try:
+      ret = access.amfMgmtInitialize(amfMgmtHandle)
+      if ret == 0x0:
+        if entityType == "Component":
+          ret = access.updateComponent(amfMgmtHandle, listAttributesAndValuesPairs)
+        elif entityType == "ServiceGroup":
+          ret = access.updateServiceGroup(amfMgmtHandle, listAttributesAndValuesPairs)
+        elif entityType == "Node":
+          ret = access.updateNode(amfMgmtHandle, listAttributesAndValuesPairs)
+        elif entityType == "ServiceUnit":
+          ret = access.updateServiceUnit(amfMgmtHandle, listAttributesAndValuesPairs)
+        elif entityType == "ServiceInstance":
+          ret = access.updateServiceInstance(amfMgmtHandle, listAttributesAndValuesPairs)
+        elif entityType == "ComponentServiceInstance":
+          ret = access.updateComponentServiceInstance(amfMgmtHandle, listAttributesAndValuesPairs)
+        else:
+          print("Invalid entity type, valid entity types are Node, ServiceGroup, ServiceUnit and ServiceInstance")
+          ret = 1
+        if ret == 0x0:
+          ret = access.amfMgmtCommit(amfMgmtHandle)
+        if ret == 0x0:
+          print("entitySet completed successfully with code [%s]"% hex(ret))
+        else:
+          print('entitySet failed with error code [%s]'% hex(ret))
 
-    i = 0
-    ret = ""
-    while i < len(listAttributesAndValuesPairs):
-      if listAttributesAndValuesPairs[i] in configureItems:
-        loc = t + "/" + listAttributesAndValuesPairs[i]
+        ret = access.amfMgmtFinalize(amfMgmtHandle)
+        if ret !=0:
+          print('amfMgmtFinalize failed with error code [%s]'% hex(ret))
       else:
-        print ("<error>Attribue: [%s] can not set</error>" % listAttributesAndValuesPairs[i])
-        i += 2
-        continue
-      try:
-        ret = access.mgtSet(str(loc),str(listAttributesAndValuesPairs[i+1]))
-        print("func ret: ", ret)
-      except RuntimeError as e:
-        print ("<error>location [%s] error [%s]</error>" % (location, str(e)))
-      i += 2
-      if ret == 4:  # CL_ERROR_NOT_EXIST
-        print("<error>location [%s] does not exist</error>" % loc)
-    print("return ret: ", ret)
-    return ret
+        print('amfMgmtInitialize failed with error code [%s]'% hex(ret))
 
-  def do_entityCreate(self, *entityTypeAndEntityNamePairs):
-    """syntax: entityCreate entityType entityName
+      return ret
+    except RuntimeError as e:
+      print ("error: ", e)
+    return "entitySet failed"
+
+  def do_entityCreate(self, entityType, entityName, *args):
+    """syntax:
+    - entityCreate Component entityName suName binary
+    - entityCreate ServiceGroup entityName suName siName
+    - entityCreate Node entityName suName
+    - entityCreate ServiceUnit entityName compName sgName nodeName
+    - entityCreate ServiceInstance entityName sgName csiName
+    - entityCreate ComponentServiceInstance entityName siName ipName ipValue portName portValue
     Creates a new entityName with the specified entityType
     """
+    global amfMgmtHandle
+    try:
+      ret = access.amfMgmtInitialize(amfMgmtHandle)
+      if ret == 0x0:
+        if entityType == "Component":
+          if len(args) == 2:
+            ret = access.addNewComponent(amfMgmtHandle, entityName, args[0], args[1])
+          else:
+            ret = "CompErr"
+        elif entityType == "ServiceGroup":
+          if len(args) == 2:
+            ret = access.addNewServiceGroup(amfMgmtHandle, entityName, args[0], args[1])
+          else:
+            ret = "SGErr"
+        elif entityType == "Node":
+          if len(args) == 1:
+            ret = access.addNewNode(amfMgmtHandle, entityName, args[0])
+          else:
+            ret = "NodeErr"
+        elif entityType == "ServiceUnit":
+          if len(args) == 3:
+            ret = access.addNewServiceUnit(amfMgmtHandle, entityName, args[0], args[1], args[2])
+          else:
+            ret = "SUErr"
+        elif entityType == "ServiceInstance":
+          if len(args) == 2:
+            ret = access.addNewServiceInstance(amfMgmtHandle, entityName, args[0], args[1])
+          else:
+            ret = "SIErr"
+        elif entityType == "ComponentServiceInstance":
+          if len(args) == 5:
+            ret = access.addNewComponentServiceInstance(amfMgmtHandle, entityName, args[0], args[1], args[2], args[3], args[4])
+          else:
+            ret = "CSIErr"
+        else:
+          print("Invalid entity type, valid entity types are Component, ServiceGroup, Node, ServiceUnit, ServiceInstance and ComponentServiceInstance")
+          ret = "TypeErr"
+        if ret == 0x0:
+          ret = access.amfMgmtCommit(amfMgmtHandle)
+        if ret == 0x0:
+          print("entityCreate completed successfully with code [%s]"% hex(ret))
+        elif ret == "CompErr" or ret == "SGErr" or ret == "NodeErr" or ret == "SUErr" or ret == "SIErr" or ret == "CSIErr" or ret == "TypeErr":
+          print('Syntax error')
+          ret = 1
+        else:
+          print('entityCreate failed with error code [%s]'% hex(ret))
 
-    if len(entityTypeAndEntityNamePairs) % 2 != 0:
-      print("don't have entityName with the corresponding entityType")
-      return ""
+        ret = access.amfMgmtFinalize(amfMgmtHandle)
+        if ret !=0:
+          print('amfMgmtFinalize failed with error code [%s]'% hex(ret))
+      else:
+        print('amfMgmtInitialize failed with error code [%s]'% hex(ret))
+      return ret
+    except RuntimeError as e:
+      print ("error: ", e)
+    return "entityCreate failed"
 
-    t = "/safplusAmf"
-    i = 0
-    ret = ""
-    while i < len(entityTypeAndEntityNamePairs):
-      entityType = entityTypeAndEntityNamePairs[i]
-      entityName = entityTypeAndEntityNamePairs[i+1]
-      loc = t + "/" + entityType + "/" + entityName
-      try:
-        ret = access.mgtCreate(str(loc))
-      except RuntimeError as e:
-        print ("<error>location [%s] error [%s]</error>" % (location, str(e)))
-      i += 2
-      if ret == 16:  # CL_ERR_ALREADY_EXIST
-        print("<error>entityName [%s] already exists</error>" % entityName)
-    return ret
-
-  def do_entityDelete(self, *entityTypeAndEntityNamePairs):
+  def do_entityDelete(self, entityType, entityName):
     """syntax: entityDelete entityType entityName
     Deletes the entityNames
     """
+    global amfMgmtHandle
+    try:
+      ret = access.amfMgmtInitialize(amfMgmtHandle)
+      if ret == 0x0:
+        if entityType == "Component":
+          ret = access.amfMgmtComponentDelete(amfMgmtHandle, entityName)
+        elif entityType == "ServiceGroup":
+          ret = access.amfMgmtServiceGroupDelete(amfMgmtHandle, entityName)
+        elif entityType == "Node":
+          ret = access.amfMgmtNodeDelete(amfMgmtHandle, entityName)
+        elif entityType == "ServiceUnit":
+          ret = access.amfMgmtServiceUnitDelete(amfMgmtHandle, entityName)
+        elif entityType == "ServiceInstance":
+          ret = access.amfMgmtServiceInstanceDelete(amfMgmtHandle, entityName)
+        elif entityType == "ComponentServiceInstance":
+          ret = access.amfMgmtComponentServiceInstanceDelete(amfMgmtHandle, entityName)
+        else:
+          print("Invalid entity type, valid entity types are Component, ServiceGroup, Node, ServiceUnit, ServiceInstance and ComponentServiceInstance")
+          ret = "TypeErr"
+        if ret == 0x0:
+          ret = access.amfMgmtCommit(amfMgmtHandle)
+        if ret == 0x0:
+          print("entityDelete completed successfully with code [%s]"% hex(ret))
+        elif ret == "TypeErr":
+          print('Syntax error')
+          ret = 1
+        else:
+          print('entityDelete failed with error code [%s]'% hex(ret))
 
-    if len(entityTypeAndEntityNamePairs) % 2 != 0:
-      print("don't have entityName with the corresponding entityType")
-      return ""
-
-    t = "/safplusAmf"
-    i = 0
-    ret = ""
-    while i < len(entityTypeAndEntityNamePairs):
-      entityType = entityTypeAndEntityNamePairs[i]
-      entityName = entityTypeAndEntityNamePairs[i+1]
-      loc = t + "/" + entityType + "/" + entityName
-      try:
-        ret = access.mgtDelete(str(loc))
-      except RuntimeError as e:
-        print ("<error>location [%s] error [%s]</error>" % (location, str(e)))
-      i += 2
-      if ret == 19:  # CL_ERR_DOESNT_EXIST
-        print("<error>entityName [%s] does not exist</error>" % entityName)
-    return ret
+        ret = access.amfMgmtFinalize(amfMgmtHandle)
+        if ret !=0:
+          print('amfMgmtFinalize failed with error code [%s]'% hex(ret))
+      else:
+        print('amfMgmtInitialize failed with error code [%s]'% hex(ret))
+      return ret
+    except RuntimeError as e:
+      print ("error: ", e)
+    return "entityDelete failed"
 
   def do_entityShutdown(self, entityType, entityName):
     """syntax: entityShutdown entityType entityName
