@@ -403,7 +403,7 @@ class ASPInstaller:
             #get the 3rdpary from server
             self.feedback('Getting %s from server'%thirdPartyPkg);
             self.debug('Getting %s from server'%thirdPartyPkg);
-            (retval, result, signal, core) = system('wget http://ftp.openclovis.com/files/%s' % thirdPartyPkg)
+            (retval, result, signal, core) = system('wget https://drive.google.com/file/d/1FdTC1OEIoW5qlB_2Po5BsMiQe-5Fahk-/view?usp=sharing')
             self.debug("Result: %d, output: %s" % (retval, str(result)))
         self.feedback('tar xfm %s'  % self.THIRDPARTYPKG_PATH)
         ret = syscall('tar xfm %s' % self.THIRDPARTYPKG_PATH)
