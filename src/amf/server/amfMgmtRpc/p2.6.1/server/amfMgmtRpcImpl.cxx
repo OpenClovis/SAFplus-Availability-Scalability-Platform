@@ -41,6 +41,8 @@ extern SAFplus::MgtDatabase amfDb;
 extern SAFplusAmf::SAFplusAmfModule cfg;
 extern SAFplus::AmfOperations *amfOpsMgmt;
 extern SAFplus::RedPolicyMap redPolicies;
+extern ClRcT setInstallInfo(const std::string& nodeName, const std::string& safplusInstallInfo);
+extern ClRcT getInstallInfo(const std::string& nodeName, std::string& safplusInstallInfo);
 
 //namespace SAFplus {
 
@@ -5229,6 +5231,27 @@ namespace amfMgmtRpc {
     }
 
     response->set_err(rc);
+  }
+
+  void amfMgmtRpcImpl::getSafplusInstallInfo(const ::SAFplus::Rpc::amfMgmtRpc::GetSafplusInstallInfoRequest* request,
+                                ::SAFplus::Rpc::amfMgmtRpc::GetSafplusInstallInfoResponse* response)
+  {
+     const std::string& nodeName = request->nodename();    
+     logDebug("MGMT","RPC","enter [%s] with param node name [%s]",__FUNCTION__,nodeName.c_str());
+     std::string installInfo;
+     ClRcT rc = getInstallInfo(nodeName, installInfo);
+     response->set_safplusinstallinfo(installInfo);
+     response->set_err(rc);
+  }
+
+  void amfMgmtRpcImpl::setSafplusInstallInfo(const ::SAFplus::Rpc::amfMgmtRpc::SetSafplusInstallInfoRequest* request,
+                                ::SAFplus::Rpc::amfMgmtRpc::SetSafplusInstallInfoResponse* response)
+  {
+     const std::string& nodeName = request->nodename();
+     const std::string& safplusInstallInfo = request->safplusinstallinfo();
+     logDebug("MGMT","RPC","enter [%s] with param node name [%s], safplusInstallInfo [%s]",__FUNCTION__,nodeName.c_str(), safplusInstallInfo.c_str());
+     ClRcT rc = setInstallInfo(nodeName, safplusInstallInfo);
+     response->set_err(rc);
   }
 
 }  // namespace amfMgmtRpc

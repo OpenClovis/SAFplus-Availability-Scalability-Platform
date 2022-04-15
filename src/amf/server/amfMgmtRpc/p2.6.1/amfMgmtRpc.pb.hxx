@@ -219,6 +219,10 @@ class AssignSUtoSIRequest;
 class AssignSUtoSIResponse;
 class ForceLockInstantiationRequest;
 class ForceLockInstantiationResponse;
+class GetSafplusInstallInfoRequest;
+class GetSafplusInstallInfoResponse;
+class SetSafplusInstallInfoRequest;
+class SetSafplusInstallInfoResponse;
 
 enum PresenceState {
   PresenceState_uninstantiated = 0,
@@ -18752,6 +18756,408 @@ class ForceLockInstantiationResponse : public ::google::protobuf::Message {
 
   void InitAsDefaultInstance();
   static ForceLockInstantiationResponse* default_instance_;
+};
+// -------------------------------------------------------------------
+
+class GetSafplusInstallInfoRequest : public ::google::protobuf::Message {
+ public:
+  GetSafplusInstallInfoRequest();
+  virtual ~GetSafplusInstallInfoRequest();
+
+  GetSafplusInstallInfoRequest(const GetSafplusInstallInfoRequest& from);
+
+  inline GetSafplusInstallInfoRequest& operator=(const GetSafplusInstallInfoRequest& from) {
+    CopyFrom(from);
+    return *this;
+  }
+
+  inline const ::google::protobuf::UnknownFieldSet& unknown_fields() const {
+    return _unknown_fields_;
+  }
+
+  inline ::google::protobuf::UnknownFieldSet* mutable_unknown_fields() {
+    return &_unknown_fields_;
+  }
+
+  static const ::google::protobuf::Descriptor* descriptor();
+  static const GetSafplusInstallInfoRequest& default_instance();
+
+  void Swap(GetSafplusInstallInfoRequest* other);
+
+  // implements Message ----------------------------------------------
+
+  GetSafplusInstallInfoRequest* New() const;
+  void CopyFrom(const ::google::protobuf::Message& from);
+  void MergeFrom(const ::google::protobuf::Message& from);
+  void CopyFrom(const GetSafplusInstallInfoRequest& from);
+  void MergeFrom(const GetSafplusInstallInfoRequest& from);
+  void Clear();
+  bool IsInitialized() const;
+
+  int ByteSize() const;
+  bool MergePartialFromCodedStream(
+      ::google::protobuf::io::CodedInputStream* input);
+  void SerializeWithCachedSizes(
+      ::google::protobuf::io::CodedOutputStream* output) const;
+  ::google::protobuf::uint8* SerializeWithCachedSizesToArray(::google::protobuf::uint8* output) const;
+  int GetCachedSize() const { return _cached_size_; }
+  private:
+  void SharedCtor();
+  void SharedDtor();
+  void SetCachedSize(int size) const;
+  public:
+  ::google::protobuf::Metadata GetMetadata() const;
+
+  // nested types ----------------------------------------------------
+
+  // accessors -------------------------------------------------------
+
+  // repeated bytes amfMgmtHandle = 1;
+  inline int amfmgmthandle_size() const;
+  inline void clear_amfmgmthandle();
+  static const int kAmfMgmtHandleFieldNumber = 1;
+  inline const ::std::string& amfmgmthandle(int index) const;
+  inline ::std::string* mutable_amfmgmthandle(int index);
+  inline void set_amfmgmthandle(int index, const ::std::string& value);
+  inline void set_amfmgmthandle(int index, const char* value);
+  inline void set_amfmgmthandle(int index, const void* value, size_t size);
+  inline ::std::string* add_amfmgmthandle();
+  inline void add_amfmgmthandle(const ::std::string& value);
+  inline void add_amfmgmthandle(const char* value);
+  inline void add_amfmgmthandle(const void* value, size_t size);
+  inline const ::google::protobuf::RepeatedPtrField< ::std::string>& amfmgmthandle() const;
+  inline ::google::protobuf::RepeatedPtrField< ::std::string>* mutable_amfmgmthandle();
+
+  // optional string nodeName = 2;
+  inline bool has_nodename() const;
+  inline void clear_nodename();
+  static const int kNodeNameFieldNumber = 2;
+  inline const ::std::string& nodename() const;
+  inline void set_nodename(const ::std::string& value);
+  inline void set_nodename(const char* value);
+  inline void set_nodename(const char* value, size_t size);
+  inline ::std::string* mutable_nodename();
+  inline ::std::string* release_nodename();
+  inline void set_allocated_nodename(::std::string* nodename);
+
+  GOOGLE_PROTOBUF_EXTENSION_ACCESSORS(GetSafplusInstallInfoRequest)
+  // @@protoc_insertion_point(class_scope:SAFplus.Rpc.amfMgmtRpc.GetSafplusInstallInfoRequest)
+ private:
+  inline void set_has_nodename();
+  inline void clear_has_nodename();
+
+  ::google::protobuf::internal::ExtensionSet _extensions_;
+
+  ::google::protobuf::UnknownFieldSet _unknown_fields_;
+
+  ::google::protobuf::uint32 _has_bits_[1];
+  mutable int _cached_size_;
+  ::google::protobuf::RepeatedPtrField< ::std::string> amfmgmthandle_;
+  ::std::string* nodename_;
+  friend void  protobuf_AddDesc_amfMgmtRpc_2eproto();
+  friend void protobuf_AssignDesc_amfMgmtRpc_2eproto();
+  friend void protobuf_ShutdownFile_amfMgmtRpc_2eproto();
+
+  void InitAsDefaultInstance();
+  static GetSafplusInstallInfoRequest* default_instance_;
+};
+// -------------------------------------------------------------------
+
+class GetSafplusInstallInfoResponse : public ::google::protobuf::Message {
+ public:
+  GetSafplusInstallInfoResponse();
+  virtual ~GetSafplusInstallInfoResponse();
+
+  GetSafplusInstallInfoResponse(const GetSafplusInstallInfoResponse& from);
+
+  inline GetSafplusInstallInfoResponse& operator=(const GetSafplusInstallInfoResponse& from) {
+    CopyFrom(from);
+    return *this;
+  }
+
+  inline const ::google::protobuf::UnknownFieldSet& unknown_fields() const {
+    return _unknown_fields_;
+  }
+
+  inline ::google::protobuf::UnknownFieldSet* mutable_unknown_fields() {
+    return &_unknown_fields_;
+  }
+
+  static const ::google::protobuf::Descriptor* descriptor();
+  static const GetSafplusInstallInfoResponse& default_instance();
+
+  void Swap(GetSafplusInstallInfoResponse* other);
+
+  // implements Message ----------------------------------------------
+
+  GetSafplusInstallInfoResponse* New() const;
+  void CopyFrom(const ::google::protobuf::Message& from);
+  void MergeFrom(const ::google::protobuf::Message& from);
+  void CopyFrom(const GetSafplusInstallInfoResponse& from);
+  void MergeFrom(const GetSafplusInstallInfoResponse& from);
+  void Clear();
+  bool IsInitialized() const;
+
+  int ByteSize() const;
+  bool MergePartialFromCodedStream(
+      ::google::protobuf::io::CodedInputStream* input);
+  void SerializeWithCachedSizes(
+      ::google::protobuf::io::CodedOutputStream* output) const;
+  ::google::protobuf::uint8* SerializeWithCachedSizesToArray(::google::protobuf::uint8* output) const;
+  int GetCachedSize() const { return _cached_size_; }
+  private:
+  void SharedCtor();
+  void SharedDtor();
+  void SetCachedSize(int size) const;
+  public:
+  ::google::protobuf::Metadata GetMetadata() const;
+
+  // nested types ----------------------------------------------------
+
+  // accessors -------------------------------------------------------
+
+  // optional string safplusInstallInfo = 1;
+  inline bool has_safplusinstallinfo() const;
+  inline void clear_safplusinstallinfo();
+  static const int kSafplusInstallInfoFieldNumber = 1;
+  inline const ::std::string& safplusinstallinfo() const;
+  inline void set_safplusinstallinfo(const ::std::string& value);
+  inline void set_safplusinstallinfo(const char* value);
+  inline void set_safplusinstallinfo(const char* value, size_t size);
+  inline ::std::string* mutable_safplusinstallinfo();
+  inline ::std::string* release_safplusinstallinfo();
+  inline void set_allocated_safplusinstallinfo(::std::string* safplusinstallinfo);
+
+  // optional sint32 err = 2;
+  inline bool has_err() const;
+  inline void clear_err();
+  static const int kErrFieldNumber = 2;
+  inline ::google::protobuf::int32 err() const;
+  inline void set_err(::google::protobuf::int32 value);
+
+  GOOGLE_PROTOBUF_EXTENSION_ACCESSORS(GetSafplusInstallInfoResponse)
+  // @@protoc_insertion_point(class_scope:SAFplus.Rpc.amfMgmtRpc.GetSafplusInstallInfoResponse)
+ private:
+  inline void set_has_safplusinstallinfo();
+  inline void clear_has_safplusinstallinfo();
+  inline void set_has_err();
+  inline void clear_has_err();
+
+  ::google::protobuf::internal::ExtensionSet _extensions_;
+
+  ::google::protobuf::UnknownFieldSet _unknown_fields_;
+
+  ::google::protobuf::uint32 _has_bits_[1];
+  mutable int _cached_size_;
+  ::std::string* safplusinstallinfo_;
+  ::google::protobuf::int32 err_;
+  friend void  protobuf_AddDesc_amfMgmtRpc_2eproto();
+  friend void protobuf_AssignDesc_amfMgmtRpc_2eproto();
+  friend void protobuf_ShutdownFile_amfMgmtRpc_2eproto();
+
+  void InitAsDefaultInstance();
+  static GetSafplusInstallInfoResponse* default_instance_;
+};
+// -------------------------------------------------------------------
+
+class SetSafplusInstallInfoRequest : public ::google::protobuf::Message {
+ public:
+  SetSafplusInstallInfoRequest();
+  virtual ~SetSafplusInstallInfoRequest();
+
+  SetSafplusInstallInfoRequest(const SetSafplusInstallInfoRequest& from);
+
+  inline SetSafplusInstallInfoRequest& operator=(const SetSafplusInstallInfoRequest& from) {
+    CopyFrom(from);
+    return *this;
+  }
+
+  inline const ::google::protobuf::UnknownFieldSet& unknown_fields() const {
+    return _unknown_fields_;
+  }
+
+  inline ::google::protobuf::UnknownFieldSet* mutable_unknown_fields() {
+    return &_unknown_fields_;
+  }
+
+  static const ::google::protobuf::Descriptor* descriptor();
+  static const SetSafplusInstallInfoRequest& default_instance();
+
+  void Swap(SetSafplusInstallInfoRequest* other);
+
+  // implements Message ----------------------------------------------
+
+  SetSafplusInstallInfoRequest* New() const;
+  void CopyFrom(const ::google::protobuf::Message& from);
+  void MergeFrom(const ::google::protobuf::Message& from);
+  void CopyFrom(const SetSafplusInstallInfoRequest& from);
+  void MergeFrom(const SetSafplusInstallInfoRequest& from);
+  void Clear();
+  bool IsInitialized() const;
+
+  int ByteSize() const;
+  bool MergePartialFromCodedStream(
+      ::google::protobuf::io::CodedInputStream* input);
+  void SerializeWithCachedSizes(
+      ::google::protobuf::io::CodedOutputStream* output) const;
+  ::google::protobuf::uint8* SerializeWithCachedSizesToArray(::google::protobuf::uint8* output) const;
+  int GetCachedSize() const { return _cached_size_; }
+  private:
+  void SharedCtor();
+  void SharedDtor();
+  void SetCachedSize(int size) const;
+  public:
+  ::google::protobuf::Metadata GetMetadata() const;
+
+  // nested types ----------------------------------------------------
+
+  // accessors -------------------------------------------------------
+
+  // repeated bytes amfMgmtHandle = 1;
+  inline int amfmgmthandle_size() const;
+  inline void clear_amfmgmthandle();
+  static const int kAmfMgmtHandleFieldNumber = 1;
+  inline const ::std::string& amfmgmthandle(int index) const;
+  inline ::std::string* mutable_amfmgmthandle(int index);
+  inline void set_amfmgmthandle(int index, const ::std::string& value);
+  inline void set_amfmgmthandle(int index, const char* value);
+  inline void set_amfmgmthandle(int index, const void* value, size_t size);
+  inline ::std::string* add_amfmgmthandle();
+  inline void add_amfmgmthandle(const ::std::string& value);
+  inline void add_amfmgmthandle(const char* value);
+  inline void add_amfmgmthandle(const void* value, size_t size);
+  inline const ::google::protobuf::RepeatedPtrField< ::std::string>& amfmgmthandle() const;
+  inline ::google::protobuf::RepeatedPtrField< ::std::string>* mutable_amfmgmthandle();
+
+  // optional string nodeName = 2;
+  inline bool has_nodename() const;
+  inline void clear_nodename();
+  static const int kNodeNameFieldNumber = 2;
+  inline const ::std::string& nodename() const;
+  inline void set_nodename(const ::std::string& value);
+  inline void set_nodename(const char* value);
+  inline void set_nodename(const char* value, size_t size);
+  inline ::std::string* mutable_nodename();
+  inline ::std::string* release_nodename();
+  inline void set_allocated_nodename(::std::string* nodename);
+
+  // optional string safplusInstallInfo = 3;
+  inline bool has_safplusinstallinfo() const;
+  inline void clear_safplusinstallinfo();
+  static const int kSafplusInstallInfoFieldNumber = 3;
+  inline const ::std::string& safplusinstallinfo() const;
+  inline void set_safplusinstallinfo(const ::std::string& value);
+  inline void set_safplusinstallinfo(const char* value);
+  inline void set_safplusinstallinfo(const char* value, size_t size);
+  inline ::std::string* mutable_safplusinstallinfo();
+  inline ::std::string* release_safplusinstallinfo();
+  inline void set_allocated_safplusinstallinfo(::std::string* safplusinstallinfo);
+
+  GOOGLE_PROTOBUF_EXTENSION_ACCESSORS(SetSafplusInstallInfoRequest)
+  // @@protoc_insertion_point(class_scope:SAFplus.Rpc.amfMgmtRpc.SetSafplusInstallInfoRequest)
+ private:
+  inline void set_has_nodename();
+  inline void clear_has_nodename();
+  inline void set_has_safplusinstallinfo();
+  inline void clear_has_safplusinstallinfo();
+
+  ::google::protobuf::internal::ExtensionSet _extensions_;
+
+  ::google::protobuf::UnknownFieldSet _unknown_fields_;
+
+  ::google::protobuf::uint32 _has_bits_[1];
+  mutable int _cached_size_;
+  ::google::protobuf::RepeatedPtrField< ::std::string> amfmgmthandle_;
+  ::std::string* nodename_;
+  ::std::string* safplusinstallinfo_;
+  friend void  protobuf_AddDesc_amfMgmtRpc_2eproto();
+  friend void protobuf_AssignDesc_amfMgmtRpc_2eproto();
+  friend void protobuf_ShutdownFile_amfMgmtRpc_2eproto();
+
+  void InitAsDefaultInstance();
+  static SetSafplusInstallInfoRequest* default_instance_;
+};
+// -------------------------------------------------------------------
+
+class SetSafplusInstallInfoResponse : public ::google::protobuf::Message {
+ public:
+  SetSafplusInstallInfoResponse();
+  virtual ~SetSafplusInstallInfoResponse();
+
+  SetSafplusInstallInfoResponse(const SetSafplusInstallInfoResponse& from);
+
+  inline SetSafplusInstallInfoResponse& operator=(const SetSafplusInstallInfoResponse& from) {
+    CopyFrom(from);
+    return *this;
+  }
+
+  inline const ::google::protobuf::UnknownFieldSet& unknown_fields() const {
+    return _unknown_fields_;
+  }
+
+  inline ::google::protobuf::UnknownFieldSet* mutable_unknown_fields() {
+    return &_unknown_fields_;
+  }
+
+  static const ::google::protobuf::Descriptor* descriptor();
+  static const SetSafplusInstallInfoResponse& default_instance();
+
+  void Swap(SetSafplusInstallInfoResponse* other);
+
+  // implements Message ----------------------------------------------
+
+  SetSafplusInstallInfoResponse* New() const;
+  void CopyFrom(const ::google::protobuf::Message& from);
+  void MergeFrom(const ::google::protobuf::Message& from);
+  void CopyFrom(const SetSafplusInstallInfoResponse& from);
+  void MergeFrom(const SetSafplusInstallInfoResponse& from);
+  void Clear();
+  bool IsInitialized() const;
+
+  int ByteSize() const;
+  bool MergePartialFromCodedStream(
+      ::google::protobuf::io::CodedInputStream* input);
+  void SerializeWithCachedSizes(
+      ::google::protobuf::io::CodedOutputStream* output) const;
+  ::google::protobuf::uint8* SerializeWithCachedSizesToArray(::google::protobuf::uint8* output) const;
+  int GetCachedSize() const { return _cached_size_; }
+  private:
+  void SharedCtor();
+  void SharedDtor();
+  void SetCachedSize(int size) const;
+  public:
+  ::google::protobuf::Metadata GetMetadata() const;
+
+  // nested types ----------------------------------------------------
+
+  // accessors -------------------------------------------------------
+
+  // optional sint32 err = 1;
+  inline bool has_err() const;
+  inline void clear_err();
+  static const int kErrFieldNumber = 1;
+  inline ::google::protobuf::int32 err() const;
+  inline void set_err(::google::protobuf::int32 value);
+
+  GOOGLE_PROTOBUF_EXTENSION_ACCESSORS(SetSafplusInstallInfoResponse)
+  // @@protoc_insertion_point(class_scope:SAFplus.Rpc.amfMgmtRpc.SetSafplusInstallInfoResponse)
+ private:
+  inline void set_has_err();
+  inline void clear_has_err();
+
+  ::google::protobuf::internal::ExtensionSet _extensions_;
+
+  ::google::protobuf::UnknownFieldSet _unknown_fields_;
+
+  ::google::protobuf::uint32 _has_bits_[1];
+  mutable int _cached_size_;
+  ::google::protobuf::int32 err_;
+  friend void  protobuf_AddDesc_amfMgmtRpc_2eproto();
+  friend void protobuf_AssignDesc_amfMgmtRpc_2eproto();
+  friend void protobuf_ShutdownFile_amfMgmtRpc_2eproto();
+
+  void InitAsDefaultInstance();
+  static SetSafplusInstallInfoResponse* default_instance_;
 };
 // ===================================================================
 
@@ -37881,6 +38287,482 @@ inline void ForceLockInstantiationResponse::set_err(::google::protobuf::int32 va
   set_has_err();
   err_ = value;
   // @@protoc_insertion_point(field_set:SAFplus.Rpc.amfMgmtRpc.ForceLockInstantiationResponse.err)
+}
+
+// -------------------------------------------------------------------
+
+// GetSafplusInstallInfoRequest
+
+// repeated bytes amfMgmtHandle = 1;
+inline int GetSafplusInstallInfoRequest::amfmgmthandle_size() const {
+  return amfmgmthandle_.size();
+}
+inline void GetSafplusInstallInfoRequest::clear_amfmgmthandle() {
+  amfmgmthandle_.Clear();
+}
+inline const ::std::string& GetSafplusInstallInfoRequest::amfmgmthandle(int index) const {
+  // @@protoc_insertion_point(field_get:SAFplus.Rpc.amfMgmtRpc.GetSafplusInstallInfoRequest.amfMgmtHandle)
+  return amfmgmthandle_.Get(index);
+}
+inline ::std::string* GetSafplusInstallInfoRequest::mutable_amfmgmthandle(int index) {
+  // @@protoc_insertion_point(field_mutable:SAFplus.Rpc.amfMgmtRpc.GetSafplusInstallInfoRequest.amfMgmtHandle)
+  return amfmgmthandle_.Mutable(index);
+}
+inline void GetSafplusInstallInfoRequest::set_amfmgmthandle(int index, const ::std::string& value) {
+  // @@protoc_insertion_point(field_set:SAFplus.Rpc.amfMgmtRpc.GetSafplusInstallInfoRequest.amfMgmtHandle)
+  amfmgmthandle_.Mutable(index)->assign(value);
+}
+inline void GetSafplusInstallInfoRequest::set_amfmgmthandle(int index, const char* value) {
+  amfmgmthandle_.Mutable(index)->assign(value);
+  // @@protoc_insertion_point(field_set_char:SAFplus.Rpc.amfMgmtRpc.GetSafplusInstallInfoRequest.amfMgmtHandle)
+}
+inline void GetSafplusInstallInfoRequest::set_amfmgmthandle(int index, const void* value, size_t size) {
+  amfmgmthandle_.Mutable(index)->assign(
+    reinterpret_cast<const char*>(value), size);
+  // @@protoc_insertion_point(field_set_pointer:SAFplus.Rpc.amfMgmtRpc.GetSafplusInstallInfoRequest.amfMgmtHandle)
+}
+inline ::std::string* GetSafplusInstallInfoRequest::add_amfmgmthandle() {
+  return amfmgmthandle_.Add();
+}
+inline void GetSafplusInstallInfoRequest::add_amfmgmthandle(const ::std::string& value) {
+  amfmgmthandle_.Add()->assign(value);
+  // @@protoc_insertion_point(field_add:SAFplus.Rpc.amfMgmtRpc.GetSafplusInstallInfoRequest.amfMgmtHandle)
+}
+inline void GetSafplusInstallInfoRequest::add_amfmgmthandle(const char* value) {
+  amfmgmthandle_.Add()->assign(value);
+  // @@protoc_insertion_point(field_add_char:SAFplus.Rpc.amfMgmtRpc.GetSafplusInstallInfoRequest.amfMgmtHandle)
+}
+inline void GetSafplusInstallInfoRequest::add_amfmgmthandle(const void* value, size_t size) {
+  amfmgmthandle_.Add()->assign(reinterpret_cast<const char*>(value), size);
+  // @@protoc_insertion_point(field_add_pointer:SAFplus.Rpc.amfMgmtRpc.GetSafplusInstallInfoRequest.amfMgmtHandle)
+}
+inline const ::google::protobuf::RepeatedPtrField< ::std::string>&
+GetSafplusInstallInfoRequest::amfmgmthandle() const {
+  // @@protoc_insertion_point(field_list:SAFplus.Rpc.amfMgmtRpc.GetSafplusInstallInfoRequest.amfMgmtHandle)
+  return amfmgmthandle_;
+}
+inline ::google::protobuf::RepeatedPtrField< ::std::string>*
+GetSafplusInstallInfoRequest::mutable_amfmgmthandle() {
+  // @@protoc_insertion_point(field_mutable_list:SAFplus.Rpc.amfMgmtRpc.GetSafplusInstallInfoRequest.amfMgmtHandle)
+  return &amfmgmthandle_;
+}
+
+// optional string nodeName = 2;
+inline bool GetSafplusInstallInfoRequest::has_nodename() const {
+  return (_has_bits_[0] & 0x00000002u) != 0;
+}
+inline void GetSafplusInstallInfoRequest::set_has_nodename() {
+  _has_bits_[0] |= 0x00000002u;
+}
+inline void GetSafplusInstallInfoRequest::clear_has_nodename() {
+  _has_bits_[0] &= ~0x00000002u;
+}
+inline void GetSafplusInstallInfoRequest::clear_nodename() {
+  if (nodename_ != &::google::protobuf::internal::GetEmptyStringAlreadyInited()) {
+    nodename_->clear();
+  }
+  clear_has_nodename();
+}
+inline const ::std::string& GetSafplusInstallInfoRequest::nodename() const {
+  // @@protoc_insertion_point(field_get:SAFplus.Rpc.amfMgmtRpc.GetSafplusInstallInfoRequest.nodeName)
+  return *nodename_;
+}
+inline void GetSafplusInstallInfoRequest::set_nodename(const ::std::string& value) {
+  set_has_nodename();
+  if (nodename_ == &::google::protobuf::internal::GetEmptyStringAlreadyInited()) {
+    nodename_ = new ::std::string;
+  }
+  nodename_->assign(value);
+  // @@protoc_insertion_point(field_set:SAFplus.Rpc.amfMgmtRpc.GetSafplusInstallInfoRequest.nodeName)
+}
+inline void GetSafplusInstallInfoRequest::set_nodename(const char* value) {
+  set_has_nodename();
+  if (nodename_ == &::google::protobuf::internal::GetEmptyStringAlreadyInited()) {
+    nodename_ = new ::std::string;
+  }
+  nodename_->assign(value);
+  // @@protoc_insertion_point(field_set_char:SAFplus.Rpc.amfMgmtRpc.GetSafplusInstallInfoRequest.nodeName)
+}
+inline void GetSafplusInstallInfoRequest::set_nodename(const char* value, size_t size) {
+  set_has_nodename();
+  if (nodename_ == &::google::protobuf::internal::GetEmptyStringAlreadyInited()) {
+    nodename_ = new ::std::string;
+  }
+  nodename_->assign(reinterpret_cast<const char*>(value), size);
+  // @@protoc_insertion_point(field_set_pointer:SAFplus.Rpc.amfMgmtRpc.GetSafplusInstallInfoRequest.nodeName)
+}
+inline ::std::string* GetSafplusInstallInfoRequest::mutable_nodename() {
+  set_has_nodename();
+  if (nodename_ == &::google::protobuf::internal::GetEmptyStringAlreadyInited()) {
+    nodename_ = new ::std::string;
+  }
+  // @@protoc_insertion_point(field_mutable:SAFplus.Rpc.amfMgmtRpc.GetSafplusInstallInfoRequest.nodeName)
+  return nodename_;
+}
+inline ::std::string* GetSafplusInstallInfoRequest::release_nodename() {
+  clear_has_nodename();
+  if (nodename_ == &::google::protobuf::internal::GetEmptyStringAlreadyInited()) {
+    return NULL;
+  } else {
+    ::std::string* temp = nodename_;
+    nodename_ = const_cast< ::std::string*>(&::google::protobuf::internal::GetEmptyStringAlreadyInited());
+    return temp;
+  }
+}
+inline void GetSafplusInstallInfoRequest::set_allocated_nodename(::std::string* nodename) {
+  if (nodename_ != &::google::protobuf::internal::GetEmptyStringAlreadyInited()) {
+    delete nodename_;
+  }
+  if (nodename) {
+    set_has_nodename();
+    nodename_ = nodename;
+  } else {
+    clear_has_nodename();
+    nodename_ = const_cast< ::std::string*>(&::google::protobuf::internal::GetEmptyStringAlreadyInited());
+  }
+  // @@protoc_insertion_point(field_set_allocated:SAFplus.Rpc.amfMgmtRpc.GetSafplusInstallInfoRequest.nodeName)
+}
+
+// -------------------------------------------------------------------
+
+// GetSafplusInstallInfoResponse
+
+// optional string safplusInstallInfo = 1;
+inline bool GetSafplusInstallInfoResponse::has_safplusinstallinfo() const {
+  return (_has_bits_[0] & 0x00000001u) != 0;
+}
+inline void GetSafplusInstallInfoResponse::set_has_safplusinstallinfo() {
+  _has_bits_[0] |= 0x00000001u;
+}
+inline void GetSafplusInstallInfoResponse::clear_has_safplusinstallinfo() {
+  _has_bits_[0] &= ~0x00000001u;
+}
+inline void GetSafplusInstallInfoResponse::clear_safplusinstallinfo() {
+  if (safplusinstallinfo_ != &::google::protobuf::internal::GetEmptyStringAlreadyInited()) {
+    safplusinstallinfo_->clear();
+  }
+  clear_has_safplusinstallinfo();
+}
+inline const ::std::string& GetSafplusInstallInfoResponse::safplusinstallinfo() const {
+  // @@protoc_insertion_point(field_get:SAFplus.Rpc.amfMgmtRpc.GetSafplusInstallInfoResponse.safplusInstallInfo)
+  return *safplusinstallinfo_;
+}
+inline void GetSafplusInstallInfoResponse::set_safplusinstallinfo(const ::std::string& value) {
+  set_has_safplusinstallinfo();
+  if (safplusinstallinfo_ == &::google::protobuf::internal::GetEmptyStringAlreadyInited()) {
+    safplusinstallinfo_ = new ::std::string;
+  }
+  safplusinstallinfo_->assign(value);
+  // @@protoc_insertion_point(field_set:SAFplus.Rpc.amfMgmtRpc.GetSafplusInstallInfoResponse.safplusInstallInfo)
+}
+inline void GetSafplusInstallInfoResponse::set_safplusinstallinfo(const char* value) {
+  set_has_safplusinstallinfo();
+  if (safplusinstallinfo_ == &::google::protobuf::internal::GetEmptyStringAlreadyInited()) {
+    safplusinstallinfo_ = new ::std::string;
+  }
+  safplusinstallinfo_->assign(value);
+  // @@protoc_insertion_point(field_set_char:SAFplus.Rpc.amfMgmtRpc.GetSafplusInstallInfoResponse.safplusInstallInfo)
+}
+inline void GetSafplusInstallInfoResponse::set_safplusinstallinfo(const char* value, size_t size) {
+  set_has_safplusinstallinfo();
+  if (safplusinstallinfo_ == &::google::protobuf::internal::GetEmptyStringAlreadyInited()) {
+    safplusinstallinfo_ = new ::std::string;
+  }
+  safplusinstallinfo_->assign(reinterpret_cast<const char*>(value), size);
+  // @@protoc_insertion_point(field_set_pointer:SAFplus.Rpc.amfMgmtRpc.GetSafplusInstallInfoResponse.safplusInstallInfo)
+}
+inline ::std::string* GetSafplusInstallInfoResponse::mutable_safplusinstallinfo() {
+  set_has_safplusinstallinfo();
+  if (safplusinstallinfo_ == &::google::protobuf::internal::GetEmptyStringAlreadyInited()) {
+    safplusinstallinfo_ = new ::std::string;
+  }
+  // @@protoc_insertion_point(field_mutable:SAFplus.Rpc.amfMgmtRpc.GetSafplusInstallInfoResponse.safplusInstallInfo)
+  return safplusinstallinfo_;
+}
+inline ::std::string* GetSafplusInstallInfoResponse::release_safplusinstallinfo() {
+  clear_has_safplusinstallinfo();
+  if (safplusinstallinfo_ == &::google::protobuf::internal::GetEmptyStringAlreadyInited()) {
+    return NULL;
+  } else {
+    ::std::string* temp = safplusinstallinfo_;
+    safplusinstallinfo_ = const_cast< ::std::string*>(&::google::protobuf::internal::GetEmptyStringAlreadyInited());
+    return temp;
+  }
+}
+inline void GetSafplusInstallInfoResponse::set_allocated_safplusinstallinfo(::std::string* safplusinstallinfo) {
+  if (safplusinstallinfo_ != &::google::protobuf::internal::GetEmptyStringAlreadyInited()) {
+    delete safplusinstallinfo_;
+  }
+  if (safplusinstallinfo) {
+    set_has_safplusinstallinfo();
+    safplusinstallinfo_ = safplusinstallinfo;
+  } else {
+    clear_has_safplusinstallinfo();
+    safplusinstallinfo_ = const_cast< ::std::string*>(&::google::protobuf::internal::GetEmptyStringAlreadyInited());
+  }
+  // @@protoc_insertion_point(field_set_allocated:SAFplus.Rpc.amfMgmtRpc.GetSafplusInstallInfoResponse.safplusInstallInfo)
+}
+
+// optional sint32 err = 2;
+inline bool GetSafplusInstallInfoResponse::has_err() const {
+  return (_has_bits_[0] & 0x00000002u) != 0;
+}
+inline void GetSafplusInstallInfoResponse::set_has_err() {
+  _has_bits_[0] |= 0x00000002u;
+}
+inline void GetSafplusInstallInfoResponse::clear_has_err() {
+  _has_bits_[0] &= ~0x00000002u;
+}
+inline void GetSafplusInstallInfoResponse::clear_err() {
+  err_ = 0;
+  clear_has_err();
+}
+inline ::google::protobuf::int32 GetSafplusInstallInfoResponse::err() const {
+  // @@protoc_insertion_point(field_get:SAFplus.Rpc.amfMgmtRpc.GetSafplusInstallInfoResponse.err)
+  return err_;
+}
+inline void GetSafplusInstallInfoResponse::set_err(::google::protobuf::int32 value) {
+  set_has_err();
+  err_ = value;
+  // @@protoc_insertion_point(field_set:SAFplus.Rpc.amfMgmtRpc.GetSafplusInstallInfoResponse.err)
+}
+
+// -------------------------------------------------------------------
+
+// SetSafplusInstallInfoRequest
+
+// repeated bytes amfMgmtHandle = 1;
+inline int SetSafplusInstallInfoRequest::amfmgmthandle_size() const {
+  return amfmgmthandle_.size();
+}
+inline void SetSafplusInstallInfoRequest::clear_amfmgmthandle() {
+  amfmgmthandle_.Clear();
+}
+inline const ::std::string& SetSafplusInstallInfoRequest::amfmgmthandle(int index) const {
+  // @@protoc_insertion_point(field_get:SAFplus.Rpc.amfMgmtRpc.SetSafplusInstallInfoRequest.amfMgmtHandle)
+  return amfmgmthandle_.Get(index);
+}
+inline ::std::string* SetSafplusInstallInfoRequest::mutable_amfmgmthandle(int index) {
+  // @@protoc_insertion_point(field_mutable:SAFplus.Rpc.amfMgmtRpc.SetSafplusInstallInfoRequest.amfMgmtHandle)
+  return amfmgmthandle_.Mutable(index);
+}
+inline void SetSafplusInstallInfoRequest::set_amfmgmthandle(int index, const ::std::string& value) {
+  // @@protoc_insertion_point(field_set:SAFplus.Rpc.amfMgmtRpc.SetSafplusInstallInfoRequest.amfMgmtHandle)
+  amfmgmthandle_.Mutable(index)->assign(value);
+}
+inline void SetSafplusInstallInfoRequest::set_amfmgmthandle(int index, const char* value) {
+  amfmgmthandle_.Mutable(index)->assign(value);
+  // @@protoc_insertion_point(field_set_char:SAFplus.Rpc.amfMgmtRpc.SetSafplusInstallInfoRequest.amfMgmtHandle)
+}
+inline void SetSafplusInstallInfoRequest::set_amfmgmthandle(int index, const void* value, size_t size) {
+  amfmgmthandle_.Mutable(index)->assign(
+    reinterpret_cast<const char*>(value), size);
+  // @@protoc_insertion_point(field_set_pointer:SAFplus.Rpc.amfMgmtRpc.SetSafplusInstallInfoRequest.amfMgmtHandle)
+}
+inline ::std::string* SetSafplusInstallInfoRequest::add_amfmgmthandle() {
+  return amfmgmthandle_.Add();
+}
+inline void SetSafplusInstallInfoRequest::add_amfmgmthandle(const ::std::string& value) {
+  amfmgmthandle_.Add()->assign(value);
+  // @@protoc_insertion_point(field_add:SAFplus.Rpc.amfMgmtRpc.SetSafplusInstallInfoRequest.amfMgmtHandle)
+}
+inline void SetSafplusInstallInfoRequest::add_amfmgmthandle(const char* value) {
+  amfmgmthandle_.Add()->assign(value);
+  // @@protoc_insertion_point(field_add_char:SAFplus.Rpc.amfMgmtRpc.SetSafplusInstallInfoRequest.amfMgmtHandle)
+}
+inline void SetSafplusInstallInfoRequest::add_amfmgmthandle(const void* value, size_t size) {
+  amfmgmthandle_.Add()->assign(reinterpret_cast<const char*>(value), size);
+  // @@protoc_insertion_point(field_add_pointer:SAFplus.Rpc.amfMgmtRpc.SetSafplusInstallInfoRequest.amfMgmtHandle)
+}
+inline const ::google::protobuf::RepeatedPtrField< ::std::string>&
+SetSafplusInstallInfoRequest::amfmgmthandle() const {
+  // @@protoc_insertion_point(field_list:SAFplus.Rpc.amfMgmtRpc.SetSafplusInstallInfoRequest.amfMgmtHandle)
+  return amfmgmthandle_;
+}
+inline ::google::protobuf::RepeatedPtrField< ::std::string>*
+SetSafplusInstallInfoRequest::mutable_amfmgmthandle() {
+  // @@protoc_insertion_point(field_mutable_list:SAFplus.Rpc.amfMgmtRpc.SetSafplusInstallInfoRequest.amfMgmtHandle)
+  return &amfmgmthandle_;
+}
+
+// optional string nodeName = 2;
+inline bool SetSafplusInstallInfoRequest::has_nodename() const {
+  return (_has_bits_[0] & 0x00000002u) != 0;
+}
+inline void SetSafplusInstallInfoRequest::set_has_nodename() {
+  _has_bits_[0] |= 0x00000002u;
+}
+inline void SetSafplusInstallInfoRequest::clear_has_nodename() {
+  _has_bits_[0] &= ~0x00000002u;
+}
+inline void SetSafplusInstallInfoRequest::clear_nodename() {
+  if (nodename_ != &::google::protobuf::internal::GetEmptyStringAlreadyInited()) {
+    nodename_->clear();
+  }
+  clear_has_nodename();
+}
+inline const ::std::string& SetSafplusInstallInfoRequest::nodename() const {
+  // @@protoc_insertion_point(field_get:SAFplus.Rpc.amfMgmtRpc.SetSafplusInstallInfoRequest.nodeName)
+  return *nodename_;
+}
+inline void SetSafplusInstallInfoRequest::set_nodename(const ::std::string& value) {
+  set_has_nodename();
+  if (nodename_ == &::google::protobuf::internal::GetEmptyStringAlreadyInited()) {
+    nodename_ = new ::std::string;
+  }
+  nodename_->assign(value);
+  // @@protoc_insertion_point(field_set:SAFplus.Rpc.amfMgmtRpc.SetSafplusInstallInfoRequest.nodeName)
+}
+inline void SetSafplusInstallInfoRequest::set_nodename(const char* value) {
+  set_has_nodename();
+  if (nodename_ == &::google::protobuf::internal::GetEmptyStringAlreadyInited()) {
+    nodename_ = new ::std::string;
+  }
+  nodename_->assign(value);
+  // @@protoc_insertion_point(field_set_char:SAFplus.Rpc.amfMgmtRpc.SetSafplusInstallInfoRequest.nodeName)
+}
+inline void SetSafplusInstallInfoRequest::set_nodename(const char* value, size_t size) {
+  set_has_nodename();
+  if (nodename_ == &::google::protobuf::internal::GetEmptyStringAlreadyInited()) {
+    nodename_ = new ::std::string;
+  }
+  nodename_->assign(reinterpret_cast<const char*>(value), size);
+  // @@protoc_insertion_point(field_set_pointer:SAFplus.Rpc.amfMgmtRpc.SetSafplusInstallInfoRequest.nodeName)
+}
+inline ::std::string* SetSafplusInstallInfoRequest::mutable_nodename() {
+  set_has_nodename();
+  if (nodename_ == &::google::protobuf::internal::GetEmptyStringAlreadyInited()) {
+    nodename_ = new ::std::string;
+  }
+  // @@protoc_insertion_point(field_mutable:SAFplus.Rpc.amfMgmtRpc.SetSafplusInstallInfoRequest.nodeName)
+  return nodename_;
+}
+inline ::std::string* SetSafplusInstallInfoRequest::release_nodename() {
+  clear_has_nodename();
+  if (nodename_ == &::google::protobuf::internal::GetEmptyStringAlreadyInited()) {
+    return NULL;
+  } else {
+    ::std::string* temp = nodename_;
+    nodename_ = const_cast< ::std::string*>(&::google::protobuf::internal::GetEmptyStringAlreadyInited());
+    return temp;
+  }
+}
+inline void SetSafplusInstallInfoRequest::set_allocated_nodename(::std::string* nodename) {
+  if (nodename_ != &::google::protobuf::internal::GetEmptyStringAlreadyInited()) {
+    delete nodename_;
+  }
+  if (nodename) {
+    set_has_nodename();
+    nodename_ = nodename;
+  } else {
+    clear_has_nodename();
+    nodename_ = const_cast< ::std::string*>(&::google::protobuf::internal::GetEmptyStringAlreadyInited());
+  }
+  // @@protoc_insertion_point(field_set_allocated:SAFplus.Rpc.amfMgmtRpc.SetSafplusInstallInfoRequest.nodeName)
+}
+
+// optional string safplusInstallInfo = 3;
+inline bool SetSafplusInstallInfoRequest::has_safplusinstallinfo() const {
+  return (_has_bits_[0] & 0x00000004u) != 0;
+}
+inline void SetSafplusInstallInfoRequest::set_has_safplusinstallinfo() {
+  _has_bits_[0] |= 0x00000004u;
+}
+inline void SetSafplusInstallInfoRequest::clear_has_safplusinstallinfo() {
+  _has_bits_[0] &= ~0x00000004u;
+}
+inline void SetSafplusInstallInfoRequest::clear_safplusinstallinfo() {
+  if (safplusinstallinfo_ != &::google::protobuf::internal::GetEmptyStringAlreadyInited()) {
+    safplusinstallinfo_->clear();
+  }
+  clear_has_safplusinstallinfo();
+}
+inline const ::std::string& SetSafplusInstallInfoRequest::safplusinstallinfo() const {
+  // @@protoc_insertion_point(field_get:SAFplus.Rpc.amfMgmtRpc.SetSafplusInstallInfoRequest.safplusInstallInfo)
+  return *safplusinstallinfo_;
+}
+inline void SetSafplusInstallInfoRequest::set_safplusinstallinfo(const ::std::string& value) {
+  set_has_safplusinstallinfo();
+  if (safplusinstallinfo_ == &::google::protobuf::internal::GetEmptyStringAlreadyInited()) {
+    safplusinstallinfo_ = new ::std::string;
+  }
+  safplusinstallinfo_->assign(value);
+  // @@protoc_insertion_point(field_set:SAFplus.Rpc.amfMgmtRpc.SetSafplusInstallInfoRequest.safplusInstallInfo)
+}
+inline void SetSafplusInstallInfoRequest::set_safplusinstallinfo(const char* value) {
+  set_has_safplusinstallinfo();
+  if (safplusinstallinfo_ == &::google::protobuf::internal::GetEmptyStringAlreadyInited()) {
+    safplusinstallinfo_ = new ::std::string;
+  }
+  safplusinstallinfo_->assign(value);
+  // @@protoc_insertion_point(field_set_char:SAFplus.Rpc.amfMgmtRpc.SetSafplusInstallInfoRequest.safplusInstallInfo)
+}
+inline void SetSafplusInstallInfoRequest::set_safplusinstallinfo(const char* value, size_t size) {
+  set_has_safplusinstallinfo();
+  if (safplusinstallinfo_ == &::google::protobuf::internal::GetEmptyStringAlreadyInited()) {
+    safplusinstallinfo_ = new ::std::string;
+  }
+  safplusinstallinfo_->assign(reinterpret_cast<const char*>(value), size);
+  // @@protoc_insertion_point(field_set_pointer:SAFplus.Rpc.amfMgmtRpc.SetSafplusInstallInfoRequest.safplusInstallInfo)
+}
+inline ::std::string* SetSafplusInstallInfoRequest::mutable_safplusinstallinfo() {
+  set_has_safplusinstallinfo();
+  if (safplusinstallinfo_ == &::google::protobuf::internal::GetEmptyStringAlreadyInited()) {
+    safplusinstallinfo_ = new ::std::string;
+  }
+  // @@protoc_insertion_point(field_mutable:SAFplus.Rpc.amfMgmtRpc.SetSafplusInstallInfoRequest.safplusInstallInfo)
+  return safplusinstallinfo_;
+}
+inline ::std::string* SetSafplusInstallInfoRequest::release_safplusinstallinfo() {
+  clear_has_safplusinstallinfo();
+  if (safplusinstallinfo_ == &::google::protobuf::internal::GetEmptyStringAlreadyInited()) {
+    return NULL;
+  } else {
+    ::std::string* temp = safplusinstallinfo_;
+    safplusinstallinfo_ = const_cast< ::std::string*>(&::google::protobuf::internal::GetEmptyStringAlreadyInited());
+    return temp;
+  }
+}
+inline void SetSafplusInstallInfoRequest::set_allocated_safplusinstallinfo(::std::string* safplusinstallinfo) {
+  if (safplusinstallinfo_ != &::google::protobuf::internal::GetEmptyStringAlreadyInited()) {
+    delete safplusinstallinfo_;
+  }
+  if (safplusinstallinfo) {
+    set_has_safplusinstallinfo();
+    safplusinstallinfo_ = safplusinstallinfo;
+  } else {
+    clear_has_safplusinstallinfo();
+    safplusinstallinfo_ = const_cast< ::std::string*>(&::google::protobuf::internal::GetEmptyStringAlreadyInited());
+  }
+  // @@protoc_insertion_point(field_set_allocated:SAFplus.Rpc.amfMgmtRpc.SetSafplusInstallInfoRequest.safplusInstallInfo)
+}
+
+// -------------------------------------------------------------------
+
+// SetSafplusInstallInfoResponse
+
+// optional sint32 err = 1;
+inline bool SetSafplusInstallInfoResponse::has_err() const {
+  return (_has_bits_[0] & 0x00000001u) != 0;
+}
+inline void SetSafplusInstallInfoResponse::set_has_err() {
+  _has_bits_[0] |= 0x00000001u;
+}
+inline void SetSafplusInstallInfoResponse::clear_has_err() {
+  _has_bits_[0] &= ~0x00000001u;
+}
+inline void SetSafplusInstallInfoResponse::clear_err() {
+  err_ = 0;
+  clear_has_err();
+}
+inline ::google::protobuf::int32 SetSafplusInstallInfoResponse::err() const {
+  // @@protoc_insertion_point(field_get:SAFplus.Rpc.amfMgmtRpc.SetSafplusInstallInfoResponse.err)
+  return err_;
+}
+inline void SetSafplusInstallInfoResponse::set_err(::google::protobuf::int32 value) {
+  set_has_err();
+  err_ = value;
+  // @@protoc_insertion_point(field_set:SAFplus.Rpc.amfMgmtRpc.SetSafplusInstallInfoResponse.err)
 }
 
 

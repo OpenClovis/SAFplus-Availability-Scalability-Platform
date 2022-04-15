@@ -438,7 +438,8 @@ void NodeMonitor::monitorThread(void)
                {
                    lastHbHandle = clusterGroup.getActive(ABORT);
                }
-               logInfo("HB","CLM","standby: heard from [%" PRIx64 ":%" PRIx64 "]", lastHbHandle.id[0], lastHbHandle.id[1]);
+               const FaultState& fltState = gfault.getFaultState(lastHbHandle);
+               logInfo("HB","CLM","standby: heard from [%" PRIx64 ":%" PRIx64 "]; fault state [%s]", lastHbHandle.id[0], lastHbHandle.id[1], c_str(fltState));
                Handle& amfHdl = lastHbHandle;
                for (auto it = members.cbegin(); it != members.cend(); it++)
                {

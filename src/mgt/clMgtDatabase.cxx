@@ -280,14 +280,13 @@ namespace SAFplus
   }
 
 
-  //ClRcT loadDBRecords(DbalPlugin* db, DBRecord& dbRec
   // calling deleteAllReferencesToEntity("/safplusAmf/ServiceUnit[@name="su0"]","su0"); 
   ClRcT MgtDatabase::deleteAllReferencesToEntity(const std::string& xpathToDelete, const std::string &entityName)
   {
      ClRcT rc = CL_ERR_NOT_EXIST;
      size_t pos = std::string::npos;
      bool entityFound = false;
-     std::vector<std::string> xpaths, childs, attrChilds, vec;
+     std::vector<std::string> xpaths, childs, attrChilds;
      std::string root("/"), val, attrVal;
      iterate(root,xpaths);
      for(std::vector<std::string>::const_iterator it=xpaths.cbegin();it!=xpaths.cend();it++)
@@ -315,7 +314,7 @@ namespace SAFplus
               const std::string& idx = *it2;
               std::string attrXpath = xpath;              
               attrXpath.append(idx); // --> safplusAmf/Node[@name="node0"]/serviceunits[1]...    
-              if (((rc = getRecord(attrXpath, attrVal, &vec)))!= CL_OK)
+              if (((rc = getRecord(attrXpath, attrVal)))!= CL_OK)
               {
                  logError("MGT","DEL.REFS","get record with xpath [%s] fail rc=0x%x", attrXpath.c_str(), rc);
                  return rc;
@@ -408,7 +407,6 @@ namespace SAFplus
         pos = std::string::npos;
         childs.clear();
         attrChilds.clear();
-        vec.clear();
         val.clear();
         attrVal.clear();
      }

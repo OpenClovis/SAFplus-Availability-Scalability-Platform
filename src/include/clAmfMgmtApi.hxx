@@ -7,7 +7,7 @@ namespace SAFplus {
 
 ClRcT amfMgmtInitialize(Handle& amfMgmtHandle);
 ClRcT amfMgmtCommit(const Handle& amfMgmtHandle);
-ClRcT amfMgmtFinalize(const Handle& amfMgmtHandle);
+ClRcT amfMgmtFinalize(const Handle& amfMgmtHandle, bool finalizeRpc=false);
 
 ClRcT amfMgmtComponentCreate(const Handle& mgmtHandle, SAFplus::Rpc::amfMgmtRpc::ComponentConfig* comp);
 ClRcT amfMgmtComponentConfigSet(const Handle& mgmtHandle, SAFplus::Rpc::amfMgmtRpc::ComponentConfig* comp);
@@ -89,5 +89,8 @@ ClRcT amfMiddlewareRestart(const Handle& mgmtHandle, const std::string& nodeName
 ClRcT amfMgmtAssignSUtoSI(const Handle& mgmtHandle, const std::string& siName, const std::string& acitveSUName, const std::string& standbySUName);
 ClRcT amfMgmtForceLockInstantiation(const Handle& mgmtHandle, const std::string& suName);
 Handle amfMgmtCompAddressGet(const std::string& entityName);
+
+ClRcT setSafplusInstallInfo(const Handle& mgmtHandle, const std::string& nodeName, const std::string& safplusInstallInfo);
+ClRcT getSafplusInstallInfo(const Handle& mgmtHandle, const std::string& nodeName, std::string& safplusInstallInfo);
 
 }

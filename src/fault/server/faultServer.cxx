@@ -95,7 +95,7 @@ namespace SAFplus
         {
             SAFplus::Checkpoint::KeyValuePair& item = *i;
             Handle tmpHandle = *((Handle*) (*item.first).data);
-            FaultShmEntry* tmpShmEntry = ((FaultShmEntry*) (*item.first).data);
+            FaultShmEntry* tmpShmEntry = ((FaultShmEntry*) (*item.second).data);
             logDebug(FAULT,FAULT_SERVER,"Fault server sync : Fault Entity with Node Id [%d] and Process Id [%d]",tmpHandle.getNode(),tmpHandle.getProcess());
             registerFaultEntity(tmpShmEntry,tmpHandle,false);
         }

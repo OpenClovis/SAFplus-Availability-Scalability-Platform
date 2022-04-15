@@ -2464,7 +2464,55 @@ are switched over to other nodes (component service instances are not abruptly r
          type int32;
        }
      }
-   }  
+   }
+
+   rpc getSafplusInstallInfo {
+     input {
+       leaf-list amfMgmtHandle
+	{
+	  type binary
+          {
+	    length 16;  // 2 64-bit words
+	  }
+	}
+       leaf nodeName {
+         type string;
+       }
+     }
+     output {
+       leaf safplusInstallInfo {
+         type string; //return in string: interface=if_name:ip_address,dir=full_path_of_safplus_sandbox_dir
+       }
+       leaf err {
+         type int32;
+       }
+     }
+   }
+
+   rpc setSafplusInstallInfo {
+     input {
+       leaf-list amfMgmtHandle
+	{
+	  type binary
+          {
+	    length 16;  // 2 64-bit words
+	  }
+	}
+       leaf nodeName {
+         type string;
+       }
+
+       leaf safplusInstallInfo {
+         type string; // param in string: interface=if_name:ip_address,dir=full_path_of_safplus_sandbox_dir
+       }    
+
+     }
+     output {
+       leaf err {
+         type int32;
+       }
+     }
+   }
    
 }
 

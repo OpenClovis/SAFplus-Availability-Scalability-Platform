@@ -18,6 +18,7 @@ ClBoolT gAmfMgmtInitialized = CL_FALSE;
 ClBoolT rpcInitialized = CL_FALSE;
 void rpcInit()
 {
+  //logDebug("MGMT","RPC.INI","rpc initialize");
   amfMgmtRpcChannel=new SAFplus::Rpc::RpcChannel(&safplusMsgServer, NULL);
   amfMgmtRpcChannel->setMsgType(AMF_MGMT_REQ_HANDLER_TYPE,AMF_MGMT_REPLY_HANDLER_TYPE);
   amfMgmtRpc=new SAFplus::Rpc::amfMgmtRpc::amfMgmtRpc_Stub(amfMgmtRpcChannel);
@@ -1092,7 +1093,7 @@ ClRcT amfMgmtCommit(const Handle& amfMgmtHandle)
    return rc;
 }
 
-ClRcT amfMgmtFinalize(const Handle& amfMgmtHandle)
+ClRcT amfMgmtFinalize(const Handle& amfMgmtHandle, bool finalizeRpc)
 {
   if (!gAmfMgmtInitialized)
   {
@@ -1110,6 +1111,14 @@ ClRcT amfMgmtFinalize(const Handle& amfMgmtHandle)
       if(rc == CL_OK)
       {
           gAmfMgmtInitialized = CL_FALSE;
+      }
+      if (finalizeRpc)
+      {
+          delete amfMgmtRpc;
+          amfMgmtRpc = NULL;
+          delete amfMgmtRpcChannel;
+          amfMgmtRpcChannel = NULL;
+          rpcInitialized = CL_FALSE;
       }
     }
   catch(NameException& ex)
@@ -2060,6 +2069,52 @@ ClRcT amfMgmtForceLockInstantiation(const Handle& mgmtHandle, const std::string&
 Handle amfMgmtCompAddressGet(const std::string& entityName)
 {
     return name.getHandle(entityName, 2000);
+}
+
+ClRcT setSafplusInstallInfo(const Handle& mgmtHandle, const std::string& nodeName, const std::string& safplusInstallInfo)
+{
+    ClRcT rc;
+    SAFplus::Rpc::amfMgmtRpc::SetSafplusInstallInfoRequest request;
+    request.add_amfmgmthandle((const char*) &mgmtHandle, sizeof(Handle));
+    request.set_nodename(nodeName);
+    request.set_safplusinstallinfo(safplusInstallInfo);
+    try
+    {
+        Handle& remoteAmfHdl = name.getHandle(AMF_MASTER_HANDLE, 2000);
+        SAFplus::Rpc::amfMgmtRpc::SetSafplusInstallInfoResponse resp;
+        amfMgmtRpc->setSafplusInstallInfo(remoteAmfHdl,&request,&resp);
+        rc = (ClRcT)resp.err();
+    }
+    catch(NameException& ex)
+    {
+        logError("MGMT","INI","getHandle got exception [%s]", ex.what());
+        rc = CL_ERR_NOT_EXIST;
+    }
+    return rc;
+}
+ClRcT getSafplusInstallInfo(const Handle& mgmtHandle, const std::string& nodeName, std::string& safplusInstallInfo)
+{
+    ClRcT rc;
+    SAFplus::Rpc::amfMgmtRpc::GetSafplusInstallInfoRequest request;
+    request.add_amfmgmthandle((const char*) &mgmtHandle, sizeof(Handle));
+    request.set_nodename(nodeName);    
+    try
+    {
+        Handle& remoteAmfHdl = name.getHandle(AMF_MASTER_HANDLE, 2000);
+        SAFplus::Rpc::amfMgmtRpc::GetSafplusInstallInfoResponse resp;
+        amfMgmtRpc->getSafplusInstallInfo(remoteAmfHdl,&request,&resp);        
+        rc = (ClRcT)resp.err();
+        if (rc == CL_OK)
+        {
+           safplusInstallInfo = resp.safplusinstallinfo();
+        }
+    }
+    catch(NameException& ex)
+    {
+        logError("MGMT","INI","getHandle got exception [%s]", ex.what());
+        rc = CL_ERR_NOT_EXIST;
+    }
+    return rc;
 }
 
 }

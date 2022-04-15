@@ -877,6 +877,8 @@ ClRcT updateComponent(const SAFplus::Handle& mgmtHandle, boost::python::list & a
     return rc;
 }
 
+BOOST_PYTHON_FUNCTION_OVERLOADS(amfMgmtFinalize_overloads, SAFplus::amfMgmtFinalize, 1, 2)
+
 BOOST_PYTHON_MODULE(pySAFplus)
 {
   logInitialize();
@@ -1016,7 +1018,12 @@ BOOST_PYTHON_MODULE(pySAFplus)
   def("mgtGet",static_cast< std::string (*)(Handle src, const std::string&) > (&SAFplus::mgtGet));
 
   def("amfMgmtInitialize",static_cast< ClRcT (*)(Handle &) > (&SAFplus::amfMgmtInitialize));
-  def("amfMgmtFinalize",static_cast< ClRcT (*)(const Handle &) > (&SAFplus::amfMgmtFinalize));
+  //def("amfMgmtFinalize",static_cast< ClRcT (*)(const Handle &) > (&SAFplus::amfMgmtFinalize)); // comment. replaced with code below for defining default argument as the second one
+
+  def("amfMgmtFinalize", SAFplus::amfMgmtFinalize, amfMgmtFinalize_overloads(
+    (arg("amfMgmtHandle"),
+     arg("finalizeRpc")=0)));
+
   def("nameInitialize", &SAFplus::nameInitialize);
 
   def("amfMgmtNodeLockAssignment",static_cast< ClRcT (*)(const Handle &, const std::string &) > (&SAFplus::amfMgmtNodeLockAssignment));

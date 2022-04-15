@@ -158,6 +158,10 @@ class amfMgmtRpc : public SAFplus::Rpc::RpcService {
                        ::SAFplus::Rpc::amfMgmtRpc::AssignSUtoSIResponse* response);
   virtual void forceLockInstantiation(const ::SAFplus::Rpc::amfMgmtRpc::ForceLockInstantiationRequest* request,
                        ::SAFplus::Rpc::amfMgmtRpc::ForceLockInstantiationResponse* response);
+  virtual void getSafplusInstallInfo(const ::SAFplus::Rpc::amfMgmtRpc::GetSafplusInstallInfoRequest* request,
+                       ::SAFplus::Rpc::amfMgmtRpc::GetSafplusInstallInfoResponse* response);
+  virtual void setSafplusInstallInfo(const ::SAFplus::Rpc::amfMgmtRpc::SetSafplusInstallInfoRequest* request,
+                       ::SAFplus::Rpc::amfMgmtRpc::SetSafplusInstallInfoResponse* response);
 
   // implements amfMgmtRpc ------------------------------------------
   virtual void initialize(SAFplus::Handle destination,
@@ -411,6 +415,14 @@ class amfMgmtRpc : public SAFplus::Rpc::RpcService {
   virtual void forceLockInstantiation(SAFplus::Handle destination,
                        const ::SAFplus::Rpc::amfMgmtRpc::ForceLockInstantiationRequest* request,
                        ::SAFplus::Rpc::amfMgmtRpc::ForceLockInstantiationResponse* response,
+                       SAFplus::Wakeable& wakeable = *((SAFplus::Wakeable*)nullptr));
+  virtual void getSafplusInstallInfo(SAFplus::Handle destination,
+                       const ::SAFplus::Rpc::amfMgmtRpc::GetSafplusInstallInfoRequest* request,
+                       ::SAFplus::Rpc::amfMgmtRpc::GetSafplusInstallInfoResponse* response,
+                       SAFplus::Wakeable& wakeable = *((SAFplus::Wakeable*)nullptr));
+  virtual void setSafplusInstallInfo(SAFplus::Handle destination,
+                       const ::SAFplus::Rpc::amfMgmtRpc::SetSafplusInstallInfoRequest* request,
+                       ::SAFplus::Rpc::amfMgmtRpc::SetSafplusInstallInfoResponse* response,
                        SAFplus::Wakeable& wakeable = *((SAFplus::Wakeable*)nullptr));
 
 
@@ -692,6 +704,14 @@ class amfMgmtRpc_Stub : public amfMgmtRpc {
                        const ::SAFplus::Rpc::amfMgmtRpc::ForceLockInstantiationRequest* request,
                        ::SAFplus::Rpc::amfMgmtRpc::ForceLockInstantiationResponse* response,
                        SAFplus::Wakeable& wakeable = *((SAFplus::Wakeable*)nullptr));
+  void getSafplusInstallInfo(SAFplus::Handle destination,
+                       const ::SAFplus::Rpc::amfMgmtRpc::GetSafplusInstallInfoRequest* request,
+                       ::SAFplus::Rpc::amfMgmtRpc::GetSafplusInstallInfoResponse* response,
+                       SAFplus::Wakeable& wakeable = *((SAFplus::Wakeable*)nullptr));
+  void setSafplusInstallInfo(SAFplus::Handle destination,
+                       const ::SAFplus::Rpc::amfMgmtRpc::SetSafplusInstallInfoRequest* request,
+                       ::SAFplus::Rpc::amfMgmtRpc::SetSafplusInstallInfoResponse* response,
+                       SAFplus::Wakeable& wakeable = *((SAFplus::Wakeable*)nullptr));
  private:
   SAFplus::Rpc::RpcChannel* channel_;
   bool owns_channel_;
@@ -831,6 +851,10 @@ class amfMgmtRpcImpl : public amfMgmtRpc {
                        ::SAFplus::Rpc::amfMgmtRpc::AssignSUtoSIResponse* response);
   void forceLockInstantiation(const ::SAFplus::Rpc::amfMgmtRpc::ForceLockInstantiationRequest* request,
                        ::SAFplus::Rpc::amfMgmtRpc::ForceLockInstantiationResponse* response);
+  void getSafplusInstallInfo(const ::SAFplus::Rpc::amfMgmtRpc::GetSafplusInstallInfoRequest* request,
+                       ::SAFplus::Rpc::amfMgmtRpc::GetSafplusInstallInfoResponse* response);
+  void setSafplusInstallInfo(const ::SAFplus::Rpc::amfMgmtRpc::SetSafplusInstallInfoRequest* request,
+                       ::SAFplus::Rpc::amfMgmtRpc::SetSafplusInstallInfoResponse* response);
 };
 
 }  // namespace amfMgmtRpc

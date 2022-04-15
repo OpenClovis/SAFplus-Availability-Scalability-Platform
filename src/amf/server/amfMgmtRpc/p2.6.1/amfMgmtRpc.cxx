@@ -422,6 +422,18 @@ void amfMgmtRpc::forceLockInstantiation(const ::SAFplus::Rpc::amfMgmtRpc::ForceL
   logError("RPC","SVR","Method forceLockInstantiation() not implemented.");
 }
 
+void amfMgmtRpc::getSafplusInstallInfo(const ::SAFplus::Rpc::amfMgmtRpc::GetSafplusInstallInfoRequest*,
+                         ::SAFplus::Rpc::amfMgmtRpc::GetSafplusInstallInfoResponse*)
+{
+  logError("RPC","SVR","Method getSafplusInstallInfo() not implemented.");
+}
+
+void amfMgmtRpc::setSafplusInstallInfo(const ::SAFplus::Rpc::amfMgmtRpc::SetSafplusInstallInfoRequest*,
+                         ::SAFplus::Rpc::amfMgmtRpc::SetSafplusInstallInfoResponse*)
+{
+  logError("RPC","SVR","Method setSafplusInstallInfo() not implemented.");
+}
+
 void amfMgmtRpc::initialize(SAFplus::Handle destination,
                      const ::SAFplus::Rpc::amfMgmtRpc::InitializeRequest* request,
                      ::SAFplus::Rpc::amfMgmtRpc::InitializeResponse* response,
@@ -926,6 +938,22 @@ void amfMgmtRpc::forceLockInstantiation(SAFplus::Handle destination,
   logError("RPC","SVR","Method forceLockInstantiation() not implemented.");
 }
 
+void amfMgmtRpc::getSafplusInstallInfo(SAFplus::Handle destination,
+                     const ::SAFplus::Rpc::amfMgmtRpc::GetSafplusInstallInfoRequest* request,
+                     ::SAFplus::Rpc::amfMgmtRpc::GetSafplusInstallInfoResponse* response,
+                     SAFplus::Wakeable& wakeable)
+{
+  logError("RPC","SVR","Method getSafplusInstallInfo() not implemented.");
+}
+
+void amfMgmtRpc::setSafplusInstallInfo(SAFplus::Handle destination,
+                     const ::SAFplus::Rpc::amfMgmtRpc::SetSafplusInstallInfoRequest* request,
+                     ::SAFplus::Rpc::amfMgmtRpc::SetSafplusInstallInfoResponse* response,
+                     SAFplus::Wakeable& wakeable)
+{
+  logError("RPC","SVR","Method setSafplusInstallInfo() not implemented.");
+}
+
 void amfMgmtRpc::CallMethod(const ::google::protobuf::MethodDescriptor* method,
                              SAFplus::Handle destination,
                              const ::google::protobuf::Message* request,
@@ -1185,6 +1213,14 @@ void amfMgmtRpc::CallMethod(const ::google::protobuf::MethodDescriptor* method,
       forceLockInstantiation(::google::protobuf::down_cast<const ::SAFplus::Rpc::amfMgmtRpc::ForceLockInstantiationRequest*>(request),
              ::google::protobuf::down_cast< ::SAFplus::Rpc::amfMgmtRpc::ForceLockInstantiationResponse*>(response));
       break;
+    case 63:
+      getSafplusInstallInfo(::google::protobuf::down_cast<const ::SAFplus::Rpc::amfMgmtRpc::GetSafplusInstallInfoRequest*>(request),
+             ::google::protobuf::down_cast< ::SAFplus::Rpc::amfMgmtRpc::GetSafplusInstallInfoResponse*>(response));
+      break;
+    case 64:
+      setSafplusInstallInfo(::google::protobuf::down_cast<const ::SAFplus::Rpc::amfMgmtRpc::SetSafplusInstallInfoRequest*>(request),
+             ::google::protobuf::down_cast< ::SAFplus::Rpc::amfMgmtRpc::SetSafplusInstallInfoResponse*>(response));
+      break;
     default:
       GOOGLE_LOG(FATAL) << "Bad method index; this should never happen.";
       break;
@@ -1321,6 +1357,10 @@ const ::google::protobuf::Message& amfMgmtRpc::GetRequestPrototype(
       return ::SAFplus::Rpc::amfMgmtRpc::AssignSUtoSIRequest::default_instance();
     case 62:
       return ::SAFplus::Rpc::amfMgmtRpc::ForceLockInstantiationRequest::default_instance();
+    case 63:
+      return ::SAFplus::Rpc::amfMgmtRpc::GetSafplusInstallInfoRequest::default_instance();
+    case 64:
+      return ::SAFplus::Rpc::amfMgmtRpc::SetSafplusInstallInfoRequest::default_instance();
     default:
       GOOGLE_LOG(FATAL) << "Bad method index; this should never happen.";
       return *reinterpret_cast< ::google::protobuf::Message*>(NULL);
@@ -1457,6 +1497,10 @@ const ::google::protobuf::Message& amfMgmtRpc::GetResponsePrototype(
       return ::SAFplus::Rpc::amfMgmtRpc::AssignSUtoSIResponse::default_instance();
     case 62:
       return ::SAFplus::Rpc::amfMgmtRpc::ForceLockInstantiationResponse::default_instance();
+    case 63:
+      return ::SAFplus::Rpc::amfMgmtRpc::GetSafplusInstallInfoResponse::default_instance();
+    case 64:
+      return ::SAFplus::Rpc::amfMgmtRpc::SetSafplusInstallInfoResponse::default_instance();
     default:
       GOOGLE_LOG(FATAL) << "Bad method index; this should never happen.";
       return *reinterpret_cast< ::google::protobuf::Message*>(NULL);
@@ -1851,6 +1895,18 @@ void amfMgmtRpc_Stub::forceLockInstantiation(SAFplus::Handle dest,
                               ::SAFplus::Rpc::amfMgmtRpc::ForceLockInstantiationResponse* response,
                               SAFplus::Wakeable& wakeable) {
   channel_->CallMethod(descriptor()->method(62), dest, request, response, wakeable);
+}
+void amfMgmtRpc_Stub::getSafplusInstallInfo(SAFplus::Handle dest,
+                              const ::SAFplus::Rpc::amfMgmtRpc::GetSafplusInstallInfoRequest* request,
+                              ::SAFplus::Rpc::amfMgmtRpc::GetSafplusInstallInfoResponse* response,
+                              SAFplus::Wakeable& wakeable) {
+  channel_->CallMethod(descriptor()->method(63), dest, request, response, wakeable);
+}
+void amfMgmtRpc_Stub::setSafplusInstallInfo(SAFplus::Handle dest,
+                              const ::SAFplus::Rpc::amfMgmtRpc::SetSafplusInstallInfoRequest* request,
+                              ::SAFplus::Rpc::amfMgmtRpc::SetSafplusInstallInfoResponse* response,
+                              SAFplus::Wakeable& wakeable) {
+  channel_->CallMethod(descriptor()->method(64), dest, request, response, wakeable);
 }
 
 }  // namespace amfMgmtRpc

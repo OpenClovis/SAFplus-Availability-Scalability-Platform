@@ -44,6 +44,8 @@
 #include <groupCliRpc.hxx>
 #include <clAmfMgmtApi.hxx>
 
+#include "../../msg/transports/clPluginHelper.hxx"
+
 #include "nodeMonitor.hxx"
 
 #define USE_GRP
@@ -181,6 +183,18 @@ static unsigned int MAX_HANDLER_THREADS=10;
 boost::thread    logServer;
 boost::thread    compStatsRefresh;
 extern bool rebootFlag;
+
+//user data. i.e safplus installation information e.g ethernet name:ipaddress,aspdir
+
+typedef std::pair<const std::string,std::string> UserDataMapPair; 
+typedef boost::unordered_map <std::string, std::string> UserDataHashMap;
+UserDataHashMap gUsrDataMap;
+
+void amfMgmtRpcInitialize(SAFplus::Rpc::amfMgmtRpc::amfMgmtRpcImpl** mgmtRpc, SAFplus::Rpc::RpcChannel** mgmtRpcChannel, SAFplus::Rpc::amfMgmtRpc::amfMgmtRpc_Stub** amfMgmtRpc);
+void amfMgmtRpcFinalize(SAFplus::Rpc::amfMgmtRpc::amfMgmtRpcImpl* mgmtRpc, SAFplus::Rpc::RpcChannel* mgmtRpcChannel, SAFplus::Rpc::amfMgmtRpc::amfMgmtRpc_Stub* amfMgmtRpc);
+ClRcT setInstallInfo(const std::string& nodeName, const std::string& safplusInstallInfo);
+ClRcT getInstallInfo(const std::string& nodeName, std::string& safplusInstallInfo);
+ClRcT registerInstallInfo(bool active);
 
 static void quitSignalHandler(int signum)
 {
@@ -709,7 +723,7 @@ ClRcT gracefullNodeShutdown()
            {
               logError("MAIN","NODE.SHD", "node shutdown failed with error [0x%x]", rc);
            }
-           amfMgmtFinalize(dummyHdl);
+           amfMgmtFinalize(dummyHdl, true);
         }
         return rc;
     }
@@ -874,14 +888,17 @@ int main(int argc, char* argv[])
   SAFplus::Rpc::amfAppRpc::amfAppRpc_Stub amfAppRpc(&appRpcChannel);
 
   amfOps.amfAppRpc = &amfAppRpc;
-
+#if 0
   //--------setup rpc for amfMgmtApi-------------------
   SAFplus::Rpc::amfMgmtRpc::amfMgmtRpcImpl mgmtRpc;
-  SAFplus::Rpc::RpcChannel amfMgmtRpcChannel(&safplusMsgServer, myHandle);
-  amfMgmtRpcChannel.setMsgType(AMF_MGMT_REQ_HANDLER_TYPE, AMF_MGMT_REPLY_HANDLER_TYPE);
-  amfMgmtRpcChannel.service = &mgmtRpc;  // The AMF needs to receive saAmfResponse calls from the clients so it needs to act as a "server".
-  SAFplus::Rpc::amfMgmtRpc::amfMgmtRpc_Stub amfMgmtRpc(&amfMgmtRpcChannel);
-
+  SAFplus::Rpc::RpcChannel mgmtRpcChannel(&safplusMsgServer, myHandle);
+  mgmtRpcChannel.setMsgType(AMF_MGMT_REQ_HANDLER_TYPE, AMF_MGMT_REPLY_HANDLER_TYPE);
+  mgmtRpcChannel.service = &mgmtRpc;  // The AMF needs to receive saAmfResponse calls from the clients so it needs to act as a "server".
+  SAFplus::Rpc::amfMgmtRpc::amfMgmtRpc_Stub amfMgmtRpc(&mgmtRpcChannel);
+#endif
+  SAFplus::Rpc::RpcChannel *mgmtRpcChannel=NULL;
+  SAFplus::Rpc::amfMgmtRpc::amfMgmtRpc_Stub *amfMgmtRpc=NULL;
+  SAFplus::Rpc::amfMgmtRpc::amfMgmtRpcImpl* mgmtRpc=NULL;
   //---------------------------------------------------
 
   //--------setup rpc for groupCli-------------------
@@ -1129,9 +1146,11 @@ int main(int argc, char* argv[])
           nodeMonitor.currentActive = myHandle;
           if (myRole != Group::IS_ACTIVE) //if my previous HA state is ACTIVE, do not anything
           {
-             myRole = Group::IS_ACTIVE;          
+             amfMgmtRpcInitialize(&mgmtRpc, &mgmtRpcChannel, &amfMgmtRpc);
+             myRole = Group::IS_ACTIVE;
              becomeActive();
              name.set(AMF_MASTER_HANDLE,myHandle,NameRegistrar::MODE_NO_CHANGE,true);
+             registerInstallInfo(true);
           }          
           lastBeat = beat;  // Don't rewrite the changes that loading makes          
           }
@@ -1154,6 +1173,7 @@ int main(int argc, char* argv[])
                  //nodeMonitor.currentActive = activeStandbyPairs.first;
                  myRole = Group::IS_STANDBY;
                  becomeStandby();
+                 registerInstallInfo(false);
               }
           }
         }
@@ -1162,6 +1182,7 @@ int main(int argc, char* argv[])
 
   //fs.notify(nodeHandle,AlarmStateT::ALARM_STATE_ASSERT, AlarmCategoryTypeT::ALARM_CATEGORY_EQUIPMENT,...);
   logNotice("---","---","Finalizing AMF...");
+  amfMgmtRpcFinalize(mgmtRpc,mgmtRpcChannel,amfMgmtRpc);
   name.set(SAFplus::ASP_NODENAME,INVALID_HDL,NameRegistrar::MODE_NO_CHANGE,true);
   gfault.registerEntity(nodeHandle,FaultState::STATE_DOWN);
   nodeMonitor.finalize();
@@ -1343,4 +1364,88 @@ void setNodeOperState(const SAFplus::Handle& nodeHdl, bool state)
    {
        logError("MAIN","OPS", "get name by handle [%" PRIx64 ":%" PRIx64 "] fail. Error message: %s", nodeHdl.id[0], nodeHdl.id[1], ne.what());
    }
+}
+
+void amfMgmtRpcInitialize(SAFplus::Rpc::amfMgmtRpc::amfMgmtRpcImpl** mgmtRpc, SAFplus::Rpc::RpcChannel** mgmtRpcChannel, SAFplus::Rpc::amfMgmtRpc::amfMgmtRpc_Stub** amfMgmtRpc)
+{
+   *mgmtRpc = new SAFplus::Rpc::amfMgmtRpc::amfMgmtRpcImpl();
+   *mgmtRpcChannel = new SAFplus::Rpc::RpcChannel(&safplusMsgServer, myHandle);
+   (*mgmtRpcChannel)->setMsgType(AMF_MGMT_REQ_HANDLER_TYPE, AMF_MGMT_REPLY_HANDLER_TYPE);
+   (*mgmtRpcChannel)->service = *mgmtRpc;
+   *amfMgmtRpc = new SAFplus::Rpc::amfMgmtRpc::amfMgmtRpc_Stub(*mgmtRpcChannel);
+}
+
+void amfMgmtRpcFinalize(SAFplus::Rpc::amfMgmtRpc::amfMgmtRpcImpl* mgmtRpc, SAFplus::Rpc::RpcChannel* mgmtRpcChannel, SAFplus::Rpc::amfMgmtRpc::amfMgmtRpc_Stub* amfMgmtRpc)
+{
+   delete amfMgmtRpc;
+   delete mgmtRpcChannel;
+   delete mgmtRpc;
+}
+
+ClRcT setInstallInfo(const std::string& nodeName, const std::string& safplusInstallInfo)
+{
+   ClRcT rc = CL_OK;
+   UserDataHashMap::iterator contents = gUsrDataMap.find(nodeName);
+   if (contents != gUsrDataMap.end()) // record already exists; overwrite it
+   {
+      contents->second = safplusInstallInfo;
+   }
+   else
+   {
+      UserDataMapPair usrDataMapPair(nodeName,safplusInstallInfo);
+      gUsrDataMap.insert(usrDataMapPair);
+   }
+   return rc;
+}
+
+ClRcT getInstallInfo(const std::string& nodeName, std::string& safplusInstallInfo)
+{
+   ClRcT rc = CL_OK;
+   UserDataHashMap::iterator contents = gUsrDataMap.find(nodeName);
+   if (contents != gUsrDataMap.end())
+   {
+      safplusInstallInfo = contents->second;
+   }
+   else
+   {
+      rc = CL_ERR_NOT_EXIST;
+   }
+   return rc;
+}
+
+ClRcT registerInstallInfo(bool active)
+{
+   ClRcT rc = CL_OK;
+   const char* aspdir = getenv("ASP_DIR")?getenv("ASP_DIR"):".";
+   const char* ifdev = getenv("SAFPLUS_BACKPLANE_INTERFACE");
+   char addrStr[20] = {0};
+   devToIpAddress(ifdev, addrStr);
+   stringstream installInfo; // format: interface=%s:%s,version=%s,dir=%s"
+   installInfo << "interface=" << ifdev << ":" << addrStr << "," << "dir=" << aspdir;
+   std::string nodeName(SAFplus::ASP_NODENAME);
+   if (active) // this is the active SC
+   {
+      //logDebug("MAIN","REG.INS.INFO", "I am active, set install info [%s] in my process", installInfo.str().c_str());
+      rc = setInstallInfo(nodeName, installInfo.str());
+   }
+   else
+   {
+      SAFplus::Handle dummyHdl;
+      rc = amfMgmtInitialize(dummyHdl);
+      if (rc == CL_OK)
+      {
+         //logDebug("MAIN","REG.INS.INFO", "I am standby, registering safplus install info [%s] with AMF", installInfo.str().c_str());
+         rc = SAFplus::setSafplusInstallInfo(SAFplus::INVALID_HDL, nodeName, installInfo.str());
+         if (rc != CL_OK)
+         {
+            logError("MAIN","REG.INS.INFO", "set safplus install info fail rc [0x%x]", rc);
+         }
+         amfMgmtFinalize(dummyHdl, true);
+      }
+      else
+      {
+         logError("MAIN","REG.INS.INFO", "Initialize amfmgmt fail rc [0x%x]", rc);
+      }
+   }
+   return rc;
 }
