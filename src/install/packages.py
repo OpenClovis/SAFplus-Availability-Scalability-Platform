@@ -20,6 +20,7 @@ class OS:
         self.apt                    = False
         self.yum                    = False
         self.pwd                    = syscall('pwd')
+        self.apt_force_yes          = '--force-yes'
 
 
         try:
@@ -890,6 +891,45 @@ class Debian9(OS):
             D = objects.RepoDep(name)
             self.pre_dep_list.append(D)
 
+#-------------------------------------------------------------------------------
+
+class Debian12(OS):
+    
+    def pre_init(self):
+        self.name = 'Debian'
+        self.apt = True
+        self.apt_force_yes = '--allow-downgrades --allow-remove-essential --allow-change-held-packages'
+    
+    def load_preinstall_deps(self):
+        
+        deps =  ['build-essential',
+                 'linux-headers-' + self.kernelVerString,
+                 'gettext',
+                 'openhpi',
+                 'uuid-dev',
+                 'bison',
+                 'flex',
+                 'gawk',
+                 'tclsh',
+                 'libglib2.0-dev',
+                 'libgdbm-dev',
+                 'libdb-dev',
+                 'libsqlite3-0',
+                 'libsqlite3-dev',
+                 'e2fsprogs',
+                 'libperl-dev',
+                 'libltdl3-dev',
+                 'e2fslibs-dev',
+                 'unzip',
+                 'libsnmp-dev',
+                 'zlib1g-dev',
+                 'psmisc',
+                 'ed']
+
+        for name in deps:
+            D = objects.RepoDep(name)
+            self.pre_dep_list.append(D)
+
 # ------------------------------------------------------------------------------
 class Debian8(OS):
     
@@ -1013,6 +1053,7 @@ def determine_os():
                 fh.close()
                 if 'buster' in fdata or '10.' in fdata: return Debian9() # no change in Debian10 comparing to Debian9
                 if 'stretch' in fdata or '9.' in fdata: return Debian9()
+                if 'bullseye' in fdata or '11.' in fdata: return Debian12()
                 if '8.' in fdata: return Debian8()
                 if cmp_version(fdata, "7.0") >= 0:
                     print("For Debian OS 7")

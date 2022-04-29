@@ -38,7 +38,7 @@ class ConfigVarFetcher:
   
     def parse_db(self, host, db_entry):
         local_dict = {}
-        exec "x=%s" % db_entry in local_dict
+        exec ("x=%s" % db_entry in local_dict)
         self.dbinfo[host] = local_dict["x"]
         
     def parse_hvo(self, host, var, value):
@@ -67,10 +67,10 @@ class ConfigVarFetcher:
                     except:
                         pass
         else:
-            print "We don't support the full 'report on host' mode"
+            print ("We don't support the full 'report on host' mode")
 
         if val:
-            print "%s=%s" % (varname, val)
+            print ("%s=%s" % (varname, val))
             
     def  parse_file(self):
         """Parse the target configuration file specified at instantiation.  Read variable definitions

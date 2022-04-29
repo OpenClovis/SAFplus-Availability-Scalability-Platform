@@ -30,9 +30,9 @@ def is_sc(n):
 
 
 if len(sys.argv) != 2:
-    print "Usage:"
-    print "  extract_nodeinfo.py <full-path-to-clAmfConfig.xml>"
-    print ""
+    print ("Usage:")
+    print ("  extract_nodeinfo.py <full-path-to-clAmfConfig.xml>")
+    print ("")
     sys.exit(1)
     
 in_file = sys.argv[1]
@@ -73,7 +73,7 @@ for n in nodeinstance_nodes:
     if t in sc_types:
         system_controller_list.append(name)
     
-print """#
+print ("""#
 # This file describes crucial node information, automatically derived from
 # your model configuration (xml) files.  Edit it only if you know what you
 # are doing.
@@ -83,34 +83,34 @@ print """#
 #
 # NODE_TYPES (Mandatory)
 #
-NODE_TYPES=(""",
-print ' '.join(nodetypes),
-print """)
+NODE_TYPES=("""),
+print (' '.join(nodetypes)),
+print (""")
 
 #
 # BOOTCONFIG_<NODE_TYPE> (Mandatory)
-#"""
+#""")
 for t in nodetypes:
-    print 'BOOTCONFIG_%s=%s' % (t, bootconfig[t])
-print """
+    print ('BOOTCONFIG_%s=%s' % (t, bootconfig[t]))
+print ("""
 #
 # NODE_INSTANCES (Mandatory)
 #
-NODE_INSTANCES=(""",
-print ' '.join(nodenames),
-print """)
+NODE_INSTANCES=("""),
+print (' '.join(nodenames)),
+print (""")
 
 #
 # NODETYPE_<NODE_INSTANCE> (Mandatory)
-#"""
+#""")
 for n in nodenames:
-    print 'NODETYPE_%s=%s' % (n, nodeinstancetypes[n])
+    print ('NODETYPE_%s=%s' % (n, nodeinstancetypes[n]))
 
-print """
+print ("""
 #
 # SYSTEM_CONTROLLERS (Mandatory)
 #
-SYSTEM_CONTROLLERS=(""",
-print ' '.join(system_controller_list),
-print ")"
+SYSTEM_CONTROLLERS=("""),
+print (' '.join(system_controller_list)),
+print (")")
 print

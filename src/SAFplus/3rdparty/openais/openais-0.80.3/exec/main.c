@@ -99,6 +99,8 @@ static char delivery_data[MESSAGE_SIZE_MAX];
 
 SaClmClusterNodeT *(*main_clm_get_by_nodeid) (unsigned int node_id);
 
+poll_handle aisexec_poll_handle;
+
 static void sigusr2_handler (int num)
 {
 	int i;

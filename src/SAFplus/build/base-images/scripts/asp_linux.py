@@ -3,11 +3,11 @@ import subprocess
 import time
 import sys
 
-unload_tipc_cmd = 'modprobe -r tipc'
+unload_tipc_cmd = '/sbin/modprobe -r tipc'
 
-load_tipc_cmd = 'modprobe tipc'
+load_tipc_cmd = '/sbin/modprobe tipc'
 
-is_tipc_loaded_cmd = 'lsmod | grep tipc'
+is_tipc_loaded_cmd = '/sbin/lsmod | grep tipc'
 
 get_amf_pid_cmd = 'ps -o pid,cmd -A'
 

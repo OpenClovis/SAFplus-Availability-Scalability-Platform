@@ -90,7 +90,7 @@ enum {
 	TOTEM_FAIL_RECV_CONST,
 
 	MAX_TOTEM_TIMEOUTS	/* Last item */
-} totem_timeout_types;
+}; //totem_timeout_types;
 
 struct totem_interface {
 	struct totem_ip_address bindnet;

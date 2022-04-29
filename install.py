@@ -951,7 +951,7 @@ class ASPInstaller:
             else:
                syscall('apt-get update;')      
                self.debug('Installing via apt-get: ' + install_str)
-               (retval, result, signal, core) = system('apt-get -y --force-yes install %s' % install_str)
+               (retval, result, signal, core) = system('apt-get -y %s install %s' % (self.OS.apt_force_yes, install_str))
                self.debug("Result: %d, output: %s" % (retval, str(result)))
 
                if "Could not get lock" in "".join(str(result)):
@@ -1002,7 +1002,25 @@ class ASPInstaller:
                     os.chdir(self.WORKING_DIR)	
                     syscall('rm -rf %s/%s'%((os.path.dirname(self.WORKING_DIR)),PRE_INSTALL_PKG_NAME))	                    
                 os.chdir(self.WORKING_DIR)
-        return True                
+        pythonPath = syscall('which python')
+        ret = True
+        if not pythonPath: # no python but python3, maybe
+                pythonPath = syscall('which python3')
+                if pythonPath:                        
+                        idx = pythonPath.rfind('/')
+                        pythonPath = pythonPath[:idx]
+                        #print('python3 path:', pythonPath)
+                        output = syscall('ln -s %s/python3 %s/python'%(pythonPath,pythonPath))
+                        #self.feedback(output)
+                        if output: ret = False
+                         
+                else:
+                        self.feedback('There is no python2 or python3 in the system')
+                        ret = False
+        else:
+                self.feedback('python2 is being used')                
+                
+        return ret        
     
     
     

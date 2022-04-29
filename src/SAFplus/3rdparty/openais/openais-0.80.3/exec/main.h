@@ -59,7 +59,7 @@ extern struct totempg_group openais_group;
 
 extern totempg_groups_handle openais_group_handle;
 
-poll_handle aisexec_poll_handle;
+extern poll_handle aisexec_poll_handle;
 
 extern SaClmClusterNodeT *(*main_clm_get_by_nodeid) (unsigned int node_id);
 

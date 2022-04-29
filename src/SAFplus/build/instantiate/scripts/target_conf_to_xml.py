@@ -36,9 +36,9 @@ def between(string, first, last):
 # and an optional trailing newline character
 def iprint(instr, depth=0, newline=True):
     if newline:
-        print ' '*(depth*4) + instr.rstrip() + '\n',
+        print (' '*(depth*4) + instr.rstrip() + '\n'),
     else:
-        print ' '*(depth*4) + instr.rstrip(),
+        print (' '*(depth*4) + instr.rstrip()),
 
 
 # a slot object
@@ -75,18 +75,18 @@ class Slot:
 def main():
 
     if len(sys.argv) < 2:
-        print 'Error: Not enough arguments'
-        print 'Usage: %s <path-to-target.conf>' % sys.argv[0]
+        print ('Error: Not enough arguments')
+        print ('Usage: %s <path-to-target.conf>' % sys.argv[0])
         sys.exit(1)
 
     if not os.path.isfile(sys.argv[1]):
-        print 'Error: File not found'
-        print 'Usage: %s <path-to-target.conf>' % sys.argv[0]
+        print ('Error: File not found')
+        print ('Usage: %s <path-to-target.conf>' % sys.argv[0])
         sys.exit(1)
 
     if not os.path.basename(sys.argv[1]).startswith('target.conf'):
-        print 'Error: Invalid File Type'
-        print 'Usage: %s <path-to-target.conf>' % sys.argv[0]
+        print ('Error: Invalid File Type')
+        print ('Usage: %s <path-to-target.conf>' % sys.argv[0])
         sys.exit(1)
     
     fh = open(sys.argv[1], 'r')
