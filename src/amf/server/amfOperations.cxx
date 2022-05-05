@@ -287,6 +287,7 @@ namespace SAFplus
         {
           if (result == SA_AIS_OK)
           {
+            wat.comp->pendingOperation = PendingOperation::none;
             wat.comp->processId = 0;
             // Nothing to do, we'll update the AMF state when we see the process actually down
           }

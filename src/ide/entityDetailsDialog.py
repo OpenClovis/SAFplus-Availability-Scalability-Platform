@@ -389,6 +389,8 @@ class Panel(scrolled.ScrolledPanel):
 
           # TODO: Enable "SAVE_BUTTON" if mark dirty and handle only dirty (actually value changed) entity
           self.ChangedValue(proposedValue, event.GetEventObject(), obj[0])
+        else:
+          self.ChangedValue(query.GetValue(), query, obj[0])
       else:
         # Notify name change to umlEditor to validate and render
         # TODO: Enable "SAVE_BUTTON"

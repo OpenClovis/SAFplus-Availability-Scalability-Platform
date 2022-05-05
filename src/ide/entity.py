@@ -5,6 +5,7 @@ import common
 import svg
 import copy
 import share
+import enum
 
 nameIdx = {
 }
@@ -13,6 +14,14 @@ RLS_OK = 0              # Relationship is allowed
 RLS_ERR_EXISTS = 1      # Relationship already exists
 RLS_ERR_NOT_ALLOWED = 2 # Relationship is not allowed
 MAXIMUM_NUMBER = 1000
+
+class RELATIONSHIP_TYPE(enum.Enum):
+  NONE = 0
+  DEFAULT = 1
+  SU_TO_COMP = 2
+  CSI_TO_COMP = 3
+  NODE_TO_SU = 4
+  SG_TO_SU = 5
 
 def getNames(typ):
   listName = []
@@ -60,22 +69,26 @@ def updateNamelyDict(model):
   for (name,i) in list(model.instances.items()):
     NameCreator(i.entity.data["name"], name)
 
-
-def isRelationshipExist(ent):
+def isRelationshipExist(ent, type = RELATIONSHIP_TYPE.DEFAULT):
   if not share.umlEditorPanel:
     assert(False)
-  count=0
   for name,e in list(share.umlEditorPanel.model.entities.items()):
     if ent==e:
       continue
-    if ent.et.name != "ServiceUnit" and ent.et.name != "Component":
-      if any(ent==ca.contained for ca in e.containmentArrows):
+    if type == RELATIONSHIP_TYPE.SU_TO_COMP:
+      if any(ent==ca.contained and e.et.name == "ServiceUnit" for ca in e.containmentArrows):
+        return True
+    elif type == RELATIONSHIP_TYPE.CSI_TO_COMP:
+      if any(ent==ca.contained and e.et.name == "ComponentServiceInstance" for ca in e.containmentArrows):
+        return True
+    elif type == RELATIONSHIP_TYPE.NODE_TO_SU:
+      if any(ent==ca.contained and e.et.name == "Node" for ca in e.containmentArrows):
+        return True
+    elif type == RELATIONSHIP_TYPE.SG_TO_SU:
+      if any(ent==ca.contained and e.et.name == "ServiceGroup" for ca in e.containmentArrows):
         return True
     else:
-      for ca in e.containmentArrows:
-        if ent==ca.contained:
-          count+=1
-      if count==2:
+      if any(ent==ca.contained for ca in e.containmentArrows):
         return True
   return False
 
@@ -186,16 +199,16 @@ class Entity:
         return RLS_ERR_EXISTS
       return RLS_OK
     if self.et.name=="Node" and entity.et.name=="ServiceUnit":
-      # if isRelationshipExist(entity):
-      #   return RLS_ERR_EXISTS
+      if isRelationshipExist(entity, RELATIONSHIP_TYPE.NODE_TO_SU):
+        return RLS_ERR_EXISTS
       return RLS_OK
     if self.et.name=="ServiceUnit" and entity.et.name=="Component":
-      # if isRelationshipExist(entity):
-      #   return RLS_ERR_EXISTS
+      if isRelationshipExist(entity, RELATIONSHIP_TYPE.SU_TO_COMP):
+        return RLS_ERR_EXISTS
       return RLS_OK
     if self.et.name=="ServiceUnit" and entity.et.name=="NonSafComponent":
-      # if isRelationshipExist(entity):
-      #   return RLS_ERR_EXISTS
+      if isRelationshipExist(entity):
+        return RLS_ERR_EXISTS
       return RLS_OK
     if self.et.name=="ServiceGroup" and (entity.et.name=="ServiceInstance" or entity.et.name=="ServiceUnit"):
       for arrow in self.containmentArrows:
@@ -206,19 +219,19 @@ class Entity:
         if arrow.contained.et.name == "ServiceInstance":
           if entity.et.name=="ServiceInstance":
             return RLS_ERR_EXISTS
-      if isRelationshipExist(entity):
+      if isRelationshipExist(entity, RELATIONSHIP_TYPE.SG_TO_SU):
         return RLS_ERR_EXISTS
       return RLS_OK
     if self.et.name=="ServiceInstance" and entity.et.name=="ComponentServiceInstance":
-      # if isRelationshipExist(entity):
-      #   return RLS_ERR_EXISTS
+      if isRelationshipExist(entity):
+        return RLS_ERR_EXISTS
       return RLS_OK
     if self.et.name=="ComponentServiceInstance" and (entity.et.name=="Component" or entity.et.name=="NonSafComponent"):
       for arrow in self.containmentArrows:
         if arrow.contained == entity:
           return RLS_ERR_EXISTS
-      # if isRelationshipExist(entity):
-      #   return RLS_ERR_EXISTS
+      if isRelationshipExist(entity, RELATIONSHIP_TYPE.CSI_TO_COMP):
+        return RLS_ERR_EXISTS
       return RLS_OK
     if self.et.name=="Component" and entity.et.name=="NonSafComponent":
       for arrow in self.containmentArrows:

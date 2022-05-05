@@ -1100,7 +1100,7 @@ class NplusMPolicy:public ClAmfPolicyPlugin_1
                           }
 
                           // In the instantiating case, the process may not have even been started yet.  So to detect failure, we must check both that it has reported a PID and that it is currently uninstantiated
-                          if ((status == CompStatus::Uninstantiated) && ((comp->processId.value > 0) || (comp->presenceState != PresenceState::instantiating)))  // database shows should be running but actually no process is there.  I should update DB.
+                          if ((effectiveAdminState(comp) == AdministrativeState::on) && ((status == CompStatus::Uninstantiated) && ((comp->processId.value > 0) || (comp->presenceState != PresenceState::instantiating))))  // database shows should be running but actually no process is there.  I should update DB.
                           {
                               try
                               {

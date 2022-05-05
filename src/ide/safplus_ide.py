@@ -101,7 +101,7 @@ class SAFplusFrame(wx.Frame):
         self.infoPanel = wx.aui.AuiNotebook(self.prjSplitter2, style=bookStyle)
 
         self.help = HtmlWindow(self.tab, -1)
-        self.help.LoadFile("resources/intro.html")
+        self.help.LoadFile(common.fileResolver("intro.html"))
         self.tab.AddPage(self.help, "Welcome")        
         self.Bind(wx.aui.EVT_AUINOTEBOOK_PAGE_CLOSE, self.onPageClosing, self.tab) # handle tab page close
         self.prjSplitter2.SplitHorizontally(self.prjSplitter, self.infoPanel, 640)
@@ -157,7 +157,7 @@ class SAFplusFrame(wx.Frame):
         return False
 
     def update(self, event):
-        self.help.LoadFile("resources/intro.html")
+        self.help.LoadFile(common.fileResolver("intro.html"))
         
 
     def OnCloseFrame(self,event):
@@ -577,7 +577,7 @@ class SAFplusFrame(wx.Frame):
         self.tab.SetSelection(n-1)
       else:
         self.help = HtmlWindow(self.tab, -1)
-        self.help.LoadFile("resources/intro.html")
+        self.help.LoadFile(common.fileResolver("intro.html"))
         n = self.tab.GetPageCount()
         self.tab.InsertPage(n, self.help, "Welcome")       
         self.tab.SetSelection(n)

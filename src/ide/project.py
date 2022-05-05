@@ -1462,8 +1462,9 @@ class ProjectTreePanel(wx.Panel):
     tarGet = str(subprocess.check_output(['g++','-dumpmachine']).decode()).strip()
     baseImage = prjPath + '/images/%s' % tarGet
     owd = os.getcwd()
-    os.chdir('../mk')
-    tool = os.path.abspath("safplus_packager_ide.py")
+    dirPath = os.path.dirname(os.path.abspath(__file__))
+    mkPath = dirPath + '/../mk'
+    tool = mkPath + '/safplus_packager_ide.py'
     os.chdir('%s' % prjPath)
     cmd = 'python %s -a %s %s.tgz' % (tool, tarGet, tarGet)
     self.log_info("Generating image...")
@@ -1479,7 +1480,8 @@ class ProjectTreePanel(wx.Panel):
         cmd = 'cp -r %s %s' % (baseImage, tarImg)
         if not self.execute(cmd, False):
           return False
-        os.system('cp resources/setup %s/bin' % tarImg)
+        setupPath = dirPath + '/resources/setup'
+        os.system('cp %s %s/bin' % (setupPath, tarImg))
         self.updateImageConfig(tarImg, self.currentImagesConfig[img])
         self.log_info("Creating tarball: %s.tar.gz\n" % tarImg)
         cmd = 'cd %s/images/; tar -zcvf %s.tar.gz %s' % (prjPath, img, img)
@@ -1539,7 +1541,7 @@ class ProjectTreePanel(wx.Panel):
 
     img = wx.EmptyImage(35, 35)
     imageCtrl = wx.StaticBitmap(self.dlg, wx.ID_ANY, wx.BitmapFromImage(img))
-    imgPath = "resources/images/ClovisLogo_32_32.gif"
+    imgPath = common.fileResolver("ClovisLogo_32_32.gif")
     img = wx.Image(imgPath, wx.BITMAP_TYPE_ANY)
 
     img = img.Scale(35,35)
@@ -2361,7 +2363,8 @@ class NewPrjDialog(wx.Dialog):
         datamodel_sizer.Add(datamodel_lbl, 0, wx.ALL|wx.CENTER, 5)
         
         defaultModel = common.fileResolver("SAFplusAmf.yang")
-        self.datamodel = wx.FilePickerCtrl(self, message="Choose a file", path="SAFplusAmf.yang", style=wx.FLP_DEFAULT_STYLE|wx.FLP_USE_TEXTCTRL,  wildcard="Data model (*.yang)|*.yang", size=EntrySize)
+        print("Yang model: " + defaultModel)
+        self.datamodel = wx.FilePickerCtrl(self, message="Choose a file", path=defaultModel, style=wx.FLP_DEFAULT_STYLE|wx.FLP_USE_TEXTCTRL,  wildcard="Data model (*.yang)|*.yang", size=EntrySize)
         datamodel_sizer.Add(self.datamodel, 0, wx.ALL, 5)
  
         main_sizer = wx.BoxSizer(wx.VERTICAL)
