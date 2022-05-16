@@ -1190,6 +1190,8 @@ namespace amfMgmtRpc {
     timeouts->set_allocated_workremoval(workRemoval);
     timeouts->set_allocated_workassignment(workAssignment);
     compConfig->set_allocated_timeouts(timeouts);
+
+    compConfig->set_csitype(comp->csiType.value);
  
     return rc;
   }
@@ -2146,6 +2148,7 @@ namespace amfMgmtRpc {
     }
     
     csiConfig->set_serviceinstance(csi->serviceInstance.value->name.value);
+    csiConfig->set_type(csi->type.value);
 
     return rc;
   }

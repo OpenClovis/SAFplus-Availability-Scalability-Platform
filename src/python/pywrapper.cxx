@@ -79,7 +79,13 @@ static dict nodeGetConfig(const Handle & self, const std::string & key)
     dictionary["name"] = nodeConfig->name();
 //    dictionary["restartable"] = std::to_string(nodeConfig->restartable());
 //    dictionary["serviceUnitFailureEscalationPolicy"] = std::to_string(nodeConfig->serviceUnitFailureEscalationPolicy());
-//    dictionary["serviceUnits"] = nodeConfig->serviceunits();
+    boost::python::list listSUs;
+    const int numOfSUs = nodeConfig->serviceunits_size();
+    for(int i = 0; i < numOfSUs; ++i)
+    {
+        listSUs.append(nodeConfig->serviceunits(i));
+    }
+    dictionary["serviceUnits"] =listSUs;
 //    dictionary["userDefinedType"] = std::to_string(nodeConfig->userDefinedType());
 
     return dictionary;
@@ -111,9 +117,21 @@ static dict SGGetConfig(const Handle & self, const std::string & key)
     dictionary["preferredNumActiveServiceUnits"] = std::to_string(SGConfig->preferrednumactiveserviceunits());
     dictionary["preferredNumIdleServiceUnits"] = std::to_string(SGConfig->preferrednumidleserviceunits());
     dictionary["preferredNumStandbyServiceUnits"] = std::to_string(SGConfig->preferrednumstandbyserviceunits());
-//    dictionary["serviceInstances"] = std::to_string(SGConfig->serviceInstances());
+    boost::python::list listSIs;
+    const int numOfSIs = SGConfig->serviceinstances_size();
+    for(int i = 0; i < numOfSIs; ++i)
+    {
+        listSIs.append(SGConfig->serviceinstances(i));
+    }
+    dictionary["serviceInstances"] = listSIs;
 //    dictionary["serviceUnitRestart"] = std::to_string(SGConfig->serviceUnitRestart());
-//    dictionary["serviceUnits"] = std::to_string(SGConfig->serviceUnits());
+    boost::python::list listSUs;
+    const int numOfSUs = SGConfig->serviceunits_size();
+    for(int i = 0; i < numOfSUs; ++i)
+    {
+        listSUs.append(SGConfig->serviceunits(i));
+    }
+    dictionary["serviceUnits"] = listSUs;
 
     return dictionary;
 }
@@ -135,7 +153,13 @@ static dict SUGetConfig(const Handle & self, const std::string & key)
     dictionary["adminstate"] = std::to_string(SUConfig->adminstate());
 //    dictionary["assignedServiceInstances"] = std::to_string(SUConfig->assignedServiceInstances());
 //    dictionary["compRestartCount"] = std::to_string(SUConfig->compRestartCount());
-//    dictionary["components"] = std::to_string(SUConfig->components());
+    boost::python::list listComps;
+    const int numOfComps = SUConfig->components_size();
+    for(int i = 0; i < numOfComps; ++i)
+    {
+        listComps.append(SUConfig->components(i));
+    }
+    dictionary["components"] = listComps;
 //    dictionary["currentRecovery"] = std::to_string(SUConfig->currentRecovery());
     dictionary["failover"] = std::to_string(SUConfig->failover());
 //    dictionary["id"] = std::to_string(SUConfig->id());
@@ -146,7 +170,7 @@ static dict SUGetConfig(const Handle & self, const std::string & key)
     dictionary["rank"] = std::to_string(SUConfig->rank());
 //    dictionary["restartable"] = std::to_string(SUConfig->restartable());
 //    dictionary["saAmfSUHostNodeOrNodeGroup"] = std::to_string(SUConfig->saAmfSUHostNodeOrNodeGroup());
-//    dictionary["serviceGroup"] = std::to_string(SUConfig->serviceGroup());
+    dictionary["serviceGroup"] = SUConfig->servicegroup();
 
     return dictionary;
 }
@@ -166,7 +190,13 @@ static dict SIGetConfig(const Handle & self, const std::string & key)
 
     // set information into dictionary
     dictionary["adminstate"] = std::to_string(SIConfig->adminstate());
-//    dictionary["componentServiceInstances"] = std::to_string(SIConfig->componentServiceInstances());
+    boost::python::list listSIs;
+    const int numOfSIs = SIConfig->componentserviceinstances_size();
+    for(int i = 0; i < numOfSIs; ++i)
+    {
+        listSIs.append(SIConfig->componentserviceinstances(i));
+    }
+    dictionary["componentServiceInstances"] = listSIs;
 //    dictionary["id"] = std::to_string(SIConfig->id());
 //    dictionary["isFullActiveAssignment"] = std::to_string(SIConfig->isFullActiveAssignment());
 //    dictionary["isFullStandbyAssignment"] = std::to_string(SIConfig->isFullStandbyAssignment());
@@ -174,7 +204,7 @@ static dict SIGetConfig(const Handle & self, const std::string & key)
     dictionary["preferredActiveAssignments"] = std::to_string(SIConfig->preferredactiveassignments());
     dictionary["preferredStandbyAssignments"] = std::to_string(SIConfig->preferredstandbyassignments());
     dictionary["rank"] = std::to_string(SIConfig->rank());
-//    dictionary["serviceGroup"] = std::to_string(SIConfig->serviceGroup());
+    dictionary["serviceGroup"] = SIConfig->servicegroup();
 
     return dictionary;
 }
@@ -193,11 +223,17 @@ static dict CSIGetConfig(const Handle & self, const std::string & key)
     }
 
     // set information into dictionary
-//    dictionary["dependencies"] = std::to_string(CSIConfig->dependencies());
+    boost::python::list listDeps;
+    const int numOfDeps = CSIConfig->dependencies_size();
+    for(int i = 0; i < numOfDeps; ++i)
+    {
+        listDeps.append(CSIConfig->dependencies(i));
+    }
+    dictionary["dependencies"] = listDeps;
 //    dictionary["id"] = std::to_string(CSIConfig->id());
     dictionary["name"] = CSIConfig->name();
     dictionary["serviceInstance"] = CSIConfig->serviceinstance();
-//    dictionary["type"] = std::to_string(CSIConfig->type());
+    dictionary["type"] = CSIConfig->type();
 
     return dictionary;
 }
@@ -216,9 +252,21 @@ static dict CSIGetStatus(const Handle & self, const std::string & key)
     }
 
     // set information into dictionary
-//    dictionary["activeComponents"] = std::to_string(CSIStatus->activeComponents());
+    boost::python::list listActives;
+    const int numOfActives = CSIStatus->activecomponents_size();
+    for(int i = 0; i < numOfActives; ++i)
+    {
+        listActives.append(CSIStatus->activecomponents(i));
+    }
+    dictionary["activeComponents"] = listActives;
 //    dictionary["isProxyCSI"] = CSIStatus->isProxyCSI();
-//    dictionary["standbyComponents"] = std::to_string(CSIStatus->standbycomponents());
+    boost::python::list listStandbys;
+    const int numOfStandbys = CSIStatus->standbycomponents_size();
+    for(int i = 0; i < numOfStandbys; ++i)
+    {
+        listStandbys.append(CSIStatus->standbycomponents(i));
+    }
+    dictionary["standbyComponents"] = listStandbys;
 
     return dictionary;
 }
@@ -239,7 +287,7 @@ static dict ComponentGetConfig(const Handle & self, const std::string & key)
     // set information into dictionary
     dictionary["capabilityModel"] = std::to_string(ComponentConfig->capabilitymodel());
 //    dictionary["cleanup"] = std::to_string(ComponentConfig->cleanup());
-//    dictionary["csiType"] = std::to_string(ComponentConfig->csiType());
+    dictionary["csiType"] = ComponentConfig->csitype();
 //    dictionary["currentRecovery"] = std::to_string(ComponentConfig->currentRecovery());
     dictionary["delayBetweenInstantiation"] = std::to_string(ComponentConfig->delaybetweeninstantiation());
 //    dictionary["id"] = std::to_string(ComponentConfig->id());
@@ -255,7 +303,7 @@ static dict ComponentGetConfig(const Handle & self, const std::string & key)
 //    dictionary["proxyCSI"] = std::to_string(ComponentConfig->proxyCSI());
     dictionary["recovery"] = ComponentConfig->recovery();
     dictionary["restartable"] = std::to_string(ComponentConfig->restartable());
-//    dictionary["serviceUnit"] = std::to_string(ComponentConfig->serviceUnit());
+    dictionary["serviceUnit"] = ComponentConfig->serviceunit();
 //    dictionary["terminate"] = std::to_string(ComponentConfig->terminate());
 //    dictionary["timeouts"] = std::to_string(ComponentConfig->timeouts());
 
