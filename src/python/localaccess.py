@@ -97,7 +97,7 @@ amfMgmtNodeDelete = safplus.amfMgmtNodeDelete
 amfMgmtServiceUnitDelete = safplus.amfMgmtServiceUnitDelete
 amfMgmtServiceInstanceDelete = safplus.amfMgmtServiceInstanceDelete
 amfMgmtComponentServiceInstanceDelete = safplus.amfMgmtComponentServiceInstanceDelete
-
+amfMgmtSafplusInstallInfoGet = safplus.amfMgmtSafplusInstallInfoGet
 
 def isValidDirectory(path):
   try:

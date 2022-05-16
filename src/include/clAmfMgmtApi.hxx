@@ -90,7 +90,7 @@ ClRcT amfMgmtAssignSUtoSI(const Handle& mgmtHandle, const std::string& siName, c
 ClRcT amfMgmtForceLockInstantiation(const Handle& mgmtHandle, const std::string& suName);
 Handle amfMgmtCompAddressGet(const std::string& entityName);
 
-ClRcT setSafplusInstallInfo(const Handle& mgmtHandle, const std::string& nodeName, const std::string& safplusInstallInfo);
-ClRcT getSafplusInstallInfo(const Handle& mgmtHandle, const std::string& nodeName, std::string& safplusInstallInfo);
+ClRcT amfMgmtSafplusInstallInfoSet(const Handle& mgmtHandle, const std::string& nodeName, const std::string& safplusInstallInfo);
+std::string amfMgmtSafplusInstallInfoGet(const Handle& mgmtHandle, const std::string& nodeName);
 
 }

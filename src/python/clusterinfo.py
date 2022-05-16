@@ -15,6 +15,7 @@ import readline
 import threading
 import localaccess as access
 import xml.etree.ElementTree as ET
+import amfMgmtApi
 
 class ClusterInfo:
     """This class represents the current cluster state and configuration"""
@@ -90,6 +91,21 @@ class data:
             self.nodes[nodeName] = node
             self.entities[nodeName] = node
             self.nodeList.append(node)
+        clusterView = access.grpCliClusterViewGet()
+            # Node0       controller     active   108
+            # Node1       controller     standby  109
+            # Node2       payload        -        110
+        rows = clusterView.split('\n')
+        for node in self.nodeList:
+            for row in rows:
+                if len(row) == 0:
+                    continue
+                cells = row.split()
+                if node.name==cells[0]:
+                    node.slot = cells[3]
+                    node.clusterRole = cells[1]
+                    node.haRole = cells[2]
+            node.setIntraclusterAccess()
 
     def loadSGs(self, oldObject = None):
         """Load the SG information"""
@@ -151,6 +167,10 @@ global handle
 def get_amf_master_handle():
   global handle
   info = access.grpCliClusterViewGet()
+  # NodeName    NodeType       HAState  NodeAddr
+  # Node0       controller     active   108
+  # Node1       controller     standby  109
+  # Node2       payload        -        110
   rows = info.split('\n')
   for row in rows:
       if len(row) == 0:
@@ -237,7 +257,14 @@ class initialObject:
     """Initial all attributes in an entity"""
 
     def __init__(self):
+        self.slot = ""
+        self.clusterRole = "" # controller or payload
+        self.haRole = "" # active or standby. If payload, no role (-)
         self.adminState = ""
+        self.localIp = ""
+        self.localUser = ""
+        self.localPasswd = ""
+        self.aspDir = ""
         self.autoRepair = ""
         self.canBeInherited = ""
         self.currentRecovery = ""
@@ -330,13 +357,32 @@ class initialObject:
         self.standbyComponents = ""
         self.assignmentState = ""
 
+    def setIntraclusterAccess(self):
+        print ('get install info')
+        (ip,aspdir)=amfMgmtApi.getSafplusInstallInfo(self.name)
+        print ('end')
+        self.localIp = ip
+        self.aspDir = aspdir
+
+    def isPresent(self):
+        return self.presenceState=='instantiated'
+
+    def isRunning(self):
+        return self.isPresent() and self.adminState != 'off'
+
+    def isIdle(self):
+         return self.isRunning() and self.adminState=='idle'
+
 def main():
     print("start clusterinfo")
     get_amf_master_handle()
+    print('init ci')
     clinfo = ClusterInfo()
-    print("length: ", len(clinfo.compList))
-    for comp in clinfo.compList:
-        print(comp.name, " : ", comp.haState, ", ", comp.presenceState)
+    print("length: ", len(clinfo.nodeList))
+    for node in clinfo.nodeList:
+        print(node.name, " : ", node.adminState, ", ", node.presenceState)
+        print ("service units: %s" % str(node.serviceUnits))
+        print ('Node Type:%s' % node.clusterRole)
 
 if __name__ == '__main__':
     main()

@@ -2071,7 +2071,7 @@ Handle amfMgmtCompAddressGet(const std::string& entityName)
     return name.getHandle(entityName, 2000);
 }
 
-ClRcT setSafplusInstallInfo(const Handle& mgmtHandle, const std::string& nodeName, const std::string& safplusInstallInfo)
+ClRcT amfMgmtSafplusInstallInfoSet(const Handle& mgmtHandle, const std::string& nodeName, const std::string& safplusInstallInfo)
 {
     ClRcT rc;
     SAFplus::Rpc::amfMgmtRpc::SetSafplusInstallInfoRequest request;
@@ -2092,9 +2092,10 @@ ClRcT setSafplusInstallInfo(const Handle& mgmtHandle, const std::string& nodeNam
     }
     return rc;
 }
-ClRcT getSafplusInstallInfo(const Handle& mgmtHandle, const std::string& nodeName, std::string& safplusInstallInfo)
+std::string amfMgmtSafplusInstallInfoGet(const Handle& mgmtHandle, const std::string& nodeName)
 {
-    ClRcT rc;
+    ClRcT rc=1;
+    std::string safplusInstallInfo;
     SAFplus::Rpc::amfMgmtRpc::GetSafplusInstallInfoRequest request;
     request.add_amfmgmthandle((const char*) &mgmtHandle, sizeof(Handle));
     request.set_nodename(nodeName);    
@@ -2114,7 +2115,13 @@ ClRcT getSafplusInstallInfo(const Handle& mgmtHandle, const std::string& nodeNam
         logError("MGMT","INI","getHandle got exception [%s]", ex.what());
         rc = CL_ERR_NOT_EXIST;
     }
-    return rc;
+    if (rc != CL_OK)
+    {    
+        char errcode[6];
+        snprintf(errcode, 5, "0x%x", rc);
+        safplusInstallInfo = errcode;
+    }
+    return safplusInstallInfo;
 }
 
 }

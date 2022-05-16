@@ -1435,7 +1435,7 @@ ClRcT registerInstallInfo(bool active)
       if (rc == CL_OK)
       {
          //logDebug("MAIN","REG.INS.INFO", "I am standby, registering safplus install info [%s] with AMF", installInfo.str().c_str());
-         rc = SAFplus::setSafplusInstallInfo(SAFplus::INVALID_HDL, nodeName, installInfo.str());
+         rc = SAFplus::amfMgmtSafplusInstallInfoSet(SAFplus::INVALID_HDL, nodeName, installInfo.str());
          if (rc != CL_OK)
          {
             logError("MAIN","REG.INS.INFO", "set safplus install info fail rc [0x%x]", rc);

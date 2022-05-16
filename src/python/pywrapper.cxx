@@ -1149,4 +1149,6 @@ BOOST_PYTHON_MODULE(pySAFplus)
   def("amfMgmtServiceUnitDelete",static_cast< ClRcT (*)(const Handle &, const std::string &) > (&amfMgmtServiceUnitDelete));
   def("amfMgmtServiceInstanceDelete",static_cast< ClRcT (*)(const Handle &, const std::string &) > (&amfMgmtServiceInstanceDelete));
   def("amfMgmtComponentServiceInstanceDelete",static_cast< ClRcT (*)(const Handle &, const std::string &) > (&amfMgmtComponentServiceInstanceDelete));
+
+  def("amfMgmtSafplusInstallInfoGet",static_cast< std::string (*)(const Handle &, const std::string &) > (&SAFplus::amfMgmtSafplusInstallInfoGet));
 }
