@@ -17,13 +17,22 @@ import localaccess as access
 import xml.etree.ElementTree as ET
 import amfMgmtApi
 
+handle = 0
+refreshInterval = 1.9
+
 class ClusterInfo:
     """This class represents the current cluster state and configuration"""
     def __init__(self):
         self.d = None
         # self.lock = threading.RLock()
         self.load()
-    
+        
+
+    def refresh(self):
+        global refreshInterval
+        if (time.time()-self.d.lastReload)>refreshInterval:
+            self.load()
+ 
     def load(self):
         n = data()
         n.load(self.d)
@@ -74,12 +83,14 @@ class data:
     def load(self, oldObject = None):
         """Load or re-load the AMF database into Python objects"""
         self.clear()
+        get_amf_master_handle()
         self.loadNodes()
-        self.loadSGs()
-        self.loadSUs()
-        self.loadSIs()
-        self.loadCSIs()
-        self.loadComps()
+        #self.loadSGs()
+        #self.loadSUs()
+        #self.loadSIs()
+        #self.loadCSIs()
+        #self.loadComps()
+        self.lastReload = time.time()
 
     def loadNodes(self, oldObject = None):
         """Load the node information"""
@@ -373,13 +384,15 @@ class initialObject:
     def isIdle(self):
          return self.isRunning() and self.adminState=='idle'
 
+ci = ClusterInfo()
+
 def main():
     print("start clusterinfo")
-    get_amf_master_handle()
+    #get_amf_master_handle()
     print('init ci')
-    clinfo = ClusterInfo()
-    print("length: ", len(clinfo.nodeList))
-    for node in clinfo.nodeList:
+    #clinfo = ClusterInfo()
+    print("length: ", len(ci.nodeList))
+    for node in ci.nodeList:
         print(node.name, " : ", node.adminState, ", ", node.presenceState)
         print ("service units: %s" % str(node.serviceUnits))
         print ('Node Type:%s' % node.clusterRole)
