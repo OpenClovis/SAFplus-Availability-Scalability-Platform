@@ -893,12 +893,12 @@ class Debian9(OS):
 
 #-------------------------------------------------------------------------------
 
-class Debian12(OS):
+class Debian11(OS):
     
     def pre_init(self):
         self.name = 'Debian'
         self.apt = True
-        self.apt_force_yes = '--allow-downgrades --allow-remove-essential --allow-change-held-packages'
+        self.apt_force_yes = ''
     
     def load_preinstall_deps(self):
         
@@ -924,7 +924,10 @@ class Debian12(OS):
                  'libsnmp-dev',
                  'zlib1g-dev',
                  'psmisc',
-                 'ed']
+                 'ed',
+                 'cups',
+                 'libgtk-3-dev',
+                 'libgtk2.0-0']
 
         for name in deps:
             D = objects.RepoDep(name)
@@ -1053,7 +1056,7 @@ def determine_os():
                 fh.close()
                 if 'buster' in fdata or '10.' in fdata: return Debian9() # no change in Debian10 comparing to Debian9
                 if 'stretch' in fdata or '9.' in fdata: return Debian9()
-                if 'bullseye' in fdata or '11.' in fdata: return Debian12()
+                if 'bullseye' in fdata or '11.' in fdata: return Debian11()
                 if '8.' in fdata: return Debian8()
                 if cmp_version(fdata, "7.0") >= 0:
                     print("For Debian OS 7")

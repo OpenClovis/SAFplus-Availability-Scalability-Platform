@@ -1015,10 +1015,10 @@ class ASPInstaller:
                         if output: ret = False
                          
                 else:
-                        self.feedback('There is no python2 or python3 in the system')
+                        self.debug('There is no python2 or python3 in the system')
                         ret = False
         else:
-                self.feedback('python2 is being used')                
+                self.debug('There is python being used')
                 
         return ret        
     

@@ -52,12 +52,16 @@ def system(cmd):
     #print 'Executing command: [%s]' % cmd
     #command = subprocess.run([cmd], universal_newlines=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
     
-    child = subprocess.Popen([cmd], shell = True, stdout=subprocess.PIPE)
-    retval = child.wait()
+    child = subprocess.Popen([cmd], shell = True, text=True, stdout=subprocess.PIPE)
+    #retval = child.wait()
+    output = child.communicate()[0]
+    retval = child.returncode
+    if retval is None: retVal = 0xff
     signal = retval & 0x7f
     core   = ((retval & 0x80) !=0)
-    retval = retval >> 8   
-    output = child.stdout.read() 
+    retval = retval >> 8    
+        
+    #output = child.stdout.read() 
             
        
     return (retval, output, signal, core)
