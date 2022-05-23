@@ -4071,7 +4071,14 @@ namespace amfMgmtRpc {
     }
     else
     {
-      rc = SAFplus::setAdminState(node, SAFplusAmf::AdministrativeState::idle,true);
+      //rc = SAFplus::setAdminState(node, SAFplusAmf::AdministrativeState::idle,true);
+      if(SAFplus::operationsPendingForNode(node))
+      {
+        logNotice("MGMT","RPC","Node [%s] has pending operation. Deferring lock assignment!", nodeName.c_str());
+        rc = CL_ERR_TRY_AGAIN;
+      }
+      else
+        rc = SAFplus::setAdminState(node,SAFplusAmf::AdministrativeState::idle,true);
     }
     response->set_err(rc);
   }
@@ -4100,7 +4107,14 @@ namespace amfMgmtRpc {
     }
     else
     {
-      rc = SAFplus::setAdminState(sg, SAFplusAmf::AdministrativeState::idle,true);
+      //rc = SAFplus::setAdminState(sg, SAFplusAmf::AdministrativeState::idle,true);
+      if(SAFplus::operationsPendingForSG(sg))
+      {
+        logNotice("MGMT","RPC","SG [%s] has pending operation. Deferring lock assignment!", sgName.c_str());
+        rc = CL_ERR_TRY_AGAIN;
+      }
+      else
+        rc = SAFplus::setAdminState(sg,SAFplusAmf::AdministrativeState::idle,true);
     }
     response->set_err(rc);
   }
@@ -4129,7 +4143,14 @@ namespace amfMgmtRpc {
     }
     else
     {
-      rc = SAFplus::setAdminState(su,SAFplusAmf::AdministrativeState::idle,true);
+      //rc = SAFplus::setAdminState(su,SAFplusAmf::AdministrativeState::idle,true);
+      if(SAFplus::operationsPendingForSU(su))
+      {
+        logNotice("MGMT","RPC","SU [%s] has pending operation. Deferring lock assignment!", suName.c_str());
+        rc = CL_ERR_TRY_AGAIN;
+      }
+      else
+        rc = SAFplus::setAdminState(su,SAFplusAmf::AdministrativeState::idle,true);
     }
     
     response->set_err(rc);
@@ -4159,7 +4180,14 @@ namespace amfMgmtRpc {
     }
     else
     {
-      rc = SAFplus::setAdminState(si,SAFplusAmf::AdministrativeState::idle,true);
+      //rc = SAFplus::setAdminState(si,SAFplusAmf::AdministrativeState::idle,true);
+      if(SAFplus::operationsPendingForSI(si))
+      {
+        logNotice("MGMT","RPC","SI [%s] has pending operation. Deferring lock assignment!", siName.c_str());
+        rc = CL_ERR_TRY_AGAIN;
+      }
+      else
+        rc = SAFplus::setAdminState(si,SAFplusAmf::AdministrativeState::idle,true);
     }
 
     response->set_err(rc);
@@ -4195,7 +4223,14 @@ namespace amfMgmtRpc {
       }
       else
       {
-        rc = SAFplus::setAdminState(node, SAFplusAmf::AdministrativeState::off,true);
+        //rc = SAFplus::setAdminState(node, SAFplusAmf::AdministrativeState::off,true);
+        if(SAFplus::operationsPendingForNode(node))
+        {
+          logNotice("MGMT","RPC","Node [%s] has pending operation. Deferring lock instantiation!", nodeName.c_str());
+          rc = CL_ERR_TRY_AGAIN;
+        }
+        else
+          rc = SAFplus::setAdminState(node,SAFplusAmf::AdministrativeState::off,true);
       }
     }
 
@@ -4232,7 +4267,14 @@ namespace amfMgmtRpc {
       }
       else
       {
-        rc = SAFplus::setAdminState(sg, SAFplusAmf::AdministrativeState::off,true);
+        //rc = SAFplus::setAdminState(sg, SAFplusAmf::AdministrativeState::off,true);
+        if(SAFplus::operationsPendingForSG(sg))
+        {
+          logNotice("MGMT","RPC","SG [%s] has pending operation. Deferring lock instantiation!", sgName.c_str());
+          rc = CL_ERR_TRY_AGAIN;
+        }
+        else
+          rc = SAFplus::setAdminState(sg,SAFplusAmf::AdministrativeState::off,true);
       }
     }
 
@@ -4269,7 +4311,14 @@ namespace amfMgmtRpc {
       }
       else
       {
-        rc = SAFplus::setAdminState(su,SAFplusAmf::AdministrativeState::off,true);
+        //rc = SAFplus::setAdminState(su,SAFplusAmf::AdministrativeState::off,true);
+        if(SAFplus::operationsPendingForSU(su))
+        {
+          logNotice("MGMT","RPC","SU [%s] has pending operation. Deferring lock instantiation!", suName.c_str());
+          rc = CL_ERR_TRY_AGAIN;
+        }
+        else
+          rc = SAFplus::setAdminState(su,SAFplusAmf::AdministrativeState::off,true);
       }
       //logInfo("MGMT","RPC","setting service unit [%s] to admin state [%s] ==> writting changes to DB",suName.c_str(),c_str(SAFplusAmf::AdministrativeState::off));
       //su->write(); // write immedidately rather than waiting for AMF to write, which is too late to reflect the changes
@@ -4307,7 +4356,14 @@ namespace amfMgmtRpc {
       }
       else
       {
-        rc = SAFplus::setAdminState(node, SAFplusAmf::AdministrativeState::on,true);
+        //rc = SAFplus::setAdminState(node, SAFplusAmf::AdministrativeState::on,true);
+        if(SAFplus::operationsPendingForNode(node))
+        {
+          logNotice("MGMT","RPC","Node [%s] has pending operation. Deferring unlock!", nodeName.c_str());
+          rc = CL_ERR_TRY_AGAIN;
+        }
+        else
+          rc = SAFplus::setAdminState(node,SAFplusAmf::AdministrativeState::on,true);
       }
     }
     response->set_err(rc);
@@ -4343,7 +4399,14 @@ namespace amfMgmtRpc {
       }
       else
       {
-        rc = SAFplus::setAdminState(sg, SAFplusAmf::AdministrativeState::on,true);
+        //rc = SAFplus::setAdminState(sg, SAFplusAmf::AdministrativeState::on,true);
+        if(SAFplus::operationsPendingForSG(sg))
+        {
+          logNotice("MGMT","RPC","SG [%s] has pending operation. Deferring unlock!", sgName.c_str());
+          rc = CL_ERR_TRY_AGAIN;
+        }
+        else
+          rc = SAFplus::setAdminState(sg,SAFplusAmf::AdministrativeState::on,true);
       }
     }
     response->set_err(rc);
@@ -4379,7 +4442,14 @@ namespace amfMgmtRpc {
       }
       else
       {
-        rc = SAFplus::setAdminState(su,SAFplusAmf::AdministrativeState::on,true);
+        //rc = SAFplus::setAdminState(su,SAFplusAmf::AdministrativeState::on,true);
+        if(SAFplus::operationsPendingForSU(su))
+        {
+          logNotice("MGMT","RPC","SU [%s] has pending operation. Deferring unlock!", suName.c_str());
+          rc = CL_ERR_TRY_AGAIN;
+        }
+        else
+          rc = SAFplus::setAdminState(su,SAFplusAmf::AdministrativeState::on,true);
       }
     }
     response->set_err(rc);
@@ -4415,7 +4485,14 @@ namespace amfMgmtRpc {
       }
       else
       {
-        rc = SAFplus::setAdminState(si,SAFplusAmf::AdministrativeState::on,true);
+        //rc = SAFplus::setAdminState(si,SAFplusAmf::AdministrativeState::on,true);
+        if(SAFplus::operationsPendingForSI(si))
+        {
+          logNotice("MGMT","RPC","SI [%s] has pending operation. Deferring unlock!", siName.c_str());
+          rc = CL_ERR_TRY_AGAIN;
+        }
+        else
+          rc = SAFplus::setAdminState(si,SAFplusAmf::AdministrativeState::on,true);
       }
     }
     response->set_err(rc);

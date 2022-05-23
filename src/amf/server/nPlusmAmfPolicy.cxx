@@ -1076,6 +1076,28 @@ class NplusMPolicy:public ClAmfPolicyPlugin_1
                       }
                       numComps++;
                       logInfo("N+M","AUDIT","Component [%s]: operState [%s]", comp->name.value.c_str(), comp->operState.value ? "enabled" : "faulted");
+
+                      //if pending operation exists and it exceeds timeout limit
+                      uint64_t curTime = std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::system_clock::now().time_since_epoch()).count();
+                      if(comp->pendingOperationExpiration.value.value > 0 && (int) (comp->pendingOperationExpiration.value.value - curTime) < 0)
+                      {
+                          logWarning("N+M","AUDIT","Pending operation [%s] of component [%s] exceeded timeout limit", c_str(comp->pendingOperation.value), comp->name.value.c_str());
+
+                          switch (comp->pendingOperation)
+                          {
+                          case PendingOperation::workAssignment:
+                          case PendingOperation::shutdown:
+                              compFaultReport(comp, Recovery::CompRestart);
+                              break;
+                          case PendingOperation::workRemoval:
+                              comp->operState = false;
+                              compFaultReport(comp, Recovery::CompFailover);
+                              break;
+                          default:
+                              break;
+                          }
+                      }
+
                       if (!running(comp->presenceState))
                       {
                           if (comp->processId.value) comp->processId.value=0;  // TODO: should we check the node to see if there is a process?
@@ -1141,7 +1163,7 @@ class NplusMPolicy:public ClAmfPolicyPlugin_1
                               }
                               else
                               {
-                                  uint64_t curTime = std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::system_clock::now().time_since_epoch()).count();
+                                  //uint64_t curTime = std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::system_clock::now().time_since_epoch()).count();
                                   if (curTime - comp->lastInstantiation.value.value >= comp->getInstantiate()->timeout.value)
                                   {
                                       // logError("N+M","DSC","Component [%s] never registered with AMF after instantiation.", comp->name.value.c_str());
@@ -1159,7 +1181,7 @@ class NplusMPolicy:public ClAmfPolicyPlugin_1
                           {
                               // If the component has been instantiated for long enough, reset the instantiation attempts.
 
-                              uint64_t curTime = std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::system_clock::now().time_since_epoch()).count();
+                              //uint64_t curTime = std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::system_clock::now().time_since_epoch()).count();
                               if ((curTime - comp->lastInstantiation.value.value >= comp->instantiationSuccessDuration.value)&&(comp->numInstantiationAttempts.value != 0))
                               {
                                   comp->numInstantiationAttempts.value = 0;
@@ -1460,6 +1482,13 @@ class NplusMPolicy:public ClAmfPolicyPlugin_1
               }
               amfOps->cleanup(iterComp);
               updateStateDueToProcessDeath(iterComp);
+
+              if(recommendedRecovery == SAFplusAmf::Recovery::CompFailover && comp->operState == false)
+              {   
+                  //csi remove timeout case
+                  logNotice("POL","N+M","Operstate of service Unit [%s] change from [%d] to [0] because csi remove operation of component [%s] timed out", comp->serviceUnit.value->name.value.c_str(), comp->serviceUnit.value->operState.value, comp->name.value.c_str());
+                  comp->serviceUnit.value->operState = false;
+              }
           }
       }
       else

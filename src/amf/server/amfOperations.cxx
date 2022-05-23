@@ -257,6 +257,82 @@ namespace SAFplus
     fault  = faultp;
     return true;
     }  
+  
+  inline bool operationPendingForComp(SAFplusAmf::Component* comp)
+  {
+    return (comp->pendingOperation != PendingOperation::none) ? true : false;
+  }
+
+  bool operationsPendingForSU(SAFplusAmf::ServiceUnit* su)
+  {
+    SAFplus::MgtIdentifierList<SAFplusAmf::Component*>::iterator itcomp;
+    SAFplus::MgtIdentifierList<SAFplusAmf::Component*>::iterator endcomp = su->components.listEnd();
+    
+    for (itcomp = su->components.listBegin(); itcomp != endcomp; itcomp++)
+    {
+      Component* comp = dynamic_cast<Component*>(*itcomp);
+      assert(comp);
+
+      if(operationPendingForComp(comp) == true) return true; 
+    }
+
+    return false;
+  }
+
+  bool operationsPendingForSG(SAFplusAmf::ServiceGroup* sg)
+  {
+    SAFplus::MgtIdentifierList<SAFplusAmf::ServiceUnit*>::iterator itsu;
+    SAFplus::MgtIdentifierList<SAFplusAmf::ServiceUnit*>::iterator endsu = sg->serviceUnits.listEnd();
+    for (itsu = sg->serviceUnits.listBegin(); itsu != endsu; itsu++)
+    {
+      //ServiceUnit* su = dynamic_cast<ServiceUnit*>(itsu->second);
+      SAFplusAmf::ServiceUnit* su = dynamic_cast<ServiceUnit*>(*itsu);
+      assert(su);
+
+      if(operationsPendingForSU(su)) return true;    
+    }
+
+    return false;
+  }
+
+  bool operationsPendingForSI(SAFplusAmf::ServiceInstance* si)
+  {
+    SAFplus::MgtIdentifierList<SAFplusAmf::ServiceUnit*>::iterator itActiveSU;
+    SAFplus::MgtIdentifierList<SAFplusAmf::ServiceUnit*>::iterator endActiveSU = si->activeAssignments.listEnd();
+    for (itActiveSU = si->activeAssignments.listBegin(); itActiveSU != endActiveSU; itActiveSU++)
+    {
+      SAFplusAmf::ServiceUnit* su = dynamic_cast<ServiceUnit*>(*itActiveSU);
+      assert(su);
+      
+      if(operationsPendingForSU(su)) return true;
+    }
+
+    SAFplus::MgtIdentifierList<SAFplusAmf::ServiceUnit*>::iterator itStandbySU;
+    SAFplus::MgtIdentifierList<SAFplusAmf::ServiceUnit*>::iterator endStandbySU = si->standbyAssignments.listEnd();
+    for (itStandbySU = si->standbyAssignments.listBegin(); itStandbySU != endStandbySU; itStandbySU++)
+    {
+      SAFplusAmf::ServiceUnit* su = dynamic_cast<ServiceUnit*>(*itStandbySU);
+      assert(su);
+      
+      if(operationsPendingForSU(su)) return true;
+    }
+
+    return false;
+  }
+
+  bool operationsPendingForNode(SAFplusAmf::Node* node)
+  {
+    SAFplus::MgtIdentifierList<SAFplusAmf::ServiceUnit*>::iterator itsu;
+    SAFplus::MgtIdentifierList<SAFplusAmf::ServiceUnit*>::iterator endsu = node->serviceUnits.listEnd();
+    for (itsu = node->serviceUnits.listBegin(); itsu != endsu; itsu++)
+    {
+      SAFplusAmf::ServiceUnit* su = dynamic_cast<ServiceUnit*>(*itsu);
+      assert(su);
+
+      if(operationsPendingForSU(su)) return true;
+    }
+    return false;
+  }
 
   void AmfOperations::workOperationResponse(uint64_t invocation, uint32_t result)
     {
@@ -1236,7 +1312,8 @@ namespace SAFplus
  void AmfOperations::cleanup(SAFplusAmf::Component* comp,Wakeable& w)
  {
     SAFplusAmf::Cleanup* cleanup = comp->getCleanup();
-    if (!cleanup || cleanup->command.value.length()==0)  // no configuration
+    //if (!cleanup || cleanup->command.value.length()==0)  // no configuration
+    if (!cleanup)  // no configuration
       {
       logInfo("OPS","CLE","Component [%s] has improper configuration (no cleanup information). Cannot clean", comp->name.value.c_str());
       return;
@@ -1265,8 +1342,11 @@ namespace SAFplus
         strCompName.append(comp->name);
         newEnv.push_back(strCompName);
 
-        logDebug("OPS","CLE","Cleaning up Component [%s] as [%s] locally", comp->name.value.c_str(),cleanup->command.value.c_str());
-        int status = executeProgramWithTimeout(cleanup->command.value, newEnv,cleanup->timeout.value,Process::InheritEnvironment);
+        if(cleanup->command.value.length()!=0)
+        {
+          logDebug("OPS","CLE","Cleaning up Component [%s] as [%s] locally", comp->name.value.c_str(),cleanup->command.value.c_str());
+          int status = executeProgramWithTimeout(cleanup->command.value, newEnv,cleanup->timeout.value,Process::InheritEnvironment);
+        }
 
         if (comp->processId.value>0)
         {
@@ -1725,6 +1805,7 @@ namespace SAFplus
         int loopCount = 0;
         if (gracefulSwitchover)
         {
+            if(shutdownAmf) pendingWorkOperations.clear();
             //nodeGracefulSwitchover = gracefulSwitchover;
             SAFplus::MgtIdentifierList<SAFplusAmf::ServiceUnit*>::iterator itsu;
             logDebug("OPS","NODE.ERR","Removing works for all components running in node [%s]", node->name.value.c_str());
@@ -1750,17 +1831,30 @@ namespace SAFplus
                 {
                     Component* comp = dynamic_cast<Component*>(*itcomp);
                     assert(comp);
-                    while (comp->haState.value != SAFplusAmf::HighAvailabilityState::idle && loopCount < MAX_TRY)
+                    //while (comp->haState.value != SAFplusAmf::HighAvailabilityState::idle && loopCount < MAX_TRY)
+                    while ((comp->haState.value != SAFplusAmf::HighAvailabilityState::idle || comp->pendingOperation != PendingOperation::none) && loopCount < MAX_TRY)
                     {
                         boost::this_thread::sleep(boost::posix_time::milliseconds(100));
                         loopCount++;
                     }
-                    if (loopCount == MAX_TRY)
-                    {
-                        logWarning("OPS","NODE.ERR","Component [%s] doesn't complete CSI Removed (no CSI Removed Response) in [%d] ms, so handling of node error report is not completed", comp->name.value.c_str(), MAX_TRY*100);
-                        //nodeGracefulSwitchover = false;
-                        return CL_ERR_UNSPECIFIED;
-                    }
+                    
+                }
+                
+            }
+            if (loopCount == MAX_TRY)
+            {
+                logWarning("OPS","NODE.ERR","one of components in node [%s] didn't complete csi remove", node->name.value.c_str());
+                //nodeGracefulSwitchover = false;
+                return CL_ERR_TRY_AGAIN;
+            }
+            for (itsu = node->serviceUnits.listBegin(); itsu != node->serviceUnits.listEnd(); itsu++)
+            {  
+                SAFplus::MgtIdentifierList<SAFplusAmf::Component*>::iterator itcomp;
+                ServiceUnit* su = dynamic_cast<ServiceUnit*>(*itsu);
+                for (itcomp = su->components.listBegin(); itcomp != su->components.listEnd(); itcomp++)
+                {
+                    Component* comp = dynamic_cast<Component*>(*itcomp);
+                    assert(comp);
                     logDebug("OPS","NODE.ERR","Terminating component [%s]", comp->name.value.c_str());
                     stop(comp);
                 }

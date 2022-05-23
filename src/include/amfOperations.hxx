@@ -65,6 +65,11 @@ namespace SAFplus
   ClRcT setAdminState(SAFplusAmf::Node* node,SAFplusAmf::AdministrativeState tgt, bool writeChanges=false);
   ClRcT setAdminState(SAFplusAmf::ServiceUnit* su,SAFplusAmf::AdministrativeState tgt, bool writeChanges=false);
   ClRcT setAdminState(SAFplusAmf::ServiceInstance* si,SAFplusAmf::AdministrativeState tgt, bool writeChanges=false);
+  inline bool operationPendingForComp(SAFplusAmf::Component* comp);
+  bool operationsPendingForSU(SAFplusAmf::ServiceUnit* su);
+  bool operationsPendingForSG(SAFplusAmf::ServiceGroup* sg);
+  bool operationsPendingForSI(SAFplusAmf::ServiceInstance* si);
+  bool operationsPendingForNode(SAFplusAmf::Node* node);
 
   class AmfOperations
     {
