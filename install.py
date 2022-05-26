@@ -403,16 +403,17 @@ class ASPInstaller:
             #get the 3rdpary from server
             self.feedback('Getting %s from server'%thirdPartyPkg);
             self.debug('Getting %s from server'%thirdPartyPkg);
-            (retval, result, signal, core) = system('wget https://drive.google.com/file/d/1FdTC1OEIoW5qlB_2Po5BsMiQe-5Fahk-/view?usp=sharing')
+            (retval, result, signal, core) = system('wget http://50.17.32.190/files/%s' % thirdPartyPkg)
             self.debug("Result: %d, output: %s" % (retval, str(result)))
         self.feedback('tar xfm %s'  % self.THIRDPARTYPKG_PATH)
         ret = syscall('tar xfm %s' % self.THIRDPARTYPKG_PATH)
         os.system('make')
-        os.system('chmod -R 757 %s/target'%self.WORKING_ROOT)
+        #os.system('chmod -R 757 %s/target'%self.WORKING_ROOT)
         #Build the source
         os.chdir ('%s/src' % self.WORKING_ROOT)
         os.system('make')
-        
+        os.system('chmod -R 757 %s/target'%self.WORKING_ROOT)
+       
     def doPreinstall(self):
         """ 
             After queueing up preinstall phase deps, this function is used to install them 
@@ -499,10 +500,10 @@ class ASPInstaller:
                self.debug("Result: %d, output: %s" % (retval, str(result)))
                if retval != 0:
                  self.feedback("\n\nPreinstall via pip was not successful.  You may need to install some of the following packages yourself.\n%s\n\nOutput of apt-get was:\n%s" % (pip_install_str,"".join(result)), fatal=True)
-               system('git clone https://github.com/mbj4668/pyang pyang')
-               os.chdir('pyang')
-               system('git reset --hard a6e51ba83f06829d3d26849bcb306f49f335267f')
-               system('python3 setup.py install')
+               #system('git clone https://github.com/mbj4668/pyang pyang')
+               #os.chdir('pyang')
+               #system('git reset --hard a6e51ba83f06829d3d26849bcb306f49f335267f')
+               #system('python3 setup.py install')
 
 
             self.feedback('Successfully installed preinstall dependencies.')

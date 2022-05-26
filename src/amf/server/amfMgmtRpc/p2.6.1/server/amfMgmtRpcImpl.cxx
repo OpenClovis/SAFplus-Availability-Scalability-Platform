@@ -3143,7 +3143,7 @@ namespace amfMgmtRpc {
           rc = CL_ERR_NOT_EXIST;
           break;
         }
-        if (SAFplus::effectiveAdminState(safSi) != SAFplusAmf::AdministrativeState::idle)
+        if (safSi->adminState.value != SAFplusAmf::AdministrativeState::idle)
         {
           rc = CL_ERR_INVALID_STATE;
         }
@@ -3208,7 +3208,8 @@ namespace amfMgmtRpc {
           rc = CL_ERR_NOT_EXIST;
           break;
         }
-        if (SAFplus::effectiveAdminState(safCsi) != SAFplusAmf::AdministrativeState::off)
+        SAFplusAmf::ServiceInstance* si = safCsi->serviceInstance.value;
+        if (si && si->adminState.value != SAFplusAmf::AdministrativeState::idle)
         {
           rc = CL_ERR_INVALID_STATE;
         }
