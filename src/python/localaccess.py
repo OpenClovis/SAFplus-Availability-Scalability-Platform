@@ -68,6 +68,8 @@ amfMgmtSGGetConfig = safplus.amfMgmtSGGetConfig
 amfMgmtSUGetConfig = safplus.amfMgmtSUGetConfig
 amfMgmtSIGetConfig = safplus.amfMgmtSIGetConfig
 amfMgmtCSIGetConfig = safplus.amfMgmtCSIGetConfig
+
+amfMgmtNodeGetStatus = safplus.amfMgmtNodeGetStatus
 amfMgmtCSIGetStatus = safplus.amfMgmtCSIGetStatus
 
 addSUIntoNode = safplus.addSUIntoNode

@@ -1816,6 +1816,8 @@ namespace amfMgmtRpc {
       nodeConfig->add_serviceunits(su->name.value);
     }
 
+    nodeConfig->set_id(node->id.value);
+
     return rc;
   }
 
@@ -1889,7 +1891,7 @@ namespace amfMgmtRpc {
     load->set_allocated_processstarts(processStarts);
 
     stats->set_allocated_load(load);
-    nodeStatus->set_allocated_stats(stats);
+//    nodeStatus->set_allocated_stats(stats);
 
     stats->set_uptime(node->stats.upTime.value);
     stats->set_boottime(node->stats.bootTime.value);

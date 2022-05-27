@@ -74,7 +74,7 @@ static dict nodeGetConfig(const Handle & self, const std::string & key)
 //    dictionary["disableAssignmentOn"] = std::to_string(nodeConfig->disableAssignmentOn());
     dictionary["failFastOnCleanupFailure"] = std::to_string(nodeConfig->failfastoncleanupfailure());
     dictionary["failFastOnInstantiationFailure"] = std::to_string(nodeConfig->failfastoninstantiationfailure());
-//    dictionary["id"] = std::to_string(nodeConfig->id());
+    dictionary["id"] = std::to_string(nodeConfig->id());
 //    dictionary["lastSUFailure"] = std::to_string(nodeConfig->lastSUFailure());
     dictionary["name"] = nodeConfig->name();
 //    dictionary["restartable"] = std::to_string(nodeConfig->restartable());
@@ -87,6 +87,25 @@ static dict nodeGetConfig(const Handle & self, const std::string & key)
     }
     dictionary["serviceUnits"] =listSUs;
 //    dictionary["userDefinedType"] = std::to_string(nodeConfig->userDefinedType());
+
+    return dictionary;
+}
+
+static dict nodeGetStatus(const Handle & self, const std::string & key)
+{
+    // get information into nodeStatus
+    SAFplus::Rpc::amfMgmtRpc::NodeStatus* nodeStatus;
+    ClRcT rc = amfMgmtNodeGetStatus(self, key, &nodeStatus);
+    Py_Initialize();
+    dict dictionary;
+    if (rc != CL_OK)
+    {
+        dictionary["error"] = rc;
+        return dictionary;
+    }
+
+    // set information into dictionary
+    dictionary["presenceState"] = std::to_string(nodeStatus->presencestate());
 
     return dictionary;
 }
@@ -1117,6 +1136,7 @@ BOOST_PYTHON_MODULE(pySAFplus)
 
   def("amfMgmtComponentGetConfig",static_cast< dict (*)(const Handle &, const std::string &) > (&ComponentGetConfig));
   def("amfMgmtNodeGetConfig",static_cast< dict (*)(const Handle &, const std::string &) > (&nodeGetConfig));
+  def("amfMgmtNodeGetStatus",static_cast< dict (*)(const Handle &, const std::string &) > (&nodeGetStatus));
   def("amfMgmtSGGetConfig",static_cast< dict (*)(const Handle &, const std::string &) > (&SGGetConfig));
   def("amfMgmtSUGetConfig",static_cast< dict (*)(const Handle &, const std::string &) > (&SUGetConfig));
   def("amfMgmtSIGetConfig",static_cast< dict (*)(const Handle &, const std::string &) > (&SIGetConfig));

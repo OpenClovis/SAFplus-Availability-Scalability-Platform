@@ -1518,10 +1518,10 @@ def get_asp_status(to_shell=True):
 
     if v == 0:
         log.info('SAFplus is running on node [%s], pid [%s]' %\
-                 (get_asp_node_addr(), get_amf_pid(True)))
+                 (get_asp_node_name(), get_amf_pid(True)))
     elif v == 1:
         log.info('SAFplus is not running on node [%s]' %\
-                 get_asp_node_addr())
+                 get_asp_node_name())
     elif v == 2:
         log.info('SAFplus is booting up/shutting down')
     elif v == 3:
@@ -1550,6 +1550,7 @@ def is_asp_running(watchdog_pid = False):
 
     if amf_pid == 0:
         return 1
+    return 0
     
     asp_status_file = get_asp_status_file()
 
@@ -1601,7 +1602,7 @@ def asp_driver(cmd):
                'stop' : stop_asp,
                'restart': restart_asp,
             #    'console' : start_asp_console,
-            #   'status' : get_asp_status,
+               'status' : get_asp_status,
                'zap' : zap_asp,
                'help' : usage
                }

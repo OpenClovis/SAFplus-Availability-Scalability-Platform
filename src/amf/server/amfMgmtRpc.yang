@@ -373,6 +373,10 @@ are switched over to other nodes (component service instances are not abruptly r
       {       
         type string;       
       }
+      leaf id
+      {
+	type uint16;
+      }
    }
 
    grouping ServiceGroupConfig {
