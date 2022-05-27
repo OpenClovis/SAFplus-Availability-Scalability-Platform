@@ -200,6 +200,40 @@ class NPNPWizardDialog(WizardDialog):
 
         return True
 
+class ConflictNameWarning(WizardDialog):
+  """Class to warning about the name that conflict"""
+
+  def __init__(self):
+        """Constructor"""
+        WizardDialog.__init__(self, "WARNING", size=(430,400))
+        gelems = []
+        info = self.createRow("Warning: name already exists",0,size=(100,50))
+        self.main_sizer.Add(info[0], 5, wx.ALL|wx.EXPAND,5)
+        self.main_sizer.Add(wx.StaticLine(self,), 0, wx.ALL|wx.EXPAND, 5)
+        OK_btn = wx.Button(self, label="OK")
+        OK_btn.Bind(wx.EVT_BUTTON, self.onBtnHandler)
+        gelems.append(self.createRow(None,[OK_btn]))
+
+        for (sizer, ctrl) in gelems:
+          if type(ctrl) is list and isinstance(ctrl[0], wx.Button):
+            self.main_sizer.Add(sizer, 0, wx.ALL|wx.CENTER, 5)
+          else:
+            self.main_sizer.Add(sizer, 0, wx.ALL, 5)
+
+        self.SetSizer(self.main_sizer)
+        self.main_sizer.Layout()
+        info[0].Layout()
+        for (sizer, ctrl) in gelems:
+          sizer.Layout()
+        self.main_sizer.Fit(self)
+
+  def onBtnHandler(self, event):
+    what = event.GetEventObject().GetLabel()
+    print('about to %s' % what)  
+    # if (what == "OK"):
+    self.what = what
+    if self.what == "OK":
+      self.Close()
 
 LevelStep = 150
 SpacerStep = 300
@@ -212,6 +246,8 @@ class Extensions:
     self.safHAWizardId = wx.NewId()
     self.npnpHAWizardId = wx.NewId()
     menu = self.guiPlaces.menu.get("Modelling",None)
+    self.position = (100,100)
+    self.posAdjust = (0, 0)
     if menu:
       menu.AppendSeparator()
       menu.Append(self.safHAWizardId, "SAF App Creator","Create all the entities required for a SAF-aware compliant HA application")
@@ -219,16 +255,26 @@ class Extensions:
       menu.Append(self.npnpHAWizardId, "App Creator","Create all the entities required for a SAF-unaware compliant HA application")
       menu.Bind(wx.EVT_MENU, self.OnNPNPWizardMenu, id=self.npnpHAWizardId)
 
+  def isNameExisted(self, sgName, processName):
+    entitiesName = [sgName+"SG", sgName+"SU", processName, sgName+"ComponentServiceInstance"]
+    existedNames = []
+    for entity in list(self.model.model.entities.values()):
+      existedNames.append(entity.data['name'])
+    print("existedName %r" % existedNames)
+    check = any(name in entitiesName for name in existedNames)
+    return check
+
   def OnSAFWizardMenu(self, event):
     dlg = SAFWizardDialog()
     dlg.what = None
     dlg.ShowModal()
     dlg.Destroy()
+    warning = ConflictNameWarning()
+    warning.what = None
     if dlg.what == "OK":
-      position = (100,100)
+      position = self.position
       size = None
       name = dlg.nameGui.GetValue()
-
       newEntities = []
       SG = self.model.model.entityTypes["ServiceGroup"].createEntity(position, size,name=name + "SG")
       newEntities.append(SG)
@@ -260,7 +306,10 @@ class Extensions:
           del procNames[0]
         else:
           compName = name + "Comp" + str(n)
-
+        if self.isNameExisted(name, compName):
+          warning.ShowModal()
+          warning.Destroy()
+          return
         comp = self.model.model.entityTypes["Component"].createEntity(pos, size,name=compName)
         ca = ContainmentArrow(SU, (50,50), comp, (100,50), None)
         SU.containmentArrows.append(ca)
@@ -297,17 +346,20 @@ class Extensions:
       seltool.touching = set(newEntities)
       share.umlEditorPanel.tool = seltool
       
+      self.posAdjust = (SpacerStep*(nProc+1)+5,0)
+      self.position = (self.position[0] + self.posAdjust[0], self.position[1] + self.posAdjust[1])
 
   def OnNPNPWizardMenu(self,event):
     dlg = NPNPWizardDialog()
     dlg.what = None
     dlg.ShowModal()
     dlg.Destroy()
+    warning = ConflictNameWarning()
+    warning.what = None
     if dlg.what == "OK":
-      position = (100,100)
+      position = self.position
       size = None
       name = dlg.nameGui.GetValue()
-
       newEntities = []
       SG = self.model.model.entityTypes["ServiceGroup"].createEntity(position, size,name=name + "SG")
       newEntities.append(SG)
@@ -339,7 +391,10 @@ class Extensions:
           del procNames[0]
         else:
           compName = name + "Comp" + str(n)
-
+        if self.isNameExisted(name, compName):
+          warning.ShowModal()
+          warning.Destroy()
+          return
         comp = self.model.model.entityTypes["Component"].createEntity(pos, size,name=compName)
         ca = ContainmentArrow(SU, (50,50), comp, (100,50), None)
         SU.containmentArrows.append(ca)
@@ -375,6 +430,9 @@ class Extensions:
       seltool.selected = set(newEntities)
       seltool.touching = set(newEntities)
       share.umlEditorPanel.tool = seltool
+
+      self.posAdjust = (SpacerStep*(nProc+1)+5 ,0)
+      self.position = (self.position[0] + self.posAdjust[0], self.position[1] + self.posAdjust[1])
 
 ext = None
 

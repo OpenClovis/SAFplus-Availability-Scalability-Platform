@@ -29,6 +29,77 @@ from project import Project, ProjectTreePanel, EVT_PROJECT_LOADED, EVT_PROJECT_N
 import common
 import model
 
+from threading import *
+from wx.lib.newevent import NewEvent
+
+PanelEventType = wx.NewEventType()
+EVT_FILE_NOT_EXIST = wx.PyEventBinder(PanelEventType, 1)
+
+class NewPanelEvent(wx.PyCommandEvent):
+  def __init__(self, evtType, id):
+    wx.PyCommandEvent.__init__(self, evtType, id)
+  
+  def setFilePath(self, path):
+    self.path = path
+    
+  def getFilePath(self):
+    return self.path
+
+class FilesExistenceDaemon:
+  def __init__(self, frame, time = 2):
+    self.frame = frame
+    self.time = time
+    self.stop = False
+    self.files = {}
+    self.createDaemon()
+    
+  # def evtHandler(self, e):
+  #   e.Skip()
+  
+  def addFiles(self, path):
+    self.files.update({path: [f for f in os.listdir(path) if os.path.isfile(os.path.join(path, f))]})
+    for f in os.listdir(path):
+      if os.path.isdir(os.path.join(path, f)):
+        self.addFiles(os.path.join(path, f))
+    
+  def removeFiles(self, filePath):
+    if filePath in self.files:
+      self.files.pop(filePath)
+    else:
+      dirPath = os.path.dirname(filePath)
+      if dirPath in self.files:
+        fileName = os.path.basename(filePath)
+        self.files[dirPath].remove(fileName)
+      else:
+        print("dirPath not in dict")
+
+  def checkForFiles(self):
+    for path in self.files:
+      for f in self.files[path]:
+        if not os.path.exists(os.path.join(path, f)):
+          evt = NewPanelEvent(PanelEventType, -1)
+          evt.setFilePath(os.path.join(path, f))
+          wx.PostEvent(self.frame, evt)
+          self.removeFiles(os.path.join(path, f))
+
+  def daemonRoutine(self):
+    print("Start daemon")
+    while(True):
+      if not self.stop:
+        self.checkForFiles()
+        time.sleep(self.time)
+      else:
+        print('Thread %r killed' % self.path)
+        break
+
+  def stopDaemon(self):
+    self.stop = True
+
+  def createDaemon(self):
+    self.thread = Thread(target = self.daemonRoutine)
+    self.thread.setDaemon(True)
+    self.thread.start()
+
 class SAFplusFrame(wx.Frame):
     """
     Frame for the SAFplus UML editor
@@ -87,11 +158,15 @@ class SAFplusFrame(wx.Frame):
             "Project": self.menuProject, "Modelling":self.menuModelling, "Instantiation":self.menuInstantiation, "Windows": self.menuWindows, 
             "Tools": self.menuTools, "Help": self.menuHelp, "Go" : self.menuGo }, None)
 
+        # Create daemon thread for checking files existence
+        self.filesExistenceDaemon = FilesExistenceDaemon(frame = self)
+        self.Bind(EVT_FILE_NOT_EXIST, self.onFileMissing)
+
         # Now create the Panel to put the other controls on.
         panel = self.panel = None # panelFactory(self,menuBar,tb,sb) # wx.Panel(self)
         self.prjSplitter2 = wx.SplitterWindow(self, style=wx.SP_3D)
         self.prjSplitter = wx.SplitterWindow(self.prjSplitter2, style=wx.SP_3D)
-        self.project = ProjectTreePanel(self.prjSplitter,self.guiPlaces, self)
+        self.project = ProjectTreePanel(self.prjSplitter,self.guiPlaces, self, self.filesExistenceDaemon)
         self.Bind(wx.EVT_TREE_ITEM_ACTIVATED, self.onPrjTreeActivated, self.project.tree) # handle an event when user double-clicks on a project at the tree on the left to switch views to it or to set it active
         self.tab = wx.aui.AuiNotebook(self.prjSplitter)
         
@@ -223,6 +298,9 @@ class SAFplusFrame(wx.Frame):
       index = 0
       loadResult = False
       self.project.currentProjectPath = prj.projectFilename
+
+      self.filesExistenceDaemon.addFiles(os.path.dirname(prj.projectFilename))
+
       self.currentActivePrj = prj
       self.project.currentActiveProject = prj
       self.tab.Unbind(wx.aui.EVT_AUINOTEBOOK_PAGE_CHANGED) # need to unbind to not catch page delete event b/c we only want to catch page selection event
@@ -487,6 +565,47 @@ class SAFplusFrame(wx.Frame):
         return self.currentActivePrj.name + " Instance Details"
       return None
 
+    def getItemInTree(self, child, cookie, filePath, currDir):
+      print("currDir: %r" % currDir)
+      if child and child.IsOk():
+        tmpDir = os.path.join(currDir, self.project.tree.GetItemText(child))
+        if tmpDir == filePath:
+          return child
+        else:
+          n = self.project.tree.GetChildrenCount(child)
+          c, cookie = self.project.tree.GetFirstChild(child)
+          for i in range(0,n):
+            if (i == 0):
+              result = self.getItemInTree(c, cookie, filePath, tmpDir)
+              if result:
+                return result
+            else:
+              c, cookie = self.project.tree.GetNextChild(child, cookie)
+              result = self.getItemInTree(c, cookie, filePath, tmpDir)
+              if result:
+                return result
+
+    def onFileMissing(self, evt):
+      print('onFileMissing event lanch')
+      filePath = evt.getFilePath()
+      fileName = os.path.basename(filePath)
+
+      n = self.tab.GetPageCount()
+      for index in range(0, n):
+        text = self.tab.GetPageText(index)
+        if ('*' in text and fileName == text[1:]) or fileName == text:
+          page = self.tab.GetPage(index)
+          if page.__class__.__name__ == "Page":
+            self.tab.RemovePage(index)
+            break
+    
+      if os.path.isfile(filePath):
+        self.project.deleteSingleItem(filePath)
+      child, cookie = self.project.tree.GetFirstChild(self.project.root)
+      item = self.getItemInTree(child, cookie, filePath, os.path.dirname(self.project.getPrjPath()))
+      if item and item.IsOk():
+        self.project.tree.Delete(item)
+
     def onPageClosing(self, evt):
       print('page closing event launched')
       idx = evt.GetSelection()
@@ -714,9 +833,12 @@ class Page(wx.Panel):
     label = self.parent.tab.GetPageText(index)
     if not ('*' in label) and (not self.isReloadFile):
       self.control.edited = True
-      with open(self.control.file_path,'r') as f:
-        if self.control.GetValue() != f.read():
-          self.parent.tab.SetPageText(index, "*%s" % label)
+      try:
+        with open(self.control.file_path,'r') as f:
+          if self.control.GetValue() != f.read():
+            self.parent.tab.SetPageText(index, "*%s" % label)
+      except FileNotFoundError:
+          print("File %s does not exist." % self.control.file_path)
 
   def onGoToLine(self):
     lineMax = self.control.GetLineCount()

@@ -323,7 +323,7 @@ class RenameDialog(wx.Dialog):
         self.okBtn.Enable(True)
 
 class ProjectTreePanel(wx.Panel):
-  def __init__(self, parent,guiPlaces,baseClass):
+  def __init__(self, parent,guiPlaces,baseClass,filesExistenceDaemon):
         self.parent = baseClass
         self.currentActiveProject = None
         # Use the WANTS_CHARS style so the panel doesn't eat the Return key.
@@ -337,6 +337,8 @@ class ProjectTreePanel(wx.Panel):
         self.prjProperties = {}
         # self.getPrjProperties()
         
+        self.filesExistenceDaemon = filesExistenceDaemon
+
         # Children of an element. 
         self.entitiesRelation = {
           "Application"             : None, #Skip validation for Application entity
@@ -695,7 +697,7 @@ class ProjectTreePanel(wx.Panel):
         content = f.read()        
         output.write(destPath, content)
         f.close()
-     return True          
+     return True
 
   def getDirFiles(self, path):
     dirs = [os.path.join(path, f) for f in os.listdir(path) if os.path.isdir(os.path.join(path, f))]
@@ -718,8 +720,8 @@ class ProjectTreePanel(wx.Panel):
         if os.path.isfile(file):
           self.setIconForItem(id, typeFile=True)
         elif os.path.isdir(file):
-            self.setIconForItem(id, typeDir=True)
-            self.buildTreeRecursion(file, id, project)
+          self.setIconForItem(id, typeDir=True)
+          self.buildTreeRecursion(file, id, project)
 
   def populateGui(self, project, tree):
     il = wx.ImageList(15,15)
@@ -754,7 +756,7 @@ class ProjectTreePanel(wx.Panel):
     elif os.path.isdir(path) or typeDir:
       self.tree.SetItemImage(item, self.dirIcon, wx.TreeItemIcon_Normal)
       self.tree.SetItemImage(item, self.fldropenidx,wx.TreeItemIcon_Expanded)
- 
+
   def getItemByLabel(self, tree, label, root):
       item, cookie = tree.GetFirstChild(root)
       while item.IsOk():
@@ -780,7 +782,7 @@ class ProjectTreePanel(wx.Panel):
             break
         path = self.tree.GetItemText(item) + '/' + path
     return path
-    
+
   def getFullPath(self, item):
     prjPath = self.getPrjPath()
     rootName = prjPath.split('/')[-1]
@@ -822,9 +824,11 @@ class ProjectTreePanel(wx.Panel):
         self.setIconForItem(c, typeDir=True)
         self.tree.SortChildren(child)
       self.tree.DeleteChildren(c)
+      self.filesExistenceDaemon.removeFiles(path)
       if itemText == texts.src:
         project.updatePrjXmlSource(srcFiles)
-      self.buildTreeRecursion(path, c, project)   
+      self.buildTreeRecursion(path, c, project)
+      self.filesExistenceDaemon.addFiles(path)
 
   def OnLoad(self,event):
     current_path = os.getcwd()
@@ -1017,11 +1021,11 @@ class ProjectTreePanel(wx.Panel):
     else:
       model = self.guiPlaces.frame.model
       # model.uml.deleteMyTools()
-      model.instance.deleteMenuItems()
       self.removePageByObj(model.instanceDetails)
       self.removePageByObj(model.instance)
       self.removePageByObj(model.modelDetails)
       self.removePageByObj(model.uml)
+      model.instance.deleteMenuItems()
       frame.cleanupTools()
       # frame.cleanupMenus()
 
