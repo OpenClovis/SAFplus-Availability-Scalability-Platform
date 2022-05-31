@@ -40,4 +40,4 @@ def get_start_amf_watchdog_cmd(p):
     return 'on -d %s/safplus_watchdog.py' % p
 
 def get_cleanup_asp_cmd(p):
-    return 'rm -f /dev/shmem/CL*_%s' % p
+    return 'rm -rf /dev/shmem/SAFplus*'

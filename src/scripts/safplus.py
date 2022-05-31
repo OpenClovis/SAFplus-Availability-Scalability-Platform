@@ -1255,12 +1255,12 @@ def start_asp(stop_watchdog=True, force_start = False):
         if False and not force_start:
             proc_lock_file('touch')
         check_asp_status(not force_start)
+        kill_asp(False)
+        cleanup_asp()
         if str(os.getenv("GENERATE_DB_FOR_NODE")).strip() == "1":
             # generate database for the case node run first and node will be leader
             generate_db_for_node()
             os.environ["GENERATE_DB_FOR_NODE"] = "0"
-        kill_asp(False)
-        cleanup_asp()
         save_asp_runtime_files()
         # if is_tipc_build():
         #     load_config_tipc_module()

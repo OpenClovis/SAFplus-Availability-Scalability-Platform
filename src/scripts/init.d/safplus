@@ -26,7 +26,6 @@
 #            appropriately symlinked
 
 start() {
-    rm -rf /dev/shm/SAFplus*
     $ASP_SCRIPT start $*
     return $?
 }

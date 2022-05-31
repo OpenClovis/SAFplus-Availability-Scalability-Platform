@@ -105,4 +105,4 @@ def get_start_amf_watchdog_cmd(p):
     return 'setsid python3 %s/safplus_watchdog.py &' % p
 
 def get_cleanup_asp_cmd(p):
-    return 'rm -f /%s/CL*_%s' % (shm_dir, p)
+    return 'rm -rf %s/SAFplus*' % (shm_dir)
