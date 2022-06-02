@@ -2317,7 +2317,12 @@ class RunScript:
     self.cli.display("""<text size="24" fore="#108010"></text>""")
     return "" # If you return None, the self.cli will look for another matching function
         
+def amfMgmtHandleInitialize():
+  global access
+  global amfMgmtHandle
 
+  currentPID = os.getpid()
+  amfMgmtHandle = access.Handle.create(currentPID)
 
 def main(argLst):
   global access, CliName
@@ -2381,9 +2386,7 @@ def main(argLst):
     # automatically connect
     masterNodeId = resolver.get_amf_master_handle()
 
-    # get amfMgmtHandle with pid of current process
-    currentPID = os.getpid()
-    amfMgmtHandle = access.Handle.create(currentPID)
+    amfMgmtHandleInitialize()
 
     while 1:      
       cmd = resolver.cmdLine.input()

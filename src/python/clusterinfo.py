@@ -85,11 +85,11 @@ class data:
         self.clear()
         get_amf_master_handle()
         self.loadNodes()
-        #self.loadSGs()
-        #self.loadSUs()
-        #self.loadSIs()
-        #self.loadCSIs()
-        #self.loadComps()
+        self.loadSGs()
+        self.loadSUs()
+        self.loadSIs()
+        self.loadCSIs()
+        self.loadComps()
         self.lastReload = time.time()
 
     def loadNodes(self, oldObject = None):
@@ -173,7 +173,7 @@ class data:
             self.entities[compName] = comp
             self.compList.append(comp)
 
-global handle
+#global handle
 
 def get_amf_master_handle():
   global handle
@@ -262,7 +262,44 @@ def getInformationOfEntity(entityType, entityName):
         else:
             if hasattr(initObject, child.tag):
                 setattr(initObject, child.tag, child.text)
+
+    initObject.entityType = entityType
+
     return initObject
+
+def getDependentEntites(entity):
+    ret = []
+    entities = []
+
+    #if a child entity got deleted, it's name in parent's attr will be replaced with "?", ignore it.
+    if entity.entityType == "Node":
+        suNames = entity.serviceUnits.split(", ")
+        entities = [getInformationOfEntity("ServiceUnit", suName) for suName in suNames if suName != "?"]
+
+    elif entity.entityType == "ServiceGroup":
+        suNames = entity.serviceUnits.split(", ")
+        siNames = entity.serviceInstances.split(", ")
+        print(suNames)
+        entities += [getInformationOfEntity("ServiceUnit", suName) for suName in suNames if suName != "?"]
+        entities += [getInformationOfEntity("ServiceInstance", siName) for siName in siNames if siName != "?"]
+
+    elif entity.entityType == "ServiceUnit":
+        compNames = entity.components.split(", ")
+
+        entities = [getInformationOfEntity("Component", compName) for compName in compNames if compName != "?"]
+
+    elif entity.entityType == "ServiceInstance":
+        csiNames = entity.componentServiceInstances.split(", ")
+
+        entities = [getInformationOfEntity("ComponentServiceInstance", csiName) for csiName in csiNames if csiName != "?"]
+
+    for ent in entities:
+        if ent != "":   #ent == "" when it's already deleted but ci.refresh() hasn't been called, so getInformationOfEntity returns ""
+            ret += getDependentEntites(ent)
+
+    ret.append(entity)
+
+    return ret
 
 class initialObject:
     """Initial all attributes in an entity"""
@@ -285,6 +322,7 @@ class initialObject:
         self.id = ""
         self.lastSUFailure = ""
         self.name = ""
+        self.entityType = ""
         self.restartable = ""
         self.serviceUnitFailureEscalationPolicy = ""
         self.userDefinedType = ""
@@ -376,13 +414,112 @@ class initialObject:
         self.aspDir = aspdir
 
     def isPresent(self):
-        return self.presenceState=='instantiated'
+        return self.presenceState=='instantiated' or self.presenceState==''
 
     def isRunning(self):
         return self.isPresent() and self.adminState != 'off'
 
     def isIdle(self):
          return self.isRunning() and self.adminState=='idle'
+
+    def command(self):
+
+        t = os.path.normpath(os.path.join("/safplusAmf/Component",self.name,"instantiate"))
+        depth=1
+        gs = "{d=%s}%s" % (depth,str(t))
+
+        try:
+            xml = access.mgtGet(handle, gs)
+        except RuntimeError as e:
+            if str(e) == "Route has no implementer":
+                return "<error>Invalid path [%s]</error>" % str(t)
+            return "<error>" + str(e) + "</error>"
+        except Exception as e:
+            return "<error>" + str(e) + "</error>"
+
+        try:
+            root = ET.fromstring(xml)
+        except IndexError as e:
+            print ("<error>xml [%s] error [%s]</error>" % (xml, str(e)))
+            return ""
+        except ET.ParseError as e:
+            print ("<error>xml [%s] error [%s]</error>" % (xml, str(e)))
+            return ""
+
+        for child in root:
+            if child.tag == "command":
+                return child.text
+
+        return ""
+
+    def getRestartCount(self):
+        #works for SU or Comp
+        t = os.path.normpath(os.path.join("/safplusAmf",self.entityType,self.name,"restartCount"))
+        depth=1
+        gs = "{d=%s}%s" % (depth,str(t))
+
+        try:
+            xml = access.mgtGet(handle, gs)
+        except RuntimeError as e:
+            if str(e) == "Route has no implementer":
+                return "<error>Invalid path [%s]</error>" % str(t)
+            return "<error>" + str(e) + "</error>"
+        except Exception as e:
+            return "<error>" + str(e) + "</error>"
+
+        try:
+            root = ET.fromstring(xml)
+        except IndexError as e:
+            print ("<error>xml [%s] error [%s]</error>" % (xml, str(e)))
+            return ""
+        except ET.ParseError as e:
+            print ("<error>xml [%s] error [%s]</error>" % (xml, str(e)))
+            return ""
+
+        for child in root:
+            if child.tag == "current":
+                return child.text
+
+    def getTotalRestartCount(self):
+        suNames = [] if self.serviceUnits == "" else self.serviceUnits.split(", ")
+
+        suEntities = [getInformationOfEntity("ServiceUnit", suName) for suName in suNames if suName != "?"]
+
+        totalCount = 0
+
+        for suEntity in suEntities:
+            restartCount = int(suEntity.getRestartCount())
+            totalCount += restartCount
+
+        return str(totalCount)
+
+    def getAllComps(self):
+        #function works for Node, SG, SU
+        suNames = [] if self.serviceUnits == "" else self.serviceUnits.split(", ")
+        
+        suEntities = [getInformationOfEntity("ServiceUnit", suName) for suName in suNames if suName != "?"]
+
+        compNames = [] if self.components == "" else self.components.split(", ")
+        for suEntity in suEntities:
+            compNames += [] if suEntity.components == "" else suEntity.components.split(", ")
+
+        compEntities = [getInformationOfEntity("Component", compName) for compName in compNames if compName != "?"]
+
+        return compEntities
+
+    def getAllDeployments(self):
+        suNames = [] if self.serviceUnits == "" else self.serviceUnits.split(", ")
+        
+        suEntities = [getInformationOfEntity("ServiceUnit", suName) for suName in suNames if suName != "?"]
+
+        sgEntities = []
+        for suEntity in suEntities:
+            sgEntity = getInformationOfEntity("ServiceGroup", suEntity.serviceGroup)
+
+            if sgEntity not in sgEntities:
+                sgEntities.append(sgEntity)
+
+        return sgEntities
 
 ci = ClusterInfo()
 
