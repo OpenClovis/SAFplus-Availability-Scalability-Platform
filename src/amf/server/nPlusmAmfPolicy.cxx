@@ -467,8 +467,12 @@ class NplusMPolicy:public ClAmfPolicyPlugin_1
                           {
                               if (eas == SAFplusAmf::AdministrativeState::off)
                               {
-                                  logError("N+M","AUDIT","Component [%s] should be off but is instantiated", comp->name.value.c_str());
-                                  amfOps->stop(comp);
+                                  if (comp->presenceState.value == SAFplusAmf::PresenceState::instantiating ||
+                                      comp->presenceState.value == SAFplusAmf::PresenceState::instantiated)
+                                  {
+                                      logError("N+M","AUDIT","Component [%s] should be off but is instantiated", comp->name.value.c_str());
+                                      amfOps->stop(comp);
+                                  }
                               }
                               else
                               {

@@ -72,9 +72,16 @@ namespace amfRpc {
                                 ::SAFplus::Rpc::amfRpc::StopComponentResponse* response)
   {
     int32_t compPid = request->pid();
-    logDebug("OPS","STOP","sending signal [SIGTERM] to process [%d]", compPid);
-    Process p(compPid);
-    p.signal(SIGTERM);
+    if (compPid)
+    {
+        logDebug("OPS","STOP","sending signal [SIGTERM] to process [%d]", compPid);
+        Process p(compPid);
+        p.signal(SIGTERM);
+    }
+    else
+    {
+        logWarning("OPS","STOP","Cannot stop AMF Entity since it has no associated process id.  If this process still exists, it will become orphaned.");
+    }
   }
 
   void amfRpcImpl::cleanupComponent(const ::SAFplus::Rpc::amfRpc::CleanupComponentRequest* request,
