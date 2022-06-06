@@ -1816,8 +1816,6 @@ namespace amfMgmtRpc {
       nodeConfig->add_serviceunits(su->name.value);
     }
 
-    nodeConfig->set_id(node->id.value);
-
     return rc;
   }
 

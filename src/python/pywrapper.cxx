@@ -74,7 +74,7 @@ static dict nodeGetConfig(const Handle & self, const std::string & key)
 //    dictionary["disableAssignmentOn"] = std::to_string(nodeConfig->disableAssignmentOn());
     dictionary["failFastOnCleanupFailure"] = std::to_string(nodeConfig->failfastoncleanupfailure());
     dictionary["failFastOnInstantiationFailure"] = std::to_string(nodeConfig->failfastoninstantiationfailure());
-    dictionary["id"] = std::to_string(nodeConfig->id());
+//    dictionary["id"] = std::to_string(nodeConfig->id());
 //    dictionary["lastSUFailure"] = std::to_string(nodeConfig->lastSUFailure());
     dictionary["name"] = nodeConfig->name();
 //    dictionary["restartable"] = std::to_string(nodeConfig->restartable());

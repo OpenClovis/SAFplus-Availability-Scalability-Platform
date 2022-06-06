@@ -2032,13 +2032,6 @@ class NodeConfig : public ::google::protobuf::Message {
   inline const ::google::protobuf::RepeatedPtrField< ::std::string>& serviceunits() const;
   inline ::google::protobuf::RepeatedPtrField< ::std::string>* mutable_serviceunits();
 
-  // optional fixed32 id = 8;
-  inline bool has_id() const;
-  inline void clear_id();
-  static const int kIdFieldNumber = 8;
-  inline ::google::protobuf::uint32 id() const;
-  inline void set_id(::google::protobuf::uint32 value);
-
   GOOGLE_PROTOBUF_EXTENSION_ACCESSORS(NodeConfig)
   // @@protoc_insertion_point(class_scope:SAFplus.Rpc.amfMgmtRpc.NodeConfig)
  private:
@@ -2054,8 +2047,6 @@ class NodeConfig : public ::google::protobuf::Message {
   inline void clear_has_failfastoninstantiationfailure();
   inline void set_has_failfastoncleanupfailure();
   inline void clear_has_failfastoncleanupfailure();
-  inline void set_has_id();
-  inline void clear_has_id();
 
   ::google::protobuf::internal::ExtensionSet _extensions_;
 
@@ -2070,7 +2061,6 @@ class NodeConfig : public ::google::protobuf::Message {
   bool failfastoninstantiationfailure_;
   bool failfastoncleanupfailure_;
   ::google::protobuf::RepeatedPtrField< ::std::string> serviceunits_;
-  ::google::protobuf::uint32 id_;
   friend void  protobuf_AddDesc_amfMgmtRpc_2eproto();
   friend void protobuf_AssignDesc_amfMgmtRpc_2eproto();
   friend void protobuf_ShutdownFile_amfMgmtRpc_2eproto();
@@ -21381,30 +21371,6 @@ inline ::google::protobuf::RepeatedPtrField< ::std::string>*
 NodeConfig::mutable_serviceunits() {
   // @@protoc_insertion_point(field_mutable_list:SAFplus.Rpc.amfMgmtRpc.NodeConfig.serviceUnits)
   return &serviceunits_;
-}
-
-// optional fixed32 id = 8;
-inline bool NodeConfig::has_id() const {
-  return (_has_bits_[0] & 0x00000080u) != 0;
-}
-inline void NodeConfig::set_has_id() {
-  _has_bits_[0] |= 0x00000080u;
-}
-inline void NodeConfig::clear_has_id() {
-  _has_bits_[0] &= ~0x00000080u;
-}
-inline void NodeConfig::clear_id() {
-  id_ = 0u;
-  clear_has_id();
-}
-inline ::google::protobuf::uint32 NodeConfig::id() const {
-  // @@protoc_insertion_point(field_get:SAFplus.Rpc.amfMgmtRpc.NodeConfig.id)
-  return id_;
-}
-inline void NodeConfig::set_id(::google::protobuf::uint32 value) {
-  set_has_id();
-  id_ = value;
-  // @@protoc_insertion_point(field_set:SAFplus.Rpc.amfMgmtRpc.NodeConfig.id)
 }
 
 // -------------------------------------------------------------------
