@@ -23,7 +23,8 @@ refreshInterval = 1.9
 class ClusterInfo:
     """This class represents the current cluster state and configuration"""
     def __init__(self):
-        self.d = None
+        # self.d = None
+        self.d = data()
         # self.lock = threading.RLock()
         self.load()
         
@@ -34,15 +35,20 @@ class ClusterInfo:
             self.load()
  
     def load(self):
-        n = data()
-        n.load(self.d)
-        self.d = n
+        # n = data()
+        # n.load(self.d)
+        # self.d = n
+        self.d.load()
 
     def __getattr__(self,name):
         """Get the cluster data"""
         try:
         #   self.lock.acquire()
           t = self.d.__dict__[name]
+        except KeyError:
+            # function name is not available in d.__dict__
+            # Do this, we can call ci.addSuppliedData() instead of ci.d.addSuppliedData()
+            t = getattr(self.d, name)
         finally:
             pass
         #   self.lock.release()
@@ -52,6 +58,7 @@ class data:
     """This helper class contains all of the changing cluster data, and is used to ensure that updates occur atomically and quickly. Do not create directly!"""
     def __init__(self):
         self.clear()
+        self.suppliedData = {}  #stores usernames, passwords needed to gain access to a node (input by user)
 
     def clear(self):
         """Remove all AMF database Python objects"""
@@ -92,6 +99,21 @@ class data:
         self.loadComps()
         self.lastReload = time.time()
 
+    def addSuppliedData(self, nodeName, localUser, localPasswd):
+        accountData = {"localUser" : localUser, "localPasswd" : localPasswd}
+        dataToUpdate = {nodeName : accountData}
+        
+        self.suppliedData.update(dataToUpdate)
+
+    def setSuppliedData(self, nodeEntity):
+        accountData = self.suppliedData.get(nodeEntity.name, None)
+
+        if accountData:
+            nodeEntity.localUser = accountData["localUser"]
+            nodeEntity.localPasswd = accountData["localPasswd"]
+        else:
+            print("No account data available for node [%s] in ci.suppliedData"%nodeEntity.name)
+
     def loadNodes(self, oldObject = None):
         """Load the node information"""
         listNode = getNameOfEntity("Node")
@@ -117,6 +139,7 @@ class data:
                     node.clusterRole = cells[1]
                     node.haRole = cells[2]
             node.setIntraclusterAccess()
+            self.setSuppliedData(node)
 
     def loadSGs(self, oldObject = None):
         """Load the SG information"""
