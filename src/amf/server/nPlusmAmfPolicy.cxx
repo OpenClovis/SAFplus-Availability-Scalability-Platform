@@ -226,6 +226,7 @@ class NplusMPolicy:public ClAmfPolicyPlugin_1
             curRank = su->rank.value;
             }
           const std::string& suName = su->name;
+          if (!su->node.value) continue;
           if (su->node.value->presenceState == SAFplusAmf::PresenceState::instantiated)
             {
               if (su->adminState != AdministrativeState::off)
@@ -271,7 +272,8 @@ class NplusMPolicy:public ClAmfPolicyPlugin_1
       {
       bool assignable = true;
       ServiceUnit* su = *i;
-      assert(su);
+      //assert(su);
+      if (!su) continue;
       if (su->presenceState.value != SAFplusAmf::PresenceState::instantiated) continue;
       // We can only assign a particular SI to a particular SU once, and it can't be in "repair needed" state
       if ((su->assignedServiceInstances.contains(si) == false ||
@@ -332,7 +334,7 @@ class NplusMPolicy:public ClAmfPolicyPlugin_1
       {
       bool assignable = true;
       ServiceUnit* su = *i;
-      assert(su);
+      if (!su) continue;
       if (su->operState == true)
         {
           // TODO: add a text field in the SU that describes why it is not assignable... generate a string from the component iterator and fill that field.
@@ -413,7 +415,8 @@ class NplusMPolicy:public ClAmfPolicyPlugin_1
               {
                   //ServiceUnit* su = dynamic_cast<ServiceUnit*>(itsu->second);
                   ServiceUnit* su = dynamic_cast<ServiceUnit*>(*itsu);
-                  assert(su);
+                  //assert(su);
+                  if (!su) continue;
                   const std::string& suName = su->name;
 
                   Node* node = su->node;
@@ -424,15 +427,15 @@ class NplusMPolicy:public ClAmfPolicyPlugin_1
                   }
 
                   uint64_t curTime = std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::system_clock::now().time_since_epoch()).count();
-                  if(!(su->compRestartCount==0) && (curTime - su->lastCompRestart.value.value >= sg->componentRestart.getDuration()))
+                  if (!(su->compRestartCount==0) && (curTime - su->lastCompRestart.value.value >= sg->componentRestart.getDuration()))
                   {
                       su->compRestartCount=0;
                   }
-                  if(!(su->restartCount==0) && (curTime - su->lastRestart.value.value >= sg->serviceUnitRestart.getDuration()))
+                  if (!(su->restartCount==0) && (curTime - su->lastRestart.value.value >= sg->serviceUnitRestart.getDuration()))
                   {
                       su->restartCount=0;
                   }
-                  if(!(node->serviceUnitFailureEscalationPolicy.failureCount==0) &&
+                  if (node && !(node->serviceUnitFailureEscalationPolicy.failureCount==0) &&
                           (curTime - node->lastSUFailure.value.value >= node->serviceUnitFailureEscalationPolicy.getDuration()))
                   {
                       node->serviceUnitFailureEscalationPolicy.failureCount=0;
@@ -481,14 +484,14 @@ class NplusMPolicy:public ClAmfPolicyPlugin_1
                                   time_t rawtime = comp->lastInstantiation.value.value / 1000;  // /1000 converts ms to sec.
                                   //timeinfo = localtime(&rawtime);
                                   strftime(timeString,80,"%c",localtime(&rawtime));
-                                  logDebug("N+M","AUDIT","Component [%s] process [%s.%d] is [%s].  Instantiated since [%s].",comp->name.value.c_str(), su->node.value->name.value.c_str(), comp->processId.value, c_str(comp->presenceState.value),timeString);
+                                  logDebug("N+M","AUDIT","Component [%s] process [%s.%d] is [%s].  Instantiated since [%s].",comp->name.value.c_str(), su->node.value?su->node.value->name.value.c_str():"N/A", comp->processId.value, c_str(comp->presenceState.value),timeString);
 
                                   if (comp->presenceState == PresenceState::instantiating)
                                   {
                                       uint64_t curTime = std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::system_clock::now().time_since_epoch()).count();
                                       if (curTime - comp->lastInstantiation.value.value >= comp->getInstantiate()->timeout.value)
                                       {
-                                          logError("N+M","AUDIT","Component [%s] process [%s:%d] never registered with AMF after instantiation.  Killing it.", comp->name.value.c_str(), node->name.value.c_str(),comp->processId.value);
+                                          logError("N+M","AUDIT","Component [%s] process [%s:%d] never registered with AMF after instantiation.  Killing it.", comp->name.value.c_str(), node?node->name.value.c_str():"N/A",comp->processId.value);
                                           // Process is not responding after instantiation.  Kill it.  When we discover it is dead, we will update the database and the next step (restart) will happen.
                                           amfOps->abort(comp);
                                       }
@@ -784,9 +787,9 @@ class NplusMPolicy:public ClAmfPolicyPlugin_1
           }
           else
           {
-              if((recommendedRecovery==SAFplusAmf::Recovery::NodeSwitchover
+              if ((recommendedRecovery==SAFplusAmf::Recovery::NodeSwitchover
                   ||recommendedRecovery==SAFplusAmf::Recovery::NodeFailover
-                  ||recommendedRecovery==SAFplusAmf::Recovery::NodeFailfast)&& processedComp)
+                  ||recommendedRecovery==SAFplusAmf::Recovery::NodeFailfast)&& processedComp && processedComp->serviceUnit.value->node.value)
               {
                   amfOps->rebootNode(processedComp->serviceUnit.value->node.value);
                   processedComp =NULL;
@@ -1113,7 +1116,7 @@ class NplusMPolicy:public ClAmfPolicyPlugin_1
 
                           // Node died
                           //if ((su->readinessState.value == ReadinessState::outOfService)&&(comp->presenceState !=  PresenceState::uninstantiated))
-                          if ((su->node.value->presenceState.value == PresenceState::uninstantiated)&&(comp->presenceState !=  PresenceState::uninstantiated))
+                          if (su->node.value && (su->node.value->presenceState.value == PresenceState::uninstantiated)&&(comp->presenceState !=  PresenceState::uninstantiated))
                           {
                               logInfo("N+M","DSC","SU went out of service during Component [%s] instantiation.", comp->name.value.c_str());
                               updateStateDueToProcessDeath(comp);
@@ -1316,7 +1319,7 @@ class NplusMPolicy:public ClAmfPolicyPlugin_1
                       ps = PresenceState::restarting;
                   }
 
-                  if (ps != su->presenceState.value)
+                  if (suNode && ps != su->presenceState.value)
                   {
                       // Presence state changed.
                       logInfo("N+M","AUDIT","Presence state of Service Unit [%s] changed from [%s (%d)] to [%s (%d)]", su->name.value.c_str(),c_str(su->presenceState.value),(int) su->presenceState.value, c_str(ps), (int) ps);

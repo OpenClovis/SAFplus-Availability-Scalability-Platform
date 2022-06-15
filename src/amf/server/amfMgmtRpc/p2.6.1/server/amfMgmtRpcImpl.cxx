@@ -3011,7 +3011,7 @@ namespace amfMgmtRpc {
           rc = CL_ERR_NOT_EXIST;
           break;
         }
-        if (safNode->adminState != SAFplusAmf::AdministrativeState::off)
+        if (safNode->operState.value)//(safNode->adminState != SAFplusAmf::AdministrativeState::off)
         {
           rc = CL_ERR_INVALID_STATE;
         }
@@ -5214,7 +5214,7 @@ namespace amfMgmtRpc {
       SAFplusAmf::Node* node = dynamic_cast<SAFplusAmf::Node*>(cfg.safplusAmf.nodeList[nodeName]);
       if (node == NULL)
       {
-          logWarning("MGMT","RPC","node object is null for its name [%s]", nodeName.c_str());
+          logWarning("MGMT","RPC","node object is null for its name [%s], it might be deleted or invalid name", nodeName.c_str());
           rc = CL_ERR_NOT_EXIST;
       }
       else

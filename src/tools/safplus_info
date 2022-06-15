@@ -744,7 +744,7 @@ def get_sus_info(nodename=None):
                 sux = mgtGet(xmlRoot + '/ServiceUnit/' + e2.get('listkey'))
                 if sux: 
                     suxm = microdom.LoadString(sux)
-                    thisNode = suxm.node.data_
+                    thisNode = suxm.node.data_ if hasattr(suxm, 'node') else ''
                     this_nodename = thisNode[thisNode.rfind('/')+1:]
                     if nodename and not nodename == this_nodename:
                         continue
@@ -1058,13 +1058,14 @@ class Cli(cmd.Cmd):
         suList = sg.su.items()        
         nodes = []
         for sun,su in suList:
-            nodeName = su.node.data_
+            nodeName = su.node.data_ if hasattr(su, 'node') else ''
             #print 'DBG1010:%s'%nodeName
-            if nodeName.split('/')[3] not in getNodeNameList(nodes):#list(filter(lambda n: n.name.data_, nodes))
+            if nodeName and nodeName.split('/')[3] not in getNodeNameList(nodes):#list(filter(lambda n: n.name.data_, nodes))
                 nodex = mgtGet(nodeName)
                 #print 'get node obj of [%s]'%nodex
-                node = microdom.LoadString(nodex)
-                nodes.append(node)
+                if nodex:
+                    node = microdom.LoadString(nodex)
+                    nodes.append(node)
         
         #nodes.sort()
         for node in nodes:
@@ -1072,7 +1073,7 @@ class Cli(cmd.Cmd):
             print ('   Node %s' % color('bold', node.name.data_))
             
             sus = [su for sun,su in suList
-                   if su.node.data_[su.node.data_.rfind('/')+1:] == node.name.data_]
+                   if hasattr(su,'node') and su.node.data_[su.node.data_.rfind('/')+1:] == node.name.data_]
             
             #sus.sort(lambda x,y: cmp(x.value, y.value))
             for su in sus:

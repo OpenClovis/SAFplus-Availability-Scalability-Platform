@@ -1812,7 +1812,8 @@ namespace SAFplus
             for (itsu = node->serviceUnits.listBegin(); itsu != node->serviceUnits.listEnd(); itsu++)
             {
                 ServiceUnit* su = dynamic_cast<ServiceUnit*>(*itsu);
-                assert(su);
+                //assert(su);
+                if (!su) continue;
                 // remove work first
                 logDebug("OPS","NODE.ERR","Removing work assignments for all components running in su [%s]", su->name.value.c_str());
                 if ((su->numActiveServiceInstances.current > 0) || (su->numStandbyServiceInstances.current > 0))
@@ -1825,12 +1826,14 @@ namespace SAFplus
             for (itsu = node->serviceUnits.listBegin(); itsu != node->serviceUnits.listEnd(); itsu++)
             {
                 ServiceUnit* su = dynamic_cast<ServiceUnit*>(*itsu);
-                assert(su);
+                //assert(su);
+                if (!su) continue;
                 SAFplus::MgtIdentifierList<SAFplusAmf::Component*>::iterator itcomp;
                 for (itcomp = su->components.listBegin(); itcomp != su->components.listEnd(); itcomp++)
                 {
                     Component* comp = dynamic_cast<Component*>(*itcomp);
-                    assert(comp);
+                    //assert(comp);
+                    if (!comp) continue;
                     //while (comp->haState.value != SAFplusAmf::HighAvailabilityState::idle && loopCount < MAX_TRY)
                     while ((comp->haState.value != SAFplusAmf::HighAvailabilityState::idle || comp->pendingOperation != PendingOperation::none) && loopCount < MAX_TRY)
                     {
@@ -1854,7 +1857,8 @@ namespace SAFplus
                 for (itcomp = su->components.listBegin(); itcomp != su->components.listEnd(); itcomp++)
                 {
                     Component* comp = dynamic_cast<Component*>(*itcomp);
-                    assert(comp);
+                    //assert(comp);
+                    if (!comp) continue;
                     logDebug("OPS","NODE.ERR","Terminating component [%s]", comp->name.value.c_str());
                     stop(comp);
                 }
@@ -1863,12 +1867,14 @@ namespace SAFplus
             for (itsu = node->serviceUnits.listBegin(); itsu != node->serviceUnits.listEnd(); itsu++)
             {
                 ServiceUnit* su = dynamic_cast<ServiceUnit*>(*itsu);
-                assert(su);
+                //assert(su);
+                if (!su) continue;
                 SAFplus::MgtIdentifierList<SAFplusAmf::Component*>::iterator itcomp;
                 for (itcomp = su->components.listBegin(); itcomp != su->components.listEnd(); itcomp++)
                 {
                     Component* comp = dynamic_cast<Component*>(*itcomp);
-                    assert(comp);
+                    //assert(comp);
+                    if (!comp) continue;
                     while (comp->presenceState.value != SAFplusAmf::PresenceState::terminating && loopCount < MAX_TRY)
                     {
                         boost::this_thread::sleep(boost::posix_time::milliseconds(100));

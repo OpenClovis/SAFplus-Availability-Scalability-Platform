@@ -164,6 +164,7 @@ public:
 
     // First, delete all existing records
     int idx;
+    db->deleteRecord(basekey);
     int rc = CL_OK;
     for (idx=1; rc==CL_OK; idx++) // Keep deleting as long as there are records.  This assumes that the list records are not sparse!
       {
@@ -175,10 +176,16 @@ public:
       }
 
     // Now add the new records
-    idx = 1;
+    
     std::vector<std::string> children;
-
+    if (value.size()==1)
+    {       
+       rc = db->setRecord(basekey, value[0].ref, nullptr);
+       return rc;
+    }
+    rc = CL_OK;
     /* TODO: Should be base on refs or value??? refs is configuration but 'value' is real assignment */
+    idx = 1;
     for (typename Container::iterator i = value.begin(); i != value.end(); ++i,++idx)
       {
         //typedef boost::array<char, 64> buf_t;
@@ -190,8 +197,8 @@ public:
         db->setRecord(key, i->ref, nullptr);
         children.push_back(childidx);
       } 
-    db->setRecord(basekey,"",&children);
-    return CL_OK;    
+    rc = db->setRecord(basekey,"",&children);
+    return rc;    
   }
 
     /**

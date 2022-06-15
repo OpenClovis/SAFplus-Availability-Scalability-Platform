@@ -710,7 +710,15 @@ ClRcT gracefullNodeShutdown()
     {
         std::string nodeName(SAFplus::ASP_NODENAME);
         SAFplusAmf::Node* node = dynamic_cast<SAFplusAmf::Node*>(cfg.safplusAmf.nodeList[nodeName]);
-        return amfOpsMgmt->nodeErrorReport(node, true, true, false, false);
+        if (node)
+        {
+           return amfOpsMgmt->nodeErrorReport(node, true, true, false, false);
+        }
+        else
+        {
+           logNotice("MAIN","NODE.SHD", "node shutdown for [%s] is not performed because it was deleted", nodeName.c_str());
+           return CL_ERR_NOT_EXIST;
+        }
     }
     else //rpc
     {
