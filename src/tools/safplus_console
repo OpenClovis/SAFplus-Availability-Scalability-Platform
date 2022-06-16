@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-import sys, os, os.path, time, types
+import sys, os, os.path, time, types, ast
 import traceback,pdb
 import argparse
 import configparser
@@ -434,6 +434,68 @@ def getFunctionHelp(fn):
   else:
     return ["<helpBrief>No help available</helpBrief>"]
 
+class Dot:
+    """
+    The dot class lets you access fields either through field notation (.)
+    or dictionary notation ([]).
+    """
+
+    def __init__(self, dict):
+        for (key, val) in dict.items():
+            if type(val) == type({}): val = Dot(val)
+            self.__dict__[key] = val
+
+    def __str__(self):
+        s=[]
+        for (key, val) in self.__dict__.items():
+            s.append("'%s':%s" % (str(key), str(val)))
+        return "{ " + ", ".join(s) + " }"
+
+    def __repr__(self): return 'Dot(%s)' % self.__str__()
+
+    #def has_key(self, key): return self.__dict__.has_key(key)
+
+    def keys(self): return self.__dict__.keys()
+
+    def values(self): return self.__dict__.values()
+
+    def items(self): return self.__dict__.items()
+
+    def clear(self): self.__dict__.clear()
+
+    def get(self, key, default = None): return self.__dict__.get(key, default)
+
+    def setdefault(self, key, default = None): return self.__dict__.setdefault(key, default)
+
+    def pop(self, key, default = None): return self.__dict__.pop(key, default)
+
+    def popitem(self): return self.__dict__.popitem()
+
+    def iteritems(self): return self.__dict__.iteritems()
+
+    def iterkeys(self): return self.__dict__.iterkeys()
+
+    def itervalues(self): return self.__dict__.itervalues()
+
+    def __getitem__(self, key): return self.__dict__[key]
+
+    def __setitem__(self, key, val): self.__dict__[key] = val
+
+    def __delitem__(self, key): del self.__dict__[key]
+
+    def __len__(self): return self.__dict__.__len__()
+
+    def __contains__(self, item): return item in self.__dict__
+
+    def dot_print(self, prefix=None):
+        s = []
+        for (key, val) in self.__dict__.items():
+            p = (prefix and prefix+'.' or '')+str(key)
+            try:
+                s.append(val.dot_print(p))
+            except AttributeError:
+                s.append(p + '=' + str(val))
+        return '\n'.join(s)
 
 class TermController(xmlterm.XmlResolver):
   """This class customizes the XML terminal"""
@@ -1220,9 +1282,10 @@ By default the specified location and children are shown.  Use -N to specify how
     """syntax: entitySet entityType entityName attribute value
     Set the specified values to the attributes
     """
-    if len(attributesAndValuesPairs) % 2 != 0:
-      print("don't have values with the corresponding attributes")
-      return ""
+    if len(attributesAndValuesPairs) % 2 != 0 or len(attributesAndValuesPairs) == 0:
+      ret = 0x02
+      print('entitySet failed with error code [%s]'% hex(ret))
+      return ret
     listAttributesAndValuesPairs = list(attributesAndValuesPairs)
     listAttributesAndValuesPairs.append("name")
     listAttributesAndValuesPairs.append(entityName)
@@ -2051,16 +2114,64 @@ def csv2List(csvString):
   if not csvString.strip(): return []  # turn "" into [], otherwise it is ['']
   return [x.strip() for x in csvString.split(",")]
 
-def AmfCreateApp(suffix, compList, nodes, appDir = "./"):
-  sg = "ServiceGroup_%s" % suffix
-  numActiveSus = (len(nodes)+1)/2
-  numStandbySus = len(nodes) -  numActiveSus
+def Modifiers2Sg(params=Dot({}), entities={}):
+  if params is not None:
+    for attr in params.keys():
+      if attr == "autoRepair":
+        entities["autoRepair"] = params.get("autoRepair",None)
+      elif attr == "autoAdjust":
+        entities["autoAdjust"] = params.get("autoAdjust",None)
+      elif attr == "autoAdjustInterval":
+        entities["autoAdjustInterval"] = params.get("autoAdjustInterval",None)
+      elif attr == "maxActiveWorkAssignments":
+        entities["maxActiveWorkAssignments"] = params.get("maxActiveWorkAssignments",None)
+      elif attr == "maxStandbyWorkAssignments":
+        entities["maxStandbyWorkAssignments"] = params.get("maxStandbyWorkAssignments",None)
+  return entities
 
-  entities = {
-    "ServiceGroup/%s" % sg : { "adminState":"off", "preferredNumActiveServiceUnits":numActiveSus,"preferredNumStandbyServiceUnits":numStandbySus, "serviceInstances" :  "safplusAmf/ServiceInstance/ServiceInstance_%s" % suffix },
-    "ServiceInstance/ServiceInstance_%s" % suffix : { "serviceGroup": sg, "componentServiceInstances" :"safplusAmf/ComponentServiceInstance/ComponentServiceInstance_%s" % suffix },
-    "ComponentServiceInstance/ComponentServiceInstance_%s" % suffix : { "serviceInstance": "safplusAmf/ServiceInstance/ServiceInstance_%s" % suffix, "name/testKey" : "testVal", "type" : "ComponentServiceInstance_%s" % suffix }
-  }
+def RedundancyModel2Si(params=None, entities={}):
+  if params is not None:
+    for attr in params.keys():
+      if attr == "preferredActiveAssignments":
+        entities["preferredActiveAssignments"] = params.get("preferredActiveAssignments",None)
+      elif attr == "preferredStandbyAssignments":
+        entities["preferredStandbyAssignments"] = params.get("preferredStandbyAssignments",None)
+      elif attr == "rank":
+        entities["rank"] = params.get("rank",None)
+  return entities
+
+def AmfCreateApp(suffix, compList, nodes, cfg=None, appDir = './'):
+  sg = "ServiceGroup_%s" % suffix
+  appDir = appDir.replace("'", "")
+  compList = compList.replace("'", "")
+  compList = compList.split(" ")
+  ret = 0
+  paramsSG = Dot({})
+  paramsSI = Dot({})
+  entities = {}
+
+  if cfg is not None:
+    cfg= cfg.replace("'", "")
+    # Convert cfg from str to a dict
+    cfg = ast.literal_eval(cfg)
+    if isinstance(cfg, dict):
+      # Convert cfg to a Dot class to allow use of . to specify fields
+      cfg = Dot(cfg)
+      paramsSG = cfg.get("modifiers",None)
+      paramsSI = cfg.get("redundancyModel",None)
+    else:
+      ret = 0x02
+      print('cfg is invalid, AmfCreateApp failed with error code [%s]'% hex(ret))
+      return ret
+
+  entities["ServiceGroup/%s" % sg] = { "adminState":"off", "serviceInstances" :  "safplusAmf/ServiceInstance/ServiceInstance_%s" % suffix}
+
+  entities["ServiceInstance/ServiceInstance_%s" % suffix] = { "serviceGroup": sg, "componentServiceInstances" :"safplusAmf/ComponentServiceInstance/ComponentServiceInstance_%s" % suffix }
+
+  entities["ComponentServiceInstance/ComponentServiceInstance_%s" % suffix] ={ "serviceInstance": "safplusAmf/ServiceInstance/ServiceInstance_%s" % suffix, "name/testKey" : "testVal", "type" : "ComponentServiceInstance_%s" % suffix }
+
+  entities["ServiceGroup/%s" % sg] = Modifiers2Sg(paramsSG, entities["ServiceGroup/%s" % sg])
+  entities["ServiceInstance/ServiceInstance_%s" % suffix] = RedundancyModel2Si(paramsSI, entities["ServiceInstance/ServiceInstance_%s" % suffix])
 
   count = 0
   sus = []
@@ -2084,6 +2195,7 @@ def AmfCreateApp(suffix, compList, nodes, appDir = "./"):
 
   entities["ServiceGroup/%s" % sg]["serviceUnits"] = ",".join(sus)
   amfctrl.commit(entities)
+  return 0
 
 class RunScript:
   def __init__(self,resolver):
@@ -2236,13 +2348,20 @@ class RunScript:
     print("No such application")
     return ""
 
-  def createApp(self, appName, appCommandLine, *nodes):
-    """syntax: createApp appName appCommandLine nodes
+  def createApp(self, appName=None, appCommandLine=None, cfg=None, appDir='./', *nodes):
+    """syntax: createApp appName 'appCommandLine' 'cfg' 'appDir' nodes
     Create an application running on the specified nodes
     Argument 1: application name prefix -- an arbitrary name given to all management elements created for this application
-    Argument 2: application command line.  If spaces are needed, enclose in quotes.
-    Argument 3: list of node names on which the application should be run
+    Argument 2: list of binary applications.  Must enclose in single quotation mark
+    Argument 3: list of attributes on which the application should be set. Must enclose in single quotation mark
+    Argument 4: path of Component. Must enclose in single quotation mark
+    Argument 5: list of node names on which the application should be run
     """
+    if appName == None or appCommandLine == None or len(nodes) == 0:
+      ret = 0x02
+      print('createApp failed with error code [%s]'% hex(ret))
+      return ret
+
     errors = []
     for n in nodes:
       nodeData = ET.fromstring(self.cli.run("ls /safplusAmf/Node/%s" % n))
@@ -2252,10 +2371,13 @@ class RunScript:
       print(("\n".join(errors)))
       return ""
 
-    AmfCreateApp(appName, [appCommandLine], nodes)
+    ret = AmfCreateApp(appName, appCommandLine, nodes, cfg, appDir)
+    if ret == 0:
+      print("createApp completed successfully")
+      return ret
 
-    print("createApp completed successfully")
-    return ""
+    print('createApp failed with error code [%s]'% hex(ret))
+    return ret
 
   # All commands are defined as do_<command>.  So this function defines the "basicStatus" command.
   def show(self,element):
