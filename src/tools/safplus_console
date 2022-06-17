@@ -2140,9 +2140,12 @@ def RedundancyModel2Si(params=None, entities={}):
         entities["rank"] = params.get("rank",None)
   return entities
 
-def AmfCreateApp(suffix, compList, nodes, cfg=None, appDir = './'):
+def AmfCreateApp(suffix, compList, nodes, appDir=None, cfg=None):
   sg = "ServiceGroup_%s" % suffix
-  appDir = appDir.replace("'", "")
+  if appDir == None or appDir == "None":
+    appDir = "./"
+  else:
+    appDir = appDir.replace("'", "")
   compList = compList.replace("'", "")
   compList = compList.split(" ")
   ret = 0
@@ -2348,21 +2351,23 @@ class RunScript:
     print("No such application")
     return ""
 
-  def createApp(self, appName=None, appCommandLine=None, cfg=None, appDir='./', *nodes):
+  def createApp(self, appName=None, appCommandLine=None, nodes=None, appDir=None, cfg=None):
     """syntax: createApp appName 'appCommandLine' 'cfg' 'appDir' nodes
     Create an application running on the specified nodes
     Argument 1: application name prefix -- an arbitrary name given to all management elements created for this application
-    Argument 2: list of binary applications.  Must enclose in single quotation mark
-    Argument 3: list of attributes on which the application should be set. Must enclose in single quotation mark
-    Argument 4: path of Component. Must enclose in single quotation mark
-    Argument 5: list of node names on which the application should be run
+    Argument 2: list of binary applications. If spaces are needed, must enclose in single quotation mark
+    Argument 3: list of node names on which the application should be run. If spaces are needed, must enclose in single quotation mark
+    Argument 4: path of Component must enclose in single quotation mark or None with default
+    Argument 5: list of attributes on which the application should be set. Must enclose in single quotation mark
     """
-    if appName == None or appCommandLine == None or len(nodes) == 0:
+    if appName == None or appCommandLine == None or nodes == None:
       ret = 0x02
       print('createApp failed with error code [%s]'% hex(ret))
       return ret
 
     errors = []
+    nodes = nodes.replace("'", "")
+    nodes = nodes.split(" ")
     for n in nodes:
       nodeData = ET.fromstring(self.cli.run("ls /safplusAmf/Node/%s" % n))
       if len(nodeData) == 0:
@@ -2371,7 +2376,7 @@ class RunScript:
       print(("\n".join(errors)))
       return ""
 
-    ret = AmfCreateApp(appName, appCommandLine, nodes, cfg, appDir)
+    ret = AmfCreateApp(appName, appCommandLine, nodes, appDir, cfg)
     if ret == 0:
       print("createApp completed successfully")
       return ret
