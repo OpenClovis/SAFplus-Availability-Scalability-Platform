@@ -927,7 +927,7 @@ class NplusMPolicy:public ClAmfPolicyPlugin_1
       {
         SAFplus::MgtIdentifierList<SAFplusAmf::Component*>::Elem elem = *itvec;
         SAFplusAmf::Component* c = elem.value;
-        updateStateDueToProcessDeath(c);
+        if(c) updateStateDueToProcessDeath(c);
       }
     }
 
