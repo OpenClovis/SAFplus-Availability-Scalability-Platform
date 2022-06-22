@@ -66,7 +66,7 @@ namespace SAFplus
       if (su->adminState.value != tgt)
         {
           logInfo("N+M","AUDIT","Setting service unit [%s] to admin state [%s]",suName.c_str(),c_str(tgt));
-          if (writeChanges)
+          if (!writeChanges)
             su->adminState.value = tgt; // do not change the beat, so, the AMF will not write changes again
           else
             su->adminState = tgt; // DO change the beat, so, the AMF will write changes next time
@@ -76,7 +76,7 @@ namespace SAFplus
     if (sg->adminState.value != tgt)
      {
        logInfo("N+M","AUDIT","Setting service group [%s] to admin state [%s]",sg->name.value.c_str(),c_str(tgt));
-       if (writeChanges)
+       if (!writeChanges)
          sg->adminState.value = tgt; // do not change the beat, so, the AMF will not write changes again
        else
          sg->adminState = tgt; // DO change the beat, so, the AMF will write changes next time
@@ -104,7 +104,7 @@ namespace SAFplus
       if (su->adminState.value != tgt)
         {
         logInfo("N+M","AUDIT","Setting service unit [%s] to admin state [%s]",suName.c_str(),c_str(tgt));
-        if (writeChanges)
+        if (!writeChanges)
           su->adminState.value = tgt;
         else
           su->adminState = tgt;
@@ -114,7 +114,7 @@ namespace SAFplus
     if (node->adminState.value != tgt)
     {
       logInfo("N+M","AUDIT","Setting node [%s] to admin state [%s]",node->name.value.c_str(),c_str(tgt));
-      if (writeChanges)
+      if (!writeChanges)
         node->adminState.value = tgt;
       else
         node->adminState = tgt;
@@ -134,7 +134,7 @@ namespace SAFplus
     if (su->adminState.value != tgt)
     {
       logInfo("N+M","AUDIT","Setting su [%s] to admin state [%s]",su->name.value.c_str(),c_str(tgt));
-      if (writeChanges)
+      if (!writeChanges)
         su->adminState.value = tgt;
       else
         su->adminState = tgt;
@@ -154,7 +154,7 @@ namespace SAFplus
     if (si->adminState.value != tgt)
     {
       logInfo("N+M","AUDIT","Setting si [%s] to admin state [%s]",si->name.value.c_str(),c_str(tgt));
-      if (writeChanges)
+      if (!writeChanges)
         si->adminState.value = tgt;
       else
         si->adminState = tgt;
@@ -363,9 +363,10 @@ namespace SAFplus
         {
           if (result == SA_AIS_OK)
           {
-            wat.comp->pendingOperation = PendingOperation::none;
-            wat.comp->processId = 0;
-            // Nothing to do, we'll update the AMF state when we see the process actually down
+            //wat.comp->pendingOperation = PendingOperation::none;
+            //wat.comp->processId = 0;
+            // DO update the comp's states because its process actually down now
+            updateStateDueToProcessDeath(wat.comp);
           }
           else
           {
