@@ -25,7 +25,7 @@ def getSafplusInstallInfo(nodeName):
         installInfo = access.amfMgmtSafplusInstallInfoGet(amfMgmtHandle, nodeName)
         access.amfMgmtFinalize(amfMgmtHandle, True)
         #access.Finalize()
-        if not '0x' in installInfo:
+        if not '0x' in installInfo and len(installInfo)>0:
             d = dict([x.split('=') for x in installInfo.split(',')])        
             #print (installInfo)
             #d = dict(installInfo)
@@ -35,4 +35,4 @@ def getSafplusInstallInfo(nodeName):
             print ('getting safplus install info error: %s'%installInfo)
     else:
         print ('amfMgmt init error:0x%x'%ret)
-    return ()
+    return ("","")

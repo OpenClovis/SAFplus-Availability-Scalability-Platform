@@ -16,6 +16,7 @@ import threading
 import localaccess as access
 import xml.etree.ElementTree as ET
 import amfMgmtApi
+import aspApp
 
 handle = 0
 refreshInterval = 1.9
@@ -545,6 +546,7 @@ class initialObject:
         return sgEntities
 
 ci = ClusterInfo()
+appDatabase = aspApp.AppDb()
 
 def main():
     print("start clusterinfo")
