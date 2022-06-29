@@ -99,6 +99,8 @@ amfMgmtNodeDelete = safplus.amfMgmtNodeDelete
 amfMgmtServiceUnitDelete = safplus.amfMgmtServiceUnitDelete
 amfMgmtServiceInstanceDelete = safplus.amfMgmtServiceInstanceDelete
 amfMgmtComponentServiceInstanceDelete = safplus.amfMgmtComponentServiceInstanceDelete
+amfMgmtNodeSUListDelete = safplus.amfMgmtNodeSUListDelete
+
 amfMgmtSafplusInstallInfoGet = safplus.amfMgmtSafplusInstallInfoGet
 amfMgmtSafplusInstallInfoSet = safplus.amfMgmtSafplusInstallInfoSet
 

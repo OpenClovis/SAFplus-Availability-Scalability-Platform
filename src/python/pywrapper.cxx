@@ -944,6 +944,20 @@ ClRcT updateComponent(const SAFplus::Handle& mgmtHandle, boost::python::list & a
     return rc;
 }
 
+ClRcT nodeSUListDelete(const SAFplus::Handle& mgmtHandle, const std::string& nodeName, boost::python::list & argv)
+{
+    std::vector<std::string> suNames;
+    ssize_t len = boost::python::len(argv);
+    for(int i = 0; i < len; ++i)
+    {
+        std::string su = boost::python::extract<std::string>(argv[i]);
+        suNames.push_back(su);
+    }
+
+    ClRcT rc = SAFplus::amfMgmtNodeSUListDelete(mgmtHandle, nodeName, suNames);
+    return rc;
+}
+
 BOOST_PYTHON_FUNCTION_OVERLOADS(amfMgmtFinalize_overloads, SAFplus::amfMgmtFinalize, 1, 2)
 
 BOOST_PYTHON_MODULE(pySAFplus)
@@ -1169,6 +1183,7 @@ BOOST_PYTHON_MODULE(pySAFplus)
   def("amfMgmtServiceUnitDelete",static_cast< ClRcT (*)(const Handle &, const std::string &) > (&amfMgmtServiceUnitDelete));
   def("amfMgmtServiceInstanceDelete",static_cast< ClRcT (*)(const Handle &, const std::string &) > (&amfMgmtServiceInstanceDelete));
   def("amfMgmtComponentServiceInstanceDelete",static_cast< ClRcT (*)(const Handle &, const std::string &) > (&amfMgmtComponentServiceInstanceDelete));
+  def("amfMgmtNodeSUListDelete",static_cast< ClRcT (*)(const Handle &, const std::string &, boost::python::list &) > (&nodeSUListDelete));
 
   def("amfMgmtSafplusInstallInfoGet",static_cast< std::string (*)(const Handle &, const std::string &) > (&SAFplus::amfMgmtSafplusInstallInfoGet));
   def("amfMgmtSafplusInstallInfoSet",static_cast< ClRcT (*)(const Handle &, const std::string &, const std::string &) > (&SAFplus::amfMgmtSafplusInstallInfoSet));

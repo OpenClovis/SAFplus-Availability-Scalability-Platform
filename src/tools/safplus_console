@@ -2198,7 +2198,80 @@ def AmfCreateApp(suffix, compList, nodes, appDir=None, cfg=None):
 
   entities["ServiceGroup/%s" % sg]["serviceUnits"] = ",".join(sus)
   amfctrl.commit(entities)
+
+  # ADD serviceUnit into Node
+  time.sleep(3)
+  global amfMgmtHandle
+  count = 0
+  for n in nodes:
+    suname = "ServiceUnit_%s_%d" % (suffix,count)
+    listAttributesAndValuesPairs = []
+    listAttributesAndValuesPairs.append("name")
+    listAttributesAndValuesPairs.append(n)
+    listAttributesAndValuesPairs.append("serviceUnits")
+    listAttributesAndValuesPairs.append(suname)
+    try:
+      if len(listAttributesAndValuesPairs) % 2 != 0 or len(listAttributesAndValuesPairs) == 0:
+        ret = 0x02
+        print('entitySet failed with error code [%s]'% hex(ret))
+        return ret
+      ret = access.amfMgmtInitialize(amfMgmtHandle)
+      if ret == 0x0:
+          ret = access.updateNode(amfMgmtHandle, listAttributesAndValuesPairs)
+          if ret == 0x0:
+            ret = access.amfMgmtCommit(amfMgmtHandle)
+            if ret == 0x0:
+              print("entitySet completed successfully with code [%s]"% hex(ret))
+            else:
+              print('amfMgmtCommit failed with error code [%s]'% hex(ret))
+          else:
+            print('updateNode failed with error code [%s]'% hex(ret))
+
+          ret = access.amfMgmtFinalize(amfMgmtHandle)
+          if ret !=0:
+            print('amfMgmtFinalize failed with error code [%s]'% hex(ret))
+      else:
+          print('amfMgmtInitialize failed with error code [%s]'% hex(ret))
+    except RuntimeError as e:
+      print ("error: ", e)
+      return "entitySet failed"
+    count += 1
   return 0
+
+
+def deleteSusInNode(nodeName, suName):
+  global amfMgmtHandle
+  print("nodeName: ", nodeName)
+  print("suName: ", suName)
+  try:
+    listSus = []
+    listSus.append(suName)
+    if nodeName == None or suName == None:
+      ret = 0x02
+      print('deleteSusInNode failed with error code [%s]'% hex(ret))
+      return ret
+    ret = access.amfMgmtInitialize(amfMgmtHandle)
+    if ret == 0x0:
+      ret = access.amfMgmtNodeSUListDelete(amfMgmtHandle, nodeName, listSus)
+      if ret == 0x0:
+        ret = access.amfMgmtCommit(amfMgmtHandle)
+        if ret == 0x0:
+          print("deleteSusInNode completed successfully with code [%s]"% hex(ret))
+        else:
+          print('amfMgmtCommit failed with error code [%s]'% hex(ret))
+      else:
+        print('amfMgmtNodeSUListDelete failed with error code [%s]'% hex(ret))
+
+      ret = access.amfMgmtFinalize(amfMgmtHandle)
+      if ret !=0:
+        print('amfMgmtFinalize failed with error code [%s]'% hex(ret))
+    else:
+      print('amfMgmtInitialize failed with error code [%s]'% hex(ret))
+
+    return ret
+  except RuntimeError as e:
+    print ("error: ", e)
+    return "deleteSusInNode failed"
 
 class RunScript:
   def __init__(self,resolver):
@@ -2275,7 +2348,7 @@ class RunScript:
     return ""
 
   def deleteApp(self, appName):
-    """syntax: deleteApp entityName
+    """syntax: deleteApp appName
     """
     sg = None
     sus = []
@@ -2286,11 +2359,8 @@ class RunScript:
     siNames = []
     csiNames = []
     try:
-      sgName = "/safplusAmf/ServiceGroup/ServiceGroup%s" % appName
+      sgName = "/safplusAmf/ServiceGroup/%s" % (appName)
       sg = ET.fromstring(self.cli.run("ls " + sgName))
-      if len(sg) == 0:
-        sgName = sgName = "/safplusAmf/ServiceGroup/ServiceGroup_%s" % appName
-        sg = ET.fromstring(self.cli.run("ls " + sgName))
       if len(sg) == 0:
         ret = 2 #CL_ERR_INVALID_PARAMETER = hex(0x02)
         print('deleteApp failed with error code [%s]'% hex(ret))
@@ -2320,6 +2390,13 @@ class RunScript:
                 comp = ET.fromstring(self.cli.run("ls %s" % compName))
                 if len(comp) != 0:  # if it is valid then add it to the delete list
                   compNames.append(str(compName))
+            node = su.find("node").text
+            node = node.split("/")[-1]
+            suName = suName.split("/")[-1]
+            ret = deleteSusInNode(node, suName)
+            if ret != 0:
+              print('deleteApp failed')
+              return ret
       if siNames:
        for siName in siNames:
         if siName[0] != "?":
@@ -2352,7 +2429,7 @@ class RunScript:
     return ""
 
   def createApp(self, appName=None, appCommandLine=None, nodes=None, appDir=None, cfg=None):
-    """syntax: createApp appName 'appCommandLine' 'cfg' 'appDir' nodes
+    """syntax: createApp appName 'appCommandLine' 'nodes' 'appDir' 'cfg'
     Create an application running on the specified nodes
     Argument 1: application name prefix -- an arbitrary name given to all management elements created for this application
     Argument 2: list of binary applications. If spaces are needed, must enclose in single quotation mark
