@@ -1097,10 +1097,10 @@ class DataEntryDialog(wx.Dialog):
         for r in range(0, self.nRows):
           d = {}
           for c in range(0, self.nCols):
-            text = self.grid.GetCellValue(r,c).encode('ascii')
+            text = self.grid.GetCellValue(r,c)
             if c == self.key and len(text)==0:
               break
-            d[self.grid.GetColLabelValue(c).encode('ascii')] = text
+            d[self.grid.GetColLabelValue(c)] = text
           if len(d)>0:
             self.data.append(d)
  
