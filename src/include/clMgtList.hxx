@@ -1359,6 +1359,13 @@ namespace SAFplus
           MgtDatabase* db = getDb();
           if (db) // Update childs for list: i.e /safplusAmf/Node => "[@name='node0'], [@name='node1']"
           {
+            // xapth: /safplusAmf/Component
+            // keypart: [@name="Componentx"]
+            std::string keyPath(xpath); ///safplusAmf/Component
+            keyPath.append(keypart.str()); // /safplusAmf/Component[@name="Componentx"]
+            db->setRecord(keyPath, "");
+            logDebug("MGT","LIST", "Insert child node [%s]", keyPath.c_str());
+
             std::string pval;
             std::vector<std::string> childs;
             db->getRecord(xpath, pval, &childs);

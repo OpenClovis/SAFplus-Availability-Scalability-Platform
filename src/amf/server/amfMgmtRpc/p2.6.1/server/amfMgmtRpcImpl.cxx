@@ -331,12 +331,13 @@ namespace amfMgmtRpc {
        logError("MGMT","DELL.ENT", "delete all refs with xpath [%s] failed rc=[0x%x]", strXpath.c_str(),rc);
        return rc;
     }
+#if 0  //  deleteAllRecordsContainKey call above already covers this case
     rc = amfDb.deleteRecord(strXpath);
     if (rc != CL_OK)
     {
        logError("MGMT","DELL.ENT", "delete record with key [%s] FAILED rc=[0x%x]", strXpath.c_str(),rc);
     }
-
+#endif
     return rc;
   }
 

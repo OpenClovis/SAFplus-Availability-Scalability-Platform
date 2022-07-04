@@ -427,7 +427,7 @@ namespace SAFplus
       Handle nodeHdl = name.getHandle(comp->serviceUnit.value->node.value->name);
       Handle amfHdl = getProcessHandle(SAFplusI::AMF_IOC_PORT,nodeHdl.getNode());
 
-      int pid = comp->processId;
+      int pid = comp->processId.value;
       if (0) // nodeHdl == nodeHandle)  // Handle this request locally
         {
         if (pid == 0)
@@ -511,9 +511,9 @@ namespace SAFplus
       {
       if (response.err() != 0)
         {
-        comp->processId.value = 0;
+        comp->processId = 0;
         comp->lastError.value = strprintf("Process spawn failure [%s:%d]", strerror(response.err()));
-        comp->presenceState.value  = PresenceState::instantiationFailed;
+        comp->presenceState = PresenceState::instantiationFailed;
         }
       else if (comp)
         {
@@ -1233,7 +1233,7 @@ namespace SAFplus
 
         Process p = executeProgram(inst->command.value, newEnv,Process::InheritEnvironment);
         portAllocator.assignPort(port, p.pid);
-        comp->processId.value = p.pid;
+        comp->processId = p.pid;
 
         // I need to set the handle because the process itself will not do so.
         if ( comp->capabilityModel == CapabilityModel::not_preinstantiable)
