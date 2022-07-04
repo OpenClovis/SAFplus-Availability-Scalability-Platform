@@ -60,6 +60,7 @@ class data:
     def __init__(self):
         self.clear()
         self.suppliedData = {}  #stores usernames, passwords needed to gain access to a node (input by user)
+        self.associatedData = {} #stores appName, appVer of all deployed SGs
 
     def clear(self):
         """Remove all AMF database Python objects"""
@@ -98,6 +99,7 @@ class data:
         self.loadSIs()
         self.loadCSIs()
         self.loadComps()
+        self.loadAssociatedData()
         self.lastReload = time.time()
 
     def addSuppliedData(self, nodeName, localUser, localPasswd):
@@ -114,6 +116,23 @@ class data:
             nodeEntity.localPasswd = accountData["localPasswd"]
         else:
             print("No account data available for node [%s] in ci.suppliedData"%nodeEntity.name)
+
+    def addAssociatedData(self, sgName, appName, appVer):
+        data = appName + " " + appVer
+        dataToUpdate = {sgName : data}
+
+        self.associatedData.update(dataToUpdate)
+
+    def loadAssociatedData(self):
+        for sg in self.sgList:
+            data = self.associatedData.get(sg.name, "")
+            sg.associatedData = data
+        
+        try:
+            global appDatabase
+            appDatabase.ConnectToServiceGroups()    # attach apps to sgs and vice versa
+        except NameError:
+            pass # appDatabase is not initialized when ci.load() is first ever called
 
     def loadNodes(self, oldObject = None):
         """Load the node information"""
@@ -429,6 +448,9 @@ class initialObject:
         self.isProxyCSI = ""
         self.standbyComponents = ""
         self.assignmentState = ""
+        self.associatedData = ""
+        self.app = None # stores app object corresponding to deployed SGs
+        self.appVer = None # stores appFile object
 
     def setIntraclusterAccess(self):
         print ('get install info')
@@ -536,14 +558,39 @@ class initialObject:
         
         suEntities = [getInformationOfEntity("ServiceUnit", suName) for suName in suNames if suName != "?"]
 
+        sgNames = []
         sgEntities = []
         for suEntity in suEntities:
-            sgEntity = getInformationOfEntity("ServiceGroup", suEntity.serviceGroup)
-
-            if sgEntity not in sgEntities:
+            if suEntity.serviceGroup not in sgNames:
+                sgNames.append(suEntity.serviceGroup)
+                sgEntity = getInformationOfEntity("ServiceGroup", suEntity.serviceGroup)
                 sgEntities.append(sgEntity)
 
         return sgEntities
+
+    def getAllNodes(self):
+        suNames = [] if self.serviceUnits == "" else self.serviceUnits.split(", ")
+
+        nodeNames = []  # for duplicate checking
+        nodeEntities = []
+        for suName in suNames:
+            suEntity = getInformationOfEntity("ServiceUnit", suName) if suName != "?" else None
+
+            if suEntity and suEntity.node not in nodeNames:
+                nodeNames.append(suEntity.node)
+                nodeEntity = getInformationOfEntity("Node", suEntity.node)
+                nodeEntities.append(nodeEntity)
+
+        return nodeEntities
+
+    def getActiveSu(self):
+        suNames = [] if self.serviceUnits == "" else self.serviceUnits.split(", ")
+
+        for suName in suNames:
+            suEntity = getInformationOfEntity("ServiceUnit", suName) if suName != "?" else None
+            if suEntity and suEntity.haState == "active":
+                return suEntity
+        return None
 
 ci = ClusterInfo()
 appDatabase = aspApp.AppDb()
