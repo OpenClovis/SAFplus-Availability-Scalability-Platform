@@ -1294,7 +1294,7 @@ By default the specified location and children are shown.  Use -N to specify how
       ret = access.amfMgmtInitialize(amfMgmtHandle)
       if ret == 0x0:
         if entityType == "Component":
-          ret = access.updateComponent(amfMgmtHandle, listAttributesAndValuesPairs)
+          ret = access.updateComponent(amfMgmtHandle, entityName, listAttributesAndValuesPairs)
         elif entityType == "ServiceGroup":
           ret = access.updateServiceGroup(amfMgmtHandle, listAttributesAndValuesPairs)
         elif entityType == "Node":
