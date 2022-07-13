@@ -1036,7 +1036,9 @@ BOOST_PYTHON_MODULE(pySAFplus)
 
   def("mgtGet",static_cast< std::string (*)(const std::string&) > (&SAFplus::mgtGet));
   def("mgtSet",static_cast< ClRcT (*)(const std::string&,const std::string&) > (&SAFplus::mgtSet)); 
+  def("mgtSet",static_cast< ClRcT (*)(Handle src, const std::string&,const std::string&) > (&SAFplus::mgtSet)); 
   def("mgtCreate",static_cast< ClRcT (*)(const std::string& pathSpec) > (&SAFplus::mgtCreate));
+  def("mgtCreate",static_cast< ClRcT (*)(Handle src, const std::string& pathSpec) > (&SAFplus::mgtCreate));
   def("mgtDelete",static_cast< ClRcT (*)(const std::string& pathSpec) > (&SAFplus::mgtDelete));
 
   def("getProcessHandle",static_cast< Handle (*)(int pid, int nodeNum) > (&SAFplus::getProcessHandle));

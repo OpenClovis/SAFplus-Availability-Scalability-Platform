@@ -84,6 +84,7 @@ ThreadCondition somethingChanged;
 Mutex           somethingChangedMutex;
 bool amfChange = false;  //? Set to true if the change was AMF related (process started/died or other AMF state change)
 bool grpChange = false;  //? Set to true if the change was group related
+bool gotSignal = false;
 
 SAFplusAmf::SAFplusAmfModule cfg;
 AmfOperations *amfOpsMgmt;
@@ -741,7 +742,8 @@ static void sigintHandler(int signum)
 {
     if (signum == SIGINT || signum == SIGTERM)
     {
-       logAlert("MAIN","---", "got signal [%d]. Shutting down the node", signum);       
+       logAlert("MAIN","---", "got signal [%d]. Shutting down the node", signum);
+       gotSignal = true;
        ClRcT rc = gracefullNodeShutdown();
        if (rc != CL_OK)
        {
@@ -1111,8 +1113,8 @@ int main(int argc, char* argv[])
         // We need to use the periodic pid checker because a component may not be a child of safplus_amf
         } while(pid > 0);
       amfChange = false;
-      if (myRole == Group::IS_ACTIVE) amfChange |= activeAudit();    // Check to make sure DB and the system state are in sync
-      if (myRole == Group::IS_STANDBY) amfChange |= standbyAudit();  // Check to make sure DB and the system state are in sync
+      if (myRole == Group::IS_ACTIVE && !gotSignal) amfChange |= activeAudit();    // Check to make sure DB and the system state are in sync
+      if (myRole == Group::IS_STANDBY && !gotSignal) amfChange |= standbyAudit();  // Check to make sure DB and the system state are in sync
       }
     else
       {  // Something changed in the group.

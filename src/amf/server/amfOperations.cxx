@@ -37,6 +37,7 @@ extern Handle           nodeHandle; //? The handle associated with this node
 extern SAFplus::Fault gfault;
 bool rebootFlag;
 extern SAFplusAmf::SAFplusAmfModule cfg;
+
 namespace SAFplus
   {
     extern SAFplusAmf::Recovery recommendedRecovery;
@@ -1887,7 +1888,7 @@ namespace SAFplus
                         //nodeGracefulSwitchover = false;
                         return CL_ERR_UNSPECIFIED;
                     }
-                    updateStateDueToProcessDeath(comp);
+                    //updateStateDueToProcessDeath(comp); //was called in workOperationResponse
                 }
             }
         }

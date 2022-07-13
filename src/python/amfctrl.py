@@ -1,26 +1,54 @@
 import types, pdb, os
-
+import time
 import pySAFplus as sp
 import microdom
 
 AmfPfx = "safplusAmf"
 SiPfx = "ServiceInstance"
 
-def commit(dct,prefix="/safplusAmf"):
+
+def mgtGet(xpath, amfHandle=None):
+    if not amfHandle:
+        return sp.mgtGet(xpath)
+    #print 'mgtGet:%s'%xpath
+    #if not xpath or len(xpath)==0 or xpath[0]!='/':
+    #    return ""
+    return sp.mgtGet(amfHandle,xpath)
+    #print '====================='
+    #if len(xml) == 0:
+    #    #print 'get the master handle'
+    #    time.sleep(3)
+    #    get_amf_master_handle()
+    #    return s.mgtGet(amfMasterHdl,xpath)
+    #return xml
+
+def mgtSet(xpath, val, amfHandle=None):
+    if not amfHandle:
+        sp.mgtSet(xpath, val)
+    else:
+        sp.mgtSet(amfHandle,xpath, val)
+
+def mgtCreate(xpath, amfHandle=None):
+    if not amfHandle:
+        sp.mgtCreate(xpath)
+    else:
+        sp.mgtCreate(amfHandle,xpath)
+
+def commit(dct,prefix="/safplusAmf", amfMasterHdl=None):
   for (name,val) in dct.items():
     myPath = "%s/%s" % (prefix,name)
     myPath = str(myPath)  # Rip off the unicode if it has it
     if type(val) is dict:  # its a YANG container
-      cur = sp.mgtGet(myPath)
+      cur = mgtGet(myPath, amfMasterHdl)
       if cur == "":
-        sp.mgtCreate(myPath)
-      commit(val,myPath)
+        mgtCreate(myPath, amfMasterHdl)
+      commit(val,myPath, amfMasterHdl)
     elif isinstance(val, tuple):  # another was to describe a YANG container
       assert(0)  # TODO
     elif type(val) is list: # a YANG list
       assert(0)  # TODO
     else:
-      sp.mgtSet(myPath,str(val))
+      mgtSet(myPath,str(val), amfMasterHdl)
 
 def csv2List(csvString):
   """Convert comma separated values to a Python list"""

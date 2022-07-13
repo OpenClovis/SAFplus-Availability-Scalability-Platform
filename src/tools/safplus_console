@@ -2140,7 +2140,7 @@ def RedundancyModel2Si(params=None, entities={}):
         entities["rank"] = params.get("rank",None)
   return entities
 
-def AmfCreateApp(suffix, compList, nodes, appDir=None, cfg=None):
+def AmfCreateApp(suffix, compList, nodes, appDir=None, cfg=None, amfMasterHdl=None):
   sg = "ServiceGroup_%s" % suffix
   if appDir == None or appDir == "None":
     appDir = "./"
@@ -2197,7 +2197,7 @@ def AmfCreateApp(suffix, compList, nodes, appDir=None, cfg=None):
     count += 1
 
   entities["ServiceGroup/%s" % sg]["serviceUnits"] = ",".join(sus)
-  amfctrl.commit(entities)
+  amfctrl.commit(entities, amfMasterHdl=amfMasterHdl)
 
   # ADD serviceUnit into Node
   time.sleep(3)
@@ -2442,6 +2442,12 @@ class RunScript:
       print('createApp failed with error code [%s]'% hex(ret))
       return ret
 
+    # test if there is a amf failover in progress
+    xml = access.mgtGet(self.handle, '/safplusAmf/Node')
+    if len(xml) == 0:
+        time.sleep(3.5)
+        self.get_amf_master_handle()
+
     errors = []
     nodes = nodes.replace("'", "")
     nodes = nodes.split(" ")
@@ -2453,7 +2459,7 @@ class RunScript:
       print(("\n".join(errors)))
       return ""
 
-    ret = AmfCreateApp(appName, appCommandLine, nodes, appDir, cfg)
+    ret = AmfCreateApp(appName, appCommandLine, nodes, appDir, cfg, self.handle)
     if ret == 0:
       print("createApp completed successfully")
       return ret
