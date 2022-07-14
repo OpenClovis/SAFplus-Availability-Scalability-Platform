@@ -2288,4 +2288,26 @@ namespace SAFplus
 
     }
 
+    void createSymlink(const std::string& command, int pid) {
+      char temp[CL_MAX_NAME_LENGTH];
+      char fname[CL_MAX_NAME_LENGTH];
+      strcpy(temp, command.c_str());
+      char* cmd = strtok(temp, " ");
+      snprintf(fname, CL_MAX_NAME_LENGTH, "asp.%d", pid);
+      int result;
+      if (!strncmp(cmd, "/", 1)) {
+        result = symlink(cmd, fname);
+      }
+      else {
+        char binDir[CL_MAX_NAME_LENGTH];
+        getcwd(binDir, CL_MAX_NAME_LENGTH);
+        strcat(binDir, "/");
+        strcat(binDir, cmd);
+        result = symlink(binDir, fname);
+      }
+      if (result) {
+        logDebug("BIN", "SYMLK", "Can't create symlink with file name[%s] & command[%s]", fname, cmd);
+      }
+    }
+
   };

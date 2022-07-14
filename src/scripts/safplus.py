@@ -487,6 +487,8 @@ def init_log():
     return logger
 
 def is_executable_file(f):
+    if not os.path.exists(f) or os.path.islink(f):
+        return False
     import stat
     is_file = stat.S_ISREG(os.stat(f)[stat.ST_MODE])
     
@@ -1458,6 +1460,10 @@ def kill_asp(lock_remove = True):
 
     for f in apps:
         f = os.path.abspath(b + '/' + f)
+        if os.path.islink(f):
+            tmp = os.readlink(f)
+            os.remove(f)
+            f = tmp
         if is_executable_file(f):
             cmd = sys_asp['get_kill_asp_cmd'](f)
             ret = os.system(cmd)

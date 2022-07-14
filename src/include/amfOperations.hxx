@@ -70,6 +70,7 @@ namespace SAFplus
   bool operationsPendingForSG(SAFplusAmf::ServiceGroup* sg);
   bool operationsPendingForSI(SAFplusAmf::ServiceInstance* si);
   bool operationsPendingForNode(SAFplusAmf::Node* node);
+  void createSymlink(const std::string& command, int pid);
 
   class AmfOperations
     {
