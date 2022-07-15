@@ -907,7 +907,7 @@ By default the specified location and children are shown.  Use -N to specify how
                             "serviceUnit",  "terminate",  "timeouts",  "isFullStandbyAssignment",  "isFullActiveAssignment",\
                               "preferredActiveAssignments",  "preferredStandbyAssignments",  "dependencies",  "type",\
                                 "instantiationSuccessDuration",  "maxActiveAssignments",  "maxDelayedInstantiations",\
-                                  "componentServiceInstances",  "serviceInstance"
+                                  "componentServiceInstances",  "serviceInstance", "data"
       configureList = [["Configuration -------------------------------", "---------------------------"], ["", ""]]
       statusItems = "operState", "presenceState", "stats", "numAssignedServiceUnits", "numIdleServiceUnits",\
         "numSpareServiceUnits", "haReadinessState", "haState", "numActiveServiceInstances", "numStandbyServiceInstances",\
@@ -926,6 +926,7 @@ By default the specified location and children are shown.  Use -N to specify how
       except ET.ParseError as e:
         print ("<error>xml [%s] error [%s]</error>" % (xml, str(e)))
         return ""
+      exist = False
       for child in root:
         d = [child.tag, child.text]
         if child.text == None:
@@ -933,11 +934,26 @@ By default the specified location and children are shown.  Use -N to specify how
           depth1=1
           gs1 = "{d=%s}%s" % (depth1,str(t1))
           xml1 = access.mgtGet(self.handle, gs1)
-          if "data listkey" in xml1:
+          if "<val>"in xml1 and "<name>" in xml1:
+            if exist == True:
+                continue
+            exist = True
+            newXML = "<root>" + xml1 + "</root>"
+            root = ET.fromstring(newXML)
+            pair = {}
+            for data in root.findall("data"):
+              name = data.find("name").text
+              val = data.find("val").text
+              pair[name] = val
+            d = [child.tag, pair]
+            configureList.append(d)
             continue
-          root1 = ET.fromstring(xml1)
-          for child1 in root1.iter('current'):
-            d = [child.tag, child1.text]
+          elif "data listkey" in xml1:
+            continue
+          else:
+            root1 = ET.fromstring(xml1)
+            for child1 in root1.iter('current'):
+              d = [child.tag, child1.text]
         if child.tag in configureItems:
           configureList.append(d)
         elif child.tag in statusItems:
