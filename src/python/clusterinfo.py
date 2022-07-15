@@ -566,6 +566,15 @@ class initialObject:
                 sgEntity = getInformationOfEntity("ServiceGroup", suEntity.serviceGroup)
                 sgEntities.append(sgEntity)
 
+                global appDatabase  #setting app information after getting SG from safplus
+                data = ci.associatedData.get(sgEntity.name, "")
+                sgEntity.associatedData = data
+                [appName, appVer] = data.split() if data else ["", ""]
+
+                app = appDatabase.entities.get(appName, None)
+                sgEntity.app = app
+                sgEntity.appVer = app.version.get(appVer, None) if app else None
+
         return sgEntities
 
     def getAllNodes(self):

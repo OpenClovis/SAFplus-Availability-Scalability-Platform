@@ -36,3 +36,28 @@ def getSafplusInstallInfo(nodeName):
     else:
         print ('amfMgmt init error:0x%x'%ret)
     return ("","")
+
+def setSafplusInstallInfo(nodeName, *args):
+    if len(args) < 4:
+        return 0x02 # CL_ERR_INVALID_PARAMETER
+    
+    localIp = args[0]
+    aspDir = args[1]
+    interface = args[2]
+    version = args[3]
+
+    amfMgmtHandle = access.Handle.create(os.getpid())
+    ret = access.amfMgmtInitialize(amfMgmtHandle)
+    if ret==0x0:
+        safplusInstallInfo = "interface=%s:%s,version=%s,dir=%s" % (interface, localIp, version, aspDir)
+
+        rc = access.amfMgmtSafplusInstallInfoSet(amfMgmtHandle, nodeName, safplusInstallInfo)
+        access.amfMgmtFinalize(amfMgmtHandle, True)
+        if rc == 0x0:
+            print("setting safplus install info succedded")
+        else:
+            print("amfMgmtSafplusInstallInfoSet returned error code: " + hex(rc))
+
+    else:
+        print ('amfMgmt init error:0x%x'%ret)
+    return ret
