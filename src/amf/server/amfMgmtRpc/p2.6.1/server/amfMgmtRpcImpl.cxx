@@ -1571,7 +1571,7 @@ namespace amfMgmtRpc {
     sgConfig->set_name(sg->name.value);
     sgConfig->set_adminstate(static_cast<SAFplus::Rpc::amfMgmtRpc::AdministrativeState>(sg->adminState.value));
     sgConfig->set_autorepair(sg->autoRepair.value);
-    sgConfig->set_autorepair(sg->autoAdjust.value);
+    sgConfig->set_autoadjust(sg->autoAdjust.value);
 
     SaTimeT* adi = new SaTimeT();
     adi->set_uint64(sg->autoAdjustInterval.value);    
