@@ -2459,10 +2459,10 @@ class RunScript:
       return ret
 
     # test if there is a amf failover in progress
-    xml = access.mgtGet(self.handle, '/safplusAmf/Node')
+    xml = access.mgtGet(self.resolver.handle, '/safplusAmf/Node')
     if len(xml) == 0:
         time.sleep(3.5)
-        self.get_amf_master_handle()
+        self.resolver.get_amf_master_handle()
 
     errors = []
     nodes = nodes.replace("'", "")
@@ -2475,7 +2475,7 @@ class RunScript:
       print(("\n".join(errors)))
       return ""
 
-    ret = AmfCreateApp(appName, appCommandLine, nodes, appDir, cfg, self.handle)
+    ret = AmfCreateApp(appName, appCommandLine, nodes, appDir, cfg, self.resolver.handle)
     if ret == 0:
       print("createApp completed successfully")
       return ret

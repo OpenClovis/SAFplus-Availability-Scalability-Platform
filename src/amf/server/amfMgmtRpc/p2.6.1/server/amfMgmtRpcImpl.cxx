@@ -278,7 +278,7 @@ namespace amfMgmtRpc {
     return rc;
   }
   // call: deleteEntityFromDatabase("/safplusAmf", "Component",  compName);
-  ClRcT deleteEntityFromDatabase(const char* xpath, const char* tagName, const std::string& entityName)
+  ClRcT deleteEntityFromDatabase(const char* xpath, const char* tagName, const std::string& entityName, const char* entityListName)
   {
     logTrace("MGMT","DELL.ENT", "enter [%s] with params [%s] [%s]",__FUNCTION__, xpath, entityName.c_str());
     std::string strXpath(xpath); // /safplusAmf
@@ -287,6 +287,7 @@ namespace amfMgmtRpc {
     std::string temp = "[@name=\""; // [@name="
     temp.append(entityName); // [@name="su0
     temp.append("\"]"); // [@name="su0"]
+    logDebug("MGMT","DELL.ENT", "start deleting all records containing [%s]", temp.c_str());
     ClRcT rc = amfDb.deleteAllRecordsContainKey(temp);
     if (rc != CL_OK)
     {
@@ -326,18 +327,20 @@ namespace amfMgmtRpc {
           }
        }
 #endif
-    if ((rc = amfDb.deleteAllReferencesToEntity(strXpath, entityName))!=CL_OK)
+    logDebug("MGMT","DELL.ENT", "start deleting all references for xpath [%s], entity [%s], entityListName [%s]", strXpath.c_str(), entityName.c_str(), entityListName);
+    if ((rc = amfDb.deleteAllReferencesToEntity(strXpath, entityName, entityListName))!=CL_OK)
     {
        logError("MGMT","DELL.ENT", "delete all refs with xpath [%s] failed rc=[0x%x]", strXpath.c_str(),rc);
        return rc;
     }
-#if 0  //  deleteAllRecordsContainKey call above already covers this case
+
     rc = amfDb.deleteRecord(strXpath);
+    if (CL_GET_ERROR_CODE(rc) == CL_ERR_NOT_EXIST) rc = CL_OK; // no problem if the key to delete doesn't exist
     if (rc != CL_OK)
     {
        logError("MGMT","DELL.ENT", "delete record with key [%s] FAILED rc=[0x%x]", strXpath.c_str(),rc);
     }
-#endif
+
     return rc;
   }
 
@@ -1117,7 +1120,7 @@ namespace amfMgmtRpc {
        logError("MGMT","RPC", "delete comp name [%s] failed, rc [0x%x]", compName.c_str(),rc);
        return rc;
     }
-    rc = deleteEntityFromDatabase("/safplusAmf", "Component",  compName);
+    rc = deleteEntityFromDatabase("/safplusAmf", "Component",  compName, "components");
     if (rc != CL_OK)
        logError("MGMT","RPC", "delete comp name [%s] failed, rc [0x%x]", compName.c_str(),rc);
    
@@ -1169,8 +1172,11 @@ namespace amfMgmtRpc {
     compConfig->set_instantiationsuccessduration(comp->instantiationSuccessDuration.value);
 
     compConfig->set_delaybetweeninstantiation(comp->delayBetweenInstantiation.value);
-
-    compConfig->set_serviceunit(comp->serviceUnit.value->name.value);
+   
+    if (comp->serviceUnit.value) 
+    {
+       compConfig->set_serviceunit(comp->serviceUnit.value->name.value);
+    }
     std::stringstream ss;
     ss<<comp->recovery.value;
     compConfig->set_recovery(static_cast<::SAFplus::Rpc::amfMgmtRpc::Recovery>(comp->recovery.value));
@@ -1916,7 +1922,7 @@ namespace amfMgmtRpc {
        logError("MGMT","RPC", "delete su name [%s] failed, rc [0x%x]", suName.c_str(),rc);
        return rc;
     }
-    rc = deleteEntityFromDatabase("/safplusAmf", "ServiceUnit",  suName);
+    rc = deleteEntityFromDatabase("/safplusAmf", "ServiceUnit",  suName, "serviceUnits");
     if (rc != CL_OK)
        logError("MGMT","RPC", "delete su name [%s] failed, rc [0x%x]", suName.c_str(),rc);
     return rc;
@@ -1936,7 +1942,7 @@ namespace amfMgmtRpc {
        logError("MGMT","RPC", "delete sg name [%s] failed, rc [0x%x]", sgName.c_str(),rc);
        return rc;
     }
-    rc = deleteEntityFromDatabase("/safplusAmf", "ServiceGroup",  sgName);
+    rc = deleteEntityFromDatabase("/safplusAmf", "ServiceGroup",  sgName, "serviceGroups");
     if (rc != CL_OK)
        logError("MGMT","RPC", "delete sg name [%s] failed, rc [0x%x]", sgName.c_str(),rc);
     return rc;
@@ -1956,7 +1962,7 @@ namespace amfMgmtRpc {
        logError("MGMT","RPC", "delete node name [%s] failed, rc [0x%x]", nodeName.c_str(),rc);
        return rc;
     }
-    rc = deleteEntityFromDatabase("/safplusAmf", "Node",  nodeName);
+    rc = deleteEntityFromDatabase("/safplusAmf", "Node",  nodeName, "nodes");
     if (rc != CL_OK)
        logError("MGMT","RPC", "delete node name [%s] failed, rc [0x%x]",nodeName.c_str(),rc);
     return rc;
@@ -2065,7 +2071,7 @@ namespace amfMgmtRpc {
        logError("MGMT","RPC", "delete si name [%s] failed, rc [0x%x]", siName.c_str(),rc);
        return rc;
     }
-    rc = deleteEntityFromDatabase("/safplusAmf", "ServiceInstance",  siName);
+    rc = deleteEntityFromDatabase("/safplusAmf", "ServiceInstance",  siName, "serviceInstances");
     if (rc != CL_OK)
        logError("MGMT","RPC", "delete si name [%s] failed, rc [0x%x]",siName.c_str(),rc);
     return rc;
@@ -2168,7 +2174,7 @@ namespace amfMgmtRpc {
        logError("MGMT","RPC", "delete csi name [%s] failed, rc [0x%x]", csiName.c_str(),rc);
        return rc;
     }
-    rc = deleteEntityFromDatabase("/safplusAmf", "ComponentServiceInstance",  csiName);
+    rc = deleteEntityFromDatabase("/safplusAmf", "ComponentServiceInstance",  csiName, "componentServiceInstances");
     if (rc != CL_OK)
        logError("MGMT","RPC", "delete csi name [%s] failed, rc [0x%x]",csiName.c_str(),rc);
     return rc;
@@ -2658,13 +2664,19 @@ namespace amfMgmtRpc {
     DbalPlugin* p = clDbalObjCreate(DBAL_PLUGIN_NAME);
     char dbname[CL_MAX_NAME_LENGTH];
     hdl.toStr(dbname); 
-    ClRcT rc = p->open(dbname, dbname, CL_DB_CREAT, 255, 5000);
+    char fname[CL_MAX_NAME_LENGTH];
+    snprintf(fname,CL_MAX_NAME_LENGTH,"%s/%s",(ASP_RUNDIR[0] != 0) ? ASP_RUNDIR : ".", dbname);
+    ClRcT rc = p->open(fname, fname, CL_DB_CREAT, 255, 5000);
     if (rc == CL_OK)
     {
       logDebug("MGMT","RPC", "adding handle [%" PRIx64 ":%" PRIx64 "] and Dbal object to map", hdl.id[0],hdl.id[1]);
       DbalMapPair kv(hdl,p);
       amfMgmtMap.insert(kv);
       inc = 1;
+    }
+    else
+    {
+       logError("MGMT","RPC", "openning database [%s] filename [%s] failed", dbname, fname);
     }
     response->set_err(rc);
   }
@@ -2828,7 +2840,7 @@ namespace amfMgmtRpc {
         if (!request)
         {
           logError("MGMT","VALIDATE.OP","invalid protobuf message passed, expected [CreateComponentRequest], actual [%s]", typeid(*msg).name());
-          rc = CL_ERR_UNSPECIFIED;
+          rc = CL_ERR_INVALID_PARAMETER;
           break;
         }
         const ComponentConfig& comp = request->componentconfig();
@@ -2846,7 +2858,7 @@ namespace amfMgmtRpc {
         if (!request)
         {
           logError("MGMT","VALIDATE.OP","invalid protobuf message passed, expected [UpdateComponentRequest], actual [%s]", typeid(*msg).name());
-          rc = CL_ERR_UNSPECIFIED;
+          rc = CL_ERR_INVALID_PARAMETER;
           break;
         }
         const ComponentConfig& comp = request->componentconfig();
@@ -2872,7 +2884,7 @@ namespace amfMgmtRpc {
         if (!request)
         {
           logError("MGMT","VALIDATE.OP","invalid protobuf message passed, expected [DeleteComponentRequest], actual [%s]", typeid(*msg).name());
-          rc = CL_ERR_UNSPECIFIED;
+          rc = CL_ERR_INVALID_PARAMETER;
           break;
         }
         const std::string& compName = request->name();
@@ -2897,7 +2909,7 @@ namespace amfMgmtRpc {
         if (!request)
         {
           logError("MGMT","VALIDATE.OP","invalid protobuf message passed, expected [CreateSGRequest], actual [%s]", typeid(*msg).name());
-          rc = CL_ERR_UNSPECIFIED;
+          rc = CL_ERR_INVALID_PARAMETER;
           break;
         }
         const ServiceGroupConfig& sg = request->servicegroupconfig();
@@ -2915,7 +2927,7 @@ namespace amfMgmtRpc {
         if (!request)
         {
           logError("MGMT","VALIDATE.OP","invalid protobuf message passed, expected [UpdateSGRequest], actual [%s]", typeid(*msg).name());
-          rc = CL_ERR_UNSPECIFIED;
+          rc = CL_ERR_INVALID_PARAMETER;
           break;
         }
         const ServiceGroupConfig& sg = request->servicegroupconfig();
@@ -2941,7 +2953,7 @@ namespace amfMgmtRpc {
         if (!request)
         {
           logError("MGMT","VALIDATE.OP","invalid protobuf message passed, expected [DeleteSGRequest], actual [%s]", typeid(*msg).name());
-          rc = CL_ERR_UNSPECIFIED;
+          rc = CL_ERR_INVALID_PARAMETER;
           break;
         }
         const std::string& sgName = request->name();
@@ -2966,7 +2978,7 @@ namespace amfMgmtRpc {
         if (!request)
         {
           logError("MGMT","VALIDATE.OP","invalid protobuf message passed, expected [CreateNodeRequest], actual [%s]", typeid(*msg).name());
-          rc = CL_ERR_UNSPECIFIED;
+          rc = CL_ERR_INVALID_PARAMETER;
           break;
         }
         const NodeConfig& node = request->nodeconfig();
@@ -2983,7 +2995,7 @@ namespace amfMgmtRpc {
         if (!request)
         {
           logError("MGMT","VALIDATE.OP","invalid protobuf message passed, expected [UpdateNodeRequest], actual [%s]", typeid(*msg).name());
-          rc = CL_ERR_UNSPECIFIED;
+          rc = CL_ERR_INVALID_PARAMETER;
           break;
         }
         const NodeConfig& node = request->nodeconfig();
@@ -3001,7 +3013,7 @@ namespace amfMgmtRpc {
         if (!request)
         {
           logError("MGMT","VALIDATE.OP","invalid protobuf message passed, expected [DeleteNodeRequest], actual [%s]", typeid(*msg).name());
-          rc = CL_ERR_UNSPECIFIED;
+          rc = CL_ERR_INVALID_PARAMETER;
           break;
         }
         const std::string& nodeName = request->name();
@@ -3025,7 +3037,7 @@ namespace amfMgmtRpc {
         if (!request)
         {
           logError("MGMT","VALIDATE.OP","invalid protobuf message passed, expected [CreateSURequest], actual [%s]", typeid(*msg).name());
-          rc = CL_ERR_UNSPECIFIED;
+          rc = CL_ERR_INVALID_PARAMETER;
           break;
         }
         const ServiceUnitConfig& su = request->serviceunitconfig();
@@ -3042,7 +3054,7 @@ namespace amfMgmtRpc {
         if (!request)
         {
           logError("MGMT","VALIDATE.OP","invalid protobuf message passed, expected [UpdateSURequest], actual [%s]", typeid(*msg).name());
-          rc = CL_ERR_UNSPECIFIED;
+          rc = CL_ERR_INVALID_PARAMETER;
           break;
         }
         const ServiceUnitConfig& su = request->serviceunitconfig();
@@ -3067,7 +3079,7 @@ namespace amfMgmtRpc {
         if (!request)
         {
           logError("MGMT","VALIDATE.OP","invalid protobuf message passed, expected [DeleteSURequest], actual [%s]", typeid(*msg).name());
-          rc = CL_ERR_UNSPECIFIED;
+          rc = CL_ERR_INVALID_PARAMETER;
           break;
         }
         const std::string& suName = request->name();
@@ -3091,7 +3103,7 @@ namespace amfMgmtRpc {
         if (!request)
         {
           logError("MGMT","VALIDATE.OP","invalid protobuf message passed, expected [CreateSIRequest], actual [%s]", typeid(*msg).name());
-          rc = CL_ERR_UNSPECIFIED;
+          rc = CL_ERR_INVALID_PARAMETER;
           break;
         }
         const ServiceInstanceConfig& si = request->serviceinstanceconfig();
@@ -3108,7 +3120,7 @@ namespace amfMgmtRpc {
         if (!request)
         {
           logError("MGMT","VALIDATE.OP","invalid protobuf message passed, expected [UpdateSIRequest], actual [%s]", typeid(*msg).name());
-          rc = CL_ERR_UNSPECIFIED;
+          rc = CL_ERR_INVALID_PARAMETER;
           break;
         }
         const ServiceInstanceConfig& si = request->serviceinstanceconfig();
@@ -3133,7 +3145,7 @@ namespace amfMgmtRpc {
         if (!request)
         {
           logError("MGMT","VALIDATE.OP","invalid protobuf message passed, expected [DeleteSIRequest], actual [%s]", typeid(*msg).name());
-          rc = CL_ERR_UNSPECIFIED;
+          rc = CL_ERR_INVALID_PARAMETER;
           break;
         }
         const std::string& siName = request->name();
@@ -3156,7 +3168,7 @@ namespace amfMgmtRpc {
         if (!request)
         {
           logError("MGMT","VALIDATE.OP","invalid protobuf message passed, expected [CreateCSIRequest], actual [%s]", typeid(*msg).name());
-          rc = CL_ERR_UNSPECIFIED;
+          rc = CL_ERR_INVALID_PARAMETER;
           break;
         }
         const ComponentServiceInstanceConfig& csi = request->componentserviceinstanceconfig();
@@ -3173,7 +3185,7 @@ namespace amfMgmtRpc {
         if (!request)
         {
           logError("MGMT","VALIDATE.OP","invalid protobuf message passed, expected [UpdateCSIRequest], actual [%s]", typeid(*msg).name());
-          rc = CL_ERR_UNSPECIFIED;
+          rc = CL_ERR_INVALID_PARAMETER;
           break;
         }
         const ComponentServiceInstanceConfig& csi = request->componentserviceinstanceconfig();
@@ -3198,7 +3210,7 @@ namespace amfMgmtRpc {
         if (!request)
         {
           logError("MGMT","VALIDATE.OP","invalid protobuf message passed, expected [DeleteCSIRequest], actual [%s]", typeid(*msg).name());
-          rc = CL_ERR_UNSPECIFIED;
+          rc = CL_ERR_INVALID_PARAMETER;
           break;
         }
         const std::string& csiName = request->name();
@@ -3223,7 +3235,7 @@ namespace amfMgmtRpc {
         if (!request)
         {
           logError("MGMT","VALIDATE.OP","invalid protobuf message passed, expected [DeleteCSINVPRequest], actual [%s]", typeid(*msg).name());
-          rc = CL_ERR_UNSPECIFIED;
+          rc = CL_ERR_INVALID_PARAMETER;
           break;
         }
         const std::string& csiName = request->name();
@@ -3242,7 +3254,7 @@ namespace amfMgmtRpc {
         if (!request)
         {
           logError("MGMT","VALIDATE.OP","invalid protobuf message passed, expected [DeleteNodeSUListRequest], actual [%s]", typeid(*msg).name());
-          rc = CL_ERR_UNSPECIFIED;
+          rc = CL_ERR_INVALID_PARAMETER;
           break;
         }
         const std::string& nodeName = request->nodename();
@@ -3269,7 +3281,7 @@ namespace amfMgmtRpc {
         if (!request)
         {
           logError("MGMT","VALIDATE.OP","invalid protobuf message passed, expected [DeleteSGSUListRequest], actual [%s]", typeid(*msg).name());
-          rc = CL_ERR_UNSPECIFIED;
+          rc = CL_ERR_INVALID_PARAMETER;
           break;
         }
         const std::string& sgName = request->sgname();
@@ -3295,7 +3307,7 @@ namespace amfMgmtRpc {
         if (!request)
         {
           logError("MGMT","VALIDATE.OP","invalid protobuf message passed, expected [DeleteSGSIListRequest], actual [%s]", typeid(*msg).name());
-          rc = CL_ERR_UNSPECIFIED;
+          rc = CL_ERR_INVALID_PARAMETER;
           break;
         }
         const std::string& sgName = request->sgname();
@@ -3321,7 +3333,7 @@ namespace amfMgmtRpc {
         if (!request)
         {
           logError("MGMT","VALIDATE.OP","invalid protobuf message passed, expected [DeleteSUCompListRequest], actual [%s]", typeid(*msg).name());
-          rc = CL_ERR_UNSPECIFIED;
+          rc = CL_ERR_INVALID_PARAMETER;
           break;
         }
         const std::string& suName = request->suname();
@@ -3347,7 +3359,7 @@ namespace amfMgmtRpc {
         if (!request)
         {
           logError("MGMT","VALIDATE.OP","invalid protobuf message passed, expected [DeleteSICSIListRequest], actual [%s]", typeid(*msg).name());
-          rc = CL_ERR_UNSPECIFIED;
+          rc = CL_ERR_INVALID_PARAMETER;
           break;
         }
         const std::string& siName = request->siname();
@@ -4069,7 +4081,7 @@ namespace amfMgmtRpc {
     if (node == NULL)
     {
       logDebug("MGMT","RPC","node object is null for its name [%s]", nodeName.c_str());
-      rc = CL_ERR_UNSPECIFIED;
+      rc = CL_ERR_INVALID_PARAMETER;
     }
     else
     {
@@ -4105,7 +4117,7 @@ namespace amfMgmtRpc {
     if (sg == NULL)
     {
       logDebug("MGMT","RPC","sg object is null for its name [%s]", sgName.c_str());
-      rc = CL_ERR_UNSPECIFIED;
+      rc = CL_ERR_INVALID_PARAMETER;
     }
     else
     {
@@ -4141,7 +4153,7 @@ namespace amfMgmtRpc {
     if (su == NULL)
     {
       logDebug("MGMT","RPC","su object is null for its name [%s]", suName.c_str());
-      rc = CL_ERR_UNSPECIFIED;
+      rc = CL_ERR_INVALID_PARAMETER;
     }
     else
     {
@@ -4178,7 +4190,7 @@ namespace amfMgmtRpc {
     if (si == NULL)
     {
       logDebug("MGMT","RPC","si object is null for its name [%s]", siName.c_str());
-      rc = CL_ERR_UNSPECIFIED;
+      rc = CL_ERR_INVALID_PARAMETER;
     }
     else
     {
@@ -4215,7 +4227,7 @@ namespace amfMgmtRpc {
     if (node == NULL)
     {
       logDebug("MGMT","RPC","node object is null for its name [%s]", nodeName.c_str());
-      rc = CL_ERR_UNSPECIFIED;
+      rc = CL_ERR_INVALID_PARAMETER;
     }
     else
     {
@@ -4259,7 +4271,7 @@ namespace amfMgmtRpc {
     if (sg == NULL)
     {
       logDebug("MGMT","RPC","sg object is null for its name [%s]", sgName.c_str());
-      rc = CL_ERR_UNSPECIFIED;
+      rc = CL_ERR_INVALID_PARAMETER;
     }
     else
     {
@@ -4303,7 +4315,7 @@ namespace amfMgmtRpc {
     if (su == NULL)
     {
       logDebug("MGMT","RPC","su object is null for its name [%s]", suName.c_str());
-      rc = CL_ERR_UNSPECIFIED;
+      rc = CL_ERR_INVALID_PARAMETER;
     }
     else
     {
@@ -4348,7 +4360,7 @@ namespace amfMgmtRpc {
     if (node == NULL)
     {
       logDebug("MGMT","RPC","node object is null for its name [%s]", nodeName.c_str());
-      rc = CL_ERR_UNSPECIFIED;
+      rc = CL_ERR_INVALID_PARAMETER;
     }
     else
     {
@@ -4391,7 +4403,7 @@ namespace amfMgmtRpc {
     if (sg == NULL)
     {
       logDebug("MGMT","RPC","sg object is null for its name [%s]", sgName.c_str());
-      rc = CL_ERR_UNSPECIFIED;
+      rc = CL_ERR_INVALID_PARAMETER;
     }
     else
     {
@@ -4434,7 +4446,7 @@ namespace amfMgmtRpc {
     if (su == NULL)
     {
       logDebug("MGMT","RPC","su object is null for its name [%s]", suName.c_str());
-      rc = CL_ERR_UNSPECIFIED;
+      rc = CL_ERR_INVALID_PARAMETER;
     }
     else
     {
@@ -4477,7 +4489,7 @@ namespace amfMgmtRpc {
     if (si == NULL)
     {
       logDebug("MGMT","RPC","si object is null for its name [%s]", siName.c_str());
-      rc = CL_ERR_UNSPECIFIED;
+      rc = CL_ERR_INVALID_PARAMETER;
     }
     else
     {
@@ -4520,7 +4532,7 @@ namespace amfMgmtRpc {
     if (node == NULL)
     {
       logDebug("MGMT","RPC","node object is null for its name [%s]", nodeName.c_str());
-      rc = CL_ERR_UNSPECIFIED;
+      rc = CL_ERR_INVALID_PARAMETER;
     }
     else
     {
@@ -4559,7 +4571,7 @@ namespace amfMgmtRpc {
     if (comp == NULL)
     {
       logDebug("MGMT","RPC","comp object is null for its name [%s]", compName.c_str());
-      rc = CL_ERR_UNSPECIFIED;
+      rc = CL_ERR_INVALID_PARAMETER;
     }
     else
     {
@@ -4598,7 +4610,7 @@ namespace amfMgmtRpc {
     if (su == NULL)
     {
       logDebug("MGMT","RPC","su object is null for its name [%s]", suName.c_str());
-      rc = CL_ERR_UNSPECIFIED;
+      rc = CL_ERR_INVALID_PARAMETER;
     }
     else
     {
@@ -4627,7 +4639,7 @@ namespace amfMgmtRpc {
     if (comp == NULL)
     {
       logDebug("MGMT","RPC","comp object is null for its name [%s]", compName.c_str());
-      rc = CL_ERR_UNSPECIFIED;
+      rc = CL_ERR_INVALID_PARAMETER;
     }
     else
     {
@@ -4656,7 +4668,7 @@ namespace amfMgmtRpc {
     if (node == NULL)
     {
       logDebug("MGMT","RPC","node object is null for its name [%s]", nodeName.c_str());
-      rc = CL_ERR_UNSPECIFIED;
+      rc = CL_ERR_INVALID_PARAMETER;
     }
     else
     {
@@ -4685,7 +4697,7 @@ namespace amfMgmtRpc {
     if (sg == NULL)
     {
       logDebug("MGMT","RPC","object is null for its name [%s]", sgName.c_str());
-      rc = CL_ERR_UNSPECIFIED;
+      rc = CL_ERR_INVALID_PARAMETER;
     }
     else
     {
@@ -4714,7 +4726,7 @@ namespace amfMgmtRpc {
     if (su == NULL)
     {
       logDebug("MGMT","RPC","object is null for its name [%s]", suName.c_str());
-      rc = CL_ERR_UNSPECIFIED;
+      rc = CL_ERR_INVALID_PARAMETER;
     }
     else
     {
@@ -4743,7 +4755,7 @@ namespace amfMgmtRpc {
     if (si == NULL)
     {
       logDebug("MGMT","RPC","object is null for its name [%s]", siName.c_str());
-      rc = CL_ERR_UNSPECIFIED;
+      rc = CL_ERR_INVALID_PARAMETER;
     }
     else
     {
@@ -4772,7 +4784,7 @@ namespace amfMgmtRpc {
     if (csi == NULL)
     {
       logDebug("MGMT","RPC","object is null for its name [%s]", csiName.c_str());
-      rc = CL_ERR_UNSPECIFIED;
+      rc = CL_ERR_INVALID_PARAMETER;
     }
     else
     {
@@ -4801,7 +4813,7 @@ namespace amfMgmtRpc {
     if (comp == NULL)
     {
       logDebug("MGMT","RPC","comp object is null for its name [%s]", compName.c_str());
-      rc = CL_ERR_UNSPECIFIED;
+      rc = CL_ERR_INVALID_PARAMETER;
     }
     else
     {
@@ -4830,7 +4842,7 @@ namespace amfMgmtRpc {
     if (node == NULL)
     {
       logDebug("MGMT","RPC","node object is null for its name [%s]", nodeName.c_str());
-      rc = CL_ERR_UNSPECIFIED;
+      rc = CL_ERR_INVALID_PARAMETER;
     }
     else
     {
@@ -4859,7 +4871,7 @@ namespace amfMgmtRpc {
     if (su == NULL)
     {
       logDebug("MGMT","RPC","object is null for its name [%s]", suName.c_str());
-      rc = CL_ERR_UNSPECIFIED;
+      rc = CL_ERR_INVALID_PARAMETER;
     }
     else
     {
@@ -4888,7 +4900,7 @@ namespace amfMgmtRpc {
     if (sg == NULL)
     {
       logDebug("MGMT","RPC","object is null for its name [%s]", sgName.c_str());
-      rc = CL_ERR_UNSPECIFIED;
+      rc = CL_ERR_INVALID_PARAMETER;
     }
     else
     {
@@ -4917,7 +4929,7 @@ namespace amfMgmtRpc {
     if (si == NULL)
     {
       logDebug("MGMT","RPC","object is null for its name [%s]", siName.c_str());
-      rc = CL_ERR_UNSPECIFIED;
+      rc = CL_ERR_INVALID_PARAMETER;
     }
     else
     {
@@ -4946,7 +4958,7 @@ namespace amfMgmtRpc {
     if (csi == NULL)
     {
       logDebug("MGMT","RPC","object is null for its name [%s]", csiName.c_str());
-      rc = CL_ERR_UNSPECIFIED;
+      rc = CL_ERR_INVALID_PARAMETER;
     }
     else
     {
@@ -4985,7 +4997,7 @@ namespace amfMgmtRpc {
       if (node == NULL)
       {
           logDebug("MGMT","RPC","node object is null for its name [%s]", nodeName.c_str());
-          rc = CL_ERR_UNSPECIFIED;
+          rc = CL_ERR_INVALID_PARAMETER;
       }
       else
       {
@@ -5023,7 +5035,7 @@ namespace amfMgmtRpc {
       if (su == NULL)
       {
           logDebug("MGMT","RPC","su object is null for its name [%s]", suName.c_str());
-          rc = CL_ERR_UNSPECIFIED;
+          rc = CL_ERR_INVALID_PARAMETER;
       }
       else
       {
@@ -5061,7 +5073,7 @@ namespace amfMgmtRpc {
       if (comp == NULL)
       {
           logDebug("MGMT","RPC","comp object is null for its name [%s]", compName.c_str());
-          rc = CL_ERR_UNSPECIFIED;
+          rc = CL_ERR_INVALID_PARAMETER;
       }
       else
       {
@@ -5297,7 +5309,7 @@ namespace amfMgmtRpc {
     if (su == NULL)
     {
       logDebug("MGMT","RPC","su object is null for its name [%s]", suName.c_str());
-      rc = CL_ERR_UNSPECIFIED;
+      rc = CL_ERR_INVALID_PARAMETER;
     }
     else
     {

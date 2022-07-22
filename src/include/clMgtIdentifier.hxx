@@ -181,6 +181,11 @@ namespace SAFplus
             }
 
         }
+        else
+        {
+            logNotice("MGT", "READ", "ref for [%s] is empty --> set its value object to null",dataXPath.c_str());
+            value = nullptr;
+        }
     }
 
   };
@@ -221,16 +226,19 @@ template<class T> ClRcT MgtIdentifier<T>::setObj(const std::string &value)
   template <class T>
   void MgtIdentifier<T>::toString(std::stringstream& xmlString, int depth, SerializationOptions opts)
   {
-      if (value == nullptr)
-          return;
+      //if (value == nullptr)
+      //    return;
 
       xmlString << "<";
       xmlString << tag << ">";
-      MgtObject *obj = dynamic_cast<MgtObject *>(value);
-      if (obj)
-          xmlString << value->getFullXpath();
-      else if (!ref.empty())  // If the identifier isn't resolved, prepend a question mark...
-        xmlString << "?" << ref;
+      if (value != nullptr) 
+      {
+          MgtObject *obj = dynamic_cast<MgtObject *>(value);
+          if (obj)
+              xmlString << value->getFullXpath();
+          else if (!ref.empty())  // If the identifier isn't resolved, prepend a question mark...
+              xmlString << "?" << ref;
+      }
       xmlString << "</" << tag << ">";
   }
 

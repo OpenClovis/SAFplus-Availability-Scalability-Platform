@@ -404,8 +404,14 @@ void MgtIdentifierList<T>::toString(std::stringstream& xmlString, int depth, Ser
   int len = value.size();
   for (unsigned int i = 0; i < len; i++)
     {
-      xmlString << toStringItemAt(i);
-      if (i+1<len) xmlString << ", ";
+      //MgtObject *obj = dynamic_cast<MgtObject *>(value[i].value);
+      if (value[i].validValue && value[i].value)
+      {
+         xmlString << toStringItemAt(i);
+         if (i+1<len && value[i+1].validValue && value[i+1].value) 
+           xmlString << ", ";
+      }
+       
     }
 
   xmlString << "</" << tag << ">";

@@ -21,6 +21,7 @@
 #include <clMgtDatabase.hxx>
 #include <clLogIpi.hxx>
 #include <clMgtApi.hxx>
+#include <regex>
 
 #define MURMURKEY 0xc107deed
 
@@ -281,23 +282,29 @@ namespace SAFplus
 
 
   // calling deleteAllReferencesToEntity("/safplusAmf/ServiceUnit[@name="su0"]","su0"); 
-  ClRcT MgtDatabase::deleteAllReferencesToEntity(const std::string& xpathToDelete, const std::string &entityName)
+  ClRcT MgtDatabase::deleteAllReferencesToEntity(const std::string& xpathToDelete, const std::string &entityName, const char* entityListName)
   {
      ClRcT rc = CL_ERR_NOT_EXIST;
      size_t pos = std::string::npos;
      bool entityFound = false;
      std::vector<std::string> xpaths, childs, attrChilds;
      std::string root("/"), val, attrVal;
-     iterate(root,xpaths);
+     iterate(root,xpaths,true);
      for(std::vector<std::string>::const_iterator it=xpaths.cbegin();it!=xpaths.cend();it++)
      {
         const std::string& xpath = *it;
-        if (((rc = getRecord(xpath, val, &childs)))!= CL_OK)
+        if (((rc = getRecord(xpath, val, &childs)))!= CL_OK) // xpathToDelete: /safplusAmf/ServiceUnit[@name="ServiceUnit_ServiceGroupTest_0"]
+                                                             // /safplusAmf/Node[@name="Node11"]/serviceUnits[2]] -> [ServiceUnit_ServiceGroupTest_0]        
         {
            logError("MGT","DEL.REFS","get record with xpath [%s] fail rc=0x%x", xpath.c_str(), rc);
            return rc;
         }
-        if ((pos=xpath.find(xpathToDelete)) == std::string::npos && val.compare(entityName)==0) // exists /safplusAmf/Node[@name="node0"]/serviceunits --> su0, so no childs. BUT there is a case: /safplusAmf/ServiceUnit[@name="su0"]/name --> su0
+        std::string searchedStr(entityListName);
+        searchedStr.append("?$");
+        std::regex regexp(searchedStr);
+        std::smatch m;
+        bool entityListMark = std::regex_search(xpath, m, regexp);
+        if ((pos=xpath.find(xpathToDelete)) == std::string::npos && val.compare(entityName)==0 && entityListMark) // exists /safplusAmf/Node[@name="node0"]/serviceunits --> su0, so no childs. BUT there is a case: /safplusAmf/ServiceUnit[@name="su0"]/name --> su0
         {
            // So overwrite the xpath with empty
            val="";
@@ -307,8 +314,8 @@ namespace SAFplus
               return rc;
            }
         }
-        else if (pos!=std::string::npos && childs.size()>0) // exists safplusAmf/Node[@name="node0"]/serviceunits --> child: [1][2][3]...
-        {           
+        else if (val.length() == 0 && childs.size()>0 && entityListMark) // exists safplusAmf/Node[@name="node0"]/serviceunits --> child: [1][2][3]...
+        {                  
            for(std::vector<std::string>::const_iterator it2=childs.cbegin();it2!=childs.cend();it2++)
            {              
               const std::string& idx = *it2;
@@ -316,8 +323,8 @@ namespace SAFplus
               attrXpath.append(idx); // --> safplusAmf/Node[@name="node0"]/serviceunits[1]...    
               if (((rc = getRecord(attrXpath, attrVal)))!= CL_OK)
               {
-                 logError("MGT","DEL.REFS","get record with xpath [%s] fail rc=0x%x", attrXpath.c_str(), rc);
-                 return rc;
+                 logDebug("MGT","DEL.REFS","get record with xpath [%s] fail rc=0x%x", attrXpath.c_str(), rc);
+                 continue;
               }
               if (attrVal.compare(entityName) == 0)
               {
@@ -380,7 +387,7 @@ namespace SAFplus
                  for (int i=0;i<attrChilds.size();i++)                 
                  {
                     std::stringstream v;
-                    v << "[" << i << "]";
+                    v << "[" << i+1 << "]";
                     vals.push_back(v.str());
                  }
                  if (((rc = setRecord(xpath, std::string(""),&vals)))!= CL_OK)
@@ -392,7 +399,7 @@ namespace SAFplus
                  {
                     std::string& newVal = attrChilds[i];
                     std::stringstream attrXpath;
-                    attrXpath << xpath << "[" << i << "]";
+                    attrXpath << xpath << vals[i];
                     if (((rc = setRecord(attrXpath.str(), newVal)))!= CL_OK)
                     {
                        logError("MGT","DEL.REFS","set record with xpath [%s] val [%s] fail rc=0x%x", xpath.c_str(), newVal.c_str(), rc);
@@ -402,18 +409,18 @@ namespace SAFplus
                  vals.clear();
               }
               entityFound = false;
-           }
-        }
+           } //inner for
+        } // else if
         pos = std::string::npos;
         childs.clear();
         attrChilds.clear();
         val.clear();
         attrVal.clear();
-     }
+     } //outer for
      return rc;
   }
 
-  void MgtDatabase::loadDb(std::vector<std::string> &result)
+  void MgtDatabase::loadDb(std::vector<std::string> &result, bool includeMatadata)
   {
     ClUint32T keySize = 0;
     ClUint32T dataSize = 0;
@@ -445,7 +452,7 @@ namespace SAFplus
         dbValue.ParseFromString(strVal);
 
         // Ignore metadata key xpath
-        if (dbValue.child_size() > 0)
+        if (dbValue.child_size() > 0 && !includeMatadata)
           {
             logDebug("MGT", "LOAD", "Ignore metadata key [%s]", dbValue.xpath().c_str());
           }
@@ -465,11 +472,11 @@ namespace SAFplus
       }
   }
 
-  void MgtDatabase::iterate(const std::string &xpath, std::vector<std::string> &result )
+  void MgtDatabase::iterate(const std::string &xpath, std::vector<std::string> &result, bool includeMatadata)
     {
       if (xpath[0] == '/' and xpath.length() == 1) // Get whole db
         {
-          return loadDb(result);
+          return loadDb(result,includeMatadata);
         }
 
       // Iterator through child (depth = 1)

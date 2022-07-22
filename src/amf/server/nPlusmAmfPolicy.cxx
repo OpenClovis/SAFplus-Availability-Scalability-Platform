@@ -450,6 +450,7 @@ class NplusMPolicy:public ClAmfPolicyPlugin_1
                   for (itcomp = su->components.listBegin(); itcomp != endcomp; itcomp++)
                   {
                       Component* comp = dynamic_cast<Component*>(*itcomp);
+                      if (!comp) continue;
                       logInfo("N+M","AUDIT","Auditing component [%s], compProperty [%s] on [%s.%s] pid [%d]: Operational State [%s] PresenceState [%s] ReadinessState [%s] HA State [%s] HA Readiness [%s] Pending Operation [%s] (expires in: [%d ms]) instantiation attempts [%d]",comp->name.value.c_str(),c_str(comp->compProperty.value),node ? node->name.value.c_str(): "unattached",suName.c_str(), comp->processId.value,
                               oper_str(comp->operState.value), c_str(comp->presenceState.value), c_str(comp->readinessState.value),
                               c_str(comp->haState.value), c_str(comp->haReadinessState.value), c_str(comp->pendingOperation.value), ((comp->pendingOperationExpiration.value.value>0) ? (int) (comp->pendingOperationExpiration.value.value - curTime): 0), comp->numInstantiationAttempts.value);
@@ -1007,6 +1008,7 @@ class NplusMPolicy:public ClAmfPolicyPlugin_1
       for (it = cfg->safplusAmf.serviceGroupList.begin();it != cfg->safplusAmf.serviceGroupList.end(); it++)
       {
           ServiceGroup* sg = dynamic_cast<ServiceGroup*> (it->second);
+          if (!sg) continue;
           const std::string& name = sg->name;
 
           logInfo("N+M","AUDIT","Auditing service group [%s]", name.c_str());
@@ -1019,6 +1021,7 @@ class NplusMPolicy:public ClAmfPolicyPlugin_1
                   uint readyForAssignment;
                   readyForAssignment = 0;
                   ServiceUnit* su = dynamic_cast<ServiceUnit*>(itsu->second);
+                  if (!su) continue;
                   Node* suNode = su->node.value;
                   const std::string& suName = su->name;
                   logInfo("N+M","AUDIT","Auditing service unit [%s]", suName.c_str());
@@ -1372,6 +1375,7 @@ class NplusMPolicy:public ClAmfPolicyPlugin_1
           for (itsi = sg->serviceInstances.begin(); itsi != endsi; itsi++)
           {
               SAFplusAmf::ServiceInstance* si = dynamic_cast<ServiceInstance*>(itsi->second);
+              if (!si) continue;
               logInfo("N+M","AUDIT","Auditing service instance [%s]", si->name.value.c_str());
 
               //si->getNumActiveAssignments()->current.value = 0;  // TODO set this correctly

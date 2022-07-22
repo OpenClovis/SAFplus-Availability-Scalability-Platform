@@ -315,10 +315,12 @@ class Extensions:
         SU.containmentArrows.append(ca)
 
         if createWork:
-          CSI = self.model.model.entityTypes["ComponentServiceInstance"].createEntity((pos[0] + 60, pos[1] + 60), size,name=compName + "CSI")
+          CSI = self.model.model.entityTypes["ComponentServiceInstance"].createEntity((pos[0] + 60, pos[1] + 60), size,name=compName + "CSI")          
           ca = ContainmentArrow(SI, (50,50), CSI, (100,50), None)
           SI.containmentArrows.append(ca)
           ca = ContainmentArrow(CSI, (50,50), comp, (100,50), None)
+          CSI.data["type"] = CSI.data["name"]
+          comp.data['csiType'] = CSI.data['type']
           CSI.containmentArrows.append(ca)
           newEntities.append(CSI)
 
@@ -404,6 +406,8 @@ class Extensions:
           ca = ContainmentArrow(SI, (50,50), CSI, (100,50), None)
           SI.containmentArrows.append(ca)
           ca = ContainmentArrow(CSI, (50,50), comp, (100,50), None)
+          CSI.data["type"] = CSI.data["name"]
+          comp.data['csiType'] = CSI.data['type']
           CSI.containmentArrows.append(ca)
           newEntities.append(CSI)
 

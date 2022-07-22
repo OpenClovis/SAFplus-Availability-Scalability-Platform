@@ -62,7 +62,7 @@ namespace SAFplus
     DbalPlugin* mDbDataHdl;
 
   private:
-    void loadDb(std::vector<std::string> &result);
+    void loadDb(std::vector<std::string> &result, bool includeMatadata = false);
     ClRcT write2DB(const std::string &key, const std::string &value, std::vector<std::string> *child = nullptr, bool overwrite = false);
 
   public:
@@ -113,12 +113,12 @@ namespace SAFplus
      */
     ClRcT deleteRecord(const std::string &key);
     ClRcT deleteAllRecordsContainKey(const std::string &keypart);
-    ClRcT deleteAllReferencesToEntity(const std::string& xpathToDelete, const std::string &entityName);
+    ClRcT deleteAllReferencesToEntity(const std::string& xpathToDelete, const std::string &entityName, const char* entityListName);
 
     /**
      * \brief   Function to return iterators match with xpath
      */
-    void iterate(const std::string &xpath, std::vector<std::string> &result);
+    void iterate(const std::string &xpath, std::vector<std::string> &result, bool includeMatadata = false);
 
   };
 }
