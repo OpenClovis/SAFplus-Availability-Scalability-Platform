@@ -126,7 +126,7 @@ static dict SGGetConfig(const Handle & self, const std::string & key)
     // set information into dictionary
     dictionary["adminstate"] = std::to_string(SGConfig->adminstate());
     dictionary["autoAdjust"] = std::to_string(SGConfig->autoadjust());
-//    dictionary["autoAdjustInterval"] = std::to_string(SGConfig->autoadjustinterval());
+    dictionary["autoAdjustInterval"] = std::to_string(SGConfig->autoadjustinterval().uint64());
     dictionary["autoRepair"] = std::to_string(SGConfig->autorepair());
 //    dictionary["componentRestart"] = std::to_string(SGConfig->componentRestart());
 //    dictionary["id"] = std::to_string(SGConfig->id());
@@ -253,6 +253,16 @@ static dict CSIGetConfig(const Handle & self, const std::string & key)
     dictionary["name"] = CSIConfig->name();
     dictionary["serviceInstance"] = CSIConfig->serviceinstance();
     dictionary["type"] = CSIConfig->type();
+
+    dict dictKeValues;
+    const int numOfDatas = CSIConfig->data_size();
+    for(int i = 0; i < numOfDatas; ++i)
+    {
+        std::string name = CSIConfig->data(i).name();
+        std::string val = CSIConfig->data(i).val();
+        dictKeValues[name] = val;
+    }
+    dictionary["data"] = dictKeValues;
 
     return dictionary;
 }

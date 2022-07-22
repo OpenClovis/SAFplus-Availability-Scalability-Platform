@@ -1236,6 +1236,8 @@ namespace SAFplus
         portAllocator.assignPort(port, p.pid);
         comp->processId = p.pid;
 
+        createSymlink(inst->command.value, p.pid);
+
         // I need to set the handle because the process itself will not do so.
         if ( comp->capabilityModel == CapabilityModel::not_preinstantiable)
         {
