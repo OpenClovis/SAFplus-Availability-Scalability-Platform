@@ -1167,50 +1167,27 @@ namespace SAFplus
             if (posLastSlash != std::string::npos && posLastSlash > xpath.length())
                 continue;
 
-            std::string dataKey = (*it).substr(posLastSlash+1, 4);
-            if(dataKey == "data")
+            // *it      :'/a/b[@key="su0"]'
+            // strKey   :[@key="su0"]
+            // keyValue :su0
+            std::string strKey = (*it).substr(xpath.length());
+            std::size_t posEquals = strKey.find("=");
+            std::string keyValue = strKey.substr(posEquals+2, strKey.length() - posEquals - 4);
+            if (children.find(keyValue) != children.end())
             {
-                // *it: /safplusAmf/ComponentServiceInstance[@name="csi"]/data[1]
-                std::string dataNamePath((*it));
-                std::string dataName;
-                dataNamePath.append("/name");
-                ClRcT rc =  db->getRecord(dataNamePath, dataName);
-                if (rc == CL_OK)
-                {
-                    dataXPath.assign(*it);
-                    MgtObject* object = MgtFactory::getInstance()->create(childXpath, dataName);
-                    if (object)
-                    {
-                        addChildObject(object, dataName);
-                        object->setChildObj(keyList, dataName);
-                        object->dataXPath = dataXPath;
-                    }
-                }
+              //logDebug("MGMT","READ","object of [%s] was created, skip it", keyValue.c_str());
+              continue;
             }
-            else
-            {
-                // *it      :'/a/b[@key="su0"]'
-                // strKey   :[@key="su0"]
-                // keyValue :su0
-                std::string strKey = (*it).substr(xpath.length());
-                std::size_t posEquals = strKey.find("=");
-                std::string keyValue = strKey.substr(posEquals+2, strKey.length() - posEquals - 4);
-                if (children.find(keyValue) != children.end())
-                {
-                    //logDebug("MGMT","READ","object of [%s] was created, skip it", keyValue.c_str());
-                    continue;
-                }
 
-                dataXPath.assign(*it);
+            dataXPath.assign(*it);
 
-                MgtObject* object = MgtFactory::getInstance()->create(childXpath,keyValue);
-                if (object)
-                {
-                    addChildObject(object, keyValue);
-                    object->setChildObj(keyList, keyValue);
-                    object->dataXPath = dataXPath;
-                }
-            }
+            MgtObject* object = MgtFactory::getInstance()->create(childXpath,keyValue);
+            if (object)
+              {
+                addChildObject(object, keyValue);
+                object->setChildObj(keyList, keyValue);
+                object->dataXPath = dataXPath;
+              }
           }
 
         typename Map::iterator iter;

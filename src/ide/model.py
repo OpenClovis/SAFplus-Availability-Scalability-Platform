@@ -635,6 +635,14 @@ instantiated  <instances>     instances                         instances     (e
 
       # Write all the data fields into the model's microdom
       instance.update(temp)  
+
+      # workaround for save data key/value of csi
+      data = instance.find("data")
+      for (dString, dMicro) in data:
+        childMicro = dMicro.get("name")
+        keyName = childMicro.get("name")
+        dMicro.addAttribute("name", keyName)
+
       # Now write all the arrows
       contains = {} # Create a dictionary to hold all linkages by type
       for arrow in e.containmentArrows:

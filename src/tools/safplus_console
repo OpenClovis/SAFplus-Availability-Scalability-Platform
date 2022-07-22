@@ -940,12 +940,15 @@ By default the specified location and children are shown.  Use -N to specify how
             exist = True
             newXML = "<root>" + xml1 + "</root>"
             root = ET.fromstring(newXML)
-            pair = {}
+            count = 0
+            content = ""
             for data in root.findall("data"):
               name = data.find("name").text
               val = data.find("val").text
-              pair[name] = val
-            d = [child.tag, pair]
+              count += 1
+              content +=  "\n    Name: " + name + "\n    Val : " + val + "\n"
+            formatData = "data[%s]%s" % (count,content)
+            d = [child.tag, formatData]
             configureList.append(d)
             continue
           elif "data listkey" in xml1:
@@ -1320,7 +1323,7 @@ By default the specified location and children are shown.  Use -N to specify how
         elif entityType == "ServiceInstance":
           ret = access.updateServiceInstance(amfMgmtHandle, listAttributesAndValuesPairs)
         elif entityType == "ComponentServiceInstance":
-          ret = access.updateComponentServiceInstance(amfMgmtHandle, listAttributesAndValuesPairs)
+          ret = access.updateComponentServiceInstance(amfMgmtHandle, entityName, listAttributesAndValuesPairs)
         else:
           print("Invalid entity type, valid entity types are Node, ServiceGroup, ServiceUnit and ServiceInstance")
           ret = 1
@@ -1429,6 +1432,8 @@ By default the specified location and children are shown.  Use -N to specify how
           ret = access.amfMgmtServiceInstanceDelete(amfMgmtHandle, entityName)
         elif entityType == "ComponentServiceInstance":
           ret = access.amfMgmtComponentServiceInstanceDelete(amfMgmtHandle, entityName)
+        elif entityType == "CSINVP":
+          ret = access.amfMgmtCSINVPDelete(amfMgmtHandle, entityName)
         else:
           print("Invalid entity type, valid entity types are Component, ServiceGroup, Node, ServiceUnit, ServiceInstance and ComponentServiceInstance")
           ret = "TypeErr"

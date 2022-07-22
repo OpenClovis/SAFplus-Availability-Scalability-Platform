@@ -467,7 +467,7 @@ ClRcT addNewComponentServiceInstance(const SAFplus::Handle& mgmtHandle, const st
   return rc;
 }
 
-ClRcT updateComponentServiceInstance(const SAFplus::Handle& mgmtHandle, boost::python::list & argv)
+ClRcT updateComponentServiceInstance(const SAFplus::Handle& mgmtHandle, const std::string & csiName, boost::python::list & argv)
 {
   SAFplus::Rpc::amfMgmtRpc::ComponentServiceInstanceConfig* csi = new SAFplus::Rpc::amfMgmtRpc::ComponentServiceInstanceConfig();
   ssize_t len = boost::python::len(argv);
@@ -486,6 +486,52 @@ ClRcT updateComponentServiceInstance(const SAFplus::Handle& mgmtHandle, boost::p
       else if(!attr.compare("type"))
       {
           csi->set_type(val);
+      }
+      else if(!attr.compare("data"))
+      {
+          std::size_t pos = val.find("/");
+          if(pos == std::string::npos)
+          {
+              return CL_ERR_INVALID_PARAMETER;
+          }
+          std::string key = val.substr(0, pos);
+          std::string value = val.substr(pos + 1);
+
+          if(csi->data_size() == 0)
+          {
+              SAFplus::Rpc::amfMgmtRpc::ComponentServiceInstanceConfig* CSIConfig;
+              ClRcT rc = amfMgmtCSIGetConfig(mgmtHandle, csiName, &CSIConfig);
+              if(rc == CL_OK)
+              {
+                  const int numOfDatas = CSIConfig->data_size();
+                  for(int i = 0; i < numOfDatas; ++i)
+                  {
+                      std::string name = CSIConfig->data(i).name();
+                      std::string val = CSIConfig->data(i).val();
+                      csi->add_data();
+                      SAFplus::Rpc::amfMgmtRpc::Data* data = csi->mutable_data(i);
+                      data->set_name(name);
+                      data->set_val(val);
+                  }
+                  csi->add_data();
+                  SAFplus::Rpc::amfMgmtRpc::Data* data = csi->mutable_data(numOfDatas);
+                  data->set_name(key);
+                  data->set_val(value);
+              }
+              else
+              {
+                  std::cout << "amfMgmtCSIGetConfig failed with error code: " << rc << std::endl;
+                  return rc;
+              }
+          }
+          else
+          {
+              int numMemberData = csi->data_size();
+              csi->add_data();
+              SAFplus::Rpc::amfMgmtRpc::Data* data = csi->mutable_data(numMemberData);
+              data->set_name(key);
+              data->set_val(value);
+          }
       }
       else
       {
@@ -1124,7 +1170,7 @@ BOOST_PYTHON_MODULE(pySAFplus)
   def("updateNode",static_cast< ClRcT (*)(const Handle &, boost::python::list&) > (&updateNode));
   def("updateServiceUnit",static_cast< ClRcT (*)(const Handle &, boost::python::list&) > (&updateServiceUnit));
   def("updateServiceInstance",static_cast< ClRcT (*)(const Handle &, boost::python::list&) > (&updateServiceInstance));
-  def("updateComponentServiceInstance",static_cast< ClRcT (*)(const Handle &, boost::python::list&) > (&updateComponentServiceInstance));
+  def("updateComponentServiceInstance",static_cast< ClRcT (*)(const Handle &, const std::string &, boost::python::list&) > (&updateComponentServiceInstance));
 
   def("addNewComponent",static_cast< ClRcT (*)(const Handle &, const std::string &, const std::string &, const std::string &) > (&addNewComponent));
   def("addNewServiceGroup",static_cast< ClRcT (*)(const Handle &, const std::string &, const std::string &, const std::string &) > (&addNewServiceGroup));
@@ -1139,6 +1185,7 @@ BOOST_PYTHON_MODULE(pySAFplus)
   def("amfMgmtServiceUnitDelete",static_cast< ClRcT (*)(const Handle &, const std::string &) > (&amfMgmtServiceUnitDelete));
   def("amfMgmtServiceInstanceDelete",static_cast< ClRcT (*)(const Handle &, const std::string &) > (&amfMgmtServiceInstanceDelete));
   def("amfMgmtComponentServiceInstanceDelete",static_cast< ClRcT (*)(const Handle &, const std::string &) > (&amfMgmtComponentServiceInstanceDelete));
+  def("amfMgmtCSINVPDelete",static_cast< ClRcT (*)(const Handle &, const std::string &) > (&amfMgmtCSINVPDelete));
   def("amfMgmtNodeSUListDelete",static_cast< ClRcT (*)(const Handle &, const std::string &, boost::python::list &) > (&nodeSUListDelete));
 
   def("amfMgmtSafplusInstallInfoGet",static_cast< std::string (*)(const Handle &, const std::string &) > (&SAFplus::amfMgmtSafplusInstallInfoGet));

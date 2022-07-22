@@ -1095,12 +1095,16 @@ class DataEntryDialog(wx.Dialog):
     def save(self):
         del self.data[:]
         for r in range(0, self.nRows):
+          firstCellInRowText = self.grid.GetCellValue(r,0)
+          if firstCellInRowText == "":
+            break
           d = {}
           for c in range(0, self.nCols):
             text = self.grid.GetCellValue(r,c)
-            if c == self.key and len(text)==0:
+            if c == self.key and len(text)==0 and text=="":
               break
-            d[self.grid.GetColLabelValue(c)] = text
+            else:
+              d[self.grid.GetColLabelValue(c)] = text
           if len(d)>0:
             self.data.append(d)
  
