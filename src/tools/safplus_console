@@ -1352,7 +1352,7 @@ By default the specified location and children are shown.  Use -N to specify how
     - entityCreate Node entityName suName
     - entityCreate ServiceUnit entityName compName sgName nodeName
     - entityCreate ServiceInstance entityName sgName csiName
-    - entityCreate ComponentServiceInstance entityName siName ipName ipValue portName portValue
+    - entityCreate ComponentServiceInstance entityName siName key/value
     Creates a new entityName with the specified entityType
     """
     global amfMgmtHandle
@@ -1385,8 +1385,10 @@ By default the specified location and children are shown.  Use -N to specify how
           else:
             ret = "SIErr"
         elif entityType == "ComponentServiceInstance":
-          if len(args) == 5:
-            ret = access.addNewComponentServiceInstance(amfMgmtHandle, entityName, args[0], args[1], args[2], args[3], args[4])
+          if len(args) >= 1:
+            siName = args[0]
+            listArg = list(args[1:])
+            ret = access.addNewComponentServiceInstance(amfMgmtHandle, entityName, siName, listArg)
           else:
             ret = "CSIErr"
         else:

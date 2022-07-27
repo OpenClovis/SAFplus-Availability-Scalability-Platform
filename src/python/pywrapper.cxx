@@ -450,19 +450,28 @@ ClRcT addNewServiceInstance(const SAFplus::Handle& mgmtHandle, const std::string
   return rc;
 }
 
-ClRcT addNewComponentServiceInstance(const SAFplus::Handle& mgmtHandle, const std::string & csiName, const std::string & siName, const std::string & ipName = "ip", const std::string & ipValue = "192.168.65.111", const std::string & portName = "port", const std::string & portValue = "35678")
+ClRcT addNewComponentServiceInstance(const SAFplus::Handle& mgmtHandle, const std::string & csiName, const std::string & siName, boost::python::list & listData)
 {
   SAFplus::Rpc::amfMgmtRpc::ComponentServiceInstanceConfig* csi = new SAFplus::Rpc::amfMgmtRpc::ComponentServiceInstanceConfig();
   csi->set_name(csiName.c_str());
   csi->set_serviceinstance(siName.c_str(), strlen(siName.c_str()));
-  csi->add_data();
-  //Fill data
-  SAFplus::Rpc::amfMgmtRpc::Data* data = csi->mutable_data(0);
-  data->set_name(ipName.c_str());
-  data->set_val(ipValue.c_str());
-  data = csi->mutable_data(1);
-  data->set_name(portName.c_str());
-  data->set_val(portValue.c_str());
+
+  ssize_t len = boost::python::len(listData);
+  for(int index = 0; index < len; ++index)
+  {
+      std::string strKeyValue = boost::python::extract<std::string>(listData[index]);
+      std::size_t pos = strKeyValue.find("/");
+      if(pos == std::string::npos)
+      {
+          return CL_ERR_INVALID_PARAMETER;
+      }
+      std::string key = strKeyValue.substr(0, pos);
+      std::string value = strKeyValue.substr(pos + 1);
+      csi->add_data();
+      SAFplus::Rpc::amfMgmtRpc::Data* data = csi->mutable_data(index);
+      data->set_name(key.c_str());
+      data->set_val(value.c_str());
+  }
   ClRcT rc = SAFplus::amfMgmtComponentServiceInstanceCreate(mgmtHandle,csi);
   return rc;
 }
@@ -1177,7 +1186,7 @@ BOOST_PYTHON_MODULE(pySAFplus)
   def("addNewNode",static_cast< ClRcT (*)(const Handle &, const std::string &, const std::string &) > (&addNewNode));
   def("addNewServiceUnit",static_cast< ClRcT (*)(const Handle &, const std::string &, const std::string &, const std::string &, const std::string &) > (&addNewServiceUnit));
   def("addNewServiceInstance",static_cast< ClRcT (*)(const Handle &, const std::string &, const std::string &, const std::string &) > (&addNewServiceInstance));
-  def("addNewComponentServiceInstance",static_cast< ClRcT (*)(const Handle &, const std::string &, const std::string &, const std::string &, const std::string &, const std::string &, const std::string &) > (&addNewComponentServiceInstance));
+  def("addNewComponentServiceInstance",static_cast< ClRcT (*)(const Handle &, const std::string &, const std::string &, boost::python::list&) > (&addNewComponentServiceInstance));
 
   def("amfMgmtComponentDelete",static_cast< ClRcT (*)(const Handle &, const std::string &) > (&amfMgmtComponentDelete));
   def("amfMgmtServiceGroupDelete",static_cast< ClRcT (*)(const Handle &, const std::string &) > (&amfMgmtServiceGroupDelete));
