@@ -1433,6 +1433,9 @@ By default the specified location and children are shown.  Use -N to specify how
         elif entityType == "ServiceInstance":
           ret = access.amfMgmtServiceInstanceDelete(amfMgmtHandle, entityName)
         elif entityType == "ComponentServiceInstance":
+          ret = access.amfMgmtCSIGetConfig(amfMgmtHandle, entityName)
+          if "data" in ret:
+            ret = access.amfMgmtCSINVPDelete(amfMgmtHandle, entityName)
           ret = access.amfMgmtComponentServiceInstanceDelete(amfMgmtHandle, entityName)
         elif entityType == "CSINVP":
           ret = access.amfMgmtCSINVPDelete(amfMgmtHandle, entityName)
