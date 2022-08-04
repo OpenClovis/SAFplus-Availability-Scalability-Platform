@@ -3,6 +3,8 @@
 #include <boost/unordered_map.hpp>
 #include <SAFplusAmf/AdministrativeState.hxx>
 #include <SAFplusAmf/HighAvailabilityState.hxx>
+#include <clThreadApi.hxx>
+
 namespace SAFplusAmf
   {
   class Component;
@@ -86,6 +88,7 @@ namespace SAFplus
       PendingWorkOperationMap pendingWorkOperations;
       Fault fault;
       //bool nodeGracefulSwitchover;
+      SAFplus::ProcSem mutex;
 
       AmfOperations()
       {
@@ -97,6 +100,7 @@ namespace SAFplus
         invocation <<= 32;  // TODO: should checkpointed value be used?
         //fault.init();
         //nodeGracefulSwitchover = false;
+        mutex.init("MgtObject",1);
       }
 
   public:  // Public API

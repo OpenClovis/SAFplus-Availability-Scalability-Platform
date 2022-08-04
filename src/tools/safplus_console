@@ -2190,11 +2190,11 @@ def AmfCreateApp(suffix, compList, nodes, appDir=None, cfg=None, amfMasterHdl=No
       print('cfg is invalid, AmfCreateApp failed with error code [%s]'% hex(ret))
       return ret
 
-  entities["ServiceGroup/%s" % sg] = { "adminState":"off", "serviceInstances" :  "safplusAmf/ServiceInstance/ServiceInstance_%s" % suffix}
+  entities["ServiceGroup/%s" % sg] = { "adminState":"off", "serviceInstances" :  "ServiceInstance_%s" % suffix}
 
-  entities["ServiceInstance/ServiceInstance_%s" % suffix] = { "serviceGroup": sg, "componentServiceInstances" :"safplusAmf/ComponentServiceInstance/ComponentServiceInstance_%s" % suffix }
+  entities["ServiceInstance/ServiceInstance_%s" % suffix] = { "serviceGroup": sg, "componentServiceInstances" :"ComponentServiceInstance_%s" % suffix }
 
-  entities["ComponentServiceInstance/ComponentServiceInstance_%s" % suffix] ={ "serviceInstance": "safplusAmf/ServiceInstance/ServiceInstance_%s" % suffix, "name/testKey" : "testVal", "type" : "ComponentServiceInstance_%s" % suffix }
+  entities["ComponentServiceInstance/ComponentServiceInstance_%s" % suffix] ={ "serviceInstance": "ServiceInstance_%s" % suffix, "name/testKey" : "testVal", "type" : "ComponentServiceInstance_%s" % suffix }
 
   entities["ServiceGroup/%s" % sg] = Modifiers2Sg(paramsSG, entities["ServiceGroup/%s" % sg])
   entities["ServiceInstance/ServiceInstance_%s" % suffix] = RedundancyModel2Si(paramsSI, entities["ServiceInstance/ServiceInstance_%s" % suffix])

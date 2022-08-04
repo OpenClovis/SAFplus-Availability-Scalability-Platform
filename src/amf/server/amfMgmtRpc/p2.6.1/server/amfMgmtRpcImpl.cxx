@@ -1114,16 +1114,34 @@ namespace amfMgmtRpc {
     {
       return CL_ERR_INVALID_PARAMETER;      
     }
-    rc = cfg.safplusAmf.componentList.deleteObj(compName);    
+    SAFplusAmf::Component* comp = dynamic_cast<SAFplusAmf::Component*>(cfg.safplusAmf.componentList[compName]);
+    SAFplusAmf::ServiceUnit* su = NULL;
+    if (comp)
+    {
+       su = comp->serviceUnit.value;
+    }
+    else
+    {
+       logError("MGMT","RPC", "su obj for comp [%s] not found", compName.c_str());
+    }
+    ScopedLock<ProcSem> lock(amfOpsMgmt->mutex);
+    rc = cfg.safplusAmf.componentList.deleteObj(compName);
     if (rc != CL_OK)
     {
        logError("MGMT","RPC", "delete comp name [%s] failed, rc [0x%x]", compName.c_str(),rc);
        return rc;
     }
     rc = deleteEntityFromDatabase("/safplusAmf", "Component",  compName, "components");
-    if (rc != CL_OK)
+    if (rc != CL_OK) {       
        logError("MGMT","RPC", "delete comp name [%s] failed, rc [0x%x]", compName.c_str(),rc);
-   
+       return rc;
+    }
+    if (su)
+    {
+       logDebug("MGMT","RPC", "read for su [%s]",su->name.value.c_str());
+       su->read();
+    }
+    
     return rc;
   }
 
@@ -1916,6 +1934,19 @@ namespace amfMgmtRpc {
     {
       return CL_ERR_INVALID_PARAMETER;
     }
+    SAFplusAmf::ServiceUnit* su = dynamic_cast<SAFplusAmf::ServiceUnit*>(cfg.safplusAmf.serviceUnitList[suName]);
+    SAFplusAmf::ServiceGroup* sg = NULL;
+    SAFplusAmf::Node* node = NULL;
+    if (su)
+    {
+       sg = su->serviceGroup.value;
+       node = su->node.value;
+    }
+    else
+    {
+       logError("MGMT","RPC", "sg obj for su [%s] not found", suName.c_str());
+    }
+    ScopedLock<ProcSem> lock(amfOpsMgmt->mutex);
     rc = cfg.safplusAmf.serviceUnitList.deleteObj(suName);
     if (rc != CL_OK)
     {
@@ -1923,8 +1954,18 @@ namespace amfMgmtRpc {
        return rc;
     }
     rc = deleteEntityFromDatabase("/safplusAmf", "ServiceUnit",  suName, "serviceUnits");
-    if (rc != CL_OK)
+    if (rc != CL_OK) {
        logError("MGMT","RPC", "delete su name [%s] failed, rc [0x%x]", suName.c_str(),rc);
+       return rc;
+    }
+    if (sg) {
+       logDebug("MGMT","RPC", "read for sg [%s]",sg->name.value.c_str());
+       sg->read();
+    }
+    if (node) {
+       logDebug("MGMT","RPC", "read for node [%s]", node->name.value.c_str());
+       node->read();
+    }
     return rc;
   }
 
@@ -1936,6 +1977,7 @@ namespace amfMgmtRpc {
     {
       return CL_ERR_INVALID_PARAMETER;      
     }
+    ScopedLock<ProcSem> lock(amfOpsMgmt->mutex);
     rc = cfg.safplusAmf.serviceGroupList.deleteObj(sgName);
     if (rc != CL_OK)
     {
@@ -1956,6 +1998,7 @@ namespace amfMgmtRpc {
     {
       return CL_ERR_INVALID_PARAMETER;      
     }
+    ScopedLock<ProcSem> lock(amfOpsMgmt->mutex);
     rc = cfg.safplusAmf.nodeList.deleteObj(nodeName);
     if (rc != CL_OK)
     {
@@ -2065,6 +2108,17 @@ namespace amfMgmtRpc {
     {
       return CL_ERR_INVALID_PARAMETER;      
     }
+    SAFplusAmf::ServiceInstance* si = dynamic_cast<SAFplusAmf::ServiceInstance*>(cfg.safplusAmf.serviceInstanceList[siName]);
+    SAFplusAmf::ServiceGroup* sg = NULL;
+    if (si)
+    {
+       sg = si->serviceGroup.value;
+    }
+    else
+    {
+       logError("MGMT","RPC", "sg obj for si [%s] not found", siName.c_str());
+    }
+    ScopedLock<ProcSem> lock(amfOpsMgmt->mutex);
     rc = cfg.safplusAmf.serviceInstanceList.deleteObj(siName);
     if (rc != CL_OK)
     {
@@ -2072,8 +2126,15 @@ namespace amfMgmtRpc {
        return rc;
     }
     rc = deleteEntityFromDatabase("/safplusAmf", "ServiceInstance",  siName, "serviceInstances");
-    if (rc != CL_OK)
+    if (rc != CL_OK) {
        logError("MGMT","RPC", "delete si name [%s] failed, rc [0x%x]",siName.c_str(),rc);
+       return rc;
+    }
+    if (sg) {
+       logDebug("MGMT","RPC", "read for sg [%s]",sg->name.value.c_str());
+       sg->read();
+    }
+
     return rc;
   }
 
@@ -2168,6 +2229,17 @@ namespace amfMgmtRpc {
     {
       return CL_ERR_INVALID_PARAMETER;      
     }
+    SAFplusAmf::ComponentServiceInstance* csi = dynamic_cast<SAFplusAmf::ComponentServiceInstance*>(cfg.safplusAmf.componentServiceInstanceList[csiName]);
+    SAFplusAmf::ServiceInstance* si = NULL;
+    if (si)
+    {
+       si = csi->serviceInstance.value;
+    }
+    else
+    {
+       logError("MGMT","RPC", "si obj for csi [%s] not found", csiName.c_str());
+    }
+    ScopedLock<ProcSem> lock(amfOpsMgmt->mutex);
     rc = cfg.safplusAmf.componentServiceInstanceList.deleteObj(csiName);
     if (rc != CL_OK)
     {
@@ -2175,8 +2247,14 @@ namespace amfMgmtRpc {
        return rc;
     }
     rc = deleteEntityFromDatabase("/safplusAmf", "ComponentServiceInstance",  csiName, "componentServiceInstances");
-    if (rc != CL_OK)
+    if (rc != CL_OK) {
        logError("MGMT","RPC", "delete csi name [%s] failed, rc [0x%x]",csiName.c_str(),rc);
+       return rc;
+    }
+    if (si) {
+       logDebug("MGMT","RPC", "read for si [%s]",si->name.value.c_str());
+       si->read();
+    }
     return rc;
   }
 
@@ -2188,7 +2266,7 @@ namespace amfMgmtRpc {
     {
       return CL_ERR_INVALID_PARAMETER;      
     }
-    //rc = cfg.safplusAmf.componentServiceInstanceList.deleteObj(siName);    
+    ScopedLock<ProcSem> lock(amfOpsMgmt->mutex);
     SAFplusAmf::ComponentServiceInstance* csi = dynamic_cast<SAFplusAmf::ComponentServiceInstance*>(cfg.safplusAmf.componentServiceInstanceList[csiName]);
     if (csi == NULL)
     {
@@ -2731,6 +2809,7 @@ namespace amfMgmtRpc {
       if (rc2 == CL_OK)
       {
         logInfo("MGMT","RPC","read the DB to reflect the changes");
+        ScopedLock<ProcSem> lock(amfOpsMgmt->mutex);
         cfg.read(&amfDb);
         if (CL_GET_ERROR_CODE(rc)==CL_ERR_NOT_EXIST)
         {

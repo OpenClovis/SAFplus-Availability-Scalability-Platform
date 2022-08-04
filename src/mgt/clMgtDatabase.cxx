@@ -296,8 +296,8 @@ namespace SAFplus
         if (((rc = getRecord(xpath, val, &childs)))!= CL_OK) // xpathToDelete: /safplusAmf/ServiceUnit[@name="ServiceUnit_ServiceGroupTest_0"]
                                                              // /safplusAmf/Node[@name="Node11"]/serviceUnits[2]] -> [ServiceUnit_ServiceGroupTest_0]        
         {
-           logError("MGT","DEL.REFS","get record with xpath [%s] fail rc=0x%x", xpath.c_str(), rc);
-           return rc;
+           logWarning("MGT","DEL.REFS","get record with xpath [%s] fail rc=0x%x", xpath.c_str(), rc);
+           continue;
         }
         std::string searchedStr(entityListName);
         searchedStr.append("?$");

@@ -395,10 +395,12 @@ class NplusMPolicy:public ClAmfPolicyPlugin_1
       assert(root);
       SAFplusAmfModule* cfg = (SAFplusAmfModule*) root;
       MgtObject::Iterator it;
+      ScopedLock<ProcSem> lock(amfOps->mutex);
       for (it = cfg->safplusAmf.serviceGroupList.begin();it != cfg->safplusAmf.serviceGroupList.end(); it++)
       {
           startSg=false;
           ServiceGroup* sg = dynamic_cast<ServiceGroup*> (it->second);
+          if (!sg) continue;
           const std::string& name = sg->name;
 
           // TODO: figure out if this Policy should control this Service group
@@ -1005,6 +1007,7 @@ class NplusMPolicy:public ClAmfPolicyPlugin_1
       SAFplusAmfModule* cfg = (SAFplusAmfModule*) root;
 
       MgtObject::Iterator it;
+      ScopedLock<ProcSem> lock(amfOps->mutex);
       for (it = cfg->safplusAmf.serviceGroupList.begin();it != cfg->safplusAmf.serviceGroupList.end(); it++)
       {
           ServiceGroup* sg = dynamic_cast<ServiceGroup*> (it->second);
@@ -1077,9 +1080,9 @@ class NplusMPolicy:public ClAmfPolicyPlugin_1
                   for (itcomp = su->components.begin(); itcomp != endcomp; itcomp++)
                   {
                       Component* comp = dynamic_cast<Component*>(itcomp->second);
-                      if (comp->compProperty.value == SAFplusAmf::CompProperty::proxied_preinstantiable &&
+                      if (!comp || (comp->compProperty.value == SAFplusAmf::CompProperty::proxied_preinstantiable &&
                               !comp->launched &&
-                              amfOps->suContainsSaAwareComp(su))
+                              amfOps->suContainsSaAwareComp(su)))
                       {
                           //Don't count proxied preinstantiable because it must be instantiated after its proxy gets assignment
                           continue;

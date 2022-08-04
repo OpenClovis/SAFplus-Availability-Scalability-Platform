@@ -210,7 +210,7 @@ namespace SAFplus
   }
   void MgtContainer::removeAllChildren()
   {
-    for (Map::iterator it = children.begin(); it != children.end(); ++it)
+    for (Map::iterator it = children.begin(); it != children.end(); )
     {
       if (nullptr != it->second)
       {
@@ -221,7 +221,7 @@ namespace SAFplus
           it->second = nullptr;
         }
       }
-      children.erase(it);
+      it = children.erase(it);
     }
   }
   ClRcT MgtContainer::addChildObject(MgtObject *mgtObject, const char* objectName)

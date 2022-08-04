@@ -299,7 +299,7 @@ public:
       mgtRoot->addReference(this);
       dataXPath.assign(key);
       loadDb = true;
-
+      updateReference();
       return CL_OK;
     }
 
