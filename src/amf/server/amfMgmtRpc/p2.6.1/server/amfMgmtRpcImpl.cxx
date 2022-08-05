@@ -2258,7 +2258,7 @@ namespace amfMgmtRpc {
     return rc;
   }
 
-  ClRcT csiNVPDeleteCommit(const std::string& csiName)
+  ClRcT csiNVPDeleteCommit(const std::string& csiName, SAFplus::Rpc::amfMgmtRpc::Data* dataToDelete)
   {
     ClRcT rc = CL_OK;
     logDebug("MGMT","RPC", "server is processing [%s] for entity [%s]", __FUNCTION__, csiName.c_str());
@@ -2278,9 +2278,12 @@ namespace amfMgmtRpc {
     std::vector<std::string> keys;
     for (it = csi->dataList.begin(); it != csi->dataList.end(); it++)
     {
-      SAFplusAmf::Data* kv =  dynamic_cast<SAFplusAmf::Data*>(it->second); 
-      logDebug("MGMT","RPC", "storing key [%s] to vector", kv->name.value.c_str());
-      keys.push_back(kv->name.value);
+      SAFplusAmf::Data* kv =  dynamic_cast<SAFplusAmf::Data*>(it->second);
+      if(!dataToDelete->name().compare("") || !kv->name.value.compare(dataToDelete->name())) //if name from request is "" then delete all
+      {
+        logDebug("MGMT","RPC", "storing key [%s] to vector", kv->name.value.c_str());
+        keys.push_back(kv->name.value);
+      }
     }
     std::vector<std::string>::iterator itKey;
     for (itKey = keys.begin(); itKey != keys.end(); itKey++)
@@ -2642,7 +2645,7 @@ namespace amfMgmtRpc {
         strRequestData.assign((ClCharT*)recData, dataSize);
         request.ParseFromString(strRequestData);        
         logDebug("MGMT","COMMIT","handleCommit op [%d], entity [%s]", op, request.name().c_str());
-        rc = csiNVPDeleteCommit(request.name());
+        rc = csiNVPDeleteCommit(request.name(), request.mutable_data(0));
         break;
       }
     case AMF_MGMT_OP_NODE_SU_LIST_DELETE:

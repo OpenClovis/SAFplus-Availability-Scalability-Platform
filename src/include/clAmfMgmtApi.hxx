@@ -33,7 +33,7 @@ ClRcT amfMgmtComponentServiceInstanceCreate(const Handle& mgmtHandle, SAFplus::R
 ClRcT amfMgmtComponentServiceInstanceConfigSet(const Handle& mgmtHandle, SAFplus::Rpc::amfMgmtRpc::ComponentServiceInstanceConfig* csi);
 ClRcT amfMgmtComponentServiceInstanceDelete(const Handle& mgmtHandle, const std::string& csiName);
 
-ClRcT amfMgmtCSINVPDelete(const Handle& mgmtHandle, const std::string& csiName);
+ClRcT amfMgmtCSINVPDelete(const Handle& mgmtHandle, const std::string& csiName, const std::string& keyName);
 ClRcT amfMgmtNodeSUListDelete(const Handle& mgmtHandle, const std::string& nodeName, const std::vector<std::string>& suNames);
 ClRcT amfMgmtSGSUListDelete(const Handle& mgmtHandle, const std::string& sgName, const std::vector<std::string>& suNames);
 ClRcT amfMgmtSGSIListDelete(const Handle& mgmtHandle, const std::string& sgName, const std::vector<std::string>& siNames);

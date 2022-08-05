@@ -1414,7 +1414,7 @@ By default the specified location and children are shown.  Use -N to specify how
       print ("error: ", e)
     return "entityCreate failed"
 
-  def do_entityDelete(self, entityType, entityName):
+  def do_entityDelete(self, entityType, entityName, *args):
     """syntax: entityDelete entityType entityName
     Deletes the entityNames
     """
@@ -1435,10 +1435,15 @@ By default the specified location and children are shown.  Use -N to specify how
         elif entityType == "ComponentServiceInstance":
           ret = access.amfMgmtCSIGetConfig(amfMgmtHandle, entityName)
           if "data" in ret:
-            ret = access.amfMgmtCSINVPDelete(amfMgmtHandle, entityName)
+            ret = access.amfMgmtCSINVPDelete(amfMgmtHandle, entityName, "")
           ret = access.amfMgmtComponentServiceInstanceDelete(amfMgmtHandle, entityName)
         elif entityType == "CSINVP":
-          ret = access.amfMgmtCSINVPDelete(amfMgmtHandle, entityName)
+          if len(args) == 1:
+            ret = access.amfMgmtCSINVPDelete(amfMgmtHandle, entityName, args[0])
+          elif len(args) == 0:
+            ret = access.amfMgmtCSINVPDelete(amfMgmtHandle, entityName, "")
+          else:
+            ret = "TypeErr"
         else:
           print("Invalid entity type, valid entity types are Component, ServiceGroup, Node, ServiceUnit, ServiceInstance and ComponentServiceInstance")
           ret = "TypeErr"
@@ -2166,6 +2171,17 @@ def RedundancyModel2Si(params=None, entities={}):
         entities["rank"] = params.get("rank",None)
   return entities
 
+def Data2Csi(params=None, entities={}):
+  if params is not None:
+    entities["data"] = {}
+    dataDict = entities["data"]
+    for (key, val) in params.items():
+      kvDict = {"name": key, "val": val}
+      data = {key: kvDict}
+
+      dataDict.update(data)
+  return entities
+
 def AmfCreateApp(suffix, compList, nodes, appDir=None, cfg=None, amfMasterHdl=None):
   sg = "ServiceGroup_%s" % suffix
   if appDir == None or appDir == "None":
@@ -2188,6 +2204,7 @@ def AmfCreateApp(suffix, compList, nodes, appDir=None, cfg=None, amfMasterHdl=No
       cfg = Dot(cfg)
       paramsSG = cfg.get("modifiers",None)
       paramsSI = cfg.get("redundancyModel",None)
+      paramsCSI = cfg.get("data",None)
     else:
       ret = 0x02
       print('cfg is invalid, AmfCreateApp failed with error code [%s]'% hex(ret))
@@ -2201,6 +2218,7 @@ def AmfCreateApp(suffix, compList, nodes, appDir=None, cfg=None, amfMasterHdl=No
 
   entities["ServiceGroup/%s" % sg] = Modifiers2Sg(paramsSG, entities["ServiceGroup/%s" % sg])
   entities["ServiceInstance/ServiceInstance_%s" % suffix] = RedundancyModel2Si(paramsSI, entities["ServiceInstance/ServiceInstance_%s" % suffix])
+  entities["ComponentServiceInstance/ComponentServiceInstance_%s" % suffix] = Data2Csi(paramsCSI, entities["ComponentServiceInstance/ComponentServiceInstance_%s" % suffix])
 
   count = 0
   sus = []

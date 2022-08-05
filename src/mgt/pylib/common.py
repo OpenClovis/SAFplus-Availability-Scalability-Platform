@@ -56,3 +56,5 @@ def writeFile(filename,data):
   
 def Log(s,severity="INFO"):
   print ("\n%s\n" % str(s))
+
+refreshClick =  { "5 sec" : 5000,"10 sec" : 10000,"30 sec" : 30000, "1 min" : 60000, "OFF" : 7*24*60*60*1000}

@@ -292,8 +292,17 @@ def getInformationOfEntity(entityType, entityName):
         print ("<error>xml [%s] error [%s]</error>" % (xml, str(e)))
         return ""
     initObject = initialObject()
+    kvpairs = {}
     for child in root:
         if child.text == None:
+            if child.tag == "data":
+                tagAtrr = child.attrib
+                attrValues = list(tagAtrr.values()) # view obj to list
+                key = attrValues[0]
+                kvpair = parseKvpair(t+"/data/"+key)
+                kvpairs.update(kvpair)
+                continue
+
             t1 = os.path.normpath(os.path.join("/safplusAmf",entityType,entityName,child.tag))
             depth1=1
             gs1 = "{d=%s}%s" % (depth1,str(t1))
@@ -307,8 +316,25 @@ def getInformationOfEntity(entityType, entityName):
                 setattr(initObject, child.tag, child.text)
 
     initObject.entityType = entityType
+    initObject.data = kvpairs
 
     return initObject
+
+def parseKvpair(dataPath):
+    depth=1
+    gs = "{d=%s}%s" % (depth,str(dataPath))
+    xml = access.mgtGet(handle, gs)
+
+    regexp = '<name>(.*?)</name><val>(.*?)</val>'
+    pairs = re.findall(regexp, xml)
+    try:
+        (key, val) = pairs[0]
+        kvpair = {key: val}
+    except KeyError as e:
+        print("Malformed data tag.")
+        kvpair = {}
+    
+    return kvpair
 
 def getDependentEntites(entity):
     ret = []
@@ -316,23 +342,23 @@ def getDependentEntites(entity):
 
     #if a child entity got deleted, it's name in parent's attr will be replaced with "?", ignore it.
     if entity.entityType == "Node":
-        suNames = entity.serviceUnits.split(", ")
+        suNames = [] if entity.serviceUnits == "" else entity.serviceUnits.split(", ")
         entities = [getInformationOfEntity("ServiceUnit", suName) for suName in suNames if suName != "?"]
 
     elif entity.entityType == "ServiceGroup":
-        suNames = entity.serviceUnits.split(", ")
-        siNames = entity.serviceInstances.split(", ")
-        print(suNames)
+        suNames = [] if entity.serviceUnits == "" else entity.serviceUnits.split(", ")
+        siNames = [] if entity.serviceInstances == "" else entity.serviceInstances.split(", ")
+
         entities += [getInformationOfEntity("ServiceUnit", suName) for suName in suNames if suName != "?"]
         entities += [getInformationOfEntity("ServiceInstance", siName) for siName in siNames if siName != "?"]
 
     elif entity.entityType == "ServiceUnit":
-        compNames = entity.components.split(", ")
+        compNames = [] if entity.components == "" else entity.components.split(", ")
 
         entities = [getInformationOfEntity("Component", compName) for compName in compNames if compName != "?"]
 
     elif entity.entityType == "ServiceInstance":
-        csiNames = entity.componentServiceInstances.split(", ")
+        csiNames = [] if entity.componentServiceInstances == "" else entity.componentServiceInstances.split(", ")
 
         entities = [getInformationOfEntity("ComponentServiceInstance", csiName) for csiName in csiNames if csiName != "?"]
 
@@ -451,6 +477,7 @@ class initialObject:
         self.associatedData = ""
         self.app = None # stores app object corresponding to deployed SGs
         self.appVer = None # stores appFile object
+        self.data = {} # key/val dict
 
     def setIntraclusterAccess(self):
         print ('get install info')
@@ -592,13 +619,68 @@ class initialObject:
 
         return nodeEntities
 
+    def getAllServiceInstances(self):
+        # works for SG
+        siNames = [] if self.serviceInstances == "" else self.serviceInstances.split(", ")
+
+        siEntities = []
+        for siName in siNames:
+            siEntity = getInformationOfEntity("ServiceInstance", siName) if siName != "?" else None
+
+            if siEntity:
+                siEntities.append(siEntity)
+
+        return siEntities
+
+    def getAllCSIs(self):
+        # works for SI
+        csiNames = [] if self.componentServiceInstances == "" else self.componentServiceInstances.split(", ")
+
+        csiEntities = []
+        for csiName in csiNames:
+            siEntity = getInformationOfEntity("ComponentServiceInstance", csiName) if csiName != "?" else None
+
+            if siEntity:
+                csiEntities.append(siEntity)
+
+        return csiEntities
+
     def getActiveSu(self):
-        suNames = [] if self.serviceUnits == "" else self.serviceUnits.split(", ")
+        suNames = [] if self.serviceUnits == "" else self.serviceUnits.split(", ")  # for SG
+        suNames += [] if self.activeAssignments == "" else self.activeAssignments.split(", ")   # for SI
 
         for suName in suNames:
             suEntity = getInformationOfEntity("ServiceUnit", suName) if suName != "?" else None
             if suEntity and suEntity.haState == "active":
                 return suEntity
+        return None
+
+    def getStandbySu(self):
+        suNames = [] if self.serviceUnits == "" else self.serviceUnits.split(", ")
+        suNames += [] if self.standbyAssignments == "" else self.standbyAssignments.split(", ")
+
+        for suName in suNames:
+            suEntity = getInformationOfEntity("ServiceUnit", suName) if suName != "?" else None
+            if suEntity and suEntity.haState == "standby":
+                return suEntity
+        return None
+
+    def getActiveNode(self):
+        activeSU = self.getActiveSu()
+
+        if activeSU:
+            activeNode = getInformationOfEntity("Node", activeSU.node)
+            return activeNode
+
+        return None
+
+    def getStandbyNode(self):
+        standbySU = self.getStandbySu()
+
+        if standbySU:
+            standbyNode = getInformationOfEntity("Node", standbySU.node)
+            return standbyNode
+
         return None
 
 ci = ClusterInfo()

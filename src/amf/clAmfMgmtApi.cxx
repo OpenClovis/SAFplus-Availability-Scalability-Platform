@@ -512,7 +512,7 @@ ClRcT amfMgmtComponentServiceInstanceDelete(const Handle& mgmtHandle, const std:
    return rc;
 }
 
-ClRcT amfMgmtCSINVPDelete(const Handle& mgmtHandle, const std::string& csiName)
+ClRcT amfMgmtCSINVPDelete(const Handle& mgmtHandle, const std::string& csiName, const std::string& keyName)
 {
   if (!gAmfMgmtInitialized)
    {
@@ -522,6 +522,11 @@ ClRcT amfMgmtCSINVPDelete(const Handle& mgmtHandle, const std::string& csiName)
    SAFplus::Rpc::amfMgmtRpc::DeleteCSINVPRequest request;
    request.add_amfmgmthandle((const char*) &mgmtHandle, sizeof(Handle));
    request.set_name(csiName);
+
+   request.add_data();
+   SAFplus::Rpc::amfMgmtRpc::Data* data = request.mutable_data(0);
+   data->set_name(keyName);
+   data->set_val("");
    try
     {
       Handle& remoteAmfHdl = name.getHandle(AMF_MASTER_HANDLE, 2000);
